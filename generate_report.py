@@ -2,7 +2,7 @@
 """
 Daily Stock Squeeze Report Generator
 Identifies top 10 short squeeze candidates from US markets.
-Data sources: Finviz (screener) + Yahoo Finance / yfinance (prices, news).
+Data sources: Yahoo Finance Screener (primary) + Finviz (fallback) + yfinance (enrichment).
 """
 
 import os
@@ -79,12 +79,90 @@ def _parse_float(s: str) -> float:
         return 0.0
 
 
+# ===========================================================================
+# 1a. YAHOO FINANCE SCREENER  (primary — works reliably from GitHub Actions)
+# ===========================================================================
+
+def get_yahoo_screener_candidates() -> list[dict]:
+    """
+    Fetch a pool of high-short-interest tickers via yfinance Screener.
+    We collect a broad pool here; all strict filters (short_float, rel_volume,
+    market cap) are applied precisely in the yfinance enrichment step.
+    """
+    result: list[dict] = []
+    seen:   set[str]   = set()
+
+    def _add_quotes(quotes: list) -> None:
+        for q in quotes:
+            t = q.get("symbol", "").strip().upper()
+            if not t or not t.replace(".", "").isalpha() or t in seen:
+                continue
+            price   = float(q.get("regularMarketPrice") or 0)
+            mkt_cap = q.get("marketCap") or q.get("intradayMarketCap")
+            if price < MIN_PRICE:
+                continue
+            if mkt_cap and float(mkt_cap) > MAX_MARKET_CAP:
+                continue
+            seen.add(t)
+            # shortPercentOfFloat from Yahoo is a decimal (0.25 = 25 %)
+            sf_raw = float(q.get("shortPercentOfFloat") or 0)
+            result.append({
+                "ticker":       t,
+                "market_cap":   float(mkt_cap) if mkt_cap else None,
+                "market_cap_s": fmt_cap(mkt_cap),
+                "price":        price,
+                "change":       float(q.get("regularMarketChangePercent") or 0),
+                "short_float":  sf_raw * 100 if sf_raw <= 1.0 else sf_raw,
+                "short_ratio":  float(q.get("shortRatio") or 0),
+                "rel_volume":   0.0,   # filled from history in enrichment
+                "company_name": q.get("shortName") or q.get("longName") or t,
+                "sector":       q.get("sector") or "N/A",
+            })
+
+    # ── Attempt 1: predefined "most shorted stocks" body ──────────────────
+    try:
+        sq = yf.Screener()
+        sq.set_predefined_body("most_shorted_stocks")
+        resp = sq.response or {}
+        _add_quotes(resp.get("quotes", []))
+        log.info("Yahoo predefined screener: %d candidates so far", len(result))
+    except Exception as exc:
+        log.warning("Yahoo predefined screener error: %s", exc)
+
+    # ── Attempt 2: custom body for broader small/mid-cap coverage ─────────
+    if len(result) < 30:
+        try:
+            sq2 = yf.Screener()
+            sq2.set_body({
+                "offset": 0,
+                "size": 100,
+                "sortField": "shortpercent",
+                "sortType": "DESC",
+                "quoteType": "EQUITY",
+                "topOperator": "AND",
+                "query": {
+                    "operator": "AND",
+                    "operands": [
+                        {"operator": "gt",   "operands": ["regularMarketPrice", MIN_PRICE]},
+                        {"operator": "lt",   "operands": ["intradaymarketcap",  MAX_MARKET_CAP]},
+                        {"operator": "gt",   "operands": ["intradaymarketcap",  5_000_000]},
+                        {"operator": "gt",   "operands": ["shortpercent",       0.10]},
+                    ],
+                },
+            })
+            before = len(result)
+            _add_quotes((sq2.response or {}).get("quotes", []))
+            log.info("Yahoo custom screener: +%d (total %d)", len(result) - before, len(result))
+        except Exception as exc:
+            log.warning("Yahoo custom screener error: %s", exc)
+
+    return result
+
+
 def get_finviz_candidates(max_pages: int = 6) -> list[dict]:
     """
-    Scrape Finviz Ownership screener (v=141).
-    Filters applied here: Short Float >15 %, Price >$1.
-    Volume and market-cap filters are applied after.
-    Returns list of candidate dicts.
+    Scrape Finviz Ownership screener (v=141) — fallback when Yahoo screener fails.
+    Note: Finviz may block cloud-runner IPs; use Yahoo screener as primary.
     """
     candidates: list[dict] = []
     col_map: dict[str, int] | None = None
@@ -447,9 +525,10 @@ def _card(i: int, s: dict) -> str:
 def generate_html(stocks: list[dict], report_date: str) -> str:
     cards = "\n".join(_card(i + 1, s) for i, s in enumerate(stocks))
 
-    avg_sf  = sum(s["short_float"] for s in stocks) / len(stocks)
-    avg_sr  = sum(s["short_ratio"]  for s in stocks) / len(stocks)
-    avg_rv  = sum(s["rel_volume"]   for s in stocks) / len(stocks)
+    n       = max(len(stocks), 1)  # guard against ZeroDivisionError
+    avg_sf  = sum(s["short_float"] for s in stocks) / n
+    avg_sr  = sum(s["short_ratio"]  for s in stocks) / n
+    avg_rv  = sum(s["rel_volume"]   for s in stocks) / n
     now_str = datetime.now(ZoneInfo("Europe/Berlin")).strftime("%H:%M Uhr")
 
     return f"""<!DOCTYPE html>
@@ -688,7 +767,35 @@ function showMsg(type, text) {{
 
 
 # ===========================================================================
-# 5. MAIN
+# 5. ERROR PAGE HELPER
+# ===========================================================================
+
+def _write_error_page(report_date: str, message: str) -> None:
+    """Write a minimal error page when no data could be retrieved."""
+    html = f"""<!DOCTYPE html><html lang="de">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Squeeze Report – {report_date}</title>
+<style>
+body{{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+background:#07090f;color:#dde4f5;display:flex;align-items:center;
+justify-content:center;min-height:100vh;margin:0}}
+.box{{background:#111827;border:1px solid #1e2d4a;border-radius:12px;
+padding:36px 44px;max-width:500px;text-align:center}}
+.err{{color:#ef4444;font-size:1.15rem;font-weight:700;margin-bottom:12px}}
+p{{color:#8899bb;font-size:.88rem;line-height:1.65}}
+</style></head>
+<body><div class="box">
+<div class="err">&#9888; Datenabruf fehlgeschlagen</div>
+<p>{message}<br><br>Datum: {report_date}</p>
+</div></body></html>"""
+    os.makedirs("docs", exist_ok=True)
+    with open("docs/index.html", "w", encoding="utf-8") as fh:
+        fh.write(html)
+    log.info("Error page written to docs/index.html")
+
+
+# ===========================================================================
+# 6. MAIN
 # ===========================================================================
 
 def main():
@@ -696,55 +803,68 @@ def main():
     report_date = datetime.now(berlin).strftime("%d.%m.%Y")
     log.info("=== Squeeze Report %s ===", report_date)
 
-    # --- Step 1: Finviz candidates ---
-    log.info("Fetching Finviz screener data …")
-    candidates = get_finviz_candidates(max_pages=6)
+    # --- Step 1: Get candidate pool ---
+    # Primary: Yahoo Finance Screener (reliable from GitHub Actions runners)
+    log.info("Step 1 – Yahoo Finance Screener …")
+    candidates = get_yahoo_screener_candidates()
 
-    if len(candidates) < 5:
-        log.warning(
-            "Only %d candidates found with rel_volume ≥ %.1f×. "
-            "Relaxing volume threshold to 1.0× for fallback.",
-            len(candidates), MIN_REL_VOLUME,
-        )
-        # Fallback: relax volume filter
-        global MIN_REL_VOLUME
-        MIN_REL_VOLUME = 1.0
+    if not candidates:
+        # Fallback: Finviz (may be blocked on cloud IPs, but worth trying)
+        log.warning("Yahoo screener returned 0 results. Trying Finviz as fallback …")
         candidates = get_finviz_candidates(max_pages=6)
 
-    log.info("Total candidates from Finviz: %d", len(candidates))
+    log.info("Candidate pool: %d tickers", len(candidates))
 
-    # Initial score & sort; take top 30 for yfinance enrichment
+    if not candidates:
+        log.error("Both screeners failed. Writing error page.")
+        _write_error_page(report_date,
+            "Screener-Verbindung fehlgeschlagen (Yahoo Finance &amp; Finviz). "
+            "Bitte manuell neu starten.")
+        return
+
+    # Pre-sort by whatever data we have so we enrich the most promising first
     for c in candidates:
         c["score"] = score(c)
     candidates.sort(key=lambda x: x["score"], reverse=True)
-    pool = candidates[:30]
+    pool = candidates[:40]
 
-    # --- Step 2: yfinance enrichment ---
-    log.info("Enriching %d stocks with yfinance …", len(pool))
+    # --- Step 2: yfinance enrichment (all real filtering happens here) ---
+    log.info("Step 2 – Enriching %d candidates with yfinance …", len(pool))
     enriched = []
     for i, c in enumerate(pool):
         t = c["ticker"]
         log.info("  [%d/%d] %s", i + 1, len(pool), t)
         yfd = get_yfinance_data(t)
+
+        # Overwrite with accurate yfinance values
         c.update({
-            "company_name": yfd.get("company_name", t),
-            "sector":       yfd.get("sector", "N/A"),
-            "yf_market_cap":yfd.get("market_cap"),
-            "short_ratio":  yfd.get("short_ratio") or c.get("short_ratio", 0),
-            "52w_high":     yfd.get("52w_high"),
-            "52w_low":      yfd.get("52w_low"),
-            "avg_vol_20d":  yfd.get("avg_vol_20d", 0),
-            "cur_vol":      yfd.get("cur_vol", 0),
+            "company_name":  yfd.get("company_name") or c.get("company_name", t),
+            "sector":        yfd.get("sector") or c.get("sector", "N/A"),
+            "yf_market_cap": yfd.get("market_cap"),
+            "52w_high":      yfd.get("52w_high"),
+            "52w_low":       yfd.get("52w_low"),
+            "avg_vol_20d":   yfd.get("avg_vol_20d", 0),
+            "cur_vol":       yfd.get("cur_vol", 0),
         })
-        # Use yfinance vol ratio if available and better
+        yf_sf = yfd.get("short_float_yf", 0)
+        if yf_sf > 0:
+            c["short_float"] = yf_sf
+        yf_sr = yfd.get("short_ratio", 0)
+        if yf_sr > 0:
+            c["short_ratio"] = yf_sr
         if yfd.get("vol_ratio", 0) > 0:
             c["rel_volume"] = yfd["vol_ratio"]
 
-        # Re-check market cap with yfinance data
+        # Hard filters (now with accurate data)
         cap = c.get("yf_market_cap") or c.get("market_cap")
         if cap and cap > MAX_MARKET_CAP:
-            log.info("  Skipping %s: market cap %s > $10 B", t, fmt_cap(cap))
-            time.sleep(0.3)
+            log.info("    skip %s: cap %s > $10B", t, fmt_cap(cap))
+            time.sleep(0.25)
+            continue
+        if c["short_float"] < MIN_SHORT_FLOAT:
+            log.info("    skip %s: short_float %.1f%% < %.0f%%",
+                     t, c["short_float"], MIN_SHORT_FLOAT)
+            time.sleep(0.25)
             continue
 
         c["score"] = score(c)
@@ -752,28 +872,38 @@ def main():
         time.sleep(0.4)
 
     enriched.sort(key=lambda x: x["score"], reverse=True)
-    top10 = enriched[:10]
+
+    # Apply volume filter; relax automatically if too few results
+    top10 = [c for c in enriched if c.get("rel_volume", 0) >= MIN_REL_VOLUME][:10]
+    if len(top10) < 5:
+        log.warning(
+            "Only %d pass rel_volume ≥ %.1f×. Relaxing to 1.0× …",
+            len(top10), MIN_REL_VOLUME,
+        )
+        top10 = enriched[:10]
 
     if not top10:
-        log.error("No stocks passed all filters. Falling back to Finviz-only top 10.")
-        top10 = candidates[:10]
+        log.error("No candidates survived all filters.")
+        _write_error_page(report_date,
+            "Keine Aktien erfüllen aktuell alle Filterkriterien "
+            "(Short Float &gt;15 %, Preis &gt;$1, Marktkapitalisierung &lt;$10 Mrd.).")
+        return
 
     # --- Step 3: News ---
-    log.info("Fetching news for top 10 …")
+    log.info("Step 3 – Fetching news for %d stocks …", len(top10))
     for s in top10:
         s["news"] = get_yahoo_news(s["ticker"])
         time.sleep(0.3)
 
     # --- Step 4: HTML ---
-    log.info("Generating HTML report …")
+    log.info("Step 4 – Generating HTML report …")
     html = generate_html(top10, report_date)
 
     os.makedirs("docs", exist_ok=True)
-    out = "docs/index.html"
-    with open(out, "w", encoding="utf-8") as fh:
+    with open("docs/index.html", "w", encoding="utf-8") as fh:
         fh.write(html)
 
-    log.info("Report written to %s", out)
+    log.info("Report written → docs/index.html")
     log.info("Top 10: %s", [s["ticker"] for s in top10])
 
 
