@@ -1,16 +1,792 @@
-<!DOCTYPE html><html lang="de">
-<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Squeeze Report – 02.04.2026</title>
 <style>
-body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
-background:#07090f;color:#dde4f5;display:flex;align-items:center;
-justify-content:center;min-height:100vh;margin:0}
-.box{background:#111827;border:1px solid #1e2d4a;border-radius:12px;
-padding:36px 44px;max-width:500px;text-align:center}
-.err{color:#ef4444;font-size:1.15rem;font-weight:700;margin-bottom:12px}
-p{color:#8899bb;font-size:.88rem;line-height:1.65}
-</style></head>
-<body><div class="box">
-<div class="err">&#9888; Datenabruf fehlgeschlagen</div>
-<p>Screener-Verbindung fehlgeschlagen (Yahoo Finance &amp; Finviz). Bitte manuell neu starten.<br><br>Datum: 02.04.2026</p>
-</div></body></html>
+:root{--bg:#07090f;--bg2:#0e1120;--bg3:#131929;--brd:#1e2d4a;--acc:#4a9eff;--txt:#dde4f5;--sub:#6677a0;}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:var(--bg);color:var(--txt);min-height:100vh}
+a{color:var(--acc)}
+/* Header */
+.hdr{background:linear-gradient(135deg,#111d3a 0%,#0a1020 100%);border-bottom:1px solid var(--brd);padding:20px 28px;display:flex;align-items:center;justify-content:space-between}
+.hdr h1{font-size:1.5rem;font-weight:800;color:#fff;letter-spacing:-.5px}.hdr h1 span{color:var(--acc)}
+.hdr-meta{text-align:right;font-size:.82rem;color:var(--sub)}.hdr-meta strong{color:#aabbd4;display:block;font-size:.95rem}
+/* Layout */
+.wrap{max-width:1100px;margin:0 auto;padding:22px 14px}
+/* Summary bar */
+.sbar{display:flex;gap:12px;margin-bottom:20px;flex-wrap:wrap}
+.ss{background:var(--bg3);border:1px solid var(--brd);border-radius:10px;padding:12px 18px;flex:1;min-width:130px}
+.ss .sl{font-size:.7rem;color:var(--sub);text-transform:uppercase;letter-spacing:.5px}
+.ss .sv{font-size:1.35rem;font-weight:700;color:var(--acc);margin-top:3px}
+/* Disclaimer */
+.disc{background:#1a1400;border:1px solid #3a2f00;border-radius:8px;padding:11px 15px;margin-bottom:20px;font-size:.78rem;color:#b8a850;line-height:1.5}
+/* Card */
+.card{background:var(--bg2);border:1px solid var(--brd);border-radius:12px;margin-bottom:10px;overflow:hidden;transition:border-color .2s}
+.card:hover{border-color:#2a4a8a}
+.ch{display:flex;align-items:center;padding:14px 18px;cursor:pointer;gap:14px;user-select:none}
+.rnk{font-size:1.05rem;font-weight:700;color:var(--acc);min-width:32px}
+.cm{flex:1}
+.ct{display:flex;align-items:baseline;gap:9px;margin-bottom:7px;flex-wrap:wrap}
+.tk{font-size:1.15rem;font-weight:800;color:#fff;font-family:'Courier New',monospace}
+.cn{font-size:.82rem;color:var(--sub)}
+.sec{font-size:.72rem;color:#3d4f72;background:#141e33;padding:1px 7px;border-radius:10px}
+.mtr{display:flex;gap:14px;flex-wrap:wrap;align-items:center}
+.m{display:flex;flex-direction:column;gap:1px}
+.ml{font-size:.66rem;color:#3d4f72;text-transform:uppercase;letter-spacing:.4px}
+.mv{font-size:.9rem;font-weight:600;color:#c8d4f0}
+.pos{color:#22c55e}.neg{color:#ef4444}.hi{color:#f59e0b}
+.badge{padding:3px 9px;border-radius:20px;font-size:.7rem;font-weight:700;letter-spacing:.4px;border:1px solid}
+/* Score */
+.sc{text-align:right;min-width:76px}
+.sl{font-size:.66rem;color:#3d4f72;text-transform:uppercase}
+.sv{font-size:1.35rem;font-weight:700;color:var(--acc)}
+.sb{width:76px;height:3px;background:#1a2a45;border-radius:2px;margin-top:4px}
+.sf{height:100%;background:linear-gradient(90deg,#4a9eff,#9b5cf6);border-radius:2px}
+.arr{color:#3d4f72;font-size:.85rem;transition:transform .25s;margin-left:4px}
+.card.open .arr{transform:rotate(180deg)}
+/* Details */
+.cd{display:none;padding:0 18px 18px;border-top:1px solid var(--brd)}
+.cd.active{display:block}
+.dg{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;padding-top:14px}
+@media(max-width:720px){.dg{grid-template-columns:1fr}.sc{display:none}}
+.ds h4{font-size:.72rem;text-transform:uppercase;letter-spacing:.5px;color:var(--acc);margin-bottom:9px}
+.dt{width:100%;font-size:.82rem;border-collapse:collapse}
+.dt td{padding:4px 0;border-bottom:1px solid #111d33}
+.dt td:first-child{color:var(--sub)}
+.dt td:last-child{text-align:right;font-weight:600}
+.ni{margin-bottom:9px;font-size:.82rem;line-height:1.5}
+.ni a{color:var(--acc);text-decoration:none}
+.ni a:hover{text-decoration:underline}
+.nm{display:block;font-size:.7rem;color:#3d4f72;margin-top:1px}
+.at{font-size:.82rem;line-height:1.65;color:#8899bb}
+.rd{padding:9px 12px;background:#0a1020;border-left:3px solid;border-radius:0 6px 6px 0;font-size:.82rem}
+.rd p{margin-top:3px;color:#7788aa;line-height:1.5}
+/* Footer */
+.ftr{text-align:center;padding:22px;color:#3d4f72;font-size:.75rem;border-top:1px solid var(--brd);margin-top:36px}
+/* Action bar */
+.abar{background:#080c18;border-bottom:1px solid var(--brd);padding:12px 28px}
+.abar-inner{display:flex;align-items:center;gap:12px;flex-wrap:wrap;max-width:1100px;margin:0 auto}
+.btn{display:inline-flex;align-items:center;justify-content:center;min-height:48px;padding:0 22px;border:none;border-radius:10px;font-size:.95rem;font-weight:700;cursor:pointer;transition:opacity .15s,transform .1s;-webkit-tap-highlight-color:transparent;touch-action:manipulation;white-space:nowrap}
+.btn:active:not(:disabled){transform:scale(.96)}
+.btn:disabled{opacity:.5;cursor:not-allowed;transform:none}
+.btn-green{background:#16a34a;color:#fff}.btn-green:hover:not(:disabled){background:#15803d}
+.btn-blue{background:#2563eb;color:#fff}.btn-blue:hover:not(:disabled){background:#1d4ed8}
+.tok-rl{font-size:.78rem;color:var(--sub);text-decoration:none;padding:4px 8px;border-radius:6px;margin-left:4px}
+.tok-rl:hover{color:var(--acc)}
+.tok-sec{background:#0d1327;border:1px solid var(--brd);border-radius:10px;padding:14px 16px;margin-top:12px;max-width:640px}
+.tok-hint{font-size:.82rem;color:#8899bb;margin-bottom:10px;line-height:1.5}
+.tok-row{display:flex;gap:10px;flex-wrap:wrap}
+.tok-inp{flex:1;min-width:200px;background:#070c1a;border:1px solid var(--brd);border-radius:8px;color:var(--txt);padding:0 13px;height:48px;font-size:.88rem;font-family:monospace}
+.tok-inp:focus{outline:2px solid var(--acc);outline-offset:1px}
+.amsg{margin-top:12px;padding:11px 15px;border-radius:8px;font-size:.83rem;line-height:1.5;max-width:740px}
+.amsg-success{background:#052a14;border:1px solid #166534;color:#86efac}
+.amsg-error{background:#2a0808;border:1px solid #991b1b;color:#fca5a5}
+.amsg-info{background:#0c1a30;border:1px solid var(--brd);color:#93c5fd}
+</style>
+</head>
+<body>
+<div class="hdr">
+  <h1>Squeeze <span>Report</span></h1>
+  <div class="hdr-meta">
+    <strong>02.04.2026</strong>
+    US-Märkte · Top-10 Squeeze-Kandidaten · 19:08 Uhr
+  </div>
+</div>
+<div class="abar">
+  <div class="abar-inner">
+    <button id="btn-reload" class="btn btn-green" onclick="reloadPage()">&#8635;&ensp;Seite neu laden</button>
+    <button id="btn-recalc" class="btn btn-blue" onclick="triggerWorkflow()">&#9881;&ensp;Jetzt neu berechnen</button>
+    <a href="#" class="tok-rl" id="tok-rl" onclick="resetToken();return false;">Token zurücksetzen</a>
+  </div>
+  <div id="tok-sec" class="tok-sec" style="display:none">
+    <p class="tok-hint">Bitte GitHub Token eingeben (wird nur lokal im Browser gespeichert und nie an Dritte übertragen – ausschließlich an die offizielle GitHub API).</p>
+    <div class="tok-row">
+      <input type="password" id="tok-inp" class="tok-inp"
+             placeholder="ghp_xxxxxxxxxxxxxxxxxxxx"
+             onkeydown="if(event.key==='Enter')saveTokenAndDispatch()">
+      <button class="btn btn-blue" onclick="saveTokenAndDispatch()">Speichern &amp; starten</button>
+    </div>
+  </div>
+  <div id="amsg" class="amsg" style="display:none"></div>
+</div>
+<div class="wrap">
+  <div class="sbar">
+    <div class="ss"><div class="sl">Kandidaten</div><div class="sv">Top 10</div></div>
+    <div class="ss"><div class="sl">Ø Short Float</div><div class="sv">52.2%</div></div>
+    <div class="ss"><div class="sl">Ø Short Ratio</div><div class="sv">11.2d</div></div>
+    <div class="ss"><div class="sl">Ø Rel. Volumen</div><div class="sv">0.4×</div></div>
+  </div>
+  <div class="disc">
+    ⚠ <strong>Disclaimer:</strong> Dieser Report dient ausschließlich Informationszwecken
+    und stellt keine Anlageberatung dar. Short-Squeeze-Kandidaten sind hochspekulative
+    Investments mit erhöhtem Verlustrisiko. Keine Kauf- oder Verkaufsempfehlung.
+  </div>
+  
+<div class="card" id="c1">
+  <div class="ch" onclick="tog(1)">
+    <div class="rnk">#1</div>
+    <div class="cm">
+      <div class="ct">
+        <span class="tk">KALV</span>
+        <span class="cn">KalVista Pharmaceuticals, Inc.</span>
+        <span class="sec">Healthcare</span>
+      </div>
+      <div class="mtr">
+        <span class="m"><span class="ml">Kurs</span><span class="mv">$19.48</span></span>
+        <span class="m"><span class="ml">Änd.</span><span class="mv neg">-1.47%</span></span>
+        <span class="m"><span class="ml">Short Float</span><span class="mv hi">43.2%</span></span>
+        <span class="m"><span class="ml">Short Ratio</span><span class="mv">23.1d</span></span>
+        <span class="m"><span class="ml">Rel. Vol.</span><span class="mv">0.3×</span></span>
+        <span class="badge" style="color:#ef4444;border-color:#ef444440;background:#ef444418">HOCH</span>
+      </div>
+    </div>
+    <div class="sc">
+      <div class="sl">Score</div>
+      <div class="sv">42.4</div>
+      <div class="sb"><div class="sf" style="width:42%"></div></div>
+    </div>
+    <div class="arr" id="a1">▼</div>
+  </div>
+  <div class="cd" id="d1">
+    <div class="dg">
+      <div class="ds">
+        <h4>Marktdaten</h4>
+        <table class="dt">
+          <tr><td>Marktkapitalisierung</td><td>$998 M</td></tr>
+          <tr><td>52W-Hoch / -Tief</td><td>$21.30 / $9.23</td></tr>
+          <tr><td>Sektor</td><td>Healthcare</td></tr>
+          <tr><td>Ø Volumen 20T</td><td>1,256,583</td></tr>
+          <tr><td>Heutiges Volumen</td><td>431,764</td></tr>
+        </table>
+      </div>
+      <div class="ds">
+        <h4>Short-Analyse</h4>
+        <p class="at">Mit 43.2 % Short Float ist das Leerverkaufsinteresse sehr hoch. Die Short Ratio von 23.1 Tagen zeigt, dass Leerverkäufer mehrere Handelstage zum Eindecken benötigen würden – dies verstärkt den Squeeze-Druck.</p>
+        <h4 style="margin-top:16px">Risikobewertung</h4>
+        <div class="rd" style="border-left-color:#ef4444">
+          <strong style="color:#ef4444">HOCH</strong>
+          <p>Extrem hohes Short-Interesse (43.2 %) bedeutet massive Squeeze-Gefahr, aber auch starke Kursausschläge in beide Richtungen. Small-Cap ($998 M) mit eingeschränkter Liquidität.</p>
+        </div>
+      </div>
+      <div class="ds">
+        <h4>Aktuelle Nachrichten</h4>
+        <div class="ni"><a href="https://finance.yahoo.com/sectors/healthcare/articles/kalvista-pharmaceuticals-kalv-22-4-011247157.html" target="_blank" rel="noopener noreferrer">KalVista Pharmaceuticals (KALV) Is Up 22.4% After Early Success In Pivotal Pediatric HAE Trial</a><span class="nm">Simply Wall St. · 01.04.2026 01:12</span></div><div class="ni"><a href="https://app.moby.co/home/research/tools/earningsCalendar/earnings-kalvista-pharmaceuticals-inc-q1-2025-earnings-call-summary?utm_source=yahoo_finance&utm_medium=rss" target="_blank" rel="noopener noreferrer">KalVista Pharmaceuticals, Inc. Q1 2025 Earnings Call Summary</a><span class="nm">Moby · 26.03.2026 12:30</span></div><div class="ni"><a href="https://finance.yahoo.com/sectors/healthcare/articles/kalvista-pharmaceuticals-inc-kalv-q4-190147421.html" target="_blank" rel="noopener noreferrer">KalVista Pharmaceuticals Inc (KALV) Q4 2025 Earnings Call Highlights: Strong Launch of EKTERLY ...</a><span class="nm">GuruFocus.com · 25.03.2026 19:01</span></div>
+        <h4 style="margin-top:14px">Zusammenfassung</h4>
+        <p class="at">KalVista Pharmaceuticals (KALV) Is Up 22.4% After Early Success In Pivotal Pediatric HAE Trial – KalVista Pharmaceuticals, Inc. Q1 2025 Earnings Call Summary – KalVista Pharmaceuticals Inc (KALV) Q4 2025 Earnings Call Highlights: Strong Launch of EKTERLY ...</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="card" id="c2">
+  <div class="ch" onclick="tog(2)">
+    <div class="rnk">#2</div>
+    <div class="cm">
+      <div class="ct">
+        <span class="tk">PLAY</span>
+        <span class="cn">Dave & Buster's Entertainment, Inc.</span>
+        <span class="sec">Communication Services</span>
+      </div>
+      <div class="mtr">
+        <span class="m"><span class="ml">Kurs</span><span class="mv">$11.89</span></span>
+        <span class="m"><span class="ml">Änd.</span><span class="mv neg">-5.41%</span></span>
+        <span class="m"><span class="ml">Short Float</span><span class="mv hi">72.7%</span></span>
+        <span class="m"><span class="ml">Short Ratio</span><span class="mv">8.8d</span></span>
+        <span class="m"><span class="ml">Rel. Vol.</span><span class="mv">0.6×</span></span>
+        <span class="badge" style="color:#ef4444;border-color:#ef444440;background:#ef444418">HOCH</span>
+      </div>
+    </div>
+    <div class="sc">
+      <div class="sl">Score</div>
+      <div class="sv">39.3</div>
+      <div class="sb"><div class="sf" style="width:39%"></div></div>
+    </div>
+    <div class="arr" id="a2">▼</div>
+  </div>
+  <div class="cd" id="d2">
+    <div class="dg">
+      <div class="ds">
+        <h4>Marktdaten</h4>
+        <table class="dt">
+          <tr><td>Marktkapitalisierung</td><td>$413 M</td></tr>
+          <tr><td>52W-Hoch / -Tief</td><td>$35.53 / $9.61</td></tr>
+          <tr><td>Sektor</td><td>Communication Services</td></tr>
+          <tr><td>Ø Volumen 20T</td><td>2,124,488</td></tr>
+          <tr><td>Heutiges Volumen</td><td>1,314,757</td></tr>
+        </table>
+      </div>
+      <div class="ds">
+        <h4>Short-Analyse</h4>
+        <p class="at">Mit 72.7 % Short Float ist das Leerverkaufsinteresse sehr hoch. Die Short Ratio von 8.8 Tagen zeigt, dass Leerverkäufer mehrere Handelstage zum Eindecken benötigen würden – dies verstärkt den Squeeze-Druck. Der Kursrückgang von -5.4 % könnte das Short-Interesse kurzfristig erhöhen.</p>
+        <h4 style="margin-top:16px">Risikobewertung</h4>
+        <div class="rd" style="border-left-color:#ef4444">
+          <strong style="color:#ef4444">HOCH</strong>
+          <p>Extrem hohes Short-Interesse (72.7 %) bedeutet massive Squeeze-Gefahr, aber auch starke Kursausschläge in beide Richtungen. Small-Cap ($412 M) mit eingeschränkter Liquidität.</p>
+        </div>
+      </div>
+      <div class="ds">
+        <h4>Aktuelle Nachrichten</h4>
+        <div class="ni"><a href="https://finance.yahoo.com/markets/stocks/articles/favourable-signals-dave-busters-entertainment-164413907.html" target="_blank" rel="noopener noreferrer">Favourable Signals For Dave & Buster's Entertainment: Numerous Insiders Acquired Stock</a><span class="nm">Simply Wall St. · 02.04.2026 16:44</span></div><div class="ni"><a href="https://www.fool.com/investing/2026/04/01/why-dave-busters-stock-is-up-today/" target="_blank" rel="noopener noreferrer">Why Dave & Buster's Stock Surged Today</a><span class="nm">Motley Fool · 01.04.2026 22:55</span></div><div class="ni"><a href="https://finance.yahoo.com/markets/stocks/articles/dave-busters-q4-earnings-revenues-155000238.html" target="_blank" rel="noopener noreferrer">Dave & Buster's Q4 Earnings & Revenues Miss Estimates, Down Y/Y</a><span class="nm">Zacks · 01.04.2026 15:50</span></div>
+        <h4 style="margin-top:14px">Zusammenfassung</h4>
+        <p class="at">Favourable Signals For Dave & Buster's Entertainment: Numerous Insiders Acquired Stock – Why Dave & Buster's Stock Surged Today – Dave & Buster's Q4 Earnings & Revenues Miss Estimates, Down Y/Y</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="card" id="c3">
+  <div class="ch" onclick="tog(3)">
+    <div class="rnk">#3</div>
+    <div class="cm">
+      <div class="ct">
+        <span class="tk">NTST</span>
+        <span class="cn">NETSTREIT Corp.</span>
+        <span class="sec">Real Estate</span>
+      </div>
+      <div class="mtr">
+        <span class="m"><span class="ml">Kurs</span><span class="mv">$19.29</span></span>
+        <span class="m"><span class="ml">Änd.</span><span class="mv pos">+1.96%</span></span>
+        <span class="m"><span class="ml">Short Float</span><span class="mv hi">27.7%</span></span>
+        <span class="m"><span class="ml">Short Ratio</span><span class="mv">19.1d</span></span>
+        <span class="m"><span class="ml">Rel. Vol.</span><span class="mv">0.5×</span></span>
+        <span class="badge" style="color:#f59e0b;border-color:#f59e0b40;background:#f59e0b18">MITTEL</span>
+      </div>
+    </div>
+    <div class="sc">
+      <div class="sl">Score</div>
+      <div class="sv">35.9</div>
+      <div class="sb"><div class="sf" style="width:35%"></div></div>
+    </div>
+    <div class="arr" id="a3">▼</div>
+  </div>
+  <div class="cd" id="d3">
+    <div class="dg">
+      <div class="ds">
+        <h4>Marktdaten</h4>
+        <table class="dt">
+          <tr><td>Marktkapitalisierung</td><td>$2.1 B</td></tr>
+          <tr><td>52W-Hoch / -Tief</td><td>$21.30 / $14.00</td></tr>
+          <tr><td>Sektor</td><td>Real Estate</td></tr>
+          <tr><td>Ø Volumen 20T</td><td>1,166,814</td></tr>
+          <tr><td>Heutiges Volumen</td><td>563,082</td></tr>
+        </table>
+      </div>
+      <div class="ds">
+        <h4>Short-Analyse</h4>
+        <p class="at">Short Float von 27.7 % liegt deutlich über dem Marktdurchschnitt. Die Short Ratio von 19.1 Tagen zeigt, dass Leerverkäufer mehrere Handelstage zum Eindecken benötigen würden – dies verstärkt den Squeeze-Druck.</p>
+        <h4 style="margin-top:16px">Risikobewertung</h4>
+        <div class="rd" style="border-left-color:#f59e0b">
+          <strong style="color:#f59e0b">MITTEL</strong>
+          <p>Hohes Short-Interesse (27.7 %) erhöht die Volatilität deutlich.</p>
+        </div>
+      </div>
+      <div class="ds">
+        <h4>Aktuelle Nachrichten</h4>
+        <div class="ni"><a href="https://finance.yahoo.com/markets/stocks/articles/truist-raises-price-target-netstreit-164609431.html" target="_blank" rel="noopener noreferrer">Truist Raises its Price Target on NETSTREIT Corp. (NTST) to $21</a><span class="nm">Insider Monkey · 30.03.2026 16:46</span></div><div class="ni"><a href="https://finance.yahoo.com/news/mizuho-raises-pt-netstreit-ntst-154510050.html" target="_blank" rel="noopener noreferrer">Mizuho Raises PT on NETSTREIT (NTST) Stock</a><span class="nm">Insider Monkey · 13.03.2026 15:45</span></div><div class="ni"><a href="https://finance.yahoo.com/news/beat-market-zacks-way-contineum-132500313.html" target="_blank" rel="noopener noreferrer">Beat the Market the Zacks Way: Contineum Therapeutics, Suzano, PepsiCo in Focus</a><span class="nm">Zacks · 02.03.2026 13:25</span></div>
+        <h4 style="margin-top:14px">Zusammenfassung</h4>
+        <p class="at">Truist Raises its Price Target on NETSTREIT Corp. (NTST) to $21 – Mizuho Raises PT on NETSTREIT (NTST) Stock – Beat the Market the Zacks Way: Contineum Therapeutics, Suzano, PepsiCo in Focus</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="card" id="c4">
+  <div class="ch" onclick="tog(4)">
+    <div class="rnk">#4</div>
+    <div class="cm">
+      <div class="ct">
+        <span class="tk">LENZ</span>
+        <span class="cn">LENZ Therapeutics, Inc.</span>
+        <span class="sec">Healthcare</span>
+      </div>
+      <div class="mtr">
+        <span class="m"><span class="ml">Kurs</span><span class="mv">$9.55</span></span>
+        <span class="m"><span class="ml">Änd.</span><span class="mv pos">+2.14%</span></span>
+        <span class="m"><span class="ml">Short Float</span><span class="mv hi">52.9%</span></span>
+        <span class="m"><span class="ml">Short Ratio</span><span class="mv">13.3d</span></span>
+        <span class="m"><span class="ml">Rel. Vol.</span><span class="mv">0.2×</span></span>
+        <span class="badge" style="color:#ef4444;border-color:#ef444440;background:#ef444418">HOCH</span>
+      </div>
+    </div>
+    <div class="sc">
+      <div class="sl">Score</div>
+      <div class="sv">35.2</div>
+      <div class="sb"><div class="sf" style="width:35%"></div></div>
+    </div>
+    <div class="arr" id="a4">▼</div>
+  </div>
+  <div class="cd" id="d4">
+    <div class="dg">
+      <div class="ds">
+        <h4>Marktdaten</h4>
+        <table class="dt">
+          <tr><td>Marktkapitalisierung</td><td>$299 M</td></tr>
+          <tr><td>52W-Hoch / -Tief</td><td>$50.40 / $8.25</td></tr>
+          <tr><td>Sektor</td><td>Healthcare</td></tr>
+          <tr><td>Ø Volumen 20T</td><td>1,188,632</td></tr>
+          <tr><td>Heutiges Volumen</td><td>241,049</td></tr>
+        </table>
+      </div>
+      <div class="ds">
+        <h4>Short-Analyse</h4>
+        <p class="at">Mit 52.9 % Short Float ist das Leerverkaufsinteresse sehr hoch. Die Short Ratio von 13.3 Tagen zeigt, dass Leerverkäufer mehrere Handelstage zum Eindecken benötigen würden – dies verstärkt den Squeeze-Druck.</p>
+        <h4 style="margin-top:16px">Risikobewertung</h4>
+        <div class="rd" style="border-left-color:#ef4444">
+          <strong style="color:#ef4444">HOCH</strong>
+          <p>Extrem hohes Short-Interesse (52.9 %) bedeutet massive Squeeze-Gefahr, aber auch starke Kursausschläge in beide Richtungen. Micro-Cap ($299 M) – geringe Liquidität, Kursmanipulation möglich.</p>
+        </div>
+      </div>
+      <div class="ds">
+        <h4>Aktuelle Nachrichten</h4>
+        <div class="ni"><a href="https://finance.yahoo.com/markets/stocks/articles/president-lenz-therapeutics-picks-57-102034492.html" target="_blank" rel="noopener noreferrer">President of LENZ Therapeutics Picks Up 57% More Stock</a><span class="nm">Simply Wall St. · 01.04.2026 10:20</span></div><div class="ni"><a href="https://finance.yahoo.com/markets/stocks/articles/consensus-eps-estimates-lenz-therapeutics-124306294.html" target="_blank" rel="noopener noreferrer">The Consensus EPS Estimates For LENZ Therapeutics, Inc. (NASDAQ:LENZ) Just Fell Dramatically</a><span class="nm">Simply Wall St. · 29.03.2026 12:43</span></div><div class="ni"><a href="https://www.fool.com/investing/2026/03/27/why-lenz-therapeutics-stock-was-sliding-this-week/" target="_blank" rel="noopener noreferrer">Why Lenz Therapeutics Stock Plummeted by Almost 20% This Week</a><span class="nm">Motley Fool · 27.03.2026 22:07</span></div>
+        <h4 style="margin-top:14px">Zusammenfassung</h4>
+        <p class="at">President of LENZ Therapeutics Picks Up 57% More Stock – The Consensus EPS Estimates For LENZ Therapeutics, Inc. (NASDAQ:LENZ) Just Fell Dramatically – Why Lenz Therapeutics Stock Plummeted by Almost 20% This Week</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="card" id="c5">
+  <div class="ch" onclick="tog(5)">
+    <div class="rnk">#5</div>
+    <div class="cm">
+      <div class="ct">
+        <span class="tk">IBG</span>
+        <span class="cn">Innovation Beverage Group Limited</span>
+        <span class="sec">Consumer Defensive</span>
+      </div>
+      <div class="mtr">
+        <span class="m"><span class="ml">Kurs</span><span class="mv">$1.15</span></span>
+        <span class="m"><span class="ml">Änd.</span><span class="mv pos">+5.50%</span></span>
+        <span class="m"><span class="ml">Short Float</span><span class="mv hi">84.1%</span></span>
+        <span class="m"><span class="ml">Short Ratio</span><span class="mv">0.6d</span></span>
+        <span class="m"><span class="ml">Rel. Vol.</span><span class="mv">0.4×</span></span>
+        <span class="badge" style="color:#ef4444;border-color:#ef444440;background:#ef444418">HOCH</span>
+      </div>
+    </div>
+    <div class="sc">
+      <div class="sl">Score</div>
+      <div class="sv">30.2</div>
+      <div class="sb"><div class="sf" style="width:30%"></div></div>
+    </div>
+    <div class="arr" id="a5">▼</div>
+  </div>
+  <div class="cd" id="d5">
+    <div class="dg">
+      <div class="ds">
+        <h4>Marktdaten</h4>
+        <table class="dt">
+          <tr><td>Marktkapitalisierung</td><td>$2 M</td></tr>
+          <tr><td>52W-Hoch / -Tief</td><td>$36.50 / $0.94</td></tr>
+          <tr><td>Sektor</td><td>Consumer Defensive</td></tr>
+          <tr><td>Ø Volumen 20T</td><td>1,679,299</td></tr>
+          <tr><td>Heutiges Volumen</td><td>709,976</td></tr>
+        </table>
+      </div>
+      <div class="ds">
+        <h4>Short-Analyse</h4>
+        <p class="at">Mit 84.1 % Short Float ist das Leerverkaufsinteresse sehr hoch. Der Kursanstieg von +5.5 % heute könnte Margin Calls bei Leerverkäufern auslösen.</p>
+        <h4 style="margin-top:16px">Risikobewertung</h4>
+        <div class="rd" style="border-left-color:#ef4444">
+          <strong style="color:#ef4444">HOCH</strong>
+          <p>Extrem hohes Short-Interesse (84.1 %) bedeutet massive Squeeze-Gefahr, aber auch starke Kursausschläge in beide Richtungen. Micro-Cap ($2 M) – geringe Liquidität, Kursmanipulation möglich.</p>
+        </div>
+      </div>
+      <div class="ds">
+        <h4>Aktuelle Nachrichten</h4>
+        <div class="ni"><a href="https://finance.yahoo.com/news/innovation-beverage-group-limited-ibg-152224695.html" target="_blank" rel="noopener noreferrer">Innovation Beverage Group Limited (IBG) Announces an Update Regarding its Proposed Merger with BlockFuel Energy</a><span class="nm">Insider Monkey · 08.03.2026 15:22</span></div><div class="ni"><a href="https://finance.yahoo.com/news/innovation-beverage-enters-definitive-merger-121136738.html" target="_blank" rel="noopener noreferrer">Innovation Beverage enters definitive merger agreement with BlockFuel Energy</a><span class="nm">TipRanks · 16.10.2025 12:11</span></div>
+        <h4 style="margin-top:14px">Zusammenfassung</h4>
+        <p class="at">Innovation Beverage Group Limited (IBG) Announces an Update Regarding its Proposed Merger with BlockFuel Energy – Innovation Beverage enters definitive merger agreement with BlockFuel Energy</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="card" id="c6">
+  <div class="ch" onclick="tog(6)">
+    <div class="rnk">#6</div>
+    <div class="cm">
+      <div class="ct">
+        <span class="tk">TNGX</span>
+        <span class="cn">Tango Therapeutics, Inc.</span>
+        <span class="sec">Healthcare</span>
+      </div>
+      <div class="mtr">
+        <span class="m"><span class="ml">Kurs</span><span class="mv">$21.44</span></span>
+        <span class="m"><span class="ml">Änd.</span><span class="mv pos">+1.04%</span></span>
+        <span class="m"><span class="ml">Short Float</span><span class="mv hi">38.0%</span></span>
+        <span class="m"><span class="ml">Short Ratio</span><span class="mv">12.2d</span></span>
+        <span class="m"><span class="ml">Rel. Vol.</span><span class="mv">0.5×</span></span>
+        <span class="badge" style="color:#f59e0b;border-color:#f59e0b40;background:#f59e0b18">MITTEL</span>
+      </div>
+    </div>
+    <div class="sc">
+      <div class="sl">Score</div>
+      <div class="sv">29.9</div>
+      <div class="sb"><div class="sf" style="width:29%"></div></div>
+    </div>
+    <div class="arr" id="a6">▼</div>
+  </div>
+  <div class="cd" id="d6">
+    <div class="dg">
+      <div class="ds">
+        <h4>Marktdaten</h4>
+        <table class="dt">
+          <tr><td>Marktkapitalisierung</td><td>$3.1 B</td></tr>
+          <tr><td>52W-Hoch / -Tief</td><td>$22.08 / $1.03</td></tr>
+          <tr><td>Sektor</td><td>Healthcare</td></tr>
+          <tr><td>Ø Volumen 20T</td><td>3,452,590</td></tr>
+          <tr><td>Heutiges Volumen</td><td>1,770,092</td></tr>
+        </table>
+      </div>
+      <div class="ds">
+        <h4>Short-Analyse</h4>
+        <p class="at">Mit 38.0 % Short Float ist das Leerverkaufsinteresse sehr hoch. Die Short Ratio von 12.2 Tagen zeigt, dass Leerverkäufer mehrere Handelstage zum Eindecken benötigen würden – dies verstärkt den Squeeze-Druck.</p>
+        <h4 style="margin-top:16px">Risikobewertung</h4>
+        <div class="rd" style="border-left-color:#f59e0b">
+          <strong style="color:#f59e0b">MITTEL</strong>
+          <p>Hohes Short-Interesse (38.0 %) erhöht die Volatilität deutlich.</p>
+        </div>
+      </div>
+      <div class="ds">
+        <h4>Aktuelle Nachrichten</h4>
+        <div class="ni"><a href="https://www.fool.com/coverage/filings/2026/03/30/tango-therapeutics-insider-sells-usd304-000-in-stock-amid-a-36-single-day-surge/" target="_blank" rel="noopener noreferrer">Tango Therapeutics Insider Sells $304,000 in Stock Amid a 36% Single-Day Surge</a><span class="nm">Motley Fool · 30.03.2026 17:53</span></div><div class="ni"><a href="https://finance.yahoo.com/markets/stocks/articles/evaluating-tango-therapeutics-tngx-rich-120514000.html" target="_blank" rel="noopener noreferrer">Evaluating Tango Therapeutics (TNGX) Rich Valuation After Recent Share Price Momentum</a><span class="nm">Simply Wall St. · 29.03.2026 12:05</span></div><div class="ni"><a href="https://www.barchart.com/story/news/989690/this-stock-is-up-1-229-in-just-the-past-year-but-dont-bet-your-retirement-money-on-it" target="_blank" rel="noopener noreferrer">This Stock Is Up 1,229% in Just the Past Year, But Don’t Bet Your Retirement Money on It</a><span class="nm">Barchart · 26.03.2026 19:00</span></div>
+        <h4 style="margin-top:14px">Zusammenfassung</h4>
+        <p class="at">Tango Therapeutics Insider Sells $304,000 in Stock Amid a 36% Single-Day Surge – Evaluating Tango Therapeutics (TNGX) Rich Valuation After Recent Share Price Momentum – This Stock Is Up 1,229% in Just the Past Year, But Don’t Bet Your Retirement Money on It</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="card" id="c7">
+  <div class="ch" onclick="tog(7)">
+    <div class="rnk">#7</div>
+    <div class="cm">
+      <div class="ct">
+        <span class="tk">SNSE</span>
+        <span class="cn">Sensei Biotherapeutics, Inc.</span>
+        <span class="sec">Healthcare</span>
+      </div>
+      <div class="mtr">
+        <span class="m"><span class="ml">Kurs</span><span class="mv">$33.01</span></span>
+        <span class="m"><span class="ml">Änd.</span><span class="mv neg">-5.13%</span></span>
+        <span class="m"><span class="ml">Short Float</span><span class="mv hi">84.4%</span></span>
+        <span class="m"><span class="ml">Short Ratio</span><span class="mv">0.9d</span></span>
+        <span class="m"><span class="ml">Rel. Vol.</span><span class="mv">0.3×</span></span>
+        <span class="badge" style="color:#ef4444;border-color:#ef444440;background:#ef444418">HOCH</span>
+      </div>
+    </div>
+    <div class="sc">
+      <div class="sl">Score</div>
+      <div class="sv">29.8</div>
+      <div class="sb"><div class="sf" style="width:29%"></div></div>
+    </div>
+    <div class="arr" id="a7">▼</div>
+  </div>
+  <div class="cd" id="d7">
+    <div class="dg">
+      <div class="ds">
+        <h4>Marktdaten</h4>
+        <table class="dt">
+          <tr><td>Marktkapitalisierung</td><td>$42 M</td></tr>
+          <tr><td>52W-Hoch / -Tief</td><td>$36.76 / $5.22</td></tr>
+          <tr><td>Sektor</td><td>Healthcare</td></tr>
+          <tr><td>Ø Volumen 20T</td><td>100,307</td></tr>
+          <tr><td>Heutiges Volumen</td><td>29,745</td></tr>
+        </table>
+      </div>
+      <div class="ds">
+        <h4>Short-Analyse</h4>
+        <p class="at">Mit 84.4 % Short Float ist das Leerverkaufsinteresse sehr hoch. Der Kursrückgang von -5.1 % könnte das Short-Interesse kurzfristig erhöhen.</p>
+        <h4 style="margin-top:16px">Risikobewertung</h4>
+        <div class="rd" style="border-left-color:#ef4444">
+          <strong style="color:#ef4444">HOCH</strong>
+          <p>Extrem hohes Short-Interesse (84.4 %) bedeutet massive Squeeze-Gefahr, aber auch starke Kursausschläge in beide Richtungen. Micro-Cap ($42 M) – geringe Liquidität, Kursmanipulation möglich.</p>
+        </div>
+      </div>
+      <div class="ds">
+        <h4>Aktuelle Nachrichten</h4>
+        <div class="ni"><a href="https://www.pharmaceutical-technology.com/news/sensei-to-ditch-its-lead-candidate-and-cut-workforce-amidst-strategic-review/" target="_blank" rel="noopener noreferrer">Sensei to ditch its lead candidate and cut workforce amidst strategic review</a><span class="nm">Pharmaceutical Technology · 31.10.2025 18:06</span></div>
+        <h4 style="margin-top:14px">Zusammenfassung</h4>
+        <p class="at">Sensei to ditch its lead candidate and cut workforce amidst strategic review</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="card" id="c8">
+  <div class="ch" onclick="tog(8)">
+    <div class="rnk">#8</div>
+    <div class="cm">
+      <div class="ct">
+        <span class="tk">PCT</span>
+        <span class="cn">PureCycle Technologies, Inc.</span>
+        <span class="sec">Industrials</span>
+      </div>
+      <div class="mtr">
+        <span class="m"><span class="ml">Kurs</span><span class="mv">$5.39</span></span>
+        <span class="m"><span class="ml">Änd.</span><span class="mv pos">+5.56%</span></span>
+        <span class="m"><span class="ml">Short Float</span><span class="mv hi">43.5%</span></span>
+        <span class="m"><span class="ml">Short Ratio</span><span class="mv">9.3d</span></span>
+        <span class="m"><span class="ml">Rel. Vol.</span><span class="mv">0.7×</span></span>
+        <span class="badge" style="color:#ef4444;border-color:#ef444440;background:#ef444418">HOCH</span>
+      </div>
+    </div>
+    <div class="sc">
+      <div class="sl">Score</div>
+      <div class="sv">28.9</div>
+      <div class="sb"><div class="sf" style="width:28%"></div></div>
+    </div>
+    <div class="arr" id="a8">▼</div>
+  </div>
+  <div class="cd" id="d8">
+    <div class="dg">
+      <div class="ds">
+        <h4>Marktdaten</h4>
+        <table class="dt">
+          <tr><td>Marktkapitalisierung</td><td>$975 M</td></tr>
+          <tr><td>52W-Hoch / -Tief</td><td>$17.37 / $4.93</td></tr>
+          <tr><td>Sektor</td><td>Industrials</td></tr>
+          <tr><td>Ø Volumen 20T</td><td>4,929,866</td></tr>
+          <tr><td>Heutiges Volumen</td><td>3,315,028</td></tr>
+        </table>
+      </div>
+      <div class="ds">
+        <h4>Short-Analyse</h4>
+        <p class="at">Mit 43.5 % Short Float ist das Leerverkaufsinteresse sehr hoch. Die Short Ratio von 9.3 Tagen zeigt, dass Leerverkäufer mehrere Handelstage zum Eindecken benötigen würden – dies verstärkt den Squeeze-Druck. Der Kursanstieg von +5.6 % heute könnte Margin Calls bei Leerverkäufern auslösen.</p>
+        <h4 style="margin-top:16px">Risikobewertung</h4>
+        <div class="rd" style="border-left-color:#ef4444">
+          <strong style="color:#ef4444">HOCH</strong>
+          <p>Extrem hohes Short-Interesse (43.5 %) bedeutet massive Squeeze-Gefahr, aber auch starke Kursausschläge in beide Richtungen. Small-Cap ($975 M) mit eingeschränkter Liquidität.</p>
+        </div>
+      </div>
+      <div class="ds">
+        <h4>Aktuelle Nachrichten</h4>
+        <div class="ni"><a href="https://finance.yahoo.com/sectors/energy/articles/does-purecycle-technologies-pct-eu-150602837.html" target="_blank" rel="noopener noreferrer">Does PureCycle Technologies’ (PCT) EU Grant-Funded Belgian Plant Clarify Its European Scale-Up Ambitions?</a><span class="nm">Simply Wall St. · 26.03.2026 15:06</span></div><div class="ni"><a href="https://finance.yahoo.com/markets/stocks/articles/purecycle-technologies-pct-well-prepared-060829089.html" target="_blank" rel="noopener noreferrer">PureCycle Technologies (PCT) Well-Prepared for 2026 Commercial Ramp</a><span class="nm">Insider Monkey · 26.03.2026 06:08</span></div><div class="ni"><a href="https://www.marketbeat.com/instant-alerts/purecycle-technologies-talks-ironton-ramp-thailand-plant-timeline-and-gen-2-cost-cuts-at-roth-conference-2026-03-24/?utm_source=yahoofinance&utm_medium=yahoofinance" target="_blank" rel="noopener noreferrer">PureCycle Technologies Talks Ironton Ramp, Thailand Plant Timeline, and Gen 2 Cost Cuts at Roth Conference</a><span class="nm">MarketBeat · 24.03.2026 10:02</span></div>
+        <h4 style="margin-top:14px">Zusammenfassung</h4>
+        <p class="at">Does PureCycle Technologies’ (PCT) EU Grant-Funded Belgian Plant Clarify Its European Scale-Up Ambitions? – PureCycle Technologies (PCT) Well-Prepared for 2026 Commercial Ramp – PureCycle Technologies Talks Ironton Ramp, Thailand Plant Timeline, and Gen 2 Cost Cuts at Roth Conference</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="card" id="c9">
+  <div class="ch" onclick="tog(9)">
+    <div class="rnk">#9</div>
+    <div class="cm">
+      <div class="ct">
+        <span class="tk">ABEO</span>
+        <span class="cn">Abeona Therapeutics Inc.</span>
+        <span class="sec">Healthcare</span>
+      </div>
+      <div class="mtr">
+        <span class="m"><span class="ml">Kurs</span><span class="mv">$4.79</span></span>
+        <span class="m"><span class="ml">Änd.</span><span class="mv pos">+4.59%</span></span>
+        <span class="m"><span class="ml">Short Float</span><span class="mv hi">28.1%</span></span>
+        <span class="m"><span class="ml">Short Ratio</span><span class="mv">15.2d</span></span>
+        <span class="m"><span class="ml">Rel. Vol.</span><span class="mv">0.3×</span></span>
+        <span class="badge" style="color:#ef4444;border-color:#ef444440;background:#ef444418">HOCH</span>
+      </div>
+    </div>
+    <div class="sc">
+      <div class="sl">Score</div>
+      <div class="sv">28.4</div>
+      <div class="sb"><div class="sf" style="width:28%"></div></div>
+    </div>
+    <div class="arr" id="a9">▼</div>
+  </div>
+  <div class="cd" id="d9">
+    <div class="dg">
+      <div class="ds">
+        <h4>Marktdaten</h4>
+        <table class="dt">
+          <tr><td>Marktkapitalisierung</td><td>$273 M</td></tr>
+          <tr><td>52W-Hoch / -Tief</td><td>$7.54 / $3.93</td></tr>
+          <tr><td>Sektor</td><td>Healthcare</td></tr>
+          <tr><td>Ø Volumen 20T</td><td>1,501,466</td></tr>
+          <tr><td>Heutiges Volumen</td><td>380,416</td></tr>
+        </table>
+      </div>
+      <div class="ds">
+        <h4>Short-Analyse</h4>
+        <p class="at">Short Float von 28.1 % liegt deutlich über dem Marktdurchschnitt. Die Short Ratio von 15.2 Tagen zeigt, dass Leerverkäufer mehrere Handelstage zum Eindecken benötigen würden – dies verstärkt den Squeeze-Druck.</p>
+        <h4 style="margin-top:16px">Risikobewertung</h4>
+        <div class="rd" style="border-left-color:#ef4444">
+          <strong style="color:#ef4444">HOCH</strong>
+          <p>Hohes Short-Interesse (28.1 %) erhöht die Volatilität deutlich. Micro-Cap ($273 M) – geringe Liquidität, Kursmanipulation möglich.</p>
+        </div>
+      </div>
+      <div class="ds">
+        <h4>Aktuelle Nachrichten</h4>
+        <div class="ni"><a href="https://app.moby.co/home/research/tools/earningsCalendar/earnings-abeona-therapeutics-inc-q4-2025-earnings-call-summary?utm_source=yahoo_finance&utm_medium=rss" target="_blank" rel="noopener noreferrer">Abeona Therapeutics Inc. Q4 2025 Earnings Call Summary</a><span class="nm">Moby · 20.03.2026 12:30</span></div><div class="ni"><a href="https://finance.yahoo.com/news/abeona-therapeutics-inc-abeo-q4-190229687.html" target="_blank" rel="noopener noreferrer">Abeona Therapeutics Inc (ABEO) Q4 2025 Earnings Call Highlights: Strong Demand for Zivasskin ...</a><span class="nm">GuruFocus.com · 17.03.2026 19:02</span></div><div class="ni"><a href="https://www.marketbeat.com/instant-alerts/abeona-therapeutics-q4-earnings-call-highlights-2026-03-17/?utm_source=yahoofinance&utm_medium=yahoofinance" target="_blank" rel="noopener noreferrer">Abeona Therapeutics Q4 Earnings Call Highlights</a><span class="nm">MarketBeat · 17.03.2026 14:02</span></div>
+        <h4 style="margin-top:14px">Zusammenfassung</h4>
+        <p class="at">Abeona Therapeutics Inc. Q4 2025 Earnings Call Summary – Abeona Therapeutics Inc (ABEO) Q4 2025 Earnings Call Highlights: Strong Demand for Zivasskin ... – Abeona Therapeutics Q4 Earnings Call Highlights</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="card" id="c10">
+  <div class="ch" onclick="tog(10)">
+    <div class="rnk">#10</div>
+    <div class="cm">
+      <div class="ct">
+        <span class="tk">GRPN</span>
+        <span class="cn">Groupon, Inc.</span>
+        <span class="sec">Communication Services</span>
+      </div>
+      <div class="mtr">
+        <span class="m"><span class="ml">Kurs</span><span class="mv">$11.49</span></span>
+        <span class="m"><span class="ml">Änd.</span><span class="mv pos">+2.68%</span></span>
+        <span class="m"><span class="ml">Short Float</span><span class="mv hi">47.3%</span></span>
+        <span class="m"><span class="ml">Short Ratio</span><span class="mv">9.5d</span></span>
+        <span class="m"><span class="ml">Rel. Vol.</span><span class="mv">0.2×</span></span>
+        <span class="badge" style="color:#ef4444;border-color:#ef444440;background:#ef444418">HOCH</span>
+      </div>
+    </div>
+    <div class="sc">
+      <div class="sl">Score</div>
+      <div class="sv">27.4</div>
+      <div class="sb"><div class="sf" style="width:27%"></div></div>
+    </div>
+    <div class="arr" id="a10">▼</div>
+  </div>
+  <div class="cd" id="d10">
+    <div class="dg">
+      <div class="ds">
+        <h4>Marktdaten</h4>
+        <table class="dt">
+          <tr><td>Marktkapitalisierung</td><td>$468 M</td></tr>
+          <tr><td>52W-Hoch / -Tief</td><td>$43.08 / $9.17</td></tr>
+          <tr><td>Sektor</td><td>Communication Services</td></tr>
+          <tr><td>Ø Volumen 20T</td><td>1,833,547</td></tr>
+          <tr><td>Heutiges Volumen</td><td>438,933</td></tr>
+        </table>
+      </div>
+      <div class="ds">
+        <h4>Short-Analyse</h4>
+        <p class="at">Mit 47.3 % Short Float ist das Leerverkaufsinteresse sehr hoch. Die Short Ratio von 9.5 Tagen zeigt, dass Leerverkäufer mehrere Handelstage zum Eindecken benötigen würden – dies verstärkt den Squeeze-Druck.</p>
+        <h4 style="margin-top:16px">Risikobewertung</h4>
+        <div class="rd" style="border-left-color:#ef4444">
+          <strong style="color:#ef4444">HOCH</strong>
+          <p>Extrem hohes Short-Interesse (47.3 %) bedeutet massive Squeeze-Gefahr, aber auch starke Kursausschläge in beide Richtungen. Small-Cap ($468 M) mit eingeschränkter Liquidität.</p>
+        </div>
+      </div>
+      <div class="ds">
+        <h4>Aktuelle Nachrichten</h4>
+        <div class="ni"><a href="https://finance.yahoo.com/markets/stocks/articles/groupon-grpn-suffers-larger-drop-215004847.html" target="_blank" rel="noopener noreferrer">Groupon (GRPN) Suffers a Larger Drop Than the General Market: Key Insights</a><span class="nm">Zacks · 27.03.2026 21:50</span></div><div class="ni"><a href="https://finance.yahoo.com/markets/stocks/articles/know-beyond-why-groupon-inc-130004253.html" target="_blank" rel="noopener noreferrer">Here is What to Know Beyond Why Groupon, Inc. (GRPN) is a Trending Stock</a><span class="nm">Zacks · 27.03.2026 13:00</span></div><div class="ni"><a href="https://finance.yahoo.com/markets/stocks/articles/groupon-grpn-stock-moves-1-220003329.html" target="_blank" rel="noopener noreferrer">Groupon (GRPN) Stock Moves -1.24%: What You Should Know</a><span class="nm">Zacks · 26.03.2026 22:00</span></div>
+        <h4 style="margin-top:14px">Zusammenfassung</h4>
+        <p class="at">Groupon (GRPN) Suffers a Larger Drop Than the General Market: Key Insights – Here is What to Know Beyond Why Groupon, Inc. (GRPN) is a Trending Stock – Groupon (GRPN) Stock Moves -1.24%: What You Should Know</p>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+<div class="ftr">
+  Automatisch generiert am 02.04.2026 · Quellen: Finviz, Yahoo Finance · Keine Anlageberatung
+</div>
+<script>
+// ── Accordion ────────────────────────────────────────────────────────────
+function tog(id){
+  document.getElementById('c'+id).classList.toggle('open');
+  document.getElementById('d'+id).classList.toggle('active');
+}
+window.addEventListener('DOMContentLoaded',()=>tog(1));
+
+// ── GitHub Actions Config ─────────────────────────────────────────────────
+// Falls du das Repo geforkt oder umbenannt hast, hier anpassen:
+const GH_OWNER    = 'easywebb911';
+const GH_REPO     = 'Aktien-update';
+const GH_WORKFLOW = 'daily-squeeze-report.yml';
+const GH_BRANCH   = 'main';
+const TOK_KEY     = 'ghpat_squeeze';
+// ─────────────────────────────────────────────────────────────────────────
+
+function reloadPage() {
+  const btn = document.getElementById('btn-reload');
+  btn.disabled = true;
+  btn.textContent = 'Wird geladen…';
+  window.location.reload();
+}
+
+function triggerWorkflow() {
+  const token = localStorage.getItem(TOK_KEY);
+  if (!token) { showTokenInput(); return; }
+  dispatchWorkflow(token);
+}
+
+function showTokenInput() {
+  document.getElementById('tok-sec').style.display = 'block';
+  document.getElementById('amsg').style.display = 'none';
+  setTimeout(() => document.getElementById('tok-inp').focus(), 60);
+}
+
+async function saveTokenAndDispatch() {
+  const token = document.getElementById('tok-inp').value.trim();
+  if (!token) return;
+  localStorage.setItem(TOK_KEY, token);
+  document.getElementById('tok-sec').style.display = 'none';
+  document.getElementById('tok-inp').value = '';
+  await dispatchWorkflow(token);
+}
+
+async function dispatchWorkflow(token) {
+  const btn  = document.getElementById('btn-recalc');
+  const orig = btn.textContent;
+  btn.disabled = true;
+  btn.textContent = 'Wird gestartet…';
+  try {
+    const r = await fetch(
+      `https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/actions/workflows/${GH_WORKFLOW}/dispatches`,
+      {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Accept': 'application/vnd.github+json',
+          'X-GitHub-Api-Version': '2022-11-28',
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ ref: GH_BRANCH }),
+      }
+    );
+    if (r.status === 204) {
+      showMsg('success',
+        'Neuberechnung gestartet – der Report ist in ca. 2–3 Minuten aktuell. ' +
+        'Danach bitte „Seite neu laden“ drücken.');
+    } else if (r.status === 401 || r.status === 403) {
+      localStorage.removeItem(TOK_KEY);
+      showMsg('error',
+        `Token ungültig oder fehlende Berechtigung (HTTP ${r.status}). ` +
+        'Token wurde entfernt – bitte beim nächsten Versuch neu eingeben.');
+    } else {
+      const body = await r.text().catch(() => '');
+      showMsg('error', `Fehler HTTP ${r.status}: ${body.slice(0,200)}`);
+    }
+  } catch(e) {
+    showMsg('error', `Netzwerkfehler: ${e.message}`);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = orig;
+  }
+}
+
+function resetToken() {
+  localStorage.removeItem(TOK_KEY);
+  document.getElementById('tok-sec').style.display = 'none';
+  showMsg('info',
+    'Token zurückgesetzt. Beim nächsten Klick auf „Jetzt neu berechnen“ ' +
+    'wirst du erneut nach dem Token gefragt.');
+}
+
+function showMsg(type, text) {
+  const el = document.getElementById('amsg');
+  el.className = `amsg amsg-${type}`;
+  el.textContent = text;
+  el.style.display = 'block';
+  if (type !== 'error') setTimeout(() => { el.style.display = 'none'; }, 13000);
+}
+</script>
+</body>
+</html>
