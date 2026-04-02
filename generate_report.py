@@ -788,10 +788,9 @@ p{{color:#8899bb;font-size:.88rem;line-height:1.65}}
 <div class="err">&#9888; Datenabruf fehlgeschlagen</div>
 <p>{message}<br><br>Datum: {report_date}</p>
 </div></body></html>"""
-    os.makedirs("docs", exist_ok=True)
-    with open("docs/index.html", "w", encoding="utf-8") as fh:
+    with open("index.html", "w", encoding="utf-8") as fh:
         fh.write(html)
-    log.info("Error page written to docs/index.html")
+    log.info("Error page written to index.html")
 
 
 # ===========================================================================
@@ -899,11 +898,10 @@ def main():
     log.info("Step 4 – Generating HTML report …")
     html = generate_html(top10, report_date)
 
-    os.makedirs("docs", exist_ok=True)
-    with open("docs/index.html", "w", encoding="utf-8") as fh:
+    with open("index.html", "w", encoding="utf-8") as fh:
         fh.write(html)
 
-    log.info("Report written → docs/index.html")
+    log.info("Report written → index.html")
     log.info("Top 10: %s", [s["ticker"] for s in top10])
 
 
