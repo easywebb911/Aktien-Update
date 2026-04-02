@@ -1,0 +1,40 @@
+name: Daily Squeeze Report
+
+on:
+  schedule:
+    # 07:00 UTC = 09:00 CEST (Sommer, UTC+2) / 08:00 CET (Winter, UTC+1)
+    # Nur Handelstage Mo–Fr
+    - cron: '0 7 * * 1-5'
+  workflow_dispatch:   # Manueller Start jederzeit möglich
+
+permissions:
+  contents: write   # Benötigt für gh-pages Push
+
+jobs:
+  generate-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Generate squeeze report
+        run: python generate_report.py
+
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./docs
+          publish_branch: gh-pages
+          commit_message: "Daily squeeze report ${{ github.run_id }}"
+          force_orphan: false
