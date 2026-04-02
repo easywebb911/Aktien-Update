@@ -519,6 +519,25 @@ a{{color:var(--acc)}}
 .rd p{{margin-top:3px;color:#7788aa;line-height:1.5}}
 /* Footer */
 .ftr{{text-align:center;padding:22px;color:#3d4f72;font-size:.75rem;border-top:1px solid var(--brd);margin-top:36px}}
+/* Action bar */
+.abar{{background:#080c18;border-bottom:1px solid var(--brd);padding:12px 28px}}
+.abar-inner{{display:flex;align-items:center;gap:12px;flex-wrap:wrap;max-width:1100px;margin:0 auto}}
+.btn{{display:inline-flex;align-items:center;justify-content:center;min-height:48px;padding:0 22px;border:none;border-radius:10px;font-size:.95rem;font-weight:700;cursor:pointer;transition:opacity .15s,transform .1s;-webkit-tap-highlight-color:transparent;touch-action:manipulation;white-space:nowrap}}
+.btn:active:not(:disabled){{transform:scale(.96)}}
+.btn:disabled{{opacity:.5;cursor:not-allowed;transform:none}}
+.btn-green{{background:#16a34a;color:#fff}}.btn-green:hover:not(:disabled){{background:#15803d}}
+.btn-blue{{background:#2563eb;color:#fff}}.btn-blue:hover:not(:disabled){{background:#1d4ed8}}
+.tok-rl{{font-size:.78rem;color:var(--sub);text-decoration:none;padding:4px 8px;border-radius:6px;margin-left:4px}}
+.tok-rl:hover{{color:var(--acc)}}
+.tok-sec{{background:#0d1327;border:1px solid var(--brd);border-radius:10px;padding:14px 16px;margin-top:12px;max-width:640px}}
+.tok-hint{{font-size:.82rem;color:#8899bb;margin-bottom:10px;line-height:1.5}}
+.tok-row{{display:flex;gap:10px;flex-wrap:wrap}}
+.tok-inp{{flex:1;min-width:200px;background:#070c1a;border:1px solid var(--brd);border-radius:8px;color:var(--txt);padding:0 13px;height:48px;font-size:.88rem;font-family:monospace}}
+.tok-inp:focus{{outline:2px solid var(--acc);outline-offset:1px}}
+.amsg{{margin-top:12px;padding:11px 15px;border-radius:8px;font-size:.83rem;line-height:1.5;max-width:740px}}
+.amsg-success{{background:#052a14;border:1px solid #166534;color:#86efac}}
+.amsg-error{{background:#2a0808;border:1px solid #991b1b;color:#fca5a5}}
+.amsg-info{{background:#0c1a30;border:1px solid var(--brd);color:#93c5fd}}
 </style>
 </head>
 <body>
@@ -528,6 +547,23 @@ a{{color:var(--acc)}}
     <strong>{report_date}</strong>
     US-Märkte · Top-10 Squeeze-Kandidaten · {now_str}
   </div>
+</div>
+<div class="abar">
+  <div class="abar-inner">
+    <button id="btn-reload" class="btn btn-green" onclick="reloadPage()">&#8635;&ensp;Seite neu laden</button>
+    <button id="btn-recalc" class="btn btn-blue" onclick="triggerWorkflow()">&#9881;&ensp;Jetzt neu berechnen</button>
+    <a href="#" class="tok-rl" id="tok-rl" onclick="resetToken();return false;">Token zurücksetzen</a>
+  </div>
+  <div id="tok-sec" class="tok-sec" style="display:none">
+    <p class="tok-hint">Bitte GitHub Token eingeben (wird nur lokal im Browser gespeichert und nie an Dritte übertragen – ausschließlich an die offizielle GitHub API).</p>
+    <div class="tok-row">
+      <input type="password" id="tok-inp" class="tok-inp"
+             placeholder="ghp_xxxxxxxxxxxxxxxxxxxx"
+             onkeydown="if(event.key==='Enter')saveTokenAndDispatch()">
+      <button class="btn btn-blue" onclick="saveTokenAndDispatch()">Speichern &amp; starten</button>
+    </div>
+  </div>
+  <div id="amsg" class="amsg" style="display:none"></div>
 </div>
 <div class="wrap">
   <div class="sbar">
@@ -547,14 +583,105 @@ a{{color:var(--acc)}}
   Automatisch generiert am {report_date} · Quellen: Finviz, Yahoo Finance · Keine Anlageberatung
 </div>
 <script>
+// ── Accordion ────────────────────────────────────────────────────────────
 function tog(id){{
-  const card=document.getElementById('c'+id);
-  const det=document.getElementById('d'+id);
-  card.classList.toggle('open');
-  det.classList.toggle('active');
+  document.getElementById('c'+id).classList.toggle('open');
+  document.getElementById('d'+id).classList.toggle('active');
 }}
-// Open first card by default
 window.addEventListener('DOMContentLoaded',()=>tog(1));
+
+// ── GitHub Actions Config ─────────────────────────────────────────────────
+// Falls du das Repo geforkt oder umbenannt hast, hier anpassen:
+const GH_OWNER    = 'easywebb911';
+const GH_REPO     = 'Aktien-update';
+const GH_WORKFLOW = 'daily-squeeze-report.yml';
+const GH_BRANCH   = 'main';
+const TOK_KEY     = 'ghpat_squeeze';
+// ─────────────────────────────────────────────────────────────────────────
+
+function reloadPage() {{
+  const btn = document.getElementById('btn-reload');
+  btn.disabled = true;
+  btn.textContent = 'Wird geladen\u2026';
+  window.location.reload();
+}}
+
+function triggerWorkflow() {{
+  const token = localStorage.getItem(TOK_KEY);
+  if (!token) {{ showTokenInput(); return; }}
+  dispatchWorkflow(token);
+}}
+
+function showTokenInput() {{
+  document.getElementById('tok-sec').style.display = 'block';
+  document.getElementById('amsg').style.display = 'none';
+  setTimeout(() => document.getElementById('tok-inp').focus(), 60);
+}}
+
+async function saveTokenAndDispatch() {{
+  const token = document.getElementById('tok-inp').value.trim();
+  if (!token) return;
+  localStorage.setItem(TOK_KEY, token);
+  document.getElementById('tok-sec').style.display = 'none';
+  document.getElementById('tok-inp').value = '';
+  await dispatchWorkflow(token);
+}}
+
+async function dispatchWorkflow(token) {{
+  const btn  = document.getElementById('btn-recalc');
+  const orig = btn.textContent;
+  btn.disabled = true;
+  btn.textContent = 'Wird gestartet\u2026';
+  try {{
+    const r = await fetch(
+      `https://api.github.com/repos/${{GH_OWNER}}/${{GH_REPO}}/actions/workflows/${{GH_WORKFLOW}}/dispatches`,
+      {{
+        method: 'POST',
+        headers: {{
+          'Authorization': `Bearer ${{token}}`,
+          'Accept': 'application/vnd.github+json',
+          'X-GitHub-Api-Version': '2022-11-28',
+          'Content-Type': 'application/json',
+        }},
+        body: JSON.stringify({{ ref: GH_BRANCH }}),
+      }}
+    );
+    if (r.status === 204) {{
+      showMsg('success',
+        'Neuberechnung gestartet \u2013 der Report ist in ca.\u00a02\u20133\u00a0Minuten aktuell. ' +
+        'Danach bitte \u201eSeite neu laden\u201c dr\u00fccken.');
+    }} else if (r.status === 401 || r.status === 403) {{
+      localStorage.removeItem(TOK_KEY);
+      showMsg('error',
+        `Token ung\u00fcltig oder fehlende Berechtigung (HTTP ${{r.status}}). ` +
+        'Token wurde entfernt \u2013 bitte beim n\u00e4chsten Versuch neu eingeben.');
+    }} else {{
+      const body = await r.text().catch(() => '');
+      showMsg('error', `Fehler HTTP ${{r.status}}: ${{body.slice(0,200)}}`);
+    }}
+  }} catch(e) {{
+    showMsg('error', `Netzwerkfehler: ${{e.message}}`);
+  }} finally {{
+    btn.disabled = false;
+    btn.textContent = orig;
+  }}
+}}
+
+function resetToken() {{
+  localStorage.removeItem(TOK_KEY);
+  document.getElementById('tok-sec').style.display = 'none';
+  showMsg('info',
+    'Token zur\u00fcckgesetzt. Beim n\u00e4chsten Klick auf \u201eJetzt neu berechnen\u201c ' +
+    'wirst du erneut nach dem Token gefragt.');
+}}
+
+function showMsg(type, text) {{
+  const el = document.getElementById('amsg');
+  el.className = `amsg amsg-${{type}}`;
+  el.textContent = text;
+  el.style.display = 'block';
+  if (type !== 'error') setTimeout(() => {{ el.style.display = 'none'; }}, 13000);
+}}
 </script>
 </body>
 </html>"""
