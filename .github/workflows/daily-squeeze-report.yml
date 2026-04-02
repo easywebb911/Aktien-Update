@@ -8,15 +8,18 @@ on:
   workflow_dispatch:   # Manueller Start jederzeit möglich
 
 permissions:
-  contents: write   # Benötigt für gh-pages Push
+  contents: write   # Benötigt um index.html in main zu commiten
 
 jobs:
   generate-and-deploy:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repository
+      - name: Checkout main branch
         uses: actions/checkout@v4
+        with:
+          ref: main
+          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Set up Python 3.11
         uses: actions/setup-python@v5
@@ -30,11 +33,12 @@ jobs:
       - name: Generate squeeze report
         run: python generate_report.py
 
-      - name: Deploy to GitHub Pages
-        uses: peaceiris/actions-gh-pages@v4
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./docs
-          publish_branch: gh-pages
-          commit_message: "Daily squeeze report ${{ github.run_id }}"
-          force_orphan: false
+      - name: Commit and publish report
+        run: |
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git config user.name "github-actions[bot]"
+          git add index.html
+          git diff --staged --quiet \
+            && echo "Keine Aenderungen – Report ist aktuell." \
+            || git commit -m "Daily squeeze report $(date -u '+%Y-%m-%d')"
+          git push origin main
