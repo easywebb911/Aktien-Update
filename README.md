@@ -72,3 +72,5 @@ Diese Zeilen befinden sich in der Funktion `generate_html()` in `generate_report
 
 **Datenquellen:** Finviz (Screener) · Yahoo Finance via yfinance (Kurse, Nachrichten)  
 **Filterkriterien:** Short Float >15 % · Rel. Volumen ≥1,5× · Marktkapitalisierung <$10 Mrd. · Kurs >$1 USD
+# Aktien-Update
+Tägliche Meldungen zu Squeeze Kandidaten
