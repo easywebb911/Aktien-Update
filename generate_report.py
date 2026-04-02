@@ -80,14 +80,50 @@ def _parse_float(s: str) -> float:
 
 
 # ===========================================================================
-# 1a. YAHOO FINANCE SCREENER  (primary — works reliably from GitHub Actions)
+# 1a. YAHOO FINANCE SCREENER  (primary — direct JSON API, no yf.Screener)
 # ===========================================================================
+
+# Predefined Yahoo Finance screener IDs to query
+_YF_SCREENER_IDS = [
+    "most_shorted_stocks",      # sorted by short % of float
+    "small_cap_gainers",        # small caps with momentum (often high short interest)
+    "aggressive_small_caps",    # aggressive small caps
+]
+
+_YF_SCREENER_URL = (
+    "https://query2.finance.yahoo.com/v1/finance/screener/predefined/saved"
+)
+
+
+def _fetch_yf_screener(screener_id: str, count: int = 100) -> list[dict]:
+    """Call one Yahoo Finance predefined screener via raw HTTP. No crumb needed."""
+    params = {
+        "formatted": "false",
+        "scrIds": screener_id,
+        "count": str(count),
+        "region": "US",
+        "lang": "en-US",
+    }
+    try:
+        resp = requests.get(
+            _YF_SCREENER_URL, params=params, headers=HTTP_HEADERS, timeout=20
+        )
+        resp.raise_for_status()
+        data = resp.json()
+        results = (data.get("finance") or {}).get("result") or []
+        quotes  = results[0].get("quotes", []) if results else []
+        log.info("  Yahoo screener '%s': %d quotes", screener_id, len(quotes))
+        return quotes
+    except Exception as exc:
+        log.warning("  Yahoo screener '%s' failed: %s", screener_id, exc)
+        return []
+
 
 def get_yahoo_screener_candidates() -> list[dict]:
     """
-    Fetch a pool of high-short-interest tickers via yfinance Screener.
-    We collect a broad pool here; all strict filters (short_float, rel_volume,
-    market cap) are applied precisely in the yfinance enrichment step.
+    Fetch a pool of candidate tickers from Yahoo Finance's JSON screener API.
+    All strict filters (short_float, rel_volume, market cap) are applied
+    precisely in the yfinance enrichment step; here we collect a broad pool.
     """
     result: list[dict] = []
     seen:   set[str]   = set()
@@ -104,7 +140,6 @@ def get_yahoo_screener_candidates() -> list[dict]:
             if mkt_cap and float(mkt_cap) > MAX_MARKET_CAP:
                 continue
             seen.add(t)
-            # shortPercentOfFloat from Yahoo is a decimal (0.25 = 25 %)
             sf_raw = float(q.get("shortPercentOfFloat") or 0)
             result.append({
                 "ticker":       t,
@@ -112,50 +147,20 @@ def get_yahoo_screener_candidates() -> list[dict]:
                 "market_cap_s": fmt_cap(mkt_cap),
                 "price":        price,
                 "change":       float(q.get("regularMarketChangePercent") or 0),
+                # shortPercentOfFloat from Yahoo is decimal (0.25 = 25 %)
                 "short_float":  sf_raw * 100 if sf_raw <= 1.0 else sf_raw,
                 "short_ratio":  float(q.get("shortRatio") or 0),
-                "rel_volume":   0.0,   # filled from history in enrichment
+                "rel_volume":   0.0,  # filled from history in enrichment
                 "company_name": q.get("shortName") or q.get("longName") or t,
                 "sector":       q.get("sector") or "N/A",
             })
 
-    # ── Attempt 1: predefined "most shorted stocks" body ──────────────────
-    try:
-        sq = yf.Screener()
-        sq.set_predefined_body("most_shorted_stocks")
-        resp = sq.response or {}
-        _add_quotes(resp.get("quotes", []))
-        log.info("Yahoo predefined screener: %d candidates so far", len(result))
-    except Exception as exc:
-        log.warning("Yahoo predefined screener error: %s", exc)
+    log.info("Querying Yahoo Finance screeners …")
+    for sid in _YF_SCREENER_IDS:
+        _add_quotes(_fetch_yf_screener(sid))
+        time.sleep(0.5)
 
-    # ── Attempt 2: custom body for broader small/mid-cap coverage ─────────
-    if len(result) < 30:
-        try:
-            sq2 = yf.Screener()
-            sq2.set_body({
-                "offset": 0,
-                "size": 100,
-                "sortField": "shortpercent",
-                "sortType": "DESC",
-                "quoteType": "EQUITY",
-                "topOperator": "AND",
-                "query": {
-                    "operator": "AND",
-                    "operands": [
-                        {"operator": "gt",   "operands": ["regularMarketPrice", MIN_PRICE]},
-                        {"operator": "lt",   "operands": ["intradaymarketcap",  MAX_MARKET_CAP]},
-                        {"operator": "gt",   "operands": ["intradaymarketcap",  5_000_000]},
-                        {"operator": "gt",   "operands": ["shortpercent",       0.10]},
-                    ],
-                },
-            })
-            before = len(result)
-            _add_quotes((sq2.response or {}).get("quotes", []))
-            log.info("Yahoo custom screener: +%d (total %d)", len(result) - before, len(result))
-        except Exception as exc:
-            log.warning("Yahoo custom screener error: %s", exc)
-
+    log.info("Yahoo screener pool: %d unique tickers", len(result))
     return result
 
 
