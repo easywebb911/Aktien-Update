@@ -67,10 +67,18 @@ a{color:var(--accent);text-decoration:none}
   font-size:.85rem;font-family:monospace}
 .tok-inp:focus{outline:2px solid var(--accent);outline-offset:1px}
 .tok-link{font-size:.75rem;color:var(--txt-dim);padding:4px 2px;cursor:pointer}
-.amsg{margin-top:8px;padding:10px 13px;border-radius:8px;font-size:.8rem;line-height:1.5}
+.amsg{margin-top:8px;padding:10px 13px;border-radius:8px;font-size:.8rem;line-height:1.5;display:flex;align-items:center}
 .amsg-success{background:#052a14;border:1px solid #166534;color:#86efac}
 .amsg-error{background:#2d0a0a;border:1px solid #991b1b;color:#fca5a5}
 .amsg-info{background:#0c1a30;border:1px solid #1e3a5f;color:#93c5fd}
+@keyframes poll-pulse{0%,100%{opacity:1}50%{opacity:.35}}
+.poll-dot{display:inline-block;width:8px;height:8px;border-radius:50%;
+  margin-right:8px;flex-shrink:0}
+.poll-dot-run{background:#f59e0b;animation:poll-pulse 1.2s ease-in-out infinite}
+.poll-dot-done{background:#22c55e}
+.poll-dot-err{background:#ef4444}
+.amsg-poll-running{background:#1c1200;border:1px solid #92400e;color:#fcd34d}
+.amsg-poll-done{background:#052a14;border:1px solid #166534;color:#86efac}
 /* ── Container – fluid, no max-width ── */
 .wrap{padding:16px 14px 32px}
 /* ── Stats bar ── */
@@ -233,7 +241,7 @@ a{color:var(--accent);text-decoration:none}
 <header class="app-hdr">
   <div class="hdr-main">
     <span class="app-title">Squeeze <span>Report</span></span>
-    <span class="hdr-ts">Stand: 03.04.2026, 20:37 Uhr</span>
+    <span class="hdr-ts">Stand: 03.04.2026, 21:27 Uhr</span>
     <div class="hdr-btns">
       <button id="btn-reload" class="btn btn-g" onclick="reloadPage()">&#8635; Neu laden</button>
       <button id="btn-recalc" class="btn btn-b" onclick="triggerWorkflow()">&#9881; Neu berechnen</button>
@@ -264,7 +272,7 @@ a{color:var(--accent);text-decoration:none}
     <div class="stat-box"><span class="stat-val">23.9%</span><span class="stat-lbl">Ø Short Float</span></div>
     <div class="stat-box"><span class="stat-val">8.4d</span><span class="stat-lbl">Ø Days to Cover</span></div>
     <div class="stat-box"><span class="stat-val">2.8×</span><span class="stat-lbl">Ø Volumen</span></div>
-    <div class="stat-box"><span class="stat-val" style="color:#22c55e">+7.4%</span><span class="stat-lbl">Ø Kursmomentum</span></div>
+    <div class="stat-box"><span class="stat-val">+7.4%</span><span class="stat-lbl">Ø Kursmomentum</span></div>
   </div>
 
   <details class="info-panel">
@@ -403,8 +411,8 @@ a{color:var(--accent);text-decoration:none}
       <table class="detail-table">
         <tr><td>Marktkapitalisierung</td><td>$280 M</td></tr>
         <tr><td>52W-Hoch / -Tief</td><td>$24.70 / $11.16</td></tr>
-        <tr><td>Ø Volumen 20T</td><td>290,920</td></tr>
-        <tr><td>Heutiges Volumen</td><td>2,004,300</td></tr>
+        <tr><td>Ø Volumen 20T</td><td>291,050</td></tr>
+        <tr><td>Heutiges Volumen</td><td>2,006,900</td></tr>
         <tr><td>Risiko-Detail</td><td style="color:#ef4444">Micro-Cap ($280 M) – geringe Liquidität, Kursmanipulation möglich. Extremer Volumenanstieg (6.9×) kann auf koordiniertes Kaufinteresse hinweisen.</td></tr>
       </table>
     </div>
@@ -470,8 +478,8 @@ a{color:var(--accent);text-decoration:none}
       <table class="detail-table">
         <tr><td>Marktkapitalisierung</td><td>$1.1 B</td></tr>
         <tr><td>52W-Hoch / -Tief</td><td>$29.80 / $14.20</td></tr>
-        <tr><td>Ø Volumen 20T</td><td>1,148,595</td></tr>
-        <tr><td>Heutiges Volumen</td><td>4,447,700</td></tr>
+        <tr><td>Ø Volumen 20T</td><td>1,148,635</td></tr>
+        <tr><td>Heutiges Volumen</td><td>4,448,500</td></tr>
         <tr><td>Risiko-Detail</td><td style="color:#f59e0b">Small-Cap ($1.1 B) mit eingeschränkter Liquidität.</td></tr>
       </table>
     </div>
@@ -529,16 +537,16 @@ a{color:var(--accent);text-decoration:none}
       <span id="nb-icon3">▼</span> Nachrichten anzeigen
     </button>
     <div class="news-panel" id="np3" hidden>
-      <div class="news-items"><div class="ni"><a href="https://app.moby.co/home/research/tools/earningsCalendar/earnings-omeros-corporation-q4-2025-earnings-call-summary?utm_source=yahoo_finance&utm_medium=rss" target="_blank" rel="noopener noreferrer">Zusammenfassung der Gewinnmitteilung der Omeros Corporation für das 4. Quartal 2025</a><span class="ni-meta">Moby · 01.04.2026 12:30</span></div><div class="ni"><a href="https://finance.yahoo.com/sectors/healthcare/articles/omeros-corp-omer-q4-2025-030227210.html" target="_blank" rel="noopener noreferrer">Omeros Corp (OMER) Höhepunkte der Telefonkonferenz zum 4. Quartal 2025: Eine Trendwende mit strategischen Deals und FDA ...</a><span class="ni-meta">GuruFocus.com · 01.04.2026 03:02</span></div></div>
+      <div class="news-items"><div class="ni"><a href="https://app.moby.co/home/research/tools/earningsCalendar/earnings-omeros-corporation-q4-2025-earnings-call-summary?utm_source=yahoo_finance&utm_medium=rss" target="_blank" rel="noopener noreferrer">Zusammenfassung der Gewinnmitteilungen der Omeros Corporation für das 4. Quartal 2025</a><span class="ni-meta">Moby · 01.04.2026 12:30</span></div><div class="ni"><a href="https://finance.yahoo.com/sectors/healthcare/articles/omeros-corp-omer-q4-2025-030227210.html" target="_blank" rel="noopener noreferrer">Omeros Corp (OMER) Höhepunkte der Telefonkonferenz zum 4. Quartal 2025: Eine Trendwende mit strategischen Deals und FDA ...</a><span class="ni-meta">GuruFocus.com · 01.04.2026 03:02</span></div></div>
       <div class="news-summary-box">
         <span class="summary-label">Zusammenfassung</span>
-        <p class="summary-text">Zusammenfassung der Gewinnmitteilungen der Omeros Corporation für das 4. Quartal 2025. Weitere aktuelle Meldung: Omeros Corp (OMER) Q4 2025 Earnings Call Highlights: Eine Trendwende mit strategischen Deals und FDA  –  Quelle: Moby (01.04.2026 12:30)</p>
+        <p class="summary-text">Zusammenfassung der Gewinnmitteilung der Omeros Corporation für das 4. Quartal 2025. Weitere aktuelle Meldung: Omeros Corp (OMER) Q4 2025 Earnings Call Highlights: Eine Trendwende mit strategischen Deals und FDA  –  Quelle: Moby (01.04.2026 12:30)</p>
       </div>
       <table class="detail-table">
         <tr><td>Marktkapitalisierung</td><td>$773 M</td></tr>
         <tr><td>52W-Hoch / -Tief</td><td>$17.65 / $2.95</td></tr>
-        <tr><td>Ø Volumen 20T</td><td>1,095,645</td></tr>
-        <tr><td>Heutiges Volumen</td><td>1,834,100</td></tr>
+        <tr><td>Ø Volumen 20T</td><td>1,095,805</td></tr>
+        <tr><td>Heutiges Volumen</td><td>1,837,300</td></tr>
         <tr><td>Risiko-Detail</td><td style="color:#f59e0b">Hohes Short-Interesse (25.3 %) erhöht die Volatilität deutlich. Small-Cap ($773 M) mit eingeschränkter Liquidität.</td></tr>
       </table>
     </div>
@@ -604,8 +612,8 @@ a{color:var(--accent);text-decoration:none}
       <table class="detail-table">
         <tr><td>Marktkapitalisierung</td><td>$996 M</td></tr>
         <tr><td>52W-Hoch / -Tief</td><td>$14.93 / $3.90</td></tr>
-        <tr><td>Ø Volumen 20T</td><td>2,632,820</td></tr>
-        <tr><td>Heutiges Volumen</td><td>7,281,200</td></tr>
+        <tr><td>Ø Volumen 20T</td><td>2,633,225</td></tr>
+        <tr><td>Heutiges Volumen</td><td>7,289,300</td></tr>
         <tr><td>Risiko-Detail</td><td style="color:#f59e0b">Small-Cap ($996 M) mit eingeschränkter Liquidität.</td></tr>
       </table>
     </div>
@@ -642,7 +650,7 @@ a{color:var(--accent);text-decoration:none}
       <span class="m-lbl">Days to Cover</span>
     </div>
     <div class="metric-box" style="--mc:#f59e0b">
-      <span class="m-val">1.6×</span>
+      <span class="m-val">1.7×</span>
       <span class="m-lbl">Volumen</span>
     </div>
     <div class="metric-box" style="--mc:#22c55e">
@@ -671,8 +679,8 @@ a{color:var(--accent);text-decoration:none}
       <table class="detail-table">
         <tr><td>Marktkapitalisierung</td><td>$6.7 B</td></tr>
         <tr><td>52W-Hoch / -Tief</td><td>$212.81 / $62.17</td></tr>
-        <tr><td>Ø Volumen 20T</td><td>1,123,000</td></tr>
-        <tr><td>Heutiges Volumen</td><td>1,850,600</td></tr>
+        <tr><td>Ø Volumen 20T</td><td>1,123,170</td></tr>
+        <tr><td>Heutiges Volumen</td><td>1,854,000</td></tr>
         <tr><td>Risiko-Detail</td><td style="color:#f59e0b">Extrem hohes Short-Interesse (48.3 %) bedeutet massive Squeeze-Gefahr, aber auch starke Kursausschläge in beide Richtungen.</td></tr>
       </table>
     </div>
@@ -738,8 +746,8 @@ a{color:var(--accent);text-decoration:none}
       <table class="detail-table">
         <tr><td>Marktkapitalisierung</td><td>$694 M</td></tr>
         <tr><td>52W-Hoch / -Tief</td><td>$13.24 / $2.68</td></tr>
-        <tr><td>Ø Volumen 20T</td><td>1,784,375</td></tr>
-        <tr><td>Heutiges Volumen</td><td>3,179,200</td></tr>
+        <tr><td>Ø Volumen 20T</td><td>1,784,670</td></tr>
+        <tr><td>Heutiges Volumen</td><td>3,185,100</td></tr>
         <tr><td>Risiko-Detail</td><td style="color:#f59e0b">Hohes Short-Interesse (35.2 %) erhöht die Volatilität deutlich. Small-Cap ($694 M) mit eingeschränkter Liquidität.</td></tr>
       </table>
     </div>
@@ -805,8 +813,8 @@ a{color:var(--accent);text-decoration:none}
       <table class="detail-table">
         <tr><td>Marktkapitalisierung</td><td>$27 M</td></tr>
         <tr><td>52W-Hoch / -Tief</td><td>$13.94 / $1.12</td></tr>
-        <tr><td>Ø Volumen 20T</td><td>1,910,275</td></tr>
-        <tr><td>Heutiges Volumen</td><td>4,715,500</td></tr>
+        <tr><td>Ø Volumen 20T</td><td>1,912,245</td></tr>
+        <tr><td>Heutiges Volumen</td><td>4,754,900</td></tr>
         <tr><td>Risiko-Detail</td><td style="color:#ef4444">Hohes Short-Interesse (30.3 %) erhöht die Volatilität deutlich. Micro-Cap ($27 M) – geringe Liquidität, Kursmanipulation möglich.</td></tr>
       </table>
     </div>
@@ -872,8 +880,8 @@ a{color:var(--accent);text-decoration:none}
       <table class="detail-table">
         <tr><td>Marktkapitalisierung</td><td>$1.1 B</td></tr>
         <tr><td>52W-Hoch / -Tief</td><td>$33.20 / $6.15</td></tr>
-        <tr><td>Ø Volumen 20T</td><td>1,678,810</td></tr>
-        <tr><td>Heutiges Volumen</td><td>4,095,300</td></tr>
+        <tr><td>Ø Volumen 20T</td><td>1,679,135</td></tr>
+        <tr><td>Heutiges Volumen</td><td>4,101,800</td></tr>
         <tr><td>Risiko-Detail</td><td style="color:#f59e0b">Small-Cap ($1.1 B) mit eingeschränkter Liquidität.</td></tr>
       </table>
     </div>
@@ -939,8 +947,8 @@ a{color:var(--accent);text-decoration:none}
       <table class="detail-table">
         <tr><td>Marktkapitalisierung</td><td>$653 M</td></tr>
         <tr><td>52W-Hoch / -Tief</td><td>$4.08 / $0.93</td></tr>
-        <tr><td>Ø Volumen 20T</td><td>27,213,650</td></tr>
-        <tr><td>Heutiges Volumen</td><td>41,093,100</td></tr>
+        <tr><td>Ø Volumen 20T</td><td>27,233,670</td></tr>
+        <tr><td>Heutiges Volumen</td><td>41,493,500</td></tr>
         <tr><td>Risiko-Detail</td><td style="color:#f59e0b">Small-Cap ($653 M) mit eingeschränkter Liquidität.</td></tr>
       </table>
     </div>
@@ -1001,7 +1009,7 @@ a{color:var(--accent);text-decoration:none}
       <div class="news-items"><div class="ni"><a href="https://finance.yahoo.com/markets/stocks/articles/osb-group-lse-osb-investment-150726441.html" target="_blank" rel="noopener noreferrer">Wie sich die Investitionsgeschichte der OSB Group (LSE:OSB) durch neue Analystenmeinungen verändert</a><span class="ni-meta">Simply Wall St. · 31.03.2026 15:07</span></div><div class="ni"><a href="https://uk.finance.yahoo.com/news/birmingham-best-buy-let-area-110000366.html" target="_blank" rel="noopener noreferrer">Birmingham ist die beste Kauf- und Mietgegend für die Vermietung an Familien. Hier erfahren Sie, warum</a><span class="ni-meta">The Telegraph · 26.03.2026 11:00</span></div></div>
       <div class="news-summary-box">
         <span class="summary-label">Zusammenfassung</span>
-        <p class="summary-text">Das jüngste Analysten-Update der OSB Group senkt die zentrale Fair-Value-Schätzung von 6,97 £ auf 6,83 £, eine kleine Neueinstellung, die immer noch unter einem optimistischeren Kursziel von 7,30 £ aus bullischen Untersuchungen liegt. Diese Lücke spiegelt eine Meinungsverschiedenheit wider, wobei einige Analysten an einer Übergewichtung festhalten, während andere sich auf die vorsichtigere Seite des revidierten Niveaus von 6,83 £ stützen. Wenn Sie weiterlesen, werden Sie sehen, wie Sie diese sich entwickelnde Erzählung verstehen und was sie für Ihre eigene Sicht auf die Aktien bedeuten könnte. Bleiben Sie auf dem Laufenden, denn...</p>
+        <p class="summary-text">Das jüngste Analysten-Update der OSB Group senkt die zentrale Fair-Value-Schätzung von 6,97 £ auf 6,83 £, eine kleine Neueinstellung, die immer noch unter einem optimistischeren Kursziel von 7,30 £ aus bullischen Untersuchungen liegt. Diese Lücke spiegelt eine Meinungsverschiedenheit wider, wobei einige Analysten an einer Übergewichtung festhalten, während andere sich auf die vorsichtigere Seite des revidierten Niveaus von 6,83 £ stützen. Wenn Sie weiterlesen, werden Sie sehen, wie Sie diese sich entwickelnde Erzählung verstehen und was sie für Ihre eigene Sicht auf die Aktien bedeuten könnte. Bleiben Sie auf dem Laufenden, da...</p>
       </div>
       <table class="detail-table">
         <tr><td>Marktkapitalisierung</td><td>$1.8 B</td></tr>
@@ -1115,8 +1123,7 @@ async function saveTokenAndDispatch(){
 }
 async function dispatchWorkflow(token){
   const btn = document.getElementById('btn-recalc');
-  const orig = btn.textContent;
-  btn.disabled = true; btn.textContent = 'Startet…';
+  btn.disabled = true; btn.innerHTML = 'Startet…';
   try {
     const r = await fetch(
       `https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/actions/workflows/${GH_WORKFLOW}/dispatches`,
@@ -1125,16 +1132,74 @@ async function dispatchWorkflow(token){
         body:JSON.stringify({ref:GH_BRANCH})}
     );
     if (r.status === 204) {
-      showMsg('success','Neuberechnung gestartet – Report ist in ca. 3–5 Min. aktuell. Dann „Neu laden" drücken.');
+      _pollStart = Date.now(); _pollToken = token;
+      _showPollStatus('running');
+      setTimeout(_doPoll, 5000);
     } else if (r.status === 401 || r.status === 403) {
       localStorage.removeItem(TOK_KEY);
       showMsg('error',`Token ungültig (HTTP ${r.status}). Bitte neu eingeben.`);
+      _enableRecalcBtn();
     } else {
-      const body = await r.text().catch(()=>'');
-      showMsg('error',`Fehler HTTP ${r.status}: ${body.slice(0,200)}`);
+      const bd = await r.text().catch(()=>'');
+      showMsg('error',`Fehler HTTP ${r.status}: ${bd.slice(0,200)}`);
+      _enableRecalcBtn();
     }
-  } catch(e) { showMsg('error',`Netzwerkfehler: ${e.message}`); }
-  finally { btn.disabled=false; btn.textContent=orig; }
+  } catch(e) { showMsg('error',`Netzwerkfehler: ${e.message}`); _enableRecalcBtn(); }
+}
+// ── Workflow polling ──────────────────────────────────────────────────────
+const POLL_MS    = 10000;
+const TIMEOUT_MS = 600000;
+let _pollStart = null, _pollToken = null, _pollTimer = null;
+function _elapsedStr(){
+  const s = Math.floor((Date.now()-_pollStart)/1000);
+  const m = Math.floor(s/60), r = s%60;
+  return m>0 ? `${m}:${String(r).padStart(2,'0')} min` : `${s} s`;
+}
+function _enableRecalcBtn(){
+  const btn = document.getElementById('btn-recalc');
+  btn.disabled=false; btn.innerHTML='&#9881; Neu berechnen';
+}
+function _showPollStatus(state, n){
+  const el = document.getElementById('amsg');
+  el.style.display='block';
+  if (state==='running'){
+    el.className='amsg amsg-poll-running';
+    el.innerHTML=`<span class="poll-dot poll-dot-run"></span>Neuberechnung läuft … ${_elapsedStr()}`;
+  } else if (state==='reload'){
+    el.className='amsg amsg-poll-done';
+    el.innerHTML=`<span class="poll-dot poll-dot-done"></span>Abgeschlossen — Seite wird in ${n} Sekunde${n!==1?'n':''} neu geladen.`;
+  } else if (state==='failure'){
+    el.className='amsg amsg-error';
+    el.innerHTML=`<span class="poll-dot poll-dot-err"></span>Workflow fehlgeschlagen — bitte GitHub Actions prüfen.`;
+  } else if (state==='timeout'){
+    el.className='amsg amsg-error';
+    el.textContent='Zeitüberschreitung — bitte Seite manuell neu laden.';
+  }
+}
+function _reloadCountdown(n){
+  _showPollStatus('reload', n);
+  if (n>0) { setTimeout(()=>_reloadCountdown(n-1), 1000); }
+  else { window.location.reload(); }
+}
+async function _doPoll(){
+  if (Date.now()-_pollStart>TIMEOUT_MS) { _showPollStatus('timeout'); _enableRecalcBtn(); return; }
+  _showPollStatus('running');
+  try {
+    const res = await fetch(
+      `https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/actions/runs?workflow_id=${GH_WORKFLOW}&per_page=5&event=workflow_dispatch`,
+      {headers:{'Authorization':`Bearer ${_pollToken}`,'Accept':'application/vnd.github+json','X-GitHub-Api-Version':'2022-11-28'}}
+    );
+    if (!res.ok) { _pollTimer=setTimeout(_doPoll,POLL_MS); return; }
+    const data = await res.json();
+    const run = (data.workflow_runs||[]).find(w=>new Date(w.created_at).getTime()>=_pollStart-15000);
+    if (!run) { _pollTimer=setTimeout(_doPoll,POLL_MS); return; }
+    if (run.status==='completed'){
+      if (run.conclusion==='success') { _reloadCountdown(3); }
+      else { _showPollStatus('failure'); _enableRecalcBtn(); }
+    } else {
+      _pollTimer=setTimeout(_doPoll,POLL_MS);
+    }
+  } catch(e) { _pollTimer=setTimeout(_doPoll,POLL_MS); }
 }
 function resetToken(){
   localStorage.removeItem(TOK_KEY);
