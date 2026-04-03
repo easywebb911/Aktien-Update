@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Squeeze Report">
 <meta name="theme-color" content="#0d1117">
-<title>Squeeze Report – 03.04.2026</title>
+<title>Squeeze Report – 04.04.2026</title>
 <style>
 :root{
   --bg:#f1f5f9;--bg-card:#fff;--bg-hdr:#fff;--bg-met:#f8fafc;
@@ -157,10 +157,14 @@ a{color:var(--accent);text-decoration:none}
 /* ── Metrics ── */
 .metrics-row{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;padding:0 12px 12px}
 .metric-box{background:var(--bg-met);border:1px solid var(--brd);border-radius:10px;
-  padding:10px 6px;text-align:center;border-top:3px solid var(--mc,#94a3b8)}
+  padding:10px 6px;text-align:center;border-top:3px solid var(--mc,#94a3b8);position:relative}
 .m-val{display:block;font-size:1.1rem;font-weight:800;color:var(--mc,#94a3b8)}
 .m-lbl{display:block;font-size:.62rem;color:var(--txt-dim);text-transform:uppercase;
   letter-spacing:.3px;margin-top:2px}
+.si-badge{position:absolute;top:4px;right:5px;font-size:9px;font-weight:700;line-height:1}
+.si-badge-up{color:#22c55e}
+.si-badge-down{color:#ef4444}
+.si-badge-side{color:#f59e0b}
 /* ── Detail table (top of details body) ── */
 .detail-table-wrap{padding:10px 12px 8px}
 /* ── Driver row ── */
@@ -251,7 +255,7 @@ a{color:var(--accent);text-decoration:none}
 <header class="app-hdr">
   <div class="hdr-main">
     <span class="app-title">Squeeze <span>Report</span></span>
-    <span class="hdr-ts">Stand: 03.04.2026, 23:39 Uhr</span>
+    <span class="hdr-ts">Stand: 04.04.2026, 00:41 Uhr</span>
     <div class="hdr-btns">
       <button id="btn-reload" class="btn btn-g" onclick="reloadPage()">&#8635; Neu laden</button>
       <button id="btn-recalc" class="btn btn-b" onclick="triggerWorkflow()">&#9881; Neu berechnen</button>
@@ -384,6 +388,7 @@ a{color:var(--accent);text-decoration:none}
   </div>
   <div class="metrics-row">
     <div class="metric-box" style="--mc:#f59e0b">
+      
       <span class="m-val">16.3%</span>
       <span class="m-lbl">Short Float</span>
     </div>
@@ -410,6 +415,12 @@ a{color:var(--accent);text-decoration:none}
         <tr><td>52W-Hoch / -Tief</td><td>$24.70 / $11.16</td></tr>
         <tr><td>Ø Volumen 20T</td><td>291,050</td></tr>
         <tr><td>Heutiges Volumen</td><td>2,006,900</td></tr>
+        <tr><td>Short Interest Quelle</td><td>Yahoo Finance</td></tr>
+        <tr><td>SI-Trend (6W)</td><td>Keine Daten</td></tr>
+        <tr><td>SI Aktuell (FINRA)</td><td>—</td></tr>
+        <tr><td>SI vor 4 Wochen</td><td>—</td></tr>
+        <tr><td>SI vor 8 Wochen</td><td>—</td></tr>
+        <tr><td>Fails-to-Deliver</td><td>—</td></tr>
         <tr><td>Risiko-Detail</td><td style="color:#ef4444">Micro-Cap ($280 M) – geringe Liquidität, Kursmanipulation möglich. Extremer Volumenanstieg (6.9×) kann auf koordiniertes Kaufinteresse hinweisen.</td></tr>
       </table>
     </div>
@@ -453,6 +464,7 @@ a{color:var(--accent);text-decoration:none}
   </div>
   <div class="metrics-row">
     <div class="metric-box" style="--mc:#f59e0b">
+      
       <span class="m-val">22.4%</span>
       <span class="m-lbl">Short Float</span>
     </div>
@@ -479,6 +491,12 @@ a{color:var(--accent);text-decoration:none}
         <tr><td>52W-Hoch / -Tief</td><td>$29.80 / $14.20</td></tr>
         <tr><td>Ø Volumen 20T</td><td>1,148,635</td></tr>
         <tr><td>Heutiges Volumen</td><td>4,448,500</td></tr>
+        <tr><td>Short Interest Quelle</td><td>Yahoo Finance</td></tr>
+        <tr><td>SI-Trend (6W)</td><td>Keine Daten</td></tr>
+        <tr><td>SI Aktuell (FINRA)</td><td>—</td></tr>
+        <tr><td>SI vor 4 Wochen</td><td>—</td></tr>
+        <tr><td>SI vor 8 Wochen</td><td>—</td></tr>
+        <tr><td>Fails-to-Deliver</td><td>—</td></tr>
         <tr><td>Risiko-Detail</td><td style="color:#f59e0b">Small-Cap ($1.1 B) mit eingeschränkter Liquidität.</td></tr>
       </table>
     </div>
@@ -522,6 +540,7 @@ a{color:var(--accent);text-decoration:none}
   </div>
   <div class="metrics-row">
     <div class="metric-box" style="--mc:#f59e0b">
+      
       <span class="m-val">25.3%</span>
       <span class="m-lbl">Short Float</span>
     </div>
@@ -548,6 +567,12 @@ a{color:var(--accent);text-decoration:none}
         <tr><td>52W-Hoch / -Tief</td><td>$17.65 / $2.95</td></tr>
         <tr><td>Ø Volumen 20T</td><td>1,095,805</td></tr>
         <tr><td>Heutiges Volumen</td><td>1,837,300</td></tr>
+        <tr><td>Short Interest Quelle</td><td>Yahoo Finance</td></tr>
+        <tr><td>SI-Trend (6W)</td><td>Keine Daten</td></tr>
+        <tr><td>SI Aktuell (FINRA)</td><td>—</td></tr>
+        <tr><td>SI vor 4 Wochen</td><td>—</td></tr>
+        <tr><td>SI vor 8 Wochen</td><td>—</td></tr>
+        <tr><td>Fails-to-Deliver</td><td>—</td></tr>
         <tr><td>Risiko-Detail</td><td style="color:#f59e0b">Hohes Short-Interesse (25.3 %) erhöht die Volatilität deutlich. Small-Cap ($773 M) mit eingeschränkter Liquidität.</td></tr>
       </table>
     </div>
@@ -591,6 +616,7 @@ a{color:var(--accent);text-decoration:none}
   </div>
   <div class="metrics-row">
     <div class="metric-box" style="--mc:#f59e0b">
+      
       <span class="m-val">18.6%</span>
       <span class="m-lbl">Short Float</span>
     </div>
@@ -617,6 +643,12 @@ a{color:var(--accent);text-decoration:none}
         <tr><td>52W-Hoch / -Tief</td><td>$14.93 / $3.90</td></tr>
         <tr><td>Ø Volumen 20T</td><td>2,633,225</td></tr>
         <tr><td>Heutiges Volumen</td><td>7,289,300</td></tr>
+        <tr><td>Short Interest Quelle</td><td>Yahoo Finance</td></tr>
+        <tr><td>SI-Trend (6W)</td><td>Keine Daten</td></tr>
+        <tr><td>SI Aktuell (FINRA)</td><td>—</td></tr>
+        <tr><td>SI vor 4 Wochen</td><td>—</td></tr>
+        <tr><td>SI vor 8 Wochen</td><td>—</td></tr>
+        <tr><td>Fails-to-Deliver</td><td>—</td></tr>
         <tr><td>Risiko-Detail</td><td style="color:#f59e0b">Small-Cap ($996 M) mit eingeschränkter Liquidität.</td></tr>
       </table>
     </div>
@@ -660,6 +692,7 @@ a{color:var(--accent);text-decoration:none}
   </div>
   <div class="metrics-row">
     <div class="metric-box" style="--mc:#22c55e">
+      
       <span class="m-val">48.3%</span>
       <span class="m-lbl">Short Float</span>
     </div>
@@ -686,6 +719,12 @@ a{color:var(--accent);text-decoration:none}
         <tr><td>52W-Hoch / -Tief</td><td>$212.81 / $62.17</td></tr>
         <tr><td>Ø Volumen 20T</td><td>1,123,170</td></tr>
         <tr><td>Heutiges Volumen</td><td>1,854,000</td></tr>
+        <tr><td>Short Interest Quelle</td><td>Yahoo Finance</td></tr>
+        <tr><td>SI-Trend (6W)</td><td>Keine Daten</td></tr>
+        <tr><td>SI Aktuell (FINRA)</td><td>—</td></tr>
+        <tr><td>SI vor 4 Wochen</td><td>—</td></tr>
+        <tr><td>SI vor 8 Wochen</td><td>—</td></tr>
+        <tr><td>Fails-to-Deliver</td><td>—</td></tr>
         <tr><td>Risiko-Detail</td><td style="color:#f59e0b">Extrem hohes Short-Interesse (48.3 %) bedeutet massive Squeeze-Gefahr, aber auch starke Kursausschläge in beide Richtungen.</td></tr>
       </table>
     </div>
@@ -698,10 +737,10 @@ a{color:var(--accent);text-decoration:none}
       <span id="nb-icon5">▼</span> Nachrichten anzeigen
     </button>
     <div class="news-panel" id="np5" hidden>
-      <div class="news-items"><div class="ni"><a href="https://www.investors.com/news/tsa-delays-car-rentals-hertz-avis-budget-airports-air-travel-spring-break/?src=A00220&yptr=yahoo" target="_blank" rel="noopener noreferrer">TSA-Verzögerungen, Short Squeeze – Was hat diese beiden Aktien in die Höhe getrieben?</a><span class="ni-meta">Investor's Business Daily · 03.04.2026 17:12</span></div><div class="ni"><a href="https://finance.yahoo.com/markets/stocks/articles/wesco-howmet-lennox-avis-budget-010919698.html" target="_blank" rel="noopener noreferrer">WESCO, Howmet, Lennox, Avis Budget Group und Regal Rexnord Stocks Trade Up, was Sie wissen müssen</a><span class="ni-meta">StockStory · 01.04.2026 01:09</span></div></div>
+      <div class="news-items"><div class="ni"><a href="https://www.fool.com/investing/2026/04/03/why-avis-budget-group-stock-revved-higher-this-wee/" target="_blank" rel="noopener noreferrer">Warum die Aktie der Avis Budget Group diese Woche eine Kehrtwende vollzog</a><span class="ni-meta">Motley Fool · 03.04.2026 22:24</span></div><div class="ni"><a href="https://www.investors.com/news/tsa-delays-car-rentals-hertz-avis-budget-airports-air-travel-spring-break/?src=A00220&yptr=yahoo" target="_blank" rel="noopener noreferrer">TSA-Verzögerungen, Short Squeeze – Was hat diese beiden Aktien in die Höhe getrieben?</a><span class="ni-meta">Investor's Business Daily · 03.04.2026 17:12</span></div></div>
       <div class="news-summary-box">
         <span class="summary-label">Zusammenfassung</span>
-        <p class="summary-text">Zu diesen Zuwächsen könnten landesweite Reiseverzögerungen beigetragen haben, die durch die fehlende Finanzierung der Transportation Security Administration (TSA) verursacht wurden.  Seit Anfang März legte die Avis Budget Group um 88 % zu.  Der kleinere Konkurrent Hertz Global Holdings beendete den Monat mit einem Plus von 12 %, nachdem er sich von einem Tief Mitte März erholt hatte.</p>
+        <p class="summary-text">Warum die Aktie der Avis Budget Group diese Woche eine Kehrtwende vollzog. Weitere aktuelle Meldung: TSA-Verzögerungen, Short Squeeze – Was hat diese beiden Aktien in die Höhe getrieben?  –  Quelle: Motley Fool (03.04.2026 22:24)</p>
       </div>
     </div>
   </div>
@@ -729,6 +768,7 @@ a{color:var(--accent);text-decoration:none}
   </div>
   <div class="metrics-row">
     <div class="metric-box" style="--mc:#22c55e">
+      
       <span class="m-val">35.2%</span>
       <span class="m-lbl">Short Float</span>
     </div>
@@ -755,6 +795,12 @@ a{color:var(--accent);text-decoration:none}
         <tr><td>52W-Hoch / -Tief</td><td>$13.24 / $2.68</td></tr>
         <tr><td>Ø Volumen 20T</td><td>1,784,670</td></tr>
         <tr><td>Heutiges Volumen</td><td>3,185,100</td></tr>
+        <tr><td>Short Interest Quelle</td><td>Yahoo Finance</td></tr>
+        <tr><td>SI-Trend (6W)</td><td>Keine Daten</td></tr>
+        <tr><td>SI Aktuell (FINRA)</td><td>—</td></tr>
+        <tr><td>SI vor 4 Wochen</td><td>—</td></tr>
+        <tr><td>SI vor 8 Wochen</td><td>—</td></tr>
+        <tr><td>Fails-to-Deliver</td><td>—</td></tr>
         <tr><td>Risiko-Detail</td><td style="color:#f59e0b">Hohes Short-Interesse (35.2 %) erhöht die Volatilität deutlich. Small-Cap ($694 M) mit eingeschränkter Liquidität.</td></tr>
       </table>
     </div>
@@ -798,6 +844,7 @@ a{color:var(--accent);text-decoration:none}
   </div>
   <div class="metrics-row">
     <div class="metric-box" style="--mc:#22c55e">
+      
       <span class="m-val">30.3%</span>
       <span class="m-lbl">Short Float</span>
     </div>
@@ -824,6 +871,12 @@ a{color:var(--accent);text-decoration:none}
         <tr><td>52W-Hoch / -Tief</td><td>$13.94 / $1.12</td></tr>
         <tr><td>Ø Volumen 20T</td><td>1,912,245</td></tr>
         <tr><td>Heutiges Volumen</td><td>4,754,900</td></tr>
+        <tr><td>Short Interest Quelle</td><td>Yahoo Finance</td></tr>
+        <tr><td>SI-Trend (6W)</td><td>Keine Daten</td></tr>
+        <tr><td>SI Aktuell (FINRA)</td><td>—</td></tr>
+        <tr><td>SI vor 4 Wochen</td><td>—</td></tr>
+        <tr><td>SI vor 8 Wochen</td><td>—</td></tr>
+        <tr><td>Fails-to-Deliver</td><td>—</td></tr>
         <tr><td>Risiko-Detail</td><td style="color:#ef4444">Hohes Short-Interesse (30.3 %) erhöht die Volatilität deutlich. Micro-Cap ($27 M) – geringe Liquidität, Kursmanipulation möglich.</td></tr>
       </table>
     </div>
@@ -867,6 +920,7 @@ a{color:var(--accent);text-decoration:none}
   </div>
   <div class="metrics-row">
     <div class="metric-box" style="--mc:#f59e0b">
+      
       <span class="m-val">20.0%</span>
       <span class="m-lbl">Short Float</span>
     </div>
@@ -893,6 +947,12 @@ a{color:var(--accent);text-decoration:none}
         <tr><td>52W-Hoch / -Tief</td><td>$33.20 / $6.15</td></tr>
         <tr><td>Ø Volumen 20T</td><td>1,679,135</td></tr>
         <tr><td>Heutiges Volumen</td><td>4,101,800</td></tr>
+        <tr><td>Short Interest Quelle</td><td>Yahoo Finance</td></tr>
+        <tr><td>SI-Trend (6W)</td><td>Keine Daten</td></tr>
+        <tr><td>SI Aktuell (FINRA)</td><td>—</td></tr>
+        <tr><td>SI vor 4 Wochen</td><td>—</td></tr>
+        <tr><td>SI vor 8 Wochen</td><td>—</td></tr>
+        <tr><td>Fails-to-Deliver</td><td>—</td></tr>
         <tr><td>Risiko-Detail</td><td style="color:#f59e0b">Small-Cap ($1.1 B) mit eingeschränkter Liquidität.</td></tr>
       </table>
     </div>
@@ -936,6 +996,7 @@ a{color:var(--accent);text-decoration:none}
   </div>
   <div class="metrics-row">
     <div class="metric-box" style="--mc:#f59e0b">
+      
       <span class="m-val">22.4%</span>
       <span class="m-lbl">Short Float</span>
     </div>
@@ -962,6 +1023,12 @@ a{color:var(--accent);text-decoration:none}
         <tr><td>52W-Hoch / -Tief</td><td>$4.08 / $0.93</td></tr>
         <tr><td>Ø Volumen 20T</td><td>27,233,670</td></tr>
         <tr><td>Heutiges Volumen</td><td>41,493,500</td></tr>
+        <tr><td>Short Interest Quelle</td><td>Yahoo Finance</td></tr>
+        <tr><td>SI-Trend (6W)</td><td>Keine Daten</td></tr>
+        <tr><td>SI Aktuell (FINRA)</td><td>—</td></tr>
+        <tr><td>SI vor 4 Wochen</td><td>—</td></tr>
+        <tr><td>SI vor 8 Wochen</td><td>—</td></tr>
+        <tr><td>Fails-to-Deliver</td><td>—</td></tr>
         <tr><td>Risiko-Detail</td><td style="color:#f59e0b">Small-Cap ($653 M) mit eingeschränkter Liquidität.</td></tr>
       </table>
     </div>
@@ -1005,6 +1072,7 @@ a{color:var(--accent);text-decoration:none}
   </div>
   <div class="metrics-row">
     <div class="metric-box" style="--mc:#94a3b8">
+      
       <span class="m-val">—</span>
       <span class="m-lbl">Short Float</span>
     </div>
@@ -1031,6 +1099,12 @@ a{color:var(--accent);text-decoration:none}
         <tr><td>52W-Hoch / -Tief</td><td>$647.50 / $360.60</td></tr>
         <tr><td>Ø Volumen 20T</td><td>1,386,378</td></tr>
         <tr><td>Heutiges Volumen</td><td>3,912,177</td></tr>
+        <tr><td>Short Interest Quelle</td><td>Yahoo Finance</td></tr>
+        <tr><td>SI-Trend (6W)</td><td>Keine Daten</td></tr>
+        <tr><td>SI Aktuell (FINRA)</td><td>—</td></tr>
+        <tr><td>SI vor 4 Wochen</td><td>—</td></tr>
+        <tr><td>SI vor 8 Wochen</td><td>—</td></tr>
+        <tr><td>Fails-to-Deliver</td><td>—</td></tr>
         <tr><td>Risiko-Detail</td><td style="color:#f59e0b">Small-Cap ($1.8 B) mit eingeschränkter Liquidität.</td></tr>
       </table>
     </div>
@@ -1056,7 +1130,7 @@ a{color:var(--accent);text-decoration:none}
 
 <footer class="footer">
   <p>Der Squeeze-Score ist ein rein rechnerischer Indikator und ersetzt keine individuelle Anlageberatung. Short-Squeeze-Kandidaten sind hochspekulative Investments mit erhöhtem Totalverlustrisiko. Nur mit kleinen Positionen und engem Stop-Loss handeln.</p>
-  <p>Automatisch generiert am 03.04.2026 · Quellen: Yahoo Finance (US/DE/GB/FR/NL/CA/JP/HK/KR), Finviz · Übersetzung: Google Translate</p>
+  <p>Automatisch generiert am 04.04.2026 · Quellen: Yahoo Finance (US/DE/GB/FR/NL/CA/JP/HK/KR), Finviz · Übersetzung: Google Translate</p>
 </footer>
 
 <script>
