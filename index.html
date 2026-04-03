@@ -129,7 +129,7 @@ a{color:var(--accent);text-decoration:none}
 .score-track{width:60px;height:5px;background:var(--brd);border-radius:3px}
 .score-fill{height:100%;border-radius:3px;transition:width .3s}
 /* ── Metrics ── */
-.metrics-row{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding:0 12px 12px}
+.metrics-row{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;padding:0 12px 12px}
 .metric-box{background:var(--bg-met);border:1px solid var(--brd);border-radius:10px;
   padding:10px 6px;text-align:center;border-top:3px solid var(--mc,#94a3b8)}
 .m-val{display:block;font-size:1.1rem;font-weight:800;color:var(--mc,#94a3b8)}
@@ -137,10 +137,22 @@ a{color:var(--accent);text-decoration:none}
   letter-spacing:.3px;margin-top:2px}
 /* ── Driver row ── */
 .driver-row{display:flex;align-items:flex-start;justify-content:space-between;
-  gap:10px;padding:0 12px 12px}
+  gap:10px;padding:12px 12px 10px}
 .driver-text{font-size:.93rem;color:var(--txt-sub);line-height:1.55;flex:1}
 .risk-badge{flex-shrink:0;padding:4px 10px;border-radius:20px;font-size:.7rem;
   font-weight:700;letter-spacing:.4px;border:1px solid;white-space:nowrap;margin-top:1px}
+/* ── Details dropdown button ── */
+.details-btn{width:100%;min-height:44px;background:var(--bg-met);
+  border:none;border-top:1px solid var(--brd);border-bottom:none;
+  color:var(--txt-sub);font-size:.82rem;font-weight:600;cursor:pointer;
+  padding:0 14px;text-align:left;display:flex;align-items:center;gap:6px}
+.details-btn:hover{background:var(--brd)}
+.details-arrow{display:inline-block;font-size:.75rem;transition:transform .2s ease;
+  flex-shrink:0}
+/* ── Collapsible details body ── */
+.details-body{max-height:0;overflow:hidden;
+  transition:max-height .25s ease}
+.details-body.open{max-height:1200px}
 /* ── News toggle button ── */
 .news-btn{width:100%;min-height:44px;background:var(--bg-met);border:none;
   border-top:1px solid var(--brd);color:var(--accent);font-size:.82rem;
@@ -185,11 +197,9 @@ a{color:var(--accent);text-decoration:none}
   .info-inner{grid-template-columns:repeat(3,1fr)}
   /* Cards: fluid auto-fill, min 340px per card, 16px gap, full width */
   .cards-grid{grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:16px}
+  .metrics-row{grid-template-columns:repeat(4,1fr)}
   .wrap{padding:16px 16px 32px}
   .footer{padding:16px 16px 32px}
-  /* News panels always visible; toggle button hidden */
-  .news-panel{display:block}
-  .news-btn{display:none}
   /* Slightly smaller body text */
   .driver-text{font-size:.82rem}
   .ni,.no-news,.summary-text{font-size:.82rem}
@@ -210,7 +220,7 @@ a{color:var(--accent);text-decoration:none}
 <header class="app-hdr">
   <div class="hdr-main">
     <span class="app-title">Squeeze <span>Report</span></span>
-    <span class="hdr-ts">Stand: 03.04.2026, 15:54 Uhr</span>
+    <span class="hdr-ts">Stand: 03.04.2026, 20:09 Uhr</span>
     <div class="hdr-btns">
       <button id="btn-reload" class="btn btn-g" onclick="reloadPage()">&#8635; Neu laden</button>
       <button id="btn-recalc" class="btn btn-b" onclick="triggerWorkflow()">&#9881; Neu berechnen</button>
@@ -238,7 +248,7 @@ a{color:var(--accent);text-decoration:none}
 <main class="wrap">
   <div class="stats-bar">
     <div class="stat-box"><span class="stat-val">Top 10</span><span class="stat-lbl">Kandidaten</span></div>
-    <div class="stat-box"><span class="stat-val">23.8%</span><span class="stat-lbl">Ø Short Float</span></div>
+    <div class="stat-box"><span class="stat-val">23.9%</span><span class="stat-lbl">Ø Short Float</span></div>
     <div class="stat-box"><span class="stat-val">8.4d</span><span class="stat-lbl">Ø Days Cover</span></div>
     <div class="stat-box"><span class="stat-val">2.8×</span><span class="stat-lbl">Ø Volumen</span></div>
   </div>
@@ -249,9 +259,10 @@ a{color:var(--accent);text-decoration:none}
       <div class="info-box">
         <h4>Score (0–100)</h4>
         <ul>
-          <li><strong>40 % Short Float</strong> – Anteil leerverkaufter Aktien; je höher, desto stärker der Squeeze-Druck</li>
-          <li><strong>30 % Days to Cover</strong> – Tage zum vollständigen Eindecken; hohe Werte erhöhen Kapitulationsrisiko</li>
-          <li><strong>30 % Rel. Volumen</strong> – Heutiges vs. 20-Tage-Durchschnitt; Spitzen signalisieren Kaufinteresse</li>
+          <li><strong>35 % Short Float</strong> – Anteil leerverkaufter Aktien; je höher, desto stärker der Squeeze-Druck</li>
+          <li><strong>25 % Days to Cover</strong> – Tage zum vollständigen Eindecken; hohe Werte erhöhen Kapitulationsrisiko</li>
+          <li><strong>25 % Rel. Volumen</strong> – Heutiges vs. 20-Tage-Durchschnitt; Spitzen signalisieren Kaufinteresse</li>
+          <li><strong>15 % Kursmomentum</strong> – Kursveränderung (5 Tage); steigende Kurse erhöhen den Squeeze-Druck</li>
         </ul>
       </div>
       <div class="info-box">
@@ -312,28 +323,37 @@ a{color:var(--accent);text-decoration:none}
       <span class="m-val">6.9×</span>
       <span class="m-lbl">Volumen</span>
     </div>
-  </div>
-  <div class="driver-row">
-    <p class="driver-text">Short Float von 16.3 % liegt deutlich über dem Marktdurchschnitt. Die Short Ratio von 9.0 Tagen zeigt, dass Leerverkäufer mehrere Handelstage zum Eindecken benötigen würden – dies verstärkt den Squeeze-Druck. Das Handelsvolumen liegt bei 6.9× dem 20-Tage-Durchschnitt, was auf erhöhtes Kaufinteresse und mögliche Short-Eindeckungen hindeutet. Der Kursanstieg von +44.4 % heute könnte Margin Calls bei Leerverkäufern auslösen.</p>
-    <span class="risk-badge" style="color:#ef4444;border-color:#ef444455;background:#ef444422">HOCH</span>
-  </div>
-  
-  <button class="news-btn" onclick="toggleNews(1)" id="nb1" aria-expanded="false">
-    <span id="nb-icon1">▼</span> Nachrichten anzeigen
-  </button>
-  <div class="news-panel" id="np1" hidden>
-    <div class="news-items"><div class="ni"><a href="https://app.moby.co/home/research/tools/earningsCalendar/earnings-franklin-covey-co-q2-2026-earnings-call-summary?utm_source=yahoo_finance&utm_medium=rss" target="_blank" rel="noopener noreferrer">Zusammenfassung der Gewinnmitteilungen von Franklin Covey Co. Q2 2026</a><span class="ni-meta">Moby · 02.04.2026 12:30</span></div><div class="ni"><a href="https://finance.yahoo.com/markets/stocks/articles/franklin-covey-co-fc-q2-030028984.html" target="_blank" rel="noopener noreferrer">Höhepunkte der Ergebnismitteilung von Franklin Covey Co (FC) für das 2. Quartal 2026: Starkes Wachstum der Bildungsabteilung und ...</a><span class="ni-meta">GuruFocus.com · 02.04.2026 03:00</span></div></div>
-    <div class="news-summary-box">
-      <span class="summary-label">Zusammenfassung</span>
-      <p class="summary-text">Zusammenfassung der Gewinnmitteilungen von Franklin Covey Co. Q2 2026. Weitere aktuelle Meldung: Franklin Covey Co (FC) Q2 2026 Earnings Call Highlights: Starkes Wachstum der Bildungsabteilung und  –  Quelle: Moby (02.04.2026 12:30)</p>
+    <div class="metric-box" style="--mc:#22c55e">
+      <span class="m-val">+44.4%</span>
+      <span class="m-lbl">Momentum</span>
     </div>
-    <table class="detail-table">
-      <tr><td>Marktkapitalisierung</td><td>$280 M</td></tr>
-      <tr><td>52W-Hoch / -Tief</td><td>$24.70 / $11.16</td></tr>
-      <tr><td>Ø Volumen 20T</td><td>290,920</td></tr>
-      <tr><td>Heutiges Volumen</td><td>2,004,300</td></tr>
-      <tr><td>Risiko-Detail</td><td style="color:#ef4444">Micro-Cap ($280 M) – geringe Liquidität, Kursmanipulation möglich. Extremer Volumenanstieg (6.9×) kann auf koordiniertes Kaufinteresse hinweisen.</td></tr>
-    </table>
+  </div>
+  <button class="details-btn" onclick="toggleDetails(1)" id="db1" aria-expanded="false">
+    <span class="details-arrow" id="da1">▾</span><span id="dl1"> Details anzeigen</span>
+  </button>
+  <div class="details-body" id="dd1">
+    <div class="driver-row">
+      <p class="driver-text">Short Float von 16.3 % liegt deutlich über dem Marktdurchschnitt. Die Short Ratio von 9.0 Tagen zeigt, dass Leerverkäufer mehrere Handelstage zum Eindecken benötigen würden – dies verstärkt den Squeeze-Druck. Das Handelsvolumen liegt bei 6.9× dem 20-Tage-Durchschnitt, was auf erhöhtes Kaufinteresse und mögliche Short-Eindeckungen hindeutet. Der Kursanstieg von +44.4 % heute könnte Margin Calls bei Leerverkäufern auslösen.</p>
+      <span class="risk-badge" style="color:#ef4444;border-color:#ef444455;background:#ef444422">Risiko: HOCH</span>
+    </div>
+    
+    <button class="news-btn" onclick="toggleNews(1)" id="nb1" aria-expanded="false">
+      <span id="nb-icon1">▼</span> Nachrichten anzeigen
+    </button>
+    <div class="news-panel" id="np1" hidden>
+      <div class="news-items"><div class="ni"><a href="https://app.moby.co/home/research/tools/earningsCalendar/earnings-franklin-covey-co-q2-2026-earnings-call-summary?utm_source=yahoo_finance&utm_medium=rss" target="_blank" rel="noopener noreferrer">Zusammenfassung der Gewinnmitteilungen von Franklin Covey Co. Q2 2026</a><span class="ni-meta">Moby · 02.04.2026 12:30</span></div><div class="ni"><a href="https://finance.yahoo.com/markets/stocks/articles/franklin-covey-co-fc-q2-030028984.html" target="_blank" rel="noopener noreferrer">Höhepunkte der Ergebnismitteilung von Franklin Covey Co (FC) für das 2. Quartal 2026: Starkes Wachstum der Bildungsabteilung und ...</a><span class="ni-meta">GuruFocus.com · 02.04.2026 03:00</span></div></div>
+      <div class="news-summary-box">
+        <span class="summary-label">Zusammenfassung</span>
+        <p class="summary-text">Zusammenfassung der Gewinnmitteilungen von Franklin Covey Co. Q2 2026. Weitere aktuelle Meldung: Franklin Covey Co (FC) Q2 2026 Earnings Call Highlights: Starkes Wachstum der Bildungsabteilung und  –  Quelle: Moby (02.04.2026 12:30)</p>
+      </div>
+      <table class="detail-table">
+        <tr><td>Marktkapitalisierung</td><td>$280 M</td></tr>
+        <tr><td>52W-Hoch / -Tief</td><td>$24.70 / $11.16</td></tr>
+        <tr><td>Ø Volumen 20T</td><td>290,920</td></tr>
+        <tr><td>Heutiges Volumen</td><td>2,004,300</td></tr>
+        <tr><td>Risiko-Detail</td><td style="color:#ef4444">Micro-Cap ($280 M) – geringe Liquidität, Kursmanipulation möglich. Extremer Volumenanstieg (6.9×) kann auf koordiniertes Kaufinteresse hinweisen.</td></tr>
+      </table>
+    </div>
   </div>
 </article>
 
@@ -359,7 +379,7 @@ a{color:var(--accent);text-decoration:none}
   </div>
   <div class="metrics-row">
     <div class="metric-box" style="--mc:#ef4444">
-      <span class="m-val">21.6%</span>
+      <span class="m-val">22.4%</span>
       <span class="m-lbl">Short Float</span>
     </div>
     <div class="metric-box" style="--mc:#ef4444">
@@ -370,28 +390,37 @@ a{color:var(--accent);text-decoration:none}
       <span class="m-val">3.9×</span>
       <span class="m-lbl">Volumen</span>
     </div>
-  </div>
-  <div class="driver-row">
-    <p class="driver-text">Short Float von 21.6 % liegt deutlich über dem Marktdurchschnitt. Die Short Ratio von 7.9 Tagen zeigt, dass Leerverkäufer mehrere Handelstage zum Eindecken benötigen würden – dies verstärkt den Squeeze-Druck. Das Handelsvolumen liegt bei 3.9× dem 20-Tage-Durchschnitt, was auf erhöhtes Kaufinteresse und mögliche Short-Eindeckungen hindeutet. Der Kursanstieg von +13.4 % heute könnte Margin Calls bei Leerverkäufern auslösen.</p>
-    <span class="risk-badge" style="color:#f59e0b;border-color:#f59e0b55;background:#f59e0b22">MITTEL</span>
-  </div>
-  
-  <button class="news-btn" onclick="toggleNews(2)" id="nb2" aria-expanded="false">
-    <span id="nb-icon2">▼</span> Nachrichten anzeigen
-  </button>
-  <div class="news-panel" id="np2" hidden>
-    <div class="news-items"><div class="ni"><a href="https://finance.yahoo.com/markets/stocks/articles/why-penguin-solutions-peng-stock-224820754.html" target="_blank" rel="noopener noreferrer">Warum die Aktie von Penguin Solutions (PENG) heute im Aufwärtstrend liegt</a><span class="ni-meta">StockStory · 02.04.2026 22:48</span></div><div class="ni"><a href="https://finance.yahoo.com/markets/stocks/articles/peng-q1-deep-dive-ai-220020490.html" target="_blank" rel="noopener noreferrer">PENG Q1 Deep Dive: Nachfrage nach KI-Speicher und Kundendiversifizierung treiben Ausblickverschiebung voran</a><span class="ni-meta">StockStory · 02.04.2026 22:00</span></div></div>
-    <div class="news-summary-box">
-      <span class="summary-label">Zusammenfassung</span>
-      <p class="summary-text">Die Aktien des Halbleiterherstellers Penguin Solutions (NASDAQ:PENG) stiegen am Morgen um 13,1 %, nachdem das Unternehmen besser als erwartete Ergebnisse für das erste Quartal meldete und seinen Ausblick für das Gesamtjahr anhob.</p>
+    <div class="metric-box" style="--mc:#22c55e">
+      <span class="m-val">+13.4%</span>
+      <span class="m-lbl">Momentum</span>
     </div>
-    <table class="detail-table">
-      <tr><td>Marktkapitalisierung</td><td>$1.1 B</td></tr>
-      <tr><td>52W-Hoch / -Tief</td><td>$29.80 / $14.20</td></tr>
-      <tr><td>Ø Volumen 20T</td><td>1,148,595</td></tr>
-      <tr><td>Heutiges Volumen</td><td>4,447,700</td></tr>
-      <tr><td>Risiko-Detail</td><td style="color:#f59e0b">Small-Cap ($1.1 B) mit eingeschränkter Liquidität.</td></tr>
-    </table>
+  </div>
+  <button class="details-btn" onclick="toggleDetails(2)" id="db2" aria-expanded="false">
+    <span class="details-arrow" id="da2">▾</span><span id="dl2"> Details anzeigen</span>
+  </button>
+  <div class="details-body" id="dd2">
+    <div class="driver-row">
+      <p class="driver-text">Short Float von 22.4 % liegt deutlich über dem Marktdurchschnitt. Die Short Ratio von 7.9 Tagen zeigt, dass Leerverkäufer mehrere Handelstage zum Eindecken benötigen würden – dies verstärkt den Squeeze-Druck. Das Handelsvolumen liegt bei 3.9× dem 20-Tage-Durchschnitt, was auf erhöhtes Kaufinteresse und mögliche Short-Eindeckungen hindeutet. Der Kursanstieg von +13.4 % heute könnte Margin Calls bei Leerverkäufern auslösen.</p>
+      <span class="risk-badge" style="color:#f59e0b;border-color:#f59e0b55;background:#f59e0b22">Risiko: MITTEL</span>
+    </div>
+    
+    <button class="news-btn" onclick="toggleNews(2)" id="nb2" aria-expanded="false">
+      <span id="nb-icon2">▼</span> Nachrichten anzeigen
+    </button>
+    <div class="news-panel" id="np2" hidden>
+      <div class="news-items"><div class="ni"><a href="https://finance.yahoo.com/markets/stocks/articles/why-penguin-solutions-peng-stock-224820754.html" target="_blank" rel="noopener noreferrer">Warum die Aktie von Penguin Solutions (PENG) heute im Aufwärtstrend liegt</a><span class="ni-meta">StockStory · 02.04.2026 22:48</span></div><div class="ni"><a href="https://finance.yahoo.com/markets/stocks/articles/peng-q1-deep-dive-ai-220020490.html" target="_blank" rel="noopener noreferrer">PENG Q1 Deep Dive: Nachfrage nach KI-Speicher und Kundendiversifizierung treiben Ausblickverschiebung voran</a><span class="ni-meta">StockStory · 02.04.2026 22:00</span></div></div>
+      <div class="news-summary-box">
+        <span class="summary-label">Zusammenfassung</span>
+        <p class="summary-text">Die Aktien des Halbleiterherstellers Penguin Solutions (NASDAQ:PENG) stiegen am Morgen um 13,1 %, nachdem das Unternehmen besser als erwartete Ergebnisse für das erste Quartal meldete und seinen Ausblick für das Gesamtjahr anhob.</p>
+      </div>
+      <table class="detail-table">
+        <tr><td>Marktkapitalisierung</td><td>$1.1 B</td></tr>
+        <tr><td>52W-Hoch / -Tief</td><td>$29.80 / $14.20</td></tr>
+        <tr><td>Ø Volumen 20T</td><td>1,148,595</td></tr>
+        <tr><td>Heutiges Volumen</td><td>4,447,700</td></tr>
+        <tr><td>Risiko-Detail</td><td style="color:#f59e0b">Small-Cap ($1.1 B) mit eingeschränkter Liquidität.</td></tr>
+      </table>
+    </div>
   </div>
 </article>
 
@@ -428,28 +457,37 @@ a{color:var(--accent);text-decoration:none}
       <span class="m-val">1.7×</span>
       <span class="m-lbl">Volumen</span>
     </div>
-  </div>
-  <div class="driver-row">
-    <p class="driver-text">Short Float von 25.3 % liegt deutlich über dem Marktdurchschnitt. Die Short Ratio von 20.6 Tagen zeigt, dass Leerverkäufer mehrere Handelstage zum Eindecken benötigen würden – dies verstärkt den Squeeze-Druck. Der Kursrückgang von -9.8 % könnte das Short-Interesse kurzfristig erhöhen.</p>
-    <span class="risk-badge" style="color:#f59e0b;border-color:#f59e0b55;background:#f59e0b22">MITTEL</span>
-  </div>
-  
-  <button class="news-btn" onclick="toggleNews(3)" id="nb3" aria-expanded="false">
-    <span id="nb-icon3">▼</span> Nachrichten anzeigen
-  </button>
-  <div class="news-panel" id="np3" hidden>
-    <div class="news-items"><div class="ni"><a href="https://app.moby.co/home/research/tools/earningsCalendar/earnings-omeros-corporation-q4-2025-earnings-call-summary?utm_source=yahoo_finance&utm_medium=rss" target="_blank" rel="noopener noreferrer">Zusammenfassung der Gewinnmitteilung der Omeros Corporation für das 4. Quartal 2025</a><span class="ni-meta">Moby · 01.04.2026 12:30</span></div><div class="ni"><a href="https://finance.yahoo.com/sectors/healthcare/articles/omeros-corp-omer-q4-2025-030227210.html" target="_blank" rel="noopener noreferrer">Omeros Corp (OMER) Höhepunkte der Telefonkonferenz zum 4. Quartal 2025: Eine Trendwende mit strategischen Deals und FDA ...</a><span class="ni-meta">GuruFocus.com · 01.04.2026 03:02</span></div></div>
-    <div class="news-summary-box">
-      <span class="summary-label">Zusammenfassung</span>
-      <p class="summary-text">Zusammenfassung der Gewinnmitteilungen der Omeros Corporation für das 4. Quartal 2025. Weitere aktuelle Meldung: Omeros Corp (OMER) Q4 2025 Earnings Call Highlights: Eine Trendwende mit strategischen Deals und FDA  –  Quelle: Moby (01.04.2026 12:30)</p>
+    <div class="metric-box" style="--mc:#ef4444">
+      <span class="m-val">-9.8%</span>
+      <span class="m-lbl">Momentum</span>
     </div>
-    <table class="detail-table">
-      <tr><td>Marktkapitalisierung</td><td>$773 M</td></tr>
-      <tr><td>52W-Hoch / -Tief</td><td>$17.65 / $2.95</td></tr>
-      <tr><td>Ø Volumen 20T</td><td>1,095,645</td></tr>
-      <tr><td>Heutiges Volumen</td><td>1,834,100</td></tr>
-      <tr><td>Risiko-Detail</td><td style="color:#f59e0b">Hohes Short-Interesse (25.3 %) erhöht die Volatilität deutlich. Small-Cap ($773 M) mit eingeschränkter Liquidität.</td></tr>
-    </table>
+  </div>
+  <button class="details-btn" onclick="toggleDetails(3)" id="db3" aria-expanded="false">
+    <span class="details-arrow" id="da3">▾</span><span id="dl3"> Details anzeigen</span>
+  </button>
+  <div class="details-body" id="dd3">
+    <div class="driver-row">
+      <p class="driver-text">Short Float von 25.3 % liegt deutlich über dem Marktdurchschnitt. Die Short Ratio von 20.6 Tagen zeigt, dass Leerverkäufer mehrere Handelstage zum Eindecken benötigen würden – dies verstärkt den Squeeze-Druck. Der Kursrückgang von -9.8 % könnte das Short-Interesse kurzfristig erhöhen.</p>
+      <span class="risk-badge" style="color:#f59e0b;border-color:#f59e0b55;background:#f59e0b22">Risiko: MITTEL</span>
+    </div>
+    
+    <button class="news-btn" onclick="toggleNews(3)" id="nb3" aria-expanded="false">
+      <span id="nb-icon3">▼</span> Nachrichten anzeigen
+    </button>
+    <div class="news-panel" id="np3" hidden>
+      <div class="news-items"><div class="ni"><a href="https://app.moby.co/home/research/tools/earningsCalendar/earnings-omeros-corporation-q4-2025-earnings-call-summary?utm_source=yahoo_finance&utm_medium=rss" target="_blank" rel="noopener noreferrer">Zusammenfassung der Gewinnmitteilungen der Omeros Corporation für das 4. Quartal 2025</a><span class="ni-meta">Moby · 01.04.2026 12:30</span></div><div class="ni"><a href="https://finance.yahoo.com/sectors/healthcare/articles/omeros-corp-omer-q4-2025-030227210.html" target="_blank" rel="noopener noreferrer">Omeros Corp (OMER) Höhepunkte der Telefonkonferenz zum 4. Quartal 2025: Eine Trendwende mit strategischen Deals und FDA ...</a><span class="ni-meta">GuruFocus.com · 01.04.2026 03:02</span></div></div>
+      <div class="news-summary-box">
+        <span class="summary-label">Zusammenfassung</span>
+        <p class="summary-text">Zusammenfassung der Gewinnmitteilung der Omeros Corporation für das 4. Quartal 2025. Weitere aktuelle Meldung: Omeros Corp (OMER) Q4 2025 Earnings Call Highlights: Eine Trendwende mit strategischen Deals und FDA  –  Quelle: Moby (01.04.2026 12:30)</p>
+      </div>
+      <table class="detail-table">
+        <tr><td>Marktkapitalisierung</td><td>$773 M</td></tr>
+        <tr><td>52W-Hoch / -Tief</td><td>$17.65 / $2.95</td></tr>
+        <tr><td>Ø Volumen 20T</td><td>1,095,645</td></tr>
+        <tr><td>Heutiges Volumen</td><td>1,834,100</td></tr>
+        <tr><td>Risiko-Detail</td><td style="color:#f59e0b">Hohes Short-Interesse (25.3 %) erhöht die Volatilität deutlich. Small-Cap ($773 M) mit eingeschränkter Liquidität.</td></tr>
+      </table>
+    </div>
   </div>
 </article>
 
@@ -486,28 +524,37 @@ a{color:var(--accent);text-decoration:none}
       <span class="m-val">2.8×</span>
       <span class="m-lbl">Volumen</span>
     </div>
-  </div>
-  <div class="driver-row">
-    <p class="driver-text">Short Float von 18.6 % liegt deutlich über dem Marktdurchschnitt. Die Short Ratio von 11.8 Tagen zeigt, dass Leerverkäufer mehrere Handelstage zum Eindecken benötigen würden – dies verstärkt den Squeeze-Druck. Das Handelsvolumen liegt bei 2.8× dem 20-Tage-Durchschnitt, was auf erhöhtes Kaufinteresse und mögliche Short-Eindeckungen hindeutet. Der Kursanstieg von +18.9 % heute könnte Margin Calls bei Leerverkäufern auslösen.</p>
-    <span class="risk-badge" style="color:#f59e0b;border-color:#f59e0b55;background:#f59e0b22">MITTEL</span>
-  </div>
-  
-  <button class="news-btn" onclick="toggleNews(4)" id="nb4" aria-expanded="false">
-    <span id="nb-icon4">▼</span> Nachrichten anzeigen
-  </button>
-  <div class="news-panel" id="np4" hidden>
-    <div class="news-items"><div class="ni"><a href="https://www.biopharmadive.com/news/immunovant-alto-beam-orca-oric-cyclerion-korsana-biotech-news-roundup/816454/" target="_blank" rel="noopener noreferrer">Immunovant-Augenmedikament fällt in Phase-3-Studien durch; Daten zur Strahlsichelzelle im NEJM veröffentlicht</a><span class="ni-meta">BioPharma Dive · 02.04.2026 12:20</span></div><div class="ni"><a href="https://finance.yahoo.com/markets/stocks/articles/oric-pharmaceuticals-oric-down-36-081322536.html" target="_blank" rel="noopener noreferrer">ORIC Pharmaceuticals (ORIC) ist um 36,1 % gesunken, nachdem das Prostatakrebsmedikament mit geringerer Toxizität in die Phase 3 überführt wurde</a><span class="ni-meta">Simply Wall St. · 02.04.2026 08:13</span></div></div>
-    <div class="news-summary-box">
-      <span class="summary-label">Zusammenfassung</span>
-      <p class="summary-text">Die Aktien von Immunovant, Alto und Oric Pharmaceuticals fielen diese Woche aufgrund von Aktualisierungen klinischer Studien. An anderer Stelle kam es bei der Zelltherapie von Orca Bio zu Verzögerungen und Korsana ging eine umgekehrte Fusion ein.</p>
+    <div class="metric-box" style="--mc:#22c55e">
+      <span class="m-val">+18.9%</span>
+      <span class="m-lbl">Momentum</span>
     </div>
-    <table class="detail-table">
-      <tr><td>Marktkapitalisierung</td><td>$996 M</td></tr>
-      <tr><td>52W-Hoch / -Tief</td><td>$14.93 / $3.90</td></tr>
-      <tr><td>Ø Volumen 20T</td><td>2,632,820</td></tr>
-      <tr><td>Heutiges Volumen</td><td>7,281,200</td></tr>
-      <tr><td>Risiko-Detail</td><td style="color:#f59e0b">Small-Cap ($996 M) mit eingeschränkter Liquidität.</td></tr>
-    </table>
+  </div>
+  <button class="details-btn" onclick="toggleDetails(4)" id="db4" aria-expanded="false">
+    <span class="details-arrow" id="da4">▾</span><span id="dl4"> Details anzeigen</span>
+  </button>
+  <div class="details-body" id="dd4">
+    <div class="driver-row">
+      <p class="driver-text">Short Float von 18.6 % liegt deutlich über dem Marktdurchschnitt. Die Short Ratio von 11.8 Tagen zeigt, dass Leerverkäufer mehrere Handelstage zum Eindecken benötigen würden – dies verstärkt den Squeeze-Druck. Das Handelsvolumen liegt bei 2.8× dem 20-Tage-Durchschnitt, was auf erhöhtes Kaufinteresse und mögliche Short-Eindeckungen hindeutet. Der Kursanstieg von +18.9 % heute könnte Margin Calls bei Leerverkäufern auslösen.</p>
+      <span class="risk-badge" style="color:#f59e0b;border-color:#f59e0b55;background:#f59e0b22">Risiko: MITTEL</span>
+    </div>
+    
+    <button class="news-btn" onclick="toggleNews(4)" id="nb4" aria-expanded="false">
+      <span id="nb-icon4">▼</span> Nachrichten anzeigen
+    </button>
+    <div class="news-panel" id="np4" hidden>
+      <div class="news-items"><div class="ni"><a href="https://www.biopharmadive.com/news/immunovant-alto-beam-orca-oric-cyclerion-korsana-biotech-news-roundup/816454/" target="_blank" rel="noopener noreferrer">Immunovant-Augenmedikament fällt in Phase-3-Studien durch; Daten zur Strahlsichelzelle im NEJM veröffentlicht</a><span class="ni-meta">BioPharma Dive · 02.04.2026 12:20</span></div><div class="ni"><a href="https://finance.yahoo.com/markets/stocks/articles/oric-pharmaceuticals-oric-down-36-081322536.html" target="_blank" rel="noopener noreferrer">ORIC Pharmaceuticals (ORIC) ist um 36,1 % gesunken, nachdem das Prostatakrebsmedikament mit geringerer Toxizität in die Phase 3 überführt wurde</a><span class="ni-meta">Simply Wall St. · 02.04.2026 08:13</span></div></div>
+      <div class="news-summary-box">
+        <span class="summary-label">Zusammenfassung</span>
+        <p class="summary-text">Die Aktien von Immunovant, Alto und Oric Pharmaceuticals fielen diese Woche aufgrund von Aktualisierungen klinischer Studien. An anderer Stelle kam es bei der Zelltherapie von Orca Bio zu Verzögerungen und Korsana ging eine umgekehrte Fusion ein.</p>
+      </div>
+      <table class="detail-table">
+        <tr><td>Marktkapitalisierung</td><td>$996 M</td></tr>
+        <tr><td>52W-Hoch / -Tief</td><td>$14.93 / $3.90</td></tr>
+        <tr><td>Ø Volumen 20T</td><td>2,632,820</td></tr>
+        <tr><td>Heutiges Volumen</td><td>7,281,200</td></tr>
+        <tr><td>Risiko-Detail</td><td style="color:#f59e0b">Small-Cap ($996 M) mit eingeschränkter Liquidität.</td></tr>
+      </table>
+    </div>
   </div>
 </article>
 
@@ -544,28 +591,37 @@ a{color:var(--accent);text-decoration:none}
       <span class="m-val">1.6×</span>
       <span class="m-lbl">Volumen</span>
     </div>
-  </div>
-  <div class="driver-row">
-    <p class="driver-text">Mit 48.3 % Short Float ist das Leerverkaufsinteresse sehr hoch. Die Short Ratio von 8.8 Tagen zeigt, dass Leerverkäufer mehrere Handelstage zum Eindecken benötigen würden – dies verstärkt den Squeeze-Druck. Der Kursanstieg von +12.0 % heute könnte Margin Calls bei Leerverkäufern auslösen.</p>
-    <span class="risk-badge" style="color:#f59e0b;border-color:#f59e0b55;background:#f59e0b22">MITTEL</span>
-  </div>
-  
-  <button class="news-btn" onclick="toggleNews(5)" id="nb5" aria-expanded="false">
-    <span id="nb-icon5">▼</span> Nachrichten anzeigen
-  </button>
-  <div class="news-panel" id="np5" hidden>
-    <div class="news-items"><div class="ni"><a href="https://finance.yahoo.com/markets/stocks/articles/wesco-howmet-lennox-avis-budget-010919698.html" target="_blank" rel="noopener noreferrer">WESCO, Howmet, Lennox, Avis Budget Group und Regal Rexnord Stocks Trade Up, was Sie wissen müssen</a><span class="ni-meta">StockStory · 01.04.2026 01:09</span></div><div class="ni"><a href="https://finance.yahoo.com/markets/stocks/articles/avis-budget-groups-car-atm-220705990.html" target="_blank" rel="noopener noreferrer">Bietet der neue Geldautomat der Avis Budget Group (CAR) einen Hinweis auf die sich entwickelnde Kapitalstrategie?</a><span class="ni-meta">Simply Wall St. · 31.03.2026 22:07</span></div></div>
-    <div class="news-summary-box">
-      <span class="summary-label">Zusammenfassung</span>
-      <p class="summary-text">Eine Reihe von Aktien stiegen in der Morgensitzung, nachdem sich die Märkte erholten, angetrieben durch die Stabilisierung der Ölpreise und Berichte, dass Präsident Trump ein Ende des militärischen Konflikts im Iran erwägt.</p>
+    <div class="metric-box" style="--mc:#22c55e">
+      <span class="m-val">+12.0%</span>
+      <span class="m-lbl">Momentum</span>
     </div>
-    <table class="detail-table">
-      <tr><td>Marktkapitalisierung</td><td>$6.7 B</td></tr>
-      <tr><td>52W-Hoch / -Tief</td><td>$212.81 / $62.17</td></tr>
-      <tr><td>Ø Volumen 20T</td><td>1,123,000</td></tr>
-      <tr><td>Heutiges Volumen</td><td>1,850,600</td></tr>
-      <tr><td>Risiko-Detail</td><td style="color:#f59e0b">Extrem hohes Short-Interesse (48.3 %) bedeutet massive Squeeze-Gefahr, aber auch starke Kursausschläge in beide Richtungen.</td></tr>
-    </table>
+  </div>
+  <button class="details-btn" onclick="toggleDetails(5)" id="db5" aria-expanded="false">
+    <span class="details-arrow" id="da5">▾</span><span id="dl5"> Details anzeigen</span>
+  </button>
+  <div class="details-body" id="dd5">
+    <div class="driver-row">
+      <p class="driver-text">Mit 48.3 % Short Float ist das Leerverkaufsinteresse sehr hoch. Die Short Ratio von 8.8 Tagen zeigt, dass Leerverkäufer mehrere Handelstage zum Eindecken benötigen würden – dies verstärkt den Squeeze-Druck. Der Kursanstieg von +12.0 % heute könnte Margin Calls bei Leerverkäufern auslösen.</p>
+      <span class="risk-badge" style="color:#f59e0b;border-color:#f59e0b55;background:#f59e0b22">Risiko: MITTEL</span>
+    </div>
+    
+    <button class="news-btn" onclick="toggleNews(5)" id="nb5" aria-expanded="false">
+      <span id="nb-icon5">▼</span> Nachrichten anzeigen
+    </button>
+    <div class="news-panel" id="np5" hidden>
+      <div class="news-items"><div class="ni"><a href="https://www.investors.com/news/tsa-delays-car-rentals-hertz-avis-budget-airports-air-travel-spring-break/?src=A00220&yptr=yahoo" target="_blank" rel="noopener noreferrer">TSA-Verzögerungen, Short Squeeze – Was hat diese beiden Aktien in die Höhe getrieben?</a><span class="ni-meta">Investor's Business Daily · 03.04.2026 17:12</span></div><div class="ni"><a href="https://finance.yahoo.com/markets/stocks/articles/wesco-howmet-lennox-avis-budget-010919698.html" target="_blank" rel="noopener noreferrer">WESCO, Howmet, Lennox, Avis Budget Group und Regal Rexnord Stocks Trade Up, was Sie wissen müssen</a><span class="ni-meta">StockStory · 01.04.2026 01:09</span></div></div>
+      <div class="news-summary-box">
+        <span class="summary-label">Zusammenfassung</span>
+        <p class="summary-text">Zu diesen Zuwächsen könnten landesweite Reiseverzögerungen beigetragen haben, die durch die fehlende Finanzierung der Transportation Security Administration (TSA) verursacht wurden.  Seit Anfang März legte die Avis Budget Group um 88 % zu.  Der kleinere Konkurrent Hertz Global Holdings beendete den Monat mit einem Plus von 12 %, nachdem er sich von einem Tief Mitte März erholt hatte.</p>
+      </div>
+      <table class="detail-table">
+        <tr><td>Marktkapitalisierung</td><td>$6.7 B</td></tr>
+        <tr><td>52W-Hoch / -Tief</td><td>$212.81 / $62.17</td></tr>
+        <tr><td>Ø Volumen 20T</td><td>1,123,000</td></tr>
+        <tr><td>Heutiges Volumen</td><td>1,850,600</td></tr>
+        <tr><td>Risiko-Detail</td><td style="color:#f59e0b">Extrem hohes Short-Interesse (48.3 %) bedeutet massive Squeeze-Gefahr, aber auch starke Kursausschläge in beide Richtungen.</td></tr>
+      </table>
+    </div>
   </div>
 </article>
 
@@ -602,28 +658,37 @@ a{color:var(--accent);text-decoration:none}
       <span class="m-val">1.8×</span>
       <span class="m-lbl">Volumen</span>
     </div>
-  </div>
-  <div class="driver-row">
-    <p class="driver-text">Mit 35.2 % Short Float ist das Leerverkaufsinteresse sehr hoch. Die Short Ratio von 10.9 Tagen zeigt, dass Leerverkäufer mehrere Handelstage zum Eindecken benötigen würden – dies verstärkt den Squeeze-Druck. Der Kursanstieg von +10.5 % heute könnte Margin Calls bei Leerverkäufern auslösen.</p>
-    <span class="risk-badge" style="color:#f59e0b;border-color:#f59e0b55;background:#f59e0b22">MITTEL</span>
-  </div>
-  
-  <button class="news-btn" onclick="toggleNews(6)" id="nb6" aria-expanded="false">
-    <span id="nb-icon6">▼</span> Nachrichten anzeigen
-  </button>
-  <div class="news-panel" id="np6" hidden>
-    <div class="news-items"><div class="ni"><a href="https://finance.yahoo.com/sectors/healthcare/articles/rckt-stock-down-despite-fda-161600463.html" target="_blank" rel="noopener noreferrer">RCKT-Aktie sinkt trotz Zustimmung der FDA zur Gentherapie bei seltenen Krankheiten</a><span class="ni-meta">Zacks · 30.03.2026 16:16</span></div><div class="ni"><a href="https://finance.yahoo.com/sectors/healthcare/articles/cort-rises-fda-nod-lifyorli-155300559.html" target="_blank" rel="noopener noreferrer">CORT steigt aufgrund der Empfehlung der FDA an Lifyorli bei platinresistentem Eierstockkrebs</a><span class="ni-meta">Zacks · 26.03.2026 15:53</span></div></div>
-    <div class="news-summary-box">
-      <span class="summary-label">Zusammenfassung</span>
-      <p class="summary-text">Rocket Pharmaceuticals sinkt trotz der beschleunigten Zulassung der Gentherapie Kresladi durch die FDA bei schwerem Leukozytenadhäsionsmangel I, einer äußerst seltenen Krankheit.</p>
+    <div class="metric-box" style="--mc:#22c55e">
+      <span class="m-val">+10.5%</span>
+      <span class="m-lbl">Momentum</span>
     </div>
-    <table class="detail-table">
-      <tr><td>Marktkapitalisierung</td><td>$694 M</td></tr>
-      <tr><td>52W-Hoch / -Tief</td><td>$13.24 / $2.68</td></tr>
-      <tr><td>Ø Volumen 20T</td><td>1,784,375</td></tr>
-      <tr><td>Heutiges Volumen</td><td>3,179,200</td></tr>
-      <tr><td>Risiko-Detail</td><td style="color:#f59e0b">Hohes Short-Interesse (35.2 %) erhöht die Volatilität deutlich. Small-Cap ($694 M) mit eingeschränkter Liquidität.</td></tr>
-    </table>
+  </div>
+  <button class="details-btn" onclick="toggleDetails(6)" id="db6" aria-expanded="false">
+    <span class="details-arrow" id="da6">▾</span><span id="dl6"> Details anzeigen</span>
+  </button>
+  <div class="details-body" id="dd6">
+    <div class="driver-row">
+      <p class="driver-text">Mit 35.2 % Short Float ist das Leerverkaufsinteresse sehr hoch. Die Short Ratio von 10.9 Tagen zeigt, dass Leerverkäufer mehrere Handelstage zum Eindecken benötigen würden – dies verstärkt den Squeeze-Druck. Der Kursanstieg von +10.5 % heute könnte Margin Calls bei Leerverkäufern auslösen.</p>
+      <span class="risk-badge" style="color:#f59e0b;border-color:#f59e0b55;background:#f59e0b22">Risiko: MITTEL</span>
+    </div>
+    
+    <button class="news-btn" onclick="toggleNews(6)" id="nb6" aria-expanded="false">
+      <span id="nb-icon6">▼</span> Nachrichten anzeigen
+    </button>
+    <div class="news-panel" id="np6" hidden>
+      <div class="news-items"><div class="ni"><a href="https://finance.yahoo.com/sectors/healthcare/articles/rckt-stock-down-despite-fda-161600463.html" target="_blank" rel="noopener noreferrer">RCKT-Aktie sinkt trotz Zustimmung der FDA zur Gentherapie bei seltenen Krankheiten</a><span class="ni-meta">Zacks · 30.03.2026 16:16</span></div><div class="ni"><a href="https://finance.yahoo.com/sectors/healthcare/articles/cort-rises-fda-nod-lifyorli-155300559.html" target="_blank" rel="noopener noreferrer">CORT steigt aufgrund der Empfehlung der FDA an Lifyorli bei platinresistentem Eierstockkrebs</a><span class="ni-meta">Zacks · 26.03.2026 15:53</span></div></div>
+      <div class="news-summary-box">
+        <span class="summary-label">Zusammenfassung</span>
+        <p class="summary-text">Rocket Pharmaceuticals sinkt trotz der beschleunigten Zulassung der Gentherapie Kresladi durch die FDA bei schwerem Leukozytenadhäsionsmangel I, einer äußerst seltenen Krankheit.</p>
+      </div>
+      <table class="detail-table">
+        <tr><td>Marktkapitalisierung</td><td>$694 M</td></tr>
+        <tr><td>52W-Hoch / -Tief</td><td>$13.24 / $2.68</td></tr>
+        <tr><td>Ø Volumen 20T</td><td>1,784,375</td></tr>
+        <tr><td>Heutiges Volumen</td><td>3,179,200</td></tr>
+        <tr><td>Risiko-Detail</td><td style="color:#f59e0b">Hohes Short-Interesse (35.2 %) erhöht die Volatilität deutlich. Small-Cap ($694 M) mit eingeschränkter Liquidität.</td></tr>
+      </table>
+    </div>
   </div>
 </article>
 
@@ -660,28 +725,37 @@ a{color:var(--accent);text-decoration:none}
       <span class="m-val">2.5×</span>
       <span class="m-lbl">Volumen</span>
     </div>
-  </div>
-  <div class="driver-row">
-    <p class="driver-text">Mit 30.3 % Short Float ist das Leerverkaufsinteresse sehr hoch. Die Short Ratio von 5.2 Tagen zeigt, dass Leerverkäufer mehrere Handelstage zum Eindecken benötigen würden – dies verstärkt den Squeeze-Druck. Das Handelsvolumen liegt bei 2.5× dem 20-Tage-Durchschnitt, was auf erhöhtes Kaufinteresse und mögliche Short-Eindeckungen hindeutet. Der Kursrückgang von -31.0 % könnte das Short-Interesse kurzfristig erhöhen.</p>
-    <span class="risk-badge" style="color:#ef4444;border-color:#ef444455;background:#ef444422">HOCH</span>
-  </div>
-  
-  <button class="news-btn" onclick="toggleNews(7)" id="nb7" aria-expanded="false">
-    <span id="nb-icon7">▼</span> Nachrichten anzeigen
-  </button>
-  <div class="news-panel" id="np7" hidden>
-    <div class="news-items"><div class="ni"><a href="https://www.barchart.com/story/news/1120267/as-sleep-number-races-to-avoid-bankruptcy-could-snbr-stock-be-the-next-meme-rally" target="_blank" rel="noopener noreferrer">Könnte die SNBR-Aktie die nächste Meme-Rallye sein, während die Schlafzahlen um einen Konkurs rennen?</a><span class="ni-meta">Barchart · 02.04.2026 17:21</span></div><div class="ni"><a href="https://www.fool.com/coverage/filings/2026/03/22/stadium-capital-loads-up-72000-lcii-shares/" target="_blank" rel="noopener noreferrer">Investor verdoppelt sein Engagement mit 8-Millionen-Dollar-Kauf, während LCI Industries einen Umsatz von 4,1 Milliarden US-Dollar erzielt</a><span class="ni-meta">Motley Fool · 22.03.2026 15:46</span></div></div>
-    <div class="news-summary-box">
-      <span class="summary-label">Zusammenfassung</span>
-      <p class="summary-text">Steht die SNBR-Aktie vor einem völligen Zusammenbruch oder einem überraschenden, durch Memes ausgelösten Anstieg, während Sleep Number mit steigenden Schulden und Insolvenzängsten zu kämpfen hat?</p>
+    <div class="metric-box" style="--mc:#ef4444">
+      <span class="m-val">-31.0%</span>
+      <span class="m-lbl">Momentum</span>
     </div>
-    <table class="detail-table">
-      <tr><td>Marktkapitalisierung</td><td>$27 M</td></tr>
-      <tr><td>52W-Hoch / -Tief</td><td>$13.94 / $1.12</td></tr>
-      <tr><td>Ø Volumen 20T</td><td>1,910,275</td></tr>
-      <tr><td>Heutiges Volumen</td><td>4,715,500</td></tr>
-      <tr><td>Risiko-Detail</td><td style="color:#ef4444">Hohes Short-Interesse (30.3 %) erhöht die Volatilität deutlich. Micro-Cap ($27 M) – geringe Liquidität, Kursmanipulation möglich.</td></tr>
-    </table>
+  </div>
+  <button class="details-btn" onclick="toggleDetails(7)" id="db7" aria-expanded="false">
+    <span class="details-arrow" id="da7">▾</span><span id="dl7"> Details anzeigen</span>
+  </button>
+  <div class="details-body" id="dd7">
+    <div class="driver-row">
+      <p class="driver-text">Mit 30.3 % Short Float ist das Leerverkaufsinteresse sehr hoch. Die Short Ratio von 5.2 Tagen zeigt, dass Leerverkäufer mehrere Handelstage zum Eindecken benötigen würden – dies verstärkt den Squeeze-Druck. Das Handelsvolumen liegt bei 2.5× dem 20-Tage-Durchschnitt, was auf erhöhtes Kaufinteresse und mögliche Short-Eindeckungen hindeutet. Der Kursrückgang von -31.0 % könnte das Short-Interesse kurzfristig erhöhen.</p>
+      <span class="risk-badge" style="color:#ef4444;border-color:#ef444455;background:#ef444422">Risiko: HOCH</span>
+    </div>
+    
+    <button class="news-btn" onclick="toggleNews(7)" id="nb7" aria-expanded="false">
+      <span id="nb-icon7">▼</span> Nachrichten anzeigen
+    </button>
+    <div class="news-panel" id="np7" hidden>
+      <div class="news-items"><div class="ni"><a href="https://www.barchart.com/story/news/1120267/as-sleep-number-races-to-avoid-bankruptcy-could-snbr-stock-be-the-next-meme-rally" target="_blank" rel="noopener noreferrer">Könnte die SNBR-Aktie die nächste Meme-Rallye sein, während die Schlafzahlen um einen Konkurs rennen?</a><span class="ni-meta">Barchart · 02.04.2026 17:21</span></div><div class="ni"><a href="https://www.fool.com/coverage/filings/2026/03/22/stadium-capital-loads-up-72000-lcii-shares/" target="_blank" rel="noopener noreferrer">Investor verdoppelt sein Engagement mit 8-Millionen-Dollar-Kauf, während LCI Industries einen Umsatz von 4,1 Milliarden US-Dollar erzielt</a><span class="ni-meta">Motley Fool · 22.03.2026 15:46</span></div></div>
+      <div class="news-summary-box">
+        <span class="summary-label">Zusammenfassung</span>
+        <p class="summary-text">Steht die SNBR-Aktie vor einem völligen Zusammenbruch oder einem überraschenden, durch Memes ausgelösten Anstieg, während Sleep Number mit steigenden Schulden und Insolvenzängsten zu kämpfen hat?</p>
+      </div>
+      <table class="detail-table">
+        <tr><td>Marktkapitalisierung</td><td>$27 M</td></tr>
+        <tr><td>52W-Hoch / -Tief</td><td>$13.94 / $1.12</td></tr>
+        <tr><td>Ø Volumen 20T</td><td>1,910,275</td></tr>
+        <tr><td>Heutiges Volumen</td><td>4,715,500</td></tr>
+        <tr><td>Risiko-Detail</td><td style="color:#ef4444">Hohes Short-Interesse (30.3 %) erhöht die Volatilität deutlich. Micro-Cap ($27 M) – geringe Liquidität, Kursmanipulation möglich.</td></tr>
+      </table>
+    </div>
   </div>
 </article>
 
@@ -718,28 +792,37 @@ a{color:var(--accent);text-decoration:none}
       <span class="m-val">2.4×</span>
       <span class="m-lbl">Volumen</span>
     </div>
-  </div>
-  <div class="driver-row">
-    <p class="driver-text">Short Float von 20.0 % liegt deutlich über dem Marktdurchschnitt. Die Short Ratio von 5.8 Tagen zeigt, dass Leerverkäufer mehrere Handelstage zum Eindecken benötigen würden – dies verstärkt den Squeeze-Druck. Das Handelsvolumen liegt bei 2.4× dem 20-Tage-Durchschnitt, was auf erhöhtes Kaufinteresse und mögliche Short-Eindeckungen hindeutet. Der Kursanstieg von +11.5 % heute könnte Margin Calls bei Leerverkäufern auslösen.</p>
-    <span class="risk-badge" style="color:#f59e0b;border-color:#f59e0b55;background:#f59e0b22">MITTEL</span>
-  </div>
-  
-  <button class="news-btn" onclick="toggleNews(8)" id="nb8" aria-expanded="false">
-    <span id="nb-icon8">▼</span> Nachrichten anzeigen
-  </button>
-  <div class="news-panel" id="np8" hidden>
-    <div class="news-items"><div class="ni"><a href="https://www.barrons.com/articles/artemis-ii-nasa-moon-space-6ada1f47?siteid=yhoof2&yptr=yahoo" target="_blank" rel="noopener noreferrer">Artemis II gestartet. Was als nächstes kommt.</a><span class="ni-meta">Barrons.com · 02.04.2026 20:22</span></div><div class="ni"><a href="https://finance.yahoo.com/markets/stocks/articles/planet-labs-margins-expand-revenue-164100958.html" target="_blank" rel="noopener noreferrer">Planet Labs-Margen wachsen aufgrund von Umsatzmix-Verschiebung, Automatisierung?</a><span class="ni-meta">Zacks · 02.04.2026 16:41</span></div></div>
-    <div class="news-summary-box">
-      <span class="summary-label">Zusammenfassung</span>
-      <p class="summary-text">Die Artemis-II-Besatzung der NASA stürmt nach erfolgreichem Start auf den Mond zu.  Die Raumsonde Orion mit dem Namen Integrity ist etwa 40.000 Meilen von der Erde entfernt, nachdem sie am späten Mittwoch an der Spitze einer 320 Fuß hohen SLS-Rakete gestartet ist.  Zum Vergleich: Die Internationale Raumstation ist etwa 250 Meilen entfernt.</p>
+    <div class="metric-box" style="--mc:#22c55e">
+      <span class="m-val">+11.5%</span>
+      <span class="m-lbl">Momentum</span>
     </div>
-    <table class="detail-table">
-      <tr><td>Marktkapitalisierung</td><td>$1.1 B</td></tr>
-      <tr><td>52W-Hoch / -Tief</td><td>$33.20 / $6.15</td></tr>
-      <tr><td>Ø Volumen 20T</td><td>1,678,810</td></tr>
-      <tr><td>Heutiges Volumen</td><td>4,095,300</td></tr>
-      <tr><td>Risiko-Detail</td><td style="color:#f59e0b">Small-Cap ($1.1 B) mit eingeschränkter Liquidität.</td></tr>
-    </table>
+  </div>
+  <button class="details-btn" onclick="toggleDetails(8)" id="db8" aria-expanded="false">
+    <span class="details-arrow" id="da8">▾</span><span id="dl8"> Details anzeigen</span>
+  </button>
+  <div class="details-body" id="dd8">
+    <div class="driver-row">
+      <p class="driver-text">Short Float von 20.0 % liegt deutlich über dem Marktdurchschnitt. Die Short Ratio von 5.8 Tagen zeigt, dass Leerverkäufer mehrere Handelstage zum Eindecken benötigen würden – dies verstärkt den Squeeze-Druck. Das Handelsvolumen liegt bei 2.4× dem 20-Tage-Durchschnitt, was auf erhöhtes Kaufinteresse und mögliche Short-Eindeckungen hindeutet. Der Kursanstieg von +11.5 % heute könnte Margin Calls bei Leerverkäufern auslösen.</p>
+      <span class="risk-badge" style="color:#f59e0b;border-color:#f59e0b55;background:#f59e0b22">Risiko: MITTEL</span>
+    </div>
+    
+    <button class="news-btn" onclick="toggleNews(8)" id="nb8" aria-expanded="false">
+      <span id="nb-icon8">▼</span> Nachrichten anzeigen
+    </button>
+    <div class="news-panel" id="np8" hidden>
+      <div class="news-items"><div class="ni"><a href="https://www.barrons.com/articles/artemis-ii-nasa-moon-space-6ada1f47?siteid=yhoof2&yptr=yahoo" target="_blank" rel="noopener noreferrer">Artemis II gestartet. Was als nächstes kommt.</a><span class="ni-meta">Barrons.com · 02.04.2026 20:22</span></div><div class="ni"><a href="https://finance.yahoo.com/markets/stocks/articles/planet-labs-margins-expand-revenue-164100958.html" target="_blank" rel="noopener noreferrer">Planet Labs-Margen wachsen aufgrund von Umsatzmix-Verschiebung, Automatisierung?</a><span class="ni-meta">Zacks · 02.04.2026 16:41</span></div></div>
+      <div class="news-summary-box">
+        <span class="summary-label">Zusammenfassung</span>
+        <p class="summary-text">Die Artemis-II-Besatzung der NASA stürmt nach erfolgreichem Start auf den Mond zu.  Die Raumsonde Orion mit dem Namen Integrity ist etwa 40.000 Meilen von der Erde entfernt, nachdem sie am späten Mittwoch an der Spitze einer 320 Fuß hohen SLS-Rakete gestartet ist.  Zum Vergleich: Die Internationale Raumstation ist etwa 250 Meilen entfernt.</p>
+      </div>
+      <table class="detail-table">
+        <tr><td>Marktkapitalisierung</td><td>$1.1 B</td></tr>
+        <tr><td>52W-Hoch / -Tief</td><td>$33.20 / $6.15</td></tr>
+        <tr><td>Ø Volumen 20T</td><td>1,678,810</td></tr>
+        <tr><td>Heutiges Volumen</td><td>4,095,300</td></tr>
+        <tr><td>Risiko-Detail</td><td style="color:#f59e0b">Small-Cap ($1.1 B) mit eingeschränkter Liquidität.</td></tr>
+      </table>
+    </div>
   </div>
 </article>
 
@@ -776,28 +859,37 @@ a{color:var(--accent);text-decoration:none}
       <span class="m-val">1.5×</span>
       <span class="m-lbl">Volumen</span>
     </div>
-  </div>
-  <div class="driver-row">
-    <p class="driver-text">Short Float von 22.4 % liegt deutlich über dem Marktdurchschnitt. Der Kursanstieg von +8.7 % heute könnte Margin Calls bei Leerverkäufern auslösen.</p>
-    <span class="risk-badge" style="color:#f59e0b;border-color:#f59e0b55;background:#f59e0b22">MITTEL</span>
-  </div>
-  
-  <button class="news-btn" onclick="toggleNews(9)" id="nb9" aria-expanded="false">
-    <span id="nb-icon9">▼</span> Nachrichten anzeigen
-  </button>
-  <div class="news-panel" id="np9" hidden>
-    <div class="news-items"><div class="ni"><a href="https://247wallst.com/investing/2026/03/31/amc-shares-sit-35-in-the-red-year-to-date-as-blockbuster-season-begins/" target="_blank" rel="noopener noreferrer">AMC-Aktien liegen seit Beginn der Blockbuster-Saison 35 % im Minus</a><span class="ni-meta">24/7 Wall St. · 31.03.2026 17:12</span></div><div class="ni"><a href="https://www.barchart.com/story/news/1065326/amc-stock-is-staging-a-technical-rebound-should-you-chase-the-rally-here" target="_blank" rel="noopener noreferrer">Die AMC-Aktie erlebt einen technischen Aufschwung. Sollten Sie die Rallye hier verfolgen?</a><span class="ni-meta">Barchart · 31.03.2026 13:43</span></div></div>
-    <div class="news-summary-box">
-      <span class="summary-label">Zusammenfassung</span>
-      <p class="summary-text">Die Aktien von AMC Entertainment (NYSE:AMC), einer der größten Namen in der Kinobranche, werden mit rund 0,98 US-Dollar nahe dem 52-Wochen-Tief gehandelt, was einem Rückgang von 35 % seit Jahresbeginn und 75 % unter dem 52-Wochen-Hoch von 4,01 US-Dollar im Mai 2025 entspricht. AMC-Aktien liegen seit Beginn der Blockbuster-Saison 35 % im Minus</p>
+    <div class="metric-box" style="--mc:#22c55e">
+      <span class="m-val">+8.7%</span>
+      <span class="m-lbl">Momentum</span>
     </div>
-    <table class="detail-table">
-      <tr><td>Marktkapitalisierung</td><td>$653 M</td></tr>
-      <tr><td>52W-Hoch / -Tief</td><td>$4.08 / $0.93</td></tr>
-      <tr><td>Ø Volumen 20T</td><td>27,213,650</td></tr>
-      <tr><td>Heutiges Volumen</td><td>41,093,100</td></tr>
-      <tr><td>Risiko-Detail</td><td style="color:#f59e0b">Small-Cap ($653 M) mit eingeschränkter Liquidität.</td></tr>
-    </table>
+  </div>
+  <button class="details-btn" onclick="toggleDetails(9)" id="db9" aria-expanded="false">
+    <span class="details-arrow" id="da9">▾</span><span id="dl9"> Details anzeigen</span>
+  </button>
+  <div class="details-body" id="dd9">
+    <div class="driver-row">
+      <p class="driver-text">Short Float von 22.4 % liegt deutlich über dem Marktdurchschnitt. Der Kursanstieg von +8.7 % heute könnte Margin Calls bei Leerverkäufern auslösen.</p>
+      <span class="risk-badge" style="color:#f59e0b;border-color:#f59e0b55;background:#f59e0b22">Risiko: MITTEL</span>
+    </div>
+    
+    <button class="news-btn" onclick="toggleNews(9)" id="nb9" aria-expanded="false">
+      <span id="nb-icon9">▼</span> Nachrichten anzeigen
+    </button>
+    <div class="news-panel" id="np9" hidden>
+      <div class="news-items"><div class="ni"><a href="https://finance.yahoo.com/markets/stocks/articles/amc-entertainment-holdings-inc-amc-130005386.html" target="_blank" rel="noopener noreferrer">AMC Entertainment Holdings, Inc. (AMC) zieht die Aufmerksamkeit der Anleger auf sich: Das sollten Sie wissen</a><span class="ni-meta">Zacks · 03.04.2026 13:00</span></div><div class="ni"><a href="https://247wallst.com/investing/2026/03/31/amc-shares-sit-35-in-the-red-year-to-date-as-blockbuster-season-begins/" target="_blank" rel="noopener noreferrer">AMC-Aktien liegen seit Beginn der Blockbuster-Saison 35 % im Minus</a><span class="ni-meta">24/7 Wall St. · 31.03.2026 17:12</span></div></div>
+      <div class="news-summary-box">
+        <span class="summary-label">Zusammenfassung</span>
+        <p class="summary-text">Benutzer von Zacks.com haben in letzter Zeit ziemlich oft AMC Entertainment (AMC) geschaut. Daher lohnt es sich, die Fakten zu kennen, die die Aussichten der Aktie bestimmen könnten.</p>
+      </div>
+      <table class="detail-table">
+        <tr><td>Marktkapitalisierung</td><td>$653 M</td></tr>
+        <tr><td>52W-Hoch / -Tief</td><td>$4.08 / $0.93</td></tr>
+        <tr><td>Ø Volumen 20T</td><td>27,213,650</td></tr>
+        <tr><td>Heutiges Volumen</td><td>41,093,100</td></tr>
+        <tr><td>Risiko-Detail</td><td style="color:#f59e0b">Small-Cap ($653 M) mit eingeschränkter Liquidität.</td></tr>
+      </table>
+    </div>
   </div>
 </article>
 
@@ -834,28 +926,37 @@ a{color:var(--accent);text-decoration:none}
       <span class="m-val">2.8×</span>
       <span class="m-lbl">Volumen</span>
     </div>
-  </div>
-  <div class="driver-row">
-    <p class="driver-text">Das Handelsvolumen liegt bei 2.8× dem 20-Tage-Durchschnitt, was auf erhöhtes Kaufinteresse und mögliche Short-Eindeckungen hindeutet. Der Kursrückgang von -5.0 % könnte das Short-Interesse kurzfristig erhöhen.</p>
-    <span class="risk-badge" style="color:#f59e0b;border-color:#f59e0b55;background:#f59e0b22">MITTEL</span>
-  </div>
-  <p class="no-data-notice">ⓘ Short-Float &amp; Days to Cover für diesen Markt nicht verfügbar.</p>
-  <button class="news-btn" onclick="toggleNews(10)" id="nb10" aria-expanded="false">
-    <span id="nb-icon10">▼</span> Nachrichten anzeigen
-  </button>
-  <div class="news-panel" id="np10" hidden>
-    <div class="news-items"><div class="ni"><a href="https://finance.yahoo.com/markets/stocks/articles/osb-group-lse-osb-investment-150726441.html" target="_blank" rel="noopener noreferrer">Wie sich die Investitionsgeschichte der OSB Group (LSE:OSB) durch neue Analystenmeinungen verändert</a><span class="ni-meta">Simply Wall St. · 31.03.2026 15:07</span></div><div class="ni"><a href="https://uk.finance.yahoo.com/news/birmingham-best-buy-let-area-110000366.html" target="_blank" rel="noopener noreferrer">Birmingham ist die beste Kauf- und Mietgegend für die Vermietung an Familien. Hier erfahren Sie, warum</a><span class="ni-meta">The Telegraph · 26.03.2026 11:00</span></div></div>
-    <div class="news-summary-box">
-      <span class="summary-label">Zusammenfassung</span>
-      <p class="summary-text">Das jüngste Analysten-Update der OSB Group senkt die zentrale Fair-Value-Schätzung von 6,97 £ auf 6,83 £, eine kleine Neueinstellung, die immer noch unter einem optimistischeren Kursziel von 7,30 £ aus bullischen Untersuchungen liegt. Diese Lücke spiegelt eine Meinungsverschiedenheit wider, wobei einige Analysten an einer Übergewichtung festhalten, während andere sich auf die vorsichtigere Seite des revidierten Niveaus von 6,83 £ stützen. Wenn Sie weiterlesen, werden Sie sehen, wie Sie diese sich entwickelnde Erzählung verstehen und was sie für Ihre eigene Sicht auf die Aktien bedeuten könnte. Bleiben Sie auf dem Laufenden, denn...</p>
+    <div class="metric-box" style="--mc:#ef4444">
+      <span class="m-val">-5.0%</span>
+      <span class="m-lbl">Momentum</span>
     </div>
-    <table class="detail-table">
-      <tr><td>Marktkapitalisierung</td><td>$1.8 B</td></tr>
-      <tr><td>52W-Hoch / -Tief</td><td>$647.50 / $360.60</td></tr>
-      <tr><td>Ø Volumen 20T</td><td>1,386,378</td></tr>
-      <tr><td>Heutiges Volumen</td><td>3,912,177</td></tr>
-      <tr><td>Risiko-Detail</td><td style="color:#f59e0b">Small-Cap ($1.8 B) mit eingeschränkter Liquidität.</td></tr>
-    </table>
+  </div>
+  <button class="details-btn" onclick="toggleDetails(10)" id="db10" aria-expanded="false">
+    <span class="details-arrow" id="da10">▾</span><span id="dl10"> Details anzeigen</span>
+  </button>
+  <div class="details-body" id="dd10">
+    <div class="driver-row">
+      <p class="driver-text">Das Handelsvolumen liegt bei 2.8× dem 20-Tage-Durchschnitt, was auf erhöhtes Kaufinteresse und mögliche Short-Eindeckungen hindeutet. Der Kursrückgang von -5.0 % könnte das Short-Interesse kurzfristig erhöhen.</p>
+      <span class="risk-badge" style="color:#f59e0b;border-color:#f59e0b55;background:#f59e0b22">Risiko: MITTEL</span>
+    </div>
+    <p class="no-data-notice">ⓘ Short-Float &amp; Days to Cover für diesen Markt nicht verfügbar.</p>
+    <button class="news-btn" onclick="toggleNews(10)" id="nb10" aria-expanded="false">
+      <span id="nb-icon10">▼</span> Nachrichten anzeigen
+    </button>
+    <div class="news-panel" id="np10" hidden>
+      <div class="news-items"><div class="ni"><a href="https://finance.yahoo.com/markets/stocks/articles/osb-group-lse-osb-investment-150726441.html" target="_blank" rel="noopener noreferrer">Wie sich die Investitionsgeschichte der OSB Group (LSE:OSB) durch neue Analystenmeinungen verändert</a><span class="ni-meta">Simply Wall St. · 31.03.2026 15:07</span></div><div class="ni"><a href="https://uk.finance.yahoo.com/news/birmingham-best-buy-let-area-110000366.html" target="_blank" rel="noopener noreferrer">Birmingham ist das beste Kauf- und Mietgebiet für die Vermietung an Familien. Hier erfahren Sie, warum</a><span class="ni-meta">The Telegraph · 26.03.2026 11:00</span></div></div>
+      <div class="news-summary-box">
+        <span class="summary-label">Zusammenfassung</span>
+        <p class="summary-text">Das jüngste Analysten-Update der OSB Group senkt die zentrale Fair-Value-Schätzung von 6,97 £ auf 6,83 £, eine kleine Neueinstellung, die immer noch unter einem optimistischeren Kursziel von 7,30 £ aus bullischen Untersuchungen liegt. Diese Lücke spiegelt eine Meinungsverschiedenheit wider, wobei einige Analysten an einer Übergewichtung festhalten, während andere sich auf die vorsichtigere Seite des revidierten Niveaus von 6,83 £ stützen. Wenn Sie weiterlesen, werden Sie sehen, wie Sie diese sich entwickelnde Erzählung verstehen und was sie für Ihre eigene Sicht auf die Aktien bedeuten könnte. Bleiben Sie auf dem Laufenden, denn...</p>
+      </div>
+      <table class="detail-table">
+        <tr><td>Marktkapitalisierung</td><td>$1.8 B</td></tr>
+        <tr><td>52W-Hoch / -Tief</td><td>$647.50 / $360.60</td></tr>
+        <tr><td>Ø Volumen 20T</td><td>1,386,378</td></tr>
+        <tr><td>Heutiges Volumen</td><td>3,912,177</td></tr>
+        <tr><td>Risiko-Detail</td><td style="color:#f59e0b">Small-Cap ($1.8 B) mit eingeschränkter Liquidität.</td></tr>
+      </table>
+    </div>
   </div>
 </article>
   </div>
@@ -903,6 +1004,17 @@ function toggleTheme(){
   html.setAttribute('data-theme', next);
   localStorage.setItem('theme', next);
   document.getElementById('theme-btn').textContent = next === 'dark' ? '☀️' : '🌙';
+}
+// ── Details dropdown ─────────────────────────────────────────────────────
+function toggleDetails(id){
+  const body  = document.getElementById('dd' + id);
+  const arrow = document.getElementById('da' + id);
+  const label = document.getElementById('dl' + id);
+  const btn   = document.getElementById('db' + id);
+  const open  = body.classList.toggle('open');
+  arrow.style.transform = open ? 'rotate(180deg)' : '';
+  label.textContent = open ? ' Details ausblenden' : ' Details anzeigen';
+  btn.setAttribute('aria-expanded', open);
 }
 // ── News toggle ───────────────────────────────────────────────────────────
 function toggleNews(id){
