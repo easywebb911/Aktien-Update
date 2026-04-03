@@ -57,6 +57,11 @@ RV_ORANGE =  1.5   # ×   1.5–2.9 → orange, <1.5 → red
 MOM_GREEN =  5.0   # %   ≥+5    → green
 MOM_ORANGE= -5.0   # %   −5–+5  → orange, <−5 → red
 
+# ── Supplementary data source bonus limits ───────────────────────────────────
+FINRA_BONUS_MAX  = 5    # max bonus points for rising FINRA short interest
+FTD_BONUS_MAX    = 5    # max bonus points for elevated Fails-to-Deliver vs 30d avg
+FTD_FINTEL_LIMIT = 20   # max Fintel API requests per day (free tier)
+
 
 # ===========================================================================
 # 1. FINVIZ SCREENER
@@ -335,6 +340,7 @@ def get_yfinance_data(ticker: str) -> dict:
             "avg_vol_20d":  avg_vol_20,
             "cur_vol":      cur_vol,
             "vol_ratio":    vol_ratio,
+            "float_shares": info.get("floatShares") or 0,
         }
     except Exception as exc:
         log.warning("yfinance error for %s: %s", ticker, exc)
@@ -398,6 +404,87 @@ def get_yahoo_news(ticker: str, n: int = 2) -> list[dict]:
     except Exception as exc:
         log.warning("News error for %s: %s", ticker, exc)
         return []
+
+
+# ===========================================================================
+# 2b. SUPPLEMENTARY DATA SOURCES (FINRA + Fintel)
+# ===========================================================================
+
+def get_finra_short_interest(ticker: str) -> dict:
+    """Fetch official FINRA equity short interest (public API, no auth required).
+    Returns dict with short_interest, prev_short_interest, settlement_date or {}.
+    """
+    url = "https://api.finra.org/data/group/equity/name/shortInterest"
+    payload = {
+        "compareFilters": [
+            {"fieldName": "symbolCode", "compareType": "equal", "fieldValue": ticker.upper()}
+        ],
+        "fields": ["symbolCode", "settlementDate", "shortInterest", "previousShortInterest"],
+        "limit": 2,
+        "sortFields": ["-settlementDate"],
+    }
+    try:
+        r = requests.post(url, json=payload,
+                          headers={"Content-Type": "application/json"}, timeout=12)
+        if r.status_code != 200:
+            log.debug("FINRA HTTP %d for %s", r.status_code, ticker)
+            return {}
+        data = r.json()
+        if not isinstance(data, list) or not data:
+            return {}
+        latest = data[0]
+        return {
+            "short_interest":      int(latest.get("shortInterest") or 0),
+            "prev_short_interest": int(latest.get("previousShortInterest") or 0),
+            "settlement_date":     latest.get("settlementDate", ""),
+        }
+    except Exception as exc:
+        log.debug("FINRA error for %s: %s", ticker, exc)
+        return {}
+
+
+def get_fintel_ftd(ticker: str) -> dict:
+    """Fetch Fails-to-Deliver data from Fintel free tier.
+    Returns dict with ftd_latest, ftd_avg_30d or {}.
+    """
+    url = f"https://fintel.io/api/filings/ftd/{ticker.upper()}"
+    try:
+        r = requests.get(url, headers=HTTP_HEADERS, timeout=12)
+        if r.status_code != 200:
+            log.debug("Fintel FTD HTTP %d for %s", r.status_code, ticker)
+            return {}
+        data = r.json()
+        if not isinstance(data, list) or not data:
+            return {}
+        quantities = [int(item.get("quantity") or 0) for item in data if item.get("quantity")]
+        if not quantities:
+            return {}
+        avg_30d = sum(quantities[:30]) / min(len(quantities), 30)
+        return {"ftd_latest": quantities[0], "ftd_avg_30d": round(avg_30d, 0)}
+    except Exception as exc:
+        log.debug("Fintel FTD error for %s: %s", ticker, exc)
+        return {}
+
+
+def score_bonus(stock: dict) -> float:
+    """Optional bonus points (0 – FINRA_BONUS_MAX + FTD_BONUS_MAX).
+    FINRA: up to 5 pts if short interest rose vs prior period.
+    FTD:   up to 5 pts if current Fails-to-Deliver exceeds 30d average.
+    """
+    bonus = 0.0
+    finra = stock.get("finra_data") or {}
+    si, psi = finra.get("short_interest", 0), finra.get("prev_short_interest", 0)
+    if si and psi and psi > 0 and si > psi:
+        increase = (si - psi) / psi
+        bonus += min(increase / 0.10, 1.0) * FINRA_BONUS_MAX
+
+    ftd = stock.get("ftd_data") or {}
+    ftd_cur, ftd_avg = ftd.get("ftd_latest", 0), ftd.get("ftd_avg_30d", 0)
+    if ftd_cur and ftd_avg and ftd_avg > 0 and ftd_cur > ftd_avg:
+        ratio = ftd_cur / ftd_avg
+        bonus += min(ratio - 1.0, 1.0) * FTD_BONUS_MAX
+
+    return round(min(bonus, float(FINRA_BONUS_MAX + FTD_BONUS_MAX)), 2)
 
 
 # ===========================================================================
@@ -614,6 +701,8 @@ def _card(i: int, s: dict) -> str:
     sf_col = "#94a3b8" if has_no_short_data else _metric_color("sf", sf)
     sr_col = "#94a3b8" if has_no_short_data else _metric_color("sr", sr)
     rv_col = _metric_color("rv", rv)
+    ftd_val = (s.get("ftd_data") or {}).get("ftd_latest")
+    ftd_display = f"{ftd_val:,.0f}" if ftd_val else "—"
 
     news_html = ""
     for n in s.get("news", [])[:2]:
@@ -676,6 +765,8 @@ def _card(i: int, s: dict) -> str:
         <tr><td>52W-Hoch / -Tief</td><td>${s.get('52w_high') or 0:.2f} / ${s.get('52w_low') or 0:.2f}</td></tr>
         <tr><td>Ø Volumen 20T</td><td>{s.get('avg_vol_20d',0):,.0f}</td></tr>
         <tr><td>Heutiges Volumen</td><td>{s.get('cur_vol',0):,.0f}</td></tr>
+        <tr><td>Short Interest Quelle</td><td>{s.get('sf_source','Yahoo Finance')}</td></tr>
+        <tr><td>Fails-to-Deliver</td><td>{ftd_display}</td></tr>
         <tr><td>Risiko-Detail</td><td style="color:{risk_col}">{risk_txt}</td></tr>
       </table>
     </div>
@@ -1469,6 +1560,28 @@ def main():
         if yfd.get("vol_ratio", 0) > 0:
             c["rel_volume"] = yfd["vol_ratio"]
 
+        # FINRA short interest correction (US stocks only)
+        is_us_finra = c.get("market", "US") == "US"
+        if is_us_finra:
+            finra = get_finra_short_interest(t)
+            c["finra_data"] = finra
+            if finra.get("short_interest"):
+                float_sh = yfd.get("float_shares", 0)
+                yf_sf = c.get("short_float", 0)
+                if float_sh and yf_sf > 0:
+                    finra_sf_pct = finra["short_interest"] / float_sh * 100
+                    if abs(finra_sf_pct - yf_sf) / yf_sf > 0.20:
+                        log.info("    %s: FINRA SF %.1f%% vs YF %.1f%% → using FINRA",
+                                 t, finra_sf_pct, yf_sf)
+                        c["short_float"] = round(finra_sf_pct, 2)
+                        c["sf_source"] = "FINRA"
+            if "sf_source" not in c:
+                c["sf_source"] = "Yahoo Finance"
+            time.sleep(0.2)
+        else:
+            c["finra_data"] = {}
+            c["sf_source"] = "Yahoo Finance"
+
         # Hard filters (now with accurate data)
         cap = c.get("yf_market_cap") or c.get("market_cap")
         if cap and cap > MAX_MARKET_CAP:
@@ -1516,6 +1629,32 @@ def main():
             "Keine Aktien erfüllen aktuell alle Filterkriterien "
             "(Short Float &gt;15 %, Preis &gt;$1, Marktkapitalisierung &lt;$10 Mrd.).")
         return
+
+    # --- Step 3b: Fintel FTD + bonus scores ---
+    log.info("Step 3b – Fetching Fintel FTD (up to %d US stocks) …", FTD_FINTEL_LIMIT)
+    ftd_count = 0
+    for s in top10:
+        if ftd_count >= FTD_FINTEL_LIMIT:
+            break
+        if s.get("market", "US") != "US":
+            s.setdefault("ftd_data", {})
+            continue
+        ftd = get_fintel_ftd(s["ticker"])
+        s["ftd_data"] = ftd
+        if ftd:
+            ftd_count += 1
+        time.sleep(0.3)
+
+    for s in top10:
+        s.setdefault("ftd_data", {})
+        bonus = score_bonus(s)
+        if bonus > 0:
+            base = s["score"]
+            s["score"] = round(min(base + bonus, 100.0), 2)
+            log.info("  %s: base=%.2f + bonus=%.2f = %.2f",
+                     s["ticker"], base, bonus, s["score"])
+
+    top10.sort(key=lambda x: x["score"], reverse=True)
 
     # --- Step 3: News ---
     log.info("Step 3 – Fetching news for %d stocks …", len(top10))
