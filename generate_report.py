@@ -42,6 +42,20 @@ MIN_REL_VOLUME  = 1.5    # × 20-day avg
 MAX_MARKET_CAP  = 10e9   # $10 B
 MIN_PRICE       = 1.0    # USD
 
+# ── Metric tile colour thresholds ────────────────────────────────────────────
+# Short Float  (higher = more squeeze pressure → red)
+SF_GREEN  = 15.0   # %   below  → green
+SF_ORANGE = 30.0   # %   15–29  → orange, ≥30 → red
+# Days to Cover (higher = more squeeze pressure → red)
+SR_GREEN  =  3.0   # days  below  → green
+SR_ORANGE =  8.0   # days  3–7    → orange, ≥8 → red
+# Rel. Volume  (higher = stronger buy signal → green)
+RV_GREEN  =  3.0   # ×  ≥3      → green
+RV_ORANGE =  1.5   # ×  1.5–2.9 → orange, <1.5 → red
+# Kursmomentum  (higher = positive signal → green)
+MOM_GREEN =  5.0   # %  ≥+5     → green
+MOM_ORANGE= -5.0   # %  −5 to +5 → orange, <−5 → red
+
 
 # ===========================================================================
 # 1. FINVIZ SCREENER
@@ -566,13 +580,16 @@ def news_summary(news_list: list[dict]) -> str:
 # ===========================================================================
 
 def _metric_color(kind: str, val: float) -> str:
-    """Return hex color for a metric value based on squeeze-relevance."""
-    if kind == "sf":   # short float %
-        return "#ef4444" if val > 20 else ("#f59e0b" if val > 15 else "#22c55e")
-    if kind == "sr":   # days to cover
-        return "#ef4444" if val > 7 else ("#f59e0b" if val > 4 else "#22c55e")
-    if kind == "rv":   # rel volume
-        return "#22c55e" if val > 2 else ("#f59e0b" if val >= 1.5 else "#94a3b8")
+    """Return hex color for a metric tile based on defined squeeze thresholds."""
+    G, O, R = "#22c55e", "#f59e0b", "#ef4444"
+    if kind == "sf":   # Short Float — higher = more pressure → red
+        return R if val >= SF_ORANGE else (O if val >= SF_GREEN else G)
+    if kind == "sr":   # Days to Cover — higher = more pressure → red
+        return R if val >= SR_ORANGE else (O if val >= SR_GREEN else G)
+    if kind == "rv":   # Rel. Volume — higher = buy signal → green
+        return G if val >= RV_GREEN else (O if val >= RV_ORANGE else R)
+    if kind == "mom":  # Kursmomentum — higher = positive → green
+        return G if val >= MOM_GREEN else (O if val >= MOM_ORANGE else R)
     return "#94a3b8"
 
 
@@ -593,7 +610,7 @@ def _card(i: int, s: dict) -> str:
     cap_val = s.get("yf_market_cap") or s.get("market_cap")
     chg     = s.get("change", 0)
     chg_str = f"+{chg:.1f}%" if chg >= 0 else f"{chg:.1f}%"
-    chg_col = "#22c55e" if chg >= 0 else "#ef4444"
+    chg_col = _metric_color("mom", chg)
 
     has_no_short_data = sf == 0 and sr == 0
     flag    = _MARKET_FLAGS.get(s.get("market", "US"), "")
@@ -696,6 +713,10 @@ def generate_html(stocks: list[dict], report_date: str) -> str:
     avg_sf  = sum(s["short_float"] for s in stocks) / n
     avg_sr  = sum(s["short_ratio"]  for s in stocks) / n
     avg_rv  = sum(s["rel_volume"]   for s in stocks) / n
+    mom_vals = [s["change"] for s in stocks if s.get("change") is not None and s.get("change") != 0.0]
+    _avg_mom = sum(mom_vals) / len(mom_vals) if mom_vals else None
+    avg_mom_str = f"{_avg_mom:+.1f}%" if _avg_mom is not None else "—"
+    avg_mom_col = ("#22c55e" if _avg_mom > 0 else "#ef4444") if _avg_mom is not None else "var(--accent)"
     now_str = datetime.now(ZoneInfo("Europe/Berlin")).strftime("%H:%M Uhr")
     timestamp = f"Stand: {report_date}, {now_str}"
 
@@ -775,7 +796,9 @@ a{{color:var(--accent);text-decoration:none}}
 /* ── Container – fluid, no max-width ── */
 .wrap{{padding:16px 14px 32px}}
 /* ── Stats bar ── */
-.stats-bar{{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:14px}}
+.stats-bar{{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:14px}}
+.stat-title{{grid-column:1 / -1;background:#042C53;border-radius:10px;
+  padding:11px 8px;text-align:center;color:#E6F1FB;font-size:.94rem;font-weight:500}}
 .stat-box{{background:var(--bg-card);border:1px solid var(--brd);border-radius:10px;
   padding:10px 8px;text-align:center}}
 .stat-val{{display:block;font-size:1.05rem;font-weight:800;color:var(--accent)}}
@@ -793,12 +816,21 @@ a{{color:var(--accent);text-decoration:none}}
 /* Mobile: single column; tablet+ overrides to 3 */
 .info-inner{{display:grid;grid-template-columns:1fr;gap:10px;padding:0 12px 14px}}
 .info-box{{background:var(--bg-met);border-radius:8px;padding:10px 12px}}
+.info-box--full{{grid-column:1 / -1}}
 .info-box h4{{font-size:.67rem;text-transform:uppercase;letter-spacing:.5px;
   color:var(--accent);margin-bottom:7px}}
 .info-box ul{{list-style:none;display:flex;flex-direction:column;gap:4px}}
 .info-box li{{font-size:.77rem;color:var(--txt-sub);line-height:1.5;
   padding-left:12px;position:relative}}
 .info-box li::before{{content:"–";position:absolute;left:0;color:var(--accent)}}
+/* ── Color legend ── */
+.color-legend{{display:grid;grid-template-columns:1fr;gap:12px;margin-top:2px}}
+.cl-name{{display:block;font-size:.67rem;text-transform:uppercase;letter-spacing:.5px;
+  color:var(--accent);margin-bottom:5px;font-weight:700}}
+.color-bar{{display:flex;border-radius:6px;overflow:hidden;height:22px;margin-bottom:6px}}
+.cb-seg{{flex:1;display:flex;align-items:center;justify-content:center;
+  font-size:.6rem;font-weight:700;color:#fff;text-shadow:0 1px 2px rgba(0,0,0,.45)}}
+.cl-desc{{font-size:.77rem;color:var(--txt-sub);line-height:1.5;margin:0}}
 .info-box li strong{{color:var(--txt)}}
 /* ── Disclaimer ── */
 .disc{{background:var(--bg-met);border:1px solid var(--brd);border-radius:8px;
@@ -896,9 +928,11 @@ a{{color:var(--accent);text-decoration:none}}
   .hdr-icons{{order:4}}
   /* Info panel: 3 columns */
   .info-inner{{grid-template-columns:repeat(3,1fr)}}
+  .color-legend{{grid-template-columns:repeat(2,1fr)}}
   /* Cards: fluid auto-fill, min 340px per card, 16px gap, full width */
   .cards-grid{{grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:16px}}
   .metrics-row{{grid-template-columns:repeat(4,1fr)}}
+  .stats-bar{{grid-template-columns:repeat(4,1fr)}}
   .wrap{{padding:16px 16px 32px}}
   .footer{{padding:16px 16px 32px}}
   /* Slightly smaller body text */
@@ -948,10 +982,11 @@ a{{color:var(--accent);text-decoration:none}}
 
 <main class="wrap">
   <div class="stats-bar">
-    <div class="stat-box"><span class="stat-val">Top {n}</span><span class="stat-lbl">Kandidaten</span></div>
+    <div class="stat-title">Top Ten Squeeze-Kandidaten</div>
     <div class="stat-box"><span class="stat-val">{avg_sf:.1f}%</span><span class="stat-lbl">Ø Short Float</span></div>
-    <div class="stat-box"><span class="stat-val">{avg_sr:.1f}d</span><span class="stat-lbl">Ø Days Cover</span></div>
+    <div class="stat-box"><span class="stat-val">{avg_sr:.1f}d</span><span class="stat-lbl">Ø Days to Cover</span></div>
     <div class="stat-box"><span class="stat-val">{avg_rv:.1f}×</span><span class="stat-lbl">Ø Volumen</span></div>
+    <div class="stat-box"><span class="stat-val" style="color:{avg_mom_col}">{avg_mom_str}</span><span class="stat-lbl">Ø Kursmomentum</span></div>
   </div>
 
   <details class="info-panel">
@@ -981,8 +1016,48 @@ a{{color:var(--accent);text-decoration:none}}
           <li><strong>Yahoo Finance Screener</strong> – Most Shorted, Small Cap Gainers, Aggressive Small Caps</li>
           <li><strong>Märkte:</strong> 🇺🇸 US · 🇩🇪 DE · 🇬🇧 GB · 🇨🇦 CA</li>
           <li><strong>Anreicherung:</strong> yfinance (Short Float, Days to Cover, Volumen, Kurs)</li>
-          <li><strong>Farben:</strong> <span style="color:#ef4444">■</span> Hoch &nbsp;<span style="color:#f59e0b">■</span> Mittel &nbsp;<span style="color:#22c55e">■</span> Niedrig</li>
         </ul>
+      </div>
+      <div class="info-box info-box--full">
+        <h4>Farbcodierung der Kennzahlen</h4>
+        <div class="color-legend">
+          <div>
+            <span class="cl-name">Short Float</span>
+            <div class="color-bar">
+              <div class="cb-seg" style="background:#22c55e">&lt;15 %</div>
+              <div class="cb-seg" style="background:#f59e0b">15–29 %</div>
+              <div class="cb-seg" style="background:#ef4444">≥ 30 %</div>
+            </div>
+            <p class="cl-desc">Rot bedeutet hohen Leerverkaufsdruck — je mehr Aktien leerverkauft sind, desto stärker der potenzielle Squeeze.</p>
+          </div>
+          <div>
+            <span class="cl-name">Days to Cover</span>
+            <div class="color-bar">
+              <div class="cb-seg" style="background:#22c55e">&lt;3 d</div>
+              <div class="cb-seg" style="background:#f59e0b">3–7 d</div>
+              <div class="cb-seg" style="background:#ef4444">≥ 8 d</div>
+            </div>
+            <p class="cl-desc">Rot bedeutet, dass Leerverkäufer viele Tage brauchen würden, um ihre Positionen zu schließen — das erhöht den Druck bei steigendem Kurs.</p>
+          </div>
+          <div>
+            <span class="cl-name">Rel. Volumen</span>
+            <div class="color-bar">
+              <div class="cb-seg" style="background:#ef4444">&lt;1,5×</div>
+              <div class="cb-seg" style="background:#f59e0b">1,5–2,9×</div>
+              <div class="cb-seg" style="background:#22c55e">≥ 3×</div>
+            </div>
+            <p class="cl-desc">Grün bedeutet ungewöhnlich hohes Handelsvolumen — ein Zeichen für aktiven Kaufdruck, der einen Squeeze auslösen kann.</p>
+          </div>
+          <div>
+            <span class="cl-name">Kursmomentum</span>
+            <div class="color-bar">
+              <div class="cb-seg" style="background:#ef4444">&lt;−5 %</div>
+              <div class="cb-seg" style="background:#f59e0b">−5 bis +5 %</div>
+              <div class="cb-seg" style="background:#22c55e">≥ +5 %</div>
+            </div>
+            <p class="cl-desc">Grün bedeutet, dass der Kurs bereits steigt — Leerverkäufer geraten damit unter Druck, ihre Positionen schnell zu schließen.</p>
+          </div>
+        </div>
       </div>
     </div>
   </details>
