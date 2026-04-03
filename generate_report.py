@@ -43,18 +43,19 @@ MAX_MARKET_CAP  = 10e9   # $10 B
 MIN_PRICE       = 1.0    # USD
 
 # ── Metric tile colour thresholds ────────────────────────────────────────────
+# Rot = hohes Signal (Squeeze-Druck) für alle vier Kategorien.
 # Short Float  (higher = more squeeze pressure → red)
 SF_GREEN  = 15.0   # %   below  → green
 SF_ORANGE = 30.0   # %   15–29  → orange, ≥30 → red
 # Days to Cover (higher = more squeeze pressure → red)
 SR_GREEN  =  3.0   # days  below  → green
 SR_ORANGE =  8.0   # days  3–7    → orange, ≥8 → red
-# Rel. Volume  (higher = stronger buy signal → green)
-RV_GREEN  =  3.0   # ×  ≥3      → green
-RV_ORANGE =  1.5   # ×  1.5–2.9 → orange, <1.5 → red
-# Kursmomentum  (higher = positive signal → green)
-MOM_GREEN =  5.0   # %  ≥+5     → green
-MOM_ORANGE= -5.0   # %  −5 to +5 → orange, <−5 → red
+# Rel. Volume  (higher = more squeeze pressure → red)
+RV_RED    =  3.0   # ×  ≥3      → red
+RV_ORANGE =  1.5   # ×  1.5–2.9 → orange, <1.5 → green
+# Kursmomentum  (higher = more squeeze pressure → red)
+MOM_RED   =  5.0   # %  ≥+5     → red
+MOM_ORANGE= -5.0   # %  −5 to +5 → orange, <−5 → green
 
 
 # ===========================================================================
@@ -586,10 +587,10 @@ def _metric_color(kind: str, val: float) -> str:
         return R if val >= SF_ORANGE else (O if val >= SF_GREEN else G)
     if kind == "sr":   # Days to Cover — higher = more pressure → red
         return R if val >= SR_ORANGE else (O if val >= SR_GREEN else G)
-    if kind == "rv":   # Rel. Volume — higher = buy signal → green
-        return G if val >= RV_GREEN else (O if val >= RV_ORANGE else R)
-    if kind == "mom":  # Kursmomentum — higher = positive → green
-        return G if val >= MOM_GREEN else (O if val >= MOM_ORANGE else R)
+    if kind == "rv":   # Rel. Volume — higher = squeeze pressure → red
+        return R if val >= RV_RED else (O if val >= RV_ORANGE else G)
+    if kind == "mom":  # Kursmomentum — higher = squeeze pressure → red
+        return R if val >= MOM_RED else (O if val >= MOM_ORANGE else G)
     return "#94a3b8"
 
 
@@ -1050,20 +1051,20 @@ a{{color:var(--accent);text-decoration:none}}
           <div>
             <span class="cl-name">Rel. Volumen</span>
             <div class="color-bar">
-              <div class="cb-seg" style="background:#ef4444">&lt;1,5×</div>
+              <div class="cb-seg" style="background:#22c55e">&lt;1,5×</div>
               <div class="cb-seg" style="background:#f59e0b">1,5–2,9×</div>
-              <div class="cb-seg" style="background:#22c55e">≥ 3×</div>
+              <div class="cb-seg" style="background:#ef4444">≥ 3×</div>
             </div>
-            <p class="cl-desc">Grün bedeutet ungewöhnlich hohes Handelsvolumen — ein Zeichen für aktiven Kaufdruck, der einen Squeeze auslösen kann.</p>
+            <p class="cl-desc">Rot bedeutet ungewöhnlich hohes Handelsvolumen — ein Zeichen für aktiven Kaufdruck, der einen Squeeze auslösen kann.</p>
           </div>
           <div>
             <span class="cl-name">Kursmomentum</span>
             <div class="color-bar">
-              <div class="cb-seg" style="background:#ef4444">&lt;−5 %</div>
+              <div class="cb-seg" style="background:#22c55e">&lt;−5 %</div>
               <div class="cb-seg" style="background:#f59e0b">−5 bis +5 %</div>
-              <div class="cb-seg" style="background:#22c55e">≥ +5 %</div>
+              <div class="cb-seg" style="background:#ef4444">≥ +5 %</div>
             </div>
-            <p class="cl-desc">Grün bedeutet, dass der Kurs bereits steigt — Leerverkäufer geraten damit unter Druck, ihre Positionen schnell zu schließen.</p>
+            <p class="cl-desc">Rot bedeutet, dass der Kurs bereits steigt — Leerverkäufer geraten damit unter Druck, ihre Positionen schnell zu schließen.</p>
           </div>
         </div>
       </div>
