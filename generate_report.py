@@ -502,34 +502,23 @@ def short_situation(stock: dict) -> str:
 
     if has_short_data:
         if sf > 30:
-            parts.append(f"Mit {sf:.1f} % Short Float ist das Leerverkaufsinteresse sehr hoch.")
-        else:
-            parts.append(f"Short Float von {sf:.1f} % liegt deutlich über dem Marktdurchschnitt.")
-
+            parts.append(f"Short Float {sf:.1f} % — sehr hohes Leerverkaufsinteresse, starkes Squeeze-Potenzial.")
+        elif sf > 0:
+            parts.append(f"Short Float {sf:.1f} % liegt deutlich über dem Marktdurchschnitt.")
         if sr > 5:
-            parts.append(
-                f"Die Short Ratio von {sr:.1f} Tagen zeigt, dass Leerverkäufer mehrere Handelstage "
-                "zum Eindecken benötigen würden – dies verstärkt den Squeeze-Druck."
-            )
+            parts.append(f"Short Ratio {sr:.1f} Tage — Eindeckungsdruck erhöht den Squeeze-Druck.")
 
     if rv >= 2.0:
-        parts.append(
-            f"Das Handelsvolumen liegt bei {rv:.1f}× dem 20-Tage-Durchschnitt, "
-            "was auf erhöhtes Kaufinteresse und mögliche Short-Eindeckungen hindeutet."
-        )
+        parts.append(f"Volumen bei {rv:.1f}× dem Durchschnitt — erhöhtes Kaufinteresse erkennbar.")
     if chg > 5:
-        parts.append(
-            f"Der Kursanstieg von +{chg:.1f} % heute könnte Margin Calls bei Leerverkäufern auslösen."
-        )
+        parts.append(f"+{chg:.1f} % heute — mögliche Margin Calls bei Leerverkäufern.")
     elif chg < -3:
-        parts.append(
-            f"Der Kursrückgang von {chg:.1f} % könnte das Short-Interesse kurzfristig erhöhen."
-        )
+        parts.append(f"{chg:.1f} % heute — Short-Interesse könnte kurzfristig steigen.")
 
     if not has_short_data and not parts:
-        parts.append("Ungewöhnlicher Volumenanstieg ohne verfügbare Short-Daten für diesen Markt.")
+        parts.append("Ungewöhnlicher Volumenanstieg ohne verfügbare Short-Daten.")
 
-    return " ".join(parts) if parts else "Keine eindeutigen Trendsignale erkennbar."
+    return " ".join(parts[:2]) if parts else "Keine eindeutigen Trendsignale erkennbar."
 
 
 def news_summary(news_list: list[dict]) -> str:
@@ -681,11 +670,20 @@ def _card(i: int, s: dict) -> str:
     <span class="details-arrow" id="da{i}">▾</span><span id="dl{i}"> Details anzeigen</span>
   </button>
   <div class="details-body" id="dd{i}">
-    <div class="driver-row">
-      <p class="driver-text">{sit_txt}</p>
-      <span class="risk-badge" style="color:{risk_col};border-color:{risk_col}55;background:{risk_col}22">Risiko: {risk_lv}</span>
+    <div class="detail-table-wrap">
+      <table class="detail-table">
+        <tr><td>Marktkapitalisierung</td><td>{fmt_cap(cap_val)}</td></tr>
+        <tr><td>52W-Hoch / -Tief</td><td>${s.get('52w_high') or 0:.2f} / ${s.get('52w_low') or 0:.2f}</td></tr>
+        <tr><td>Ø Volumen 20T</td><td>{s.get('avg_vol_20d',0):,.0f}</td></tr>
+        <tr><td>Heutiges Volumen</td><td>{s.get('cur_vol',0):,.0f}</td></tr>
+        <tr><td>Risiko-Detail</td><td style="color:{risk_col}">{risk_txt}</td></tr>
+      </table>
     </div>
     {no_data_html}
+    <div class="driver-row">
+      <span class="risk-badge" style="color:{risk_col};border-color:{risk_col}55;background:{risk_col}22">Risiko: {risk_lv}</span>
+      <p class="driver-text">{sit_txt}</p>
+    </div>
     <button class="news-btn" onclick="toggleNews({i})" id="nb{i}" aria-expanded="false">
       <span id="nb-icon{i}">▼</span> Nachrichten anzeigen
     </button>
@@ -695,13 +693,6 @@ def _card(i: int, s: dict) -> str:
         <span class="summary-label">Zusammenfassung</span>
         <p class="summary-text">{news_sum}</p>
       </div>
-      <table class="detail-table">
-        <tr><td>Marktkapitalisierung</td><td>{fmt_cap(cap_val)}</td></tr>
-        <tr><td>52W-Hoch / -Tief</td><td>${s.get('52w_high') or 0:.2f} / ${s.get('52w_low') or 0:.2f}</td></tr>
-        <tr><td>Ø Volumen 20T</td><td>{s.get('avg_vol_20d',0):,.0f}</td></tr>
-        <tr><td>Heutiges Volumen</td><td>{s.get('cur_vol',0):,.0f}</td></tr>
-        <tr><td>Risiko-Detail</td><td style="color:{risk_col}">{risk_txt}</td></tr>
-      </table>
     </div>
   </div>
 </article>"""
@@ -884,12 +875,15 @@ a{{color:var(--accent);text-decoration:none}}
 .m-val{{display:block;font-size:1.1rem;font-weight:800;color:var(--mc,#94a3b8)}}
 .m-lbl{{display:block;font-size:.62rem;color:var(--txt-dim);text-transform:uppercase;
   letter-spacing:.3px;margin-top:2px}}
+/* ── Detail table (top of details body) ── */
+.detail-table-wrap{{padding:10px 12px 8px}}
 /* ── Driver row ── */
-.driver-row{{display:flex;align-items:flex-start;justify-content:space-between;
-  gap:10px;padding:12px 12px 10px}}
+.driver-row{{display:flex;align-items:flex-start;gap:10px;
+  padding:10px 12px 10px;border-top:1px solid var(--brd)}}
 .driver-text{{font-size:.93rem;color:var(--txt-sub);line-height:1.55;flex:1}}
 .risk-badge{{flex-shrink:0;padding:4px 10px;border-radius:20px;font-size:.7rem;
-  font-weight:700;letter-spacing:.4px;border:1px solid;white-space:nowrap;margin-top:1px}}
+  font-weight:700;letter-spacing:.4px;border:1px solid;white-space:nowrap;margin-top:2px}}
+@media(max-width:359px){{.driver-row{{flex-direction:column}}}}
 /* ── Details dropdown button ── */
 .details-btn{{width:100%;min-height:44px;background:var(--bg-met);
   border:none;border-top:1px solid var(--brd);border-bottom:none;
