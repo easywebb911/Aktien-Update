@@ -30,7 +30,7 @@ Der blaue Button auf der Report-Seite ruft die GitHub Actions API auf und starte
 4. Felder ausfüllen:
    - **Token name:** z. B. `squeeze-report-dispatch`
    - **Expiration:** nach Belieben (z. B. 1 Jahr)
-   - **Repository access:** *Only select repositories* → `Aktien-update` auswählen
+   - **Repository access:** *Only select repositories* → `Aktien-Update` auswählen
 5. Unter **Permissions → Repository permissions:**
    - **Actions** → `Read and write` setzen
 6. Klick auf **Generate token** → Token **sofort kopieren** (wird nur einmal angezeigt!)
