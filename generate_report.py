@@ -648,11 +648,13 @@ def generate_html(stocks: list[dict], report_date: str) -> str:
   --brd:#e2e8f0;--shadow:0 2px 8px rgba(0,0,0,.07);
   --accent:#3b82f6;--radius:14px;
   --red:#ef4444;--ora:#f59e0b;--grn:#22c55e;
+  --disc-col:#c2410c;
 }}
 html[data-theme="dark"]{{
   --bg:#0a0c12;--bg-card:#141929;--bg-hdr:#0d1117;--bg-met:#1a2035;
   --txt:#e2e8f0;--txt-sub:#94a3b8;--txt-dim:#64748b;
   --brd:#1e2d4a;--shadow:0 2px 12px rgba(0,0,0,.35);
+  --disc-col:#ca8a04;
 }}
 *{{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}}
 body{{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
@@ -721,7 +723,7 @@ a{{color:var(--accent);text-decoration:none}}
 .info-box li strong{{color:var(--txt)}}
 /* ── Disclaimer ── */
 .disc{{background:var(--bg-met);border:1px solid var(--brd);border-radius:8px;
-  padding:10px 14px;margin-bottom:14px;font-size:.76rem;color:var(--txt-dim);line-height:1.5}}
+  padding:10px 14px;margin-bottom:14px;font-size:.76rem;color:var(--disc-col);line-height:1.5}}
 /* ── Card ── */
 .card{{background:var(--bg-card);border:1px solid var(--brd);border-radius:var(--radius);
   box-shadow:var(--shadow);margin-bottom:12px;overflow:hidden}}
