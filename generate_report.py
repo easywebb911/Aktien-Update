@@ -642,163 +642,25 @@ def generate_html(stocks: list[dict], report_date: str) -> str:
 <meta name="theme-color" content="#0d1117">
 <title>Squeeze Report – {report_date}</title>
 <style>
-:root{{
-  --bg:#f1f5f9;--bg-card:#fff;--bg-hdr:#fff;--bg-met:#f8fafc;
-  --txt:#1e293b;--txt-sub:#64748b;--txt-dim:#94a3b8;
-  --brd:#e2e8f0;--shadow:0 2px 8px rgba(0,0,0,.07);
-  --accent:#3b82f6;--radius:14px;
-  --red:#ef4444;--ora:#f59e0b;--grn:#22c55e;
-  --disc-col:#c2410c;
-}}
-html[data-theme="dark"]{{
-  --bg:#0a0c12;--bg-card:#141929;--bg-hdr:#0d1117;--bg-met:#1a2035;
-  --txt:#e2e8f0;--txt-sub:#94a3b8;--txt-dim:#64748b;
-  --brd:#1e2d4a;--shadow:0 2px 12px rgba(0,0,0,.35);
-  --disc-col:#ca8a04;
-}}
-*{{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}}
-body{{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
-  background:var(--bg);color:var(--txt);min-height:100vh;font-size:15px}}
-a{{color:var(--accent);text-decoration:none}}
-/* ── Sticky header ── */
-.app-hdr{{position:sticky;top:0;z-index:100;background:var(--bg-hdr);
-  border-bottom:1px solid var(--brd);padding:0 16px;
-  box-shadow:0 1px 4px rgba(0,0,0,.08)}}
-.hdr-r1{{display:flex;align-items:center;justify-content:space-between;height:52px}}
-.app-title{{font-size:1.1rem;font-weight:800;color:var(--txt)}}
-.app-title span{{color:var(--accent)}}
-.hdr-ts{{font-size:.73rem;color:var(--txt-sub);text-align:center}}
-.theme-btn{{width:44px;height:44px;border:none;border-radius:10px;
-  background:var(--bg-met);color:var(--txt);font-size:1.1rem;cursor:pointer;
-  display:flex;align-items:center;justify-content:center}}
-.hdr-r2{{display:flex;gap:10px;padding:8px 0 10px}}
-.btn{{display:inline-flex;align-items:center;justify-content:center;
-  gap:6px;min-height:44px;padding:0 18px;border:none;border-radius:10px;
-  font-size:.9rem;font-weight:700;cursor:pointer;flex:1;
-  transition:opacity .15s,transform .1s;white-space:nowrap}}
-.btn:active{{transform:scale(.96)}}
-.btn:disabled{{opacity:.45;cursor:not-allowed;transform:none}}
-.btn-g{{background:#16a34a;color:#fff}}.btn-g:hover:not(:disabled){{background:#15803d}}
-.btn-b{{background:#2563eb;color:#fff}}.btn-b:hover:not(:disabled){{background:#1d4ed8}}
-/* token panel */
-.tok-panel{{padding:0 0 10px}}
-.tok-hint{{font-size:.8rem;color:var(--txt-sub);margin-bottom:8px;line-height:1.5}}
-.tok-row{{display:flex;gap:8px;flex-wrap:wrap}}
-.tok-inp{{flex:1;min-width:180px;background:var(--bg-met);border:1px solid var(--brd);
-  border-radius:8px;color:var(--txt);padding:0 12px;height:44px;
-  font-size:.85rem;font-family:monospace}}
-.tok-inp:focus{{outline:2px solid var(--accent);outline-offset:1px}}
-.tok-link{{font-size:.75rem;color:var(--txt-dim);padding:4px 2px;cursor:pointer}}
-.amsg{{margin-top:8px;padding:10px 13px;border-radius:8px;font-size:.8rem;line-height:1.5}}
-.amsg-success{{background:#052a14;border:1px solid #166534;color:#86efac}}
-.amsg-error{{background:#2d0a0a;border:1px solid #991b1b;color:#fca5a5}}
-.amsg-info{{background:#0c1a30;border:1px solid #1e3a5f;color:#93c5fd}}
-/* ── Container ── */
-.wrap{{max-width:720px;margin:0 auto;padding:16px 14px 32px}}
-/* ── Stats bar ── */
-.stats-bar{{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:14px}}
-.stat-box{{background:var(--bg-card);border:1px solid var(--brd);border-radius:10px;
-  padding:10px 8px;text-align:center}}
-.stat-val{{display:block;font-size:1.05rem;font-weight:800;color:var(--accent)}}
-.stat-lbl{{display:block;font-size:.62rem;color:var(--txt-dim);text-transform:uppercase;
-  letter-spacing:.4px;margin-top:2px}}
-/* ── Info panel ── */
-.info-panel{{background:var(--bg-card);border:1px solid var(--brd);border-radius:var(--radius);
-  margin-bottom:12px;overflow:hidden}}
-.info-panel summary{{display:flex;align-items:center;justify-content:space-between;
-  padding:13px 16px;cursor:pointer;font-size:.83rem;font-weight:700;
-  color:var(--txt-sub);list-style:none;min-height:44px}}
-.info-panel summary::-webkit-details-marker{{display:none}}
-.info-panel summary::after{{content:"▼";font-size:.7rem;transition:transform .2s}}
-.info-panel[open] summary::after{{transform:rotate(180deg)}}
-.info-inner{{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;padding:0 12px 14px}}
-@media(max-width:500px){{.info-inner{{grid-template-columns:1fr}}}}
-.info-box{{background:var(--bg-met);border-radius:8px;padding:10px 12px}}
-.info-box h4{{font-size:.67rem;text-transform:uppercase;letter-spacing:.5px;
-  color:var(--accent);margin-bottom:7px}}
-.info-box ul{{list-style:none;display:flex;flex-direction:column;gap:4px}}
-.info-box li{{font-size:.77rem;color:var(--txt-sub);line-height:1.5;
-  padding-left:12px;position:relative}}
-.info-box li::before{{content:"–";position:absolute;left:0;color:var(--accent)}}
-.info-box li strong{{color:var(--txt)}}
-/* ── Disclaimer ── */
-.disc{{background:var(--bg-met);border:1px solid var(--brd);border-radius:8px;
-  padding:10px 14px;margin-bottom:14px;font-size:.76rem;color:var(--disc-col);line-height:1.5}}
-/* ── Card ── */
-.card{{background:var(--bg-card);border:1px solid var(--brd);border-radius:var(--radius);
-  box-shadow:var(--shadow);margin-bottom:12px;overflow:hidden}}
-.card-top{{display:flex;align-items:flex-start;justify-content:space-between;
-  padding:14px 14px 10px;gap:10px}}
-.card-left{{display:flex;align-items:flex-start;gap:10px;flex:1;min-width:0}}
-.rank{{display:flex;align-items:center;justify-content:center;width:28px;height:28px;
-  border-radius:50%;background:var(--accent);color:#fff;font-size:.75rem;
-  font-weight:800;flex-shrink:0;margin-top:3px}}
-.ticker-block{{flex:1;min-width:0}}
-.ticker-row{{display:flex;align-items:center;gap:7px;flex-wrap:wrap;margin-bottom:3px}}
-.ticker{{font-size:1.25rem;font-weight:800;font-family:'SF Mono','Courier New',monospace;color:var(--txt)}}
-.market-tag{{font-size:.62rem;font-weight:700;background:var(--accent);color:#fff;
-  padding:1px 6px;border-radius:4px;letter-spacing:.3px}}
-.price-tag{{font-size:.82rem;font-weight:600}}
-.company{{display:block;font-size:.78rem;color:var(--txt-sub);
-  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:220px}}
-.sector-tag{{display:inline-block;font-size:.67rem;color:var(--txt-dim);margin-top:3px}}
-.score-block{{display:flex;flex-direction:column;align-items:flex-end;min-width:64px}}
-.score-num{{font-size:1.7rem;font-weight:900;line-height:1}}
-.score-lbl{{font-size:.62rem;color:var(--txt-dim);text-transform:uppercase;
-  letter-spacing:.4px;margin-bottom:5px}}
-.score-track{{width:60px;height:5px;background:var(--brd);border-radius:3px}}
-.score-fill{{height:100%;border-radius:3px;transition:width .3s}}
-/* ── Metrics ── */
-.metrics-row{{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding:0 12px 12px}}
-.metric-box{{background:var(--bg-met);border:1px solid var(--brd);border-radius:10px;
-  padding:10px 6px;text-align:center;border-top:3px solid var(--mc,#94a3b8)}}
-.m-val{{display:block;font-size:1.1rem;font-weight:800;color:var(--mc,#94a3b8)}}
-.m-lbl{{display:block;font-size:.62rem;color:var(--txt-dim);text-transform:uppercase;
-  letter-spacing:.3px;margin-top:2px}}
-/* ── Driver row ── */
-.driver-row{{display:flex;align-items:flex-start;justify-content:space-between;
-  gap:10px;padding:0 12px 12px}}
-.driver-text{{font-size:.8rem;color:var(--txt-sub);line-height:1.55;flex:1}}
-.risk-badge{{flex-shrink:0;padding:4px 10px;border-radius:20px;font-size:.7rem;
-  font-weight:700;letter-spacing:.4px;border:1px solid;white-space:nowrap;margin-top:1px}}
-/* ── News toggle button ── */
-.news-btn{{width:100%;min-height:44px;background:var(--bg-met);border:none;
-  border-top:1px solid var(--brd);color:var(--accent);font-size:.82rem;
-  font-weight:700;cursor:pointer;padding:0 14px;text-align:left;display:flex;
-  align-items:center;gap:6px}}
-.news-btn:hover{{background:var(--brd)}}
-/* ── News panel ── */
-.news-panel{{border-top:1px solid var(--brd);padding:12px 14px}}
-.news-items{{margin-bottom:12px}}
-.ni{{margin-bottom:10px;font-size:.82rem;line-height:1.5}}
-.ni a{{color:var(--accent);display:block;margin-bottom:2px}}
-.ni a:hover{{text-decoration:underline}}
-.ni-meta{{font-size:.7rem;color:var(--txt-dim)}}
-.no-news{{font-size:.8rem;color:var(--txt-dim)}}
-.news-summary-box{{background:var(--bg-met);border-radius:8px;padding:10px 12px;margin-bottom:12px}}
-.summary-label{{display:block;font-size:.65rem;text-transform:uppercase;letter-spacing:.5px;
-  color:var(--accent);margin-bottom:5px;font-weight:700}}
-.summary-text{{font-size:.82rem;color:var(--txt-sub);line-height:1.6}}
-.detail-table{{width:100%;font-size:.78rem;border-collapse:collapse}}
-.detail-table td{{padding:4px 0;border-bottom:1px solid var(--brd)}}
-.detail-table td:first-child{{color:var(--txt-dim);padding-right:10px}}
-.detail-table td:last-child{{text-align:right;font-weight:600;color:var(--txt)}}
-/* ── Footer ── */
-.footer{{max-width:720px;margin:0 auto;padding:16px 14px 32px;
-  border-top:1px solid var(--brd);text-align:center}}
-.footer p{{font-size:.73rem;color:var(--txt-dim);line-height:1.6;margin-bottom:4px}}
+body{{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+background:#07090f;color:#dde4f5;display:flex;align-items:center;
+justify-content:center;min-height:100vh;margin:0}}
+.box{{background:#111827;border:1px solid #1e2d4a;border-radius:12px;
+padding:36px 44px;max-width:500px;text-align:center}}
+.err{{color:#ef4444;font-size:1.15rem;font-weight:700;margin-bottom:12px}}
+p{{color:#8899bb;font-size:.88rem;line-height:1.65}}
 </style>
 </head>
 <body>
 <header class="app-hdr">
-  <div class="hdr-r1">
+  <div class="hdr-main">
     <span class="app-title">Squeeze <span>Report</span></span>
     <span class="hdr-ts">{timestamp}</span>
+    <div class="hdr-btns">
+      <button id="btn-reload" class="btn btn-g" onclick="reloadPage()">&#8635; Neu laden</button>
+      <button id="btn-recalc" class="btn btn-b" onclick="triggerWorkflow()">&#9881; Neu berechnen</button>
+    </div>
     <button class="theme-btn" onclick="toggleTheme()" id="theme-btn" aria-label="Dark Mode umschalten">🌙</button>
-  </div>
-  <div class="hdr-r2">
-    <button id="btn-reload" class="btn btn-g" onclick="reloadPage()">&#8635; Neu laden</button>
-    <button id="btn-recalc" class="btn btn-b" onclick="triggerWorkflow()">&#9881; Neu berechnen</button>
   </div>
   <div id="tok-sec" style="display:none" class="tok-panel">
     <p class="tok-hint">GitHub-Token eingeben (nur lokal gespeichert, nie weitergegeben):</p>
@@ -856,7 +718,9 @@ a{{color:var(--accent);text-decoration:none}}
 
   <div class="disc">⚠ <strong>Disclaimer:</strong> Dieser Report dient ausschließlich Informationszwecken und stellt keine Anlageberatung dar. Keine Kauf- oder Verkaufsempfehlung.</div>
 
+  <div class="cards-grid">
   {cards}
+  </div>
 </main>
 
 <footer class="footer">
@@ -974,13 +838,182 @@ def _write_error_page(report_date: str, message: str) -> None:
 <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Squeeze Report – {report_date}</title>
 <style>
-body{{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
-background:#07090f;color:#dde4f5;display:flex;align-items:center;
-justify-content:center;min-height:100vh;margin:0}}
-.box{{background:#111827;border:1px solid #1e2d4a;border-radius:12px;
-padding:36px 44px;max-width:500px;text-align:center}}
-.err{{color:#ef4444;font-size:1.15rem;font-weight:700;margin-bottom:12px}}
-p{{color:#8899bb;font-size:.88rem;line-height:1.65}}
+:root{{
+  --bg:#f1f5f9;--bg-card:#fff;--bg-hdr:#fff;--bg-met:#f8fafc;
+  --txt:#1e293b;--txt-sub:#64748b;--txt-dim:#94a3b8;
+  --brd:#e2e8f0;--shadow:0 2px 8px rgba(0,0,0,.07);
+  --accent:#3b82f6;--radius:14px;
+  --red:#ef4444;--ora:#f59e0b;--grn:#22c55e;
+  --disc-col:#c2410c;
+}}
+html[data-theme="dark"]{{
+  --bg:#0a0c12;--bg-card:#141929;--bg-hdr:#0d1117;--bg-met:#1a2035;
+  --txt:#e2e8f0;--txt-sub:#94a3b8;--txt-dim:#64748b;
+  --brd:#1e2d4a;--shadow:0 2px 12px rgba(0,0,0,.35);
+  --disc-col:#ca8a04;
+}}
+*{{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}}
+body{{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+  background:var(--bg);color:var(--txt);min-height:100vh;font-size:15px;overflow-x:hidden}}
+a{{color:var(--accent);text-decoration:none}}
+/* ── Sticky header ── */
+.app-hdr{{position:sticky;top:0;z-index:100;background:var(--bg-hdr);
+  border-bottom:1px solid var(--brd);padding:0 16px;
+  box-shadow:0 1px 4px rgba(0,0,0,.08)}}
+/* Mobile-first: row1=title+theme-btn  row2=ts  row3=action-btns */
+.hdr-main{{display:flex;flex-wrap:wrap;align-items:center;gap:6px;padding:10px 0}}
+.app-title{{font-size:1.05rem;font-weight:800;color:var(--txt);flex:1;order:1;min-width:0}}
+.app-title span{{color:var(--accent)}}
+.theme-btn{{flex-shrink:0;order:2;width:44px;height:44px;border:none;border-radius:10px;
+  background:var(--bg-met);color:var(--txt);font-size:1.1rem;cursor:pointer;
+  display:flex;align-items:center;justify-content:center}}
+.hdr-ts{{font-size:.73rem;color:var(--txt-sub);width:100%;order:3}}
+.hdr-btns{{display:flex;gap:8px;width:100%;order:4}}
+.btn{{display:inline-flex;align-items:center;justify-content:center;
+  gap:6px;min-height:44px;padding:0 16px;border:none;border-radius:10px;
+  font-size:.9rem;font-weight:700;cursor:pointer;flex:1;
+  transition:opacity .15s,transform .1s;white-space:nowrap}}
+.btn:active{{transform:scale(.96)}}
+.btn:disabled{{opacity:.45;cursor:not-allowed;transform:none}}
+.btn-g{{background:#16a34a;color:#fff}}.btn-g:hover:not(:disabled){{background:#15803d}}
+.btn-b{{background:#2563eb;color:#fff}}.btn-b:hover:not(:disabled){{background:#1d4ed8}}
+/* token panel */
+.tok-panel{{padding:0 0 10px}}
+.tok-hint{{font-size:.8rem;color:var(--txt-sub);margin-bottom:8px;line-height:1.5}}
+.tok-row{{display:flex;gap:8px;flex-wrap:wrap}}
+.tok-inp{{flex:1;min-width:180px;background:var(--bg-met);border:1px solid var(--brd);
+  border-radius:8px;color:var(--txt);padding:0 12px;height:44px;
+  font-size:.85rem;font-family:monospace}}
+.tok-inp:focus{{outline:2px solid var(--accent);outline-offset:1px}}
+.tok-link{{font-size:.75rem;color:var(--txt-dim);padding:4px 2px;cursor:pointer}}
+.amsg{{margin-top:8px;padding:10px 13px;border-radius:8px;font-size:.8rem;line-height:1.5}}
+.amsg-success{{background:#052a14;border:1px solid #166534;color:#86efac}}
+.amsg-error{{background:#2d0a0a;border:1px solid #991b1b;color:#fca5a5}}
+.amsg-info{{background:#0c1a30;border:1px solid #1e3a5f;color:#93c5fd}}
+/* ── Container ── */
+.wrap{{max-width:720px;margin:0 auto;padding:16px 14px 32px}}
+/* ── Stats bar ── */
+.stats-bar{{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:14px}}
+.stat-box{{background:var(--bg-card);border:1px solid var(--brd);border-radius:10px;
+  padding:10px 8px;text-align:center}}
+.stat-val{{display:block;font-size:1.05rem;font-weight:800;color:var(--accent)}}
+.stat-lbl{{display:block;font-size:.62rem;color:var(--txt-dim);text-transform:uppercase;
+  letter-spacing:.4px;margin-top:2px}}
+/* ── Info panel ── */
+.info-panel{{background:var(--bg-card);border:1px solid var(--brd);border-radius:var(--radius);
+  margin-bottom:12px;overflow:hidden}}
+.info-panel summary{{display:flex;align-items:center;justify-content:space-between;
+  padding:13px 16px;cursor:pointer;font-size:.83rem;font-weight:700;
+  color:var(--txt-sub);list-style:none;min-height:44px}}
+.info-panel summary::-webkit-details-marker{{display:none}}
+.info-panel summary::after{{content:"▼";font-size:.7rem;transition:transform .2s}}
+.info-panel[open] summary::after{{transform:rotate(180deg)}}
+/* Mobile: single column; desktop overrides to 3 */
+.info-inner{{display:grid;grid-template-columns:1fr;gap:10px;padding:0 12px 14px}}
+.info-box{{background:var(--bg-met);border-radius:8px;padding:10px 12px}}
+.info-box h4{{font-size:.67rem;text-transform:uppercase;letter-spacing:.5px;
+  color:var(--accent);margin-bottom:7px}}
+.info-box ul{{list-style:none;display:flex;flex-direction:column;gap:4px}}
+.info-box li{{font-size:.77rem;color:var(--txt-sub);line-height:1.5;
+  padding-left:12px;position:relative}}
+.info-box li::before{{content:"–";position:absolute;left:0;color:var(--accent)}}
+.info-box li strong{{color:var(--txt)}}
+/* ── Disclaimer ── */
+.disc{{background:var(--bg-met);border:1px solid var(--brd);border-radius:8px;
+  padding:10px 14px;margin-bottom:14px;font-size:.76rem;color:var(--disc-col);line-height:1.5}}
+/* ── Card grid (mobile: 1 col; tablet+: 2 col via media query) ── */
+.cards-grid{{display:grid;grid-template-columns:1fr;gap:12px}}
+/* ── Card ── */
+.card{{background:var(--bg-card);border:1px solid var(--brd);border-radius:var(--radius);
+  box-shadow:var(--shadow);overflow:hidden}}
+.card-top{{display:flex;align-items:flex-start;justify-content:space-between;
+  padding:14px 14px 10px;gap:10px}}
+.card-left{{display:flex;align-items:flex-start;gap:10px;flex:1;min-width:0}}
+.rank{{display:flex;align-items:center;justify-content:center;width:28px;height:28px;
+  border-radius:50%;background:var(--accent);color:#fff;font-size:.75rem;
+  font-weight:800;flex-shrink:0;margin-top:3px}}
+.ticker-block{{flex:1;min-width:0}}
+.ticker-row{{display:flex;align-items:center;gap:7px;flex-wrap:wrap;margin-bottom:3px}}
+.ticker{{font-size:1.25rem;font-weight:800;font-family:'SF Mono','Courier New',monospace;color:var(--txt)}}
+.market-tag{{font-size:.62rem;font-weight:700;background:var(--accent);color:#fff;
+  padding:1px 6px;border-radius:4px;letter-spacing:.3px}}
+.price-tag{{font-size:.82rem;font-weight:600}}
+.company{{display:block;font-size:.78rem;color:var(--txt-sub);
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}}
+.sector-tag{{display:inline-block;font-size:.67rem;color:var(--txt-dim);margin-top:3px}}
+.score-block{{display:flex;flex-direction:column;align-items:flex-end;min-width:64px}}
+.score-num{{font-size:1.7rem;font-weight:900;line-height:1}}
+.score-lbl{{font-size:.62rem;color:var(--txt-dim);text-transform:uppercase;
+  letter-spacing:.4px;margin-bottom:5px}}
+.score-track{{width:60px;height:5px;background:var(--brd);border-radius:3px}}
+.score-fill{{height:100%;border-radius:3px;transition:width .3s}}
+/* ── Metrics ── */
+.metrics-row{{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding:0 12px 12px}}
+.metric-box{{background:var(--bg-met);border:1px solid var(--brd);border-radius:10px;
+  padding:10px 6px;text-align:center;border-top:3px solid var(--mc,#94a3b8)}}
+.m-val{{display:block;font-size:1.1rem;font-weight:800;color:var(--mc,#94a3b8)}}
+.m-lbl{{display:block;font-size:.62rem;color:var(--txt-dim);text-transform:uppercase;
+  letter-spacing:.3px;margin-top:2px}}
+/* ── Driver row ── */
+.driver-row{{display:flex;align-items:flex-start;justify-content:space-between;
+  gap:10px;padding:0 12px 12px}}
+.driver-text{{font-size:14px;color:var(--txt-sub);line-height:1.55;flex:1}}
+.risk-badge{{flex-shrink:0;padding:4px 10px;border-radius:20px;font-size:.7rem;
+  font-weight:700;letter-spacing:.4px;border:1px solid;white-space:nowrap;margin-top:1px}}
+/* ── News toggle button ── */
+.news-btn{{width:100%;min-height:44px;background:var(--bg-met);border:none;
+  border-top:1px solid var(--brd);color:var(--accent);font-size:.82rem;
+  font-weight:700;cursor:pointer;padding:0 14px;text-align:left;display:flex;
+  align-items:center;gap:6px}}
+.news-btn:hover{{background:var(--brd)}}
+/* ── News panel ── */
+.news-panel{{border-top:1px solid var(--brd);padding:12px 14px}}
+.news-items{{margin-bottom:12px}}
+.ni{{margin-bottom:10px;font-size:14px;line-height:1.5}}
+.ni a{{color:var(--accent);display:block;margin-bottom:2px}}
+.ni a:hover{{text-decoration:underline}}
+.ni-meta{{font-size:.7rem;color:var(--txt-dim)}}
+.no-news{{font-size:14px;color:var(--txt-dim)}}
+.news-summary-box{{background:var(--bg-met);border-radius:8px;padding:10px 12px;margin-bottom:12px}}
+.summary-label{{display:block;font-size:.65rem;text-transform:uppercase;letter-spacing:.5px;
+  color:var(--accent);margin-bottom:5px;font-weight:700}}
+.summary-text{{font-size:14px;color:var(--txt-sub);line-height:1.6}}
+.detail-table{{width:100%;font-size:.78rem;border-collapse:collapse}}
+.detail-table td{{padding:4px 0;border-bottom:1px solid var(--brd)}}
+.detail-table td:first-child{{color:var(--txt-dim);padding-right:10px}}
+.detail-table td:last-child{{text-align:right;font-weight:600;color:var(--txt)}}
+/* ── Footer ── */
+.footer{{max-width:720px;margin:0 auto;padding:16px 14px 32px;
+  border-top:1px solid var(--brd);text-align:center}}
+.footer p{{font-size:.73rem;color:var(--txt-dim);line-height:1.6;margin-bottom:4px}}
+/* ══ RESPONSIVE ═════════════════════════════════════════════════════════════
+   Tablet  768 – 1024 px
+   ═════════════════════════════════════════════════════════════════════════ */
+@media(min-width:768px){{
+  /* Header: single row – title | ts (centered) | btns | theme-btn */
+  .hdr-main{{flex-wrap:nowrap;padding:0;height:60px;gap:12px}}
+  .app-title{{order:1;flex:0 0 auto}}
+  .hdr-ts{{order:2;flex:1;width:auto;text-align:center}}
+  .hdr-btns{{order:3;width:auto;flex:0 0 auto}}
+  .hdr-btns .btn{{flex:0 0 auto;min-height:44px;padding:0 16px;font-size:.87rem}}
+  .theme-btn{{order:4;width:44px;height:44px}}
+  /* Info panel: 3 columns */
+  .info-inner{{grid-template-columns:repeat(3,1fr)}}
+  /* Cards: 2-column grid */
+  .cards-grid{{grid-template-columns:repeat(2,1fr)}}
+  /* News panels always visible; toggle button hidden */
+  .news-panel{{display:block}}
+  .news-btn{{display:none}}
+  /* Slightly smaller body text on larger screens */
+  .driver-text{{font-size:.82rem}}
+  .ni,.no-news,.summary-text{{font-size:.82rem}}
+}}
+/* ══ Desktop ≥ 1025 px – more compact header buttons ════════════════════════ */
+@media(min-width:1025px){{
+  .hdr-main{{height:52px;gap:10px}}
+  .hdr-btns .btn{{min-height:36px;padding:0 14px;font-size:.82rem}}
+  .theme-btn{{width:36px;height:36px;font-size:1rem}}
+}}
 </style></head>
 <body><div class="box">
 <div class="err">&#9888; Datenabruf fehlgeschlagen</div>
