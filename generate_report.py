@@ -994,7 +994,7 @@ a{{color:var(--accent);text-decoration:none}}
     <div class="stat-box"><span class="stat-val">{avg_sf:.1f}%</span><span class="stat-lbl">Ø Short Float</span></div>
     <div class="stat-box"><span class="stat-val">{avg_sr:.1f}d</span><span class="stat-lbl">Ø Days to Cover</span></div>
     <div class="stat-box"><span class="stat-val">{avg_rv:.1f}×</span><span class="stat-lbl">Ø Volumen</span></div>
-    <div class="stat-box"><span class="stat-val" style="color:{avg_mom_col}">{avg_mom_str}</span><span class="stat-lbl">Ø Kursmomentum</span></div>
+    <div class="stat-box"><span class="stat-val">{avg_mom_str}</span><span class="stat-lbl">Ø Kursmomentum</span></div>
   </div>
 
   <details class="info-panel">
