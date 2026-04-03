@@ -577,7 +577,7 @@ def _metric_color(kind: str, val: float) -> str:
 
 
 def _score_color(sc: float) -> str:
-    return "#22c55e" if sc >= 70 else ("#f59e0b" if sc >= 40 else "#ef4444")
+    return "#22c55e" if sc >= 50 else ("#f59e0b" if sc >= 30 else "#ef4444")
 
 
 def _card(i: int, s: dict) -> str:
