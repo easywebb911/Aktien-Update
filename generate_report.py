@@ -482,15 +482,39 @@ def news_summary(news_list: list[dict]) -> str:
 # 4. HTML REPORT
 # ===========================================================================
 
+def _metric_color(kind: str, val: float) -> str:
+    """Return hex color for a metric value based on squeeze-relevance."""
+    if kind == "sf":   # short float %
+        return "#ef4444" if val > 20 else ("#f59e0b" if val > 15 else "#22c55e")
+    if kind == "sr":   # days to cover
+        return "#ef4444" if val > 7 else ("#f59e0b" if val > 4 else "#22c55e")
+    if kind == "rv":   # rel volume
+        return "#22c55e" if val > 2 else ("#f59e0b" if val >= 1.5 else "#94a3b8")
+    return "#94a3b8"
+
+
+def _score_color(sc: float) -> str:
+    return "#22c55e" if sc >= 70 else ("#f59e0b" if sc >= 40 else "#ef4444")
+
+
 def _card(i: int, s: dict) -> str:
     risk_lv, risk_col, risk_txt = risk_assessment(s)
     sit_txt  = short_situation(s)
     news_sum = news_summary(s.get("news", []))
 
-    chg_cls = "pos" if s.get("change", 0) >= 0 else "neg"
-    chg_pfx = "+" if s.get("change", 0) >= 0 else ""
-    sc       = min(int(s["score"]), 100)
-    cap_val  = s.get("yf_market_cap") or s.get("market_cap")
+    sc      = min(s["score"], 100.0)
+    sc_col  = _score_color(sc)
+    sf      = s.get("short_float", 0)
+    sr      = s.get("short_ratio", 0)
+    rv      = s.get("rel_volume", 0)
+    cap_val = s.get("yf_market_cap") or s.get("market_cap")
+    chg     = s.get("change", 0)
+    chg_str = f"+{chg:.1f}%" if chg >= 0 else f"{chg:.1f}%"
+    chg_col = "#22c55e" if chg >= 0 else "#ef4444"
+
+    sf_col = _metric_color("sf", sf)
+    sr_col = _metric_color("sr", sr)
+    rv_col = _metric_color("rv", rv)
 
     news_html = ""
     for n in s.get("news", [])[:2]:
@@ -498,285 +522,365 @@ def _card(i: int, s: dict) -> str:
             f'<div class="ni">'
             f'<a href="{n.get("link","#")}" target="_blank" rel="noopener noreferrer">'
             f'{n.get("title","")}</a>'
-            f'<span class="nm">{n.get("publisher","")} · {n.get("time","")}</span>'
+            f'<span class="ni-meta">{n.get("publisher","")} · {n.get("time","")}</span>'
             f'</div>'
         )
     if not news_html:
-        news_html = '<div class="ni">Keine Nachrichten verfügbar.</div>'
+        news_html = '<p class="no-news">Keine Nachrichten verfügbar.</p>'
 
     return f"""
-<div class="card" id="c{i}">
-  <div class="ch" onclick="tog({i})">
-    <div class="rnk">#{i}</div>
-    <div class="cm">
-      <div class="ct">
-        <span class="tk">{s['ticker']}</span>
-        <span class="cn">{s.get('company_name', '')}</span>
-        <span class="sec">{s.get('sector','')}</span>
-        <span class="mkt">{s.get('market','US')}</span>
-      </div>
-      <div class="mtr">
-        <span class="m"><span class="ml">Kurs</span><span class="mv">${s.get('price',0):.2f}</span></span>
-        <span class="m"><span class="ml">Änd.</span><span class="mv {chg_cls}">{chg_pfx}{s.get('change',0):.2f}%</span></span>
-        <span class="m"><span class="ml">Short Float</span><span class="mv hi">{s.get('short_float',0):.1f}%</span></span>
-        <span class="m"><span class="ml">Short Ratio</span><span class="mv">{s.get('short_ratio',0):.1f}d</span></span>
-        <span class="m"><span class="ml">Rel. Vol.</span><span class="mv">{s.get('rel_volume',0):.1f}×</span></span>
-        <span class="badge" style="color:{risk_col};border-color:{risk_col}40;background:{risk_col}18">{risk_lv}</span>
-      </div>
-    </div>
-    <div class="sc">
-      <div class="sl">Score</div>
-      <div class="sv">{s['score']:.1f}</div>
-      <div class="sb"><div class="sf" style="width:{sc}%"></div></div>
-    </div>
-    <div class="arr" id="a{i}">▼</div>
-  </div>
-  <div class="cd" id="d{i}">
-    <div class="dg">
-      <div class="ds">
-        <h4>Marktdaten</h4>
-        <table class="dt">
-          <tr><td>Marktkapitalisierung</td><td>{fmt_cap(cap_val)}</td></tr>
-          <tr><td>52W-Hoch / -Tief</td><td>${s.get('52w_high') or 0:.2f} / ${s.get('52w_low') or 0:.2f}</td></tr>
-          <tr><td>Sektor</td><td>{s.get('sector','N/A')}</td></tr>
-          <tr><td>Ø Volumen 20T</td><td>{s.get('avg_vol_20d',0):,.0f}</td></tr>
-          <tr><td>Heutiges Volumen</td><td>{s.get('cur_vol',0):,.0f}</td></tr>
-        </table>
-      </div>
-      <div class="ds">
-        <h4>Short-Analyse</h4>
-        <p class="at">{sit_txt}</p>
-        <h4 style="margin-top:16px">Risikobewertung</h4>
-        <div class="rd" style="border-left-color:{risk_col}">
-          <strong style="color:{risk_col}">{risk_lv}</strong>
-          <p>{risk_txt}</p>
+<article class="card" id="c{i}">
+  <div class="card-top">
+    <div class="card-left">
+      <span class="rank">{i}</span>
+      <div class="ticker-block">
+        <div class="ticker-row">
+          <span class="ticker">{s['ticker']}</span>
+          <span class="market-tag">{s.get('market','US')}</span>
+          <span class="price-tag" style="color:{chg_col}">${s.get('price',0):.2f} {chg_str}</span>
         </div>
-      </div>
-      <div class="ds">
-        <h4>Aktuelle Nachrichten</h4>
-        {news_html}
-        <h4 style="margin-top:14px">Zusammenfassung</h4>
-        <p class="at">{news_sum}</p>
+        <span class="company">{s.get('company_name','')}</span>
+        <span class="sector-tag">{s.get('sector','')}</span>
       </div>
     </div>
+    <div class="score-block">
+      <span class="score-num" style="color:{sc_col}">{s['score']:.0f}</span>
+      <span class="score-lbl">Score</span>
+      <div class="score-track"><div class="score-fill" style="width:{sc:.0f}%;background:{sc_col}"></div></div>
+    </div>
   </div>
-</div>"""
+  <div class="metrics-row">
+    <div class="metric-box" style="--mc:{sf_col}">
+      <span class="m-val">{sf:.1f}%</span>
+      <span class="m-lbl">Short Float</span>
+    </div>
+    <div class="metric-box" style="--mc:{sr_col}">
+      <span class="m-val">{sr:.1f}d</span>
+      <span class="m-lbl">Days to Cover</span>
+    </div>
+    <div class="metric-box" style="--mc:{rv_col}">
+      <span class="m-val">{rv:.1f}×</span>
+      <span class="m-lbl">Volumen</span>
+    </div>
+  </div>
+  <div class="driver-row">
+    <p class="driver-text">{sit_txt}</p>
+    <span class="risk-badge" style="color:{risk_col};border-color:{risk_col}55;background:{risk_col}22">{risk_lv}</span>
+  </div>
+  <button class="news-btn" onclick="toggleNews({i})" id="nb{i}" aria-expanded="false">
+    <span id="nb-icon{i}">▼</span> Nachrichten anzeigen
+  </button>
+  <div class="news-panel" id="np{i}" hidden>
+    <div class="news-items">{news_html}</div>
+    <div class="news-summary-box">
+      <span class="summary-label">Zusammenfassung</span>
+      <p class="summary-text">{news_sum}</p>
+    </div>
+    <table class="detail-table">
+      <tr><td>Marktkapitalisierung</td><td>{fmt_cap(cap_val)}</td></tr>
+      <tr><td>52W-Hoch / -Tief</td><td>${s.get('52w_high') or 0:.2f} / ${s.get('52w_low') or 0:.2f}</td></tr>
+      <tr><td>Ø Volumen 20T</td><td>{s.get('avg_vol_20d',0):,.0f}</td></tr>
+      <tr><td>Heutiges Volumen</td><td>{s.get('cur_vol',0):,.0f}</td></tr>
+      <tr><td>Risiko-Detail</td><td style="color:{risk_col}">{risk_txt[:120]}</td></tr>
+    </table>
+  </div>
+</article>"""
 
 
 def generate_html(stocks: list[dict], report_date: str) -> str:
     cards = "\n".join(_card(i + 1, s) for i, s in enumerate(stocks))
 
-    n       = max(len(stocks), 1)  # guard against ZeroDivisionError
+    n       = max(len(stocks), 1)
     avg_sf  = sum(s["short_float"] for s in stocks) / n
     avg_sr  = sum(s["short_ratio"]  for s in stocks) / n
     avg_rv  = sum(s["rel_volume"]   for s in stocks) / n
     now_str = datetime.now(ZoneInfo("Europe/Berlin")).strftime("%H:%M Uhr")
+    timestamp = f"Stand: {report_date}, {now_str}"
 
     return f"""<!DOCTYPE html>
-<html lang="de">
+<html lang="de" data-theme="dark">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Squeeze Report">
+<meta name="theme-color" content="#0d1117">
 <title>Squeeze Report – {report_date}</title>
 <style>
-:root{{--bg:#07090f;--bg2:#0e1120;--bg3:#131929;--brd:#1e2d4a;--acc:#4a9eff;--txt:#dde4f5;--sub:#6677a0;}}
-*{{box-sizing:border-box;margin:0;padding:0}}
-body{{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:var(--bg);color:var(--txt);min-height:100vh}}
-a{{color:var(--acc)}}
-/* Header */
-.hdr{{background:linear-gradient(135deg,#111d3a 0%,#0a1020 100%);border-bottom:1px solid var(--brd);padding:20px 28px;display:flex;align-items:center;justify-content:space-between}}
-.hdr h1{{font-size:1.5rem;font-weight:800;color:#fff;letter-spacing:-.5px}}.hdr h1 span{{color:var(--acc)}}
-.hdr-meta{{text-align:right;font-size:.82rem;color:var(--sub)}}.hdr-meta strong{{color:#aabbd4;display:block;font-size:.95rem}}
-/* Layout */
-.wrap{{max-width:1100px;margin:0 auto;padding:22px 14px}}
-/* Summary bar */
-.sbar{{display:flex;gap:12px;margin-bottom:20px;flex-wrap:wrap}}
-.ss{{background:var(--bg3);border:1px solid var(--brd);border-radius:10px;padding:12px 18px;flex:1;min-width:130px}}
-.ss .sl{{font-size:.7rem;color:var(--sub);text-transform:uppercase;letter-spacing:.5px}}
-.ss .sv{{font-size:1.35rem;font-weight:700;color:var(--acc);margin-top:3px}}
-/* Score info */
-.info-box{{background:var(--bg3);border:1px solid var(--brd);border-radius:10px;padding:14px 18px;margin-bottom:14px}}
-.info-box h3{{font-size:.72rem;text-transform:uppercase;letter-spacing:.5px;color:var(--acc);margin-bottom:10px}}
-.info-box ul{{list-style:none;display:flex;flex-direction:column;gap:5px}}
-.info-box li{{font-size:.8rem;color:#8899bb;line-height:1.5;padding-left:14px;position:relative}}
-.info-box li::before{{content:"–";position:absolute;left:0;color:var(--acc)}}
-.info-box li strong{{color:#c8d4f0}}
-.info-cols{{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}}
-@media(max-width:640px){{.info-cols{{grid-template-columns:1fr}}}}
-/* Disclaimer */
-.disc{{background:#1a1400;border:1px solid #3a2f00;border-radius:8px;padding:11px 15px;margin-bottom:20px;font-size:.78rem;color:#b8a850;line-height:1.5}}
-/* Card */
-.card{{background:var(--bg2);border:1px solid var(--brd);border-radius:12px;margin-bottom:10px;overflow:hidden;transition:border-color .2s}}
-.card:hover{{border-color:#2a4a8a}}
-.ch{{display:flex;align-items:center;padding:14px 18px;cursor:pointer;gap:14px;user-select:none}}
-.rnk{{font-size:1.05rem;font-weight:700;color:var(--acc);min-width:32px}}
-.cm{{flex:1}}
-.ct{{display:flex;align-items:baseline;gap:9px;margin-bottom:7px;flex-wrap:wrap}}
-.tk{{font-size:1.15rem;font-weight:800;color:#fff;font-family:'Courier New',monospace}}
-.cn{{font-size:.82rem;color:var(--sub)}}
-.sec{{font-size:.72rem;color:#3d4f72;background:#141e33;padding:1px 7px;border-radius:10px}}
-.mkt{{font-size:.68rem;font-weight:700;color:#4a9eff;background:#0d1d38;padding:1px 7px;border-radius:10px;letter-spacing:.3px}}
-.mtr{{display:flex;gap:14px;flex-wrap:wrap;align-items:center}}
-.m{{display:flex;flex-direction:column;gap:1px}}
-.ml{{font-size:.66rem;color:#3d4f72;text-transform:uppercase;letter-spacing:.4px}}
-.mv{{font-size:.9rem;font-weight:600;color:#c8d4f0}}
-.pos{{color:#22c55e}}.neg{{color:#ef4444}}.hi{{color:#f59e0b}}
-.badge{{padding:3px 9px;border-radius:20px;font-size:.7rem;font-weight:700;letter-spacing:.4px;border:1px solid}}
-/* Score */
-.sc{{text-align:right;min-width:76px}}
-.sl{{font-size:.66rem;color:#3d4f72;text-transform:uppercase}}
-.sv{{font-size:1.35rem;font-weight:700;color:var(--acc)}}
-.sb{{width:76px;height:3px;background:#1a2a45;border-radius:2px;margin-top:4px}}
-.sf{{height:100%;background:linear-gradient(90deg,#4a9eff,#9b5cf6);border-radius:2px}}
-.arr{{color:#3d4f72;font-size:.85rem;transition:transform .25s;margin-left:4px}}
-.card.open .arr{{transform:rotate(180deg)}}
-/* Details */
-.cd{{display:none;padding:0 18px 18px;border-top:1px solid var(--brd)}}
-.cd.active{{display:block}}
-.dg{{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;padding-top:14px}}
-@media(max-width:720px){{.dg{{grid-template-columns:1fr}}.sc{{display:none}}}}
-.ds h4{{font-size:.72rem;text-transform:uppercase;letter-spacing:.5px;color:var(--acc);margin-bottom:9px}}
-.dt{{width:100%;font-size:.82rem;border-collapse:collapse}}
-.dt td{{padding:4px 0;border-bottom:1px solid #111d33}}
-.dt td:first-child{{color:var(--sub)}}
-.dt td:last-child{{text-align:right;font-weight:600}}
-.ni{{margin-bottom:9px;font-size:.82rem;line-height:1.5}}
-.ni a{{color:var(--acc);text-decoration:none}}
-.ni a:hover{{text-decoration:underline}}
-.nm{{display:block;font-size:.7rem;color:#3d4f72;margin-top:1px}}
-.at{{font-size:.82rem;line-height:1.65;color:#8899bb}}
-.rd{{padding:9px 12px;background:#0a1020;border-left:3px solid;border-radius:0 6px 6px 0;font-size:.82rem}}
-.rd p{{margin-top:3px;color:#7788aa;line-height:1.5}}
-/* Footer */
-.ftr{{text-align:center;padding:22px;color:#3d4f72;font-size:.75rem;border-top:1px solid var(--brd);margin-top:36px}}
-/* Action bar */
-.abar{{background:#080c18;border-bottom:1px solid var(--brd);padding:12px 28px}}
-.abar-inner{{display:flex;align-items:center;gap:12px;flex-wrap:wrap;max-width:1100px;margin:0 auto}}
-.btn{{display:inline-flex;align-items:center;justify-content:center;min-height:48px;padding:0 22px;border:none;border-radius:10px;font-size:.95rem;font-weight:700;cursor:pointer;transition:opacity .15s,transform .1s;-webkit-tap-highlight-color:transparent;touch-action:manipulation;white-space:nowrap}}
-.btn:active:not(:disabled){{transform:scale(.96)}}
-.btn:disabled{{opacity:.5;cursor:not-allowed;transform:none}}
-.btn-green{{background:#16a34a;color:#fff}}.btn-green:hover:not(:disabled){{background:#15803d}}
-.btn-blue{{background:#2563eb;color:#fff}}.btn-blue:hover:not(:disabled){{background:#1d4ed8}}
-.tok-rl{{font-size:.78rem;color:var(--sub);text-decoration:none;padding:4px 8px;border-radius:6px;margin-left:4px}}
-.tok-rl:hover{{color:var(--acc)}}
-.tok-sec{{background:#0d1327;border:1px solid var(--brd);border-radius:10px;padding:14px 16px;margin-top:12px;max-width:640px}}
-.tok-hint{{font-size:.82rem;color:#8899bb;margin-bottom:10px;line-height:1.5}}
-.tok-row{{display:flex;gap:10px;flex-wrap:wrap}}
-.tok-inp{{flex:1;min-width:200px;background:#070c1a;border:1px solid var(--brd);border-radius:8px;color:var(--txt);padding:0 13px;height:48px;font-size:.88rem;font-family:monospace}}
-.tok-inp:focus{{outline:2px solid var(--acc);outline-offset:1px}}
-.amsg{{margin-top:12px;padding:11px 15px;border-radius:8px;font-size:.83rem;line-height:1.5;max-width:740px}}
+:root{{
+  --bg:#f1f5f9;--bg-card:#fff;--bg-hdr:#fff;--bg-met:#f8fafc;
+  --txt:#1e293b;--txt-sub:#64748b;--txt-dim:#94a3b8;
+  --brd:#e2e8f0;--shadow:0 2px 8px rgba(0,0,0,.07);
+  --accent:#3b82f6;--radius:14px;
+  --red:#ef4444;--ora:#f59e0b;--grn:#22c55e;
+}}
+html[data-theme="dark"]{{
+  --bg:#0a0c12;--bg-card:#141929;--bg-hdr:#0d1117;--bg-met:#1a2035;
+  --txt:#e2e8f0;--txt-sub:#94a3b8;--txt-dim:#64748b;
+  --brd:#1e2d4a;--shadow:0 2px 12px rgba(0,0,0,.35);
+}}
+*{{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}}
+body{{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+  background:var(--bg);color:var(--txt);min-height:100vh;font-size:15px}}
+a{{color:var(--accent);text-decoration:none}}
+/* ── Sticky header ── */
+.app-hdr{{position:sticky;top:0;z-index:100;background:var(--bg-hdr);
+  border-bottom:1px solid var(--brd);padding:0 16px;
+  box-shadow:0 1px 4px rgba(0,0,0,.08)}}
+.hdr-r1{{display:flex;align-items:center;justify-content:space-between;height:52px}}
+.app-title{{font-size:1.1rem;font-weight:800;color:var(--txt)}}
+.app-title span{{color:var(--accent)}}
+.hdr-ts{{font-size:.73rem;color:var(--txt-sub);text-align:center}}
+.theme-btn{{width:44px;height:44px;border:none;border-radius:10px;
+  background:var(--bg-met);color:var(--txt);font-size:1.1rem;cursor:pointer;
+  display:flex;align-items:center;justify-content:center}}
+.hdr-r2{{display:flex;gap:10px;padding:8px 0 10px}}
+.btn{{display:inline-flex;align-items:center;justify-content:center;
+  gap:6px;min-height:44px;padding:0 18px;border:none;border-radius:10px;
+  font-size:.9rem;font-weight:700;cursor:pointer;flex:1;
+  transition:opacity .15s,transform .1s;white-space:nowrap}}
+.btn:active{{transform:scale(.96)}}
+.btn:disabled{{opacity:.45;cursor:not-allowed;transform:none}}
+.btn-g{{background:#16a34a;color:#fff}}.btn-g:hover:not(:disabled){{background:#15803d}}
+.btn-b{{background:#2563eb;color:#fff}}.btn-b:hover:not(:disabled){{background:#1d4ed8}}
+/* token panel */
+.tok-panel{{padding:0 0 10px}}
+.tok-hint{{font-size:.8rem;color:var(--txt-sub);margin-bottom:8px;line-height:1.5}}
+.tok-row{{display:flex;gap:8px;flex-wrap:wrap}}
+.tok-inp{{flex:1;min-width:180px;background:var(--bg-met);border:1px solid var(--brd);
+  border-radius:8px;color:var(--txt);padding:0 12px;height:44px;
+  font-size:.85rem;font-family:monospace}}
+.tok-inp:focus{{outline:2px solid var(--accent);outline-offset:1px}}
+.tok-link{{font-size:.75rem;color:var(--txt-dim);padding:4px 2px;cursor:pointer}}
+.amsg{{margin-top:8px;padding:10px 13px;border-radius:8px;font-size:.8rem;line-height:1.5}}
 .amsg-success{{background:#052a14;border:1px solid #166534;color:#86efac}}
-.amsg-error{{background:#2a0808;border:1px solid #991b1b;color:#fca5a5}}
-.amsg-info{{background:#0c1a30;border:1px solid var(--brd);color:#93c5fd}}
+.amsg-error{{background:#2d0a0a;border:1px solid #991b1b;color:#fca5a5}}
+.amsg-info{{background:#0c1a30;border:1px solid #1e3a5f;color:#93c5fd}}
+/* ── Container ── */
+.wrap{{max-width:720px;margin:0 auto;padding:16px 14px 32px}}
+/* ── Stats bar ── */
+.stats-bar{{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:14px}}
+.stat-box{{background:var(--bg-card);border:1px solid var(--brd);border-radius:10px;
+  padding:10px 8px;text-align:center}}
+.stat-val{{display:block;font-size:1.05rem;font-weight:800;color:var(--accent)}}
+.stat-lbl{{display:block;font-size:.62rem;color:var(--txt-dim);text-transform:uppercase;
+  letter-spacing:.4px;margin-top:2px}}
+/* ── Info panel ── */
+.info-panel{{background:var(--bg-card);border:1px solid var(--brd);border-radius:var(--radius);
+  margin-bottom:12px;overflow:hidden}}
+.info-panel summary{{display:flex;align-items:center;justify-content:space-between;
+  padding:13px 16px;cursor:pointer;font-size:.83rem;font-weight:700;
+  color:var(--txt-sub);list-style:none;min-height:44px}}
+.info-panel summary::-webkit-details-marker{{display:none}}
+.info-panel summary::after{{content:"▼";font-size:.7rem;transition:transform .2s}}
+.info-panel[open] summary::after{{transform:rotate(180deg)}}
+.info-inner{{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;padding:0 12px 14px}}
+@media(max-width:500px){{.info-inner{{grid-template-columns:1fr}}}}
+.info-box{{background:var(--bg-met);border-radius:8px;padding:10px 12px}}
+.info-box h4{{font-size:.67rem;text-transform:uppercase;letter-spacing:.5px;
+  color:var(--accent);margin-bottom:7px}}
+.info-box ul{{list-style:none;display:flex;flex-direction:column;gap:4px}}
+.info-box li{{font-size:.77rem;color:var(--txt-sub);line-height:1.5;
+  padding-left:12px;position:relative}}
+.info-box li::before{{content:"–";position:absolute;left:0;color:var(--accent)}}
+.info-box li strong{{color:var(--txt)}}
+/* ── Disclaimer ── */
+.disc{{background:var(--bg-met);border:1px solid var(--brd);border-radius:8px;
+  padding:10px 14px;margin-bottom:14px;font-size:.76rem;color:var(--txt-dim);line-height:1.5}}
+/* ── Card ── */
+.card{{background:var(--bg-card);border:1px solid var(--brd);border-radius:var(--radius);
+  box-shadow:var(--shadow);margin-bottom:12px;overflow:hidden}}
+.card-top{{display:flex;align-items:flex-start;justify-content:space-between;
+  padding:14px 14px 10px;gap:10px}}
+.card-left{{display:flex;align-items:flex-start;gap:10px;flex:1;min-width:0}}
+.rank{{display:flex;align-items:center;justify-content:center;width:28px;height:28px;
+  border-radius:50%;background:var(--accent);color:#fff;font-size:.75rem;
+  font-weight:800;flex-shrink:0;margin-top:3px}}
+.ticker-block{{flex:1;min-width:0}}
+.ticker-row{{display:flex;align-items:center;gap:7px;flex-wrap:wrap;margin-bottom:3px}}
+.ticker{{font-size:1.25rem;font-weight:800;font-family:'SF Mono','Courier New',monospace;color:var(--txt)}}
+.market-tag{{font-size:.62rem;font-weight:700;background:var(--accent);color:#fff;
+  padding:1px 6px;border-radius:4px;letter-spacing:.3px}}
+.price-tag{{font-size:.82rem;font-weight:600}}
+.company{{display:block;font-size:.78rem;color:var(--txt-sub);
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:220px}}
+.sector-tag{{display:inline-block;font-size:.67rem;color:var(--txt-dim);margin-top:3px}}
+.score-block{{display:flex;flex-direction:column;align-items:flex-end;min-width:64px}}
+.score-num{{font-size:1.7rem;font-weight:900;line-height:1}}
+.score-lbl{{font-size:.62rem;color:var(--txt-dim);text-transform:uppercase;
+  letter-spacing:.4px;margin-bottom:5px}}
+.score-track{{width:60px;height:5px;background:var(--brd);border-radius:3px}}
+.score-fill{{height:100%;border-radius:3px;transition:width .3s}}
+/* ── Metrics ── */
+.metrics-row{{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding:0 12px 12px}}
+.metric-box{{background:var(--bg-met);border:1px solid var(--brd);border-radius:10px;
+  padding:10px 6px;text-align:center;border-top:3px solid var(--mc,#94a3b8)}}
+.m-val{{display:block;font-size:1.1rem;font-weight:800;color:var(--mc,#94a3b8)}}
+.m-lbl{{display:block;font-size:.62rem;color:var(--txt-dim);text-transform:uppercase;
+  letter-spacing:.3px;margin-top:2px}}
+/* ── Driver row ── */
+.driver-row{{display:flex;align-items:flex-start;justify-content:space-between;
+  gap:10px;padding:0 12px 12px}}
+.driver-text{{font-size:.8rem;color:var(--txt-sub);line-height:1.55;flex:1}}
+.risk-badge{{flex-shrink:0;padding:4px 10px;border-radius:20px;font-size:.7rem;
+  font-weight:700;letter-spacing:.4px;border:1px solid;white-space:nowrap;margin-top:1px}}
+/* ── News toggle button ── */
+.news-btn{{width:100%;min-height:44px;background:var(--bg-met);border:none;
+  border-top:1px solid var(--brd);color:var(--accent);font-size:.82rem;
+  font-weight:700;cursor:pointer;padding:0 14px;text-align:left;display:flex;
+  align-items:center;gap:6px}}
+.news-btn:hover{{background:var(--brd)}}
+/* ── News panel ── */
+.news-panel{{border-top:1px solid var(--brd);padding:12px 14px}}
+.news-items{{margin-bottom:12px}}
+.ni{{margin-bottom:10px;font-size:.82rem;line-height:1.5}}
+.ni a{{color:var(--accent);display:block;margin-bottom:2px}}
+.ni a:hover{{text-decoration:underline}}
+.ni-meta{{font-size:.7rem;color:var(--txt-dim)}}
+.no-news{{font-size:.8rem;color:var(--txt-dim)}}
+.news-summary-box{{background:var(--bg-met);border-radius:8px;padding:10px 12px;margin-bottom:12px}}
+.summary-label{{display:block;font-size:.65rem;text-transform:uppercase;letter-spacing:.5px;
+  color:var(--accent);margin-bottom:5px;font-weight:700}}
+.summary-text{{font-size:.82rem;color:var(--txt-sub);line-height:1.6}}
+.detail-table{{width:100%;font-size:.78rem;border-collapse:collapse}}
+.detail-table td{{padding:4px 0;border-bottom:1px solid var(--brd)}}
+.detail-table td:first-child{{color:var(--txt-dim);padding-right:10px}}
+.detail-table td:last-child{{text-align:right;font-weight:600;color:var(--txt)}}
+/* ── Footer ── */
+.footer{{max-width:720px;margin:0 auto;padding:16px 14px 32px;
+  border-top:1px solid var(--brd);text-align:center}}
+.footer p{{font-size:.73rem;color:var(--txt-dim);line-height:1.6;margin-bottom:4px}}
 </style>
 </head>
 <body>
-<div class="hdr">
-  <h1>Squeeze <span>Report</span></h1>
-  <div class="hdr-meta">
-    <strong>{report_date}</strong>
-    US · DE · GB · CA · Top-10 Squeeze-Kandidaten · {now_str}
+<header class="app-hdr">
+  <div class="hdr-r1">
+    <span class="app-title">Squeeze <span>Report</span></span>
+    <span class="hdr-ts">{timestamp}</span>
+    <button class="theme-btn" onclick="toggleTheme()" id="theme-btn" aria-label="Dark Mode umschalten">🌙</button>
   </div>
-</div>
-<div class="abar">
-  <div class="abar-inner">
-    <button id="btn-reload" class="btn btn-green" onclick="reloadPage()">&#8635;&ensp;Seite neu laden</button>
-    <button id="btn-recalc" class="btn btn-blue" onclick="triggerWorkflow()">&#9881;&ensp;Jetzt neu berechnen</button>
-    <a href="#" class="tok-rl" id="tok-rl" onclick="resetToken();return false;">Token zurücksetzen</a>
+  <div class="hdr-r2">
+    <button id="btn-reload" class="btn btn-g" onclick="reloadPage()">&#8635; Neu laden</button>
+    <button id="btn-recalc" class="btn btn-b" onclick="triggerWorkflow()">&#9881; Neu berechnen</button>
   </div>
-  <div id="tok-sec" class="tok-sec" style="display:none">
-    <p class="tok-hint">Bitte GitHub Token eingeben (wird nur lokal im Browser gespeichert und nie an Dritte übertragen – ausschließlich an die offizielle GitHub API).</p>
+  <div id="tok-sec" style="display:none" class="tok-panel">
+    <p class="tok-hint">GitHub-Token eingeben (nur lokal gespeichert, nie weitergegeben):</p>
     <div class="tok-row">
-      <input type="password" id="tok-inp" class="tok-inp"
-             placeholder="ghp_xxxxxxxxxxxxxxxxxxxx"
+      <input type="password" id="tok-inp" class="tok-inp" placeholder="ghp_xxxx…"
              onkeydown="if(event.key==='Enter')saveTokenAndDispatch()">
-      <button class="btn btn-blue" onclick="saveTokenAndDispatch()">Speichern &amp; starten</button>
+      <button class="btn btn-b" style="flex:0;padding:0 16px" onclick="saveTokenAndDispatch()">OK</button>
     </div>
   </div>
   <div id="amsg" class="amsg" style="display:none"></div>
-</div>
-<div class="wrap">
-  <div class="sbar">
-    <div class="ss"><div class="sl">Kandidaten</div><div class="sv">Top 10</div></div>
-    <div class="ss"><div class="sl">Ø Short Float</div><div class="sv">{avg_sf:.1f}%</div></div>
-    <div class="ss"><div class="sl">Ø Short Ratio</div><div class="sv">{avg_sr:.1f}d</div></div>
-    <div class="ss"><div class="sl">Ø Rel. Volumen</div><div class="sv">{avg_rv:.1f}×</div></div>
+  <div style="padding-bottom:4px">
+    <a class="tok-link" onclick="resetToken();return false;" href="#">Token zurücksetzen</a>
   </div>
-  <div class="info-cols">
-    <div class="info-box">
-      <h3>Score (0–100) – Zusammensetzung</h3>
-      <ul>
-        <li><strong>40 % Short Float</strong> – Anteil leerverkaufter Aktien am Streubesitz; je höher, desto stärker der potenzielle Squeeze-Druck</li>
-        <li><strong>30 % Short Ratio</strong> – Tage, die Leerverkäufer zum vollständigen Eindecken brauchen; hohe Werte erhöhen das Kapitulationsrisiko</li>
-        <li><strong>30 % Rel. Volumen</strong> – Heutiges Handelsvolumen geteilt durch 20-Tage-Durchschnitt; Volumenspitzen signalisieren erhöhtes Kaufinteresse</li>
-      </ul>
-    </div>
-    <div class="info-box">
-      <h3>Filterkriterien</h3>
-      <ul>
-        <li><strong>Short Float &gt; 15 %</strong> – Mindest-Leerverkaufsquote als Squeeze-Voraussetzung</li>
-        <li><strong>Kurs &gt; $1</strong> – Ausschluss von Penny Stocks mit extremem Manipulationsrisiko</li>
-        <li><strong>Marktkapitalisierung &lt; $10 Mrd.</strong> – Fokus auf Small- &amp; Mid-Caps mit höherem Squeeze-Potenzial</li>
-        <li><strong>Rel. Volumen ≥ 1,5×</strong> – Mindestaktivität (wird bei &lt; 5 Treffern automatisch auf 1,0× gelockert)</li>
-      </ul>
-    </div>
-    <div class="info-box">
-      <h3>Risikobewertung</h3>
-      <ul>
-        <li><strong style="color:#22c55e">NIEDRIG</strong> – Moderates Short-Interesse, ausreichende Liquidität</li>
-        <li><strong style="color:#f59e0b">MITTEL</strong> – Erhöhtes Short-Interesse (&gt; 25 %) oder Small-Cap (&lt; $2 Mrd.)</li>
-        <li><strong style="color:#ef4444">HOCH</strong> – Extremes Short-Interesse (&gt; 40 %) und/oder Micro-Cap (&lt; $300 Mio.); starke Kursausschläge möglich</li>
-        <li><strong>Empfehlung:</strong> Nur mit kleinen Positionen und engem Stop-Loss handeln</li>
-      </ul>
-    </div>
-  </div>
-  <div class="disc">
-    ⚠ <strong>Disclaimer:</strong> Dieser Report dient ausschließlich Informationszwecken
-    und stellt keine Anlageberatung dar. Short-Squeeze-Kandidaten sind hochspekulative
-    Investments mit erhöhtem Verlustrisiko. Keine Kauf- oder Verkaufsempfehlung.
-  </div>
-  {cards}
-</div>
-<div class="ftr">
-  Automatisch generiert am {report_date} · Quellen: Yahoo Finance (US/DE/GB/CA), Finviz · Übersetzung: Google Translate · Keine Anlageberatung
-</div>
-<script>
-// ── Accordion ────────────────────────────────────────────────────────────
-function tog(id){{
-  document.getElementById('c'+id).classList.toggle('open');
-  document.getElementById('d'+id).classList.toggle('active');
-}}
-window.addEventListener('DOMContentLoaded',()=>tog(1));
+</header>
 
+<main class="wrap">
+  <div class="stats-bar">
+    <div class="stat-box"><span class="stat-val">Top {n}</span><span class="stat-lbl">Kandidaten</span></div>
+    <div class="stat-box"><span class="stat-val">{avg_sf:.1f}%</span><span class="stat-lbl">Ø Short Float</span></div>
+    <div class="stat-box"><span class="stat-val">{avg_sr:.1f}d</span><span class="stat-lbl">Ø Days Cover</span></div>
+    <div class="stat-box"><span class="stat-val">{avg_rv:.1f}×</span><span class="stat-lbl">Ø Volumen</span></div>
+  </div>
+
+  <details class="info-panel">
+    <summary>Score-Methodik &amp; Filterkriterien</summary>
+    <div class="info-inner">
+      <div class="info-box">
+        <h4>Score (0–100)</h4>
+        <ul>
+          <li><strong>40 % Short Float</strong> – Anteil leerverkaufter Aktien; je höher, desto stärker der Squeeze-Druck</li>
+          <li><strong>30 % Days to Cover</strong> – Tage zum vollständigen Eindecken; hohe Werte erhöhen Kapitulationsrisiko</li>
+          <li><strong>30 % Rel. Volumen</strong> – Heutiges vs. 20-Tage-Durchschnitt; Spitzen signalisieren Kaufinteresse</li>
+        </ul>
+      </div>
+      <div class="info-box">
+        <h4>Filterkriterien</h4>
+        <ul>
+          <li><strong>Short Float &gt; 15 %</strong> – Mindest-Leerverkaufsquote</li>
+          <li><strong>Kurs &gt; $1</strong> – Ausschluss von Penny Stocks</li>
+          <li><strong>Marktkapitalisierung &lt; $10 Mrd.</strong> – Small- &amp; Mid-Caps</li>
+          <li><strong>Märkte:</strong> US · DE · GB · CA</li>
+        </ul>
+      </div>
+      <div class="info-box">
+        <h4>Farb-Logik</h4>
+        <ul>
+          <li><strong style="color:#ef4444">Rot</strong> – Hohe Werte / hohes Risiko</li>
+          <li><strong style="color:#f59e0b">Orange</strong> – Mittlere Werte</li>
+          <li><strong style="color:#22c55e">Grün</strong> – Positive Signale</li>
+          <li><strong>Score-Balken:</strong> Grün ≥70 · Orange ≥40 · Rot &lt;40</li>
+        </ul>
+      </div>
+    </div>
+  </details>
+
+  <div class="disc">⚠ <strong>Disclaimer:</strong> Dieser Report dient ausschließlich Informationszwecken und stellt keine Anlageberatung dar. Keine Kauf- oder Verkaufsempfehlung.</div>
+
+  {cards}
+</main>
+
+<footer class="footer">
+  <p>Der Squeeze-Score ist ein rein rechnerischer Indikator und ersetzt keine individuelle Anlageberatung. Short-Squeeze-Kandidaten sind hochspekulative Investments mit erhöhtem Totalverlustrisiko. Nur mit kleinen Positionen und engem Stop-Loss handeln.</p>
+  <p>Automatisch generiert am {report_date} · Quellen: Yahoo Finance (US/DE/GB/CA), Finviz · Übersetzung: Google Translate</p>
+</footer>
+
+<script>
+// ── Dark Mode ─────────────────────────────────────────────────────────────
+(function(){{
+  const saved = localStorage.getItem('theme') ||
+    (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+  document.documentElement.setAttribute('data-theme', saved);
+  window.addEventListener('DOMContentLoaded', () => {{
+    document.getElementById('theme-btn').textContent = saved === 'dark' ? '☀️' : '🌙';
+  }});
+}})();
+function toggleTheme(){{
+  const html = document.documentElement;
+  const next = html.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+  html.setAttribute('data-theme', next);
+  localStorage.setItem('theme', next);
+  document.getElementById('theme-btn').textContent = next === 'dark' ? '☀️' : '🌙';
+}}
+// ── News toggle ───────────────────────────────────────────────────────────
+function toggleNews(id){{
+  const panel = document.getElementById('np' + id);
+  const btn   = document.getElementById('nb' + id);
+  const icon  = document.getElementById('nb-icon' + id);
+  const open  = panel.hidden;
+  panel.hidden = !open;
+  btn.setAttribute('aria-expanded', open);
+  icon.textContent = open ? '▲' : '▼';
+  btn.textContent  = '';
+  btn.appendChild(icon);
+  btn.append(' ' + (open ? 'Nachrichten verbergen' : 'Nachrichten anzeigen'));
+}}
 // ── GitHub Actions Config ─────────────────────────────────────────────────
-// Falls du das Repo geforkt oder umbenannt hast, hier anpassen:
 const GH_OWNER    = 'easywebb911';
 const GH_REPO     = 'Aktien-update';
 const GH_WORKFLOW = 'daily-squeeze-report.yml';
 const GH_BRANCH   = 'main';
 const TOK_KEY     = 'ghpat_squeeze';
 // ─────────────────────────────────────────────────────────────────────────
-
-function reloadPage() {{
+function reloadPage(){{
   const btn = document.getElementById('btn-reload');
-  btn.disabled = true;
-  btn.textContent = 'Wird geladen\u2026';
+  btn.disabled = true; btn.textContent = 'Lädt…';
   window.location.reload();
 }}
-
-function triggerWorkflow() {{
+function triggerWorkflow(){{
   const token = localStorage.getItem(TOK_KEY);
   if (!token) {{ showTokenInput(); return; }}
   dispatchWorkflow(token);
 }}
-
-function showTokenInput() {{
+function showTokenInput(){{
   document.getElementById('tok-sec').style.display = 'block';
   document.getElementById('amsg').style.display = 'none';
   setTimeout(() => document.getElementById('tok-inp').focus(), 60);
 }}
-
-async function saveTokenAndDispatch() {{
+async function saveTokenAndDispatch(){{
   const token = document.getElementById('tok-inp').value.trim();
   if (!token) return;
   localStorage.setItem(TOK_KEY, token);
@@ -784,61 +888,40 @@ async function saveTokenAndDispatch() {{
   document.getElementById('tok-inp').value = '';
   await dispatchWorkflow(token);
 }}
-
-async function dispatchWorkflow(token) {{
-  const btn  = document.getElementById('btn-recalc');
+async function dispatchWorkflow(token){{
+  const btn = document.getElementById('btn-recalc');
   const orig = btn.textContent;
-  btn.disabled = true;
-  btn.textContent = 'Wird gestartet\u2026';
+  btn.disabled = true; btn.textContent = 'Startet…';
   try {{
     const r = await fetch(
       `https://api.github.com/repos/${{GH_OWNER}}/${{GH_REPO}}/actions/workflows/${{GH_WORKFLOW}}/dispatches`,
-      {{
-        method: 'POST',
-        headers: {{
-          'Authorization': `Bearer ${{token}}`,
-          'Accept': 'application/vnd.github+json',
-          'X-GitHub-Api-Version': '2022-11-28',
-          'Content-Type': 'application/json',
-        }},
-        body: JSON.stringify({{ ref: GH_BRANCH }}),
-      }}
+      {{method:'POST',headers:{{'Authorization':`Bearer ${{token}}`,'Accept':'application/vnd.github+json',
+        'X-GitHub-Api-Version':'2022-11-28','Content-Type':'application/json'}},
+        body:JSON.stringify({{ref:GH_BRANCH}})}}
     );
     if (r.status === 204) {{
-      showMsg('success',
-        'Neuberechnung gestartet \u2013 der Report ist in ca.\u00a02\u20133\u00a0Minuten aktuell. ' +
-        'Danach bitte \u201eSeite neu laden\u201c dr\u00fccken.');
+      showMsg('success','Neuberechnung gestartet – Report ist in ca. 3–5 Min. aktuell. Dann „Neu laden" drücken.');
     }} else if (r.status === 401 || r.status === 403) {{
       localStorage.removeItem(TOK_KEY);
-      showMsg('error',
-        `Token ung\u00fcltig oder fehlende Berechtigung (HTTP ${{r.status}}). ` +
-        'Token wurde entfernt \u2013 bitte beim n\u00e4chsten Versuch neu eingeben.');
+      showMsg('error',`Token ungültig (HTTP ${{r.status}}). Bitte neu eingeben.`);
     }} else {{
-      const body = await r.text().catch(() => '');
-      showMsg('error', `Fehler HTTP ${{r.status}}: ${{body.slice(0,200)}}`);
+      const body = await r.text().catch(()=>'');
+      showMsg('error',`Fehler HTTP ${{r.status}}: ${{body.slice(0,200)}}`);
     }}
-  }} catch(e) {{
-    showMsg('error', `Netzwerkfehler: ${{e.message}}`);
-  }} finally {{
-    btn.disabled = false;
-    btn.textContent = orig;
-  }}
+  }} catch(e) {{ showMsg('error',`Netzwerkfehler: ${{e.message}}`); }}
+  finally {{ btn.disabled=false; btn.textContent=orig; }}
 }}
-
-function resetToken() {{
+function resetToken(){{
   localStorage.removeItem(TOK_KEY);
-  document.getElementById('tok-sec').style.display = 'none';
-  showMsg('info',
-    'Token zur\u00fcckgesetzt. Beim n\u00e4chsten Klick auf \u201eJetzt neu berechnen\u201c ' +
-    'wirst du erneut nach dem Token gefragt.');
+  document.getElementById('tok-sec').style.display='none';
+  showMsg('info','Token zurückgesetzt.');
 }}
-
-function showMsg(type, text) {{
-  const el = document.getElementById('amsg');
-  el.className = `amsg amsg-${{type}}`;
-  el.textContent = text;
-  el.style.display = 'block';
-  if (type !== 'error') setTimeout(() => {{ el.style.display = 'none'; }}, 13000);
+function showMsg(type,text){{
+  const el=document.getElementById('amsg');
+  el.className=`amsg amsg-${{type}}`;
+  el.textContent=text;
+  el.style.display='block';
+  if(type!=='error') setTimeout(()=>{{el.style.display='none';}},13000);
 }}
 </script>
 </body>
