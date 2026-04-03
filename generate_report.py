@@ -801,7 +801,14 @@ a{{color:var(--accent);text-decoration:none}}
 .poll-dot-done{{background:#22c55e}}
 .poll-dot-err{{background:#ef4444}}
 .amsg-poll-running{{background:#1c1200;border:1px solid #92400e;color:#fcd34d}}
-.amsg-poll-done{{background:#052a14;border:1px solid #166534;color:#86efac}}
+.amsg-poll-done{{background:#052a14;border:1px solid #166534;color:#86efac;align-items:flex-start}}
+.amsg-cd-body{{flex:1;display:flex;flex-direction:column;gap:5px}}
+.amsg-cd-title{{font-weight:700;font-size:.85rem}}
+.amsg-cd-sub{{font-size:.75rem;opacity:.85;line-height:1.5}}
+.amsg-cd-bar-wrap{{height:4px;background:rgba(255,255,255,.15);border-radius:2px;overflow:hidden;margin-top:2px}}
+.amsg-cd-bar{{height:100%;background:#22c55e;border-radius:2px;transition:width 1s linear}}
+.amsg-cd-btn{{margin-top:8px;align-self:flex-start;background:#22c55e;color:#052a14;border:none;
+  border-radius:6px;padding:6px 14px;font-size:.78rem;font-weight:700;cursor:pointer;min-height:36px}}
 /* ── Container – fluid, no max-width ── */
 .wrap{{padding:16px 14px 32px}}
 /* ── Stats bar ── */
@@ -1213,15 +1220,12 @@ function _enableRecalcBtn(){{
   const btn = document.getElementById('btn-recalc');
   btn.disabled=false; btn.innerHTML='&#9881; Neu berechnen';
 }}
-function _showPollStatus(state, n){{
+function _showPollStatus(state){{
   const el = document.getElementById('amsg');
   el.style.display='block';
   if (state==='running'){{
     el.className='amsg amsg-poll-running';
     el.innerHTML=`<span class="poll-dot poll-dot-run"></span>Neuberechnung läuft … ${{_elapsedStr()}}`;
-  }} else if (state==='reload'){{
-    el.className='amsg amsg-poll-done';
-    el.innerHTML=`<span class="poll-dot poll-dot-done"></span>Abgeschlossen — Seite wird in ${{n}} Sekunde${{n!==1?'n':''}} neu geladen.`;
   }} else if (state==='failure'){{
     el.className='amsg amsg-error';
     el.innerHTML=`<span class="poll-dot poll-dot-err"></span>Workflow fehlgeschlagen — bitte GitHub Actions prüfen.`;
@@ -1230,11 +1234,38 @@ function _showPollStatus(state, n){{
     el.textContent='Zeitüberschreitung — bitte Seite manuell neu laden.';
   }}
 }}
-function _reloadCountdown(n){{
-  _showPollStatus('reload', n);
-  if (n>0) {{ setTimeout(()=>_reloadCountdown(n-1), 1000); }}
-  else {{ window.location.reload(); }}
+const CD_SECS = 30;
+let _cdInterval = null;
+function _startSuccessCountdown(){{
+  let n = CD_SECS;
+  const el = document.getElementById('amsg');
+  el.style.display='block';
+  el.className='amsg amsg-poll-done';
+  el.innerHTML =
+    '<span class="poll-dot poll-dot-done"></span>' +
+    '<div class="amsg-cd-body">' +
+      '<div class="amsg-cd-title">Neuberechnung abgeschlossen</div>' +
+      '<div class="amsg-cd-sub">Seite wird in <span id="cd-secs">' + n + '</span> Sekunden automatisch neu geladen — oder jetzt manuell neu laden.</div>' +
+      '<div class="amsg-cd-bar-wrap"><div class="amsg-cd-bar" id="cd-bar" style="width:100%"></div></div>' +
+      '<button class="amsg-cd-btn" onclick="_manualReload()">Jetzt neu laden</button>' +
+    '</div>';
+  if (_cdInterval) clearInterval(_cdInterval);
+  _cdInterval = setInterval(()=>{{
+    n--;
+    const secsEl = document.getElementById('cd-secs');
+    const barEl  = document.getElementById('cd-bar');
+    if (secsEl) secsEl.textContent = n;
+    if (barEl)  barEl.style.width  = (n / CD_SECS * 100) + '%';
+    if (n <= 0){{ clearInterval(_cdInterval); _cdInterval = null; window.location.reload(); }}
+  }}, 1000);
 }}
+function _manualReload(){{
+  if (_cdInterval){{ clearInterval(_cdInterval); _cdInterval = null; }}
+  window.location.reload();
+}}
+window.addEventListener('beforeunload', ()=>{{
+  if (_cdInterval){{ clearInterval(_cdInterval); _cdInterval = null; }}
+}});
 async function _doPoll(){{
   if (Date.now()-_pollStart>TIMEOUT_MS) {{ _showPollStatus('timeout'); _enableRecalcBtn(); return; }}
   _showPollStatus('running');
@@ -1248,7 +1279,7 @@ async function _doPoll(){{
     const run = (data.workflow_runs||[]).find(w=>new Date(w.created_at).getTime()>=_pollStart-15000);
     if (!run) {{ _pollTimer=setTimeout(_doPoll,POLL_MS); return; }}
     if (run.status==='completed'){{
-      if (run.conclusion==='success') {{ _reloadCountdown(3); }}
+      if (run.conclusion==='success') {{ _startSuccessCountdown(); }}
       else {{ _showPollStatus('failure'); _enableRecalcBtn(); }}
     }} else {{
       _pollTimer=setTimeout(_doPoll,POLL_MS);
