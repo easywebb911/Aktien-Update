@@ -649,7 +649,9 @@ def generate_html(stocks: list[dict], report_date: str) -> str:
   --accent:#3b82f6;--radius:14px;
   --red:#ef4444;--ora:#f59e0b;--grn:#22c55e;
   --disc-col:#c2410c;
+  --base-font-size:15px;
 }}
+html{{font-size:var(--base-font-size)}}
 html[data-theme="dark"]{{
   --bg:#0a0c12;--bg-card:#141929;--bg-hdr:#0d1117;--bg-met:#1a2035;
   --txt:#e2e8f0;--txt-sub:#94a3b8;--txt-dim:#64748b;
@@ -658,7 +660,7 @@ html[data-theme="dark"]{{
 }}
 *{{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}}
 body{{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
-  background:var(--bg);color:var(--txt);min-height:100vh;font-size:15px;overflow-x:hidden}}
+  background:var(--bg);color:var(--txt);min-height:100vh;font-size:1rem;overflow-x:hidden}}
 a{{color:var(--accent);text-decoration:none}}
 /* ── Sticky header – full width on all screens ── */
 .app-hdr{{position:sticky;top:0;z-index:100;background:var(--bg-hdr);
@@ -668,7 +670,15 @@ a{{color:var(--accent);text-decoration:none}}
 .hdr-main{{display:flex;flex-wrap:wrap;align-items:center;gap:6px;padding:10px 0}}
 .app-title{{font-size:1.05rem;font-weight:800;color:var(--txt);flex:1;order:1;min-width:0}}
 .app-title span{{color:var(--accent)}}
-.theme-btn{{flex-shrink:0;order:2;width:44px;height:44px;border:none;border-radius:10px;
+/* Font-size controls + theme btn grouped on right side of header */
+.hdr-icons{{display:flex;gap:4px;flex-shrink:0;order:2;align-items:center}}
+.fs-btn{{width:44px;height:44px;border:none;border-radius:10px;
+  background:var(--bg-met);color:var(--txt);font-size:13px;font-weight:800;
+  cursor:pointer;display:flex;align-items:center;justify-content:center;
+  letter-spacing:-.5px;line-height:1}}
+.fs-btn:disabled{{opacity:.35;cursor:not-allowed}}
+.fs-btn:hover:not(:disabled){{background:var(--brd)}}
+.theme-btn{{width:44px;height:44px;border:none;border-radius:10px;
   background:var(--bg-met);color:var(--txt);font-size:1.1rem;cursor:pointer;
   display:flex;align-items:center;justify-content:center}}
 .hdr-ts{{font-size:.73rem;color:var(--txt-sub);width:100%;order:3}}
@@ -761,7 +771,7 @@ a{{color:var(--accent);text-decoration:none}}
 /* ── Driver row ── */
 .driver-row{{display:flex;align-items:flex-start;justify-content:space-between;
   gap:10px;padding:0 12px 12px}}
-.driver-text{{font-size:14px;color:var(--txt-sub);line-height:1.55;flex:1}}
+.driver-text{{font-size:.93rem;color:var(--txt-sub);line-height:1.55;flex:1}}
 .risk-badge{{flex-shrink:0;padding:4px 10px;border-radius:20px;font-size:.7rem;
   font-weight:700;letter-spacing:.4px;border:1px solid;white-space:nowrap;margin-top:1px}}
 /* ── News toggle button ── */
@@ -773,15 +783,15 @@ a{{color:var(--accent);text-decoration:none}}
 /* ── News panel ── */
 .news-panel{{border-top:1px solid var(--brd);padding:12px 14px}}
 .news-items{{margin-bottom:12px}}
-.ni{{margin-bottom:10px;font-size:14px;line-height:1.5}}
+.ni{{margin-bottom:10px;font-size:.93rem;line-height:1.5}}
 .ni a{{color:var(--accent);display:block;margin-bottom:2px}}
 .ni a:hover{{text-decoration:underline}}
 .ni-meta{{font-size:.7rem;color:var(--txt-dim)}}
-.no-news{{font-size:14px;color:var(--txt-dim)}}
+.no-news{{font-size:.93rem;color:var(--txt-dim)}}
 .news-summary-box{{background:var(--bg-met);border-radius:8px;padding:10px 12px;margin-bottom:12px}}
 .summary-label{{display:block;font-size:.65rem;text-transform:uppercase;letter-spacing:.5px;
   color:var(--accent);margin-bottom:5px;font-weight:700}}
-.summary-text{{font-size:14px;color:var(--txt-sub);line-height:1.6}}
+.summary-text{{font-size:.93rem;color:var(--txt-sub);line-height:1.6}}
 .detail-table{{width:100%;font-size:.78rem;border-collapse:collapse}}
 .detail-table td{{padding:4px 0;border-bottom:1px solid var(--brd)}}
 .detail-table td:first-child{{color:var(--txt-dim);padding-right:10px}}
@@ -800,7 +810,7 @@ a{{color:var(--accent);text-decoration:none}}
   .hdr-ts{{order:2;flex:1;width:auto;text-align:center}}
   .hdr-btns{{order:3;width:auto;flex:0 0 auto}}
   .hdr-btns .btn{{flex:0 0 auto;min-height:44px;padding:0 16px;font-size:.87rem}}
-  .theme-btn{{order:4;width:44px;height:44px}}
+  .hdr-icons{{order:4}}
   /* Info panel: 3 columns */
   .info-inner{{grid-template-columns:repeat(3,1fr)}}
   /* Cards: fluid auto-fill, min 340px per card, 16px gap, full width */
@@ -819,7 +829,8 @@ a{{color:var(--accent);text-decoration:none}}
   .app-hdr{{padding:0 24px}}
   .hdr-main{{height:52px;gap:10px}}
   .hdr-btns .btn{{min-height:36px;padding:0 14px;font-size:.82rem}}
-  .theme-btn{{width:36px;height:36px;font-size:1rem}}
+  .theme-btn{{width:32px;height:32px;font-size:.9rem}}
+  .fs-btn{{width:32px;height:32px;font-size:11px}}
   .wrap{{padding:24px 24px 40px}}
   .footer{{padding:24px 24px 40px}}
 }}
@@ -834,7 +845,11 @@ a{{color:var(--accent);text-decoration:none}}
       <button id="btn-reload" class="btn btn-g" onclick="reloadPage()">&#8635; Neu laden</button>
       <button id="btn-recalc" class="btn btn-b" onclick="triggerWorkflow()">&#9881; Neu berechnen</button>
     </div>
-    <button class="theme-btn" onclick="toggleTheme()" id="theme-btn" aria-label="Dark Mode umschalten">🌙</button>
+    <div class="hdr-icons">
+      <button class="fs-btn" id="fs-down" onclick="changeFontSize(-1)" aria-label="Schrift kleiner">A−</button>
+      <button class="fs-btn" id="fs-up"   onclick="changeFontSize(1)"  aria-label="Schrift größer">A+</button>
+      <button class="theme-btn" onclick="toggleTheme()" id="theme-btn" aria-label="Dark Mode umschalten">🌙</button>
+    </div>
   </div>
   <div id="tok-sec" style="display:none" class="tok-panel">
     <p class="tok-hint">GitHub-Token eingeben (nur lokal gespeichert, nie weitergegeben):</p>
@@ -903,6 +918,27 @@ a{{color:var(--accent);text-decoration:none}}
 </footer>
 
 <script>
+// ── Font Size ─────────────────────────────────────────────────────────────
+const _FS_SIZES = [13, 15, 17, 19, 21];
+const _FS_KEY   = 'squeeze_fs';
+(function(){{
+  const idx = Math.min(Math.max(parseInt(localStorage.getItem(_FS_KEY) ?? '1', 10), 0), _FS_SIZES.length - 1);
+  document.documentElement.style.setProperty('--base-font-size', _FS_SIZES[idx] + 'px');
+  window.addEventListener('DOMContentLoaded', () => _updateFsBtns(idx));
+}})();
+function _updateFsBtns(idx){{
+  const d = document.getElementById('fs-down');
+  const u = document.getElementById('fs-up');
+  if (d) d.disabled = (idx === 0);
+  if (u) u.disabled = (idx === _FS_SIZES.length - 1);
+}}
+function changeFontSize(dir){{
+  const idx  = Math.min(Math.max(parseInt(localStorage.getItem(_FS_KEY) ?? '1', 10), 0), _FS_SIZES.length - 1);
+  const next = Math.max(0, Math.min(_FS_SIZES.length - 1, idx + dir));
+  document.documentElement.style.setProperty('--base-font-size', _FS_SIZES[next] + 'px');
+  localStorage.setItem(_FS_KEY, String(next));
+  _updateFsBtns(next);
+}}
 // ── Dark Mode ─────────────────────────────────────────────────────────────
 (function(){{
   const saved = localStorage.getItem('theme') ||
