@@ -805,7 +805,7 @@ a{{color:var(--accent);text-decoration:none}}
 /* ── Stats bar ── */
 .stats-bar{{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:14px}}
 .stat-title{{grid-column:1 / -1;background:#042C53;border-radius:10px;
-  padding:11px 8px;text-align:center;color:#E6F1FB;font-size:.94rem;font-weight:500}}
+  padding:11px 8px;text-align:center;color:#E6F1FB;font-size:1.19rem;font-weight:500}}
 .stat-box{{background:var(--bg-card);border:1px solid var(--brd);border-radius:10px;
   padding:10px 8px;text-align:center}}
 .stat-val{{display:block;font-size:1.05rem;font-weight:800;color:var(--accent)}}
@@ -992,7 +992,7 @@ a{{color:var(--accent);text-decoration:none}}
 
 <main class="wrap">
   <div class="stats-bar">
-    <div class="stat-title">Top Ten Squeeze-Kandidaten</div>
+    <div class="stat-title">TopTen Squeezer</div>
     <div class="stat-box"><span class="stat-val">{avg_sf:.1f}%</span><span class="stat-lbl">Ø Short Float</span></div>
     <div class="stat-box"><span class="stat-val">{avg_sr:.1f}d</span><span class="stat-lbl">Ø Days to Cover</span></div>
     <div class="stat-box"><span class="stat-val">{avg_rv:.1f}×</span><span class="stat-lbl">Ø Volumen</span></div>
