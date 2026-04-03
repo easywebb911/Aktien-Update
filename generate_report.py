@@ -654,6 +654,10 @@ def _card(i: int, s: dict) -> str:
       <span class="m-val">{rv:.1f}×</span>
       <span class="m-lbl">Volumen</span>
     </div>
+    <div class="metric-box" style="--mc:{chg_col}">
+      <span class="m-val">{chg_str}</span>
+      <span class="m-lbl">Momentum</span>
+    </div>
   </div>
   <button class="details-btn" onclick="toggleDetails({i})" id="db{i}" aria-expanded="false">
     <span class="details-arrow" id="da{i}">▾</span><span id="dl{i}"> Details anzeigen</span>
@@ -826,7 +830,7 @@ a{{color:var(--accent);text-decoration:none}}
 .score-track{{width:60px;height:5px;background:var(--brd);border-radius:3px}}
 .score-fill{{height:100%;border-radius:3px;transition:width .3s}}
 /* ── Metrics ── */
-.metrics-row{{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding:0 12px 12px}}
+.metrics-row{{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;padding:0 12px 12px}}
 .metric-box{{background:var(--bg-met);border:1px solid var(--brd);border-radius:10px;
   padding:10px 6px;text-align:center;border-top:3px solid var(--mc,#94a3b8)}}
 .m-val{{display:block;font-size:1.1rem;font-weight:800;color:var(--mc,#94a3b8)}}
@@ -894,6 +898,7 @@ a{{color:var(--accent);text-decoration:none}}
   .info-inner{{grid-template-columns:repeat(3,1fr)}}
   /* Cards: fluid auto-fill, min 340px per card, 16px gap, full width */
   .cards-grid{{grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:16px}}
+  .metrics-row{{grid-template-columns:repeat(4,1fr)}}
   .wrap{{padding:16px 16px 32px}}
   .footer{{padding:16px 16px 32px}}
   /* Slightly smaller body text */
