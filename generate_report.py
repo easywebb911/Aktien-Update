@@ -660,10 +660,10 @@ html[data-theme="dark"]{{
 body{{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
   background:var(--bg);color:var(--txt);min-height:100vh;font-size:15px;overflow-x:hidden}}
 a{{color:var(--accent);text-decoration:none}}
-/* ── Sticky header ── */
+/* ── Sticky header – full width on all screens ── */
 .app-hdr{{position:sticky;top:0;z-index:100;background:var(--bg-hdr);
   border-bottom:1px solid var(--brd);padding:0 16px;
-  box-shadow:0 1px 4px rgba(0,0,0,.08)}}
+  box-shadow:0 1px 4px rgba(0,0,0,.08);width:100%}}
 /* Mobile-first: row1=title+theme-btn  row2=ts  row3=action-btns */
 .hdr-main{{display:flex;flex-wrap:wrap;align-items:center;gap:6px;padding:10px 0}}
 .app-title{{font-size:1.05rem;font-weight:800;color:var(--txt);flex:1;order:1;min-width:0}}
@@ -694,8 +694,8 @@ a{{color:var(--accent);text-decoration:none}}
 .amsg-success{{background:#052a14;border:1px solid #166534;color:#86efac}}
 .amsg-error{{background:#2d0a0a;border:1px solid #991b1b;color:#fca5a5}}
 .amsg-info{{background:#0c1a30;border:1px solid #1e3a5f;color:#93c5fd}}
-/* ── Container ── */
-.wrap{{max-width:720px;margin:0 auto;padding:16px 14px 32px}}
+/* ── Container – fluid, no max-width ── */
+.wrap{{padding:16px 14px 32px}}
 /* ── Stats bar ── */
 .stats-bar{{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:14px}}
 .stat-box{{background:var(--bg-card);border:1px solid var(--brd);border-radius:10px;
@@ -725,8 +725,8 @@ a{{color:var(--accent);text-decoration:none}}
 /* ── Disclaimer ── */
 .disc{{background:var(--bg-met);border:1px solid var(--brd);border-radius:8px;
   padding:10px 14px;margin-bottom:14px;font-size:.76rem;color:var(--disc-col);line-height:1.5}}
-/* ── Card grid: mobile 1-col; tablet+ 2-col via media query ── */
-.cards-grid{{display:grid;grid-template-columns:1fr;gap:12px}}
+/* ── Card grid: mobile 1-col (8px gap); ≥768px auto-fill (16px gap) ── */
+.cards-grid{{display:grid;grid-template-columns:1fr;gap:8px}}
 /* ── Card ── */
 .card{{background:var(--bg-card);border:1px solid var(--brd);border-radius:var(--radius);
   box-shadow:var(--shadow);overflow:hidden}}
@@ -786,12 +786,12 @@ a{{color:var(--accent);text-decoration:none}}
 .detail-table td{{padding:4px 0;border-bottom:1px solid var(--brd)}}
 .detail-table td:first-child{{color:var(--txt-dim);padding-right:10px}}
 .detail-table td:last-child{{text-align:right;font-weight:600;color:var(--txt)}}
-/* ── Footer ── */
-.footer{{max-width:720px;margin:0 auto;padding:16px 14px 32px;
+/* ── Footer – full width ── */
+.footer{{padding:16px 14px 32px;
   border-top:1px solid var(--brd);text-align:center}}
 .footer p{{font-size:.73rem;color:var(--txt-dim);line-height:1.6;margin-bottom:4px}}
 /* ══ RESPONSIVE ═════════════════════════════════════════════════════════════
-   Tablet  768 – 1024 px
+   ≥ 768 px  Tablet / kleiner Desktop
    ═════════════════════════════════════════════════════════════════════════ */
 @media(min-width:768px){{
   /* Header: single row – title | ts (centered) | btns | theme-btn */
@@ -803,20 +803,25 @@ a{{color:var(--accent);text-decoration:none}}
   .theme-btn{{order:4;width:44px;height:44px}}
   /* Info panel: 3 columns */
   .info-inner{{grid-template-columns:repeat(3,1fr)}}
-  /* Cards: 2-column grid */
-  .cards-grid{{grid-template-columns:repeat(2,1fr)}}
-  /* News panels always visible on wider screens; toggle button hidden */
+  /* Cards: fluid auto-fill, min 340px per card, 16px gap, full width */
+  .cards-grid{{grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:16px}}
+  .wrap{{padding:16px 16px 32px}}
+  .footer{{padding:16px 16px 32px}}
+  /* News panels always visible; toggle button hidden */
   .news-panel{{display:block}}
   .news-btn{{display:none}}
   /* Slightly smaller body text */
   .driver-text{{font-size:.82rem}}
   .ni,.no-news,.summary-text{{font-size:.82rem}}
 }}
-/* ══ Desktop ≥ 1025 px – more compact header buttons ════════════════════════ */
-@media(min-width:1025px){{
+/* ══ ≥ 1200 px  großer Desktop / Wide-Screen ════════════════════════════════ */
+@media(min-width:1200px){{
+  .app-hdr{{padding:0 24px}}
   .hdr-main{{height:52px;gap:10px}}
   .hdr-btns .btn{{min-height:36px;padding:0 14px;font-size:.82rem}}
   .theme-btn{{width:36px;height:36px;font-size:1rem}}
+  .wrap{{padding:24px 24px 40px}}
+  .footer{{padding:24px 24px 40px}}
 }}
 </style>
 </head>
