@@ -696,6 +696,10 @@ def generate_html(stocks: list[dict], report_date: str) -> str:
     avg_sf  = sum(s["short_float"] for s in stocks) / n
     avg_sr  = sum(s["short_ratio"]  for s in stocks) / n
     avg_rv  = sum(s["rel_volume"]   for s in stocks) / n
+    mom_vals = [s["change"] for s in stocks if s.get("change") is not None and s.get("change") != 0.0]
+    _avg_mom = sum(mom_vals) / len(mom_vals) if mom_vals else None
+    avg_mom_str = f"{_avg_mom:+.1f}%" if _avg_mom is not None else "—"
+    avg_mom_col = ("#22c55e" if _avg_mom > 0 else "#ef4444") if _avg_mom is not None else "var(--accent)"
     now_str = datetime.now(ZoneInfo("Europe/Berlin")).strftime("%H:%M Uhr")
     timestamp = f"Stand: {report_date}, {now_str}"
 
@@ -775,7 +779,10 @@ a{{color:var(--accent);text-decoration:none}}
 /* ── Container – fluid, no max-width ── */
 .wrap{{padding:16px 14px 32px}}
 /* ── Stats bar ── */
-.stats-bar{{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:14px}}
+.stats-section{{margin-bottom:14px}}
+.stats-heading{{text-align:center;font-size:1.25rem;font-weight:500;
+  color:#1e3a5f;margin:0 0 12px}}
+.stats-bar{{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}}
 .stat-box{{background:var(--bg-card);border:1px solid var(--brd);border-radius:10px;
   padding:10px 8px;text-align:center}}
 .stat-val{{display:block;font-size:1.05rem;font-weight:800;color:var(--accent)}}
@@ -899,6 +906,7 @@ a{{color:var(--accent);text-decoration:none}}
   /* Cards: fluid auto-fill, min 340px per card, 16px gap, full width */
   .cards-grid{{grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:16px}}
   .metrics-row{{grid-template-columns:repeat(4,1fr)}}
+  .stats-bar{{grid-template-columns:repeat(4,1fr)}}
   .wrap{{padding:16px 16px 32px}}
   .footer{{padding:16px 16px 32px}}
   /* Slightly smaller body text */
@@ -947,11 +955,14 @@ a{{color:var(--accent);text-decoration:none}}
 </header>
 
 <main class="wrap">
-  <div class="stats-bar">
-    <div class="stat-box"><span class="stat-val">Top {n}</span><span class="stat-lbl">Kandidaten</span></div>
-    <div class="stat-box"><span class="stat-val">{avg_sf:.1f}%</span><span class="stat-lbl">Ø Short Float</span></div>
-    <div class="stat-box"><span class="stat-val">{avg_sr:.1f}d</span><span class="stat-lbl">Ø Days Cover</span></div>
-    <div class="stat-box"><span class="stat-val">{avg_rv:.1f}×</span><span class="stat-lbl">Ø Volumen</span></div>
+  <div class="stats-section">
+    <p class="stats-heading">Top {n}</p>
+    <div class="stats-bar">
+      <div class="stat-box"><span class="stat-val">{avg_sf:.1f}%</span><span class="stat-lbl">Ø Short Float</span></div>
+      <div class="stat-box"><span class="stat-val">{avg_sr:.1f}d</span><span class="stat-lbl">Ø Days to Cover</span></div>
+      <div class="stat-box"><span class="stat-val">{avg_rv:.1f}×</span><span class="stat-lbl">Ø Volumen</span></div>
+      <div class="stat-box"><span class="stat-val" style="color:{avg_mom_col}">{avg_mom_str}</span><span class="stat-lbl">Ø Kursmomentum</span></div>
+    </div>
   </div>
 
   <details class="info-panel">
