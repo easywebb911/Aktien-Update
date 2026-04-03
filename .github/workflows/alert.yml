@@ -1,0 +1,52 @@
+name: Squeeze Alert Monitor
+
+on:
+  schedule:
+    # Alle 15 Minuten von 12:00–20:45 UTC (entspricht 08:00–16:45 ET)
+    # Deckt US-Marktzeiten (09:30–16:00 ET) mit Puffer ab
+    - cron: '*/15 12-20 * * 1-5'
+  workflow_dispatch:   # Manueller Start jederzeit möglich
+
+permissions:
+  contents: write   # Benötigt um baseline.json und last_alert.json zu commiten
+
+jobs:
+  run-alert-monitor:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout main branch
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run alert monitor
+        env:
+          MAIL_TO: ${{ secrets.MAIL_TO }}
+          MAIL_PASSWORD: ${{ secrets.MAIL_PASSWORD }}
+          MAIL_FROM: ${{ secrets.MAIL_FROM }}
+        run: python alert.py
+
+      - name: Commit state files
+        run: |
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git config user.name "github-actions[bot]"
+          git add baseline.json last_alert.json
+          if git diff --staged --quiet; then
+            echo "Keine Statusaenderungen."
+            exit 0
+          fi
+          git commit -m "Alert state update $(date -u '+%Y-%m-%d %H:%M') UTC"
+          # Pull rebase before push to handle concurrent workflow runs
+          git pull --rebase origin main
+          git push origin main
