@@ -789,10 +789,18 @@ a{{color:var(--accent);text-decoration:none}}
   font-size:.85rem;font-family:monospace}}
 .tok-inp:focus{{outline:2px solid var(--accent);outline-offset:1px}}
 .tok-link{{font-size:.75rem;color:var(--txt-dim);padding:4px 2px;cursor:pointer}}
-.amsg{{margin-top:8px;padding:10px 13px;border-radius:8px;font-size:.8rem;line-height:1.5}}
+.amsg{{margin-top:8px;padding:10px 13px;border-radius:8px;font-size:.8rem;line-height:1.5;display:flex;align-items:center}}
 .amsg-success{{background:#052a14;border:1px solid #166534;color:#86efac}}
 .amsg-error{{background:#2d0a0a;border:1px solid #991b1b;color:#fca5a5}}
 .amsg-info{{background:#0c1a30;border:1px solid #1e3a5f;color:#93c5fd}}
+@keyframes poll-pulse{{0%,100%{{opacity:1}}50%{{opacity:.35}}}}
+.poll-dot{{display:inline-block;width:8px;height:8px;border-radius:50%;
+  margin-right:8px;flex-shrink:0}}
+.poll-dot-run{{background:#f59e0b;animation:poll-pulse 1.2s ease-in-out infinite}}
+.poll-dot-done{{background:#22c55e}}
+.poll-dot-err{{background:#ef4444}}
+.amsg-poll-running{{background:#1c1200;border:1px solid #92400e;color:#fcd34d}}
+.amsg-poll-done{{background:#052a14;border:1px solid #166534;color:#86efac}}
 /* ── Container – fluid, no max-width ── */
 .wrap{{padding:16px 14px 32px}}
 /* ── Stats bar ── */
@@ -1168,8 +1176,7 @@ async function saveTokenAndDispatch(){{
 }}
 async function dispatchWorkflow(token){{
   const btn = document.getElementById('btn-recalc');
-  const orig = btn.textContent;
-  btn.disabled = true; btn.textContent = 'Startet…';
+  btn.disabled = true; btn.innerHTML = 'Startet…';
   try {{
     const r = await fetch(
       `https://api.github.com/repos/${{GH_OWNER}}/${{GH_REPO}}/actions/workflows/${{GH_WORKFLOW}}/dispatches`,
@@ -1178,16 +1185,74 @@ async function dispatchWorkflow(token){{
         body:JSON.stringify({{ref:GH_BRANCH}})}}
     );
     if (r.status === 204) {{
-      showMsg('success','Neuberechnung gestartet – Report ist in ca. 3–5 Min. aktuell. Dann „Neu laden" drücken.');
+      _pollStart = Date.now(); _pollToken = token;
+      _showPollStatus('running');
+      setTimeout(_doPoll, 5000);
     }} else if (r.status === 401 || r.status === 403) {{
       localStorage.removeItem(TOK_KEY);
       showMsg('error',`Token ungültig (HTTP ${{r.status}}). Bitte neu eingeben.`);
+      _enableRecalcBtn();
     }} else {{
-      const body = await r.text().catch(()=>'');
-      showMsg('error',`Fehler HTTP ${{r.status}}: ${{body.slice(0,200)}}`);
+      const bd = await r.text().catch(()=>'');
+      showMsg('error',`Fehler HTTP ${{r.status}}: ${{bd.slice(0,200)}}`);
+      _enableRecalcBtn();
     }}
-  }} catch(e) {{ showMsg('error',`Netzwerkfehler: ${{e.message}}`); }}
-  finally {{ btn.disabled=false; btn.textContent=orig; }}
+  }} catch(e) {{ showMsg('error',`Netzwerkfehler: ${{e.message}}`); _enableRecalcBtn(); }}
+}}
+// ── Workflow polling ──────────────────────────────────────────────────────
+const POLL_MS    = 10000;
+const TIMEOUT_MS = 600000;
+let _pollStart = null, _pollToken = null, _pollTimer = null;
+function _elapsedStr(){{
+  const s = Math.floor((Date.now()-_pollStart)/1000);
+  const m = Math.floor(s/60), r = s%60;
+  return m>0 ? `${{m}}:${{String(r).padStart(2,'0')}} min` : `${{s}} s`;
+}}
+function _enableRecalcBtn(){{
+  const btn = document.getElementById('btn-recalc');
+  btn.disabled=false; btn.innerHTML='&#9881; Neu berechnen';
+}}
+function _showPollStatus(state, n){{
+  const el = document.getElementById('amsg');
+  el.style.display='block';
+  if (state==='running'){{
+    el.className='amsg amsg-poll-running';
+    el.innerHTML=`<span class="poll-dot poll-dot-run"></span>Neuberechnung läuft … ${{_elapsedStr()}}`;
+  }} else if (state==='reload'){{
+    el.className='amsg amsg-poll-done';
+    el.innerHTML=`<span class="poll-dot poll-dot-done"></span>Abgeschlossen — Seite wird in ${{n}} Sekunde${{n!==1?'n':''}} neu geladen.`;
+  }} else if (state==='failure'){{
+    el.className='amsg amsg-error';
+    el.innerHTML=`<span class="poll-dot poll-dot-err"></span>Workflow fehlgeschlagen — bitte GitHub Actions prüfen.`;
+  }} else if (state==='timeout'){{
+    el.className='amsg amsg-error';
+    el.textContent='Zeitüberschreitung — bitte Seite manuell neu laden.';
+  }}
+}}
+function _reloadCountdown(n){{
+  _showPollStatus('reload', n);
+  if (n>0) {{ setTimeout(()=>_reloadCountdown(n-1), 1000); }}
+  else {{ window.location.reload(); }}
+}}
+async function _doPoll(){{
+  if (Date.now()-_pollStart>TIMEOUT_MS) {{ _showPollStatus('timeout'); _enableRecalcBtn(); return; }}
+  _showPollStatus('running');
+  try {{
+    const res = await fetch(
+      `https://api.github.com/repos/${{GH_OWNER}}/${{GH_REPO}}/actions/runs?workflow_id=${{GH_WORKFLOW}}&per_page=5&event=workflow_dispatch`,
+      {{headers:{{'Authorization':`Bearer ${{_pollToken}}`,'Accept':'application/vnd.github+json','X-GitHub-Api-Version':'2022-11-28'}}}}
+    );
+    if (!res.ok) {{ _pollTimer=setTimeout(_doPoll,POLL_MS); return; }}
+    const data = await res.json();
+    const run = (data.workflow_runs||[]).find(w=>new Date(w.created_at).getTime()>=_pollStart-15000);
+    if (!run) {{ _pollTimer=setTimeout(_doPoll,POLL_MS); return; }}
+    if (run.status==='completed'){{
+      if (run.conclusion==='success') {{ _reloadCountdown(3); }}
+      else {{ _showPollStatus('failure'); _enableRecalcBtn(); }}
+    }} else {{
+      _pollTimer=setTimeout(_doPoll,POLL_MS);
+    }}
+  }} catch(e) {{ _pollTimer=setTimeout(_doPoll,POLL_MS); }}
 }}
 function resetToken(){{
   localStorage.removeItem(TOK_KEY);
