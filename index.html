@@ -20,6 +20,15 @@ a{color:var(--acc)}
 .ss{background:var(--bg3);border:1px solid var(--brd);border-radius:10px;padding:12px 18px;flex:1;min-width:130px}
 .ss .sl{font-size:.7rem;color:var(--sub);text-transform:uppercase;letter-spacing:.5px}
 .ss .sv{font-size:1.35rem;font-weight:700;color:var(--acc);margin-top:3px}
+/* Score info */
+.info-box{background:var(--bg3);border:1px solid var(--brd);border-radius:10px;padding:14px 18px;margin-bottom:14px}
+.info-box h3{font-size:.72rem;text-transform:uppercase;letter-spacing:.5px;color:var(--acc);margin-bottom:10px}
+.info-box ul{list-style:none;display:flex;flex-direction:column;gap:5px}
+.info-box li{font-size:.8rem;color:#8899bb;line-height:1.5;padding-left:14px;position:relative}
+.info-box li::before{content:"–";position:absolute;left:0;color:var(--acc)}
+.info-box li strong{color:#c8d4f0}
+.info-cols{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+@media(max-width:640px){.info-cols{grid-template-columns:1fr}}
 /* Disclaimer */
 .disc{background:#1a1400;border:1px solid #3a2f00;border-radius:8px;padding:11px 15px;margin-bottom:20px;font-size:.78rem;color:#b8a850;line-height:1.5}
 /* Card */
@@ -91,7 +100,7 @@ a{color:var(--acc)}
   <h1>Squeeze <span>Report</span></h1>
   <div class="hdr-meta">
     <strong>03.04.2026</strong>
-    US-Märkte · Top-10 Squeeze-Kandidaten · 11:41 Uhr
+    US-Märkte · Top-10 Squeeze-Kandidaten · 12:50 Uhr
   </div>
 </div>
 <div class="abar">
@@ -117,6 +126,34 @@ a{color:var(--acc)}
     <div class="ss"><div class="sl">Ø Short Float</div><div class="sv">51.2%</div></div>
     <div class="ss"><div class="sl">Ø Short Ratio</div><div class="sv">10.0d</div></div>
     <div class="ss"><div class="sl">Ø Rel. Volumen</div><div class="sv">1.1×</div></div>
+  </div>
+  <div class="info-cols">
+    <div class="info-box">
+      <h3>Score (0–100) – Zusammensetzung</h3>
+      <ul>
+        <li><strong>40 % Short Float</strong> – Anteil leerverkaufter Aktien am Streubesitz; je höher, desto stärker der potenzielle Squeeze-Druck</li>
+        <li><strong>30 % Short Ratio</strong> – Tage, die Leerverkäufer zum vollständigen Eindecken brauchen; hohe Werte erhöhen das Kapitulationsrisiko</li>
+        <li><strong>30 % Rel. Volumen</strong> – Heutiges Handelsvolumen geteilt durch 20-Tage-Durchschnitt; Volumenspitzen signalisieren erhöhtes Kaufinteresse</li>
+      </ul>
+    </div>
+    <div class="info-box">
+      <h3>Filterkriterien</h3>
+      <ul>
+        <li><strong>Short Float &gt; 15 %</strong> – Mindest-Leerverkaufsquote als Squeeze-Voraussetzung</li>
+        <li><strong>Kurs &gt; $1</strong> – Ausschluss von Penny Stocks mit extremem Manipulationsrisiko</li>
+        <li><strong>Marktkapitalisierung &lt; $10 Mrd.</strong> – Fokus auf Small- &amp; Mid-Caps mit höherem Squeeze-Potenzial</li>
+        <li><strong>Rel. Volumen ≥ 1,5×</strong> – Mindestaktivität (wird bei &lt; 5 Treffern automatisch auf 1,0× gelockert)</li>
+      </ul>
+    </div>
+    <div class="info-box">
+      <h3>Risikobewertung</h3>
+      <ul>
+        <li><strong style="color:#22c55e">NIEDRIG</strong> – Moderates Short-Interesse, ausreichende Liquidität</li>
+        <li><strong style="color:#f59e0b">MITTEL</strong> – Erhöhtes Short-Interesse (&gt; 25 %) oder Small-Cap (&lt; $2 Mrd.)</li>
+        <li><strong style="color:#ef4444">HOCH</strong> – Extremes Short-Interesse (&gt; 40 %) und/oder Micro-Cap (&lt; $300 Mio.); starke Kursausschläge möglich</li>
+        <li><strong>Empfehlung:</strong> Nur mit kleinen Positionen und engem Stop-Loss handeln</li>
+      </ul>
+    </div>
   </div>
   <div class="disc">
     ⚠ <strong>Disclaimer:</strong> Dieser Report dient ausschließlich Informationszwecken
