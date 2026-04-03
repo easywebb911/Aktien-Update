@@ -14,7 +14,7 @@ Jeden Werktag um ~09:00 Uhr (Berlin) werden die 10 vielversprechendsten Squeeze-
 3. Branch: `gh-pages`, Ordner: `/ (root)` → **Save**
 
 Der Report ist danach unter folgender URL erreichbar:  
-`https://easywebb911.github.io/Aktien-update/`
+`https://easywebb911.github.io/Aktien-Update/`
 
 ---
 
