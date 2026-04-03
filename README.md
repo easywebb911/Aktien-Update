@@ -1,6 +1,6 @@
 # Aktien-update
 
-Tägliches automatisches Short-Squeeze-Reporting für US-Märkte.  
+Tägliches automatisches Short-Squeeze-Reporting für internationale Märkte.  
 Jeden Werktag um ~09:00 Uhr (Berlin) werden die 10 vielversprechendsten Squeeze-Kandidaten ermittelt und als GitHub Pages Website veröffentlicht.
 
 ---
