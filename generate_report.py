@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 """
 Daily Stock Squeeze Report Generator
-Identifies top 10 short squeeze candidates from US markets.
+Identifies top 10 short squeeze candidates from global markets (US, DE, GB, CA).
 Data sources: Yahoo Finance Screener (primary) + Finviz (fallback) + yfinance (enrichment).
+News titles and summaries are translated to German.
 """
 
 import os
@@ -15,6 +16,7 @@ from zoneinfo import ZoneInfo
 import requests
 import yfinance as yf
 from bs4 import BeautifulSoup
+from deep_translator import GoogleTranslator
 
 # ---------------------------------------------------------------------------
 # Logging
@@ -83,25 +85,37 @@ def _parse_float(s: str) -> float:
 # 1a. YAHOO FINANCE SCREENER  (primary — direct JSON API, no yf.Screener)
 # ===========================================================================
 
-# Predefined Yahoo Finance screener IDs to query
-_YF_SCREENER_IDS = [
-    "most_shorted_stocks",      # sorted by short % of float
-    "small_cap_gainers",        # small caps with momentum (often high short interest)
-    "aggressive_small_caps",    # aggressive small caps
-]
+# Markets to scan: region code → list of predefined screener IDs
+_YF_SCREENERS: dict[str, list[str]] = {
+    "US": ["most_shorted_stocks", "small_cap_gainers", "aggressive_small_caps"],
+    "DE": ["most_shorted_stocks", "small_cap_gainers"],   # XETRA / Frankfurt
+    "GB": ["most_shorted_stocks", "small_cap_gainers"],   # London Stock Exchange
+    "CA": ["most_shorted_stocks", "small_cap_gainers"],   # Toronto Stock Exchange
+}
 
 _YF_SCREENER_URL = (
     "https://query2.finance.yahoo.com/v1/finance/screener/predefined/saved"
 )
 
 
-def _fetch_yf_screener(screener_id: str, count: int = 100) -> list[dict]:
+def _translate(text: str) -> str:
+    """Translate text to German via Google Translate (free, no key required)."""
+    if not text or len(text.strip()) < 4:
+        return text
+    try:
+        return GoogleTranslator(source="auto", target="de").translate(text[:4900])
+    except Exception as exc:
+        log.debug("Translation skipped: %s", exc)
+        return text
+
+
+def _fetch_yf_screener(screener_id: str, region: str = "US", count: int = 100) -> list[dict]:
     """Call one Yahoo Finance predefined screener via raw HTTP. No crumb needed."""
     params = {
         "formatted": "false",
         "scrIds": screener_id,
         "count": str(count),
-        "region": "US",
+        "region": region,
         "lang": "en-US",
     }
     try:
@@ -112,26 +126,26 @@ def _fetch_yf_screener(screener_id: str, count: int = 100) -> list[dict]:
         data = resp.json()
         results = (data.get("finance") or {}).get("result") or []
         quotes  = results[0].get("quotes", []) if results else []
-        log.info("  Yahoo screener '%s': %d quotes", screener_id, len(quotes))
+        log.info("  Yahoo screener [%s] '%s': %d quotes", region, screener_id, len(quotes))
         return quotes
     except Exception as exc:
-        log.warning("  Yahoo screener '%s' failed: %s", screener_id, exc)
+        log.warning("  Yahoo screener [%s] '%s' failed: %s", region, screener_id, exc)
         return []
 
 
 def get_yahoo_screener_candidates() -> list[dict]:
     """
-    Fetch a pool of candidate tickers from Yahoo Finance's JSON screener API.
-    All strict filters (short_float, rel_volume, market cap) are applied
-    precisely in the yfinance enrichment step; here we collect a broad pool.
+    Fetch a broad candidate pool from Yahoo Finance screeners across all configured
+    regions (US, DE, GB, CA). Strict filters are applied in the enrichment step.
     """
     result: list[dict] = []
     seen:   set[str]   = set()
 
-    def _add_quotes(quotes: list) -> None:
+    def _add_quotes(quotes: list, region: str) -> None:
         for q in quotes:
             t = q.get("symbol", "").strip().upper()
-            if not t or not t.replace(".", "").isalpha() or t in seen:
+            # Accept alphanumeric tickers incl. dots/dashes for international (e.g. BMW.DE, VOD.L)
+            if not t or not re.match(r'^[A-Z0-9][A-Z0-9.\-]{0,14}$', t) or t in seen:
                 continue
             price   = float(q.get("regularMarketPrice") or 0)
             mkt_cap = q.get("marketCap") or q.get("intradayMarketCap")
@@ -143,6 +157,7 @@ def get_yahoo_screener_candidates() -> list[dict]:
             sf_raw = float(q.get("shortPercentOfFloat") or 0)
             result.append({
                 "ticker":       t,
+                "market":       region,
                 "market_cap":   float(mkt_cap) if mkt_cap else None,
                 "market_cap_s": fmt_cap(mkt_cap),
                 "price":        price,
@@ -155,10 +170,11 @@ def get_yahoo_screener_candidates() -> list[dict]:
                 "sector":       q.get("sector") or "N/A",
             })
 
-    log.info("Querying Yahoo Finance screeners …")
-    for sid in _YF_SCREENER_IDS:
-        _add_quotes(_fetch_yf_screener(sid))
-        time.sleep(0.5)
+    log.info("Querying Yahoo Finance screeners across %d regions …", len(_YF_SCREENERS))
+    for region, screener_ids in _YF_SCREENERS.items():
+        for sid in screener_ids:
+            _add_quotes(_fetch_yf_screener(sid, region=region), region)
+            time.sleep(0.5)
 
     log.info("Yahoo screener pool: %d unique tickers", len(result))
     return result
@@ -309,7 +325,6 @@ def get_yahoo_news(ticker: str, n: int = 3) -> list[dict]:
                 or 0
             )
             if isinstance(pub_ts, str):
-                # ISO format "2025-04-01T12:00:00Z"
                 try:
                     pub_ts = int(datetime.fromisoformat(pub_ts.rstrip("Z")).timestamp())
                 except Exception:
@@ -318,15 +333,26 @@ def get_yahoo_news(ticker: str, n: int = 3) -> list[dict]:
                 datetime.fromtimestamp(int(pub_ts)).strftime("%d.%m.%Y %H:%M")
                 if pub_ts else ""
             )
+            title_orig = content.get("title") or item.get("title") or ""
+            # Raw summary / description from the article (if provided by yfinance)
+            raw_summary = (
+                content.get("summary")
+                or content.get("description")
+                or item.get("summary")
+                or ""
+            ).strip()
+
             news.append({
-                "title":     content.get("title") or item.get("title") or "",
-                "publisher": (content.get("provider", {}) or {}).get("displayName")
-                              or content.get("publisher")
-                              or item.get("publisher") or "",
-                "link":      (content.get("canonicalUrl", {}) or {}).get("url")
-                              or content.get("link")
-                              or item.get("link") or "#",
-                "time":      ts_str,
+                "title":       _translate(title_orig) if title_orig else "",
+                "title_orig":  title_orig,
+                "summary_raw": raw_summary,         # original English summary
+                "publisher":   (content.get("provider", {}) or {}).get("displayName")
+                                or content.get("publisher")
+                                or item.get("publisher") or "",
+                "link":        (content.get("canonicalUrl", {}) or {}).get("url")
+                                or content.get("link")
+                                or item.get("link") or "#",
+                "time":        ts_str,
             })
         return news
     except Exception as exc:
@@ -434,13 +460,23 @@ def short_situation(stock: dict) -> str:
 
 
 def news_summary(news_list: list[dict]) -> str:
+    """Return a real German-language summary of the most important news item."""
     if not news_list:
         return "Keine aktuellen Nachrichten verfügbar."
-    titles = [n["title"] for n in news_list if n.get("title")]
-    if not titles:
-        return "Keine Nachrichtentitel verfügbar."
-    joined = " – ".join(titles[:3])
-    return joined if len(joined) <= 400 else joined[:397] + "…"
+    top = news_list[0]
+    # Prefer the raw English summary field (longer text) for translation
+    raw = top.get("summary_raw", "").strip()
+    if raw and len(raw) > 80:
+        translated = _translate(raw[:1200])
+        if translated and len(translated) > 40:
+            return translated[:500] + ("…" if len(translated) > 500 else "")
+    # Fallback: translate and combine all available titles into a short synthesis
+    titles_orig = [n.get("title_orig") or n.get("title", "") for n in news_list if n.get("title_orig") or n.get("title")]
+    if not titles_orig:
+        return "Keine Nachrichteninhalte verfügbar."
+    combined = " | ".join(titles_orig[:3])
+    translated = _translate(combined[:1200])
+    return translated[:500] + ("…" if len(translated) > 500 else "") if translated else combined[:400]
 
 
 # ===========================================================================
@@ -478,6 +514,7 @@ def _card(i: int, s: dict) -> str:
         <span class="tk">{s['ticker']}</span>
         <span class="cn">{s.get('company_name', '')}</span>
         <span class="sec">{s.get('sector','')}</span>
+        <span class="mkt">{s.get('market','US')}</span>
       </div>
       <div class="mtr">
         <span class="m"><span class="ml">Kurs</span><span class="mv">${s.get('price',0):.2f}</span></span>
@@ -579,6 +616,7 @@ a{{color:var(--acc)}}
 .tk{{font-size:1.15rem;font-weight:800;color:#fff;font-family:'Courier New',monospace}}
 .cn{{font-size:.82rem;color:var(--sub)}}
 .sec{{font-size:.72rem;color:#3d4f72;background:#141e33;padding:1px 7px;border-radius:10px}}
+.mkt{{font-size:.68rem;font-weight:700;color:#4a9eff;background:#0d1d38;padding:1px 7px;border-radius:10px;letter-spacing:.3px}}
 .mtr{{display:flex;gap:14px;flex-wrap:wrap;align-items:center}}
 .m{{display:flex;flex-direction:column;gap:1px}}
 .ml{{font-size:.66rem;color:#3d4f72;text-transform:uppercase;letter-spacing:.4px}}
@@ -638,7 +676,7 @@ a{{color:var(--acc)}}
   <h1>Squeeze <span>Report</span></h1>
   <div class="hdr-meta">
     <strong>{report_date}</strong>
-    US-Märkte · Top-10 Squeeze-Kandidaten · {now_str}
+    US · DE · GB · CA · Top-10 Squeeze-Kandidaten · {now_str}
   </div>
 </div>
 <div class="abar">
@@ -701,7 +739,7 @@ a{{color:var(--acc)}}
   {cards}
 </div>
 <div class="ftr">
-  Automatisch generiert am {report_date} · Quellen: Finviz, Yahoo Finance · Keine Anlageberatung
+  Automatisch generiert am {report_date} · Quellen: Yahoo Finance (US/DE/GB/CA), Finviz · Übersetzung: Google Translate · Keine Anlageberatung
 </div>
 <script>
 // ── Accordion ────────────────────────────────────────────────────────────
