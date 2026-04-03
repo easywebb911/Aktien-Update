@@ -843,12 +843,12 @@ a{{color:var(--accent);text-decoration:none}}
         </ul>
       </div>
       <div class="info-box">
-        <h4>Farb-Logik</h4>
+        <h4>Datenquellen</h4>
         <ul>
-          <li><strong style="color:#ef4444">Rot</strong> – Hohe Werte / hohes Risiko</li>
-          <li><strong style="color:#f59e0b">Orange</strong> – Mittlere Werte</li>
-          <li><strong style="color:#22c55e">Grün</strong> – Positive Signale</li>
-          <li><strong>Score-Balken:</strong> Grün ≥70 · Orange ≥40 · Rot &lt;40</li>
+          <li><strong>Yahoo Finance Screener</strong> – Most Shorted, Small Cap Gainers, Aggressive Small Caps</li>
+          <li><strong>Märkte:</strong> 🇺🇸 US · 🇩🇪 DE · 🇬🇧 GB · 🇨🇦 CA</li>
+          <li><strong>Anreicherung:</strong> yfinance (Short Float, Days to Cover, Volumen, Kurs)</li>
+          <li><strong>Farben:</strong> <span style="color:#ef4444">■</span> Hoch &nbsp;<span style="color:#f59e0b">■</span> Mittel &nbsp;<span style="color:#22c55e">■</span> Niedrig</li>
         </ul>
       </div>
     </div>
