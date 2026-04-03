@@ -987,7 +987,16 @@ def main():
     for c in candidates:
         c["score"] = score(c)
     candidates.sort(key=lambda x: x["score"], reverse=True)
-    pool = candidates[:40]
+
+    # Build enrichment pool: guarantee representation from each non-US region.
+    # US stocks are sorted by score; non-US get up to 8 slots each regardless
+    # of initial score (since short-float data is rarely in their screener response).
+    us_pool   = [c for c in candidates if c.get("market") == "US"][:28]
+    intl_pool = []
+    for region in ("DE", "GB", "CA"):
+        region_stocks = [c for c in candidates if c.get("market") == region][:8]
+        intl_pool.extend(region_stocks)
+    pool = us_pool + intl_pool
 
     # --- Step 2: yfinance enrichment (all real filtering happens here) ---
     log.info("Step 2 – Enriching %d candidates with yfinance …", len(pool))
@@ -1022,11 +1031,25 @@ def main():
             log.info("    skip %s: cap %s > $10B", t, fmt_cap(cap))
             time.sleep(0.25)
             continue
-        if c["short_float"] < MIN_SHORT_FLOAT:
+
+        # Short-float filter: apply strictly for US; relax for non-US markets
+        # where short-interest data is rarely available via yfinance.
+        is_us = c.get("market", "US") == "US"
+        has_sf_data = c["short_float"] > 0
+        if is_us and c["short_float"] < MIN_SHORT_FLOAT:
             log.info("    skip %s: short_float %.1f%% < %.0f%%",
                      t, c["short_float"], MIN_SHORT_FLOAT)
             time.sleep(0.25)
             continue
+        if not is_us and not has_sf_data:
+            # No short data available – keep if relative volume signals activity
+            if c.get("rel_volume", 0) < 1.0:
+                log.info("    skip %s [%s]: no short data + low volume (%.1f×)",
+                         t, c.get("market"), c.get("rel_volume", 0))
+                time.sleep(0.25)
+                continue
+            log.info("    keep %s [%s]: no short data but vol=%.1f× (intl)",
+                     t, c.get("market"), c.get("rel_volume", 0))
 
         c["score"] = score(c)
         enriched.append(c)
