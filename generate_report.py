@@ -389,6 +389,17 @@ def get_yahoo_news(ticker: str, n: int = 2) -> list[dict]:
 # 3. SCORING & ANALYSIS
 # ===========================================================================
 
+# Score-Gewichtung Fall 1 (Short-Daten vorhanden):
+# Short Float %        → max 35 Pkt  (Sättigung bei 100 %)
+# Short Ratio (Days)   → max 25 Pkt  (Sättigung bei 20 Tagen)
+# Rel. Volumen         → max 25 Pkt  (Sättigung bei 5× Durchschnitt)
+# Kursmomentum 5d      → max 15 Pkt  (Sättigung bei 15 %)
+# Gesamt               → max 100 Pkt
+#
+# Verifikation (nicht ändern ohne explizite Anweisung):
+# A: SF=30%, SR=10d, RV=3×, Mom=+8%   → Score 43.5
+# B: SF=50%, SR=5d,  RV=5×, Mom=+15%  → Score 63.75
+# C: SF=15%, SR=3d,  RV=1.5×, Mom=+3% → Score 15.12
 def score(stock: dict) -> float:
     """Weighted squeeze score 0–100.
     When no short data is available (sf=0, sr=0) the score is capped at 50
@@ -398,17 +409,20 @@ def score(stock: dict) -> float:
     sf_val = stock.get("short_float", 0)
     sr_val = stock.get("short_ratio", 0)
     rv_raw = min((stock.get("rel_volume", 0) - 1.0) / 4.0, 1.0)
-    rv_component = rv_raw * 30
 
     if sf_val == 0 and sr_val == 0:
-        # No short data: score from volume (max 30) + price momentum (max 20)
+        # Fall 2: keine Short-Daten → Volumen (max 30) + Momentum (max 20), Cap 50
+        rv_component = rv_raw * 30
         chg = abs(stock.get("change", 0))
         momentum = min(chg / 15.0, 1.0) * 20
         return min(round(rv_component + momentum, 2), 50.0)
 
-    sf = min(sf_val / 100.0, 1.0) * 40
-    sr = min(sr_val / 20.0,  1.0) * 30
-    return round(sf + sr + rv_component, 2)
+    # Fall 1: Short-Daten vorhanden → vier Faktoren, max 100 Pkt
+    sf  = min(sf_val / 100.0, 1.0) * 35
+    sr  = min(sr_val /  20.0, 1.0) * 25
+    rv  = rv_raw * 25
+    mom = min(abs(stock.get("change", 0)) / 15.0, 1.0) * 15
+    return round(sf + sr + rv + mom, 2)
 
 
 def fmt_cap(v) -> str:
