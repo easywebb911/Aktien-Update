@@ -17,6 +17,7 @@ import requests
 import yfinance as yf
 from bs4 import BeautifulSoup
 from deep_translator import GoogleTranslator
+from watchlist import WATCHLIST
 
 # ---------------------------------------------------------------------------
 # Logging
@@ -90,7 +91,22 @@ _YF_SCREENERS: dict[str, list[str]] = {
     "US": ["most_shorted_stocks", "small_cap_gainers", "aggressive_small_caps"],
     "DE": ["most_shorted_stocks", "small_cap_gainers"],   # XETRA / Frankfurt
     "GB": ["most_shorted_stocks", "small_cap_gainers"],   # London Stock Exchange
+    "FR": ["small_cap_gainers"],                          # Euronext Paris
+    "NL": ["small_cap_gainers"],                          # Euronext Amsterdam
     "CA": ["most_shorted_stocks", "small_cap_gainers"],   # Toronto Stock Exchange
+}
+
+# Flag emojis for market tags
+_MARKET_FLAGS: dict[str, str] = {
+    "US": "🇺🇸",
+    "DE": "🇩🇪",
+    "GB": "🇬🇧",
+    "FR": "🇫🇷",
+    "NL": "🇳🇱",
+    "CA": "🇨🇦",
+    "JP": "🇯🇵",
+    "HK": "🇭🇰",
+    "KR": "🇰🇷",
 }
 
 _YF_SCREENER_URL = (
@@ -374,11 +390,25 @@ def get_yahoo_news(ticker: str, n: int = 2) -> list[dict]:
 # ===========================================================================
 
 def score(stock: dict) -> float:
-    """Weighted squeeze score 0–100."""
-    sf  = min(stock.get("short_float", 0) / 100.0, 1.0) * 40   # 40 %
-    sr  = min(stock.get("short_ratio", 0) / 20.0,  1.0) * 30   # 30 %
-    rv  = min((stock.get("rel_volume", 0) - 1.0) / 4.0, 1.0) * 30  # 30 %
-    return round(sf + sr + rv, 2)
+    """Weighted squeeze score 0–100.
+    When no short data is available (sf=0, sr=0) the score is capped at 50
+    so these stocks can appear in the top 10 but never displace a stock with
+    confirmed high short interest.
+    """
+    sf_val = stock.get("short_float", 0)
+    sr_val = stock.get("short_ratio", 0)
+    rv_raw = min((stock.get("rel_volume", 0) - 1.0) / 4.0, 1.0)
+    rv_component = rv_raw * 30
+
+    if sf_val == 0 and sr_val == 0:
+        # No short data: score from volume (max 30) + price momentum (max 20)
+        chg = abs(stock.get("change", 0))
+        momentum = min(chg / 15.0, 1.0) * 20
+        return min(round(rv_component + momentum, 2), 50.0)
+
+    sf = min(sf_val / 100.0, 1.0) * 40
+    sr = min(sr_val / 20.0,  1.0) * 30
+    return round(sf + sr + rv_component, 2)
 
 
 def fmt_cap(v) -> str:
@@ -439,17 +469,19 @@ def short_situation(stock: dict) -> str:
     sr = stock.get("short_ratio", 0)
     rv = stock.get("rel_volume", 0)
     chg = stock.get("change", 0)
+    has_short_data = sf > 0 or sr > 0
 
-    if sf > 30:
-        parts.append(f"Mit {sf:.1f} % Short Float ist das Leerverkaufsinteresse sehr hoch.")
-    else:
-        parts.append(f"Short Float von {sf:.1f} % liegt deutlich über dem Marktdurchschnitt.")
+    if has_short_data:
+        if sf > 30:
+            parts.append(f"Mit {sf:.1f} % Short Float ist das Leerverkaufsinteresse sehr hoch.")
+        else:
+            parts.append(f"Short Float von {sf:.1f} % liegt deutlich über dem Marktdurchschnitt.")
 
-    if sr > 5:
-        parts.append(
-            f"Die Short Ratio von {sr:.1f} Tagen zeigt, dass Leerverkäufer mehrere Handelstage "
-            "zum Eindecken benötigen würden – dies verstärkt den Squeeze-Druck."
-        )
+        if sr > 5:
+            parts.append(
+                f"Die Short Ratio von {sr:.1f} Tagen zeigt, dass Leerverkäufer mehrere Handelstage "
+                "zum Eindecken benötigen würden – dies verstärkt den Squeeze-Druck."
+            )
 
     if rv >= 2.0:
         parts.append(
@@ -464,6 +496,9 @@ def short_situation(stock: dict) -> str:
         parts.append(
             f"Der Kursrückgang von {chg:.1f} % könnte das Short-Interesse kurzfristig erhöhen."
         )
+
+    if not has_short_data and not parts:
+        parts.append("Ungewöhnlicher Volumenanstieg ohne verfügbare Short-Daten für diesen Markt.")
 
     return " ".join(parts) if parts else "Keine eindeutigen Trendsignale erkennbar."
 
@@ -546,8 +581,17 @@ def _card(i: int, s: dict) -> str:
     chg_str = f"+{chg:.1f}%" if chg >= 0 else f"{chg:.1f}%"
     chg_col = "#22c55e" if chg >= 0 else "#ef4444"
 
-    sf_col = _metric_color("sf", sf)
-    sr_col = _metric_color("sr", sr)
+    has_no_short_data = sf == 0 and sr == 0
+    flag    = _MARKET_FLAGS.get(s.get("market", "US"), "")
+    sf_display = "—" if has_no_short_data else f"{sf:.1f}%"
+    sr_display = "—" if has_no_short_data else f"{sr:.1f}d"
+    no_data_html = (
+        '<p class="no-data-notice">ⓘ Short-Float &amp; Days to Cover für diesen Markt nicht verfügbar.</p>'
+        if has_no_short_data else ""
+    )
+
+    sf_col = "#94a3b8" if has_no_short_data else _metric_color("sf", sf)
+    sr_col = "#94a3b8" if has_no_short_data else _metric_color("sr", sr)
     rv_col = _metric_color("rv", rv)
 
     news_html = ""
@@ -570,7 +614,7 @@ def _card(i: int, s: dict) -> str:
       <div class="ticker-block">
         <div class="ticker-row">
           <span class="ticker">{s['ticker']}</span>
-          <span class="market-tag">{s.get('market','US')}</span>
+          <span class="market-tag">{flag} {s.get('market','US')}</span>
           <span class="price-tag" style="color:{chg_col}">${s.get('price',0):.2f} {chg_str}</span>
         </div>
         <span class="company">{s.get('company_name','')}</span>
@@ -585,11 +629,11 @@ def _card(i: int, s: dict) -> str:
   </div>
   <div class="metrics-row">
     <div class="metric-box" style="--mc:{sf_col}">
-      <span class="m-val">{sf:.1f}%</span>
+      <span class="m-val">{sf_display}</span>
       <span class="m-lbl">Short Float</span>
     </div>
     <div class="metric-box" style="--mc:{sr_col}">
-      <span class="m-val">{sr:.1f}d</span>
+      <span class="m-val">{sr_display}</span>
       <span class="m-lbl">Days to Cover</span>
     </div>
     <div class="metric-box" style="--mc:{rv_col}">
@@ -601,6 +645,7 @@ def _card(i: int, s: dict) -> str:
     <p class="driver-text">{sit_txt}</p>
     <span class="risk-badge" style="color:{risk_col};border-color:{risk_col}55;background:{risk_col}22">{risk_lv}</span>
   </div>
+  {no_data_html}
   <button class="news-btn" onclick="toggleNews({i})" id="nb{i}" aria-expanded="false">
     <span id="nb-icon{i}">▼</span> Nachrichten anzeigen
   </button>
@@ -788,6 +833,9 @@ a{{color:var(--accent);text-decoration:none}}
 .ni a:hover{{text-decoration:underline}}
 .ni-meta{{font-size:.7rem;color:var(--txt-dim)}}
 .no-news{{font-size:.93rem;color:var(--txt-dim)}}
+.no-data-notice{{font-size:.75rem;color:var(--txt-dim);font-style:italic;
+  margin:4px 12px 10px;padding:6px 10px;background:var(--bg-met);border-radius:6px;
+  border-left:3px solid var(--brd)}}
 .news-summary-box{{background:var(--bg-met);border-radius:8px;padding:10px 12px;margin-bottom:12px}}
 .summary-label{{display:block;font-size:.65rem;text-transform:uppercase;letter-spacing:.5px;
   color:var(--accent);margin-bottom:5px;font-weight:700}}
@@ -1039,6 +1087,58 @@ function showMsg(type,text){{
 
 
 # ===========================================================================
+# 4b. WATCHLIST VOLUME SCAN
+# ===========================================================================
+
+def get_watchlist_candidates() -> list[dict]:
+    """Quick volume scan of the static watchlist (only .history, no .info).
+    Returns stocks whose current-day volume is ≥1.5× the 20-day average.
+    """
+    results: list[dict] = []
+    for market, tickers in WATCHLIST.items():
+        log.info("Watchlist scan: %s (%d tickers)", market, len(tickers))
+        for ticker in tickers:
+            try:
+                hist = yf.Ticker(ticker).history(period="21d")
+                if hist.empty or len(hist) < 5:
+                    time.sleep(0.15)
+                    continue
+                avg_vol = float(hist["Volume"].iloc[:-1].mean())
+                cur_vol = float(hist["Volume"].iloc[-1])
+                if avg_vol < 1000:
+                    time.sleep(0.15)
+                    continue
+                rel_vol = cur_vol / avg_vol if avg_vol > 0 else 0.0
+                if rel_vol < MIN_REL_VOLUME:
+                    time.sleep(0.15)
+                    continue
+                price = float(hist["Close"].iloc[-1])
+                if price < MIN_PRICE:
+                    time.sleep(0.15)
+                    continue
+                prev_close = float(hist["Close"].iloc[-2])
+                chg = (price - prev_close) / prev_close * 100 if prev_close > 0 else 0.0
+                results.append({
+                    "ticker":       ticker,
+                    "market":       market,
+                    "price":        price,
+                    "change":       round(chg, 2),
+                    "rel_volume":   round(rel_vol, 2),
+                    "short_float":  0.0,
+                    "short_ratio":  0.0,
+                    "company_name": ticker,
+                    "sector":       "",
+                    "source":       "watchlist",
+                })
+                log.info("  watchlist hit: %s [%s] vol=%.1f×", ticker, market, rel_vol)
+            except Exception as exc:
+                log.debug("  watchlist skip %s: %s", ticker, exc)
+            time.sleep(0.2)
+    log.info("Watchlist candidates: %d", len(results))
+    return results
+
+
+# ===========================================================================
 # 5. ERROR PAGE HELPER
 # ===========================================================================
 
@@ -1093,18 +1193,28 @@ def main():
             "Bitte manuell neu starten.")
         return
 
+    # Supplement with watchlist volume scan (JP, HK, KR + any that screener missed)
+    log.info("Step 1b – Watchlist volume scan …")
+    watchlist_cands = get_watchlist_candidates()
+    existing_tickers = {c["ticker"] for c in candidates}
+    for wc in watchlist_cands:
+        if wc["ticker"] not in existing_tickers:
+            candidates.append(wc)
+            existing_tickers.add(wc["ticker"])
+    log.info("Combined candidate pool after watchlist: %d tickers", len(candidates))
+
     # Pre-sort by whatever data we have so we enrich the most promising first
     for c in candidates:
         c["score"] = score(c)
     candidates.sort(key=lambda x: x["score"], reverse=True)
 
-    # Build enrichment pool: guarantee representation from each non-US region.
-    # US stocks are sorted by score; non-US get up to 8 slots each regardless
-    # of initial score (since short-float data is rarely in their screener response).
+    # Build enrichment pool: guarantee representation from all markets.
+    # US stocks are sorted by score; international regions get up to 6 slots each
+    # regardless of initial score (short-float data is rarely in screener response).
     us_pool   = [c for c in candidates if c.get("market") == "US"][:28]
     intl_pool = []
-    for region in ("DE", "GB", "CA"):
-        region_stocks = [c for c in candidates if c.get("market") == region][:8]
+    for region in ("DE", "GB", "FR", "NL", "CA", "JP", "HK", "KR"):
+        region_stocks = [c for c in candidates if c.get("market") == region][:6]
         intl_pool.extend(region_stocks)
     pool = us_pool + intl_pool
 
