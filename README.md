@@ -1,6 +1,6 @@
 # Aktien-Update
 
-Tägliches automatisches Short-Squeeze-Reporting für internationale Märkte.  
+Automatisches Short-Squeeze-Reporting für internationale Märkte.  
 Jeden Werktag um ~09:00 Uhr (Berlin) werden die 10 vielversprechendsten Squeeze-Kandidaten ermittelt und als GitHub Pages Website veröffentlicht.
 
 ---
@@ -73,4 +73,4 @@ Diese Zeilen befinden sich in der Funktion `generate_html()` in `generate_report
 **Datenquellen:** Finviz (Screener) · Yahoo Finance via yfinance (Kurse, Nachrichten)  
 **Filterkriterien:** Short Float >15 % · Rel. Volumen ≥1,5× · Marktkapitalisierung <$10 Mrd. · Kurs >$1 USD
 # Aktien-Update
-Tägliche Meldungen zu Squeeze Kandidaten
+Automatische Meldungen zu Squeeze Kandidaten
