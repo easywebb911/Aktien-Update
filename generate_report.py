@@ -310,7 +310,7 @@ def get_yfinance_data(ticker: str) -> dict:
         return {}
 
 
-def get_yahoo_news(ticker: str, n: int = 3) -> list[dict]:
+def get_yahoo_news(ticker: str, n: int = 2) -> list[dict]:
     try:
         stk  = yf.Ticker(ticker)
         raw  = (stk.news or [])[:n]
@@ -460,23 +460,22 @@ def short_situation(stock: dict) -> str:
 
 
 def news_summary(news_list: list[dict]) -> str:
-    """Return a real German-language summary of the most important news item."""
+    """Return a complete German-language summary of the most important news item."""
     if not news_list:
         return "Keine aktuellen Nachrichten verfügbar."
     top = news_list[0]
     # Prefer the raw English summary field (longer text) for translation
     raw = top.get("summary_raw", "").strip()
     if raw and len(raw) > 80:
-        translated = _translate(raw[:1200])
+        translated = _translate(raw[:2000])
         if translated and len(translated) > 40:
-            return translated[:500] + ("…" if len(translated) > 500 else "")
-    # Fallback: translate and combine all available titles into a short synthesis
-    titles_orig = [n.get("title_orig") or n.get("title", "") for n in news_list if n.get("title_orig") or n.get("title")]
-    if not titles_orig:
+            return translated  # no truncation – show complete summary
+    # Fallback: translate the headline of the top article into a complete sentence
+    title_orig = top.get("title_orig") or top.get("title", "")
+    if not title_orig:
         return "Keine Nachrichteninhalte verfügbar."
-    combined = " | ".join(titles_orig[:3])
-    translated = _translate(combined[:1200])
-    return translated[:500] + ("…" if len(translated) > 500 else "") if translated else combined[:400]
+    translated = _translate(title_orig)
+    return translated if translated else title_orig
 
 
 # ===========================================================================
@@ -494,7 +493,7 @@ def _card(i: int, s: dict) -> str:
     cap_val  = s.get("yf_market_cap") or s.get("market_cap")
 
     news_html = ""
-    for n in s.get("news", [])[:3]:
+    for n in s.get("news", [])[:2]:
         news_html += (
             f'<div class="ni">'
             f'<a href="{n.get("link","#")}" target="_blank" rel="noopener noreferrer">'
