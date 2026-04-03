@@ -15,11 +15,13 @@
   --brd:#e2e8f0;--shadow:0 2px 8px rgba(0,0,0,.07);
   --accent:#3b82f6;--radius:14px;
   --red:#ef4444;--ora:#f59e0b;--grn:#22c55e;
+  --disc-col:#c2410c;
 }
 html[data-theme="dark"]{
   --bg:#0a0c12;--bg-card:#141929;--bg-hdr:#0d1117;--bg-met:#1a2035;
   --txt:#e2e8f0;--txt-sub:#94a3b8;--txt-dim:#64748b;
   --brd:#1e2d4a;--shadow:0 2px 12px rgba(0,0,0,.35);
+  --disc-col:#ca8a04;
 }
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
@@ -88,7 +90,7 @@ a{color:var(--accent);text-decoration:none}
 .info-box li strong{color:var(--txt)}
 /* ── Disclaimer ── */
 .disc{background:var(--bg-met);border:1px solid var(--brd);border-radius:8px;
-  padding:10px 14px;margin-bottom:14px;font-size:.76rem;color:var(--txt-dim);line-height:1.5}
+  padding:10px 14px;margin-bottom:14px;font-size:.76rem;color:var(--disc-col);line-height:1.5}
 /* ── Card ── */
 .card{background:var(--bg-card);border:1px solid var(--brd);border-radius:var(--radius);
   box-shadow:var(--shadow);margin-bottom:12px;overflow:hidden}
@@ -158,7 +160,7 @@ a{color:var(--accent);text-decoration:none}
 <header class="app-hdr">
   <div class="hdr-r1">
     <span class="app-title">Squeeze <span>Report</span></span>
-    <span class="hdr-ts">Stand: 03.04.2026, 13:39 Uhr</span>
+    <span class="hdr-ts">Stand: 03.04.2026, 13:56 Uhr</span>
     <button class="theme-btn" onclick="toggleTheme()" id="theme-btn" aria-label="Dark Mode umschalten">🌙</button>
   </div>
   <div class="hdr-r2">
@@ -182,9 +184,9 @@ a{color:var(--accent);text-decoration:none}
 <main class="wrap">
   <div class="stats-bar">
     <div class="stat-box"><span class="stat-val">Top 10</span><span class="stat-lbl">Kandidaten</span></div>
-    <div class="stat-box"><span class="stat-val">51.2%</span><span class="stat-lbl">Ø Short Float</span></div>
-    <div class="stat-box"><span class="stat-val">10.0d</span><span class="stat-lbl">Ø Days Cover</span></div>
-    <div class="stat-box"><span class="stat-val">1.1×</span><span class="stat-lbl">Ø Volumen</span></div>
+    <div class="stat-box"><span class="stat-val">52.5%</span><span class="stat-lbl">Ø Short Float</span></div>
+    <div class="stat-box"><span class="stat-val">9.8d</span><span class="stat-lbl">Ø Days Cover</span></div>
+    <div class="stat-box"><span class="stat-val">0.8×</span><span class="stat-lbl">Ø Volumen</span></div>
   </div>
 
   <details class="info-panel">
@@ -274,7 +276,7 @@ a{color:var(--accent);text-decoration:none}
       <tr><td>52W-Hoch / -Tief</td><td>$35.53 / $9.61</td></tr>
       <tr><td>Ø Volumen 20T</td><td>2,225,575</td></tr>
       <tr><td>Heutiges Volumen</td><td>3,336,500</td></tr>
-      <tr><td>Risiko-Detail</td><td style="color:#ef4444">Extrem hohes Short-Interesse (72.7 %) bedeutet massive Squeeze-Gefahr, aber auch starke Kursausschläge in beide Richtung</td></tr>
+      <tr><td>Risiko-Detail</td><td style="color:#ef4444">Extrem hohes Short-Interesse (72.7 %) bedeutet massive Squeeze-Gefahr, aber auch starke Kursausschläge in beide Richtungen. Small-Cap ($428 M) mit eingeschränkter Liquidität.</td></tr>
     </table>
   </div>
 </article>
@@ -331,7 +333,7 @@ a{color:var(--accent);text-decoration:none}
       <tr><td>52W-Hoch / -Tief</td><td>$21.30 / $9.23</td></tr>
       <tr><td>Ø Volumen 20T</td><td>1,280,505</td></tr>
       <tr><td>Heutiges Volumen</td><td>910,200</td></tr>
-      <tr><td>Risiko-Detail</td><td style="color:#ef4444">Extrem hohes Short-Interesse (43.2 %) bedeutet massive Squeeze-Gefahr, aber auch starke Kursausschläge in beide Richtung</td></tr>
+      <tr><td>Risiko-Detail</td><td style="color:#ef4444">Extrem hohes Short-Interesse (43.2 %) bedeutet massive Squeeze-Gefahr, aber auch starke Kursausschläge in beide Richtungen. Small-Cap ($1.0 B) mit eingeschränkter Liquidität.</td></tr>
     </table>
   </div>
 </article>
@@ -340,63 +342,6 @@ a{color:var(--accent);text-decoration:none}
   <div class="card-top">
     <div class="card-left">
       <span class="rank">3</span>
-      <div class="ticker-block">
-        <div class="ticker-row">
-          <span class="ticker">NTST</span>
-          <span class="market-tag">US</span>
-          <span class="price-tag" style="color:#22c55e">$19.25 +1.7%</span>
-        </div>
-        <span class="company">NETSTREIT Corp.</span>
-        <span class="sector-tag">Real Estate</span>
-      </div>
-    </div>
-    <div class="score-block">
-      <span class="score-num" style="color:#f59e0b">41</span>
-      <span class="score-lbl">Score</span>
-      <div class="score-track"><div class="score-fill" style="width:41%;background:#f59e0b"></div></div>
-    </div>
-  </div>
-  <div class="metrics-row">
-    <div class="metric-box" style="--mc:#ef4444">
-      <span class="m-val">27.7%</span>
-      <span class="m-lbl">Short Float</span>
-    </div>
-    <div class="metric-box" style="--mc:#ef4444">
-      <span class="m-val">19.1d</span>
-      <span class="m-lbl">Days to Cover</span>
-    </div>
-    <div class="metric-box" style="--mc:#94a3b8">
-      <span class="m-val">1.2×</span>
-      <span class="m-lbl">Volumen</span>
-    </div>
-  </div>
-  <div class="driver-row">
-    <p class="driver-text">Short Float von 27.7 % liegt deutlich über dem Marktdurchschnitt. Die Short Ratio von 19.1 Tagen zeigt, dass Leerverkäufer mehrere Handelstage zum Eindecken benötigen würden – dies verstärkt den Squeeze-Druck.</p>
-    <span class="risk-badge" style="color:#f59e0b;border-color:#f59e0b55;background:#f59e0b22">MITTEL</span>
-  </div>
-  <button class="news-btn" onclick="toggleNews(3)" id="nb3" aria-expanded="false">
-    <span id="nb-icon3">▼</span> Nachrichten anzeigen
-  </button>
-  <div class="news-panel" id="np3" hidden>
-    <div class="news-items"><div class="ni"><a href="https://finance.yahoo.com/markets/stocks/articles/look-netstreit-ntst-valuation-recent-043237766.html" target="_blank" rel="noopener noreferrer">Ein Blick auf die Bewertung von NETSTREIT (NTST) nach den jüngsten gemischten Aktienkursbewegungen</a><span class="ni-meta">Simply Wall St. · 03.04.2026 04:32</span></div><div class="ni"><a href="https://finance.yahoo.com/markets/stocks/articles/truist-raises-price-target-netstreit-164609431.html" target="_blank" rel="noopener noreferrer">Truist erhöht sein Kursziel für NETSTREIT Corp. (NTST) auf 21 $</a><span class="ni-meta">Insider Monkey · 30.03.2026 16:46</span></div></div>
-    <div class="news-summary-box">
-      <span class="summary-label">Zusammenfassung</span>
-      <p class="summary-text">Erste Übersicht für NETSTREIT nach den jüngsten Kursbewegungen NETSTREIT (NTST) verzeichnete in letzter Zeit eine gemischte Aktienperformance mit einem 1-Tages-Gewinn von 1,7 %, einer 7-Tages-Rendite von 2,8 %, einem Monatsrückgang von 8,0 % und einer Rendite von 8,3 % in den letzten 3 Monaten. Sehen Sie sich unsere neueste Analyse für NETSTREIT an. Bei einem Aktienkurs von 19,25 US-Dollar gehen die jüngsten 1- und 7-tägigen Aktienkursgewinne von NETSTREIT mit einem 30-tägigen Aktienkursrückgang einher, während die 1-Jahres-Gesamtaktionärsrendite von 29,26 % darauf hindeutet, dass die Ertragsdynamik stärker war ...</p>
-    </div>
-    <table class="detail-table">
-      <tr><td>Marktkapitalisierung</td><td>$2.1 B</td></tr>
-      <tr><td>52W-Hoch / -Tief</td><td>$21.30 / $14.00</td></tr>
-      <tr><td>Ø Volumen 20T</td><td>1,209,555</td></tr>
-      <tr><td>Heutiges Volumen</td><td>1,417,900</td></tr>
-      <tr><td>Risiko-Detail</td><td style="color:#f59e0b">Hohes Short-Interesse (27.7 %) erhöht die Volatilität deutlich.</td></tr>
-    </table>
-  </div>
-</article>
-
-<article class="card" id="c4">
-  <div class="card-top">
-    <div class="card-left">
-      <span class="rank">4</span>
       <div class="ticker-block">
         <div class="ticker-row">
           <span class="ticker">LENZ</span>
@@ -431,10 +376,10 @@ a{color:var(--accent);text-decoration:none}
     <p class="driver-text">Mit 52.9 % Short Float ist das Leerverkaufsinteresse sehr hoch. Die Short Ratio von 13.3 Tagen zeigt, dass Leerverkäufer mehrere Handelstage zum Eindecken benötigen würden – dies verstärkt den Squeeze-Druck.</p>
     <span class="risk-badge" style="color:#ef4444;border-color:#ef444455;background:#ef444422">HOCH</span>
   </div>
-  <button class="news-btn" onclick="toggleNews(4)" id="nb4" aria-expanded="false">
-    <span id="nb-icon4">▼</span> Nachrichten anzeigen
+  <button class="news-btn" onclick="toggleNews(3)" id="nb3" aria-expanded="false">
+    <span id="nb-icon3">▼</span> Nachrichten anzeigen
   </button>
-  <div class="news-panel" id="np4" hidden>
+  <div class="news-panel" id="np3" hidden>
     <div class="news-items"><div class="ni"><a href="https://finance.yahoo.com/markets/stocks/articles/president-lenz-therapeutics-picks-57-102034492.html" target="_blank" rel="noopener noreferrer">Präsident von LENZ Therapeutics erwirbt 57 % mehr Aktien</a><span class="ni-meta">Simply Wall St. · 01.04.2026 10:20</span></div><div class="ni"><a href="https://finance.yahoo.com/markets/stocks/articles/consensus-eps-estimates-lenz-therapeutics-124306294.html" target="_blank" rel="noopener noreferrer">Die Konsens-EPS-Schätzungen für LENZ Therapeutics, Inc. (NASDAQ:LENZ) sind gerade dramatisch gefallen</a><span class="ni-meta">Simply Wall St. · 29.03.2026 12:43</span></div></div>
     <div class="news-summary-box">
       <span class="summary-label">Zusammenfassung</span>
@@ -445,15 +390,15 @@ a{color:var(--accent);text-decoration:none}
       <tr><td>52W-Hoch / -Tief</td><td>$50.40 / $8.25</td></tr>
       <tr><td>Ø Volumen 20T</td><td>1,211,485</td></tr>
       <tr><td>Heutiges Volumen</td><td>698,100</td></tr>
-      <tr><td>Risiko-Detail</td><td style="color:#ef4444">Extrem hohes Short-Interesse (52.9 %) bedeutet massive Squeeze-Gefahr, aber auch starke Kursausschläge in beide Richtung</td></tr>
+      <tr><td>Risiko-Detail</td><td style="color:#ef4444">Extrem hohes Short-Interesse (52.9 %) bedeutet massive Squeeze-Gefahr, aber auch starke Kursausschläge in beide Richtungen. Small-Cap ($303 M) mit eingeschränkter Liquidität.</td></tr>
     </table>
   </div>
 </article>
 
-<article class="card" id="c5">
+<article class="card" id="c4">
   <div class="card-top">
     <div class="card-left">
-      <span class="rank">5</span>
+      <span class="rank">4</span>
       <div class="ticker-block">
         <div class="ticker-row">
           <span class="ticker">TNGX</span>
@@ -488,18 +433,18 @@ a{color:var(--accent);text-decoration:none}
     <p class="driver-text">Mit 38.0 % Short Float ist das Leerverkaufsinteresse sehr hoch. Die Short Ratio von 12.2 Tagen zeigt, dass Leerverkäufer mehrere Handelstage zum Eindecken benötigen würden – dies verstärkt den Squeeze-Druck.</p>
     <span class="risk-badge" style="color:#f59e0b;border-color:#f59e0b55;background:#f59e0b22">MITTEL</span>
   </div>
-  <button class="news-btn" onclick="toggleNews(5)" id="nb5" aria-expanded="false">
-    <span id="nb-icon5">▼</span> Nachrichten anzeigen
+  <button class="news-btn" onclick="toggleNews(4)" id="nb4" aria-expanded="false">
+    <span id="nb-icon4">▼</span> Nachrichten anzeigen
   </button>
-  <div class="news-panel" id="np5" hidden>
+  <div class="news-panel" id="np4" hidden>
     <div class="news-items"><div class="ni"><a href="https://www.fool.com/coverage/filings/2026/03/30/tango-therapeutics-insider-sells-usd304-000-in-stock-amid-a-36-single-day-surge/" target="_blank" rel="noopener noreferrer">Tango Therapeutics Insider verkauft Aktien im Wert von 304.000 US-Dollar bei einem Tagesanstieg von 36 %</a><span class="ni-meta">Motley Fool · 30.03.2026 17:53</span></div><div class="ni"><a href="https://finance.yahoo.com/markets/stocks/articles/evaluating-tango-therapeutics-tngx-rich-120514000.html" target="_blank" rel="noopener noreferrer">Bewertung der hohen Bewertung von Tango Therapeutics (TNGX) nach der jüngsten Aktienkursdynamik</a><span class="ni-meta">Simply Wall St. · 29.03.2026 12:05</span></div></div>
     <div class="news-summary-box">
       <span class="summary-label">Zusammenfassung</span>
-      <p class="summary-text">Dieses auf gezielte Krebstherapien spezialisierte Biotechnologieunternehmen im klinischen Stadium meldete einen bemerkenswerten Insiderverkauf.</p>
+      <p class="summary-text">Tango Therapeutics Insider verkauft Aktien im Wert von 304.000 US-Dollar bei einem Tagesanstieg von 36 %. Weitere aktuelle Meldung: Bewertung der hohen Bewertung von Tango Therapeutics (TNGX) nach jüngster Aktienkursdynamik  –  Quelle: Motley Fool (30.03.2026 17:53)</p>
     </div>
     <table class="detail-table">
       <tr><td>Marktkapitalisierung</td><td>$3.1 B</td></tr>
-      <tr><td>52W-Hoch / -Tief</td><td>$22.08 / $1.03</td></tr>
+      <tr><td>52W-Hoch / -Tief</td><td>$22.20 / $1.03</td></tr>
       <tr><td>Ø Volumen 20T</td><td>3,510,315</td></tr>
       <tr><td>Heutiges Volumen</td><td>2,924,600</td></tr>
       <tr><td>Risiko-Detail</td><td style="color:#f59e0b">Hohes Short-Interesse (38.0 %) erhöht die Volatilität deutlich.</td></tr>
@@ -507,10 +452,10 @@ a{color:var(--accent);text-decoration:none}
   </div>
 </article>
 
-<article class="card" id="c6">
+<article class="card" id="c5">
   <div class="card-top">
     <div class="card-left">
-      <span class="rank">6</span>
+      <span class="rank">5</span>
       <div class="ticker-block">
         <div class="ticker-row">
           <span class="ticker">SNSE</span>
@@ -545,10 +490,10 @@ a{color:var(--accent);text-decoration:none}
     <p class="driver-text">Mit 84.4 % Short Float ist das Leerverkaufsinteresse sehr hoch. Der Kursrückgang von -10.8 % könnte das Short-Interesse kurzfristig erhöhen.</p>
     <span class="risk-badge" style="color:#ef4444;border-color:#ef444455;background:#ef444422">HOCH</span>
   </div>
-  <button class="news-btn" onclick="toggleNews(6)" id="nb6" aria-expanded="false">
-    <span id="nb-icon6">▼</span> Nachrichten anzeigen
+  <button class="news-btn" onclick="toggleNews(5)" id="nb5" aria-expanded="false">
+    <span id="nb-icon5">▼</span> Nachrichten anzeigen
   </button>
-  <div class="news-panel" id="np6" hidden>
+  <div class="news-panel" id="np5" hidden>
     <div class="news-items"><div class="ni"><a href="https://www.pharmaceutical-technology.com/news/sensei-to-ditch-its-lead-candidate-and-cut-workforce-amidst-strategic-review/" target="_blank" rel="noopener noreferrer">Sensei wird seinen Spitzenkandidaten fallen lassen und im Rahmen einer strategischen Überprüfung die Belegschaft abbauen</a><span class="ni-meta">Pharmaceutical Technology · 31.10.2025 18:06</span></div></div>
     <div class="news-summary-box">
       <span class="summary-label">Zusammenfassung</span>
@@ -559,186 +504,15 @@ a{color:var(--accent);text-decoration:none}
       <tr><td>52W-Hoch / -Tief</td><td>$36.76 / $5.22</td></tr>
       <tr><td>Ø Volumen 20T</td><td>101,890</td></tr>
       <tr><td>Heutiges Volumen</td><td>61,400</td></tr>
-      <tr><td>Risiko-Detail</td><td style="color:#ef4444">Extrem hohes Short-Interesse (84.4 %) bedeutet massive Squeeze-Gefahr, aber auch starke Kursausschläge in beide Richtung</td></tr>
+      <tr><td>Risiko-Detail</td><td style="color:#ef4444">Extrem hohes Short-Interesse (84.4 %) bedeutet massive Squeeze-Gefahr, aber auch starke Kursausschläge in beide Richtungen. Micro-Cap ($39 M) – geringe Liquidität, Kursmanipulation möglich.</td></tr>
     </table>
   </div>
 </article>
 
-<article class="card" id="c7">
+<article class="card" id="c6">
   <div class="card-top">
     <div class="card-left">
-      <span class="rank">7</span>
-      <div class="ticker-block">
-        <div class="ticker-row">
-          <span class="ticker">PCT</span>
-          <span class="market-tag">US</span>
-          <span class="price-tag" style="color:#22c55e">$5.42 +6.1%</span>
-        </div>
-        <span class="company">PureCycle Technologies, Inc.</span>
-        <span class="sector-tag">Industrials</span>
-      </div>
-    </div>
-    <div class="score-block">
-      <span class="score-num" style="color:#ef4444">32</span>
-      <span class="score-lbl">Score</span>
-      <div class="score-track"><div class="score-fill" style="width:32%;background:#ef4444"></div></div>
-    </div>
-  </div>
-  <div class="metrics-row">
-    <div class="metric-box" style="--mc:#ef4444">
-      <span class="m-val">43.5%</span>
-      <span class="m-lbl">Short Float</span>
-    </div>
-    <div class="metric-box" style="--mc:#ef4444">
-      <span class="m-val">9.3d</span>
-      <span class="m-lbl">Days to Cover</span>
-    </div>
-    <div class="metric-box" style="--mc:#94a3b8">
-      <span class="m-val">1.1×</span>
-      <span class="m-lbl">Volumen</span>
-    </div>
-  </div>
-  <div class="driver-row">
-    <p class="driver-text">Mit 43.5 % Short Float ist das Leerverkaufsinteresse sehr hoch. Die Short Ratio von 9.3 Tagen zeigt, dass Leerverkäufer mehrere Handelstage zum Eindecken benötigen würden – dies verstärkt den Squeeze-Druck. Der Kursanstieg von +6.1 % heute könnte Margin Calls bei Leerverkäufern auslösen.</p>
-    <span class="risk-badge" style="color:#ef4444;border-color:#ef444455;background:#ef444422">HOCH</span>
-  </div>
-  <button class="news-btn" onclick="toggleNews(7)" id="nb7" aria-expanded="false">
-    <span id="nb-icon7">▼</span> Nachrichten anzeigen
-  </button>
-  <div class="news-panel" id="np7" hidden>
-    <div class="news-items"><div class="ni"><a href="https://finance.yahoo.com/sectors/energy/articles/does-purecycle-technologies-pct-eu-150602837.html" target="_blank" rel="noopener noreferrer">Verdeutlicht das mit EU-Zuschüssen finanzierte belgische Werk von PureCycle Technologies (PCT) seine europäischen Expansionsambitionen?</a><span class="ni-meta">Simply Wall St. · 26.03.2026 15:06</span></div><div class="ni"><a href="https://finance.yahoo.com/markets/stocks/articles/purecycle-technologies-pct-well-prepared-060829089.html" target="_blank" rel="noopener noreferrer">PureCycle Technologies (PCT) ist gut auf den kommerziellen Start im Jahr 2026 vorbereitet</a><span class="ni-meta">Insider Monkey · 26.03.2026 06:08</span></div></div>
-    <div class="news-summary-box">
-      <span class="summary-label">Zusammenfassung</span>
-      <p class="summary-text">PureCycle Technologies gab kürzlich bekannt, dass es von der Europäischen Exekutivagentur für Klima, Infrastruktur und Umwelt einen Zuschuss aus dem Innovationsfonds in Höhe von 40 Millionen Euro erhalten hat, um sein ASTRA PP-Recyclingprojekt für Polypropylenauflösung im Hafen von Antwerpen-Brügge in Belgien voranzutreiben. Diese geförderte Anlage, die für die Produktion von 59.000 Tonnen PureFive-Harz pro Jahr ausgelegt ist, könnte die Rolle von PureCycle bei der Unterstützung europäischer Kunden bei der Einhaltung strengerer Vorschriften für recycelte Inhalte und allgemeiner... stärken.</p>
-    </div>
-    <table class="detail-table">
-      <tr><td>Marktkapitalisierung</td><td>$980 M</td></tr>
-      <tr><td>52W-Hoch / -Tief</td><td>$17.37 / $4.93</td></tr>
-      <tr><td>Ø Volumen 20T</td><td>5,030,600</td></tr>
-      <tr><td>Heutiges Volumen</td><td>5,327,700</td></tr>
-      <tr><td>Risiko-Detail</td><td style="color:#ef4444">Extrem hohes Short-Interesse (43.5 %) bedeutet massive Squeeze-Gefahr, aber auch starke Kursausschläge in beide Richtung</td></tr>
-    </table>
-  </div>
-</article>
-
-<article class="card" id="c8">
-  <div class="card-top">
-    <div class="card-left">
-      <span class="rank">8</span>
-      <div class="ticker-block">
-        <div class="ticker-row">
-          <span class="ticker">TRIP</span>
-          <span class="market-tag">US</span>
-          <span class="price-tag" style="color:#22c55e">$10.85 +1.3%</span>
-        </div>
-        <span class="company">Tripadvisor, Inc.</span>
-        <span class="sector-tag">Consumer Cyclical</span>
-      </div>
-    </div>
-    <div class="score-block">
-      <span class="score-num" style="color:#ef4444">31</span>
-      <span class="score-lbl">Score</span>
-      <div class="score-track"><div class="score-fill" style="width:31%;background:#ef4444"></div></div>
-    </div>
-  </div>
-  <div class="metrics-row">
-    <div class="metric-box" style="--mc:#ef4444">
-      <span class="m-val">34.8%</span>
-      <span class="m-lbl">Short Float</span>
-    </div>
-    <div class="metric-box" style="--mc:#ef4444">
-      <span class="m-val">7.3d</span>
-      <span class="m-lbl">Days to Cover</span>
-    </div>
-    <div class="metric-box" style="--mc:#f59e0b">
-      <span class="m-val">1.8×</span>
-      <span class="m-lbl">Volumen</span>
-    </div>
-  </div>
-  <div class="driver-row">
-    <p class="driver-text">Mit 34.8 % Short Float ist das Leerverkaufsinteresse sehr hoch. Die Short Ratio von 7.3 Tagen zeigt, dass Leerverkäufer mehrere Handelstage zum Eindecken benötigen würden – dies verstärkt den Squeeze-Druck.</p>
-    <span class="risk-badge" style="color:#f59e0b;border-color:#f59e0b55;background:#f59e0b22">MITTEL</span>
-  </div>
-  <button class="news-btn" onclick="toggleNews(8)" id="nb8" aria-expanded="false">
-    <span id="nb-icon8">▼</span> Nachrichten anzeigen
-  </button>
-  <div class="news-panel" id="np8" hidden>
-    <div class="news-items"><div class="ni"><a href="https://finance.yahoo.com/markets/stocks/articles/tripadvisor-trip-9-0-starboard-111112980.html" target="_blank" rel="noopener noreferrer">Tripadvisor (TRIP) ist um 9,0 % gestiegen, nachdem Starboard im Governance-Pakt Sitze im Vorstand gewonnen hat – was sich geändert hat</a><span class="ni-meta">Simply Wall St. · 03.04.2026 11:11</span></div><div class="ni"><a href="https://finance.yahoo.com/markets/stocks/articles/tripadvisor-governance-shift-starboard-sparks-050933325.html" target="_blank" rel="noopener noreferrer">Die Verschiebung der Tripadvisor-Governance mit Starboard wirft Fragen zu Bewertung und Risiken auf</a><span class="ni-meta">Simply Wall St. · 03.04.2026 05:09</span></div></div>
-    <div class="news-summary-box">
-      <span class="summary-label">Zusammenfassung</span>
-      <p class="summary-text">Ende März 2026 gab Tripadvisor eine Kooperationsvereinbarung mit dem aktivistischen Investor Starboard Value bekannt, die Dhiren Fonseca und Andrew F. Cates in seinen erweiterten 10-köpfigen Vorstand aufgenommen hat, während Starboard den üblichen Abstimmungs- und Stillhaltebedingungen für die Jahresversammlung 2026 zustimmte. Diese Vereinbarung gibt einem einflussreichen Aktionär direkten Einfluss auf die Governance von Tripadvisor und mögliche Portfolioentscheidungen zu einer Zeit, in der das Unternehmen den Schwerpunkt auf das Wachstum seiner Viator- und TheFork-Marktplätze legt ...</p>
-    </div>
-    <table class="detail-table">
-      <tr><td>Marktkapitalisierung</td><td>$1.3 B</td></tr>
-      <tr><td>52W-Hoch / -Tief</td><td>$20.16 / $9.01</td></tr>
-      <tr><td>Ø Volumen 20T</td><td>4,449,455</td></tr>
-      <tr><td>Heutiges Volumen</td><td>8,104,000</td></tr>
-      <tr><td>Risiko-Detail</td><td style="color:#f59e0b">Hohes Short-Interesse (34.8 %) erhöht die Volatilität deutlich. Small-Cap ($1.3 B) mit eingeschränkter Liquidität.</td></tr>
-    </table>
-  </div>
-</article>
-
-<article class="card" id="c9">
-  <div class="card-top">
-    <div class="card-left">
-      <span class="rank">9</span>
-      <div class="ticker-block">
-        <div class="ticker-row">
-          <span class="ticker">SNBR</span>
-          <span class="market-tag">US</span>
-          <span class="price-tag" style="color:#ef4444">$1.18 -31.0%</span>
-        </div>
-        <span class="company">Sleep Number Corporation</span>
-        <span class="sector-tag">Consumer Cyclical</span>
-      </div>
-    </div>
-    <div class="score-block">
-      <span class="score-num" style="color:#ef4444">31</span>
-      <span class="score-lbl">Score</span>
-      <div class="score-track"><div class="score-fill" style="width:31%;background:#ef4444"></div></div>
-    </div>
-  </div>
-  <div class="metrics-row">
-    <div class="metric-box" style="--mc:#ef4444">
-      <span class="m-val">30.3%</span>
-      <span class="m-lbl">Short Float</span>
-    </div>
-    <div class="metric-box" style="--mc:#f59e0b">
-      <span class="m-val">5.2d</span>
-      <span class="m-lbl">Days to Cover</span>
-    </div>
-    <div class="metric-box" style="--mc:#22c55e">
-      <span class="m-val">2.5×</span>
-      <span class="m-lbl">Volumen</span>
-    </div>
-  </div>
-  <div class="driver-row">
-    <p class="driver-text">Mit 30.3 % Short Float ist das Leerverkaufsinteresse sehr hoch. Die Short Ratio von 5.2 Tagen zeigt, dass Leerverkäufer mehrere Handelstage zum Eindecken benötigen würden – dies verstärkt den Squeeze-Druck. Das Handelsvolumen liegt bei 2.5× dem 20-Tage-Durchschnitt, was auf erhöhtes Kaufinteresse und mögliche Short-Eindeckungen hindeutet. Der Kursrückgang von -31.0 % könnte das Short-Interesse kurzfristig erhöhen.</p>
-    <span class="risk-badge" style="color:#ef4444;border-color:#ef444455;background:#ef444422">HOCH</span>
-  </div>
-  <button class="news-btn" onclick="toggleNews(9)" id="nb9" aria-expanded="false">
-    <span id="nb-icon9">▼</span> Nachrichten anzeigen
-  </button>
-  <div class="news-panel" id="np9" hidden>
-    <div class="news-items"><div class="ni"><a href="https://www.barchart.com/story/news/1120267/as-sleep-number-races-to-avoid-bankruptcy-could-snbr-stock-be-the-next-meme-rally" target="_blank" rel="noopener noreferrer">Könnte die SNBR-Aktie die nächste Meme-Rallye sein, während die Schlafzahlen um einen Konkurs rennen?</a><span class="ni-meta">Barchart · 02.04.2026 17:21</span></div><div class="ni"><a href="https://www.fool.com/coverage/filings/2026/03/22/stadium-capital-loads-up-72000-lcii-shares/" target="_blank" rel="noopener noreferrer">Investor verdoppelt sein Engagement mit 8-Millionen-Dollar-Kauf, während LCI Industries einen Umsatz von 4,1 Milliarden US-Dollar erzielt</a><span class="ni-meta">Motley Fool · 22.03.2026 15:46</span></div></div>
-    <div class="news-summary-box">
-      <span class="summary-label">Zusammenfassung</span>
-      <p class="summary-text">Steht die SNBR-Aktie vor einem völligen Zusammenbruch oder einem überraschenden, durch Memes ausgelösten Anstieg, während Sleep Number mit steigenden Schulden und Insolvenzängsten zu kämpfen hat?</p>
-    </div>
-    <table class="detail-table">
-      <tr><td>Marktkapitalisierung</td><td>$27 M</td></tr>
-      <tr><td>52W-Hoch / -Tief</td><td>$13.94 / $1.12</td></tr>
-      <tr><td>Ø Volumen 20T</td><td>1,910,275</td></tr>
-      <tr><td>Heutiges Volumen</td><td>4,715,500</td></tr>
-      <tr><td>Risiko-Detail</td><td style="color:#ef4444">Hohes Short-Interesse (30.3 %) erhöht die Volatilität deutlich. Micro-Cap ($27 M) – geringe Liquidität, Kursmanipulation</td></tr>
-    </table>
-  </div>
-</article>
-
-<article class="card" id="c10">
-  <div class="card-top">
-    <div class="card-left">
-      <span class="rank">10</span>
+      <span class="rank">6</span>
       <div class="ticker-block">
         <div class="ticker-row">
           <span class="ticker">IBG</span>
@@ -773,10 +547,10 @@ a{color:var(--accent);text-decoration:none}
     <p class="driver-text">Mit 84.1 % Short Float ist das Leerverkaufsinteresse sehr hoch. Der Kursanstieg von +5.5 % heute könnte Margin Calls bei Leerverkäufern auslösen.</p>
     <span class="risk-badge" style="color:#ef4444;border-color:#ef444455;background:#ef444422">HOCH</span>
   </div>
-  <button class="news-btn" onclick="toggleNews(10)" id="nb10" aria-expanded="false">
-    <span id="nb-icon10">▼</span> Nachrichten anzeigen
+  <button class="news-btn" onclick="toggleNews(6)" id="nb6" aria-expanded="false">
+    <span id="nb-icon6">▼</span> Nachrichten anzeigen
   </button>
-  <div class="news-panel" id="np10" hidden>
+  <div class="news-panel" id="np6" hidden>
     <div class="news-items"><div class="ni"><a href="https://finance.yahoo.com/news/innovation-beverage-group-limited-ibg-152224695.html" target="_blank" rel="noopener noreferrer">Innovation Beverage Group Limited (IBG) gibt ein Update zu seiner geplanten Fusion mit BlockFuel Energy bekannt</a><span class="ni-meta">Insider Monkey · 08.03.2026 15:22</span></div><div class="ni"><a href="https://finance.yahoo.com/news/innovation-beverage-enters-definitive-merger-121136738.html" target="_blank" rel="noopener noreferrer">Innovation Beverage schließt endgültige Fusionsvereinbarung mit BlockFuel Energy ab</a><span class="ni-meta">TipRanks · 16.10.2025 12:11</span></div></div>
     <div class="news-summary-box">
       <span class="summary-label">Zusammenfassung</span>
@@ -787,7 +561,235 @@ a{color:var(--accent);text-decoration:none}
       <tr><td>52W-Hoch / -Tief</td><td>$36.50 / $0.94</td></tr>
       <tr><td>Ø Volumen 20T</td><td>1,686,560</td></tr>
       <tr><td>Heutiges Volumen</td><td>852,500</td></tr>
-      <tr><td>Risiko-Detail</td><td style="color:#ef4444">Extrem hohes Short-Interesse (84.1 %) bedeutet massive Squeeze-Gefahr, aber auch starke Kursausschläge in beide Richtung</td></tr>
+      <tr><td>Risiko-Detail</td><td style="color:#ef4444">Extrem hohes Short-Interesse (84.1 %) bedeutet massive Squeeze-Gefahr, aber auch starke Kursausschläge in beide Richtungen. Micro-Cap ($2 M) – geringe Liquidität, Kursmanipulation möglich.</td></tr>
+    </table>
+  </div>
+</article>
+
+<article class="card" id="c7">
+  <div class="card-top">
+    <div class="card-left">
+      <span class="rank">7</span>
+      <div class="ticker-block">
+        <div class="ticker-row">
+          <span class="ticker">GRPN</span>
+          <span class="market-tag">US</span>
+          <span class="price-tag" style="color:#22c55e">$11.50 +2.8%</span>
+        </div>
+        <span class="company">Groupon, Inc.</span>
+        <span class="sector-tag">Communication Services</span>
+      </div>
+    </div>
+    <div class="score-block">
+      <span class="score-num" style="color:#ef4444">30</span>
+      <span class="score-lbl">Score</span>
+      <div class="score-track"><div class="score-fill" style="width:30%;background:#ef4444"></div></div>
+    </div>
+  </div>
+  <div class="metrics-row">
+    <div class="metric-box" style="--mc:#ef4444">
+      <span class="m-val">47.3%</span>
+      <span class="m-lbl">Short Float</span>
+    </div>
+    <div class="metric-box" style="--mc:#ef4444">
+      <span class="m-val">9.5d</span>
+      <span class="m-lbl">Days to Cover</span>
+    </div>
+    <div class="metric-box" style="--mc:#94a3b8">
+      <span class="m-val">0.6×</span>
+      <span class="m-lbl">Volumen</span>
+    </div>
+  </div>
+  <div class="driver-row">
+    <p class="driver-text">Mit 47.3 % Short Float ist das Leerverkaufsinteresse sehr hoch. Die Short Ratio von 9.5 Tagen zeigt, dass Leerverkäufer mehrere Handelstage zum Eindecken benötigen würden – dies verstärkt den Squeeze-Druck.</p>
+    <span class="risk-badge" style="color:#ef4444;border-color:#ef444455;background:#ef444422">HOCH</span>
+  </div>
+  <button class="news-btn" onclick="toggleNews(7)" id="nb7" aria-expanded="false">
+    <span id="nb-icon7">▼</span> Nachrichten anzeigen
+  </button>
+  <div class="news-panel" id="np7" hidden>
+    <div class="news-items"><div class="ni"><a href="https://finance.yahoo.com/markets/stocks/articles/groupon-grpn-surpasses-market-returns-215003392.html" target="_blank" rel="noopener noreferrer">Groupon (GRPN) übertrifft Marktrenditen: Einige wissenswerte Fakten</a><span class="ni-meta">Zacks · 02.04.2026 21:50</span></div><div class="ni"><a href="https://finance.yahoo.com/markets/stocks/articles/groupon-grpn-suffers-larger-drop-215004847.html" target="_blank" rel="noopener noreferrer">Groupon (GRPN) erleidet einen größeren Rückgang als der allgemeine Markt: Wichtige Erkenntnisse</a><span class="ni-meta">Zacks · 27.03.2026 21:50</span></div></div>
+    <div class="news-summary-box">
+      <span class="summary-label">Zusammenfassung</span>
+      <p class="summary-text">Groupon (GRPN) schloss die jüngste Handelssitzung bei 11,5 $ ab, was einer Steigerung von +2,77 % gegenüber dem Schlusskurs vom Vortag entspricht.</p>
+    </div>
+    <table class="detail-table">
+      <tr><td>Marktkapitalisierung</td><td>$469 M</td></tr>
+      <tr><td>52W-Hoch / -Tief</td><td>$43.08 / $9.17</td></tr>
+      <tr><td>Ø Volumen 20T</td><td>1,865,305</td></tr>
+      <tr><td>Heutiges Volumen</td><td>1,074,100</td></tr>
+      <tr><td>Risiko-Detail</td><td style="color:#ef4444">Extrem hohes Short-Interesse (47.3 %) bedeutet massive Squeeze-Gefahr, aber auch starke Kursausschläge in beide Richtungen. Small-Cap ($469 M) mit eingeschränkter Liquidität.</td></tr>
+    </table>
+  </div>
+</article>
+
+<article class="card" id="c8">
+  <div class="card-top">
+    <div class="card-left">
+      <span class="rank">8</span>
+      <div class="ticker-block">
+        <div class="ticker-row">
+          <span class="ticker">NTLA</span>
+          <span class="market-tag">US</span>
+          <span class="price-tag" style="color:#ef4444">$13.13 -1.1%</span>
+        </div>
+        <span class="company">Intellia Therapeutics, Inc.</span>
+        <span class="sector-tag">Healthcare</span>
+      </div>
+    </div>
+    <div class="score-block">
+      <span class="score-num" style="color:#ef4444">28</span>
+      <span class="score-lbl">Score</span>
+      <div class="score-track"><div class="score-fill" style="width:28%;background:#ef4444"></div></div>
+    </div>
+  </div>
+  <div class="metrics-row">
+    <div class="metric-box" style="--mc:#ef4444">
+      <span class="m-val">37.4%</span>
+      <span class="m-lbl">Short Float</span>
+    </div>
+    <div class="metric-box" style="--mc:#ef4444">
+      <span class="m-val">9.9d</span>
+      <span class="m-lbl">Days to Cover</span>
+    </div>
+    <div class="metric-box" style="--mc:#94a3b8">
+      <span class="m-val">0.8×</span>
+      <span class="m-lbl">Volumen</span>
+    </div>
+  </div>
+  <div class="driver-row">
+    <p class="driver-text">Mit 37.4 % Short Float ist das Leerverkaufsinteresse sehr hoch. Die Short Ratio von 9.9 Tagen zeigt, dass Leerverkäufer mehrere Handelstage zum Eindecken benötigen würden – dies verstärkt den Squeeze-Druck.</p>
+    <span class="risk-badge" style="color:#f59e0b;border-color:#f59e0b55;background:#f59e0b22">MITTEL</span>
+  </div>
+  <button class="news-btn" onclick="toggleNews(8)" id="nb8" aria-expanded="false">
+    <span id="nb-icon8">▼</span> Nachrichten anzeigen
+  </button>
+  <div class="news-panel" id="np8" hidden>
+    <div class="news-items"><div class="ni"><a href="https://finance.yahoo.com/markets/stocks/articles/zacks-approach-beat-markets-liveone-130500111.html" target="_blank" rel="noopener noreferrer">Nutzen Sie den Zacks-Ansatz, um die Märkte zu schlagen: LiveOne, Micron, Clorox im Fokus</a><span class="ni-meta">Zacks · 23.03.2026 13:05</span></div><div class="ni"><a href="https://www.fool.com/investing/2026/03/08/cathie-wood-stock-up-2026-to0-late-buy-ntla/" target="_blank" rel="noopener noreferrer">Diese Cathie-Wood-Aktie ist dieses Jahr um 47 % gestiegen: Ist es zu spät zum Kaufen?</a><span class="ni-meta">Motley Fool · 08.03.2026 21:48</span></div></div>
+    <div class="news-summary-box">
+      <span class="summary-label">Zusammenfassung</span>
+      <p class="summary-text">LVO, MU und CLX verdeutlichen, wie die Strategien und Portfolioauswahl von Zacks trotz der jüngsten Marktvolatilität starke Gewinne erzielen.</p>
+    </div>
+    <table class="detail-table">
+      <tr><td>Marktkapitalisierung</td><td>$1.6 B</td></tr>
+      <tr><td>52W-Hoch / -Tief</td><td>$28.25 / $5.90</td></tr>
+      <tr><td>Ø Volumen 20T</td><td>3,433,495</td></tr>
+      <tr><td>Heutiges Volumen</td><td>2,749,300</td></tr>
+      <tr><td>Risiko-Detail</td><td style="color:#f59e0b">Hohes Short-Interesse (37.4 %) erhöht die Volatilität deutlich. Small-Cap ($1.6 B) mit eingeschränkter Liquidität.</td></tr>
+    </table>
+  </div>
+</article>
+
+<article class="card" id="c9">
+  <div class="card-top">
+    <div class="card-left">
+      <span class="rank">9</span>
+      <div class="ticker-block">
+        <div class="ticker-row">
+          <span class="ticker">NVAX</span>
+          <span class="market-tag">US</span>
+          <span class="price-tag" style="color:#ef4444">$7.70 -4.0%</span>
+        </div>
+        <span class="company">Novavax, Inc.</span>
+        <span class="sector-tag">Healthcare</span>
+      </div>
+    </div>
+    <div class="score-block">
+      <span class="score-num" style="color:#ef4444">28</span>
+      <span class="score-lbl">Score</span>
+      <div class="score-track"><div class="score-fill" style="width:28%;background:#ef4444"></div></div>
+    </div>
+  </div>
+  <div class="metrics-row">
+    <div class="metric-box" style="--mc:#ef4444">
+      <span class="m-val">30.0%</span>
+      <span class="m-lbl">Short Float</span>
+    </div>
+    <div class="metric-box" style="--mc:#ef4444">
+      <span class="m-val">10.1d</span>
+      <span class="m-lbl">Days to Cover</span>
+    </div>
+    <div class="metric-box" style="--mc:#94a3b8">
+      <span class="m-val">1.1×</span>
+      <span class="m-lbl">Volumen</span>
+    </div>
+  </div>
+  <div class="driver-row">
+    <p class="driver-text">Short Float von 30.0 % liegt deutlich über dem Marktdurchschnitt. Die Short Ratio von 10.1 Tagen zeigt, dass Leerverkäufer mehrere Handelstage zum Eindecken benötigen würden – dies verstärkt den Squeeze-Druck. Der Kursrückgang von -4.0 % könnte das Short-Interesse kurzfristig erhöhen.</p>
+    <span class="risk-badge" style="color:#f59e0b;border-color:#f59e0b55;background:#f59e0b22">MITTEL</span>
+  </div>
+  <button class="news-btn" onclick="toggleNews(9)" id="nb9" aria-expanded="false">
+    <span id="nb-icon9">▼</span> Nachrichten anzeigen
+  </button>
+  <div class="news-panel" id="np9" hidden>
+    <div class="news-items"><div class="ni"><a href="https://finance.yahoo.com/sectors/healthcare/articles/amn-healthcare-services-davita-bristol-004020560.html" target="_blank" rel="noopener noreferrer">Die Aktien von AMN Healthcare Services, DaVita, Bristol-Myers Squibb, Novavax und AbbVie stürzen ein – was Sie wissen müssen</a><span class="ni-meta">StockStory · 03.04.2026 00:40</span></div><div class="ni"><a href="https://finance.yahoo.com/markets/stocks/articles/novavax-nvax-stock-dips-while-214503747.html" target="_blank" rel="noopener noreferrer">Die Aktien von Novavax (NVAX) fallen, während der Markt steigt: Wichtige Fakten</a><span class="ni-meta">Zacks · 01.04.2026 21:45</span></div></div>
+    <div class="news-summary-box">
+      <span class="summary-label">Zusammenfassung</span>
+      <p class="summary-text">Eine Reihe von Aktien fielen in der Nachmittagssitzung, nachdem Berichte enthüllten, dass die USA möglicherweise bis zu 100 % Zölle auf Importe von Marken- und patentierten Arzneimitteln erheben könnten.</p>
+    </div>
+    <table class="detail-table">
+      <tr><td>Marktkapitalisierung</td><td>$1.3 B</td></tr>
+      <tr><td>52W-Hoch / -Tief</td><td>$11.97 / $5.01</td></tr>
+      <tr><td>Ø Volumen 20T</td><td>4,171,855</td></tr>
+      <tr><td>Heutiges Volumen</td><td>4,658,000</td></tr>
+      <tr><td>Risiko-Detail</td><td style="color:#f59e0b">Hohes Short-Interesse (30.0 %) erhöht die Volatilität deutlich. Small-Cap ($1.3 B) mit eingeschränkter Liquidität.</td></tr>
+    </table>
+  </div>
+</article>
+
+<article class="card" id="c10">
+  <div class="card-top">
+    <div class="card-left">
+      <span class="rank">10</span>
+      <div class="ticker-block">
+        <div class="ticker-row">
+          <span class="ticker">RXRX</span>
+          <span class="market-tag">US</span>
+          <span class="price-tag" style="color:#22c55e">$3.11 +1.6%</span>
+        </div>
+        <span class="company">Recursion Pharmaceuticals, Inc.</span>
+        <span class="sector-tag">Healthcare</span>
+      </div>
+    </div>
+    <div class="score-block">
+      <span class="score-num" style="color:#ef4444">26</span>
+      <span class="score-lbl">Score</span>
+      <div class="score-track"><div class="score-fill" style="width:26%;background:#ef4444"></div></div>
+    </div>
+  </div>
+  <div class="metrics-row">
+    <div class="metric-box" style="--mc:#ef4444">
+      <span class="m-val">34.9%</span>
+      <span class="m-lbl">Short Float</span>
+    </div>
+    <div class="metric-box" style="--mc:#ef4444">
+      <span class="m-val">9.8d</span>
+      <span class="m-lbl">Days to Cover</span>
+    </div>
+    <div class="metric-box" style="--mc:#94a3b8">
+      <span class="m-val">0.7×</span>
+      <span class="m-lbl">Volumen</span>
+    </div>
+  </div>
+  <div class="driver-row">
+    <p class="driver-text">Mit 34.9 % Short Float ist das Leerverkaufsinteresse sehr hoch. Die Short Ratio von 9.8 Tagen zeigt, dass Leerverkäufer mehrere Handelstage zum Eindecken benötigen würden – dies verstärkt den Squeeze-Druck.</p>
+    <span class="risk-badge" style="color:#f59e0b;border-color:#f59e0b55;background:#f59e0b22">MITTEL</span>
+  </div>
+  <button class="news-btn" onclick="toggleNews(10)" id="nb10" aria-expanded="false">
+    <span id="nb-icon10">▼</span> Nachrichten anzeigen
+  </button>
+  <div class="news-panel" id="np10" hidden>
+    <div class="news-items"><div class="ni"><a href="https://finance.yahoo.com/markets/stocks/articles/recursion-pharmaceuticals-rxrx-beats-stock-215004711.html" target="_blank" rel="noopener noreferrer">Recursion Pharmaceuticals (RXRX) übertrifft den Aufschwung am Aktienmarkt: Was Anleger wissen müssen</a><span class="ni-meta">Zacks · 02.04.2026 21:50</span></div><div class="ni"><a href="https://finance.yahoo.com/sectors/healthcare/articles/expanded-citeline-data-partnership-cmo-081123378.html" target="_blank" rel="noopener noreferrer">Erweiterte Citeline-Datenpartnerschaft und CMO-Übergang könnten für Recursion Pharmaceuticals (RXRX) bahnbrechend sein</a><span class="ni-meta">Simply Wall St. · 02.04.2026 08:11</span></div></div>
+    <div class="news-summary-box">
+      <span class="summary-label">Zusammenfassung</span>
+      <p class="summary-text">Recursion Pharmaceuticals (RXRX) erreichte zum Schluss des letzten Handelstages 3,11 $, was einer Veränderung von +1,63 % im Vergleich zum letzten Schlusskurs entspricht.</p>
+    </div>
+    <table class="detail-table">
+      <tr><td>Marktkapitalisierung</td><td>$1.6 B</td></tr>
+      <tr><td>52W-Hoch / -Tief</td><td>$7.18 / $2.80</td></tr>
+      <tr><td>Ø Volumen 20T</td><td>13,677,215</td></tr>
+      <tr><td>Heutiges Volumen</td><td>9,276,300</td></tr>
+      <tr><td>Risiko-Detail</td><td style="color:#f59e0b">Hohes Short-Interesse (34.9 %) erhöht die Volatilität deutlich. Small-Cap ($1.6 B) mit eingeschränkter Liquidität.</td></tr>
     </table>
   </div>
 </article>
