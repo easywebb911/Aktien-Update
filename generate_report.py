@@ -334,13 +334,22 @@ def get_yahoo_news(ticker: str, n: int = 2) -> list[dict]:
                 if pub_ts else ""
             )
             title_orig = content.get("title") or item.get("title") or ""
-            # Raw summary / description from the article (if provided by yfinance)
+            # Collect every candidate field that might carry article body text.
+            # yfinance uses different field names across versions.
             raw_summary = (
-                content.get("summary")
+                content.get("body")
+                or content.get("summary")
                 or content.get("description")
+                or content.get("snippet")
+                or item.get("body")
                 or item.get("summary")
+                or item.get("description")
+                or item.get("snippet")
                 or ""
             ).strip()
+            # If the "summary" is just a copy of the title, discard it.
+            if raw_summary and raw_summary.strip(".").strip() == title_orig.strip(".").strip():
+                raw_summary = ""
 
             news.append({
                 "title":       _translate(title_orig) if title_orig else "",
@@ -464,18 +473,43 @@ def news_summary(news_list: list[dict]) -> str:
     if not news_list:
         return "Keine aktuellen Nachrichten verfügbar."
     top = news_list[0]
-    # Prefer the raw English summary field (longer text) for translation
+
+    # 1. Best case: article has a real body/summary – translate and return it fully.
     raw = top.get("summary_raw", "").strip()
-    if raw and len(raw) > 80:
-        translated = _translate(raw[:2000])
-        if translated and len(translated) > 40:
-            return translated  # no truncation – show complete summary
-    # Fallback: translate the headline of the top article into a complete sentence
-    title_orig = top.get("title_orig") or top.get("title", "")
-    if not title_orig:
+    if raw and len(raw) > 100:
+        translated = _translate(raw[:2500])
+        if translated and len(translated) > 60:
+            return translated
+
+    # 2. No article body available (common with yfinance).
+    #    Build a meaningful German-language synthesis from all available titles
+    #    plus publisher context so the reader gets genuine orientation.
+    titles_orig = [
+        (n.get("title_orig") or n.get("title", "")).rstrip(".")
+        for n in news_list
+        if n.get("title_orig") or n.get("title")
+    ]
+    if not titles_orig:
         return "Keine Nachrichteninhalte verfügbar."
-    translated = _translate(title_orig)
-    return translated if translated else title_orig
+
+    if len(titles_orig) == 1:
+        to_translate = titles_orig[0]
+    else:
+        # Combine both headlines into one coherent sentence for the translator
+        to_translate = f"{titles_orig[0]}. Weitere aktuelle Meldung: {titles_orig[1]}"
+
+    translated = _translate(to_translate[:2500])
+    result = translated if translated else to_translate
+
+    # Append source/date so the user knows the freshness and origin.
+    pub = top.get("publisher", "")
+    ts  = top.get("time", "")
+    if pub and ts:
+        result += f"  –  Quelle: {pub} ({ts})"
+    elif pub:
+        result += f"  –  Quelle: {pub}"
+
+    return result
 
 
 # ===========================================================================
@@ -581,7 +615,7 @@ def _card(i: int, s: dict) -> str:
       <tr><td>52W-Hoch / -Tief</td><td>${s.get('52w_high') or 0:.2f} / ${s.get('52w_low') or 0:.2f}</td></tr>
       <tr><td>Ø Volumen 20T</td><td>{s.get('avg_vol_20d',0):,.0f}</td></tr>
       <tr><td>Heutiges Volumen</td><td>{s.get('cur_vol',0):,.0f}</td></tr>
-      <tr><td>Risiko-Detail</td><td style="color:{risk_col}">{risk_txt[:120]}</td></tr>
+      <tr><td>Risiko-Detail</td><td style="color:{risk_col}">{risk_txt}</td></tr>
     </table>
   </div>
 </article>"""
