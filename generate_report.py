@@ -1671,6 +1671,10 @@ def main():
 
     log.info("Report written → index.html")
     log.info("Top 10: %s", [s["ticker"] for s in top10])
+    finra_count = sum(1 for s in top10 if s.get("finra_data"))
+    ftd_count_final = sum(1 for s in top10 if s.get("ftd_data"))
+    log.info("Supplementary data summary: FINRA=%d/10, Fintel FTD=%d/10",
+             finra_count, ftd_count_final)
 
 
 if __name__ == "__main__":
