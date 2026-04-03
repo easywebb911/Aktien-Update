@@ -1205,10 +1205,14 @@ async function dispatchWorkflow(token){{
 const POLL_MS    = 10000;
 const TIMEOUT_MS = 600000;
 let _pollStart = null, _pollToken = null, _pollTimer = null;
+let _timeInterval = null;
 function _elapsedStr(){{
   const s = Math.floor((Date.now()-_pollStart)/1000);
   const m = Math.floor(s/60), r = s%60;
   return m>0 ? `${{m}}:${{String(r).padStart(2,'0')}} min` : `${{s}} s`;
+}}
+function _stopTimeInterval(){{
+  if (_timeInterval){{ clearInterval(_timeInterval); _timeInterval=null; }}
 }}
 function _enableRecalcBtn(){{
   const btn = document.getElementById('btn-recalc');
@@ -1219,11 +1223,20 @@ function _showPollStatus(state){{
   el.style.display='block';
   if (state==='running'){{
     el.className='amsg amsg-poll-running';
-    el.innerHTML=`<span class="poll-dot poll-dot-run"></span>Neuberechnung läuft … ${{_elapsedStr()}}`;
+    el.innerHTML='<span class="poll-dot poll-dot-run"></span>Neuberechnung läuft … <span id="poll-elapsed"></span>';
+    const span = document.getElementById('poll-elapsed');
+    if (span) span.textContent = _elapsedStr();
+    _stopTimeInterval();
+    _timeInterval = setInterval(()=>{{
+      const sp = document.getElementById('poll-elapsed');
+      if (sp) sp.textContent = _elapsedStr();
+    }}, 1000);
   }} else if (state==='failure'){{
+    _stopTimeInterval();
     el.className='amsg amsg-error';
     el.innerHTML=`<span class="poll-dot poll-dot-err"></span>Workflow fehlgeschlagen — bitte GitHub Actions prüfen.`;
   }} else if (state==='timeout'){{
+    _stopTimeInterval();
     el.className='amsg amsg-error';
     el.textContent='Zeitüberschreitung — bitte Seite manuell neu laden.';
   }}
@@ -1259,10 +1272,10 @@ function _manualReload(){{
 }}
 window.addEventListener('beforeunload', ()=>{{
   if (_cdInterval){{ clearInterval(_cdInterval); _cdInterval = null; }}
+  _stopTimeInterval();
 }});
 async function _doPoll(){{
   if (Date.now()-_pollStart>TIMEOUT_MS) {{ _showPollStatus('timeout'); _enableRecalcBtn(); return; }}
-  _showPollStatus('running');
   try {{
     const res = await fetch(
       `https://api.github.com/repos/${{GH_OWNER}}/${{GH_REPO}}/actions/runs?workflow_id=${{GH_WORKFLOW}}&per_page=5&event=workflow_dispatch`,
@@ -1273,7 +1286,7 @@ async function _doPoll(){{
     const run = (data.workflow_runs||[]).find(w=>new Date(w.created_at).getTime()>=_pollStart-15000);
     if (!run) {{ _pollTimer=setTimeout(_doPoll,POLL_MS); return; }}
     if (run.status==='completed'){{
-      if (run.conclusion==='success') {{ _startSuccessCountdown(); }}
+      if (run.conclusion==='success') {{ _stopTimeInterval(); _startSuccessCountdown(); }}
       else {{ _showPollStatus('failure'); _enableRecalcBtn(); }}
     }} else {{
       _pollTimer=setTimeout(_doPoll,POLL_MS);
