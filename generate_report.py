@@ -654,28 +654,37 @@ def _card(i: int, s: dict) -> str:
       <span class="m-val">{rv:.1f}×</span>
       <span class="m-lbl">Volumen</span>
     </div>
-  </div>
-  <div class="driver-row">
-    <p class="driver-text">{sit_txt}</p>
-    <span class="risk-badge" style="color:{risk_col};border-color:{risk_col}55;background:{risk_col}22">{risk_lv}</span>
-  </div>
-  {no_data_html}
-  <button class="news-btn" onclick="toggleNews({i})" id="nb{i}" aria-expanded="false">
-    <span id="nb-icon{i}">▼</span> Nachrichten anzeigen
-  </button>
-  <div class="news-panel" id="np{i}" hidden>
-    <div class="news-items">{news_html}</div>
-    <div class="news-summary-box">
-      <span class="summary-label">Zusammenfassung</span>
-      <p class="summary-text">{news_sum}</p>
+    <div class="metric-box" style="--mc:{chg_col}">
+      <span class="m-val">{chg_str}</span>
+      <span class="m-lbl">Momentum</span>
     </div>
-    <table class="detail-table">
-      <tr><td>Marktkapitalisierung</td><td>{fmt_cap(cap_val)}</td></tr>
-      <tr><td>52W-Hoch / -Tief</td><td>${s.get('52w_high') or 0:.2f} / ${s.get('52w_low') or 0:.2f}</td></tr>
-      <tr><td>Ø Volumen 20T</td><td>{s.get('avg_vol_20d',0):,.0f}</td></tr>
-      <tr><td>Heutiges Volumen</td><td>{s.get('cur_vol',0):,.0f}</td></tr>
-      <tr><td>Risiko-Detail</td><td style="color:{risk_col}">{risk_txt}</td></tr>
-    </table>
+  </div>
+  <button class="details-btn" onclick="toggleDetails({i})" id="db{i}" aria-expanded="false">
+    <span class="details-arrow" id="da{i}">▾</span><span id="dl{i}"> Details anzeigen</span>
+  </button>
+  <div class="details-body" id="dd{i}">
+    <div class="driver-row">
+      <p class="driver-text">{sit_txt}</p>
+      <span class="risk-badge" style="color:{risk_col};border-color:{risk_col}55;background:{risk_col}22">Risiko: {risk_lv}</span>
+    </div>
+    {no_data_html}
+    <button class="news-btn" onclick="toggleNews({i})" id="nb{i}" aria-expanded="false">
+      <span id="nb-icon{i}">▼</span> Nachrichten anzeigen
+    </button>
+    <div class="news-panel" id="np{i}" hidden>
+      <div class="news-items">{news_html}</div>
+      <div class="news-summary-box">
+        <span class="summary-label">Zusammenfassung</span>
+        <p class="summary-text">{news_sum}</p>
+      </div>
+      <table class="detail-table">
+        <tr><td>Marktkapitalisierung</td><td>{fmt_cap(cap_val)}</td></tr>
+        <tr><td>52W-Hoch / -Tief</td><td>${s.get('52w_high') or 0:.2f} / ${s.get('52w_low') or 0:.2f}</td></tr>
+        <tr><td>Ø Volumen 20T</td><td>{s.get('avg_vol_20d',0):,.0f}</td></tr>
+        <tr><td>Heutiges Volumen</td><td>{s.get('cur_vol',0):,.0f}</td></tr>
+        <tr><td>Risiko-Detail</td><td style="color:{risk_col}">{risk_txt}</td></tr>
+      </table>
+    </div>
   </div>
 </article>"""
 
@@ -821,7 +830,7 @@ a{{color:var(--accent);text-decoration:none}}
 .score-track{{width:60px;height:5px;background:var(--brd);border-radius:3px}}
 .score-fill{{height:100%;border-radius:3px;transition:width .3s}}
 /* ── Metrics ── */
-.metrics-row{{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding:0 12px 12px}}
+.metrics-row{{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;padding:0 12px 12px}}
 .metric-box{{background:var(--bg-met);border:1px solid var(--brd);border-radius:10px;
   padding:10px 6px;text-align:center;border-top:3px solid var(--mc,#94a3b8)}}
 .m-val{{display:block;font-size:1.1rem;font-weight:800;color:var(--mc,#94a3b8)}}
@@ -829,10 +838,22 @@ a{{color:var(--accent);text-decoration:none}}
   letter-spacing:.3px;margin-top:2px}}
 /* ── Driver row ── */
 .driver-row{{display:flex;align-items:flex-start;justify-content:space-between;
-  gap:10px;padding:0 12px 12px}}
+  gap:10px;padding:12px 12px 10px}}
 .driver-text{{font-size:.93rem;color:var(--txt-sub);line-height:1.55;flex:1}}
 .risk-badge{{flex-shrink:0;padding:4px 10px;border-radius:20px;font-size:.7rem;
   font-weight:700;letter-spacing:.4px;border:1px solid;white-space:nowrap;margin-top:1px}}
+/* ── Details dropdown button ── */
+.details-btn{{width:100%;min-height:44px;background:var(--bg-met);
+  border:none;border-top:1px solid var(--brd);border-bottom:none;
+  color:var(--txt-sub);font-size:.82rem;font-weight:600;cursor:pointer;
+  padding:0 14px;text-align:left;display:flex;align-items:center;gap:6px}}
+.details-btn:hover{{background:var(--brd)}}
+.details-arrow{{display:inline-block;font-size:.75rem;transition:transform .2s ease;
+  flex-shrink:0}}
+/* ── Collapsible details body ── */
+.details-body{{max-height:0;overflow:hidden;
+  transition:max-height .25s ease}}
+.details-body.open{{max-height:1200px}}
 /* ── News toggle button ── */
 .news-btn{{width:100%;min-height:44px;background:var(--bg-met);border:none;
   border-top:1px solid var(--brd);color:var(--accent);font-size:.82rem;
@@ -877,11 +898,9 @@ a{{color:var(--accent);text-decoration:none}}
   .info-inner{{grid-template-columns:repeat(3,1fr)}}
   /* Cards: fluid auto-fill, min 340px per card, 16px gap, full width */
   .cards-grid{{grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:16px}}
+  .metrics-row{{grid-template-columns:repeat(4,1fr)}}
   .wrap{{padding:16px 16px 32px}}
   .footer{{padding:16px 16px 32px}}
-  /* News panels always visible; toggle button hidden */
-  .news-panel{{display:block}}
-  .news-btn{{display:none}}
   /* Slightly smaller body text */
   .driver-text{{font-size:.82rem}}
   .ni,.no-news,.summary-text{{font-size:.82rem}}
@@ -941,9 +960,10 @@ a{{color:var(--accent);text-decoration:none}}
       <div class="info-box">
         <h4>Score (0–100)</h4>
         <ul>
-          <li><strong>40 % Short Float</strong> – Anteil leerverkaufter Aktien; je höher, desto stärker der Squeeze-Druck</li>
-          <li><strong>30 % Days to Cover</strong> – Tage zum vollständigen Eindecken; hohe Werte erhöhen Kapitulationsrisiko</li>
-          <li><strong>30 % Rel. Volumen</strong> – Heutiges vs. 20-Tage-Durchschnitt; Spitzen signalisieren Kaufinteresse</li>
+          <li><strong>35 % Short Float</strong> – Anteil leerverkaufter Aktien; je höher, desto stärker der Squeeze-Druck</li>
+          <li><strong>25 % Days to Cover</strong> – Tage zum vollständigen Eindecken; hohe Werte erhöhen Kapitulationsrisiko</li>
+          <li><strong>25 % Rel. Volumen</strong> – Heutiges vs. 20-Tage-Durchschnitt; Spitzen signalisieren Kaufinteresse</li>
+          <li><strong>15 % Kursmomentum</strong> – Kursveränderung (5 Tage); steigende Kurse erhöhen den Squeeze-Druck</li>
         </ul>
       </div>
       <div class="info-box">
@@ -1016,6 +1036,17 @@ function toggleTheme(){{
   html.setAttribute('data-theme', next);
   localStorage.setItem('theme', next);
   document.getElementById('theme-btn').textContent = next === 'dark' ? '☀️' : '🌙';
+}}
+// ── Details dropdown ─────────────────────────────────────────────────────
+function toggleDetails(id){{
+  const body  = document.getElementById('dd' + id);
+  const arrow = document.getElementById('da' + id);
+  const label = document.getElementById('dl' + id);
+  const btn   = document.getElementById('db' + id);
+  const open  = body.classList.toggle('open');
+  arrow.style.transform = open ? 'rotate(180deg)' : '';
+  label.textContent = open ? ' Details ausblenden' : ' Details anzeigen';
+  btn.setAttribute('aria-expanded', open);
 }}
 // ── News toggle ───────────────────────────────────────────────────────────
 function toggleNews(id){{
