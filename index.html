@@ -74,7 +74,9 @@ a{color:var(--accent);text-decoration:none}
 /* ── Container – fluid, no max-width ── */
 .wrap{padding:16px 14px 32px}
 /* ── Stats bar ── */
-.stats-bar{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:14px}
+.stats-bar{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:14px}
+.stat-title{grid-column:1 / -1;background:#042C53;border-radius:10px;
+  padding:11px 8px;text-align:center;color:#E6F1FB;font-size:.94rem;font-weight:500}
 .stat-box{background:var(--bg-card);border:1px solid var(--brd);border-radius:10px;
   padding:10px 8px;text-align:center}
 .stat-val{display:block;font-size:1.05rem;font-weight:800;color:var(--accent)}
@@ -92,12 +94,21 @@ a{color:var(--accent);text-decoration:none}
 /* Mobile: single column; tablet+ overrides to 3 */
 .info-inner{display:grid;grid-template-columns:1fr;gap:10px;padding:0 12px 14px}
 .info-box{background:var(--bg-met);border-radius:8px;padding:10px 12px}
+.info-box--full{grid-column:1 / -1}
 .info-box h4{font-size:.67rem;text-transform:uppercase;letter-spacing:.5px;
   color:var(--accent);margin-bottom:7px}
 .info-box ul{list-style:none;display:flex;flex-direction:column;gap:4px}
 .info-box li{font-size:.77rem;color:var(--txt-sub);line-height:1.5;
   padding-left:12px;position:relative}
 .info-box li::before{content:"–";position:absolute;left:0;color:var(--accent)}
+/* ── Color legend ── */
+.color-legend{display:grid;grid-template-columns:1fr;gap:12px;margin-top:2px}
+.cl-name{display:block;font-size:.67rem;text-transform:uppercase;letter-spacing:.5px;
+  color:var(--accent);margin-bottom:5px;font-weight:700}
+.color-bar{display:flex;border-radius:6px;overflow:hidden;height:22px;margin-bottom:6px}
+.cb-seg{flex:1;display:flex;align-items:center;justify-content:center;
+  font-size:.6rem;font-weight:700;color:#fff;text-shadow:0 1px 2px rgba(0,0,0,.45)}
+.cl-desc{font-size:.77rem;color:var(--txt-sub);line-height:1.5;margin:0}
 .info-box li strong{color:var(--txt)}
 /* ── Disclaimer ── */
 .disc{background:var(--bg-met);border:1px solid var(--brd);border-radius:8px;
@@ -195,9 +206,11 @@ a{color:var(--accent);text-decoration:none}
   .hdr-icons{order:4}
   /* Info panel: 3 columns */
   .info-inner{grid-template-columns:repeat(3,1fr)}
+  .color-legend{grid-template-columns:repeat(2,1fr)}
   /* Cards: fluid auto-fill, min 340px per card, 16px gap, full width */
   .cards-grid{grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:16px}
   .metrics-row{grid-template-columns:repeat(4,1fr)}
+  .stats-bar{grid-template-columns:repeat(4,1fr)}
   .wrap{padding:16px 16px 32px}
   .footer{padding:16px 16px 32px}
   /* Slightly smaller body text */
@@ -220,7 +233,7 @@ a{color:var(--accent);text-decoration:none}
 <header class="app-hdr">
   <div class="hdr-main">
     <span class="app-title">Squeeze <span>Report</span></span>
-    <span class="hdr-ts">Stand: 03.04.2026, 20:09 Uhr</span>
+    <span class="hdr-ts">Stand: 03.04.2026, 20:37 Uhr</span>
     <div class="hdr-btns">
       <button id="btn-reload" class="btn btn-g" onclick="reloadPage()">&#8635; Neu laden</button>
       <button id="btn-recalc" class="btn btn-b" onclick="triggerWorkflow()">&#9881; Neu berechnen</button>
@@ -247,10 +260,11 @@ a{color:var(--accent);text-decoration:none}
 
 <main class="wrap">
   <div class="stats-bar">
-    <div class="stat-box"><span class="stat-val">Top 10</span><span class="stat-lbl">Kandidaten</span></div>
+    <div class="stat-title">Top Ten Squeeze-Kandidaten</div>
     <div class="stat-box"><span class="stat-val">23.9%</span><span class="stat-lbl">Ø Short Float</span></div>
-    <div class="stat-box"><span class="stat-val">8.4d</span><span class="stat-lbl">Ø Days Cover</span></div>
+    <div class="stat-box"><span class="stat-val">8.4d</span><span class="stat-lbl">Ø Days to Cover</span></div>
     <div class="stat-box"><span class="stat-val">2.8×</span><span class="stat-lbl">Ø Volumen</span></div>
+    <div class="stat-box"><span class="stat-val" style="color:#22c55e">+7.4%</span><span class="stat-lbl">Ø Kursmomentum</span></div>
   </div>
 
   <details class="info-panel">
@@ -280,8 +294,48 @@ a{color:var(--accent);text-decoration:none}
           <li><strong>Yahoo Finance Screener</strong> – Most Shorted, Small Cap Gainers, Aggressive Small Caps</li>
           <li><strong>Märkte:</strong> 🇺🇸 US · 🇩🇪 DE · 🇬🇧 GB · 🇨🇦 CA</li>
           <li><strong>Anreicherung:</strong> yfinance (Short Float, Days to Cover, Volumen, Kurs)</li>
-          <li><strong>Farben:</strong> <span style="color:#ef4444">■</span> Hoch &nbsp;<span style="color:#f59e0b">■</span> Mittel &nbsp;<span style="color:#22c55e">■</span> Niedrig</li>
         </ul>
+      </div>
+      <div class="info-box info-box--full">
+        <h4>Farbcodierung der Kennzahlen</h4>
+        <div class="color-legend">
+          <div>
+            <span class="cl-name">Short Float</span>
+            <div class="color-bar">
+              <div class="cb-seg" style="background:#22c55e">&lt;15 %</div>
+              <div class="cb-seg" style="background:#f59e0b">15–29 %</div>
+              <div class="cb-seg" style="background:#ef4444">≥ 30 %</div>
+            </div>
+            <p class="cl-desc">Rot bedeutet hohen Leerverkaufsdruck — je mehr Aktien leerverkauft sind, desto stärker der potenzielle Squeeze.</p>
+          </div>
+          <div>
+            <span class="cl-name">Days to Cover</span>
+            <div class="color-bar">
+              <div class="cb-seg" style="background:#22c55e">&lt;3 d</div>
+              <div class="cb-seg" style="background:#f59e0b">3–7 d</div>
+              <div class="cb-seg" style="background:#ef4444">≥ 8 d</div>
+            </div>
+            <p class="cl-desc">Rot bedeutet, dass Leerverkäufer viele Tage brauchen würden, um ihre Positionen zu schließen — das erhöht den Druck bei steigendem Kurs.</p>
+          </div>
+          <div>
+            <span class="cl-name">Rel. Volumen</span>
+            <div class="color-bar">
+              <div class="cb-seg" style="background:#ef4444">&lt;1,5×</div>
+              <div class="cb-seg" style="background:#f59e0b">1,5–2,9×</div>
+              <div class="cb-seg" style="background:#22c55e">≥ 3×</div>
+            </div>
+            <p class="cl-desc">Grün bedeutet ungewöhnlich hohes Handelsvolumen — ein Zeichen für aktiven Kaufdruck, der einen Squeeze auslösen kann.</p>
+          </div>
+          <div>
+            <span class="cl-name">Kursmomentum</span>
+            <div class="color-bar">
+              <div class="cb-seg" style="background:#ef4444">&lt;−5 %</div>
+              <div class="cb-seg" style="background:#f59e0b">−5 bis +5 %</div>
+              <div class="cb-seg" style="background:#22c55e">≥ +5 %</div>
+            </div>
+            <p class="cl-desc">Grün bedeutet, dass der Kurs bereits steigt — Leerverkäufer geraten damit unter Druck, ihre Positionen schnell zu schließen.</p>
+          </div>
+        </div>
       </div>
     </div>
   </details>
@@ -378,11 +432,11 @@ a{color:var(--accent);text-decoration:none}
     </div>
   </div>
   <div class="metrics-row">
-    <div class="metric-box" style="--mc:#ef4444">
+    <div class="metric-box" style="--mc:#f59e0b">
       <span class="m-val">22.4%</span>
       <span class="m-lbl">Short Float</span>
     </div>
-    <div class="metric-box" style="--mc:#ef4444">
+    <div class="metric-box" style="--mc:#f59e0b">
       <span class="m-val">7.9d</span>
       <span class="m-lbl">Days to Cover</span>
     </div>
@@ -445,7 +499,7 @@ a{color:var(--accent);text-decoration:none}
     </div>
   </div>
   <div class="metrics-row">
-    <div class="metric-box" style="--mc:#ef4444">
+    <div class="metric-box" style="--mc:#f59e0b">
       <span class="m-val">25.3%</span>
       <span class="m-lbl">Short Float</span>
     </div>
@@ -475,10 +529,10 @@ a{color:var(--accent);text-decoration:none}
       <span id="nb-icon3">▼</span> Nachrichten anzeigen
     </button>
     <div class="news-panel" id="np3" hidden>
-      <div class="news-items"><div class="ni"><a href="https://app.moby.co/home/research/tools/earningsCalendar/earnings-omeros-corporation-q4-2025-earnings-call-summary?utm_source=yahoo_finance&utm_medium=rss" target="_blank" rel="noopener noreferrer">Zusammenfassung der Gewinnmitteilungen der Omeros Corporation für das 4. Quartal 2025</a><span class="ni-meta">Moby · 01.04.2026 12:30</span></div><div class="ni"><a href="https://finance.yahoo.com/sectors/healthcare/articles/omeros-corp-omer-q4-2025-030227210.html" target="_blank" rel="noopener noreferrer">Omeros Corp (OMER) Höhepunkte der Telefonkonferenz zum 4. Quartal 2025: Eine Trendwende mit strategischen Deals und FDA ...</a><span class="ni-meta">GuruFocus.com · 01.04.2026 03:02</span></div></div>
+      <div class="news-items"><div class="ni"><a href="https://app.moby.co/home/research/tools/earningsCalendar/earnings-omeros-corporation-q4-2025-earnings-call-summary?utm_source=yahoo_finance&utm_medium=rss" target="_blank" rel="noopener noreferrer">Zusammenfassung der Gewinnmitteilung der Omeros Corporation für das 4. Quartal 2025</a><span class="ni-meta">Moby · 01.04.2026 12:30</span></div><div class="ni"><a href="https://finance.yahoo.com/sectors/healthcare/articles/omeros-corp-omer-q4-2025-030227210.html" target="_blank" rel="noopener noreferrer">Omeros Corp (OMER) Höhepunkte der Telefonkonferenz zum 4. Quartal 2025: Eine Trendwende mit strategischen Deals und FDA ...</a><span class="ni-meta">GuruFocus.com · 01.04.2026 03:02</span></div></div>
       <div class="news-summary-box">
         <span class="summary-label">Zusammenfassung</span>
-        <p class="summary-text">Zusammenfassung der Gewinnmitteilung der Omeros Corporation für das 4. Quartal 2025. Weitere aktuelle Meldung: Omeros Corp (OMER) Q4 2025 Earnings Call Highlights: Eine Trendwende mit strategischen Deals und FDA  –  Quelle: Moby (01.04.2026 12:30)</p>
+        <p class="summary-text">Zusammenfassung der Gewinnmitteilungen der Omeros Corporation für das 4. Quartal 2025. Weitere aktuelle Meldung: Omeros Corp (OMER) Q4 2025 Earnings Call Highlights: Eine Trendwende mit strategischen Deals und FDA  –  Quelle: Moby (01.04.2026 12:30)</p>
       </div>
       <table class="detail-table">
         <tr><td>Marktkapitalisierung</td><td>$773 M</td></tr>
@@ -520,7 +574,7 @@ a{color:var(--accent);text-decoration:none}
       <span class="m-val">11.8d</span>
       <span class="m-lbl">Days to Cover</span>
     </div>
-    <div class="metric-box" style="--mc:#22c55e">
+    <div class="metric-box" style="--mc:#f59e0b">
       <span class="m-val">2.8×</span>
       <span class="m-lbl">Volumen</span>
     </div>
@@ -721,7 +775,7 @@ a{color:var(--accent);text-decoration:none}
       <span class="m-val">5.2d</span>
       <span class="m-lbl">Days to Cover</span>
     </div>
-    <div class="metric-box" style="--mc:#22c55e">
+    <div class="metric-box" style="--mc:#f59e0b">
       <span class="m-val">2.5×</span>
       <span class="m-lbl">Volumen</span>
     </div>
@@ -780,7 +834,7 @@ a{color:var(--accent);text-decoration:none}
     </div>
   </div>
   <div class="metrics-row">
-    <div class="metric-box" style="--mc:#ef4444">
+    <div class="metric-box" style="--mc:#f59e0b">
       <span class="m-val">20.0%</span>
       <span class="m-lbl">Short Float</span>
     </div>
@@ -788,7 +842,7 @@ a{color:var(--accent);text-decoration:none}
       <span class="m-val">5.8d</span>
       <span class="m-lbl">Days to Cover</span>
     </div>
-    <div class="metric-box" style="--mc:#22c55e">
+    <div class="metric-box" style="--mc:#f59e0b">
       <span class="m-val">2.4×</span>
       <span class="m-lbl">Volumen</span>
     </div>
@@ -847,11 +901,11 @@ a{color:var(--accent);text-decoration:none}
     </div>
   </div>
   <div class="metrics-row">
-    <div class="metric-box" style="--mc:#ef4444">
+    <div class="metric-box" style="--mc:#f59e0b">
       <span class="m-val">22.4%</span>
       <span class="m-lbl">Short Float</span>
     </div>
-    <div class="metric-box" style="--mc:#22c55e">
+    <div class="metric-box" style="--mc:#f59e0b">
       <span class="m-val">4.0d</span>
       <span class="m-lbl">Days to Cover</span>
     </div>
@@ -901,7 +955,7 @@ a{color:var(--accent);text-decoration:none}
         <div class="ticker-row">
           <span class="ticker">OSB.L</span>
           <span class="market-tag">🇬🇧 GB</span>
-          <span class="price-tag" style="color:#ef4444">$513.00 -5.0%</span>
+          <span class="price-tag" style="color:#f59e0b">$513.00 -5.0%</span>
         </div>
         <span class="company">OSB Group Plc</span>
         <span class="sector-tag">Financial Services</span>
@@ -922,11 +976,11 @@ a{color:var(--accent);text-decoration:none}
       <span class="m-val">—</span>
       <span class="m-lbl">Days to Cover</span>
     </div>
-    <div class="metric-box" style="--mc:#22c55e">
+    <div class="metric-box" style="--mc:#f59e0b">
       <span class="m-val">2.8×</span>
       <span class="m-lbl">Volumen</span>
     </div>
-    <div class="metric-box" style="--mc:#ef4444">
+    <div class="metric-box" style="--mc:#f59e0b">
       <span class="m-val">-5.0%</span>
       <span class="m-lbl">Momentum</span>
     </div>
@@ -944,7 +998,7 @@ a{color:var(--accent);text-decoration:none}
       <span id="nb-icon10">▼</span> Nachrichten anzeigen
     </button>
     <div class="news-panel" id="np10" hidden>
-      <div class="news-items"><div class="ni"><a href="https://finance.yahoo.com/markets/stocks/articles/osb-group-lse-osb-investment-150726441.html" target="_blank" rel="noopener noreferrer">Wie sich die Investitionsgeschichte der OSB Group (LSE:OSB) durch neue Analystenmeinungen verändert</a><span class="ni-meta">Simply Wall St. · 31.03.2026 15:07</span></div><div class="ni"><a href="https://uk.finance.yahoo.com/news/birmingham-best-buy-let-area-110000366.html" target="_blank" rel="noopener noreferrer">Birmingham ist das beste Kauf- und Mietgebiet für die Vermietung an Familien. Hier erfahren Sie, warum</a><span class="ni-meta">The Telegraph · 26.03.2026 11:00</span></div></div>
+      <div class="news-items"><div class="ni"><a href="https://finance.yahoo.com/markets/stocks/articles/osb-group-lse-osb-investment-150726441.html" target="_blank" rel="noopener noreferrer">Wie sich die Investitionsgeschichte der OSB Group (LSE:OSB) durch neue Analystenmeinungen verändert</a><span class="ni-meta">Simply Wall St. · 31.03.2026 15:07</span></div><div class="ni"><a href="https://uk.finance.yahoo.com/news/birmingham-best-buy-let-area-110000366.html" target="_blank" rel="noopener noreferrer">Birmingham ist die beste Kauf- und Mietgegend für die Vermietung an Familien. Hier erfahren Sie, warum</a><span class="ni-meta">The Telegraph · 26.03.2026 11:00</span></div></div>
       <div class="news-summary-box">
         <span class="summary-label">Zusammenfassung</span>
         <p class="summary-text">Das jüngste Analysten-Update der OSB Group senkt die zentrale Fair-Value-Schätzung von 6,97 £ auf 6,83 £, eine kleine Neueinstellung, die immer noch unter einem optimistischeren Kursziel von 7,30 £ aus bullischen Untersuchungen liegt. Diese Lücke spiegelt eine Meinungsverschiedenheit wider, wobei einige Analysten an einer Übergewichtung festhalten, während andere sich auf die vorsichtigere Seite des revidierten Niveaus von 6,83 £ stützen. Wenn Sie weiterlesen, werden Sie sehen, wie Sie diese sich entwickelnde Erzählung verstehen und was sie für Ihre eigene Sicht auf die Aktien bedeuten könnte. Bleiben Sie auf dem Laufenden, denn...</p>
