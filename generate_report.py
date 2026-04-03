@@ -779,10 +779,9 @@ a{{color:var(--accent);text-decoration:none}}
 /* ── Container – fluid, no max-width ── */
 .wrap{{padding:16px 14px 32px}}
 /* ── Stats bar ── */
-.stats-section{{margin-bottom:14px}}
-.stats-heading{{text-align:center;font-size:1.25rem;font-weight:500;
-  color:#1e3a5f;margin:0 0 12px}}
-.stats-bar{{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}}
+.stats-bar{{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:14px}}
+.stat-title{{grid-column:1 / -1;background:#042C53;border-radius:10px;
+  padding:11px 8px;text-align:center;color:#E6F1FB;font-size:.94rem;font-weight:500}}
 .stat-box{{background:var(--bg-card);border:1px solid var(--brd);border-radius:10px;
   padding:10px 8px;text-align:center}}
 .stat-val{{display:block;font-size:1.05rem;font-weight:800;color:var(--accent)}}
@@ -955,14 +954,12 @@ a{{color:var(--accent);text-decoration:none}}
 </header>
 
 <main class="wrap">
-  <div class="stats-section">
-    <p class="stats-heading">Top {n}</p>
-    <div class="stats-bar">
-      <div class="stat-box"><span class="stat-val">{avg_sf:.1f}%</span><span class="stat-lbl">Ø Short Float</span></div>
-      <div class="stat-box"><span class="stat-val">{avg_sr:.1f}d</span><span class="stat-lbl">Ø Days to Cover</span></div>
-      <div class="stat-box"><span class="stat-val">{avg_rv:.1f}×</span><span class="stat-lbl">Ø Volumen</span></div>
-      <div class="stat-box"><span class="stat-val" style="color:{avg_mom_col}">{avg_mom_str}</span><span class="stat-lbl">Ø Kursmomentum</span></div>
-    </div>
+  <div class="stats-bar">
+    <div class="stat-title">Top Ten Squeeze-Kandidaten</div>
+    <div class="stat-box"><span class="stat-val">{avg_sf:.1f}%</span><span class="stat-lbl">Ø Short Float</span></div>
+    <div class="stat-box"><span class="stat-val">{avg_sr:.1f}d</span><span class="stat-lbl">Ø Days to Cover</span></div>
+    <div class="stat-box"><span class="stat-val">{avg_rv:.1f}×</span><span class="stat-lbl">Ø Volumen</span></div>
+    <div class="stat-box"><span class="stat-val" style="color:{avg_mom_col}">{avg_mom_str}</span><span class="stat-lbl">Ø Kursmomentum</span></div>
   </div>
 
   <details class="info-panel">
