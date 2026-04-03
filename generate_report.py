@@ -91,8 +91,8 @@ _YF_SCREENERS: dict[str, list[str]] = {
     "US": ["most_shorted_stocks", "small_cap_gainers", "aggressive_small_caps"],
     "DE": ["most_shorted_stocks", "small_cap_gainers"],   # XETRA / Frankfurt
     "GB": ["most_shorted_stocks", "small_cap_gainers"],   # London Stock Exchange
-    "FR": ["small_cap_gainers"],                          # Euronext Paris
-    "NL": ["small_cap_gainers"],                          # Euronext Amsterdam
+    "FR": ["most_shorted_stocks", "small_cap_gainers"],   # Euronext Paris
+    "NL": ["most_shorted_stocks", "small_cap_gainers"],   # Euronext Amsterdam
     "CA": ["most_shorted_stocks", "small_cap_gainers"],   # Toronto Stock Exchange
 }
 
@@ -938,7 +938,7 @@ a{{color:var(--accent);text-decoration:none}}
           <li><strong>Short Float &gt; 15 %</strong> – Mindest-Leerverkaufsquote</li>
           <li><strong>Kurs &gt; $1</strong> – Ausschluss von Penny Stocks</li>
           <li><strong>Marktkapitalisierung &lt; $10 Mrd.</strong> – Small- &amp; Mid-Caps</li>
-          <li><strong>Märkte:</strong> US · DE · GB · CA</li>
+          <li><strong>Märkte:</strong> 🇺🇸 US · 🇩🇪 DE · 🇬🇧 GB · 🇫🇷 FR · 🇳🇱 NL · 🇨🇦 CA · 🇯🇵 JP · 🇭🇰 HK · 🇰🇷 KR</li>
         </ul>
       </div>
       <div class="info-box">
@@ -962,7 +962,7 @@ a{{color:var(--accent);text-decoration:none}}
 
 <footer class="footer">
   <p>Der Squeeze-Score ist ein rein rechnerischer Indikator und ersetzt keine individuelle Anlageberatung. Short-Squeeze-Kandidaten sind hochspekulative Investments mit erhöhtem Totalverlustrisiko. Nur mit kleinen Positionen und engem Stop-Loss handeln.</p>
-  <p>Automatisch generiert am {report_date} · Quellen: Yahoo Finance (US/DE/GB/CA), Finviz · Übersetzung: Google Translate</p>
+  <p>Automatisch generiert am {report_date} · Quellen: Yahoo Finance (US/DE/GB/FR/NL/CA/JP/HK/KR), Finviz · Übersetzung: Google Translate</p>
 </footer>
 
 <script>
