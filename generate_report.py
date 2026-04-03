@@ -61,6 +61,9 @@ MOM_ORANGE= -5.0   # %   −5–+5  → orange, <−5 → red
 FINRA_BONUS_MAX  = 5    # max bonus points for rising FINRA short interest
 FTD_BONUS_MAX    = 5    # max bonus points for elevated Fails-to-Deliver vs 30d avg
 FTD_FINTEL_LIMIT = 20   # max Fintel API requests per day (free tier)
+# ── FINRA short interest trend thresholds ────────────────────────────────────
+SI_TREND_UP_THRESHOLD   =  0.10   # ≥+10 % over 3 periods → steigend
+SI_TREND_DOWN_THRESHOLD = -0.10   # ≤−10 % → fallend; between → seitwärts
 
 
 # ===========================================================================
@@ -411,16 +414,18 @@ def get_yahoo_news(ticker: str, n: int = 2) -> list[dict]:
 # ===========================================================================
 
 def get_finra_short_interest(ticker: str) -> dict:
-    """Fetch official FINRA equity short interest (public API, no auth required).
-    Returns dict with short_interest, prev_short_interest, settlement_date or {}.
+    """Fetch last 3 FINRA equity short interest periods in one API call.
+    Returns dict with short_interest, prev_short_interest, settlement_date,
+    history (list newest→oldest), trend ('up'/'down'/'sideways'/'no_data'),
+    trend_pct (float, %). Returns {} on any failure.
     """
     url = "https://api.finra.org/data/group/equity/name/shortInterest"
     payload = {
         "compareFilters": [
             {"fieldName": "symbolCode", "compareType": "equal", "fieldValue": ticker.upper()}
         ],
-        "fields": ["symbolCode", "settlementDate", "shortInterest", "previousShortInterest"],
-        "limit": 2,
+        "fields": ["symbolCode", "settlementDate", "shortInterest"],
+        "limit": 3,
         "sortFields": ["-settlementDate"],
     }
     try:
@@ -432,11 +437,37 @@ def get_finra_short_interest(ticker: str) -> dict:
         data = r.json()
         if not isinstance(data, list) or not data:
             return {}
-        latest = data[0]
+
+        history = []
+        for rec in data[:3]:
+            si_val = int(rec.get("shortInterest") or 0)
+            if si_val:
+                history.append({"short_interest": si_val,
+                                 "settlement_date": rec.get("settlementDate", "")})
+        if not history:
+            return {}
+
+        # Trend: newest vs oldest available period
+        trend, trend_pct = "no_data", 0.0
+        if len(history) >= 2:
+            newest = history[0]["short_interest"]
+            oldest = history[-1]["short_interest"]
+            if oldest > 0:
+                trend_pct = (newest - oldest) / oldest
+                if trend_pct >= SI_TREND_UP_THRESHOLD:
+                    trend = "up"
+                elif trend_pct <= SI_TREND_DOWN_THRESHOLD:
+                    trend = "down"
+                else:
+                    trend = "sideways"
+
         return {
-            "short_interest":      int(latest.get("shortInterest") or 0),
-            "prev_short_interest": int(latest.get("previousShortInterest") or 0),
-            "settlement_date":     latest.get("settlementDate", ""),
+            "short_interest":      history[0]["short_interest"],
+            "prev_short_interest": history[1]["short_interest"] if len(history) >= 2 else 0,
+            "settlement_date":     history[0]["settlement_date"],
+            "history":             history,
+            "trend":               trend,
+            "trend_pct":           round(trend_pct * 100, 1),
         }
     except Exception as exc:
         log.debug("FINRA error for %s: %s", ticker, exc)
@@ -473,10 +504,11 @@ def score_bonus(stock: dict) -> float:
     """
     bonus = 0.0
     finra = stock.get("finra_data") or {}
-    si, psi = finra.get("short_interest", 0), finra.get("prev_short_interest", 0)
-    if si and psi and psi > 0 and si > psi:
-        increase = (si - psi) / psi
-        bonus += min(increase / 0.10, 1.0) * FINRA_BONUS_MAX
+    trend = finra.get("trend", "no_data")
+    if trend == "up":
+        bonus += FINRA_BONUS_MAX
+    elif trend == "sideways":
+        bonus += FINRA_BONUS_MAX / 2
 
     ftd = stock.get("ftd_data") or {}
     ftd_cur, ftd_avg = ftd.get("ftd_latest", 0), ftd.get("ftd_avg_30d", 0)
@@ -485,6 +517,24 @@ def score_bonus(stock: dict) -> float:
         bonus += min(ratio - 1.0, 1.0) * FTD_BONUS_MAX
 
     return round(min(bonus, float(FINRA_BONUS_MAX + FTD_BONUS_MAX)), 2)
+
+
+def _fmt_si_date(date_str: str) -> str:
+    """Convert FINRA settlement date 'YYYY-MM-DD' to German 'DD.MM.YYYY'."""
+    if date_str and len(date_str) >= 10:
+        try:
+            return datetime.strptime(date_str[:10], "%Y-%m-%d").strftime("%d.%m.%Y")
+        except Exception:
+            pass
+    return date_str or "—"
+
+
+def _fmt_si_record(rec: dict) -> str:
+    """Format a FINRA history record as 'X,X Mio. (DD.MM.YYYY)'."""
+    si = rec.get("short_interest", 0)
+    if not si:
+        return "—"
+    return f"{si / 1_000_000:,.1f} Mio. ({_fmt_si_date(rec.get('settlement_date', ''))})"
 
 
 # ===========================================================================
@@ -704,6 +754,28 @@ def _card(i: int, s: dict) -> str:
     ftd_val = (s.get("ftd_data") or {}).get("ftd_latest")
     ftd_display = f"{ftd_val:,.0f}" if ftd_val else "—"
 
+    # SI trend badge + history
+    finra_d  = s.get("finra_data") or {}
+    si_trend = finra_d.get("trend", "no_data")
+    si_tpct  = finra_d.get("trend_pct", 0.0)
+    si_hist  = finra_d.get("history", [])
+    if si_trend == "up":
+        si_badge_html = '<span class="si-badge si-badge-up">↑</span>'
+        trend_html    = f'<span style="color:#22c55e">↑ Steigend +{abs(si_tpct):.1f} %</span>'
+    elif si_trend == "down":
+        si_badge_html = '<span class="si-badge si-badge-down">↓</span>'
+        trend_html    = f'<span style="color:#ef4444">↓ Fallend −{abs(si_tpct):.1f} %</span>'
+    elif si_trend == "sideways":
+        si_badge_html = '<span class="si-badge si-badge-side">→</span>'
+        sign = "+" if si_tpct >= 0 else "−"
+        trend_html    = f'<span style="color:#f59e0b">→ Seitwärts {sign}{abs(si_tpct):.1f} %</span>'
+    else:
+        si_badge_html = ""
+        trend_html    = "Keine Daten"
+    si_cur_disp = _fmt_si_record(si_hist[0]) if len(si_hist) >= 1 else "—"
+    si_4w_disp  = _fmt_si_record(si_hist[1]) if len(si_hist) >= 2 else "—"
+    si_8w_disp  = _fmt_si_record(si_hist[2]) if len(si_hist) >= 3 else "—"
+
     news_html = ""
     for n in s.get("news", [])[:2]:
         news_html += (
@@ -739,6 +811,7 @@ def _card(i: int, s: dict) -> str:
   </div>
   <div class="metrics-row">
     <div class="metric-box" style="--mc:{sf_col}">
+      {si_badge_html}
       <span class="m-val">{sf_display}</span>
       <span class="m-lbl">Short Float</span>
     </div>
@@ -766,6 +839,10 @@ def _card(i: int, s: dict) -> str:
         <tr><td>Ø Volumen 20T</td><td>{s.get('avg_vol_20d',0):,.0f}</td></tr>
         <tr><td>Heutiges Volumen</td><td>{s.get('cur_vol',0):,.0f}</td></tr>
         <tr><td>Short Interest Quelle</td><td>{s.get('sf_source','Yahoo Finance')}</td></tr>
+        <tr><td>SI-Trend (6W)</td><td>{trend_html}</td></tr>
+        <tr><td>SI Aktuell (FINRA)</td><td>{si_cur_disp}</td></tr>
+        <tr><td>SI vor 4 Wochen</td><td>{si_4w_disp}</td></tr>
+        <tr><td>SI vor 8 Wochen</td><td>{si_8w_disp}</td></tr>
         <tr><td>Fails-to-Deliver</td><td>{ftd_display}</td></tr>
         <tr><td>Risiko-Detail</td><td style="color:{risk_col}">{risk_txt}</td></tr>
       </table>
@@ -962,10 +1039,14 @@ a{{color:var(--accent);text-decoration:none}}
 /* ── Metrics ── */
 .metrics-row{{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;padding:0 12px 12px}}
 .metric-box{{background:var(--bg-met);border:1px solid var(--brd);border-radius:10px;
-  padding:10px 6px;text-align:center;border-top:3px solid var(--mc,#94a3b8)}}
+  padding:10px 6px;text-align:center;border-top:3px solid var(--mc,#94a3b8);position:relative}}
 .m-val{{display:block;font-size:1.1rem;font-weight:800;color:var(--mc,#94a3b8)}}
 .m-lbl{{display:block;font-size:.62rem;color:var(--txt-dim);text-transform:uppercase;
   letter-spacing:.3px;margin-top:2px}}
+.si-badge{{position:absolute;top:4px;right:5px;font-size:9px;font-weight:700;line-height:1}}
+.si-badge-up{{color:#22c55e}}
+.si-badge-down{{color:#ef4444}}
+.si-badge-side{{color:#f59e0b}}
 /* ── Detail table (top of details body) ── */
 .detail-table-wrap{{padding:10px 12px 8px}}
 /* ── Driver row ── */
