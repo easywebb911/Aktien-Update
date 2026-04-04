@@ -833,7 +833,7 @@ def _card(i: int, s: dict) -> str:
           <a class="ticker ticker-link" href="{yf_chart_url}" target="_blank" rel="noopener noreferrer">{s['ticker']}</a>
           <span class="market-tag">{flag} {s.get('market','US')}</span>
           {yahoo_badge}{webull_badge}
-          <span class="price-tag" style="color:{chg_col}">${s.get('price',0):.2f} {chg_str}</span>
+          <span class="price-tag">${s.get('price',0):.2f}</span>
         </div>
         <span class="company">{s.get('company_name','')}</span>
         <span class="sector-tag">{s.get('sector','')}</span>
