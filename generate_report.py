@@ -1546,7 +1546,7 @@ def _card(i: int, s: dict) -> str:
         <div class="ticker-row">
           <span class="ticker">{s['ticker']}</span>
           <span class="market-tag">{flag} {s.get('market','US')}</span>
-          {yahoo_badge}{finviz_badge}{sa_badge}
+          {finviz_badge}{sa_badge}
           <span class="price-tag">${s.get('price',0):.2f}</span>
         </div>
         <span class="company">{s.get('company_name','')}</span>
@@ -1859,8 +1859,8 @@ a{{color:var(--accent);text-decoration:none}}
 .details-body.open{{max-height:1200px}}
 /* ── News toggle button ── */
 .news-btn{{width:100%;min-height:44px;background:var(--bg-met);border:none;
-  border-top:1px solid var(--brd);color:var(--accent);font-size:.82rem;
-  font-weight:700;cursor:pointer;padding:0 14px;text-align:left;display:flex;
+  border-top:1px solid var(--brd);color:var(--txt-sub);font-size:.82rem;
+  font-weight:600;cursor:pointer;padding:0 14px;text-align:left;display:flex;
   align-items:center;gap:6px}}
 .news-btn:hover{{background:var(--brd)}}
 /* ── News panel ── */
