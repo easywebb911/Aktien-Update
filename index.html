@@ -151,8 +151,10 @@ a{color:var(--accent);text-decoration:none}
   text-decoration:none;border:1.5px solid;padding:0 6px;line-height:1;box-sizing:border-box}
 .chart-badge-y{background:#1d4ed8;color:#fff;border-color:#2563eb}
 .chart-badge-y:hover{background:#1e40af}
-.chart-badge-w{background:#15803d;color:#fff;border-color:#16a34a}
-.chart-badge-w:hover{background:#166534}
+.chart-badge-f{background:#4b5e7a;color:#fff;border-color:#5d7494}
+.chart-badge-f:hover{background:#3b4d63}
+.chart-badge-s{background:#7c3aed;color:#fff;border-color:#8b5cf6}
+.chart-badge-s:hover{background:#6d28d9}
 .chart-badge-dis{background:#334155;color:#94a3b8;border-color:#475569;
   cursor:default;pointer-events:none}
 .price-tag{font-size:.82rem;font-weight:600}
@@ -266,7 +268,7 @@ a{color:var(--accent);text-decoration:none}
 <header class="app-hdr">
   <div class="hdr-main">
     <span class="app-title">Squeeze <span>Report</span></span>
-    <span class="hdr-ts">Stand: 04.04.2026, 09:24 Uhr</span>
+    <span class="hdr-ts">Stand: 04.04.2026, 09:34 Uhr</span>
     <div class="hdr-btns">
       <button id="btn-reload" class="btn btn-g" onclick="reloadPage()">&#8635; Neu laden</button>
       <button id="btn-recalc" class="btn btn-b" onclick="triggerWorkflow()">&#9881; Neu berechnen</button>
@@ -385,8 +387,8 @@ a{color:var(--accent);text-decoration:none}
         <div class="ticker-row">
           <a class="ticker ticker-link" href="https://finance.yahoo.com/chart/FC" target="_blank" rel="noopener noreferrer">FC</a>
           <span class="market-tag">🇺🇸 US</span>
-          <a class="chart-badge chart-badge-y" href="https://finance.yahoo.com/chart/FC" target="_blank" rel="noopener noreferrer" title="Yahoo Finance Chart">Y</a><a class="chart-badge chart-badge-w" href="https://www.webull.com/quote/fc" target="_blank" rel="noopener noreferrer" title="Webull Chart">W</a>
-          <span class="price-tag" style="color:#22c55e">$23.32 +44.4%</span>
+          <a class="chart-badge chart-badge-y" href="https://finance.yahoo.com/chart/FC" target="_blank" rel="noopener noreferrer" title="Yahoo Finance Chart">Y</a><a class="chart-badge chart-badge-f" href="https://finviz.com/quote.ashx?t=FC" target="_blank" rel="noopener noreferrer" title="Finviz Chart &amp; Kennzahlen">F</a><a class="chart-badge chart-badge-s" href="https://stockanalysis.com/stocks/fc/" target="_blank" rel="noopener noreferrer" title="Stockanalysis Chart &amp; Short-Interest">S</a>
+          <span class="price-tag">$23.32</span>
         </div>
         <span class="company">Franklin Covey Co.</span>
         <span class="sector-tag">Consumer Defensive</span>
@@ -462,8 +464,8 @@ a{color:var(--accent);text-decoration:none}
         <div class="ticker-row">
           <a class="ticker ticker-link" href="https://finance.yahoo.com/chart/PENG" target="_blank" rel="noopener noreferrer">PENG</a>
           <span class="market-tag">🇺🇸 US</span>
-          <a class="chart-badge chart-badge-y" href="https://finance.yahoo.com/chart/PENG" target="_blank" rel="noopener noreferrer" title="Yahoo Finance Chart">Y</a><a class="chart-badge chart-badge-w" href="https://www.webull.com/quote/peng" target="_blank" rel="noopener noreferrer" title="Webull Chart">W</a>
-          <span class="price-tag" style="color:#22c55e">$20.69 +13.4%</span>
+          <a class="chart-badge chart-badge-y" href="https://finance.yahoo.com/chart/PENG" target="_blank" rel="noopener noreferrer" title="Yahoo Finance Chart">Y</a><a class="chart-badge chart-badge-f" href="https://finviz.com/quote.ashx?t=PENG" target="_blank" rel="noopener noreferrer" title="Finviz Chart &amp; Kennzahlen">F</a><a class="chart-badge chart-badge-s" href="https://stockanalysis.com/stocks/peng/" target="_blank" rel="noopener noreferrer" title="Stockanalysis Chart &amp; Short-Interest">S</a>
+          <span class="price-tag">$20.69</span>
         </div>
         <span class="company">Penguin Solutions, Inc.</span>
         <span class="sector-tag">Technology</span>
@@ -539,8 +541,8 @@ a{color:var(--accent);text-decoration:none}
         <div class="ticker-row">
           <a class="ticker ticker-link" href="https://finance.yahoo.com/chart/OMER" target="_blank" rel="noopener noreferrer">OMER</a>
           <span class="market-tag">🇺🇸 US</span>
-          <a class="chart-badge chart-badge-y" href="https://finance.yahoo.com/chart/OMER" target="_blank" rel="noopener noreferrer" title="Yahoo Finance Chart">Y</a><a class="chart-badge chart-badge-w" href="https://www.webull.com/quote/omer" target="_blank" rel="noopener noreferrer" title="Webull Chart">W</a>
-          <span class="price-tag" style="color:#ef4444">$10.90 -9.8%</span>
+          <a class="chart-badge chart-badge-y" href="https://finance.yahoo.com/chart/OMER" target="_blank" rel="noopener noreferrer" title="Yahoo Finance Chart">Y</a><a class="chart-badge chart-badge-f" href="https://finviz.com/quote.ashx?t=OMER" target="_blank" rel="noopener noreferrer" title="Finviz Chart &amp; Kennzahlen">F</a><a class="chart-badge chart-badge-s" href="https://stockanalysis.com/stocks/omer/" target="_blank" rel="noopener noreferrer" title="Stockanalysis Chart &amp; Short-Interest">S</a>
+          <span class="price-tag">$10.90</span>
         </div>
         <span class="company">Omeros Corporation</span>
         <span class="sector-tag">Healthcare</span>
@@ -616,8 +618,8 @@ a{color:var(--accent);text-decoration:none}
         <div class="ticker-row">
           <a class="ticker ticker-link" href="https://finance.yahoo.com/chart/ORIC" target="_blank" rel="noopener noreferrer">ORIC</a>
           <span class="market-tag">🇺🇸 US</span>
-          <a class="chart-badge chart-badge-y" href="https://finance.yahoo.com/chart/ORIC" target="_blank" rel="noopener noreferrer" title="Yahoo Finance Chart">Y</a><a class="chart-badge chart-badge-w" href="https://www.webull.com/quote/oric" target="_blank" rel="noopener noreferrer" title="Webull Chart">W</a>
-          <span class="price-tag" style="color:#22c55e">$8.89 +18.9%</span>
+          <a class="chart-badge chart-badge-y" href="https://finance.yahoo.com/chart/ORIC" target="_blank" rel="noopener noreferrer" title="Yahoo Finance Chart">Y</a><a class="chart-badge chart-badge-f" href="https://finviz.com/quote.ashx?t=ORIC" target="_blank" rel="noopener noreferrer" title="Finviz Chart &amp; Kennzahlen">F</a><a class="chart-badge chart-badge-s" href="https://stockanalysis.com/stocks/oric/" target="_blank" rel="noopener noreferrer" title="Stockanalysis Chart &amp; Short-Interest">S</a>
+          <span class="price-tag">$8.89</span>
         </div>
         <span class="company">ORIC Pharmaceuticals, Inc.</span>
         <span class="sector-tag">Healthcare</span>
@@ -693,8 +695,8 @@ a{color:var(--accent);text-decoration:none}
         <div class="ticker-row">
           <a class="ticker ticker-link" href="https://finance.yahoo.com/chart/CAR" target="_blank" rel="noopener noreferrer">CAR</a>
           <span class="market-tag">🇺🇸 US</span>
-          <a class="chart-badge chart-badge-y" href="https://finance.yahoo.com/chart/CAR" target="_blank" rel="noopener noreferrer" title="Yahoo Finance Chart">Y</a><a class="chart-badge chart-badge-w" href="https://www.webull.com/quote/car" target="_blank" rel="noopener noreferrer" title="Webull Chart">W</a>
-          <span class="price-tag" style="color:#22c55e">$190.42 +12.0%</span>
+          <a class="chart-badge chart-badge-y" href="https://finance.yahoo.com/chart/CAR" target="_blank" rel="noopener noreferrer" title="Yahoo Finance Chart">Y</a><a class="chart-badge chart-badge-f" href="https://finviz.com/quote.ashx?t=CAR" target="_blank" rel="noopener noreferrer" title="Finviz Chart &amp; Kennzahlen">F</a><a class="chart-badge chart-badge-s" href="https://stockanalysis.com/stocks/car/" target="_blank" rel="noopener noreferrer" title="Stockanalysis Chart &amp; Short-Interest">S</a>
+          <span class="price-tag">$190.42</span>
         </div>
         <span class="company">Avis Budget Group, Inc.</span>
         <span class="sector-tag">Industrials</span>
@@ -770,8 +772,8 @@ a{color:var(--accent);text-decoration:none}
         <div class="ticker-row">
           <a class="ticker ticker-link" href="https://finance.yahoo.com/chart/REPL" target="_blank" rel="noopener noreferrer">REPL</a>
           <span class="market-tag">🇺🇸 US</span>
-          <a class="chart-badge chart-badge-y" href="https://finance.yahoo.com/chart/REPL" target="_blank" rel="noopener noreferrer" title="Yahoo Finance Chart">Y</a><a class="chart-badge chart-badge-w" href="https://www.webull.com/quote/repl" target="_blank" rel="noopener noreferrer" title="Webull Chart">W</a>
-          <span class="price-tag" style="color:#22c55e">$8.41 +10.5%</span>
+          <a class="chart-badge chart-badge-y" href="https://finance.yahoo.com/chart/REPL" target="_blank" rel="noopener noreferrer" title="Yahoo Finance Chart">Y</a><a class="chart-badge chart-badge-f" href="https://finviz.com/quote.ashx?t=REPL" target="_blank" rel="noopener noreferrer" title="Finviz Chart &amp; Kennzahlen">F</a><a class="chart-badge chart-badge-s" href="https://stockanalysis.com/stocks/repl/" target="_blank" rel="noopener noreferrer" title="Stockanalysis Chart &amp; Short-Interest">S</a>
+          <span class="price-tag">$8.41</span>
         </div>
         <span class="company">Replimune Group, Inc.</span>
         <span class="sector-tag">Healthcare</span>
@@ -847,8 +849,8 @@ a{color:var(--accent);text-decoration:none}
         <div class="ticker-row">
           <a class="ticker ticker-link" href="https://finance.yahoo.com/chart/SNBR" target="_blank" rel="noopener noreferrer">SNBR</a>
           <span class="market-tag">🇺🇸 US</span>
-          <a class="chart-badge chart-badge-y" href="https://finance.yahoo.com/chart/SNBR" target="_blank" rel="noopener noreferrer" title="Yahoo Finance Chart">Y</a><a class="chart-badge chart-badge-w" href="https://www.webull.com/quote/snbr" target="_blank" rel="noopener noreferrer" title="Webull Chart">W</a>
-          <span class="price-tag" style="color:#ef4444">$1.18 -31.0%</span>
+          <a class="chart-badge chart-badge-y" href="https://finance.yahoo.com/chart/SNBR" target="_blank" rel="noopener noreferrer" title="Yahoo Finance Chart">Y</a><a class="chart-badge chart-badge-f" href="https://finviz.com/quote.ashx?t=SNBR" target="_blank" rel="noopener noreferrer" title="Finviz Chart &amp; Kennzahlen">F</a><a class="chart-badge chart-badge-s" href="https://stockanalysis.com/stocks/snbr/" target="_blank" rel="noopener noreferrer" title="Stockanalysis Chart &amp; Short-Interest">S</a>
+          <span class="price-tag">$1.18</span>
         </div>
         <span class="company">Sleep Number Corporation</span>
         <span class="sector-tag">Consumer Cyclical</span>
@@ -924,8 +926,8 @@ a{color:var(--accent);text-decoration:none}
         <div class="ticker-row">
           <a class="ticker ticker-link" href="https://finance.yahoo.com/chart/BKSY" target="_blank" rel="noopener noreferrer">BKSY</a>
           <span class="market-tag">🇺🇸 US</span>
-          <a class="chart-badge chart-badge-y" href="https://finance.yahoo.com/chart/BKSY" target="_blank" rel="noopener noreferrer" title="Yahoo Finance Chart">Y</a><a class="chart-badge chart-badge-w" href="https://www.webull.com/quote/bksy" target="_blank" rel="noopener noreferrer" title="Webull Chart">W</a>
-          <span class="price-tag" style="color:#22c55e">$30.81 +11.5%</span>
+          <a class="chart-badge chart-badge-y" href="https://finance.yahoo.com/chart/BKSY" target="_blank" rel="noopener noreferrer" title="Yahoo Finance Chart">Y</a><a class="chart-badge chart-badge-f" href="https://finviz.com/quote.ashx?t=BKSY" target="_blank" rel="noopener noreferrer" title="Finviz Chart &amp; Kennzahlen">F</a><a class="chart-badge chart-badge-s" href="https://stockanalysis.com/stocks/bksy/" target="_blank" rel="noopener noreferrer" title="Stockanalysis Chart &amp; Short-Interest">S</a>
+          <span class="price-tag">$30.81</span>
         </div>
         <span class="company">BlackSky Technology Inc.</span>
         <span class="sector-tag">Industrials</span>
@@ -1001,8 +1003,8 @@ a{color:var(--accent);text-decoration:none}
         <div class="ticker-row">
           <a class="ticker ticker-link" href="https://finance.yahoo.com/chart/AMC" target="_blank" rel="noopener noreferrer">AMC</a>
           <span class="market-tag">🇺🇸 US</span>
-          <a class="chart-badge chart-badge-y" href="https://finance.yahoo.com/chart/AMC" target="_blank" rel="noopener noreferrer" title="Yahoo Finance Chart">Y</a><a class="chart-badge chart-badge-w" href="https://www.webull.com/quote/amc" target="_blank" rel="noopener noreferrer" title="Webull Chart">W</a>
-          <span class="price-tag" style="color:#22c55e">$1.12 +8.7%</span>
+          <a class="chart-badge chart-badge-y" href="https://finance.yahoo.com/chart/AMC" target="_blank" rel="noopener noreferrer" title="Yahoo Finance Chart">Y</a><a class="chart-badge chart-badge-f" href="https://finviz.com/quote.ashx?t=AMC" target="_blank" rel="noopener noreferrer" title="Finviz Chart &amp; Kennzahlen">F</a><a class="chart-badge chart-badge-s" href="https://stockanalysis.com/stocks/amc/" target="_blank" rel="noopener noreferrer" title="Stockanalysis Chart &amp; Short-Interest">S</a>
+          <span class="price-tag">$1.12</span>
         </div>
         <span class="company">AMC Entertainment Holdings, Inc.</span>
         <span class="sector-tag">Communication Services</span>
@@ -1078,8 +1080,8 @@ a{color:var(--accent);text-decoration:none}
         <div class="ticker-row">
           <a class="ticker ticker-link" href="https://finance.yahoo.com/chart/OSB.L" target="_blank" rel="noopener noreferrer">OSB.L</a>
           <span class="market-tag">🇬🇧 GB</span>
-          <a class="chart-badge chart-badge-y" href="https://finance.yahoo.com/chart/OSB.L" target="_blank" rel="noopener noreferrer" title="Yahoo Finance Chart">Y</a><span class="chart-badge chart-badge-w chart-badge-dis" title="Webull unterstützt nur US-Aktien">W</span>
-          <span class="price-tag" style="color:#f59e0b">$513.00 -5.0%</span>
+          <a class="chart-badge chart-badge-y" href="https://finance.yahoo.com/chart/OSB.L" target="_blank" rel="noopener noreferrer" title="Yahoo Finance Chart">Y</a><span class="chart-badge chart-badge-f chart-badge-dis" title="Finviz unterstützt nur US-Aktien">F</span><span class="chart-badge chart-badge-s chart-badge-dis" title="Stockanalysis unterstützt nur US-Aktien">S</span>
+          <span class="price-tag">$513.00</span>
         </div>
         <span class="company">OSB Group Plc</span>
         <span class="sector-tag">Financial Services</span>
@@ -1138,10 +1140,10 @@ a{color:var(--accent);text-decoration:none}
       <span id="nb-icon10">▼</span> Nachrichten anzeigen
     </button>
     <div class="news-panel" id="np10" hidden>
-      <div class="news-items"><div class="ni"><a href="https://finance.yahoo.com/markets/stocks/articles/osb-group-lse-osb-investment-150726441.html" target="_blank" rel="noopener noreferrer">Wie sich die Investitionsgeschichte der OSB Group (LSE:OSB) durch neue Analystenmeinungen verändert</a><span class="ni-meta">Simply Wall St. · 31.03.2026 15:07</span></div><div class="ni"><a href="https://uk.finance.yahoo.com/news/birmingham-best-buy-let-area-110000366.html" target="_blank" rel="noopener noreferrer">Birmingham ist die beste Kauf- und Mietgegend für die Vermietung an Familien. Hier erfahren Sie, warum</a><span class="ni-meta">The Telegraph · 26.03.2026 11:00</span></div></div>
+      <div class="news-items"><div class="ni"><a href="https://finance.yahoo.com/markets/stocks/articles/osb-group-lse-osb-investment-150726441.html" target="_blank" rel="noopener noreferrer">Wie sich die Investitionsgeschichte der OSB Group (LSE:OSB) durch neue Analystenmeinungen verändert</a><span class="ni-meta">Simply Wall St. · 31.03.2026 15:07</span></div><div class="ni"><a href="https://uk.finance.yahoo.com/news/birmingham-best-buy-let-area-110000366.html" target="_blank" rel="noopener noreferrer">Birmingham ist das beste Kauf- und Mietgebiet für die Vermietung an Familien. Hier erfahren Sie, warum</a><span class="ni-meta">The Telegraph · 26.03.2026 11:00</span></div></div>
       <div class="news-summary-box">
         <span class="summary-label">Zusammenfassung</span>
-        <p class="summary-text">Das jüngste Analysten-Update der OSB Group senkt die zentrale Fair-Value-Schätzung von 6,97 £ auf 6,83 £, eine kleine Neueinstellung, die immer noch unter einem optimistischeren Kursziel von 7,30 £ aus bullischen Untersuchungen liegt. Diese Lücke spiegelt eine Meinungsverschiedenheit wider, wobei einige Analysten an einer Übergewichtung festhalten, während andere sich auf die vorsichtigere Seite des revidierten Niveaus von 6,83 £ stützen. Wenn Sie weiterlesen, werden Sie sehen, wie Sie diese sich entwickelnde Erzählung verstehen und was sie für Ihre eigene Sicht auf die Aktien bedeuten könnte. Bleiben Sie auf dem Laufenden, da...</p>
+        <p class="summary-text">Das jüngste Analysten-Update der OSB Group senkt die zentrale Fair-Value-Schätzung von 6,97 £ auf 6,83 £, eine kleine Neueinstellung, die immer noch unter einem optimistischeren Kursziel von 7,30 £ aus bullischen Untersuchungen liegt. Diese Lücke spiegelt eine Meinungsverschiedenheit wider, wobei einige Analysten an einer Übergewichtung festhalten, während andere sich auf die vorsichtigere Seite des revidierten Niveaus von 6,83 £ stützen. Wenn Sie weiterlesen, werden Sie sehen, wie Sie diese sich entwickelnde Erzählung verstehen und was sie für Ihre eigene Sicht auf die Aktien bedeuten könnte. Bleiben Sie auf dem Laufenden, denn...</p>
       </div>
     </div>
   </div>
