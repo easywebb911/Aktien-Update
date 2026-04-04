@@ -7,6 +7,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Squeeze Report">
 <meta name="theme-color" content="#0d1117">
+<link rel="icon" type="image/svg+xml" href="favicon.svg">
 <title>Squeeze Report – 04.04.2026</title>
 <style>
 :root{
@@ -268,7 +269,7 @@ a{color:var(--accent);text-decoration:none}
 <header class="app-hdr">
   <div class="hdr-main">
     <span class="app-title">Squeeze <span>Report</span></span>
-    <span class="hdr-ts">Stand: 04.04.2026, 17:55 Uhr</span>
+    <span class="hdr-ts">Stand: 04.04.2026, 18:51 Uhr</span>
     <div class="hdr-btns">
       <button id="btn-reload" class="btn btn-g" onclick="reloadPage()">&#8635; Neu laden</button>
       <button id="btn-recalc" class="btn btn-b" onclick="triggerWorkflow()">&#9881; Neu berechnen</button>
@@ -312,6 +313,7 @@ a{color:var(--accent);text-decoration:none}
           <li><strong>25 % Days to Cover</strong> – Tage zum vollständigen Eindecken; hohe Werte erhöhen Kapitulationsrisiko</li>
           <li><strong>25 % Rel. Volumen</strong> – Heutiges vs. 20-Tage-Durchschnitt; Spitzen signalisieren Kaufinteresse</li>
           <li><strong>15 % Kursmomentum</strong> – Kursveränderung (5 Tage); steigende Kurse erhöhen den Squeeze-Druck</li>
+          <li><strong>+ bis 5 Pkt FINRA SI-Trend Bonus</strong> – steigender Short Interest ≥ +10 % → 5 Pkt · Seitwärts → 2,5 Pkt · Fallend oder keine Daten → 0 Pkt</li>
         </ul>
       </div>
       <div class="info-box">
@@ -321,6 +323,7 @@ a{color:var(--accent);text-decoration:none}
           <li><strong>Kurs &gt; $1</strong> – Ausschluss von Penny Stocks</li>
           <li><strong>Marktkapitalisierung &lt; $10 Mrd.</strong> – Small- &amp; Mid-Caps</li>
           <li><strong>Märkte:</strong> 🇺🇸 US · 🇩🇪 DE · 🇬🇧 GB · 🇫🇷 FR · 🇳🇱 NL · 🇨🇦 CA · 🇯🇵 JP · 🇭🇰 HK · 🇰🇷 KR</li>
+          <li><strong>Internationale Aktien:</strong> kein Short-Float-Filter, Score gedeckelt bei 50 Pkt (nur Volumen + Momentum)</li>
         </ul>
       </div>
       <div class="info-box">
@@ -328,7 +331,8 @@ a{color:var(--accent);text-decoration:none}
         <ul>
           <li><strong>Yahoo Finance Screener</strong> – Most Shorted, Small Cap Gainers, Aggressive Small Caps</li>
           <li><strong>Märkte:</strong> 🇺🇸 US · 🇩🇪 DE · 🇬🇧 GB · 🇨🇦 CA</li>
-          <li><strong>Anreicherung:</strong> yfinance (Short Float, Days to Cover, Volumen, Kurs)</li>
+          <li><strong>Anreicherung:</strong> yfinance (Short Float, Days to Cover, Volumen, Kurs) + FINRA (offizielles Short Interest, SI-Trend aus 3 Meldezeiträumen)</li>
+          <li><strong>Fails-to-Deliver:</strong> SEC EDGAR — derzeit nicht verfügbar (HTTP 403)</li>
         </ul>
       </div>
       <div class="info-box info-box--full">
@@ -524,10 +528,10 @@ a{color:var(--accent);text-decoration:none}
       <span id="nb-icon2">▼</span> Nachrichten anzeigen
     </button>
     <div class="news-panel" id="np2" hidden>
-      <div class="news-items"><div class="ni"><a href="https://app.moby.co/home/research/tools/earningsCalendar/earnings-omeros-corporation-q4-2025-earnings-call-summary?utm_source=yahoo_finance&utm_medium=rss" target="_blank" rel="noopener noreferrer">Zusammenfassung der Gewinnmitteilung der Omeros Corporation für das 4. Quartal 2025</a><span class="ni-meta">Moby · 01.04.2026 12:30</span></div><div class="ni"><a href="https://finance.yahoo.com/sectors/healthcare/articles/omeros-corp-omer-q4-2025-030227210.html" target="_blank" rel="noopener noreferrer">Omeros Corp (OMER) Höhepunkte der Telefonkonferenz zum 4. Quartal 2025: Eine Trendwende mit strategischen Deals und FDA ...</a><span class="ni-meta">GuruFocus.com · 01.04.2026 03:02</span></div></div>
+      <div class="news-items"><div class="ni"><a href="https://app.moby.co/home/research/tools/earningsCalendar/earnings-omeros-corporation-q4-2025-earnings-call-summary?utm_source=yahoo_finance&utm_medium=rss" target="_blank" rel="noopener noreferrer">Zusammenfassung der Gewinnmitteilungen der Omeros Corporation für das 4. Quartal 2025</a><span class="ni-meta">Moby · 01.04.2026 12:30</span></div><div class="ni"><a href="https://finance.yahoo.com/sectors/healthcare/articles/omeros-corp-omer-q4-2025-030227210.html" target="_blank" rel="noopener noreferrer">Omeros Corp (OMER) Höhepunkte der Telefonkonferenz zum 4. Quartal 2025: Eine Trendwende mit strategischen Deals und FDA ...</a><span class="ni-meta">GuruFocus.com · 01.04.2026 03:02</span></div></div>
       <div class="news-summary-box">
         <span class="summary-label">Zusammenfassung</span>
-        <p class="summary-text">Zusammenfassung der Gewinnmitteilungen der Omeros Corporation für das 4. Quartal 2025. Weitere aktuelle Meldung: Omeros Corp (OMER) Q4 2025 Earnings Call Highlights: Eine Trendwende mit strategischen Deals und FDA  –  Quelle: Moby (01.04.2026 12:30)</p>
+        <p class="summary-text">Zusammenfassung der Gewinnmitteilung der Omeros Corporation für das 4. Quartal 2025. Weitere aktuelle Meldung: Omeros Corp (OMER) Q4 2025 Earnings Call Highlights: Eine Trendwende mit strategischen Deals und FDA  –  Quelle: Moby (01.04.2026 12:30)</p>
       </div>
     </div>
   </div>
@@ -601,7 +605,7 @@ a{color:var(--accent);text-decoration:none}
       <span id="nb-icon3">▼</span> Nachrichten anzeigen
     </button>
     <div class="news-panel" id="np3" hidden>
-      <div class="news-items"><div class="ni"><a href="https://finance.yahoo.com/markets/stocks/articles/rosenblatt-raises-price-target-penguin-121936452.html" target="_blank" rel="noopener noreferrer">Rosenblatt erhöht sein Preisziel für Penguin Solutions. (PENG) auf 32 $</a><span class="ni-meta">Insider Monkey · 04.04.2026 12:19</span></div><div class="ni"><a href="https://finance.yahoo.com/markets/stocks/articles/why-penguin-solutions-peng-stock-224820754.html" target="_blank" rel="noopener noreferrer">Warum die Aktie von Penguin Solutions (PENG) heute im Aufwärtstrend liegt</a><span class="ni-meta">StockStory · 02.04.2026 22:48</span></div></div>
+      <div class="news-items"><div class="ni"><a href="https://finance.yahoo.com/markets/stocks/articles/rosenblatt-raises-price-target-penguin-121936452.html" target="_blank" rel="noopener noreferrer">Rosenblatt erhöht sein Preisziel für Penguin Solutions. (PENG) auf 32 $</a><span class="ni-meta">Insider Monkey · 04.04.2026 12:19</span></div><div class="ni"><a href="https://www.marketbeat.com/originals/penguin-solutions-gains-traction-is-now-the-time-to-buy/?utm_source=yahoofinance&utm_medium=yahoofinance" target="_blank" rel="noopener noreferrer">Penguin Solutions gewinnt an Bedeutung: Ist es jetzt an der Zeit zu kaufen?</a><span class="ni-meta">MarketBeat · 03.04.2026 15:55</span></div></div>
       <div class="news-summary-box">
         <span class="summary-label">Zusammenfassung</span>
         <p class="summary-text">Penguin Solutions, Inc. (NASDAQ:PENG) gehört zu den 10 besten Aktien, die die Gewinnschätzungen übertreffen. Am 2. April 2026 erhöhte Rosenblatt das Kursziel für Penguin Solutions, Inc. (NASDAQ:PENG) von 30 US-Dollar auf 32 US-Dollar und behielt die Kaufempfehlung bei, nachdem ein Geschäftsbericht für das zweite Quartal die Erwartungen übertraf und das Management dazu veranlasste, das Umsatzwachstum im Geschäftsjahr 26 zu erhöhen.</p>
@@ -1140,7 +1144,7 @@ a{color:var(--accent);text-decoration:none}
       <span id="nb-icon10">▼</span> Nachrichten anzeigen
     </button>
     <div class="news-panel" id="np10" hidden>
-      <div class="news-items"><div class="ni"><a href="https://finance.yahoo.com/markets/stocks/articles/osb-group-lse-osb-investment-150726441.html" target="_blank" rel="noopener noreferrer">Wie sich die Investitionsgeschichte der OSB Group (LSE:OSB) durch neue Analystenmeinungen verändert</a><span class="ni-meta">Simply Wall St. · 31.03.2026 15:07</span></div><div class="ni"><a href="https://uk.finance.yahoo.com/news/birmingham-best-buy-let-area-110000366.html" target="_blank" rel="noopener noreferrer">Birmingham ist die beste Kauf- und Mietgegend für die Vermietung an Familien. Hier erfahren Sie, warum</a><span class="ni-meta">The Telegraph · 26.03.2026 11:00</span></div></div>
+      <div class="news-items"><div class="ni"><a href="https://finance.yahoo.com/markets/stocks/articles/osb-group-lse-osb-investment-150726441.html" target="_blank" rel="noopener noreferrer">Wie sich die Investitionsgeschichte der OSB Group (LSE:OSB) durch neue Analystenmeinungen verändert</a><span class="ni-meta">Simply Wall St. · 31.03.2026 15:07</span></div><div class="ni"><a href="https://uk.finance.yahoo.com/news/birmingham-best-buy-let-area-110000366.html" target="_blank" rel="noopener noreferrer">Birmingham ist das beste Kauf- und Mietgebiet für die Vermietung an Familien. Hier erfahren Sie, warum</a><span class="ni-meta">The Telegraph · 26.03.2026 11:00</span></div></div>
       <div class="news-summary-box">
         <span class="summary-label">Zusammenfassung</span>
         <p class="summary-text">Das jüngste Analysten-Update der OSB Group senkt die zentrale Fair-Value-Schätzung von 6,97 £ auf 6,83 £, eine kleine Neueinstellung, die immer noch unter einem optimistischeren Kursziel von 7,30 £ aus bullischen Untersuchungen liegt. Diese Lücke spiegelt eine Meinungsverschiedenheit wider, wobei einige Analysten an einer Übergewichtung festhalten, während andere sich auf die vorsichtigere Seite des revidierten Niveaus von 6,83 £ stützen. Wenn Sie weiterlesen, werden Sie sehen, wie Sie diese sich entwickelnde Erzählung verstehen und was sie für Ihre eigene Sicht auf die Aktien bedeuten könnte. Bleiben Sie auf dem Laufenden, denn...</p>
