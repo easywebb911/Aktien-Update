@@ -1616,15 +1616,15 @@ def _card(i: int, s: dict) -> str:
       <span class="risk-badge" style="color:{risk_col};border-color:{risk_col}55;background:{risk_col}22">Risiko: {risk_lv}</span>
       <p class="driver-text">{sit_txt}</p>
     </div>
-    <button class="news-btn" onclick="toggleNews({i})" id="nb{i}" aria-expanded="false">
-      <span id="nb-icon{i}">▼</span> Nachrichten anzeigen
-    </button>
-    <div class="news-panel" id="np{i}" hidden>
-      <div class="news-items">{news_html}</div>
-      <div class="news-summary-box">
-        <span class="summary-label">Zusammenfassung</span>
-        <p class="summary-text">{news_sum}</p>
-      </div>
+  </div>
+  <button class="news-btn" onclick="toggleNews({i})" id="nb{i}" aria-expanded="false">
+    <span id="nb-icon{i}">▼</span> Aktuelle Meldungen
+  </button>
+  <div class="news-panel" id="np{i}" hidden>
+    <div class="news-items">{news_html}</div>
+    <div class="news-summary-box">
+      <span class="summary-label">Zusammenfassung</span>
+      <p class="summary-text">{news_sum}</p>
     </div>
   </div>
 </article>"""
@@ -2166,7 +2166,7 @@ function toggleNews(id){{
   icon.textContent = open ? '▲' : '▼';
   btn.textContent  = '';
   btn.appendChild(icon);
-  btn.append(' ' + (open ? 'Nachrichten verbergen' : 'Nachrichten anzeigen'));
+  btn.append(' ' + (open ? 'Meldungen verbergen' : 'Aktuelle Meldungen'));
 }}
 // ── GitHub Actions Config ─────────────────────────────────────────────────
 const GH_OWNER    = 'easywebb911';
