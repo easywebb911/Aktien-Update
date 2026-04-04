@@ -872,7 +872,7 @@ def _card(i: int, s: dict) -> str:
     sf_col = "#94a3b8" if has_no_short_data else _metric_color("sf", sf)
     sr_col = "#94a3b8" if has_no_short_data else _metric_color("sr", sr)
     rv_col = _metric_color("rv", rv)
-    ftd_display = "Nicht verfügbar (IP-Beschränkung)"
+
 
     # SI trend badge + history
     finra_d  = s.get("finra_data") or {}
@@ -989,7 +989,7 @@ def _card(i: int, s: dict) -> str:
         <tr><td>Short-Vol. T-1 (FINRA)</td><td>{si_cur_disp}</td></tr>
         <tr><td>Short-Vol. T-2</td><td>{si_4w_disp}</td></tr>
         <tr><td>Short-Vol. T-3</td><td>{si_8w_disp}</td></tr>
-        <tr><td>Fails-to-Deliver</td><td>{ftd_display}</td></tr>
+
         <tr><td>Risiko-Detail</td><td style="color:{risk_col}">{risk_txt}</td></tr>
       </table>
     </div>
