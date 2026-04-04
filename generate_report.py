@@ -1457,6 +1457,15 @@ def _card(i: int, s: dict) -> str:
     # Chart links
     yf_chart_url  = f"https://finance.yahoo.com/chart/{s['ticker']}"
     is_intl       = "." in s["ticker"]
+    edgar_row     = (
+        ""
+        if is_intl else
+        f'<tr><td>SEC-Meldungen</td><td>'
+        f'<a href="https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany'
+        f'&amp;CIK={s["ticker"]}&amp;type=&amp;dateb=&amp;owner=include&amp;count=10&amp;search_text=" '
+        f'target="_blank" rel="noopener noreferrer" class="edgar-link">EDGAR öffnen →</a>'
+        f'</td></tr>'
+    )
     sa_ticker     = s["ticker"].split(".")[0].lower()
     fv_url        = f"https://finviz.com/quote.ashx?t={s['ticker'].split('.')[0].upper()}"
     sa_url        = f"https://stockanalysis.com/stocks/{sa_ticker}/"
@@ -1548,6 +1557,7 @@ def _card(i: int, s: dict) -> str:
         <tr><td>Ø Volumen 20T</td><td>{s.get('avg_vol_20d',0):,.0f}</td></tr>
         <tr><td>Heutiges Volumen</td><td>{s.get('cur_vol',0):,.0f}</td></tr>
         <tr><td>Short Interest Quelle</td><td>{s.get('sf_source','Yahoo Finance')}</td></tr>
+        {edgar_row}
         <tr><td>Short-Vol.-Trend (3T)</td><td>{trend_html}</td></tr>
         <tr><td>Short-Vol. T-1 (FINRA)</td><td>{si_cur_disp}</td></tr>
         <tr><td>Short-Vol. T-2</td><td>{si_4w_disp}</td></tr>
@@ -1877,6 +1887,8 @@ a{{color:var(--accent);text-decoration:none}}
   .wrap{{padding:24px 24px 40px}}
   .footer{{padding:24px 24px 40px}}
 }}
+.edgar-link{{color:var(--accent);text-decoration:none}}
+.edgar-link:hover{{text-decoration:underline}}
 /* ══ Druckansicht ════════════════════════════════════════════════════════════ */
 @media print{{
   /* Reset colours to print-friendly light theme */
