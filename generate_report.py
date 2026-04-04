@@ -1360,7 +1360,7 @@ a{{color:var(--accent);text-decoration:none}}
           <li><strong>Yahoo Finance Screener</strong> – Most Shorted, Small Cap Gainers, Aggressive Small Caps</li>
           <li><strong>Märkte:</strong> 🇺🇸 US · 🇩🇪 DE · 🇬🇧 GB · 🇨🇦 CA</li>
           <li><strong>Anreicherung:</strong> yfinance (Short Float, Days to Cover, Volumen, Kurs) + FINRA (offizielles Short Interest, SI-Trend aus 3 Meldezeiträumen)</li>
-          <li><strong>Fails-to-Deliver:</strong> SEC EDGAR — derzeit nicht verfügbar (HTTP 403)</li>
+
         </ul>
       </div>
       <div class="info-box info-box--full">
