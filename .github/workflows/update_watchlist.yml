@@ -1,0 +1,46 @@
+name: Weekly Watchlist Update
+
+on:
+  schedule:
+    # 08:00 MEZ (UTC+1) = 07:00 UTC — every Sunday
+    - cron: '0 7 * * 0'
+  workflow_dispatch:   # manual trigger via GitHub Actions UI
+
+permissions:
+  contents: write   # required to commit watchlist.py
+
+jobs:
+  update-watchlist:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout main branch
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run watchlist update
+        run: python update_watchlist.py
+
+      - name: Commit updated watchlist
+        run: |
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git config user.name "github-actions[bot]"
+          git add watchlist.py
+          if git diff --staged --quiet; then
+            echo "Keine Aenderungen an watchlist.py."
+            exit 0
+          fi
+          git commit -m "Auto-update watchlist $(date -u '+%Y-%m-%d')"
+          git pull --rebase origin main
+          git push origin main
