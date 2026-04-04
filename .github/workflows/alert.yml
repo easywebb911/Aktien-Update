@@ -10,6 +10,9 @@ on:
 permissions:
   contents: write   # Benötigt um baseline.json und last_alert.json zu commiten
 
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
 jobs:
   run-alert-monitor:
     runs-on: ubuntu-latest
@@ -21,10 +24,10 @@ jobs:
           ref: main
           token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Set up Python 3.11
-        uses: actions/setup-python@v5
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v6
         with:
-          python-version: '3.11'
+          python-version: '3.12'
           cache: 'pip'
 
       - name: Install dependencies
