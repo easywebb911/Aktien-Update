@@ -1877,6 +1877,49 @@ a{{color:var(--accent);text-decoration:none}}
   .wrap{{padding:24px 24px 40px}}
   .footer{{padding:24px 24px 40px}}
 }}
+/* ══ Druckansicht ════════════════════════════════════════════════════════════ */
+@media print{{
+  /* Reset colours to print-friendly light theme */
+  :root{{
+    --bg:#fff;--bg-card:#fff;--bg-hdr:#fff;--bg-met:#f5f5f5;
+    --txt:#000;--txt-sub:#444;--txt-dim:#666;
+    --brd:#ccc;--shadow:none;--accent:#1a56db;
+  }}
+  html[data-theme="dark"]{{
+    --bg:#fff;--bg-card:#fff;--bg-hdr:#fff;--bg-met:#f5f5f5;
+    --txt:#000;--txt-sub:#444;--txt-dim:#666;
+    --brd:#ccc;--shadow:none;
+  }}
+  /* Hide interactive / non-content elements */
+  .app-hdr,.hdr-btns,.hdr-icons,.tok-panel,#amsg,#non-trading-banner,
+  .details-btn,.news-btn,.print-btn,.tok-link,
+  [id^="tok-"],.info-panel summary::after{{display:none!important}}
+  /* Show all collapsed sections */
+  .details-body,.news-panel{{display:block!important;height:auto!important;
+    overflow:visible!important;visibility:visible!important}}
+  [hidden]{{display:block!important}}
+  /* Page layout */
+  body{{background:#fff;font-size:11pt;color:#000}}
+  .wrap{{padding:8px 0}}
+  .card{{break-inside:avoid;page-break-inside:avoid;
+    border:1px solid #ccc;border-radius:0;box-shadow:none;
+    margin-bottom:12pt;padding:10pt}}
+  .stats-bar{{break-inside:avoid;page-break-inside:avoid}}
+  .info-panel{{break-inside:avoid;page-break-inside:avoid}}
+  /* Make sparkline section take less space */
+  .sparkline-wrap{{max-height:60px;overflow:hidden}}
+  /* Score track bar via background-color not CSS var */
+  .score-fill{{print-color-adjust:exact;-webkit-print-color-adjust:exact}}
+  /* Badges and colour indicators — keep colours in print */
+  .metric-box,.score-num,.risk-badge,
+  [style*="color:"]{{print-color-adjust:exact;-webkit-print-color-adjust:exact}}
+  /* Print header with report title + date */
+  .app-title{{display:block!important;font-size:14pt;font-weight:800;margin-bottom:4pt}}
+  .hdr-ts{{display:block!important;font-size:9pt;color:#444}}
+  /* Ensure links are visible in print */
+  a[href]::after{{content:" (" attr(href) ")";font-size:7pt;color:#666;word-break:break-all}}
+  a.ticker-link::after,a.chart-badge::after{{content:none}}
+}}
 </style>
 </head>
 <body>
@@ -1889,6 +1932,7 @@ a{{color:var(--accent);text-decoration:none}}
       <button id="btn-recalc" class="btn btn-b" onclick="triggerWorkflow()">&#9881; Neu berechnen</button>
     </div>
     <div class="hdr-icons">
+      <button class="fs-btn print-btn" onclick="window.print()" aria-label="Seite drucken" title="Drucken">🖨</button>
       <button class="fs-btn" id="fs-down" onclick="changeFontSize(-1)" aria-label="Schrift kleiner">A−</button>
       <button class="fs-btn" id="fs-up"   onclick="changeFontSize(1)"  aria-label="Schrift größer">A+</button>
       <button class="theme-btn" onclick="toggleTheme()" id="theme-btn" aria-label="Dark Mode umschalten">🌙</button>
