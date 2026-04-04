@@ -350,11 +350,12 @@ def get_finviz_candidates(max_pages: int = 6) -> list[dict]:
 # ===========================================================================
 
 def get_yfinance_data(ticker: str) -> dict:
+    """Single-ticker yfinance fetch — used as fallback when batch data is missing."""
     _req_counts["yfinance"] += 1
     try:
         stk  = yf.Ticker(ticker)
         info = stk.info or {}
-        hist = stk.history(period="30d")
+        hist = stk.history(period="21d")
 
         avg_vol_20 = float(hist["Volume"].tail(20).mean()) if len(hist) >= 5 else 0.0
         cur_vol    = float(hist["Volume"].iloc[-1])         if len(hist) >= 1 else 0.0
@@ -377,6 +378,117 @@ def get_yfinance_data(ticker: str) -> dict:
     except Exception as exc:
         log.warning("yfinance error for %s: %s", ticker, exc)
         return {}
+
+
+def get_yfinance_batch(tickers: list[str]) -> dict[str, dict]:
+    """Batch-fetch yfinance data for all tickers at once.
+
+    Opt 1 — Two-phase approach:
+      Phase A: Single yf.download() for full OHLCV history (one HTTP round-trip
+               regardless of pool size — the dominant time saving).
+      Phase B: Parallel .info fetches via ThreadPoolExecutor(max_workers=5) for
+               metadata fields (sector, short float, market cap, …) that are not
+               available in the download payload.
+
+    IMPORTANT fallback: if a ticker is absent or empty in the batch result the
+    function transparently falls back to the individual get_yfinance_data() call
+    so no data is silently lost.
+
+    Returns {ticker: yfd_dict} with the same keys as get_yfinance_data().
+    """
+    if not tickers:
+        return {}
+
+    results: dict[str, dict] = {}
+
+    # ── Phase A: Batch OHLCV history (single HTTP request for all tickers) ──
+    hist_batch = None
+    try:
+        hist_batch = yf.download(
+            tickers, period="21d", group_by="ticker",
+            auto_adjust=True, threads=True, progress=False,
+        )
+        _req_counts["yfinance"] += 1
+        log.info("Batch history download: %d tickers", len(tickers))
+    except Exception as exc:
+        log.warning("Batch history download failed (%s) — will use individual fallbacks", exc)
+
+    def _hist_stats(ticker: str) -> tuple:
+        """Extract (avg_vol_20, cur_vol, vol_ratio, hi52, lo52) from batch or fallback."""
+        try:
+            if hist_batch is not None and not hist_batch.empty:
+                # yf.download with one ticker returns a flat DataFrame;
+                # with multiple tickers it returns a MultiLevel DataFrame.
+                df = hist_batch if len(tickers) == 1 else hist_batch[ticker]
+                if df is not None and not df.empty and len(df) >= 5:
+                    avg_vol = float(df["Volume"].tail(20).mean())
+                    cur_vol = float(df["Volume"].iloc[-1])
+                    vol_r   = cur_vol / avg_vol if avg_vol > 0 else 0.0
+                    hi52    = float(df["High"].max())
+                    lo52    = float(df["Low"].min())
+                    return avg_vol, cur_vol, vol_r, hi52, lo52
+        except Exception:
+            pass
+        # Fallback: individual history call for this ticker
+        try:
+            df2 = yf.Ticker(ticker).history(period="21d")
+            _req_counts["yfinance"] += 1
+            if not df2.empty and len(df2) >= 5:
+                avg_vol = float(df2["Volume"].tail(20).mean())
+                cur_vol = float(df2["Volume"].iloc[-1])
+                vol_r   = cur_vol / avg_vol if avg_vol > 0 else 0.0
+                return avg_vol, cur_vol, vol_r, float(df2["High"].max()), float(df2["Low"].min())
+        except Exception as exc2:
+            log.debug("Fallback history failed for %s: %s", ticker, exc2)
+        return 0.0, 0.0, 0.0, None, None
+
+    # ── Phase B: Parallel .info fetches (metadata not in download payload) ──
+    def _fetch_info(ticker: str) -> tuple[str, dict]:
+        """Return (ticker, info_dict); empty dict on any error."""
+        try:
+            info = yf.Ticker(ticker).info or {}
+            _req_counts["yfinance"] += 1
+            return ticker, info
+        except Exception as exc:
+            log.debug("Info fetch failed for %s: %s", ticker, exc)
+            return ticker, {}
+
+    info_map: dict[str, dict] = {}
+    # max_workers=5 mirrors the Yahoo screener thread limit to avoid rate-limiting
+    with ThreadPoolExecutor(max_workers=5) as ex:
+        futures = {ex.submit(_fetch_info, t): t for t in tickers}
+        for fut in as_completed(futures):
+            t, info = fut.result()
+            info_map[t] = info
+
+    # ── Combine history + info; fallback to individual call if both are empty ──
+    for ticker in tickers:
+        avg_vol_20, cur_vol, vol_ratio, hi52, lo52 = _hist_stats(ticker)
+        info = info_map.get(ticker, {})
+
+        # If the batch produced nothing useful for this ticker, fall back entirely
+        if not info and avg_vol_20 == 0.0:
+            log.debug("Batch empty for %s — falling back to individual get_yfinance_data()", ticker)
+            results[ticker] = get_yfinance_data(ticker)
+            continue
+
+        results[ticker] = {
+            "company_name":   info.get("longName") or info.get("shortName") or ticker,
+            "sector":         info.get("sector") or "",
+            "industry":       info.get("industry") or "",
+            "market_cap":     info.get("marketCap"),
+            "short_ratio":    info.get("shortRatio") or 0.0,
+            "short_float_yf": (info.get("shortPercentOfFloat") or 0.0) * 100,
+            # Prefer info 52w values; use batch hi/lo as fallback
+            "52w_high":       info.get("fiftyTwoWeekHigh") or hi52,
+            "52w_low":        info.get("fiftyTwoWeekLow")  or lo52,
+            "avg_vol_20d":    avg_vol_20,
+            "cur_vol":        cur_vol,
+            "vol_ratio":      vol_ratio,
+            "float_shares":   info.get("floatShares") or 0,
+        }
+
+    return results
 
 
 def get_yahoo_news(ticker: str, n: int = 5) -> list[dict]:
@@ -541,9 +653,13 @@ _finra_csv_cache: dict[str, dict[str, int]] = {}
 
 
 def _load_finra_csv(date_str: str) -> dict[str, int]:
-    """Download and parse FINRA daily short-volume pipe-delimited files from CDN.
+    """Download and parse FINRA daily short-volume files from CDN.
+
+    Opt 4 — The three exchange files (CNMS, FNSQ, FNQC) for a single date are
+    fetched in parallel via ThreadPoolExecutor(max_workers=3) rather than
+    sequentially.  Across dates the caller (Step 2a) also parallelises.
+
     Format: Date|Symbol|ShortVolume|ShortExemptVolume|TotalVolume|Market
-    Tries consolidated (CNMS), NASDAQ (FNSQ) and NASDAQ Cap (FNQC) endpoints.
     Returns {ticker: short_volume} or {} on failure.
     """
     urls = [
@@ -551,17 +667,18 @@ def _load_finra_csv(date_str: str) -> dict[str, int]:
         f"https://cdn.finra.org/equity/regsho/daily/FNSQshvol{date_str}.txt",
         f"https://cdn.finra.org/equity/regsho/daily/FNQCshvol{date_str}.txt",
     ]
-    merged: dict[str, int] = {}
-    for url in urls:
+
+    def _fetch_one(url: str) -> dict[str, int]:
+        """Fetch + parse a single FINRA CDN file; returns partial {ticker: sv}."""
+        partial: dict[str, int] = {}
+        filename = url.split("/")[-1]
         try:
             r = requests.get(url, headers=HTTP_HEADERS, timeout=20)
             _req_counts["finra"] += 1
             if r.status_code != 200:
-                print(f"FINRA CDN nicht verfügbar: {url.split('/')[-1]} → HTTP {r.status_code}")
-                continue
+                print(f"FINRA CDN nicht verfügbar: {filename} → HTTP {r.status_code}")
+                return partial
             lines = r.text.splitlines()
-            filename = url.split("/")[-1]
-            # Parse header: Date|Symbol|ShortVolume|ShortExemptVolume|TotalVolume|Market
             header = [h.strip().lower() for h in lines[0].split("|")]
             try:
                 sym_idx = next(i for i, h in enumerate(header)
@@ -569,9 +686,7 @@ def _load_finra_csv(date_str: str) -> dict[str, int]:
                 sv_idx  = next(i for i, h in enumerate(header)
                                if "shortvol" in h.replace(" ", "") and "exempt" not in h)
             except StopIteration:
-                # Fallback: fixed columns for CDN format (Symbol=1, ShortVolume=2)
-                sym_idx, sv_idx = 1, 2
-            count_before = len(merged)
+                sym_idx, sv_idx = 1, 2   # fixed CDN column order fallback
             for line in lines[1:]:
                 parts = line.split("|")
                 if len(parts) <= max(sym_idx, sv_idx):
@@ -582,11 +697,19 @@ def _load_finra_csv(date_str: str) -> dict[str, int]:
                 except ValueError:
                     continue
                 if ticker and sv_val > 0:
-                    merged[ticker] = merged.get(ticker, 0) + sv_val
-            added = len(merged) - count_before
-            print(f"FINRA CDN {date_str}: {filename} — {added} Ticker geladen", flush=True)
+                    partial[ticker] = partial.get(ticker, 0) + sv_val
+            print(f"FINRA CDN {date_str}: {filename} — {len(partial)} Ticker geladen",
+                  flush=True)
         except Exception as exc:
-            print(f"FINRA CDN Fehler bei {url.split('/')[-1]}: {exc}", flush=True)
+            print(f"FINRA CDN Fehler bei {filename}: {exc}", flush=True)
+        return partial
+
+    # Opt 4: fetch all three exchange files for this date in parallel
+    merged: dict[str, int] = {}
+    with ThreadPoolExecutor(max_workers=3) as ex:
+        for partial in ex.map(_fetch_one, urls):
+            for t, v in partial.items():
+                merged[t] = merged.get(t, 0) + v
     return merged
 
 
@@ -817,26 +940,35 @@ def fmt_cap(v) -> str:
 # ===========================================================================
 
 def _load_score_history() -> dict:
+    """Opt 5 — Load history and immediately prune stale entries at read time.
+
+    Pruning here (rather than at write time) means _save_score_history() only
+    needs to serialise what is actually needed — no second pass over the data.
+    """
+    from datetime import date, timedelta
+    cutoff = (date.today() - timedelta(days=_SCORE_HISTORY_DAYS)).strftime("%Y-%m-%d")
     try:
         with open(_SCORE_HISTORY_FILE, "r", encoding="utf-8") as fh:
-            return json.load(fh)
+            raw = json.load(fh)
     except (FileNotFoundError, json.JSONDecodeError):
         return {}
-
-
-def _save_score_history(history: dict, today: str) -> None:
-    """Prune entries older than _SCORE_HISTORY_DAYS days, then write to disk."""
-    from datetime import timedelta
-    cutoff = (
-        datetime.strptime(today, "%Y-%m-%d") - timedelta(days=_SCORE_HISTORY_DAYS)
-    ).strftime("%Y-%m-%d")
+    # Drop entries older than cutoff; drop tickers with no remaining entries
     pruned = {
         ticker: [e for e in entries if e.get("date", "") >= cutoff]
-        for ticker, entries in history.items()
+        for ticker, entries in raw.items()
     }
-    pruned = {k: v for k, v in pruned.items() if v}  # drop tickers with no remaining entries
+    return {k: v for k, v in pruned.items() if v}
+
+
+def _save_score_history(history: dict, _dirty: bool = True) -> None:
+    """Opt 5 — Write history to disk only when _dirty=True (changed since load).
+
+    Pruning is already done at load time so this function just serialises.
+    """
+    if not _dirty:
+        return
     with open(_SCORE_HISTORY_FILE, "w", encoding="utf-8") as fh:
-        json.dump(pruned, fh, indent=2)
+        json.dump(history, fh, indent=2)
 
 
 def apply_score_smoothing(stocks: list[dict], today: str) -> None:
@@ -845,7 +977,9 @@ def apply_score_smoothing(stocks: list[dict], today: str) -> None:
     Weighted formula: displayed_score = TODAY_WEIGHT * raw + HISTORY_WEIGHT * avg(last 3 runs)
     Sets s["score_label"] to "Ø 3T" when history contributed, else "Erster Run".
     """
+    # Opt 5: load once (pruning happens at load time); track dirty state
     history = _load_score_history()
+    _dirty  = False
 
     for s in stocks:
         ticker    = s["ticker"]
@@ -862,13 +996,15 @@ def apply_score_smoothing(stocks: list[dict], today: str) -> None:
             hist_avg = sum(e["score"] for e in past) / len(past)
             smoothed = SCORE_TODAY_WEIGHT * today_raw + SCORE_HISTORY_WEIGHT * hist_avg
             s["score"] = round(min(smoothed, 100.0), 1)
-        else:
-            pass  # keep raw score unchanged
+        # else: keep raw score unchanged
 
-        # Store today's raw score (overwrite if called twice for same date)
-        entries = [e for e in history.get(ticker, []) if e.get("date", "") != today]
-        entries.append({"date": today, "score": today_raw})
-        history[ticker] = entries
+        # Store today's raw score only if it differs from what's already there
+        existing = [e for e in history.get(ticker, []) if e.get("date", "") == today]
+        if not existing or existing[0]["score"] != today_raw:
+            entries = [e for e in history.get(ticker, []) if e.get("date", "") != today]
+            entries.append({"date": today, "score": today_raw})
+            history[ticker] = entries
+            _dirty = True   # mark that history was modified and needs saving
 
         # Sparkline data: last 7 calendar entries (oldest → newest) for this ticker
         all_entries = sorted(
@@ -889,7 +1025,7 @@ def apply_score_smoothing(stocks: list[dict], today: str) -> None:
                 spark_trend = f"↓ {delta:.1f} Pkt"
                 spark_col   = "#ef4444"
             else:
-                spark_trend = f"→ stabil"
+                spark_trend = "→ stabil"
                 spark_col   = "#94a3b8"
             s["sparkline"] = {
                 "scores": spark_scores,
@@ -900,8 +1036,10 @@ def apply_score_smoothing(stocks: list[dict], today: str) -> None:
         else:
             s["sparkline"] = None
 
-    _save_score_history(history, today)
-    log.info("Score smoothing applied; history saved to %s", _SCORE_HISTORY_FILE)
+    # Opt 5: write only when something actually changed (dirty flag)
+    _save_score_history(history, _dirty)
+    log.info("Score smoothing applied; history %s",
+             f"saved to {_SCORE_HISTORY_FILE}" if _dirty else "unchanged (skip write)")
 
 
 def risk_assessment(stock: dict) -> tuple[str, str, str]:
@@ -2139,10 +2277,13 @@ def _wl_mark_inactive(ticker: str) -> None:
 
 
 def get_watchlist_candidates() -> list[dict]:
-    """Quick volume scan of the static watchlist (only .history, no .info).
-    Returns stocks whose current-day volume is ≥1.5× the 20-day average.
-    Tickers with ≥3 consecutive empty/404 responses are auto-moved to
-    watchlist_inactive.txt and skipped in future runs.
+    """Volume scan of the static watchlist using per-region batch downloads.
+
+    Opt 2 — Instead of one yf.Ticker().history() call per ticker (~200 individual
+    requests with sleeps), download all tickers of a region in a single
+    yf.download() call.  Volume/price filtering is done on the local DataFrame.
+    Per-ticker sleeps are removed because the batch call is not rate-limited the
+    same way as individual requests.
     """
     failures = _wl_load_failures()
     inactive = _wl_load_inactive()
@@ -2151,37 +2292,55 @@ def get_watchlist_candidates() -> list[dict]:
     results: list[dict] = []
     for market, tickers in WATCHLIST.items():
         active = [t for t in tickers if t not in inactive]
+        if not active:
+            continue
         log.info("Watchlist scan: %s (%d active / %d total)",
                  market, len(active), len(tickers))
+
+        # Opt 2: one batch download per region instead of N individual calls
+        try:
+            hist_batch = yf.download(
+                active, period="21d", group_by="ticker",
+                auto_adjust=True, threads=True, progress=False,
+            )
+        except Exception as exc:
+            log.warning("Watchlist batch failed for %s: %s — skipping region", market, exc)
+            continue
+
         for ticker in active:
             try:
-                hist = yf.Ticker(ticker).history(period="21d")
-                if hist.empty or len(hist) < 5:
-                    # Count consecutive failure
+                # Extract per-ticker slice from MultiLevel DataFrame
+                # (single-ticker download returns a flat DataFrame)
+                if len(active) == 1:
+                    df = hist_batch
+                else:
+                    try:
+                        df = hist_batch[ticker]
+                    except KeyError:
+                        df = None
+
+                if df is None or df.empty or len(df) < 5:
                     failures[ticker] = failures.get(ticker, 0) + 1
                     if failures[ticker] >= _WL_MAX_FAILURES:
                         _wl_mark_inactive(ticker)
                         newly_inactive.append(ticker)
                         failures.pop(ticker, None)
-                    time.sleep(0.15)
                     continue
+
                 # Success → reset failure count
                 failures.pop(ticker, None)
 
-                avg_vol = float(hist["Volume"].iloc[:-1].mean())
-                cur_vol = float(hist["Volume"].iloc[-1])
+                avg_vol = float(df["Volume"].iloc[:-1].mean())
+                cur_vol = float(df["Volume"].iloc[-1])
                 if avg_vol < 1000:
-                    time.sleep(0.15)
                     continue
                 rel_vol = cur_vol / avg_vol if avg_vol > 0 else 0.0
                 if rel_vol < MIN_REL_VOLUME:
-                    time.sleep(0.15)
                     continue
-                price = float(hist["Close"].iloc[-1])
+                price = float(df["Close"].iloc[-1])
                 if price < MIN_PRICE:
-                    time.sleep(0.15)
                     continue
-                prev_close = float(hist["Close"].iloc[-2])
+                prev_close = float(df["Close"].iloc[-2])
                 chg = (price - prev_close) / prev_close * 100 if prev_close > 0 else 0.0
                 results.append({
                     "ticker":       ticker,
@@ -2203,7 +2362,7 @@ def get_watchlist_candidates() -> list[dict]:
                     _wl_mark_inactive(ticker)
                     newly_inactive.append(ticker)
                     failures.pop(ticker, None)
-            time.sleep(0.2)
+        # No per-ticker sleep — batch download already complete for this region
 
     _wl_save_failures(failures)
     if newly_inactive:
@@ -2252,6 +2411,7 @@ def main():
 
     # --- Step 1: Get candidate pool ---
     # Primary: Yahoo Finance Screener (reliable from GitHub Actions runners)
+    _t1 = time.time()
     log.info("Step 1 – Yahoo Finance Screener …")
     candidates = get_yahoo_screener_candidates()
 
@@ -2270,7 +2430,7 @@ def main():
         return
 
     # Supplement with watchlist volume scan (JP, HK, KR + any that screener missed)
-    log.info("Step 1b – Watchlist volume scan …")
+    log.info("Step 1b – Watchlist volume scan (batch per region) …")
     watchlist_cands = get_watchlist_candidates()
     existing_tickers = {c["ticker"] for c in candidates}
     for wc in watchlist_cands:
@@ -2278,6 +2438,7 @@ def main():
             candidates.append(wc)
             existing_tickers.add(wc["ticker"])
     log.info("Combined candidate pool after watchlist: %d tickers", len(candidates))
+    print(f"Step 1 abgeschlossen in {time.time()-_t1:.1f}s", flush=True)
 
     # Pre-sort by whatever data we have so we enrich the most promising first
     for c in candidates:
@@ -2330,18 +2491,29 @@ def main():
     # Pre-compute FINRA publication dates once
     finra_dates = _latest_finra_dates(3)
 
-    # Opt 1: Pre-load all FINRA CSV files into cache before the per-ticker loop.
-    # This triggers exactly 3×3 = 9 HTTP requests upfront instead of lazily
-    # re-entering _load_finra_csv for every candidate.
-    log.info("Step 2a – Pre-loading FINRA CDN data for %d dates …", len(finra_dates))
-    for _d in finra_dates:
-        _get_finra_csv_for_date(_d)
+    # Opt 4 — FINRA CSV parallel load (3 URLs per date × 3 dates in parallel).
+    # The actual parallelism across URLs is inside _load_finra_csv(); here we
+    # additionally parallelize across dates.
+    _t_finra = time.time()
+    log.info("Step 2a – Pre-loading FINRA CDN data for %d dates (parallel) …", len(finra_dates))
+    with ThreadPoolExecutor(max_workers=3) as _finra_ex:
+        list(_finra_ex.map(_get_finra_csv_for_date, finra_dates))
     _total_finra_entries = sum(len(v) for v in _finra_csv_cache.values())
     print(f"FINRA Cache aufgebaut: {len(_finra_csv_cache)} Dateien, "
-          f"{_total_finra_entries} Ticker-Einträge gesamt", flush=True)
+          f"{_total_finra_entries} Ticker-Einträge gesamt — "
+          f"{time.time()-_t_finra:.1f}s", flush=True)
+    print(f"Step 2a abgeschlossen in {time.time()-_t_finra:.1f}s", flush=True)
 
-    # --- Step 2: yfinance enrichment (all real filtering happens here) ---
-    log.info("Step 2 – Enriching %d candidates with yfinance …", len(pool))
+    # Opt 1 — yfinance Batch: pre-fetch all history + info for the entire pool
+    # in two parallel shots before the filter loop.  No per-ticker sleeps needed.
+    _t_batch = time.time()
+    pool_tickers = [c["ticker"] for c in pool]
+    log.info("Step 2b – Batch yfinance fetch for %d pool tickers …", len(pool_tickers))
+    batch_yfd = get_yfinance_batch(pool_tickers)
+    print(f"Step 2b (yfinance batch) abgeschlossen in {time.time()-_t_batch:.1f}s", flush=True)
+
+    # --- Step 2: Filter loop — uses pre-fetched batch data, no HTTP per ticker ---
+    log.info("Step 2 – Filtering %d candidates with enriched data …", len(pool))
     enriched = []
     _enrich_start = time.time()
     for i, c in enumerate(pool):
@@ -2358,7 +2530,8 @@ def main():
 
         t = c["ticker"]
         log.info("  [%d/%d] %s", i + 1, len(pool), t)
-        yfd = get_yfinance_data(t)
+        # Use pre-fetched batch data; fall back to individual call if missing
+        yfd = batch_yfd.get(t) or get_yfinance_data(t)
 
         # Overwrite with accurate yfinance values
         c.update({
@@ -2380,13 +2553,10 @@ def main():
         if yfd.get("vol_ratio", 0) > 0:
             c["rel_volume"] = yfd["vol_ratio"]
 
-        # FINRA daily short-volume data (US stocks only; used for trend badge/bonus only,
-        # NOT for short-float override since CDN files contain daily volume, not total SI)
+        # FINRA daily short-volume data (US only; local dict lookup — no HTTP)
         is_us_finra = c.get("market", "US") == "US"
         if is_us_finra:
-            finra = get_finra_short_interest(t, finra_dates)
-            c["finra_data"] = finra
-            time.sleep(0.2)
+            c["finra_data"] = get_finra_short_interest(t, finra_dates)
         else:
             c["finra_data"] = {}
         c["sf_source"] = "Yahoo Finance"
@@ -2395,37 +2565,34 @@ def main():
         cap = c.get("yf_market_cap") or c.get("market_cap")
         if cap and cap > MAX_MARKET_CAP:
             log.info("    skip %s: cap %s > $10B", t, fmt_cap(cap))
-            time.sleep(0.25)
             continue
 
-        # Short-float filter: apply strictly for US; relax for non-US markets
-        # where short-interest data is rarely available via yfinance.
+        # Short-float filter: strict for US; relaxed for non-US (data rarely available)
         is_us = c.get("market", "US") == "US"
         has_sf_data = c["short_float"] > 0
         if is_us and c["short_float"] < MIN_SHORT_FLOAT:
             log.info("    skip %s: short_float %.1f%% < %.0f%%",
                      t, c["short_float"], MIN_SHORT_FLOAT)
-            time.sleep(0.25)
             continue
         if not is_us and not has_sf_data:
-            # No short data available – keep if relative volume signals activity
+            # Keep intl stock if volume signals activity despite missing short data
             if c.get("rel_volume", 0) < 1.0:
                 log.info("    skip %s [%s]: no short data + low volume (%.1f×)",
                          t, c.get("market"), c.get("rel_volume", 0))
-                time.sleep(0.25)
                 continue
             log.info("    keep %s [%s]: no short data but vol=%.1f× (intl)",
                      t, c.get("market"), c.get("rel_volume", 0))
 
         c["score"] = score(c)
         enriched.append(c)
-        time.sleep(0.4)
+        # No per-ticker sleep needed — data already fetched in batch above
 
     _enrich_elapsed = time.time() - _enrich_start
     print(
         f"Angereichert: {len(enriched)}/{len(pool)} Kandidaten in {_enrich_elapsed:.1f}s",
         flush=True,
     )
+    print(f"Step 2 abgeschlossen in {time.time()-_t_batch:.1f}s", flush=True)
     enriched.sort(key=lambda x: x["score"], reverse=True)
 
     # Apply volume filter; relax automatically if too few results
@@ -2463,18 +2630,26 @@ def main():
     apply_score_smoothing(top10, report_date)
     top10.sort(key=lambda x: x["score"], reverse=True)
 
-    # --- Step 3: News ---
-    log.info("Step 3 – Fetching news for %d stocks …", len(top10))
-    for s in top10:
-        s["news"] = get_combined_news(s["ticker"])
-        time.sleep(0.3)
+    # Opt 3 — Parallel news fetching (all 10 tickers × 3 sources concurrently).
+    # max_workers=5 keeps us under typical rate-limit thresholds.
+    _t_news = time.time()
+    log.info("Step 3 – Fetching news for %d stocks (parallel, max 5 threads) …", len(top10))
+    with ThreadPoolExecutor(max_workers=5) as _news_ex:
+        _news_futures = {_news_ex.submit(get_combined_news, s["ticker"]): s for s in top10}
+        for _fut in as_completed(_news_futures):
+            _news_futures[_fut]["news"] = _fut.result() or []
+    _news_elapsed = time.time() - _t_news
+    print(f"News: {len(top10)} Ticker parallel in {_news_elapsed:.1f}s abgerufen", flush=True)
+    print(f"Step 3 abgeschlossen in {_news_elapsed:.1f}s", flush=True)
 
     # --- Step 4: HTML ---
+    _t4 = time.time()
     log.info("Step 4 – Generating HTML report …")
     html = generate_html(top10, report_date)
 
     with open("index.html", "w", encoding="utf-8") as fh:
         fh.write(html)
+    print(f"Step 4 abgeschlossen in {time.time()-_t4:.1f}s", flush=True)
 
     log.info("Report written → index.html")
     log.info("Top 10: %s", [s["ticker"] for s in top10])
@@ -2489,10 +2664,13 @@ def main():
     )
     _elapsed = time.time() - t_run_start
     print(
-        f"Laufzeit: {_elapsed:.1f}s | "
+        f"Gesamtlaufzeit: {_elapsed:.1f}s | Ziel: unter 30s",
+        flush=True,
+    )
+    print(
         f"HTTP-Requests: FINRA={_req_counts['finra']}, "
         f"Yahoo={_req_counts['yahoo']}, "
-        f"Sonstige(yfinance)={_req_counts['yfinance']} | "
+        f"yfinance={_req_counts['yfinance']} | "
         f"Kandidaten: {len(pool)}→{len(top10)}",
         flush=True,
     )

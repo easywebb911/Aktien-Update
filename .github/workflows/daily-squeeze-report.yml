@@ -34,6 +34,7 @@ jobs:
         run: python generate_report.py
 
       - name: Commit and publish report
+        id: commit_report
         run: |
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git config user.name "github-actions[bot]"
@@ -41,9 +42,42 @@ jobs:
           git add score_history.json 2>/dev/null || true
           if git diff --staged --quiet; then
             echo "Keine Aenderungen – Report ist aktuell."
+            echo "COMMIT_EPOCH=0" >> "$GITHUB_OUTPUT"
             exit 0
           fi
           git commit -m "Daily squeeze report $(date -u '+%Y-%m-%d')"
           # Pull rebase before push to handle concurrent workflow runs
           git pull --rebase origin main
           git push origin main
+          echo "COMMIT_EPOCH=$(date +%s)" >> "$GITHUB_OUTPUT"
+
+      # Opt 6: Poll GitHub Pages Last-Modified until the new version is live.
+      # Avoids blindly waiting a fixed interval; stops as soon as confirmed.
+      - name: Verify GitHub Pages deployment
+        if: steps.commit_report.outputs.COMMIT_EPOCH != '0'
+        run: |
+          PAGES_URL="https://easywebb911.github.io/Aktien-Update/"
+          COMMIT_TIME="${{ steps.commit_report.outputs.COMMIT_EPOCH }}"
+          MAX_WAIT=300
+          INTERVAL=10
+          START=$(date +%s)
+          echo "Warte auf GitHub Pages Aktualisierung (max ${MAX_WAIT}s) …"
+          while true; do
+            ELAPSED=$(( $(date +%s) - START ))
+            if [ "$ELAPSED" -ge "$MAX_WAIT" ]; then
+              echo "WARNUNG: GitHub Pages nach ${MAX_WAIT}s noch nicht aktualisiert"
+              exit 0
+            fi
+            LAST_MOD=$(curl -sI "$PAGES_URL" \
+              | grep -i "^last-modified:" \
+              | sed 's/^[Ll]ast-[Mm]odified:[ ]*//' \
+              | tr -d '\r')
+            if [ -n "$LAST_MOD" ]; then
+              LM_EPOCH=$(date -d "$LAST_MOD" +%s 2>/dev/null || echo 0)
+              if [ "$LM_EPOCH" -gt "$COMMIT_TIME" ]; then
+                echo "GitHub Pages aktualisiert nach ${ELAPSED}s"
+                exit 0
+              fi
+            fi
+            sleep "$INTERVAL"
+          done
