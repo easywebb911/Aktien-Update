@@ -422,50 +422,51 @@ _finra_csv_cache: dict[str, dict[str, int]] = {}
 
 
 def _load_finra_csv(date_str: str) -> dict[str, int]:
-    """Download and parse one FINRA short-interest pipe-delimited file.
-    Tries NYSE, NASDAQ and OTC endpoints for the given date (YYYYMMDD).
-    Returns {ticker: short_interest} or {} on failure.
+    """Download and parse FINRA daily short-volume pipe-delimited files from CDN.
+    Format: Date|Symbol|ShortVolume|ShortExemptVolume|TotalVolume|Market
+    Tries consolidated (CNMS), NASDAQ (FNSQ) and NASDAQ Cap (FNQC) endpoints.
+    Returns {ticker: short_volume} or {} on failure.
     """
     urls = [
-        f"https://www.finra.org/sites/default/files/short-sale/cnms{date_str}.txt",
-        f"https://www.finra.org/sites/default/files/short-sale/nasd{date_str}.txt",
-        f"https://www.finra.org/sites/default/files/short-sale/regsho{date_str}.txt",
+        f"https://cdn.finra.org/equity/regsho/daily/CNMSshvol{date_str}.txt",
+        f"https://cdn.finra.org/equity/regsho/daily/FNSQshvol{date_str}.txt",
+        f"https://cdn.finra.org/equity/regsho/daily/FNQCshvol{date_str}.txt",
     ]
     merged: dict[str, int] = {}
     for url in urls:
         try:
             r = requests.get(url, headers=HTTP_HEADERS, timeout=20)
             if r.status_code != 200:
-                print(f"FINRA CSV nicht verfügbar: {url.split('/')[-1]} → HTTP {r.status_code}")
+                print(f"FINRA CDN nicht verfügbar: {url.split('/')[-1]} → HTTP {r.status_code}")
                 continue
             lines = r.text.splitlines()
             filename = url.split("/")[-1]
-            # Parse header to find column positions
+            # Parse header: Date|Symbol|ShortVolume|ShortExemptVolume|TotalVolume|Market
             header = [h.strip().lower() for h in lines[0].split("|")]
             try:
                 sym_idx = next(i for i, h in enumerate(header)
                                if "symbol" in h or "ticker" in h)
-                si_idx  = next(i for i, h in enumerate(header)
-                               if "short" in h and "interest" in h)
+                sv_idx  = next(i for i, h in enumerate(header)
+                               if "shortvol" in h.replace(" ", "") and "exempt" not in h)
             except StopIteration:
-                # Fallback: fixed columns (Symbol=0, ShortInterest=3 for FINRA format)
-                sym_idx, si_idx = 0, 3
+                # Fallback: fixed columns for CDN format (Symbol=1, ShortVolume=2)
+                sym_idx, sv_idx = 1, 2
             count_before = len(merged)
             for line in lines[1:]:
                 parts = line.split("|")
-                if len(parts) <= max(sym_idx, si_idx):
+                if len(parts) <= max(sym_idx, sv_idx):
                     continue
                 ticker = parts[sym_idx].strip().upper()
                 try:
-                    si_val = int(parts[si_idx].strip().replace(",", ""))
+                    sv_val = int(parts[sv_idx].strip().replace(",", ""))
                 except ValueError:
                     continue
-                if ticker and si_val > 0:
-                    merged[ticker] = merged.get(ticker, 0) + si_val
+                if ticker and sv_val > 0:
+                    merged[ticker] = merged.get(ticker, 0) + sv_val
             added = len(merged) - count_before
-            print(f"FINRA CSV {date_str}: {filename} — {added} Ticker geladen")
+            print(f"FINRA CDN {date_str}: {filename} — {added} Ticker geladen", flush=True)
         except Exception as exc:
-            print(f"FINRA CSV Fehler bei {url.split('/')[-1]}: {exc}")
+            print(f"FINRA CDN Fehler bei {url.split('/')[-1]}: {exc}", flush=True)
     return merged
 
 
@@ -477,29 +478,30 @@ def _get_finra_csv_for_date(date_str: str) -> dict[str, int]:
 
 
 def _latest_finra_dates(n: int = 3) -> list[str]:
-    """Find the n most recent FINRA publication dates by probing backwards
-    from today (max 30 days). Returns list of YYYYMMDD strings, newest first.
-    Tries HEAD first; falls back to streaming GET on 403/405.
+    """Find the n most recent FINRA CDN daily-short-volume dates by probing
+    backwards from yesterday (max 14 trading days). The CDN publishes one
+    file per trading day (no weekends). Returns list of YYYYMMDD strings,
+    newest first.
     """
     from datetime import date, timedelta
     found: list[str] = []
     today = date.today()
-    for delta in range(0, 31):
+    for delta in range(1, 20):   # start from yesterday (delta=1)
         if len(found) >= n:
             break
         day = today - timedelta(days=delta)
         if day.weekday() >= 5:   # skip weekends
             continue
         date_str = day.strftime("%Y%m%d")
-        probe = (f"https://www.finra.org/sites/default/files/short-sale/"
-                 f"cnms{date_str}.txt")
+        probe = (f"https://cdn.finra.org/equity/regsho/daily/"
+                 f"CNMSshvol{date_str}.txt")
         try:
             r = requests.head(probe, headers=HTTP_HEADERS, timeout=10)
             if r.status_code == 200:
                 found.append(date_str)
                 continue
-            # HEAD blocked (403/405) → fall back to streaming GET
-            if r.status_code in (403, 405):
+            # HEAD blocked on some CDNs → fall back to streaming GET
+            if r.status_code in (403, 405, 404):
                 rg = requests.get(probe, headers=HTTP_HEADERS,
                                   timeout=10, stream=True)
                 rg.close()
@@ -507,15 +509,16 @@ def _latest_finra_dates(n: int = 3) -> list[str]:
                     found.append(date_str)
         except Exception:
             continue
-    print(f"FINRA Datumssuche: {len(found)} Daten gefunden: {found}")
+    print(f"FINRA Datumssuche: {len(found)} Daten gefunden: {found}", flush=True)
     return found
 
 
 def get_finra_short_interest(ticker: str,
                              dates: list[str] | None = None) -> dict:
-    """Lookup short interest for ticker from FINRA public CSV files.
+    """Lookup daily short volume for ticker from FINRA CDN files.
     `dates` should be pre-computed by _latest_finra_dates() once per run.
-    Returns dict with short_interest, history, trend, trend_pct or {}.
+    Returns dict with short_interest (= short volume), history, trend,
+    trend_pct or {}.
     """
     if dates is None:
         dates = []
@@ -626,10 +629,13 @@ def get_sec_ftd(ticker: str, _cache: dict = {}) -> dict:
             if r.status_code == 200:
                 qtys = _parse_zip(r.content, ticker)
                 all_quantities.extend(qtys)
-                print(f"SEC FTD: Datei {filename} erfolgreich geladen")
+                print(f"SEC FTD: Datei {filename} erfolgreich geladen", flush=True)
                 if len(all_quantities) >= 2:
                     break
-        except Exception:
+            else:
+                print(f"SEC FTD: {filename} → HTTP {r.status_code}", flush=True)
+        except Exception as exc:
+            print(f"SEC FTD Fehler: {exc}", flush=True)
             continue
 
     if not all_quantities:
