@@ -12,8 +12,10 @@ import json
 import time
 import logging
 import threading
+import xml.etree.ElementTree as ET
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime
+from email.utils import parsedate_to_datetime
 from zoneinfo import ZoneInfo
 
 import requests
@@ -66,6 +68,16 @@ FTD_BONUS_MAX    = 0    # SEC EDGAR + Nasdaq Data Link blocked on GitHub Actions
 # ── FINRA short interest trend thresholds ────────────────────────────────────
 SI_TREND_UP_THRESHOLD   =  0.10   # ≥+10 % over 3 periods → steigend
 SI_TREND_DOWN_THRESHOLD = -0.10   # ≤−10 % → fallend; between → seitwärts
+# ── Score smoothing weights ──────────────────────────────────────────────────
+SCORE_TODAY_WEIGHT   = 0.70   # weight for today's raw score
+SCORE_HISTORY_WEIGHT = 0.30   # weight for average of last 3 historical runs
+_SCORE_HISTORY_FILE  = "score_history.json"
+_SCORE_HISTORY_DAYS  = 14     # prune entries older than this many days
+# ── Dynamic enrichment pool sizing ───────────────────────────────────────────
+POOL_MIN                  = 20    # always enrich at least this many candidates
+POOL_MAX                  = 75    # hard upper limit to keep runtime reasonable
+POOL_SHORT_FLOAT_THRESHOLD = 10.0 # SF ≥ this % → always included regardless of POOL_MAX
+POOL_ENRICH_TIMEOUT       = 90    # seconds — skip remaining candidates if exceeded
 
 
 # ===========================================================================
@@ -182,7 +194,8 @@ def get_yahoo_screener_candidates() -> list[dict]:
     result: list[dict] = []
     seen:   set[str]   = set()
 
-    def _add_quotes(quotes: list, region: str) -> None:
+    def _add_quotes(quotes: list, region: str, screener_id: str) -> None:
+        src_tag = "yahoo_most_shorted" if screener_id == "most_shorted_stocks" else "yahoo_screener"
         for q in quotes:
             t = q.get("symbol", "").strip().upper()
             if not t or not re.match(r'^[A-Z0-9][A-Z0-9.\-]{0,14}$', t) or t in seen:
@@ -206,7 +219,8 @@ def get_yahoo_screener_candidates() -> list[dict]:
                 "short_ratio":  float(q.get("shortRatio") or 0),
                 "rel_volume":   0.0,
                 "company_name": q.get("shortName") or q.get("longName") or t,
-                "sector":       q.get("sector") or "N/A",
+                "sector":       q.get("sector") or "",
+                "source":       src_tag,
             })
 
     tasks = [(region, sid)
@@ -219,9 +233,9 @@ def get_yahoo_screener_candidates() -> list[dict]:
         future_map = {ex.submit(_fetch_yf_screener, sid, region): (region, sid)
                       for region, sid in tasks}
         for fut in as_completed(future_map):
-            region, _ = future_map[fut]
+            region, sid = future_map[fut]
             try:
-                _add_quotes(fut.result(), region)
+                _add_quotes(fut.result(), region, sid)
             except Exception as exc:
                 log.warning("Screener future error: %s", exc)
 
@@ -348,7 +362,8 @@ def get_yfinance_data(ticker: str) -> dict:
 
         return {
             "company_name": info.get("longName") or info.get("shortName") or ticker,
-            "sector":       info.get("sector", "N/A"),
+            "sector":       info.get("sector") or "",
+            "industry":     info.get("industry") or "",
             "market_cap":   info.get("marketCap"),
             "short_ratio":  info.get("shortRatio") or 0.0,
             "short_float_yf": (info.get("shortPercentOfFloat") or 0.0) * 100,
@@ -364,7 +379,7 @@ def get_yfinance_data(ticker: str) -> dict:
         return {}
 
 
-def get_yahoo_news(ticker: str, n: int = 2) -> list[dict]:
+def get_yahoo_news(ticker: str, n: int = 5) -> list[dict]:
     try:
         stk  = yf.Ticker(ticker)
         raw  = (stk.news or [])[:n]
@@ -383,8 +398,9 @@ def get_yahoo_news(ticker: str, n: int = 2) -> list[dict]:
                     pub_ts = int(datetime.fromisoformat(pub_ts.rstrip("Z")).timestamp())
                 except Exception:
                     pub_ts = 0
+            pub_ts = int(pub_ts) if pub_ts else 0
             ts_str = (
-                datetime.fromtimestamp(int(pub_ts)).strftime("%d.%m.%Y %H:%M")
+                datetime.fromtimestamp(pub_ts).strftime("%d.%m.%Y %H:%M")
                 if pub_ts else ""
             )
             title_orig = content.get("title") or item.get("title") or ""
@@ -408,19 +424,106 @@ def get_yahoo_news(ticker: str, n: int = 2) -> list[dict]:
             news.append({
                 "title":       _translate(title_orig) if title_orig else "",
                 "title_orig":  title_orig,
-                "summary_raw": raw_summary,         # original English summary
+                "summary_raw": raw_summary,
                 "publisher":   (content.get("provider", {}) or {}).get("displayName")
                                 or content.get("publisher")
-                                or item.get("publisher") or "",
+                                or item.get("publisher") or "Yahoo Finance",
+                "source":      "Yahoo Finance",
                 "link":        (content.get("canonicalUrl", {}) or {}).get("url")
                                 or content.get("link")
                                 or item.get("link") or "#",
                 "time":        ts_str,
+                "ts":          pub_ts,
             })
         return news
     except Exception as exc:
         log.warning("News error for %s: %s", ticker, exc)
         return []
+
+
+def _rss_news(ticker: str, url: str, source_label: str) -> list[dict]:
+    """Fetch and parse a generic RSS/Atom feed; return normalised news items."""
+    try:
+        r = requests.get(url, headers=HTTP_HEADERS, timeout=8)
+        if r.status_code != 200:
+            return []
+        root = ET.fromstring(r.content)
+        # Support both RSS (<channel><item>) and Atom (<entry>)
+        ns = {"atom": "http://www.w3.org/2005/Atom"}
+        items = root.findall(".//item") or root.findall(".//atom:entry", ns)
+        result = []
+        for item in items[:5]:
+            title = (
+                item.findtext("title")
+                or item.findtext("atom:title", namespaces=ns)
+                or ""
+            ).strip()
+            link = (
+                item.findtext("link")
+                or (item.find("atom:link", ns) or ET.Element("x")).get("href", "")
+                or "#"
+            ).strip()
+            pub_str = (
+                item.findtext("pubDate")
+                or item.findtext("atom:published", namespaces=ns)
+                or item.findtext("atom:updated", namespaces=ns)
+                or ""
+            ).strip()
+            ts = 0
+            if pub_str:
+                for fmt in ("%a, %d %b %Y %H:%M:%S %z", "%Y-%m-%dT%H:%M:%S%z",
+                            "%Y-%m-%dT%H:%M:%SZ"):
+                    try:
+                        ts = int(datetime.strptime(pub_str, fmt).timestamp())
+                        break
+                    except ValueError:
+                        pass
+                if not ts:
+                    try:
+                        ts = int(parsedate_to_datetime(pub_str).timestamp())
+                    except Exception:
+                        pass
+            ts_str = datetime.fromtimestamp(ts).strftime("%d.%m.%Y %H:%M") if ts else ""
+            if title:
+                result.append({
+                    "title":       _translate(title),
+                    "title_orig":  title,
+                    "summary_raw": "",
+                    "publisher":   source_label,
+                    "source":      source_label,
+                    "link":        link,
+                    "time":        ts_str,
+                    "ts":          ts,
+                })
+        return result
+    except Exception as exc:
+        log.debug("%s RSS error for %s: %s", source_label, ticker, exc)
+        return []
+
+
+def get_combined_news(ticker: str, n: int = 3) -> list[dict]:
+    """Merge Yahoo Finance, Seeking Alpha, and Benzinga news; return top n by date."""
+    base_upper = ticker.split(".")[0].upper()
+    base_lower = ticker.split(".")[0].lower()
+
+    yahoo_items = get_yahoo_news(ticker, n=5)
+    sa_items    = _rss_news(
+        ticker,
+        f"https://seekingalpha.com/api/sa/combined/{base_upper}.xml",
+        "Seeking Alpha",
+    )
+    bz_items    = _rss_news(
+        ticker,
+        f"https://www.benzinga.com/stock/{base_lower}/feed",
+        "Benzinga",
+    )
+
+    n_yahoo, n_sa, n_bz = len(yahoo_items), len(sa_items), len(bz_items)
+    combined = yahoo_items + sa_items + bz_items
+    combined.sort(key=lambda x: x.get("ts", 0), reverse=True)
+    result = combined[:n]
+    print(f"News {ticker}: {n_yahoo} Yahoo + {n_sa} SeekingAlpha + {n_bz} Benzinga = {len(result)} Meldungen")
+    return result
 
 
 # ===========================================================================
@@ -709,6 +812,98 @@ def fmt_cap(v) -> str:
     return f"${v:,.0f}"
 
 
+# ===========================================================================
+# SCORE HISTORY — smoothing across trading days
+# ===========================================================================
+
+def _load_score_history() -> dict:
+    try:
+        with open(_SCORE_HISTORY_FILE, "r", encoding="utf-8") as fh:
+            return json.load(fh)
+    except (FileNotFoundError, json.JSONDecodeError):
+        return {}
+
+
+def _save_score_history(history: dict, today: str) -> None:
+    """Prune entries older than _SCORE_HISTORY_DAYS days, then write to disk."""
+    from datetime import timedelta
+    cutoff = (
+        datetime.strptime(today, "%Y-%m-%d") - timedelta(days=_SCORE_HISTORY_DAYS)
+    ).strftime("%Y-%m-%d")
+    pruned = {
+        ticker: [e for e in entries if e.get("date", "") >= cutoff]
+        for ticker, entries in history.items()
+    }
+    pruned = {k: v for k, v in pruned.items() if v}  # drop tickers with no remaining entries
+    with open(_SCORE_HISTORY_FILE, "w", encoding="utf-8") as fh:
+        json.dump(pruned, fh, indent=2)
+
+
+def apply_score_smoothing(stocks: list[dict], today: str) -> None:
+    """Smooth each stock's score in-place using historical data and save history.
+
+    Weighted formula: displayed_score = TODAY_WEIGHT * raw + HISTORY_WEIGHT * avg(last 3 runs)
+    Sets s["score_label"] to "Ø 3T" when history contributed, else "Erster Run".
+    """
+    history = _load_score_history()
+
+    for s in stocks:
+        ticker    = s["ticker"]
+        today_raw = s["score"]
+
+        # Past entries (exclude today to avoid double-counting)
+        past = sorted(
+            [e for e in history.get(ticker, []) if e.get("date", "") != today],
+            key=lambda x: x.get("date", ""),
+            reverse=True,
+        )[:3]
+
+        if past:
+            hist_avg = sum(e["score"] for e in past) / len(past)
+            smoothed = SCORE_TODAY_WEIGHT * today_raw + SCORE_HISTORY_WEIGHT * hist_avg
+            s["score"] = round(min(smoothed, 100.0), 1)
+        else:
+            pass  # keep raw score unchanged
+
+        # Store today's raw score (overwrite if called twice for same date)
+        entries = [e for e in history.get(ticker, []) if e.get("date", "") != today]
+        entries.append({"date": today, "score": today_raw})
+        history[ticker] = entries
+
+        # Sparkline data: last 7 calendar entries (oldest → newest) for this ticker
+        all_entries = sorted(
+            [e for e in history[ticker]],
+            key=lambda x: x.get("date", ""),
+        )[-7:]
+        if len(all_entries) >= 2:
+            spark_scores = [round(e["score"], 1) for e in all_entries]
+            spark_dates  = [
+                datetime.strptime(e["date"], "%Y-%m-%d").strftime("%d.%m")
+                for e in all_entries
+            ]
+            delta = spark_scores[-1] - spark_scores[0]
+            if delta >= 3:
+                spark_trend = f"↑ +{delta:.1f} Pkt"
+                spark_col   = "#22c55e"
+            elif delta <= -3:
+                spark_trend = f"↓ {delta:.1f} Pkt"
+                spark_col   = "#ef4444"
+            else:
+                spark_trend = f"→ stabil"
+                spark_col   = "#94a3b8"
+            s["sparkline"] = {
+                "scores": spark_scores,
+                "dates":  spark_dates,
+                "trend":  spark_trend,
+                "col":    spark_col,
+            }
+        else:
+            s["sparkline"] = None
+
+    _save_score_history(history, today)
+    log.info("Score smoothing applied; history saved to %s", _SCORE_HISTORY_FILE)
+
+
 def risk_assessment(stock: dict) -> tuple[str, str, str]:
     """Returns (level_de, hex_color, reason)."""
     pts = 0
@@ -850,6 +1045,43 @@ def _card(i: int, s: dict) -> str:
     sit_txt  = short_situation(s)
     news_sum = news_summary(s.get("news", []))
 
+    # Sparkline — embed history data as data-attributes; JS draws SVG at load
+    _spark = s.get("sparkline")
+    if _spark:
+        _sc_json  = json.dumps(_spark["scores"])
+        _dt_json  = json.dumps(_spark["dates"])
+        sparkline_html = (
+            f'<div class="spark-wrap" '
+            f'data-scores=\'{_sc_json}\' '
+            f'data-dates=\'{_dt_json}\' '
+            f'data-col="{_spark["col"]}">'
+            f'<div class="spark-header">'
+            f'<span class="spark-title">Score-Verlauf</span>'
+            f'<span class="spark-trend" style="color:{_spark["col"]}">{_spark["trend"]}</span>'
+            f'</div>'
+            f'<div class="spark-svg-wrap"></div>'
+            f'<div class="spark-dates">'
+            f'<span>{_spark["dates"][0]}</span>'
+            f'<span>{_spark["dates"][-1]}</span>'
+            f'</div>'
+            f'</div>'
+        )
+    else:
+        sparkline_html = '<p class="spark-placeholder">Verlauf ab morgen verfügbar.</p>'
+
+    # Sector / industry display — omit entirely if not available
+    _sector   = (s.get("sector") or "").strip()
+    _industry = (s.get("industry") or "").strip()
+    if _sector and _industry:
+        sector_tag_html   = f'<span class="sector-tag">{_sector} · {_industry}</span>'
+        sector_detail_row = f"<tr><td>Sektor</td><td>{_sector} · {_industry}</td></tr>"
+    elif _sector:
+        sector_tag_html   = f'<span class="sector-tag">{_sector}</span>'
+        sector_detail_row = f"<tr><td>Sektor</td><td>{_sector}</td></tr>"
+    else:
+        sector_tag_html   = ""
+        sector_detail_row = ""
+
     sc      = min(s["score"], 100.0)
     sc_col  = _score_color(sc)
     sf      = s.get("short_float", 0)
@@ -922,12 +1154,14 @@ def _card(i: int, s: dict) -> str:
     )
 
     news_html = ""
-    for n in s.get("news", [])[:2]:
+    for n in s.get("news", [])[:3]:
+        src_label = n.get("source") or n.get("publisher") or ""
+        src_html  = f' <span class="ni-src">({src_label})</span>' if src_label else ""
         news_html += (
             f'<div class="ni">'
             f'<a href="{n.get("link","#")}" target="_blank" rel="noopener noreferrer">'
-            f'{n.get("title","")}</a>'
-            f'<span class="ni-meta">{n.get("publisher","")} · {n.get("time","")}</span>'
+            f'{n.get("title","")}</a>{src_html}'
+            f'<span class="ni-meta">{n.get("time","")}</span>'
             f'</div>'
         )
     if not news_html:
@@ -946,15 +1180,16 @@ def _card(i: int, s: dict) -> str:
           <span class="price-tag">${s.get('price',0):.2f}</span>
         </div>
         <span class="company">{s.get('company_name','')}</span>
-        <span class="sector-tag">{s.get('sector','')}</span>
+        {sector_tag_html}
       </div>
     </div>
     <div class="score-block">
-      <span class="score-num" style="color:{sc_col}">{s['score']:.0f}</span>
+      <span class="score-num" style="color:{sc_col}">{s['score']:.1f}</span>
       <span class="score-lbl">Score</span>
       <div class="score-track"><div class="score-fill" style="width:{sc:.0f}%;background:{sc_col}"></div></div>
     </div>
   </div>
+  {sparkline_html}
   <div class="metrics-row">
     <div class="metric-box" style="--mc:{sf_col}">
       {si_badge_html}
@@ -981,6 +1216,7 @@ def _card(i: int, s: dict) -> str:
     <div class="detail-table-wrap">
       <table class="detail-table">
         <tr><td>Marktkapitalisierung</td><td>{fmt_cap(cap_val)}</td></tr>
+        {sector_detail_row}
         <tr><td>52W-Hoch / -Tief</td><td>${s.get('52w_high') or 0:.2f} / ${s.get('52w_low') or 0:.2f}</td></tr>
         <tr><td>Ø Volumen 20T</td><td>{s.get('avg_vol_20d',0):,.0f}</td></tr>
         <tr><td>Heutiges Volumen</td><td>{s.get('cur_vol',0):,.0f}</td></tr>
@@ -1196,6 +1432,24 @@ a{{color:var(--accent);text-decoration:none}}
   letter-spacing:.4px;margin-bottom:5px}}
 .score-track{{width:60px;height:5px;background:var(--brd);border-radius:3px}}
 .score-fill{{height:100%;border-radius:3px;transition:width .3s}}
+.score-hist-lbl{{font-size:.58rem;color:var(--txt-dim);margin-top:2px;text-align:center}}
+/* ── Sparkline ── */
+.spark-wrap{{padding:8px 12px 4px;border-top:1px solid var(--brd)}}
+.spark-header{{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px}}
+.spark-title{{font-size:.65rem;color:var(--txt-dim);text-transform:uppercase;letter-spacing:.3px}}
+.spark-trend{{font-size:.72rem;font-weight:600}}
+.spark-svg-wrap{{width:100%;height:40px;position:relative}}
+.spark-svg-wrap svg{{width:100%;height:40px;overflow:visible}}
+.spark-dates{{display:flex;justify-content:space-between;margin-top:3px}}
+.spark-dates span{{font-size:.6rem;color:var(--txt-dim)}}
+.spark-placeholder{{font-size:.7rem;color:var(--txt-dim);font-style:italic;
+  padding:8px 12px 6px;border-top:1px solid var(--brd)}}
+/* Sparkline tooltip */
+.spark-tip{{position:absolute;background:var(--bg-card);border:1px solid var(--brd);
+  border-radius:5px;padding:2px 6px;font-size:.68rem;color:var(--txt);
+  pointer-events:none;white-space:nowrap;z-index:10;
+  transform:translate(-50%,-120%);opacity:0;transition:opacity .15s}}
+.spark-tip.visible{{opacity:1}}
 /* ── Metrics ── */
 .metrics-row{{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;padding:0 12px 12px}}
 .metric-box{{background:var(--bg-met);border:1px solid var(--brd);border-radius:10px;
@@ -1241,6 +1495,7 @@ a{{color:var(--accent);text-decoration:none}}
 .ni a{{color:var(--accent);display:block;margin-bottom:2px}}
 .ni a:hover{{text-decoration:underline}}
 .ni-meta{{font-size:.7rem;color:var(--txt-dim)}}
+.ni-src{{font-size:.72rem;color:var(--txt-dim);font-style:italic}}
 .no-news{{font-size:.93rem;color:var(--txt-dim)}}
 .no-data-notice{{font-size:.75rem;color:var(--txt-dim);font-style:italic;
   margin:4px 12px 10px;padding:6px 10px;background:var(--bg-met);border-radius:6px;
@@ -1320,6 +1575,9 @@ a{{color:var(--accent);text-decoration:none}}
   <div style="padding-bottom:4px">
     <a class="tok-link" onclick="resetToken();return false;" href="#">Token zurücksetzen</a>
   </div>
+  <div id="non-trading-banner" style="display:none;width:100%;background:#f59e0b;color:#1c1102;
+    font-size:.78rem;font-weight:500;padding:5px 16px;box-sizing:border-box;
+    border-top:1px solid #d97706;line-height:1.45" aria-live="polite"></div>
 </header>
 
 <main class="wrap">
@@ -1640,6 +1898,199 @@ function showMsg(type,text){{
   el.style.display='block';
   if(type!=='error') setTimeout(()=>{{el.style.display='none';}},13000);
 }}
+
+// ── Non-trading-day banner ────────────────────────────────────────────────────
+// US federal holidays — update this array each year (format: "YYYY-MM-DD").
+// Observed dates (Monday if Sunday, Friday if Saturday) should be listed.
+(function(){{
+  const US_HOLIDAYS = [
+    // 2025
+    "2025-01-01", // New Year's Day
+    "2025-01-20", // MLK Day
+    "2025-02-17", // Presidents' Day
+    "2025-05-26", // Memorial Day
+    "2025-06-19", // Juneteenth
+    "2025-07-04", // Independence Day
+    "2025-09-01", // Labor Day
+    "2025-11-27", // Thanksgiving
+    "2025-12-25", // Christmas
+    // 2026
+    "2026-01-01", // New Year's Day
+    "2026-01-19", // MLK Day
+    "2026-02-16", // Presidents' Day
+    "2026-05-25", // Memorial Day
+    "2026-06-19", // Juneteenth
+    "2026-07-03", // Independence Day (observed, 4th = Saturday)
+    "2026-09-07", // Labor Day
+    "2026-11-26", // Thanksgiving
+    "2026-12-25", // Christmas
+    // 2027
+    "2027-01-01", // New Year's Day
+    "2027-01-18", // MLK Day
+    "2027-02-15", // Presidents' Day
+    "2027-05-31", // Memorial Day
+    "2027-06-18", // Juneteenth (observed, 19th = Saturday)
+    "2027-07-05", // Independence Day (observed, 4th = Sunday)
+    "2027-09-06", // Labor Day
+    "2027-11-25", // Thanksgiving
+    "2027-12-24", // Christmas (observed, 25th = Saturday)
+  ];
+
+  function toIso(d) {{
+    const y = d.getFullYear();
+    const m = String(d.getMonth()+1).padStart(2,'0');
+    const day = String(d.getDate()).padStart(2,'0');
+    return `${{y}}-${{m}}-${{day}}`;
+  }}
+
+  function isHoliday(d) {{
+    return US_HOLIDAYS.includes(toIso(d));
+  }}
+
+  function isNonTradingDay(d) {{
+    const dow = d.getDay(); // 0=Sun, 6=Sat
+    return dow === 0 || dow === 6 || isHoliday(d);
+  }}
+
+  function nextTradingDay(d) {{
+    const next = new Date(d);
+    next.setDate(next.getDate() + 1);
+    while (isNonTradingDay(next)) {{
+      next.setDate(next.getDate() + 1);
+    }}
+    return next;
+  }}
+
+  function fmtGerman(d) {{
+    const weekdays = ['Sonntag','Montag','Dienstag','Mittwoch','Donnerstag','Freitag','Samstag'];
+    const months = ['Januar','Februar','März','April','Mai','Juni',
+                    'Juli','August','September','Oktober','November','Dezember'];
+    return `${{weekdays[d.getDay()]}}, ${{d.getDate()}}. ${{months[d.getMonth()]}} ${{d.getFullYear()}}`;
+  }}
+
+  const today = new Date();
+  today.setHours(0,0,0,0);
+
+  if (isNonTradingDay(today)) {{
+    const ntd = nextTradingDay(today);
+    const dow = today.getDay();
+    let reason;
+    if (dow === 6 || dow === 0) {{
+      reason = 'Wochenende';
+    }} else {{
+      reason = 'US-Feiertag';
+    }}
+    const banner = document.getElementById('non-trading-banner');
+    banner.textContent =
+      `\u26a0\ufe0f Kein Handelstag (${{reason}}) \u2014 ` +
+      `Nächster US-Handelstag: ${{fmtGerman(ntd)}}. ` +
+      `Die angezeigten Daten stammen vom letzten Handelstag.`;
+    banner.style.display = 'block';
+  }}
+}})();
+// ─────────────────────────────────────────────────────────────────────────────
+
+// ── Sparkline renderer ────────────────────────────────────────────────────────
+(function(){{
+  const isMobile = ('ontouchstart' in window) || (window.matchMedia('(pointer:coarse)').matches);
+  const PT_R     = isMobile ? 4 : 3;
+  const PAD      = {{l:2, r:2, t:4, b:4}};
+
+  function drawSparkline(wrap) {{
+    const scores = JSON.parse(wrap.dataset.scores || '[]');
+    const dates  = JSON.parse(wrap.dataset.dates  || '[]');
+    const col    = wrap.dataset.col  || '#94a3b8';
+    const n      = scores.length;
+    if (n < 2) return;
+
+    const svgWrap = wrap.querySelector('.spark-svg-wrap');
+    if (!svgWrap) return;
+
+    // Use observed width; fall back gracefully
+    const W = svgWrap.clientWidth || 280;
+    const H = 40;
+
+    const minS = Math.min(...scores);
+    const maxS = Math.max(...scores);
+    const range = maxS - minS || 1;
+
+    function xOf(idx) {{
+      return PAD.l + (idx / (n - 1)) * (W - PAD.l - PAD.r);
+    }}
+    function yOf(val) {{
+      return PAD.t + (1 - (val - minS) / range) * (H - PAD.t - PAD.b);
+    }}
+
+    // Build polyline points
+    const pts = scores.map((s, i) => `${{xOf(i).toFixed(1)}},${{yOf(s).toFixed(1)}}`).join(' ');
+    // Area fill path: line + close along bottom
+    const areaD = scores.map((s, i) => (i === 0 ? 'M' : 'L') + `${{xOf(i).toFixed(1)}},${{yOf(s).toFixed(1)}}`).join(' ')
+      + ` L${{xOf(n-1).toFixed(1)}},${{(H - PAD.b).toFixed(1)}} L${{xOf(0).toFixed(1)}},${{(H - PAD.b).toFixed(1)}} Z`;
+
+    const colFill = col.replace('#', '');
+    const svgId   = 'sp' + Math.random().toString(36).slice(2,7);
+
+    let circlesHtml = '';
+    for (let i = 0; i < n; i++) {{
+      const cx = xOf(i).toFixed(1);
+      const cy = yOf(scores[i]).toFixed(1);
+      circlesHtml += `<circle class="sp-dot" cx="${{cx}}" cy="${{cy}}" r="${{PT_R}}" fill="${{col}}" stroke="var(--bg-card)" stroke-width="1.5" data-score="${{scores[i]}}" data-date="${{dates[i]}}"/>`;
+    }}
+
+    const svg = `<svg viewBox="0 0 ${{W}} ${{H}}" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="sg${{svgId}}" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="${{col}}" stop-opacity="0.35"/>
+      <stop offset="100%" stop-color="${{col}}" stop-opacity="0.03"/>
+    </linearGradient>
+  </defs>
+  <path d="${{areaD}}" fill="url(#sg${{svgId}})"/>
+  <polyline points="${{pts}}" fill="none" stroke="${{col}}" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"/>
+  ${{circlesHtml}}
+</svg>`;
+    svgWrap.innerHTML = svg;
+
+    // Tooltip element
+    const tip = document.createElement('div');
+    tip.className = 'spark-tip';
+    svgWrap.appendChild(tip);
+
+    // Event handling
+    svgWrap.querySelectorAll('.sp-dot').forEach(dot => {{
+      const show = () => {{
+        const cx = parseFloat(dot.getAttribute('cx'));
+        const cy = parseFloat(dot.getAttribute('cy'));
+        tip.textContent = `${{dot.dataset.date}}: ${{dot.dataset.score}}`;
+        tip.style.left  = cx + 'px';
+        tip.style.top   = cy + 'px';
+        tip.classList.add('visible');
+      }};
+      const hide = () => tip.classList.remove('visible');
+
+      if (isMobile) {{
+        dot.addEventListener('touchstart', e => {{
+          e.preventDefault();
+          show();
+          setTimeout(hide, 2000);
+        }}, {{passive: false}});
+      }} else {{
+        dot.addEventListener('mouseenter', show);
+        dot.addEventListener('mouseleave', hide);
+      }}
+    }});
+  }}
+
+  function initAll() {{
+    document.querySelectorAll('.spark-wrap').forEach(drawSparkline);
+  }}
+
+  if (document.readyState === 'loading') {{
+    document.addEventListener('DOMContentLoaded', initAll);
+  }} else {{
+    initAll();
+  }}
+}})();
+// ─────────────────────────────────────────────────────────────────────────────
 </script>
 </body>
 </html>"""
@@ -1833,15 +2284,48 @@ def main():
         c["score"] = score(c)
     candidates.sort(key=lambda x: x["score"], reverse=True)
 
-    # Build enrichment pool: guarantee representation from all markets.
-    # US stocks are sorted by score; international regions get up to 6 slots each
-    # regardless of initial score (short-float data is rarely in screener response).
-    us_pool   = [c for c in candidates if c.get("market") == "US"][:28]
-    intl_pool = []
-    for region in ("DE", "GB", "FR", "NL", "CA", "JP", "HK", "KR"):
-        region_stocks = [c for c in candidates if c.get("market") == region][:6]
-        intl_pool.extend(region_stocks)
-    pool = us_pool + intl_pool
+    # ── Dynamic pool construction ─────────────────────────────────────────────
+    # Priority 1: SF ≥ POOL_SHORT_FLOAT_THRESHOLD (always included)
+    tier1 = [c for c in candidates if c.get("short_float", 0) >= POOL_SHORT_FLOAT_THRESHOLD]
+    # Priority 2: SF 5–10 % from most_shorted_stocks screener
+    tier2 = [c for c in candidates
+             if c not in tier1
+             and 5.0 <= c.get("short_float", 0) < POOL_SHORT_FLOAT_THRESHOLD
+             and c.get("source") == "yahoo_most_shorted"]
+    # Priority 3: relative volume ≥ 2× (volume spike from any screener source)
+    tier3 = [c for c in candidates
+             if c not in tier1 and c not in tier2
+             and c.get("rel_volume", 0) >= 2.0]
+    # Priority 4: remainder sorted by volume descending
+    used  = {id(c) for c in tier1 + tier2 + tier3}
+    tier4 = sorted(
+        [c for c in candidates if id(c) not in used],
+        key=lambda c: c.get("rel_volume", 0),
+        reverse=True,
+    )
+
+    # Assemble pool: tiers 1–3 always in, fill with tier4 up to POOL_MAX
+    pool: list[dict] = list(tier1) + list(tier2) + list(tier3)
+    remaining_slots  = max(POOL_MAX - len(pool), 0)
+    pool.extend(tier4[:remaining_slots])
+
+    # Enforce minimum
+    if len(pool) < POOL_MIN:
+        extras = [c for c in candidates if c not in pool]
+        extras.sort(key=lambda c: c.get("rel_volume", 0), reverse=True)
+        pool.extend(extras[:POOL_MIN - len(pool)])
+
+    n_sf10 = len(tier1)
+    n_sf5  = len(tier2)
+    n_vol  = len(tier3)
+    n_rest = len(pool) - n_sf10 - n_sf5 - n_vol
+    print(
+        f"Pool-Aufbau: {n_sf10}× SF≥{POOL_SHORT_FLOAT_THRESHOLD:.0f}% + "
+        f"{n_sf5}× SF 5-10% + {n_vol}× Vol≥2× + {n_rest}× Rest = "
+        f"{len(pool)} Kandidaten (Min={POOL_MIN}, Max={POOL_MAX})",
+        flush=True,
+    )
+    # ─────────────────────────────────────────────────────────────────────────
 
     # Pre-compute FINRA publication dates once
     finra_dates = _latest_finra_dates(3)
@@ -1859,7 +2343,19 @@ def main():
     # --- Step 2: yfinance enrichment (all real filtering happens here) ---
     log.info("Step 2 – Enriching %d candidates with yfinance …", len(pool))
     enriched = []
+    _enrich_start = time.time()
     for i, c in enumerate(pool):
+        # Timeout guard: skip remaining candidates if wall-clock limit exceeded
+        _elapsed_enrich = time.time() - _enrich_start
+        if _elapsed_enrich > POOL_ENRICH_TIMEOUT:
+            print(
+                f"Pool-Anreicherung Zeitlimit erreicht: {i}/{len(pool)} Kandidaten angereichert",
+                flush=True,
+            )
+            log.warning("Enrichment timeout after %.1fs — skipping remaining %d candidates",
+                        _elapsed_enrich, len(pool) - i)
+            break
+
         t = c["ticker"]
         log.info("  [%d/%d] %s", i + 1, len(pool), t)
         yfd = get_yfinance_data(t)
@@ -1867,7 +2363,8 @@ def main():
         # Overwrite with accurate yfinance values
         c.update({
             "company_name":  yfd.get("company_name") or c.get("company_name", t),
-            "sector":        yfd.get("sector") or c.get("sector", "N/A"),
+            "sector":        yfd.get("sector") or c.get("sector") or "",
+            "industry":      yfd.get("industry") or c.get("industry") or "",
             "yf_market_cap": yfd.get("market_cap"),
             "52w_high":      yfd.get("52w_high"),
             "52w_low":       yfd.get("52w_low"),
@@ -1924,6 +2421,11 @@ def main():
         enriched.append(c)
         time.sleep(0.4)
 
+    _enrich_elapsed = time.time() - _enrich_start
+    print(
+        f"Angereichert: {len(enriched)}/{len(pool)} Kandidaten in {_enrich_elapsed:.1f}s",
+        flush=True,
+    )
     enriched.sort(key=lambda x: x["score"], reverse=True)
 
     # Apply volume filter; relax automatically if too few results
@@ -1957,10 +2459,14 @@ def main():
 
     top10.sort(key=lambda x: x["score"], reverse=True)
 
+    # --- Step 3a: Score smoothing (70 % today + 30 % avg last 3 runs) ---
+    apply_score_smoothing(top10, report_date)
+    top10.sort(key=lambda x: x["score"], reverse=True)
+
     # --- Step 3: News ---
     log.info("Step 3 – Fetching news for %d stocks …", len(top10))
     for s in top10:
-        s["news"] = get_yahoo_news(s["ticker"])
+        s["news"] = get_combined_news(s["ticker"])
         time.sleep(0.3)
 
     # --- Step 4: HTML ---
