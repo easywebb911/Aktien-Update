@@ -206,7 +206,7 @@ def get_yahoo_screener_candidates() -> list[dict]:
                 "short_ratio":  float(q.get("shortRatio") or 0),
                 "rel_volume":   0.0,
                 "company_name": q.get("shortName") or q.get("longName") or t,
-                "sector":       q.get("sector") or "N/A",
+                "sector":       q.get("sector") or "",
             })
 
     tasks = [(region, sid)
@@ -348,7 +348,8 @@ def get_yfinance_data(ticker: str) -> dict:
 
         return {
             "company_name": info.get("longName") or info.get("shortName") or ticker,
-            "sector":       info.get("sector", "N/A"),
+            "sector":       info.get("sector") or "",
+            "industry":     info.get("industry") or "",
             "market_cap":   info.get("marketCap"),
             "short_ratio":  info.get("shortRatio") or 0.0,
             "short_float_yf": (info.get("shortPercentOfFloat") or 0.0) * 100,
@@ -850,6 +851,19 @@ def _card(i: int, s: dict) -> str:
     sit_txt  = short_situation(s)
     news_sum = news_summary(s.get("news", []))
 
+    # Sector / industry display — omit entirely if not available
+    _sector   = (s.get("sector") or "").strip()
+    _industry = (s.get("industry") or "").strip()
+    if _sector and _industry:
+        sector_tag_html   = f'<span class="sector-tag">{_sector} · {_industry}</span>'
+        sector_detail_row = f"<tr><td>Sektor</td><td>{_sector} · {_industry}</td></tr>"
+    elif _sector:
+        sector_tag_html   = f'<span class="sector-tag">{_sector}</span>'
+        sector_detail_row = f"<tr><td>Sektor</td><td>{_sector}</td></tr>"
+    else:
+        sector_tag_html   = ""
+        sector_detail_row = ""
+
     sc      = min(s["score"], 100.0)
     sc_col  = _score_color(sc)
     sf      = s.get("short_float", 0)
@@ -946,7 +960,7 @@ def _card(i: int, s: dict) -> str:
           <span class="price-tag">${s.get('price',0):.2f}</span>
         </div>
         <span class="company">{s.get('company_name','')}</span>
-        <span class="sector-tag">{s.get('sector','')}</span>
+        {sector_tag_html}
       </div>
     </div>
     <div class="score-block">
@@ -981,6 +995,7 @@ def _card(i: int, s: dict) -> str:
     <div class="detail-table-wrap">
       <table class="detail-table">
         <tr><td>Marktkapitalisierung</td><td>{fmt_cap(cap_val)}</td></tr>
+        {sector_detail_row}
         <tr><td>52W-Hoch / -Tief</td><td>${s.get('52w_high') or 0:.2f} / ${s.get('52w_low') or 0:.2f}</td></tr>
         <tr><td>Ø Volumen 20T</td><td>{s.get('avg_vol_20d',0):,.0f}</td></tr>
         <tr><td>Heutiges Volumen</td><td>{s.get('cur_vol',0):,.0f}</td></tr>
@@ -1961,7 +1976,8 @@ def main():
         # Overwrite with accurate yfinance values
         c.update({
             "company_name":  yfd.get("company_name") or c.get("company_name", t),
-            "sector":        yfd.get("sector") or c.get("sector", "N/A"),
+            "sector":        yfd.get("sector") or c.get("sector") or "",
+            "industry":      yfd.get("industry") or c.get("industry") or "",
             "yf_market_cap": yfd.get("market_cap"),
             "52w_high":      yfd.get("52w_high"),
             "52w_low":       yfd.get("52w_low"),
