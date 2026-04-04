@@ -76,7 +76,8 @@ MOM_ORANGE= -5.0   # %   −5–+5  → orange, <−5 → red
 FINRA_BONUS_MAX  = 5    # max bonus points for rising FINRA short interest
 FTD_BONUS_MAX    = 0    # SEC EDGAR + Nasdaq Data Link blocked on GitHub Actions IPs
 # ── FINRA short interest trend thresholds ────────────────────────────────────
-SI_TREND_UP_THRESHOLD   =  0.10   # ≥+10 % over 3 periods → steigend
+SI_TREND_PERIODS        = 6     # FINRA publishes twice monthly; 6 = ~3 months
+SI_TREND_UP_THRESHOLD   =  0.10   # ≥+10 % over full period → steigend
 SI_TREND_DOWN_THRESHOLD = -0.10   # ≤−10 % → fallend; between → seitwärts
 # ── Score smoothing weights ──────────────────────────────────────────────────
 SCORE_TODAY_WEIGHT   = 0.70   # weight for today's raw score
@@ -901,15 +902,10 @@ def get_finra_short_interest(ticker: str,
         _finra_stats["empty"] += 1
         return {}
 
-    # Korrektur 2 debug: confirm T1/T2/T3 after threshold fix
-    t1 = history[0]["short_interest"] if len(history) >= 1 else None
-    t2 = history[1]["short_interest"] if len(history) >= 2 else None
-    t3 = history[2]["short_interest"] if len(history) >= 3 else None
-    print(f"{ticker} FINRA-Werte nach Fix: T1={t1}, T2={t2}, T3={t3}", flush=True)
-
     # Trend only when oldest ≥ 100 to prevent absurd percentages from tiny values
+    # Minimum 4 data points required for a reliable 3-month trend
     trend, trend_pct = "no_data", 0.0
-    if len(history) >= 2:
+    if len(history) >= 4:
         newest = history[0]["short_interest"]
         oldest = history[-1]["short_interest"]
         if oldest >= _TREND_MIN_VOL:
@@ -1384,9 +1380,12 @@ def _card(i: int, s: dict) -> str:
     else:
         si_badge_html = ""
         trend_html    = "Keine Daten"
-    si_cur_disp = _fmt_si_record(si_hist[0]) if len(si_hist) >= 1 else "—"
-    si_4w_disp  = _fmt_si_record(si_hist[1]) if len(si_hist) >= 2 else "—"
-    si_8w_disp  = _fmt_si_record(si_hist[2]) if len(si_hist) >= 3 else "—"
+    si_t1_disp = _fmt_si_record(si_hist[0]) if len(si_hist) >= 1 else "—"
+    si_t2_disp = _fmt_si_record(si_hist[1]) if len(si_hist) >= 2 else "—"
+    si_t3_disp = _fmt_si_record(si_hist[2]) if len(si_hist) >= 3 else "—"
+    si_t4_disp = _fmt_si_record(si_hist[3]) if len(si_hist) >= 4 else "—"
+    si_t5_disp = _fmt_si_record(si_hist[4]) if len(si_hist) >= 5 else "—"
+    si_t6_disp = _fmt_si_record(si_hist[5]) if len(si_hist) >= 6 else "—"
 
     # RSI / MA / Relative-Strength rows for detail table
     _rsi   = s.get("rsi14")
@@ -1558,10 +1557,13 @@ def _card(i: int, s: dict) -> str:
         <tr><td>Heutiges Volumen</td><td>{s.get('cur_vol',0):,.0f}</td></tr>
         <tr><td>Short Interest Quelle</td><td>{s.get('sf_source','Yahoo Finance')}</td></tr>
         {edgar_row}
-        <tr><td>Short-Vol.-Trend (3T)</td><td>{trend_html}</td></tr>
-        <tr><td>Short-Vol. T-1 (FINRA)</td><td>{si_cur_disp}</td></tr>
-        <tr><td>Short-Vol. T-2</td><td>{si_4w_disp}</td></tr>
-        <tr><td>Short-Vol. T-3</td><td>{si_8w_disp}</td></tr>
+        <tr><td>SI-Trend (3M)</td><td>{trend_html}</td></tr>
+        <tr><td>Short-Vol. T-1 (FINRA)</td><td>{si_t1_disp}</td></tr>
+        <tr><td>Short-Vol. T-2</td><td>{si_t2_disp}</td></tr>
+        <tr><td>Short-Vol. T-3</td><td>{si_t3_disp}</td></tr>
+        <tr><td>Short-Vol. T-4</td><td>{si_t4_disp}</td></tr>
+        <tr><td>Short-Vol. T-5</td><td>{si_t5_disp}</td></tr>
+        <tr><td>Short-Vol. T-6</td><td>{si_t6_disp}</td></tr>
 
         {rsi_ma_rows}
         {options_rows}
@@ -2958,20 +2960,21 @@ def main():
     )
     # ─────────────────────────────────────────────────────────────────────────
 
-    # Pre-compute FINRA publication dates once
-    finra_dates = _latest_finra_dates(3)
+    # Pre-compute FINRA publication dates once (6 = ~3 months, twice-monthly releases)
+    finra_dates = _latest_finra_dates(SI_TREND_PERIODS)
 
-    # Opt 4 — FINRA CSV parallel load (3 URLs per date × 3 dates in parallel).
+    # Opt 4 — FINRA CSV parallel load (3 URLs per date × 6 dates in parallel).
     # The actual parallelism across URLs is inside _load_finra_csv(); here we
     # additionally parallelize across dates.
     _t_finra = time.time()
     log.info("Step 2a – Pre-loading FINRA CDN data for %d dates (parallel) …", len(finra_dates))
-    with ThreadPoolExecutor(max_workers=3) as _finra_ex:
+    with ThreadPoolExecutor(max_workers=6) as _finra_ex:
         list(_finra_ex.map(_get_finra_csv_for_date, finra_dates))
     _total_finra_entries = sum(len(v) for v in _finra_csv_cache.values())
     print(f"FINRA Cache aufgebaut: {len(_finra_csv_cache)} Dateien, "
           f"{_total_finra_entries} Ticker-Einträge gesamt — "
           f"{time.time()-_t_finra:.1f}s", flush=True)
+    print(f"FINRA 3M-Trend: {len(_finra_csv_cache)} Datenpunkte je Ticker geladen", flush=True)
     print(f"Step 2a abgeschlossen in {time.time()-_t_finra:.1f}s", flush=True)
 
     # Opt 1 — yfinance Batch: pre-fetch all history + info for the entire pool
