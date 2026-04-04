@@ -432,10 +432,11 @@ def get_finra_short_interest(ticker: str) -> dict:
         r = requests.post(url, json=payload,
                           headers={"Content-Type": "application/json"}, timeout=12)
         if r.status_code != 200:
-            log.debug("FINRA HTTP %d for %s", r.status_code, ticker)
+            log.warning("FINRA HTTP %d for %s", r.status_code, ticker)
             return {}
         data = r.json()
         if not isinstance(data, list) or not data:
+            log.warning("FINRA empty response for %s", ticker)
             return {}
 
         history = []
