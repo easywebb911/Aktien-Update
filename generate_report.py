@@ -410,40 +410,80 @@ def get_yahoo_news(ticker: str, n: int = 2) -> list[dict]:
 
 
 # ===========================================================================
-# 2b. SUPPLEMENTARY DATA SOURCES (FINRA + Fintel)
+# 2b. SUPPLEMENTARY DATA SOURCES (FINRA + SEC EDGAR FTD)
 # ===========================================================================
 
 # Mutable counters updated by the API functions during each run
 _finra_stats: dict = {"ok": 0, "empty": 0, "err": 0}
 _ftd_stats:   dict = {"ok": 0, "empty": 0, "err": 0}
 
+# Module-level cache: FINRA Bearer token fetched once per run
+_finra_bearer_token: str = ""
+
+
+def _fetch_finra_token() -> str:
+    """Obtain a fresh FINRA OAuth 2.0 Bearer token via client credentials.
+    Reads FINRA_CLIENT_ID and FINRA_CLIENT_SECRET from environment.
+    Called once at startup; result cached in _finra_bearer_token.
+    """
+    import base64
+    client_id     = os.environ.get("FINRA_CLIENT_ID", "")
+    client_secret = os.environ.get("FINRA_CLIENT_SECRET", "")
+    if not client_id or not client_secret:
+        return ""
+    token_url = ("https://ews.fip.finra.org/fip/rest/iam/oauth2/"
+                 "client_credential/accesstoken")
+    creds = base64.b64encode(f"{client_id}:{client_secret}".encode()).decode()
+    try:
+        r = requests.post(
+            token_url,
+            headers={
+                "Authorization": f"Basic {creds}",
+                "Content-Type": "application/x-www-form-urlencoded",
+            },
+            data="grant_type=client_credentials",
+            timeout=15,
+        )
+        if r.status_code == 200:
+            token = r.json().get("access_token", "")
+            log.info("FINRA OAuth token obtained (%d chars)", len(token))
+            return token
+        log.warning("FINRA token request failed: HTTP %d – %s",
+                    r.status_code, r.text[:200])
+        return ""
+    except Exception as exc:
+        log.warning("FINRA token error: %s", exc)
+        return ""
+
 
 def get_finra_short_interest(ticker: str) -> dict:
     """Fetch last 3 FINRA equity short interest periods.
-    Requires FINRA_API_TOKEN env variable (free registration at developer.finra.org).
-    Returns dict with short_interest, history, trend, trend_pct or {} on failure.
+    Requires FINRA_CLIENT_ID + FINRA_CLIENT_SECRET env variables
+    (free registration at developer.finra.org → create an Application).
+    Returns dict with short_interest, history, trend, trend_pct or {}.
     """
-    token = os.environ.get("FINRA_API_TOKEN", "")
-    if not token:
-        return {}   # silent skip – no token configured
+    global _finra_bearer_token
+    if not _finra_bearer_token:
+        return {}   # token not available – skip silently
 
     url = "https://api.finra.org/data/group/equity/name/shortInterest"
     payload = {
         "compareFilters": [
-            {"fieldName": "symbolCode", "compareType": "equal", "fieldValue": ticker.upper()}
+            {"fieldName": "symbolCode", "compareType": "equal",
+             "fieldValue": ticker.upper()}
         ],
         "fields": ["symbolCode", "settlementDate", "currentShortPositionQuantity"],
         "limit": 3,
         "sortFields": ["-settlementDate"],
     }
     headers = {
-        "Content-Type": "application/json",
-        "Authorization": f"Bearer {token}",
+        "Content-Type":  "application/json",
+        "Authorization": f"Bearer {_finra_bearer_token}",
     }
     try:
         r = requests.post(url, json=payload, headers=headers, timeout=12)
         if r.status_code == 401:
-            log.warning("FINRA 401 Unauthorized for %s – check FINRA_API_TOKEN secret", ticker)
+            log.warning("FINRA 401 for %s – token may have expired", ticker)
             _finra_stats["err"] += 1
             return {}
         if r.status_code != 200:
@@ -452,7 +492,6 @@ def get_finra_short_interest(ticker: str) -> dict:
             return {}
         data = r.json()
         if not isinstance(data, list) or not data:
-            log.warning("FINRA empty response for %s", ticker)
             _finra_stats["empty"] += 1
             return {}
 
@@ -463,7 +502,6 @@ def get_finra_short_interest(ticker: str) -> dict:
                 history.append({"short_interest": si_val,
                                  "settlement_date": rec.get("settlementDate", "")})
         if not history:
-            log.warning("FINRA: no SI values for %s", ticker)
             _finra_stats["empty"] += 1
             return {}
 
@@ -495,32 +533,77 @@ def get_finra_short_interest(ticker: str) -> dict:
         return {}
 
 
-def get_fintel_ftd(ticker: str) -> dict:
-    """Fetch Fails-to-Deliver data from Fintel free tier.
-    Returns dict with ftd_latest, ftd_avg_30d or {}.
+# ── SEC EDGAR FTD (replaces Fintel – no auth required) ───────────────────────
+
+def get_sec_ftd(ticker: str, _cache: dict = {}) -> dict:
+    """Fetch Fails-to-Deliver data from SEC EDGAR public download files.
+    Uses the two most recent bi-monthly FTD files.
+    Returns dict with ftd_latest, ftd_avg and settlement dates, or {}.
+    No authentication required.
     """
-    url = f"https://fintel.io/api/filings/ftd/{ticker.upper()}"
-    try:
-        r = requests.get(url, headers=HTTP_HEADERS, timeout=12)
-        if r.status_code != 200:
-            log.warning("Fintel FTD HTTP %d for %s", r.status_code, ticker)
-            _ftd_stats["empty"] += 1
-            return {}
-        data = r.json()
-        if not isinstance(data, list) or not data:
-            _ftd_stats["empty"] += 1
-            return {}
-        quantities = [int(item.get("quantity") or 0) for item in data if item.get("quantity")]
-        if not quantities:
-            _ftd_stats["empty"] += 1
-            return {}
-        avg_30d = sum(quantities[:30]) / min(len(quantities), 30)
-        _ftd_stats["ok"] += 1
-        return {"ftd_latest": quantities[0], "ftd_avg_30d": round(avg_30d, 0)}
-    except Exception as exc:
-        log.warning("Fintel FTD error for %s: %s", ticker, exc)
-        _ftd_stats["err"] += 1
+    from datetime import date, timedelta
+    import io, zipfile
+
+    def _ftd_url(dt: date) -> str:
+        # Files are named cnsfailsYYYYMMa.zip (first half) and ...b.zip (second half)
+        suffix = "b" if dt.day >= 16 else "a"
+        return (f"https://www.sec.gov/data/foiadocuments/docs/fails-to-deliver/"
+                f"cnsfails{dt.strftime('%Y%m')}{suffix}.zip")
+
+    def _parse_zip(content: bytes, sym: str) -> list[int]:
+        try:
+            with zipfile.ZipFile(io.BytesIO(content)) as z:
+                name = z.namelist()[0]
+                with z.open(name) as f:
+                    lines = f.read().decode("latin-1").splitlines()
+            results = []
+            for line in lines[1:]:   # skip header
+                parts = line.split("|")
+                if len(parts) >= 5 and parts[2].strip().upper() == sym.upper():
+                    try:
+                        results.append(int(parts[3].strip()))
+                    except ValueError:
+                        pass
+            return results
+        except Exception:
+            return []
+
+    if ticker in _cache:
+        return _cache[ticker]
+
+    today = date.today()
+    # Try current month (b-file) then a-file then prior month b-file
+    candidates = []
+    for delta in range(0, 3):
+        dt = today.replace(day=1) - timedelta(days=30 * delta)
+        candidates.append(dt.replace(day=16))  # b-file
+        candidates.append(dt.replace(day=1))   # a-file
+    candidates = candidates[:4]  # max 4 attempts
+
+    all_quantities: list[int] = []
+    for dt in candidates:
+        url = _ftd_url(dt)
+        try:
+            r = requests.get(url, headers=HTTP_HEADERS, timeout=20)
+            if r.status_code == 200:
+                qtys = _parse_zip(r.content, ticker)
+                all_quantities.extend(qtys)
+                if len(all_quantities) >= 2:
+                    break
+        except Exception:
+            continue
+
+    if not all_quantities:
+        _ftd_stats["empty"] += 1
+        _cache[ticker] = {}
         return {}
+
+    avg = round(sum(all_quantities) / len(all_quantities), 0)
+    result = {"ftd_latest": all_quantities[0], "ftd_avg_30d": avg}
+    _ftd_stats["ok"] += 1
+    _cache[ticker] = result
+    return result
+
 
 
 def score_bonus(stock: dict) -> float:
@@ -1679,6 +1762,14 @@ def main():
         intl_pool.extend(region_stocks)
     pool = us_pool + intl_pool
 
+    # Fetch FINRA OAuth token once before the enrichment loop
+    global _finra_bearer_token
+    _finra_bearer_token = _fetch_finra_token()
+    if _finra_bearer_token:
+        log.info("FINRA OAuth token ready – SI data will be enriched")
+    else:
+        log.info("FINRA_CLIENT_ID/SECRET not set – skipping FINRA SI enrichment")
+
     # --- Step 2: yfinance enrichment (all real filtering happens here) ---
     log.info("Step 2 – Enriching %d candidates with yfinance …", len(pool))
     enriched = []
@@ -1776,20 +1867,15 @@ def main():
             "(Short Float &gt;15 %, Preis &gt;$1, Marktkapitalisierung &lt;$10 Mrd.).")
         return
 
-    # --- Step 3b: Fintel FTD + bonus scores ---
-    log.info("Step 3b – Fetching Fintel FTD (up to %d US stocks) …", FTD_FINTEL_LIMIT)
-    ftd_count = 0
+    # --- Step 3b: SEC EDGAR FTD + bonus scores ---
+    log.info("Step 3b – Fetching SEC EDGAR FTD for top-10 US stocks …")
     for s in top10:
-        if ftd_count >= FTD_FINTEL_LIMIT:
-            break
         if s.get("market", "US") != "US":
             s.setdefault("ftd_data", {})
             continue
-        ftd = get_fintel_ftd(s["ticker"])
+        ftd = get_sec_ftd(s["ticker"])
         s["ftd_data"] = ftd
-        if ftd:
-            ftd_count += 1
-        time.sleep(0.3)
+        time.sleep(0.1)
 
     for s in top10:
         s.setdefault("ftd_data", {})

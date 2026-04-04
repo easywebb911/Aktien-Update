@@ -13,8 +13,27 @@ print("=" * 60)
 print("FINRA SHORT INTEREST TEST")
 print("=" * 60)
 
-token = os.environ.get("FINRA_API_TOKEN", "")
-print(f"FINRA_API_TOKEN gesetzt: {'JA (' + str(len(token)) + ' Zeichen)' if token else 'NEIN – Variable leer oder nicht gesetzt'}")
+import base64
+client_id     = os.environ.get("FINRA_CLIENT_ID", "")
+client_secret = os.environ.get("FINRA_CLIENT_SECRET", "")
+print(f"FINRA_CLIENT_ID     : {'gesetzt (' + str(len(client_id)) + ' Zeichen)' if client_id else 'FEHLT'}")
+print(f"FINRA_CLIENT_SECRET : {'gesetzt (' + str(len(client_secret)) + ' Zeichen)' if client_secret else 'FEHLT'}")
+
+token = ""
+if client_id and client_secret:
+    print("\nHole OAuth Token …")
+    creds = base64.b64encode(f"{client_id}:{client_secret}".encode()).decode()
+    token_url = "https://ews.fip.finra.org/fip/rest/iam/oauth2/client_credential/accesstoken"
+    try:
+        tr = requests.post(token_url, headers={"Authorization": f"Basic {creds}",
+            "Content-Type": "application/x-www-form-urlencoded"},
+            data="grant_type=client_credentials", timeout=15)
+        print(f"Token-Endpoint HTTP {tr.status_code}: {tr.text[:300]}")
+        if tr.status_code == 200:
+            token = tr.json().get("access_token", "")
+            print(f"Bearer Token erhalten ({len(token)} Zeichen)")
+    except Exception as e:
+        print(f"Token-Fehler: {e}")
 
 url = "https://api.finra.org/data/group/equity/name/shortInterest"
 payload = {
