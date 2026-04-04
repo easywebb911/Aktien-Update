@@ -402,7 +402,9 @@ def get_yfinance_data(ticker: str) -> dict:
             "avg_vol_20d":  avg_vol_20,
             "cur_vol":      cur_vol,
             "vol_ratio":    vol_ratio,
-            "float_shares": info.get("floatShares") or 0,
+            "float_shares":       info.get("floatShares") or 0,
+            "inst_ownership":     info.get("institutionHeldPercentOutstanding")
+                                  or info.get("institutionsPercentHeld"),
             "rsi14":        rsi14,
             "ma50":         ma50,
             "ma200":        ma200,
@@ -543,6 +545,8 @@ def get_yfinance_batch(tickers: list[str]) -> dict[str, dict]:
             "cur_vol":        cur_vol,
             "vol_ratio":      vol_ratio,
             "float_shares":   info.get("floatShares") or 0,
+            "inst_ownership": info.get("institutionHeldPercentOutstanding")
+                              or info.get("institutionsPercentHeld"),
             "rsi14":          rsi14,
             "ma50":           ma50,
             "ma200":          ma200,
@@ -1453,6 +1457,18 @@ def _card(i: int, s: dict) -> str:
         _iv_row = ""
     options_rows = _pc_row + _iv_row
 
+    # Institutional ownership row
+    _inst = s.get("inst_ownership")
+    if _inst is not None:
+        _inst_pct = float(_inst) * 100
+        _inst_col = "#22c55e" if _inst_pct >= 60 else ("#f59e0b" if _inst_pct >= 30 else "#ef4444")
+        _inst_row = (
+            f'<tr><td>Institutioneller Anteil</td>'
+            f'<td><span style="color:{_inst_col}">{_inst_pct:.1f}%</span></td></tr>'
+        )
+    else:
+        _inst_row = ""
+
     # Chart links
     yf_chart_url  = f"https://finance.yahoo.com/chart/{s['ticker']}"
     is_intl       = "." in s["ticker"]
@@ -1567,6 +1583,7 @@ def _card(i: int, s: dict) -> str:
 
         {rsi_ma_rows}
         {options_rows}
+        {_inst_row}
         <tr><td>Risiko-Detail</td><td style="color:{risk_col}">{risk_txt}</td></tr>
       </table>
     </div>
@@ -3041,6 +3058,7 @@ def main():
             "ma200":           yfd.get("ma200"),
             "perf_20d":        _stock_perf_20d,
             "rel_strength_20d": _rel_strength,
+            "inst_ownership":  yfd.get("inst_ownership"),
         })
         yf_sf = yfd.get("short_float_yf", 0)
         if yf_sf > 0:
