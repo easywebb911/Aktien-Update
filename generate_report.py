@@ -794,6 +794,23 @@ def _card(i: int, s: dict) -> str:
     si_4w_disp  = _fmt_si_record(si_hist[1]) if len(si_hist) >= 2 else "—"
     si_8w_disp  = _fmt_si_record(si_hist[2]) if len(si_hist) >= 3 else "—"
 
+    # Chart links
+    yf_chart_url = f"https://finance.yahoo.com/chart/{s['ticker']}"
+    is_intl      = "." in s["ticker"]
+    wb_ticker    = s["ticker"].split(".")[0].lower()
+    wb_chart_url = f"https://www.webull.com/quote/{wb_ticker}"
+    yahoo_badge  = (
+        f'<a class="chart-badge chart-badge-y" href="{yf_chart_url}" '
+        f'target="_blank" rel="noopener noreferrer" title="Yahoo Finance Chart">Y</a>'
+    )
+    webull_badge = (
+        '<span class="chart-badge chart-badge-w chart-badge-dis" '
+        'title="Webull unterstützt nur US-Aktien">W</span>'
+        if is_intl else
+        f'<a class="chart-badge chart-badge-w" href="{wb_chart_url}" '
+        f'target="_blank" rel="noopener noreferrer" title="Webull Chart">W</a>'
+    )
+
     news_html = ""
     for n in s.get("news", [])[:2]:
         news_html += (
@@ -813,8 +830,9 @@ def _card(i: int, s: dict) -> str:
       <span class="rank">{i}</span>
       <div class="ticker-block">
         <div class="ticker-row">
-          <span class="ticker">{s['ticker']}</span>
+          <a class="ticker ticker-link" href="{yf_chart_url}" target="_blank" rel="noopener noreferrer">{s['ticker']}</a>
           <span class="market-tag">{flag} {s.get('market','US')}</span>
+          {yahoo_badge}{webull_badge}
           <span class="price-tag" style="color:{chg_col}">${s.get('price',0):.2f} {chg_str}</span>
         </div>
         <span class="company">{s.get('company_name','')}</span>
@@ -1042,8 +1060,19 @@ a{{color:var(--accent);text-decoration:none}}
 .ticker-block{{flex:1;min-width:0}}
 .ticker-row{{display:flex;align-items:center;gap:7px;flex-wrap:wrap;margin-bottom:3px}}
 .ticker{{font-size:1.25rem;font-weight:800;font-family:'SF Mono','Courier New',monospace;color:var(--txt)}}
+.ticker-link{{color:inherit;text-decoration:none}}
+.ticker-link:hover{{text-decoration:underline;text-underline-offset:3px}}
 .market-tag{{font-size:.62rem;font-weight:700;background:var(--accent);color:#fff;
   padding:1px 6px;border-radius:4px;letter-spacing:.3px}}
+.chart-badge{{display:inline-flex;align-items:center;justify-content:center;
+  min-width:32px;min-height:32px;border-radius:6px;font-size:10px;font-weight:700;
+  text-decoration:none;border:1.5px solid;padding:0 6px;line-height:1;box-sizing:border-box}}
+.chart-badge-y{{background:#1d4ed8;color:#fff;border-color:#2563eb}}
+.chart-badge-y:hover{{background:#1e40af}}
+.chart-badge-w{{background:#15803d;color:#fff;border-color:#16a34a}}
+.chart-badge-w:hover{{background:#166534}}
+.chart-badge-dis{{background:#334155;color:#94a3b8;border-color:#475569;
+  cursor:default;pointer-events:none}}
 .price-tag{{font-size:.82rem;font-weight:600}}
 .company{{display:block;font-size:.78rem;color:var(--txt-sub);
   white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}}
