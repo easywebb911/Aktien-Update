@@ -24,6 +24,13 @@ from bs4 import BeautifulSoup
 from deep_translator import GoogleTranslator
 from watchlist import WATCHLIST
 
+try:
+    import pandas_ta as ta  # optional: RSI / MA computation
+    _HAS_PANDAS_TA = True
+except ImportError:
+    ta = None  # type: ignore[assignment]
+    _HAS_PANDAS_TA = False
+
 # ---------------------------------------------------------------------------
 # Logging
 # ---------------------------------------------------------------------------
@@ -358,11 +365,29 @@ def get_yfinance_data(ticker: str) -> dict:
     try:
         stk  = yf.Ticker(ticker)
         info = stk.info or {}
-        hist = stk.history(period="21d")
+        hist = stk.history(period="1y")
 
         avg_vol_20 = float(hist["Volume"].tail(20).mean()) if len(hist) >= 5 else 0.0
         cur_vol    = float(hist["Volume"].iloc[-1])         if len(hist) >= 1 else 0.0
         vol_ratio  = cur_vol / avg_vol_20 if avg_vol_20 > 0 else 0.0
+
+        rsi14, ma50, ma200, perf_20d = None, None, None, None
+        if not hist.empty:
+            try:
+                close = hist["Close"].dropna()
+                if len(close) >= 21:
+                    perf_20d = float(
+                        (close.iloc[-1] - close.iloc[-21]) / close.iloc[-21] * 100
+                    )
+                if _HAS_PANDAS_TA and len(close) >= 14:
+                    rsi_s = ta.rsi(close, length=14)
+                    rsi14 = float(rsi_s.iloc[-1]) if rsi_s is not None and not rsi_s.empty else None
+                if len(close) >= 50:
+                    ma50 = float(close.tail(50).mean())
+                if len(close) >= 200:
+                    ma200 = float(close.tail(200).mean())
+            except Exception:
+                pass
 
         return {
             "company_name": info.get("longName") or info.get("shortName") or ticker,
@@ -377,6 +402,10 @@ def get_yfinance_data(ticker: str) -> dict:
             "cur_vol":      cur_vol,
             "vol_ratio":    vol_ratio,
             "float_shares": info.get("floatShares") or 0,
+            "rsi14":        rsi14,
+            "ma50":         ma50,
+            "ma200":        ma200,
+            "perf_20d":     perf_20d,
         }
     except Exception as exc:
         log.warning("yfinance error for %s: %s", ticker, exc)
@@ -408,7 +437,7 @@ def get_yfinance_batch(tickers: list[str]) -> dict[str, dict]:
     hist_batch = None
     try:
         hist_batch = yf.download(
-            tickers, period="21d", group_by="ticker",
+            tickers, period="1y", group_by="ticker",
             auto_adjust=True, threads=True, progress=False,
         )
         _req_counts["yfinance"] += 1
@@ -416,8 +445,30 @@ def get_yfinance_batch(tickers: list[str]) -> dict[str, dict]:
     except Exception as exc:
         log.warning("Batch history download failed (%s) — will use individual fallbacks", exc)
 
+    def _compute_indicators(df) -> tuple:
+        """Compute (rsi14, ma50, ma200, perf_20d) from a Close series."""
+        rsi14, ma50, ma200, perf_20d = None, None, None, None
+        if df is None or df.empty:
+            return rsi14, ma50, ma200, perf_20d
+        try:
+            close = df["Close"].dropna()
+            if len(close) >= 21:
+                perf_20d = float(
+                    (close.iloc[-1] - close.iloc[-21]) / close.iloc[-21] * 100
+                )
+            if _HAS_PANDAS_TA and len(close) >= 14:
+                rsi_series = ta.rsi(close, length=14)
+                rsi14 = float(rsi_series.iloc[-1]) if rsi_series is not None and not rsi_series.empty else None
+            if len(close) >= 50:
+                ma50 = float(close.tail(50).mean())
+            if len(close) >= 200:
+                ma200 = float(close.tail(200).mean())
+        except Exception:
+            pass
+        return rsi14, ma50, ma200, perf_20d
+
     def _hist_stats(ticker: str) -> tuple:
-        """Extract (avg_vol_20, cur_vol, vol_ratio, hi52, lo52) from batch or fallback."""
+        """Extract (avg_vol_20, cur_vol, vol_ratio, hi52, lo52, rsi14, ma50, ma200, perf_20d) from batch or fallback."""
         try:
             if hist_batch is not None and not hist_batch.empty:
                 # yf.download with one ticker returns a flat DataFrame;
@@ -429,21 +480,23 @@ def get_yfinance_batch(tickers: list[str]) -> dict[str, dict]:
                     vol_r   = cur_vol / avg_vol if avg_vol > 0 else 0.0
                     hi52    = float(df["High"].max())
                     lo52    = float(df["Low"].min())
-                    return avg_vol, cur_vol, vol_r, hi52, lo52
+                    rsi14, ma50, ma200, perf_20d = _compute_indicators(df)
+                    return avg_vol, cur_vol, vol_r, hi52, lo52, rsi14, ma50, ma200, perf_20d
         except Exception:
             pass
         # Fallback: individual history call for this ticker
         try:
-            df2 = yf.Ticker(ticker).history(period="21d")
+            df2 = yf.Ticker(ticker).history(period="1y")
             _req_counts["yfinance"] += 1
             if not df2.empty and len(df2) >= 5:
                 avg_vol = float(df2["Volume"].tail(20).mean())
                 cur_vol = float(df2["Volume"].iloc[-1])
                 vol_r   = cur_vol / avg_vol if avg_vol > 0 else 0.0
-                return avg_vol, cur_vol, vol_r, float(df2["High"].max()), float(df2["Low"].min())
+                rsi14, ma50, ma200, perf_20d = _compute_indicators(df2)
+                return avg_vol, cur_vol, vol_r, float(df2["High"].max()), float(df2["Low"].min()), rsi14, ma50, ma200, perf_20d
         except Exception as exc2:
             log.debug("Fallback history failed for %s: %s", ticker, exc2)
-        return 0.0, 0.0, 0.0, None, None
+        return 0.0, 0.0, 0.0, None, None, None, None, None, None
 
     # ── Phase B: Parallel .info fetches (metadata not in download payload) ──
     def _fetch_info(ticker: str) -> tuple[str, dict]:
@@ -466,7 +519,7 @@ def get_yfinance_batch(tickers: list[str]) -> dict[str, dict]:
 
     # ── Combine history + info; fallback to individual call if both are empty ──
     for ticker in tickers:
-        avg_vol_20, cur_vol, vol_ratio, hi52, lo52 = _hist_stats(ticker)
+        avg_vol_20, cur_vol, vol_ratio, hi52, lo52, rsi14, ma50, ma200, perf_20d = _hist_stats(ticker)
         info = info_map.get(ticker, {})
 
         # If the batch produced nothing useful for this ticker, fall back entirely
@@ -489,6 +542,10 @@ def get_yfinance_batch(tickers: list[str]) -> dict[str, dict]:
             "cur_vol":        cur_vol,
             "vol_ratio":      vol_ratio,
             "float_shares":   info.get("floatShares") or 0,
+            "rsi14":          rsi14,
+            "ma50":           ma50,
+            "ma200":          ma200,
+            "perf_20d":       perf_20d,
         }
 
     return results
@@ -639,6 +696,59 @@ def get_combined_news(ticker: str, n: int = 3) -> list[dict]:
     result = combined[:n]
     print(f"News {ticker}: {n_yahoo} Yahoo + {n_sa} SeekingAlpha + {n_bz} Benzinga = {len(result)} Meldungen")
     return result
+
+
+# ===========================================================================
+# 2a-OPT. OPTIONS MARKET DATA (US-only, nearest expiry)
+# ===========================================================================
+
+def get_options_data(ticker: str) -> dict:
+    """Fetch Put/Call ratio (open interest) and ATM implied volatility for the
+    nearest available options expiry.  US-only — skipped for international tickers.
+
+    Returns dict with keys:
+      pc_ratio  (float | None)  — put OI / call OI for nearest expiry
+      atm_iv    (float | None)  — implied volatility of the nearest-ATM strike (0–1 scale)
+      expiry    (str | None)    — expiry date used (YYYY-MM-DD)
+
+    Any error (no options data, API failure, etc.) returns {} so callers can
+    treat missing data uniformly with s.get("options", {}).
+    """
+    if "." in ticker:  # international ticker — options data unreliable / unavailable
+        return {}
+    try:
+        stk      = yf.Ticker(ticker)
+        expiries = stk.options  # tuple of expiry date strings
+        if not expiries:
+            return {}
+        nearest  = expiries[0]
+        chain    = stk.option_chain(nearest)
+        calls    = chain.calls
+        puts     = chain.puts
+        if calls.empty or puts.empty:
+            return {}
+
+        # Put/Call ratio by open interest
+        total_call_oi = calls["openInterest"].fillna(0).sum()
+        total_put_oi  = puts["openInterest"].fillna(0).sum()
+        pc_ratio = (total_put_oi / total_call_oi) if total_call_oi > 0 else None
+
+        # ATM IV: find the call strike closest to current price
+        cur_price = stk.fast_info.get("lastPrice") or stk.fast_info.get("regularMarketPrice")
+        if cur_price is None:
+            atm_iv = None
+        else:
+            calls_iv = calls[["strike", "impliedVolatility"]].dropna()
+            if not calls_iv.empty:
+                idx    = (calls_iv["strike"] - cur_price).abs().idxmin()
+                atm_iv = float(calls_iv.loc[idx, "impliedVolatility"])
+            else:
+                atm_iv = None
+
+        return {"pc_ratio": pc_ratio, "atm_iv": atm_iv, "expiry": nearest}
+    except Exception as exc:
+        log.debug("Options data failed for %s: %s", ticker, exc)
+        return {}
 
 
 # ===========================================================================
@@ -1278,9 +1388,84 @@ def _card(i: int, s: dict) -> str:
     si_4w_disp  = _fmt_si_record(si_hist[1]) if len(si_hist) >= 2 else "—"
     si_8w_disp  = _fmt_si_record(si_hist[2]) if len(si_hist) >= 3 else "—"
 
+    # RSI / MA / Relative-Strength rows for detail table
+    _rsi   = s.get("rsi14")
+    _ma50  = s.get("ma50")
+    _ma200 = s.get("ma200")
+    _price = s.get("price", 0)
+    _rs20  = s.get("rel_strength_20d")
+    _p20   = s.get("perf_20d")
+    if _rsi is not None:
+        if _rsi < 30:
+            _rsi_col, _rsi_lbl = "#22c55e", "überverkauft"
+        elif _rsi > 70:
+            _rsi_col, _rsi_lbl = "#ef4444", "überkauft"
+        else:
+            _rsi_col, _rsi_lbl = "var(--txt)", ""
+        _rsi_cell = f'<span style="color:{_rsi_col}">{_rsi:.1f}{(" — " + _rsi_lbl) if _rsi_lbl else ""}</span>'
+        _rsi_row  = f"<tr><td>RSI (14T)</td><td>{_rsi_cell}</td></tr>"
+    else:
+        _rsi_row  = ""
+    if _ma50 is not None:
+        _vs_ma50  = ((_price - _ma50) / _ma50 * 100) if _ma50 > 0 else None
+        _ma50_col = "#22c55e" if (_vs_ma50 is not None and _vs_ma50 >= 0) else "#ef4444"
+        _ma50_pct = f'({_vs_ma50:+.1f}%)' if _vs_ma50 is not None else ""
+        _ma50_row1 = f"<tr><td>MA 50T</td><td>${_ma50:.2f}</td></tr>"
+        _ma50_row2 = f'<tr><td>Kurs vs. MA50</td><td><span style="color:{_ma50_col}">{_ma50_pct}</span></td></tr>'
+    else:
+        _ma50_row1, _ma50_row2 = "", ""
+    if _ma200 is not None:
+        _ma200_row = f"<tr><td>MA 200T</td><td>${_ma200:.2f}</td></tr>"
+    else:
+        _ma200_row = ""
+    if _rs20 is not None:
+        _rs_col  = "#22c55e" if _rs20 >= 0 else "#ef4444"
+        _p20_str = f" (Aktie {_p20:+.1f}%)" if _p20 is not None else ""
+        _rs_cell = f'<span style="color:{_rs_col}">{_rs20:+.1f}% vs. S&amp;P 500{_p20_str}</span>'
+        _rs_row  = f"<tr><td>Rel. Stärke (20T)</td><td>{_rs_cell}</td></tr>"
+    else:
+        _rs_row  = ""
+    rsi_ma_rows = _rsi_row + _ma50_row1 + _ma200_row + _ma50_row2 + _rs_row
+
+    # Options market data rows
+    _opts     = s.get("options") or {}
+    _pc       = _opts.get("pc_ratio")
+    _iv       = _opts.get("atm_iv")
+    _exp      = _opts.get("expiry", "")
+    _exp_note = f" <span style='color:var(--txt-dim);font-size:.8em'>({_exp})</span>" if _exp else ""
+    if _pc is not None:
+        # Bearish if puts dominate (P/C > 1.0), bullish if calls dominate (P/C < 0.7)
+        _pc_col = "#ef4444" if _pc > 1.0 else ("#22c55e" if _pc < 0.7 else "var(--txt)")
+        _pc_lbl = " — bärisch" if _pc > 1.0 else (" — bullisch" if _pc < 0.7 else "")
+        _pc_row = (
+            f'<tr><td>Put/Call-Ratio{_exp_note}</td>'
+            f'<td><span style="color:{_pc_col}">{_pc:.2f}{_pc_lbl}</span></td></tr>'
+        )
+    else:
+        _pc_row = ""
+    if _iv is not None:
+        _iv_pct = _iv * 100
+        _iv_col = "#ef4444" if _iv_pct > 80 else ("#f59e0b" if _iv_pct > 50 else "var(--txt)")
+        _iv_row = (
+            f'<tr><td>Impl. Volatilität (ATM)</td>'
+            f'<td><span style="color:{_iv_col}">{_iv_pct:.1f}%</span></td></tr>'
+        )
+    else:
+        _iv_row = ""
+    options_rows = _pc_row + _iv_row
+
     # Chart links
     yf_chart_url  = f"https://finance.yahoo.com/chart/{s['ticker']}"
     is_intl       = "." in s["ticker"]
+    edgar_row     = (
+        ""
+        if is_intl else
+        f'<tr><td>SEC-Meldungen</td><td>'
+        f'<a href="https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany'
+        f'&amp;CIK={s["ticker"]}&amp;type=&amp;dateb=&amp;owner=include&amp;count=10&amp;search_text=" '
+        f'target="_blank" rel="noopener noreferrer" class="edgar-link">EDGAR öffnen →</a>'
+        f'</td></tr>'
+    )
     sa_ticker     = s["ticker"].split(".")[0].lower()
     fv_url        = f"https://finviz.com/quote.ashx?t={s['ticker'].split('.')[0].upper()}"
     sa_url        = f"https://stockanalysis.com/stocks/{sa_ticker}/"
@@ -1372,11 +1557,14 @@ def _card(i: int, s: dict) -> str:
         <tr><td>Ø Volumen 20T</td><td>{s.get('avg_vol_20d',0):,.0f}</td></tr>
         <tr><td>Heutiges Volumen</td><td>{s.get('cur_vol',0):,.0f}</td></tr>
         <tr><td>Short Interest Quelle</td><td>{s.get('sf_source','Yahoo Finance')}</td></tr>
+        {edgar_row}
         <tr><td>Short-Vol.-Trend (3T)</td><td>{trend_html}</td></tr>
         <tr><td>Short-Vol. T-1 (FINRA)</td><td>{si_cur_disp}</td></tr>
         <tr><td>Short-Vol. T-2</td><td>{si_4w_disp}</td></tr>
         <tr><td>Short-Vol. T-3</td><td>{si_8w_disp}</td></tr>
 
+        {rsi_ma_rows}
+        {options_rows}
         <tr><td>Risiko-Detail</td><td style="color:{risk_col}">{risk_txt}</td></tr>
       </table>
     </div>
@@ -1689,6 +1877,63 @@ a{{color:var(--accent);text-decoration:none}}
   .driver-text{{font-size:.82rem}}
   .ni,.no-news,.summary-text{{font-size:.82rem}}
 }}
+/* ══ Mobile Swipe-Karussell (nur < 768 px) ══════════════════════════════════ */
+@media(max-width:767px){{
+  /* Der cards-grid wird per JS in einen Swipe-Track verwandelt */
+  .cards-grid.swipe-active{{
+    display:flex;
+    flex-direction:row;
+    gap:0;
+    overflow:visible;
+    /* Karten werden per JS mit transform verschoben */
+  }}
+  .cards-grid.swipe-active .card{{
+    flex:0 0 calc(100% - 28px); /* 14px Peek links + 14px rechts */
+    min-width:calc(100% - 28px);
+    margin:0 14px;
+    transition:transform .32s cubic-bezier(.4,0,.2,1),
+               box-shadow .32s,opacity .32s;
+    will-change:transform,opacity;
+  }}
+  /* Aktive Karte hervorheben */
+  .cards-grid.swipe-active .card.swipe-active-card{{
+    box-shadow:0 4px 24px rgba(59,130,246,.25),var(--shadow);
+    opacity:1;
+  }}
+  /* Inaktive Karten leicht abdunkeln */
+  .cards-grid.swipe-active .card:not(.swipe-active-card){{
+    opacity:.6;
+  }}
+  /* Wrapper um grid + dots */
+  .swipe-wrapper{{
+    position:relative;
+    overflow:hidden; /* nur aktive Karte + Peek sichtbar */
+    margin:0 -14px;  /* kompensiert .wrap padding */
+    padding:0;
+  }}
+  /* Dot-Indikator */
+  .dot-nav{{
+    display:flex;
+    justify-content:center;
+    gap:7px;
+    padding:10px 0 4px;
+  }}
+  .dot-nav .dot{{
+    width:8px;height:8px;border-radius:50%;
+    background:var(--brd);border:1px solid var(--txt-dim);
+    transition:background .2s,transform .2s;
+    cursor:pointer;
+  }}
+  .dot-nav .dot.active{{
+    background:var(--accent);border-color:var(--accent);
+    transform:scale(1.25);
+  }}
+}}
+/* Dot-Nav auf Desktop verbergen */
+@media(min-width:768px){{
+  .dot-nav{{display:none!important}}
+  .swipe-wrapper{{overflow:visible!important;margin:0!important}}
+}}
 /* ══ ≥ 1200 px  großer Desktop / Wide-Screen ════════════════════════════════ */
 @media(min-width:1200px){{
   .app-hdr{{padding:0 24px}}
@@ -1698,6 +1943,58 @@ a{{color:var(--accent);text-decoration:none}}
   .fs-btn{{width:32px;height:32px;font-size:11px}}
   .wrap{{padding:24px 24px 40px}}
   .footer{{padding:24px 24px 40px}}
+}}
+.edgar-link{{color:var(--accent);text-decoration:none}}
+.edgar-link:hover{{text-decoration:underline}}
+/* ══ Druckansicht ════════════════════════════════════════════════════════════ */
+@media print{{
+  /* Reset colours to print-friendly light theme */
+  :root{{
+    --bg:#fff;--bg-card:#fff;--bg-hdr:#fff;--bg-met:#f5f5f5;
+    --txt:#000;--txt-sub:#444;--txt-dim:#666;
+    --brd:#ccc;--shadow:none;--accent:#1a56db;
+  }}
+  html[data-theme="dark"]{{
+    --bg:#fff;--bg-card:#fff;--bg-hdr:#fff;--bg-met:#f5f5f5;
+    --txt:#000;--txt-sub:#444;--txt-dim:#666;
+    --brd:#ccc;--shadow:none;
+  }}
+  /* Hide interactive / non-content elements */
+  .app-hdr,.hdr-btns,.hdr-icons,.tok-panel,#amsg,#non-trading-banner,
+  .details-btn,.news-btn,.print-btn,.tok-link,
+  [id^="tok-"],.info-panel summary::after{{display:none!important}}
+  /* Show all collapsed sections */
+  .details-body,.news-panel{{display:block!important;height:auto!important;
+    overflow:visible!important;visibility:visible!important}}
+  [hidden]{{display:block!important}}
+  /* Page layout */
+  body{{background:#fff;font-size:11pt;color:#000}}
+  .wrap{{padding:8px 0}}
+  /* Swipe-Container beim Drucken deaktivieren */
+  .swipe-wrapper{{overflow:visible!important;margin:0!important}}
+  .cards-grid.swipe-active{{display:grid!important;grid-template-columns:1fr;
+    width:auto!important;transform:none!important}}
+  .cards-grid.swipe-active .card{{flex:unset!important;min-width:unset!important;
+    margin:0!important;opacity:1!important}}
+  .dot-nav{{display:none!important}}
+  .card{{break-inside:avoid;page-break-inside:avoid;
+    border:1px solid #ccc;border-radius:0;box-shadow:none;
+    margin-bottom:12pt;padding:10pt}}
+  .stats-bar{{break-inside:avoid;page-break-inside:avoid}}
+  .info-panel{{break-inside:avoid;page-break-inside:avoid}}
+  /* Make sparkline section take less space */
+  .sparkline-wrap{{max-height:60px;overflow:hidden}}
+  /* Score track bar via background-color not CSS var */
+  .score-fill{{print-color-adjust:exact;-webkit-print-color-adjust:exact}}
+  /* Badges and colour indicators — keep colours in print */
+  .metric-box,.score-num,.risk-badge,
+  [style*="color:"]{{print-color-adjust:exact;-webkit-print-color-adjust:exact}}
+  /* Print header with report title + date */
+  .app-title{{display:block!important;font-size:14pt;font-weight:800;margin-bottom:4pt}}
+  .hdr-ts{{display:block!important;font-size:9pt;color:#444}}
+  /* Ensure links are visible in print */
+  a[href]::after{{content:" (" attr(href) ")";font-size:7pt;color:#666;word-break:break-all}}
+  a.ticker-link::after,a.chart-badge::after{{content:none}}
 }}
 </style>
 </head>
@@ -1711,6 +2008,7 @@ a{{color:var(--accent);text-decoration:none}}
       <button id="btn-recalc" class="btn btn-b" onclick="triggerWorkflow()">&#9881; Neu berechnen</button>
     </div>
     <div class="hdr-icons">
+      <button class="fs-btn print-btn" onclick="window.print()" aria-label="Seite drucken" title="Drucken">🖨</button>
       <button class="fs-btn" id="fs-down" onclick="changeFontSize(-1)" aria-label="Schrift kleiner">A−</button>
       <button class="fs-btn" id="fs-up"   onclick="changeFontSize(1)"  aria-label="Schrift größer">A+</button>
       <button class="theme-btn" onclick="toggleTheme()" id="theme-btn" aria-label="Dark Mode umschalten">🌙</button>
@@ -1820,8 +2118,11 @@ a{{color:var(--accent);text-decoration:none}}
 
   <div class="disc">⚠ <strong>Disclaimer:</strong> Dieser Report dient ausschließlich Informationszwecken und stellt keine Anlageberatung dar. Keine Kauf- oder Verkaufsempfehlung.</div>
 
-  <div class="cards-grid">
-  {cards}
+  <div class="swipe-wrapper" id="swipe-wrapper">
+    <div class="cards-grid" id="cards-grid">
+    {cards}
+    </div>
+    <div class="dot-nav" id="dot-nav" aria-label="Kartennavigation"></div>
   </div>
 </main>
 
@@ -2244,6 +2545,160 @@ function showMsg(type,text){{
   }}
 }})();
 // ─────────────────────────────────────────────────────────────────────────────
+// ── Mobile Swipe-Karussell ────────────────────────────────────────────────────
+(function(){{
+  const SWIPE_MIN   = 50;   // px — Mindestdistanz für gültigen Swipe
+  const VERT_ABORT  = 12;   // px — vertikale Bewegung bricht Swipe ab
+  const BREAKPOINT  = 768;  // px — ab hier Desktop-Layout, kein Swipe
+
+  var grid, cards, dots, curIdx, trackW;
+  var txStart, tyStart, txCur, swiping;
+
+  function isMobileView() {{
+    return window.innerWidth < BREAKPOINT;
+  }}
+
+  function goTo(idx, animate) {{
+    if (!cards || !cards.length) return;
+    idx = Math.max(0, Math.min(idx, cards.length - 1));
+    curIdx = idx;
+    // Verschiebe den Track so, dass Karte idx zentriert ist
+    var offset = -idx * trackW;
+    grid.style.transition = animate === false ? 'none' : 'transform .32s cubic-bezier(.4,0,.2,1)';
+    grid.style.transform  = 'translateX(' + offset + 'px)';
+    // Aktive-Karte-Klasse
+    cards.forEach(function(c, i) {{
+      c.classList.toggle('swipe-active-card', i === idx);
+    }});
+    // Dots aktualisieren
+    if (dots) dots.forEach(function(d, i) {{
+      d.classList.toggle('active', i === idx);
+    }});
+  }}
+
+  function buildDots() {{
+    var nav = document.getElementById('dot-nav');
+    if (!nav) return;
+    nav.innerHTML = '';
+    dots = [];
+    cards.forEach(function(_, i) {{
+      var d = document.createElement('button');
+      d.className = 'dot' + (i === curIdx ? ' active' : '');
+      d.setAttribute('aria-label', 'Karte ' + (i + 1));
+      d.addEventListener('click', function() {{ goTo(i, true); }});
+      nav.appendChild(d);
+      dots.push(d);
+    }});
+  }}
+
+  function initSwipe() {{
+    grid  = document.getElementById('cards-grid');
+    if (!grid) return;
+    cards = Array.from(grid.querySelectorAll('.card'));
+    if (!cards.length) return;
+
+    curIdx = 0;
+    trackW = cards[0].getBoundingClientRect().width + 28; // card width + 2×14px margin
+
+    grid.classList.add('swipe-active');
+    // Gesamt-Track-Breite setzen
+    grid.style.width = (cards.length * trackW) + 'px';
+    grid.style.transform = 'translateX(0)';
+    buildDots();
+    goTo(0, false);
+
+    // ── Touch-Events ──────────────────────────────────────────────────────────
+    var wrapper = document.getElementById('swipe-wrapper');
+    if (!wrapper) wrapper = grid;
+
+    wrapper.addEventListener('touchstart', function(e) {{
+      if (!isMobileView()) return;
+      var t = e.touches[0];
+      txStart = txCur = t.clientX;
+      tyStart = t.clientY;
+      swiping = null; // null=unentschieden, true=horizontal, false=vertikal
+      grid.style.transition = 'none';
+    }}, {{passive: true}});
+
+    wrapper.addEventListener('touchmove', function(e) {{
+      if (!isMobileView() || swiping === false) return;
+      var t    = e.touches[0];
+      var dx   = t.clientX - txStart;
+      var dy   = t.clientY - tyStart;
+      txCur    = t.clientX;
+
+      // Richtung noch unentschieden: erste Bewegung entscheidet
+      if (swiping === null) {{
+        if (Math.abs(dy) > VERT_ABORT && Math.abs(dy) > Math.abs(dx)) {{
+          swiping = false; // vertikal → Scrollen erlauben
+          return;
+        }}
+        if (Math.abs(dx) > 6) {{
+          swiping = true;  // horizontal → Swipe
+        }} else {{
+          return;
+        }}
+      }}
+
+      // Horizontaler Swipe: scrollen verhindern, Karte mitziehen
+      e.preventDefault();
+      var baseOffset = -curIdx * trackW;
+      grid.style.transform = 'translateX(' + (baseOffset + dx) + 'px)';
+    }}, {{passive: false}});
+
+    wrapper.addEventListener('touchend', function(e) {{
+      if (!isMobileView() || swiping !== true) {{
+        swiping = null;
+        return;
+      }}
+      var dx = txCur - txStart;
+      swiping = null;
+      if (Math.abs(dx) >= SWIPE_MIN) {{
+        goTo(dx < 0 ? curIdx + 1 : curIdx - 1, true);
+      }} else {{
+        goTo(curIdx, true); // zurückschnappen
+      }}
+    }}, {{passive: true}});
+  }}
+
+  function teardownSwipe() {{
+    if (!grid) return;
+    grid.classList.remove('swipe-active');
+    grid.style.width     = '';
+    grid.style.transform = '';
+    grid.style.transition= '';
+    if (cards) cards.forEach(function(c) {{
+      c.classList.remove('swipe-active-card');
+      c.style.opacity = '';
+    }});
+    var nav = document.getElementById('dot-nav');
+    if (nav) nav.innerHTML = '';
+    dots = null;
+    grid = null;
+    cards = null;
+  }}
+
+  var _mq = window.matchMedia('(max-width:767px)');
+  function onBreakpoint(e) {{
+    if (e.matches) {{ initSwipe(); }} else {{ teardownSwipe(); }}
+  }}
+
+  // Initial + bei Resize
+  if (typeof _mq.addEventListener === 'function') {{
+    _mq.addEventListener('change', onBreakpoint);
+  }} else {{
+    _mq.addListener(onBreakpoint); // Safari <14 fallback
+  }}
+
+  function ready(fn) {{
+    if (document.readyState !== 'loading') {{ fn(); }}
+    else {{ document.addEventListener('DOMContentLoaded', fn); }}
+  }}
+  ready(function() {{
+    if (isMobileView()) initSwipe();
+  }});
+}})();
+// ─────────────────────────────────────────────────────────────────────────────
 </script>
 </body>
 </html>"""
@@ -2527,6 +2982,20 @@ def main():
     batch_yfd = get_yfinance_batch(pool_tickers)
     print(f"Step 2b (yfinance batch) abgeschlossen in {time.time()-_t_batch:.1f}s", flush=True)
 
+    # Relative Stärke vs. S&P 500 (20T) — one extra download, cached for the run
+    _spx_perf_20d: float | None = None
+    try:
+        _spx_hist = yf.download("^GSPC", period="25d", auto_adjust=True,
+                                 progress=False, threads=False)
+        if _spx_hist is not None and not _spx_hist.empty and len(_spx_hist) >= 21:
+            _spx_close = _spx_hist["Close"].dropna()
+            _spx_perf_20d = float(
+                (_spx_close.iloc[-1] - _spx_close.iloc[-21]) / _spx_close.iloc[-21] * 100
+            )
+            log.info("S&P 500 20T-Perf: %.2f%%", _spx_perf_20d)
+    except Exception as _spx_exc:
+        log.warning("S&P 500 fetch failed: %s", _spx_exc)
+
     # --- Step 2: Filter loop — uses pre-fetched batch data, no HTTP per ticker ---
     log.info("Step 2 – Filtering %d candidates with enriched data …", len(pool))
     enriched = []
@@ -2549,15 +3018,26 @@ def main():
         yfd = batch_yfd.get(t) or get_yfinance_data(t)
 
         # Overwrite with accurate yfinance values
+        _stock_perf_20d = yfd.get("perf_20d")
+        _rel_strength   = (
+            (_stock_perf_20d - _spx_perf_20d)
+            if _stock_perf_20d is not None and _spx_perf_20d is not None
+            else None
+        )
         c.update({
-            "company_name":  yfd.get("company_name") or c.get("company_name", t),
-            "sector":        yfd.get("sector") or c.get("sector") or "",
-            "industry":      yfd.get("industry") or c.get("industry") or "",
-            "yf_market_cap": yfd.get("market_cap"),
-            "52w_high":      yfd.get("52w_high"),
-            "52w_low":       yfd.get("52w_low"),
-            "avg_vol_20d":   yfd.get("avg_vol_20d", 0),
-            "cur_vol":       yfd.get("cur_vol", 0),
+            "company_name":    yfd.get("company_name") or c.get("company_name", t),
+            "sector":          yfd.get("sector") or c.get("sector") or "",
+            "industry":        yfd.get("industry") or c.get("industry") or "",
+            "yf_market_cap":   yfd.get("market_cap"),
+            "52w_high":        yfd.get("52w_high"),
+            "52w_low":         yfd.get("52w_low"),
+            "avg_vol_20d":     yfd.get("avg_vol_20d", 0),
+            "cur_vol":         yfd.get("cur_vol", 0),
+            "rsi14":           yfd.get("rsi14"),
+            "ma50":            yfd.get("ma50"),
+            "ma200":           yfd.get("ma200"),
+            "perf_20d":        _stock_perf_20d,
+            "rel_strength_20d": _rel_strength,
         })
         yf_sf = yfd.get("short_float_yf", 0)
         if yf_sf > 0:
@@ -2652,7 +3132,6 @@ def main():
     top10.sort(key=lambda x: x["score"], reverse=True)
 
     # Opt 3 — Parallel news fetching (all 10 tickers × 3 sources concurrently).
-    # max_workers=5 keeps us under typical rate-limit thresholds.
     _t_news = time.time()
     log.info("Step 3 – Fetching news for %d stocks (parallel, max 5 threads) …", len(top10))
     with ThreadPoolExecutor(max_workers=5) as _news_ex:
@@ -2661,7 +3140,20 @@ def main():
             _news_futures[_fut]["news"] = _fut.result() or []
     _news_elapsed = time.time() - _t_news
     print(f"News: {len(top10)} Ticker parallel in {_news_elapsed:.1f}s abgerufen", flush=True)
-    print(f"Step 3 abgeschlossen in {_news_elapsed:.1f}s", flush=True)
+
+    # Parallel options data fetch (US-only top-10, max 5 threads).
+    _t_opts = time.time()
+    us_top10 = [s for s in top10 if "." not in s["ticker"]]
+    log.info("Step 3b – Fetching options data for %d US stocks (parallel, max 5 threads) …", len(us_top10))
+    with ThreadPoolExecutor(max_workers=5) as _opts_ex:
+        _opts_futures = {_opts_ex.submit(get_options_data, s["ticker"]): s for s in us_top10}
+        for _fut in as_completed(_opts_futures):
+            _opts_futures[_fut]["options"] = _fut.result() or {}
+    _opts_elapsed = time.time() - _t_opts
+    _n_ok = sum(1 for s in us_top10 if s.get("options"))
+    _n_na = len(us_top10) - _n_ok
+    print(f"Optionsdaten: {len(us_top10)} Ticker parallel in {_opts_elapsed:.1f}s abgerufen — {_n_ok} mit Daten, {_n_na} ohne", flush=True)
+    print(f"Step 3 abgeschlossen in {time.time() - _t_news:.1f}s", flush=True)
 
     # --- Step 4: HTML ---
     _t4 = time.time()
