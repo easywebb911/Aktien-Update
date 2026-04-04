@@ -410,136 +410,144 @@ def get_yahoo_news(ticker: str, n: int = 2) -> list[dict]:
 
 
 # ===========================================================================
-# 2b. SUPPLEMENTARY DATA SOURCES (FINRA + SEC EDGAR FTD)
+# 2b. SUPPLEMENTARY DATA SOURCES (FINRA CSV + SEC EDGAR FTD)
 # ===========================================================================
 
 # Mutable counters updated by the API functions during each run
 _finra_stats: dict = {"ok": 0, "empty": 0, "err": 0}
 _ftd_stats:   dict = {"ok": 0, "empty": 0, "err": 0}
 
-# Module-level cache: FINRA Bearer token fetched once per run
-_finra_bearer_token: str = ""
+# Module-level cache: {date_str → {ticker → short_interest}} loaded once per run
+_finra_csv_cache: dict[str, dict[str, int]] = {}
 
 
-def _fetch_finra_token() -> str:
-    """Resolve FINRA Bearer token.
-    Priority:
-      1. FINRA_API_TOKEN env var  → use directly as Bearer token
-      2. FINRA_CLIENT_ID + FINRA_CLIENT_SECRET → OAuth client-credentials flow
-    Returns empty string if nothing is configured.
+def _load_finra_csv(date_str: str) -> dict[str, int]:
+    """Download and parse one FINRA short-interest pipe-delimited file.
+    Tries NYSE, NASDAQ and OTC endpoints for the given date (YYYYMMDD).
+    Returns {ticker: short_interest} or {} on failure.
     """
-    # Priority 1: static token (FINRA developer portal → API Keys)
-    static_token = os.environ.get("FINRA_API_TOKEN", "")
-    if static_token:
-        log.info("FINRA: using FINRA_API_TOKEN directly as Bearer token")
-        return static_token
+    urls = [
+        f"https://www.finra.org/sites/default/files/short-sale/cnms{date_str}.txt",
+        f"https://www.finra.org/sites/default/files/short-sale/nasd{date_str}.txt",
+        f"https://www.finra.org/sites/default/files/short-sale/regsho{date_str}.txt",
+    ]
+    merged: dict[str, int] = {}
+    for url in urls:
+        try:
+            r = requests.get(url, headers=HTTP_HEADERS, timeout=20)
+            if r.status_code != 200:
+                print(f"FINRA CSV nicht verfügbar: {url.split('/')[-1]} → HTTP {r.status_code}")
+                continue
+            lines = r.text.splitlines()
+            filename = url.split("/")[-1]
+            # Parse header to find column positions
+            header = [h.strip().lower() for h in lines[0].split("|")]
+            try:
+                sym_idx = next(i for i, h in enumerate(header)
+                               if "symbol" in h or "ticker" in h)
+                si_idx  = next(i for i, h in enumerate(header)
+                               if "short" in h and "interest" in h)
+            except StopIteration:
+                # Fallback: fixed columns (Symbol=0, ShortInterest=3 for FINRA format)
+                sym_idx, si_idx = 0, 3
+            count_before = len(merged)
+            for line in lines[1:]:
+                parts = line.split("|")
+                if len(parts) <= max(sym_idx, si_idx):
+                    continue
+                ticker = parts[sym_idx].strip().upper()
+                try:
+                    si_val = int(parts[si_idx].strip().replace(",", ""))
+                except ValueError:
+                    continue
+                if ticker and si_val > 0:
+                    merged[ticker] = merged.get(ticker, 0) + si_val
+            added = len(merged) - count_before
+            print(f"FINRA CSV erfolgreich geladen: {filename} — {added} Ticker gefunden")
+        except Exception as exc:
+            print(f"FINRA CSV Fehler bei {url.split('/')[-1]}: {exc}")
+    return merged
 
-    # Priority 2: OAuth client credentials
-    import base64
-    client_id     = os.environ.get("FINRA_CLIENT_ID", "")
-    client_secret = os.environ.get("FINRA_CLIENT_SECRET", "")
-    if not client_id or not client_secret:
-        return ""
-    token_url = ("https://ews.fip.finra.org/fip/rest/iam/oauth2/"
-                 "client_credential/accesstoken")
-    creds = base64.b64encode(f"{client_id}:{client_secret}".encode()).decode()
-    try:
-        r = requests.post(
-            token_url,
-            headers={
-                "Authorization": f"Basic {creds}",
-                "Content-Type": "application/x-www-form-urlencoded",
-            },
-            data="grant_type=client_credentials",
-            timeout=15,
-        )
-        if r.status_code == 200:
-            token = r.json().get("access_token", "")
-            log.info("FINRA OAuth token obtained (%d chars)", len(token))
-            return token
-        log.warning("FINRA token request failed: HTTP %d – %s",
-                    r.status_code, r.text[:200])
-        return ""
-    except Exception as exc:
-        log.warning("FINRA token error: %s", exc)
-        return ""
+
+def _get_finra_csv_for_date(date_str: str) -> dict[str, int]:
+    """Return cached CSV data for date_str, loading it if needed."""
+    if date_str not in _finra_csv_cache:
+        _finra_csv_cache[date_str] = _load_finra_csv(date_str)
+    return _finra_csv_cache[date_str]
+
+
+def _latest_finra_dates(n: int = 3) -> list[str]:
+    """Find the n most recent FINRA publication dates by probing backwards
+    from today (max 30 days). Returns list of YYYYMMDD strings, newest first.
+    """
+    from datetime import date, timedelta
+    found: list[str] = []
+    today = date.today()
+    for delta in range(0, 31):
+        if len(found) >= n:
+            break
+        day = today - timedelta(days=delta)
+        # FINRA publishes on business days only
+        if day.weekday() >= 5:   # Sat=5, Sun=6
+            continue
+        date_str = day.strftime("%Y%m%d")
+        # Probe one URL to check if this date exists
+        probe = (f"https://www.finra.org/sites/default/files/short-sale/"
+                 f"cnms{date_str}.txt")
+        try:
+            r = requests.head(probe, headers=HTTP_HEADERS, timeout=10)
+            if r.status_code == 200:
+                found.append(date_str)
+        except Exception:
+            continue
+    return found
 
 
 def get_finra_short_interest(ticker: str) -> dict:
-    """Fetch last 3 FINRA equity short interest periods.
-    Requires FINRA_CLIENT_ID + FINRA_CLIENT_SECRET env variables
-    (free registration at developer.finra.org → create an Application).
+    """Lookup short interest for ticker from FINRA public CSV files.
+    Downloads the 3 most recent FINRA publication files without authentication.
     Returns dict with short_interest, history, trend, trend_pct or {}.
     """
-    global _finra_bearer_token
-    if not _finra_bearer_token:
-        return {}   # token not available – skip silently
-
-    url = "https://api.finra.org/data/group/equity/name/shortInterest"
-    payload = {
-        "compareFilters": [
-            {"fieldName": "symbolCode", "compareType": "equal",
-             "fieldValue": ticker.upper()}
-        ],
-        "fields": ["symbolCode", "settlementDate", "currentShortPositionQuantity"],
-        "limit": 3,
-        "sortFields": ["-settlementDate"],
-    }
-    headers = {
-        "Content-Type":  "application/json",
-        "Authorization": f"Bearer {_finra_bearer_token}",
-    }
-    try:
-        r = requests.post(url, json=payload, headers=headers, timeout=12)
-        if r.status_code == 401:
-            log.warning("FINRA 401 for %s – token may have expired", ticker)
-            _finra_stats["err"] += 1
-            return {}
-        if r.status_code != 200:
-            log.warning("FINRA HTTP %d for %s", r.status_code, ticker)
-            _finra_stats["empty"] += 1
-            return {}
-        data = r.json()
-        if not isinstance(data, list) or not data:
-            _finra_stats["empty"] += 1
-            return {}
-
-        history = []
-        for rec in data[:3]:
-            si_val = int(rec.get("currentShortPositionQuantity") or 0)
-            if si_val:
-                history.append({"short_interest": si_val,
-                                 "settlement_date": rec.get("settlementDate", "")})
-        if not history:
-            _finra_stats["empty"] += 1
-            return {}
-
-        trend, trend_pct = "no_data", 0.0
-        if len(history) >= 2:
-            newest = history[0]["short_interest"]
-            oldest = history[-1]["short_interest"]
-            if oldest > 0:
-                trend_pct = (newest - oldest) / oldest
-                if trend_pct >= SI_TREND_UP_THRESHOLD:
-                    trend = "up"
-                elif trend_pct <= SI_TREND_DOWN_THRESHOLD:
-                    trend = "down"
-                else:
-                    trend = "sideways"
-
-        _finra_stats["ok"] += 1
-        return {
-            "short_interest":      history[0]["short_interest"],
-            "prev_short_interest": history[1]["short_interest"] if len(history) >= 2 else 0,
-            "settlement_date":     history[0]["settlement_date"],
-            "history":             history,
-            "trend":               trend,
-            "trend_pct":           round(trend_pct * 100, 1),
-        }
-    except Exception as exc:
-        log.warning("FINRA error for %s: %s", ticker, exc)
-        _finra_stats["err"] += 1
+    dates = _latest_finra_dates(3)
+    if not dates:
+        _finra_stats["empty"] += 1
         return {}
+
+    history: list[dict] = []
+    for date_str in dates:
+        data = _get_finra_csv_for_date(date_str)
+        si_val = data.get(ticker.upper(), 0)
+        if si_val:
+            # Format date YYYYMMDD → YYYY-MM-DD for display helper
+            sd = f"{date_str[:4]}-{date_str[4:6]}-{date_str[6:]}"
+            history.append({"short_interest": si_val, "settlement_date": sd})
+
+    if not history:
+        _finra_stats["empty"] += 1
+        return {}
+
+    trend, trend_pct = "no_data", 0.0
+    if len(history) >= 2:
+        newest = history[0]["short_interest"]
+        oldest = history[-1]["short_interest"]
+        if oldest > 0:
+            trend_pct = (newest - oldest) / oldest
+            if trend_pct >= SI_TREND_UP_THRESHOLD:
+                trend = "up"
+            elif trend_pct <= SI_TREND_DOWN_THRESHOLD:
+                trend = "down"
+            else:
+                trend = "sideways"
+
+    _finra_stats["ok"] += 1
+    return {
+        "short_interest":      history[0]["short_interest"],
+        "prev_short_interest": history[1]["short_interest"] if len(history) >= 2 else 0,
+        "settlement_date":     history[0]["settlement_date"],
+        "history":             history,
+        "trend":               trend,
+        "trend_pct":           round(trend_pct * 100, 1),
+    }
 
 
 # ── SEC EDGAR FTD (replaces Fintel – no auth required) ───────────────────────
@@ -1770,14 +1778,6 @@ def main():
         region_stocks = [c for c in candidates if c.get("market") == region][:6]
         intl_pool.extend(region_stocks)
     pool = us_pool + intl_pool
-
-    # Fetch FINRA OAuth token once before the enrichment loop
-    global _finra_bearer_token
-    _finra_bearer_token = _fetch_finra_token()
-    if _finra_bearer_token:
-        log.info("FINRA OAuth token ready – SI data will be enriched")
-    else:
-        log.info("FINRA_CLIENT_ID/SECRET not set – skipping FINRA SI enrichment")
 
     # --- Step 2: yfinance enrichment (all real filtering happens here) ---
     log.info("Step 2 – Enriching %d candidates with yfinance …", len(pool))

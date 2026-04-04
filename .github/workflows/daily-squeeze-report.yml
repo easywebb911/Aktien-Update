@@ -31,10 +31,6 @@ jobs:
         run: pip install -r requirements.txt
 
       - name: Generate squeeze report
-        env:
-          FINRA_API_TOKEN:     ${{ secrets.FINRA_API_TOKEN }}
-          FINRA_CLIENT_ID:     ${{ secrets.FINRA_CLIENT_ID }}
-          FINRA_CLIENT_SECRET: ${{ secrets.FINRA_CLIENT_SECRET }}
         run: python generate_report.py
 
       - name: Commit and publish report
