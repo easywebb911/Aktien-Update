@@ -1492,6 +1492,7 @@ a{{color:var(--accent);text-decoration:none}}
           <li><strong>25 % Days to Cover</strong> – Tage zum vollständigen Eindecken; hohe Werte erhöhen Kapitulationsrisiko</li>
           <li><strong>25 % Rel. Volumen</strong> – Heutiges vs. 20-Tage-Durchschnitt; Spitzen signalisieren Kaufinteresse</li>
           <li><strong>15 % Kursmomentum</strong> – Kursveränderung (5 Tage); steigende Kurse erhöhen den Squeeze-Druck</li>
+          <li><strong>+ bis 5 Pkt FINRA SI-Trend Bonus</strong> – steigender Short Interest ≥ +10 % → 5 Pkt · Seitwärts → 2,5 Pkt · Fallend oder keine Daten → 0 Pkt</li>
         </ul>
       </div>
       <div class="info-box">
@@ -1501,6 +1502,7 @@ a{{color:var(--accent);text-decoration:none}}
           <li><strong>Kurs &gt; $1</strong> – Ausschluss von Penny Stocks</li>
           <li><strong>Marktkapitalisierung &lt; $10 Mrd.</strong> – Small- &amp; Mid-Caps</li>
           <li><strong>Märkte:</strong> 🇺🇸 US · 🇩🇪 DE · 🇬🇧 GB · 🇫🇷 FR · 🇳🇱 NL · 🇨🇦 CA · 🇯🇵 JP · 🇭🇰 HK · 🇰🇷 KR</li>
+          <li><strong>Internationale Aktien:</strong> kein Short-Float-Filter, Score gedeckelt bei 50 Pkt (nur Volumen + Momentum)</li>
         </ul>
       </div>
       <div class="info-box">
@@ -1508,7 +1510,8 @@ a{{color:var(--accent);text-decoration:none}}
         <ul>
           <li><strong>Yahoo Finance Screener</strong> – Most Shorted, Small Cap Gainers, Aggressive Small Caps</li>
           <li><strong>Märkte:</strong> 🇺🇸 US · 🇩🇪 DE · 🇬🇧 GB · 🇨🇦 CA</li>
-          <li><strong>Anreicherung:</strong> yfinance (Short Float, Days to Cover, Volumen, Kurs)</li>
+          <li><strong>Anreicherung:</strong> yfinance (Short Float, Days to Cover, Volumen, Kurs) + FINRA (offizielles Short Interest, SI-Trend aus 3 Meldezeiträumen)</li>
+          <li><strong>Fails-to-Deliver:</strong> SEC EDGAR — derzeit nicht verfügbar (HTTP 403)</li>
         </ul>
       </div>
       <div class="info-box info-box--full">
