@@ -77,6 +77,10 @@ FINRA_BONUS_MAX  = 5    # max bonus points for rising FINRA short interest
 FTD_BONUS_MAX    = 0    # SEC EDGAR + Nasdaq Data Link blocked on GitHub Actions IPs
 # ── FINRA short interest trend thresholds ────────────────────────────────────
 SI_TREND_PERIODS        = 6     # FINRA publishes twice monthly; 6 = ~3 months
+# ── Float-size score factor ───────────────────────────────────────────────────
+FLOAT_WEIGHT          = 8          # max bonus points for small float
+FLOAT_SATURATION_LOW  = 5_000_000  # ≤ 5 M shares → full 8 pts
+FLOAT_SATURATION_HIGH = 50_000_000 # ≥ 50 M shares → 0 pts; linear between
 SI_TREND_UP_THRESHOLD   =  0.10   # ≥+10 % over full period → steigend
 SI_TREND_DOWN_THRESHOLD = -0.10   # ≤−10 % → fallend; between → seitwärts
 # ── Score smoothing weights ──────────────────────────────────────────────────
@@ -1002,16 +1006,17 @@ def _fmt_si_record(rec: dict) -> str:
 # ===========================================================================
 
 # Score-Gewichtung Fall 1 (Short-Daten vorhanden):
-# Short Float %        → max 35 Pkt  (Sättigung bei 100 %)
-# Short Ratio (Days)   → max 25 Pkt  (Sättigung bei 20 Tagen)
-# Rel. Volumen         → max 25 Pkt  (Sättigung bei 5× Durchschnitt)
-# Kursmomentum (1T)    → max 15 Pkt  (nur positive Tagesveränderung, Sättigung bei +15 %)
+# Short Float %        → max 32 Pkt  (Sättigung bei 100 %)
+# Short Ratio (Days)   → max 23 Pkt  (Sättigung bei 20 Tagen)
+# Rel. Volumen         → max 23 Pkt  (Sättigung bei 5× Durchschnitt)
+# Kursmomentum (1T)    → max 14 Pkt  (nur positive Tagesveränderung, Sättigung bei +15 %)
+# Float-Größe          → max  8 Pkt  (≤5 Mio. Aktien = voll, ≥50 Mio. = 0, linear)
 # Gesamt               → max 100 Pkt
 #
-# Verifikation (nicht ändern ohne explizite Anweisung):
-# A: SF=30%, SR=10d, RV=3×, Mom=+8%   → Score 43.5
-# B: SF=50%, SR=5d,  RV=5×, Mom=+15%  → Score 63.75
-# C: SF=15%, SR=3d,  RV=1.5×, Mom=+3% → Score 15.12
+# Verifikation (Float=0 angenommen wo nicht angegeben):
+# A: SF=30%, SR=10d, RV=3×, Mom=+8%   → Score 40.07
+# B: SF=50%, SR=5d,  RV=5×, Mom=+15%  → Score 58.75
+# C: SF=15%, SR=3d,  RV=1.5×, Mom=+3% → Score 13.93
 def score(stock: dict) -> float:
     """Weighted squeeze score 0–100.
     When no short data is available (sf=0, sr=0) the score is capped at 50
@@ -1022,21 +1027,31 @@ def score(stock: dict) -> float:
     sr_val = stock.get("short_ratio", 0)
     rv_raw = min((stock.get("rel_volume", 0) - 1.0) / 4.0, 1.0)
 
+    # Float-size factor: small float amplifies squeeze pressure
+    _float = stock.get("float_shares") or 0
+    if _float > 0:
+        _fs = max(0.0, min(1.0,
+            (FLOAT_SATURATION_HIGH - _float) /
+            (FLOAT_SATURATION_HIGH - FLOAT_SATURATION_LOW)
+        )) * FLOAT_WEIGHT
+    else:
+        _fs = 0.0
+
     if sf_val == 0 and sr_val == 0:
         # Fall 2: keine Short-Daten → Volumen (max 30) + Momentum (max 20), Cap 50
         # Nur positive Tagesveränderungen zählen: fallende Kurse = kein Squeeze-Druck
         rv_component = rv_raw * 30
         chg = max(stock.get("change", 0), 0)
         momentum = min(chg / 15.0, 1.0) * 20
-        return min(round(rv_component + momentum, 2), 50.0)
+        return min(round(rv_component + momentum + _fs, 2), 50.0)
 
-    # Fall 1: Short-Daten vorhanden → vier Faktoren, max 100 Pkt
+    # Fall 1: Short-Daten vorhanden → fünf Faktoren, max 100 Pkt
     # Nur positive Tagesveränderungen zählen: fallende Kurse = kein Squeeze-Druck
-    sf  = min(sf_val / 100.0, 1.0) * 35
-    sr  = min(sr_val /  20.0, 1.0) * 25
-    rv  = rv_raw * 25
-    mom = min(max(stock.get("change", 0), 0) / 15.0, 1.0) * 15
-    return round(sf + sr + rv + mom, 2)
+    sf  = min(sf_val / 100.0, 1.0) * 32
+    sr  = min(sr_val /  20.0, 1.0) * 23
+    rv  = rv_raw * 23
+    mom = min(max(stock.get("change", 0), 0) / 15.0, 1.0) * 14
+    return round(sf + sr + rv + mom + _fs, 2)
 
 
 def fmt_cap(v) -> str:
@@ -1469,6 +1484,14 @@ def _card(i: int, s: dict) -> str:
     else:
         _inst_row = ""
 
+    # Float size row
+    _float_sh = s.get("float_shares") or 0
+    if _float_sh > 0:
+        _float_mio = _float_sh / 1_000_000
+        _float_row = f"<tr><td>Float (frei handelbar)</td><td>{_float_mio:.1f} Mio. Aktien</td></tr>"
+    else:
+        _float_row = ""
+
     # Chart links
     yf_chart_url  = f"https://finance.yahoo.com/chart/{s['ticker']}"
     is_intl       = "." in s["ticker"]
@@ -1567,6 +1590,7 @@ def _card(i: int, s: dict) -> str:
     <div class="detail-table-wrap">
       <table class="detail-table">
         <tr><td>Marktkapitalisierung</td><td>{fmt_cap(cap_val)}</td></tr>
+        {_float_row}
         {sector_detail_row}
         <tr><td>52W-Hoch / -Tief</td><td>${s.get('52w_high') or 0:.2f} / ${s.get('52w_low') or 0:.2f}</td></tr>
         <tr><td>Ø Volumen 20T</td><td>{s.get('avg_vol_20d',0):,.0f}</td></tr>
@@ -2065,10 +2089,11 @@ a{{color:var(--accent);text-decoration:none}}
       <div class="info-box">
         <h4>Score (0–100)</h4>
         <ul>
-          <li><strong>35 % Short Float</strong> – Anteil leerverkaufter Aktien; je höher, desto stärker der Squeeze-Druck</li>
-          <li><strong>25 % Days to Cover</strong> – Tage zum vollständigen Eindecken; hohe Werte erhöhen Kapitulationsrisiko</li>
-          <li><strong>25 % Rel. Volumen</strong> – Heutiges vs. 20-Tage-Durchschnitt; Spitzen signalisieren Kaufinteresse</li>
-          <li><strong>15 % Kursmomentum</strong> – positive Kursveränderung erhöht den Squeeze-Druck auf Leerverkäufer. Nur steigende Kurse fließen positiv in den Score ein.</li>
+          <li><strong>32 Pkt Short Float</strong> – Anteil leerverkaufter Aktien; je höher, desto stärker der Squeeze-Druck</li>
+          <li><strong>23 Pkt Days to Cover</strong> – Tage zum vollständigen Eindecken; hohe Werte erhöhen Kapitulationsrisiko</li>
+          <li><strong>23 Pkt Rel. Volumen</strong> – Heutiges vs. 20-Tage-Durchschnitt; Spitzen signalisieren Kaufinteresse</li>
+          <li><strong>14 Pkt Kursmomentum</strong> – positive Kursveränderung erhöht den Squeeze-Druck auf Leerverkäufer. Nur steigende Kurse fließen positiv in den Score ein.</li>
+          <li><strong>8 Pkt Float-Größe</strong> – kleiner Float verstärkt den Squeeze-Effekt bei gleichem Short Float-Prozentsatz. Sättigung unter 5 Mio. Aktien.</li>
           <li><strong>+ bis 5 Pkt FINRA SI-Trend Bonus</strong> – steigender Short Interest ≥ +10 % → 5 Pkt · Seitwärts → 2,5 Pkt · Fallend oder keine Daten → 0 Pkt</li>
         </ul>
       </div>
