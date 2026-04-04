@@ -526,11 +526,21 @@ def get_finra_short_interest(ticker: str,
         _finra_stats["empty"] += 1
         return {}
 
+    # Problem 3: case-insensitive strip matching + debug logging
+    sym = ticker.strip().upper()
+    _FINRA_MIN_VOL = 1_000  # ignore noise below 1 000 shares (avoids ÷ tiny-number)
+
     history: list[dict] = []
     for date_str in dates:
         data = _get_finra_csv_for_date(date_str)
-        si_val = data.get(ticker.upper(), 0)
-        if si_val:
+        # Exact lookup (keys are already strip().upper() from _load_finra_csv)
+        si_val = data.get(sym, 0)
+        # Debug: show hit/miss for every ticker
+        hit = sym in data
+        print(f"FINRA Ticker-Suche: {sym} [{date_str}] → "
+              f"{'Treffer' if hit else 'Kein Treffer'}: {si_val:,}", flush=True)
+        # Problem 1: skip zero or sub-threshold values to prevent ÷-by-tiny
+        if si_val >= _FINRA_MIN_VOL:
             sd = f"{date_str[:4]}-{date_str[4:6]}-{date_str[6:]}"
             history.append({"short_interest": si_val, "settlement_date": sd})
 
@@ -538,11 +548,13 @@ def get_finra_short_interest(ticker: str,
         _finra_stats["empty"] += 1
         return {}
 
+    # Problem 1: only compute trend when ≥ 2 real data points exist
     trend, trend_pct = "no_data", 0.0
     if len(history) >= 2:
         newest = history[0]["short_interest"]
         oldest = history[-1]["short_interest"]
-        if oldest > 0:
+        # Guard: oldest must be ≥ threshold (already guaranteed above, but be explicit)
+        if oldest >= _FINRA_MIN_VOL:
             trend_pct = (newest - oldest) / oldest
             if trend_pct >= SI_TREND_UP_THRESHOLD:
                 trend = "up"
@@ -659,10 +671,13 @@ def score_bonus(stock: dict) -> float:
     bonus = 0.0
     finra = stock.get("finra_data") or {}
     trend = finra.get("trend", "no_data")
-    if trend == "up":
-        bonus += FINRA_BONUS_MAX
-    elif trend == "sideways":
-        bonus += FINRA_BONUS_MAX / 2
+    # Problem 2: only award bonus when ≥ 2 real data points (> 0) exist
+    real_pts = [r for r in finra.get("history", []) if r.get("short_interest", 0) > 0]
+    if len(real_pts) >= 2:
+        if trend == "up":
+            bonus += FINRA_BONUS_MAX
+        elif trend == "sideways":
+            bonus += FINRA_BONUS_MAX / 2
 
     ftd = stock.get("ftd_data") or {}
     ftd_cur, ftd_avg = ftd.get("ftd_latest", 0), ftd.get("ftd_avg_30d", 0)
@@ -1932,14 +1947,14 @@ def main():
 
     log.info("Report written → index.html")
     log.info("Top 10: %s", [s["ticker"] for s in top10])
-    log.info("Supplementary data summary: FINRA=%d/10, Fintel FTD=%d/10",
+    log.info("Supplementary data summary: FINRA=%d/10, SEC FTD=%d/10",
              _finra_stats["ok"], _ftd_stats["ok"])
     print(
         f"[Datenabruf-Zusammenfassung] "
         f"FINRA: {_finra_stats['ok']} erfolgreich, "
         f"{_finra_stats['empty']} leer, "
         f"{_finra_stats['err']} Fehler | "
-        f"Fintel FTD: {_ftd_stats['ok']} erfolgreich, "
+        f"SEC FTD: {_ftd_stats['ok']} erfolgreich, "
         f"{_ftd_stats['empty']} leer, "
         f"{_ftd_stats['err']} Fehler"
     )
