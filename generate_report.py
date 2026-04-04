@@ -413,6 +413,11 @@ def get_yahoo_news(ticker: str, n: int = 2) -> list[dict]:
 # 2b. SUPPLEMENTARY DATA SOURCES (FINRA + Fintel)
 # ===========================================================================
 
+# Mutable counters updated by the API functions during each run
+_finra_stats: dict = {"ok": 0, "empty": 0, "err": 0}
+_ftd_stats:   dict = {"ok": 0, "empty": 0, "err": 0}
+
+
 def get_finra_short_interest(ticker: str) -> dict:
     """Fetch last 3 FINRA equity short interest periods in one API call.
     Returns dict with short_interest, prev_short_interest, settlement_date,
@@ -429,14 +434,17 @@ def get_finra_short_interest(ticker: str) -> dict:
         "sortFields": ["-settlementDate"],
     }
     try:
+        print(f"FINRA-Abfrage: {url} (Ticker: {ticker})")
         r = requests.post(url, json=payload,
                           headers={"Content-Type": "application/json"}, timeout=12)
         if r.status_code != 200:
             log.warning("FINRA HTTP %d for %s", r.status_code, ticker)
+            _finra_stats["empty"] += 1
             return {}
         data = r.json()
         if not isinstance(data, list) or not data:
             log.warning("FINRA empty response for %s", ticker)
+            _finra_stats["empty"] += 1
             return {}
 
         history = []
@@ -446,6 +454,7 @@ def get_finra_short_interest(ticker: str) -> dict:
                 history.append({"short_interest": si_val,
                                  "settlement_date": rec.get("settlementDate", "")})
         if not history:
+            _finra_stats["empty"] += 1
             return {}
 
         # Trend: newest vs oldest available period
@@ -462,6 +471,7 @@ def get_finra_short_interest(ticker: str) -> dict:
                 else:
                     trend = "sideways"
 
+        _finra_stats["ok"] += 1
         return {
             "short_interest":      history[0]["short_interest"],
             "prev_short_interest": history[1]["short_interest"] if len(history) >= 2 else 0,
@@ -471,7 +481,8 @@ def get_finra_short_interest(ticker: str) -> dict:
             "trend_pct":           round(trend_pct * 100, 1),
         }
     except Exception as exc:
-        log.debug("FINRA error for %s: %s", ticker, exc)
+        log.warning("FINRA error for %s: %s", ticker, exc)
+        _finra_stats["err"] += 1
         return {}
 
 
@@ -481,20 +492,26 @@ def get_fintel_ftd(ticker: str) -> dict:
     """
     url = f"https://fintel.io/api/filings/ftd/{ticker.upper()}"
     try:
+        print(f"Fintel-Abfrage: {url}")
         r = requests.get(url, headers=HTTP_HEADERS, timeout=12)
         if r.status_code != 200:
-            log.debug("Fintel FTD HTTP %d for %s", r.status_code, ticker)
+            log.warning("Fintel FTD HTTP %d for %s", r.status_code, ticker)
+            _ftd_stats["empty"] += 1
             return {}
         data = r.json()
         if not isinstance(data, list) or not data:
+            _ftd_stats["empty"] += 1
             return {}
         quantities = [int(item.get("quantity") or 0) for item in data if item.get("quantity")]
         if not quantities:
+            _ftd_stats["empty"] += 1
             return {}
         avg_30d = sum(quantities[:30]) / min(len(quantities), 30)
+        _ftd_stats["ok"] += 1
         return {"ftd_latest": quantities[0], "ftd_avg_30d": round(avg_30d, 0)}
     except Exception as exc:
-        log.debug("Fintel FTD error for %s: %s", ticker, exc)
+        log.warning("Fintel FTD error for %s: %s", ticker, exc)
+        _ftd_stats["err"] += 1
         return {}
 
 
@@ -1753,10 +1770,17 @@ def main():
 
     log.info("Report written → index.html")
     log.info("Top 10: %s", [s["ticker"] for s in top10])
-    finra_count = sum(1 for s in top10 if s.get("finra_data"))
-    ftd_count_final = sum(1 for s in top10 if s.get("ftd_data"))
     log.info("Supplementary data summary: FINRA=%d/10, Fintel FTD=%d/10",
-             finra_count, ftd_count_final)
+             _finra_stats["ok"], _ftd_stats["ok"])
+    print(
+        f"[Datenabruf-Zusammenfassung] "
+        f"FINRA: {_finra_stats['ok']} erfolgreich, "
+        f"{_finra_stats['empty']} leer, "
+        f"{_finra_stats['err']} Fehler | "
+        f"Fintel FTD: {_ftd_stats['ok']} erfolgreich, "
+        f"{_ftd_stats['empty']} leer, "
+        f"{_ftd_stats['err']} Fehler"
+    )
 
 
 if __name__ == "__main__":
