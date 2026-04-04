@@ -148,18 +148,26 @@ _YF_SCREENERS: dict[str, list[str]] = {
     "CA": ["most_shorted_stocks", "small_cap_gainers"],   # Toronto Stock Exchange
 }
 
-# Flag emojis for market tags
-_MARKET_FLAGS: dict[str, str] = {
-    "US": "🇺🇸",
-    "DE": "🇩🇪",
-    "GB": "🇬🇧",
-    "FR": "🇫🇷",
-    "NL": "🇳🇱",
-    "CA": "🇨🇦",
-    "JP": "🇯🇵",
-    "HK": "🇭🇰",
-    "KR": "🇰🇷",
-}
+# Deterministic flag from ticker suffix (longest match wins)
+_SUFFIX_FLAGS: list[tuple[str, str]] = [
+    (".KS", "🇰🇷"),
+    (".HK", "🇭🇰"),
+    (".TO", "🇨🇦"),
+    (".PA", "🇫🇷"),
+    (".AS", "🇳🇱"),
+    (".DE", "🇩🇪"),
+    (".L",  "🇬🇧"),
+    (".T",  "🇯🇵"),
+]
+
+def get_flag(ticker: str) -> str:
+    """Return the country flag emoji for *ticker* based on its suffix.
+    Longest-match first ensures e.g. '.KS' beats a hypothetical '.K'."""
+    t = ticker.upper()
+    for suffix, flag in _SUFFIX_FLAGS:
+        if t.endswith(suffix.upper()):
+            return flag
+    return "🇺🇸"  # no suffix → US
 
 _YF_SCREENER_URL = (
     "https://query2.finance.yahoo.com/v1/finance/screener/predefined/saved"
@@ -1361,7 +1369,7 @@ def _card(i: int, s: dict) -> str:
     chg_col = _metric_color("mom", chg)
 
     has_no_short_data = sf == 0 and sr == 0
-    flag    = _MARKET_FLAGS.get(s.get("market", "US"), "")
+    flag    = get_flag(s["ticker"])
     sf_display = "—" if has_no_short_data else f"{sf:.1f}%"
     sr_display = "—" if has_no_short_data else f"{sr:.1f}d"
     no_data_html = (
