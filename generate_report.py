@@ -684,7 +684,7 @@ def _fmt_si_date(date_str: str) -> str:
 
 
 def _fmt_si_record(rec: dict) -> str:
-    """Format a FINRA history record as 'X,X Mio. (DD.MM.YYYY)'."""
+    """Format a FINRA daily short-volume record as 'X,X Mio. (DD.MM.YYYY)'."""
     si = rec.get("short_interest", 0)
     if not si:
         return "—"
@@ -1019,10 +1019,10 @@ def _card(i: int, s: dict) -> str:
         <tr><td>Ø Volumen 20T</td><td>{s.get('avg_vol_20d',0):,.0f}</td></tr>
         <tr><td>Heutiges Volumen</td><td>{s.get('cur_vol',0):,.0f}</td></tr>
         <tr><td>Short Interest Quelle</td><td>{s.get('sf_source','Yahoo Finance')}</td></tr>
-        <tr><td>SI-Trend (6W)</td><td>{trend_html}</td></tr>
-        <tr><td>SI Aktuell (FINRA)</td><td>{si_cur_disp}</td></tr>
-        <tr><td>SI vor 4 Wochen</td><td>{si_4w_disp}</td></tr>
-        <tr><td>SI vor 8 Wochen</td><td>{si_8w_disp}</td></tr>
+        <tr><td>Short-Vol.-Trend (3T)</td><td>{trend_html}</td></tr>
+        <tr><td>Short-Vol. T-1 (FINRA)</td><td>{si_cur_disp}</td></tr>
+        <tr><td>Short-Vol. T-2</td><td>{si_4w_disp}</td></tr>
+        <tr><td>Short-Vol. T-3</td><td>{si_8w_disp}</td></tr>
         <tr><td>Fails-to-Deliver</td><td>{ftd_display}</td></tr>
         <tr><td>Risiko-Detail</td><td style="color:{risk_col}">{risk_txt}</td></tr>
       </table>
@@ -1837,27 +1837,16 @@ def main():
         if yfd.get("vol_ratio", 0) > 0:
             c["rel_volume"] = yfd["vol_ratio"]
 
-        # FINRA short interest correction (US stocks only)
+        # FINRA daily short-volume data (US stocks only; used for trend badge/bonus only,
+        # NOT for short-float override since CDN files contain daily volume, not total SI)
         is_us_finra = c.get("market", "US") == "US"
         if is_us_finra:
             finra = get_finra_short_interest(t, finra_dates)
             c["finra_data"] = finra
-            if finra.get("short_interest"):
-                float_sh = yfd.get("float_shares", 0)
-                yf_sf = c.get("short_float", 0)
-                if float_sh and yf_sf > 0:
-                    finra_sf_pct = finra["short_interest"] / float_sh * 100
-                    if abs(finra_sf_pct - yf_sf) / yf_sf > 0.20:
-                        log.info("    %s: FINRA SF %.1f%% vs YF %.1f%% → using FINRA",
-                                 t, finra_sf_pct, yf_sf)
-                        c["short_float"] = round(finra_sf_pct, 2)
-                        c["sf_source"] = "FINRA"
-            if "sf_source" not in c:
-                c["sf_source"] = "Yahoo Finance"
             time.sleep(0.2)
         else:
             c["finra_data"] = {}
-            c["sf_source"] = "Yahoo Finance"
+        c["sf_source"] = "Yahoo Finance"
 
         # Hard filters (now with accurate data)
         cap = c.get("yf_market_cap") or c.get("market_cap")
