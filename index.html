@@ -288,7 +288,7 @@ a{color:var(--accent);text-decoration:none}
 <header class="app-hdr">
   <div class="hdr-main">
     <span class="app-title">Squeeze <span>Report</span></span>
-    <span class="hdr-ts">Stand: 04.04.2026, 21:27 Uhr</span>
+    <span class="hdr-ts">Stand: 04.04.2026, 21:37 Uhr</span>
     <div class="hdr-btns">
       <button id="btn-reload" class="btn btn-g" onclick="reloadPage()">&#8635; Neu laden</button>
       <button id="btn-recalc" class="btn btn-b" onclick="triggerWorkflow()">&#9881; Neu berechnen</button>
@@ -319,10 +319,10 @@ a{color:var(--accent);text-decoration:none}
 <main class="wrap">
   <div class="stats-bar">
     <div class="stat-title">TopTen Squeezer</div>
-    <div class="stat-box"><span class="stat-val">26.7%</span><span class="stat-lbl">Ø Short Float</span></div>
-    <div class="stat-box"><span class="stat-val">8.2d</span><span class="stat-lbl">Ø Days to Cover</span></div>
+    <div class="stat-box"><span class="stat-val">25.9%</span><span class="stat-lbl">Ø Short Float</span></div>
+    <div class="stat-box"><span class="stat-val">8.6d</span><span class="stat-lbl">Ø Days to Cover</span></div>
     <div class="stat-box"><span class="stat-val">2.7×</span><span class="stat-lbl">Ø Volumen</span></div>
-    <div class="stat-box"><span class="stat-val">+7.4%</span><span class="stat-lbl">Ø Kursmomentum</span></div>
+    <div class="stat-box"><span class="stat-val">+8.6%</span><span class="stat-lbl">Ø Kursmomentum</span></div>
   </div>
 
   <details class="info-panel">
@@ -569,8 +569,87 @@ a{color:var(--accent);text-decoration:none}
       <span class="rank">3</span>
       <div class="ticker-block">
         <div class="ticker-row">
-          <a class="ticker ticker-link" href="https://finance.yahoo.com/chart/OMER" target="_blank" rel="noopener noreferrer">OMER</a>
+          <a class="ticker ticker-link" href="https://finance.yahoo.com/chart/ORIC" target="_blank" rel="noopener noreferrer">ORIC</a>
           <span class="market-tag">🇺🇸 US</span>
+          <a class="chart-badge chart-badge-y" href="https://finance.yahoo.com/chart/ORIC" target="_blank" rel="noopener noreferrer" title="Yahoo Finance Chart">Y</a><a class="chart-badge chart-badge-f" href="https://finviz.com/quote.ashx?t=ORIC" target="_blank" rel="noopener noreferrer" title="Finviz Chart &amp; Kennzahlen">F</a><a class="chart-badge chart-badge-s" href="https://stockanalysis.com/stocks/oric/" target="_blank" rel="noopener noreferrer" title="Stockanalysis Chart &amp; Short-Interest">S</a>
+          <span class="price-tag">$8.89</span>
+        </div>
+        <span class="company">ORIC Pharmaceuticals, Inc.</span>
+        <span class="sector-tag">Healthcare · Biotechnology</span>
+      </div>
+    </div>
+    <div class="score-block">
+      <span class="score-num" style="color:#22c55e">52.3</span>
+      <span class="score-lbl">Score</span>
+      <div class="score-track"><div class="score-fill" style="width:52%;background:#22c55e"></div></div>
+    </div>
+  </div>
+  <p class="spark-placeholder">Verlauf ab morgen verfügbar.</p>
+  <div class="metrics-row">
+    <div class="metric-box" style="--mc:#f59e0b">
+      <span class="si-badge si-badge-up">↑</span>
+      <span class="m-val">18.6%</span>
+      <span class="m-lbl">Short Float</span>
+    </div>
+    <div class="metric-box" style="--mc:#22c55e">
+      <span class="m-val">11.8d</span>
+      <span class="m-lbl">Days to Cover</span>
+    </div>
+    <div class="metric-box" style="--mc:#f59e0b">
+      <span class="m-val">2.8×</span>
+      <span class="m-lbl">Volumen</span>
+    </div>
+    <div class="metric-box" style="--mc:#22c55e">
+      <span class="m-val">+18.9%</span>
+      <span class="m-lbl">Momentum</span>
+    </div>
+  </div>
+  <button class="details-btn" onclick="toggleDetails(3)" id="db3" aria-expanded="false">
+    <span class="details-arrow" id="da3">▾</span><span id="dl3"> Details anzeigen</span>
+  </button>
+  <div class="details-body" id="dd3">
+    <div class="detail-table-wrap">
+      <table class="detail-table">
+        <tr><td>Marktkapitalisierung</td><td>$996 M</td></tr>
+        <tr><td>Sektor</td><td>Healthcare · Biotechnology</td></tr>
+        <tr><td>52W-Hoch / -Tief</td><td>$14.93 / $3.90</td></tr>
+        <tr><td>Ø Volumen 20T</td><td>2,633,225</td></tr>
+        <tr><td>Heutiges Volumen</td><td>7,289,300</td></tr>
+        <tr><td>Short Interest Quelle</td><td>Yahoo Finance</td></tr>
+        <tr><td>Short-Vol.-Trend (3T)</td><td><span style="color:#22c55e">↑ Steigend +866.6 %</span></td></tr>
+        <tr><td>Short-Vol. T-1 (FINRA)</td><td>2,977 Aktien (02.04.2026)</td></tr>
+        <tr><td>Short-Vol. T-2</td><td>44,482 Aktien (01.04.2026)</td></tr>
+        <tr><td>Short-Vol. T-3</td><td>308 Aktien (31.03.2026)</td></tr>
+
+        <tr><td>Risiko-Detail</td><td style="color:#f59e0b">Small-Cap ($996 M) mit eingeschränkter Liquidität.</td></tr>
+      </table>
+    </div>
+    
+    <div class="driver-row">
+      <span class="risk-badge" style="color:#f59e0b;border-color:#f59e0b55;background:#f59e0b22">Risiko: MITTEL</span>
+      <p class="driver-text">Short Float 18.6 % liegt deutlich über dem Marktdurchschnitt. Short Ratio 11.8 Tage — Eindeckungsdruck erhöht den Squeeze-Druck.</p>
+    </div>
+    <button class="news-btn" onclick="toggleNews(3)" id="nb3" aria-expanded="false">
+      <span id="nb-icon3">▼</span> Nachrichten anzeigen
+    </button>
+    <div class="news-panel" id="np3" hidden>
+      <div class="news-items"><div class="ni"><a href="https://www.biopharmadive.com/news/immunovant-alto-beam-orca-oric-cyclerion-korsana-biotech-news-roundup/816454/" target="_blank" rel="noopener noreferrer">Immunovant-Augenmedikament fällt in Phase-3-Studien durch; Daten zur Strahlsichelzelle im NEJM veröffentlicht</a> <span class="ni-src">(Yahoo Finance)</span><span class="ni-meta">02.04.2026 12:20</span></div><div class="ni"><a href="https://finance.yahoo.com/markets/stocks/articles/oric-pharmaceuticals-oric-down-36-081322536.html" target="_blank" rel="noopener noreferrer">ORIC Pharmaceuticals (ORIC) ist um 36,1 % gesunken, nachdem das Prostatakrebsmedikament mit geringerer Toxizität in die Phase 3 überführt wurde</a> <span class="ni-src">(Yahoo Finance)</span><span class="ni-meta">02.04.2026 08:13</span></div><div class="ni"><a href="https://www.investors.com/news/technology/oric-stock-pfizer-prc2-inhibitor-prostate-cancer/?src=A00220&yptr=yahoo" target="_blank" rel="noopener noreferrer">Oric Pharma verpasst das „Best-in-Class“-Boot vs. Pfizer – und Einbrüche</a> <span class="ni-src">(Yahoo Finance)</span><span class="ni-meta">01.04.2026 20:16</span></div></div>
+      <div class="news-summary-box">
+        <span class="summary-label">Zusammenfassung</span>
+        <p class="summary-text">Die Aktien von Immunovant, Alto und Oric Pharmaceuticals fielen diese Woche aufgrund von Aktualisierungen klinischer Studien. An anderer Stelle kam es bei der Zelltherapie von Orca Bio zu Verzögerungen und Korsana ging eine umgekehrte Fusion ein.</p>
+      </div>
+    </div>
+  </div>
+</article>
+
+<article class="card" id="c4">
+  <div class="card-top">
+    <div class="card-left">
+      <span class="rank">4</span>
+      <div class="ticker-block">
+        <div class="ticker-row">
+          <a class="ticker ticker-link" href="https://finance.yahoo.com/chart/OMER" target="_blank" rel="noopener noreferrer">OMER</a>
+          <span class="market-tag">🇩🇪 DE</span>
           <a class="chart-badge chart-badge-y" href="https://finance.yahoo.com/chart/OMER" target="_blank" rel="noopener noreferrer" title="Yahoo Finance Chart">Y</a><a class="chart-badge chart-badge-f" href="https://finviz.com/quote.ashx?t=OMER" target="_blank" rel="noopener noreferrer" title="Finviz Chart &amp; Kennzahlen">F</a><a class="chart-badge chart-badge-s" href="https://stockanalysis.com/stocks/omer/" target="_blank" rel="noopener noreferrer" title="Stockanalysis Chart &amp; Short-Interest">S</a>
           <span class="price-tag">$10.90</span>
         </div>
@@ -579,15 +658,15 @@ a{color:var(--accent);text-decoration:none}
       </div>
     </div>
     <div class="score-block">
-      <span class="score-num" style="color:#22c55e">52.9</span>
+      <span class="score-num" style="color:#f59e0b">47.9</span>
       <span class="score-lbl">Score</span>
-      <div class="score-track"><div class="score-fill" style="width:53%;background:#22c55e"></div></div>
+      <div class="score-track"><div class="score-fill" style="width:48%;background:#f59e0b"></div></div>
     </div>
   </div>
   <p class="spark-placeholder">Verlauf ab morgen verfügbar.</p>
   <div class="metrics-row">
     <div class="metric-box" style="--mc:#f59e0b">
-      <span class="si-badge si-badge-up">↑</span>
+      
       <span class="m-val">25.3%</span>
       <span class="m-lbl">Short Float</span>
     </div>
@@ -604,10 +683,10 @@ a{color:var(--accent);text-decoration:none}
       <span class="m-lbl">Momentum</span>
     </div>
   </div>
-  <button class="details-btn" onclick="toggleDetails(3)" id="db3" aria-expanded="false">
-    <span class="details-arrow" id="da3">▾</span><span id="dl3"> Details anzeigen</span>
+  <button class="details-btn" onclick="toggleDetails(4)" id="db4" aria-expanded="false">
+    <span class="details-arrow" id="da4">▾</span><span id="dl4"> Details anzeigen</span>
   </button>
-  <div class="details-body" id="dd3">
+  <div class="details-body" id="dd4">
     <div class="detail-table-wrap">
       <table class="detail-table">
         <tr><td>Marktkapitalisierung</td><td>$773 M</td></tr>
@@ -616,10 +695,10 @@ a{color:var(--accent);text-decoration:none}
         <tr><td>Ø Volumen 20T</td><td>1,095,805</td></tr>
         <tr><td>Heutiges Volumen</td><td>1,837,300</td></tr>
         <tr><td>Short Interest Quelle</td><td>Yahoo Finance</td></tr>
-        <tr><td>Short-Vol.-Trend (3T)</td><td><span style="color:#22c55e">↑ Steigend +81.6 %</span></td></tr>
-        <tr><td>Short-Vol. T-1 (FINRA)</td><td>2,746 Aktien (02.04.2026)</td></tr>
-        <tr><td>Short-Vol. T-2</td><td>9,459 Aktien (01.04.2026)</td></tr>
-        <tr><td>Short-Vol. T-3</td><td>1,512 Aktien (31.03.2026)</td></tr>
+        <tr><td>Short-Vol.-Trend (3T)</td><td>Keine Daten</td></tr>
+        <tr><td>Short-Vol. T-1 (FINRA)</td><td>—</td></tr>
+        <tr><td>Short-Vol. T-2</td><td>—</td></tr>
+        <tr><td>Short-Vol. T-3</td><td>—</td></tr>
 
         <tr><td>Risiko-Detail</td><td style="color:#f59e0b">Hohes Short-Interesse (25.3 %) erhöht die Volatilität deutlich. Small-Cap ($773 M) mit eingeschränkter Liquidität.</td></tr>
       </table>
@@ -629,93 +708,14 @@ a{color:var(--accent);text-decoration:none}
       <span class="risk-badge" style="color:#f59e0b;border-color:#f59e0b55;background:#f59e0b22">Risiko: MITTEL</span>
       <p class="driver-text">Short Float 25.3 % liegt deutlich über dem Marktdurchschnitt. Short Ratio 20.6 Tage — Eindeckungsdruck erhöht den Squeeze-Druck.</p>
     </div>
-    <button class="news-btn" onclick="toggleNews(3)" id="nb3" aria-expanded="false">
-      <span id="nb-icon3">▼</span> Nachrichten anzeigen
-    </button>
-    <div class="news-panel" id="np3" hidden>
-      <div class="news-items"><div class="ni"><a href="https://seekingalpha.com/article/4888096-omeros-making-the-bull-case-on-q4-earnings-ahead-of-key-q1-commercial-updates?source=feed_symbol_OMER" target="_blank" rel="noopener noreferrer">Omeros: Vor den wichtigsten kommerziellen Updates für das 1. Quartal sind die Ergebnisse des 4. Quartals positiv</a> <span class="ni-src">(Seeking Alpha)</span><span class="ni-meta">02.04.2026 15:21</span></div><div class="ni"><a href="https://seekingalpha.com/symbol/OMER/news?source=feed_symbol_OMER" target="_blank" rel="noopener noreferrer">Omeros steigt, da Novo-Deal die Erträge im vierten Quartal steigert</a> <span class="ni-src">(Seeking Alpha)</span><span class="ni-meta">01.04.2026 18:09</span></div><div class="ni"><a href="https://app.moby.co/home/research/tools/earningsCalendar/earnings-omeros-corporation-q4-2025-earnings-call-summary?utm_source=yahoo_finance&utm_medium=rss" target="_blank" rel="noopener noreferrer">Zusammenfassung der Gewinnmitteilung der Omeros Corporation für das 4. Quartal 2025</a> <span class="ni-src">(Yahoo Finance)</span><span class="ni-meta">01.04.2026 12:30</span></div></div>
-      <div class="news-summary-box">
-        <span class="summary-label">Zusammenfassung</span>
-        <p class="summary-text">Omeros: Vor den wichtigsten kommerziellen Updates für das 1. Quartal sind die Ergebnisse des 4. Quartals positiv. Weitere aktuelle Meldung: Omeros steigt, da Novo-Deal das Ergebnis im vierten Quartal steigert  –  Quelle: Seeking Alpha (02.04.2026 15:21)</p>
-      </div>
-    </div>
-  </div>
-</article>
-
-<article class="card" id="c4">
-  <div class="card-top">
-    <div class="card-left">
-      <span class="rank">4</span>
-      <div class="ticker-block">
-        <div class="ticker-row">
-          <a class="ticker ticker-link" href="https://finance.yahoo.com/chart/CAR" target="_blank" rel="noopener noreferrer">CAR</a>
-          <span class="market-tag">🇺🇸 US</span>
-          <a class="chart-badge chart-badge-y" href="https://finance.yahoo.com/chart/CAR" target="_blank" rel="noopener noreferrer" title="Yahoo Finance Chart">Y</a><a class="chart-badge chart-badge-f" href="https://finviz.com/quote.ashx?t=CAR" target="_blank" rel="noopener noreferrer" title="Finviz Chart &amp; Kennzahlen">F</a><a class="chart-badge chart-badge-s" href="https://stockanalysis.com/stocks/car/" target="_blank" rel="noopener noreferrer" title="Stockanalysis Chart &amp; Short-Interest">S</a>
-          <span class="price-tag">$190.42</span>
-        </div>
-        <span class="company">Avis Budget Group, Inc.</span>
-        <span class="sector-tag">Industrials · Rental & Leasing Services</span>
-      </div>
-    </div>
-    <div class="score-block">
-      <span class="score-num" style="color:#f59e0b">49.0</span>
-      <span class="score-lbl">Score</span>
-      <div class="score-track"><div class="score-fill" style="width:49%;background:#f59e0b"></div></div>
-    </div>
-  </div>
-  <p class="spark-placeholder">Verlauf ab morgen verfügbar.</p>
-  <div class="metrics-row">
-    <div class="metric-box" style="--mc:#22c55e">
-      <span class="si-badge si-badge-up">↑</span>
-      <span class="m-val">48.3%</span>
-      <span class="m-lbl">Short Float</span>
-    </div>
-    <div class="metric-box" style="--mc:#22c55e">
-      <span class="m-val">8.8d</span>
-      <span class="m-lbl">Days to Cover</span>
-    </div>
-    <div class="metric-box" style="--mc:#f59e0b">
-      <span class="m-val">1.7×</span>
-      <span class="m-lbl">Volumen</span>
-    </div>
-    <div class="metric-box" style="--mc:#22c55e">
-      <span class="m-val">+12.0%</span>
-      <span class="m-lbl">Momentum</span>
-    </div>
-  </div>
-  <button class="details-btn" onclick="toggleDetails(4)" id="db4" aria-expanded="false">
-    <span class="details-arrow" id="da4">▾</span><span id="dl4"> Details anzeigen</span>
-  </button>
-  <div class="details-body" id="dd4">
-    <div class="detail-table-wrap">
-      <table class="detail-table">
-        <tr><td>Marktkapitalisierung</td><td>$6.7 B</td></tr>
-        <tr><td>Sektor</td><td>Industrials · Rental & Leasing Services</td></tr>
-        <tr><td>52W-Hoch / -Tief</td><td>$212.81 / $62.17</td></tr>
-        <tr><td>Ø Volumen 20T</td><td>1,123,170</td></tr>
-        <tr><td>Heutiges Volumen</td><td>1,854,000</td></tr>
-        <tr><td>Short Interest Quelle</td><td>Yahoo Finance</td></tr>
-        <tr><td>Short-Vol.-Trend (3T)</td><td><span style="color:#22c55e">↑ Steigend +103.0 %</span></td></tr>
-        <tr><td>Short-Vol. T-1 (FINRA)</td><td>4,547 Aktien (01.04.2026)</td></tr>
-        <tr><td>Short-Vol. T-2</td><td>2,240 Aktien (31.03.2026)</td></tr>
-        <tr><td>Short-Vol. T-3</td><td>—</td></tr>
-
-        <tr><td>Risiko-Detail</td><td style="color:#f59e0b">Extrem hohes Short-Interesse (48.3 %) bedeutet massive Squeeze-Gefahr, aber auch starke Kursausschläge in beide Richtungen.</td></tr>
-      </table>
-    </div>
-    
-    <div class="driver-row">
-      <span class="risk-badge" style="color:#f59e0b;border-color:#f59e0b55;background:#f59e0b22">Risiko: MITTEL</span>
-      <p class="driver-text">Short Float 48.3 % — sehr hohes Leerverkaufsinteresse, starkes Squeeze-Potenzial. Short Ratio 8.8 Tage — Eindeckungsdruck erhöht den Squeeze-Druck.</p>
-    </div>
     <button class="news-btn" onclick="toggleNews(4)" id="nb4" aria-expanded="false">
       <span id="nb-icon4">▼</span> Nachrichten anzeigen
     </button>
     <div class="news-panel" id="np4" hidden>
-      <div class="news-items"><div class="ni"><a href="https://www.fool.com/investing/2026/04/03/why-avis-budget-group-stock-revved-higher-this-wee/" target="_blank" rel="noopener noreferrer">Warum die Aktie der Avis Budget Group diese Woche eine Kehrtwende vollzog</a> <span class="ni-src">(Yahoo Finance)</span><span class="ni-meta">03.04.2026 22:24</span></div><div class="ni"><a href="https://www.investors.com/news/tsa-delays-car-rentals-hertz-avis-budget-airports-air-travel-spring-break/?src=A00220&yptr=yahoo" target="_blank" rel="noopener noreferrer">TSA-Verzögerungen, Short Squeeze – Was hat diese beiden Aktien in die Höhe getrieben?</a> <span class="ni-src">(Yahoo Finance)</span><span class="ni-meta">03.04.2026 17:12</span></div><div class="ni"><a href="https://seekingalpha.com/symbol/CAR/news?source=feed_symbol_CAR" target="_blank" rel="noopener noreferrer">Die meisten und am wenigsten leerverkauften Industrieaktien mit einer Marktkapitalisierung von über 2 Milliarden US-Dollar</a> <span class="ni-src">(Seeking Alpha)</span><span class="ni-meta">03.04.2026 14:20</span></div></div>
+      <div class="news-items"><div class="ni"><a href="https://seekingalpha.com/article/4888096-omeros-making-the-bull-case-on-q4-earnings-ahead-of-key-q1-commercial-updates?source=feed_symbol_OMER" target="_blank" rel="noopener noreferrer">Omeros: Vor den wichtigsten kommerziellen Updates für das 1. Quartal sind die Ergebnisse des 4. Quartals positiv</a> <span class="ni-src">(Seeking Alpha)</span><span class="ni-meta">02.04.2026 15:21</span></div><div class="ni"><a href="https://seekingalpha.com/symbol/OMER/news?source=feed_symbol_OMER" target="_blank" rel="noopener noreferrer">Omeros steigt, da Novo-Deal die Erträge im vierten Quartal steigert</a> <span class="ni-src">(Seeking Alpha)</span><span class="ni-meta">01.04.2026 18:09</span></div><div class="ni"><a href="https://app.moby.co/home/research/tools/earningsCalendar/earnings-omeros-corporation-q4-2025-earnings-call-summary?utm_source=yahoo_finance&utm_medium=rss" target="_blank" rel="noopener noreferrer">Zusammenfassung der Gewinnmitteilung der Omeros Corporation für das 4. Quartal 2025</a> <span class="ni-src">(Yahoo Finance)</span><span class="ni-meta">01.04.2026 12:30</span></div></div>
       <div class="news-summary-box">
         <span class="summary-label">Zusammenfassung</span>
-        <p class="summary-text">Warum die Aktie der Avis Budget Group diese Woche eine Kehrtwende vollzog. Weitere aktuelle Meldung: TSA-Verzögerungen, Short Squeeze – Was hat diese beiden Aktien in die Höhe getrieben?  –  Quelle: Motley Fool (03.04.2026 22:24)</p>
+        <p class="summary-text">Omeros: Vor den wichtigsten kommerziellen Updates für das 1. Quartal sind die Ergebnisse des 4. Quartals positiv. Weitere aktuelle Meldung: Omeros steigt, da Novo-Deal das Ergebnis im vierten Quartal steigert  –  Quelle: Seeking Alpha (02.04.2026 15:21)</p>
       </div>
     </div>
   </div>
@@ -806,6 +806,85 @@ a{color:var(--accent);text-decoration:none}
       <span class="rank">6</span>
       <div class="ticker-block">
         <div class="ticker-row">
+          <a class="ticker ticker-link" href="https://finance.yahoo.com/chart/CAR" target="_blank" rel="noopener noreferrer">CAR</a>
+          <span class="market-tag">🇩🇪 DE</span>
+          <a class="chart-badge chart-badge-y" href="https://finance.yahoo.com/chart/CAR" target="_blank" rel="noopener noreferrer" title="Yahoo Finance Chart">Y</a><a class="chart-badge chart-badge-f" href="https://finviz.com/quote.ashx?t=CAR" target="_blank" rel="noopener noreferrer" title="Finviz Chart &amp; Kennzahlen">F</a><a class="chart-badge chart-badge-s" href="https://stockanalysis.com/stocks/car/" target="_blank" rel="noopener noreferrer" title="Stockanalysis Chart &amp; Short-Interest">S</a>
+          <span class="price-tag">$190.42</span>
+        </div>
+        <span class="company">Avis Budget Group, Inc.</span>
+        <span class="sector-tag">Industrials · Rental & Leasing Services</span>
+      </div>
+    </div>
+    <div class="score-block">
+      <span class="score-num" style="color:#f59e0b">44.0</span>
+      <span class="score-lbl">Score</span>
+      <div class="score-track"><div class="score-fill" style="width:44%;background:#f59e0b"></div></div>
+    </div>
+  </div>
+  <p class="spark-placeholder">Verlauf ab morgen verfügbar.</p>
+  <div class="metrics-row">
+    <div class="metric-box" style="--mc:#22c55e">
+      
+      <span class="m-val">48.3%</span>
+      <span class="m-lbl">Short Float</span>
+    </div>
+    <div class="metric-box" style="--mc:#22c55e">
+      <span class="m-val">8.8d</span>
+      <span class="m-lbl">Days to Cover</span>
+    </div>
+    <div class="metric-box" style="--mc:#f59e0b">
+      <span class="m-val">1.7×</span>
+      <span class="m-lbl">Volumen</span>
+    </div>
+    <div class="metric-box" style="--mc:#22c55e">
+      <span class="m-val">+12.0%</span>
+      <span class="m-lbl">Momentum</span>
+    </div>
+  </div>
+  <button class="details-btn" onclick="toggleDetails(6)" id="db6" aria-expanded="false">
+    <span class="details-arrow" id="da6">▾</span><span id="dl6"> Details anzeigen</span>
+  </button>
+  <div class="details-body" id="dd6">
+    <div class="detail-table-wrap">
+      <table class="detail-table">
+        <tr><td>Marktkapitalisierung</td><td>$6.7 B</td></tr>
+        <tr><td>Sektor</td><td>Industrials · Rental & Leasing Services</td></tr>
+        <tr><td>52W-Hoch / -Tief</td><td>$212.81 / $62.17</td></tr>
+        <tr><td>Ø Volumen 20T</td><td>1,123,170</td></tr>
+        <tr><td>Heutiges Volumen</td><td>1,854,000</td></tr>
+        <tr><td>Short Interest Quelle</td><td>Yahoo Finance</td></tr>
+        <tr><td>Short-Vol.-Trend (3T)</td><td>Keine Daten</td></tr>
+        <tr><td>Short-Vol. T-1 (FINRA)</td><td>—</td></tr>
+        <tr><td>Short-Vol. T-2</td><td>—</td></tr>
+        <tr><td>Short-Vol. T-3</td><td>—</td></tr>
+
+        <tr><td>Risiko-Detail</td><td style="color:#f59e0b">Extrem hohes Short-Interesse (48.3 %) bedeutet massive Squeeze-Gefahr, aber auch starke Kursausschläge in beide Richtungen.</td></tr>
+      </table>
+    </div>
+    
+    <div class="driver-row">
+      <span class="risk-badge" style="color:#f59e0b;border-color:#f59e0b55;background:#f59e0b22">Risiko: MITTEL</span>
+      <p class="driver-text">Short Float 48.3 % — sehr hohes Leerverkaufsinteresse, starkes Squeeze-Potenzial. Short Ratio 8.8 Tage — Eindeckungsdruck erhöht den Squeeze-Druck.</p>
+    </div>
+    <button class="news-btn" onclick="toggleNews(6)" id="nb6" aria-expanded="false">
+      <span id="nb-icon6">▼</span> Nachrichten anzeigen
+    </button>
+    <div class="news-panel" id="np6" hidden>
+      <div class="news-items"><div class="ni"><a href="https://www.fool.com/investing/2026/04/03/why-avis-budget-group-stock-revved-higher-this-wee/" target="_blank" rel="noopener noreferrer">Warum die Aktie der Avis Budget Group diese Woche eine Kehrtwende vollzog</a> <span class="ni-src">(Yahoo Finance)</span><span class="ni-meta">03.04.2026 22:24</span></div><div class="ni"><a href="https://www.investors.com/news/tsa-delays-car-rentals-hertz-avis-budget-airports-air-travel-spring-break/?src=A00220&yptr=yahoo" target="_blank" rel="noopener noreferrer">TSA-Verzögerungen, Short Squeeze – Was hat diese beiden Aktien in die Höhe getrieben?</a> <span class="ni-src">(Yahoo Finance)</span><span class="ni-meta">03.04.2026 17:12</span></div><div class="ni"><a href="https://seekingalpha.com/symbol/CAR/news?source=feed_symbol_CAR" target="_blank" rel="noopener noreferrer">Die meisten und am wenigsten leerverkauften Industrieaktien mit einer Marktkapitalisierung von über 2 Milliarden US-Dollar</a> <span class="ni-src">(Seeking Alpha)</span><span class="ni-meta">03.04.2026 14:20</span></div></div>
+      <div class="news-summary-box">
+        <span class="summary-label">Zusammenfassung</span>
+        <p class="summary-text">Warum die Aktie der Avis Budget Group diese Woche eine Kehrtwende vollzog. Weitere aktuelle Meldung: TSA-Verzögerungen, Short Squeeze – Was hat diese beiden Aktien in die Höhe getrieben?  –  Quelle: Motley Fool (03.04.2026 22:24)</p>
+      </div>
+    </div>
+  </div>
+</article>
+
+<article class="card" id="c7">
+  <div class="card-top">
+    <div class="card-left">
+      <span class="rank">7</span>
+      <div class="ticker-block">
+        <div class="ticker-row">
           <a class="ticker ticker-link" href="https://finance.yahoo.com/chart/SNBR" target="_blank" rel="noopener noreferrer">SNBR</a>
           <span class="market-tag">🇺🇸 US</span>
           <a class="chart-badge chart-badge-y" href="https://finance.yahoo.com/chart/SNBR" target="_blank" rel="noopener noreferrer" title="Yahoo Finance Chart">Y</a><a class="chart-badge chart-badge-f" href="https://finviz.com/quote.ashx?t=SNBR" target="_blank" rel="noopener noreferrer" title="Finviz Chart &amp; Kennzahlen">F</a><a class="chart-badge chart-badge-s" href="https://stockanalysis.com/stocks/snbr/" target="_blank" rel="noopener noreferrer" title="Stockanalysis Chart &amp; Short-Interest">S</a>
@@ -841,10 +920,10 @@ a{color:var(--accent);text-decoration:none}
       <span class="m-lbl">Momentum</span>
     </div>
   </div>
-  <button class="details-btn" onclick="toggleDetails(6)" id="db6" aria-expanded="false">
-    <span class="details-arrow" id="da6">▾</span><span id="dl6"> Details anzeigen</span>
+  <button class="details-btn" onclick="toggleDetails(7)" id="db7" aria-expanded="false">
+    <span class="details-arrow" id="da7">▾</span><span id="dl7"> Details anzeigen</span>
   </button>
-  <div class="details-body" id="dd6">
+  <div class="details-body" id="dd7">
     <div class="detail-table-wrap">
       <table class="detail-table">
         <tr><td>Marktkapitalisierung</td><td>$27 M</td></tr>
@@ -866,10 +945,10 @@ a{color:var(--accent);text-decoration:none}
       <span class="risk-badge" style="color:#ef4444;border-color:#ef444455;background:#ef444422">Risiko: HOCH</span>
       <p class="driver-text">Short Float 30.3 % — sehr hohes Leerverkaufsinteresse, starkes Squeeze-Potenzial. Short Ratio 5.2 Tage — Eindeckungsdruck erhöht den Squeeze-Druck.</p>
     </div>
-    <button class="news-btn" onclick="toggleNews(6)" id="nb6" aria-expanded="false">
-      <span id="nb-icon6">▼</span> Nachrichten anzeigen
+    <button class="news-btn" onclick="toggleNews(7)" id="nb7" aria-expanded="false">
+      <span id="nb-icon7">▼</span> Nachrichten anzeigen
     </button>
-    <div class="news-panel" id="np6" hidden>
+    <div class="news-panel" id="np7" hidden>
       <div class="news-items"><div class="ni"><a href="https://www.barchart.com/story/news/1120267/as-sleep-number-races-to-avoid-bankruptcy-could-snbr-stock-be-the-next-meme-rally" target="_blank" rel="noopener noreferrer">Könnte die SNBR-Aktie die nächste Meme-Rallye sein, während die Schlafzahlen um einen Konkurs rennen?</a> <span class="ni-src">(Yahoo Finance)</span><span class="ni-meta">02.04.2026 17:21</span></div><div class="ni"><a href="https://seekingalpha.com/symbol/SNBR/news?source=feed_symbol_SNBR" target="_blank" rel="noopener noreferrer">Sleep Number sucht nach Rettungsfinanzierung, um Insolvenz zu vermeiden – Bericht</a> <span class="ni-src">(Seeking Alpha)</span><span class="ni-meta">01.04.2026 21:32</span></div><div class="ni"><a href="https://www.fool.com/coverage/filings/2026/03/22/stadium-capital-loads-up-72000-lcii-shares/" target="_blank" rel="noopener noreferrer">Investor verdoppelt sein Engagement mit 8-Millionen-Dollar-Kauf, während LCI Industries einen Umsatz von 4,1 Milliarden US-Dollar erzielt</a> <span class="ni-src">(Yahoo Finance)</span><span class="ni-meta">22.03.2026 15:46</span></div></div>
       <div class="news-summary-box">
         <span class="summary-label">Zusammenfassung</span>
@@ -879,10 +958,10 @@ a{color:var(--accent);text-decoration:none}
   </div>
 </article>
 
-<article class="card" id="c7">
+<article class="card" id="c8">
   <div class="card-top">
     <div class="card-left">
-      <span class="rank">7</span>
+      <span class="rank">8</span>
       <div class="ticker-block">
         <div class="ticker-row">
           <a class="ticker ticker-link" href="https://finance.yahoo.com/chart/BKSY" target="_blank" rel="noopener noreferrer">BKSY</a>
@@ -920,10 +999,10 @@ a{color:var(--accent);text-decoration:none}
       <span class="m-lbl">Momentum</span>
     </div>
   </div>
-  <button class="details-btn" onclick="toggleDetails(7)" id="db7" aria-expanded="false">
-    <span class="details-arrow" id="da7">▾</span><span id="dl7"> Details anzeigen</span>
+  <button class="details-btn" onclick="toggleDetails(8)" id="db8" aria-expanded="false">
+    <span class="details-arrow" id="da8">▾</span><span id="dl8"> Details anzeigen</span>
   </button>
-  <div class="details-body" id="dd7">
+  <div class="details-body" id="dd8">
     <div class="detail-table-wrap">
       <table class="detail-table">
         <tr><td>Marktkapitalisierung</td><td>$1.1 B</td></tr>
@@ -945,11 +1024,11 @@ a{color:var(--accent);text-decoration:none}
       <span class="risk-badge" style="color:#f59e0b;border-color:#f59e0b55;background:#f59e0b22">Risiko: MITTEL</span>
       <p class="driver-text">Short Float 20.0 % liegt deutlich über dem Marktdurchschnitt. Short Ratio 5.8 Tage — Eindeckungsdruck erhöht den Squeeze-Druck.</p>
     </div>
-    <button class="news-btn" onclick="toggleNews(7)" id="nb7" aria-expanded="false">
-      <span id="nb-icon7">▼</span> Nachrichten anzeigen
+    <button class="news-btn" onclick="toggleNews(8)" id="nb8" aria-expanded="false">
+      <span id="nb-icon8">▼</span> Nachrichten anzeigen
     </button>
-    <div class="news-panel" id="np7" hidden>
-      <div class="news-items"><div class="ni"><a href="https://www.barrons.com/articles/artemis-ii-nasa-moon-space-6ada1f47?siteid=yhoof2&yptr=yahoo" target="_blank" rel="noopener noreferrer">Artemis II gestartet. Was als nächstes kommt.</a> <span class="ni-src">(Yahoo Finance)</span><span class="ni-meta">02.04.2026 20:22</span></div><div class="ni"><a href="https://finance.yahoo.com/markets/stocks/articles/planet-labs-margins-expand-revenue-164100958.html" target="_blank" rel="noopener noreferrer">Planet Labs-Margen wachsen aufgrund von Umsatzmix-Verschiebung, Automatisierung?</a> <span class="ni-src">(Yahoo Finance)</span><span class="ni-meta">02.04.2026 16:41</span></div><div class="ni"><a href="https://finance.yahoo.com/markets/stocks/articles/planet-labs-trades-premium-still-170000374.html" target="_blank" rel="noopener noreferrer">Planet Labs wird mit einem Aufschlag gehandelt: Sollten Sie die Aktie trotzdem kaufen?</a> <span class="ni-src">(Yahoo Finance)</span><span class="ni-meta">01.04.2026 17:00</span></div></div>
+    <div class="news-panel" id="np8" hidden>
+      <div class="news-items"><div class="ni"><a href="https://www.barrons.com/articles/artemis-ii-nasa-moon-space-6ada1f47?siteid=yhoof2&yptr=yahoo" target="_blank" rel="noopener noreferrer">Artemis II gestartet. Was als nächstes kommt.</a> <span class="ni-src">(Yahoo Finance)</span><span class="ni-meta">02.04.2026 20:22</span></div><div class="ni"><a href="https://finance.yahoo.com/markets/stocks/articles/planet-labs-margins-expand-revenue-164100958.html" target="_blank" rel="noopener noreferrer">Planet Labs-Margen wachsen aufgrund von Umsatzmix-Verschiebung, Automatisierung?</a> <span class="ni-src">(Yahoo Finance)</span><span class="ni-meta">02.04.2026 16:41</span></div><div class="ni"><a href="https://finance.yahoo.com/markets/stocks/articles/planet-labs-trades-premium-still-170000259.html" target="_blank" rel="noopener noreferrer">Planet Labs wird mit einem Aufschlag gehandelt: Sollten Sie die Aktie trotzdem kaufen?</a> <span class="ni-src">(Yahoo Finance)</span><span class="ni-meta">01.04.2026 17:00</span></div></div>
       <div class="news-summary-box">
         <span class="summary-label">Zusammenfassung</span>
         <p class="summary-text">Die Artemis-II-Besatzung der NASA stürmt nach erfolgreichem Start auf den Mond zu.  Die Raumsonde Orion mit dem Namen Integrity ist etwa 40.000 Meilen von der Erde entfernt, nachdem sie am späten Mittwoch an der Spitze einer 320 Fuß hohen SLS-Rakete gestartet ist.  Zum Vergleich: Die Internationale Raumstation ist etwa 250 Meilen entfernt.</p>
@@ -958,10 +1037,10 @@ a{color:var(--accent);text-decoration:none}
   </div>
 </article>
 
-<article class="card" id="c8">
+<article class="card" id="c9">
   <div class="card-top">
     <div class="card-left">
-      <span class="rank">8</span>
+      <span class="rank">9</span>
       <div class="ticker-block">
         <div class="ticker-row">
           <a class="ticker ticker-link" href="https://finance.yahoo.com/chart/AMC" target="_blank" rel="noopener noreferrer">AMC</a>
@@ -999,10 +1078,10 @@ a{color:var(--accent);text-decoration:none}
       <span class="m-lbl">Momentum</span>
     </div>
   </div>
-  <button class="details-btn" onclick="toggleDetails(8)" id="db8" aria-expanded="false">
-    <span class="details-arrow" id="da8">▾</span><span id="dl8"> Details anzeigen</span>
+  <button class="details-btn" onclick="toggleDetails(9)" id="db9" aria-expanded="false">
+    <span class="details-arrow" id="da9">▾</span><span id="dl9"> Details anzeigen</span>
   </button>
-  <div class="details-body" id="dd8">
+  <div class="details-body" id="dd9">
     <div class="detail-table-wrap">
       <table class="detail-table">
         <tr><td>Marktkapitalisierung</td><td>$653 M</td></tr>
@@ -1024,10 +1103,10 @@ a{color:var(--accent);text-decoration:none}
       <span class="risk-badge" style="color:#f59e0b;border-color:#f59e0b55;background:#f59e0b22">Risiko: MITTEL</span>
       <p class="driver-text">Short Float 22.4 % liegt deutlich über dem Marktdurchschnitt. +8.7 % heute — mögliche Margin Calls bei Leerverkäufern.</p>
     </div>
-    <button class="news-btn" onclick="toggleNews(8)" id="nb8" aria-expanded="false">
-      <span id="nb-icon8">▼</span> Nachrichten anzeigen
+    <button class="news-btn" onclick="toggleNews(9)" id="nb9" aria-expanded="false">
+      <span id="nb-icon9">▼</span> Nachrichten anzeigen
     </button>
-    <div class="news-panel" id="np8" hidden>
+    <div class="news-panel" id="np9" hidden>
       <div class="news-items"><div class="ni"><a href="https://finance.yahoo.com/markets/stocks/articles/amc-entertainment-holdings-inc-amc-130005386.html" target="_blank" rel="noopener noreferrer">AMC Entertainment Holdings, Inc. (AMC) zieht die Aufmerksamkeit der Anleger auf sich: Das sollten Sie wissen</a> <span class="ni-src">(Yahoo Finance)</span><span class="ni-meta">03.04.2026 13:00</span></div><div class="ni"><a href="https://seekingalpha.com/symbol/AMC/news?source=feed_symbol_AMC" target="_blank" rel="noopener noreferrer">Die meisten und am wenigsten leerverkauften Kommunikationsdienstleistungsaktien mit einer Marktkapitalisierung von bis zu 2 Milliarden US-Dollar (Stand Ende März).</a> <span class="ni-src">(Seeking Alpha)</span><span class="ni-meta">02.04.2026 15:20</span></div><div class="ni"><a href="https://247wallst.com/investing/2026/03/31/amc-shares-sit-35-in-the-red-year-to-date-as-blockbuster-season-begins/" target="_blank" rel="noopener noreferrer">AMC-Aktien liegen seit Beginn der Blockbuster-Saison 35 % im Minus</a> <span class="ni-src">(Yahoo Finance)</span><span class="ni-meta">31.03.2026 17:12</span></div></div>
       <div class="news-summary-box">
         <span class="summary-label">Zusammenfassung</span>
@@ -1037,10 +1116,10 @@ a{color:var(--accent);text-decoration:none}
   </div>
 </article>
 
-<article class="card" id="c9">
+<article class="card" id="c10">
   <div class="card-top">
     <div class="card-left">
-      <span class="rank">9</span>
+      <span class="rank">10</span>
       <div class="ticker-block">
         <div class="ticker-row">
           <a class="ticker ticker-link" href="https://finance.yahoo.com/chart/RDW" target="_blank" rel="noopener noreferrer">RDW</a>
@@ -1078,10 +1157,10 @@ a{color:var(--accent);text-decoration:none}
       <span class="m-lbl">Momentum</span>
     </div>
   </div>
-  <button class="details-btn" onclick="toggleDetails(9)" id="db9" aria-expanded="false">
-    <span class="details-arrow" id="da9">▾</span><span id="dl9"> Details anzeigen</span>
+  <button class="details-btn" onclick="toggleDetails(10)" id="db10" aria-expanded="false">
+    <span class="details-arrow" id="da10">▾</span><span id="dl10"> Details anzeigen</span>
   </button>
-  <div class="details-body" id="dd9">
+  <div class="details-body" id="dd10">
     <div class="detail-table-wrap">
       <table class="detail-table">
         <tr><td>Marktkapitalisierung</td><td>$1.9 B</td></tr>
@@ -1103,10 +1182,10 @@ a{color:var(--accent);text-decoration:none}
       <span class="risk-badge" style="color:#f59e0b;border-color:#f59e0b55;background:#f59e0b22">Risiko: MITTEL</span>
       <p class="driver-text">Short Float 19.7 % liegt deutlich über dem Marktdurchschnitt. +7.2 % heute — mögliche Margin Calls bei Leerverkäufern.</p>
     </div>
-    <button class="news-btn" onclick="toggleNews(9)" id="nb9" aria-expanded="false">
-      <span id="nb-icon9">▼</span> Nachrichten anzeigen
+    <button class="news-btn" onclick="toggleNews(10)" id="nb10" aria-expanded="false">
+      <span id="nb-icon10">▼</span> Nachrichten anzeigen
     </button>
-    <div class="news-panel" id="np9" hidden>
+    <div class="news-panel" id="np10" hidden>
       <div class="news-items"><div class="ni"><a href="https://finance.yahoo.com/markets/stocks/articles/redwire-esa-quantum-satellite-deal-110734499.html" target="_blank" rel="noopener noreferrer">Redwires Quantensatellitenabkommen mit der ESA erweitert die Wachstumsgeschichte der europäischen Verteidigung</a> <span class="ni-src">(Yahoo Finance)</span><span class="ni-meta">04.04.2026 11:07</span></div><div class="ni"><a href="https://finance.yahoo.com/markets/stocks/articles/assessing-redwire-rdw-valuation-recent-021322357.html" target="_blank" rel="noopener noreferrer">Bewertung der Redwire (RDW)-Bewertung nach der jüngsten Aktienkursdynamik</a> <span class="ni-src">(Yahoo Finance)</span><span class="ni-meta">04.04.2026 02:13</span></div><div class="ni"><a href="https://www.fool.com/investing/2026/04/03/why-redwire-stock-crushed-it-this-week/" target="_blank" rel="noopener noreferrer">Warum die Redwire-Aktie diese Woche den Durchbruch geschafft hat</a> <span class="ni-src">(Yahoo Finance)</span><span class="ni-meta">03.04.2026 22:47</span></div></div>
       <div class="news-summary-box">
         <span class="summary-label">Zusammenfassung</span>
