@@ -1547,7 +1547,7 @@ def _card(i: int, s: dict) -> str:
       <span class="rank">{i}</span>
       <div class="ticker-block">
         <div class="ticker-row">
-          <a class="ticker ticker-link" href="{yf_chart_url}" target="_blank" rel="noopener noreferrer">{s['ticker']}</a>
+          <span class="ticker">{s['ticker']}</span>
           <span class="market-tag">{flag} {s.get('market','US')}</span>
           {yahoo_badge}{finviz_badge}{sa_badge}
           <span class="price-tag">${s.get('price',0):.2f}</span>
@@ -1789,8 +1789,6 @@ a{{color:var(--accent);text-decoration:none}}
 .ticker-block{{flex:1;min-width:0}}
 .ticker-row{{display:flex;align-items:center;gap:7px;flex-wrap:wrap;margin-bottom:3px}}
 .ticker{{font-size:1.25rem;font-weight:800;font-family:'SF Mono','Courier New',monospace;color:var(--txt)}}
-.ticker-link{{color:inherit;text-decoration:none}}
-.ticker-link:hover{{text-decoration:underline;text-underline-offset:3px}}
 .market-tag{{font-size:.62rem;font-weight:700;background:var(--accent);color:#fff;
   padding:1px 6px;border-radius:4px;letter-spacing:.3px}}
 .chart-badge{{display:inline-flex;align-items:center;justify-content:center;
@@ -1973,7 +1971,7 @@ a{{color:var(--accent);text-decoration:none}}
   .hdr-ts{{display:block!important;font-size:9pt;color:#444}}
   /* Ensure links are visible in print */
   a[href]::after{{content:" (" attr(href) ")";font-size:7pt;color:#666;word-break:break-all}}
-  a.ticker-link::after,a.chart-badge::after{{content:none}}
+  a.chart-badge::after{{content:none}}
 }}
 </style>
 </head>
