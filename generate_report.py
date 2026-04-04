@@ -1320,6 +1320,9 @@ a{{color:var(--accent);text-decoration:none}}
   <div style="padding-bottom:4px">
     <a class="tok-link" onclick="resetToken();return false;" href="#">Token zurücksetzen</a>
   </div>
+  <div id="non-trading-banner" style="display:none;width:100%;background:#f59e0b;color:#1c1102;
+    font-size:.78rem;font-weight:500;padding:5px 16px;box-sizing:border-box;
+    border-top:1px solid #d97706;line-height:1.45" aria-live="polite"></div>
 </header>
 
 <main class="wrap">
@@ -1640,6 +1643,97 @@ function showMsg(type,text){{
   el.style.display='block';
   if(type!=='error') setTimeout(()=>{{el.style.display='none';}},13000);
 }}
+
+// ── Non-trading-day banner ────────────────────────────────────────────────────
+// US federal holidays — update this array each year (format: "YYYY-MM-DD").
+// Observed dates (Monday if Sunday, Friday if Saturday) should be listed.
+(function(){{
+  const US_HOLIDAYS = [
+    // 2025
+    "2025-01-01", // New Year's Day
+    "2025-01-20", // MLK Day
+    "2025-02-17", // Presidents' Day
+    "2025-05-26", // Memorial Day
+    "2025-06-19", // Juneteenth
+    "2025-07-04", // Independence Day
+    "2025-09-01", // Labor Day
+    "2025-11-27", // Thanksgiving
+    "2025-12-25", // Christmas
+    // 2026
+    "2026-01-01", // New Year's Day
+    "2026-01-19", // MLK Day
+    "2026-02-16", // Presidents' Day
+    "2026-05-25", // Memorial Day
+    "2026-06-19", // Juneteenth
+    "2026-07-03", // Independence Day (observed, 4th = Saturday)
+    "2026-09-07", // Labor Day
+    "2026-11-26", // Thanksgiving
+    "2026-12-25", // Christmas
+    // 2027
+    "2027-01-01", // New Year's Day
+    "2027-01-18", // MLK Day
+    "2027-02-15", // Presidents' Day
+    "2027-05-31", // Memorial Day
+    "2027-06-18", // Juneteenth (observed, 19th = Saturday)
+    "2027-07-05", // Independence Day (observed, 4th = Sunday)
+    "2027-09-06", // Labor Day
+    "2027-11-25", // Thanksgiving
+    "2027-12-24", // Christmas (observed, 25th = Saturday)
+  ];
+
+  function toIso(d) {{
+    const y = d.getFullYear();
+    const m = String(d.getMonth()+1).padStart(2,'0');
+    const day = String(d.getDate()).padStart(2,'0');
+    return `${{y}}-${{m}}-${{day}}`;
+  }}
+
+  function isHoliday(d) {{
+    return US_HOLIDAYS.includes(toIso(d));
+  }}
+
+  function isNonTradingDay(d) {{
+    const dow = d.getDay(); // 0=Sun, 6=Sat
+    return dow === 0 || dow === 6 || isHoliday(d);
+  }}
+
+  function nextTradingDay(d) {{
+    const next = new Date(d);
+    next.setDate(next.getDate() + 1);
+    while (isNonTradingDay(next)) {{
+      next.setDate(next.getDate() + 1);
+    }}
+    return next;
+  }}
+
+  function fmtGerman(d) {{
+    const weekdays = ['Sonntag','Montag','Dienstag','Mittwoch','Donnerstag','Freitag','Samstag'];
+    const months = ['Januar','Februar','März','April','Mai','Juni',
+                    'Juli','August','September','Oktober','November','Dezember'];
+    return `${{weekdays[d.getDay()]}}, ${{d.getDate()}}. ${{months[d.getMonth()]}} ${{d.getFullYear()}}`;
+  }}
+
+  const today = new Date();
+  today.setHours(0,0,0,0);
+
+  if (isNonTradingDay(today)) {{
+    const ntd = nextTradingDay(today);
+    const dow = today.getDay();
+    let reason;
+    if (dow === 6 || dow === 0) {{
+      reason = 'Wochenende';
+    }} else {{
+      reason = 'US-Feiertag';
+    }}
+    const banner = document.getElementById('non-trading-banner');
+    banner.textContent =
+      `\u26a0\ufe0f Kein Handelstag (${{reason}}) \u2014 ` +
+      `Nächster US-Handelstag: ${{fmtGerman(ntd)}}. ` +
+      `Die angezeigten Daten stammen vom letzten Handelstag.`;
+    banner.style.display = 'block';
+  }}
+}})();
+// ─────────────────────────────────────────────────────────────────────────────
 </script>
 </body>
 </html>"""
