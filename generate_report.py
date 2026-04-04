@@ -76,7 +76,12 @@ MOM_ORANGE= -5.0   # %   −5–+5  → orange, <−5 → red
 FINRA_BONUS_MAX  = 5    # max bonus points for rising FINRA short interest
 FTD_BONUS_MAX    = 0    # SEC EDGAR + Nasdaq Data Link blocked on GitHub Actions IPs
 # ── FINRA short interest trend thresholds ────────────────────────────────────
-SI_TREND_UP_THRESHOLD   =  0.10   # ≥+10 % over 3 periods → steigend
+SI_TREND_PERIODS        = 6     # FINRA publishes twice monthly; 6 = ~3 months
+# ── Float-size score factor ───────────────────────────────────────────────────
+FLOAT_WEIGHT          = 8          # max bonus points for small float
+FLOAT_SATURATION_LOW  = 5_000_000  # ≤ 5 M shares → full 8 pts
+FLOAT_SATURATION_HIGH = 50_000_000 # ≥ 50 M shares → 0 pts; linear between
+SI_TREND_UP_THRESHOLD   =  0.10   # ≥+10 % over full period → steigend
 SI_TREND_DOWN_THRESHOLD = -0.10   # ≤−10 % → fallend; between → seitwärts
 # ── Score smoothing weights ──────────────────────────────────────────────────
 SCORE_TODAY_WEIGHT   = 0.70   # weight for today's raw score
@@ -401,7 +406,9 @@ def get_yfinance_data(ticker: str) -> dict:
             "avg_vol_20d":  avg_vol_20,
             "cur_vol":      cur_vol,
             "vol_ratio":    vol_ratio,
-            "float_shares": info.get("floatShares") or 0,
+            "float_shares":       info.get("floatShares") or 0,
+            "inst_ownership":     info.get("institutionHeldPercentOutstanding")
+                                  or info.get("institutionsPercentHeld"),
             "rsi14":        rsi14,
             "ma50":         ma50,
             "ma200":        ma200,
@@ -542,6 +549,8 @@ def get_yfinance_batch(tickers: list[str]) -> dict[str, dict]:
             "cur_vol":        cur_vol,
             "vol_ratio":      vol_ratio,
             "float_shares":   info.get("floatShares") or 0,
+            "inst_ownership": info.get("institutionHeldPercentOutstanding")
+                              or info.get("institutionsPercentHeld"),
             "rsi14":          rsi14,
             "ma50":           ma50,
             "ma200":          ma200,
@@ -901,15 +910,10 @@ def get_finra_short_interest(ticker: str,
         _finra_stats["empty"] += 1
         return {}
 
-    # Korrektur 2 debug: confirm T1/T2/T3 after threshold fix
-    t1 = history[0]["short_interest"] if len(history) >= 1 else None
-    t2 = history[1]["short_interest"] if len(history) >= 2 else None
-    t3 = history[2]["short_interest"] if len(history) >= 3 else None
-    print(f"{ticker} FINRA-Werte nach Fix: T1={t1}, T2={t2}, T3={t3}", flush=True)
-
     # Trend only when oldest ≥ 100 to prevent absurd percentages from tiny values
+    # Minimum 4 data points required for a reliable 3-month trend
     trend, trend_pct = "no_data", 0.0
-    if len(history) >= 2:
+    if len(history) >= 4:
         newest = history[0]["short_interest"]
         oldest = history[-1]["short_interest"]
         if oldest >= _TREND_MIN_VOL:
@@ -1002,16 +1006,17 @@ def _fmt_si_record(rec: dict) -> str:
 # ===========================================================================
 
 # Score-Gewichtung Fall 1 (Short-Daten vorhanden):
-# Short Float %        → max 35 Pkt  (Sättigung bei 100 %)
-# Short Ratio (Days)   → max 25 Pkt  (Sättigung bei 20 Tagen)
-# Rel. Volumen         → max 25 Pkt  (Sättigung bei 5× Durchschnitt)
-# Kursmomentum (1T)    → max 15 Pkt  (nur positive Tagesveränderung, Sättigung bei +15 %)
+# Short Float %        → max 32 Pkt  (Sättigung bei 100 %)
+# Short Ratio (Days)   → max 23 Pkt  (Sättigung bei 20 Tagen)
+# Rel. Volumen         → max 23 Pkt  (Sättigung bei 5× Durchschnitt)
+# Kursmomentum (1T)    → max 14 Pkt  (nur positive Tagesveränderung, Sättigung bei +15 %)
+# Float-Größe          → max  8 Pkt  (≤5 Mio. Aktien = voll, ≥50 Mio. = 0, linear)
 # Gesamt               → max 100 Pkt
 #
-# Verifikation (nicht ändern ohne explizite Anweisung):
-# A: SF=30%, SR=10d, RV=3×, Mom=+8%   → Score 43.5
-# B: SF=50%, SR=5d,  RV=5×, Mom=+15%  → Score 63.75
-# C: SF=15%, SR=3d,  RV=1.5×, Mom=+3% → Score 15.12
+# Verifikation (Float=0 angenommen wo nicht angegeben):
+# A: SF=30%, SR=10d, RV=3×, Mom=+8%   → Score 40.07
+# B: SF=50%, SR=5d,  RV=5×, Mom=+15%  → Score 58.75
+# C: SF=15%, SR=3d,  RV=1.5×, Mom=+3% → Score 13.93
 def score(stock: dict) -> float:
     """Weighted squeeze score 0–100.
     When no short data is available (sf=0, sr=0) the score is capped at 50
@@ -1022,21 +1027,31 @@ def score(stock: dict) -> float:
     sr_val = stock.get("short_ratio", 0)
     rv_raw = min((stock.get("rel_volume", 0) - 1.0) / 4.0, 1.0)
 
+    # Float-size factor: small float amplifies squeeze pressure
+    _float = stock.get("float_shares") or 0
+    if _float > 0:
+        _fs = max(0.0, min(1.0,
+            (FLOAT_SATURATION_HIGH - _float) /
+            (FLOAT_SATURATION_HIGH - FLOAT_SATURATION_LOW)
+        )) * FLOAT_WEIGHT
+    else:
+        _fs = 0.0
+
     if sf_val == 0 and sr_val == 0:
         # Fall 2: keine Short-Daten → Volumen (max 30) + Momentum (max 20), Cap 50
         # Nur positive Tagesveränderungen zählen: fallende Kurse = kein Squeeze-Druck
         rv_component = rv_raw * 30
         chg = max(stock.get("change", 0), 0)
         momentum = min(chg / 15.0, 1.0) * 20
-        return min(round(rv_component + momentum, 2), 50.0)
+        return min(round(rv_component + momentum + _fs, 2), 50.0)
 
-    # Fall 1: Short-Daten vorhanden → vier Faktoren, max 100 Pkt
+    # Fall 1: Short-Daten vorhanden → fünf Faktoren, max 100 Pkt
     # Nur positive Tagesveränderungen zählen: fallende Kurse = kein Squeeze-Druck
-    sf  = min(sf_val / 100.0, 1.0) * 35
-    sr  = min(sr_val /  20.0, 1.0) * 25
-    rv  = rv_raw * 25
-    mom = min(max(stock.get("change", 0), 0) / 15.0, 1.0) * 15
-    return round(sf + sr + rv + mom, 2)
+    sf  = min(sf_val / 100.0, 1.0) * 32
+    sr  = min(sr_val /  20.0, 1.0) * 23
+    rv  = rv_raw * 23
+    mom = min(max(stock.get("change", 0), 0) / 15.0, 1.0) * 14
+    return round(sf + sr + rv + mom + _fs, 2)
 
 
 def fmt_cap(v) -> str:
@@ -1384,9 +1399,12 @@ def _card(i: int, s: dict) -> str:
     else:
         si_badge_html = ""
         trend_html    = "Keine Daten"
-    si_cur_disp = _fmt_si_record(si_hist[0]) if len(si_hist) >= 1 else "—"
-    si_4w_disp  = _fmt_si_record(si_hist[1]) if len(si_hist) >= 2 else "—"
-    si_8w_disp  = _fmt_si_record(si_hist[2]) if len(si_hist) >= 3 else "—"
+    si_t1_disp = _fmt_si_record(si_hist[0]) if len(si_hist) >= 1 else "—"
+    si_t2_disp = _fmt_si_record(si_hist[1]) if len(si_hist) >= 2 else "—"
+    si_t3_disp = _fmt_si_record(si_hist[2]) if len(si_hist) >= 3 else "—"
+    si_t4_disp = _fmt_si_record(si_hist[3]) if len(si_hist) >= 4 else "—"
+    si_t5_disp = _fmt_si_record(si_hist[4]) if len(si_hist) >= 5 else "—"
+    si_t6_disp = _fmt_si_record(si_hist[5]) if len(si_hist) >= 6 else "—"
 
     # RSI / MA / Relative-Strength rows for detail table
     _rsi   = s.get("rsi14")
@@ -1453,6 +1471,26 @@ def _card(i: int, s: dict) -> str:
     else:
         _iv_row = ""
     options_rows = _pc_row + _iv_row
+
+    # Institutional ownership row
+    _inst = s.get("inst_ownership")
+    if _inst is not None:
+        _inst_pct = float(_inst) * 100
+        _inst_col = "#22c55e" if _inst_pct >= 60 else ("#f59e0b" if _inst_pct >= 30 else "#ef4444")
+        _inst_row = (
+            f'<tr><td>Institutioneller Anteil</td>'
+            f'<td><span style="color:{_inst_col}">{_inst_pct:.1f}%</span></td></tr>'
+        )
+    else:
+        _inst_row = ""
+
+    # Float size row
+    _float_sh = s.get("float_shares") or 0
+    if _float_sh > 0:
+        _float_mio = _float_sh / 1_000_000
+        _float_row = f"<tr><td>Float (frei handelbar)</td><td>{_float_mio:.1f} Mio. Aktien</td></tr>"
+    else:
+        _float_row = ""
 
     # Chart links
     yf_chart_url  = f"https://finance.yahoo.com/chart/{s['ticker']}"
@@ -1552,19 +1590,24 @@ def _card(i: int, s: dict) -> str:
     <div class="detail-table-wrap">
       <table class="detail-table">
         <tr><td>Marktkapitalisierung</td><td>{fmt_cap(cap_val)}</td></tr>
+        {_float_row}
         {sector_detail_row}
         <tr><td>52W-Hoch / -Tief</td><td>${s.get('52w_high') or 0:.2f} / ${s.get('52w_low') or 0:.2f}</td></tr>
         <tr><td>Ø Volumen 20T</td><td>{s.get('avg_vol_20d',0):,.0f}</td></tr>
         <tr><td>Heutiges Volumen</td><td>{s.get('cur_vol',0):,.0f}</td></tr>
         <tr><td>Short Interest Quelle</td><td>{s.get('sf_source','Yahoo Finance')}</td></tr>
         {edgar_row}
-        <tr><td>Short-Vol.-Trend (3T)</td><td>{trend_html}</td></tr>
-        <tr><td>Short-Vol. T-1 (FINRA)</td><td>{si_cur_disp}</td></tr>
-        <tr><td>Short-Vol. T-2</td><td>{si_4w_disp}</td></tr>
-        <tr><td>Short-Vol. T-3</td><td>{si_8w_disp}</td></tr>
+        <tr><td>SI-Trend (3M)</td><td>{trend_html}</td></tr>
+        <tr><td>Short-Vol. T-1 (FINRA)</td><td>{si_t1_disp}</td></tr>
+        <tr><td>Short-Vol. T-2</td><td>{si_t2_disp}</td></tr>
+        <tr><td>Short-Vol. T-3</td><td>{si_t3_disp}</td></tr>
+        <tr><td>Short-Vol. T-4</td><td>{si_t4_disp}</td></tr>
+        <tr><td>Short-Vol. T-5</td><td>{si_t5_disp}</td></tr>
+        <tr><td>Short-Vol. T-6</td><td>{si_t6_disp}</td></tr>
 
         {rsi_ma_rows}
         {options_rows}
+        {_inst_row}
         <tr><td>Risiko-Detail</td><td style="color:{risk_col}">{risk_txt}</td></tr>
       </table>
     </div>
@@ -1877,63 +1920,6 @@ a{{color:var(--accent);text-decoration:none}}
   .driver-text{{font-size:.82rem}}
   .ni,.no-news,.summary-text{{font-size:.82rem}}
 }}
-/* ══ Mobile Swipe-Karussell (nur < 768 px) ══════════════════════════════════ */
-@media(max-width:767px){{
-  /* Der cards-grid wird per JS in einen Swipe-Track verwandelt */
-  .cards-grid.swipe-active{{
-    display:flex;
-    flex-direction:row;
-    gap:0;
-    overflow:visible;
-    /* Karten werden per JS mit transform verschoben */
-  }}
-  .cards-grid.swipe-active .card{{
-    flex:0 0 calc(100% - 28px); /* 14px Peek links + 14px rechts */
-    min-width:calc(100% - 28px);
-    margin:0 14px;
-    transition:transform .32s cubic-bezier(.4,0,.2,1),
-               box-shadow .32s,opacity .32s;
-    will-change:transform,opacity;
-  }}
-  /* Aktive Karte hervorheben */
-  .cards-grid.swipe-active .card.swipe-active-card{{
-    box-shadow:0 4px 24px rgba(59,130,246,.25),var(--shadow);
-    opacity:1;
-  }}
-  /* Inaktive Karten leicht abdunkeln */
-  .cards-grid.swipe-active .card:not(.swipe-active-card){{
-    opacity:.6;
-  }}
-  /* Wrapper um grid + dots */
-  .swipe-wrapper{{
-    position:relative;
-    overflow:hidden; /* nur aktive Karte + Peek sichtbar */
-    margin:0 -14px;  /* kompensiert .wrap padding */
-    padding:0;
-  }}
-  /* Dot-Indikator */
-  .dot-nav{{
-    display:flex;
-    justify-content:center;
-    gap:7px;
-    padding:10px 0 4px;
-  }}
-  .dot-nav .dot{{
-    width:8px;height:8px;border-radius:50%;
-    background:var(--brd);border:1px solid var(--txt-dim);
-    transition:background .2s,transform .2s;
-    cursor:pointer;
-  }}
-  .dot-nav .dot.active{{
-    background:var(--accent);border-color:var(--accent);
-    transform:scale(1.25);
-  }}
-}}
-/* Dot-Nav auf Desktop verbergen */
-@media(min-width:768px){{
-  .dot-nav{{display:none!important}}
-  .swipe-wrapper{{overflow:visible!important;margin:0!important}}
-}}
 /* ══ ≥ 1200 px  großer Desktop / Wide-Screen ════════════════════════════════ */
 @media(min-width:1200px){{
   .app-hdr{{padding:0 24px}}
@@ -1970,13 +1956,6 @@ a{{color:var(--accent);text-decoration:none}}
   /* Page layout */
   body{{background:#fff;font-size:11pt;color:#000}}
   .wrap{{padding:8px 0}}
-  /* Swipe-Container beim Drucken deaktivieren */
-  .swipe-wrapper{{overflow:visible!important;margin:0!important}}
-  .cards-grid.swipe-active{{display:grid!important;grid-template-columns:1fr;
-    width:auto!important;transform:none!important}}
-  .cards-grid.swipe-active .card{{flex:unset!important;min-width:unset!important;
-    margin:0!important;opacity:1!important}}
-  .dot-nav{{display:none!important}}
   .card{{break-inside:avoid;page-break-inside:avoid;
     border:1px solid #ccc;border-radius:0;box-shadow:none;
     margin-bottom:12pt;padding:10pt}}
@@ -2046,10 +2025,11 @@ a{{color:var(--accent);text-decoration:none}}
       <div class="info-box">
         <h4>Score (0–100)</h4>
         <ul>
-          <li><strong>35 % Short Float</strong> – Anteil leerverkaufter Aktien; je höher, desto stärker der Squeeze-Druck</li>
-          <li><strong>25 % Days to Cover</strong> – Tage zum vollständigen Eindecken; hohe Werte erhöhen Kapitulationsrisiko</li>
-          <li><strong>25 % Rel. Volumen</strong> – Heutiges vs. 20-Tage-Durchschnitt; Spitzen signalisieren Kaufinteresse</li>
-          <li><strong>15 % Kursmomentum</strong> – positive Kursveränderung erhöht den Squeeze-Druck auf Leerverkäufer. Nur steigende Kurse fließen positiv in den Score ein.</li>
+          <li><strong>32 Pkt Short Float</strong> – Anteil leerverkaufter Aktien; je höher, desto stärker der Squeeze-Druck</li>
+          <li><strong>23 Pkt Days to Cover</strong> – Tage zum vollständigen Eindecken; hohe Werte erhöhen Kapitulationsrisiko</li>
+          <li><strong>23 Pkt Rel. Volumen</strong> – Heutiges vs. 20-Tage-Durchschnitt; Spitzen signalisieren Kaufinteresse</li>
+          <li><strong>14 Pkt Kursmomentum</strong> – positive Kursveränderung erhöht den Squeeze-Druck auf Leerverkäufer. Nur steigende Kurse fließen positiv in den Score ein.</li>
+          <li><strong>8 Pkt Float-Größe</strong> – kleiner Float verstärkt den Squeeze-Effekt bei gleichem Short Float-Prozentsatz. Sättigung unter 5 Mio. Aktien.</li>
           <li><strong>+ bis 5 Pkt FINRA SI-Trend Bonus</strong> – steigender Short Interest ≥ +10 % → 5 Pkt · Seitwärts → 2,5 Pkt · Fallend oder keine Daten → 0 Pkt</li>
         </ul>
       </div>
@@ -2118,11 +2098,8 @@ a{{color:var(--accent);text-decoration:none}}
 
   <div class="disc">⚠ <strong>Disclaimer:</strong> Dieser Report dient ausschließlich Informationszwecken und stellt keine Anlageberatung dar. Keine Kauf- oder Verkaufsempfehlung.</div>
 
-  <div class="swipe-wrapper" id="swipe-wrapper">
-    <div class="cards-grid" id="cards-grid">
-    {cards}
-    </div>
-    <div class="dot-nav" id="dot-nav" aria-label="Kartennavigation"></div>
+  <div class="cards-grid">
+  {cards}
   </div>
 </main>
 
@@ -2545,160 +2522,6 @@ function showMsg(type,text){{
   }}
 }})();
 // ─────────────────────────────────────────────────────────────────────────────
-// ── Mobile Swipe-Karussell ────────────────────────────────────────────────────
-(function(){{
-  const SWIPE_MIN   = 50;   // px — Mindestdistanz für gültigen Swipe
-  const VERT_ABORT  = 12;   // px — vertikale Bewegung bricht Swipe ab
-  const BREAKPOINT  = 768;  // px — ab hier Desktop-Layout, kein Swipe
-
-  var grid, cards, dots, curIdx, trackW;
-  var txStart, tyStart, txCur, swiping;
-
-  function isMobileView() {{
-    return window.innerWidth < BREAKPOINT;
-  }}
-
-  function goTo(idx, animate) {{
-    if (!cards || !cards.length) return;
-    idx = Math.max(0, Math.min(idx, cards.length - 1));
-    curIdx = idx;
-    // Verschiebe den Track so, dass Karte idx zentriert ist
-    var offset = -idx * trackW;
-    grid.style.transition = animate === false ? 'none' : 'transform .32s cubic-bezier(.4,0,.2,1)';
-    grid.style.transform  = 'translateX(' + offset + 'px)';
-    // Aktive-Karte-Klasse
-    cards.forEach(function(c, i) {{
-      c.classList.toggle('swipe-active-card', i === idx);
-    }});
-    // Dots aktualisieren
-    if (dots) dots.forEach(function(d, i) {{
-      d.classList.toggle('active', i === idx);
-    }});
-  }}
-
-  function buildDots() {{
-    var nav = document.getElementById('dot-nav');
-    if (!nav) return;
-    nav.innerHTML = '';
-    dots = [];
-    cards.forEach(function(_, i) {{
-      var d = document.createElement('button');
-      d.className = 'dot' + (i === curIdx ? ' active' : '');
-      d.setAttribute('aria-label', 'Karte ' + (i + 1));
-      d.addEventListener('click', function() {{ goTo(i, true); }});
-      nav.appendChild(d);
-      dots.push(d);
-    }});
-  }}
-
-  function initSwipe() {{
-    grid  = document.getElementById('cards-grid');
-    if (!grid) return;
-    cards = Array.from(grid.querySelectorAll('.card'));
-    if (!cards.length) return;
-
-    curIdx = 0;
-    trackW = cards[0].getBoundingClientRect().width + 28; // card width + 2×14px margin
-
-    grid.classList.add('swipe-active');
-    // Gesamt-Track-Breite setzen
-    grid.style.width = (cards.length * trackW) + 'px';
-    grid.style.transform = 'translateX(0)';
-    buildDots();
-    goTo(0, false);
-
-    // ── Touch-Events ──────────────────────────────────────────────────────────
-    var wrapper = document.getElementById('swipe-wrapper');
-    if (!wrapper) wrapper = grid;
-
-    wrapper.addEventListener('touchstart', function(e) {{
-      if (!isMobileView()) return;
-      var t = e.touches[0];
-      txStart = txCur = t.clientX;
-      tyStart = t.clientY;
-      swiping = null; // null=unentschieden, true=horizontal, false=vertikal
-      grid.style.transition = 'none';
-    }}, {{passive: true}});
-
-    wrapper.addEventListener('touchmove', function(e) {{
-      if (!isMobileView() || swiping === false) return;
-      var t    = e.touches[0];
-      var dx   = t.clientX - txStart;
-      var dy   = t.clientY - tyStart;
-      txCur    = t.clientX;
-
-      // Richtung noch unentschieden: erste Bewegung entscheidet
-      if (swiping === null) {{
-        if (Math.abs(dy) > VERT_ABORT && Math.abs(dy) > Math.abs(dx)) {{
-          swiping = false; // vertikal → Scrollen erlauben
-          return;
-        }}
-        if (Math.abs(dx) > 6) {{
-          swiping = true;  // horizontal → Swipe
-        }} else {{
-          return;
-        }}
-      }}
-
-      // Horizontaler Swipe: scrollen verhindern, Karte mitziehen
-      e.preventDefault();
-      var baseOffset = -curIdx * trackW;
-      grid.style.transform = 'translateX(' + (baseOffset + dx) + 'px)';
-    }}, {{passive: false}});
-
-    wrapper.addEventListener('touchend', function(e) {{
-      if (!isMobileView() || swiping !== true) {{
-        swiping = null;
-        return;
-      }}
-      var dx = txCur - txStart;
-      swiping = null;
-      if (Math.abs(dx) >= SWIPE_MIN) {{
-        goTo(dx < 0 ? curIdx + 1 : curIdx - 1, true);
-      }} else {{
-        goTo(curIdx, true); // zurückschnappen
-      }}
-    }}, {{passive: true}});
-  }}
-
-  function teardownSwipe() {{
-    if (!grid) return;
-    grid.classList.remove('swipe-active');
-    grid.style.width     = '';
-    grid.style.transform = '';
-    grid.style.transition= '';
-    if (cards) cards.forEach(function(c) {{
-      c.classList.remove('swipe-active-card');
-      c.style.opacity = '';
-    }});
-    var nav = document.getElementById('dot-nav');
-    if (nav) nav.innerHTML = '';
-    dots = null;
-    grid = null;
-    cards = null;
-  }}
-
-  var _mq = window.matchMedia('(max-width:767px)');
-  function onBreakpoint(e) {{
-    if (e.matches) {{ initSwipe(); }} else {{ teardownSwipe(); }}
-  }}
-
-  // Initial + bei Resize
-  if (typeof _mq.addEventListener === 'function') {{
-    _mq.addEventListener('change', onBreakpoint);
-  }} else {{
-    _mq.addListener(onBreakpoint); // Safari <14 fallback
-  }}
-
-  function ready(fn) {{
-    if (document.readyState !== 'loading') {{ fn(); }}
-    else {{ document.addEventListener('DOMContentLoaded', fn); }}
-  }}
-  ready(function() {{
-    if (isMobileView()) initSwipe();
-  }});
-}})();
-// ─────────────────────────────────────────────────────────────────────────────
 </script>
 </body>
 </html>"""
@@ -2958,20 +2781,21 @@ def main():
     )
     # ─────────────────────────────────────────────────────────────────────────
 
-    # Pre-compute FINRA publication dates once
-    finra_dates = _latest_finra_dates(3)
+    # Pre-compute FINRA publication dates once (6 = ~3 months, twice-monthly releases)
+    finra_dates = _latest_finra_dates(SI_TREND_PERIODS)
 
-    # Opt 4 — FINRA CSV parallel load (3 URLs per date × 3 dates in parallel).
+    # Opt 4 — FINRA CSV parallel load (3 URLs per date × 6 dates in parallel).
     # The actual parallelism across URLs is inside _load_finra_csv(); here we
     # additionally parallelize across dates.
     _t_finra = time.time()
     log.info("Step 2a – Pre-loading FINRA CDN data for %d dates (parallel) …", len(finra_dates))
-    with ThreadPoolExecutor(max_workers=3) as _finra_ex:
+    with ThreadPoolExecutor(max_workers=6) as _finra_ex:
         list(_finra_ex.map(_get_finra_csv_for_date, finra_dates))
     _total_finra_entries = sum(len(v) for v in _finra_csv_cache.values())
     print(f"FINRA Cache aufgebaut: {len(_finra_csv_cache)} Dateien, "
           f"{_total_finra_entries} Ticker-Einträge gesamt — "
           f"{time.time()-_t_finra:.1f}s", flush=True)
+    print(f"FINRA 3M-Trend: {len(_finra_csv_cache)} Datenpunkte je Ticker geladen", flush=True)
     print(f"Step 2a abgeschlossen in {time.time()-_t_finra:.1f}s", flush=True)
 
     # Opt 1 — yfinance Batch: pre-fetch all history + info for the entire pool
@@ -3038,6 +2862,7 @@ def main():
             "ma200":           yfd.get("ma200"),
             "perf_20d":        _stock_perf_20d,
             "rel_strength_20d": _rel_strength,
+            "inst_ownership":  yfd.get("inst_ownership"),
         })
         yf_sf = yfd.get("short_float_yf", 0)
         if yf_sf > 0:
