@@ -2898,25 +2898,29 @@ def main():
     apply_score_smoothing(top10, report_date)
     top10.sort(key=lambda x: x["score"], reverse=True)
 
-    # Opt 3 — Parallel news + options fetching concurrently (max 5 threads each).
+    # Opt 3 — Parallel news fetching (all 10 tickers × 3 sources concurrently).
     _t_news = time.time()
-    log.info("Step 3 – Fetching news + options for %d stocks (parallel) …", len(top10))
-    us_top10 = [s for s in top10 if "." not in s["ticker"]]
+    log.info("Step 3 – Fetching news for %d stocks (parallel, max 5 threads) …", len(top10))
     with ThreadPoolExecutor(max_workers=5) as _news_ex:
-        _news_futures = {_news_ex.submit(get_combined_news, s["ticker"]): ("news", s)
-                         for s in top10}
-        _opts_futures = {_news_ex.submit(get_options_data, s["ticker"]): ("opts", s)
-                         for s in us_top10}
-        for _fut in as_completed({**_news_futures, **_opts_futures}):
-            if _fut in _news_futures:
-                _, _s = _news_futures[_fut]
-                _s["news"] = _fut.result() or []
-            else:
-                _, _s = _opts_futures[_fut]
-                _s["options"] = _fut.result() or {}
+        _news_futures = {_news_ex.submit(get_combined_news, s["ticker"]): s for s in top10}
+        for _fut in as_completed(_news_futures):
+            _news_futures[_fut]["news"] = _fut.result() or []
     _news_elapsed = time.time() - _t_news
-    print(f"News+Options: {len(top10)} Ticker parallel in {_news_elapsed:.1f}s abgerufen", flush=True)
-    print(f"Step 3 abgeschlossen in {_news_elapsed:.1f}s", flush=True)
+    print(f"News: {len(top10)} Ticker parallel in {_news_elapsed:.1f}s abgerufen", flush=True)
+
+    # Parallel options data fetch (US-only top-10, max 5 threads).
+    _t_opts = time.time()
+    us_top10 = [s for s in top10 if "." not in s["ticker"]]
+    log.info("Step 3b – Fetching options data for %d US stocks (parallel, max 5 threads) …", len(us_top10))
+    with ThreadPoolExecutor(max_workers=5) as _opts_ex:
+        _opts_futures = {_opts_ex.submit(get_options_data, s["ticker"]): s for s in us_top10}
+        for _fut in as_completed(_opts_futures):
+            _opts_futures[_fut]["options"] = _fut.result() or {}
+    _opts_elapsed = time.time() - _t_opts
+    _n_ok = sum(1 for s in us_top10 if s.get("options"))
+    _n_na = len(us_top10) - _n_ok
+    print(f"Optionsdaten: {len(us_top10)} Ticker parallel in {_opts_elapsed:.1f}s abgerufen — {_n_ok} mit Daten, {_n_na} ohne", flush=True)
+    print(f"Step 3 abgeschlossen in {time.time() - _t_news:.1f}s", flush=True)
 
     # --- Step 4: HTML ---
     _t4 = time.time()
