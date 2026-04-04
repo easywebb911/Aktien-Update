@@ -31,6 +31,8 @@ jobs:
         run: pip install -r requirements.txt
 
       - name: Generate squeeze report
+        env:
+          NASDAQ_DATA_LINK_KEY: ${{ secrets.NASDAQ_DATA_LINK_KEY }}
         run: python generate_report.py
 
       - name: Commit and publish report
