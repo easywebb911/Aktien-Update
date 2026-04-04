@@ -422,10 +422,19 @@ _finra_bearer_token: str = ""
 
 
 def _fetch_finra_token() -> str:
-    """Obtain a fresh FINRA OAuth 2.0 Bearer token via client credentials.
-    Reads FINRA_CLIENT_ID and FINRA_CLIENT_SECRET from environment.
-    Called once at startup; result cached in _finra_bearer_token.
+    """Resolve FINRA Bearer token.
+    Priority:
+      1. FINRA_API_TOKEN env var  → use directly as Bearer token
+      2. FINRA_CLIENT_ID + FINRA_CLIENT_SECRET → OAuth client-credentials flow
+    Returns empty string if nothing is configured.
     """
+    # Priority 1: static token (FINRA developer portal → API Keys)
+    static_token = os.environ.get("FINRA_API_TOKEN", "")
+    if static_token:
+        log.info("FINRA: using FINRA_API_TOKEN directly as Bearer token")
+        return static_token
+
+    # Priority 2: OAuth client credentials
     import base64
     client_id     = os.environ.get("FINRA_CLIENT_ID", "")
     client_secret = os.environ.get("FINRA_CLIENT_SECRET", "")
