@@ -268,7 +268,7 @@ a{color:var(--accent);text-decoration:none}
 <header class="app-hdr">
   <div class="hdr-main">
     <span class="app-title">Squeeze <span>Report</span></span>
-    <span class="hdr-ts">Stand: 04.04.2026, 13:45 Uhr</span>
+    <span class="hdr-ts">Stand: 04.04.2026, 13:54 Uhr</span>
     <div class="hdr-btns">
       <button id="btn-reload" class="btn btn-g" onclick="reloadPage()">&#8635; Neu laden</button>
       <button id="btn-recalc" class="btn btn-b" onclick="triggerWorkflow()">&#9881; Neu berechnen</button>
@@ -395,14 +395,14 @@ a{color:var(--accent);text-decoration:none}
       </div>
     </div>
     <div class="score-block">
-      <span class="score-num" style="color:#22c55e">62</span>
+      <span class="score-num" style="color:#22c55e">57</span>
       <span class="score-lbl">Score</span>
-      <div class="score-track"><div class="score-fill" style="width:62%;background:#22c55e"></div></div>
+      <div class="score-track"><div class="score-fill" style="width:57%;background:#22c55e"></div></div>
     </div>
   </div>
   <div class="metrics-row">
     <div class="metric-box" style="--mc:#f59e0b">
-      <span class="si-badge si-badge-up">↑</span>
+      
       <span class="m-val">16.3%</span>
       <span class="m-lbl">Short Float</span>
     </div>
@@ -430,10 +430,10 @@ a{color:var(--accent);text-decoration:none}
         <tr><td>Ø Volumen 20T</td><td>291,050</td></tr>
         <tr><td>Heutiges Volumen</td><td>2,006,900</td></tr>
         <tr><td>Short Interest Quelle</td><td>Yahoo Finance</td></tr>
-        <tr><td>Short-Vol.-Trend (3T)</td><td><span style="color:#22c55e">↑ Steigend +6760.0 %</span></td></tr>
+        <tr><td>Short-Vol.-Trend (3T)</td><td>Keine Daten</td></tr>
         <tr><td>Short-Vol. T-1 (FINRA)</td><td>0.0 Mio. (02.04.2026)</td></tr>
-        <tr><td>Short-Vol. T-2</td><td>0.0 Mio. (01.04.2026)</td></tr>
-        <tr><td>Short-Vol. T-3</td><td>0.0 Mio. (31.03.2026)</td></tr>
+        <tr><td>Short-Vol. T-2</td><td>—</td></tr>
+        <tr><td>Short-Vol. T-3</td><td>—</td></tr>
         <tr><td>Fails-to-Deliver</td><td>—</td></tr>
         <tr><td>Risiko-Detail</td><td style="color:#ef4444">Micro-Cap ($280 M) – geringe Liquidität, Kursmanipulation möglich. Extremer Volumenanstieg (6.9×) kann auf koordiniertes Kaufinteresse hinweisen.</td></tr>
       </table>
@@ -460,83 +460,6 @@ a{color:var(--accent);text-decoration:none}
   <div class="card-top">
     <div class="card-left">
       <span class="rank">2</span>
-      <div class="ticker-block">
-        <div class="ticker-row">
-          <a class="ticker ticker-link" href="https://finance.yahoo.com/chart/PENG" target="_blank" rel="noopener noreferrer">PENG</a>
-          <span class="market-tag">🇺🇸 US</span>
-          <a class="chart-badge chart-badge-y" href="https://finance.yahoo.com/chart/PENG" target="_blank" rel="noopener noreferrer" title="Yahoo Finance Chart">Y</a><a class="chart-badge chart-badge-f" href="https://finviz.com/quote.ashx?t=PENG" target="_blank" rel="noopener noreferrer" title="Finviz Chart &amp; Kennzahlen">F</a><a class="chart-badge chart-badge-s" href="https://stockanalysis.com/stocks/peng/" target="_blank" rel="noopener noreferrer" title="Stockanalysis Chart &amp; Short-Interest">S</a>
-          <span class="price-tag">$20.69</span>
-        </div>
-        <span class="company">Penguin Solutions, Inc.</span>
-        <span class="sector-tag">Technology</span>
-      </div>
-    </div>
-    <div class="score-block">
-      <span class="score-num" style="color:#22c55e">54</span>
-      <span class="score-lbl">Score</span>
-      <div class="score-track"><div class="score-fill" style="width:54%;background:#22c55e"></div></div>
-    </div>
-  </div>
-  <div class="metrics-row">
-    <div class="metric-box" style="--mc:#f59e0b">
-      <span class="si-badge si-badge-up">↑</span>
-      <span class="m-val">22.4%</span>
-      <span class="m-lbl">Short Float</span>
-    </div>
-    <div class="metric-box" style="--mc:#f59e0b">
-      <span class="m-val">7.9d</span>
-      <span class="m-lbl">Days to Cover</span>
-    </div>
-    <div class="metric-box" style="--mc:#22c55e">
-      <span class="m-val">3.9×</span>
-      <span class="m-lbl">Volumen</span>
-    </div>
-    <div class="metric-box" style="--mc:#22c55e">
-      <span class="m-val">+13.4%</span>
-      <span class="m-lbl">Momentum</span>
-    </div>
-  </div>
-  <button class="details-btn" onclick="toggleDetails(2)" id="db2" aria-expanded="false">
-    <span class="details-arrow" id="da2">▾</span><span id="dl2"> Details anzeigen</span>
-  </button>
-  <div class="details-body" id="dd2">
-    <div class="detail-table-wrap">
-      <table class="detail-table">
-        <tr><td>Marktkapitalisierung</td><td>$1.1 B</td></tr>
-        <tr><td>52W-Hoch / -Tief</td><td>$29.80 / $14.20</td></tr>
-        <tr><td>Ø Volumen 20T</td><td>1,148,635</td></tr>
-        <tr><td>Heutiges Volumen</td><td>4,448,500</td></tr>
-        <tr><td>Short Interest Quelle</td><td>Yahoo Finance</td></tr>
-        <tr><td>Short-Vol.-Trend (3T)</td><td><span style="color:#22c55e">↑ Steigend +537.3 %</span></td></tr>
-        <tr><td>Short-Vol. T-1 (FINRA)</td><td>0.0 Mio. (01.04.2026)</td></tr>
-        <tr><td>Short-Vol. T-2</td><td>0.0 Mio. (31.03.2026)</td></tr>
-        <tr><td>Short-Vol. T-3</td><td>—</td></tr>
-        <tr><td>Fails-to-Deliver</td><td>—</td></tr>
-        <tr><td>Risiko-Detail</td><td style="color:#f59e0b">Small-Cap ($1.1 B) mit eingeschränkter Liquidität.</td></tr>
-      </table>
-    </div>
-    
-    <div class="driver-row">
-      <span class="risk-badge" style="color:#f59e0b;border-color:#f59e0b55;background:#f59e0b22">Risiko: MITTEL</span>
-      <p class="driver-text">Short Float 22.4 % liegt deutlich über dem Marktdurchschnitt. Short Ratio 7.9 Tage — Eindeckungsdruck erhöht den Squeeze-Druck.</p>
-    </div>
-    <button class="news-btn" onclick="toggleNews(2)" id="nb2" aria-expanded="false">
-      <span id="nb-icon2">▼</span> Nachrichten anzeigen
-    </button>
-    <div class="news-panel" id="np2" hidden>
-      <div class="news-items"><div class="ni"><a href="https://finance.yahoo.com/markets/stocks/articles/why-penguin-solutions-peng-stock-224820754.html" target="_blank" rel="noopener noreferrer">Warum die Aktie von Penguin Solutions (PENG) heute im Aufwärtstrend liegt</a><span class="ni-meta">StockStory · 02.04.2026 22:48</span></div><div class="ni"><a href="https://finance.yahoo.com/markets/stocks/articles/peng-q1-deep-dive-ai-220020490.html" target="_blank" rel="noopener noreferrer">PENG Q1 Deep Dive: Nachfrage nach KI-Speicher und Kundendiversifizierung treiben Ausblickverschiebung voran</a><span class="ni-meta">StockStory · 02.04.2026 22:00</span></div></div>
-      <div class="news-summary-box">
-        <span class="summary-label">Zusammenfassung</span>
-        <p class="summary-text">Die Aktien des Halbleiterherstellers Penguin Solutions (NASDAQ:PENG) stiegen am Morgen um 13,1 %, nachdem das Unternehmen besser als erwartete Ergebnisse für das erste Quartal meldete und seinen Ausblick für das Gesamtjahr anhob.</p>
-      </div>
-    </div>
-  </div>
-</article>
-
-<article class="card" id="c3">
-  <div class="card-top">
-    <div class="card-left">
-      <span class="rank">3</span>
       <div class="ticker-block">
         <div class="ticker-row">
           <a class="ticker ticker-link" href="https://finance.yahoo.com/chart/OMER" target="_blank" rel="noopener noreferrer">OMER</a>
@@ -573,10 +496,10 @@ a{color:var(--accent);text-decoration:none}
       <span class="m-lbl">Momentum</span>
     </div>
   </div>
-  <button class="details-btn" onclick="toggleDetails(3)" id="db3" aria-expanded="false">
-    <span class="details-arrow" id="da3">▾</span><span id="dl3"> Details anzeigen</span>
+  <button class="details-btn" onclick="toggleDetails(2)" id="db2" aria-expanded="false">
+    <span class="details-arrow" id="da2">▾</span><span id="dl2"> Details anzeigen</span>
   </button>
-  <div class="details-body" id="dd3">
+  <div class="details-body" id="dd2">
     <div class="detail-table-wrap">
       <table class="detail-table">
         <tr><td>Marktkapitalisierung</td><td>$773 M</td></tr>
@@ -597,14 +520,91 @@ a{color:var(--accent);text-decoration:none}
       <span class="risk-badge" style="color:#f59e0b;border-color:#f59e0b55;background:#f59e0b22">Risiko: MITTEL</span>
       <p class="driver-text">Short Float 25.3 % liegt deutlich über dem Marktdurchschnitt. Short Ratio 20.6 Tage — Eindeckungsdruck erhöht den Squeeze-Druck.</p>
     </div>
+    <button class="news-btn" onclick="toggleNews(2)" id="nb2" aria-expanded="false">
+      <span id="nb-icon2">▼</span> Nachrichten anzeigen
+    </button>
+    <div class="news-panel" id="np2" hidden>
+      <div class="news-items"><div class="ni"><a href="https://app.moby.co/home/research/tools/earningsCalendar/earnings-omeros-corporation-q4-2025-earnings-call-summary?utm_source=yahoo_finance&utm_medium=rss" target="_blank" rel="noopener noreferrer">Zusammenfassung der Gewinnmitteilungen der Omeros Corporation für das 4. Quartal 2025</a><span class="ni-meta">Moby · 01.04.2026 12:30</span></div><div class="ni"><a href="https://finance.yahoo.com/sectors/healthcare/articles/omeros-corp-omer-q4-2025-030227210.html" target="_blank" rel="noopener noreferrer">Omeros Corp (OMER) Höhepunkte der Telefonkonferenz zum 4. Quartal 2025: Eine Trendwende mit strategischen Deals und FDA ...</a><span class="ni-meta">GuruFocus.com · 01.04.2026 03:02</span></div></div>
+      <div class="news-summary-box">
+        <span class="summary-label">Zusammenfassung</span>
+        <p class="summary-text">Zusammenfassung der Gewinnmitteilung der Omeros Corporation für das 4. Quartal 2025. Weitere aktuelle Meldung: Omeros Corp (OMER) Q4 2025 Earnings Call Highlights: Eine Trendwende mit strategischen Deals und FDA  –  Quelle: Moby (01.04.2026 12:30)</p>
+      </div>
+    </div>
+  </div>
+</article>
+
+<article class="card" id="c3">
+  <div class="card-top">
+    <div class="card-left">
+      <span class="rank">3</span>
+      <div class="ticker-block">
+        <div class="ticker-row">
+          <a class="ticker ticker-link" href="https://finance.yahoo.com/chart/PENG" target="_blank" rel="noopener noreferrer">PENG</a>
+          <span class="market-tag">🇺🇸 US</span>
+          <a class="chart-badge chart-badge-y" href="https://finance.yahoo.com/chart/PENG" target="_blank" rel="noopener noreferrer" title="Yahoo Finance Chart">Y</a><a class="chart-badge chart-badge-f" href="https://finviz.com/quote.ashx?t=PENG" target="_blank" rel="noopener noreferrer" title="Finviz Chart &amp; Kennzahlen">F</a><a class="chart-badge chart-badge-s" href="https://stockanalysis.com/stocks/peng/" target="_blank" rel="noopener noreferrer" title="Stockanalysis Chart &amp; Short-Interest">S</a>
+          <span class="price-tag">$20.69</span>
+        </div>
+        <span class="company">Penguin Solutions, Inc.</span>
+        <span class="sector-tag">Technology</span>
+      </div>
+    </div>
+    <div class="score-block">
+      <span class="score-num" style="color:#f59e0b">49</span>
+      <span class="score-lbl">Score</span>
+      <div class="score-track"><div class="score-fill" style="width:49%;background:#f59e0b"></div></div>
+    </div>
+  </div>
+  <div class="metrics-row">
+    <div class="metric-box" style="--mc:#f59e0b">
+      
+      <span class="m-val">22.4%</span>
+      <span class="m-lbl">Short Float</span>
+    </div>
+    <div class="metric-box" style="--mc:#f59e0b">
+      <span class="m-val">7.9d</span>
+      <span class="m-lbl">Days to Cover</span>
+    </div>
+    <div class="metric-box" style="--mc:#22c55e">
+      <span class="m-val">3.9×</span>
+      <span class="m-lbl">Volumen</span>
+    </div>
+    <div class="metric-box" style="--mc:#22c55e">
+      <span class="m-val">+13.4%</span>
+      <span class="m-lbl">Momentum</span>
+    </div>
+  </div>
+  <button class="details-btn" onclick="toggleDetails(3)" id="db3" aria-expanded="false">
+    <span class="details-arrow" id="da3">▾</span><span id="dl3"> Details anzeigen</span>
+  </button>
+  <div class="details-body" id="dd3">
+    <div class="detail-table-wrap">
+      <table class="detail-table">
+        <tr><td>Marktkapitalisierung</td><td>$1.1 B</td></tr>
+        <tr><td>52W-Hoch / -Tief</td><td>$29.80 / $14.20</td></tr>
+        <tr><td>Ø Volumen 20T</td><td>1,148,635</td></tr>
+        <tr><td>Heutiges Volumen</td><td>4,448,500</td></tr>
+        <tr><td>Short Interest Quelle</td><td>Yahoo Finance</td></tr>
+        <tr><td>Short-Vol.-Trend (3T)</td><td>Keine Daten</td></tr>
+        <tr><td>Short-Vol. T-1 (FINRA)</td><td>—</td></tr>
+        <tr><td>Short-Vol. T-2</td><td>—</td></tr>
+        <tr><td>Short-Vol. T-3</td><td>—</td></tr>
+        <tr><td>Fails-to-Deliver</td><td>—</td></tr>
+        <tr><td>Risiko-Detail</td><td style="color:#f59e0b">Small-Cap ($1.1 B) mit eingeschränkter Liquidität.</td></tr>
+      </table>
+    </div>
+    
+    <div class="driver-row">
+      <span class="risk-badge" style="color:#f59e0b;border-color:#f59e0b55;background:#f59e0b22">Risiko: MITTEL</span>
+      <p class="driver-text">Short Float 22.4 % liegt deutlich über dem Marktdurchschnitt. Short Ratio 7.9 Tage — Eindeckungsdruck erhöht den Squeeze-Druck.</p>
+    </div>
     <button class="news-btn" onclick="toggleNews(3)" id="nb3" aria-expanded="false">
       <span id="nb-icon3">▼</span> Nachrichten anzeigen
     </button>
     <div class="news-panel" id="np3" hidden>
-      <div class="news-items"><div class="ni"><a href="https://app.moby.co/home/research/tools/earningsCalendar/earnings-omeros-corporation-q4-2025-earnings-call-summary?utm_source=yahoo_finance&utm_medium=rss" target="_blank" rel="noopener noreferrer">Zusammenfassung der Gewinnmitteilung der Omeros Corporation für das 4. Quartal 2025</a><span class="ni-meta">Moby · 01.04.2026 12:30</span></div><div class="ni"><a href="https://finance.yahoo.com/sectors/healthcare/articles/omeros-corp-omer-q4-2025-030227210.html" target="_blank" rel="noopener noreferrer">Omeros Corp (OMER) Höhepunkte der Telefonkonferenz zum 4. Quartal 2025: Eine Trendwende mit strategischen Deals und FDA ...</a><span class="ni-meta">GuruFocus.com · 01.04.2026 03:02</span></div></div>
+      <div class="news-items"><div class="ni"><a href="https://finance.yahoo.com/markets/stocks/articles/why-penguin-solutions-peng-stock-224820754.html" target="_blank" rel="noopener noreferrer">Warum die Aktie von Penguin Solutions (PENG) heute im Aufwärtstrend liegt</a><span class="ni-meta">StockStory · 02.04.2026 22:48</span></div><div class="ni"><a href="https://finance.yahoo.com/markets/stocks/articles/peng-q1-deep-dive-ai-220020490.html" target="_blank" rel="noopener noreferrer">PENG Q1 Deep Dive: Nachfrage nach KI-Speicher und Kundendiversifizierung treiben Ausblickverschiebung voran</a><span class="ni-meta">StockStory · 02.04.2026 22:00</span></div></div>
       <div class="news-summary-box">
         <span class="summary-label">Zusammenfassung</span>
-        <p class="summary-text">Zusammenfassung der Gewinnmitteilungen der Omeros Corporation für das 4. Quartal 2025. Weitere aktuelle Meldung: Omeros Corp (OMER) Q4 2025 Earnings Call Highlights: Eine Trendwende mit strategischen Deals und FDA  –  Quelle: Moby (01.04.2026 12:30)</p>
+        <p class="summary-text">Die Aktien des Halbleiterherstellers Penguin Solutions (NASDAQ:PENG) stiegen am Morgen um 13,1 %, nachdem das Unternehmen besser als erwartete Ergebnisse für das erste Quartal meldete und seinen Ausblick für das Gesamtjahr anhob.</p>
       </div>
     </div>
   </div>
@@ -614,83 +614,6 @@ a{color:var(--accent);text-decoration:none}
   <div class="card-top">
     <div class="card-left">
       <span class="rank">4</span>
-      <div class="ticker-block">
-        <div class="ticker-row">
-          <a class="ticker ticker-link" href="https://finance.yahoo.com/chart/ORIC" target="_blank" rel="noopener noreferrer">ORIC</a>
-          <span class="market-tag">🇺🇸 US</span>
-          <a class="chart-badge chart-badge-y" href="https://finance.yahoo.com/chart/ORIC" target="_blank" rel="noopener noreferrer" title="Yahoo Finance Chart">Y</a><a class="chart-badge chart-badge-f" href="https://finviz.com/quote.ashx?t=ORIC" target="_blank" rel="noopener noreferrer" title="Finviz Chart &amp; Kennzahlen">F</a><a class="chart-badge chart-badge-s" href="https://stockanalysis.com/stocks/oric/" target="_blank" rel="noopener noreferrer" title="Stockanalysis Chart &amp; Short-Interest">S</a>
-          <span class="price-tag">$8.89</span>
-        </div>
-        <span class="company">ORIC Pharmaceuticals, Inc.</span>
-        <span class="sector-tag">Healthcare</span>
-      </div>
-    </div>
-    <div class="score-block">
-      <span class="score-num" style="color:#22c55e">52</span>
-      <span class="score-lbl">Score</span>
-      <div class="score-track"><div class="score-fill" style="width:52%;background:#22c55e"></div></div>
-    </div>
-  </div>
-  <div class="metrics-row">
-    <div class="metric-box" style="--mc:#f59e0b">
-      <span class="si-badge si-badge-up">↑</span>
-      <span class="m-val">18.6%</span>
-      <span class="m-lbl">Short Float</span>
-    </div>
-    <div class="metric-box" style="--mc:#22c55e">
-      <span class="m-val">11.8d</span>
-      <span class="m-lbl">Days to Cover</span>
-    </div>
-    <div class="metric-box" style="--mc:#f59e0b">
-      <span class="m-val">2.8×</span>
-      <span class="m-lbl">Volumen</span>
-    </div>
-    <div class="metric-box" style="--mc:#22c55e">
-      <span class="m-val">+18.9%</span>
-      <span class="m-lbl">Momentum</span>
-    </div>
-  </div>
-  <button class="details-btn" onclick="toggleDetails(4)" id="db4" aria-expanded="false">
-    <span class="details-arrow" id="da4">▾</span><span id="dl4"> Details anzeigen</span>
-  </button>
-  <div class="details-body" id="dd4">
-    <div class="detail-table-wrap">
-      <table class="detail-table">
-        <tr><td>Marktkapitalisierung</td><td>$996 M</td></tr>
-        <tr><td>52W-Hoch / -Tief</td><td>$14.93 / $3.90</td></tr>
-        <tr><td>Ø Volumen 20T</td><td>2,633,225</td></tr>
-        <tr><td>Heutiges Volumen</td><td>7,289,300</td></tr>
-        <tr><td>Short Interest Quelle</td><td>Yahoo Finance</td></tr>
-        <tr><td>Short-Vol.-Trend (3T)</td><td><span style="color:#22c55e">↑ Steigend +866.6 %</span></td></tr>
-        <tr><td>Short-Vol. T-1 (FINRA)</td><td>0.0 Mio. (02.04.2026)</td></tr>
-        <tr><td>Short-Vol. T-2</td><td>0.0 Mio. (01.04.2026)</td></tr>
-        <tr><td>Short-Vol. T-3</td><td>0.0 Mio. (31.03.2026)</td></tr>
-        <tr><td>Fails-to-Deliver</td><td>—</td></tr>
-        <tr><td>Risiko-Detail</td><td style="color:#f59e0b">Small-Cap ($996 M) mit eingeschränkter Liquidität.</td></tr>
-      </table>
-    </div>
-    
-    <div class="driver-row">
-      <span class="risk-badge" style="color:#f59e0b;border-color:#f59e0b55;background:#f59e0b22">Risiko: MITTEL</span>
-      <p class="driver-text">Short Float 18.6 % liegt deutlich über dem Marktdurchschnitt. Short Ratio 11.8 Tage — Eindeckungsdruck erhöht den Squeeze-Druck.</p>
-    </div>
-    <button class="news-btn" onclick="toggleNews(4)" id="nb4" aria-expanded="false">
-      <span id="nb-icon4">▼</span> Nachrichten anzeigen
-    </button>
-    <div class="news-panel" id="np4" hidden>
-      <div class="news-items"><div class="ni"><a href="https://www.biopharmadive.com/news/immunovant-alto-beam-orca-oric-cyclerion-korsana-biotech-news-roundup/816454/" target="_blank" rel="noopener noreferrer">Immunovant-Augenmedikament fällt in Phase-3-Studien durch; Daten zur Strahlsichelzelle im NEJM veröffentlicht</a><span class="ni-meta">BioPharma Dive · 02.04.2026 12:20</span></div><div class="ni"><a href="https://finance.yahoo.com/markets/stocks/articles/oric-pharmaceuticals-oric-down-36-081322536.html" target="_blank" rel="noopener noreferrer">ORIC Pharmaceuticals (ORIC) ist um 36,1 % gesunken, nachdem das Prostatakrebsmedikament mit geringerer Toxizität in die Phase 3 überführt wurde</a><span class="ni-meta">Simply Wall St. · 02.04.2026 08:13</span></div></div>
-      <div class="news-summary-box">
-        <span class="summary-label">Zusammenfassung</span>
-        <p class="summary-text">Die Aktien von Immunovant, Alto und Oric Pharmaceuticals fielen diese Woche aufgrund von Aktualisierungen klinischer Studien. An anderer Stelle kam es bei der Zelltherapie von Orca Bio zu Verzögerungen und Korsana ging eine umgekehrte Fusion ein.</p>
-      </div>
-    </div>
-  </div>
-</article>
-
-<article class="card" id="c5">
-  <div class="card-top">
-    <div class="card-left">
-      <span class="rank">5</span>
       <div class="ticker-block">
         <div class="ticker-row">
           <a class="ticker ticker-link" href="https://finance.yahoo.com/chart/CAR" target="_blank" rel="noopener noreferrer">CAR</a>
@@ -727,10 +650,10 @@ a{color:var(--accent);text-decoration:none}
       <span class="m-lbl">Momentum</span>
     </div>
   </div>
-  <button class="details-btn" onclick="toggleDetails(5)" id="db5" aria-expanded="false">
-    <span class="details-arrow" id="da5">▾</span><span id="dl5"> Details anzeigen</span>
+  <button class="details-btn" onclick="toggleDetails(4)" id="db4" aria-expanded="false">
+    <span class="details-arrow" id="da4">▾</span><span id="dl4"> Details anzeigen</span>
   </button>
-  <div class="details-body" id="dd5">
+  <div class="details-body" id="dd4">
     <div class="detail-table-wrap">
       <table class="detail-table">
         <tr><td>Marktkapitalisierung</td><td>$6.7 B</td></tr>
@@ -751,14 +674,91 @@ a{color:var(--accent);text-decoration:none}
       <span class="risk-badge" style="color:#f59e0b;border-color:#f59e0b55;background:#f59e0b22">Risiko: MITTEL</span>
       <p class="driver-text">Short Float 48.3 % — sehr hohes Leerverkaufsinteresse, starkes Squeeze-Potenzial. Short Ratio 8.8 Tage — Eindeckungsdruck erhöht den Squeeze-Druck.</p>
     </div>
-    <button class="news-btn" onclick="toggleNews(5)" id="nb5" aria-expanded="false">
-      <span id="nb-icon5">▼</span> Nachrichten anzeigen
+    <button class="news-btn" onclick="toggleNews(4)" id="nb4" aria-expanded="false">
+      <span id="nb-icon4">▼</span> Nachrichten anzeigen
     </button>
-    <div class="news-panel" id="np5" hidden>
+    <div class="news-panel" id="np4" hidden>
       <div class="news-items"><div class="ni"><a href="https://www.fool.com/investing/2026/04/03/why-avis-budget-group-stock-revved-higher-this-wee/" target="_blank" rel="noopener noreferrer">Warum die Aktie der Avis Budget Group diese Woche eine Kehrtwende vollzog</a><span class="ni-meta">Motley Fool · 03.04.2026 22:24</span></div><div class="ni"><a href="https://www.investors.com/news/tsa-delays-car-rentals-hertz-avis-budget-airports-air-travel-spring-break/?src=A00220&yptr=yahoo" target="_blank" rel="noopener noreferrer">TSA-Verzögerungen, Short Squeeze – Was hat diese beiden Aktien in die Höhe getrieben?</a><span class="ni-meta">Investor's Business Daily · 03.04.2026 17:12</span></div></div>
       <div class="news-summary-box">
         <span class="summary-label">Zusammenfassung</span>
         <p class="summary-text">Warum die Aktie der Avis Budget Group diese Woche eine Kehrtwende vollzog. Weitere aktuelle Meldung: TSA-Verzögerungen, Short Squeeze – Was hat diese beiden Aktien in die Höhe getrieben?  –  Quelle: Motley Fool (03.04.2026 22:24)</p>
+      </div>
+    </div>
+  </div>
+</article>
+
+<article class="card" id="c5">
+  <div class="card-top">
+    <div class="card-left">
+      <span class="rank">5</span>
+      <div class="ticker-block">
+        <div class="ticker-row">
+          <a class="ticker ticker-link" href="https://finance.yahoo.com/chart/ORIC" target="_blank" rel="noopener noreferrer">ORIC</a>
+          <span class="market-tag">🇺🇸 US</span>
+          <a class="chart-badge chart-badge-y" href="https://finance.yahoo.com/chart/ORIC" target="_blank" rel="noopener noreferrer" title="Yahoo Finance Chart">Y</a><a class="chart-badge chart-badge-f" href="https://finviz.com/quote.ashx?t=ORIC" target="_blank" rel="noopener noreferrer" title="Finviz Chart &amp; Kennzahlen">F</a><a class="chart-badge chart-badge-s" href="https://stockanalysis.com/stocks/oric/" target="_blank" rel="noopener noreferrer" title="Stockanalysis Chart &amp; Short-Interest">S</a>
+          <span class="price-tag">$8.89</span>
+        </div>
+        <span class="company">ORIC Pharmaceuticals, Inc.</span>
+        <span class="sector-tag">Healthcare</span>
+      </div>
+    </div>
+    <div class="score-block">
+      <span class="score-num" style="color:#f59e0b">47</span>
+      <span class="score-lbl">Score</span>
+      <div class="score-track"><div class="score-fill" style="width:47%;background:#f59e0b"></div></div>
+    </div>
+  </div>
+  <div class="metrics-row">
+    <div class="metric-box" style="--mc:#f59e0b">
+      <span class="si-badge si-badge-down">↓</span>
+      <span class="m-val">18.6%</span>
+      <span class="m-lbl">Short Float</span>
+    </div>
+    <div class="metric-box" style="--mc:#22c55e">
+      <span class="m-val">11.8d</span>
+      <span class="m-lbl">Days to Cover</span>
+    </div>
+    <div class="metric-box" style="--mc:#f59e0b">
+      <span class="m-val">2.8×</span>
+      <span class="m-lbl">Volumen</span>
+    </div>
+    <div class="metric-box" style="--mc:#22c55e">
+      <span class="m-val">+18.9%</span>
+      <span class="m-lbl">Momentum</span>
+    </div>
+  </div>
+  <button class="details-btn" onclick="toggleDetails(5)" id="db5" aria-expanded="false">
+    <span class="details-arrow" id="da5">▾</span><span id="dl5"> Details anzeigen</span>
+  </button>
+  <div class="details-body" id="dd5">
+    <div class="detail-table-wrap">
+      <table class="detail-table">
+        <tr><td>Marktkapitalisierung</td><td>$996 M</td></tr>
+        <tr><td>52W-Hoch / -Tief</td><td>$14.93 / $3.90</td></tr>
+        <tr><td>Ø Volumen 20T</td><td>2,633,225</td></tr>
+        <tr><td>Heutiges Volumen</td><td>7,289,300</td></tr>
+        <tr><td>Short Interest Quelle</td><td>Yahoo Finance</td></tr>
+        <tr><td>Short-Vol.-Trend (3T)</td><td><span style="color:#ef4444">↓ Fallend −93.3 %</span></td></tr>
+        <tr><td>Short-Vol. T-1 (FINRA)</td><td>0.0 Mio. (02.04.2026)</td></tr>
+        <tr><td>Short-Vol. T-2</td><td>0.0 Mio. (01.04.2026)</td></tr>
+        <tr><td>Short-Vol. T-3</td><td>—</td></tr>
+        <tr><td>Fails-to-Deliver</td><td>—</td></tr>
+        <tr><td>Risiko-Detail</td><td style="color:#f59e0b">Small-Cap ($996 M) mit eingeschränkter Liquidität.</td></tr>
+      </table>
+    </div>
+    
+    <div class="driver-row">
+      <span class="risk-badge" style="color:#f59e0b;border-color:#f59e0b55;background:#f59e0b22">Risiko: MITTEL</span>
+      <p class="driver-text">Short Float 18.6 % liegt deutlich über dem Marktdurchschnitt. Short Ratio 11.8 Tage — Eindeckungsdruck erhöht den Squeeze-Druck.</p>
+    </div>
+    <button class="news-btn" onclick="toggleNews(5)" id="nb5" aria-expanded="false">
+      <span id="nb-icon5">▼</span> Nachrichten anzeigen
+    </button>
+    <div class="news-panel" id="np5" hidden>
+      <div class="news-items"><div class="ni"><a href="https://www.biopharmadive.com/news/immunovant-alto-beam-orca-oric-cyclerion-korsana-biotech-news-roundup/816454/" target="_blank" rel="noopener noreferrer">Immunovant-Augenmedikament fällt in Phase-3-Studien durch; Daten zur Strahlsichelzelle im NEJM veröffentlicht</a><span class="ni-meta">BioPharma Dive · 02.04.2026 12:20</span></div><div class="ni"><a href="https://finance.yahoo.com/markets/stocks/articles/oric-pharmaceuticals-oric-down-36-081322536.html" target="_blank" rel="noopener noreferrer">ORIC Pharmaceuticals (ORIC) ist um 36,1 % gesunken, nachdem das Prostatakrebsmedikament mit geringerer Toxizität in die Phase 3 überführt wurde</a><span class="ni-meta">Simply Wall St. · 02.04.2026 08:13</span></div></div>
+      <div class="news-summary-box">
+        <span class="summary-label">Zusammenfassung</span>
+        <p class="summary-text">Die Aktien von Immunovant, Alto und Oric Pharmaceuticals fielen diese Woche aufgrund von Aktualisierungen klinischer Studien. An anderer Stelle kam es bei der Zelltherapie von Orca Bio zu Verzögerungen und Korsana ging eine umgekehrte Fusion ein.</p>
       </div>
     </div>
   </div>
@@ -817,8 +817,8 @@ a{color:var(--accent);text-decoration:none}
         <tr><td>Short Interest Quelle</td><td>Yahoo Finance</td></tr>
         <tr><td>Short-Vol.-Trend (3T)</td><td><span style="color:#22c55e">↑ Steigend +29.3 %</span></td></tr>
         <tr><td>Short-Vol. T-1 (FINRA)</td><td>0.0 Mio. (02.04.2026)</td></tr>
-        <tr><td>Short-Vol. T-2</td><td>0.0 Mio. (01.04.2026)</td></tr>
-        <tr><td>Short-Vol. T-3</td><td>0.0 Mio. (31.03.2026)</td></tr>
+        <tr><td>Short-Vol. T-2</td><td>0.0 Mio. (31.03.2026)</td></tr>
+        <tr><td>Short-Vol. T-3</td><td>—</td></tr>
         <tr><td>Fails-to-Deliver</td><td>—</td></tr>
         <tr><td>Risiko-Detail</td><td style="color:#f59e0b">Hohes Short-Interesse (35.2 %) erhöht die Volatilität deutlich. Small-Cap ($694 M) mit eingeschränkter Liquidität.</td></tr>
       </table>
@@ -1140,7 +1140,7 @@ a{color:var(--accent);text-decoration:none}
       <span id="nb-icon10">▼</span> Nachrichten anzeigen
     </button>
     <div class="news-panel" id="np10" hidden>
-      <div class="news-items"><div class="ni"><a href="https://finance.yahoo.com/markets/stocks/articles/osb-group-lse-osb-investment-150726441.html" target="_blank" rel="noopener noreferrer">Wie sich die Investitionsgeschichte der OSB Group (LSE:OSB) durch neue Analystenmeinungen verändert</a><span class="ni-meta">Simply Wall St. · 31.03.2026 15:07</span></div><div class="ni"><a href="https://uk.finance.yahoo.com/news/birmingham-best-buy-let-area-110000366.html" target="_blank" rel="noopener noreferrer">Birmingham ist die beste Kauf- und Mietgegend für die Vermietung an Familien. Hier erfahren Sie, warum</a><span class="ni-meta">The Telegraph · 26.03.2026 11:00</span></div></div>
+      <div class="news-items"><div class="ni"><a href="https://finance.yahoo.com/markets/stocks/articles/osb-group-lse-osb-investment-150726441.html" target="_blank" rel="noopener noreferrer">Wie sich die Investitionsgeschichte der OSB Group (LSE:OSB) durch neue Analystenmeinungen verändert</a><span class="ni-meta">Simply Wall St. · 31.03.2026 15:07</span></div><div class="ni"><a href="https://uk.finance.yahoo.com/news/birmingham-best-buy-let-area-110000366.html" target="_blank" rel="noopener noreferrer">Birmingham ist das beste Kauf- und Mietgebiet für die Vermietung an Familien. Hier erfahren Sie, warum</a><span class="ni-meta">The Telegraph · 26.03.2026 11:00</span></div></div>
       <div class="news-summary-box">
         <span class="summary-label">Zusammenfassung</span>
         <p class="summary-text">Das jüngste Analysten-Update der OSB Group senkt die zentrale Fair-Value-Schätzung von 6,97 £ auf 6,83 £, eine kleine Neueinstellung, die immer noch unter einem optimistischeren Kursziel von 7,30 £ aus bullischen Untersuchungen liegt. Diese Lücke spiegelt eine Meinungsverschiedenheit wider, wobei einige Analysten an einer Übergewichtung festhalten, während andere sich auf die vorsichtigere Seite des revidierten Niveaus von 6,83 £ stützen. Wenn Sie weiterlesen, werden Sie sehen, wie Sie diese sich entwickelnde Erzählung verstehen und was sie für Ihre eigene Sicht auf die Aktien bedeuten könnte. Bleiben Sie auf dem Laufenden, denn...</p>
