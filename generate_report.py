@@ -46,6 +46,9 @@ MIN_SHORT_FLOAT = 15.0   # %
 MIN_REL_VOLUME  = 1.5    # × 20-day avg
 MAX_MARKET_CAP  = 10e9   # $10 B
 MIN_PRICE       = 1.0    # USD
+MIN_SCORE       = 15.0   # pts — informational reference only; NOT a hard filter.
+                         # Candidates below this value show a "schwächeres Signal"
+                         # hint on their card but are still included in the Top 10.
 
 # ── Metric tile colour thresholds ────────────────────────────────────────────
 # Farblogik: Grün = starkes Squeeze-Signal, Orange = moderat, Rot = schwach — gilt einheitlich für alle vier Kategorien.
@@ -1243,6 +1246,13 @@ def _card(i: int, s: dict) -> str:
     sr_col = "#94a3b8" if has_no_short_data else _metric_color("sr", sr)
     rv_col = _metric_color("rv", rv)
 
+    # Informational hint for candidates below the MIN_SCORE reference value
+    below_min_score_html = (
+        f'<span class="score-below-min">Score unter Richtwert ({MIN_SCORE:.0f} Pkt) '
+        f'— schwächeres Signal.</span>'
+        if s["score"] < MIN_SCORE else ""
+    )
+
 
     # SI trend badge + history
     finra_d  = s.get("finra_data") or {}
@@ -1325,6 +1335,7 @@ def _card(i: int, s: dict) -> str:
       <span class="score-num" style="color:{sc_col}">{s['score']:.1f}</span>
       <span class="score-lbl">Score</span>
       <div class="score-track"><div class="score-fill" style="width:{sc:.0f}%;background:{sc_col}"></div></div>
+      {below_min_score_html}
     </div>
   </div>
   {sparkline_html}
@@ -1571,6 +1582,8 @@ a{{color:var(--accent);text-decoration:none}}
 .score-track{{width:60px;height:5px;background:var(--brd);border-radius:3px}}
 .score-fill{{height:100%;border-radius:3px;transition:width .3s}}
 .score-hist-lbl{{font-size:.58rem;color:var(--txt-dim);margin-top:2px;text-align:center}}
+.score-below-min{{display:block;font-size:.58rem;color:var(--txt-dim);margin-top:3px;
+  text-align:right;font-style:italic;line-height:1.3;max-width:68px}}
 /* ── Sparkline ── */
 .spark-wrap{{padding:8px 12px 4px;border-top:1px solid var(--brd)}}
 .spark-header{{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px}}
@@ -2595,14 +2608,20 @@ def main():
     print(f"Step 2 abgeschlossen in {time.time()-_t_batch:.1f}s", flush=True)
     enriched.sort(key=lambda x: x["score"], reverse=True)
 
-    # Apply volume filter; relax automatically if too few results
-    top10 = [c for c in enriched if c.get("rel_volume", 0) >= MIN_REL_VOLUME][:10]
-    if len(top10) < 5:
+    # Always pick the best 10 by score — MIN_SCORE is informational only, not a filter.
+    # Prefer candidates with rel_volume ≥ MIN_REL_VOLUME; fall back to the full enriched
+    # list if fewer than 10 pass that soft filter, so the report always shows 10.
+    top10_vol = [c for c in enriched if c.get("rel_volume", 0) >= MIN_REL_VOLUME]
+    top10 = top10_vol[:10] if len(top10_vol) >= 10 else enriched[:10]
+
+    # Safety net for extreme market days: if fewer than 3 candidates exist at all
+    if len(top10) < 3:
         log.warning(
-            "Only %d pass rel_volume ≥ %.1f×. Relaxing to 1.0× …",
-            len(top10), MIN_REL_VOLUME,
+            "Only %d qualified candidates found (very unusual). "
+            "Using all available enriched results.",
+            len(top10),
         )
-        top10 = enriched[:10]
+        top10 = enriched  # show whatever survived
 
     if not top10:
         log.error("No candidates survived all filters.")
