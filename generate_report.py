@@ -699,6 +699,59 @@ def get_combined_news(ticker: str, n: int = 3) -> list[dict]:
 
 
 # ===========================================================================
+# 2a-OPT. OPTIONS MARKET DATA (US-only, nearest expiry)
+# ===========================================================================
+
+def get_options_data(ticker: str) -> dict:
+    """Fetch Put/Call ratio (open interest) and ATM implied volatility for the
+    nearest available options expiry.  US-only — skipped for international tickers.
+
+    Returns dict with keys:
+      pc_ratio  (float | None)  — put OI / call OI for nearest expiry
+      atm_iv    (float | None)  — implied volatility of the nearest-ATM strike (0–1 scale)
+      expiry    (str | None)    — expiry date used (YYYY-MM-DD)
+
+    Any error (no options data, API failure, etc.) returns {} so callers can
+    treat missing data uniformly with s.get("options", {}).
+    """
+    if "." in ticker:  # international ticker — options data unreliable / unavailable
+        return {}
+    try:
+        stk      = yf.Ticker(ticker)
+        expiries = stk.options  # tuple of expiry date strings
+        if not expiries:
+            return {}
+        nearest  = expiries[0]
+        chain    = stk.option_chain(nearest)
+        calls    = chain.calls
+        puts     = chain.puts
+        if calls.empty or puts.empty:
+            return {}
+
+        # Put/Call ratio by open interest
+        total_call_oi = calls["openInterest"].fillna(0).sum()
+        total_put_oi  = puts["openInterest"].fillna(0).sum()
+        pc_ratio = (total_put_oi / total_call_oi) if total_call_oi > 0 else None
+
+        # ATM IV: find the call strike closest to current price
+        cur_price = stk.fast_info.get("lastPrice") or stk.fast_info.get("regularMarketPrice")
+        if cur_price is None:
+            atm_iv = None
+        else:
+            calls_iv = calls[["strike", "impliedVolatility"]].dropna()
+            if not calls_iv.empty:
+                idx    = (calls_iv["strike"] - cur_price).abs().idxmin()
+                atm_iv = float(calls_iv.loc[idx, "impliedVolatility"])
+            else:
+                atm_iv = None
+
+        return {"pc_ratio": pc_ratio, "atm_iv": atm_iv, "expiry": nearest}
+    except Exception as exc:
+        log.debug("Options data failed for %s: %s", ticker, exc)
+        return {}
+
+
+# ===========================================================================
 # 2b. SUPPLEMENTARY DATA SOURCES (FINRA CSV + SEC EDGAR FTD)
 # ===========================================================================
 
@@ -1374,6 +1427,33 @@ def _card(i: int, s: dict) -> str:
         _rs_row  = ""
     rsi_ma_rows = _rsi_row + _ma50_row1 + _ma200_row + _ma50_row2 + _rs_row
 
+    # Options market data rows
+    _opts     = s.get("options") or {}
+    _pc       = _opts.get("pc_ratio")
+    _iv       = _opts.get("atm_iv")
+    _exp      = _opts.get("expiry", "")
+    _exp_note = f" <span style='color:var(--txt-dim);font-size:.8em'>({_exp})</span>" if _exp else ""
+    if _pc is not None:
+        # Bearish if puts dominate (P/C > 1.0), bullish if calls dominate (P/C < 0.7)
+        _pc_col = "#ef4444" if _pc > 1.0 else ("#22c55e" if _pc < 0.7 else "var(--txt)")
+        _pc_lbl = " — bärisch" if _pc > 1.0 else (" — bullisch" if _pc < 0.7 else "")
+        _pc_row = (
+            f'<tr><td>Put/Call-Ratio{_exp_note}</td>'
+            f'<td><span style="color:{_pc_col}">{_pc:.2f}{_pc_lbl}</span></td></tr>'
+        )
+    else:
+        _pc_row = ""
+    if _iv is not None:
+        _iv_pct = _iv * 100
+        _iv_col = "#ef4444" if _iv_pct > 80 else ("#f59e0b" if _iv_pct > 50 else "var(--txt)")
+        _iv_row = (
+            f'<tr><td>Impl. Volatilität (ATM)</td>'
+            f'<td><span style="color:{_iv_col}">{_iv_pct:.1f}%</span></td></tr>'
+        )
+    else:
+        _iv_row = ""
+    options_rows = _pc_row + _iv_row
+
     # Chart links
     yf_chart_url  = f"https://finance.yahoo.com/chart/{s['ticker']}"
     is_intl       = "." in s["ticker"]
@@ -1474,6 +1554,7 @@ def _card(i: int, s: dict) -> str:
         <tr><td>Short-Vol. T-3</td><td>{si_8w_disp}</td></tr>
 
         {rsi_ma_rows}
+        {options_rows}
         <tr><td>Risiko-Detail</td><td style="color:{risk_col}">{risk_txt}</td></tr>
       </table>
     </div>
@@ -2773,16 +2854,24 @@ def main():
     apply_score_smoothing(top10, report_date)
     top10.sort(key=lambda x: x["score"], reverse=True)
 
-    # Opt 3 — Parallel news fetching (all 10 tickers × 3 sources concurrently).
-    # max_workers=5 keeps us under typical rate-limit thresholds.
+    # Opt 3 — Parallel news + options fetching concurrently (max 5 threads each).
     _t_news = time.time()
-    log.info("Step 3 – Fetching news for %d stocks (parallel, max 5 threads) …", len(top10))
+    log.info("Step 3 – Fetching news + options for %d stocks (parallel) …", len(top10))
+    us_top10 = [s for s in top10 if "." not in s["ticker"]]
     with ThreadPoolExecutor(max_workers=5) as _news_ex:
-        _news_futures = {_news_ex.submit(get_combined_news, s["ticker"]): s for s in top10}
-        for _fut in as_completed(_news_futures):
-            _news_futures[_fut]["news"] = _fut.result() or []
+        _news_futures = {_news_ex.submit(get_combined_news, s["ticker"]): ("news", s)
+                         for s in top10}
+        _opts_futures = {_news_ex.submit(get_options_data, s["ticker"]): ("opts", s)
+                         for s in us_top10}
+        for _fut in as_completed({**_news_futures, **_opts_futures}):
+            if _fut in _news_futures:
+                _, _s = _news_futures[_fut]
+                _s["news"] = _fut.result() or []
+            else:
+                _, _s = _opts_futures[_fut]
+                _s["options"] = _fut.result() or {}
     _news_elapsed = time.time() - _t_news
-    print(f"News: {len(top10)} Ticker parallel in {_news_elapsed:.1f}s abgerufen", flush=True)
+    print(f"News+Options: {len(top10)} Ticker parallel in {_news_elapsed:.1f}s abgerufen", flush=True)
     print(f"Step 3 abgeschlossen in {_news_elapsed:.1f}s", flush=True)
 
     # --- Step 4: HTML ---
