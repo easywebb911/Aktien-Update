@@ -73,6 +73,11 @@ SCORE_TODAY_WEIGHT   = 0.70   # weight for today's raw score
 SCORE_HISTORY_WEIGHT = 0.30   # weight for average of last 3 historical runs
 _SCORE_HISTORY_FILE  = "score_history.json"
 _SCORE_HISTORY_DAYS  = 14     # prune entries older than this many days
+# ── Dynamic enrichment pool sizing ───────────────────────────────────────────
+POOL_MIN                  = 20    # always enrich at least this many candidates
+POOL_MAX                  = 75    # hard upper limit to keep runtime reasonable
+POOL_SHORT_FLOAT_THRESHOLD = 10.0 # SF ≥ this % → always included regardless of POOL_MAX
+POOL_ENRICH_TIMEOUT       = 90    # seconds — skip remaining candidates if exceeded
 
 
 # ===========================================================================
@@ -189,7 +194,8 @@ def get_yahoo_screener_candidates() -> list[dict]:
     result: list[dict] = []
     seen:   set[str]   = set()
 
-    def _add_quotes(quotes: list, region: str) -> None:
+    def _add_quotes(quotes: list, region: str, screener_id: str) -> None:
+        src_tag = "yahoo_most_shorted" if screener_id == "most_shorted_stocks" else "yahoo_screener"
         for q in quotes:
             t = q.get("symbol", "").strip().upper()
             if not t or not re.match(r'^[A-Z0-9][A-Z0-9.\-]{0,14}$', t) or t in seen:
@@ -214,6 +220,7 @@ def get_yahoo_screener_candidates() -> list[dict]:
                 "rel_volume":   0.0,
                 "company_name": q.get("shortName") or q.get("longName") or t,
                 "sector":       q.get("sector") or "",
+                "source":       src_tag,
             })
 
     tasks = [(region, sid)
@@ -226,9 +233,9 @@ def get_yahoo_screener_candidates() -> list[dict]:
         future_map = {ex.submit(_fetch_yf_screener, sid, region): (region, sid)
                       for region, sid in tasks}
         for fut in as_completed(future_map):
-            region, _ = future_map[fut]
+            region, sid = future_map[fut]
             try:
-                _add_quotes(fut.result(), region)
+                _add_quotes(fut.result(), region, sid)
             except Exception as exc:
                 log.warning("Screener future error: %s", exc)
 
@@ -2105,15 +2112,48 @@ def main():
         c["score"] = score(c)
     candidates.sort(key=lambda x: x["score"], reverse=True)
 
-    # Build enrichment pool: guarantee representation from all markets.
-    # US stocks are sorted by score; international regions get up to 6 slots each
-    # regardless of initial score (short-float data is rarely in screener response).
-    us_pool   = [c for c in candidates if c.get("market") == "US"][:28]
-    intl_pool = []
-    for region in ("DE", "GB", "FR", "NL", "CA", "JP", "HK", "KR"):
-        region_stocks = [c for c in candidates if c.get("market") == region][:6]
-        intl_pool.extend(region_stocks)
-    pool = us_pool + intl_pool
+    # ── Dynamic pool construction ─────────────────────────────────────────────
+    # Priority 1: SF ≥ POOL_SHORT_FLOAT_THRESHOLD (always included)
+    tier1 = [c for c in candidates if c.get("short_float", 0) >= POOL_SHORT_FLOAT_THRESHOLD]
+    # Priority 2: SF 5–10 % from most_shorted_stocks screener
+    tier2 = [c for c in candidates
+             if c not in tier1
+             and 5.0 <= c.get("short_float", 0) < POOL_SHORT_FLOAT_THRESHOLD
+             and c.get("source") == "yahoo_most_shorted"]
+    # Priority 3: relative volume ≥ 2× (volume spike from any screener source)
+    tier3 = [c for c in candidates
+             if c not in tier1 and c not in tier2
+             and c.get("rel_volume", 0) >= 2.0]
+    # Priority 4: remainder sorted by volume descending
+    used  = {id(c) for c in tier1 + tier2 + tier3}
+    tier4 = sorted(
+        [c for c in candidates if id(c) not in used],
+        key=lambda c: c.get("rel_volume", 0),
+        reverse=True,
+    )
+
+    # Assemble pool: tiers 1–3 always in, fill with tier4 up to POOL_MAX
+    pool: list[dict] = list(tier1) + list(tier2) + list(tier3)
+    remaining_slots  = max(POOL_MAX - len(pool), 0)
+    pool.extend(tier4[:remaining_slots])
+
+    # Enforce minimum
+    if len(pool) < POOL_MIN:
+        extras = [c for c in candidates if c not in pool]
+        extras.sort(key=lambda c: c.get("rel_volume", 0), reverse=True)
+        pool.extend(extras[:POOL_MIN - len(pool)])
+
+    n_sf10 = len(tier1)
+    n_sf5  = len(tier2)
+    n_vol  = len(tier3)
+    n_rest = len(pool) - n_sf10 - n_sf5 - n_vol
+    print(
+        f"Pool-Aufbau: {n_sf10}× SF≥{POOL_SHORT_FLOAT_THRESHOLD:.0f}% + "
+        f"{n_sf5}× SF 5-10% + {n_vol}× Vol≥2× + {n_rest}× Rest = "
+        f"{len(pool)} Kandidaten (Min={POOL_MIN}, Max={POOL_MAX})",
+        flush=True,
+    )
+    # ─────────────────────────────────────────────────────────────────────────
 
     # Pre-compute FINRA publication dates once
     finra_dates = _latest_finra_dates(3)
@@ -2131,7 +2171,19 @@ def main():
     # --- Step 2: yfinance enrichment (all real filtering happens here) ---
     log.info("Step 2 – Enriching %d candidates with yfinance …", len(pool))
     enriched = []
+    _enrich_start = time.time()
     for i, c in enumerate(pool):
+        # Timeout guard: skip remaining candidates if wall-clock limit exceeded
+        _elapsed_enrich = time.time() - _enrich_start
+        if _elapsed_enrich > POOL_ENRICH_TIMEOUT:
+            print(
+                f"Pool-Anreicherung Zeitlimit erreicht: {i}/{len(pool)} Kandidaten angereichert",
+                flush=True,
+            )
+            log.warning("Enrichment timeout after %.1fs — skipping remaining %d candidates",
+                        _elapsed_enrich, len(pool) - i)
+            break
+
         t = c["ticker"]
         log.info("  [%d/%d] %s", i + 1, len(pool), t)
         yfd = get_yfinance_data(t)
@@ -2197,6 +2249,11 @@ def main():
         enriched.append(c)
         time.sleep(0.4)
 
+    _enrich_elapsed = time.time() - _enrich_start
+    print(
+        f"Angereichert: {len(enriched)}/{len(pool)} Kandidaten in {_enrich_elapsed:.1f}s",
+        flush=True,
+    )
     enriched.sort(key=lambda x: x["score"], reverse=True)
 
     # Apply volume filter; relax automatically if too few results
