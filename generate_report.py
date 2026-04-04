@@ -1402,9 +1402,6 @@ def _card(i: int, s: dict) -> str:
     si_t1_disp = _fmt_si_record(si_hist[0]) if len(si_hist) >= 1 else "—"
     si_t2_disp = _fmt_si_record(si_hist[1]) if len(si_hist) >= 2 else "—"
     si_t3_disp = _fmt_si_record(si_hist[2]) if len(si_hist) >= 3 else "—"
-    si_t4_disp = _fmt_si_record(si_hist[3]) if len(si_hist) >= 4 else "—"
-    si_t5_disp = _fmt_si_record(si_hist[4]) if len(si_hist) >= 5 else "—"
-    si_t6_disp = _fmt_si_record(si_hist[5]) if len(si_hist) >= 6 else "—"
 
     # RSI / MA / Relative-Strength rows for detail table
     _rsi   = s.get("rsi14")
@@ -1595,15 +1592,11 @@ def _card(i: int, s: dict) -> str:
         <tr><td>52W-Hoch / -Tief</td><td>${s.get('52w_high') or 0:.2f} / ${s.get('52w_low') or 0:.2f}</td></tr>
         <tr><td>Ø Volumen 20T</td><td>{s.get('avg_vol_20d',0):,.0f}</td></tr>
         <tr><td>Heutiges Volumen</td><td>{s.get('cur_vol',0):,.0f}</td></tr>
-        <tr><td>Short Interest Quelle</td><td>{s.get('sf_source','Yahoo Finance')}</td></tr>
         {edgar_row}
         <tr><td>SI-Trend (3M)</td><td>{trend_html}</td></tr>
         <tr><td>Short-Vol. T-1 (FINRA)</td><td>{si_t1_disp}</td></tr>
         <tr><td>Short-Vol. T-2</td><td>{si_t2_disp}</td></tr>
         <tr><td>Short-Vol. T-3</td><td>{si_t3_disp}</td></tr>
-        <tr><td>Short-Vol. T-4</td><td>{si_t4_disp}</td></tr>
-        <tr><td>Short-Vol. T-5</td><td>{si_t5_disp}</td></tr>
-        <tr><td>Short-Vol. T-6</td><td>{si_t6_disp}</td></tr>
 
         {rsi_ma_rows}
         {options_rows}
