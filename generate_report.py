@@ -419,68 +419,54 @@ _ftd_stats:   dict = {"ok": 0, "empty": 0, "err": 0}
 
 
 def get_finra_short_interest(ticker: str) -> dict:
-    """Fetch last 3 FINRA equity short interest periods in one API call.
-    Returns dict with short_interest, prev_short_interest, settlement_date,
-    history (list newest→oldest), trend ('up'/'down'/'sideways'/'no_data'),
-    trend_pct (float, %). Returns {} on any failure.
+    """Fetch last 3 FINRA equity short interest periods.
+    Requires FINRA_API_TOKEN env variable (free registration at developer.finra.org).
+    Returns dict with short_interest, history, trend, trend_pct or {} on failure.
     """
+    token = os.environ.get("FINRA_API_TOKEN", "")
+    if not token:
+        return {}   # silent skip – no token configured
+
     url = "https://api.finra.org/data/group/equity/name/shortInterest"
-    # NOTE: no "fields" filter → FINRA returns ALL fields so we can identify exact names
     payload = {
         "compareFilters": [
             {"fieldName": "symbolCode", "compareType": "equal", "fieldValue": ticker.upper()}
         ],
-        "limit": 1,
+        "fields": ["symbolCode", "settlementDate", "currentShortPositionQuantity"],
+        "limit": 3,
         "sortFields": ["-settlementDate"],
     }
+    headers = {
+        "Content-Type": "application/json",
+        "Authorization": f"Bearer {token}",
+    }
     try:
-        print(f"FINRA-Abfrage: {url} (Ticker: {ticker})")
-        r = requests.post(url, json=payload,
-                          headers={"Content-Type": "application/json"}, timeout=12)
-        print(f"FINRA HTTP {r.status_code} for {ticker}")
+        r = requests.post(url, json=payload, headers=headers, timeout=12)
+        if r.status_code == 401:
+            log.warning("FINRA 401 Unauthorized for %s – check FINRA_API_TOKEN secret", ticker)
+            _finra_stats["err"] += 1
+            return {}
         if r.status_code != 200:
-            log.warning("FINRA HTTP %d for %s – body: %s", r.status_code, ticker, r.text[:300])
+            log.warning("FINRA HTTP %d for %s", r.status_code, ticker)
             _finra_stats["empty"] += 1
             return {}
         data = r.json()
-        # DIAGNOSTIC: print complete first record to reveal actual field names
-        print(f"FINRA raw response for {ticker}: {data}")
         if not isinstance(data, list) or not data:
             log.warning("FINRA empty response for %s", ticker)
             _finra_stats["empty"] += 1
             return {}
 
-        # Try all known FINRA field name variants for short interest
-        si_field = None
-        for candidate in ("currentShortPositionQuantity", "shortInterest",
-                          "totalShortInterestQuantity", "shortPositionQuantity"):
-            if candidate in data[0]:
-                si_field = candidate
-                break
-        print(f"FINRA field detected for {ticker}: {si_field} | keys: {list(data[0].keys())}")
-        if not si_field:
-            log.warning("FINRA: no SI field found for %s. Keys: %s", ticker, list(data[0].keys()))
-            _finra_stats["empty"] += 1
-            return {}
-
-        # Re-fetch 3 periods now that we know the field
-        payload["limit"] = 3
-        r3 = requests.post(url, json=payload,
-                           headers={"Content-Type": "application/json"}, timeout=12)
-        data3 = r3.json() if r3.status_code == 200 and isinstance(r3.json(), list) else data
-
         history = []
-        for rec in data3[:3]:
-            si_val = int(rec.get(si_field) or 0)
+        for rec in data[:3]:
+            si_val = int(rec.get("currentShortPositionQuantity") or 0)
             if si_val:
                 history.append({"short_interest": si_val,
                                  "settlement_date": rec.get("settlementDate", "")})
         if not history:
-            log.warning("FINRA: no usable SI values for %s (raw: %s)", ticker, data3[:1])
+            log.warning("FINRA: no SI values for %s", ticker)
             _finra_stats["empty"] += 1
             return {}
 
-        # Trend: newest vs oldest available period
         trend, trend_pct = "no_data", 0.0
         if len(history) >= 2:
             newest = history[0]["short_interest"]
@@ -515,7 +501,6 @@ def get_fintel_ftd(ticker: str) -> dict:
     """
     url = f"https://fintel.io/api/filings/ftd/{ticker.upper()}"
     try:
-        print(f"Fintel-Abfrage: {url}")
         r = requests.get(url, headers=HTTP_HEADERS, timeout=12)
         if r.status_code != 200:
             log.warning("Fintel FTD HTTP %d for %s", r.status_code, ticker)
