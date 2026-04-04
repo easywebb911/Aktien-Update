@@ -22,9 +22,6 @@ WATCHLIST: dict[str, list[str]] = {
         "MBB.DE",    # MBB SE – industrial holding
         "SMHN.DE",   # Südzucker – food/bio-ethanol
         "NWX.DE",    # Nagarro – software engineering
-        "PNE.DE",    # PNE AG – wind energy
-        "HAGG.DE",   # Hawesko – wine retail
-        "CBOXX.DE",  # Compugroup Medical
         "SIX2.DE",   # Sixt SE – car rental
         "HOB.DE",    # Hoberg & Driesch
         "UTDI.DE",   # United Internet
@@ -36,8 +33,6 @@ WATCHLIST: dict[str, list[str]] = {
         "MOR.DE",    # MorphoSys – biotech
     ],
     "GB": [
-        "BOO.L",     # boohoo – online fashion
-        "TED.L",     # Ted Baker – apparel (if still listed)
         "SDRY.L",    # Superdry – clothing
         "CARD.L",    # Card Factory – greetings
         "TRN.L",     # Trainline – rail ticketing
@@ -63,14 +58,12 @@ WATCHLIST: dict[str, list[str]] = {
         "CMX.L",     # Chemring Group
     ],
     "FR": [
-        "CGG.PA",    # CGG – geoscience
         "SESL.PA",   # SES-imagotag – digital labels
         "ECA.PA",    # Euroapi – APIs pharma
         "OSE.PA",    # OSE Immunotherapeutics
         "ABCA.PA",   # ABC arbitrage
         "FII.PA",    # Figeac Aero – aerospace
         "ALSPW.PA",  # Spie SA
-        "LHN.PA",    # Lalique Group
         "ALCRB.PA",  # Carbios – biotech
         "ALMDG.PA",  # Median Technologies
         "MLCMG.PA",  # CM-CIC
@@ -124,7 +117,6 @@ WATCHLIST: dict[str, list[str]] = {
         "BB.TO",     # BlackBerry – cybersecurity
         "ACB.TO",    # Aurora Cannabis
         "CRON.TO",   # Cronos Group – cannabis
-        "HEXO.TO",   # HEXO Corp – cannabis
         "CLS.TO",    # Celestica – electronics
         "AR.TO",     # Argonaut Gold
         "BTO.TO",    # B2Gold – gold mining
@@ -157,7 +149,6 @@ WATCHLIST: dict[str, list[str]] = {
         "3765.T",    # GungHo Online – gaming
         "2413.T",    # M3 – medical platform
         "6594.T",    # Nidec – motors
-        "2432.T",    # DeNA
         "4563.T",    # AnGes – gene therapy
         "6758.T",    # Sony Group
         "7267.T",    # Honda Motor
