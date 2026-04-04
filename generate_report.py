@@ -429,7 +429,7 @@ def get_finra_short_interest(ticker: str) -> dict:
         "compareFilters": [
             {"fieldName": "symbolCode", "compareType": "equal", "fieldValue": ticker.upper()}
         ],
-        "fields": ["symbolCode", "settlementDate", "shortInterest"],
+        "fields": ["symbolCode", "settlementDate", "currentShortPositionQuantity"],
         "limit": 3,
         "sortFields": ["-settlementDate"],
     }
@@ -446,14 +446,17 @@ def get_finra_short_interest(ticker: str) -> dict:
             log.warning("FINRA empty response for %s", ticker)
             _finra_stats["empty"] += 1
             return {}
+        # Log first record structure once for field-name diagnostics
+        log.info("FINRA raw record[0] for %s: %s", ticker, data[0])
 
         history = []
         for rec in data[:3]:
-            si_val = int(rec.get("shortInterest") or 0)
+            si_val = int(rec.get("currentShortPositionQuantity") or 0)
             if si_val:
                 history.append({"short_interest": si_val,
                                  "settlement_date": rec.get("settlementDate", "")})
         if not history:
+            log.warning("FINRA: no usable SI values for %s (raw: %s)", ticker, data[:1])
             _finra_stats["empty"] += 1
             return {}
 
