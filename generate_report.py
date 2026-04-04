@@ -68,6 +68,11 @@ FTD_BONUS_MAX    = 0    # SEC EDGAR + Nasdaq Data Link blocked on GitHub Actions
 # ── FINRA short interest trend thresholds ────────────────────────────────────
 SI_TREND_UP_THRESHOLD   =  0.10   # ≥+10 % over 3 periods → steigend
 SI_TREND_DOWN_THRESHOLD = -0.10   # ≤−10 % → fallend; between → seitwärts
+# ── Score smoothing weights ──────────────────────────────────────────────────
+SCORE_TODAY_WEIGHT   = 0.70   # weight for today's raw score
+SCORE_HISTORY_WEIGHT = 0.30   # weight for average of last 3 historical runs
+_SCORE_HISTORY_FILE  = "score_history.json"
+_SCORE_HISTORY_DAYS  = 14     # prune entries older than this many days
 
 
 # ===========================================================================
@@ -800,6 +805,69 @@ def fmt_cap(v) -> str:
     return f"${v:,.0f}"
 
 
+# ===========================================================================
+# SCORE HISTORY — smoothing across trading days
+# ===========================================================================
+
+def _load_score_history() -> dict:
+    try:
+        with open(_SCORE_HISTORY_FILE, "r", encoding="utf-8") as fh:
+            return json.load(fh)
+    except (FileNotFoundError, json.JSONDecodeError):
+        return {}
+
+
+def _save_score_history(history: dict, today: str) -> None:
+    """Prune entries older than _SCORE_HISTORY_DAYS days, then write to disk."""
+    from datetime import timedelta
+    cutoff = (
+        datetime.strptime(today, "%Y-%m-%d") - timedelta(days=_SCORE_HISTORY_DAYS)
+    ).strftime("%Y-%m-%d")
+    pruned = {
+        ticker: [e for e in entries if e.get("date", "") >= cutoff]
+        for ticker, entries in history.items()
+    }
+    pruned = {k: v for k, v in pruned.items() if v}  # drop tickers with no remaining entries
+    with open(_SCORE_HISTORY_FILE, "w", encoding="utf-8") as fh:
+        json.dump(pruned, fh, indent=2)
+
+
+def apply_score_smoothing(stocks: list[dict], today: str) -> None:
+    """Smooth each stock's score in-place using historical data and save history.
+
+    Weighted formula: displayed_score = TODAY_WEIGHT * raw + HISTORY_WEIGHT * avg(last 3 runs)
+    Sets s["score_label"] to "Ø 3T" when history contributed, else "Erster Run".
+    """
+    history = _load_score_history()
+
+    for s in stocks:
+        ticker    = s["ticker"]
+        today_raw = s["score"]
+
+        # Past entries (exclude today to avoid double-counting)
+        past = sorted(
+            [e for e in history.get(ticker, []) if e.get("date", "") != today],
+            key=lambda x: x.get("date", ""),
+            reverse=True,
+        )[:3]
+
+        if past:
+            hist_avg = sum(e["score"] for e in past) / len(past)
+            smoothed = SCORE_TODAY_WEIGHT * today_raw + SCORE_HISTORY_WEIGHT * hist_avg
+            s["score"]       = round(min(smoothed, 100.0), 1)
+            s["score_label"] = "Ø 3T"
+        else:
+            s["score_label"] = "Erster Run"
+
+        # Store today's raw score (overwrite if called twice for same date)
+        entries = [e for e in history.get(ticker, []) if e.get("date", "") != today]
+        entries.append({"date": today, "score": today_raw})
+        history[ticker] = entries
+
+    _save_score_history(history, today)
+    log.info("Score smoothing applied; history saved to %s", _SCORE_HISTORY_FILE)
+
+
 def risk_assessment(stock: dict) -> tuple[str, str, str]:
     """Returns (level_de, hex_color, reason)."""
     pts = 0
@@ -1056,9 +1124,10 @@ def _card(i: int, s: dict) -> str:
       </div>
     </div>
     <div class="score-block">
-      <span class="score-num" style="color:{sc_col}">{s['score']:.0f}</span>
+      <span class="score-num" style="color:{sc_col}">{s['score']:.1f}</span>
       <span class="score-lbl">Score</span>
       <div class="score-track"><div class="score-fill" style="width:{sc:.0f}%;background:{sc_col}"></div></div>
+      <span class="score-hist-lbl">{s.get('score_label','')}</span>
     </div>
   </div>
   <div class="metrics-row">
@@ -1303,6 +1372,7 @@ a{{color:var(--accent);text-decoration:none}}
   letter-spacing:.4px;margin-bottom:5px}}
 .score-track{{width:60px;height:5px;background:var(--brd);border-radius:3px}}
 .score-fill{{height:100%;border-radius:3px;transition:width .3s}}
+.score-hist-lbl{{font-size:.58rem;color:var(--txt-dim);margin-top:2px;text-align:center}}
 /* ── Metrics ── */
 .metrics-row{{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;padding:0 12px 12px}}
 .metric-box{{background:var(--bg-met);border:1px solid var(--brd);border-radius:10px;
@@ -2158,6 +2228,10 @@ def main():
             log.info("  %s: base=%.2f + bonus=%.2f = %.2f",
                      s["ticker"], base, bonus, s["score"])
 
+    top10.sort(key=lambda x: x["score"], reverse=True)
+
+    # --- Step 3a: Score smoothing (70 % today + 30 % avg last 3 runs) ---
+    apply_score_smoothing(top10, report_date)
     top10.sort(key=lambda x: x["score"], reverse=True)
 
     # --- Step 3: News ---
