@@ -1006,6 +1006,7 @@ def generate_html(stocks: list[dict], report_date: str) -> str:
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Squeeze Report">
 <meta name="theme-color" content="#0d1117">
+<link rel="icon" type="image/svg+xml" href="favicon.svg">
 <title>Squeeze Report – {report_date}</title>
 <style>
 :root{{
