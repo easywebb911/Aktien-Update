@@ -24,6 +24,13 @@ from bs4 import BeautifulSoup
 from deep_translator import GoogleTranslator
 from watchlist import WATCHLIST
 
+try:
+    import pandas_ta as ta  # optional: RSI / MA computation
+    _HAS_PANDAS_TA = True
+except ImportError:
+    ta = None  # type: ignore[assignment]
+    _HAS_PANDAS_TA = False
+
 # ---------------------------------------------------------------------------
 # Logging
 # ---------------------------------------------------------------------------
@@ -358,11 +365,22 @@ def get_yfinance_data(ticker: str) -> dict:
     try:
         stk  = yf.Ticker(ticker)
         info = stk.info or {}
-        hist = stk.history(period="21d")
+        hist = stk.history(period="1y")
 
         avg_vol_20 = float(hist["Volume"].tail(20).mean()) if len(hist) >= 5 else 0.0
         cur_vol    = float(hist["Volume"].iloc[-1])         if len(hist) >= 1 else 0.0
         vol_ratio  = cur_vol / avg_vol_20 if avg_vol_20 > 0 else 0.0
+
+        rsi14, ma50, ma200 = None, None, None
+        if _HAS_PANDAS_TA and not hist.empty and len(hist) >= 14:
+            try:
+                close = hist["Close"].dropna()
+                rsi_s = ta.rsi(close, length=14)
+                rsi14 = float(rsi_s.iloc[-1]) if rsi_s is not None and not rsi_s.empty else None
+                ma50  = float(close.tail(50).mean())  if len(close) >= 50  else None
+                ma200 = float(close.tail(200).mean()) if len(close) >= 200 else None
+            except Exception:
+                pass
 
         return {
             "company_name": info.get("longName") or info.get("shortName") or ticker,
@@ -377,6 +395,9 @@ def get_yfinance_data(ticker: str) -> dict:
             "cur_vol":      cur_vol,
             "vol_ratio":    vol_ratio,
             "float_shares": info.get("floatShares") or 0,
+            "rsi14":        rsi14,
+            "ma50":         ma50,
+            "ma200":        ma200,
         }
     except Exception as exc:
         log.warning("yfinance error for %s: %s", ticker, exc)
@@ -408,7 +429,7 @@ def get_yfinance_batch(tickers: list[str]) -> dict[str, dict]:
     hist_batch = None
     try:
         hist_batch = yf.download(
-            tickers, period="21d", group_by="ticker",
+            tickers, period="1y", group_by="ticker",
             auto_adjust=True, threads=True, progress=False,
         )
         _req_counts["yfinance"] += 1
@@ -416,8 +437,24 @@ def get_yfinance_batch(tickers: list[str]) -> dict[str, dict]:
     except Exception as exc:
         log.warning("Batch history download failed (%s) — will use individual fallbacks", exc)
 
+    def _compute_indicators(df) -> tuple:
+        """Compute (rsi14, ma50, ma200) from a Close series; returns (None,None,None) on failure."""
+        if not _HAS_PANDAS_TA or df is None or df.empty:
+            return None, None, None
+        try:
+            close = df["Close"].dropna()
+            if len(close) < 14:
+                return None, None, None
+            rsi_series = ta.rsi(close, length=14)
+            rsi14 = float(rsi_series.iloc[-1]) if rsi_series is not None and not rsi_series.empty else None
+            ma50  = float(close.tail(50).mean())  if len(close) >= 50  else None
+            ma200 = float(close.tail(200).mean()) if len(close) >= 200 else None
+            return rsi14, ma50, ma200
+        except Exception:
+            return None, None, None
+
     def _hist_stats(ticker: str) -> tuple:
-        """Extract (avg_vol_20, cur_vol, vol_ratio, hi52, lo52) from batch or fallback."""
+        """Extract (avg_vol_20, cur_vol, vol_ratio, hi52, lo52, rsi14, ma50, ma200) from batch or fallback."""
         try:
             if hist_batch is not None and not hist_batch.empty:
                 # yf.download with one ticker returns a flat DataFrame;
@@ -429,21 +466,23 @@ def get_yfinance_batch(tickers: list[str]) -> dict[str, dict]:
                     vol_r   = cur_vol / avg_vol if avg_vol > 0 else 0.0
                     hi52    = float(df["High"].max())
                     lo52    = float(df["Low"].min())
-                    return avg_vol, cur_vol, vol_r, hi52, lo52
+                    rsi14, ma50, ma200 = _compute_indicators(df)
+                    return avg_vol, cur_vol, vol_r, hi52, lo52, rsi14, ma50, ma200
         except Exception:
             pass
         # Fallback: individual history call for this ticker
         try:
-            df2 = yf.Ticker(ticker).history(period="21d")
+            df2 = yf.Ticker(ticker).history(period="1y")
             _req_counts["yfinance"] += 1
             if not df2.empty and len(df2) >= 5:
                 avg_vol = float(df2["Volume"].tail(20).mean())
                 cur_vol = float(df2["Volume"].iloc[-1])
                 vol_r   = cur_vol / avg_vol if avg_vol > 0 else 0.0
-                return avg_vol, cur_vol, vol_r, float(df2["High"].max()), float(df2["Low"].min())
+                rsi14, ma50, ma200 = _compute_indicators(df2)
+                return avg_vol, cur_vol, vol_r, float(df2["High"].max()), float(df2["Low"].min()), rsi14, ma50, ma200
         except Exception as exc2:
             log.debug("Fallback history failed for %s: %s", ticker, exc2)
-        return 0.0, 0.0, 0.0, None, None
+        return 0.0, 0.0, 0.0, None, None, None, None, None
 
     # ── Phase B: Parallel .info fetches (metadata not in download payload) ──
     def _fetch_info(ticker: str) -> tuple[str, dict]:
@@ -466,7 +505,7 @@ def get_yfinance_batch(tickers: list[str]) -> dict[str, dict]:
 
     # ── Combine history + info; fallback to individual call if both are empty ──
     for ticker in tickers:
-        avg_vol_20, cur_vol, vol_ratio, hi52, lo52 = _hist_stats(ticker)
+        avg_vol_20, cur_vol, vol_ratio, hi52, lo52, rsi14, ma50, ma200 = _hist_stats(ticker)
         info = info_map.get(ticker, {})
 
         # If the batch produced nothing useful for this ticker, fall back entirely
@@ -489,6 +528,9 @@ def get_yfinance_batch(tickers: list[str]) -> dict[str, dict]:
             "cur_vol":        cur_vol,
             "vol_ratio":      vol_ratio,
             "float_shares":   info.get("floatShares") or 0,
+            "rsi14":          rsi14,
+            "ma50":           ma50,
+            "ma200":          ma200,
         }
 
     return results
@@ -1278,6 +1320,36 @@ def _card(i: int, s: dict) -> str:
     si_4w_disp  = _fmt_si_record(si_hist[1]) if len(si_hist) >= 2 else "—"
     si_8w_disp  = _fmt_si_record(si_hist[2]) if len(si_hist) >= 3 else "—"
 
+    # RSI / MA rows for detail table
+    _rsi  = s.get("rsi14")
+    _ma50 = s.get("ma50")
+    _ma200= s.get("ma200")
+    _price= s.get("price", 0)
+    if _rsi is not None:
+        if _rsi < 30:
+            _rsi_col, _rsi_lbl = "#22c55e", "überverkauft"
+        elif _rsi > 70:
+            _rsi_col, _rsi_lbl = "#ef4444", "überkauft"
+        else:
+            _rsi_col, _rsi_lbl = "var(--txt)", ""
+        _rsi_cell = f'<span style="color:{_rsi_col}">{_rsi:.1f}{(" — " + _rsi_lbl) if _rsi_lbl else ""}</span>'
+        _rsi_row  = f"<tr><td>RSI (14T)</td><td>{_rsi_cell}</td></tr>"
+    else:
+        _rsi_row  = ""
+    if _ma50 is not None:
+        _vs_ma50 = ((_price - _ma50) / _ma50 * 100) if _ma50 > 0 else None
+        _ma50_col = "#22c55e" if (_vs_ma50 is not None and _vs_ma50 >= 0) else "#ef4444"
+        _ma50_pct = f'({_vs_ma50:+.1f}%)' if _vs_ma50 is not None else ""
+        _ma50_row1 = f"<tr><td>MA 50T</td><td>${_ma50:.2f}</td></tr>"
+        _ma50_row2 = f'<tr><td>Kurs vs. MA50</td><td><span style="color:{_ma50_col}">{_ma50_pct}</span></td></tr>'
+    else:
+        _ma50_row1, _ma50_row2 = "", ""
+    if _ma200 is not None:
+        _ma200_row = f"<tr><td>MA 200T</td><td>${_ma200:.2f}</td></tr>"
+    else:
+        _ma200_row = ""
+    rsi_ma_rows = _rsi_row + _ma50_row1 + _ma200_row + _ma50_row2
+
     # Chart links
     yf_chart_url  = f"https://finance.yahoo.com/chart/{s['ticker']}"
     is_intl       = "." in s["ticker"]
@@ -1377,6 +1449,7 @@ def _card(i: int, s: dict) -> str:
         <tr><td>Short-Vol. T-2</td><td>{si_4w_disp}</td></tr>
         <tr><td>Short-Vol. T-3</td><td>{si_8w_disp}</td></tr>
 
+        {rsi_ma_rows}
         <tr><td>Risiko-Detail</td><td style="color:{risk_col}">{risk_txt}</td></tr>
       </table>
     </div>
@@ -2558,6 +2631,9 @@ def main():
             "52w_low":       yfd.get("52w_low"),
             "avg_vol_20d":   yfd.get("avg_vol_20d", 0),
             "cur_vol":       yfd.get("cur_vol", 0),
+            "rsi14":         yfd.get("rsi14"),
+            "ma50":          yfd.get("ma50"),
+            "ma200":         yfd.get("ma200"),
         })
         yf_sf = yfd.get("short_float_yf", 0)
         if yf_sf > 0:
