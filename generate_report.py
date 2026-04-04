@@ -463,7 +463,7 @@ def _load_finra_csv(date_str: str) -> dict[str, int]:
                 if ticker and si_val > 0:
                     merged[ticker] = merged.get(ticker, 0) + si_val
             added = len(merged) - count_before
-            print(f"FINRA CSV erfolgreich geladen: {filename} — {added} Ticker gefunden")
+            print(f"FINRA CSV {date_str}: {filename} — {added} Ticker geladen")
         except Exception as exc:
             print(f"FINRA CSV Fehler bei {url.split('/')[-1]}: {exc}")
     return merged
@@ -479,6 +479,7 @@ def _get_finra_csv_for_date(date_str: str) -> dict[str, int]:
 def _latest_finra_dates(n: int = 3) -> list[str]:
     """Find the n most recent FINRA publication dates by probing backwards
     from today (max 30 days). Returns list of YYYYMMDD strings, newest first.
+    Tries HEAD first; falls back to streaming GET on 403/405.
     """
     from datetime import date, timedelta
     found: list[str] = []
@@ -487,28 +488,37 @@ def _latest_finra_dates(n: int = 3) -> list[str]:
         if len(found) >= n:
             break
         day = today - timedelta(days=delta)
-        # FINRA publishes on business days only
-        if day.weekday() >= 5:   # Sat=5, Sun=6
+        if day.weekday() >= 5:   # skip weekends
             continue
         date_str = day.strftime("%Y%m%d")
-        # Probe one URL to check if this date exists
         probe = (f"https://www.finra.org/sites/default/files/short-sale/"
                  f"cnms{date_str}.txt")
         try:
             r = requests.head(probe, headers=HTTP_HEADERS, timeout=10)
             if r.status_code == 200:
                 found.append(date_str)
+                continue
+            # HEAD blocked (403/405) → fall back to streaming GET
+            if r.status_code in (403, 405):
+                rg = requests.get(probe, headers=HTTP_HEADERS,
+                                  timeout=10, stream=True)
+                rg.close()
+                if rg.status_code == 200:
+                    found.append(date_str)
         except Exception:
             continue
+    print(f"FINRA Datumssuche: {len(found)} Daten gefunden: {found}")
     return found
 
 
-def get_finra_short_interest(ticker: str) -> dict:
+def get_finra_short_interest(ticker: str,
+                             dates: list[str] | None = None) -> dict:
     """Lookup short interest for ticker from FINRA public CSV files.
-    Downloads the 3 most recent FINRA publication files without authentication.
+    `dates` should be pre-computed by _latest_finra_dates() once per run.
     Returns dict with short_interest, history, trend, trend_pct or {}.
     """
-    dates = _latest_finra_dates(3)
+    if dates is None:
+        dates = []
     if not dates:
         _finra_stats["empty"] += 1
         return {}
@@ -518,7 +528,6 @@ def get_finra_short_interest(ticker: str) -> dict:
         data = _get_finra_csv_for_date(date_str)
         si_val = data.get(ticker.upper(), 0)
         if si_val:
-            # Format date YYYYMMDD → YYYY-MM-DD for display helper
             sd = f"{date_str[:4]}-{date_str[4:6]}-{date_str[6:]}"
             history.append({"short_interest": si_val, "settlement_date": sd})
 
@@ -589,22 +598,35 @@ def get_sec_ftd(ticker: str, _cache: dict = {}) -> dict:
         return _cache[ticker]
 
     today = date.today()
-    # Try current month (b-file) then a-file then prior month b-file
-    candidates = []
-    for delta in range(0, 3):
-        dt = today.replace(day=1) - timedelta(days=30 * delta)
-        candidates.append(dt.replace(day=16))  # b-file
-        candidates.append(dt.replace(day=1))   # a-file
-    candidates = candidates[:4]  # max 4 attempts
+    yesterday = today - timedelta(days=1)
+
+    # Build candidate list ordered newest→oldest, never in the future.
+    # a-file: covers settlements 1–15, published after the 1st  → only if day >= 2
+    # b-file: covers settlements 16–EOM, published after the 16th → only if day >= 17
+    candidates: list[date] = []
+    for months_back in range(0, 4):
+        # Reference: first day of (current month − months_back)
+        ref = (yesterday.replace(day=1) -
+               timedelta(days=30 * months_back)).replace(day=1)
+        # b-file of that month: available from the 17th onward
+        b_ref = ref.replace(day=16)
+        if b_ref <= yesterday:
+            candidates.append(b_ref)
+        # a-file of that month: available from the 2nd onward
+        a_ref = ref.replace(day=1)
+        if a_ref <= yesterday:
+            candidates.append(a_ref)
 
     all_quantities: list[int] = []
     for dt in candidates:
         url = _ftd_url(dt)
+        filename = url.split("/")[-1]
         try:
             r = requests.get(url, headers=HTTP_HEADERS, timeout=20)
             if r.status_code == 200:
                 qtys = _parse_zip(r.content, ticker)
                 all_quantities.extend(qtys)
+                print(f"SEC FTD: Datei {filename} erfolgreich geladen")
                 if len(all_quantities) >= 2:
                     break
         except Exception:
@@ -1779,6 +1801,9 @@ def main():
         intl_pool.extend(region_stocks)
     pool = us_pool + intl_pool
 
+    # Pre-compute FINRA publication dates once (Korrektur A: not per ticker)
+    finra_dates = _latest_finra_dates(3)
+
     # --- Step 2: yfinance enrichment (all real filtering happens here) ---
     log.info("Step 2 – Enriching %d candidates with yfinance …", len(pool))
     enriched = []
@@ -1809,7 +1834,7 @@ def main():
         # FINRA short interest correction (US stocks only)
         is_us_finra = c.get("market", "US") == "US"
         if is_us_finra:
-            finra = get_finra_short_interest(t)
+            finra = get_finra_short_interest(t, finra_dates)
             c["finra_data"] = finra
             if finra.get("short_interest"):
                 float_sh = yfd.get("float_shares", 0)
