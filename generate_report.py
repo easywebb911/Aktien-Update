@@ -8,8 +8,11 @@ News titles and summaries are translated to German.
 
 import os
 import re
+import json
 import time
 import logging
+import threading
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime
 from zoneinfo import ZoneInfo
 
@@ -160,6 +163,7 @@ def _fetch_yf_screener(screener_id: str, region: str = "US", count: int = 100) -
         resp = requests.get(
             _YF_SCREENER_URL, params=params, headers=HTTP_HEADERS, timeout=20
         )
+        _req_counts["yahoo"] += 1
         resp.raise_for_status()
         data = resp.json()
         results = (data.get("finance") or {}).get("result") or []
@@ -172,9 +176,8 @@ def _fetch_yf_screener(screener_id: str, region: str = "US", count: int = 100) -
 
 
 def get_yahoo_screener_candidates() -> list[dict]:
-    """
-    Fetch a broad candidate pool from Yahoo Finance screeners across all configured
-    regions (US, DE, GB, CA). Strict filters are applied in the enrichment step.
+    """Fetch candidates from Yahoo Finance screeners across all regions in parallel
+    (max 5 threads, respects Yahoo rate-limits). Results are deduplicated.
     """
     result: list[dict] = []
     seen:   set[str]   = set()
@@ -182,7 +185,6 @@ def get_yahoo_screener_candidates() -> list[dict]:
     def _add_quotes(quotes: list, region: str) -> None:
         for q in quotes:
             t = q.get("symbol", "").strip().upper()
-            # Accept alphanumeric tickers incl. dots/dashes for international (e.g. BMW.DE, VOD.L)
             if not t or not re.match(r'^[A-Z0-9][A-Z0-9.\-]{0,14}$', t) or t in seen:
                 continue
             price   = float(q.get("regularMarketPrice") or 0)
@@ -200,20 +202,32 @@ def get_yahoo_screener_candidates() -> list[dict]:
                 "market_cap_s": fmt_cap(mkt_cap),
                 "price":        price,
                 "change":       float(q.get("regularMarketChangePercent") or 0),
-                # shortPercentOfFloat from Yahoo is decimal (0.25 = 25 %)
                 "short_float":  sf_raw * 100 if sf_raw <= 1.0 else sf_raw,
                 "short_ratio":  float(q.get("shortRatio") or 0),
-                "rel_volume":   0.0,  # filled from history in enrichment
+                "rel_volume":   0.0,
                 "company_name": q.get("shortName") or q.get("longName") or t,
                 "sector":       q.get("sector") or "N/A",
             })
 
-    log.info("Querying Yahoo Finance screeners across %d regions …", len(_YF_SCREENERS))
-    for region, screener_ids in _YF_SCREENERS.items():
-        for sid in screener_ids:
-            _add_quotes(_fetch_yf_screener(sid, region=region), region)
-            time.sleep(0.5)
+    tasks = [(region, sid)
+             for region, sids in _YF_SCREENERS.items()
+             for sid in sids]
+    log.info("Querying %d Yahoo Finance screeners across %d regions (parallel, max 5 threads) …",
+             len(tasks), len(_YF_SCREENERS))
+    t0 = time.time()
+    with ThreadPoolExecutor(max_workers=5) as ex:
+        future_map = {ex.submit(_fetch_yf_screener, sid, region): (region, sid)
+                      for region, sid in tasks}
+        for fut in as_completed(future_map):
+            region, _ = future_map[fut]
+            try:
+                _add_quotes(fut.result(), region)
+            except Exception as exc:
+                log.warning("Screener future error: %s", exc)
 
+    elapsed = time.time() - t0
+    print(f"Yahoo Screener: {len(tasks)} Requests parallel in {elapsed:.1f}s abgeschlossen",
+          flush=True)
     log.info("Yahoo screener pool: %d unique tickers", len(result))
     return result
 
@@ -322,6 +336,7 @@ def get_finviz_candidates(max_pages: int = 6) -> list[dict]:
 # ===========================================================================
 
 def get_yfinance_data(ticker: str) -> dict:
+    _req_counts["yfinance"] += 1
     try:
         stk  = yf.Ticker(ticker)
         info = stk.info or {}
@@ -415,6 +430,9 @@ def get_yahoo_news(ticker: str, n: int = 2) -> list[dict]:
 # Mutable counters updated by the API functions during each run
 _finra_stats: dict = {"ok": 0, "empty": 0, "err": 0}
 
+# HTTP-request counters for the runtime summary
+_req_counts: dict = {"finra": 0, "yahoo": 0, "yfinance": 0}
+
 # Module-level cache: {date_str → {ticker → short_interest}} loaded once per run
 _finra_csv_cache: dict[str, dict[str, int]] = {}
 
@@ -434,6 +452,7 @@ def _load_finra_csv(date_str: str) -> dict[str, int]:
     for url in urls:
         try:
             r = requests.get(url, headers=HTTP_HEADERS, timeout=20)
+            _req_counts["finra"] += 1
             if r.status_code != 200:
                 print(f"FINRA CDN nicht verfügbar: {url.split('/')[-1]} → HTTP {r.status_code}")
                 continue
@@ -1630,19 +1649,74 @@ function showMsg(type,text){{
 # 4b. WATCHLIST VOLUME SCAN
 # ===========================================================================
 
+_WL_FAILURES_FILE = "watchlist_failures.json"
+_WL_INACTIVE_FILE = "watchlist_inactive.txt"
+_WL_MAX_FAILURES  = 3   # consecutive 404/empty responses before auto-deactivation
+
+
+def _wl_load_failures() -> dict[str, int]:
+    try:
+        with open(_WL_FAILURES_FILE) as f:
+            return json.load(f)
+    except Exception:
+        return {}
+
+
+def _wl_save_failures(failures: dict[str, int]) -> None:
+    try:
+        with open(_WL_FAILURES_FILE, "w") as f:
+            json.dump(failures, f, indent=2, sort_keys=True)
+    except Exception:
+        pass
+
+
+def _wl_load_inactive() -> set[str]:
+    try:
+        with open(_WL_INACTIVE_FILE) as f:
+            return {ln.strip() for ln in f if ln.strip()}
+    except Exception:
+        return set()
+
+
+def _wl_mark_inactive(ticker: str) -> None:
+    inactive = _wl_load_inactive()
+    inactive.add(ticker)
+    with open(_WL_INACTIVE_FILE, "w") as f:
+        f.write("\n".join(sorted(inactive)) + "\n")
+    log.warning("Watchlist: %s nach %d× Fehler als inaktiv markiert → %s",
+                ticker, _WL_MAX_FAILURES, _WL_INACTIVE_FILE)
+
+
 def get_watchlist_candidates() -> list[dict]:
     """Quick volume scan of the static watchlist (only .history, no .info).
     Returns stocks whose current-day volume is ≥1.5× the 20-day average.
+    Tickers with ≥3 consecutive empty/404 responses are auto-moved to
+    watchlist_inactive.txt and skipped in future runs.
     """
+    failures = _wl_load_failures()
+    inactive = _wl_load_inactive()
+    newly_inactive: list[str] = []
+
     results: list[dict] = []
     for market, tickers in WATCHLIST.items():
-        log.info("Watchlist scan: %s (%d tickers)", market, len(tickers))
-        for ticker in tickers:
+        active = [t for t in tickers if t not in inactive]
+        log.info("Watchlist scan: %s (%d active / %d total)",
+                 market, len(active), len(tickers))
+        for ticker in active:
             try:
                 hist = yf.Ticker(ticker).history(period="21d")
                 if hist.empty or len(hist) < 5:
+                    # Count consecutive failure
+                    failures[ticker] = failures.get(ticker, 0) + 1
+                    if failures[ticker] >= _WL_MAX_FAILURES:
+                        _wl_mark_inactive(ticker)
+                        newly_inactive.append(ticker)
+                        failures.pop(ticker, None)
                     time.sleep(0.15)
                     continue
+                # Success → reset failure count
+                failures.pop(ticker, None)
+
                 avg_vol = float(hist["Volume"].iloc[:-1].mean())
                 cur_vol = float(hist["Volume"].iloc[-1])
                 if avg_vol < 1000:
@@ -1673,8 +1747,18 @@ def get_watchlist_candidates() -> list[dict]:
                 log.info("  watchlist hit: %s [%s] vol=%.1f×", ticker, market, rel_vol)
             except Exception as exc:
                 log.debug("  watchlist skip %s: %s", ticker, exc)
+                failures[ticker] = failures.get(ticker, 0) + 1
+                if failures[ticker] >= _WL_MAX_FAILURES:
+                    _wl_mark_inactive(ticker)
+                    newly_inactive.append(ticker)
+                    failures.pop(ticker, None)
             time.sleep(0.2)
-    log.info("Watchlist candidates: %d", len(results))
+
+    _wl_save_failures(failures)
+    if newly_inactive:
+        print(f"Watchlist: {len(newly_inactive)} Ticker als inaktiv markiert: "
+              f"{newly_inactive}", flush=True)
+    log.info("Watchlist candidates: %d (inactive skipped: %d)", len(results), len(inactive))
     return results
 
 
@@ -1710,6 +1794,7 @@ p{{color:#8899bb;font-size:.88rem;line-height:1.65}}
 # ===========================================================================
 
 def main():
+    t_run_start = time.time()
     berlin = ZoneInfo("Europe/Berlin")
     report_date = datetime.now(berlin).strftime("%d.%m.%Y")
     log.info("=== Squeeze Report %s ===", report_date)
@@ -1758,8 +1843,18 @@ def main():
         intl_pool.extend(region_stocks)
     pool = us_pool + intl_pool
 
-    # Pre-compute FINRA publication dates once (Korrektur A: not per ticker)
+    # Pre-compute FINRA publication dates once
     finra_dates = _latest_finra_dates(3)
+
+    # Opt 1: Pre-load all FINRA CSV files into cache before the per-ticker loop.
+    # This triggers exactly 3×3 = 9 HTTP requests upfront instead of lazily
+    # re-entering _load_finra_csv for every candidate.
+    log.info("Step 2a – Pre-loading FINRA CDN data for %d dates …", len(finra_dates))
+    for _d in finra_dates:
+        _get_finra_csv_for_date(_d)
+    _total_finra_entries = sum(len(v) for v in _finra_csv_cache.values())
+    print(f"FINRA Cache aufgebaut: {len(_finra_csv_cache)} Dateien, "
+          f"{_total_finra_entries} Ticker-Einträge gesamt", flush=True)
 
     # --- Step 2: yfinance enrichment (all real filtering happens here) ---
     log.info("Step 2 – Enriching %d candidates with yfinance …", len(pool))
@@ -1884,6 +1979,15 @@ def main():
         f"{_finra_stats['empty']} leer, "
         f"{_finra_stats['err']} Fehler | "
         f"FTD: deaktiviert (IP-Beschränkung)",
+        flush=True,
+    )
+    _elapsed = time.time() - t_run_start
+    print(
+        f"Laufzeit: {_elapsed:.1f}s | "
+        f"HTTP-Requests: FINRA={_req_counts['finra']}, "
+        f"Yahoo={_req_counts['yahoo']}, "
+        f"Sonstige(yfinance)={_req_counts['yfinance']} | "
+        f"Kandidaten: {len(pool)}→{len(top10)}",
         flush=True,
     )
 
