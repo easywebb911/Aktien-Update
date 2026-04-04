@@ -12,8 +12,10 @@ import json
 import time
 import logging
 import threading
+import xml.etree.ElementTree as ET
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime
+from email.utils import parsedate_to_datetime
 from zoneinfo import ZoneInfo
 
 import requests
@@ -365,7 +367,7 @@ def get_yfinance_data(ticker: str) -> dict:
         return {}
 
 
-def get_yahoo_news(ticker: str, n: int = 2) -> list[dict]:
+def get_yahoo_news(ticker: str, n: int = 5) -> list[dict]:
     try:
         stk  = yf.Ticker(ticker)
         raw  = (stk.news or [])[:n]
@@ -384,8 +386,9 @@ def get_yahoo_news(ticker: str, n: int = 2) -> list[dict]:
                     pub_ts = int(datetime.fromisoformat(pub_ts.rstrip("Z")).timestamp())
                 except Exception:
                     pub_ts = 0
+            pub_ts = int(pub_ts) if pub_ts else 0
             ts_str = (
-                datetime.fromtimestamp(int(pub_ts)).strftime("%d.%m.%Y %H:%M")
+                datetime.fromtimestamp(pub_ts).strftime("%d.%m.%Y %H:%M")
                 if pub_ts else ""
             )
             title_orig = content.get("title") or item.get("title") or ""
@@ -409,19 +412,106 @@ def get_yahoo_news(ticker: str, n: int = 2) -> list[dict]:
             news.append({
                 "title":       _translate(title_orig) if title_orig else "",
                 "title_orig":  title_orig,
-                "summary_raw": raw_summary,         # original English summary
+                "summary_raw": raw_summary,
                 "publisher":   (content.get("provider", {}) or {}).get("displayName")
                                 or content.get("publisher")
-                                or item.get("publisher") or "",
+                                or item.get("publisher") or "Yahoo Finance",
+                "source":      "Yahoo Finance",
                 "link":        (content.get("canonicalUrl", {}) or {}).get("url")
                                 or content.get("link")
                                 or item.get("link") or "#",
                 "time":        ts_str,
+                "ts":          pub_ts,
             })
         return news
     except Exception as exc:
         log.warning("News error for %s: %s", ticker, exc)
         return []
+
+
+def _rss_news(ticker: str, url: str, source_label: str) -> list[dict]:
+    """Fetch and parse a generic RSS/Atom feed; return normalised news items."""
+    try:
+        r = requests.get(url, headers=HTTP_HEADERS, timeout=8)
+        if r.status_code != 200:
+            return []
+        root = ET.fromstring(r.content)
+        # Support both RSS (<channel><item>) and Atom (<entry>)
+        ns = {"atom": "http://www.w3.org/2005/Atom"}
+        items = root.findall(".//item") or root.findall(".//atom:entry", ns)
+        result = []
+        for item in items[:5]:
+            title = (
+                item.findtext("title")
+                or item.findtext("atom:title", namespaces=ns)
+                or ""
+            ).strip()
+            link = (
+                item.findtext("link")
+                or (item.find("atom:link", ns) or ET.Element("x")).get("href", "")
+                or "#"
+            ).strip()
+            pub_str = (
+                item.findtext("pubDate")
+                or item.findtext("atom:published", namespaces=ns)
+                or item.findtext("atom:updated", namespaces=ns)
+                or ""
+            ).strip()
+            ts = 0
+            if pub_str:
+                for fmt in ("%a, %d %b %Y %H:%M:%S %z", "%Y-%m-%dT%H:%M:%S%z",
+                            "%Y-%m-%dT%H:%M:%SZ"):
+                    try:
+                        ts = int(datetime.strptime(pub_str, fmt).timestamp())
+                        break
+                    except ValueError:
+                        pass
+                if not ts:
+                    try:
+                        ts = int(parsedate_to_datetime(pub_str).timestamp())
+                    except Exception:
+                        pass
+            ts_str = datetime.fromtimestamp(ts).strftime("%d.%m.%Y %H:%M") if ts else ""
+            if title:
+                result.append({
+                    "title":       _translate(title),
+                    "title_orig":  title,
+                    "summary_raw": "",
+                    "publisher":   source_label,
+                    "source":      source_label,
+                    "link":        link,
+                    "time":        ts_str,
+                    "ts":          ts,
+                })
+        return result
+    except Exception as exc:
+        log.debug("%s RSS error for %s: %s", source_label, ticker, exc)
+        return []
+
+
+def get_combined_news(ticker: str, n: int = 3) -> list[dict]:
+    """Merge Yahoo Finance, Seeking Alpha, and Benzinga news; return top n by date."""
+    base_upper = ticker.split(".")[0].upper()
+    base_lower = ticker.split(".")[0].lower()
+
+    yahoo_items = get_yahoo_news(ticker, n=5)
+    sa_items    = _rss_news(
+        ticker,
+        f"https://seekingalpha.com/api/sa/combined/{base_upper}.xml",
+        "Seeking Alpha",
+    )
+    bz_items    = _rss_news(
+        ticker,
+        f"https://www.benzinga.com/stock/{base_lower}/feed",
+        "Benzinga",
+    )
+
+    n_yahoo, n_sa, n_bz = len(yahoo_items), len(sa_items), len(bz_items)
+    combined = yahoo_items + sa_items + bz_items
+    combined.sort(key=lambda x: x.get("ts", 0), reverse=True)
+    result = combined[:n]
+    print(f"News {ticker}: {n_yahoo} Yahoo + {n_sa} SeekingAlpha + {n_bz} Benzinga = {len(result)} Meldungen")
+    return result
 
 
 # ===========================================================================
@@ -936,12 +1026,14 @@ def _card(i: int, s: dict) -> str:
     )
 
     news_html = ""
-    for n in s.get("news", [])[:2]:
+    for n in s.get("news", [])[:3]:
+        src_label = n.get("source") or n.get("publisher") or ""
+        src_html  = f' <span class="ni-src">({src_label})</span>' if src_label else ""
         news_html += (
             f'<div class="ni">'
             f'<a href="{n.get("link","#")}" target="_blank" rel="noopener noreferrer">'
-            f'{n.get("title","")}</a>'
-            f'<span class="ni-meta">{n.get("publisher","")} · {n.get("time","")}</span>'
+            f'{n.get("title","")}</a>{src_html}'
+            f'<span class="ni-meta">{n.get("time","")}</span>'
             f'</div>'
         )
     if not news_html:
@@ -1256,6 +1348,7 @@ a{{color:var(--accent);text-decoration:none}}
 .ni a{{color:var(--accent);display:block;margin-bottom:2px}}
 .ni a:hover{{text-decoration:underline}}
 .ni-meta{{font-size:.7rem;color:var(--txt-dim)}}
+.ni-src{{font-size:.72rem;color:var(--txt-dim);font-style:italic}}
 .no-news{{font-size:.93rem;color:var(--txt-dim)}}
 .no-data-notice{{font-size:.75rem;color:var(--txt-dim);font-style:italic;
   margin:4px 12px 10px;padding:6px 10px;background:var(--bg-met);border-radius:6px;
@@ -2070,7 +2163,7 @@ def main():
     # --- Step 3: News ---
     log.info("Step 3 – Fetching news for %d stocks …", len(top10))
     for s in top10:
-        s["news"] = get_yahoo_news(s["ticker"])
+        s["news"] = get_combined_news(s["ticker"])
         time.sleep(0.3)
 
     # --- Step 4: HTML ---
