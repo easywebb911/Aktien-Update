@@ -1932,14 +1932,14 @@ def main():
 
     log.info("Report written → index.html")
     log.info("Top 10: %s", [s["ticker"] for s in top10])
-    log.info("Supplementary data summary: FINRA=%d/10, Fintel FTD=%d/10",
+    log.info("Supplementary data summary: FINRA=%d/10, SEC FTD=%d/10",
              _finra_stats["ok"], _ftd_stats["ok"])
     print(
         f"[Datenabruf-Zusammenfassung] "
         f"FINRA: {_finra_stats['ok']} erfolgreich, "
         f"{_finra_stats['empty']} leer, "
         f"{_finra_stats['err']} Fehler | "
-        f"Fintel FTD: {_ftd_stats['ok']} erfolgreich, "
+        f"SEC FTD: {_ftd_stats['ok']} erfolgreich, "
         f"{_ftd_stats['empty']} leer, "
         f"{_ftd_stats['err']} Fehler"
     )
