@@ -148,18 +148,26 @@ _YF_SCREENERS: dict[str, list[str]] = {
     "CA": ["most_shorted_stocks", "small_cap_gainers"],   # Toronto Stock Exchange
 }
 
-# Flag emojis for market tags
-_MARKET_FLAGS: dict[str, str] = {
-    "US": "🇺🇸",
-    "DE": "🇩🇪",
-    "GB": "🇬🇧",
-    "FR": "🇫🇷",
-    "NL": "🇳🇱",
-    "CA": "🇨🇦",
-    "JP": "🇯🇵",
-    "HK": "🇭🇰",
-    "KR": "🇰🇷",
-}
+# Deterministic flag from ticker suffix (longest match wins)
+_SUFFIX_FLAGS: list[tuple[str, str]] = [
+    (".KS", "🇰🇷"),
+    (".HK", "🇭🇰"),
+    (".TO", "🇨🇦"),
+    (".PA", "🇫🇷"),
+    (".AS", "🇳🇱"),
+    (".DE", "🇩🇪"),
+    (".L",  "🇬🇧"),
+    (".T",  "🇯🇵"),
+]
+
+def get_flag(ticker: str) -> str:
+    """Return the country flag emoji for *ticker* based on its suffix.
+    Longest-match first ensures e.g. '.KS' beats a hypothetical '.K'."""
+    t = ticker.upper()
+    for suffix, flag in _SUFFIX_FLAGS:
+        if t.endswith(suffix.upper()):
+            return flag
+    return "🇺🇸"  # no suffix → US
 
 _YF_SCREENER_URL = (
     "https://query2.finance.yahoo.com/v1/finance/screener/predefined/saved"
@@ -1361,7 +1369,7 @@ def _card(i: int, s: dict) -> str:
     chg_col = _metric_color("mom", chg)
 
     has_no_short_data = sf == 0 and sr == 0
-    flag    = _MARKET_FLAGS.get(s.get("market", "US"), "")
+    flag    = get_flag(s["ticker"])
     sf_display = "—" if has_no_short_data else f"{sf:.1f}%"
     sr_display = "—" if has_no_short_data else f"{sr:.1f}d"
     no_data_html = (
@@ -1546,7 +1554,7 @@ def _card(i: int, s: dict) -> str:
         <div class="ticker-row">
           <span class="ticker">{s['ticker']}</span>
           <span class="market-tag">{flag} {s.get('market','US')}</span>
-          {yahoo_badge}{finviz_badge}{sa_badge}
+          {finviz_badge}{sa_badge}
           <span class="price-tag">${s.get('price',0):.2f}</span>
         </div>
         <span class="company">{s.get('company_name','')}</span>
@@ -1859,8 +1867,8 @@ a{{color:var(--accent);text-decoration:none}}
 .details-body.open{{max-height:1200px}}
 /* ── News toggle button ── */
 .news-btn{{width:100%;min-height:44px;background:var(--bg-met);border:none;
-  border-top:1px solid var(--brd);color:var(--accent);font-size:.82rem;
-  font-weight:700;cursor:pointer;padding:0 14px;text-align:left;display:flex;
+  border-top:1px solid var(--brd);color:var(--txt-sub);font-size:.82rem;
+  font-weight:600;cursor:pointer;padding:0 14px;text-align:left;display:flex;
   align-items:center;gap:6px}}
 .news-btn:hover{{background:var(--brd)}}
 /* ── News panel ── */
