@@ -895,7 +895,7 @@ def _fmt_si_record(rec: dict) -> str:
 # Short Float %        → max 35 Pkt  (Sättigung bei 100 %)
 # Short Ratio (Days)   → max 25 Pkt  (Sättigung bei 20 Tagen)
 # Rel. Volumen         → max 25 Pkt  (Sättigung bei 5× Durchschnitt)
-# Kursmomentum 5d      → max 15 Pkt  (Sättigung bei 15 %)
+# Kursmomentum (1T)    → max 15 Pkt  (nur positive Tagesveränderung, Sättigung bei +15 %)
 # Gesamt               → max 100 Pkt
 #
 # Verifikation (nicht ändern ohne explizite Anweisung):
@@ -914,16 +914,18 @@ def score(stock: dict) -> float:
 
     if sf_val == 0 and sr_val == 0:
         # Fall 2: keine Short-Daten → Volumen (max 30) + Momentum (max 20), Cap 50
+        # Nur positive Tagesveränderungen zählen: fallende Kurse = kein Squeeze-Druck
         rv_component = rv_raw * 30
-        chg = abs(stock.get("change", 0))
+        chg = max(stock.get("change", 0), 0)
         momentum = min(chg / 15.0, 1.0) * 20
         return min(round(rv_component + momentum, 2), 50.0)
 
     # Fall 1: Short-Daten vorhanden → vier Faktoren, max 100 Pkt
+    # Nur positive Tagesveränderungen zählen: fallende Kurse = kein Squeeze-Druck
     sf  = min(sf_val / 100.0, 1.0) * 35
     sr  = min(sr_val /  20.0, 1.0) * 25
     rv  = rv_raw * 25
-    mom = min(abs(stock.get("change", 0)) / 15.0, 1.0) * 15
+    mom = min(max(stock.get("change", 0), 0) / 15.0, 1.0) * 15
     return round(sf + sr + rv + mom, 2)
 
 
@@ -1749,7 +1751,7 @@ a{{color:var(--accent);text-decoration:none}}
           <li><strong>35 % Short Float</strong> – Anteil leerverkaufter Aktien; je höher, desto stärker der Squeeze-Druck</li>
           <li><strong>25 % Days to Cover</strong> – Tage zum vollständigen Eindecken; hohe Werte erhöhen Kapitulationsrisiko</li>
           <li><strong>25 % Rel. Volumen</strong> – Heutiges vs. 20-Tage-Durchschnitt; Spitzen signalisieren Kaufinteresse</li>
-          <li><strong>15 % Kursmomentum</strong> – Kursveränderung (5 Tage); steigende Kurse erhöhen den Squeeze-Druck</li>
+          <li><strong>15 % Kursmomentum</strong> – positive Kursveränderung erhöht den Squeeze-Druck auf Leerverkäufer. Nur steigende Kurse fließen positiv in den Score ein.</li>
           <li><strong>+ bis 5 Pkt FINRA SI-Trend Bonus</strong> – steigender Short Interest ≥ +10 % → 5 Pkt · Seitwärts → 2,5 Pkt · Fallend oder keine Daten → 0 Pkt</li>
         </ul>
       </div>
