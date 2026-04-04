@@ -59,14 +59,7 @@ MOM_ORANGE= -5.0   # %   −5–+5  → orange, <−5 → red
 
 # ── Supplementary data source bonus limits ───────────────────────────────────
 FINRA_BONUS_MAX  = 5    # max bonus points for rising FINRA short interest
-FTD_BONUS_MAX    = 5    # max bonus points for elevated Fails-to-Deliver vs 30d avg
-
-# SEC EDGAR requires an identifiable User-Agent (per their crawling policy)
-_SEC_HEADERS = {
-    "User-Agent": "SqueezeReport/1.0 github-actions@squeeze-report.com",
-    "Accept-Encoding": "gzip, deflate",
-    "Host": "www.sec.gov",
-}
+FTD_BONUS_MAX    = 0    # SEC EDGAR + Nasdaq Data Link blocked on GitHub Actions IPs
 # ── FINRA short interest trend thresholds ────────────────────────────────────
 SI_TREND_UP_THRESHOLD   =  0.10   # ≥+10 % over 3 periods → steigend
 SI_TREND_DOWN_THRESHOLD = -0.10   # ≤−10 % → fallend; between → seitwärts
@@ -421,8 +414,6 @@ def get_yahoo_news(ticker: str, n: int = 2) -> list[dict]:
 
 # Mutable counters updated by the API functions during each run
 _finra_stats: dict = {"ok": 0, "empty": 0, "err": 0}
-_ftd_stats:   dict = {"ok": 0, "empty": 0, "err": 0,
-                      "a1": 0, "a2": 0, "a3": 0, "na": 0}
 
 # Module-level cache: {date_str → {ticker → short_interest}} loaded once per run
 _finra_csv_cache: dict[str, dict[str, int]] = {}
@@ -533,20 +524,17 @@ def get_finra_short_interest(ticker: str,
         _finra_stats["empty"] += 1
         return {}
 
-    # Problem 3: case-insensitive strip matching + debug logging
     sym = ticker.strip().upper()
-    _FINRA_MIN_VOL = 1_000  # ignore noise below 1 000 shares (avoids ÷ tiny-number)
+    _FINRA_MIN_VOL  = 10    # include all real data points (≥ 10 shares)
+    _TREND_MIN_VOL  = 100   # trend % only computed when oldest ≥ 100 (avoids ÷ tiny)
 
     history: list[dict] = []
     for date_str in dates:
         data = _get_finra_csv_for_date(date_str)
-        # Exact lookup (keys are already strip().upper() from _load_finra_csv)
         si_val = data.get(sym, 0)
-        # Debug: show hit/miss for every ticker
         hit = sym in data
         print(f"FINRA Ticker-Suche: {sym} [{date_str}] → "
               f"{'Treffer' if hit else 'Kein Treffer'}: {si_val:,}", flush=True)
-        # Problem 1: skip zero or sub-threshold values to prevent ÷-by-tiny
         if si_val >= _FINRA_MIN_VOL:
             sd = f"{date_str[:4]}-{date_str[4:6]}-{date_str[6:]}"
             history.append({"short_interest": si_val, "settlement_date": sd})
@@ -555,13 +543,18 @@ def get_finra_short_interest(ticker: str,
         _finra_stats["empty"] += 1
         return {}
 
-    # Problem 1: only compute trend when ≥ 2 real data points exist
+    # Korrektur 2 debug: confirm T1/T2/T3 after threshold fix
+    t1 = history[0]["short_interest"] if len(history) >= 1 else None
+    t2 = history[1]["short_interest"] if len(history) >= 2 else None
+    t3 = history[2]["short_interest"] if len(history) >= 3 else None
+    print(f"{ticker} FINRA-Werte nach Fix: T1={t1}, T2={t2}, T3={t3}", flush=True)
+
+    # Trend only when oldest ≥ 100 to prevent absurd percentages from tiny values
     trend, trend_pct = "no_data", 0.0
     if len(history) >= 2:
         newest = history[0]["short_interest"]
         oldest = history[-1]["short_interest"]
-        # Guard: oldest must be ≥ threshold (already guaranteed above, but be explicit)
-        if oldest >= _FINRA_MIN_VOL:
+        if oldest >= _TREND_MIN_VOL:
             trend_pct = (newest - oldest) / oldest
             if trend_pct >= SI_TREND_UP_THRESHOLD:
                 trend = "up"
@@ -581,202 +574,46 @@ def get_finra_short_interest(ticker: str,
     }
 
 
-# ── SEC EDGAR FTD – drei Fallback-Ansätze ────────────────────────────────────
+# ── SEC EDGAR FTD ─────────────────────────────────────────────────────────────
+# Permanently disabled: SEC EDGAR ZIP endpoint and Nasdaq Data Link both return
+# HTTP 403 from GitHub Actions IP ranges. FTD_BONUS_MAX = 0.
 
 def get_sec_ftd(ticker: str, _cache: dict = {}) -> dict:
-    """Fetch Fails-to-Deliver data via three fallback approaches.
-    Approach 1: ZIP download with correct SEC User-Agent header.
-    Approach 2: EDGAR full-text search REST API (efts.sec.gov).
-    Approach 3: Nasdaq Data Link (Quandl) SEC/FTD dataset.
-    Returns {"ftd_latest": int, "ftd_avg_30d": float} or {}.
-    """
-    import io, zipfile
-    from datetime import date, timedelta
-
-    if ticker in _cache:
-        return _cache[ticker]
-
-    sym = ticker.strip().upper()
-
-    # ── Ansatz 1: ZIP-Download mit korrektem SEC User-Agent ───────────────────
-    def _try_zip() -> dict:
-        def _ftd_url(dt: date) -> str:
-            suffix = "b" if dt.day >= 16 else "a"
-            return (f"https://www.sec.gov/data/foiadocuments/docs/fails-to-deliver/"
-                    f"cnsfails{dt.strftime('%Y%m')}{suffix}.zip")
-
-        def _parse_zip(content: bytes) -> list[int]:
-            try:
-                with zipfile.ZipFile(io.BytesIO(content)) as z:
-                    with z.open(z.namelist()[0]) as f:
-                        lines = f.read().decode("latin-1").splitlines()
-                qty = []
-                for line in lines[1:]:
-                    parts = line.split("|")
-                    if len(parts) >= 5 and parts[2].strip().upper() == sym:
-                        try:
-                            qty.append(int(parts[3].strip()))
-                        except ValueError:
-                            pass
-                return qty
-            except Exception:
-                return []
-
-        today = date.today()
-        yesterday = today - timedelta(days=1)
-        candidates: list[date] = []
-        for months_back in range(0, 4):
-            ref = (yesterday.replace(day=1) -
-                   timedelta(days=30 * months_back)).replace(day=1)
-            b_ref = ref.replace(day=16)
-            if b_ref <= yesterday:
-                candidates.append(b_ref)
-            a_ref = ref.replace(day=1)
-            if a_ref <= yesterday:
-                candidates.append(a_ref)
-
-        all_qty: list[int] = []
-        for dt in candidates:
-            url = _ftd_url(dt)
-            filename = url.split("/")[-1]
-            try:
-                time.sleep(0.5)   # SEC rate-limit: max 10 req/s
-                r = requests.get(url, headers=_SEC_HEADERS, timeout=25)
-                print(f"SEC FTD Ansatz 1 (User-Agent): {filename} → HTTP {r.status_code}",
-                      flush=True)
-                if r.status_code == 403:
-                    return {}   # blocked → skip to Ansatz 2
-                if r.status_code == 200:
-                    all_qty.extend(_parse_zip(r.content))
-                    if len(all_qty) >= 2:
-                        break
-            except Exception as exc:
-                print(f"SEC FTD Ansatz 1 Fehler: {exc}", flush=True)
-        if all_qty:
-            avg = round(sum(all_qty) / len(all_qty), 0)
-            return {"ftd_latest": all_qty[0], "ftd_avg_30d": avg}
-        return {}
-
-    # ── Ansatz 2: EDGAR REST API (efts.sec.gov full-text search) ─────────────
-    def _try_edgar_api() -> dict:
-        from datetime import date, timedelta
-        today = date.today()
-        start = (today - timedelta(days=90)).strftime("%Y-%m-%d")
-        end   = today.strftime("%Y-%m-%d")
-        url = (f"https://efts.sec.gov/LATEST/search-index"
-               f"?q=%22{sym}%22&dateRange=custom"
-               f"&startdt={start}&enddt={end}&forms=FTD")
-        hdrs = {**_SEC_HEADERS, "Host": "efts.sec.gov"}
-        try:
-            time.sleep(0.5)
-            r = requests.get(url, headers=hdrs, timeout=20)
-            print(f"SEC FTD Ansatz 2 (REST API): {sym} → HTTP {r.status_code}", flush=True)
-            if r.status_code != 200:
-                return {}
-            hits = r.json().get("hits", {}).get("hits", [])
-            quantities: list[int] = []
-            for hit in hits[:10]:
-                src = hit.get("_source", {})
-                # Try to extract any numeric FTD quantity from the document fields
-                for field in ("fail_quantity", "failQuantity", "quantity", "shares"):
-                    val = src.get(field)
-                    if isinstance(val, (int, float)) and val > 0:
-                        quantities.append(int(val))
-                        break
-            if quantities:
-                avg = round(sum(quantities) / len(quantities), 0)
-                return {"ftd_latest": quantities[0], "ftd_avg_30d": avg}
-        except Exception as exc:
-            print(f"SEC FTD Ansatz 2 Fehler: {exc}", flush=True)
-        return {}
-
-    # ── Ansatz 3: Nasdaq Data Link (Quandl) SEC/FTD dataset ──────────────────
-    def _try_nasdaq_data_link() -> dict:
-        api_key = os.environ.get("NASDAQ_DATA_LINK_KEY", "").strip()
-        if not api_key:
-            print(f"SEC FTD Ansatz 3: NASDAQ_DATA_LINK_KEY nicht gesetzt – übersprungen",
-                  flush=True)
-            return {}
-        url = (f"https://data.nasdaq.com/api/v3/datasets/SEC/FTD_{sym}.json"
-               f"?api_key={api_key}&rows=5")
-        try:
-            r = requests.get(url, headers=HTTP_HEADERS, timeout=20)
-            print(f"SEC FTD Ansatz 3 (Nasdaq Data Link): {sym} → HTTP {r.status_code}",
-                  flush=True)
-            if r.status_code != 200:
-                return {}
-            data = r.json().get("dataset", {}).get("data", [])
-            quantities = []
-            for row in data[:5]:
-                # columns: [Date, Fail Quantity, ...]
-                if len(row) >= 2:
-                    try:
-                        quantities.append(int(row[1]))
-                    except (ValueError, TypeError):
-                        pass
-            if quantities:
-                avg = round(sum(quantities) / len(quantities), 0)
-                return {"ftd_latest": quantities[0], "ftd_avg_30d": avg}
-        except Exception as exc:
-            print(f"SEC FTD Ansatz 3 Fehler: {exc}", flush=True)
-        return {}
-
-    # ── Fallback-Kette ausführen ──────────────────────────────────────────────
-    result = _try_zip()
-    if result:
-        _ftd_stats["a1"] += 1
-        _ftd_stats["ok"] += 1
-        _cache[ticker] = result
-        return result
-
-    result = _try_edgar_api()
-    if result:
-        _ftd_stats["a2"] += 1
-        _ftd_stats["ok"] += 1
-        _cache[ticker] = result
-        return result
-
-    result = _try_nasdaq_data_link()
-    if result:
-        _ftd_stats["a3"] += 1
-        _ftd_stats["ok"] += 1
-        _cache[ticker] = result
-        return result
-
-    _ftd_stats["na"] += 1
-    _ftd_stats["empty"] += 1
-    _cache[ticker] = {}
+    """Disabled stub – SEC EDGAR and Nasdaq Data Link blocked on GitHub Actions."""
     return {}
 
 
 
 def score_bonus(stock: dict) -> float:
-    """Optional bonus points (0 – FINRA_BONUS_MAX + FTD_BONUS_MAX).
-    FINRA: up to 5 pts if daily short volume rose vs prior day.
-            Requires ≥ 2 data points each > 100 shares.
-    FTD:   up to 5 pts if current Fails-to-Deliver exceeds 30d average.
+    """Optional bonus points (0 – FINRA_BONUS_MAX).
+    FINRA: up to 5 pts if daily short volume rose.
+    Condition: ≥ 2 of the 3 FINRA data points must be > 100 shares.
+    FTD bonus permanently disabled (IP-blocked on GitHub Actions).
     """
-    bonus = 0.0
+    ticker = stock.get("ticker", "?")
+    finra  = stock.get("finra_data") or {}
+    hist   = finra.get("history", [])
 
-    finra = stock.get("finra_data") or {}
-    trend = finra.get("trend", "no_data")
-    # ≥ 2 real data points each > 100 shares required (no micro-hits)
-    real_pts = [r for r in finra.get("history", [])
-                if r.get("short_interest", 0) > 100]
-    if len(real_pts) >= 2:
+    # Extract the three raw values
+    t1 = hist[0]["short_interest"] if len(hist) >= 1 else None
+    t2 = hist[1]["short_interest"] if len(hist) >= 2 else None
+    t3 = hist[2]["short_interest"] if len(hist) >= 3 else None
+
+    # Korrektur 3: bonus only when ≥ 2 of [t1, t2, t3] are > 100
+    if sum(1 for v in [t1, t2, t3] if v and v > 100) >= 2:
+        trend = finra.get("trend", "no_data")
         if trend == "up":
-            bonus += FINRA_BONUS_MAX
+            bonus = float(FINRA_BONUS_MAX)
         elif trend == "sideways":
-            bonus += FINRA_BONUS_MAX / 2
+            bonus = FINRA_BONUS_MAX / 2
+        else:
+            bonus = 0.0
+    else:
+        bonus = 0.0
+        print(f"{ticker}: bonus=0.00 (unzureichende FINRA-Daten: "
+              f"T1={t1}, T2={t2}, T3={t3})", flush=True)
 
-    ftd = stock.get("ftd_data") or {}
-    ftd_cur = ftd.get("ftd_latest", 0)
-    ftd_avg = ftd.get("ftd_avg_30d", 0)
-    if ftd_cur and ftd_avg and ftd_avg > 0 and ftd_cur > ftd_avg:
-        ratio = ftd_cur / ftd_avg
-        bonus += min(ratio - 1.0, 1.0) * FTD_BONUS_MAX
-
-    return round(min(bonus, float(FINRA_BONUS_MAX + FTD_BONUS_MAX)), 2)
+    return round(min(bonus, float(FINRA_BONUS_MAX)), 2)
 
 
 def _fmt_si_date(date_str: str) -> str:
@@ -1016,8 +853,7 @@ def _card(i: int, s: dict) -> str:
     sf_col = "#94a3b8" if has_no_short_data else _metric_color("sf", sf)
     sr_col = "#94a3b8" if has_no_short_data else _metric_color("sr", sr)
     rv_col = _metric_color("rv", rv)
-    ftd_val = (s.get("ftd_data") or {}).get("ftd_latest")
-    ftd_display = f"{ftd_val:,.0f}" if ftd_val else "Nicht verfügbar"
+    ftd_display = "Nicht verfügbar (IP-Beschränkung)"
 
     # SI trend badge + history
     finra_d  = s.get("finra_data") or {}
@@ -1040,12 +876,6 @@ def _card(i: int, s: dict) -> str:
     si_cur_disp = _fmt_si_record(si_hist[0]) if len(si_hist) >= 1 else "—"
     si_4w_disp  = _fmt_si_record(si_hist[1]) if len(si_hist) >= 2 else "—"
     si_8w_disp  = _fmt_si_record(si_hist[2]) if len(si_hist) >= 3 else "—"
-    # Korrektur 3 debug: show raw FINRA values before HTML formatting
-    if s.get("ticker") == "FC":
-        v1 = si_hist[0]["short_interest"] if len(si_hist) >= 1 else None
-        v2 = si_hist[1]["short_interest"] if len(si_hist) >= 2 else None
-        v3 = si_hist[2]["short_interest"] if len(si_hist) >= 3 else None
-        print(f"FC FINRA-Werte für HTML: T1={v1}, T2={v2}, T3={v3}", flush=True)
 
     # Chart links
     yf_chart_url  = f"https://finance.yahoo.com/chart/{s['ticker']}"
@@ -2017,14 +1847,9 @@ def main():
             "(Short Float &gt;15 %, Preis &gt;$1, Marktkapitalisierung &lt;$10 Mrd.).")
         return
 
-    # --- Step 3b: SEC EDGAR FTD (Ansatz 1→2→3 Fallback-Kette) + Bonus scores ---
-    log.info("Step 3b – Fetching SEC EDGAR FTD for top-10 US stocks …")
+    # --- Step 3b: Bonus scores (FTD permanently disabled – IP-blocked) ---
     for s in top10:
-        if s.get("market", "US") != "US":
-            s["ftd_data"] = {}
-            continue
-        s["ftd_data"] = get_sec_ftd(s["ticker"])
-        time.sleep(0.1)
+        s["ftd_data"] = {}
 
     for s in top10:
         s.setdefault("ftd_data", {})
@@ -2052,21 +1877,13 @@ def main():
 
     log.info("Report written → index.html")
     log.info("Top 10: %s", [s["ticker"] for s in top10])
-    log.info("Supplementary data summary: FINRA=%d/10, FTD=%d/10",
-             _finra_stats["ok"], _ftd_stats["ok"])
+    log.info("Supplementary data summary: FINRA=%d/10", _finra_stats["ok"])
     print(
         f"[Datenabruf-Zusammenfassung] "
         f"FINRA: {_finra_stats['ok']} erfolgreich, "
         f"{_finra_stats['empty']} leer, "
-        f"{_finra_stats['err']} Fehler",
-        flush=True,
-    )
-    print(
-        f"SEC FTD Ergebnis: "
-        f"Ansatz1={_ftd_stats['a1']} Treffer, "
-        f"Ansatz2={_ftd_stats['a2']} Treffer, "
-        f"Ansatz3={_ftd_stats['a3']} Treffer, "
-        f"Nicht verfügbar={_ftd_stats['na']}",
+        f"{_finra_stats['err']} Fehler | "
+        f"FTD: deaktiviert (IP-Beschränkung)",
         flush=True,
     )
 
