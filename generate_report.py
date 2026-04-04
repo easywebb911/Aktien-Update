@@ -1402,9 +1402,6 @@ def _card(i: int, s: dict) -> str:
     si_t1_disp = _fmt_si_record(si_hist[0]) if len(si_hist) >= 1 else "—"
     si_t2_disp = _fmt_si_record(si_hist[1]) if len(si_hist) >= 2 else "—"
     si_t3_disp = _fmt_si_record(si_hist[2]) if len(si_hist) >= 3 else "—"
-    si_t4_disp = _fmt_si_record(si_hist[3]) if len(si_hist) >= 4 else "—"
-    si_t5_disp = _fmt_si_record(si_hist[4]) if len(si_hist) >= 5 else "—"
-    si_t6_disp = _fmt_si_record(si_hist[5]) if len(si_hist) >= 6 else "—"
 
     # RSI / MA / Relative-Strength rows for detail table
     _rsi   = s.get("rsi14")
@@ -1547,7 +1544,7 @@ def _card(i: int, s: dict) -> str:
       <span class="rank">{i}</span>
       <div class="ticker-block">
         <div class="ticker-row">
-          <a class="ticker ticker-link" href="{yf_chart_url}" target="_blank" rel="noopener noreferrer">{s['ticker']}</a>
+          <span class="ticker">{s['ticker']}</span>
           <span class="market-tag">{flag} {s.get('market','US')}</span>
           {yahoo_badge}{finviz_badge}{sa_badge}
           <span class="price-tag">${s.get('price',0):.2f}</span>
@@ -1595,15 +1592,11 @@ def _card(i: int, s: dict) -> str:
         <tr><td>52W-Hoch / -Tief</td><td>${s.get('52w_high') or 0:.2f} / ${s.get('52w_low') or 0:.2f}</td></tr>
         <tr><td>Ø Volumen 20T</td><td>{s.get('avg_vol_20d',0):,.0f}</td></tr>
         <tr><td>Heutiges Volumen</td><td>{s.get('cur_vol',0):,.0f}</td></tr>
-        <tr><td>Short Interest Quelle</td><td>{s.get('sf_source','Yahoo Finance')}</td></tr>
         {edgar_row}
         <tr><td>SI-Trend (3M)</td><td>{trend_html}</td></tr>
         <tr><td>Short-Vol. T-1 (FINRA)</td><td>{si_t1_disp}</td></tr>
         <tr><td>Short-Vol. T-2</td><td>{si_t2_disp}</td></tr>
         <tr><td>Short-Vol. T-3</td><td>{si_t3_disp}</td></tr>
-        <tr><td>Short-Vol. T-4</td><td>{si_t4_disp}</td></tr>
-        <tr><td>Short-Vol. T-5</td><td>{si_t5_disp}</td></tr>
-        <tr><td>Short-Vol. T-6</td><td>{si_t6_disp}</td></tr>
 
         {rsi_ma_rows}
         {options_rows}
@@ -1616,15 +1609,15 @@ def _card(i: int, s: dict) -> str:
       <span class="risk-badge" style="color:{risk_col};border-color:{risk_col}55;background:{risk_col}22">Risiko: {risk_lv}</span>
       <p class="driver-text">{sit_txt}</p>
     </div>
-    <button class="news-btn" onclick="toggleNews({i})" id="nb{i}" aria-expanded="false">
-      <span id="nb-icon{i}">▼</span> Nachrichten anzeigen
-    </button>
-    <div class="news-panel" id="np{i}" hidden>
-      <div class="news-items">{news_html}</div>
-      <div class="news-summary-box">
-        <span class="summary-label">Zusammenfassung</span>
-        <p class="summary-text">{news_sum}</p>
-      </div>
+  </div>
+  <button class="news-btn" onclick="toggleNews({i})" id="nb{i}" aria-expanded="false">
+    <span id="nb-icon{i}">▼</span> Aktuelle Meldungen
+  </button>
+  <div class="news-panel" id="np{i}" hidden>
+    <div class="news-items">{news_html}</div>
+    <div class="news-summary-box">
+      <span class="summary-label">Zusammenfassung</span>
+      <p class="summary-text">{news_sum}</p>
     </div>
   </div>
 </article>"""
@@ -1789,8 +1782,6 @@ a{{color:var(--accent);text-decoration:none}}
 .ticker-block{{flex:1;min-width:0}}
 .ticker-row{{display:flex;align-items:center;gap:7px;flex-wrap:wrap;margin-bottom:3px}}
 .ticker{{font-size:1.25rem;font-weight:800;font-family:'SF Mono','Courier New',monospace;color:var(--txt)}}
-.ticker-link{{color:inherit;text-decoration:none}}
-.ticker-link:hover{{text-decoration:underline;text-underline-offset:3px}}
 .market-tag{{font-size:.62rem;font-weight:700;background:var(--accent);color:#fff;
   padding:1px 6px;border-radius:4px;letter-spacing:.3px}}
 .chart-badge{{display:inline-flex;align-items:center;justify-content:center;
@@ -1973,7 +1964,7 @@ a{{color:var(--accent);text-decoration:none}}
   .hdr-ts{{display:block!important;font-size:9pt;color:#444}}
   /* Ensure links are visible in print */
   a[href]::after{{content:" (" attr(href) ")";font-size:7pt;color:#666;word-break:break-all}}
-  a.ticker-link::after,a.chart-badge::after{{content:none}}
+  a.chart-badge::after{{content:none}}
 }}
 </style>
 </head>
@@ -2168,7 +2159,7 @@ function toggleNews(id){{
   icon.textContent = open ? '▲' : '▼';
   btn.textContent  = '';
   btn.appendChild(icon);
-  btn.append(' ' + (open ? 'Nachrichten verbergen' : 'Nachrichten anzeigen'));
+  btn.append(' ' + (open ? 'Meldungen verbergen' : 'Aktuelle Meldungen'));
 }}
 // ── GitHub Actions Config ─────────────────────────────────────────────────
 const GH_OWNER    = 'easywebb911';
