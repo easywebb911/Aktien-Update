@@ -1358,7 +1358,7 @@ a{{color:var(--accent);text-decoration:none}}
         <h4>Datenquellen</h4>
         <ul>
           <li><strong>Yahoo Finance Screener</strong> – Most Shorted, Small Cap Gainers, Aggressive Small Caps</li>
-          <li><strong>Märkte:</strong> 🇺🇸 US · 🇩🇪 DE · 🇬🇧 GB · 🇨🇦 CA</li>
+          <li><strong>Märkte:</strong> 🇺🇸 US · 🇩🇪 DE · 🇬🇧 GB · 🇫🇷 FR · 🇳🇱 NL · 🇨🇦 CA · 🇯🇵 JP · 🇭🇰 HK · 🇰🇷 KR</li>
           <li><strong>Anreicherung:</strong> yfinance (Short Float, Days to Cover, Volumen, Kurs) + FINRA (offizielles Short Interest, SI-Trend aus 3 Meldezeiträumen)</li>
 
         </ul>
