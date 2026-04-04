@@ -1877,6 +1877,63 @@ a{{color:var(--accent);text-decoration:none}}
   .driver-text{{font-size:.82rem}}
   .ni,.no-news,.summary-text{{font-size:.82rem}}
 }}
+/* ══ Mobile Swipe-Karussell (nur < 768 px) ══════════════════════════════════ */
+@media(max-width:767px){{
+  /* Der cards-grid wird per JS in einen Swipe-Track verwandelt */
+  .cards-grid.swipe-active{{
+    display:flex;
+    flex-direction:row;
+    gap:0;
+    overflow:visible;
+    /* Karten werden per JS mit transform verschoben */
+  }}
+  .cards-grid.swipe-active .card{{
+    flex:0 0 calc(100% - 28px); /* 14px Peek links + 14px rechts */
+    min-width:calc(100% - 28px);
+    margin:0 14px;
+    transition:transform .32s cubic-bezier(.4,0,.2,1),
+               box-shadow .32s,opacity .32s;
+    will-change:transform,opacity;
+  }}
+  /* Aktive Karte hervorheben */
+  .cards-grid.swipe-active .card.swipe-active-card{{
+    box-shadow:0 4px 24px rgba(59,130,246,.25),var(--shadow);
+    opacity:1;
+  }}
+  /* Inaktive Karten leicht abdunkeln */
+  .cards-grid.swipe-active .card:not(.swipe-active-card){{
+    opacity:.6;
+  }}
+  /* Wrapper um grid + dots */
+  .swipe-wrapper{{
+    position:relative;
+    overflow:hidden; /* nur aktive Karte + Peek sichtbar */
+    margin:0 -14px;  /* kompensiert .wrap padding */
+    padding:0;
+  }}
+  /* Dot-Indikator */
+  .dot-nav{{
+    display:flex;
+    justify-content:center;
+    gap:7px;
+    padding:10px 0 4px;
+  }}
+  .dot-nav .dot{{
+    width:8px;height:8px;border-radius:50%;
+    background:var(--brd);border:1px solid var(--txt-dim);
+    transition:background .2s,transform .2s;
+    cursor:pointer;
+  }}
+  .dot-nav .dot.active{{
+    background:var(--accent);border-color:var(--accent);
+    transform:scale(1.25);
+  }}
+}}
+/* Dot-Nav auf Desktop verbergen */
+@media(min-width:768px){{
+  .dot-nav{{display:none!important}}
+  .swipe-wrapper{{overflow:visible!important;margin:0!important}}
+}}
 /* ══ ≥ 1200 px  großer Desktop / Wide-Screen ════════════════════════════════ */
 @media(min-width:1200px){{
   .app-hdr{{padding:0 24px}}
@@ -1913,6 +1970,13 @@ a{{color:var(--accent);text-decoration:none}}
   /* Page layout */
   body{{background:#fff;font-size:11pt;color:#000}}
   .wrap{{padding:8px 0}}
+  /* Swipe-Container beim Drucken deaktivieren */
+  .swipe-wrapper{{overflow:visible!important;margin:0!important}}
+  .cards-grid.swipe-active{{display:grid!important;grid-template-columns:1fr;
+    width:auto!important;transform:none!important}}
+  .cards-grid.swipe-active .card{{flex:unset!important;min-width:unset!important;
+    margin:0!important;opacity:1!important}}
+  .dot-nav{{display:none!important}}
   .card{{break-inside:avoid;page-break-inside:avoid;
     border:1px solid #ccc;border-radius:0;box-shadow:none;
     margin-bottom:12pt;padding:10pt}}
@@ -2054,8 +2118,11 @@ a{{color:var(--accent);text-decoration:none}}
 
   <div class="disc">⚠ <strong>Disclaimer:</strong> Dieser Report dient ausschließlich Informationszwecken und stellt keine Anlageberatung dar. Keine Kauf- oder Verkaufsempfehlung.</div>
 
-  <div class="cards-grid">
-  {cards}
+  <div class="swipe-wrapper" id="swipe-wrapper">
+    <div class="cards-grid" id="cards-grid">
+    {cards}
+    </div>
+    <div class="dot-nav" id="dot-nav" aria-label="Kartennavigation"></div>
   </div>
 </main>
 
@@ -2476,6 +2543,160 @@ function showMsg(type,text){{
   }} else {{
     initAll();
   }}
+}})();
+// ─────────────────────────────────────────────────────────────────────────────
+// ── Mobile Swipe-Karussell ────────────────────────────────────────────────────
+(function(){{
+  const SWIPE_MIN   = 50;   // px — Mindestdistanz für gültigen Swipe
+  const VERT_ABORT  = 12;   // px — vertikale Bewegung bricht Swipe ab
+  const BREAKPOINT  = 768;  // px — ab hier Desktop-Layout, kein Swipe
+
+  var grid, cards, dots, curIdx, trackW;
+  var txStart, tyStart, txCur, swiping;
+
+  function isMobileView() {{
+    return window.innerWidth < BREAKPOINT;
+  }}
+
+  function goTo(idx, animate) {{
+    if (!cards || !cards.length) return;
+    idx = Math.max(0, Math.min(idx, cards.length - 1));
+    curIdx = idx;
+    // Verschiebe den Track so, dass Karte idx zentriert ist
+    var offset = -idx * trackW;
+    grid.style.transition = animate === false ? 'none' : 'transform .32s cubic-bezier(.4,0,.2,1)';
+    grid.style.transform  = 'translateX(' + offset + 'px)';
+    // Aktive-Karte-Klasse
+    cards.forEach(function(c, i) {{
+      c.classList.toggle('swipe-active-card', i === idx);
+    }});
+    // Dots aktualisieren
+    if (dots) dots.forEach(function(d, i) {{
+      d.classList.toggle('active', i === idx);
+    }});
+  }}
+
+  function buildDots() {{
+    var nav = document.getElementById('dot-nav');
+    if (!nav) return;
+    nav.innerHTML = '';
+    dots = [];
+    cards.forEach(function(_, i) {{
+      var d = document.createElement('button');
+      d.className = 'dot' + (i === curIdx ? ' active' : '');
+      d.setAttribute('aria-label', 'Karte ' + (i + 1));
+      d.addEventListener('click', function() {{ goTo(i, true); }});
+      nav.appendChild(d);
+      dots.push(d);
+    }});
+  }}
+
+  function initSwipe() {{
+    grid  = document.getElementById('cards-grid');
+    if (!grid) return;
+    cards = Array.from(grid.querySelectorAll('.card'));
+    if (!cards.length) return;
+
+    curIdx = 0;
+    trackW = cards[0].getBoundingClientRect().width + 28; // card width + 2×14px margin
+
+    grid.classList.add('swipe-active');
+    // Gesamt-Track-Breite setzen
+    grid.style.width = (cards.length * trackW) + 'px';
+    grid.style.transform = 'translateX(0)';
+    buildDots();
+    goTo(0, false);
+
+    // ── Touch-Events ──────────────────────────────────────────────────────────
+    var wrapper = document.getElementById('swipe-wrapper');
+    if (!wrapper) wrapper = grid;
+
+    wrapper.addEventListener('touchstart', function(e) {{
+      if (!isMobileView()) return;
+      var t = e.touches[0];
+      txStart = txCur = t.clientX;
+      tyStart = t.clientY;
+      swiping = null; // null=unentschieden, true=horizontal, false=vertikal
+      grid.style.transition = 'none';
+    }}, {{passive: true}});
+
+    wrapper.addEventListener('touchmove', function(e) {{
+      if (!isMobileView() || swiping === false) return;
+      var t    = e.touches[0];
+      var dx   = t.clientX - txStart;
+      var dy   = t.clientY - tyStart;
+      txCur    = t.clientX;
+
+      // Richtung noch unentschieden: erste Bewegung entscheidet
+      if (swiping === null) {{
+        if (Math.abs(dy) > VERT_ABORT && Math.abs(dy) > Math.abs(dx)) {{
+          swiping = false; // vertikal → Scrollen erlauben
+          return;
+        }}
+        if (Math.abs(dx) > 6) {{
+          swiping = true;  // horizontal → Swipe
+        }} else {{
+          return;
+        }}
+      }}
+
+      // Horizontaler Swipe: scrollen verhindern, Karte mitziehen
+      e.preventDefault();
+      var baseOffset = -curIdx * trackW;
+      grid.style.transform = 'translateX(' + (baseOffset + dx) + 'px)';
+    }}, {{passive: false}});
+
+    wrapper.addEventListener('touchend', function(e) {{
+      if (!isMobileView() || swiping !== true) {{
+        swiping = null;
+        return;
+      }}
+      var dx = txCur - txStart;
+      swiping = null;
+      if (Math.abs(dx) >= SWIPE_MIN) {{
+        goTo(dx < 0 ? curIdx + 1 : curIdx - 1, true);
+      }} else {{
+        goTo(curIdx, true); // zurückschnappen
+      }}
+    }}, {{passive: true}});
+  }}
+
+  function teardownSwipe() {{
+    if (!grid) return;
+    grid.classList.remove('swipe-active');
+    grid.style.width     = '';
+    grid.style.transform = '';
+    grid.style.transition= '';
+    if (cards) cards.forEach(function(c) {{
+      c.classList.remove('swipe-active-card');
+      c.style.opacity = '';
+    }});
+    var nav = document.getElementById('dot-nav');
+    if (nav) nav.innerHTML = '';
+    dots = null;
+    grid = null;
+    cards = null;
+  }}
+
+  var _mq = window.matchMedia('(max-width:767px)');
+  function onBreakpoint(e) {{
+    if (e.matches) {{ initSwipe(); }} else {{ teardownSwipe(); }}
+  }}
+
+  // Initial + bei Resize
+  if (typeof _mq.addEventListener === 'function') {{
+    _mq.addEventListener('change', onBreakpoint);
+  }} else {{
+    _mq.addListener(onBreakpoint); // Safari <14 fallback
+  }}
+
+  function ready(fn) {{
+    if (document.readyState !== 'loading') {{ fn(); }}
+    else {{ document.addEventListener('DOMContentLoaded', fn); }}
+  }}
+  ready(function() {{
+    if (isMobileView()) initSwipe();
+  }});
 }})();
 // ─────────────────────────────────────────────────────────────────────────────
 </script>
