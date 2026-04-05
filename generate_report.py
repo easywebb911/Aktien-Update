@@ -691,9 +691,8 @@ def _rss_news(ticker: str, url: str, source_label: str) -> list[dict]:
 
 
 def get_combined_news(ticker: str, n: int = 3) -> list[dict]:
-    """Merge Yahoo Finance, Seeking Alpha, and Benzinga news; return top n by date."""
+    """Merge Yahoo Finance, Seeking Alpha, and Finviz news; return top n by date."""
     base_upper = ticker.split(".")[0].upper()
-    base_lower = ticker.split(".")[0].lower()
 
     yahoo_items = get_yahoo_news(ticker, n=5)
     sa_items    = _rss_news(
@@ -701,17 +700,17 @@ def get_combined_news(ticker: str, n: int = 3) -> list[dict]:
         f"https://seekingalpha.com/api/sa/combined/{base_upper}.xml",
         "Seeking Alpha",
     )
-    bz_items    = _rss_news(
+    fv_items    = _rss_news(
         ticker,
-        f"https://www.benzinga.com/stock/{base_lower}/feed",
-        "Benzinga",
+        f"https://finviz.com/rss.ashx?t={base_upper}",
+        "Finviz",
     )
 
-    n_yahoo, n_sa, n_bz = len(yahoo_items), len(sa_items), len(bz_items)
-    combined = yahoo_items + sa_items + bz_items
+    n_yahoo, n_sa, n_fv = len(yahoo_items), len(sa_items), len(fv_items)
+    combined = yahoo_items + sa_items + fv_items
     combined.sort(key=lambda x: x.get("ts", 0), reverse=True)
     result = combined[:n]
-    print(f"News {ticker}: {n_yahoo} Yahoo + {n_sa} SeekingAlpha + {n_bz} Benzinga = {len(result)} Meldungen")
+    print(f"News {ticker}: {n_yahoo} Yahoo + {n_sa} SeekingAlpha + {n_fv} Finviz = {len(result)} Meldungen")
     return result
 
 
