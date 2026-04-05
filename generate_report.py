@@ -1860,7 +1860,7 @@ a{{color:var(--accent);text-decoration:none}}
   transform:translate(-50%,-120%);opacity:0;transition:opacity .15s}}
 .spark-tip.visible{{opacity:1}}
 /* ── Metrics ── */
-.metrics-row{{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;padding:0 12px 12px}}
+.metrics-row{{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;padding:0 12px 12px}}
 .metric-box{{background:var(--bg-met);border:1px solid var(--brd);border-radius:10px;
   padding:10px 6px;text-align:center;border-top:3px solid var(--mc,#94a3b8);position:relative}}
 .m-val{{display:block;font-size:1.1rem;font-weight:800;color:var(--mc,#94a3b8)}}
@@ -1937,7 +1937,6 @@ a{{color:var(--accent);text-decoration:none}}
   .color-legend{{grid-template-columns:repeat(2,1fr)}}
   /* Cards: fluid auto-fill, min 340px per card, 16px gap, full width */
   .cards-grid{{grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:16px}}
-  .metrics-row{{grid-template-columns:repeat(6,1fr)}}
   .stats-bar{{grid-template-columns:repeat(4,1fr)}}
   .wrap{{padding:16px 16px 32px}}
   .footer{{padding:16px 16px 32px}}
