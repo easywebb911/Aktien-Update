@@ -40,7 +40,7 @@ ALERT_THRESHOLD_STRONG  = 70      # Score ≥ → Starker Alert (⚡⚡)
 ALERT_COOLDOWN_HOURS    = 2       # Mindeststunden zwischen zwei Alerts je Ticker
 
 # Test-Modus: True → Handelszeiten-Prüfung wird übersprungen
-IGNORE_TRADING_HOURS    = True
+IGNORE_TRADING_HOURS    = False
 
 # Score-Punkte je Signal
 SCORE_PRICE_UP_3        = 15      # Kursanstieg ≥ 3 % intraday
@@ -186,7 +186,7 @@ def fetch_yfinance(tickers: list[str]) -> dict[str, dict]:
                 df = hist[t] if multi else hist
                 if df is None or df.empty or len(df) < 2:
                     continue
-                df = df.dropna(subset=["Close", "Volume"])
+                df = df.dropna(subset=["Close","Volume"])
                 avg_vol  = float(df["Volume"].iloc[:-1].mean())
                 cur_vol  = float(df["Volume"].iloc[-1])
                 rvol     = round(cur_vol / avg_vol, 2) if avg_vol > 0 else 0.0
@@ -235,11 +235,6 @@ def fetch_yahoo_news(ticker: str) -> list[str]:
 # ── Datenquelle 3: Reddit öffentliche JSON-API ────────────────────────────────
 
 def fetch_reddit_mentions(ticker: str) -> dict:
-    """
-    Sucht in WSB, stocks und shortsqueeze nach Ticker-Erwähnungen der letzten 4h.
-    Verwendet ausschließlich die öffentliche Reddit JSON-API — kein App-Key nötig.
-    Gibt dict mit 'count' und 'sentiment' zurück.
-    """
     cutoff = datetime.now(timezone.utc) - timedelta(hours=REDDIT_LOOKBACK_H)
     total_posts  = 0
     pos_score    = 0
@@ -283,7 +278,6 @@ def fetch_reddit_mentions(ticker: str) -> dict:
 # ── Datenquelle 4: SEC EDGAR RSS ─────────────────────────────────────────────
 
 def fetch_sec_8k(ticker: str) -> bool:
-    """True wenn in den letzten 24h eine neue 8-K-Meldung vorliegt (US only)."""
     url = (
         "https://www.sec.gov/cgi-bin/browse-edgar"
         f"?action=getcompany&CIK={ticker}&type=8-K"
@@ -313,7 +307,6 @@ def fetch_sec_8k(ticker: str) -> bool:
 # ── Datenquelle 5: Finviz News RSS ────────────────────────────────────────────
 
 def fetch_finviz_news(ticker: str) -> list[str]:
-    """Gibt Schlagzeilen aus dem Finviz RSS-Feed zurück (Fallback)."""
     url = f"https://finviz.com/rss.ashx?t={ticker}"
     try:
         resp = requests.get(url, headers=HTTP_HEADERS, timeout=10)
