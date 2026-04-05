@@ -1668,6 +1668,21 @@ def generate_html(stocks: list[dict], report_date: str) -> str:
     _avg_mom = sum(mom_vals) / len(mom_vals) if mom_vals else None
     avg_mom_str = f"{_avg_mom:+.1f}%" if _avg_mom is not None else "—"
     avg_mom_col = ("#22c55e" if _avg_mom > 0 else "#ef4444") if _avg_mom is not None else "var(--accent)"
+    # Ø Float (Mio.)
+    float_vals = [s["float_shares"] / 1_000_000 for s in stocks if (s.get("float_shares") or 0) > 0]
+    avg_float_str = f"{sum(float_vals)/len(float_vals):.1f} Mio.".replace(".", ",") if float_vals else "—"
+    # Ø SI-Trend
+    si_vals = [
+        (s.get("finra_data") or {}).get("trend_pct")
+        for s in stocks
+        if (s.get("finra_data") or {}).get("trend", "no_data") != "no_data"
+    ]
+    si_vals = [v for v in si_vals if v is not None]
+    if si_vals:
+        _avg_si = sum(si_vals) / len(si_vals)
+        avg_si_str = f"{_avg_si:+.1f} %".replace(".", ",")
+    else:
+        avg_si_str = "—"
     now_str = datetime.now(ZoneInfo("Europe/Berlin")).strftime("%H:%M Uhr")
     timestamp = f"Stand: {report_date}, {now_str}"
 
@@ -1763,7 +1778,7 @@ a{{color:var(--accent);text-decoration:none}}
 /* ── Container – fluid, no max-width ── */
 .wrap{{padding:16px 14px 32px}}
 /* ── Stats bar ── */
-.stats-bar{{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:14px}}
+.stats-bar{{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px}}
 .stat-title{{grid-column:1 / -1;background:#042C53;border-radius:10px;
   padding:11px 8px;text-align:center;color:#E6F1FB;font-size:1.19rem;font-weight:500}}
 .stat-box{{background:var(--bg-card);border:1px solid var(--brd);border-radius:10px;
@@ -1937,7 +1952,7 @@ a{{color:var(--accent);text-decoration:none}}
   .color-legend{{grid-template-columns:repeat(2,1fr)}}
   /* Cards: fluid auto-fill, min 340px per card, 16px gap, full width */
   .cards-grid{{grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:16px}}
-  .stats-bar{{grid-template-columns:repeat(4,1fr)}}
+  .stats-bar{{grid-template-columns:repeat(6,1fr)}}
   .wrap{{padding:16px 16px 32px}}
   .footer{{padding:16px 16px 32px}}
   /* Slightly smaller body text */
@@ -2041,6 +2056,8 @@ a{{color:var(--accent);text-decoration:none}}
     <div class="stat-box"><span class="stat-val">{avg_sr:.1f}d</span><span class="stat-lbl">Ø Days to Cover</span></div>
     <div class="stat-box"><span class="stat-val">{avg_rv:.1f}×</span><span class="stat-lbl">Ø Volumen</span></div>
     <div class="stat-box"><span class="stat-val">{avg_mom_str}</span><span class="stat-lbl">Ø Kursmomentum</span></div>
+    <div class="stat-box"><span class="stat-val">{avg_float_str}</span><span class="stat-lbl">Ø Float</span></div>
+    <div class="stat-box"><span class="stat-val">{avg_si_str}</span><span class="stat-lbl">Ø SI-Trend</span></div>
   </div>
 
   <details class="info-panel">
