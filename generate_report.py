@@ -2575,6 +2575,13 @@ function showMsg(type,text){{
 
 _WL_FAILURES_FILE = "watchlist_failures.json"
 _WL_INACTIVE_FILE = "watchlist_inactive.txt"
+
+# Required ticker suffix per non-US region; US = no suffix from this dict
+_WL_REGION_SUFFIX: dict[str, str] = {
+    "DE": ".DE", "GB": ".L", "FR": ".PA", "NL": ".AS",
+    "CA": ".TO", "JP": ".T", "HK": ".HK", "KR": ".KS",
+}
+_WL_ALL_SUFFIXES = tuple(v.upper() for v in _WL_REGION_SUFFIX.values())
 _WL_MAX_FAILURES  = 3   # consecutive 404/empty responses before auto-deactivation
 
 
@@ -2627,6 +2634,14 @@ def get_watchlist_candidates() -> list[dict]:
     results: list[dict] = []
     for market, tickers in WATCHLIST.items():
         active = [t for t in tickers if t not in inactive]
+        # Suffix guard: each region only processes tickers with the matching suffix.
+        # US tickers (no suffix) must never appear in non-US region scans.
+        required_suffix = _WL_REGION_SUFFIX.get(market)
+        if required_suffix:
+            active = [t for t in active if t.upper().endswith(required_suffix.upper())]
+        else:
+            # US: exclude any ticker that carries a known non-US suffix
+            active = [t for t in active if not t.upper().endswith(_WL_ALL_SUFFIXES)]
         if not active:
             continue
         log.info("Watchlist scan: %s (%d active / %d total)",
@@ -2854,11 +2869,13 @@ def main():
         _spx_hist = yf.download("^GSPC", period="25d", auto_adjust=True,
                                  progress=False, threads=False)
         if _spx_hist is not None and not _spx_hist.empty and len(_spx_hist) >= 21:
-            _spx_close = _spx_hist["Close"].dropna()
-            _spx_perf_20d = float(
-                (_spx_close.iloc[-1] - _spx_close.iloc[-21]) / _spx_close.iloc[-21] * 100
-            )
+            # squeeze() collapses a single-ticker MultiLevel column DataFrame to a Series
+            _spx_close = _spx_hist["Close"].squeeze().dropna()
+            _last  = float(_spx_close.iloc[-1])
+            _first = float(_spx_close.iloc[-21])
+            _spx_perf_20d = (_last - _first) / _first * 100
             log.info("S&P 500 20T-Perf: %.2f%%", _spx_perf_20d)
+            print(f"S&P 500 20T Performance: {_spx_perf_20d:.1f}%", flush=True)
     except Exception as _spx_exc:
         log.warning("S&P 500 fetch failed: %s", _spx_exc)
 
@@ -2905,7 +2922,10 @@ def main():
             "perf_20d":        _stock_perf_20d,
             "rel_strength_20d": _rel_strength,
             "inst_ownership":  yfd.get("inst_ownership"),
+            "float_shares":    yfd.get("float_shares", 0),
         })
+        if i < 3:
+            print(f"{t} float_shares={c.get('float_shares')}", flush=True)
         yf_sf = yfd.get("short_float_yf", 0)
         if yf_sf > 0:
             c["short_float"] = yf_sf
