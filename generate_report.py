@@ -1389,24 +1389,43 @@ def _card(i: int, s: dict) -> str:
     )
 
 
-    # SI trend badge + history
+    # SI trend history
     finra_d  = s.get("finra_data") or {}
     si_trend = finra_d.get("trend", "no_data")
     si_tpct  = finra_d.get("trend_pct", 0.0)
     si_hist  = finra_d.get("history", [])
     if si_trend == "up":
-        si_badge_html = '<span class="si-badge si-badge-up">↑</span>'
-        trend_html    = f'<span style="color:#22c55e">↑ Steigend +{abs(si_tpct):.1f} %</span>'
+        trend_html      = f'<span style="color:#22c55e">↑ Steigend +{abs(si_tpct):.1f} %</span>'
+        si_tile_val     = f"↑ +{abs(si_tpct):.0f} %"
+        si_tile_col     = "#22c55e"
     elif si_trend == "down":
-        si_badge_html = '<span class="si-badge si-badge-down">↓</span>'
-        trend_html    = f'<span style="color:#ef4444">↓ Fallend −{abs(si_tpct):.1f} %</span>'
+        trend_html      = f'<span style="color:#ef4444">↓ Fallend −{abs(si_tpct):.1f} %</span>'
+        si_tile_val     = f"↓ −{abs(si_tpct):.0f} %"
+        si_tile_col     = "#ef4444"
     elif si_trend == "sideways":
-        si_badge_html = '<span class="si-badge si-badge-side">→</span>'
         sign = "+" if si_tpct >= 0 else "−"
-        trend_html    = f'<span style="color:#f59e0b">→ Seitwärts {sign}{abs(si_tpct):.1f} %</span>'
+        trend_html      = f'<span style="color:#f59e0b">→ Seitwärts {sign}{abs(si_tpct):.1f} %</span>'
+        si_tile_val     = "→ stabil"
+        si_tile_col     = "#f59e0b"
     else:
-        si_badge_html = ""
-        trend_html    = "Keine Daten"
+        trend_html      = "Keine Daten"
+        si_tile_val     = "—"
+        si_tile_col     = "#94a3b8"
+
+    # Float tile
+    _float_shares = s.get("float_shares") or 0
+    if _float_shares > 0:
+        float_mio       = _float_shares / 1_000_000
+        float_tile_val  = f"{float_mio:.1f} Mio.".replace(".", ",")
+        if _float_shares < 5_000_000:
+            float_tile_col = "#22c55e"
+        elif _float_shares <= 20_000_000:
+            float_tile_col = "#f59e0b"
+        else:
+            float_tile_col = "#ef4444"
+    else:
+        float_tile_val  = "—"
+        float_tile_col  = "#94a3b8"
     si_t1_disp = _fmt_si_record(si_hist[0]) if len(si_hist) >= 1 else "—"
     si_t2_disp = _fmt_si_record(si_hist[1]) if len(si_hist) >= 2 else "—"
     si_t3_disp = _fmt_si_record(si_hist[2]) if len(si_hist) >= 3 else "—"
@@ -1571,7 +1590,6 @@ def _card(i: int, s: dict) -> str:
   {sparkline_html}
   <div class="metrics-row">
     <div class="metric-box" style="--mc:{sf_col}">
-      {si_badge_html}
       <span class="m-val">{sf_display}</span>
       <span class="m-lbl">Short Float</span>
     </div>
@@ -1586,6 +1604,14 @@ def _card(i: int, s: dict) -> str:
     <div class="metric-box" style="--mc:{chg_col}">
       <span class="m-val">{chg_str}</span>
       <span class="m-lbl">Momentum</span>
+    </div>
+    <div class="metric-box" style="--mc:{float_tile_col}">
+      <span class="m-val">{float_tile_val}</span>
+      <span class="m-lbl">Float</span>
+    </div>
+    <div class="metric-box" style="--mc:{si_tile_col}">
+      <span class="m-val">{si_tile_val}</span>
+      <span class="m-lbl">SI-Trend</span>
     </div>
   </div>
   <button class="details-btn" onclick="toggleDetails({i})" id="db{i}" aria-expanded="false">
@@ -1911,7 +1937,7 @@ a{{color:var(--accent);text-decoration:none}}
   .color-legend{{grid-template-columns:repeat(2,1fr)}}
   /* Cards: fluid auto-fill, min 340px per card, 16px gap, full width */
   .cards-grid{{grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:16px}}
-  .metrics-row{{grid-template-columns:repeat(4,1fr)}}
+  .metrics-row{{grid-template-columns:repeat(6,1fr)}}
   .stats-bar{{grid-template-columns:repeat(4,1fr)}}
   .wrap{{padding:16px 16px 32px}}
   .footer{{padding:16px 16px 32px}}
@@ -2089,6 +2115,24 @@ a{{color:var(--accent);text-decoration:none}}
               <div class="cb-seg" style="background:#22c55e">≥ +5 %</div>
             </div>
             <p class="cl-desc">Grün bedeutet, dass der Kurs bereits steigt — Leerverkäufer geraten damit unter Druck, ihre Positionen schnell zu schließen.</p>
+          </div>
+          <div>
+            <span class="cl-name">Float-Größe</span>
+            <div class="color-bar">
+              <div class="cb-seg" style="background:#22c55e">&lt;5 Mio.</div>
+              <div class="cb-seg" style="background:#f59e0b">5–20 Mio.</div>
+              <div class="cb-seg" style="background:#ef4444">&gt;20 Mio.</div>
+            </div>
+            <p class="cl-desc">Grün bedeutet einen sehr kleinen Streubesitz — wenige handelbare Aktien verstärken den Squeeze-Effekt bei steigendem Kaufdruck erheblich.</p>
+          </div>
+          <div>
+            <span class="cl-name">SI-Trend (3M)</span>
+            <div class="color-bar">
+              <div class="cb-seg" style="background:#ef4444">Fallend ≤−10 %</div>
+              <div class="cb-seg" style="background:#f59e0b">Seitwärts</div>
+              <div class="cb-seg" style="background:#22c55e">Steigend ≥+10 %</div>
+            </div>
+            <p class="cl-desc">Grün bedeutet dass Leerverkäufer ihre Positionen in den letzten 3 Monaten ausgebaut haben — der Druck auf einen möglichen Squeeze wächst.</p>
           </div>
         </div>
       </div>
