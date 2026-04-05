@@ -1,0 +1,54 @@
+name: KI-Agent Squeeze Monitor
+
+on:
+  schedule:
+    # Alle 15 Minuten, 12:00–20:45 UTC = 14:00–22:45 CEST
+    # Deckt US-Handelszeiten 14:30–21:00 MEZ vollständig ab
+    - cron: '*/15 12-20 * * 1-5'
+  workflow_dispatch:   # Manueller Start jederzeit möglich
+
+permissions:
+  contents: write   # Für Commit von agent_signals.json / agent_state.json
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
+jobs:
+  run-ki-agent:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout main branch
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run KI-Agent
+        env:
+          MAIL_TO: ${{ secrets.MAIL_TO }}
+          MAIL_PASSWORD: ${{ secrets.MAIL_PASSWORD }}
+          MAIL_FROM: ${{ secrets.MAIL_FROM }}
+        run: python ki_agent.py
+
+      - name: Commit state and signal files
+        run: |
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git config user.name "github-actions[bot]"
+          git add agent_signals.json agent_state.json
+          if git diff --staged --quiet; then
+            echo "Keine Aenderungen — kein Commit noetig."
+            exit 0
+          fi
+          git commit -m "KI-Agent update $(date -u '+%Y-%m-%d %H:%M') UTC"
+          git pull --rebase origin main
+          git push origin main

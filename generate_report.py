@@ -1565,7 +1565,7 @@ def _card(i: int, s: dict) -> str:
         news_html = '<p class="no-news">Keine Nachrichten verfügbar.</p>'
 
     return f"""
-<article class="card" id="c{i}">
+<article class="card" id="c{i}" data-ticker="{s['ticker']}">
   <div class="card-top">
     <div class="card-left">
       <span class="rank">{i}</span>
@@ -1885,6 +1885,27 @@ a{{color:var(--accent);text-decoration:none}}
 .si-badge-up{{color:#22c55e}}
 .si-badge-down{{color:#ef4444}}
 .si-badge-side{{color:#f59e0b}}
+/* ── KI-Agent Status & Signal Dots ── */
+.agent-status-bar{{font-size:.72rem;color:var(--txt-dim);padding:4px 14px 8px;
+  letter-spacing:.1px}}
+.agent-dot{{display:inline-block;width:8px;height:8px;border-radius:50%;
+  margin-left:5px;vertical-align:middle;cursor:pointer;position:relative}}
+.agent-dot.strong{{background:#ef4444;
+  box-shadow:0 0 0 0 #ef444488;
+  animation:pulse-dot 1.5s ease-out infinite}}
+.agent-dot.moderate{{background:#f59e0b}}
+@keyframes pulse-dot{{
+  0%{{box-shadow:0 0 0 0 #ef444488}}
+  70%{{box-shadow:0 0 0 6px #ef444400}}
+  100%{{box-shadow:0 0 0 0 #ef444400}}
+}}
+.agent-tooltip{{position:absolute;left:50%;transform:translateX(-50%);
+  bottom:calc(100% + 6px);background:#1e293b;color:#f1f5f9;
+  font-size:.68rem;white-space:nowrap;padding:4px 8px;border-radius:6px;
+  pointer-events:none;opacity:0;transition:opacity .15s;z-index:50;
+  border:1px solid #334155}}
+.agent-dot:hover .agent-tooltip{{opacity:1}}
+.agent-dot.touch-visible .agent-tooltip{{opacity:1}}
 /* ── Detail table (top of details body) ── */
 .detail-table-wrap{{padding:10px 12px 8px}}
 /* ── Driver row ── */
@@ -2050,6 +2071,7 @@ a{{color:var(--accent);text-decoration:none}}
 </header>
 
 <main class="wrap">
+  <div class="agent-status-bar" id="agent-status">⚡ KI-Agent: Wird geladen …</div>
   <div class="stats-bar">
     <div class="stat-title">TopTen Squeezer</div>
     <div class="stat-box"><span class="stat-val">{avg_sf:.1f}%</span><span class="stat-lbl">Ø Short Float</span></div>
@@ -2579,6 +2601,70 @@ function showMsg(type,text){{
   }} else {{
     initAll();
   }}
+}})();
+// ─────────────────────────────────────────────────────────────────────────────
+// ── KI-Agent Signal Indicators ───────────────────────────────────────────────
+(function() {{
+  const STALE_MIN = 30;   // agent_signals.json älter als N Minuten → "kein Scan"
+
+  function renderAgentSignals(data) {{
+    const statusEl = document.getElementById('agent-status');
+    const updated  = data.updated ? new Date(data.updated) : null;
+    const signals  = data.signals || {{}};
+    const info     = data.run_info || {{}};
+
+    // Status-Bar
+    if (!updated) {{
+      if (statusEl) statusEl.textContent = 'KI-Agent: Kein aktueller Scan verfügbar.';
+      return;
+    }}
+    const ageMin = (Date.now() - updated.getTime()) / 60000;
+    if (ageMin > STALE_MIN) {{
+      if (statusEl) statusEl.textContent = 'KI-Agent: Kein aktueller Scan verfügbar.';
+    }} else {{
+      const uhr = updated.toLocaleTimeString('de-DE', {{hour:'2-digit', minute:'2-digit'}});
+      const n   = info.signals_active || 0;
+      if (statusEl) {{
+        statusEl.textContent = `\u26a1 KI-Agent: Letzter Scan ${{uhr}} \u2014 ${{n}} Signal${{n !== 1 ? 'e' : ''}} aktiv`;
+      }}
+    }}
+
+    // Dots auf Karten
+    document.querySelectorAll('.card[data-ticker]').forEach(card => {{
+      const ticker = card.getAttribute('data-ticker');
+      const sig    = signals[ticker];
+      if (!sig || sig.score < 40) return;
+
+      const strong  = sig.score >= 70;
+      const tickerSpan = card.querySelector('.ticker');
+      if (!tickerSpan) return;
+
+      const dot = document.createElement('span');
+      dot.className = 'agent-dot ' + (strong ? 'strong' : 'moderate');
+
+      const tip = document.createElement('span');
+      tip.className = 'agent-tooltip';
+      tip.textContent = `KI-Agent: Score ${{sig.score}}/100 \u2014 ${{sig.drivers || '?'}}`;
+      dot.appendChild(tip);
+
+      // iPhone: Antippen zeigt Tooltip für 3s
+      dot.addEventListener('click', function(e) {{
+        e.stopPropagation();
+        dot.classList.add('touch-visible');
+        setTimeout(() => dot.classList.remove('touch-visible'), 3000);
+      }});
+
+      tickerSpan.parentNode.insertBefore(dot, tickerSpan.nextSibling);
+    }});
+  }}
+
+  fetch('./agent_signals.json?_=' + Date.now())
+    .then(r => r.ok ? r.json() : {{}})
+    .then(renderAgentSignals)
+    .catch(() => {{
+      const el = document.getElementById('agent-status');
+      if (el) el.textContent = 'KI-Agent: Kein aktueller Scan verfügbar.';
+    }});
 }})();
 // ─────────────────────────────────────────────────────────────────────────────
 </script>

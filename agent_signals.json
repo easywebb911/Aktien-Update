@@ -1,0 +1,10 @@
+{
+  "updated": null,
+  "run_info": {
+    "tickers_checked": 0,
+    "signals_active": 0,
+    "alerts_sent": 0,
+    "elapsed_s": 0
+  },
+  "signals": {}
+}
