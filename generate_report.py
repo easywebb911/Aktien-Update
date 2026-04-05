@@ -900,7 +900,7 @@ def get_finra_short_interest(ticker: str,
         return {}
 
     sym = ticker.strip().upper()
-    _FINRA_MIN_VOL  = 10    # include all real data points (≥ 10 shares)
+    _FINRA_MIN_VOL  = 1     # any non-zero value counts; CSV parser already drops sv=0
     _TREND_MIN_VOL  = 100   # trend % only computed when oldest ≥ 100 (avoids ÷ tiny)
 
     history: list[dict] = []
