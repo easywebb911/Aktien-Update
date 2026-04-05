@@ -1,11 +1,8 @@
 name: Squeeze Alert Monitor
 
 on:
-  schedule:
-    # Alle 15 Minuten von 12:00–20:45 UTC (entspricht 08:00–16:45 ET)
-    # Deckt US-Marktzeiten (09:30–16:00 ET) mit Puffer ab
-    - cron: '*/15 12-20 * * 1-5'
-  workflow_dispatch:   # Manueller Start jederzeit möglich
+  # Cron deaktiviert — Funktion übernommen vom KI-Agent (ki_agent.yml)
+  workflow_dispatch:   # Nur noch manuell triggerbar (als Referenz)
 
 permissions:
   contents: write   # Benötigt um baseline.json und last_alert.json zu commiten
