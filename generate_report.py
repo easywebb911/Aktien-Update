@@ -2905,7 +2905,10 @@ def main():
             "perf_20d":        _stock_perf_20d,
             "rel_strength_20d": _rel_strength,
             "inst_ownership":  yfd.get("inst_ownership"),
+            "float_shares":    yfd.get("float_shares", 0),
         })
+        if i < 3:
+            print(f"{t} float_shares={c.get('float_shares')}", flush=True)
         yf_sf = yfd.get("short_float_yf", 0)
         if yf_sf > 0:
             c["short_float"] = yf_sf
