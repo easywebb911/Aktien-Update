@@ -2869,11 +2869,13 @@ def main():
         _spx_hist = yf.download("^GSPC", period="25d", auto_adjust=True,
                                  progress=False, threads=False)
         if _spx_hist is not None and not _spx_hist.empty and len(_spx_hist) >= 21:
-            _spx_close = _spx_hist["Close"].dropna()
-            _spx_perf_20d = float(
-                (_spx_close.iloc[-1] - _spx_close.iloc[-21]) / _spx_close.iloc[-21] * 100
-            )
+            # squeeze() collapses a single-ticker MultiLevel column DataFrame to a Series
+            _spx_close = _spx_hist["Close"].squeeze().dropna()
+            _last  = float(_spx_close.iloc[-1])
+            _first = float(_spx_close.iloc[-21])
+            _spx_perf_20d = (_last - _first) / _first * 100
             log.info("S&P 500 20T-Perf: %.2f%%", _spx_perf_20d)
+            print(f"S&P 500 20T Performance: {_spx_perf_20d:.1f}%", flush=True)
     except Exception as _spx_exc:
         log.warning("S&P 500 fetch failed: %s", _spx_exc)
 
