@@ -39,6 +39,9 @@ ALERT_THRESHOLD         = 40      # Score ≥ → Alert senden
 ALERT_THRESHOLD_STRONG  = 70      # Score ≥ → Starker Alert (⚡⚡)
 ALERT_COOLDOWN_HOURS    = 2       # Mindeststunden zwischen zwei Alerts je Ticker
 
+# Test-Modus: True → Handelszeiten-Prüfung wird übersprungen
+IGNORE_TRADING_HOURS    = True
+
 # Score-Punkte je Signal
 SCORE_PRICE_UP_3        = 15      # Kursanstieg ≥ 3 % intraday
 SCORE_PRICE_UP_7        = 25      # Kursanstieg ≥ 7 % intraday (ersetzt 15)
@@ -112,7 +115,6 @@ def parse_top_tickers() -> list[str]:
     # Ticker können Flag-Emoji enthalten — nur ASCII-Buchstaben/Zahlen/./-
     clean = []
     for t in tickers:
-        # Entferne führende Emoji (alles vor dem ersten ASCII-Zeichen)
         m = re.search(r'[A-Z0-9][A-Z0-9.\-]+', t.strip().upper())
         if m and m.group() not in clean:
             clean.append(m.group())
@@ -260,14 +262,13 @@ def fetch_reddit_mentions(ticker: str) -> dict:
                 text = (
                     (d.get("title") or "") + " " + (d.get("selftext") or "")
                 ).lower()
-                # Zähle nur wenn Ticker tatsächlich im Text vorkommt
                 if ticker.lower() not in text and ticker.split(".")[0].lower() not in text:
                     continue
                 total_posts += 1
                 words = re.findall(r"\w+", text)
                 pos_score += sum(1 for w in words if w in REDDIT_POSITIVE)
                 neg_score += sum(1 for w in words if w in REDDIT_NEGATIVE)
-            time.sleep(0.5)   # Reddit Rate-Limit schonen
+            time.sleep(0.5)
         except Exception as exc:
             log.debug("Reddit %s/%s: %s", sub, ticker, exc)
 
@@ -292,12 +293,10 @@ def fetch_sec_8k(ticker: str) -> bool:
     try:
         resp = requests.get(url, headers=HTTP_HEADERS, timeout=12)
         resp.raise_for_status()
-        # Atom-Namespace entfernen für einfachen Zugriff
         text = re.sub(r' xmlns="[^"]+"', "", resp.text, count=1)
         root = ET.fromstring(text)
         for entry in root.findall("entry"):
             updated = entry.findtext("updated") or ""
-            # Format: 2024-01-15T14:30:00-05:00
             try:
                 dt = datetime.fromisoformat(updated)
                 if dt.tzinfo is None:
@@ -341,10 +340,6 @@ def compute_signal(
     reddit: dict,
     has_8k: bool,
 ) -> tuple[int, list[str]]:
-    """
-    Berechnet Signal-Score 0–100 und gibt Treiber-Liste zurück.
-    yf_data: dict mit price, chg_pct, rvol, intraday
-    """
     score   = 0
     drivers = []
 
@@ -352,7 +347,6 @@ def compute_signal(
     rvol = yf_data.get("rvol", 0.0)
     intr = yf_data.get("intraday", 0.0)
 
-    # ── Kursanstieg ──
     if chg >= 7:
         score += SCORE_PRICE_UP_7
         drivers.append(f"Kurs +{chg:.1f}%")
@@ -360,7 +354,6 @@ def compute_signal(
         score += SCORE_PRICE_UP_3
         drivers.append(f"Kurs +{chg:.1f}%")
 
-    # ── Relatives Volumen ──
     if rvol >= 4:
         score += SCORE_RVOL_4X
         drivers.append(f"Volumen {rvol:.1f}×")
@@ -368,12 +361,10 @@ def compute_signal(
         score += SCORE_RVOL_2X
         drivers.append(f"Volumen {rvol:.1f}×")
 
-    # ── Intraday-Spanne ──
     if intr >= 5:
         score += SCORE_INTRADAY_RANGE
         drivers.append(f"Spanne {intr:.1f}%")
 
-    # ── Reddit ──
     rc = reddit.get("count", 0)
     rs = reddit.get("sentiment", 0.0)
     if rc >= 15:
@@ -386,12 +377,10 @@ def compute_signal(
         score += SCORE_REDDIT_SENTIMENT
         drivers.append(f"Reddit-Sentiment {rs:.2f}")
 
-    # ── SEC 8-K ──
     if has_8k:
         score += SCORE_SEC_8K
         drivers.append("SEC 8-K")
 
-    # ── News-Keywords ──
     kw_pts = 0
     kw_hits: list[str] = []
     all_headlines = " ".join(news).lower()
@@ -428,10 +417,10 @@ def send_alert(
     prefix    = "⚡⚡" if score >= ALERT_THRESHOLD_STRONG else "⚡"
     subject   = f"{prefix} Squeeze-Alert — {ticker} — Score {score}/100 — {uhrzeit}"
 
-    chg  = yf_data.get("chg_pct", 0.0)
-    rvol = yf_data.get("rvol", 0.0)
+    chg   = yf_data.get("chg_pct", 0.0)
+    rvol  = yf_data.get("rvol", 0.0)
     price = yf_data.get("price", 0.0)
-    sign = "+" if chg >= 0 else ""
+    sign  = "+" if chg >= 0 else ""
     top_headline = news[0] if news else "—"
     driver_str   = " + ".join(drivers) if drivers else "—"
     sentiment    = reddit.get("sentiment", 0.0)
@@ -475,7 +464,7 @@ def send_alert(
 def main() -> None:
     t_start = time.time()
 
-    if not is_trading_hours():
+    if not IGNORE_TRADING_HOURS and not is_trading_hours():
         log.info("Außerhalb der Handelszeiten (14:30–21:00 MEZ) — nichts zu tun.")
         return
 
@@ -491,11 +480,9 @@ def main() -> None:
     old_sigs   = load_signals()
     new_signals: dict[str, dict] = {}
 
-    # ── Batch yfinance ──
     log.info("yfinance Batch-Download für %d Ticker …", len(tickers))
     yf_batch = fetch_yfinance(tickers)
 
-    # ── Diagnose-Flags ──
     reddit_ok = True
     sec_ok    = True
     n_alerts  = 0
@@ -507,12 +494,10 @@ def main() -> None:
         if not yfd:
             log.debug("  Keine yfinance-Daten für %s", ticker)
 
-        # News
         news = fetch_yahoo_news(ticker)
         if not news:
             news = fetch_finviz_news(ticker)
 
-        # Reddit (öffentliche API — kein Auth)
         reddit: dict = {"count": 0, "sentiment": 0.0}
         try:
             reddit = fetch_reddit_mentions(ticker)
@@ -520,7 +505,6 @@ def main() -> None:
             log.debug("Reddit Fehler %s: %s", ticker, exc)
             reddit_ok = False
 
-        # SEC 8-K (nur US-Ticker ohne Suffix)
         has_8k = False
         is_us  = "." not in ticker
         if is_us:
@@ -530,7 +514,6 @@ def main() -> None:
                 log.debug("SEC Fehler %s: %s", ticker, exc)
                 sec_ok = False
 
-        # Score
         score, drivers = compute_signal(yfd, news, reddit, has_8k)
         log.info("  %s Score=%d Treiber=%s", ticker, score, " | ".join(drivers))
 
@@ -545,14 +528,12 @@ def main() -> None:
         if score >= ALERT_THRESHOLD:
             n_signals += 1
 
-        # Alert
         if score >= ALERT_THRESHOLD and not is_on_cooldown(ticker, state):
             sent = send_alert(ticker, score, drivers, yfd, reddit, news)
             if sent:
                 set_cooldown(ticker, state)
                 n_alerts += 1
 
-    # ── agent_signals.json schreiben ──
     t_elapsed = round(time.time() - t_start, 1)
     out = {
         "updated": now_berlin().isoformat(),
@@ -565,9 +546,8 @@ def main() -> None:
         "signals": new_signals,
     }
 
-    sigs_dirty  = json.dumps(old_sigs.get("signals", {}), sort_keys=True) != \
-                  json.dumps(new_signals, sort_keys=True)
-    state_dirty = json.dumps(state) != json.dumps(load_state())
+    sigs_dirty = json.dumps(old_sigs.get("signals", {}), sort_keys=True) != \
+                 json.dumps(new_signals, sort_keys=True)
 
     if sigs_dirty:
         save_signals(out)
