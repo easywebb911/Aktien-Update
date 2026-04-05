@@ -2575,6 +2575,13 @@ function showMsg(type,text){{
 
 _WL_FAILURES_FILE = "watchlist_failures.json"
 _WL_INACTIVE_FILE = "watchlist_inactive.txt"
+
+# Required ticker suffix per non-US region; US = no suffix from this dict
+_WL_REGION_SUFFIX: dict[str, str] = {
+    "DE": ".DE", "GB": ".L", "FR": ".PA", "NL": ".AS",
+    "CA": ".TO", "JP": ".T", "HK": ".HK", "KR": ".KS",
+}
+_WL_ALL_SUFFIXES = tuple(v.upper() for v in _WL_REGION_SUFFIX.values())
 _WL_MAX_FAILURES  = 3   # consecutive 404/empty responses before auto-deactivation
 
 
@@ -2627,6 +2634,14 @@ def get_watchlist_candidates() -> list[dict]:
     results: list[dict] = []
     for market, tickers in WATCHLIST.items():
         active = [t for t in tickers if t not in inactive]
+        # Suffix guard: each region only processes tickers with the matching suffix.
+        # US tickers (no suffix) must never appear in non-US region scans.
+        required_suffix = _WL_REGION_SUFFIX.get(market)
+        if required_suffix:
+            active = [t for t in active if t.upper().endswith(required_suffix.upper())]
+        else:
+            # US: exclude any ticker that carries a known non-US suffix
+            active = [t for t in active if not t.upper().endswith(_WL_ALL_SUFFIXES)]
         if not active:
             continue
         log.info("Watchlist scan: %s (%d active / %d total)",
