@@ -1565,7 +1565,7 @@ def _card(i: int, s: dict) -> str:
         news_html = '<p class="no-news">Keine Nachrichten verfügbar.</p>'
 
     return f"""
-<article class="card" id="c{i}">
+<article class="card" id="c{i}" data-ticker="{s['ticker']}">
   <div class="card-top">
     <div class="card-left">
       <span class="rank">{i}</span>
@@ -1668,6 +1668,21 @@ def generate_html(stocks: list[dict], report_date: str) -> str:
     _avg_mom = sum(mom_vals) / len(mom_vals) if mom_vals else None
     avg_mom_str = f"{_avg_mom:+.1f}%" if _avg_mom is not None else "—"
     avg_mom_col = ("#22c55e" if _avg_mom > 0 else "#ef4444") if _avg_mom is not None else "var(--accent)"
+    # Ø Float (Mio.)
+    float_vals = [s["float_shares"] / 1_000_000 for s in stocks if (s.get("float_shares") or 0) > 0]
+    avg_float_str = f"{sum(float_vals)/len(float_vals):.1f} Mio.".replace(".", ",") if float_vals else "—"
+    # Ø SI-Trend
+    si_vals = [
+        (s.get("finra_data") or {}).get("trend_pct")
+        for s in stocks
+        if (s.get("finra_data") or {}).get("trend", "no_data") != "no_data"
+    ]
+    si_vals = [v for v in si_vals if v is not None]
+    if si_vals:
+        _avg_si = sum(si_vals) / len(si_vals)
+        avg_si_str = f"{_avg_si:+.1f} %".replace(".", ",")
+    else:
+        avg_si_str = "—"
     now_str = datetime.now(ZoneInfo("Europe/Berlin")).strftime("%H:%M Uhr")
     timestamp = f"Stand: {report_date}, {now_str}"
 
@@ -1763,7 +1778,7 @@ a{{color:var(--accent);text-decoration:none}}
 /* ── Container – fluid, no max-width ── */
 .wrap{{padding:16px 14px 32px}}
 /* ── Stats bar ── */
-.stats-bar{{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:14px}}
+.stats-bar{{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px}}
 .stat-title{{grid-column:1 / -1;background:#042C53;border-radius:10px;
   padding:11px 8px;text-align:center;color:#E6F1FB;font-size:1.19rem;font-weight:500}}
 .stat-box{{background:var(--bg-card);border:1px solid var(--brd);border-radius:10px;
@@ -1870,6 +1885,27 @@ a{{color:var(--accent);text-decoration:none}}
 .si-badge-up{{color:#22c55e}}
 .si-badge-down{{color:#ef4444}}
 .si-badge-side{{color:#f59e0b}}
+/* ── KI-Agent Status & Signal Dots ── */
+.agent-status-bar{{font-size:.72rem;color:var(--txt-dim);padding:4px 14px 8px;
+  letter-spacing:.1px}}
+.agent-dot{{display:inline-block;width:8px;height:8px;border-radius:50%;
+  margin-left:5px;vertical-align:middle;cursor:pointer;position:relative}}
+.agent-dot.strong{{background:#ef4444;
+  box-shadow:0 0 0 0 #ef444488;
+  animation:pulse-dot 1.5s ease-out infinite}}
+.agent-dot.moderate{{background:#f59e0b}}
+@keyframes pulse-dot{{
+  0%{{box-shadow:0 0 0 0 #ef444488}}
+  70%{{box-shadow:0 0 0 6px #ef444400}}
+  100%{{box-shadow:0 0 0 0 #ef444400}}
+}}
+.agent-tooltip{{position:absolute;left:50%;transform:translateX(-50%);
+  bottom:calc(100% + 6px);background:#1e293b;color:#f1f5f9;
+  font-size:.68rem;white-space:nowrap;padding:4px 8px;border-radius:6px;
+  pointer-events:none;opacity:0;transition:opacity .15s;z-index:50;
+  border:1px solid #334155}}
+.agent-dot:hover .agent-tooltip{{opacity:1}}
+.agent-dot.touch-visible .agent-tooltip{{opacity:1}}
 /* ── Detail table (top of details body) ── */
 .detail-table-wrap{{padding:10px 12px 8px}}
 /* ── Driver row ── */
@@ -1937,7 +1973,7 @@ a{{color:var(--accent);text-decoration:none}}
   .color-legend{{grid-template-columns:repeat(2,1fr)}}
   /* Cards: fluid auto-fill, min 340px per card, 16px gap, full width */
   .cards-grid{{grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:16px}}
-  .stats-bar{{grid-template-columns:repeat(4,1fr)}}
+  .stats-bar{{grid-template-columns:repeat(6,1fr)}}
   .wrap{{padding:16px 16px 32px}}
   .footer{{padding:16px 16px 32px}}
   /* Slightly smaller body text */
@@ -2035,12 +2071,15 @@ a{{color:var(--accent);text-decoration:none}}
 </header>
 
 <main class="wrap">
+  <div class="agent-status-bar" id="agent-status">⚡ KI-Agent: Wird geladen …</div>
   <div class="stats-bar">
     <div class="stat-title">TopTen Squeezer</div>
     <div class="stat-box"><span class="stat-val">{avg_sf:.1f}%</span><span class="stat-lbl">Ø Short Float</span></div>
     <div class="stat-box"><span class="stat-val">{avg_sr:.1f}d</span><span class="stat-lbl">Ø Days to Cover</span></div>
     <div class="stat-box"><span class="stat-val">{avg_rv:.1f}×</span><span class="stat-lbl">Ø Volumen</span></div>
     <div class="stat-box"><span class="stat-val">{avg_mom_str}</span><span class="stat-lbl">Ø Kursmomentum</span></div>
+    <div class="stat-box"><span class="stat-val">{avg_float_str}</span><span class="stat-lbl">Ø Float</span></div>
+    <div class="stat-box"><span class="stat-val">{avg_si_str}</span><span class="stat-lbl">Ø SI-Trend</span></div>
   </div>
 
   <details class="info-panel">
@@ -2562,6 +2601,70 @@ function showMsg(type,text){{
   }} else {{
     initAll();
   }}
+}})();
+// ─────────────────────────────────────────────────────────────────────────────
+// ── KI-Agent Signal Indicators ───────────────────────────────────────────────
+(function() {{
+  const STALE_MIN = 30;   // agent_signals.json älter als N Minuten → "kein Scan"
+
+  function renderAgentSignals(data) {{
+    const statusEl = document.getElementById('agent-status');
+    const updated  = data.updated ? new Date(data.updated) : null;
+    const signals  = data.signals || {{}};
+    const info     = data.run_info || {{}};
+
+    // Status-Bar
+    if (!updated) {{
+      if (statusEl) statusEl.textContent = 'KI-Agent: Kein aktueller Scan verfügbar.';
+      return;
+    }}
+    const ageMin = (Date.now() - updated.getTime()) / 60000;
+    if (ageMin > STALE_MIN) {{
+      if (statusEl) statusEl.textContent = 'KI-Agent: Kein aktueller Scan verfügbar.';
+    }} else {{
+      const uhr = updated.toLocaleTimeString('de-DE', {{hour:'2-digit', minute:'2-digit'}});
+      const n   = info.signals_active || 0;
+      if (statusEl) {{
+        statusEl.textContent = `\u26a1 KI-Agent: Letzter Scan ${{uhr}} \u2014 ${{n}} Signal${{n !== 1 ? 'e' : ''}} aktiv`;
+      }}
+    }}
+
+    // Dots auf Karten
+    document.querySelectorAll('.card[data-ticker]').forEach(card => {{
+      const ticker = card.getAttribute('data-ticker');
+      const sig    = signals[ticker];
+      if (!sig || sig.score < 40) return;
+
+      const strong  = sig.score >= 70;
+      const tickerSpan = card.querySelector('.ticker');
+      if (!tickerSpan) return;
+
+      const dot = document.createElement('span');
+      dot.className = 'agent-dot ' + (strong ? 'strong' : 'moderate');
+
+      const tip = document.createElement('span');
+      tip.className = 'agent-tooltip';
+      tip.textContent = `KI-Agent: Score ${{sig.score}}/100 \u2014 ${{sig.drivers || '?'}}`;
+      dot.appendChild(tip);
+
+      // iPhone: Antippen zeigt Tooltip für 3s
+      dot.addEventListener('click', function(e) {{
+        e.stopPropagation();
+        dot.classList.add('touch-visible');
+        setTimeout(() => dot.classList.remove('touch-visible'), 3000);
+      }});
+
+      tickerSpan.parentNode.insertBefore(dot, tickerSpan.nextSibling);
+    }});
+  }}
+
+  fetch('./agent_signals.json?_=' + Date.now())
+    .then(r => r.ok ? r.json() : {{}})
+    .then(renderAgentSignals)
+    .catch(() => {{
+      const el = document.getElementById('agent-status');
+      if (el) el.textContent = 'KI-Agent: Kein aktueller Scan verfügbar.';
+    }});
 }})();
 // ─────────────────────────────────────────────────────────────────────────────
 </script>
