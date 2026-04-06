@@ -353,7 +353,7 @@ a{color:var(--accent);text-decoration:none}
 <header class="app-hdr">
   <div class="hdr-main">
     <span class="app-title">Squeeze <span>Report</span></span>
-    <span class="hdr-ts">Stand: 06.04.2026, 17:13 Uhr</span>
+    <span class="hdr-ts">Stand: 06.04.2026, 17:54 Uhr</span>
     <div class="hdr-btns">
       <button id="btn-reload" class="btn btn-g" onclick="reloadPage()">&#8635; Neu laden</button>
       <button id="btn-recalc" class="btn btn-b" onclick="triggerWorkflow()">&#9881; Neu berechnen</button>
@@ -386,12 +386,12 @@ a{color:var(--accent);text-decoration:none}
   <div class="agent-status-bar" id="agent-status">⚡ KI-Agent: Wird geladen …</div>
   <div class="stats-bar">
     <div class="stat-title">TopTen Squeezer</div>
-    <div class="stat-box"><span class="stat-val">26.2%</span><span class="stat-lbl">Ø Short Float</span></div>
-    <div class="stat-box"><span class="stat-val">8.6d</span><span class="stat-lbl">Ø Days to Cover</span></div>
-    <div class="stat-box"><span class="stat-val">0.8×</span><span class="stat-lbl">Ø Volumen</span></div>
-    <div class="stat-box"><span class="stat-val">+10.1%</span><span class="stat-lbl">Ø Kursmomentum</span></div>
-    <div class="stat-box"><span class="stat-val">61,5 Mio,</span><span class="stat-lbl">Ø Float</span></div>
-    <div class="stat-box"><span class="stat-val">+14371,3 %</span><span class="stat-lbl">Ø SI-Trend</span></div>
+    <div class="stat-box"><span class="stat-val">17.8%</span><span class="stat-lbl">Ø Short Float</span></div>
+    <div class="stat-box"><span class="stat-val">10.2d</span><span class="stat-lbl">Ø Days to Cover</span></div>
+    <div class="stat-box"><span class="stat-val">3.0×</span><span class="stat-lbl">Ø Volumen</span></div>
+    <div class="stat-box"><span class="stat-val">+16.8%</span><span class="stat-lbl">Ø Kursmomentum</span></div>
+    <div class="stat-box"><span class="stat-val">56,2 Mio,</span><span class="stat-lbl">Ø Float</span></div>
+    <div class="stat-box"><span class="stat-val">—</span><span class="stat-lbl">Ø SI-Trend</span></div>
   </div>
 
   <details class="info-panel">
@@ -502,25 +502,116 @@ a{color:var(--accent);text-decoration:none}
 
   <div class="cards-grid">
   
-<article class="card" id="c1" data-ticker="SPCE">
+<article class="card" id="c1" data-ticker="MAXN">
   <div class="card-top">
     <div class="card-left">
       <span class="rank">1</span>
       <div class="ticker-block">
         <div class="ticker-row">
+          <span class="ticker">MAXN</span>
+          <span class="market-tag">🇺🇸 DE</span>
+          <a class="chart-badge chart-badge-f" href="https://finviz.com/quote.ashx?t=MAXN" target="_blank" rel="noopener noreferrer" title="Finviz Chart &amp; Kennzahlen">F</a><a class="chart-badge chart-badge-s" href="https://stockanalysis.com/stocks/maxn/" target="_blank" rel="noopener noreferrer" title="Stockanalysis Chart &amp; Short-Interest">S</a>
+          <span class="price-tag">$1.09</span>
+        </div>
+        <span class="company">Maxeon Solar Technologies, Ltd.</span>
+        <span class="sector-tag">Technology · Solar</span>
+      </div>
+    </div>
+    <div class="score-block">
+      <span class="score-num" style="color:#22c55e">58.1</span>
+      <span class="score-lbl">Score</span>
+      <div class="score-track"><div class="score-fill" style="width:58%;background:#22c55e"></div></div>
+      
+    </div>
+  </div>
+  <p class="spark-placeholder">Verlauf ab morgen verfügbar.</p>
+  <div class="metrics-row">
+    <div class="metric-box" style="--mc:#ef4444">
+      <span class="m-val">12.1%</span>
+      <span class="m-lbl">Short Float</span>
+    </div>
+    <div class="metric-box" style="--mc:#22c55e">
+      <span class="m-val">8.0d</span>
+      <span class="m-lbl">Days to Cover</span>
+    </div>
+    <div class="metric-box" style="--mc:#22c55e">
+      <span class="m-val">18.6×</span>
+      <span class="m-lbl">Volumen</span>
+    </div>
+    <div class="metric-box" style="--mc:#22c55e">
+      <span class="m-val">+58.5%</span>
+      <span class="m-lbl">Momentum</span>
+    </div>
+    <div class="metric-box" style="--mc:#22c55e">
+      <span class="m-val">6,1 Mio,</span>
+      <span class="m-lbl">Float</span>
+    </div>
+    <div class="metric-box" style="--mc:#94a3b8">
+      <span class="m-val">—</span>
+      <span class="m-lbl">SI-Trend</span>
+    </div>
+  </div>
+  <button class="details-btn" onclick="toggleDetails(1)" id="db1" aria-expanded="false">
+    <span class="details-arrow" id="da1">▾</span><span id="dl1"> Details anzeigen</span>
+  </button>
+  <div class="details-body" id="dd1">
+    <div class="detail-table-wrap">
+      <table class="detail-table">
+        <tr><td>Marktkapitalisierung</td><td>$18 M</td></tr>
+        <tr><td>Float (frei handelbar)</td><td>6.1 Mio. Aktien</td></tr>
+        <tr><td>Sektor</td><td>Technology · Solar</td></tr>
+        <tr><td>52W-Hoch / -Tief</td><td>$4.97 / $0.67</td></tr>
+        <tr><td>Ø Volumen 20T</td><td>3,541,875</td></tr>
+        <tr><td>Heutiges Volumen</td><td>65,764,700</td></tr>
+        <tr><td>SEC-Meldungen</td><td><a href="https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&amp;CIK=MAXN&amp;type=&amp;dateb=&amp;owner=include&amp;count=10&amp;search_text=" target="_blank" rel="noopener noreferrer" class="edgar-link">EDGAR öffnen →</a></td></tr>
+        <tr><td>SI-Trend (3M)</td><td>Keine Daten</td></tr>
+        <tr><td>Short-Vol. T-1 (FINRA)</td><td>—</td></tr>
+        <tr><td>Short-Vol. T-2</td><td>—</td></tr>
+        <tr><td>Short-Vol. T-3</td><td>—</td></tr>
+
+        <tr><td>RSI (14T)</td><td><span style="color:var(--txt)">32.6</span></td></tr><tr><td>MA 50T</td><td>$2.37</td></tr><tr><td>MA 200T</td><td>$3.23</td></tr><tr><td>Kurs vs. MA50</td><td><span style="color:#ef4444">(-54.0%)</span></td></tr><tr><td>Rel. Stärke (20T)</td><td><span style="color:#ef4444">-49.9% vs. S&amp;P 500 (Aktie -52.0%)</span></td></tr>
+        <tr><td>Put/Call-Ratio <span style='color:var(--txt-dim);font-size:.8em'>(2026-04-17)</span></td><td><span style="color:#ef4444">1.32 — bärisch</span></td></tr><tr><td>Impl. Volatilität (ATM)</td><td><span style="color:#22c55e">531.3%</span></td></tr>
+        
+        <tr><td>Risiko-Detail</td><td style="color:#ef4444">Micro-Cap ($18 M) – geringe Liquidität, Kursmanipulation möglich. Extremer Volumenanstieg (18.6×) kann auf koordiniertes Kaufinteresse hinweisen.</td></tr>
+      </table>
+    </div>
+    
+    <div class="driver-row">
+      <span class="risk-badge" style="color:#ef4444;border-color:#ef444455;background:#ef444422">Risiko: HOCH</span>
+      <p class="driver-text">Short Float 12.1 % liegt deutlich über dem Marktdurchschnitt. Short Ratio 8.0 Tage — Eindeckungsdruck erhöht den Squeeze-Druck.</p>
+    </div>
+  </div>
+  <button class="news-btn" onclick="toggleNews(1)" id="nb1" aria-expanded="false">
+    <span id="nb-icon1">▼</span> Aktuelle Meldungen
+  </button>
+  <div class="news-panel" id="np1" hidden>
+    <div class="news-items"><div class="ni"><a href="https://seekingalpha.com/article/4888029-maxeon-solar-stock-get-out-before-wipe-out-strong-sell-rating-downgrade?source=feed_symbol_MAXN" target="_blank" rel="noopener noreferrer">Maxeon Solar: Steigen Sie aus, bevor Sie ausgelöscht werden – Starker Verkauf (Herabstufung der Bewertung)</a> <span class="ni-src">(Seeking Alpha)</span><span class="ni-meta">02.04.2026 11:45</span></div><div class="ni"><a href="https://seekingalpha.com/symbol/MAXN/news?source=feed_symbol_MAXN" target="_blank" rel="noopener noreferrer">Canadian Solar gewinnt US-Patentstreit gegen Maxeon</a> <span class="ni-src">(Seeking Alpha)</span><span class="ni-meta">15.01.2026 14:30</span></div><div class="ni"><a href="https://seekingalpha.com/symbol/MAXN/news?source=feed_symbol_MAXN" target="_blank" rel="noopener noreferrer">Maxeon Solar Technologies weitet Patentverletzungsklagen gegen Aiko aus</a> <span class="ni-src">(Seeking Alpha)</span><span class="ni-meta">15.12.2025 08:45</span></div></div>
+    <div class="news-summary-box">
+      <span class="summary-label">Zusammenfassung</span>
+      <p class="summary-text">Maxeon Solar: Steigen Sie aus, bevor Sie ausgelöscht werden – Starker Verkauf (Herabstufung der Bewertung). Weitere aktuelle Meldung: Canadian Solar gewinnt US-Patentstreit gegen Maxeon  –  Quelle: Seeking Alpha (02.04.2026 11:45)</p>
+    </div>
+  </div>
+</article>
+
+<article class="card" id="c2" data-ticker="SPCE">
+  <div class="card-top">
+    <div class="card-left">
+      <span class="rank">2</span>
+      <div class="ticker-block">
+        <div class="ticker-row">
           <span class="ticker">SPCE</span>
-          <span class="market-tag">🇺🇸 US</span>
+          <span class="market-tag">🇺🇸 DE</span>
           <a class="chart-badge chart-badge-f" href="https://finviz.com/quote.ashx?t=SPCE" target="_blank" rel="noopener noreferrer" title="Finviz Chart &amp; Kennzahlen">F</a><a class="chart-badge chart-badge-s" href="https://stockanalysis.com/stocks/spce/" target="_blank" rel="noopener noreferrer" title="Stockanalysis Chart &amp; Short-Interest">S</a>
-          <span class="price-tag">$2.83</span>
+          <span class="price-tag">$2.90</span>
         </div>
         <span class="company">Virgin Galactic Holdings, Inc.</span>
         <span class="sector-tag">Industrials · Aerospace & Defense</span>
       </div>
     </div>
     <div class="score-block">
-      <span class="score-num" style="color:#22c55e">51.7</span>
+      <span class="score-num" style="color:#f59e0b">48.9</span>
       <span class="score-lbl">Score</span>
-      <div class="score-track"><div class="score-fill" style="width:52%;background:#22c55e"></div></div>
+      <div class="score-track"><div class="score-fill" style="width:49%;background:#f59e0b"></div></div>
       
     </div>
   </div>
@@ -535,44 +626,44 @@ a{color:var(--accent);text-decoration:none}
       <span class="m-lbl">Days to Cover</span>
     </div>
     <div class="metric-box" style="--mc:#22c55e">
-      <span class="m-val">3.3×</span>
+      <span class="m-val">3.7×</span>
       <span class="m-lbl">Volumen</span>
     </div>
     <div class="metric-box" style="--mc:#22c55e">
-      <span class="m-val">+15.0%</span>
+      <span class="m-val">+17.9%</span>
       <span class="m-lbl">Momentum</span>
     </div>
     <div class="metric-box" style="--mc:#ef4444">
       <span class="m-val">81,2 Mio,</span>
       <span class="m-lbl">Float</span>
     </div>
-    <div class="metric-box" style="--mc:#22c55e">
-      <span class="m-val">↑ +140 %</span>
+    <div class="metric-box" style="--mc:#94a3b8">
+      <span class="m-val">—</span>
       <span class="m-lbl">SI-Trend</span>
     </div>
   </div>
-  <button class="details-btn" onclick="toggleDetails(1)" id="db1" aria-expanded="false">
-    <span class="details-arrow" id="da1">▾</span><span id="dl1"> Details anzeigen</span>
+  <button class="details-btn" onclick="toggleDetails(2)" id="db2" aria-expanded="false">
+    <span class="details-arrow" id="da2">▾</span><span id="dl2"> Details anzeigen</span>
   </button>
-  <div class="details-body" id="dd1">
+  <div class="details-body" id="dd2">
     <div class="detail-table-wrap">
       <table class="detail-table">
-        <tr><td>Marktkapitalisierung</td><td>$230 M</td></tr>
+        <tr><td>Marktkapitalisierung</td><td>$236 M</td></tr>
         <tr><td>Float (frei handelbar)</td><td>81.2 Mio. Aktien</td></tr>
         <tr><td>Sektor</td><td>Industrials · Aerospace & Defense</td></tr>
         <tr><td>52W-Hoch / -Tief</td><td>$6.64 / $2.13</td></tr>
-        <tr><td>Ø Volumen 20T</td><td>4,152,348</td></tr>
-        <tr><td>Heutiges Volumen</td><td>13,798,466</td></tr>
+        <tr><td>Ø Volumen 20T</td><td>4,250,762</td></tr>
+        <tr><td>Heutiges Volumen</td><td>15,766,734</td></tr>
         <tr><td>SEC-Meldungen</td><td><a href="https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&amp;CIK=SPCE&amp;type=&amp;dateb=&amp;owner=include&amp;count=10&amp;search_text=" target="_blank" rel="noopener noreferrer" class="edgar-link">EDGAR öffnen →</a></td></tr>
-        <tr><td>SI-Trend (3M)</td><td><span style="color:#22c55e">↑ Steigend +139.6 %</span></td></tr>
-        <tr><td>Short-Vol. T-1 (FINRA)</td><td>2,568 Aktien (02.04.2026)</td></tr>
-        <tr><td>Short-Vol. T-2</td><td>9,217 Aktien (01.04.2026)</td></tr>
-        <tr><td>Short-Vol. T-3</td><td>91,099 Aktien (31.03.2026)</td></tr>
+        <tr><td>SI-Trend (3M)</td><td>Keine Daten</td></tr>
+        <tr><td>Short-Vol. T-1 (FINRA)</td><td>—</td></tr>
+        <tr><td>Short-Vol. T-2</td><td>—</td></tr>
+        <tr><td>Short-Vol. T-3</td><td>—</td></tr>
 
-        <tr><td>RSI (14T)</td><td><span style="color:var(--txt)">61.6</span></td></tr><tr><td>MA 50T</td><td>$2.58</td></tr><tr><td>MA 200T</td><td>$3.26</td></tr><tr><td>Kurs vs. MA50</td><td><span style="color:#22c55e">(+9.6%)</span></td></tr><tr><td>Rel. Stärke (20T)</td><td><span style="color:#22c55e">+14.4% vs. S&amp;P 500 (Aktie +12.3%)</span></td></tr>
-        <tr><td>Put/Call-Ratio <span style='color:var(--txt-dim);font-size:.8em'>(2026-04-17)</span></td><td><span style="color:#22c55e">0.36 — bullisch</span></td></tr><tr><td>Impl. Volatilität (ATM)</td><td><span style="color:#22c55e">158.6%</span></td></tr>
+        <tr><td>RSI (14T)</td><td><span style="color:var(--txt)">63.4</span></td></tr><tr><td>MA 50T</td><td>$2.58</td></tr><tr><td>MA 200T</td><td>$3.26</td></tr><tr><td>Kurs vs. MA50</td><td><span style="color:#22c55e">(+12.3%)</span></td></tr><tr><td>Rel. Stärke (20T)</td><td><span style="color:#22c55e">+17.1% vs. S&amp;P 500 (Aktie +15.1%)</span></td></tr>
+        <tr><td>Put/Call-Ratio <span style='color:var(--txt-dim);font-size:.8em'>(2026-04-17)</span></td><td><span style="color:#22c55e">0.36 — bullisch</span></td></tr><tr><td>Impl. Volatilität (ATM)</td><td><span style="color:#22c55e">131.3%</span></td></tr>
         
-        <tr><td>Risiko-Detail</td><td style="color:#f59e0b">Micro-Cap ($230 M) – geringe Liquidität, Kursmanipulation möglich.</td></tr>
+        <tr><td>Risiko-Detail</td><td style="color:#f59e0b">Micro-Cap ($236 M) – geringe Liquidität, Kursmanipulation möglich.</td></tr>
       </table>
     </div>
     
@@ -581,37 +672,219 @@ a{color:var(--accent);text-decoration:none}
       <p class="driver-text">Short Float 23.2 % liegt deutlich über dem Marktdurchschnitt. Short Ratio 10.4 Tage — Eindeckungsdruck erhöht den Squeeze-Druck.</p>
     </div>
   </div>
-  <button class="news-btn" onclick="toggleNews(1)" id="nb1" aria-expanded="false">
-    <span id="nb-icon1">▼</span> Aktuelle Meldungen
+  <button class="news-btn" onclick="toggleNews(2)" id="nb2" aria-expanded="false">
+    <span id="nb-icon2">▼</span> Aktuelle Meldungen
   </button>
-  <div class="news-panel" id="np1" hidden>
-    <div class="news-items"><div class="ni"><a href="https://247wallst.com/investing/2026/04/06/virgin-galactic-rockets-18-higher-as-ticket-sales-return-spacecraft-ground-testing-looms/" target="_blank" rel="noopener noreferrer">Virgin Galactic Rockets steigen um 18 %, da die Ticketverkäufe wieder ansteigen, Bodentests von Raumfahrzeugen drohen</a> <span class="ni-src">(Yahoo Finance)</span><span class="ni-meta">06.04.2026 14:20</span></div><div class="ni"><a href="https://seekingalpha.com/article/4887977-virgin-galactic-holdings-inc-2025-q4-results-earnings-call-presentation?source=feed_symbol_SPCE" target="_blank" rel="noopener noreferrer">Virgin Galactic Holdings, Inc. 4. Quartal 2025 – Ergebnisse – Ergebnispräsentation</a> <span class="ni-src">(Seeking Alpha)</span><span class="ni-meta">01.04.2026 23:09</span></div><div class="ni"><a href="https://247wallst.com/investing/2026/04/01/rocket-lab-is-up-15x-in-two-years-is-it-too-late/" target="_blank" rel="noopener noreferrer">Rocket Lab ist in zwei Jahren um das 15-fache gestiegen. Ist es zu spät?</a> <span class="ni-src">(Yahoo Finance)</span><span class="ni-meta">01.04.2026 14:57</span></div></div>
+  <div class="news-panel" id="np2" hidden>
+    <div class="news-items"><div class="ni"><a href="https://www.proactiveinvestors.com/companies/news/1090050/virgin-galactic-stock-rises-as-company-reopens-spaceflight-tickets-at-higher-price-1090050.html" target="_blank" rel="noopener noreferrer">Die Aktie von Virgin Galactic steigt, da das Unternehmen wieder Raumflugtickets zu höheren Preisen anbietet</a> <span class="ni-src">(Yahoo Finance)</span><span class="ni-meta">06.04.2026 15:35</span></div><div class="ni"><a href="https://247wallst.com/investing/2026/04/06/virgin-galactic-rockets-18-higher-as-ticket-sales-return-spacecraft-ground-testing-looms/" target="_blank" rel="noopener noreferrer">Virgin Galactic Rockets steigen um 18 %, da die Ticketverkäufe wieder ansteigen, Bodentests von Raumfahrzeugen drohen</a> <span class="ni-src">(Yahoo Finance)</span><span class="ni-meta">06.04.2026 14:20</span></div><div class="ni"><a href="https://seekingalpha.com/article/4887977-virgin-galactic-holdings-inc-2025-q4-results-earnings-call-presentation?source=feed_symbol_SPCE" target="_blank" rel="noopener noreferrer">Virgin Galactic Holdings, Inc. 4. Quartal 2025 – Ergebnisse – Ergebnispräsentation</a> <span class="ni-src">(Seeking Alpha)</span><span class="ni-meta">01.04.2026 23:09</span></div></div>
     <div class="news-summary-box">
       <span class="summary-label">Zusammenfassung</span>
-      <p class="summary-text">Die Aktien von Virgin Galactic Holdings (NYSE:SPCE) stiegen im Montagmorgenhandel um 18 % und gehören damit zu den herausragenden Aktien zu Beginn der Woche. Der Katalysator ist eine Kombination aus erneuerter kommerzieller Dynamik, Hardware-Fortschritten und einem neuen Führungszuwachs, die zusammen signalisieren, dass das Unternehmen nach Jahren der Verzögerungen endlich die Wende erreichen könnte und … Virgin Galactic Rockets steigen um 18 %, da die Ticketverkäufe wieder zurückkommen, Bodentests für Raumfahrzeuge stehen bevor</p>
+      <p class="summary-text">Die Aktien von Virgin Galactic Holdings Inc (NYSE:SPCE) stiegen sprunghaft an, nachdem das Unternehmen seine Entscheidung bekannt gegeben hatte, den Ticketverkauf für seine Raumflüge zu einem höheren Preis von 750.000 US-Dollar pro Sitzplatz wieder aufzunehmen. Die Wiedereröffnung des Verkaufs für seine „Virgin Galactic Spaceflight Expeditions“ wurde von Investoren als Signal begrüßt...</p>
     </div>
   </div>
 </article>
 
-<article class="card" id="c2" data-ticker="ANAB">
+<article class="card" id="c3" data-ticker="FUBO">
   <div class="card-top">
     <div class="card-left">
-      <span class="rank">2</span>
+      <span class="rank">3</span>
+      <div class="ticker-block">
+        <div class="ticker-row">
+          <span class="ticker">FUBO</span>
+          <span class="market-tag">🇺🇸 DE</span>
+          <a class="chart-badge chart-badge-f" href="https://finviz.com/quote.ashx?t=FUBO" target="_blank" rel="noopener noreferrer" title="Finviz Chart &amp; Kennzahlen">F</a><a class="chart-badge chart-badge-s" href="https://stockanalysis.com/stocks/fubo/" target="_blank" rel="noopener noreferrer" title="Stockanalysis Chart &amp; Short-Interest">S</a>
+          <span class="price-tag">$12.38</span>
+        </div>
+        <span class="company">FuboTV Inc.</span>
+        <span class="sector-tag">Communication Services · Broadcasting</span>
+      </div>
+    </div>
+    <div class="score-block">
+      <span class="score-num" style="color:#f59e0b">39.3</span>
+      <span class="score-lbl">Score</span>
+      <div class="score-track"><div class="score-fill" style="width:39%;background:#f59e0b"></div></div>
+      
+    </div>
+  </div>
+  <p class="spark-placeholder">Verlauf ab morgen verfügbar.</p>
+  <div class="metrics-row">
+    <div class="metric-box" style="--mc:#f59e0b">
+      <span class="m-val">16.4%</span>
+      <span class="m-lbl">Short Float</span>
+    </div>
+    <div class="metric-box" style="--mc:#f59e0b">
+      <span class="m-val">4.3d</span>
+      <span class="m-lbl">Days to Cover</span>
+    </div>
+    <div class="metric-box" style="--mc:#f59e0b">
+      <span class="m-val">2.2×</span>
+      <span class="m-lbl">Volumen</span>
+    </div>
+    <div class="metric-box" style="--mc:#22c55e">
+      <span class="m-val">+26.8%</span>
+      <span class="m-lbl">Momentum</span>
+    </div>
+    <div class="metric-box" style="--mc:#22c55e">
+      <span class="m-val">29,1 Mio,</span>
+      <span class="m-lbl">Float</span>
+    </div>
+    <div class="metric-box" style="--mc:#94a3b8">
+      <span class="m-val">—</span>
+      <span class="m-lbl">SI-Trend</span>
+    </div>
+  </div>
+  <button class="details-btn" onclick="toggleDetails(3)" id="db3" aria-expanded="false">
+    <span class="details-arrow" id="da3">▾</span><span id="dl3"> Details anzeigen</span>
+  </button>
+  <div class="details-body" id="dd3">
+    <div class="detail-table-wrap">
+      <table class="detail-table">
+        <tr><td>Marktkapitalisierung</td><td>$365 M</td></tr>
+        <tr><td>Float (frei handelbar)</td><td>29.1 Mio. Aktien</td></tr>
+        <tr><td>Sektor</td><td>Communication Services · Broadcasting</td></tr>
+        <tr><td>52W-Hoch / -Tief</td><td>$56.64 / $8.31</td></tr>
+        <tr><td>Ø Volumen 20T</td><td>1,998,162</td></tr>
+        <tr><td>Heutiges Volumen</td><td>4,464,938</td></tr>
+        <tr><td>SEC-Meldungen</td><td><a href="https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&amp;CIK=FUBO&amp;type=&amp;dateb=&amp;owner=include&amp;count=10&amp;search_text=" target="_blank" rel="noopener noreferrer" class="edgar-link">EDGAR öffnen →</a></td></tr>
+        <tr><td>SI-Trend (3M)</td><td>Keine Daten</td></tr>
+        <tr><td>Short-Vol. T-1 (FINRA)</td><td>—</td></tr>
+        <tr><td>Short-Vol. T-2</td><td>—</td></tr>
+        <tr><td>Short-Vol. T-3</td><td>—</td></tr>
+
+        <tr><td>RSI (14T)</td><td><span style="color:var(--txt)">46.6</span></td></tr><tr><td>MA 50T</td><td>$16.15</td></tr><tr><td>MA 200T</td><td>$35.11</td></tr><tr><td>Kurs vs. MA50</td><td><span style="color:#ef4444">(-23.3%)</span></td></tr><tr><td>Rel. Stärke (20T)</td><td><span style="color:#ef4444">-10.5% vs. S&amp;P 500 (Aktie -12.5%)</span></td></tr>
+        <tr><td>Put/Call-Ratio <span style='color:var(--txt-dim);font-size:.8em'>(2026-04-17)</span></td><td><span style="color:#22c55e">0.30 — bullisch</span></td></tr><tr><td>Impl. Volatilität (ATM)</td><td><span style="color:#f59e0b">88.3%</span></td></tr>
+        
+        <tr><td>Risiko-Detail</td><td style="color:#f59e0b">Small-Cap ($365 M) mit eingeschränkter Liquidität.</td></tr>
+      </table>
+    </div>
+    
+    <div class="driver-row">
+      <span class="risk-badge" style="color:#f59e0b;border-color:#f59e0b55;background:#f59e0b22">Risiko: MITTEL</span>
+      <p class="driver-text">Short Float 16.4 % liegt deutlich über dem Marktdurchschnitt. Volumen bei 2.2× dem Durchschnitt — erhöhtes Kaufinteresse erkennbar.</p>
+    </div>
+  </div>
+  <button class="news-btn" onclick="toggleNews(3)" id="nb3" aria-expanded="false">
+    <span id="nb-icon3">▼</span> Aktuelle Meldungen
+  </button>
+  <div class="news-panel" id="np3" hidden>
+    <div class="news-items"><div class="ni"><a href="https://seekingalpha.com/symbol/FUBO/news?source=feed_symbol_FUBO" target="_blank" rel="noopener noreferrer">FuboTV erholt sich aufgrund optimistischer Aussichten und positivem freiem Cashflow</a> <span class="ni-src">(Seeking Alpha)</span><span class="ni-meta">06.04.2026 14:33</span></div><div class="ni"><a href="https://finance.yahoo.com/markets/stocks/articles/3-consumer-stocks-risky-163650759.html" target="_blank" rel="noopener noreferrer">3 Konsumgüteraktien, die wir für riskant halten</a> <span class="ni-src">(Yahoo Finance)</span><span class="ni-meta">03.04.2026 16:36</span></div><div class="ni"><a href="https://finance.yahoo.com/markets/stocks/articles/norwegian-cruise-line-offerpad-fubotv-232519367.html" target="_blank" rel="noopener noreferrer">Die Aktien von Norwegian Cruise Line, Offerpad, fuboTV, Somnigroup und Ralph Lauren steigen rasant – das müssen Sie wissen</a> <span class="ni-src">(Yahoo Finance)</span><span class="ni-meta">31.03.2026 23:25</span></div></div>
+    <div class="news-summary-box">
+      <span class="summary-label">Zusammenfassung</span>
+      <p class="summary-text">FuboTV erholt sich aufgrund optimistischer Aussichten und positivem freiem Cashflow. Weitere aktuelle Meldung: 3 Verbraucheraktien, die wir für riskant halten  –  Quelle: Seeking Alpha (06.04.2026 14:33)</p>
+    </div>
+  </div>
+</article>
+
+<article class="card" id="c4" data-ticker="ANVS">
+  <div class="card-top">
+    <div class="card-left">
+      <span class="rank">4</span>
+      <div class="ticker-block">
+        <div class="ticker-row">
+          <span class="ticker">ANVS</span>
+          <span class="market-tag">🇺🇸 DE</span>
+          <a class="chart-badge chart-badge-f" href="https://finviz.com/quote.ashx?t=ANVS" target="_blank" rel="noopener noreferrer" title="Finviz Chart &amp; Kennzahlen">F</a><a class="chart-badge chart-badge-s" href="https://stockanalysis.com/stocks/anvs/" target="_blank" rel="noopener noreferrer" title="Stockanalysis Chart &amp; Short-Interest">S</a>
+          <span class="price-tag">$2.46</span>
+        </div>
+        <span class="company">Annovis Bio, Inc.</span>
+        <span class="sector-tag">Healthcare · Biotechnology</span>
+      </div>
+    </div>
+    <div class="score-block">
+      <span class="score-num" style="color:#f59e0b">34.0</span>
+      <span class="score-lbl">Score</span>
+      <div class="score-track"><div class="score-fill" style="width:34%;background:#f59e0b"></div></div>
+      
+    </div>
+  </div>
+  <p class="spark-placeholder">Verlauf ab morgen verfügbar.</p>
+  <div class="metrics-row">
+    <div class="metric-box" style="--mc:#ef4444">
+      <span class="m-val">10.9%</span>
+      <span class="m-lbl">Short Float</span>
+    </div>
+    <div class="metric-box" style="--mc:#22c55e">
+      <span class="m-val">8.6d</span>
+      <span class="m-lbl">Days to Cover</span>
+    </div>
+    <div class="metric-box" style="--mc:#f59e0b">
+      <span class="m-val">2.0×</span>
+      <span class="m-lbl">Volumen</span>
+    </div>
+    <div class="metric-box" style="--mc:#22c55e">
+      <span class="m-val">+7.7%</span>
+      <span class="m-lbl">Momentum</span>
+    </div>
+    <div class="metric-box" style="--mc:#22c55e">
+      <span class="m-val">24,3 Mio,</span>
+      <span class="m-lbl">Float</span>
+    </div>
+    <div class="metric-box" style="--mc:#94a3b8">
+      <span class="m-val">—</span>
+      <span class="m-lbl">SI-Trend</span>
+    </div>
+  </div>
+  <button class="details-btn" onclick="toggleDetails(4)" id="db4" aria-expanded="false">
+    <span class="details-arrow" id="da4">▾</span><span id="dl4"> Details anzeigen</span>
+  </button>
+  <div class="details-body" id="dd4">
+    <div class="detail-table-wrap">
+      <table class="detail-table">
+        <tr><td>Marktkapitalisierung</td><td>$70 M</td></tr>
+        <tr><td>Float (frei handelbar)</td><td>24.3 Mio. Aktien</td></tr>
+        <tr><td>Sektor</td><td>Healthcare · Biotechnology</td></tr>
+        <tr><td>52W-Hoch / -Tief</td><td>$5.50 / $1.11</td></tr>
+        <tr><td>Ø Volumen 20T</td><td>511,959</td></tr>
+        <tr><td>Heutiges Volumen</td><td>1,000,286</td></tr>
+        <tr><td>SEC-Meldungen</td><td><a href="https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&amp;CIK=ANVS&amp;type=&amp;dateb=&amp;owner=include&amp;count=10&amp;search_text=" target="_blank" rel="noopener noreferrer" class="edgar-link">EDGAR öffnen →</a></td></tr>
+        <tr><td>SI-Trend (3M)</td><td>Keine Daten</td></tr>
+        <tr><td>Short-Vol. T-1 (FINRA)</td><td>—</td></tr>
+        <tr><td>Short-Vol. T-2</td><td>—</td></tr>
+        <tr><td>Short-Vol. T-3</td><td>—</td></tr>
+
+        <tr><td>RSI (14T)</td><td><span style="color:var(--txt)">50.9</span></td></tr><tr><td>MA 50T</td><td>$2.53</td></tr><tr><td>MA 200T</td><td>$2.73</td></tr><tr><td>Kurs vs. MA50</td><td><span style="color:#ef4444">(-3.1%)</span></td></tr><tr><td>Rel. Stärke (20T)</td><td><span style="color:#22c55e">+0.6% vs. S&amp;P 500 (Aktie -1.4%)</span></td></tr>
+        <tr><td>Put/Call-Ratio <span style='color:var(--txt-dim);font-size:.8em'>(2026-04-17)</span></td><td><span style="color:#22c55e">0.04 — bullisch</span></td></tr><tr><td>Impl. Volatilität (ATM)</td><td><span style="color:#22c55e">309.4%</span></td></tr>
+        
+        <tr><td>Risiko-Detail</td><td style="color:#f59e0b">Micro-Cap ($70 M) – geringe Liquidität, Kursmanipulation möglich.</td></tr>
+      </table>
+    </div>
+    
+    <div class="driver-row">
+      <span class="risk-badge" style="color:#f59e0b;border-color:#f59e0b55;background:#f59e0b22">Risiko: MITTEL</span>
+      <p class="driver-text">Short Float 10.9 % liegt deutlich über dem Marktdurchschnitt. Short Ratio 8.6 Tage — Eindeckungsdruck erhöht den Squeeze-Druck.</p>
+    </div>
+  </div>
+  <button class="news-btn" onclick="toggleNews(4)" id="nb4" aria-expanded="false">
+    <span id="nb-icon4">▼</span> Aktuelle Meldungen
+  </button>
+  <div class="news-panel" id="np4" hidden>
+    <div class="news-items"><div class="ni"><a href="https://seekingalpha.com/symbol/ANVS/news?source=feed_symbol_ANVS" target="_blank" rel="noopener noreferrer">Annovis Bio GAAP EPS von -1,40 $</a> <span class="ni-src">(Seeking Alpha)</span><span class="ni-meta">16.03.2026 11:42</span></div><div class="ni"><a href="https://seekingalpha.com/symbol/ANVS/news?source=feed_symbol_ANVS" target="_blank" rel="noopener noreferrer">Annovis Bio GAAP EPS von -0,37 $</a> <span class="ni-src">(Seeking Alpha)</span><span class="ni-meta">12.11.2025 14:18</span></div><div class="ni"><a href="https://seekingalpha.com/symbol/ANVS/news?source=feed_symbol_ANVS" target="_blank" rel="noopener noreferrer">Annovis Bio kündigt registriertes Direktangebot von Stammaktien zum Marktpreis gemäß den NYSE-Regeln im Wert von 3,4 Millionen US-Dollar an</a> <span class="ni-src">(Seeking Alpha)</span><span class="ni-meta">27.10.2025 12:06</span></div></div>
+    <div class="news-summary-box">
+      <span class="summary-label">Zusammenfassung</span>
+      <p class="summary-text">Annovis Bio GAAP EPS of -$1.40. Weitere aktuelle Meldung: Annovis Bio GAAP EPS of -$0.37  –  Quelle: Seeking Alpha (16.03.2026 11:42)</p>
+    </div>
+  </div>
+</article>
+
+<article class="card" id="c5" data-ticker="ANAB">
+  <div class="card-top">
+    <div class="card-left">
+      <span class="rank">5</span>
       <div class="ticker-block">
         <div class="ticker-row">
           <span class="ticker">ANAB</span>
-          <span class="market-tag">🇺🇸 US</span>
+          <span class="market-tag">🇺🇸 DE</span>
           <a class="chart-badge chart-badge-f" href="https://finviz.com/quote.ashx?t=ANAB" target="_blank" rel="noopener noreferrer" title="Finviz Chart &amp; Kennzahlen">F</a><a class="chart-badge chart-badge-s" href="https://stockanalysis.com/stocks/anab/" target="_blank" rel="noopener noreferrer" title="Stockanalysis Chart &amp; Short-Interest">S</a>
-          <span class="price-tag">$62.41</span>
+          <span class="price-tag">$62.68</span>
         </div>
         <span class="company">AnaptysBio, Inc.</span>
         <span class="sector-tag">Healthcare · Biotechnology</span>
       </div>
     </div>
     <div class="score-block">
-      <span class="score-num" style="color:#f59e0b">37.1</span>
+      <span class="score-num" style="color:#f59e0b">32.8</span>
       <span class="score-lbl">Score</span>
-      <div class="score-track"><div class="score-fill" style="width:37%;background:#f59e0b"></div></div>
+      <div class="score-track"><div class="score-fill" style="width:33%;background:#f59e0b"></div></div>
       
     </div>
   </div>
@@ -630,38 +903,38 @@ a{color:var(--accent);text-decoration:none}
       <span class="m-lbl">Volumen</span>
     </div>
     <div class="metric-box" style="--mc:#22c55e">
-      <span class="m-val">+8.2%</span>
+      <span class="m-val">+8.7%</span>
       <span class="m-lbl">Momentum</span>
     </div>
     <div class="metric-box" style="--mc:#22c55e">
       <span class="m-val">17,3 Mio,</span>
       <span class="m-lbl">Float</span>
     </div>
-    <div class="metric-box" style="--mc:#22c55e">
-      <span class="m-val">↑ +96922 %</span>
+    <div class="metric-box" style="--mc:#94a3b8">
+      <span class="m-val">—</span>
       <span class="m-lbl">SI-Trend</span>
     </div>
   </div>
-  <button class="details-btn" onclick="toggleDetails(2)" id="db2" aria-expanded="false">
-    <span class="details-arrow" id="da2">▾</span><span id="dl2"> Details anzeigen</span>
+  <button class="details-btn" onclick="toggleDetails(5)" id="db5" aria-expanded="false">
+    <span class="details-arrow" id="da5">▾</span><span id="dl5"> Details anzeigen</span>
   </button>
-  <div class="details-body" id="dd2">
+  <div class="details-body" id="dd5">
     <div class="detail-table-wrap">
       <table class="detail-table">
         <tr><td>Marktkapitalisierung</td><td>$1.8 B</td></tr>
         <tr><td>Float (frei handelbar)</td><td>17.3 Mio. Aktien</td></tr>
         <tr><td>Sektor</td><td>Healthcare · Biotechnology</td></tr>
         <tr><td>52W-Hoch / -Tief</td><td>$68.39 / $15.40</td></tr>
-        <tr><td>Ø Volumen 20T</td><td>684,648</td></tr>
-        <tr><td>Heutiges Volumen</td><td>143,368</td></tr>
+        <tr><td>Ø Volumen 20T</td><td>685,732</td></tr>
+        <tr><td>Heutiges Volumen</td><td>165,042</td></tr>
         <tr><td>SEC-Meldungen</td><td><a href="https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&amp;CIK=ANAB&amp;type=&amp;dateb=&amp;owner=include&amp;count=10&amp;search_text=" target="_blank" rel="noopener noreferrer" class="edgar-link">EDGAR öffnen →</a></td></tr>
-        <tr><td>SI-Trend (3M)</td><td><span style="color:#22c55e">↑ Steigend +96921.7 %</span></td></tr>
-        <tr><td>Short-Vol. T-1 (FINRA)</td><td>236,733 Aktien (02.04.2026)</td></tr>
-        <tr><td>Short-Vol. T-2</td><td>197,987 Aktien (01.04.2026)</td></tr>
-        <tr><td>Short-Vol. T-3</td><td>908 Aktien (31.03.2026)</td></tr>
+        <tr><td>SI-Trend (3M)</td><td>Keine Daten</td></tr>
+        <tr><td>Short-Vol. T-1 (FINRA)</td><td>—</td></tr>
+        <tr><td>Short-Vol. T-2</td><td>—</td></tr>
+        <tr><td>Short-Vol. T-3</td><td>—</td></tr>
 
-        <tr><td>RSI (14T)</td><td><span style="color:var(--txt)">56.0</span></td></tr><tr><td>MA 50T</td><td>$56.27</td></tr><tr><td>MA 200T</td><td>$38.03</td></tr><tr><td>Kurs vs. MA50</td><td><span style="color:#22c55e">(+10.9%)</span></td></tr><tr><td>Rel. Stärke (20T)</td><td><span style="color:#22c55e">+14.7% vs. S&amp;P 500 (Aktie +12.6%)</span></td></tr>
-        <tr><td>Put/Call-Ratio <span style='color:var(--txt-dim);font-size:.8em'>(2026-04-17)</span></td><td><span style="color:var(--txt)">0.81</span></td></tr><tr><td>Impl. Volatilität (ATM)</td><td><span style="color:#f59e0b">74.8%</span></td></tr>
+        <tr><td>RSI (14T)</td><td><span style="color:var(--txt)">56.5</span></td></tr><tr><td>MA 50T</td><td>$56.27</td></tr><tr><td>MA 200T</td><td>$38.03</td></tr><tr><td>Kurs vs. MA50</td><td><span style="color:#22c55e">(+11.4%)</span></td></tr><tr><td>Rel. Stärke (20T)</td><td><span style="color:#22c55e">+15.2% vs. S&amp;P 500 (Aktie +13.1%)</span></td></tr>
+        <tr><td>Put/Call-Ratio <span style='color:var(--txt-dim);font-size:.8em'>(2026-04-17)</span></td><td><span style="color:var(--txt)">0.81</span></td></tr><tr><td>Impl. Volatilität (ATM)</td><td><span style="color:#f59e0b">63.1%</span></td></tr>
         
         <tr><td>Risiko-Detail</td><td style="color:#f59e0b">Hohes Short-Interesse (30.6 %) erhöht die Volatilität deutlich. Small-Cap ($1.8 B) mit eingeschränkter Liquidität.</td></tr>
       </table>
@@ -672,10 +945,10 @@ a{color:var(--accent);text-decoration:none}
       <p class="driver-text">Short Float 30.6 % — sehr hohes Leerverkaufsinteresse, starkes Squeeze-Potenzial. Short Ratio 9.8 Tage — Eindeckungsdruck erhöht den Squeeze-Druck.</p>
     </div>
   </div>
-  <button class="news-btn" onclick="toggleNews(2)" id="nb2" aria-expanded="false">
-    <span id="nb-icon2">▼</span> Aktuelle Meldungen
+  <button class="news-btn" onclick="toggleNews(5)" id="nb5" aria-expanded="false">
+    <span id="nb-icon5">▼</span> Aktuelle Meldungen
   </button>
-  <div class="news-panel" id="np2" hidden>
+  <div class="news-panel" id="np5" hidden>
     <div class="news-items"><div class="ni"><a href="https://finance.yahoo.com/markets/stocks/articles/assessing-anaptysbio-anab-valuation-us-042034080.html" target="_blank" rel="noopener noreferrer">Bewertung der Bewertung von AnaptysBio (ANAB) nach neuem 100-Millionen-US-Dollar-Rückkauf und abgesagten Aktienangeboten</a> <span class="ni-src">(Yahoo Finance)</span><span class="ni-meta">05.04.2026 04:20</span></div><div class="ni"><a href="https://finance.yahoo.com/sectors/healthcare/articles/sector-health-care-stocks-softer-195208671.html" target="_blank" rel="noopener noreferrer">Sektor-Update: Gesundheitsaktien schwächeln am späten Nachmittag</a> <span class="ni-src">(Yahoo Finance)</span><span class="ni-meta">27.03.2026 19:52</span></div><div class="ni"><a href="https://finance.yahoo.com/sectors/healthcare/articles/sector-health-care-stocks-retreat-174723584.html" target="_blank" rel="noopener noreferrer">Sektor-Update: Gesundheitsaktien geben am Freitagnachmittag nach</a> <span class="ni-src">(Yahoo Finance)</span><span class="ni-meta">27.03.2026 17:47</span></div></div>
     <div class="news-summary-box">
       <span class="summary-label">Zusammenfassung</span>
@@ -684,116 +957,25 @@ a{color:var(--accent);text-decoration:none}
   </div>
 </article>
 
-<article class="card" id="c3" data-ticker="FUBO">
+<article class="card" id="c6" data-ticker="TSHA">
   <div class="card-top">
     <div class="card-left">
-      <span class="rank">3</span>
-      <div class="ticker-block">
-        <div class="ticker-row">
-          <span class="ticker">FUBO</span>
-          <span class="market-tag">🇺🇸 US</span>
-          <a class="chart-badge chart-badge-f" href="https://finviz.com/quote.ashx?t=FUBO" target="_blank" rel="noopener noreferrer" title="Finviz Chart &amp; Kennzahlen">F</a><a class="chart-badge chart-badge-s" href="https://stockanalysis.com/stocks/fubo/" target="_blank" rel="noopener noreferrer" title="Stockanalysis Chart &amp; Short-Interest">S</a>
-          <span class="price-tag">$12.06</span>
-        </div>
-        <span class="company">FuboTV Inc.</span>
-        <span class="sector-tag">Communication Services · Broadcasting</span>
-      </div>
-    </div>
-    <div class="score-block">
-      <span class="score-num" style="color:#f59e0b">36.4</span>
-      <span class="score-lbl">Score</span>
-      <div class="score-track"><div class="score-fill" style="width:36%;background:#f59e0b"></div></div>
-      
-    </div>
-  </div>
-  <p class="spark-placeholder">Verlauf ab morgen verfügbar.</p>
-  <div class="metrics-row">
-    <div class="metric-box" style="--mc:#f59e0b">
-      <span class="m-val">16.4%</span>
-      <span class="m-lbl">Short Float</span>
-    </div>
-    <div class="metric-box" style="--mc:#f59e0b">
-      <span class="m-val">4.3d</span>
-      <span class="m-lbl">Days to Cover</span>
-    </div>
-    <div class="metric-box" style="--mc:#f59e0b">
-      <span class="m-val">1.7×</span>
-      <span class="m-lbl">Volumen</span>
-    </div>
-    <div class="metric-box" style="--mc:#22c55e">
-      <span class="m-val">+23.4%</span>
-      <span class="m-lbl">Momentum</span>
-    </div>
-    <div class="metric-box" style="--mc:#22c55e">
-      <span class="m-val">29,1 Mio,</span>
-      <span class="m-lbl">Float</span>
-    </div>
-    <div class="metric-box" style="--mc:#ef4444">
-      <span class="m-val">↓ −84 %</span>
-      <span class="m-lbl">SI-Trend</span>
-    </div>
-  </div>
-  <button class="details-btn" onclick="toggleDetails(3)" id="db3" aria-expanded="false">
-    <span class="details-arrow" id="da3">▾</span><span id="dl3"> Details anzeigen</span>
-  </button>
-  <div class="details-body" id="dd3">
-    <div class="detail-table-wrap">
-      <table class="detail-table">
-        <tr><td>Marktkapitalisierung</td><td>$356 M</td></tr>
-        <tr><td>Float (frei handelbar)</td><td>29.1 Mio. Aktien</td></tr>
-        <tr><td>Sektor</td><td>Communication Services · Broadcasting</td></tr>
-        <tr><td>52W-Hoch / -Tief</td><td>$56.64 / $8.31</td></tr>
-        <tr><td>Ø Volumen 20T</td><td>1,943,119</td></tr>
-        <tr><td>Heutiges Volumen</td><td>3,364,079</td></tr>
-        <tr><td>SEC-Meldungen</td><td><a href="https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&amp;CIK=FUBO&amp;type=&amp;dateb=&amp;owner=include&amp;count=10&amp;search_text=" target="_blank" rel="noopener noreferrer" class="edgar-link">EDGAR öffnen →</a></td></tr>
-        <tr><td>SI-Trend (3M)</td><td><span style="color:#ef4444">↓ Fallend −83.5 %</span></td></tr>
-        <tr><td>Short-Vol. T-1 (FINRA)</td><td>2,595 Aktien (02.04.2026)</td></tr>
-        <tr><td>Short-Vol. T-2</td><td>8,753 Aktien (01.04.2026)</td></tr>
-        <tr><td>Short-Vol. T-3</td><td>11,134 Aktien (31.03.2026)</td></tr>
-
-        <tr><td>RSI (14T)</td><td><span style="color:var(--txt)">45.0</span></td></tr><tr><td>MA 50T</td><td>$16.15</td></tr><tr><td>MA 200T</td><td>$35.10</td></tr><tr><td>Kurs vs. MA50</td><td><span style="color:#ef4444">(-25.3%)</span></td></tr><tr><td>Rel. Stärke (20T)</td><td><span style="color:#ef4444">-12.5% vs. S&amp;P 500 (Aktie -14.5%)</span></td></tr>
-        <tr><td>Put/Call-Ratio <span style='color:var(--txt-dim);font-size:.8em'>(2026-04-17)</span></td><td><span style="color:#22c55e">0.30 — bullisch</span></td></tr><tr><td>Impl. Volatilität (ATM)</td><td><span style="color:#f59e0b">73.0%</span></td></tr>
-        
-        <tr><td>Risiko-Detail</td><td style="color:#f59e0b">Small-Cap ($355 M) mit eingeschränkter Liquidität.</td></tr>
-      </table>
-    </div>
-    
-    <div class="driver-row">
-      <span class="risk-badge" style="color:#f59e0b;border-color:#f59e0b55;background:#f59e0b22">Risiko: MITTEL</span>
-      <p class="driver-text">Short Float 16.4 % liegt deutlich über dem Marktdurchschnitt. +23.4 % heute — mögliche Margin Calls bei Leerverkäufern.</p>
-    </div>
-  </div>
-  <button class="news-btn" onclick="toggleNews(3)" id="nb3" aria-expanded="false">
-    <span id="nb-icon3">▼</span> Aktuelle Meldungen
-  </button>
-  <div class="news-panel" id="np3" hidden>
-    <div class="news-items"><div class="ni"><a href="https://seekingalpha.com/symbol/FUBO/news?source=feed_symbol_FUBO" target="_blank" rel="noopener noreferrer">FuboTV erholt sich aufgrund optimistischer Aussichten und positivem freiem Cashflow</a> <span class="ni-src">(Seeking Alpha)</span><span class="ni-meta">06.04.2026 14:33</span></div><div class="ni"><a href="https://finance.yahoo.com/markets/stocks/articles/3-consumer-stocks-risky-163650759.html" target="_blank" rel="noopener noreferrer">3 Konsumgüteraktien, die wir für riskant halten</a> <span class="ni-src">(Yahoo Finance)</span><span class="ni-meta">03.04.2026 16:36</span></div><div class="ni"><a href="https://finance.yahoo.com/markets/stocks/articles/norwegian-cruise-line-offerpad-fubotv-232519367.html" target="_blank" rel="noopener noreferrer">Die Aktien von Norwegian Cruise Line, Offerpad, fuboTV, Somnigroup und Ralph Lauren steigen rasant – das müssen Sie wissen</a> <span class="ni-src">(Yahoo Finance)</span><span class="ni-meta">31.03.2026 23:25</span></div></div>
-    <div class="news-summary-box">
-      <span class="summary-label">Zusammenfassung</span>
-      <p class="summary-text">FuboTV erholt sich aufgrund optimistischer Aussichten und positivem freiem Cashflow. Weitere aktuelle Meldung: 3 Verbraucheraktien, die wir für riskant halten  –  Quelle: Seeking Alpha (06.04.2026 14:33)</p>
-    </div>
-  </div>
-</article>
-
-<article class="card" id="c4" data-ticker="TSHA">
-  <div class="card-top">
-    <div class="card-left">
-      <span class="rank">4</span>
+      <span class="rank">6</span>
       <div class="ticker-block">
         <div class="ticker-row">
           <span class="ticker">TSHA</span>
-          <span class="market-tag">🇺🇸 US</span>
+          <span class="market-tag">🇺🇸 DE</span>
           <a class="chart-badge chart-badge-f" href="https://finviz.com/quote.ashx?t=TSHA" target="_blank" rel="noopener noreferrer" title="Finviz Chart &amp; Kennzahlen">F</a><a class="chart-badge chart-badge-s" href="https://stockanalysis.com/stocks/tsha/" target="_blank" rel="noopener noreferrer" title="Stockanalysis Chart &amp; Short-Interest">S</a>
-          <span class="price-tag">$4.68</span>
+          <span class="price-tag">$4.70</span>
         </div>
         <span class="company">Taysha Gene Therapies, Inc.</span>
         <span class="sector-tag">Healthcare · Biotechnology</span>
       </div>
     </div>
     <div class="score-block">
-      <span class="score-num" style="color:#f59e0b">31.6</span>
+      <span class="score-num" style="color:#f59e0b">32.8</span>
       <span class="score-lbl">Score</span>
-      <div class="score-track"><div class="score-fill" style="width:32%;background:#f59e0b"></div></div>
+      <div class="score-track"><div class="score-fill" style="width:33%;background:#f59e0b"></div></div>
       
     </div>
   </div>
@@ -808,197 +990,15 @@ a{color:var(--accent);text-decoration:none}
       <span class="m-lbl">Days to Cover</span>
     </div>
     <div class="metric-box" style="--mc:#ef4444">
-      <span class="m-val">0.7×</span>
+      <span class="m-val">0.9×</span>
       <span class="m-lbl">Volumen</span>
     </div>
     <div class="metric-box" style="--mc:#22c55e">
-      <span class="m-val">+7.2%</span>
+      <span class="m-val">+7.6%</span>
       <span class="m-lbl">Momentum</span>
     </div>
     <div class="metric-box" style="--mc:#ef4444">
       <span class="m-val">198,3 Mio,</span>
-      <span class="m-lbl">Float</span>
-    </div>
-    <div class="metric-box" style="--mc:#94a3b8">
-      <span class="m-val">—</span>
-      <span class="m-lbl">SI-Trend</span>
-    </div>
-  </div>
-  <button class="details-btn" onclick="toggleDetails(4)" id="db4" aria-expanded="false">
-    <span class="details-arrow" id="da4">▾</span><span id="dl4"> Details anzeigen</span>
-  </button>
-  <div class="details-body" id="dd4">
-    <div class="detail-table-wrap">
-      <table class="detail-table">
-        <tr><td>Marktkapitalisierung</td><td>$1.3 B</td></tr>
-        <tr><td>Float (frei handelbar)</td><td>198.3 Mio. Aktien</td></tr>
-        <tr><td>Sektor</td><td>Healthcare · Biotechnology</td></tr>
-        <tr><td>52W-Hoch / -Tief</td><td>$6.02 / $1.05</td></tr>
-        <tr><td>Ø Volumen 20T</td><td>3,011,499</td></tr>
-        <tr><td>Heutiges Volumen</td><td>2,254,672</td></tr>
-        <tr><td>SEC-Meldungen</td><td><a href="https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&amp;CIK=TSHA&amp;type=&amp;dateb=&amp;owner=include&amp;count=10&amp;search_text=" target="_blank" rel="noopener noreferrer" class="edgar-link">EDGAR öffnen →</a></td></tr>
-        <tr><td>SI-Trend (3M)</td><td>Keine Daten</td></tr>
-        <tr><td>Short-Vol. T-1 (FINRA)</td><td>2,700 Aktien (01.04.2026)</td></tr>
-        <tr><td>Short-Vol. T-2</td><td>246 Aktien (26.03.2026)</td></tr>
-        <tr><td>Short-Vol. T-3</td><td>—</td></tr>
-
-        <tr><td>RSI (14T)</td><td><span style="color:var(--txt)">54.9</span></td></tr><tr><td>MA 50T</td><td>$4.55</td></tr><tr><td>MA 200T</td><td>$4.04</td></tr><tr><td>Kurs vs. MA50</td><td><span style="color:#22c55e">(+3.0%)</span></td></tr><tr><td>Rel. Stärke (20T)</td><td><span style="color:#22c55e">+4.6% vs. S&amp;P 500 (Aktie +2.5%)</span></td></tr>
-        
-        
-        <tr><td>Risiko-Detail</td><td style="color:#f59e0b">Small-Cap ($1.3 B) mit eingeschränkter Liquidität.</td></tr>
-      </table>
-    </div>
-    
-    <div class="driver-row">
-      <span class="risk-badge" style="color:#f59e0b;border-color:#f59e0b55;background:#f59e0b22">Risiko: MITTEL</span>
-      <p class="driver-text">Short Float 18.1 % liegt deutlich über dem Marktdurchschnitt. Short Ratio 17.8 Tage — Eindeckungsdruck erhöht den Squeeze-Druck.</p>
-    </div>
-  </div>
-  <button class="news-btn" onclick="toggleNews(4)" id="nb4" aria-expanded="false">
-    <span id="nb-icon4">▼</span> Aktuelle Meldungen
-  </button>
-  <div class="news-panel" id="np4" hidden>
-    <div class="news-items"><div class="ni"><a href="https://www.fool.com/coverage/filings/2026/03/22/structure-therapeutics-slides-28-this-year-as-usd6-million-stake-emerges/" target="_blank" rel="noopener noreferrer">Structure Therapeutics bricht dieses Jahr um 28 % ein, da eine Beteiligung in Höhe von 6 Millionen US-Dollar entsteht</a> <span class="ni-src">(Yahoo Finance)</span><span class="ni-meta">22.03.2026 20:26</span></div><div class="ni"><a href="https://finance.yahoo.com/sectors/healthcare/articles/fda-breakthrough-status-tsha-102-170653252.html" target="_blank" rel="noopener noreferrer">Wie der FDA-Durchbruchsstatus für TSHA-102 bei Taysha Gene Therapies (TSHA) seine Investitionsgeschichte verändert hat</a> <span class="ni-src">(Yahoo Finance)</span><span class="ni-meta">21.03.2026 17:06</span></div><div class="ni"><a href="https://seekingalpha.com/symbol/TSHA/news?source=feed_symbol_TSHA" target="_blank" rel="noopener noreferrer">Taysha skizziert den BLA-Einreichungspfad für TSHA-102 im Jahr 2026, da die Registrierung für die entscheidende Studie voranschreitet</a> <span class="ni-src">(Seeking Alpha)</span><span class="ni-meta">19.03.2026 22:23</span></div></div>
-    <div class="news-summary-box">
-      <span class="summary-label">Zusammenfassung</span>
-      <p class="summary-text">Structure Therapeutics treibt mit seiner Medikamentenpipeline im klinischen Stadium die Entwicklung oraler Therapien für Diabetes, Fettleibigkeit und Lungenerkrankungen voran.</p>
-    </div>
-  </div>
-</article>
-
-<article class="card" id="c5" data-ticker="TMDX">
-  <div class="card-top">
-    <div class="card-left">
-      <span class="rank">5</span>
-      <div class="ticker-block">
-        <div class="ticker-row">
-          <span class="ticker">TMDX</span>
-          <span class="market-tag">🇺🇸 US</span>
-          <a class="chart-badge chart-badge-f" href="https://finviz.com/quote.ashx?t=TMDX" target="_blank" rel="noopener noreferrer" title="Finviz Chart &amp; Kennzahlen">F</a><a class="chart-badge chart-badge-s" href="https://stockanalysis.com/stocks/tmdx/" target="_blank" rel="noopener noreferrer" title="Stockanalysis Chart &amp; Short-Interest">S</a>
-          <span class="price-tag">$105.45</span>
-        </div>
-        <span class="company">TransMedics Group, Inc.</span>
-        <span class="sector-tag">Healthcare · Medical Devices</span>
-      </div>
-    </div>
-    <div class="score-block">
-      <span class="score-num" style="color:#f59e0b">30.7</span>
-      <span class="score-lbl">Score</span>
-      <div class="score-track"><div class="score-fill" style="width:31%;background:#f59e0b"></div></div>
-      
-    </div>
-  </div>
-  <p class="spark-placeholder">Verlauf ab morgen verfügbar.</p>
-  <div class="metrics-row">
-    <div class="metric-box" style="--mc:#22c55e">
-      <span class="m-val">41.5%</span>
-      <span class="m-lbl">Short Float</span>
-    </div>
-    <div class="metric-box" style="--mc:#22c55e">
-      <span class="m-val">9.0d</span>
-      <span class="m-lbl">Days to Cover</span>
-    </div>
-    <div class="metric-box" style="--mc:#ef4444">
-      <span class="m-val">0.3×</span>
-      <span class="m-lbl">Volumen</span>
-    </div>
-    <div class="metric-box" style="--mc:#f59e0b">
-      <span class="m-val">+4.7%</span>
-      <span class="m-lbl">Momentum</span>
-    </div>
-    <div class="metric-box" style="--mc:#f59e0b">
-      <span class="m-val">33,1 Mio,</span>
-      <span class="m-lbl">Float</span>
-    </div>
-    <div class="metric-box" style="--mc:#ef4444">
-      <span class="m-val">↓ −22 %</span>
-      <span class="m-lbl">SI-Trend</span>
-    </div>
-  </div>
-  <button class="details-btn" onclick="toggleDetails(5)" id="db5" aria-expanded="false">
-    <span class="details-arrow" id="da5">▾</span><span id="dl5"> Details anzeigen</span>
-  </button>
-  <div class="details-body" id="dd5">
-    <div class="detail-table-wrap">
-      <table class="detail-table">
-        <tr><td>Marktkapitalisierung</td><td>$3.6 B</td></tr>
-        <tr><td>Float (frei handelbar)</td><td>33.1 Mio. Aktien</td></tr>
-        <tr><td>Sektor</td><td>Healthcare · Medical Devices</td></tr>
-        <tr><td>52W-Hoch / -Tief</td><td>$156.00 / $62.23</td></tr>
-        <tr><td>Ø Volumen 20T</td><td>972,458</td></tr>
-        <tr><td>Heutiges Volumen</td><td>284,750</td></tr>
-        <tr><td>SEC-Meldungen</td><td><a href="https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&amp;CIK=TMDX&amp;type=&amp;dateb=&amp;owner=include&amp;count=10&amp;search_text=" target="_blank" rel="noopener noreferrer" class="edgar-link">EDGAR öffnen →</a></td></tr>
-        <tr><td>SI-Trend (3M)</td><td><span style="color:#ef4444">↓ Fallend −21.7 %</span></td></tr>
-        <tr><td>Short-Vol. T-1 (FINRA)</td><td>769 Aktien (02.04.2026)</td></tr>
-        <tr><td>Short-Vol. T-2</td><td>3,265 Aktien (01.04.2026)</td></tr>
-        <tr><td>Short-Vol. T-3</td><td>5,957 Aktien (31.03.2026)</td></tr>
-
-        <tr><td>RSI (14T)</td><td><span style="color:var(--txt)">38.6</span></td></tr><tr><td>MA 50T</td><td>$126.98</td></tr><tr><td>MA 200T</td><td>$124.09</td></tr><tr><td>Kurs vs. MA50</td><td><span style="color:#ef4444">(-17.0%)</span></td></tr><tr><td>Rel. Stärke (20T)</td><td><span style="color:#ef4444">-16.7% vs. S&amp;P 500 (Aktie -18.8%)</span></td></tr>
-        <tr><td>Put/Call-Ratio <span style='color:var(--txt-dim);font-size:.8em'>(2026-04-17)</span></td><td><span style="color:#22c55e">0.51 — bullisch</span></td></tr><tr><td>Impl. Volatilität (ATM)</td><td><span style="color:#f59e0b">62.5%</span></td></tr>
-        
-        <tr><td>Risiko-Detail</td><td style="color:#f59e0b">Extrem hohes Short-Interesse (41.5 %) bedeutet massive Squeeze-Gefahr, aber auch starke Kursausschläge in beide Richtungen.</td></tr>
-      </table>
-    </div>
-    
-    <div class="driver-row">
-      <span class="risk-badge" style="color:#f59e0b;border-color:#f59e0b55;background:#f59e0b22">Risiko: MITTEL</span>
-      <p class="driver-text">Short Float 41.5 % — sehr hohes Leerverkaufsinteresse, starkes Squeeze-Potenzial. Short Ratio 9.0 Tage — Eindeckungsdruck erhöht den Squeeze-Druck.</p>
-    </div>
-  </div>
-  <button class="news-btn" onclick="toggleNews(5)" id="nb5" aria-expanded="false">
-    <span id="nb-icon5">▼</span> Aktuelle Meldungen
-  </button>
-  <div class="news-panel" id="np5" hidden>
-    <div class="news-items"><div class="ni"><a href="https://seekingalpha.com/symbol/TMDX/news?source=feed_symbol_TMDX" target="_blank" rel="noopener noreferrer">Die meisten und am wenigsten leerverkauften Gesundheitsaktien mittlerer bis großer Unternehmen im März</a> <span class="ni-src">(Seeking Alpha)</span><span class="ni-meta">03.04.2026 12:00</span></div><div class="ni"><a href="https://finance.yahoo.com/sectors/healthcare/articles/transmedics-group-tmdx-down-7-180801314.html" target="_blank" rel="noopener noreferrer">Die TransMedics Group (TMDX) ist um 7,1 % gesunken, nachdem sie ihre Ambitionen für die nationale OCS-Transplantationsplattform ausgeweitet hat</a> <span class="ni-src">(Yahoo Finance)</span><span class="ni-meta">26.03.2026 18:08</span></div><div class="ni"><a href="https://finance.yahoo.com/markets/stocks/articles/transmedics-tmdx-down-20-3-153010758.html" target="_blank" rel="noopener noreferrer">TransMedics (TMDX) ist seit dem letzten Gewinnbericht um 20,3 % gesunken: Kann es sich erholen?</a> <span class="ni-src">(Yahoo Finance)</span><span class="ni-meta">26.03.2026 15:30</span></div></div>
-    <div class="news-summary-box">
-      <span class="summary-label">Zusammenfassung</span>
-      <p class="summary-text">Die meisten und am wenigsten leerverkauften Gesundheitsaktien mittlerer bis großer Unternehmen im März. Weitere aktuelle Meldung: TransMedics Group (TMDX) ist um 7,1 % gesunken, nachdem es seine Ambitionen für die nationale OCS-Transplantationsplattform ausgeweitet hat  –  Quelle: Seeking Alpha (03.04.2026 12:00)</p>
-    </div>
-  </div>
-</article>
-
-<article class="card" id="c6" data-ticker="DMRC">
-  <div class="card-top">
-    <div class="card-left">
-      <span class="rank">6</span>
-      <div class="ticker-block">
-        <div class="ticker-row">
-          <span class="ticker">DMRC</span>
-          <span class="market-tag">🇺🇸 US</span>
-          <a class="chart-badge chart-badge-f" href="https://finviz.com/quote.ashx?t=DMRC" target="_blank" rel="noopener noreferrer" title="Finviz Chart &amp; Kennzahlen">F</a><a class="chart-badge chart-badge-s" href="https://stockanalysis.com/stocks/dmrc/" target="_blank" rel="noopener noreferrer" title="Stockanalysis Chart &amp; Short-Interest">S</a>
-          <span class="price-tag">$6.21</span>
-        </div>
-        <span class="company">Digimarc Corporation</span>
-        <span class="sector-tag">Technology · Software - Application</span>
-      </div>
-    </div>
-    <div class="score-block">
-      <span class="score-num" style="color:#f59e0b">30.6</span>
-      <span class="score-lbl">Score</span>
-      <div class="score-track"><div class="score-fill" style="width:31%;background:#f59e0b"></div></div>
-      
-    </div>
-  </div>
-  <p class="spark-placeholder">Verlauf ab morgen verfügbar.</p>
-  <div class="metrics-row">
-    <div class="metric-box" style="--mc:#f59e0b">
-      <span class="m-val">26.2%</span>
-      <span class="m-lbl">Short Float</span>
-    </div>
-    <div class="metric-box" style="--mc:#22c55e">
-      <span class="m-val">8.3d</span>
-      <span class="m-lbl">Days to Cover</span>
-    </div>
-    <div class="metric-box" style="--mc:#ef4444">
-      <span class="m-val">0.3×</span>
-      <span class="m-lbl">Volumen</span>
-    </div>
-    <div class="metric-box" style="--mc:#22c55e">
-      <span class="m-val">+9.1%</span>
-      <span class="m-lbl">Momentum</span>
-    </div>
-    <div class="metric-box" style="--mc:#22c55e">
-      <span class="m-val">16,3 Mio,</span>
       <span class="m-lbl">Float</span>
     </div>
     <div class="metric-box" style="--mc:#94a3b8">
@@ -1012,88 +1012,88 @@ a{color:var(--accent);text-decoration:none}
   <div class="details-body" id="dd6">
     <div class="detail-table-wrap">
       <table class="detail-table">
-        <tr><td>Marktkapitalisierung</td><td>$137 M</td></tr>
-        <tr><td>Float (frei handelbar)</td><td>16.3 Mio. Aktien</td></tr>
-        <tr><td>Sektor</td><td>Technology · Software - Application</td></tr>
-        <tr><td>52W-Hoch / -Tief</td><td>$14.64 / $4.07</td></tr>
-        <tr><td>Ø Volumen 20T</td><td>268,943</td></tr>
-        <tr><td>Heutiges Volumen</td><td>88,568</td></tr>
-        <tr><td>SEC-Meldungen</td><td><a href="https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&amp;CIK=DMRC&amp;type=&amp;dateb=&amp;owner=include&amp;count=10&amp;search_text=" target="_blank" rel="noopener noreferrer" class="edgar-link">EDGAR öffnen →</a></td></tr>
+        <tr><td>Marktkapitalisierung</td><td>$1.4 B</td></tr>
+        <tr><td>Float (frei handelbar)</td><td>198.3 Mio. Aktien</td></tr>
+        <tr><td>Sektor</td><td>Healthcare · Biotechnology</td></tr>
+        <tr><td>52W-Hoch / -Tief</td><td>$6.02 / $1.05</td></tr>
+        <tr><td>Ø Volumen 20T</td><td>3,035,528</td></tr>
+        <tr><td>Heutiges Volumen</td><td>2,735,263</td></tr>
+        <tr><td>SEC-Meldungen</td><td><a href="https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&amp;CIK=TSHA&amp;type=&amp;dateb=&amp;owner=include&amp;count=10&amp;search_text=" target="_blank" rel="noopener noreferrer" class="edgar-link">EDGAR öffnen →</a></td></tr>
         <tr><td>SI-Trend (3M)</td><td>Keine Daten</td></tr>
-        <tr><td>Short-Vol. T-1 (FINRA)</td><td>902 Aktien (02.04.2026)</td></tr>
-        <tr><td>Short-Vol. T-2</td><td>100 Aktien (31.03.2026)</td></tr>
-        <tr><td>Short-Vol. T-3</td><td>6 Aktien (27.03.2026)</td></tr>
+        <tr><td>Short-Vol. T-1 (FINRA)</td><td>—</td></tr>
+        <tr><td>Short-Vol. T-2</td><td>—</td></tr>
+        <tr><td>Short-Vol. T-3</td><td>—</td></tr>
 
-        <tr><td>RSI (14T)</td><td><span style="color:var(--txt)">62.2</span></td></tr><tr><td>MA 50T</td><td>$5.30</td></tr><tr><td>MA 200T</td><td>$8.46</td></tr><tr><td>Kurs vs. MA50</td><td><span style="color:#22c55e">(+17.2%)</span></td></tr><tr><td>Rel. Stärke (20T)</td><td><span style="color:#22c55e">+18.4% vs. S&amp;P 500 (Aktie +16.3%)</span></td></tr>
-        <tr><td>Put/Call-Ratio <span style='color:var(--txt-dim);font-size:.8em'>(2026-04-17)</span></td><td><span style="color:#ef4444">4.69 — bärisch</span></td></tr><tr><td>Impl. Volatilität (ATM)</td><td><span style="color:#22c55e">135.2%</span></td></tr>
+        <tr><td>RSI (14T)</td><td><span style="color:var(--txt)">55.1</span></td></tr><tr><td>MA 50T</td><td>$4.55</td></tr><tr><td>MA 200T</td><td>$4.04</td></tr><tr><td>Kurs vs. MA50</td><td><span style="color:#22c55e">(+3.3%)</span></td></tr><tr><td>Rel. Stärke (20T)</td><td><span style="color:#22c55e">+4.9% vs. S&amp;P 500 (Aktie +2.8%)</span></td></tr>
+        <tr><td>Put/Call-Ratio <span style='color:var(--txt-dim);font-size:.8em'>(2026-04-17)</span></td><td><span style="color:#22c55e">0.12 — bullisch</span></td></tr><tr><td>Impl. Volatilität (ATM)</td><td><span style="color:#22c55e">116.4%</span></td></tr>
         
-        <tr><td>Risiko-Detail</td><td style="color:#ef4444">Hohes Short-Interesse (26.2 %) erhöht die Volatilität deutlich. Micro-Cap ($137 M) – geringe Liquidität, Kursmanipulation möglich.</td></tr>
+        <tr><td>Risiko-Detail</td><td style="color:#f59e0b">Small-Cap ($1.4 B) mit eingeschränkter Liquidität.</td></tr>
       </table>
     </div>
     
     <div class="driver-row">
-      <span class="risk-badge" style="color:#ef4444;border-color:#ef444455;background:#ef444422">Risiko: HOCH</span>
-      <p class="driver-text">Short Float 26.2 % liegt deutlich über dem Marktdurchschnitt. Short Ratio 8.3 Tage — Eindeckungsdruck erhöht den Squeeze-Druck.</p>
+      <span class="risk-badge" style="color:#f59e0b;border-color:#f59e0b55;background:#f59e0b22">Risiko: MITTEL</span>
+      <p class="driver-text">Short Float 18.1 % liegt deutlich über dem Marktdurchschnitt. Short Ratio 17.8 Tage — Eindeckungsdruck erhöht den Squeeze-Druck.</p>
     </div>
   </div>
   <button class="news-btn" onclick="toggleNews(6)" id="nb6" aria-expanded="false">
     <span id="nb-icon6">▼</span> Aktuelle Meldungen
   </button>
   <div class="news-panel" id="np6" hidden>
-    <div class="news-items"><div class="ni"><a href="https://finance.yahoo.com/news/digimarc-corp-dmrc-q4-2025-030036326.html" target="_blank" rel="noopener noreferrer">Höhepunkte der Telefonkonferenz zu den Ergebnissen des vierten Quartals 2025 von Digimarc Corp (DMRC): Strategische Partnerschaften und technologische ...</a> <span class="ni-src">(Yahoo Finance)</span><span class="ni-meta">17.03.2026 03:00</span></div><div class="ni"><a href="https://seekingalpha.com/article/4882916-digimarc-corporation-dmrc-q4-2025-earnings-call-transcript?source=feed_symbol_DMRC" target="_blank" rel="noopener noreferrer">Digimarc Corporation (DMRC) Q4 2025 Earnings Call Transcript</a> <span class="ni-src">(Seeking Alpha)</span><span class="ni-meta">16.03.2026 22:52</span></div><div class="ni"><a href="https://www.marketbeat.com/instant-alerts/digimarc-q4-earnings-call-highlights-2026-03-16/?utm_source=yahoofinance&utm_medium=yahoofinance" target="_blank" rel="noopener noreferrer">Höhepunkte der Digimarc Q4 Earnings Call</a> <span class="ni-src">(Yahoo Finance)</span><span class="ni-meta">16.03.2026 22:02</span></div></div>
+    <div class="news-items"><div class="ni"><a href="https://www.fool.com/coverage/filings/2026/03/22/structure-therapeutics-slides-28-this-year-as-usd6-million-stake-emerges/" target="_blank" rel="noopener noreferrer">Structure Therapeutics bricht dieses Jahr um 28 % ein, da eine Beteiligung in Höhe von 6 Millionen US-Dollar entsteht</a> <span class="ni-src">(Yahoo Finance)</span><span class="ni-meta">22.03.2026 20:26</span></div><div class="ni"><a href="https://finance.yahoo.com/sectors/healthcare/articles/fda-breakthrough-status-tsha-102-170653252.html" target="_blank" rel="noopener noreferrer">Wie der FDA-Durchbruchsstatus für TSHA-102 bei Taysha Gene Therapies (TSHA) seine Investitionsgeschichte verändert hat</a> <span class="ni-src">(Yahoo Finance)</span><span class="ni-meta">21.03.2026 17:06</span></div><div class="ni"><a href="https://seekingalpha.com/symbol/TSHA/news?source=feed_symbol_TSHA" target="_blank" rel="noopener noreferrer">Taysha skizziert den BLA-Einreichungspfad für TSHA-102 im Jahr 2026, da die Registrierung für die entscheidende Studie voranschreitet</a> <span class="ni-src">(Seeking Alpha)</span><span class="ni-meta">19.03.2026 22:23</span></div></div>
     <div class="news-summary-box">
       <span class="summary-label">Zusammenfassung</span>
-      <p class="summary-text">Digimarc Corp (DMRC) stärkt seine Marktposition durch wichtige Partnerschaften und technologischen Fortschritt und steht gleichzeitig vor Herausforderungen bei den Zeitplänen für die Kommerzialisierung.</p>
+      <p class="summary-text">Structure Therapeutics treibt mit seiner Medikamentenpipeline im klinischen Stadium die Entwicklung oraler Therapien für Diabetes, Fettleibigkeit und Lungenerkrankungen voran.</p>
     </div>
   </div>
 </article>
 
-<article class="card" id="c7" data-ticker="SNBR">
+<article class="card" id="c7" data-ticker="LESL">
   <div class="card-top">
     <div class="card-left">
       <span class="rank">7</span>
       <div class="ticker-block">
         <div class="ticker-row">
-          <span class="ticker">SNBR</span>
-          <span class="market-tag">🇺🇸 US</span>
-          <a class="chart-badge chart-badge-f" href="https://finviz.com/quote.ashx?t=SNBR" target="_blank" rel="noopener noreferrer" title="Finviz Chart &amp; Kennzahlen">F</a><a class="chart-badge chart-badge-s" href="https://stockanalysis.com/stocks/snbr/" target="_blank" rel="noopener noreferrer" title="Stockanalysis Chart &amp; Short-Interest">S</a>
-          <span class="price-tag">$1.24</span>
+          <span class="ticker">LESL</span>
+          <span class="market-tag">🇺🇸 DE</span>
+          <a class="chart-badge chart-badge-f" href="https://finviz.com/quote.ashx?t=LESL" target="_blank" rel="noopener noreferrer" title="Finviz Chart &amp; Kennzahlen">F</a><a class="chart-badge chart-badge-s" href="https://stockanalysis.com/stocks/lesl/" target="_blank" rel="noopener noreferrer" title="Stockanalysis Chart &amp; Short-Interest">S</a>
+          <span class="price-tag">$1.43</span>
         </div>
-        <span class="company">Sleep Number Corporation</span>
-        <span class="sector-tag">Consumer Cyclical · Furnishings, Fixtures & Appliances</span>
+        <span class="company">Leslie's, Inc.</span>
+        <span class="sector-tag">Consumer Cyclical · Specialty Retail</span>
       </div>
     </div>
     <div class="score-block">
-      <span class="score-num" style="color:#ef4444">29.7</span>
+      <span class="score-num" style="color:#f59e0b">31.0</span>
       <span class="score-lbl">Score</span>
-      <div class="score-track"><div class="score-fill" style="width:30%;background:#ef4444"></div></div>
+      <div class="score-track"><div class="score-fill" style="width:31%;background:#f59e0b"></div></div>
       
     </div>
   </div>
   <p class="spark-placeholder">Verlauf ab morgen verfügbar.</p>
   <div class="metrics-row">
-    <div class="metric-box" style="--mc:#22c55e">
-      <span class="m-val">30.3%</span>
+    <div class="metric-box" style="--mc:#f59e0b">
+      <span class="m-val">16.2%</span>
       <span class="m-lbl">Short Float</span>
     </div>
     <div class="metric-box" style="--mc:#f59e0b">
-      <span class="m-val">5.2d</span>
+      <span class="m-val">6.5d</span>
       <span class="m-lbl">Days to Cover</span>
     </div>
     <div class="metric-box" style="--mc:#ef4444">
-      <span class="m-val">0.4×</span>
+      <span class="m-val">0.9×</span>
       <span class="m-lbl">Volumen</span>
     </div>
-    <div class="metric-box" style="--mc:#f59e0b">
-      <span class="m-val">+4.7%</span>
+    <div class="metric-box" style="--mc:#22c55e">
+      <span class="m-val">+11.7%</span>
       <span class="m-lbl">Momentum</span>
     </div>
     <div class="metric-box" style="--mc:#22c55e">
-      <span class="m-val">18,8 Mio,</span>
+      <span class="m-val">9,1 Mio,</span>
       <span class="m-lbl">Float</span>
     </div>
-    <div class="metric-box" style="--mc:#22c55e">
-      <span class="m-val">↑ +3814 %</span>
+    <div class="metric-box" style="--mc:#94a3b8">
+      <span class="m-val">—</span>
       <span class="m-lbl">SI-Trend</span>
     </div>
   </div>
@@ -1103,61 +1103,152 @@ a{color:var(--accent);text-decoration:none}
   <div class="details-body" id="dd7">
     <div class="detail-table-wrap">
       <table class="detail-table">
-        <tr><td>Marktkapitalisierung</td><td>$28 M</td></tr>
-        <tr><td>Float (frei handelbar)</td><td>18.8 Mio. Aktien</td></tr>
-        <tr><td>Sektor</td><td>Consumer Cyclical · Furnishings, Fixtures & Appliances</td></tr>
-        <tr><td>52W-Hoch / -Tief</td><td>$13.94 / $1.09</td></tr>
-        <tr><td>Ø Volumen 20T</td><td>1,918,436</td></tr>
-        <tr><td>Heutiges Volumen</td><td>803,122</td></tr>
-        <tr><td>SEC-Meldungen</td><td><a href="https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&amp;CIK=SNBR&amp;type=&amp;dateb=&amp;owner=include&amp;count=10&amp;search_text=" target="_blank" rel="noopener noreferrer" class="edgar-link">EDGAR öffnen →</a></td></tr>
-        <tr><td>SI-Trend (3M)</td><td><span style="color:#22c55e">↑ Steigend +3813.6 %</span></td></tr>
-        <tr><td>Short-Vol. T-1 (FINRA)</td><td>6,614 Aktien (02.04.2026)</td></tr>
-        <tr><td>Short-Vol. T-2</td><td>5,001 Aktien (01.04.2026)</td></tr>
-        <tr><td>Short-Vol. T-3</td><td>22,260 Aktien (31.03.2026)</td></tr>
+        <tr><td>Marktkapitalisierung</td><td>$13 M</td></tr>
+        <tr><td>Float (frei handelbar)</td><td>9.1 Mio. Aktien</td></tr>
+        <tr><td>Sektor</td><td>Consumer Cyclical · Specialty Retail</td></tr>
+        <tr><td>52W-Hoch / -Tief</td><td>$18.56 / $0.87</td></tr>
+        <tr><td>Ø Volumen 20T</td><td>136,395</td></tr>
+        <tr><td>Heutiges Volumen</td><td>121,707</td></tr>
+        <tr><td>SEC-Meldungen</td><td><a href="https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&amp;CIK=LESL&amp;type=&amp;dateb=&amp;owner=include&amp;count=10&amp;search_text=" target="_blank" rel="noopener noreferrer" class="edgar-link">EDGAR öffnen →</a></td></tr>
+        <tr><td>SI-Trend (3M)</td><td>Keine Daten</td></tr>
+        <tr><td>Short-Vol. T-1 (FINRA)</td><td>—</td></tr>
+        <tr><td>Short-Vol. T-2</td><td>—</td></tr>
+        <tr><td>Short-Vol. T-3</td><td>—</td></tr>
 
-        <tr><td>RSI (14T)</td><td><span style="color:#22c55e">13.7 — überverkauft</span></td></tr><tr><td>MA 50T</td><td>$6.67</td></tr><tr><td>MA 200T</td><td>$7.42</td></tr><tr><td>Kurs vs. MA50</td><td><span style="color:#ef4444">(-81.5%)</span></td></tr><tr><td>Rel. Stärke (20T)</td><td><span style="color:#ef4444">-74.6% vs. S&amp;P 500 (Aktie -76.7%)</span></td></tr>
-        <tr><td>Put/Call-Ratio <span style='color:var(--txt-dim);font-size:.8em'>(2026-04-17)</span></td><td><span style="color:#22c55e">0.34 — bullisch</span></td></tr><tr><td>Impl. Volatilität (ATM)</td><td><span style="color:#22c55e">312.5%</span></td></tr>
+        <tr><td>RSI (14T)</td><td><span style="color:var(--txt)">64.4</span></td></tr><tr><td>MA 50T</td><td>$1.17</td></tr><tr><td>MA 200T</td><td>$4.18</td></tr><tr><td>Kurs vs. MA50</td><td><span style="color:#22c55e">(+22.6%)</span></td></tr><tr><td>Rel. Stärke (20T)</td><td><span style="color:#22c55e">+52.6% vs. S&amp;P 500 (Aktie +50.5%)</span></td></tr>
         
-        <tr><td>Risiko-Detail</td><td style="color:#ef4444">Hohes Short-Interesse (30.3 %) erhöht die Volatilität deutlich. Micro-Cap ($28 M) – geringe Liquidität, Kursmanipulation möglich.</td></tr>
+        
+        <tr><td>Risiko-Detail</td><td style="color:#f59e0b">Micro-Cap ($13 M) – geringe Liquidität, Kursmanipulation möglich.</td></tr>
       </table>
     </div>
     
     <div class="driver-row">
-      <span class="risk-badge" style="color:#ef4444;border-color:#ef444455;background:#ef444422">Risiko: HOCH</span>
-      <p class="driver-text">Short Float 30.3 % — sehr hohes Leerverkaufsinteresse, starkes Squeeze-Potenzial. Short Ratio 5.2 Tage — Eindeckungsdruck erhöht den Squeeze-Druck.</p>
+      <span class="risk-badge" style="color:#f59e0b;border-color:#f59e0b55;background:#f59e0b22">Risiko: MITTEL</span>
+      <p class="driver-text">Short Float 16.2 % liegt deutlich über dem Marktdurchschnitt. Short Ratio 6.5 Tage — Eindeckungsdruck erhöht den Squeeze-Druck.</p>
     </div>
   </div>
   <button class="news-btn" onclick="toggleNews(7)" id="nb7" aria-expanded="false">
     <span id="nb-icon7">▼</span> Aktuelle Meldungen
   </button>
   <div class="news-panel" id="np7" hidden>
-    <div class="news-items"><div class="ni"><a href="https://finance.yahoo.com/markets/stocks/articles/sleep-number-snbr-narrative-shifting-070959052.html" target="_blank" rel="noopener noreferrer">Wie sich die Erzählung über die Schlafzahl (SNBR) mit niedrigeren Zielen und einer umfassenden Neuausrichtung des Produkts verschiebt</a> <span class="ni-src">(Yahoo Finance)</span><span class="ni-meta">06.04.2026 07:09</span></div><div class="ni"><a href="https://www.barchart.com/story/news/1120267/as-sleep-number-races-to-avoid-bankruptcy-could-snbr-stock-be-the-next-meme-rally" target="_blank" rel="noopener noreferrer">Könnte die SNBR-Aktie die nächste Meme-Rallye sein, während die Schlafzahlen um einen Konkurs rennen?</a> <span class="ni-src">(Yahoo Finance)</span><span class="ni-meta">02.04.2026 17:21</span></div><div class="ni"><a href="https://seekingalpha.com/symbol/SNBR/news?source=feed_symbol_SNBR" target="_blank" rel="noopener noreferrer">Sleep Number sucht nach Rettungsfinanzierung, um Insolvenz zu vermeiden – Bericht</a> <span class="ni-src">(Seeking Alpha)</span><span class="ni-meta">01.04.2026 21:32</span></div></div>
+    <div class="news-items"><div class="ni"><a href="https://finance.yahoo.com/markets/stocks/articles/1-small-cap-stock-worth-102923905.html" target="_blank" rel="noopener noreferrer">1 Small-Cap-Aktie, die Ihre Aufmerksamkeit wert ist, und 2, die wir ablehnen</a> <span class="ni-src">(Yahoo Finance)</span><span class="ni-meta">23.03.2026 10:29</span></div><div class="ni"><a href="https://finance.yahoo.com/markets/stocks/articles/stocks-making-big-moves-yesterday-160038215.html" target="_blank" rel="noopener noreferrer">Aktien machten gestern große Bewegungen: Leslie's, Macy's, Frontier, BrightSpring Health Services und Williams-Sonoma</a> <span class="ni-src">(Yahoo Finance)</span><span class="ni-meta">19.03.2026 16:00</span></div><div class="ni"><a href="https://finance.yahoo.com/markets/stocks/articles/1-stock-under-10-own-150038228.html" target="_blank" rel="noopener noreferrer">1 Aktie, die man jahrzehntelang unter 10 US-Dollar halten kann, und 2, die enttäuschend sind</a> <span class="ni-src">(Yahoo Finance)</span><span class="ni-meta">19.03.2026 15:00</span></div></div>
     <div class="news-summary-box">
       <span class="summary-label">Zusammenfassung</span>
-      <p class="summary-text">Die Preisziele für Sleep Number konzentrieren sich nun auf den Bereich von 4 bis 5 US-Dollar, was eine Neuausrichtung früherer Ansichten wie 10 und 12 US-Dollar auf Niveaus widerspiegelt, die näher an den Werten neuerer Forschungen liegen. Analysten, die diese niedrigeren Ziele mit neutralen Bewertungen kombinieren, signalisieren eine abwartende Haltung und suchen nach klareren Beweisen dafür, dass Marketingbemühungen und die neue Produktpalette zu stabileren Umsätzen und Erträgen beitragen können. Wenn Sie weiterlesen, werden Sie sehen, wie diese sich ändernden Ziele in das Gesamtbild passen ...</p>
+      <p class="summary-text">Small-Cap-Aktien können äußerst lukrative Investitionen sein, da ihre mangelnde Berichterstattung durch Analysten zu häufigen Fehlbewertungen führt. Allerdings bleiben diese Unternehmen (und ihre Aktienkurse) oft klein, weil ihre Kleinbetriebe es schwieriger machen, ihre Wettbewerbsvorteile zu vergrößern.</p>
     </div>
   </div>
 </article>
 
-<article class="card" id="c8" data-ticker="ENVX">
+<article class="card" id="c8" data-ticker="SST">
   <div class="card-top">
     <div class="card-left">
       <span class="rank">8</span>
       <div class="ticker-block">
         <div class="ticker-row">
+          <span class="ticker">SST</span>
+          <span class="market-tag">🇺🇸 DE</span>
+          <a class="chart-badge chart-badge-f" href="https://finviz.com/quote.ashx?t=SST" target="_blank" rel="noopener noreferrer" title="Finviz Chart &amp; Kennzahlen">F</a><a class="chart-badge chart-badge-s" href="https://stockanalysis.com/stocks/sst/" target="_blank" rel="noopener noreferrer" title="Stockanalysis Chart &amp; Short-Interest">S</a>
+          <span class="price-tag">$3.87</span>
+        </div>
+        <span class="company">System1, Inc.</span>
+        <span class="sector-tag">Industrials · Specialty Business Services</span>
+      </div>
+    </div>
+    <div class="score-block">
+      <span class="score-num" style="color:#f59e0b">30.7</span>
+      <span class="score-lbl">Score</span>
+      <div class="score-track"><div class="score-fill" style="width:31%;background:#f59e0b"></div></div>
+      
+    </div>
+  </div>
+  <p class="spark-placeholder">Verlauf ab morgen verfügbar.</p>
+  <div class="metrics-row">
+    <div class="metric-box" style="--mc:#ef4444">
+      <span class="m-val">7.9%</span>
+      <span class="m-lbl">Short Float</span>
+    </div>
+    <div class="metric-box" style="--mc:#22c55e">
+      <span class="m-val">15.0d</span>
+      <span class="m-lbl">Days to Cover</span>
+    </div>
+    <div class="metric-box" style="--mc:#ef4444">
+      <span class="m-val">0.1×</span>
+      <span class="m-lbl">Volumen</span>
+    </div>
+    <div class="metric-box" style="--mc:#22c55e">
+      <span class="m-val">+8.4%</span>
+      <span class="m-lbl">Momentum</span>
+    </div>
+    <div class="metric-box" style="--mc:#22c55e">
+      <span class="m-val">4,5 Mio,</span>
+      <span class="m-lbl">Float</span>
+    </div>
+    <div class="metric-box" style="--mc:#94a3b8">
+      <span class="m-val">—</span>
+      <span class="m-lbl">SI-Trend</span>
+    </div>
+  </div>
+  <button class="details-btn" onclick="toggleDetails(8)" id="db8" aria-expanded="false">
+    <span class="details-arrow" id="da8">▾</span><span id="dl8"> Details anzeigen</span>
+  </button>
+  <div class="details-body" id="dd8">
+    <div class="detail-table-wrap">
+      <table class="detail-table">
+        <tr><td>Marktkapitalisierung</td><td>$39 M</td></tr>
+        <tr><td>Float (frei handelbar)</td><td>4.5 Mio. Aktien</td></tr>
+        <tr><td>Sektor</td><td>Industrials · Specialty Business Services</td></tr>
+        <tr><td>52W-Hoch / -Tief</td><td>$15.00 / $1.35</td></tr>
+        <tr><td>Ø Volumen 20T</td><td>6,575,632</td></tr>
+        <tr><td>Heutiges Volumen</td><td>890,940</td></tr>
+        <tr><td>SEC-Meldungen</td><td><a href="https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&amp;CIK=SST&amp;type=&amp;dateb=&amp;owner=include&amp;count=10&amp;search_text=" target="_blank" rel="noopener noreferrer" class="edgar-link">EDGAR öffnen →</a></td></tr>
+        <tr><td>SI-Trend (3M)</td><td>Keine Daten</td></tr>
+        <tr><td>Short-Vol. T-1 (FINRA)</td><td>—</td></tr>
+        <tr><td>Short-Vol. T-2</td><td>—</td></tr>
+        <tr><td>Short-Vol. T-3</td><td>—</td></tr>
+
+        <tr><td>RSI (14T)</td><td><span style="color:var(--txt)">58.2</span></td></tr><tr><td>MA 50T</td><td>$3.13</td></tr><tr><td>MA 200T</td><td>$5.27</td></tr><tr><td>Kurs vs. MA50</td><td><span style="color:#22c55e">(+23.7%)</span></td></tr><tr><td>Rel. Stärke (20T)</td><td><span style="color:#22c55e">+28.1% vs. S&amp;P 500 (Aktie +26.1%)</span></td></tr>
+        
+        
+        <tr><td>Risiko-Detail</td><td style="color:#f59e0b">Micro-Cap ($39 M) – geringe Liquidität, Kursmanipulation möglich.</td></tr>
+      </table>
+    </div>
+    
+    <div class="driver-row">
+      <span class="risk-badge" style="color:#f59e0b;border-color:#f59e0b55;background:#f59e0b22">Risiko: MITTEL</span>
+      <p class="driver-text">Short Float 7.9 % liegt deutlich über dem Marktdurchschnitt. Short Ratio 15.0 Tage — Eindeckungsdruck erhöht den Squeeze-Druck.</p>
+    </div>
+  </div>
+  <button class="news-btn" onclick="toggleNews(8)" id="nb8" aria-expanded="false">
+    <span id="nb-icon8">▼</span> Aktuelle Meldungen
+  </button>
+  <div class="news-panel" id="np8" hidden>
+    <div class="news-items"><div class="ni"><a href="https://www.proactiveinvestors.com/companies/news/1088919/system1-shares-jump-19-as-marketing-analytics-group-forecasts-return-to-profitable-growth-1088919.html" target="_blank" rel="noopener noreferrer">Die Aktien von System1 steigen um 19 %, da die Prognosen der Marketing Analytics Group zu einem profitablen Wachstum zurückkehren</a> <span class="ni-src">(Yahoo Finance)</span><span class="ni-meta">16.03.2026 09:30</span></div><div class="ni"><a href="https://seekingalpha.com/symbol/SST/news?source=feed_symbol_SST" target="_blank" rel="noopener noreferrer">System1 meldet Ergebnisse für das vierte Quartal</a> <span class="ni-src">(Seeking Alpha)</span><span class="ni-meta">11.03.2026 20:56</span></div><div class="ni"><a href="https://app.moby.co/home/research/tools/earningsCalendar/earnings-cannae-holdings-inc-q4-2025-earnings-call-summary?utm_source=yahoo_finance&utm_medium=rss" target="_blank" rel="noopener noreferrer">Cannae Holdings, Inc. Zusammenfassung der Ergebnisse der Telefonkonferenz für das 4. Quartal 2025</a> <span class="ni-src">(Yahoo Finance)</span><span class="ni-meta">24.02.2026 13:30</span></div></div>
+    <div class="news-summary-box">
+      <span class="summary-label">Zusammenfassung</span>
+      <p class="summary-text">System1 Group, die an der AIM notierte Marketing-Entscheidungsplattform, verzeichnete einen Anstieg ihrer Aktien um 19 % auf 253,2 Pence, nachdem das Unternehmen mitteilte, dass starke Neugeschäftsabschlüsse im zweiten Halbjahr zu Rekordumsätzen führen und die Rentabilität im nächsten Geschäftsjahr über die Markterwartungen hinaus steigern würden. Das Unternehmen sagte...</p>
+    </div>
+  </div>
+</article>
+
+<article class="card" id="c9" data-ticker="ENVX">
+  <div class="card-top">
+    <div class="card-left">
+      <span class="rank">9</span>
+      <div class="ticker-block">
+        <div class="ticker-row">
           <span class="ticker">ENVX</span>
-          <span class="market-tag">🇺🇸 US</span>
+          <span class="market-tag">🇺🇸 DE</span>
           <a class="chart-badge chart-badge-f" href="https://finviz.com/quote.ashx?t=ENVX" target="_blank" rel="noopener noreferrer" title="Finviz Chart &amp; Kennzahlen">F</a><a class="chart-badge chart-badge-s" href="https://stockanalysis.com/stocks/envx/" target="_blank" rel="noopener noreferrer" title="Stockanalysis Chart &amp; Short-Interest">S</a>
-          <span class="price-tag">$5.51</span>
+          <span class="price-tag">$5.55</span>
         </div>
         <span class="company">Enovix Corporation</span>
         <span class="sector-tag">Industrials · Electrical Equipment & Parts</span>
       </div>
     </div>
     <div class="score-block">
-      <span class="score-num" style="color:#ef4444">29.1</span>
+      <span class="score-num" style="color:#f59e0b">30.3</span>
       <span class="score-lbl">Score</span>
-      <div class="score-track"><div class="score-fill" style="width:29%;background:#ef4444"></div></div>
+      <div class="score-track"><div class="score-fill" style="width:30%;background:#f59e0b"></div></div>
       
     </div>
   </div>
@@ -1176,102 +1267,11 @@ a{color:var(--accent);text-decoration:none}
       <span class="m-lbl">Volumen</span>
     </div>
     <div class="metric-box" style="--mc:#22c55e">
-      <span class="m-val">+8.9%</span>
+      <span class="m-val">+9.8%</span>
       <span class="m-lbl">Momentum</span>
     </div>
     <div class="metric-box" style="--mc:#ef4444">
       <span class="m-val">187,9 Mio,</span>
-      <span class="m-lbl">Float</span>
-    </div>
-    <div class="metric-box" style="--mc:#ef4444">
-      <span class="m-val">↓ −71 %</span>
-      <span class="m-lbl">SI-Trend</span>
-    </div>
-  </div>
-  <button class="details-btn" onclick="toggleDetails(8)" id="db8" aria-expanded="false">
-    <span class="details-arrow" id="da8">▾</span><span id="dl8"> Details anzeigen</span>
-  </button>
-  <div class="details-body" id="dd8">
-    <div class="detail-table-wrap">
-      <table class="detail-table">
-        <tr><td>Marktkapitalisierung</td><td>$1.2 B</td></tr>
-        <tr><td>Float (frei handelbar)</td><td>187.9 Mio. Aktien</td></tr>
-        <tr><td>Sektor</td><td>Industrials · Electrical Equipment & Parts</td></tr>
-        <tr><td>52W-Hoch / -Tief</td><td>$16.49 / $4.62</td></tr>
-        <tr><td>Ø Volumen 20T</td><td>5,422,838</td></tr>
-        <tr><td>Heutiges Volumen</td><td>4,149,560</td></tr>
-        <tr><td>SEC-Meldungen</td><td><a href="https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&amp;CIK=ENVX&amp;type=&amp;dateb=&amp;owner=include&amp;count=10&amp;search_text=" target="_blank" rel="noopener noreferrer" class="edgar-link">EDGAR öffnen →</a></td></tr>
-        <tr><td>SI-Trend (3M)</td><td><span style="color:#ef4444">↓ Fallend −71.0 %</span></td></tr>
-        <tr><td>Short-Vol. T-1 (FINRA)</td><td>3,351 Aktien (02.04.2026)</td></tr>
-        <tr><td>Short-Vol. T-2</td><td>2,741 Aktien (01.04.2026)</td></tr>
-        <tr><td>Short-Vol. T-3</td><td>8,254 Aktien (31.03.2026)</td></tr>
-
-        <tr><td>RSI (14T)</td><td><span style="color:var(--txt)">53.8</span></td></tr><tr><td>MA 50T</td><td>$5.71</td></tr><tr><td>MA 200T</td><td>$9.08</td></tr><tr><td>Kurs vs. MA50</td><td><span style="color:#ef4444">(-3.4%)</span></td></tr><tr><td>Rel. Stärke (20T)</td><td><span style="color:#22c55e">+15.8% vs. S&amp;P 500 (Aktie +13.7%)</span></td></tr>
-        <tr><td>Put/Call-Ratio <span style='color:var(--txt-dim);font-size:.8em'>(2026-04-17)</span></td><td><span style="color:#22c55e">0.47 — bullisch</span></td></tr><tr><td>Impl. Volatilität (ATM)</td><td><span style="color:#f59e0b">98.4%</span></td></tr>
-        
-        <tr><td>Risiko-Detail</td><td style="color:#f59e0b">Hohes Short-Interesse (34.6 %) erhöht die Volatilität deutlich. Small-Cap ($1.2 B) mit eingeschränkter Liquidität.</td></tr>
-      </table>
-    </div>
-    
-    <div class="driver-row">
-      <span class="risk-badge" style="color:#f59e0b;border-color:#f59e0b55;background:#f59e0b22">Risiko: MITTEL</span>
-      <p class="driver-text">Short Float 34.6 % — sehr hohes Leerverkaufsinteresse, starkes Squeeze-Potenzial. Short Ratio 9.6 Tage — Eindeckungsdruck erhöht den Squeeze-Druck.</p>
-    </div>
-  </div>
-  <button class="news-btn" onclick="toggleNews(8)" id="nb8" aria-expanded="false">
-    <span id="nb-icon8">▼</span> Aktuelle Meldungen
-  </button>
-  <div class="news-panel" id="np8" hidden>
-    <div class="news-items"><div class="ni"><a href="https://finance.yahoo.com/markets/stocks/articles/insiders-show-confidence-3-high-113533670.html" target="_blank" rel="noopener noreferrer">Insider zeigen Vertrauen in diese drei wachstumsstarken Unternehmen</a> <span class="ni-src">(Yahoo Finance)</span><span class="ni-meta">06.04.2026 11:35</span></div><div class="ni"><a href="https://finance.yahoo.com/markets/stocks/articles/april-2026s-leading-growth-stocks-173621694.html" target="_blank" rel="noopener noreferrer">Die führenden Wachstumsaktien im April 2026 mit Insider-Eigentum</a> <span class="ni-src">(Yahoo Finance)</span><span class="ni-meta">03.04.2026 17:36</span></div><div class="ni"><a href="https://seekingalpha.com/symbol/ENVX/news?source=feed_symbol_ENVX" target="_blank" rel="noopener noreferrer">Die meisten und am wenigsten leerverkauften Industrieaktien mit einer Marktkapitalisierung von bis zu 2 Milliarden US-Dollar</a> <span class="ni-src">(Seeking Alpha)</span><span class="ni-meta">03.04.2026 14:35</span></div></div>
-    <div class="news-summary-box">
-      <span class="summary-label">Zusammenfassung</span>
-      <p class="summary-text">Der US-Markt hat in letzter Zeit einen bemerkenswerten Aufschwung erlebt, der in der letzten Woche um 3,5 % zulegte und im vergangenen Jahr einen beeindruckenden Anstieg von 31 % verzeichnete, wobei ein jährliches Gewinnwachstum von 16 % prognostiziert wird. In diesem florierenden Umfeld kann die Identifizierung von Wachstumsunternehmen mit erheblichem Insider-Eigentum eine vielversprechende Strategie sein, da dies oft ein Zeichen dafür ist, dass das Management Vertrauen in die Zukunftsaussichten des Unternehmens hat.</p>
-    </div>
-  </div>
-</article>
-
-<article class="card" id="c9" data-ticker="PRLD">
-  <div class="card-top">
-    <div class="card-left">
-      <span class="rank">9</span>
-      <div class="ticker-block">
-        <div class="ticker-row">
-          <span class="ticker">PRLD</span>
-          <span class="market-tag">🇺🇸 US</span>
-          <a class="chart-badge chart-badge-f" href="https://finviz.com/quote.ashx?t=PRLD" target="_blank" rel="noopener noreferrer" title="Finviz Chart &amp; Kennzahlen">F</a><a class="chart-badge chart-badge-s" href="https://stockanalysis.com/stocks/prld/" target="_blank" rel="noopener noreferrer" title="Stockanalysis Chart &amp; Short-Interest">S</a>
-          <span class="price-tag">$3.83</span>
-        </div>
-        <span class="company">Prelude Therapeutics Incorporated</span>
-        <span class="sector-tag">Healthcare · Biotechnology</span>
-      </div>
-    </div>
-    <div class="score-block">
-      <span class="score-num" style="color:#ef4444">28.1</span>
-      <span class="score-lbl">Score</span>
-      <div class="score-track"><div class="score-fill" style="width:28%;background:#ef4444"></div></div>
-      
-    </div>
-  </div>
-  <p class="spark-placeholder">Verlauf ab morgen verfügbar.</p>
-  <div class="metrics-row">
-    <div class="metric-box" style="--mc:#f59e0b">
-      <span class="m-val">19.0%</span>
-      <span class="m-lbl">Short Float</span>
-    </div>
-    <div class="metric-box" style="--mc:#f59e0b">
-      <span class="m-val">6.5d</span>
-      <span class="m-lbl">Days to Cover</span>
-    </div>
-    <div class="metric-box" style="--mc:#ef4444">
-      <span class="m-val">0.4×</span>
-      <span class="m-lbl">Volumen</span>
-    </div>
-    <div class="metric-box" style="--mc:#22c55e">
-      <span class="m-val">+10.7%</span>
-      <span class="m-lbl">Momentum</span>
-    </div>
-    <div class="metric-box" style="--mc:#22c55e">
-      <span class="m-val">14,6 Mio,</span>
       <span class="m-lbl">Float</span>
     </div>
     <div class="metric-box" style="--mc:#94a3b8">
@@ -1285,88 +1285,88 @@ a{color:var(--accent);text-decoration:none}
   <div class="details-body" id="dd9">
     <div class="detail-table-wrap">
       <table class="detail-table">
-        <tr><td>Marktkapitalisierung</td><td>$241 M</td></tr>
-        <tr><td>Float (frei handelbar)</td><td>14.6 Mio. Aktien</td></tr>
-        <tr><td>Sektor</td><td>Healthcare · Biotechnology</td></tr>
-        <tr><td>52W-Hoch / -Tief</td><td>$4.22 / $0.61</td></tr>
-        <tr><td>Ø Volumen 20T</td><td>210,294</td></tr>
-        <tr><td>Heutiges Volumen</td><td>82,471</td></tr>
-        <tr><td>SEC-Meldungen</td><td><a href="https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&amp;CIK=PRLD&amp;type=&amp;dateb=&amp;owner=include&amp;count=10&amp;search_text=" target="_blank" rel="noopener noreferrer" class="edgar-link">EDGAR öffnen →</a></td></tr>
+        <tr><td>Marktkapitalisierung</td><td>$1.2 B</td></tr>
+        <tr><td>Float (frei handelbar)</td><td>187.9 Mio. Aktien</td></tr>
+        <tr><td>Sektor</td><td>Industrials · Electrical Equipment & Parts</td></tr>
+        <tr><td>52W-Hoch / -Tief</td><td>$16.49 / $4.62</td></tr>
+        <tr><td>Ø Volumen 20T</td><td>5,442,528</td></tr>
+        <tr><td>Heutiges Volumen</td><td>4,543,358</td></tr>
+        <tr><td>SEC-Meldungen</td><td><a href="https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&amp;CIK=ENVX&amp;type=&amp;dateb=&amp;owner=include&amp;count=10&amp;search_text=" target="_blank" rel="noopener noreferrer" class="edgar-link">EDGAR öffnen →</a></td></tr>
         <tr><td>SI-Trend (3M)</td><td>Keine Daten</td></tr>
-        <tr><td>Short-Vol. T-1 (FINRA)</td><td>450 Aktien (02.04.2026)</td></tr>
-        <tr><td>Short-Vol. T-2</td><td>450 Aktien (01.04.2026)</td></tr>
-        <tr><td>Short-Vol. T-3</td><td>5 Aktien (30.03.2026)</td></tr>
+        <tr><td>Short-Vol. T-1 (FINRA)</td><td>—</td></tr>
+        <tr><td>Short-Vol. T-2</td><td>—</td></tr>
+        <tr><td>Short-Vol. T-3</td><td>—</td></tr>
 
-        <tr><td>RSI (14T)</td><td><span style="color:var(--txt)">66.2</span></td></tr><tr><td>MA 50T</td><td>$2.76</td></tr><tr><td>MA 200T</td><td>$1.75</td></tr><tr><td>Kurs vs. MA50</td><td><span style="color:#22c55e">(+38.6%)</span></td></tr><tr><td>Rel. Stärke (20T)</td><td><span style="color:#22c55e">+20.7% vs. S&amp;P 500 (Aktie +18.6%)</span></td></tr>
-        <tr><td>Put/Call-Ratio <span style='color:var(--txt-dim);font-size:.8em'>(2026-04-17)</span></td><td><span style="color:#22c55e">0.19 — bullisch</span></td></tr><tr><td>Impl. Volatilität (ATM)</td><td><span style="color:#22c55e">205.5%</span></td></tr>
+        <tr><td>RSI (14T)</td><td><span style="color:var(--txt)">54.4</span></td></tr><tr><td>MA 50T</td><td>$5.71</td></tr><tr><td>MA 200T</td><td>$9.08</td></tr><tr><td>Kurs vs. MA50</td><td><span style="color:#ef4444">(-2.7%)</span></td></tr><tr><td>Rel. Stärke (20T)</td><td><span style="color:#22c55e">+16.6% vs. S&amp;P 500 (Aktie +14.5%)</span></td></tr>
+        <tr><td>Put/Call-Ratio <span style='color:var(--txt-dim);font-size:.8em'>(2026-04-17)</span></td><td><span style="color:#22c55e">0.47 — bullisch</span></td></tr><tr><td>Impl. Volatilität (ATM)</td><td><span style="color:#f59e0b">89.5%</span></td></tr>
         
-        <tr><td>Risiko-Detail</td><td style="color:#f59e0b">Micro-Cap ($241 M) – geringe Liquidität, Kursmanipulation möglich.</td></tr>
+        <tr><td>Risiko-Detail</td><td style="color:#f59e0b">Hohes Short-Interesse (34.6 %) erhöht die Volatilität deutlich. Small-Cap ($1.2 B) mit eingeschränkter Liquidität.</td></tr>
       </table>
     </div>
     
     <div class="driver-row">
       <span class="risk-badge" style="color:#f59e0b;border-color:#f59e0b55;background:#f59e0b22">Risiko: MITTEL</span>
-      <p class="driver-text">Short Float 19.0 % liegt deutlich über dem Marktdurchschnitt. Short Ratio 6.5 Tage — Eindeckungsdruck erhöht den Squeeze-Druck.</p>
+      <p class="driver-text">Short Float 34.6 % — sehr hohes Leerverkaufsinteresse, starkes Squeeze-Potenzial. Short Ratio 9.6 Tage — Eindeckungsdruck erhöht den Squeeze-Druck.</p>
     </div>
   </div>
   <button class="news-btn" onclick="toggleNews(9)" id="nb9" aria-expanded="false">
     <span id="nb-icon9">▼</span> Aktuelle Meldungen
   </button>
   <div class="news-panel" id="np9" hidden>
-    <div class="news-items"><div class="ni"><a href="https://seekingalpha.com/symbol/PRLD/news?source=feed_symbol_PRLD" target="_blank" rel="noopener noreferrer">Der GAAP-EPS von Prelude Therapeutics liegt bei -1,29 US-Dollar und liegt um 0,04 US-Dollar unter dem Umsatz von 12,14 Mio. US-Dollar</a> <span class="ni-src">(Seeking Alpha)</span><span class="ni-meta">10.03.2026 11:30</span></div><div class="ni"><a href="https://finance.yahoo.com/news/sana-biotechnology-sana-appoints-industry-192744522.html" target="_blank" rel="noopener noreferrer">Sana Biotechnology (SANA) ernennt Branchenveteran Brian Piper zum neuen CFO</a> <span class="ni-src">(Yahoo Finance)</span><span class="ni-meta">26.02.2026 19:27</span></div><div class="ni"><a href="https://seekingalpha.com/symbol/PRLD/news?source=feed_symbol_PRLD" target="_blank" rel="noopener noreferrer">Das Vorspiel steigt, da die FDA die Studie für einen Krebskandidaten mit Incyte-Partnerschaft genehmigt</a> <span class="ni-src">(Seeking Alpha)</span><span class="ni-meta">03.02.2026 16:37</span></div></div>
+    <div class="news-items"><div class="ni"><a href="https://finance.yahoo.com/markets/stocks/articles/insiders-show-confidence-3-high-113533670.html" target="_blank" rel="noopener noreferrer">Insider zeigen Vertrauen in diese drei wachstumsstarken Unternehmen</a> <span class="ni-src">(Yahoo Finance)</span><span class="ni-meta">06.04.2026 11:35</span></div><div class="ni"><a href="https://finance.yahoo.com/markets/stocks/articles/april-2026s-leading-growth-stocks-173621694.html" target="_blank" rel="noopener noreferrer">Die führenden Wachstumsaktien im April 2026 mit Insider-Eigentum</a> <span class="ni-src">(Yahoo Finance)</span><span class="ni-meta">03.04.2026 17:36</span></div><div class="ni"><a href="https://seekingalpha.com/symbol/ENVX/news?source=feed_symbol_ENVX" target="_blank" rel="noopener noreferrer">Die meisten und am wenigsten leerverkauften Industrieaktien mit einer Marktkapitalisierung von bis zu 2 Milliarden US-Dollar</a> <span class="ni-src">(Seeking Alpha)</span><span class="ni-meta">03.04.2026 14:35</span></div></div>
     <div class="news-summary-box">
       <span class="summary-label">Zusammenfassung</span>
-      <p class="summary-text">Der GAAP-EPS von Prelude Therapeutics liegt bei -1,29 US-Dollar und liegt um 0,04 US-Dollar unter dem Umsatz von 12,14 Mio. US-Dollar. Weitere aktuelle Meldung: Sana Biotechnology (SANA) ernennt Branchenveteran Brian Piper zum neuen CFO  –  Quelle: Seeking Alpha (10.03.2026 11:30)</p>
+      <p class="summary-text">Der US-Markt hat in letzter Zeit einen bemerkenswerten Aufschwung erlebt, der in der letzten Woche um 3,5 % zulegte und im vergangenen Jahr einen beeindruckenden Anstieg von 31 % verzeichnete, wobei ein jährliches Gewinnwachstum von 16 % prognostiziert wird. In diesem florierenden Umfeld kann die Identifizierung von Wachstumsunternehmen mit erheblichem Insider-Eigentum eine vielversprechende Strategie sein, da dies oft ein Zeichen dafür ist, dass das Management Vertrauen in die Zukunftsaussichten des Unternehmens hat.</p>
     </div>
   </div>
 </article>
 
-<article class="card" id="c10" data-ticker="KPTI">
+<article class="card" id="c10" data-ticker="ADV">
   <div class="card-top">
     <div class="card-left">
       <span class="rank">10</span>
       <div class="ticker-block">
         <div class="ticker-row">
-          <span class="ticker">KPTI</span>
-          <span class="market-tag">🇺🇸 US</span>
-          <a class="chart-badge chart-badge-f" href="https://finviz.com/quote.ashx?t=KPTI" target="_blank" rel="noopener noreferrer" title="Finviz Chart &amp; Kennzahlen">F</a><a class="chart-badge chart-badge-s" href="https://stockanalysis.com/stocks/kpti/" target="_blank" rel="noopener noreferrer" title="Stockanalysis Chart &amp; Short-Interest">S</a>
-          <span class="price-tag">$6.42</span>
+          <span class="ticker">ADV</span>
+          <span class="market-tag">🇺🇸 DE</span>
+          <a class="chart-badge chart-badge-f" href="https://finviz.com/quote.ashx?t=ADV" target="_blank" rel="noopener noreferrer" title="Finviz Chart &amp; Kennzahlen">F</a><a class="chart-badge chart-badge-s" href="https://stockanalysis.com/stocks/adv/" target="_blank" rel="noopener noreferrer" title="Stockanalysis Chart &amp; Short-Interest">S</a>
+          <span class="price-tag">$24.20</span>
         </div>
-        <span class="company">Karyopharm Therapeutics Inc.</span>
-        <span class="sector-tag">Healthcare · Biotechnology</span>
+        <span class="company">Advantage Solutions Inc.</span>
+        <span class="sector-tag">Communication Services · Advertising Agencies</span>
       </div>
     </div>
     <div class="score-block">
-      <span class="score-num" style="color:#ef4444">24.1</span>
+      <span class="score-num" style="color:#f59e0b">30.2</span>
       <span class="score-lbl">Score</span>
-      <div class="score-track"><div class="score-fill" style="width:24%;background:#ef4444"></div></div>
+      <div class="score-track"><div class="score-fill" style="width:30%;background:#f59e0b"></div></div>
       
     </div>
   </div>
   <p class="spark-placeholder">Verlauf ab morgen verfügbar.</p>
   <div class="metrics-row">
-    <div class="metric-box" style="--mc:#f59e0b">
-      <span class="m-val">22.5%</span>
+    <div class="metric-box" style="--mc:#ef4444">
+      <span class="m-val">7.8%</span>
       <span class="m-lbl">Short Float</span>
     </div>
-    <div class="metric-box" style="--mc:#f59e0b">
-      <span class="m-val">4.8d</span>
+    <div class="metric-box" style="--mc:#22c55e">
+      <span class="m-val">11.6d</span>
       <span class="m-lbl">Days to Cover</span>
     </div>
     <div class="metric-box" style="--mc:#ef4444">
-      <span class="m-val">0.1×</span>
+      <span class="m-val">0.3×</span>
       <span class="m-lbl">Volumen</span>
     </div>
     <div class="metric-box" style="--mc:#22c55e">
-      <span class="m-val">+9.0%</span>
+      <span class="m-val">+11.3%</span>
       <span class="m-lbl">Momentum</span>
     </div>
     <div class="metric-box" style="--mc:#22c55e">
-      <span class="m-val">18,2 Mio,</span>
+      <span class="m-val">4,2 Mio,</span>
       <span class="m-lbl">Float</span>
     </div>
-    <div class="metric-box" style="--mc:#ef4444">
-      <span class="m-val">↓ −100 %</span>
+    <div class="metric-box" style="--mc:#94a3b8">
+      <span class="m-val">—</span>
       <span class="m-lbl">SI-Trend</span>
     </div>
   </div>
@@ -1376,38 +1376,38 @@ a{color:var(--accent);text-decoration:none}
   <div class="details-body" id="dd10">
     <div class="detail-table-wrap">
       <table class="detail-table">
-        <tr><td>Marktkapitalisierung</td><td>$145 M</td></tr>
-        <tr><td>Float (frei handelbar)</td><td>18.2 Mio. Aktien</td></tr>
-        <tr><td>Sektor</td><td>Healthcare · Biotechnology</td></tr>
-        <tr><td>52W-Hoch / -Tief</td><td>$10.99 / $3.56</td></tr>
-        <tr><td>Ø Volumen 20T</td><td>1,765,408</td></tr>
-        <tr><td>Heutiges Volumen</td><td>225,253</td></tr>
-        <tr><td>SEC-Meldungen</td><td><a href="https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&amp;CIK=KPTI&amp;type=&amp;dateb=&amp;owner=include&amp;count=10&amp;search_text=" target="_blank" rel="noopener noreferrer" class="edgar-link">EDGAR öffnen →</a></td></tr>
-        <tr><td>SI-Trend (3M)</td><td><span style="color:#ef4444">↓ Fallend −99.7 %</span></td></tr>
-        <tr><td>Short-Vol. T-1 (FINRA)</td><td>12 Aktien (02.04.2026)</td></tr>
-        <tr><td>Short-Vol. T-2</td><td>1,536 Aktien (01.04.2026)</td></tr>
-        <tr><td>Short-Vol. T-3</td><td>3,794 Aktien (31.03.2026)</td></tr>
+        <tr><td>Marktkapitalisierung</td><td>$317 M</td></tr>
+        <tr><td>Float (frei handelbar)</td><td>4.2 Mio. Aktien</td></tr>
+        <tr><td>Sektor</td><td>Communication Services · Advertising Agencies</td></tr>
+        <tr><td>52W-Hoch / -Tief</td><td>$53.62 / $12.22</td></tr>
+        <tr><td>Ø Volumen 20T</td><td>71,525</td></tr>
+        <tr><td>Heutiges Volumen</td><td>19,734</td></tr>
+        <tr><td>SEC-Meldungen</td><td><a href="https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&amp;CIK=ADV&amp;type=&amp;dateb=&amp;owner=include&amp;count=10&amp;search_text=" target="_blank" rel="noopener noreferrer" class="edgar-link">EDGAR öffnen →</a></td></tr>
+        <tr><td>SI-Trend (3M)</td><td>Keine Daten</td></tr>
+        <tr><td>Short-Vol. T-1 (FINRA)</td><td>—</td></tr>
+        <tr><td>Short-Vol. T-2</td><td>—</td></tr>
+        <tr><td>Short-Vol. T-3</td><td>—</td></tr>
 
-        <tr><td>RSI (14T)</td><td><span style="color:var(--txt)">43.8</span></td></tr><tr><td>MA 50T</td><td>$7.63</td></tr><tr><td>MA 200T</td><td>$6.27</td></tr><tr><td>Kurs vs. MA50</td><td><span style="color:#ef4444">(-15.8%)</span></td></tr><tr><td>Rel. Stärke (20T)</td><td><span style="color:#ef4444">-24.7% vs. S&amp;P 500 (Aktie -26.8%)</span></td></tr>
-        <tr><td>Put/Call-Ratio <span style='color:var(--txt-dim);font-size:.8em'>(2026-04-17)</span></td><td><span style="color:#22c55e">0.63 — bullisch</span></td></tr><tr><td>Impl. Volatilität (ATM)</td><td><span style="color:#22c55e">123.8%</span></td></tr>
+        <tr><td>RSI (14T)</td><td><span style="color:var(--txt)">59.9</span></td></tr><tr><td>MA 50T</td><td>$18.89</td></tr><tr><td>MA 200T</td><td>$30.19</td></tr><tr><td>Kurs vs. MA50</td><td><span style="color:#22c55e">(+28.1%)</span></td></tr><tr><td>Rel. Stärke (20T)</td><td><span style="color:#22c55e">+53.3% vs. S&amp;P 500 (Aktie +51.3%)</span></td></tr>
         
-        <tr><td>Risiko-Detail</td><td style="color:#f59e0b">Micro-Cap ($145 M) – geringe Liquidität, Kursmanipulation möglich.</td></tr>
+        
+        <tr><td>Risiko-Detail</td><td style="color:#f59e0b">Small-Cap ($317 M) mit eingeschränkter Liquidität.</td></tr>
       </table>
     </div>
     
     <div class="driver-row">
       <span class="risk-badge" style="color:#f59e0b;border-color:#f59e0b55;background:#f59e0b22">Risiko: MITTEL</span>
-      <p class="driver-text">Short Float 22.5 % liegt deutlich über dem Marktdurchschnitt. +9.0 % heute — mögliche Margin Calls bei Leerverkäufern.</p>
+      <p class="driver-text">Short Float 7.8 % liegt deutlich über dem Marktdurchschnitt. Short Ratio 11.6 Tage — Eindeckungsdruck erhöht den Squeeze-Druck.</p>
     </div>
   </div>
   <button class="news-btn" onclick="toggleNews(10)" id="nb10" aria-expanded="false">
     <span id="nb-icon10">▼</span> Aktuelle Meldungen
   </button>
   <div class="news-panel" id="np10" hidden>
-    <div class="news-items"><div class="ni"><a href="https://finance.yahoo.com/markets/stocks/articles/karyopharm-therapeutics-kpti-stock-jumps-124900400.html" target="_blank" rel="noopener noreferrer">Die Aktie von Karyopharm Therapeutics (KPTI) steigt um 6,9 %: Wird sie weiter steigen?</a> <span class="ni-src">(Yahoo Finance)</span><span class="ni-meta">27.03.2026 12:49</span></div><div class="ni"><a href="https://seekingalpha.com/article/4886089-karyopharm-stock-putting-phase-3-trial-in-context?source=feed_symbol_KPTI" target="_blank" rel="noopener noreferrer">Karyopharm: Die Phase-3-Studie in einen Kontext stellen</a> <span class="ni-src">(Seeking Alpha)</span><span class="ni-meta">26.03.2026 11:01</span></div><div class="ni"><a href="https://finance.yahoo.com/sectors/healthcare/articles/kpti-stock-down-mixed-phase-142200083.html" target="_blank" rel="noopener noreferrer">KPTI-Aktienrückgang aufgrund gemischter Daten der Phase-III-Myelofibrose-Kombinationsstudie</a> <span class="ni-src">(Yahoo Finance)</span><span class="ni-meta">25.03.2026 14:22</span></div></div>
+    <div class="news-items"><div class="ni"><a href="https://finance.yahoo.com/markets/stocks/articles/narrative-advanced-enzyme-technologies-nsei-031054187.html" target="_blank" rel="noopener noreferrer">Wie sich die Erzählung über fortschrittliche Enzymtechnologien (NSEI:ADVENZYMES) um den beizulegenden Zeitwert von ₹370 verschiebt</a> <span class="ni-src">(Yahoo Finance)</span><span class="ni-meta">06.04.2026 03:10</span></div><div class="ni"><a href="https://finance.yahoo.com/news/francesco-tinto-named-chief-information-001452407.html" target="_blank" rel="noopener noreferrer">Francesco Tinto zum Chief Information und GBS Officer bei Kimberly-Clark (KMB) ernannt</a> <span class="ni-src">(Yahoo Finance)</span><span class="ni-meta">10.03.2026 00:14</span></div><div class="ni"><a href="https://www.ciodive.com/news/kimberly-clark-cio-francesco-tinto/814221/" target="_blank" rel="noopener noreferrer">Kimberly-Clark ernennt den ehemaligen Tech-Chef von Walgreens zum CIO</a> <span class="ni-src">(Yahoo Finance)</span><span class="ni-meta">09.03.2026 14:51</span></div></div>
     <div class="news-summary-box">
       <span class="summary-label">Zusammenfassung</span>
-      <p class="summary-text">Karyopharm Therapeutics (KPTI) verzeichnete in der vergangenen Sitzung aufgrund eines überdurchschnittlichen Handelsvolumens einen sprunghaften Anstieg des Aktienkurses. Der jüngste Trend bei den Korrekturen der Gewinnschätzungen für die Aktie deutet nicht auf eine weitere Stärke in der Zukunft hin.</p>
+      <p class="summary-text">Die Schätzung des beizulegenden Zeitwerts für Advanced Enzyme Technologies liegt bei 370,0 ₹, sodass die neueste Modellaktualisierung das Hauptpreisziel nicht verschiebt. Bullische und bärische Analysten interpretieren diese stabile Zahl unterschiedlich: Einige sehen darin eine Bestätigung eines stabilen Bewertungsankers, andere sehen darin eine Begrenzung des kurzfristigen Aufwärtspotenzials. Wenn Sie weiterlesen, erfahren Sie, wie Sie diese Signale interpretieren und verfolgen, wie sich die Geschichte mit zukünftigen Updates ändert. Die Kursziele der Analysten erfassen nicht immer ...</p>
     </div>
   </div>
 </article>
