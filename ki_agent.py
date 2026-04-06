@@ -13,7 +13,7 @@ Datenquellen:
   4. SEC EDGAR RSS              — neue 8-K-Meldungen, inhaltlich gewichtet
   5. Finviz News RSS            — alternative Nachrichtenquelle
   6. yfinance calendar          — Earnings-Datum je Ticker
-  7. BioPharma Catalyst RSS     — FDA PDUFA-Termine
+  7. FDA Press Release RSS      — PDUFA-Meldungen (kein Bot-Schutz)
 
 Outputs:
   agent_signals.json  — Signal-Score je Ticker, gelesen von der Website
@@ -104,6 +104,7 @@ HTTP_HEADERS = {
     "Accept-Language": "en-US,en;q=0.9",
 }
 REDDIT_HEADERS = {"User-Agent": "SqueezeAgent/1.0"}
+SEC_HEADERS    = {"User-Agent": "SqueezeReport/1.0 github-actions@squeeze-report.com"}
 
 logging.basicConfig(
     level=logging.INFO,
@@ -269,11 +270,14 @@ def fetch_reddit_mentions(ticker: str) -> dict:
 
     for sub in REDDIT_SUBS:
         url = (
-            f"https://www.reddit.com/r/{sub}/search.json"
+            f"https://old.reddit.com/r/{sub}/search.json"
             f"?q={ticker}&sort=new&restrict_sr=1&limit=25&t=day"
         )
         try:
             resp = requests.get(url, headers=REDDIT_HEADERS, timeout=12)
+            if resp.status_code == 403:
+                log.info("Reddit: geblockt — Score 0.")
+                return {"count": 0, "sentiment": 0.0, "blocked": True}
             resp.raise_for_status()
             posts = resp.json().get("data", {}).get("children", [])
             for post in posts:
@@ -312,8 +316,12 @@ def fetch_sec_8k(ticker: str) -> tuple[bool, str]:
         "&dateb=&owner=include&count=5&search_text=&output=atom"
     )
     cutoff = datetime.now(timezone.utc) - timedelta(hours=24)
+    time.sleep(0.5)
     try:
-        resp = requests.get(url, headers=HTTP_HEADERS, timeout=12)
+        resp = requests.get(url, headers=SEC_HEADERS, timeout=12)
+        if resp.status_code == 403:
+            log.debug("EDGAR %s: 403 geblockt — übersprungen.", ticker)
+            return False, ""
         resp.raise_for_status()
         text = re.sub(r' xmlns="[^"]+"', "", resp.text, count=1)
         root = ET.fromstring(text)
@@ -386,54 +394,58 @@ def fetch_earnings_date(ticker: str) -> tuple[int | None, str | None]:
     return None, None
 
 
-# ── Datenquelle 7: FDA-Kalender via BioPharma Catalyst ───────────────────────
+# ── Datenquelle 7: FDA Press Release RSS ─────────────────────────────────────
+
+_FDA_RSS      = "https://www.fda.gov/about-fda/contact-fda/stay-informed/rss-feeds/press-releases/rss.xml"
+_PDUFA_KW     = {"pdufa", "approv", "nda", "bla"}
+_TICKER_PAT   = re.compile(r'\b([A-Z]{2,6})\b')
+_SKIP_WORDS   = {
+    "FDA", "NDA", "BLA", "IND", "USA", "NEW", "THE", "FOR", "AND",
+    "WITH", "DRUG", "NOT", "ITS", "HAS", "ARE", "CAN", "MAY",
+}
+
 
 def fetch_fda_calendar() -> dict[str, str]:
-    """Gibt {TICKER: 'PDUFA YYYY-MM-DD'} aus dem BioPharma-Catalyst-Kalender zurück.
-    Gibt leeres Dict zurück falls die Seite nicht erreichbar ist.
+    """Gibt {TICKER: 'YYYY-MM-DD'} aus dem FDA Press Release RSS zurück.
+
+    Sucht nach Einträgen der letzten 30 Tage, die PDUFA/Approval-Keywords
+    im Titel enthalten, und extrahiert Ticker-ähnliche Symbole.
+    Gibt leeres Dict zurück falls RSS nicht erreichbar.
     """
-    try:
-        from bs4 import BeautifulSoup
-    except ImportError:
-        print("BeautifulSoup nicht installiert — FDA-Quelle übersprungen. "
-              "Bitte: pip install beautifulsoup4")
-        return {}
+    from email.utils import parsedate_to_datetime
 
-    url = "https://www.biopharmcatalyst.com/calendars/fda-calendar"
     try:
-        resp = requests.get(url, headers=HTTP_HEADERS, timeout=15)
+        resp = requests.get(_FDA_RSS, headers=HTTP_HEADERS, timeout=15)
         resp.raise_for_status()
-        soup = BeautifulSoup(resp.text, "lxml")
+        root = ET.fromstring(resp.text)
         results: dict[str, str] = {}
+        today = datetime.now(timezone.utc).date()
+        cutoff = today - timedelta(days=30)
 
-        # Suche nach Ticker-Symbolen (2–6 Großbuchstaben) neben Datumsangaben.
-        # BioPharma Catalyst zeigt Tabellen mit class-Attributen; wir suchen
-        # allgemein nach Zeilen/Zellen die einen Ticker und ein ISO-Datum enthalten.
-        date_pattern  = re.compile(r"\b(\d{4}-\d{2}-\d{2})\b")
-        ticker_pattern = re.compile(r"\b([A-Z]{2,6})\b")
+        for item in root.iter("item"):
+            title = (item.findtext("title") or "").strip()
+            pub_date_str = (item.findtext("pubDate") or "").strip()
 
-        # Variante 1: Tabellen-Zeilen
-        for row in soup.find_all("tr"):
-            cells = [c.get_text(" ", strip=True) for c in row.find_all(["td", "th"])]
-            row_text = " ".join(cells)
-            t_match = ticker_pattern.search(row_text)
-            d_match = date_pattern.search(row_text)
-            if t_match and d_match:
-                results[t_match.group(1)] = d_match.group(1)
+            if not any(kw in title.lower() for kw in _PDUFA_KW):
+                continue
 
-        # Variante 2: Falls keine Tabelle — suche in allen Text-Knoten
-        if not results:
-            for tag in soup.find_all(True):
-                text = tag.get_text(" ", strip=True)
-                t_match = ticker_pattern.search(text)
-                d_match = date_pattern.search(text)
-                if t_match and d_match and len(text) < 200:
-                    results[t_match.group(1)] = d_match.group(1)
+            try:
+                pub_date = parsedate_to_datetime(pub_date_str).date()
+            except Exception:
+                pub_date = today
 
-        log.info("BioPharma Catalyst: %d PDUFA-Einträge geparst.", len(results))
+            if pub_date < cutoff:
+                continue
+
+            for m in _TICKER_PAT.finditer(title):
+                sym = m.group(1)
+                if sym not in _SKIP_WORDS:
+                    results[sym] = pub_date.isoformat()
+
+        log.info("FDA Press Release RSS: %d PDUFA-relevante Einträge geparst.", len(results))
         return results
     except Exception as exc:
-        print(f"BioPharma Catalyst nicht erreichbar: {exc}")
+        log.info("FDA RSS nicht erreichbar: %s", exc)
         return {}
 
 
@@ -633,12 +645,13 @@ def main() -> None:
     log.info("yfinance Batch-Download für %d Ticker …", len(tickers))
     yf_batch = fetch_yfinance(tickers)
 
-    log.info("FDA-Kalender (BioPharma Catalyst) wird abgerufen …")
+    log.info("FDA Press Release RSS wird abgerufen …")
     fda_calendar = fetch_fda_calendar()
     today_et = datetime.now(EASTERN).date()
 
-    reddit_ok    = True
-    sec_ok       = True
+    reddit_ok      = True
+    reddit_blocked = False
+    sec_ok         = True
     n_alerts     = 0
     n_signals    = 0
     n_earnings   = 0
@@ -658,6 +671,8 @@ def main() -> None:
         reddit: dict = {"count": 0, "sentiment": 0.0}
         try:
             reddit = fetch_reddit_mentions(ticker)
+            if reddit.get("blocked"):
+                reddit_blocked = True
         except Exception as exc:
             log.debug("Reddit Fehler %s: %s", ticker, exc)
             reddit_ok = False
@@ -771,7 +786,7 @@ def main() -> None:
     print(
         f"Agent-Run {now_str}: {len(tickers)} Ticker geprüft, "
         f"{n_signals} Signale, {n_alerts} Alerts gesendet | "
-        f"Reddit: {'ok' if reddit_ok else 'fail'} | "
+        f"Reddit: {'geblockt' if reddit_blocked else ('ok' if reddit_ok else 'fail')} | "
         f"SEC: {'ok' if sec_ok else 'fail'} | "
         f"Termine: Earnings={n_earnings} Treffer, FDA={n_fda} Treffer, "
         f"SEC-relevant={n_sec_rel} Treffer | "
