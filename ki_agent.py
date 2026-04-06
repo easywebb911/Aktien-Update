@@ -10,8 +10,10 @@ Datenquellen:
   1. Yahoo Finance (yfinance)   — Kurs, Intraday-Volumen, Rel. Volumen, Spanne
   2. Yahoo Finance News RSS     — Schlagzeilen
   3. Reddit (public JSON API)   — Erwähnungen + Sentiment in WSB/stocks/shortsqueeze
-  4. SEC EDGAR RSS              — neue 8-K-Meldungen (US only)
+  4. SEC EDGAR RSS              — neue 8-K-Meldungen, inhaltlich gewichtet
   5. Finviz News RSS            — alternative Nachrichtenquelle
+  6. yfinance calendar          — Earnings-Datum je Ticker
+  7. BioPharma Catalyst RSS     — FDA PDUFA-Termine
 
 Outputs:
   agent_signals.json  — Signal-Score je Ticker, gelesen von der Website
@@ -31,6 +33,7 @@ from email.mime.text import MIMEText
 from pathlib import Path
 from zoneinfo import ZoneInfo
 
+import pandas as pd
 import requests
 import yfinance as yf
 
@@ -56,10 +59,27 @@ SCORE_REDDIT_5          = 10      # Reddit-Erwähnungen ≥ 5 in 4h
 SCORE_REDDIT_15         = 20      # Reddit-Erwähnungen ≥ 15 in 4h (ersetzt 10)
 SCORE_REDDIT_SENTIMENT  = 10      # Positiver Sentiment-Score ≥ 0.3
 SCORE_SEC_8K            = 15      # Neue 8-K-Meldung in letzten 24h
+SCORE_SEC_8K_RELEVANT   = 25      # 8-K mit Earnings/FDA-Keywords → erhöhter Bonus
 SCORE_NEWS_KEYWORD      = 10      # News-Keyword-Treffer (je Treffer, max 20 Pkt)
+
+# Earnings-Nähe-Punkte (Tage bis Earnings)
+SCORE_EARNINGS_NEAR     = 25      # Earnings in ≤ EARNINGS_NEAR_DAYS Tagen
+SCORE_EARNINGS_MID      = 15      # Earnings in ≤ EARNINGS_MID_DAYS Tagen
+SCORE_EARNINGS_FAR      = 8       # Earnings in ≤ EARNINGS_FAR_DAYS Tagen
+EARNINGS_NEAR_DAYS      = 3
+EARNINGS_MID_DAYS       = 7
+EARNINGS_FAR_DAYS       = 14
+
+# FDA PDUFA-Nähe-Punkte
+SCORE_PDUFA_NEAR        = 25      # PDUFA in 1–7 Tagen
+SCORE_PDUFA_MID         = 15      # PDUFA in 8–30 Tagen
 
 NEWS_KEYWORDS     = {"squeeze", "short squeeze", "short interest",
                      "analyst upgrade", "earnings beat"}
+SEC_RELEVANT_KEYWORDS = {
+    "earnings", "revenue", "results", "approval", "fda",
+    "pdufa", "nda", "bla", "guidance", "outlook",
+}
 REDDIT_POSITIVE   = {"squeeze", "moon", "calls", "breakout", "short"}
 REDDIT_NEGATIVE   = {"puts", "short", "crash", "dump"}
 REDDIT_SUBS       = ["wallstreetbets", "stocks", "shortsqueeze"]
@@ -283,7 +303,8 @@ def fetch_reddit_mentions(ticker: str) -> dict:
 
 # ── Datenquelle 4: SEC EDGAR RSS ─────────────────────────────────────────────
 
-def fetch_sec_8k(ticker: str) -> bool:
+def fetch_sec_8k(ticker: str) -> tuple[bool, str]:
+    """Returns (has_recent_8k, title_of_8k). Title is '' if none found."""
     url = (
         "https://www.sec.gov/cgi-bin/browse-edgar"
         f"?action=getcompany&CIK={ticker}&type=8-K"
@@ -302,12 +323,13 @@ def fetch_sec_8k(ticker: str) -> bool:
                 if dt.tzinfo is None:
                     dt = dt.replace(tzinfo=timezone.utc)
                 if dt > cutoff:
-                    return True
+                    title = entry.findtext("title") or ""
+                    return True, title
             except Exception:
                 continue
     except Exception as exc:
         log.debug("EDGAR %s: %s", ticker, exc)
-    return False
+    return False, ""
 
 
 # ── Datenquelle 5: Finviz News RSS ────────────────────────────────────────────
@@ -331,13 +353,100 @@ def fetch_finviz_news(ticker: str) -> list[str]:
         return []
 
 
+# ── Datenquelle 6: Earnings-Datum via yfinance ───────────────────────────────
+
+def fetch_earnings_date(ticker: str) -> tuple[int | None, str | None]:
+    """Gibt (Tage_bis_Earnings, Datum_String_DE) zurück oder (None, None)."""
+    try:
+        cal = yf.Ticker(ticker).calendar
+        if cal is None:
+            return None, None
+        # Neuere yfinance: DataFrame mit Dates als Spalten oder als dict
+        dates: list = []
+        if isinstance(cal, pd.DataFrame) and not cal.empty:
+            # Spalten sind Timestamps/Dates — nimm alle als Kandidaten
+            dates = list(cal.columns)
+        elif isinstance(cal, dict):
+            raw = cal.get("Earnings Date") or cal.get("earningsDate") or []
+            if not isinstance(raw, list):
+                raw = [raw]
+            dates = raw
+        today = datetime.now(EASTERN).date()
+        for d in dates:
+            try:
+                edate = pd.Timestamp(d).date()
+                days = (edate - today).days
+                if days >= 0:
+                    return days, edate.strftime("%d.%m.%Y")
+            except Exception:
+                continue
+    except Exception as exc:
+        log.debug("Earnings-Datum %s: %s", ticker, exc)
+    return None, None
+
+
+# ── Datenquelle 7: FDA-Kalender via BioPharma Catalyst ───────────────────────
+
+def fetch_fda_calendar() -> dict[str, str]:
+    """Gibt {TICKER: 'PDUFA YYYY-MM-DD'} aus dem BioPharma-Catalyst-Kalender zurück.
+    Gibt leeres Dict zurück falls die Seite nicht erreichbar ist.
+    """
+    try:
+        from bs4 import BeautifulSoup
+    except ImportError:
+        print("BeautifulSoup nicht installiert — FDA-Quelle übersprungen. "
+              "Bitte: pip install beautifulsoup4")
+        return {}
+
+    url = "https://www.biopharmcatalyst.com/calendars/fda-calendar"
+    try:
+        resp = requests.get(url, headers=HTTP_HEADERS, timeout=15)
+        resp.raise_for_status()
+        soup = BeautifulSoup(resp.text, "lxml")
+        results: dict[str, str] = {}
+
+        # Suche nach Ticker-Symbolen (2–6 Großbuchstaben) neben Datumsangaben.
+        # BioPharma Catalyst zeigt Tabellen mit class-Attributen; wir suchen
+        # allgemein nach Zeilen/Zellen die einen Ticker und ein ISO-Datum enthalten.
+        date_pattern  = re.compile(r"\b(\d{4}-\d{2}-\d{2})\b")
+        ticker_pattern = re.compile(r"\b([A-Z]{2,6})\b")
+
+        # Variante 1: Tabellen-Zeilen
+        for row in soup.find_all("tr"):
+            cells = [c.get_text(" ", strip=True) for c in row.find_all(["td", "th"])]
+            row_text = " ".join(cells)
+            t_match = ticker_pattern.search(row_text)
+            d_match = date_pattern.search(row_text)
+            if t_match and d_match:
+                results[t_match.group(1)] = d_match.group(1)
+
+        # Variante 2: Falls keine Tabelle — suche in allen Text-Knoten
+        if not results:
+            for tag in soup.find_all(True):
+                text = tag.get_text(" ", strip=True)
+                t_match = ticker_pattern.search(text)
+                d_match = date_pattern.search(text)
+                if t_match and d_match and len(text) < 200:
+                    results[t_match.group(1)] = d_match.group(1)
+
+        log.info("BioPharma Catalyst: %d PDUFA-Einträge geparst.", len(results))
+        return results
+    except Exception as exc:
+        print(f"BioPharma Catalyst nicht erreichbar: {exc}")
+        return {}
+
+
 # ── Signal-Score berechnen ────────────────────────────────────────────────────
 
 def compute_signal(
+    ticker: str,
     yf_data: dict,
     news: list[str],
     reddit: dict,
     has_8k: bool,
+    sec_title: str,
+    earnings_days: int | None,
+    fda_days: int | None,
 ) -> tuple[int, list[str]]:
     score   = 0
     drivers = []
@@ -377,8 +486,13 @@ def compute_signal(
         drivers.append(f"Reddit-Sentiment {rs:.2f}")
 
     if has_8k:
-        score += SCORE_SEC_8K
+        title_lower = sec_title.lower()
+        is_relevant = any(kw in title_lower for kw in SEC_RELEVANT_KEYWORDS)
+        pts = SCORE_SEC_8K_RELEVANT if is_relevant else SCORE_SEC_8K
+        score += pts
         drivers.append("SEC 8-K")
+        print(f"{ticker} SEC 8-K: '{sec_title}' → +{pts} Pkt "
+              f"(earnings/FDA-relevant: {'ja' if is_relevant else 'nein'})")
 
     kw_pts = 0
     kw_hits: list[str] = []
@@ -390,6 +504,34 @@ def compute_signal(
     if kw_pts > 0:
         score += min(kw_pts, 20)
         drivers.append(f"News: {', '.join(kw_hits)}")
+
+    # Earnings-Nähe
+    if earnings_days is not None:
+        if earnings_days <= EARNINGS_NEAR_DAYS:
+            pts = SCORE_EARNINGS_NEAR
+        elif earnings_days <= EARNINGS_MID_DAYS:
+            pts = SCORE_EARNINGS_MID
+        elif earnings_days <= EARNINGS_FAR_DAYS:
+            pts = SCORE_EARNINGS_FAR
+        else:
+            pts = 0
+        if pts > 0:
+            score += pts
+            drivers.append(f"Earnings in {earnings_days}d")
+            print(f"{ticker} Earnings in {earnings_days} Tagen → +{pts} Pkt")
+
+    # FDA PDUFA-Nähe
+    if fda_days is not None:
+        if fda_days <= 7:
+            pts = SCORE_PDUFA_NEAR
+        elif fda_days <= 30:
+            pts = SCORE_PDUFA_MID
+        else:
+            pts = 0
+        if pts > 0:
+            score += pts
+            drivers.append(f"FDA PDUFA in {fda_days}d")
+            print(f"{ticker} FDA PDUFA in {fda_days} Tagen → +{pts} Pkt")
 
     return min(score, 100), drivers
 
@@ -403,6 +545,7 @@ def send_alert(
     yf_data: dict,
     reddit: dict,
     news: list[str],
+    upcoming_event: str | None = None,
 ) -> bool:
     mail_to   = os.environ.get("MAIL_TO", "").strip()
     mail_pass = os.environ.get("MAIL_PASSWORD", "").strip()
@@ -425,9 +568,15 @@ def send_alert(
     sentiment    = reddit.get("sentiment", 0.0)
     rc           = reddit.get("count", 0)
 
+    event_block = (
+        f"⚠️  Wichtiger Termin: {upcoming_event} — erhöhtes Squeeze-Potential\n\n"
+        if upcoming_event else ""
+    )
+
     body = (
         f"{prefix} SQUEEZE-ALERT: {ticker}\n"
         f"{'=' * 55}\n\n"
+        f"{event_block}"
         f"Score:            {score}/100\n"
         f"Treiber:          {driver_str}\n\n"
         f"Kurs:             ${price:.2f}  ({sign}{chg:.1f}% heute)\n"
@@ -483,10 +632,17 @@ def main() -> None:
     log.info("yfinance Batch-Download für %d Ticker …", len(tickers))
     yf_batch = fetch_yfinance(tickers)
 
-    reddit_ok = True
-    sec_ok    = True
-    n_alerts  = 0
-    n_signals = 0
+    log.info("FDA-Kalender (BioPharma Catalyst) wird abgerufen …")
+    fda_calendar = fetch_fda_calendar()
+    today_et = datetime.now(EASTERN).date()
+
+    reddit_ok    = True
+    sec_ok       = True
+    n_alerts     = 0
+    n_signals    = 0
+    n_earnings   = 0
+    n_fda        = 0
+    n_sec_rel    = 0
 
     for ticker in tickers:
         log.info("Prüfe %s …", ticker)
@@ -505,31 +661,84 @@ def main() -> None:
             log.debug("Reddit Fehler %s: %s", ticker, exc)
             reddit_ok = False
 
-        has_8k = False
-        is_us  = "." not in ticker
+        has_8k    = False
+        sec_title = ""
+        is_us     = "." not in ticker
         if is_us:
             try:
-                has_8k = fetch_sec_8k(ticker)
+                has_8k, sec_title = fetch_sec_8k(ticker)
+                if has_8k:
+                    title_lower = sec_title.lower()
+                    if any(kw in title_lower for kw in SEC_RELEVANT_KEYWORDS):
+                        n_sec_rel += 1
             except Exception as exc:
                 log.debug("SEC Fehler %s: %s", ticker, exc)
                 sec_ok = False
 
-        score, drivers = compute_signal(yfd, news, reddit, has_8k)
+        # Earnings-Datum
+        earnings_days: int | None = None
+        earnings_date_str: str | None = None
+        try:
+            earnings_days, earnings_date_str = fetch_earnings_date(ticker)
+            if earnings_days is not None and earnings_days <= EARNINGS_FAR_DAYS:
+                n_earnings += 1
+        except Exception as exc:
+            log.debug("Earnings Fehler %s: %s", ticker, exc)
+
+        # FDA PDUFA-Datum aus Kalender
+        fda_days: int | None = None
+        fda_date_str: str | None = None
+        base_ticker = ticker.split(".")[0].upper()
+        if base_ticker in fda_calendar:
+            try:
+                fda_iso  = fda_calendar[base_ticker]
+                fda_date = datetime.strptime(fda_iso, "%Y-%m-%d").date()
+                fda_days = (fda_date - today_et).days
+                fda_date_str = fda_date.strftime("%d.%m.%Y")
+                if 0 <= fda_days <= 30:
+                    n_fda += 1
+            except Exception as exc:
+                log.debug("FDA-Datum Parse %s: %s", ticker, exc)
+
+        score, drivers = compute_signal(
+            ticker, yfd, news, reddit, has_8k, sec_title,
+            earnings_days, fda_days,
+        )
         log.info("  %s Score=%d Treiber=%s", ticker, score, " | ".join(drivers))
 
+        # upcoming_event: nächster Termin ≤ 7 Tage (Earnings vor FDA)
+        upcoming_event: str | None = None
+        if earnings_days is not None and earnings_days <= 7 and earnings_date_str:
+            upcoming_event = f"Earnings in {earnings_days} Tagen ({earnings_date_str})"
+        elif fda_days is not None and 0 <= fda_days <= 7 and fda_date_str:
+            upcoming_event = f"FDA PDUFA in {fda_days} Tagen ({fda_date_str})"
+
+        # Termin-Hinweis als erster Treiber im Tooltip
+        drivers_with_event = (
+            [upcoming_event] + drivers if upcoming_event else drivers
+        )
+
         new_signals[ticker] = {
-            "score":    score,
-            "drivers":  " + ".join(drivers) if drivers else "",
-            "price":    yfd.get("price", 0.0),
-            "chg_pct":  yfd.get("chg_pct", 0.0),
-            "rvol":     yfd.get("rvol", 0.0),
+            "score":          score,
+            "drivers":        " + ".join(drivers_with_event) if drivers_with_event else "",
+            "price":          yfd.get("price", 0.0),
+            "chg_pct":        yfd.get("chg_pct", 0.0),
+            "rvol":           yfd.get("rvol", 0.0),
+            "earnings":       (f"in {earnings_days} Tagen ({earnings_date_str})"
+                               if earnings_days is not None else None),
+            "fda_date":       (f"PDUFA {fda_date_str}"
+                               if fda_date_str else None),
+            "upcoming_event": upcoming_event,
         }
 
         if score >= ALERT_THRESHOLD:
             n_signals += 1
 
         if score >= ALERT_THRESHOLD and not is_on_cooldown(ticker, state):
-            sent = send_alert(ticker, score, drivers, yfd, reddit, news)
+            sent = send_alert(
+                ticker, score, drivers, yfd, reddit, news,
+                upcoming_event=upcoming_event,
+            )
             if sent:
                 set_cooldown(ticker, state)
                 n_alerts += 1
@@ -563,6 +772,8 @@ def main() -> None:
         f"{n_signals} Signale, {n_alerts} Alerts gesendet | "
         f"Reddit: {'ok' if reddit_ok else 'fail'} | "
         f"SEC: {'ok' if sec_ok else 'fail'} | "
+        f"Termine: Earnings={n_earnings} Treffer, FDA={n_fda} Treffer, "
+        f"SEC-relevant={n_sec_rel} Treffer | "
         f"Laufzeit: {t_elapsed}s",
         flush=True,
     )
