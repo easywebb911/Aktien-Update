@@ -27,7 +27,7 @@ import re
 import smtplib
 import time
 import xml.etree.ElementTree as ET
-from datetime import datetime, time, timedelta, timezone
+from datetime import datetime, time as dt_time, timedelta, timezone
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from pathlib import Path
@@ -46,8 +46,8 @@ ALERT_COOLDOWN_HOURS    = 2       # Mindeststunden zwischen zwei Alerts je Ticke
 IGNORE_TRADING_HOURS    = False
 
 # Handelsfenster in Eastern Time (NY) — Puffer je 5 Minuten vor/nach Börsenglocke
-MARKET_OPEN             = time(9, 25)   # NYSE öffnet 09:30 ET
-MARKET_CLOSE            = time(16, 5)   # NYSE schließt 16:00 ET
+MARKET_OPEN             = dt_time(9, 25)   # NYSE öffnet 09:30 ET
+MARKET_CLOSE            = dt_time(16, 5)   # NYSE schließt 16:00 ET
 
 # Score-Punkte je Signal
 SCORE_PRICE_UP_3        = 15      # Kursanstieg ≥ 3 % intraday
