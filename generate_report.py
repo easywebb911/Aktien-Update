@@ -77,6 +77,7 @@ FINRA_BONUS_MAX  = 5    # max bonus points for rising FINRA short interest
 FTD_BONUS_MAX    = 0    # SEC EDGAR + Nasdaq Data Link blocked on GitHub Actions IPs
 # ── FINRA short interest trend thresholds ────────────────────────────────────
 SI_TREND_PERIODS        = 6     # FINRA publishes twice monthly; 6 = ~3 months
+SI_TREND_MIN_DATAPOINTS = 2     # minimum history points required for trend calc
 # ── Float-size score factor ───────────────────────────────────────────────────
 FLOAT_WEIGHT          = 8          # max bonus points for small float
 FLOAT_SATURATION_LOW  = 30_000_000  # ≤ 30 M shares → full 8 pts
@@ -937,9 +938,9 @@ def get_finra_short_interest(ticker: str,
         return {}
 
     # Trend only when oldest ≥ 100 to prevent absurd percentages from tiny values
-    # Minimum 4 data points required for a reliable 3-month trend
+    # SI_TREND_MIN_DATAPOINTS (default 2): newest vs. oldest available value
     trend, trend_pct = "no_data", 0.0
-    if len(history) >= 4:
+    if len(history) >= SI_TREND_MIN_DATAPOINTS:
         newest = history[0]["short_interest"]
         oldest = history[-1]["short_interest"]
         if oldest >= _TREND_MIN_VOL:
@@ -952,6 +953,7 @@ def get_finra_short_interest(ticker: str,
                 trend = "sideways"
 
     _finra_stats["ok"] += 1
+    log.info("%s FINRA history=%d Punkte, trend=%s", sym, len(history), trend)
     return {
         "short_interest":      history[0]["short_interest"],
         "prev_short_interest": history[1]["short_interest"] if len(history) >= 2 else 0,
@@ -2440,91 +2442,74 @@ function showMsg(type,text){{
   if(type!=='error') setTimeout(()=>{{el.style.display='none';}},13000);
 }}
 
-// ── Non-trading-day banner ────────────────────────────────────────────────────
+// ── Gemeinsame Handelstag-Hilfsfunktionen (wird von Banner + KI-Agent genutzt) ──
 // US federal holidays — update this array each year (format: "YYYY-MM-DD").
 // Observed dates (Monday if Sunday, Friday if Saturday) should be listed.
-(function(){{
-  const US_HOLIDAYS = [
-    // 2025
-    "2025-01-01", // New Year's Day
-    "2025-01-20", // MLK Day
-    "2025-02-17", // Presidents' Day
-    "2025-05-26", // Memorial Day
-    "2025-06-19", // Juneteenth
-    "2025-07-04", // Independence Day
-    "2025-09-01", // Labor Day
-    "2025-11-27", // Thanksgiving
-    "2025-12-25", // Christmas
-    // 2026
-    "2026-01-01", // New Year's Day
-    "2026-01-19", // MLK Day
-    "2026-02-16", // Presidents' Day
-    "2026-05-25", // Memorial Day
-    "2026-06-19", // Juneteenth
-    "2026-07-03", // Independence Day (observed, 4th = Saturday)
-    "2026-09-07", // Labor Day
-    "2026-11-26", // Thanksgiving
-    "2026-12-25", // Christmas
-    // 2027
-    "2027-01-01", // New Year's Day
-    "2027-01-18", // MLK Day
-    "2027-02-15", // Presidents' Day
-    "2027-05-31", // Memorial Day
-    "2027-06-18", // Juneteenth (observed, 19th = Saturday)
-    "2027-07-05", // Independence Day (observed, 4th = Sunday)
-    "2027-09-06", // Labor Day
-    "2027-11-25", // Thanksgiving
-    "2027-12-24", // Christmas (observed, 25th = Saturday)
-  ];
-
-  function toIso(d) {{
-    const y = d.getFullYear();
-    const m = String(d.getMonth()+1).padStart(2,'0');
-    const day = String(d.getDate()).padStart(2,'0');
-    return `${{y}}-${{m}}-${{day}}`;
-  }}
-
-  function isHoliday(d) {{
-    return US_HOLIDAYS.includes(toIso(d));
-  }}
-
-  function isNonTradingDay(d) {{
-    const dow = d.getDay(); // 0=Sun, 6=Sat
-    return dow === 0 || dow === 6 || isHoliday(d);
-  }}
-
-  function nextTradingDay(d) {{
-    const next = new Date(d);
-    next.setDate(next.getDate() + 1);
-    while (isNonTradingDay(next)) {{
-      next.setDate(next.getDate() + 1);
-    }}
-    return next;
-  }}
-
-  function fmtGerman(d) {{
-    const weekdays = ['Sonntag','Montag','Dienstag','Mittwoch','Donnerstag','Freitag','Samstag'];
-    const months = ['Januar','Februar','März','April','Mai','Juni',
+const US_HOLIDAYS = [
+  // 2025
+  "2025-01-01", // New Year's Day
+  "2025-01-20", // MLK Day
+  "2025-02-17", // Presidents' Day
+  "2025-05-26", // Memorial Day
+  "2025-06-19", // Juneteenth
+  "2025-07-04", // Independence Day
+  "2025-09-01", // Labor Day
+  "2025-11-27", // Thanksgiving
+  "2025-12-25", // Christmas
+  // 2026
+  "2026-01-01", // New Year's Day
+  "2026-01-19", // MLK Day
+  "2026-02-16", // Presidents' Day
+  "2026-05-25", // Memorial Day
+  "2026-06-19", // Juneteenth
+  "2026-07-03", // Independence Day (observed, 4th = Saturday)
+  "2026-09-07", // Labor Day
+  "2026-11-26", // Thanksgiving
+  "2026-12-25", // Christmas
+  // 2027
+  "2027-01-01", // New Year's Day
+  "2027-01-18", // MLK Day
+  "2027-02-15", // Presidents' Day
+  "2027-05-31", // Memorial Day
+  "2027-06-18", // Juneteenth (observed, 19th = Saturday)
+  "2027-07-05", // Independence Day (observed, 4th = Sunday)
+  "2027-09-06", // Labor Day
+  "2027-11-25", // Thanksgiving
+  "2027-12-24", // Christmas (observed, 25th = Saturday)
+];
+function _toIso(d) {{
+  const y = d.getFullYear();
+  const m = String(d.getMonth()+1).padStart(2,'0');
+  const day = String(d.getDate()).padStart(2,'0');
+  return `${{y}}-${{m}}-${{day}}`;
+}}
+function _isHoliday(d)        {{ return US_HOLIDAYS.includes(_toIso(d)); }}
+function _isNonTradingDay(d)  {{ const dow = d.getDay(); return dow === 0 || dow === 6 || _isHoliday(d); }}
+function _nextTradingDay(d) {{
+  const next = new Date(d);
+  next.setDate(next.getDate() + 1);
+  while (_isNonTradingDay(next)) next.setDate(next.getDate() + 1);
+  return next;
+}}
+function _fmtGerman(d) {{
+  const weekdays = ['Sonntag','Montag','Dienstag','Mittwoch','Donnerstag','Freitag','Samstag'];
+  const months   = ['Januar','Februar','März','April','Mai','Juni',
                     'Juli','August','September','Oktober','November','Dezember'];
-    return `${{weekdays[d.getDay()]}}, ${{d.getDate()}}. ${{months[d.getMonth()]}} ${{d.getFullYear()}}`;
-  }}
+  return `${{weekdays[d.getDay()]}}, ${{d.getDate()}}. ${{months[d.getMonth()]}} ${{d.getFullYear()}}`;
+}}
 
+// ── Non-trading-day banner ────────────────────────────────────────────────────
+(function(){{
   const today = new Date();
   today.setHours(0,0,0,0);
-
-  if (isNonTradingDay(today)) {{
-    const ntd = nextTradingDay(today);
+  if (_isNonTradingDay(today)) {{
+    const ntd = _nextTradingDay(today);
     const dow = today.getDay();
-    let reason;
-    if (dow === 6 || dow === 0) {{
-      reason = 'Wochenende';
-    }} else {{
-      reason = 'US-Feiertag';
-    }}
+    const reason = (dow === 6 || dow === 0) ? 'Wochenende' : 'US-Feiertag';
     const banner = document.getElementById('non-trading-banner');
     banner.textContent =
       `\u26a0\ufe0f Kein Handelstag (${{reason}}) \u2014 ` +
-      `Nächster US-Handelstag: ${{fmtGerman(ntd)}}. ` +
+      `Nächster US-Handelstag: ${{_fmtGerman(ntd)}}. ` +
       `Die angezeigten Daten stammen vom letzten Handelstag.`;
     banner.style.display = 'block';
   }}
@@ -2634,37 +2619,60 @@ function showMsg(type,text){{
 // ─────────────────────────────────────────────────────────────────────────────
 // ── KI-Agent Signal Indicators ───────────────────────────────────────────────
 (function() {{
-  const STALE_MIN = 30;   // agent_signals.json älter als N Minuten → "kein Scan"
+  const STALE_MIN = 30;   // agent_signals.json älter als N Min. → "Kein Scan" (nur während Handelszeiten)
+
+  // Prüft ob aktuelle NY-Zeit innerhalb der Börsenzeiten liegt (09:25–16:05 ET)
+  function isWithinTradingHours() {{
+    try {{
+      const parts = new Intl.DateTimeFormat('en-US', {{
+        timeZone: 'America/New_York',
+        hour: '2-digit', minute: '2-digit', hour12: false
+      }}).formatToParts(new Date());
+      const h    = parseInt(parts.find(p => p.type === 'hour').value, 10);
+      const m    = parseInt(parts.find(p => p.type === 'minute').value, 10);
+      const mins = h * 60 + m;
+      return mins >= (9 * 60 + 25) && mins < (16 * 60 + 5);
+    }} catch(e) {{ return false; }}
+  }}
 
   function renderAgentSignals(data) {{
     const statusEl = document.getElementById('agent-status');
     const updated  = data.updated ? new Date(data.updated) : null;
     const signals  = data.signals || {{}};
     const info     = data.run_info || {{}};
+    const now      = new Date();
+    const today    = new Date(now); today.setHours(0,0,0,0);
+    const tradingDay = !_isNonTradingDay(today);
 
-    // Status-Bar
+    // Status-Bar — kontextabhängige Nachricht
     if (!updated) {{
       if (statusEl) statusEl.textContent = 'KI-Agent: Kein aktueller Scan verfügbar.';
-      return;
-    }}
-    const ageMin = (Date.now() - updated.getTime()) / 60000;
-    if (ageMin > STALE_MIN) {{
-      if (statusEl) statusEl.textContent = 'KI-Agent: Kein aktueller Scan verfügbar.';
+    }} else if (!tradingDay) {{
+      const ntd = _nextTradingDay(today);
+      if (statusEl) statusEl.textContent =
+        `KI-Agent: Nächster Scan am ${{_fmtGerman(ntd)}}, 14:30 Uhr`;
+    }} else if (!isWithinTradingHours()) {{
+      if (statusEl) statusEl.textContent =
+        'KI-Agent: Nächster Scan heute ab 14:30 Uhr';
     }} else {{
-      const uhr = updated.toLocaleTimeString('de-DE', {{hour:'2-digit', minute:'2-digit'}});
-      const n   = info.signals_active || 0;
-      if (statusEl) {{
-        statusEl.textContent = `\u26a1 KI-Agent: Letzter Scan ${{uhr}} \u2014 ${{n}} Signal${{n !== 1 ? 'e' : ''}} aktiv`;
+      const ageMin = (now - updated.getTime()) / 60000;
+      if (ageMin > STALE_MIN) {{
+        if (statusEl) statusEl.textContent = 'KI-Agent: Kein aktueller Scan verfügbar.';
+      }} else {{
+        const uhr = updated.toLocaleTimeString('de-DE', {{hour:'2-digit', minute:'2-digit'}});
+        const n   = info.signals_active || 0;
+        if (statusEl)
+          statusEl.textContent = `\u26a1 KI-Agent: Letzter Scan ${{uhr}} \u2014 ${{n}} Signal${{n !== 1 ? 'e' : ''}} aktiv`;
       }}
     }}
 
-    // Dots auf Karten
+    // Dots auf Karten (immer gerendert wenn Signaldaten vorhanden)
     document.querySelectorAll('.card[data-ticker]').forEach(card => {{
       const ticker = card.getAttribute('data-ticker');
       const sig    = signals[ticker];
       if (!sig || sig.score < 40) return;
 
-      const strong  = sig.score >= 70;
+      const strong     = sig.score >= 70;
       const tickerSpan = card.querySelector('.ticker');
       if (!tickerSpan) return;
 
