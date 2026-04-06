@@ -79,8 +79,8 @@ FTD_BONUS_MAX    = 0    # SEC EDGAR + Nasdaq Data Link blocked on GitHub Actions
 SI_TREND_PERIODS        = 6     # FINRA publishes twice monthly; 6 = ~3 months
 # ── Float-size score factor ───────────────────────────────────────────────────
 FLOAT_WEIGHT          = 8          # max bonus points for small float
-FLOAT_SATURATION_LOW  = 50_000_000  # ≤ 50 M shares → full 8 pts
-FLOAT_SATURATION_HIGH = 100_000_000 # ≥ 100 M shares → 0 pts; linear between
+FLOAT_SATURATION_LOW  = 30_000_000  # ≤ 30 M shares → full 8 pts
+FLOAT_SATURATION_HIGH = 50_000_000  # ≥ 50 M shares → 0 pts; linear between
 SI_TREND_UP_THRESHOLD   =  0.10   # ≥+10 % over full period → steigend
 SI_TREND_DOWN_THRESHOLD = -0.10   # ≤−10 % → fallend; between → seitwärts
 # ── Score smoothing weights ──────────────────────────────────────────────────
@@ -1036,7 +1036,7 @@ def _fmt_si_record(rec: dict) -> str:
 # Short Ratio (Days)   → max 23 Pkt  (Sättigung bei 20 Tagen)
 # Rel. Volumen         → max 23 Pkt  (Sättigung bei 5× Durchschnitt)
 # Kursmomentum (1T)    → max 14 Pkt  (nur positive Tagesveränderung, Sättigung bei +15 %)
-# Float-Größe          → max  8 Pkt  (≤50 Mio. Aktien = voll, ≥100 Mio. = 0, linear)
+# Float-Größe          → max  8 Pkt  (≤30 Mio. Aktien = voll, ≥50 Mio. = 0, linear)
 # Gesamt               → max 100 Pkt
 #
 # Verifikation (Float=0 angenommen wo nicht angegeben):
@@ -1435,9 +1435,9 @@ def _card(i: int, s: dict) -> str:
     if _float_shares > 0:
         float_mio       = _float_shares / 1_000_000
         float_tile_val  = f"{float_mio:.1f} Mio.".replace(".", ",")
-        if _float_shares < 50_000_000:
+        if _float_shares < 30_000_000:
             float_tile_col = "#22c55e"
-        elif _float_shares <= 100_000_000:
+        elif _float_shares <= 50_000_000:
             float_tile_col = "#f59e0b"
         else:
             float_tile_col = "#ef4444"
@@ -2112,7 +2112,7 @@ a{{color:var(--accent);text-decoration:none}}
           <li><strong>23 Pkt Days to Cover</strong> – Tage zum vollständigen Eindecken; hohe Werte erhöhen Kapitulationsrisiko</li>
           <li><strong>23 Pkt Rel. Volumen</strong> – Heutiges vs. 20-Tage-Durchschnitt; Spitzen signalisieren Kaufinteresse</li>
           <li><strong>14 Pkt Kursmomentum</strong> – positive Kursveränderung erhöht den Squeeze-Druck auf Leerverkäufer. Nur steigende Kurse fließen positiv in den Score ein.</li>
-          <li><strong>8 Pkt Float-Größe</strong> – kleiner Float verstärkt den Squeeze-Effekt bei gleichem Short Float-Prozentsatz. Sättigung unter 50 Mio. Aktien.</li>
+          <li><strong>8 Pkt Float-Größe</strong> – kleiner Float verstärkt den Squeeze-Effekt bei gleichem Short Float-Prozentsatz. Sättigung unter 30 Mio. Aktien.</li>
           <li><strong>+ bis 5 Pkt FINRA SI-Trend Bonus</strong> – steigender Short Interest ≥ +10 % → 5 Pkt · Seitwärts → 2,5 Pkt · Fallend oder keine Daten → 0 Pkt</li>
         </ul>
       </div>
@@ -2177,11 +2177,11 @@ a{{color:var(--accent);text-decoration:none}}
           <div>
             <span class="cl-name">Float-Größe</span>
             <div class="color-bar">
-              <div class="cb-seg" style="background:#ef4444">&gt;100 Mio.</div>
-              <div class="cb-seg" style="background:#f59e0b">50–100 Mio.</div>
-              <div class="cb-seg" style="background:#22c55e">&lt;50 Mio.</div>
+              <div class="cb-seg" style="background:#ef4444">&gt;50 Mio.</div>
+              <div class="cb-seg" style="background:#f59e0b">30–50 Mio.</div>
+              <div class="cb-seg" style="background:#22c55e">&lt;30 Mio.</div>
             </div>
-            <p class="cl-desc">Grün bedeutet einen Streubesitz unter 50 Mio. Aktien — wenige handelbare Aktien verstärken den Squeeze-Effekt bei steigendem Kaufdruck erheblich.</p>
+            <p class="cl-desc">Grün bedeutet einen Streubesitz unter 30 Mio. Aktien — wenige handelbare Aktien verstärken den Squeeze-Effekt bei steigendem Kaufdruck erheblich.</p>
           </div>
           <div>
             <span class="cl-name">SI-Trend (3M)</span>
