@@ -93,6 +93,9 @@ POOL_MIN                  = 20    # always enrich at least this many candidates
 POOL_MAX                  = 75    # hard upper limit to keep runtime reasonable
 POOL_SHORT_FLOAT_THRESHOLD = 10.0 # SF ≥ this % → always included regardless of POOL_MAX
 POOL_ENRICH_TIMEOUT       = 90    # seconds — skip remaining candidates if exceeded
+# ── Implied Volatility colour thresholds (percentage points) ─────────────────
+IV_LOW  = 50    # IV < IV_LOW  → rot   (niedrig, kein Squeeze-Signal)
+IV_HIGH = 100   # IV > IV_HIGH → grün  (extrem, typisch vor Squeezes)
 
 
 # ===========================================================================
@@ -1486,7 +1489,9 @@ def _card(i: int, s: dict) -> str:
         _pc_row = ""
     if _iv is not None:
         _iv_pct = _iv * 100
-        _iv_col = "#ef4444" if _iv_pct > 80 else ("#f59e0b" if _iv_pct > 50 else "var(--txt)")
+        _iv_col = ("#22c55e" if _iv_pct > IV_HIGH
+                   else "#f59e0b" if _iv_pct >= IV_LOW
+                   else "#ef4444")
         _iv_row = (
             f'<tr><td>Impl. Volatilität (ATM)</td>'
             f'<td><span style="color:{_iv_col}">{_iv_pct:.1f}%</span></td></tr>'
@@ -2170,6 +2175,15 @@ a{{color:var(--accent);text-decoration:none}}
               <div class="cb-seg" style="background:#22c55e">Steigend ≥+10 %</div>
             </div>
             <p class="cl-desc">Grün bedeutet dass Leerverkäufer ihre Positionen in den letzten 3 Monaten ausgebaut haben — der Druck auf einen möglichen Squeeze wächst.</p>
+          </div>
+          <div>
+            <span class="cl-name">Impl. Volatilität (IV)</span>
+            <div class="color-bar">
+              <div class="cb-seg" style="background:#ef4444">&lt;50 %</div>
+              <div class="cb-seg" style="background:#f59e0b">50–100 %</div>
+              <div class="cb-seg" style="background:#22c55e">&gt;100 %</div>
+            </div>
+            <p class="cl-desc">Hohe implizite Volatilität (IV &gt; 100 %) signalisiert dass der Markt eine extreme Kursbewegung erwartet — ein typisches Zeichen für erhöhtes Squeeze-Potential.</p>
           </div>
         </div>
       </div>
