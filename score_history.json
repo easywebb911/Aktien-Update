@@ -1,62 +1,62 @@
 {
-  "FC": [
+  "SPCE": [
     {
       "date": "06.04.2026",
-      "score": 60.61
+      "score": 32.44
     }
   ],
-  "CAR": [
+  "GRPN": [
     {
       "date": "06.04.2026",
-      "score": 51.04
+      "score": 29.73
     }
   ],
-  "ORIC": [
+  "IMCR": [
     {
       "date": "06.04.2026",
-      "score": 48.66
+      "score": 29.61
     }
   ],
-  "PENG": [
+  "CRDF": [
     {
       "date": "06.04.2026",
-      "score": 45.64
+      "score": 29.31
     }
   ],
-  "BKSY": [
+  "AVXL": [
     {
       "date": "06.04.2026",
-      "score": 44.6
+      "score": 27.17
     }
   ],
-  "REPL": [
+  "NTST": [
     {
       "date": "06.04.2026",
-      "score": 43.19
+      "score": 26.72
     }
   ],
-  "IBG": [
+  "TMDX": [
     {
       "date": "06.04.2026",
-      "score": 42.93
+      "score": 26.56
     }
   ],
-  "ZBIO": [
+  "STOK": [
     {
       "date": "06.04.2026",
-      "score": 41.62
+      "score": 26.4
     }
   ],
-  "DMRC": [
+  "FDMT": [
     {
       "date": "06.04.2026",
-      "score": 34.93
+      "score": 25.27
     }
   ],
-  "SPHR": [
+  "PRLD": [
     {
       "date": "06.04.2026",
-      "score": 33.2
+      "score": 23.58
     }
   ]
 }
