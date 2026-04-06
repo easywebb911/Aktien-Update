@@ -96,6 +96,7 @@ POOL_ENRICH_TIMEOUT       = 90    # seconds — skip remaining candidates if exc
 # ── Implied Volatility colour thresholds (percentage points) ─────────────────
 IV_LOW  = 50    # IV < IV_LOW  → rot   (niedrig, kein Squeeze-Signal)
 IV_HIGH = 100   # IV > IV_HIGH → grün  (extrem, typisch vor Squeezes)
+IV_MIN_DAYS_TO_EXPIRY = 7  # Verfallstermin muss mind. N Tage entfernt sein (verhindert Time-Decay-Verzerrung)
 
 
 # ===========================================================================
@@ -718,15 +719,19 @@ def get_combined_news(ticker: str, n: int = 3) -> list[dict]:
 
 
 # ===========================================================================
-# 2a-OPT. OPTIONS MARKET DATA (US-only, nearest expiry)
+# 2a-OPT. OPTIONS MARKET DATA (US-only, stable expiry ≥ IV_MIN_DAYS_TO_EXPIRY)
 # ===========================================================================
 
 def get_options_data(ticker: str) -> dict:
-    """Fetch Put/Call ratio (open interest) and ATM implied volatility for the
-    nearest available options expiry.  US-only — skipped for international tickers.
+    """Fetch Put/Call ratio (open interest) and ATM implied volatility.
+    US-only — skipped for international tickers.
+
+    Uses the first expiry at least IV_MIN_DAYS_TO_EXPIRY days away to avoid
+    Time-Decay distortion of near-expiry options.  Falls back to expiries[0]
+    if no qualifying expiry exists.
 
     Returns dict with keys:
-      pc_ratio  (float | None)  — put OI / call OI for nearest expiry
+      pc_ratio  (float | None)  — put OI / call OI for chosen expiry
       atm_iv    (float | None)  — implied volatility of the nearest-ATM strike (0–1 scale)
       expiry    (str | None)    — expiry date used (YYYY-MM-DD)
 
@@ -740,8 +745,14 @@ def get_options_data(ticker: str) -> dict:
         expiries = stk.options  # tuple of expiry date strings
         if not expiries:
             return {}
-        nearest  = expiries[0]
-        chain    = stk.option_chain(nearest)
+
+        # Choose the first expiry at least IV_MIN_DAYS_TO_EXPIRY days away
+        from datetime import datetime as _dt, timedelta as _td
+        min_date = _dt.today() + _td(days=IV_MIN_DAYS_TO_EXPIRY)
+        valid    = [e for e in expiries if _dt.strptime(e, "%Y-%m-%d") >= min_date]
+        chosen   = valid[0] if valid else expiries[0]
+
+        chain    = stk.option_chain(chosen)
         calls    = chain.calls
         puts     = chain.puts
         if calls.empty or puts.empty:
@@ -764,7 +775,12 @@ def get_options_data(ticker: str) -> dict:
             else:
                 atm_iv = None
 
-        return {"pc_ratio": pc_ratio, "atm_iv": atm_iv, "expiry": nearest}
+        days_to_expiry = (_dt.strptime(chosen, "%Y-%m-%d") - _dt.today()).days
+        if atm_iv is not None:
+            print(f"{ticker} IV: Verfallstermin {chosen} ({days_to_expiry} Tage), "
+                  f"ATM-IV={atm_iv * 100:.1f}%")
+
+        return {"pc_ratio": pc_ratio, "atm_iv": atm_iv, "expiry": chosen}
     except Exception as exc:
         log.debug("Options data failed for %s: %s", ticker, exc)
         return {}
