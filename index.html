@@ -353,7 +353,7 @@ a{color:var(--accent);text-decoration:none}
 <header class="app-hdr">
   <div class="hdr-main">
     <span class="app-title">Squeeze <span>Report</span></span>
-    <span class="hdr-ts">Stand: 06.04.2026, 08:53 Uhr</span>
+    <span class="hdr-ts">Stand: 06.04.2026, 09:08 Uhr</span>
     <div class="hdr-btns">
       <button id="btn-reload" class="btn btn-g" onclick="reloadPage()">&#8635; Neu laden</button>
       <button id="btn-recalc" class="btn btn-b" onclick="triggerWorkflow()">&#9881; Neu berechnen</button>
@@ -386,11 +386,11 @@ a{color:var(--accent);text-decoration:none}
   <div class="agent-status-bar" id="agent-status">⚡ KI-Agent: Wird geladen …</div>
   <div class="stats-bar">
     <div class="stat-title">TopTen Squeezer</div>
-    <div class="stat-box"><span class="stat-val">34.0%</span><span class="stat-lbl">Ø Short Float</span></div>
-    <div class="stat-box"><span class="stat-val">7.6d</span><span class="stat-lbl">Ø Days to Cover</span></div>
-    <div class="stat-box"><span class="stat-val">2.2×</span><span class="stat-lbl">Ø Volumen</span></div>
-    <div class="stat-box"><span class="stat-val">+16.0%</span><span class="stat-lbl">Ø Kursmomentum</span></div>
-    <div class="stat-box"><span class="stat-val">28,6 Mio,</span><span class="stat-lbl">Ø Float</span></div>
+    <div class="stat-box"><span class="stat-val">32.5%</span><span class="stat-lbl">Ø Short Float</span></div>
+    <div class="stat-box"><span class="stat-val">8.5d</span><span class="stat-lbl">Ø Days to Cover</span></div>
+    <div class="stat-box"><span class="stat-val">2.3×</span><span class="stat-lbl">Ø Volumen</span></div>
+    <div class="stat-box"><span class="stat-val">+14.0%</span><span class="stat-lbl">Ø Kursmomentum</span></div>
+    <div class="stat-box"><span class="stat-val">31,0 Mio,</span><span class="stat-lbl">Ø Float</span></div>
     <div class="stat-box"><span class="stat-val">+97,4 %</span><span class="stat-lbl">Ø SI-Trend</span></div>
   </div>
 
@@ -404,7 +404,7 @@ a{color:var(--accent);text-decoration:none}
           <li><strong>23 Pkt Days to Cover</strong> – Tage zum vollständigen Eindecken; hohe Werte erhöhen Kapitulationsrisiko</li>
           <li><strong>23 Pkt Rel. Volumen</strong> – Heutiges vs. 20-Tage-Durchschnitt; Spitzen signalisieren Kaufinteresse</li>
           <li><strong>14 Pkt Kursmomentum</strong> – positive Kursveränderung erhöht den Squeeze-Druck auf Leerverkäufer. Nur steigende Kurse fließen positiv in den Score ein.</li>
-          <li><strong>8 Pkt Float-Größe</strong> – kleiner Float verstärkt den Squeeze-Effekt bei gleichem Short Float-Prozentsatz. Sättigung unter 5 Mio. Aktien.</li>
+          <li><strong>8 Pkt Float-Größe</strong> – kleiner Float verstärkt den Squeeze-Effekt bei gleichem Short Float-Prozentsatz. Sättigung unter 50 Mio. Aktien.</li>
           <li><strong>+ bis 5 Pkt FINRA SI-Trend Bonus</strong> – steigender Short Interest ≥ +10 % → 5 Pkt · Seitwärts → 2,5 Pkt · Fallend oder keine Daten → 0 Pkt</li>
         </ul>
       </div>
@@ -469,11 +469,11 @@ a{color:var(--accent);text-decoration:none}
           <div>
             <span class="cl-name">Float-Größe</span>
             <div class="color-bar">
-              <div class="cb-seg" style="background:#22c55e">&lt;5 Mio.</div>
-              <div class="cb-seg" style="background:#f59e0b">5–20 Mio.</div>
-              <div class="cb-seg" style="background:#ef4444">&gt;20 Mio.</div>
+              <div class="cb-seg" style="background:#ef4444">&gt;100 Mio.</div>
+              <div class="cb-seg" style="background:#f59e0b">50–100 Mio.</div>
+              <div class="cb-seg" style="background:#22c55e">&lt;50 Mio.</div>
             </div>
-            <p class="cl-desc">Grün bedeutet einen sehr kleinen Streubesitz — wenige handelbare Aktien verstärken den Squeeze-Effekt bei steigendem Kaufdruck erheblich.</p>
+            <p class="cl-desc">Grün bedeutet einen Streubesitz unter 50 Mio. Aktien — wenige handelbare Aktien verstärken den Squeeze-Effekt bei steigendem Kaufdruck erheblich.</p>
           </div>
           <div>
             <span class="cl-name">SI-Trend (3M)</span>
@@ -518,9 +518,9 @@ a{color:var(--accent);text-decoration:none}
       </div>
     </div>
     <div class="score-block">
-      <span class="score-num" style="color:#22c55e">59.9</span>
+      <span class="score-num" style="color:#22c55e">60.6</span>
       <span class="score-lbl">Score</span>
-      <div class="score-track"><div class="score-fill" style="width:60%;background:#22c55e"></div></div>
+      <div class="score-track"><div class="score-fill" style="width:61%;background:#22c55e"></div></div>
       
     </div>
   </div>
@@ -542,7 +542,7 @@ a{color:var(--accent);text-decoration:none}
       <span class="m-val">+44.4%</span>
       <span class="m-lbl">Momentum</span>
     </div>
-    <div class="metric-box" style="--mc:#f59e0b">
+    <div class="metric-box" style="--mc:#22c55e">
       <span class="m-val">9,1 Mio,</span>
       <span class="m-lbl">Float</span>
     </div>
@@ -609,9 +609,9 @@ a{color:var(--accent);text-decoration:none}
       </div>
     </div>
     <div class="score-block">
-      <span class="score-num" style="color:#f59e0b">48.7</span>
+      <span class="score-num" style="color:#22c55e">53.9</span>
       <span class="score-lbl">Score</span>
-      <div class="score-track"><div class="score-fill" style="width:49%;background:#f59e0b"></div></div>
+      <div class="score-track"><div class="score-fill" style="width:54%;background:#22c55e"></div></div>
       
     </div>
   </div>
@@ -633,7 +633,7 @@ a{color:var(--accent);text-decoration:none}
       <span class="m-val">+18.9%</span>
       <span class="m-lbl">Momentum</span>
     </div>
-    <div class="metric-box" style="--mc:#ef4444">
+    <div class="metric-box" style="--mc:#f59e0b">
       <span class="m-val">67,6 Mio,</span>
       <span class="m-lbl">Float</span>
     </div>
@@ -684,101 +684,10 @@ a{color:var(--accent);text-decoration:none}
   </div>
 </article>
 
-<article class="card" id="c3" data-ticker="CAR">
+<article class="card" id="c3" data-ticker="PENG">
   <div class="card-top">
     <div class="card-left">
       <span class="rank">3</span>
-      <div class="ticker-block">
-        <div class="ticker-row">
-          <span class="ticker">CAR</span>
-          <span class="market-tag">🇺🇸 DE</span>
-          <a class="chart-badge chart-badge-f" href="https://finviz.com/quote.ashx?t=CAR" target="_blank" rel="noopener noreferrer" title="Finviz Chart &amp; Kennzahlen">F</a><a class="chart-badge chart-badge-s" href="https://stockanalysis.com/stocks/car/" target="_blank" rel="noopener noreferrer" title="Stockanalysis Chart &amp; Short-Interest">S</a>
-          <span class="price-tag">$190.42</span>
-        </div>
-        <span class="company">Avis Budget Group, Inc.</span>
-        <span class="sector-tag">Industrials · Rental & Leasing Services</span>
-      </div>
-    </div>
-    <div class="score-block">
-      <span class="score-num" style="color:#f59e0b">47.1</span>
-      <span class="score-lbl">Score</span>
-      <div class="score-track"><div class="score-fill" style="width:47%;background:#f59e0b"></div></div>
-      
-    </div>
-  </div>
-  <p class="spark-placeholder">Verlauf ab morgen verfügbar.</p>
-  <div class="metrics-row">
-    <div class="metric-box" style="--mc:#22c55e">
-      <span class="m-val">48.3%</span>
-      <span class="m-lbl">Short Float</span>
-    </div>
-    <div class="metric-box" style="--mc:#22c55e">
-      <span class="m-val">8.8d</span>
-      <span class="m-lbl">Days to Cover</span>
-    </div>
-    <div class="metric-box" style="--mc:#f59e0b">
-      <span class="m-val">1.7×</span>
-      <span class="m-lbl">Volumen</span>
-    </div>
-    <div class="metric-box" style="--mc:#22c55e">
-      <span class="m-val">+12.0%</span>
-      <span class="m-lbl">Momentum</span>
-    </div>
-    <div class="metric-box" style="--mc:#f59e0b">
-      <span class="m-val">13,0 Mio,</span>
-      <span class="m-lbl">Float</span>
-    </div>
-    <div class="metric-box" style="--mc:#94a3b8">
-      <span class="m-val">—</span>
-      <span class="m-lbl">SI-Trend</span>
-    </div>
-  </div>
-  <button class="details-btn" onclick="toggleDetails(3)" id="db3" aria-expanded="false">
-    <span class="details-arrow" id="da3">▾</span><span id="dl3"> Details anzeigen</span>
-  </button>
-  <div class="details-body" id="dd3">
-    <div class="detail-table-wrap">
-      <table class="detail-table">
-        <tr><td>Marktkapitalisierung</td><td>$6.7 B</td></tr>
-        <tr><td>Float (frei handelbar)</td><td>13.0 Mio. Aktien</td></tr>
-        <tr><td>Sektor</td><td>Industrials · Rental & Leasing Services</td></tr>
-        <tr><td>52W-Hoch / -Tief</td><td>$212.81 / $62.17</td></tr>
-        <tr><td>Ø Volumen 20T</td><td>1,123,170</td></tr>
-        <tr><td>Heutiges Volumen</td><td>1,854,000</td></tr>
-        <tr><td>SEC-Meldungen</td><td><a href="https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&amp;CIK=CAR&amp;type=&amp;dateb=&amp;owner=include&amp;count=10&amp;search_text=" target="_blank" rel="noopener noreferrer" class="edgar-link">EDGAR öffnen →</a></td></tr>
-        <tr><td>SI-Trend (3M)</td><td>Keine Daten</td></tr>
-        <tr><td>Short-Vol. T-1 (FINRA)</td><td>—</td></tr>
-        <tr><td>Short-Vol. T-2</td><td>—</td></tr>
-        <tr><td>Short-Vol. T-3</td><td>—</td></tr>
-
-        <tr><td>RSI (14T)</td><td><span style="color:#ef4444">82.3 — überkauft</span></td></tr><tr><td>MA 50T</td><td>$113.42</td></tr><tr><td>MA 200T</td><td>$142.19</td></tr><tr><td>Kurs vs. MA50</td><td><span style="color:#22c55e">(+67.9%)</span></td></tr><tr><td>Rel. Stärke (20T)</td><td><span style="color:#22c55e">+99.8% vs. S&amp;P 500 (Aktie +96.2%)</span></td></tr>
-        <tr><td>Impl. Volatilität (ATM)</td><td><span style="color:#ef4444">0.0%</span></td></tr>
-        
-        <tr><td>Risiko-Detail</td><td style="color:#f59e0b">Extrem hohes Short-Interesse (48.3 %) bedeutet massive Squeeze-Gefahr, aber auch starke Kursausschläge in beide Richtungen.</td></tr>
-      </table>
-    </div>
-    
-    <div class="driver-row">
-      <span class="risk-badge" style="color:#f59e0b;border-color:#f59e0b55;background:#f59e0b22">Risiko: MITTEL</span>
-      <p class="driver-text">Short Float 48.3 % — sehr hohes Leerverkaufsinteresse, starkes Squeeze-Potenzial. Short Ratio 8.8 Tage — Eindeckungsdruck erhöht den Squeeze-Druck.</p>
-    </div>
-  </div>
-  <button class="news-btn" onclick="toggleNews(3)" id="nb3" aria-expanded="false">
-    <span id="nb-icon3">▼</span> Aktuelle Meldungen
-  </button>
-  <div class="news-panel" id="np3" hidden>
-    <div class="news-items"><div class="ni"><a href="https://www.fool.com/investing/2026/04/03/why-avis-budget-group-stock-revved-higher-this-wee/" target="_blank" rel="noopener noreferrer">Warum die Aktie der Avis Budget Group diese Woche eine Kehrtwende vollzog</a> <span class="ni-src">(Yahoo Finance)</span><span class="ni-meta">03.04.2026 22:24</span></div><div class="ni"><a href="https://www.investors.com/news/tsa-delays-car-rentals-hertz-avis-budget-airports-air-travel-spring-break/?src=A00220&yptr=yahoo" target="_blank" rel="noopener noreferrer">TSA-Verzögerungen, Short Squeeze – Was hat diese beiden Aktien in die Höhe getrieben?</a> <span class="ni-src">(Yahoo Finance)</span><span class="ni-meta">03.04.2026 17:12</span></div><div class="ni"><a href="https://seekingalpha.com/symbol/CAR/news?source=feed_symbol_CAR" target="_blank" rel="noopener noreferrer">Die meisten und am wenigsten leerverkauften Industrieaktien mit einer Marktkapitalisierung von über 2 Milliarden US-Dollar</a> <span class="ni-src">(Seeking Alpha)</span><span class="ni-meta">03.04.2026 14:20</span></div></div>
-    <div class="news-summary-box">
-      <span class="summary-label">Zusammenfassung</span>
-      <p class="summary-text">Warum die Aktie der Avis Budget Group diese Woche eine Kehrtwende vollzog. Weitere aktuelle Meldung: TSA-Verzögerungen, Short Squeeze – Was hat diese beiden Aktien in die Höhe getrieben?  –  Quelle: Motley Fool (03.04.2026 22:24)</p>
-    </div>
-  </div>
-</article>
-
-<article class="card" id="c4" data-ticker="PENG">
-  <div class="card-top">
-    <div class="card-left">
-      <span class="rank">4</span>
       <div class="ticker-block">
         <div class="ticker-row">
           <span class="ticker">PENG</span>
@@ -791,9 +700,9 @@ a{color:var(--accent);text-decoration:none}
       </div>
     </div>
     <div class="score-block">
-      <span class="score-num" style="color:#f59e0b">45.5</span>
+      <span class="score-num" style="color:#22c55e">53.3</span>
       <span class="score-lbl">Score</span>
-      <div class="score-track"><div class="score-fill" style="width:45%;background:#f59e0b"></div></div>
+      <div class="score-track"><div class="score-fill" style="width:53%;background:#22c55e"></div></div>
       
     </div>
   </div>
@@ -815,7 +724,7 @@ a{color:var(--accent);text-decoration:none}
       <span class="m-val">+13.4%</span>
       <span class="m-lbl">Momentum</span>
     </div>
-    <div class="metric-box" style="--mc:#ef4444">
+    <div class="metric-box" style="--mc:#22c55e">
       <span class="m-val">49,1 Mio,</span>
       <span class="m-lbl">Float</span>
     </div>
@@ -824,10 +733,10 @@ a{color:var(--accent);text-decoration:none}
       <span class="m-lbl">SI-Trend</span>
     </div>
   </div>
-  <button class="details-btn" onclick="toggleDetails(4)" id="db4" aria-expanded="false">
-    <span class="details-arrow" id="da4">▾</span><span id="dl4"> Details anzeigen</span>
+  <button class="details-btn" onclick="toggleDetails(3)" id="db3" aria-expanded="false">
+    <span class="details-arrow" id="da3">▾</span><span id="dl3"> Details anzeigen</span>
   </button>
-  <div class="details-body" id="dd4">
+  <div class="details-body" id="dd3">
     <div class="detail-table-wrap">
       <table class="detail-table">
         <tr><td>Marktkapitalisierung</td><td>$1.1 B</td></tr>
@@ -854,10 +763,10 @@ a{color:var(--accent);text-decoration:none}
       <p class="driver-text">Short Float 22.4 % liegt deutlich über dem Marktdurchschnitt. Short Ratio 7.9 Tage — Eindeckungsdruck erhöht den Squeeze-Druck.</p>
     </div>
   </div>
-  <button class="news-btn" onclick="toggleNews(4)" id="nb4" aria-expanded="false">
-    <span id="nb-icon4">▼</span> Aktuelle Meldungen
+  <button class="news-btn" onclick="toggleNews(3)" id="nb3" aria-expanded="false">
+    <span id="nb-icon3">▼</span> Aktuelle Meldungen
   </button>
-  <div class="news-panel" id="np4" hidden>
+  <div class="news-panel" id="np3" hidden>
     <div class="news-items"><div class="ni"><a href="https://finance.yahoo.com/markets/stocks/articles/penguin-solutions-peng-24-0-130756776.html" target="_blank" rel="noopener noreferrer">Penguin Solutions (PENG) ist um 24,0 % gestiegen, nachdem der KI-gesteuerte Umsatz- und EPS-Ausblick für 2026 angehoben wurde – hat sich die Aussicht auf den Bullenmarkt geändert?</a> <span class="ni-src">(Yahoo Finance)</span><span class="ni-meta">05.04.2026 13:07</span></div><div class="ni"><a href="https://finance.yahoo.com/markets/stocks/articles/rosenblatt-raises-price-target-penguin-121936452.html" target="_blank" rel="noopener noreferrer">Rosenblatt erhöht sein Preisziel für Penguin Solutions. (PENG) auf 32 $</a> <span class="ni-src">(Yahoo Finance)</span><span class="ni-meta">04.04.2026 12:19</span></div><div class="ni"><a href="https://seekingalpha.com/article/4888336-penguin-solutions-im-not-buying-into-the-q2-earnings-rally?source=feed_symbol_PENG" target="_blank" rel="noopener noreferrer">Penguin Solutions: Ich glaube nicht an die Gewinnrallye im zweiten Quartal</a> <span class="ni-src">(Seeking Alpha)</span><span class="ni-meta">04.04.2026 12:00</span></div></div>
     <div class="news-summary-box">
       <span class="summary-label">Zusammenfassung</span>
@@ -866,10 +775,10 @@ a{color:var(--accent);text-decoration:none}
   </div>
 </article>
 
-<article class="card" id="c5" data-ticker="REPL">
+<article class="card" id="c4" data-ticker="REPL">
   <div class="card-top">
     <div class="card-left">
-      <span class="rank">5</span>
+      <span class="rank">4</span>
       <div class="ticker-block">
         <div class="ticker-row">
           <span class="ticker">REPL</span>
@@ -882,9 +791,9 @@ a{color:var(--accent);text-decoration:none}
       </div>
     </div>
     <div class="score-block">
-      <span class="score-num" style="color:#f59e0b">43.2</span>
+      <span class="score-num" style="color:#f59e0b">49.1</span>
       <span class="score-lbl">Score</span>
-      <div class="score-track"><div class="score-fill" style="width:43%;background:#f59e0b"></div></div>
+      <div class="score-track"><div class="score-fill" style="width:49%;background:#f59e0b"></div></div>
       
     </div>
   </div>
@@ -906,7 +815,7 @@ a{color:var(--accent);text-decoration:none}
       <span class="m-val">+10.5%</span>
       <span class="m-lbl">Momentum</span>
     </div>
-    <div class="metric-box" style="--mc:#ef4444">
+    <div class="metric-box" style="--mc:#f59e0b">
       <span class="m-val">62,9 Mio,</span>
       <span class="m-lbl">Float</span>
     </div>
@@ -915,10 +824,10 @@ a{color:var(--accent);text-decoration:none}
       <span class="m-lbl">SI-Trend</span>
     </div>
   </div>
-  <button class="details-btn" onclick="toggleDetails(5)" id="db5" aria-expanded="false">
-    <span class="details-arrow" id="da5">▾</span><span id="dl5"> Details anzeigen</span>
+  <button class="details-btn" onclick="toggleDetails(4)" id="db4" aria-expanded="false">
+    <span class="details-arrow" id="da4">▾</span><span id="dl4"> Details anzeigen</span>
   </button>
-  <div class="details-body" id="dd5">
+  <div class="details-body" id="dd4">
     <div class="detail-table-wrap">
       <table class="detail-table">
         <tr><td>Marktkapitalisierung</td><td>$694 M</td></tr>
@@ -945,14 +854,105 @@ a{color:var(--accent);text-decoration:none}
       <p class="driver-text">Short Float 35.2 % — sehr hohes Leerverkaufsinteresse, starkes Squeeze-Potenzial. Short Ratio 10.9 Tage — Eindeckungsdruck erhöht den Squeeze-Druck.</p>
     </div>
   </div>
-  <button class="news-btn" onclick="toggleNews(5)" id="nb5" aria-expanded="false">
-    <span id="nb-icon5">▼</span> Aktuelle Meldungen
+  <button class="news-btn" onclick="toggleNews(4)" id="nb4" aria-expanded="false">
+    <span id="nb-icon4">▼</span> Aktuelle Meldungen
   </button>
-  <div class="news-panel" id="np5" hidden>
+  <div class="news-panel" id="np4" hidden>
     <div class="news-items"><div class="ni"><a href="https://finance.yahoo.com/sectors/healthcare/articles/rckt-stock-down-despite-fda-161600463.html" target="_blank" rel="noopener noreferrer">RCKT-Aktie sinkt trotz Zustimmung der FDA zur Gentherapie bei seltenen Krankheiten</a> <span class="ni-src">(Yahoo Finance)</span><span class="ni-meta">30.03.2026 16:16</span></div><div class="ni"><a href="https://finance.yahoo.com/sectors/healthcare/articles/cort-rises-fda-nod-lifyorli-155300559.html" target="_blank" rel="noopener noreferrer">CORT steigt aufgrund der Empfehlung der FDA an Lifyorli bei platinresistentem Eierstockkrebs</a> <span class="ni-src">(Yahoo Finance)</span><span class="ni-meta">26.03.2026 15:53</span></div><div class="ni"><a href="https://finance.yahoo.com/sectors/healthcare/articles/ocugen-falls-gene-therapy-eye-161500068.html" target="_blank" rel="noopener noreferrer">Ocugen stürzt ab, da die Gentherapie für Augenkrankheiten in der Phase-II-Studie zurückbleibt</a> <span class="ni-src">(Yahoo Finance)</span><span class="ni-meta">25.03.2026 16:15</span></div></div>
     <div class="news-summary-box">
       <span class="summary-label">Zusammenfassung</span>
       <p class="summary-text">Rocket Pharmaceuticals sinkt trotz der beschleunigten Zulassung der Gentherapie Kresladi durch die FDA bei schwerem Leukozytenadhäsionsmangel I, einer äußerst seltenen Krankheit.</p>
+    </div>
+  </div>
+</article>
+
+<article class="card" id="c5" data-ticker="CAR">
+  <div class="card-top">
+    <div class="card-left">
+      <span class="rank">5</span>
+      <div class="ticker-block">
+        <div class="ticker-row">
+          <span class="ticker">CAR</span>
+          <span class="market-tag">🇺🇸 DE</span>
+          <a class="chart-badge chart-badge-f" href="https://finviz.com/quote.ashx?t=CAR" target="_blank" rel="noopener noreferrer" title="Finviz Chart &amp; Kennzahlen">F</a><a class="chart-badge chart-badge-s" href="https://stockanalysis.com/stocks/car/" target="_blank" rel="noopener noreferrer" title="Stockanalysis Chart &amp; Short-Interest">S</a>
+          <span class="price-tag">$190.42</span>
+        </div>
+        <span class="company">Avis Budget Group, Inc.</span>
+        <span class="sector-tag">Industrials · Rental & Leasing Services</span>
+      </div>
+    </div>
+    <div class="score-block">
+      <span class="score-num" style="color:#f59e0b">48.5</span>
+      <span class="score-lbl">Score</span>
+      <div class="score-track"><div class="score-fill" style="width:49%;background:#f59e0b"></div></div>
+      
+    </div>
+  </div>
+  <p class="spark-placeholder">Verlauf ab morgen verfügbar.</p>
+  <div class="metrics-row">
+    <div class="metric-box" style="--mc:#22c55e">
+      <span class="m-val">48.3%</span>
+      <span class="m-lbl">Short Float</span>
+    </div>
+    <div class="metric-box" style="--mc:#22c55e">
+      <span class="m-val">8.8d</span>
+      <span class="m-lbl">Days to Cover</span>
+    </div>
+    <div class="metric-box" style="--mc:#f59e0b">
+      <span class="m-val">1.7×</span>
+      <span class="m-lbl">Volumen</span>
+    </div>
+    <div class="metric-box" style="--mc:#22c55e">
+      <span class="m-val">+12.0%</span>
+      <span class="m-lbl">Momentum</span>
+    </div>
+    <div class="metric-box" style="--mc:#22c55e">
+      <span class="m-val">13,0 Mio,</span>
+      <span class="m-lbl">Float</span>
+    </div>
+    <div class="metric-box" style="--mc:#94a3b8">
+      <span class="m-val">—</span>
+      <span class="m-lbl">SI-Trend</span>
+    </div>
+  </div>
+  <button class="details-btn" onclick="toggleDetails(5)" id="db5" aria-expanded="false">
+    <span class="details-arrow" id="da5">▾</span><span id="dl5"> Details anzeigen</span>
+  </button>
+  <div class="details-body" id="dd5">
+    <div class="detail-table-wrap">
+      <table class="detail-table">
+        <tr><td>Marktkapitalisierung</td><td>$6.7 B</td></tr>
+        <tr><td>Float (frei handelbar)</td><td>13.0 Mio. Aktien</td></tr>
+        <tr><td>Sektor</td><td>Industrials · Rental & Leasing Services</td></tr>
+        <tr><td>52W-Hoch / -Tief</td><td>$212.81 / $62.17</td></tr>
+        <tr><td>Ø Volumen 20T</td><td>1,123,170</td></tr>
+        <tr><td>Heutiges Volumen</td><td>1,854,000</td></tr>
+        <tr><td>SEC-Meldungen</td><td><a href="https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&amp;CIK=CAR&amp;type=&amp;dateb=&amp;owner=include&amp;count=10&amp;search_text=" target="_blank" rel="noopener noreferrer" class="edgar-link">EDGAR öffnen →</a></td></tr>
+        <tr><td>SI-Trend (3M)</td><td>Keine Daten</td></tr>
+        <tr><td>Short-Vol. T-1 (FINRA)</td><td>—</td></tr>
+        <tr><td>Short-Vol. T-2</td><td>—</td></tr>
+        <tr><td>Short-Vol. T-3</td><td>—</td></tr>
+
+        <tr><td>RSI (14T)</td><td><span style="color:#ef4444">82.3 — überkauft</span></td></tr><tr><td>MA 50T</td><td>$113.42</td></tr><tr><td>MA 200T</td><td>$142.19</td></tr><tr><td>Kurs vs. MA50</td><td><span style="color:#22c55e">(+67.9%)</span></td></tr><tr><td>Rel. Stärke (20T)</td><td><span style="color:#22c55e">+99.8% vs. S&amp;P 500 (Aktie +96.2%)</span></td></tr>
+        <tr><td>Impl. Volatilität (ATM)</td><td><span style="color:#ef4444">0.0%</span></td></tr>
+        
+        <tr><td>Risiko-Detail</td><td style="color:#f59e0b">Extrem hohes Short-Interesse (48.3 %) bedeutet massive Squeeze-Gefahr, aber auch starke Kursausschläge in beide Richtungen.</td></tr>
+      </table>
+    </div>
+    
+    <div class="driver-row">
+      <span class="risk-badge" style="color:#f59e0b;border-color:#f59e0b55;background:#f59e0b22">Risiko: MITTEL</span>
+      <p class="driver-text">Short Float 48.3 % — sehr hohes Leerverkaufsinteresse, starkes Squeeze-Potenzial. Short Ratio 8.8 Tage — Eindeckungsdruck erhöht den Squeeze-Druck.</p>
+    </div>
+  </div>
+  <button class="news-btn" onclick="toggleNews(5)" id="nb5" aria-expanded="false">
+    <span id="nb-icon5">▼</span> Aktuelle Meldungen
+  </button>
+  <div class="news-panel" id="np5" hidden>
+    <div class="news-items"><div class="ni"><a href="https://www.fool.com/investing/2026/04/03/why-avis-budget-group-stock-revved-higher-this-wee/" target="_blank" rel="noopener noreferrer">Warum die Aktie der Avis Budget Group diese Woche eine Kehrtwende vollzog</a> <span class="ni-src">(Yahoo Finance)</span><span class="ni-meta">03.04.2026 22:24</span></div><div class="ni"><a href="https://www.investors.com/news/tsa-delays-car-rentals-hertz-avis-budget-airports-air-travel-spring-break/?src=A00220&yptr=yahoo" target="_blank" rel="noopener noreferrer">TSA-Verzögerungen, Short Squeeze – Was hat diese beiden Aktien in die Höhe getrieben?</a> <span class="ni-src">(Yahoo Finance)</span><span class="ni-meta">03.04.2026 17:12</span></div><div class="ni"><a href="https://seekingalpha.com/symbol/CAR/news?source=feed_symbol_CAR" target="_blank" rel="noopener noreferrer">Die meisten und am wenigsten leerverkauften Industrieaktien mit einer Marktkapitalisierung von über 2 Milliarden US-Dollar</a> <span class="ni-src">(Seeking Alpha)</span><span class="ni-meta">03.04.2026 14:20</span></div></div>
+    <div class="news-summary-box">
+      <span class="summary-label">Zusammenfassung</span>
+      <p class="summary-text">Warum die Aktie der Avis Budget Group diese Woche eine Kehrtwende vollzog. Weitere aktuelle Meldung: TSA-Verzögerungen, Short Squeeze – Was hat diese beiden Aktien in die Höhe getrieben?  –  Quelle: Motley Fool (03.04.2026 22:24)</p>
     </div>
   </div>
 </article>
@@ -973,9 +973,9 @@ a{color:var(--accent);text-decoration:none}
       </div>
     </div>
     <div class="score-block">
-      <span class="score-num" style="color:#f59e0b">40.4</span>
+      <span class="score-num" style="color:#f59e0b">45.1</span>
       <span class="score-lbl">Score</span>
-      <div class="score-track"><div class="score-fill" style="width:40%;background:#f59e0b"></div></div>
+      <div class="score-track"><div class="score-fill" style="width:45%;background:#f59e0b"></div></div>
       
     </div>
   </div>
@@ -997,7 +997,7 @@ a{color:var(--accent);text-decoration:none}
       <span class="m-val">+11.5%</span>
       <span class="m-lbl">Momentum</span>
     </div>
-    <div class="metric-box" style="--mc:#ef4444">
+    <div class="metric-box" style="--mc:#22c55e">
       <span class="m-val">31,3 Mio,</span>
       <span class="m-lbl">Float</span>
     </div>
@@ -1043,7 +1043,7 @@ a{color:var(--accent);text-decoration:none}
     <div class="news-items"><div class="ni"><a href="https://finance.yahoo.com/markets/stocks/articles/blacksky-idiq-win-tests-next-210638578.html" target="_blank" rel="noopener noreferrer">BlackSky IDIQ Win testet KI-Satelliten der nächsten Generation und Umsatzpotenzial</a> <span class="ni-src">(Yahoo Finance)</span><span class="ni-meta">05.04.2026 21:06</span></div><div class="ni"><a href="https://www.barrons.com/articles/artemis-ii-nasa-moon-space-6ada1f47?siteid=yhoof2&yptr=yahoo" target="_blank" rel="noopener noreferrer">Artemis II gestartet. Was als nächstes kommt.</a> <span class="ni-src">(Yahoo Finance)</span><span class="ni-meta">02.04.2026 20:22</span></div><div class="ni"><a href="https://finance.yahoo.com/markets/stocks/articles/planet-labs-margins-expand-revenue-164100958.html" target="_blank" rel="noopener noreferrer">Planet Labs-Margen wachsen aufgrund von Umsatzmix-Verschiebung, Automatisierung?</a> <span class="ni-src">(Yahoo Finance)</span><span class="ni-meta">02.04.2026 16:41</span></div></div>
     <div class="news-summary-box">
       <span class="summary-label">Zusammenfassung</span>
-      <p class="summary-text">BlackSky Technology (NYSE:BKSY) hat sich einen mehrjährigen IDIQ-Vertrag mit alleiniger Quelle vom U.S. Air Force Research Laboratory gesichert. Die Auszeichnung konzentriert sich auf weltraumgestützte Aufklärungsfähigkeiten der nächsten Generation, einschließlich optischer Nutzlasten mit großer Apertur und KI-gestützter Satellitentechnologie. Der Vertrag umfasst fortschrittliche Bildgebung, Echtzeit-Datenverarbeitung und -speicherung sowie die Integration mit zukünftigen Trägerraketen für verschiedene Erdbeobachtungsanwendungen. Für Anleger, die NYSE:BKSY verfolgen, kommt dieser Vertrag zu einem...</p>
+      <p class="summary-text">BlackSky Technology (NYSE:BKSY) hat sich einen mehrjährigen IDIQ-Vertrag mit alleiniger Quelle vom U.S. Air Force Research Laboratory gesichert. Der Preis konzentriert sich auf weltraumgestützte Aufklärungsfähigkeiten der nächsten Generation, einschließlich optischer Nutzlasten mit großer Apertur und KI-gestützter Satellitentechnologie. Der Vertrag umfasst fortschrittliche Bildgebung, Echtzeit-Datenverarbeitung und -speicherung sowie die Integration mit zukünftigen Trägerraketen für verschiedene Erdbeobachtungsanwendungen. Für Anleger, die NYSE:BKSY verfolgen, kommt dieser Vertrag zu einem...</p>
     </div>
   </div>
 </article>
@@ -1064,9 +1064,9 @@ a{color:var(--accent);text-decoration:none}
       </div>
     </div>
     <div class="score-block">
-      <span class="score-num" style="color:#f59e0b">38.4</span>
+      <span class="score-num" style="color:#f59e0b">43.9</span>
       <span class="score-lbl">Score</span>
-      <div class="score-track"><div class="score-fill" style="width:38%;background:#f59e0b"></div></div>
+      <div class="score-track"><div class="score-fill" style="width:44%;background:#f59e0b"></div></div>
       
     </div>
   </div>
@@ -1088,7 +1088,7 @@ a{color:var(--accent);text-decoration:none}
       <span class="m-val">+5.4%</span>
       <span class="m-lbl">Momentum</span>
     </div>
-    <div class="metric-box" style="--mc:#ef4444">
+    <div class="metric-box" style="--mc:#22c55e">
       <span class="m-val">35,6 Mio,</span>
       <span class="m-lbl">Float</span>
     </div>
@@ -1246,9 +1246,9 @@ a{color:var(--accent);text-decoration:none}
       </div>
     </div>
     <div class="score-block">
-      <span class="score-num" style="color:#f59e0b">32.9</span>
+      <span class="score-num" style="color:#f59e0b">34.9</span>
       <span class="score-lbl">Score</span>
-      <div class="score-track"><div class="score-fill" style="width:33%;background:#f59e0b"></div></div>
+      <div class="score-track"><div class="score-fill" style="width:35%;background:#f59e0b"></div></div>
       
     </div>
   </div>
@@ -1270,7 +1270,7 @@ a{color:var(--accent);text-decoration:none}
       <span class="m-val">+12.5%</span>
       <span class="m-lbl">Momentum</span>
     </div>
-    <div class="metric-box" style="--mc:#f59e0b">
+    <div class="metric-box" style="--mc:#22c55e">
       <span class="m-val">16,3 Mio,</span>
       <span class="m-lbl">Float</span>
     </div>
@@ -1313,7 +1313,7 @@ a{color:var(--accent);text-decoration:none}
     <span id="nb-icon9">▼</span> Aktuelle Meldungen
   </button>
   <div class="news-panel" id="np9" hidden>
-    <div class="news-items"><div class="ni"><a href="https://finance.yahoo.com/news/digimarc-corp-dmrc-q4-2025-030036326.html" target="_blank" rel="noopener noreferrer">Höhepunkte der Telefonkonferenz zu den Ergebnissen des vierten Quartals 2025 von Digimarc Corp (DMRC): Strategische Partnerschaften und technologische ...</a> <span class="ni-src">(Yahoo Finance)</span><span class="ni-meta">17.03.2026 03:00</span></div><div class="ni"><a href="https://seekingalpha.com/article/4882916-digimarc-corporation-dmrc-q4-2025-earnings-call-transcript?source=feed_symbol_DMRC" target="_blank" rel="noopener noreferrer">Digimarc Corporation (DMRC) Q4 2025 Earnings Call Transcript</a> <span class="ni-src">(Seeking Alpha)</span><span class="ni-meta">16.03.2026 22:52</span></div><div class="ni"><a href="https://www.marketbeat.com/instant-alerts/digimarc-q4-earnings-call-highlights-2026-03-16/?utm_source=yahoofinance&utm_medium=yahoofinance" target="_blank" rel="noopener noreferrer">Highlights der Digimarc Q4 Earnings Call</a> <span class="ni-src">(Yahoo Finance)</span><span class="ni-meta">16.03.2026 22:02</span></div></div>
+    <div class="news-items"><div class="ni"><a href="https://finance.yahoo.com/news/digimarc-corp-dmrc-q4-2025-030036326.html" target="_blank" rel="noopener noreferrer">Höhepunkte der Telefonkonferenz zu den Ergebnissen des vierten Quartals 2025 von Digimarc Corp (DMRC): Strategische Partnerschaften und technologische ...</a> <span class="ni-src">(Yahoo Finance)</span><span class="ni-meta">17.03.2026 03:00</span></div><div class="ni"><a href="https://seekingalpha.com/article/4882916-digimarc-corporation-dmrc-q4-2025-earnings-call-transcript?source=feed_symbol_DMRC" target="_blank" rel="noopener noreferrer">Digimarc Corporation (DMRC) Q4 2025 Earnings Call Transcript</a> <span class="ni-src">(Seeking Alpha)</span><span class="ni-meta">16.03.2026 22:52</span></div><div class="ni"><a href="https://www.marketbeat.com/instant-alerts/digimarc-q4-earnings-call-highlights-2026-03-16/?utm_source=yahoofinance&utm_medium=yahoofinance" target="_blank" rel="noopener noreferrer">Höhepunkte der Digimarc Q4 Earnings Call</a> <span class="ni-src">(Yahoo Finance)</span><span class="ni-meta">16.03.2026 22:02</span></div></div>
     <div class="news-summary-box">
       <span class="summary-label">Zusammenfassung</span>
       <p class="summary-text">Digimarc Corp (DMRC) stärkt seine Marktposition durch wichtige Partnerschaften und technologischen Fortschritt und steht gleichzeitig vor Herausforderungen bei den Zeitplänen für die Kommerzialisierung.</p>
@@ -1321,48 +1321,48 @@ a{color:var(--accent);text-decoration:none}
   </div>
 </article>
 
-<article class="card" id="c10" data-ticker="ATPC">
+<article class="card" id="c10" data-ticker="SPHR">
   <div class="card-top">
     <div class="card-left">
       <span class="rank">10</span>
       <div class="ticker-block">
         <div class="ticker-row">
-          <span class="ticker">ATPC</span>
+          <span class="ticker">SPHR</span>
           <span class="market-tag">🇺🇸 DE</span>
-          <a class="chart-badge chart-badge-f" href="https://finviz.com/quote.ashx?t=ATPC" target="_blank" rel="noopener noreferrer" title="Finviz Chart &amp; Kennzahlen">F</a><a class="chart-badge chart-badge-s" href="https://stockanalysis.com/stocks/atpc/" target="_blank" rel="noopener noreferrer" title="Stockanalysis Chart &amp; Short-Interest">S</a>
-          <span class="price-tag">$3.17</span>
+          <a class="chart-badge chart-badge-f" href="https://finviz.com/quote.ashx?t=SPHR" target="_blank" rel="noopener noreferrer" title="Finviz Chart &amp; Kennzahlen">F</a><a class="chart-badge chart-badge-s" href="https://stockanalysis.com/stocks/sphr/" target="_blank" rel="noopener noreferrer" title="Stockanalysis Chart &amp; Short-Interest">S</a>
+          <span class="price-tag">$127.22</span>
         </div>
-        <span class="company">Agape ATP Corporation</span>
-        <span class="sector-tag">Consumer Defensive · Packaged Foods</span>
+        <span class="company">Sphere Entertainment Co.</span>
+        <span class="sector-tag">Communication Services · Entertainment</span>
       </div>
     </div>
     <div class="score-block">
-      <span class="score-num" style="color:#f59e0b">31.9</span>
+      <span class="score-num" style="color:#f59e0b">33.2</span>
       <span class="score-lbl">Score</span>
-      <div class="score-track"><div class="score-fill" style="width:32%;background:#f59e0b"></div></div>
+      <div class="score-track"><div class="score-fill" style="width:33%;background:#f59e0b"></div></div>
       
     </div>
   </div>
   <p class="spark-placeholder">Verlauf ab morgen verfügbar.</p>
   <div class="metrics-row">
     <div class="metric-box" style="--mc:#22c55e">
-      <span class="m-val">47.2%</span>
+      <span class="m-val">32.8%</span>
       <span class="m-lbl">Short Float</span>
     </div>
-    <div class="metric-box" style="--mc:#ef4444">
-      <span class="m-val">0.1d</span>
+    <div class="metric-box" style="--mc:#22c55e">
+      <span class="m-val">8.7d</span>
       <span class="m-lbl">Days to Cover</span>
     </div>
     <div class="metric-box" style="--mc:#ef4444">
-      <span class="m-val">0.1×</span>
+      <span class="m-val">0.8×</span>
       <span class="m-lbl">Volumen</span>
     </div>
     <div class="metric-box" style="--mc:#22c55e">
-      <span class="m-val">+25.8%</span>
+      <span class="m-val">+6.2%</span>
       <span class="m-lbl">Momentum</span>
     </div>
     <div class="metric-box" style="--mc:#22c55e">
-      <span class="m-val">0,4 Mio,</span>
+      <span class="m-val">24,4 Mio,</span>
       <span class="m-lbl">Float</span>
     </div>
     <div class="metric-box" style="--mc:#94a3b8">
@@ -1376,38 +1376,38 @@ a{color:var(--accent);text-decoration:none}
   <div class="details-body" id="dd10">
     <div class="detail-table-wrap">
       <table class="detail-table">
-        <tr><td>Marktkapitalisierung</td><td>$3 M</td></tr>
-        <tr><td>Float (frei handelbar)</td><td>0.4 Mio. Aktien</td></tr>
-        <tr><td>Sektor</td><td>Consumer Defensive · Packaged Foods</td></tr>
-        <tr><td>52W-Hoch / -Tief</td><td>$128.25 / $1.72</td></tr>
-        <tr><td>Ø Volumen 20T</td><td>5,977,740</td></tr>
-        <tr><td>Heutiges Volumen</td><td>470,200</td></tr>
-        <tr><td>SEC-Meldungen</td><td><a href="https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&amp;CIK=ATPC&amp;type=&amp;dateb=&amp;owner=include&amp;count=10&amp;search_text=" target="_blank" rel="noopener noreferrer" class="edgar-link">EDGAR öffnen →</a></td></tr>
+        <tr><td>Marktkapitalisierung</td><td>$4.5 B</td></tr>
+        <tr><td>Float (frei handelbar)</td><td>24.4 Mio. Aktien</td></tr>
+        <tr><td>Sektor</td><td>Communication Services · Entertainment</td></tr>
+        <tr><td>52W-Hoch / -Tief</td><td>$127.41 / $23.89</td></tr>
+        <tr><td>Ø Volumen 20T</td><td>1,097,220</td></tr>
+        <tr><td>Heutiges Volumen</td><td>902,800</td></tr>
+        <tr><td>SEC-Meldungen</td><td><a href="https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&amp;CIK=SPHR&amp;type=&amp;dateb=&amp;owner=include&amp;count=10&amp;search_text=" target="_blank" rel="noopener noreferrer" class="edgar-link">EDGAR öffnen →</a></td></tr>
         <tr><td>SI-Trend (3M)</td><td>Keine Daten</td></tr>
         <tr><td>Short-Vol. T-1 (FINRA)</td><td>—</td></tr>
         <tr><td>Short-Vol. T-2</td><td>—</td></tr>
         <tr><td>Short-Vol. T-3</td><td>—</td></tr>
 
-        <tr><td>RSI (14T)</td><td><span style="color:var(--txt)">51.5</span></td></tr><tr><td>MA 50T</td><td>$2.87</td></tr><tr><td>MA 200T</td><td>$41.12</td></tr><tr><td>Kurs vs. MA50</td><td><span style="color:#22c55e">(+10.3%)</span></td></tr><tr><td>Rel. Stärke (20T)</td><td><span style="color:#22c55e">+59.0% vs. S&amp;P 500 (Aktie +55.4%)</span></td></tr>
+        <tr><td>RSI (14T)</td><td><span style="color:var(--txt)">65.8</span></td></tr><tr><td>MA 50T</td><td>$107.99</td></tr><tr><td>MA 200T</td><td>$74.45</td></tr><tr><td>Kurs vs. MA50</td><td><span style="color:#22c55e">(+17.8%)</span></td></tr><tr><td>Rel. Stärke (20T)</td><td><span style="color:#22c55e">+15.4% vs. S&amp;P 500 (Aktie +11.8%)</span></td></tr>
+        <tr><td>Impl. Volatilität (ATM)</td><td><span style="color:#ef4444">0.0%</span></td></tr>
         
-        
-        <tr><td>Risiko-Detail</td><td style="color:#ef4444">Extrem hohes Short-Interesse (47.2 %) bedeutet massive Squeeze-Gefahr, aber auch starke Kursausschläge in beide Richtungen. Micro-Cap ($3 M) – geringe Liquidität, Kursmanipulation möglich.</td></tr>
+        <tr><td>Risiko-Detail</td><td style="color:#f59e0b">Hohes Short-Interesse (32.8 %) erhöht die Volatilität deutlich.</td></tr>
       </table>
     </div>
     
     <div class="driver-row">
-      <span class="risk-badge" style="color:#ef4444;border-color:#ef444455;background:#ef444422">Risiko: HOCH</span>
-      <p class="driver-text">Short Float 47.2 % — sehr hohes Leerverkaufsinteresse, starkes Squeeze-Potenzial. +25.8 % heute — mögliche Margin Calls bei Leerverkäufern.</p>
+      <span class="risk-badge" style="color:#f59e0b;border-color:#f59e0b55;background:#f59e0b22">Risiko: MITTEL</span>
+      <p class="driver-text">Short Float 32.8 % — sehr hohes Leerverkaufsinteresse, starkes Squeeze-Potenzial. Short Ratio 8.7 Tage — Eindeckungsdruck erhöht den Squeeze-Druck.</p>
     </div>
   </div>
   <button class="news-btn" onclick="toggleNews(10)" id="nb10" aria-expanded="false">
     <span id="nb-icon10">▼</span> Aktuelle Meldungen
   </button>
   <div class="news-panel" id="np10" hidden>
-    <div class="news-items"><div class="ni"><a href="https://seekingalpha.com/symbol/ATPC/news?source=feed_symbol_ATPC" target="_blank" rel="noopener noreferrer">Die meisten und am wenigsten leerverkauften Gesundheitsaktien mit einer Marktkapitalisierung von bis zu 2 Milliarden US-Dollar im März</a> <span class="ni-src">(Seeking Alpha)</span><span class="ni-meta">03.04.2026 12:20</span></div><div class="ni"><a href="https://seekingalpha.com/symbol/ATPC/news?source=feed_symbol_ATPC" target="_blank" rel="noopener noreferrer">Agape ATP erlangt die Nasdaq-Konformität zurück; Aktien stiegen um über 33 %</a> <span class="ni-src">(Seeking Alpha)</span><span class="ni-meta">12.03.2026 13:43</span></div><div class="ni"><a href="https://finance.yahoo.com/news/bc-most-active-stocks-143019793.html" target="_blank" rel="noopener noreferrer">BC – Die aktivsten Aktien</a> <span class="ni-src">(Yahoo Finance)</span><span class="ni-meta">10.03.2026 14:30</span></div></div>
+    <div class="news-items"><div class="ni"><a href="https://finance.yahoo.com/markets/stocks/articles/wizard-oz-success-global-sphere-231119315.html" target="_blank" rel="noopener noreferrer">Der Erfolg von Wizard of Oz und die Global Sphere-Pläne werfen Bewertungsfragen auf</a> <span class="ni-src">(Yahoo Finance)</span><span class="ni-meta">03.04.2026 23:11</span></div><div class="ni"><a href="https://www.barrons.com/articles/las-vegas-casinos-economy-tech-f1b5e90a?siteid=yhoof2&yptr=yahoo" target="_blank" rel="noopener noreferrer">Wer braucht Las Vegas, wenn man ein Casino in der Tasche hat?</a> <span class="ni-src">(Yahoo Finance)</span><span class="ni-meta">03.04.2026 05:00</span></div><div class="ni"><a href="https://finance.yahoo.com/markets/stocks/articles/sphere-entertainment-sphr-stock-know-235220426.html" target="_blank" rel="noopener noreferrer">Die Aktie von Sphere Entertainment (SPHR) ist gestiegen, was Sie wissen müssen</a> <span class="ni-src">(Yahoo Finance)</span><span class="ni-meta">02.04.2026 23:52</span></div></div>
     <div class="news-summary-box">
       <span class="summary-label">Zusammenfassung</span>
-      <p class="summary-text">Die meisten und am wenigsten leerverkauften Gesundheitsaktien mit einer Marktkapitalisierung von bis zu 2 Milliarden US-Dollar im März. Weitere aktuelle Meldung: Agape ATP erlangt die Nasdaq-Konformität zurück; Aktien stiegen um über 33 %  –  Quelle: Seeking Alpha (03.04.2026 12:20)</p>
+      <p class="summary-text">Die Produktion „Der Zauberer von Oz im Sphere“ von Sphere Entertainment hat starke kommerzielle Ergebnisse geliefert und den Umsatz und die Betriebsleistung in einer Zeit des schwachen Tourismus gesteigert. Das Unternehmen hat Pläne für neue Sphere-Veranstaltungsorte in Abu Dhabi und National Harbor skizziert und damit seine Absicht signalisiert, auf dieser erfolgreichen Produktion international aufzubauen. Diese Entwicklungen kommen zu einem Zeitpunkt, an dem NYSE:SPHR bei 127,22 US-Dollar gehandelt wird, wobei die Aktie in der vergangenen Woche um 17,4 % und seit Jahresbeginn um 34,9 % gestiegen ist. Für Anleger, die NYSE:SPHR beobachten, ist dies...</p>
     </div>
   </div>
 </article>
