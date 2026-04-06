@@ -47,7 +47,7 @@ IGNORE_TRADING_HOURS    = False
 
 # Handelsfenster in Eastern Time (NY) — Puffer je 5 Minuten vor/nach Börsenglocke
 MARKET_OPEN             = dt_time(9, 25)   # NYSE öffnet 09:30 ET
-MARKET_CLOSE            = dt time(16, 5)   # NYSE schließt 16:00 ET
+MARKET_CLOSE            = dt_time(16, 5)   # NYSE schließt 16:00 ET
 
 # Score-Punkte je Signal
 SCORE_PRICE_UP_3        = 15      # Kursanstieg ≥ 3 % intraday
