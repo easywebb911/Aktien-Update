@@ -353,7 +353,7 @@ a{color:var(--accent);text-decoration:none}
 <header class="app-hdr">
   <div class="hdr-main">
     <span class="app-title">Squeeze <span>Report</span></span>
-    <span class="hdr-ts">Stand: 06.04.2026, 09:56 Uhr</span>
+    <span class="hdr-ts">Stand: 06.04.2026, 11:30 Uhr</span>
     <div class="hdr-btns">
       <button id="btn-reload" class="btn btn-g" onclick="reloadPage()">&#8635; Neu laden</button>
       <button id="btn-recalc" class="btn btn-b" onclick="triggerWorkflow()">&#9881; Neu berechnen</button>
@@ -391,7 +391,7 @@ a{color:var(--accent);text-decoration:none}
     <div class="stat-box"><span class="stat-val">4.5×</span><span class="stat-lbl">Ø Volumen</span></div>
     <div class="stat-box"><span class="stat-val">+18.4%</span><span class="stat-lbl">Ø Kursmomentum</span></div>
     <div class="stat-box"><span class="stat-val">36,6 Mio,</span><span class="stat-lbl">Ø Float</span></div>
-    <div class="stat-box"><span class="stat-val">—</span><span class="stat-lbl">Ø SI-Trend</span></div>
+    <div class="stat-box"><span class="stat-val">-5,2 %</span><span class="stat-lbl">Ø SI-Trend</span></div>
   </div>
 
   <details class="info-panel">
@@ -691,7 +691,7 @@ a{color:var(--accent);text-decoration:none}
       <div class="ticker-block">
         <div class="ticker-row">
           <span class="ticker">CAR</span>
-          <span class="market-tag">🇺🇸 DE</span>
+          <span class="market-tag">🇺🇸 US</span>
           <a class="chart-badge chart-badge-f" href="https://finviz.com/quote.ashx?t=CAR" target="_blank" rel="noopener noreferrer" title="Finviz Chart &amp; Kennzahlen">F</a><a class="chart-badge chart-badge-s" href="https://stockanalysis.com/stocks/car/" target="_blank" rel="noopener noreferrer" title="Stockanalysis Chart &amp; Short-Interest">S</a>
           <span class="price-tag">$190.42</span>
         </div>
@@ -700,9 +700,9 @@ a{color:var(--accent);text-decoration:none}
       </div>
     </div>
     <div class="score-block">
-      <span class="score-num" style="color:#f59e0b">48.5</span>
+      <span class="score-num" style="color:#22c55e">51.0</span>
       <span class="score-lbl">Score</span>
-      <div class="score-track"><div class="score-fill" style="width:49%;background:#f59e0b"></div></div>
+      <div class="score-track"><div class="score-fill" style="width:51%;background:#22c55e"></div></div>
       
     </div>
   </div>
@@ -728,8 +728,8 @@ a{color:var(--accent);text-decoration:none}
       <span class="m-val">13,0 Mio,</span>
       <span class="m-lbl">Float</span>
     </div>
-    <div class="metric-box" style="--mc:#94a3b8">
-      <span class="m-val">—</span>
+    <div class="metric-box" style="--mc:#f59e0b">
+      <span class="m-val">→ stabil</span>
       <span class="m-lbl">SI-Trend</span>
     </div>
   </div>
@@ -746,13 +746,13 @@ a{color:var(--accent);text-decoration:none}
         <tr><td>Ø Volumen 20T</td><td>1,123,170</td></tr>
         <tr><td>Heutiges Volumen</td><td>1,854,000</td></tr>
         <tr><td>SEC-Meldungen</td><td><a href="https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&amp;CIK=CAR&amp;type=&amp;dateb=&amp;owner=include&amp;count=10&amp;search_text=" target="_blank" rel="noopener noreferrer" class="edgar-link">EDGAR öffnen →</a></td></tr>
-        <tr><td>SI-Trend (3M)</td><td>Keine Daten</td></tr>
-        <tr><td>Short-Vol. T-1 (FINRA)</td><td>—</td></tr>
-        <tr><td>Short-Vol. T-2</td><td>—</td></tr>
-        <tr><td>Short-Vol. T-3</td><td>—</td></tr>
+        <tr><td>SI-Trend (3M)</td><td><span style="color:#f59e0b">→ Seitwärts −5.2 %</span></td></tr>
+        <tr><td>Short-Vol. T-1 (FINRA)</td><td>4,547 Aktien (01.04.2026)</td></tr>
+        <tr><td>Short-Vol. T-2</td><td>2,240 Aktien (31.03.2026)</td></tr>
+        <tr><td>Short-Vol. T-3</td><td>2,811 Aktien (27.03.2026)</td></tr>
 
         <tr><td>RSI (14T)</td><td><span style="color:#ef4444">82.3 — überkauft</span></td></tr><tr><td>MA 50T</td><td>$113.42</td></tr><tr><td>MA 200T</td><td>$142.19</td></tr><tr><td>Kurs vs. MA50</td><td><span style="color:#22c55e">(+67.9%)</span></td></tr><tr><td>Rel. Stärke (20T)</td><td><span style="color:#22c55e">+99.8% vs. S&amp;P 500 (Aktie +96.2%)</span></td></tr>
-        
+        <tr><td>Impl. Volatilität (ATM)</td><td><span style="color:#ef4444">0.0%</span></td></tr>
         
         <tr><td>Risiko-Detail</td><td style="color:#f59e0b">Extrem hohes Short-Interesse (48.3 %) bedeutet massive Squeeze-Gefahr, aber auch starke Kursausschläge in beide Richtungen.</td></tr>
       </table>
@@ -934,7 +934,7 @@ a{color:var(--accent);text-decoration:none}
         <tr><td>Short-Vol. T-3</td><td>—</td></tr>
 
         <tr><td>RSI (14T)</td><td><span style="color:var(--txt)">64.3</span></td></tr><tr><td>MA 50T</td><td>$18.79</td></tr><tr><td>MA 200T</td><td>$21.58</td></tr><tr><td>Kurs vs. MA50</td><td><span style="color:#22c55e">(+10.1%)</span></td></tr><tr><td>Rel. Stärke (20T)</td><td><span style="color:#22c55e">+12.6% vs. S&amp;P 500 (Aktie +9.0%)</span></td></tr>
-        
+        <tr><td>Impl. Volatilität (ATM)</td><td><span style="color:#ef4444">0.0%</span></td></tr>
         
         <tr><td>Risiko-Detail</td><td style="color:#f59e0b">Small-Cap ($1.1 B) mit eingeschränkter Liquidität.</td></tr>
       </table>
@@ -1040,10 +1040,10 @@ a{color:var(--accent);text-decoration:none}
     <span id="nb-icon6">▼</span> Aktuelle Meldungen
   </button>
   <div class="news-panel" id="np6" hidden>
-    <div class="news-items"><div class="ni"><a href="https://www.biopharmadive.com/news/immunovant-alto-beam-orca-oric-cyclerion-korsana-biotech-news-roundup/816454/" target="_blank" rel="noopener noreferrer">Immunovant-Augenmedikament fällt in Phase-3-Studien durch; Daten zur Strahlsichelzelle im NEJM veröffentlicht</a> <span class="ni-src">(Yahoo Finance)</span><span class="ni-meta">02.04.2026 12:20</span></div><div class="ni"><a href="https://finance.yahoo.com/markets/stocks/articles/oric-pharmaceuticals-oric-down-36-081322536.html" target="_blank" rel="noopener noreferrer">ORIC Pharmaceuticals (ORIC) ist um 36,1 % gesunken, nachdem das Prostatakrebsmedikament mit geringerer Toxizität in die Phase 3 überführt wurde</a> <span class="ni-src">(Yahoo Finance)</span><span class="ni-meta">02.04.2026 08:13</span></div><div class="ni"><a href="https://www.investors.com/news/technology/oric-stock-pfizer-prc2-inhibitor-prostate-cancer/?src=A00220&yptr=yahoo" target="_blank" rel="noopener noreferrer">Oric Pharma verpasst das „Best-in-Class“-Boot vs. Pfizer – und Einbrüche</a> <span class="ni-src">(Yahoo Finance)</span><span class="ni-meta">01.04.2026 20:16</span></div></div>
+    <div class="news-items"><div class="ni"><a href="https://finance.yahoo.com/sectors/healthcare/articles/look-oric-pharmaceuticals-oric-valuation-090812373.html" target="_blank" rel="noopener noreferrer">Ein Blick auf die Bewertung von ORIC Pharmaceuticals (ORIC) nach vielversprechenden Daten zu Rinzimetostat-Phase-1b-Prostatakrebs</a> <span class="ni-src">(Yahoo Finance)</span><span class="ni-meta">06.04.2026 09:08</span></div><div class="ni"><a href="https://www.biopharmadive.com/news/immunovant-alto-beam-orca-oric-cyclerion-korsana-biotech-news-roundup/816454/" target="_blank" rel="noopener noreferrer">Immunovant-Augenmedikament fällt in Phase-3-Studien durch; Daten zur Strahlsichelzelle im NEJM veröffentlicht</a> <span class="ni-src">(Yahoo Finance)</span><span class="ni-meta">02.04.2026 12:20</span></div><div class="ni"><a href="https://finance.yahoo.com/markets/stocks/articles/oric-pharmaceuticals-oric-down-36-081322536.html" target="_blank" rel="noopener noreferrer">ORIC Pharmaceuticals (ORIC) ist um 36,1 % gesunken, nachdem das Prostatakrebsmedikament mit geringerer Toxizität in die Phase 3 überführt wurde</a> <span class="ni-src">(Yahoo Finance)</span><span class="ni-meta">02.04.2026 08:13</span></div></div>
     <div class="news-summary-box">
       <span class="summary-label">Zusammenfassung</span>
-      <p class="summary-text">Die Aktien von Immunovant, Alto und Oric Pharmaceuticals fielen diese Woche aufgrund von Aktualisierungen klinischer Studien. An anderer Stelle kam es bei der Zelltherapie von Orca Bio zu Verzögerungen und Korsana ging eine umgekehrte Fusion ein.</p>
+      <p class="summary-text">ORIC Pharmaceuticals (ORIC) informierte Investoren über Phase-1b-Daten für Rinzimetostat plus Darolutamid bei metastasiertem kastrationsresistentem Prostatakrebs und wählte eine Tagesdosis von 400 mg für eine geplante globale Phase-3-Studie aus. Sehen Sie sich unsere neueste Analyse für ORIC Pharmaceuticals an. Die neueste Rinzimetostat-Aktualisierung erfolgte nach einem starken 1-Tages-Kursanstieg von 18,93 % auf 8,89 US-Dollar, nach einem 7-Tages-Kursrückgang um 27,07 %. Die einjährige Gesamtrendite der Aktionäre von 93,68 % deutet auf eine starke, aber volatile Entwicklung hin.</p>
     </div>
   </div>
 </article>
@@ -1134,7 +1134,7 @@ a{color:var(--accent);text-decoration:none}
     <div class="news-items"><div class="ni"><a href="https://finance.yahoo.com/markets/stocks/articles/kodak-expanded-pfa-free-battery-001753508.html" target="_blank" rel="noopener noreferrer">Ist Kodaks erweiterter PFA-freier Akku ein Wendepunkt in seiner Industriestrategie (KODK)?</a> <span class="ni-src">(Yahoo Finance)</span><span class="ni-meta">05.04.2026 00:17</span></div><div class="ni"><a href="https://finance.yahoo.com/sectors/energy/articles/kodak-ateios-advance-pfas-free-125800615.html" target="_blank" rel="noopener noreferrer">Kodak und Ateios entwickeln PFAS-freie Batterietechnologieplattform weiter</a> <span class="ni-src">(Yahoo Finance)</span><span class="ni-meta">26.03.2026 12:58</span></div><div class="ni"><a href="https://finance.yahoo.com/news/kodak-q4-earnings-decline-y-160800618.html" target="_blank" rel="noopener noreferrer">Kodak Q4-Gewinnrückgang gegenüber dem Vorjahr aufgrund einmaliger Belastungen, Umsatzanstieg</a> <span class="ni-src">(Yahoo Finance)</span><span class="ni-meta">18.03.2026 16:08</span></div></div>
     <div class="news-summary-box">
       <span class="summary-label">Zusammenfassung</span>
-      <p class="summary-text">Ateios Systems und Kodak haben kürzlich die Ateios RaiCore-Batterieelektrodenplattform auf drei große Kathodenchemikalien, LCO, LFP und NMC, erweitert und sich gleichzeitig die Bestätigung durch Dritte gesichert, dass der Prozess PFA-Chemikalien für immer entfernt, unterstützt durch die Finanzierung von Energy Storage Engines der US-amerikanischen National Science Foundation und eine auf das Inland ausgerichtete Lieferkette. Diese Zusammenarbeit unterstreicht Kodaks Rolle in der Herstellung fortschrittlicher Materialien und Energiespeicher und weitet seine Bedeutung weit über die Grenzen hinaus aus.</p>
+      <p class="summary-text">Ateios Systems und Kodak haben kürzlich die Ateios RaiCore-Batterieelektrodenplattform auf drei große Kathodenchemikalien, LCO, LFP und NMC, erweitert und sich gleichzeitig die Bestätigung durch Dritte gesichert, dass der Prozess PFA-Chemikalien für immer entfernt, unterstützt durch die Finanzierung von Energy Storage Engines der US-amerikanischen National Science Foundation und eine auf das Inland ausgerichtete Lieferkette. Diese Zusammenarbeit unterstreicht die Rolle von Kodak in der Herstellung fortschrittlicher Materialien und Energiespeicher und weitet seine Bedeutung weit über die Grenzen hinaus aus.</p>
     </div>
   </div>
 </article>
@@ -1316,7 +1316,7 @@ a{color:var(--accent);text-decoration:none}
     <div class="news-items"><div class="ni"><a href="https://finance.yahoo.com/markets/stocks/articles/blacksky-idiq-win-tests-next-210638578.html" target="_blank" rel="noopener noreferrer">BlackSky IDIQ Win testet KI-Satelliten der nächsten Generation und Umsatzpotenzial</a> <span class="ni-src">(Yahoo Finance)</span><span class="ni-meta">05.04.2026 21:06</span></div><div class="ni"><a href="https://www.barrons.com/articles/artemis-ii-nasa-moon-space-6ada1f47?siteid=yhoof2&yptr=yahoo" target="_blank" rel="noopener noreferrer">Artemis II gestartet. Was als nächstes kommt.</a> <span class="ni-src">(Yahoo Finance)</span><span class="ni-meta">02.04.2026 20:22</span></div><div class="ni"><a href="https://finance.yahoo.com/markets/stocks/articles/planet-labs-margins-expand-revenue-164100958.html" target="_blank" rel="noopener noreferrer">Planet Labs-Margen wachsen aufgrund von Umsatzmix-Verschiebung, Automatisierung?</a> <span class="ni-src">(Yahoo Finance)</span><span class="ni-meta">02.04.2026 16:41</span></div></div>
     <div class="news-summary-box">
       <span class="summary-label">Zusammenfassung</span>
-      <p class="summary-text">BlackSky Technology (NYSE:BKSY) hat sich einen mehrjährigen IDIQ-Vertrag mit alleiniger Quelle vom U.S. Air Force Research Laboratory gesichert. Die Auszeichnung konzentriert sich auf weltraumgestützte Aufklärungsfähigkeiten der nächsten Generation, einschließlich optischer Nutzlasten mit großer Apertur und KI-gestützter Satellitentechnologie. Der Vertrag umfasst fortschrittliche Bildgebung, Echtzeit-Datenverarbeitung und -speicherung sowie die Integration mit zukünftigen Trägerraketen für verschiedene Erdbeobachtungsanwendungen. Für Anleger, die NYSE:BKSY verfolgen, kommt dieser Vertrag zu einem...</p>
+      <p class="summary-text">BlackSky Technology (NYSE:BKSY) hat sich einen mehrjährigen IDIQ-Vertrag mit alleiniger Quelle vom U.S. Air Force Research Laboratory gesichert. Der Preis konzentriert sich auf weltraumgestützte Aufklärungsfähigkeiten der nächsten Generation, einschließlich optischer Nutzlasten mit großer Apertur und KI-gestützter Satellitentechnologie. Der Vertrag umfasst fortschrittliche Bildgebung, Echtzeit-Datenverarbeitung und -speicherung sowie die Integration mit zukünftigen Trägerraketen für verschiedene Erdbeobachtungsanwendungen. Für Anleger, die NYSE:BKSY verfolgen, kommt dieser Vertrag zu einem...</p>
     </div>
   </div>
 </article>
