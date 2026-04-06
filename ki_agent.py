@@ -2,7 +2,7 @@
 """
 KI-Agent — ki_agent.py
 
-Läuft alle 15 Minuten während der US-Handelszeiten (Mo–Fr, 14:30–21:00 MEZ).
+Läuft alle 15 Minuten während der US-Handelszeiten (Mo–Fr, 09:25–16:05 ET).
 Überwacht die aktuellen Top-10-Kandidaten auf Squeeze-Trigger aus mehreren
 kostenlosen Quellen und sendet Alert-E-Mails bei relevanten Signalen.
 
@@ -25,7 +25,7 @@ import re
 import smtplib
 import time
 import xml.etree.ElementTree as ET
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, time, timedelta, timezone
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from pathlib import Path
@@ -41,6 +41,10 @@ ALERT_COOLDOWN_HOURS    = 2       # Mindeststunden zwischen zwei Alerts je Ticke
 
 # Test-Modus: True → Handelszeiten-Prüfung wird übersprungen
 IGNORE_TRADING_HOURS    = False
+
+# Handelsfenster in Eastern Time (NY) — Puffer je 5 Minuten vor/nach Börsenglocke
+MARKET_OPEN             = time(9, 25)   # NYSE öffnet 09:30 ET
+MARKET_CLOSE            = time(16, 5)   # NYSE schließt 16:00 ET
 
 # Score-Punkte je Signal
 SCORE_PRICE_UP_3        = 15      # Kursanstieg ≥ 3 % intraday
@@ -94,13 +98,15 @@ def now_berlin() -> datetime:
 
 
 def is_trading_hours() -> bool:
-    """True während US-Handelszeiten 14:30–21:00 MEZ (Mo–Fr)."""
-    now = now_berlin()
-    if now.weekday() >= 5:
+    """True während US-Handelszeiten (Mo–Fr, MARKET_OPEN–MARKET_CLOSE ET).
+
+    Verwendet America/New_York — korrekt für EST (UTC−5) und EDT (UTC−4),
+    unabhängig von MEZ/MESZ-Umstellung in Deutschland.
+    """
+    now_et = datetime.now(EASTERN)
+    if now_et.weekday() >= 5:
         return False
-    open_  = now.replace(hour=14, minute=30, second=0, microsecond=0)
-    close_ = now.replace(hour=21, minute=0,  second=0, microsecond=0)
-    return open_ <= now < close_
+    return MARKET_OPEN <= now_et.time() < MARKET_CLOSE
 
 
 # ── index.html parsen → Top-10-Ticker ─────────────────────────────────────────
@@ -458,7 +464,8 @@ def main() -> None:
     t_start = time.time()
 
     if not IGNORE_TRADING_HOURS and not is_trading_hours():
-        log.info("Außerhalb der Handelszeiten (14:30–21:00 MEZ) — nichts zu tun.")
+        log.info("Außerhalb der Handelszeiten (%s–%s ET) — nichts zu tun.",
+                 MARKET_OPEN.strftime("%H:%M"), MARKET_CLOSE.strftime("%H:%M"))
         return
 
     now_str = now_berlin().strftime("%H:%M Uhr")
