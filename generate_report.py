@@ -243,6 +243,7 @@ def get_yahoo_screener_candidates() -> list[dict]:
                 "market_cap_s": fmt_cap(mkt_cap),
                 "price":        price,
                 "change":       float(q.get("regularMarketChangePercent") or 0),
+                "change_5d":    None,
                 "short_float":  sf_raw * 100 if sf_raw <= 1.0 else sf_raw,
                 "short_ratio":  float(q.get("shortRatio") or 0),
                 "rel_volume":   0.0,
@@ -364,6 +365,7 @@ def get_finviz_candidates(max_pages: int = 6) -> list[dict]:
                 "rel_volume":   rel_vol,
                 "price":        price,
                 "change":       change,
+                "change_5d":    None,
             })
             page_added += 1
 
@@ -1387,6 +1389,8 @@ def _card(i: int, s: dict) -> str:
     chg     = s.get("change", 0)
     chg_str = f"+{chg:.1f}%" if chg >= 0 else f"{chg:.1f}%"
     chg_col = _metric_color("mom", chg)
+    chg_5d_html = (f'<br><span style="font-size:0.75em;color:var(--color-text-secondary)">5T: {s["change_5d"]:+.1f}%</span>'
+                   if s.get("change_5d") is not None else "")
 
     has_no_short_data = sf == 0 and sr == 0
     flag    = get_flag(s["ticker"])
@@ -1624,7 +1628,7 @@ def _card(i: int, s: dict) -> str:
       <span class="m-lbl">Volumen</span>
     </div>
     <div class="metric-box" style="--mc:{chg_col}">
-      <span class="m-val">{chg_str}</span>
+      <span class="m-val">{chg_str}{chg_5d_html}</span>
       <span class="m-lbl">Momentum</span>
     </div>
     <div class="metric-box" style="--mc:{float_tile_col}">
@@ -2837,6 +2841,7 @@ def get_watchlist_candidates() -> list[dict]:
                     "market":       market,
                     "price":        price,
                     "change":       round(chg, 2),
+                    "change_5d":    round((float(df["Close"].iloc[-1]) - float(df["Close"].iloc[-6])) / float(df["Close"].iloc[-6]) * 100, 2) if len(df) >= 6 else None,
                     "rel_volume":   round(rel_vol, 2),
                     "short_float":  0.0,
                     "short_ratio":  0.0,
