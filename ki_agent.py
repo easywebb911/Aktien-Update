@@ -771,14 +771,8 @@ def main() -> None:
         "signals": new_signals,
     }
 
-    sigs_dirty = json.dumps(old_sigs.get("signals", {}), sort_keys=True) != \
-                 json.dumps(new_signals, sort_keys=True)
-
-    if sigs_dirty:
-        save_signals(out)
-        log.info("agent_signals.json aktualisiert.")
-    else:
-        log.info("agent_signals.json unverändert — kein Schreiben.")
+   save_signals(out)
+log.info("agent_signals.json aktualisiert.")
 
     state["last_run"] = now_berlin().isoformat()
     save_state(state)
