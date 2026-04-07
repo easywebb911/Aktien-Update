@@ -174,6 +174,22 @@ def get_flag(ticker: str) -> str:
             return flag
     return "🇺🇸"  # no suffix → US
 
+
+def get_region(ticker: str) -> str:
+    """Return the region code for *ticker* based on its suffix.
+    Consistent with get_flag() — both derived from ticker suffix only."""
+    t = ticker.upper()
+    suffix_regions = [
+        (".KS", "KR"), (".T", "JP"), (".HK", "HK"),
+        (".DE", "DE"), (".L", "GB"), (".PA", "FR"),
+        (".AS", "NL"), (".TO", "CA"),
+    ]
+    for suffix, region in suffix_regions:
+        if t.endswith(suffix.upper()):
+            return region
+    return "US"
+
+
 _YF_SCREENER_URL = (
     "https://query2.finance.yahoo.com/v1/finance/screener/predefined/saved"
 )
@@ -1609,7 +1625,7 @@ def _card(i: int, s: dict) -> str:
       <div class="ticker-block">
         <div class="ticker-row">
           <span class="ticker">{s['ticker']}</span>
-          <span class="market-tag">{flag} {s.get('market','US')}</span>
+          <span class="market-tag">{flag} {get_region(s["ticker"])}</span>
           {finviz_badge}{sa_badge}
           <span class="price-tag">${s.get('price',0):.2f}</span>
         </div>
