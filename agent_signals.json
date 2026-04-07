@@ -1,10 +1,10 @@
 {
-  "updated": "2026-04-07T18:36:57.392540+02:00",
+  "updated": "2026-04-07T22:00:31.620212+02:00",
   "run_info": {
     "tickers_checked": 10,
     "signals_active": 0,
     "alerts_sent": 0,
-    "elapsed_s": 9.6
+    "elapsed_s": 10.5
   },
   "signals": {
     "CAR": {
@@ -14,16 +14,6 @@
       "chg_pct": 0.0,
       "rvol": 0.0,
       "earnings": "in 30 Tagen (07.05.2026)",
-      "fda_date": null,
-      "upcoming_event": null
-    },
-    "KALV": {
-      "score": 0,
-      "drivers": "",
-      "price": 0.0,
-      "chg_pct": 0.0,
-      "rvol": 0.0,
-      "earnings": "in 28 Tagen (05.05.2026)",
       "fda_date": null,
       "upcoming_event": null
     },
@@ -37,7 +27,7 @@
       "fda_date": null,
       "upcoming_event": null
     },
-    "LENZ": {
+    "VATE": {
       "score": 0,
       "drivers": "",
       "price": 0.0,
@@ -67,33 +57,23 @@
       "fda_date": null,
       "upcoming_event": null
     },
-    "SNSE": {
+    "BMEA": {
       "score": 0,
       "drivers": "",
       "price": 0.0,
       "chg_pct": 0.0,
       "rvol": 0.0,
-      "earnings": null,
+      "earnings": "in 27 Tagen (04.05.2026)",
       "fda_date": null,
       "upcoming_event": null
     },
-    "IBG": {
+    "SPWH": {
       "score": 0,
       "drivers": "",
       "price": 0.0,
       "chg_pct": 0.0,
       "rvol": 0.0,
-      "earnings": null,
-      "fda_date": null,
-      "upcoming_event": null
-    },
-    "OXM": {
-      "score": 0,
-      "drivers": "",
-      "price": 0.0,
-      "chg_pct": 0.0,
-      "rvol": 0.0,
-      "earnings": "in 64 Tagen (10.06.2026)",
+      "earnings": "in 56 Tagen (02.06.2026)",
       "fda_date": null,
       "upcoming_event": null
     },
@@ -104,6 +84,26 @@
       "chg_pct": 0.0,
       "rvol": 0.0,
       "earnings": "in 35 Tagen (12.05.2026)",
+      "fda_date": null,
+      "upcoming_event": null
+    },
+    "AGL": {
+      "score": 0,
+      "drivers": "",
+      "price": 0.0,
+      "chg_pct": 0.0,
+      "rvol": 0.0,
+      "earnings": "in 29 Tagen (06.05.2026)",
+      "fda_date": null,
+      "upcoming_event": null
+    },
+    "FUBO": {
+      "score": 0,
+      "drivers": "",
+      "price": 0.0,
+      "chg_pct": 0.0,
+      "rvol": 0.0,
+      "earnings": "in 34 Tagen (11.05.2026)",
       "fda_date": null,
       "upcoming_event": null
     }
