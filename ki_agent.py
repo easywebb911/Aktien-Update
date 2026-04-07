@@ -771,8 +771,8 @@ def main() -> None:
         "signals": new_signals,
     }
 
-   save_signals(out)
-log.info("agent_signals.json aktualisiert.")
+    save_signals(out)
+    log.info("agent_signals.json aktualisiert.")
 
     state["last_run"] = now_berlin().isoformat()
     save_state(state)
