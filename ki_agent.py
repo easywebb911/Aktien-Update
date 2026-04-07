@@ -295,7 +295,7 @@ def fetch_reddit_mentions(ticker: str) -> dict:
                 neg_score += sum(1 for w in words if w in REDDIT_NEGATIVE)
             time.sleep(0.5)
         except Exception as exc:
-            log.debug("Reddit %s/%s: %s", sub, ticker, exc)
+            pass
 
     sentiment = 0.0
     if total_posts > 0:
@@ -336,7 +336,7 @@ def fetch_sec_8k(ticker: str) -> tuple[bool, str]:
             except Exception:
                 continue
     except Exception as exc:
-        log.debug("EDGAR %s: %s", ticker, exc)
+        pass
     return False, ""
 
 
@@ -445,6 +445,7 @@ def fetch_fda_calendar() -> dict[str, str]:
         return results
     except Exception as exc:
         log.info("FDA RSS nicht erreichbar: %s", exc)
+        pass
         return {}
 
 
