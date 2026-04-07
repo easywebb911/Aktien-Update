@@ -572,6 +572,17 @@ def get_yfinance_batch(tickers: list[str]) -> dict[str, dict]:
             "perf_20d":       perf_20d,
         }
 
+        # change_5d aus Batch-History
+        try:
+            _df = hist_batch if len(tickers) == 1 else hist_batch[ticker]
+            if _df is not None and len(_df) >= 6:
+                results[ticker]["change_5d"] = round(
+                    (float(_df["Close"].iloc[-1]) - float(_df["Close"].iloc[-6])) /
+                    float(_df["Close"].iloc[-6]) * 100, 2
+                )
+        except Exception:
+            pass
+
     return results
 
 
@@ -3068,9 +3079,10 @@ def main():
             "rel_strength_20d": _rel_strength,
             "inst_ownership":  yfd.get("inst_ownership"),
             "float_shares":    yfd.get("float_shares", 0),
+            "change_5d":       yfd.get("change_5d"),
         })
         if i < 3:
-            print(f"{t} float_shares={c.get('float_shares')}", flush=True)
+            print(f"{t} float_shares={c.get('float_shares')} change_5d={c.get('change_5d')}", flush=True)
         yf_sf = yfd.get("short_float_yf", 0)
         if yf_sf > 0:
             c["short_float"] = yf_sf
