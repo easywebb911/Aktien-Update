@@ -38,7 +38,7 @@ import requests
 import yfinance as yf
 
 # ── Konfiguration — alle Schwellen hier ändern, nirgendwo sonst ──────────────
-ALERT_THRESHOLD         = 40      # Score ≥ → Alert senden
+ALERT_THRESHOLD         = 30      # Score ≥ → Alert senden
 ALERT_THRESHOLD_STRONG  = 70      # Score ≥ → Starker Alert (⚡⚡)
 ALERT_COOLDOWN_HOURS    = 2       # Mindeststunden zwischen zwei Alerts je Ticker
 
