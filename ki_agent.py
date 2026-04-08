@@ -2,7 +2,7 @@
 """
 KI-Agent — ki_agent.py
 
-Läuft alle 15 Minuten während der US-Handelszeiten (Mo–Fr, 09:25–16:05 ET).
+Läuft alle 30 Minuten, 24/7.
 Überwacht die aktuellen Top-10-Kandidaten auf Squeeze-Trigger aus mehreren
 kostenlosen Quellen und sendet Alert-E-Mails bei relevanten Signalen.
 
@@ -41,13 +41,6 @@ import yfinance as yf
 ALERT_THRESHOLD         = 30      # Score ≥ → Alert senden
 ALERT_THRESHOLD_STRONG  = 70      # Score ≥ → Starker Alert (⚡⚡)
 ALERT_COOLDOWN_HOURS    = 2       # Mindeststunden zwischen zwei Alerts je Ticker
-
-# Test-Modus: True → Handelszeiten-Prüfung wird übersprungen
-IGNORE_TRADING_HOURS    = False
-
-# Handelsfenster in Eastern Time (NY) — Puffer je 5 Minuten vor/nach Börsenglocke
-MARKET_OPEN             = dt_time(9, 25)   # NYSE öffnet 09:30 ET
-MARKET_CLOSE            = dt_time(16, 5)   # NYSE schließt 16:00 ET
 
 # Score-Punkte je Signal
 SCORE_PRICE_UP_3        = 15      # Kursanstieg ≥ 3 % intraday
@@ -118,16 +111,19 @@ def now_berlin() -> datetime:
     return datetime.now(BERLIN)
 
 
-def is_trading_hours() -> bool:
-    """True während US-Handelszeiten (Mo–Fr, MARKET_OPEN–MARKET_CLOSE ET).
-
-    Verwendet America/New_York — korrekt für EST (UTC−5) und EDT (UTC−4),
-    unabhängig von MEZ/MESZ-Umstellung in Deutschland.
-    """
+def get_market_phase() -> str:
+    """Gibt die aktuelle US-Marktphase zurück (Eastern Time)."""
     now_et = datetime.now(EASTERN)
     if now_et.weekday() >= 5:
-        return False
-    return MARKET_OPEN <= now_et.time() < MARKET_CLOSE
+        return "Geschlossen"
+    mins = now_et.hour * 60 + now_et.minute
+    if 4 * 60 <= mins < 9 * 60 + 30:
+        return "Pre-Market"
+    if 9 * 60 + 30 <= mins < 16 * 60:
+        return "Regulär"
+    if 16 * 60 <= mins < 20 * 60:
+        return "After-Hours"
+    return "Geschlossen"
 
 
 # ── index.html parsen → Top-10-Ticker ─────────────────────────────────────────
@@ -624,14 +620,11 @@ def send_alert(
 
 def main() -> None:
     t_start = time.time()
-
-    if not IGNORE_TRADING_HOURS and not is_trading_hours():
-        log.info("Außerhalb der Handelszeiten (%s–%s ET) — nichts zu tun.",
-                 MARKET_OPEN.strftime("%H:%M"), MARKET_CLOSE.strftime("%H:%M"))
-        return
+    phase   = get_market_phase()
+    print(f"Marktphase: {phase}", flush=True)
 
     now_str = now_berlin().strftime("%H:%M Uhr")
-    log.info("=== KI-Agent Start %s ===", now_berlin().strftime("%Y-%m-%d %H:%M"))
+    log.info("=== KI-Agent Start %s — %s ===", now_berlin().strftime("%Y-%m-%d %H:%M"), phase)
 
     tickers = parse_top_tickers()
     if not tickers:
@@ -767,6 +760,7 @@ def main() -> None:
             "signals_active":  n_signals,
             "alerts_sent":     n_alerts,
             "elapsed_s":       t_elapsed,
+            "market_phase":    phase,
         },
         "signals": new_signals,
     }

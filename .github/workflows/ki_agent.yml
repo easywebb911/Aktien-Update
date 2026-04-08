@@ -2,12 +2,8 @@ name: KI-Agent Squeeze Monitor
 
 on:
   schedule:
-    # Alle 15 Minuten, 13:00–20:45 UTC
-    # Deckt NYSE-Handelszeiten 09:00–16:00 ET ganzjährig ab:
-    #   Winter (EST = UTC−5): 13:00–20:45 UTC → 08:00–15:45 ET
-    #   Sommer (EDT = UTC−4): 13:00–20:45 UTC → 09:00–16:45 ET
-    # Genaue Schranke: is_trading_hours() per pytz/zoneinfo in ki_agent.py
-    - cron: '*/15 13-20 * * 1-5'
+    # Alle 30 Minuten, 24/7
+    - cron: '*/30 * * * *'
   workflow_dispatch:   # Manueller Start jederzeit möglich
 
 permissions:
