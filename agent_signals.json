@@ -1,24 +1,14 @@
 {
-  "updated": "2026-04-08T13:53:56.338081+02:00",
+  "updated": "2026-04-08T14:03:48.570754+02:00",
   "run_info": {
     "tickers_checked": 10,
     "signals_active": 0,
     "alerts_sent": 0,
-    "elapsed_s": 10.7,
+    "elapsed_s": 9.9,
     "market_phase": "Pre-Market"
   },
   "signals": {
     "CAR": {
-      "score": 20,
-      "drivers": "News: short squeeze, squeeze",
-      "price": 0.0,
-      "chg_pct": 0.0,
-      "rvol": 0.0,
-      "earnings": "in 29 Tagen (07.05.2026)",
-      "fda_date": null,
-      "upcoming_event": null
-    },
-    "HTZ": {
       "score": 20,
       "drivers": "News: short squeeze, squeeze",
       "price": 0.0,
@@ -38,6 +28,16 @@
       "fda_date": null,
       "upcoming_event": null
     },
+    "HTZ": {
+      "score": 20,
+      "drivers": "News: short squeeze, squeeze",
+      "price": 0.0,
+      "chg_pct": 0.0,
+      "rvol": 0.0,
+      "earnings": "in 29 Tagen (07.05.2026)",
+      "fda_date": null,
+      "upcoming_event": null
+    },
     "PRLD": {
       "score": 0,
       "drivers": "",
@@ -48,23 +48,53 @@
       "fda_date": null,
       "upcoming_event": null
     },
-    "LOVE": {
+    "VATE": {
       "score": 0,
       "drivers": "",
       "price": 0.0,
       "chg_pct": 0.0,
       "rvol": 0.0,
-      "earnings": "in 64 Tagen (11.06.2026)",
+      "earnings": "in 28 Tagen (06.05.2026)",
       "fda_date": null,
       "upcoming_event": null
     },
-    "OXM": {
+    "MAXN": {
+      "score": 15,
+      "drivers": "Earnings in 7 Tagen (15.04.2026) + Earnings in 7d",
+      "price": 0.0,
+      "chg_pct": 0.0,
+      "rvol": 0.0,
+      "earnings": "in 7 Tagen (15.04.2026)",
+      "fda_date": null,
+      "upcoming_event": "Earnings in 7 Tagen (15.04.2026)"
+    },
+    "SPWH": {
       "score": 0,
       "drivers": "",
       "price": 0.0,
       "chg_pct": 0.0,
       "rvol": 0.0,
-      "earnings": "in 63 Tagen (10.06.2026)",
+      "earnings": "in 55 Tagen (02.06.2026)",
+      "fda_date": null,
+      "upcoming_event": null
+    },
+    "CATO": {
+      "score": 0,
+      "drivers": "",
+      "price": 0.0,
+      "chg_pct": 0.0,
+      "rvol": 0.0,
+      "earnings": "in 43 Tagen (21.05.2026)",
+      "fda_date": null,
+      "upcoming_event": null
+    },
+    "AGL": {
+      "score": 0,
+      "drivers": "",
+      "price": 0.0,
+      "chg_pct": 0.0,
+      "rvol": 0.0,
+      "earnings": "in 28 Tagen (06.05.2026)",
       "fda_date": null,
       "upcoming_event": null
     },
@@ -75,36 +105,6 @@
       "chg_pct": 0.0,
       "rvol": 0.0,
       "earnings": "in 29 Tagen (07.05.2026)",
-      "fda_date": null,
-      "upcoming_event": null
-    },
-    "TMDX": {
-      "score": 0,
-      "drivers": "",
-      "price": 0.0,
-      "chg_pct": 0.0,
-      "rvol": 0.0,
-      "earnings": "in 29 Tagen (07.05.2026)",
-      "fda_date": null,
-      "upcoming_event": null
-    },
-    "FDMT": {
-      "score": 0,
-      "drivers": "",
-      "price": 0.0,
-      "chg_pct": 0.0,
-      "rvol": 0.0,
-      "earnings": "in 29 Tagen (07.05.2026)",
-      "fda_date": null,
-      "upcoming_event": null
-    },
-    "ARCT": {
-      "score": 0,
-      "drivers": "",
-      "price": 0.0,
-      "chg_pct": 0.0,
-      "rvol": 0.0,
-      "earnings": "in 33 Tagen (11.05.2026)",
       "fda_date": null,
       "upcoming_event": null
     }
