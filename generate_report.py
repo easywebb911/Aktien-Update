@@ -1800,6 +1800,7 @@ a{{color:var(--accent);text-decoration:none}}
 .btn:disabled{{opacity:.45;cursor:not-allowed;transform:none}}
 .btn-g{{background:#16a34a;color:#fff}}.btn-g:hover:not(:disabled){{background:#15803d}}
 .btn-b{{background:#2563eb;color:#fff}}.btn-b:hover:not(:disabled){{background:#1d4ed8}}
+.btn-ki{{background:#1e3a5f;color:#93c5fd}}.btn-ki:hover:not(:disabled){{background:#1e40af;color:#fff}}
 /* token panel */
 .tok-panel{{padding:0 0 10px}}
 .tok-hint{{font-size:.8rem;color:var(--txt-sub);margin-bottom:8px;line-height:1.5}}
@@ -2100,6 +2101,7 @@ a{{color:var(--accent);text-decoration:none}}
     <div class="hdr-btns">
       <button id="btn-reload" class="btn btn-g" onclick="reloadPage()">&#8635; Neu laden</button>
       <button id="btn-recalc" class="btn btn-b" onclick="triggerWorkflow()">&#9881; Neu berechnen</button>
+      <button id="btn-ki" class="btn btn-ki" onclick="triggerKiAgent()">&#9889; KI-Agent starten</button>
     </div>
     <div class="hdr-icons">
       <button class="fs-btn print-btn" onclick="window.print()" aria-label="Seite drucken" title="Drucken">🖨</button>
@@ -2318,7 +2320,8 @@ function toggleNews(id){{
 // ── GitHub Actions Config ─────────────────────────────────────────────────
 const GH_OWNER    = 'easywebb911';
 const GH_REPO     = 'Aktien-update';
-const GH_WORKFLOW = 'daily-squeeze-report.yml';
+const GH_WORKFLOW    = 'daily-squeeze-report.yml';
+const GH_WORKFLOW_KI = 'ki_agent.yml';
 const GH_BRANCH   = 'main';
 const TOK_KEY     = 'ghpat_squeeze';
 // ─────────────────────────────────────────────────────────────────────────
@@ -2329,7 +2332,7 @@ function reloadPage(){{
 }}
 function triggerWorkflow(){{
   const token = localStorage.getItem(TOK_KEY);
-  if (!token) {{ showTokenInput(); return; }}
+  if (!token) {{ _pendingDispatch='recalc'; showTokenInput(); return; }}
   dispatchWorkflow(token);
 }}
 function showTokenInput(){{
@@ -2343,7 +2346,9 @@ async function saveTokenAndDispatch(){{
   localStorage.setItem(TOK_KEY, token);
   document.getElementById('tok-sec').style.display = 'none';
   document.getElementById('tok-inp').value = '';
-  await dispatchWorkflow(token);
+  if (_pendingDispatch === 'ki') {{ await dispatchKiWorkflow(token); }}
+  else {{ await dispatchWorkflow(token); }}
+  _pendingDispatch = null;
 }}
 async function dispatchWorkflow(token){{
   const btn = document.getElementById('btn-recalc');
@@ -2356,6 +2361,8 @@ async function dispatchWorkflow(token){{
         body:JSON.stringify({{ref:GH_BRANCH}})}}
     );
     if (r.status === 204) {{
+      _pollWorkflowId = GH_WORKFLOW; _pollRunningLabel = 'Neuberechnung';
+      _pollEnableBtn = _enableRecalcBtn; _pollOnSuccess = _startSuccessCountdown;
       _pollStart = Date.now(); _pollToken = token;
       _showPollStatus('running');
       setTimeout(_doPoll, 5000);
@@ -2370,11 +2377,68 @@ async function dispatchWorkflow(token){{
     }}
   }} catch(e) {{ showMsg('error',`Netzwerkfehler: ${{e.message}}`); _enableRecalcBtn(); }}
 }}
+// ── KI-Agent dispatch ─────────────────────────────────────────────────────
+function _enableKiBtn(){{
+  const btn = document.getElementById('btn-ki');
+  if (btn) {{ btn.disabled=false; btn.innerHTML='&#9889; KI-Agent starten'; }}
+}}
+function triggerKiAgent(){{
+  const token = localStorage.getItem(TOK_KEY);
+  if (!token) {{ _pendingDispatch='ki'; showTokenInput(); return; }}
+  dispatchKiWorkflow(token);
+}}
+async function dispatchKiWorkflow(token){{
+  const btn = document.getElementById('btn-ki');
+  if (btn) {{ btn.disabled=true; btn.innerHTML='&#9889; L\u00e4uft\u2026'; }}
+  try {{
+    const r = await fetch(
+      `https://api.github.com/repos/${{GH_OWNER}}/${{GH_REPO}}/actions/workflows/${{GH_WORKFLOW_KI}}/dispatches`,
+      {{method:'POST',headers:{{'Authorization':`Bearer ${{token}}`,'Accept':'application/vnd.github+json',
+        'X-GitHub-Api-Version':'2022-11-28','Content-Type':'application/json'}},
+        body:JSON.stringify({{ref:GH_BRANCH}})}}
+    );
+    if (r.status === 204) {{
+      _pollWorkflowId = GH_WORKFLOW_KI; _pollRunningLabel = 'KI-Agent';
+      _pollEnableBtn = _enableKiBtn; _pollOnSuccess = _kiAgentSuccess;
+      _pollStart = Date.now(); _pollToken = token;
+      _showPollStatus('running');
+      setTimeout(_doPoll, 5000);
+    }} else if (r.status === 401 || r.status === 403) {{
+      localStorage.removeItem(TOK_KEY);
+      showMsg('error',`Token ung\u00fcltig (HTTP ${{r.status}}). Bitte neu eingeben.`);
+      _enableKiBtn();
+    }} else {{
+      const bd = await r.text().catch(()=>'');
+      showMsg('error',`Fehler HTTP ${{r.status}}: ${{bd.slice(0,200)}}`);
+      _enableKiBtn();
+    }}
+  }} catch(e) {{ showMsg('error',`Netzwerkfehler: ${{e.message}}`); _enableKiBtn(); }}
+}}
+function _kiAgentSuccess(){{
+  _stopTimeInterval();
+  const el = document.getElementById('amsg');
+  el.style.display='block'; el.className='amsg amsg-poll-done';
+  el.innerHTML='<span class="poll-dot poll-dot-done"></span>KI-Agent abgeschlossen \u2014 Signale werden aktualisiert\u2026';
+  fetch('./agent_signals.json?_=' + Date.now())
+    .then(r => r.ok ? r.json() : {{}})
+    .then(data => {{
+      if (typeof renderAgentSignals === 'function') renderAgentSignals(data);
+      el.innerHTML='<span class="poll-dot poll-dot-done"></span>KI-Agent abgeschlossen \u2014 Signale aktualisiert.';
+      setTimeout(()=>{{el.style.display='none';}}, 8000);
+    }})
+    .catch(()=>{{
+      el.innerHTML='<span class="poll-dot poll-dot-err"></span>KI-Agent abgeschlossen \u2014 Seite neu laden.';
+    }});
+  _enableKiBtn();
+}}
 // ── Workflow polling ──────────────────────────────────────────────────────
 const POLL_MS    = 10000;
 const TIMEOUT_MS = 600000;
 let _pollStart = null, _pollToken = null, _pollTimer = null;
 let _timeInterval = null;
+let _pendingDispatch = null;
+let _pollWorkflowId = GH_WORKFLOW, _pollRunningLabel = 'Neuberechnung';
+let _pollEnableBtn = null, _pollOnSuccess = null;
 function _elapsedStr(){{
   const s = Math.floor((Date.now()-_pollStart)/1000);
   const m = Math.floor(s/60), r = s%60;
@@ -2392,7 +2456,7 @@ function _showPollStatus(state){{
   el.style.display='block';
   if (state==='running'){{
     el.className='amsg amsg-poll-running';
-    el.innerHTML='<span class="poll-dot poll-dot-run"></span>Neuberechnung läuft … <span id="poll-elapsed"></span>';
+    el.innerHTML='<span class="poll-dot poll-dot-run"></span>' + _pollRunningLabel + ' läuft \u2026 <span id="poll-elapsed"></span>';
     const span = document.getElementById('poll-elapsed');
     if (span) span.textContent = _elapsedStr();
     _stopTimeInterval();
@@ -2444,10 +2508,10 @@ window.addEventListener('beforeunload', ()=>{{
   _stopTimeInterval();
 }});
 async function _doPoll(){{
-  if (Date.now()-_pollStart>TIMEOUT_MS) {{ _showPollStatus('timeout'); _enableRecalcBtn(); return; }}
+  if (Date.now()-_pollStart>TIMEOUT_MS) {{ _showPollStatus('timeout'); if(_pollEnableBtn)_pollEnableBtn(); return; }}
   try {{
     const res = await fetch(
-      `https://api.github.com/repos/${{GH_OWNER}}/${{GH_REPO}}/actions/runs?workflow_id=${{GH_WORKFLOW}}&per_page=5&event=workflow_dispatch`,
+      `https://api.github.com/repos/${{GH_OWNER}}/${{GH_REPO}}/actions/runs?workflow_id=${{_pollWorkflowId}}&per_page=5&event=workflow_dispatch`,
       {{headers:{{'Authorization':`Bearer ${{_pollToken}}`,'Accept':'application/vnd.github+json','X-GitHub-Api-Version':'2022-11-28'}}}}
     );
     if (!res.ok) {{ _pollTimer=setTimeout(_doPoll,POLL_MS); return; }}
@@ -2455,8 +2519,8 @@ async function _doPoll(){{
     const run = (data.workflow_runs||[]).find(w=>new Date(w.created_at).getTime()>=_pollStart-15000);
     if (!run) {{ _pollTimer=setTimeout(_doPoll,POLL_MS); return; }}
     if (run.status==='completed'){{
-      if (run.conclusion==='success') {{ _stopTimeInterval(); _startSuccessCountdown(); }}
-      else {{ _showPollStatus('failure'); _enableRecalcBtn(); }}
+      if (run.conclusion==='success') {{ _stopTimeInterval(); if(_pollOnSuccess)_pollOnSuccess(); }}
+      else {{ _showPollStatus('failure'); if(_pollEnableBtn)_pollEnableBtn(); }}
     }} else {{
       _pollTimer=setTimeout(_doPoll,POLL_MS);
     }}
