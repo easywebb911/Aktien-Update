@@ -2650,50 +2650,26 @@ function _fmtGerman(d) {{
 // ─────────────────────────────────────────────────────────────────────────────
 // ── KI-Agent Signal Indicators ───────────────────────────────────────────────
 (function() {{
-  const STALE_MIN = 30;   // agent_signals.json älter als N Min. → "Kein Scan" (nur während Handelszeiten)
-
-  // Prüft ob aktuelle NY-Zeit innerhalb der Börsenzeiten liegt (09:25–16:05 ET)
-  function isWithinTradingHours() {{
-    try {{
-      const parts = new Intl.DateTimeFormat('en-US', {{
-        timeZone: 'America/New_York',
-        hour: '2-digit', minute: '2-digit', hour12: false
-      }}).formatToParts(new Date());
-      const h    = parseInt(parts.find(p => p.type === 'hour').value, 10);
-      const m    = parseInt(parts.find(p => p.type === 'minute').value, 10);
-      const mins = h * 60 + m;
-      return mins >= (9 * 60 + 25) && mins < (16 * 60 + 5);
-    }} catch(e) {{ return false; }}
-  }}
-
   function renderAgentSignals(data) {{
     const statusEl = document.getElementById('agent-status');
     const updated  = data.updated ? new Date(data.updated) : null;
     const signals  = data.signals || {{}};
     const info     = data.run_info || {{}};
-    const now      = new Date();
-    const today    = new Date(now); today.setHours(0,0,0,0);
-    const tradingDay = !_isNonTradingDay(today);
 
-    // Status-Bar — kontextabhängige Nachricht
+    // Status-Bar — 24/7, vereinfacht
     if (!updated) {{
-      if (statusEl) statusEl.textContent = 'KI-Agent: Kein aktueller Scan verfügbar.';
-    }} else if (!tradingDay) {{
-      const ntd = _nextTradingDay(today);
-      if (statusEl) statusEl.textContent =
-        `KI-Agent: Nächster Scan am ${{_fmtGerman(ntd)}}, 14:30 Uhr`;
-    }} else if (!isWithinTradingHours()) {{
-      if (statusEl) statusEl.textContent =
-        'KI-Agent: Nächster Scan heute ab 14:30 Uhr';
+      if (statusEl) statusEl.textContent = '\u26a1 KI-Agent: Kein aktueller Scan verfügbar.';
     }} else {{
-      const ageMin = (now - updated.getTime()) / 60000;
-      if (ageMin > STALE_MIN) {{
-        if (statusEl) statusEl.textContent = 'KI-Agent: Kein aktueller Scan verfügbar.';
+      const ageMin   = (Date.now() - updated.getTime()) / 60000;
+      const phase    = info.market_phase || '';
+      const lastScan = updated.toLocaleTimeString('de-DE', {{hour:'2-digit', minute:'2-digit'}});
+      const nSignals = info.signals_active || 0;
+      if (ageMin > 45) {{
+        if (statusEl) statusEl.textContent =
+          `\u26a1 KI-Agent: Scan verz\u00f6gert \u2014 letzter Stand ${{lastScan}} Uhr`;
       }} else {{
-        const uhr = updated.toLocaleTimeString('de-DE', {{hour:'2-digit', minute:'2-digit'}});
-        const n   = info.signals_active || 0;
-        if (statusEl)
-          statusEl.textContent = `\u26a1 KI-Agent: Letzter Scan ${{uhr}} \u2014 ${{n}} Signal${{n !== 1 ? 'e' : ''}} aktiv`;
+        if (statusEl) statusEl.textContent =
+          `\u26a1 KI-Agent: Letzter Scan ${{lastScan}} Uhr \u2014 ${{phase}} \u2014 ${{nSignals}} Signale aktiv`;
       }}
     }}
 
