@@ -1943,14 +1943,16 @@ a{{color:var(--accent);text-decoration:none}}
   letter-spacing:.1px}}
 .agent-dot{{display:inline-block;width:8px;height:8px;border-radius:50%;
   margin-left:5px;vertical-align:middle;cursor:pointer;position:relative}}
-.agent-dot.strong{{background:#ef4444;
-  box-shadow:0 0 0 0 #ef444488;
+.agent-dot.strong{{background:#22c55e;
+  box-shadow:0 0 0 0 #22c55e88;
   animation:pulse-dot 1.5s ease-out infinite}}
 .agent-dot.moderate{{background:#f59e0b}}
+.agent-dot.weak{{background:#ef4444;width:6px;height:6px}}
+.agent-dot.none{{background:#6b7280;width:6px;height:6px}}
 @keyframes pulse-dot{{
-  0%{{box-shadow:0 0 0 0 #ef444488}}
-  70%{{box-shadow:0 0 0 6px #ef444400}}
-  100%{{box-shadow:0 0 0 0 #ef444400}}
+  0%{{box-shadow:0 0 0 0 #22c55e88}}
+  70%{{box-shadow:0 0 0 6px #22c55e00}}
+  100%{{box-shadow:0 0 0 0 #22c55e00}}
 }}
 .agent-tooltip{{position:absolute;left:50%;transform:translateX(-50%);
   bottom:calc(100% + 6px);background:#1e293b;color:#f1f5f9;
@@ -2677,18 +2679,21 @@ function _fmtGerman(d) {{
     document.querySelectorAll('.card[data-ticker]').forEach(card => {{
       const ticker = card.getAttribute('data-ticker');
       const sig    = signals[ticker];
-      if (!sig || sig.score < 40) return;
-
-      const strong     = sig.score >= 70;
+      const score  = (sig && sig.score != null) ? sig.score : 0;
       const tickerSpan = card.querySelector('.ticker');
       if (!tickerSpan) return;
 
       const dot = document.createElement('span');
-      dot.className = 'agent-dot ' + (strong ? 'strong' : 'moderate');
+      let dotClass;
+      if (score >= 50)      dotClass = 'strong';
+      else if (score >= 10) dotClass = 'moderate';
+      else if (score >= 1)  dotClass = 'weak';
+      else                  dotClass = 'none';
+      dot.className = 'agent-dot ' + dotClass;
 
       const tip = document.createElement('span');
       tip.className = 'agent-tooltip';
-      tip.textContent = `KI-Agent: Score ${{sig.score}}/100 \u2014 ${{sig.drivers || '?'}}`;
+      tip.textContent = `KI-Agent: Score ${{score}}/100 \u2014 ${{(sig && sig.drivers) || '?'}}`;
       dot.appendChild(tip);
 
       // iPhone: Antippen zeigt Tooltip für 3s
