@@ -1791,7 +1791,12 @@ a{{color:var(--accent);text-decoration:none}}
   background:var(--bg-met);color:var(--txt);font-size:1.1rem;cursor:pointer;
   display:flex;align-items:center;justify-content:center}}
 .hdr-ts{{font-size:.73rem;color:var(--txt-sub);width:100%;order:3}}
-.hdr-btns{{display:flex;gap:8px;width:100%;order:4}}
+.hdr-btns{{display:flex;flex-wrap:wrap;gap:8px;width:100%;order:4}}
+@media(max-width:479px){{
+  .hdr-btns .btn{{font-size:13px!important;min-height:40px!important;padding:0 10px!important}}
+  #btn-reload,#btn-recalc{{flex:1 1 calc(50% - 4px)}}
+  #btn-ki{{flex:1 1 100%}}
+}}
 .btn{{display:inline-flex;align-items:center;justify-content:center;
   gap:6px;min-height:44px;padding:0 16px;border:none;border-radius:10px;
   font-size:.9rem;font-weight:700;cursor:pointer;flex:1;
@@ -2099,9 +2104,9 @@ a{{color:var(--accent);text-decoration:none}}
     <span class="app-title">Squeeze <span>Report</span></span>
     <span class="hdr-ts">{timestamp}</span>
     <div class="hdr-btns">
-      <button id="btn-reload" class="btn btn-g" onclick="reloadPage()">&#8635; Neu laden</button>
-      <button id="btn-recalc" class="btn btn-b" onclick="triggerWorkflow()">&#9881; Neu berechnen</button>
-      <button id="btn-ki" class="btn btn-ki" onclick="triggerKiAgent()">&#9889; KI-Agent starten</button>
+      <button id="btn-reload" class="btn btn-g" onclick="reloadPage()">&#8635; Reload</button>
+      <button id="btn-recalc" class="btn btn-b" onclick="triggerWorkflow()">&#9881; Recalculate</button>
+      <button id="btn-ki" class="btn btn-ki" onclick="triggerKiAgent()">&#9889; Agent Run</button>
     </div>
     <div class="hdr-icons">
       <button class="fs-btn print-btn" onclick="window.print()" aria-label="Seite drucken" title="Drucken">🖨</button>
@@ -2380,7 +2385,7 @@ async function dispatchWorkflow(token){{
 // ── KI-Agent dispatch ─────────────────────────────────────────────────────
 function _enableKiBtn(){{
   const btn = document.getElementById('btn-ki');
-  if (btn) {{ btn.disabled=false; btn.innerHTML='&#9889; KI-Agent starten'; }}
+  if (btn) {{ btn.disabled=false; btn.innerHTML='&#9889; Agent Run'; }}
 }}
 function triggerKiAgent(){{
   const token = localStorage.getItem(TOK_KEY);
@@ -2449,7 +2454,7 @@ function _stopTimeInterval(){{
 }}
 function _enableRecalcBtn(){{
   const btn = document.getElementById('btn-recalc');
-  btn.disabled=false; btn.innerHTML='&#9881; Neu berechnen';
+  btn.disabled=false; btn.innerHTML='&#9881; Recalculate';
 }}
 function _showPollStatus(state){{
   const el = document.getElementById('amsg');
