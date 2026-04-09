@@ -1,10 +1,10 @@
 {
-  "updated": "2026-04-09T02:01:06.973907+02:00",
+  "updated": "2026-04-09T08:09:32.791491+02:00",
   "run_info": {
     "tickers_checked": 10,
     "signals_active": 0,
     "alerts_sent": 0,
-    "elapsed_s": 9.6,
+    "elapsed_s": 9.3,
     "market_phase": "Geschlossen"
   },
   "signals": {
@@ -14,7 +14,7 @@
       "price": 0.0,
       "chg_pct": 0.0,
       "rvol": 0.0,
-      "earnings": "in 35 Tagen (13.05.2026)",
+      "earnings": "in 34 Tagen (13.05.2026)",
       "fda_date": null,
       "upcoming_event": null
     },
@@ -24,7 +24,7 @@
       "price": 0.0,
       "chg_pct": 0.0,
       "rvol": 0.0,
-      "earnings": "in 21 Tagen (29.04.2026)",
+      "earnings": "in 20 Tagen (29.04.2026)",
       "fda_date": null,
       "upcoming_event": null
     },
@@ -44,7 +44,7 @@
       "price": 0.0,
       "chg_pct": 0.0,
       "rvol": 0.0,
-      "earnings": "in 34 Tagen (12.05.2026)",
+      "earnings": "in 33 Tagen (12.05.2026)",
       "fda_date": null,
       "upcoming_event": null
     },
@@ -54,19 +54,19 @@
       "price": 0.0,
       "chg_pct": 0.0,
       "rvol": 0.0,
-      "earnings": "in 29 Tagen (07.05.2026)",
+      "earnings": "in 28 Tagen (07.05.2026)",
       "fda_date": null,
       "upcoming_event": null
     },
     "APLD": {
-      "score": 25,
-      "drivers": "Earnings in 0 Tagen (08.04.2026) + Earnings in 0d",
+      "score": 0,
+      "drivers": "",
       "price": 0.0,
       "chg_pct": 0.0,
       "rvol": 0.0,
-      "earnings": "in 0 Tagen (08.04.2026)",
+      "earnings": null,
       "fda_date": null,
-      "upcoming_event": "Earnings in 0 Tagen (08.04.2026)"
+      "upcoming_event": null
     },
     "ALGT": {
       "score": 0,
@@ -74,7 +74,7 @@
       "price": 0.0,
       "chg_pct": 0.0,
       "rvol": 0.0,
-      "earnings": "in 27 Tagen (05.05.2026)",
+      "earnings": "in 26 Tagen (05.05.2026)",
       "fda_date": null,
       "upcoming_event": null
     },
@@ -84,7 +84,7 @@
       "price": 0.0,
       "chg_pct": 0.0,
       "rvol": 0.0,
-      "earnings": "in 33 Tagen (11.05.2026)",
+      "earnings": "in 32 Tagen (11.05.2026)",
       "fda_date": null,
       "upcoming_event": null
     },
@@ -94,7 +94,7 @@
       "price": 0.0,
       "chg_pct": 0.0,
       "rvol": 0.0,
-      "earnings": "in 29 Tagen (07.05.2026)",
+      "earnings": "in 28 Tagen (07.05.2026)",
       "fda_date": null,
       "upcoming_event": null
     },
@@ -104,7 +104,7 @@
       "price": 0.0,
       "chg_pct": 0.0,
       "rvol": 0.0,
-      "earnings": "in 26 Tagen (04.05.2026)",
+      "earnings": "in 25 Tagen (04.05.2026)",
       "fda_date": null,
       "upcoming_event": null
     }
