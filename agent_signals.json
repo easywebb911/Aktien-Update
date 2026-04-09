@@ -1,56 +1,36 @@
 {
-  "updated": "2026-04-09T18:07:48.890983+02:00",
+  "updated": "2026-04-09T19:14:30.328260+02:00",
   "run_info": {
     "tickers_checked": 10,
     "signals_active": 0,
     "alerts_sent": 0,
-    "elapsed_s": 12.5,
+    "elapsed_s": 9.6,
     "market_phase": "Regulär"
   },
   "signals": {
-    "ELPW": {
+    "INBX": {
       "score": 0,
       "drivers": "",
       "price": 0.0,
       "chg_pct": 0.0,
       "rvol": 0.0,
-      "earnings": null,
+      "earnings": "in 34 Tagen (13.05.2026)",
       "fda_date": null,
       "upcoming_event": null
     },
-    "SNBR": {
+    "REPL": {
       "score": 0,
       "drivers": "",
       "price": 0.0,
       "chg_pct": 0.0,
       "rvol": 0.0,
-      "earnings": "in 20 Tagen (29.04.2026)",
+      "earnings": "in 42 Tagen (21.05.2026)",
       "fda_date": null,
       "upcoming_event": null
     },
-    "PSFE": {
-      "score": 0,
-      "drivers": "",
-      "price": 0.0,
-      "chg_pct": 0.0,
-      "rvol": 0.0,
-      "earnings": "in 33 Tagen (12.05.2026)",
-      "fda_date": null,
-      "upcoming_event": null
-    },
-    "APLD": {
-      "score": 0,
-      "drivers": "",
-      "price": 0.0,
-      "chg_pct": 0.0,
-      "rvol": 0.0,
-      "earnings": null,
-      "fda_date": null,
-      "upcoming_event": null
-    },
-    "LEU": {
-      "score": 0,
-      "drivers": "",
+    "HTZ": {
+      "score": 20,
+      "drivers": "News: short squeeze, squeeze",
       "price": 0.0,
       "chg_pct": 0.0,
       "rvol": 0.0,
@@ -58,7 +38,17 @@
       "fda_date": null,
       "upcoming_event": null
     },
-    "ALGT": {
+    "PLAY": {
+      "score": 0,
+      "drivers": "",
+      "price": 0.0,
+      "chg_pct": 0.0,
+      "rvol": 0.0,
+      "earnings": "in 61 Tagen (09.06.2026)",
+      "fda_date": null,
+      "upcoming_event": null
+    },
+    "EOSE": {
       "score": 0,
       "drivers": "",
       "price": 0.0,
@@ -68,7 +58,7 @@
       "fda_date": null,
       "upcoming_event": null
     },
-    "WULF": {
+    "CRDF": {
       "score": 0,
       "drivers": "",
       "price": 0.0,
@@ -78,33 +68,43 @@
       "fda_date": null,
       "upcoming_event": null
     },
-    "RR": {
+    "JACK": {
+      "score": 0,
+      "drivers": "",
+      "price": 0.0,
+      "chg_pct": 0.0,
+      "rvol": 0.0,
+      "earnings": "in 34 Tagen (13.05.2026)",
+      "fda_date": null,
+      "upcoming_event": null
+    },
+    "PLCE": {
+      "score": 25,
+      "drivers": "Earnings in 1 Tagen (10.04.2026) + Earnings in 1d",
+      "price": 0.0,
+      "chg_pct": 0.0,
+      "rvol": 0.0,
+      "earnings": "in 1 Tagen (10.04.2026)",
+      "fda_date": null,
+      "upcoming_event": "Earnings in 1 Tagen (10.04.2026)"
+    },
+    "CAL": {
+      "score": 0,
+      "drivers": "",
+      "price": 0.0,
+      "chg_pct": 0.0,
+      "rvol": 0.0,
+      "earnings": "in 49 Tagen (28.05.2026)",
+      "fda_date": null,
+      "upcoming_event": null
+    },
+    "KPTI": {
       "score": 0,
       "drivers": "",
       "price": 0.0,
       "chg_pct": 0.0,
       "rvol": 0.0,
       "earnings": "in 32 Tagen (11.05.2026)",
-      "fda_date": null,
-      "upcoming_event": null
-    },
-    "TDUP": {
-      "score": 0,
-      "drivers": "",
-      "price": 0.0,
-      "chg_pct": 0.0,
-      "rvol": 0.0,
-      "earnings": "in 25 Tagen (04.05.2026)",
-      "fda_date": null,
-      "upcoming_event": null
-    },
-    "RVLV": {
-      "score": 0,
-      "drivers": "",
-      "price": 0.0,
-      "chg_pct": 0.0,
-      "rvol": 0.0,
-      "earnings": "in 26 Tagen (05.05.2026)",
       "fda_date": null,
       "upcoming_event": null
     }
