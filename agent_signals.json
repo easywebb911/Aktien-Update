@@ -1,10 +1,10 @@
 {
-  "updated": "2026-04-09T19:14:30.328260+02:00",
+  "updated": "2026-04-09T20:13:34.310472+02:00",
   "run_info": {
     "tickers_checked": 10,
     "signals_active": 0,
     "alerts_sent": 0,
-    "elapsed_s": 9.6,
+    "elapsed_s": 9.5,
     "market_phase": "Regulär"
   },
   "signals": {
@@ -30,21 +30,11 @@
     },
     "HTZ": {
       "score": 20,
-      "drivers": "News: short squeeze, squeeze",
+      "drivers": "News: squeeze, short squeeze",
       "price": 0.0,
       "chg_pct": 0.0,
       "rvol": 0.0,
       "earnings": "in 28 Tagen (07.05.2026)",
-      "fda_date": null,
-      "upcoming_event": null
-    },
-    "PLAY": {
-      "score": 0,
-      "drivers": "",
-      "price": 0.0,
-      "chg_pct": 0.0,
-      "rvol": 0.0,
-      "earnings": "in 61 Tagen (09.06.2026)",
       "fda_date": null,
       "upcoming_event": null
     },
@@ -78,16 +68,6 @@
       "fda_date": null,
       "upcoming_event": null
     },
-    "PLCE": {
-      "score": 25,
-      "drivers": "Earnings in 1 Tagen (10.04.2026) + Earnings in 1d",
-      "price": 0.0,
-      "chg_pct": 0.0,
-      "rvol": 0.0,
-      "earnings": "in 1 Tagen (10.04.2026)",
-      "fda_date": null,
-      "upcoming_event": "Earnings in 1 Tagen (10.04.2026)"
-    },
     "CAL": {
       "score": 0,
       "drivers": "",
@@ -95,6 +75,26 @@
       "chg_pct": 0.0,
       "rvol": 0.0,
       "earnings": "in 49 Tagen (28.05.2026)",
+      "fda_date": null,
+      "upcoming_event": null
+    },
+    "IOVA": {
+      "score": 0,
+      "drivers": "",
+      "price": 0.0,
+      "chg_pct": 0.0,
+      "rvol": 0.0,
+      "earnings": "in 28 Tagen (07.05.2026)",
+      "fda_date": null,
+      "upcoming_event": null
+    },
+    "SKIL": {
+      "score": 0,
+      "drivers": "",
+      "price": 0.0,
+      "chg_pct": 0.0,
+      "rvol": 0.0,
+      "earnings": "in 60 Tagen (08.06.2026)",
       "fda_date": null,
       "upcoming_event": null
     },
