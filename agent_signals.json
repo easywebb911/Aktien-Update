@@ -1,10 +1,10 @@
 {
-  "updated": "2026-04-10T23:57:34.682993+02:00",
+  "updated": "2026-04-11T01:54:19.087901+02:00",
   "run_info": {
     "tickers_checked": 10,
     "signals_active": 0,
     "alerts_sent": 0,
-    "elapsed_s": 12.3,
+    "elapsed_s": 11.0,
     "market_phase": "After-Hours"
   },
   "signals": {
@@ -18,27 +18,27 @@
       "fda_date": null,
       "upcoming_event": "Earnings in 0 Tagen (10.04.2026)"
     },
-    "GRPN": {
+    "SPIR": {
       "score": 0,
       "drivers": "",
       "price": 0.0,
       "chg_pct": 0.0,
       "rvol": 0.0,
-      "earnings": "in 31 Tagen (11.05.2026)",
+      "earnings": "in 33 Tagen (13.05.2026)",
       "fda_date": null,
       "upcoming_event": null
     },
-    "CURV": {
+    "TMCI": {
       "score": 0,
       "drivers": "",
       "price": 0.0,
       "chg_pct": 0.0,
       "rvol": 0.0,
-      "earnings": "in 54 Tagen (03.06.2026)",
+      "earnings": "in 27 Tagen (07.05.2026)",
       "fda_date": null,
       "upcoming_event": null
     },
-    "ENVX": {
+    "OTLY": {
       "score": 0,
       "drivers": "",
       "price": 0.0,
@@ -48,27 +48,27 @@
       "fda_date": null,
       "upcoming_event": null
     },
-    "ARCT": {
+    "RBBN": {
       "score": 0,
       "drivers": "",
       "price": 0.0,
       "chg_pct": 0.0,
       "rvol": 0.0,
-      "earnings": "in 31 Tagen (11.05.2026)",
+      "earnings": "in 18 Tagen (28.04.2026)",
       "fda_date": null,
       "upcoming_event": null
     },
-    "MPT": {
+    "AIFU": {
       "score": 0,
       "drivers": "",
       "price": 0.0,
       "chg_pct": 0.0,
       "rvol": 0.0,
-      "earnings": "in 20 Tagen (30.04.2026)",
+      "earnings": null,
       "fda_date": null,
       "upcoming_event": null
     },
-    "PCT": {
+    "RXT": {
       "score": 0,
       "drivers": "",
       "price": 0.0,
@@ -78,33 +78,33 @@
       "fda_date": null,
       "upcoming_event": null
     },
-    "HYPD": {
+    "GPRK": {
       "score": 0,
       "drivers": "",
       "price": 0.0,
       "chg_pct": 0.0,
       "rvol": 0.0,
-      "earnings": "in 35 Tagen (15.05.2026)",
+      "earnings": "in 26 Tagen (06.05.2026)",
       "fda_date": null,
       "upcoming_event": null
     },
-    "TMDX": {
+    "SPCE": {
       "score": 0,
       "drivers": "",
       "price": 0.0,
       "chg_pct": 0.0,
       "rvol": 0.0,
-      "earnings": "in 27 Tagen (07.05.2026)",
+      "earnings": "in 34 Tagen (14.05.2026)",
       "fda_date": null,
       "upcoming_event": null
     },
-    "SKIL": {
+    "PYXS": {
       "score": 0,
       "drivers": "",
       "price": 0.0,
       "chg_pct": 0.0,
       "rvol": 0.0,
-      "earnings": "in 59 Tagen (08.06.2026)",
+      "earnings": "in 34 Tagen (14.05.2026)",
       "fda_date": null,
       "upcoming_event": null
     }
