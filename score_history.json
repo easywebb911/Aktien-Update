@@ -1,62 +1,62 @@
 {
-  "INBX": [
+  "TMCI": [
     {
       "date": "10.04.2026",
-      "score": 49.95
+      "score": 45.01
     }
   ],
-  "EOSE": [
+  "GRPN": [
     {
       "date": "10.04.2026",
-      "score": 44.99
+      "score": 35.96
     }
   ],
-  "CRDF": [
+  "MPT": [
     {
       "date": "10.04.2026",
-      "score": 41.59
+      "score": 34.25
     }
   ],
-  "DBI": [
+  "ARCT": [
     {
       "date": "10.04.2026",
-      "score": 41.08
+      "score": 33.99
     }
   ],
-  "HTZ": [
+  "SST": [
     {
       "date": "10.04.2026",
-      "score": 40.98
+      "score": 32.84
     }
   ],
-  "IOVA": [
+  "SKIL": [
     {
       "date": "10.04.2026",
-      "score": 40.42
+      "score": 31.65
     }
   ],
-  "CAL": [
+  "SLP": [
     {
       "date": "10.04.2026",
-      "score": 38.85
+      "score": 28.51
     }
   ],
-  "SCVL": [
+  "SPIR": [
     {
       "date": "10.04.2026",
-      "score": 35.07
+      "score": 28.09
     }
   ],
-  "ORIC": [
+  "TMDX": [
     {
       "date": "10.04.2026",
-      "score": 32.7
+      "score": 27.06
     }
   ],
-  "GOGO": [
+  "FIP": [
     {
       "date": "10.04.2026",
-      "score": 31.98
+      "score": 25.8
     }
   ]
 }
