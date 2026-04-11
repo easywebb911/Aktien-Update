@@ -2,61 +2,61 @@
   "PLCE": [
     {
       "date": "11.04.2026",
-      "score": 61.66
+      "score": 66.66
     }
   ],
-  "SPIR": [
+  "SKIL": [
     {
       "date": "11.04.2026",
-      "score": 48.63
+      "score": 39.34
     }
   ],
-  "TMCI": [
+  "MPT": [
     {
       "date": "11.04.2026",
-      "score": 45.01
+      "score": 38.85
     }
   ],
-  "OTLY": [
+  "TMDX": [
     {
       "date": "11.04.2026",
-      "score": 34.85
+      "score": 38.37
     }
   ],
-  "RBBN": [
+  "GRPN": [
     {
       "date": "11.04.2026",
-      "score": 31.44
+      "score": 38.0
     }
   ],
-  "AIFU": [
+  "ENVX": [
     {
       "date": "11.04.2026",
-      "score": 30.5
+      "score": 37.82
     }
   ],
-  "RXT": [
+  "HYPD": [
     {
       "date": "11.04.2026",
-      "score": 29.16
+      "score": 34.58
     }
   ],
-  "GPRK": [
+  "NTST": [
     {
       "date": "11.04.2026",
-      "score": 26.82
+      "score": 32.65
     }
   ],
-  "SPCE": [
+  "ARCT": [
     {
       "date": "11.04.2026",
-      "score": 25.97
+      "score": 32.48
     }
   ],
-  "PYXS": [
+  "PCT": [
     {
       "date": "11.04.2026",
-      "score": 25.61
+      "score": 31.17
     }
   ]
 }
