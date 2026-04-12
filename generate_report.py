@@ -1956,7 +1956,9 @@ a{{color:var(--accent);text-decoration:none}}
 .agent-dot.strong{{background:#22c55e;
   box-shadow:0 0 0 0 #22c55e88;
   animation:pulse-dot 1.5s ease-out infinite}}
-.agent-dot.moderate{{background:#f59e0b}}
+.agent-dot.moderate{{background:#f59e0b;
+  box-shadow:0 0 0 0 #f59e0b88;
+  animation:pulse-dot-orange 1.5s ease-out infinite}}
 .agent-dot.weak{{background:#ef4444;width:6px;height:6px;
   box-shadow:0 0 0 0 #ef444488;
   animation:pulse-dot-red 1.5s ease-out infinite}}
@@ -1965,6 +1967,11 @@ a{{color:var(--accent);text-decoration:none}}
   0%{{box-shadow:0 0 0 0 #22c55e88}}
   70%{{box-shadow:0 0 0 6px #22c55e00}}
   100%{{box-shadow:0 0 0 0 #22c55e00}}
+}}
+@keyframes pulse-dot-orange{{
+  0%{{box-shadow:0 0 0 0 #f59e0b88}}
+  70%{{box-shadow:0 0 0 6px #f59e0b00}}
+  100%{{box-shadow:0 0 0 0 #f59e0b00}}
 }}
 @keyframes pulse-dot-red{{
   0%{{box-shadow:0 0 0 0 #ef444488}}
