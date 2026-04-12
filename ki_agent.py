@@ -38,7 +38,7 @@ import requests
 import yfinance as yf
 
 # ── Konfiguration — alle Schwellen hier ändern, nirgendwo sonst ──────────────
-ALERT_THRESHOLD         = 30      # Score ≥ → Alert senden
+ALERT_THRESHOLD         = 25      # Score ≥ → Alert senden
 ALERT_THRESHOLD_STRONG  = 70      # Score ≥ → Starker Alert (⚡⚡)
 ALERT_COOLDOWN_HOURS    = 2       # Mindeststunden zwischen zwei Alerts je Ticker
 
@@ -55,20 +55,34 @@ SCORE_SEC_8K            = 15      # Neue 8-K-Meldung in letzten 24h
 SCORE_SEC_8K_RELEVANT   = 25      # 8-K mit Earnings/FDA-Keywords → erhöhter Bonus
 SCORE_NEWS_KEYWORD      = 10      # News-Keyword-Treffer (je Treffer, max 20 Pkt)
 
+# Auslöse-Schwellen (Trigger)
+TRIGGER_PRICE_UP_3      = 2.0     # Kursanstieg ab 2 % → SCORE_PRICE_UP_3
+TRIGGER_PRICE_UP_7      = 5.0     # Kursanstieg ab 5 % → SCORE_PRICE_UP_7
+TRIGGER_RVOL_2X         = 1.5     # Rel. Volumen ab 1,5× → SCORE_RVOL_2X
+TRIGGER_RVOL_4X         = 3.0     # Rel. Volumen ab 3× → SCORE_RVOL_4X
+
 # Earnings-Nähe-Punkte (Tage bis Earnings)
 SCORE_EARNINGS_NEAR     = 25      # Earnings in ≤ EARNINGS_NEAR_DAYS Tagen
 SCORE_EARNINGS_MID      = 15      # Earnings in ≤ EARNINGS_MID_DAYS Tagen
 SCORE_EARNINGS_FAR      = 8       # Earnings in ≤ EARNINGS_FAR_DAYS Tagen
 EARNINGS_NEAR_DAYS      = 3
 EARNINGS_MID_DAYS       = 7
-EARNINGS_FAR_DAYS       = 14
+EARNINGS_FAR_DAYS       = 30
 
 # FDA PDUFA-Nähe-Punkte
 SCORE_PDUFA_NEAR        = 25      # PDUFA in 1–7 Tagen
 SCORE_PDUFA_MID         = 15      # PDUFA in 8–30 Tagen
 
-NEWS_KEYWORDS     = {"squeeze", "short squeeze", "short interest",
-                     "analyst upgrade", "earnings beat"}
+NEWS_KEYWORDS = {
+    "squeeze", "short squeeze", "short interest",
+    "analyst upgrade", "earnings beat",
+    "short seller", "covering", "gamma squeeze", "options activity",
+    "unusual volume", "breakout", "catalyst", "fda approval",
+    "merger", "acquisition", "buyout", "takeover", "partnership",
+    "contract", "revenue beat", "guidance raised", "insider buying",
+    "institutional buying", "short covering", "forced liquidation",
+    "margin call", "halt", "circuit breaker", "activist investor",
+}
 SEC_RELEVANT_KEYWORDS = {
     "earnings", "revenue", "results", "approval", "fda",
     "pdufa", "nda", "bla", "guidance", "outlook",
@@ -357,6 +371,90 @@ def fetch_finviz_news(ticker: str) -> list[str]:
         return []
 
 
+# ── Datenquelle 8: Google News RSS ───────────────────────────────────────────
+
+def fetch_google_news(ticker: str) -> list[str]:
+    base = ticker.split(".")[0]
+    url = f"https://news.google.com/rss/search?q={base}+stock&hl=en-US&gl=US&ceid=US:en"
+    try:
+        resp = requests.get(url, headers=HTTP_HEADERS, timeout=10)
+        resp.raise_for_status()
+        root = ET.fromstring(resp.text)
+        titles = []
+        for item in root.iter("item"):
+            title = item.findtext("title") or ""
+            if title:
+                titles.append(title)
+            if len(titles) >= 5:
+                break
+        return titles
+    except Exception:
+        return []
+
+
+# ── Datenquelle 9: Unusual Whales RSS ────────────────────────────────────────
+
+def fetch_unusual_whales(ticker: str) -> list[str]:
+    base = ticker.split(".")[0]
+    url = f"https://unusualwhales.com/rss/ticker/{base}"
+    try:
+        resp = requests.get(url, headers=HTTP_HEADERS, timeout=10)
+        resp.raise_for_status()
+        root = ET.fromstring(resp.text)
+        titles = []
+        for item in root.iter("item"):
+            title = item.findtext("title") or ""
+            if title:
+                titles.append(title)
+            if len(titles) >= 5:
+                break
+        return titles
+    except Exception:
+        return []
+
+
+# ── Datenquelle 10: MarketBeat RSS ───────────────────────────────────────────
+
+def fetch_marketbeat_news(ticker: str) -> list[str]:
+    base = ticker.split(".")[0]
+    url = f"https://www.marketbeat.com/stocks/NASDAQ/{base}/rss/"
+    try:
+        resp = requests.get(url, headers=HTTP_HEADERS, timeout=10)
+        resp.raise_for_status()
+        root = ET.fromstring(resp.text)
+        titles = []
+        for item in root.iter("item"):
+            title = item.findtext("title") or ""
+            if title:
+                titles.append(title)
+            if len(titles) >= 5:
+                break
+        return titles
+    except Exception:
+        return []
+
+
+# ── Datenquelle 11: Seeking Alpha RSS ────────────────────────────────────────
+
+def fetch_seeking_alpha_news(ticker: str) -> list[str]:
+    base = ticker.split(".")[0]
+    url = f"https://seekingalpha.com/api/sa/combined/{base}.xml"
+    try:
+        resp = requests.get(url, headers=HTTP_HEADERS, timeout=10)
+        resp.raise_for_status()
+        root = ET.fromstring(resp.text)
+        titles = []
+        for item in root.iter("item"):
+            title = item.findtext("title") or ""
+            if title:
+                titles.append(title)
+            if len(titles) >= 5:
+                break
+        return titles
+    except Exception:
+        return []
+
+
 # ── Datenquelle 6: Earnings-Datum via yfinance ───────────────────────────────
 
 def fetch_earnings_date(ticker: str) -> tuple[int | None, str | None]:
@@ -464,17 +562,17 @@ def compute_signal(
     rvol = yf_data.get("rvol", 0.0)
     intr = yf_data.get("intraday", 0.0)
 
-    if chg >= 7:
+    if chg >= TRIGGER_PRICE_UP_7:
         score += SCORE_PRICE_UP_7
         drivers.append(f"Kurs +{chg:.1f}%")
-    elif chg >= 3:
+    elif chg >= TRIGGER_PRICE_UP_3:
         score += SCORE_PRICE_UP_3
         drivers.append(f"Kurs +{chg:.1f}%")
 
-    if rvol >= 4:
+    if rvol >= TRIGGER_RVOL_4X:
         score += SCORE_RVOL_4X
         drivers.append(f"Volumen {rvol:.1f}×")
-    elif rvol >= 2:
+    elif rvol >= TRIGGER_RVOL_2X:
         score += SCORE_RVOL_2X
         drivers.append(f"Volumen {rvol:.1f}×")
 
@@ -657,9 +755,29 @@ def main() -> None:
         if not yfd:
             log.debug("  Keine yfinance-Daten für %s", ticker)
 
-        news = fetch_yahoo_news(ticker)
-        if not news:
-            news = fetch_finviz_news(ticker)
+        yahoo_news  = fetch_yahoo_news(ticker)
+        finviz_news = fetch_finviz_news(ticker)
+        google_news, uw_news, mb_news, sa_news = [], [], [], []
+        try:
+            google_news = fetch_google_news(ticker)
+        except Exception:
+            pass
+        try:
+            uw_news = fetch_unusual_whales(ticker)
+        except Exception:
+            pass
+        try:
+            mb_news = fetch_marketbeat_news(ticker)
+        except Exception:
+            pass
+        try:
+            sa_news = fetch_seeking_alpha_news(ticker)
+        except Exception:
+            pass
+        news = yahoo_news + finviz_news + google_news + uw_news + mb_news + sa_news
+        print(f"{ticker} Quellen: Yahoo={len(yahoo_news)}, Google={len(google_news)}, "
+              f"UnusualWhales={len(uw_news)}, MarketBeat={len(mb_news)}, "
+              f"SeekingAlpha={len(sa_news)}", flush=True)
 
         reddit: dict = {"count": 0, "sentiment": 0.0}
         try:

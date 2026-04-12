@@ -1701,6 +1701,10 @@ def _card(i: int, s: dict) -> str:
     <span id="nb-icon{i}">▼</span> Aktuelle Meldungen
   </button>
   <div class="news-panel" id="np{i}" hidden>
+    <div class="ki-signal-block">
+      <div class="ki-signal-header">&#9889; KI-Agent Signale</div>
+      <div class="ki-signal-body"></div>
+    </div>
     <div class="news-items">{news_html}</div>
     <div class="news-summary-box">
       <span class="summary-label">Zusammenfassung</span>
@@ -1996,6 +2000,12 @@ a{{color:var(--accent);text-decoration:none}}
 .news-btn:hover{{background:var(--brd)}}
 /* ── News panel ── */
 .news-panel{{border-top:1px solid var(--brd);padding:12px 14px}}
+.ki-signal-block{{border-bottom:1px solid var(--brd);padding:0 0 10px;margin-bottom:10px;display:none}}
+.ki-signal-header{{font-size:.72rem;font-weight:700;color:#f59e0b;letter-spacing:.4px;margin-bottom:5px}}
+.ki-signal-body{{display:flex;flex-direction:column;gap:3px}}
+.ki-score{{font-size:.82rem;font-weight:700;color:var(--txt)}}
+.ki-drivers{{font-size:.78rem;color:var(--txt-sub)}}
+.ki-meta{{font-size:.68rem;color:var(--txt-dim)}}
 .news-items{{margin-bottom:12px}}
 .ni{{margin-bottom:10px;font-size:.93rem;line-height:1.5}}
 .ni a{{color:var(--accent);display:block;margin-bottom:2px}}
@@ -2773,6 +2783,26 @@ function _fmtGerman(d) {{
       }});
 
       tickerSpan.parentNode.insertBefore(dot, tickerSpan.nextSibling);
+
+      // KI-Signal-Block im Neuigkeiten-Dropdown
+      const block = card.querySelector('.ki-signal-block');
+      if (block && score > 0) {{
+        const lastScan = updated
+          ? updated.toLocaleTimeString('de-DE', {{hour:'2-digit', minute:'2-digit'}})
+          : '?';
+        const phase = info.market_phase || '';
+        const body  = block.querySelector('.ki-signal-body');
+        if (body) {{
+          body.innerHTML =
+            `<span class="ki-score">Score: ${{score}}/100</span>` +
+            ((sig && sig.drivers)
+              ? `<span class="ki-drivers">${{sig.drivers}}</span>`
+              : '') +
+            `<span class="ki-meta">Letzter Scan: ${{lastScan}} Uhr` +
+            (phase ? ` \u2014 ${{phase}}` : '') + '</span>';
+        }}
+        block.style.display = 'block';
+      }}
     }});
   }}
 
