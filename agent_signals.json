@@ -1,10 +1,10 @@
 {
-  "updated": "2026-04-12T21:06:58.838191+02:00",
+  "updated": "2026-04-12T21:20:54.262550+02:00",
   "run_info": {
     "tickers_checked": 10,
     "signals_active": 0,
     "alerts_sent": 0,
-    "elapsed_s": 17.6,
+    "elapsed_s": 16.4,
     "market_phase": "Geschlossen"
   },
   "signals": {
@@ -18,17 +18,47 @@
       "fda_date": null,
       "upcoming_event": null
     },
-    "SPIR": {
+    "GRPN": {
+      "score": 8,
+      "drivers": "Earnings in 29d",
+      "price": 0.0,
+      "chg_pct": 0.0,
+      "rvol": 0.0,
+      "earnings": "in 29 Tagen (11.05.2026)",
+      "fda_date": null,
+      "upcoming_event": null
+    },
+    "HYPD": {
+      "score": 10,
+      "drivers": "News: partnership",
+      "price": 0.0,
+      "chg_pct": 0.0,
+      "rvol": 0.0,
+      "earnings": "in 33 Tagen (15.05.2026)",
+      "fda_date": null,
+      "upcoming_event": null
+    },
+    "SKIL": {
       "score": 0,
       "drivers": "",
       "price": 0.0,
       "chg_pct": 0.0,
       "rvol": 0.0,
-      "earnings": "in 31 Tagen (13.05.2026)",
+      "earnings": "in 57 Tagen (08.06.2026)",
       "fda_date": null,
       "upcoming_event": null
     },
-    "TMCI": {
+    "MPT": {
+      "score": 8,
+      "drivers": "Earnings in 18d",
+      "price": 0.0,
+      "chg_pct": 0.0,
+      "rvol": 0.0,
+      "earnings": "in 18 Tagen (30.04.2026)",
+      "fda_date": null,
+      "upcoming_event": null
+    },
+    "TMDX": {
       "score": 8,
       "drivers": "Earnings in 25d",
       "price": 0.0,
@@ -38,9 +68,9 @@
       "fda_date": null,
       "upcoming_event": null
     },
-    "OTLY": {
-      "score": 18,
-      "drivers": "News: breakout + Earnings in 17d",
+    "ENVX": {
+      "score": 8,
+      "drivers": "Earnings in 17d",
       "price": 0.0,
       "chg_pct": 0.0,
       "rvol": 0.0,
@@ -48,63 +78,33 @@
       "fda_date": null,
       "upcoming_event": null
     },
-    "RBBN": {
+    "NTST": {
       "score": 8,
-      "drivers": "Earnings in 16d",
+      "drivers": "Earnings in 8d",
       "price": 0.0,
       "chg_pct": 0.0,
       "rvol": 0.0,
-      "earnings": "in 16 Tagen (28.04.2026)",
+      "earnings": "in 8 Tagen (20.04.2026)",
       "fda_date": null,
       "upcoming_event": null
     },
-    "AIFU": {
-      "score": 0,
-      "drivers": "",
+    "ARCT": {
+      "score": 8,
+      "drivers": "Earnings in 29d",
       "price": 0.0,
       "chg_pct": 0.0,
       "rvol": 0.0,
-      "earnings": null,
+      "earnings": "in 29 Tagen (11.05.2026)",
       "fda_date": null,
       "upcoming_event": null
     },
-    "RXT": {
+    "PCT": {
       "score": 18,
-      "drivers": "News: partnership + Earnings in 25d",
+      "drivers": "News: short interest + Earnings in 25d",
       "price": 0.0,
       "chg_pct": 0.0,
       "rvol": 0.0,
       "earnings": "in 25 Tagen (07.05.2026)",
-      "fda_date": null,
-      "upcoming_event": null
-    },
-    "GPRK": {
-      "score": 8,
-      "drivers": "Earnings in 24d",
-      "price": 0.0,
-      "chg_pct": 0.0,
-      "rvol": 0.0,
-      "earnings": "in 24 Tagen (06.05.2026)",
-      "fda_date": null,
-      "upcoming_event": null
-    },
-    "PYXS": {
-      "score": 0,
-      "drivers": "",
-      "price": 0.0,
-      "chg_pct": 0.0,
-      "rvol": 0.0,
-      "earnings": "in 32 Tagen (14.05.2026)",
-      "fda_date": null,
-      "upcoming_event": null
-    },
-    "COHU": {
-      "score": 8,
-      "drivers": "Earnings in 18d",
-      "price": 0.0,
-      "chg_pct": 0.0,
-      "rvol": 0.0,
-      "earnings": "in 18 Tagen (30.04.2026)",
       "fda_date": null,
       "upcoming_event": null
     }
