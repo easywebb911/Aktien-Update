@@ -8,7 +8,7 @@
 <meta name="apple-mobile-web-app-title" content="Squeeze Report">
 <meta name="theme-color" content="#0d1117">
 <link rel="icon" type="image/svg+xml" href="favicon.svg">
-<title>Squeeze Report – 11.04.2026</title>
+<title>Squeeze Report – 12.04.2026</title>
 <style>
 :root{
   --bg:#f1f5f9;--bg-card:#fff;--bg-hdr:#fff;--bg-met:#f8fafc;
@@ -255,6 +255,12 @@ a{color:var(--accent);text-decoration:none}
 .news-btn:hover{background:var(--brd)}
 /* ── News panel ── */
 .news-panel{border-top:1px solid var(--brd);padding:12px 14px}
+.ki-signal-block{border-bottom:1px solid var(--brd);padding:0 0 10px;margin-bottom:10px;display:none}
+.ki-signal-header{font-size:.72rem;font-weight:700;color:#f59e0b;letter-spacing:.4px;margin-bottom:5px}
+.ki-signal-body{display:flex;flex-direction:column;gap:3px}
+.ki-score{font-size:.82rem;font-weight:700;color:var(--txt)}
+.ki-drivers{font-size:.78rem;color:var(--txt-sub)}
+.ki-meta{font-size:.68rem;color:var(--txt-dim)}
 .news-items{margin-bottom:12px}
 .ni{margin-bottom:10px;font-size:.93rem;line-height:1.5}
 .ni a{color:var(--accent);display:block;margin-bottom:2px}
@@ -361,7 +367,7 @@ a{color:var(--accent);text-decoration:none}
 <header class="app-hdr">
   <div class="hdr-main">
     <span class="app-title">Squeeze <span>Report</span></span>
-    <span class="hdr-ts">Stand: 11.04.2026, 15:26 Uhr</span>
+    <span class="hdr-ts">Stand: 12.04.2026, 20:53 Uhr</span>
     <div class="hdr-btns">
       <button id="btn-reload" class="btn btn-g" onclick="reloadPage()">&#8635; Reload</button>
       <button id="btn-recalc" class="btn btn-b" onclick="triggerWorkflow()">&#9881; Recalculate</button>
@@ -579,7 +585,7 @@ a{color:var(--accent);text-decoration:none}
         <tr><td>Short-Vol. T-3</td><td>—</td></tr>
 
         <tr><td>RSI (14T)</td><td><span style="color:var(--txt)">61.4</span></td></tr><tr><td>MA 50T</td><td>$3.83</td></tr><tr><td>MA 200T</td><td>$5.48</td></tr><tr><td>Kurs vs. MA50</td><td><span style="color:#22c55e">(+3.6%)</span></td></tr><tr><td>Rel. Stärke (20T)</td><td><span style="color:#22c55e">+4.8% vs. S&amp;P 500 (Aktie +7.0%)</span></td></tr>
-        <tr><td>Put/Call-Ratio <span style='color:var(--txt-dim);font-size:.8em'>(2026-05-15)</span></td><td><span style="color:#22c55e">0.49 — bullisch</span></td></tr><tr><td>Impl. Volatilität (ATM)</td><td><span style="color:#22c55e">130.9%</span></td></tr>
+        <tr><td>Put/Call-Ratio <span style='color:var(--txt-dim);font-size:.8em'>(2026-05-15)</span></td><td><span style="color:#22c55e">0.49 — bullisch</span></td></tr><tr><td>Impl. Volatilität (ATM)</td><td><span style="color:#22c55e">132.8%</span></td></tr>
         
         <tr><td>Risiko-Detail</td><td style="color:#ef4444">Hohes Short-Interesse (30.3 %) erhöht die Volatilität deutlich. Micro-Cap ($88 M) – geringe Liquidität, Kursmanipulation möglich.</td></tr>
       </table>
@@ -594,6 +600,10 @@ a{color:var(--accent);text-decoration:none}
     <span id="nb-icon1">▼</span> Aktuelle Meldungen
   </button>
   <div class="news-panel" id="np1" hidden>
+    <div class="ki-signal-block">
+      <div class="ki-signal-header">&#9889; KI-Agent Signale</div>
+      <div class="ki-signal-body"></div>
+    </div>
     <div class="news-items"><div class="ni"><a href="https://finance.yahoo.com/news/children-place-plce-valuation-check-090943413.html" target="_blank" rel="noopener noreferrer">Children’s Place (PLCE): Bewertungsprüfung nach Verlusten im dritten Quartal und neuer Kreditfinanzierung in Höhe von 100 Millionen US-Dollar</a> <span class="ni-src">(Yahoo Finance)</span><span class="ni-meta">19.12.2025 09:09</span></div><div class="ni"><a href="https://seekingalpha.com/article/4854276-the-childrens-place-faith-in-a-turnaround-is-diminishing?source=feed_symbol_PLCE" target="_blank" rel="noopener noreferrer">Der Ort der Kinder: Der Glaube an eine Wende nimmt ab</a> <span class="ni-src">(Seeking Alpha)</span><span class="ni-meta">18.12.2025 10:12</span></div><div class="ni"><a href="https://seekingalpha.com/article/4854069-the-childrens-place-disaster-quarter?source=feed_symbol_PLCE" target="_blank" rel="noopener noreferrer">Der Ort der Kinder: Katastrophenviertel</a> <span class="ni-src">(Seeking Alpha)</span><span class="ni-meta">17.12.2025 16:00</span></div></div>
     <div class="news-summary-box">
       <span class="summary-label">Zusammenfassung</span>
@@ -670,7 +680,7 @@ a{color:var(--accent);text-decoration:none}
         <tr><td>Short-Vol. T-3</td><td>—</td></tr>
 
         <tr><td>RSI (14T)</td><td><span style="color:#ef4444">74.4 — überkauft</span></td></tr><tr><td>MA 50T</td><td>$11.48</td></tr><tr><td>MA 200T</td><td>$10.52</td></tr><tr><td>Kurs vs. MA50</td><td><span style="color:#22c55e">(+87.7%)</span></td></tr><tr><td>Rel. Stärke (20T)</td><td><span style="color:#22c55e">+96.9% vs. S&amp;P 500 (Aktie +99.1%)</span></td></tr>
-        <tr><td>Put/Call-Ratio <span style='color:var(--txt-dim);font-size:.8em'>(2026-05-15)</span></td><td><span style="color:#22c55e">0.58 — bullisch</span></td></tr><tr><td>Impl. Volatilität (ATM)</td><td><span style="color:#22c55e">141.1%</span></td></tr>
+        <tr><td>Put/Call-Ratio <span style='color:var(--txt-dim);font-size:.8em'>(2026-05-15)</span></td><td><span style="color:#22c55e">0.58 — bullisch</span></td></tr><tr><td>Impl. Volatilität (ATM)</td><td><span style="color:#22c55e">143.2%</span></td></tr>
         
         <tr><td>Risiko-Detail</td><td style="color:#f59e0b">Small-Cap ($722 M) mit eingeschränkter Liquidität.</td></tr>
       </table>
@@ -685,10 +695,14 @@ a{color:var(--accent);text-decoration:none}
     <span id="nb-icon2">▼</span> Aktuelle Meldungen
   </button>
   <div class="news-panel" id="np2" hidden>
-    <div class="news-items"><div class="ni"><a href="https://www.investors.com/news/spire-global-stock-price-target-private-placement-70-million-space-stock-satellite/?src=A00220&yptr=yahoo" target="_blank" rel="noopener noreferrer">Spire Globale Aktienrallyes. Hier erfahren Sie, warum Canaccord sein Kursziel angehoben hat.</a> <span class="ni-src">(Yahoo Finance)</span><span class="ni-meta">10.04.2026 20:22</span></div><div class="ni"><a href="https://seekingalpha.com/symbol/SPIR/news?source=feed_symbol_SPIR" target="_blank" rel="noopener noreferrer">Selektive Stärke: Kleine Gruppe von Industrienamen erreicht 52-Wochen-Höchststände</a> <span class="ni-src">(Seeking Alpha)</span><span class="ni-meta">09.04.2026 14:17</span></div><div class="ni"><a href="https://seekingalpha.com/symbol/SPIR/news?source=feed_symbol_SPIR" target="_blank" rel="noopener noreferrer">Spire Global beschafft 70 Millionen US-Dollar im Rahmen einer Privatplatzierung</a> <span class="ni-src">(Seeking Alpha)</span><span class="ni-meta">09.04.2026 12:10</span></div></div>
+    <div class="ki-signal-block">
+      <div class="ki-signal-header">&#9889; KI-Agent Signale</div>
+      <div class="ki-signal-body"></div>
+    </div>
+    <div class="news-items"><div class="ni"><a href="https://finance.yahoo.com/markets/stocks/articles/spire-global-spir-story-shifting-042448566.html" target="_blank" rel="noopener noreferrer">Wie sich die Geschichte von Spire Global (SPIR) verändert, während Analysten ihre Fair-Value-Ziele anheben</a> <span class="ni-src">(Yahoo Finance)</span><span class="ni-meta">12.04.2026 04:24</span></div><div class="ni"><a href="https://www.investors.com/news/spire-global-stock-price-target-private-placement-70-million-space-stock-satellite/?src=A00220&yptr=yahoo" target="_blank" rel="noopener noreferrer">Spire Globale Aktienrallyes. Hier erfahren Sie, warum Canaccord sein Kursziel angehoben hat.</a> <span class="ni-src">(Yahoo Finance)</span><span class="ni-meta">10.04.2026 20:22</span></div><div class="ni"><a href="https://seekingalpha.com/symbol/SPIR/news?source=feed_symbol_SPIR" target="_blank" rel="noopener noreferrer">Selektive Stärke: Kleine Gruppe von Industrienamen erreicht 52-Wochen-Höchststände</a> <span class="ni-src">(Seeking Alpha)</span><span class="ni-meta">09.04.2026 14:17</span></div></div>
     <div class="news-summary-box">
       <span class="summary-label">Zusammenfassung</span>
-      <p class="summary-text">Spire Global erholt sich, nachdem es 70 Millionen US-Dollar für Wachstumsmöglichkeiten im Bereich Weltraumdaten gesammelt hat, Canaccord erhöht das Kursziel.</p>
+      <p class="summary-text">Das Fair-Value-Ziel der Analysten von Spire Global liegt nun bei 17,00 US-Dollar, verglichen mit der vorherigen Marke von 13,70 US-Dollar, was einer modellierten Steigerung von etwa 24 % pro Aktie entspricht. Jüngste Kommentare bringen diese Verschiebung mit einer Reihe zinsbullischer Zielbewegungen im Bereich von etwa 2 bis 8 US-Dollar in Verbindung, während vorsichtigere Stimmen hervorheben, wie abhängig diese Ziele von modellierten Annahmen sind. Während Sie weiterlesen, werden Sie sehen, wie Sie diese sich entwickelnden Preisziele verfolgen können und was sie für Ihre eigene Meinung zu Spire Global bedeuten könnten. Analystenpreis...</p>
     </div>
   </div>
 </article>
@@ -761,7 +775,7 @@ a{color:var(--accent);text-decoration:none}
         <tr><td>Short-Vol. T-3</td><td>—</td></tr>
 
         <tr><td>RSI (14T)</td><td><span style="color:var(--txt)">64.1</span></td></tr><tr><td>MA 50T</td><td>$1.68</td></tr><tr><td>MA 200T</td><td>$4.25</td></tr><tr><td>Kurs vs. MA50</td><td><span style="color:#22c55e">(+8.0%)</span></td></tr><tr><td>Rel. Stärke (20T)</td><td><span style="color:#22c55e">+31.9% vs. S&amp;P 500 (Aktie +34.1%)</span></td></tr>
-        <tr><td>Put/Call-Ratio <span style='color:var(--txt-dim);font-size:.8em'>(2026-06-18)</span></td><td><span style="color:#22c55e">0.00 — bullisch</span></td></tr><tr><td>Impl. Volatilität (ATM)</td><td><span style="color:#22c55e">152.0%</span></td></tr>
+        <tr><td>Put/Call-Ratio <span style='color:var(--txt-dim);font-size:.8em'>(2026-06-18)</span></td><td><span style="color:#22c55e">0.00 — bullisch</span></td></tr><tr><td>Impl. Volatilität (ATM)</td><td><span style="color:#22c55e">153.1%</span></td></tr>
         
         <tr><td>Risiko-Detail</td><td style="color:#ef4444">Micro-Cap ($117 M) – geringe Liquidität, Kursmanipulation möglich. Extremer Volumenanstieg (10.9×) kann auf koordiniertes Kaufinteresse hinweisen.</td></tr>
       </table>
@@ -776,7 +790,11 @@ a{color:var(--accent);text-decoration:none}
     <span id="nb-icon3">▼</span> Aktuelle Meldungen
   </button>
   <div class="news-panel" id="np3" hidden>
-    <div class="news-items"><div class="ni"><a href="https://finance.yahoo.com/markets/stocks/articles/artivion-aort-soars-5-3-074400529.html" target="_blank" rel="noopener noreferrer">Artivion (AORT) steigt um 5,3 %: Gibt es noch weiteres Aufwärtspotenzial für die Aktie?</a> <span class="ni-src">(Yahoo Finance)</span><span class="ni-meta">08.04.2026 07:44</span></div><div class="ni"><a href="https://finance.yahoo.com/markets/stocks/articles/story-shifting-treace-medical-concepts-030758595.html" target="_blank" rel="noopener noreferrer">Wie sich die Geschichte für Treace Medical Concepts (TMCI) verändert, nachdem die Analystenziele zurückgesetzt wurden</a> <span class="ni-src">(Yahoo Finance)</span><span class="ni-meta">20.03.2026 03:07</span></div><div class="ni"><a href="https://app.moby.co/home/research/tools/earningsCalendar/earnings-treace-medical-concepts-inc-q4-2025-earnings-call-summary?utm_source=yahoo_finance&utm_medium=rss" target="_blank" rel="noopener noreferrer">Treace Medical Concepts, Inc. Zusammenfassung der Ergebnisse der Telefonkonferenz für das 4. Quartal 2025</a> <span class="ni-src">(Yahoo Finance)</span><span class="ni-meta">28.02.2026 13:30</span></div></div>
+    <div class="ki-signal-block">
+      <div class="ki-signal-header">&#9889; KI-Agent Signale</div>
+      <div class="ki-signal-body"></div>
+    </div>
+    <div class="news-items"><div class="ni"><a href="https://finance.yahoo.com/markets/stocks/articles/artivion-aort-soars-5-3-074400529.html" target="_blank" rel="noopener noreferrer">Artivion (AORT) steigt um 5,3 %: Gibt es noch weiteres Aufwärtspotenzial für die Aktie?</a> <span class="ni-src">(Yahoo Finance)</span><span class="ni-meta">08.04.2026 07:44</span></div><div class="ni"><a href="https://finance.yahoo.com/markets/stocks/articles/story-shifting-treace-medical-concepts-030758595.html" target="_blank" rel="noopener noreferrer">Wie sich die Geschichte für Treace Medical Concepts (TMCI) verändert, nachdem die Analystenziele zurückgesetzt wurden</a> <span class="ni-src">(Yahoo Finance)</span><span class="ni-meta">20.03.2026 03:07</span></div><div class="ni"><a href="https://app.moby.co/home/research/tools/earningsCalendar/earnings-treace-medical-concepts-inc-q4-2025-earnings-call-summary?utm_source=yahoo_finance&utm_medium=rss" target="_blank" rel="noopener noreferrer">Treace Medical Concepts, Inc. Zusammenfassung der Gewinnaufrufe für das 4. Quartal 2025</a> <span class="ni-src">(Yahoo Finance)</span><span class="ni-meta">28.02.2026 13:30</span></div></div>
     <div class="news-summary-box">
       <span class="summary-label">Zusammenfassung</span>
       <p class="summary-text">Artivion (AORT) verzeichnete in der letzten Sitzung aufgrund eines überdurchschnittlichen Handelsvolumens einen sprunghaften Anstieg des Aktienkurses. Der jüngste Trend bei den Korrekturen der Gewinnschätzungen für die Aktie deutet nicht auf eine weitere Stärke in der Zukunft hin.</p>
@@ -852,7 +870,7 @@ a{color:var(--accent);text-decoration:none}
         <tr><td>Short-Vol. T-3</td><td>—</td></tr>
 
         <tr><td>RSI (14T)</td><td><span style="color:var(--txt)">68.2</span></td></tr><tr><td>MA 50T</td><td>$10.99</td></tr><tr><td>MA 200T</td><td>$13.39</td></tr><tr><td>Kurs vs. MA50</td><td><span style="color:#22c55e">(+12.0%)</span></td></tr><tr><td>Rel. Stärke (20T)</td><td><span style="color:#22c55e">+21.9% vs. S&amp;P 500 (Aktie +24.1%)</span></td></tr>
-        <tr><td>Put/Call-Ratio <span style='color:var(--txt-dim);font-size:.8em'>(2026-05-15)</span></td><td><span style="color:#ef4444">1.14 — bärisch</span></td></tr><tr><td>Impl. Volatilität (ATM)</td><td><span style="color:#f59e0b">91.0%</span></td></tr>
+        <tr><td>Put/Call-Ratio <span style='color:var(--txt-dim);font-size:.8em'>(2026-05-15)</span></td><td><span style="color:#ef4444">1.14 — bärisch</span></td></tr><tr><td>Impl. Volatilität (ATM)</td><td><span style="color:#f59e0b">92.4%</span></td></tr>
         
         <tr><td>Risiko-Detail</td><td style="color:#f59e0b">Small-Cap ($384 M) mit eingeschränkter Liquidität.</td></tr>
       </table>
@@ -867,6 +885,10 @@ a{color:var(--accent);text-decoration:none}
     <span id="nb-icon4">▼</span> Aktuelle Meldungen
   </button>
   <div class="news-panel" id="np4" hidden>
+    <div class="ki-signal-block">
+      <div class="ki-signal-header">&#9889; KI-Agent Signale</div>
+      <div class="ki-signal-body"></div>
+    </div>
     <div class="news-items"><div class="ni"><a href="https://www.just-drinks.com/news/oatly-invests-sweden-production-facility/" target="_blank" rel="noopener noreferrer">Oatly investiert in eine Produktionsstätte in Schweden</a> <span class="ni-src">(Yahoo Finance)</span><span class="ni-meta">06.03.2026 09:40</span></div><div class="ni"><a href="https://seekingalpha.com/symbol/OTLY/news?source=feed_symbol_OTLY" target="_blank" rel="noopener noreferrer">Oatly tätigt Produktionsinvestitionen angesichts der steigenden Nachfrage nach pflanzlichen Getränken</a> <span class="ni-src">(Seeking Alpha)</span><span class="ni-meta">05.03.2026 12:38</span></div><div class="ni"><a href="https://finance.yahoo.com/news/morgan-stanley-lowers-price-target-014924690.html" target="_blank" rel="noopener noreferrer">Morgan Stanley senkt sein Kursziel für Oatly Group AB (OTLY) auf 14,50 US-Dollar und behält die Bewertung mit gleicher Gewichtung bei</a> <span class="ni-src">(Yahoo Finance)</span><span class="ni-meta">22.02.2026 01:49</span></div></div>
     <div class="news-summary-box">
       <span class="summary-label">Zusammenfassung</span>
@@ -958,10 +980,14 @@ a{color:var(--accent);text-decoration:none}
     <span id="nb-icon5">▼</span> Aktuelle Meldungen
   </button>
   <div class="news-panel" id="np5" hidden>
-    <div class="news-items"><div class="ni"><a href="https://finance.yahoo.com/news/ribbon-communications-rbbn-investment-story-100901644.html" target="_blank" rel="noopener noreferrer">Wie sich die Investitionsgeschichte von Ribbon Communications (RBBN) verändert, da Analysten ihre Gewinnerwartungen zurücksetzen</a> <span class="ni-src">(Yahoo Finance)</span><span class="ni-meta">14.03.2026 10:09</span></div><div class="ni"><a href="https://finance.yahoo.com/news/ribbon-communications-rbbn-partners-amazon-071223540.html" target="_blank" rel="noopener noreferrer">Ribbon Communications (RBBN) arbeitet mit Amazon Web Services zusammen. Folgendes sollten Sie wissen</a> <span class="ni-src">(Yahoo Finance)</span><span class="ni-meta">28.02.2026 07:12</span></div><div class="ni"><a href="https://finance.yahoo.com/news/recent-analyst-resets-rewriting-ribbon-221259812.html" target="_blank" rel="noopener noreferrer">Wie jüngste Analysten-Resets die Investitionsgeschichte von Ribbon Communications (RBBN) neu schreiben</a> <span class="ni-src">(Yahoo Finance)</span><span class="ni-meta">12.02.2026 22:12</span></div></div>
+    <div class="ki-signal-block">
+      <div class="ki-signal-header">&#9889; KI-Agent Signale</div>
+      <div class="ki-signal-body"></div>
+    </div>
+    <div class="news-items"><div class="ni"><a href="https://finance.yahoo.com/markets/stocks/articles/ribbon-communications-rbbn-story-evolving-140952864.html" target="_blank" rel="noopener noreferrer">Wie sich die Geschichte von Ribbon Communications (RBBN) entwickelt, während Analysten Risiko und Ertrag neu bewerten</a> <span class="ni-src">(Yahoo Finance)</span><span class="ni-meta">11.04.2026 14:09</span></div><div class="ni"><a href="https://finance.yahoo.com/news/ribbon-communications-rbbn-investment-story-100901644.html" target="_blank" rel="noopener noreferrer">Wie sich die Investitionsgeschichte von Ribbon Communications (RBBN) verändert, da Analysten ihre Gewinnerwartungen zurücksetzen</a> <span class="ni-src">(Yahoo Finance)</span><span class="ni-meta">14.03.2026 10:09</span></div><div class="ni"><a href="https://finance.yahoo.com/news/ribbon-communications-rbbn-partners-amazon-071223540.html" target="_blank" rel="noopener noreferrer">Ribbon Communications (RBBN) arbeitet mit Amazon Web Services zusammen. Folgendes sollten Sie wissen</a> <span class="ni-src">(Yahoo Finance)</span><span class="ni-meta">28.02.2026 07:12</span></div></div>
     <div class="news-summary-box">
       <span class="summary-label">Zusammenfassung</span>
-      <p class="summary-text">Die Kursziele für Ribbon Communications wurden kürzlich um etwa 1,50 bis 2 US-Dollar gesenkt, obwohl mindestens ein Analyst den zugrunde liegenden Fair-Value-Rahmen bei 3,65 US-Dollar verankert hält. Diese Änderungen stehen im Einklang mit Street-Kommentaren, die den Schritt als eine Neuausrichtung des Timings und des Vertrauens in Bezug auf die Rentabilität darstellen und nicht als eine völlige Neufassung der langfristigen Geschichte. Wenn Sie weiterlesen, werden Sie sehen, wie diese sich ändernden Ziele und Meinungen Ihnen dabei helfen können, die sich entwickelnde Erzählung rund um Ribbon zu verfolgen. Bleiben Sie auf dem Laufenden...</p>
+      <p class="summary-text">Für Ribbon Communications liegt das Fair-Value-Kursziel bei 3,65 US-Dollar, wobei aktuelle Street-Recherchen rund um den Namen mehrere Firmen dazu veranlasst haben, ihre eigenen Ziele um etwa 1,50 US-Dollar auf 2 US-Dollar zu senken. Diese Verschiebung steht im Einklang mit einem vorsichtigeren Ton in den jüngsten Untersuchungen, einschließlich einer Herabstufung und Bedenken hinsichtlich der Geschwindigkeit und Beständigkeit von Wachstum und Rentabilität. Wenn Sie weiterlesen, werden Sie sehen, wie diese Schritte in die sich entwickelnde Ribbon-Geschichte passen und worauf Sie im Verlauf der Erzählung achten sollten. Die Kursziele der Analysten sind nicht...</p>
     </div>
   </div>
 </article>
@@ -1034,7 +1060,7 @@ a{color:var(--accent);text-decoration:none}
         <tr><td>Short-Vol. T-3</td><td>—</td></tr>
 
         <tr><td>RSI (14T)</td><td><span style="color:var(--txt)">34.9</span></td></tr><tr><td>MA 50T</td><td>$1.74</td></tr><tr><td>MA 200T</td><td>$3.99</td></tr><tr><td>Kurs vs. MA50</td><td><span style="color:#ef4444">(-29.1%)</span></td></tr><tr><td>Rel. Stärke (20T)</td><td><span style="color:#ef4444">-39.7% vs. S&amp;P 500 (Aktie -37.6%)</span></td></tr>
-        <tr><td>Put/Call-Ratio <span style='color:var(--txt-dim);font-size:.8em'>(2026-07-17)</span></td><td><span style="color:#22c55e">0.44 — bullisch</span></td></tr><tr><td>Impl. Volatilität (ATM)</td><td><span style="color:#22c55e">740.6%</span></td></tr>
+        <tr><td>Put/Call-Ratio <span style='color:var(--txt-dim);font-size:.8em'>(2026-07-17)</span></td><td><span style="color:#22c55e">0.44 — bullisch</span></td></tr><tr><td>Impl. Volatilität (ATM)</td><td><span style="color:#22c55e">743.8%</span></td></tr>
         
         <tr><td>Risiko-Detail</td><td style="color:#f59e0b">Micro-Cap ($143 M) – geringe Liquidität, Kursmanipulation möglich.</td></tr>
       </table>
@@ -1049,6 +1075,10 @@ a{color:var(--accent);text-decoration:none}
     <span id="nb-icon6">▼</span> Aktuelle Meldungen
   </button>
   <div class="news-panel" id="np6" hidden>
+    <div class="ki-signal-block">
+      <div class="ki-signal-header">&#9889; KI-Agent Signale</div>
+      <div class="ki-signal-body"></div>
+    </div>
     <div class="news-items"><div class="ni"><a href="https://finance.yahoo.com/markets/stocks/articles/aifus-market-cap-drops-us-110447209.html" target="_blank" rel="noopener noreferrer">Die Marktkapitalisierung von AIFU sinkt auf 160 Millionen US-Dollar, was Insidern Verluste beschert</a> <span class="ni-src">(Yahoo Finance)</span><span class="ni-meta">10.04.2026 11:04</span></div><div class="ni"><a href="https://seekingalpha.com/article/4869690-aifu-inc-private-placement-and-negative-earnings-have-disinterested-investors?source=feed_symbol_AIFU" target="_blank" rel="noopener noreferrer">AIFU Inc.: Privatplatzierung und negative Erträge haben desinteressierte Anleger</a> <span class="ni-src">(Seeking Alpha)</span><span class="ni-meta">12.02.2026 20:35</span></div><div class="ni"><a href="https://finance.yahoo.com/news/insiders-top-stockholders-aifu-inc-104134805.html" target="_blank" rel="noopener noreferrer">Insider sind die Top-Aktionäre von AIFU Inc. (NASDAQ:AIFU), und der jüngste Rückgang um 11 % könnte sie enttäuscht haben</a> <span class="ni-src">(Yahoo Finance)</span><span class="ni-meta">19.01.2026 10:41</span></div></div>
     <div class="news-summary-box">
       <span class="summary-label">Zusammenfassung</span>
@@ -1125,7 +1155,7 @@ a{color:var(--accent);text-decoration:none}
         <tr><td>Short-Vol. T-3</td><td>—</td></tr>
 
         <tr><td>RSI (14T)</td><td><span style="color:var(--txt)">51.4</span></td></tr><tr><td>MA 50T</td><td>$1.29</td></tr><tr><td>MA 200T</td><td>$1.26</td></tr><tr><td>Kurs vs. MA50</td><td><span style="color:#22c55e">(+2.3%)</span></td></tr><tr><td>Rel. Stärke (20T)</td><td><span style="color:#ef4444">-26.3% vs. S&amp;P 500 (Aktie -24.1%)</span></td></tr>
-        <tr><td>Put/Call-Ratio <span style='color:var(--txt-dim);font-size:.8em'>(2026-04-24)</span></td><td><span style="color:#22c55e">0.35 — bullisch</span></td></tr><tr><td>Impl. Volatilität (ATM)</td><td><span style="color:#22c55e">184.4%</span></td></tr>
+        <tr><td>Put/Call-Ratio <span style='color:var(--txt-dim);font-size:.8em'>(2026-04-24)</span></td><td><span style="color:#22c55e">0.35 — bullisch</span></td></tr><tr><td>Impl. Volatilität (ATM)</td><td><span style="color:#22c55e">192.2%</span></td></tr>
         
         <tr><td>Risiko-Detail</td><td style="color:#f59e0b">Small-Cap ($326 M) mit eingeschränkter Liquidität.</td></tr>
       </table>
@@ -1140,6 +1170,10 @@ a{color:var(--accent);text-decoration:none}
     <span id="nb-icon7">▼</span> Aktuelle Meldungen
   </button>
   <div class="news-panel" id="np7" hidden>
+    <div class="ki-signal-block">
+      <div class="ki-signal-header">&#9889; KI-Agent Signale</div>
+      <div class="ki-signal-body"></div>
+    </div>
     <div class="news-items"><div class="ni"><a href="https://seekingalpha.com/symbol/RXT/news?source=feed_symbol_RXT" target="_blank" rel="noopener noreferrer">Tripadvisor schließt Vertrag mit Starboard ab, stellt zwei Direktoren ein und plant zwei weitere</a> <span class="ni-src">(Seeking Alpha)</span><span class="ni-meta">23.03.2026 12:50</span></div><div class="ni"><a href="https://finance.yahoo.com/markets/stocks/articles/rackspace-rxt-launches-uk-sovereign-200030905.html" target="_blank" rel="noopener noreferrer">Rackspace (RXT) führt UK Sovereign Cyber ​​Recovery Cloud ein</a> <span class="ni-src">(Yahoo Finance)</span><span class="ni-meta">20.03.2026 20:00</span></div><div class="ni"><a href="https://finance.yahoo.com/markets/stocks/articles/rackspace-technology-rxt-story-shifting-200650798.html" target="_blank" rel="noopener noreferrer">Wie sich die Geschichte von Rackspace Technology (RXT) durch neue Ziele und KI-Partnerschaften verändert</a> <span class="ni-src">(Yahoo Finance)</span><span class="ni-meta">19.03.2026 20:06</span></div></div>
     <div class="news-summary-box">
       <span class="summary-label">Zusammenfassung</span>
@@ -1216,7 +1250,7 @@ a{color:var(--accent);text-decoration:none}
         <tr><td>Short-Vol. T-3</td><td>—</td></tr>
 
         <tr><td>RSI (14T)</td><td><span style="color:var(--txt)">55.4</span></td></tr><tr><td>MA 50T</td><td>$8.74</td></tr><tr><td>MA 200T</td><td>$7.44</td></tr><tr><td>Kurs vs. MA50</td><td><span style="color:#22c55e">(+7.5%)</span></td></tr><tr><td>Rel. Stärke (20T)</td><td><span style="color:#22c55e">+3.2% vs. S&amp;P 500 (Aktie +5.4%)</span></td></tr>
-        <tr><td>Put/Call-Ratio <span style='color:var(--txt-dim);font-size:.8em'>(2026-05-15)</span></td><td><span style="color:#22c55e">0.66 — bullisch</span></td></tr><tr><td>Impl. Volatilität (ATM)</td><td><span style="color:#f59e0b">66.0%</span></td></tr>
+        <tr><td>Put/Call-Ratio <span style='color:var(--txt-dim);font-size:.8em'>(2026-05-15)</span></td><td><span style="color:#22c55e">0.66 — bullisch</span></td></tr><tr><td>Impl. Volatilität (ATM)</td><td><span style="color:#f59e0b">67.0%</span></td></tr>
         
         <tr><td>Risiko-Detail</td><td style="color:#f59e0b">Small-Cap ($608 M) mit eingeschränkter Liquidität.</td></tr>
       </table>
@@ -1231,6 +1265,10 @@ a{color:var(--accent);text-decoration:none}
     <span id="nb-icon8">▼</span> Aktuelle Meldungen
   </button>
   <div class="news-panel" id="np8" hidden>
+    <div class="ki-signal-block">
+      <div class="ki-signal-header">&#9889; KI-Agent Signale</div>
+      <div class="ki-signal-body"></div>
+    </div>
     <div class="news-items"><div class="ni"><a href="https://finance.yahoo.com/markets/stocks/articles/3-undervalued-small-caps-insider-114042701.html" target="_blank" rel="noopener noreferrer">3 unterbewertete Small Caps mit Insider-Aktion, die Sie im Auge behalten sollten</a> <span class="ni-src">(Yahoo Finance)</span><span class="ni-meta">31.03.2026 11:40</span></div><div class="ni"><a href="https://seekingalpha.com/article/4883514-geopark-stock-take-the-profits?source=feed_symbol_GPRK" target="_blank" rel="noopener noreferrer">GeoPark: Nehmen Sie die Gewinne mit</a> <span class="ni-src">(Seeking Alpha)</span><span class="ni-meta">18.03.2026 11:45</span></div><div class="ni"><a href="https://finance.yahoo.com/news/frontera-energy-signs-deal-parex-103227151.html" target="_blank" rel="noopener noreferrer">Frontera Energy unterzeichnet Vertrag mit Parex zur Veräußerung kolumbianischer E&P-Vermögenswerte im Wert von 750 Millionen US-Dollar</a> <span class="ni-src">(Yahoo Finance)</span><span class="ni-meta">11.03.2026 10:32</span></div></div>
     <div class="news-summary-box">
       <span class="summary-label">Zusammenfassung</span>
@@ -1322,6 +1360,10 @@ a{color:var(--accent);text-decoration:none}
     <span id="nb-icon9">▼</span> Aktuelle Meldungen
   </button>
   <div class="news-panel" id="np9" hidden>
+    <div class="ki-signal-block">
+      <div class="ki-signal-header">&#9889; KI-Agent Signale</div>
+      <div class="ki-signal-body"></div>
+    </div>
     <div class="news-items"><div class="ni"><a href="https://seekingalpha.com/symbol/PYXS/news?source=feed_symbol_PYXS" target="_blank" rel="noopener noreferrer">Pyxis Oncology GAAP EPS von -1,28 US-Dollar verfehlt um 0,93 US-Dollar, Umsatz von 13,9 Mio. US-Dollar</a> <span class="ni-src">(Seeking Alpha)</span><span class="ni-meta">23.03.2026 11:09</span></div><div class="ni"><a href="https://finance.yahoo.com/news/3-penny-stocks-market-caps-120552142.html" target="_blank" rel="noopener noreferrer">3 Penny Stocks mit Marktkapitalisierungen von über 50 Millionen US-Dollar, die Sie im Auge behalten sollten</a> <span class="ni-src">(Yahoo Finance)</span><span class="ni-meta">06.02.2026 12:05</span></div><div class="ni"><a href="https://finance.yahoo.com/news/3-promising-penny-stocks-market-180546323.html" target="_blank" rel="noopener noreferrer">3 vielversprechende Penny Stocks mit Marktkapitalisierungen von bis zu 300 Millionen US-Dollar</a> <span class="ni-src">(Yahoo Finance)</span><span class="ni-meta">07.01.2026 18:05</span></div></div>
     <div class="news-summary-box">
       <span class="summary-label">Zusammenfassung</span>
@@ -1398,7 +1440,7 @@ a{color:var(--accent);text-decoration:none}
         <tr><td>Short-Vol. T-3</td><td>—</td></tr>
 
         <tr><td>RSI (14T)</td><td><span style="color:#ef4444">73.6 — überkauft</span></td></tr><tr><td>MA 50T</td><td>$30.54</td></tr><tr><td>MA 200T</td><td>$24.31</td></tr><tr><td>Kurs vs. MA50</td><td><span style="color:#22c55e">(+22.3%)</span></td></tr><tr><td>Rel. Stärke (20T)</td><td><span style="color:#22c55e">+33.7% vs. S&amp;P 500 (Aktie +35.9%)</span></td></tr>
-        <tr><td>Put/Call-Ratio <span style='color:var(--txt-dim);font-size:.8em'>(2026-05-15)</span></td><td><span style="color:#22c55e">0.23 — bullisch</span></td></tr><tr><td>Impl. Volatilität (ATM)</td><td><span style="color:#f59e0b">72.9%</span></td></tr>
+        <tr><td>Put/Call-Ratio <span style='color:var(--txt-dim);font-size:.8em'>(2026-05-15)</span></td><td><span style="color:#22c55e">0.23 — bullisch</span></td></tr><tr><td>Impl. Volatilität (ATM)</td><td><span style="color:#f59e0b">73.9%</span></td></tr>
         
         <tr><td>Risiko-Detail</td><td style="color:#f59e0b">Small-Cap ($1.8 B) mit eingeschränkter Liquidität.</td></tr>
       </table>
@@ -1413,6 +1455,10 @@ a{color:var(--accent);text-decoration:none}
     <span id="nb-icon10">▼</span> Aktuelle Meldungen
   </button>
   <div class="news-panel" id="np10" hidden>
+    <div class="ki-signal-block">
+      <div class="ki-signal-header">&#9889; KI-Agent Signale</div>
+      <div class="ki-signal-body"></div>
+    </div>
     <div class="news-items"><div class="ni"><a href="https://247wallst.com/investing/2026/04/08/is-aehr-test-systems-the-ai-stock-you-didnt-realize-you-needed-to-buy/" target="_blank" rel="noopener noreferrer">Ist Aehr Test Systems die KI-Aktie, von der Sie nicht wussten, dass Sie sie kaufen müssen?</a> <span class="ni-src">(Yahoo Finance)</span><span class="ni-meta">08.04.2026 15:14</span></div><div class="ni"><a href="https://finance.yahoo.com/markets/stocks/articles/ter-rides-accelerating-data-center-134600854.html" target="_blank" rel="noopener noreferrer">TER setzt auf beschleunigtes Wachstum von Rechenzentren: Ein Zeichen für mehr Aufwärtspotenzial?</a> <span class="ni-src">(Yahoo Finance)</span><span class="ni-meta">07.04.2026 13:46</span></div><div class="ni"><a href="https://finance.yahoo.com/markets/stocks/articles/buy-sell-hold-teradyne-stock-162900706.html" target="_blank" rel="noopener noreferrer">Sollten Sie Teradyne-Aktien nach einem Anstieg von 61 % seit Jahresbeginn kaufen, verkaufen oder halten?</a> <span class="ni-src">(Yahoo Finance)</span><span class="ni-meta">02.04.2026 16:29</span></div></div>
     <div class="news-summary-box">
       <span class="summary-label">Zusammenfassung</span>
@@ -1425,7 +1471,7 @@ a{color:var(--accent);text-decoration:none}
 
 <footer class="footer">
   <p>Der Squeeze-Score ist ein rein rechnerischer Indikator und ersetzt keine individuelle Anlageberatung. Short-Squeeze-Kandidaten sind hochspekulative Investments mit erhöhtem Totalverlustrisiko. Nur mit kleinen Positionen und engem Stop-Loss handeln.</p>
-  <p>Automatisch generiert am 11.04.2026 · Quellen: Yahoo Finance (US/DE/GB/FR/NL/CA/JP/HK/KR), Finviz · Übersetzung: Google Translate</p>
+  <p>Automatisch generiert am 12.04.2026 · Quellen: Yahoo Finance (US/DE/GB/FR/NL/CA/JP/HK/KR), Finviz · Übersetzung: Google Translate</p>
 </footer>
 
 <script>
@@ -1941,6 +1987,26 @@ function _fmtGerman(d) {
       });
 
       tickerSpan.parentNode.insertBefore(dot, tickerSpan.nextSibling);
+
+      // KI-Signal-Block im Neuigkeiten-Dropdown
+      const block = card.querySelector('.ki-signal-block');
+      if (block && score > 0) {
+        const lastScan = updated
+          ? updated.toLocaleTimeString('de-DE', {hour:'2-digit', minute:'2-digit'})
+          : '?';
+        const phase = info.market_phase || '';
+        const body  = block.querySelector('.ki-signal-body');
+        if (body) {
+          body.innerHTML =
+            `<span class="ki-score">Score: ${score}/100</span>` +
+            ((sig && sig.drivers)
+              ? `<span class="ki-drivers">${sig.drivers}</span>`
+              : '') +
+            `<span class="ki-meta">Letzter Scan: ${lastScan} Uhr` +
+            (phase ? ` — ${phase}` : '') + '</span>';
+        }
+        block.style.display = 'block';
+      }
     });
   }
 
