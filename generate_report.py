@@ -948,8 +948,8 @@ def get_finra_short_interest(ticker: str,
         return {}
 
     sym = ticker.strip().upper()
-    _FINRA_MIN_VOL  = 1     # any non-zero value counts; CSV parser already drops sv=0
-    _TREND_MIN_VOL  = 100   # trend % only computed when oldest ≥ 100 (avoids ÷ tiny)
+    _FINRA_MIN_VOL  = 1        # any non-zero value counts; CSV parser already drops sv=0
+    _TREND_MIN_VOL  = 10_000   # Fix 1: min short-vol for a meaningful trend data point
 
     history: list[dict] = []
     for date_str in dates:
@@ -966,20 +966,23 @@ def get_finra_short_interest(ticker: str,
         _finra_stats["empty"] += 1
         return {}
 
-    # Trend only when oldest ≥ 100 to prevent absurd percentages from tiny values
-    # SI_TREND_MIN_DATAPOINTS (default 2): newest vs. oldest available value
+    # Fix 3: only include data points with value ≥ _TREND_MIN_VOL in trend calc
+    # Fix 1: _TREND_MIN_VOL raised to 10 000 — values below are too small for trend
+    # Fix 2: cap output to [-95 %, +500 %] to suppress data artefacts
+    # Classification uses raw (uncapped) value; only the stored pct is capped.
     trend, trend_pct = "no_data", 0.0
-    if len(history) >= SI_TREND_MIN_DATAPOINTS:
-        newest = history[0]["short_interest"]
-        oldest = history[-1]["short_interest"]
-        if oldest >= _TREND_MIN_VOL:
-            trend_pct = (newest - oldest) / oldest
-            if trend_pct >= SI_TREND_UP_THRESHOLD:
-                trend = "up"
-            elif trend_pct <= SI_TREND_DOWN_THRESHOLD:
-                trend = "down"
-            else:
-                trend = "sideways"
+    significant = [p for p in history if p["short_interest"] >= _TREND_MIN_VOL]
+    if len(significant) >= SI_TREND_MIN_DATAPOINTS:
+        newest = significant[0]["short_interest"]
+        oldest = significant[-1]["short_interest"]
+        raw_pct = (newest - oldest) / oldest
+        if raw_pct >= SI_TREND_UP_THRESHOLD:
+            trend = "up"
+        elif raw_pct <= SI_TREND_DOWN_THRESHOLD:
+            trend = "down"
+        else:
+            trend = "sideways"
+        trend_pct = max(-0.95, min(5.0, raw_pct))
 
     _finra_stats["ok"] += 1
     log.info("%s FINRA history=%d Punkte, trend=%s", sym, len(history), trend)
