@@ -1,11 +1,11 @@
 {
-  "updated": "2026-04-13T21:30:09.375409+02:00",
+  "updated": "2026-04-13T22:12:41.554329+02:00",
   "run_info": {
     "tickers_checked": 10,
     "signals_active": 1,
     "alerts_sent": 0,
-    "elapsed_s": 18.7,
-    "market_phase": "Regulär"
+    "elapsed_s": 20.1,
+    "market_phase": "After-Hours"
   },
   "signals": {
     "LENZ": {
@@ -15,6 +15,16 @@
       "chg_pct": 0.0,
       "rvol": 0.0,
       "earnings": "in 23 Tagen (06.05.2026)",
+      "fda_date": null,
+      "upcoming_event": null
+    },
+    "TNGX": {
+      "score": 18,
+      "drivers": "News: catalyst + Earnings in 28d",
+      "price": 0.0,
+      "chg_pct": 0.0,
+      "rvol": 0.0,
+      "earnings": "in 28 Tagen (11.05.2026)",
       "fda_date": null,
       "upcoming_event": null
     },
@@ -28,16 +38,6 @@
       "fda_date": null,
       "upcoming_event": null
     },
-    "SKIL": {
-      "score": 0,
-      "drivers": "",
-      "price": 0.0,
-      "chg_pct": 0.0,
-      "rvol": 0.0,
-      "earnings": "in 56 Tagen (08.06.2026)",
-      "fda_date": null,
-      "upcoming_event": null
-    },
     "SNBR": {
       "score": 18,
       "drivers": "News: catalyst + Earnings in 16d",
@@ -45,16 +45,6 @@
       "chg_pct": 0.0,
       "rvol": 0.0,
       "earnings": "in 16 Tagen (29.04.2026)",
-      "fda_date": null,
-      "upcoming_event": null
-    },
-    "TNGX": {
-      "score": 18,
-      "drivers": "News: catalyst + Earnings in 28d",
-      "price": 0.0,
-      "chg_pct": 0.0,
-      "rvol": 0.0,
-      "earnings": "in 28 Tagen (11.05.2026)",
       "fda_date": null,
       "upcoming_event": null
     },
@@ -78,6 +68,26 @@
       "fda_date": null,
       "upcoming_event": null
     },
+    "AVXL": {
+      "score": 18,
+      "drivers": "News: halt + Earnings in 28d",
+      "price": 0.0,
+      "chg_pct": 0.0,
+      "rvol": 0.0,
+      "earnings": "in 28 Tagen (11.05.2026)",
+      "fda_date": null,
+      "upcoming_event": null
+    },
+    "TTEC": {
+      "score": 8,
+      "drivers": "Earnings in 24d",
+      "price": 0.0,
+      "chg_pct": 0.0,
+      "rvol": 0.0,
+      "earnings": "in 24 Tagen (07.05.2026)",
+      "fda_date": null,
+      "upcoming_event": null
+    },
     "QDEL": {
       "score": 8,
       "drivers": "Earnings in 23d",
@@ -88,19 +98,9 @@
       "fda_date": null,
       "upcoming_event": null
     },
-    "CHPT": {
-      "score": 10,
-      "drivers": "News: short interest",
-      "price": 0.0,
-      "chg_pct": 0.0,
-      "rvol": 0.0,
-      "earnings": "in 51 Tagen (03.06.2026)",
-      "fda_date": null,
-      "upcoming_event": null
-    },
     "RHI": {
       "score": 28,
-      "drivers": "News: short squeeze, short interest + Earnings in 9d",
+      "drivers": "News: short interest, squeeze + Earnings in 9d",
       "price": 0.0,
       "chg_pct": 0.0,
       "rvol": 0.0,
