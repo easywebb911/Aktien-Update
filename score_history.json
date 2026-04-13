@@ -1,62 +1,62 @@
 {
-  "PLCE": [
+  "ALLO": [
     {
       "date": "13.04.2026",
-      "score": 61.66
+      "score": 46.2
     }
   ],
-  "SPIR": [
+  "LEG": [
     {
       "date": "13.04.2026",
-      "score": 45.29
+      "score": 41.49
     }
   ],
-  "TMCI": [
+  "TBRG": [
     {
       "date": "13.04.2026",
-      "score": 44.99
+      "score": 41.47
     }
   ],
-  "OTLY": [
+  "SEER": [
     {
       "date": "13.04.2026",
-      "score": 34.85
+      "score": 38.31
     }
   ],
-  "RBBN": [
+  "LENZ": [
     {
       "date": "13.04.2026",
-      "score": 31.46
+      "score": 37.92
     }
   ],
-  "AIFU": [
+  "MNPR": [
     {
       "date": "13.04.2026",
-      "score": 30.5
+      "score": 37.44
     }
   ],
-  "RXT": [
+  "IMCR": [
     {
       "date": "13.04.2026",
-      "score": 29.48
+      "score": 36.68
     }
   ],
-  "GPRK": [
+  "MVO": [
     {
       "date": "13.04.2026",
-      "score": 26.3
+      "score": 32.11
     }
   ],
-  "PYXS": [
+  "SANA": [
     {
       "date": "13.04.2026",
-      "score": 25.73
+      "score": 31.1
     }
   ],
-  "COHU": [
+  "AVXL": [
     {
       "date": "13.04.2026",
-      "score": 25.04
+      "score": 28.62
     }
   ]
 }
