@@ -1956,16 +1956,22 @@ a{{color:var(--accent);text-decoration:none}}
 /* ── KI-Agent Status & Signal Dots ── */
 .agent-status-bar{{font-size:.72rem;color:var(--txt-dim);padding:4px 14px 8px;
   letter-spacing:.1px}}
-.agent-dot{{display:inline-block;width:8px;height:8px;border-radius:50%;
+.agent-dot{{display:inline-block;border-radius:50%;
   margin-left:5px;vertical-align:middle;cursor:pointer;position:relative}}
-.agent-dot.strong  {{--pc:#22c55e88;background:#22c55e;animation:pulse 1s   ease-out infinite}}
-.agent-dot.moderate{{--pc:#f59e0b88;background:#f59e0b;animation:pulse 1.5s ease-out infinite}}
-.agent-dot.weak    {{--pc:#ef444488;background:#ef4444;width:6px;height:6px;animation:pulse 2s ease-out infinite}}
-.agent-dot.none    {{background:#6b7280;width:6px;height:6px}}
+.agent-dot.strong  {{width:12px;height:12px;--pc:#22c55e88;background:#22c55e;animation:pulse 1s   ease-out infinite}}
+.agent-dot.moderate{{width:11px;height:11px;--pc:#f59e0b88;background:#f59e0b;animation:pulse 1.5s ease-out infinite}}
+.agent-dot.weak    {{width:10px;height:10px;--pc:#ef444488;background:#ef4444;animation:pulse 2s   ease-out infinite}}
+.agent-dot.none    {{width:8px; height:8px; background:#6b7280}}
 @keyframes pulse{{
   0%  {{box-shadow:0 0 0 0   var(--pc)}}
-  70% {{box-shadow:0 0 0 6px transparent}}
+  70% {{box-shadow:0 0 0 8px transparent}}
   100%{{box-shadow:0 0 0 0   transparent}}
+}}
+@media(max-width:480px){{
+  .agent-dot.strong  {{width:14px;height:14px}}
+  .agent-dot.moderate{{width:13px;height:13px}}
+  .agent-dot.weak    {{width:12px;height:12px}}
+  .agent-dot.none    {{width:10px;height:10px}}
 }}
 .agent-tooltip{{position:absolute;left:50%;transform:translateX(-50%);
   bottom:calc(100% + 6px);background:#1e293b;color:#f1f5f9;
