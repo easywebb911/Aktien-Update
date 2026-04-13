@@ -2958,6 +2958,9 @@ def _wl_mark_inactive(ticker: str) -> None:
                 ticker, _WL_MAX_FAILURES, _WL_INACTIVE_FILE)
 
 
+_WL_SCAN_TIMEOUT = 30  # seconds — abort entire watchlist scan if exceeded
+
+
 def get_watchlist_candidates() -> list[dict]:
     """Volume scan of the static watchlist using per-region batch downloads.
 
