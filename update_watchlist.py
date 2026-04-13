@@ -45,16 +45,24 @@ MIN_TOTAL_TICKERS = 200              # safety guard: abort if total is below thi
 
 WATCHLIST_FILE    = "watchlist.py"
 
+# Regional suffix appended to every ticker symbol so yfinance resolves it correctly
+REGION_SUFFIX: dict[str, str] = {
+    "DE": ".DE", "GB": ".L",  "FR": ".PA",
+    "NL": ".AS", "CA": ".TO", "JP": ".T",
+    "HK": ".HK", "KR": ".KS",
+}
+
 # Screener IDs to query per international region
+# day_gainers + most_actives return local-exchange tickers when region != US
 _INTL_SCREENERS: dict[str, list[str]] = {
-    "DE": ["most_shorted_stocks", "small_cap_gainers"],
-    "GB": ["most_shorted_stocks", "small_cap_gainers"],
-    "FR": ["most_shorted_stocks", "small_cap_gainers"],
-    "NL": ["most_shorted_stocks", "small_cap_gainers"],
-    "CA": ["most_shorted_stocks", "small_cap_gainers"],
-    "JP": ["most_shorted_stocks", "small_cap_gainers"],
-    "HK": ["most_shorted_stocks", "small_cap_gainers"],
-    "KR": ["most_shorted_stocks", "small_cap_gainers"],
+    "DE": ["day_gainers", "most_actives", "small_cap_gainers"],
+    "GB": ["day_gainers", "most_actives", "small_cap_gainers"],
+    "FR": ["day_gainers", "most_actives", "small_cap_gainers"],
+    "NL": ["day_gainers", "most_actives", "small_cap_gainers"],
+    "CA": ["day_gainers", "most_actives", "small_cap_gainers"],
+    "JP": ["day_gainers", "most_actives", "small_cap_gainers"],
+    "HK": ["day_gainers", "most_actives", "small_cap_gainers"],
+    "KR": ["day_gainers", "most_actives", "small_cap_gainers"],
 }
 
 _YF_SCREENER_URL = (
@@ -110,6 +118,10 @@ def _fetch_all_for_region(region: str) -> list[dict]:
             ticker = (q.get("symbol") or "").strip().upper()
             if not ticker or not re.match(r'^[A-Z0-9][A-Z0-9.\-]{0,14}$', ticker):
                 continue
+            # Append regional suffix if the symbol doesn't already carry one
+            suffix = REGION_SUFFIX.get(region, "")
+            if suffix and "." not in ticker:
+                ticker = ticker + suffix
             if ticker in seen:
                 continue
             price   = float(q.get("regularMarketPrice") or 0)
