@@ -1960,13 +1960,13 @@ a{{color:var(--accent);text-decoration:none}}
   margin-left:5px;vertical-align:middle;cursor:pointer;position:relative}}
 .agent-dot.strong{{background:#22c55e;
   box-shadow:0 0 0 0 #22c55e88;
-  animation:pulse-dot 1.5s ease-out infinite}}
+  animation:pulse-dot 1s ease-out infinite}}
 .agent-dot.moderate{{background:#f59e0b;
   box-shadow:0 0 0 0 #f59e0b88;
   animation:pulse-dot-orange 1.5s ease-out infinite}}
 .agent-dot.weak{{background:#ef4444;width:6px;height:6px;
   box-shadow:0 0 0 0 #ef444488;
-  animation:pulse-dot-red 1.5s ease-out infinite}}
+  animation:pulse-dot-red 2s ease-out infinite}}
 .agent-dot.none{{background:#6b7280;width:6px;height:6px}}
 @keyframes pulse-dot{{
   0%{{box-shadow:0 0 0 0 #22c55e88}}
@@ -2783,10 +2783,10 @@ function _fmtGerman(d) {{
 
       const dot = document.createElement('span');
       let dotClass;
-      if (score >= 50)      dotClass = 'strong';
-      else if (score >= 10) dotClass = 'moderate';
-      else if (score >= 1)  dotClass = 'weak';
-      else                  dotClass = 'none';
+      if (score >= 70)      dotClass = 'strong';   // grün, schnell (1s)
+      else if (score >= 40) dotClass = 'moderate'; // orange, mittel (1.5s)
+      else if (score >= 1)  dotClass = 'weak';     // rot, langsam (2s)
+      else                  dotClass = 'none';     // grau, kein Pulsieren
       dot.className = 'agent-dot ' + dotClass;
 
       const tip = document.createElement('span');
