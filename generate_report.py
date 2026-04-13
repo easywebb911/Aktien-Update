@@ -2722,7 +2722,7 @@ _WL_REGION_SUFFIX: dict[str, str] = {
     "CA": ".TO", "JP": ".T", "HK": ".HK", "KR": ".KS",
 }
 _WL_ALL_SUFFIXES = tuple(v.upper() for v in _WL_REGION_SUFFIX.values())
-_WL_MAX_FAILURES  = 3   # consecutive 404/empty responses before auto-deactivation
+_WL_MAX_FAILURES  = 1   # empty/missing responses before auto-deactivation (immediate)
 
 
 def _wl_load_failures() -> dict[str, int]:
@@ -2758,108 +2758,127 @@ def _wl_mark_inactive(ticker: str) -> None:
                 ticker, _WL_MAX_FAILURES, _WL_INACTIVE_FILE)
 
 
+_WL_SCAN_TIMEOUT = 30  # seconds — abort entire watchlist scan if exceeded
+
+
 def get_watchlist_candidates() -> list[dict]:
     """Volume scan of the static watchlist using per-region batch downloads.
 
-    Opt 2 — Instead of one yf.Ticker().history() call per ticker (~200 individual
-    requests with sleeps), download all tickers of a region in a single
-    yf.download() call.  Volume/price filtering is done on the local DataFrame.
-    Per-ticker sleeps are removed because the batch call is not rate-limited the
-    same way as individual requests.
+    Runs inside a 30-second timeout via ThreadPoolExecutor; returns [] if the
+    scan takes too long (e.g. yfinance hanging on an exchange that is closed).
+    Tickers that return no data are immediately marked inactive (_WL_MAX_FAILURES=1).
     """
-    failures = _wl_load_failures()
-    inactive = _wl_load_inactive()
-    newly_inactive: list[str] = []
 
-    results: list[dict] = []
-    for market, tickers in WATCHLIST.items():
-        active = [t for t in tickers if t not in inactive]
-        # Suffix guard: each region only processes tickers with the matching suffix.
-        # US tickers (no suffix) must never appear in non-US region scans.
-        required_suffix = _WL_REGION_SUFFIX.get(market)
-        if required_suffix:
-            active = [t for t in active if t.upper().endswith(required_suffix.upper())]
-        else:
-            # US: exclude any ticker that carries a known non-US suffix
-            active = [t for t in active if not t.upper().endswith(_WL_ALL_SUFFIXES)]
-        if not active:
-            continue
-        log.info("Watchlist scan: %s (%d active / %d total)",
-                 market, len(active), len(tickers))
+    def _scan() -> list[dict]:
+        failures = _wl_load_failures()
+        inactive = _wl_load_inactive()
+        newly_inactive: list[str] = []
 
-        # Opt 2: one batch download per region instead of N individual calls
-        try:
-            hist_batch = yf.download(
-                active, period="21d", group_by="ticker",
-                auto_adjust=True, threads=True, progress=False,
-            )
-        except Exception as exc:
-            log.warning("Watchlist batch failed for %s: %s — skipping region", market, exc)
-            continue
+        results: list[dict] = []
+        for market, tickers in WATCHLIST.items():
+            active = [t for t in tickers if t not in inactive]
+            # Suffix guard: each region only processes tickers with the matching suffix.
+            # US tickers (no suffix) must never appear in non-US region scans.
+            required_suffix = _WL_REGION_SUFFIX.get(market)
+            if required_suffix:
+                active = [t for t in active if t.upper().endswith(required_suffix.upper())]
+            else:
+                # US: exclude any ticker that carries a known non-US suffix
+                active = [t for t in active if not t.upper().endswith(_WL_ALL_SUFFIXES)]
+            if not active:
+                continue
+            log.info("Watchlist scan: %s (%d active / %d total)",
+                     market, len(active), len(tickers))
 
-        for ticker in active:
+            # One batch download per region instead of N individual calls
             try:
-                # Extract per-ticker slice from MultiLevel DataFrame
-                # (single-ticker download returns a flat DataFrame)
-                if len(active) == 1:
-                    df = hist_batch
-                else:
-                    try:
-                        df = hist_batch[ticker]
-                    except KeyError:
-                        df = None
+                hist_batch = yf.download(
+                    active, period="21d", group_by="ticker",
+                    auto_adjust=True, threads=True, progress=False,
+                )
+            except Exception as exc:
+                log.warning("Watchlist batch failed for %s: %s — skipping region", market, exc)
+                continue
 
-                if df is None or df.empty or len(df) < 5:
+            for ticker in active:
+                try:
+                    # Extract per-ticker slice from MultiLevel DataFrame
+                    # (single-ticker download returns a flat DataFrame)
+                    if len(active) == 1:
+                        df = hist_batch
+                    else:
+                        try:
+                            df = hist_batch[ticker]
+                        except KeyError:
+                            df = None
+
+                    if df is None or df.empty or len(df) < 5:
+                        failures[ticker] = failures.get(ticker, 0) + 1
+                        if failures[ticker] >= _WL_MAX_FAILURES:
+                            _wl_mark_inactive(ticker)
+                            newly_inactive.append(ticker)
+                            failures.pop(ticker, None)
+                        continue
+
+                    # Success → reset failure count
+                    failures.pop(ticker, None)
+
+                    avg_vol = float(df["Volume"].iloc[:-1].mean())
+                    cur_vol = float(df["Volume"].iloc[-1])
+                    if avg_vol < 1000:
+                        continue
+                    rel_vol = cur_vol / avg_vol if avg_vol > 0 else 0.0
+                    if rel_vol < MIN_REL_VOLUME:
+                        continue
+                    price = float(df["Close"].iloc[-1])
+                    if price < MIN_PRICE:
+                        continue
+                    prev_close = float(df["Close"].iloc[-2])
+                    chg = (price - prev_close) / prev_close * 100 if prev_close > 0 else 0.0
+                    results.append({
+                        "ticker":       ticker,
+                        "market":       market,
+                        "price":        price,
+                        "change":       round(chg, 2),
+                        "rel_volume":   round(rel_vol, 2),
+                        "short_float":  0.0,
+                        "short_ratio":  0.0,
+                        "company_name": ticker,
+                        "sector":       "",
+                        "source":       "watchlist",
+                    })
+                    log.info("  watchlist hit: %s [%s] vol=%.1f×", ticker, market, rel_vol)
+                except Exception as exc:
+                    log.debug("  watchlist skip %s: %s", ticker, exc)
                     failures[ticker] = failures.get(ticker, 0) + 1
                     if failures[ticker] >= _WL_MAX_FAILURES:
                         _wl_mark_inactive(ticker)
                         newly_inactive.append(ticker)
                         failures.pop(ticker, None)
-                    continue
+            # No per-ticker sleep — batch download already complete for this region
 
-                # Success → reset failure count
-                failures.pop(ticker, None)
+        _wl_save_failures(failures)
+        if newly_inactive:
+            print(f"Watchlist: {len(newly_inactive)} Ticker als inaktiv markiert: "
+                  f"{newly_inactive}", flush=True)
+        log.info("Watchlist candidates: %d (inactive skipped: %d)", len(results), len(inactive))
+        return results
 
-                avg_vol = float(df["Volume"].iloc[:-1].mean())
-                cur_vol = float(df["Volume"].iloc[-1])
-                if avg_vol < 1000:
-                    continue
-                rel_vol = cur_vol / avg_vol if avg_vol > 0 else 0.0
-                if rel_vol < MIN_REL_VOLUME:
-                    continue
-                price = float(df["Close"].iloc[-1])
-                if price < MIN_PRICE:
-                    continue
-                prev_close = float(df["Close"].iloc[-2])
-                chg = (price - prev_close) / prev_close * 100 if prev_close > 0 else 0.0
-                results.append({
-                    "ticker":       ticker,
-                    "market":       market,
-                    "price":        price,
-                    "change":       round(chg, 2),
-                    "rel_volume":   round(rel_vol, 2),
-                    "short_float":  0.0,
-                    "short_ratio":  0.0,
-                    "company_name": ticker,
-                    "sector":       "",
-                    "source":       "watchlist",
-                })
-                log.info("  watchlist hit: %s [%s] vol=%.1f×", ticker, market, rel_vol)
-            except Exception as exc:
-                log.debug("  watchlist skip %s: %s", ticker, exc)
-                failures[ticker] = failures.get(ticker, 0) + 1
-                if failures[ticker] >= _WL_MAX_FAILURES:
-                    _wl_mark_inactive(ticker)
-                    newly_inactive.append(ticker)
-                    failures.pop(ticker, None)
-        # No per-ticker sleep — batch download already complete for this region
-
-    _wl_save_failures(failures)
-    if newly_inactive:
-        print(f"Watchlist: {len(newly_inactive)} Ticker als inaktiv markiert: "
-              f"{newly_inactive}", flush=True)
-    log.info("Watchlist candidates: %d (inactive skipped: %d)", len(results), len(inactive))
-    return results
+    # Run scan with hard timeout so a hanging yfinance call cannot block the report
+    with ThreadPoolExecutor(max_workers=1) as ex:
+        fut = ex.submit(_scan)
+        try:
+            return fut.result(timeout=_WL_SCAN_TIMEOUT)
+        except TimeoutError:
+            log.warning(
+                "Watchlist scan exceeded %ds timeout — aborting, returning 0 candidates",
+                _WL_SCAN_TIMEOUT,
+            )
+            print(f"Watchlist-Scan nach {_WL_SCAN_TIMEOUT}s abgebrochen.", flush=True)
+            return []
+        except Exception as exc:
+            log.error("Watchlist scan error: %s", exc)
+            return []
 
 
 # ===========================================================================
