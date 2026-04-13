@@ -949,7 +949,7 @@ def get_finra_short_interest(ticker: str,
 
     sym = ticker.strip().upper()
     _FINRA_MIN_VOL  = 1        # any non-zero value counts; CSV parser already drops sv=0
-    _TREND_MIN_VOL  = 10_000   # Fix 1: min short-vol for a meaningful trend data point
+    _TREND_MIN_VOL  = 1_000    # min short-vol for a meaningful trend data point
 
     history: list[dict] = []
     for date_str in dates:
@@ -966,9 +966,8 @@ def get_finra_short_interest(ticker: str,
         _finra_stats["empty"] += 1
         return {}
 
-    # Fix 3: only include data points with value ≥ _TREND_MIN_VOL in trend calc
-    # Fix 1: _TREND_MIN_VOL raised to 10 000 — values below are too small for trend
-    # Fix 2: cap output to [-95 %, +500 %] to suppress data artefacts
+    # Only include data points ≥ _TREND_MIN_VOL (1 000) in trend calc
+    # Cap output to [-95 %, +500 %] to suppress data artefacts
     # Classification uses raw (uncapped) value; only the stored pct is capped.
     trend, trend_pct = "no_data", 0.0
     significant = [p for p in history if p["short_interest"] >= _TREND_MIN_VOL]
@@ -983,6 +982,9 @@ def get_finra_short_interest(ticker: str,
         else:
             trend = "sideways"
         trend_pct = max(-0.95, min(5.0, raw_pct))
+        if _finra_stats.get("ok", 0) < 5:
+            print(f"{sym} FINRA trend: oldest={oldest:,}, newest={newest:,}, "
+                  f"trend_pct={trend_pct*100:.1f}%, trend={trend}", flush=True)
 
     _finra_stats["ok"] += 1
     log.info("%s FINRA history=%d Punkte, trend=%s", sym, len(history), trend)
