@@ -1,10 +1,10 @@
 {
-  "updated": "2026-04-13T22:28:25.661308+02:00",
+  "updated": "2026-04-13T22:37:26.601598+02:00",
   "run_info": {
     "tickers_checked": 10,
     "signals_active": 1,
     "alerts_sent": 0,
-    "elapsed_s": 24.9,
+    "elapsed_s": 23.9,
     "market_phase": "After-Hours"
   },
   "signals": {
@@ -38,16 +38,6 @@
       "fda_date": null,
       "upcoming_event": null
     },
-    "PAR": {
-      "score": 8,
-      "drivers": "Earnings in 25d",
-      "price": 0.0,
-      "chg_pct": 0.0,
-      "rvol": 0.0,
-      "earnings": "in 25 Tagen (08.05.2026)",
-      "fda_date": null,
-      "upcoming_event": null
-    },
     "SNBR": {
       "score": 18,
       "drivers": "News: catalyst + Earnings in 16d",
@@ -65,6 +55,16 @@
       "chg_pct": 0.0,
       "rvol": 0.0,
       "earnings": "in 24 Tagen (07.05.2026)",
+      "fda_date": null,
+      "upcoming_event": null
+    },
+    "QDEL": {
+      "score": 8,
+      "drivers": "Earnings in 23d",
+      "price": 0.0,
+      "chg_pct": 0.0,
+      "rvol": 0.0,
+      "earnings": "in 23 Tagen (06.05.2026)",
       "fda_date": null,
       "upcoming_event": null
     },
