@@ -1958,30 +1958,14 @@ a{{color:var(--accent);text-decoration:none}}
   letter-spacing:.1px}}
 .agent-dot{{display:inline-block;width:8px;height:8px;border-radius:50%;
   margin-left:5px;vertical-align:middle;cursor:pointer;position:relative}}
-.agent-dot.strong{{background:#22c55e;
-  box-shadow:0 0 0 0 #22c55e88;
-  animation:pulse-dot 1s ease-out infinite}}
-.agent-dot.moderate{{background:#f59e0b;
-  box-shadow:0 0 0 0 #f59e0b88;
-  animation:pulse-dot-orange 1.5s ease-out infinite}}
-.agent-dot.weak{{background:#ef4444;width:6px;height:6px;
-  box-shadow:0 0 0 0 #ef444488;
-  animation:pulse-dot-red 2s ease-out infinite}}
-.agent-dot.none{{background:#6b7280;width:6px;height:6px}}
-@keyframes pulse-dot{{
-  0%{{box-shadow:0 0 0 0 #22c55e88}}
-  70%{{box-shadow:0 0 0 6px #22c55e00}}
-  100%{{box-shadow:0 0 0 0 #22c55e00}}
-}}
-@keyframes pulse-dot-orange{{
-  0%{{box-shadow:0 0 0 0 #f59e0b88}}
-  70%{{box-shadow:0 0 0 6px #f59e0b00}}
-  100%{{box-shadow:0 0 0 0 #f59e0b00}}
-}}
-@keyframes pulse-dot-red{{
-  0%{{box-shadow:0 0 0 0 #ef444488}}
-  70%{{box-shadow:0 0 0 5px #ef444400}}
-  100%{{box-shadow:0 0 0 0 #ef444400}}
+.agent-dot.strong  {{--pc:#22c55e88;background:#22c55e;animation:pulse 1s   ease-out infinite}}
+.agent-dot.moderate{{--pc:#f59e0b88;background:#f59e0b;animation:pulse 1.5s ease-out infinite}}
+.agent-dot.weak    {{--pc:#ef444488;background:#ef4444;width:6px;height:6px;animation:pulse 2s ease-out infinite}}
+.agent-dot.none    {{background:#6b7280;width:6px;height:6px}}
+@keyframes pulse{{
+  0%  {{box-shadow:0 0 0 0   var(--pc)}}
+  70% {{box-shadow:0 0 0 6px transparent}}
+  100%{{box-shadow:0 0 0 0   transparent}}
 }}
 .agent-tooltip{{position:absolute;left:50%;transform:translateX(-50%);
   bottom:calc(100% + 6px);background:#1e293b;color:#f1f5f9;
