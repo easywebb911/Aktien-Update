@@ -52,6 +52,25 @@ REGION_SUFFIX: dict[str, str] = {
     "HK": ".HK", "KR": ".KS",
 }
 
+# Seed tickers per region — known short-interest-relevant local stocks.
+# These are always included first; screener results fill up to MAX_PER_REGION.
+_INTL_SEED_TICKERS: dict[str, list[str]] = {
+    "DE": ["SAP.DE","SIE.DE","BAS.DE","MBG.DE","VOW3.DE","RHM.DE","P911.DE",
+           "TUI1.DE","LEG.DE","TAG.DE","AIXA.DE","EVTG.DE","NFON.DE","PVA.DE","SGL.DE"],
+    "GB": ["SHEL.L","BP.L","LLOY.L","BARC.L","VOD.L","IAG.L","NXT.L",
+           "MKS.L","OCDO.L","THG.L","BOOH.L","AO.L"],
+    "FR": ["AIR.PA","TTE.PA","SAN.PA","BNP.PA","MC.PA","ORA.PA",
+           "VIE.PA","HO.PA","CGG.PA","GENFIT.PA","VALNEVA.PA"],
+    "NL": ["ASML.AS","PHIA.AS","ING.AS","BAMNB.AS","HEIJM.AS","TKWY.AS","HYDRA.AS"],
+    "CA": ["BB.TO","TLRY.TO","HIVE.TO","BITF.TO","WEED.TO","ACB.TO",
+           "CRON.TO","SNDL.TO","HUT.TO"],
+    "JP": ["7203.T","9984.T","6758.T","7267.T","9433.T","6861.T","4063.T","8306.T"],
+    "HK": ["0700.HK","0941.HK","0005.HK","1299.HK","0388.HK",
+           "2318.HK","0992.HK","2382.HK","0175.HK"],
+    "KR": ["005930.KS","000660.KS","035420.KS","051910.KS",
+           "006400.KS","207940.KS"],
+}
+
 # Screener IDs to query per international region
 # day_gainers + most_actives return local-exchange tickers when region != US
 _INTL_SCREENERS: dict[str, list[str]] = {
@@ -254,7 +273,16 @@ def main() -> None:
         candidates = raw_by_region.get(region, [])
         if candidates:
             _enrich_avg_vol(candidates)
-        new_watchlist[region] = select_top_tickers(region, candidates)
+        screener_tickers = select_top_tickers(region, candidates)
+
+        # Merge: seeds always first, screener results fill up to MAX_PER_REGION
+        seeds = _INTL_SEED_TICKERS.get(region, [])
+        seed_set = set(seeds)
+        extra = [t for t in screener_tickers if t not in seed_set]
+        merged = seeds + extra
+        new_watchlist[region] = merged[:MAX_PER_REGION]
+        log.info("Region %s: %d seeds + %d screener → %d total",
+                 region, len(seeds), len(extra), len(new_watchlist[region]))
 
     # Safety guard
     total = sum(len(v) for v in new_watchlist.values())
