@@ -1,53 +1,13 @@
 {
-  "updated": "2026-04-13T18:22:04.941541+02:00",
+  "updated": "2026-04-13T21:30:09.375409+02:00",
   "run_info": {
     "tickers_checked": 10,
-    "signals_active": 2,
+    "signals_active": 1,
     "alerts_sent": 0,
-    "elapsed_s": 17.5,
+    "elapsed_s": 18.7,
     "market_phase": "Regulär"
   },
   "signals": {
-    "ALLO": {
-      "score": 0,
-      "drivers": "",
-      "price": 0.0,
-      "chg_pct": 0.0,
-      "rvol": 0.0,
-      "earnings": "in 32 Tagen (15.05.2026)",
-      "fda_date": null,
-      "upcoming_event": null
-    },
-    "LEG": {
-      "score": 8,
-      "drivers": "Earnings in 14d",
-      "price": 0.0,
-      "chg_pct": 0.0,
-      "rvol": 0.0,
-      "earnings": "in 14 Tagen (27.04.2026)",
-      "fda_date": null,
-      "upcoming_event": null
-    },
-    "TBRG": {
-      "score": 28,
-      "drivers": "News: acquisition, takeover + Earnings in 23d",
-      "price": 0.0,
-      "chg_pct": 0.0,
-      "rvol": 0.0,
-      "earnings": "in 23 Tagen (06.05.2026)",
-      "fda_date": null,
-      "upcoming_event": null
-    },
-    "SEER": {
-      "score": 28,
-      "drivers": "News: activist investor, acquisition + Earnings in 29d",
-      "price": 0.0,
-      "chg_pct": 0.0,
-      "rvol": 0.0,
-      "earnings": "in 29 Tagen (12.05.2026)",
-      "fda_date": null,
-      "upcoming_event": null
-    },
     "LENZ": {
       "score": 8,
       "drivers": "Earnings in 23d",
@@ -58,9 +18,9 @@
       "fda_date": null,
       "upcoming_event": null
     },
-    "MNPR": {
+    "PSFE": {
       "score": 18,
-      "drivers": "News: catalyst + Earnings in 29d",
+      "drivers": "News: earnings beat + Earnings in 29d",
       "price": 0.0,
       "chg_pct": 0.0,
       "rvol": 0.0,
@@ -68,7 +28,57 @@
       "fda_date": null,
       "upcoming_event": null
     },
-    "IMCR": {
+    "SKIL": {
+      "score": 0,
+      "drivers": "",
+      "price": 0.0,
+      "chg_pct": 0.0,
+      "rvol": 0.0,
+      "earnings": "in 56 Tagen (08.06.2026)",
+      "fda_date": null,
+      "upcoming_event": null
+    },
+    "SNBR": {
+      "score": 18,
+      "drivers": "News: catalyst + Earnings in 16d",
+      "price": 0.0,
+      "chg_pct": 0.0,
+      "rvol": 0.0,
+      "earnings": "in 16 Tagen (29.04.2026)",
+      "fda_date": null,
+      "upcoming_event": null
+    },
+    "TNGX": {
+      "score": 18,
+      "drivers": "News: catalyst + Earnings in 28d",
+      "price": 0.0,
+      "chg_pct": 0.0,
+      "rvol": 0.0,
+      "earnings": "in 28 Tagen (11.05.2026)",
+      "fda_date": null,
+      "upcoming_event": null
+    },
+    "PAR": {
+      "score": 8,
+      "drivers": "Earnings in 25d",
+      "price": 0.0,
+      "chg_pct": 0.0,
+      "rvol": 0.0,
+      "earnings": "in 25 Tagen (08.05.2026)",
+      "fda_date": null,
+      "upcoming_event": null
+    },
+    "BEAM": {
+      "score": 8,
+      "drivers": "Earnings in 22d",
+      "price": 0.0,
+      "chg_pct": 0.0,
+      "rvol": 0.0,
+      "earnings": "in 22 Tagen (05.05.2026)",
+      "fda_date": null,
+      "upcoming_event": null
+    },
+    "QDEL": {
       "score": 8,
       "drivers": "Earnings in 23d",
       "price": 0.0,
@@ -78,33 +88,23 @@
       "fda_date": null,
       "upcoming_event": null
     },
-    "MVO": {
+    "CHPT": {
       "score": 10,
-      "drivers": "News: breakout",
+      "drivers": "News: short interest",
       "price": 0.0,
       "chg_pct": 0.0,
       "rvol": 0.0,
-      "earnings": null,
+      "earnings": "in 51 Tagen (03.06.2026)",
       "fda_date": null,
       "upcoming_event": null
     },
-    "SANA": {
-      "score": 18,
-      "drivers": "News: short interest + Earnings in 24d",
+    "RHI": {
+      "score": 28,
+      "drivers": "News: short squeeze, short interest + Earnings in 9d",
       "price": 0.0,
       "chg_pct": 0.0,
       "rvol": 0.0,
-      "earnings": "in 24 Tagen (07.05.2026)",
-      "fda_date": null,
-      "upcoming_event": null
-    },
-    "AVXL": {
-      "score": 18,
-      "drivers": "News: halt + Earnings in 28d",
-      "price": 0.0,
-      "chg_pct": 0.0,
-      "rvol": 0.0,
-      "earnings": "in 28 Tagen (11.05.2026)",
+      "earnings": "in 9 Tagen (22.04.2026)",
       "fda_date": null,
       "upcoming_event": null
     }
