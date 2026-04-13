@@ -2163,20 +2163,21 @@ a{{color:var(--accent);text-decoration:none}}
       <div class="info-box">
         <h4>Score (0–100)</h4>
         <ul>
-          <li><strong>32 Pkt Short Float</strong> – Anteil leerverkaufter Aktien; je höher, desto stärker der Squeeze-Druck</li>
-          <li><strong>23 Pkt Days to Cover</strong> – Tage zum vollständigen Eindecken; hohe Werte erhöhen Kapitulationsrisiko</li>
-          <li><strong>23 Pkt Rel. Volumen</strong> – Heutiges vs. 20-Tage-Durchschnitt; Spitzen signalisieren Kaufinteresse</li>
-          <li><strong>14 Pkt Kursmomentum</strong> – positive Kursveränderung erhöht den Squeeze-Druck auf Leerverkäufer. Nur steigende Kurse fließen positiv in den Score ein.</li>
-          <li><strong>8 Pkt Float-Größe</strong> – kleiner Float verstärkt den Squeeze-Effekt bei gleichem Short Float-Prozentsatz. Sättigung unter 30 Mio. Aktien.</li>
-          <li><strong>+ bis 5 Pkt FINRA SI-Trend Bonus</strong> – steigender Short Interest ≥ +10 % → 5 Pkt · Seitwärts → 2,5 Pkt · Fallend oder keine Daten → 0 Pkt</li>
+          <li><strong>32 Pkt Short Float</strong> – Anteil leerverkaufter Aktien (Sättigung 100 %); je höher, desto stärker der Squeeze-Druck</li>
+          <li><strong>23 Pkt Days to Cover</strong> – Tage zum vollständigen Eindecken (Sättigung 20 Tage); hohe Werte erhöhen Kapitulationsrisiko</li>
+          <li><strong>23 Pkt Rel. Volumen</strong> – Heutiges vs. 20-Tage-Durchschnitt (Sättigung 5×); Spitzen signalisieren Kaufinteresse</li>
+          <li><strong>14 Pkt Kursmomentum</strong> – nur positive Kursveränderung (Sättigung +15 %); steigende Kurse erhöhen den Druck auf Leerverkäufer</li>
+          <li><strong>8 Pkt Float-Größe</strong> – kleiner Float verstärkt den Squeeze-Effekt; unter 30 Mio. Aktien = voll, über 50 Mio. = 0 Pkt</li>
+          <li><strong>+ bis 5 Pkt FINRA SI-Trend Bonus</strong> – steigend ≥ +10 % → 5 Pkt · seitwärts → 2,5 Pkt · fallend oder keine Daten → 0 Pkt</li>
         </ul>
       </div>
       <div class="info-box">
         <h4>Filterkriterien</h4>
         <ul>
-          <li><strong>Short Float &gt; 15 %</strong> – Mindest-Leerverkaufsquote</li>
-          <li><strong>Kurs &gt; $1</strong> – Ausschluss von Penny Stocks</li>
-          <li><strong>Marktkapitalisierung &lt; $10 Mrd.</strong> – Small- &amp; Mid-Caps</li>
+          <li><strong>Short Float &gt; 15 %</strong> – Mindest-Leerverkaufsquote (nur US)</li>
+          <li><strong>Kurs &gt; 1 USD</strong> – Ausschluss von Penny Stocks</li>
+          <li><strong>Marktkapitalisierung &lt; 10 Mrd. USD</strong> – Small- &amp; Mid-Caps</li>
+          <li><strong>Relatives Volumen ≥ 1,5×</strong> – Mindestaktivität</li>
           <li><strong>Märkte:</strong> 🇺🇸 US · 🇩🇪 DE · 🇬🇧 GB · 🇫🇷 FR · 🇳🇱 NL · 🇨🇦 CA · 🇯🇵 JP · 🇭🇰 HK · 🇰🇷 KR</li>
           <li><strong>Internationale Aktien:</strong> kein Short-Float-Filter, Score gedeckelt bei 50 Pkt (nur Volumen + Momentum)</li>
         </ul>
@@ -2185,9 +2186,18 @@ a{{color:var(--accent);text-decoration:none}}
         <h4>Datenquellen</h4>
         <ul>
           <li><strong>Yahoo Finance Screener</strong> – Most Shorted, Small Cap Gainers, Aggressive Small Caps</li>
-          <li><strong>Märkte:</strong> 🇺🇸 US · 🇩🇪 DE · 🇬🇧 GB · 🇫🇷 FR · 🇳🇱 NL · 🇨🇦 CA · 🇯🇵 JP · 🇭🇰 HK · 🇰🇷 KR</li>
-          <li><strong>Anreicherung:</strong> yfinance (Short Float, Days to Cover, Volumen, Kurs) + FINRA (offizielles Short Interest, SI-Trend aus 3 Meldezeiträumen)</li>
-
+          <li><strong>FINRA</strong> – offizielles Short Interest; SI-Trend aus 6 Meldezeiträumen (≈ 3 Monate)</li>
+          <li><strong>yfinance</strong> – Short Float, Days to Cover, Volumen, Kursdaten, RSI, MA50/200, Optionsdaten</li>
+          <li><strong>Fails-to-Deliver:</strong> nicht verfügbar (IP-Beschränkung GitHub Actions)</li>
+        </ul>
+      </div>
+      <div class="info-box">
+        <h4>⚡ KI-Agent</h4>
+        <p style="font-size:.82rem;color:var(--txt-sub);margin:0 0 8px">Der KI-Agent überwacht alle 30 Minuten die Top-10-Kandidaten auf Squeeze-Trigger.</p>
+        <ul>
+          <li><strong>Datenquellen:</strong> Yahoo Finance News, Google News, Seeking Alpha, MarketBeat, Unusual Whales, SEC EDGAR RSS, yfinance Intraday-Daten, Earnings-Kalender, FDA Press Release RSS</li>
+          <li><strong>Signal-Schwellen:</strong> Kursanstieg ≥ 2 % · Volumen ≥ 1,5× · News-Keywords · Earnings ≤ 30 Tage</li>
+          <li><strong>Alert-Schwelle:</strong> Score ≥ 25 Punkte</li>
         </ul>
       </div>
       <div class="info-box info-box--full">
