@@ -1206,10 +1206,7 @@ def apply_score_smoothing(stocks: list[dict], today: str) -> None:
         )[-7:]
         if len(all_entries) >= 2:
             spark_scores = [round(e["score"], 1) for e in all_entries]
-            spark_dates  = [
-                datetime.strptime(e["date"], "%Y-%m-%d").strftime("%d.%m")
-                for e in all_entries
-            ]
+            spark_dates  = [e["date"] for e in all_entries]   # ISO YYYY-MM-DD; JS parses weekday
             delta = spark_scores[-1] - spark_scores[0]
             if delta >= 3:
                 spark_trend = f"↑ +{delta:.1f} Pkt"
@@ -1225,6 +1222,7 @@ def apply_score_smoothing(stocks: list[dict], today: str) -> None:
                 "dates":  spark_dates,
                 "trend":  spark_trend,
                 "col":    spark_col,
+                "today":  today,
             }
         else:
             s["sparkline"] = None
@@ -1385,16 +1383,14 @@ def _card(i: int, s: dict) -> str:
             f'<div class="spark-wrap" '
             f'data-scores=\'{_sc_json}\' '
             f'data-dates=\'{_dt_json}\' '
-            f'data-col="{_spark["col"]}">'
+            f'data-col="{_spark["col"]}" '
+            f'data-today="{_spark["today"]}">'
             f'<div class="spark-header">'
             f'<span class="spark-title">Score-Verlauf</span>'
             f'<span class="spark-trend" style="color:{_spark["col"]}">{_spark["trend"]}</span>'
             f'</div>'
             f'<div class="spark-svg-wrap"></div>'
-            f'<div class="spark-dates">'
-            f'<span>{_spark["dates"][0]}</span>'
-            f'<span>{_spark["dates"][-1]}</span>'
-            f'</div>'
+            f'<div class="spark-days"></div>'
             f'</div>'
         )
     else:
@@ -1930,18 +1926,20 @@ a{{color:var(--accent);text-decoration:none}}
 .spark-wrap{{padding:8px 12px 4px;border-top:1px solid var(--brd)}}
 .spark-header{{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px}}
 .spark-title{{font-size:.65rem;color:var(--txt-dim);text-transform:uppercase;letter-spacing:.3px}}
-.spark-trend{{font-size:.72rem;font-weight:600}}
-.spark-svg-wrap{{width:100%;height:40px;position:relative}}
-.spark-svg-wrap svg{{width:100%;height:40px;overflow:visible}}
-.spark-dates{{display:flex;justify-content:space-between;margin-top:3px}}
-.spark-dates span{{font-size:.6rem;color:var(--txt-dim)}}
+.spark-trend{{font-size:13px;font-weight:700}}
+.spark-svg-wrap{{width:100%;height:60px;position:relative}}
+.spark-svg-wrap svg{{width:100%;height:60px;overflow:visible}}
+.spark-days{{position:relative;height:14px;margin-top:2px}}
+.spark-day-lbl{{position:absolute;font-size:.58rem;color:var(--txt-dim);
+  transform:translateX(-50%);white-space:nowrap;line-height:1}}
+.spark-day-lbl.ghost{{color:#6b7280}}
 .spark-placeholder{{font-size:.7rem;color:var(--txt-dim);font-style:italic;
   padding:8px 12px 6px;border-top:1px solid var(--brd)}}
 /* Sparkline tooltip */
 .spark-tip{{position:absolute;background:var(--bg-card);border:1px solid var(--brd);
   border-radius:5px;padding:2px 6px;font-size:.68rem;color:var(--txt);
   pointer-events:none;white-space:nowrap;z-index:10;
-  transform:translate(-50%,-120%);opacity:0;transition:opacity .15s}}
+  transform:translate(-50%,-130%);opacity:0;transition:opacity .15s}}
 .spark-tip.visible{{opacity:1}}
 /* ── Metrics ── */
 .metrics-row{{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;padding:0 12px 12px}}
@@ -2103,7 +2101,7 @@ a{{color:var(--accent);text-decoration:none}}
   .stats-bar{{break-inside:avoid;page-break-inside:avoid}}
   .info-panel{{break-inside:avoid;page-break-inside:avoid}}
   /* Make sparkline section take less space */
-  .sparkline-wrap{{max-height:60px;overflow:hidden}}
+  .spark-wrap{{max-height:90px;overflow:hidden}}
   /* Score track bar via background-color not CSS var */
   .score-fill{{print-color-adjust:exact;-webkit-print-color-adjust:exact}}
   /* Badges and colour indicators — keep colours in print */
@@ -2651,89 +2649,158 @@ function _fmtGerman(d) {{
 // ── Sparkline renderer ────────────────────────────────────────────────────────
 (function(){{
   const isMobile = ('ontouchstart' in window) || (window.matchMedia('(pointer:coarse)').matches);
-  const PT_R     = isMobile ? 4 : 3;
-  const PAD      = {{l:2, r:2, t:4, b:4}};
+  const DAYS_DE  = ['So','Mo','Di','Mi','Do','Fr','Sa'];
+  const PAD      = {{l:4, r:4, t:6, b:6}};
+  const H        = 60;
+  const PT_R     = isMobile ? 6 : 5;
+
+  function parseIso(s) {{ return new Date(s + 'T12:00:00'); }}
+
+  // Returns true if consecutive data points have a missing trading day between them
+  function isGap(d1, d2) {{
+    const diff = Math.round((d2 - d1) / 86400000);
+    if (diff <= 1) return false;
+    if (diff === 3 && d1.getDay() === 5) return false; // Fri→Mon = normal weekend
+    return true;
+  }}
 
   function drawSparkline(wrap) {{
-    const scores = JSON.parse(wrap.dataset.scores || '[]');
-    const dates  = JSON.parse(wrap.dataset.dates  || '[]');
-    const col    = wrap.dataset.col  || '#94a3b8';
-    const n      = scores.length;
+    const scores  = JSON.parse(wrap.dataset.scores || '[]');
+    const dates   = JSON.parse(wrap.dataset.dates  || '[]'); // ISO YYYY-MM-DD
+    const col     = wrap.dataset.col   || '#94a3b8';
+    const todayS  = wrap.dataset.today || '';
+    const n       = scores.length;
     if (n < 2) return;
 
-    const svgWrap = wrap.querySelector('.spark-svg-wrap');
+    const svgWrap  = wrap.querySelector('.spark-svg-wrap');
+    const daysWrap = wrap.querySelector('.spark-days');
     if (!svgWrap) return;
 
-    // Use observed width; fall back gracefully
     const W = svgWrap.clientWidth || 280;
-    const H = 40;
 
-    const minS = Math.min(...scores);
-    const maxS = Math.max(...scores);
+    const dateParsed = dates.map(parseIso);
+    const firstDate  = dateParsed[0];
+    const lastDate   = dateParsed[n - 1];
+
+    // Ghost dot: show if today is strictly after the last recorded date
+    const hasGhost  = todayS && todayS > dates[n - 1];
+    const ghostDate = hasGhost ? parseIso(todayS) : null;
+
+    // X-axis spans from firstDate to max(lastDate, today)
+    const spanEnd    = hasGhost ? ghostDate : lastDate;
+    const totalMs    = spanEnd - firstDate || 1;
+
+    function xOf(d) {{
+      return PAD.l + ((d - firstDate) / totalMs) * (W - PAD.l - PAD.r);
+    }}
+
+    const minS  = Math.min(...scores);
+    const maxS  = Math.max(...scores);
     const range = maxS - minS || 1;
 
-    function xOf(idx) {{
-      return PAD.l + (idx / (n - 1)) * (W - PAD.l - PAD.r);
-    }}
     function yOf(val) {{
       return PAD.t + (1 - (val - minS) / range) * (H - PAD.t - PAD.b);
     }}
 
-    // Build polyline points
-    const pts = scores.map((s, i) => `${{xOf(i).toFixed(1)}},${{yOf(s).toFixed(1)}}`).join(' ');
-    // Area fill path: line + close along bottom
-    const areaD = scores.map((s, i) => (i === 0 ? 'M' : 'L') + `${{xOf(i).toFixed(1)}},${{yOf(s).toFixed(1)}}`).join(' ')
-      + ` L${{xOf(n-1).toFixed(1)}},${{(H - PAD.b).toFixed(1)}} L${{xOf(0).toFixed(1)}},${{(H - PAD.b).toFixed(1)}} Z`;
+    // Build area fill (continuous, no gaps) and stroke path (with gaps)
+    let areaD = '', lineD = '', newSeg = true;
+    for (let i = 0; i < n; i++) {{
+      const cx = xOf(dateParsed[i]).toFixed(1);
+      const cy = yOf(scores[i]).toFixed(1);
+      if (i === 0) {{
+        areaD += `M${{cx}},${{cy}}`;
+        lineD += `M${{cx}},${{cy}}`;
+        newSeg = false;
+      }} else {{
+        areaD += `L${{cx}},${{cy}}`;
+        lineD += (newSeg ? `M${{cx}},${{cy}}` : `L${{cx}},${{cy}}`);
+        newSeg = false;
+      }}
+      if (i < n - 1 && isGap(dateParsed[i], dateParsed[i + 1])) newSeg = true;
+    }}
+    // Close area along bottom baseline
+    const x0 = xOf(dateParsed[0]).toFixed(1);
+    const xN = xOf(dateParsed[n-1]).toFixed(1);
+    areaD += ` L${{xN}},${{(H - PAD.b).toFixed(1)}} L${{x0}},${{(H - PAD.b).toFixed(1)}} Z`;
 
-    const colFill = col.replace('#', '');
-    const svgId   = 'sp' + Math.random().toString(36).slice(2,7);
+    const svgId = 'sp' + Math.random().toString(36).slice(2, 7);
 
+    // Real data circles
     let circlesHtml = '';
     for (let i = 0; i < n; i++) {{
-      const cx = xOf(i).toFixed(1);
+      const cx = xOf(dateParsed[i]).toFixed(1);
       const cy = yOf(scores[i]).toFixed(1);
-      circlesHtml += `<circle class="sp-dot" cx="${{cx}}" cy="${{cy}}" r="${{PT_R}}" fill="${{col}}" stroke="var(--bg-card)" stroke-width="1.5" data-score="${{scores[i]}}" data-date="${{dates[i]}}"/>`;
+      const dow = DAYS_DE[dateParsed[i].getDay()];
+      const dd  = dates[i].slice(8, 10) + '.' + dates[i].slice(5, 7);
+      circlesHtml += `<circle class="sp-dot" cx="${{cx}}" cy="${{cy}}" r="${{PT_R}}" fill="${{col}}" stroke="var(--bg-card)" stroke-width="1.5" data-score="${{scores[i]}}" data-label="${{dow}} ${{dd}} · ${{scores[i]}} Pkt"/>`;
+    }}
+
+    // Ghost dot — gray, no connecting line
+    let ghostHtml = '';
+    if (hasGhost) {{
+      const cx = xOf(ghostDate).toFixed(1);
+      const cy = (H / 2).toFixed(1);
+      ghostHtml = `<circle class="sp-dot sp-ghost" cx="${{cx}}" cy="${{cy}}" r="${{PT_R}}" fill="#6b7280" stroke="var(--bg-card)" stroke-width="1.5" data-score="" data-label="Heute nicht in Top 10"/>`;
     }}
 
     const svg = `<svg viewBox="0 0 ${{W}} ${{H}}" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
   <defs>
     <linearGradient id="sg${{svgId}}" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0%" stop-color="${{col}}" stop-opacity="0.35"/>
+      <stop offset="0%" stop-color="${{col}}" stop-opacity="0.30"/>
       <stop offset="100%" stop-color="${{col}}" stop-opacity="0.03"/>
     </linearGradient>
   </defs>
   <path d="${{areaD}}" fill="url(#sg${{svgId}})"/>
-  <polyline points="${{pts}}" fill="none" stroke="${{col}}" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"/>
-  ${{circlesHtml}}
+  <path d="${{lineD}}" fill="none" stroke="${{col}}" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+  ${{circlesHtml}}${{ghostHtml}}
 </svg>`;
     svgWrap.innerHTML = svg;
 
-    // Tooltip element
+    // Day labels under each point
+    if (daysWrap) {{
+      daysWrap.innerHTML = '';
+      for (let i = 0; i < n; i++) {{
+        const pct = (xOf(dateParsed[i]) / W * 100).toFixed(1);
+        const lbl = document.createElement('span');
+        lbl.className = 'spark-day-lbl';
+        lbl.style.left = pct + '%';
+        lbl.textContent = DAYS_DE[dateParsed[i].getDay()];
+        daysWrap.appendChild(lbl);
+      }}
+      if (hasGhost) {{
+        const pct = (xOf(ghostDate) / W * 100).toFixed(1);
+        const lbl = document.createElement('span');
+        lbl.className = 'spark-day-lbl ghost';
+        lbl.style.left = pct + '%';
+        lbl.textContent = '–';
+        daysWrap.appendChild(lbl);
+      }}
+    }}
+
+    // Tooltip
     const tip = document.createElement('div');
     tip.className = 'spark-tip';
     svgWrap.appendChild(tip);
 
-    // Event handling
+    let hideTimer = null;
+    const hideTip = () => {{ if (hideTimer) clearTimeout(hideTimer); tip.classList.remove('visible'); }};
+
     svgWrap.querySelectorAll('.sp-dot').forEach(dot => {{
       const show = () => {{
-        const cx = parseFloat(dot.getAttribute('cx'));
-        const cy = parseFloat(dot.getAttribute('cy'));
-        tip.textContent = `${{dot.dataset.date}}: ${{dot.dataset.score}}`;
-        tip.style.left  = cx + 'px';
-        tip.style.top   = cy + 'px';
+        if (hideTimer) clearTimeout(hideTimer);
+        tip.textContent = dot.dataset.label;
+        tip.style.left  = dot.getAttribute('cx') + 'px';
+        tip.style.top   = dot.getAttribute('cy') + 'px';
         tip.classList.add('visible');
       }};
-      const hide = () => tip.classList.remove('visible');
-
       if (isMobile) {{
         dot.addEventListener('touchstart', e => {{
-          e.preventDefault();
-          show();
-          setTimeout(hide, 2000);
+          e.preventDefault(); show();
+          hideTimer = setTimeout(() => tip.classList.remove('visible'), 2000);
         }}, {{passive: false}});
       }} else {{
         dot.addEventListener('mouseenter', show);
-        dot.addEventListener('mouseleave', hide);
+        dot.addEventListener('mouseleave', hideTip);
       }}
     }});
   }}
