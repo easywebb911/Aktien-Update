@@ -14,9 +14,12 @@ Datenquellen:
   5. Finviz News RSS            — alternative Nachrichtenquelle
   6. yfinance calendar          — Earnings-Datum je Ticker
   7. FDA Press Release RSS      — PDUFA-Meldungen (kein Bot-Schutz)
+  8. OpenInsider RSS            — Insider-Käufe (letzte 30 Tage)
+  9. FINRA Daily Short Volume   — Short-Volumenanteil je Ticker (kostenlos)
+ 10. SEC Form 4                 — Insider-Transaktionsmeldungen (7-Tage-Fenster)
 
 Outputs:
-  agent_signals.json  — Signal-Score je Ticker, gelesen von der Website
+  agent_signals.json  — Signal-Score + insider_buy-Flag je Ticker, gelesen von der Website
   agent_state.json    — Cooldown-Tracking, committet nach jedem Run
 """
 
@@ -91,6 +94,22 @@ REDDIT_POSITIVE   = {"squeeze", "moon", "calls", "breakout", "short"}
 REDDIT_NEGATIVE   = {"puts", "short", "crash", "dump"}
 REDDIT_SUBS       = ["wallstreetbets", "stocks", "shortsqueeze"]
 REDDIT_LOOKBACK_H = 4
+
+# OpenInsider — Insider-Käufe
+INSIDER_LOOKBACK_DAYS   = 30      # Tage zurück für Insider-Käufe
+SCORE_INSIDER_BUY       = 20      # Insider-Kauf (beliebiger Insider)
+SCORE_INSIDER_CSUITE    = 30      # C-Suite Insider-Kauf (CEO/CFO/President/etc.)
+
+# FINRA Daily Short Sale Volume
+FINRA_DAILY_SSR_MID     = 0.50    # Short-Volumenanteil ≥ 50 % → mittleres Signal
+FINRA_DAILY_SSR_HIGH    = 0.70    # Short-Volumenanteil ≥ 70 % → starkes Signal
+SCORE_FINRA_SSR_MID     = 15
+SCORE_FINRA_SSR_HIGH    = 25
+
+# SEC Form 4 — Insider-Transaktionen
+FORM4_LOOKBACK_DAYS     = 7
+SCORE_FORM4_ANY         = 10      # Beliebige Form-4-Einreichung
+SCORE_FORM4_PURCHASE    = 20      # Form-4 mit Kauf ("Purchase"/"Acquisition")
 
 # ── Dateipfade ────────────────────────────────────────────────────────────────
 STATE_FILE   = Path("agent_state.json")
@@ -543,6 +562,161 @@ def fetch_fda_calendar() -> dict[str, str]:
         return {}
 
 
+# ── Datenquelle 8: OpenInsider RSS ───────────────────────────────────────────
+
+def fetch_openinsider(ticker: str) -> dict:
+    """Sucht Insider-Käufe via OpenInsider RSS (letzte INSIDER_LOOKBACK_DAYS Tage).
+
+    Returns {'count': int, 'csuite': bool}.
+    Nur für US-Ticker sinnvoll.
+    """
+    from email.utils import parsedate_to_datetime
+
+    base = ticker.split(".")[0]
+    url = f"https://openinsider.com/rss?s={base}"
+    cutoff = datetime.now(timezone.utc) - timedelta(days=INSIDER_LOOKBACK_DAYS)
+    CSUITE_TITLES = {"ceo", "cfo", "coo", "president", "chairman", "chief"}
+
+    try:
+        resp = requests.get(url, headers=HTTP_HEADERS, timeout=10)
+        resp.raise_for_status()
+        root = ET.fromstring(resp.text)
+        count = 0
+        csuite = False
+
+        for item in root.iter("item"):
+            title = (item.findtext("title") or "").strip().lower()
+            desc  = (item.findtext("description") or "").strip().lower()
+            combined = title + " " + desc
+
+            # Date check via pubDate
+            pub_str = (item.findtext("pubDate") or "").strip()
+            if pub_str:
+                try:
+                    pub_date = parsedate_to_datetime(pub_str)
+                    if pub_date.tzinfo is None:
+                        pub_date = pub_date.replace(tzinfo=timezone.utc)
+                    if pub_date < cutoff:
+                        continue
+                except Exception:
+                    pass
+
+            # Must indicate a purchase; skip pure sales
+            is_purchase = "purchase" in combined or " buy " in combined
+            is_sale     = "sale" in combined and "purchase" not in combined
+            if not is_purchase or is_sale:
+                continue
+
+            count += 1
+            if any(t in combined for t in CSUITE_TITLES):
+                csuite = True
+
+        return {"count": count, "csuite": csuite}
+    except Exception:
+        return {"count": 0, "csuite": False}
+
+
+# ── Datenquelle 9: FINRA Daily Short Sale Volume ─────────────────────────────
+
+_FINRA_SSR_CACHE: dict[str, dict[str, float]] = {}
+
+
+def fetch_finra_ssr(tickers: list[str]) -> dict[str, float]:
+    """Lädt FINRA Daily Short Sale Volume und gibt {SYMBOL: ratio} zurück.
+
+    ratio = ShortVolume / TotalVolume.
+    Gecacht pro Datum — wird einmalig pro Agent-Run geladen.
+    URL: https://cdn.finra.org/equity/regsho/daily/CNMSshvol{YYYYMMDD}.txt
+    """
+    global _FINRA_SSR_CACHE
+
+    today = datetime.now(timezone.utc).date()
+    base_symbols = {t.split(".")[0].upper() for t in tickers}
+
+    # Try today and up to 4 prior days (weekends / holidays)
+    for days_back in range(5):
+        date     = today - timedelta(days=days_back)
+        date_str = date.strftime("%Y%m%d")
+
+        if date_str in _FINRA_SSR_CACHE:
+            log.debug("FINRA SSR Cache-Hit für %s", date_str)
+            return _FINRA_SSR_CACHE[date_str]
+
+        url = f"https://cdn.finra.org/equity/regsho/daily/CNMSshvol{date_str}.txt"
+        try:
+            resp = requests.get(url, headers=HTTP_HEADERS, timeout=15)
+            if resp.status_code == 404:
+                continue
+            resp.raise_for_status()
+
+            result: dict[str, float] = {}
+            for line in resp.text.strip().split("\n")[1:]:  # skip header
+                parts = line.split("|")
+                if len(parts) < 5:
+                    continue
+                sym = parts[1].strip().upper()
+                if sym not in base_symbols:
+                    continue
+                try:
+                    short_vol = int(parts[2])
+                    total_vol = int(parts[4])
+                    if total_vol > 0:
+                        result[sym] = round(short_vol / total_vol, 4)
+                except (ValueError, IndexError):
+                    continue
+
+            log.info("FINRA SSR Daten geladen (%s): %d relevante Ticker", date_str, len(result))
+            _FINRA_SSR_CACHE[date_str] = result
+            return result
+        except Exception as exc:
+            log.debug("FINRA SSR %s: %s", date_str, exc)
+            continue
+
+    log.info("FINRA SSR: keine Daten verfügbar (letzte 5 Tage).")
+    empty: dict[str, float] = {}
+    _FINRA_SSR_CACHE[today.strftime("%Y%m%d")] = empty
+    return empty
+
+
+# ── Datenquelle 10: SEC Form 4 ────────────────────────────────────────────────
+
+def fetch_sec_form4(ticker: str) -> tuple[bool, str]:
+    """Sucht SEC Form 4 (Insider-Transaktionen) in den letzten FORM4_LOOKBACK_DAYS Tagen.
+
+    Returns (has_recent_form4, title). Title is '' if none found.
+    Nur für US-Ticker; nutzt dieselbe EDGAR-Infrastruktur wie fetch_sec_8k.
+    """
+    url = (
+        "https://www.sec.gov/cgi-bin/browse-edgar"
+        f"?action=getcompany&CIK={ticker}&type=4"
+        "&dateb=&owner=include&count=5&search_text=&output=atom"
+    )
+    cutoff = datetime.now(timezone.utc) - timedelta(days=FORM4_LOOKBACK_DAYS)
+    time.sleep(0.3)
+    try:
+        resp = requests.get(url, headers=SEC_HEADERS, timeout=12)
+        if resp.status_code == 403:
+            log.debug("EDGAR Form4 %s: 403 geblockt — übersprungen.", ticker)
+            return False, ""
+        resp.raise_for_status()
+        text = re.sub(r' xmlns="[^"]+"', "", resp.text, count=1)
+        root = ET.fromstring(text)
+        for entry in root.findall("entry"):
+            updated = entry.findtext("updated") or ""
+            try:
+                dt = datetime.fromisoformat(updated)
+                if dt.tzinfo is None:
+                    dt = dt.replace(tzinfo=timezone.utc)
+                if dt > cutoff:
+                    title = entry.findtext("title") or ""
+                    return True, title
+            except Exception:
+                continue
+    except Exception as exc:
+        log.debug("EDGAR Form4 %s: %s", ticker, exc)
+    return False, ""
+
+
 # ── Signal-Score berechnen ────────────────────────────────────────────────────
 
 def compute_signal(
@@ -554,6 +728,10 @@ def compute_signal(
     sec_title: str,
     earnings_days: int | None,
     fda_days: int | None,
+    insider: dict | None = None,
+    finra_ssr_ratio: float = 0.0,
+    has_form4: bool = False,
+    form4_title: str = "",
 ) -> tuple[int, list[str]]:
     score   = 0
     drivers = []
@@ -640,6 +818,36 @@ def compute_signal(
             drivers.append(f"FDA PDUFA in {fda_days}d")
             print(f"{ticker} FDA PDUFA in {fda_days} Tagen → +{pts} Pkt")
 
+    # OpenInsider — Insider-Käufe
+    if insider and insider.get("count", 0) > 0:
+        ic      = insider["count"]
+        ic_cs   = insider.get("csuite", False)
+        pts     = SCORE_INSIDER_CSUITE if ic_cs else SCORE_INSIDER_BUY
+        label   = "C-Suite Insider-Kauf" if ic_cs else f"Insider-Kauf ({ic}×)"
+        score  += pts
+        drivers.append(label)
+        print(f"{ticker} OpenInsider: {ic} Käufe, C-Suite: {ic_cs} → +{pts} Pkt")
+
+    # FINRA Daily Short Sale Volume
+    if finra_ssr_ratio >= FINRA_DAILY_SSR_HIGH:
+        score += SCORE_FINRA_SSR_HIGH
+        drivers.append(f"FINRA Short-Vol {finra_ssr_ratio:.0%}")
+        print(f"{ticker} FINRA SSR: {finra_ssr_ratio:.1%} → +{SCORE_FINRA_SSR_HIGH} Pkt")
+    elif finra_ssr_ratio >= FINRA_DAILY_SSR_MID:
+        score += SCORE_FINRA_SSR_MID
+        drivers.append(f"FINRA Short-Vol {finra_ssr_ratio:.0%}")
+        print(f"{ticker} FINRA SSR: {finra_ssr_ratio:.1%} → +{SCORE_FINRA_SSR_MID} Pkt")
+
+    # SEC Form 4 — Insider-Transaktionen
+    if has_form4:
+        form4_lower  = form4_title.lower()
+        is_purchase  = "purchase" in form4_lower or "acquisition" in form4_lower
+        pts          = SCORE_FORM4_PURCHASE if is_purchase else SCORE_FORM4_ANY
+        score       += pts
+        drivers.append("SEC Form 4 (Kauf)" if is_purchase else "SEC Form 4")
+        print(f"{ticker} SEC Form 4: '{form4_title}' → +{pts} Pkt "
+              f"(Kauf: {'ja' if is_purchase else 'nein'})")
+
     return min(score, 100), drivers
 
 
@@ -653,6 +861,7 @@ def send_alert(
     reddit: dict,
     news: list[str],
     upcoming_event: str | None = None,
+    insider: dict | None = None,
 ) -> bool:
     mail_to   = os.environ.get("MAIL_TO", "").strip()
     mail_pass = os.environ.get("MAIL_PASSWORD", "").strip()
@@ -680,10 +889,20 @@ def send_alert(
         if upcoming_event else ""
     )
 
+    insider_block = ""
+    if insider and insider.get("count", 0) > 0:
+        ic         = insider["count"]
+        csuite_str = " (C-Suite)" if insider.get("csuite") else ""
+        insider_block = (
+            f"🏦 Insider-Käufe:   {ic} in den letzten {INSIDER_LOOKBACK_DAYS} Tagen"
+            f"{csuite_str}\n\n"
+        )
+
     body = (
         f"{prefix} SQUEEZE-ALERT: {ticker}\n"
         f"{'=' * 55}\n\n"
         f"{event_block}"
+        f"{insider_block}"
         f"Score:            {score}/100\n"
         f"Treiber:          {driver_str}\n\n"
         f"Kurs:             ${price:.2f}  ({sign}{chg:.1f}% heute)\n"
@@ -740,6 +959,9 @@ def main() -> None:
     fda_calendar = fetch_fda_calendar()
     today_et = datetime.now(EASTERN).date()
 
+    log.info("FINRA Daily Short Volume wird geladen …")
+    finra_ssr_data = fetch_finra_ssr(tickers)
+
     reddit_ok      = True
     reddit_blocked = False
     sec_ok         = True
@@ -748,6 +970,9 @@ def main() -> None:
     n_earnings   = 0
     n_fda        = 0
     n_sec_rel    = 0
+    n_insider    = 0
+    n_finra_ssr  = 0
+    n_form4      = 0
 
     for ticker in tickers:
         log.info("Prüfe %s …", ticker)
@@ -802,6 +1027,33 @@ def main() -> None:
                 log.debug("SEC Fehler %s: %s", ticker, exc)
                 sec_ok = False
 
+        # OpenInsider — Insider-Käufe
+        insider: dict = {"count": 0, "csuite": False}
+        if is_us:
+            try:
+                insider = fetch_openinsider(ticker)
+                if insider.get("count", 0) > 0:
+                    n_insider += 1
+            except Exception as exc:
+                log.debug("OpenInsider Fehler %s: %s", ticker, exc)
+
+        # FINRA Daily Short Volume
+        base_sym        = ticker.split(".")[0].upper()
+        finra_ssr_ratio = finra_ssr_data.get(base_sym, 0.0)
+        if finra_ssr_ratio >= FINRA_DAILY_SSR_MID:
+            n_finra_ssr += 1
+
+        # SEC Form 4 — Insider-Transaktionen
+        has_form4   = False
+        form4_title = ""
+        if is_us:
+            try:
+                has_form4, form4_title = fetch_sec_form4(ticker)
+                if has_form4:
+                    n_form4 += 1
+            except Exception as exc:
+                log.debug("Form 4 Fehler %s: %s", ticker, exc)
+
         # Earnings-Datum
         earnings_days: int | None = None
         earnings_date_str: str | None = None
@@ -830,6 +1082,8 @@ def main() -> None:
         score, drivers = compute_signal(
             ticker, yfd, news, reddit, has_8k, sec_title,
             earnings_days, fda_days,
+            insider=insider, finra_ssr_ratio=finra_ssr_ratio,
+            has_form4=has_form4, form4_title=form4_title,
         )
         log.info("  %s Score=%d Treiber=%s", ticker, score, " | ".join(drivers))
 
@@ -856,6 +1110,7 @@ def main() -> None:
             "fda_date":       (f"PDUFA {fda_date_str}"
                                if fda_date_str else None),
             "upcoming_event": upcoming_event,
+            "insider_buy":    insider.get("count", 0) > 0,
         }
 
         if score >= ALERT_THRESHOLD:
@@ -865,6 +1120,7 @@ def main() -> None:
             sent = send_alert(
                 ticker, score, drivers, yfd, reddit, news,
                 upcoming_event=upcoming_event,
+                insider=insider,
             )
             if sent:
                 set_cooldown(ticker, state)
@@ -896,6 +1152,8 @@ def main() -> None:
         f"SEC: {'ok' if sec_ok else 'fail'} | "
         f"Termine: Earnings={n_earnings} Treffer, FDA={n_fda} Treffer, "
         f"SEC-relevant={n_sec_rel} Treffer | "
+        f"Insider: {n_insider} Treffer, FINRA-SSR: {n_finra_ssr} Treffer, "
+        f"Form4: {n_form4} Treffer | "
         f"Laufzeit: {t_elapsed}s",
         flush=True,
     )
