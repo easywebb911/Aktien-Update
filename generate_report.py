@@ -93,6 +93,7 @@ SCORE_HISTORY_WEIGHT = 0.30   # weight for average of last 3 historical runs
 SCORE_TREND_BONUS    = 3      # +Pkt wenn Score SCORE_TREND_DAYS Tage in Folge gestiegen
 SCORE_TREND_MALUS    = 3      # −Pkt wenn Score SCORE_TREND_DAYS Tage in Folge gefallen
 SCORE_TREND_DAYS     = 3      # Anzahl aufeinanderfolgender Tage für Trend-Erkennung
+USE_RELATIVE_MOMENTUM = True  # Momentum relativ zum S&P 500 berechnen (adjusted_chg = chg − spx_daily)
 _SCORE_HISTORY_FILE  = "score_history.json"
 _SCORE_HISTORY_DAYS  = 14     # prune entries older than this many days
 # ── Dynamic enrichment pool sizing ───────────────────────────────────────────
@@ -1209,11 +1210,19 @@ def score(stock: dict) -> float:
     else:
         _fs = 0.0
 
+    # Marktkontext: Momentum relativ zum S&P 500 anpassen
+    _chg_raw = stock.get("change", 0)
+    if USE_RELATIVE_MOMENTUM:
+        _spx_d = stock.get("spx_daily_perf", 0.0) or 0.0
+        adjusted_chg = _chg_raw - _spx_d   # z.B. +3% Aktie, −2% SPX → +5% rel.
+    else:
+        adjusted_chg = _chg_raw
+
     if sf_val == 0 and sr_val == 0:
         # Fall 2: keine Short-Daten → Volumen (max 30) + Momentum (max 20), Cap 50
         # Nur positive Tagesveränderungen zählen: fallende Kurse = kein Squeeze-Druck
         rv_component = rv_raw * 30
-        chg = max(stock.get("change", 0), 0)
+        chg = max(adjusted_chg, 0)
         momentum = min(chg /  8.0, 1.0) * 20  # sättigt bei +8% statt +15%
         return min(round(rv_component + momentum + _fs, 2), 50.0)
 
@@ -1222,7 +1231,7 @@ def score(stock: dict) -> float:
     sf  = min(sf_val /  50.0, 1.0) * 32  # sättigt bei 50% statt 100%
     sr  = min(sr_val /  10.0, 1.0) * 23  # sättigt bei 10d statt 20d
     rv  = rv_raw * 23
-    mom = min(max(stock.get("change", 0), 0) /  8.0, 1.0) * 14  # sättigt bei +8% statt +15%
+    mom = min(max(adjusted_chg, 0) /  8.0, 1.0) * 14  # sättigt bei +8% statt +15%
 
     # Kombinationssignal-Bonus: ≥ 3 von 4 Faktoren gleichzeitig stark
     _combo_conditions = [
@@ -2344,7 +2353,7 @@ a{{color:var(--accent);text-decoration:none}}
           <li><strong>32 Pkt Short Float</strong> – Anteil leerverkaufter Aktien (Sättigung 50 %; ≥ 50 % = volle Punkte); je höher, desto stärker der Squeeze-Druck</li>
           <li><strong>23 Pkt Days to Cover</strong> – Tage zum vollständigen Eindecken (Sättigung 10 Tage; ≥ 10 d = volle Punkte); hohe Werte erhöhen Kapitulationsrisiko</li>
           <li><strong>23 Pkt Rel. Volumen</strong> – Heutiges vs. 20-Tage-Durchschnitt (Sättigung 3×; ≥ 3× = volle Punkte); Spitzen signalisieren Kaufinteresse</li>
-          <li><strong>14 Pkt Kursmomentum</strong> – nur positive Kursveränderung (Sättigung +8 %; ≥ +8 % = volle Punkte); steigende Kurse erhöhen den Druck auf Leerverkäufer</li>
+          <li><strong>14 Pkt Kursmomentum</strong> – Kursveränderung relativ zum S&amp;P 500 (adjusted = Aktie − SPX; Sättigung +8 %; ≥ +8 % rel. Stärke = volle Punkte); nur positive Werte zählen</li>
           <li><strong>8 Pkt Float-Größe</strong> – kleiner Float verstärkt den Squeeze-Effekt; unter 30 Mio. Aktien = voll, über 50 Mio. = 0 Pkt</li>
           <li><strong>+ bis 7 Pkt FINRA SI-Trend Bonus</strong> – steigend ≥ +10 % → 5 Pkt · mit Beschleunigung → 7 Pkt · seitwärts → 2,5 Pkt · fallend → 0 Pkt</li>
           <li><strong>+ 5 Pkt Kombinationssignal-Bonus</strong> – wenn ≥ 3 von 4 Faktoren gleichzeitig stark: Short Float ≥ 30 %, DTC ≥ 5d, Rel. Volumen ≥ 2×, SI-Trend steigend</li>
@@ -3393,8 +3402,9 @@ def main():
     batch_yfd = get_yfinance_batch(pool_tickers)
     print(f"Step 2b (yfinance batch) abgeschlossen in {time.time()-_t_batch:.1f}s", flush=True)
 
-    # Relative Stärke vs. S&P 500 (20T) — one extra download, cached for the run
-    _spx_perf_20d: float | None = None
+    # Relative Stärke vs. S&P 500 (20T) + heutige Tagesveränderung
+    _spx_perf_20d:   float | None = None
+    _spx_daily_perf: float        = 0.0   # heutige S&P 500 Tagesveränderung in %
     try:
         _spx_hist = yf.download("^GSPC", period="25d", auto_adjust=True,
                                  progress=False, threads=False)
@@ -3406,6 +3416,11 @@ def main():
             _spx_perf_20d = (_last - _first) / _first * 100
             log.info("S&P 500 20T-Perf: %.2f%%", _spx_perf_20d)
             print(f"S&P 500 20T Performance: {_spx_perf_20d:.1f}%", flush=True)
+            # Daily perf for relative momentum
+            if len(_spx_close) >= 2:
+                _prev = float(_spx_close.iloc[-2])
+                _spx_daily_perf = (_last - _prev) / _prev * 100 if _prev > 0 else 0.0
+                log.info("S&P 500 Tages-Perf: %.2f%%", _spx_daily_perf)
     except Exception as _spx_exc:
         log.warning("S&P 500 fetch failed: %s", _spx_exc)
 
@@ -3454,6 +3469,7 @@ def main():
             "inst_ownership":  yfd.get("inst_ownership"),
             "float_shares":    yfd.get("float_shares", 0),
             "change_5d":       yfd.get("change_5d"),
+            "spx_daily_perf":  _spx_daily_perf,
         })
         if i < 3:
             print(f"{t} float_shares={c.get('float_shares')} change_5d={c.get('change_5d')}", flush=True)
