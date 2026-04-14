@@ -73,7 +73,8 @@ MOM_GREEN =  5.0   # %   ≥+5    → green
 MOM_ORANGE= -5.0   # %   −5–+5  → orange, <−5 → red
 
 # ── Supplementary data source bonus limits ───────────────────────────────────
-FINRA_BONUS_MAX  = 5    # max bonus points for rising FINRA short interest
+FINRA_BONUS_MAX          = 5    # max bonus points for rising FINRA short interest
+FINRA_ACCELERATION_BONUS = 7    # elevated bonus when SI velocity is accelerating
 FTD_BONUS_MAX    = 0    # SEC EDGAR + Nasdaq Data Link blocked on GitHub Actions IPs
 # ── FINRA short interest trend thresholds ────────────────────────────────────
 SI_TREND_PERIODS        = 6     # FINRA publishes twice monthly; 6 = ~3 months
@@ -985,8 +986,26 @@ def get_finra_short_interest(ticker: str,
             else:
                 trend = "sideways"
 
+    # SI Velocity: average daily share change (newest − oldest) / n data points
+    si_velocity   = 0.0
+    si_accelerating = False
+    if len(history) >= 2:
+        newest_v = history[0]["short_interest"]
+        oldest_v = history[-1]["short_interest"]
+        si_velocity = (newest_v - oldest_v) / len(history)
+
+    # Acceleration: each of the last 3 steps larger than the previous
+    if len(history) >= 3:
+        s0 = history[0]["short_interest"]
+        s1 = history[1]["short_interest"]
+        s2 = history[2]["short_interest"]
+        d_old = s1 - s2   # older step
+        d_new = s0 - s1   # newer step
+        si_accelerating = d_old > 0 and d_new > 0 and d_new > d_old
+
     _finra_stats["ok"] += 1
-    log.info("%s FINRA history=%d Punkte, trend=%s", sym, len(history), trend)
+    log.info("%s FINRA history=%d Punkte, trend=%s, velocity=%.0f/day, accel=%s",
+             sym, len(history), trend, si_velocity, si_accelerating)
     return {
         "short_interest":      history[0]["short_interest"],
         "prev_short_interest": history[1]["short_interest"] if len(history) >= 2 else 0,
@@ -994,6 +1013,8 @@ def get_finra_short_interest(ticker: str,
         "history":             history,
         "trend":               trend,
         "trend_pct":           round(trend_pct * 100, 1),
+        "si_velocity":         round(si_velocity, 0),
+        "si_accelerating":     si_accelerating,
     }
 
 
@@ -1024,9 +1045,14 @@ def score_bonus(stock: dict) -> float:
 
     # Korrektur 3: bonus only when ≥ 2 of [t1, t2, t3] are > 100
     if sum(1 for v in [t1, t2, t3] if v and v > 100) >= 2:
-        trend = finra.get("trend", "no_data")
+        trend       = finra.get("trend", "no_data")
+        accelerating = finra.get("si_accelerating", False)
         if trend == "up":
-            bonus = float(FINRA_BONUS_MAX)
+            if accelerating:
+                bonus = float(FINRA_ACCELERATION_BONUS)
+                print(f"{ticker} FINRA-Bonus: +{bonus} Pkt (Trend=up + Beschleunigung)", flush=True)
+            else:
+                bonus = float(FINRA_BONUS_MAX)
         elif trend == "sideways":
             bonus = FINRA_BONUS_MAX / 2
         else:
@@ -1036,7 +1062,7 @@ def score_bonus(stock: dict) -> float:
         print(f"{ticker}: bonus=0.00 (unzureichende FINRA-Daten: "
               f"T1={t1}, T2={t2}, T3={t3})", flush=True)
 
-    return round(min(bonus, float(FINRA_BONUS_MAX)), 2)
+    return round(min(bonus, float(FINRA_ACCELERATION_BONUS)), 2)
 
 
 def _fmt_si_date(date_str: str) -> str:
@@ -1454,11 +1480,26 @@ def _card(i: int, s: dict) -> str:
     )
 
 
-    # SI trend history
-    finra_d  = s.get("finra_data") or {}
-    si_trend = finra_d.get("trend", "no_data")
-    si_tpct  = finra_d.get("trend_pct", 0.0)
-    si_hist  = finra_d.get("history", [])
+    # SI trend history + velocity
+    finra_d       = s.get("finra_data") or {}
+    si_trend      = finra_d.get("trend", "no_data")
+    si_tpct       = finra_d.get("trend_pct", 0.0)
+    si_hist       = finra_d.get("history", [])
+    si_velocity   = finra_d.get("si_velocity", 0.0)
+    si_accel      = finra_d.get("si_accelerating", False)
+
+    if si_velocity != 0.0:
+        _vel_sign = "+" if si_velocity > 0 else ""
+        _vel_col  = "#22c55e" if si_velocity > 0 else "#ef4444"
+        _accel_note = " ⚡ Beschleunigung" if si_accel else ""
+        _vel_str  = f"{_vel_sign}{si_velocity:,.0f}".replace(",", ".")
+        si_velocity_row = (
+            f'<tr><td>SI Velocity (tägl. Ø)</td>'
+            f'<td><span style="color:{_vel_col}">{_vel_str} Aktien/Tag{_accel_note}</span></td></tr>'
+        )
+    else:
+        si_velocity_row = ""
+
     if si_trend == "up":
         trend_html      = f'<span style="color:#22c55e">↑ Steigend +{abs(si_tpct):.1f} %</span>'
         si_tile_val     = f"↑ +{abs(si_tpct):.0f} %"
@@ -1695,6 +1736,7 @@ def _card(i: int, s: dict) -> str:
         <tr><td>Heutiges Volumen</td><td>{s.get('cur_vol',0):,.0f}</td></tr>
         {edgar_row}
         <tr><td>SI-Trend (3M)</td><td>{trend_html}</td></tr>
+        {si_velocity_row}
         <tr><td>Short-Vol. T-1 (FINRA)</td><td>{si_t1_disp}</td></tr>
         <tr><td>Short-Vol. T-2</td><td>{si_t2_disp}</td></tr>
         <tr><td>Short-Vol. T-3</td><td>{si_t3_disp}</td></tr>
