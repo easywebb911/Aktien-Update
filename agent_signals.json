@@ -1,11 +1,11 @@
 {
-  "updated": "2026-04-14T21:54:36.446553+02:00",
+  "updated": "2026-04-14T22:35:59.085283+02:00",
   "run_info": {
     "tickers_checked": 10,
-    "signals_active": 2,
+    "signals_active": 1,
     "alerts_sent": 0,
-    "elapsed_s": 23.7,
-    "market_phase": "Regulär"
+    "elapsed_s": 23.2,
+    "market_phase": "After-Hours"
   },
   "signals": {
     "SANA": {
@@ -44,6 +44,66 @@
       "upcoming_event": null,
       "insider_buy": false
     },
+    "PLAY": {
+      "score": 0,
+      "confidence": 0,
+      "drivers": "",
+      "price": 0.0,
+      "chg_pct": 0.0,
+      "rvol": 0.0,
+      "earnings": "in 56 Tagen (09.06.2026)",
+      "fda_date": null,
+      "upcoming_event": null,
+      "insider_buy": false
+    },
+    "PCT": {
+      "score": 8,
+      "confidence": 17,
+      "drivers": "Earnings in 23d",
+      "price": 0.0,
+      "chg_pct": 0.0,
+      "rvol": 0.0,
+      "earnings": "in 23 Tagen (07.05.2026)",
+      "fda_date": null,
+      "upcoming_event": null,
+      "insider_buy": false
+    },
+    "TNGX": {
+      "score": 18,
+      "confidence": 33,
+      "drivers": "News: catalyst + Earnings in 27d",
+      "price": 0.0,
+      "chg_pct": 0.0,
+      "rvol": 0.0,
+      "earnings": "in 27 Tagen (11.05.2026)",
+      "fda_date": null,
+      "upcoming_event": null,
+      "insider_buy": false
+    },
+    "TTEC": {
+      "score": 8,
+      "confidence": 17,
+      "drivers": "Earnings in 23d",
+      "price": 0.0,
+      "chg_pct": 0.0,
+      "rvol": 0.0,
+      "earnings": "in 23 Tagen (07.05.2026)",
+      "fda_date": null,
+      "upcoming_event": null,
+      "insider_buy": false
+    },
+    "NNE": {
+      "score": 18,
+      "confidence": 33,
+      "drivers": "News: partnership + Earnings in 30d",
+      "price": 0.0,
+      "chg_pct": 0.0,
+      "rvol": 0.0,
+      "earnings": "in 30 Tagen (14.05.2026)",
+      "fda_date": null,
+      "upcoming_event": null,
+      "insider_buy": false
+    },
     "QUBT": {
       "score": 28,
       "confidence": 33,
@@ -56,74 +116,14 @@
       "upcoming_event": null,
       "insider_buy": false
     },
-    "TWST": {
+    "SKLZ": {
       "score": 8,
       "confidence": 17,
-      "drivers": "Earnings in 20d",
+      "drivers": "Earnings in 23d",
       "price": 0.0,
       "chg_pct": 0.0,
       "rvol": 0.0,
-      "earnings": "in 20 Tagen (04.05.2026)",
-      "fda_date": null,
-      "upcoming_event": null,
-      "insider_buy": false
-    },
-    "AOSL": {
-      "score": 8,
-      "confidence": 17,
-      "drivers": "Earnings in 22d",
-      "price": 0.0,
-      "chg_pct": 0.0,
-      "rvol": 0.0,
-      "earnings": "in 22 Tagen (06.05.2026)",
-      "fda_date": null,
-      "upcoming_event": null,
-      "insider_buy": false
-    },
-    "AVNS": {
-      "score": 28,
-      "confidence": 33,
-      "drivers": "News: buyout, acquisition + Earnings in 27d",
-      "price": 0.0,
-      "chg_pct": 0.0,
-      "rvol": 0.0,
-      "earnings": "in 27 Tagen (11.05.2026)",
-      "fda_date": null,
-      "upcoming_event": null,
-      "insider_buy": false
-    },
-    "APLD": {
-      "score": 10,
-      "confidence": 17,
-      "drivers": "News: partnership",
-      "price": 0.0,
-      "chg_pct": 0.0,
-      "rvol": 0.0,
-      "earnings": null,
-      "fda_date": null,
-      "upcoming_event": null,
-      "insider_buy": false
-    },
-    "AHT-PF": {
-      "score": 0,
-      "confidence": 0,
-      "drivers": "",
-      "price": 0.0,
-      "chg_pct": 0.0,
-      "rvol": 0.0,
-      "earnings": null,
-      "fda_date": null,
-      "upcoming_event": null,
-      "insider_buy": false
-    },
-    "BOLD": {
-      "score": 0,
-      "confidence": 0,
-      "drivers": "",
-      "price": 0.0,
-      "chg_pct": 0.0,
-      "rvol": 0.0,
-      "earnings": null,
+      "earnings": "in 23 Tagen (07.05.2026)",
       "fda_date": null,
       "upcoming_event": null,
       "insider_buy": false
