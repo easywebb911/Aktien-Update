@@ -2013,6 +2013,7 @@ def generate_html(stocks: list[dict], report_date: str) -> str:
             "score":         _s.get("score", 0),
             "company_name":  _s.get("company_name", ""),
             "sector":        _s.get("sector", ""),
+            "flag":          get_flag(_s["ticker"]),
             "price":         _s.get("price", 0),
             "change":        _s.get("change", 0),
             "change_5d":     _s.get("change_5d"),
@@ -2231,19 +2232,21 @@ a{{color:var(--accent);text-decoration:none}}
 .wl-section-hdr{{display:flex;align-items:center;gap:8px;padding:0 4px;margin-bottom:8px}}
 .wl-section-title{{font-size:.9rem;font-weight:700;color:var(--txt)}}
 .wl-count-badge{{font-size:.68rem;color:var(--txt-dim);background:var(--brd);padding:1px 7px;border-radius:10px}}
-.wl-cards{{display:flex;flex-direction:column;gap:8px}}
+.wl-cards{{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:8px}}
 .wl-card{{background:var(--bg-card);border:1px solid #3b82f644;border-radius:10px;position:relative}}
-.wl-card-header{{display:flex;align-items:center;gap:8px;padding:10px 12px}}
-.wl-card-ticker{{font-size:.95rem;font-weight:800;color:var(--txt)}}
-.wl-card-score{{font-size:1.05rem;font-weight:700}}
-.wl-badge-star{{font-size:.6rem;color:#3b82f6;background:#3b82f622;border:1px solid #3b82f644;border-radius:4px;padding:1px 5px;white-space:nowrap}}
+.wl-card--expanded{{grid-column:1/-1}}
+.wl-card-header{{display:flex;flex-direction:column;align-items:flex-start;gap:4px;padding:8px}}
+.wl-card-ticker{{font-size:.9rem;font-weight:800;color:var(--txt)}}
+.wl-card-score{{font-size:20px;font-weight:800;line-height:1;align-self:center}}
+.wl-badge-star{{position:absolute;top:4px;right:4px;font-size:.65rem;color:#3b82f6;opacity:.7;pointer-events:none}}
 .wl-notop-badge{{font-size:.62rem;color:#6b7280;background:#6b728022;border:1px solid #6b728044;border-radius:4px;padding:1px 5px;width:fit-content}}
-.wl-details-btn{{background:none;border:1px solid #3b82f644;color:#3b82f6;cursor:pointer;font-size:.8rem;padding:2px 8px;border-radius:6px}}
+.wl-details-btn{{background:none;border:1px solid #3b82f644;color:#3b82f6;cursor:pointer;font-size:.75rem;padding:1px 6px;border-radius:6px}}
 .wl-details-btn:hover{{background:#3b82f622}}
 .wl-details-body{{border-top:1px solid var(--brd)}}
 .wl-no-data{{padding:10px 14px;color:var(--txt-dim);font-size:.8rem;font-style:italic}}
-.wl-remove-btn{{background:none;border:none;color:var(--txt-dim);cursor:pointer;font-size:.9rem;padding:0;opacity:.5}}
+.wl-remove-btn{{background:none;border:none;color:var(--txt-dim);cursor:pointer;font-size:.85rem;padding:0;opacity:.5}}
 .wl-remove-btn:hover{{color:#ef4444;opacity:1}}
+@media(max-width:479px){{.wl-cards{{grid-template-columns:repeat(2,1fr)}}}}
 .score-block{{display:flex;flex-direction:column;align-items:flex-end;min-width:64px}}
 .score-num{{font-size:1.7rem;font-weight:900;line-height:1}}
 .score-lbl{{font-size:.62rem;color:var(--txt-dim);text-transform:uppercase;
@@ -3217,6 +3220,10 @@ function _fmtGerman(d) {{
 
       tickerSpan.parentNode.insertBefore(dot, tickerSpan.nextSibling);
 
+      // Watchlist-Kompaktkarte: dot synchronisieren
+      const wlDot = document.getElementById('wlkd-' + ticker);
+      if (wlDot) wlDot.className = 'wl-ki-dot agent-dot ' + dotClass;
+
       // KI-Signal-Block im Neuigkeiten-Dropdown
       const block = card.querySelector('.ki-signal-block');
       if (block && score > 0) {{
@@ -3424,32 +3431,25 @@ function _fmtGerman(d) {{
           : (WL_SCORES[ticker] ?? null);
         const scoreStr = scoreVal !== null ? (+scoreVal).toFixed(1) : '\u2014';
         const scoreCol = wlScoreColor(scoreVal);
-        const starBadge = inTop
-          ? '<span class="wl-badge-star">\u2605 Top-10</span>'
-          : '<span class="wl-notop-badge">Nicht in Top 10</span>';
-        const nameHtml = inTop && WL_TOP10[ticker].company_name
-          ? `<span style="font-size:.72rem;color:var(--txt-dim)">${{WL_TOP10[ticker].company_name}}</span>`
-          : '';
+        const flag = (inTop && WL_TOP10[ticker].flag) ? WL_TOP10[ticker].flag : '';
         const h = WL_HIST[ticker];
-        const trendHtml = h
-          ? `<span style="font-size:.72rem;color:${{h.col}};font-weight:600">${{h.trend}}</span>`
-          : '';
+        const trendArrow = h ? (h.col === '#22c55e' ? '\u2191' : h.col === '#ef4444' ? '\u2193' : '\u2192') : '';
+        const trendCol   = h ? h.col : '#94a3b8';
         return `<div class="wl-card" data-ticker="${{ticker}}">
+          ${{inTop ? '<span class="wl-badge-star">\u2605</span>' : ''}}
           <div class="wl-card-header">
-            <div style="display:flex;flex-direction:column;flex:1;min-width:0;gap:2px">
-              <div style="display:flex;align-items:center;gap:6px">
-                <span class="wl-card-ticker">${{ticker}}</span>
-                ${{starBadge}}
+            <div style="display:flex;align-items:center;gap:4px;width:100%">
+              <span class="wl-card-ticker">${{ticker}}</span>
+              ${{flag ? `<span style="font-size:.85rem">${{flag}}</span>` : ''}}
+              <span class="wl-ki-dot agent-dot none" id="wlkd-${{ticker}}"></span>
+            </div>
+            <span class="wl-card-score" style="color:${{scoreCol}}">${{scoreStr}}</span>
+            <div style="display:flex;align-items:center;gap:4px;width:100%;justify-content:space-between">
+              <span style="font-size:.8rem;color:${{trendCol}};font-weight:700">${{trendArrow}}</span>
+              <div style="display:flex;gap:3px">
+                <button class="wl-remove-btn" onclick="wlRemoveTicker('${{ticker}}')" title="Entfernen">\xd7</button>
+                <button class="wl-details-btn" id="wlb-${{ticker}}" onclick="wlExpand('${{ticker}}',this)" title="Details einblenden">\u25be</button>
               </div>
-              ${{nameHtml}}
-            </div>
-            <div style="display:flex;flex-direction:column;align-items:flex-end;gap:2px;margin-right:6px">
-              <span class="wl-card-score" style="color:${{scoreCol}}">${{scoreStr}}</span>
-              ${{trendHtml}}
-            </div>
-            <div style="display:flex;flex-direction:column;align-items:center;gap:4px">
-              <button class="wl-remove-btn" onclick="wlRemoveTicker('${{ticker}}')" title="Entfernen">\xd7</button>
-              <button class="wl-details-btn" id="wlb-${{ticker}}" onclick="wlExpand('${{ticker}}',this)" title="Details einblenden">\u25be</button>
             </div>
           </div>
           <div class="wl-details-body" id="wld-${{ticker}}" hidden></div>
@@ -3472,9 +3472,11 @@ function _fmtGerman(d) {{
     try {{
       const body = document.getElementById('wld-' + ticker);
       if (!body) return;
+      const card    = body.closest('.wl-card');
       const opening = body.hidden;
       body.hidden = !opening;
       btn.textContent = opening ? '\u25b4' : '\u25be';
+      if (card) card.classList.toggle('wl-card--expanded', opening);
       if (!opening) return;
       if (body.dataset.loaded) {{
         body.querySelectorAll('.wl-spark').forEach(w => {{
