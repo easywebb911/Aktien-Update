@@ -3278,8 +3278,8 @@ function _fmtGerman(d) {{
     const srCol  = metColor('sr',  d.short_ratio);
     const rvCol  = metColor('rv',  d.rel_volume);
     const chgCol = metColor('chg', d.change);
-    const siCol  = d.si_trend === 'increasing' ? '#22c55e' : d.si_trend === 'decreasing' ? '#ef4444' : '#94a3b8';
-    const siArr  = d.si_trend === 'increasing' ? '\u2191' : d.si_trend === 'decreasing' ? '\u2193' : '\u2192';
+    const siCol  = d.si_trend === 'up' ? '#22c55e' : d.si_trend === 'down' ? '#ef4444' : '#94a3b8';
+    const siArr  = d.si_trend === 'up' ? '\u2191' : d.si_trend === 'down' ? '\u2193' : '\u2192';
     const chgSign = (d.change != null && isFinite(+d.change) && +d.change >= 0) ? '+' : '';
     const tiles = `<div class="metrics-row" style="padding:10px 10px 8px">
       <div class="metric-box" style="--mc:${{sfCol}}">
