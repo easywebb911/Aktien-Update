@@ -2250,6 +2250,7 @@ a{{color:var(--accent);text-decoration:none}}
 .ki-signal-header{{font-size:.72rem;font-weight:700;color:#f59e0b;letter-spacing:.4px;margin-bottom:5px}}
 .ki-signal-body{{display:flex;flex-direction:column;gap:3px}}
 .ki-score{{font-size:.82rem;font-weight:700;color:var(--txt)}}
+.ki-confidence{{font-size:.75rem;color:#f59e0b;font-weight:600}}
 .ki-drivers{{font-size:.78rem;color:var(--txt-sub)}}
 .ki-meta{{font-size:.68rem;color:var(--txt-dim)}}
 .news-items{{margin-bottom:12px}}
@@ -3105,9 +3106,11 @@ function _fmtGerman(d) {{
       else                  dotClass = 'none';     // grau, kein Pulsieren
       dot.className = 'agent-dot ' + dotClass;
 
+      const confidence = (sig && sig.confidence != null) ? sig.confidence : null;
+      const confStr = confidence != null ? ` \u2014 Konfidenz ${confidence}%` : '';
       const tip = document.createElement('span');
       tip.className = 'agent-tooltip';
-      tip.textContent = `KI-Agent: Score ${{score}}/100 \u2014 ${{(sig && sig.drivers) || '?'}}`;
+      tip.textContent = `KI-Agent: Score ${{score}}/100${{confStr}} \u2014 ${{(sig && sig.drivers) || '?'}}`;
       dot.appendChild(tip);
 
       // iPhone: Antippen zeigt Tooltip für 3s
@@ -3128,8 +3131,12 @@ function _fmtGerman(d) {{
         const phase = info.market_phase || '';
         const body  = block.querySelector('.ki-signal-body');
         if (body) {{
+          const confBlock = (sig && sig.confidence != null)
+            ? `<span class="ki-confidence">Konfidenz: ${{sig.confidence}}% (${{sig.confidence >= 70 ? 'hoch' : sig.confidence >= 40 ? 'mittel' : 'gering'}})</span>`
+            : '';
           body.innerHTML =
             `<span class="ki-score">Score: ${{score}}/100</span>` +
+            confBlock +
             ((sig && sig.drivers)
               ? `<span class="ki-drivers">${{sig.drivers}}</span>`
               : '') +
