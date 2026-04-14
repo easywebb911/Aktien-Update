@@ -1267,10 +1267,10 @@ def fmt_cap(v) -> str:
 # ===========================================================================
 
 def _load_score_history() -> dict:
-    """Opt 5 — Load history and immediately prune stale entries at read time.
+    """Opt 7 — Load history and immediately prune stale entries at read time.
 
-    Pruning here (rather than at write time) means _save_score_history() only
-    needs to serialise what is actually needed — no second pass over the data.
+    Entries older than _SCORE_HISTORY_DAYS (14) are dropped on load so
+    _save_score_history() only serialises what is still needed — no second pass.
     """
     from datetime import date, timedelta
     cutoff = (date.today() - timedelta(days=_SCORE_HISTORY_DAYS)).strftime("%Y-%m-%d")
@@ -1288,9 +1288,9 @@ def _load_score_history() -> dict:
 
 
 def _save_score_history(history: dict, _dirty: bool = True) -> None:
-    """Opt 5 — Write history to disk only when _dirty=True (changed since load).
+    """Opt 7 — Write history to disk only when _dirty=True (changed since load).
 
-    Pruning is already done at load time so this function just serialises.
+    Pruning is done at load time; this function only serialises what remains.
     """
     if not _dirty:
         return
