@@ -1,20 +1,20 @@
 {
-  "updated": "2026-04-14T12:49:03.078608+02:00",
+  "updated": "2026-04-14T17:51:57.704156+02:00",
   "run_info": {
     "tickers_checked": 10,
     "signals_active": 1,
     "alerts_sent": 0,
-    "elapsed_s": 17.5,
-    "market_phase": "Pre-Market"
+    "elapsed_s": 18.0,
+    "market_phase": "Regulär"
   },
   "signals": {
-    "PAR": {
+    "LENZ": {
       "score": 8,
-      "drivers": "Earnings in 24d",
+      "drivers": "Earnings in 22d",
       "price": 0.0,
       "chg_pct": 0.0,
       "rvol": 0.0,
-      "earnings": "in 24 Tagen (08.05.2026)",
+      "earnings": "in 22 Tagen (06.05.2026)",
       "fda_date": null,
       "upcoming_event": null
     },
@@ -38,6 +38,16 @@
       "fda_date": null,
       "upcoming_event": null
     },
+    "PAR": {
+      "score": 8,
+      "drivers": "Earnings in 24d",
+      "price": 0.0,
+      "chg_pct": 0.0,
+      "rvol": 0.0,
+      "earnings": "in 24 Tagen (08.05.2026)",
+      "fda_date": null,
+      "upcoming_event": null
+    },
     "TNGX": {
       "score": 18,
       "drivers": "News: catalyst + Earnings in 27d",
@@ -45,16 +55,6 @@
       "chg_pct": 0.0,
       "rvol": 0.0,
       "earnings": "in 27 Tagen (11.05.2026)",
-      "fda_date": null,
-      "upcoming_event": null
-    },
-    "BEAM": {
-      "score": 8,
-      "drivers": "Earnings in 21d",
-      "price": 0.0,
-      "chg_pct": 0.0,
-      "rvol": 0.0,
-      "earnings": "in 21 Tagen (05.05.2026)",
       "fda_date": null,
       "upcoming_event": null
     },
@@ -78,6 +78,16 @@
       "fda_date": null,
       "upcoming_event": null
     },
+    "TBRG": {
+      "score": 28,
+      "drivers": "News: acquisition, takeover + Earnings in 22d",
+      "price": 0.0,
+      "chg_pct": 0.0,
+      "rvol": 0.0,
+      "earnings": "in 22 Tagen (06.05.2026)",
+      "fda_date": null,
+      "upcoming_event": null
+    },
     "ANRO": {
       "score": 8,
       "drivers": "Earnings in 30d",
@@ -88,23 +98,13 @@
       "fda_date": null,
       "upcoming_event": null
     },
-    "ANGI": {
+    "BEAM": {
       "score": 8,
       "drivers": "Earnings in 21d",
       "price": 0.0,
       "chg_pct": 0.0,
       "rvol": 0.0,
       "earnings": "in 21 Tagen (05.05.2026)",
-      "fda_date": null,
-      "upcoming_event": null
-    },
-    "RHI": {
-      "score": 28,
-      "drivers": "News: squeeze, short interest + Earnings in 8d",
-      "price": 0.0,
-      "chg_pct": 0.0,
-      "rvol": 0.0,
-      "earnings": "in 8 Tagen (22.04.2026)",
       "fda_date": null,
       "upcoming_event": null
     }
