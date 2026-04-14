@@ -1838,6 +1838,7 @@ def _card(i: int, s: dict) -> str:
           <span class="market-tag">{flag} {get_region(s["ticker"])}</span>
           {finviz_badge}{sa_badge}
           <span class="price-tag">${s.get('price',0):.2f}</span>
+          <button class="wl-add-btn" data-ticker="{s['ticker']}" onclick="wlToggle(this)" title="Zur Watchlist hinzufügen">＋</button>
         </div>
         <span class="company">{s.get('company_name','')}</span>
         {sector_tag_html}{earnings_tag_html}
@@ -1953,6 +1954,18 @@ def generate_html(stocks: list[dict], report_date: str) -> str:
         avg_si_str = "—"
     now_str = datetime.now(ZoneInfo("Europe/Berlin")).strftime("%H:%M Uhr")
     timestamp = f"Stand: {report_date}, {now_str}"
+
+    # Watchlist: embed last known score for every ticker in score history
+    try:
+        with open(_SCORE_HISTORY_FILE, "r", encoding="utf-8") as _wl_fh:
+            _wl_raw = json.load(_wl_fh)
+        _wl_scores = {
+            t: sorted(entries, key=lambda e: e.get("date",""))[-1]["score"]
+            for t, entries in _wl_raw.items() if entries
+        }
+    except Exception:
+        _wl_scores = {}
+    wl_scores_json = json.dumps(_wl_scores)
 
     return f"""<!DOCTYPE html>
 <html lang="de" data-theme="dark">
@@ -2123,6 +2136,21 @@ a{{color:var(--accent);text-decoration:none}}
   white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}}
 .sector-tag{{display:inline-block;font-size:.67rem;color:var(--txt-dim);margin-top:3px}}
 .earnings-tag{{display:inline-block;font-size:.67rem;font-weight:600;margin-top:3px;margin-left:2px}}
+.wl-add-btn{{background:none;border:none;color:var(--txt-dim);cursor:pointer;font-size:1rem;padding:0 3px;line-height:1;opacity:.55;transition:opacity .15s,color .15s}}
+.wl-add-btn:hover{{color:#22c55e;opacity:1}}
+.wl-add-btn.in-wl{{color:#22c55e;opacity:1}}
+.wl-section{{display:none;margin-bottom:14px}}
+.wl-section.has-items{{display:block}}
+.wl-section-hdr{{display:flex;align-items:center;gap:8px;padding:0 4px;margin-bottom:8px}}
+.wl-section-title{{font-size:.9rem;font-weight:700;color:var(--txt)}}
+.wl-count-badge{{font-size:.68rem;color:var(--txt-dim);background:var(--brd);padding:1px 7px;border-radius:10px}}
+.wl-cards{{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:8px}}
+.wl-card{{background:var(--bg-card);border:1px solid var(--brd);border-radius:10px;padding:10px 12px;display:flex;flex-direction:column;gap:3px;position:relative}}
+.wl-card-ticker{{font-size:.95rem;font-weight:800;color:var(--txt)}}
+.wl-card-score{{font-size:1.05rem;font-weight:700}}
+.wl-notop-badge{{font-size:.62rem;color:#6b7280;background:#6b728022;border:1px solid #6b728044;border-radius:4px;padding:1px 5px;width:fit-content}}
+.wl-remove-btn{{position:absolute;top:6px;right:8px;background:none;border:none;color:var(--txt-dim);cursor:pointer;font-size:.9rem;padding:0;opacity:.5}}
+.wl-remove-btn:hover{{color:#ef4444;opacity:1}}
 .score-block{{display:flex;flex-direction:column;align-items:flex-end;min-width:64px}}
 .score-num{{font-size:1.7rem;font-weight:900;line-height:1}}
 .score-lbl{{font-size:.62rem;color:var(--txt-dim);text-transform:uppercase;
@@ -2489,6 +2517,14 @@ a{{color:var(--accent);text-decoration:none}}
   </details>
 
   <div class="disc">⚠ <strong>Disclaimer:</strong> Dieser Report dient ausschließlich Informationszwecken und stellt keine Anlageberatung dar. Keine Kauf- oder Verkaufsempfehlung.</div>
+
+  <section class="wl-section" id="wl-section">
+    <div class="wl-section-hdr">
+      <span class="wl-section-title">Meine Watchlist</span>
+      <span class="wl-count-badge" id="wl-count">0</span>
+    </div>
+    <div class="wl-cards" id="wl-cards"></div>
+  </section>
 
   <div class="cards-grid">
   {cards}
@@ -3112,6 +3148,81 @@ function _fmtGerman(d) {{
       const el = document.getElementById('agent-status');
       if (el) el.textContent = 'KI-Agent: Kein aktueller Scan verfügbar.';
     }});
+}})();
+// ── Persönliche Watchlist ─────────────────────────────────────────────────────
+(function(){{
+  const WL_KEY    = 'squeeze_watchlist';
+  const WL_MAX    = 20;
+  const WL_SCORES = {wl_scores_json};
+
+  function wlLoad()      {{ return JSON.parse(localStorage.getItem(WL_KEY) || '[]'); }}
+  function wlSave(arr)   {{ localStorage.setItem(WL_KEY, JSON.stringify(arr.slice(0, WL_MAX))); }}
+  function wlScoreColor(v) {{
+    if (v === null) return '#94a3b8';
+    return v >= 50 ? '#22c55e' : v >= 30 ? '#f59e0b' : '#ef4444';
+  }}
+
+  function wlRender() {{
+    const arr  = wlLoad();
+    const sec  = document.getElementById('wl-section');
+    const grid = document.getElementById('wl-cards');
+    const cnt  = document.getElementById('wl-count');
+    if (!arr.length) {{ sec.classList.remove('has-items'); return; }}
+    sec.classList.add('has-items');
+    cnt.textContent = arr.length;
+
+    const top10 = new Set(
+      [...document.querySelectorAll('.card[data-ticker]')].map(c => c.dataset.ticker)
+    );
+
+    grid.innerHTML = arr.map(ticker => {{
+      const inTop    = top10.has(ticker);
+      let scoreVal   = null;
+      if (inTop) {{
+        const el = document.querySelector(`.card[data-ticker="${{ticker}}"] .score-num`);
+        if (el) scoreVal = parseFloat(el.textContent);
+      }} else {{
+        scoreVal = WL_SCORES[ticker] ?? null;
+      }}
+      const scoreStr = scoreVal !== null ? scoreVal.toFixed(1) : '—';
+      const scoreCol = wlScoreColor(scoreVal);
+      const badge    = inTop ? '' : '<div class="wl-notop-badge">Nicht in Top 10</div>';
+      return `<div class="wl-card">
+        <button class="wl-remove-btn" onclick="wlRemoveTicker('${{ticker}}')" title="Entfernen">×</button>
+        <div class="wl-card-ticker">${{ticker}}</div>
+        <div class="wl-card-score" style="color:${{scoreCol}}">${{scoreStr}}</div>
+        ${{badge}}
+      </div>`;
+    }}).join('');
+
+    // Sync + buttons on main cards
+    document.querySelectorAll('.wl-add-btn').forEach(b => {{
+      const t = b.dataset.ticker;
+      const active = arr.includes(t);
+      b.classList.toggle('in-wl', active);
+      b.title = active ? 'Aus Watchlist entfernen' : 'Zur Watchlist hinzufügen';
+    }});
+  }}
+
+  window.wlToggle = function(btn) {{
+    const ticker = btn.dataset.ticker;
+    const arr    = wlLoad();
+    const idx    = arr.indexOf(ticker);
+    if (idx >= 0) {{
+      arr.splice(idx, 1);
+    }} else if (arr.length < WL_MAX) {{
+      arr.unshift(ticker);
+    }}
+    wlSave(arr);
+    wlRender();
+  }};
+
+  window.wlRemoveTicker = function(ticker) {{
+    wlSave(wlLoad().filter(t => t !== ticker));
+    wlRender();
+  }};
+
+  document.addEventListener('DOMContentLoaded', wlRender);
 }})();
 // ─────────────────────────────────────────────────────────────────────────────
 </script>
