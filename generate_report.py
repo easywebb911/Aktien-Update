@@ -3197,8 +3197,8 @@ function _fmtGerman(d) {{
       let dotClass;
       if (score >= 70)      dotClass = 'strong';   // grün, schnell (1s)
       else if (score >= 40) dotClass = 'moderate'; // orange, mittel (1.5s)
-      else if (score >= 1)  dotClass = 'weak';     // rot, langsam (2s)
-      else                  dotClass = 'none';     // grau, kein Pulsieren
+      else if (score >= 15) dotClass = 'weak';     // rot, langsam (2s)
+      else                  dotClass = 'none';     // grau, kein Pulsieren (Score 0–14)
       dot.className = 'agent-dot ' + dotClass;
 
       const confidence = (sig && sig.confidence != null) ? sig.confidence : null;
