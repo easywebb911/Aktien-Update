@@ -3548,15 +3548,31 @@ def main():
     _t_batch = time.time()
     pool_tickers = [c["ticker"] for c in pool]
     log.info("Step 2b – Batch yfinance fetch for %d pool tickers …", len(pool_tickers))
-    batch_yfd = get_yfinance_batch(pool_tickers)
+    # Fix 1: hard 45s timeout — a hanging yf.download would otherwise block forever
+    _YF_BATCH_TIMEOUT = 45
+    try:
+        with ThreadPoolExecutor(max_workers=1) as _yf_ex:
+            batch_yfd = _yf_ex.submit(get_yfinance_batch, pool_tickers).result(
+                timeout=_YF_BATCH_TIMEOUT
+            )
+    except TimeoutError:
+        print(f"yfinance Batch-Download Timeout nach {_YF_BATCH_TIMEOUT}s — leeres Ergebnis",
+              flush=True)
+        log.warning("get_yfinance_batch timeout after %ds — using empty dict", _YF_BATCH_TIMEOUT)
+        batch_yfd = {}
     print(f"Step 2b (yfinance batch) abgeschlossen in {time.time()-_t_batch:.1f}s", flush=True)
 
     # Relative Stärke vs. S&P 500 (20T) + heutige Tagesveränderung
+    # Fix 2: hard 15s timeout so a hanging ^GSPC fetch cannot stall the pipeline
     _spx_perf_20d:   float | None = None
     _spx_daily_perf: float        = 0.0   # heutige S&P 500 Tagesveränderung in %
+    _SPX_TIMEOUT = 15
+    def _fetch_spx():
+        return yf.download("^GSPC", period="25d", auto_adjust=True,
+                           progress=False, threads=False)
     try:
-        _spx_hist = yf.download("^GSPC", period="25d", auto_adjust=True,
-                                 progress=False, threads=False)
+        with ThreadPoolExecutor(max_workers=1) as _spx_ex:
+            _spx_hist = _spx_ex.submit(_fetch_spx).result(timeout=_SPX_TIMEOUT)
         if _spx_hist is not None and not _spx_hist.empty and len(_spx_hist) >= 21:
             # squeeze() collapses a single-ticker MultiLevel column DataFrame to a Series
             _spx_close = _spx_hist["Close"].squeeze().dropna()
@@ -3570,6 +3586,9 @@ def main():
                 _prev = float(_spx_close.iloc[-2])
                 _spx_daily_perf = (_last - _prev) / _prev * 100 if _prev > 0 else 0.0
                 log.info("S&P 500 Tages-Perf: %.2f%%", _spx_daily_perf)
+    except TimeoutError:
+        print("S&P 500 Fetch Timeout — Relative Stärke nicht verfügbar", flush=True)
+        log.warning("S&P 500 yf.download timeout after %ds — skipping relative strength", _SPX_TIMEOUT)
     except Exception as _spx_exc:
         log.warning("S&P 500 fetch failed: %s", _spx_exc)
 
@@ -3725,13 +3744,20 @@ def main():
     print(f"News: {len(top10)} Ticker parallel in {_news_elapsed:.1f}s abgerufen", flush=True)
 
     # Parallel options data fetch (US-only top-10, max 5 threads).
+    # Fix 3: as_completed(timeout=30) — skip remaining futures after 30s total
+    _POOL_STEP3_TIMEOUT = 30
     _t_opts = time.time()
     us_top10 = [s for s in top10 if "." not in s["ticker"]]
     log.info("Step 3b – Fetching options data for %d US stocks (parallel, max 5 threads) …", len(us_top10))
     with ThreadPoolExecutor(max_workers=5) as _opts_ex:
         _opts_futures = {_opts_ex.submit(get_options_data, s["ticker"]): s for s in us_top10}
-        for _fut in as_completed(_opts_futures):
-            _opts_futures[_fut]["options"] = _fut.result() or {}
+        try:
+            for _fut in as_completed(_opts_futures, timeout=_POOL_STEP3_TIMEOUT):
+                _opts_futures[_fut]["options"] = _fut.result() or {}
+        except TimeoutError:
+            print(f"Optionsdaten: Pool-Timeout nach {_POOL_STEP3_TIMEOUT}s — verbleibende Ticker übersprungen",
+                  flush=True)
+            log.warning("options as_completed timeout — skipping remaining futures")
     _opts_elapsed = time.time() - _t_opts
     _n_ok = sum(1 for s in us_top10 if s.get("options"))
     _n_na = len(us_top10) - _n_ok
@@ -3742,10 +3768,15 @@ def main():
     log.info("Step 3c – Fetching earnings dates for %d US stocks …", len(us_top10))
     with ThreadPoolExecutor(max_workers=5) as _earn_ex:
         _earn_futures = {_earn_ex.submit(get_earnings_date, s["ticker"]): s for s in us_top10}
-        for _fut in as_completed(_earn_futures):
-            _days, _dstr = _fut.result()
-            _earn_futures[_fut]["earnings_days"] = _days
-            _earn_futures[_fut]["earnings_date_str"] = _dstr
+        try:
+            for _fut in as_completed(_earn_futures, timeout=_POOL_STEP3_TIMEOUT):
+                _days, _dstr = _fut.result()
+                _earn_futures[_fut]["earnings_days"] = _days
+                _earn_futures[_fut]["earnings_date_str"] = _dstr
+        except TimeoutError:
+            print(f"Earnings-Termine: Pool-Timeout nach {_POOL_STEP3_TIMEOUT}s — verbleibende Ticker übersprungen",
+                  flush=True)
+            log.warning("earnings as_completed timeout — skipping remaining futures")
     print(f"Earnings-Termine: {len(us_top10)} Ticker in {time.time()-_t_earn:.1f}s abgerufen", flush=True)
 
     # Parallel SEC 13F fetch (US-only, max 5 threads).
@@ -3753,10 +3784,15 @@ def main():
     log.info("Step 3d – Checking SEC 13F for %d US stocks …", len(us_top10))
     with ThreadPoolExecutor(max_workers=5) as _13f_ex:
         _13f_futures = {_13f_ex.submit(fetch_sec_13f, s["ticker"]): s for s in us_top10}
-        for _fut in as_completed(_13f_futures):
-            note = _fut.result()
-            if note:
-                _13f_futures[_fut]["sec_13f_note"] = note
+        try:
+            for _fut in as_completed(_13f_futures, timeout=_POOL_STEP3_TIMEOUT):
+                note = _fut.result()
+                if note:
+                    _13f_futures[_fut]["sec_13f_note"] = note
+        except TimeoutError:
+            print(f"SEC 13F: Pool-Timeout nach {_POOL_STEP3_TIMEOUT}s — verbleibende Ticker übersprungen",
+                  flush=True)
+            log.warning("SEC 13F as_completed timeout — skipping remaining futures")
     _n_13f = sum(1 for s in us_top10 if s.get("sec_13f_note"))
     print(f"SEC 13F: {_n_13f} Treffer in {time.time()-_t_13f:.1f}s", flush=True)
     print(f"Step 3 abgeschlossen in {time.time() - _t_news:.1f}s", flush=True)

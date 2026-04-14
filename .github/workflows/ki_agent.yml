@@ -15,6 +15,7 @@ env:
 jobs:
   run-ki-agent:
     runs-on: ubuntu-latest
+    timeout-minutes: 5
 
     steps:
       - name: Checkout main branch

@@ -17,6 +17,7 @@ env:
 jobs:
   generate-and-deploy:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
 
     steps:
       - name: Checkout main branch
