@@ -41,9 +41,22 @@ import requests
 import yfinance as yf
 
 # ── Konfiguration — alle Schwellen hier ändern, nirgendwo sonst ──────────────
-ALERT_THRESHOLD         = 25      # Score ≥ → Alert senden
+ALERT_THRESHOLD         = 25      # Fallback (wird durch Phasen-Schwellen ersetzt)
 ALERT_THRESHOLD_STRONG  = 70      # Score ≥ → Starker Alert (⚡⚡)
 ALERT_COOLDOWN_HOURS    = 2       # Mindeststunden zwischen zwei Alerts je Ticker
+
+# Fix 2 — Phasenabhängige Alert-Schwellen
+ALERT_THRESHOLD_REGULAR    = 25   # 09:30–16:00 ET Regulärer Handel
+ALERT_THRESHOLD_PREMARKET  = 20   # 04:00–09:30 ET (weniger Quellen aktiv)
+ALERT_THRESHOLD_AFTERHOURS = 20   # 16:00–20:00 ET
+ALERT_THRESHOLD_CLOSED     = 35   # Geschlossen / Wochenende (nur News-Signale)
+
+# Fix 1 — Pre/Post-Market Daten
+USE_PREPOST_DATA = True           # prepost=True im 1m-Intraday-Download
+
+# Fix 3 — Earnings-Sofort-Alert nach Börsenschluss
+EARNINGS_IMMEDIATE_ALERT  = True  # Sofort-Alert bei frischer Earnings-Meldung
+EARNINGS_IMMEDIATE_HOURS  = 2     # 8-K/News muss innerhalb letzter N Stunden liegen
 
 # Score-Punkte je Signal
 SCORE_PRICE_UP_3        = 15      # Kursanstieg ≥ 3 % intraday
@@ -170,6 +183,16 @@ def get_market_phase() -> str:
     return "Geschlossen"
 
 
+def get_alert_threshold(phase: str) -> int:
+    """Gibt die phasenabhängige Alert-Schwelle zurück (Fix 2)."""
+    return {
+        "Regulär":     ALERT_THRESHOLD_REGULAR,
+        "Pre-Market":  ALERT_THRESHOLD_PREMARKET,
+        "After-Hours": ALERT_THRESHOLD_AFTERHOURS,
+        "Geschlossen": ALERT_THRESHOLD_CLOSED,
+    }.get(phase, ALERT_THRESHOLD_REGULAR)
+
+
 # ── index.html parsen → Top-10-Ticker ─────────────────────────────────────────
 
 def parse_top_tickers() -> list[str]:
@@ -238,12 +261,21 @@ def save_signals(signals: dict) -> None:
 # ── Datenquelle 1: yfinance ───────────────────────────────────────────────────
 
 def fetch_yfinance(tickers: list[str]) -> dict[str, dict]:
-    """Batch-Download für alle Ticker. Gibt Dict ticker→Daten zurück."""
+    """Batch-Download für alle Ticker. Gibt Dict ticker→Daten zurück.
+
+    Schritt 1: 5-Tage-Tagesbalken für Avg-Volumen, letzten regulären Close
+               und Intraday-Spanne.
+    Schritt 2 (wenn USE_PREPOST_DATA): 1-Minuten-Bars mit prepost=True für
+               aktuellen Kurs auch in Pre-Market / After-Hours.
+               chg_pct wird gegen den letzten regulären Close berechnet.
+    """
     if not tickers:
         return {}
     results: dict[str, dict] = {}
+
+    # ── Schritt 1: Tagesbalken (reguläre Session, 5 Tage) ───────────────────
     try:
-        hist = yf.download(
+        hist  = yf.download(
             tickers, period="5d", auto_adjust=True,
             threads=True, progress=False,
         )
@@ -253,27 +285,69 @@ def fetch_yfinance(tickers: list[str]) -> dict[str, dict]:
                 df = hist[t] if multi else hist
                 if df is None or df.empty or len(df) < 2:
                     continue
-                df = df.dropna(subset=["Close","Volume"])
-                avg_vol  = float(df["Volume"].iloc[:-1].mean())
-                cur_vol  = float(df["Volume"].iloc[-1])
-                rvol     = round(cur_vol / avg_vol, 2) if avg_vol > 0 else 0.0
-                close    = float(df["Close"].iloc[-1])
-                prev     = float(df["Close"].iloc[-2])
-                chg_pct  = round((close - prev) / prev * 100, 2) if prev > 0 else 0.0
-                high_    = float(df["High"].iloc[-1])
-                low_     = float(df["Low"].iloc[-1])
-                open_    = float(df["Open"].iloc[-1])
-                intraday = round((high_ - low_) / open_ * 100, 2) if open_ > 0 else 0.0
+                df = df.dropna(subset=["Close", "Volume"])
+                avg_vol        = float(df["Volume"].iloc[:-1].mean())
+                cur_vol        = float(df["Volume"].iloc[-1])
+                rvol           = round(cur_vol / avg_vol, 2) if avg_vol > 0 else 0.0
+                last_reg_close = float(df["Close"].iloc[-1])
+                prev_close     = float(df["Close"].iloc[-2])
+                high_          = float(df["High"].iloc[-1])
+                low_           = float(df["Low"].iloc[-1])
+                open_          = float(df["Open"].iloc[-1])
+                intraday       = round((high_ - low_) / open_ * 100, 2) if open_ > 0 else 0.0
+                chg_pct        = (
+                    round((last_reg_close - prev_close) / prev_close * 100, 2)
+                    if prev_close > 0 else 0.0
+                )
                 results[t] = {
-                    "price":    round(close, 2),
-                    "chg_pct":  chg_pct,
-                    "rvol":     rvol,
-                    "intraday": intraday,
+                    "price":          round(last_reg_close, 2),
+                    "last_reg_close": round(last_reg_close, 2),
+                    "chg_pct":        chg_pct,
+                    "rvol":           rvol,
+                    "intraday":       intraday,
                 }
             except Exception as exc:
-                log.debug("yfinance slice %s: %s", t, exc)
+                log.debug("yfinance daily slice %s: %s", t, exc)
     except Exception as exc:
-        log.warning("yfinance batch Fehler: %s", exc)
+        log.warning("yfinance Tagesbalken Fehler: %s", exc)
+
+    # ── Schritt 2: 1m-Bars mit prepost=True → aktueller Kurs Pre/Post-Market ─
+    if USE_PREPOST_DATA:
+        try:
+            hist_1m  = yf.download(
+                tickers, period="1d", interval="1m",
+                prepost=True, auto_adjust=True,
+                threads=True, progress=False,
+            )
+            multi_1m = len(tickers) > 1
+            for t in tickers:
+                try:
+                    df1 = hist_1m[t] if multi_1m else hist_1m
+                    if df1 is None or df1.empty:
+                        continue
+                    df1 = df1.dropna(subset=["Close"])
+                    current_price = float(df1["Close"].iloc[-1])
+                    base = results.get(t, {}).get("last_reg_close")
+                    if base and base > 0:
+                        chg_pct = round((current_price - base) / base * 100, 2)
+                    else:
+                        chg_pct = results.get(t, {}).get("chg_pct", 0.0)
+                    if t in results:
+                        results[t]["price"]   = round(current_price, 2)
+                        results[t]["chg_pct"] = chg_pct
+                    else:
+                        results[t] = {
+                            "price":          round(current_price, 2),
+                            "last_reg_close": round(current_price, 2),
+                            "chg_pct":        chg_pct,
+                            "rvol":           0.0,
+                            "intraday":       0.0,
+                        }
+                except Exception as exc:
+                    log.debug("yfinance 1m prepost slice %s: %s", t, exc)
+        except Exception as exc:
+            log.warning("yfinance 1m prepost Fehler: %s", exc)
+
     return results
 
 
@@ -347,8 +421,12 @@ def fetch_reddit_mentions(ticker: str) -> dict:
 
 # ── Datenquelle 4: SEC EDGAR RSS ─────────────────────────────────────────────
 
-def fetch_sec_8k(ticker: str) -> tuple[bool, str]:
-    """Returns (has_recent_8k, title_of_8k). Title is '' if none found."""
+def fetch_sec_8k(ticker: str) -> tuple[bool, str, datetime | None]:
+    """Returns (has_recent_8k, title_of_8k, filing_dt).
+
+    filing_dt ist der UTC-Zeitstempel der Meldung — wird für den
+    Earnings-Sofort-Alert (Fix 3) genutzt um die 2h-Aktualität zu prüfen.
+    """
     url = (
         "https://www.sec.gov/cgi-bin/browse-edgar"
         f"?action=getcompany&CIK={ticker}&type=8-K"
@@ -360,24 +438,24 @@ def fetch_sec_8k(ticker: str) -> tuple[bool, str]:
         resp = requests.get(url, headers=SEC_HEADERS, timeout=12)
         if resp.status_code == 403:
             log.debug("EDGAR %s: 403 geblockt — übersprungen.", ticker)
-            return False, ""
+            return False, "", None
         resp.raise_for_status()
         text = re.sub(r' xmlns="[^"]+"', "", resp.text, count=1)
         root = ET.fromstring(text)
         for entry in root.findall("entry"):
             updated = entry.findtext("updated") or ""
             try:
-                dt = datetime.fromisoformat(updated)
-                if dt.tzinfo is None:
-                    dt = dt.replace(tzinfo=timezone.utc)
-                if dt > cutoff:
+                filing_dt = datetime.fromisoformat(updated)
+                if filing_dt.tzinfo is None:
+                    filing_dt = filing_dt.replace(tzinfo=timezone.utc)
+                if filing_dt > cutoff:
                     title = entry.findtext("title") or ""
-                    return True, title
+                    return True, title, filing_dt
             except Exception:
                 continue
     except Exception as exc:
         pass
-    return False, ""
+    return False, "", None
 
 
 # ── Datenquelle 5: Finviz News RSS ────────────────────────────────────────────
@@ -1028,7 +1106,7 @@ def send_daily_summary(
         key=lambda x: x[1].get("score", 0),
         reverse=True,
     )
-    n_active = sum(1 for _, s in scored if s.get("score", 0) >= ALERT_THRESHOLD)
+    n_active = sum(1 for _, s in scored if s.get("score", 0) >= ALERT_THRESHOLD_REGULAR)
     top_ticker = scored[0][0] if scored else "—"
     top_score  = scored[0][1].get("score", 0) if scored else 0
 
@@ -1051,7 +1129,7 @@ def send_daily_summary(
         conf       = sig.get("confidence")
         conf_str   = f"{conf}%" if conf is not None else "—"
         drivers    = sig.get("drivers", "—")
-        flag       = " ⚡" if score >= ALERT_THRESHOLD else ""
+        flag       = " ⚡" if score >= ALERT_THRESHOLD_REGULAR else ""
         lines.append(f"{ticker:<10} {score:>5}/100  {conf_str:>9}  {drivers}{flag}")
 
     lines += [
@@ -1087,11 +1165,13 @@ def send_daily_summary(
 
 def main() -> None:
     t_start = time.time()
-    phase   = get_market_phase()
-    print(f"Marktphase: {phase}", flush=True)
+    phase            = get_market_phase()
+    alert_threshold  = get_alert_threshold(phase)   # Fix 2
+    print(f"Marktphase: {phase} — Alert-Schwelle: {alert_threshold}", flush=True)
 
     now_str = now_berlin().strftime("%H:%M Uhr")
-    log.info("=== KI-Agent Start %s — %s ===", now_berlin().strftime("%Y-%m-%d %H:%M"), phase)
+    log.info("=== KI-Agent Start %s — %s (Schwelle: %d) ===",
+             now_berlin().strftime("%Y-%m-%d %H:%M"), phase, alert_threshold)
 
     tickers = parse_top_tickers()
     if not tickers:
@@ -1165,10 +1245,11 @@ def main() -> None:
 
         has_8k    = False
         sec_title = ""
+        sec_8k_dt: datetime | None = None
         is_us     = "." not in ticker
         if is_us:
             try:
-                has_8k, sec_title = fetch_sec_8k(ticker)
+                has_8k, sec_title, sec_8k_dt = fetch_sec_8k(ticker)
                 if has_8k:
                     title_lower = sec_title.lower()
                     if any(kw in title_lower for kw in SEC_RELEVANT_KEYWORDS):
@@ -1273,10 +1354,37 @@ def main() -> None:
             "insider_buy":    insider.get("count", 0) > 0,
         }
 
-        if score >= ALERT_THRESHOLD:
+        if score >= alert_threshold:
             n_signals += 1
 
-        if score >= ALERT_THRESHOLD and not is_on_cooldown(ticker, state):
+        # Fix 3 — Earnings-Sofort-Alert (After-Hours, Earnings in 0–1 Tagen)
+        earnings_immediate = False
+        if (EARNINGS_IMMEDIATE_ALERT
+                and phase == "After-Hours"
+                and earnings_days is not None
+                and 0 <= earnings_days <= 1
+                and not is_on_cooldown(ticker, state)):
+            cutoff_fresh = datetime.now(timezone.utc) - timedelta(hours=EARNINGS_IMMEDIATE_HOURS)
+            is_8k_fresh  = (
+                has_8k and sec_8k_dt is not None and sec_8k_dt >= cutoff_fresh
+            )
+            has_earnings_news = any("earnings" in h.lower() for h in news)
+            if is_8k_fresh or has_earnings_news:
+                earnings_immediate = True
+                log.info("  %s Earnings-Sofort-Alert (Earnings in %dd, 8K-frisch: %s, News: %s)",
+                         ticker, earnings_days, is_8k_fresh, has_earnings_news)
+                sent = send_alert(
+                    ticker, score, drivers, yfd, reddit, news,
+                    upcoming_event=upcoming_event or f"Earnings in {earnings_days} Tagen — Sofort-Alert",
+                    insider=insider,
+                    confidence=confidence,
+                    n_types=n_active_types,
+                )
+                if sent:
+                    set_cooldown(ticker, state)
+                    n_alerts += 1
+
+        if score >= alert_threshold and not is_on_cooldown(ticker, state) and not earnings_immediate:
             sent = send_alert(
                 ticker, score, drivers, yfd, reddit, news,
                 upcoming_event=upcoming_event,
