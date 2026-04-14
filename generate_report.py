@@ -985,7 +985,7 @@ def _get_finra_csv_for_date(date_str: str) -> dict[str, int]:
 
 
 _FINRA_DATES_CACHE_FILE  = "finra_dates_cache.json"
-_FINRA_DATES_CACHE_TTL_S = 3600   # 1 Stunde in Sekunden
+_FINRA_DATES_CACHE_TTL_S = 7200   # 2 Stunden in Sekunden
 
 
 def _latest_finra_dates(n: int = 3) -> list[str]:
@@ -1037,7 +1037,26 @@ def _latest_finra_dates(n: int = 3) -> list[str]:
         except Exception:
             continue
 
-    # Write cache
+    if not found:
+        # CDN probe completely failed — try stale cache as fallback (up to 24h old)
+        print("FINRA Datumssuche: 0 Daten gefunden — CDN nicht erreichbar oder alle "
+              "Probes fehlgeschlagen", flush=True)
+        try:
+            with open(_FINRA_DATES_CACHE_FILE, "r", encoding="utf-8") as _cf:
+                _stale = json.load(_cf)
+            _stale_dates = _stale.get("dates", [])
+            _stale_age   = time.time() - _stale.get("ts", 0)
+            if _stale_dates and _stale_age < 86400:
+                print(f"FINRA Datumssuche: Verwende Stale-Cache ({_stale_age/3600:.1f}h alt): "
+                      f"{_stale_dates}", flush=True)
+                return _stale_dates[:n]
+        except Exception:
+            pass
+        print("FINRA Datumssuche: Kein Fallback-Cache verfügbar — SI-Trend zeigt '—'",
+              flush=True)
+        return []
+
+    # Write/update cache only when probe succeeded
     try:
         with open(_FINRA_DATES_CACHE_FILE, "w", encoding="utf-8") as _cf:
             json.dump({"ts": time.time(), "dates": found}, _cf)
