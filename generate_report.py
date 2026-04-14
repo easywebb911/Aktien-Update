@@ -90,6 +90,9 @@ SI_TREND_DOWN_THRESHOLD = -0.10   # ≤−10 % → fallend; between → seitwär
 # ── Score smoothing weights ──────────────────────────────────────────────────
 SCORE_TODAY_WEIGHT   = 0.70   # weight for today's raw score
 SCORE_HISTORY_WEIGHT = 0.30   # weight for average of last 3 historical runs
+SCORE_TREND_BONUS    = 3      # +Pkt wenn Score SCORE_TREND_DAYS Tage in Folge gestiegen
+SCORE_TREND_MALUS    = 3      # −Pkt wenn Score SCORE_TREND_DAYS Tage in Folge gefallen
+SCORE_TREND_DAYS     = 3      # Anzahl aufeinanderfolgender Tage für Trend-Erkennung
 _SCORE_HISTORY_FILE  = "score_history.json"
 _SCORE_HISTORY_DAYS  = 14     # prune entries older than this many days
 # ── Dynamic enrichment pool sizing ───────────────────────────────────────────
@@ -1314,6 +1317,15 @@ def apply_score_smoothing(stocks: list[dict], today: str) -> None:
             s["score"] = round(min(smoothed, 100.0), 1)
         # else (0 or 1 past entry): keep raw score — no smoothing penalty for new tickers
 
+        # Score-Trend-Bonus/-Malus: continous rise/fall over SCORE_TREND_DAYS
+        if len(past) >= SCORE_TREND_DAYS:
+            trend_entries = past[:SCORE_TREND_DAYS][::-1]  # ascending: oldest → newest
+            _tscores = [e["score"] for e in trend_entries]
+            if all(_tscores[i] < _tscores[i + 1] for i in range(len(_tscores) - 1)):
+                s["score"] = round(min(s["score"] + SCORE_TREND_BONUS, 100.0), 1)
+            elif all(_tscores[i] > _tscores[i + 1] for i in range(len(_tscores) - 1)):
+                s["score"] = round(max(s["score"] - SCORE_TREND_MALUS, 0.0), 1)
+
         # Store today's raw score only if it differs from what's already there
         existing = [e for e in history.get(ticker, []) if e.get("date", "") == today]
         if not existing or existing[0]["score"] != today_raw:
@@ -2336,6 +2348,7 @@ a{{color:var(--accent);text-decoration:none}}
           <li><strong>8 Pkt Float-Größe</strong> – kleiner Float verstärkt den Squeeze-Effekt; unter 30 Mio. Aktien = voll, über 50 Mio. = 0 Pkt</li>
           <li><strong>+ bis 7 Pkt FINRA SI-Trend Bonus</strong> – steigend ≥ +10 % → 5 Pkt · mit Beschleunigung → 7 Pkt · seitwärts → 2,5 Pkt · fallend → 0 Pkt</li>
           <li><strong>+ 5 Pkt Kombinationssignal-Bonus</strong> – wenn ≥ 3 von 4 Faktoren gleichzeitig stark: Short Float ≥ 30 %, DTC ≥ 5d, Rel. Volumen ≥ 2×, SI-Trend steigend</li>
+          <li><strong>± 3 Pkt Score-Trend-Bonus/-Malus</strong> – +3 Pkt bei 3 Tagen kontinuierlichem Score-Anstieg; −3 Pkt bei 3 Tagen kontinuierlichem Rückgang (min 0)</li>
         </ul>
       </div>
       <div class="info-box">
