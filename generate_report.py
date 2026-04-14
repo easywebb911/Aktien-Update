@@ -50,7 +50,8 @@ HTTP_HEADERS = {
 }
 
 MIN_SHORT_FLOAT = 15.0   # %
-MIN_REL_VOLUME  = 1.5    # × 20-day avg
+MIN_REL_VOLUME       = 1.5   # × 20-day avg — US stocks
+MIN_REL_VOLUME_INTL  = 1.2   # × 20-day avg — international watchlist (lower bar)
 MAX_MARKET_CAP  = 10e9   # $10 B
 MIN_PRICE       = 1.0    # USD
 MIN_SCORE       = 15.0   # pts — informational reference only; NOT a hard filter.
@@ -175,6 +176,22 @@ def get_flag(ticker: str) -> str:
             return flag
     return "🇺🇸"  # no suffix → US
 
+
+def get_region(ticker: str) -> str:
+    """Return the region code for *ticker* based on its suffix.
+    Consistent with get_flag() — both derived from ticker suffix only."""
+    t = ticker.upper()
+    suffix_regions = [
+        (".KS", "KR"), (".T", "JP"), (".HK", "HK"),
+        (".DE", "DE"), (".L", "GB"), (".PA", "FR"),
+        (".AS", "NL"), (".TO", "CA"),
+    ]
+    for suffix, region in suffix_regions:
+        if t.endswith(suffix.upper()):
+            return region
+    return "US"
+
+
 _YF_SCREENER_URL = (
     "https://query2.finance.yahoo.com/v1/finance/screener/predefined/saved"
 )
@@ -244,6 +261,7 @@ def get_yahoo_screener_candidates() -> list[dict]:
                 "market_cap_s": fmt_cap(mkt_cap),
                 "price":        price,
                 "change":       float(q.get("regularMarketChangePercent") or 0),
+                "change_5d":    None,
                 "short_float":  sf_raw * 100 if sf_raw <= 1.0 else sf_raw,
                 "short_ratio":  float(q.get("shortRatio") or 0),
                 "rel_volume":   0.0,
@@ -365,6 +383,7 @@ def get_finviz_candidates(max_pages: int = 6) -> list[dict]:
                 "rel_volume":   rel_vol,
                 "price":        price,
                 "change":       change,
+                "change_5d":    None,
             })
             page_added += 1
 
@@ -570,6 +589,17 @@ def get_yfinance_batch(tickers: list[str]) -> dict[str, dict]:
             "ma200":          ma200,
             "perf_20d":       perf_20d,
         }
+
+        # change_5d aus Batch-History
+        try:
+            _df = hist_batch if len(tickers) == 1 else hist_batch[ticker]
+            if _df is not None and len(_df) >= 6:
+                results[ticker]["change_5d"] = round(
+                    (float(_df["Close"].iloc[-1]) - float(_df["Close"].iloc[-6])) /
+                    float(_df["Close"].iloc[-6]) * 100, 2
+                )
+        except Exception:
+            pass
 
     return results
 
@@ -999,8 +1029,8 @@ def get_finra_short_interest(ticker: str,
         return {}
 
     sym = ticker.strip().upper()
-    _FINRA_MIN_VOL  = 1     # any non-zero value counts; CSV parser already drops sv=0
-    _TREND_MIN_VOL  = 100   # trend % only computed when oldest ≥ 100 (avoids ÷ tiny)
+    _FINRA_MIN_VOL  = 1        # any non-zero value counts; CSV parser already drops sv=0
+    _TREND_MIN_VOL  = 100      # min short-vol for a meaningful trend data point
 
     history: list[dict] = []
     for date_str in dates:
@@ -1017,20 +1047,25 @@ def get_finra_short_interest(ticker: str,
         _finra_stats["empty"] += 1
         return {}
 
-    # Trend only when oldest ≥ 100 to prevent absurd percentages from tiny values
-    # SI_TREND_MIN_DATAPOINTS (default 2): newest vs. oldest available value
+    # Only include data points ≥ _TREND_MIN_VOL (100) in trend calc
+    # Cap output to [-95 %, +500 %] to suppress data artefacts
+    # Classification uses raw (uncapped) value; only the stored pct is capped.
     trend, trend_pct = "no_data", 0.0
-    if len(history) >= SI_TREND_MIN_DATAPOINTS:
-        newest = history[0]["short_interest"]
-        oldest = history[-1]["short_interest"]
-        if oldest >= _TREND_MIN_VOL:
-            trend_pct = (newest - oldest) / oldest
-            if trend_pct >= SI_TREND_UP_THRESHOLD:
-                trend = "up"
-            elif trend_pct <= SI_TREND_DOWN_THRESHOLD:
-                trend = "down"
-            else:
-                trend = "sideways"
+    significant = [p for p in history if p["short_interest"] >= _TREND_MIN_VOL]
+    if len(significant) >= SI_TREND_MIN_DATAPOINTS:
+        newest = significant[0]["short_interest"]
+        oldest = significant[-1]["short_interest"]
+        raw_pct = (newest - oldest) / oldest
+        if raw_pct >= SI_TREND_UP_THRESHOLD:
+            trend = "up"
+        elif raw_pct <= SI_TREND_DOWN_THRESHOLD:
+            trend = "down"
+        else:
+            trend = "sideways"
+        trend_pct = max(-0.95, min(5.0, raw_pct))
+        if _finra_stats.get("ok", 0) < 5:
+            print(f"{sym} FINRA trend: oldest={oldest:,}, newest={newest:,}, "
+                  f"trend_pct={trend_pct*100:.1f}%, trend={trend}", flush=True)
 
     # SI Velocity: average daily share change (newest − oldest) / n data points
     si_velocity   = 0.0
@@ -1147,9 +1182,9 @@ def _fmt_si_record(rec: dict) -> str:
 # Gesamt               → max 100 Pkt
 #
 # Verifikation (Float=0 angenommen wo nicht angegeben):
-# A: SF=30%, SR=10d, RV=3×, Mom=+8%   → Score 40.07
-# B: SF=50%, SR=5d,  RV=5×, Mom=+15%  → Score 58.75
-# C: SF=15%, SR=3d,  RV=1.5×, Mom=+3% → Score 13.93
+# A: SF=30%, DTC=5d,  RVOL=2×, Mom=+3%, Float=60M  → Score  47.45
+# B: SF=50%, DTC=8d,  RVOL=3×, Mom=+5%, Float=20M  → Score  90.15
+# C: SF=80%, DTC=12d, RVOL=4×, Mom=+8%, Float=5M   → Score 100.00
 def score(stock: dict) -> float:
     """Weighted squeeze score 0–100.
     When no short data is available (sf=0, sr=0) the score is capped at 50
@@ -1158,7 +1193,7 @@ def score(stock: dict) -> float:
     """
     sf_val = stock.get("short_float", 0)
     sr_val = stock.get("short_ratio", 0)
-    rv_raw = min((stock.get("rel_volume", 0) - 1.0) / 4.0, 1.0)
+    rv_raw = min((stock.get("rel_volume", 0) - 1.0) / 2.0, 1.0)  # sättigt bei 3× statt 5×
 
     # Float-size factor: small float amplifies squeeze pressure
     _float = stock.get("float_shares") or 0
@@ -1175,15 +1210,15 @@ def score(stock: dict) -> float:
         # Nur positive Tagesveränderungen zählen: fallende Kurse = kein Squeeze-Druck
         rv_component = rv_raw * 30
         chg = max(stock.get("change", 0), 0)
-        momentum = min(chg / 15.0, 1.0) * 20
+        momentum = min(chg /  8.0, 1.0) * 20  # sättigt bei +8% statt +15%
         return min(round(rv_component + momentum + _fs, 2), 50.0)
 
     # Fall 1: Short-Daten vorhanden → fünf Faktoren, max 100 Pkt
     # Nur positive Tagesveränderungen zählen: fallende Kurse = kein Squeeze-Druck
-    sf  = min(sf_val / 100.0, 1.0) * 32
-    sr  = min(sr_val /  20.0, 1.0) * 23
+    sf  = min(sf_val /  50.0, 1.0) * 32  # sättigt bei 50% statt 100%
+    sr  = min(sr_val /  10.0, 1.0) * 23  # sättigt bei 10d statt 20d
     rv  = rv_raw * 23
-    mom = min(max(stock.get("change", 0), 0) / 15.0, 1.0) * 14
+    mom = min(max(stock.get("change", 0), 0) /  8.0, 1.0) * 14  # sättigt bei +8% statt +15%
     return round(sf + sr + rv + mom + _fs, 2)
 
 
@@ -1255,11 +1290,12 @@ def apply_score_smoothing(stocks: list[dict], today: str) -> None:
             reverse=True,
         )[:3]
 
-        if past:
+        if len(past) >= 2:
+            # Smoothing greift nur ab 2 Vorläufen — neue Ticker bekommen keinen Abzug
             hist_avg = sum(e["score"] for e in past) / len(past)
             smoothed = SCORE_TODAY_WEIGHT * today_raw + SCORE_HISTORY_WEIGHT * hist_avg
             s["score"] = round(min(smoothed, 100.0), 1)
-        # else: keep raw score unchanged
+        # else (0 or 1 past entry): keep raw score — no smoothing penalty for new tickers
 
         # Store today's raw score only if it differs from what's already there
         existing = [e for e in history.get(ticker, []) if e.get("date", "") == today]
@@ -1276,10 +1312,7 @@ def apply_score_smoothing(stocks: list[dict], today: str) -> None:
         )[-7:]
         if len(all_entries) >= 2:
             spark_scores = [round(e["score"], 1) for e in all_entries]
-            spark_dates  = [
-                datetime.strptime(e["date"], "%Y-%m-%d").strftime("%d.%m")
-                for e in all_entries
-            ]
+            spark_dates  = [e["date"] for e in all_entries]   # ISO YYYY-MM-DD; JS parses weekday
             delta = spark_scores[-1] - spark_scores[0]
             if delta >= 3:
                 spark_trend = f"↑ +{delta:.1f} Pkt"
@@ -1295,6 +1328,7 @@ def apply_score_smoothing(stocks: list[dict], today: str) -> None:
                 "dates":  spark_dates,
                 "trend":  spark_trend,
                 "col":    spark_col,
+                "today":  today,
             }
         else:
             s["sparkline"] = None
@@ -1455,16 +1489,14 @@ def _card(i: int, s: dict) -> str:
             f'<div class="spark-wrap" '
             f'data-scores=\'{_sc_json}\' '
             f'data-dates=\'{_dt_json}\' '
-            f'data-col="{_spark["col"]}">'
+            f'data-col="{_spark["col"]}" '
+            f'data-today="{_spark["today"]}">'
             f'<div class="spark-header">'
             f'<span class="spark-title">Score-Verlauf</span>'
             f'<span class="spark-trend" style="color:{_spark["col"]}">{_spark["trend"]}</span>'
             f'</div>'
             f'<div class="spark-svg-wrap"></div>'
-            f'<div class="spark-dates">'
-            f'<span>{_spark["dates"][0]}</span>'
-            f'<span>{_spark["dates"][-1]}</span>'
-            f'</div>'
+            f'<div class="spark-days"></div>'
             f'</div>'
         )
     else:
@@ -1504,6 +1536,8 @@ def _card(i: int, s: dict) -> str:
     chg     = s.get("change", 0)
     chg_str = f"+{chg:.1f}%" if chg >= 0 else f"{chg:.1f}%"
     chg_col = _metric_color("mom", chg)
+    chg_5d_html = (f'<br><span style="font-size:0.75em;color:var(--color-text-secondary)">5T: {s["change_5d"]:+.1f}%</span>'
+                   if s.get("change_5d") is not None else "")
 
     has_no_short_data = sf == 0 and sr == 0
     flag    = get_flag(s["ticker"])
@@ -1714,19 +1748,18 @@ def _card(i: int, s: dict) -> str:
         f'target="_blank" rel="noopener noreferrer" title="Stockanalysis Chart &amp; Short-Interest">S</a>'
     )
 
-    news_html = ""
+    _news_items = []
     for n in s.get("news", [])[:3]:
         src_label = n.get("source") or n.get("publisher") or ""
         src_html  = f' <span class="ni-src">({src_label})</span>' if src_label else ""
-        news_html += (
+        _news_items.append(
             f'<div class="ni">'
             f'<a href="{n.get("link","#")}" target="_blank" rel="noopener noreferrer">'
             f'{n.get("title","")}</a>{src_html}'
             f'<span class="ni-meta">{n.get("time","")}</span>'
             f'</div>'
         )
-    if not news_html:
-        news_html = '<p class="no-news">Keine Nachrichten verfügbar.</p>'
+    news_html = "".join(_news_items) if _news_items else '<p class="no-news">Keine Nachrichten verfügbar.</p>'
 
     return f"""
 <article class="card" id="c{i}" data-ticker="{s['ticker']}">
@@ -1736,7 +1769,7 @@ def _card(i: int, s: dict) -> str:
       <div class="ticker-block">
         <div class="ticker-row">
           <span class="ticker">{s['ticker']}</span>
-          <span class="market-tag">{flag} {s.get('market','US')}</span>
+          <span class="market-tag">{flag} {get_region(s["ticker"])}</span>
           {finviz_badge}{sa_badge}
           <span class="price-tag">${s.get('price',0):.2f}</span>
         </div>
@@ -1766,7 +1799,7 @@ def _card(i: int, s: dict) -> str:
       <span class="m-lbl">Volumen</span>
     </div>
     <div class="metric-box" style="--mc:{chg_col}">
-      <span class="m-val">{chg_str}</span>
+      <span class="m-val">{chg_str}{chg_5d_html}</span>
       <span class="m-lbl">Momentum</span>
     </div>
     <div class="metric-box" style="--mc:{float_tile_col}">
@@ -1813,6 +1846,10 @@ def _card(i: int, s: dict) -> str:
     <span id="nb-icon{i}">▼</span> Aktuelle Meldungen
   </button>
   <div class="news-panel" id="np{i}" hidden>
+    <div class="ki-signal-block">
+      <div class="ki-signal-header">&#9889; KI-Agent Signale</div>
+      <div class="ki-signal-body"></div>
+    </div>
     <div class="news-items">{news_html}</div>
     <div class="news-summary-box">
       <span class="summary-label">Zusammenfassung</span>
@@ -1903,7 +1940,12 @@ a{{color:var(--accent);text-decoration:none}}
   background:var(--bg-met);color:var(--txt);font-size:1.1rem;cursor:pointer;
   display:flex;align-items:center;justify-content:center}}
 .hdr-ts{{font-size:.73rem;color:var(--txt-sub);width:100%;order:3}}
-.hdr-btns{{display:flex;gap:8px;width:100%;order:4}}
+.hdr-btns{{display:flex;flex-wrap:wrap;gap:8px;width:100%;order:4}}
+@media(max-width:479px){{
+  .hdr-btns .btn{{font-size:13px!important;min-height:40px!important;padding:0 10px!important}}
+  #btn-reload,#btn-recalc{{flex:1 1 calc(50% - 4px)}}
+  #btn-ki{{flex:1 1 100%}}
+}}
 .btn{{display:inline-flex;align-items:center;justify-content:center;
   gap:6px;min-height:44px;padding:0 16px;border:none;border-radius:10px;
   font-size:.9rem;font-weight:700;cursor:pointer;flex:1;
@@ -1912,6 +1954,7 @@ a{{color:var(--accent);text-decoration:none}}
 .btn:disabled{{opacity:.45;cursor:not-allowed;transform:none}}
 .btn-g{{background:#16a34a;color:#fff}}.btn-g:hover:not(:disabled){{background:#15803d}}
 .btn-b{{background:#2563eb;color:#fff}}.btn-b:hover:not(:disabled){{background:#1d4ed8}}
+.btn-ki{{background:#1e3a5f;color:#93c5fd}}.btn-ki:hover:not(:disabled){{background:#1e40af;color:#fff}}
 /* token panel */
 .tok-panel{{padding:0 0 10px}}
 .tok-hint{{font-size:.8rem;color:var(--txt-sub);margin-bottom:8px;line-height:1.5}}
@@ -2027,18 +2070,20 @@ a{{color:var(--accent);text-decoration:none}}
 .spark-wrap{{padding:8px 12px 4px;border-top:1px solid var(--brd)}}
 .spark-header{{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px}}
 .spark-title{{font-size:.65rem;color:var(--txt-dim);text-transform:uppercase;letter-spacing:.3px}}
-.spark-trend{{font-size:.72rem;font-weight:600}}
-.spark-svg-wrap{{width:100%;height:40px;position:relative}}
-.spark-svg-wrap svg{{width:100%;height:40px;overflow:visible}}
-.spark-dates{{display:flex;justify-content:space-between;margin-top:3px}}
-.spark-dates span{{font-size:.6rem;color:var(--txt-dim)}}
+.spark-trend{{font-size:13px;font-weight:700}}
+.spark-svg-wrap{{width:100%;height:60px;position:relative}}
+.spark-svg-wrap svg{{width:100%;height:60px;overflow:visible}}
+.spark-days{{position:relative;height:14px;margin-top:2px}}
+.spark-day-lbl{{position:absolute;font-size:.58rem;color:var(--txt-dim);
+  transform:translateX(-50%);white-space:nowrap;line-height:1}}
+.spark-day-lbl.ghost{{color:#6b7280}}
 .spark-placeholder{{font-size:.7rem;color:var(--txt-dim);font-style:italic;
   padding:8px 12px 6px;border-top:1px solid var(--brd)}}
 /* Sparkline tooltip */
 .spark-tip{{position:absolute;background:var(--bg-card);border:1px solid var(--brd);
   border-radius:5px;padding:2px 6px;font-size:.68rem;color:var(--txt);
   pointer-events:none;white-space:nowrap;z-index:10;
-  transform:translate(-50%,-120%);opacity:0;transition:opacity .15s}}
+  transform:translate(-50%,-130%);opacity:0;transition:opacity .15s}}
 .spark-tip.visible{{opacity:1}}
 /* ── Metrics ── */
 .metrics-row{{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;padding:0 12px 12px}}
@@ -2054,16 +2099,22 @@ a{{color:var(--accent);text-decoration:none}}
 /* ── KI-Agent Status & Signal Dots ── */
 .agent-status-bar{{font-size:.72rem;color:var(--txt-dim);padding:4px 14px 8px;
   letter-spacing:.1px}}
-.agent-dot{{display:inline-block;width:8px;height:8px;border-radius:50%;
+.agent-dot{{display:inline-block;border-radius:50%;
   margin-left:5px;vertical-align:middle;cursor:pointer;position:relative}}
-.agent-dot.strong{{background:#ef4444;
-  box-shadow:0 0 0 0 #ef444488;
-  animation:pulse-dot 1.5s ease-out infinite}}
-.agent-dot.moderate{{background:#f59e0b}}
-@keyframes pulse-dot{{
-  0%{{box-shadow:0 0 0 0 #ef444488}}
-  70%{{box-shadow:0 0 0 6px #ef444400}}
-  100%{{box-shadow:0 0 0 0 #ef444400}}
+.agent-dot.strong  {{width:12px;height:12px;--pc:#22c55e88;background:#22c55e;animation:pulse 1s   ease-out infinite}}
+.agent-dot.moderate{{width:11px;height:11px;--pc:#f59e0b88;background:#f59e0b;animation:pulse 1.5s ease-out infinite}}
+.agent-dot.weak    {{width:10px;height:10px;--pc:#ef444488;background:#ef4444;animation:pulse 2s   ease-out infinite}}
+.agent-dot.none    {{width:8px; height:8px; background:#6b7280}}
+@keyframes pulse{{
+  0%  {{box-shadow:0 0 0 0   var(--pc)}}
+  70% {{box-shadow:0 0 0 8px transparent}}
+  100%{{box-shadow:0 0 0 0   transparent}}
+}}
+@media(max-width:480px){{
+  .agent-dot.strong  {{width:14px;height:14px}}
+  .agent-dot.moderate{{width:13px;height:13px}}
+  .agent-dot.weak    {{width:12px;height:12px}}
+  .agent-dot.none    {{width:10px;height:10px}}
 }}
 .agent-tooltip{{position:absolute;left:50%;transform:translateX(-50%);
   bottom:calc(100% + 6px);background:#1e293b;color:#f1f5f9;
@@ -2101,6 +2152,12 @@ a{{color:var(--accent);text-decoration:none}}
 .news-btn:hover{{background:var(--brd)}}
 /* ── News panel ── */
 .news-panel{{border-top:1px solid var(--brd);padding:12px 14px}}
+.ki-signal-block{{border-bottom:1px solid var(--brd);padding:0 0 10px;margin-bottom:10px;display:none}}
+.ki-signal-header{{font-size:.72rem;font-weight:700;color:#f59e0b;letter-spacing:.4px;margin-bottom:5px}}
+.ki-signal-body{{display:flex;flex-direction:column;gap:3px}}
+.ki-score{{font-size:.82rem;font-weight:700;color:var(--txt)}}
+.ki-drivers{{font-size:.78rem;color:var(--txt-sub)}}
+.ki-meta{{font-size:.68rem;color:var(--txt-dim)}}
 .news-items{{margin-bottom:12px}}
 .ni{{margin-bottom:10px;font-size:.93rem;line-height:1.5}}
 .ni a{{color:var(--accent);display:block;margin-bottom:2px}}
@@ -2188,7 +2245,7 @@ a{{color:var(--accent);text-decoration:none}}
   .stats-bar{{break-inside:avoid;page-break-inside:avoid}}
   .info-panel{{break-inside:avoid;page-break-inside:avoid}}
   /* Make sparkline section take less space */
-  .sparkline-wrap{{max-height:60px;overflow:hidden}}
+  .spark-wrap{{max-height:90px;overflow:hidden}}
   /* Score track bar via background-color not CSS var */
   .score-fill{{print-color-adjust:exact;-webkit-print-color-adjust:exact}}
   /* Badges and colour indicators — keep colours in print */
@@ -2209,8 +2266,9 @@ a{{color:var(--accent);text-decoration:none}}
     <span class="app-title">Squeeze <span>Report</span></span>
     <span class="hdr-ts">{timestamp}</span>
     <div class="hdr-btns">
-      <button id="btn-reload" class="btn btn-g" onclick="reloadPage()">&#8635; Neu laden</button>
-      <button id="btn-recalc" class="btn btn-b" onclick="triggerWorkflow()">&#9881; Neu berechnen</button>
+      <button id="btn-reload" class="btn btn-g" onclick="reloadPage()">&#8635; Reload</button>
+      <button id="btn-recalc" class="btn btn-b" onclick="triggerWorkflow()">&#9881; Recalculate</button>
+      <button id="btn-ki" class="btn btn-ki" onclick="triggerKiAgent()">&#9889; Agent Run</button>
     </div>
     <div class="hdr-icons">
       <button class="fs-btn print-btn" onclick="window.print()" aria-label="Seite drucken" title="Drucken">🖨</button>
@@ -2254,20 +2312,21 @@ a{{color:var(--accent);text-decoration:none}}
       <div class="info-box">
         <h4>Score (0–100)</h4>
         <ul>
-          <li><strong>32 Pkt Short Float</strong> – Anteil leerverkaufter Aktien; je höher, desto stärker der Squeeze-Druck</li>
-          <li><strong>23 Pkt Days to Cover</strong> – Tage zum vollständigen Eindecken; hohe Werte erhöhen Kapitulationsrisiko</li>
-          <li><strong>23 Pkt Rel. Volumen</strong> – Heutiges vs. 20-Tage-Durchschnitt; Spitzen signalisieren Kaufinteresse</li>
-          <li><strong>14 Pkt Kursmomentum</strong> – positive Kursveränderung erhöht den Squeeze-Druck auf Leerverkäufer. Nur steigende Kurse fließen positiv in den Score ein.</li>
-          <li><strong>8 Pkt Float-Größe</strong> – kleiner Float verstärkt den Squeeze-Effekt bei gleichem Short Float-Prozentsatz. Sättigung unter 30 Mio. Aktien.</li>
-          <li><strong>+ bis 5 Pkt FINRA SI-Trend Bonus</strong> – steigender Short Interest ≥ +10 % → 5 Pkt · Seitwärts → 2,5 Pkt · Fallend oder keine Daten → 0 Pkt</li>
+          <li><strong>32 Pkt Short Float</strong> – Anteil leerverkaufter Aktien (Sättigung 50 %; ≥ 50 % = volle Punkte); je höher, desto stärker der Squeeze-Druck</li>
+          <li><strong>23 Pkt Days to Cover</strong> – Tage zum vollständigen Eindecken (Sättigung 10 Tage; ≥ 10 d = volle Punkte); hohe Werte erhöhen Kapitulationsrisiko</li>
+          <li><strong>23 Pkt Rel. Volumen</strong> – Heutiges vs. 20-Tage-Durchschnitt (Sättigung 3×; ≥ 3× = volle Punkte); Spitzen signalisieren Kaufinteresse</li>
+          <li><strong>14 Pkt Kursmomentum</strong> – nur positive Kursveränderung (Sättigung +8 %; ≥ +8 % = volle Punkte); steigende Kurse erhöhen den Druck auf Leerverkäufer</li>
+          <li><strong>8 Pkt Float-Größe</strong> – kleiner Float verstärkt den Squeeze-Effekt; unter 30 Mio. Aktien = voll, über 50 Mio. = 0 Pkt</li>
+          <li><strong>+ bis 5 Pkt FINRA SI-Trend Bonus</strong> – steigend ≥ +10 % → 5 Pkt · seitwärts → 2,5 Pkt · fallend oder keine Daten → 0 Pkt</li>
         </ul>
       </div>
       <div class="info-box">
         <h4>Filterkriterien</h4>
         <ul>
-          <li><strong>Short Float &gt; 15 %</strong> – Mindest-Leerverkaufsquote</li>
-          <li><strong>Kurs &gt; $1</strong> – Ausschluss von Penny Stocks</li>
-          <li><strong>Marktkapitalisierung &lt; $10 Mrd.</strong> – Small- &amp; Mid-Caps</li>
+          <li><strong>Short Float &gt; 15 %</strong> – Mindest-Leerverkaufsquote (nur US)</li>
+          <li><strong>Kurs &gt; 1 USD</strong> – Ausschluss von Penny Stocks</li>
+          <li><strong>Marktkapitalisierung &lt; 10 Mrd. USD</strong> – Small- &amp; Mid-Caps</li>
+          <li><strong>Relatives Volumen ≥ 1,5×</strong> – Mindestaktivität</li>
           <li><strong>Märkte:</strong> 🇺🇸 US · 🇩🇪 DE · 🇬🇧 GB · 🇫🇷 FR · 🇳🇱 NL · 🇨🇦 CA · 🇯🇵 JP · 🇭🇰 HK · 🇰🇷 KR</li>
           <li><strong>Internationale Aktien:</strong> kein Short-Float-Filter, Score gedeckelt bei 50 Pkt (nur Volumen + Momentum)</li>
         </ul>
@@ -2276,9 +2335,18 @@ a{{color:var(--accent);text-decoration:none}}
         <h4>Datenquellen</h4>
         <ul>
           <li><strong>Yahoo Finance Screener</strong> – Most Shorted, Small Cap Gainers, Aggressive Small Caps</li>
-          <li><strong>Märkte:</strong> 🇺🇸 US · 🇩🇪 DE · 🇬🇧 GB · 🇫🇷 FR · 🇳🇱 NL · 🇨🇦 CA · 🇯🇵 JP · 🇭🇰 HK · 🇰🇷 KR</li>
-          <li><strong>Anreicherung:</strong> yfinance (Short Float, Days to Cover, Volumen, Kurs) + FINRA (offizielles Short Interest, SI-Trend aus 3 Meldezeiträumen)</li>
-
+          <li><strong>FINRA</strong> – offizielles Short Interest; SI-Trend aus 6 Meldezeiträumen (≈ 3 Monate)</li>
+          <li><strong>yfinance</strong> – Short Float, Days to Cover, Volumen, Kursdaten, RSI, MA50/200, Optionsdaten</li>
+          <li><strong>Fails-to-Deliver:</strong> nicht verfügbar (IP-Beschränkung GitHub Actions)</li>
+        </ul>
+      </div>
+      <div class="info-box">
+        <h4>⚡ KI-Agent</h4>
+        <p style="font-size:.82rem;color:var(--txt-sub);margin:0 0 8px">Der KI-Agent überwacht alle 30 Minuten die Top-10-Kandidaten auf Squeeze-Trigger.</p>
+        <ul>
+          <li><strong>Datenquellen:</strong> Yahoo Finance News, Google News, Seeking Alpha, MarketBeat, Unusual Whales, SEC EDGAR RSS, yfinance Intraday-Daten, Earnings-Kalender, FDA Press Release RSS</li>
+          <li><strong>Signal-Schwellen:</strong> Kursanstieg ≥ 2 % · Volumen ≥ 1,5× · News-Keywords · Earnings ≤ 30 Tage</li>
+          <li><strong>Alert-Schwelle:</strong> Score ≥ 25 Punkte</li>
         </ul>
       </div>
       <div class="info-box info-box--full">
@@ -2314,9 +2382,9 @@ a{{color:var(--accent);text-decoration:none}}
           <div>
             <span class="cl-name">Kursmomentum</span>
             <div class="color-bar">
-              <div class="cb-seg" style="background:#ef4444">&lt;−5 %</div>
-              <div class="cb-seg" style="background:#f59e0b">−5 bis +5 %</div>
-              <div class="cb-seg" style="background:#22c55e">≥ +5 %</div>
+              <div class="cb-seg" style="background:#ef4444">&lt;0 %</div>
+              <div class="cb-seg" style="background:#f59e0b">0–8 %</div>
+              <div class="cb-seg" style="background:#22c55e">≥ +8 %</div>
             </div>
             <p class="cl-desc">Grün bedeutet, dass der Kurs bereits steigt — Leerverkäufer geraten damit unter Druck, ihre Positionen schnell zu schließen.</p>
           </div>
@@ -2429,7 +2497,8 @@ function toggleNews(id){{
 // ── GitHub Actions Config ─────────────────────────────────────────────────
 const GH_OWNER    = 'easywebb911';
 const GH_REPO     = 'Aktien-update';
-const GH_WORKFLOW = 'daily-squeeze-report.yml';
+const GH_WORKFLOW    = 'daily-squeeze-report.yml';
+const GH_WORKFLOW_KI = 'ki_agent.yml';
 const GH_BRANCH   = 'main';
 const TOK_KEY     = 'ghpat_squeeze';
 // ─────────────────────────────────────────────────────────────────────────
@@ -2440,7 +2509,7 @@ function reloadPage(){{
 }}
 function triggerWorkflow(){{
   const token = localStorage.getItem(TOK_KEY);
-  if (!token) {{ showTokenInput(); return; }}
+  if (!token) {{ _pendingDispatch='recalc'; showTokenInput(); return; }}
   dispatchWorkflow(token);
 }}
 function showTokenInput(){{
@@ -2454,7 +2523,9 @@ async function saveTokenAndDispatch(){{
   localStorage.setItem(TOK_KEY, token);
   document.getElementById('tok-sec').style.display = 'none';
   document.getElementById('tok-inp').value = '';
-  await dispatchWorkflow(token);
+  if (_pendingDispatch === 'ki') {{ await dispatchKiWorkflow(token); }}
+  else {{ await dispatchWorkflow(token); }}
+  _pendingDispatch = null;
 }}
 async function dispatchWorkflow(token){{
   const btn = document.getElementById('btn-recalc');
@@ -2467,6 +2538,8 @@ async function dispatchWorkflow(token){{
         body:JSON.stringify({{ref:GH_BRANCH}})}}
     );
     if (r.status === 204) {{
+      _pollWorkflowId = GH_WORKFLOW; _pollRunningLabel = 'Neuberechnung';
+      _pollEnableBtn = _enableRecalcBtn; _pollOnSuccess = _startSuccessCountdown;
       _pollStart = Date.now(); _pollToken = token;
       _showPollStatus('running');
       setTimeout(_doPoll, 5000);
@@ -2481,11 +2554,68 @@ async function dispatchWorkflow(token){{
     }}
   }} catch(e) {{ showMsg('error',`Netzwerkfehler: ${{e.message}}`); _enableRecalcBtn(); }}
 }}
+// ── KI-Agent dispatch ─────────────────────────────────────────────────────
+function _enableKiBtn(){{
+  const btn = document.getElementById('btn-ki');
+  if (btn) {{ btn.disabled=false; btn.innerHTML='&#9889; Agent Run'; }}
+}}
+function triggerKiAgent(){{
+  const token = localStorage.getItem(TOK_KEY);
+  if (!token) {{ _pendingDispatch='ki'; showTokenInput(); return; }}
+  dispatchKiWorkflow(token);
+}}
+async function dispatchKiWorkflow(token){{
+  const btn = document.getElementById('btn-ki');
+  if (btn) {{ btn.disabled=true; btn.innerHTML='&#9889; L\u00e4uft\u2026'; }}
+  try {{
+    const r = await fetch(
+      `https://api.github.com/repos/${{GH_OWNER}}/${{GH_REPO}}/actions/workflows/${{GH_WORKFLOW_KI}}/dispatches`,
+      {{method:'POST',headers:{{'Authorization':`Bearer ${{token}}`,'Accept':'application/vnd.github+json',
+        'X-GitHub-Api-Version':'2022-11-28','Content-Type':'application/json'}},
+        body:JSON.stringify({{ref:GH_BRANCH}})}}
+    );
+    if (r.status === 204) {{
+      _pollWorkflowId = GH_WORKFLOW_KI; _pollRunningLabel = 'KI-Agent';
+      _pollEnableBtn = _enableKiBtn; _pollOnSuccess = _kiAgentSuccess;
+      _pollStart = Date.now(); _pollToken = token;
+      _showPollStatus('running');
+      setTimeout(_doPoll, 5000);
+    }} else if (r.status === 401 || r.status === 403) {{
+      localStorage.removeItem(TOK_KEY);
+      showMsg('error',`Token ung\u00fcltig (HTTP ${{r.status}}). Bitte neu eingeben.`);
+      _enableKiBtn();
+    }} else {{
+      const bd = await r.text().catch(()=>'');
+      showMsg('error',`Fehler HTTP ${{r.status}}: ${{bd.slice(0,200)}}`);
+      _enableKiBtn();
+    }}
+  }} catch(e) {{ showMsg('error',`Netzwerkfehler: ${{e.message}}`); _enableKiBtn(); }}
+}}
+function _kiAgentSuccess(){{
+  _stopTimeInterval();
+  const el = document.getElementById('amsg');
+  el.style.display='block'; el.className='amsg amsg-poll-done';
+  el.innerHTML='<span class="poll-dot poll-dot-done"></span>KI-Agent abgeschlossen \u2014 Signale werden aktualisiert\u2026';
+  fetch('./agent_signals.json?_=' + Date.now())
+    .then(r => r.ok ? r.json() : {{}})
+    .then(data => {{
+      if (typeof renderAgentSignals === 'function') renderAgentSignals(data);
+      el.innerHTML='<span class="poll-dot poll-dot-done"></span>KI-Agent abgeschlossen \u2014 Signale aktualisiert.';
+      setTimeout(()=>{{el.style.display='none';}}, 8000);
+    }})
+    .catch(()=>{{
+      el.innerHTML='<span class="poll-dot poll-dot-err"></span>KI-Agent abgeschlossen \u2014 Seite neu laden.';
+    }});
+  _enableKiBtn();
+}}
 // ── Workflow polling ──────────────────────────────────────────────────────
 const POLL_MS    = 10000;
 const TIMEOUT_MS = 600000;
 let _pollStart = null, _pollToken = null, _pollTimer = null;
 let _timeInterval = null;
+let _pendingDispatch = null;
+let _pollWorkflowId = GH_WORKFLOW, _pollRunningLabel = 'Neuberechnung';
+let _pollEnableBtn = null, _pollOnSuccess = null;
 function _elapsedStr(){{
   const s = Math.floor((Date.now()-_pollStart)/1000);
   const m = Math.floor(s/60), r = s%60;
@@ -2496,14 +2626,14 @@ function _stopTimeInterval(){{
 }}
 function _enableRecalcBtn(){{
   const btn = document.getElementById('btn-recalc');
-  btn.disabled=false; btn.innerHTML='&#9881; Neu berechnen';
+  btn.disabled=false; btn.innerHTML='&#9881; Recalculate';
 }}
 function _showPollStatus(state){{
   const el = document.getElementById('amsg');
   el.style.display='block';
   if (state==='running'){{
     el.className='amsg amsg-poll-running';
-    el.innerHTML='<span class="poll-dot poll-dot-run"></span>Neuberechnung läuft … <span id="poll-elapsed"></span>';
+    el.innerHTML='<span class="poll-dot poll-dot-run"></span>' + _pollRunningLabel + ' läuft \u2026 <span id="poll-elapsed"></span>';
     const span = document.getElementById('poll-elapsed');
     if (span) span.textContent = _elapsedStr();
     _stopTimeInterval();
@@ -2555,10 +2685,10 @@ window.addEventListener('beforeunload', ()=>{{
   _stopTimeInterval();
 }});
 async function _doPoll(){{
-  if (Date.now()-_pollStart>TIMEOUT_MS) {{ _showPollStatus('timeout'); _enableRecalcBtn(); return; }}
+  if (Date.now()-_pollStart>TIMEOUT_MS) {{ _showPollStatus('timeout'); if(_pollEnableBtn)_pollEnableBtn(); return; }}
   try {{
     const res = await fetch(
-      `https://api.github.com/repos/${{GH_OWNER}}/${{GH_REPO}}/actions/runs?workflow_id=${{GH_WORKFLOW}}&per_page=5&event=workflow_dispatch`,
+      `https://api.github.com/repos/${{GH_OWNER}}/${{GH_REPO}}/actions/runs?workflow_id=${{_pollWorkflowId}}&per_page=5&event=workflow_dispatch`,
       {{headers:{{'Authorization':`Bearer ${{_pollToken}}`,'Accept':'application/vnd.github+json','X-GitHub-Api-Version':'2022-11-28'}}}}
     );
     if (!res.ok) {{ _pollTimer=setTimeout(_doPoll,POLL_MS); return; }}
@@ -2566,8 +2696,8 @@ async function _doPoll(){{
     const run = (data.workflow_runs||[]).find(w=>new Date(w.created_at).getTime()>=_pollStart-15000);
     if (!run) {{ _pollTimer=setTimeout(_doPoll,POLL_MS); return; }}
     if (run.status==='completed'){{
-      if (run.conclusion==='success') {{ _stopTimeInterval(); _startSuccessCountdown(); }}
-      else {{ _showPollStatus('failure'); _enableRecalcBtn(); }}
+      if (run.conclusion==='success') {{ _stopTimeInterval(); if(_pollOnSuccess)_pollOnSuccess(); }}
+      else {{ _showPollStatus('failure'); if(_pollEnableBtn)_pollEnableBtn(); }}
     }} else {{
       _pollTimer=setTimeout(_doPoll,POLL_MS);
     }}
@@ -2663,89 +2793,158 @@ function _fmtGerman(d) {{
 // ── Sparkline renderer ────────────────────────────────────────────────────────
 (function(){{
   const isMobile = ('ontouchstart' in window) || (window.matchMedia('(pointer:coarse)').matches);
-  const PT_R     = isMobile ? 4 : 3;
-  const PAD      = {{l:2, r:2, t:4, b:4}};
+  const DAYS_DE  = ['So','Mo','Di','Mi','Do','Fr','Sa'];
+  const PAD      = {{l:4, r:4, t:6, b:6}};
+  const H        = 60;
+  const PT_R     = isMobile ? 6 : 5;
+
+  function parseIso(s) {{ return new Date(s + 'T12:00:00'); }}
+
+  // Returns true if consecutive data points have a missing trading day between them
+  function isGap(d1, d2) {{
+    const diff = Math.round((d2 - d1) / 86400000);
+    if (diff <= 1) return false;
+    if (diff === 3 && d1.getDay() === 5) return false; // Fri→Mon = normal weekend
+    return true;
+  }}
 
   function drawSparkline(wrap) {{
-    const scores = JSON.parse(wrap.dataset.scores || '[]');
-    const dates  = JSON.parse(wrap.dataset.dates  || '[]');
-    const col    = wrap.dataset.col  || '#94a3b8';
-    const n      = scores.length;
+    const scores  = JSON.parse(wrap.dataset.scores || '[]');
+    const dates   = JSON.parse(wrap.dataset.dates  || '[]'); // ISO YYYY-MM-DD
+    const col     = wrap.dataset.col   || '#94a3b8';
+    const todayS  = wrap.dataset.today || '';
+    const n       = scores.length;
     if (n < 2) return;
 
-    const svgWrap = wrap.querySelector('.spark-svg-wrap');
+    const svgWrap  = wrap.querySelector('.spark-svg-wrap');
+    const daysWrap = wrap.querySelector('.spark-days');
     if (!svgWrap) return;
 
-    // Use observed width; fall back gracefully
     const W = svgWrap.clientWidth || 280;
-    const H = 40;
 
-    const minS = Math.min(...scores);
-    const maxS = Math.max(...scores);
+    const dateParsed = dates.map(parseIso);
+    const firstDate  = dateParsed[0];
+    const lastDate   = dateParsed[n - 1];
+
+    // Ghost dot: show if today is strictly after the last recorded date
+    const hasGhost  = todayS && todayS > dates[n - 1];
+    const ghostDate = hasGhost ? parseIso(todayS) : null;
+
+    // X-axis spans from firstDate to max(lastDate, today)
+    const spanEnd    = hasGhost ? ghostDate : lastDate;
+    const totalMs    = spanEnd - firstDate || 1;
+
+    function xOf(d) {{
+      return PAD.l + ((d - firstDate) / totalMs) * (W - PAD.l - PAD.r);
+    }}
+
+    const minS  = Math.min(...scores);
+    const maxS  = Math.max(...scores);
     const range = maxS - minS || 1;
 
-    function xOf(idx) {{
-      return PAD.l + (idx / (n - 1)) * (W - PAD.l - PAD.r);
-    }}
     function yOf(val) {{
       return PAD.t + (1 - (val - minS) / range) * (H - PAD.t - PAD.b);
     }}
 
-    // Build polyline points
-    const pts = scores.map((s, i) => `${{xOf(i).toFixed(1)}},${{yOf(s).toFixed(1)}}`).join(' ');
-    // Area fill path: line + close along bottom
-    const areaD = scores.map((s, i) => (i === 0 ? 'M' : 'L') + `${{xOf(i).toFixed(1)}},${{yOf(s).toFixed(1)}}`).join(' ')
-      + ` L${{xOf(n-1).toFixed(1)}},${{(H - PAD.b).toFixed(1)}} L${{xOf(0).toFixed(1)}},${{(H - PAD.b).toFixed(1)}} Z`;
+    // Build area fill (continuous, no gaps) and stroke path (with gaps)
+    let areaD = '', lineD = '', newSeg = true;
+    for (let i = 0; i < n; i++) {{
+      const cx = xOf(dateParsed[i]).toFixed(1);
+      const cy = yOf(scores[i]).toFixed(1);
+      if (i === 0) {{
+        areaD += `M${{cx}},${{cy}}`;
+        lineD += `M${{cx}},${{cy}}`;
+        newSeg = false;
+      }} else {{
+        areaD += `L${{cx}},${{cy}}`;
+        lineD += (newSeg ? `M${{cx}},${{cy}}` : `L${{cx}},${{cy}}`);
+        newSeg = false;
+      }}
+      if (i < n - 1 && isGap(dateParsed[i], dateParsed[i + 1])) newSeg = true;
+    }}
+    // Close area along bottom baseline
+    const x0 = xOf(dateParsed[0]).toFixed(1);
+    const xN = xOf(dateParsed[n-1]).toFixed(1);
+    areaD += ` L${{xN}},${{(H - PAD.b).toFixed(1)}} L${{x0}},${{(H - PAD.b).toFixed(1)}} Z`;
 
-    const colFill = col.replace('#', '');
-    const svgId   = 'sp' + Math.random().toString(36).slice(2,7);
+    const svgId = 'sp' + Math.random().toString(36).slice(2, 7);
 
+    // Real data circles
     let circlesHtml = '';
     for (let i = 0; i < n; i++) {{
-      const cx = xOf(i).toFixed(1);
+      const cx = xOf(dateParsed[i]).toFixed(1);
       const cy = yOf(scores[i]).toFixed(1);
-      circlesHtml += `<circle class="sp-dot" cx="${{cx}}" cy="${{cy}}" r="${{PT_R}}" fill="${{col}}" stroke="var(--bg-card)" stroke-width="1.5" data-score="${{scores[i]}}" data-date="${{dates[i]}}"/>`;
+      const dow = DAYS_DE[dateParsed[i].getDay()];
+      const dd  = dates[i].slice(8, 10) + '.' + dates[i].slice(5, 7);
+      circlesHtml += `<circle class="sp-dot" cx="${{cx}}" cy="${{cy}}" r="${{PT_R}}" fill="${{col}}" stroke="var(--bg-card)" stroke-width="1.5" data-score="${{scores[i]}}" data-label="${{dow}} ${{dd}} · ${{scores[i]}} Pkt"/>`;
+    }}
+
+    // Ghost dot — gray, no connecting line
+    let ghostHtml = '';
+    if (hasGhost) {{
+      const cx = xOf(ghostDate).toFixed(1);
+      const cy = (H / 2).toFixed(1);
+      ghostHtml = `<circle class="sp-dot sp-ghost" cx="${{cx}}" cy="${{cy}}" r="${{PT_R}}" fill="#6b7280" stroke="var(--bg-card)" stroke-width="1.5" data-score="" data-label="Heute nicht in Top 10"/>`;
     }}
 
     const svg = `<svg viewBox="0 0 ${{W}} ${{H}}" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
   <defs>
     <linearGradient id="sg${{svgId}}" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0%" stop-color="${{col}}" stop-opacity="0.35"/>
+      <stop offset="0%" stop-color="${{col}}" stop-opacity="0.30"/>
       <stop offset="100%" stop-color="${{col}}" stop-opacity="0.03"/>
     </linearGradient>
   </defs>
   <path d="${{areaD}}" fill="url(#sg${{svgId}})"/>
-  <polyline points="${{pts}}" fill="none" stroke="${{col}}" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"/>
-  ${{circlesHtml}}
+  <path d="${{lineD}}" fill="none" stroke="${{col}}" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+  ${{circlesHtml}}${{ghostHtml}}
 </svg>`;
     svgWrap.innerHTML = svg;
 
-    // Tooltip element
+    // Day labels under each point
+    if (daysWrap) {{
+      daysWrap.innerHTML = '';
+      for (let i = 0; i < n; i++) {{
+        const pct = (xOf(dateParsed[i]) / W * 100).toFixed(1);
+        const lbl = document.createElement('span');
+        lbl.className = 'spark-day-lbl';
+        lbl.style.left = pct + '%';
+        lbl.textContent = DAYS_DE[dateParsed[i].getDay()];
+        daysWrap.appendChild(lbl);
+      }}
+      if (hasGhost) {{
+        const pct = (xOf(ghostDate) / W * 100).toFixed(1);
+        const lbl = document.createElement('span');
+        lbl.className = 'spark-day-lbl ghost';
+        lbl.style.left = pct + '%';
+        lbl.textContent = '–';
+        daysWrap.appendChild(lbl);
+      }}
+    }}
+
+    // Tooltip
     const tip = document.createElement('div');
     tip.className = 'spark-tip';
     svgWrap.appendChild(tip);
 
-    // Event handling
+    let hideTimer = null;
+    const hideTip = () => {{ if (hideTimer) clearTimeout(hideTimer); tip.classList.remove('visible'); }};
+
     svgWrap.querySelectorAll('.sp-dot').forEach(dot => {{
       const show = () => {{
-        const cx = parseFloat(dot.getAttribute('cx'));
-        const cy = parseFloat(dot.getAttribute('cy'));
-        tip.textContent = `${{dot.dataset.date}}: ${{dot.dataset.score}}`;
-        tip.style.left  = cx + 'px';
-        tip.style.top   = cy + 'px';
+        if (hideTimer) clearTimeout(hideTimer);
+        tip.textContent = dot.dataset.label;
+        tip.style.left  = dot.getAttribute('cx') + 'px';
+        tip.style.top   = dot.getAttribute('cy') + 'px';
         tip.classList.add('visible');
       }};
-      const hide = () => tip.classList.remove('visible');
-
       if (isMobile) {{
         dot.addEventListener('touchstart', e => {{
-          e.preventDefault();
-          show();
-          setTimeout(hide, 2000);
+          e.preventDefault(); show();
+          hideTimer = setTimeout(() => tip.classList.remove('visible'), 2000);
         }}, {{passive: false}});
       }} else {{
         dot.addEventListener('mouseenter', show);
-        dot.addEventListener('mouseleave', hide);
+        dot.addEventListener('mouseleave', hideTip);
       }}
     }});
   }}
@@ -2763,50 +2962,26 @@ function _fmtGerman(d) {{
 // ─────────────────────────────────────────────────────────────────────────────
 // ── KI-Agent Signal Indicators ───────────────────────────────────────────────
 (function() {{
-  const STALE_MIN = 30;   // agent_signals.json älter als N Min. → "Kein Scan" (nur während Handelszeiten)
-
-  // Prüft ob aktuelle NY-Zeit innerhalb der Börsenzeiten liegt (09:25–16:05 ET)
-  function isWithinTradingHours() {{
-    try {{
-      const parts = new Intl.DateTimeFormat('en-US', {{
-        timeZone: 'America/New_York',
-        hour: '2-digit', minute: '2-digit', hour12: false
-      }}).formatToParts(new Date());
-      const h    = parseInt(parts.find(p => p.type === 'hour').value, 10);
-      const m    = parseInt(parts.find(p => p.type === 'minute').value, 10);
-      const mins = h * 60 + m;
-      return mins >= (9 * 60 + 25) && mins < (16 * 60 + 5);
-    }} catch(e) {{ return false; }}
-  }}
-
   function renderAgentSignals(data) {{
     const statusEl = document.getElementById('agent-status');
     const updated  = data.updated ? new Date(data.updated) : null;
     const signals  = data.signals || {{}};
     const info     = data.run_info || {{}};
-    const now      = new Date();
-    const today    = new Date(now); today.setHours(0,0,0,0);
-    const tradingDay = !_isNonTradingDay(today);
 
-    // Status-Bar — kontextabhängige Nachricht
+    // Status-Bar — 24/7, vereinfacht
     if (!updated) {{
-      if (statusEl) statusEl.textContent = 'KI-Agent: Kein aktueller Scan verfügbar.';
-    }} else if (!tradingDay) {{
-      const ntd = _nextTradingDay(today);
-      if (statusEl) statusEl.textContent =
-        `KI-Agent: Nächster Scan am ${{_fmtGerman(ntd)}}, 14:30 Uhr`;
-    }} else if (!isWithinTradingHours()) {{
-      if (statusEl) statusEl.textContent =
-        'KI-Agent: Nächster Scan heute ab 14:30 Uhr';
+      if (statusEl) statusEl.textContent = '\u26a1 KI-Agent: Kein aktueller Scan verfügbar.';
     }} else {{
-      const ageMin = (now - updated.getTime()) / 60000;
-      if (ageMin > STALE_MIN) {{
-        if (statusEl) statusEl.textContent = 'KI-Agent: Kein aktueller Scan verfügbar.';
+      const ageMin   = (Date.now() - updated.getTime()) / 60000;
+      const phase    = info.market_phase || '';
+      const lastScan = updated.toLocaleTimeString('de-DE', {{hour:'2-digit', minute:'2-digit'}});
+      const nSignals = info.signals_active || 0;
+      if (ageMin > 45) {{
+        if (statusEl) statusEl.textContent =
+          `\u26a1 KI-Agent: Scan verz\u00f6gert \u2014 letzter Stand ${{lastScan}} Uhr`;
       }} else {{
-        const uhr = updated.toLocaleTimeString('de-DE', {{hour:'2-digit', minute:'2-digit'}});
-        const n   = info.signals_active || 0;
-        if (statusEl)
-          statusEl.textContent = `\u26a1 KI-Agent: Letzter Scan ${{uhr}} \u2014 ${{n}} Signal${{n !== 1 ? 'e' : ''}} aktiv`;
+        if (statusEl) statusEl.textContent =
+          `\u26a1 KI-Agent: Letzter Scan ${{lastScan}} Uhr \u2014 ${{phase}} \u2014 ${{nSignals}} Signale aktiv`;
       }}
     }}
 
@@ -2814,18 +2989,21 @@ function _fmtGerman(d) {{
     document.querySelectorAll('.card[data-ticker]').forEach(card => {{
       const ticker = card.getAttribute('data-ticker');
       const sig    = signals[ticker];
-      if (!sig || sig.score < 40) return;
-
-      const strong     = sig.score >= 70;
+      const score  = (sig && sig.score != null) ? sig.score : 0;
       const tickerSpan = card.querySelector('.ticker');
       if (!tickerSpan) return;
 
       const dot = document.createElement('span');
-      dot.className = 'agent-dot ' + (strong ? 'strong' : 'moderate');
+      let dotClass;
+      if (score >= 70)      dotClass = 'strong';   // grün, schnell (1s)
+      else if (score >= 40) dotClass = 'moderate'; // orange, mittel (1.5s)
+      else if (score >= 1)  dotClass = 'weak';     // rot, langsam (2s)
+      else                  dotClass = 'none';     // grau, kein Pulsieren
+      dot.className = 'agent-dot ' + dotClass;
 
       const tip = document.createElement('span');
       tip.className = 'agent-tooltip';
-      tip.textContent = `KI-Agent: Score ${{sig.score}}/100 \u2014 ${{sig.drivers || '?'}}`;
+      tip.textContent = `KI-Agent: Score ${{score}}/100 \u2014 ${{(sig && sig.drivers) || '?'}}`;
       dot.appendChild(tip);
 
       // iPhone: Antippen zeigt Tooltip für 3s
@@ -2836,6 +3014,26 @@ function _fmtGerman(d) {{
       }});
 
       tickerSpan.parentNode.insertBefore(dot, tickerSpan.nextSibling);
+
+      // KI-Signal-Block im Neuigkeiten-Dropdown
+      const block = card.querySelector('.ki-signal-block');
+      if (block && score > 0) {{
+        const lastScan = updated
+          ? updated.toLocaleTimeString('de-DE', {{hour:'2-digit', minute:'2-digit'}})
+          : '?';
+        const phase = info.market_phase || '';
+        const body  = block.querySelector('.ki-signal-body');
+        if (body) {{
+          body.innerHTML =
+            `<span class="ki-score">Score: ${{score}}/100</span>` +
+            ((sig && sig.drivers)
+              ? `<span class="ki-drivers">${{sig.drivers}}</span>`
+              : '') +
+            `<span class="ki-meta">Letzter Scan: ${{lastScan}} Uhr` +
+            (phase ? ` \u2014 ${{phase}}` : '') + '</span>';
+        }}
+        block.style.display = 'block';
+      }}
     }});
   }}
 
@@ -2866,7 +3064,9 @@ _WL_REGION_SUFFIX: dict[str, str] = {
     "CA": ".TO", "JP": ".T", "HK": ".HK", "KR": ".KS",
 }
 _WL_ALL_SUFFIXES = tuple(v.upper() for v in _WL_REGION_SUFFIX.values())
-_WL_MAX_FAILURES  = 1   # empty/missing responses before auto-deactivation (immediate)
+_WL_MAX_FAILURES  = 3   # consecutive 404/empty responses before auto-deactivation
+_WL_SCAN_TIMEOUT  = 30  # seconds — hard limit for the entire watchlist scan
+_WL_DL_TIMEOUT    = 20  # seconds — per-region yf.download timeout
 
 
 def _wl_load_failures() -> dict[str, int]:
@@ -2902,15 +3102,12 @@ def _wl_mark_inactive(ticker: str) -> None:
                 ticker, _WL_MAX_FAILURES, _WL_INACTIVE_FILE)
 
 
-_WL_SCAN_TIMEOUT = 30  # seconds — abort entire watchlist scan if exceeded
-
-
 def get_watchlist_candidates() -> list[dict]:
     """Volume scan of the static watchlist using per-region batch downloads.
 
-    Runs inside a 30-second timeout via ThreadPoolExecutor; returns [] if the
-    scan takes too long (e.g. yfinance hanging on an exchange that is closed).
-    Tickers that return no data are immediately marked inactive (_WL_MAX_FAILURES=1).
+    Runs inside a _WL_SCAN_TIMEOUT hard limit (Fix 1). Each region's yf.download
+    is additionally wrapped with a _WL_DL_TIMEOUT per-region limit (Fix 2) so a
+    single hanging exchange cannot consume the whole budget.
     """
 
     def _scan() -> list[dict]:
@@ -2922,32 +3119,35 @@ def get_watchlist_candidates() -> list[dict]:
         for market, tickers in WATCHLIST.items():
             active = [t for t in tickers if t not in inactive]
             # Suffix guard: each region only processes tickers with the matching suffix.
-            # US tickers (no suffix) must never appear in non-US region scans.
             required_suffix = _WL_REGION_SUFFIX.get(market)
             if required_suffix:
                 active = [t for t in active if t.upper().endswith(required_suffix.upper())]
             else:
-                # US: exclude any ticker that carries a known non-US suffix
                 active = [t for t in active if not t.upper().endswith(_WL_ALL_SUFFIXES)]
             if not active:
                 continue
             log.info("Watchlist scan: %s (%d active / %d total)",
                      market, len(active), len(tickers))
 
-            # One batch download per region instead of N individual calls
-            try:
-                hist_batch = yf.download(
-                    active, period="21d", group_by="ticker",
+            # Fix 2: per-region yf.download with hard timeout
+            def _dl(syms=active):
+                return yf.download(
+                    syms, period="21d", group_by="ticker",
                     auto_adjust=True, threads=True, progress=False,
                 )
+            try:
+                with ThreadPoolExecutor(max_workers=1) as _dl_ex:
+                    hist_batch = _dl_ex.submit(_dl).result(timeout=_WL_DL_TIMEOUT)
+            except TimeoutError:
+                print(f"yfinance Batch-Download Timeout nach {_WL_DL_TIMEOUT}s — Region {market} übersprungen", flush=True)
+                log.warning("yf.download timeout for %s — skipping region", market)
+                continue
             except Exception as exc:
                 log.warning("Watchlist batch failed for %s: %s — skipping region", market, exc)
                 continue
 
             for ticker in active:
                 try:
-                    # Extract per-ticker slice from MultiLevel DataFrame
-                    # (single-ticker download returns a flat DataFrame)
                     if len(active) == 1:
                         df = hist_batch
                     else:
@@ -2964,7 +3164,6 @@ def get_watchlist_candidates() -> list[dict]:
                             failures.pop(ticker, None)
                         continue
 
-                    # Success → reset failure count
                     failures.pop(ticker, None)
 
                     avg_vol = float(df["Volume"].iloc[:-1].mean())
@@ -2972,7 +3171,8 @@ def get_watchlist_candidates() -> list[dict]:
                     if avg_vol < 1000:
                         continue
                     rel_vol = cur_vol / avg_vol if avg_vol > 0 else 0.0
-                    if rel_vol < MIN_REL_VOLUME:
+                    vol_threshold = MIN_REL_VOLUME_INTL if market != "US" else MIN_REL_VOLUME
+                    if rel_vol < vol_threshold:
                         continue
                     price = float(df["Close"].iloc[-1])
                     if price < MIN_PRICE:
@@ -2999,7 +3199,6 @@ def get_watchlist_candidates() -> list[dict]:
                         _wl_mark_inactive(ticker)
                         newly_inactive.append(ticker)
                         failures.pop(ticker, None)
-            # No per-ticker sleep — batch download already complete for this region
 
         _wl_save_failures(failures)
         if newly_inactive:
@@ -3008,17 +3207,14 @@ def get_watchlist_candidates() -> list[dict]:
         log.info("Watchlist candidates: %d (inactive skipped: %d)", len(results), len(inactive))
         return results
 
-    # Run scan with hard timeout so a hanging yfinance call cannot block the report
-    with ThreadPoolExecutor(max_workers=1) as ex:
-        fut = ex.submit(_scan)
+    # Fix 1: hard outer timeout for the entire scan
+    with ThreadPoolExecutor(max_workers=1) as _ex:
+        _fut = _ex.submit(_scan)
         try:
-            return fut.result(timeout=_WL_SCAN_TIMEOUT)
+            return _fut.result(timeout=_WL_SCAN_TIMEOUT)
         except TimeoutError:
-            log.warning(
-                "Watchlist scan exceeded %ds timeout — aborting, returning 0 candidates",
-                _WL_SCAN_TIMEOUT,
-            )
-            print(f"Watchlist-Scan nach {_WL_SCAN_TIMEOUT}s abgebrochen.", flush=True)
+            print(f"Watchlist-Scan Timeout nach {_WL_SCAN_TIMEOUT}s — 0 Kandidaten", flush=True)
+            log.warning("Watchlist scan exceeded %ds timeout — returning []", _WL_SCAN_TIMEOUT)
             return []
         except Exception as exc:
             log.error("Watchlist scan error: %s", exc)
@@ -3226,9 +3422,10 @@ def main():
             "rel_strength_20d": _rel_strength,
             "inst_ownership":  yfd.get("inst_ownership"),
             "float_shares":    yfd.get("float_shares", 0),
+            "change_5d":       yfd.get("change_5d"),
         })
         if i < 3:
-            print(f"{t} float_shares={c.get('float_shares')}", flush=True)
+            print(f"{t} float_shares={c.get('float_shares')} change_5d={c.get('change_5d')}", flush=True)
         yf_sf = yfd.get("short_float_yf", 0)
         if yf_sf > 0:
             c["short_float"] = yf_sf

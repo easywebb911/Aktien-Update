@@ -2,7 +2,7 @@
 """
 KI-Agent — ki_agent.py
 
-Läuft alle 15 Minuten während der US-Handelszeiten (Mo–Fr, 09:25–16:05 ET).
+Läuft alle 30 Minuten, 24/7.
 Überwacht die aktuellen Top-10-Kandidaten auf Squeeze-Trigger aus mehreren
 kostenlosen Quellen und sendet Alert-E-Mails bei relevanten Signalen.
 
@@ -41,16 +41,9 @@ import requests
 import yfinance as yf
 
 # ── Konfiguration — alle Schwellen hier ändern, nirgendwo sonst ──────────────
-ALERT_THRESHOLD         = 40      # Score ≥ → Alert senden
+ALERT_THRESHOLD         = 25      # Score ≥ → Alert senden
 ALERT_THRESHOLD_STRONG  = 70      # Score ≥ → Starker Alert (⚡⚡)
 ALERT_COOLDOWN_HOURS    = 2       # Mindeststunden zwischen zwei Alerts je Ticker
-
-# Test-Modus: True → Handelszeiten-Prüfung wird übersprungen
-IGNORE_TRADING_HOURS    = False
-
-# Handelsfenster in Eastern Time (NY) — Puffer je 5 Minuten vor/nach Börsenglocke
-MARKET_OPEN             = dt_time(9, 25)   # NYSE öffnet 09:30 ET
-MARKET_CLOSE            = dt_time(16, 5)   # NYSE schließt 16:00 ET
 
 # Score-Punkte je Signal
 SCORE_PRICE_UP_3        = 15      # Kursanstieg ≥ 3 % intraday
@@ -65,20 +58,34 @@ SCORE_SEC_8K            = 15      # Neue 8-K-Meldung in letzten 24h
 SCORE_SEC_8K_RELEVANT   = 25      # 8-K mit Earnings/FDA-Keywords → erhöhter Bonus
 SCORE_NEWS_KEYWORD      = 10      # News-Keyword-Treffer (je Treffer, max 20 Pkt)
 
+# Auslöse-Schwellen (Trigger)
+TRIGGER_PRICE_UP_3      = 2.0     # Kursanstieg ab 2 % → SCORE_PRICE_UP_3
+TRIGGER_PRICE_UP_7      = 5.0     # Kursanstieg ab 5 % → SCORE_PRICE_UP_7
+TRIGGER_RVOL_2X         = 1.5     # Rel. Volumen ab 1,5× → SCORE_RVOL_2X
+TRIGGER_RVOL_4X         = 3.0     # Rel. Volumen ab 3× → SCORE_RVOL_4X
+
 # Earnings-Nähe-Punkte (Tage bis Earnings)
 SCORE_EARNINGS_NEAR     = 25      # Earnings in ≤ EARNINGS_NEAR_DAYS Tagen
 SCORE_EARNINGS_MID      = 15      # Earnings in ≤ EARNINGS_MID_DAYS Tagen
 SCORE_EARNINGS_FAR      = 8       # Earnings in ≤ EARNINGS_FAR_DAYS Tagen
 EARNINGS_NEAR_DAYS      = 3
 EARNINGS_MID_DAYS       = 7
-EARNINGS_FAR_DAYS       = 14
+EARNINGS_FAR_DAYS       = 30
 
 # FDA PDUFA-Nähe-Punkte
 SCORE_PDUFA_NEAR        = 25      # PDUFA in 1–7 Tagen
 SCORE_PDUFA_MID         = 15      # PDUFA in 8–30 Tagen
 
-NEWS_KEYWORDS     = {"squeeze", "short squeeze", "short interest",
-                     "analyst upgrade", "earnings beat"}
+NEWS_KEYWORDS = {
+    "squeeze", "short squeeze", "short interest",
+    "analyst upgrade", "earnings beat",
+    "short seller", "covering", "gamma squeeze", "options activity",
+    "unusual volume", "breakout", "catalyst", "fda approval",
+    "merger", "acquisition", "buyout", "takeover", "partnership",
+    "contract", "revenue beat", "guidance raised", "insider buying",
+    "institutional buying", "short covering", "forced liquidation",
+    "margin call", "halt", "circuit breaker", "activist investor",
+}
 SEC_RELEVANT_KEYWORDS = {
     "earnings", "revenue", "results", "approval", "fda",
     "pdufa", "nda", "bla", "guidance", "outlook",
@@ -137,16 +144,19 @@ def now_berlin() -> datetime:
     return datetime.now(BERLIN)
 
 
-def is_trading_hours() -> bool:
-    """True während US-Handelszeiten (Mo–Fr, MARKET_OPEN–MARKET_CLOSE ET).
-
-    Verwendet America/New_York — korrekt für EST (UTC−5) und EDT (UTC−4),
-    unabhängig von MEZ/MESZ-Umstellung in Deutschland.
-    """
+def get_market_phase() -> str:
+    """Gibt die aktuelle US-Marktphase zurück (Eastern Time)."""
     now_et = datetime.now(EASTERN)
     if now_et.weekday() >= 5:
-        return False
-    return MARKET_OPEN <= now_et.time() < MARKET_CLOSE
+        return "Geschlossen"
+    mins = now_et.hour * 60 + now_et.minute
+    if 4 * 60 <= mins < 9 * 60 + 30:
+        return "Pre-Market"
+    if 9 * 60 + 30 <= mins < 16 * 60:
+        return "Regulär"
+    if 16 * 60 <= mins < 20 * 60:
+        return "After-Hours"
+    return "Geschlossen"
 
 
 # ── index.html parsen → Top-10-Ticker ─────────────────────────────────────────
@@ -377,6 +387,90 @@ def fetch_finviz_news(ticker: str) -> list[str]:
         return titles
     except Exception as exc:
         log.debug("Finviz RSS %s: %s", ticker, exc)
+        return []
+
+
+# ── Datenquelle 8: Google News RSS ───────────────────────────────────────────
+
+def fetch_google_news(ticker: str) -> list[str]:
+    base = ticker.split(".")[0]
+    url = f"https://news.google.com/rss/search?q={base}+stock&hl=en-US&gl=US&ceid=US:en"
+    try:
+        resp = requests.get(url, headers=HTTP_HEADERS, timeout=10)
+        resp.raise_for_status()
+        root = ET.fromstring(resp.text)
+        titles = []
+        for item in root.iter("item"):
+            title = item.findtext("title") or ""
+            if title:
+                titles.append(title)
+            if len(titles) >= 5:
+                break
+        return titles
+    except Exception:
+        return []
+
+
+# ── Datenquelle 9: Unusual Whales RSS ────────────────────────────────────────
+
+def fetch_unusual_whales(ticker: str) -> list[str]:
+    base = ticker.split(".")[0]
+    url = f"https://unusualwhales.com/rss/ticker/{base}"
+    try:
+        resp = requests.get(url, headers=HTTP_HEADERS, timeout=10)
+        resp.raise_for_status()
+        root = ET.fromstring(resp.text)
+        titles = []
+        for item in root.iter("item"):
+            title = item.findtext("title") or ""
+            if title:
+                titles.append(title)
+            if len(titles) >= 5:
+                break
+        return titles
+    except Exception:
+        return []
+
+
+# ── Datenquelle 10: MarketBeat RSS ───────────────────────────────────────────
+
+def fetch_marketbeat_news(ticker: str) -> list[str]:
+    base = ticker.split(".")[0]
+    url = f"https://www.marketbeat.com/stocks/NASDAQ/{base}/rss/"
+    try:
+        resp = requests.get(url, headers=HTTP_HEADERS, timeout=10)
+        resp.raise_for_status()
+        root = ET.fromstring(resp.text)
+        titles = []
+        for item in root.iter("item"):
+            title = item.findtext("title") or ""
+            if title:
+                titles.append(title)
+            if len(titles) >= 5:
+                break
+        return titles
+    except Exception:
+        return []
+
+
+# ── Datenquelle 11: Seeking Alpha RSS ────────────────────────────────────────
+
+def fetch_seeking_alpha_news(ticker: str) -> list[str]:
+    base = ticker.split(".")[0]
+    url = f"https://seekingalpha.com/api/sa/combined/{base}.xml"
+    try:
+        resp = requests.get(url, headers=HTTP_HEADERS, timeout=10)
+        resp.raise_for_status()
+        root = ET.fromstring(resp.text)
+        titles = []
+        for item in root.iter("item"):
+            title = item.findtext("title") or ""
+            if title:
+                titles.append(title)
+            if len(titles) >= 5:
+                break
+        return titles
+    except Exception:
         return []
 
 
@@ -646,17 +740,17 @@ def compute_signal(
     rvol = yf_data.get("rvol", 0.0)
     intr = yf_data.get("intraday", 0.0)
 
-    if chg >= 7:
+    if chg >= TRIGGER_PRICE_UP_7:
         score += SCORE_PRICE_UP_7
         drivers.append(f"Kurs +{chg:.1f}%")
-    elif chg >= 3:
+    elif chg >= TRIGGER_PRICE_UP_3:
         score += SCORE_PRICE_UP_3
         drivers.append(f"Kurs +{chg:.1f}%")
 
-    if rvol >= 4:
+    if rvol >= TRIGGER_RVOL_4X:
         score += SCORE_RVOL_4X
         drivers.append(f"Volumen {rvol:.1f}×")
-    elif rvol >= 2:
+    elif rvol >= TRIGGER_RVOL_2X:
         score += SCORE_RVOL_2X
         drivers.append(f"Volumen {rvol:.1f}×")
 
@@ -843,14 +937,11 @@ def send_alert(
 
 def main() -> None:
     t_start = time.time()
-
-    if not IGNORE_TRADING_HOURS and not is_trading_hours():
-        log.info("Außerhalb der Handelszeiten (%s–%s ET) — nichts zu tun.",
-                 MARKET_OPEN.strftime("%H:%M"), MARKET_CLOSE.strftime("%H:%M"))
-        return
+    phase   = get_market_phase()
+    print(f"Marktphase: {phase}", flush=True)
 
     now_str = now_berlin().strftime("%H:%M Uhr")
-    log.info("=== KI-Agent Start %s ===", now_berlin().strftime("%Y-%m-%d %H:%M"))
+    log.info("=== KI-Agent Start %s — %s ===", now_berlin().strftime("%Y-%m-%d %H:%M"), phase)
 
     tickers = parse_top_tickers()
     if not tickers:
@@ -889,9 +980,29 @@ def main() -> None:
         if not yfd:
             log.debug("  Keine yfinance-Daten für %s", ticker)
 
-        news = fetch_yahoo_news(ticker)
-        if not news:
-            news = fetch_finviz_news(ticker)
+        yahoo_news  = fetch_yahoo_news(ticker)
+        finviz_news = fetch_finviz_news(ticker)
+        google_news, uw_news, mb_news, sa_news = [], [], [], []
+        try:
+            google_news = fetch_google_news(ticker)
+        except Exception:
+            pass
+        try:
+            uw_news = fetch_unusual_whales(ticker)
+        except Exception:
+            pass
+        try:
+            mb_news = fetch_marketbeat_news(ticker)
+        except Exception:
+            pass
+        try:
+            sa_news = fetch_seeking_alpha_news(ticker)
+        except Exception:
+            pass
+        news = yahoo_news + finviz_news + google_news + uw_news + mb_news + sa_news
+        print(f"{ticker} Quellen: Yahoo={len(yahoo_news)}, Google={len(google_news)}, "
+              f"UnusualWhales={len(uw_news)}, MarketBeat={len(mb_news)}, "
+              f"SeekingAlpha={len(sa_news)}", flush=True)
 
         reddit: dict = {"count": 0, "sentiment": 0.0}
         try:
@@ -1023,18 +1134,13 @@ def main() -> None:
             "signals_active":  n_signals,
             "alerts_sent":     n_alerts,
             "elapsed_s":       t_elapsed,
+            "market_phase":    phase,
         },
         "signals": new_signals,
     }
 
-    sigs_dirty = json.dumps(old_sigs.get("signals", {}), sort_keys=True) != \
-                 json.dumps(new_signals, sort_keys=True)
-
-    if sigs_dirty:
-        save_signals(out)
-        log.info("agent_signals.json aktualisiert.")
-    else:
-        log.info("agent_signals.json unverändert — kein Schreiben.")
+    save_signals(out)
+    log.info("agent_signals.json aktualisiert.")
 
     state["last_run"] = now_berlin().isoformat()
     save_state(state)

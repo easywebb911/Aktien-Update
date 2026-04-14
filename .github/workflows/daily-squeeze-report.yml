@@ -2,9 +2,10 @@ name: Daily Squeeze Report
 
 on:
   schedule:
-    # 07:00 UTC = 09:00 CEST (Sommer, UTC+2) / 08:00 CET (Winter, UTC+1)
+    # 10:00 UTC = 12:00 CEST (Sommer, UTC+2) / 11:00 CET (Winter, UTC+1)
+    # Europäische Märkte haben dann bereits 3h gehandelt → rel_volume aussagekräftig
     # Nur Handelstage Mo–Fr
-    - cron: '0 7 * * 1-5'
+    - cron: '0 10 * * 1-5'
   workflow_dispatch:   # Manueller Start jederzeit möglich
 
 permissions:

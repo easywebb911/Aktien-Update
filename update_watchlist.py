@@ -45,16 +45,43 @@ MIN_TOTAL_TICKERS = 200              # safety guard: abort if total is below thi
 
 WATCHLIST_FILE    = "watchlist.py"
 
+# Regional suffix appended to every ticker symbol so yfinance resolves it correctly
+REGION_SUFFIX: dict[str, str] = {
+    "DE": ".DE", "GB": ".L",  "FR": ".PA",
+    "NL": ".AS", "CA": ".TO", "JP": ".T",
+    "HK": ".HK", "KR": ".KS",
+}
+
+# Seed tickers per region — known short-interest-relevant local stocks.
+# These are always included first; screener results fill up to MAX_PER_REGION.
+_INTL_SEED_TICKERS: dict[str, list[str]] = {
+    "DE": ["SAP.DE","SIE.DE","BAS.DE","MBG.DE","VOW3.DE","RHM.DE","P911.DE",
+           "TUI1.DE","LEG.DE","TAG.DE","AIXA.DE","EVTG.DE","NFON.DE","PVA.DE","SGL.DE"],
+    "GB": ["SHEL.L","BP.L","LLOY.L","BARC.L","VOD.L","IAG.L","NXT.L",
+           "MKS.L","OCDO.L","THG.L","BOOH.L","AO.L"],
+    "FR": ["AIR.PA","TTE.PA","SAN.PA","BNP.PA","MC.PA","ORA.PA",
+           "VIE.PA","HO.PA","CGG.PA","GENFIT.PA","VALNEVA.PA"],
+    "NL": ["ASML.AS","PHIA.AS","ING.AS","BAMNB.AS","HEIJM.AS","TKWY.AS","HYDRA.AS"],
+    "CA": ["BB.TO","TLRY.TO","HIVE.TO","BITF.TO","WEED.TO","ACB.TO",
+           "CRON.TO","SNDL.TO","HUT.TO"],
+    "JP": ["7203.T","9984.T","6758.T","7267.T","9433.T","6861.T","4063.T","8306.T"],
+    "HK": ["0700.HK","0941.HK","0005.HK","1299.HK","0388.HK",
+           "2318.HK","0992.HK","2382.HK","0175.HK"],
+    "KR": ["005930.KS","000660.KS","035420.KS","051910.KS",
+           "006400.KS","207940.KS"],
+}
+
 # Screener IDs to query per international region
+# day_gainers + most_actives return local-exchange tickers when region != US
 _INTL_SCREENERS: dict[str, list[str]] = {
-    "DE": ["most_shorted_stocks", "small_cap_gainers"],
-    "GB": ["most_shorted_stocks", "small_cap_gainers"],
-    "FR": ["most_shorted_stocks", "small_cap_gainers"],
-    "NL": ["most_shorted_stocks", "small_cap_gainers"],
-    "CA": ["most_shorted_stocks", "small_cap_gainers"],
-    "JP": ["most_shorted_stocks", "small_cap_gainers"],
-    "HK": ["most_shorted_stocks", "small_cap_gainers"],
-    "KR": ["most_shorted_stocks", "small_cap_gainers"],
+    "DE": ["day_gainers", "most_actives", "small_cap_gainers"],
+    "GB": ["day_gainers", "most_actives", "small_cap_gainers"],
+    "FR": ["day_gainers", "most_actives", "small_cap_gainers"],
+    "NL": ["day_gainers", "most_actives", "small_cap_gainers"],
+    "CA": ["day_gainers", "most_actives", "small_cap_gainers"],
+    "JP": ["day_gainers", "most_actives", "small_cap_gainers"],
+    "HK": ["day_gainers", "most_actives", "small_cap_gainers"],
+    "KR": ["day_gainers", "most_actives", "small_cap_gainers"],
 }
 
 _YF_SCREENER_URL = (
@@ -110,6 +137,10 @@ def _fetch_all_for_region(region: str) -> list[dict]:
             ticker = (q.get("symbol") or "").strip().upper()
             if not ticker or not re.match(r'^[A-Z0-9][A-Z0-9.\-]{0,14}$', ticker):
                 continue
+            # Append regional suffix if the symbol doesn't already carry one
+            suffix = REGION_SUFFIX.get(region, "")
+            if suffix and "." not in ticker:
+                ticker = ticker + suffix
             if ticker in seen:
                 continue
             price   = float(q.get("regularMarketPrice") or 0)
@@ -242,7 +273,16 @@ def main() -> None:
         candidates = raw_by_region.get(region, [])
         if candidates:
             _enrich_avg_vol(candidates)
-        new_watchlist[region] = select_top_tickers(region, candidates)
+        screener_tickers = select_top_tickers(region, candidates)
+
+        # Merge: seeds always first, screener results fill up to MAX_PER_REGION
+        seeds = _INTL_SEED_TICKERS.get(region, [])
+        seed_set = set(seeds)
+        extra = [t for t in screener_tickers if t not in seed_set]
+        merged = seeds + extra
+        new_watchlist[region] = merged[:MAX_PER_REGION]
+        log.info("Region %s: %d seeds + %d screener → %d total",
+                 region, len(seeds), len(extra), len(new_watchlist[region]))
 
     # Safety guard
     total = sum(len(v) for v in new_watchlist.values())
