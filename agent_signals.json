@@ -1,5 +1,5 @@
 {
-  "updated": "2026-04-14T17:51:57.704156+02:00",
+  "updated": "2026-04-14T19:38:25.076056+02:00",
   "run_info": {
     "tickers_checked": 10,
     "signals_active": 1,
@@ -8,13 +8,73 @@
     "market_phase": "Regulär"
   },
   "signals": {
-    "LENZ": {
-      "score": 8,
-      "drivers": "Earnings in 22d",
+    "SANA": {
+      "score": 28,
+      "drivers": "News: short interest, partnership + Earnings in 23d",
       "price": 0.0,
       "chg_pct": 0.0,
       "rvol": 0.0,
-      "earnings": "in 22 Tagen (06.05.2026)",
+      "earnings": "in 23 Tagen (07.05.2026)",
+      "fda_date": null,
+      "upcoming_event": null
+    },
+    "REPL": {
+      "score": 0,
+      "drivers": "",
+      "price": 0.0,
+      "chg_pct": 0.0,
+      "rvol": 0.0,
+      "earnings": "in 37 Tagen (21.05.2026)",
+      "fda_date": null,
+      "upcoming_event": null
+    },
+    "SKLZ": {
+      "score": 8,
+      "drivers": "Earnings in 23d",
+      "price": 0.0,
+      "chg_pct": 0.0,
+      "rvol": 0.0,
+      "earnings": "in 23 Tagen (07.05.2026)",
+      "fda_date": null,
+      "upcoming_event": null
+    },
+    "CHPT": {
+      "score": 0,
+      "drivers": "",
+      "price": 0.0,
+      "chg_pct": 0.0,
+      "rvol": 0.0,
+      "earnings": "in 50 Tagen (03.06.2026)",
+      "fda_date": null,
+      "upcoming_event": null
+    },
+    "PLCE": {
+      "score": 0,
+      "drivers": "",
+      "price": 0.0,
+      "chg_pct": 0.0,
+      "rvol": 0.0,
+      "earnings": "in 51 Tagen (04.06.2026)",
+      "fda_date": null,
+      "upcoming_event": null
+    },
+    "PLAY": {
+      "score": 0,
+      "drivers": "",
+      "price": 0.0,
+      "chg_pct": 0.0,
+      "rvol": 0.0,
+      "earnings": "in 56 Tagen (09.06.2026)",
+      "fda_date": null,
+      "upcoming_event": null
+    },
+    "TWST": {
+      "score": 8,
+      "drivers": "Earnings in 20d",
+      "price": 0.0,
+      "chg_pct": 0.0,
+      "rvol": 0.0,
+      "earnings": "in 20 Tagen (04.05.2026)",
       "fda_date": null,
       "upcoming_event": null
     },
@@ -28,23 +88,13 @@
       "fda_date": null,
       "upcoming_event": null
     },
-    "SNBR": {
+    "NNE": {
       "score": 18,
-      "drivers": "News: catalyst + Earnings in 15d",
+      "drivers": "News: partnership + Earnings in 30d",
       "price": 0.0,
       "chg_pct": 0.0,
       "rvol": 0.0,
-      "earnings": "in 15 Tagen (29.04.2026)",
-      "fda_date": null,
-      "upcoming_event": null
-    },
-    "PAR": {
-      "score": 8,
-      "drivers": "Earnings in 24d",
-      "price": 0.0,
-      "chg_pct": 0.0,
-      "rvol": 0.0,
-      "earnings": "in 24 Tagen (08.05.2026)",
+      "earnings": "in 30 Tagen (14.05.2026)",
       "fda_date": null,
       "upcoming_event": null
     },
@@ -55,56 +105,6 @@
       "chg_pct": 0.0,
       "rvol": 0.0,
       "earnings": "in 27 Tagen (11.05.2026)",
-      "fda_date": null,
-      "upcoming_event": null
-    },
-    "QDEL": {
-      "score": 8,
-      "drivers": "Earnings in 22d",
-      "price": 0.0,
-      "chg_pct": 0.0,
-      "rvol": 0.0,
-      "earnings": "in 22 Tagen (06.05.2026)",
-      "fda_date": null,
-      "upcoming_event": null
-    },
-    "ACXP": {
-      "score": 8,
-      "drivers": "Earnings in 29d",
-      "price": 0.0,
-      "chg_pct": 0.0,
-      "rvol": 0.0,
-      "earnings": "in 29 Tagen (13.05.2026)",
-      "fda_date": null,
-      "upcoming_event": null
-    },
-    "TBRG": {
-      "score": 28,
-      "drivers": "News: acquisition, takeover + Earnings in 22d",
-      "price": 0.0,
-      "chg_pct": 0.0,
-      "rvol": 0.0,
-      "earnings": "in 22 Tagen (06.05.2026)",
-      "fda_date": null,
-      "upcoming_event": null
-    },
-    "ANRO": {
-      "score": 8,
-      "drivers": "Earnings in 30d",
-      "price": 0.0,
-      "chg_pct": 0.0,
-      "rvol": 0.0,
-      "earnings": "in 30 Tagen (14.05.2026)",
-      "fda_date": null,
-      "upcoming_event": null
-    },
-    "BEAM": {
-      "score": 8,
-      "drivers": "Earnings in 21d",
-      "price": 0.0,
-      "chg_pct": 0.0,
-      "rvol": 0.0,
-      "earnings": "in 21 Tagen (05.05.2026)",
       "fda_date": null,
       "upcoming_event": null
     }
