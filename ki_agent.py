@@ -76,6 +76,17 @@ EARNINGS_FAR_DAYS       = 30
 SCORE_PDUFA_NEAR        = 25      # PDUFA in 1–7 Tagen
 SCORE_PDUFA_MID         = 15      # PDUFA in 8–30 Tagen
 
+# Konfidenz-Berechnung
+MAX_SIGNAL_TYPES        = 6   # Anzahl der betrachteten Signalkategorien
+CONFIDENCE_CAP_SINGLE   = 40  # max. Konfidenz wenn nur 1 Signaltyp aktiv
+CONFIDENCE_MIN_MULTI    = 70  # min. Konfidenz wenn ≥ 3 Signaltypen aktiv
+
+# Tägliche Zusammenfassung (Optimierung 14)
+SEND_DAILY_SUMMARY       = True   # Tages-Zusammenfassung um ~16:30 ET senden
+DAILY_SUMMARY_HOUR_ET    = 16     # Stunde (ET) für Zusammenfassung
+DAILY_SUMMARY_MINUTE_ET  = 30     # Minute (ET) für Zusammenfassung
+DAILY_SUMMARY_WINDOW_MIN = 5      # ±Minuten Toleranzfenster
+
 NEWS_KEYWORDS = {
     "squeeze", "short squeeze", "short interest",
     "analyst upgrade", "earnings beat",
@@ -732,9 +743,17 @@ def compute_signal(
     finra_ssr_ratio: float = 0.0,
     has_form4: bool = False,
     form4_title: str = "",
-) -> tuple[int, list[str]]:
+) -> tuple[int, list[str], int]:
     score   = 0
     drivers = []
+
+    # ── 6 Signalkategorien für Konfidenz-Berechnung ──────────────────────────
+    sig_kurs    = False  # 1. Kursbewegung
+    sig_vol     = False  # 2. Volumen
+    sig_spanne  = False  # 3. Intraday-Spanne
+    sig_reddit  = False  # 4. Reddit
+    sig_news    = False  # 5. News / SEC 8-K
+    sig_insider = False  # 6. Insider / Termine (SEC Form4, Earnings, FDA, FINRA-SSR)
 
     chg  = yf_data.get("chg_pct", 0.0)
     rvol = yf_data.get("rvol", 0.0)
@@ -743,32 +762,40 @@ def compute_signal(
     if chg >= TRIGGER_PRICE_UP_7:
         score += SCORE_PRICE_UP_7
         drivers.append(f"Kurs +{chg:.1f}%")
+        sig_kurs = True
     elif chg >= TRIGGER_PRICE_UP_3:
         score += SCORE_PRICE_UP_3
         drivers.append(f"Kurs +{chg:.1f}%")
+        sig_kurs = True
 
     if rvol >= TRIGGER_RVOL_4X:
         score += SCORE_RVOL_4X
         drivers.append(f"Volumen {rvol:.1f}×")
+        sig_vol = True
     elif rvol >= TRIGGER_RVOL_2X:
         score += SCORE_RVOL_2X
         drivers.append(f"Volumen {rvol:.1f}×")
+        sig_vol = True
 
     if intr >= 5:
         score += SCORE_INTRADAY_RANGE
         drivers.append(f"Spanne {intr:.1f}%")
+        sig_spanne = True
 
     rc = reddit.get("count", 0)
     rs = reddit.get("sentiment", 0.0)
     if rc >= 15:
         score += SCORE_REDDIT_15
         drivers.append(f"Reddit +{rc} Erwähnungen")
+        sig_reddit = True
     elif rc >= 5:
         score += SCORE_REDDIT_5
         drivers.append(f"Reddit +{rc} Erwähnungen")
+        sig_reddit = True
     if rs >= 0.3:
         score += SCORE_REDDIT_SENTIMENT
         drivers.append(f"Reddit-Sentiment {rs:.2f}")
+        sig_reddit = True
 
     if has_8k:
         title_lower = sec_title.lower()
@@ -776,6 +803,7 @@ def compute_signal(
         pts = SCORE_SEC_8K_RELEVANT if is_relevant else SCORE_SEC_8K
         score += pts
         drivers.append("SEC 8-K")
+        sig_news = True
         print(f"{ticker} SEC 8-K: '{sec_title}' → +{pts} Pkt "
               f"(earnings/FDA-relevant: {'ja' if is_relevant else 'nein'})")
 
@@ -789,6 +817,7 @@ def compute_signal(
     if kw_pts > 0:
         score += min(kw_pts, 20)
         drivers.append(f"News: {', '.join(kw_hits)}")
+        sig_news = True
 
     # Earnings-Nähe
     if earnings_days is not None:
@@ -803,6 +832,7 @@ def compute_signal(
         if pts > 0:
             score += pts
             drivers.append(f"Earnings in {earnings_days}d")
+            sig_insider = True
             print(f"{ticker} Earnings in {earnings_days} Tagen → +{pts} Pkt")
 
     # FDA PDUFA-Nähe
@@ -816,6 +846,7 @@ def compute_signal(
         if pts > 0:
             score += pts
             drivers.append(f"FDA PDUFA in {fda_days}d")
+            sig_insider = True
             print(f"{ticker} FDA PDUFA in {fda_days} Tagen → +{pts} Pkt")
 
     # OpenInsider — Insider-Käufe
@@ -826,16 +857,19 @@ def compute_signal(
         label   = "C-Suite Insider-Kauf" if ic_cs else f"Insider-Kauf ({ic}×)"
         score  += pts
         drivers.append(label)
+        sig_insider = True
         print(f"{ticker} OpenInsider: {ic} Käufe, C-Suite: {ic_cs} → +{pts} Pkt")
 
     # FINRA Daily Short Sale Volume
     if finra_ssr_ratio >= FINRA_DAILY_SSR_HIGH:
         score += SCORE_FINRA_SSR_HIGH
         drivers.append(f"FINRA Short-Vol {finra_ssr_ratio:.0%}")
+        sig_insider = True
         print(f"{ticker} FINRA SSR: {finra_ssr_ratio:.1%} → +{SCORE_FINRA_SSR_HIGH} Pkt")
     elif finra_ssr_ratio >= FINRA_DAILY_SSR_MID:
         score += SCORE_FINRA_SSR_MID
         drivers.append(f"FINRA Short-Vol {finra_ssr_ratio:.0%}")
+        sig_insider = True
         print(f"{ticker} FINRA SSR: {finra_ssr_ratio:.1%} → +{SCORE_FINRA_SSR_MID} Pkt")
 
     # SEC Form 4 — Insider-Transaktionen
@@ -845,10 +879,24 @@ def compute_signal(
         pts          = SCORE_FORM4_PURCHASE if is_purchase else SCORE_FORM4_ANY
         score       += pts
         drivers.append("SEC Form 4 (Kauf)" if is_purchase else "SEC Form 4")
+        sig_insider = True
         print(f"{ticker} SEC Form 4: '{form4_title}' → +{pts} Pkt "
               f"(Kauf: {'ja' if is_purchase else 'nein'})")
 
-    return min(score, 100), drivers
+    # ── Konfidenz-Berechnung ─────────────────────────────────────────────────
+    n_types   = sum([sig_kurs, sig_vol, sig_spanne, sig_reddit, sig_news, sig_insider])
+    base_conf = round(n_types / MAX_SIGNAL_TYPES * 100)
+    if n_types <= 1:
+        confidence = min(base_conf, CONFIDENCE_CAP_SINGLE)
+    elif n_types >= 3:
+        confidence = max(base_conf, CONFIDENCE_MIN_MULTI)
+    else:
+        confidence = base_conf
+
+    print(f"{ticker} Konfidenz: {confidence}% ({n_types}/{MAX_SIGNAL_TYPES} Signaltypen aktiv)",
+          flush=True)
+
+    return min(score, 100), drivers, confidence
 
 
 # ── E-Mail-Versand ────────────────────────────────────────────────────────────
@@ -862,6 +910,8 @@ def send_alert(
     news: list[str],
     upcoming_event: str | None = None,
     insider: dict | None = None,
+    confidence: int = 0,
+    n_types: int = 0,
 ) -> bool:
     mail_to   = os.environ.get("MAIL_TO", "").strip()
     mail_pass = os.environ.get("MAIL_PASSWORD", "").strip()
@@ -898,12 +948,18 @@ def send_alert(
             f"{csuite_str}\n\n"
         )
 
+    conf_line = (
+        f"Konfidenz:        {confidence}% ({n_types} von {MAX_SIGNAL_TYPES} Signaltypen aktiv)\n"
+        if confidence > 0 else ""
+    )
+
     body = (
         f"{prefix} SQUEEZE-ALERT: {ticker}\n"
         f"{'=' * 55}\n\n"
         f"{event_block}"
         f"{insider_block}"
         f"Score:            {score}/100\n"
+        f"{conf_line}"
         f"Treiber:          {driver_str}\n\n"
         f"Kurs:             ${price:.2f}  ({sign}{chg:.1f}% heute)\n"
         f"Rel. Volumen:     {rvol:.1f}×\n"
@@ -930,6 +986,100 @@ def send_alert(
         return True
     except Exception as exc:
         log.error("E-Mail Fehler %s: %s", ticker, exc)
+        return False
+
+
+# ── Tägliche Zusammenfassung ──────────────────────────────────────────────────
+
+def _is_summary_window() -> bool:
+    """Gibt True zurück wenn wir im ±DAILY_SUMMARY_WINDOW_MIN Fenster um 16:30 ET sind."""
+    now_et = datetime.now(EASTERN)
+    target = now_et.replace(
+        hour=DAILY_SUMMARY_HOUR_ET,
+        minute=DAILY_SUMMARY_MINUTE_ET,
+        second=0,
+        microsecond=0,
+    )
+    diff_min = abs((now_et - target).total_seconds()) / 60
+    return diff_min <= DAILY_SUMMARY_WINDOW_MIN
+
+
+def send_daily_summary(
+    signals: dict[str, dict],
+    tickers: list[str],
+    phase: str,
+    t_elapsed: float,
+    n_alerts: int,
+) -> bool:
+    """Sendet die tägliche Zusammenfassung aller überwachten Ticker per E-Mail."""
+    mail_to   = os.environ.get("MAIL_TO", "").strip()
+    mail_pass = os.environ.get("MAIL_PASSWORD", "").strip()
+    mail_from = os.environ.get("MAIL_FROM", mail_to).strip()
+
+    if not mail_to or not mail_pass:
+        log.warning("MAIL_TO / MAIL_PASSWORD nicht gesetzt — keine Tages-Zusammenfassung.")
+        return False
+
+    today_str = now_berlin().strftime("%d.%m.%Y")
+
+    # Top-Ticker nach Score sortieren
+    scored = sorted(
+        [(t, signals.get(t, {})) for t in tickers],
+        key=lambda x: x[1].get("score", 0),
+        reverse=True,
+    )
+    n_active = sum(1 for _, s in scored if s.get("score", 0) >= ALERT_THRESHOLD)
+    top_ticker = scored[0][0] if scored else "—"
+    top_score  = scored[0][1].get("score", 0) if scored else 0
+
+    subject = (
+        f"📊 Tages-Zusammenfassung {today_str} — "
+        f"{n_active} Signale — Top: {top_ticker} ({top_score}/100)"
+    )
+
+    lines = [
+        f"📊 TAGES-ZUSAMMENFASSUNG — {today_str}",
+        "=" * 55,
+        f"Marktphase: {phase}",
+        f"Laufzeit:   {t_elapsed}s | Alerts gesendet: {n_alerts}",
+        "",
+        f"{'Ticker':<10} {'Score':>5}  {'Konfidenz':>9}  {'Treiber'}",
+        "-" * 70,
+    ]
+    for ticker, sig in scored:
+        score      = sig.get("score", 0)
+        conf       = sig.get("confidence")
+        conf_str   = f"{conf}%" if conf is not None else "—"
+        drivers    = sig.get("drivers", "—")
+        flag       = " ⚡" if score >= ALERT_THRESHOLD else ""
+        lines.append(f"{ticker:<10} {score:>5}/100  {conf_str:>9}  {drivers}{flag}")
+
+    lines += [
+        "",
+        f"→ Website: {PWA_URL}",
+        "",
+        "---",
+        f"Zusammenfassung automatisch um {DAILY_SUMMARY_HOUR_ET}:{DAILY_SUMMARY_MINUTE_ET:02d} ET generiert.",
+    ]
+
+    body = "\n".join(lines)
+    msg  = MIMEMultipart()
+    msg["From"]    = mail_from
+    msg["To"]      = mail_to
+    msg["Subject"] = subject
+    msg.attach(MIMEText(body, "plain", "utf-8"))
+
+    try:
+        with smtplib.SMTP("smtp.gmail.com", 587) as srv:
+            srv.ehlo()
+            srv.starttls()
+            srv.login(mail_from, mail_pass)
+            srv.sendmail(mail_from, [mail_to], msg.as_string())
+        log.info("✉ Tages-Zusammenfassung gesendet (%d Ticker, Top: %s %d/100)",
+                 len(tickers), top_ticker, top_score)
+        return True
+    except Exception as exc:
+        log.error("E-Mail Tages-Zusammenfassung Fehler: %s", exc)
         return False
 
 
@@ -1079,13 +1229,22 @@ def main() -> None:
             except Exception as exc:
                 log.debug("FDA-Datum Parse %s: %s", ticker, exc)
 
-        score, drivers = compute_signal(
+        score, drivers, confidence = compute_signal(
             ticker, yfd, news, reddit, has_8k, sec_title,
             earnings_days, fda_days,
             insider=insider, finra_ssr_ratio=finra_ssr_ratio,
             has_form4=has_form4, form4_title=form4_title,
         )
-        log.info("  %s Score=%d Treiber=%s", ticker, score, " | ".join(drivers))
+        n_active_types = sum([
+            any(d.startswith("Kurs") for d in drivers),
+            any(d.startswith("Volumen") for d in drivers),
+            any(d.startswith("Spanne") for d in drivers),
+            any(d.startswith("Reddit") for d in drivers),
+            any(d.startswith(("News", "SEC 8-K")) for d in drivers),
+            any(d.startswith(("Earnings", "FDA", "Insider", "C-Suite", "FINRA", "SEC Form")) for d in drivers),
+        ])
+        log.info("  %s Score=%d Konfidenz=%d%% Treiber=%s",
+                 ticker, score, confidence, " | ".join(drivers))
 
         # upcoming_event: nächster Termin ≤ 7 Tage (Earnings vor FDA)
         upcoming_event: str | None = None
@@ -1101,6 +1260,7 @@ def main() -> None:
 
         new_signals[ticker] = {
             "score":          score,
+            "confidence":     confidence,
             "drivers":        " + ".join(drivers_with_event) if drivers_with_event else "",
             "price":          yfd.get("price", 0.0),
             "chg_pct":        yfd.get("chg_pct", 0.0),
@@ -1121,6 +1281,8 @@ def main() -> None:
                 ticker, score, drivers, yfd, reddit, news,
                 upcoming_event=upcoming_event,
                 insider=insider,
+                confidence=confidence,
+                n_types=n_active_types,
             )
             if sent:
                 set_cooldown(ticker, state)
@@ -1143,6 +1305,21 @@ def main() -> None:
     log.info("agent_signals.json aktualisiert.")
 
     state["last_run"] = now_berlin().isoformat()
+
+    # ── Tägliche Zusammenfassung um 16:30 ET ────────────────────────────────
+    if SEND_DAILY_SUMMARY and _is_summary_window():
+        today_iso = now_berlin().date().isoformat()
+        last_summary = state.get("last_daily_summary", "")
+        if last_summary != today_iso:
+            log.info("Tages-Zusammenfassung wird gesendet …")
+            sent_summary = send_daily_summary(
+                new_signals, tickers, phase, t_elapsed, n_alerts,
+            )
+            if sent_summary:
+                state["last_daily_summary"] = today_iso
+        else:
+            log.debug("Tages-Zusammenfassung bereits heute gesendet — übersprungen.")
+
     save_state(state)
 
     print(
