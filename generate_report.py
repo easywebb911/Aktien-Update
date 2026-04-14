@@ -1955,7 +1955,7 @@ def generate_html(stocks: list[dict], report_date: str) -> str:
     now_str = datetime.now(ZoneInfo("Europe/Berlin")).strftime("%H:%M Uhr")
     timestamp = f"Stand: {report_date}, {now_str}"
 
-    # Watchlist: embed last known score for every ticker in score history
+    # Watchlist: embed last score + sparkline history + full top10 snapshot
     try:
         with open(_SCORE_HISTORY_FILE, "r", encoding="utf-8") as _wl_fh:
             _wl_raw = json.load(_wl_fh)
@@ -1963,9 +1963,81 @@ def generate_html(stocks: list[dict], report_date: str) -> str:
             t: sorted(entries, key=lambda e: e.get("date",""))[-1]["score"]
             for t, entries in _wl_raw.items() if entries
         }
+        # Sparkline history arrays for every ticker ever seen (≥2 entries)
+        _wl_hist: dict = {}
+        for _t, _entries in _wl_raw.items():
+            _sorted = sorted(_entries, key=lambda e: e.get("date",""))[-7:]
+            if len(_sorted) >= 2:
+                _delta = _sorted[-1]["score"] - _sorted[0]["score"]
+                _wl_hist[_t] = {
+                    "scores": [e["score"] for e in _sorted],
+                    "dates":  [e["date"]  for e in _sorted],
+                    "col":    ("#22c55e" if _delta >= 3
+                               else "#ef4444" if _delta <= -3
+                               else "#94a3b8"),
+                    "trend":  (f"↑ +{_delta:.1f}" if _delta >= 3
+                               else f"↓ {_delta:.1f}" if _delta <= -3
+                               else "→ stabil"),
+                }
     except Exception:
         _wl_scores = {}
+        _wl_hist   = {}
     wl_scores_json = json.dumps(_wl_scores)
+    wl_hist_json   = json.dumps(_wl_hist)
+
+    # Full top10 snapshots for watchlist detail cards (all metrics + news)
+    _wl_top10: dict = {}
+    for _s in stocks:
+        _fd   = _s.get("finra_data") or {}
+        _hist = _fd.get("history", [])
+        _opts = _s.get("options") or {}
+        _spark = _s.get("sparkline")
+        _wl_top10[_s["ticker"]] = {
+            "score":         _s.get("score", 0),
+            "company_name":  _s.get("company_name", ""),
+            "sector":        _s.get("sector", ""),
+            "price":         _s.get("price", 0),
+            "change":        _s.get("change", 0),
+            "change_5d":     _s.get("change_5d"),
+            "short_float":   _s.get("short_float", 0),
+            "short_ratio":   _s.get("short_ratio", 0),
+            "rel_volume":    _s.get("rel_volume", 0),
+            "float_shares":  _s.get("float_shares") or 0,
+            "si_trend":      _fd.get("trend", "no_data"),
+            "si_tpct":       _fd.get("trend_pct", 0.0),
+            "si_velocity":   _fd.get("si_velocity", 0.0),
+            "si_accel":      _fd.get("si_accelerating", False),
+            "si_t1":         _fmt_si_record(_hist[0]) if len(_hist) >= 1 else "—",
+            "si_t2":         _fmt_si_record(_hist[1]) if len(_hist) >= 2 else "—",
+            "si_t3":         _fmt_si_record(_hist[2]) if len(_hist) >= 3 else "—",
+            "rsi14":         _s.get("rsi14"),
+            "ma50":          _s.get("ma50"),
+            "ma200":         _s.get("ma200"),
+            "inst_ownership": _s.get("inst_ownership"),
+            "sec_13f_note":  _s.get("sec_13f_note", ""),
+            "52w_high":      _s.get("52w_high") or 0,
+            "52w_low":       _s.get("52w_low") or 0,
+            "avg_vol_20d":   _s.get("avg_vol_20d", 0),
+            "cur_vol":       _s.get("cur_vol", 0),
+            "market_cap":    _s.get("yf_market_cap") or _s.get("market_cap") or 0,
+            "earnings_days": _s.get("earnings_days"),
+            "earnings_date_str": _s.get("earnings_date_str", ""),
+            "pc_ratio":      _opts.get("pc_ratio"),
+            "atm_iv":        _opts.get("atm_iv"),
+            "rel_strength_20d": _s.get("rel_strength_20d"),
+            "perf_20d":      _s.get("perf_20d"),
+            "sparkline":     _spark,
+            "news": [
+                {
+                    "title":  n.get("title", ""),
+                    "link":   n.get("link", "#"),
+                    "time":   n.get("time", ""),
+                    "source": n.get("source") or n.get("publisher", ""),
+                }
+                for n in _s.get("news", [])[:3]
+            ],
+        }
+    wl_top10_json = json.dumps(_wl_top10, default=str)
 
     return f"""<!DOCTYPE html>
 <html lang="de" data-theme="dark">
@@ -2144,12 +2216,18 @@ a{{color:var(--accent);text-decoration:none}}
 .wl-section-hdr{{display:flex;align-items:center;gap:8px;padding:0 4px;margin-bottom:8px}}
 .wl-section-title{{font-size:.9rem;font-weight:700;color:var(--txt)}}
 .wl-count-badge{{font-size:.68rem;color:var(--txt-dim);background:var(--brd);padding:1px 7px;border-radius:10px}}
-.wl-cards{{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:8px}}
-.wl-card{{background:var(--bg-card);border:1px solid var(--brd);border-radius:10px;padding:10px 12px;display:flex;flex-direction:column;gap:3px;position:relative}}
+.wl-cards{{display:flex;flex-direction:column;gap:8px}}
+.wl-card{{background:var(--bg-card);border:1px solid #3b82f644;border-radius:10px;position:relative}}
+.wl-card-header{{display:flex;align-items:center;gap:8px;padding:10px 12px}}
 .wl-card-ticker{{font-size:.95rem;font-weight:800;color:var(--txt)}}
 .wl-card-score{{font-size:1.05rem;font-weight:700}}
+.wl-badge-star{{font-size:.6rem;color:#3b82f6;background:#3b82f622;border:1px solid #3b82f644;border-radius:4px;padding:1px 5px;white-space:nowrap}}
 .wl-notop-badge{{font-size:.62rem;color:#6b7280;background:#6b728022;border:1px solid #6b728044;border-radius:4px;padding:1px 5px;width:fit-content}}
-.wl-remove-btn{{position:absolute;top:6px;right:8px;background:none;border:none;color:var(--txt-dim);cursor:pointer;font-size:.9rem;padding:0;opacity:.5}}
+.wl-details-btn{{background:none;border:1px solid #3b82f644;color:#3b82f6;cursor:pointer;font-size:.8rem;padding:2px 8px;border-radius:6px}}
+.wl-details-btn:hover{{background:#3b82f622}}
+.wl-details-body{{border-top:1px solid var(--brd)}}
+.wl-no-data{{padding:10px 14px;color:var(--txt-dim);font-size:.8rem;font-style:italic}}
+.wl-remove-btn{{background:none;border:none;color:var(--txt-dim);cursor:pointer;font-size:.9rem;padding:0;opacity:.5}}
 .wl-remove-btn:hover{{color:#ef4444;opacity:1}}
 .score-block{{display:flex;flex-direction:column;align-items:flex-end;min-width:64px}}
 .score-num{{font-size:1.7rem;font-weight:900;line-height:1}}
@@ -3058,6 +3136,8 @@ function _fmtGerman(d) {{
     document.querySelectorAll('.spark-wrap').forEach(drawSparkline);
   }}
 
+  window.drawSparkline = drawSparkline;
+
   if (document.readyState === 'loading') {{
     document.addEventListener('DOMContentLoaded', initAll);
   }} else {{
@@ -3107,7 +3187,7 @@ function _fmtGerman(d) {{
       dot.className = 'agent-dot ' + dotClass;
 
       const confidence = (sig && sig.confidence != null) ? sig.confidence : null;
-      const confStr = confidence != null ? ` \u2014 Konfidenz ${confidence}%` : '';
+      const confStr = confidence != null ? ` \u2014 Konfidenz ${{confidence}}%` : '';
       const tip = document.createElement('span');
       tip.className = 'agent-tooltip';
       tip.textContent = `KI-Agent: Score ${{score}}/100${{confStr}} \u2014 ${{(sig && sig.drivers) || '?'}}`;
@@ -3161,12 +3241,147 @@ function _fmtGerman(d) {{
   const WL_KEY    = 'squeeze_watchlist';
   const WL_MAX    = 20;
   const WL_SCORES = {wl_scores_json};
+  const WL_TOP10  = {wl_top10_json};
+  const WL_HIST   = {wl_hist_json};
 
-  function wlLoad()      {{ return JSON.parse(localStorage.getItem(WL_KEY) || '[]'); }}
-  function wlSave(arr)   {{ localStorage.setItem(WL_KEY, JSON.stringify(arr.slice(0, WL_MAX))); }}
+  function wlLoad()    {{ return JSON.parse(localStorage.getItem(WL_KEY) || '[]'); }}
+  function wlSave(arr) {{ localStorage.setItem(WL_KEY, JSON.stringify(arr.slice(0, WL_MAX))); }}
   function wlScoreColor(v) {{
     if (v === null) return '#94a3b8';
     return v >= 50 ? '#22c55e' : v >= 30 ? '#f59e0b' : '#ef4444';
+  }}
+  function fmt(n, dec) {{ dec = dec == null ? 1 : dec; return n != null && isFinite(+n) ? (+n).toFixed(dec) : '\u2014'; }}
+  function fmtPct(n)   {{ return n != null && isFinite(+n) ? (+n).toFixed(1) + '%' : '\u2014'; }}
+  function fmtVol(n) {{
+    if (!n) return '\u2014';
+    const v = +n;
+    return v > 1e6 ? (v/1e6).toFixed(1)+'M' : v > 1e3 ? (v/1e3).toFixed(0)+'K' : v.toFixed(0);
+  }}
+  function fmtCap(n) {{
+    if (!n) return '\u2014';
+    const v = +n;
+    return v > 1e12 ? (v/1e12).toFixed(2)+'T' : v > 1e9 ? (v/1e9).toFixed(1)+'B' : v > 1e6 ? (v/1e6).toFixed(0)+'M' : '\u2014';
+  }}
+  function metColor(type, val) {{
+    if (val == null || !isFinite(+val)) return '#94a3b8';
+    const v = +val;
+    if (type === 'sf')  return v >= 20 ? '#22c55e' : v >= 10 ? '#f59e0b' : '#94a3b8';
+    if (type === 'sr')  return v >= 10 ? '#22c55e' : v >= 5  ? '#f59e0b' : '#94a3b8';
+    if (type === 'rv')  return v >= 2  ? '#22c55e' : v >= 1.2? '#f59e0b' : '#94a3b8';
+    if (type === 'chg') return v >= 3  ? '#22c55e' : v >= -3 ? '#f59e0b' : '#ef4444';
+    return '#94a3b8';
+  }}
+
+  function buildWlDetails(ticker, d) {{
+    // ── 6 metric tiles ──────────────────────────────────────────────────────
+    const sfCol  = metColor('sf',  d.short_float);
+    const srCol  = metColor('sr',  d.short_ratio);
+    const rvCol  = metColor('rv',  d.rel_volume);
+    const chgCol = metColor('chg', d.change);
+    const siCol  = d.si_trend === 'increasing' ? '#22c55e' : d.si_trend === 'decreasing' ? '#ef4444' : '#94a3b8';
+    const siArr  = d.si_trend === 'increasing' ? '\u2191' : d.si_trend === 'decreasing' ? '\u2193' : '\u2192';
+    const chgSign = (d.change != null && isFinite(+d.change) && +d.change >= 0) ? '+' : '';
+    const tiles = `<div class="metrics-row" style="padding:10px 10px 8px">
+      <div class="metric-box" style="--mc:${{sfCol}}">
+        <span class="m-val">${{fmtPct(d.short_float)}}</span>
+        <span class="m-lbl">Short Float</span>
+      </div>
+      <div class="metric-box" style="--mc:${{srCol}}">
+        <span class="m-val">${{fmt(d.short_ratio)}}</span>
+        <span class="m-lbl">Days to Cover</span>
+      </div>
+      <div class="metric-box" style="--mc:${{rvCol}}">
+        <span class="m-val">${{d.rel_volume != null ? (+d.rel_volume).toFixed(1)+'\xd7' : '\u2014'}}</span>
+        <span class="m-lbl">Volumen</span>
+      </div>
+      <div class="metric-box" style="--mc:${{chgCol}}">
+        <span class="m-val">${{d.change != null ? chgSign+fmtPct(d.change) : '\u2014'}}</span>
+        <span class="m-lbl">Momentum</span>
+      </div>
+      <div class="metric-box" style="--mc:#94a3b8">
+        <span class="m-val">${{d.float_shares > 0 ? (d.float_shares/1e6).toFixed(1)+'M' : '\u2014'}}</span>
+        <span class="m-lbl">Float</span>
+      </div>
+      <div class="metric-box" style="--mc:${{siCol}}">
+        <span class="m-val">${{siArr}}</span>
+        <span class="m-lbl">SI-Trend</span>
+      </div>
+    </div>`;
+
+    // ── Sparkline ────────────────────────────────────────────────────────────
+    const h = WL_HIST[ticker];
+    let sparkHtml = '';
+    if (h && h.scores && h.scores.length >= 2) {{
+      const scoresE = JSON.stringify(h.scores).replace(/"/g, '&quot;');
+      const datesE  = JSON.stringify(h.dates).replace(/"/g, '&quot;');
+      sparkHtml = `<div class="spark-wrap wl-spark" style="padding:0 10px 10px"
+        data-scores="${{scoresE}}" data-dates="${{datesE}}"
+        data-col="${{h.col}}" data-today="">
+        <div class="spark-svg-wrap" style="height:56px"></div>
+        <div class="spark-days"></div>
+      </div>`;
+    }}
+
+    // ── Detail table ─────────────────────────────────────────────────────────
+    const priceStr = d.price ? '$' + (+d.price).toFixed(2) : '\u2014';
+    const hiStr    = d['52w_high'] ? '$' + (+d['52w_high']).toFixed(2) : '\u2014';
+    const loStr    = d['52w_low']  ? '$' + (+d['52w_low']).toFixed(2)  : '\u2014';
+    const siVelStr = d.si_velocity != null ? fmt(d.si_velocity, 2) + '%' + (d.si_accel ? ' \u2b06' : '') : '\u2014';
+    const earStr   = d.earnings_days != null
+      ? 'T+' + d.earnings_days + 'd (' + (d.earnings_date_str || '?') + ')'
+      : '\u2014';
+    const tableHtml = `<div class="detail-table-wrap" style="padding:0 10px 10px">
+      <table class="detail-table">
+        <tr><td>Preis</td><td>${{priceStr}}</td></tr>
+        <tr><td>Marktkapitalisierung</td><td>${{fmtCap(d.market_cap)}}</td></tr>
+        <tr><td>Sektor</td><td>${{d.sector || '\u2014'}}</td></tr>
+        <tr><td>52W-Hoch / -Tief</td><td>${{hiStr}} / ${{loStr}}</td></tr>
+        <tr><td>\xd8 Volumen 20T</td><td>${{fmtVol(d.avg_vol_20d)}}</td></tr>
+        <tr><td>Heutiges Volumen</td><td>${{fmtVol(d.cur_vol)}}</td></tr>
+        <tr><td>SI-Trend (3M)</td><td>${{d.si_trend || '\u2014'}}${{d.si_tpct ? ' ' + fmtPct(d.si_tpct) : ''}}</td></tr>
+        <tr><td>SI-Velocity</td><td>${{siVelStr}}</td></tr>
+        <tr><td>Short-Vol. T-1 (FINRA)</td><td>${{d.si_t1 || '\u2014'}}</td></tr>
+        <tr><td>Short-Vol. T-2</td><td>${{d.si_t2 || '\u2014'}}</td></tr>
+        <tr><td>Short-Vol. T-3</td><td>${{d.si_t3 || '\u2014'}}</td></tr>
+        <tr><td>RSI 14</td><td>${{fmt(d.rsi14, 1)}}</td></tr>
+        <tr><td>MA 50</td><td>${{d.ma50 != null ? '$' + (+d.ma50).toFixed(2) : '\u2014'}}</td></tr>
+        <tr><td>MA 200</td><td>${{d.ma200 != null ? '$' + (+d.ma200).toFixed(2) : '\u2014'}}</td></tr>
+        <tr><td>Put/Call-Ratio</td><td>${{fmt(d.pc_ratio, 2)}}</td></tr>
+        <tr><td>ATM IV</td><td>${{d.atm_iv != null ? fmtPct(d.atm_iv * 100) : '\u2014'}}</td></tr>
+        <tr><td>Inst. Beteiligung</td><td>${{fmtPct(d.inst_ownership)}}</td></tr>
+        <tr><td>Rel. St\xe4rke 20T</td><td>${{fmt(d.rel_strength_20d, 2)}}</td></tr>
+        <tr><td>Performance 20T</td><td>${{d.perf_20d != null ? (d.perf_20d>=0?'+':'')+fmtPct(d.perf_20d) : '\u2014'}}</td></tr>
+        <tr><td>N\xe4chste Earnings</td><td>${{earStr}}</td></tr>
+      </table>
+    </div>`;
+
+    // ── News ─────────────────────────────────────────────────────────────────
+    let newsHtml = '';
+    if (d.news && d.news.length) {{
+      const items = d.news.map(n =>
+        `<div class="ni"><a href="${{n.link}}" target="_blank" rel="noopener">${{n.title}}</a>` +
+        (n.source ? ` <span class="ni-src">(${{n.source}})</span>` : '') +
+        `<span class="ni-meta">${{n.time || ''}}</span></div>`
+      ).join('');
+      newsHtml = `<div class="news-items" style="padding:0 10px 10px">${{items}}</div>`;
+    }}
+
+    return tiles + sparkHtml + tableHtml + newsHtml;
+  }}
+
+  function buildWlSparkOnly(ticker, h) {{
+    if (!h || !h.scores || h.scores.length < 2) {{
+      return '<div class="wl-no-data">Kein Score-Verlauf vorhanden.</div>';
+    }}
+    const scoresE = JSON.stringify(h.scores).replace(/"/g, '&quot;');
+    const datesE  = JSON.stringify(h.dates).replace(/"/g, '&quot;');
+    return `<div class="spark-wrap wl-spark" style="padding:10px 10px 4px"
+      data-scores="${{scoresE}}" data-dates="${{datesE}}"
+      data-col="${{h.col}}" data-today="">
+      <div class="spark-svg-wrap" style="height:56px"></div>
+      <div class="spark-days"></div>
+    </div>
+    <div class="wl-no-data">Nicht in aktueller Top-10 \u2014 keine Live-Daten.</div>`;
   }}
 
   function wlRender() {{
@@ -3178,38 +3393,76 @@ function _fmtGerman(d) {{
     sec.classList.add('has-items');
     cnt.textContent = arr.length;
 
-    const top10 = new Set(
-      [...document.querySelectorAll('.card[data-ticker]')].map(c => c.dataset.ticker)
-    );
+    const top10Set = new Set(Object.keys(WL_TOP10));
 
     grid.innerHTML = arr.map(ticker => {{
-      const inTop    = top10.has(ticker);
-      let scoreVal   = null;
-      if (inTop) {{
-        const el = document.querySelector(`.card[data-ticker="${{ticker}}"] .score-num`);
-        if (el) scoreVal = parseFloat(el.textContent);
-      }} else {{
-        scoreVal = WL_SCORES[ticker] ?? null;
-      }}
-      const scoreStr = scoreVal !== null ? scoreVal.toFixed(1) : '—';
+      const inTop   = top10Set.has(ticker);
+      const scoreVal = inTop
+        ? (WL_TOP10[ticker].score ?? null)
+        : (WL_SCORES[ticker] ?? null);
+      const scoreStr = scoreVal !== null ? (+scoreVal).toFixed(1) : '\u2014';
       const scoreCol = wlScoreColor(scoreVal);
-      const badge    = inTop ? '' : '<div class="wl-notop-badge">Nicht in Top 10</div>';
-      return `<div class="wl-card">
-        <button class="wl-remove-btn" onclick="wlRemoveTicker('${{ticker}}')" title="Entfernen">×</button>
-        <div class="wl-card-ticker">${{ticker}}</div>
-        <div class="wl-card-score" style="color:${{scoreCol}}">${{scoreStr}}</div>
-        ${{badge}}
+      const starBadge = inTop
+        ? '<span class="wl-badge-star">\u2605 Top-10</span>'
+        : '<span class="wl-notop-badge">Nicht in Top 10</span>';
+      const nameHtml = inTop && WL_TOP10[ticker].company_name
+        ? `<span style="font-size:.72rem;color:var(--txt-dim)">${{WL_TOP10[ticker].company_name}}</span>`
+        : '';
+      const h = WL_HIST[ticker];
+      const trendHtml = h
+        ? `<span style="font-size:.72rem;color:${{h.col}};font-weight:600">${{h.trend}}</span>`
+        : '';
+      return `<div class="wl-card" data-ticker="${{ticker}}">
+        <div class="wl-card-header">
+          <div style="display:flex;flex-direction:column;flex:1;min-width:0;gap:2px">
+            <div style="display:flex;align-items:center;gap:6px">
+              <span class="wl-card-ticker">${{ticker}}</span>
+              ${{starBadge}}
+            </div>
+            ${{nameHtml}}
+          </div>
+          <div style="display:flex;flex-direction:column;align-items:flex-end;gap:2px;margin-right:6px">
+            <span class="wl-card-score" style="color:${{scoreCol}}">${{scoreStr}}</span>
+            ${{trendHtml}}
+          </div>
+          <div style="display:flex;flex-direction:column;align-items:center;gap:4px">
+            <button class="wl-remove-btn" onclick="wlRemoveTicker('${{ticker}}')" title="Entfernen">\xd7</button>
+            <button class="wl-details-btn" id="wlb-${{ticker}}" onclick="wlExpand('${{ticker}}',this)" title="Details einblenden">\u25be</button>
+          </div>
+        </div>
+        <div class="wl-details-body" id="wld-${{ticker}}" hidden></div>
       </div>`;
     }}).join('');
 
-    // Sync + buttons on main cards
+    // Sync ＋ buttons on main cards
     document.querySelectorAll('.wl-add-btn').forEach(b => {{
       const t = b.dataset.ticker;
       const active = arr.includes(t);
       b.classList.toggle('in-wl', active);
-      b.title = active ? 'Aus Watchlist entfernen' : 'Zur Watchlist hinzufügen';
+      b.title = active ? 'Aus Watchlist entfernen' : 'Zur Watchlist hinzuf\xfcgen';
     }});
   }}
+
+  window.wlExpand = function(ticker, btn) {{
+    const body = document.getElementById('wld-' + ticker);
+    if (!body) return;
+    const opening = body.hidden;
+    body.hidden = !opening;
+    btn.textContent = opening ? '\u25b4' : '\u25be';
+    if (!opening) return;
+    if (body.dataset.loaded) {{
+      body.querySelectorAll('.wl-spark').forEach(w => {{
+        if (typeof window.drawSparkline === 'function') window.drawSparkline(w);
+      }});
+      return;
+    }}
+    const d = WL_TOP10[ticker];
+    body.innerHTML = d ? buildWlDetails(ticker, d) : buildWlSparkOnly(ticker, WL_HIST[ticker]);
+    body.dataset.loaded = '1';
+    body.querySelectorAll('.wl-spark').forEach(w => {{
+      if (typeof window.drawSparkline === 'function') window.drawSparkline(w);
+    }});
+  }};
 
   window.wlToggle = function(btn) {{
     const ticker = btn.dataset.ticker;
