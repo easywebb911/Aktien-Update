@@ -950,7 +950,7 @@ def get_finra_short_interest(ticker: str,
 
     sym = ticker.strip().upper()
     _FINRA_MIN_VOL  = 1        # any non-zero value counts; CSV parser already drops sv=0
-    _TREND_MIN_VOL  = 1_000    # min short-vol for a meaningful trend data point
+    _TREND_MIN_VOL  = 100      # min short-vol for a meaningful trend data point
 
     history: list[dict] = []
     for date_str in dates:
@@ -967,7 +967,7 @@ def get_finra_short_interest(ticker: str,
         _finra_stats["empty"] += 1
         return {}
 
-    # Only include data points ≥ _TREND_MIN_VOL (1 000) in trend calc
+    # Only include data points ≥ _TREND_MIN_VOL (100) in trend calc
     # Cap output to [-95 %, +500 %] to suppress data artefacts
     # Classification uses raw (uncapped) value; only the stored pct is capped.
     trend, trend_pct = "no_data", 0.0
