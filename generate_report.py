@@ -821,6 +821,52 @@ def get_earnings_date(ticker: str) -> tuple[int | None, str | None]:
     return None, None
 
 
+_SEC_HEADERS = {"User-Agent": "SqueezeReport/1.0 github-actions@squeeze-report.com"}
+_13F_KEYWORDS = {"increase", "added", "new position", "added to"}
+
+
+def fetch_sec_13f(ticker: str) -> str | None:
+    """Check SEC EDGAR for recent 13F filings (last 90 days) for the given ticker.
+
+    Returns a short note string if a filing with "increase"/"added" keywords is
+    found, otherwise None. Silently returns None on HTTP 403 or any error.
+    US-only; international tickers are skipped immediately.
+    """
+    if "." in ticker:
+        return None
+    from datetime import timedelta, timezone as _tz
+
+    url = (
+        "https://www.sec.gov/cgi-bin/browse-edgar"
+        f"?action=getcompany&CIK={ticker}&type=13F"
+        "&dateb=&owner=include&count=3&output=atom"
+    )
+    cutoff = datetime.now(_tz.utc) - timedelta(days=90)
+    try:
+        resp = requests.get(url, headers=_SEC_HEADERS, timeout=12)
+        if resp.status_code in (403, 404):
+            return None
+        resp.raise_for_status()
+        text = re.sub(r' xmlns="[^"]+"', "", resp.text, count=1)
+        root = ET.fromstring(text)
+        for entry in root.findall("entry"):
+            updated = (entry.findtext("updated") or "").strip()
+            try:
+                dt = datetime.fromisoformat(updated)
+                if dt.tzinfo is None:
+                    dt = dt.replace(tzinfo=_tz.utc)
+                if dt < cutoff:
+                    continue
+            except Exception:
+                pass  # date parse failed; still check title
+            title = (entry.findtext("title") or "").lower()
+            if any(kw in title for kw in _13F_KEYWORDS):
+                return "Institutionelle Käufe gemeldet"
+    except Exception as exc:
+        log.debug("SEC 13F failed for %s: %s", ticker, exc)
+    return None
+
+
 # ===========================================================================
 # 2b. SUPPLEMENTARY DATA SOURCES (FINRA CSV + SEC EDGAR FTD)
 # ===========================================================================
@@ -1604,14 +1650,24 @@ def _card(i: int, s: dict) -> str:
         _iv_row = ""
     options_rows = _pc_row + _iv_row
 
-    # Institutional ownership row
-    _inst = s.get("inst_ownership")
+    # Institutional ownership row (+ optional 13F note)
+    _inst      = s.get("inst_ownership")
+    _13f_note  = s.get("sec_13f_note") or ""
+    _13f_badge = (
+        f' <span style="color:#22c55e;font-size:.8em">● {_13f_note}</span>'
+        if _13f_note else ""
+    )
     if _inst is not None:
         _inst_pct = float(_inst) * 100
         _inst_col = "#22c55e" if _inst_pct >= 60 else ("#f59e0b" if _inst_pct >= 30 else "#ef4444")
         _inst_row = (
             f'<tr><td>Institutioneller Anteil</td>'
-            f'<td><span style="color:{_inst_col}">{_inst_pct:.1f}%</span></td></tr>'
+            f'<td><span style="color:{_inst_col}">{_inst_pct:.1f}%</span>{_13f_badge}</td></tr>'
+        )
+    elif _13f_note:
+        _inst_row = (
+            f'<tr><td>Institutioneller Anteil</td>'
+            f'<td>{_13f_badge.strip()}</td></tr>'
         )
     else:
         _inst_row = ""
@@ -3298,6 +3354,18 @@ def main():
             _earn_futures[_fut]["earnings_days"] = _days
             _earn_futures[_fut]["earnings_date_str"] = _dstr
     print(f"Earnings-Termine: {len(us_top10)} Ticker in {time.time()-_t_earn:.1f}s abgerufen", flush=True)
+
+    # Parallel SEC 13F fetch (US-only, max 5 threads).
+    _t_13f = time.time()
+    log.info("Step 3d – Checking SEC 13F for %d US stocks …", len(us_top10))
+    with ThreadPoolExecutor(max_workers=5) as _13f_ex:
+        _13f_futures = {_13f_ex.submit(fetch_sec_13f, s["ticker"]): s for s in us_top10}
+        for _fut in as_completed(_13f_futures):
+            note = _fut.result()
+            if note:
+                _13f_futures[_fut]["sec_13f_note"] = note
+    _n_13f = sum(1 for s in us_top10 if s.get("sec_13f_note"))
+    print(f"SEC 13F: {_n_13f} Treffer in {time.time()-_t_13f:.1f}s", flush=True)
     print(f"Step 3 abgeschlossen in {time.time() - _t_news:.1f}s", flush=True)
 
     # --- Step 4: HTML ---
