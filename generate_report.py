@@ -2168,10 +2168,10 @@ a{{color:var(--accent);text-decoration:none}}
       <div class="info-box">
         <h4>Score (0–100)</h4>
         <ul>
-          <li><strong>32 Pkt Short Float</strong> – Anteil leerverkaufter Aktien (Sättigung 100 %); je höher, desto stärker der Squeeze-Druck</li>
-          <li><strong>23 Pkt Days to Cover</strong> – Tage zum vollständigen Eindecken (Sättigung 20 Tage); hohe Werte erhöhen Kapitulationsrisiko</li>
-          <li><strong>23 Pkt Rel. Volumen</strong> – Heutiges vs. 20-Tage-Durchschnitt (Sättigung 5×); Spitzen signalisieren Kaufinteresse</li>
-          <li><strong>14 Pkt Kursmomentum</strong> – nur positive Kursveränderung (Sättigung +15 %); steigende Kurse erhöhen den Druck auf Leerverkäufer</li>
+          <li><strong>32 Pkt Short Float</strong> – Anteil leerverkaufter Aktien (Sättigung 50 %; ≥ 50 % = volle Punkte); je höher, desto stärker der Squeeze-Druck</li>
+          <li><strong>23 Pkt Days to Cover</strong> – Tage zum vollständigen Eindecken (Sättigung 10 Tage; ≥ 10 d = volle Punkte); hohe Werte erhöhen Kapitulationsrisiko</li>
+          <li><strong>23 Pkt Rel. Volumen</strong> – Heutiges vs. 20-Tage-Durchschnitt (Sättigung 3×; ≥ 3× = volle Punkte); Spitzen signalisieren Kaufinteresse</li>
+          <li><strong>14 Pkt Kursmomentum</strong> – nur positive Kursveränderung (Sättigung +8 %; ≥ +8 % = volle Punkte); steigende Kurse erhöhen den Druck auf Leerverkäufer</li>
           <li><strong>8 Pkt Float-Größe</strong> – kleiner Float verstärkt den Squeeze-Effekt; unter 30 Mio. Aktien = voll, über 50 Mio. = 0 Pkt</li>
           <li><strong>+ bis 5 Pkt FINRA SI-Trend Bonus</strong> – steigend ≥ +10 % → 5 Pkt · seitwärts → 2,5 Pkt · fallend oder keine Daten → 0 Pkt</li>
         </ul>
@@ -2238,9 +2238,9 @@ a{{color:var(--accent);text-decoration:none}}
           <div>
             <span class="cl-name">Kursmomentum</span>
             <div class="color-bar">
-              <div class="cb-seg" style="background:#ef4444">&lt;−5 %</div>
-              <div class="cb-seg" style="background:#f59e0b">−5 bis +5 %</div>
-              <div class="cb-seg" style="background:#22c55e">≥ +5 %</div>
+              <div class="cb-seg" style="background:#ef4444">&lt;0 %</div>
+              <div class="cb-seg" style="background:#f59e0b">0–8 %</div>
+              <div class="cb-seg" style="background:#22c55e">≥ +8 %</div>
             </div>
             <p class="cl-desc">Grün bedeutet, dass der Kurs bereits steigt — Leerverkäufer geraten damit unter Druck, ihre Positionen schnell zu schließen.</p>
           </div>
