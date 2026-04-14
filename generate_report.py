@@ -76,6 +76,7 @@ MOM_ORANGE= -5.0   # %   −5–+5  → orange, <−5 → red
 # ── Supplementary data source bonus limits ───────────────────────────────────
 FINRA_BONUS_MAX          = 5    # max bonus points for rising FINRA short interest
 FINRA_ACCELERATION_BONUS = 7    # elevated bonus when SI velocity is accelerating
+COMBO_BONUS              = 5    # synergy bonus when ≥ 3 of 4 squeeze factors are strong simultaneously
 FTD_BONUS_MAX    = 0    # SEC EDGAR + Nasdaq Data Link blocked on GitHub Actions IPs
 # ── FINRA short interest trend thresholds ────────────────────────────────────
 SI_TREND_PERIODS        = 6     # FINRA publishes twice monthly; 6 = ~3 months
@@ -1219,7 +1220,23 @@ def score(stock: dict) -> float:
     sr  = min(sr_val /  10.0, 1.0) * 23  # sättigt bei 10d statt 20d
     rv  = rv_raw * 23
     mom = min(max(stock.get("change", 0), 0) /  8.0, 1.0) * 14  # sättigt bei +8% statt +15%
-    return round(sf + sr + rv + mom + _fs, 2)
+
+    # Kombinationssignal-Bonus: ≥ 3 von 4 Faktoren gleichzeitig stark
+    _combo_conditions = [
+        sf_val >= 30,                                         # Short Float ≥ 30 %
+        sr_val >= 5,                                          # Days to Cover ≥ 5d
+        stock.get("rel_volume", 0) >= 2.0,                   # Rel. Volumen ≥ 2×
+        (stock.get("finra_data") or {}).get("trend") == "up", # SI-Trend steigend
+    ]
+    _n_combo = sum(_combo_conditions)
+    if _n_combo >= 3:
+        _pts = float(COMBO_BONUS)
+        print(f"{stock.get('ticker', '?')} Kombinations-Bonus: +{_pts} Pkt ({_n_combo}/4 Bedingungen)",
+              flush=True)
+    else:
+        _pts = 0.0
+
+    return round(min(sf + sr + rv + mom + _fs + _pts, 100.0), 2)
 
 
 def fmt_cap(v) -> str:
@@ -2317,7 +2334,8 @@ a{{color:var(--accent);text-decoration:none}}
           <li><strong>23 Pkt Rel. Volumen</strong> – Heutiges vs. 20-Tage-Durchschnitt (Sättigung 3×; ≥ 3× = volle Punkte); Spitzen signalisieren Kaufinteresse</li>
           <li><strong>14 Pkt Kursmomentum</strong> – nur positive Kursveränderung (Sättigung +8 %; ≥ +8 % = volle Punkte); steigende Kurse erhöhen den Druck auf Leerverkäufer</li>
           <li><strong>8 Pkt Float-Größe</strong> – kleiner Float verstärkt den Squeeze-Effekt; unter 30 Mio. Aktien = voll, über 50 Mio. = 0 Pkt</li>
-          <li><strong>+ bis 5 Pkt FINRA SI-Trend Bonus</strong> – steigend ≥ +10 % → 5 Pkt · seitwärts → 2,5 Pkt · fallend oder keine Daten → 0 Pkt</li>
+          <li><strong>+ bis 7 Pkt FINRA SI-Trend Bonus</strong> – steigend ≥ +10 % → 5 Pkt · mit Beschleunigung → 7 Pkt · seitwärts → 2,5 Pkt · fallend → 0 Pkt</li>
+          <li><strong>+ 5 Pkt Kombinationssignal-Bonus</strong> – wenn ≥ 3 von 4 Faktoren gleichzeitig stark: Short Float ≥ 30 %, DTC ≥ 5d, Rel. Volumen ≥ 2×, SI-Trend steigend</li>
         </ul>
       </div>
       <div class="info-box">
