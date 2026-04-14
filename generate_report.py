@@ -3107,7 +3107,7 @@ function _fmtGerman(d) {{
       dot.className = 'agent-dot ' + dotClass;
 
       const confidence = (sig && sig.confidence != null) ? sig.confidence : null;
-      const confStr = confidence != null ? ` \u2014 Konfidenz ${confidence}%` : '';
+      const confStr = confidence != null ? ` \u2014 Konfidenz ${{confidence}}%` : '';
       const tip = document.createElement('span');
       tip.className = 'agent-tooltip';
       tip.textContent = `KI-Agent: Score ${{score}}/100${{confStr}} \u2014 ${{(sig && sig.drivers) || '?'}}`;
