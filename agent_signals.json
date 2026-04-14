@@ -1,16 +1,16 @@
 {
-  "updated": "2026-04-14T19:38:25.076056+02:00",
+  "updated": "2026-04-14T20:04:33.860724+02:00",
   "run_info": {
     "tickers_checked": 10,
-    "signals_active": 1,
+    "signals_active": 0,
     "alerts_sent": 0,
-    "elapsed_s": 18.0,
+    "elapsed_s": 16.6,
     "market_phase": "Regulär"
   },
   "signals": {
     "SANA": {
-      "score": 28,
-      "drivers": "News: short interest, partnership + Earnings in 23d",
+      "score": 18,
+      "drivers": "News: short interest + Earnings in 23d",
       "price": 0.0,
       "chg_pct": 0.0,
       "rvol": 0.0,
