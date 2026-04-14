@@ -787,6 +787,39 @@ def get_options_data(ticker: str) -> dict:
         return {}
 
 
+def get_earnings_date(ticker: str) -> tuple[int | None, str | None]:
+    """Return (days_until_earnings, date_str_DE) from yfinance calendar.
+
+    Returns (None, None) if no upcoming earnings found or yfinance errors.
+    Only looks at future dates (days >= 0).
+    """
+    try:
+        import pandas as _pd
+        cal = yf.Ticker(ticker).calendar
+        if cal is None:
+            return None, None
+        dates: list = []
+        if isinstance(cal, _pd.DataFrame) and not cal.empty:
+            dates = list(cal.columns)
+        elif isinstance(cal, dict):
+            raw = cal.get("Earnings Date") or cal.get("earningsDate") or []
+            if not isinstance(raw, list):
+                raw = [raw]
+            dates = raw
+        today = datetime.now(ZoneInfo("America/New_York")).date()
+        for d in dates:
+            try:
+                edate = _pd.Timestamp(d).date()
+                days  = (edate - today).days
+                if days >= 0:
+                    return days, edate.strftime("%d.%m.")
+            except Exception:
+                continue
+    except Exception as exc:
+        log.debug("Earnings date failed for %s: %s", ticker, exc)
+    return None, None
+
+
 # ===========================================================================
 # 2b. SUPPLEMENTARY DATA SOURCES (FINRA CSV + SEC EDGAR FTD)
 # ===========================================================================
@@ -1378,6 +1411,18 @@ def _card(i: int, s: dict) -> str:
         sector_tag_html   = ""
         sector_detail_row = ""
 
+    # Earnings-Termin-Badge
+    _earn_days = s.get("earnings_days")
+    _earn_dstr = s.get("earnings_date_str") or ""
+    if _earn_days is not None and _earn_days <= 14:
+        _earn_col = "#ef4444" if _earn_days <= 3 else "#f59e0b"
+        earnings_tag_html = (
+            f'<span class="earnings-tag" style="color:{_earn_col}">'
+            f'Earnings in {_earn_days}d ({_earn_dstr})</span>'
+        )
+    else:
+        earnings_tag_html = ""
+
     sc      = min(s["score"], 100.0)
     sc_col  = _score_color(sc)
     sf      = s.get("short_float", 0)
@@ -1599,7 +1644,7 @@ def _card(i: int, s: dict) -> str:
           <span class="price-tag">${s.get('price',0):.2f}</span>
         </div>
         <span class="company">{s.get('company_name','')}</span>
-        {sector_tag_html}
+        {sector_tag_html}{earnings_tag_html}
       </div>
     </div>
     <div class="score-block">
@@ -1870,6 +1915,7 @@ a{{color:var(--accent);text-decoration:none}}
 .company{{display:block;font-size:.78rem;color:var(--txt-sub);
   white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}}
 .sector-tag{{display:inline-block;font-size:.67rem;color:var(--txt-dim);margin-top:3px}}
+.earnings-tag{{display:inline-block;font-size:.67rem;font-weight:600;margin-top:3px;margin-left:2px}}
 .score-block{{display:flex;flex-direction:column;align-items:flex-end;min-width:64px}}
 .score-num{{font-size:1.7rem;font-weight:900;line-height:1}}
 .score-lbl{{font-size:.62rem;color:var(--txt-dim);text-transform:uppercase;
@@ -3199,6 +3245,17 @@ def main():
     _n_ok = sum(1 for s in us_top10 if s.get("options"))
     _n_na = len(us_top10) - _n_ok
     print(f"Optionsdaten: {len(us_top10)} Ticker parallel in {_opts_elapsed:.1f}s abgerufen — {_n_ok} mit Daten, {_n_na} ohne", flush=True)
+
+    # Parallel earnings date fetch (US-only, max 5 threads).
+    _t_earn = time.time()
+    log.info("Step 3c – Fetching earnings dates for %d US stocks …", len(us_top10))
+    with ThreadPoolExecutor(max_workers=5) as _earn_ex:
+        _earn_futures = {_earn_ex.submit(get_earnings_date, s["ticker"]): s for s in us_top10}
+        for _fut in as_completed(_earn_futures):
+            _days, _dstr = _fut.result()
+            _earn_futures[_fut]["earnings_days"] = _days
+            _earn_futures[_fut]["earnings_date_str"] = _dstr
+    print(f"Earnings-Termine: {len(us_top10)} Ticker in {time.time()-_t_earn:.1f}s abgerufen", flush=True)
     print(f"Step 3 abgeschlossen in {time.time() - _t_news:.1f}s", flush=True)
 
     # --- Step 4: HTML ---
