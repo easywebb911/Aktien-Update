@@ -1,10 +1,10 @@
 {
-  "updated": "2026-04-14T07:02:11.925803+02:00",
+  "updated": "2026-04-14T08:16:16.249212+02:00",
   "run_info": {
     "tickers_checked": 10,
     "signals_active": 1,
     "alerts_sent": 0,
-    "elapsed_s": 19.5,
+    "elapsed_s": 17.9,
     "market_phase": "Geschlossen"
   },
   "signals": {
@@ -100,7 +100,7 @@
     },
     "RHI": {
       "score": 28,
-      "drivers": "News: squeeze, short interest + Earnings in 8d",
+      "drivers": "News: short squeeze, short interest + Earnings in 8d",
       "price": 0.0,
       "chg_pct": 0.0,
       "rvol": 0.0,
