@@ -1,10 +1,10 @@
 {
-  "updated": "2026-04-14T22:35:59.085283+02:00",
+  "updated": "2026-04-14T22:39:13.355526+02:00",
   "run_info": {
     "tickers_checked": 10,
     "signals_active": 1,
     "alerts_sent": 0,
-    "elapsed_s": 23.2,
+    "elapsed_s": 37.5,
     "market_phase": "After-Hours"
   },
   "signals": {
@@ -107,7 +107,7 @@
     "QUBT": {
       "score": 28,
       "confidence": 33,
-      "drivers": "News: contract, acquisition + Earnings in 27d",
+      "drivers": "News: acquisition, contract + Earnings in 27d",
       "price": 0.0,
       "chg_pct": 0.0,
       "rvol": 0.0,
