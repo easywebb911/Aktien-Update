@@ -50,7 +50,8 @@ HTTP_HEADERS = {
 }
 
 MIN_SHORT_FLOAT = 15.0   # %
-MIN_REL_VOLUME  = 1.5    # × 20-day avg
+MIN_REL_VOLUME       = 1.5   # × 20-day avg — US stocks
+MIN_REL_VOLUME_INTL  = 1.2   # × 20-day avg — international watchlist (lower bar)
 MAX_MARKET_CAP  = 10e9   # $10 B
 MIN_PRICE       = 1.0    # USD
 MIN_SCORE       = 15.0   # pts — informational reference only; NOT a hard filter.
@@ -2955,7 +2956,8 @@ def get_watchlist_candidates() -> list[dict]:
                 if avg_vol < 1000:
                     continue
                 rel_vol = cur_vol / avg_vol if avg_vol > 0 else 0.0
-                if rel_vol < MIN_REL_VOLUME:
+                vol_threshold = MIN_REL_VOLUME_INTL if market != "US" else MIN_REL_VOLUME
+                if rel_vol < vol_threshold:
                     continue
                 price = float(df["Close"].iloc[-1])
                 if price < MIN_PRICE:
