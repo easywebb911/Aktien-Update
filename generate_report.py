@@ -1077,9 +1077,9 @@ def _fmt_si_record(rec: dict) -> str:
 # Gesamt               → max 100 Pkt
 #
 # Verifikation (Float=0 angenommen wo nicht angegeben):
-# A: SF=30%, SR=10d, RV=3×, Mom=+8%   → Score 61.17
-# B: SF=50%, SR=5d,  RV=5×, Mom=+15%  → Score 74.75
-# C: SF=15%, SR=3d,  RV=1.5×, Mom=+3% → Score 21.60
+# A: SF=30%, DTC=5d,  RVOL=2×, Mom=+3%, Float=60M  → Score  47.45
+# B: SF=50%, DTC=8d,  RVOL=3×, Mom=+5%, Float=20M  → Score  90.15
+# C: SF=80%, DTC=12d, RVOL=4×, Mom=+8%, Float=5M   → Score 100.00
 def score(stock: dict) -> float:
     """Weighted squeeze score 0–100.
     When no short data is available (sf=0, sr=0) the score is capped at 50
@@ -1105,15 +1105,15 @@ def score(stock: dict) -> float:
         # Nur positive Tagesveränderungen zählen: fallende Kurse = kein Squeeze-Druck
         rv_component = rv_raw * 30
         chg = max(stock.get("change", 0), 0)
-        momentum = min(chg / 15.0, 1.0) * 20
+        momentum = min(chg /  8.0, 1.0) * 20  # sättigt bei +8% statt +15%
         return min(round(rv_component + momentum + _fs, 2), 50.0)
 
     # Fall 1: Short-Daten vorhanden → fünf Faktoren, max 100 Pkt
     # Nur positive Tagesveränderungen zählen: fallende Kurse = kein Squeeze-Druck
     sf  = min(sf_val /  50.0, 1.0) * 32  # sättigt bei 50% statt 100%
-    sr  = min(sr_val /  20.0, 1.0) * 23
+    sr  = min(sr_val /  10.0, 1.0) * 23  # sättigt bei 10d statt 20d
     rv  = rv_raw * 23
-    mom = min(max(stock.get("change", 0), 0) / 15.0, 1.0) * 14
+    mom = min(max(stock.get("change", 0), 0) /  8.0, 1.0) * 14  # sättigt bei +8% statt +15%
     return round(sf + sr + rv + mom + _fs, 2)
 
 
