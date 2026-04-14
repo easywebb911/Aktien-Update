@@ -984,13 +984,33 @@ def _get_finra_csv_for_date(date_str: str) -> dict[str, int]:
     return _finra_csv_cache[date_str]
 
 
+_FINRA_DATES_CACHE_FILE  = "finra_dates_cache.json"
+_FINRA_DATES_CACHE_TTL_S = 3600   # 1 Stunde in Sekunden
+
+
 def _latest_finra_dates(n: int = 3) -> list[str]:
     """Find the n most recent FINRA CDN daily-short-volume dates by probing
     backwards from yesterday (max 14 trading days). The CDN publishes one
     file per trading day (no weekends). Returns list of YYYYMMDD strings,
     newest first.
+
+    Opt 8: Result cached in finra_dates_cache.json for _FINRA_DATES_CACHE_TTL_S
+    seconds to avoid repeated HTTP HEAD requests on manual re-runs.
     """
     from datetime import date, timedelta
+
+    # Try cache first
+    try:
+        with open(_FINRA_DATES_CACHE_FILE, "r", encoding="utf-8") as _cf:
+            _cache = json.load(_cf)
+        _age = time.time() - _cache.get("ts", 0)
+        if _age < _FINRA_DATES_CACHE_TTL_S and _cache.get("dates"):
+            log.info("FINRA Datumssuche: Cache-Hit (%.0f s alt)", _age)
+            print(f"FINRA Datumssuche: gecacht ({_age:.0f}s alt): {_cache['dates']}", flush=True)
+            return _cache["dates"][:n]
+    except Exception:
+        pass  # cache miss or corrupt — proceed with HTTP probe
+
     found: list[str] = []
     today = date.today()
     for delta in range(1, 20):   # start from yesterday (delta=1)
@@ -1016,6 +1036,14 @@ def _latest_finra_dates(n: int = 3) -> list[str]:
                     found.append(date_str)
         except Exception:
             continue
+
+    # Write cache
+    try:
+        with open(_FINRA_DATES_CACHE_FILE, "w", encoding="utf-8") as _cf:
+            json.dump({"ts": time.time(), "dates": found}, _cf)
+    except Exception:
+        pass
+
     print(f"FINRA Datumssuche: {len(found)} Daten gefunden: {found}", flush=True)
     return found
 
