@@ -1077,9 +1077,9 @@ def _fmt_si_record(rec: dict) -> str:
 # Gesamt               → max 100 Pkt
 #
 # Verifikation (Float=0 angenommen wo nicht angegeben):
-# A: SF=30%, SR=10d, RV=3×, Mom=+8%   → Score 40.07
-# B: SF=50%, SR=5d,  RV=5×, Mom=+15%  → Score 58.75
-# C: SF=15%, SR=3d,  RV=1.5×, Mom=+3% → Score 13.93
+# A: SF=30%, SR=10d, RV=3×, Mom=+8%   → Score 61.17
+# B: SF=50%, SR=5d,  RV=5×, Mom=+15%  → Score 74.75
+# C: SF=15%, SR=3d,  RV=1.5×, Mom=+3% → Score 21.60
 def score(stock: dict) -> float:
     """Weighted squeeze score 0–100.
     When no short data is available (sf=0, sr=0) the score is capped at 50
@@ -1088,7 +1088,7 @@ def score(stock: dict) -> float:
     """
     sf_val = stock.get("short_float", 0)
     sr_val = stock.get("short_ratio", 0)
-    rv_raw = min((stock.get("rel_volume", 0) - 1.0) / 4.0, 1.0)
+    rv_raw = min((stock.get("rel_volume", 0) - 1.0) / 2.0, 1.0)  # sättigt bei 3× statt 5×
 
     # Float-size factor: small float amplifies squeeze pressure
     _float = stock.get("float_shares") or 0
@@ -1110,7 +1110,7 @@ def score(stock: dict) -> float:
 
     # Fall 1: Short-Daten vorhanden → fünf Faktoren, max 100 Pkt
     # Nur positive Tagesveränderungen zählen: fallende Kurse = kein Squeeze-Druck
-    sf  = min(sf_val / 100.0, 1.0) * 32
+    sf  = min(sf_val /  50.0, 1.0) * 32  # sättigt bei 50% statt 100%
     sr  = min(sr_val /  20.0, 1.0) * 23
     rv  = rv_raw * 23
     mom = min(max(stock.get("change", 0), 0) / 15.0, 1.0) * 14
@@ -1185,11 +1185,12 @@ def apply_score_smoothing(stocks: list[dict], today: str) -> None:
             reverse=True,
         )[:3]
 
-        if past:
+        if len(past) >= 2:
+            # Smoothing greift nur ab 2 Vorläufen — neue Ticker bekommen keinen Abzug
             hist_avg = sum(e["score"] for e in past) / len(past)
             smoothed = SCORE_TODAY_WEIGHT * today_raw + SCORE_HISTORY_WEIGHT * hist_avg
             s["score"] = round(min(smoothed, 100.0), 1)
-        # else: keep raw score unchanged
+        # else (0 or 1 past entry): keep raw score — no smoothing penalty for new tickers
 
         # Store today's raw score only if it differs from what's already there
         existing = [e for e in history.get(ticker, []) if e.get("date", "") == today]
