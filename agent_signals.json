@@ -1,10 +1,10 @@
 {
-  "updated": "2026-04-15T19:41:23.586110+02:00",
+  "updated": "2026-04-15T20:49:02.046185+02:00",
   "run_info": {
     "tickers_checked": 10,
     "signals_active": 2,
     "alerts_sent": 0,
-    "elapsed_s": 31.0,
+    "elapsed_s": 22.9,
     "market_phase": "Regulär"
   },
   "signals": {
@@ -71,7 +71,7 @@
     "SOUN": {
       "score": 28,
       "confidence": 33,
-      "drivers": "News: short squeeze, catalyst + Earnings in 22d",
+      "drivers": "News: squeeze, catalyst + Earnings in 22d",
       "price": 0.0,
       "chg_pct": 0.0,
       "rvol": 0.0,
@@ -95,7 +95,7 @@
     "RHI": {
       "score": 35,
       "confidence": 33,
-      "drivers": "Earnings in 7 Tagen (22.04.2026) + News: short interest, short squeeze + Earnings in 7d",
+      "drivers": "Earnings in 7 Tagen (22.04.2026) + News: squeeze, short squeeze + Earnings in 7d",
       "price": 0.0,
       "chg_pct": 0.0,
       "rvol": 0.0,
