@@ -3732,10 +3732,10 @@ async function callAnthropicStream(messages, systemPrompt, onDelta, opts) {{
     if (done) break;
     buf += decoder.decode(value, {{stream:true}});
     let idx;
-    while ((idx = buf.indexOf('\n\n')) !== -1) {{
+    while ((idx = buf.indexOf('\\n\\n')) !== -1) {{
       const chunk = buf.slice(0, idx);
       buf = buf.slice(idx + 2);
-      const lines = chunk.split('\n');
+      const lines = chunk.split('\\n');
       let ev = '', dataStr = '';
       for (const line of lines) {{
         if (line.startsWith('event:')) ev = line.slice(6).trim();
@@ -3875,7 +3875,7 @@ async function runKiAnalyse(cardIdx) {{
 - KI-Agent-Score: ${{ctx.kiScore}} (Konfidenz ${{ctx.kiConf}})${{ctx.kiDrv ? ' — Treiber: ' + ctx.kiDrv : ''}}
 - Marktkapitalisierung: ${{ctx.cap}} · Sektor: ${{ctx.sector}}
 - Aktuelle Schlagzeilen:
-${{ctx.news.length ? ctx.news.map((n,i) => '  ' + (i+1) + '. ' + n).join('\n') : '  (keine)'}}
+${{ctx.news.length ? ctx.news.map((n,i) => '  ' + (i+1) + '. ' + n).join('\\n') : '  (keine)'}}
 
 Gib eine knappe Einschätzung: Squeeze-Potenzial, wichtigste Treiber, kritische Risiken.`;
 
@@ -3892,7 +3892,7 @@ Gib eine knappe Einschätzung: Squeeze-Potenzial, wichtigste Treiber, kritische 
       sysPrompt,
       (delta) => {{
         acc += delta;
-        if (streamSpan) streamSpan.innerHTML = acc.replace(/\n/g, '<br>');
+        if (streamSpan) streamSpan.innerHTML = acc.replace(/\\n/g, '<br>');
         res.scrollTop = res.scrollHeight;
       }},
       {{model: ANT_MODEL, max_tokens: 400}}
@@ -3968,7 +3968,7 @@ ${{JSON.stringify(STOCKS_CTX)}}`;
     if (!msgs) return null;
     const div = document.createElement('div');
     div.className = 'chat-msg chat-msg--' + role;
-    div.innerHTML = text.replace(/\n/g, '<br>');
+    div.innerHTML = text.replace(/\\n/g, '<br>');
     msgs.appendChild(div);
     msgs.scrollTop = msgs.scrollHeight;
     return div;
@@ -4007,7 +4007,7 @@ ${{JSON.stringify(STOCKS_CTX)}}`;
         _buildSystem(),
         (delta) => {{
           acc += delta;
-          if (aiDiv) aiDiv.innerHTML = acc.replace(/\n/g, '<br>');
+          if (aiDiv) aiDiv.innerHTML = acc.replace(/\\n/g, '<br>');
           const msgs = document.getElementById('chat-msgs');
           if (msgs) msgs.scrollTop = msgs.scrollHeight;
         }},
