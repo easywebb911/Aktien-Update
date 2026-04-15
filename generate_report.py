@@ -2340,13 +2340,21 @@ a{{color:var(--accent);text-decoration:none}}
 .chat-hdr{{display:flex;align-items:center;padding:12px 16px;border-bottom:1px solid var(--brd);
   gap:10px;flex-shrink:0;background:var(--bg-hdr)}}
 .chat-hdr-title{{flex:1;font-size:.95rem;font-weight:700;color:var(--txt)}}
-.chat-close-btn{{background:none;border:none;color:var(--txt-dim);cursor:pointer;font-size:1.3rem;
-  padding:0;line-height:1;width:44px;height:44px;display:flex;align-items:center;
-  justify-content:center;border-radius:8px;flex-shrink:0}}
+.chat-close-btn{{background:none;border:none;color:var(--txt-dim);cursor:pointer;font-size:1.4rem;
+  padding:0;line-height:1;min-width:48px;min-height:48px;width:48px;height:48px;
+  display:flex;align-items:center;justify-content:center;border-radius:8px;flex-shrink:0;
+  position:relative;z-index:9999;touch-action:manipulation;-webkit-tap-highlight-color:transparent}}
 .chat-close-btn:hover{{color:var(--txt);background:var(--bg-met)}}
+.chat-close-btn:active{{background:var(--bg-met)}}
 .chat-overlay{{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:299;
-  display:none;-webkit-tap-highlight-color:transparent}}
+  display:none;-webkit-tap-highlight-color:transparent;cursor:pointer;touch-action:manipulation}}
 .chat-overlay.open{{display:block}}
+.chat-footer-close{{position:sticky;bottom:0;padding:10px 12px;background:var(--bg-card);
+  border-top:2px solid #3b82f680;flex-shrink:0;z-index:1}}
+.chat-footer-close button{{width:100%;min-height:48px;background:#0e3a5e;border:1px solid #3b82f6;
+  color:#93c5fd;border-radius:10px;font-size:.92rem;font-weight:600;cursor:pointer;
+  touch-action:manipulation;-webkit-tap-highlight-color:transparent;letter-spacing:.3px}}
+.chat-footer-close button:active{{background:#1e40af}}
 .chat-warn-banner{{padding:10px 14px;background:#1c1200;border:1px solid #92400e;color:#fcd34d;
   font-size:.78rem;line-height:1.5;margin:10px 12px 0;border-radius:8px}}
 .chat-warn-banner.hidden{{display:none}}
@@ -2646,6 +2654,9 @@ a{{color:var(--accent);text-decoration:none}}
       <input class="chat-inp" id="chat-inp" type="text" placeholder="Frage zu den aktuellen Squeeze-Kandidaten …"
              onkeydown="if(event.key==='Enter'&&!event.shiftKey){{chatSend();event.preventDefault()}}">
       <button class="chat-send-btn" id="chat-send" onclick="chatSend()" aria-label="Senden">&#10148;</button>
+    </div>
+    <div class="chat-footer-close">
+      <button onclick="toggleChat()" aria-label="Chat schlie&szlig;en">Chat schlie&szlig;en &#10005;</button>
     </div>
   </div>
 </header>
@@ -4073,22 +4084,29 @@ ${{JSON.stringify(STOCKS_CTX)}}`;
 
   window.toggleChat = function() {{ _setChatOpen(!_open); }};
 
+  // Escape-Taste schließt Chat (Desktop)
+  document.addEventListener('keydown', function(e) {{
+    if (e.key === 'Escape' && _open) _setChatOpen(false);
+  }});
+
   // Swipe-down to close (mobile full-screen only, < 768 px)
   (function(){{
     const panel = document.getElementById('chat-panel');
     if (!panel) return;
-    let _touchStartY = 0, _touchStartT = 0;
+    let _touchStartY = 0, _touchStartT = 0, _touchStartRelY = 0;
     panel.addEventListener('touchstart', function(e) {{
-      _touchStartY = e.touches[0].clientY;
-      _touchStartT = Date.now();
+      _touchStartY    = e.touches[0].clientY;
+      _touchStartT    = Date.now();
+      _touchStartRelY = e.touches[0].clientY - panel.getBoundingClientRect().top;
     }}, {{passive: true}});
     panel.addEventListener('touchend', function(e) {{
-      if (window.innerWidth >= 768) return;          // desktop: kein Swipe-close
+      if (window.innerWidth >= 768) return;            // desktop: kein Swipe-close
       const dy = e.changedTouches[0].clientY - _touchStartY;
       const dt = Date.now() - _touchStartT;
-      if (dy > 60 && dt < 400) {{                    // ≥60px nach unten, <400ms
+      if (dy > 80 && dt < 300) {{                      // ≥80px nach unten, <300ms
+        const fromHeader = _touchStartRelY < 72;       // Swipe startet im Header-Bereich
         const msgs = document.getElementById('chat-msgs');
-        if (msgs && msgs.scrollTop > 0) return;      // nur wenn am Anfang des Scroll
+        if (!fromHeader && msgs && msgs.scrollTop > 0) return; // Scroll in Messages: nicht schließen
         _setChatOpen(false);
       }}
     }}, {{passive: true}});
