@@ -6,6 +6,7 @@ Data sources: Yahoo Finance Screener (primary) + Finviz (fallback) + yfinance (e
 News titles and summaries are translated to German.
 """
 
+import math
 import os
 import re
 import json
@@ -1237,15 +1238,24 @@ def _fmt_si_record(rec: dict) -> str:
 # A: SF=30%, DTC=5d,  RVOL=2×, Mom=+3%, Float=60M  → Score  47.45
 # B: SF=50%, DTC=8d,  RVOL=3×, Mom=+5%, Float=20M  → Score  90.15
 # C: SF=80%, DTC=12d, RVOL=4×, Mom=+8%, Float=5M   → Score 100.00
+def _safe_float(v, default: float = 0.0) -> float:
+    """Convert v to float, returning default for None / NaN / Inf / non-numeric."""
+    try:
+        f = float(v)
+        return f if math.isfinite(f) else default
+    except (TypeError, ValueError):
+        return default
+
+
 def score(stock: dict) -> float:
     """Weighted squeeze score 0–100.
     When no short data is available (sf=0, sr=0) the score is capped at 50
     so these stocks can appear in the top 10 but never displace a stock with
     confirmed high short interest.
     """
-    sf_val = stock.get("short_float", 0)
-    sr_val = stock.get("short_ratio", 0)
-    rv_raw = min((stock.get("rel_volume", 0) - 1.0) / 2.0, 1.0)  # sättigt bei 3× statt 5×
+    sf_val = _safe_float(stock.get("short_float", 0))
+    sr_val = _safe_float(stock.get("short_ratio", 0))
+    rv_raw = min((_safe_float(stock.get("rel_volume", 0)) - 1.0) / 2.0, 1.0)  # sättigt bei 3× statt 5×
 
     # Float-size factor: small float amplifies squeeze pressure
     _float = stock.get("float_shares") or 0
@@ -1258,9 +1268,9 @@ def score(stock: dict) -> float:
         _fs = 0.0
 
     # Marktkontext: Momentum relativ zum S&P 500 anpassen
-    _chg_raw = stock.get("change", 0)
+    _chg_raw = _safe_float(stock.get("change", 0))
     if USE_RELATIVE_MOMENTUM:
-        _spx_d = stock.get("spx_daily_perf", 0.0) or 0.0
+        _spx_d = _safe_float(stock.get("spx_daily_perf", 0.0))
         adjusted_chg = _chg_raw - _spx_d   # z.B. +3% Aktie, −2% SPX → +5% rel.
     else:
         adjusted_chg = _chg_raw
@@ -1271,7 +1281,8 @@ def score(stock: dict) -> float:
         rv_component = rv_raw * 30
         chg = max(adjusted_chg, 0)
         momentum = min(chg /  8.0, 1.0) * 20  # sättigt bei +8% statt +15%
-        return min(round(rv_component + momentum + _fs, 2), 50.0)
+        result = min(round(rv_component + momentum + _fs, 2), 50.0)
+        return result if math.isfinite(result) else 0.0
 
     # Fall 1: Short-Daten vorhanden → fünf Faktoren, max 100 Pkt
     # Nur positive Tagesveränderungen zählen: fallende Kurse = kein Squeeze-Druck
@@ -1295,7 +1306,8 @@ def score(stock: dict) -> float:
     else:
         _pts = 0.0
 
-    return round(min(sf + sr + rv + mom + _fs + _pts, 100.0), 2)
+    result = round(min(sf + sr + rv + mom + _fs + _pts, 100.0), 2)
+    return result if math.isfinite(result) else 0.0
 
 
 def fmt_cap(v) -> str:
@@ -4278,7 +4290,7 @@ def main():
     # Pre-sort by whatever data we have so we enrich the most promising first
     for c in candidates:
         c["score"] = score(c)
-    candidates.sort(key=lambda x: x["score"], reverse=True)
+    candidates.sort(key=lambda x: x.get("score") or 0, reverse=True)
 
     # ── Dynamic pool construction ─────────────────────────────────────────────
     # Priority 1: SF ≥ POOL_SHORT_FLOAT_THRESHOLD (always included)
@@ -4478,6 +4490,9 @@ def main():
                      t, c.get("market"), c.get("rel_volume", 0))
 
         c["score"] = score(c)
+        if not math.isfinite(c["score"]):
+            log.warning("    skip %s: score is nan/inf after enrichment", t)
+            continue
         enriched.append(c)
         # No per-ticker sleep needed — data already fetched in batch above
 
@@ -4487,7 +4502,7 @@ def main():
         flush=True,
     )
     print(f"Step 2 abgeschlossen in {time.time()-_t_batch:.1f}s", flush=True)
-    enriched.sort(key=lambda x: x["score"], reverse=True)
+    enriched.sort(key=lambda x: x.get("score") or 0, reverse=True)
 
     # Always pick the best 10 by score — MIN_SCORE is informational only, not a filter.
     # Prefer candidates with rel_volume ≥ MIN_REL_VOLUME; fall back to the full enriched
@@ -4524,11 +4539,11 @@ def main():
             log.info("  %s: base=%.2f + bonus=%.2f = %.2f",
                      s["ticker"], base, bonus, s["score"])
 
-    top10.sort(key=lambda x: x["score"], reverse=True)
+    top10.sort(key=lambda x: x.get("score") or 0, reverse=True)
 
     # --- Step 3a: Score smoothing (70 % today + 30 % avg last 3 runs) ---
     apply_score_smoothing(top10, report_date)
-    top10.sort(key=lambda x: x["score"], reverse=True)
+    top10.sort(key=lambda x: x.get("score") or 0, reverse=True)
 
     # Opt 3 — Parallel news fetching (all 10 tickers × 3 sources concurrently).
     _t_news = time.time()
