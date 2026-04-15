@@ -2320,7 +2320,10 @@ a{{color:var(--accent);text-decoration:none}}
   font-size:.82rem;line-height:1.6;color:var(--txt-sub);background:#0d0920}}
 .ki-analyse-result.visible{{display:block}}
 .ki-analyse-result .ka-label{{font-size:.65rem;text-transform:uppercase;letter-spacing:.5px;
-  color:#a78bfa;font-weight:700;margin-bottom:5px;display:block}}
+  color:#a78bfa;font-weight:700;margin-bottom:5px;display:flex;align-items:center;gap:8px}}
+.ka-rerun-btn{{background:none;border:1px solid #4c1d95;color:#a78bfa;border-radius:6px;
+  padding:1px 7px;font-size:.65rem;cursor:pointer;white-space:nowrap;flex-shrink:0}}
+.ka-rerun-btn:hover{{background:#4c1d9533}}
 /* Chat panel — mobile full-screen, desktop right panel (380px) */
 .btn-chat{{background:#0e3a5e;color:#7dd3fc}}
 .btn-chat:hover:not(:disabled){{background:#0c4a6e;color:#fff}}
@@ -3688,6 +3691,7 @@ const ANT_WARN_TTL_MS  = 7 * 24 * 60 * 60 * 1000;
 const ANT_ENDPOINT     = 'https://api.anthropic.com/v1/messages';
 const ANT_MODEL        = 'claude-sonnet-4-6';
 const ANT_KI_LABEL     = '\U0001F916 KI-Analyse';
+const ANT_KI_LABEL_HIDE= '\u25b2 Analyse ausblenden';
 const ANT_KI_LABEL_NEW = '\U0001F504 Neu analysieren';
 const ANT_KI_LABEL_BUSY= '\u23F3 Analysiere …';
 const ANT_KI_LABEL_KEY = '\U0001F511 API-Key erforderlich';
@@ -3841,6 +3845,13 @@ document.addEventListener('DOMContentLoaded', () => {{
   }}
 }});
 
+// Setzt das „Hat Ergebnis"-Flag zurück und startet einen neuen API-Call.
+function kaRerun(cardIdx) {{
+  const btn = document.getElementById('ka-btn' + cardIdx);
+  if (btn) delete btn.dataset.kaHasResult;
+  runKiAnalyse(cardIdx);
+}}
+
 async function runKiAnalyse(cardIdx) {{
   const article = document.getElementById('c' + cardIdx);
   const btn     = document.getElementById('ka-btn' + cardIdx);
@@ -3853,6 +3864,14 @@ async function runKiAnalyse(cardIdx) {{
     return;
   }}
 
+  // ── Bereits ein Ergebnis vorhanden → nur ein-/ausklappen ─────────────────
+  if (btn.dataset.kaHasResult === '1') {{
+    const nowVisible = res.classList.toggle('visible');
+    btn.textContent  = nowVisible ? ANT_KI_LABEL_HIDE : ANT_KI_LABEL;
+    return;
+  }}
+
+  // ── Neuer API-Call ────────────────────────────────────────────────────────
   const d = article.dataset;
   let newsArr = [];
   try {{ newsArr = JSON.parse(d.news || '[]'); }} catch(_) {{}}
@@ -3899,7 +3918,10 @@ Gib eine knappe Einschätzung: Squeeze-Potenzial, wichtigste Treiber, kritische 
 
   btn.disabled = true;
   btn.textContent = ANT_KI_LABEL_BUSY;
-  res.innerHTML = '<span class="ka-label">\U0001F916 Claude &middot; ' + ctx.ticker + '</span><span class="ka-stream"></span>';
+  res.innerHTML =
+    '<span class="ka-label">\U0001F916 Claude &middot; ' + ctx.ticker +
+    '<button class="ka-rerun-btn" onclick="kaRerun(' + cardIdx + ')">' + ANT_KI_LABEL_NEW + '</button></span>' +
+    '<span class="ka-stream"></span>';
   res.classList.add('visible');
   const streamSpan = res.querySelector('.ka-stream');
 
@@ -3911,14 +3933,14 @@ Gib eine knappe Einschätzung: Squeeze-Potenzial, wichtigste Treiber, kritische 
       (delta) => {{
         acc += delta;
         if (streamSpan) streamSpan.innerHTML = acc.replace(/\\n/g, '<br>');
-        res.scrollTop = res.scrollHeight;
       }},
       {{model: ANT_MODEL, max_tokens: 400}}
     );
-    btn.textContent = ANT_KI_LABEL_NEW;
+    btn.dataset.kaHasResult = '1';
+    btn.textContent = ANT_KI_LABEL_HIDE;
   }} catch(e) {{
     res.innerHTML = '<span class="ka-label">Fehler</span>' + e.message;
-    btn.textContent = ANT_KI_LABEL;
+    btn.textContent = ANT_KI_LABEL;   // kein has-result setzen → nächster Tap macht neuen Call
   }} finally {{
     btn.disabled = false;
   }}
