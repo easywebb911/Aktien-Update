@@ -1846,8 +1846,18 @@ def _card(i: int, s: dict) -> str:
         )
     news_html = "".join(_news_items) if _news_items else '<p class="no-news">Keine Nachrichten verfügbar.</p>'
 
+    _da_rsi   = f'{_rsi:.1f}'   if _rsi   is not None else ''
+    _da_iv    = f'{_iv*100:.1f}' if _iv   is not None else ''
+    _da_earn  = str(_earn_days)  if _earn_days is not None else ''
+    _da_cap   = str(int(cap_val)) if cap_val else ''
+
     return f"""
-<article class="card" id="c{i}" data-ticker="{s['ticker']}">
+<article class="card" id="c{i}" data-ticker="{s['ticker']}"
+  data-score="{sc:.1f}" data-company="{s.get('company_name','')}"
+  data-price="{_price:.2f}" data-sf="{sf:.1f}" data-sr="{sr:.1f}"
+  data-rv="{rv:.2f}" data-chg="{chg:.2f}" data-si="{si_trend}"
+  data-rsi="{_da_rsi}" data-iv="{_da_iv}" data-earn="{_da_earn}"
+  data-cap="{_da_cap}" data-sector="{_sector}">
   <div class="card-top">
     <div class="card-left">
       <span class="rank">{i}</span>
@@ -1942,6 +1952,10 @@ def _card(i: int, s: dict) -> str:
       <p class="summary-text">{news_sum}</p>
     </div>
   </div>
+  <button class="ki-analyse-btn" id="ka-btn{i}" onclick="runKiAnalyse({i})">
+    &#x1F916; KI-Analyse
+  </button>
+  <div class="ki-analyse-result" id="ka-res{i}"></div>
 </article>"""
 
 
@@ -2054,6 +2068,28 @@ def generate_html(stocks: list[dict], report_date: str) -> str:
             ],
         }
     wl_top10_json = json.dumps(_wl_top10, default=str)
+
+    # Compact top-10 snapshot for Claude chat system prompt
+    _chat_ctx = []
+    for _s in stocks:
+        _fd   = _s.get("finra_data") or {}
+        _opts = _s.get("options") or {}
+        _chat_ctx.append({
+            "ticker":      _s["ticker"],
+            "score":       round(_s.get("score", 0), 1),
+            "company":     _s.get("company_name", ""),
+            "price":       round(_s.get("price", 0), 2),
+            "change":      round(_s.get("change", 0), 2),
+            "short_float": round(_s.get("short_float", 0), 1),
+            "short_ratio": round(_s.get("short_ratio", 0), 1),
+            "rel_volume":  round(_s.get("rel_volume", 0), 2),
+            "si_trend":    _fd.get("trend", "no_data"),
+            "rsi14":       _s.get("rsi14"),
+            "atm_iv":      _opts.get("atm_iv"),
+            "earnings_days": _s.get("earnings_days"),
+            "sector":      _s.get("sector", ""),
+        })
+    chat_ctx_json = json.dumps(_chat_ctx, default=str)
 
     return f"""<!DOCTYPE html>
 <html lang="de" data-theme="dark">
@@ -2247,6 +2283,58 @@ a{{color:var(--accent);text-decoration:none}}
 .wl-remove-btn{{background:none;border:none;color:var(--txt-dim);cursor:pointer;font-size:.85rem;padding:0;opacity:.5}}
 .wl-remove-btn:hover{{color:#ef4444;opacity:1}}
 @media(max-width:479px){{.wl-cards{{grid-template-columns:repeat(2,1fr)}}}}
+/* ── Anthropic / Claude API ── */
+.anth-panel{{padding:0 0 10px}}
+.anth-panel .tok-hint{{margin-bottom:6px}}
+.anth-panel .tok-row{{flex-wrap:wrap;gap:6px}}
+.anth-status{{font-size:.75rem;margin-top:6px;padding:6px 10px;border-radius:6px;display:none}}
+.anth-status.ok{{background:#052a14;border:1px solid #166534;color:#86efac;display:block}}
+.anth-status.err{{background:#2d0a0a;border:1px solid #991b1b;color:#fca5a5;display:block}}
+.btn-anth{{background:#6d28d9;color:#fff;min-height:36px;padding:0 12px;font-size:.78rem}}
+.btn-anth:hover:not(:disabled){{background:#5b21b6}}
+/* KI-Analyse per card */
+.ki-analyse-btn{{width:100%;min-height:44px;background:linear-gradient(90deg,#1e1040 0%,#2d1460 100%);
+  border:none;border-top:1px solid #4c1d9522;color:#c4b5fd;font-size:.82rem;font-weight:600;
+  cursor:pointer;padding:0 14px;text-align:left;display:flex;align-items:center;gap:6px;
+  transition:background .15s}}
+.ki-analyse-btn:hover:not(:disabled){{background:linear-gradient(90deg,#2d1460 0%,#3b1f6b 100%)}}
+.ki-analyse-btn:disabled{{opacity:.5;cursor:not-allowed}}
+.ki-analyse-result{{padding:10px 14px;border-top:1px solid #4c1d9522;display:none;
+  font-size:.82rem;line-height:1.6;color:var(--txt-sub);background:#0d0920}}
+.ki-analyse-result.visible{{display:block}}
+.ki-analyse-result .ka-label{{font-size:.65rem;text-transform:uppercase;letter-spacing:.5px;
+  color:#a78bfa;font-weight:700;margin-bottom:5px;display:block}}
+/* Chat panel */
+.btn-chat{{background:#0e3a5e;color:#7dd3fc;}}
+.btn-chat:hover:not(:disabled){{background:#0c4a6e;color:#fff}}
+.chat-panel{{position:fixed;bottom:0;right:0;width:min(420px,100vw);height:min(600px,80vh);
+  background:var(--bg-card);border:1px solid var(--brd);border-radius:14px 14px 0 0;
+  box-shadow:0 -4px 24px rgba(0,0,0,.35);display:flex;flex-direction:column;z-index:200;
+  transform:translateY(100%);transition:transform .25s cubic-bezier(.4,0,.2,1)}}
+.chat-panel.open{{transform:translateY(0)}}
+.chat-hdr{{display:flex;align-items:center;padding:10px 14px;border-bottom:1px solid var(--brd);
+  gap:8px;flex-shrink:0}}
+.chat-hdr-title{{flex:1;font-size:.88rem;font-weight:700;color:var(--txt)}}
+.chat-close-btn{{background:none;border:none;color:var(--txt-dim);cursor:pointer;font-size:1rem;
+  padding:4px;line-height:1}}
+.chat-close-btn:hover{{color:var(--txt)}}
+.chat-msgs{{flex:1;overflow-y:auto;padding:10px 12px;display:flex;flex-direction:column;gap:8px}}
+.chat-msg{{max-width:88%;padding:8px 12px;border-radius:10px;font-size:.82rem;line-height:1.55}}
+.chat-msg--user{{align-self:flex-end;background:#1e3a5f;color:#bae6fd;border-radius:10px 10px 2px 10px}}
+.chat-msg--ai{{align-self:flex-start;background:var(--bg-met);color:var(--txt);border-radius:10px 10px 10px 2px}}
+.chat-msg--sys{{align-self:center;color:var(--txt-dim);font-size:.72rem;font-style:italic}}
+.chat-chips{{display:flex;flex-wrap:wrap;gap:6px;padding:6px 12px;border-top:1px solid var(--brd);flex-shrink:0}}
+.chip{{background:var(--bg-met);border:1px solid var(--brd);border-radius:20px;
+  padding:4px 10px;font-size:.72rem;cursor:pointer;color:var(--txt-sub);white-space:nowrap}}
+.chip:hover{{background:var(--brd);color:var(--txt)}}
+.chat-input-row{{display:flex;gap:6px;padding:8px 10px;border-top:1px solid var(--brd);flex-shrink:0}}
+.chat-inp{{flex:1;background:var(--bg-met);border:1px solid var(--brd);border-radius:8px;
+  color:var(--txt);padding:0 10px;height:40px;font-size:.82rem;font-family:inherit}}
+.chat-inp:focus{{outline:2px solid var(--accent);outline-offset:1px}}
+.chat-send-btn{{background:#2563eb;color:#fff;border:none;border-radius:8px;
+  padding:0 14px;height:40px;font-size:.82rem;font-weight:700;cursor:pointer;flex-shrink:0}}
+.chat-send-btn:hover:not(:disabled){{background:#1d4ed8}}
+.chat-send-btn:disabled{{opacity:.45;cursor:not-allowed}}
 .score-block{{display:flex;flex-direction:column;align-items:flex-end;min-width:64px}}
 .score-num{{font-size:1.7rem;font-weight:900;line-height:1}}
 .score-lbl{{font-size:.62rem;color:var(--txt-dim);text-transform:uppercase;
@@ -2460,11 +2548,13 @@ a{{color:var(--accent);text-decoration:none}}
       <button id="btn-reload" class="btn btn-g" onclick="reloadPage()">&#8635; Reload</button>
       <button id="btn-recalc" class="btn btn-b" onclick="triggerWorkflow()">&#9881; Recalculate</button>
       <button id="btn-ki" class="btn btn-ki" onclick="triggerKiAgent()">&#9889; Agent Run</button>
+      <button id="btn-chat" class="btn btn-chat" onclick="toggleChat()">&#x1F4AC; Chat</button>
     </div>
     <div class="hdr-icons">
       <button class="fs-btn print-btn" onclick="window.print()" aria-label="Seite drucken" title="Drucken">🖨</button>
       <button class="fs-btn" id="fs-down" onclick="changeFontSize(-1)" aria-label="Schrift kleiner">A−</button>
       <button class="fs-btn" id="fs-up"   onclick="changeFontSize(1)"  aria-label="Schrift größer">A+</button>
+      <button class="fs-btn" onclick="toggleSettings()" id="settings-btn" aria-label="Einstellungen" title="Einstellungen">&#9881;</button>
       <button class="theme-btn" onclick="toggleTheme()" id="theme-btn" aria-label="Dark Mode umschalten">🌙</button>
     </div>
   </div>
@@ -2476,6 +2566,19 @@ a{{color:var(--accent);text-decoration:none}}
       <button class="btn btn-b" style="flex:0;padding:0 16px" onclick="saveTokenAndDispatch()">OK</button>
     </div>
   </div>
+  <div id="anth-sec" style="display:none" class="anth-panel">
+    <p class="tok-hint">Anthropic API-Key (wird nur im Browser gespeichert, nie übertragen):</p>
+    <div class="tok-row">
+      <input type="password" id="anth-inp" class="tok-inp" placeholder="sk-ant-api03-…"
+             onkeydown="if(event.key==='Enter')saveAnthropicKey()">
+      <button class="btn btn-anth" style="flex:0;padding:0 12px" onclick="testAnthropicKey()">Test</button>
+      <button class="btn btn-b" style="flex:0;padding:0 12px" onclick="saveAnthropicKey()">OK</button>
+    </div>
+    <div id="anth-status" class="anth-status"></div>
+    <div style="padding-top:4px">
+      <a class="tok-link" onclick="clearAnthropicKey();return false;" href="#">API-Key löschen</a>
+    </div>
+  </div>
   <div id="amsg" class="amsg" style="display:none"></div>
   <div style="padding-bottom:4px">
     <a class="tok-link" onclick="resetToken();return false;" href="#">Token zurücksetzen</a>
@@ -2483,6 +2586,26 @@ a{{color:var(--accent);text-decoration:none}}
   <div id="non-trading-banner" style="display:none;width:100%;background:#f59e0b;color:#1c1102;
     font-size:.78rem;font-weight:500;padding:5px 16px;box-sizing:border-box;
     border-top:1px solid #d97706;line-height:1.45" aria-live="polite"></div>
+  <!-- Claude Chat Panel -->
+  <div id="chat-panel" class="chat-panel" role="dialog" aria-label="Claude KI-Chat">
+    <div class="chat-hdr">
+      <span style="font-size:1rem">&#x1F916;</span>
+      <span class="chat-hdr-title">Claude — Squeeze Analyst</span>
+      <button class="chat-close-btn" onclick="toggleChat()" aria-label="Chat schließen">&#10005;</button>
+    </div>
+    <div class="chat-msgs" id="chat-msgs"></div>
+    <div class="chat-chips" id="chat-chips">
+      <button class="chip" onclick="chatAsk('Welche Aktie hat das höchste Squeeze-Potenzial heute?')">Top-Kandidat?</button>
+      <button class="chip" onclick="chatAsk('Erkläre den Score des Erstplatzierten.')">Score erklären</button>
+      <button class="chip" onclick="chatAsk('Welche Risiken sehe ich bei den aktuellen Top-10?')">Risiken?</button>
+      <button class="chip" onclick="chatAsk('Vergleiche die SI-Trends aller Aktien.')">SI-Trends</button>
+    </div>
+    <div class="chat-input-row">
+      <input class="chat-inp" id="chat-inp" type="text" placeholder="Frage zu den aktuellen Squeeze-Kandidaten …"
+             onkeydown="if(event.key==='Enter'&&!event.shiftKey){{chatSend();event.preventDefault()}}">
+      <button class="chat-send-btn" id="chat-send" onclick="chatSend()">&#10148;</button>
+    </div>
+  </div>
 </header>
 
 <main class="wrap">
@@ -3514,6 +3637,227 @@ function _fmtGerman(d) {{
   }};
 
   document.addEventListener('DOMContentLoaded', wlRender);
+}})();
+// ── Claude / Anthropic API ────────────────────────────────────────────────────
+const ANT_KEY_LS   = 'anthropic_api_key';
+const ANT_ENDPOINT = 'https://api.anthropic.com/v1/messages';
+
+async function callAnthropic(messages, systemPrompt, model) {{
+  const key = localStorage.getItem(ANT_KEY_LS);
+  if (!key) throw new Error('Kein API-Key gespeichert. Bitte zuerst den Anthropic API-Key eingeben.');
+  const body = {{
+    model:      model || 'claude-haiku-4-5-20251001',
+    max_tokens: 1024,
+    system:     systemPrompt || '',
+    messages:   messages,
+  }};
+  const res = await fetch(ANT_ENDPOINT, {{
+    method:  'POST',
+    headers: {{
+      'Content-Type':                         'application/json',
+      'x-api-key':                            key,
+      'anthropic-version':                    '2023-06-01',
+      'anthropic-dangerous-direct-browser-access': 'true',
+    }},
+    body: JSON.stringify(body),
+  }});
+  if (!res.ok) {{
+    let msg = 'API-Fehler ' + res.status;
+    try {{ const e = await res.json(); msg = e?.error?.message || msg; }} catch(_) {{}}
+    throw new Error(msg);
+  }}
+  const data = await res.json();
+  return data?.content?.[0]?.text || '';
+}}
+
+async function testAnthropicKey() {{
+  const inp = document.getElementById('anth-inp');
+  const st  = document.getElementById('anth-status');
+  const key = (inp?.value || '').trim();
+  if (!key) {{ st.className = 'anth-status err'; st.textContent = 'Bitte API-Key eingeben.'; return; }}
+  st.className = 'anth-status ok'; st.textContent = 'Wird geprüft …';
+  try {{
+    const saved = localStorage.getItem(ANT_KEY_LS);
+    localStorage.setItem(ANT_KEY_LS, key);
+    await callAnthropic([{{role:'user',content:'Hi'}}], '', 'claude-haiku-4-5-20251001');
+    st.className = 'anth-status ok'; st.textContent = '✓ API-Key gültig.';
+  }} catch(e) {{
+    const saved2 = localStorage.getItem(ANT_KEY_LS);
+    if (saved2 === key) localStorage.removeItem(ANT_KEY_LS);
+    st.className = 'anth-status err'; st.textContent = '✗ ' + e.message;
+  }}
+}}
+
+function saveAnthropicKey() {{
+  const inp = document.getElementById('anth-inp');
+  const st  = document.getElementById('anth-status');
+  const key = (inp?.value || '').trim();
+  if (!key) {{ st.className='anth-status err'; st.textContent='Bitte API-Key eingeben.'; return; }}
+  localStorage.setItem(ANT_KEY_LS, key);
+  st.className = 'anth-status ok'; st.textContent = '✓ Gespeichert.';
+  setTimeout(() => {{ document.getElementById('anth-sec').style.display='none'; }}, 800);
+}}
+
+function clearAnthropicKey() {{
+  localStorage.removeItem(ANT_KEY_LS);
+  const inp = document.getElementById('anth-inp');
+  const st  = document.getElementById('anth-status');
+  if (inp) inp.value = '';
+  if (st)  {{ st.className='anth-status ok'; st.textContent='API-Key gelöscht.'; }}
+}}
+
+function toggleSettings() {{
+  const tok  = document.getElementById('tok-sec');
+  const anth = document.getElementById('anth-sec');
+  const show = anth.style.display === 'none' || anth.style.display === '';
+  anth.style.display = show ? 'block' : 'none';
+  if (show) {{
+    if (tok) tok.style.display = 'none';
+    const inp  = document.getElementById('anth-inp');
+    const key  = localStorage.getItem(ANT_KEY_LS) || '';
+    if (inp && key) inp.value = key;
+  }}
+}}
+
+async function runKiAnalyse(cardIdx) {{
+  const article = document.getElementById('c' + cardIdx);
+  const btn     = document.getElementById('ka-btn' + cardIdx);
+  const res     = document.getElementById('ka-res' + cardIdx);
+  if (!article || !btn || !res) return;
+
+  const key = localStorage.getItem(ANT_KEY_LS);
+  if (!key) {{
+    toggleSettings();
+    res.innerHTML = '<span class="ka-label">Hinweis</span>Bitte zuerst den Anthropic API-Key eingeben.';
+    res.classList.add('visible');
+    return;
+  }}
+
+  const d = article.dataset;
+  const ticker  = d.ticker  || '';
+  const company = d.company || ticker;
+  const score   = d.score   || '?';
+  const sf      = d.sf      || '?';
+  const sr      = d.sr      || '?';
+  const rv      = d.rv      || '?';
+  const chg     = d.chg     || '?';
+  const si      = d.si      || 'no_data';
+  const rsi     = d.rsi     || 'n/a';
+  const iv      = d.iv      || 'n/a';
+  const earn    = d.earn    ? 'in ' + d.earn + 'd' : 'n/a';
+  const cap     = d.cap     ? (parseInt(d.cap)/1e9).toFixed(1)+'B' : 'n/a';
+  const sector  = d.sector  || 'n/a';
+
+  btn.disabled = true;
+  btn.textContent = '⏳ Analysiere …';
+  res.innerHTML = '';
+  res.classList.remove('visible');
+
+  const prompt = `Du bist ein erfahrener Short-Squeeze-Analyst. Analysiere folgende Aktie kurz und präzise auf Deutsch (max. 4 Sätze):
+
+Ticker: ${{ticker}} (${{company}})
+Score: ${{score}}/100 | Short Float: ${{sf}}% | Days to Cover: ${{sr}}d
+Rel. Volumen: ${{rv}}× | Kursmomentum: ${{chg}}% | SI-Trend: ${{si}}
+RSI 14: ${{rsi}} | ATM-IV: ${{iv}}% | Earnings: ${{earn}} | MarktKap: ${{cap}} | Sektor: ${{sector}}
+
+Gib eine klare Einschätzung: Squeeze-Potenzial (hoch/mittel/niedrig), wichtigste Treiber, ein kritisches Risiko.`;
+
+  try {{
+    const text = await callAnthropic(
+      [{{role:'user', content: prompt}}],
+      'Du bist ein präziser Short-Squeeze-Analyst. Antworte immer auf Deutsch.',
+      'claude-haiku-4-5-20251001'
+    );
+    res.innerHTML = '<span class="ka-label">&#x1F916; Claude KI-Analyse</span>' + text.replace(/\n/g, '<br>');
+    res.classList.add('visible');
+  }} catch(e) {{
+    res.innerHTML = '<span class="ka-label">Fehler</span>' + e.message;
+    res.classList.add('visible');
+  }} finally {{
+    btn.disabled = false;
+    btn.textContent = '\U0001F916 KI-Analyse';
+  }}
+}}
+
+// ── Claude Chat Panel ─────────────────────────────────────────────────────────
+(function(){{
+  const STOCKS_CTX = {chat_ctx_json};
+  const CHAT_SYSTEM = `Du bist Claude, ein präziser Short-Squeeze-Analyst. Du hast Zugriff auf die aktuellen Top-10-Squeeze-Kandidaten von heute. Beantworte Fragen immer auf Deutsch, kurz und präzise (max. 5 Sätze). Nutze die bereitgestellten Daten.
+
+Aktuelle Top-10 (JSON):
+${{JSON.stringify(STOCKS_CTX, null, 0)}}`;
+
+  let _history = [];
+  let _open    = false;
+
+  window.toggleChat = function() {{
+    const panel = document.getElementById('chat-panel');
+    if (!panel) return;
+    _open = !_open;
+    panel.classList.toggle('open', _open);
+    if (_open && _history.length === 0) {{
+      _addMsg('sys', 'Hallo! Ich bin Claude. Frag mich zu den heutigen Squeeze-Kandidaten.');
+    }}
+    if (_open) {{
+      setTimeout(() => document.getElementById('chat-inp')?.focus(), 300);
+    }}
+  }};
+
+  function _addMsg(role, text) {{
+    const msgs = document.getElementById('chat-msgs');
+    if (!msgs) return;
+    const div = document.createElement('div');
+    div.className = 'chat-msg chat-msg--' + role;
+    div.innerHTML = text.replace(/\n/g, '<br>');
+    msgs.appendChild(div);
+    msgs.scrollTop = msgs.scrollHeight;
+  }}
+
+  window.chatAsk = function(text) {{
+    const inp = document.getElementById('chat-inp');
+    if (inp) inp.value = text;
+    chatSend();
+  }};
+
+  window.chatSend = async function() {{
+    const inp  = document.getElementById('chat-inp');
+    const send = document.getElementById('chat-send');
+    const text = (inp?.value || '').trim();
+    if (!text) return;
+
+    const key = localStorage.getItem(ANT_KEY_LS);
+    if (!key) {{
+      toggleSettings();
+      _addMsg('sys', '⚠ Bitte zuerst den Anthropic API-Key eingeben (⚙ Einstellungen).');
+      return;
+    }}
+
+    inp.value = '';
+    _addMsg('user', text);
+    _history.push({{role:'user', content: text}});
+
+    if (send) send.disabled = true;
+    const loadingDiv = document.createElement('div');
+    loadingDiv.className = 'chat-msg chat-msg--sys';
+    loadingDiv.textContent = '…';
+    const msgs = document.getElementById('chat-msgs');
+    if (msgs) {{ msgs.appendChild(loadingDiv); msgs.scrollTop = msgs.scrollHeight; }}
+
+    try {{
+      const reply = await callAnthropic(_history, CHAT_SYSTEM, 'claude-sonnet-4-6');
+      if (loadingDiv.parentNode) loadingDiv.parentNode.removeChild(loadingDiv);
+      _history.push({{role:'assistant', content: reply}});
+      if (_history.length > 20) _history = _history.slice(-20);
+      _addMsg('ai', reply);
+    }} catch(e) {{
+      if (loadingDiv.parentNode) loadingDiv.parentNode.removeChild(loadingDiv);
+      _history.pop();
+      _addMsg('sys', '✗ ' + e.message);
+    }} finally {{
+      if (send) send.disabled = false;
+      inp?.focus();
+    }}
+  }};
 }})();
 // ─────────────────────────────────────────────────────────────────────────────
 </script>
