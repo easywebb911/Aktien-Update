@@ -3429,14 +3429,79 @@ function _fmtGerman(d) {{
 }})();
 // ── Persönliche Watchlist ─────────────────────────────────────────────────────
 (function(){{
-  const WL_KEY    = 'squeeze_watchlist';
-  const WL_MAX    = 20;
-  const WL_SCORES = {wl_scores_json};
-  const WL_TOP10  = {wl_top10_json};
-  const WL_HIST   = {wl_hist_json};
+  const WL_KEY     = 'squeeze_watchlist';
+  const WL_MAX     = 20;
+  const WL_GH_PATH = 'watchlist_personal.json';
+  const WL_SCORES  = {wl_scores_json};
+  const WL_TOP10   = {wl_top10_json};
+  const WL_HIST    = {wl_hist_json};
 
-  function wlLoad()    {{ return JSON.parse(localStorage.getItem(WL_KEY) || '[]'); }}
-  function wlSave(arr) {{ localStorage.setItem(WL_KEY, JSON.stringify(arr.slice(0, WL_MAX))); }}
+  let _wlGhSha = null;
+  let _wlCache = null;
+
+  // ── Async load — GitHub first (if token available), localStorage fallback ──
+  async function wlLoad() {{
+    if (_wlCache !== null) return _wlCache.slice();
+    const token = localStorage.getItem(TOK_KEY);
+    if (token) {{
+      try {{
+        const r = await fetch(
+          `https://api.github.com/repos/${{GH_OWNER}}/${{GH_REPO}}/contents/${{WL_GH_PATH}}?ref=${{GH_BRANCH}}`,
+          {{headers: {{'Authorization': `Bearer ${{token}}`, 'Accept': 'application/vnd.github+json',
+                     'X-GitHub-Api-Version': '2022-11-28'}}}}
+        );
+        if (r.status === 404) {{ _wlGhSha = null; _wlCache = []; return []; }}
+        if (r.ok) {{
+          const j = await r.json();
+          _wlGhSha = j.sha;
+          const arr = JSON.parse(atob(j.content.replace(/\\n/g, '')));
+          localStorage.setItem(WL_KEY, JSON.stringify(arr));
+          _wlCache = arr;
+          return arr.slice();
+        }}
+      }} catch(_) {{}}  // network error — fall through to localStorage
+    }}
+    const arr = JSON.parse(localStorage.getItem(WL_KEY) || '[]');
+    _wlCache = arr;
+    return arr.slice();
+  }}
+
+  // ── Async save — localStorage always, GitHub when token available ──────────
+  async function wlSave(arr) {{
+    arr = arr.slice(0, WL_MAX);
+    _wlCache = arr;
+    localStorage.setItem(WL_KEY, JSON.stringify(arr));
+    const token = localStorage.getItem(TOK_KEY);
+    if (!token) return;
+    try {{
+      const _put = async (sha) => {{
+        const body = {{message: 'Update watchlist_personal.json',
+                      content: btoa(JSON.stringify(arr)), branch: GH_BRANCH}};
+        if (sha) body.sha = sha;
+        return fetch(
+          `https://api.github.com/repos/${{GH_OWNER}}/${{GH_REPO}}/contents/${{WL_GH_PATH}}`,
+          {{method: 'PUT',
+            headers: {{'Authorization': `Bearer ${{token}}`, 'Accept': 'application/vnd.github+json',
+                      'X-GitHub-Api-Version': '2022-11-28', 'Content-Type': 'application/json'}},
+            body: JSON.stringify(body)}});
+      }};
+      let r = await _put(_wlGhSha);
+      if (r.ok) {{ _wlGhSha = (await r.json()).content?.sha || null; return; }}
+      if (r.status === 409 || r.status === 422) {{
+        // SHA conflict — re-fetch current SHA and retry once
+        const rf = await fetch(
+          `https://api.github.com/repos/${{GH_OWNER}}/${{GH_REPO}}/contents/${{WL_GH_PATH}}?ref=${{GH_BRANCH}}`,
+          {{headers: {{'Authorization': `Bearer ${{token}}`, 'Accept': 'application/vnd.github+json',
+                     'X-GitHub-Api-Version': '2022-11-28'}}}}
+        );
+        if (rf.ok) {{
+          _wlGhSha = (await rf.json()).sha;
+          r = await _put(_wlGhSha);
+          if (r.ok) {{ _wlGhSha = (await r.json()).content?.sha || null; }}
+        }}
+      }}
+    }} catch(_) {{}}  // silent — localStorage already saved
+  }}
   function wlScoreColor(v) {{
     if (v === null) return '#94a3b8';
     return v >= 50 ? '#22c55e' : v >= 30 ? '#f59e0b' : '#ef4444';
@@ -3581,9 +3646,9 @@ function _fmtGerman(d) {{
     }}
   }}
 
-  function wlRender() {{
+  async function wlRender() {{
     try {{
-      const arr  = wlLoad();
+      const arr  = await wlLoad();
       const sec  = document.getElementById('wl-section');
       const grid = document.getElementById('wl-cards');
       const cnt  = document.getElementById('wl-count');
@@ -3664,22 +3729,23 @@ function _fmtGerman(d) {{
     }}
   }};
 
-  window.wlToggle = function(btn) {{
+  window.wlToggle = async function(btn) {{
     const ticker = btn.dataset.ticker;
-    const arr    = wlLoad();
+    const arr    = await wlLoad();
     const idx    = arr.indexOf(ticker);
     if (idx >= 0) {{
       arr.splice(idx, 1);
     }} else if (arr.length < WL_MAX) {{
       arr.unshift(ticker);
     }}
-    wlSave(arr);
-    wlRender();
+    await wlSave(arr);
+    await wlRender();
   }};
 
-  window.wlRemoveTicker = function(ticker) {{
-    wlSave(wlLoad().filter(t => t !== ticker));
-    wlRender();
+  window.wlRemoveTicker = async function(ticker) {{
+    const arr = await wlLoad();
+    await wlSave(arr.filter(t => t !== ticker));
+    await wlRender();
   }};
 
   document.addEventListener('DOMContentLoaded', wlRender);
