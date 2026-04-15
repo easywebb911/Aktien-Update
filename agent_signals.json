@@ -1,21 +1,21 @@
 {
-  "updated": "2026-04-15T20:49:02.046185+02:00",
+  "updated": "2026-04-15T23:39:18.892844+02:00",
   "run_info": {
     "tickers_checked": 10,
-    "signals_active": 2,
+    "signals_active": 1,
     "alerts_sent": 0,
-    "elapsed_s": 22.9,
-    "market_phase": "Regulär"
+    "elapsed_s": 24.0,
+    "market_phase": "After-Hours"
   },
   "signals": {
-    "BITF.TO": {
-      "score": 8,
-      "confidence": 17,
-      "drivers": "Earnings in 28d",
+    "PLCE": {
+      "score": 0,
+      "confidence": 0,
+      "drivers": "",
       "price": 0.0,
       "chg_pct": 0.0,
       "rvol": 0.0,
-      "earnings": "in 28 Tagen (13.05.2026)",
+      "earnings": "in 50 Tagen (04.06.2026)",
       "fda_date": null,
       "upcoming_event": null,
       "insider_buy": false
@@ -32,38 +32,14 @@
       "upcoming_event": null,
       "insider_buy": false
     },
-    "BIRD": {
-      "score": 18,
-      "confidence": 33,
-      "drivers": "News: acquisition + Earnings in 22d",
-      "price": 0.0,
-      "chg_pct": 0.0,
-      "rvol": 0.0,
-      "earnings": "in 22 Tagen (07.05.2026)",
-      "fda_date": null,
-      "upcoming_event": null,
-      "insider_buy": false
-    },
-    "SKLZ": {
-      "score": 8,
-      "confidence": 17,
-      "drivers": "Earnings in 22d",
-      "price": 0.0,
-      "chg_pct": 0.0,
-      "rvol": 0.0,
-      "earnings": "in 22 Tagen (07.05.2026)",
-      "fda_date": null,
-      "upcoming_event": null,
-      "insider_buy": false
-    },
-    "PLCE": {
+    "REPL": {
       "score": 0,
       "confidence": 0,
       "drivers": "",
       "price": 0.0,
       "chg_pct": 0.0,
       "rvol": 0.0,
-      "earnings": "in 50 Tagen (04.06.2026)",
+      "earnings": "in 36 Tagen (21.05.2026)",
       "fda_date": null,
       "upcoming_event": null,
       "insider_buy": false
@@ -71,7 +47,7 @@
     "SOUN": {
       "score": 28,
       "confidence": 33,
-      "drivers": "News: squeeze, catalyst + Earnings in 22d",
+      "drivers": "News: short squeeze, squeeze + Earnings in 22d",
       "price": 0.0,
       "chg_pct": 0.0,
       "rvol": 0.0,
@@ -80,50 +56,74 @@
       "upcoming_event": null,
       "insider_buy": false
     },
-    "AI": {
+    "TSHA": {
+      "score": 8,
+      "confidence": 17,
+      "drivers": "Earnings in 29d",
+      "price": 0.0,
+      "chg_pct": 0.0,
+      "rvol": 0.0,
+      "earnings": "in 29 Tagen (14.05.2026)",
+      "fda_date": null,
+      "upcoming_event": null,
+      "insider_buy": false
+    },
+    "GPRO": {
+      "score": 8,
+      "confidence": 17,
+      "drivers": "Earnings in 26d",
+      "price": 0.0,
+      "chg_pct": 0.0,
+      "rvol": 0.0,
+      "earnings": "in 26 Tagen (11.05.2026)",
+      "fda_date": null,
+      "upcoming_event": null,
+      "insider_buy": false
+    },
+    "UPST": {
+      "score": 8,
+      "confidence": 17,
+      "drivers": "Earnings in 20d",
+      "price": 0.0,
+      "chg_pct": 0.0,
+      "rvol": 0.0,
+      "earnings": "in 20 Tagen (05.05.2026)",
+      "fda_date": null,
+      "upcoming_event": null,
+      "insider_buy": false
+    },
+    "EOSE": {
+      "score": 18,
+      "confidence": 33,
+      "drivers": "News: partnership + Earnings in 20d",
+      "price": 0.0,
+      "chg_pct": 0.0,
+      "rvol": 0.0,
+      "earnings": "in 20 Tagen (05.05.2026)",
+      "fda_date": null,
+      "upcoming_event": null,
+      "insider_buy": false
+    },
+    "ROOT": {
+      "score": 18,
+      "confidence": 33,
+      "drivers": "News: partnership + Earnings in 21d",
+      "price": 0.0,
+      "chg_pct": 0.0,
+      "rvol": 0.0,
+      "earnings": "in 21 Tagen (06.05.2026)",
+      "fda_date": null,
+      "upcoming_event": null,
+      "insider_buy": false
+    },
+    "ASAN": {
       "score": 0,
       "confidence": 0,
       "drivers": "",
       "price": 0.0,
       "chg_pct": 0.0,
       "rvol": 0.0,
-      "earnings": "in 42 Tagen (27.05.2026)",
-      "fda_date": null,
-      "upcoming_event": null,
-      "insider_buy": false
-    },
-    "RHI": {
-      "score": 35,
-      "confidence": 33,
-      "drivers": "Earnings in 7 Tagen (22.04.2026) + News: squeeze, short squeeze + Earnings in 7d",
-      "price": 0.0,
-      "chg_pct": 0.0,
-      "rvol": 0.0,
-      "earnings": "in 7 Tagen (22.04.2026)",
-      "fda_date": null,
-      "upcoming_event": "Earnings in 7 Tagen (22.04.2026)",
-      "insider_buy": false
-    },
-    "PRLD": {
-      "score": 8,
-      "confidence": 17,
-      "drivers": "Earnings in 28d",
-      "price": 0.0,
-      "chg_pct": 0.0,
-      "rvol": 0.0,
-      "earnings": "in 28 Tagen (13.05.2026)",
-      "fda_date": null,
-      "upcoming_event": null,
-      "insider_buy": false
-    },
-    "SNBR": {
-      "score": 18,
-      "confidence": 33,
-      "drivers": "News: catalyst + Earnings in 14d",
-      "price": 0.0,
-      "chg_pct": 0.0,
-      "rvol": 0.0,
-      "earnings": "in 14 Tagen (29.04.2026)",
+      "earnings": "in 49 Tagen (03.06.2026)",
       "fda_date": null,
       "upcoming_event": null,
       "insider_buy": false
