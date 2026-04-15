@@ -2337,9 +2337,13 @@ a{{color:var(--accent);text-decoration:none}}
 .chat-hdr{{display:flex;align-items:center;padding:12px 16px;border-bottom:1px solid var(--brd);
   gap:10px;flex-shrink:0;background:var(--bg-hdr)}}
 .chat-hdr-title{{flex:1;font-size:.95rem;font-weight:700;color:var(--txt)}}
-.chat-close-btn{{background:none;border:none;color:var(--txt-dim);cursor:pointer;font-size:1.2rem;
-  padding:4px 8px;line-height:1;min-width:36px;min-height:36px}}
-.chat-close-btn:hover{{color:var(--txt)}}
+.chat-close-btn{{background:none;border:none;color:var(--txt-dim);cursor:pointer;font-size:1.3rem;
+  padding:0;line-height:1;width:44px;height:44px;display:flex;align-items:center;
+  justify-content:center;border-radius:8px;flex-shrink:0}}
+.chat-close-btn:hover{{color:var(--txt);background:var(--bg-met)}}
+.chat-overlay{{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:299;
+  display:none;-webkit-tap-highlight-color:transparent}}
+.chat-overlay.open{{display:block}}
 .chat-warn-banner{{padding:10px 14px;background:#1c1200;border:1px solid #92400e;color:#fcd34d;
   font-size:.78rem;line-height:1.5;margin:10px 12px 0;border-radius:8px}}
 .chat-warn-banner.hidden{{display:none}}
@@ -2620,6 +2624,8 @@ a{{color:var(--accent);text-decoration:none}}
   <div id="non-trading-banner" style="display:none;width:100%;background:#f59e0b;color:#1c1102;
     font-size:.78rem;font-weight:500;padding:5px 16px;box-sizing:border-box;
     border-top:1px solid #d97706;line-height:1.45" aria-live="polite"></div>
+  <!-- Chat Overlay (tap outside to close) -->
+  <div id="chat-overlay" class="chat-overlay" onclick="toggleChat()" aria-hidden="true"></div>
   <!-- Claude Chat Panel -->
   <div id="chat-panel" class="chat-panel" role="dialog" aria-label="KI-Assistent Chat">
     <div class="chat-hdr">
@@ -3961,19 +3967,44 @@ ${{JSON.stringify(STOCKS_CTX)}}`;
     if (b) b.classList.add('hidden');
   }};
 
-  window.toggleChat = function() {{
-    const panel = document.getElementById('chat-panel');
+  function _setChatOpen(open) {{
+    const panel   = document.getElementById('chat-panel');
+    const overlay = document.getElementById('chat-overlay');
     if (!panel) return;
-    _open = !_open;
-    panel.classList.toggle('open', _open);
-    if (_open) {{
+    _open = open;
+    panel.classList.toggle('open', open);
+    if (overlay) overlay.classList.toggle('open', open);
+    if (open) {{
       if (_history.length === 0) {{
         _addMsg('sys', 'Hallo! Ich kenne die heutigen Top-10-Squeeze-Kandidaten. Frag mich nach Setup, Risiken oder Vergleichen.');
       }}
       _maybeShowWarn();
       setTimeout(() => document.getElementById('chat-inp')?.focus(), 300);
     }}
-  }};
+  }}
+
+  window.toggleChat = function() {{ _setChatOpen(!_open); }};
+
+  // Swipe-down to close (mobile full-screen only, < 768 px)
+  (function(){{
+    const panel = document.getElementById('chat-panel');
+    if (!panel) return;
+    let _touchStartY = 0, _touchStartT = 0;
+    panel.addEventListener('touchstart', function(e) {{
+      _touchStartY = e.touches[0].clientY;
+      _touchStartT = Date.now();
+    }}, {{passive: true}});
+    panel.addEventListener('touchend', function(e) {{
+      if (window.innerWidth >= 768) return;          // desktop: kein Swipe-close
+      const dy = e.changedTouches[0].clientY - _touchStartY;
+      const dt = Date.now() - _touchStartT;
+      if (dy > 60 && dt < 400) {{                    // ≥60px nach unten, <400ms
+        const msgs = document.getElementById('chat-msgs');
+        if (msgs && msgs.scrollTop > 0) return;      // nur wenn am Anfang des Scroll
+        _setChatOpen(false);
+      }}
+    }}, {{passive: true}});
+  }})();
 
   function _addMsg(role, text) {{
     const msgs = document.getElementById('chat-msgs');
