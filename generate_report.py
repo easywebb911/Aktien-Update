@@ -1850,6 +1850,10 @@ def _card(i: int, s: dict) -> str:
     _da_iv    = f'{_iv*100:.1f}' if _iv   is not None else ''
     _da_earn  = str(_earn_days)  if _earn_days is not None else ''
     _da_cap   = str(int(cap_val)) if cap_val else ''
+    _da_float = f'{(s.get("float_shares") or 0)/1e6:.1f}M' if s.get("float_shares") else ''
+    _news_titles = [n.get("title","")[:140] for n in (s.get("news") or [])[:3] if n.get("title")]
+    _da_news  = json.dumps(_news_titles, ensure_ascii=False).replace('"','&quot;')
+    _da_earn_date = _earn_dstr
 
     return f"""
 <article class="card" id="c{i}" data-ticker="{s['ticker']}"
@@ -1857,7 +1861,8 @@ def _card(i: int, s: dict) -> str:
   data-price="{_price:.2f}" data-sf="{sf:.1f}" data-sr="{sr:.1f}"
   data-rv="{rv:.2f}" data-chg="{chg:.2f}" data-si="{si_trend}"
   data-rsi="{_da_rsi}" data-iv="{_da_iv}" data-earn="{_da_earn}"
-  data-cap="{_da_cap}" data-sector="{_sector}">
+  data-earn-date="{_da_earn_date}" data-float="{_da_float}"
+  data-cap="{_da_cap}" data-sector="{_sector}" data-news="{_da_news}">
   <div class="card-top">
     <div class="card-left">
       <span class="rank">{i}</span>
@@ -2304,35 +2309,52 @@ a{{color:var(--accent);text-decoration:none}}
 .ki-analyse-result.visible{{display:block}}
 .ki-analyse-result .ka-label{{font-size:.65rem;text-transform:uppercase;letter-spacing:.5px;
   color:#a78bfa;font-weight:700;margin-bottom:5px;display:block}}
-/* Chat panel */
-.btn-chat{{background:#0e3a5e;color:#7dd3fc;}}
+/* Chat panel — mobile full-screen, desktop right panel (380px) */
+.btn-chat{{background:#0e3a5e;color:#7dd3fc}}
 .btn-chat:hover:not(:disabled){{background:#0c4a6e;color:#fff}}
-.chat-panel{{position:fixed;bottom:0;right:0;width:min(420px,100vw);height:min(600px,80vh);
-  background:var(--bg-card);border:1px solid var(--brd);border-radius:14px 14px 0 0;
-  box-shadow:0 -4px 24px rgba(0,0,0,.35);display:flex;flex-direction:column;z-index:200;
-  transform:translateY(100%);transition:transform .25s cubic-bezier(.4,0,.2,1)}}
+.chat-panel{{position:fixed;left:0;right:0;bottom:0;top:auto;height:100vh;width:100vw;
+  background:var(--bg-card);border:1px solid var(--brd);box-shadow:0 -4px 24px rgba(0,0,0,.35);
+  display:flex;flex-direction:column;z-index:300;
+  transform:translateY(100%);transition:transform .28s cubic-bezier(.4,0,.2,1)}}
 .chat-panel.open{{transform:translateY(0)}}
-.chat-hdr{{display:flex;align-items:center;padding:10px 14px;border-bottom:1px solid var(--brd);
-  gap:8px;flex-shrink:0}}
-.chat-hdr-title{{flex:1;font-size:.88rem;font-weight:700;color:var(--txt)}}
-.chat-close-btn{{background:none;border:none;color:var(--txt-dim);cursor:pointer;font-size:1rem;
-  padding:4px;line-height:1}}
+@media(min-width:768px){{
+  .chat-panel{{left:auto;top:0;width:380px;height:100vh;border-radius:0;
+    transform:translateX(100%)}}
+  .chat-panel.open{{transform:translateX(0)}}
+}}
+.chat-hdr{{display:flex;align-items:center;padding:12px 16px;border-bottom:1px solid var(--brd);
+  gap:10px;flex-shrink:0;background:var(--bg-hdr)}}
+.chat-hdr-title{{flex:1;font-size:.95rem;font-weight:700;color:var(--txt)}}
+.chat-close-btn{{background:none;border:none;color:var(--txt-dim);cursor:pointer;font-size:1.2rem;
+  padding:4px 8px;line-height:1;min-width:36px;min-height:36px}}
 .chat-close-btn:hover{{color:var(--txt)}}
-.chat-msgs{{flex:1;overflow-y:auto;padding:10px 12px;display:flex;flex-direction:column;gap:8px}}
-.chat-msg{{max-width:88%;padding:8px 12px;border-radius:10px;font-size:.82rem;line-height:1.55}}
+.chat-warn-banner{{padding:10px 14px;background:#1c1200;border:1px solid #92400e;color:#fcd34d;
+  font-size:.78rem;line-height:1.5;margin:10px 12px 0;border-radius:8px}}
+.chat-warn-banner.hidden{{display:none}}
+.chat-warn-banner .btn{{margin-top:8px;min-height:32px;padding:0 12px;font-size:.78rem;
+  background:#f59e0b;color:#1c1102;flex:0 0 auto}}
+.chat-msgs{{flex:1;overflow-y:auto;padding:12px 14px;display:flex;flex-direction:column;gap:10px}}
+.chat-msg{{max-width:88%;padding:9px 13px;border-radius:10px;font-size:.85rem;line-height:1.55;
+  word-wrap:break-word}}
 .chat-msg--user{{align-self:flex-end;background:#1e3a5f;color:#bae6fd;border-radius:10px 10px 2px 10px}}
 .chat-msg--ai{{align-self:flex-start;background:var(--bg-met);color:var(--txt);border-radius:10px 10px 10px 2px}}
-.chat-msg--sys{{align-self:center;color:var(--txt-dim);font-size:.72rem;font-style:italic}}
-.chat-chips{{display:flex;flex-wrap:wrap;gap:6px;padding:6px 12px;border-top:1px solid var(--brd);flex-shrink:0}}
+.chat-msg--sys{{align-self:center;color:var(--txt-dim);font-size:.72rem;font-style:italic;text-align:center}}
+.chat-msg--err{{align-self:center;background:#2d0a0a;border:1px solid #991b1b;color:#fca5a5;
+  border-radius:8px;font-size:.78rem}}
+.chat-msg.streaming::after{{content:'\u258B';color:var(--accent);animation:chatCaret 1s steps(2) infinite}}
+@keyframes chatCaret{{50%{{opacity:0}}}}
+.chat-chips{{display:flex;flex-wrap:wrap;gap:6px;padding:8px 12px;border-top:1px solid var(--brd);flex-shrink:0}}
 .chip{{background:var(--bg-met);border:1px solid var(--brd);border-radius:20px;
-  padding:4px 10px;font-size:.72rem;cursor:pointer;color:var(--txt-sub);white-space:nowrap}}
+  padding:5px 11px;font-size:.72rem;cursor:pointer;color:var(--txt-sub);white-space:nowrap;
+  text-align:left}}
 .chip:hover{{background:var(--brd);color:var(--txt)}}
-.chat-input-row{{display:flex;gap:6px;padding:8px 10px;border-top:1px solid var(--brd);flex-shrink:0}}
+.chat-input-row{{display:flex;gap:6px;padding:10px 12px;border-top:1px solid var(--brd);flex-shrink:0;
+  padding-bottom:max(10px,env(safe-area-inset-bottom))}}
 .chat-inp{{flex:1;background:var(--bg-met);border:1px solid var(--brd);border-radius:8px;
-  color:var(--txt);padding:0 10px;height:40px;font-size:.82rem;font-family:inherit}}
+  color:var(--txt);padding:0 12px;height:42px;font-size:.85rem;font-family:inherit}}
 .chat-inp:focus{{outline:2px solid var(--accent);outline-offset:1px}}
 .chat-send-btn{{background:#2563eb;color:#fff;border:none;border-radius:8px;
-  padding:0 14px;height:40px;font-size:.82rem;font-weight:700;cursor:pointer;flex-shrink:0}}
+  padding:0 16px;height:42px;font-size:.95rem;font-weight:700;cursor:pointer;flex-shrink:0}}
 .chat-send-btn:hover:not(:disabled){{background:#1d4ed8}}
 .chat-send-btn:disabled{{opacity:.45;cursor:not-allowed}}
 .score-block{{display:flex;flex-direction:column;align-items:flex-end;min-width:64px}}
@@ -2567,11 +2589,11 @@ a{{color:var(--accent);text-decoration:none}}
     </div>
   </div>
   <div id="anth-sec" style="display:none" class="anth-panel">
-    <p class="tok-hint">Anthropic API-Key (wird nur im Browser gespeichert, nie übertragen):</p>
+    <p class="tok-hint"><strong>Anthropic API-Key</strong> — Dein API-Key wird ausschließlich lokal im Browser gespeichert und nie an andere Server übertragen.</p>
     <div class="tok-row">
-      <input type="password" id="anth-inp" class="tok-inp" placeholder="sk-ant-api03-…"
+      <input type="password" id="anth-inp" class="tok-inp" placeholder="sk-ant-…"
              onkeydown="if(event.key==='Enter')saveAnthropicKey()">
-      <button class="btn btn-anth" style="flex:0;padding:0 12px" onclick="testAnthropicKey()">Test</button>
+      <button class="btn btn-anth" style="flex:0;padding:0 12px" onclick="testAnthropicKey()">Testen</button>
       <button class="btn btn-b" style="flex:0;padding:0 12px" onclick="saveAnthropicKey()">OK</button>
     </div>
     <div id="anth-status" class="anth-status"></div>
@@ -2587,23 +2609,22 @@ a{{color:var(--accent);text-decoration:none}}
     font-size:.78rem;font-weight:500;padding:5px 16px;box-sizing:border-box;
     border-top:1px solid #d97706;line-height:1.45" aria-live="polite"></div>
   <!-- Claude Chat Panel -->
-  <div id="chat-panel" class="chat-panel" role="dialog" aria-label="Claude KI-Chat">
+  <div id="chat-panel" class="chat-panel" role="dialog" aria-label="KI-Assistent Chat">
     <div class="chat-hdr">
-      <span style="font-size:1rem">&#x1F916;</span>
-      <span class="chat-hdr-title">Claude — Squeeze Analyst</span>
+      <span style="font-size:1.1rem">&#x1F916;</span>
+      <span class="chat-hdr-title">TopTen Squeezer &middot; KI-Assistent</span>
       <button class="chat-close-btn" onclick="toggleChat()" aria-label="Chat schließen">&#10005;</button>
     </div>
-    <div class="chat-msgs" id="chat-msgs"></div>
-    <div class="chat-chips" id="chat-chips">
-      <button class="chip" onclick="chatAsk('Welche Aktie hat das höchste Squeeze-Potenzial heute?')">Top-Kandidat?</button>
-      <button class="chip" onclick="chatAsk('Erkläre den Score des Erstplatzierten.')">Score erklären</button>
-      <button class="chip" onclick="chatAsk('Welche Risiken sehe ich bei den aktuellen Top-10?')">Risiken?</button>
-      <button class="chip" onclick="chatAsk('Vergleiche die SI-Trends aller Aktien.')">SI-Trends</button>
+    <div id="chat-warn" class="chat-warn-banner hidden">
+      &#9888;&#65039; Alle KI-Analysen sind rein informativ und stellen keine Anlageempfehlung dar. Short Squeezes sind hochspekulative Ereignisse mit erheblichem Verlustrisiko.
+      <div><button class="btn" onclick="chatWarnAck()">Verstanden</button></div>
     </div>
+    <div class="chat-msgs" id="chat-msgs"></div>
+    <div class="chat-chips" id="chat-chips"></div>
     <div class="chat-input-row">
       <input class="chat-inp" id="chat-inp" type="text" placeholder="Frage zu den aktuellen Squeeze-Kandidaten …"
              onkeydown="if(event.key==='Enter'&&!event.shiftKey){{chatSend();event.preventDefault()}}">
-      <button class="chat-send-btn" id="chat-send" onclick="chatSend()">&#10148;</button>
+      <button class="chat-send-btn" id="chat-send" onclick="chatSend()" aria-label="Senden">&#10148;</button>
     </div>
   </div>
 </header>
@@ -3316,6 +3337,10 @@ function _fmtGerman(d) {{
       const ticker = card.getAttribute('data-ticker');
       const sig    = signals[ticker];
       const score  = (sig && sig.score != null) ? sig.score : 0;
+      // Expose for Claude KI-Analyse button
+      card.dataset.kiScore = String(score);
+      if (sig && sig.drivers)       card.dataset.kiDrivers = String(sig.drivers);
+      if (sig && sig.confidence != null) card.dataset.kiConf = String(sig.confidence);
       const tickerSpan = card.querySelector('.ticker');
       if (!tickerSpan) return;
 
@@ -3639,52 +3664,119 @@ function _fmtGerman(d) {{
   document.addEventListener('DOMContentLoaded', wlRender);
 }})();
 // ── Claude / Anthropic API ────────────────────────────────────────────────────
-const ANT_KEY_LS   = 'anthropic_api_key';
-const ANT_ENDPOINT = 'https://api.anthropic.com/v1/messages';
+const ANT_KEY_LS       = 'anthropic_api_key';
+const ANT_WARN_LS      = 'chat_warn_ack_ts';
+const ANT_WARN_TTL_MS  = 7 * 24 * 60 * 60 * 1000;
+const ANT_ENDPOINT     = 'https://api.anthropic.com/v1/messages';
+const ANT_MODEL        = 'claude-sonnet-4-20250514';
+const ANT_KI_LABEL     = '\U0001F916 KI-Analyse';
+const ANT_KI_LABEL_NEW = '\U0001F504 Neu analysieren';
+const ANT_KI_LABEL_BUSY= '\u23F3 Analysiere …';
+const ANT_KI_LABEL_KEY = '\U0001F511 API-Key erforderlich';
 
-async function callAnthropic(messages, systemPrompt, model) {{
+function _mapAnthropicError(status, rawMsg) {{
+  if (status === 401) return 'Ungültiger API-Key';
+  if (status === 429) return 'Rate Limit erreicht — bitte kurz warten';
+  if (status === 0)   return 'Keine Verbindung zur Claude API';
+  return rawMsg || ('API-Fehler ' + status);
+}}
+
+/**
+ * Streaming API-Call an Claude.
+ * onDelta(text) wird für jedes text-delta Event aufgerufen.
+ * Resolves mit vollem Antworttext bei message_stop.
+ */
+async function callAnthropicStream(messages, systemPrompt, onDelta, opts) {{
+  opts = opts || {{}};
   const key = localStorage.getItem(ANT_KEY_LS);
-  if (!key) throw new Error('Kein API-Key gespeichert. Bitte zuerst den Anthropic API-Key eingeben.');
+  if (!key) throw new Error('Kein API-Key gespeichert.');
   const body = {{
-    model:      model || 'claude-haiku-4-5-20251001',
-    max_tokens: 1024,
+    model:      opts.model      || ANT_MODEL,
+    max_tokens: opts.max_tokens || 500,
     system:     systemPrompt || '',
     messages:   messages,
+    stream:     true,
   }};
-  const res = await fetch(ANT_ENDPOINT, {{
-    method:  'POST',
-    headers: {{
-      'Content-Type':                         'application/json',
-      'x-api-key':                            key,
-      'anthropic-version':                    '2023-06-01',
-      'anthropic-dangerous-direct-browser-access': 'true',
-    }},
-    body: JSON.stringify(body),
-  }});
-  if (!res.ok) {{
-    let msg = 'API-Fehler ' + res.status;
-    try {{ const e = await res.json(); msg = e?.error?.message || msg; }} catch(_) {{}}
-    throw new Error(msg);
+  let res;
+  try {{
+    res = await fetch(ANT_ENDPOINT, {{
+      method:  'POST',
+      headers: {{
+        'Content-Type':                              'application/json',
+        'x-api-key':                                 key,
+        'anthropic-version':                         '2023-06-01',
+        'anthropic-dangerous-direct-browser-access': 'true',
+      }},
+      body: JSON.stringify(body),
+    }});
+  }} catch(_netErr) {{
+    throw new Error(_mapAnthropicError(0, ''));
   }}
-  const data = await res.json();
-  return data?.content?.[0]?.text || '';
+  if (!res.ok) {{
+    let raw = '';
+    try {{ const e = await res.json(); raw = e?.error?.message || ''; }} catch(_) {{}}
+    throw new Error(_mapAnthropicError(res.status, raw));
+  }}
+  if (!res.body || !res.body.getReader) {{
+    // Fallback: no streaming support → parse as JSON
+    const data = await res.json();
+    const text = data?.content?.[0]?.text || '';
+    if (onDelta && text) onDelta(text);
+    return text;
+  }}
+  const reader  = res.body.getReader();
+  const decoder = new TextDecoder();
+  let buf = '', full = '';
+  while (true) {{
+    const {{ value, done }} = await reader.read();
+    if (done) break;
+    buf += decoder.decode(value, {{stream:true}});
+    let idx;
+    while ((idx = buf.indexOf('\n\n')) !== -1) {{
+      const chunk = buf.slice(0, idx);
+      buf = buf.slice(idx + 2);
+      const lines = chunk.split('\n');
+      let ev = '', dataStr = '';
+      for (const line of lines) {{
+        if (line.startsWith('event:')) ev = line.slice(6).trim();
+        else if (line.startsWith('data:')) dataStr += line.slice(5).trim();
+      }}
+      if (!dataStr) continue;
+      try {{
+        const obj = JSON.parse(dataStr);
+        if (obj.type === 'content_block_delta' && obj.delta && obj.delta.type === 'text_delta') {{
+          const t = obj.delta.text || '';
+          full += t;
+          if (onDelta) onDelta(t);
+        }} else if (obj.type === 'error') {{
+          throw new Error(obj.error?.message || 'Stream-Fehler');
+        }}
+      }} catch(parseErr) {{
+        if (parseErr instanceof Error && parseErr.message && !parseErr.message.startsWith('Unexpected')) throw parseErr;
+      }}
+    }}
+  }}
+  return full;
 }}
 
 async function testAnthropicKey() {{
   const inp = document.getElementById('anth-inp');
   const st  = document.getElementById('anth-status');
-  const key = (inp?.value || '').trim();
-  if (!key) {{ st.className = 'anth-status err'; st.textContent = 'Bitte API-Key eingeben.'; return; }}
+  const key = (inp?.value || '').trim() || localStorage.getItem(ANT_KEY_LS) || '';
+  if (!key) {{ st.className = 'anth-status err'; st.textContent = '❌ Bitte API-Key eingeben.'; return; }}
   st.className = 'anth-status ok'; st.textContent = 'Wird geprüft …';
+  const prev = localStorage.getItem(ANT_KEY_LS);
+  localStorage.setItem(ANT_KEY_LS, key);
   try {{
-    const saved = localStorage.getItem(ANT_KEY_LS);
-    localStorage.setItem(ANT_KEY_LS, key);
-    await callAnthropic([{{role:'user',content:'Hi'}}], '', 'claude-haiku-4-5-20251001');
-    st.className = 'anth-status ok'; st.textContent = '✓ API-Key gültig.';
+    await callAnthropicStream(
+      [{{role:'user', content:'ping'}}],
+      '', null, {{max_tokens: 5}}
+    );
+    st.className = 'anth-status ok'; st.textContent = '✅ Verbunden';
   }} catch(e) {{
-    const saved2 = localStorage.getItem(ANT_KEY_LS);
-    if (saved2 === key) localStorage.removeItem(ANT_KEY_LS);
-    st.className = 'anth-status err'; st.textContent = '✗ ' + e.message;
+    if (prev) localStorage.setItem(ANT_KEY_LS, prev); else localStorage.removeItem(ANT_KEY_LS);
+    st.className = 'anth-status err';
+    st.textContent = (/Ungültiger/.test(e.message)) ? '❌ Ungültiger Key' : '❌ ' + e.message;
   }}
 }}
 
@@ -3692,9 +3784,13 @@ function saveAnthropicKey() {{
   const inp = document.getElementById('anth-inp');
   const st  = document.getElementById('anth-status');
   const key = (inp?.value || '').trim();
-  if (!key) {{ st.className='anth-status err'; st.textContent='Bitte API-Key eingeben.'; return; }}
+  if (!key) {{ st.className='anth-status err'; st.textContent='❌ Bitte API-Key eingeben.'; return; }}
   localStorage.setItem(ANT_KEY_LS, key);
   st.className = 'anth-status ok'; st.textContent = '✓ Gespeichert.';
+  // Analyse-Buttons aktualisieren
+  document.querySelectorAll('.ki-analyse-btn').forEach(b => {{
+    if (b.textContent.indexOf('API-Key') !== -1) b.textContent = ANT_KI_LABEL;
+  }});
   setTimeout(() => {{ document.getElementById('anth-sec').style.display='none'; }}, 800);
 }}
 
@@ -3704,6 +3800,7 @@ function clearAnthropicKey() {{
   const st  = document.getElementById('anth-status');
   if (inp) inp.value = '';
   if (st)  {{ st.className='anth-status ok'; st.textContent='API-Key gelöscht.'; }}
+  document.querySelectorAll('.ki-analyse-btn').forEach(b => {{ b.textContent = ANT_KI_LABEL_KEY; }});
 }}
 
 function toggleSettings() {{
@@ -3719,98 +3816,162 @@ function toggleSettings() {{
   }}
 }}
 
+// Initialer Button-Text setzen (zeigt „🔑 API-Key erforderlich" wenn nichts gespeichert)
+document.addEventListener('DOMContentLoaded', () => {{
+  if (!localStorage.getItem(ANT_KEY_LS)) {{
+    document.querySelectorAll('.ki-analyse-btn').forEach(b => {{ b.textContent = ANT_KI_LABEL_KEY; }});
+  }}
+}});
+
 async function runKiAnalyse(cardIdx) {{
   const article = document.getElementById('c' + cardIdx);
   const btn     = document.getElementById('ka-btn' + cardIdx);
   const res     = document.getElementById('ka-res' + cardIdx);
   if (!article || !btn || !res) return;
 
-  const key = localStorage.getItem(ANT_KEY_LS);
-  if (!key) {{
+  if (!localStorage.getItem(ANT_KEY_LS)) {{
+    btn.textContent = ANT_KI_LABEL_KEY;
     toggleSettings();
-    res.innerHTML = '<span class="ka-label">Hinweis</span>Bitte zuerst den Anthropic API-Key eingeben.';
-    res.classList.add('visible');
     return;
   }}
 
   const d = article.dataset;
-  const ticker  = d.ticker  || '';
-  const company = d.company || ticker;
-  const score   = d.score   || '?';
-  const sf      = d.sf      || '?';
-  const sr      = d.sr      || '?';
-  const rv      = d.rv      || '?';
-  const chg     = d.chg     || '?';
-  const si      = d.si      || 'no_data';
-  const rsi     = d.rsi     || 'n/a';
-  const iv      = d.iv      || 'n/a';
-  const earn    = d.earn    ? 'in ' + d.earn + 'd' : 'n/a';
-  const cap     = d.cap     ? (parseInt(d.cap)/1e9).toFixed(1)+'B' : 'n/a';
-  const sector  = d.sector  || 'n/a';
+  let newsArr = [];
+  try {{ newsArr = JSON.parse(d.news || '[]'); }} catch(_) {{}}
+  const ctx = {{
+    ticker:   d.ticker  || '',
+    company:  d.company || d.ticker || '',
+    score:    d.score   || '?',
+    sf:       d.sf      || '?',
+    sr:       d.sr      || '?',
+    rv:       d.rv      || '?',
+    chg:      d.chg     || '?',
+    floatM:   d.float   || 'n/a',
+    si:       d.si      || 'no_data',
+    rsi:      d.rsi     || 'n/a',
+    iv:       d.iv      || 'n/a',
+    earn:     d.earn    ? ('in ' + d.earn + 'd' + (d.earnDate ? ' (' + d.earnDate + ')' : '')) : 'keine in 14T',
+    cap:      d.cap     ? (parseInt(d.cap)/1e9).toFixed(1) + 'B USD' : 'n/a',
+    sector:   d.sector  || 'n/a',
+    kiScore:  d.kiScore != null ? (d.kiScore + '/100') : 'nicht bewertet',
+    kiConf:   d.kiConf  != null ? (d.kiConf  + '%')    : 'n/a',
+    kiDrv:    d.kiDrivers || '',
+    news:     newsArr,
+  }};
+
+  const sysPrompt = 'Du bist ein erfahrener Squeeze-Analyst. Analysiere das folgende Squeeze-Setup und gib eine präzise Einschätzung auf Deutsch. Maximal 150 Wörter. Schließe immer mit einem Haftungshinweis ab: Diese Analyse ist keine Anlageempfehlung.';
+  const userPrompt =
+`Squeeze-Setup für ${{ctx.ticker}} (${{ctx.company}}):
+- Squeeze-Score: ${{ctx.score}}/100
+- Short Float: ${{ctx.sf}}%
+- Days to Cover: ${{ctx.sr}}d
+- Rel. Volumen: ${{ctx.rv}}×
+- Momentum (heute): ${{ctx.chg}}%
+- Float: ${{ctx.floatM}}
+- SI-Trend (FINRA, 3M): ${{ctx.si}}
+- RSI 14: ${{ctx.rsi}}
+- ATM Impl. Volatilität: ${{ctx.iv}}%
+- Nächste Earnings: ${{ctx.earn}}
+- KI-Agent-Score: ${{ctx.kiScore}} (Konfidenz ${{ctx.kiConf}})${{ctx.kiDrv ? ' — Treiber: ' + ctx.kiDrv : ''}}
+- Marktkapitalisierung: ${{ctx.cap}} · Sektor: ${{ctx.sector}}
+- Aktuelle Schlagzeilen:
+${{ctx.news.length ? ctx.news.map((n,i) => '  ' + (i+1) + '. ' + n).join('\n') : '  (keine)'}}
+
+Gib eine knappe Einschätzung: Squeeze-Potenzial, wichtigste Treiber, kritische Risiken.`;
 
   btn.disabled = true;
-  btn.textContent = '⏳ Analysiere …';
-  res.innerHTML = '';
-  res.classList.remove('visible');
-
-  const prompt = `Du bist ein erfahrener Short-Squeeze-Analyst. Analysiere folgende Aktie kurz und präzise auf Deutsch (max. 4 Sätze):
-
-Ticker: ${{ticker}} (${{company}})
-Score: ${{score}}/100 | Short Float: ${{sf}}% | Days to Cover: ${{sr}}d
-Rel. Volumen: ${{rv}}× | Kursmomentum: ${{chg}}% | SI-Trend: ${{si}}
-RSI 14: ${{rsi}} | ATM-IV: ${{iv}}% | Earnings: ${{earn}} | MarktKap: ${{cap}} | Sektor: ${{sector}}
-
-Gib eine klare Einschätzung: Squeeze-Potenzial (hoch/mittel/niedrig), wichtigste Treiber, ein kritisches Risiko.`;
+  btn.textContent = ANT_KI_LABEL_BUSY;
+  res.innerHTML = '<span class="ka-label">\U0001F916 Claude &middot; ' + ctx.ticker + '</span><span class="ka-stream"></span>';
+  res.classList.add('visible');
+  const streamSpan = res.querySelector('.ka-stream');
 
   try {{
-    const text = await callAnthropic(
-      [{{role:'user', content: prompt}}],
-      'Du bist ein präziser Short-Squeeze-Analyst. Antworte immer auf Deutsch.',
-      'claude-haiku-4-5-20251001'
+    let acc = '';
+    await callAnthropicStream(
+      [{{role:'user', content: userPrompt}}],
+      sysPrompt,
+      (delta) => {{
+        acc += delta;
+        if (streamSpan) streamSpan.innerHTML = acc.replace(/\n/g, '<br>');
+        res.scrollTop = res.scrollHeight;
+      }},
+      {{model: ANT_MODEL, max_tokens: 400}}
     );
-    res.innerHTML = '<span class="ka-label">&#x1F916; Claude KI-Analyse</span>' + text.replace(/\n/g, '<br>');
-    res.classList.add('visible');
+    btn.textContent = ANT_KI_LABEL_NEW;
   }} catch(e) {{
     res.innerHTML = '<span class="ka-label">Fehler</span>' + e.message;
-    res.classList.add('visible');
+    btn.textContent = ANT_KI_LABEL;
   }} finally {{
     btn.disabled = false;
-    btn.textContent = '\U0001F916 KI-Analyse';
   }}
 }}
 
 // ── Claude Chat Panel ─────────────────────────────────────────────────────────
 (function(){{
   const STOCKS_CTX = {chat_ctx_json};
-  const CHAT_SYSTEM = `Du bist Claude, ein präziser Short-Squeeze-Analyst. Du hast Zugriff auf die aktuellen Top-10-Squeeze-Kandidaten von heute. Beantworte Fragen immer auf Deutsch, kurz und präzise (max. 5 Sätze). Nutze die bereitgestellten Daten.
-
-Aktuelle Top-10 (JSON):
-${{JSON.stringify(STOCKS_CTX, null, 0)}}`;
-
   let _history = [];
   let _open    = false;
+
+  function _buildSystem() {{
+    return `Du bist ein erfahrener Squeeze-Analyst und kennst die aktuellen Top-10-Squeeze-Kandidaten mit allen Kennzahlen. Beantworte Fragen des Nutzers präzise auf Deutsch. Gib keine verbindlichen Anlageempfehlungen. Schreibe kompakt — maximal 200 Wörter pro Antwort.
+
+Aktuelle Top-10 (JSON):
+${{JSON.stringify(STOCKS_CTX)}}`;
+  }}
+
+  function _renderChips() {{
+    const chips = document.getElementById('chat-chips');
+    if (!chips) return;
+    const top1 = STOCKS_CTX[0]?.ticker || 'Top 1';
+    const top2 = STOCKS_CTX[1]?.ticker || 'Top 2';
+    const suggestions = [
+      'Welcher Kandidat hat heute das beste Setup?',
+      `Was spricht gegen einen Einstieg bei ${{top1}}?`,
+      `Erkläre den SI-Trend von ${{top2}}`,
+      'Welche Risiken sehe ich bei High-IV-Kandidaten?',
+    ];
+    chips.innerHTML = suggestions.map(s =>
+      `<button class="chip" onclick="chatAsk(${{JSON.stringify(s).replace(/"/g,'&quot;')}})">${{s}}</button>`
+    ).join('');
+  }}
+
+  function _maybeShowWarn() {{
+    const banner = document.getElementById('chat-warn');
+    if (!banner) return;
+    const ts  = parseInt(localStorage.getItem(ANT_WARN_LS) || '0', 10);
+    const ok  = ts && (Date.now() - ts) < ANT_WARN_TTL_MS;
+    banner.classList.toggle('hidden', !!ok);
+  }}
+
+  window.chatWarnAck = function() {{
+    localStorage.setItem(ANT_WARN_LS, String(Date.now()));
+    const b = document.getElementById('chat-warn');
+    if (b) b.classList.add('hidden');
+  }};
 
   window.toggleChat = function() {{
     const panel = document.getElementById('chat-panel');
     if (!panel) return;
     _open = !_open;
     panel.classList.toggle('open', _open);
-    if (_open && _history.length === 0) {{
-      _addMsg('sys', 'Hallo! Ich bin Claude. Frag mich zu den heutigen Squeeze-Kandidaten.');
-    }}
     if (_open) {{
+      if (_history.length === 0) {{
+        _addMsg('sys', 'Hallo! Ich kenne die heutigen Top-10-Squeeze-Kandidaten. Frag mich nach Setup, Risiken oder Vergleichen.');
+      }}
+      _maybeShowWarn();
       setTimeout(() => document.getElementById('chat-inp')?.focus(), 300);
     }}
   }};
 
   function _addMsg(role, text) {{
     const msgs = document.getElementById('chat-msgs');
-    if (!msgs) return;
+    if (!msgs) return null;
     const div = document.createElement('div');
     div.className = 'chat-msg chat-msg--' + role;
     div.innerHTML = text.replace(/\n/g, '<br>');
     msgs.appendChild(div);
     msgs.scrollTop = msgs.scrollHeight;
+    return div;
   }}
 
   window.chatAsk = function(text) {{
@@ -3825,10 +3986,9 @@ ${{JSON.stringify(STOCKS_CTX, null, 0)}}`;
     const text = (inp?.value || '').trim();
     if (!text) return;
 
-    const key = localStorage.getItem(ANT_KEY_LS);
-    if (!key) {{
+    if (!localStorage.getItem(ANT_KEY_LS)) {{
       toggleSettings();
-      _addMsg('sys', '⚠ Bitte zuerst den Anthropic API-Key eingeben (⚙ Einstellungen).');
+      _addMsg('err', '\u26A0 Bitte zuerst den Anthropic API-Key eingeben (\u2699 oben rechts).');
       return;
     }}
 
@@ -3837,27 +3997,36 @@ ${{JSON.stringify(STOCKS_CTX, null, 0)}}`;
     _history.push({{role:'user', content: text}});
 
     if (send) send.disabled = true;
-    const loadingDiv = document.createElement('div');
-    loadingDiv.className = 'chat-msg chat-msg--sys';
-    loadingDiv.textContent = '…';
-    const msgs = document.getElementById('chat-msgs');
-    if (msgs) {{ msgs.appendChild(loadingDiv); msgs.scrollTop = msgs.scrollHeight; }}
+    const aiDiv = _addMsg('ai', '');
+    if (aiDiv) aiDiv.classList.add('streaming');
 
     try {{
-      const reply = await callAnthropic(_history, CHAT_SYSTEM, 'claude-sonnet-4-6');
-      if (loadingDiv.parentNode) loadingDiv.parentNode.removeChild(loadingDiv);
-      _history.push({{role:'assistant', content: reply}});
+      let acc = '';
+      await callAnthropicStream(
+        _history,
+        _buildSystem(),
+        (delta) => {{
+          acc += delta;
+          if (aiDiv) aiDiv.innerHTML = acc.replace(/\n/g, '<br>');
+          const msgs = document.getElementById('chat-msgs');
+          if (msgs) msgs.scrollTop = msgs.scrollHeight;
+        }},
+        {{model: ANT_MODEL, max_tokens: 500}}
+      );
+      if (aiDiv) aiDiv.classList.remove('streaming');
+      _history.push({{role:'assistant', content: acc}});
       if (_history.length > 20) _history = _history.slice(-20);
-      _addMsg('ai', reply);
     }} catch(e) {{
-      if (loadingDiv.parentNode) loadingDiv.parentNode.removeChild(loadingDiv);
+      if (aiDiv && aiDiv.parentNode) aiDiv.parentNode.removeChild(aiDiv);
       _history.pop();
-      _addMsg('sys', '✗ ' + e.message);
+      _addMsg('err', '✗ ' + e.message);
     }} finally {{
       if (send) send.disabled = false;
       inp?.focus();
     }}
   }};
+
+  document.addEventListener('DOMContentLoaded', _renderChips);
 }})();
 // ─────────────────────────────────────────────────────────────────────────────
 </script>
