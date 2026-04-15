@@ -3953,7 +3953,7 @@ Gib eine knappe Einschätzung: Squeeze-Potenzial, wichtigste Treiber, kritische 
   let _open    = false;
 
   function _buildSystem() {{
-    return `Du bist ein erfahrener Squeeze-Analyst und kennst die aktuellen Top-10-Squeeze-Kandidaten mit allen Kennzahlen. Beantworte Fragen des Nutzers präzise auf Deutsch. Gib keine verbindlichen Anlageempfehlungen. Schreibe kompakt — maximal 200 Wörter pro Antwort.
+    return `Du bist ein erfahrener Squeeze-Analyst und kennst die aktuellen Top-10-Squeeze-Kandidaten mit allen Kennzahlen. Beantworte Fragen des Nutzers präzise auf Deutsch. Gib keine verbindlichen Anlageempfehlungen. Schreibe kompakt — maximal 200 Wörter pro Antwort. Der Squeeze-Score ist das primäre Ranking-Kriterium. Bei gleichen qualitativen Signalen bevorzuge immer den Kandidaten mit dem höheren Score. Erkläre explizit wenn du vom Score-Rang abweichst und begründe warum.
 
 Aktuelle Top-10 (JSON):
 ${{JSON.stringify(STOCKS_CTX)}}`;
