@@ -672,10 +672,10 @@ def get_yahoo_news(ticker: str, n: int = 5) -> list[dict]:
         return []
 
 
-def _rss_news(ticker: str, url: str, source_label: str) -> list[dict]:
+def _rss_news(ticker: str, url: str, source_label: str, timeout: int = 8) -> list[dict]:
     """Fetch and parse a generic RSS/Atom feed; return normalised news items."""
     try:
-        r = requests.get(url, headers=HTTP_HEADERS, timeout=8)
+        r = requests.get(url, headers=HTTP_HEADERS, timeout=timeout)
         if r.status_code != 200:
             return []
         root = ET.fromstring(r.content)
@@ -741,6 +741,7 @@ def get_combined_news(ticker: str, n: int = 3) -> list[dict]:
         ticker,
         f"https://seekingalpha.com/api/sa/combined/{base_upper}.xml",
         "Seeking Alpha",
+        timeout=4,
     )
     fv_items    = _rss_news(
         ticker,
