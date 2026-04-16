@@ -1119,7 +1119,7 @@ def get_finra_short_interest(ticker: str,
             trend = "sideways"
         trend_pct = max(-0.90, min(2.0, raw_pct))
         if _finra_stats.get("ok", 0) < 5:
-            print(f"{sym} FINRA trend: oldest={oldest:,}, newest={newest:,}, "
+            print(f"{sym} FINRA trend: avg_old={avg_old:,.0f}, avg_new={avg_new:,.0f}, "
                   f"trend_pct={trend_pct*100:.1f}%, trend={trend}", flush=True)
 
     # SI Velocity: average daily share change (newest − oldest) / n data points
