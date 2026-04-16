@@ -3974,7 +3974,7 @@ async function runKiAnalyse(cardIdx) {{
     news:     newsArr,
   }};
 
-  const sysPrompt = 'Du bist ein erfahrener Squeeze-Analyst. Analysiere das folgende Squeeze-Setup und gib eine präzise Einschätzung auf Deutsch. Maximal 150 Wörter. Schließe immer mit einem Haftungshinweis ab: Diese Analyse ist keine Anlageempfehlung.';
+  const sysPrompt = 'Du bist ein erfahrener Squeeze-Analyst. Analysiere das folgende Squeeze-Setup und gib eine präzise Einschätzung auf Deutsch. Maximal 150 Wörter. Schließe immer mit einem Haftungshinweis ab: Diese Analyse ist keine Anlageempfehlung. Beende jede Analyse zwingend mit "Fazit:" gefolgt von einer konkreten Einschätzung in einem Satz.';
   const userPrompt =
 `Squeeze-Setup für ${{ctx.ticker}} (${{ctx.company}}):
 - Squeeze-Score: ${{ctx.score}}/100
@@ -4031,7 +4031,7 @@ Gib eine knappe Einschätzung: Squeeze-Potenzial, wichtigste Treiber, kritische 
   let _open    = false;
 
   function _buildSystem() {{
-    return `Du bist ein erfahrener Squeeze-Analyst und kennst die aktuellen Top-10-Squeeze-Kandidaten mit allen Kennzahlen. Beantworte Fragen des Nutzers präzise auf Deutsch. Gib keine verbindlichen Anlageempfehlungen. Schreibe kompakt — maximal 200 Wörter pro Antwort. Der Squeeze-Score ist das primäre Ranking-Kriterium. Bei gleichen qualitativen Signalen bevorzuge immer den Kandidaten mit dem höheren Score. Erkläre explizit wenn du vom Score-Rang abweichst und begründe warum.
+    return `Du bist ein erfahrener Squeeze-Analyst und kennst die aktuellen Top-10-Squeeze-Kandidaten mit allen Kennzahlen. Beantworte Fragen des Nutzers präzise auf Deutsch. Gib keine verbindlichen Anlageempfehlungen. Schreibe kompakt — maximal 200 Wörter pro Antwort. Der Squeeze-Score ist das primäre Ranking-Kriterium. Bei gleichen qualitativen Signalen bevorzuge immer den Kandidaten mit dem höheren Score. Erkläre explizit wenn du vom Score-Rang abweichst und begründe warum. Schließe jede Antwort immer mit einem kurzen Fazit ab — maximal 2 Sätze, beginnt mit dem Wort 'Fazit:'. Das Fazit fasst die wichtigste Handlungsempfehlung oder Warnung in einfacher Sprache zusammen. Beispiel: 'Fazit: QUBT bietet heute das beste Setup mit klarem Katalysator. Das Risiko bleibt hoch — nur mit Kapital einsteigen das du bereit bist zu verlieren.'
 
 Aktuelle Top-10 (JSON):
 ${{JSON.stringify(STOCKS_CTX)}}`;
@@ -4041,12 +4041,13 @@ ${{JSON.stringify(STOCKS_CTX)}}`;
     const chips = document.getElementById('chat-chips');
     if (!chips) return;
     const top1 = STOCKS_CTX[0]?.ticker || 'Top 1';
-    const top2 = STOCKS_CTX[1]?.ticker || 'Top 2';
     const suggestions = [
-      'Welcher Kandidat hat heute das beste Setup?',
-      `Was spricht gegen einen Einstieg bei ${{top1}}?`,
-      `Erkläre den SI-Trend von ${{top2}}`,
-      'Welche Risiken sehe ich bei High-IV-Kandidaten?',
+      '\U0001F3C6 Welcher Kandidat hat heute die h\u00f6chste Squeeze-Wahrscheinlichkeit?',
+      `\u26a1 Was spricht f\u00fcr einen Einstieg bei ${{top1}}?`,
+      '\U0001F4CA Vergleiche die Top 3 Kandidaten direkt',
+      '\U0001F3AF Welche 2 Kandidaten haben den besten Risiko/Chancen-Mix?',
+      '\U0001F4C5 Bei welchem Kandidaten ist ein Katalysator am n\u00e4chsten?',
+      '\u26a0\ufe0f Welche Risiken sollte ich heute besonders beachten?',
     ];
     chips.innerHTML = suggestions.map(s =>
       `<button class="chip" onclick="chatAsk(${{JSON.stringify(s).replace(/"/g,'&quot;')}})">${{s}}</button>`
