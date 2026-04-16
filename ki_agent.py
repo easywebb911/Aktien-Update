@@ -41,15 +41,15 @@ import requests
 import yfinance as yf
 
 # ── Konfiguration — alle Schwellen hier ändern, nirgendwo sonst ──────────────
-ALERT_THRESHOLD         = 25      # Fallback (wird durch Phasen-Schwellen ersetzt)
+ALERT_THRESHOLD         = 15      # Fallback (wird durch Phasen-Schwellen ersetzt)
 ALERT_THRESHOLD_STRONG  = 70      # Score ≥ → Starker Alert (⚡⚡)
 ALERT_COOLDOWN_HOURS    = 2       # Mindeststunden zwischen zwei Alerts je Ticker
 
 # Fix 2 — Phasenabhängige Alert-Schwellen
-ALERT_THRESHOLD_REGULAR    = 25   # 09:30–16:00 ET Regulärer Handel
-ALERT_THRESHOLD_PREMARKET  = 20   # 04:00–09:30 ET (weniger Quellen aktiv)
-ALERT_THRESHOLD_AFTERHOURS = 20   # 16:00–20:00 ET
-ALERT_THRESHOLD_CLOSED     = 35   # Geschlossen / Wochenende (nur News-Signale)
+ALERT_THRESHOLD_REGULAR    = 15   # 09:30–16:00 ET Regulärer Handel
+ALERT_THRESHOLD_PREMARKET  = 15   # 04:00–09:30 ET (weniger Quellen aktiv)
+ALERT_THRESHOLD_AFTERHOURS = 15   # 16:00–20:00 ET
+ALERT_THRESHOLD_CLOSED     = 15   # Geschlossen / Wochenende (nur News-Signale)
 
 # Fix 1 — Pre/Post-Market Daten
 USE_PREPOST_DATA = True           # prepost=True im 1m-Intraday-Download
@@ -69,7 +69,7 @@ SCORE_REDDIT_15         = 20      # Reddit-Erwähnungen ≥ 15 in 4h (ersetzt 10
 SCORE_REDDIT_SENTIMENT  = 10      # Positiver Sentiment-Score ≥ 0.3
 SCORE_SEC_8K            = 15      # Neue 8-K-Meldung in letzten 24h
 SCORE_SEC_8K_RELEVANT   = 25      # 8-K mit Earnings/FDA-Keywords → erhöhter Bonus
-SCORE_NEWS_KEYWORD      = 10      # News-Keyword-Treffer (je Treffer, max 20 Pkt)
+SCORE_NEWS_KEYWORD      = 15      # News-Keyword-Treffer (je Treffer, max 30 Pkt)
 
 # Auslöse-Schwellen (Trigger)
 TRIGGER_PRICE_UP_3      = 2.0     # Kursanstieg ab 2 % → SCORE_PRICE_UP_3
@@ -83,7 +83,7 @@ SCORE_EARNINGS_MID      = 15      # Earnings in ≤ EARNINGS_MID_DAYS Tagen
 SCORE_EARNINGS_FAR      = 8       # Earnings in ≤ EARNINGS_FAR_DAYS Tagen
 EARNINGS_NEAR_DAYS      = 3
 EARNINGS_MID_DAYS       = 7
-EARNINGS_FAR_DAYS       = 30
+EARNINGS_FAR_DAYS       = 45
 
 # FDA PDUFA-Nähe-Punkte
 SCORE_PDUFA_NEAR        = 25      # PDUFA in 1–7 Tagen
@@ -311,42 +311,35 @@ def fetch_yfinance(tickers: list[str]) -> dict[str, dict]:
     except Exception as exc:
         log.warning("yfinance Tagesbalken Fehler: %s", exc)
 
-    # ── Schritt 2: 1m-Bars mit prepost=True → aktueller Kurs Pre/Post-Market ─
+    # ── Schritt 2: fast_info.last_price → aktueller Kurs inkl. Pre/Post-Market ─
+    # Zuverlässiger als 1m-Bars: liefert den letzten verfügbaren Kurs auch
+    # außerhalb der regulären Handelszeiten (After-Hours / Pre-Market).
     if USE_PREPOST_DATA:
-        try:
-            hist_1m  = yf.download(
-                tickers, period="1d", interval="1m",
-                prepost=True, auto_adjust=True,
-                threads=True, progress=False,
-            )
-            multi_1m = len(tickers) > 1
-            for t in tickers:
-                try:
-                    df1 = hist_1m[t] if multi_1m else hist_1m
-                    if df1 is None or df1.empty:
-                        continue
-                    df1 = df1.dropna(subset=["Close"])
-                    current_price = float(df1["Close"].iloc[-1])
-                    base = results.get(t, {}).get("last_reg_close")
-                    if base and base > 0:
-                        chg_pct = round((current_price - base) / base * 100, 2)
-                    else:
-                        chg_pct = results.get(t, {}).get("chg_pct", 0.0)
-                    if t in results:
-                        results[t]["price"]   = round(current_price, 2)
-                        results[t]["chg_pct"] = chg_pct
-                    else:
-                        results[t] = {
-                            "price":          round(current_price, 2),
-                            "last_reg_close": round(current_price, 2),
-                            "chg_pct":        chg_pct,
-                            "rvol":           0.0,
-                            "intraday":       0.0,
-                        }
-                except Exception as exc:
-                    log.debug("yfinance 1m prepost slice %s: %s", t, exc)
-        except Exception as exc:
-            log.warning("yfinance 1m prepost Fehler: %s", exc)
+        for t in tickers:
+            try:
+                fi = yf.Ticker(t).fast_info
+                current_price = fi.last_price
+                if not current_price or current_price <= 0:
+                    continue
+                base = results.get(t, {}).get("last_reg_close")
+                if base and base > 0:
+                    chg_pct = round((current_price - base) / base * 100, 2)
+                else:
+                    chg_pct = results.get(t, {}).get("chg_pct", 0.0)
+                if t in results:
+                    results[t]["price"]   = round(current_price, 2)
+                    results[t]["chg_pct"] = chg_pct
+                else:
+                    results[t] = {
+                        "price":          round(current_price, 2),
+                        "last_reg_close": round(current_price, 2),
+                        "chg_pct":        chg_pct,
+                        "rvol":           0.0,
+                        "intraday":       0.0,
+                    }
+                log.debug("fast_info %s: last_price=%.2f chg=%.1f%%", t, current_price, chg_pct)
+            except Exception as exc:
+                log.debug("fast_info %s: %s", t, exc)
 
     return results
 
@@ -825,6 +818,15 @@ def compute_signal(
     score   = 0
     drivers = []
 
+    # ── Per-Komponenten-Tracking für Diagnose-Print ──────────────────────────
+    kurs_pts    = 0
+    vol_pts     = 0
+    news_pts    = 0
+    earn_pts    = 0
+    insider_pts = 0
+    ssr_pts     = 0
+    sec_pts     = 0
+
     # ── 6 Signalkategorien für Konfidenz-Berechnung ──────────────────────────
     sig_kurs    = False  # 1. Kursbewegung
     sig_vol     = False  # 2. Volumen
@@ -838,20 +840,24 @@ def compute_signal(
     intr = yf_data.get("intraday", 0.0)
 
     if chg >= TRIGGER_PRICE_UP_7:
-        score += SCORE_PRICE_UP_7
+        kurs_pts = SCORE_PRICE_UP_7
+        score += kurs_pts
         drivers.append(f"Kurs +{chg:.1f}%")
         sig_kurs = True
     elif chg >= TRIGGER_PRICE_UP_3:
-        score += SCORE_PRICE_UP_3
+        kurs_pts = SCORE_PRICE_UP_3
+        score += kurs_pts
         drivers.append(f"Kurs +{chg:.1f}%")
         sig_kurs = True
 
     if rvol >= TRIGGER_RVOL_4X:
-        score += SCORE_RVOL_4X
+        vol_pts = SCORE_RVOL_4X
+        score += vol_pts
         drivers.append(f"Volumen {rvol:.1f}×")
         sig_vol = True
     elif rvol >= TRIGGER_RVOL_2X:
-        score += SCORE_RVOL_2X
+        vol_pts = SCORE_RVOL_2X
+        score += vol_pts
         drivers.append(f"Volumen {rvol:.1f}×")
         sig_vol = True
 
@@ -879,7 +885,8 @@ def compute_signal(
         title_lower = sec_title.lower()
         is_relevant = any(kw in title_lower for kw in SEC_RELEVANT_KEYWORDS)
         pts = SCORE_SEC_8K_RELEVANT if is_relevant else SCORE_SEC_8K
-        score += pts
+        score    += pts
+        news_pts += pts
         drivers.append("SEC 8-K")
         sig_news = True
         print(f"{ticker} SEC 8-K: '{sec_title}' → +{pts} Pkt "
@@ -889,11 +896,13 @@ def compute_signal(
     kw_hits: list[str] = []
     all_headlines = " ".join(news).lower()
     for kw in NEWS_KEYWORDS:
-        if kw in all_headlines and kw_pts < 20:
+        if kw in all_headlines and kw_pts < 30:
             kw_pts += SCORE_NEWS_KEYWORD
             kw_hits.append(kw)
     if kw_pts > 0:
-        score += min(kw_pts, 20)
+        _kw_capped = min(kw_pts, 30)
+        score    += _kw_capped
+        news_pts += _kw_capped
         drivers.append(f"News: {', '.join(kw_hits)}")
         sig_news = True
 
@@ -908,7 +917,8 @@ def compute_signal(
         else:
             pts = 0
         if pts > 0:
-            score += pts
+            score     += pts
+            earn_pts  += pts
             drivers.append(f"Earnings in {earnings_days}d")
             sig_insider = True
             print(f"{ticker} Earnings in {earnings_days} Tagen → +{pts} Pkt")
@@ -922,7 +932,8 @@ def compute_signal(
         else:
             pts = 0
         if pts > 0:
-            score += pts
+            score     += pts
+            earn_pts  += pts
             drivers.append(f"FDA PDUFA in {fda_days}d")
             sig_insider = True
             print(f"{ticker} FDA PDUFA in {fda_days} Tagen → +{pts} Pkt")
@@ -933,29 +944,33 @@ def compute_signal(
         ic_cs   = insider.get("csuite", False)
         pts     = SCORE_INSIDER_CSUITE if ic_cs else SCORE_INSIDER_BUY
         label   = "C-Suite Insider-Kauf" if ic_cs else f"Insider-Kauf ({ic}×)"
-        score  += pts
+        score       += pts
+        insider_pts += pts
         drivers.append(label)
         sig_insider = True
         print(f"{ticker} OpenInsider: {ic} Käufe, C-Suite: {ic_cs} → +{pts} Pkt")
 
     # FINRA Daily Short Sale Volume
     if finra_ssr_ratio >= FINRA_DAILY_SSR_HIGH:
-        score += SCORE_FINRA_SSR_HIGH
+        ssr_pts  = SCORE_FINRA_SSR_HIGH
+        score   += ssr_pts
         drivers.append(f"FINRA Short-Vol {finra_ssr_ratio:.0%}")
         sig_insider = True
-        print(f"{ticker} FINRA SSR: {finra_ssr_ratio:.1%} → +{SCORE_FINRA_SSR_HIGH} Pkt")
+        print(f"{ticker} FINRA SSR: {finra_ssr_ratio:.1%} → +{ssr_pts} Pkt")
     elif finra_ssr_ratio >= FINRA_DAILY_SSR_MID:
-        score += SCORE_FINRA_SSR_MID
+        ssr_pts  = SCORE_FINRA_SSR_MID
+        score   += ssr_pts
         drivers.append(f"FINRA Short-Vol {finra_ssr_ratio:.0%}")
         sig_insider = True
-        print(f"{ticker} FINRA SSR: {finra_ssr_ratio:.1%} → +{SCORE_FINRA_SSR_MID} Pkt")
+        print(f"{ticker} FINRA SSR: {finra_ssr_ratio:.1%} → +{ssr_pts} Pkt")
 
     # SEC Form 4 — Insider-Transaktionen
     if has_form4:
         form4_lower  = form4_title.lower()
         is_purchase  = "purchase" in form4_lower or "acquisition" in form4_lower
         pts          = SCORE_FORM4_PURCHASE if is_purchase else SCORE_FORM4_ANY
-        score       += pts
+        score   += pts
+        sec_pts += pts
         drivers.append("SEC Form 4 (Kauf)" if is_purchase else "SEC Form 4")
         sig_insider = True
         print(f"{ticker} SEC Form 4: '{form4_title}' → +{pts} Pkt "
@@ -971,10 +986,17 @@ def compute_signal(
     else:
         confidence = base_conf
 
+    total = min(score, 100)
+    print(
+        f"{ticker}: Kurs={chg:.1f}% ({kurs_pts}Pkt), RVOL={rvol:.1f}× ({vol_pts}Pkt), "
+        f"News={news_pts}Pkt, Earnings={earn_pts}Pkt, OpenInsider={insider_pts}Pkt, "
+        f"FINRA_SSR={ssr_pts}Pkt, SEC={sec_pts}Pkt = {total}Pkt",
+        flush=True,
+    )
     print(f"{ticker} Konfidenz: {confidence}% ({n_types}/{MAX_SIGNAL_TYPES} Signaltypen aktiv)",
           flush=True)
 
-    return min(score, 100), drivers, confidence
+    return total, drivers, confidence
 
 
 # ── E-Mail-Versand ────────────────────────────────────────────────────────────
