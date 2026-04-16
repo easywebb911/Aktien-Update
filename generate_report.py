@@ -2165,7 +2165,7 @@ a{{color:var(--accent);text-decoration:none}}
 @media(max-width:479px){{
   .hdr-btns .btn{{font-size:13px!important;min-height:40px!important;padding:0 10px!important}}
   #btn-reload,#btn-recalc{{flex:1 1 calc(50% - 4px)}}
-  #btn-ki{{flex:1 1 100%}}
+  #btn-ki,#btn-chat{{flex:1 1 calc(50% - 4px);font-size:11px!important;min-height:28px!important;padding:4px 8px!important}}
 }}
 .btn{{display:inline-flex;align-items:center;justify-content:center;
   gap:6px;min-height:44px;padding:0 16px;border:none;border-radius:10px;
