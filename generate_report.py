@@ -81,7 +81,7 @@ COMBO_BONUS              = 5    # synergy bonus when ≥ 3 of 4 squeeze factors 
 FTD_BONUS_MAX    = 0    # SEC EDGAR + Nasdaq Data Link blocked on GitHub Actions IPs
 # ── FINRA short interest trend thresholds ────────────────────────────────────
 SI_TREND_PERIODS        = 6     # FINRA publishes twice monthly; 6 = ~3 months
-SI_TREND_MIN_DATAPOINTS = 2     # minimum history points required for trend calc
+SI_TREND_MIN_DATAPOINTS = 3     # minimum history points required for trend calc
 # ── Float-size score factor ───────────────────────────────────────────────────
 FLOAT_WEIGHT          = 8          # max bonus points for small float
 FLOAT_SATURATION_LOW  = 30_000_000  # ≤ 30 M shares → full 8 pts
@@ -1101,21 +1101,22 @@ def get_finra_short_interest(ticker: str,
         return {}
 
     # Only include data points ≥ _TREND_MIN_VOL (100) in trend calc
-    # Cap output to [-95 %, +500 %] to suppress data artefacts
+    # Cap output to [-90 %, +200 %] to suppress data artefacts
     # Classification uses raw (uncapped) value; only the stored pct is capped.
+    # Moving-average smoothing: avg of 2 newest vs avg of 2 oldest to dampen outliers.
     trend, trend_pct = "no_data", 0.0
     significant = [p for p in history if p["short_interest"] >= _TREND_MIN_VOL]
     if len(significant) >= SI_TREND_MIN_DATAPOINTS:
-        newest = significant[0]["short_interest"]
-        oldest = significant[-1]["short_interest"]
-        raw_pct = (newest - oldest) / oldest
+        avg_new = (significant[0]["short_interest"] + significant[1]["short_interest"]) / 2
+        avg_old = (significant[-1]["short_interest"] + significant[-2]["short_interest"]) / 2
+        raw_pct = (avg_new - avg_old) / avg_old
         if raw_pct >= SI_TREND_UP_THRESHOLD:
             trend = "up"
         elif raw_pct <= SI_TREND_DOWN_THRESHOLD:
             trend = "down"
         else:
             trend = "sideways"
-        trend_pct = max(-0.95, min(5.0, raw_pct))
+        trend_pct = max(-0.90, min(2.0, raw_pct))
         if _finra_stats.get("ok", 0) < 5:
             print(f"{sym} FINRA trend: oldest={oldest:,}, newest={newest:,}, "
                   f"trend_pct={trend_pct*100:.1f}%, trend={trend}", flush=True)
