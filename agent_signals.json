@@ -1,10 +1,10 @@
 {
-  "updated": "2026-04-16T23:20:00.105832+02:00",
+  "updated": "2026-04-17T00:27:04.007026+02:00",
   "run_info": {
     "tickers_checked": 10,
-    "signals_active": 6,
+    "signals_active": 7,
     "alerts_sent": 0,
-    "elapsed_s": 25.6,
+    "elapsed_s": 28.7,
     "market_phase": "After-Hours"
   },
   "signals": {
@@ -23,7 +23,7 @@
     "IBG": {
       "score": 30,
       "confidence": 17,
-      "drivers": "News: acquisition, merger",
+      "drivers": "News: merger, acquisition",
       "price": 1.26,
       "chg_pct": 0.0,
       "rvol": 0.0,
@@ -45,9 +45,9 @@
       "insider_buy": false
     },
     "HIMS": {
-      "score": 8,
-      "confidence": 17,
-      "drivers": "Earnings in 25d",
+      "score": 23,
+      "confidence": 33,
+      "drivers": "News: contract + Earnings in 25d",
       "price": 26.99,
       "chg_pct": 0.0,
       "rvol": 0.0,
