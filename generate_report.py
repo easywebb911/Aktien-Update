@@ -1333,7 +1333,7 @@ def _load_score_history() -> dict:
     _save_score_history() only serialises what is still needed — no second pass.
     """
     from datetime import date, timedelta
-    cutoff = (date.today() - timedelta(days=_SCORE_HISTORY_DAYS)).strftime("%Y-%m-%d")
+    cutoff = (date.today() - timedelta(days=_SCORE_HISTORY_DAYS)).strftime("%d.%m.%Y")
     try:
         with open(_SCORE_HISTORY_FILE, "r", encoding="utf-8") as fh:
             raw = json.load(fh)
