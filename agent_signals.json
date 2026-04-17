@@ -1,21 +1,21 @@
 {
-  "updated": "2026-04-17T00:27:04.007026+02:00",
+  "updated": "2026-04-17T08:13:17.699291+02:00",
   "run_info": {
     "tickers_checked": 10,
-    "signals_active": 7,
+    "signals_active": 6,
     "alerts_sent": 0,
-    "elapsed_s": 28.7,
-    "market_phase": "After-Hours"
+    "elapsed_s": 21.2,
+    "market_phase": "Geschlossen"
   },
   "signals": {
     "GRPN": {
       "score": 8,
       "confidence": 17,
-      "drivers": "Earnings in 25d",
+      "drivers": "Earnings in 24d",
       "price": 15.52,
       "chg_pct": 0.0,
       "rvol": 0.0,
-      "earnings": "in 25 Tagen (11.05.2026)",
+      "earnings": "in 24 Tagen (11.05.2026)",
       "fda_date": null,
       "upcoming_event": null,
       "insider_buy": false
@@ -23,7 +23,7 @@
     "IBG": {
       "score": 30,
       "confidence": 17,
-      "drivers": "News: merger, acquisition",
+      "drivers": "News: acquisition, merger",
       "price": 1.26,
       "chg_pct": 0.0,
       "rvol": 0.0,
@@ -35,23 +35,23 @@
     "LESL": {
       "score": 8,
       "confidence": 17,
-      "drivers": "Earnings in 21d",
+      "drivers": "Earnings in 20d",
       "price": 1.82,
       "chg_pct": 0.0,
       "rvol": 0.0,
-      "earnings": "in 21 Tagen (07.05.2026)",
+      "earnings": "in 20 Tagen (07.05.2026)",
       "fda_date": null,
       "upcoming_event": null,
       "insider_buy": false
     },
     "HIMS": {
-      "score": 23,
-      "confidence": 33,
-      "drivers": "News: contract + Earnings in 25d",
+      "score": 8,
+      "confidence": 17,
+      "drivers": "Earnings in 24d",
       "price": 26.99,
       "chg_pct": 0.0,
       "rvol": 0.0,
-      "earnings": "in 25 Tagen (11.05.2026)",
+      "earnings": "in 24 Tagen (11.05.2026)",
       "fda_date": null,
       "upcoming_event": null,
       "insider_buy": false
@@ -59,11 +59,11 @@
     "DFDV": {
       "score": 23,
       "confidence": 33,
-      "drivers": "News: short interest + Earnings in 27d",
+      "drivers": "News: short interest + Earnings in 26d",
       "price": 4.77,
       "chg_pct": 0.0,
       "rvol": 0.0,
-      "earnings": "in 27 Tagen (13.05.2026)",
+      "earnings": "in 26 Tagen (13.05.2026)",
       "fda_date": null,
       "upcoming_event": null,
       "insider_buy": false
@@ -71,11 +71,11 @@
     "FWRD": {
       "score": 23,
       "confidence": 33,
-      "drivers": "News: merger + Earnings in 20d",
+      "drivers": "News: merger + Earnings in 19d",
       "price": 20.87,
       "chg_pct": 0.0,
       "rvol": 0.0,
-      "earnings": "in 20 Tagen (06.05.2026)",
+      "earnings": "in 19 Tagen (06.05.2026)",
       "fda_date": null,
       "upcoming_event": null,
       "insider_buy": false
@@ -83,11 +83,11 @@
     "VOYG": {
       "score": 23,
       "confidence": 33,
-      "drivers": "News: contract + Earnings in 18d",
+      "drivers": "News: contract + Earnings in 17d",
       "price": 32.54,
       "chg_pct": 0.0,
       "rvol": 0.0,
-      "earnings": "in 18 Tagen (04.05.2026)",
+      "earnings": "in 17 Tagen (04.05.2026)",
       "fda_date": null,
       "upcoming_event": null,
       "insider_buy": false
@@ -95,11 +95,11 @@
     "GPRO": {
       "score": 8,
       "confidence": 17,
-      "drivers": "Earnings in 25d",
+      "drivers": "Earnings in 24d",
       "price": 1.2,
       "chg_pct": 0.0,
       "rvol": 0.0,
-      "earnings": "in 25 Tagen (11.05.2026)",
+      "earnings": "in 24 Tagen (11.05.2026)",
       "fda_date": null,
       "upcoming_event": null,
       "insider_buy": false
@@ -111,7 +111,7 @@
       "price": 6.42,
       "chg_pct": 0.0,
       "rvol": 0.0,
-      "earnings": "in 70 Tagen (25.06.2026)",
+      "earnings": "in 69 Tagen (25.06.2026)",
       "fda_date": null,
       "upcoming_event": null,
       "insider_buy": false
@@ -119,7 +119,7 @@
     "OCDO.L": {
       "score": 30,
       "confidence": 17,
-      "drivers": "News: catalyst, insider buying",
+      "drivers": "News: insider buying, catalyst",
       "price": 197.0,
       "chg_pct": 0.0,
       "rvol": 0.0,
