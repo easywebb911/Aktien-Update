@@ -1,21 +1,21 @@
 {
-  "updated": "2026-04-18T02:07:26.383542+02:00",
+  "updated": "2026-04-18T07:56:20.377047+02:00",
   "run_info": {
     "tickers_checked": 10,
     "signals_active": 0,
     "alerts_sent": 0,
-    "elapsed_s": 33.9,
+    "elapsed_s": 24.6,
     "market_phase": "Geschlossen"
   },
   "signals": {
     "CADL": {
       "score": 8,
       "confidence": 17,
-      "drivers": "Earnings in 25d",
+      "drivers": "Earnings in 24d",
       "price": 6.37,
       "chg_pct": 0.0,
       "rvol": 0.0,
-      "earnings": "in 25 Tagen (12.05.2026)",
+      "earnings": "in 24 Tagen (12.05.2026)",
       "fda_date": null,
       "upcoming_event": null,
       "insider_buy": false
@@ -23,11 +23,11 @@
     "CRVS": {
       "score": 8,
       "confidence": 17,
-      "drivers": "Earnings in 20d",
+      "drivers": "Earnings in 19d",
       "price": 16.74,
       "chg_pct": 0.0,
       "rvol": 0.0,
-      "earnings": "in 20 Tagen (07.05.2026)",
+      "earnings": "in 19 Tagen (07.05.2026)",
       "fda_date": null,
       "upcoming_event": null,
       "insider_buy": false
@@ -35,11 +35,11 @@
     "XRX": {
       "score": 8,
       "confidence": 17,
-      "drivers": "Earnings in 13d",
+      "drivers": "Earnings in 12d",
       "price": 1.73,
       "chg_pct": 0.0,
       "rvol": 0.0,
-      "earnings": "in 13 Tagen (30.04.2026)",
+      "earnings": "in 12 Tagen (30.04.2026)",
       "fda_date": null,
       "upcoming_event": null,
       "insider_buy": false
@@ -47,11 +47,11 @@
     "NKTX": {
       "score": 8,
       "confidence": 17,
-      "drivers": "Earnings in 27d",
+      "drivers": "Earnings in 26d",
       "price": 3.47,
       "chg_pct": 0.0,
       "rvol": 0.0,
-      "earnings": "in 27 Tagen (14.05.2026)",
+      "earnings": "in 26 Tagen (14.05.2026)",
       "fda_date": null,
       "upcoming_event": null,
       "insider_buy": false
@@ -59,11 +59,11 @@
     "KURA": {
       "score": 8,
       "confidence": 17,
-      "drivers": "Earnings in 20d",
+      "drivers": "Earnings in 19d",
       "price": 9.68,
       "chg_pct": 0.0,
       "rvol": 0.0,
-      "earnings": "in 20 Tagen (07.05.2026)",
+      "earnings": "in 19 Tagen (07.05.2026)",
       "fda_date": null,
       "upcoming_event": null,
       "insider_buy": false
@@ -71,11 +71,11 @@
     "PAL": {
       "score": 8,
       "confidence": 17,
-      "drivers": "Earnings in 20d",
+      "drivers": "Earnings in 19d",
       "price": 7.37,
       "chg_pct": 0.0,
       "rvol": 0.0,
-      "earnings": "in 20 Tagen (07.05.2026)",
+      "earnings": "in 19 Tagen (07.05.2026)",
       "fda_date": null,
       "upcoming_event": null,
       "insider_buy": false
@@ -83,11 +83,11 @@
     "ABSI": {
       "score": 8,
       "confidence": 17,
-      "drivers": "Earnings in 28d",
+      "drivers": "Earnings in 27d",
       "price": 3.58,
       "chg_pct": 0.0,
       "rvol": 0.0,
-      "earnings": "in 28 Tagen (15.05.2026)",
+      "earnings": "in 27 Tagen (15.05.2026)",
       "fda_date": null,
       "upcoming_event": null,
       "insider_buy": false
@@ -95,11 +95,11 @@
     "ULCC": {
       "score": 8,
       "confidence": 17,
-      "drivers": "Earnings in 13d",
+      "drivers": "Earnings in 12d",
       "price": 4.55,
       "chg_pct": 0.0,
       "rvol": 0.0,
-      "earnings": "in 13 Tagen (30.04.2026)",
+      "earnings": "in 12 Tagen (30.04.2026)",
       "fda_date": null,
       "upcoming_event": null,
       "insider_buy": false
@@ -107,11 +107,11 @@
     "IFRX": {
       "score": 8,
       "confidence": 17,
-      "drivers": "Earnings in 19d",
+      "drivers": "Earnings in 18d",
       "price": 1.59,
       "chg_pct": 0.0,
       "rvol": 0.0,
-      "earnings": "in 19 Tagen (06.05.2026)",
+      "earnings": "in 18 Tagen (06.05.2026)",
       "fda_date": null,
       "upcoming_event": null,
       "insider_buy": false
@@ -119,11 +119,11 @@
     "BMEA": {
       "score": 8,
       "confidence": 17,
-      "drivers": "Earnings in 17d",
+      "drivers": "Earnings in 16d",
       "price": 2.21,
       "chg_pct": 0.0,
       "rvol": 0.0,
-      "earnings": "in 17 Tagen (04.05.2026)",
+      "earnings": "in 16 Tagen (04.05.2026)",
       "fda_date": null,
       "upcoming_event": null,
       "insider_buy": false
