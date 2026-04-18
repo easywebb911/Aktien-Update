@@ -1,10 +1,10 @@
 {
-  "updated": "2026-04-18T13:58:23.446063+02:00",
+  "updated": "2026-04-18T16:12:07.528750+02:00",
   "run_info": {
     "tickers_checked": 10,
-    "signals_active": 2,
+    "signals_active": 1,
     "alerts_sent": 0,
-    "elapsed_s": 23.0,
+    "elapsed_s": 31.7,
     "market_phase": "Geschlossen"
   },
   "signals": {
@@ -105,9 +105,9 @@
       "insider_buy": false
     },
     "AMC": {
-      "score": 23,
-      "confidence": 33,
-      "drivers": "News: takeover + Earnings in 18d",
+      "score": 8,
+      "confidence": 17,
+      "drivers": "Earnings in 18d",
       "price": 1.86,
       "chg_pct": 0.0,
       "rvol": 0.0,
