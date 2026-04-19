@@ -3746,8 +3746,9 @@ def _render_test(stocks: list[dict], report_date: str) -> None:
 # 4b. WATCHLIST VOLUME SCAN
 # ===========================================================================
 
-_WL_FAILURES_FILE = "watchlist_failures.json"
-_WL_INACTIVE_FILE = "watchlist_inactive.txt"
+_WL_FAILURES_FILE   = "watchlist_failures.json"
+_WL_INACTIVE_FILE   = "watchlist_inactive.json"
+_WL_INACTIVE_LEGACY = "watchlist_inactive.txt"   # alte Datei, einmalig migriert
 
 # Required ticker suffix per non-US region; US = no suffix from this dict
 _WL_REGION_SUFFIX: dict[str, str] = {
@@ -3777,18 +3778,41 @@ def _wl_save_failures(failures: dict[str, int]) -> None:
 
 
 def _wl_load_inactive() -> set[str]:
+    """Liest delisted/inaktive Watchlist-Ticker aus JSON, mit Legacy-TXT-Migration."""
+    inactive: set[str] = set()
+    # Neu: JSON-Format
     try:
         with open(_WL_INACTIVE_FILE) as f:
-            return {ln.strip() for ln in f if ln.strip()}
+            data = json.load(f)
+        if isinstance(data, dict):
+            inactive.update(data.get("tickers", []))
+        elif isinstance(data, list):
+            inactive.update(data)
     except Exception:
-        return set()
+        pass
+    # Legacy: TXT-Format (einmalige Migration beim ersten Lauf)
+    try:
+        with open(_WL_INACTIVE_LEGACY) as f:
+            inactive.update(ln.strip() for ln in f if ln.strip())
+    except Exception:
+        pass
+    return inactive
+
+
+def _wl_save_inactive(inactive: set[str]) -> None:
+    """Schreibt die Blacklist nach JSON — von update_watchlist.py ausgelesen."""
+    payload = {
+        "updated":  datetime.now(ZoneInfo("UTC")).isoformat(timespec="seconds"),
+        "tickers":  sorted(inactive),
+    }
+    with open(_WL_INACTIVE_FILE, "w") as f:
+        json.dump(payload, f, indent=2)
 
 
 def _wl_mark_inactive(ticker: str) -> None:
     inactive = _wl_load_inactive()
     inactive.add(ticker)
-    with open(_WL_INACTIVE_FILE, "w") as f:
-        f.write("\n".join(sorted(inactive)) + "\n")
+    _wl_save_inactive(inactive)
     log.warning("Watchlist: %s nach %d× Fehler als inaktiv markiert → %s",
                 ticker, _WL_MAX_FAILURES, _WL_INACTIVE_FILE)
 
