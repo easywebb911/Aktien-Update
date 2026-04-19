@@ -2243,7 +2243,8 @@ a{{color:var(--accent);text-decoration:none}}
 .ki-analyse-btn:hover:not(:disabled){{background:linear-gradient(90deg,#2d1460 0%,#3b1f6b 100%)}}
 .ki-analyse-btn:disabled{{opacity:.5;cursor:not-allowed}}
 .ki-analyse-result{{padding:10px 14px;border-top:1px solid #4c1d9522;display:none;
-  font-size:.82rem;line-height:1.6;color:var(--txt-sub);background:#0d0920}}
+  font-size:.82rem;line-height:1.6;color:var(--txt-sub);background:#0d0920;
+  max-height:300px;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain}}
 .ki-analyse-result.visible{{display:block}}
 .ki-analyse-result .ka-label{{font-size:.65rem;text-transform:uppercase;letter-spacing:.5px;
   color:#a78bfa;font-weight:700;margin-bottom:5px;display:flex;align-items:center;gap:8px}}
@@ -2286,7 +2287,8 @@ a{{color:var(--accent);text-decoration:none}}
 .chat-warn-banner.hidden{{display:none}}
 .chat-warn-banner .btn{{margin-top:8px;min-height:32px;padding:0 12px;font-size:.78rem;
   background:#f59e0b;color:#1c1102;flex:0 0 auto}}
-.chat-msgs{{flex:1;overflow-y:auto;padding:12px 14px;display:flex;flex-direction:column;gap:10px}}
+.chat-msgs{{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;
+  padding:12px 14px;display:flex;flex-direction:column;gap:10px}}
 .chat-msg{{max-width:88%;padding:9px 13px;border-radius:10px;font-size:.85rem;line-height:1.55;
   word-wrap:break-word}}
 .chat-msg--user{{align-self:flex-end;background:#1e3a5f;color:#bae6fd;border-radius:10px 10px 2px 10px}}
