@@ -33,127 +33,15 @@ import xml.etree.ElementTree as ET
 from datetime import datetime, time as dt_time, timedelta, timezone
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
-from pathlib import Path
-from zoneinfo import ZoneInfo
 
 import pandas as pd
 import requests
 import yfinance as yf
 
-# ── Konfiguration — alle Schwellen hier ändern, nirgendwo sonst ──────────────
-ALERT_THRESHOLD         = 15      # Fallback (wird durch Phasen-Schwellen ersetzt)
-ALERT_THRESHOLD_STRONG  = 70      # Score ≥ → Starker Alert (⚡⚡)
-ALERT_COOLDOWN_HOURS    = 2       # Mindeststunden zwischen zwei Alerts je Ticker
+from config import *   # zentrale Konstanten (Schwellen, Score-Gewichte, Timeouts, Pfade)
 
-# Fix 2 — Phasenabhängige Alert-Schwellen
-ALERT_THRESHOLD_REGULAR    = 15   # 09:30–16:00 ET Regulärer Handel
-ALERT_THRESHOLD_PREMARKET  = 15   # 04:00–09:30 ET (weniger Quellen aktiv)
-ALERT_THRESHOLD_AFTERHOURS = 15   # 16:00–20:00 ET
-ALERT_THRESHOLD_CLOSED     = 15   # Geschlossen / Wochenende (nur News-Signale)
-
-# Fix 1 — Pre/Post-Market Daten
-USE_PREPOST_DATA = True           # prepost=True im 1m-Intraday-Download
-
-# Fix 3 — Earnings-Sofort-Alert nach Börsenschluss
-EARNINGS_IMMEDIATE_ALERT  = True  # Sofort-Alert bei frischer Earnings-Meldung
-EARNINGS_IMMEDIATE_HOURS  = 2     # 8-K/News muss innerhalb letzter N Stunden liegen
-
-# Score-Punkte je Signal
-SCORE_PRICE_UP_3        = 15      # Kursanstieg ≥ 3 % intraday
-SCORE_PRICE_UP_7        = 25      # Kursanstieg ≥ 7 % intraday (ersetzt 15)
-SCORE_RVOL_2X           = 15      # Rel. Volumen ≥ 2×
-SCORE_RVOL_4X           = 25      # Rel. Volumen ≥ 4× (ersetzt 15)
-SCORE_INTRADAY_RANGE    = 10      # (Hoch−Tief)/Open ≥ 5 %
-SCORE_REDDIT_5          = 10      # Reddit-Erwähnungen ≥ 5 in 4h
-SCORE_REDDIT_15         = 20      # Reddit-Erwähnungen ≥ 15 in 4h (ersetzt 10)
-SCORE_REDDIT_SENTIMENT  = 10      # Positiver Sentiment-Score ≥ 0.3
-SCORE_SEC_8K            = 15      # Neue 8-K-Meldung in letzten 24h
-SCORE_SEC_8K_RELEVANT   = 25      # 8-K mit Earnings/FDA-Keywords → erhöhter Bonus
-SCORE_NEWS_KEYWORD      = 15      # News-Keyword-Treffer (je Treffer, max 30 Pkt)
-
-# Auslöse-Schwellen (Trigger)
-TRIGGER_PRICE_UP_3      = 2.0     # Kursanstieg ab 2 % → SCORE_PRICE_UP_3
-TRIGGER_PRICE_UP_7      = 5.0     # Kursanstieg ab 5 % → SCORE_PRICE_UP_7
-TRIGGER_RVOL_2X         = 1.5     # Rel. Volumen ab 1,5× → SCORE_RVOL_2X
-TRIGGER_RVOL_4X         = 3.0     # Rel. Volumen ab 3× → SCORE_RVOL_4X
-
-# Earnings-Nähe-Punkte (Tage bis Earnings)
-SCORE_EARNINGS_NEAR     = 25      # Earnings in ≤ EARNINGS_NEAR_DAYS Tagen
-SCORE_EARNINGS_MID      = 15      # Earnings in ≤ EARNINGS_MID_DAYS Tagen
-SCORE_EARNINGS_FAR      = 8       # Earnings in ≤ EARNINGS_FAR_DAYS Tagen
-EARNINGS_NEAR_DAYS      = 3
-EARNINGS_MID_DAYS       = 7
-EARNINGS_FAR_DAYS       = 45
-
-# FDA PDUFA-Nähe-Punkte
-SCORE_PDUFA_NEAR        = 25      # PDUFA in 1–7 Tagen
-SCORE_PDUFA_MID         = 15      # PDUFA in 8–30 Tagen
-
-# Konfidenz-Berechnung
-MAX_SIGNAL_TYPES        = 6   # Anzahl der betrachteten Signalkategorien
-CONFIDENCE_CAP_SINGLE   = 40  # max. Konfidenz wenn nur 1 Signaltyp aktiv
-CONFIDENCE_MIN_MULTI    = 70  # min. Konfidenz wenn ≥ 3 Signaltypen aktiv
-
-# Tägliche Zusammenfassung (Optimierung 14)
-SEND_DAILY_SUMMARY       = True   # Tages-Zusammenfassung um ~16:30 ET senden
-DAILY_SUMMARY_HOUR_ET    = 16     # Stunde (ET) für Zusammenfassung
-DAILY_SUMMARY_MINUTE_ET  = 30     # Minute (ET) für Zusammenfassung
-DAILY_SUMMARY_WINDOW_MIN = 5      # ±Minuten Toleranzfenster
-
-NEWS_KEYWORDS = {
-    "squeeze", "short squeeze", "short interest",
-    "analyst upgrade", "earnings beat",
-    "short seller", "covering", "gamma squeeze", "options activity",
-    "unusual volume", "breakout", "catalyst", "fda approval",
-    "merger", "acquisition", "buyout", "takeover", "partnership",
-    "contract", "revenue beat", "guidance raised", "insider buying",
-    "institutional buying", "short covering", "forced liquidation",
-    "margin call", "halt", "circuit breaker", "activist investor",
-}
-SEC_RELEVANT_KEYWORDS = {
-    "earnings", "revenue", "results", "approval", "fda",
-    "pdufa", "nda", "bla", "guidance", "outlook",
-}
-REDDIT_POSITIVE   = {"squeeze", "moon", "calls", "breakout", "short"}
-REDDIT_NEGATIVE   = {"puts", "short", "crash", "dump"}
-REDDIT_SUBS       = ["wallstreetbets", "stocks", "shortsqueeze"]
-REDDIT_LOOKBACK_H = 4
-
-# OpenInsider — Insider-Käufe
-INSIDER_LOOKBACK_DAYS   = 30      # Tage zurück für Insider-Käufe
-SCORE_INSIDER_BUY       = 20      # Insider-Kauf (beliebiger Insider)
-SCORE_INSIDER_CSUITE    = 30      # C-Suite Insider-Kauf (CEO/CFO/President/etc.)
-
-# FINRA Daily Short Sale Volume
-FINRA_DAILY_SSR_MID     = 0.50    # Short-Volumenanteil ≥ 50 % → mittleres Signal
-FINRA_DAILY_SSR_HIGH    = 0.70    # Short-Volumenanteil ≥ 70 % → starkes Signal
-SCORE_FINRA_SSR_MID     = 15
-SCORE_FINRA_SSR_HIGH    = 25
-
-# SEC Form 4 — Insider-Transaktionen
-FORM4_LOOKBACK_DAYS     = 7
-SCORE_FORM4_ANY         = 10      # Beliebige Form-4-Einreichung
-SCORE_FORM4_PURCHASE    = 20      # Form-4 mit Kauf ("Purchase"/"Acquisition")
-
-# ── Dateipfade ────────────────────────────────────────────────────────────────
-STATE_FILE   = Path("agent_state.json")
-SIGNALS_FILE = Path("agent_signals.json")
-INDEX_HTML   = Path("index.html")
-PWA_URL      = "https://easywebb911.github.io/Aktien-Update/"
-
-BERLIN  = ZoneInfo("Europe/Berlin")
-EASTERN = ZoneInfo("America/New_York")
-
-HTTP_HEADERS = {
-    "User-Agent": (
-        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
-        "AppleWebKit/537.36 (KHTML, like Gecko) "
-        "Chrome/124.0.0.0 Safari/537.36"
-    ),
-    "Accept-Language": "en-US,en;q=0.9",
-}
-REDDIT_HEADERS = {"User-Agent": "SqueezeAgent/1.0"}
-SEC_HEADERS    = {"User-Agent": "SqueezeReport/1.0 github-actions@squeeze-report.com"}
+# Konstanten (Alert-Schwellen, Score-Gewichte, Trigger, Keywords, Pfade)
+# kommen aus config.py — Anpassungen dort vornehmen.
 
 logging.basicConfig(
     level=logging.INFO,
@@ -451,107 +339,25 @@ def fetch_sec_8k(ticker: str) -> tuple[bool, str, datetime | None]:
     return False, "", None
 
 
-# ── Datenquelle 5: Finviz News RSS ────────────────────────────────────────────
+# ── Datenquellen 5/8/9/10/11: Generischer RSS-Fetcher ────────────────────────
 
-def fetch_finviz_news(ticker: str) -> list[str]:
-    url = f"https://finviz.com/rss.ashx?t={ticker}"
+def fetch_rss_news(url: str, ticker: str, max_results: int = 5) -> list[str]:
+    """Generisch: lädt RSS-Feed und gibt bis zu max_results Titel zurück.
+
+    `url` darf {ticker} / {TICKER} als Platzhalter enthalten; Template-Parameter
+    werden via str.format ersetzt. Bei Fehlern wird eine leere Liste zurückgegeben.
+    """
     try:
-        resp = requests.get(url, headers=HTTP_HEADERS, timeout=10)
+        resp = requests.get(
+            url.format(ticker=ticker, TICKER=ticker.upper()),
+            headers=HTTP_HEADERS, timeout=5,
+        )
         resp.raise_for_status()
         root = ET.fromstring(resp.text)
-        titles = []
-        for item in root.iter("item"):
-            title = item.findtext("title") or ""
-            if title:
-                titles.append(title)
-            if len(titles) >= 5:
-                break
-        return titles
-    except Exception as exc:
-        log.debug("Finviz RSS %s: %s", ticker, exc)
-        return []
-
-
-# ── Datenquelle 8: Google News RSS ───────────────────────────────────────────
-
-def fetch_google_news(ticker: str) -> list[str]:
-    base = ticker.split(".")[0]
-    url = f"https://news.google.com/rss/search?q={base}+stock&hl=en-US&gl=US&ceid=US:en"
-    try:
-        resp = requests.get(url, headers=HTTP_HEADERS, timeout=10)
-        resp.raise_for_status()
-        root = ET.fromstring(resp.text)
-        titles = []
-        for item in root.iter("item"):
-            title = item.findtext("title") or ""
-            if title:
-                titles.append(title)
-            if len(titles) >= 5:
-                break
-        return titles
-    except Exception:
-        return []
-
-
-# ── Datenquelle 9: Unusual Whales RSS ────────────────────────────────────────
-
-def fetch_unusual_whales(ticker: str) -> list[str]:
-    base = ticker.split(".")[0]
-    url = f"https://unusualwhales.com/rss/ticker/{base}"
-    try:
-        resp = requests.get(url, headers=HTTP_HEADERS, timeout=10)
-        resp.raise_for_status()
-        root = ET.fromstring(resp.text)
-        titles = []
-        for item in root.iter("item"):
-            title = item.findtext("title") or ""
-            if title:
-                titles.append(title)
-            if len(titles) >= 5:
-                break
-        return titles
-    except Exception:
-        return []
-
-
-# ── Datenquelle 10: MarketBeat RSS ───────────────────────────────────────────
-
-def fetch_marketbeat_news(ticker: str) -> list[str]:
-    base = ticker.split(".")[0]
-    url = f"https://www.marketbeat.com/stocks/NASDAQ/{base}/rss/"
-    try:
-        resp = requests.get(url, headers=HTTP_HEADERS, timeout=10)
-        resp.raise_for_status()
-        root = ET.fromstring(resp.text)
-        titles = []
-        for item in root.iter("item"):
-            title = item.findtext("title") or ""
-            if title:
-                titles.append(title)
-            if len(titles) >= 5:
-                break
-        return titles
-    except Exception:
-        return []
-
-
-# ── Datenquelle 11: Seeking Alpha RSS ────────────────────────────────────────
-
-def fetch_seeking_alpha_news(ticker: str) -> list[str]:
-    base = ticker.split(".")[0]
-    url = f"https://seekingalpha.com/api/sa/combined/{base}.xml"
-    try:
-        resp = requests.get(url, headers=HTTP_HEADERS, timeout=10)
-        resp.raise_for_status()
-        root = ET.fromstring(resp.text)
-        titles = []
-        for item in root.iter("item"):
-            title = item.findtext("title") or ""
-            if title:
-                titles.append(title)
-            if len(titles) >= 5:
-                break
-        return titles
+        return [
+            (item.findtext("title") or "")
+            for item in list(root.iter("item"))[:max_results]
+        ]
     except Exception:
         return []
 
@@ -1233,24 +1039,15 @@ def main() -> None:
             log.debug("  Keine yfinance-Daten für %s", ticker)
 
         yahoo_news  = fetch_yahoo_news(ticker)
-        finviz_news = fetch_finviz_news(ticker)
-        google_news, uw_news, mb_news, sa_news = [], [], [], []
-        try:
-            google_news = fetch_google_news(ticker)
-        except Exception:
-            pass
-        try:
-            uw_news = fetch_unusual_whales(ticker)
-        except Exception:
-            pass
-        try:
-            mb_news = fetch_marketbeat_news(ticker)
-        except Exception:
-            pass
-        try:
-            sa_news = fetch_seeking_alpha_news(ticker)
-        except Exception:
-            pass
+        base        = ticker.split(".")[0]
+        finviz_news = fetch_rss_news("https://finviz.com/rss.ashx?t={ticker}", ticker)
+        google_news = fetch_rss_news(
+            "https://news.google.com/rss/search?q={ticker}+stock&hl=en-US&gl=US&ceid=US:en",
+            base,
+        )
+        uw_news = fetch_rss_news("https://unusualwhales.com/rss/ticker/{ticker}", base)
+        mb_news = fetch_rss_news("https://www.marketbeat.com/stocks/NASDAQ/{ticker}/rss/", base)
+        sa_news = fetch_rss_news("https://seekingalpha.com/api/sa/combined/{ticker}.xml", base)
         news = yahoo_news + finviz_news + google_news + uw_news + mb_news + sa_news
         print(f"{ticker} Quellen: Yahoo={len(yahoo_news)}, Google={len(google_news)}, "
               f"UnusualWhales={len(uw_news)}, MarketBeat={len(mb_news)}, "

@@ -12,7 +12,6 @@ import re
 import json
 import time
 import logging
-import threading
 import xml.etree.ElementTree as ET
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime
@@ -23,6 +22,8 @@ import requests
 import yfinance as yf
 from bs4 import BeautifulSoup
 from deep_translator import GoogleTranslator
+
+from config import *   # zentrale Konstanten (Schwellen, Score-Gewichte, Timeouts, URLs)
 from watchlist import WATCHLIST
 
 try:
@@ -38,74 +39,8 @@ except ImportError:
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
 log = logging.getLogger(__name__)
 
-# ---------------------------------------------------------------------------
-# Constants
-# ---------------------------------------------------------------------------
-HTTP_HEADERS = {
-    "User-Agent": (
-        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
-        "AppleWebKit/537.36 (KHTML, like Gecko) "
-        "Chrome/124.0.0.0 Safari/537.36"
-    ),
-    "Accept-Language": "en-US,en;q=0.9",
-}
-
-MIN_SHORT_FLOAT = 15.0   # %
-MIN_REL_VOLUME       = 1.5   # × 20-day avg — US stocks
-MIN_REL_VOLUME_INTL  = 1.2   # × 20-day avg — international watchlist (lower bar)
-MAX_MARKET_CAP  = 10e9   # $10 B
-MIN_PRICE       = 1.0    # USD
-MIN_SCORE       = 15.0   # pts — informational reference only; NOT a hard filter.
-                         # Candidates below this value show a "schwächeres Signal"
-                         # hint on their card but are still included in the Top 10.
-
-# ── Metric tile colour thresholds ────────────────────────────────────────────
-# Farblogik: Grün = starkes Squeeze-Signal, Orange = moderat, Rot = schwach — gilt einheitlich für alle vier Kategorien.
-# Short Float
-SF_GREEN  = 30.0   # %   ≥30    → green
-SF_ORANGE = 15.0   # %   15–29  → orange, <15 → red
-# Days to Cover
-SR_GREEN  =  8.0   # days  ≥8    → green
-SR_ORANGE =  3.0   # days  3–7   → orange, <3 → red
-# Rel. Volume
-RV_GREEN  =  3.0   # ×   ≥3     → green
-RV_ORANGE =  1.5   # ×   1.5–2.9 → orange, <1.5 → red
-# Kursmomentum
-MOM_GREEN =  5.0   # %   ≥+5    → green
-MOM_ORANGE= -5.0   # %   −5–+5  → orange, <−5 → red
-
-# ── Supplementary data source bonus limits ───────────────────────────────────
-FINRA_BONUS_MAX          = 5    # max bonus points for rising FINRA short interest
-FINRA_ACCELERATION_BONUS = 7    # elevated bonus when SI velocity is accelerating
-COMBO_BONUS              = 5    # synergy bonus when ≥ 3 of 4 squeeze factors are strong simultaneously
-FTD_BONUS_MAX    = 0    # SEC EDGAR + Nasdaq Data Link blocked on GitHub Actions IPs
-# ── FINRA short interest trend thresholds ────────────────────────────────────
-SI_TREND_PERIODS        = 6     # FINRA publishes twice monthly; 6 = ~3 months
-SI_TREND_MIN_DATAPOINTS = 3     # minimum history points required for trend calc
-# ── Float-size score factor ───────────────────────────────────────────────────
-FLOAT_WEIGHT          = 8          # max bonus points for small float
-FLOAT_SATURATION_LOW  = 30_000_000  # ≤ 30 M shares → full 8 pts
-FLOAT_SATURATION_HIGH = 50_000_000  # ≥ 50 M shares → 0 pts; linear between
-SI_TREND_UP_THRESHOLD   =  0.10   # ≥+10 % over full period → steigend
-SI_TREND_DOWN_THRESHOLD = -0.10   # ≤−10 % → fallend; between → seitwärts
-# ── Score smoothing weights ──────────────────────────────────────────────────
-SCORE_TODAY_WEIGHT   = 0.70   # weight for today's raw score
-SCORE_HISTORY_WEIGHT = 0.30   # weight for average of last 3 historical runs
-SCORE_TREND_BONUS    = 3      # +Pkt wenn Score SCORE_TREND_DAYS Tage in Folge gestiegen
-SCORE_TREND_MALUS    = 3      # −Pkt wenn Score SCORE_TREND_DAYS Tage in Folge gefallen
-SCORE_TREND_DAYS     = 3      # Anzahl aufeinanderfolgender Tage für Trend-Erkennung
-USE_RELATIVE_MOMENTUM = True  # Momentum relativ zum S&P 500 berechnen (adjusted_chg = chg − spx_daily)
-_SCORE_HISTORY_FILE  = "score_history.json"
-_SCORE_HISTORY_DAYS  = 14     # prune entries older than this many days
-# ── Dynamic enrichment pool sizing ───────────────────────────────────────────
-POOL_MIN                  = 20    # always enrich at least this many candidates
-POOL_MAX                  = 75    # hard upper limit to keep runtime reasonable
-POOL_SHORT_FLOAT_THRESHOLD = 10.0 # SF ≥ this % → always included regardless of POOL_MAX
-POOL_ENRICH_TIMEOUT       = 90    # seconds — skip remaining candidates if exceeded
-# ── Implied Volatility colour thresholds (percentage points) ─────────────────
-IV_LOW  = 50    # IV < IV_LOW  → rot   (niedrig, kein Squeeze-Signal)
-IV_HIGH = 100   # IV > IV_HIGH → grün  (extrem, typisch vor Squeezes)
-IV_MIN_DAYS_TO_EXPIRY = 7  # Verfallstermin muss mind. N Tage entfernt sein (verhindert Time-Decay-Verzerrung)
+# Konstanten (Schwellen, Score-Gewichte, Timeouts, Farben) kommen aus config.py
+# — siehe ``from config import *`` oben. Anpassungen dort vornehmen.
 
 
 # ===========================================================================
@@ -905,7 +840,7 @@ def fetch_sec_13f(ticker: str) -> str | None:
 
 
 # ===========================================================================
-# 2b. SUPPLEMENTARY DATA SOURCES (FINRA CSV + SEC EDGAR FTD)
+# 2b. SUPPLEMENTARY DATA SOURCES (FINRA CSV)
 # ===========================================================================
 
 # Mutable counters updated by the API functions during each run
@@ -1154,21 +1089,10 @@ def get_finra_short_interest(ticker: str,
     }
 
 
-# ── SEC EDGAR FTD ─────────────────────────────────────────────────────────────
-# Permanently disabled: SEC EDGAR ZIP endpoint and Nasdaq Data Link both return
-# HTTP 403 from GitHub Actions IP ranges. FTD_BONUS_MAX = 0.
-
-def get_sec_ftd(ticker: str, _cache: dict = {}) -> dict:
-    """Disabled stub – SEC EDGAR and Nasdaq Data Link blocked on GitHub Actions."""
-    return {}
-
-
-
 def score_bonus(stock: dict) -> float:
     """Optional bonus points (0 – FINRA_BONUS_MAX).
     FINRA: up to 5 pts if daily short volume rose.
     Condition: ≥ 2 of the 3 FINRA data points must be > 100 shares.
-    FTD bonus permanently disabled (IP-blocked on GitHub Actions).
     """
     ticker = stock.get("ticker", "?")
     finra  = stock.get("finra_data") or {}
@@ -1330,13 +1254,13 @@ def fmt_cap(v) -> str:
 def _load_score_history() -> dict:
     """Opt 7 — Load history and immediately prune stale entries at read time.
 
-    Entries older than _SCORE_HISTORY_DAYS (14) are dropped on load so
+    Entries older than SCORE_HISTORY_DAYS (14) are dropped on load so
     _save_score_history() only serialises what is still needed — no second pass.
     """
     from datetime import date, timedelta
-    cutoff = (date.today() - timedelta(days=_SCORE_HISTORY_DAYS)).strftime("%d.%m.%Y")
+    cutoff = (date.today() - timedelta(days=SCORE_HISTORY_DAYS)).strftime("%d.%m.%Y")
     try:
-        with open(_SCORE_HISTORY_FILE, "r", encoding="utf-8") as fh:
+        with open(SCORE_HISTORY_FILE, "r", encoding="utf-8") as fh:
             raw = json.load(fh)
     except (FileNotFoundError, json.JSONDecodeError):
         return {}
@@ -1355,7 +1279,7 @@ def _save_score_history(history: dict, _dirty: bool = True) -> None:
     """
     if not _dirty:
         return
-    with open(_SCORE_HISTORY_FILE, "w", encoding="utf-8") as fh:
+    with open(SCORE_HISTORY_FILE, "w", encoding="utf-8") as fh:
         json.dump(history, fh, indent=2)
 
 
@@ -1435,7 +1359,7 @@ def apply_score_smoothing(stocks: list[dict], today: str) -> None:
     # Opt 5: write only when something actually changed (dirty flag)
     _save_score_history(history, _dirty)
     log.info("Score smoothing applied; history %s",
-             f"saved to {_SCORE_HISTORY_FILE}" if _dirty else "unchanged (skip write)")
+             f"saved to {SCORE_HISTORY_FILE}" if _dirty else "unchanged (skip write)")
 
 
 def risk_assessment(stock: dict) -> tuple[str, str, str]:
@@ -2009,7 +1933,7 @@ def generate_html(stocks: list[dict], report_date: str) -> str:
 
     # Watchlist: embed last known score, sparkline history, and full top10 snapshot
     try:
-        with open(_SCORE_HISTORY_FILE, "r", encoding="utf-8") as _wl_fh:
+        with open(SCORE_HISTORY_FILE, "r", encoding="utf-8") as _wl_fh:
             _wl_raw = json.load(_wl_fh)
         _wl_scores = {
             t: sorted(entries, key=lambda e: e.get("date",""))[-1]["score"]
@@ -4666,12 +4590,8 @@ def main():
             "(Short Float &gt;15 %, Preis &gt;$1, Marktkapitalisierung &lt;$10 Mrd.).")
         return
 
-    # --- Step 3b: Bonus scores (FTD permanently disabled – IP-blocked) ---
+    # --- Step 3b: FINRA-Trend-Bonus ---
     for s in top10:
-        s["ftd_data"] = {}
-
-    for s in top10:
-        s.setdefault("ftd_data", {})
         bonus = score_bonus(s)
         if bonus > 0:
             base = s["score"]
@@ -4765,8 +4685,7 @@ def main():
         f"[Datenabruf-Zusammenfassung] "
         f"FINRA: {_finra_stats['ok']} erfolgreich, "
         f"{_finra_stats['empty']} leer, "
-        f"{_finra_stats['err']} Fehler | "
-        f"FTD: deaktiviert (IP-Beschränkung)",
+        f"{_finra_stats['err']} Fehler",
         flush=True,
     )
     _elapsed = time.time() - t_run_start
