@@ -2691,8 +2691,9 @@ function _fmtGerman(d) {{
 (function(){{
   const isMobile = ('ontouchstart' in window) || (window.matchMedia('(pointer:coarse)').matches);
   const DAYS_DE  = ['So','Mo','Di','Mi','Do','Fr','Sa'];
-  const PAD      = {{l:4, r:4, t:6, b:6}};
   const H        = 60;
+  const PAD_X    = 10;
+  const PAD_Y    = 8;
   const PT_R     = isMobile ? 6 : 5;
 
   function parseIso(s) {{ return new Date(s + 'T12:00:00'); }}
@@ -2717,36 +2718,33 @@ function _fmtGerman(d) {{
     const daysWrap = wrap.querySelector('.spark-days');
     if (!svgWrap) return;
 
-    const W = svgWrap.clientWidth || 280;
+    const W = wrap.clientWidth || 280;
 
     const dateParsed = dates.map(parseIso);
-    const firstDate  = dateParsed[0];
-    const lastDate   = dateParsed[n - 1];
 
     // Ghost dot: show if today is strictly after the last recorded date
     const hasGhost  = todayS && todayS > dates[n - 1];
     const ghostDate = hasGhost ? parseIso(todayS) : null;
 
-    // X-axis spans from firstDate to max(lastDate, today)
-    const spanEnd    = hasGhost ? ghostDate : lastDate;
-    const totalMs    = spanEnd - firstDate || 1;
-
-    function xOf(d) {{
-      return PAD.l + ((d - firstDate) / totalMs) * (W - PAD.l - PAD.r);
+    // X = Index (evenly spread left→right, like a stock chart)
+    const xDenom = hasGhost ? n : Math.max(n - 1, 1);
+    function xOf(i) {{
+      return (i / xDenom) * (W - 2 * PAD_X) + PAD_X;
     }}
 
     const minS  = Math.min(...scores);
     const maxS  = Math.max(...scores);
     const range = maxS - minS || 1;
 
+    // Y = Score (high score = top, low score = bottom)
     function yOf(val) {{
-      return PAD.t + (1 - (val - minS) / range) * (H - PAD.t - PAD.b);
+      return H - PAD_Y - ((val - minS) / range) * (H - 2 * PAD_Y);
     }}
 
     // Build area fill (continuous, no gaps) and stroke path (with gaps)
     let areaD = '', lineD = '', newSeg = true;
     for (let i = 0; i < n; i++) {{
-      const cx = xOf(dateParsed[i]).toFixed(1);
+      const cx = xOf(i).toFixed(1);
       const cy = yOf(scores[i]).toFixed(1);
       if (i === 0) {{
         areaD += `M${{cx}},${{cy}}`;
@@ -2760,16 +2758,16 @@ function _fmtGerman(d) {{
       if (i < n - 1 && isGap(dateParsed[i], dateParsed[i + 1])) newSeg = true;
     }}
     // Close area along bottom baseline
-    const x0 = xOf(dateParsed[0]).toFixed(1);
-    const xN = xOf(dateParsed[n-1]).toFixed(1);
-    areaD += ` L${{xN}},${{(H - PAD.b).toFixed(1)}} L${{x0}},${{(H - PAD.b).toFixed(1)}} Z`;
+    const x0 = xOf(0).toFixed(1);
+    const xN = xOf(n - 1).toFixed(1);
+    areaD += ` L${{xN}},${{(H - PAD_Y).toFixed(1)}} L${{x0}},${{(H - PAD_Y).toFixed(1)}} Z`;
 
     const svgId = 'sp' + Math.random().toString(36).slice(2, 7);
 
     // Real data circles
     let circlesHtml = '';
     for (let i = 0; i < n; i++) {{
-      const cx = xOf(dateParsed[i]).toFixed(1);
+      const cx = xOf(i).toFixed(1);
       const cy = yOf(scores[i]).toFixed(1);
       const dow = DAYS_DE[dateParsed[i].getDay()];
       const dd  = dates[i].slice(8, 10) + '.' + dates[i].slice(5, 7);
@@ -2779,7 +2777,7 @@ function _fmtGerman(d) {{
     // Ghost dot — gray, no connecting line
     let ghostHtml = '';
     if (hasGhost) {{
-      const cx = xOf(ghostDate).toFixed(1);
+      const cx = xOf(n).toFixed(1);
       const cy = (H / 2).toFixed(1);
       ghostHtml = `<circle class="sp-dot sp-ghost" cx="${{cx}}" cy="${{cy}}" r="${{PT_R}}" fill="#6b7280" stroke="var(--bg-card)" stroke-width="1.5" data-score="" data-label="Heute nicht in Top 10"/>`;
     }}
@@ -2801,7 +2799,7 @@ function _fmtGerman(d) {{
     if (daysWrap) {{
       daysWrap.innerHTML = '';
       for (let i = 0; i < n; i++) {{
-        const pct = (xOf(dateParsed[i]) / W * 100).toFixed(1);
+        const pct = (xOf(i) / W * 100).toFixed(1);
         const lbl = document.createElement('span');
         lbl.className = 'spark-day-lbl';
         lbl.style.left = pct + '%';
@@ -2809,7 +2807,7 @@ function _fmtGerman(d) {{
         daysWrap.appendChild(lbl);
       }}
       if (hasGhost) {{
-        const pct = (xOf(ghostDate) / W * 100).toFixed(1);
+        const pct = (xOf(n) / W * 100).toFixed(1);
         const lbl = document.createElement('span');
         lbl.className = 'spark-day-lbl ghost';
         lbl.style.left = pct + '%';
