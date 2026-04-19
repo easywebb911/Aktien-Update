@@ -22,6 +22,7 @@ import requests
 import yfinance as yf
 from bs4 import BeautifulSoup
 from deep_translator import GoogleTranslator
+from jinja2 import Environment, FileSystemLoader, select_autoescape
 
 from config import *   # zentrale Konstanten (Schwellen, Score-Gewichte, Timeouts, URLs)
 from watchlist import WATCHLIST
@@ -1902,7 +1903,39 @@ def _card(i: int, s: dict) -> str:
 </article>"""
 
 
-def generate_html(stocks: list[dict], report_date: str) -> str:
+# ═══════════════════════════════════════════════════════════════════════════
+# JINJA2-INFRASTRUKTUR (Phase 0 — parallel zur f-String-Implementation)
+# ═══════════════════════════════════════════════════════════════════════════
+TEMPLATES_DIR = Path(__file__).parent / "templates"
+
+
+def _jinja_env() -> Environment:
+    """Jinja2-Environment mit ``fmt``-Filter und Helfer-Funktionen als Globals.
+
+    fmt-Filter:   {{ val | fmt('.2f') }}   → ``format(val, '.2f')``
+    Helpers:      fmt_cap, get_region, get_flag
+    """
+    env = Environment(
+        loader=FileSystemLoader(str(TEMPLATES_DIR)),
+        autoescape=select_autoescape(enabled_extensions=(), default=False),
+        trim_blocks=False,
+        lstrip_blocks=False,
+        keep_trailing_newline=True,
+    )
+    env.filters["fmt"]        = lambda val, spec="": format(val, spec)
+    env.globals["fmt_cap"]    = fmt_cap
+    env.globals["get_region"] = get_region
+    env.globals["get_flag"]   = get_flag
+    return env
+
+
+def _build_context(stocks: list[dict], report_date: str) -> dict:
+    """Zentrale Context-Erstellung für Template-Rendering.
+
+    Liefert ein Dict mit allen vorberechneten Aggregaten + JSON-Blobs,
+    die sowohl ``generate_html_v1`` (f-String) als auch ``generate_html_v2``
+    (Jinja2) benötigen. Einzige Stelle für Template-Variablen.
+    """
     cards = "\n".join(_card(i + 1, s) for i, s in enumerate(stocks))
 
     n       = max(len(stocks), 1)
@@ -1912,7 +1945,6 @@ def generate_html(stocks: list[dict], report_date: str) -> str:
     mom_vals = [s["change"] for s in stocks if s.get("change") is not None and s.get("change") != 0.0]
     _avg_mom = sum(mom_vals) / len(mom_vals) if mom_vals else None
     avg_mom_str = f"{_avg_mom:+.1f}%" if _avg_mom is not None else "—"
-    avg_mom_col = ("#22c55e" if _avg_mom > 0 else "#ef4444") if _avg_mom is not None else "var(--accent)"
     # Ø Float (Mio.)
     float_vals = [s["float_shares"] / 1_000_000 for s in stocks if (s.get("float_shares") or 0) > 0]
     avg_float_str = f"{sum(float_vals)/len(float_vals):.1f} Mio.".replace(".", ",") if float_vals else "—"
@@ -2033,6 +2065,41 @@ def generate_html(stocks: list[dict], report_date: str) -> str:
             "sector":      _s.get("sector", ""),
         })
     chat_ctx_json = json.dumps(_chat_ctx, default=str)
+
+    return {
+        "report_date":    report_date,
+        "timestamp":      timestamp,
+        "cards":          cards,
+        "avg_sf":         avg_sf,
+        "avg_sr":         avg_sr,
+        "avg_rv":         avg_rv,
+        "avg_mom_str":    avg_mom_str,
+        "avg_float_str":  avg_float_str,
+        "avg_si_str":     avg_si_str,
+        "wl_scores_json": wl_scores_json,
+        "wl_hist_json":   wl_hist_json,
+        "wl_top10_json":  wl_top10_json,
+        "chat_ctx_json":  chat_ctx_json,
+    }
+
+
+def generate_html_v1(stocks: list[dict], report_date: str) -> str:
+    """Legacy f-String-Rendering — aktuell autoritativ."""
+    ctx = _build_context(stocks, report_date)
+    # Unpack context for f-string access
+    report_date    = ctx["report_date"]
+    timestamp      = ctx["timestamp"]
+    cards          = ctx["cards"]
+    avg_sf         = ctx["avg_sf"]
+    avg_sr         = ctx["avg_sr"]
+    avg_rv         = ctx["avg_rv"]
+    avg_mom_str    = ctx["avg_mom_str"]
+    avg_float_str  = ctx["avg_float_str"]
+    avg_si_str     = ctx["avg_si_str"]
+    wl_scores_json = ctx["wl_scores_json"]
+    wl_hist_json   = ctx["wl_hist_json"]
+    wl_top10_json  = ctx["wl_top10_json"]
+    chat_ctx_json  = ctx["chat_ctx_json"]
 
     return f"""<!DOCTYPE html>
 <html lang="de" data-theme="dark">
@@ -4112,6 +4179,46 @@ ${{JSON.stringify(STOCKS_CTX)}}`;
 </html>"""
 
 
+def generate_html_v2(stocks: list[dict], report_date: str) -> str:
+    """Jinja2-basiertes Rendering.
+
+    Phase 0: Infrastruktur aufgesetzt (Environment + Filter + Context),
+    aber noch kein Template migriert → delegiert identisch an v1.
+    Ab Phase 2 werden einzelne Sektionen aus ``templates/*.jinja`` geladen.
+    """
+    ctx = _build_context(stocks, report_date)
+    env = _jinja_env()
+    _ = (ctx, env)  # Infrastruktur bereit, aber ungenutzt bis Template migriert
+    return generate_html_v1(stocks, report_date)
+
+
+def generate_html(stocks: list[dict], report_date: str) -> str:
+    """Öffentlicher Einstiegspunkt — aktuell f-String (v1).
+
+    Jinja2-Migration läuft in Phasen; ``generate_html_v2`` wird sukzessive
+    Sektionen übernehmen. Wechsel des Dispatchers erfolgt, sobald v2
+    byte-identischen Output liefert.
+    """
+    return generate_html_v1(stocks, report_date)
+
+
+def _render_test(stocks: list[dict], report_date: str) -> None:
+    """Sanity-Check: v1 und v2 müssen byte-identischen Output liefern.
+
+    In Phase 0 delegiert v2 an v1 → trivial identisch. Der Test bleibt bis
+    zum Abschluss der Migration Pflicht und wird bei jeder Phase aktiv.
+    Aktivierung via Umgebungsvariable ``JINJA_RENDER_TEST=1``.
+    """
+    out_v1 = generate_html_v1(stocks, report_date)
+    out_v2 = generate_html_v2(stocks, report_date)
+    if out_v1 != out_v2:
+        raise AssertionError(
+            f"Render-Test fehlgeschlagen: "
+            f"v1 ({len(out_v1)} Bytes) != v2 ({len(out_v2)} Bytes)"
+        )
+    log.info("Render-Test OK: v1 == v2 (%d Bytes)", len(out_v1))
+
+
 # ===========================================================================
 # 4b. WATCHLIST VOLUME SCAN
 # ===========================================================================
@@ -4675,6 +4782,8 @@ def main():
     _t4 = time.time()
     log.info("Step 4 – Generating HTML report …")
     html = generate_html(top10, report_date)
+    if os.environ.get("JINJA_RENDER_TEST") == "1":
+        _render_test(top10, report_date)
 
     with open("index.html", "w", encoding="utf-8") as fh:
         fh.write(html)
