@@ -331,10 +331,14 @@ a{color:var(--accent);text-decoration:none}
   pointer-events:none;white-space:nowrap;z-index:10;
   transform:translate(-50%,-130%);opacity:0;transition:opacity .15s}
 .spark-tip.visible{opacity:1}
-/* ── Metrics ── */
-.metrics-row{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;padding:0 12px 12px}
+/* ── Metrics — Mobile: 2-Spalten-Grid, Short-Float-Header volle Breite ── */
+.metrics-row{display:grid;grid-template-columns:repeat(2,1fr);gap:6px;padding:0 12px 12px}
 .metric-box{background:var(--bg-met);border:1px solid var(--brd);border-radius:10px;
   padding:10px 6px;text-align:center;border-top:3px solid var(--mc,#94a3b8);position:relative}
+/* Short-Float als breite Header-Kachel: erste Zeile, volle Breite, größere Schrift */
+.metric-box-header{grid-column:1 / -1;padding:14px 10px}
+.metric-box-header .m-val{font-size:1.6rem;letter-spacing:.3px}
+.metric-box-header .m-lbl{font-size:.72rem;margin-top:4px;letter-spacing:.4px}
 .m-val{display:block;font-size:1.1rem;font-weight:800;color:var(--mc,#94a3b8)}
 .m-lbl{display:block;font-size:.62rem;color:var(--txt-dim);text-transform:uppercase;
   letter-spacing:.3px;margin-top:2px}
@@ -446,6 +450,8 @@ a{color:var(--accent);text-decoration:none}
   /* Cards: fluid auto-fill, min 340px per card, 16px gap, full width */
   .cards-grid{grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:16px}
   .stats-bar{grid-template-columns:repeat(6,1fr)}
+  /* Metrics auf Desktop: 6 Spalten, Short-Float-Header spannt alle 6 */
+  .metrics-row{grid-template-columns:repeat(6,1fr)}
   .wrap{padding:16px 16px 32px}
   .footer{padding:16px 16px 32px}
   /* Slightly smaller body text */
@@ -513,7 +519,7 @@ a{color:var(--accent);text-decoration:none}
 <header class="app-hdr">
   <div class="hdr-main">
     <span class="app-title">Squeeze <span>Report</span></span>
-    <span class="hdr-ts">Stand: 20.04.2026, 22:22 Uhr</span>
+    <span class="hdr-ts">Stand: 20.04.2026, 22:56 Uhr</span>
     <div class="hdr-btns">
       <button id="btn-reload" class="btn btn-g" onclick="reloadPage()">&#8635; Reload</button>
       <button id="btn-recalc" class="btn btn-b" onclick="triggerWorkflow()">&#9881; Recalculate</button>
@@ -591,7 +597,7 @@ a{color:var(--accent);text-decoration:none}
     <div class="stat-box"><span class="stat-val">3.6×</span><span class="stat-lbl">Ø Volumen</span></div>
     <div class="stat-box"><span class="stat-val">+14.1%</span><span class="stat-lbl">Ø Kursmomentum</span></div>
     <div class="stat-box"><span class="stat-val">87,9 Mio,</span><span class="stat-lbl">Ø Float</span></div>
-    <div class="stat-box"><span class="stat-val">—</span><span class="stat-lbl">Ø SI-Trend</span></div>
+    <div class="stat-box"><span class="stat-val">+150,0 %</span><span class="stat-lbl">Ø SI-Trend</span></div>
   </div>
 
   <details class="info-panel">
@@ -640,7 +646,7 @@ a{color:var(--accent);text-decoration:none}
         <h4>Datenquellen</h4>
         <ul>
           <li><strong>Yahoo Finance Screener</strong> – Most Shorted, Small Cap Gainers, Aggressive Small Caps</li>
-          <li><strong>FINRA CNMS/FNSQ/FNQC</strong> – offizielles Short Interest (3-Monats-Trend aus 6 Meldezeiträumen) + tägliche Short-Sale-Ratio aus demselben Feed</li>
+          <li><strong>FINRA CNMS/FNSQ/FNQC</strong> – offizielles Short Interest; SI-Trend aus 12 Handelstagen (≈ 2,5 Wochen, gleitender 3-Tage-Durchschnitt) + tägliche Short-Sale-Ratio aus demselben Feed</li>
           <li><strong>yfinance</strong> – Short Float, Days to Cover, Volumen, Kursdaten, RSI, MA50/200, Optionsdaten, Earnings-History</li>
           <li><strong>Sektor-ETFs</strong> – QQQ, XBI, XLE, XLF, XRT, SPY für Sektor-relative Stärke</li>
           <li><strong>Fails-to-Deliver:</strong> nicht verfügbar (IP-Beschränkung GitHub Actions)</li>
@@ -710,7 +716,7 @@ a{color:var(--accent);text-decoration:none}
               <div class="cb-seg" style="background:#f59e0b">Seitwärts</div>
               <div class="cb-seg" style="background:#22c55e">Steigend ≥+10 %</div>
             </div>
-            <p class="cl-desc">Grün bedeutet dass Leerverkäufer ihre Positionen in den letzten 3 Monaten ausgebaut haben — der Druck auf einen möglichen Squeeze wächst.</p>
+            <p class="cl-desc">Grün bedeutet dass Leerverkäufer ihre Positionen in den letzten 2,5 Wochen ausgebaut haben — der Druck auf einen möglichen Squeeze wächst.</p>
           </div>
           <div>
             <span class="cl-name">Impl. Volatilität (IV)</span>
@@ -753,7 +759,7 @@ a{color:var(--accent);text-decoration:none}
   data-score="100.0" data-company="1-800-FLOWERS.COM, Inc."
   data-price="4.46" data-sf="44.0" data-sr="24.9"
   data-rv="10.42" data-chg="15.10" data-si="no_data"
-  data-rsi="78.9" data-iv="191.0" data-earn="17"
+  data-rsi="78.9" data-iv="155.9" data-earn="17"
   data-earn-date="07.05." data-float="8.8M"
   data-cap="285733504" data-sector="Consumer Cyclical" data-news="[&quot;Nicht-Basiskonsumgüter – Spezialisierte Verbraucherdienstleistungen Q4-Ergebnis: 1-800-FLOWERS (NASDAQ:FLWS) Einfach das Beste&quot;, &quot;Die Aktien von 1-800-FLOWERS, Purple, Kontoor Brands, Royal Caribbean und Somnigroup fallen – was Sie wissen müssen&quot;, &quot;3 Gründe, warum FLWS riskant ist und 1 Aktie, die man stattdessen kaufen sollte&quot;]">
   <div class="card-top">
@@ -780,7 +786,7 @@ a{color:var(--accent);text-decoration:none}
   </div>
   <p class="spark-placeholder">Verlauf ab morgen verfügbar.</p>
   <div class="metrics-row">
-    <div class="metric-box" style="--mc:#22c55e">
+    <div class="metric-box metric-box-header" style="--mc:#22c55e">
       <span class="m-val">44.0%</span>
       <span class="m-lbl">Short Float</span>
     </div>
@@ -826,7 +832,7 @@ a{color:var(--accent);text-decoration:none}
         <tr><td>Short-Vol. T-3</td><td>—</td></tr>
 
         <tr><td>RSI (14T)</td><td><span style="color:#ef4444">78.9 — überkauft</span></td></tr><tr><td>MA 50T</td><td>$3.40</td></tr><tr><td>MA 200T</td><td>$4.33</td></tr><tr><td>Kurs vs. MA50</td><td><span style="color:#22c55e">(+31.1%)</span></td></tr><tr><td>Rel. Stärke (20T)</td><td><span style="color:#22c55e">+38.9% vs. S&amp;P 500 (Aktie +48.2%)</span></td></tr><tr><td>RS vs. Sektor (XRT)</td><td><span style="color:#22c55e">+36.0%</span></td></tr><tr><td>Letztes Earnings</td><td><span style="color:#22c55e">✅ Beat +40%</span></td></tr>
-        <tr><td>Put/Call-Ratio <span style='color:var(--txt-dim);font-size:.8em'>(2026-05-15)</span></td><td><span style="color:#22c55e">0.01 — bullisch</span></td></tr><tr><td>Impl. Volatilität (ATM)</td><td><span style="color:#22c55e">191.0%</span></td></tr>
+        <tr><td>Put/Call-Ratio <span style='color:var(--txt-dim);font-size:.8em'>(2026-05-15)</span></td><td><span style="color:#22c55e">0.01 — bullisch</span></td></tr><tr><td>Impl. Volatilität (ATM)</td><td><span style="color:#22c55e">155.9%</span></td></tr>
         
         <tr><td>Risiko-Detail</td><td style="color:#ef4444">Extrem hohes Short-Interesse (44.0 %) bedeutet massive Squeeze-Gefahr, aber auch starke Kursausschläge in beide Richtungen. Micro-Cap ($286 M) – geringe Liquidität, Kursmanipulation möglich.</td></tr>
       </table>
@@ -858,9 +864,9 @@ a{color:var(--accent);text-decoration:none}
 </article>
 
 <article class="card" id="c2" data-ticker="CADL"
-  data-score="77.3" data-company="Candel Therapeutics, Inc."
+  data-score="84.3" data-company="Candel Therapeutics, Inc."
   data-price="7.22" data-sf="24.0" data-sr="11.6"
-  data-rv="3.70" data-chg="13.34" data-si="no_data"
+  data-rv="3.70" data-chg="13.34" data-si="up"
   data-rsi="81.6" data-iv="97.3" data-earn="22"
   data-earn-date="12.05." data-float="63.3M"
   data-cap="528842816" data-sector="Healthcare" data-news="[&quot;Candel profitiert von zusätzlichen Testdaten zur mittleren Phase des Lead-Assets&quot;, &quot;Candel Therapeutics meldet verlängertes Überleben in der Phase-2a-Lungenkrebsstudie mit CAN-2409&quot;, &quot;Candel Therapeutics GAAP-EPS von -0,54 USD&quot;]">
@@ -880,15 +886,15 @@ a{color:var(--accent);text-decoration:none}
       </div>
     </div>
     <div class="score-block">
-      <span class="score-num" style="color:#22c55e">77.3</span>
+      <span class="score-num" style="color:#22c55e">84.3</span>
       <span class="score-lbl">Score</span>
-      <div class="score-track"><div class="score-fill" style="width:77%;background:#22c55e"></div></div>
+      <div class="score-track"><div class="score-fill" style="width:84%;background:#22c55e"></div></div>
       
     </div>
   </div>
-  <div class="spark-wrap" data-scores='[85.3, 75.3, 85.3, 75.3]' data-dates='["17.04.2026", "18.04.2026", "19.04.2026", "20.04.2026"]' data-col="#ef4444" data-today="20.04.2026"><div class="spark-header"><div class="spark-title-wrap"><span class="spark-title">⚡ KI-Signalverlauf</span><span class="spark-subtitle">(KI-Agent Score der letzten 7 Tage)</span></div><span class="spark-trend" style="color:#ef4444">↓ -10.0 Pkt</span></div><div class="spark-svg-wrap"></div><div class="spark-days"></div></div>
+  <div class="spark-wrap" data-scores='[85.3, 75.3, 85.3, 85.3]' data-dates='["17.04.2026", "18.04.2026", "19.04.2026", "20.04.2026"]' data-col="#94a3b8" data-today="20.04.2026"><div class="spark-header"><div class="spark-title-wrap"><span class="spark-title">⚡ KI-Signalverlauf</span><span class="spark-subtitle">(KI-Agent Score der letzten 7 Tage)</span></div><span class="spark-trend" style="color:#94a3b8">→ stabil</span></div><div class="spark-svg-wrap"></div><div class="spark-days"></div></div>
   <div class="metrics-row">
-    <div class="metric-box" style="--mc:#f59e0b">
+    <div class="metric-box metric-box-header" style="--mc:#f59e0b">
       <span class="m-val">24.0%</span>
       <span class="m-lbl">Short Float</span>
     </div>
@@ -908,8 +914,8 @@ a{color:var(--accent);text-decoration:none}
       <span class="m-val">63,3 Mio,</span>
       <span class="m-lbl">Float</span>
     </div>
-    <div class="metric-box" style="--mc:#94a3b8">
-      <span class="m-val">—</span>
+    <div class="metric-box" style="--mc:#22c55e">
+      <span class="m-val">↑ +150 %</span>
       <span class="m-lbl">SI-Trend</span>
     </div>
     <div class="metric-box" style="--mc:#94a3b8"><span class="m-val">—</span><span class="m-lbl">SSR Heute</span></div>
@@ -927,11 +933,11 @@ a{color:var(--accent);text-decoration:none}
         <tr><td>Ø Volumen 20T</td><td>1,423,537</td></tr>
         <tr><td>Heutiges Volumen</td><td>5,268,548</td></tr>
         <tr><td>SEC-Meldungen</td><td><a href="https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&amp;CIK=CADL&amp;type=&amp;dateb=&amp;owner=include&amp;count=10&amp;search_text=" target="_blank" rel="noopener noreferrer" class="edgar-link">EDGAR öffnen →</a></td></tr>
-        <tr><td>SI-Trend (3M)</td><td>Keine Daten</td></tr>
-        
-        <tr><td>Short-Vol. T-1 (FINRA)</td><td>—</td></tr>
-        <tr><td>Short-Vol. T-2</td><td>—</td></tr>
-        <tr><td>Short-Vol. T-3</td><td>—</td></tr>
+        <tr><td>SI-Trend (3M)</td><td><span style="color:#22c55e">↑ Steigend +150.0 %</span></td></tr>
+        <tr><td>SI Velocity (tägl. Ø)</td><td><span style="color:#22c55e">+584 Aktien/Tag</span></td></tr>
+        <tr><td>Short-Vol. T-1 (FINRA)</td><td>7,528 Aktien (17.04.2026)</td></tr>
+        <tr><td>Short-Vol. T-2</td><td>192 Aktien (16.04.2026)</td></tr>
+        <tr><td>Short-Vol. T-3</td><td>726,380 Aktien (15.04.2026)</td></tr>
 
         <tr><td>RSI (14T)</td><td><span style="color:#ef4444">81.6 — überkauft</span></td></tr><tr><td>MA 50T</td><td>$5.19</td></tr><tr><td>MA 200T</td><td>$5.52</td></tr><tr><td>Kurs vs. MA50</td><td><span style="color:#22c55e">(+39.1%)</span></td></tr><tr><td>Rel. Stärke (20T)</td><td><span style="color:#22c55e">+36.0% vs. S&amp;P 500 (Aktie +45.3%)</span></td></tr><tr><td>RS vs. Sektor (XBI)</td><td><span style="color:#22c55e">+30.7%</span></td></tr><tr><td>Letztes Earnings</td><td><span style="color:#ef4444">❌ Miss -24%</span></td></tr>
         <tr><td>Put/Call-Ratio <span style='color:var(--txt-dim);font-size:.8em'>(2026-05-15)</span></td><td><span style="color:#f59e0b">0.68 — neutral</span></td></tr><tr><td>Impl. Volatilität (ATM)</td><td><span style="color:#f59e0b">97.3%</span></td></tr>
@@ -969,7 +975,7 @@ a{color:var(--accent);text-decoration:none}
   data-score="73.8" data-company="Beyond Meat, Inc."
   data-price="1.16" data-sf="31.0" data-sr="5.2"
   data-rv="3.69" data-chg="41.02" data-si="no_data"
-  data-rsi="79.5" data-iv="253.1" data-earn="16"
+  data-rsi="79.5" data-iv="321.9" data-earn="16"
   data-earn-date="06.05." data-float="447.1M"
   data-cap="537731392" data-sector="Consumer Defensive" data-news="[&quot;Definiert Beyond Meats (BYND) Functional Beverage Push seine Kernmarkenstrategie im Stillen neu?&quot;, &quot;Warum steigt die Aktie von Beyond Meat (BYND) heute stark an?&quot;, &quot;Beyond Meat hat gerade eine neue Getränkelinie auf den Markt gebracht. Sollten Sie hier BYND-Aktien kaufen?&quot;]">
   <div class="card-top">
@@ -996,7 +1002,7 @@ a{color:var(--accent);text-decoration:none}
   </div>
   <p class="spark-placeholder">Verlauf ab morgen verfügbar.</p>
   <div class="metrics-row">
-    <div class="metric-box" style="--mc:#22c55e">
+    <div class="metric-box metric-box-header" style="--mc:#22c55e">
       <span class="m-val">31.0%</span>
       <span class="m-lbl">Short Float</span>
     </div>
@@ -1042,7 +1048,7 @@ a{color:var(--accent);text-decoration:none}
         <tr><td>Short-Vol. T-3</td><td>—</td></tr>
 
         <tr><td>RSI (14T)</td><td><span style="color:#ef4444">79.5 — überkauft</span></td></tr><tr><td>MA 50T</td><td>$0.73</td></tr><tr><td>MA 200T</td><td>$1.64</td></tr><tr><td>Kurs vs. MA50</td><td><span style="color:#22c55e">(+58.9%)</span></td></tr><tr><td>Rel. Stärke (20T)</td><td><span style="color:#22c55e">+57.4% vs. S&amp;P 500 (Aktie +66.7%)</span></td></tr><tr><td>RS vs. Sektor (XRT)</td><td><span style="color:#22c55e">+54.5%</span></td></tr><tr><td>Letztes Earnings</td><td><span style="color:#ef4444">❌ Miss -387%</span></td></tr>
-        <tr><td>Put/Call-Ratio <span style='color:var(--txt-dim);font-size:.8em'>(2026-05-01)</span></td><td><span style="color:#22c55e">0.08 — bullisch</span></td></tr><tr><td>Impl. Volatilität (ATM)</td><td><span style="color:#22c55e">253.1%</span></td></tr>
+        <tr><td>Put/Call-Ratio <span style='color:var(--txt-dim);font-size:.8em'>(2026-05-01)</span></td><td><span style="color:#22c55e">0.08 — bullisch</span></td></tr><tr><td>Impl. Volatilität (ATM)</td><td><span style="color:#22c55e">321.9%</span></td></tr>
         
         <tr><td>Risiko-Detail</td><td style="color:#f59e0b">Hohes Short-Interesse (31.0 %) erhöht die Volatilität deutlich. Small-Cap ($538 M) mit eingeschränkter Liquidität.</td></tr>
       </table>
@@ -1077,7 +1083,7 @@ a{color:var(--accent);text-decoration:none}
   data-score="66.8" data-company="Xerox Holdings Corporation"
   data-price="1.85" data-sf="34.0" data-sr="9.3"
   data-rv="1.69" data-chg="6.94" data-si="no_data"
-  data-rsi="70.4" data-iv="93.8" data-earn="10"
+  data-rsi="70.4" data-iv="106.3" data-earn="10"
   data-earn-date="30.04." data-float="118.6M"
   data-cap="241936080" data-sector="Industrials" data-news="[&quot;Interface, Pitney Bowes und Xerox Stocks Trade Up, was Sie wissen müssen&quot;, &quot;Xerox: Es sieht nicht gut aus&quot;, &quot;Eine der beliebtesten Aktien der Wall Street, die es wert ist, untersucht zu werden, und zwei, die wir für riskant halten&quot;]">
   <div class="card-top">
@@ -1104,7 +1110,7 @@ a{color:var(--accent);text-decoration:none}
   </div>
   <div class="spark-wrap" data-scores='[73.7, 71.6, 78.6, 63.5]' data-dates='["17.04.2026", "18.04.2026", "19.04.2026", "20.04.2026"]' data-col="#ef4444" data-today="20.04.2026"><div class="spark-header"><div class="spark-title-wrap"><span class="spark-title">⚡ KI-Signalverlauf</span><span class="spark-subtitle">(KI-Agent Score der letzten 7 Tage)</span></div><span class="spark-trend" style="color:#ef4444">↓ -10.2 Pkt</span></div><div class="spark-svg-wrap"></div><div class="spark-days"></div></div>
   <div class="metrics-row">
-    <div class="metric-box" style="--mc:#22c55e">
+    <div class="metric-box metric-box-header" style="--mc:#22c55e">
       <span class="m-val">34.0%</span>
       <span class="m-lbl">Short Float</span>
     </div>
@@ -1150,7 +1156,7 @@ a{color:var(--accent);text-decoration:none}
         <tr><td>Short-Vol. T-3</td><td>—</td></tr>
 
         <tr><td>RSI (14T)</td><td><span style="color:#ef4444">70.4 — überkauft</span></td></tr><tr><td>MA 50T</td><td>$1.60</td></tr><tr><td>MA 200T</td><td>$2.91</td></tr><tr><td>Kurs vs. MA50</td><td><span style="color:#22c55e">(+15.3%)</span></td></tr><tr><td>Rel. Stärke (20T)</td><td><span style="color:#22c55e">+29.5% vs. S&amp;P 500 (Aktie +38.7%)</span></td></tr><tr><td>RS vs. Sektor (SPY)</td><td><span style="color:#22c55e">+29.5%</span></td></tr><tr><td>Letztes Earnings</td><td><span style="color:#ef4444">❌ Miss -203%</span></td></tr>
-        <tr><td>Put/Call-Ratio <span style='color:var(--txt-dim);font-size:.8em'>(2026-05-15)</span></td><td><span style="color:#ef4444">1.62 — bärisch</span></td></tr><tr><td>Impl. Volatilität (ATM)</td><td><span style="color:#f59e0b">93.8%</span></td></tr>
+        <tr><td>Put/Call-Ratio <span style='color:var(--txt-dim);font-size:.8em'>(2026-05-15)</span></td><td><span style="color:#ef4444">1.62 — bärisch</span></td></tr><tr><td>Impl. Volatilität (ATM)</td><td><span style="color:#22c55e">106.3%</span></td></tr>
         
         <tr><td>Risiko-Detail</td><td style="color:#ef4444">Hohes Short-Interesse (34.0 %) erhöht die Volatilität deutlich. Micro-Cap ($242 M) – geringe Liquidität, Kursmanipulation möglich.</td></tr>
       </table>
@@ -1212,7 +1218,7 @@ a{color:var(--accent);text-decoration:none}
   </div>
   <p class="spark-placeholder">Verlauf ab morgen verfügbar.</p>
   <div class="metrics-row">
-    <div class="metric-box" style="--mc:#22c55e">
+    <div class="metric-box metric-box-header" style="--mc:#22c55e">
       <span class="m-val">30.8%</span>
       <span class="m-lbl">Short Float</span>
     </div>
@@ -1320,7 +1326,7 @@ a{color:var(--accent);text-decoration:none}
   </div>
   <p class="spark-placeholder">Verlauf ab morgen verfügbar.</p>
   <div class="metrics-row">
-    <div class="metric-box" style="--mc:#ef4444">
+    <div class="metric-box metric-box-header" style="--mc:#ef4444">
       <span class="m-val">9.1%</span>
       <span class="m-lbl">Short Float</span>
     </div>
@@ -1428,7 +1434,7 @@ a{color:var(--accent);text-decoration:none}
   </div>
   <p class="spark-placeholder">Verlauf ab morgen verfügbar.</p>
   <div class="metrics-row">
-    <div class="metric-box" style="--mc:#ef4444">
+    <div class="metric-box metric-box-header" style="--mc:#ef4444">
       <span class="m-val">8.2%</span>
       <span class="m-lbl">Short Float</span>
     </div>
@@ -1509,7 +1515,7 @@ a{color:var(--accent);text-decoration:none}
   data-score="60.8" data-company="Frontier Group Holdings, Inc."
   data-price="4.81" data-sf="45.3" data-sr="5.1"
   data-rv="1.65" data-chg="5.71" data-si="no_data"
-  data-rsi="72.4" data-iv="98.8" data-earn="10"
+  data-rsi="72.4" data-iv="93.8" data-earn="10"
   data-earn-date="30.04." data-float="57.9M"
   data-cap="1105011584" data-sector="Industrials" data-news="[&quot;Spirit gibt Regierungsanteile frei, um mögliche Liquidation zu vermeiden&quot;, &quot;United Airlines- und Frontier-Aktien explodieren – was Sie wissen müssen&quot;, &quot;Werden Fusionen und Übernahmen von Fluggesellschaften im Jahr 2026 durchstarten?&quot;]">
   <div class="card-top">
@@ -1536,7 +1542,7 @@ a{color:var(--accent);text-decoration:none}
   </div>
   <div class="spark-wrap" data-scores='[68.8, 69.3, 59.3, 58.7]' data-dates='["17.04.2026", "18.04.2026", "19.04.2026", "20.04.2026"]' data-col="#ef4444" data-today="20.04.2026"><div class="spark-header"><div class="spark-title-wrap"><span class="spark-title">⚡ KI-Signalverlauf</span><span class="spark-subtitle">(KI-Agent Score der letzten 7 Tage)</span></div><span class="spark-trend" style="color:#ef4444">↓ -10.1 Pkt</span></div><div class="spark-svg-wrap"></div><div class="spark-days"></div></div>
   <div class="metrics-row">
-    <div class="metric-box" style="--mc:#22c55e">
+    <div class="metric-box metric-box-header" style="--mc:#22c55e">
       <span class="m-val">45.3%</span>
       <span class="m-lbl">Short Float</span>
     </div>
@@ -1582,7 +1588,7 @@ a{color:var(--accent);text-decoration:none}
         <tr><td>Short-Vol. T-3</td><td>—</td></tr>
 
         <tr><td>RSI (14T)</td><td><span style="color:#ef4444">72.4 — überkauft</span></td></tr><tr><td>MA 50T</td><td>$4.16</td></tr><tr><td>MA 200T</td><td>$4.48</td></tr><tr><td>Kurs vs. MA50</td><td><span style="color:#22c55e">(+15.5%)</span></td></tr><tr><td>Rel. Stärke (20T)</td><td><span style="color:#22c55e">+42.0% vs. S&amp;P 500 (Aktie +51.3%)</span></td></tr><tr><td>RS vs. Sektor (SPY)</td><td><span style="color:#22c55e">+42.0%</span></td></tr><tr><td>Letztes Earnings</td><td><span style="color:#22c55e">✅ Beat +72%</span></td></tr>
-        <tr><td>Put/Call-Ratio <span style='color:var(--txt-dim);font-size:.8em'>(2026-05-15)</span></td><td><span style="color:#f59e0b">1.01 — neutral</span></td></tr><tr><td>Impl. Volatilität (ATM)</td><td><span style="color:#f59e0b">98.8%</span></td></tr>
+        <tr><td>Put/Call-Ratio <span style='color:var(--txt-dim);font-size:.8em'>(2026-05-15)</span></td><td><span style="color:#f59e0b">1.01 — neutral</span></td></tr><tr><td>Impl. Volatilität (ATM)</td><td><span style="color:#f59e0b">93.8%</span></td></tr>
         
         <tr><td>Risiko-Detail</td><td style="color:#ef4444">Extrem hohes Short-Interesse (45.3 %) bedeutet massive Squeeze-Gefahr, aber auch starke Kursausschläge in beide Richtungen. Small-Cap ($1.1 B) mit eingeschränkter Liquidität.</td></tr>
       </table>
@@ -1617,7 +1623,7 @@ a{color:var(--accent);text-decoration:none}
   data-score="60.6" data-company="Alpha and Omega Semiconductor Limited"
   data-price="39.90" data-sf="6.9" data-sr="4.9"
   data-rv="4.81" data-chg="17.77" data-si="no_data"
-  data-rsi="90.5" data-iv="104.9" data-earn="16"
+  data-rsi="90.5" data-iv="107.3" data-earn="16"
   data-earn-date="06.05." data-float="24.5M"
   data-cap="1187456896" data-sector="Technology" data-news="[&quot;Intel fällt, da viele Halbleiteraktien am Montag Gewinne erzielen&quot;, &quot;Alpha und Omega (AOSL) steigen um 10,9 %: Gibt es noch weiteres Aufwärtspotenzial für die Aktie?&quot;, &quot;Wie sich die Investitionsgeschichte von Alpha And Omega Semiconductor (AOSL) nach der Neubewertung des beizulegenden Zeitwerts von 22 US-Dol&quot;]">
   <div class="card-top">
@@ -1644,7 +1650,7 @@ a{color:var(--accent);text-decoration:none}
   </div>
   <p class="spark-placeholder">Verlauf ab morgen verfügbar.</p>
   <div class="metrics-row">
-    <div class="metric-box" style="--mc:#ef4444">
+    <div class="metric-box metric-box-header" style="--mc:#ef4444">
       <span class="m-val">6.9%</span>
       <span class="m-lbl">Short Float</span>
     </div>
@@ -1690,7 +1696,7 @@ a{color:var(--accent);text-decoration:none}
         <tr><td>Short-Vol. T-3</td><td>—</td></tr>
 
         <tr><td>RSI (14T)</td><td><span style="color:#ef4444">90.5 — überkauft</span></td></tr><tr><td>MA 50T</td><td>$23.11</td></tr><tr><td>MA 200T</td><td>$24.61</td></tr><tr><td>Kurs vs. MA50</td><td><span style="color:#22c55e">(+72.6%)</span></td></tr><tr><td>Rel. Stärke (20T)</td><td><span style="color:#22c55e">+82.4% vs. S&amp;P 500 (Aktie +91.6%)</span></td></tr><tr><td>RS vs. Sektor (QQQ)</td><td><span style="color:#22c55e">+80.4%</span></td></tr><tr><td>Letztes Earnings</td><td><span style="color:#ef4444">❌ Miss -92%</span></td></tr>
-        <tr><td>Put/Call-Ratio <span style='color:var(--txt-dim);font-size:.8em'>(2026-05-15)</span></td><td><span style="color:#22c55e">0.34 — bullisch</span></td></tr><tr><td>Impl. Volatilität (ATM)</td><td><span style="color:#22c55e">104.9%</span></td></tr>
+        <tr><td>Put/Call-Ratio <span style='color:var(--txt-dim);font-size:.8em'>(2026-05-15)</span></td><td><span style="color:#22c55e">0.34 — bullisch</span></td></tr><tr><td>Impl. Volatilität (ATM)</td><td><span style="color:#22c55e">107.3%</span></td></tr>
         
         <tr><td>Risiko-Detail</td><td style="color:#f59e0b">Small-Cap ($1.2 B) mit eingeschränkter Liquidität.</td></tr>
       </table>
@@ -1752,7 +1758,7 @@ a{color:var(--accent);text-decoration:none}
   </div>
   <p class="spark-placeholder">Verlauf ab morgen verfügbar.</p>
   <div class="metrics-row">
-    <div class="metric-box" style="--mc:#f59e0b">
+    <div class="metric-box metric-box-header" style="--mc:#f59e0b">
       <span class="m-val">20.3%</span>
       <span class="m-lbl">Short Float</span>
     </div>
@@ -2490,9 +2496,9 @@ function _fmtGerman(d) {
   const WL_KEY     = 'squeeze_watchlist';
   const WL_MAX     = 20;
   const WL_GH_PATH = 'watchlist_personal.json';
-  const WL_SCORES  = {"GRPN": 70.09, "IBG": 88.4, "LESL": 56.43, "HIMS": 54.75, "EVTL": 62.11, "DFDV": 39.83, "BFLY": 57.62, "NKTX": 62.91, "FWRD": 41.6, "WOLF": 48.54, "VOYG": 44.48, "GPRO": 43.73, "BB.TO": 39.26, "OCDO.L": 23.11, "INDI": 49.49, "TTEC": 73.92, "SKIL": 46.44, "XRX": 63.49, "AVTX": 41.45, "DBI": 63.65, "DFH": 64.14, "TMDX": 57.28, "ULCC": 58.66, "RRGB": 49.33, "CADL": 75.34, "HELE": 60.39, "LZM": 44.83, "RH": 52.18, "EVGO": 50.62, "CRVS": 79.65, "ABSI": 48.44, "TSHA": 61.07, "KURA": 70.59, "BMEA": 57.03, "AMC": 56.21, "PAL": 59.78, "IFRX": 56.75, "ALGT": 55.85, "STRZ": 57.16, "HTZ": 59.38, "CRDF": 65.04, "FLWS": 100.0, "ARTL": 77.14, "PRLD": 63.34, "SNSE": 62.91, "SST": 53.95, "ANAB": 66.42, "ASTC": 43.0, "KYTX": 62.41, "AOSL": 60.61, "CHMG": 55.86, "EBON": 53.07, "SILA": 51.88, "CMPS": 49.98, "VBNK": 49.06, "BYND": 73.79, "TTGT": 62.56, "DNUT": 57.03};
-  const WL_TOP10   = {"FLWS": {"score": 100.0, "company_name": "1-800-FLOWERS.COM, Inc.", "sector": "Consumer Cyclical", "flag": "\ud83c\uddfa\ud83c\uddf8", "price": 4.46, "change": 15.096775, "change_5d": 38.08, "short_float": 44.05, "short_ratio": 24.88, "rel_volume": 10.416005825225774, "float_shares": 8832112, "si_trend": "no_data", "si_tpct": 0.0, "si_velocity": 0.0, "si_accel": false, "si_t1": "\u2014", "si_t2": "\u2014", "si_t3": "\u2014", "rsi14": 78.94182182965187, "ma50": 3.401599998474121, "ma200": 4.333599998950958, "inst_ownership": null, "52w_high": 8.44, "52w_low": 2.89, "avg_vol_20d": 670325.95, "cur_vol": 6982119.0, "market_cap": 285733504, "earnings_days": 17, "earnings_date_str": "07.05.", "pc_ratio": 0.011011011011011011, "atm_iv": 1.9101566992187502, "rel_strength_20d": 38.910298433416756, "perf_20d": 48.17275921188798, "news": [{"title": "Nicht-Basiskonsumg\u00fcter \u2013 Spezialisierte Verbraucherdienstleistungen Q4-Ergebnis: 1-800-FLOWERS (NASDAQ:FLWS) Einfach das Beste", "link": "https://finance.yahoo.com/markets/stocks/articles/consumer-discretionary-specialized-consumer-services-090407540.html", "time": "17.04.2026 09:04", "source": "Yahoo Finance"}, {"title": "Die Aktien von 1-800-FLOWERS, Purple, Kontoor Brands, Royal Caribbean und Somnigroup fallen \u2013 was Sie wissen m\u00fcssen", "link": "https://finance.yahoo.com/markets/stocks/articles/1-800-flowers-purple-kontoor-211750113.html", "time": "07.04.2026 21:17", "source": "Yahoo Finance"}, {"title": "3 Gr\u00fcnde, warum FLWS riskant ist und 1 Aktie, die man stattdessen kaufen sollte", "link": "https://finance.yahoo.com/markets/stocks/articles/3-reasons-flws-risky-1-145951256.html", "time": "06.04.2026 14:59", "source": "Yahoo Finance"}]}, "CADL": {"score": 77.3, "company_name": "Candel Therapeutics, Inc.", "sector": "Healthcare", "flag": "\ud83c\uddfa\ud83c\uddf8", "price": 7.22, "change": 13.343798, "change_5d": 48.25, "short_float": 23.969999, "short_ratio": 11.58, "rel_volume": 3.7010253471387546, "float_shares": 63310981, "si_trend": "no_data", "si_tpct": 0.0, "si_velocity": 0.0, "si_accel": false, "si_t1": "\u2014", "si_t2": "\u2014", "si_t3": "\u2014", "rsi14": 81.63311884983467, "ma50": 5.188699960708618, "ma200": 5.523074994087219, "inst_ownership": null, "52w_high": 7.65, "52w_low": 4.338, "avg_vol_20d": 1423537.4, "cur_vol": 5268548.0, "market_cap": 528842816, "earnings_days": 22, "earnings_date_str": "12.05.", "pc_ratio": 0.675, "atm_iv": 0.9726565234375, "rel_strength_20d": 36.00917091134092, "perf_20d": 45.27163168981214, "news": [{"title": "Candel profitiert von zus\u00e4tzlichen Testdaten zur mittleren Phase des Lead-Assets", "link": "https://seekingalpha.com/symbol/CADL/news?source=feed_symbol_CADL", "time": "17.03.2026 18:01", "source": "Seeking Alpha"}, {"title": "Candel Therapeutics meldet verl\u00e4ngertes \u00dcberleben in der Phase-2a-Lungenkrebsstudie mit CAN-2409", "link": "https://www.proactiveinvestors.com/companies/news/1089013/candel-therapeutics-reports-extended-survival-in-phase-2a-lung-cancer-trial-of-can-2409-1089013.html", "time": "17.03.2026 14:35", "source": "Yahoo Finance"}, {"title": "Candel Therapeutics GAAP-EPS von -0,54 USD", "link": "https://seekingalpha.com/symbol/CADL/news?source=feed_symbol_CADL", "time": "12.03.2026 19:02", "source": "Seeking Alpha"}]}, "BYND": {"score": 73.79, "company_name": "Beyond Meat, Inc.", "sector": "Consumer Defensive", "flag": "\ud83c\uddfa\ud83c\uddf8", "price": 1.16, "change": 41.016285, "change_5d": 75.76, "short_float": 31.019999999999996, "short_ratio": 5.19, "rel_volume": 3.690595498807905, "float_shares": 447146865, "si_trend": "no_data", "si_tpct": 0.0, "si_velocity": 0.0, "si_accel": false, "si_t1": "\u2014", "si_t2": "\u2014", "si_t3": "\u2014", "rsi14": 79.4517408068767, "ma50": 0.7298199999332428, "ma200": 1.6414999908208847, "inst_ownership": null, "52w_high": 7.69, "52w_low": 0.5, "avg_vol_20d": 49580718.9, "cur_vol": 182982378.0, "market_cap": 537731392, "earnings_days": 16, "earnings_date_str": "06.05.", "pc_ratio": 0.08395128715258937, "atm_iv": 2.5312536718749996, "rel_strength_20d": 57.404205888195435, "perf_20d": 66.66666666666666, "news": [{"title": "Definiert Beyond Meats (BYND) Functional Beverage Push seine Kernmarkenstrategie im Stillen neu?", "link": "https://finance.yahoo.com/markets/stocks/articles/beyond-meat-bynd-functional-beverage-230609739.html", "time": "17.04.2026 23:06", "source": "Yahoo Finance"}, {"title": "Warum steigt die Aktie von Beyond Meat (BYND) heute stark an?", "link": "https://finance.yahoo.com/markets/stocks/articles/why-beyond-meat-bynd-stock-205626582.html", "time": "17.04.2026 20:56", "source": "Yahoo Finance"}, {"title": "Beyond Meat hat gerade eine neue Getr\u00e4nkelinie auf den Markt gebracht. Sollten Sie hier BYND-Aktien kaufen?", "link": "https://www.barchart.com/story/news/1374771/beyond-meat-just-launched-a-new-beverage-line-should-you-buy-bynd-stock-here", "time": "17.04.2026 19:53", "source": "Yahoo Finance"}]}, "XRX": {"score": 66.8, "company_name": "Xerox Holdings Corporation", "sector": "Industrials", "flag": "\ud83c\uddfa\ud83c\uddf8", "price": 1.85, "change": 6.936416, "change_5d": 45.67, "short_float": 33.97, "short_ratio": 9.26, "rel_volume": 1.686905883938899, "float_shares": 118615197, "si_trend": "no_data", "si_tpct": 0.0, "si_velocity": 0.0, "si_accel": false, "si_t1": "\u2014", "si_t2": "\u2014", "si_t3": "\u2014", "rsi14": 70.42023688267315, "ma50": 1.6049656200408935, "ma200": 2.9100465953350065, "inst_ownership": null, "52w_high": 6.8, "52w_low": 1.19, "avg_vol_20d": 3168246.7, "cur_vol": 5344534.0, "market_cap": 241936080, "earnings_days": 10, "earnings_date_str": "30.04.", "pc_ratio": 1.6186590989712664, "atm_iv": 0.937500625, "rel_strength_20d": 29.47669556287041, "perf_20d": 38.73915634134163, "news": [{"title": "Interface, Pitney Bowes und Xerox Stocks Trade Up, was Sie wissen m\u00fcssen", "link": "https://finance.yahoo.com/markets/stocks/articles/interface-pitney-bowes-xerox-stocks-223226837.html", "time": "17.04.2026 22:32", "source": "Yahoo Finance"}, {"title": "Xerox: Es sieht nicht gut aus", "link": "https://seekingalpha.com/article/4889644-xerox-it-is-not-looking-good?source=feed_symbol_XRX", "time": "09.04.2026 22:08", "source": "Seeking Alpha"}, {"title": "Eine der beliebtesten Aktien der Wall Street, die es wert ist, untersucht zu werden, und zwei, die wir f\u00fcr riskant halten", "link": "https://finance.yahoo.com/markets/stocks/articles/1-wall-street-favorite-stock-102950751.html", "time": "07.04.2026 10:29", "source": "Yahoo Finance"}]}, "ANAB": {"score": 66.42, "company_name": "AnaptysBio, Inc.", "sector": "Healthcare", "flag": "\ud83c\uddfa\ud83c\uddf8", "price": 50.95, "change": 13.222223, "change_5d": -25.87, "short_float": 30.75, "short_ratio": 7.13, "rel_volume": 1.725509192689854, "float_shares": 17263040, "si_trend": "no_data", "si_tpct": 0.0, "si_velocity": 0.0, "si_accel": false, "si_t1": "\u2014", "si_t2": "\u2014", "si_t3": "\u2014", "rsi14": 34.3097348852129, "ma50": 59.7370002746582, "ma200": 40.17212510108948, "inst_ownership": null, "52w_high": 73.3, "52w_low": 17.106, "avg_vol_20d": 629007.95, "cur_vol": 1085359.0, "market_cap": 1464723712, "earnings_days": 15, "earnings_date_str": "05.05.", "pc_ratio": 0.1407942238267148, "atm_iv": 3.4218764453125, "rel_strength_20d": -27.565997390847652, "perf_20d": -18.30353661237643, "news": [{"title": "AnaptysBio steigt nach Abschluss des First Tracks-Spinoffs", "link": "https://seekingalpha.com/symbol/ANAB/news?source=feed_symbol_ANAB", "time": "20.04.2026 17:23", "source": "Seeking Alpha"}, {"title": "Vier Biotech-Aktien n\u00e4hern sich zu Beginn der Gewinnsaison dem Kaufpunkt", "link": "https://www.investors.com/stock-lists/ibd-50/biotech-travere-tvtx-stock/?src=A00220&yptr=yahoo", "time": "17.04.2026 16:16", "source": "Yahoo Finance"}, {"title": "AnaptysBio: Aufw\u00e4rtspotenzial durch undifferenzierte Daten und rechtliche Unsicherheiten eingeschr\u00e4nkt", "link": "https://seekingalpha.com/article/4889115-anaptysbio-stock-upside-constrained-by-undifferentiated-data-legal-uncertainties?source=feed_symbol_ANAB", "time": "08.04.2026 07:00", "source": "Seeking Alpha"}]}, "TTGT": {"score": 62.56, "company_name": "TechTarget, Inc.", "sector": "Technology", "flag": "\ud83c\uddfa\ud83c\uddf8", "price": 4.87, "change": 6.3318768, "change_5d": 22.98, "short_float": 9.11, "short_ratio": 6.19, "rel_volume": 3.4870250096911164, "float_shares": 16947567, "si_trend": "no_data", "si_tpct": 0.0, "si_velocity": 0.0, "si_accel": false, "si_t1": "\u2014", "si_t2": "\u2014", "si_t3": "\u2014", "rsi14": 65.2192476062194, "ma50": 4.140799980163575, "ma200": 5.444249985218048, "inst_ownership": null, "52w_high": 9.47, "52w_low": 3.41, "avg_vol_20d": 378181.4, "cur_vol": 1318728.0, "market_cap": 352065216, "earnings_days": 17, "earnings_date_str": "07.05.", "pc_ratio": null, "atm_iv": null, "rel_strength_20d": 19.233579711672085, "perf_20d": 28.496040490143308, "news": [{"title": "Wie die TechTarget (TTGT)-Erz\u00e4hlung nach Preisziel- und Umsatzrevisionen zur\u00fcckgesetzt wird", "link": "https://finance.yahoo.com/markets/stocks/articles/techtarget-ttgt-narrative-resetting-price-210438474.html", "time": "29.03.2026 21:04", "source": "Yahoo Finance"}, {"title": "Wie sich die TechTarget (TTGT)-Erz\u00e4hlung nach Zielk\u00fcrzungen und Prognosen f\u00fcr 2026 ver\u00e4ndert", "link": "https://finance.yahoo.com/news/techtarget-ttgt-narrative-shifting-target-120804421.html", "time": "15.03.2026 12:08", "source": "Yahoo Finance"}, {"title": "Warum die Informa TechTarget-Aktie am Donnerstagmorgen um 24 % stieg", "link": "https://www.fool.com/investing/2026/03/12/why-informa-techtarget-stock-jumped-24-thursday-mo/", "time": "12.03.2026 19:51", "source": "Yahoo Finance"}]}, "KYTX": {"score": 62.41, "company_name": "Kyverna Therapeutics, Inc.", "sector": "Healthcare", "flag": "\ud83c\uddfa\ud83c\uddf8", "price": 11.25, "change": 13.293047, "change_5d": 18.55, "short_float": 8.1999995, "short_ratio": 6.18, "rel_volume": 3.389408206384546, "float_shares": 35120837, "si_trend": "no_data", "si_tpct": 0.0, "si_velocity": 0.0, "si_accel": false, "si_t1": "\u2014", "si_t2": "\u2014", "si_t3": "\u2014", "rsi14": 73.19954971180734, "ma50": 8.487999992370606, "ma200": 6.78142498254776, "inst_ownership": null, "52w_high": 13.67, "52w_low": 1.82, "avg_vol_20d": 776655.05, "cur_vol": 2632401.0, "market_cap": 680965760, "earnings_days": 23, "earnings_date_str": "13.05.", "pc_ratio": 0.05818181818181818, "atm_iv": 2.2226606933593747, "rel_strength_20d": 32.42519563117201, "perf_20d": 41.68765640964323, "news": [{"title": "Kyverna steigt auf neue Studiendaten zur mittleren Phase der Myasthenia gravis-Therapie", "link": "https://seekingalpha.com/symbol/KYTX/news?source=feed_symbol_KYTX", "time": "20.04.2026 18:15", "source": "Seeking Alpha"}, {"title": "Kyverna Therapeutics meldet gemischtes Wertpapierregal im Wert von 300 Millionen US-Dollar an", "link": "https://seekingalpha.com/symbol/KYTX/news?source=feed_symbol_KYTX", "time": "27.03.2026 14:59", "source": "Seeking Alpha"}, {"title": "Kyverna Therapeutics GAAP-EPS von -0,80 US-Dollar \u00fcbertrifft um 0,05 US-Dollar", "link": "https://seekingalpha.com/symbol/KYTX/news?source=feed_symbol_KYTX", "time": "26.03.2026 20:36", "source": "Seeking Alpha"}]}, "ULCC": {"score": 60.8, "company_name": "Frontier Group Holdings, Inc.", "sector": "Industrials", "flag": "\ud83c\uddfa\ud83c\uddf8", "price": 4.81, "change": 5.71428, "change_5d": 28.61, "short_float": 45.279998, "short_ratio": 5.12, "rel_volume": 1.6512586609915616, "float_shares": 57891498, "si_trend": "no_data", "si_tpct": 0.0, "si_velocity": 0.0, "si_accel": false, "si_t1": "\u2014", "si_t2": "\u2014", "si_t3": "\u2014", "rsi14": 72.36059069148718, "ma50": 4.1630999994277955, "ma200": 4.4804749989509585, "inst_ownership": null, "52w_high": 6.66, "52w_low": 2.891, "avg_vol_20d": 5302222.0, "cur_vol": 8755340.0, "market_cap": 1105011584, "earnings_days": 10, "earnings_date_str": "30.04.", "pc_ratio": 1.0065597667638484, "atm_iv": 0.9882813671875, "rel_strength_20d": 41.995395882032795, "perf_20d": 51.25785666050402, "news": [{"title": "Spirit gibt Regierungsanteile frei, um m\u00f6gliche Liquidation zu vermeiden", "link": "https://finance.yahoo.com/economy/policy/articles/spirit-floats-government-stake-avoid-190245942.html", "time": "20.04.2026 19:02", "source": "Yahoo Finance"}, {"title": "United Airlines- und Frontier-Aktien explodieren \u2013 was Sie wissen m\u00fcssen", "link": "https://finance.yahoo.com/markets/stocks/articles/united-airlines-frontier-shares-skyrocket-103226979.html", "time": "18.04.2026 10:32", "source": "Yahoo Finance"}, {"title": "Werden Fusionen und \u00dcbernahmen von Fluggesellschaften im Jahr 2026 durchstarten?", "link": "https://seekingalpha.com/symbol/ULCC/news?source=feed_symbol_ULCC", "time": "14.04.2026 19:48", "source": "Seeking Alpha"}]}, "AOSL": {"score": 60.61, "company_name": "Alpha and Omega Semiconductor Limited", "sector": "Technology", "flag": "\ud83c\uddfa\ud83c\uddf8", "price": 39.9, "change": 17.768597, "change_5d": 45.67, "short_float": 6.859999999999999, "short_ratio": 4.88, "rel_volume": 4.808926335125608, "float_shares": 24540776, "si_trend": "no_data", "si_tpct": 0.0, "si_velocity": 0.0, "si_accel": false, "si_t1": "\u2014", "si_t2": "\u2014", "si_t3": "\u2014", "rsi14": 90.51701215260641, "ma50": 23.114999885559083, "ma200": 24.60924991607666, "inst_ownership": null, "52w_high": 41.8399, "52w_low": 15.9, "avg_vol_20d": 511287.1, "cur_vol": 2458742.0, "market_cap": 1187456896, "earnings_days": 16, "earnings_date_str": "06.05.", "pc_ratio": 0.3371475275847977, "atm_iv": 1.049321159667969, "rel_strength_20d": 82.38020065633135, "perf_20d": 91.64266143480258, "news": [{"title": "Intel f\u00e4llt, da viele Halbleiteraktien am Montag Gewinne erzielen", "link": "https://seekingalpha.com/symbol/AOSL/news?source=feed_symbol_AOSL", "time": "20.04.2026 20:00", "source": "Seeking Alpha"}, {"title": "Alpha und Omega (AOSL) steigen um 10,9 %: Gibt es noch weiteres Aufw\u00e4rtspotenzial f\u00fcr die Aktie?", "link": "https://finance.yahoo.com/markets/stocks/articles/alpha-omega-aosl-soars-10-124500353.html", "time": "15.04.2026 12:45", "source": "Yahoo Finance"}, {"title": "Wie sich die Investitionsgeschichte von Alpha And Omega Semiconductor (AOSL) nach der Neubewertung des beizulegenden Zeitwerts von 22 US-Dollar ver\u00e4ndert", "link": "https://finance.yahoo.com/markets/stocks/articles/alpha-omega-semiconductor-aosl-investment-221526203.html", "time": "09.04.2026 22:15", "source": "Yahoo Finance"}]}, "DNUT": {"score": 57.03, "company_name": "Krispy Kreme, Inc.", "sector": "Consumer Defensive", "flag": "\ud83c\uddfa\ud83c\uddf8", "price": 3.92, "change": 8.587263, "change_5d": 18.43, "short_float": 20.330000000000002, "short_ratio": 8.77, "rel_volume": 1.8561395158487561, "float_shares": 89521614, "si_trend": "no_data", "si_tpct": 0.0, "si_velocity": 0.0, "si_accel": false, "si_t1": "\u2014", "si_t2": "\u2014", "si_t3": "\u2014", "rsi14": 69.34041824485067, "ma50": 3.3466000032424925, "ma200": 3.6124250078201294, "inst_ownership": null, "52w_high": 5.73, "52w_low": 2.5, "avg_vol_20d": 1818196.3, "cur_vol": 3374826.0, "market_cap": 675024000, "earnings_days": 17, "earnings_date_str": "07.05.", "pc_ratio": 0.1589825119236884, "atm_iv": 0.7421900781249999, "rel_strength_20d": 3.058458006118684, "perf_20d": 12.320918784589907, "news": [{"title": "Krispy Kreme expandiert in die Niederlande und baut seine europ\u00e4ische Pr\u00e4senz aus", "link": "https://seekingalpha.com/symbol/DNUT/news?source=feed_symbol_DNUT", "time": "17.04.2026 11:49", "source": "Seeking Alpha"}, {"title": "Krispy Kreme geht Partnerschaft mit Jafa Holding ein, um in den niederl\u00e4ndischen Markt einzusteigen", "link": "https://www.verdictfoodservice.com/news/krispy-kreme-partners-with-jafa/", "time": "17.04.2026 09:23", "source": "Yahoo Finance"}, {"title": "Die neue Struktur von Kimberly-Clark schafft die Voraussetzungen f\u00fcr die Kenvue-Integration", "link": "https://finance.yahoo.com/markets/stocks/articles/kimberly-clarks-structure-sets-stage-130900917.html", "time": "16.04.2026 13:09", "source": "Yahoo Finance"}]}};
-  const WL_HIST    = {"GRPN": {"scores": [100.0, 70.09], "dates": ["16.04.2026", "17.04.2026"], "col": "#ef4444", "trend": "\u2193 -29.9"}, "LESL": {"scores": [82.39, 56.43], "dates": ["16.04.2026", "17.04.2026"], "col": "#ef4444", "trend": "\u2193 -26.0"}, "HIMS": {"scores": [77.66, 57.21, 54.75], "dates": ["16.04.2026", "17.04.2026", "20.04.2026"], "col": "#ef4444", "trend": "\u2193 -22.9"}, "DFDV": {"scores": [61.81, 39.83], "dates": ["16.04.2026", "17.04.2026"], "col": "#ef4444", "trend": "\u2193 -22.0"}, "NKTX": {"scores": [57.11, 62.91, 62.91, 62.91], "dates": ["16.04.2026", "18.04.2026", "19.04.2026", "20.04.2026"], "col": "#22c55e", "trend": "\u2191 +5.8"}, "FWRD": {"scores": [58.55, 41.6], "dates": ["16.04.2026", "17.04.2026"], "col": "#ef4444", "trend": "\u2193 -16.9"}, "BB.TO": {"scores": [37.18, 39.26], "dates": ["16.04.2026", "17.04.2026"], "col": "#94a3b8", "trend": "\u2192 stabil"}, "XRX": {"scores": [73.66, 71.62, 78.62, 63.49], "dates": ["17.04.2026", "18.04.2026", "19.04.2026", "20.04.2026"], "col": "#ef4444", "trend": "\u2193 -10.2"}, "ULCC": {"scores": [68.81, 69.32, 59.32, 58.66], "dates": ["17.04.2026", "18.04.2026", "19.04.2026", "20.04.2026"], "col": "#ef4444", "trend": "\u2193 -10.2"}, "CADL": {"scores": [85.34, 75.34, 85.34, 75.34], "dates": ["17.04.2026", "18.04.2026", "19.04.2026", "20.04.2026"], "col": "#ef4444", "trend": "\u2193 -10.0"}, "HELE": {"scores": [54.34, 60.39], "dates": ["17.04.2026", "19.04.2026"], "col": "#22c55e", "trend": "\u2191 +6.0"}, "CRVS": {"scores": [79.33, 69.65, 79.65, 79.65], "dates": ["17.04.2026", "18.04.2026", "19.04.2026", "20.04.2026"], "col": "#94a3b8", "trend": "\u2192 stabil"}, "ABSI": {"scores": [66.19, 59.38, 66.38, 48.44], "dates": ["17.04.2026", "18.04.2026", "19.04.2026", "20.04.2026"], "col": "#ef4444", "trend": "\u2193 -17.8"}, "TSHA": {"scores": [60.79, 61.07, 61.07], "dates": ["17.04.2026", "18.04.2026", "20.04.2026"], "col": "#94a3b8", "trend": "\u2192 stabil"}, "KURA": {"scores": [60.46, 70.59, 60.59, 70.59], "dates": ["17.04.2026", "18.04.2026", "19.04.2026", "20.04.2026"], "col": "#22c55e", "trend": "\u2191 +10.1"}, "BMEA": {"scores": [56.33, 57.03, 57.03, 57.03], "dates": ["17.04.2026", "18.04.2026", "19.04.2026", "20.04.2026"], "col": "#94a3b8", "trend": "\u2192 stabil"}, "AMC": {"scores": [53.76, 56.21], "dates": ["17.04.2026", "18.04.2026"], "col": "#94a3b8", "trend": "\u2192 stabil"}, "PAL": {"scores": [59.78, 59.78, 59.78], "dates": ["18.04.2026", "19.04.2026", "20.04.2026"], "col": "#94a3b8", "trend": "\u2192 stabil"}, "ALGT": {"scores": [55.85, 55.85], "dates": ["18.04.2026", "20.04.2026"], "col": "#94a3b8", "trend": "\u2192 stabil"}, "STRZ": {"scores": [57.16, 57.16], "dates": ["19.04.2026", "20.04.2026"], "col": "#94a3b8", "trend": "\u2192 stabil"}, "HTZ": {"scores": [73.99, 59.38], "dates": ["19.04.2026", "20.04.2026"], "col": "#ef4444", "trend": "\u2193 -14.6"}};
+  const WL_SCORES  = {"GRPN": 70.09, "IBG": 88.4, "LESL": 56.43, "HIMS": 54.75, "EVTL": 62.11, "DFDV": 39.83, "BFLY": 57.62, "NKTX": 62.91, "FWRD": 41.6, "WOLF": 48.54, "VOYG": 44.48, "GPRO": 43.73, "BB.TO": 39.26, "OCDO.L": 23.11, "INDI": 49.49, "TTEC": 73.92, "SKIL": 46.44, "XRX": 63.49, "AVTX": 41.45, "DBI": 63.65, "DFH": 64.14, "TMDX": 57.28, "ULCC": 58.66, "RRGB": 49.33, "CADL": 85.34, "HELE": 60.39, "LZM": 44.83, "RH": 52.18, "EVGO": 50.62, "CRVS": 79.65, "ABSI": 48.44, "TSHA": 61.07, "KURA": 70.59, "BMEA": 57.03, "AMC": 56.21, "PAL": 59.78, "IFRX": 56.75, "ALGT": 55.85, "STRZ": 57.16, "HTZ": 59.38, "CRDF": 65.04, "FLWS": 100.0, "ARTL": 77.14, "PRLD": 63.34, "SNSE": 62.91, "SST": 53.95, "ANAB": 66.42, "ASTC": 43.0, "KYTX": 62.41, "AOSL": 60.61, "CHMG": 55.86, "EBON": 53.07, "SILA": 51.88, "CMPS": 49.98, "VBNK": 49.06, "BYND": 73.79, "TTGT": 62.56, "DNUT": 57.03};
+  const WL_TOP10   = {"FLWS": {"score": 100.0, "company_name": "1-800-FLOWERS.COM, Inc.", "sector": "Consumer Cyclical", "flag": "\ud83c\uddfa\ud83c\uddf8", "price": 4.46, "change": 15.096775, "change_5d": 38.08, "short_float": 44.05, "short_ratio": 24.88, "rel_volume": 10.416005825225774, "float_shares": 8832112, "si_trend": "no_data", "si_tpct": 0.0, "si_velocity": 0.0, "si_accel": false, "si_t1": "\u2014", "si_t2": "\u2014", "si_t3": "\u2014", "rsi14": 78.94182182965187, "ma50": 3.401599998474121, "ma200": 4.333599998950958, "inst_ownership": null, "52w_high": 8.44, "52w_low": 2.89, "avg_vol_20d": 670325.95, "cur_vol": 6982119.0, "market_cap": 285733504, "earnings_days": 17, "earnings_date_str": "07.05.", "pc_ratio": 0.011011011011011011, "atm_iv": 1.5585959570312498, "rel_strength_20d": 38.910298433416756, "perf_20d": 48.17275921188798, "news": [{"title": "Nicht-Basiskonsumg\u00fcter \u2013 Spezialisierte Verbraucherdienstleistungen Q4-Ergebnis: 1-800-FLOWERS (NASDAQ:FLWS) Einfach das Beste", "link": "https://finance.yahoo.com/markets/stocks/articles/consumer-discretionary-specialized-consumer-services-090407540.html", "time": "17.04.2026 09:04", "source": "Yahoo Finance"}, {"title": "Die Aktien von 1-800-FLOWERS, Purple, Kontoor Brands, Royal Caribbean und Somnigroup fallen \u2013 was Sie wissen m\u00fcssen", "link": "https://finance.yahoo.com/markets/stocks/articles/1-800-flowers-purple-kontoor-211750113.html", "time": "07.04.2026 21:17", "source": "Yahoo Finance"}, {"title": "3 Gr\u00fcnde, warum FLWS riskant ist und 1 Aktie, die man stattdessen kaufen sollte", "link": "https://finance.yahoo.com/markets/stocks/articles/3-reasons-flws-risky-1-145951256.html", "time": "06.04.2026 14:59", "source": "Yahoo Finance"}]}, "CADL": {"score": 84.3, "company_name": "Candel Therapeutics, Inc.", "sector": "Healthcare", "flag": "\ud83c\uddfa\ud83c\uddf8", "price": 7.22, "change": 13.343798, "change_5d": 48.25, "short_float": 23.969999, "short_ratio": 11.58, "rel_volume": 3.7010253471387546, "float_shares": 63310981, "si_trend": "up", "si_tpct": 150.0, "si_velocity": 584.0, "si_accel": false, "si_t1": "7,528 Aktien (17.04.2026)", "si_t2": "192 Aktien (16.04.2026)", "si_t3": "726,380 Aktien (15.04.2026)", "rsi14": 81.63311884983467, "ma50": 5.188699960708618, "ma200": 5.523074994087219, "inst_ownership": null, "52w_high": 7.65, "52w_low": 4.338, "avg_vol_20d": 1423537.4, "cur_vol": 5268548.0, "market_cap": 528842816, "earnings_days": 22, "earnings_date_str": "12.05.", "pc_ratio": 0.675, "atm_iv": 0.9726565234375, "rel_strength_20d": 36.00917091134092, "perf_20d": 45.27163168981214, "news": [{"title": "Candel profitiert von zus\u00e4tzlichen Testdaten zur mittleren Phase des Lead-Assets", "link": "https://seekingalpha.com/symbol/CADL/news?source=feed_symbol_CADL", "time": "17.03.2026 18:01", "source": "Seeking Alpha"}, {"title": "Candel Therapeutics meldet verl\u00e4ngertes \u00dcberleben in der Phase-2a-Lungenkrebsstudie mit CAN-2409", "link": "https://www.proactiveinvestors.com/companies/news/1089013/candel-therapeutics-reports-extended-survival-in-phase-2a-lung-cancer-trial-of-can-2409-1089013.html", "time": "17.03.2026 14:35", "source": "Yahoo Finance"}, {"title": "Candel Therapeutics GAAP-EPS von -0,54 USD", "link": "https://seekingalpha.com/symbol/CADL/news?source=feed_symbol_CADL", "time": "12.03.2026 19:02", "source": "Seeking Alpha"}]}, "BYND": {"score": 73.79, "company_name": "Beyond Meat, Inc.", "sector": "Consumer Defensive", "flag": "\ud83c\uddfa\ud83c\uddf8", "price": 1.16, "change": 41.016285, "change_5d": 75.76, "short_float": 31.019999999999996, "short_ratio": 5.19, "rel_volume": 3.690595498807905, "float_shares": 447146865, "si_trend": "no_data", "si_tpct": 0.0, "si_velocity": 0.0, "si_accel": false, "si_t1": "\u2014", "si_t2": "\u2014", "si_t3": "\u2014", "rsi14": 79.4517408068767, "ma50": 0.7298199999332428, "ma200": 1.6414999908208847, "inst_ownership": null, "52w_high": 7.69, "52w_low": 0.5, "avg_vol_20d": 49580718.9, "cur_vol": 182982378.0, "market_cap": 537731392, "earnings_days": 16, "earnings_date_str": "06.05.", "pc_ratio": 0.08395128715258937, "atm_iv": 3.2187519531249995, "rel_strength_20d": 57.404205888195435, "perf_20d": 66.66666666666666, "news": [{"title": "Definiert Beyond Meats (BYND) Functional Beverage Push seine Kernmarkenstrategie im Stillen neu?", "link": "https://finance.yahoo.com/markets/stocks/articles/beyond-meat-bynd-functional-beverage-230609739.html", "time": "17.04.2026 23:06", "source": "Yahoo Finance"}, {"title": "Warum steigt die Aktie von Beyond Meat (BYND) heute stark an?", "link": "https://finance.yahoo.com/markets/stocks/articles/why-beyond-meat-bynd-stock-205626582.html", "time": "17.04.2026 20:56", "source": "Yahoo Finance"}, {"title": "Beyond Meat hat gerade eine neue Getr\u00e4nkelinie auf den Markt gebracht. Sollten Sie hier BYND-Aktien kaufen?", "link": "https://www.barchart.com/story/news/1374771/beyond-meat-just-launched-a-new-beverage-line-should-you-buy-bynd-stock-here", "time": "17.04.2026 19:53", "source": "Yahoo Finance"}]}, "XRX": {"score": 66.8, "company_name": "Xerox Holdings Corporation", "sector": "Industrials", "flag": "\ud83c\uddfa\ud83c\uddf8", "price": 1.85, "change": 6.936416, "change_5d": 45.67, "short_float": 33.97, "short_ratio": 9.26, "rel_volume": 1.686905883938899, "float_shares": 118615197, "si_trend": "no_data", "si_tpct": 0.0, "si_velocity": 0.0, "si_accel": false, "si_t1": "\u2014", "si_t2": "\u2014", "si_t3": "\u2014", "rsi14": 70.42023690828505, "ma50": 1.6049656200408935, "ma200": 2.9100465869903562, "inst_ownership": null, "52w_high": 6.8, "52w_low": 1.19, "avg_vol_20d": 3168246.7, "cur_vol": 5344534.0, "market_cap": 241936080, "earnings_days": 10, "earnings_date_str": "30.04.", "pc_ratio": 1.6186590989712664, "atm_iv": 1.0625046875000002, "rel_strength_20d": 29.47669556287041, "perf_20d": 38.73915634134163, "news": [{"title": "Interface, Pitney Bowes und Xerox Stocks Trade Up, was Sie wissen m\u00fcssen", "link": "https://finance.yahoo.com/markets/stocks/articles/interface-pitney-bowes-xerox-stocks-223226837.html", "time": "17.04.2026 22:32", "source": "Yahoo Finance"}, {"title": "Xerox: Es sieht nicht gut aus", "link": "https://seekingalpha.com/article/4889644-xerox-it-is-not-looking-good?source=feed_symbol_XRX", "time": "09.04.2026 22:08", "source": "Seeking Alpha"}, {"title": "Eine der beliebtesten Aktien der Wall Street, die es wert ist, untersucht zu werden, und zwei, die wir f\u00fcr riskant halten", "link": "https://finance.yahoo.com/markets/stocks/articles/1-wall-street-favorite-stock-102950751.html", "time": "07.04.2026 10:29", "source": "Yahoo Finance"}]}, "ANAB": {"score": 66.42, "company_name": "AnaptysBio, Inc.", "sector": "Healthcare", "flag": "\ud83c\uddfa\ud83c\uddf8", "price": 50.95, "change": 13.222223, "change_5d": -25.87, "short_float": 30.75, "short_ratio": 7.13, "rel_volume": 1.725509192689854, "float_shares": 17263040, "si_trend": "no_data", "si_tpct": 0.0, "si_velocity": 0.0, "si_accel": false, "si_t1": "\u2014", "si_t2": "\u2014", "si_t3": "\u2014", "rsi14": 34.3097348852129, "ma50": 59.7370002746582, "ma200": 40.17212510108948, "inst_ownership": null, "52w_high": 73.3, "52w_low": 17.106, "avg_vol_20d": 629007.95, "cur_vol": 1085359.0, "market_cap": 1464723712, "earnings_days": 15, "earnings_date_str": "05.05.", "pc_ratio": 0.1407942238267148, "atm_iv": 3.4218764453125, "rel_strength_20d": -27.565997390847652, "perf_20d": -18.30353661237643, "news": [{"title": "AnaptysBio steigt nach Abschluss des First Tracks-Spinoffs", "link": "https://seekingalpha.com/symbol/ANAB/news?source=feed_symbol_ANAB", "time": "20.04.2026 17:23", "source": "Seeking Alpha"}, {"title": "Vier Biotech-Aktien n\u00e4hern sich zu Beginn der Gewinnsaison dem Kaufpunkt", "link": "https://www.investors.com/stock-lists/ibd-50/biotech-travere-tvtx-stock/?src=A00220&yptr=yahoo", "time": "17.04.2026 16:16", "source": "Yahoo Finance"}, {"title": "AnaptysBio: Aufw\u00e4rtspotenzial durch undifferenzierte Daten und rechtliche Unsicherheiten eingeschr\u00e4nkt", "link": "https://seekingalpha.com/article/4889115-anaptysbio-stock-upside-constrained-by-undifferentiated-data-legal-uncertainties?source=feed_symbol_ANAB", "time": "08.04.2026 07:00", "source": "Seeking Alpha"}]}, "TTGT": {"score": 62.56, "company_name": "TechTarget, Inc.", "sector": "Technology", "flag": "\ud83c\uddfa\ud83c\uddf8", "price": 4.87, "change": 6.3318768, "change_5d": 22.98, "short_float": 9.11, "short_ratio": 6.19, "rel_volume": 3.4870250096911164, "float_shares": 16947567, "si_trend": "no_data", "si_tpct": 0.0, "si_velocity": 0.0, "si_accel": false, "si_t1": "\u2014", "si_t2": "\u2014", "si_t3": "\u2014", "rsi14": 65.2192476062194, "ma50": 4.140799980163575, "ma200": 5.444249985218048, "inst_ownership": null, "52w_high": 9.47, "52w_low": 3.41, "avg_vol_20d": 378181.4, "cur_vol": 1318728.0, "market_cap": 352065216, "earnings_days": 17, "earnings_date_str": "07.05.", "pc_ratio": null, "atm_iv": null, "rel_strength_20d": 19.233579711672085, "perf_20d": 28.496040490143308, "news": [{"title": "Wie die TechTarget (TTGT)-Erz\u00e4hlung nach Preisziel- und Umsatzrevisionen zur\u00fcckgesetzt wird", "link": "https://finance.yahoo.com/markets/stocks/articles/techtarget-ttgt-narrative-resetting-price-210438474.html", "time": "29.03.2026 21:04", "source": "Yahoo Finance"}, {"title": "Wie sich die TechTarget (TTGT)-Erz\u00e4hlung nach Zielk\u00fcrzungen und Prognosen f\u00fcr 2026 ver\u00e4ndert", "link": "https://finance.yahoo.com/news/techtarget-ttgt-narrative-shifting-target-120804421.html", "time": "15.03.2026 12:08", "source": "Yahoo Finance"}, {"title": "Warum die Informa TechTarget-Aktie am Donnerstagmorgen um 24 % stieg", "link": "https://www.fool.com/investing/2026/03/12/why-informa-techtarget-stock-jumped-24-thursday-mo/", "time": "12.03.2026 19:51", "source": "Yahoo Finance"}]}, "KYTX": {"score": 62.41, "company_name": "Kyverna Therapeutics, Inc.", "sector": "Healthcare", "flag": "\ud83c\uddfa\ud83c\uddf8", "price": 11.25, "change": 13.293047, "change_5d": 18.55, "short_float": 8.1999995, "short_ratio": 6.18, "rel_volume": 3.389408206384546, "float_shares": 35120837, "si_trend": "no_data", "si_tpct": 0.0, "si_velocity": 0.0, "si_accel": false, "si_t1": "\u2014", "si_t2": "\u2014", "si_t3": "\u2014", "rsi14": 73.19954971180734, "ma50": 8.487999992370606, "ma200": 6.78142498254776, "inst_ownership": null, "52w_high": 13.67, "52w_low": 1.82, "avg_vol_20d": 776655.05, "cur_vol": 2632401.0, "market_cap": 680965760, "earnings_days": 23, "earnings_date_str": "13.05.", "pc_ratio": 0.05818181818181818, "atm_iv": 2.2226606933593747, "rel_strength_20d": 32.42519563117201, "perf_20d": 41.68765640964323, "news": [{"title": "Kyverna steigt auf neue Studiendaten zur mittleren Phase der Myasthenia gravis-Therapie", "link": "https://seekingalpha.com/symbol/KYTX/news?source=feed_symbol_KYTX", "time": "20.04.2026 18:15", "source": "Seeking Alpha"}, {"title": "Kyverna Therapeutics meldet gemischtes Wertpapierregal im Wert von 300 Millionen US-Dollar an", "link": "https://seekingalpha.com/symbol/KYTX/news?source=feed_symbol_KYTX", "time": "27.03.2026 14:59", "source": "Seeking Alpha"}, {"title": "Kyverna Therapeutics GAAP-EPS von -0,80 US-Dollar \u00fcbertrifft um 0,05 US-Dollar", "link": "https://seekingalpha.com/symbol/KYTX/news?source=feed_symbol_KYTX", "time": "26.03.2026 20:36", "source": "Seeking Alpha"}]}, "ULCC": {"score": 60.8, "company_name": "Frontier Group Holdings, Inc.", "sector": "Industrials", "flag": "\ud83c\uddfa\ud83c\uddf8", "price": 4.81, "change": 5.71428, "change_5d": 28.61, "short_float": 45.279998, "short_ratio": 5.12, "rel_volume": 1.6512586609915616, "float_shares": 57891498, "si_trend": "no_data", "si_tpct": 0.0, "si_velocity": 0.0, "si_accel": false, "si_t1": "\u2014", "si_t2": "\u2014", "si_t3": "\u2014", "rsi14": 72.36059069148718, "ma50": 4.1630999994277955, "ma200": 4.4804749989509585, "inst_ownership": null, "52w_high": 6.66, "52w_low": 2.891, "avg_vol_20d": 5302222.0, "cur_vol": 8755340.0, "market_cap": 1105011584, "earnings_days": 10, "earnings_date_str": "30.04.", "pc_ratio": 1.0065597667638484, "atm_iv": 0.937500625, "rel_strength_20d": 41.995395882032795, "perf_20d": 51.25785666050402, "news": [{"title": "Spirit gibt Regierungsanteile frei, um m\u00f6gliche Liquidation zu vermeiden", "link": "https://finance.yahoo.com/economy/policy/articles/spirit-floats-government-stake-avoid-190245942.html", "time": "20.04.2026 19:02", "source": "Yahoo Finance"}, {"title": "United Airlines- und Frontier-Aktien explodieren \u2013 was Sie wissen m\u00fcssen", "link": "https://finance.yahoo.com/markets/stocks/articles/united-airlines-frontier-shares-skyrocket-103226979.html", "time": "18.04.2026 10:32", "source": "Yahoo Finance"}, {"title": "Werden Fusionen und \u00dcbernahmen von Fluggesellschaften im Jahr 2026 durchstarten?", "link": "https://seekingalpha.com/symbol/ULCC/news?source=feed_symbol_ULCC", "time": "14.04.2026 19:48", "source": "Seeking Alpha"}]}, "AOSL": {"score": 60.61, "company_name": "Alpha and Omega Semiconductor Limited", "sector": "Technology", "flag": "\ud83c\uddfa\ud83c\uddf8", "price": 39.9, "change": 17.768597, "change_5d": 45.67, "short_float": 6.859999999999999, "short_ratio": 4.88, "rel_volume": 4.808926335125608, "float_shares": 24540776, "si_trend": "no_data", "si_tpct": 0.0, "si_velocity": 0.0, "si_accel": false, "si_t1": "\u2014", "si_t2": "\u2014", "si_t3": "\u2014", "rsi14": 90.51701215260641, "ma50": 23.114999885559083, "ma200": 24.60924991607666, "inst_ownership": null, "52w_high": 41.8399, "52w_low": 15.9, "avg_vol_20d": 511287.1, "cur_vol": 2458742.0, "market_cap": 1187456896, "earnings_days": 16, "earnings_date_str": "06.05.", "pc_ratio": 0.3371475275847977, "atm_iv": 1.0732468212890627, "rel_strength_20d": 82.38020065633135, "perf_20d": 91.64266143480258, "news": [{"title": "Intel f\u00e4llt, da viele Halbleiteraktien am Montag Gewinne erzielen", "link": "https://seekingalpha.com/symbol/AOSL/news?source=feed_symbol_AOSL", "time": "20.04.2026 20:00", "source": "Seeking Alpha"}, {"title": "Alpha und Omega (AOSL) steigen um 10,9 %: Gibt es noch weiteres Aufw\u00e4rtspotenzial f\u00fcr die Aktie?", "link": "https://finance.yahoo.com/markets/stocks/articles/alpha-omega-aosl-soars-10-124500353.html", "time": "15.04.2026 12:45", "source": "Yahoo Finance"}, {"title": "Wie sich die Investitionsgeschichte von Alpha And Omega Semiconductor (AOSL) nach der Neubewertung des beizulegenden Zeitwerts von 22 US-Dollar ver\u00e4ndert", "link": "https://finance.yahoo.com/markets/stocks/articles/alpha-omega-semiconductor-aosl-investment-221526203.html", "time": "09.04.2026 22:15", "source": "Yahoo Finance"}]}, "DNUT": {"score": 57.03, "company_name": "Krispy Kreme, Inc.", "sector": "Consumer Defensive", "flag": "\ud83c\uddfa\ud83c\uddf8", "price": 3.92, "change": 8.587263, "change_5d": 18.43, "short_float": 20.330000000000002, "short_ratio": 8.77, "rel_volume": 1.8561395158487561, "float_shares": 89521614, "si_trend": "no_data", "si_tpct": 0.0, "si_velocity": 0.0, "si_accel": false, "si_t1": "\u2014", "si_t2": "\u2014", "si_t3": "\u2014", "rsi14": 69.34041824485067, "ma50": 3.3466000032424925, "ma200": 3.6124250078201294, "inst_ownership": null, "52w_high": 5.73, "52w_low": 2.5, "avg_vol_20d": 1818196.3, "cur_vol": 3374826.0, "market_cap": 675024000, "earnings_days": 17, "earnings_date_str": "07.05.", "pc_ratio": 0.1589825119236884, "atm_iv": 0.7421900781249999, "rel_strength_20d": 3.058458006118684, "perf_20d": 12.320918784589907, "news": [{"title": "Krispy Kreme expandiert in die Niederlande und baut seine europ\u00e4ische Pr\u00e4senz aus", "link": "https://seekingalpha.com/symbol/DNUT/news?source=feed_symbol_DNUT", "time": "17.04.2026 11:49", "source": "Seeking Alpha"}, {"title": "Krispy Kreme geht Partnerschaft mit Jafa Holding ein, um in den niederl\u00e4ndischen Markt einzusteigen", "link": "https://www.verdictfoodservice.com/news/krispy-kreme-partners-with-jafa/", "time": "17.04.2026 09:23", "source": "Yahoo Finance"}, {"title": "Die neue Struktur von Kimberly-Clark schafft die Voraussetzungen f\u00fcr die Kenvue-Integration", "link": "https://finance.yahoo.com/markets/stocks/articles/kimberly-clarks-structure-sets-stage-130900917.html", "time": "16.04.2026 13:09", "source": "Yahoo Finance"}]}};
+  const WL_HIST    = {"GRPN": {"scores": [100.0, 70.09], "dates": ["16.04.2026", "17.04.2026"], "col": "#ef4444", "trend": "\u2193 -29.9"}, "LESL": {"scores": [82.39, 56.43], "dates": ["16.04.2026", "17.04.2026"], "col": "#ef4444", "trend": "\u2193 -26.0"}, "HIMS": {"scores": [77.66, 57.21, 54.75], "dates": ["16.04.2026", "17.04.2026", "20.04.2026"], "col": "#ef4444", "trend": "\u2193 -22.9"}, "DFDV": {"scores": [61.81, 39.83], "dates": ["16.04.2026", "17.04.2026"], "col": "#ef4444", "trend": "\u2193 -22.0"}, "NKTX": {"scores": [57.11, 62.91, 62.91, 62.91], "dates": ["16.04.2026", "18.04.2026", "19.04.2026", "20.04.2026"], "col": "#22c55e", "trend": "\u2191 +5.8"}, "FWRD": {"scores": [58.55, 41.6], "dates": ["16.04.2026", "17.04.2026"], "col": "#ef4444", "trend": "\u2193 -16.9"}, "BB.TO": {"scores": [37.18, 39.26], "dates": ["16.04.2026", "17.04.2026"], "col": "#94a3b8", "trend": "\u2192 stabil"}, "XRX": {"scores": [73.66, 71.62, 78.62, 63.49], "dates": ["17.04.2026", "18.04.2026", "19.04.2026", "20.04.2026"], "col": "#ef4444", "trend": "\u2193 -10.2"}, "ULCC": {"scores": [68.81, 69.32, 59.32, 58.66], "dates": ["17.04.2026", "18.04.2026", "19.04.2026", "20.04.2026"], "col": "#ef4444", "trend": "\u2193 -10.2"}, "CADL": {"scores": [85.34, 75.34, 85.34, 85.34], "dates": ["17.04.2026", "18.04.2026", "19.04.2026", "20.04.2026"], "col": "#94a3b8", "trend": "\u2192 stabil"}, "HELE": {"scores": [54.34, 60.39], "dates": ["17.04.2026", "19.04.2026"], "col": "#22c55e", "trend": "\u2191 +6.0"}, "CRVS": {"scores": [79.33, 69.65, 79.65, 79.65], "dates": ["17.04.2026", "18.04.2026", "19.04.2026", "20.04.2026"], "col": "#94a3b8", "trend": "\u2192 stabil"}, "ABSI": {"scores": [66.19, 59.38, 66.38, 48.44], "dates": ["17.04.2026", "18.04.2026", "19.04.2026", "20.04.2026"], "col": "#ef4444", "trend": "\u2193 -17.8"}, "TSHA": {"scores": [60.79, 61.07, 61.07], "dates": ["17.04.2026", "18.04.2026", "20.04.2026"], "col": "#94a3b8", "trend": "\u2192 stabil"}, "KURA": {"scores": [60.46, 70.59, 60.59, 70.59], "dates": ["17.04.2026", "18.04.2026", "19.04.2026", "20.04.2026"], "col": "#22c55e", "trend": "\u2191 +10.1"}, "BMEA": {"scores": [56.33, 57.03, 57.03, 57.03], "dates": ["17.04.2026", "18.04.2026", "19.04.2026", "20.04.2026"], "col": "#94a3b8", "trend": "\u2192 stabil"}, "AMC": {"scores": [53.76, 56.21], "dates": ["17.04.2026", "18.04.2026"], "col": "#94a3b8", "trend": "\u2192 stabil"}, "PAL": {"scores": [59.78, 59.78, 59.78], "dates": ["18.04.2026", "19.04.2026", "20.04.2026"], "col": "#94a3b8", "trend": "\u2192 stabil"}, "ALGT": {"scores": [55.85, 55.85], "dates": ["18.04.2026", "20.04.2026"], "col": "#94a3b8", "trend": "\u2192 stabil"}, "STRZ": {"scores": [57.16, 57.16], "dates": ["19.04.2026", "20.04.2026"], "col": "#94a3b8", "trend": "\u2192 stabil"}, "HTZ": {"scores": [73.99, 59.38], "dates": ["19.04.2026", "20.04.2026"], "col": "#ef4444", "trend": "\u2193 -14.6"}};
 
   let _wlGhSha = null;
   let _wlCache = null;
@@ -2501,6 +2507,7 @@ function _fmtGerman(d) {
   async function wlLoad() {
     if (_wlCache !== null) return _wlCache.slice();
     const token = localStorage.getItem(TOK_KEY);
+    const localArr = JSON.parse(localStorage.getItem(WL_KEY) || '[]');
     if (token) {
       try {
         const r = await fetch(
@@ -2508,20 +2515,35 @@ function _fmtGerman(d) {
           {headers: {'Authorization': `Bearer ${token}`, 'Accept': 'application/vnd.github+json',
                      'X-GitHub-Api-Version': '2022-11-28'}}
         );
-        if (r.status === 404) { _wlGhSha = null; _wlCache = []; return []; }
+        if (r.status === 404) {
+          // Datei existiert nicht im Repo — localStorage bleibt autoritativ
+          _wlGhSha = null;
+          _wlCache = localArr.slice();
+          return localArr.slice();
+        }
         if (r.ok) {
           const j = await r.json();
           _wlGhSha = j.sha;
-          const arr = JSON.parse(atob(j.content.replace(/\n/g, '')));
-          localStorage.setItem(WL_KEY, JSON.stringify(arr));
-          _wlCache = arr;
-          return arr.slice();
+          const ghArr = JSON.parse(atob(j.content.replace(/\n/g, '')));
+          // Fix: GitHub-Leer-Stand DARF NICHT einen vorhandenen localStorage
+          // überschreiben. Nur wenn GitHub tatsächlich Einträge liefert, gilt
+          // GitHub als Quelle der Wahrheit. Sonst bleibt localStorage führend
+          // (Szenario: wlSave hat seit Tagen still gegen 401/403 verloren).
+          const merged = ghArr.length > 0 ? ghArr : localArr;
+          localStorage.setItem(WL_KEY, JSON.stringify(merged));
+          _wlCache = merged;
+          return merged.slice();
         }
-      } catch(_) {}  // network error — fall through to localStorage
+        // Non-OK, kein 404 (z.B. 401/403/5xx) — sichtbar machen
+        console.error('WL GitHub GET fehlgeschlagen:', r.status, r.statusText);
+        _wlWarn(`⚠ GitHub-Lesefehler ${r.status} — Watchlist aus lokalem Cache`);
+      } catch(e) {
+        console.error('WL wlLoad Netzwerkfehler:', e);
+        _wlWarn('⚠ GitHub unerreichbar — Watchlist aus lokalem Cache');
+      }
     }
-    const arr = JSON.parse(localStorage.getItem(WL_KEY) || '[]');
-    _wlCache = arr;
-    return arr.slice();
+    _wlCache = localArr.slice();
+    return localArr.slice();
   }
 
   // ── Async save — localStorage always, GitHub when token available ──────────
@@ -2557,6 +2579,7 @@ function _fmtGerman(d) {
       };
       let r = await _put(_wlGhSha);
       if (r.ok) { _wlGhSha = (await r.json()).content?.sha || null; return; }
+      console.error('WL GitHub PUT fehlgeschlagen:', r.status, r.statusText);
       if (r.status === 409 || r.status === 422) {
         // SHA conflict — re-fetch current SHA and retry once
         const rf = await fetch(
@@ -2568,11 +2591,20 @@ function _fmtGerman(d) {
           _wlGhSha = (await rf.json()).sha;
           r = await _put(_wlGhSha);
           if (r.ok) { _wlGhSha = (await r.json()).content?.sha || null; return; }
+          console.error('WL GitHub PUT Retry fehlgeschlagen:', r.status, r.statusText);
+        } else {
+          console.error('WL GitHub GET (SHA-Retry) fehlgeschlagen:', rf.status, rf.statusText);
         }
       }
-      _wlWarn('⚠ GitHub Sync-Fehler — Watchlist lokal gespeichert');
-    } catch(_) {
-      _wlWarn('⚠ GitHub Sync-Fehler — Watchlist lokal gespeichert');
+      // Status-spezifische Warnung — 401/403 deutet auf Token-Problem hin
+      if (r.status === 401 || r.status === 403) {
+        _wlWarn(`⚠️ GitHub Token abgelaufen oder ohne 'contents:write' (HTTP ${r.status}) — Watchlist nur lokal.`);
+      } else {
+        _wlWarn(`⚠ GitHub Sync-Fehler HTTP ${r.status} — Watchlist lokal gespeichert`);
+      }
+    } catch(e) {
+      console.error('WL wlSave Netzwerkfehler:', e);
+      _wlWarn('⚠ GitHub Sync-Fehler (Netzwerk) — Watchlist lokal gespeichert');
     }
   }
   function wlScoreColor(v) {
@@ -2855,8 +2887,36 @@ function _fmtGerman(d) {
     await wlRender();
   };
 
+  // Fix 3 — stiller GET /user beim Seitenstart: prüft ob der gespeicherte
+  // Token noch gültig ist und die Berechtigung hat. 401/403 → sichtbare
+  // Warnung, damit der User nicht ahnungslos weiter-speichert während
+  // GitHub jeden PUT ablehnt.
+  async function _wlValidateToken() {
+    const token = localStorage.getItem(TOK_KEY);
+    if (!token) return;  // kein Token ist OK — Watchlist-Save zeigt eigene Meldung
+    try {
+      const r = await fetch('https://api.github.com/user', {
+        headers: {'Authorization': `Bearer ${token}`, 'Accept': 'application/vnd.github+json',
+                  'X-GitHub-Api-Version': '2022-11-28'},
+      });
+      if (r.status === 401 || r.status === 403) {
+        console.error('WL Token-Validierung:', r.status, r.statusText);
+        _wlWarn('⚠️ GitHub Token abgelaufen — Watchlist wird nur lokal gespeichert. '
+                + 'Bitte Token im ⚙-Panel erneuern.');
+      } else if (!r.ok) {
+        console.error('WL Token-Validierung fehlgeschlagen:', r.status, r.statusText);
+      }
+    } catch(e) {
+      console.error('WL Token-Validierung Netzwerkfehler:', e);
+      // Netzwerkfehler still behandeln — möglicherweise nur offline, nicht
+      // zwingend ein Token-Problem. Eventuelle tatsächliche PUT-Fehler
+      // werden bei der nächsten wlSave sichtbar.
+    }
+  }
+
   document.addEventListener('DOMContentLoaded', () => {
     wlRender();
+    _wlValidateToken();
     const inp = document.getElementById('wl-add-input');
     if (inp) {
       inp.addEventListener('keydown', (e) => {
@@ -3131,7 +3191,7 @@ Gib eine knappe Einschätzung: Squeeze-Potenzial, wichtigste Treiber, kritische 
 
 // ── Claude Chat Panel ─────────────────────────────────────────────────────────
 (function(){
-  const STOCKS_CTX = [{"ticker": "FLWS", "score": 100.0, "company": "1-800-FLOWERS.COM, Inc.", "price": 4.46, "change": 15.1, "short_float": 44.0, "short_ratio": 24.9, "rel_volume": 10.42, "si_trend": "no_data", "rsi14": 78.94182182965187, "atm_iv": 1.9101566992187502, "earnings_days": 17, "sector": "Consumer Cyclical"}, {"ticker": "CADL", "score": 77.3, "company": "Candel Therapeutics, Inc.", "price": 7.22, "change": 13.34, "short_float": 24.0, "short_ratio": 11.6, "rel_volume": 3.7, "si_trend": "no_data", "rsi14": 81.63311884983467, "atm_iv": 0.9726565234375, "earnings_days": 22, "sector": "Healthcare"}, {"ticker": "BYND", "score": 73.8, "company": "Beyond Meat, Inc.", "price": 1.16, "change": 41.02, "short_float": 31.0, "short_ratio": 5.2, "rel_volume": 3.69, "si_trend": "no_data", "rsi14": 79.4517408068767, "atm_iv": 2.5312536718749996, "earnings_days": 16, "sector": "Consumer Defensive"}, {"ticker": "XRX", "score": 66.8, "company": "Xerox Holdings Corporation", "price": 1.85, "change": 6.94, "short_float": 34.0, "short_ratio": 9.3, "rel_volume": 1.69, "si_trend": "no_data", "rsi14": 70.42023688267315, "atm_iv": 0.937500625, "earnings_days": 10, "sector": "Industrials"}, {"ticker": "ANAB", "score": 66.4, "company": "AnaptysBio, Inc.", "price": 50.95, "change": 13.22, "short_float": 30.8, "short_ratio": 7.1, "rel_volume": 1.73, "si_trend": "no_data", "rsi14": 34.3097348852129, "atm_iv": 3.4218764453125, "earnings_days": 15, "sector": "Healthcare"}, {"ticker": "TTGT", "score": 62.6, "company": "TechTarget, Inc.", "price": 4.87, "change": 6.33, "short_float": 9.1, "short_ratio": 6.2, "rel_volume": 3.49, "si_trend": "no_data", "rsi14": 65.2192476062194, "atm_iv": null, "earnings_days": 17, "sector": "Technology"}, {"ticker": "KYTX", "score": 62.4, "company": "Kyverna Therapeutics, Inc.", "price": 11.25, "change": 13.29, "short_float": 8.2, "short_ratio": 6.2, "rel_volume": 3.39, "si_trend": "no_data", "rsi14": 73.19954971180734, "atm_iv": 2.2226606933593747, "earnings_days": 23, "sector": "Healthcare"}, {"ticker": "ULCC", "score": 60.8, "company": "Frontier Group Holdings, Inc.", "price": 4.81, "change": 5.71, "short_float": 45.3, "short_ratio": 5.1, "rel_volume": 1.65, "si_trend": "no_data", "rsi14": 72.36059069148718, "atm_iv": 0.9882813671875, "earnings_days": 10, "sector": "Industrials"}, {"ticker": "AOSL", "score": 60.6, "company": "Alpha and Omega Semiconductor Limited", "price": 39.9, "change": 17.77, "short_float": 6.9, "short_ratio": 4.9, "rel_volume": 4.81, "si_trend": "no_data", "rsi14": 90.51701215260641, "atm_iv": 1.049321159667969, "earnings_days": 16, "sector": "Technology"}, {"ticker": "DNUT", "score": 57.0, "company": "Krispy Kreme, Inc.", "price": 3.92, "change": 8.59, "short_float": 20.3, "short_ratio": 8.8, "rel_volume": 1.86, "si_trend": "no_data", "rsi14": 69.34041824485067, "atm_iv": 0.7421900781249999, "earnings_days": 17, "sector": "Consumer Defensive"}];
+  const STOCKS_CTX = [{"ticker": "FLWS", "score": 100.0, "company": "1-800-FLOWERS.COM, Inc.", "price": 4.46, "change": 15.1, "short_float": 44.0, "short_ratio": 24.9, "rel_volume": 10.42, "si_trend": "no_data", "rsi14": 78.94182182965187, "atm_iv": 1.5585959570312498, "earnings_days": 17, "sector": "Consumer Cyclical"}, {"ticker": "CADL", "score": 84.3, "company": "Candel Therapeutics, Inc.", "price": 7.22, "change": 13.34, "short_float": 24.0, "short_ratio": 11.6, "rel_volume": 3.7, "si_trend": "up", "rsi14": 81.63311884983467, "atm_iv": 0.9726565234375, "earnings_days": 22, "sector": "Healthcare"}, {"ticker": "BYND", "score": 73.8, "company": "Beyond Meat, Inc.", "price": 1.16, "change": 41.02, "short_float": 31.0, "short_ratio": 5.2, "rel_volume": 3.69, "si_trend": "no_data", "rsi14": 79.4517408068767, "atm_iv": 3.2187519531249995, "earnings_days": 16, "sector": "Consumer Defensive"}, {"ticker": "XRX", "score": 66.8, "company": "Xerox Holdings Corporation", "price": 1.85, "change": 6.94, "short_float": 34.0, "short_ratio": 9.3, "rel_volume": 1.69, "si_trend": "no_data", "rsi14": 70.42023690828505, "atm_iv": 1.0625046875000002, "earnings_days": 10, "sector": "Industrials"}, {"ticker": "ANAB", "score": 66.4, "company": "AnaptysBio, Inc.", "price": 50.95, "change": 13.22, "short_float": 30.8, "short_ratio": 7.1, "rel_volume": 1.73, "si_trend": "no_data", "rsi14": 34.3097348852129, "atm_iv": 3.4218764453125, "earnings_days": 15, "sector": "Healthcare"}, {"ticker": "TTGT", "score": 62.6, "company": "TechTarget, Inc.", "price": 4.87, "change": 6.33, "short_float": 9.1, "short_ratio": 6.2, "rel_volume": 3.49, "si_trend": "no_data", "rsi14": 65.2192476062194, "atm_iv": null, "earnings_days": 17, "sector": "Technology"}, {"ticker": "KYTX", "score": 62.4, "company": "Kyverna Therapeutics, Inc.", "price": 11.25, "change": 13.29, "short_float": 8.2, "short_ratio": 6.2, "rel_volume": 3.39, "si_trend": "no_data", "rsi14": 73.19954971180734, "atm_iv": 2.2226606933593747, "earnings_days": 23, "sector": "Healthcare"}, {"ticker": "ULCC", "score": 60.8, "company": "Frontier Group Holdings, Inc.", "price": 4.81, "change": 5.71, "short_float": 45.3, "short_ratio": 5.1, "rel_volume": 1.65, "si_trend": "no_data", "rsi14": 72.36059069148718, "atm_iv": 0.937500625, "earnings_days": 10, "sector": "Industrials"}, {"ticker": "AOSL", "score": 60.6, "company": "Alpha and Omega Semiconductor Limited", "price": 39.9, "change": 17.77, "short_float": 6.9, "short_ratio": 4.9, "rel_volume": 4.81, "si_trend": "no_data", "rsi14": 90.51701215260641, "atm_iv": 1.0732468212890627, "earnings_days": 16, "sector": "Technology"}, {"ticker": "DNUT", "score": 57.0, "company": "Krispy Kreme, Inc.", "price": 3.92, "change": 8.59, "short_float": 20.3, "short_ratio": 8.8, "rel_volume": 1.86, "si_trend": "no_data", "rsi14": 69.34041824485067, "atm_iv": 0.7421900781249999, "earnings_days": 17, "sector": "Consumer Defensive"}];
   let _history = [];
   let _open    = false;
 
