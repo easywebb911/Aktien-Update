@@ -452,8 +452,9 @@ a{color:var(--accent);text-decoration:none}
   /* Cards: fluid auto-fill, min 340px per card, 16px gap, full width */
   .cards-grid{grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:16px}
   .stats-bar{grid-template-columns:repeat(6,1fr)}
-  /* Metrics auf Desktop: 6 Spalten, Short-Float-Header spannt alle 6 */
-  .metrics-row{grid-template-columns:repeat(6,1fr)}
+  /* Metrics auf Desktop: 3 Spalten — Short-Float-Header volle Breite,
+     darunter zwei Zeilen à 3 Kacheln (DTC/Vol/Mom + Float/SI/SSR) */
+  .metrics-row{grid-template-columns:repeat(3,1fr)}
   .wrap{padding:16px 16px 32px}
   .footer{padding:16px 16px 32px}
   /* Slightly smaller body text */
