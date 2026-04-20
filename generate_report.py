@@ -2267,7 +2267,14 @@ def _build_card_ctx(i: int, s: dict) -> dict:
         "flag":           flag,
 
         # Scalar formatted numbers (40 format-specs all pre-applied)
-        "score_raw_str":  f"{s['score']:.1f}",          # score-num + data-score
+        # v1 emittiert den Score an zwei Stellen mit unterschiedlicher Semantik:
+        #   - data-score="{sc:.1f}"        → gekappt auf 100 (Zeile ~1799)
+        #   - <span class="score-num">{s['score']:.1f}</span> → roh (Zeile ~1821)
+        # In der Pipeline wird score stets ≤100 gekappt (1312/1320/4702), aber
+        # um auch bei unerwarteten Eingaben byte-identisch zu v1 zu bleiben,
+        # trennen wir die beiden Keys hier strikt.
+        "score_raw_str":  f"{s['score']:.1f}",          # score-num (roh)
+        "score_cap_1f":   f"{sc:.1f}",                  # data-score (gekappt)
         "score_pct_str":  f"{sc:.0f}",                  # score-fill width
         "price_str":      f"{price:.2f}",               # price tag + data-price
         "sf_1f":          f"{sf:.1f}",                  # data-sf
@@ -2506,9 +2513,15 @@ def _build_context(stocks: list[dict], report_date: str) -> dict:
     }
 
 
-def generate_html_v1(stocks: list[dict], report_date: str) -> str:
-    """Legacy f-String-Rendering — aktuell autoritativ."""
-    ctx = _build_context(stocks, report_date)
+def generate_html_v1(stocks: list[dict], report_date: str, _ctx: dict | None = None) -> str:
+    """Legacy f-String-Rendering — aktuell autoritativ.
+
+    ``_ctx`` ist ein optionaler Context-Override, den ``generate_html_v2``
+    nutzt, um seine Jinja-gerenderten Karten einzuschleusen. Dadurch
+    vergleicht ``_render_test`` v1 gegen v2 in einer Konfiguration, in der
+    einzig die Kartenquelle (f-String vs Jinja2) variiert.
+    """
+    ctx = _ctx if _ctx is not None else _build_context(stocks, report_date)
     # Unpack context for f-string access
     report_date    = ctx["report_date"]
     timestamp      = ctx["timestamp"]
@@ -4149,9 +4162,10 @@ ${{JSON.stringify(STOCKS_CTX)}}`;
 def generate_html_v2(stocks: list[dict], report_date: str) -> str:
     """Jinja2-basiertes Rendering.
 
-    Phase 3c: ``templates/card.jinja`` pro Karte gerendert (reine Interpolation
-    über das in ``_build_card_ctx()`` vorberechnete Flat-Dict). Die äußere
-    Seitenstruktur folgt in späteren Phasen; bis dahin bleibt v1 autoritativ.
+    Phase 3d: ``templates/card.jinja`` rendert alle Karten; das Ergebnis
+    wird in den v1-Page-Context eingeschleust, sodass ``_render_test``
+    die Karten-Quelle (f-String vs Jinja2) isoliert vergleichen kann.
+    Äußere Seitenstruktur folgt in späteren Phasen; v1 bleibt Default.
     """
     ctx = _build_context(stocks, report_date)
     env = _jinja_env()
@@ -4159,8 +4173,8 @@ def generate_html_v2(stocks: list[dict], report_date: str) -> str:
     cards_v2 = "\n".join(
         card_tmpl.render(**c).rstrip("\n") for c in ctx["card_ctxs"]
     )
-    _ = cards_v2  # Card-Rendering bereit, aber ungenutzt bis Seite komplett migriert
-    return generate_html_v1(stocks, report_date)
+    ctx_v2 = {**ctx, "cards": cards_v2}
+    return generate_html_v1(stocks, report_date, _ctx=ctx_v2)
 
 
 def generate_html(stocks: list[dict], report_date: str) -> str:
