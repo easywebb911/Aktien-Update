@@ -1516,7 +1516,10 @@ def _card(i: int, s: dict) -> str:
             f'data-col="{_spark["col"]}" '
             f'data-today="{_spark["today"]}">'
             f'<div class="spark-header">'
-            f'<span class="spark-title">Score-Verlauf</span>'
+            f'<div class="spark-title-wrap">'
+            f'<span class="spark-title">\u26a1 KI-Signalverlauf</span>'
+            f'<span class="spark-subtitle">(KI-Agent Score der letzten 7 Tage)</span>'
+            f'</div>'
             f'<span class="spark-trend" style="color:{_spark["col"]}">{_spark["trend"]}</span>'
             f'</div>'
             f'<div class="spark-svg-wrap"></div>'
@@ -1978,7 +1981,10 @@ def _build_card_ctx(i: int, s: dict) -> dict:
             f'data-col="{_spark["col"]}" '
             f'data-today="{_spark["today"]}">'
             f'<div class="spark-header">'
-            f'<span class="spark-title">Score-Verlauf</span>'
+            f'<div class="spark-title-wrap">'
+            f'<span class="spark-title">\u26a1 KI-Signalverlauf</span>'
+            f'<span class="spark-subtitle">(KI-Agent Score der letzten 7 Tage)</span>'
+            f'</div>'
             f'<span class="spark-trend" style="color:{_spark["col"]}">{_spark["trend"]}</span>'
             f'</div>'
             f'<div class="spark-svg-wrap"></div>'
@@ -3330,16 +3336,29 @@ function _fmtGerman(d) {{
       else                  dotClass = 'none';     // grau, kein Pulsieren (Score 0–14)
       dot.className = 'agent-dot ' + dotClass;
 
-      const confidence = (sig && sig.confidence != null) ? sig.confidence : null;
-      const confStr = confidence != null ? ` \u2014 Konfidenz ${{confidence}}%` : '';
+      const driver = (sig && sig.drivers) || '?';
+      const phaseTip = info.market_phase || '?';
+      const lastScanTip = updated
+        ? updated.toLocaleTimeString('de-DE', {{hour:'2-digit', minute:'2-digit'}}) + ' Uhr'
+        : '?';
       const tip = document.createElement('span');
       tip.className = 'agent-tooltip';
-      tip.textContent = `KI-Agent: Score ${{score}}/100${{confStr}} \u2014 ${{(sig && sig.drivers) || '?'}}`;
+      tip.textContent = `KI-Agent Score: ${{score}}/100 \u2014 ${{driver}} \u2014 ${{phaseTip}} \u2014 ${{lastScanTip}}`;
       dot.appendChild(tip);
+
+      // position:fixed → Koordinaten via getBoundingClientRect berechnen,
+      // damit der Tooltip nicht durch .card (overflow:hidden) abgeschnitten wird
+      const positionTip = () => {{
+        const rect = dot.getBoundingClientRect();
+        tip.style.left = (rect.left + rect.width / 2) + 'px';
+        tip.style.top  = (rect.top - 6) + 'px';
+      }};
+      dot.addEventListener('mouseenter', positionTip);
 
       // iPhone: Antippen zeigt Tooltip für 3s
       dot.addEventListener('click', function(e) {{
         e.stopPropagation();
+        positionTip();
         dot.classList.add('touch-visible');
         setTimeout(() => dot.classList.remove('touch-visible'), 3000);
       }});
@@ -3601,7 +3620,7 @@ function _fmtGerman(d) {{
   function buildWlSparkOnly(ticker, h) {{
     try {{
       if (!h || !h.scores || h.scores.length < 2) {{
-        return '<div class="wl-no-data">Kein Score-Verlauf vorhanden.</div>';
+        return '<div class="wl-no-data">Kein KI-Signalverlauf vorhanden.</div>';
       }}
       const scoresE = JSON.stringify(h.scores).replace(/"/g, '&quot;');
       const datesE  = JSON.stringify(h.dates).replace(/"/g, '&quot;');
