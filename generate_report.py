@@ -1913,7 +1913,10 @@ def _jinja_env() -> Environment:
     """Jinja2-Environment mit ``fmt``-Filter und Helfer-Funktionen als Globals.
 
     fmt-Filter:   {{ val | fmt('.2f') }}   → ``format(val, '.2f')``
-    Helpers:      fmt_cap, get_region, get_flag
+    Helpers:      fmt_cap, get_region, get_flag,
+                  _score_color, _metric_color, _fmt_si_record,
+                  risk_assessment, short_situation, news_summary
+    JSON:         ``{{ obj | tojson }}`` (built-in Jinja2 filter) ersetzt json.dumps
     """
     env = Environment(
         loader=FileSystemLoader(str(TEMPLATES_DIR)),
@@ -1922,10 +1925,16 @@ def _jinja_env() -> Environment:
         lstrip_blocks=False,
         keep_trailing_newline=True,
     )
-    env.filters["fmt"]        = lambda val, spec="": format(val, spec)
-    env.globals["fmt_cap"]    = fmt_cap
-    env.globals["get_region"] = get_region
-    env.globals["get_flag"]   = get_flag
+    env.filters["fmt"]             = lambda val, spec="": format(val, spec)
+    env.globals["fmt_cap"]         = fmt_cap
+    env.globals["get_region"]      = get_region
+    env.globals["get_flag"]        = get_flag
+    env.globals["score_color"]     = _score_color
+    env.globals["metric_color"]    = _metric_color
+    env.globals["fmt_si_record"]   = _fmt_si_record
+    env.globals["risk_assessment"] = risk_assessment
+    env.globals["short_situation"] = short_situation
+    env.globals["news_summary"]    = news_summary
     return env
 
 
