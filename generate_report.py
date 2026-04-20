@@ -2195,7 +2195,7 @@ def _card(i: int, s: dict) -> str:
     </div>
   </div>
   <button class="ki-analyse-btn" id="ka-btn{i}" onclick="runKiAnalyse({i})">
-    &#x1F916; KI-Analyse
+    KI-Analyse
   </button>
   <div class="ki-analyse-result" id="ka-res{i}"></div>
 </article>"""
@@ -4218,10 +4218,10 @@ const ANT_WARN_LS      = 'chat_warn_ack_ts';
 const ANT_WARN_TTL_MS  = 7 * 24 * 60 * 60 * 1000;
 const ANT_ENDPOINT     = 'https://api.anthropic.com/v1/messages';
 const ANT_MODEL        = 'claude-sonnet-4-6';
-const ANT_KI_LABEL     = '\U0001F916 KI-Analyse';
+const ANT_KI_LABEL     = 'KI-Analyse';
 const ANT_KI_LABEL_HIDE= '\u25b2 Analyse ausblenden';
-const ANT_KI_LABEL_NEW = '\U0001F504 Neu analysieren';
-const ANT_KI_LABEL_BUSY= '\u23F3 Analysiere …';
+const ANT_KI_LABEL_NEW = 'Neu analysieren';
+const ANT_KI_LABEL_BUSY= 'Analysiere …';
 const ANT_KI_LABEL_KEY = '\U0001F511 API-Key erforderlich';
 
 function _mapAnthropicError(status, rawMsg) {{
@@ -4447,7 +4447,7 @@ Gib eine knappe Einschätzung: Squeeze-Potenzial, wichtigste Treiber, kritische 
   btn.disabled = true;
   btn.textContent = ANT_KI_LABEL_BUSY;
   res.innerHTML =
-    '<span class="ka-label">\U0001F916 Claude &middot; ' + ctx.ticker +
+    '<span class="ka-label">Claude &middot; ' + ctx.ticker +
     '<button class="ka-rerun-btn" onclick="kaRerun(' + cardIdx + ')">' + ANT_KI_LABEL_NEW + '</button></span>' +
     '<span class="ka-stream"></span>';
   res.classList.add('visible');
