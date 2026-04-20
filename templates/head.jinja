@@ -146,6 +146,9 @@ a{color:var(--accent);text-decoration:none}
 .rank{display:flex;align-items:center;justify-content:center;width:28px;height:28px;
   border-radius:50%;background:var(--accent);color:#fff;font-size:.75rem;
   font-weight:800;flex-shrink:0;margin-top:3px}
+/* 📌-Badge statt Rang-Nummer für manuell beobachtete Ticker */
+.rank-manual{background:#f59e0b;font-size:1rem;cursor:help}
+.card-manual{border-color:#f59e0b55}
 .ticker-block{flex:1;min-width:0}
 .ticker-row{display:flex;align-items:center;gap:7px;flex-wrap:wrap;margin-bottom:3px}
 .ticker{font-size:1.25rem;font-weight:800;font-family:'SF Mono','Courier New',monospace;color:var(--txt)}
@@ -170,11 +173,26 @@ a{color:var(--accent);text-decoration:none}
 .wl-add-btn{background:none;border:none;color:var(--txt-dim);cursor:pointer;font-size:1rem;padding:0 3px;line-height:1;opacity:.55;transition:opacity .15s,color .15s}
 .wl-add-btn:hover{color:#22c55e;opacity:1}
 .wl-add-btn.in-wl{color:#22c55e;opacity:1}
-.wl-section{display:none;margin-bottom:14px}
-.wl-section.has-items{display:block}
+.wl-section{display:block;margin-bottom:14px}
 .wl-section-hdr{display:flex;align-items:center;gap:8px;padding:0 4px;margin-bottom:8px}
 .wl-section-title{font-size:.9rem;font-weight:700;color:var(--txt)}
 .wl-count-badge{font-size:.68rem;color:var(--txt-dim);background:var(--brd);padding:1px 7px;border-radius:10px}
+/* Freitext-Eingabe für beliebige Ticker */
+.wl-add-row{display:flex;gap:6px;margin-bottom:6px;padding:0 4px}
+.wl-add-input{flex:1;min-width:0;background:var(--bg-card);border:1px solid var(--brd);
+  border-radius:8px;color:var(--txt);padding:0 10px;height:36px;font-size:.85rem;
+  font-family:'SF Mono','Courier New',monospace;text-transform:uppercase;letter-spacing:.5px}
+.wl-add-input:focus{outline:2px solid var(--accent);outline-offset:1px;border-color:var(--accent)}
+.wl-add-btn-manual{background:#16a34a;color:#fff;border:none;border-radius:8px;
+  padding:0 14px;height:36px;font-size:.8rem;font-weight:700;cursor:pointer;white-space:nowrap;
+  flex-shrink:0;transition:background .15s}
+.wl-add-btn-manual:hover{background:#15803d}
+.wl-add-btn-manual:active{transform:scale(.97)}
+.wl-add-err{font-size:.75rem;color:#ef4444;background:#ef444418;border:1px solid #ef444444;
+  border-radius:6px;padding:5px 10px;margin:0 4px 6px;display:none;line-height:1.4}
+.wl-add-err.visible{display:block}
+.wl-add-hint{font-size:.7rem;color:var(--txt-dim);padding:0 4px;margin-bottom:10px;line-height:1.45;
+  font-style:italic}
 .wl-cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:8px}
 .wl-card{background:var(--bg-card);border:1px solid #3b82f644;border-radius:10px;position:relative}
 .wl-card--expanded{grid-column:1/-1}

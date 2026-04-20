@@ -1797,8 +1797,17 @@ def _card(i: int, s: dict) -> str:
     _da_news  = json.dumps(_news_titles, ensure_ascii=False).replace('"','&quot;')
     _da_earn_date = _earn_dstr
 
+    # Rank-Marker: Zahl für organische Top-10-Karten, 📌-Badge für Ticker,
+    # die ausschließlich wegen der persönlichen Watchlist sichtbar sind.
+    if s.get("manual_forced"):
+        rank_html = ('<span class="rank rank-manual" '
+                     'title="Manuell beobachtet — via persönliche Watchlist hinzugefügt">'
+                     '\U0001F4CC</span>')
+    else:
+        rank_html = f'<span class="rank">{i}</span>'
+
     return f"""
-<article class="card" id="c{i}" data-ticker="{s['ticker']}"
+<article class="card{' card-manual' if s.get('manual_forced') else ''}" id="c{i}" data-ticker="{s['ticker']}"
   data-score="{sc:.1f}" data-company="{s.get('company_name','')}"
   data-price="{_price:.2f}" data-sf="{sf:.1f}" data-sr="{sr:.1f}"
   data-rv="{rv:.2f}" data-chg="{chg:.2f}" data-si="{si_trend}"
@@ -1807,7 +1816,7 @@ def _card(i: int, s: dict) -> str:
   data-cap="{_da_cap}" data-sector="{_sector}" data-news="{_da_news}">
   <div class="card-top">
     <div class="card-left">
-      <span class="rank">{i}</span>
+      {rank_html}
       <div class="ticker-block">
         <div class="ticker-row">
           <span class="ticker">{s['ticker']}</span>
@@ -2740,6 +2749,16 @@ def generate_html_v1(stocks: list[dict], report_date: str) -> str:
       <span class="wl-section-title">Meine Watchlist</span>
       <span class="wl-count-badge" id="wl-count">0</span>
     </div>
+    <div class="wl-add-row">
+      <input type="text" id="wl-add-input" class="wl-add-input"
+        placeholder="TICKER eingeben" maxlength="12"
+        autocomplete="off" autocapitalize="characters" spellcheck="false"
+        inputmode="latin" aria-label="Ticker zur Watchlist hinzuf&uuml;gen">
+      <button type="button" id="wl-add-btn-manual" class="wl-add-btn-manual"
+        onclick="wlAddManual()">+ Hinzuf&uuml;gen</button>
+    </div>
+    <div class="wl-add-err" id="wl-add-err" role="alert"></div>
+    <p class="wl-add-hint">Manuell hinzugef&uuml;gte Ticker erscheinen beim n&auml;chsten Report-Run mit vollst&auml;ndigen Daten. Bis dahin wird der letzte bekannte Score angezeigt falls vorhanden.</p>
     <div class="wl-sync-warn" id="wl-sync-warn"></div>
     <div class="wl-cards" id="wl-cards"></div>
   </section>
@@ -3640,12 +3659,10 @@ function _fmtGerman(d) {{
   async function wlRender() {{
     try {{
       const arr  = await wlLoad();
-      const sec  = document.getElementById('wl-section');
       const grid = document.getElementById('wl-cards');
       const cnt  = document.getElementById('wl-count');
-      if (!arr.length) {{ sec.classList.remove('has-items'); return; }}
-      sec.classList.add('has-items');
       cnt.textContent = arr.length;
+      if (!arr.length) {{ grid.innerHTML = ''; return; }}
 
       const top10Set = new Set(Object.keys(WL_TOP10));
 
@@ -3720,6 +3737,42 @@ function _fmtGerman(d) {{
     }}
   }};
 
+  // Freitext-Eingabe: beliebigen Ticker zur persönlichen Watchlist hinzufügen.
+  // Validierung: 1–12 Zeichen, nur A–Z / 0–9 / Punkt (getrimmt & uppercased).
+  const _WL_RE = /^[A-Z0-9.]{{1,12}}$/;
+
+  function _wlSetErr(msg) {{
+    const e = document.getElementById('wl-add-err');
+    if (!e) return;
+    if (msg) {{ e.textContent = msg; e.classList.add('visible'); }}
+    else     {{ e.textContent = '';  e.classList.remove('visible'); }}
+  }}
+
+  window.wlAddManual = async function() {{
+    const inp = document.getElementById('wl-add-input');
+    if (!inp) return;
+    const raw = (inp.value || '').trim().toUpperCase();
+    if (!_WL_RE.test(raw)) {{
+      _wlSetErr('Ung\xfcltiger Ticker \u2014 Beispiele: GME, SAP.DE, 0700.HK');
+      return;
+    }}
+    const arr = await wlLoad();
+    if (arr.includes(raw)) {{
+      _wlSetErr('');
+      inp.value = '';
+      return;  // bereits drin — stillschweigend ok
+    }}
+    if (arr.length >= WL_MAX) {{
+      _wlSetErr(`Watchlist voll (max ${{WL_MAX}} Ticker).`);
+      return;
+    }}
+    arr.unshift(raw);
+    _wlSetErr('');
+    inp.value = '';
+    await wlSave(arr);
+    await wlRender();
+  }};
+
   window.wlToggle = async function(btn) {{
     const ticker = btn.dataset.ticker;
     const arr    = await wlLoad();
@@ -3739,7 +3792,16 @@ function _fmtGerman(d) {{
     await wlRender();
   }};
 
-  document.addEventListener('DOMContentLoaded', wlRender);
+  document.addEventListener('DOMContentLoaded', () => {{
+    wlRender();
+    const inp = document.getElementById('wl-add-input');
+    if (inp) {{
+      inp.addEventListener('keydown', (e) => {{
+        if (e.key === 'Enter') {{ e.preventDefault(); window.wlAddManual(); }}
+      }});
+      inp.addEventListener('input', () => _wlSetErr(''));
+    }}
+  }});
 }})();
 // ── Claude / Anthropic API ────────────────────────────────────────────────────
 const ANT_KEY_LS       = 'anthropic_api_key';
@@ -4209,6 +4271,33 @@ def _render_test(stocks: list[dict], report_date: str) -> None:
 # 4b. WATCHLIST VOLUME SCAN
 # ===========================================================================
 
+_WL_PERSONAL_FILE = "watchlist_personal.json"
+_WL_PERSONAL_RE   = re.compile(r"^[A-Z0-9.]{1,12}$")
+
+
+def _load_personal_watchlist() -> list[str]:
+    """Liste der manuell beobachteten Ticker aus ``watchlist_personal.json``.
+
+    Rückgabe ist eine dedupte Liste aus validen Tickern in Großbuchstaben.
+    Silently ignoriert fehlende Datei, kaputtes JSON und invalide Einträge.
+    """
+    try:
+        with open(_WL_PERSONAL_FILE, "r", encoding="utf-8") as fh:
+            raw = json.load(fh)
+    except (FileNotFoundError, json.JSONDecodeError):
+        return []
+    seen: set[str] = set()
+    out:  list[str] = []
+    for item in raw if isinstance(raw, list) else []:
+        if not isinstance(item, str):
+            continue
+        t = item.strip().upper()
+        if t and t not in seen and _WL_PERSONAL_RE.match(t):
+            seen.add(t)
+            out.append(t)
+    return out
+
+
 _WL_FAILURES_FILE   = "watchlist_failures.json"
 _WL_INACTIVE_FILE   = "watchlist_inactive.json"
 _WL_INACTIVE_LEGACY = "watchlist_inactive.txt"   # alte Datei, einmalig migriert
@@ -4467,6 +4556,36 @@ def main():
         if wc["ticker"] not in existing_tickers:
             candidates.append(wc)
             existing_tickers.add(wc["ticker"])
+
+    # Persönliche Watchlist: manuell hinzugefügte Ticker werden immer einge-
+    # pflegt — unabhängig vom Screener-Ergebnis — und als "manual_personal"
+    # markiert. So überleben sie später jeden Rang-/Volumen-Filter.
+    personal_tickers = _load_personal_watchlist()
+    n_personal_added = 0
+    for pt in personal_tickers:
+        if pt in existing_tickers:
+            # Ticker bereits im Pool → existenten Eintrag als manuell markieren
+            for c in candidates:
+                if c["ticker"] == pt:
+                    c["manual_personal"] = True
+                    break
+        else:
+            candidates.append({
+                "ticker":         pt,
+                "company_name":   pt,
+                "source":         "personal_watchlist",
+                "manual_personal": True,
+                # Minimal-Defaults; Enrichment füllt den Rest.
+                "short_float":    0,
+                "short_ratio":    0,
+                "rel_volume":     0,
+            })
+            existing_tickers.add(pt)
+            n_personal_added += 1
+    if personal_tickers:
+        log.info("Persönliche Watchlist: %d Ticker (%d neu im Pool)",
+                 len(personal_tickers), n_personal_added)
+
     log.info("Combined candidate pool after watchlist: %d tickers", len(candidates))
     print(f"Step 1 abgeschlossen in {time.time()-_t1:.1f}s", flush=True)
 
@@ -4701,6 +4820,21 @@ def main():
             len(top10),
         )
         top10 = enriched  # show whatever survived
+
+    # Persönliche Watchlist: jeder markierte Ticker erscheint garantiert —
+    # entweder organisch im Top-10 (dann mit normaler Rang-Nummer) oder als
+    # "Bonus-Slot" angehängt (mit 📌 Manuell-beobachtet-Badge statt Rang).
+    _top10_ids = {id(c) for c in top10}
+    manual_extras = [
+        c for c in enriched
+        if c.get("manual_personal") and id(c) not in _top10_ids
+    ]
+    if manual_extras:
+        for c in manual_extras:
+            c["manual_forced"] = True
+        log.info("Manuelle Watchlist-Ticker außerhalb Top-10: +%d Bonus-Slot(s): %s",
+                 len(manual_extras), [c["ticker"] for c in manual_extras])
+        top10.extend(manual_extras)
 
     if not top10:
         log.error("No candidates survived all filters.")
