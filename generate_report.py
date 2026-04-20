@@ -3656,12 +3656,37 @@ function _fmtGerman(d) {{
       const phase    = info.market_phase || '';
       const lastScan = updated.toLocaleTimeString('de-DE', {{hour:'2-digit', minute:'2-digit'}});
       const nSignals = info.signals_active || 0;
+      // Active tickers, sortiert nach Score absteigend (höchster zuerst).
+      // Aus signals-Dict; tickers ohne Score oder mit 0 filtern.
+      const MAX_IN_BAR = 3;
+      const colorDot = (sc) => sc >= 70 ? '🟢'
+                             : sc >= 40 ? '🟠'
+                             : sc >= 15 ? '🔴'
+                             : '⚪';
+      const topActive = Object.entries(signals)
+        .map(([t, s]) => ({{ t, score: (s && s.score != null) ? +s.score : 0 }}))
+        .filter(x => x.score > 0)
+        .sort((a, b) => b.score - a.score)
+        .slice(0, Math.max(nSignals, 0));
+      let signalPart;
+      if (nSignals === 0 || topActive.length === 0) {{
+        signalPart = `${{nSignals}} Signale aktiv`;
+      }} else if (nSignals === 1) {{
+        const s = topActive[0];
+        signalPart = `1 Signal aktiv: ${{s.t}} ${{colorDot(s.score)}} ${{Math.round(s.score)}}/100`;
+      }} else {{
+        const shown = topActive.slice(0, MAX_IN_BAR);
+        const rest  = Math.max(0, nSignals - shown.length);
+        const list  = shown.map(s => `${{s.t}} ${{Math.round(s.score)}}`).join(', ');
+        signalPart = `${{nSignals}} Signale aktiv: ${{list}}`
+                   + (rest > 0 ? ` +${{rest}} weitere` : '');
+      }}
       if (ageMin > 45) {{
         if (statusEl) statusEl.textContent =
           `\u26a1 KI-Agent: Scan verz\u00f6gert \u2014 letzter Stand ${{lastScan}} Uhr`;
       }} else {{
         if (statusEl) statusEl.textContent =
-          `\u26a1 KI-Agent: Letzter Scan ${{lastScan}} Uhr \u2014 ${{phase}} \u2014 ${{nSignals}} Signale aktiv`;
+          `\u26a1 KI-Agent: Letzter Scan ${{lastScan}} Uhr \u2014 ${{phase}} \u2014 ${{signalPart}}`;
       }}
     }}
 
