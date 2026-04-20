@@ -3540,6 +3540,7 @@ Gib eine knappe Einschätzung: Squeeze-Potenzial, wichtigste Treiber, kritische 
       }},
       {{model: ANT_MODEL, max_tokens: 400}}
     );
+    if (res) res.scrollTop = res.scrollHeight;
     btn.dataset.kaHasResult = '1';
     btn.textContent = ANT_KI_LABEL_HIDE;
   }} catch(e) {{
