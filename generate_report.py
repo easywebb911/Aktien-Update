@@ -1068,7 +1068,10 @@ def _latest_finra_dates(n: int = 3) -> list[str]:
 
     found: list[str] = []
     today = date.today()
-    for delta in range(1, 20):   # start from yesterday (delta=1)
+    # Seit 2026-04: SI_TREND_PERIODS=12 → Rückschau bis zu 25 Kalendertage,
+    # damit bei 12 Handelstagen + Wochenenden + US-Feiertagen genug Probes
+    # gefunden werden (loop bricht nach dem n-ten Treffer ab).
+    for delta in range(1, 25):   # start from yesterday (delta=1)
         if len(found) >= n:
             break
         day = today - timedelta(days=delta)
@@ -1137,7 +1140,10 @@ def get_finra_short_interest(ticker: str,
 
     sym = ticker.strip().upper()
     _FINRA_MIN_VOL  = 1        # any non-zero value counts; CSV parser already drops sv=0
-    _TREND_MIN_VOL  = 100      # min short-vol for a meaningful trend data point
+    # Strenger seit 2026-04: Datenpunkte < 500 Aktien sind zu dünn für
+    # einen belastbaren Trend — werden aus der Berechnung ausgeschlossen
+    # (bleiben aber im history-Array für T-1/T-2/T-3-Anzeige).
+    _TREND_MIN_VOL  = 500      # min short-vol for a meaningful trend data point
 
     history: list[dict] = []
     for date_str in dates:
@@ -1160,25 +1166,28 @@ def get_finra_short_interest(ticker: str,
         _finra_stats["empty"] += 1
         return {}
 
-    # Only include data points ≥ _TREND_MIN_VOL (100) in trend calc
-    # Cap output to [-90 %, +200 %] to suppress data artefacts
-    # Classification uses raw (uncapped) value; only the stored pct is capped.
-    # Moving-average smoothing: avg of 2 newest vs avg of 2 oldest to dampen outliers.
+    # Nur Datenpunkte ≥ _TREND_MIN_VOL (500) fließen in den Trend ein.
+    # Gleitender 3er-Durchschnitt auf beiden Enden (seit 2026-04) —
+    # ein einzelner Ausreißer-Tag verschiebt den Trend nicht mehr.
+    # Output-Cap: [-90 %, +150 %]; alles darüber ist fast immer Datenfehler.
+    # Mindestens SI_TREND_MIN_DATAPOINTS (6) signifikante Punkte nötig;
+    # weniger → „no_data" statt instabiler 2-Punkte-Berechnung.
     trend, trend_pct = "no_data", 0.0
     significant = [p for p in history if p["short_interest"] >= _TREND_MIN_VOL]
     if len(significant) >= SI_TREND_MIN_DATAPOINTS:
-        avg_new = (significant[0]["short_interest"] + significant[1]["short_interest"]) / 2
-        avg_old = (significant[-1]["short_interest"] + significant[-2]["short_interest"]) / 2
-        raw_pct = (avg_new - avg_old) / avg_old
+        avg_new = sum(p["short_interest"] for p in significant[:3]) / 3
+        avg_old = sum(p["short_interest"] for p in significant[-3:]) / 3
+        raw_pct = (avg_new - avg_old) / avg_old if avg_old > 0 else 0.0
         if raw_pct >= SI_TREND_UP_THRESHOLD:
             trend = "up"
         elif raw_pct <= SI_TREND_DOWN_THRESHOLD:
             trend = "down"
         else:
             trend = "sideways"
-        trend_pct = max(-0.90, min(2.0, raw_pct))
+        trend_pct = max(-0.90, min(1.50, raw_pct))
         if _finra_stats.get("ok", 0) < 5:
-            print(f"{sym} FINRA trend: avg_old={avg_old:,.0f}, avg_new={avg_new:,.0f}, "
+            print(f"{sym} FINRA trend (3-vs-3 avg, n={len(significant)}): "
+                  f"avg_old={avg_old:,.0f}, avg_new={avg_new:,.0f}, "
                   f"trend_pct={trend_pct*100:.1f}%, trend={trend}", flush=True)
 
     # SI Velocity: average daily share change (newest − oldest) / n data points
@@ -2959,7 +2968,7 @@ def generate_html_v1(stocks: list[dict], report_date: str, _ctx: dict | None = N
         <h4>Datenquellen</h4>
         <ul>
           <li><strong>Yahoo Finance Screener</strong> – Most Shorted, Small Cap Gainers, Aggressive Small Caps</li>
-          <li><strong>FINRA CNMS/FNSQ/FNQC</strong> – offizielles Short Interest (3-Monats-Trend aus 6 Meldezeiträumen) + tägliche Short-Sale-Ratio aus demselben Feed</li>
+          <li><strong>FINRA CNMS/FNSQ/FNQC</strong> – offizielles Short Interest; SI-Trend aus {SI_TREND_PERIODS} Handelstagen (≈ 2,5 Wochen, gleitender 3-Tage-Durchschnitt) + tägliche Short-Sale-Ratio aus demselben Feed</li>
           <li><strong>yfinance</strong> – Short Float, Days to Cover, Volumen, Kursdaten, RSI, MA50/200, Optionsdaten, Earnings-History</li>
           <li><strong>Sektor-ETFs</strong> – QQQ, XBI, XLE, XLF, XRT, SPY für Sektor-relative Stärke</li>
           <li><strong>Fails-to-Deliver:</strong> nicht verfügbar (IP-Beschränkung GitHub Actions)</li>
@@ -3029,7 +3038,7 @@ def generate_html_v1(stocks: list[dict], report_date: str, _ctx: dict | None = N
               <div class="cb-seg" style="background:#f59e0b">Seitwärts</div>
               <div class="cb-seg" style="background:#22c55e">Steigend ≥+10 %</div>
             </div>
-            <p class="cl-desc">Grün bedeutet dass Leerverkäufer ihre Positionen in den letzten 3 Monaten ausgebaut haben — der Druck auf einen möglichen Squeeze wächst.</p>
+            <p class="cl-desc">Grün bedeutet dass Leerverkäufer ihre Positionen in den letzten 2,5 Wochen ausgebaut haben — der Druck auf einen möglichen Squeeze wächst.</p>
           </div>
           <div>
             <span class="cl-name">Impl. Volatilität (IV)</span>

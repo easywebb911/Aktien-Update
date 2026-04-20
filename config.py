@@ -51,8 +51,11 @@ FINRA_ACCELERATION_BONUS = 7    # erhöhter Bonus bei Beschleunigung
 COMBO_BONUS              = 5    # Synergie-Bonus ≥ 3 von 4 Faktoren stark
 
 # ── FINRA-Trend-Konfiguration ────────────────────────────────────────────────
-SI_TREND_PERIODS        = 6     # FINRA 2×/Monat; 6 ≈ 3 Monate
-SI_TREND_MIN_DATAPOINTS = 3     # Min. Datenpunkte für Trendberechnung
+# Stabilisiert 2026-04: 12 Handelstage statt 6, 6 Mindest-Datenpunkte
+# statt 3 — deutlich weniger Tagesausreißer, dafür mehr „Keine Daten" bei
+# Nischen-Tickern mit wenig FINRA-Historie (gewollt).
+SI_TREND_PERIODS        = 12    # FINRA Daily Short Volume; 12 ≈ 2,5 Wochen
+SI_TREND_MIN_DATAPOINTS = 6     # Min. signifikante Datenpunkte für Trend
 SI_TREND_UP_THRESHOLD   =  0.10 # ≥+10 % → steigend
 SI_TREND_DOWN_THRESHOLD = -0.10 # ≤-10 % → fallend
 
