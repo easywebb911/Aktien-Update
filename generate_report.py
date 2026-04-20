@@ -3768,6 +3768,7 @@ function _fmtGerman(d) {{
   async function wlLoad() {{
     if (_wlCache !== null) return _wlCache.slice();
     const token = localStorage.getItem(TOK_KEY);
+    const localArr = JSON.parse(localStorage.getItem(WL_KEY) || '[]');
     if (token) {{
       try {{
         const r = await fetch(
@@ -3775,20 +3776,35 @@ function _fmtGerman(d) {{
           {{headers: {{'Authorization': `Bearer ${{token}}`, 'Accept': 'application/vnd.github+json',
                      'X-GitHub-Api-Version': '2022-11-28'}}}}
         );
-        if (r.status === 404) {{ _wlGhSha = null; _wlCache = []; return []; }}
+        if (r.status === 404) {{
+          // Datei existiert nicht im Repo — localStorage bleibt autoritativ
+          _wlGhSha = null;
+          _wlCache = localArr.slice();
+          return localArr.slice();
+        }}
         if (r.ok) {{
           const j = await r.json();
           _wlGhSha = j.sha;
-          const arr = JSON.parse(atob(j.content.replace(/\\n/g, '')));
-          localStorage.setItem(WL_KEY, JSON.stringify(arr));
-          _wlCache = arr;
-          return arr.slice();
+          const ghArr = JSON.parse(atob(j.content.replace(/\\n/g, '')));
+          // Fix: GitHub-Leer-Stand DARF NICHT einen vorhandenen localStorage
+          // überschreiben. Nur wenn GitHub tatsächlich Einträge liefert, gilt
+          // GitHub als Quelle der Wahrheit. Sonst bleibt localStorage führend
+          // (Szenario: wlSave hat seit Tagen still gegen 401/403 verloren).
+          const merged = ghArr.length > 0 ? ghArr : localArr;
+          localStorage.setItem(WL_KEY, JSON.stringify(merged));
+          _wlCache = merged;
+          return merged.slice();
         }}
-      }} catch(_) {{}}  // network error — fall through to localStorage
+        // Non-OK, kein 404 (z.B. 401/403/5xx) — sichtbar machen
+        console.error('WL GitHub GET fehlgeschlagen:', r.status, r.statusText);
+        _wlWarn(`\u26a0 GitHub-Lesefehler ${{r.status}} \u2014 Watchlist aus lokalem Cache`);
+      }} catch(e) {{
+        console.error('WL wlLoad Netzwerkfehler:', e);
+        _wlWarn('\u26a0 GitHub unerreichbar \u2014 Watchlist aus lokalem Cache');
+      }}
     }}
-    const arr = JSON.parse(localStorage.getItem(WL_KEY) || '[]');
-    _wlCache = arr;
-    return arr.slice();
+    _wlCache = localArr.slice();
+    return localArr.slice();
   }}
 
   // ── Async save — localStorage always, GitHub when token available ──────────
@@ -3824,6 +3840,7 @@ function _fmtGerman(d) {{
       }};
       let r = await _put(_wlGhSha);
       if (r.ok) {{ _wlGhSha = (await r.json()).content?.sha || null; return; }}
+      console.error('WL GitHub PUT fehlgeschlagen:', r.status, r.statusText);
       if (r.status === 409 || r.status === 422) {{
         // SHA conflict — re-fetch current SHA and retry once
         const rf = await fetch(
@@ -3835,11 +3852,20 @@ function _fmtGerman(d) {{
           _wlGhSha = (await rf.json()).sha;
           r = await _put(_wlGhSha);
           if (r.ok) {{ _wlGhSha = (await r.json()).content?.sha || null; return; }}
+          console.error('WL GitHub PUT Retry fehlgeschlagen:', r.status, r.statusText);
+        }} else {{
+          console.error('WL GitHub GET (SHA-Retry) fehlgeschlagen:', rf.status, rf.statusText);
         }}
       }}
-      _wlWarn('\u26a0 GitHub Sync-Fehler \u2014 Watchlist lokal gespeichert');
-    }} catch(_) {{
-      _wlWarn('\u26a0 GitHub Sync-Fehler \u2014 Watchlist lokal gespeichert');
+      // Status-spezifische Warnung — 401/403 deutet auf Token-Problem hin
+      if (r.status === 401 || r.status === 403) {{
+        _wlWarn(`\u26a0\ufe0f GitHub Token abgelaufen oder ohne 'contents:write' (HTTP ${{r.status}}) \u2014 Watchlist nur lokal.`);
+      }} else {{
+        _wlWarn(`\u26a0 GitHub Sync-Fehler HTTP ${{r.status}} \u2014 Watchlist lokal gespeichert`);
+      }}
+    }} catch(e) {{
+      console.error('WL wlSave Netzwerkfehler:', e);
+      _wlWarn('\u26a0 GitHub Sync-Fehler (Netzwerk) \u2014 Watchlist lokal gespeichert');
     }}
   }}
   function wlScoreColor(v) {{
@@ -4122,8 +4148,36 @@ function _fmtGerman(d) {{
     await wlRender();
   }};
 
+  // Fix 3 — stiller GET /user beim Seitenstart: prüft ob der gespeicherte
+  // Token noch gültig ist und die Berechtigung hat. 401/403 → sichtbare
+  // Warnung, damit der User nicht ahnungslos weiter-speichert während
+  // GitHub jeden PUT ablehnt.
+  async function _wlValidateToken() {{
+    const token = localStorage.getItem(TOK_KEY);
+    if (!token) return;  // kein Token ist OK — Watchlist-Save zeigt eigene Meldung
+    try {{
+      const r = await fetch('https://api.github.com/user', {{
+        headers: {{'Authorization': `Bearer ${{token}}`, 'Accept': 'application/vnd.github+json',
+                  'X-GitHub-Api-Version': '2022-11-28'}},
+      }});
+      if (r.status === 401 || r.status === 403) {{
+        console.error('WL Token-Validierung:', r.status, r.statusText);
+        _wlWarn('\u26a0\ufe0f GitHub Token abgelaufen \u2014 Watchlist wird nur lokal gespeichert. '
+                + 'Bitte Token im \u2699-Panel erneuern.');
+      }} else if (!r.ok) {{
+        console.error('WL Token-Validierung fehlgeschlagen:', r.status, r.statusText);
+      }}
+    }} catch(e) {{
+      console.error('WL Token-Validierung Netzwerkfehler:', e);
+      // Netzwerkfehler still behandeln — möglicherweise nur offline, nicht
+      // zwingend ein Token-Problem. Eventuelle tatsächliche PUT-Fehler
+      // werden bei der nächsten wlSave sichtbar.
+    }}
+  }}
+
   document.addEventListener('DOMContentLoaded', () => {{
     wlRender();
+    _wlValidateToken();
     const inp = document.getElementById('wl-add-input');
     if (inp) {{
       inp.addEventListener('keydown', (e) => {{
