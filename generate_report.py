@@ -2273,6 +2273,17 @@ def _build_card_ctx(i: int, s: dict) -> dict:
     avg_vol_str   = f"{s.get('avg_vol_20d', 0):,.0f}"
     cur_vol_str   = f"{s.get('cur_vol',    0):,.0f}"
 
+    # ── Rank-Marker & Card-Modifier (manual_forced → 📌-Badge) ───────────
+    # Spiegelt die Logik aus ``_card()`` byte-identisch in den v2-Pfad.
+    if s.get("manual_forced"):
+        rank_html         = ('<span class="rank rank-manual" '
+                             'title="Manuell beobachtet — via persönliche Watchlist hinzugefügt">'
+                             '\U0001F4CC</span>')
+        card_manual_class = " card-manual"
+    else:
+        rank_html         = f'<span class="rank">{i}</span>'
+        card_manual_class = ""
+
     return {
         # Identity / rank
         "i":              i,
@@ -2282,7 +2293,14 @@ def _build_card_ctx(i: int, s: dict) -> dict:
         "flag":           flag,
 
         # Scalar formatted numbers (40 format-specs all pre-applied)
-        "score_raw_str":  f"{s['score']:.1f}",          # score-num + data-score
+        # v1 emittiert den Score an zwei Stellen mit unterschiedlicher Semantik:
+        #   - data-score="{sc:.1f}"        → gekappt auf 100 (Zeile ~1799)
+        #   - <span class="score-num">{s['score']:.1f}</span> → roh (Zeile ~1821)
+        # In der Pipeline wird score stets ≤100 gekappt (1312/1320/4702), aber
+        # um auch bei unerwarteten Eingaben byte-identisch zu v1 zu bleiben,
+        # trennen wir die beiden Keys hier strikt.
+        "score_raw_str":  f"{s['score']:.1f}",          # score-num (roh)
+        "score_cap_1f":   f"{sc:.1f}",                  # data-score (gekappt)
         "score_pct_str":  f"{sc:.0f}",                  # score-fill width
         "price_str":      f"{price:.2f}",               # price tag + data-price
         "sf_1f":          f"{sf:.1f}",                  # data-sf
@@ -2315,6 +2333,8 @@ def _build_card_ctx(i: int, s: dict) -> dict:
         "lo_str":         lo_str,
         "avg_vol_str":    avg_vol_str,
         "cur_vol_str":    cur_vol_str,
+        "rank_html":           rank_html,
+        "card_manual_class":   card_manual_class,
 
         # Raw values that appear verbatim in data-attrs
         "si_trend":       si_trend,
@@ -2521,9 +2541,15 @@ def _build_context(stocks: list[dict], report_date: str) -> dict:
     }
 
 
-def generate_html_v1(stocks: list[dict], report_date: str) -> str:
-    """Legacy f-String-Rendering — aktuell autoritativ."""
-    ctx = _build_context(stocks, report_date)
+def generate_html_v1(stocks: list[dict], report_date: str, _ctx: dict | None = None) -> str:
+    """Legacy f-String-Rendering — aktuell autoritativ.
+
+    ``_ctx`` ist ein optionaler Context-Override, den ``generate_html_v2``
+    nutzt, um seine Jinja-gerenderten Karten einzuschleusen. Dadurch
+    vergleicht ``_render_test`` v1 gegen v2 in einer Konfiguration, in der
+    einzig die Kartenquelle (f-String vs Jinja2) variiert.
+    """
+    ctx = _ctx if _ctx is not None else _build_context(stocks, report_date)
     # Unpack context for f-string access
     report_date    = ctx["report_date"]
     timestamp      = ctx["timestamp"]
@@ -4230,24 +4256,31 @@ ${{JSON.stringify(STOCKS_CTX)}}`;
 def generate_html_v2(stocks: list[dict], report_date: str) -> str:
     """Jinja2-basiertes Rendering.
 
-    Phase 0: Infrastruktur aufgesetzt (Environment + Filter + Context),
-    aber noch kein Template migriert → delegiert identisch an v1.
-    Ab Phase 2 werden einzelne Sektionen aus ``templates/*.jinja`` geladen.
+    Phase 3d: ``templates/card.jinja`` rendert alle Karten; das Ergebnis
+    wird in den v1-Page-Context eingeschleust, sodass ``_render_test``
+    die Karten-Quelle (f-String vs Jinja2) isoliert vergleichen kann.
+    Äußere Seitenstruktur folgt in späteren Phasen; v1 bleibt Default.
     """
     ctx = _build_context(stocks, report_date)
     env = _jinja_env()
-    _ = (ctx, env)  # Infrastruktur bereit, aber ungenutzt bis Template migriert
-    return generate_html_v1(stocks, report_date)
+    card_tmpl = env.get_template("card.jinja")
+    cards_v2 = "\n".join(
+        card_tmpl.render(**c).rstrip("\n") for c in ctx["card_ctxs"]
+    )
+    ctx_v2 = {**ctx, "cards": cards_v2}
+    return generate_html_v1(stocks, report_date, _ctx=ctx_v2)
 
 
 def generate_html(stocks: list[dict], report_date: str) -> str:
-    """Öffentlicher Einstiegspunkt — aktuell f-String (v1).
+    """Öffentlicher Einstiegspunkt — ab Phase 3e Jinja2-basiert (v2).
 
-    Jinja2-Migration läuft in Phasen; ``generate_html_v2`` wird sukzessive
-    Sektionen übernehmen. Wechsel des Dispatchers erfolgt, sobald v2
-    byte-identischen Output liefert.
+    Byte-Identität v1==v2 ist in Phase 3d per ``_render_test`` verifiziert.
+    v1 bleibt als Fallback erreichbar über die Umgebungsvariable
+    ``JINJA_USE_V1=1`` (Rollback-Pfad, falls v2 produktiv auffällt).
     """
-    return generate_html_v1(stocks, report_date)
+    if os.environ.get("JINJA_USE_V1"):
+        return generate_html_v1(stocks, report_date)
+    return generate_html_v2(stocks, report_date)
 
 
 def _render_test(stocks: list[dict], report_date: str) -> None:
