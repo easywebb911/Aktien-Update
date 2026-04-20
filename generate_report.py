@@ -4178,13 +4178,15 @@ def generate_html_v2(stocks: list[dict], report_date: str) -> str:
 
 
 def generate_html(stocks: list[dict], report_date: str) -> str:
-    """Öffentlicher Einstiegspunkt — aktuell f-String (v1).
+    """Öffentlicher Einstiegspunkt — ab Phase 3e Jinja2-basiert (v2).
 
-    Jinja2-Migration läuft in Phasen; ``generate_html_v2`` wird sukzessive
-    Sektionen übernehmen. Wechsel des Dispatchers erfolgt, sobald v2
-    byte-identischen Output liefert.
+    Byte-Identität v1==v2 ist in Phase 3d per ``_render_test`` verifiziert.
+    v1 bleibt als Fallback erreichbar über die Umgebungsvariable
+    ``JINJA_USE_V1=1`` (Rollback-Pfad, falls v2 produktiv auffällt).
     """
-    return generate_html_v1(stocks, report_date)
+    if os.environ.get("JINJA_USE_V1"):
+        return generate_html_v1(stocks, report_date)
+    return generate_html_v2(stocks, report_date)
 
 
 def _render_test(stocks: list[dict], report_date: str) -> None:
