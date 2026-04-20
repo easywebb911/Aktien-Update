@@ -2316,6 +2316,7 @@ def generate_html_v1(stocks: list[dict], report_date: str) -> str:
       <span class="wl-section-title">Meine Watchlist</span>
       <span class="wl-count-badge" id="wl-count">0</span>
     </div>
+    <div class="wl-sync-warn" id="wl-sync-warn"></div>
     <div class="wl-cards" id="wl-cards"></div>
   </section>
 
@@ -3005,12 +3006,24 @@ function _fmtGerman(d) {{
   }}
 
   // ── Async save — localStorage always, GitHub when token available ──────────
+  function _wlWarn(msg) {{
+    const w = document.getElementById('wl-sync-warn');
+    if (!w) return;
+    w.textContent = msg;
+    w.classList.add('visible');
+    clearTimeout(w._hideT);
+    w._hideT = setTimeout(() => w.classList.remove('visible'), 5000);
+  }}
+
   async function wlSave(arr) {{
     arr = arr.slice(0, WL_MAX);
     _wlCache = arr;
     localStorage.setItem(WL_KEY, JSON.stringify(arr));
     const token = localStorage.getItem(TOK_KEY);
-    if (!token) return;
+    if (!token) {{
+      _wlWarn('\u26a0 Kein GitHub Token \u2014 Watchlist wird nur lokal gespeichert');
+      return;
+    }}
     try {{
       const _put = async (sha) => {{
         const body = {{message: 'Update watchlist_personal.json',
@@ -3035,10 +3048,13 @@ function _fmtGerman(d) {{
         if (rf.ok) {{
           _wlGhSha = (await rf.json()).sha;
           r = await _put(_wlGhSha);
-          if (r.ok) {{ _wlGhSha = (await r.json()).content?.sha || null; }}
+          if (r.ok) {{ _wlGhSha = (await r.json()).content?.sha || null; return; }}
         }}
       }}
-    }} catch(_) {{}}  // silent — localStorage already saved
+      _wlWarn('\u26a0 GitHub Sync-Fehler \u2014 Watchlist lokal gespeichert');
+    }} catch(_) {{
+      _wlWarn('\u26a0 GitHub Sync-Fehler \u2014 Watchlist lokal gespeichert');
+    }}
   }}
   function wlScoreColor(v) {{
     if (v === null) return '#94a3b8';
