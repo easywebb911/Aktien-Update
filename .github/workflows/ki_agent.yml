@@ -2,8 +2,8 @@ name: KI-Agent Squeeze Monitor
 
 on:
   schedule:
-    # Alle 30 Minuten, 24/7
-    - cron: '*/30 * * * *'
+    # Alle 2 Stunden, 24/7 — zuverlässigere Queue-Abarbeitung als */30
+    - cron: '0 */2 * * *'
   workflow_dispatch:   # Manueller Start jederzeit möglich
 
 permissions:
