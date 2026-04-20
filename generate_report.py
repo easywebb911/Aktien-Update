@@ -499,6 +499,56 @@ def get_yfinance_batch(tickers: list[str]) -> dict[str, dict]:
             t, info = fut.result()
             info_map[t] = info
 
+    def _detect_recent_squeeze(df) -> dict | None:
+        """Feature 6 — Scan ~90 Tage rückwärts auf Kursanstieg ≥50 % in
+        5 Handelstagen bei Volumen ≥3× des 20-Tage-Durchschnitts davor.
+        Gibt den jüngsten Treffer als ``{"found", "days_ago", "gain_pct"}``
+        zurück oder ``None`` wenn kein Squeeze detektiert wurde.
+        """
+        try:
+            if df is None or df.empty:
+                return None
+            closes = df["Close"].dropna()
+            vols   = df["Volume"].dropna()
+            if len(closes) < 26 or len(vols) < 26:
+                return None
+            max_offset = min(SQUEEZE_DETECTION_DAYS, len(closes) - 6)
+            for offset in range(0, max_offset):   # offset 0 = jüngster Tag
+                end_i   = len(closes) - 1 - offset
+                start_i = end_i - 5
+                if start_i < 20:
+                    break
+                c0 = float(closes.iloc[start_i])
+                c1 = float(closes.iloc[end_i])
+                if c0 <= 0:
+                    continue
+                gain = (c1 - c0) / c0
+                if gain < SQUEEZE_MIN_GAIN:
+                    continue
+                win_vol   = float(vols.iloc[start_i:end_i + 1].mean())
+                prior_vol = float(vols.iloc[start_i - 20:start_i].mean())
+                if prior_vol <= 0:
+                    continue
+                if win_vol < SQUEEZE_MIN_RVOL * prior_vol:
+                    continue
+                return {
+                    "found":    True,
+                    "days_ago": offset,
+                    "gain_pct": round(gain * 100, 1),
+                }
+        except Exception as exc:
+            log.debug("squeeze-detect error: %s", exc)
+        return None
+
+    def _df_for(ticker: str):
+        """Extrahiere ticker-spezifisches DataFrame aus dem Batch."""
+        try:
+            if hist_batch is None or hist_batch.empty:
+                return None
+            return hist_batch if len(tickers) == 1 else hist_batch[ticker]
+        except Exception:
+            return None
+
     # ── Combine history + info; fallback to individual call if both are empty ──
     for ticker in tickers:
         avg_vol_20, cur_vol, vol_ratio, hi52, lo52, rsi14, ma50, ma200, perf_20d = _hist_stats(ticker)
@@ -542,6 +592,9 @@ def get_yfinance_batch(tickers: list[str]) -> dict[str, dict]:
                 )
         except Exception:
             pass
+
+        # Feature 6 — Squeeze-History-Detektor über Batch-Daten
+        results[ticker]["recent_squeeze"] = _detect_recent_squeeze(_df_for(ticker))
 
     return results
 
@@ -794,6 +847,51 @@ def get_earnings_date(ticker: str) -> tuple[int | None, str | None]:
     return None, None
 
 
+def get_earnings_surprise(ticker: str) -> dict | None:
+    """Feature 3 — Letzte gemeldete Earnings: Beat/Miss + %-Abweichung vom Konsens.
+
+    Nutzt ``yfinance.Ticker.earnings_history`` (DataFrame mit Spalten
+    ``epsActual`` und ``epsEstimate``). Gibt ``{"beat": bool, "pct": float}``
+    zurück oder ``None`` falls keine Daten verfügbar.
+    """
+    try:
+        hist = yf.Ticker(ticker).earnings_history
+    except Exception as exc:
+        log.debug("earnings_history failed for %s: %s", ticker, exc)
+        return None
+    if hist is None:
+        return None
+    try:
+        import pandas as _pd
+        if not isinstance(hist, _pd.DataFrame) or hist.empty:
+            return None
+        # Spaltennamen sind case-insensitive; sowohl "epsActual" als auch
+        # "Reported EPS" kommen in freier Wildbahn vor
+        lower = {c.lower().replace(" ", ""): c for c in hist.columns}
+        col_act = lower.get("epsactual") or lower.get("reportedeps") or lower.get("actual")
+        col_est = lower.get("epsestimate") or lower.get("estimate") or lower.get("estimateeps")
+        if not col_act or not col_est:
+            return None
+        # jüngste Zeile — yfinance liefert chronologisch sortiert
+        hist_sorted = hist.sort_index(ascending=False)
+        for _, row in hist_sorted.iterrows():
+            actual   = row.get(col_act)
+            estimate = row.get(col_est)
+            if actual is None or estimate is None:
+                continue
+            try:
+                a, e = float(actual), float(estimate)
+            except (TypeError, ValueError):
+                continue
+            if e == 0:
+                continue
+            pct = (a - e) / abs(e) * 100
+            return {"beat": a >= e, "pct": round(pct, 1)}
+    except Exception as exc:
+        log.debug("earnings_surprise parse failed for %s: %s", ticker, exc)
+    return None
+
+
 _SEC_HEADERS = {"User-Agent": "SqueezeReport/1.0 github-actions@squeeze-report.com"}
 _13F_KEYWORDS = {"increase", "added", "new position", "added to"}
 
@@ -870,9 +968,9 @@ def _load_finra_csv(date_str: str) -> dict[str, int]:
         f"https://cdn.finra.org/equity/regsho/daily/FNQCshvol{date_str}.txt",
     ]
 
-    def _fetch_one(url: str) -> dict[str, int]:
-        """Fetch + parse a single FINRA CDN file; returns partial {ticker: sv}."""
-        partial: dict[str, int] = {}
+    def _fetch_one(url: str) -> dict[str, dict]:
+        """Fetch + parse a single FINRA CDN file; returns partial {ticker: {sv, tv}}."""
+        partial: dict[str, dict] = {}
         filename = url.split("/")[-1]
         try:
             r = requests.get(url, headers=HTTP_HEADERS, timeout=20)
@@ -889,17 +987,28 @@ def _load_finra_csv(date_str: str) -> dict[str, int]:
                                if "shortvol" in h.replace(" ", "") and "exempt" not in h)
             except StopIteration:
                 sym_idx, sv_idx = 1, 2   # fixed CDN column order fallback
+            try:
+                tv_idx = next(i for i, h in enumerate(header)
+                              if "totalvol" in h.replace(" ", ""))
+            except StopIteration:
+                tv_idx = 4   # Date|Symbol|ShortVolume|ShortExemptVolume|TotalVolume|Market
             for line in lines[1:]:
                 parts = line.split("|")
-                if len(parts) <= max(sym_idx, sv_idx):
+                if len(parts) <= max(sym_idx, sv_idx, tv_idx):
                     continue
                 ticker = parts[sym_idx].strip().upper()
                 try:
                     sv_val = int(parts[sv_idx].strip().replace(",", ""))
                 except ValueError:
                     continue
+                try:
+                    tv_val = int(parts[tv_idx].strip().replace(",", ""))
+                except ValueError:
+                    tv_val = 0
                 if ticker and sv_val > 0:
-                    partial[ticker] = partial.get(ticker, 0) + sv_val
+                    entry = partial.setdefault(ticker, {"sv": 0, "tv": 0})
+                    entry["sv"] += sv_val
+                    entry["tv"] += tv_val
             print(f"FINRA CDN {date_str}: {filename} — {len(partial)} Ticker geladen",
                   flush=True)
         except Exception as exc:
@@ -907,16 +1016,22 @@ def _load_finra_csv(date_str: str) -> dict[str, int]:
         return partial
 
     # Opt 4: fetch all three exchange files for this date in parallel
-    merged: dict[str, int] = {}
+    merged: dict[str, dict] = {}
     with ThreadPoolExecutor(max_workers=3) as ex:
         for partial in ex.map(_fetch_one, urls):
-            for t, v in partial.items():
-                merged[t] = merged.get(t, 0) + v
+            for t, entry in partial.items():
+                m = merged.setdefault(t, {"sv": 0, "tv": 0})
+                m["sv"] += entry["sv"]
+                m["tv"] += entry["tv"]
     return merged
 
 
-def _get_finra_csv_for_date(date_str: str) -> dict[str, int]:
-    """Return cached CSV data for date_str, loading it if needed."""
+def _get_finra_csv_for_date(date_str: str) -> dict[str, dict]:
+    """Return cached CSV data for date_str, loading it if needed.
+
+    Each value is a dict ``{"sv": int, "tv": int}`` — short volume and total
+    volume aggregated across all FINRA exchange files for that date.
+    """
     if date_str not in _finra_csv_cache:
         _finra_csv_cache[date_str] = _load_finra_csv(date_str)
     return _finra_csv_cache[date_str]
@@ -1024,14 +1139,20 @@ def get_finra_short_interest(ticker: str,
 
     history: list[dict] = []
     for date_str in dates:
-        data = _get_finra_csv_for_date(date_str)
-        si_val = data.get(sym, 0)
-        hit = sym in data
+        data   = _get_finra_csv_for_date(date_str)
+        entry  = data.get(sym) or {}
+        si_val = entry.get("sv", 0)
+        tv_val = entry.get("tv", 0)
+        hit    = sym in data
         print(f"FINRA Ticker-Suche: {sym} [{date_str}] → "
               f"{'Treffer' if hit else 'Kein Treffer'}: {si_val:,}", flush=True)
         if si_val >= _FINRA_MIN_VOL:
             sd = f"{date_str[:4]}-{date_str[4:6]}-{date_str[6:]}"
-            history.append({"short_interest": si_val, "settlement_date": sd})
+            history.append({
+                "short_interest":   si_val,
+                "total_volume":     tv_val,
+                "settlement_date":  sd,
+            })
 
     if not history:
         _finra_stats["empty"] += 1
@@ -1075,9 +1196,18 @@ def get_finra_short_interest(ticker: str,
         d_new = s0 - s1   # newer step
         si_accelerating = d_old > 0 and d_new > 0 and d_new > d_old
 
+    # Daily Short Sale Ratio aus dem jüngsten Datenpunkt (Feature 1)
+    ssr_today: float | None = None
+    if history:
+        _tv = history[0].get("total_volume", 0)
+        _sv = history[0]["short_interest"]
+        if _tv > 0:
+            ssr_today = round(_sv / _tv, 4)
+
     _finra_stats["ok"] += 1
-    log.info("%s FINRA history=%d Punkte, trend=%s, velocity=%.0f/day, accel=%s",
-             sym, len(history), trend, si_velocity, si_accelerating)
+    log.info("%s FINRA history=%d Punkte, trend=%s, velocity=%.0f/day, accel=%s, ssr=%s",
+             sym, len(history), trend, si_velocity, si_accelerating,
+             f"{ssr_today*100:.1f}%" if ssr_today is not None else "—")
     return {
         "short_interest":      history[0]["short_interest"],
         "prev_short_interest": history[1]["short_interest"] if len(history) >= 2 else 0,
@@ -1087,6 +1217,7 @@ def get_finra_short_interest(ticker: str,
         "trend_pct":           round(trend_pct * 100, 1),
         "si_velocity":         round(si_velocity, 0),
         "si_accelerating":     si_accelerating,
+        "ssr_today":           ssr_today,
     }
 
 
@@ -1499,6 +1630,129 @@ def _score_color(sc: float) -> str:
     return "#22c55e" if sc >= 50 else ("#f59e0b" if sc >= 30 else "#ef4444")
 
 
+# ═══════════════════════════════════════════════════════════════════════════
+#  Shared HTML-Snippet-Helfer — werden von ``_card`` (v1) UND
+#  ``_build_card_ctx`` (v2) aufgerufen, damit beide Pfade byte-identisch
+#  bleiben (Phase-3d-Render-Test).
+# ═══════════════════════════════════════════════════════════════════════════
+
+def _ssr_tile_html(s: dict) -> str:
+    """Daily-Short-Sale-Ratio-Kachel (Feature 1). Leer wenn abgeschaltet."""
+    if not SHOW_DAILY_SSR:
+        return ""
+    ssr = (s.get("finra_data") or {}).get("ssr_today")
+    if ssr is None:
+        display, col = "—", "#94a3b8"
+    else:
+        pct = ssr * 100
+        display = f"{pct:.0f}%"
+        if ssr < SSR_RED_THRESHOLD:
+            col = "#ef4444"
+        elif ssr > SSR_GREEN_THRESHOLD:
+            col = "#22c55e"
+        else:
+            col = "#f59e0b"
+    return (
+        f'<div class="metric-box" style="--mc:{col}">'
+        f'<span class="m-val">{display}</span>'
+        f'<span class="m-lbl">SSR Heute</span>'
+        f'</div>'
+    )
+
+
+def _float_display(s: dict) -> tuple[str, str, str, bool]:
+    """Feature 2 — Plausibilitäts-Check + MCap-basierte Schätzung für Float.
+
+    Rückgabe: ``(tile_val, detail_str, color, is_estimated)``
+    * tile_val   — kompakt (z.B. "25,0 Mio." oder "—")
+    * detail_str — für die Detail-Tabelle (z.B. "25,0 Mio. Aktien (geschätzt)")
+    * color      — Kacheln-Farbe
+    * is_estimated — True wenn der Wert aus market_cap / price geschätzt wurde
+    """
+    raw = s.get("float_shares") or 0
+    price = s.get("price") or 0
+    cap   = s.get("yf_market_cap") or s.get("market_cap") or 0
+    estimated = False
+    if FLOAT_MIN_VALID <= raw <= FLOAT_MAX_VALID:
+        shares = raw
+    elif raw == 0 and cap and price and price > 0:
+        shares = int(cap / price)
+        if not (FLOAT_MIN_VALID <= shares <= FLOAT_MAX_VALID):
+            shares = 0
+        else:
+            estimated = True
+    else:
+        shares = 0
+
+    if shares <= 0:
+        return "—", "", "#94a3b8", False
+    mio = shares / 1_000_000
+    tile = f"{mio:.1f} Mio.".replace(".", ",")
+    if estimated:
+        tile += " (gesch.)"
+    if shares < FLOAT_SATURATION_LOW:
+        col = "#22c55e"
+    elif shares <= FLOAT_SATURATION_HIGH:
+        col = "#f59e0b"
+    else:
+        col = "#ef4444"
+    suffix = " (geschätzt)" if estimated else ""
+    detail = f"{mio:.1f} Mio. Aktien{suffix}"
+    return tile, detail, col, estimated
+
+
+def _earnings_surprise_html(s: dict) -> str:
+    """Feature 3 — Letztes Earnings Beat/Miss als Detail-Tabellenzeile."""
+    if not SHOW_EARNINGS_SURPRISE:
+        return ""
+    sp = s.get("earnings_surprise")
+    if sp is None:
+        return ""
+    pct = sp.get("pct")
+    beat = sp.get("beat")
+    if pct is None:
+        return ""
+    if beat:
+        icon, col = "\u2705", "#22c55e"
+        sign_txt = f"Beat +{pct:.0f}%" if pct >= 0 else f"Beat {pct:.0f}%"
+    else:
+        icon, col = "\u274C", "#ef4444"
+        sign_txt = f"Miss {pct:+.0f}%"
+    return (
+        f'<tr><td>Letztes Earnings</td>'
+        f'<td><span style="color:{col}">{icon} {sign_txt}</span></td></tr>'
+    )
+
+
+def _sector_rs_row(s: dict) -> str:
+    """Feature 5 — RS vs. Sektor-ETF als Detail-Tabellenzeile."""
+    if not USE_SECTOR_RS:
+        return ""
+    rs = s.get("rel_strength_sector")
+    if rs is None:
+        return ""
+    etf = s.get("sector_etf") or SECTOR_ETF_DEFAULT
+    col = "#22c55e" if rs >= 0 else "#ef4444"
+    return (
+        f'<tr><td>RS vs. Sektor ({etf})</td>'
+        f'<td><span style="color:{col}">{rs:+.1f}%</span></td></tr>'
+    )
+
+
+def _squeeze_history_badge(s: dict) -> str:
+    """Feature 6 — '⚠️ Squeeze vor X Tagen'-Badge auf der Karte."""
+    sq = s.get("recent_squeeze")
+    if not sq or not sq.get("found"):
+        return ""
+    days = sq.get("days_ago", 0)
+    return (
+        f'<span class="squeeze-hist-badge" '
+        f'title="Kursanstieg ≥ {SQUEEZE_MIN_GAIN*100:.0f}% in 5 Tagen '
+        f'bei Volumen ≥ {SQUEEZE_MIN_RVOL:.0f}× vor {days} Tagen">'
+        f'\u26A0\ufe0f Squeeze vor {days} Tagen</span>'
+    )
+
+
 def _card(i: int, s: dict) -> str:
     risk_lv, risk_col, risk_txt = risk_assessment(s)
     sit_txt  = short_situation(s)
@@ -1625,20 +1879,8 @@ def _card(i: int, s: dict) -> str:
         si_tile_val     = "—"
         si_tile_col     = "#94a3b8"
 
-    # Float tile
-    _float_shares = s.get("float_shares") or 0
-    if _float_shares > 0:
-        float_mio       = _float_shares / 1_000_000
-        float_tile_val  = f"{float_mio:.1f} Mio.".replace(".", ",")
-        if _float_shares < 30_000_000:
-            float_tile_col = "#22c55e"
-        elif _float_shares <= 50_000_000:
-            float_tile_col = "#f59e0b"
-        else:
-            float_tile_col = "#ef4444"
-    else:
-        float_tile_val  = "—"
-        float_tile_col  = "#94a3b8"
+    # Float tile (Feature 2 — Plausibilitäts-Check + MCap-basierte Schätzung)
+    float_tile_val, float_detail_str, float_tile_col, float_estimated = _float_display(s)
     si_t1_disp = _fmt_si_record(si_hist[0]) if len(si_hist) >= 1 else "—"
     si_t2_disp = _fmt_si_record(si_hist[1]) if len(si_hist) >= 2 else "—"
     si_t3_disp = _fmt_si_record(si_hist[2]) if len(si_hist) >= 3 else "—"
@@ -1680,18 +1922,23 @@ def _card(i: int, s: dict) -> str:
         _rs_row  = f"<tr><td>Rel. Stärke (20T)</td><td>{_rs_cell}</td></tr>"
     else:
         _rs_row  = ""
-    rsi_ma_rows = _rsi_row + _ma50_row1 + _ma200_row + _ma50_row2 + _rs_row
+    sector_rs_row = _sector_rs_row(s)          # Feature 5
+    earn_surp_row = _earnings_surprise_html(s) # Feature 3
+    rsi_ma_rows = _rsi_row + _ma50_row1 + _ma200_row + _ma50_row2 + _rs_row + sector_rs_row + earn_surp_row
 
-    # Options market data rows
+    # Options market data rows — Feature 4: <0.5 bullisch, 0.5–1.5 neutral, >1.5 bearisch
     _opts     = s.get("options") or {}
     _pc       = _opts.get("pc_ratio")
     _iv       = _opts.get("atm_iv")
     _exp      = _opts.get("expiry", "")
     _exp_note = f" <span style='color:var(--txt-dim);font-size:.8em'>({_exp})</span>" if _exp else ""
-    if _pc is not None:
-        # Bearish if puts dominate (P/C > 1.0), bullish if calls dominate (P/C < 0.7)
-        _pc_col = "#ef4444" if _pc > 1.0 else ("#22c55e" if _pc < 0.7 else "var(--txt)")
-        _pc_lbl = " — bärisch" if _pc > 1.0 else (" — bullisch" if _pc < 0.7 else "")
+    if SHOW_PUT_CALL_RATIO and _pc is not None:
+        _pc_col = ("#22c55e" if _pc < PC_BULLISH
+                   else "#ef4444" if _pc > PC_BEARISH
+                   else "#f59e0b")
+        _pc_lbl = (" — bullisch"  if _pc < PC_BULLISH
+                   else " — bärisch" if _pc > PC_BEARISH
+                   else " — neutral")
         _pc_row = (
             f'<tr><td>Put/Call-Ratio{_exp_note}</td>'
             f'<td><span style="color:{_pc_col}">{_pc:.2f}{_pc_lbl}</span></td></tr>'
@@ -1733,13 +1980,15 @@ def _card(i: int, s: dict) -> str:
     else:
         _inst_row = ""
 
-    # Float size row
-    _float_sh = s.get("float_shares") or 0
-    if _float_sh > 0:
-        _float_mio = _float_sh / 1_000_000
-        _float_row = f"<tr><td>Float (frei handelbar)</td><td>{_float_mio:.1f} Mio. Aktien</td></tr>"
+    # Float size row (Feature 2 — nutzt vorberechnete Detail-String aus _float_display)
+    if float_detail_str:
+        _float_row = f"<tr><td>Float (frei handelbar)</td><td>{float_detail_str}</td></tr>"
     else:
         _float_row = ""
+
+    # SSR-Kachel und Squeeze-History-Badge (Features 1 & 6)
+    ssr_tile_html = _ssr_tile_html(s)
+    squeeze_badge_html = _squeeze_history_badge(s)
 
     # Chart links
     yf_chart_url  = f"https://finance.yahoo.com/chart/{s['ticker']}"
@@ -1826,7 +2075,7 @@ def _card(i: int, s: dict) -> str:
           <button class="wl-add-btn" data-ticker="{s['ticker']}" onclick="wlToggle(this)" title="Zur Watchlist hinzufügen">＋</button>
         </div>
         <span class="company">{s.get('company_name','')}</span>
-        {sector_tag_html}{earnings_tag_html}
+        {sector_tag_html}{earnings_tag_html}{squeeze_badge_html}
       </div>
     </div>
     <div class="score-block">
@@ -1862,6 +2111,7 @@ def _card(i: int, s: dict) -> str:
       <span class="m-val">{si_tile_val}</span>
       <span class="m-lbl">SI-Trend</span>
     </div>
+    {ssr_tile_html}
   </div>
   <button class="details-btn" onclick="toggleDetails({i})" id="db{i}" aria-expanded="false">
     <span class="details-arrow" id="da{i}">▾</span><span id="dl{i}"> Details anzeigen</span>
@@ -2094,20 +2344,8 @@ def _build_card_ctx(i: int, s: dict) -> dict:
         si_tile_val = "—"
         si_tile_col = "#94a3b8"
 
-    # ── Float tile ───────────────────────────────────────────────────────
-    _float_shares = s.get("float_shares") or 0
-    if _float_shares > 0:
-        float_mio      = _float_shares / 1_000_000
-        float_tile_val = f"{float_mio:.1f} Mio.".replace(".", ",")
-        if _float_shares < 30_000_000:
-            float_tile_col = "#22c55e"
-        elif _float_shares <= 50_000_000:
-            float_tile_col = "#f59e0b"
-        else:
-            float_tile_col = "#ef4444"
-    else:
-        float_tile_val = "—"
-        float_tile_col = "#94a3b8"
+    # ── Float tile (Feature 2) ───────────────────────────────────────────
+    float_tile_val, float_detail_str, float_tile_col, _float_estimated = _float_display(s)
 
     si_t1_disp = _fmt_si_record(si_hist[0]) if len(si_hist) >= 1 else "—"
     si_t2_disp = _fmt_si_record(si_hist[1]) if len(si_hist) >= 2 else "—"
@@ -2149,17 +2387,23 @@ def _build_card_ctx(i: int, s: dict) -> dict:
         _rs_row  = f"<tr><td>Rel. Stärke (20T)</td><td>{_rs_cell}</td></tr>"
     else:
         _rs_row  = ""
-    rsi_ma_rows = _rsi_row + _ma50_row1 + _ma200_row + _ma50_row2 + _rs_row
+    _sector_rs_row_ = _sector_rs_row(s)            # Feature 5
+    _earn_surp_row_ = _earnings_surprise_html(s)   # Feature 3
+    rsi_ma_rows = _rsi_row + _ma50_row1 + _ma200_row + _ma50_row2 + _rs_row + _sector_rs_row_ + _earn_surp_row_
 
-    # ── Options rows ─────────────────────────────────────────────────────
+    # ── Options rows — Feature 4 (<0.5 bullisch, 0.5–1.5 neutral, >1.5 bearisch) ──
     _opts     = s.get("options") or {}
     _pc       = _opts.get("pc_ratio")
     _iv       = _opts.get("atm_iv")
     _exp      = _opts.get("expiry", "")
     _exp_note = f" <span style='color:var(--txt-dim);font-size:.8em'>({_exp})</span>" if _exp else ""
-    if _pc is not None:
-        _pc_col = "#ef4444" if _pc > 1.0 else ("#22c55e" if _pc < 0.7 else "var(--txt)")
-        _pc_lbl = " — bärisch" if _pc > 1.0 else (" — bullisch" if _pc < 0.7 else "")
+    if SHOW_PUT_CALL_RATIO and _pc is not None:
+        _pc_col = ("#22c55e" if _pc < PC_BULLISH
+                   else "#ef4444" if _pc > PC_BEARISH
+                   else "#f59e0b")
+        _pc_lbl = (" — bullisch"  if _pc < PC_BULLISH
+                   else " — bärisch" if _pc > PC_BEARISH
+                   else " — neutral")
         _pc_row = (
             f'<tr><td>Put/Call-Ratio{_exp_note}</td>'
             f'<td><span style="color:{_pc_col}">{_pc:.2f}{_pc_lbl}</span></td></tr>'
@@ -2201,12 +2445,15 @@ def _build_card_ctx(i: int, s: dict) -> dict:
     else:
         inst_row = ""
 
-    # ── Float row (detail table) ─────────────────────────────────────────
-    if _float_shares > 0:
-        _float_mio_det = _float_shares / 1_000_000
-        float_row = f"<tr><td>Float (frei handelbar)</td><td>{_float_mio_det:.1f} Mio. Aktien</td></tr>"
+    # ── Float row (detail table) — Feature 2 nutzt float_detail_str aus Helper ──
+    if float_detail_str:
+        float_row = f"<tr><td>Float (frei handelbar)</td><td>{float_detail_str}</td></tr>"
     else:
         float_row = ""
+
+    # ── Feature 1 (SSR-Kachel) + Feature 6 (Squeeze-History-Badge) ───────
+    ssr_tile_html      = _ssr_tile_html(s)
+    squeeze_badge_html = _squeeze_history_badge(s)
 
     # ── Chart / external links ───────────────────────────────────────────
     yf_chart_url = f"https://finance.yahoo.com/chart/{ticker}"
@@ -2261,7 +2508,10 @@ def _build_card_ctx(i: int, s: dict) -> dict:
     da_iv        = f'{_iv*100:.1f}'  if _iv  is not None else ''
     da_earn      = str(_earn_days)   if _earn_days is not None else ''
     da_cap       = str(int(cap_val)) if cap_val else ''
-    da_float     = f'{_float_shares/1e6:.1f}M' if _float_shares else ''
+    # da_float spiegelt die alte v1-Logik (roher float_shares ohne Validierung),
+    # damit v1/v2 byte-identisch bleiben — die neue Plausibilität steckt im Tile/Detail.
+    _raw_float   = s.get("float_shares") or 0
+    da_float     = f'{_raw_float/1e6:.1f}M' if _raw_float else ''
     _news_titles = [n.get("title","")[:140] for n in (s.get("news") or [])[:3] if n.get("title")]
     da_news      = json.dumps(_news_titles, ensure_ascii=False).replace('"', '&quot;')
     da_earn_date = _earn_dstr
@@ -2368,6 +2618,8 @@ def _build_card_ctx(i: int, s: dict) -> dict:
         "rsi_ma_rows":          rsi_ma_rows,
         "options_rows":         options_rows,
         "inst_row":             inst_row,
+        "ssr_tile_html":        ssr_tile_html,        # Feature 1
+        "squeeze_badge_html":   squeeze_badge_html,   # Feature 6
         "float_row":            float_row,
         "edgar_row":            edgar_row,
         "yahoo_badge":          yahoo_badge,
@@ -2671,26 +2923,42 @@ def generate_html_v1(stocks: list[dict], report_date: str, _ctx: dict | None = N
       <div class="info-box">
         <h4>Filterkriterien</h4>
         <ul>
+          <li><strong>Marktkapitalisierung &lt; {MAX_MARKET_CAP_B:.0f} Mrd. USD</strong> – Small-Cap-Fokus; darüber ist zu viel Kapital nötig, um Leerverkäufer zum Eindecken zu zwingen (war 10 Mrd.)</li>
           <li><strong>Short Float &gt; 15 %</strong> – Mindest-Leerverkaufsquote (nur US)</li>
           <li><strong>Kurs &gt; 1 USD</strong> – Ausschluss von Penny Stocks</li>
-          <li><strong>Marktkapitalisierung &lt; 10 Mrd. USD</strong> – Small- &amp; Mid-Caps</li>
-          <li><strong>Relatives Volumen ≥ 1,5×</strong> – Mindestaktivität</li>
-          <li><strong>Märkte:</strong> 🇺🇸 US · 🇩🇪 DE · 🇬🇧 GB · 🇫🇷 FR · 🇳🇱 NL · 🇨🇦 CA · 🇯🇵 JP · 🇭🇰 HK · 🇰🇷 KR</li>
+          <li><strong>Relatives Volumen ≥ 1,5×</strong> – Mindestaktivität (Standardfilter)</li>
           <li><strong>Internationale Aktien:</strong> kein Short-Float-Filter, Score gedeckelt bei 50 Pkt (nur Volumen + Momentum)</li>
+          <li><strong>Märkte:</strong> 🇺🇸 US · 🇩🇪 DE · 🇬🇧 GB · 🇫🇷 FR · 🇳🇱 NL · 🇨🇦 CA · 🇯🇵 JP · 🇭🇰 HK · 🇰🇷 KR</li>
+          <li><strong>📌 Manuell beobachtete Ticker</strong> (persönliche Watchlist) <strong>umgehen den Cap-Filter</strong> und werden immer als Karte angezeigt — auch über 2 Mrd. USD Marktkapitalisierung</li>
         </ul>
+      </div>
+      <div class="info-box">
+        <h4>Zusatz-Kennzahlen <span style="font-size:.65rem;font-weight:500;color:var(--txt-dim)">(informativ — fließen <em>noch nicht</em> in den Score ein)</span></h4>
+        <ul>
+          <li><strong>FINRA Daily SSR</strong> – tägliche Short-Sale-Ratio (Short-Vol ÷ Gesamt-Vol) als Tages-Proxy für Short-Interest-Bewegungen zwischen den offiziellen FINRA-Meldeterminen (zwei Wochen Rhythmus). Grün &gt; 60 %, Orange 40–60 %, Rot &lt; 40 %.</li>
+          <li><strong>Put/Call-Ratio</strong> – Options-Sentiment aus Open Interest der nächsten Verfallstermine: niedrig = bullisch (viele Calls, Markt erwartet Anstieg/Squeeze), hoch = bearisch. &lt; 0,5 grün, 0,5–1,5 orange, &gt; 1,5 rot.</li>
+          <li><strong>Earnings-Surprise</strong> – letztes EPS-Ergebnis vs. Konsens: „✅ Beat +X %" oder „❌ Miss −X %". Ein Beat bei gleichzeitig hohem Short Float erhöht den Squeeze-Druck (Leerverkäufer werden zum Eindecken gezwungen).</li>
+          <li><strong>Relative Stärke vs. Sektor-ETF</strong> – 20-Tage-Performance gegen den passenden Sektor-Index (Technology → QQQ, Biotech/Healthcare → XBI, Energy → XLE, Financial → XLF, Consumer → XRT, sonst → SPY). Präziser als der reine S&amp;P-500-Vergleich, da Sektor-Zyklen herausgerechnet werden.</li>
+          <li><strong>Historischer Squeeze-Check</strong> – ⚠️-Badge, falls in den letzten 90 Tagen bereits ein Kursanstieg ≥ 50 % in 5 Handelstagen bei Volumen ≥ 3× Ø stattgefunden hat. Warnung vor bereits erschöpftem Potenzial.</li>
+          <li><strong>Float-Plausibilität</strong> – yfinance-Float-Werte außerhalb [10 000 ; 50 Mrd. Aktien] werden als unplausibel verworfen („—" statt falscher Wert). Bei Float = 0 + bekanntem Market-Cap wird der Float als <em>market_cap / price</em> geschätzt und mit „(geschätzt)" markiert.</li>
+        </ul>
+        <p style="font-size:.75rem;color:var(--txt-sub);margin:8px 0 0;line-height:1.5">
+          <strong>Score-Formel unverändert:</strong> Die neuen Datenpunkte sind zunächst rein informativ und fließen <em>noch nicht</em> in den 0–100-Punkte-Score ein. Die Gewichtung kann in einem separaten Schritt erfolgen, sobald wir sehen, wie die neuen Signale in der Praxis aussehen und wie oft sie echte Squeeze-Gelegenheiten hervorheben.
+        </p>
       </div>
       <div class="info-box">
         <h4>Datenquellen</h4>
         <ul>
           <li><strong>Yahoo Finance Screener</strong> – Most Shorted, Small Cap Gainers, Aggressive Small Caps</li>
-          <li><strong>FINRA</strong> – offizielles Short Interest; SI-Trend aus 6 Meldezeiträumen (≈ 3 Monate)</li>
-          <li><strong>yfinance</strong> – Short Float, Days to Cover, Volumen, Kursdaten, RSI, MA50/200, Optionsdaten</li>
+          <li><strong>FINRA CNMS/FNSQ/FNQC</strong> – offizielles Short Interest (3-Monats-Trend aus 6 Meldezeiträumen) + tägliche Short-Sale-Ratio aus demselben Feed</li>
+          <li><strong>yfinance</strong> – Short Float, Days to Cover, Volumen, Kursdaten, RSI, MA50/200, Optionsdaten, Earnings-History</li>
+          <li><strong>Sektor-ETFs</strong> – QQQ, XBI, XLE, XLF, XRT, SPY für Sektor-relative Stärke</li>
           <li><strong>Fails-to-Deliver:</strong> nicht verfügbar (IP-Beschränkung GitHub Actions)</li>
         </ul>
       </div>
       <div class="info-box">
         <h4>⚡ KI-Agent</h4>
-        <p style="font-size:.82rem;color:var(--txt-sub);margin:0 0 8px">Der KI-Agent überwacht alle 30 Minuten die Top-10-Kandidaten auf Squeeze-Trigger.</p>
+        <p style="font-size:.82rem;color:var(--txt-sub);margin:0 0 8px">Der KI-Agent überwacht alle 2 Stunden die Top-10-Kandidaten auf Squeeze-Trigger (zuverlässigere GitHub-Actions-Queue als 30-Min-Takt).</p>
         <ul>
           <li><strong>Datenquellen:</strong> Yahoo Finance News, Google News, Seeking Alpha, MarketBeat, Unusual Whales, SEC EDGAR RSS, yfinance Intraday-Daten, Earnings-Kalender, FDA Press Release RSS</li>
           <li><strong>Signal-Schwellen:</strong> Kursanstieg ≥ 2 % · Volumen ≥ 1,5× · News-Keywords · Earnings ≤ 30 Tage</li>
@@ -4736,6 +5004,39 @@ def main():
     except Exception as _spx_exc:
         log.warning("S&P 500 fetch failed: %s", _spx_exc)
 
+    # Feature 5 — Sektor-ETF 20T-Performance parallel holen
+    _sector_perf_20d: dict[str, float] = {}
+    if USE_SECTOR_RS:
+        _t_sector = time.time()
+        _SECTOR_TIMEOUT = 15
+        try:
+            with ThreadPoolExecutor(max_workers=1) as _sec_ex:
+                _sec_hist = _sec_ex.submit(
+                    lambda: yf.download(list(SECTOR_ETFS_ALL), period="25d",
+                                        group_by="ticker", auto_adjust=True,
+                                        progress=False, threads=True)
+                ).result(timeout=_SECTOR_TIMEOUT)
+            import pandas as _pd  # local alias
+            if _sec_hist is not None and not _sec_hist.empty:
+                for _etf in SECTOR_ETFS_ALL:
+                    try:
+                        _df = _sec_hist[_etf] if isinstance(_sec_hist.columns, _pd.MultiIndex) else _sec_hist
+                        _close = _df["Close"].dropna()
+                        if len(_close) >= 21:
+                            _sector_perf_20d[_etf] = float(
+                                (_close.iloc[-1] - _close.iloc[-21]) / _close.iloc[-21] * 100
+                            )
+                    except Exception:
+                        continue
+                log.info("Sektor-ETF 20T-Perf: %s",
+                         {k: f"{v:.1f}%" for k, v in _sector_perf_20d.items()})
+            print(f"Sektor-ETFs ({len(_sector_perf_20d)}/{len(SECTOR_ETFS_ALL)}) "
+                  f"in {time.time()-_t_sector:.1f}s abgerufen", flush=True)
+        except TimeoutError:
+            log.warning("Sektor-ETF yf.download timeout after %ds", _SECTOR_TIMEOUT)
+        except Exception as _sec_exc:
+            log.warning("Sektor-ETF fetch failed: %s", _sec_exc)
+
     # --- Step 2: Filter loop — uses pre-fetched batch data, no HTTP per ticker ---
     log.info("Step 2 – Filtering %d candidates with enriched data …", len(pool))
     enriched = []
@@ -4764,9 +5065,19 @@ def main():
             if _stock_perf_20d is not None and _spx_perf_20d is not None
             else None
         )
+        # Feature 5 — Sektor-ETF mapping + RS-Berechnung
+        _sector_name = yfd.get("sector") or c.get("sector") or ""
+        _sector_etf  = SECTOR_ETF_MAP.get(_sector_name.strip(), SECTOR_ETF_DEFAULT) \
+                       if USE_SECTOR_RS else None
+        _etf_perf    = _sector_perf_20d.get(_sector_etf) if _sector_etf else None
+        _rel_sector  = (
+            (_stock_perf_20d - _etf_perf)
+            if (_stock_perf_20d is not None and _etf_perf is not None)
+            else None
+        )
         c.update({
             "company_name":    yfd.get("company_name") or c.get("company_name", t),
-            "sector":          yfd.get("sector") or c.get("sector") or "",
+            "sector":          _sector_name,
             "industry":        yfd.get("industry") or c.get("industry") or "",
             "yf_market_cap":   yfd.get("market_cap"),
             "52w_high":        yfd.get("52w_high"),
@@ -4774,14 +5085,17 @@ def main():
             "avg_vol_20d":     yfd.get("avg_vol_20d", 0),
             "cur_vol":         yfd.get("cur_vol", 0),
             "rsi14":           yfd.get("rsi14"),
-            "ma50":            yfd.get("ma50"),
-            "ma200":           yfd.get("ma200"),
-            "perf_20d":        _stock_perf_20d,
+            "ma50":             yfd.get("ma50"),
+            "ma200":            yfd.get("ma200"),
+            "perf_20d":         _stock_perf_20d,
             "rel_strength_20d": _rel_strength,
+            "rel_strength_sector": _rel_sector,        # Feature 5
+            "sector_etf":          _sector_etf,        # Feature 5
             "inst_ownership":  yfd.get("inst_ownership"),
             "float_shares":    yfd.get("float_shares", 0),
             "change_5d":       yfd.get("change_5d"),
             "spx_daily_perf":  _spx_daily_perf,
+            "recent_squeeze":  yfd.get("recent_squeeze"),   # Feature 6
         })
         if i < 3:
             print(f"{t} float_shares={c.get('float_shares')} change_5d={c.get('change_5d')}", flush=True)
@@ -4837,6 +5151,24 @@ def main():
         flush=True,
     )
     print(f"Step 2 abgeschlossen in {time.time()-_t_batch:.1f}s", flush=True)
+
+    # Feature 7 — Post-Enrichment Marktkapitalisierungs-Filter (jetzt 2 Mrd.)
+    # Ausnahme: manuell zur persönlichen Watchlist hinzugefügte Ticker
+    # ignorieren den Filter und bleiben immer sichtbar.
+    _pre_cap = len(enriched)
+    enriched = [
+        c for c in enriched
+        if c.get("manual_personal")
+        or not (c.get("yf_market_cap") or c.get("market_cap"))
+        or (c.get("yf_market_cap") or c.get("market_cap") or 0) <= MAX_MARKET_CAP
+    ]
+    if _pre_cap > len(enriched):
+        print(
+            f"Cap-Filter ({MAX_MARKET_CAP_B:.0f} Mrd. $): "
+            f"{_pre_cap - len(enriched)} Ticker ausgeschlossen (persönliche Watchlist immun)",
+            flush=True,
+        )
+
     enriched.sort(key=lambda x: x.get("score") or 0, reverse=True)
 
     # Always pick the best 10 by score — MIN_SCORE is informational only, not a filter.
@@ -4873,7 +5205,7 @@ def main():
         log.error("No candidates survived all filters.")
         _write_error_page(report_date,
             "Keine Aktien erfüllen aktuell alle Filterkriterien "
-            "(Short Float &gt;15 %, Preis &gt;$1, Marktkapitalisierung &lt;$10 Mrd.).")
+            f"(Short Float &gt;15 %, Preis &gt;$1, Marktkapitalisierung &lt;{MAX_MARKET_CAP_B:.0f} Mrd. $).")
         return
 
     # --- Step 3b: FINRA-Trend-Bonus ---
@@ -4936,6 +5268,23 @@ def main():
                   flush=True)
             log.warning("earnings as_completed timeout — skipping remaining futures")
     print(f"Earnings-Termine: {len(us_top10)} Ticker in {time.time()-_t_earn:.1f}s abgerufen", flush=True)
+
+    # Feature 3 — Parallel earnings-surprise fetch (US-only, max 5 threads).
+    if SHOW_EARNINGS_SURPRISE:
+        _t_es = time.time()
+        log.info("Step 3c2 – Fetching earnings surprise for %d US stocks …", len(us_top10))
+        with ThreadPoolExecutor(max_workers=5) as _es_ex:
+            _es_futures = {_es_ex.submit(get_earnings_surprise, s["ticker"]): s for s in us_top10}
+            try:
+                for _fut in as_completed(_es_futures, timeout=_POOL_STEP3_TIMEOUT):
+                    _es_futures[_fut]["earnings_surprise"] = _fut.result()
+            except TimeoutError:
+                print(f"Earnings-Surprise: Pool-Timeout nach {_POOL_STEP3_TIMEOUT}s — verbleibende Ticker übersprungen",
+                      flush=True)
+                log.warning("earnings-surprise as_completed timeout — skipping remaining futures")
+        _n_es = sum(1 for s in us_top10 if s.get("earnings_surprise"))
+        print(f"Earnings-Surprise: {_n_es}/{len(us_top10)} Treffer in {time.time()-_t_es:.1f}s",
+              flush=True)
 
     # Parallel SEC 13F fetch (US-only, max 5 threads).
     _t_13f = time.time()

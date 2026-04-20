@@ -18,7 +18,7 @@
           <button class="wl-add-btn" data-ticker="{{ ticker }}" onclick="wlToggle(this)" title="Zur Watchlist hinzufügen">＋</button>
         </div>
         <span class="company">{{ company }}</span>
-        {{ sector_tag_html }}{{ earnings_tag_html }}
+        {{ sector_tag_html }}{{ earnings_tag_html }}{{ squeeze_badge_html }}
       </div>
     </div>
     <div class="score-block">
@@ -54,6 +54,7 @@
       <span class="m-val">{{ si_tile_val }}</span>
       <span class="m-lbl">SI-Trend</span>
     </div>
+    {{ ssr_tile_html }}
   </div>
   <button class="details-btn" onclick="toggleDetails({{ i }})" id="db{{ i }}" aria-expanded="false">
     <span class="details-arrow" id="da{{ i }}">▾</span><span id="dl{{ i }}"> Details anzeigen</span>

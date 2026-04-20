@@ -27,12 +27,13 @@ HTTP_HEADERS = {
 # ═══════════════════════════════════════════════════════════════════════════
 
 # ── Filter-Schwellen (Candidate-Pool) ────────────────────────────────────────
-MIN_SHORT_FLOAT      = 15.0   # %  — Mindest-Short-Float (US)
-MIN_REL_VOLUME       = 1.5    # ×   — Mindest-Rel-Volumen US
-MIN_REL_VOLUME_INTL  = 1.2    # ×   — Mindest-Rel-Volumen internationale Watchlist
-MAX_MARKET_CAP       = 10e9   # $   — Max. Marktkapitalisierung (10 Mrd.)
-MIN_PRICE            = 1.0    # $   — Mindestkurs (Penny-Stock-Ausschluss)
-MIN_SCORE            = 15.0   # Pkt — informativ; Karten unter diesem Wert bekommen Hinweis
+MIN_SHORT_FLOAT      = 15.0                # %  — Mindest-Short-Float (US)
+MIN_REL_VOLUME       = 1.5                 # ×   — Mindest-Rel-Volumen US
+MIN_REL_VOLUME_INTL  = 1.2                 # ×   — Mindest-Rel-Volumen internationale Watchlist
+MAX_MARKET_CAP_B     = 2.0                 # Mrd. $ — Obergrenze (Small-Cap-Fokus, war 10.0)
+MAX_MARKET_CAP       = MAX_MARKET_CAP_B * 1e9
+MIN_PRICE            = 1.0                 # $   — Mindestkurs (Penny-Stock-Ausschluss)
+MIN_SCORE            = 15.0                # Pkt — informativ; Karten unter diesem Wert bekommen Hinweis
 
 # ── Farbschwellen der Kennzahlenkacheln ──────────────────────────────────────
 SF_GREEN   = 30.0   # % Short Float ≥ 30 → grün
@@ -82,6 +83,46 @@ POOL_ENRICH_TIMEOUT        = 90    # s — Abbruch verbleibender Kandidaten
 IV_LOW                = 50    # < IV_LOW → rot
 IV_HIGH               = 100   # > IV_HIGH → grün
 IV_MIN_DAYS_TO_EXPIRY = 7     # Verfallstermin muss mind. N Tage entfernt sein
+
+# ── Datenqualitäts-Features (Card-Anreicherung) ──────────────────────────────
+# 1 — Daily Short Sale Ratio (aus FINRA CNMSshvol) als Tages-Proxy
+SHOW_DAILY_SSR      = True
+SSR_RED_THRESHOLD   = 0.40   # < 40 %  → rot
+SSR_GREEN_THRESHOLD = 0.60   # > 60 %  → grün; 40–60 % orange
+
+# 2 — Float-Plausibilität (Sanity-Check auf yfinance-Float-Werte)
+FLOAT_MIN_VALID = 10_000           # < 10 000 Aktien → unplausibel
+FLOAT_MAX_VALID = 50_000_000_000   # > 50 Mrd. Aktien → unplausibel
+
+# 3 — Earnings Surprise (Beat/Miss der letzten Meldung)
+SHOW_EARNINGS_SURPRISE = True
+
+# 4 — Put/Call-Ratio Schwellen (neue Semantik: <0.5 bullisch, >1.5 bearisch)
+SHOW_PUT_CALL_RATIO = True
+PC_BULLISH  = 0.50
+PC_BEARISH  = 1.50
+
+# 5 — Relative Stärke gegen Sektor-ETF (statt nur gegen S&P 500)
+USE_SECTOR_RS = True
+SECTOR_ETF_MAP = {
+    "Technology":            "QQQ",
+    "Communication Services":"QQQ",
+    "Healthcare":            "XBI",
+    "Biotechnology":         "XBI",
+    "Energy":                "XLE",
+    "Financial":             "XLF",
+    "Financial Services":    "XLF",
+    "Consumer":              "XRT",
+    "Consumer Cyclical":     "XRT",
+    "Consumer Defensive":    "XRT",
+}
+SECTOR_ETF_DEFAULT = "SPY"
+SECTOR_ETFS_ALL    = ("QQQ", "XBI", "XLE", "XLF", "XRT", "SPY")
+
+# 6 — Historische Squeeze-Erkennung (90-Tage-Fenster)
+SQUEEZE_DETECTION_DAYS = 90
+SQUEEZE_MIN_GAIN       = 0.50   # ≥ +50 % in 5 Handelstagen
+SQUEEZE_MIN_RVOL       = 3.0    # gleichzeitig Volumen ≥ 3× Ø
 
 
 # ═══════════════════════════════════════════════════════════════════════════
