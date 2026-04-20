@@ -1,11 +1,11 @@
 {
-  "updated": "2026-04-20T09:31:02.756181+02:00",
+  "updated": "2026-04-20T13:58:37.862023+02:00",
   "run_info": {
     "tickers_checked": 10,
     "signals_active": 2,
     "alerts_sent": 0,
-    "elapsed_s": 32.3,
-    "market_phase": "Geschlossen"
+    "elapsed_s": 25.3,
+    "market_phase": "Pre-Market"
   },
   "signals": {
     "CADL": {
