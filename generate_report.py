@@ -1938,14 +1938,422 @@ def _jinja_env() -> Environment:
     return env
 
 
+def _build_card_ctx(i: int, s: dict) -> dict:
+    """Pre-compute **every** color, label, format-spec and flag for one card.
+
+    The returned flat dict is consumed by ``templates/card.jinja`` (v2-only),
+    where the template contains only ``{{ variable }}`` interpolations and
+    ``{% if flag %}`` guards — no ternaries, no arithmetic, no format-specs.
+
+    v1 (``_card()`` + f-string) remains fully untouched.
+    Covers all 40 format-specs identified in the pre-analysis.
+    """
+    risk_lv, risk_col, risk_txt = risk_assessment(s)
+    sit_txt  = short_situation(s)
+    news_sum = news_summary(s.get("news", []))
+
+    # ── Core numeric values ──────────────────────────────────────────────
+    ticker   = s["ticker"]
+    company  = s.get("company_name", "")
+    price    = s.get("price", 0) or 0
+    sf       = s.get("short_float", 0) or 0
+    sr       = s.get("short_ratio",  0) or 0
+    rv       = s.get("rel_volume",   0) or 0
+    chg      = s.get("change", 0) or 0
+    cap_val  = s.get("yf_market_cap") or s.get("market_cap")
+
+    # ── Score ────────────────────────────────────────────────────────────
+    sc       = min(s["score"], 100.0)
+    sc_col   = _score_color(sc)
+
+    # ── Sparkline block (pre-render HTML) ─────────────────────────────────
+    _spark = s.get("sparkline")
+    if _spark:
+        _sc_json  = json.dumps(_spark["scores"])
+        _dt_json  = json.dumps(_spark["dates"])
+        sparkline_html = (
+            f'<div class="spark-wrap" '
+            f'data-scores=\'{_sc_json}\' '
+            f'data-dates=\'{_dt_json}\' '
+            f'data-col="{_spark["col"]}" '
+            f'data-today="{_spark["today"]}">'
+            f'<div class="spark-header">'
+            f'<span class="spark-title">Score-Verlauf</span>'
+            f'<span class="spark-trend" style="color:{_spark["col"]}">{_spark["trend"]}</span>'
+            f'</div>'
+            f'<div class="spark-svg-wrap"></div>'
+            f'<div class="spark-days"></div>'
+            f'</div>'
+        )
+    else:
+        sparkline_html = '<p class="spark-placeholder">Verlauf ab morgen verfügbar.</p>'
+
+    # ── Sector / industry ────────────────────────────────────────────────
+    _sector   = (s.get("sector") or "").strip()
+    _industry = (s.get("industry") or "").strip()
+    if _sector and _industry:
+        sector_tag_html   = f'<span class="sector-tag">{_sector} · {_industry}</span>'
+        sector_detail_row = f"<tr><td>Sektor</td><td>{_sector} · {_industry}</td></tr>"
+    elif _sector:
+        sector_tag_html   = f'<span class="sector-tag">{_sector}</span>'
+        sector_detail_row = f"<tr><td>Sektor</td><td>{_sector}</td></tr>"
+    else:
+        sector_tag_html   = ""
+        sector_detail_row = ""
+
+    # ── Earnings badge ───────────────────────────────────────────────────
+    _earn_days = s.get("earnings_days")
+    _earn_dstr = s.get("earnings_date_str") or ""
+    if _earn_days is not None and _earn_days <= 14:
+        _earn_col = "#ef4444" if _earn_days <= 3 else "#f59e0b"
+        earnings_tag_html = (
+            f'<span class="earnings-tag" style="color:{_earn_col}">'
+            f'Earnings in {_earn_days}d ({_earn_dstr})</span>'
+        )
+    else:
+        earnings_tag_html = ""
+
+    # ── Momentum ─────────────────────────────────────────────────────────
+    chg_str = f"+{chg:.1f}%" if chg >= 0 else f"{chg:.1f}%"
+    chg_col = _metric_color("mom", chg)
+    chg_5d_html = (
+        f'<br><span style="font-size:0.75em;color:var(--color-text-secondary)">'
+        f'5T: {s["change_5d"]:+.1f}%</span>'
+        if s.get("change_5d") is not None else ""
+    )
+
+    # ── Short float / days-to-cover ──────────────────────────────────────
+    has_no_short_data = (sf == 0 and sr == 0)
+    flag = get_flag(ticker)
+    sf_display = "—" if has_no_short_data else f"{sf:.1f}%"
+    sr_display = "—" if has_no_short_data else f"{sr:.1f}d"
+    no_data_html = (
+        '<p class="no-data-notice">ⓘ Short-Float &amp; Days to Cover für diesen Markt nicht verfügbar.</p>'
+        if has_no_short_data else ""
+    )
+    sf_col = "#94a3b8" if has_no_short_data else _metric_color("sf", sf)
+    sr_col = "#94a3b8" if has_no_short_data else _metric_color("sr", sr)
+    rv_col = _metric_color("rv", rv)
+
+    below_min_score_html = (
+        f'<span class="score-below-min">Score unter Richtwert ({MIN_SCORE:.0f} Pkt) '
+        f'— schwächeres Signal.</span>'
+        if s["score"] < MIN_SCORE else ""
+    )
+
+    # ── FINRA SI-Trend & velocity ────────────────────────────────────────
+    finra_d     = s.get("finra_data") or {}
+    si_trend    = finra_d.get("trend", "no_data")
+    si_tpct     = finra_d.get("trend_pct", 0.0)
+    si_hist     = finra_d.get("history", [])
+    si_velocity = finra_d.get("si_velocity", 0.0)
+    si_accel    = finra_d.get("si_accelerating", False)
+
+    if si_velocity != 0.0:
+        _vel_sign = "+" if si_velocity > 0 else ""
+        _vel_col  = "#22c55e" if si_velocity > 0 else "#ef4444"
+        _accel_note = " ⚡ Beschleunigung" if si_accel else ""
+        _vel_str  = f"{_vel_sign}{si_velocity:,.0f}".replace(",", ".")
+        si_velocity_row = (
+            f'<tr><td>SI Velocity (tägl. Ø)</td>'
+            f'<td><span style="color:{_vel_col}">{_vel_str} Aktien/Tag{_accel_note}</span></td></tr>'
+        )
+    else:
+        si_velocity_row = ""
+
+    if si_trend == "up":
+        trend_html  = f'<span style="color:#22c55e">↑ Steigend +{abs(si_tpct):.1f} %</span>'
+        si_tile_val = f"↑ +{abs(si_tpct):.0f} %"
+        si_tile_col = "#22c55e"
+    elif si_trend == "down":
+        trend_html  = f'<span style="color:#ef4444">↓ Fallend −{abs(si_tpct):.1f} %</span>'
+        si_tile_val = f"↓ −{abs(si_tpct):.0f} %"
+        si_tile_col = "#ef4444"
+    elif si_trend == "sideways":
+        sign = "+" if si_tpct >= 0 else "−"
+        trend_html  = f'<span style="color:#f59e0b">→ Seitwärts {sign}{abs(si_tpct):.1f} %</span>'
+        si_tile_val = "→ stabil"
+        si_tile_col = "#f59e0b"
+    else:
+        trend_html  = "Keine Daten"
+        si_tile_val = "—"
+        si_tile_col = "#94a3b8"
+
+    # ── Float tile ───────────────────────────────────────────────────────
+    _float_shares = s.get("float_shares") or 0
+    if _float_shares > 0:
+        float_mio      = _float_shares / 1_000_000
+        float_tile_val = f"{float_mio:.1f} Mio.".replace(".", ",")
+        if _float_shares < 30_000_000:
+            float_tile_col = "#22c55e"
+        elif _float_shares <= 50_000_000:
+            float_tile_col = "#f59e0b"
+        else:
+            float_tile_col = "#ef4444"
+    else:
+        float_tile_val = "—"
+        float_tile_col = "#94a3b8"
+
+    si_t1_disp = _fmt_si_record(si_hist[0]) if len(si_hist) >= 1 else "—"
+    si_t2_disp = _fmt_si_record(si_hist[1]) if len(si_hist) >= 2 else "—"
+    si_t3_disp = _fmt_si_record(si_hist[2]) if len(si_hist) >= 3 else "—"
+
+    # ── RSI / MA / Relative-Strength rows ────────────────────────────────
+    _rsi   = s.get("rsi14")
+    _ma50  = s.get("ma50")
+    _ma200 = s.get("ma200")
+    _rs20  = s.get("rel_strength_20d")
+    _p20   = s.get("perf_20d")
+    if _rsi is not None:
+        if _rsi < 30:
+            _rsi_col, _rsi_lbl = "#22c55e", "überverkauft"
+        elif _rsi > 70:
+            _rsi_col, _rsi_lbl = "#ef4444", "überkauft"
+        else:
+            _rsi_col, _rsi_lbl = "var(--txt)", ""
+        _rsi_cell = f'<span style="color:{_rsi_col}">{_rsi:.1f}{(" — " + _rsi_lbl) if _rsi_lbl else ""}</span>'
+        _rsi_row  = f"<tr><td>RSI (14T)</td><td>{_rsi_cell}</td></tr>"
+    else:
+        _rsi_row  = ""
+    if _ma50 is not None:
+        _vs_ma50  = ((price - _ma50) / _ma50 * 100) if _ma50 > 0 else None
+        _ma50_col = "#22c55e" if (_vs_ma50 is not None and _vs_ma50 >= 0) else "#ef4444"
+        _ma50_pct = f'({_vs_ma50:+.1f}%)' if _vs_ma50 is not None else ""
+        _ma50_row1 = f"<tr><td>MA 50T</td><td>${_ma50:.2f}</td></tr>"
+        _ma50_row2 = f'<tr><td>Kurs vs. MA50</td><td><span style="color:{_ma50_col}">{_ma50_pct}</span></td></tr>'
+    else:
+        _ma50_row1, _ma50_row2 = "", ""
+    if _ma200 is not None:
+        _ma200_row = f"<tr><td>MA 200T</td><td>${_ma200:.2f}</td></tr>"
+    else:
+        _ma200_row = ""
+    if _rs20 is not None:
+        _rs_col  = "#22c55e" if _rs20 >= 0 else "#ef4444"
+        _p20_str = f" (Aktie {_p20:+.1f}%)" if _p20 is not None else ""
+        _rs_cell = f'<span style="color:{_rs_col}">{_rs20:+.1f}% vs. S&amp;P 500{_p20_str}</span>'
+        _rs_row  = f"<tr><td>Rel. Stärke (20T)</td><td>{_rs_cell}</td></tr>"
+    else:
+        _rs_row  = ""
+    rsi_ma_rows = _rsi_row + _ma50_row1 + _ma200_row + _ma50_row2 + _rs_row
+
+    # ── Options rows ─────────────────────────────────────────────────────
+    _opts     = s.get("options") or {}
+    _pc       = _opts.get("pc_ratio")
+    _iv       = _opts.get("atm_iv")
+    _exp      = _opts.get("expiry", "")
+    _exp_note = f" <span style='color:var(--txt-dim);font-size:.8em'>({_exp})</span>" if _exp else ""
+    if _pc is not None:
+        _pc_col = "#ef4444" if _pc > 1.0 else ("#22c55e" if _pc < 0.7 else "var(--txt)")
+        _pc_lbl = " — bärisch" if _pc > 1.0 else (" — bullisch" if _pc < 0.7 else "")
+        _pc_row = (
+            f'<tr><td>Put/Call-Ratio{_exp_note}</td>'
+            f'<td><span style="color:{_pc_col}">{_pc:.2f}{_pc_lbl}</span></td></tr>'
+        )
+    else:
+        _pc_row = ""
+    if _iv is not None:
+        _iv_pct = _iv * 100
+        _iv_col = ("#22c55e" if _iv_pct > IV_HIGH
+                   else "#f59e0b" if _iv_pct >= IV_LOW
+                   else "#ef4444")
+        _iv_row = (
+            f'<tr><td>Impl. Volatilität (ATM)</td>'
+            f'<td><span style="color:{_iv_col}">{_iv_pct:.1f}%</span></td></tr>'
+        )
+    else:
+        _iv_row = ""
+    options_rows = _pc_row + _iv_row
+
+    # ── Institutional ownership ──────────────────────────────────────────
+    _inst      = s.get("inst_ownership")
+    _13f_note  = s.get("sec_13f_note") or ""
+    _13f_badge = (
+        f' <span style="color:#22c55e;font-size:.8em">● {_13f_note}</span>'
+        if _13f_note else ""
+    )
+    if _inst is not None:
+        _inst_pct = float(_inst) * 100
+        _inst_col = "#22c55e" if _inst_pct >= 60 else ("#f59e0b" if _inst_pct >= 30 else "#ef4444")
+        inst_row = (
+            f'<tr><td>Institutioneller Anteil</td>'
+            f'<td><span style="color:{_inst_col}">{_inst_pct:.1f}%</span>{_13f_badge}</td></tr>'
+        )
+    elif _13f_note:
+        inst_row = (
+            f'<tr><td>Institutioneller Anteil</td>'
+            f'<td>{_13f_badge.strip()}</td></tr>'
+        )
+    else:
+        inst_row = ""
+
+    # ── Float row (detail table) ─────────────────────────────────────────
+    if _float_shares > 0:
+        _float_mio_det = _float_shares / 1_000_000
+        float_row = f"<tr><td>Float (frei handelbar)</td><td>{_float_mio_det:.1f} Mio. Aktien</td></tr>"
+    else:
+        float_row = ""
+
+    # ── Chart / external links ───────────────────────────────────────────
+    yf_chart_url = f"https://finance.yahoo.com/chart/{ticker}"
+    is_intl      = "." in ticker
+    edgar_row    = (
+        ""
+        if is_intl else
+        f'<tr><td>SEC-Meldungen</td><td>'
+        f'<a href="https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany'
+        f'&amp;CIK={ticker}&amp;type=&amp;dateb=&amp;owner=include&amp;count=10&amp;search_text=" '
+        f'target="_blank" rel="noopener noreferrer" class="edgar-link">EDGAR öffnen →</a>'
+        f'</td></tr>'
+    )
+    sa_ticker    = ticker.split(".")[0].lower()
+    fv_url       = f"https://finviz.com/quote.ashx?t={ticker.split('.')[0].upper()}"
+    sa_url       = f"https://stockanalysis.com/stocks/{sa_ticker}/"
+    yahoo_badge  = (
+        f'<a class="chart-badge chart-badge-y" href="{yf_chart_url}" '
+        f'target="_blank" rel="noopener noreferrer" title="Yahoo Finance Chart">Y</a>'
+    )
+    finviz_badge = (
+        '<span class="chart-badge chart-badge-f chart-badge-dis" '
+        'title="Finviz unterstützt nur US-Aktien">F</span>'
+        if is_intl else
+        f'<a class="chart-badge chart-badge-f" href="{fv_url}" '
+        f'target="_blank" rel="noopener noreferrer" title="Finviz Chart &amp; Kennzahlen">F</a>'
+    )
+    sa_badge     = (
+        '<span class="chart-badge chart-badge-s chart-badge-dis" '
+        'title="Stockanalysis unterstützt nur US-Aktien">S</span>'
+        if is_intl else
+        f'<a class="chart-badge chart-badge-s" href="{sa_url}" '
+        f'target="_blank" rel="noopener noreferrer" title="Stockanalysis Chart &amp; Short-Interest">S</a>'
+    )
+
+    # ── News items ───────────────────────────────────────────────────────
+    _news_items = []
+    for n in s.get("news", [])[:3]:
+        src_label = n.get("source") or n.get("publisher") or ""
+        src_html  = f' <span class="ni-src">({src_label})</span>' if src_label else ""
+        _news_items.append(
+            f'<div class="ni">'
+            f'<a href="{n.get("link","#")}" target="_blank" rel="noopener noreferrer">'
+            f'{n.get("title","")}</a>{src_html}'
+            f'<span class="ni-meta">{n.get("time","")}</span>'
+            f'</div>'
+        )
+    news_html = "".join(_news_items) if _news_items else '<p class="no-news">Keine Nachrichten verfügbar.</p>'
+
+    # ── Data attributes ──────────────────────────────────────────────────
+    da_rsi       = f'{_rsi:.1f}'     if _rsi is not None else ''
+    da_iv        = f'{_iv*100:.1f}'  if _iv  is not None else ''
+    da_earn      = str(_earn_days)   if _earn_days is not None else ''
+    da_cap       = str(int(cap_val)) if cap_val else ''
+    da_float     = f'{_float_shares/1e6:.1f}M' if _float_shares else ''
+    _news_titles = [n.get("title","")[:140] for n in (s.get("news") or [])[:3] if n.get("title")]
+    da_news      = json.dumps(_news_titles, ensure_ascii=False).replace('"', '&quot;')
+    da_earn_date = _earn_dstr
+
+    # ── Detail table formatted fields ────────────────────────────────────
+    cap_fmt       = fmt_cap(cap_val)
+    hi_str        = f"{s.get('52w_high') or 0:.2f}"
+    lo_str        = f"{s.get('52w_low')  or 0:.2f}"
+    avg_vol_str   = f"{s.get('avg_vol_20d', 0):,.0f}"
+    cur_vol_str   = f"{s.get('cur_vol',    0):,.0f}"
+
+    return {
+        # Identity / rank
+        "i":              i,
+        "ticker":         ticker,
+        "company":        company,
+        "region":         get_region(ticker),
+        "flag":           flag,
+
+        # Scalar formatted numbers (40 format-specs all pre-applied)
+        "score_raw_str":  f"{s['score']:.1f}",          # score-num + data-score
+        "score_pct_str":  f"{sc:.0f}",                  # score-fill width
+        "price_str":      f"{price:.2f}",               # price tag + data-price
+        "sf_1f":          f"{sf:.1f}",                  # data-sf
+        "sr_1f":          f"{sr:.1f}",                  # data-sr
+        "rv_2f":          f"{rv:.2f}",                  # data-rv
+        "chg_2f":         f"{chg:.2f}",                 # data-chg
+        "rv_str":         f"{rv:.1f}",                  # metric tile volumen
+
+        # Colors
+        "score_col":      sc_col,
+        "sf_col":         sf_col,
+        "sr_col":         sr_col,
+        "rv_col":         rv_col,
+        "chg_col":        chg_col,
+        "float_tile_col": float_tile_col,
+        "si_tile_col":    si_tile_col,
+        "risk_col":       risk_col,
+
+        # Displays / labels
+        "sf_display":     sf_display,
+        "sr_display":     sr_display,
+        "chg_str":        chg_str,
+        "si_tile_val":    si_tile_val,
+        "float_tile_val": float_tile_val,
+        "si_t1_disp":     si_t1_disp,
+        "si_t2_disp":     si_t2_disp,
+        "si_t3_disp":     si_t3_disp,
+        "cap_fmt":        cap_fmt,
+        "hi_str":         hi_str,
+        "lo_str":         lo_str,
+        "avg_vol_str":    avg_vol_str,
+        "cur_vol_str":    cur_vol_str,
+
+        # Raw values that appear verbatim in data-attrs
+        "si_trend":       si_trend,
+        "sector":         _sector,
+
+        # Data attributes
+        "da_rsi":         da_rsi,
+        "da_iv":          da_iv,
+        "da_earn":        da_earn,
+        "da_earn_date":   da_earn_date,
+        "da_float":       da_float,
+        "da_cap":         da_cap,
+        "da_news":        da_news,
+
+        # Risk / narrative
+        "risk_lv":        risk_lv,
+        "risk_txt":       risk_txt,
+        "sit_txt":        sit_txt,
+        "news_sum":       news_sum,
+
+        # Pre-rendered HTML sub-blocks (each resolves internal ternaries)
+        "sparkline_html":       sparkline_html,
+        "sector_tag_html":      sector_tag_html,
+        "sector_detail_row":    sector_detail_row,
+        "earnings_tag_html":    earnings_tag_html,
+        "chg_5d_html":          chg_5d_html,
+        "no_data_html":         no_data_html,
+        "below_min_score_html": below_min_score_html,
+        "si_velocity_row":      si_velocity_row,
+        "trend_html":           trend_html,
+        "rsi_ma_rows":          rsi_ma_rows,
+        "options_rows":         options_rows,
+        "inst_row":             inst_row,
+        "float_row":            float_row,
+        "edgar_row":            edgar_row,
+        "yahoo_badge":          yahoo_badge,
+        "finviz_badge":         finviz_badge,
+        "sa_badge":             sa_badge,
+        "news_html":            news_html,
+    }
+
+
 def _build_context(stocks: list[dict], report_date: str) -> dict:
     """Zentrale Context-Erstellung für Template-Rendering.
 
     Liefert ein Dict mit allen vorberechneten Aggregaten + JSON-Blobs,
     die sowohl ``generate_html_v1`` (f-String) als auch ``generate_html_v2``
     (Jinja2) benötigen. Einzige Stelle für Template-Variablen.
+
+    ``card_ctxs`` (Liste vorberechneter Card-Context-Dicts) wird ausschließlich
+    von v2 konsumiert — v1 nutzt weiterhin ``_card()``.
     """
     cards = "\n".join(_card(i + 1, s) for i, s in enumerate(stocks))
+    card_ctxs = [_build_card_ctx(i + 1, s) for i, s in enumerate(stocks)]
 
     n       = max(len(stocks), 1)
     avg_sf  = sum(s["short_float"] for s in stocks) / n
@@ -2083,6 +2491,7 @@ def _build_context(stocks: list[dict], report_date: str) -> dict:
         "report_date":    report_date,
         "timestamp":      timestamp,
         "cards":          cards,
+        "card_ctxs":      card_ctxs,   # v2-only: pre-computed per-card ctx
         "avg_sf":         avg_sf,
         "avg_sr":         avg_sr,
         "avg_rv":         avg_rv,
