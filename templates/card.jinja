@@ -1,0 +1,107 @@
+
+<article class="card" id="c{{ i }}" data-ticker="{{ ticker }}"
+  data-score="{{ score_raw_str }}" data-company="{{ company }}"
+  data-price="{{ price_str }}" data-sf="{{ sf_1f }}" data-sr="{{ sr_1f }}"
+  data-rv="{{ rv_2f }}" data-chg="{{ chg_2f }}" data-si="{{ si_trend }}"
+  data-rsi="{{ da_rsi }}" data-iv="{{ da_iv }}" data-earn="{{ da_earn }}"
+  data-earn-date="{{ da_earn_date }}" data-float="{{ da_float }}"
+  data-cap="{{ da_cap }}" data-sector="{{ sector }}" data-news="{{ da_news }}">
+  <div class="card-top">
+    <div class="card-left">
+      <span class="rank">{{ i }}</span>
+      <div class="ticker-block">
+        <div class="ticker-row">
+          <span class="ticker">{{ ticker }}</span>
+          <span class="market-tag">{{ flag }} {{ region }}</span>
+          {{ finviz_badge }}{{ sa_badge }}
+          <span class="price-tag">${{ price_str }}</span>
+          <button class="wl-add-btn" data-ticker="{{ ticker }}" onclick="wlToggle(this)" title="Zur Watchlist hinzufügen">＋</button>
+        </div>
+        <span class="company">{{ company }}</span>
+        {{ sector_tag_html }}{{ earnings_tag_html }}
+      </div>
+    </div>
+    <div class="score-block">
+      <span class="score-num" style="color:{{ score_col }}">{{ score_raw_str }}</span>
+      <span class="score-lbl">Score</span>
+      <div class="score-track"><div class="score-fill" style="width:{{ score_pct_str }}%;background:{{ score_col }}"></div></div>
+      {{ below_min_score_html }}
+    </div>
+  </div>
+  {{ sparkline_html }}
+  <div class="metrics-row">
+    <div class="metric-box" style="--mc:{{ sf_col }}">
+      <span class="m-val">{{ sf_display }}</span>
+      <span class="m-lbl">Short Float</span>
+    </div>
+    <div class="metric-box" style="--mc:{{ sr_col }}">
+      <span class="m-val">{{ sr_display }}</span>
+      <span class="m-lbl">Days to Cover</span>
+    </div>
+    <div class="metric-box" style="--mc:{{ rv_col }}">
+      <span class="m-val">{{ rv_str }}×</span>
+      <span class="m-lbl">Volumen</span>
+    </div>
+    <div class="metric-box" style="--mc:{{ chg_col }}">
+      <span class="m-val">{{ chg_str }}{{ chg_5d_html }}</span>
+      <span class="m-lbl">Momentum</span>
+    </div>
+    <div class="metric-box" style="--mc:{{ float_tile_col }}">
+      <span class="m-val">{{ float_tile_val }}</span>
+      <span class="m-lbl">Float</span>
+    </div>
+    <div class="metric-box" style="--mc:{{ si_tile_col }}">
+      <span class="m-val">{{ si_tile_val }}</span>
+      <span class="m-lbl">SI-Trend</span>
+    </div>
+  </div>
+  <button class="details-btn" onclick="toggleDetails({{ i }})" id="db{{ i }}" aria-expanded="false">
+    <span class="details-arrow" id="da{{ i }}">▾</span><span id="dl{{ i }}"> Details anzeigen</span>
+  </button>
+  <div class="details-body" id="dd{{ i }}">
+    <div class="detail-table-wrap">
+      <table class="detail-table">
+        <tr><td>Marktkapitalisierung</td><td>{{ cap_fmt }}</td></tr>
+        {{ float_row }}
+        {{ sector_detail_row }}
+        <tr><td>52W-Hoch / -Tief</td><td>${{ hi_str }} / ${{ lo_str }}</td></tr>
+        <tr><td>Ø Volumen 20T</td><td>{{ avg_vol_str }}</td></tr>
+        <tr><td>Heutiges Volumen</td><td>{{ cur_vol_str }}</td></tr>
+        {{ edgar_row }}
+        <tr><td>SI-Trend (3M)</td><td>{{ trend_html }}</td></tr>
+        {{ si_velocity_row }}
+        <tr><td>Short-Vol. T-1 (FINRA)</td><td>{{ si_t1_disp }}</td></tr>
+        <tr><td>Short-Vol. T-2</td><td>{{ si_t2_disp }}</td></tr>
+        <tr><td>Short-Vol. T-3</td><td>{{ si_t3_disp }}</td></tr>
+
+        {{ rsi_ma_rows }}
+        {{ options_rows }}
+        {{ inst_row }}
+        <tr><td>Risiko-Detail</td><td style="color:{{ risk_col }}">{{ risk_txt }}</td></tr>
+      </table>
+    </div>
+    {{ no_data_html }}
+    <div class="driver-row">
+      <span class="risk-badge" style="color:{{ risk_col }};border-color:{{ risk_col }}55;background:{{ risk_col }}22">Risiko: {{ risk_lv }}</span>
+      <p class="driver-text">{{ sit_txt }}</p>
+    </div>
+  </div>
+  <button class="news-btn" onclick="toggleNews({{ i }})" id="nb{{ i }}" aria-expanded="false">
+    <span id="nb-icon{{ i }}">▼</span> Aktuelle Meldungen
+  </button>
+  <div class="news-panel" id="np{{ i }}" hidden>
+    <div class="ki-signal-block">
+      <div class="ki-signal-header">&#9889; KI-Agent Signale</div>
+      <div class="ki-signal-body"></div>
+    </div>
+    <div class="news-items">{{ news_html }}</div>
+    <div class="news-summary-box">
+      <span class="summary-label">Zusammenfassung</span>
+      <p class="summary-text">{{ news_sum }}</p>
+    </div>
+  </div>
+  <button class="ki-analyse-btn" id="ka-btn{{ i }}" onclick="runKiAnalyse({{ i }})">
+    &#x1F916; KI-Analyse
+  </button>
+  <div class="ki-analyse-result" id="ka-res{{ i }}"></div>
+</article>

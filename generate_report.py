@@ -4149,13 +4149,17 @@ ${{JSON.stringify(STOCKS_CTX)}}`;
 def generate_html_v2(stocks: list[dict], report_date: str) -> str:
     """Jinja2-basiertes Rendering.
 
-    Phase 0: Infrastruktur aufgesetzt (Environment + Filter + Context),
-    aber noch kein Template migriert → delegiert identisch an v1.
-    Ab Phase 2 werden einzelne Sektionen aus ``templates/*.jinja`` geladen.
+    Phase 3c: ``templates/card.jinja`` pro Karte gerendert (reine Interpolation
+    über das in ``_build_card_ctx()`` vorberechnete Flat-Dict). Die äußere
+    Seitenstruktur folgt in späteren Phasen; bis dahin bleibt v1 autoritativ.
     """
     ctx = _build_context(stocks, report_date)
     env = _jinja_env()
-    _ = (ctx, env)  # Infrastruktur bereit, aber ungenutzt bis Template migriert
+    card_tmpl = env.get_template("card.jinja")
+    cards_v2 = "\n".join(
+        card_tmpl.render(**c).rstrip("\n") for c in ctx["card_ctxs"]
+    )
+    _ = cards_v2  # Card-Rendering bereit, aber ungenutzt bis Seite komplett migriert
     return generate_html_v1(stocks, report_date)
 
 
