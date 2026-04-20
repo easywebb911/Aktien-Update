@@ -5279,11 +5279,15 @@ def main():
     # Persönliche Watchlist: jeder markierte Ticker erscheint garantiert —
     # entweder organisch im Top-10 (dann mit normaler Rang-Nummer) oder als
     # "Bonus-Slot" angehängt (mit 📌 Manuell-beobachtet-Badge statt Rang).
+    # Bonus-Slots nach Score absteigend sortiert; Score=0/None/NaN ans Ende
+    # (via _safe_float → 0.0 bei reverse=True).
     _top10_ids = {id(c) for c in top10}
-    manual_extras = [
-        c for c in enriched
-        if c.get("manual_personal") and id(c) not in _top10_ids
-    ]
+    manual_extras = sorted(
+        [c for c in enriched
+         if c.get("manual_personal") and id(c) not in _top10_ids],
+        key=lambda c: _safe_float(c.get("score")),
+        reverse=True,
+    )
     if manual_extras:
         for c in manual_extras:
             c["manual_forced"] = True
