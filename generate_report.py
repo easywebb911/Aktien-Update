@@ -1110,6 +1110,24 @@ def _latest_finra_dates(n: int = 3) -> list[str]:
                 return _stale_dates[:n]
         except Exception:
             pass
+
+        # Letzter Strohhalm: die letzten n Handelstage rechnerisch bestimmen
+        # (Wochenenden übersprungen, Feiertage ignoriert). Die einzelnen
+        # CSV-Downloads schlagen dann pro Datum fehl, aber der Report bricht
+        # nicht mehr komplett ab — andere Kennzahlen werden trotzdem gerendert.
+        synth: list[str] = []
+        delta_fb = 1
+        while len(synth) < n and delta_fb <= 40:
+            day_fb = today - timedelta(days=delta_fb)
+            if day_fb.weekday() < 5:   # nur Mo–Fr
+                synth.append(day_fb.strftime("%Y%m%d"))
+            delta_fb += 1
+        if synth:
+            print(f"FINRA Datumssuche: kein Cache verfügbar — nutze rechnerischen "
+                  f"Fallback ({len(synth)} Handelstage ab {today.strftime('%Y-%m-%d')} "
+                  f"rückwärts): {synth}", flush=True)
+            return synth
+
         print("FINRA Datumssuche: Kein Fallback-Cache verfügbar — SI-Trend zeigt '—'",
               flush=True)
         return []
