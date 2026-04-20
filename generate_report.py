@@ -948,11 +948,12 @@ _finra_stats: dict = {"ok": 0, "empty": 0, "err": 0}
 # HTTP-request counters for the runtime summary
 _req_counts: dict = {"finra": 0, "yahoo": 0, "yfinance": 0}
 
-# Module-level cache: {date_str → {ticker → short_interest}} loaded once per run
-_finra_csv_cache: dict[str, dict[str, int]] = {}
+# Module-level cache: {date_str → {ticker → {"sv": short_vol, "tv": total_vol}}}
+# loaded once per run
+_finra_csv_cache: dict[str, dict[str, dict[str, int]]] = {}
 
 
-def _load_finra_csv(date_str: str) -> dict[str, int]:
+def _load_finra_csv(date_str: str) -> dict[str, dict[str, int]]:
     """Download and parse FINRA daily short-volume files from CDN.
 
     Opt 4 — The three exchange files (CNMS, FNSQ, FNQC) for a single date are
@@ -960,7 +961,8 @@ def _load_finra_csv(date_str: str) -> dict[str, int]:
     sequentially.  Across dates the caller (Step 2a) also parallelises.
 
     Format: Date|Symbol|ShortVolume|ShortExemptVolume|TotalVolume|Market
-    Returns {ticker: short_volume} or {} on failure.
+    Returns ``{ticker: {"sv": short_volume, "tv": total_volume}}`` aggregated
+    across the three exchange files, or ``{}`` on failure.
     """
     urls = [
         f"https://cdn.finra.org/equity/regsho/daily/CNMSshvol{date_str}.txt",
@@ -1203,6 +1205,13 @@ def get_finra_short_interest(ticker: str,
         _sv = history[0]["short_interest"]
         if _tv > 0:
             ssr_today = round(_sv / _tv, 4)
+            print(f"FINRA SSR {sym}: sv={_sv:,}  tv={_tv:,}  → {ssr_today*100:.1f}%",
+                  flush=True)
+        else:
+            # Explizit loggen wenn Total-Volume fehlt — hilft bei Diagnose,
+            # ob FINRA-CSV die TotalVolume-Spalte tatsächlich liefert.
+            print(f"FINRA SSR {sym}: sv={_sv:,}  tv=0 → SSR nicht berechnet",
+                  flush=True)
 
     _finra_stats["ok"] += 1
     log.info("%s FINRA history=%d Punkte, trend=%s, velocity=%.0f/day, accel=%s, ssr=%s",
@@ -2087,7 +2096,7 @@ def _card(i: int, s: dict) -> str:
   </div>
   {sparkline_html}
   <div class="metrics-row">
-    <div class="metric-box" style="--mc:{sf_col}">
+    <div class="metric-box metric-box-header" style="--mc:{sf_col}">
       <span class="m-val">{sf_display}</span>
       <span class="m-lbl">Short Float</span>
     </div>
