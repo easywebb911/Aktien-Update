@@ -2698,6 +2698,14 @@ function _fmtGerman(d) {{
 
   function parseIso(s) {{ return new Date(s + 'T12:00:00'); }}
 
+  // Per-point color by score threshold — green / orange / red / grey
+  function scoreColor(s) {{
+    if (s >= 70) return '#22c55e';
+    if (s >= 40) return '#f97316';
+    if (s >= 15) return '#ef4444';
+    return '#6b7280';
+  }}
+
   // Returns true if consecutive data points have a missing trading day between them
   function isGap(d1, d2) {{
     const diff = Math.round((d2 - d1) / 86400000);
@@ -2764,14 +2772,15 @@ function _fmtGerman(d) {{
 
     const svgId = 'sp' + Math.random().toString(36).slice(2, 7);
 
-    // Real data circles
+    // Real data circles — each point coloured by its own score value
     let circlesHtml = '';
     for (let i = 0; i < n; i++) {{
-      const cx = xOf(i).toFixed(1);
-      const cy = yOf(scores[i]).toFixed(1);
+      const cx  = xOf(i).toFixed(1);
+      const cy  = yOf(scores[i]).toFixed(1);
       const dow = DAYS_DE[dateParsed[i].getDay()];
       const dd  = dates[i].slice(8, 10) + '.' + dates[i].slice(5, 7);
-      circlesHtml += `<circle class="sp-dot" cx="${{cx}}" cy="${{cy}}" r="${{PT_R}}" fill="${{col}}" stroke="var(--bg-card)" stroke-width="1.5" data-score="${{scores[i]}}" data-label="${{dow}} ${{dd}} · ${{scores[i]}} Pkt"/>`;
+      const ptCol = scoreColor(scores[i]);
+      circlesHtml += `<circle class="sp-dot" cx="${{cx}}" cy="${{cy}}" r="${{PT_R}}" fill="${{ptCol}}" stroke="var(--bg-card)" stroke-width="1.5" data-score="${{scores[i]}}" data-label="${{dow}} ${{dd}} · ${{scores[i]}} Pkt"/>`;
     }}
 
     // Ghost dot — gray, no connecting line
@@ -2790,7 +2799,7 @@ function _fmtGerman(d) {{
     </linearGradient>
   </defs>
   <path d="${{areaD}}" fill="url(#sg${{svgId}})"/>
-  <path d="${{lineD}}" fill="none" stroke="${{col}}" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+  <path d="${{lineD}}" fill="none" stroke="#6b7280" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
   ${{circlesHtml}}${{ghostHtml}}
 </svg>`;
     svgWrap.innerHTML = svg;
