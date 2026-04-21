@@ -204,6 +204,20 @@ a{color:var(--accent);text-decoration:none}
    hellgrünen Rand. Specificity 0,2,0 schlägt die basis .wl-card-Regel. */
 .wl-card.card-manual{background:rgba(20,83,45,0.35);border:1.5px solid rgba(74,222,128,0.6)}
 .wl-card--expanded{grid-column:1/-1}
+/* Expandierte Watchlist-Karte — kompakte Header-Zeile verstecken,
+   Details-Body ohne Border-Top (Expanded ist jetzt die „ganze Karte") */
+.wl-card--expanded > .wl-card-header{display:none}
+.wl-card--expanded .wl-details-body{border-top:none}
+/* Close-Button im expandierten Zustand (lila-passend zur KI-Thematik) */
+.wl-close-btn-inline{background:var(--bg-met);color:var(--txt-sub);
+  border:1px solid var(--brd);border-radius:8px;padding:4px 10px;
+  font-size:.72rem;font-weight:600;cursor:pointer;white-space:nowrap;
+  flex-shrink:0;margin-right:8px;min-height:32px}
+.wl-close-btn-inline:hover{background:var(--brd);color:var(--txt)}
+.wl-close-btn-inline:disabled{opacity:.45;cursor:not-allowed}
+/* Kopfzeile im expandierten Watchlist-Card-Layout an Main-Card anpassen */
+.wl-exp-top{display:flex;align-items:flex-start;justify-content:space-between;
+  padding:10px 12px 8px;gap:10px}
 .wl-card-header{display:flex;flex-direction:column;align-items:flex-start;gap:4px;padding:8px}
 .wl-card-ticker{font-size:.9rem;font-weight:800;color:var(--txt)}
 .wl-card-score{font-size:20px;font-weight:800;line-height:1;align-self:center}

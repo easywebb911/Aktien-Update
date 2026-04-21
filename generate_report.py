@@ -3936,6 +3936,13 @@ function _fmtGerman(d) {{
     return '#94a3b8';
   }}
 
+  // Score-Farbe für die expandierte Kopfzeile — mirror von _score_color
+  function wlScoreColor2(sc) {{
+    if (sc == null || !isFinite(+sc)) return '#94a3b8';
+    const s = +sc;
+    return s >= 50 ? '#22c55e' : s >= 30 ? '#f59e0b' : '#ef4444';
+  }}
+
   function buildWlDetails(ticker, d) {{
     try {{
       const sfCol  = metColor('sf',  d.short_float);
@@ -3945,8 +3952,37 @@ function _fmtGerman(d) {{
       const siCol  = d.si_trend === 'up' ? '#22c55e' : d.si_trend === 'down' ? '#ef4444' : '#94a3b8';
       const siArr  = d.si_trend === 'up' ? '\u2191' : d.si_trend === 'down' ? '\u2193' : '\u2192';
       const chgSign = (d.change != null && isFinite(+d.change) && +d.change >= 0) ? '+' : '';
-      const tiles = `<div class="metrics-row" style="padding:10px 10px 8px">
-        <div class="metric-box" style="--mc:${{sfCol}}">
+
+      // Kopfzeile analog zur Main-Karte: Ticker + Preis + Score rechts + Schließen-Button
+      const scNum      = d.score != null ? (+d.score).toFixed(1) : '—';
+      const scCol      = wlScoreColor2(d.score);
+      const priceTag   = d.price ? '$' + (+d.price).toFixed(2) : '';
+      const flagStr    = d.flag ? `<span style="font-size:.85rem;margin-right:4px">${{d.flag}}</span>` : '';
+      const companyStr = d.company_name || '';
+      const sectorStr  = d.sector ? `<span class="sector-tag">${{d.sector}}</span>` : '';
+      const topHdr = `<div class="card-top wl-exp-top">
+        <div class="card-left" style="align-items:center">
+          <button class="wl-close-btn-inline" onclick="wlExpand('${{ticker}}', document.getElementById('wlb-${{ticker}}'))"
+                  title="Einklappen">▲ Schlie\xdfen</button>
+          <div class="ticker-block">
+            <div class="ticker-row">
+              ${{flagStr}}<span class="ticker">${{ticker}}</span>
+              ${{priceTag ? `<span class="price-tag">${{priceTag}}</span>` : ''}}
+            </div>
+            ${{companyStr ? `<span class="company">${{companyStr}}</span>` : ''}}
+            ${{sectorStr}}
+          </div>
+        </div>
+        <div class="score-block">
+          <span class="score-num" style="color:${{scCol}}">${{scNum}}</span>
+          <span class="score-lbl">Score</span>
+        </div>
+      </div>`;
+
+      // Metrics — Short Float als volle Header-Kachel (metric-box-header).
+      // Rest erbt Mobile-2-Spalten / Desktop-3-Spalten-Layout von .metrics-row.
+      const tiles = `<div class="metrics-row" style="padding:0 12px 12px">
+        <div class="metric-box metric-box-header" style="--mc:${{sfCol}}">
           <span class="m-val">${{fmtPct(d.short_float)}}</span>
           <span class="m-lbl">Short Float</span>
         </div>
@@ -4024,10 +4060,27 @@ function _fmtGerman(d) {{
           (n.source ? ` <span class="ni-src">(${{n.source}})</span>` : '') +
           `<span class="ni-meta">${{n.time || ''}}</span></div>`
         ).join('');
-        newsHtml = `<div class="news-items" style="padding:0 10px 10px">${{items}}</div>`;
+        newsHtml = `<div class="news-items" style="padding:0 12px 10px">${{items}}</div>`;
       }}
 
-      return tiles + sparkHtml + tableHtml + newsHtml;
+      // KI-Analyse-Button — leitet bei Top-10-Tickern auf die Main-Karte
+      // weiter (runKiAnalyse dort hat alle data-attrs). Bei History-only
+      // Tickern deaktiviert mit Tooltip.
+      const kiEnabled = !!WL_TOP10[ticker];
+      const kiBtn = kiEnabled
+        ? `<button class="ki-analyse-btn" onclick="wlOpenKiAnalyse('${{ticker}}')">KI-Analyse</button>`
+        : `<button class="ki-analyse-btn" disabled
+             title="Nur für Ticker in den aktuellen Top-10 verfügbar">KI-Analyse (nicht verfügbar)</button>`;
+
+      // Close-Button am Ende — zweite Griff-Stelle für lange Karten
+      const closeBottom = `<div style="padding:0 12px 14px;text-align:center">
+        <button class="wl-close-btn-inline" style="width:100%"
+                onclick="wlExpand('${{ticker}}', document.getElementById('wlb-${{ticker}}'))">
+          ▲ Schlie\xdfen
+        </button>
+      </div>`;
+
+      return topHdr + tiles + sparkHtml + tableHtml + newsHtml + kiBtn + closeBottom;
     }} catch(e) {{
       console.error('buildWlDetails Fehler:', e);
       return '<div class="wl-no-data">Fehler beim Laden der Details.</div>';
@@ -4035,13 +4088,30 @@ function _fmtGerman(d) {{
   }}
 
   function buildWlSparkOnly(ticker, h) {{
+    // Mini-Kopfzeile + Schließen-Button auch im History-only-Fall, damit
+    // der expandierte Zustand konsistent aussieht (und schließbar ist).
+    const scNum  = (WL_SCORES[ticker] != null) ? (+WL_SCORES[ticker]).toFixed(1) : '—';
+    const scCol  = wlScoreColor2(WL_SCORES[ticker]);
+    const topHdr = `<div class="card-top wl-exp-top">
+      <div class="card-left" style="align-items:center">
+        <button class="wl-close-btn-inline" onclick="wlExpand('${{ticker}}', document.getElementById('wlb-${{ticker}}'))"
+                title="Einklappen">▲ Schlie\xdfen</button>
+        <div class="ticker-block"><div class="ticker-row">
+          <span class="ticker">${{ticker}}</span>
+        </div></div>
+      </div>
+      <div class="score-block">
+        <span class="score-num" style="color:${{scCol}}">${{scNum}}</span>
+        <span class="score-lbl">Score</span>
+      </div>
+    </div>`;
     try {{
       if (!h || !h.scores || h.scores.length < 2) {{
-        return '<div class="wl-no-data">Kein KI-Signalverlauf vorhanden.</div>';
+        return topHdr + '<div class="wl-no-data">Kein KI-Signalverlauf vorhanden.</div>';
       }}
       const scoresE = JSON.stringify(h.scores).replace(/"/g, '&quot;');
       const datesE  = JSON.stringify(h.dates).replace(/"/g, '&quot;');
-      return `<div class="spark-wrap wl-spark" style="padding:10px 10px 4px"
+      return topHdr + `<div class="spark-wrap wl-spark" style="padding:10px 10px 4px"
         data-scores="${{scoresE}}" data-dates="${{datesE}}"
         data-col="${{h.col}}" data-today="">
         <div class="spark-svg-wrap" style="height:56px"></div>
@@ -4050,9 +4120,24 @@ function _fmtGerman(d) {{
       <div class="wl-no-data">Nicht in aktueller Top-10 \u2014 keine Live-Daten.</div>`;
     }} catch(e) {{
       console.error('buildWlSparkOnly Fehler:', e);
-      return '<div class="wl-no-data">Fehler beim Laden der Details.</div>';
+      return topHdr + '<div class="wl-no-data">Fehler beim Laden der Details.</div>';
     }}
   }}
+
+  // Klick auf „KI-Analyse" im expandierten Watchlist-Kontext →
+  // Main-Karte sichtbar machen und deren KI-Analyse-Button auslösen.
+  window.wlOpenKiAnalyse = function(ticker) {{
+    try {{
+      const mainBtn = document.querySelector(
+        `article.card[data-ticker="${{ticker}}"] .ki-analyse-btn`);
+      if (!mainBtn) return;
+      const card = mainBtn.closest('article.card');
+      if (card) card.scrollIntoView({{ behavior: 'smooth', block: 'center' }});
+      setTimeout(() => mainBtn.click(), 400);
+    }} catch(e) {{
+      console.error('wlOpenKiAnalyse Fehler:', e);
+    }}
+  }};
 
   async function wlRender() {{
     try {{
