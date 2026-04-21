@@ -1,11 +1,11 @@
 {
-  "updated": "2026-04-21T08:25:16.230923+02:00",
+  "updated": "2026-04-21T13:45:25.411900+02:00",
   "run_info": {
     "tickers_checked": 10,
     "signals_active": 1,
     "alerts_sent": 0,
-    "elapsed_s": 23.8,
-    "market_phase": "Geschlossen"
+    "elapsed_s": 27.8,
+    "market_phase": "Pre-Market"
   },
   "signals": {
     "PLCE": {
