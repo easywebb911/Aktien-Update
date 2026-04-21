@@ -4559,10 +4559,17 @@ Gib eine knappe Einschätzung: Squeeze-Potenzial, wichtigste Treiber, kritische 
       (delta) => {{
         acc += delta;
         if (streamSpan) streamSpan.innerHTML = acc.replace(/\\n/g, '<br>');
+        // Während des Streamings den Container mitscrollen, damit das
+        // aktuelle Token immer sichtbar bleibt (Fazit steht am Ende).
+        if (res) res.scrollTop = res.scrollHeight;
       }},
-      {{model: ANT_MODEL, max_tokens: 400}}
+      {{model: ANT_MODEL, max_tokens: 600}}
     );
-    if (res) res.scrollTop = res.scrollHeight;
+    // Nach Stream-Ende: via requestAnimationFrame nachscrollen, damit
+    // der letzte Layout-Pass wirklich drin ist bevor wir bottom-scrollen.
+    if (res) {{
+      requestAnimationFrame(() => {{ res.scrollTop = res.scrollHeight; }});
+    }}
     btn.dataset.kaHasResult = '1';
     btn.textContent = ANT_KI_LABEL_HIDE;
   }} catch(e) {{
