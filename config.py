@@ -50,6 +50,11 @@ SW_ENABLED         = True
 LAZY_CARDS_ENABLED = True
 LAZY_CARDS_EAGER   = 3        # erste N Karten sofort vollständig rendern
 
+# ── app_data.json (kombinierter PWA-Data-Feed) ──────────────────────────────
+# True: zusätzlich zu score_history.json + agent_signals.json wird eine
+#       kombinierte app_data.json geschrieben — ein Fetch statt zwei.
+GENERATE_APP_DATA_JSON = True
+
 # ── SEC 13F (Institutional Holdings Snapshot) ──────────────────────────────
 # False: fetch_sec_13f() wird im Daily-Run übersprungen.
 #        Seit Monaten ~0 Treffer pro Run bei ~0,5 s Kosten; kein Wertbeitrag.

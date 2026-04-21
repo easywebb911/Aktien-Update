@@ -144,6 +144,30 @@ def save_signals(signals: dict) -> None:
     SIGNALS_FILE.write_text(
         json.dumps(signals, ensure_ascii=False, indent=2), encoding="utf-8"
     )
+    # Kombinierte app_data.json aktualisieren — Browser-PWA kann dann mit einem
+    # einzigen fetch('app_data.json') beide Datensätze laden.
+    try:
+        if not GENERATE_APP_DATA_JSON:
+            return
+    except NameError:
+        # Falls Flag nicht importiert — still skip
+        return
+    try:
+        score_history_path = Path("score_history.json")
+        if score_history_path.exists():
+            score_history = json.loads(score_history_path.read_text(encoding="utf-8"))
+        else:
+            score_history = {}
+    except (OSError, json.JSONDecodeError):
+        score_history = {}
+    payload = {
+        "score_history": score_history,
+        "agent_signals": signals,
+        "generated_at":  datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
+    }
+    Path("app_data.json").write_text(
+        json.dumps(payload, separators=(",", ":")), encoding="utf-8"
+    )
 
 
 # ── Datenquelle 1: yfinance ───────────────────────────────────────────────────

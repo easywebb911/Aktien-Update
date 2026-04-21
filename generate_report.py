@@ -1587,23 +1587,54 @@ def _load_score_history() -> dict:
             raw = json.load(fh)
     except (FileNotFoundError, json.JSONDecodeError):
         return {}
-    # Drop entries older than cutoff; drop tickers with no remaining entries
-    pruned = {
-        ticker: [e for e in entries if e.get("date", "") >= cutoff]
-        for ticker, entries in raw.items()
-    }
-    return {k: v for k, v in pruned.items() if v}
+
+    # Kompatibel zu altem UND neuem (komprimierten) Format:
+    #   alt:  [{"date": "...", "score": …}, ...]
+    #   neu:  [["...", …], ...]              ← Tuple/List-Einträge, spart ~45 %
+    # Normalisiert zurück zum internen Dict-Format (Rest des Codes erwartet dict).
+    def _normalize(entry):
+        if isinstance(entry, dict):
+            return entry
+        if isinstance(entry, (list, tuple)) and len(entry) >= 2:
+            return {"date": entry[0], "score": entry[1]}
+        return None
+
+    pruned: dict[str, list[dict]] = {}
+    for ticker, entries in raw.items():
+        normalised = [_normalize(e) for e in entries]
+        kept = [e for e in normalised if e and e.get("date", "") >= cutoff]
+        if kept:
+            pruned[ticker] = kept
+    return pruned
 
 
 def _save_score_history(history: dict, _dirty: bool = True) -> None:
-    """Opt 7 — Write history to disk only when _dirty=True (changed since load).
+    """Komprimiertes Format auf Disk: {ticker: [[date, score], ...]}.
 
-    Pruning is done at load time; this function only serialises what remains.
+    Abwärtskompatibel via _load_score_history (akzeptiert beide Formate).
+    Zusätzlich Cutoff-Pruning beim Schreiben (defense-in-depth neben der
+    Load-Time-Prune), damit die Datei monoton klein bleibt.
     """
     if not _dirty:
         return
+    from datetime import date, timedelta
+    cutoff = (date.today() - timedelta(days=SCORE_HISTORY_DAYS)).strftime("%d.%m.%Y")
+    compact: dict[str, list] = {}
+    for ticker, entries in history.items():
+        rows: list[list] = []
+        for e in entries:
+            if isinstance(e, dict):
+                d, sc = e.get("date", ""), e.get("score")
+            elif isinstance(e, (list, tuple)) and len(e) >= 2:
+                d, sc = e[0], e[1]
+            else:
+                continue
+            if d and sc is not None and d >= cutoff:
+                rows.append([d, sc])
+        if rows:
+            compact[ticker] = rows
     with open(SCORE_HISTORY_FILE, "w", encoding="utf-8") as fh:
-        json.dump(history, fh, indent=2)
+        json.dump(compact, fh, indent=2)
 
 
 def apply_score_smoothing(stocks: list[dict], today: str) -> None:
@@ -2862,10 +2893,11 @@ def _build_context(stocks: list[dict], report_date: str) -> dict:
     now_str = datetime.now(ZoneInfo("Europe/Berlin")).strftime("%H:%M Uhr")
     timestamp = f"Stand: {report_date}, {now_str}"
 
-    # Watchlist: embed last known score, sparkline history, and full top10 snapshot
+    # Watchlist: embed last known score, sparkline history, and full top10 snapshot.
+    # Nutzt _load_score_history() statt direktem JSON-Load, damit beide Disk-Formate
+    # (alt dict-per-entry, neu Tuple-per-entry) transparent normalisiert werden.
     try:
-        with open(SCORE_HISTORY_FILE, "r", encoding="utf-8") as _wl_fh:
-            _wl_raw = json.load(_wl_fh)
+        _wl_raw = _load_score_history()
         _wl_scores = {
             t: sorted(entries, key=lambda e: e.get("date",""))[-1]["score"]
             for t, entries in _wl_raw.items() if entries
@@ -3428,9 +3460,11 @@ function _kiAgentSuccess(){{
   const el = document.getElementById('amsg');
   el.style.display='block'; el.className='amsg amsg-poll-done';
   el.innerHTML='<span class="poll-dot poll-dot-done"></span>KI-Agent abgeschlossen \u2014 Signale werden aktualisiert\u2026';
-  fetch('./agent_signals.json?_=' + Date.now())
+  // app_data.json statt agent_signals.json — ein Fetch liefert beide Datensätze
+  fetch('./app_data.json?_=' + Date.now())
     .then(r => r.ok ? r.json() : {{}})
-    .then(data => {{
+    .then(appData => {{
+      const data = appData.agent_signals || appData;  // Backwards-compat
       if (typeof renderAgentSignals === 'function') renderAgentSignals(data);
       el.innerHTML='<span class="poll-dot poll-dot-done"></span>KI-Agent abgeschlossen \u2014 Signale aktualisiert.';
       setTimeout(()=>{{el.style.display='none';}}, 8000);
@@ -3930,9 +3964,10 @@ function _fmtGerman(d) {{
     }});
   }}
 
-  fetch('./agent_signals.json?_=' + Date.now())
+  // Commit 3: ein fetch auf app_data.json liefert score_history + agent_signals
+  fetch('./app_data.json?_=' + Date.now())
     .then(r => r.ok ? r.json() : {{}})
-    .then(renderAgentSignals)
+    .then(appData => renderAgentSignals(appData.agent_signals || appData))
     .catch(() => {{
       const el = document.getElementById('agent-status');
       if (el) el.textContent = 'KI-Agent: Kein aktueller Scan verfügbar.';
@@ -5099,6 +5134,38 @@ def get_watchlist_candidates() -> list[dict]:
 # 5. ERROR PAGE HELPER
 # ===========================================================================
 
+def _write_app_data_json() -> None:
+    """Schreibt kombinierte app_data.json = score_history + agent_signals.
+
+    Beide Quelldateien bleiben separat erhalten (Kompatibilität mit bestehenden
+    Consumern). app_data.json dient dem Browser als Einzel-Fetch-Quelle —
+    spart einen HTTP-Request beim Seitenaufruf.
+
+    Tolerant gegen fehlende Quelldateien (Platzhalter {}).
+    """
+    if not GENERATE_APP_DATA_JSON:
+        return
+    try:
+        with open(SCORE_HISTORY_FILE, "r", encoding="utf-8") as fh:
+            score_history = json.load(fh)
+    except (FileNotFoundError, json.JSONDecodeError):
+        score_history = {}
+    try:
+        with open("agent_signals.json", "r", encoding="utf-8") as fh:
+            agent_signals = json.load(fh)
+    except (FileNotFoundError, json.JSONDecodeError):
+        agent_signals = {}
+    payload = {
+        "score_history": score_history,
+        "agent_signals": agent_signals,
+        "generated_at":  datetime.now(ZoneInfo("UTC")).strftime("%Y-%m-%dT%H:%M:%SZ"),
+    }
+    with open("app_data.json", "w", encoding="utf-8") as fh:
+        json.dump(payload, fh, separators=(",", ":"))
+    print(f"app_data.json: {len(score_history)} Ticker-History + "
+          f"{len(agent_signals.get('signals', {}))} Signals zusammengeführt", flush=True)
+
+
 def _write_service_worker() -> None:
     """Schreibt service_worker.js ins Repo-Root mit frischem Cache-Namen.
 
@@ -5792,6 +5859,8 @@ def main():
     # Zeitstempel) — Browser invalidieren alten Cache beim nächsten Besuch.
     if SW_ENABLED:
         _write_service_worker()
+    # Kombinierte app_data.json (PWA-Single-Fetch)
+    _write_app_data_json()
     print(f"Step 4 abgeschlossen in {time.time()-_t4:.1f}s", flush=True)
 
     log.info("Report written → index.html")
