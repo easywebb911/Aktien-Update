@@ -1,10 +1,10 @@
 {
-  "updated": "2026-04-21T22:24:54.566836+02:00",
+  "updated": "2026-04-21T22:38:20.358418+02:00",
   "run_info": {
     "tickers_checked": 12,
     "signals_active": 2,
     "alerts_sent": 0,
-    "elapsed_s": 34.8,
+    "elapsed_s": 41.7,
     "market_phase": "After-Hours"
   },
   "signals": {
