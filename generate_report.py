@@ -664,7 +664,7 @@ def get_yahoo_news(ticker: str, n: int = 5) -> list[dict]:
         return []
 
 
-def _rss_news(ticker: str, url: str, source_label: str, timeout: int = 8) -> list[dict]:
+def _rss_news(ticker: str, url: str, source_label: str, timeout: int = 3) -> list[dict]:
     """Fetch and parse a generic RSS/Atom feed; return normalised news items."""
     try:
         r = requests.get(url, headers=HTTP_HEADERS, timeout=timeout)
@@ -725,27 +725,26 @@ def _rss_news(ticker: str, url: str, source_label: str, timeout: int = 8) -> lis
 
 
 def get_combined_news(ticker: str, n: int = 3) -> list[dict]:
-    """Merge Yahoo Finance, Seeking Alpha, and Finviz news; return top n by date."""
+    """Merge Yahoo Finance + Finviz news; return top n by date.
+
+    Seeking Alpha wurde aus der Quellenliste entfernt (2026-04): lieferte
+    oft dieselben Meldungen wie Yahoo und war langsam. Yahoo (JSON) +
+    Finviz (RSS) decken die wichtigsten Catalysts ab.
+    """
     base_upper = ticker.split(".")[0].upper()
 
     yahoo_items = get_yahoo_news(ticker, n=5)
-    sa_items    = _rss_news(
-        ticker,
-        f"https://seekingalpha.com/api/sa/combined/{base_upper}.xml",
-        "Seeking Alpha",
-        timeout=4,
-    )
     fv_items    = _rss_news(
         ticker,
         f"https://finviz.com/rss.ashx?t={base_upper}",
         "Finviz",
     )
 
-    n_yahoo, n_sa, n_fv = len(yahoo_items), len(sa_items), len(fv_items)
-    combined = yahoo_items + sa_items + fv_items
+    n_yahoo, n_fv = len(yahoo_items), len(fv_items)
+    combined = yahoo_items + fv_items
     combined.sort(key=lambda x: x.get("ts", 0), reverse=True)
     result = combined[:n]
-    print(f"News {ticker}: {n_yahoo} Yahoo + {n_sa} SeekingAlpha + {n_fv} Finviz = {len(result)} Meldungen")
+    print(f"News {ticker}: {n_yahoo} Yahoo + {n_fv} Finviz = {len(result)} Meldungen")
     return result
 
 
@@ -5470,14 +5469,20 @@ def main():
     _news_elapsed = time.time() - _t_news
     print(f"News: {len(top10)} Ticker parallel in {_news_elapsed:.1f}s abgerufen", flush=True)
 
-    # Parallel options data fetch (US-only top-10, max 5 threads).
+    # Parallel options data fetch (US-only, Top-5, max 5 threads).
+    # Opt 4 (2026-04): nur erste 5 Ticker von us_top10 — restliche Karten
+    # zeigen „—" bei IV und P/C. Spart pro fehlendem Ticker eine yfinance-
+    # Options-Chain-Abfrage (teuerster Einzelcall im Step 3).
     # Fix 3: as_completed(timeout=30) — skip remaining futures after 30s total
     _POOL_STEP3_TIMEOUT = 30
+    _OPTS_TOP_N = 5
     _t_opts = time.time()
     us_top10 = [s for s in top10 if "." not in s["ticker"]]
-    log.info("Step 3b – Fetching options data for %d US stocks (parallel, max 5 threads) …", len(us_top10))
+    us_for_opts = us_top10[:_OPTS_TOP_N]
+    log.info("Step 3b – Fetching options data for Top-%d US stocks (parallel, max 5 threads) …",
+             len(us_for_opts))
     with ThreadPoolExecutor(max_workers=5) as _opts_ex:
-        _opts_futures = {_opts_ex.submit(get_options_data, s["ticker"]): s for s in us_top10}
+        _opts_futures = {_opts_ex.submit(get_options_data, s["ticker"]): s for s in us_for_opts}
         try:
             for _fut in as_completed(_opts_futures, timeout=_POOL_STEP3_TIMEOUT):
                 _opts_futures[_fut]["options"] = _fut.result() or {}
@@ -5486,9 +5491,10 @@ def main():
                   flush=True)
             log.warning("options as_completed timeout — skipping remaining futures")
     _opts_elapsed = time.time() - _t_opts
-    _n_ok = sum(1 for s in us_top10 if s.get("options"))
-    _n_na = len(us_top10) - _n_ok
-    print(f"Optionsdaten: {len(us_top10)} Ticker parallel in {_opts_elapsed:.1f}s abgerufen — {_n_ok} mit Daten, {_n_na} ohne", flush=True)
+    _n_ok = sum(1 for s in us_for_opts if s.get("options"))
+    _n_na = len(us_for_opts) - _n_ok
+    print(f"Optionsdaten: Top-{len(us_for_opts)} von {len(us_top10)} US-Tickern parallel in "
+          f"{_opts_elapsed:.1f}s abgerufen — {_n_ok} mit Daten, {_n_na} ohne", flush=True)
 
     # Parallel earnings date fetch (US-only, max 5 threads).
     _t_earn = time.time()
@@ -5523,22 +5529,27 @@ def main():
         print(f"Earnings-Surprise: {_n_es}/{len(us_top10)} Treffer in {time.time()-_t_es:.1f}s",
               flush=True)
 
-    # Parallel SEC 13F fetch (US-only, max 5 threads).
-    _t_13f = time.time()
-    log.info("Step 3d – Checking SEC 13F for %d US stocks …", len(us_top10))
-    with ThreadPoolExecutor(max_workers=5) as _13f_ex:
-        _13f_futures = {_13f_ex.submit(fetch_sec_13f, s["ticker"]): s for s in us_top10}
-        try:
-            for _fut in as_completed(_13f_futures, timeout=_POOL_STEP3_TIMEOUT):
-                note = _fut.result()
-                if note:
-                    _13f_futures[_fut]["sec_13f_note"] = note
-        except TimeoutError:
-            print(f"SEC 13F: Pool-Timeout nach {_POOL_STEP3_TIMEOUT}s — verbleibende Ticker übersprungen",
-                  flush=True)
-            log.warning("SEC 13F as_completed timeout — skipping remaining futures")
-    _n_13f = sum(1 for s in us_top10 if s.get("sec_13f_note"))
-    print(f"SEC 13F: {_n_13f} Treffer in {time.time()-_t_13f:.1f}s", flush=True)
+    # Parallel SEC 13F fetch (US-only, max 5 threads) — gated by SEC_13F_ENABLED.
+    # Opt 5 (2026-04): standardmäßig deaktiviert — lieferte seit Monaten
+    # ~0 Treffer bei ~0,5 s Kosten; Reaktivierung via config.SEC_13F_ENABLED=True.
+    if SEC_13F_ENABLED:
+        _t_13f = time.time()
+        log.info("Step 3d – Checking SEC 13F for %d US stocks …", len(us_top10))
+        with ThreadPoolExecutor(max_workers=5) as _13f_ex:
+            _13f_futures = {_13f_ex.submit(fetch_sec_13f, s["ticker"]): s for s in us_top10}
+            try:
+                for _fut in as_completed(_13f_futures, timeout=_POOL_STEP3_TIMEOUT):
+                    note = _fut.result()
+                    if note:
+                        _13f_futures[_fut]["sec_13f_note"] = note
+            except TimeoutError:
+                print(f"SEC 13F: Pool-Timeout nach {_POOL_STEP3_TIMEOUT}s — verbleibende Ticker übersprungen",
+                      flush=True)
+                log.warning("SEC 13F as_completed timeout — skipping remaining futures")
+        _n_13f = sum(1 for s in us_top10 if s.get("sec_13f_note"))
+        print(f"SEC 13F: {_n_13f} Treffer in {time.time()-_t_13f:.1f}s", flush=True)
+    else:
+        log.info("Step 3d – SEC 13F übersprungen (SEC_13F_ENABLED=False)")
     print(f"Step 3 abgeschlossen in {time.time() - _t_news:.1f}s", flush=True)
 
     # --- Step 4: HTML ---

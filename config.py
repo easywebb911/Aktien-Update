@@ -42,6 +42,12 @@ MIN_SCORE            = 15.0                # Pkt — informativ; Karten unter di
 # True:  Originalverhalten — DE/GB/FR/NL/CA Screener + JP/HK/KR Watchlist-Scan.
 INTL_SCREENING_ENABLED = False
 
+# ── SEC 13F (Institutional Holdings Snapshot) ──────────────────────────────
+# False: fetch_sec_13f() wird im Daily-Run übersprungen.
+#        Seit Monaten ~0 Treffer pro Run bei ~0,5 s Kosten; kein Wertbeitrag.
+# True:  Reaktiviert den parallelen SEC-EDGAR-Scan für US-Top-10.
+SEC_13F_ENABLED = False
+
 # ── Farbschwellen der Kennzahlenkacheln ──────────────────────────────────────
 SF_GREEN   = 30.0   # % Short Float ≥ 30 → grün
 SF_ORANGE  = 15.0   # % Short Float 15-29 → orange, <15 → rot
