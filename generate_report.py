@@ -5138,6 +5138,89 @@ def get_watchlist_candidates() -> list[dict]:
 # 5. ERROR PAGE HELPER
 # ===========================================================================
 
+def _load_backtest_history() -> list[dict]:
+    """Lädt backtest_history.json als Liste. Silently [] bei fehlend/corrupt."""
+    try:
+        with open(BACKTEST_FILE, "r", encoding="utf-8") as fh:
+            raw = json.load(fh)
+        return raw if isinstance(raw, list) else []
+    except (FileNotFoundError, json.JSONDecodeError):
+        return []
+
+
+def _save_backtest_history(entries: list[dict]) -> None:
+    """Schreibt backtest_history.json, sortiert nach (Datum, Ticker) für
+    deterministische Git-Diffs. Pruning auf BACKTEST_MAX_DAYS erfolgt bereits
+    beim Aufruf — hier nur Serialisierung."""
+    with open(BACKTEST_FILE, "w", encoding="utf-8") as fh:
+        json.dump(entries, fh, indent=2, ensure_ascii=False)
+
+
+def _prune_backtest_history(entries: list[dict], max_days: int = None) -> list[dict]:
+    """Entfernt Einträge älter als max_days Kalendertage (default BACKTEST_MAX_DAYS).
+
+    Date-Format in entries: "DD.MM.YYYY" (matching generate_report's report_date).
+    Unparsable dates werden belassen (defensiv) — keine Datenverluste durch
+    Format-Wechsel.
+    """
+    from datetime import date, timedelta
+    cutoff = date.today() - timedelta(days=max_days or BACKTEST_MAX_DAYS)
+    kept: list[dict] = []
+    for e in entries:
+        d_str = e.get("date", "")
+        try:
+            ed = datetime.strptime(d_str, "%d.%m.%Y").date()
+            if ed >= cutoff:
+                kept.append(e)
+        except (ValueError, TypeError):
+            kept.append(e)   # keep unparseable entries to avoid data loss
+    return kept
+
+
+def _append_backtest_entries(top10: list[dict], report_date: str) -> None:
+    """Fügt für jeden Top-10-Kandidaten einen neuen Backtest-Eintrag hinzu,
+    dedupliziert nach (ticker, date), prunet auf 90 Tage und schreibt die Datei.
+    Idempotent: wiederholter Aufruf am gleichen Tag ändert nichts.
+    """
+    if not BACKTEST_ENABLED:
+        return
+    history = _load_backtest_history()
+    existing_keys = {(e.get("ticker"), e.get("date")) for e in history}
+    n_added = 0
+    for s in top10:
+        key = (s["ticker"], report_date)
+        if key in existing_keys:
+            continue
+        fd = s.get("finra_data") or {}
+        entry = {
+            "date":        report_date,
+            "ticker":      s["ticker"],
+            "score":       round(float(s.get("score") or 0), 2),
+            "entry_price": round(float(s.get("price") or 0), 4),
+            "short_float": round(float(s.get("short_float") or 0), 2),
+            "dtc":         round(float(s.get("short_ratio") or 0), 2),
+            "rvol":        round(float(s.get("rel_volume") or 0), 3),
+            "si_trend":    fd.get("trend", "no_data"),
+            "return_3d":   None,
+            "return_5d":   None,
+            "return_10d":  None,
+        }
+        history.append(entry)
+        n_added += 1
+    history = _prune_backtest_history(history)
+    # Stabil sortieren: neueste Einträge zuletzt → Git-Diff zeigt nur den Append
+    def _sortkey(e):
+        try:
+            return (datetime.strptime(e.get("date",""), "%d.%m.%Y").date(),
+                    e.get("ticker",""))
+        except ValueError:
+            return (datetime.min.date(), e.get("ticker",""))
+    history.sort(key=_sortkey)
+    _save_backtest_history(history)
+    print(f"Backtest-History: +{n_added} neue Einträge, total {len(history)} "
+          f"(Cut-off: {BACKTEST_MAX_DAYS} Tage)", flush=True)
+
+
 def _write_app_data_json() -> None:
     """Schreibt kombinierte app_data.json = score_history + agent_signals.
 
@@ -5848,6 +5931,11 @@ def main():
     else:
         log.info("Step 3d – SEC 13F übersprungen (SEC_13F_ENABLED=False)")
     print(f"Step 3 abgeschlossen in {time.time() - _t_news:.1f}s", flush=True)
+
+    # Backtest-History: pro Top-10-Ticker einen Eintrag anlegen (idempotent,
+    # dedupliziert nach ticker+date). Returns werden später vom KI-Agent
+    # aktualisiert, sobald 3/5/10 Handelstage vergangen sind.
+    _append_backtest_entries(top10, report_date)
 
     # --- Step 4: HTML ---
     _t4 = time.time()

@@ -170,6 +170,110 @@ def save_signals(signals: dict) -> None:
     )
 
 
+# ── Backtest-History: return_3d/5d/10d nachführen ────────────────────────────
+
+def _trading_days_elapsed(entry_date_str: str, today: datetime.date = None) -> int:
+    """Zählt Mo–Fr-Tage strikt NACH dem Entry-Datum bis heute (inklusive).
+    Feiertage werden vereinfacht ignoriert — Wochenenden reichen für eine
+    robuste Heuristik (3/5/10 Tage vs. ggf. 4/6/12 bei Feiertagen ist OK).
+    """
+    try:
+        start = datetime.strptime(entry_date_str, "%d.%m.%Y").date()
+    except ValueError:
+        return -1
+    today = today or datetime.now(timezone.utc).date()
+    n = 0
+    d = start
+    while d < today:
+        d += timedelta(days=1)
+        if d.weekday() < 5:
+            n += 1
+    return n
+
+
+def update_backtest_returns() -> None:
+    """Liest backtest_history.json, identifiziert Einträge deren return_Xd-Feld
+    noch None ist, aber genug Handelstage vergangen sind. Holt den aktuellen
+    Kurs per yfinance und berechnet return = (current / entry_price − 1) × 100.
+    Idempotent: spätere Runs beeinflussen bereits gefüllte Returns nicht.
+    """
+    try:
+        if not BACKTEST_ENABLED:
+            return
+    except NameError:
+        return
+    path = Path(BACKTEST_FILE)
+    if not path.exists():
+        return
+    try:
+        entries = json.loads(path.read_text(encoding="utf-8"))
+    except json.JSONDecodeError:
+        log.warning("backtest_history.json ist corrupt — übersprungen")
+        return
+    if not isinstance(entries, list) or not entries:
+        return
+
+    today = datetime.now(timezone.utc).date()
+    # Pro Entry: welche Fenster müssen JETZT gefüllt werden?
+    pending_by_ticker: dict[str, list[tuple[int, int]]] = {}
+    for idx, e in enumerate(entries):
+        elapsed = _trading_days_elapsed(e.get("date",""), today)
+        if elapsed < 0:
+            continue
+        for win in BACKTEST_RETURN_WINDOWS:
+            key = f"return_{win}d"
+            if e.get(key) is None and elapsed >= win:
+                pending_by_ticker.setdefault(e["ticker"], []).append((idx, win))
+
+    if not pending_by_ticker:
+        return
+
+    # Batch-Download aktueller Close-Preise für alle betroffenen Ticker
+    tickers = list(pending_by_ticker.keys())
+    log.info("Backtest-Returns: %d Ticker mit fälligen Windows", len(tickers))
+    try:
+        hist = yf.download(tickers, period="2d", auto_adjust=True,
+                           progress=False, threads=True)
+    except Exception as exc:
+        log.warning("Backtest-Returns yf.download failed: %s", exc)
+        return
+
+    def _last_close(ticker: str) -> float | None:
+        try:
+            if len(tickers) == 1:
+                df = hist
+            else:
+                df = hist[ticker]
+            closes = df["Close"].dropna() if "Close" in df else df.get("Close")
+            if closes is None or len(closes) == 0:
+                return None
+            return float(closes.iloc[-1])
+        except (KeyError, ValueError, AttributeError):
+            return None
+
+    n_filled = 0
+    for ticker, slots in pending_by_ticker.items():
+        current = _last_close(ticker)
+        if current is None or current <= 0:
+            continue
+        for idx, win in slots:
+            entry = entries[idx]
+            entry_price = float(entry.get("entry_price") or 0)
+            if entry_price <= 0:
+                continue
+            ret = round((current / entry_price - 1) * 100, 2)
+            entry[f"return_{win}d"] = ret
+            n_filled += 1
+            log.info("  Backtest %s [%s] %dd-Return: %+.2f%%",
+                     ticker, entry.get("date"), win, ret)
+
+    if n_filled > 0:
+        path.write_text(json.dumps(entries, indent=2, ensure_ascii=False),
+                        encoding="utf-8")
+        print(f"Backtest-Returns aktualisiert: {n_filled} Felder gefüllt",
+              flush=True)
+
+
 # ── Datenquelle 1: yfinance ───────────────────────────────────────────────────
 
 def fetch_yfinance(tickers: list[str]) -> dict[str, dict]:
@@ -1254,6 +1358,13 @@ def main() -> None:
 
     save_signals(out)
     log.info("agent_signals.json aktualisiert.")
+
+    # Backtest-Returns nachführen: fälligen return_3d/5d/10d-Feldern den
+    # aktuellen Close-Preis zuweisen. Idempotent; kein Einfluss wenn nichts fällig.
+    try:
+        update_backtest_returns()
+    except Exception as exc:
+        log.warning("update_backtest_returns Fehler: %s", exc)
 
     state["last_run"] = now_berlin().isoformat()
 

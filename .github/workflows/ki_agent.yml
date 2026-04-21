@@ -46,6 +46,7 @@ jobs:
           git config user.name "github-actions[bot]"
           git add agent_signals.json agent_state.json
           git add app_data.json 2>/dev/null || true
+          git add backtest_history.json 2>/dev/null || true
           if git diff --staged --quiet; then
             echo "Keine Aenderungen — kein Commit noetig."
             exit 0

@@ -55,6 +55,16 @@ LAZY_CARDS_EAGER   = 3        # erste N Karten sofort vollständig rendern
 #       kombinierte app_data.json geschrieben — ein Fetch statt zwei.
 GENERATE_APP_DATA_JSON = True
 
+# ── Backtesting-Datensammlung ───────────────────────────────────────────────
+# Bei jedem Daily-Run: Top-10-Kandidaten als Einträge in backtest_history.json
+# Der KI-Agent aktualisiert return_3d / return_5d / return_10d, sobald 3/5/10
+# Handelstage seit Entry vergangen sind. Einträge älter als BACKTEST_MAX_DAYS
+# (Kalendertage) werden beim Schreiben automatisch entfernt.
+BACKTEST_ENABLED          = True
+BACKTEST_FILE             = "backtest_history.json"
+BACKTEST_MAX_DAYS         = 90
+BACKTEST_RETURN_WINDOWS   = [3, 5, 10]   # Handelstage → return_3d / _5d / _10d
+
 # ── SEC 13F (Institutional Holdings Snapshot) ──────────────────────────────
 # False: fetch_sec_13f() wird im Daily-Run übersprungen.
 #        Seit Monaten ~0 Treffer pro Run bei ~0,5 s Kosten; kein Wertbeitrag.

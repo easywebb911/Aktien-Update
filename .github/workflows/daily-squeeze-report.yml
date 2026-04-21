@@ -49,6 +49,7 @@ jobs:
           git add watchlist_failures.json 2>/dev/null || true
           git add app_data.json 2>/dev/null || true
           git add service_worker.js 2>/dev/null || true
+          git add backtest_history.json 2>/dev/null || true
           if git diff --staged --quiet; then
             echo "Keine Aenderungen – Report ist aktuell."
             echo "COMMIT_EPOCH=0" >> "$GITHUB_OUTPUT"
