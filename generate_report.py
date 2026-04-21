@@ -2810,11 +2810,17 @@ def _build_context(stocks: list[dict], report_date: str) -> dict:
         })
     chat_ctx_json = json.dumps(_chat_ctx, default=str)
 
-    # Pre-render Jinja2-Templates (Phase 2+: head/CSS ausgelagert,
-    # Phase 4a: Chat-Panel-HTML)
+    # Pre-render Jinja2-Templates (Phase 2+: head/CSS, Phase 4a: Chat-Panel-HTML,
+    # Phase 4b: Chat-Panel-JS-IIFE).
+    # Autoescape ist global OFF via select_autoescape(enabled_extensions=(),
+    # default=False) — kritisch für chat_script.jinja, das den raw JSON-String
+    # `chat_ctx_json` direkt als JS-Literal einfügt.
     _env = _jinja_env()
     head_html        = _env.get_template("head.jinja").render(report_date=report_date)
     chat_panel_html  = _env.get_template("chat_panel.jinja").render()
+    chat_script_html = _env.get_template("chat_script.jinja").render(
+        chat_ctx_json=chat_ctx_json,
+    )
 
     return {
         "report_date":    report_date,
@@ -2833,6 +2839,7 @@ def _build_context(stocks: list[dict], report_date: str) -> dict:
         "chat_ctx_json":  chat_ctx_json,
         "head_html":      head_html,
         "chat_panel_html": chat_panel_html,
+        "chat_script_html": chat_script_html,
     }
 
 
@@ -2861,6 +2868,7 @@ def generate_html_v1(stocks: list[dict], report_date: str, _ctx: dict | None = N
     chat_ctx_json    = ctx["chat_ctx_json"]
     head_html        = ctx["head_html"]
     chat_panel_html  = ctx["chat_panel_html"]
+    chat_script_html = ctx["chat_script_html"]
 
     return f"""{head_html}
 <body>
@@ -4646,163 +4654,7 @@ Gib eine knappe Einschätzung: Squeeze-Potenzial, wichtigste Treiber, kritische 
   }}
 }}
 
-// ── Claude Chat Panel ─────────────────────────────────────────────────────────
-(function(){{
-  const STOCKS_CTX = {chat_ctx_json};
-  let _history = [];
-  let _open    = false;
-
-  function _buildSystem() {{
-    return `Du bist ein erfahrener Squeeze-Analyst und kennst die aktuellen Top-10-Squeeze-Kandidaten mit allen Kennzahlen. Beantworte Fragen des Nutzers präzise auf Deutsch. Gib keine verbindlichen Anlageempfehlungen. Schreibe kompakt — maximal 200 Wörter pro Antwort. Der Squeeze-Score ist das primäre Ranking-Kriterium. Bei gleichen qualitativen Signalen bevorzuge immer den Kandidaten mit dem höheren Score. Erkläre explizit wenn du vom Score-Rang abweichst und begründe warum. Schließe jede Antwort immer mit einem kurzen Fazit ab — maximal 2 Sätze, beginnt mit dem Wort 'Fazit:'. Das Fazit fasst die wichtigste Handlungsempfehlung oder Warnung in einfacher Sprache zusammen. Beispiel: 'Fazit: QUBT bietet heute das beste Setup mit klarem Katalysator. Das Risiko bleibt hoch — nur mit Kapital einsteigen das du bereit bist zu verlieren.'
-
-Aktuelle Top-10 (JSON):
-${{JSON.stringify(STOCKS_CTX)}}`;
-  }}
-
-  function _renderChips() {{
-    const chips = document.getElementById('chat-chips');
-    if (!chips) return;
-    const top1 = STOCKS_CTX[0]?.ticker || 'Top 1';
-    const suggestions = [
-      '\U0001F3C6 Welcher Kandidat hat heute die h\u00f6chste Squeeze-Wahrscheinlichkeit?',
-      `\u26a1 Was spricht f\u00fcr einen Einstieg bei ${{top1}}?`,
-      '\U0001F4CA Vergleiche die Top 3 Kandidaten direkt',
-      '\U0001F3AF Welche 2 Kandidaten haben den besten Risiko/Chancen-Mix?',
-      '\U0001F4C5 Bei welchem Kandidaten ist ein Katalysator am n\u00e4chsten?',
-      '\u26a0\ufe0f Welche Risiken sollte ich heute besonders beachten?',
-    ];
-    chips.innerHTML = suggestions.map(s =>
-      `<button class="chip" onclick="chatAsk(${{JSON.stringify(s).replace(/"/g,'&quot;')}})">${{s}}</button>`
-    ).join('');
-  }}
-
-  function _maybeShowWarn() {{
-    const banner = document.getElementById('chat-warn');
-    if (!banner) return;
-    const ts  = parseInt(localStorage.getItem(ANT_WARN_LS) || '0', 10);
-    const ok  = ts && (Date.now() - ts) < ANT_WARN_TTL_MS;
-    banner.classList.toggle('hidden', !!ok);
-  }}
-
-  window.chatWarnAck = function() {{
-    localStorage.setItem(ANT_WARN_LS, String(Date.now()));
-    const b = document.getElementById('chat-warn');
-    if (b) b.classList.add('hidden');
-  }};
-
-  function _setChatOpen(open) {{
-    const panel   = document.getElementById('chat-panel');
-    const overlay = document.getElementById('chat-overlay');
-    if (!panel) return;
-    _open = open;
-    panel.classList.toggle('open', open);
-    if (overlay) overlay.classList.toggle('open', open);
-    if (open) {{
-      if (_history.length === 0) {{
-        _addMsg('sys', 'Hallo! Ich kenne die heutigen Top-10-Squeeze-Kandidaten. Frag mich nach Setup, Risiken oder Vergleichen.');
-      }}
-      _maybeShowWarn();
-      setTimeout(() => document.getElementById('chat-inp')?.focus(), 300);
-    }}
-  }}
-
-  window.toggleChat = function() {{ _setChatOpen(!_open); }};
-
-  // Escape-Taste schließt Chat (Desktop)
-  document.addEventListener('keydown', function(e) {{
-    if (e.key === 'Escape' && _open) _setChatOpen(false);
-  }});
-
-  // Swipe-down to close (mobile full-screen only, < 768 px)
-  (function(){{
-    const panel = document.getElementById('chat-panel');
-    if (!panel) return;
-    let _touchStartY = 0, _touchStartT = 0, _touchStartRelY = 0;
-    panel.addEventListener('touchstart', function(e) {{
-      _touchStartY    = e.touches[0].clientY;
-      _touchStartT    = Date.now();
-      _touchStartRelY = e.touches[0].clientY - panel.getBoundingClientRect().top;
-    }}, {{passive: true}});
-    panel.addEventListener('touchend', function(e) {{
-      if (window.innerWidth >= 768) return;            // desktop: kein Swipe-close
-      const dy = e.changedTouches[0].clientY - _touchStartY;
-      const dt = Date.now() - _touchStartT;
-      if (dy > 80 && dt < 300) {{                      // ≥80px nach unten, <300ms
-        const fromHeader = _touchStartRelY < 72;       // Swipe startet im Header-Bereich
-        const msgs = document.getElementById('chat-msgs');
-        if (!fromHeader && msgs && msgs.scrollTop > 0) return; // Scroll in Messages: nicht schließen
-        _setChatOpen(false);
-      }}
-    }}, {{passive: true}});
-  }})();
-
-  function _addMsg(role, text) {{
-    const msgs = document.getElementById('chat-msgs');
-    if (!msgs) return null;
-    const div = document.createElement('div');
-    div.className = 'chat-msg chat-msg--' + role;
-    div.innerHTML = text.replace(/\\n/g, '<br>');
-    msgs.appendChild(div);
-    msgs.scrollTop = msgs.scrollHeight;
-    return div;
-  }}
-
-  window.chatAsk = function(text) {{
-    const inp = document.getElementById('chat-inp');
-    if (inp) inp.value = text;
-    chatSend();
-  }};
-
-  window.chatSend = async function() {{
-    const inp  = document.getElementById('chat-inp');
-    const send = document.getElementById('chat-send');
-    const text = (inp?.value || '').trim();
-    if (!text) return;
-
-    if (!localStorage.getItem(ANT_KEY_LS)) {{
-      toggleSettings();
-      _addMsg('err', '\u26A0 Bitte zuerst den Anthropic API-Key eingeben (\u2699 oben rechts).');
-      return;
-    }}
-
-    inp.value = '';
-    _addMsg('user', text);
-    _history.push({{role:'user', content: text}});
-
-    if (send) send.disabled = true;
-    const aiDiv = _addMsg('ai', '');
-    if (aiDiv) aiDiv.classList.add('streaming');
-
-    try {{
-      let acc = '';
-      await callAnthropicStream(
-        _history,
-        _buildSystem(),
-        (delta) => {{
-          acc += delta;
-          if (aiDiv) aiDiv.innerHTML = acc.replace(/\\n/g, '<br>');
-          const msgs = document.getElementById('chat-msgs');
-          if (msgs) msgs.scrollTop = msgs.scrollHeight;
-        }},
-        {{model: ANT_MODEL, max_tokens: 500}}
-      );
-      if (aiDiv) aiDiv.classList.remove('streaming');
-      _history.push({{role:'assistant', content: acc}});
-      if (_history.length > 20) _history = _history.slice(-20);
-    }} catch(e) {{
-      if (aiDiv && aiDiv.parentNode) aiDiv.parentNode.removeChild(aiDiv);
-      _history.pop();
-      _addMsg('err', '✗ ' + e.message);
-    }} finally {{
-      if (send) send.disabled = false;
-      inp?.focus();
-    }}
-  }};
-
-  document.addEventListener('DOMContentLoaded', _renderChips);
-}})();
-// ─────────────────────────────────────────────────────────────────────────────
-</script>
+{chat_script_html}</script>
 </body>
 </html>"""
 
