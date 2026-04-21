@@ -3152,13 +3152,13 @@ def generate_html_v1(stocks: list[dict], report_date: str, _ctx: dict | None = N
       <div class="info-box">
         <h4>Filterkriterien</h4>
         <ul>
-          <li><strong>Marktkapitalisierung &lt; {MAX_MARKET_CAP_B:.0f} Mrd. USD</strong> – Small-Cap-Fokus; darüber ist zu viel Kapital nötig, um Leerverkäufer zum Eindecken zu zwingen (war 10 Mrd.)</li>
+          <li><strong>Marktkapitalisierung &lt; {MAX_MARKET_CAP_B:.0f} Mrd. USD</strong> – Small-Cap-Fokus; darüber ist zu viel Kapital nötig, um Leerverkäufer zum Eindecken zu zwingen</li>
           <li><strong>Short Float &gt; 15 %</strong> – Mindest-Leerverkaufsquote (nur US)</li>
           <li><strong>Kurs &gt; 1 USD</strong> – Ausschluss von Penny Stocks</li>
           <li><strong>Relatives Volumen ≥ 1,5×</strong> – Mindestaktivität (Standardfilter)</li>
-          <li><strong>Automatisches Screening:</strong> nur 🇺🇸 US (Yahoo-Finance-Screener). Internationale Regionen sind aktuell deaktiviert (<code>INTL_SCREENING_ENABLED=False</code>) — kein Watchlist-Scan, keine DE/GB/FR/NL/CA-Screener.</li>
+          <li><strong>Automatisches Screening:</strong> nur 🇺🇸 US — internationale Märkte sind aktuell deaktiviert (<code>INTL_SCREENING_ENABLED=False</code>), kein Watchlist-Scan, keine DE/GB/FR/NL/CA-Screener</li>
           <li><strong>Internationale Aktien</strong> (🇩🇪 🇬🇧 🇫🇷 🇳🇱 🇨🇦 🇯🇵 🇭🇰 🇰🇷) können <em>manuell</em> via persönlicher Watchlist hinzugefügt werden: kein Short-Float-Filter, Score gedeckelt bei 50 Pkt (nur Volumen + Momentum)</li>
-          <li><strong>📌 Manuell beobachtete Ticker</strong> (persönliche Watchlist) <strong>umgehen den Cap-Filter</strong> und werden immer als Karte angezeigt — auch über 2 Mrd. USD Marktkapitalisierung</li>
+          <li><strong>📌 Manuell beobachtete Ticker</strong> (persönliche Watchlist) <strong>umgehen den Cap-Filter</strong> und werden immer als Karte angezeigt — auch über {MAX_MARKET_CAP_B:.0f} Mrd. USD Marktkapitalisierung</li>
         </ul>
       </div>
       <div class="info-box">
@@ -3178,18 +3178,22 @@ def generate_html_v1(stocks: list[dict], report_date: str, _ctx: dict | None = N
       <div class="info-box">
         <h4>Datenquellen</h4>
         <ul>
-          <li><strong>Yahoo Finance Screener</strong> – Most Shorted, Small Cap Gainers, Aggressive Small Caps</li>
-          <li><strong>FINRA CNMS/FNSQ/FNQC</strong> – offizielles Short Interest; SI-Trend aus {SI_TREND_PERIODS} Handelstagen (≈ 2,5 Wochen, gleitender 3-Tage-Durchschnitt) + tägliche Short-Sale-Ratio aus demselben Feed</li>
+          <li><strong>Yahoo Finance Screener</strong> (5 Screener, nur US) – <code>most_shorted_stocks</code>, <code>small_cap_gainers</code>, <code>aggressive_small_caps</code>, <code>undervalued_growth_stocks</code>, <code>day_gainers</code></li>
+          <li><strong>Finviz Screener</strong> (zusätzliche Quelle) – Filter: Short Float &gt; 20 %, Kurs &gt; 1 $, Rel. Volumen &gt; 1,5×, Small-/Mid-Cap; sortiert nach Short Float absteigend</li>
+          <li><strong>FINRA CNMS/FNSQ/FNQC</strong> – offizielles Short Interest; SI-Trend aus {SI_TREND_PERIODS} Handelstagen (≈ 2,5 Wochen, gleitender 3-Tage-Durchschnitt der Short-Volumen)</li>
+          <li><strong>FINRA Daily Short Sale Volume</strong> – tägliche Short-Sale-Ratio als Proxy für Short-Interest-Bewegungen zwischen den offiziellen Meldeterminen</li>
           <li><strong>yfinance</strong> – Short Float, Days to Cover, Volumen, Kursdaten, RSI, MA50/200, Optionsdaten, Earnings-History</li>
-          <li><strong>Sektor-ETFs</strong> – QQQ, XBI, XLE, XLF, XRT, SPY für Sektor-relative Stärke</li>
+          <li><strong>Stockanalysis.com</strong> – wöchentliche Short-Interest-Daten; überschreibt den yfinance-Wert bei US-Top-10 (aktueller als yfinance-Monats-Snapshot)</li>
+          <li><strong>EarningsWhispers RSS</strong> – präzise Earnings-Termine inkl. Uhrzeit + EPS-Konsens; Override vor yfinance.Calendar</li>
+          <li><strong>Sektor-ETFs</strong> – QQQ (Tech), XBI (Biotech/Healthcare), XLE (Energy), XLF (Financial), XRT (Consumer), SPY (Rest) für Sektor-relative Stärke</li>
           <li><strong>Fails-to-Deliver:</strong> nicht verfügbar (IP-Beschränkung GitHub Actions)</li>
         </ul>
       </div>
       <div class="info-box">
         <h4>⚡ KI-Agent</h4>
-        <p style="font-size:.82rem;color:var(--txt-sub);margin:0 0 8px">Der KI-Agent überwacht alle 2 Stunden die Top-10-Kandidaten auf Squeeze-Trigger (zuverlässigere GitHub-Actions-Queue als 30-Min-Takt).</p>
+        <p style="font-size:.82rem;color:var(--txt-sub);margin:0 0 8px">Der KI-Agent überwacht <strong>alle 2 Stunden</strong> die Top-10-Kandidaten auf Squeeze-Trigger (zuverlässigere GitHub-Actions-Queue als der frühere 30-Min-Takt).</p>
         <ul>
-          <li><strong>Datenquellen:</strong> Yahoo Finance News, Google News, Seeking Alpha, MarketBeat, Unusual Whales, SEC EDGAR RSS, yfinance Intraday-Daten, Earnings-Kalender, FDA Press Release RSS</li>
+          <li><strong>Datenquellen:</strong> Yahoo Finance News · Google News · Finviz RSS · MarketBeat · Unusual Whales · OpenInsider · FINRA Daily SSR · Earnings-Kalender · FDA Press Release RSS</li>
           <li><strong>Signal-Schwellen:</strong> Kursanstieg ≥ 2 % · Volumen ≥ 1,5× · News-Keywords · Earnings ≤ 30 Tage</li>
           <li><strong>Alert-Schwelle:</strong> Score ≥ 25 Punkte</li>
         </ul>
