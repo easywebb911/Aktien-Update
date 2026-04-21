@@ -3156,8 +3156,8 @@ def generate_html_v1(stocks: list[dict], report_date: str, _ctx: dict | None = N
           <li><strong>Short Float &gt; 15 %</strong> – Mindest-Leerverkaufsquote (nur US)</li>
           <li><strong>Kurs &gt; 1 USD</strong> – Ausschluss von Penny Stocks</li>
           <li><strong>Relatives Volumen ≥ 1,5×</strong> – Mindestaktivität (Standardfilter)</li>
-          <li><strong>Automatisches Screening:</strong> nur 🇺🇸 US — internationale Märkte sind aktuell deaktiviert (<code>INTL_SCREENING_ENABLED=False</code>), kein Watchlist-Scan, keine DE/GB/FR/NL/CA-Screener</li>
-          <li><strong>Internationale Aktien</strong> (🇩🇪 🇬🇧 🇫🇷 🇳🇱 🇨🇦 🇯🇵 🇭🇰 🇰🇷) können <em>manuell</em> via persönlicher Watchlist hinzugefügt werden: kein Short-Float-Filter, Score gedeckelt bei 50 Pkt (nur Volumen + Momentum)</li>
+          <li><strong>Automatisches Screening:</strong> nur 🇺🇸 USA — internationale Märkte sind deaktiviert (<code>INTL_SCREENING_ENABLED=False</code>)</li>
+          <li><strong>Manuell hinzugefügte internationale Ticker:</strong> kein Short-Float-Filter, Score nicht gedeckelt — via persönlicher Watchlist hinzufügbar</li>
           <li><strong>📌 Manuell beobachtete Ticker</strong> (persönliche Watchlist) <strong>umgehen den Cap-Filter</strong> und werden immer als Karte angezeigt — auch über {MAX_MARKET_CAP_B:.0f} Mrd. USD Marktkapitalisierung</li>
         </ul>
       </div>
