@@ -35,6 +35,13 @@ MAX_MARKET_CAP       = MAX_MARKET_CAP_B * 1e9
 MIN_PRICE            = 1.0                 # $   — Mindestkurs (Penny-Stock-Ausschluss)
 MIN_SCORE            = 15.0                # Pkt — informativ; Karten unter diesem Wert bekommen Hinweis
 
+# ── Internationales Screening ───────────────────────────────────────────────
+# False: Yahoo-Screener nur für US + Watchlist-Scan deaktiviert
+#        (persönliche Watchlist kann trotzdem intl Ticker enthalten — die
+#         durchlaufen den is_us-Pfad mit Score-Cap 50).
+# True:  Originalverhalten — DE/GB/FR/NL/CA Screener + JP/HK/KR Watchlist-Scan.
+INTL_SCREENING_ENABLED = False
+
 # ── Farbschwellen der Kennzahlenkacheln ──────────────────────────────────────
 SF_GREEN   = 30.0   # % Short Float ≥ 30 → grün
 SF_ORANGE  = 15.0   # % Short Float 15-29 → orange, <15 → rot

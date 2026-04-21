@@ -214,9 +214,12 @@ def get_yahoo_screener_candidates() -> list[dict]:
 
     tasks = [(region, sid)
              for region, sids in _YF_SCREENERS.items()
-             for sid in sids]
-    log.info("Querying %d Yahoo Finance screeners across %d regions (parallel, max 5 threads) …",
-             len(tasks), len(_YF_SCREENERS))
+             for sid in sids
+             if INTL_SCREENING_ENABLED or region == "US"]
+    n_regions = len({r for r, _ in tasks})
+    log.info("Querying %d Yahoo Finance screeners across %d region(s) "
+             "(INTL_SCREENING_ENABLED=%s, parallel, max 5 threads) …",
+             len(tasks), n_regions, INTL_SCREENING_ENABLED)
     t0 = time.time()
     with ThreadPoolExecutor(max_workers=5) as ex:
         future_map = {ex.submit(_fetch_yf_screener, sid, region): (region, sid)
@@ -2978,8 +2981,8 @@ def generate_html_v1(stocks: list[dict], report_date: str, _ctx: dict | None = N
           <li><strong>Short Float &gt; 15 %</strong> – Mindest-Leerverkaufsquote (nur US)</li>
           <li><strong>Kurs &gt; 1 USD</strong> – Ausschluss von Penny Stocks</li>
           <li><strong>Relatives Volumen ≥ 1,5×</strong> – Mindestaktivität (Standardfilter)</li>
-          <li><strong>Internationale Aktien:</strong> kein Short-Float-Filter, Score gedeckelt bei 50 Pkt (nur Volumen + Momentum)</li>
-          <li><strong>Märkte:</strong> 🇺🇸 US · 🇩🇪 DE · 🇬🇧 GB · 🇫🇷 FR · 🇳🇱 NL · 🇨🇦 CA · 🇯🇵 JP · 🇭🇰 HK · 🇰🇷 KR</li>
+          <li><strong>Automatisches Screening:</strong> nur 🇺🇸 US (Yahoo-Finance-Screener). Internationale Regionen sind aktuell deaktiviert (<code>INTL_SCREENING_ENABLED=False</code>) — kein Watchlist-Scan, keine DE/GB/FR/NL/CA-Screener.</li>
+          <li><strong>Internationale Aktien</strong> (🇩🇪 🇬🇧 🇫🇷 🇳🇱 🇨🇦 🇯🇵 🇭🇰 🇰🇷) können <em>manuell</em> via persönlicher Watchlist hinzugefügt werden: kein Short-Float-Filter, Score gedeckelt bei 50 Pkt (nur Volumen + Momentum)</li>
           <li><strong>📌 Manuell beobachtete Ticker</strong> (persönliche Watchlist) <strong>umgehen den Cap-Filter</strong> und werden immer als Karte angezeigt — auch über 2 Mrd. USD Marktkapitalisierung</li>
         </ul>
       </div>
@@ -5061,13 +5064,17 @@ def main():
         return
 
     # Supplement with watchlist volume scan (JP, HK, KR + any that screener missed)
-    log.info("Step 1b – Watchlist volume scan (batch per region) …")
-    watchlist_cands = get_watchlist_candidates()
+    # — nur wenn INTL_SCREENING_ENABLED; sonst komplett übersprungen.
     existing_tickers = {c["ticker"] for c in candidates}
-    for wc in watchlist_cands:
-        if wc["ticker"] not in existing_tickers:
-            candidates.append(wc)
-            existing_tickers.add(wc["ticker"])
+    if INTL_SCREENING_ENABLED:
+        log.info("Step 1b – Watchlist volume scan (batch per region) …")
+        watchlist_cands = get_watchlist_candidates()
+        for wc in watchlist_cands:
+            if wc["ticker"] not in existing_tickers:
+                candidates.append(wc)
+                existing_tickers.add(wc["ticker"])
+    else:
+        log.info("Step 1b – Watchlist-Scan übersprungen (INTL_SCREENING_ENABLED=False)")
 
     # Persönliche Watchlist: manuell hinzugefügte Ticker werden immer einge-
     # pflegt — unabhängig vom Screener-Ergebnis — und als "manual_personal"
@@ -5087,6 +5094,10 @@ def main():
                 "company_name":   pt,
                 "source":         "personal_watchlist",
                 "manual_personal": True,
+                # "market" aus Suffix ableiten — damit Intl-Ticker (z.B. SAP.DE)
+                # den is_us=False-Pfad treffen: kein Short-Float-Filter, Score
+                # gedeckelt bei 50 Pkt, Volumen-Rescue-Logik aktiv.
+                "market":         get_region(pt),
                 # Minimal-Defaults; Enrichment füllt den Rest.
                 "short_float":    0,
                 "short_ratio":    0,
