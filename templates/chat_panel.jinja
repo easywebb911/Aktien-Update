@@ -1,0 +1,24 @@
+  <!-- Chat Overlay (tap outside to close) -->
+  <div id="chat-overlay" class="chat-overlay" onclick="toggleChat()" aria-hidden="true"></div>
+  <!-- Claude Chat Panel -->
+  <div id="chat-panel" class="chat-panel" role="dialog" aria-label="KI-Assistent Chat">
+    <div class="chat-hdr">
+      <span style="font-size:1.1rem">&#x1F916;</span>
+      <span class="chat-hdr-title">TopTen Squeezer &middot; KI-Assistent</span>
+      <button class="chat-close-btn" onclick="toggleChat()" aria-label="Chat schließen">&#10005;</button>
+    </div>
+    <div id="chat-warn" class="chat-warn-banner hidden">
+      &#9888;&#65039; Alle KI-Analysen sind rein informativ und stellen keine Anlageempfehlung dar. Short Squeezes sind hochspekulative Ereignisse mit erheblichem Verlustrisiko.
+      <div><button class="btn" onclick="chatWarnAck()">Verstanden</button></div>
+    </div>
+    <div class="chat-msgs" id="chat-msgs"></div>
+    <div class="chat-chips" id="chat-chips"></div>
+    <div class="chat-input-row">
+      <input class="chat-inp" id="chat-inp" type="text" placeholder="Frage zu den aktuellen Squeeze-Kandidaten …"
+             onkeydown="if(event.key==='Enter'&&!event.shiftKey){chatSend();event.preventDefault()}">
+      <button class="chat-send-btn" id="chat-send" onclick="chatSend()" aria-label="Senden">&#10148;</button>
+    </div>
+    <div class="chat-footer-close">
+      <button onclick="toggleChat()" aria-label="Chat schlie&szlig;en">Chat schlie&szlig;en &#10005;</button>
+    </div>
+  </div>

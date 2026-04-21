@@ -2810,9 +2810,11 @@ def _build_context(stocks: list[dict], report_date: str) -> dict:
         })
     chat_ctx_json = json.dumps(_chat_ctx, default=str)
 
-    # Pre-render Jinja2-Templates (Phase 2+: head/CSS ausgelagert)
+    # Pre-render Jinja2-Templates (Phase 2+: head/CSS ausgelagert,
+    # Phase 4a: Chat-Panel-HTML)
     _env = _jinja_env()
-    head_html = _env.get_template("head.jinja").render(report_date=report_date)
+    head_html        = _env.get_template("head.jinja").render(report_date=report_date)
+    chat_panel_html  = _env.get_template("chat_panel.jinja").render()
 
     return {
         "report_date":    report_date,
@@ -2830,6 +2832,7 @@ def _build_context(stocks: list[dict], report_date: str) -> dict:
         "wl_top10_json":  wl_top10_json,
         "chat_ctx_json":  chat_ctx_json,
         "head_html":      head_html,
+        "chat_panel_html": chat_panel_html,
     }
 
 
@@ -2855,8 +2858,9 @@ def generate_html_v1(stocks: list[dict], report_date: str, _ctx: dict | None = N
     wl_scores_json = ctx["wl_scores_json"]
     wl_hist_json   = ctx["wl_hist_json"]
     wl_top10_json  = ctx["wl_top10_json"]
-    chat_ctx_json  = ctx["chat_ctx_json"]
-    head_html      = ctx["head_html"]
+    chat_ctx_json    = ctx["chat_ctx_json"]
+    head_html        = ctx["head_html"]
+    chat_panel_html  = ctx["chat_panel_html"]
 
     return f"""{head_html}
 <body>
@@ -2919,30 +2923,7 @@ def generate_html_v1(stocks: list[dict], report_date: str, _ctx: dict | None = N
   <div id="non-trading-banner" style="display:none;width:100%;background:#f59e0b;color:#1c1102;
     font-size:.78rem;font-weight:500;padding:5px 16px;box-sizing:border-box;
     border-top:1px solid #d97706;line-height:1.45" aria-live="polite"></div>
-  <!-- Chat Overlay (tap outside to close) -->
-  <div id="chat-overlay" class="chat-overlay" onclick="toggleChat()" aria-hidden="true"></div>
-  <!-- Claude Chat Panel -->
-  <div id="chat-panel" class="chat-panel" role="dialog" aria-label="KI-Assistent Chat">
-    <div class="chat-hdr">
-      <span style="font-size:1.1rem">&#x1F916;</span>
-      <span class="chat-hdr-title">TopTen Squeezer &middot; KI-Assistent</span>
-      <button class="chat-close-btn" onclick="toggleChat()" aria-label="Chat schließen">&#10005;</button>
-    </div>
-    <div id="chat-warn" class="chat-warn-banner hidden">
-      &#9888;&#65039; Alle KI-Analysen sind rein informativ und stellen keine Anlageempfehlung dar. Short Squeezes sind hochspekulative Ereignisse mit erheblichem Verlustrisiko.
-      <div><button class="btn" onclick="chatWarnAck()">Verstanden</button></div>
-    </div>
-    <div class="chat-msgs" id="chat-msgs"></div>
-    <div class="chat-chips" id="chat-chips"></div>
-    <div class="chat-input-row">
-      <input class="chat-inp" id="chat-inp" type="text" placeholder="Frage zu den aktuellen Squeeze-Kandidaten …"
-             onkeydown="if(event.key==='Enter'&&!event.shiftKey){{chatSend();event.preventDefault()}}">
-      <button class="chat-send-btn" id="chat-send" onclick="chatSend()" aria-label="Senden">&#10148;</button>
-    </div>
-    <div class="chat-footer-close">
-      <button onclick="toggleChat()" aria-label="Chat schlie&szlig;en">Chat schlie&szlig;en &#10005;</button>
-    </div>
-  </div>
+{chat_panel_html}
 </header>
 
 <main class="wrap">
