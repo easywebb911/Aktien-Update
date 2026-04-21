@@ -2896,6 +2896,19 @@ def generate_html_v1(stocks: list[dict], report_date: str, _ctx: dict | None = N
     <div style="padding-top:4px">
       <a class="tok-link" onclick="clearAnthropicKey();return false;" href="#">API-Key löschen</a>
     </div>
+    <hr style="border:none;border-top:1px solid var(--brd);margin:12px 0 8px">
+    <p class="tok-hint"><strong>GitHub Token</strong> — Benötigt für Watchlist-Persistenz und manuelle Workflow-Trigger. Wird ausschließlich lokal im Browser gespeichert.</p>
+    <div class="tok-row">
+      <input type="password" id="gh-inp" class="tok-inp" placeholder="ghp_…"
+             autocomplete="off" spellcheck="false"
+             onkeydown="if(event.key==='Enter')saveGhToken()">
+      <button class="btn btn-anth" style="flex:0;padding:0 12px" onclick="testGhToken()">Testen</button>
+      <button class="btn btn-b" style="flex:0;padding:0 12px" onclick="saveGhToken()">OK</button>
+    </div>
+    <div id="gh-status" class="anth-status"></div>
+    <div style="padding-top:4px">
+      <a class="tok-link" onclick="clearGhToken();return false;" href="#">Token löschen</a>
+    </div>
   </div>
   <div id="amsg" class="amsg" style="display:none"></div>
   <div style="padding-bottom:4px">
@@ -4365,7 +4378,75 @@ function toggleSettings() {{
     const inp  = document.getElementById('anth-inp');
     const key  = localStorage.getItem(ANT_KEY_LS) || '';
     if (inp && key) inp.value = key;
+    // GitHub Token — gespeicherten Wert vor-ausfüllen
+    const ghInp = document.getElementById('gh-inp');
+    const ghTok = localStorage.getItem(TOK_KEY) || '';
+    if (ghInp && ghTok) ghInp.value = ghTok;
   }}
+}}
+
+// ── GitHub Token — speichern / testen / löschen ─────────────────────────────
+function saveGhToken() {{
+  const inp    = document.getElementById('gh-inp');
+  const status = document.getElementById('gh-status');
+  const tok    = (inp?.value || '').trim();
+  if (!tok) {{
+    localStorage.removeItem(TOK_KEY);
+    if (status) {{ status.className = 'anth-status'; status.textContent = ''; }}
+    return;
+  }}
+  localStorage.setItem(TOK_KEY, tok);
+  if (status) {{
+    status.className = 'anth-status ok';
+    status.textContent = '✅ Gespeichert';
+    clearTimeout(status._hideT);
+    status._hideT = setTimeout(() => {{
+      status.textContent = ''; status.className = 'anth-status';
+    }}, 2500);
+  }}
+}}
+
+async function testGhToken() {{
+  const inp    = document.getElementById('gh-inp');
+  const status = document.getElementById('gh-status');
+  const tok    = (inp?.value || '').trim() || localStorage.getItem(TOK_KEY) || '';
+  if (!tok) {{
+    if (status) {{ status.className = 'anth-status err'; status.textContent = '❌ Kein Token eingegeben'; }}
+    return;
+  }}
+  try {{
+    const r = await fetch('https://api.github.com/user', {{
+      headers: {{'Authorization': `Bearer ${{tok}}`, 'Accept': 'application/vnd.github+json',
+                 'X-GitHub-Api-Version': '2022-11-28'}},
+    }});
+    if (r.ok) {{
+      const j = await r.json();
+      if (status) {{
+        status.className = 'anth-status ok';
+        status.textContent = `✅ Gültig — eingeloggt als ${{j.login || '?'}}`;
+      }}
+    }} else {{
+      console.error('GH Token Test fehlgeschlagen:', r.status, r.statusText);
+      if (status) {{
+        status.className = 'anth-status err';
+        status.textContent = `❌ Ungültig — HTTP ${{r.status}} ${{r.statusText}}`;
+      }}
+    }}
+  }} catch(e) {{
+    console.error('GH Token Test Netzwerkfehler:', e);
+    if (status) {{
+      status.className = 'anth-status err';
+      status.textContent = '❌ Netzwerkfehler — GitHub nicht erreichbar';
+    }}
+  }}
+}}
+
+function clearGhToken() {{
+  const inp    = document.getElementById('gh-inp');
+  const status = document.getElementById('gh-status');
+  localStorage.removeItem(TOK_KEY);
+  if (inp) inp.value = '';
+  if (status) {{ status.className = 'anth-status'; status.textContent = ''; }}
 }}
 
 // Initialer Button-Text setzen (zeigt „🔑 API-Key erforderlich" wenn nichts gespeichert)
