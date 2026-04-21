@@ -150,7 +150,7 @@ a{color:var(--accent);text-decoration:none}
 .rank-manual{background:#f59e0b;font-size:1rem;cursor:help}
 /* Persönliche Watchlist-Karten: dezent dunkelgrüner Hintergrund + grüner Rand,
    im Dark-Mode deutlich sichtbar aber nicht grell */
-.card-manual{background:rgba(20,83,45,0.15);border-color:rgba(34,197,94,0.3)}
+.card-manual{background:rgba(20,83,45,0.35);border:1.5px solid rgba(74,222,128,0.6)}
 .ticker-block{flex:1;min-width:0}
 .ticker-row{display:flex;align-items:center;gap:7px;flex-wrap:wrap;margin-bottom:3px}
 .ticker{font-size:1.25rem;font-weight:800;font-family:'SF Mono','Courier New',monospace;color:var(--txt)}
@@ -521,7 +521,7 @@ a{color:var(--accent);text-decoration:none}
 <header class="app-hdr">
   <div class="hdr-main">
     <span class="app-title">Squeeze <span>Report</span></span>
-    <span class="hdr-ts">Stand: 21.04.2026, 06:32 Uhr</span>
+    <span class="hdr-ts">Stand: 21.04.2026, 06:41 Uhr</span>
     <div class="hdr-btns">
       <button id="btn-reload" class="btn btn-g" onclick="reloadPage()">&#8635; Reload</button>
       <button id="btn-recalc" class="btn btn-b" onclick="triggerWorkflow()">&#9881; Recalculate</button>
@@ -599,7 +599,7 @@ a{color:var(--accent);text-decoration:none}
     <div class="stat-box"><span class="stat-val">0.0×</span><span class="stat-lbl">Ø Volumen</span></div>
     <div class="stat-box"><span class="stat-val">+9.1%</span><span class="stat-lbl">Ø Kursmomentum</span></div>
     <div class="stat-box"><span class="stat-val">36,8 Mio,</span><span class="stat-lbl">Ø Float</span></div>
-    <div class="stat-box"><span class="stat-val">+150,0 %</span><span class="stat-lbl">Ø SI-Trend</span></div>
+    <div class="stat-box"><span class="stat-val">—</span><span class="stat-lbl">Ø SI-Trend</span></div>
   </div>
 
   <details class="info-panel">
@@ -1405,124 +1405,16 @@ a{color:var(--accent);text-decoration:none}
   <div class="ki-analyse-result" id="ka-res6"></div>
 </article>
 
-<article class="card" id="c7" data-ticker="ASTC"
-  data-score="47.9" data-company="Astrotech Corporation"
-  data-price="3.31" data-sf="56.9" data-sr="0.2"
-  data-rv="0.00" data-chg="16.14" data-si="up"
-  data-rsi="51.2" data-iv="" data-earn=""
-  data-earn-date="" data-float="1.3M"
-  data-cap="5822137" data-sector="Technology" data-news="[&quot;Astrotech GAAP-EPS von -2,34 USD, Umsatz von 0,15 Mio. USD&quot;, &quot;Astrotech leitet die Prüfung strategischer Alternativen einschließlich Verkauf ein&quot;, &quot;Astrotech GAAP-EPS von -2,07 USD, Umsatz von 0,29 Mio. USD&quot;]">
-  <div class="card-top">
-    <div class="card-left">
-      <span class="rank">7</span>
-      <div class="ticker-block">
-        <div class="ticker-row">
-          <span class="ticker">ASTC</span>
-          <span class="market-tag">🇺🇸 US</span>
-          <a class="chart-badge chart-badge-f" href="https://finviz.com/quote.ashx?t=ASTC" target="_blank" rel="noopener noreferrer" title="Finviz Chart &amp; Kennzahlen">F</a><a class="chart-badge chart-badge-s" href="https://stockanalysis.com/stocks/astc/" target="_blank" rel="noopener noreferrer" title="Stockanalysis Chart &amp; Short-Interest">S</a>
-          <span class="price-tag">$3.31</span>
-          <button class="wl-add-btn" data-ticker="ASTC" onclick="wlToggle(this)" title="Zur Watchlist hinzufügen">＋</button>
-        </div>
-        <span class="company">Astrotech Corporation</span>
-        <span class="sector-tag">Technology · Scientific & Technical Instruments</span><span class="squeeze-hist-badge" title="Kursanstieg ≥ 50% in 5 Tagen bei Volumen ≥ 3× vor 11 Tagen">⚠️ Squeeze vor 11 Tagen</span>
-      </div>
-    </div>
-    <div class="score-block">
-      <span class="score-num" style="color:#f59e0b">47.9</span>
-      <span class="score-lbl">Score</span>
-      <div class="score-track"><div class="score-fill" style="width:48%;background:#f59e0b"></div></div>
-      
-    </div>
-  </div>
-  <div class="spark-wrap" data-scores='[43.0, 47.9]' data-dates='["20.04.2026", "21.04.2026"]' data-col="#22c55e" data-today="21.04.2026"><div class="spark-header"><div class="spark-title-wrap"><span class="spark-title">⚡ KI-Signalverlauf</span><span class="spark-subtitle">(KI-Agent Score der letzten 7 Tage)</span></div><span class="spark-trend" style="color:#22c55e">↑ +4.9 Pkt</span></div><div class="spark-svg-wrap"></div><div class="spark-days"></div></div>
-  <div class="metrics-row">
-    <div class="metric-box metric-box-header" style="--mc:#22c55e">
-      <span class="m-val">56.9%</span>
-      <span class="m-lbl">Short Float</span>
-    </div>
-    <div class="metric-box" style="--mc:#ef4444">
-      <span class="m-val">0.2d</span>
-      <span class="m-lbl">Days to Cover</span>
-    </div>
-    <div class="metric-box" style="--mc:#ef4444">
-      <span class="m-val">0.0×</span>
-      <span class="m-lbl">Volumen</span>
-    </div>
-    <div class="metric-box" style="--mc:#22c55e">
-      <span class="m-val">+16.1%<br><span style="font-size:0.75em;color:var(--color-text-secondary)">5T: +nan%</span></span>
-      <span class="m-lbl">Momentum</span>
-    </div>
-    <div class="metric-box" style="--mc:#22c55e">
-      <span class="m-val">1,3 Mio,</span>
-      <span class="m-lbl">Float</span>
-    </div>
-    <div class="metric-box" style="--mc:#22c55e">
-      <span class="m-val">↑ +150 %</span>
-      <span class="m-lbl">SI-Trend</span>
-    </div>
-    <div class="metric-box" style="--mc:#94a3b8"><span class="m-val">—</span><span class="m-lbl">SSR Heute</span></div>
-  </div>
-  <button class="details-btn" onclick="toggleDetails(7)" id="db7" aria-expanded="false">
-    <span class="details-arrow" id="da7">▾</span><span id="dl7"> Details anzeigen</span>
-  </button>
-  <div class="details-body" id="dd7">
-    <div class="detail-table-wrap">
-      <table class="detail-table">
-        <tr><td>Marktkapitalisierung</td><td>$6 M</td></tr>
-        <tr><td>Float (frei handelbar)</td><td>1.3 Mio. Aktien</td></tr>
-        <tr><td>Sektor</td><td>Technology · Scientific & Technical Instruments</td></tr>
-        <tr><td>52W-Hoch / -Tief</td><td>$8.01 / $1.92</td></tr>
-        <tr><td>Ø Volumen 20T</td><td>6,955,939</td></tr>
-        <tr><td>Heutiges Volumen</td><td>nan</td></tr>
-        <tr><td>SEC-Meldungen</td><td><a href="https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&amp;CIK=ASTC&amp;type=&amp;dateb=&amp;owner=include&amp;count=10&amp;search_text=" target="_blank" rel="noopener noreferrer" class="edgar-link">EDGAR öffnen →</a></td></tr>
-        <tr><td>SI-Trend (3M)</td><td><span style="color:#22c55e">↑ Steigend +150.0 %</span></td></tr>
-        <tr><td>SI Velocity (tägl. Ø)</td><td><span style="color:#ef4444">-45 Aktien/Tag</span></td></tr>
-        <tr><td>Short-Vol. T-1 (FINRA)</td><td>284 Aktien (20.04.2026)</td></tr>
-        <tr><td>Short-Vol. T-2</td><td>78,443 Aktien (17.04.2026)</td></tr>
-        <tr><td>Short-Vol. T-3</td><td>34,997 Aktien (16.04.2026)</td></tr>
-
-        <tr><td>RSI (14T)</td><td><span style="color:var(--txt)">51.2</span></td></tr><tr><td>MA 50T</td><td>$2.95</td></tr><tr><td>MA 200T</td><td>$4.01</td></tr><tr><td>Kurs vs. MA50</td><td><span style="color:#22c55e">(+12.4%)</span></td></tr><tr><td>Rel. Stärke (20T)</td><td><span style="color:#22c55e">+27.0% vs. S&amp;P 500 (Aktie +36.2%)</span></td></tr><tr><td>RS vs. Sektor (QQQ)</td><td><span style="color:#22c55e">+25.0%</span></td></tr><tr><td>Letztes Earnings</td><td><span style="color:#ef4444">❌ Miss -8%</span></td></tr>
-        
-        
-        <tr><td>Risiko-Detail</td><td style="color:#ef4444">Extrem hohes Short-Interesse (56.9 %) bedeutet massive Squeeze-Gefahr, aber auch starke Kursausschläge in beide Richtungen. Micro-Cap ($6 M) – geringe Liquidität, Kursmanipulation möglich.</td></tr>
-      </table>
-    </div>
-    
-    <div class="driver-row">
-      <span class="risk-badge" style="color:#ef4444;border-color:#ef444455;background:#ef444422">Risiko: HOCH</span>
-      <p class="driver-text">Short Float 56.9 % — sehr hohes Leerverkaufsinteresse, starkes Squeeze-Potenzial. +16.1 % heute — mögliche Margin Calls bei Leerverkäufern.</p>
-    </div>
-  </div>
-  <button class="news-btn" onclick="toggleNews(7)" id="nb7" aria-expanded="false">
-    <span id="nb-icon7">▼</span> Aktuelle Meldungen
-  </button>
-  <div class="news-panel" id="np7" hidden>
-    <div class="ki-signal-block">
-      <div class="ki-signal-header">&#9889; KI-Agent Signale</div>
-      <div class="ki-signal-body"></div>
-    </div>
-    <div class="news-items"><div class="ni"><a href="https://seekingalpha.com/symbol/ASTC/news?source=feed_symbol_ASTC" target="_blank" rel="noopener noreferrer">Astrotech GAAP-EPS von -2,34 USD, Umsatz von 0,15 Mio. USD</a> <span class="ni-src">(Seeking Alpha)</span><span class="ni-meta">13.02.2026 16:53</span></div><div class="ni"><a href="https://seekingalpha.com/symbol/ASTC/news?source=feed_symbol_ASTC" target="_blank" rel="noopener noreferrer">Astrotech leitet die Prüfung strategischer Alternativen einschließlich Verkauf ein</a> <span class="ni-src">(Seeking Alpha)</span><span class="ni-meta">19.11.2025 14:29</span></div><div class="ni"><a href="https://seekingalpha.com/symbol/ASTC/news?source=feed_symbol_ASTC" target="_blank" rel="noopener noreferrer">Astrotech GAAP-EPS von -2,07 USD, Umsatz von 0,29 Mio. USD</a> <span class="ni-src">(Seeking Alpha)</span><span class="ni-meta">13.11.2025 22:00</span></div></div>
-    <div class="news-summary-box">
-      <span class="summary-label">Zusammenfassung</span>
-      <p class="summary-text">Astrotech GAAP-EPS von -2,34 USD, Umsatz von 0,15 Mio. USD. Weitere aktuelle News: Astrotech leitet Prüfung strategischer Alternativen inklusive Verkauf ein  –  Quelle: Seeking Alpha (13.02.2026 16:53)</p>
-    </div>
-  </div>
-  <button class="ki-analyse-btn" id="ka-btn7" onclick="runKiAnalyse(7)">
-    KI-Analyse
-  </button>
-  <div class="ki-analyse-result" id="ka-res7"></div>
-</article>
-
-<article class="card" id="c8" data-ticker="DFH"
+<article class="card" id="c7" data-ticker="DFH"
   data-score="47.6" data-company="Dream Finders Homes, Inc."
   data-price="15.72" data-sf="40.3" data-sr="6.2"
   data-rv="0.00" data-chg="6.07" data-si="no_data"
   data-rsi="57.7" data-iv="65.6" data-earn="14"
   data-earn-date="05.05." data-float="27.8M"
-  data-cap="1443243776" data-sector="Consumer Cyclical" data-news="[&quot;Bauherrenvertrauen erreicht 7-Monats-Tief: So schneiden Small-Cap-Aktien im Wohnungsbau bei Quant-Ratings ab&quot;, &quot;Top- und Bottom-Quant-Rating-Small-Cap-Aktien von Nicht-Basiskonsumgütern&quot;, &quot;Dream Finders Homes: Bewertung trotz Aktienschwäche noch nicht überzeugend&quot;]">
+  data-cap="1443243776" data-sector="Consumer Cyclical" data-news="[&quot;Bauunternehmervertrauen erreicht 7-Monats-Tief: So schneiden Small-Cap-Aktien im Wohnungsbau bei Quant-Ratings ab&quot;, &quot;Top- und Bottom-Quant-Rating-Small-Cap-Aktien von Nicht-Basiskonsumgütern&quot;, &quot;Dream Finders Homes: Bewertung trotz Aktienschwäche noch nicht überzeugend&quot;]">
   <div class="card-top">
     <div class="card-left">
-      <span class="rank">8</span>
+      <span class="rank">7</span>
       <div class="ticker-block">
         <div class="ticker-row">
           <span class="ticker">DFH</span>
@@ -1570,10 +1462,10 @@ a{color:var(--accent);text-decoration:none}
     </div>
     <div class="metric-box" style="--mc:#94a3b8"><span class="m-val">—</span><span class="m-lbl">SSR Heute</span></div>
   </div>
-  <button class="details-btn" onclick="toggleDetails(8)" id="db8" aria-expanded="false">
-    <span class="details-arrow" id="da8">▾</span><span id="dl8"> Details anzeigen</span>
+  <button class="details-btn" onclick="toggleDetails(7)" id="db7" aria-expanded="false">
+    <span class="details-arrow" id="da7">▾</span><span id="dl7"> Details anzeigen</span>
   </button>
-  <div class="details-body" id="dd8">
+  <div class="details-body" id="dd7">
     <div class="detail-table-wrap">
       <table class="detail-table">
         <tr><td>Marktkapitalisierung</td><td>$1.4 B</td></tr>
@@ -1601,27 +1493,27 @@ a{color:var(--accent);text-decoration:none}
       <p class="driver-text">Short Float 40.3 % — sehr hohes Leerverkaufsinteresse, starkes Squeeze-Potenzial. Short Ratio 6.2 Tage — Eindeckungsdruck erhöht den Squeeze-Druck.</p>
     </div>
   </div>
-  <button class="news-btn" onclick="toggleNews(8)" id="nb8" aria-expanded="false">
-    <span id="nb-icon8">▼</span> Aktuelle Meldungen
+  <button class="news-btn" onclick="toggleNews(7)" id="nb7" aria-expanded="false">
+    <span id="nb-icon7">▼</span> Aktuelle Meldungen
   </button>
-  <div class="news-panel" id="np8" hidden>
+  <div class="news-panel" id="np7" hidden>
     <div class="ki-signal-block">
       <div class="ki-signal-header">&#9889; KI-Agent Signale</div>
       <div class="ki-signal-body"></div>
     </div>
-    <div class="news-items"><div class="ni"><a href="https://seekingalpha.com/symbol/DFH/news?source=feed_symbol_DFH" target="_blank" rel="noopener noreferrer">Bauherrenvertrauen erreicht 7-Monats-Tief: So schneiden Small-Cap-Aktien im Wohnungsbau bei Quant-Ratings ab</a> <span class="ni-src">(Seeking Alpha)</span><span class="ni-meta">15.04.2026 18:20</span></div><div class="ni"><a href="https://seekingalpha.com/symbol/DFH/news?source=feed_symbol_DFH" target="_blank" rel="noopener noreferrer">Top- und Bottom-Quant-Rating-Small-Cap-Aktien von Nicht-Basiskonsumgütern</a> <span class="ni-src">(Seeking Alpha)</span><span class="ni-meta">14.03.2026 16:10</span></div><div class="ni"><a href="https://seekingalpha.com/article/4881590-dream-finders-homes-valuation-not-yet-compelling-despite-stock-weakness?source=feed_symbol_DFH" target="_blank" rel="noopener noreferrer">Dream Finders Homes: Bewertung trotz Aktienschwäche noch nicht überzeugend</a> <span class="ni-src">(Seeking Alpha)</span><span class="ni-meta">12.03.2026 14:08</span></div></div>
+    <div class="news-items"><div class="ni"><a href="https://seekingalpha.com/symbol/DFH/news?source=feed_symbol_DFH" target="_blank" rel="noopener noreferrer">Bauunternehmervertrauen erreicht 7-Monats-Tief: So schneiden Small-Cap-Aktien im Wohnungsbau bei Quant-Ratings ab</a> <span class="ni-src">(Seeking Alpha)</span><span class="ni-meta">15.04.2026 18:20</span></div><div class="ni"><a href="https://seekingalpha.com/symbol/DFH/news?source=feed_symbol_DFH" target="_blank" rel="noopener noreferrer">Top- und Bottom-Quant-Rating-Small-Cap-Aktien von Nicht-Basiskonsumgütern</a> <span class="ni-src">(Seeking Alpha)</span><span class="ni-meta">14.03.2026 16:10</span></div><div class="ni"><a href="https://seekingalpha.com/article/4881590-dream-finders-homes-valuation-not-yet-compelling-despite-stock-weakness?source=feed_symbol_DFH" target="_blank" rel="noopener noreferrer">Dream Finders Homes: Bewertung trotz Aktienschwäche noch nicht überzeugend</a> <span class="ni-src">(Seeking Alpha)</span><span class="ni-meta">12.03.2026 14:08</span></div></div>
     <div class="news-summary-box">
       <span class="summary-label">Zusammenfassung</span>
       <p class="summary-text">Bauunternehmervertrauen erreicht 7-Monats-Tief: So schneiden Small-Cap-Aktien im Wohnungsbau bei Quant-Ratings ab. Weitere aktuelle Meldung: Top- und Bottom-Quant-Rating-Small-Cap-Aktien von Nicht-Basiskonsumgütern  –  Quelle: Seeking Alpha (15.04.2026 18:20)</p>
     </div>
   </div>
-  <button class="ki-analyse-btn" id="ka-btn8" onclick="runKiAnalyse(8)">
+  <button class="ki-analyse-btn" id="ka-btn7" onclick="runKiAnalyse(7)">
     KI-Analyse
   </button>
-  <div class="ki-analyse-result" id="ka-res8"></div>
+  <div class="ki-analyse-result" id="ka-res7"></div>
 </article>
 
-<article class="card" id="c9" data-ticker="SKIL"
+<article class="card" id="c8" data-ticker="SKIL"
   data-score="46.4" data-company="Skillsoft Corp."
   data-price="7.61" data-sf="20.8" data-sr="9.8"
   data-rv="0.00" data-chg="11.58" data-si="no_data"
@@ -1630,7 +1522,7 @@ a{color:var(--accent);text-decoration:none}
   data-cap="67061704" data-sector="Consumer Defensive" data-news="[&quot;Skillsoft (SKIL) zum Kauf aktualisiert: Hier ist der Grund&quot;, &quot;Warum Skillsoft Corp. (NYSE:SKIL) sehenswert sein könnte&quot;, &quot;Skillsoft (SKIL) Q1 2026 Earnings Call Transcript&quot;]">
   <div class="card-top">
     <div class="card-left">
-      <span class="rank">9</span>
+      <span class="rank">8</span>
       <div class="ticker-block">
         <div class="ticker-row">
           <span class="ticker">SKIL</span>
@@ -1678,10 +1570,10 @@ a{color:var(--accent);text-decoration:none}
     </div>
     <div class="metric-box" style="--mc:#94a3b8"><span class="m-val">—</span><span class="m-lbl">SSR Heute</span></div>
   </div>
-  <button class="details-btn" onclick="toggleDetails(9)" id="db9" aria-expanded="false">
-    <span class="details-arrow" id="da9">▾</span><span id="dl9"> Details anzeigen</span>
+  <button class="details-btn" onclick="toggleDetails(8)" id="db8" aria-expanded="false">
+    <span class="details-arrow" id="da8">▾</span><span id="dl8"> Details anzeigen</span>
   </button>
-  <div class="details-body" id="dd9">
+  <div class="details-body" id="dd8">
     <div class="detail-table-wrap">
       <table class="detail-table">
         <tr><td>Marktkapitalisierung</td><td>$67 M</td></tr>
@@ -1709,10 +1601,10 @@ a{color:var(--accent);text-decoration:none}
       <p class="driver-text">Short Float 20.8 % liegt deutlich über dem Marktdurchschnitt. Short Ratio 9.8 Tage — Eindeckungsdruck erhöht den Squeeze-Druck.</p>
     </div>
   </div>
-  <button class="news-btn" onclick="toggleNews(9)" id="nb9" aria-expanded="false">
-    <span id="nb-icon9">▼</span> Aktuelle Meldungen
+  <button class="news-btn" onclick="toggleNews(8)" id="nb8" aria-expanded="false">
+    <span id="nb-icon8">▼</span> Aktuelle Meldungen
   </button>
-  <div class="news-panel" id="np9" hidden>
+  <div class="news-panel" id="np8" hidden>
     <div class="ki-signal-block">
       <div class="ki-signal-header">&#9889; KI-Agent Signale</div>
       <div class="ki-signal-body"></div>
@@ -1723,13 +1615,13 @@ a{color:var(--accent);text-decoration:none}
       <p class="summary-text">Skillsoft (SKIL) könnte aufgrund des wachsenden Optimismus hinsichtlich seiner Gewinnaussichten steigen, was sich in der Hochstufung auf Zacks-Rang Nr. 2 (Kaufen) widerspiegelt.</p>
     </div>
   </div>
-  <button class="ki-analyse-btn" id="ka-btn9" onclick="runKiAnalyse(9)">
+  <button class="ki-analyse-btn" id="ka-btn8" onclick="runKiAnalyse(8)">
     KI-Analyse
   </button>
-  <div class="ki-analyse-result" id="ka-res9"></div>
+  <div class="ki-analyse-result" id="ka-res8"></div>
 </article>
 
-<article class="card" id="c10" data-ticker="WRLD"
+<article class="card" id="c9" data-ticker="WRLD"
   data-score="45.0" data-company="World Acceptance Corporation"
   data-price="149.30" data-sf="89.5" data-sr="2.7"
   data-rv="0.00" data-chg="5.60" data-si="no_data"
@@ -1738,7 +1630,7 @@ a{color:var(--accent);text-decoration:none}
   data-cap="752185088" data-sector="Financial Services" data-news="[&quot;Prashad, CEO von World Acceptance, tritt zurück, Janet Matricciani wird interimistisch in die Position berufen&quot;, &quot;Laut SEC-Einreichung hat Thomas W. Smith seinen Yelp-Anteil reduziert, da die Werbung für lokale Dienstleistungen das Geschäft umgestaltet&quot;, &quot;Höhepunkte der Telefonkonferenz zu den Ergebnissen des dritten Quartals 2026 von World Acceptance Corp (WRLD): Starkes Kundenwachstum und ..&quot;]">
   <div class="card-top">
     <div class="card-left">
-      <span class="rank">10</span>
+      <span class="rank">9</span>
       <div class="ticker-block">
         <div class="ticker-row">
           <span class="ticker">WRLD</span>
@@ -1786,10 +1678,10 @@ a{color:var(--accent);text-decoration:none}
     </div>
     <div class="metric-box" style="--mc:#94a3b8"><span class="m-val">—</span><span class="m-lbl">SSR Heute</span></div>
   </div>
-  <button class="details-btn" onclick="toggleDetails(10)" id="db10" aria-expanded="false">
-    <span class="details-arrow" id="da10">▾</span><span id="dl10"> Details anzeigen</span>
+  <button class="details-btn" onclick="toggleDetails(9)" id="db9" aria-expanded="false">
+    <span class="details-arrow" id="da9">▾</span><span id="dl9"> Details anzeigen</span>
   </button>
-  <div class="details-body" id="dd10">
+  <div class="details-body" id="dd9">
     <div class="detail-table-wrap">
       <table class="detail-table">
         <tr><td>Marktkapitalisierung</td><td>$752 M</td></tr>
@@ -1817,10 +1709,10 @@ a{color:var(--accent);text-decoration:none}
       <p class="driver-text">Short Float 89.5 % — sehr hohes Leerverkaufsinteresse, starkes Squeeze-Potenzial. +5.6 % heute — mögliche Margin Calls bei Leerverkäufern.</p>
     </div>
   </div>
-  <button class="news-btn" onclick="toggleNews(10)" id="nb10" aria-expanded="false">
-    <span id="nb-icon10">▼</span> Aktuelle Meldungen
+  <button class="news-btn" onclick="toggleNews(9)" id="nb9" aria-expanded="false">
+    <span id="nb-icon9">▼</span> Aktuelle Meldungen
   </button>
-  <div class="news-panel" id="np10" hidden>
+  <div class="news-panel" id="np9" hidden>
     <div class="ki-signal-block">
       <div class="ki-signal-header">&#9889; KI-Agent Signale</div>
       <div class="ki-signal-body"></div>
@@ -1829,6 +1721,114 @@ a{color:var(--accent);text-decoration:none}
     <div class="news-summary-box">
       <span class="summary-label">Zusammenfassung</span>
       <p class="summary-text">Prashad, CEO von World Acceptance, tritt zurück, Janet Matricciani wird interimistisch in die Position berufen. Weitere aktuelle Meldung: Laut SEC-Einreichung hat Thomas W. Smith seinen Yelp-Anteil reduziert, da die Werbung für lokale Dienstleistungen das Geschäft umgestaltet  –  Quelle: Seeking Alpha (13.04.2026 16:22)</p>
+    </div>
+  </div>
+  <button class="ki-analyse-btn" id="ka-btn9" onclick="runKiAnalyse(9)">
+    KI-Analyse
+  </button>
+  <div class="ki-analyse-result" id="ka-res9"></div>
+</article>
+
+<article class="card" id="c10" data-ticker="ASTC"
+  data-score="42.9" data-company="Astrotech Corporation"
+  data-price="3.31" data-sf="56.9" data-sr="0.2"
+  data-rv="0.00" data-chg="16.14" data-si="no_data"
+  data-rsi="51.2" data-iv="" data-earn=""
+  data-earn-date="" data-float="1.3M"
+  data-cap="5822137" data-sector="Technology" data-news="[&quot;Astrotech GAAP EPS von -2,34 USD, Umsatz von 0,15 Mio. USD&quot;, &quot;Astrotech leitet die Prüfung strategischer Alternativen einschließlich Verkauf ein&quot;, &quot;Astrotech GAAP EPS von -2,07 USD, Umsatz von 0,29 Mio. USD&quot;]">
+  <div class="card-top">
+    <div class="card-left">
+      <span class="rank">10</span>
+      <div class="ticker-block">
+        <div class="ticker-row">
+          <span class="ticker">ASTC</span>
+          <span class="market-tag">🇺🇸 US</span>
+          <a class="chart-badge chart-badge-f" href="https://finviz.com/quote.ashx?t=ASTC" target="_blank" rel="noopener noreferrer" title="Finviz Chart &amp; Kennzahlen">F</a><a class="chart-badge chart-badge-s" href="https://stockanalysis.com/stocks/astc/" target="_blank" rel="noopener noreferrer" title="Stockanalysis Chart &amp; Short-Interest">S</a>
+          <span class="price-tag">$3.31</span>
+          <button class="wl-add-btn" data-ticker="ASTC" onclick="wlToggle(this)" title="Zur Watchlist hinzufügen">＋</button>
+        </div>
+        <span class="company">Astrotech Corporation</span>
+        <span class="sector-tag">Technology · Scientific & Technical Instruments</span><span class="squeeze-hist-badge" title="Kursanstieg ≥ 50% in 5 Tagen bei Volumen ≥ 3× vor 11 Tagen">⚠️ Squeeze vor 11 Tagen</span>
+      </div>
+    </div>
+    <div class="score-block">
+      <span class="score-num" style="color:#f59e0b">42.9</span>
+      <span class="score-lbl">Score</span>
+      <div class="score-track"><div class="score-fill" style="width:43%;background:#f59e0b"></div></div>
+      
+    </div>
+  </div>
+  <div class="spark-wrap" data-scores='[43.0, 42.9]' data-dates='["20.04.2026", "21.04.2026"]' data-col="#94a3b8" data-today="21.04.2026"><div class="spark-header"><div class="spark-title-wrap"><span class="spark-title">⚡ KI-Signalverlauf</span><span class="spark-subtitle">(KI-Agent Score der letzten 7 Tage)</span></div><span class="spark-trend" style="color:#94a3b8">→ stabil</span></div><div class="spark-svg-wrap"></div><div class="spark-days"></div></div>
+  <div class="metrics-row">
+    <div class="metric-box metric-box-header" style="--mc:#22c55e">
+      <span class="m-val">56.9%</span>
+      <span class="m-lbl">Short Float</span>
+    </div>
+    <div class="metric-box" style="--mc:#ef4444">
+      <span class="m-val">0.2d</span>
+      <span class="m-lbl">Days to Cover</span>
+    </div>
+    <div class="metric-box" style="--mc:#ef4444">
+      <span class="m-val">0.0×</span>
+      <span class="m-lbl">Volumen</span>
+    </div>
+    <div class="metric-box" style="--mc:#22c55e">
+      <span class="m-val">+16.1%<br><span style="font-size:0.75em;color:var(--color-text-secondary)">5T: +nan%</span></span>
+      <span class="m-lbl">Momentum</span>
+    </div>
+    <div class="metric-box" style="--mc:#22c55e">
+      <span class="m-val">1,3 Mio,</span>
+      <span class="m-lbl">Float</span>
+    </div>
+    <div class="metric-box" style="--mc:#94a3b8">
+      <span class="m-val">—</span>
+      <span class="m-lbl">SI-Trend</span>
+    </div>
+    <div class="metric-box" style="--mc:#94a3b8"><span class="m-val">—</span><span class="m-lbl">SSR Heute</span></div>
+  </div>
+  <button class="details-btn" onclick="toggleDetails(10)" id="db10" aria-expanded="false">
+    <span class="details-arrow" id="da10">▾</span><span id="dl10"> Details anzeigen</span>
+  </button>
+  <div class="details-body" id="dd10">
+    <div class="detail-table-wrap">
+      <table class="detail-table">
+        <tr><td>Marktkapitalisierung</td><td>$6 M</td></tr>
+        <tr><td>Float (frei handelbar)</td><td>1.3 Mio. Aktien</td></tr>
+        <tr><td>Sektor</td><td>Technology · Scientific & Technical Instruments</td></tr>
+        <tr><td>52W-Hoch / -Tief</td><td>$8.01 / $1.92</td></tr>
+        <tr><td>Ø Volumen 20T</td><td>6,955,939</td></tr>
+        <tr><td>Heutiges Volumen</td><td>nan</td></tr>
+        <tr><td>SEC-Meldungen</td><td><a href="https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&amp;CIK=ASTC&amp;type=&amp;dateb=&amp;owner=include&amp;count=10&amp;search_text=" target="_blank" rel="noopener noreferrer" class="edgar-link">EDGAR öffnen →</a></td></tr>
+        <tr><td>SI-Trend (3M)</td><td>Keine Daten</td></tr>
+        
+        <tr><td>Short-Vol. T-1 (FINRA)</td><td>—</td></tr>
+        <tr><td>Short-Vol. T-2</td><td>—</td></tr>
+        <tr><td>Short-Vol. T-3</td><td>—</td></tr>
+
+        <tr><td>RSI (14T)</td><td><span style="color:var(--txt)">51.2</span></td></tr><tr><td>MA 50T</td><td>$2.95</td></tr><tr><td>MA 200T</td><td>$4.01</td></tr><tr><td>Kurs vs. MA50</td><td><span style="color:#22c55e">(+12.4%)</span></td></tr><tr><td>Rel. Stärke (20T)</td><td><span style="color:#22c55e">+27.0% vs. S&amp;P 500 (Aktie +36.2%)</span></td></tr><tr><td>RS vs. Sektor (QQQ)</td><td><span style="color:#22c55e">+25.0%</span></td></tr><tr><td>Letztes Earnings</td><td><span style="color:#ef4444">❌ Miss -8%</span></td></tr>
+        
+        
+        <tr><td>Risiko-Detail</td><td style="color:#ef4444">Extrem hohes Short-Interesse (56.9 %) bedeutet massive Squeeze-Gefahr, aber auch starke Kursausschläge in beide Richtungen. Micro-Cap ($6 M) – geringe Liquidität, Kursmanipulation möglich.</td></tr>
+      </table>
+    </div>
+    
+    <div class="driver-row">
+      <span class="risk-badge" style="color:#ef4444;border-color:#ef444455;background:#ef444422">Risiko: HOCH</span>
+      <p class="driver-text">Short Float 56.9 % — sehr hohes Leerverkaufsinteresse, starkes Squeeze-Potenzial. +16.1 % heute — mögliche Margin Calls bei Leerverkäufern.</p>
+    </div>
+  </div>
+  <button class="news-btn" onclick="toggleNews(10)" id="nb10" aria-expanded="false">
+    <span id="nb-icon10">▼</span> Aktuelle Meldungen
+  </button>
+  <div class="news-panel" id="np10" hidden>
+    <div class="ki-signal-block">
+      <div class="ki-signal-header">&#9889; KI-Agent Signale</div>
+      <div class="ki-signal-body"></div>
+    </div>
+    <div class="news-items"><div class="ni"><a href="https://seekingalpha.com/symbol/ASTC/news?source=feed_symbol_ASTC" target="_blank" rel="noopener noreferrer">Astrotech GAAP EPS von -2,34 USD, Umsatz von 0,15 Mio. USD</a> <span class="ni-src">(Seeking Alpha)</span><span class="ni-meta">13.02.2026 16:53</span></div><div class="ni"><a href="https://seekingalpha.com/symbol/ASTC/news?source=feed_symbol_ASTC" target="_blank" rel="noopener noreferrer">Astrotech leitet die Prüfung strategischer Alternativen einschließlich Verkauf ein</a> <span class="ni-src">(Seeking Alpha)</span><span class="ni-meta">19.11.2025 14:29</span></div><div class="ni"><a href="https://seekingalpha.com/symbol/ASTC/news?source=feed_symbol_ASTC" target="_blank" rel="noopener noreferrer">Astrotech GAAP EPS von -2,07 USD, Umsatz von 0,29 Mio. USD</a> <span class="ni-src">(Seeking Alpha)</span><span class="ni-meta">13.11.2025 22:00</span></div></div>
+    <div class="news-summary-box">
+      <span class="summary-label">Zusammenfassung</span>
+      <p class="summary-text">Astrotech GAAP EPS von -2,34 USD, Umsatz von 0,15 Mio. USD. Weitere aktuelle Meldungen: Astrotech leitet Prüfung strategischer Alternativen inklusive Verkauf ein  –  Quelle: Seeking Alpha (13.02.2026 16:53)</p>
     </div>
   </div>
   <button class="ki-analyse-btn" id="ka-btn10" onclick="runKiAnalyse(10)">
@@ -2523,9 +2523,9 @@ function _fmtGerman(d) {
   const WL_KEY     = 'squeeze_watchlist';
   const WL_MAX     = 20;
   const WL_GH_PATH = 'watchlist_personal.json';
-  const WL_SCORES  = {"GRPN": 70.09, "IBG": 88.4, "LESL": 56.43, "HIMS": 54.75, "EVTL": 62.11, "DFDV": 39.83, "BFLY": 57.62, "NKTX": 62.91, "FWRD": 41.6, "WOLF": 48.54, "VOYG": 44.48, "GPRO": 43.73, "BB.TO": 39.26, "OCDO.L": 23.11, "INDI": 49.49, "TTEC": 73.92, "SKIL": 46.44, "XRX": 44.09, "AVTX": 41.45, "DBI": 63.65, "DFH": 47.62, "TMDX": 57.28, "ULCC": 68.66, "RRGB": 49.33, "CADL": 85.34, "HELE": 60.39, "LZM": 44.83, "RH": 52.18, "EVGO": 50.62, "CRVS": 79.65, "ABSI": 48.44, "TSHA": 61.07, "KURA": 70.59, "BMEA": 57.03, "AMC": 56.21, "PAL": 59.78, "IFRX": 56.75, "ALGT": 55.85, "STRZ": 57.16, "HTZ": 59.38, "CRDF": 65.04, "FLWS": 61.69, "ARTL": 77.14, "PRLD": 63.34, "SNSE": 62.91, "SST": 58.61, "ANAB": 66.42, "ASTC": 47.91, "KYTX": 62.41, "AOSL": 60.61, "CHMG": 55.86, "EBON": 53.07, "SILA": 51.88, "CMPS": 49.98, "VBNK": 49.06, "BYND": 80.79, "TTGT": 62.56, "DNUT": 59.53, "ASAN": 61.64, "CABO": 53.21, "PLCE": 56.02, "SANA": 51.16, "DMRC": 50.88, "IIIV": 50.71, "WRLD": 44.95};
-  const WL_TOP10   = {"FLWS": {"score": 61.69, "company_name": "1-800-FLOWERS.COM, Inc.", "sector": "Consumer Cyclical", "flag": "\ud83c\uddfa\ud83c\uddf8", "price": 4.46, "change": 15.0968, "change_5d": NaN, "short_float": 44.05, "short_ratio": 24.88, "rel_volume": 0.0, "float_shares": 8832112, "si_trend": "no_data", "si_tpct": 0.0, "si_velocity": 0.0, "si_accel": false, "si_t1": "\u2014", "si_t2": "\u2014", "si_t3": "\u2014", "rsi14": 78.94182182965187, "ma50": 3.401599998474121, "ma200": 4.333599998950958, "inst_ownership": null, "52w_high": 8.44, "52w_low": 2.89, "avg_vol_20d": 705244.4444444445, "cur_vol": NaN, "market_cap": 285733504, "earnings_days": 16, "earnings_date_str": "07.05.", "pc_ratio": 0.011011011011011011, "atm_iv": 1.5898458007812497, "rel_strength_20d": 38.910298433416756, "perf_20d": 48.17275921188798, "news": [{"title": "Nicht-Basiskonsumg\u00fcter \u2013 Spezialisierte Verbraucherdienstleistungen Q4-Ergebnis: 1-800-FLOWERS (NASDAQ:FLWS) Einfach das Beste", "link": "https://finance.yahoo.com/markets/stocks/articles/consumer-discretionary-specialized-consumer-services-090407540.html", "time": "17.04.2026 09:04", "source": "Yahoo Finance"}, {"title": "Die Aktien von 1-800-FLOWERS, Purple, Kontoor Brands, Royal Caribbean und Somnigroup fallen \u2013 was Sie wissen m\u00fcssen", "link": "https://finance.yahoo.com/markets/stocks/articles/1-800-flowers-purple-kontoor-211750113.html", "time": "07.04.2026 21:17", "source": "Yahoo Finance"}, {"title": "3 Gr\u00fcnde, warum FLWS riskant ist und 1 Aktie, die man stattdessen kaufen sollte", "link": "https://finance.yahoo.com/markets/stocks/articles/3-reasons-flws-risky-1-145951256.html", "time": "06.04.2026 14:59", "source": "Yahoo Finance"}]}, "PLCE": {"score": 56.02, "company_name": "The Children's Place, Inc.", "sector": "Consumer Cyclical", "flag": "\ud83c\uddfa\ud83c\uddf8", "price": 3.76, "change": 7.12251, "change_5d": NaN, "short_float": 36.94, "short_ratio": 11.07, "rel_volume": 0.0, "float_shares": 7774380, "si_trend": "no_data", "si_tpct": 0.0, "si_velocity": 0.0, "si_accel": false, "si_t1": "\u2014", "si_t2": "\u2014", "si_t3": "\u2014", "rsi14": 54.87318259459655, "ma50": 3.739599986076355, "ma200": 5.44375, "inst_ownership": null, "52w_high": 9.56, "52w_low": 2.76, "avg_vol_20d": 574183.3333333334, "cur_vol": NaN, "market_cap": 83516672, "earnings_days": 44, "earnings_date_str": "04.06.", "pc_ratio": 0.4199772985244041, "atm_iv": 1.0781296093750001, "rel_strength_20d": 3.650454435011497, "perf_20d": 12.91291521348272, "news": [{"title": "Die besten Mittagsableger", "link": "https://finance.yahoo.com/markets/stocks/articles/top-midday-decliners-182413091.html", "time": "13.04.2026 18:24", "source": "Yahoo Finance"}, {"title": "Der Children\u2019s Place rutscht um 14 % ab, da sich die Verluste im vierten Quartal versch\u00e4rfen", "link": "https://seekingalpha.com/symbol/PLCE/news?source=feed_symbol_PLCE", "time": "13.04.2026 09:35", "source": "Seeking Alpha"}, {"title": "Children\u2019s Place verfehlt die Umsatz- und Gewinnsch\u00e4tzungen f\u00fcr das vierte Quartal", "link": "https://seekingalpha.com/symbol/PLCE/news?source=feed_symbol_PLCE", "time": "13.04.2026 07:41", "source": "Seeking Alpha"}]}, "XRX": {"score": 53.4, "company_name": "Xerox Holdings Corporation", "sector": "Industrials", "flag": "\ud83c\uddfa\ud83c\uddf8", "price": 1.85, "change": 6.93642, "change_5d": NaN, "short_float": 33.97, "short_ratio": 9.26, "rel_volume": 0.0, "float_shares": 118615197, "si_trend": "no_data", "si_tpct": 0.0, "si_velocity": 0.0, "si_accel": false, "si_t1": "\u2014", "si_t2": "\u2014", "si_t3": "\u2014", "rsi14": 70.4202368823149, "ma50": 1.6049656200408935, "ma200": 2.9100465857982636, "inst_ownership": null, "52w_high": 6.8, "52w_low": 1.19, "avg_vol_20d": 3166244.4444444445, "cur_vol": NaN, "market_cap": 241936080, "earnings_days": 9, "earnings_date_str": "30.04.", "pc_ratio": 1.6186590989712664, "atm_iv": 1.0781296093750001, "rel_strength_20d": 29.47669556287041, "perf_20d": 38.73915634134163, "news": [{"title": "Interface, Pitney Bowes und Xerox Stocks Trade Up, was Sie wissen m\u00fcssen", "link": "https://finance.yahoo.com/markets/stocks/articles/interface-pitney-bowes-xerox-stocks-223226837.html", "time": "17.04.2026 22:32", "source": "Yahoo Finance"}, {"title": "Xerox: Es sieht nicht gut aus", "link": "https://seekingalpha.com/article/4889644-xerox-it-is-not-looking-good?source=feed_symbol_XRX", "time": "09.04.2026 22:08", "source": "Seeking Alpha"}, {"title": "Eine der beliebtesten Aktien der Wall Street, die es wert ist, untersucht zu werden, und zwei, die wir f\u00fcr riskant halten", "link": "https://finance.yahoo.com/markets/stocks/articles/1-wall-street-favorite-stock-102950751.html", "time": "07.04.2026 10:29", "source": "Yahoo Finance"}]}, "SANA": {"score": 51.16, "company_name": "Sana Biotechnology, Inc.", "sector": "Healthcare", "flag": "\ud83c\uddfa\ud83c\uddf8", "price": 3.82, "change": 8.52273, "change_5d": NaN, "short_float": 40.1, "short_ratio": 13.11, "rel_volume": 0.0, "float_shares": 177274342, "si_trend": "no_data", "si_tpct": 0.0, "si_velocity": 0.0, "si_accel": false, "si_t1": "\u2014", "si_t2": "\u2014", "si_t3": "\u2014", "rsi14": 65.12003771662744, "ma50": 3.4850000095367433, "ma200": 3.977299998998642, "inst_ownership": null, "52w_high": 6.55, "52w_low": 1.6, "avg_vol_20d": 3648455.5555555555, "cur_vol": NaN, "market_cap": 1019431552, "earnings_days": 16, "earnings_date_str": "07.05.", "pc_ratio": 0.047031158142269255, "atm_iv": 1.125004375, "rel_strength_20d": 13.567123211758982, "perf_20d": 22.829583990230205, "news": [{"title": "Wedbush erh\u00f6ht PT f\u00fcr Sana Biotechnology (SANA) von 6 US-Dollar auf 7 US-Dollar", "link": "https://finance.yahoo.com/markets/stocks/articles/wedbush-lifts-pt-sana-biotechnology-213015854.html", "time": "20.04.2026 21:30", "source": "Yahoo Finance"}, {"title": "Kailera erzielt einen Nettogewinn von 625 Millionen US-Dollar bei einem der gr\u00f6\u00dften B\u00f6rseng\u00e4nge im Biotechnologiebereich aller Zeiten", "link": "https://www.biopharmadive.com/news/kailera-ipo-price-obesity-drugs-hengrui-ron-renaud/817463/", "time": "16.04.2026 20:38", "source": "Yahoo Finance"}, {"title": "Sana Biotechnology: Mayo Clinic Deal ein positiver Schritt auf einer langen Reise", "link": "https://seekingalpha.com/article/4890677-sana-biotechnology-mayo-clinic-deal-positive-step-on-long-journey?source=feed_symbol_SANA", "time": "14.04.2026 20:18", "source": "Seeking Alpha"}]}, "DMRC": {"score": 50.88, "company_name": "Digimarc Corporation", "sector": "Technology", "flag": "\ud83c\uddfa\ud83c\uddf8", "price": 7.76, "change": 8.37989, "change_5d": NaN, "short_float": 29.28, "short_ratio": 9.41, "rel_volume": 0.0, "float_shares": 13977683, "si_trend": "no_data", "si_tpct": 0.0, "si_velocity": 0.0, "si_accel": false, "si_t1": "\u2014", "si_t2": "\u2014", "si_t3": "\u2014", "rsi14": 72.69000126683801, "ma50": 5.41960000038147, "ma200": 8.132800030708314, "inst_ownership": null, "52w_high": 14.64, "52w_low": 4.07, "avg_vol_20d": 199616.66666666666, "cur_vol": NaN, "market_cap": 171443920, "earnings_days": 13, "earnings_date_str": "04.05.", "pc_ratio": 0.8706896551724138, "atm_iv": 1.6015644921874999, "rel_strength_20d": 36.328539971227734, "perf_20d": 45.591000749698956, "news": [{"title": "H\u00f6hepunkte der Telefonkonferenz zu den Ergebnissen des vierten Quartals 2025 von Digimarc Corp (DMRC): Strategische Partnerschaften und technologische ...", "link": "https://finance.yahoo.com/news/digimarc-corp-dmrc-q4-2025-030036326.html", "time": "17.03.2026 03:00", "source": "Yahoo Finance"}, {"title": "Digimarc Corporation (DMRC) Q4 2025 Earnings Call Transcript", "link": "https://seekingalpha.com/article/4882916-digimarc-corporation-dmrc-q4-2025-earnings-call-transcript?source=feed_symbol_DMRC", "time": "16.03.2026 22:52", "source": "Seeking Alpha"}, {"title": "Highlights der Digimarc Q4 Earnings Call", "link": "https://www.marketbeat.com/instant-alerts/digimarc-q4-earnings-call-highlights-2026-03-16/?utm_source=yahoofinance&utm_medium=yahoofinance", "time": "16.03.2026 22:02", "source": "Yahoo Finance"}]}, "IIIV": {"score": 50.71, "company_name": "i3 Verticals, Inc.", "sector": "Technology", "flag": "\ud83c\uddfa\ud83c\uddf8", "price": 22.4, "change": 5.71024, "change_5d": NaN, "short_float": 32.5, "short_ratio": 11.13, "rel_volume": 0.0, "float_shares": 5545416, "si_trend": "no_data", "si_tpct": 0.0, "si_velocity": 0.0, "si_accel": false, "si_t1": "\u2014", "si_t2": "\u2014", "si_t3": "\u2014", "rsi14": 53.29032553911263, "ma50": 22.298600044250488, "ma200": 26.8852499961853, "inst_ownership": null, "52w_high": 33.97, "52w_low": 19.89, "avg_vol_20d": 320788.8888888889, "cur_vol": NaN, "market_cap": 694203328, "earnings_days": 16, "earnings_date_str": "07.05.", "pc_ratio": null, "atm_iv": null, "rel_strength_20d": -8.814028559229103, "perf_20d": 0.44843221924212057, "news": [{"title": "i3 Verticals (IIIV) fielen aufgrund von Bedenken hinsichtlich einer KI-St\u00f6rung", "link": "https://finance.yahoo.com/markets/stocks/articles/i3-verticals-iiiv-fell-concerns-125447730.html", "time": "17.04.2026 12:54", "source": "Yahoo Finance"}, {"title": "Wie sich die Erz\u00e4hlung von i3 Verticals (IIIV) nach den Zielk\u00fcrzungen der Analysten ver\u00e4ndert", "link": "https://finance.yahoo.com/markets/stocks/articles/i3-verticals-iiiv-narrative-shifting-060538763.html", "time": "24.03.2026 06:05", "source": "Yahoo Finance"}, {"title": "Wie sich die Geschichte von i3 Verticals (IIIV) ver\u00e4ndert, da die Ziele im Hinblick auf das Ausf\u00fchrungsrisiko neu ausgerichtet werden", "link": "https://finance.yahoo.com/news/i3-verticals-iiiv-story-shifting-051134727.html", "time": "08.03.2026 05:11", "source": "Yahoo Finance"}]}, "ASTC": {"score": 47.91, "company_name": "Astrotech Corporation", "sector": "Technology", "flag": "\ud83c\uddfa\ud83c\uddf8", "price": 3.31, "change": 16.1404, "change_5d": NaN, "short_float": 56.93, "short_ratio": 0.18, "rel_volume": 0.0, "float_shares": 1318078, "si_trend": "up", "si_tpct": 150.0, "si_velocity": -45.0, "si_accel": false, "si_t1": "284 Aktien (20.04.2026)", "si_t2": "78,443 Aktien (17.04.2026)", "si_t3": "34,997 Aktien (16.04.2026)", "rsi14": 51.172654284248466, "ma50": 2.9455999755859374, "ma200": 4.014749993085861, "inst_ownership": null, "52w_high": 8.01, "52w_low": 1.92, "avg_vol_20d": 6955938.888888889, "cur_vol": NaN, "market_cap": 5822137, "earnings_days": null, "earnings_date_str": null, "pc_ratio": null, "atm_iv": null, "rel_strength_20d": 26.95152489424052, "perf_20d": 36.21398567271174, "news": [{"title": "Astrotech GAAP-EPS von -2,34 USD, Umsatz von 0,15 Mio. USD", "link": "https://seekingalpha.com/symbol/ASTC/news?source=feed_symbol_ASTC", "time": "13.02.2026 16:53", "source": "Seeking Alpha"}, {"title": "Astrotech leitet die Pr\u00fcfung strategischer Alternativen einschlie\u00dflich Verkauf ein", "link": "https://seekingalpha.com/symbol/ASTC/news?source=feed_symbol_ASTC", "time": "19.11.2025 14:29", "source": "Seeking Alpha"}, {"title": "Astrotech GAAP-EPS von -2,07 USD, Umsatz von 0,29 Mio. USD", "link": "https://seekingalpha.com/symbol/ASTC/news?source=feed_symbol_ASTC", "time": "13.11.2025 22:00", "source": "Seeking Alpha"}]}, "DFH": {"score": 47.62, "company_name": "Dream Finders Homes, Inc.", "sector": "Consumer Cyclical", "flag": "\ud83c\uddfa\ud83c\uddf8", "price": 15.72, "change": 6.07288, "change_5d": NaN, "short_float": 40.26, "short_ratio": 6.22, "rel_volume": 0.0, "float_shares": 27807231, "si_trend": "no_data", "si_tpct": 0.0, "si_velocity": 0.0, "si_accel": false, "si_t1": "\u2014", "si_t2": "\u2014", "si_t3": "\u2014", "rsi14": 57.7462575979139, "ma50": 16.361799964904787, "ma200": 21.405549974441527, "inst_ownership": null, "52w_high": 31.495, "52w_low": 13.22, "avg_vol_20d": 596850.0, "cur_vol": NaN, "market_cap": 1443243776, "earnings_days": 14, "earnings_date_str": "05.05.", "pc_ratio": 0.14906832298136646, "atm_iv": 0.6562534375000001, "rel_strength_20d": 4.485734693024819, "perf_20d": 13.748195471496041, "news": [{"title": "Bauherrenvertrauen erreicht 7-Monats-Tief: So schneiden Small-Cap-Aktien im Wohnungsbau bei Quant-Ratings ab", "link": "https://seekingalpha.com/symbol/DFH/news?source=feed_symbol_DFH", "time": "15.04.2026 18:20", "source": "Seeking Alpha"}, {"title": "Top- und Bottom-Quant-Rating-Small-Cap-Aktien von Nicht-Basiskonsumg\u00fctern", "link": "https://seekingalpha.com/symbol/DFH/news?source=feed_symbol_DFH", "time": "14.03.2026 16:10", "source": "Seeking Alpha"}, {"title": "Dream Finders Homes: Bewertung trotz Aktienschw\u00e4che noch nicht \u00fcberzeugend", "link": "https://seekingalpha.com/article/4881590-dream-finders-homes-valuation-not-yet-compelling-despite-stock-weakness?source=feed_symbol_DFH", "time": "12.03.2026 14:08", "source": "Seeking Alpha"}]}, "SKIL": {"score": 46.44, "company_name": "Skillsoft Corp.", "sector": "Consumer Defensive", "flag": "\ud83c\uddfa\ud83c\uddf8", "price": 7.61, "change": 11.5836, "change_5d": NaN, "short_float": 20.76, "short_ratio": 9.85, "rel_volume": 0.0, "float_shares": 4555790, "si_trend": "no_data", "si_tpct": 0.0, "si_velocity": 0.0, "si_accel": false, "si_t1": "\u2014", "si_t2": "\u2014", "si_t3": "\u2014", "rsi14": 81.10658877741791, "ma50": 4.80639997959137, "ma200": 10.373750020265579, "inst_ownership": null, "52w_high": 24.01, "52w_low": 3.43, "avg_vol_20d": 296244.44444444444, "cur_vol": NaN, "market_cap": 67061704, "earnings_days": 48, "earnings_date_str": "08.06.", "pc_ratio": null, "atm_iv": null, "rel_strength_20d": 95.8588345117401, "perf_20d": 105.12129529021132, "news": [{"title": "Skillsoft (SKIL) zum Kauf aktualisiert: Hier ist der Grund", "link": "https://finance.yahoo.com/markets/stocks/articles/skillsoft-skil-upgraded-buy-heres-160005441.html", "time": "14.04.2026 16:00", "source": "Yahoo Finance"}, {"title": "Warum Skillsoft Corp. (NYSE:SKIL) sehenswert sein k\u00f6nnte", "link": "https://finance.yahoo.com/markets/stocks/articles/why-skillsoft-corp-nyse-skil-100342107.html", "time": "09.04.2026 10:03", "source": "Yahoo Finance"}, {"title": "Skillsoft (SKIL) Q1 2026 Earnings Call Transcript", "link": "https://www.fool.com/earnings/call-transcripts/2026/04/08/skillsoft-skil-q1-2026-earnings-call-transcript/", "time": "08.04.2026 14:05", "source": "Yahoo Finance"}]}, "WRLD": {"score": 44.95, "company_name": "World Acceptance Corporation", "sector": "Financial Services", "flag": "\ud83c\uddfa\ud83c\uddf8", "price": 149.3, "change": 5.60192, "change_5d": NaN, "short_float": 89.48, "short_ratio": 2.71, "rel_volume": 0.0, "float_shares": 2305851, "si_trend": "no_data", "si_tpct": 0.0, "si_velocity": 0.0, "si_accel": false, "si_t1": "\u2014", "si_t2": "\u2014", "si_t3": "\u2014", "rsi14": 58.62059607380958, "ma50": 135.97340026855468, "ma200": 150.51040012359618, "inst_ownership": null, "52w_high": 185.48, "52w_low": 110.0, "avg_vol_20d": 135855.55555555556, "cur_vol": NaN, "market_cap": 752185088, "earnings_days": 8, "earnings_date_str": "29.04.", "pc_ratio": null, "atm_iv": null, "rel_strength_20d": 4.837650866648891, "perf_20d": 14.100111645120114, "news": [{"title": "Prashad, CEO von World Acceptance, tritt zur\u00fcck, Janet Matricciani wird interimistisch in die Position berufen", "link": "https://seekingalpha.com/symbol/WRLD/news?source=feed_symbol_WRLD", "time": "13.04.2026 16:22", "source": "Seeking Alpha"}, {"title": "Laut SEC-Einreichung hat Thomas W. Smith seinen Yelp-Anteil reduziert, da die Werbung f\u00fcr lokale Dienstleistungen das Gesch\u00e4ft umgestaltet", "link": "https://www.fool.com/coverage/filings/2026/03/10/according-to-sec-filing-thomas-w-smith-trimmed-yelp-stake-as-local-services-advertising-reshapes-the-business/", "time": "10.03.2026 20:26", "source": "Yahoo Finance"}, {"title": "H\u00f6hepunkte der Telefonkonferenz zu den Ergebnissen des dritten Quartals 2026 von World Acceptance Corp (WRLD): Starkes Kundenwachstum und ...", "link": "https://finance.yahoo.com/news/world-acceptance-corp-wrld-q3-210453408.html", "time": "27.01.2026 21:04", "source": "Yahoo Finance"}]}};
-  const WL_HIST    = {"GRPN": {"scores": [100.0, 70.09], "dates": ["16.04.2026", "17.04.2026"], "col": "#ef4444", "trend": "\u2193 -29.9"}, "LESL": {"scores": [82.39, 56.43], "dates": ["16.04.2026", "17.04.2026"], "col": "#ef4444", "trend": "\u2193 -26.0"}, "HIMS": {"scores": [77.66, 57.21, 54.75], "dates": ["16.04.2026", "17.04.2026", "20.04.2026"], "col": "#ef4444", "trend": "\u2193 -22.9"}, "DFDV": {"scores": [61.81, 39.83], "dates": ["16.04.2026", "17.04.2026"], "col": "#ef4444", "trend": "\u2193 -22.0"}, "NKTX": {"scores": [57.11, 62.91, 62.91, 62.91], "dates": ["16.04.2026", "18.04.2026", "19.04.2026", "20.04.2026"], "col": "#22c55e", "trend": "\u2191 +5.8"}, "FWRD": {"scores": [58.55, 41.6], "dates": ["16.04.2026", "17.04.2026"], "col": "#ef4444", "trend": "\u2193 -16.9"}, "BB.TO": {"scores": [37.18, 39.26], "dates": ["16.04.2026", "17.04.2026"], "col": "#94a3b8", "trend": "\u2192 stabil"}, "SKIL": {"scores": [46.44, 46.44], "dates": ["17.04.2026", "21.04.2026"], "col": "#94a3b8", "trend": "\u2192 stabil"}, "XRX": {"scores": [73.66, 71.62, 78.62, 75.49, 44.09], "dates": ["17.04.2026", "18.04.2026", "19.04.2026", "20.04.2026", "21.04.2026"], "col": "#ef4444", "trend": "\u2193 -29.6"}, "DFH": {"scores": [64.14, 47.62], "dates": ["17.04.2026", "21.04.2026"], "col": "#ef4444", "trend": "\u2193 -16.5"}, "ULCC": {"scores": [68.81, 69.32, 59.32, 68.66], "dates": ["17.04.2026", "18.04.2026", "19.04.2026", "20.04.2026"], "col": "#94a3b8", "trend": "\u2192 stabil"}, "CADL": {"scores": [85.34, 75.34, 85.34, 85.34], "dates": ["17.04.2026", "18.04.2026", "19.04.2026", "20.04.2026"], "col": "#94a3b8", "trend": "\u2192 stabil"}, "HELE": {"scores": [54.34, 60.39], "dates": ["17.04.2026", "19.04.2026"], "col": "#22c55e", "trend": "\u2191 +6.0"}, "CRVS": {"scores": [79.33, 69.65, 79.65, 79.65], "dates": ["17.04.2026", "18.04.2026", "19.04.2026", "20.04.2026"], "col": "#94a3b8", "trend": "\u2192 stabil"}, "ABSI": {"scores": [66.19, 59.38, 66.38, 48.44], "dates": ["17.04.2026", "18.04.2026", "19.04.2026", "20.04.2026"], "col": "#ef4444", "trend": "\u2193 -17.8"}, "TSHA": {"scores": [60.79, 61.07, 61.07], "dates": ["17.04.2026", "18.04.2026", "20.04.2026"], "col": "#94a3b8", "trend": "\u2192 stabil"}, "KURA": {"scores": [60.46, 70.59, 60.59, 70.59], "dates": ["17.04.2026", "18.04.2026", "19.04.2026", "20.04.2026"], "col": "#22c55e", "trend": "\u2191 +10.1"}, "BMEA": {"scores": [56.33, 57.03, 57.03, 57.03], "dates": ["17.04.2026", "18.04.2026", "19.04.2026", "20.04.2026"], "col": "#94a3b8", "trend": "\u2192 stabil"}, "AMC": {"scores": [53.76, 56.21], "dates": ["17.04.2026", "18.04.2026"], "col": "#94a3b8", "trend": "\u2192 stabil"}, "PAL": {"scores": [59.78, 59.78, 59.78], "dates": ["18.04.2026", "19.04.2026", "20.04.2026"], "col": "#94a3b8", "trend": "\u2192 stabil"}, "ALGT": {"scores": [55.85, 55.85], "dates": ["18.04.2026", "20.04.2026"], "col": "#94a3b8", "trend": "\u2192 stabil"}, "STRZ": {"scores": [57.16, 57.16], "dates": ["19.04.2026", "20.04.2026"], "col": "#94a3b8", "trend": "\u2192 stabil"}, "HTZ": {"scores": [73.99, 59.38], "dates": ["19.04.2026", "20.04.2026"], "col": "#ef4444", "trend": "\u2193 -14.6"}, "FLWS": {"scores": [100.0, 61.69], "dates": ["20.04.2026", "21.04.2026"], "col": "#ef4444", "trend": "\u2193 -38.3"}, "ASTC": {"scores": [43.0, 47.91], "dates": ["20.04.2026", "21.04.2026"], "col": "#22c55e", "trend": "\u2191 +4.9"}};
+  const WL_SCORES  = {"GRPN": 70.09, "IBG": 88.4, "LESL": 56.43, "HIMS": 54.75, "EVTL": 62.11, "DFDV": 39.83, "BFLY": 57.62, "NKTX": 62.91, "FWRD": 41.6, "WOLF": 48.54, "VOYG": 44.48, "GPRO": 43.73, "BB.TO": 39.26, "OCDO.L": 23.11, "INDI": 49.49, "TTEC": 73.92, "SKIL": 46.44, "XRX": 44.09, "AVTX": 41.45, "DBI": 63.65, "DFH": 47.62, "TMDX": 57.28, "ULCC": 68.66, "RRGB": 49.33, "CADL": 85.34, "HELE": 60.39, "LZM": 44.83, "RH": 52.18, "EVGO": 50.62, "CRVS": 79.65, "ABSI": 48.44, "TSHA": 61.07, "KURA": 70.59, "BMEA": 57.03, "AMC": 56.21, "PAL": 59.78, "IFRX": 56.75, "ALGT": 55.85, "STRZ": 57.16, "HTZ": 59.38, "CRDF": 65.04, "FLWS": 61.69, "ARTL": 77.14, "PRLD": 63.34, "SNSE": 62.91, "SST": 58.61, "ANAB": 66.42, "ASTC": 42.91, "KYTX": 62.41, "AOSL": 60.61, "CHMG": 55.86, "EBON": 53.07, "SILA": 51.88, "CMPS": 49.98, "VBNK": 49.06, "BYND": 80.79, "TTGT": 62.56, "DNUT": 59.53, "ASAN": 61.64, "CABO": 53.21, "PLCE": 56.02, "SANA": 51.16, "DMRC": 50.88, "IIIV": 50.71, "WRLD": 44.95};
+  const WL_TOP10   = {"FLWS": {"score": 61.69, "company_name": "1-800-FLOWERS.COM, Inc.", "sector": "Consumer Cyclical", "flag": "\ud83c\uddfa\ud83c\uddf8", "price": 4.46, "change": 15.0968, "change_5d": NaN, "short_float": 44.05, "short_ratio": 24.88, "rel_volume": 0.0, "float_shares": 8832112, "si_trend": "no_data", "si_tpct": 0.0, "si_velocity": 0.0, "si_accel": false, "si_t1": "\u2014", "si_t2": "\u2014", "si_t3": "\u2014", "rsi14": 78.94182182965187, "ma50": 3.401599998474121, "ma200": 4.333599998950958, "inst_ownership": null, "52w_high": 8.44, "52w_low": 2.89, "avg_vol_20d": 705244.4444444445, "cur_vol": NaN, "market_cap": 285733504, "earnings_days": 16, "earnings_date_str": "07.05.", "pc_ratio": 0.011011011011011011, "atm_iv": 1.5898458007812497, "rel_strength_20d": 38.910298433416756, "perf_20d": 48.17275921188798, "news": [{"title": "Nicht-Basiskonsumg\u00fcter \u2013 Spezialisierte Verbraucherdienstleistungen Q4-Ergebnis: 1-800-FLOWERS (NASDAQ:FLWS) Einfach das Beste", "link": "https://finance.yahoo.com/markets/stocks/articles/consumer-discretionary-specialized-consumer-services-090407540.html", "time": "17.04.2026 09:04", "source": "Yahoo Finance"}, {"title": "Die Aktien von 1-800-FLOWERS, Purple, Kontoor Brands, Royal Caribbean und Somnigroup fallen \u2013 was Sie wissen m\u00fcssen", "link": "https://finance.yahoo.com/markets/stocks/articles/1-800-flowers-purple-kontoor-211750113.html", "time": "07.04.2026 21:17", "source": "Yahoo Finance"}, {"title": "3 Gr\u00fcnde, warum FLWS riskant ist und 1 Aktie, die man stattdessen kaufen sollte", "link": "https://finance.yahoo.com/markets/stocks/articles/3-reasons-flws-risky-1-145951256.html", "time": "06.04.2026 14:59", "source": "Yahoo Finance"}]}, "PLCE": {"score": 56.02, "company_name": "The Children's Place, Inc.", "sector": "Consumer Cyclical", "flag": "\ud83c\uddfa\ud83c\uddf8", "price": 3.76, "change": 7.12251, "change_5d": NaN, "short_float": 36.94, "short_ratio": 11.07, "rel_volume": 0.0, "float_shares": 7774380, "si_trend": "no_data", "si_tpct": 0.0, "si_velocity": 0.0, "si_accel": false, "si_t1": "\u2014", "si_t2": "\u2014", "si_t3": "\u2014", "rsi14": 54.87318259459655, "ma50": 3.739599986076355, "ma200": 5.44375, "inst_ownership": null, "52w_high": 9.56, "52w_low": 2.76, "avg_vol_20d": 574183.3333333334, "cur_vol": NaN, "market_cap": 83516672, "earnings_days": 44, "earnings_date_str": "04.06.", "pc_ratio": 0.4199772985244041, "atm_iv": 1.0781296093750001, "rel_strength_20d": 3.650454435011497, "perf_20d": 12.91291521348272, "news": [{"title": "Die besten Mittagsableger", "link": "https://finance.yahoo.com/markets/stocks/articles/top-midday-decliners-182413091.html", "time": "13.04.2026 18:24", "source": "Yahoo Finance"}, {"title": "Der Children\u2019s Place rutscht um 14 % ab, da sich die Verluste im vierten Quartal versch\u00e4rfen", "link": "https://seekingalpha.com/symbol/PLCE/news?source=feed_symbol_PLCE", "time": "13.04.2026 09:35", "source": "Seeking Alpha"}, {"title": "Children\u2019s Place verfehlt die Umsatz- und Gewinnsch\u00e4tzungen f\u00fcr das vierte Quartal", "link": "https://seekingalpha.com/symbol/PLCE/news?source=feed_symbol_PLCE", "time": "13.04.2026 07:41", "source": "Seeking Alpha"}]}, "XRX": {"score": 53.4, "company_name": "Xerox Holdings Corporation", "sector": "Industrials", "flag": "\ud83c\uddfa\ud83c\uddf8", "price": 1.85, "change": 6.93642, "change_5d": NaN, "short_float": 33.97, "short_ratio": 9.26, "rel_volume": 0.0, "float_shares": 118615197, "si_trend": "no_data", "si_tpct": 0.0, "si_velocity": 0.0, "si_accel": false, "si_t1": "\u2014", "si_t2": "\u2014", "si_t3": "\u2014", "rsi14": 70.4202368822681, "ma50": 1.6049656200408935, "ma200": 2.9100465989112854, "inst_ownership": null, "52w_high": 6.8, "52w_low": 1.19, "avg_vol_20d": 3166244.4444444445, "cur_vol": NaN, "market_cap": 241936080, "earnings_days": 9, "earnings_date_str": "30.04.", "pc_ratio": 1.6186590989712664, "atm_iv": 1.0781296093750001, "rel_strength_20d": 29.47669556287041, "perf_20d": 38.73915634134163, "news": [{"title": "Interface, Pitney Bowes und Xerox Stocks Trade Up, was Sie wissen m\u00fcssen", "link": "https://finance.yahoo.com/markets/stocks/articles/interface-pitney-bowes-xerox-stocks-223226837.html", "time": "17.04.2026 22:32", "source": "Yahoo Finance"}, {"title": "Xerox: Es sieht nicht gut aus", "link": "https://seekingalpha.com/article/4889644-xerox-it-is-not-looking-good?source=feed_symbol_XRX", "time": "09.04.2026 22:08", "source": "Seeking Alpha"}, {"title": "Eine der beliebtesten Aktien der Wall Street, die es wert ist, untersucht zu werden, und zwei, die wir f\u00fcr riskant halten", "link": "https://finance.yahoo.com/markets/stocks/articles/1-wall-street-favorite-stock-102950751.html", "time": "07.04.2026 10:29", "source": "Yahoo Finance"}]}, "SANA": {"score": 51.16, "company_name": "Sana Biotechnology, Inc.", "sector": "Healthcare", "flag": "\ud83c\uddfa\ud83c\uddf8", "price": 3.82, "change": 8.52273, "change_5d": NaN, "short_float": 40.1, "short_ratio": 13.11, "rel_volume": 0.0, "float_shares": 177274342, "si_trend": "no_data", "si_tpct": 0.0, "si_velocity": 0.0, "si_accel": false, "si_t1": "\u2014", "si_t2": "\u2014", "si_t3": "\u2014", "rsi14": 65.12003771662744, "ma50": 3.4850000095367433, "ma200": 3.977299998998642, "inst_ownership": null, "52w_high": 6.55, "52w_low": 1.6, "avg_vol_20d": 3648455.5555555555, "cur_vol": NaN, "market_cap": 1019431552, "earnings_days": 16, "earnings_date_str": "07.05.", "pc_ratio": 0.047031158142269255, "atm_iv": 1.125004375, "rel_strength_20d": 13.567123211758982, "perf_20d": 22.829583990230205, "news": [{"title": "Wedbush erh\u00f6ht PT f\u00fcr Sana Biotechnology (SANA) von 6 US-Dollar auf 7 US-Dollar", "link": "https://finance.yahoo.com/markets/stocks/articles/wedbush-lifts-pt-sana-biotechnology-213015854.html", "time": "20.04.2026 21:30", "source": "Yahoo Finance"}, {"title": "Kailera erzielt einen Nettogewinn von 625 Millionen US-Dollar bei einem der gr\u00f6\u00dften B\u00f6rseng\u00e4nge im Biotechnologiebereich aller Zeiten", "link": "https://www.biopharmadive.com/news/kailera-ipo-price-obesity-drugs-hengrui-ron-renaud/817463/", "time": "16.04.2026 20:38", "source": "Yahoo Finance"}, {"title": "Sana Biotechnology: Mayo Clinic Deal ein positiver Schritt auf einer langen Reise", "link": "https://seekingalpha.com/article/4890677-sana-biotechnology-mayo-clinic-deal-positive-step-on-long-journey?source=feed_symbol_SANA", "time": "14.04.2026 20:18", "source": "Seeking Alpha"}]}, "DMRC": {"score": 50.88, "company_name": "Digimarc Corporation", "sector": "Technology", "flag": "\ud83c\uddfa\ud83c\uddf8", "price": 7.76, "change": 8.37989, "change_5d": NaN, "short_float": 29.28, "short_ratio": 9.41, "rel_volume": 0.0, "float_shares": 13977683, "si_trend": "no_data", "si_tpct": 0.0, "si_velocity": 0.0, "si_accel": false, "si_t1": "\u2014", "si_t2": "\u2014", "si_t3": "\u2014", "rsi14": 72.69000126683801, "ma50": 5.41960000038147, "ma200": 8.132800030708314, "inst_ownership": null, "52w_high": 14.64, "52w_low": 4.07, "avg_vol_20d": 199616.66666666666, "cur_vol": NaN, "market_cap": 171443920, "earnings_days": 13, "earnings_date_str": "04.05.", "pc_ratio": 0.8706896551724138, "atm_iv": 1.6015644921874999, "rel_strength_20d": 36.328539971227734, "perf_20d": 45.591000749698956, "news": [{"title": "H\u00f6hepunkte der Telefonkonferenz zu den Ergebnissen des vierten Quartals 2025 von Digimarc Corp (DMRC): Strategische Partnerschaften und technologische ...", "link": "https://finance.yahoo.com/news/digimarc-corp-dmrc-q4-2025-030036326.html", "time": "17.03.2026 03:00", "source": "Yahoo Finance"}, {"title": "Digimarc Corporation (DMRC) Q4 2025 Earnings Call Transcript", "link": "https://seekingalpha.com/article/4882916-digimarc-corporation-dmrc-q4-2025-earnings-call-transcript?source=feed_symbol_DMRC", "time": "16.03.2026 22:52", "source": "Seeking Alpha"}, {"title": "Highlights der Digimarc Q4 Earnings Call", "link": "https://www.marketbeat.com/instant-alerts/digimarc-q4-earnings-call-highlights-2026-03-16/?utm_source=yahoofinance&utm_medium=yahoofinance", "time": "16.03.2026 22:02", "source": "Yahoo Finance"}]}, "IIIV": {"score": 50.71, "company_name": "i3 Verticals, Inc.", "sector": "Technology", "flag": "\ud83c\uddfa\ud83c\uddf8", "price": 22.4, "change": 5.71024, "change_5d": NaN, "short_float": 32.5, "short_ratio": 11.13, "rel_volume": 0.0, "float_shares": 5545416, "si_trend": "no_data", "si_tpct": 0.0, "si_velocity": 0.0, "si_accel": false, "si_t1": "\u2014", "si_t2": "\u2014", "si_t3": "\u2014", "rsi14": 53.29032553911263, "ma50": 22.298600044250488, "ma200": 26.8852499961853, "inst_ownership": null, "52w_high": 33.97, "52w_low": 19.89, "avg_vol_20d": 320788.8888888889, "cur_vol": NaN, "market_cap": 694203328, "earnings_days": 16, "earnings_date_str": "07.05.", "pc_ratio": null, "atm_iv": null, "rel_strength_20d": -8.814028559229103, "perf_20d": 0.44843221924212057, "news": [{"title": "i3 Verticals (IIIV) fielen aufgrund von Bedenken hinsichtlich einer KI-St\u00f6rung", "link": "https://finance.yahoo.com/markets/stocks/articles/i3-verticals-iiiv-fell-concerns-125447730.html", "time": "17.04.2026 12:54", "source": "Yahoo Finance"}, {"title": "Wie sich die Erz\u00e4hlung von i3 Verticals (IIIV) nach den Zielk\u00fcrzungen der Analysten ver\u00e4ndert", "link": "https://finance.yahoo.com/markets/stocks/articles/i3-verticals-iiiv-narrative-shifting-060538763.html", "time": "24.03.2026 06:05", "source": "Yahoo Finance"}, {"title": "Wie sich die Geschichte von i3 Verticals (IIIV) ver\u00e4ndert, da die Ziele im Hinblick auf das Ausf\u00fchrungsrisiko neu ausgerichtet werden", "link": "https://finance.yahoo.com/news/i3-verticals-iiiv-story-shifting-051134727.html", "time": "08.03.2026 05:11", "source": "Yahoo Finance"}]}, "DFH": {"score": 47.62, "company_name": "Dream Finders Homes, Inc.", "sector": "Consumer Cyclical", "flag": "\ud83c\uddfa\ud83c\uddf8", "price": 15.72, "change": 6.07288, "change_5d": NaN, "short_float": 40.26, "short_ratio": 6.22, "rel_volume": 0.0, "float_shares": 27807231, "si_trend": "no_data", "si_tpct": 0.0, "si_velocity": 0.0, "si_accel": false, "si_t1": "\u2014", "si_t2": "\u2014", "si_t3": "\u2014", "rsi14": 57.7462575979139, "ma50": 16.361799964904787, "ma200": 21.405549974441527, "inst_ownership": null, "52w_high": 31.495, "52w_low": 13.22, "avg_vol_20d": 596850.0, "cur_vol": NaN, "market_cap": 1443243776, "earnings_days": 14, "earnings_date_str": "05.05.", "pc_ratio": 0.14906832298136646, "atm_iv": 0.6562534375000001, "rel_strength_20d": 4.485734693024819, "perf_20d": 13.748195471496041, "news": [{"title": "Bauunternehmervertrauen erreicht 7-Monats-Tief: So schneiden Small-Cap-Aktien im Wohnungsbau bei Quant-Ratings ab", "link": "https://seekingalpha.com/symbol/DFH/news?source=feed_symbol_DFH", "time": "15.04.2026 18:20", "source": "Seeking Alpha"}, {"title": "Top- und Bottom-Quant-Rating-Small-Cap-Aktien von Nicht-Basiskonsumg\u00fctern", "link": "https://seekingalpha.com/symbol/DFH/news?source=feed_symbol_DFH", "time": "14.03.2026 16:10", "source": "Seeking Alpha"}, {"title": "Dream Finders Homes: Bewertung trotz Aktienschw\u00e4che noch nicht \u00fcberzeugend", "link": "https://seekingalpha.com/article/4881590-dream-finders-homes-valuation-not-yet-compelling-despite-stock-weakness?source=feed_symbol_DFH", "time": "12.03.2026 14:08", "source": "Seeking Alpha"}]}, "SKIL": {"score": 46.44, "company_name": "Skillsoft Corp.", "sector": "Consumer Defensive", "flag": "\ud83c\uddfa\ud83c\uddf8", "price": 7.61, "change": 11.5836, "change_5d": NaN, "short_float": 20.76, "short_ratio": 9.85, "rel_volume": 0.0, "float_shares": 4555790, "si_trend": "no_data", "si_tpct": 0.0, "si_velocity": 0.0, "si_accel": false, "si_t1": "\u2014", "si_t2": "\u2014", "si_t3": "\u2014", "rsi14": 81.10658877741791, "ma50": 4.80639997959137, "ma200": 10.373750020265579, "inst_ownership": null, "52w_high": 24.01, "52w_low": 3.43, "avg_vol_20d": 296244.44444444444, "cur_vol": NaN, "market_cap": 67061704, "earnings_days": 48, "earnings_date_str": "08.06.", "pc_ratio": null, "atm_iv": null, "rel_strength_20d": 95.8588345117401, "perf_20d": 105.12129529021132, "news": [{"title": "Skillsoft (SKIL) zum Kauf aktualisiert: Hier ist der Grund", "link": "https://finance.yahoo.com/markets/stocks/articles/skillsoft-skil-upgraded-buy-heres-160005441.html", "time": "14.04.2026 16:00", "source": "Yahoo Finance"}, {"title": "Warum Skillsoft Corp. (NYSE:SKIL) sehenswert sein k\u00f6nnte", "link": "https://finance.yahoo.com/markets/stocks/articles/why-skillsoft-corp-nyse-skil-100342107.html", "time": "09.04.2026 10:03", "source": "Yahoo Finance"}, {"title": "Skillsoft (SKIL) Q1 2026 Earnings Call Transcript", "link": "https://www.fool.com/earnings/call-transcripts/2026/04/08/skillsoft-skil-q1-2026-earnings-call-transcript/", "time": "08.04.2026 14:05", "source": "Yahoo Finance"}]}, "WRLD": {"score": 44.95, "company_name": "World Acceptance Corporation", "sector": "Financial Services", "flag": "\ud83c\uddfa\ud83c\uddf8", "price": 149.3, "change": 5.60192, "change_5d": NaN, "short_float": 89.48, "short_ratio": 2.71, "rel_volume": 0.0, "float_shares": 2305851, "si_trend": "no_data", "si_tpct": 0.0, "si_velocity": 0.0, "si_accel": false, "si_t1": "\u2014", "si_t2": "\u2014", "si_t3": "\u2014", "rsi14": 58.62059607380958, "ma50": 135.97340026855468, "ma200": 150.51040012359618, "inst_ownership": null, "52w_high": 185.48, "52w_low": 110.0, "avg_vol_20d": 135855.55555555556, "cur_vol": NaN, "market_cap": 752185088, "earnings_days": 8, "earnings_date_str": "29.04.", "pc_ratio": null, "atm_iv": null, "rel_strength_20d": 4.837650866648891, "perf_20d": 14.100111645120114, "news": [{"title": "Prashad, CEO von World Acceptance, tritt zur\u00fcck, Janet Matricciani wird interimistisch in die Position berufen", "link": "https://seekingalpha.com/symbol/WRLD/news?source=feed_symbol_WRLD", "time": "13.04.2026 16:22", "source": "Seeking Alpha"}, {"title": "Laut SEC-Einreichung hat Thomas W. Smith seinen Yelp-Anteil reduziert, da die Werbung f\u00fcr lokale Dienstleistungen das Gesch\u00e4ft umgestaltet", "link": "https://www.fool.com/coverage/filings/2026/03/10/according-to-sec-filing-thomas-w-smith-trimmed-yelp-stake-as-local-services-advertising-reshapes-the-business/", "time": "10.03.2026 20:26", "source": "Yahoo Finance"}, {"title": "H\u00f6hepunkte der Telefonkonferenz zu den Ergebnissen des dritten Quartals 2026 von World Acceptance Corp (WRLD): Starkes Kundenwachstum und ...", "link": "https://finance.yahoo.com/news/world-acceptance-corp-wrld-q3-210453408.html", "time": "27.01.2026 21:04", "source": "Yahoo Finance"}]}, "ASTC": {"score": 42.91, "company_name": "Astrotech Corporation", "sector": "Technology", "flag": "\ud83c\uddfa\ud83c\uddf8", "price": 3.31, "change": 16.1404, "change_5d": NaN, "short_float": 56.93, "short_ratio": 0.18, "rel_volume": 0.0, "float_shares": 1318078, "si_trend": "no_data", "si_tpct": 0.0, "si_velocity": 0.0, "si_accel": false, "si_t1": "\u2014", "si_t2": "\u2014", "si_t3": "\u2014", "rsi14": 51.172654284248466, "ma50": 2.9455999755859374, "ma200": 4.014749993085861, "inst_ownership": null, "52w_high": 8.01, "52w_low": 1.92, "avg_vol_20d": 6955938.888888889, "cur_vol": NaN, "market_cap": 5822137, "earnings_days": null, "earnings_date_str": null, "pc_ratio": null, "atm_iv": null, "rel_strength_20d": 26.95152489424052, "perf_20d": 36.21398567271174, "news": [{"title": "Astrotech GAAP EPS von -2,34 USD, Umsatz von 0,15 Mio. USD", "link": "https://seekingalpha.com/symbol/ASTC/news?source=feed_symbol_ASTC", "time": "13.02.2026 16:53", "source": "Seeking Alpha"}, {"title": "Astrotech leitet die Pr\u00fcfung strategischer Alternativen einschlie\u00dflich Verkauf ein", "link": "https://seekingalpha.com/symbol/ASTC/news?source=feed_symbol_ASTC", "time": "19.11.2025 14:29", "source": "Seeking Alpha"}, {"title": "Astrotech GAAP EPS von -2,07 USD, Umsatz von 0,29 Mio. USD", "link": "https://seekingalpha.com/symbol/ASTC/news?source=feed_symbol_ASTC", "time": "13.11.2025 22:00", "source": "Seeking Alpha"}]}};
+  const WL_HIST    = {"GRPN": {"scores": [100.0, 70.09], "dates": ["16.04.2026", "17.04.2026"], "col": "#ef4444", "trend": "\u2193 -29.9"}, "LESL": {"scores": [82.39, 56.43], "dates": ["16.04.2026", "17.04.2026"], "col": "#ef4444", "trend": "\u2193 -26.0"}, "HIMS": {"scores": [77.66, 57.21, 54.75], "dates": ["16.04.2026", "17.04.2026", "20.04.2026"], "col": "#ef4444", "trend": "\u2193 -22.9"}, "DFDV": {"scores": [61.81, 39.83], "dates": ["16.04.2026", "17.04.2026"], "col": "#ef4444", "trend": "\u2193 -22.0"}, "NKTX": {"scores": [57.11, 62.91, 62.91, 62.91], "dates": ["16.04.2026", "18.04.2026", "19.04.2026", "20.04.2026"], "col": "#22c55e", "trend": "\u2191 +5.8"}, "FWRD": {"scores": [58.55, 41.6], "dates": ["16.04.2026", "17.04.2026"], "col": "#ef4444", "trend": "\u2193 -16.9"}, "BB.TO": {"scores": [37.18, 39.26], "dates": ["16.04.2026", "17.04.2026"], "col": "#94a3b8", "trend": "\u2192 stabil"}, "SKIL": {"scores": [46.44, 46.44], "dates": ["17.04.2026", "21.04.2026"], "col": "#94a3b8", "trend": "\u2192 stabil"}, "XRX": {"scores": [73.66, 71.62, 78.62, 75.49, 44.09], "dates": ["17.04.2026", "18.04.2026", "19.04.2026", "20.04.2026", "21.04.2026"], "col": "#ef4444", "trend": "\u2193 -29.6"}, "DFH": {"scores": [64.14, 47.62], "dates": ["17.04.2026", "21.04.2026"], "col": "#ef4444", "trend": "\u2193 -16.5"}, "ULCC": {"scores": [68.81, 69.32, 59.32, 68.66], "dates": ["17.04.2026", "18.04.2026", "19.04.2026", "20.04.2026"], "col": "#94a3b8", "trend": "\u2192 stabil"}, "CADL": {"scores": [85.34, 75.34, 85.34, 85.34], "dates": ["17.04.2026", "18.04.2026", "19.04.2026", "20.04.2026"], "col": "#94a3b8", "trend": "\u2192 stabil"}, "HELE": {"scores": [54.34, 60.39], "dates": ["17.04.2026", "19.04.2026"], "col": "#22c55e", "trend": "\u2191 +6.0"}, "CRVS": {"scores": [79.33, 69.65, 79.65, 79.65], "dates": ["17.04.2026", "18.04.2026", "19.04.2026", "20.04.2026"], "col": "#94a3b8", "trend": "\u2192 stabil"}, "ABSI": {"scores": [66.19, 59.38, 66.38, 48.44], "dates": ["17.04.2026", "18.04.2026", "19.04.2026", "20.04.2026"], "col": "#ef4444", "trend": "\u2193 -17.8"}, "TSHA": {"scores": [60.79, 61.07, 61.07], "dates": ["17.04.2026", "18.04.2026", "20.04.2026"], "col": "#94a3b8", "trend": "\u2192 stabil"}, "KURA": {"scores": [60.46, 70.59, 60.59, 70.59], "dates": ["17.04.2026", "18.04.2026", "19.04.2026", "20.04.2026"], "col": "#22c55e", "trend": "\u2191 +10.1"}, "BMEA": {"scores": [56.33, 57.03, 57.03, 57.03], "dates": ["17.04.2026", "18.04.2026", "19.04.2026", "20.04.2026"], "col": "#94a3b8", "trend": "\u2192 stabil"}, "AMC": {"scores": [53.76, 56.21], "dates": ["17.04.2026", "18.04.2026"], "col": "#94a3b8", "trend": "\u2192 stabil"}, "PAL": {"scores": [59.78, 59.78, 59.78], "dates": ["18.04.2026", "19.04.2026", "20.04.2026"], "col": "#94a3b8", "trend": "\u2192 stabil"}, "ALGT": {"scores": [55.85, 55.85], "dates": ["18.04.2026", "20.04.2026"], "col": "#94a3b8", "trend": "\u2192 stabil"}, "STRZ": {"scores": [57.16, 57.16], "dates": ["19.04.2026", "20.04.2026"], "col": "#94a3b8", "trend": "\u2192 stabil"}, "HTZ": {"scores": [73.99, 59.38], "dates": ["19.04.2026", "20.04.2026"], "col": "#ef4444", "trend": "\u2193 -14.6"}, "FLWS": {"scores": [100.0, 61.69], "dates": ["20.04.2026", "21.04.2026"], "col": "#ef4444", "trend": "\u2193 -38.3"}, "ASTC": {"scores": [43.0, 42.91], "dates": ["20.04.2026", "21.04.2026"], "col": "#94a3b8", "trend": "\u2192 stabil"}};
 
   let _wlGhSha = null;
   let _wlCache = null;
@@ -3218,7 +3218,7 @@ Gib eine knappe Einschätzung: Squeeze-Potenzial, wichtigste Treiber, kritische 
 
 // ── Claude Chat Panel ─────────────────────────────────────────────────────────
 (function(){
-  const STOCKS_CTX = [{"ticker": "FLWS", "score": 61.7, "company": "1-800-FLOWERS.COM, Inc.", "price": 4.46, "change": 15.1, "short_float": 44.0, "short_ratio": 24.9, "rel_volume": 0.0, "si_trend": "no_data", "rsi14": 78.94182182965187, "atm_iv": 1.5898458007812497, "earnings_days": 16, "sector": "Consumer Cyclical"}, {"ticker": "PLCE", "score": 56.0, "company": "The Children's Place, Inc.", "price": 3.76, "change": 7.12, "short_float": 36.9, "short_ratio": 11.1, "rel_volume": 0.0, "si_trend": "no_data", "rsi14": 54.87318259459655, "atm_iv": 1.0781296093750001, "earnings_days": 44, "sector": "Consumer Cyclical"}, {"ticker": "XRX", "score": 53.4, "company": "Xerox Holdings Corporation", "price": 1.85, "change": 6.94, "short_float": 34.0, "short_ratio": 9.3, "rel_volume": 0.0, "si_trend": "no_data", "rsi14": 70.4202368823149, "atm_iv": 1.0781296093750001, "earnings_days": 9, "sector": "Industrials"}, {"ticker": "SANA", "score": 51.2, "company": "Sana Biotechnology, Inc.", "price": 3.82, "change": 8.52, "short_float": 40.1, "short_ratio": 13.1, "rel_volume": 0.0, "si_trend": "no_data", "rsi14": 65.12003771662744, "atm_iv": 1.125004375, "earnings_days": 16, "sector": "Healthcare"}, {"ticker": "DMRC", "score": 50.9, "company": "Digimarc Corporation", "price": 7.76, "change": 8.38, "short_float": 29.3, "short_ratio": 9.4, "rel_volume": 0.0, "si_trend": "no_data", "rsi14": 72.69000126683801, "atm_iv": 1.6015644921874999, "earnings_days": 13, "sector": "Technology"}, {"ticker": "IIIV", "score": 50.7, "company": "i3 Verticals, Inc.", "price": 22.4, "change": 5.71, "short_float": 32.5, "short_ratio": 11.1, "rel_volume": 0.0, "si_trend": "no_data", "rsi14": 53.29032553911263, "atm_iv": null, "earnings_days": 16, "sector": "Technology"}, {"ticker": "ASTC", "score": 47.9, "company": "Astrotech Corporation", "price": 3.31, "change": 16.14, "short_float": 56.9, "short_ratio": 0.2, "rel_volume": 0.0, "si_trend": "up", "rsi14": 51.172654284248466, "atm_iv": null, "earnings_days": null, "sector": "Technology"}, {"ticker": "DFH", "score": 47.6, "company": "Dream Finders Homes, Inc.", "price": 15.72, "change": 6.07, "short_float": 40.3, "short_ratio": 6.2, "rel_volume": 0.0, "si_trend": "no_data", "rsi14": 57.7462575979139, "atm_iv": 0.6562534375000001, "earnings_days": 14, "sector": "Consumer Cyclical"}, {"ticker": "SKIL", "score": 46.4, "company": "Skillsoft Corp.", "price": 7.61, "change": 11.58, "short_float": 20.8, "short_ratio": 9.8, "rel_volume": 0.0, "si_trend": "no_data", "rsi14": 81.10658877741791, "atm_iv": null, "earnings_days": 48, "sector": "Consumer Defensive"}, {"ticker": "WRLD", "score": 45.0, "company": "World Acceptance Corporation", "price": 149.3, "change": 5.6, "short_float": 89.5, "short_ratio": 2.7, "rel_volume": 0.0, "si_trend": "no_data", "rsi14": 58.62059607380958, "atm_iv": null, "earnings_days": 8, "sector": "Financial Services"}];
+  const STOCKS_CTX = [{"ticker": "FLWS", "score": 61.7, "company": "1-800-FLOWERS.COM, Inc.", "price": 4.46, "change": 15.1, "short_float": 44.0, "short_ratio": 24.9, "rel_volume": 0.0, "si_trend": "no_data", "rsi14": 78.94182182965187, "atm_iv": 1.5898458007812497, "earnings_days": 16, "sector": "Consumer Cyclical"}, {"ticker": "PLCE", "score": 56.0, "company": "The Children's Place, Inc.", "price": 3.76, "change": 7.12, "short_float": 36.9, "short_ratio": 11.1, "rel_volume": 0.0, "si_trend": "no_data", "rsi14": 54.87318259459655, "atm_iv": 1.0781296093750001, "earnings_days": 44, "sector": "Consumer Cyclical"}, {"ticker": "XRX", "score": 53.4, "company": "Xerox Holdings Corporation", "price": 1.85, "change": 6.94, "short_float": 34.0, "short_ratio": 9.3, "rel_volume": 0.0, "si_trend": "no_data", "rsi14": 70.4202368822681, "atm_iv": 1.0781296093750001, "earnings_days": 9, "sector": "Industrials"}, {"ticker": "SANA", "score": 51.2, "company": "Sana Biotechnology, Inc.", "price": 3.82, "change": 8.52, "short_float": 40.1, "short_ratio": 13.1, "rel_volume": 0.0, "si_trend": "no_data", "rsi14": 65.12003771662744, "atm_iv": 1.125004375, "earnings_days": 16, "sector": "Healthcare"}, {"ticker": "DMRC", "score": 50.9, "company": "Digimarc Corporation", "price": 7.76, "change": 8.38, "short_float": 29.3, "short_ratio": 9.4, "rel_volume": 0.0, "si_trend": "no_data", "rsi14": 72.69000126683801, "atm_iv": 1.6015644921874999, "earnings_days": 13, "sector": "Technology"}, {"ticker": "IIIV", "score": 50.7, "company": "i3 Verticals, Inc.", "price": 22.4, "change": 5.71, "short_float": 32.5, "short_ratio": 11.1, "rel_volume": 0.0, "si_trend": "no_data", "rsi14": 53.29032553911263, "atm_iv": null, "earnings_days": 16, "sector": "Technology"}, {"ticker": "DFH", "score": 47.6, "company": "Dream Finders Homes, Inc.", "price": 15.72, "change": 6.07, "short_float": 40.3, "short_ratio": 6.2, "rel_volume": 0.0, "si_trend": "no_data", "rsi14": 57.7462575979139, "atm_iv": 0.6562534375000001, "earnings_days": 14, "sector": "Consumer Cyclical"}, {"ticker": "SKIL", "score": 46.4, "company": "Skillsoft Corp.", "price": 7.61, "change": 11.58, "short_float": 20.8, "short_ratio": 9.8, "rel_volume": 0.0, "si_trend": "no_data", "rsi14": 81.10658877741791, "atm_iv": null, "earnings_days": 48, "sector": "Consumer Defensive"}, {"ticker": "WRLD", "score": 45.0, "company": "World Acceptance Corporation", "price": 149.3, "change": 5.6, "short_float": 89.5, "short_ratio": 2.7, "rel_volume": 0.0, "si_trend": "no_data", "rsi14": 58.62059607380958, "atm_iv": null, "earnings_days": 8, "sector": "Financial Services"}, {"ticker": "ASTC", "score": 42.9, "company": "Astrotech Corporation", "price": 3.31, "change": 16.14, "short_float": 56.9, "short_ratio": 0.2, "rel_volume": 0.0, "si_trend": "no_data", "rsi14": 51.172654284248466, "atm_iv": null, "earnings_days": null, "sector": "Technology"}];
   let _history = [];
   let _open    = false;
 
