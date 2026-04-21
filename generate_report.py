@@ -87,9 +87,14 @@ def _parse_float(s: str) -> float:
 # 1a. YAHOO FINANCE SCREENER  (primary — direct JSON API, no yf.Screener)
 # ===========================================================================
 
-# Markets to scan: region code → list of predefined screener IDs
+# Markets to scan: region code → list of predefined screener IDs.
+# Die US-Liste hängt auch EXTRA_SCREENERS aus config.py an — erweitert den
+# Kandidatenpool um zusätzliche Kategorien (z.B. undervalued_growth_stocks,
+# day_gainers). Duplikate zwischen Screenern werden per seen-Set (siehe
+# _add_quotes) deduped.
 _YF_SCREENERS: dict[str, list[str]] = {
-    "US": ["most_shorted_stocks", "small_cap_gainers", "aggressive_small_caps"],
+    "US": ["most_shorted_stocks", "small_cap_gainers", "aggressive_small_caps"]
+          + list(EXTRA_SCREENERS or []),
     "DE": ["most_shorted_stocks", "small_cap_gainers"],   # XETRA / Frankfurt
     "GB": ["most_shorted_stocks", "small_cap_gainers"],   # London Stock Exchange
     "FR": ["most_shorted_stocks", "small_cap_gainers"],   # Euronext Paris
@@ -336,6 +341,62 @@ def get_finviz_candidates(max_pages: int = 6) -> list[dict]:
         time.sleep(1.5)  # polite rate-limit
 
     return candidates
+
+
+def get_finviz_screener_v111(max_tickers: int | None = None) -> list[dict]:
+    """Finviz Screener (view 111) — **zusätzliche** Quelle zum Yahoo-Pool.
+
+    URL-Filter:  sh_short_o20 (SF>20%)  + sh_price_o1 (>$1)
+               + sh_relvol_o1.5 (≥1.5×) + cap_smallover (Small+)
+               sortiert nach Short Float absteigend.
+
+    Extrahiert nur Ticker (keine Detail-Spalten) und liefert
+    minimal-ausgestattete Candidate-Dicts; Enrichment füllt den Rest.
+
+    Config: FINVIZ_SCREENER_ENABLED=True aktiviert den Aufruf,
+            FINVIZ_MAX_TICKERS begrenzt die Ergebniszahl.
+    Bei HTTP-Fehler oder Parser-Ausfall: stillschweigend [] zurück.
+    """
+    if not FINVIZ_SCREENER_ENABLED:
+        return []
+    limit = max_tickers or FINVIZ_MAX_TICKERS
+    url = ("https://finviz.com/screener.ashx"
+           "?v=111&f=sh_short_o20,sh_price_o1,sh_relvol_o1.5,cap_smallover"
+           "&ft=4&o=-shortfloat")
+    try:
+        resp = requests.get(url, headers=HTTP_HEADERS, timeout=15)
+        if resp.status_code != 200:
+            print(f"Finviz Screener: HTTP {resp.status_code} — übersprungen", flush=True)
+            return []
+    except Exception as exc:
+        print(f"Finviz Screener: Fehler {exc} — übersprungen", flush=True)
+        return []
+
+    # Ticker-Symbole aus Finviz-Quote-Links extrahieren; v=111 zeigt die
+    # Tabelle mit quote.ashx?t=<TICKER>-Links. Regex ist robust gegen
+    # Markup-Varianten und vermeidet einen harten BeautifulSoup-Pfad.
+    tickers: list[str] = []
+    seen: set[str] = set()
+    for m in re.finditer(r'quote\.ashx\?t=([A-Z0-9.\-]{1,12})(?:&|")', resp.text):
+        t = m.group(1).upper()
+        if t in seen:
+            continue
+        seen.add(t)
+        tickers.append(t)
+        if len(tickers) >= limit:
+            break
+
+    print(f"Finviz Screener: {len(tickers)} Ticker geladen", flush=True)
+    # Minimal-Candidate-Dicts — Enrichment-Schleife füllt alle fehlenden Felder
+    return [{
+        "ticker":       t,
+        "market":       "US",
+        "source":       "finviz_screener_v111",
+        "short_float":  0.0,
+        "short_ratio":  0.0,
+        "rel_volume":   0.0,
+        "company_name": t,
+    } for t in tickers]
 
 
 # ===========================================================================
@@ -892,6 +953,98 @@ def get_earnings_surprise(ticker: str) -> dict | None:
     except Exception as exc:
         log.debug("earnings_surprise parse failed for %s: %s", ticker, exc)
     return None
+
+
+def fetch_stockanalysis_si(ticker: str) -> float | None:
+    """Fetch wöchentlichen Short-Interest-Prozentwert von stockanalysis.com.
+
+    Nur für US-Ticker sinnvoll (stockanalysis indexiert keine .DE/.L/.HK).
+    Parser ist defensiv: akzeptiert Zeilen wie „Short % of Float: X.XX%"
+    oder Tabellenfelder gleicher Semantik. Rückgabe None bei HTTP-Fehler,
+    ungültigem Parse oder deaktiviertem Flag.
+    """
+    if not STOCKANALYSIS_SI_ENABLED or "." in ticker:
+        return None
+    url = f"https://stockanalysis.com/stocks/{ticker.lower()}/"
+    try:
+        resp = requests.get(url, headers=HTTP_HEADERS, timeout=8)
+        if resp.status_code != 200:
+            return None
+    except Exception as exc:
+        log.debug("stockanalysis %s: %s", ticker, exc)
+        return None
+    # Primärer Parser: Regex auf „Short % of Float"-Label gefolgt von Prozent-Zahl.
+    # Stockanalysis rendert die Zahl in einem <td> direkt nach dem Label-<td>.
+    m = re.search(
+        r'Short\s*%\s*of\s*Float[^<]*</t[dh]>\s*<t[dh][^>]*>\s*([\d.]+)\s*%',
+        resp.text, re.IGNORECASE,
+    )
+    if m:
+        try:
+            return round(float(m.group(1)), 2)
+        except ValueError:
+            return None
+    # Fallback: JSON-LD / data-Attribute (manche Seiten encoden Zahlen so)
+    m = re.search(r'"shortPercentOfFloat"\s*:\s*([\d.]+)', resp.text)
+    if m:
+        try:
+            return round(float(m.group(1)) * (100 if float(m.group(1)) <= 1 else 1), 2)
+        except ValueError:
+            return None
+    return None
+
+
+def fetch_earningswhispers_rss() -> dict[str, dict]:
+    """EarningsWhispers RSS — einmal pro Run, liefert {ticker → {date, eps_estimate}}.
+
+    URL: https://www.earningswhispers.com/rss/earningscalendar.asp
+
+    Der Feed enthält ~50 nächste US-Earnings-Termine. Titel-Format ist
+    in der Regel „TICKER — DD.MM.YYYY (vor/nach Markt) — Exp. $X.XX".
+    Parser ist tolerant gegenüber leichten Formatvarianten.
+
+    Rückgabe: dict ticker → {"date": ISO-String, "eps_estimate": float|None}
+    Bei HTTP-Fehler: leeres Dict (Fallback auf yfinance im Consumer).
+    """
+    if not EARNINGSWHISPERS_ENABLED:
+        return {}
+    url = "https://www.earningswhispers.com/rss/earningscalendar.asp"
+    try:
+        resp = requests.get(url, headers=HTTP_HEADERS, timeout=10)
+        if resp.status_code != 200:
+            print(f"EarningsWhispers: HTTP {resp.status_code} — übersprungen", flush=True)
+            return {}
+    except Exception as exc:
+        print(f"EarningsWhispers: Fehler {exc} — übersprungen", flush=True)
+        return {}
+    out: dict[str, dict] = {}
+    try:
+        root = ET.fromstring(resp.content)
+        for item in root.findall(".//item"):
+            title = (item.findtext("title") or "").strip()
+            pub   = (item.findtext("pubDate") or "").strip()
+            # Ticker: erstes Token bis nicht-Buchstaben
+            mt = re.match(r'^([A-Z0-9.\-]{1,12})\b', title)
+            if not mt:
+                continue
+            sym = mt.group(1)
+            # EPS-Schätzung: "Exp. $X.XX"
+            me = re.search(r'Exp\.\s*\$?\s*([\d.]+)', title)
+            eps = float(me.group(1)) if me else None
+            # Datum: aus pubDate via email.utils.parsedate_to_datetime (robust)
+            date_iso = None
+            if pub:
+                try:
+                    dt = parsedate_to_datetime(pub)
+                    date_iso = dt.date().isoformat()
+                except Exception:
+                    pass
+            out[sym] = {"date": date_iso, "eps_estimate": eps}
+    except ET.ParseError as exc:
+        print(f"EarningsWhispers: Parser-Fehler {exc}", flush=True)
+        return {}
+    print(f"EarningsWhispers: {len(out)} Termine geladen", flush=True)
+    return out
 
 
 _SEC_HEADERS = {"User-Agent": "SqueezeReport/1.0 github-actions@squeeze-report.com"}
@@ -4974,9 +5127,25 @@ def main():
     candidates = get_yahoo_screener_candidates()
 
     if not candidates:
-        # Fallback: Finviz (may be blocked on cloud IPs, but worth trying)
+        # Fallback: Finviz v141 (may be blocked on cloud IPs, but worth trying)
         log.warning("Yahoo screener returned 0 results. Trying Finviz as fallback …")
         candidates = get_finviz_candidates(max_pages=6)
+
+    # Zusätzliche Quelle: Finviz v=111 mit SF>20% + Rel-Vol≥1.5× + Small+-Cap.
+    # Läuft parallel zur Yahoo-Primärquelle (nicht nur als Fallback) — erweitert
+    # die Kandidaten-Vielfalt um hochspezifische Short-Kandidaten.
+    if FINVIZ_SCREENER_ENABLED:
+        fv_extra = get_finviz_screener_v111()
+        seen_ids = {c["ticker"] for c in candidates}
+        n_new = 0
+        for fv in fv_extra:
+            if fv["ticker"] not in seen_ids:
+                candidates.append(fv)
+                seen_ids.add(fv["ticker"])
+                n_new += 1
+        if fv_extra:
+            log.info("Finviz v=111 supplement: %d Ticker gesamt, %d neu im Pool",
+                     len(fv_extra), n_new)
 
     log.info("Candidate pool: %d tickers", len(candidates))
 
@@ -4986,6 +5155,10 @@ def main():
             "Screener-Verbindung fehlgeschlagen (Yahoo Finance &amp; Finviz). "
             "Bitte manuell neu starten.")
         return
+
+    # EarningsWhispers-Cache einmal pro Run vorladen — wird später bei
+    # Top-10-Enrichment (Step 3c) als Preference über yfinance.Calendar genutzt.
+    ew_calendar = fetch_earningswhispers_rss() if EARNINGSWHISPERS_ENABLED else {}
 
     # Supplement with watchlist volume scan (JP, HK, KR + any that screener missed)
     # — nur wenn INTL_SCREENING_ENABLED; sonst komplett übersprungen.
@@ -5422,10 +5595,36 @@ def main():
           f"{_opts_elapsed:.1f}s abgerufen — {_n_ok} mit Daten, {_n_na} ohne", flush=True)
 
     # Parallel earnings date fetch (US-only, max 5 threads).
+    # EarningsWhispers-Override: falls der Ticker im RSS-Cache ist, nutzen wir
+    # dessen präziseren Termin + EPS-Schätzung statt yfinance.calendar.
     _t_earn = time.time()
     log.info("Step 3c – Fetching earnings dates for %d US stocks …", len(us_top10))
+    _today_et = datetime.now(EASTERN).date() if 'EASTERN' in globals() else datetime.now(ZoneInfo("America/New_York")).date()
+    _ew_applied = 0
+    _ew_tickers = [s for s in us_top10 if s["ticker"] in ew_calendar]
+    for s in _ew_tickers:
+        entry = ew_calendar.get(s["ticker"], {})
+        iso = entry.get("date")
+        if not iso:
+            continue
+        try:
+            edate = datetime.strptime(iso, "%Y-%m-%d").date()
+            days = (edate - _today_et).days
+            if days >= 0:
+                s["earnings_days"]     = days
+                s["earnings_date_str"] = edate.strftime("%d.%m.")
+                if entry.get("eps_estimate") is not None:
+                    s["earnings_eps_estimate"] = entry["eps_estimate"]
+                _ew_applied += 1
+        except Exception:
+            continue
+    if _ew_applied:
+        print(f"EarningsWhispers-Override angewendet: {_ew_applied} Ticker", flush=True)
+
+    _remaining_for_yf = [s for s in us_top10 if s.get("earnings_days") is None]
     with ThreadPoolExecutor(max_workers=5) as _earn_ex:
-        _earn_futures = {_earn_ex.submit(get_earnings_date, s["ticker"]): s for s in us_top10}
+        _earn_futures = {_earn_ex.submit(get_earnings_date, s["ticker"]): s
+                         for s in _remaining_for_yf}
         try:
             for _fut in as_completed(_earn_futures, timeout=_POOL_STEP3_TIMEOUT):
                 _days, _dstr = _fut.result()
@@ -5435,7 +5634,35 @@ def main():
             print(f"Earnings-Termine: Pool-Timeout nach {_POOL_STEP3_TIMEOUT}s — verbleibende Ticker übersprungen",
                   flush=True)
             log.warning("earnings as_completed timeout — skipping remaining futures")
-    print(f"Earnings-Termine: {len(us_top10)} Ticker in {time.time()-_t_earn:.1f}s abgerufen", flush=True)
+    print(f"Earnings-Termine: {len(us_top10)} Ticker (yf: {len(_remaining_for_yf)}, EW: {_ew_applied}) in "
+          f"{time.time()-_t_earn:.1f}s abgerufen", flush=True)
+
+    # Stockanalysis.com Short-Interest-Override (US-Top-10, parallel).
+    # Stockanalysis publiziert wöchentlich — jünger als yfinance-Snapshot.
+    # Wert wird nur übernommen, wenn erfolgreich geparst; yfinance bleibt
+    # sonst autoritativ.
+    if STOCKANALYSIS_SI_ENABLED:
+        _t_sa = time.time()
+        log.info("Step 3c3 – Stockanalysis.com SI für %d US-Ticker …", len(us_top10))
+        with ThreadPoolExecutor(max_workers=5) as _sa_ex:
+            _sa_futures = {_sa_ex.submit(fetch_stockanalysis_si, s["ticker"]): s
+                           for s in us_top10}
+            try:
+                for _fut in as_completed(_sa_futures, timeout=_POOL_STEP3_TIMEOUT):
+                    sa_val = _fut.result()
+                    if sa_val is None:
+                        continue
+                    st = _sa_futures[_fut]
+                    yf_val = st.get("short_float", 0.0)
+                    # Sanity: 0 < sa_val < 100; prefer stockanalysis
+                    if 0 < sa_val < 100 and abs(sa_val - yf_val) > 0.1:
+                        print(f"{st['ticker']} SI aktualisiert: yfinance={yf_val:.1f}% → "
+                              f"stockanalysis={sa_val:.1f}%", flush=True)
+                        st["short_float"] = sa_val
+                        st["short_float_source"] = "stockanalysis"
+            except TimeoutError:
+                log.warning("stockanalysis SI Pool-Timeout")
+        print(f"Stockanalysis SI: abgeschlossen in {time.time()-_t_sa:.1f}s", flush=True)
 
     # Feature 3 — Parallel earnings-surprise fetch (US-only, max 5 threads).
     if SHOW_EARNINGS_SURPRISE:

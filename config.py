@@ -48,6 +48,18 @@ INTL_SCREENING_ENABLED = False
 # True:  Reaktiviert den parallelen SEC-EDGAR-Scan für US-Top-10.
 SEC_13F_ENABLED = False
 
+# ── Zusätzliche Datenquellen (erweiterte Kandidaten-Vielfalt, 2026-04) ───────
+# 1) Finviz-Screener als zusätzliche Quelle (nicht nur Fallback)
+FINVIZ_SCREENER_ENABLED = True
+FINVIZ_MAX_TICKERS      = 50
+# 2) Stockanalysis.com Wochen-SI: für US-Top-10 überschreiben
+STOCKANALYSIS_SI_ENABLED = True
+STOCKANALYSIS_SI_MAX_AGE_DAYS = 7
+# 3) EarningsWhispers-RSS für präzisere Earnings-Termine (einmal pro Run)
+EARNINGSWHISPERS_ENABLED = True
+# 4) Zusätzliche Yahoo-US-Screener (erweitert den Pool)
+EXTRA_SCREENERS = ["undervalued_growth_stocks", "day_gainers"]
+
 # ── Farbschwellen der Kennzahlenkacheln ──────────────────────────────────────
 SF_GREEN   = 30.0   # % Short Float ≥ 30 → grün
 SF_ORANGE  = 15.0   # % Short Float 15-29 → orange, <15 → rot
