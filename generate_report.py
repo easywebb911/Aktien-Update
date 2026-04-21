@@ -4062,6 +4062,17 @@ function _fmtGerman(d) {{
 
       const top10Set = new Set(Object.keys(WL_TOP10));
 
+      // Bug 2 — Sortierung nach Score absteigend. Quellen: Top-10-Ticker aus
+      // WL_TOP10[t].score; sonst WL_SCORES[t] (Score-History).
+      // Fehlt beides → 0 (landet ans Ende).
+      const scoreOf = (t) => {{
+        const v = top10Set.has(t)
+          ? (WL_TOP10[t] && WL_TOP10[t].score)
+          : WL_SCORES[t];
+        return (v != null && isFinite(+v)) ? +v : 0;
+      }};
+      arr.sort((a, b) => scoreOf(b) - scoreOf(a));
+
       grid.innerHTML = arr.map(ticker => {{
         const inTop   = top10Set.has(ticker);
         const scoreVal = inTop
@@ -4073,7 +4084,9 @@ function _fmtGerman(d) {{
         const h = WL_HIST[ticker];
         const trendArrow = h ? (h.col === '#22c55e' ? '\u2191' : h.col === '#ef4444' ? '\u2193' : '\u2192') : '';
         const trendCol   = h ? h.col : '#94a3b8';
-        return `<div class="wl-card" data-ticker="${{ticker}}">
+        // Bug 1 — card-manual-Klasse für dunkelgrünen Hintergrund + hellgrünen Rand
+        // (Specificity 0,2,0 via .wl-card.card-manual-Regel in head.jinja)
+        return `<div class="wl-card card-manual" data-ticker="${{ticker}}">
           ${{inTop ? '<span class="wl-badge-star">\u2605</span>' : ''}}
           <div class="wl-card-header">
             <div style="display:flex;align-items:center;gap:4px;width:100%">

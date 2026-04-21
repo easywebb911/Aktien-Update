@@ -200,6 +200,9 @@ a{color:var(--accent);text-decoration:none}
   font-style:italic}
 .wl-cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:8px}
 .wl-card{background:var(--bg-card);border:1px solid #3b82f644;border-radius:10px;position:relative}
+/* Alle Watchlist-Kompaktkacheln bekommen dunkelgrünen Hintergrund +
+   hellgrünen Rand. Specificity 0,2,0 schlägt die basis .wl-card-Regel. */
+.wl-card.card-manual{background:rgba(20,83,45,0.35);border:1.5px solid rgba(74,222,128,0.6)}
 .wl-card--expanded{grid-column:1/-1}
 .wl-card-header{display:flex;flex-direction:column;align-items:flex-start;gap:4px;padding:8px}
 .wl-card-ticker{font-size:.9rem;font-weight:800;color:var(--txt)}
