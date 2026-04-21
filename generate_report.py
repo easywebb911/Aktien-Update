@@ -2247,7 +2247,7 @@ def _card(i: int, s: dict) -> str:
         rank_html = f'<span class="rank">{i}</span>'
 
     return f"""
-<article class="card{' card-manual' if s.get('manual_personal') else ''}" id="c{i}" data-ticker="{s['ticker']}"
+<article class="card{' card-manual' if s.get('manual_personal') else ''}{' card-lazy' if (LAZY_CARDS_ENABLED and i > LAZY_CARDS_EAGER) else ''}" id="c{i}" data-ticker="{s['ticker']}"
   data-score="{sc:.1f}" data-company="{s.get('company_name','')}"
   data-price="{_price:.2f}" data-sf="{sf:.1f}" data-sr="{sr:.1f}"
   data-rv="{rv:.2f}" data-chg="{chg:.2f}" data-si="{si_trend}"
@@ -2726,6 +2726,7 @@ def _build_card_ctx(i: int, s: dict) -> dict:
     else:
         rank_html = f'<span class="rank">{i}</span>'
     card_manual_class = " card-manual" if s.get("manual_personal") else ""
+    card_lazy_class   = " card-lazy" if (LAZY_CARDS_ENABLED and i > LAZY_CARDS_EAGER) else ""
 
     return {
         # Identity / rank
@@ -2778,6 +2779,7 @@ def _build_card_ctx(i: int, s: dict) -> dict:
         "cur_vol_str":    cur_vol_str,
         "rank_html":           rank_html,
         "card_manual_class":   card_manual_class,
+        "card_lazy_class":     card_lazy_class,
 
         # Raw values that appear verbatim in data-attrs
         "si_trend":       si_trend,
@@ -4807,7 +4809,17 @@ Gib eine knappe Einschätzung: Squeeze-Potenzial, wichtigste Treiber, kritische 
   }}
 }}
 
-{chat_script_html}</script>
+{chat_script_html}
+// ── Service Worker Registration (PWA-Cache) ─────────────────────────────────
+// Skip-Registration wenn Seite nicht über https/localhost geladen wird
+// (lokales file:// kann SW nicht).
+if ('serviceWorker' in navigator
+    && (location.protocol === 'https:' || location.hostname === 'localhost')) {{
+  navigator.serviceWorker.register('service_worker.js').catch((e) => {{
+    console.warn('Service Worker Registration fehlgeschlagen:', e);
+  }});
+}}
+</script>
 </body>
 </html>"""
 
@@ -5086,6 +5098,68 @@ def get_watchlist_candidates() -> list[dict]:
 # ===========================================================================
 # 5. ERROR PAGE HELPER
 # ===========================================================================
+
+def _write_service_worker() -> None:
+    """Schreibt service_worker.js ins Repo-Root mit frischem Cache-Namen.
+
+    Strategie: Network-first mit Cache-Fallback für index.html,
+    score_history.json, agent_signals.json, app_data.json. Bei jedem
+    Report-Run erhält der Cache einen neuen Namen (Zeitstempel) — alte
+    Caches werden im activate-Handler automatisch gelöscht.
+    """
+    cache_version = datetime.now(ZoneInfo("UTC")).strftime("%Y%m%d-%H%M")
+    sw_code = f"""// Auto-generiert von generate_report.py — Service Worker
+// Cache-Version: {cache_version} (wird bei jedem Daily-Run aktualisiert)
+const CACHE_NAME = 'squeeze-{cache_version}';
+const URLS = [
+  './',
+  './index.html',
+  './score_history.json',
+  './agent_signals.json',
+  './app_data.json',
+];
+
+self.addEventListener('install', (event) => {{
+  self.skipWaiting();
+  event.waitUntil(caches.open(CACHE_NAME).then(c => c.addAll(URLS).catch(() => null)));
+}});
+
+self.addEventListener('activate', (event) => {{
+  event.waitUntil(
+    caches.keys().then(keys => Promise.all(
+      keys.filter(k => k !== CACHE_NAME).map(k => caches.delete(k))
+    )).then(() => self.clients.claim())
+  );
+}});
+
+self.addEventListener('fetch', (event) => {{
+  const req = event.request;
+  if (req.method !== 'GET') return;
+  const url = new URL(req.url);
+  // Nur Same-Origin und unsere 4 gecachten Pfade
+  if (url.origin !== self.location.origin) return;
+  const path = url.pathname.split('/').pop();
+  if (!['index.html', '', 'score_history.json', 'agent_signals.json', 'app_data.json'].includes(path)) return;
+  event.respondWith((async () => {{
+    try {{
+      const fresh = await fetch(req);
+      if (fresh && fresh.status === 200) {{
+        const cache = await caches.open(CACHE_NAME);
+        cache.put(req, fresh.clone()).catch(() => null);
+      }}
+      return fresh;
+    }} catch (err) {{
+      const cached = await caches.match(req);
+      if (cached) return cached;
+      throw err;
+    }}
+  }})());
+}});
+"""
+    with open("service_worker.js", "w", encoding="utf-8") as fh:
+        fh.write(sw_code)
+    print(f"Service Worker: service_worker.js geschrieben (cache {cache_version})", flush=True)
+
 
 def _write_error_page(report_date: str, message: str) -> None:
     """Write a minimal error page when no data could be retrieved."""
@@ -5713,6 +5787,11 @@ def main():
 
     with open("index.html", "w", encoding="utf-8") as fh:
         fh.write(html)
+
+    # Service-Worker mit frischem Cache-Version-String (pro Run ein neuer
+    # Zeitstempel) — Browser invalidieren alten Cache beim nächsten Besuch.
+    if SW_ENABLED:
+        _write_service_worker()
     print(f"Step 4 abgeschlossen in {time.time()-_t4:.1f}s", flush=True)
 
     log.info("Report written → index.html")

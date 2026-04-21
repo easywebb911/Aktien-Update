@@ -151,6 +151,10 @@ a{color:var(--accent);text-decoration:none}
 /* Persönliche Watchlist-Karten: dezent dunkelgrüner Hintergrund + grüner Rand,
    im Dark-Mode deutlich sichtbar aber nicht grell */
 .card-manual{background:rgba(20,83,45,0.35);border:1.5px solid rgba(74,222,128,0.6)}
+/* Lazy-Rendering für Karten außerhalb des anfänglich sichtbaren Viewports:
+   browser überspringt Layout/Paint bis Element nahe am Viewport ist.
+   Nicht-unterstützende Browser rendern normal (graceful fallback). */
+.card-lazy{content-visibility:auto;contain-intrinsic-size:auto 500px}
 .ticker-block{flex:1;min-width:0}
 .ticker-row{display:flex;align-items:center;gap:7px;flex-wrap:wrap;margin-bottom:3px}
 .ticker{font-size:1.25rem;font-weight:800;font-family:'SF Mono','Courier New',monospace;color:var(--txt)}

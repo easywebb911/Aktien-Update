@@ -42,6 +42,14 @@ MIN_SCORE            = 15.0                # Pkt — informativ; Karten unter di
 # True:  Originalverhalten — DE/GB/FR/NL/CA Screener + JP/HK/KR Watchlist-Scan.
 INTL_SCREENING_ENABLED = False
 
+# ── Progressive Web App ────────────────────────────────────────────────────
+# Service-Worker + Lazy Loading für schnellere PWA-Erfahrung.
+# SW_CACHE_VERSION wird bei jedem Report-Run automatisch auf einen Zeitstempel
+# gesetzt — alte Caches werden dadurch beim nächsten Besuch invalidiert.
+SW_ENABLED         = True
+LAZY_CARDS_ENABLED = True
+LAZY_CARDS_EAGER   = 3        # erste N Karten sofort vollständig rendern
+
 # ── SEC 13F (Institutional Holdings Snapshot) ──────────────────────────────
 # False: fetch_sec_13f() wird im Daily-Run übersprungen.
 #        Seit Monaten ~0 Treffer pro Run bei ~0,5 s Kosten; kein Wertbeitrag.
