@@ -2092,7 +2092,7 @@ def _card(i: int, s: dict) -> str:
         rank_html = f'<span class="rank">{i}</span>'
 
     return f"""
-<article class="card{' card-manual' if s.get('manual_forced') else ''}" id="c{i}" data-ticker="{s['ticker']}"
+<article class="card{' card-manual' if s.get('manual_personal') else ''}" id="c{i}" data-ticker="{s['ticker']}"
   data-score="{sc:.1f}" data-company="{s.get('company_name','')}"
   data-price="{_price:.2f}" data-sf="{sf:.1f}" data-sr="{sr:.1f}"
   data-rv="{rv:.2f}" data-chg="{chg:.2f}" data-si="{si_trend}"
@@ -2559,16 +2559,18 @@ def _build_card_ctx(i: int, s: dict) -> dict:
     avg_vol_str   = f"{s.get('avg_vol_20d', 0):,.0f}"
     cur_vol_str   = f"{s.get('cur_vol',    0):,.0f}"
 
-    # ── Rank-Marker & Card-Modifier (manual_forced → 📌-Badge) ───────────
-    # Spiegelt die Logik aus ``_card()`` byte-identisch in den v2-Pfad.
+    # ── Rank-Marker & Card-Modifier ──────────────────────────────────────
+    # Rank-Badge: nur für FORCED Bonus-Slots (📌 statt Rang-Nummer).
+    # Grüner Kartenhintergrund: für ALLE Watchlist-Ticker, auch wenn sie
+    # organisch ranken — damit die persönliche Beobachtungsliste überall
+    # auf einen Blick erkennbar ist. Spiegelt _card() byte-identisch.
     if s.get("manual_forced"):
-        rank_html         = ('<span class="rank rank-manual" '
-                             'title="Manuell beobachtet — via persönliche Watchlist hinzugefügt">'
-                             '\U0001F4CC</span>')
-        card_manual_class = " card-manual"
+        rank_html = ('<span class="rank rank-manual" '
+                     'title="Manuell beobachtet — via persönliche Watchlist hinzugefügt">'
+                     '\U0001F4CC</span>')
     else:
-        rank_html         = f'<span class="rank">{i}</span>'
-        card_manual_class = ""
+        rank_html = f'<span class="rank">{i}</span>'
+    card_manual_class = " card-manual" if s.get("manual_personal") else ""
 
     return {
         # Identity / rank
@@ -5336,11 +5338,22 @@ def main():
             log.info("  %s: base=%.2f + bonus=%.2f = %.2f",
                      s["ticker"], base, bonus, s["score"])
 
-    top10.sort(key=lambda x: x.get("score") or 0, reverse=True)
+    # Sortierung: organische Top-10 und manual_forced-Bonus-Slots werden
+    # getrennt sortiert und erst am Ende zusammengeführt — damit der
+    # Watchlist-Block immer als Gruppe ganz hinten steht, nie nach Score
+    # zwischen die organischen Karten eingemischt.
+    def _sort_keeping_manual_last(stocks: list[dict]) -> list[dict]:
+        organic = [c for c in stocks if not c.get("manual_forced")]
+        manual  = [c for c in stocks if     c.get("manual_forced")]
+        organic.sort(key=lambda x: x.get("score") or 0, reverse=True)
+        manual.sort( key=lambda x: x.get("score") or 0, reverse=True)
+        return organic + manual
+
+    top10 = _sort_keeping_manual_last(top10)
 
     # --- Step 3a: Score smoothing (70 % today + 30 % avg last 3 runs) ---
     apply_score_smoothing(top10, report_date)
-    top10.sort(key=lambda x: x.get("score") or 0, reverse=True)
+    top10 = _sort_keeping_manual_last(top10)
 
     # Opt 3 — Parallel news fetching (all 10 tickers × 3 sources concurrently).
     _t_news = time.time()
