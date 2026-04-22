@@ -3594,23 +3594,28 @@ def generate_html_v1(stocks: list[dict], report_date: str, _ctx: dict | None = N
 
   <style>
     .bt-section{{background:var(--bg-card);border:1px solid var(--brd);border-radius:10px;
-      padding:14px 16px;margin-bottom:14px}}
+      padding:14px 16px;margin-bottom:14px;
+      max-width:100%;overflow-x:hidden;box-sizing:border-box}}
+    .bt-section *{{box-sizing:border-box}}
     .bt-hdr{{display:flex;align-items:center;gap:10px;margin-bottom:4px}}
     .bt-title{{font-size:1rem;font-weight:800;color:var(--txt)}}
     .bt-close{{margin-left:auto;background:none;border:none;color:var(--txt-dim);
       cursor:pointer;font-size:1.2rem;line-height:1}}
-    .bt-meta{{font-size:.78rem;color:var(--txt-dim);margin:0 0 12px;line-height:1.5}}
+    .bt-meta{{font-size:.78rem;color:var(--txt-dim);margin:0 0 12px;line-height:1.5;
+      overflow-wrap:break-word}}
     .bt-meta b{{color:var(--txt)}}
-    .bt-grid{{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}}
-    @media (max-width:640px){{ .bt-grid{{grid-template-columns:1fr}} }}
+    /* Mobile-first: 1 Spalte auf iPhone, 2 Spalten ab 768 px */
+    .bt-grid{{display:grid;grid-template-columns:1fr;gap:12px}}
+    @media (min-width:768px){{ .bt-grid{{grid-template-columns:1fr 1fr}} }}
     .bt-tile{{background:var(--bg-met);border:1px solid var(--brd);border-radius:8px;
-      padding:10px 12px}}
+      padding:10px 12px;min-width:0}}
     .bt-tile--wide{{grid-column:1 / -1}}
     .bt-tile-title{{font-size:.72rem;font-weight:700;color:var(--txt-dim);
       text-transform:uppercase;letter-spacing:.4px;margin-bottom:6px}}
     .bt-tile-empty{{font-size:.82rem;color:var(--txt-dim);font-style:italic;
       padding:14px 0;text-align:center}}
-    .bt-chart{{width:100%;height:160px;display:block}}
+    /* SVG skaliert mit Containerbreite via viewBox-Aspect-Ratio (2:1) */
+    .bt-chart{{width:100%;height:auto;display:block;max-height:180px}}
     .bt-chart-lbl{{font-size:.68rem;fill:var(--txt-dim)}}
     .bt-chart-val{{font-size:.7rem;font-weight:700;fill:var(--txt)}}
     .bt-bar-stack{{display:flex;flex-direction:column;gap:6px;margin-top:2px}}
@@ -3621,10 +3626,18 @@ def generate_html_v1(stocks: list[dict], report_date: str, _ctx: dict | None = N
     .bt-bar-row--best .bt-bar-row-bar{{height:14px}}
     .bt-bar-row--best .bt-bar-row-lbl::before{{content:'★ ';color:#f59e0b}}
     .bt-bar-row-lbl{{flex:0 0 62px;color:var(--txt-dim);font-weight:700}}
-    .bt-bar-row-bar{{flex:1;height:10px;background:var(--brd);border-radius:4px;
-      position:relative;overflow:hidden}}
+    .bt-bar-row-bar{{flex:1 1 auto;min-width:0;height:10px;background:var(--brd);
+      border-radius:4px;position:relative;overflow:hidden}}
     .bt-bar-row-fill{{position:absolute;top:0;bottom:0;left:50%;border-radius:3px}}
     .bt-bar-row-val{{flex:0 0 70px;text-align:right;font-weight:800;font-variant-numeric:tabular-nums}}
+    /* Enge iPhones: Label/Val-Spalten verschmälern, mehr Platz für den Balken */
+    @media (max-width:480px){{
+      .bt-bar-row{{gap:6px;font-size:.72rem}}
+      .bt-bar-row-lbl{{flex:0 0 38px}}
+      .bt-bar-row-val{{flex:0 0 58px}}
+      .bt-bar-row--best{{font-size:.82rem}}
+      .bt-bar-row--best .bt-bar-row-val{{font-size:.88rem}}
+    }}
     .bt-si-grid{{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:2px}}
     .bt-si-cell{{background:var(--bg-card);border:1px solid var(--brd);border-radius:6px;
       padding:8px 6px;text-align:center}}
@@ -3633,7 +3646,10 @@ def generate_html_v1(stocks: list[dict], report_date: str, _ctx: dict | None = N
     .bt-si-cell-hr{{font-size:1.15rem;font-weight:800;line-height:1.1}}
     .bt-si-cell-med{{font-size:.78rem;font-weight:700;margin-top:2px}}
     .bt-si-cell-n{{font-size:.65rem;color:var(--txt-dim);margin-top:3px}}
-    .bt-tbl{{width:100%;border-collapse:collapse;font-size:.78rem;
+    /* Tabelle: 8 Spalten sprengen iPhone-Breite → horizontal scrollbar */
+    #bt-tbl-wrap{{overflow-x:auto;-webkit-overflow-scrolling:touch;
+      margin:0 -2px;padding:0 2px}}
+    .bt-tbl{{width:100%;min-width:520px;border-collapse:collapse;font-size:.78rem;
       font-variant-numeric:tabular-nums;margin-top:2px}}
     .bt-tbl th,.bt-tbl td{{padding:5px 6px;border-bottom:1px solid var(--brd);
       text-align:right;white-space:nowrap}}
@@ -3667,7 +3683,8 @@ def generate_html_v1(stocks: list[dict], report_date: str, _ctx: dict | None = N
       <div class="bt-tile">
         <div class="bt-tile-title">Trefferquote je Score-Schwelle (5T +5 %)</div>
         <svg class="bt-chart" id="bt-chart-hit" viewBox="0 0 320 160"
-             preserveAspectRatio="none" aria-label="Trefferquote je Score-Schwelle"></svg>
+             preserveAspectRatio="xMidYMid meet"
+             aria-label="Trefferquote je Score-Schwelle"></svg>
       </div>
       <div class="bt-tile">
         <div class="bt-tile-title">Median-Rendite nach Zeithorizont</div>
