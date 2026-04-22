@@ -170,6 +170,19 @@
   },
   {
     "date": "22.04.2026",
+    "ticker": "CADL",
+    "score": 62.4,
+    "entry_price": 7.41,
+    "short_float": 23.97,
+    "dtc": 11.58,
+    "rvol": 1.161,
+    "si_trend": "up",
+    "return_3d": null,
+    "return_5d": null,
+    "return_10d": null
+  },
+  {
+    "date": "22.04.2026",
     "ticker": "CHPT",
     "score": 45.52,
     "entry_price": 7.26,
@@ -255,6 +268,19 @@
     "dtc": 7.66,
     "rvol": 4.457,
     "si_trend": "up",
+    "return_3d": null,
+    "return_5d": null,
+    "return_10d": null
+  },
+  {
+    "date": "22.04.2026",
+    "ticker": "IIPR",
+    "score": 66.21,
+    "entry_price": 55.6826,
+    "short_float": 18.57,
+    "dtc": 11.72,
+    "rvol": 2.339,
+    "si_trend": "no_data",
     "return_3d": null,
     "return_5d": null,
     "return_10d": null
