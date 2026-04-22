@@ -287,6 +287,19 @@
   },
   {
     "date": "22.04.2026",
+    "ticker": "JACK",
+    "score": 51.95,
+    "entry_price": 13.675,
+    "short_float": 33.44,
+    "dtc": 6.71,
+    "rvol": 0.349,
+    "si_trend": "sideways",
+    "return_3d": null,
+    "return_5d": null,
+    "return_10d": null
+  },
+  {
+    "date": "22.04.2026",
     "ticker": "KALV",
     "score": 69.91,
     "entry_price": 19.43,
@@ -450,6 +463,19 @@
     "dtc": 15.69,
     "rvol": 0.385,
     "si_trend": "down",
+    "return_3d": null,
+    "return_5d": null,
+    "return_10d": null
+  },
+  {
+    "date": "22.04.2026",
+    "ticker": "SQNS",
+    "score": 64.07,
+    "entry_price": 2.75,
+    "short_float": 15.06,
+    "dtc": 5.52,
+    "rvol": 3.171,
+    "si_trend": "up",
     "return_3d": null,
     "return_5d": null,
     "return_10d": null
