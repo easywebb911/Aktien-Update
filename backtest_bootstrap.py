@@ -34,9 +34,22 @@ logging.basicConfig(level=logging.INFO,
                     datefmt="%H:%M:%S")
 
 # ── Parameter ───────────────────────────────────────────────────────────────
-HISTORICAL_SQUEEZES = [
-    "GME", "AMC", "BBBY", "KOSS", "MULN", "PROG", "CLOV", "FFIE", "NMAX",
-    "MSTR", "SPCE", "SIGA", "HIMS", "QUBT",
+BOOTSTRAP_TICKERS = [
+    # Bestehend (PROG/FFIE wurden nach delisting-Fehlern entfernt)
+    "GME", "AMC", "BBBY", "KOSS", "MULN", "CLOV",
+    "NMAX", "MSTR", "SPCE", "SIGA", "HIMS", "QUBT",
+    # WallStreetBets 2021
+    "BB", "NOK", "EXPR", "NAKD", "SNDL",
+    # EV-Squeezes 2020–2022
+    "NKLA", "RIDE", "WKHS", "GOEV",
+    # Weitere klassische Squeezes
+    "ATER", "BGFV", "OPAD", "IRBT",
+    "DWAC", "PHUN", "SPRT", "GREE",
+    # Aktuelle Short-Kandidaten
+    "RDDT", "ACHR", "JOBY", "BYND",
+    "HOOD", "SOFI", "CHPT", "NVAX",
+    # Fintech/Crypto-nahe
+    "VERB", "CRON", "TLRY", "ACB",
 ]
 LOOKBACK_DAYS = 365   # Kalendertage Rückschau
 RVOL_MIN      = 1.5   # nur potenzielle Signal-Tage
@@ -174,7 +187,7 @@ def _process_ticker(ticker: str, existing_keys: set[tuple]) -> list[dict]:
 
 def main() -> None:
     # Eingabeliste kann Duplikate enthalten (CLOV ist 2× gelistet)
-    tickers = list(dict.fromkeys(HISTORICAL_SQUEEZES))
+    tickers = list(dict.fromkeys(BOOTSTRAP_TICKERS))
     log.info("Bootstrap-Run: %d Ticker, Rückschau %d Tage, RVOL ≥ %.1f",
              len(tickers), LOOKBACK_DAYS, RVOL_MIN)
 
