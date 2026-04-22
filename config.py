@@ -98,6 +98,16 @@ RISK_REWARD_STOP_PCT      = 0.15   # 15% unter Entry
 RISK_REWARD_TARGET1_PCT   = 0.20   # +20% erstes Ziel (Short-Covering)
 RISK_REWARD_TARGET2_PCT   = 0.50   # +50% Squeeze-Szenario
 
+# ── Short-Druck Indikator (Short Ladder Attack Detection) ────────────────────
+# Erkennt koordinierten Verkaufsdruck: hoher SSR + fallender Kurs + hohes
+# Volumen + hoher Short Float → klassisches Squeeze-Vorläufer-Signal.
+SHORT_PRESSURE_SSR_MIN   = 0.60    # FINRA Daily SSR ≥ 60 %
+SHORT_PRESSURE_CHG_MIN   = -0.08   # Kurs ≥ −8 %
+SHORT_PRESSURE_CHG_MAX   = -0.02   # Kurs ≤ −2 %
+SHORT_PRESSURE_SF_MIN    = 0.25    # Short Float ≥ 25 %
+SHORT_PRESSURE_RVOL_MIN  = 1.5     # Rel. Volumen ≥ 1,5×
+SHORT_PRESSURE_BONUS     = 5       # Katalysator-Score-Bonus
+
 # ── SEC 13F (Institutional Holdings Snapshot) ──────────────────────────────
 # False: fetch_sec_13f() wird im Daily-Run übersprungen.
 #        Seit Monaten ~0 Treffer pro Run bei ~0,5 s Kosten; kein Wertbeitrag.

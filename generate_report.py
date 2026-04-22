@@ -2082,7 +2082,11 @@ def _compute_sub_scores(s: dict) -> dict:
         title = (n.get("title") or n.get("title_orig") or "").lower()
         if any(kw in title for kw in _kw):
             news_pts = min(news_pts + 5, 10)
-    catalyst_pts = round(min(earn_pts + insider_pts + news_pts, SUB_CATALYST_MAX), 1)
+    pressure_pts = SHORT_PRESSURE_BONUS if _detect_short_pressure(s) else 0
+    catalyst_pts = round(min(
+        earn_pts + insider_pts + news_pts + pressure_pts,
+        SUB_CATALYST_MAX,
+    ), 1)
 
     # Timing (max 25) = RelVol + Momentum, normiert 37 -> 25
     rv_raw = min((rv - 1.0) / 2.0, 1.0) if rv > 0 else 0
@@ -2155,6 +2159,41 @@ def _pd_badges_html(s: dict) -> str:
             f'\U0001F534 RSI überkauft — Einstieg riskant</span>'
         )
     return "".join(out)
+
+
+def _detect_short_pressure(s: dict) -> bool:
+    """Short Ladder Attack Detection.
+
+    Alle vier Bedingungen müssen gleichzeitig erfüllt sein:
+      SSR ≥ 60 % · Kurs −2 % bis −8 % · SF ≥ 25 % · RVOL ≥ 1,5×
+    """
+    ssr = (s.get("finra_data") or {}).get("ssr_today")
+    if ssr is None or ssr < SHORT_PRESSURE_SSR_MIN:
+        return False
+    chg = s.get("change")
+    if chg is None:
+        return False
+    if not (SHORT_PRESSURE_CHG_MIN * 100 <= chg <= SHORT_PRESSURE_CHG_MAX * 100):
+        return False
+    sf = _safe_float(s.get("short_float", 0))
+    if sf < SHORT_PRESSURE_SF_MIN * 100:
+        return False
+    rvol = _safe_float(s.get("rel_volume", 0))
+    if rvol < SHORT_PRESSURE_RVOL_MIN:
+        return False
+    return True
+
+
+def _short_pressure_badge_html(s: dict) -> str:
+    """Oranges Badge „📉 Short-Druck erkannt" wenn alle vier Bedingungen matchen."""
+    if not _detect_short_pressure(s):
+        return ""
+    return (
+        '<span class="pd-badge pd-badge-pressure" '
+        'title="Hoher Short-Sale-Anteil bei fallendem Kurs und hohem Volumen — '
+        'möglicher koordinierter Verkaufsdruck. Leerverkäufer müssen irgendwann eindecken.">'
+        '\U0001F4C9 Short-Druck erkannt — Squeeze-Potenzial erhöht</span>'
+    )
 
 
 def _agent_boost_row_html(s: dict) -> str:
@@ -2408,7 +2447,9 @@ def _card(i: int, s: dict) -> str:
     ssr_tile_html      = _ssr_tile_html(s)
     squeeze_badge_html = _squeeze_history_badge(s)
     sub_scores_html    = _sub_scores_html(s)         # Feature 1
-    pd_badges_html     = _pd_badges_html(s)          # Feature 3
+    pd_badges_html     = (                            # Feature 3 + Short-Druck
+        _pd_badges_html(s) + _short_pressure_badge_html(s)
+    )
     agent_boost_row    = _agent_boost_row_html(s)    # Feature 2
 
     # Chart links
@@ -2878,7 +2919,9 @@ def _build_card_ctx(i: int, s: dict) -> dict:
     ssr_tile_html      = _ssr_tile_html(s)
     squeeze_badge_html = _squeeze_history_badge(s)
     sub_scores_html    = _sub_scores_html(s)         # NEU: Sub-Scores
-    pd_badges_html     = _pd_badges_html(s)          # NEU: P&D-Badges
+    pd_badges_html     = (                            # P&D + Short-Druck
+        _pd_badges_html(s) + _short_pressure_badge_html(s)
+    )
     agent_boost_row    = _agent_boost_row_html(s)    # NEU: Agent-Boost-Zeile
 
     # ── Chart / external links ───────────────────────────────────────────
@@ -3359,6 +3402,7 @@ def generate_html_v1(stocks: list[dict], report_date: str, _ctx: dict | None = N
         <ul>
           <li><strong>Struktur (0–40)</strong> – Short Float + Days to Cover + SI-Trend + Float-Größe (normalisiert von 68 auf 40)</li>
           <li><strong>Katalysator (0–35)</strong> – Earnings ≤ 7 T = 15 Pkt · ≤ 14 T = 8 Pkt · Insider-Käufe = 10 Pkt · News-Keywords = 5–10 Pkt</li>
+          <li><strong>Short-Druck Bonus: +{SHORT_PRESSURE_BONUS} Pkt</strong> auf Katalysator bei SSR ≥ {SHORT_PRESSURE_SSR_MIN * 100:.0f} % + Kursrückgang {SHORT_PRESSURE_CHG_MIN * 100:.0f} % bis {SHORT_PRESSURE_CHG_MAX * 100:.0f} % + SF ≥ {SHORT_PRESSURE_SF_MIN * 100:.0f} % + RVOL ≥ {SHORT_PRESSURE_RVOL_MIN:.1f}×</li>
           <li><strong>Timing (0–25)</strong> – Relatives Volumen + Kursmomentum (normalisiert von 37 auf 25)</li>
           <li>Farbcodierung: &lt; 50 % grau · 50–75 % orange · &gt; 75 % grün</li>
           <li><em>Hinweis:</em> Sub-Scores sind unabhängige Anzeigemetriken zur Qualitätsbewertung — der 0–100-Gesamt-Score bleibt unverändert.</li>
@@ -3377,6 +3421,7 @@ def generate_html_v1(stocks: list[dict], report_date: str, _ctx: dict | None = N
         <ul>
           <li><strong>⚠️ Orange-Warnung</strong> – Kurs bereits +{PD_GAIN_5D_THRESHOLD * 100:.0f} % in 5 Tagen UND heutiges Rel. Volumen &lt; gestriges → Kaufdruck lässt nach, Setup möglicherweise erschöpft.</li>
           <li><strong>🔴 Rote Warnung</strong> – RSI &gt; {PD_RSI_THRESHOLD:.0f} UND Kurs bereits +{PD_GAIN_5D_RSI_THRESHOLD * 100:.0f} % in 5 Tagen → überkauft, Einstieg riskant.</li>
+          <li><strong>📉 Short-Druck erkannt</strong> – SSR ≥ {SHORT_PRESSURE_SSR_MIN * 100:.0f} % + Kurs {SHORT_PRESSURE_CHG_MIN * 100:.0f} bis {SHORT_PRESSURE_CHG_MAX * 100:.0f} % + SF ≥ {SHORT_PRESSURE_SF_MIN * 100:.0f} % + RVOL ≥ {SHORT_PRESSURE_RVOL_MIN:.1f}× → möglicher koordinierter Verkaufsdruck (Short Ladder Attack), klassisches Squeeze-Vorläufer-Signal.</li>
           <li>Die Badges erscheinen direkt unter dem Ticker-Namen — zusätzlich als Warnhinweis in der KI-Analyse.</li>
         </ul>
         <h4 style="margin-top:12px">🎯 Risk/Reward in KI-Analyse</h4>
