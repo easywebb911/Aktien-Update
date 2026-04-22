@@ -248,6 +248,19 @@
   },
   {
     "date": "22.04.2026",
+    "ticker": "FTK",
+    "score": 49.11,
+    "entry_price": 16.675,
+    "short_float": 15.18,
+    "dtc": 6.55,
+    "rvol": 1.207,
+    "si_trend": "no_data",
+    "return_3d": null,
+    "return_5d": null,
+    "return_10d": null
+  },
+  {
+    "date": "22.04.2026",
     "ticker": "GLUE",
     "score": 44.45,
     "entry_price": 20.89,
