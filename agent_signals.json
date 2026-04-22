@@ -1,10 +1,10 @@
 {
-  "updated": "2026-04-22T13:43:44.827903+02:00",
+  "updated": "2026-04-22T14:47:52.374433+02:00",
   "run_info": {
-    "tickers_checked": 12,
+    "tickers_checked": 11,
     "signals_active": 2,
     "alerts_sent": 0,
-    "elapsed_s": 29.6,
+    "elapsed_s": 30.3,
     "market_phase": "Pre-Market"
   },
   "signals": {
@@ -124,18 +124,6 @@
       "chg_pct": 0.0,
       "rvol": 0.0,
       "earnings": null,
-      "fda_date": null,
-      "upcoming_event": null,
-      "insider_buy": false
-    },
-    "AMC": {
-      "score": 8,
-      "confidence": 17,
-      "drivers": "Earnings in 14d",
-      "price": 1.67,
-      "chg_pct": 0.0,
-      "rvol": 0.0,
-      "earnings": "in 14 Tagen (06.05.2026)",
       "fda_date": null,
       "upcoming_event": null,
       "insider_buy": false
