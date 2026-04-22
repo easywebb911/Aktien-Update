@@ -22,7 +22,7 @@
       </div>
     </div>
     <div class="score-block">
-      <span class="score-num" style="color:{{ score_col }}">{{ score_raw_str }}</span>
+      <span class="score-num" style="color:{{ score_col }}" onclick="showScoreExplain(this,event)" role="button" tabindex="0">{{ score_raw_str }}</span>
       <span class="score-lbl">Score</span>
       <div class="score-track"><div class="score-fill" style="width:{{ score_pct_str }}%;background:{{ score_col }}"></div></div>
       {{ below_min_score_html }}
