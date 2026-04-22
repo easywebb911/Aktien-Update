@@ -3444,11 +3444,13 @@ def generate_html_v1(stocks: list[dict], report_date: str, _ctx: dict | None = N
           <li>Der Boost wird <em>nach</em> der Score-Glättung angewendet — die gespeicherte Historie bleibt unverfälscht (keine Selbstverstärkung).</li>
           <li>In der Detail-Tabelle sichtbar als „⚡ Agent-Boost: +X Pkt".</li>
         </ul>
-        <h4 style="margin-top:12px">📊 Backtesting-Hinweis</h4>
+        <h4 style="margin-top:12px">📊 Backtesting-Status</h4>
         <ul>
-          <li><strong>Bootstrap-Scores basieren auf einer vereinfachten Formel</strong> (SF + RVOL + Momentum) ohne DTC, FINRA-Bonus und Kombinations-Bonus.</li>
-          <li><strong>Ergebnisse sind nicht 1:1 mit Live-Scores vergleichbar</strong> — Live-Scores nutzen zusätzliche Signale, die Bootstrap-Daten nicht abbilden können.</li>
-          <li><strong>Belastbare Statistiken folgen nach 60+ Tagen Live-Daten.</strong> Bis dahin dient die Backtesting-Kachel nur der Methodik-Illustration, nicht der Handlungsempfehlung.</li>
+          <li><strong>1.046 Datenpunkte vorhanden</strong> (1.006 bootstrap + 40 daily).</li>
+          <li><strong>Bootstrap-Scores sind vereinfachte Schätzungen</strong> ohne DTC, FINRA SI-Trend und Kombinations-Bonus — nicht direkt mit Live-Scores vergleichbar.</li>
+          <li><strong>Belastbare Trefferquoten folgen nach 60+ Tagen Live-Daten</strong> (ca. Juli 2026).</li>
+          <li><strong>Der Score ist ein relativer Filter</strong> — höherer Score = mehr strukturelles Squeeze-Potential.</li>
+          <li><strong>Für Handlungsentscheidungen immer Katalysator-Sub-Score, aktuelle Nachrichten und Stop-Loss berücksichtigen.</strong></li>
         </ul>
       </div>
       <div class="info-box">
@@ -5578,7 +5580,7 @@ async function runKiAnalyse(cardIdx) {{
   }};
 
   const sysPrompt = 'Du bist ein erfahrener Squeeze-Analyst. Analysiere das folgende Squeeze-Setup und gib eine präzise Einschätzung auf Deutsch. Maximal 200 Wörter. '
-    + 'Backtesting-Hinweis (n=1046): Alle Score-Gruppen zeigen in den Bootstrap-Daten negative Median-Renditen. Bootstrap-Scores sind vereinfachte Schätzungen — SI-Trend, DTC und FINRA-Bonus fehlen. Live-Scores sind nicht direkt vergleichbar. Verlasse dich für Handlungsempfehlungen auf Live-Daten. '
+    + 'Wichtiger Hinweis zu Backtesting-Daten: Die bisherigen Bootstrap-Daten basieren auf einer vereinfachten Score-Formel ohne DTC, FINRA SI-Trend und Kombinations-Bonus — sie sind nicht direkt mit Live-Scores vergleichbar. Belastbare Statistiken folgen nach 60+ Tagen Live-Daten. Der Score ist ein struktureller Filter: Kandidaten mit hohem Score haben objektiv mehr Squeeze-Potential als Kandidaten mit niedrigem Score. Für konkrete Handlungsempfehlungen sind Katalysator-Sub-Score, aktuelle Nachrichten und eigene Recherche unverzichtbar. Empfehle immer Stop-Loss -15% und maximale Haltedauer 5 Handelstage bei Squeeze-Setups. '
     + 'Falls RSI > 80 oder Kurs bereits stark gestiegen (> 20% in 5 Tagen): explizit auf Rückschlagsrisiko hinweisen. '
     + 'Gib nach der Analyse ZWINGEND folgendes Risk/Reward-Framework aus — jede Zeile beginnt mit dem Label + Doppelpunkt:\\n'
     + 'Möglicher Einstieg: $<Kurs> (aktuell)\\n'

@@ -229,10 +229,8 @@ ALERT_THRESHOLD_STRONG  = 70   # Score ≥ → ⚡⚡ Starker Alert
 ALERT_COOLDOWN_HOURS    = 2    # Mindeststunden zwischen Alerts je Ticker
 
 # ── Phasenabhängige Alert-Schwellen ──────────────────────────────────────────
-# Moderate Kalibrierung: die zwischenzeitlich getesteten Werte 40/35/35/50
-# basierten auf Bootstrap-Daten (vereinfachte Scores ohne DTC/FINRA-Bonus)
-# und sind nicht belastbar. Zurückgesetzt bis belastbare Live-Statistiken
-# nach 60+ Tagen vorliegen.
+# Zurückgesetzt — Bootstrap-Backtesting nicht mit Live-Scores vergleichbar.
+# Kalibrierung nach 60+ Tagen Live-Daten.
 ALERT_THRESHOLD_REGULAR    = 25   # 09:30–16:00 ET Regulärer Handel
 ALERT_THRESHOLD_PREMARKET  = 20   # 04:00–09:30 ET
 ALERT_THRESHOLD_AFTERHOURS = 20   # 16:00–20:00 ET
