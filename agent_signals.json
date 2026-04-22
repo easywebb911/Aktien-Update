@@ -1,11 +1,11 @@
 {
-  "updated": "2026-04-22T08:25:13.620968+02:00",
+  "updated": "2026-04-22T13:43:44.827903+02:00",
   "run_info": {
-    "tickers_checked": 11,
-    "signals_active": 5,
+    "tickers_checked": 12,
+    "signals_active": 2,
     "alerts_sent": 0,
-    "elapsed_s": 38.0,
-    "market_phase": "Geschlossen"
+    "elapsed_s": 29.6,
+    "market_phase": "Pre-Market"
   },
   "signals": {
     "GRPN": {
@@ -16,18 +16,6 @@
       "chg_pct": 0.0,
       "rvol": 0.0,
       "earnings": "in 19 Tagen (11.05.2026)",
-      "fda_date": null,
-      "upcoming_event": null,
-      "insider_buy": false
-    },
-    "KALV": {
-      "score": 23,
-      "confidence": 33,
-      "drivers": "News: short interest + Earnings in 13d",
-      "price": 19.43,
-      "chg_pct": 0.0,
-      "rvol": 0.0,
-      "earnings": "in 13 Tagen (05.05.2026)",
       "fda_date": null,
       "upcoming_event": null,
       "insider_buy": false
@@ -80,30 +68,6 @@
       "upcoming_event": null,
       "insider_buy": false
     },
-    "RXRX": {
-      "score": 23,
-      "confidence": 33,
-      "drivers": "News: partnership + Earnings in 13d",
-      "price": 3.56,
-      "chg_pct": 0.0,
-      "rvol": 0.0,
-      "earnings": "in 13 Tagen (05.05.2026)",
-      "fda_date": null,
-      "upcoming_event": null,
-      "insider_buy": false
-    },
-    "INDI": {
-      "score": 8,
-      "confidence": 17,
-      "drivers": "Earnings in 15d",
-      "price": 3.38,
-      "chg_pct": 0.0,
-      "rvol": 0.0,
-      "earnings": "in 15 Tagen (07.05.2026)",
-      "fda_date": null,
-      "upcoming_event": null,
-      "insider_buy": false
-    },
     "RES": {
       "score": 25,
       "confidence": 17,
@@ -116,14 +80,62 @@
       "upcoming_event": "Earnings in 1 Tagen (23.04.2026)",
       "insider_buy": false
     },
-    "SNSE": {
-      "score": 15,
+    "LESL": {
+      "score": 8,
       "confidence": 17,
-      "drivers": "News: acquisition",
-      "price": 30.36,
+      "drivers": "Earnings in 15d",
+      "price": 2.04,
+      "chg_pct": 0.0,
+      "rvol": 0.0,
+      "earnings": "in 15 Tagen (07.05.2026)",
+      "fda_date": null,
+      "upcoming_event": null,
+      "insider_buy": false
+    },
+    "DDD": {
+      "score": 8,
+      "confidence": 17,
+      "drivers": "Earnings in 19d",
+      "price": 2.35,
+      "chg_pct": 0.0,
+      "rvol": 0.0,
+      "earnings": "in 19 Tagen (11.05.2026)",
+      "fda_date": null,
+      "upcoming_event": null,
+      "insider_buy": false
+    },
+    "GLUE": {
+      "score": 8,
+      "confidence": 17,
+      "drivers": "Earnings in 15d",
+      "price": 20.89,
+      "chg_pct": 0.0,
+      "rvol": 0.0,
+      "earnings": "in 15 Tagen (07.05.2026)",
+      "fda_date": null,
+      "upcoming_event": null,
+      "insider_buy": false
+    },
+    "EEIQ": {
+      "score": 0,
+      "confidence": 0,
+      "drivers": "",
+      "price": 4.26,
       "chg_pct": 0.0,
       "rvol": 0.0,
       "earnings": null,
+      "fda_date": null,
+      "upcoming_event": null,
+      "insider_buy": false
+    },
+    "AMC": {
+      "score": 8,
+      "confidence": 17,
+      "drivers": "Earnings in 14d",
+      "price": 1.67,
+      "chg_pct": 0.0,
+      "rvol": 0.0,
+      "earnings": "in 14 Tagen (06.05.2026)",
       "fda_date": null,
       "upcoming_event": null,
       "insider_buy": false
