@@ -1,6 +1,10 @@
 name: Backtest Bootstrap
 on:
   workflow_dispatch:
+
+permissions:
+  contents: write
+
 jobs:
   bootstrap:
     runs-on: ubuntu-latest
