@@ -224,17 +224,19 @@ SQUEEZE_MIN_RVOL       = 3.0    # gleichzeitig Volumen ≥ 3× Ø
 # ═══════════════════════════════════════════════════════════════════════════
 
 # ── Alert-Basis-Schwellen ────────────────────────────────────────────────────
-ALERT_THRESHOLD         = 40   # Fallback (wird durch Phasen-Schwellen ersetzt)
+ALERT_THRESHOLD         = 25   # Fallback (wird durch Phasen-Schwellen ersetzt)
 ALERT_THRESHOLD_STRONG  = 70   # Score ≥ → ⚡⚡ Starker Alert
 ALERT_COOLDOWN_HOURS    = 2    # Mindeststunden zwischen Alerts je Ticker
 
 # ── Phasenabhängige Alert-Schwellen ──────────────────────────────────────────
-# Backtesting-Kalibrierung: Scores < 40 liefern historisch negative Renditen,
-# daher angehoben von 15 auf marktphasen-abhängige Schwellen.
-ALERT_THRESHOLD_REGULAR    = 40   # 09:30–16:00 ET Regulärer Handel
-ALERT_THRESHOLD_PREMARKET  = 35   # 04:00–09:30 ET
-ALERT_THRESHOLD_AFTERHOURS = 35   # 16:00–20:00 ET
-ALERT_THRESHOLD_CLOSED     = 50   # Wochenende / außerhalb der Handelszeit
+# Moderate Kalibrierung: die zwischenzeitlich getesteten Werte 40/35/35/50
+# basierten auf Bootstrap-Daten (vereinfachte Scores ohne DTC/FINRA-Bonus)
+# und sind nicht belastbar. Zurückgesetzt bis belastbare Live-Statistiken
+# nach 60+ Tagen vorliegen.
+ALERT_THRESHOLD_REGULAR    = 25   # 09:30–16:00 ET Regulärer Handel
+ALERT_THRESHOLD_PREMARKET  = 20   # 04:00–09:30 ET
+ALERT_THRESHOLD_AFTERHOURS = 20   # 16:00–20:00 ET
+ALERT_THRESHOLD_CLOSED     = 35   # Wochenende / außerhalb der Handelszeit
 
 # ── Pre/Post-Market + Earnings-Sofort-Alert ──────────────────────────────────
 USE_PREPOST_DATA         = True   # prepost=True im 1m-Intraday-Download

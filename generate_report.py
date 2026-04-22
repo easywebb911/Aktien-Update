@@ -3444,13 +3444,11 @@ def generate_html_v1(stocks: list[dict], report_date: str, _ctx: dict | None = N
           <li>Der Boost wird <em>nach</em> der Score-Glättung angewendet — die gespeicherte Historie bleibt unverfälscht (keine Selbstverstärkung).</li>
           <li>In der Detail-Tabelle sichtbar als „⚡ Agent-Boost: +X Pkt".</li>
         </ul>
-        <h4 style="margin-top:12px">📊 Backtesting-Erkenntnisse</h4>
+        <h4 style="margin-top:12px">📊 Backtesting-Hinweis</h4>
         <ul>
-          <li><strong>Stand 22.04.2026, n=411</strong> (371 bootstrap historisch geschätzt + 40 daily live gemessen).</li>
-          <li><strong>Score ≥ 70 + 5-Tage-Haltedauer = +3,2 % Median-Rendite</strong> — das derzeit beste Trefferfenster.</li>
-          <li><strong>Score &lt; 70 = negative Median-Rendite</strong> — unter 70 Punkten ist im Backtesting kein systematischer Edge messbar.</li>
-          <li><strong>10-Tage-Haltedauer</strong> ist bei allen Score-Gruppen schlechter als 5 Tage — Squeezes erschöpfen sich schnell.</li>
-          <li><strong>Empfohlene maximale Haltedauer: 5 Handelstage.</strong> Karten mit Score &lt; 40 tragen daher einen orangen Hinweis, Karten mit Score &lt; 15 einen grauen „Score zu niedrig"-Hinweis.</li>
+          <li><strong>Bootstrap-Scores basieren auf einer vereinfachten Formel</strong> (SF + RVOL + Momentum) ohne DTC, FINRA-Bonus und Kombinations-Bonus.</li>
+          <li><strong>Ergebnisse sind nicht 1:1 mit Live-Scores vergleichbar</strong> — Live-Scores nutzen zusätzliche Signale, die Bootstrap-Daten nicht abbilden können.</li>
+          <li><strong>Belastbare Statistiken folgen nach 60+ Tagen Live-Daten.</strong> Bis dahin dient die Backtesting-Kachel nur der Methodik-Illustration, nicht der Handlungsempfehlung.</li>
         </ul>
       </div>
       <div class="info-box">
@@ -5580,7 +5578,7 @@ async function runKiAnalyse(cardIdx) {{
   }};
 
   const sysPrompt = 'Du bist ein erfahrener Squeeze-Analyst. Analysiere das folgende Squeeze-Setup und gib eine präzise Einschätzung auf Deutsch. Maximal 200 Wörter. '
-    + 'Backtesting-Daten zeigen: Score ≥70 + 5-Tage-Haltedauer erzielte +3.2% Median-Rendite. Score 50–69 erzielte −3.5%. 10-Tage-Haltedauer ist bei allen Score-Gruppen schlechter als 5-Tage. Berücksichtige diese Erkenntnisse bei Stop-Loss und Profit-Target Empfehlungen — empfehle maximale Haltedauer von 5 Tagen für Squeeze-Setups. '
+    + 'Backtesting-Hinweis (n=1046): Alle Score-Gruppen zeigen in den Bootstrap-Daten negative Median-Renditen. Bootstrap-Scores sind vereinfachte Schätzungen — SI-Trend, DTC und FINRA-Bonus fehlen. Live-Scores sind nicht direkt vergleichbar. Verlasse dich für Handlungsempfehlungen auf Live-Daten. '
     + 'Falls RSI > 80 oder Kurs bereits stark gestiegen (> 20% in 5 Tagen): explizit auf Rückschlagsrisiko hinweisen. '
     + 'Gib nach der Analyse ZWINGEND folgendes Risk/Reward-Framework aus — jede Zeile beginnt mit dem Label + Doppelpunkt:\\n'
     + 'Möglicher Einstieg: $<Kurs> (aktuell)\\n'
