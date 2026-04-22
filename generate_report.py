@@ -3347,7 +3347,7 @@ def generate_html_v1(stocks: list[dict], report_date: str, _ctx: dict | None = N
       <button id="btn-recalc" class="btn btn-b" onclick="triggerWorkflow()">&#9881; Recalculate</button>
       <button id="btn-ki" class="btn btn-ki" onclick="triggerKiAgent()">&#9889; Agent Run</button>
       <button id="btn-chat" class="btn btn-chat" onclick="toggleChat()">&#x1F4AC; Chat</button>
-      <button id="btn-backtest" class="btn btn-bt" onclick="toggleBacktesting()">&#x1F4CA; Backtesting</button>
+      <button id="btn-backtest" class="btn btn-bt" onclick="toggleBacktesting()">Backtesting</button>
     </div>
     <div class="hdr-icons">
       <button class="fs-btn print-btn" onclick="window.print()" aria-label="Seite drucken" title="Drucken">🖨</button>
@@ -3444,7 +3444,7 @@ def generate_html_v1(stocks: list[dict], report_date: str, _ctx: dict | None = N
           <li>Der Boost wird <em>nach</em> der Score-Glättung angewendet — die gespeicherte Historie bleibt unverfälscht (keine Selbstverstärkung).</li>
           <li>In der Detail-Tabelle sichtbar als „⚡ Agent-Boost: +X Pkt".</li>
         </ul>
-        <h4 style="margin-top:12px">📊 Backtesting-Status</h4>
+        <h4 style="margin-top:12px">Backtesting-Status</h4>
         <ul>
           <li><strong>1.046 Datenpunkte vorhanden</strong> (1.006 bootstrap + 40 daily).</li>
           <li><strong>Bootstrap-Scores sind vereinfachte Schätzungen</strong> ohne DTC, FINRA SI-Trend und Kombinations-Bonus — nicht direkt mit Live-Scores vergleichbar.</li>
@@ -3675,7 +3675,7 @@ def generate_html_v1(stocks: list[dict], report_date: str, _ctx: dict | None = N
   </style>
   <section class="bt-section" id="bt-section" hidden>
     <div class="bt-hdr">
-      <span class="bt-title">&#x1F4CA; Backtesting</span>
+      <span class="bt-title">Backtesting</span>
       <button class="bt-close" onclick="toggleBacktesting(false)" aria-label="Schließen">&times;</button>
     </div>
     <p class="bt-meta" id="bt-meta">Lade Daten …</p>
@@ -4050,7 +4050,7 @@ function _btRenderRecommendation(data){{
   }});
   if (!best || best.med <= 0){{
     box.hidden = false;
-    box.innerHTML = '<div class="bt-reco-ttl">📊 Erste Erkenntnisse</div>'
+    box.innerHTML = '<div class="bt-reco-ttl">Erste Erkenntnisse</div>'
       + '<p>Noch zu wenige Datenpunkte mit positiver Median-Rendite für '
       + 'eine belastbare Handlungsempfehlung (Mindest-n=5 pro Score-Bucket).</p>';
     return;
@@ -4082,7 +4082,7 @@ function _btRenderRecommendation(data){{
 
   box.hidden = false;
   box.innerHTML =
-    '<div class="bt-reco-ttl">📊 Erste Erkenntnisse</div>'
+    '<div class="bt-reco-ttl">Erste Erkenntnisse</div>'
     + '<p>Bei <span class="bt-reco-strong">Score ' + best.bucket
     + '</span> erzielte die <span class="bt-reco-strong">' + best.lbl
     + '-Haltestrategie</span> eine Median-Rendite von '
