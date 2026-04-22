@@ -5548,12 +5548,17 @@ def _prune_backtest_history(entries: list[dict], max_days: int = None) -> list[d
 
     Date-Format in entries: "DD.MM.YYYY" (matching generate_report's report_date).
     Unparsable dates werden belassen (defensiv) — keine Datenverluste durch
-    Format-Wechsel.
+    Format-Wechsel. Bootstrap-Einträge (source == "bootstrap") sind
+    prune-immun, damit backtest_bootstrap.py eingepflegte 365-Tage-Historie
+    nicht nach 90 Tagen wieder gelöscht wird.
     """
     from datetime import date, timedelta
     cutoff = date.today() - timedelta(days=max_days or BACKTEST_MAX_DAYS)
     kept: list[dict] = []
     for e in entries:
+        if e.get("source") == "bootstrap":
+            kept.append(e)
+            continue
         d_str = e.get("date", "")
         try:
             ed = datetime.strptime(d_str, "%d.%m.%Y").date()
