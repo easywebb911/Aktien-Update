@@ -1,10 +1,10 @@
 {
-  "updated": "2026-04-22T23:11:46.191670+02:00",
+  "updated": "2026-04-23T00:36:08.727447+02:00",
   "run_info": {
     "tickers_checked": 11,
     "signals_active": 3,
     "alerts_sent": 0,
-    "elapsed_s": 32.8,
+    "elapsed_s": 29.1,
     "market_phase": "After-Hours"
   },
   "signals": {
@@ -56,18 +56,6 @@
       "upcoming_event": null,
       "insider_buy": false
     },
-    "NTLA": {
-      "score": 8,
-      "confidence": 17,
-      "drivers": "Earnings in 15d",
-      "price": 16.57,
-      "chg_pct": 0.0,
-      "rvol": 0.0,
-      "earnings": "in 15 Tagen (07.05.2026)",
-      "fda_date": null,
-      "upcoming_event": null,
-      "insider_buy": false
-    },
     "SQNS": {
       "score": 0,
       "confidence": 0,
@@ -76,6 +64,18 @@
       "chg_pct": 0.0,
       "rvol": 0.0,
       "earnings": null,
+      "fda_date": null,
+      "upcoming_event": null,
+      "insider_buy": false
+    },
+    "NTLA": {
+      "score": 8,
+      "confidence": 17,
+      "drivers": "Earnings in 15d",
+      "price": 16.57,
+      "chg_pct": 0.0,
+      "rvol": 0.0,
+      "earnings": "in 15 Tagen (07.05.2026)",
       "fda_date": null,
       "upcoming_event": null,
       "insider_buy": false
@@ -95,11 +95,11 @@
     "PCT": {
       "score": 8,
       "confidence": 17,
-      "drivers": "Earnings in 15d",
+      "drivers": "Earnings in 14d",
       "price": 7.18,
       "chg_pct": 0.0,
       "rvol": 0.0,
-      "earnings": "in 15 Tagen (07.05.2026)",
+      "earnings": "in 14 Tagen (06.05.2026)",
       "fda_date": null,
       "upcoming_event": null,
       "insider_buy": false
