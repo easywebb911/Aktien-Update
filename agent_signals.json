@@ -1,18 +1,30 @@
 {
-  "updated": "2026-04-22T21:58:39.488354+02:00",
+  "updated": "2026-04-22T22:58:35.263975+02:00",
   "run_info": {
     "tickers_checked": 11,
     "signals_active": 3,
     "alerts_sent": 0,
-    "elapsed_s": 26.9,
-    "market_phase": "Regulär"
+    "elapsed_s": 28.2,
+    "market_phase": "After-Hours"
   },
   "signals": {
     "NMAX": {
       "score": 23,
       "confidence": 33,
       "drivers": "News: squeeze + Earnings in 22d",
-      "price": 9.28,
+      "price": 9.24,
+      "chg_pct": 0.0,
+      "rvol": 0.0,
+      "earnings": "in 22 Tagen (14.05.2026)",
+      "fda_date": null,
+      "upcoming_event": null,
+      "insider_buy": false
+    },
+    "SPRY": {
+      "score": 23,
+      "confidence": 33,
+      "drivers": "News: fda approval + Earnings in 22d",
+      "price": 8.4,
       "chg_pct": 0.0,
       "rvol": 0.0,
       "earnings": "in 22 Tagen (14.05.2026)",
@@ -23,23 +35,11 @@
     "INBX": {
       "score": 38,
       "confidence": 33,
-      "drivers": "News: catalyst, revenue beat + Earnings in 21d",
-      "price": 114.78,
+      "drivers": "News: revenue beat, catalyst + Earnings in 21d",
+      "price": 115.09,
       "chg_pct": 0.0,
       "rvol": 0.0,
       "earnings": "in 21 Tagen (13.05.2026)",
-      "fda_date": null,
-      "upcoming_event": null,
-      "insider_buy": false
-    },
-    "IIPR": {
-      "score": 8,
-      "confidence": 17,
-      "drivers": "Earnings in 12d",
-      "price": 55.89,
-      "chg_pct": 0.0,
-      "rvol": 0.0,
-      "earnings": "in 12 Tagen (04.05.2026)",
       "fda_date": null,
       "upcoming_event": null,
       "insider_buy": false
@@ -48,22 +48,10 @@
       "score": 8,
       "confidence": 17,
       "drivers": "Earnings in 29d",
-      "price": 2.26,
+      "price": 2.27,
       "chg_pct": 0.0,
       "rvol": 0.0,
       "earnings": "in 29 Tagen (21.05.2026)",
-      "fda_date": null,
-      "upcoming_event": null,
-      "insider_buy": false
-    },
-    "SQNS": {
-      "score": 0,
-      "confidence": 0,
-      "drivers": "",
-      "price": 2.82,
-      "chg_pct": 0.0,
-      "rvol": 0.0,
-      "earnings": null,
       "fda_date": null,
       "upcoming_event": null,
       "insider_buy": false
@@ -80,11 +68,23 @@
       "upcoming_event": null,
       "insider_buy": false
     },
+    "SQNS": {
+      "score": 0,
+      "confidence": 0,
+      "drivers": "",
+      "price": 2.82,
+      "chg_pct": 0.0,
+      "rvol": 0.0,
+      "earnings": null,
+      "fda_date": null,
+      "upcoming_event": null,
+      "insider_buy": false
+    },
     "JACK": {
       "score": 8,
       "confidence": 17,
       "drivers": "Earnings in 21d",
-      "price": 13.89,
+      "price": 13.91,
       "chg_pct": 0.0,
       "rvol": 0.0,
       "earnings": "in 21 Tagen (13.05.2026)",
@@ -108,7 +108,7 @@
       "score": 8,
       "confidence": 17,
       "drivers": "Earnings in 13d",
-      "price": 16.74,
+      "price": 16.75,
       "chg_pct": 0.0,
       "rvol": 0.0,
       "earnings": "in 13 Tagen (05.05.2026)",
@@ -120,7 +120,7 @@
       "score": 15,
       "confidence": 17,
       "drivers": "Earnings in 7 Tagen (29.04.2026) + Earnings in 7d",
-      "price": 7.03,
+      "price": 7.0,
       "chg_pct": 0.0,
       "rvol": 0.0,
       "earnings": "in 7 Tagen (29.04.2026)",
