@@ -3590,6 +3590,11 @@ def generate_html_v1(stocks: list[dict], report_date: str, _ctx: dict | None = N
     .bt-chart-val{{font-size:.7rem;font-weight:700;fill:var(--txt)}}
     .bt-bar-stack{{display:flex;flex-direction:column;gap:6px;margin-top:2px}}
     .bt-bar-row{{display:flex;align-items:center;gap:8px;font-size:.78rem}}
+    .bt-bar-row--best{{font-size:.88rem}}
+    .bt-bar-row--best .bt-bar-row-lbl{{color:var(--txt);font-weight:900}}
+    .bt-bar-row--best .bt-bar-row-val{{font-weight:900;font-size:.95rem}}
+    .bt-bar-row--best .bt-bar-row-bar{{height:14px}}
+    .bt-bar-row--best .bt-bar-row-lbl::before{{content:'★ ';color:#f59e0b}}
     .bt-bar-row-lbl{{flex:0 0 62px;color:var(--txt-dim);font-weight:700}}
     .bt-bar-row-bar{{flex:1;height:10px;background:var(--brd);border-radius:4px;
       position:relative;overflow:hidden}}
@@ -3617,6 +3622,15 @@ def generate_html_v1(stocks: list[dict], report_date: str, _ctx: dict | None = N
     .bt-src-daily{{color:#22c55e;background:#22c55e22}}
     .btn-bt{{background:#6366f1;color:#fff}}
     .btn-bt:hover{{background:#4f46e5}}
+    .bt-reco{{margin-top:14px;padding:12px 14px;background:var(--bg-met);
+      border:1px solid var(--brd);border-left:3px solid #6366f1;border-radius:6px;
+      font-size:.84rem;line-height:1.55;color:var(--txt)}}
+    .bt-reco-ttl{{font-weight:800;margin-bottom:4px;font-size:.9rem}}
+    .bt-reco-strong{{font-weight:800}}
+    .bt-reco-pos{{color:#22c55e;font-weight:800}}
+    .bt-reco-neg{{color:#ef4444;font-weight:800}}
+    .bt-reco-rec{{margin-top:6px;padding-top:6px;border-top:1px solid var(--brd);
+      font-weight:700}}
   </style>
   <section class="bt-section" id="bt-section" hidden>
     <div class="bt-hdr">
@@ -3643,6 +3657,7 @@ def generate_html_v1(stocks: list[dict], report_date: str, _ctx: dict | None = N
         <div id="bt-tbl-wrap"><table class="bt-tbl" id="bt-tbl"></table></div>
       </div>
     </div>
+    <div id="bt-reco" class="bt-reco" hidden></div>
   </section>
 
   <section class="wl-section" id="wl-section">
@@ -3873,6 +3888,7 @@ function _btRender(){{
   _btRenderMedian(data);
   _btRenderSiTrend(data);
   _btRenderTable(data);
+  _btRenderRecommendation(data);
 }}
 function _btRenderHitRates(data){{
   const svg = document.getElementById('bt-chart-hit');
@@ -3921,28 +3937,50 @@ function _btRenderHitRates(data){{
   }});
   svg.innerHTML = body;
 }}
-function _btRenderMedian(data){{
-  // Score-Buckets × 3 Horizonte
+function _btBucketStats(data){{
+  // Score-Buckets × 3 Horizonte → medians + n für beide Kacheln + Empfehlung
   const buckets = [
     {{key:'<50',   pred: e => (e.score || 0) < 50}},
     {{key:'50–69', pred: e => (e.score || 0) >= 50 && (e.score || 0) < 70}},
     {{key:'≥70',   pred: e => (e.score || 0) >= 70}},
   ];
   const horizons = [['3T','return_3d'], ['5T','return_5d'], ['10T','return_10d']];
+  return buckets.map(b => {{
+    const slice = data.filter(b.pred);
+    const meds = horizons.map(([lbl, key]) => {{
+      const vals = slice.map(e => e[key])
+                        .filter(v => v !== null && v !== undefined);
+      const med = _btMedian(vals);
+      return {{lbl, key, med, n: vals.length}};
+    }});
+    // Best = höchster Median mit mind. 1 Datenpunkt; null/keine Daten zählen nicht
+    let bestIdx = -1;
+    let bestVal = -Infinity;
+    meds.forEach((m, i) => {{
+      if (m.med !== null && m.n > 0 && m.med > bestVal){{
+        bestVal = m.med;
+        bestIdx = i;
+      }}
+    }});
+    return {{key: b.key, n: slice.length, meds, bestIdx}};
+  }});
+}}
+function _btRenderMedian(data){{
+  const stats = _btBucketStats(data);
   const container = document.getElementById('bt-bars-median');
   let html = '';
-  buckets.forEach(b => {{
-    const slice = data.filter(b.pred);
+  stats.forEach(s => {{
     html += '<div style="font-size:.72rem;color:var(--txt-dim);font-weight:700;margin-top:4px">'
-          + 'Score ' + b.key + ' <span style="font-weight:400">(n=' + slice.length + ')</span></div>';
-    horizons.forEach(([lbl, key]) => {{
-      const med = _btMedian(slice.map(e => e[key]));
+          + 'Score ' + s.key + ' <span style="font-weight:400">(n=' + s.n + ')</span></div>';
+    s.meds.forEach((m, i) => {{
+      const med = m.med;
       const pct = med === null ? 0 : Math.max(-30, Math.min(30, med));
-      const fillW = Math.abs(pct) / 30 * 50;   // 50 % = full side
+      const fillW = Math.abs(pct) / 30 * 50;
       const col  = med === null ? 'var(--brd)' : (med >= 0 ? '#22c55e' : '#ef4444');
       const side = med === null || med >= 0 ? 'left:50%' : ('left:' + (50-fillW) + '%');
-      html += '<div class="bt-bar-row">'
-            + '<span class="bt-bar-row-lbl">' + lbl + '</span>'
+      const cls  = (i === s.bestIdx) ? ' bt-bar-row--best' : '';
+      html += '<div class="bt-bar-row' + cls + '">'
+            + '<span class="bt-bar-row-lbl">' + m.lbl + '</span>'
             + '<span class="bt-bar-row-bar">'
             + '<span class="bt-bar-row-fill" style="' + side
             + ';width:' + fillW + '%;background:' + col + '"></span>'
@@ -3953,6 +3991,62 @@ function _btRenderMedian(data){{
     }});
   }});
   container.innerHTML = html;
+}}
+function _btRenderRecommendation(data){{
+  const box = document.getElementById('bt-reco');
+  if (!box) return;
+  const stats = _btBucketStats(data);
+  // Globaler Sieger: (bucket, horizon) mit höchster Median-Rendite, n ≥ 5
+  let best = null;
+  stats.forEach(s => {{
+    s.meds.forEach(m => {{
+      if (m.med !== null && m.n >= 5 && (!best || m.med > best.med)){{
+        best = {{bucket: s.key, lbl: m.lbl, med: m.med, n: m.n,
+                 bucketMeds: s.meds}};
+      }}
+    }});
+  }});
+  if (!best || best.med <= 0){{
+    box.hidden = false;
+    box.innerHTML = '<div class="bt-reco-ttl">📊 Erste Erkenntnisse</div>'
+      + '<p>Noch zu wenige Datenpunkte mit positiver Median-Rendite für '
+      + 'eine belastbare Handlungsempfehlung (Mindest-n=5 pro Score-Bucket).</p>';
+    return;
+  }}
+  // Vergleich: 10T-Median im selben Bucket
+  const tenT = best.bucketMeds.find(m => m.lbl === '10T');
+  const fmtPct = v => (v >= 0 ? '+' : '') + v.toFixed(1) + '%';
+  const posCls = v => v >= 0 ? 'bt-reco-pos' : 'bt-reco-neg';
+
+  let comparison = '';
+  if (tenT && tenT.med !== null && best.lbl !== '10T'){{
+    if (tenT.med < best.med - 1){{
+      comparison = ' Längere Haltedauer (10T) liegt bei '
+                 + '<span class="' + posCls(tenT.med) + '">' + fmtPct(tenT.med)
+                 + '</span> — Squeezes erschöpfen sich schnell.';
+    }} else if (tenT.med > best.med){{
+      comparison = ' Längere Haltedauer (10T) erhöht die Rendite weiter auf '
+                 + '<span class="' + posCls(tenT.med) + '">' + fmtPct(tenT.med)
+                 + '</span>.';
+    }} else {{
+      comparison = ' Längere Haltedauer (10T) bringt kaum Unterschied ('
+                 + '<span class="' + posCls(tenT.med) + '">' + fmtPct(tenT.med)
+                 + '</span>).';
+    }}
+  }}
+
+  const rec = 'Empfehlung: Score ' + best.bucket
+            + ' + maximale Haltedauer ' + best.lbl + '.';
+
+  box.hidden = false;
+  box.innerHTML =
+    '<div class="bt-reco-ttl">📊 Erste Erkenntnisse</div>'
+    + '<p>Bei <span class="bt-reco-strong">Score ' + best.bucket
+    + '</span> erzielte die <span class="bt-reco-strong">' + best.lbl
+    + '-Haltestrategie</span> eine Median-Rendite von '
+    + '<span class="' + posCls(best.med) + '">' + fmtPct(best.med) + '</span> '
+    + '(n=' + best.n + ').' + comparison + '</p>'
+    + '<p class="bt-reco-rec">' + rec + '</p>';
 }}
 function _btRenderSiTrend(data){{
   const trends = [['up','↑ steigend'], ['sideways','→ seitwärts'], ['down','↓ fallend']];
