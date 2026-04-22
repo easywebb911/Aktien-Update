@@ -3330,6 +3330,7 @@ def generate_html_v1(stocks: list[dict], report_date: str, _ctx: dict | None = N
       <button id="btn-recalc" class="btn btn-b" onclick="triggerWorkflow()">&#9881; Recalculate</button>
       <button id="btn-ki" class="btn btn-ki" onclick="triggerKiAgent()">&#9889; Agent Run</button>
       <button id="btn-chat" class="btn btn-chat" onclick="toggleChat()">&#x1F4AC; Chat</button>
+      <button id="btn-backtest" class="btn btn-bt" onclick="toggleBacktesting()">&#x1F4CA; Backtesting</button>
     </div>
     <div class="hdr-icons">
       <button class="fs-btn print-btn" onclick="window.print()" aria-label="Seite drucken" title="Drucken">🖨</button>
@@ -3566,6 +3567,84 @@ def generate_html_v1(stocks: list[dict], report_date: str, _ctx: dict | None = N
 
   <div class="disc">⚠ <strong>Disclaimer:</strong> Dieser Report dient ausschließlich Informationszwecken und stellt keine Anlageberatung dar. Keine Kauf- oder Verkaufsempfehlung.</div>
 
+  <style>
+    .bt-section{{background:var(--bg-card);border:1px solid var(--brd);border-radius:10px;
+      padding:14px 16px;margin-bottom:14px}}
+    .bt-hdr{{display:flex;align-items:center;gap:10px;margin-bottom:4px}}
+    .bt-title{{font-size:1rem;font-weight:800;color:var(--txt)}}
+    .bt-close{{margin-left:auto;background:none;border:none;color:var(--txt-dim);
+      cursor:pointer;font-size:1.2rem;line-height:1}}
+    .bt-meta{{font-size:.78rem;color:var(--txt-dim);margin:0 0 12px;line-height:1.5}}
+    .bt-meta b{{color:var(--txt)}}
+    .bt-grid{{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}}
+    @media (max-width:640px){{ .bt-grid{{grid-template-columns:1fr}} }}
+    .bt-tile{{background:var(--bg-met);border:1px solid var(--brd);border-radius:8px;
+      padding:10px 12px}}
+    .bt-tile--wide{{grid-column:1 / -1}}
+    .bt-tile-title{{font-size:.72rem;font-weight:700;color:var(--txt-dim);
+      text-transform:uppercase;letter-spacing:.4px;margin-bottom:6px}}
+    .bt-tile-empty{{font-size:.82rem;color:var(--txt-dim);font-style:italic;
+      padding:14px 0;text-align:center}}
+    .bt-chart{{width:100%;height:160px;display:block}}
+    .bt-chart-lbl{{font-size:.68rem;fill:var(--txt-dim)}}
+    .bt-chart-val{{font-size:.7rem;font-weight:700;fill:var(--txt)}}
+    .bt-bar-stack{{display:flex;flex-direction:column;gap:6px;margin-top:2px}}
+    .bt-bar-row{{display:flex;align-items:center;gap:8px;font-size:.78rem}}
+    .bt-bar-row-lbl{{flex:0 0 62px;color:var(--txt-dim);font-weight:700}}
+    .bt-bar-row-bar{{flex:1;height:10px;background:var(--brd);border-radius:4px;
+      position:relative;overflow:hidden}}
+    .bt-bar-row-fill{{position:absolute;top:0;bottom:0;left:50%;border-radius:3px}}
+    .bt-bar-row-val{{flex:0 0 70px;text-align:right;font-weight:800;font-variant-numeric:tabular-nums}}
+    .bt-si-grid{{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:2px}}
+    .bt-si-cell{{background:var(--bg-card);border:1px solid var(--brd);border-radius:6px;
+      padding:8px 6px;text-align:center}}
+    .bt-si-cell-ttl{{font-size:.68rem;color:var(--txt-dim);text-transform:uppercase;
+      letter-spacing:.3px;margin-bottom:4px}}
+    .bt-si-cell-hr{{font-size:1.15rem;font-weight:800;line-height:1.1}}
+    .bt-si-cell-med{{font-size:.78rem;font-weight:700;margin-top:2px}}
+    .bt-si-cell-n{{font-size:.65rem;color:var(--txt-dim);margin-top:3px}}
+    .bt-tbl{{width:100%;border-collapse:collapse;font-size:.78rem;
+      font-variant-numeric:tabular-nums;margin-top:2px}}
+    .bt-tbl th,.bt-tbl td{{padding:5px 6px;border-bottom:1px solid var(--brd);
+      text-align:right;white-space:nowrap}}
+    .bt-tbl th:first-child,.bt-tbl td:first-child,
+    .bt-tbl th:nth-child(2),.bt-tbl td:nth-child(2){{text-align:left}}
+    .bt-tbl th{{font-size:.66rem;color:var(--txt-dim);font-weight:700;
+      text-transform:uppercase;letter-spacing:.3px}}
+    .bt-src-tag{{font-size:.62rem;padding:1px 5px;border-radius:3px;font-weight:700;
+      text-transform:uppercase;letter-spacing:.2px}}
+    .bt-src-bootstrap{{color:#a78bfa;background:#a78bfa22}}
+    .bt-src-daily{{color:#22c55e;background:#22c55e22}}
+    .btn-bt{{background:#6366f1;color:#fff}}
+    .btn-bt:hover{{background:#4f46e5}}
+  </style>
+  <section class="bt-section" id="bt-section" hidden>
+    <div class="bt-hdr">
+      <span class="bt-title">&#x1F4CA; Backtesting</span>
+      <button class="bt-close" onclick="toggleBacktesting(false)" aria-label="Schließen">&times;</button>
+    </div>
+    <p class="bt-meta" id="bt-meta">Lade Daten …</p>
+    <div class="bt-grid">
+      <div class="bt-tile">
+        <div class="bt-tile-title">Trefferquote je Score-Schwelle (5T +5 %)</div>
+        <svg class="bt-chart" id="bt-chart-hit" viewBox="0 0 320 160"
+             preserveAspectRatio="none" aria-label="Trefferquote je Score-Schwelle"></svg>
+      </div>
+      <div class="bt-tile">
+        <div class="bt-tile-title">Median-Rendite nach Zeithorizont</div>
+        <div class="bt-bar-stack" id="bt-bars-median"></div>
+      </div>
+      <div class="bt-tile">
+        <div class="bt-tile-title">SI-Trend Vergleich (5T-Rendite)</div>
+        <div class="bt-si-grid" id="bt-si-grid"></div>
+      </div>
+      <div class="bt-tile bt-tile--wide">
+        <div class="bt-tile-title">Letzte 20 Einträge</div>
+        <div id="bt-tbl-wrap"><table class="bt-tbl" id="bt-tbl"></table></div>
+      </div>
+    </div>
+  </section>
+
   <section class="wl-section" id="wl-section">
     <div class="wl-section-hdr">
       <span class="wl-section-title">Meine Watchlist</span>
@@ -3738,6 +3817,203 @@ function showScoreExplain(el, ev){{
     pop._timer = setTimeout(_closeScorePopup, 3000);
   }}
   setTimeout(() => document.addEventListener('click', _outsideScorePopup, {{once: true}}), 0);
+}}
+// ── Backtesting-Sektion ───────────────────────────────────────────────────
+let _btLoaded = false;
+let _btData   = null;
+function toggleBacktesting(force){{
+  const sec = document.getElementById('bt-section');
+  if (!sec) return;
+  const open = (force === undefined) ? sec.hasAttribute('hidden') : !!force;
+  if (open){{
+    sec.hidden = false;
+    if (!_btLoaded){{ _btLoaded = true; _btLoad(); }}
+    sec.scrollIntoView({{behavior:'smooth', block:'start'}});
+  }} else {{
+    sec.hidden = true;
+  }}
+}}
+function _btLoad(){{
+  const meta = document.getElementById('bt-meta');
+  fetch('./backtest_history.json?_=' + Date.now())
+    .then(r => r.ok ? r.json() : Promise.reject(r.status))
+    .then(data => {{
+      _btData = Array.isArray(data) ? data : [];
+      _btRender();
+    }})
+    .catch(err => {{
+      meta.innerHTML = '<em>Konnte backtest_history.json nicht laden (' + err + ').</em>';
+    }});
+}}
+function _btMedian(arr){{
+  const v = arr.filter(x => x !== null && x !== undefined && !isNaN(x))
+               .map(Number).sort((a,b) => a-b);
+  if (!v.length) return null;
+  const m = Math.floor(v.length / 2);
+  return v.length % 2 ? v[m] : (v[m-1] + v[m]) / 2;
+}}
+function _btRender(){{
+  const data = _btData || [];
+  const meta = document.getElementById('bt-meta');
+  if (!data.length){{
+    meta.innerHTML = '<em>Keine Backtest-Daten verfügbar. Nach dem ersten Daily-Run oder '
+      + 'einem Lauf von <code>backtest_bootstrap.py</code> erscheinen hier Statistiken.</em>';
+    return;
+  }}
+  const nTot  = data.length;
+  const nBoot = data.filter(e => e.source === 'bootstrap').length;
+  const nDay  = nTot - nBoot;
+  meta.innerHTML = '<b>' + nTot + ' Datenpunkte</b> — davon <b>' + nBoot
+    + '</b> bootstrap (historisch geschätzt) + <b>' + nDay
+    + '</b> daily (live gemessen). '
+    + '<em>Bootstrap-Scores sind vereinfachte Schätzungen aus SF + RVOL + Momentum und '
+    + 'daher nicht 1:1 mit Live-Scores vergleichbar.</em>';
+
+  _btRenderHitRates(data);
+  _btRenderMedian(data);
+  _btRenderSiTrend(data);
+  _btRenderTable(data);
+}}
+function _btRenderHitRates(data){{
+  const svg = document.getElementById('bt-chart-hit');
+  const thresholds = [40, 50, 60, 70, 80];
+  const rows = thresholds.map(th => {{
+    const slice = data.filter(e => (e.score || 0) >= th && e.return_5d !== null && e.return_5d !== undefined);
+    const n   = slice.length;
+    const hit = slice.filter(e => e.return_5d >= 5.0).length;
+    return {{th, n, rate: n ? hit / n : null}};
+  }});
+  const W = 320, H = 160, PAD_L = 28, PAD_R = 8, PAD_T = 10, PAD_B = 30;
+  const plotW = W - PAD_L - PAD_R;
+  const plotH = H - PAD_T - PAD_B;
+  const barW  = plotW / thresholds.length * 0.70;
+  const gap   = plotW / thresholds.length * 0.30;
+  let body = '';
+  // Y-Gridlines at 25/50/75/100 %
+  for (const gy of [0, 25, 50, 75, 100]){{
+    const y = PAD_T + plotH * (1 - gy/100);
+    body += '<line x1="' + PAD_L + '" x2="' + (W-PAD_R) + '" y1="' + y + '" y2="' + y
+          + '" stroke="var(--brd)" stroke-width="0.5"/>';
+    body += '<text class="bt-chart-lbl" x="' + (PAD_L-4) + '" y="' + (y+3) + '" '
+          + 'text-anchor="end">' + gy + '</text>';
+  }}
+  rows.forEach((r, i) => {{
+    const x = PAD_L + i * (plotW / thresholds.length) + gap/2;
+    if (r.rate === null){{
+      // Grauer Placeholder
+      body += '<rect x="' + x + '" y="' + (PAD_T+plotH-4) + '" width="' + barW
+            + '" height="4" fill="var(--brd)"/>';
+    }} else {{
+      const h  = plotH * r.rate;
+      const y  = PAD_T + plotH - h;
+      const pct = r.rate * 100;
+      const col = pct > 65 ? '#22c55e' : pct >= 50 ? '#f59e0b' : '#ef4444';
+      body += '<rect x="' + x + '" y="' + y + '" width="' + barW + '" height="' + h
+            + '" fill="' + col + '" rx="2"/>';
+      body += '<text class="bt-chart-val" x="' + (x+barW/2) + '" y="' + (y-3) + '" '
+            + 'text-anchor="middle">' + pct.toFixed(0) + '%</text>';
+    }}
+    const lx = PAD_L + i * (plotW/thresholds.length) + (plotW/thresholds.length)/2;
+    body += '<text class="bt-chart-lbl" x="' + lx + '" y="' + (H-PAD_B+14)
+          + '" text-anchor="middle">≥' + r.th + '</text>';
+    body += '<text class="bt-chart-lbl" x="' + lx + '" y="' + (H-PAD_B+26)
+          + '" text-anchor="middle">n=' + r.n + '</text>';
+  }});
+  svg.innerHTML = body;
+}}
+function _btRenderMedian(data){{
+  // Score-Buckets × 3 Horizonte
+  const buckets = [
+    {{key:'<50',   pred: e => (e.score || 0) < 50}},
+    {{key:'50–69', pred: e => (e.score || 0) >= 50 && (e.score || 0) < 70}},
+    {{key:'≥70',   pred: e => (e.score || 0) >= 70}},
+  ];
+  const horizons = [['3T','return_3d'], ['5T','return_5d'], ['10T','return_10d']];
+  const container = document.getElementById('bt-bars-median');
+  let html = '';
+  buckets.forEach(b => {{
+    const slice = data.filter(b.pred);
+    html += '<div style="font-size:.72rem;color:var(--txt-dim);font-weight:700;margin-top:4px">'
+          + 'Score ' + b.key + ' <span style="font-weight:400">(n=' + slice.length + ')</span></div>';
+    horizons.forEach(([lbl, key]) => {{
+      const med = _btMedian(slice.map(e => e[key]));
+      const pct = med === null ? 0 : Math.max(-30, Math.min(30, med));
+      const fillW = Math.abs(pct) / 30 * 50;   // 50 % = full side
+      const col  = med === null ? 'var(--brd)' : (med >= 0 ? '#22c55e' : '#ef4444');
+      const side = med === null || med >= 0 ? 'left:50%' : ('left:' + (50-fillW) + '%');
+      html += '<div class="bt-bar-row">'
+            + '<span class="bt-bar-row-lbl">' + lbl + '</span>'
+            + '<span class="bt-bar-row-bar">'
+            + '<span class="bt-bar-row-fill" style="' + side
+            + ';width:' + fillW + '%;background:' + col + '"></span>'
+            + '</span>'
+            + '<span class="bt-bar-row-val" style="color:' + col + '">'
+            + (med === null ? '—' : (med >= 0 ? '+' : '') + med.toFixed(1) + '%')
+            + '</span></div>';
+    }});
+  }});
+  container.innerHTML = html;
+}}
+function _btRenderSiTrend(data){{
+  const trends = [['up','↑ steigend'], ['sideways','→ seitwärts'], ['down','↓ fallend']];
+  const container = document.getElementById('bt-si-grid');
+  container.innerHTML = trends.map(([key, lbl]) => {{
+    const slice = data.filter(e => e.si_trend === key
+                                && e.return_5d !== null && e.return_5d !== undefined);
+    const n   = slice.length;
+    const hit = slice.filter(e => e.return_5d >= 5.0).length;
+    const rate = n ? hit / n * 100 : null;
+    const med  = _btMedian(slice.map(e => e.return_5d));
+    const rateCol = rate === null ? 'var(--txt-dim)'
+                 : (rate > 65 ? '#22c55e' : rate >= 50 ? '#f59e0b' : '#ef4444');
+    const medCol = med === null ? 'var(--txt-dim)' : (med >= 0 ? '#22c55e' : '#ef4444');
+    return '<div class="bt-si-cell">'
+         + '<div class="bt-si-cell-ttl">' + lbl + '</div>'
+         + '<div class="bt-si-cell-hr" style="color:' + rateCol + '">'
+         + (rate === null ? '—' : rate.toFixed(0) + '%') + '</div>'
+         + '<div class="bt-si-cell-med" style="color:' + medCol + '">'
+         + (med === null ? '—' : (med >= 0 ? '+' : '') + med.toFixed(1) + '% Median')
+         + '</div>'
+         + '<div class="bt-si-cell-n">n=' + n + '</div>'
+         + '</div>';
+  }}).join('');
+}}
+function _btRenderTable(data){{
+  // Sortiere nach Datum absteigend (DD.MM.YYYY parsen)
+  const parsed = data.map(e => {{
+    const m = (e.date || '').match(/^(\d{{2}})\.(\d{{2}})\.(\d{{4}})$/);
+    const sortKey = m ? (m[3] + m[2] + m[1]) : '';
+    return {{...e, _sk: sortKey}};
+  }}).sort((a,b) => b._sk.localeCompare(a._sk)).slice(0, 20);
+  const tbl = document.getElementById('bt-tbl');
+  const head = '<thead><tr>'
+             + '<th>Ticker</th><th>Datum</th><th>Score</th><th>Entry</th>'
+             + '<th>R 3T</th><th>R 5T</th><th>R 10T</th><th>Quelle</th>'
+             + '</tr></thead>';
+  const fmtR = v => {{
+    if (v === null || v === undefined) return '<span style="color:var(--txt-dim)">—</span>';
+    const col = v > 0 ? '#22c55e' : v < 0 ? '#ef4444' : 'var(--txt-dim)';
+    const sign = v > 0 ? '+' : '';
+    return '<span style="color:' + col + '">' + sign + v.toFixed(1) + '%</span>';
+  }};
+  const fmtSrc = s => {{
+    const cls = s === 'bootstrap' ? 'bt-src-bootstrap' : 'bt-src-daily';
+    const txt = s === 'bootstrap' ? 'bootstrap' : 'daily';
+    return '<span class="bt-src-tag ' + cls + '">' + txt + '</span>';
+  }};
+  const rows = parsed.map(e =>
+    '<tr>'
+    + '<td><b>' + (e.ticker || '—') + '</b></td>'
+    + '<td>' + (e.date || '—') + '</td>'
+    + '<td>' + ((e.score ?? 0).toFixed(1)) + '</td>'
+    + '<td>$' + ((e.entry_price ?? 0).toFixed(2)) + '</td>'
+    + '<td>' + fmtR(e.return_3d) + '</td>'
+    + '<td>' + fmtR(e.return_5d) + '</td>'
+    + '<td>' + fmtR(e.return_10d) + '</td>'
+    + '<td>' + fmtSrc(e.source || 'daily') + '</td>'
+    + '</tr>'
+  ).join('');
+  tbl.innerHTML = head + '<tbody>' + rows + '</tbody>';
 }}
 // ── GitHub Actions Config ─────────────────────────────────────────────────
 const GH_OWNER    = 'easywebb911';
