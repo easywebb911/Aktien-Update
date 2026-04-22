@@ -2173,6 +2173,31 @@ def _pd_badges_html(s: dict) -> str:
     return "".join(out)
 
 
+def _score_hint_html(score: float) -> str:
+    """Backtesting-kalibrierter Score-Hinweis unterhalb des Haupt-Scores.
+
+    Drei Stufen entsprechend der Backtesting-Erkenntnis, dass Scores unter 40
+    historisch keine positive Median-Rendite erzielt haben:
+      score <15   → dezenter grauer Hinweis
+      15 ≤ <40    → oranger Hinweis mit Backtesting-Referenz
+      ≥40         → kein Hinweis
+    """
+    if score < 15:
+        return (
+            '<span class="score-below-min" style="max-width:150px;font-style:normal">'
+            'Score zu niedrig für Squeeze-Signal</span>'
+        )
+    if score < 40:
+        return (
+            '<span class="score-below-min" style="max-width:180px;color:#f59e0b;'
+            'font-style:normal">'
+            'Schwaches Setup — Backtesting zeigt keine positive Rendite unter Score 40'
+            '</span>'
+        )
+    return ""
+
+
+
 def _detect_short_pressure(s: dict) -> bool:
     """Short Ladder Attack Detection.
 
@@ -2303,11 +2328,7 @@ def _card(i: int, s: dict) -> str:
     rv_col = _metric_color("rv", rv)
 
     # Informational hint for candidates below the MIN_SCORE reference value
-    below_min_score_html = (
-        f'<span class="score-below-min">Score unter Richtwert ({MIN_SCORE:.0f} Pkt) '
-        f'— schwächeres Signal.</span>'
-        if s["score"] < MIN_SCORE else ""
-    )
+    below_min_score_html = _score_hint_html(s["score"])
 
 
     # SI trend history + velocity
@@ -2776,11 +2797,7 @@ def _build_card_ctx(i: int, s: dict) -> dict:
     sr_col = "#94a3b8" if has_no_short_data else _metric_color("sr", sr)
     rv_col = _metric_color("rv", rv)
 
-    below_min_score_html = (
-        f'<span class="score-below-min">Score unter Richtwert ({MIN_SCORE:.0f} Pkt) '
-        f'— schwächeres Signal.</span>'
-        if s["score"] < MIN_SCORE else ""
-    )
+    below_min_score_html = _score_hint_html(s["score"])
 
     # ── FINRA SI-Trend & velocity ────────────────────────────────────────
     finra_d     = s.get("finra_data") or {}
@@ -3426,6 +3443,14 @@ def generate_html_v1(stocks: list[dict], report_date: str, _ctx: dict | None = N
           <li><strong>Agent-Score 25–49 → ×1,05</strong> (+5 %) · <strong>50–74 → ×1,10</strong> (+10 %) · <strong>≥ 75 → ×1,15</strong> (+15 %)</li>
           <li>Der Boost wird <em>nach</em> der Score-Glättung angewendet — die gespeicherte Historie bleibt unverfälscht (keine Selbstverstärkung).</li>
           <li>In der Detail-Tabelle sichtbar als „⚡ Agent-Boost: +X Pkt".</li>
+        </ul>
+        <h4 style="margin-top:12px">📊 Backtesting-Erkenntnisse</h4>
+        <ul>
+          <li><strong>Stand 22.04.2026, n=411</strong> (371 bootstrap historisch geschätzt + 40 daily live gemessen).</li>
+          <li><strong>Score ≥ 70 + 5-Tage-Haltedauer = +3,2 % Median-Rendite</strong> — das derzeit beste Trefferfenster.</li>
+          <li><strong>Score &lt; 70 = negative Median-Rendite</strong> — unter 70 Punkten ist im Backtesting kein systematischer Edge messbar.</li>
+          <li><strong>10-Tage-Haltedauer</strong> ist bei allen Score-Gruppen schlechter als 5 Tage — Squeezes erschöpfen sich schnell.</li>
+          <li><strong>Empfohlene maximale Haltedauer: 5 Handelstage.</strong> Karten mit Score &lt; 40 tragen daher einen orangen Hinweis, Karten mit Score &lt; 15 einen grauen „Score zu niedrig"-Hinweis.</li>
         </ul>
       </div>
       <div class="info-box">
@@ -5538,6 +5563,7 @@ async function runKiAnalyse(cardIdx) {{
   }};
 
   const sysPrompt = 'Du bist ein erfahrener Squeeze-Analyst. Analysiere das folgende Squeeze-Setup und gib eine präzise Einschätzung auf Deutsch. Maximal 200 Wörter. '
+    + 'Backtesting-Daten zeigen: Score ≥70 + 5-Tage-Haltedauer erzielte +3.2% Median-Rendite. Score 50–69 erzielte −3.5%. 10-Tage-Haltedauer ist bei allen Score-Gruppen schlechter als 5-Tage. Berücksichtige diese Erkenntnisse bei Stop-Loss und Profit-Target Empfehlungen — empfehle maximale Haltedauer von 5 Tagen für Squeeze-Setups. '
     + 'Falls RSI > 80 oder Kurs bereits stark gestiegen (> 20% in 5 Tagen): explizit auf Rückschlagsrisiko hinweisen. '
     + 'Gib nach der Analyse ZWINGEND folgendes Risk/Reward-Framework aus — jede Zeile beginnt mit dem Label + Doppelpunkt:\\n'
     + 'Möglicher Einstieg: $<Kurs> (aktuell)\\n'
