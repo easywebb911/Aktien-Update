@@ -2113,24 +2113,36 @@ def _compute_sub_scores(s: dict) -> dict:
 
 
 def _sub_scores_html(s: dict) -> str:
-    """3-teilige Sub-Score-Anzeige unter dem Haupt-Score (oder leer)."""
+    """3-teilige Sub-Score-Anzeige unter dem Haupt-Score (oder leer).
+
+    Wichtig: die drei Sub-Scores sind unabhängige Qualitätsindikatoren
+    und ergeben NICHT den Gesamt-Score. Header + Hinweistext kommunizieren
+    das auf der Karte klar.
+    """
     if not SHOW_SUB_SCORES:
         return ""
     sub = _compute_sub_scores(s)
+    _tt = ("Diese Werte sind unabhängige Qualitätsindikatoren "
+           "und ergeben nicht den Gesamt-Score")
     return (
+        f'<div class="sub-scores-wrap">'
+        f'<div class="sub-scores-header">SETUP-ANALYSE</div>'
+        f'<div class="sub-scores-hint">Struktur · Katalysator · Timing '
+        f'— unabhängige Qualitätsindikatoren</div>'
         f'<div class="sub-scores">'
-        f'<span class="sub-score" title="Struktur: SF + DTC + SI-Trend + Float-Größe">'
+        f'<span class="sub-score" title="{_tt}">'
         f'<span class="sub-score-lbl">Struktur</span>'
         f'<span class="sub-score-val" style="color:{sub["struct_col"]}">{sub["struct"]:.0f}/{sub["struct_max"]}</span>'
         f'</span>'
-        f'<span class="sub-score" title="Katalysator: Earnings + Insider + News">'
+        f'<span class="sub-score" title="{_tt}">'
         f'<span class="sub-score-lbl">Katalysator</span>'
         f'<span class="sub-score-val" style="color:{sub["catalyst_col"]}">{sub["catalyst"]:.0f}/{sub["catalyst_max"]}</span>'
         f'</span>'
-        f'<span class="sub-score" title="Timing: Rel. Volumen + Kursmomentum">'
+        f'<span class="sub-score" title="{_tt}">'
         f'<span class="sub-score-lbl">Timing</span>'
         f'<span class="sub-score-val" style="color:{sub["timing_col"]}">{sub["timing"]:.0f}/{sub["timing_max"]}</span>'
         f'</span>'
+        f'</div>'
         f'</div>'
     )
 
