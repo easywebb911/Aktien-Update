@@ -660,6 +660,20 @@ def get_yfinance_batch(tickers: list[str]) -> dict[str, dict]:
         # Feature 6 — Squeeze-History-Detektor über Batch-Daten
         results[ticker]["recent_squeeze"] = _detect_recent_squeeze(_df_for(ticker))
 
+        # Feature 3 (P&D): rel_volume_yesterday = vol[-2] / avg_vol(last 20 excluding yesterday)
+        try:
+            _df2 = _df_for(ticker)
+            if _df2 is not None and len(_df2) >= 22:
+                _vols = _df2["Volume"].dropna()
+                if len(_vols) >= 22:
+                    _vol_y    = float(_vols.iloc[-2])
+                    _avg20_y  = float(_vols.iloc[-22:-2].mean())
+                    if _avg20_y > 0:
+                        results[ticker]["rel_volume_yesterday"] = round(
+                            _vol_y / _avg20_y, 3)
+        except Exception:
+            pass
+
     return results
 
 
@@ -1637,6 +1651,56 @@ def _save_score_history(history: dict, _dirty: bool = True) -> None:
         json.dump(compact, fh, indent=2)
 
 
+def apply_agent_boost(stocks: list[dict]) -> None:
+    """Feature 2 — KI-Agent-Multiplikator auf den Tages-Score.
+
+    Liest agent_signals.json, matcht per Ticker, wendet bei hinreichend
+    aktuellem (≤ AGENT_BOOST_MAX_AGE_H Stunden) und ausreichendem
+    (≥ 25) Agent-Score einen Multiplikator an:
+        25-49 → ×1.05    50-74 → ×1.10    ≥75 → ×1.15
+    Cap bei 100 bleibt. Setzt s["agent_boost_pts"] + s["agent_boost_score"]
+    auf jedem Stock mit Boost für spätere Anzeige in der Detail-Tabelle.
+    """
+    if not AGENT_BOOST_ENABLED:
+        return
+    try:
+        with open("agent_signals.json", "r", encoding="utf-8") as fh:
+            data = json.load(fh)
+    except (FileNotFoundError, json.JSONDecodeError):
+        return
+    updated = data.get("updated")
+    signals = data.get("signals") or {}
+    if not updated or not signals:
+        return
+    try:
+        upd_dt = datetime.fromisoformat(updated)
+    except ValueError:
+        return
+    age_h = (datetime.now(upd_dt.tzinfo) - upd_dt).total_seconds() / 3600
+    if age_h > AGENT_BOOST_MAX_AGE_H:
+        log.info("Agent-Boost übersprungen: Signal %.1fh alt (> %dh)",
+                 age_h, AGENT_BOOST_MAX_AGE_H)
+        return
+    for s in stocks:
+        sig = signals.get(s["ticker"])
+        if not sig:
+            continue
+        ag_score = _safe_float(sig.get("score", 0))
+        if ag_score < 25:
+            continue
+        factor = 1.15 if ag_score >= 75 else 1.10 if ag_score >= 50 else 1.05
+        base = _safe_float(s.get("score", 0))
+        new  = min(round(base * factor, 2), 100.0)
+        boost = round(new - base, 2)
+        if boost <= 0:
+            continue
+        s["score"] = new
+        s["agent_boost_pts"]   = boost
+        s["agent_boost_score"] = ag_score
+        log.info("  Agent-Boost %s: base=%.2f × %.2f → %.2f (+%.2f, KI-Score %.0f)",
+                 s["ticker"], base, factor, new, boost, ag_score)
+
+
 def apply_score_smoothing(stocks: list[dict], today: str) -> None:
     """Smooth each stock's score in-place using historical data and save history.
 
@@ -1975,6 +2039,138 @@ def _squeeze_history_badge(s: dict) -> str:
     )
 
 
+def _compute_sub_scores(s: dict) -> dict:
+    """Feature 1 — drei Sub-Scores (Struktur / Katalysator / Timing).
+
+    Rein informative Aufspaltung: ``score()`` bleibt autoritativ für den
+    Gesamt-Score. Die drei Werte hier sind unabhängige Themen-Metriken
+    für die Karten-Anzeige.
+    """
+    sf = _safe_float(s.get("short_float", 0))
+    sr = _safe_float(s.get("short_ratio", 0))
+    rv = _safe_float(s.get("rel_volume", 0))
+    chg = _safe_float(s.get("change", 0))
+    if USE_RELATIVE_MOMENTUM:
+        chg -= _safe_float(s.get("spx_daily_perf", 0.0))
+    chg = max(chg, 0)
+    fl  = s.get("float_shares") or 0
+    finra = s.get("finra_data") or {}
+    si_trend = finra.get("trend", "no_data")
+
+    # Struktur (max 40) = SF + DTC + SI-Trend + Float-Größe, normiert 68 -> 40
+    sf_pts  = min(sf / 50.0, 1.0) * 32
+    dtc_pts = min(sr / 10.0, 1.0) * 23
+    if fl > 0:
+        fs_pts = max(0.0, min(1.0,
+            (FLOAT_SATURATION_HIGH - fl) / (FLOAT_SATURATION_HIGH - FLOAT_SATURATION_LOW)
+        )) * 8
+    else:
+        fs_pts = 0.0
+    si_pts = {"up": 5, "sideways": 2.5, "down": 0, "no_data": 0}.get(si_trend, 0)
+    struct_pts = round((sf_pts + dtc_pts + fs_pts + si_pts) * (SUB_STRUCT_MAX / 68.0), 1)
+
+    # Katalysator (max 35) = Earnings + Insider + News-Keywords
+    earn_days = s.get("earnings_days")
+    earn_pts = 15 if (earn_days is not None and earn_days <= 7) \
+           else 8  if (earn_days is not None and earn_days <= 14) \
+           else 0
+    insider_pts = 10 if s.get("sec_13f_note") else 0
+    news_pts = 0
+    _kw = ("squeeze", "catalyst", "beat", "fda", "merger",
+           "activist", "halt", "short covering")
+    for n in (s.get("news") or [])[:5]:
+        title = (n.get("title") or n.get("title_orig") or "").lower()
+        if any(kw in title for kw in _kw):
+            news_pts = min(news_pts + 5, 10)
+    catalyst_pts = round(min(earn_pts + insider_pts + news_pts, SUB_CATALYST_MAX), 1)
+
+    # Timing (max 25) = RelVol + Momentum, normiert 37 -> 25
+    rv_raw = min((rv - 1.0) / 2.0, 1.0) if rv > 0 else 0
+    rv_pts = max(rv_raw, 0) * 23
+    mom_pts = min(chg / 8.0, 1.0) * 14
+    timing_pts = round((rv_pts + mom_pts) * (SUB_TIMING_MAX / 37.0), 1)
+
+    def _col(pts, mx):
+        pct = (pts / mx) if mx > 0 else 0
+        if pct > 0.75:  return "#22c55e"
+        if pct >= 0.50: return "#f59e0b"
+        return "#94a3b8"
+    return {
+        "struct":        struct_pts,
+        "catalyst":      catalyst_pts,
+        "timing":        timing_pts,
+        "struct_max":    SUB_STRUCT_MAX,
+        "catalyst_max":  SUB_CATALYST_MAX,
+        "timing_max":    SUB_TIMING_MAX,
+        "struct_col":    _col(struct_pts,   SUB_STRUCT_MAX),
+        "catalyst_col":  _col(catalyst_pts, SUB_CATALYST_MAX),
+        "timing_col":    _col(timing_pts,   SUB_TIMING_MAX),
+    }
+
+
+def _sub_scores_html(s: dict) -> str:
+    """3-teilige Sub-Score-Anzeige unter dem Haupt-Score (oder leer)."""
+    if not SHOW_SUB_SCORES:
+        return ""
+    sub = _compute_sub_scores(s)
+    return (
+        f'<div class="sub-scores">'
+        f'<span class="sub-score" title="Struktur: SF + DTC + SI-Trend + Float-Größe">'
+        f'<span class="sub-score-lbl">Struktur</span>'
+        f'<span class="sub-score-val" style="color:{sub["struct_col"]}">{sub["struct"]:.0f}/{sub["struct_max"]}</span>'
+        f'</span>'
+        f'<span class="sub-score" title="Katalysator: Earnings + Insider + News">'
+        f'<span class="sub-score-lbl">Katalysator</span>'
+        f'<span class="sub-score-val" style="color:{sub["catalyst_col"]}">{sub["catalyst"]:.0f}/{sub["catalyst_max"]}</span>'
+        f'</span>'
+        f'<span class="sub-score" title="Timing: Rel. Volumen + Kursmomentum">'
+        f'<span class="sub-score-lbl">Timing</span>'
+        f'<span class="sub-score-val" style="color:{sub["timing_col"]}">{sub["timing"]:.0f}/{sub["timing_max"]}</span>'
+        f'</span>'
+        f'</div>'
+    )
+
+
+def _pd_badges_html(s: dict) -> str:
+    """Feature 3 — Pump-&-Dump Warnbadges (orange + rot)."""
+    if not PD_FILTER_ENABLED:
+        return ""
+    out = []
+    chg5 = s.get("change_5d")
+    rsi  = s.get("rsi14")
+    rvol_now  = _safe_float(s.get("rel_volume", 0))
+    rvol_prev = _safe_float(s.get("rel_volume_yesterday", 0))
+    if (chg5 is not None and chg5 >= PD_GAIN_5D_THRESHOLD * 100
+            and rvol_prev > 0 and rvol_now < rvol_prev):
+        out.append(
+            f'<span class="pd-badge pd-badge-warn" '
+            f'title="+{chg5:.1f}% in 5T bei Volumen-Rückgang ({rvol_now:.1f}x heute vs {rvol_prev:.1f}x gestern)">'
+            f'⚠️ Möglicher P&amp;D — bereits +{chg5:.0f}% in 5T</span>'
+        )
+    if (rsi is not None and rsi > PD_RSI_THRESHOLD
+            and chg5 is not None and chg5 >= PD_GAIN_5D_RSI_THRESHOLD * 100):
+        out.append(
+            f'<span class="pd-badge pd-badge-risk" '
+            f'title="RSI {rsi:.0f} > {PD_RSI_THRESHOLD} bei +{chg5:.1f}% in 5T">'
+            f'\U0001F534 RSI überkauft — Einstieg riskant</span>'
+        )
+    return "".join(out)
+
+
+def _agent_boost_row_html(s: dict) -> str:
+    """Feature 2 — „⚡ Agent-Boost: +X Pkt"-Zeile in der Detail-Tabelle."""
+    boost = s.get("agent_boost_pts")
+    if not boost or boost <= 0:
+        return ""
+    ag_score = s.get("agent_boost_score", 0)
+    return (
+        f'<tr><td>⚡ Agent-Boost</td>'
+        f'<td><span style="color:#a78bfa">+{boost:.1f} Pkt</span>'
+        f' <span style="color:var(--txt-dim);font-size:.8em">'
+        f'(KI-Score {ag_score:.0f}/100)</span></td></tr>'
+    )
+
+
 def _card(i: int, s: dict) -> str:
     risk_lv, risk_col, risk_txt = risk_assessment(s)
     sit_txt  = short_situation(s)
@@ -2209,8 +2405,11 @@ def _card(i: int, s: dict) -> str:
         _float_row = ""
 
     # SSR-Kachel und Squeeze-History-Badge (Features 1 & 6)
-    ssr_tile_html = _ssr_tile_html(s)
+    ssr_tile_html      = _ssr_tile_html(s)
     squeeze_badge_html = _squeeze_history_badge(s)
+    sub_scores_html    = _sub_scores_html(s)         # Feature 1
+    pd_badges_html     = _pd_badges_html(s)          # Feature 3
+    agent_boost_row    = _agent_boost_row_html(s)    # Feature 2
 
     # Chart links
     yf_chart_url  = f"https://finance.yahoo.com/chart/{s['ticker']}"
@@ -2297,7 +2496,7 @@ def _card(i: int, s: dict) -> str:
           <button class="wl-add-btn" data-ticker="{s['ticker']}" onclick="wlToggle(this)" title="Zur Watchlist hinzufügen">＋</button>
         </div>
         <span class="company">{s.get('company_name','')}</span>
-        {sector_tag_html}{earnings_tag_html}{squeeze_badge_html}
+        {sector_tag_html}{earnings_tag_html}{squeeze_badge_html}{pd_badges_html}
       </div>
     </div>
     <div class="score-block">
@@ -2307,6 +2506,7 @@ def _card(i: int, s: dict) -> str:
       {below_min_score_html}
     </div>
   </div>
+  {sub_scores_html}
   {sparkline_html}
   <div class="metrics-row">
     <div class="metric-box metric-box-header" style="--mc:{sf_col}">
@@ -2341,6 +2541,7 @@ def _card(i: int, s: dict) -> str:
   <div class="details-body" id="dd{i}">
     <div class="detail-table-wrap">
       <table class="detail-table">
+        {agent_boost_row}
         <tr><td>Marktkapitalisierung</td><td>{fmt_cap(cap_val)}</td></tr>
         {_float_row}
         {sector_detail_row}
@@ -2676,6 +2877,9 @@ def _build_card_ctx(i: int, s: dict) -> dict:
     # ── Feature 1 (SSR-Kachel) + Feature 6 (Squeeze-History-Badge) ───────
     ssr_tile_html      = _ssr_tile_html(s)
     squeeze_badge_html = _squeeze_history_badge(s)
+    sub_scores_html    = _sub_scores_html(s)         # NEU: Sub-Scores
+    pd_badges_html     = _pd_badges_html(s)          # NEU: P&D-Badges
+    agent_boost_row    = _agent_boost_row_html(s)    # NEU: Agent-Boost-Zeile
 
     # ── Chart / external links ───────────────────────────────────────────
     yf_chart_url = f"https://finance.yahoo.com/chart/{ticker}"
@@ -2846,6 +3050,9 @@ def _build_card_ctx(i: int, s: dict) -> dict:
         "inst_row":             inst_row,
         "ssr_tile_html":        ssr_tile_html,        # Feature 1
         "squeeze_badge_html":   squeeze_badge_html,   # Feature 6
+        "sub_scores_html":      sub_scores_html,      # Sub-Scores
+        "pd_badges_html":       pd_badges_html,       # P&D-Badges
+        "agent_boost_row":      agent_boost_row,      # Agent-Boost-Zeile
         "float_row":            float_row,
         "edgar_row":            edgar_row,
         "yahoo_badge":          yahoo_badge,
@@ -3147,6 +3354,37 @@ def generate_html_v1(stocks: list[dict], report_date: str, _ctx: dict | None = N
           <li><strong>+ bis 7 Pkt FINRA SI-Trend Bonus</strong> – steigend ≥ +10 % → 5 Pkt · mit Beschleunigung → 7 Pkt · seitwärts → 2,5 Pkt · fallend → 0 Pkt</li>
           <li><strong>+ 5 Pkt Kombinationssignal-Bonus</strong> – wenn ≥ 3 von 4 Faktoren gleichzeitig stark: Short Float ≥ 30 %, DTC ≥ 5d, Rel. Volumen ≥ 2×, SI-Trend steigend</li>
           <li><strong>± 3 Pkt Score-Trend-Bonus/-Malus</strong> – +3 Pkt bei 3 Tagen kontinuierlichem Score-Anstieg; −3 Pkt bei 3 Tagen kontinuierlichem Rückgang (min 0)</li>
+        </ul>
+        <h4 style="margin-top:12px">Sub-Scores (nur Anzeige)</h4>
+        <ul>
+          <li><strong>Struktur (0–40)</strong> – Short Float + Days to Cover + SI-Trend + Float-Größe (normalisiert von 68 auf 40)</li>
+          <li><strong>Katalysator (0–35)</strong> – Earnings ≤ 7 T = 15 Pkt · ≤ 14 T = 8 Pkt · Insider-Käufe = 10 Pkt · News-Keywords = 5–10 Pkt</li>
+          <li><strong>Timing (0–25)</strong> – Relatives Volumen + Kursmomentum (normalisiert von 37 auf 25)</li>
+          <li>Farbcodierung: &lt; 50 % grau · 50–75 % orange · &gt; 75 % grün</li>
+          <li><em>Hinweis:</em> Sub-Scores sind unabhängige Anzeigemetriken zur Qualitätsbewertung — der 0–100-Gesamt-Score bleibt unverändert.</li>
+        </ul>
+        <h4 style="margin-top:12px">⚡ Agent-Boost-Multiplikator</h4>
+        <ul>
+          <li>Aktive KI-Agent-Signale (jünger als {AGENT_BOOST_MAX_AGE_H} h) erhöhen den Score multiplikativ — Cap bei 100.</li>
+          <li><strong>Agent-Score 25–49 → ×1,05</strong> (+5 %) · <strong>50–74 → ×1,10</strong> (+10 %) · <strong>≥ 75 → ×1,15</strong> (+15 %)</li>
+          <li>Der Boost wird <em>nach</em> der Score-Glättung angewendet — die gespeicherte Historie bleibt unverfälscht (keine Selbstverstärkung).</li>
+          <li>In der Detail-Tabelle sichtbar als „⚡ Agent-Boost: +X Pkt".</li>
+        </ul>
+      </div>
+      <div class="info-box">
+        <h4>⚠️ Pump &amp; Dump Filter</h4>
+        <p style="font-size:.82rem;color:var(--txt-sub);margin:0 0 8px">Zwei Badges warnen vor überkauften oder erschöpften Setups — verhindert Einstieg am Top.</p>
+        <ul>
+          <li><strong>⚠️ Orange-Warnung</strong> – Kurs bereits +{PD_GAIN_5D_THRESHOLD * 100:.0f} % in 5 Tagen UND heutiges Rel. Volumen &lt; gestriges → Kaufdruck lässt nach, Setup möglicherweise erschöpft.</li>
+          <li><strong>🔴 Rote Warnung</strong> – RSI &gt; {PD_RSI_THRESHOLD:.0f} UND Kurs bereits +{PD_GAIN_5D_RSI_THRESHOLD * 100:.0f} % in 5 Tagen → überkauft, Einstieg riskant.</li>
+          <li>Die Badges erscheinen direkt unter dem Ticker-Namen — zusätzlich als Warnhinweis in der KI-Analyse.</li>
+        </ul>
+        <h4 style="margin-top:12px">🎯 Risk/Reward in KI-Analyse</h4>
+        <ul>
+          <li>Jede KI-Analyse schließt zwingend mit einem konkreten Risk/Reward-Framework ab:</li>
+          <li><strong>Möglicher Einstieg</strong> (aktueller Kurs) · <strong>Stop-Loss</strong> −{RISK_REWARD_STOP_PCT * 100:.0f} % · <strong>Profit-Target 1</strong> +{RISK_REWARD_TARGET1_PCT * 100:.0f} % · <strong>Profit-Target 2</strong> +{RISK_REWARD_TARGET2_PCT * 100:.0f} %</li>
+          <li>Konkrete Dollar-Beträge werden aus dem aktuellen Kurs berechnet — R/R-Ratio wird ausgewiesen (z.B. 1:1,3).</li>
+          <li>Der Chat-Assistent nennt bei jeder Einzelaktien-Empfehlung zwingend Stop-Loss + Profit-Target + R/R — ohne diese drei Angaben ist eine Handlungsempfehlung unvollständig.</li>
         </ul>
       </div>
       <div class="info-box">
@@ -4790,7 +5028,17 @@ async function runKiAnalyse(cardIdx) {{
     news:     newsArr,
   }};
 
-  const sysPrompt = 'Du bist ein erfahrener Squeeze-Analyst. Analysiere das folgende Squeeze-Setup und gib eine präzise Einschätzung auf Deutsch. Maximal 150 Wörter. Schließe immer mit einem Haftungshinweis ab: Diese Analyse ist keine Anlageempfehlung. Beende jede Analyse zwingend mit "Fazit:" gefolgt von einer konkreten Einschätzung in einem Satz.';
+  const sysPrompt = 'Du bist ein erfahrener Squeeze-Analyst. Analysiere das folgende Squeeze-Setup und gib eine präzise Einschätzung auf Deutsch. Maximal 200 Wörter. '
+    + 'Falls RSI > 80 oder Kurs bereits stark gestiegen (> 20% in 5 Tagen): explizit auf Rückschlagsrisiko hinweisen. '
+    + 'Gib nach der Analyse ZWINGEND folgendes Risk/Reward-Framework aus — jede Zeile beginnt mit dem Label + Doppelpunkt:\\n'
+    + 'Möglicher Einstieg: $<Kurs> (aktuell)\\n'
+    + 'Stop-Loss: $<Kurs -15%> — falls dieser Level bricht, ist das Setup gescheitert\\n'
+    + 'Profit-Target 1: $<Kurs +20%> — erstes Ziel bei Short-Covering\\n'
+    + 'Profit-Target 2: $<Kurs +50%> — Squeeze-Szenario\\n'
+    + 'Risk/Reward: 1:1.3 (Stop -15% / Target +20%)\\n'
+    + 'Berechne die konkreten Dollar-Beträge aus dem angegebenen aktuellen Kurs. '
+    + 'Schließe immer mit einem Haftungshinweis ab: Diese Analyse ist keine Anlageempfehlung. '
+    + 'Beende jede Analyse zwingend mit "Fazit:" gefolgt von einer konkreten Einschätzung in einem Satz.';
   const userPrompt =
 `Squeeze-Setup für ${{ctx.ticker}} (${{ctx.company}}):
 - Squeeze-Score: ${{ctx.score}}/100
@@ -5643,6 +5891,7 @@ def main():
             "change_5d":       yfd.get("change_5d"),
             "spx_daily_perf":  _spx_daily_perf,
             "recent_squeeze":  yfd.get("recent_squeeze"),   # Feature 6
+            "rel_volume_yesterday": yfd.get("rel_volume_yesterday"),  # P&D Flag 1
         })
         if i < 3:
             print(f"{t} float_shares={c.get('float_shares')} change_5d={c.get('change_5d')}", flush=True)
@@ -5783,6 +6032,12 @@ def main():
 
     # --- Step 3a: Score smoothing (70 % today + 30 % avg last 3 runs) ---
     apply_score_smoothing(top10, report_date)
+
+    # Feature 2 — Agent-Boost: KI-Agent-Score als Multiplikator on-top.
+    # Kommt NACH dem Smoothing, damit die History den unboosted Base-Score
+    # behält (sonst würde der Boost sich selbst verstärken).
+    apply_agent_boost(top10)
+
     top10 = _sort_keeping_manual_last(top10)
 
     # Opt 3 — Parallel news fetching (all 10 tickers × 3 sources concurrently).

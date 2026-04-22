@@ -18,7 +18,7 @@
           <button class="wl-add-btn" data-ticker="{{ ticker }}" onclick="wlToggle(this)" title="Zur Watchlist hinzufügen">＋</button>
         </div>
         <span class="company">{{ company }}</span>
-        {{ sector_tag_html }}{{ earnings_tag_html }}{{ squeeze_badge_html }}
+        {{ sector_tag_html }}{{ earnings_tag_html }}{{ squeeze_badge_html }}{{ pd_badges_html }}
       </div>
     </div>
     <div class="score-block">
@@ -28,6 +28,7 @@
       {{ below_min_score_html }}
     </div>
   </div>
+  {{ sub_scores_html }}
   {{ sparkline_html }}
   <div class="metrics-row">
     <div class="metric-box metric-box-header" style="--mc:{{ sf_col }}">
@@ -62,6 +63,7 @@
   <div class="details-body" id="dd{{ i }}">
     <div class="detail-table-wrap">
       <table class="detail-table">
+        {{ agent_boost_row }}
         <tr><td>Marktkapitalisierung</td><td>{{ cap_fmt }}</td></tr>
         {{ float_row }}
         {{ sector_detail_row }}

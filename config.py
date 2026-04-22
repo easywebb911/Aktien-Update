@@ -65,6 +65,39 @@ BACKTEST_FILE             = "backtest_history.json"
 BACKTEST_MAX_DAYS         = 90
 BACKTEST_RETURN_WINDOWS   = [3, 5, 10]   # Handelstage → return_3d / _5d / _10d
 
+# ── Sub-Scores (Struktur / Katalysator / Timing) ────────────────────────────
+# Informative Aufspaltung des Gesamt-Scores in drei Themen-Komponenten.
+# Der Gesamt-Score bleibt unverändert (score()-Funktion nicht angepasst);
+# die Sub-Scores sind ergänzende Display-Metriken.
+SHOW_SUB_SCORES     = True
+SUB_STRUCT_MAX      = 40
+SUB_CATALYST_MAX    = 35
+SUB_TIMING_MAX      = 25
+
+# ── Agent-Boost (KI-Agent-Score als Multiplikator) ──────────────────────────
+# Bei aktuellem Agent-Signal (<4h) mit hinreichend hohem KI-Agent-Score
+# wird der Tages-Score multiplikativ angehoben:
+#   Agent 25-49 → ×1.05    Agent 50-74 → ×1.10    Agent ≥75 → ×1.15
+# Cap bei 100 bleibt.
+AGENT_BOOST_ENABLED   = True
+AGENT_BOOST_MAX_AGE_H = 4
+
+# ── Pump & Dump Filter ──────────────────────────────────────────────────────
+# Warnende Badges, kein Ausschluss. Zwei Erkennungspfade:
+#   Flag 1: Kurs +30% in 5T UND Volumen-Rückgang (rvol_today < rvol_yesterday)
+#   Flag 2: RSI > 80 UND Kurs +20% in 5T
+PD_FILTER_ENABLED      = True
+PD_GAIN_5D_THRESHOLD   = 0.30
+PD_GAIN_5D_RSI_THRESHOLD = 0.20
+PD_RSI_THRESHOLD       = 80
+
+# ── Risk/Reward in KI-Analyse ───────────────────────────────────────────────
+# Claude muss Stop-Loss, zwei Profit-Targets und R/R-Ratio ausgeben.
+SHOW_RISK_REWARD          = True
+RISK_REWARD_STOP_PCT      = 0.15   # 15% unter Entry
+RISK_REWARD_TARGET1_PCT   = 0.20   # +20% erstes Ziel (Short-Covering)
+RISK_REWARD_TARGET2_PCT   = 0.50   # +50% Squeeze-Szenario
+
 # ── SEC 13F (Institutional Holdings Snapshot) ──────────────────────────────
 # False: fetch_sec_13f() wird im Daily-Run übersprungen.
 #        Seit Monaten ~0 Treffer pro Run bei ~0,5 s Kosten; kein Wertbeitrag.
