@@ -84,18 +84,30 @@ def get_alert_threshold(phase: str) -> int:
 # ── index.html parsen → Top-10-Ticker ─────────────────────────────────────────
 
 def parse_top_tickers() -> list[str]:
-    """Extrahiert Ticker aus dem aktuellen index.html."""
+    """Extrahiert Ticker aus dem aktuellen index.html.
+
+    Filtert Phantom-Einträge („TICKER", Platzhalter, Flag-Emoji-Reste) und
+    akzeptiert nur valide Symbole: 1–6 Zeichen, nur Buchstaben/Zahlen.
+    """
     if not INDEX_HTML.exists():
         log.error("index.html nicht gefunden.")
         return []
     html = INDEX_HTML.read_text(encoding="utf-8")
     tickers = re.findall(r'<span class="ticker">([^<]+)</span>', html)
-    # Ticker können Flag-Emoji enthalten — nur ASCII-Buchstaben/Zahlen/./-
-    clean = []
-    for t in tickers:
-        m = re.search(r'[A-Z0-9][A-Z0-9.\-]+', t.strip().upper())
-        if m and m.group() not in clean:
-            clean.append(m.group())
+    clean: list[str] = []
+    for raw in tickers:
+        # Ticker-Symbol extrahieren (ohne Flag-Emoji, Whitespace etc.)
+        m = re.search(r'[A-Z0-9][A-Z0-9.\-]*', raw.strip().upper())
+        if not m:
+            continue
+        t = m.group().split(".")[0]   # US-Ticker ohne Exchange-Suffix
+        # Phantom-Ticker herausfiltern: kein Platzhalter, nur Buchstaben/Zahlen,
+        # Länge 1–6 — verhindert dass z.B. "TICKER" aus Template-Resten in die
+        # Pipeline gelangt und FINRA/Reddit-Queries verschmutzt.
+        if t == "TICKER" or not re.match(r"^[A-Z0-9]{1,6}$", t):
+            continue
+        if t not in clean:
+            clean.append(t)
     log.info("Top-Ticker aus index.html: %s", clean)
     return clean
 
@@ -365,13 +377,20 @@ def fetch_yfinance(tickers: list[str]) -> dict[str, dict]:
     # ── Schritt 2: fast_info.last_price → aktueller Kurs inkl. Pre/Post-Market ─
     # Zuverlässiger als 1m-Bars: liefert den letzten verfügbaren Kurs auch
     # außerhalb der regulären Handelszeiten (After-Hours / Pre-Market).
+    # Nach Börsenschluss kann last_price None/0 sein → Fallback auf
+    # regularMarketChangePercent aus fast_info, sonst stiller 0.0%-Fallback.
     if USE_PREPOST_DATA:
         for t in tickers:
             try:
                 fi = yf.Ticker(t).fast_info
+            except Exception as exc:
+                log.debug("fast_info %s: %s", t, exc)
+                continue
+            try:
                 current_price = fi.last_price
-                if not current_price or current_price <= 0:
-                    continue
+            except Exception:
+                current_price = None
+            if current_price and current_price > 0:
                 base = results.get(t, {}).get("last_reg_close")
                 if base and base > 0:
                     chg_pct = round((current_price - base) / base * 100, 2)
@@ -388,9 +407,30 @@ def fetch_yfinance(tickers: list[str]) -> dict[str, dict]:
                         "rvol":           0.0,
                         "intraday":       0.0,
                     }
-                log.debug("fast_info %s: last_price=%.2f chg=%.1f%%", t, current_price, chg_pct)
-            except Exception as exc:
-                log.debug("fast_info %s: %s", t, exc)
+                log.debug("fast_info %s: last_price=%.2f chg=%.1f%%",
+                          t, current_price, chg_pct)
+                continue
+            # Kein Live-Kurs → Fallback auf regularMarketChangePercent.
+            reg_chg = None
+            for attr in ("regular_market_change_percent",
+                         "regularMarketChangePercent"):
+                try:
+                    v = getattr(fi, attr, None)
+                    if v is not None:
+                        reg_chg = float(v)
+                        break
+                except Exception:
+                    continue
+            if t not in results:
+                results[t] = {
+                    "price":          0.0,
+                    "last_reg_close": 0.0,
+                    "chg_pct":        round(reg_chg, 2) if reg_chg is not None else 0.0,
+                    "rvol":           0.0,
+                    "intraday":       0.0,
+                }
+            elif reg_chg is not None and not results[t].get("chg_pct"):
+                results[t]["chg_pct"] = round(reg_chg, 2)
 
     return results
 
@@ -682,7 +722,17 @@ def fetch_finra_ssr(tickers: list[str]) -> dict[str, float]:
     global _FINRA_SSR_CACHE
 
     today = datetime.now(timezone.utc).date()
-    base_symbols = {t.split(".")[0].upper() for t in tickers}
+    # Beide Seiten konsequent auf Großbuchstaben normalisieren + Phantom-Ticker
+    # („TICKER" aus Template-Resten) entfernen, damit der Abgleich nicht 0
+    # relevante Ticker produziert.
+    base_symbols = {
+        t.strip().upper().split(".")[0]
+        for t in tickers
+        if t and t.strip().upper() != "TICKER"
+    }
+    base_symbols.discard("")
+    log.info("FINRA SSR: suche %d normalisierte Symbole: %s",
+             len(base_symbols), sorted(base_symbols))
 
     # Try today and up to 4 prior days (weekends / holidays)
     for days_back in range(5):
