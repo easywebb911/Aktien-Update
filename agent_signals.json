@@ -1,17 +1,17 @@
 {
-  "updated": "2026-04-23T23:09:10.882000+02:00",
+  "updated": "2026-04-24T00:16:37.904279+02:00",
   "run_info": {
     "tickers_checked": 10,
-    "signals_active": 4,
+    "signals_active": 5,
     "alerts_sent": 0,
-    "elapsed_s": 34.6,
+    "elapsed_s": 37.0,
     "market_phase": "After-Hours"
   },
   "signals": {
     "SST": {
-      "score": 8,
-      "confidence": 17,
-      "drivers": "Earnings in 19d",
+      "score": 16,
+      "confidence": 33,
+      "drivers": "News-KI 8/30: Positive earnings news and growth forecast are bullish but lack short-squeeze indicators like high short interest, low f + Earnings in 19d",
       "price": 3.83,
       "chg_pct": 0.0,
       "rvol": 0.0,
@@ -21,9 +21,9 @@
       "insider_buy": false
     },
     "SKLZ": {
-      "score": 8,
-      "confidence": 17,
-      "drivers": "Earnings in 14d",
+      "score": 23,
+      "confidence": 33,
+      "drivers": "News: squeeze + Earnings in 14d",
       "price": 12.45,
       "chg_pct": 0.0,
       "rvol": 0.0,
@@ -47,7 +47,7 @@
     "TFIN": {
       "score": 30,
       "confidence": 17,
-      "drivers": "News: earnings beat, partnership",
+      "drivers": "News: partnership, earnings beat",
       "price": 67.32,
       "chg_pct": 0.0,
       "rvol": 0.0,
@@ -81,9 +81,9 @@
       "insider_buy": false
     },
     "SNSE": {
-      "score": 30,
-      "confidence": 17,
-      "drivers": "News: breakout, acquisition",
+      "score": 55,
+      "confidence": 33,
+      "drivers": "News: acquisition, breakout + FINRA Short-Vol 133157%",
       "price": 32.62,
       "chg_pct": 0.0,
       "rvol": 0.0,
@@ -93,9 +93,9 @@
       "insider_buy": false
     },
     "LESL": {
-      "score": 16,
+      "score": 41,
       "confidence": 33,
-      "drivers": "News-KI 8/30: Routine earnings coverage with no indicators of high short interest, squeeze catalysts, or unusual volatility signals. + Earnings in 14d",
+      "drivers": "News-KI 8/30: Earnings-focused headlines with no indicators of short squeeze catalysts like high short interest, technical breakouts,  + Earnings in 14d + FINRA Short-Vol 8023%",
       "price": 2.31,
       "chg_pct": 0.0,
       "rvol": 0.0,
@@ -117,9 +117,9 @@
       "insider_buy": false
     },
     "PCT": {
-      "score": 23,
+      "score": 8,
       "confidence": 17,
-      "drivers": "Earnings in 13d + FINRA Short-Vol 62%",
+      "drivers": "Earnings in 13d",
       "price": 7.23,
       "chg_pct": 0.0,
       "rvol": 0.0,
