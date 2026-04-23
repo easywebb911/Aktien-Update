@@ -108,6 +108,21 @@ SHORT_PRESSURE_SF_MIN    = 0.25    # Short Float ≥ 25 %
 SHORT_PRESSURE_RVOL_MIN  = 1.5     # Rel. Volumen ≥ 1,5×
 SHORT_PRESSURE_BONUS     = 5       # Katalysator-Score-Bonus
 
+# ── Gamma Squeeze Detection ──────────────────────────────────────────────────
+# Summiert Call-Open-Interest im Bereich ATM ±10 % über die nächsten 2
+# Verfallstermine (≤ 14 Tage) und normalisiert auf durchschnittliches
+# Handelsvolumen:  gamma_pressure = atm_call_oi × current_price / avg_vol_20d
+# Schwellenwerte: ≥ 0.5 = möglich, ≥ 2.0 = wahrscheinlich.
+GAMMA_SQUEEZE_ENABLED    = True
+GAMMA_ATM_RANGE          = 0.10    # ATM ±10 % Strike-Fenster
+GAMMA_MAX_DAYS_TO_EXPIRY = 14      # nur kurzlaufende Optionen zählen
+GAMMA_NUM_EXPIRIES       = 2       # erste 2 Verfallstermine summieren
+GAMMA_POSSIBLE_THRESHOLD = 0.5     # gamma_pressure ≥ 0.5 → möglich
+GAMMA_LIKELY_THRESHOLD   = 2.0     # gamma_pressure ≥ 2.0 → wahrscheinlich
+GAMMA_BONUS_POSSIBLE     = 8       # Katalysator-Bonus bei möglich
+GAMMA_BONUS_LIKELY       = 15      # Katalysator-Bonus bei wahrscheinlich
+
+
 # ── SEC 13F (Institutional Holdings Snapshot) ──────────────────────────────
 # False: fetch_sec_13f() wird im Daily-Run übersprungen.
 #        Seit Monaten ~0 Treffer pro Run bei ~0,5 s Kosten; kein Wertbeitrag.
@@ -253,6 +268,16 @@ SCORE_REDDIT_SENTIMENT = 10   # Positiver Sentiment ≥ 0.3
 SCORE_SEC_8K           = 15   # Neue 8-K in letzten 24h
 SCORE_SEC_8K_RELEVANT  = 25   # 8-K mit Earnings/FDA-Keywords
 SCORE_NEWS_KEYWORD     = 15   # News-Keyword-Treffer (je Treffer, Cap 30)
+
+# ── KI-Sentiment (Claude Haiku für News-Headlines statt Keyword-Zählung) ──
+# Falls ANTHROPIC_API_KEY in der Umgebung vorhanden ist und KI_SENTIMENT_ENABLED
+# gesetzt ist, werden die letzten 3 Schlagzeilen per Claude Haiku ausgewertet.
+# Fällt bei API-Fehlern/fehlendem Key automatisch auf Keyword-Zählung zurück.
+KI_SENTIMENT_ENABLED = True
+KI_SENTIMENT_MODEL   = "claude-haiku-4-5-20251001"
+KI_SENTIMENT_MAX_TOKENS = 50
+KI_SENTIMENT_MAX_SCORE  = 30   # Cap (gleich wie Keyword-Zählung)
+KI_SENTIMENT_HEADLINES  = 3    # letzte N Schlagzeilen senden
 
 # ── Auslöse-Schwellen (Trigger) ──────────────────────────────────────────────
 TRIGGER_PRICE_UP_3 = 2.0   # ab +2 % → SCORE_PRICE_UP_3

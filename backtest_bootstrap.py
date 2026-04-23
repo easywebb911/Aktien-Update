@@ -153,30 +153,43 @@ def _process_ticker(ticker: str, existing_keys: set[tuple]) -> list[dict]:
         if key in existing_keys:
             continue
 
-        # Returns direkt aus zukünftiger History berechnen (Bootstrap-Vorteil)
+        # Returns direkt aus zukünftiger History berechnen (Bootstrap-Vorteil).
+        # T+0: Einstieg am Signal-Tag (Close des Tages, unrealistisch aber
+        #      Referenz-Wert).
+        # T+1: Einstieg am nächsten Handelstag (realistischer, Signal
+        #      wird erst nach Börsenschluss sichtbar).
         returns: dict[str, float | None] = {}
+        t1_idx = i + 1
+        close_t1 = float(closes.iloc[t1_idx]) if t1_idx < n else None
         for win in BACKTEST_RETURN_WINDOWS:
             fut_idx = i + win
-            if fut_idx < n:
-                fut_close = float(closes.iloc[fut_idx])
-                returns[f"return_{win}d"] = round(
-                    (fut_close / close_today - 1) * 100, 2
-                )
-            else:
-                returns[f"return_{win}d"] = None
+            returns[f"return_{win}d"] = (
+                round((float(closes.iloc[fut_idx]) / close_today - 1) * 100, 2)
+                if fut_idx < n and close_today > 0 else None
+            )
+            fut_idx_t1 = t1_idx + win
+            returns[f"return_{win}d_t1"] = (
+                round((float(closes.iloc[fut_idx_t1]) / close_t1 - 1) * 100, 2)
+                if close_t1 is not None and close_t1 > 0 and fut_idx_t1 < n
+                else None
+            )
 
         entry = {
-            "date":        date_str,
-            "ticker":      ticker,
-            "score":       _score_simple(sf_est, rvol, mom),
-            "entry_price": round(close_today, 4),
-            "short_float": round(sf_est, 2),
-            "dtc":         round(dtc_est, 2),
-            "rvol":        round(rvol, 3),
-            "si_trend":    "no_data",
-            "return_3d":   returns.get("return_3d"),
-            "return_5d":   returns.get("return_5d"),
-            "return_10d":  returns.get("return_10d"),
+            "date":          date_str,
+            "ticker":        ticker,
+            "score":         _score_simple(sf_est, rvol, mom),
+            "entry_price":   round(close_today, 4),
+            "entry_price_t1": round(close_t1, 4) if close_t1 is not None else None,
+            "short_float":   round(sf_est, 2),
+            "dtc":           round(dtc_est, 2),
+            "rvol":          round(rvol, 3),
+            "si_trend":      "no_data",
+            "return_3d":     returns.get("return_3d"),
+            "return_5d":     returns.get("return_5d"),
+            "return_10d":    returns.get("return_10d"),
+            "return_3d_t1":  returns.get("return_3d_t1"),
+            "return_5d_t1":  returns.get("return_5d_t1"),
+            "return_10d_t1": returns.get("return_10d_t1"),
             "source":      "bootstrap",
         }
         out.append(entry)

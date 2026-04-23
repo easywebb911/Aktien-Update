@@ -885,7 +885,28 @@ def get_options_data(ticker: str) -> dict:
             print(f"{ticker} IV: Verfallstermin {chosen} ({days_to_expiry} Tage), "
                   f"ATM-IV={atm_iv * 100:.1f}%")
 
-        return {"pc_ratio": pc_ratio, "atm_iv": atm_iv, "expiry": chosen}
+        # Gamma Squeeze: summiere Call-OI im ATM-Bereich über die nächsten 2
+        # kurzlaufenden Verfallstermine (≤ GAMMA_MAX_DAYS_TO_EXPIRY).
+        gamma_call_oi = 0
+        if GAMMA_SQUEEZE_ENABLED and cur_price is not None:
+            gamma_max = _dt.today() + _td(days=GAMMA_MAX_DAYS_TO_EXPIRY)
+            short_exp = [e for e in expiries
+                         if _dt.strptime(e, "%Y-%m-%d") <= gamma_max]
+            atm_low  = cur_price * (1 - GAMMA_ATM_RANGE)
+            atm_high = cur_price * (1 + GAMMA_ATM_RANGE)
+            for exp in short_exp[:GAMMA_NUM_EXPIRIES]:
+                try:
+                    exp_calls = calls if exp == chosen else stk.option_chain(exp).calls
+                    atm_slice = exp_calls[
+                        (exp_calls["strike"] >= atm_low) &
+                        (exp_calls["strike"] <= atm_high)
+                    ]
+                    gamma_call_oi += int(atm_slice["openInterest"].fillna(0).sum())
+                except Exception as exc:  # noqa: BLE001
+                    log.debug("%s gamma-expiry %s failed: %s", ticker, exp, exc)
+
+        return {"pc_ratio": pc_ratio, "atm_iv": atm_iv, "expiry": chosen,
+                "gamma_call_oi": gamma_call_oi}
     except Exception as exc:
         log.debug("Options data failed for %s: %s", ticker, exc)
         return {}
@@ -2083,8 +2104,12 @@ def _compute_sub_scores(s: dict) -> dict:
         if any(kw in title for kw in _kw):
             news_pts = min(news_pts + 5, 10)
     pressure_pts = SHORT_PRESSURE_BONUS if _detect_short_pressure(s) else 0
+    _gamma_lvl = _gamma_squeeze_level(s)
+    gamma_pts  = (GAMMA_BONUS_LIKELY   if _gamma_lvl == "likely"
+                  else GAMMA_BONUS_POSSIBLE if _gamma_lvl == "possible"
+                  else 0)
     catalyst_pts = round(min(
-        earn_pts + insider_pts + news_pts + pressure_pts,
+        earn_pts + insider_pts + news_pts + pressure_pts + gamma_pts,
         SUB_CATALYST_MAX,
     ), 1)
 
@@ -2171,6 +2196,50 @@ def _pd_badges_html(s: dict) -> str:
             f'\U0001F534 RSI überkauft — Einstieg riskant</span>'
         )
     return "".join(out)
+
+
+def _gamma_pressure(s: dict) -> float | None:
+    """Gamma-Druck = atm_call_oi × Kurs / Ø-Volumen (20T).
+
+    Rückgabe None wenn Daten fehlen (internationale Ticker, leere Options-
+    Chain, fehlendes Volumen).
+    """
+    if not GAMMA_SQUEEZE_ENABLED:
+        return None
+    opts  = s.get("options") or {}
+    oi    = opts.get("gamma_call_oi")
+    price = _safe_float(s.get("price", 0))
+    vol   = _safe_float(s.get("avg_vol_20d", 0))
+    if oi is None or oi <= 0 or price <= 0 or vol <= 0:
+        return None
+    return oi * price / vol
+
+
+def _gamma_squeeze_level(s: dict) -> str:
+    """'none' / 'possible' / 'likely' — abhängig von Schwellenwerten."""
+    gp = _gamma_pressure(s)
+    if gp is None:
+        return "none"
+    if gp >= GAMMA_LIKELY_THRESHOLD:
+        return "likely"
+    if gp >= GAMMA_POSSIBLE_THRESHOLD:
+        return "possible"
+    return "none"
+
+
+def _gamma_badge_html(s: dict) -> str:
+    """Gelbes Badge „⚡ Gamma-Druck erkannt" wenn Schwelle überschritten."""
+    lvl = _gamma_squeeze_level(s)
+    if lvl == "none":
+        return ""
+    gp = _gamma_pressure(s) or 0
+    label = "wahrscheinlich" if lvl == "likely" else "möglich"
+    cls   = "pd-badge-gamma-strong" if lvl == "likely" else "pd-badge-gamma"
+    return (
+        f'<span class="pd-badge {cls}" '
+        f'title="Gamma-Pressure {gp:.2f} (ATM-Call-OI × Kurs ÷ Ø-Vol20T) — {label}">'
+        f'⚡ Gamma-Druck {label}</span>'
+    )
 
 
 def _score_hint_html(score: float) -> str:
@@ -2481,7 +2550,7 @@ def _card(i: int, s: dict) -> str:
     squeeze_badge_html = _squeeze_history_badge(s)
     sub_scores_html    = _sub_scores_html(s)         # Feature 1
     pd_badges_html     = (                            # Feature 3 + Short-Druck
-        _pd_badges_html(s) + _short_pressure_badge_html(s)
+        _pd_badges_html(s) + _short_pressure_badge_html(s) + _gamma_badge_html(s)
     )
     agent_boost_row    = _agent_boost_row_html(s)    # Feature 2
 
@@ -2949,7 +3018,7 @@ def _build_card_ctx(i: int, s: dict) -> dict:
     squeeze_badge_html = _squeeze_history_badge(s)
     sub_scores_html    = _sub_scores_html(s)         # NEU: Sub-Scores
     pd_badges_html     = (                            # P&D + Short-Druck
-        _pd_badges_html(s) + _short_pressure_badge_html(s)
+        _pd_badges_html(s) + _short_pressure_badge_html(s) + _gamma_badge_html(s)
     )
     agent_boost_row    = _agent_boost_row_html(s)    # NEU: Agent-Boost-Zeile
 
@@ -3444,6 +3513,13 @@ def generate_html_v1(stocks: list[dict], report_date: str, _ctx: dict | None = N
           <li>Der Boost wird <em>nach</em> der Score-Glättung angewendet — die gespeicherte Historie bleibt unverfälscht (keine Selbstverstärkung).</li>
           <li>In der Detail-Tabelle sichtbar als „⚡ Agent-Boost: +X Pkt".</li>
         </ul>
+        <h4 style="margin-top:12px">⚡ Gamma Squeeze Detection</h4>
+        <ul>
+          <li><strong>Formel:</strong> <code>gamma_pressure = atm_call_oi × Kurs / Ø-Vol 20T</code> — summiert Call-Open-Interest im Bereich <strong>ATM ±{GAMMA_ATM_RANGE * 100:.0f} %</strong> über die nächsten <strong>{GAMMA_NUM_EXPIRIES} Verfallstermine</strong> ≤ {GAMMA_MAX_DAYS_TO_EXPIRY} Tage.</li>
+          <li><strong>≥ {GAMMA_POSSIBLE_THRESHOLD:.1f} → möglich</strong> (gelbes Badge, Katalysator-Bonus +{GAMMA_BONUS_POSSIBLE} Pkt)</li>
+          <li><strong>≥ {GAMMA_LIKELY_THRESHOLD:.1f} → wahrscheinlich</strong> (dunkelgelbes Badge, Katalysator-Bonus +{GAMMA_BONUS_LIKELY} Pkt)</li>
+          <li>Market-Maker müssen bei steigendem Kurs Aktien kaufen um Delta-neutral zu bleiben → self-reinforcing Kaufdruck, besonders bei kurzer Restlaufzeit.</li>
+        </ul>
         <h4 style="margin-top:12px">Backtesting-Status</h4>
         <ul>
           <li><strong>1.046 Datenpunkte vorhanden</strong> (1.006 bootstrap + 40 daily).</li>
@@ -3604,6 +3680,13 @@ def generate_html_v1(stocks: list[dict], report_date: str, _ctx: dict | None = N
     .bt-meta{{font-size:.78rem;color:var(--txt-dim);margin:0 0 12px;line-height:1.5;
       overflow-wrap:break-word}}
     .bt-meta b{{color:var(--txt)}}
+    .bt-mode{{display:flex;gap:6px;margin:0 0 10px;flex-wrap:wrap}}
+    .bt-mode-btn{{flex:1;min-width:140px;padding:6px 10px;font-size:.78rem;
+      font-weight:700;color:var(--txt-dim);background:var(--bg-met);
+      border:1px solid var(--brd);border-radius:6px;cursor:pointer;
+      transition:background .12s,color .12s}}
+    .bt-mode-btn:hover{{color:var(--txt)}}
+    .bt-mode-btn.active{{color:#fff;background:#6366f1;border-color:#4f46e5}}
     /* Mobile-first: 1 Spalte auf iPhone, 2 Spalten ab 768 px */
     .bt-grid{{display:grid;grid-template-columns:1fr;gap:12px}}
     @media (min-width:768px){{ .bt-grid{{grid-template-columns:1fr 1fr}} }}
@@ -3679,6 +3762,12 @@ def generate_html_v1(stocks: list[dict], report_date: str, _ctx: dict | None = N
       <button class="bt-close" onclick="toggleBacktesting(false)" aria-label="Schließen">&times;</button>
     </div>
     <p class="bt-meta" id="bt-meta">Lade Daten …</p>
+    <div class="bt-mode" role="tablist" aria-label="Entry-Tag">
+      <button type="button" class="bt-mode-btn active" data-bt-mode="t0"
+              onclick="_btSetMode('t0')">T+0 (Signal-Tag)</button>
+      <button type="button" class="bt-mode-btn" data-bt-mode="t1"
+              onclick="_btSetMode('t1')">T+1 (nächster Tag)</button>
+    </div>
     <div class="bt-grid">
       <div class="bt-tile">
         <div class="bt-tile-title">Trefferquote je Score-Schwelle (5T +5 %)</div>
@@ -3878,6 +3967,21 @@ function showScoreExplain(el, ev){{
 // ── Backtesting-Sektion ───────────────────────────────────────────────────
 let _btLoaded = false;
 let _btData   = null;
+let _btMode   = 't0';   // 't0' (Signal-Tag) | 't1' (nächster Tag)
+function _btSetMode(mode){{
+  if (mode !== 't0' && mode !== 't1') return;
+  _btMode = mode;
+  document.querySelectorAll('.bt-mode-btn').forEach(b => {{
+    b.classList.toggle('active', b.dataset.btMode === mode);
+  }});
+  if (_btData) _btRender();
+}}
+function _btKeys(){{
+  // Feldnamen je Modus: T+0 → return_3d / return_5d / return_10d
+  //                    T+1 → return_3d_t1 / ...
+  const suf = (_btMode === 't1') ? '_t1' : '';
+  return {{r3: 'return_3d' + suf, r5: 'return_5d' + suf, r10: 'return_10d' + suf}};
+}}
 function toggleBacktesting(force){{
   const sec = document.getElementById('bt-section');
   if (!sec) return;
@@ -3936,9 +4040,10 @@ function _btRenderHitRates(data){{
   const svg = document.getElementById('bt-chart-hit');
   const thresholds = [40, 50, 60, 70, 80];
   const rows = thresholds.map(th => {{
-    const slice = data.filter(e => (e.score || 0) >= th && e.return_5d !== null && e.return_5d !== undefined);
+    const k = _btKeys();
+    const slice = data.filter(e => (e.score || 0) >= th && e[k.r5] !== null && e[k.r5] !== undefined);
     const n   = slice.length;
-    const hit = slice.filter(e => e.return_5d >= 5.0).length;
+    const hit = slice.filter(e => e[k.r5] >= 5.0).length;
     return {{th, n, rate: n ? hit / n : null}};
   }});
   const W = 320, H = 160, PAD_L = 28, PAD_R = 8, PAD_T = 10, PAD_B = 30;
@@ -3986,7 +4091,8 @@ function _btBucketStats(data){{
     {{key:'50–69', pred: e => (e.score || 0) >= 50 && (e.score || 0) < 70}},
     {{key:'≥70',   pred: e => (e.score || 0) >= 70}},
   ];
-  const horizons = [['3T','return_3d'], ['5T','return_5d'], ['10T','return_10d']];
+  const k = _btKeys();
+  const horizons = [['3T', k.r3], ['5T', k.r5], ['10T', k.r10]];
   return buckets.map(b => {{
     const slice = data.filter(b.pred);
     const meds = horizons.map(([lbl, key]) => {{
@@ -4094,12 +4200,13 @@ function _btRenderSiTrend(data){{
   const trends = [['up','↑ steigend'], ['sideways','→ seitwärts'], ['down','↓ fallend']];
   const container = document.getElementById('bt-si-grid');
   container.innerHTML = trends.map(([key, lbl]) => {{
+    const kk = _btKeys();
     const slice = data.filter(e => e.si_trend === key
-                                && e.return_5d !== null && e.return_5d !== undefined);
+                                && e[kk.r5] !== null && e[kk.r5] !== undefined);
     const n   = slice.length;
-    const hit = slice.filter(e => e.return_5d >= 5.0).length;
+    const hit = slice.filter(e => e[kk.r5] >= 5.0).length;
     const rate = n ? hit / n * 100 : null;
-    const med  = _btMedian(slice.map(e => e.return_5d));
+    const med  = _btMedian(slice.map(e => e[kk.r5]));
     const rateCol = rate === null ? 'var(--txt-dim)'
                  : (rate > 65 ? '#22c55e' : rate >= 50 ? '#f59e0b' : '#ef4444');
     const medCol = med === null ? 'var(--txt-dim)' : (med >= 0 ? '#22c55e' : '#ef4444');
@@ -4115,6 +4222,7 @@ function _btRenderSiTrend(data){{
   }}).join('');
 }}
 function _btRenderTable(data){{
+  const k = _btKeys();
   // Sortiere nach Datum absteigend (DD.MM.YYYY parsen)
   const parsed = data.map(e => {{
     const m = (e.date || '').match(/^(\d{{2}})\.(\d{{2}})\.(\d{{4}})$/);
@@ -4143,9 +4251,9 @@ function _btRenderTable(data){{
     + '<td>' + (e.date || '—') + '</td>'
     + '<td>' + ((e.score ?? 0).toFixed(1)) + '</td>'
     + '<td>$' + ((e.entry_price ?? 0).toFixed(2)) + '</td>'
-    + '<td>' + fmtR(e.return_3d) + '</td>'
-    + '<td>' + fmtR(e.return_5d) + '</td>'
-    + '<td>' + fmtR(e.return_10d) + '</td>'
+    + '<td>' + fmtR(e[k.r3]) + '</td>'
+    + '<td>' + fmtR(e[k.r5]) + '</td>'
+    + '<td>' + fmtR(e[k.r10]) + '</td>'
     + '<td>' + fmtSrc(e.source || 'daily') + '</td>'
     + '</tr>'
   ).join('');
@@ -6000,17 +6108,21 @@ def _append_backtest_entries(top10: list[dict], report_date: str) -> None:
             continue
         fd = s.get("finra_data") or {}
         entry = {
-            "date":        report_date,
-            "ticker":      s["ticker"],
-            "score":       round(float(s.get("score") or 0), 2),
-            "entry_price": round(float(s.get("price") or 0), 4),
-            "short_float": round(float(s.get("short_float") or 0), 2),
-            "dtc":         round(float(s.get("short_ratio") or 0), 2),
-            "rvol":        round(float(s.get("rel_volume") or 0), 3),
-            "si_trend":    fd.get("trend", "no_data"),
-            "return_3d":   None,
-            "return_5d":   None,
-            "return_10d":  None,
+            "date":          report_date,
+            "ticker":        s["ticker"],
+            "score":         round(float(s.get("score") or 0), 2),
+            "entry_price":   round(float(s.get("price") or 0), 4),
+            "entry_price_t1": None,   # wird am Tag T+1 von ki_agent gefüllt
+            "short_float":   round(float(s.get("short_float") or 0), 2),
+            "dtc":           round(float(s.get("short_ratio") or 0), 2),
+            "rvol":          round(float(s.get("rel_volume") or 0), 3),
+            "si_trend":      fd.get("trend", "no_data"),
+            "return_3d":     None,
+            "return_5d":     None,
+            "return_10d":    None,
+            "return_3d_t1":  None,
+            "return_5d_t1":  None,
+            "return_10d_t1": None,
         }
         history.append(entry)
         n_added += 1

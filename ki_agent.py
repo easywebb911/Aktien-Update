@@ -192,10 +192,16 @@ def _trading_days_elapsed(entry_date_str: str, today: datetime.date = None) -> i
 
 
 def update_backtest_returns() -> None:
-    """Liest backtest_history.json, identifiziert Einträge deren return_Xd-Feld
-    noch None ist, aber genug Handelstage vergangen sind. Holt den aktuellen
-    Kurs per yfinance und berechnet return = (current / entry_price − 1) × 100.
-    Idempotent: spätere Runs beeinflussen bereits gefüllte Returns nicht.
+    """Füllt T+0 und T+1 Return-Felder sobald genug Handelstage vergangen sind.
+
+    Für jeden daily-Eintrag werden bei jedem Aufruf nachgetragen:
+      • ``entry_price_t1``             — Close am nächsten Handelstag
+      • ``return_{win}d`` (T+0)        — Close[entry + win] / entry_price
+      • ``return_{win}d_t1`` (T+1)     — Close[entry + 1 + win] / entry_price_t1
+
+    Holt ~90 Handelstage History pro Ticker und liest die benötigten Close-
+    Werte an den konkreten Handelstag-Offsets ab. Idempotent — bereits
+    gefüllte Felder werden nicht überschrieben.
     """
     try:
         if not BACKTEST_ENABLED:
@@ -214,58 +220,87 @@ def update_backtest_returns() -> None:
         return
 
     today = datetime.now(timezone.utc).date()
-    # Pro Entry: welche Fenster müssen JETZT gefüllt werden?
-    pending_by_ticker: dict[str, list[tuple[int, int]]] = {}
-    for idx, e in enumerate(entries):
-        elapsed = _trading_days_elapsed(e.get("date",""), today)
-        if elapsed < 0:
-            continue
-        for win in BACKTEST_RETURN_WINDOWS:
-            key = f"return_{win}d"
-            if e.get(key) is None and elapsed >= win:
-                pending_by_ticker.setdefault(e["ticker"], []).append((idx, win))
 
-    if not pending_by_ticker:
+    def _needs_update(e: dict) -> bool:
+        elapsed = _trading_days_elapsed(e.get("date", ""), today)
+        if elapsed < 0:
+            return False
+        if e.get("entry_price_t1") is None and elapsed >= 1:
+            return True
+        for win in BACKTEST_RETURN_WINDOWS:
+            if e.get(f"return_{win}d") is None and elapsed >= win:
+                return True
+            if e.get(f"return_{win}d_t1") is None and elapsed >= win + 1:
+                return True
+        return False
+
+    pending = [e for e in entries if _needs_update(e)]
+    tickers = sorted({e["ticker"] for e in pending})
+    if not tickers:
         return
 
-    # Batch-Download aktueller Close-Preise für alle betroffenen Ticker
-    tickers = list(pending_by_ticker.keys())
-    log.info("Backtest-Returns: %d Ticker mit fälligen Windows", len(tickers))
+    log.info("Backtest-Returns: %d Ticker mit fälligen Windows (T+0 oder T+1)",
+             len(tickers))
     try:
-        hist = yf.download(tickers, period="2d", auto_adjust=True,
+        hist = yf.download(tickers, period="90d", auto_adjust=True,
                            progress=False, threads=True)
     except Exception as exc:
         log.warning("Backtest-Returns yf.download failed: %s", exc)
         return
 
-    def _last_close(ticker: str) -> float | None:
+    def _closes_for(ticker: str):
         try:
-            if len(tickers) == 1:
-                df = hist
-            else:
-                df = hist[ticker]
-            closes = df["Close"].dropna() if "Close" in df else df.get("Close")
-            if closes is None or len(closes) == 0:
-                return None
-            return float(closes.iloc[-1])
+            df = hist if len(tickers) == 1 else hist[ticker]
+            closes = df["Close"].dropna() if "Close" in df else None
+            return closes
         except (KeyError, ValueError, AttributeError):
             return None
 
     n_filled = 0
-    for ticker, slots in pending_by_ticker.items():
-        current = _last_close(ticker)
-        if current is None or current <= 0:
+    for e in pending:
+        closes = _closes_for(e["ticker"])
+        if closes is None or len(closes) == 0:
             continue
-        for idx, win in slots:
-            entry = entries[idx]
-            entry_price = float(entry.get("entry_price") or 0)
-            if entry_price <= 0:
-                continue
-            ret = round((current / entry_price - 1) * 100, 2)
-            entry[f"return_{win}d"] = ret
+        try:
+            entry_dt = datetime.strptime(e.get("date", ""), "%d.%m.%Y").date()
+        except ValueError:
+            continue
+        # Position des Entry-Datums im History-Index finden
+        idx_dates = [ts.date() for ts in closes.index]
+        ei = next((i for i, d in enumerate(idx_dates) if d == entry_dt), -1)
+        if ei < 0:
+            continue
+
+        def _close_at(offset: int) -> float | None:
+            pos = ei + offset
+            if 0 <= pos < len(closes):
+                return float(closes.iloc[pos])
+            return None
+
+        entry_price = float(e.get("entry_price") or 0) or (_close_at(0) or 0)
+        close_t1    = _close_at(1)
+
+        if e.get("entry_price_t1") is None and close_t1 is not None:
+            e["entry_price_t1"] = round(close_t1, 4)
             n_filled += 1
-            log.info("  Backtest %s [%s] %dd-Return: %+.2f%%",
-                     ticker, entry.get("date"), win, ret)
+
+        for win in BACKTEST_RETURN_WINDOWS:
+            k0 = f"return_{win}d"
+            if e.get(k0) is None and entry_price > 0:
+                c = _close_at(win)
+                if c is not None:
+                    e[k0] = round((c / entry_price - 1) * 100, 2)
+                    n_filled += 1
+                    log.info("  %s [%s] T+0 %dd-Return: %+.2f%%",
+                             e["ticker"], e.get("date"), win, e[k0])
+            k1 = f"return_{win}d_t1"
+            if (e.get(k1) is None and close_t1 is not None and close_t1 > 0):
+                c = _close_at(1 + win)
+                if c is not None:
+                    e[k1] = round((c / close_t1 - 1) * 100, 2)
+                    n_filled += 1
+                    log.info("  %s [%s] T+1 %dd-Return: %+.2f%%",
+                             e["ticker"], e.get("date"), win, e[k1])
 
     if n_filled > 0:
         path.write_text(json.dumps(entries, indent=2, ensure_ascii=False),
@@ -733,6 +768,72 @@ def fetch_sec_form4(ticker: str) -> tuple[bool, str]:
     return False, ""
 
 
+# ── KI-Sentiment via Claude Haiku (Fallback: Keyword-Zählung) ────────────────
+
+def claude_sentiment_score(ticker: str, news: list[str]) -> tuple[int | None, str]:
+    """Bewertet die letzten KI_SENTIMENT_HEADLINES Schlagzeilen via Claude Haiku.
+
+    Rückgabe:
+      (score, reason)  — score ist 0..KI_SENTIMENT_MAX_SCORE, reason ein Satz
+      (None, "")       — API-Key fehlt oder Aufruf schlug fehl → Keyword-Fallback
+
+    Billiger Call: Haiku 4.5, max_tokens=50, ~0.001 USD pro Ticker.
+    Alle Fehler (Timeout, JSON-Parse, HTTP ≠ 200) führen zu None → Fallback.
+    """
+    if not KI_SENTIMENT_ENABLED:
+        return None, ""
+    api_key = os.environ.get("ANTHROPIC_API_KEY", "").strip()
+    if not api_key:
+        return None, ""
+    headlines = [h for h in (news or []) if h][:KI_SENTIMENT_HEADLINES]
+    if not headlines:
+        return None, ""
+    try:
+        resp = requests.post(
+            "https://api.anthropic.com/v1/messages",
+            headers={
+                "x-api-key":          api_key,
+                "anthropic-version":  "2023-06-01",
+                "content-type":       "application/json",
+            },
+            json={
+                "model":      KI_SENTIMENT_MODEL,
+                "max_tokens": KI_SENTIMENT_MAX_TOKENS,
+                "system":     ("Bewerte diese Schlagzeilen für einen "
+                               f"Short-Squeeze-Kandidaten. Antworte NUR mit "
+                               f"JSON: {{\"score\": 0-{KI_SENTIMENT_MAX_SCORE}, "
+                               "\"reason\": \"ein Satz\"}}"),
+                "messages": [{
+                    "role":    "user",
+                    "content": f"Ticker {ticker}\n" + "\n".join(
+                        f"- {h}" for h in headlines),
+                }],
+            },
+            timeout=8,
+        )
+        if resp.status_code != 200:
+            log.debug("%s Haiku-Call HTTP %d: %s", ticker, resp.status_code,
+                      resp.text[:200])
+            return None, ""
+        data = resp.json()
+        # Content ist eine Liste von Blöcken; wir nehmen den ersten text-Block.
+        blocks = data.get("content") or []
+        text   = next((b.get("text", "") for b in blocks
+                       if b.get("type") == "text"), "")
+        # Robust parsen: JSON könnte mit ```json```-Fence kommen
+        text   = re.sub(r"^```(?:json)?\s*|\s*```$", "", text.strip(),
+                        flags=re.MULTILINE)
+        parsed = json.loads(text)
+        score  = int(parsed.get("score", 0))
+        reason = str(parsed.get("reason", ""))[:120]
+        score  = max(0, min(score, KI_SENTIMENT_MAX_SCORE))
+        return score, reason
+    except (requests.RequestException, json.JSONDecodeError, ValueError,
+            TypeError, KeyError) as exc:
+        log.debug("%s Haiku-Call fehlgeschlagen: %s", ticker, exc)
+        return None, ""
+
+
 # ── Signal-Score berechnen ────────────────────────────────────────────────────
 
 def compute_signal(
@@ -826,19 +927,34 @@ def compute_signal(
         print(f"{ticker} SEC 8-K: '{sec_title}' → +{pts} Pkt "
               f"(earnings/FDA-relevant: {'ja' if is_relevant else 'nein'})")
 
-    kw_pts = 0
-    kw_hits: list[str] = []
-    all_headlines = " ".join(news).lower()
-    for kw in NEWS_KEYWORDS:
-        if kw in all_headlines and kw_pts < 30:
-            kw_pts += SCORE_NEWS_KEYWORD
-            kw_hits.append(kw)
-    if kw_pts > 0:
-        _kw_capped = min(kw_pts, 30)
-        score    += _kw_capped
-        news_pts += _kw_capped
-        drivers.append(f"News: {', '.join(kw_hits)}")
-        sig_news = True
+    # Bevorzugt: KI-Sentiment via Claude Haiku; Fallback Keyword-Zählung.
+    _ai_score, _ai_reason = claude_sentiment_score(ticker, news)
+    if _ai_score is not None:
+        _ai_capped = min(_ai_score, KI_SENTIMENT_MAX_SCORE)
+        score    += _ai_capped
+        news_pts += _ai_capped
+        if _ai_capped > 0:
+            drivers.append(
+                f"News-KI {_ai_capped}/{KI_SENTIMENT_MAX_SCORE}"
+                + (f": {_ai_reason}" if _ai_reason else "")
+            )
+            sig_news = True
+        print(f"{ticker} KI-Sentiment: {_ai_capped}/{KI_SENTIMENT_MAX_SCORE} "
+              f"({_ai_reason[:80]!r})")
+    else:
+        kw_pts = 0
+        kw_hits: list[str] = []
+        all_headlines = " ".join(news).lower()
+        for kw in NEWS_KEYWORDS:
+            if kw in all_headlines and kw_pts < 30:
+                kw_pts += SCORE_NEWS_KEYWORD
+                kw_hits.append(kw)
+        if kw_pts > 0:
+            _kw_capped = min(kw_pts, 30)
+            score    += _kw_capped
+            news_pts += _kw_capped
+            drivers.append(f"News: {', '.join(kw_hits)}")
+            sig_news = True
 
     # Earnings-Nähe
     if earnings_days is not None:
