@@ -929,6 +929,11 @@ def _ibkr_borrow_load() -> dict[str, float]:
     vorhanden". Wird nur einmal pro Run aufgerufen (Ergebnis wird im
     Modul-Cache ``_IBKR_BORROW_CACHE`` gehalten).
     """
+    # timeout als Tupel: (connect, read) — beide hart ≤ IBKR_BORROW_TIMEOUT,
+    # verhindert langsames Trickle-Streaming durch Cloudflare.
+    # stream=False zwingt requests die Response komplett zu lesen bevor
+    # zurückgegeben wird — Verbindung wird sofort beendet statt offen gehalten.
+    _to = (IBKR_BORROW_TIMEOUT, IBKR_BORROW_TIMEOUT)
     try:
         resp = requests.get(
             IBKR_BORROW_URL,
@@ -940,10 +945,12 @@ def _ibkr_borrow_load() -> dict[str, float]:
                 "Accept": "text/html,application/xhtml+xml",
                 "Accept-Language": "en-US,en;q=0.9",
             },
-            timeout=IBKR_BORROW_TIMEOUT,
+            timeout=_to,
+            stream=False,
         )
     except requests.RequestException as exc:
-        log.warning("IBKR borrow-rate fetch failed: %s", exc)
+        log.warning("IBKR borrow-rate fetch failed after %ds: %s",
+                    IBKR_BORROW_TIMEOUT, exc)
         return {}
     if resp.status_code != 200 or not resp.text:
         log.warning("IBKR borrow-rate HTTP %d (%d bytes)",
