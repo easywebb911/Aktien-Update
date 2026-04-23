@@ -30,6 +30,7 @@ import re
 import smtplib
 import time
 import xml.etree.ElementTree as ET
+from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, time as dt_time, timedelta, timezone
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
@@ -712,12 +713,70 @@ def fetch_openinsider(ticker: str) -> dict:
 _FINRA_SSR_CACHE: dict[str, dict[str, float]] = {}
 
 
-def fetch_finra_ssr(tickers: list[str]) -> dict[str, float]:
-    """Lädt FINRA Daily Short Sale Volume und gibt {SYMBOL: ratio} zurück.
+def _finra_parse_file(url: str, base_symbols: set[str]) -> dict[str, dict[str, int]]:
+    """Lädt eine einzelne FINRA-CDN-Datei und parsed sie in {sym: {sv, tv}}.
 
-    ratio = ShortVolume / TotalVolume.
-    Gecacht pro Datum — wird einmalig pro Agent-Run geladen.
-    URL: https://cdn.finra.org/equity/regsho/daily/CNMSshvol{YYYYMMDD}.txt
+    Bei HTTP-Fehlern oder nicht-parsebarem Inhalt → leeres Dict (kein Raise).
+    Header wird per Substring-Match erkannt (robust gegen Spalten-Umordnung);
+    Fallback auf fixe Indizes (1, 2, 4) wenn Header nicht interpretierbar.
+    """
+    filename = url.rsplit("/", 1)[-1]
+    partial: dict[str, dict[str, int]] = {}
+    try:
+        resp = requests.get(url, headers=HTTP_HEADERS, timeout=15)
+        if resp.status_code == 404:
+            return partial
+        resp.raise_for_status()
+    except Exception as exc:  # noqa: BLE001
+        log.debug("FINRA %s: %s", filename, exc)
+        return partial
+
+    lines = resp.text.splitlines()
+    if not lines:
+        return partial
+    header = [h.strip().lower() for h in lines[0].split("|")]
+    try:
+        sym_idx = next(i for i, h in enumerate(header)
+                       if "symbol" in h or "ticker" in h)
+        sv_idx  = next(i for i, h in enumerate(header)
+                       if "shortvol" in h.replace(" ", "") and "exempt" not in h)
+        tv_idx  = next(i for i, h in enumerate(header)
+                       if "totalvol" in h.replace(" ", ""))
+    except StopIteration:
+        # Fixes CDN column order fallback (Date|Symbol|ShortVol|Exempt|TotalVol|Market)
+        sym_idx, sv_idx, tv_idx = 1, 2, 4
+
+    for line in lines[1:]:
+        parts = line.split("|")
+        if len(parts) <= max(sym_idx, sv_idx, tv_idx):
+            continue
+        sym = parts[sym_idx].strip().upper()
+        if sym not in base_symbols:
+            continue
+        try:
+            sv = int(parts[sv_idx].strip().replace(",", ""))
+        except ValueError:
+            continue
+        try:
+            tv = int(parts[tv_idx].strip().replace(",", ""))
+        except ValueError:
+            tv = 0
+        if sv <= 0:
+            continue
+        entry = partial.setdefault(sym, {"sv": 0, "tv": 0})
+        entry["sv"] += sv
+        entry["tv"] += tv
+    log.info("FINRA %s: %d relevante Rohzeilen geparsed", filename, len(partial))
+    return partial
+
+
+def fetch_finra_ssr(tickers: list[str]) -> dict[str, float]:
+    """Lädt FINRA Daily Short Sale Volume aus ALLEN drei CDN-Dateien parallel
+    und gibt {SYMBOL: ratio} zurück.
+
+    ratio = Summe(ShortVolume) / Summe(TotalVolume) über CNMS + FNSQ + FNQC.
+    Gecacht pro Datum. Hintergrund: einzelne Tier-2/3-Ticker sind oft nur in
+    FNSQ bzw. FNQC enthalten, nicht in CNMS — CNMS-only führte zu 0 Matches.
     """
     global _FINRA_SSR_CACHE
 
@@ -743,35 +802,37 @@ def fetch_finra_ssr(tickers: list[str]) -> dict[str, float]:
             log.debug("FINRA SSR Cache-Hit für %s", date_str)
             return _FINRA_SSR_CACHE[date_str]
 
-        url = f"https://cdn.finra.org/equity/regsho/daily/CNMSshvol{date_str}.txt"
-        try:
-            resp = requests.get(url, headers=HTTP_HEADERS, timeout=15)
-            if resp.status_code == 404:
-                continue
-            resp.raise_for_status()
+        urls = [
+            f"https://cdn.finra.org/equity/regsho/daily/CNMSshvol{date_str}.txt",
+            f"https://cdn.finra.org/equity/regsho/daily/FNSQshvol{date_str}.txt",
+            f"https://cdn.finra.org/equity/regsho/daily/FNQCshvol{date_str}.txt",
+        ]
+        merged: dict[str, dict[str, int]] = {}
+        any_ok = False
+        with ThreadPoolExecutor(max_workers=3) as ex:
+            for partial in ex.map(lambda u: _finra_parse_file(u, base_symbols),
+                                  urls):
+                if partial:
+                    any_ok = True
+                for sym, entry in partial.items():
+                    m = merged.setdefault(sym, {"sv": 0, "tv": 0})
+                    m["sv"] += entry["sv"]
+                    m["tv"] += entry["tv"]
 
-            result: dict[str, float] = {}
-            for line in resp.text.strip().split("\n")[1:]:  # skip header
-                parts = line.split("|")
-                if len(parts) < 5:
-                    continue
-                sym = parts[1].strip().upper()
-                if sym not in base_symbols:
-                    continue
-                try:
-                    short_vol = int(parts[2])
-                    total_vol = int(parts[4])
-                    if total_vol > 0:
-                        result[sym] = round(short_vol / total_vol, 4)
-                except (ValueError, IndexError):
-                    continue
-
-            log.info("FINRA SSR Daten geladen (%s): %d relevante Ticker", date_str, len(result))
-            _FINRA_SSR_CACHE[date_str] = result
-            return result
-        except Exception as exc:
-            log.debug("FINRA SSR %s: %s", date_str, exc)
+        if not any_ok:
+            # Alle 3 URLs haben 404 geliefert → Datum existiert noch nicht,
+            # einen Tag zurück springen.
             continue
+
+        result: dict[str, float] = {
+            sym: round(entry["sv"] / entry["tv"], 4)
+            for sym, entry in merged.items()
+            if entry["tv"] > 0 and entry["sv"] > 0
+        }
+        log.info("FINRA SSR Daten geladen (%s, 3 Dateien merged): "
+                 "%d relevante Ticker", date_str, len(result))
+        _FINRA_SSR_CACHE[date_str] = result
+        return result
 
     log.info("FINRA SSR: keine Daten verfügbar (letzte 5 Tage).")
     empty: dict[str, float] = {}
