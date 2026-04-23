@@ -1,10 +1,10 @@
 {
-  "updated": "2026-04-23T06:29:30.341467+02:00",
+  "updated": "2026-04-23T08:29:48.610356+02:00",
   "run_info": {
     "tickers_checked": 11,
     "signals_active": 1,
     "alerts_sent": 0,
-    "elapsed_s": 32.0,
+    "elapsed_s": 27.7,
     "market_phase": "Geschlossen"
   },
   "signals": {
@@ -35,7 +35,7 @@
     "INBX": {
       "score": 38,
       "confidence": 33,
-      "drivers": "News: catalyst, revenue beat + Earnings in 20d",
+      "drivers": "News: revenue beat, catalyst + Earnings in 20d",
       "price": 115.09,
       "chg_pct": 0.0,
       "rvol": 0.0,
@@ -105,9 +105,9 @@
       "insider_buy": false
     },
     "PCT": {
-      "score": 8,
-      "confidence": 17,
-      "drivers": "Earnings in 13d",
+      "score": 23,
+      "confidence": 33,
+      "drivers": "News: breakout + Earnings in 13d",
       "price": 7.18,
       "chg_pct": 0.0,
       "rvol": 0.0,
