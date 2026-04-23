@@ -5565,6 +5565,7 @@ async function runKiAnalyse(cardIdx) {{
     ticker:   d.ticker  || '',
     company:  d.company || d.ticker || '',
     score:    d.score   || '?',
+    price:    d.price   || '?',
     sf:       d.sf      || '?',
     sr:       d.sr      || '?',
     rv:       d.rv      || '?',
@@ -5597,6 +5598,7 @@ async function runKiAnalyse(cardIdx) {{
   const userPrompt =
 `Squeeze-Setup für ${{ctx.ticker}} (${{ctx.company}}):
 - Squeeze-Score: ${{ctx.score}}/100
+- Aktueller Kurs: $${{ctx.price}}
 - Short Float: ${{ctx.sf}}%
 - Days to Cover: ${{ctx.sr}}d
 - Rel. Volumen: ${{ctx.rv}}×
