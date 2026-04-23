@@ -3593,6 +3593,9 @@ def generate_html_v1(stocks: list[dict], report_date: str, _ctx: dict | None = N
   <div class="disc">⚠ <strong>Disclaimer:</strong> Dieser Report dient ausschließlich Informationszwecken und stellt keine Anlageberatung dar. Keine Kauf- oder Verkaufsempfehlung.</div>
 
   <style>
+    /* KI-Analyse iPhone-Fix: kleinerer Container + mehr Padding + Safe-Area */
+    .ki-analyse-result{{max-height:65vh;padding:10px 14px;
+      padding-bottom:max(48px, env(safe-area-inset-bottom))}}
     .bt-section{{background:var(--bg-card);border:1px solid var(--brd);border-radius:10px;
       padding:14px 16px;margin-bottom:14px;
       max-width:100%;overflow-x:hidden;box-sizing:border-box}}
