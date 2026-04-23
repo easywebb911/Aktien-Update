@@ -952,6 +952,10 @@ def _ibkr_borrow_load() -> dict[str, float]:
         log.warning("IBKR borrow-rate fetch failed after %ds: %s",
                     IBKR_BORROW_TIMEOUT, exc)
         return {}
+    if resp.status_code == 404:
+        print("IBKR Borrow Rate: HTTP 404 — Seite nicht gefunden, Fallback auf None",
+              flush=True)
+        return {}
     if resp.status_code != 200 or not resp.text:
         log.warning("IBKR borrow-rate HTTP %d (%d bytes)",
                     resp.status_code, len(resp.text or ""))
@@ -4349,7 +4353,7 @@ function _btRenderTable(data){{
   const k = _btKeys();
   // Sortiere nach Datum absteigend (DD.MM.YYYY parsen)
   const parsed = data.map(e => {{
-    const m = (e.date || '').match(/^(\d{{2}})\.(\d{{2}})\.(\d{{4}})$/);
+    const m = (e.date || '').match(/^(\\d{{2}})\\.(\\d{{2}})\\.(\\d{{4}})$/);
     const sortKey = m ? (m[3] + m[2] + m[1]) : '';
     return {{...e, _sk: sortKey}};
   }}).sort((a,b) => b._sk.localeCompare(a._sk)).slice(0, 20);
