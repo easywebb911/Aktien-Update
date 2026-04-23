@@ -88,8 +88,47 @@ def _score_simple(sf: float, rvol: float, mom: float) -> float:
     return round(sf_pts + rv_pts + mom_pts, 2)
 
 
-def _process_ticker(ticker: str, existing_keys: set[tuple]) -> list[dict]:
-    """Lädt Info + History, erzeugt Bootstrap-Einträge für Signal-Tage."""
+def _fill_t1_fields(entry: dict, t1_idx: int, closes, n: int) -> bool:
+    """Füllt fehlende T+1-Felder eines bestehenden Eintrags.
+
+    Ändert ``entry`` in-place. Gibt True zurück, wenn mindestens ein Feld
+    tatsächlich gefüllt wurde. Bereits vorhandene (nicht-None) Werte werden
+    nicht überschrieben — idempotent bei wiederholten Aufrufen.
+    """
+    if t1_idx >= n:
+        return False
+    close_t1 = float(closes.iloc[t1_idx])
+    if close_t1 <= 0:
+        return False
+    changed = False
+    if entry.get("entry_price_t1") is None:
+        entry["entry_price_t1"] = round(close_t1, 4)
+        changed = True
+    for win in BACKTEST_RETURN_WINDOWS:
+        k = f"return_{win}d_t1"
+        if entry.get(k) is None:
+            fut_idx = t1_idx + win
+            if fut_idx < n:
+                fut_close = float(closes.iloc[fut_idx])
+                entry[k] = round((fut_close / close_t1 - 1) * 100, 2)
+                changed = True
+    return changed
+
+
+def _process_ticker(
+    ticker: str,
+    existing_by_key: dict[tuple, dict],
+) -> tuple[list[dict], int]:
+    """Lädt Info + History, erzeugt Bootstrap-Einträge für Signal-Tage.
+
+    Zwei Aufgaben:
+      1. Update-Pass: Für bestehende Einträge dieses Tickers werden fehlende
+         T+1-Felder aus der historischen Kurs-Kurve nachgefüllt (in-place).
+      2. Signal-Detection: Neue Einträge für RVOL≥1.5-Tage, die noch nicht im
+         File sind.
+
+    Rückgabe ``(neue_einträge, n_updated)``.
+    """
     try:
         tk   = yf.Ticker(ticker)
         info = tk.info or {}
@@ -114,20 +153,42 @@ def _process_ticker(ticker: str, existing_keys: set[tuple]) -> list[dict]:
         hist = tk.history(start=start, interval="1d", auto_adjust=True)
     except Exception as exc:  # noqa: BLE001
         log.warning("  %s: history-Fetch fehlgeschlagen: %s", ticker, exc)
-        return []
+        return [], 0
     if hist is None or hist.empty:
         log.warning("  %s: keine History (möglicherweise delisted)", ticker)
-        return []
+        return [], 0
     if "Close" not in hist or "Volume" not in hist:
         log.warning("  %s: History ohne Close/Volume", ticker)
-        return []
+        return [], 0
 
     closes  = hist["Close"]
     volumes = hist["Volume"]
-    cutoff_date = (datetime.now() - timedelta(days=LOOKBACK_DAYS)).date()
-
-    out: list[dict] = []
     n = len(hist)
+
+    # ── Pass 1: Update bestehende Einträge (T+1-Nachfüllung) ────────────────
+    date_to_idx = {hist.index[k].date(): k for k in range(n)}
+    n_updated = 0
+    for (t, date_str), entry in existing_by_key.items():
+        if t != ticker:
+            continue
+        # Nur updaten wenn mindestens ein T+1-Feld fehlt
+        if (entry.get("entry_price_t1") is not None
+                and all(entry.get(f"return_{w}d_t1") is not None
+                        for w in BACKTEST_RETURN_WINDOWS)):
+            continue
+        try:
+            entry_dt = datetime.strptime(date_str, "%d.%m.%Y").date()
+        except (ValueError, TypeError):
+            continue
+        ei = date_to_idx.get(entry_dt)
+        if ei is None:
+            continue
+        if _fill_t1_fields(entry, ei + 1, closes, n):
+            n_updated += 1
+
+    # ── Pass 2: Neue Signal-Tage (RVOL ≥ 1.5, noch nicht im File) ───────────
+    cutoff_date = (datetime.now() - timedelta(days=LOOKBACK_DAYS)).date()
+    out: list[dict] = []
     for i in range(MA_WINDOW, n):
         d = hist.index[i].date()
         if d < cutoff_date:
@@ -150,7 +211,7 @@ def _process_ticker(ticker: str, existing_keys: set[tuple]) -> list[dict]:
 
         date_str = d.strftime("%d.%m.%Y")
         key = (ticker, date_str)
-        if key in existing_keys:
+        if key in existing_by_key:
             continue
 
         # Returns direkt aus zukünftiger History berechnen (Bootstrap-Vorteil).
@@ -193,9 +254,9 @@ def _process_ticker(ticker: str, existing_keys: set[tuple]) -> list[dict]:
             "source":      "bootstrap",
         }
         out.append(entry)
-        existing_keys.add(key)
+        existing_by_key[key] = entry
 
-    return out
+    return out, n_updated
 
 
 def main() -> None:
@@ -205,16 +266,25 @@ def main() -> None:
              len(tickers), LOOKBACK_DAYS, RVOL_MIN)
 
     history = _load_history()
-    existing_keys = {(e.get("ticker"), e.get("date")) for e in history}
+    # Dict aus Referenzen: erlaubt In-Place-Updates an bestehenden Einträgen
+    # (Nachfüllen fehlender T+1-Felder).
+    existing_by_key: dict[tuple, dict] = {
+        (e.get("ticker"), e.get("date")): e for e in history
+    }
     log.info("backtest_history.json: %d bestehende Einträge", len(history))
 
     total_new = 0
+    total_updated = 0
     for ticker in tickers:
         log.info("→ %s …", ticker)
-        new = _process_ticker(ticker, existing_keys)
+        new, n_updated = _process_ticker(ticker, existing_by_key)
         log.info("   %d neue Einträge", len(new))
+        if n_updated:
+            log.info("   %s: %d bestehende Einträge mit T+1-Daten nachgefüllt",
+                     ticker, n_updated)
         history.extend(new)
         total_new += len(new)
+        total_updated += n_updated
 
     # Deterministische Sortierung (Datum, Ticker) für saubere Git-Diffs
     def _sortkey(e: dict):
@@ -226,8 +296,9 @@ def main() -> None:
 
     history.sort(key=_sortkey)
     _save_history(history)
-    log.info("FERTIG: %d neue Bootstrap-Einträge, total %d",
-             total_new, len(history))
+    log.info("FERTIG: %d neue Bootstrap-Einträge · %d bestehende mit "
+             "T+1-Daten nachgefüllt · total %d",
+             total_new, total_updated, len(history))
 
 
 if __name__ == "__main__":
