@@ -18582,6 +18582,23 @@
   },
   {
     "date": "23.04.2026",
+    "ticker": "FLWS",
+    "score": 70.4,
+    "entry_price": 3.65,
+    "entry_price_t1": null,
+    "short_float": 44.05,
+    "dtc": 24.88,
+    "rvol": 1.104,
+    "si_trend": "down",
+    "return_3d": null,
+    "return_5d": null,
+    "return_10d": null,
+    "return_3d_t1": null,
+    "return_5d_t1": null,
+    "return_10d_t1": null
+  },
+  {
+    "date": "23.04.2026",
     "ticker": "FTK",
     "score": 56.81,
     "entry_price": 16.75,
@@ -18592,6 +18609,23 @@
     "return_3d": null,
     "return_5d": null,
     "return_10d": null
+  },
+  {
+    "date": "23.04.2026",
+    "ticker": "GRPN",
+    "score": 72.4,
+    "entry_price": 13.815,
+    "entry_price_t1": null,
+    "short_float": 49.96,
+    "dtc": 7.66,
+    "rvol": 0.766,
+    "si_trend": "up",
+    "return_3d": null,
+    "return_5d": null,
+    "return_10d": null,
+    "return_3d_t1": null,
+    "return_5d_t1": null,
+    "return_10d_t1": null
   },
   {
     "date": "23.04.2026",
