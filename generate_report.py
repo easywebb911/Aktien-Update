@@ -3872,8 +3872,8 @@ def generate_html_v1(stocks: list[dict], report_date: str, _ctx: dict | None = N
       text-transform:uppercase;letter-spacing:.2px}}
     .bt-src-bootstrap{{color:#a78bfa;background:#a78bfa22}}
     .bt-src-daily{{color:#22c55e;background:#22c55e22}}
-    .btn-bt{{background:#991b1b;color:#fff}}
-    .btn-bt:hover{{background:#7f1d1d}}
+    .btn-bt{{background:#7f1d1d;color:#fff}}
+    .btn-bt:hover{{background:#6b1212}}
     .bt-reco{{margin-top:14px;padding:12px 14px;background:var(--bg-met);
       border:1px solid var(--brd);border-left:3px solid #6366f1;border-radius:6px;
       font-size:.84rem;line-height:1.55;color:var(--txt)}}
