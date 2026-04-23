@@ -14889,6 +14889,23 @@
   },
   {
     "date": "23.04.2026",
+    "ticker": "SKLZ",
+    "score": 67.75,
+    "entry_price": 4.65,
+    "entry_price_t1": null,
+    "short_float": 15.89,
+    "dtc": 27.08,
+    "rvol": 2.094,
+    "si_trend": "no_data",
+    "return_3d": null,
+    "return_5d": null,
+    "return_10d": null,
+    "return_3d_t1": null,
+    "return_5d_t1": null,
+    "return_10d_t1": null
+  },
+  {
+    "date": "23.04.2026",
     "ticker": "SNDL",
     "score": 26.33,
     "entry_price": 1.5501,
