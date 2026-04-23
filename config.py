@@ -122,6 +122,18 @@ GAMMA_LIKELY_THRESHOLD   = 2.0     # gamma_pressure ≥ 2.0 → wahrscheinlich
 GAMMA_BONUS_POSSIBLE     = 8       # Katalysator-Bonus bei möglich
 GAMMA_BONUS_LIKELY       = 15      # Katalysator-Bonus bei wahrscheinlich
 
+# ── IBKR Stock Borrow Rates (public Web-Scraping) ────────────────────────────
+# Holt Borrow Rates von https://www.interactivebrokers.com/en/trading/stock-borrow-rates.php
+# Seite wird einmal pro Run gescraped + gecacht. Bei HTTP-Fehler, Timeout,
+# fehlendem Ticker oder Cloudflare-Block → borrow_rate = None (kein Absturz).
+IBKR_BORROW_ENABLED      = True
+IBKR_BORROW_URL          = "https://www.interactivebrokers.com/en/trading/stock-borrow-rates.php"
+IBKR_BORROW_TIMEOUT      = 15       # Sekunden für den einmaligen Fetch
+IBKR_BORROW_LOW          = 10.0     # < 10 %/Jahr → grau (günstig)
+IBKR_BORROW_HIGH         = 50.0     # > 50 %/Jahr → rot (sehr teuer für Shorts)
+IBKR_BORROW_BONUS_HOT    = 8        # Katalysator-Bonus bei > 50 %/Jahr
+IBKR_BORROW_BONUS_EXTREME = 15      # Katalysator-Bonus bei > 100 %/Jahr
+
 
 # ── SEC 13F (Institutional Holdings Snapshot) ──────────────────────────────
 # False: fetch_sec_13f() wird im Daily-Run übersprungen.

@@ -912,6 +912,90 @@ def get_options_data(ticker: str) -> dict:
         return {}
 
 
+# ─────────────────────────────────────────────────────────────────────────────
+# 2b. IBKR Stock Borrow Rates (public page, cached single-fetch per run)
+# ─────────────────────────────────────────────────────────────────────────────
+
+# Sentinel: None = noch nicht versucht; dict = Fetch erfolgreich (u.U. leer);
+# {} = Fetch versucht, aber geblockt/fehlgeschlagen (negatives Caching).
+_IBKR_BORROW_CACHE: dict[str, float] | None = None
+
+
+def _ibkr_borrow_load() -> dict[str, float]:
+    """Scraped die öffentliche IBKR Stock-Borrow-Rates-Tabelle genau einmal.
+
+    Fällt bei Cloudflare-Block, Timeout oder leerer Antwort auf ein leeres
+    Dict zurück — der Aufrufer unterscheidet das nicht von „Ticker nicht
+    vorhanden". Wird nur einmal pro Run aufgerufen (Ergebnis wird im
+    Modul-Cache ``_IBKR_BORROW_CACHE`` gehalten).
+    """
+    try:
+        resp = requests.get(
+            IBKR_BORROW_URL,
+            headers={
+                "User-Agent": (
+                    "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 "
+                    "(KHTML, like Gecko) Chrome/120.0 Safari/537.36"
+                ),
+                "Accept": "text/html,application/xhtml+xml",
+                "Accept-Language": "en-US,en;q=0.9",
+            },
+            timeout=IBKR_BORROW_TIMEOUT,
+        )
+    except requests.RequestException as exc:
+        log.warning("IBKR borrow-rate fetch failed: %s", exc)
+        return {}
+    if resp.status_code != 200 or not resp.text:
+        log.warning("IBKR borrow-rate HTTP %d (%d bytes)",
+                    resp.status_code, len(resp.text or ""))
+        return {}
+
+    try:
+        soup = BeautifulSoup(resp.text, "html.parser")
+    except Exception as exc:  # noqa: BLE001
+        log.debug("IBKR borrow-rate parse failed: %s", exc)
+        return {}
+
+    rates: dict[str, float] = {}
+    ticker_re = re.compile(r"^[A-Z]{1,6}$")
+    rate_re   = re.compile(r"^\s*([-+]?\d+(?:[.,]\d+)?)\s*%?\s*$")
+    # Generischer Row-Scan: akzeptiert jedes <tr> mit ≥ 2 Zellen, wo Spalte 0
+    # ein Ticker-Symbol ist und irgendeine spätere Zelle einen numerischen
+    # Wert enthält. Damit sind kleinere HTML-Änderungen verkraftbar.
+    for tr in soup.find_all("tr"):
+        cells = tr.find_all(["td", "th"])
+        if len(cells) < 2:
+            continue
+        tick = cells[0].get_text(strip=True).upper()
+        if not ticker_re.match(tick):
+            continue
+        for c in cells[1:]:
+            m = rate_re.match(c.get_text(strip=True).replace(",", "."))
+            if m:
+                try:
+                    rates[tick] = float(m.group(1))
+                    break
+                except ValueError:
+                    continue
+    log.info("IBKR borrow-rate: %d Ticker geparsed", len(rates))
+    return rates
+
+
+def fetch_ibkr_borrow_rate(ticker: str) -> float | None:
+    """Public Borrow-Rate (%/Jahr) für ``ticker`` oder ``None``.
+
+    Erster Aufruf löst den eigentlichen HTTP-Fetch aus; weitere Aufrufe
+    nutzen den Modul-Cache. Gibt None zurück bei deaktiviertem Feature,
+    fehlgeschlagenem Scraping oder unbekanntem Ticker.
+    """
+    global _IBKR_BORROW_CACHE
+    if not IBKR_BORROW_ENABLED or not ticker:
+        return None
+    if _IBKR_BORROW_CACHE is None:
+        _IBKR_BORROW_CACHE = _ibkr_borrow_load()
+    return _IBKR_BORROW_CACHE.get(ticker.upper())
+
+
 def get_earnings_date(ticker: str) -> tuple[int | None, str | None]:
     """Return (days_until_earnings, date_str_DE) from yfinance calendar.
 
@@ -2108,8 +2192,16 @@ def _compute_sub_scores(s: dict) -> dict:
     gamma_pts  = (GAMMA_BONUS_LIKELY   if _gamma_lvl == "likely"
                   else GAMMA_BONUS_POSSIBLE if _gamma_lvl == "possible"
                   else 0)
+    # IBKR-Borrow-Rate: > 100 %/Jahr → extremer Short-Druck; > 50 % → teuer
+    _borrow = s.get("borrow_rate")
+    borrow_pts = 0
+    if _borrow is not None:
+        if _borrow > 100:
+            borrow_pts = IBKR_BORROW_BONUS_EXTREME
+        elif _borrow > IBKR_BORROW_HIGH:
+            borrow_pts = IBKR_BORROW_BONUS_HOT
     catalyst_pts = round(min(
-        earn_pts + insider_pts + news_pts + pressure_pts + gamma_pts,
+        earn_pts + insider_pts + news_pts + pressure_pts + gamma_pts + borrow_pts,
         SUB_CATALYST_MAX,
     ), 1)
 
@@ -2313,6 +2405,24 @@ def _agent_boost_row_html(s: dict) -> str:
         f'<td><span style="color:#a78bfa">+{boost:.1f} Pkt</span>'
         f' <span style="color:var(--txt-dim);font-size:.8em">'
         f'(KI-Score {ag_score:.0f}/100)</span></td></tr>'
+    )
+
+
+def _borrow_rate_row_html(s: dict) -> str:
+    """IBKR-Borrow-Rate-Zeile für die Detail-Tabelle. Leer wenn keine Daten."""
+    rate = s.get("borrow_rate")
+    if rate is None:
+        return ""
+    if rate > IBKR_BORROW_HIGH:
+        col = "#ef4444"
+    elif rate >= IBKR_BORROW_LOW:
+        col = "#f59e0b"
+    else:
+        col = "#94a3b8"
+    return (
+        f'<tr><td>Borrow Rate (IBKR)</td>'
+        f'<td><span style="color:{col};font-weight:700">'
+        f'{rate:.1f} %/Jahr</span></td></tr>'
     )
 
 
@@ -2552,7 +2662,7 @@ def _card(i: int, s: dict) -> str:
     pd_badges_html     = (                            # Feature 3 + Short-Druck
         _pd_badges_html(s) + _short_pressure_badge_html(s) + _gamma_badge_html(s)
     )
-    agent_boost_row    = _agent_boost_row_html(s)    # Feature 2
+    agent_boost_row    = _agent_boost_row_html(s) + _borrow_rate_row_html(s)  # Feature 2 + IBKR
 
     # Chart links
     yf_chart_url  = f"https://finance.yahoo.com/chart/{s['ticker']}"
@@ -3020,7 +3130,7 @@ def _build_card_ctx(i: int, s: dict) -> dict:
     pd_badges_html     = (                            # P&D + Short-Druck
         _pd_badges_html(s) + _short_pressure_badge_html(s) + _gamma_badge_html(s)
     )
-    agent_boost_row    = _agent_boost_row_html(s)    # NEU: Agent-Boost-Zeile
+    agent_boost_row    = _agent_boost_row_html(s) + _borrow_rate_row_html(s)  # Agent-Boost + IBKR
 
     # ── Chart / external links ───────────────────────────────────────────
     yf_chart_url = f"https://finance.yahoo.com/chart/{ticker}"
@@ -3519,6 +3629,13 @@ def generate_html_v1(stocks: list[dict], report_date: str, _ctx: dict | None = N
           <li><strong>≥ {GAMMA_POSSIBLE_THRESHOLD:.1f} → möglich</strong> (gelbes Badge, Katalysator-Bonus +{GAMMA_BONUS_POSSIBLE} Pkt)</li>
           <li><strong>≥ {GAMMA_LIKELY_THRESHOLD:.1f} → wahrscheinlich</strong> (dunkelgelbes Badge, Katalysator-Bonus +{GAMMA_BONUS_LIKELY} Pkt)</li>
           <li>Market-Maker müssen bei steigendem Kurs Aktien kaufen um Delta-neutral zu bleiben → self-reinforcing Kaufdruck, besonders bei kurzer Restlaufzeit.</li>
+        </ul>
+        <h4 style="margin-top:12px">IBKR Stock Borrow Rate</h4>
+        <ul>
+          <li><strong>Quelle:</strong> öffentliche IBKR-Tabelle (Web-Scraping, einmal pro Run gecacht). Bei Cloudflare-Block oder Timeout → kein Hinweis (kein Absturz).</li>
+          <li><strong>Farbcodierung:</strong> &lt; {IBKR_BORROW_LOW:.0f} %/Jahr grau (günstig) · {IBKR_BORROW_LOW:.0f}–{IBKR_BORROW_HIGH:.0f} % orange · &gt; {IBKR_BORROW_HIGH:.0f} % rot (sehr teuer für Leerverkäufer).</li>
+          <li><strong>Katalysator-Bonus:</strong> &gt; {IBKR_BORROW_HIGH:.0f} %/Jahr → +{IBKR_BORROW_BONUS_HOT} Pkt · &gt; 100 %/Jahr → +{IBKR_BORROW_BONUS_EXTREME} Pkt</li>
+          <li>Hohe Borrow Rates signalisieren Knappheit an leihbaren Aktien — klassischer Squeeze-Vorläufer, Short-Eindeck-Zwang bei Margin-Calls erhöht.</li>
         </ul>
         <h4 style="margin-top:12px">Backtesting-Status</h4>
         <ul>
@@ -6708,6 +6825,13 @@ def main():
     # Kommt NACH dem Smoothing, damit die History den unboosted Base-Score
     # behält (sonst würde der Boost sich selbst verstärken).
     apply_agent_boost(top10)
+
+    # IBKR Stock Borrow Rates (einmaliger Fetch, cached) — nur US-Ticker.
+    # Fällt silent auf None zurück bei Cloudflare-Block / Timeout / Fehler.
+    if IBKR_BORROW_ENABLED:
+        for _s in top10:
+            if "." not in _s["ticker"]:
+                _s["borrow_rate"] = fetch_ibkr_borrow_rate(_s["ticker"])
 
     top10 = _sort_keeping_manual_last(top10)
 
