@@ -1,17 +1,17 @@
 {
-  "updated": "2026-04-25T00:17:56.927805+02:00",
+  "updated": "2026-04-25T00:27:55.157198+02:00",
   "run_info": {
     "tickers_checked": 10,
-    "signals_active": 2,
+    "signals_active": 4,
     "alerts_sent": 0,
-    "elapsed_s": 34.9,
+    "elapsed_s": 38.7,
     "market_phase": "After-Hours"
   },
   "signals": {
     "INDI": {
-      "score": 16,
+      "score": 23,
       "confidence": 33,
-      "drivers": "News-KI 8/30: Positive business expansion news but lacks short squeeze catalysts like high short interest, earnings beat, or insider b + Earnings in 13d",
+      "drivers": "News: catalyst + Earnings in 13d",
       "price": 3.66,
       "chg_pct": 0.0,
       "rvol": 0.0,
@@ -21,9 +21,9 @@
       "insider_buy": false
     },
     "HRTX": {
-      "score": 33,
-      "confidence": 17,
-      "drivers": "Earnings in 11d + FINRA Short-Vol 74%",
+      "score": 38,
+      "confidence": 33,
+      "drivers": "News-KI 5/30: Positive earnings news is bullish but lacks short squeeze indicators like high short interest, low float, or retail mome + Earnings in 11d + FINRA Short-Vol 74%",
       "price": 1.19,
       "chg_pct": 0.0,
       "rvol": 0.0,
@@ -81,9 +81,9 @@
       "insider_buy": false
     },
     "INBX": {
-      "score": 16,
+      "score": 38,
       "confidence": 33,
-      "drivers": "News-KI 8/30: Positive clinical data supports fundamentals but lacks short squeeze catalysts like high short interest, low float, or f + Earnings in 19d",
+      "drivers": "News: revenue beat, catalyst + Earnings in 19d",
       "price": 129.06,
       "chg_pct": 0.0,
       "rvol": 0.0,
@@ -119,7 +119,7 @@
     "PD": {
       "score": 20,
       "confidence": 33,
-      "drivers": "News-KI 12/30: Negative price action and mixed sentiment with no specific short squeeze indicators like high short interest, low float, + Earnings in 34d",
+      "drivers": "News-KI 12/30: Negative price action with some AI tailwind, but no indicators of high short interest, low float, or catalyst for squeez + Earnings in 34d",
       "price": 7.13,
       "chg_pct": 0.0,
       "rvol": 0.0,
