@@ -134,6 +134,27 @@ IBKR_BORROW_HIGH         = 50.0     # > 50 %/Jahr → rot (sehr teuer für Short
 IBKR_BORROW_BONUS_HOT    = 8        # Katalysator-Bonus bei > 50 %/Jahr
 IBKR_BORROW_BONUS_EXTREME = 15      # Katalysator-Bonus bei > 100 %/Jahr
 
+# ── Put/Call-Ratio in Katalysator-Sub-Score ─────────────────────────────────
+# PC-Ratio < 0.5 = bullisch (viele Calls) → +Bonus
+# PC-Ratio > 1.5 = bearisch (viele Puts)  → -Malus
+PC_RATIO_BULL_THRESHOLD = 0.5
+PC_RATIO_BEAR_THRESHOLD = 1.5
+PC_RATIO_BULL_BONUS     = 5
+PC_RATIO_BEAR_MALUS     = 3
+
+# ── Relative Stärke vs. Sektor-ETF in Timing-Sub-Score ──────────────────────
+# RS > +5 % → +Bonus (Ticker schlägt Sektor deutlich)
+# RS < −5 % → −Malus (Ticker hinkt Sektor hinterher)
+RS_SECTOR_THRESHOLD    = 5.0
+RS_SECTOR_BULL_BONUS   = 3
+RS_SECTOR_BEAR_MALUS   = 2
+
+# ── Historischer Squeeze-Check als Score-Malus ──────────────────────────────
+# Falls der Ticker innerhalb der letzten 30 / 90 Tage bereits einen Squeeze
+# durchlebt hat, ist das verbleibende Potenzial eingeschränkt → Abzug.
+SQUEEZE_HIST_MALUS_30D = 5
+SQUEEZE_HIST_MALUS_90D = 3
+
 
 # ── SEC 13F (Institutional Holdings Snapshot) ──────────────────────────────
 # False: fetch_sec_13f() wird im Daily-Run übersprungen.

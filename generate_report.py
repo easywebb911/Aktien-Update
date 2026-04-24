@@ -1685,7 +1685,21 @@ def score(stock: dict) -> float:
     else:
         _pts = 0.0
 
-    result = round(min(sf + sr + rv + mom + _fs + _pts, 100.0), 2)
+    # Historischer Squeeze-Malus: falls ein Squeeze in den letzten 30 / 90 Tagen
+    # erkannt wurde, ist das verbleibende Potenzial eingeschränkt.
+    _sq = stock.get("recent_squeeze") or {}
+    _sq_malus = 0.0
+    if _sq.get("found"):
+        _days = _sq.get("days_ago", 999)
+        if _days <= 30:
+            _sq_malus = float(SQUEEZE_HIST_MALUS_30D)
+        elif _days <= 90:
+            _sq_malus = float(SQUEEZE_HIST_MALUS_90D)
+        if _sq_malus > 0:
+            print(f"{stock.get('ticker', '?')} Squeeze-Malus: -{_sq_malus:.0f} Pkt "
+                  f"(Squeeze vor {_days} Tagen)", flush=True)
+
+    result = round(max(0.0, min(sf + sr + rv + mom + _fs + _pts - _sq_malus, 100.0)), 2)
     return result if math.isfinite(result) else 0.0
 
 
@@ -2211,16 +2225,37 @@ def _compute_sub_scores(s: dict) -> dict:
             borrow_pts = IBKR_BORROW_BONUS_EXTREME
         elif _borrow > IBKR_BORROW_HIGH:
             borrow_pts = IBKR_BORROW_BONUS_HOT
-    catalyst_pts = round(min(
-        earn_pts + insider_pts + news_pts + pressure_pts + gamma_pts + borrow_pts,
+    # Put/Call-Ratio: bullisches Options-Sentiment (< 0.5) → +Bonus;
+    # bearisches (> 1.5) → -Malus. Nur wenn Options-Daten vorhanden.
+    pc_pts = 0
+    _pc = (s.get("options") or {}).get("pc_ratio")
+    if _pc is not None:
+        if _pc < PC_RATIO_BULL_THRESHOLD:
+            pc_pts = PC_RATIO_BULL_BONUS
+        elif _pc > PC_RATIO_BEAR_THRESHOLD:
+            pc_pts = -PC_RATIO_BEAR_MALUS
+    catalyst_pts = round(max(0.0, min(
+        earn_pts + insider_pts + news_pts + pressure_pts + gamma_pts + borrow_pts + pc_pts,
         SUB_CATALYST_MAX,
-    ), 1)
+    )), 1)
 
     # Timing (max 25) = RelVol + Momentum, normiert 37 -> 25
     rv_raw = min((rv - 1.0) / 2.0, 1.0) if rv > 0 else 0
     rv_pts = max(rv_raw, 0) * 23
     mom_pts = min(chg / 8.0, 1.0) * 14
-    timing_pts = round((rv_pts + mom_pts) * (SUB_TIMING_MAX / 37.0), 1)
+    # Relative Stärke vs. Sektor-ETF (20T): schlägt Sektor um > 5 % → +Bonus,
+    # hinkt Sektor hinterher < −5 % → −Malus. Nur wenn Daten verfügbar.
+    rs_pts = 0
+    _rs = s.get("rel_strength_20d")
+    if _rs is not None:
+        if _rs > RS_SECTOR_THRESHOLD:
+            rs_pts = RS_SECTOR_BULL_BONUS
+        elif _rs < -RS_SECTOR_THRESHOLD:
+            rs_pts = -RS_SECTOR_BEAR_MALUS
+    timing_pts = round(max(0.0, min(
+        (rv_pts + mom_pts) * (SUB_TIMING_MAX / 37.0) + rs_pts,
+        SUB_TIMING_MAX,
+    )), 1)
 
     def _col(pts, mx):
         pct = (pts / mx) if mx > 0 else 0
@@ -3695,18 +3730,16 @@ def generate_html_v1(stocks: list[dict], report_date: str, _ctx: dict | None = N
         </ul>
       </div>
       <div class="info-box">
-        <h4>Zusatz-Kennzahlen <span style="font-size:.65rem;font-weight:500;color:var(--txt-dim)">(informativ — fließen <em>noch nicht</em> in den Score ein)</span></h4>
+        <h4>Zusatz-Kennzahlen mit Score-Einfluss</h4>
         <ul>
-          <li><strong>FINRA Daily SSR</strong> – tägliche Short-Sale-Ratio (Short-Vol ÷ Gesamt-Vol) als Tages-Proxy für Short-Interest-Bewegungen zwischen den offiziellen FINRA-Meldeterminen (zwei Wochen Rhythmus). Grün &gt; 60 %, Orange 40–60 %, Rot &lt; 40 %.</li>
-          <li><strong>Put/Call-Ratio</strong> – Options-Sentiment aus Open Interest der nächsten Verfallstermine: niedrig = bullisch (viele Calls, Markt erwartet Anstieg/Squeeze), hoch = bearisch. &lt; 0,5 grün, 0,5–1,5 orange, &gt; 1,5 rot.</li>
-          <li><strong>Earnings-Surprise</strong> – letztes EPS-Ergebnis vs. Konsens: „✅ Beat +X %" oder „❌ Miss −X %". Ein Beat bei gleichzeitig hohem Short Float erhöht den Squeeze-Druck (Leerverkäufer werden zum Eindecken gezwungen).</li>
-          <li><strong>Relative Stärke vs. Sektor-ETF</strong> – 20-Tage-Performance gegen den passenden Sektor-Index (Technology → QQQ, Biotech/Healthcare → XBI, Energy → XLE, Financial → XLF, Consumer → XRT, sonst → SPY). Präziser als der reine S&amp;P-500-Vergleich, da Sektor-Zyklen herausgerechnet werden.</li>
-          <li><strong>Historischer Squeeze-Check</strong> – ⚠️-Badge, falls in den letzten 90 Tagen bereits ein Kursanstieg ≥ 50 % in 5 Handelstagen bei Volumen ≥ 3× Ø stattgefunden hat. Warnung vor bereits erschöpftem Potenzial.</li>
-          <li><strong>Float-Plausibilität</strong> – yfinance-Float-Werte außerhalb [10 000 ; 50 Mrd. Aktien] werden als unplausibel verworfen („—" statt falscher Wert). Bei Float = 0 + bekanntem Market-Cap wird der Float als <em>market_cap / price</em> geschätzt und mit „(geschätzt)" markiert.</li>
+          <li><strong>Put/Call-Ratio</strong> – Options-Sentiment aus Open Interest der nächsten Verfallstermine: niedrig = bullisch, hoch = bearisch.
+            <strong>Katalysator-Einfluss:</strong> P/C &lt; {PC_RATIO_BULL_THRESHOLD:.1f} → +{PC_RATIO_BULL_BONUS} Pkt (bullisches Options-Sentiment) · P/C &gt; {PC_RATIO_BEAR_THRESHOLD:.1f} → −{PC_RATIO_BEAR_MALUS} Pkt.</li>
+          <li><strong>Relative Stärke vs. Sektor-ETF</strong> – 20-Tage-Performance gegen den passenden Sektor-Index (Technology → QQQ, Biotech/Healthcare → XBI, Energy → XLE, Financial → XLF, Consumer → XRT, sonst → SPY).
+            <strong>Timing-Einfluss:</strong> RS &gt; +{RS_SECTOR_THRESHOLD:.0f} % → +{RS_SECTOR_BULL_BONUS} Pkt · RS &lt; −{RS_SECTOR_THRESHOLD:.0f} % → −{RS_SECTOR_BEAR_MALUS} Pkt.</li>
+          <li><strong>Historischer Squeeze-Check</strong> – ⚠️-Badge wenn in den letzten 90 Tagen bereits ein Kursanstieg ≥ 50 % in 5 Handelstagen bei Volumen ≥ 3× Ø stattgefunden hat.
+            <strong>Gesamt-Score-Malus:</strong> Squeeze ≤ 30 Tage → −{SQUEEZE_HIST_MALUS_30D} Pkt · Squeeze 31–90 Tage → −{SQUEEZE_HIST_MALUS_90D} Pkt (erschöpftes Potenzial).</li>
+          <li><strong>Earnings-Surprise</strong> – letztes EPS-Ergebnis vs. Konsens: „✅ Beat +X %" oder „❌ Miss −X %". Ein Beat bei gleichzeitig hohem Short Float erhöht den Squeeze-Druck (Leerverkäufer werden zum Eindecken gezwungen). <em>Informativ, ohne direkten Score-Einfluss.</em></li>
         </ul>
-        <p style="font-size:.75rem;color:var(--txt-sub);margin:8px 0 0;line-height:1.5">
-          <strong>Score-Formel unverändert:</strong> Die neuen Datenpunkte sind zunächst rein informativ und fließen <em>noch nicht</em> in den 0–100-Punkte-Score ein. Die Gewichtung kann in einem separaten Schritt erfolgen, sobald wir sehen, wie die neuen Signale in der Praxis aussehen und wie oft sie echte Squeeze-Gelegenheiten hervorheben.
-        </p>
       </div>
       <div class="info-box">
         <h4>Datenquellen</h4>
