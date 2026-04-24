@@ -391,12 +391,10 @@ a{color:var(--accent);text-decoration:none}
   transform:translate(-50%,-130%);opacity:0;transition:opacity .15s}
 .spark-tip.visible{opacity:1}
 /* ── Metrics — Mobile: 2-Spalten-Grid, Short-Float-Header volle Breite ── */
-.metrics-row{display:grid;grid-template-columns:repeat(2,1fr);gap:6px;padding:0 12px 12px}
+/* 6 gleich große Kacheln: 3×2 auf iPhone + Desktop (SF oben-links, dann DTC/Vol/Mom/Float/SI-Trend) */
+.metrics-row{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;padding:0 12px 12px}
 .metric-box{background:var(--bg-met);border:1px solid var(--brd);border-radius:10px;
   padding:10px 6px;text-align:center;border-top:3px solid var(--mc,#94a3b8);position:relative}
-/* Short-Float als breite Header-Kachel: erste Zeile, volle Breite, größere Schrift */
-.metric-box-header{grid-column:1 / -1;padding:14px 10px}
-.metric-box-header .m-lbl{font-size:.72rem;margin-top:4px;letter-spacing:.4px}
 .m-val{display:block;font-size:1.1rem;font-weight:800;color:var(--mc,#94a3b8)}
 .m-lbl{display:block;font-size:.62rem;color:var(--txt-dim);text-transform:uppercase;
   letter-spacing:.3px;margin-top:2px}
@@ -508,9 +506,6 @@ a{color:var(--accent);text-decoration:none}
   /* Cards: fluid auto-fill, min 340px per card, 16px gap, full width */
   .cards-grid{grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:16px}
   .stats-bar{grid-template-columns:repeat(6,1fr)}
-  /* Metrics auf Desktop: 3 Spalten — Short-Float-Header volle Breite,
-     darunter zwei Zeilen à 3 Kacheln (DTC/Vol/Mom + Float/SI/SSR) */
-  .metrics-row{grid-template-columns:repeat(3,1fr)}
   .wrap{padding:16px 16px 32px}
   .footer{padding:16px 16px 32px}
   /* Slightly smaller body text */

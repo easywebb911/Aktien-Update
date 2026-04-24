@@ -2255,8 +2255,7 @@ def _sub_scores_html(s: dict) -> str:
     return (
         f'<div class="sub-scores-wrap">'
         f'<div class="sub-scores-header">SETUP-ANALYSE</div>'
-        f'<div class="sub-scores-hint">Struktur · Katalysator · Timing '
-        f'— unabhängige Qualitätsindikatoren</div>'
+        f'<div class="sub-scores-hint">unabhängige Qualitätsindikatoren</div>'
         f'<div class="sub-scores">'
         f'<span class="sub-score" title="{_tt}">'
         f'<span class="sub-score-lbl">Struktur</span>'
@@ -2343,6 +2342,15 @@ def _gamma_badge_html(s: dict) -> str:
         f'title="Gamma-Pressure {gp:.2f} (ATM-Call-OI × Kurs ÷ Ø-Vol20T) — {label}">'
         f'⚡ Gamma-Druck {label}</span>'
     )
+
+
+def _market_tag_html(ticker: str) -> str:
+    """Market-Tag (Flag + Region) für die Ticker-Zeile. Leer für US-Ticker,
+    da der Report ohnehin US-only anzeigt — die Information wäre redundant."""
+    region = get_region(ticker)
+    if region == "US":
+        return ""
+    return f'<span class="market-tag">{get_flag(ticker)} {region}</span>'
 
 
 def _score_hint_html(score: float) -> str:
@@ -2754,8 +2762,8 @@ def _card(i: int, s: dict) -> str:
       <div class="ticker-block">
         <div class="ticker-row">
           <span class="ticker">{s['ticker']}</span>
-          <span class="market-tag">{flag} {get_region(s["ticker"])}</span>
-          {finviz_badge}{sa_badge}
+          {_market_tag_html(s['ticker'])}
+          {sa_badge}
           <span class="price-tag">${s.get('price',0):.2f}</span>
           <button class="wl-add-btn" data-ticker="{s['ticker']}" onclick="wlToggle(this)" title="Zur Watchlist hinzufügen">＋</button>
         </div>
@@ -2773,7 +2781,7 @@ def _card(i: int, s: dict) -> str:
   {sub_scores_html}
   {sparkline_html}
   <div class="metrics-row">
-    <div class="metric-box metric-box-header" style="--mc:{sf_col}">
+    <div class="metric-box" style="--mc:{sf_col}">
       <span class="m-val">{sf_display}</span>
       <span class="m-lbl">Short Float</span>
     </div>
@@ -2797,7 +2805,6 @@ def _card(i: int, s: dict) -> str:
       <span class="m-val">{si_tile_val}</span>
       <span class="m-lbl">SI-Trend</span>
     </div>
-    {ssr_tile_html}
   </div>
   <button class="details-btn" onclick="toggleDetails({i})" id="db{i}" aria-expanded="false">
     <span class="details-arrow" id="da{i}">▾</span><span id="dl{i}"> Details anzeigen</span>
@@ -3232,6 +3239,7 @@ def _build_card_ctx(i: int, s: dict) -> dict:
         "company":        company,
         "region":         get_region(ticker),
         "flag":           flag,
+        "market_tag_html": _market_tag_html(ticker),
 
         # Scalar formatted numbers (40 format-specs all pre-applied)
         # v1 emittiert den Score an zwei Stellen mit unterschiedlicher Semantik:
@@ -4696,10 +4704,12 @@ function _fmtGerman(d) {{
 
   function parseIso(s) {{ return new Date(s + 'T12:00:00'); }}
 
-  // Per-point color by score threshold — green / orange / red / grey
+  // Per-point color by score threshold — identical palette to ticker-dot
+  // (.agent-dot strong/moderate/weak/none): grün / orange / rot / grau.
   function scoreColor(s) {{
+    if (s == null || isNaN(+s)) return '#6b7280';
     if (s >= 70) return '#22c55e';
-    if (s >= 40) return '#f97316';
+    if (s >= 40) return '#f59e0b';
     if (s >= 15) return '#ef4444';
     return '#6b7280';
   }}
@@ -5187,10 +5197,9 @@ function _fmtGerman(d) {{
         </div>
       </div>`;
 
-      // Metrics — Short Float als volle Header-Kachel (metric-box-header).
-      // Rest erbt Mobile-2-Spalten / Desktop-3-Spalten-Layout von .metrics-row.
+      // Metrics — 6 gleich große Kacheln (3×2-Grid, keine SF-Header-Sonderbehandlung).
       const tiles = `<div class="metrics-row" style="padding:0 12px 12px">
-        <div class="metric-box metric-box-header" style="--mc:${{sfCol}}">
+        <div class="metric-box" style="--mc:${{sfCol}}">
           <span class="m-val">${{fmtPct(d.short_float)}}</span>
           <span class="m-lbl">Short Float</span>
         </div>
@@ -5304,9 +5313,12 @@ function _fmtGerman(d) {{
       <div class="card-left" style="align-items:center">
         <button class="wl-close-btn-inline" onclick="wlExpand('${{ticker}}', document.getElementById('wlb-${{ticker}}'))"
                 title="Einklappen">▲ Schlie\xdfen</button>
-        <div class="ticker-block"><div class="ticker-row">
-          <span class="ticker">${{ticker}}</span>
-        </div></div>
+        <div class="ticker-block">
+          <div class="ticker-row">
+            <span class="ticker">${{ticker}}</span>
+          </div>
+          <span class="company" style="color:var(--txt-dim);font-style:italic">Letzter bekannter Stand \u2014 nicht in aktueller Top-10</span>
+        </div>
       </div>
       <div class="score-block">
         <span class="score-num" style="color:${{scCol}}">${{scNum}}</span>
@@ -5314,18 +5326,52 @@ function _fmtGerman(d) {{
       </div>
     </div>`;
     try {{
-      if (!h || !h.scores || h.scores.length < 2) {{
-        return topHdr + '<div class="wl-no-data">Kein KI-Signalverlauf vorhanden.</div>';
+      // 6 Kacheln mit \u201e\u2014"-Platzhaltern (gleiche Struktur wie Main-Karten),
+      // damit der expandierte Zustand optisch konsistent bleibt.
+      const ph = '<span class="m-val" style="color:var(--txt-dim)">\u2014</span>';
+      const tiles = `<div class="metrics-row" style="padding:0 12px 12px">
+        <div class="metric-box" style="--mc:#94a3b8">${{ph}}<span class="m-lbl">Short Float</span></div>
+        <div class="metric-box" style="--mc:#94a3b8">${{ph}}<span class="m-lbl">Days to Cover</span></div>
+        <div class="metric-box" style="--mc:#94a3b8">${{ph}}<span class="m-lbl">Volumen</span></div>
+        <div class="metric-box" style="--mc:#94a3b8">${{ph}}<span class="m-lbl">Momentum</span></div>
+        <div class="metric-box" style="--mc:#94a3b8">${{ph}}<span class="m-lbl">Float</span></div>
+        <div class="metric-box" style="--mc:#94a3b8">${{ph}}<span class="m-lbl">SI-Trend</span></div>
+      </div>`;
+
+      // Sparkline nur wenn mindestens 2 History-Punkte vorhanden
+      let sparkHtml = '';
+      if (h && h.scores && h.scores.length >= 2) {{
+        const scoresE = JSON.stringify(h.scores).replace(/"/g, '&quot;');
+        const datesE  = JSON.stringify(h.dates).replace(/"/g, '&quot;');
+        sparkHtml = `<div class="spark-wrap wl-spark" style="padding:0 10px 10px"
+          data-scores="${{scoresE}}" data-dates="${{datesE}}"
+          data-col="${{h.col}}" data-today="">
+          <div class="spark-header"><div class="spark-title-wrap">
+            <span class="spark-title">\u26a1 KI-Signalverlauf</span>
+            <span class="spark-subtitle">(Score der letzten Tage)</span>
+          </div></div>
+          <div class="spark-svg-wrap" style="height:56px"></div>
+          <div class="spark-days"></div>
+        </div>`;
       }}
-      const scoresE = JSON.stringify(h.scores).replace(/"/g, '&quot;');
-      const datesE  = JSON.stringify(h.dates).replace(/"/g, '&quot;');
-      return topHdr + `<div class="spark-wrap wl-spark" style="padding:10px 10px 4px"
-        data-scores="${{scoresE}}" data-dates="${{datesE}}"
-        data-col="${{h.col}}" data-today="">
-        <div class="spark-svg-wrap" style="height:56px"></div>
-        <div class="spark-days"></div>
+
+      // Detail-Tabelle: letzter bekannter Score + Datum aus WL_HIST, Rest \u201e\u2014"
+      const histDates = (h && h.dates) ? h.dates : [];
+      const lastDate  = histDates.length ? histDates[histDates.length - 1] : '\u2014';
+      const tableHtml = `<div class="detail-table-wrap" style="padding:0 10px 10px">
+        <table class="detail-table">
+          <tr><td>Letzter bekannter Score</td><td>${{scNum}}</td></tr>
+          <tr><td>Letzter Datenstand</td><td>${{lastDate}}</td></tr>
+          <tr><td>Kurs</td><td>\u2014</td></tr>
+          <tr><td>Marktkapitalisierung</td><td>\u2014</td></tr>
+          <tr><td>Sektor</td><td>\u2014</td></tr>
+        </table>
       </div>
-      <div class="wl-no-data">Nicht in aktueller Top-10 \u2014 keine Live-Daten.</div>`;
+      <div class="wl-no-data" style="padding:6px 12px 10px;font-size:.78rem;color:var(--txt-dim);font-style:italic">
+        Live-Daten erst verf\u00fcgbar wenn der Ticker wieder in den Top-10 erscheint.
+      </div>`;
+
+      return topHdr + tiles + sparkHtml + tableHtml;
     }} catch(e) {{
       console.error('buildWlSparkOnly Fehler:', e);
       return topHdr + '<div class="wl-no-data">Fehler beim Laden der Details.</div>';

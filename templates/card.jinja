@@ -12,8 +12,8 @@
       <div class="ticker-block">
         <div class="ticker-row">
           <span class="ticker">{{ ticker }}</span>
-          <span class="market-tag">{{ flag }} {{ region }}</span>
-          {{ finviz_badge }}{{ sa_badge }}
+          {{ market_tag_html }}
+          {{ sa_badge }}
           <span class="price-tag">${{ price_str }}</span>
           <button class="wl-add-btn" data-ticker="{{ ticker }}" onclick="wlToggle(this)" title="Zur Watchlist hinzufügen">＋</button>
         </div>
@@ -31,7 +31,7 @@
   {{ sub_scores_html }}
   {{ sparkline_html }}
   <div class="metrics-row">
-    <div class="metric-box metric-box-header" style="--mc:{{ sf_col }}">
+    <div class="metric-box" style="--mc:{{ sf_col }}">
       <span class="m-val">{{ sf_display }}</span>
       <span class="m-lbl">Short Float</span>
     </div>
@@ -55,7 +55,6 @@
       <span class="m-val">{{ si_tile_val }}</span>
       <span class="m-lbl">SI-Trend</span>
     </div>
-    {{ ssr_tile_html }}
   </div>
   <button class="details-btn" onclick="toggleDetails({{ i }})" id="db{{ i }}" aria-expanded="false">
     <span class="details-arrow" id="da{{ i }}">▾</span><span id="dl{{ i }}"> Details anzeigen</span>
