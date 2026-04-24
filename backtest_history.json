@@ -19032,6 +19032,23 @@
   },
   {
     "date": "24.04.2026",
+    "ticker": "DDD",
+    "score": 38.9,
+    "entry_price": 2.245,
+    "entry_price_t1": null,
+    "short_float": 27.92,
+    "dtc": 11.46,
+    "rvol": 0.303,
+    "si_trend": "no_data",
+    "return_3d": null,
+    "return_5d": null,
+    "return_10d": null,
+    "return_3d_t1": null,
+    "return_5d_t1": null,
+    "return_10d_t1": null
+  },
+  {
+    "date": "24.04.2026",
     "ticker": "EEIQ",
     "score": 37.6,
     "entry_price": 4.1478,
