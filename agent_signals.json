@@ -1,21 +1,21 @@
 {
-  "updated": "2026-04-24T00:16:37.904279+02:00",
+  "updated": "2026-04-24T02:11:55.583197+02:00",
   "run_info": {
-    "tickers_checked": 10,
-    "signals_active": 5,
+    "tickers_checked": 11,
+    "signals_active": 1,
     "alerts_sent": 0,
-    "elapsed_s": 37.0,
-    "market_phase": "After-Hours"
+    "elapsed_s": 39.3,
+    "market_phase": "Geschlossen"
   },
   "signals": {
-    "SST": {
-      "score": 16,
-      "confidence": 33,
-      "drivers": "News-KI 8/30: Positive earnings news and growth forecast are bullish but lack short-squeeze indicators like high short interest, low f + Earnings in 19d",
-      "price": 3.83,
+    "GRPN": {
+      "score": 8,
+      "confidence": 17,
+      "drivers": "Earnings in 14d",
+      "price": 14.62,
       "chg_pct": 0.0,
       "rvol": 0.0,
-      "earnings": "in 19 Tagen (12.05.2026)",
+      "earnings": "in 14 Tagen (07.05.2026)",
       "fda_date": null,
       "upcoming_event": null,
       "insider_buy": false
@@ -32,6 +32,18 @@
       "upcoming_event": null,
       "insider_buy": false
     },
+    "SST": {
+      "score": 20,
+      "confidence": 33,
+      "drivers": "News-KI 12/30: Positive earnings and growth forecast increase bullish sentiment but lack short squeeze indicators like high short inter + Earnings in 19d",
+      "price": 3.83,
+      "chg_pct": 0.0,
+      "rvol": 0.0,
+      "earnings": "in 19 Tagen (12.05.2026)",
+      "fda_date": null,
+      "upcoming_event": null,
+      "insider_buy": false
+    },
     "HELE": {
       "score": 40,
       "confidence": 33,
@@ -44,26 +56,26 @@
       "upcoming_event": "Earnings in 0 Tagen (23.04.2026)",
       "insider_buy": false
     },
-    "TFIN": {
-      "score": 30,
-      "confidence": 17,
-      "drivers": "News: partnership, earnings beat",
-      "price": 67.32,
+    "FLWS": {
+      "score": 23,
+      "confidence": 33,
+      "drivers": "News: breakout + Earnings in 14d",
+      "price": 3.78,
       "chg_pct": 0.0,
       "rvol": 0.0,
-      "earnings": "in 83 Tagen (15.07.2026)",
+      "earnings": "in 14 Tagen (07.05.2026)",
       "fda_date": null,
       "upcoming_event": null,
       "insider_buy": false
     },
-    "REPL": {
-      "score": 8,
+    "TFIN": {
+      "score": 30,
       "confidence": 17,
-      "drivers": "Earnings in 28d",
-      "price": 2.85,
+      "drivers": "News: earnings beat, partnership",
+      "price": 67.32,
       "chg_pct": 0.0,
       "rvol": 0.0,
-      "earnings": "in 28 Tagen (21.05.2026)",
+      "earnings": "in 83 Tagen (15.07.2026)",
       "fda_date": null,
       "upcoming_event": null,
       "insider_buy": false
@@ -80,23 +92,35 @@
       "upcoming_event": null,
       "insider_buy": false
     },
-    "SNSE": {
-      "score": 55,
-      "confidence": 33,
-      "drivers": "News: acquisition, breakout + FINRA Short-Vol 133157%",
-      "price": 32.62,
+    "REPL": {
+      "score": 8,
+      "confidence": 17,
+      "drivers": "Earnings in 28d",
+      "price": 2.85,
       "chg_pct": 0.0,
       "rvol": 0.0,
-      "earnings": null,
+      "earnings": "in 28 Tagen (21.05.2026)",
       "fda_date": null,
       "upcoming_event": null,
       "insider_buy": false
     },
-    "LESL": {
-      "score": 41,
+    "ACDC": {
+      "score": 8,
+      "confidence": 17,
+      "drivers": "Earnings in 18d",
+      "price": 7.35,
+      "chg_pct": 0.0,
+      "rvol": 0.0,
+      "earnings": "in 18 Tagen (11.05.2026)",
+      "fda_date": null,
+      "upcoming_event": null,
+      "insider_buy": false
+    },
+    "PACB": {
+      "score": 16,
       "confidence": 33,
-      "drivers": "News-KI 8/30: Earnings-focused headlines with no indicators of short squeeze catalysts like high short interest, technical breakouts,  + Earnings in 14d + FINRA Short-Vol 8023%",
-      "price": 2.31,
+      "drivers": "News-KI 8/30: Negative price action against market trend suggests weak momentum, while partnership news lacks catalyst strength for sh + Earnings in 14d",
+      "price": 1.57,
       "chg_pct": 0.0,
       "rvol": 0.0,
       "earnings": "in 14 Tagen (07.05.2026)",
@@ -104,23 +128,11 @@
       "upcoming_event": null,
       "insider_buy": false
     },
-    "LOVE": {
-      "score": 0,
-      "confidence": 0,
-      "drivers": "",
-      "price": 16.75,
-      "chg_pct": 0.0,
-      "rvol": 0.0,
-      "earnings": "in 49 Tagen (11.06.2026)",
-      "fda_date": null,
-      "upcoming_event": null,
-      "insider_buy": false
-    },
-    "PCT": {
+    "AMC": {
       "score": 8,
       "confidence": 17,
       "drivers": "Earnings in 13d",
-      "price": 7.23,
+      "price": 1.67,
       "chg_pct": 0.0,
       "rvol": 0.0,
       "earnings": "in 13 Tagen (06.05.2026)",
