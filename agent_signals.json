@@ -1,10 +1,10 @@
 {
-  "updated": "2026-04-24T16:40:21.479957+02:00",
+  "updated": "2026-04-24T17:00:36.917006+02:00",
   "run_info": {
     "tickers_checked": 10,
     "signals_active": 2,
     "alerts_sent": 0,
-    "elapsed_s": 38.5,
+    "elapsed_s": 42.6,
     "market_phase": "Regulär"
   },
   "signals": {
@@ -12,7 +12,19 @@
       "score": 8,
       "confidence": 17,
       "drivers": "Earnings in 13d",
-      "price": 3.81,
+      "price": 3.76,
+      "chg_pct": 0.0,
+      "rvol": 0.0,
+      "earnings": "in 13 Tagen (07.05.2026)",
+      "fda_date": null,
+      "upcoming_event": null,
+      "insider_buy": false
+    },
+    "GRPN": {
+      "score": 8,
+      "confidence": 17,
+      "drivers": "Earnings in 13d",
+      "price": 14.73,
       "chg_pct": 0.0,
       "rvol": 0.0,
       "earnings": "in 13 Tagen (07.05.2026)",
@@ -24,22 +36,10 @@
       "score": 8,
       "confidence": 17,
       "drivers": "Earnings in 18d",
-      "price": 4.18,
+      "price": 4.19,
       "chg_pct": 0.0,
       "rvol": 0.0,
       "earnings": "in 18 Tagen (12.05.2026)",
-      "fda_date": null,
-      "upcoming_event": null,
-      "insider_buy": false
-    },
-    "PRLD": {
-      "score": 23,
-      "confidence": 33,
-      "drivers": "News: insider buying + Earnings in 19d",
-      "price": 4.65,
-      "chg_pct": 0.0,
-      "rvol": 0.0,
-      "earnings": "in 19 Tagen (13.05.2026)",
       "fda_date": null,
       "upcoming_event": null,
       "insider_buy": false
@@ -56,14 +56,14 @@
       "upcoming_event": null,
       "insider_buy": false
     },
-    "KALV": {
-      "score": 16,
+    "PCT": {
+      "score": 23,
       "confidence": 33,
-      "drivers": "News-KI 8/30: Positive product revenue signals, but no significant short interest metrics, debt burden, or catalysts for forced coveri + Earnings in 11d",
-      "price": 19.44,
+      "drivers": "News: short interest + Earnings in 12d",
+      "price": 7.28,
       "chg_pct": 0.0,
       "rvol": 0.0,
-      "earnings": "in 11 Tagen (05.05.2026)",
+      "earnings": "in 12 Tagen (06.05.2026)",
       "fda_date": null,
       "upcoming_event": null,
       "insider_buy": false
@@ -80,6 +80,18 @@
       "upcoming_event": null,
       "insider_buy": false
     },
+    "WKC": {
+      "score": 0,
+      "confidence": 0,
+      "drivers": "",
+      "price": 25.92,
+      "chg_pct": 0.0,
+      "rvol": 0.0,
+      "earnings": null,
+      "fda_date": null,
+      "upcoming_event": null,
+      "insider_buy": false
+    },
     "BMEA": {
       "score": 8,
       "confidence": 17,
@@ -92,38 +104,26 @@
       "upcoming_event": null,
       "insider_buy": false
     },
-    "ALT": {
-      "score": 23,
-      "confidence": 33,
-      "drivers": "News: catalyst + Earnings in 18d",
-      "price": 2.98,
-      "chg_pct": 0.0,
-      "rvol": 0.0,
-      "earnings": "in 18 Tagen (12.05.2026)",
-      "fda_date": null,
-      "upcoming_event": null,
-      "insider_buy": false
-    },
-    "WKC": {
-      "score": 0,
-      "confidence": 0,
-      "drivers": "",
-      "price": 25.8,
-      "chg_pct": 0.0,
-      "rvol": 0.0,
-      "earnings": null,
-      "fda_date": null,
-      "upcoming_event": null,
-      "insider_buy": false
-    },
     "EEIQ": {
-      "score": 25,
-      "confidence": 17,
-      "drivers": "FINRA Short-Vol 675%",
-      "price": 4.15,
+      "score": 33,
+      "confidence": 33,
+      "drivers": "News-KI 8/30: Positive business developments but no indicators of high short interest, significant short squeeze catalysts, or stock p + FINRA Short-Vol 675%",
+      "price": 4.05,
       "chg_pct": 0.0,
       "rvol": 0.0,
       "earnings": null,
+      "fda_date": null,
+      "upcoming_event": null,
+      "insider_buy": false
+    },
+    "DDD": {
+      "score": 8,
+      "confidence": 17,
+      "drivers": "Earnings in 17d",
+      "price": 2.24,
+      "chg_pct": 0.0,
+      "rvol": 0.0,
+      "earnings": "in 17 Tagen (11.05.2026)",
       "fda_date": null,
       "upcoming_event": null,
       "insider_buy": false
