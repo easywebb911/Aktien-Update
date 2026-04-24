@@ -1,30 +1,18 @@
 {
-  "updated": "2026-04-24T11:14:23.744256+02:00",
+  "updated": "2026-04-24T16:40:21.479957+02:00",
   "run_info": {
-    "tickers_checked": 11,
-    "signals_active": 3,
+    "tickers_checked": 10,
+    "signals_active": 2,
     "alerts_sent": 0,
-    "elapsed_s": 42.5,
-    "market_phase": "Pre-Market"
+    "elapsed_s": 38.5,
+    "market_phase": "Regulär"
   },
   "signals": {
-    "GRPN": {
+    "INDI": {
       "score": 8,
       "confidence": 17,
       "drivers": "Earnings in 13d",
-      "price": 14.62,
-      "chg_pct": 0.0,
-      "rvol": 0.0,
-      "earnings": "in 13 Tagen (07.05.2026)",
-      "fda_date": null,
-      "upcoming_event": null,
-      "insider_buy": false
-    },
-    "SKLZ": {
-      "score": 23,
-      "confidence": 33,
-      "drivers": "News: squeeze + Earnings in 13d",
-      "price": 12.45,
+      "price": 3.81,
       "chg_pct": 0.0,
       "rvol": 0.0,
       "earnings": "in 13 Tagen (07.05.2026)",
@@ -33,10 +21,10 @@
       "insider_buy": false
     },
     "SST": {
-      "score": 20,
-      "confidence": 33,
-      "drivers": "News-KI 12/30: Positive earnings outlook supports stock recovery but lacks the extreme short interest, low float, or catalyst urgency t + Earnings in 18d",
-      "price": 3.83,
+      "score": 8,
+      "confidence": 17,
+      "drivers": "Earnings in 18d",
+      "price": 4.18,
       "chg_pct": 0.0,
       "rvol": 0.0,
       "earnings": "in 18 Tagen (12.05.2026)",
@@ -44,11 +32,83 @@
       "upcoming_event": null,
       "insider_buy": false
     },
-    "HELE": {
+    "PRLD": {
+      "score": 23,
+      "confidence": 33,
+      "drivers": "News: insider buying + Earnings in 19d",
+      "price": 4.65,
+      "chg_pct": 0.0,
+      "rvol": 0.0,
+      "earnings": "in 19 Tagen (13.05.2026)",
+      "fda_date": null,
+      "upcoming_event": null,
+      "insider_buy": false
+    },
+    "BYND": {
+      "score": 38,
+      "confidence": 33,
+      "drivers": "News: short squeeze, squeeze + Earnings in 12d",
+      "price": 1.02,
+      "chg_pct": 0.0,
+      "rvol": 0.0,
+      "earnings": "in 12 Tagen (06.05.2026)",
+      "fda_date": null,
+      "upcoming_event": null,
+      "insider_buy": false
+    },
+    "KALV": {
+      "score": 16,
+      "confidence": 33,
+      "drivers": "News-KI 8/30: Positive product revenue signals, but no significant short interest metrics, debt burden, or catalysts for forced coveri + Earnings in 11d",
+      "price": 19.44,
+      "chg_pct": 0.0,
+      "rvol": 0.0,
+      "earnings": "in 11 Tagen (05.05.2026)",
+      "fda_date": null,
+      "upcoming_event": null,
+      "insider_buy": false
+    },
+    "PENG": {
       "score": 0,
       "confidence": 0,
       "drivers": "",
-      "price": 23.82,
+      "price": 29.13,
+      "chg_pct": 0.0,
+      "rvol": 0.0,
+      "earnings": "in 68 Tagen (01.07.2026)",
+      "fda_date": null,
+      "upcoming_event": null,
+      "insider_buy": false
+    },
+    "BMEA": {
+      "score": 8,
+      "confidence": 17,
+      "drivers": "Earnings in 10d",
+      "price": 1.97,
+      "chg_pct": 0.0,
+      "rvol": 0.0,
+      "earnings": "in 10 Tagen (04.05.2026)",
+      "fda_date": null,
+      "upcoming_event": null,
+      "insider_buy": false
+    },
+    "ALT": {
+      "score": 23,
+      "confidence": 33,
+      "drivers": "News: catalyst + Earnings in 18d",
+      "price": 2.98,
+      "chg_pct": 0.0,
+      "rvol": 0.0,
+      "earnings": "in 18 Tagen (12.05.2026)",
+      "fda_date": null,
+      "upcoming_event": null,
+      "insider_buy": false
+    },
+    "WKC": {
+      "score": 0,
+      "confidence": 0,
+      "drivers": "",
+      "price": 25.8,
       "chg_pct": 0.0,
       "rvol": 0.0,
       "earnings": null,
@@ -56,86 +116,14 @@
       "upcoming_event": null,
       "insider_buy": false
     },
-    "FLWS": {
-      "score": 23,
-      "confidence": 33,
-      "drivers": "News: breakout + Earnings in 13d",
-      "price": 3.78,
-      "chg_pct": 0.0,
-      "rvol": 0.0,
-      "earnings": "in 13 Tagen (07.05.2026)",
-      "fda_date": null,
-      "upcoming_event": null,
-      "insider_buy": false
-    },
-    "TFIN": {
-      "score": 15,
+    "EEIQ": {
+      "score": 25,
       "confidence": 17,
-      "drivers": "News: partnership",
-      "price": 67.32,
+      "drivers": "FINRA Short-Vol 675%",
+      "price": 4.15,
       "chg_pct": 0.0,
       "rvol": 0.0,
-      "earnings": "in 82 Tagen (15.07.2026)",
-      "fda_date": null,
-      "upcoming_event": null,
-      "insider_buy": false
-    },
-    "INDI": {
-      "score": 8,
-      "confidence": 17,
-      "drivers": "Earnings in 13d",
-      "price": 3.43,
-      "chg_pct": 0.0,
-      "rvol": 0.0,
-      "earnings": "in 13 Tagen (07.05.2026)",
-      "fda_date": null,
-      "upcoming_event": null,
-      "insider_buy": false
-    },
-    "REPL": {
-      "score": 10,
-      "confidence": 33,
-      "drivers": "News-KI 2/30: Massive FDA rejection and 75% stock decline indicate fundamental problems, not short squeeze setup; no positive catalyst + Earnings in 27d",
-      "price": 2.85,
-      "chg_pct": 0.0,
-      "rvol": 0.0,
-      "earnings": "in 27 Tagen (21.05.2026)",
-      "fda_date": null,
-      "upcoming_event": null,
-      "insider_buy": false
-    },
-    "ACDC": {
-      "score": 8,
-      "confidence": 17,
-      "drivers": "Earnings in 17d",
-      "price": 7.35,
-      "chg_pct": 0.0,
-      "rvol": 0.0,
-      "earnings": "in 17 Tagen (11.05.2026)",
-      "fda_date": null,
-      "upcoming_event": null,
-      "insider_buy": false
-    },
-    "PACB": {
-      "score": 16,
-      "confidence": 33,
-      "drivers": "News-KI 8/30: Stock underperforming broader market while announcing positive partnerships suggests weak technical setup with limited s + Earnings in 13d",
-      "price": 1.57,
-      "chg_pct": 0.0,
-      "rvol": 0.0,
-      "earnings": "in 13 Tagen (07.05.2026)",
-      "fda_date": null,
-      "upcoming_event": null,
-      "insider_buy": false
-    },
-    "AMC": {
-      "score": 16,
-      "confidence": 33,
-      "drivers": "News-KI 8/30: Negative selling pressure überwiegt positive Geschäftsentwicklung, deutet nicht auf Short-Squeeze-Setup hin. + Earnings in 12d",
-      "price": 1.67,
-      "chg_pct": 0.0,
-      "rvol": 0.0,
-      "earnings": "in 12 Tagen (06.05.2026)",
+      "earnings": null,
       "fda_date": null,
       "upcoming_event": null,
       "insider_buy": false
