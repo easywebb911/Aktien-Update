@@ -209,6 +209,20 @@ STOCKTWITS_BULL_STRONG  = 15   # Bullish-Ratio > 0.70 + Volume > 10/h
 STOCKTWITS_BULL_WEAK    = 8    # Bullish-Ratio > 0.60
 STOCKTWITS_BEAR_MALUS   = 5    # Bearish-Ratio > 0.70 → -Pkt
 
+# ── RVOL High-Alert + Velocity (KI-Agent) ────────────────────────────────────
+# Zusätzliche Boni über die bestehenden TRIGGER_RVOL_2X/4X-Stufen hinaus:
+#   ≥ 3 ×  → +RVOL_HIGH_BONUS    Pkt + ⚡-Marker im Driver
+#   ≥ 5 ×  → +RVOL_EXTREME_BONUS Pkt + 🚀-Marker
+# Velocity-Alert: wenn der RVOL eines Tickers zwischen zwei KI-Agent-Runs
+# (alle 2 h) um Faktor ≥ RVOL_VELOCITY_FACTOR steigt → +RVOL_VELOCITY_BONUS.
+RVOL_HIGH_THRESHOLD     = 3.0
+RVOL_HIGH_BONUS         = 10
+RVOL_EXTREME_THRESHOLD  = 5.0
+RVOL_EXTREME_BONUS      = 15
+RVOL_VELOCITY_FACTOR    = 1.5   # current / previous
+RVOL_VELOCITY_BONUS     = 8
+RVOL_VELOCITY_MIN       = 1.5   # current_rvol-Mindestschwelle für Velocity-Check
+
 # ── FINRA-Trend-Konfiguration ────────────────────────────────────────────────
 # Stabilisiert 2026-04: 12 Handelstage statt 6, 6 Mindest-Datenpunkte
 # statt 3 — deutlich weniger Tagesausreißer, dafür mehr „Keine Daten" bei

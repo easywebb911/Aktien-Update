@@ -1042,6 +1042,7 @@ def compute_signal(
     has_form4: bool = False,
     form4_title: str = "",
     stocktwits: dict | None = None,
+    prev_rvol: float = 0.0,
 ) -> tuple[int, list[str], int]:
     score   = 0
     drivers = []
@@ -1087,6 +1088,38 @@ def compute_signal(
         vol_pts = SCORE_RVOL_2X
         score += vol_pts
         drivers.append(f"Volumen {rvol:.1f}×")
+        sig_vol = True
+
+    # RVOL High-Alert: extra Bonus bei extremem Volumen (zusätzlich zu den
+    # bestehenden 2×/4×-Punkten). 5× hat Vorrang vor 3× — kein Doppelbonus.
+    if rvol >= RVOL_EXTREME_THRESHOLD:
+        score += RVOL_EXTREME_BONUS
+        vol_pts += RVOL_EXTREME_BONUS
+        drivers.append(f"🚀 Massives Volumen {rvol:.1f}×+")
+        print(f"{ticker} RVOL-Extreme +{RVOL_EXTREME_BONUS} Pkt ({rvol:.1f}×)",
+              flush=True)
+        sig_vol = True
+    elif rvol >= RVOL_HIGH_THRESHOLD:
+        score += RVOL_HIGH_BONUS
+        vol_pts += RVOL_HIGH_BONUS
+        drivers.append(f"⚡ Extremes Volumen {rvol:.1f}×+")
+        print(f"{ticker} RVOL-High +{RVOL_HIGH_BONUS} Pkt ({rvol:.1f}×)",
+              flush=True)
+        sig_vol = True
+
+    # RVOL-Velocity: vergleicht aktuellen RVOL mit dem aus dem vorigen
+    # KI-Agent-Run (2 h zurück). Sprung um Faktor ≥ RVOL_VELOCITY_FACTOR
+    # signalisiert beschleunigtes Trade-Volumen → klassisches Squeeze-
+    # Vorläufer-Pattern. Nur ausgewertet wenn der aktuelle RVOL absolut
+    # bereits relevant ist (≥ RVOL_VELOCITY_MIN).
+    if (rvol >= RVOL_VELOCITY_MIN and prev_rvol > 0
+            and rvol / prev_rvol >= RVOL_VELOCITY_FACTOR):
+        score += RVOL_VELOCITY_BONUS
+        vol_pts += RVOL_VELOCITY_BONUS
+        drivers.append(f"📈 RVOL-Velocity: {prev_rvol:.1f}× → {rvol:.1f}×")
+        print(f"{ticker} RVOL-Velocity +{RVOL_VELOCITY_BONUS} Pkt "
+              f"({prev_rvol:.1f}× → {rvol:.1f}×, ×{rvol/prev_rvol:.2f})",
+              flush=True)
         sig_vol = True
 
     if intr >= 5:
@@ -1611,6 +1644,7 @@ def main() -> None:
             insider=insider, finra_ssr_ratio=finra_ssr_ratio,
             has_form4=has_form4, form4_title=form4_title,
             stocktwits=stocktwits_data,
+            prev_rvol=float(old_sigs.get(ticker, {}).get("rvol", 0) or 0),
         )
         n_active_types = sum([
             any(d.startswith("Kurs") for d in drivers),
