@@ -1,10 +1,10 @@
 {
-  "updated": "2026-04-25T13:34:42.161576+02:00",
+  "updated": "2026-04-25T14:23:57.743878+02:00",
   "run_info": {
     "tickers_checked": 10,
-    "signals_active": 2,
+    "signals_active": 0,
     "alerts_sent": 0,
-    "elapsed_s": 40.7,
+    "elapsed_s": 38.4,
     "market_phase": "Geschlossen"
   },
   "signals": {
@@ -18,19 +18,21 @@
       "earnings": "in 12 Tagen (07.05.2026)",
       "fda_date": null,
       "upcoming_event": null,
-      "insider_buy": false
+      "insider_buy": false,
+      "stocktwits": null
     },
     "HRTX": {
-      "score": 41,
-      "confidence": 33,
-      "drivers": "News-KI 8/30: Positive earnings coverage lacks indicators of high short interest, significant squeeze catalysts, or unusual technical  + Earnings in 10d + FINRA Short-Vol 74%",
+      "score": 33,
+      "confidence": 17,
+      "drivers": "Earnings in 10d + FINRA Short-Vol 74%",
       "price": 1.19,
       "chg_pct": 0.0,
       "rvol": 0.0,
       "earnings": "in 10 Tagen (05.05.2026)",
       "fda_date": null,
       "upcoming_event": null,
-      "insider_buy": false
+      "insider_buy": false,
+      "stocktwits": null
     },
     "WKC": {
       "score": 0,
@@ -42,43 +44,47 @@
       "earnings": null,
       "fda_date": null,
       "upcoming_event": null,
-      "insider_buy": false
+      "insider_buy": false,
+      "stocktwits": null
     },
     "ANAB": {
-      "score": 8,
-      "confidence": 17,
-      "drivers": "Earnings in 10d",
+      "score": 16,
+      "confidence": 33,
+      "drivers": "News-KI 8/30: Positive legal and corporate developments lack catalyst strength for short-squeeze; biotech sector context is generic wi + Earnings in 10d",
       "price": 58.88,
       "chg_pct": 0.0,
       "rvol": 0.0,
       "earnings": "in 10 Tagen (05.05.2026)",
       "fda_date": null,
       "upcoming_event": null,
-      "insider_buy": false
-    },
-    "PRLD": {
-      "score": 16,
-      "confidence": 33,
-      "drivers": "News-KI 8/30: Positive clinical and management news but standard biotech developments with no squeeze indicators like short interest s + Earnings in 18d",
-      "price": 4.7,
-      "chg_pct": 0.0,
-      "rvol": 0.0,
-      "earnings": "in 18 Tagen (13.05.2026)",
-      "fda_date": null,
-      "upcoming_event": null,
-      "insider_buy": false
+      "insider_buy": false,
+      "stocktwits": null
     },
     "INBX": {
-      "score": 38,
+      "score": 16,
       "confidence": 33,
-      "drivers": "News: catalyst, revenue beat + Earnings in 18d",
+      "drivers": "News-KI 8/30: Positive clinical data supports stock momentum but lacks short squeeze indicators like high short interest, low float, o + Earnings in 18d",
       "price": 129.06,
       "chg_pct": 0.0,
       "rvol": 0.0,
       "earnings": "in 18 Tagen (13.05.2026)",
       "fda_date": null,
       "upcoming_event": null,
-      "insider_buy": false
+      "insider_buy": false,
+      "stocktwits": null
+    },
+    "PRLD": {
+      "score": 16,
+      "confidence": 33,
+      "drivers": "News-KI 8/30: Positive clinical and leadership developments, but no short-squeeze catalysts like high short interest, gamma exposure,  + Earnings in 18d",
+      "price": 4.7,
+      "chg_pct": 0.0,
+      "rvol": 0.0,
+      "earnings": "in 18 Tagen (13.05.2026)",
+      "fda_date": null,
+      "upcoming_event": null,
+      "insider_buy": false,
+      "stocktwits": null
     },
     "CWH": {
       "score": 15,
@@ -90,19 +96,8 @@
       "earnings": "in 4 Tagen (29.04.2026)",
       "fda_date": null,
       "upcoming_event": "Earnings in 4 Tagen (29.04.2026)",
-      "insider_buy": false
-    },
-    "PD": {
-      "score": 20,
-      "confidence": 33,
-      "drivers": "News-KI 12/30: Mixed signals: Negative price action and unclear positioning weaken squeeze potential despite AI integration support. + Earnings in 33d",
-      "price": 7.13,
-      "chg_pct": 0.0,
-      "rvol": 0.0,
-      "earnings": "in 33 Tagen (28.05.2026)",
-      "fda_date": null,
-      "upcoming_event": null,
-      "insider_buy": false
+      "insider_buy": false,
+      "stocktwits": null
     },
     "IIPR": {
       "score": 8,
@@ -114,7 +109,8 @@
       "earnings": "in 9 Tagen (04.05.2026)",
       "fda_date": null,
       "upcoming_event": null,
-      "insider_buy": false
+      "insider_buy": false,
+      "stocktwits": null
     },
     "PENG": {
       "score": 0,
@@ -126,7 +122,21 @@
       "earnings": "in 67 Tagen (01.07.2026)",
       "fda_date": null,
       "upcoming_event": null,
-      "insider_buy": false
+      "insider_buy": false,
+      "stocktwits": null
+    },
+    "PD": {
+      "score": 16,
+      "confidence": 33,
+      "drivers": "News-KI 8/30: Shares plummeting indicates potential short interest, but AI ecosystem support and decade-long ownership recommendation  + Earnings in 33d",
+      "price": 7.13,
+      "chg_pct": 0.0,
+      "rvol": 0.0,
+      "earnings": "in 33 Tagen (28.05.2026)",
+      "fda_date": null,
+      "upcoming_event": null,
+      "insider_buy": false,
+      "stocktwits": null
     }
   }
 }
