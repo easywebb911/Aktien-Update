@@ -4698,6 +4698,35 @@ function _fmtGerman(d) {{
     const dates   = JSON.parse(wrap.dataset.dates  || '[]'); // ISO YYYY-MM-DD
     const col     = wrap.dataset.col   || '#94a3b8';
     const todayS  = wrap.dataset.today || '';
+
+    // Sync rightmost point mit aktuellem KI-Agent-Score (≤ 4 h alt) damit
+    // pulsierender Punkt und Sparkline-Endpunkt dieselbe Farbe + Wert zeigen.
+    // Bei Ghost-Pfad (heute > letztes History-Datum): neuen Punkt anhängen,
+    // sonst rechtester History-Eintrag in-place überschreiben.
+    const _agData = window._AGENT_SIGNALS;
+    if (_agData && _agData.updated) {{
+      const _ageMs = Date.now() - new Date(_agData.updated).getTime();
+      if (_ageMs >= 0 && _ageMs <= 4 * 3600 * 1000) {{
+        const _art = wrap.closest('article[data-ticker]');
+        const _wlb = _art ? null : wrap.closest('[id^="wlb-"]');
+        const _ticker = (_art && _art.dataset.ticker)
+                     || (_wlb && _wlb.id.slice(4))
+                     || null;
+        const _sig = (_ticker && _agData.signals) ? _agData.signals[_ticker] : null;
+        if (_sig && _sig.score != null && !isNaN(+_sig.score)) {{
+          const _ag = +_sig.score;
+          if (scores.length > 0 && todayS && todayS > dates[dates.length - 1]) {{
+            // Ghost-Pfad: heute fehlt in History → neuen Datenpunkt anhängen
+            scores.push(_ag);
+            dates.push(todayS);
+          }} else if (scores.length > 0) {{
+            // Letzter History-Eintrag = heute (oder ≤ heute) → überschreiben
+            scores[scores.length - 1] = _ag;
+          }}
+        }}
+      }}
+    }}
+
     const n       = scores.length;
     if (n < 2) return;
 
@@ -4848,6 +4877,9 @@ function _fmtGerman(d) {{
 // ── KI-Agent Signal Indicators ───────────────────────────────────────────────
 (function() {{
   function renderAgentSignals(data) {{
+    // Globale Referenz für drawSparkline — synchronisiert den rechtesten
+    // Punkt mit dem aktuellen KI-Agent-Score (gleiche Farbe wie pulsierender Dot).
+    window._AGENT_SIGNALS = data || {{}};
     const statusEl = document.getElementById('agent-status');
     const updated  = data.updated ? new Date(data.updated) : null;
     const signals  = data.signals || {{}};
@@ -4972,6 +5004,12 @@ function _fmtGerman(d) {{
         block.style.display = 'block';
       }}
     }});
+
+    // Re-draw aller Sparklines, damit der rechteste Punkt mit dem aktuellen
+    // KI-Agent-Score synchronisiert ist (gleiche Farbe wie pulsierender Dot).
+    if (typeof drawSparkline === 'function') {{
+      document.querySelectorAll('.spark-wrap').forEach(drawSparkline);
+    }}
   }}
 
   // Commit 3: ein fetch auf app_data.json liefert score_history + agent_signals
