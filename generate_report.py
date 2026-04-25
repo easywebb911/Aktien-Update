@@ -1588,6 +1588,62 @@ def _fmt_si_date(date_str: str) -> str:
     return date_str or "—"
 
 
+def _wl_card_payload(_s: dict) -> dict:
+    """Baut das Watchlist-Karten-Payload aus einem angereicherten Stock-Dict.
+
+    Identisch zum in-page WL_TOP10-Format und zum app_data.watchlist_cards-
+    Eintrag — eine Quelle für beide Konsumenten, damit Browser und Backend
+    nicht auseinanderdriften.
+    """
+    _fd   = _s.get("finra_data") or {}
+    _hist = _fd.get("history", [])
+    _opts = _s.get("options") or {}
+    return {
+        "score":         _s.get("score", 0),
+        "company_name":  _s.get("company_name", ""),
+        "sector":        _s.get("sector", ""),
+        "flag":          get_flag(_s["ticker"]),
+        "price":         _s.get("price", 0),
+        "change":        _s.get("change", 0),
+        "change_5d":     _s.get("change_5d"),
+        "short_float":   _s.get("short_float", 0),
+        "short_ratio":   _s.get("short_ratio", 0),
+        "rel_volume":    _s.get("rel_volume", 0),
+        "float_shares":  _s.get("float_shares") or 0,
+        "si_trend":      _fd.get("trend", "no_data"),
+        "si_tpct":       _fd.get("trend_pct", 0.0),
+        "si_velocity":   _fd.get("si_velocity", 0.0),
+        "si_accel":      _fd.get("si_accelerating", False),
+        "si_t1":         _fmt_si_record(_hist[0]) if len(_hist) >= 1 else "—",
+        "si_t2":         _fmt_si_record(_hist[1]) if len(_hist) >= 2 else "—",
+        "si_t3":         _fmt_si_record(_hist[2]) if len(_hist) >= 3 else "—",
+        "rsi14":         _s.get("rsi14"),
+        "ma50":          _s.get("ma50"),
+        "ma200":         _s.get("ma200"),
+        "inst_ownership": _s.get("inst_ownership"),
+        "52w_high":      _s.get("52w_high") or 0,
+        "52w_low":       _s.get("52w_low") or 0,
+        "avg_vol_20d":   _s.get("avg_vol_20d", 0),
+        "cur_vol":       _s.get("cur_vol", 0),
+        "market_cap":    _s.get("yf_market_cap") or _s.get("market_cap") or 0,
+        "earnings_days": _s.get("earnings_days"),
+        "earnings_date_str": _s.get("earnings_date_str", ""),
+        "pc_ratio":      _opts.get("pc_ratio"),
+        "atm_iv":        _opts.get("atm_iv"),
+        "rel_strength_20d": _s.get("rel_strength_20d"),
+        "perf_20d":      _s.get("perf_20d"),
+        "news": [
+            {
+                "title":  n.get("title", ""),
+                "link":   n.get("link", "#"),
+                "time":   n.get("time", ""),
+                "source": n.get("source") or n.get("publisher", ""),
+            }
+            for n in _s.get("news", [])[:3]
+        ],
+    }
+
+
 def _fmt_si_record(rec: dict) -> str:
     """Format a FINRA daily short-volume record.
     ≥ 1 000 000 shares → 'X,X Mio.'  |  < 1 000 000 → 'X,XXX Aktien'
@@ -3435,56 +3491,10 @@ def _build_context(stocks: list[dict], report_date: str) -> dict:
     wl_scores_json = json.dumps(_wl_scores)
     wl_hist_json   = json.dumps(_wl_hist)
 
-    # Full top10 snapshots for watchlist detail cards (all metrics + news)
-    _wl_top10: dict = {}
-    for _s in stocks:
-        _fd   = _s.get("finra_data") or {}
-        _hist = _fd.get("history", [])
-        _opts = _s.get("options") or {}
-        _wl_top10[_s["ticker"]] = {
-            "score":         _s.get("score", 0),
-            "company_name":  _s.get("company_name", ""),
-            "sector":        _s.get("sector", ""),
-            "flag":          get_flag(_s["ticker"]),
-            "price":         _s.get("price", 0),
-            "change":        _s.get("change", 0),
-            "change_5d":     _s.get("change_5d"),
-            "short_float":   _s.get("short_float", 0),
-            "short_ratio":   _s.get("short_ratio", 0),
-            "rel_volume":    _s.get("rel_volume", 0),
-            "float_shares":  _s.get("float_shares") or 0,
-            "si_trend":      _fd.get("trend", "no_data"),
-            "si_tpct":       _fd.get("trend_pct", 0.0),
-            "si_velocity":   _fd.get("si_velocity", 0.0),
-            "si_accel":      _fd.get("si_accelerating", False),
-            "si_t1":         _fmt_si_record(_hist[0]) if len(_hist) >= 1 else "—",
-            "si_t2":         _fmt_si_record(_hist[1]) if len(_hist) >= 2 else "—",
-            "si_t3":         _fmt_si_record(_hist[2]) if len(_hist) >= 3 else "—",
-            "rsi14":         _s.get("rsi14"),
-            "ma50":          _s.get("ma50"),
-            "ma200":         _s.get("ma200"),
-            "inst_ownership": _s.get("inst_ownership"),
-            "52w_high":      _s.get("52w_high") or 0,
-            "52w_low":       _s.get("52w_low") or 0,
-            "avg_vol_20d":   _s.get("avg_vol_20d", 0),
-            "cur_vol":       _s.get("cur_vol", 0),
-            "market_cap":    _s.get("yf_market_cap") or _s.get("market_cap") or 0,
-            "earnings_days": _s.get("earnings_days"),
-            "earnings_date_str": _s.get("earnings_date_str", ""),
-            "pc_ratio":      _opts.get("pc_ratio"),
-            "atm_iv":        _opts.get("atm_iv"),
-            "rel_strength_20d": _s.get("rel_strength_20d"),
-            "perf_20d":      _s.get("perf_20d"),
-            "news": [
-                {
-                    "title":  n.get("title", ""),
-                    "link":   n.get("link", "#"),
-                    "time":   n.get("time", ""),
-                    "source": n.get("source") or n.get("publisher", ""),
-                }
-                for n in _s.get("news", [])[:3]
-            ],
-        }
+    # Full snapshots für Watchlist-Detail-Karten (gemeinsamer Builder, damit
+    # sowohl in-page WL_TOP10 als auch app_data.watchlist_cards identisch
+    # befüllt sind).
+    _wl_top10 = {_s["ticker"]: _wl_card_payload(_s) for _s in stocks}
     wl_top10_json = json.dumps(_wl_top10, default=str)
 
     # Compact top-10 snapshot for Claude chat system prompt
@@ -4965,9 +4975,13 @@ function _fmtGerman(d) {{
   }}
 
   // Commit 3: ein fetch auf app_data.json liefert score_history + agent_signals
+  // + watchlist_cards (vollständige Watchlist-Daten für expandierte Karten).
   fetch('./app_data.json?_=' + Date.now())
     .then(r => r.ok ? r.json() : {{}})
-    .then(appData => renderAgentSignals(appData.agent_signals || appData))
+    .then(appData => {{
+      window._WL_CARDS = appData.watchlist_cards || {{}};
+      renderAgentSignals(appData.agent_signals || appData);
+    }})
     .catch(() => {{
       const el = document.getElementById('agent-status');
       if (el) el.textContent = 'KI-Agent: Kein aktueller Scan verfügbar.';
@@ -5437,7 +5451,11 @@ function _fmtGerman(d) {{
         }});
         return;
       }}
-      const d = WL_TOP10[ticker];
+      // Daten-Quellen-Reihenfolge: WL_TOP10 (in-page, nur heutige Top-10) →
+      // window._WL_CARDS (aus app_data.json, alle Watchlist-Ticker) → Sparkline-
+      // only Fallback. So sehen auch nicht-Top-10-Watchlist-Karten echte Werte.
+      const d = WL_TOP10[ticker]
+            || (window._WL_CARDS && window._WL_CARDS[ticker]);
       body.innerHTML = d ? buildWlDetails(ticker, d) : buildWlSparkOnly(ticker, WL_HIST[ticker]);
       body.dataset.loaded = '1';
       body.querySelectorAll('.wl-spark').forEach(w => {{
@@ -6275,12 +6293,17 @@ def _append_backtest_entries(top10: list[dict], report_date: str) -> None:
           f"(Cut-off: {BACKTEST_MAX_DAYS} Tage)", flush=True)
 
 
-def _write_app_data_json() -> None:
-    """Schreibt kombinierte app_data.json = score_history + agent_signals.
+def _write_app_data_json(watchlist_cards: dict | None = None) -> None:
+    """Schreibt kombinierte app_data.json = score_history + agent_signals + watchlist_cards.
 
-    Beide Quelldateien bleiben separat erhalten (Kompatibilität mit bestehenden
-    Consumern). app_data.json dient dem Browser als Einzel-Fetch-Quelle —
-    spart einen HTTP-Request beim Seitenaufruf.
+    Beide Quelldateien (score_history.json + agent_signals.json) bleiben separat
+    erhalten (Kompatibilität mit bestehenden Consumern). app_data.json dient
+    dem Browser als Einzel-Fetch-Quelle — spart einen HTTP-Request.
+
+    ``watchlist_cards`` enthält das vollständige Karten-Payload für ALLE
+    persönlichen Watchlist-Ticker (Top-10 + manuelle Extras), damit der
+    Browser auch nicht-Top-10-Watchlist-Karten im expandierten Zustand mit
+    echten Werten statt „—"-Platzhaltern anzeigt.
 
     Tolerant gegen fehlende Quelldateien (Platzhalter {}).
     """
@@ -6297,14 +6320,17 @@ def _write_app_data_json() -> None:
     except (FileNotFoundError, json.JSONDecodeError):
         agent_signals = {}
     payload = {
-        "score_history": score_history,
-        "agent_signals": agent_signals,
-        "generated_at":  datetime.now(ZoneInfo("UTC")).strftime("%Y-%m-%dT%H:%M:%SZ"),
+        "score_history":   score_history,
+        "agent_signals":   agent_signals,
+        "watchlist_cards": watchlist_cards or {},
+        "generated_at":    datetime.now(ZoneInfo("UTC")).strftime("%Y-%m-%dT%H:%M:%SZ"),
     }
     with open("app_data.json", "w", encoding="utf-8") as fh:
-        json.dump(payload, fh, separators=(",", ":"))
+        json.dump(payload, fh, separators=(",", ":"), default=str)
     print(f"app_data.json: {len(score_history)} Ticker-History + "
-          f"{len(agent_signals.get('signals', {}))} Signals zusammengeführt", flush=True)
+          f"{len(agent_signals.get('signals', {}))} Signals + "
+          f"{len(payload['watchlist_cards'])} Watchlist-Karten zusammengeführt",
+          flush=True)
 
 
 def _write_service_worker() -> None:
@@ -7019,8 +7045,16 @@ def main():
     # Zeitstempel) — Browser invalidieren alten Cache beim nächsten Besuch.
     if SW_ENABLED:
         _write_service_worker()
-    # Kombinierte app_data.json (PWA-Single-Fetch)
-    _write_app_data_json()
+    # Kombinierte app_data.json (PWA-Single-Fetch).
+    # watchlist_cards: vollständige Karten-Daten für ALLE persönlichen
+    # Watchlist-Ticker (auch nicht-Top-10), damit der Browser im expandierten
+    # Watchlist-Zustand echte Werte statt „—"-Platzhalter zeigen kann.
+    _wl_card_data = {
+        c["ticker"]: _wl_card_payload(c)
+        for c in enriched
+        if c.get("manual_personal")
+    }
+    _write_app_data_json(watchlist_cards=_wl_card_data)
     print(f"Step 4 abgeschlossen in {time.time()-_t4:.1f}s", flush=True)
 
     log.info("Report written → index.html")
