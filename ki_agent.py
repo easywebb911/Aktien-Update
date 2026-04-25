@@ -903,6 +903,24 @@ def fetch_stocktwits_sentiment(ticker: str) -> dict:
             "n_total": n_total, "n_bull": n_bull, "n_bear": n_bear}
 
 
+def _stocktwits_pts(st: dict | None) -> int:
+    """Score-Beitrag aus StockTwits-Sentiment-Dict — gemeinsame Logik für
+    compute_signal() und für die agent_signals.json-Persistenz (Frontend)."""
+    if not st or st.get("n_total", 0) < 3:
+        return 0
+    bull = st.get("bull_ratio")
+    if bull is None:
+        return 0
+    msgh = st.get("msg_per_h", 0)
+    if bull > 0.70 and msgh > 10:
+        return STOCKTWITS_BULL_STRONG
+    if bull > 0.60:
+        return STOCKTWITS_BULL_WEAK
+    if (1 - bull) > 0.70:
+        return -STOCKTWITS_BEAR_MALUS
+    return 0
+
+
 # ── Datenquelle 10: SEC Form 4 ────────────────────────────────────────────────
 
 def fetch_sec_form4(ticker: str) -> tuple[bool, str]:
@@ -1212,28 +1230,20 @@ def compute_signal(
         confidence = base_conf
 
     # ── StockTwits Sentiment-Beitrag ─────────────────────────────────────────
-    st_pts = 0
-    if stocktwits and stocktwits.get("n_total", 0) >= 3:
+    st_pts = _stocktwits_pts(stocktwits)
+    if st_pts != 0 and stocktwits:
         bull = stocktwits.get("bull_ratio")
         msgh = stocktwits.get("msg_per_h", 0)
-        if bull is not None:
-            if bull > 0.70 and msgh > 10:
-                st_pts = STOCKTWITS_BULL_STRONG
-            elif bull > 0.60:
-                st_pts = STOCKTWITS_BULL_WEAK
-            elif (1 - bull) > 0.70:
-                st_pts = -STOCKTWITS_BEAR_MALUS
-        if st_pts != 0:
-            score += st_pts
-            sign = "+" if st_pts > 0 else ""
-            drivers.append(
-                f"StockTwits {round((bull or 0) * 100)}% bull "
-                f"({stocktwits.get('n_total', 0)} msgs, {msgh}/h) {sign}{st_pts}"
-            )
-            if st_pts > 0:
-                sig_news = True
-            print(f"{ticker} StockTwits: {round((bull or 0) * 100)}% bullish, "
-                  f"{msgh} Nachrichten/h → {sign}{st_pts} Pkt", flush=True)
+        score += st_pts
+        sign = "+" if st_pts > 0 else ""
+        drivers.append(
+            f"StockTwits {round((bull or 0) * 100)}% bull "
+            f"({stocktwits.get('n_total', 0)} msgs, {msgh}/h) {sign}{st_pts}"
+        )
+        if st_pts > 0:
+            sig_news = True
+        print(f"{ticker} StockTwits: {round((bull or 0) * 100)}% bullish, "
+              f"{msgh} Nachrichten/h → {sign}{st_pts} Pkt", flush=True)
 
     # ── Perfect-Storm Multiplikator: gestaffelter Score-Boost wenn mehrere
     # Trigger gleichzeitig aktiv sind (RVOL/Kurs/News/Earnings) ──────────────
@@ -1625,6 +1635,17 @@ def main() -> None:
             [upcoming_event] + drivers if upcoming_event else drivers
         )
 
+        # StockTwits — nur wenn aussagekräftige Stichprobe (≥ 3 sentiment-tagged
+        # Messages); sonst null, damit Frontend einfach `if (sig.stocktwits)` prüft.
+        _st_payload = None
+        if stocktwits_data and stocktwits_data.get("n_total", 0) >= 3:
+            _st_payload = {
+                "bull_ratio": stocktwits_data.get("bull_ratio"),
+                "msg_per_h":  stocktwits_data.get("msg_per_h", 0),
+                "n_total":    stocktwits_data.get("n_total", 0),
+                "pts":        _stocktwits_pts(stocktwits_data),
+            }
+
         new_signals[ticker] = {
             "score":          score,
             "confidence":     confidence,
@@ -1638,6 +1659,7 @@ def main() -> None:
                                if fda_date_str else None),
             "upcoming_event": upcoming_event,
             "insider_buy":    insider.get("count", 0) > 0,
+            "stocktwits":     _st_payload,
         }
 
         if score >= alert_threshold:

@@ -4901,7 +4901,12 @@ function _fmtGerman(d) {{
                              : sc >= 15 ? '🔴'
                              : '⚪';
       const topActive = Object.entries(signals)
-        .map(([t, s]) => ({{ t, score: (s && s.score != null) ? +s.score : 0 }}))
+        .map(([t, s]) => ({{
+          t,
+          score: (s && s.score != null) ? +s.score : 0,
+          // Fix 3 — StockTwits-Marker: Bonus ≥ 8 → 📣 in Statuszeile
+          stMarker: (s && s.stocktwits && s.stocktwits.pts >= 8) ? ' 📣 StockTwits bullisch' : '',
+        }}))
         .filter(x => x.score > 0)
         .sort((a, b) => b.score - a.score)
         .slice(0, Math.max(nSignals, 0));
@@ -4910,11 +4915,11 @@ function _fmtGerman(d) {{
         signalPart = `${{nSignals}} Signale aktiv`;
       }} else if (nSignals === 1) {{
         const s = topActive[0];
-        signalPart = `1 Signal aktiv: ${{s.t}} ${{colorDot(s.score)}} ${{Math.round(s.score)}}/100`;
+        signalPart = `1 Signal aktiv: ${{s.t}} ${{colorDot(s.score)}} ${{Math.round(s.score)}}/100${{s.stMarker}}`;
       }} else {{
         const shown = topActive.slice(0, MAX_IN_BAR);
         const rest  = Math.max(0, nSignals - shown.length);
-        const list  = shown.map(s => `${{s.t}} ${{Math.round(s.score)}}`).join(', ');
+        const list  = shown.map(s => `${{s.t}} ${{Math.round(s.score)}}${{s.stMarker ? ' 📣' : ''}}`).join(', ');
         signalPart = `${{nSignals}} Signale aktiv: ${{list}}`
                    + (rest > 0 ? ` +${{rest}} weitere` : '');
       }}
@@ -4954,7 +4959,17 @@ function _fmtGerman(d) {{
         : '?';
       const tip = document.createElement('span');
       tip.className = 'agent-tooltip';
-      tip.textContent = `KI-Agent Score: ${{score}}/100 \u2014 ${{driver}} \u2014 ${{phaseTip}} \u2014 ${{lastScanTip}}`;
+      // StockTwits-Suffix (Fix 1) \u2014 sichtbar nur wenn aussagekr\u00e4ftige Stichprobe
+      let stTip = '';
+      if (sig && sig.stocktwits && sig.stocktwits.bull_ratio != null) {{
+        const stPct = Math.round(sig.stocktwits.bull_ratio * 100);
+        const stMs  = sig.stocktwits.msg_per_h || 0;
+        const stP   = sig.stocktwits.pts || 0;
+        const stSign = stP > 0 ? '+' : '';
+        stTip = ` \u2014 StockTwits: ${{stPct}}% bullisch \u00b7 ${{stMs}} Nachrichten/h`
+              + (stP !== 0 ? ` \u00b7 ${{stSign}}${{stP}} Pkt` : '');
+      }}
+      tip.textContent = `KI-Agent Score: ${{score}}/100 \u2014 ${{driver}} \u2014 ${{phaseTip}} \u2014 ${{lastScanTip}}${{stTip}}`;
       dot.appendChild(tip);
 
       // position:fixed → Koordinaten via getBoundingClientRect berechnen,
@@ -4979,6 +4994,40 @@ function _fmtGerman(d) {{
       // Watchlist-Kompaktkarte: dot synchronisieren
       const wlDot = document.getElementById('wlkd-' + ticker);
       if (wlDot) wlDot.className = 'wl-ki-dot agent-dot ' + dotClass;
+
+      // Fix 2 — StockTwits-Zeile in Detail-Tabelle dynamisch ein-/ausblenden.
+      // Server-Rendering kennt die Daten nicht (Async-Fetch nach Page-Load),
+      // daher wird die Zeile nach Agent-Daten-Eingang in die bestehende Tabelle
+      // injiziert (oder entfernt wenn keine Daten).
+      const detailTbl = card.querySelector('.detail-table');
+      if (detailTbl) {{
+        let stRow = detailTbl.querySelector('.detail-st-row');
+        const st = sig && sig.stocktwits;
+        if (st && st.bull_ratio != null && st.n_total >= 3) {{
+          const stPct = Math.round(st.bull_ratio * 100);
+          const stCol = st.bull_ratio > 0.60 ? '#22c55e'
+                      : st.bull_ratio < 0.40 ? '#ef4444'
+                      : '#94a3b8';
+          const stLabel = st.bull_ratio > 0.60 ? 'bullisch'
+                        : st.bull_ratio < 0.40 ? 'bearisch'
+                        : 'neutral';
+          const cellHtml = '<td>StockTwits Sentiment</td>'
+            + '<td style="color:' + stCol + ';font-weight:700">'
+            + stPct + '% ' + stLabel
+            + ' <span style="color:var(--txt-dim);font-weight:400">('
+            + st.n_total + ' Nachrichten)</span></td>';
+          if (stRow) {{
+            stRow.innerHTML = cellHtml;
+          }} else {{
+            stRow = document.createElement('tr');
+            stRow.className = 'detail-st-row';
+            stRow.innerHTML = cellHtml;
+            detailTbl.appendChild(stRow);
+          }}
+        }} else if (stRow) {{
+          stRow.remove();   // Daten verschwunden → Zeile auch
+        }}
+      }}
 
       // KI-Signal-Block im Neuigkeiten-Dropdown
       const block = card.querySelector('.ki-signal-block');
