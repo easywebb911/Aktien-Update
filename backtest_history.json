@@ -19610,6 +19610,23 @@
   },
   {
     "date": "25.04.2026",
+    "ticker": "CVNA",
+    "score": 14.89,
+    "entry_price": 0.0,
+    "entry_price_t1": null,
+    "short_float": 13.5,
+    "dtc": 4.9,
+    "rvol": 0.563,
+    "si_trend": "no_data",
+    "return_3d": null,
+    "return_5d": null,
+    "return_10d": null,
+    "return_3d_t1": null,
+    "return_5d_t1": null,
+    "return_10d_t1": null
+  },
+  {
+    "date": "25.04.2026",
     "ticker": "CWH",
     "score": 52.21,
     "entry_price": 7.48,
