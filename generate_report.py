@@ -3693,6 +3693,74 @@ def generate_html_v1(stocks: list[dict], report_date: str, _ctx: dict | None = N
           Belastbare Live-Statistiken ab Juli 2026 (60+ Tage Daily-Daten).
         </p>
       </div>
+      <div class="info-box info-box--full">
+        <h4>Farbcodierung der Kennzahlen</h4>
+        <div class="color-legend">
+          <div>
+            <span class="cl-name">Short Float</span>
+            <div class="color-bar">
+              <div class="cb-seg" style="background:#ef4444">&lt;15 %</div>
+              <div class="cb-seg" style="background:#f59e0b">15–29 %</div>
+              <div class="cb-seg" style="background:#22c55e">≥ 30 %</div>
+            </div>
+            <p class="cl-desc">Grün bedeutet hohen Leerverkaufsdruck — je mehr Aktien leerverkauft sind, desto stärker der potenzielle Squeeze.</p>
+          </div>
+          <div>
+            <span class="cl-name">Days to Cover</span>
+            <div class="color-bar">
+              <div class="cb-seg" style="background:#ef4444">&lt;3 d</div>
+              <div class="cb-seg" style="background:#f59e0b">3–7 d</div>
+              <div class="cb-seg" style="background:#22c55e">≥ 8 d</div>
+            </div>
+            <p class="cl-desc">Grün bedeutet, dass Leerverkäufer viele Tage brauchen würden, um ihre Positionen zu schließen — das erhöht den Druck bei steigendem Kurs.</p>
+          </div>
+          <div>
+            <span class="cl-name">Rel. Volumen</span>
+            <div class="color-bar">
+              <div class="cb-seg" style="background:#ef4444">&lt;1,5×</div>
+              <div class="cb-seg" style="background:#f59e0b">1,5–2,9×</div>
+              <div class="cb-seg" style="background:#22c55e">≥ 3×</div>
+            </div>
+            <p class="cl-desc">Grün bedeutet ungewöhnlich hohes Handelsvolumen — ein Zeichen für aktiven Kaufdruck, der einen Squeeze auslösen kann.</p>
+          </div>
+          <div>
+            <span class="cl-name">Kursmomentum</span>
+            <div class="color-bar">
+              <div class="cb-seg" style="background:#ef4444">&lt;0 %</div>
+              <div class="cb-seg" style="background:#f59e0b">0–8 %</div>
+              <div class="cb-seg" style="background:#22c55e">≥ +8 %</div>
+            </div>
+            <p class="cl-desc">Grün bedeutet, dass der Kurs bereits steigt — Leerverkäufer geraten damit unter Druck, ihre Positionen schnell zu schließen.</p>
+          </div>
+          <div>
+            <span class="cl-name">Float-Größe</span>
+            <div class="color-bar">
+              <div class="cb-seg" style="background:#ef4444">&gt;50 Mio.</div>
+              <div class="cb-seg" style="background:#f59e0b">30–50 Mio.</div>
+              <div class="cb-seg" style="background:#22c55e">&lt;30 Mio.</div>
+            </div>
+            <p class="cl-desc">Grün bedeutet einen Streubesitz unter 30 Mio. Aktien — wenige handelbare Aktien verstärken den Squeeze-Effekt bei steigendem Kaufdruck erheblich.</p>
+          </div>
+          <div>
+            <span class="cl-name">SI-Trend (3M)</span>
+            <div class="color-bar">
+              <div class="cb-seg" style="background:#ef4444">Fallend ≤−10 %</div>
+              <div class="cb-seg" style="background:#f59e0b">Seitwärts</div>
+              <div class="cb-seg" style="background:#22c55e">Steigend ≥+10 %</div>
+            </div>
+            <p class="cl-desc">Grün bedeutet dass Leerverkäufer ihre Positionen in den letzten 2,5 Wochen ausgebaut haben — der Druck auf einen möglichen Squeeze wächst.</p>
+          </div>
+          <div>
+            <span class="cl-name">Impl. Volatilität (IV)</span>
+            <div class="color-bar">
+              <div class="cb-seg" style="background:#ef4444">&lt;50 %</div>
+              <div class="cb-seg" style="background:#f59e0b">50–100 %</div>
+              <div class="cb-seg" style="background:#22c55e">&gt;100 %</div>
+            </div>
+            <p class="cl-desc">Hohe implizite Volatilität (IV &gt; 100 %) signalisiert dass der Markt eine extreme Kursbewegung erwartet — ein typisches Zeichen für erhöhtes Squeeze-Potential.</p>
+          </div>
+        </div>
+      </div>
     </div>
   </details>
 
