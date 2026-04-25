@@ -187,7 +187,27 @@ MOM_ORANGE = -5.0   # Kursmomentum -5…+5 % → orange, <-5 → rot
 # ── FINRA-Trend-Bonus / Kombinationsbonus ────────────────────────────────────
 FINRA_BONUS_MAX          = 5    # max. Bonus bei steigender FINRA-Short-Vol
 FINRA_ACCELERATION_BONUS = 7    # erhöhter Bonus bei Beschleunigung
-COMBO_BONUS              = 5    # Synergie-Bonus ≥ 3 von 4 Faktoren stark
+COMBO_BONUS              = 5    # Synergie-Bonus ≥ 3 von 4 Faktoren stark (generate_report.score)
+
+# ── KI-Agent Perfect-Storm Multiplikator ─────────────────────────────────────
+# Gestaffelter Score-Multiplikator wenn mehrere Trigger-Typen gleichzeitig
+# aktiv sind (RVOL ≥ 2× · |chg| ≥ 3 % · News-Score ≥ 10 · Earnings ≤ 7 d).
+# Belohnt synchrones Ausschlagen mehrerer Signale exponentiell statt linear.
+COMBO_MULT_2     = 1.10   # 2/4 Trigger
+COMBO_MULT_3     = 1.20   # 3/4 Trigger
+COMBO_MULT_4     = 1.35   # 4/4 — Perfect Storm
+COMBO_RVOL_MIN   = 2.0
+COMBO_CHG_MIN    = 3.0
+COMBO_NEWS_MIN   = 10
+
+# ── StockTwits Sentiment (öffentliche Read-API) ──────────────────────────────
+# https://api.stocktwits.com/api/2/streams/symbol/{SYM}.json
+# Bei Rate-Limit (200 req/h pro IP) oder HTTP-Fehler → stiller 0-Pkt-Fallback.
+STOCKTWITS_ENABLED      = True
+STOCKTWITS_TIMEOUT      = 5    # Sekunden
+STOCKTWITS_BULL_STRONG  = 15   # Bullish-Ratio > 0.70 + Volume > 10/h
+STOCKTWITS_BULL_WEAK    = 8    # Bullish-Ratio > 0.60
+STOCKTWITS_BEAR_MALUS   = 5    # Bearish-Ratio > 0.70 → -Pkt
 
 # ── FINRA-Trend-Konfiguration ────────────────────────────────────────────────
 # Stabilisiert 2026-04: 12 Handelstage statt 6, 6 Mindest-Datenpunkte

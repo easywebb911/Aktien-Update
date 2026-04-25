@@ -840,6 +840,69 @@ def fetch_finra_ssr(tickers: list[str]) -> dict[str, float]:
     return empty
 
 
+# ── Datenquelle 11: StockTwits Sentiment (öffentliche Read-API) ──────────────
+
+def fetch_stocktwits_sentiment(ticker: str) -> dict:
+    """Liest die letzten Messages aus https://api.stocktwits.com/api/2/streams/symbol/.
+
+    Rückgabe-Dict::
+        {"bull_ratio": 0..1 | None,   # bull / (bull + bear); None wenn keine Daten
+         "msg_per_h":  int,            # Messages innerhalb der letzten Stunde
+         "n_total":    int,            # Anzahl bewerteter Messages
+         "n_bull":     int,
+         "n_bear":     int}
+
+    Bei HTTP-Fehler, Rate-Limit (429) oder Timeout → leeres Dict
+    (``{"bull_ratio": None, "msg_per_h": 0, ...}``). Niemals Raise.
+    """
+    if not STOCKTWITS_ENABLED or not ticker:
+        return {"bull_ratio": None, "msg_per_h": 0, "n_total": 0,
+                "n_bull": 0, "n_bear": 0}
+    sym = ticker.split(".")[0].upper()
+    url = f"https://api.stocktwits.com/api/2/streams/symbol/{sym}.json"
+    try:
+        resp = requests.get(url, headers=HTTP_HEADERS, timeout=STOCKTWITS_TIMEOUT)
+        if resp.status_code != 200:
+            log.debug("StockTwits %s HTTP %d", ticker, resp.status_code)
+            return {"bull_ratio": None, "msg_per_h": 0, "n_total": 0,
+                    "n_bull": 0, "n_bear": 0}
+        data = resp.json()
+    except (requests.RequestException, ValueError) as exc:
+        log.debug("StockTwits %s fetch failed: %s", ticker, exc)
+        return {"bull_ratio": None, "msg_per_h": 0, "n_total": 0,
+                "n_bull": 0, "n_bear": 0}
+
+    messages = (data.get("messages") or [])[:30]
+    n_bull = n_bear = 0
+    msg_per_h = 0
+    one_hour_ago = datetime.now(timezone.utc) - timedelta(hours=1)
+    for m in messages:
+        # Sentiment auswerten (bull/bear; None wenn Verfasser keinen Tag setzt)
+        sent = ((m.get("entities") or {}).get("sentiment") or {}).get("basic")
+        if not sent:
+            sent = (m.get("sentiment") or {}).get("basic") if isinstance(
+                m.get("sentiment"), dict) else None
+        if sent == "Bullish":
+            n_bull += 1
+        elif sent == "Bearish":
+            n_bear += 1
+        # Nachrichten-Volumen-Indikator: Messages innerhalb der letzten Stunde
+        try:
+            ts = datetime.fromisoformat(
+                str(m.get("created_at", "")).replace("Z", "+00:00"))
+            if ts.tzinfo is None:
+                ts = ts.replace(tzinfo=timezone.utc)
+            if ts >= one_hour_ago:
+                msg_per_h += 1
+        except (ValueError, TypeError):
+            continue
+
+    n_total = n_bull + n_bear
+    bull_ratio = (n_bull / n_total) if n_total > 0 else None
+    return {"bull_ratio": bull_ratio, "msg_per_h": msg_per_h,
+            "n_total": n_total, "n_bull": n_bull, "n_bear": n_bear}
+
+
 # ── Datenquelle 10: SEC Form 4 ────────────────────────────────────────────────
 
 def fetch_sec_form4(ticker: str) -> tuple[bool, str]:
@@ -960,6 +1023,7 @@ def compute_signal(
     finra_ssr_ratio: float = 0.0,
     has_form4: bool = False,
     form4_title: str = "",
+    stocktwits: dict | None = None,
 ) -> tuple[int, list[str], int]:
     score   = 0
     drivers = []
@@ -1147,11 +1211,55 @@ def compute_signal(
     else:
         confidence = base_conf
 
-    total = min(score, 100)
+    # ── StockTwits Sentiment-Beitrag ─────────────────────────────────────────
+    st_pts = 0
+    if stocktwits and stocktwits.get("n_total", 0) >= 3:
+        bull = stocktwits.get("bull_ratio")
+        msgh = stocktwits.get("msg_per_h", 0)
+        if bull is not None:
+            if bull > 0.70 and msgh > 10:
+                st_pts = STOCKTWITS_BULL_STRONG
+            elif bull > 0.60:
+                st_pts = STOCKTWITS_BULL_WEAK
+            elif (1 - bull) > 0.70:
+                st_pts = -STOCKTWITS_BEAR_MALUS
+        if st_pts != 0:
+            score += st_pts
+            sign = "+" if st_pts > 0 else ""
+            drivers.append(
+                f"StockTwits {round((bull or 0) * 100)}% bull "
+                f"({stocktwits.get('n_total', 0)} msgs, {msgh}/h) {sign}{st_pts}"
+            )
+            if st_pts > 0:
+                sig_news = True
+            print(f"{ticker} StockTwits: {round((bull or 0) * 100)}% bullish, "
+                  f"{msgh} Nachrichten/h → {sign}{st_pts} Pkt", flush=True)
+
+    # ── Perfect-Storm Multiplikator: gestaffelter Score-Boost wenn mehrere
+    # Trigger gleichzeitig aktiv sind (RVOL/Kurs/News/Earnings) ──────────────
+    active_triggers = sum([
+        rvol >= COMBO_RVOL_MIN,
+        abs(chg) >= COMBO_CHG_MIN,
+        news_pts >= COMBO_NEWS_MIN,
+        earnings_days is not None and earnings_days <= 7,
+    ])
+    if active_triggers >= 4:
+        score = score * COMBO_MULT_4
+        drivers.append(f"⚡ Perfect Storm: {active_triggers}/4 Trigger aktiv")
+        print(f"{ticker} Perfect-Storm ×{COMBO_MULT_4}: 4/4 Trigger", flush=True)
+    elif active_triggers >= 3:
+        score = score * COMBO_MULT_3
+        drivers.append(f"{active_triggers}/4 Trigger")
+        print(f"{ticker} Combo ×{COMBO_MULT_3}: 3/4 Trigger", flush=True)
+    elif active_triggers >= 2:
+        score = score * COMBO_MULT_2
+        print(f"{ticker} Combo ×{COMBO_MULT_2}: 2/4 Trigger (silent)", flush=True)
+
+    total = min(int(round(score)), 100)
     print(
         f"{ticker}: Kurs={chg:.1f}% ({kurs_pts}Pkt), RVOL={rvol:.1f}× ({vol_pts}Pkt), "
         f"News={news_pts}Pkt, Earnings={earn_pts}Pkt, OpenInsider={insider_pts}Pkt, "
-        f"FINRA_SSR={ssr_pts}Pkt, SEC={sec_pts}Pkt = {total}Pkt",
+        f"FINRA_SSR={ssr_pts}Pkt, SEC={sec_pts}Pkt, StockTwits={st_pts}Pkt = {total}Pkt",
         flush=True,
     )
     print(f"{ticker} Konfidenz: {confidence}% ({n_types}/{MAX_SIGNAL_TYPES} Signaltypen aktiv)",
@@ -1484,11 +1592,15 @@ def main() -> None:
             except Exception as exc:
                 log.debug("FDA-Datum Parse %s: %s", ticker, exc)
 
+        # StockTwits Sentiment (öffentliche Read-API, fail-soft)
+        stocktwits_data = fetch_stocktwits_sentiment(ticker)
+
         score, drivers, confidence = compute_signal(
             ticker, yfd, news, reddit, has_8k, sec_title,
             earnings_days, fda_days,
             insider=insider, finra_ssr_ratio=finra_ssr_ratio,
             has_form4=has_form4, form4_title=form4_title,
+            stocktwits=stocktwits_data,
         )
         n_active_types = sum([
             any(d.startswith("Kurs") for d in drivers),
