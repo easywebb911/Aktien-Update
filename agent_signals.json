@@ -1,10 +1,10 @@
 {
-  "updated": "2026-04-25T14:23:57.743878+02:00",
+  "updated": "2026-04-25T15:29:49.851458+02:00",
   "run_info": {
-    "tickers_checked": 10,
-    "signals_active": 0,
+    "tickers_checked": 12,
+    "signals_active": 1,
     "alerts_sent": 0,
-    "elapsed_s": 38.4,
+    "elapsed_s": 43.3,
     "market_phase": "Geschlossen"
   },
   "signals": {
@@ -47,10 +47,23 @@
       "insider_buy": false,
       "stocktwits": null
     },
+    "GRPN": {
+      "score": 8,
+      "confidence": 17,
+      "drivers": "Earnings in 12d",
+      "price": 14.67,
+      "chg_pct": 0.0,
+      "rvol": 0.0,
+      "earnings": "in 12 Tagen (07.05.2026)",
+      "fda_date": null,
+      "upcoming_event": null,
+      "insider_buy": false,
+      "stocktwits": null
+    },
     "ANAB": {
-      "score": 16,
-      "confidence": 33,
-      "drivers": "News-KI 8/30: Positive legal and corporate developments lack catalyst strength for short-squeeze; biotech sector context is generic wi + Earnings in 10d",
+      "score": 8,
+      "confidence": 17,
+      "drivers": "Earnings in 10d",
       "price": 58.88,
       "chg_pct": 0.0,
       "rvol": 0.0,
@@ -60,11 +73,11 @@
       "insider_buy": false,
       "stocktwits": null
     },
-    "INBX": {
-      "score": 16,
-      "confidence": 33,
-      "drivers": "News-KI 8/30: Positive clinical data supports stock momentum but lacks short squeeze indicators like high short interest, low float, o + Earnings in 18d",
-      "price": 129.06,
+    "PRLD": {
+      "score": 8,
+      "confidence": 17,
+      "drivers": "Earnings in 18d",
+      "price": 4.7,
       "chg_pct": 0.0,
       "rvol": 0.0,
       "earnings": "in 18 Tagen (13.05.2026)",
@@ -73,11 +86,11 @@
       "insider_buy": false,
       "stocktwits": null
     },
-    "PRLD": {
+    "INBX": {
       "score": 16,
       "confidence": 33,
-      "drivers": "News-KI 8/30: Positive clinical and leadership developments, but no short-squeeze catalysts like high short interest, gamma exposure,  + Earnings in 18d",
-      "price": 4.7,
+      "drivers": "News-KI 8/30: Positive clinical data supports stock price but lacks short squeeze indicators like high short interest, low float, or f + Earnings in 18d",
+      "price": 129.06,
       "chg_pct": 0.0,
       "rvol": 0.0,
       "earnings": "in 18 Tagen (13.05.2026)",
@@ -125,16 +138,29 @@
       "insider_buy": false,
       "stocktwits": null
     },
-    "PD": {
-      "score": 16,
+    "AMC": {
+      "score": 38,
       "confidence": 33,
-      "drivers": "News-KI 8/30: Shares plummeting indicates potential short interest, but AI ecosystem support and decade-long ownership recommendation  + Earnings in 33d",
-      "price": 7.13,
+      "drivers": "News: squeeze, short squeeze + Earnings in 11d",
+      "price": 1.64,
       "chg_pct": 0.0,
       "rvol": 0.0,
-      "earnings": "in 33 Tagen (28.05.2026)",
+      "earnings": "in 11 Tagen (06.05.2026)",
       "fda_date": null,
       "upcoming_event": null,
+      "insider_buy": false,
+      "stocktwits": null
+    },
+    "CVNA": {
+      "score": 15,
+      "confidence": 17,
+      "drivers": "Earnings in 4 Tagen (29.04.2026) + Earnings in 4d",
+      "price": 409.08,
+      "chg_pct": 0.0,
+      "rvol": 0.0,
+      "earnings": "in 4 Tagen (29.04.2026)",
+      "fda_date": null,
+      "upcoming_event": "Earnings in 4 Tagen (29.04.2026)",
       "insider_buy": false,
       "stocktwits": null
     }
