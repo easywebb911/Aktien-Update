@@ -1,10 +1,10 @@
 {
-  "updated": "2026-04-25T23:56:30.084818+02:00",
+  "updated": "2026-04-26T01:58:51.083759+02:00",
   "run_info": {
     "tickers_checked": 12,
-    "signals_active": 2,
+    "signals_active": 1,
     "alerts_sent": 0,
-    "elapsed_s": 42.0,
+    "elapsed_s": 42.7,
     "market_phase": "Geschlossen"
   },
   "signals": {
@@ -61,9 +61,9 @@
       "stocktwits": null
     },
     "ANAB": {
-      "score": 16,
-      "confidence": 33,
-      "drivers": "News-KI 8/30: Positive legal and operational developments, but lacks short-squeeze characteristics like high short interest, low float + Earnings in 10d",
+      "score": 8,
+      "confidence": 17,
+      "drivers": "Earnings in 10d",
       "price": 58.88,
       "chg_pct": 0.0,
       "rvol": 0.0,
@@ -139,9 +139,9 @@
       "stocktwits": null
     },
     "AMC": {
-      "score": 38,
+      "score": 16,
       "confidence": 33,
-      "drivers": "News: short squeeze, squeeze + Earnings in 11d",
+      "drivers": "News-KI 8/30: Negative sentiment with bearish headlines suggesting collapse and selling pressure indicates weak short-squeeze potentia + Earnings in 11d",
       "price": 1.64,
       "chg_pct": 0.0,
       "rvol": 0.0,
