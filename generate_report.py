@@ -3650,187 +3650,48 @@ def generate_html_v1(stocks: list[dict], report_date: str, _ctx: dict | None = N
     <summary>Score-Methodik &amp; Filterkriterien</summary>
     <div class="info-inner">
       <div class="info-box">
-        <h4>Score (0–100)</h4>
-        <ul>
-          <li><strong>32 Pkt Short Float</strong> – Anteil leerverkaufter Aktien (Sättigung 50 %; ≥ 50 % = volle Punkte); je höher, desto stärker der Squeeze-Druck</li>
-          <li><strong>23 Pkt Days to Cover</strong> – Tage zum vollständigen Eindecken (Sättigung 10 Tage; ≥ 10 d = volle Punkte); hohe Werte erhöhen Kapitulationsrisiko</li>
-          <li><strong>23 Pkt Rel. Volumen</strong> – Heutiges vs. 20-Tage-Durchschnitt (Sättigung 3×; ≥ 3× = volle Punkte); Spitzen signalisieren Kaufinteresse</li>
-          <li><strong>14 Pkt Kursmomentum</strong> – Kursveränderung relativ zum S&amp;P 500 (adjusted = Aktie − SPX; Sättigung +8 %; ≥ +8 % rel. Stärke = volle Punkte); nur positive Werte zählen</li>
-          <li><strong>8 Pkt Float-Größe</strong> – kleiner Float verstärkt den Squeeze-Effekt; unter 30 Mio. Aktien = voll, über 50 Mio. = 0 Pkt</li>
-          <li><strong>+ bis 7 Pkt FINRA SI-Trend Bonus</strong> – steigend ≥ +10 % → 5 Pkt · mit Beschleunigung → 7 Pkt · seitwärts → 2,5 Pkt · fallend → 0 Pkt</li>
-          <li><strong>+ 5 Pkt Kombinationssignal-Bonus</strong> – wenn ≥ 3 von 4 Faktoren gleichzeitig stark: Short Float ≥ 30 %, DTC ≥ 5d, Rel. Volumen ≥ 2×, SI-Trend steigend</li>
-          <li><strong>± 3 Pkt Score-Trend-Bonus/-Malus</strong> – +3 Pkt bei 3 Tagen kontinuierlichem Score-Anstieg; −3 Pkt bei 3 Tagen kontinuierlichem Rückgang (min 0)</li>
-        </ul>
-        <h4 style="margin-top:12px">Sub-Scores (nur Anzeige)</h4>
-        <ul>
-          <li><strong>Struktur (0–40)</strong> – Short Float + Days to Cover + SI-Trend + Float-Größe (normalisiert von 68 auf 40)</li>
-          <li><strong>Katalysator (0–35)</strong> – Earnings ≤ 7 T = 15 Pkt · ≤ 14 T = 8 Pkt · Insider-Käufe = 10 Pkt · News-Keywords = 5–10 Pkt</li>
-          <li><strong>Short-Druck Bonus: +{SHORT_PRESSURE_BONUS} Pkt</strong> auf Katalysator bei SSR ≥ {SHORT_PRESSURE_SSR_MIN * 100:.0f} % + Kursrückgang {SHORT_PRESSURE_CHG_MIN * 100:.0f} % bis {SHORT_PRESSURE_CHG_MAX * 100:.0f} % + SF ≥ {SHORT_PRESSURE_SF_MIN * 100:.0f} % + RVOL ≥ {SHORT_PRESSURE_RVOL_MIN:.1f}×</li>
-          <li><strong>Timing (0–25)</strong> – Relatives Volumen + Kursmomentum (normalisiert von 37 auf 25)</li>
-          <li>Farbcodierung: &lt; 50 % grau · 50–75 % orange · &gt; 75 % grün</li>
-          <li><em>Hinweis:</em> Sub-Scores sind unabhängige Anzeigemetriken zur Qualitätsbewertung — der 0–100-Gesamt-Score bleibt unverändert.</li>
-        </ul>
-        <h4 style="margin-top:12px">⚡ Agent-Boost-Multiplikator</h4>
-        <ul>
-          <li>Aktive KI-Agent-Signale (jünger als {AGENT_BOOST_MAX_AGE_H} h) erhöhen den Score multiplikativ — Cap bei 100.</li>
-          <li><strong>Agent-Score 25–49 → ×1,05</strong> (+5 %) · <strong>50–74 → ×1,10</strong> (+10 %) · <strong>≥ 75 → ×1,15</strong> (+15 %)</li>
-          <li>Der Boost wird <em>nach</em> der Score-Glättung angewendet — die gespeicherte Historie bleibt unverfälscht (keine Selbstverstärkung).</li>
-          <li>In der Detail-Tabelle sichtbar als „⚡ Agent-Boost: +X Pkt".</li>
-        </ul>
-        <h4 style="margin-top:12px">⚡ Gamma Squeeze Detection</h4>
-        <ul>
-          <li><strong>Formel:</strong> <code>gamma_pressure = atm_call_oi × Kurs / Ø-Vol 20T</code> — summiert Call-Open-Interest im Bereich <strong>ATM ±{GAMMA_ATM_RANGE * 100:.0f} %</strong> über die nächsten <strong>{GAMMA_NUM_EXPIRIES} Verfallstermine</strong> ≤ {GAMMA_MAX_DAYS_TO_EXPIRY} Tage.</li>
-          <li><strong>≥ {GAMMA_POSSIBLE_THRESHOLD:.1f} → möglich</strong> (gelbes Badge, Katalysator-Bonus +{GAMMA_BONUS_POSSIBLE} Pkt)</li>
-          <li><strong>≥ {GAMMA_LIKELY_THRESHOLD:.1f} → wahrscheinlich</strong> (dunkelgelbes Badge, Katalysator-Bonus +{GAMMA_BONUS_LIKELY} Pkt)</li>
-          <li>Market-Maker müssen bei steigendem Kurs Aktien kaufen um Delta-neutral zu bleiben → self-reinforcing Kaufdruck, besonders bei kurzer Restlaufzeit.</li>
-        </ul>
-        <h4 style="margin-top:12px">IBKR Stock Borrow Rate</h4>
-        <ul>
-          <li><strong>Quelle:</strong> öffentliche IBKR-Tabelle (Web-Scraping, einmal pro Run gecacht). Bei Cloudflare-Block oder Timeout → kein Hinweis (kein Absturz).</li>
-          <li><strong>Farbcodierung:</strong> &lt; {IBKR_BORROW_LOW:.0f} %/Jahr grau (günstig) · {IBKR_BORROW_LOW:.0f}–{IBKR_BORROW_HIGH:.0f} % orange · &gt; {IBKR_BORROW_HIGH:.0f} % rot (sehr teuer für Leerverkäufer).</li>
-          <li><strong>Katalysator-Bonus:</strong> &gt; {IBKR_BORROW_HIGH:.0f} %/Jahr → +{IBKR_BORROW_BONUS_HOT} Pkt · &gt; 100 %/Jahr → +{IBKR_BORROW_BONUS_EXTREME} Pkt</li>
-          <li>Hohe Borrow Rates signalisieren Knappheit an leihbaren Aktien — klassischer Squeeze-Vorläufer, Short-Eindeck-Zwang bei Margin-Calls erhöht.</li>
-        </ul>
-        <h4 style="margin-top:12px">Backtesting-Status</h4>
-        <ul>
-          <li><strong>1.046 Datenpunkte vorhanden</strong> (1.006 bootstrap + 40 daily).</li>
-          <li><strong>Bootstrap-Scores sind vereinfachte Schätzungen</strong> ohne DTC, FINRA SI-Trend und Kombinations-Bonus — nicht direkt mit Live-Scores vergleichbar.</li>
-          <li><strong>Belastbare Trefferquoten folgen nach 60+ Tagen Live-Daten</strong> (ca. Juli 2026).</li>
-          <li><strong>Der Score ist ein relativer Filter</strong> — höherer Score = mehr strukturelles Squeeze-Potential.</li>
-          <li><strong>Für Handlungsentscheidungen immer Katalysator-Sub-Score, aktuelle Nachrichten und Stop-Loss berücksichtigen.</strong></li>
-        </ul>
-      </div>
-      <div class="info-box">
-        <h4>⚠️ Pump &amp; Dump Filter</h4>
-        <p style="font-size:.82rem;color:var(--txt-sub);margin:0 0 8px">Zwei Badges warnen vor überkauften oder erschöpften Setups — verhindert Einstieg am Top.</p>
-        <ul>
-          <li><strong>⚠️ Orange-Warnung</strong> – Kurs bereits +{PD_GAIN_5D_THRESHOLD * 100:.0f} % in 5 Tagen UND heutiges Rel. Volumen &lt; gestriges → Kaufdruck lässt nach, Setup möglicherweise erschöpft.</li>
-          <li><strong>🔴 Rote Warnung</strong> – RSI &gt; {PD_RSI_THRESHOLD:.0f} UND Kurs bereits +{PD_GAIN_5D_RSI_THRESHOLD * 100:.0f} % in 5 Tagen → überkauft, Einstieg riskant.</li>
-          <li><strong>📉 Short-Druck erkannt</strong> – SSR ≥ {SHORT_PRESSURE_SSR_MIN * 100:.0f} % + Kurs {SHORT_PRESSURE_CHG_MIN * 100:.0f} bis {SHORT_PRESSURE_CHG_MAX * 100:.0f} % + SF ≥ {SHORT_PRESSURE_SF_MIN * 100:.0f} % + RVOL ≥ {SHORT_PRESSURE_RVOL_MIN:.1f}× → möglicher koordinierter Verkaufsdruck (Short Ladder Attack), klassisches Squeeze-Vorläufer-Signal.</li>
-          <li>Die Badges erscheinen direkt unter dem Ticker-Namen — zusätzlich als Warnhinweis in der KI-Analyse.</li>
-        </ul>
-        <h4 style="margin-top:12px">🎯 Risk/Reward in KI-Analyse</h4>
-        <ul>
-          <li>Jede KI-Analyse schließt zwingend mit einem konkreten Risk/Reward-Framework ab:</li>
-          <li><strong>Möglicher Einstieg</strong> (aktueller Kurs) · <strong>Stop-Loss</strong> −{RISK_REWARD_STOP_PCT * 100:.0f} % · <strong>Profit-Target 1</strong> +{RISK_REWARD_TARGET1_PCT * 100:.0f} % · <strong>Profit-Target 2</strong> +{RISK_REWARD_TARGET2_PCT * 100:.0f} %</li>
-          <li>Konkrete Dollar-Beträge werden aus dem aktuellen Kurs berechnet — R/R-Ratio wird ausgewiesen (z.B. 1:1,3).</li>
-          <li>Der Chat-Assistent nennt bei jeder Einzelaktien-Empfehlung zwingend Stop-Loss + Profit-Target + R/R — ohne diese drei Angaben ist eine Handlungsempfehlung unvollständig.</li>
-        </ul>
-      </div>
-      <div class="info-box">
         <h4>Filterkriterien</h4>
-        <ul>
-          <li><strong>Marktkapitalisierung &lt; {MAX_MARKET_CAP_B:.0f} Mrd. USD</strong> – Small-Cap-Fokus; darüber ist zu viel Kapital nötig, um Leerverkäufer zum Eindecken zu zwingen</li>
-          <li><strong>Short Float &gt; 15 %</strong> – Mindest-Leerverkaufsquote (nur US)</li>
-          <li><strong>Kurs &gt; 1 USD</strong> – Ausschluss von Penny Stocks</li>
-          <li><strong>Relatives Volumen ≥ 1,5×</strong> – Mindestaktivität (Standardfilter)</li>
-          <li><strong>Automatisches Screening:</strong> nur 🇺🇸 USA — internationale Märkte sind deaktiviert (<code>INTL_SCREENING_ENABLED=False</code>)</li>
-          <li><strong>Manuell hinzugefügte internationale Ticker:</strong> kein Short-Float-Filter, Score nicht gedeckelt — via persönlicher Watchlist hinzufügbar</li>
-          <li><strong>📌 Manuell beobachtete Ticker</strong> (persönliche Watchlist) <strong>umgehen den Cap-Filter</strong> und werden immer als Karte angezeigt — auch über {MAX_MARKET_CAP_B:.0f} Mrd. USD Marktkapitalisierung</li>
+        <ul class="info-compact">
+          <li>Marktkapitalisierung &lt; {MAX_MARKET_CAP_B:.0f} Mrd. USD — Small-Cap-Fokus</li>
+          <li>Short Float &gt; {MIN_SHORT_FLOAT:.0f} % — nur US</li>
+          <li>Kurs &gt; ${MIN_PRICE:.0f} USD · Relatives Volumen ≥ {MIN_REL_VOLUME:.1f}×</li>
+          <li>Nur 🇺🇸 US-Screening — internationale Ticker via 📌 Watchlist</li>
+          <li>Manuell hinzugefügte Ticker umgehen den Cap-Filter</li>
         </ul>
       </div>
       <div class="info-box">
-        <h4>Zusatz-Kennzahlen mit Score-Einfluss</h4>
-        <ul>
-          <li><strong>Put/Call-Ratio</strong> – Options-Sentiment aus Open Interest der nächsten Verfallstermine: niedrig = bullisch, hoch = bearisch.
-            <strong>Katalysator-Einfluss:</strong> P/C &lt; {PC_RATIO_BULL_THRESHOLD:.1f} → +{PC_RATIO_BULL_BONUS} Pkt (bullisches Options-Sentiment) · P/C &gt; {PC_RATIO_BEAR_THRESHOLD:.1f} → −{PC_RATIO_BEAR_MALUS} Pkt.</li>
-          <li><strong>Relative Stärke vs. Sektor-ETF</strong> – 20-Tage-Performance gegen den passenden Sektor-Index (Technology → QQQ, Biotech/Healthcare → XBI, Energy → XLE, Financial → XLF, Consumer → XRT, sonst → SPY).
-            <strong>Timing-Einfluss:</strong> RS &gt; +{RS_SECTOR_THRESHOLD:.0f} % → +{RS_SECTOR_BULL_BONUS} Pkt · RS &lt; −{RS_SECTOR_THRESHOLD:.0f} % → −{RS_SECTOR_BEAR_MALUS} Pkt.</li>
-          <li><strong>Historischer Squeeze-Check</strong> – ⚠️-Badge wenn in den letzten 90 Tagen bereits ein Kursanstieg ≥ 50 % in 5 Handelstagen bei Volumen ≥ 3× Ø stattgefunden hat.
-            <strong>Gesamt-Score-Malus:</strong> Squeeze ≤ 30 Tage → −{SQUEEZE_HIST_MALUS_30D} Pkt · Squeeze 31–90 Tage → −{SQUEEZE_HIST_MALUS_90D} Pkt (erschöpftes Potenzial).</li>
-          <li><strong>Earnings-Surprise</strong> – letztes EPS-Ergebnis vs. Konsens: „✅ Beat +X %" oder „❌ Miss −X %". Ein Beat bei gleichzeitig hohem Short Float erhöht den Squeeze-Druck (Leerverkäufer werden zum Eindecken gezwungen). <em>Informativ, ohne direkten Score-Einfluss.</em></li>
+        <h4>Score-Formel</h4>
+        <ul class="info-compact">
+          <li><strong>Struktur (0–40):</strong> Short Float (32) + Days to Cover (23) + Float-Größe (8) + SI-Trend (5) — normiert</li>
+          <li><strong>Katalysator (0–35):</strong> Earnings + News-KI + P/C-Ratio + Short-Druck + Gamma Squeeze + Insider</li>
+          <li><strong>Timing (0–25):</strong> Rel. Volumen (23) + Momentum (14) + RS vs. Sektor-ETF (3) — normiert</li>
+          <li><strong>Boni:</strong> Kombinations-Bonus +5 · Score-Trend ±3 · Agent-Boost ×1.05–×1.15</li>
+          <li><strong>Malus:</strong> Historischer Squeeze −3 / −5 Pkt (90 / 30 Tage)</li>
+          <li><em>Sub-Scores sind unabhängige Qualitätsindikatoren — nicht die Zerlegung des Gesamt-Scores.</em></li>
         </ul>
       </div>
       <div class="info-box">
         <h4>Datenquellen</h4>
-        <ul>
-          <li><strong>Yahoo Finance Screener</strong> (5 Screener, nur US) – <code>most_shorted_stocks</code>, <code>small_cap_gainers</code>, <code>aggressive_small_caps</code>, <code>undervalued_growth_stocks</code>, <code>day_gainers</code></li>
-          <li><strong>Finviz Screener</strong> (zusätzliche Quelle) – Filter: Short Float &gt; 20 %, Kurs &gt; 1 $, Rel. Volumen &gt; 1,5×, Small-/Mid-Cap; sortiert nach Short Float absteigend</li>
-          <li><strong>FINRA CNMS/FNSQ/FNQC</strong> – offizielles Short Interest; SI-Trend aus {SI_TREND_PERIODS} Handelstagen (≈ 2,5 Wochen, gleitender 3-Tage-Durchschnitt der Short-Volumen)</li>
-          <li><strong>FINRA Daily Short Sale Volume</strong> – tägliche Short-Sale-Ratio als Proxy für Short-Interest-Bewegungen zwischen den offiziellen Meldeterminen</li>
-          <li><strong>yfinance</strong> – Short Float, Days to Cover, Volumen, Kursdaten, RSI, MA50/200, Optionsdaten, Earnings-History</li>
-          <li><strong>Stockanalysis.com</strong> – wöchentliche Short-Interest-Daten; überschreibt den yfinance-Wert bei US-Top-10 (aktueller als yfinance-Monats-Snapshot)</li>
-          <li><strong>EarningsWhispers RSS</strong> – präzise Earnings-Termine inkl. Uhrzeit + EPS-Konsens; Override vor yfinance.Calendar</li>
-          <li><strong>Sektor-ETFs</strong> – QQQ (Tech), XBI (Biotech/Healthcare), XLE (Energy), XLF (Financial), XRT (Consumer), SPY (Rest) für Sektor-relative Stärke</li>
-          <li><strong>Fails-to-Deliver:</strong> nicht verfügbar (IP-Beschränkung GitHub Actions)</li>
+        <ul class="info-compact">
+          <li>Yahoo Finance (5 US-Screener) · Finviz Screener · FINRA Short Interest ({SI_TREND_PERIODS} Handelstage, 3 CDN-Feeds)</li>
+          <li>yfinance · Stockanalysis.com (wöchentl. SI) · EarningsWhispers RSS · Sektor-ETFs (QQQ/XBI/XLE/XLF/XRT/SPY)</li>
+          <li>KI-Agent: Claude Haiku · News-Sentiment · Insider · FDA RSS · FINRA Daily SSR</li>
         </ul>
       </div>
       <div class="info-box">
         <h4>⚡ KI-Agent</h4>
-        <p style="font-size:.82rem;color:var(--txt-sub);margin:0 0 8px">Der KI-Agent überwacht <strong>alle 2 Stunden</strong> die Top-10-Kandidaten auf Squeeze-Trigger (zuverlässigere GitHub-Actions-Queue als der frühere 30-Min-Takt).</p>
-        <ul>
-          <li><strong>Datenquellen:</strong> Yahoo Finance News · Google News · Finviz RSS · MarketBeat · Unusual Whales · OpenInsider · FINRA Daily SSR · Earnings-Kalender · FDA Press Release RSS</li>
-          <li><strong>Signal-Schwellen:</strong> Kursanstieg ≥ 2 % · Volumen ≥ 1,5× · News-Keywords · Earnings ≤ 30 Tage</li>
-          <li><strong>Alert-Schwelle:</strong> Score ≥ 25 Punkte</li>
+        <ul class="info-compact">
+          <li>Läuft alle 2 Stunden · Analysiert News, Earnings, Insider, FINRA SSR, Gamma</li>
+          <li>Signal aktiv bei Score ≥ {ALERT_THRESHOLD_REGULAR} · Agent-Boost: ×1.05 / ×1.10 / ×1.15 bei KI-Score ≥ 25 / 50 / 75 (≤ {AGENT_BOOST_MAX_AGE_H} h alt)</li>
         </ul>
       </div>
       <div class="info-box info-box--full">
-        <h4>Farbcodierung der Kennzahlen</h4>
-        <div class="color-legend">
-          <div>
-            <span class="cl-name">Short Float</span>
-            <div class="color-bar">
-              <div class="cb-seg" style="background:#ef4444">&lt;15 %</div>
-              <div class="cb-seg" style="background:#f59e0b">15–29 %</div>
-              <div class="cb-seg" style="background:#22c55e">≥ 30 %</div>
-            </div>
-            <p class="cl-desc">Grün bedeutet hohen Leerverkaufsdruck — je mehr Aktien leerverkauft sind, desto stärker der potenzielle Squeeze.</p>
-          </div>
-          <div>
-            <span class="cl-name">Days to Cover</span>
-            <div class="color-bar">
-              <div class="cb-seg" style="background:#ef4444">&lt;3 d</div>
-              <div class="cb-seg" style="background:#f59e0b">3–7 d</div>
-              <div class="cb-seg" style="background:#22c55e">≥ 8 d</div>
-            </div>
-            <p class="cl-desc">Grün bedeutet, dass Leerverkäufer viele Tage brauchen würden, um ihre Positionen zu schließen — das erhöht den Druck bei steigendem Kurs.</p>
-          </div>
-          <div>
-            <span class="cl-name">Rel. Volumen</span>
-            <div class="color-bar">
-              <div class="cb-seg" style="background:#ef4444">&lt;1,5×</div>
-              <div class="cb-seg" style="background:#f59e0b">1,5–2,9×</div>
-              <div class="cb-seg" style="background:#22c55e">≥ 3×</div>
-            </div>
-            <p class="cl-desc">Grün bedeutet ungewöhnlich hohes Handelsvolumen — ein Zeichen für aktiven Kaufdruck, der einen Squeeze auslösen kann.</p>
-          </div>
-          <div>
-            <span class="cl-name">Kursmomentum</span>
-            <div class="color-bar">
-              <div class="cb-seg" style="background:#ef4444">&lt;0 %</div>
-              <div class="cb-seg" style="background:#f59e0b">0–8 %</div>
-              <div class="cb-seg" style="background:#22c55e">≥ +8 %</div>
-            </div>
-            <p class="cl-desc">Grün bedeutet, dass der Kurs bereits steigt — Leerverkäufer geraten damit unter Druck, ihre Positionen schnell zu schließen.</p>
-          </div>
-          <div>
-            <span class="cl-name">Float-Größe</span>
-            <div class="color-bar">
-              <div class="cb-seg" style="background:#ef4444">&gt;50 Mio.</div>
-              <div class="cb-seg" style="background:#f59e0b">30–50 Mio.</div>
-              <div class="cb-seg" style="background:#22c55e">&lt;30 Mio.</div>
-            </div>
-            <p class="cl-desc">Grün bedeutet einen Streubesitz unter 30 Mio. Aktien — wenige handelbare Aktien verstärken den Squeeze-Effekt bei steigendem Kaufdruck erheblich.</p>
-          </div>
-          <div>
-            <span class="cl-name">SI-Trend (3M)</span>
-            <div class="color-bar">
-              <div class="cb-seg" style="background:#ef4444">Fallend ≤−10 %</div>
-              <div class="cb-seg" style="background:#f59e0b">Seitwärts</div>
-              <div class="cb-seg" style="background:#22c55e">Steigend ≥+10 %</div>
-            </div>
-            <p class="cl-desc">Grün bedeutet dass Leerverkäufer ihre Positionen in den letzten 2,5 Wochen ausgebaut haben — der Druck auf einen möglichen Squeeze wächst.</p>
-          </div>
-          <div>
-            <span class="cl-name">Impl. Volatilität (IV)</span>
-            <div class="color-bar">
-              <div class="cb-seg" style="background:#ef4444">&lt;50 %</div>
-              <div class="cb-seg" style="background:#f59e0b">50–100 %</div>
-              <div class="cb-seg" style="background:#22c55e">&gt;100 %</div>
-            </div>
-            <p class="cl-desc">Hohe implizite Volatilität (IV &gt; 100 %) signalisiert dass der Markt eine extreme Kursbewegung erwartet — ein typisches Zeichen für erhöhtes Squeeze-Potential.</p>
-          </div>
-        </div>
+        <h4>📊 Backtesting-Status</h4>
+        <p style="font-size:.82rem;color:var(--txt-sub);margin:0;line-height:1.55">
+          1.046 Datenpunkte (bootstrap + daily) — Details im Backtesting-Panel.
+          Bootstrap-Scores vereinfacht (SF + RVOL + Momentum) — nicht 1:1 mit Live-Scores vergleichbar.
+          Belastbare Live-Statistiken ab Juli 2026 (60+ Tage Daily-Daten).
+        </p>
       </div>
     </div>
   </details>
