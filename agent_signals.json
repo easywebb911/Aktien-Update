@@ -1,10 +1,10 @@
 {
-  "updated": "2026-04-25T15:29:49.851458+02:00",
+  "updated": "2026-04-25T16:31:37.798723+02:00",
   "run_info": {
     "tickers_checked": 12,
     "signals_active": 1,
     "alerts_sent": 0,
-    "elapsed_s": 43.3,
+    "elapsed_s": 42.8,
     "market_phase": "Geschlossen"
   },
   "signals": {
@@ -89,7 +89,7 @@
     "INBX": {
       "score": 16,
       "confidence": 33,
-      "drivers": "News-KI 8/30: Positive clinical data supports stock price but lacks short squeeze indicators like high short interest, low float, or f + Earnings in 18d",
+      "drivers": "News-KI 8/30: Biotech clinical update shows positive trial data but lacks short-squeeze indicators like high short interest, low float + Earnings in 18d",
       "price": 129.06,
       "chg_pct": 0.0,
       "rvol": 0.0,
@@ -100,9 +100,9 @@
       "stocktwits": null
     },
     "CWH": {
-      "score": 15,
-      "confidence": 17,
-      "drivers": "Earnings in 4 Tagen (29.04.2026) + Earnings in 4d",
+      "score": 30,
+      "confidence": 33,
+      "drivers": "Earnings in 4 Tagen (29.04.2026) + News-KI 12/30: Mixed signals with one analyst bullish stance insufficient to overcome upcoming earnings risk and lack of short interest + Earnings in 4d",
       "price": 7.48,
       "chg_pct": 0.0,
       "rvol": 0.0,
@@ -141,7 +141,7 @@
     "AMC": {
       "score": 38,
       "confidence": 33,
-      "drivers": "News: squeeze, short squeeze + Earnings in 11d",
+      "drivers": "News: short squeeze, squeeze + Earnings in 11d",
       "price": 1.64,
       "chg_pct": 0.0,
       "rvol": 0.0,
