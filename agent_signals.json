@@ -1,10 +1,10 @@
 {
-  "updated": "2026-04-25T12:31:33.315758+02:00",
+  "updated": "2026-04-25T13:34:42.161576+02:00",
   "run_info": {
     "tickers_checked": 10,
     "signals_active": 2,
     "alerts_sent": 0,
-    "elapsed_s": 37.4,
+    "elapsed_s": 40.7,
     "market_phase": "Geschlossen"
   },
   "signals": {
@@ -21,9 +21,9 @@
       "insider_buy": false
     },
     "HRTX": {
-      "score": 38,
+      "score": 41,
       "confidence": 33,
-      "drivers": "News-KI 5/30: Positive earnings coverage lacks short squeeze indicators like high short interest, low float, or forced covering cataly + Earnings in 10d + FINRA Short-Vol 74%",
+      "drivers": "News-KI 8/30: Positive earnings coverage lacks indicators of high short interest, significant squeeze catalysts, or unusual technical  + Earnings in 10d + FINRA Short-Vol 74%",
       "price": 1.19,
       "chg_pct": 0.0,
       "rvol": 0.0,
@@ -45,9 +45,9 @@
       "insider_buy": false
     },
     "ANAB": {
-      "score": 16,
-      "confidence": 33,
-      "drivers": "News-KI 8/30: Positive legal/operational developments but typical biotech news without significant short interest indicators, squeeze  + Earnings in 10d",
+      "score": 8,
+      "confidence": 17,
+      "drivers": "Earnings in 10d",
       "price": 58.88,
       "chg_pct": 0.0,
       "rvol": 0.0,
@@ -56,11 +56,11 @@
       "upcoming_event": null,
       "insider_buy": false
     },
-    "INBX": {
+    "PRLD": {
       "score": 16,
       "confidence": 33,
-      "drivers": "News-KI 8/30: Positive clinical data supports fundamental valuation but lacks short squeeze indicators like high short interest, low f + Earnings in 18d",
-      "price": 129.06,
+      "drivers": "News-KI 8/30: Positive clinical and management news but standard biotech developments with no squeeze indicators like short interest s + Earnings in 18d",
+      "price": 4.7,
       "chg_pct": 0.0,
       "rvol": 0.0,
       "earnings": "in 18 Tagen (13.05.2026)",
@@ -68,11 +68,11 @@
       "upcoming_event": null,
       "insider_buy": false
     },
-    "PRLD": {
-      "score": 8,
-      "confidence": 17,
-      "drivers": "Earnings in 18d",
-      "price": 4.7,
+    "INBX": {
+      "score": 38,
+      "confidence": 33,
+      "drivers": "News: catalyst, revenue beat + Earnings in 18d",
+      "price": 129.06,
       "chg_pct": 0.0,
       "rvol": 0.0,
       "earnings": "in 18 Tagen (13.05.2026)",
@@ -93,9 +93,9 @@
       "insider_buy": false
     },
     "PD": {
-      "score": 38,
+      "score": 20,
       "confidence": 33,
-      "drivers": "News: analyst upgrade, activist investor + Earnings in 33d",
+      "drivers": "News-KI 12/30: Mixed signals: Negative price action and unclear positioning weaken squeeze potential despite AI integration support. + Earnings in 33d",
       "price": 7.13,
       "chg_pct": 0.0,
       "rvol": 0.0,
