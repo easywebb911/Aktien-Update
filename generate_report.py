@@ -6572,15 +6572,18 @@ def main():
     # pflegt — unabhängig vom Screener-Ergebnis — und als "manual_personal"
     # markiert. So überleben sie später jeden Rang-/Volumen-Filter.
     personal_tickers = _load_personal_watchlist()
-    n_personal_added = 0
+    n_personal_added  = 0
+    n_personal_marked = 0
     for pt in personal_tickers:
-        if pt in existing_tickers:
-            # Ticker bereits im Pool → existenten Eintrag als manuell markieren
-            for c in candidates:
-                if c["ticker"] == pt:
-                    c["manual_personal"] = True
-                    break
-        else:
+        # Robust: auch bei (theoretischen) Duplikaten in `candidates` jeden
+        # Match flaggen — nicht nach erstem Treffer abbrechen.
+        matched = False
+        for c in candidates:
+            if c["ticker"] == pt:
+                c["manual_personal"] = True
+                matched = True
+                n_personal_marked += 1
+        if not matched:
             candidates.append({
                 "ticker":         pt,
                 "company_name":   pt,
@@ -6598,8 +6601,9 @@ def main():
             existing_tickers.add(pt)
             n_personal_added += 1
     if personal_tickers:
-        log.info("Persönliche Watchlist: %d Ticker (%d neu im Pool)",
-                 len(personal_tickers), n_personal_added)
+        log.info("Persönliche Watchlist: %d Ticker — %d neu im Pool, "
+                 "%d existierende mit manual_personal=True markiert",
+                 len(personal_tickers), n_personal_added, n_personal_marked)
 
     log.info("Combined candidate pool after watchlist: %d tickers", len(candidates))
     print(f"Step 1 abgeschlossen in {time.time()-_t1:.1f}s", flush=True)
@@ -7136,11 +7140,25 @@ def main():
     # watchlist_cards: vollständige Karten-Daten für ALLE persönlichen
     # Watchlist-Ticker (auch nicht-Top-10), damit der Browser im expandierten
     # Watchlist-Zustand echte Werte statt „—"-Platzhalter zeigen kann.
+    # Primär: alle in enriched markierten manual_personal-Einträge.
+    # Fallback: Ticker aus watchlist_personal.json per Namen suchen — falls
+    # das manual_personal-Flag durch Pool-Filter verloren ging, sind die Daten
+    # trotzdem in enriched, wir matchen sie via Ticker-Symbol.
     _wl_card_data = {
         c["ticker"]: _wl_card_payload(c)
         for c in enriched
         if c.get("manual_personal")
     }
+    _personal_tickers = set(_load_personal_watchlist())
+    _fallback_added = 0
+    for c in enriched:
+        if c["ticker"] in _personal_tickers and c["ticker"] not in _wl_card_data:
+            _wl_card_data[c["ticker"]] = _wl_card_payload(c)
+            _fallback_added += 1
+    if _fallback_added:
+        log.info("Watchlist-Karten: %d Ticker per manual_personal-Flag, "
+                 "%d zusätzlich per Namens-Fallback gefunden",
+                 len(_wl_card_data) - _fallback_added, _fallback_added)
     _write_app_data_json(watchlist_cards=_wl_card_data)
     print(f"Step 4 abgeschlossen in {time.time()-_t4:.1f}s", flush=True)
 
