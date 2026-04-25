@@ -3583,7 +3583,6 @@ def generate_html_v1(stocks: list[dict], report_date: str, _ctx: dict | None = N
       <button id="btn-backtest" class="btn btn-bt" onclick="toggleBacktesting()">Backtesting</button>
     </div>
     <div class="hdr-icons">
-      <button class="fs-btn print-btn" onclick="window.print()" aria-label="Seite drucken" title="Drucken">🖨</button>
       <button class="fs-btn" id="fs-down" onclick="changeFontSize(-1)" aria-label="Schrift kleiner">A−</button>
       <button class="fs-btn" id="fs-up"   onclick="changeFontSize(1)"  aria-label="Schrift größer">A+</button>
       <button class="fs-btn" onclick="toggleSettings()" id="settings-btn" aria-label="Einstellungen" title="Einstellungen">&#9881;</button>
