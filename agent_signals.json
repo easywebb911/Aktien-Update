@@ -1,10 +1,10 @@
 {
-  "updated": "2026-04-25T08:08:09.952987+02:00",
+  "updated": "2026-04-25T12:31:33.315758+02:00",
   "run_info": {
     "tickers_checked": 10,
-    "signals_active": 3,
+    "signals_active": 2,
     "alerts_sent": 0,
-    "elapsed_s": 33.2,
+    "elapsed_s": 37.4,
     "market_phase": "Geschlossen"
   },
   "signals": {
@@ -23,7 +23,7 @@
     "HRTX": {
       "score": 38,
       "confidence": 33,
-      "drivers": "News-KI 5/30: Earnings-focused headlines lack short-squeeze indicators like high short interest, low float, or unusual volume spikes. + Earnings in 10d + FINRA Short-Vol 74%",
+      "drivers": "News-KI 5/30: Positive earnings coverage lacks short squeeze indicators like high short interest, low float, or forced covering cataly + Earnings in 10d + FINRA Short-Vol 74%",
       "price": 1.19,
       "chg_pct": 0.0,
       "rvol": 0.0,
@@ -44,22 +44,10 @@
       "upcoming_event": null,
       "insider_buy": false
     },
-    "PRLD": {
-      "score": 8,
-      "confidence": 17,
-      "drivers": "Earnings in 18d",
-      "price": 4.7,
-      "chg_pct": 0.0,
-      "rvol": 0.0,
-      "earnings": "in 18 Tagen (13.05.2026)",
-      "fda_date": null,
-      "upcoming_event": null,
-      "insider_buy": false
-    },
     "ANAB": {
-      "score": 8,
-      "confidence": 17,
-      "drivers": "Earnings in 10d",
+      "score": 16,
+      "confidence": 33,
+      "drivers": "News-KI 8/30: Positive legal/operational developments but typical biotech news without significant short interest indicators, squeeze  + Earnings in 10d",
       "price": 58.88,
       "chg_pct": 0.0,
       "rvol": 0.0,
@@ -68,23 +56,23 @@
       "upcoming_event": null,
       "insider_buy": false
     },
-    "PENG": {
-      "score": 0,
-      "confidence": 0,
-      "drivers": "",
-      "price": 30.69,
+    "INBX": {
+      "score": 16,
+      "confidence": 33,
+      "drivers": "News-KI 8/30: Positive clinical data supports fundamental valuation but lacks short squeeze indicators like high short interest, low f + Earnings in 18d",
+      "price": 129.06,
       "chg_pct": 0.0,
       "rvol": 0.0,
-      "earnings": "in 67 Tagen (01.07.2026)",
+      "earnings": "in 18 Tagen (13.05.2026)",
       "fda_date": null,
       "upcoming_event": null,
       "insider_buy": false
     },
-    "INBX": {
-      "score": 38,
-      "confidence": 33,
-      "drivers": "News: revenue beat, catalyst + Earnings in 18d",
-      "price": 129.06,
+    "PRLD": {
+      "score": 8,
+      "confidence": 17,
+      "drivers": "Earnings in 18d",
+      "price": 4.7,
       "chg_pct": 0.0,
       "rvol": 0.0,
       "earnings": "in 18 Tagen (13.05.2026)",
@@ -104,6 +92,18 @@
       "upcoming_event": "Earnings in 4 Tagen (29.04.2026)",
       "insider_buy": false
     },
+    "PD": {
+      "score": 38,
+      "confidence": 33,
+      "drivers": "News: analyst upgrade, activist investor + Earnings in 33d",
+      "price": 7.13,
+      "chg_pct": 0.0,
+      "rvol": 0.0,
+      "earnings": "in 33 Tagen (28.05.2026)",
+      "fda_date": null,
+      "upcoming_event": null,
+      "insider_buy": false
+    },
     "IIPR": {
       "score": 8,
       "confidence": 17,
@@ -116,14 +116,14 @@
       "upcoming_event": null,
       "insider_buy": false
     },
-    "PD": {
-      "score": 38,
-      "confidence": 33,
-      "drivers": "News: activist investor, analyst upgrade + Earnings in 33d",
-      "price": 7.13,
+    "PENG": {
+      "score": 0,
+      "confidence": 0,
+      "drivers": "",
+      "price": 30.69,
       "chg_pct": 0.0,
       "rvol": 0.0,
-      "earnings": "in 33 Tagen (28.05.2026)",
+      "earnings": "in 67 Tagen (01.07.2026)",
       "fda_date": null,
       "upcoming_event": null,
       "insider_buy": false
