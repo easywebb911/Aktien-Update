@@ -6638,6 +6638,21 @@ def main():
     remaining_slots  = max(POOL_MAX - len(pool), 0)
     pool.extend(tier4[:remaining_slots])
 
+    # Persönliche Watchlist: garantiert im Pool — überlebt POOL_MAX-Cap und
+    # alle Tier-Filter, identisch zum manual_personal-Bypass in Step 2.
+    # Sonst werden Watchlist-Ticker mit niedrigem SF/Volumen still aus dem
+    # Pool gekippt und tauchen nie als Karte auf.
+    pool_ids = {id(c) for c in pool}
+    n_manual_added = 0
+    for c in candidates:
+        if c.get("manual_personal") and id(c) not in pool_ids:
+            pool.append(c)
+            pool_ids.add(id(c))
+            n_manual_added += 1
+    if n_manual_added:
+        log.info("Pool: +%d manual_personal-Ticker garantiert eingeschleust "
+                 "(POOL_MAX-Cap umgangen)", n_manual_added)
+
     # Enforce minimum
     if len(pool) < POOL_MIN:
         extras = [c for c in candidates if c not in pool]
