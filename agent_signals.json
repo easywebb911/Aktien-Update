@@ -1,21 +1,21 @@
 {
-  "updated": "2026-04-25T00:27:55.157198+02:00",
+  "updated": "2026-04-25T08:08:09.952987+02:00",
   "run_info": {
     "tickers_checked": 10,
-    "signals_active": 4,
+    "signals_active": 3,
     "alerts_sent": 0,
-    "elapsed_s": 38.7,
-    "market_phase": "After-Hours"
+    "elapsed_s": 33.2,
+    "market_phase": "Geschlossen"
   },
   "signals": {
     "INDI": {
       "score": 23,
       "confidence": 33,
-      "drivers": "News: catalyst + Earnings in 13d",
+      "drivers": "News: catalyst + Earnings in 12d",
       "price": 3.66,
       "chg_pct": 0.0,
       "rvol": 0.0,
-      "earnings": "in 13 Tagen (07.05.2026)",
+      "earnings": "in 12 Tagen (07.05.2026)",
       "fda_date": null,
       "upcoming_event": null,
       "insider_buy": false
@@ -23,11 +23,11 @@
     "HRTX": {
       "score": 38,
       "confidence": 33,
-      "drivers": "News-KI 5/30: Positive earnings news is bullish but lacks short squeeze indicators like high short interest, low float, or retail mome + Earnings in 11d + FINRA Short-Vol 74%",
+      "drivers": "News-KI 5/30: Earnings-focused headlines lack short-squeeze indicators like high short interest, low float, or unusual volume spikes. + Earnings in 10d + FINRA Short-Vol 74%",
       "price": 1.19,
       "chg_pct": 0.0,
       "rvol": 0.0,
-      "earnings": "in 11 Tagen (05.05.2026)",
+      "earnings": "in 10 Tagen (05.05.2026)",
       "fda_date": null,
       "upcoming_event": null,
       "insider_buy": false
@@ -47,11 +47,11 @@
     "PRLD": {
       "score": 8,
       "confidence": 17,
-      "drivers": "Earnings in 19d",
+      "drivers": "Earnings in 18d",
       "price": 4.7,
       "chg_pct": 0.0,
       "rvol": 0.0,
-      "earnings": "in 19 Tagen (13.05.2026)",
+      "earnings": "in 18 Tagen (13.05.2026)",
       "fda_date": null,
       "upcoming_event": null,
       "insider_buy": false
@@ -59,11 +59,11 @@
     "ANAB": {
       "score": 8,
       "confidence": 17,
-      "drivers": "Earnings in 11d",
+      "drivers": "Earnings in 10d",
       "price": 58.88,
       "chg_pct": 0.0,
       "rvol": 0.0,
-      "earnings": "in 11 Tagen (05.05.2026)",
+      "earnings": "in 10 Tagen (05.05.2026)",
       "fda_date": null,
       "upcoming_event": null,
       "insider_buy": false
@@ -75,7 +75,7 @@
       "price": 30.69,
       "chg_pct": 0.0,
       "rvol": 0.0,
-      "earnings": "in 68 Tagen (01.07.2026)",
+      "earnings": "in 67 Tagen (01.07.2026)",
       "fda_date": null,
       "upcoming_event": null,
       "insider_buy": false
@@ -83,11 +83,11 @@
     "INBX": {
       "score": 38,
       "confidence": 33,
-      "drivers": "News: revenue beat, catalyst + Earnings in 19d",
+      "drivers": "News: revenue beat, catalyst + Earnings in 18d",
       "price": 129.06,
       "chg_pct": 0.0,
       "rvol": 0.0,
-      "earnings": "in 19 Tagen (13.05.2026)",
+      "earnings": "in 18 Tagen (13.05.2026)",
       "fda_date": null,
       "upcoming_event": null,
       "insider_buy": false
@@ -95,35 +95,35 @@
     "CWH": {
       "score": 15,
       "confidence": 17,
-      "drivers": "Earnings in 5 Tagen (29.04.2026) + Earnings in 5d",
+      "drivers": "Earnings in 4 Tagen (29.04.2026) + Earnings in 4d",
       "price": 7.48,
       "chg_pct": 0.0,
       "rvol": 0.0,
-      "earnings": "in 5 Tagen (29.04.2026)",
+      "earnings": "in 4 Tagen (29.04.2026)",
       "fda_date": null,
-      "upcoming_event": "Earnings in 5 Tagen (29.04.2026)",
+      "upcoming_event": "Earnings in 4 Tagen (29.04.2026)",
       "insider_buy": false
     },
     "IIPR": {
       "score": 8,
       "confidence": 17,
-      "drivers": "Earnings in 10d",
+      "drivers": "Earnings in 9d",
       "price": 55.91,
       "chg_pct": 0.0,
       "rvol": 0.0,
-      "earnings": "in 10 Tagen (04.05.2026)",
+      "earnings": "in 9 Tagen (04.05.2026)",
       "fda_date": null,
       "upcoming_event": null,
       "insider_buy": false
     },
     "PD": {
-      "score": 20,
+      "score": 38,
       "confidence": 33,
-      "drivers": "News-KI 12/30: Negative price action with some AI tailwind, but no indicators of high short interest, low float, or catalyst for squeez + Earnings in 34d",
+      "drivers": "News: activist investor, analyst upgrade + Earnings in 33d",
       "price": 7.13,
       "chg_pct": 0.0,
       "rvol": 0.0,
-      "earnings": "in 34 Tagen (28.05.2026)",
+      "earnings": "in 33 Tagen (28.05.2026)",
       "fda_date": null,
       "upcoming_event": null,
       "insider_buy": false
