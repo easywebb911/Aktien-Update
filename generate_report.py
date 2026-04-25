@@ -6835,27 +6835,33 @@ def main():
             c["finra_data"] = {}
         c["sf_source"] = "Yahoo Finance"
 
-        # Hard filters (now with accurate data)
-        cap = c.get("yf_market_cap") or c.get("market_cap")
-        if cap and cap > MAX_MARKET_CAP:
-            log.info("    skip %s: cap %s > $10B", t, fmt_cap(cap))
-            continue
-
-        # Short-float filter: strict for US; relaxed for non-US (data rarely available)
-        is_us = c.get("market", "US") == "US"
-        has_sf_data = c["short_float"] > 0
-        if is_us and c["short_float"] < MIN_SHORT_FLOAT:
-            log.info("    skip %s: short_float %.1f%% < %.0f%%",
-                     t, c["short_float"], MIN_SHORT_FLOAT)
-            continue
-        if not is_us and not has_sf_data:
-            # Keep intl stock if volume signals activity despite missing short data
-            if c.get("rel_volume", 0) < 1.0:
-                log.info("    skip %s [%s]: no short data + low volume (%.1f×)",
-                         t, c.get("market"), c.get("rel_volume", 0))
+        # Hard filters — manual_personal-Ticker (persönliche Watchlist) sind
+        # vollständig befreit: kein Cap-Filter, kein Short-Float-Filter, kein
+        # RVOL-Filter. Der User hat sie explizit angefordert und sie sollen
+        # garantiert als Karte erscheinen, unabhängig von ihren Kennzahlen.
+        if c.get("manual_personal"):
+            log.info("    keep %s [manual_personal]: alle Filter umgangen", t)
+        else:
+            cap = c.get("yf_market_cap") or c.get("market_cap")
+            if cap and cap > MAX_MARKET_CAP:
+                log.info("    skip %s: cap %s > $10B", t, fmt_cap(cap))
                 continue
-            log.info("    keep %s [%s]: no short data but vol=%.1f× (intl)",
-                     t, c.get("market"), c.get("rel_volume", 0))
+
+            # Short-float filter: strict for US; relaxed for non-US (data rarely available)
+            is_us = c.get("market", "US") == "US"
+            has_sf_data = c["short_float"] > 0
+            if is_us and c["short_float"] < MIN_SHORT_FLOAT:
+                log.info("    skip %s: short_float %.1f%% < %.0f%%",
+                         t, c["short_float"], MIN_SHORT_FLOAT)
+                continue
+            if not is_us and not has_sf_data:
+                # Keep intl stock if volume signals activity despite missing short data
+                if c.get("rel_volume", 0) < 1.0:
+                    log.info("    skip %s [%s]: no short data + low volume (%.1f×)",
+                             t, c.get("market"), c.get("rel_volume", 0))
+                    continue
+                log.info("    keep %s [%s]: no short data but vol=%.1f× (intl)",
+                         t, c.get("market"), c.get("rel_volume", 0))
 
         c["score"] = score(c)
         if not math.isfinite(c["score"]):
