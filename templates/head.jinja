@@ -227,7 +227,13 @@ a{color:var(--accent);text-decoration:none}
 /* Alle Watchlist-Kompaktkacheln bekommen dunkelgrünen Hintergrund +
    hellgrünen Rand. Specificity 0,2,0 schlägt die basis .wl-card-Regel. */
 .wl-card.card-manual{background:rgba(20,83,45,0.35);border:1.5px solid rgba(74,222,128,0.6)}
-.wl-card--expanded{grid-column:1/-1}
+.wl-card--expanded{grid-column:1/-1;
+  /* Größe identisch zu einer Main-Card (.cards-grid minmax 340px,1fr).
+     Beansprucht eine ganze Grid-Reihe (für Layout-Reset), rendert sich aber
+     mit derselben max-width wie .card auf Desktop und linksbündig — sonst
+     würde die expandierte Watchlist-Karte auf großen Bildschirmen weit
+     breiter sein als eine normale Top-10-Karte. */
+  max-width:340px;width:100%;justify-self:start}
 /* Expandierte Watchlist-Karte — kompakte Header-Zeile verstecken,
    Details-Body ohne Border-Top (Expanded ist jetzt die „ganze Karte") */
 .wl-card--expanded > .wl-card-header{display:none}
