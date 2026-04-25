@@ -4901,12 +4901,20 @@ function _fmtGerman(d) {{
                              : sc >= 15 ? '🔴'
                              : '⚪';
       const topActive = Object.entries(signals)
-        .map(([t, s]) => ({{
-          t,
-          score: (s && s.score != null) ? +s.score : 0,
-          // Fix 3 — StockTwits-Marker: Bonus ≥ 8 → 📣 in Statuszeile
-          stMarker: (s && s.stocktwits && s.stocktwits.pts >= 8) ? ' 📣 StockTwits bullisch' : '',
-        }}))
+        .map(([t, s]) => {{
+          const r = (s && s.rvol != null) ? +s.rvol : 0;
+          const rvolMarker = r >= 5 ? ` 🚀 ${{r.toFixed(1)}}×`
+                           : r >= 3 ? ` ⚡ ${{r.toFixed(1)}}×`
+                           : '';
+          return {{
+            t,
+            score: (s && s.score != null) ? +s.score : 0,
+            // Fix 3 — StockTwits-Marker: Bonus ≥ 8 → 📣 in Statuszeile
+            stMarker: (s && s.stocktwits && s.stocktwits.pts >= 8) ? ' 📣 StockTwits bullisch' : '',
+            rvolMarker,
+            rvolEmoji: r >= 5 ? ' 🚀' : r >= 3 ? ' ⚡' : '',
+          }};
+        }})
         .filter(x => x.score > 0)
         .sort((a, b) => b.score - a.score)
         .slice(0, Math.max(nSignals, 0));
@@ -4915,11 +4923,11 @@ function _fmtGerman(d) {{
         signalPart = `${{nSignals}} Signale aktiv`;
       }} else if (nSignals === 1) {{
         const s = topActive[0];
-        signalPart = `1 Signal aktiv: ${{s.t}} ${{colorDot(s.score)}} ${{Math.round(s.score)}}/100${{s.stMarker}}`;
+        signalPart = `1 Signal aktiv: ${{s.t}} ${{colorDot(s.score)}} ${{Math.round(s.score)}}/100${{s.stMarker}}${{s.rvolMarker}}`;
       }} else {{
         const shown = topActive.slice(0, MAX_IN_BAR);
         const rest  = Math.max(0, nSignals - shown.length);
-        const list  = shown.map(s => `${{s.t}} ${{Math.round(s.score)}}${{s.stMarker ? ' 📣' : ''}}`).join(', ');
+        const list  = shown.map(s => `${{s.t}} ${{Math.round(s.score)}}${{s.stMarker ? ' 📣' : ''}}${{s.rvolEmoji}}`).join(', ');
         signalPart = `${{nSignals}} Signale aktiv: ${{list}}`
                    + (rest > 0 ? ` +${{rest}} weitere` : '');
       }}
@@ -4969,7 +4977,16 @@ function _fmtGerman(d) {{
         stTip = ` \u2014 StockTwits: ${{stPct}}% bullisch \u00b7 ${{stMs}} Nachrichten/h`
               + (stP !== 0 ? ` \u00b7 ${{stSign}}${{stP}} Pkt` : '');
       }}
-      tip.textContent = `KI-Agent Score: ${{score}}/100 \u2014 ${{driver}} \u2014 ${{phaseTip}} \u2014 ${{lastScanTip}}${{stTip}}`;
+      // RVOL-Suffix \u2014 immer anzeigen falls Daten vorhanden, Marker nur \u2265 3\u00d7
+      let rvTip = '';
+      if (sig && sig.rvol != null && +sig.rvol > 0) {{
+        const rv = +sig.rvol;
+        const rvMark = rv >= 5 ? ' \u00b7 \ud83d\ude80 Massives Volumen'
+                     : rv >= 3 ? ' \u00b7 \u26a1 Extremes Volumen'
+                     : '';
+        rvTip = ` \u2014 RVOL: ${{rv.toFixed(1)}}\u00d7${{rvMark}}`;
+      }}
+      tip.textContent = `KI-Agent Score: ${{score}}/100 \u2014 ${{driver}} \u2014 ${{phaseTip}} \u2014 ${{lastScanTip}}${{stTip}}${{rvTip}}`;
       dot.appendChild(tip);
 
       // position:fixed → Koordinaten via getBoundingClientRect berechnen,
@@ -5026,6 +5043,31 @@ function _fmtGerman(d) {{
           }}
         }} else if (stRow) {{
           stRow.remove();   // Daten verschwunden → Zeile auch
+        }}
+
+        // RVOL-Zeile aus agent_signals.json — gleiches Inject-Muster wie StockTwits.
+        let rvRow = detailTbl.querySelector('.detail-rvol-row');
+        const rv  = (sig && sig.rvol != null) ? +sig.rvol : null;
+        if (rv != null && rv > 0) {{
+          const rvCol = rv >= 3   ? '#22c55e'
+                      : rv >= 1.5 ? '#f59e0b'
+                      :             '#94a3b8';
+          const rvMark = rv >= 5 ? ' 🚀'
+                       : rv >= 3 ? ' ⚡'
+                       : '';
+          const rvCell = '<td>Rel. Volumen (KI-Agent)</td>'
+            + '<td style="color:' + rvCol + ';font-weight:700">'
+            + rv.toFixed(1) + '×' + rvMark + '</td>';
+          if (rvRow) {{
+            rvRow.innerHTML = rvCell;
+          }} else {{
+            rvRow = document.createElement('tr');
+            rvRow.className = 'detail-rvol-row';
+            rvRow.innerHTML = rvCell;
+            detailTbl.appendChild(rvRow);
+          }}
+        }} else if (rvRow) {{
+          rvRow.remove();
         }}
       }}
 
