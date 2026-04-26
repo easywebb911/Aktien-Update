@@ -5017,7 +5017,7 @@ function _fmtGerman(d) {{
       let rvTip = '';
       if (sig && sig.rvol != null && +sig.rvol > 0) {{
         const rv = +sig.rvol;
-        const rvMark = rv >= 5 ? ' \u00b7 \ud83d\ude80 Massives Volumen'
+        const rvMark = rv >= 5 ? ' \u00b7 🚀 Massives Volumen'
                      : rv >= 3 ? ' \u00b7 \u26a1 Extremes Volumen'
                      : '';
         rvTip = ` \u2014 RVOL: ${{rv.toFixed(1)}}\u00d7${{rvMark}}`;
