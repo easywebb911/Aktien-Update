@@ -1,10 +1,10 @@
 {
-  "updated": "2026-04-26T15:42:44.558143+02:00",
+  "updated": "2026-04-26T16:34:01.731917+02:00",
   "run_info": {
     "tickers_checked": 12,
-    "signals_active": 1,
+    "signals_active": 3,
     "alerts_sent": 0,
-    "elapsed_s": 42.7,
+    "elapsed_s": 44.4,
     "market_phase": "Geschlossen"
   },
   "signals": {
@@ -22,9 +22,9 @@
       "stocktwits": null
     },
     "HRTX": {
-      "score": 33,
-      "confidence": 17,
-      "drivers": "Earnings in 9d + FINRA Short-Vol 74%",
+      "score": 41,
+      "confidence": 33,
+      "drivers": "News-KI 8/30: Positive earnings outlook lacks short squeeze indicators (no short interest data, debt concerns, or catalyst timing ment + Earnings in 9d + FINRA Short-Vol 74%",
       "price": 1.19,
       "chg_pct": 0.0,
       "rvol": 0.0,
@@ -87,9 +87,9 @@
       "stocktwits": null
     },
     "INBX": {
-      "score": 16,
+      "score": 38,
       "confidence": 33,
-      "drivers": "News-KI 8/30: Positive clinical trial data drives stock appreciation, but lacks the extreme short interest, catalyst intensity, and re + Earnings in 17d",
+      "drivers": "News: catalyst, revenue beat + Earnings in 17d",
       "price": 129.06,
       "chg_pct": 0.0,
       "rvol": 0.0,
@@ -141,7 +141,7 @@
     "AMC": {
       "score": 38,
       "confidence": 33,
-      "drivers": "News: short squeeze, squeeze + Earnings in 10d",
+      "drivers": "News: squeeze, short squeeze + Earnings in 10d",
       "price": 1.64,
       "chg_pct": 0.0,
       "rvol": 0.0,
@@ -152,9 +152,9 @@
       "stocktwits": null
     },
     "CVNA": {
-      "score": 25,
-      "confidence": 17,
-      "drivers": "Earnings in 3 Tagen (29.04.2026) + Earnings in 3d",
+      "score": 33,
+      "confidence": 33,
+      "drivers": "Earnings in 3 Tagen (29.04.2026) + News-KI 8/30: Negative sentiment with underperformance relative to market and fund selling activity suggest weak institutional support + Earnings in 3d",
       "price": 409.08,
       "chg_pct": 0.0,
       "rvol": 0.0,
