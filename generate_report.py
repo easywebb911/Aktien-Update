@@ -3048,6 +3048,12 @@ def _card(i: int, s: dict) -> str:
         _pd_badges_html(s) + _short_pressure_badge_html(s) + _gamma_badge_html(s)
     )
     agent_boost_row    = _agent_boost_row_html(s) + _borrow_rate_row_html(s)  # Feature 2 + IBKR
+    if agent_boost_row:
+        # Score-Modifikator visuell vom ersten Sub-Header (Stammdaten) absetzen.
+        agent_boost_row += (
+            '<tr aria-hidden="true"><td colspan="2" '
+            'style="height:8px;padding:0;border:0"></td></tr>'
+        )
 
     # Chart links
     yf_chart_url  = f"https://finance.yahoo.com/chart/{s['ticker']}"
@@ -3184,6 +3190,7 @@ def _card(i: int, s: dict) -> str:
         {_float_row}
         {sector_detail_row}
         <tr><td>52W-Hoch / -Tief</td><td>${s.get('52w_high') or 0:.2f} / ${s.get('52w_low') or 0:.2f}</td></tr>
+        {_inst_row}
         <tr class="detail-group-header"><td colspan="2">Short-Daten</td></tr>
         {edgar_row}
         <tr><td>SI-Trend (3M)</td><td>{trend_html}</td></tr>
@@ -3197,7 +3204,6 @@ def _card(i: int, s: dict) -> str:
         {momentum_rows}
         <tr class="detail-group-header"><td colspan="2">Katalysatoren</td></tr>
         {catalyst_rows}
-        {_inst_row}
         <tr><td>Risiko-Detail</td><td style="color:{risk_col}">{risk_txt}</td></tr>
       </table>
     </div>
@@ -3529,6 +3535,12 @@ def _build_card_ctx(i: int, s: dict) -> dict:
         _pd_badges_html(s) + _short_pressure_badge_html(s) + _gamma_badge_html(s)
     )
     agent_boost_row    = _agent_boost_row_html(s) + _borrow_rate_row_html(s)  # Agent-Boost + IBKR
+    if agent_boost_row:
+        # Score-Modifikator visuell vom ersten Sub-Header (Stammdaten) absetzen.
+        agent_boost_row += (
+            '<tr aria-hidden="true"><td colspan="2" '
+            'style="height:8px;padding:0;border:0"></td></tr>'
+        )
 
     # ── Chart / external links ───────────────────────────────────────────
     yf_chart_url = f"https://finance.yahoo.com/chart/{ticker}"

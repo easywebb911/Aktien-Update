@@ -68,6 +68,7 @@
         {{ float_row }}
         {{ sector_detail_row }}
         <tr><td>52W-Hoch / -Tief</td><td>${{ hi_str }} / ${{ lo_str }}</td></tr>
+        {{ inst_row }}
         <tr class="detail-group-header"><td colspan="2">Short-Daten</td></tr>
         {{ edgar_row }}
         <tr><td>SI-Trend (3M)</td><td>{{ trend_html }}</td></tr>
@@ -81,7 +82,6 @@
         {{ momentum_rows }}
         <tr class="detail-group-header"><td colspan="2">Katalysatoren</td></tr>
         {{ catalyst_rows }}
-        {{ inst_row }}
         <tr><td>Risiko-Detail</td><td style="color:{{ risk_col }}">{{ risk_txt }}</td></tr>
       </table>
     </div>
