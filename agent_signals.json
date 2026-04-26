@@ -1,10 +1,10 @@
 {
-  "updated": "2026-04-26T16:34:01.731917+02:00",
+  "updated": "2026-04-26T18:05:48.913586+02:00",
   "run_info": {
     "tickers_checked": 12,
-    "signals_active": 3,
+    "signals_active": 1,
     "alerts_sent": 0,
-    "elapsed_s": 44.4,
+    "elapsed_s": 41.1,
     "market_phase": "Geschlossen"
   },
   "signals": {
@@ -19,12 +19,14 @@
       "fda_date": null,
       "upcoming_event": null,
       "insider_buy": false,
-      "stocktwits": null
+      "stocktwits": null,
+      "combo_mult": 1.0,
+      "active_triggers": 1
     },
     "HRTX": {
-      "score": 41,
-      "confidence": 33,
-      "drivers": "News-KI 8/30: Positive earnings outlook lacks short squeeze indicators (no short interest data, debt concerns, or catalyst timing ment + Earnings in 9d + FINRA Short-Vol 74%",
+      "score": 33,
+      "confidence": 17,
+      "drivers": "Earnings in 9d + FINRA Short-Vol 74%",
       "price": 1.19,
       "chg_pct": 0.0,
       "rvol": 0.0,
@@ -32,7 +34,9 @@
       "fda_date": null,
       "upcoming_event": null,
       "insider_buy": false,
-      "stocktwits": null
+      "stocktwits": null,
+      "combo_mult": 1.0,
+      "active_triggers": 0
     },
     "WKC": {
       "score": 0,
@@ -45,7 +49,9 @@
       "fda_date": null,
       "upcoming_event": null,
       "insider_buy": false,
-      "stocktwits": null
+      "stocktwits": null,
+      "combo_mult": 1.0,
+      "active_triggers": 0
     },
     "GRPN": {
       "score": 8,
@@ -58,12 +64,14 @@
       "fda_date": null,
       "upcoming_event": null,
       "insider_buy": false,
-      "stocktwits": null
+      "stocktwits": null,
+      "combo_mult": 1.0,
+      "active_triggers": 0
     },
     "ANAB": {
-      "score": 8,
-      "confidence": 17,
-      "drivers": "Earnings in 9d",
+      "score": 16,
+      "confidence": 33,
+      "drivers": "News-KI 8/30: Positive legal and corporate developments, but lack of short interest data, volume catalysts, and momentum indicators ne + Earnings in 9d",
       "price": 58.88,
       "chg_pct": 0.0,
       "rvol": 0.0,
@@ -71,25 +79,14 @@
       "fda_date": null,
       "upcoming_event": null,
       "insider_buy": false,
-      "stocktwits": null
-    },
-    "PRLD": {
-      "score": 8,
-      "confidence": 17,
-      "drivers": "Earnings in 17d",
-      "price": 4.7,
-      "chg_pct": 0.0,
-      "rvol": 0.0,
-      "earnings": "in 17 Tagen (13.05.2026)",
-      "fda_date": null,
-      "upcoming_event": null,
-      "insider_buy": false,
-      "stocktwits": null
+      "stocktwits": null,
+      "combo_mult": 1.0,
+      "active_triggers": 0
     },
     "INBX": {
-      "score": 38,
+      "score": 16,
       "confidence": 33,
-      "drivers": "News: catalyst, revenue beat + Earnings in 17d",
+      "drivers": "News-KI 8/30: Biotech clinical data updates generate interest but lack the high short interest, extreme valuation metrics, and catalys + Earnings in 17d",
       "price": 129.06,
       "chg_pct": 0.0,
       "rvol": 0.0,
@@ -97,7 +94,9 @@
       "fda_date": null,
       "upcoming_event": null,
       "insider_buy": false,
-      "stocktwits": null
+      "stocktwits": null,
+      "combo_mult": 1.0,
+      "active_triggers": 0
     },
     "CWH": {
       "score": 25,
@@ -110,7 +109,24 @@
       "fda_date": null,
       "upcoming_event": "Earnings in 3 Tagen (29.04.2026)",
       "insider_buy": false,
-      "stocktwits": null
+      "stocktwits": null,
+      "combo_mult": 1.0,
+      "active_triggers": 1
+    },
+    "PRLD": {
+      "score": 8,
+      "confidence": 17,
+      "drivers": "Earnings in 17d",
+      "price": 4.7,
+      "chg_pct": 0.0,
+      "rvol": 0.0,
+      "earnings": "in 17 Tagen (13.05.2026)",
+      "fda_date": null,
+      "upcoming_event": null,
+      "insider_buy": false,
+      "stocktwits": null,
+      "combo_mult": 1.0,
+      "active_triggers": 0
     },
     "IIPR": {
       "score": 8,
@@ -123,7 +139,9 @@
       "fda_date": null,
       "upcoming_event": null,
       "insider_buy": false,
-      "stocktwits": null
+      "stocktwits": null,
+      "combo_mult": 1.0,
+      "active_triggers": 0
     },
     "PENG": {
       "score": 0,
@@ -136,25 +154,14 @@
       "fda_date": null,
       "upcoming_event": null,
       "insider_buy": false,
-      "stocktwits": null
-    },
-    "AMC": {
-      "score": 38,
-      "confidence": 33,
-      "drivers": "News: squeeze, short squeeze + Earnings in 10d",
-      "price": 1.64,
-      "chg_pct": 0.0,
-      "rvol": 0.0,
-      "earnings": "in 10 Tagen (06.05.2026)",
-      "fda_date": null,
-      "upcoming_event": null,
-      "insider_buy": false,
-      "stocktwits": null
+      "stocktwits": null,
+      "combo_mult": 1.0,
+      "active_triggers": 0
     },
     "CVNA": {
-      "score": 33,
-      "confidence": 33,
-      "drivers": "Earnings in 3 Tagen (29.04.2026) + News-KI 8/30: Negative sentiment with underperformance relative to market and fund selling activity suggest weak institutional support + Earnings in 3d",
+      "score": 25,
+      "confidence": 17,
+      "drivers": "Earnings in 3 Tagen (29.04.2026) + Earnings in 3d",
       "price": 409.08,
       "chg_pct": 0.0,
       "rvol": 0.0,
@@ -162,7 +169,24 @@
       "fda_date": null,
       "upcoming_event": "Earnings in 3 Tagen (29.04.2026)",
       "insider_buy": false,
-      "stocktwits": null
+      "stocktwits": null,
+      "combo_mult": 1.0,
+      "active_triggers": 1
+    },
+    "AMC": {
+      "score": 38,
+      "confidence": 33,
+      "drivers": "News: short squeeze, squeeze + Earnings in 10d",
+      "price": 1.64,
+      "chg_pct": 0.0,
+      "rvol": 0.0,
+      "earnings": "in 10 Tagen (06.05.2026)",
+      "fda_date": null,
+      "upcoming_event": null,
+      "insider_buy": false,
+      "stocktwits": null,
+      "combo_mult": 1.0,
+      "active_triggers": 1
     }
   }
 }
