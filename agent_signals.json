@@ -1,10 +1,10 @@
 {
-  "updated": "2026-04-26T08:31:50.062774+02:00",
+  "updated": "2026-04-26T11:39:51.591681+02:00",
   "run_info": {
     "tickers_checked": 12,
-    "signals_active": 2,
+    "signals_active": 1,
     "alerts_sent": 0,
-    "elapsed_s": 41.1,
+    "elapsed_s": 44.6,
     "market_phase": "Geschlossen"
   },
   "signals": {
@@ -22,9 +22,9 @@
       "stocktwits": null
     },
     "HRTX": {
-      "score": 33,
-      "confidence": 17,
-      "drivers": "Earnings in 9d + FINRA Short-Vol 74%",
+      "score": 38,
+      "confidence": 33,
+      "drivers": "News-KI 5/30: Positive earnings coverage but no indicators of high short interest, stock borrow scarcity, or catalyst for short squeez + Earnings in 9d + FINRA Short-Vol 74%",
       "price": 1.19,
       "chg_pct": 0.0,
       "rvol": 0.0,
@@ -61,9 +61,9 @@
       "stocktwits": null
     },
     "ANAB": {
-      "score": 16,
-      "confidence": 33,
-      "drivers": "News-KI 8/30: Positive legal/operational developments but lacks key short-squeeze indicators like high short interest, low float, or g + Earnings in 9d",
+      "score": 8,
+      "confidence": 17,
+      "drivers": "Earnings in 9d",
       "price": 58.88,
       "chg_pct": 0.0,
       "rvol": 0.0,
@@ -87,9 +87,9 @@
       "stocktwits": null
     },
     "INBX": {
-      "score": 38,
+      "score": 16,
       "confidence": 33,
-      "drivers": "News: revenue beat, catalyst + Earnings in 17d",
+      "drivers": "News-KI 8/30: Positive clinical data supports stock momentum but lacks short-squeeze catalysts like high short interest, low float, or + Earnings in 17d",
       "price": 129.06,
       "chg_pct": 0.0,
       "rvol": 0.0,
@@ -139,9 +139,9 @@
       "stocktwits": null
     },
     "AMC": {
-      "score": 38,
+      "score": 16,
       "confidence": 33,
-      "drivers": "News: short squeeze, squeeze + Earnings in 10d",
+      "drivers": "News-KI 8/30: Negative sentiment with bearish headlines and comparison to failed squeeze attempts suggests weak squeeze potential desp + Earnings in 10d",
       "price": 1.64,
       "chg_pct": 0.0,
       "rvol": 0.0,
