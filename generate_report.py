@@ -79,6 +79,98 @@ def _test_strip_surrogates():
     print("OK: strip_surrogates self-test passed")
 
 
+def _test_fallback_chain():
+    """Selbsttest für SF/SI-Trend-Fallback-Logik. Aufrufbar via
+    ``python -c 'import generate_report as g; g._test_fallback_chain()'``.
+
+    Mockt die Live-Fetcher (Finviz/Stockanalysis/yfinance), damit der Test
+    offline reproduzierbar ist und keine HTTP-Calls macht.
+    """
+    import sys
+    mod = sys.modules[__name__]
+
+    # ── SF-Kette ────────────────────────────────────────────────────
+    saved = {
+        "fv":  mod._fetch_short_float_finviz,
+        "sa":  mod._fetch_short_float_stockanalysis,
+    }
+    try:
+        # Stub 1: alle Fallback-Quellen liefern None → bei untauglichem yf
+        # muss Endergebnis (None, "none") sein.
+        mod._fetch_short_float_finviz        = lambda t: None
+        mod._fetch_short_float_stockanalysis = lambda t: None
+
+        # yf valide → akzeptiert ohne Fallback
+        v, s = get_short_float_with_fallback("X", 1.5)
+        assert (v, s) == (1.5, "yfinance"), (v, s)
+
+        # yf=None, screener-Cache valide → "finviz" (Cache-Hit)
+        v, s = get_short_float_with_fallback("X", None, screener_value=22.4)
+        assert (v, s) == (22.4, "finviz"), (v, s)
+
+        # yf=0.0 (häufiger yfinance-Bug) → ebenfalls Fallback
+        v, s = get_short_float_with_fallback("X", 0.0)
+        assert s == "none" and v is None, (v, s)
+
+        # Stub 2: Finviz liefert
+        mod._fetch_short_float_finviz = lambda t: 18.4
+        v, s = get_short_float_with_fallback("WOLF", None)
+        assert (v, s) == (18.4, "finviz"), (v, s)
+
+        # Stub 3: nur Stockanalysis liefert
+        mod._fetch_short_float_finviz        = lambda t: None
+        mod._fetch_short_float_stockanalysis = lambda t: 12.3
+        v, s = get_short_float_with_fallback("X", None)
+        assert (v, s) == (12.3, "stockanalysis"), (v, s)
+
+        # Schwelle 0.5 %: yf=0.4 wird abgelehnt, fällt in screener-Cache
+        mod._fetch_short_float_finviz        = lambda t: None
+        mod._fetch_short_float_stockanalysis = lambda t: None
+        v, s = get_short_float_with_fallback("X", 0.4, screener_value=20.0)
+        assert (v, s) == (20.0, "finviz"), (v, s)
+    finally:
+        mod._fetch_short_float_finviz        = saved["fv"]
+        mod._fetch_short_float_stockanalysis = saved["sa"]
+
+    # ── SI-Trend yfinance-Berechnung ────────────────────────────────
+    # Wir testen die Klassifikationslogik durch Stub des yf.Ticker-Calls.
+    class _FakeTicker:
+        def __init__(self, info): self.info = info
+    saved_yf = mod.yf
+    class _FakeYF:
+        @staticmethod
+        def Ticker(t): return _FakeTicker(_FakeYF._next)
+    try:
+        mod.yf = _FakeYF
+        # +12 % → "up"
+        _FakeYF._next = {"sharesShort": 1_120_000, "sharesShortPriorMonth": 1_000_000}
+        r = _fetch_si_trend_from_yfinance("X")
+        assert r["trend"] == "up" and r["trend_pct"] == 12.0, r
+        # −10 % → "down"
+        _FakeYF._next = {"sharesShort": 900_000, "sharesShortPriorMonth": 1_000_000}
+        r = _fetch_si_trend_from_yfinance("X")
+        assert r["trend"] == "down" and r["trend_pct"] == -10.0, r
+        # +3 % → "sideways"
+        _FakeYF._next = {"sharesShort": 1_030_000, "sharesShortPriorMonth": 1_000_000}
+        r = _fetch_si_trend_from_yfinance("X")
+        assert r["trend"] == "sideways" and r["trend_pct"] == 3.0, r
+        # priorMonth = 0 → "no_data"
+        _FakeYF._next = {"sharesShort": 1_000_000, "sharesShortPriorMonth": 0}
+        r = _fetch_si_trend_from_yfinance("X")
+        assert r["trend"] == "no_data", r
+        # priorMonth fehlt → "no_data"
+        _FakeYF._next = {"sharesShort": 1_000_000}
+        r = _fetch_si_trend_from_yfinance("X")
+        assert r["trend"] == "no_data", r
+        # Beide fehlen → "no_data"
+        _FakeYF._next = {}
+        r = _fetch_si_trend_from_yfinance("X")
+        assert r["trend"] == "no_data", r
+    finally:
+        mod.yf = saved_yf
+    print("OK: fallback-chain self-test passed")
+
+
 # ===========================================================================
 # 1. FINVIZ SCREENER
 # ===========================================================================
@@ -1160,6 +1252,140 @@ def fetch_stockanalysis_si(ticker: str) -> float | None:
     return None
 
 
+# ── Short-Float / SI-Trend Fallback-Ketten ────────────────────────────────
+# Verhindert dass Ticker still wegen fehlender yfinance-Daten ausgefiltert
+# werden (Bug 2026-04-26: WOLF, MX, VLN etc. wurden mit short_float=0.0 %
+# fälschlich verworfen, obwohl andere Quellen valide Werte hatten).
+#
+# SF-Kette:    yfinance → screener-Cache → finviz quote.ashx → stockanalysis → none
+# Trend-Kette: FINRA    → yfinance sharesShort/PriorMonth-Delta              → none
+#
+# Source-Tracking pro Ticker via ``short_float_source`` und
+# ``si_trend_source`` — beides geht in app_data.json/watchlist_cards ein.
+
+# Akzeptanzschwelle für „brauchbarer" SF-Wert. < 0.5 % = praktisch nicht
+# vorhanden, oft fehlerhaft 0.0 statt None. Konsequent in beiden Ketten.
+_SF_MIN_VALID = 0.5
+
+# Geteilte Session für die Fallback-Fetcher — Connection-Reuse verhindert
+# TCP-Handshake-Overhead bei mehreren Tickern gegen denselben Host.
+_FALLBACK_SESSION = requests.Session()
+_FALLBACK_SESSION.headers.update(HTTP_HEADERS)
+
+
+def _fetch_short_float_finviz(ticker: str) -> float | None:
+    """Fetcht die Finviz-Quote-Seite und parst „Short Float" %-Wert.
+
+    Nutzt ``screener.ashx``-Tabellen-Layout (Spalten enthalten Label →
+    Wert). Defensives Parsing: Tolerant ggü. Whitespace- und
+    HTML-Variationen. Skippt Punkt-Ticker (z. B. .DE) — Finviz indexiert
+    diese nicht.
+    """
+    if "." in ticker:
+        return None
+    url = f"https://finviz.com/quote.ashx?t={ticker}"
+    try:
+        resp = _FALLBACK_SESSION.get(url, timeout=5)
+        if resp.status_code != 200:
+            return None
+    except requests.RequestException as exc:
+        log.debug("finviz quote %s: %s", ticker, exc)
+        return None
+    text = strip_surrogates(resp.text)
+    # Layout 2024+: <td …>Short Float</td><td …>X.XX%</td>
+    m = re.search(
+        r'>Short Float<[^<]*</td>\s*<td[^>]*>\s*([\d.]+)\s*%',
+        text,
+    )
+    if m:
+        try:
+            return round(float(m.group(1)), 2)
+        except ValueError:
+            return None
+    return None
+
+
+def _fetch_short_float_stockanalysis(ticker: str) -> float | None:
+    """Dünner Wrapper um ``fetch_stockanalysis_si`` — semantisch identisch,
+    aber als Teil der SF-Fallback-Kette benannt. Kein zusätzlicher Call:
+    falls der Caller schon im Step-3c3-Pool fetched hat, kann er stattdessen
+    diesen Wert direkt übergeben (siehe Aufruf-Site)."""
+    return fetch_stockanalysis_si(ticker)
+
+
+def get_short_float_with_fallback(
+    ticker: str,
+    yf_value: float | None,
+    screener_value: float | None = None,
+) -> tuple[float | None, str]:
+    """Liefert ``(short_float_pct, source)`` durch eine geordnete Kette.
+
+    Akzeptanzkriterium pro Stufe: Wert ist ``not None`` und ``>= 0.5``.
+    Werte unter 0.5 % gelten praktisch immer als „fehlend" (yfinance
+    liefert oft 0.0 statt None bei Datenausfall).
+
+    Reihenfolge:
+      1. yfinance ``shortPercentOfFloat`` (Standardpfad)
+      2. Screener-Cache (Finviz screener-Listing aus Step 1, falls
+         der Ticker dort schon mit SF-Wert auftauchte)
+      3. Finviz quote.ashx pro Ticker (Live-Fetch)
+      4. Stockanalysis.com pro Ticker (Live-Fetch)
+      5. ``"none"`` — Caller entscheidet, ob der Ticker geskippt wird.
+
+    Source-Labels: ``"yfinance"``, ``"finviz"``, ``"stockanalysis"``,
+    ``"none"``. Stufen 2 und 3 teilen sich „finviz" — beides stammt aus
+    Finviz-Quellen und ist für Frontend-Tooltips ununterscheidbar.
+    """
+    if yf_value is not None and yf_value >= _SF_MIN_VALID:
+        return (round(float(yf_value), 2), "yfinance")
+    if screener_value is not None and screener_value >= _SF_MIN_VALID:
+        return (round(float(screener_value), 2), "finviz")
+    fv = _fetch_short_float_finviz(ticker)
+    if fv is not None and fv >= _SF_MIN_VALID:
+        return (fv, "finviz")
+    sa = _fetch_short_float_stockanalysis(ticker)
+    if sa is not None and sa >= _SF_MIN_VALID:
+        return (sa, "stockanalysis")
+    return (None, "none")
+
+
+def _fetch_si_trend_from_yfinance(ticker: str) -> dict:
+    """Berechnet einen groben SI-Trend aus yfinance ``sharesShort`` /
+    ``sharesShortPriorMonth`` (1-Monats-Delta).
+
+    Strukturkompatibel zur FINRA-Trend-Ausgabe: liefert ``trend`` ∈
+    {"up","down","sideways","no_data"} und ``trend_pct`` (in Prozent).
+    Schwellen: ±5 % (gleich der FINRA-Klassifikation).
+
+    Bei fehlendem ``sharesShortPriorMonth`` (None oder 0) → ``no_data``.
+    """
+    out = {"trend": "no_data", "trend_pct": 0.0}
+    try:
+        info = yf.Ticker(ticker).info or {}
+    except Exception as exc:
+        log.debug("yfinance SI-Trend %s: %s", ticker, exc)
+        return out
+    cur   = info.get("sharesShort")
+    prior = info.get("sharesShortPriorMonth")
+    if not cur or not prior:
+        return out
+    try:
+        cur_f, prior_f = float(cur), float(prior)
+    except (TypeError, ValueError):
+        return out
+    if prior_f <= 0:
+        return out
+    trend_pct = (cur_f - prior_f) / prior_f * 100.0
+    if trend_pct > 5.0:
+        out["trend"] = "up"
+    elif trend_pct < -5.0:
+        out["trend"] = "down"
+    else:
+        out["trend"] = "sideways"
+    out["trend_pct"] = round(trend_pct, 1)
+    return out
+
+
 def fetch_earningswhispers_rss() -> dict[str, dict]:
     """EarningsWhispers RSS — einmal pro Run, liefert {ticker → {date, eps_estimate}}.
 
@@ -1642,11 +1868,13 @@ def _wl_card_payload(_s: dict) -> dict:
         "price":         _s.get("price", 0),
         "change":        _s.get("change", 0),
         "change_5d":     _s.get("change_5d"),
-        "short_float":   _s.get("short_float", 0),
+        "short_float":         _s.get("short_float", 0),
+        "short_float_source":  _s.get("short_float_source", "yfinance"),
         "short_ratio":   _s.get("short_ratio", 0),
         "rel_volume":    _s.get("rel_volume", 0),
         "float_shares":  _s.get("float_shares") or 0,
-        "si_trend":      _fd.get("trend", "no_data"),
+        "si_trend":          _fd.get("trend", "no_data"),
+        "si_trend_source":   _fd.get("si_trend_source", "finra"),
         "si_tpct":       _fd.get("trend_pct", 0.0),
         "si_velocity":   _fd.get("si_velocity", 0.0),
         "si_accel":      _fd.get("si_accelerating", False),
@@ -6852,6 +7080,10 @@ def main():
     log.info("Step 2 – Filtering %d candidates with enriched data …", len(pool))
     enriched = []
     _enrich_start = time.time()
+    # Source-Telemetrie für die beiden Fallback-Ketten (Summary am Loop-Ende).
+    sf_source_counts: dict[str, int] = {"yfinance": 0, "finviz": 0,
+                                         "stockanalysis": 0, "none": 0}
+    si_source_counts: dict[str, int] = {"finra": 0, "yfinance": 0, "none": 0}
     for i, c in enumerate(pool):
         # Timeout guard: skip remaining candidates if wall-clock limit exceeded
         _elapsed_enrich = time.time() - _enrich_start
@@ -6911,22 +7143,58 @@ def main():
         })
         if i < 3:
             print(f"{t} float_shares={c.get('float_shares')} change_5d={c.get('change_5d')}", flush=True)
-        yf_sf = yfd.get("short_float_yf", 0)
-        if yf_sf > 0:
-            c["short_float"] = yf_sf
+        # Short-Float Fallback-Kette: yfinance → screener-Cache → finviz
+        # → stockanalysis → none. Verhindert dass Ticker mit yf=0.0/None
+        # fälschlich als „kein Short-Interest" gefiltert werden.
+        yf_sf      = yfd.get("short_float_yf", None)
+        cached_sf  = c.get("short_float") or None  # aus Screener-Stage
+        sf_value, sf_source = get_short_float_with_fallback(t, yf_sf, cached_sf)
+        sf_source_counts[sf_source] = sf_source_counts.get(sf_source, 0) + 1
+        if sf_value is not None:
+            c["short_float"] = sf_value
+        # else: c["short_float"] bleibt was Screener gegeben hat (oft 0.0);
+        # der Skip-Pfad fängt sf_source=="none" separat ab.
+        c["short_float_source"] = sf_source
+        if sf_source not in ("yfinance", "none") and sf_value is not None:
+            log.info("  SF-Fallback %s: %s → %.1f%%", t, sf_source, sf_value)
+
         yf_sr = yfd.get("short_ratio", 0)
         if yf_sr > 0:
             c["short_ratio"] = yf_sr
         if yfd.get("vol_ratio", 0) > 0:
             c["rel_volume"] = yfd["vol_ratio"]
 
-        # FINRA daily short-volume data (US only; local dict lookup — no HTTP)
+        # FINRA daily short-volume data (US only; local dict lookup — no HTTP).
+        # SI-Trend Fallback: bei trend=="no_data" oder <5 history-Punkten fällt
+        # die Berechnung auf yfinance sharesShort / sharesShortPriorMonth zurück.
         is_us_finra = c.get("market", "US") == "US"
         if is_us_finra:
-            c["finra_data"] = get_finra_short_interest(t, finra_dates)
+            fd = get_finra_short_interest(t, finra_dates)
+            hist_len = len(fd.get("history", []))
+            if fd.get("trend", "no_data") == "no_data" or hist_len < 5:
+                yf_trend = _fetch_si_trend_from_yfinance(t)
+                if yf_trend["trend"] != "no_data":
+                    fd["trend"]     = yf_trend["trend"]
+                    fd["trend_pct"] = yf_trend["trend_pct"]
+                    fd["si_trend_source"] = "yfinance"
+                    log.info("  SI-Trend Fallback %s: yfinance → %+.1f%% (%s)",
+                             t, yf_trend["trend_pct"], yf_trend["trend"])
+                else:
+                    fd["si_trend_source"] = "none"
+            else:
+                fd["si_trend_source"] = "finra"
+            c["finra_data"] = fd
         else:
-            c["finra_data"] = {}
-        c["sf_source"] = "Yahoo Finance"
+            c["finra_data"] = {"si_trend_source": "none"}
+        si_source_counts[c["finra_data"].get("si_trend_source", "none")] = (
+            si_source_counts.get(c["finra_data"].get("si_trend_source", "none"), 0) + 1
+        )
+        # Backwards-Compat: altes ``sf_source``-Feld bleibt mitgeführt, damit
+        # eventuell unbekannte Consumer nicht plötzlich None lesen. Mappt auf
+        # menschenlesbares Label ("Yahoo Finance", "Finviz", …).
+        _SF_SRC_LABEL = {"yfinance": "Yahoo Finance", "finviz": "Finviz",
+                         "stockanalysis": "Stockanalysis", "none": "—"}
+        c["sf_source"] = _SF_SRC_LABEL.get(sf_source, "—")
 
         # Hard filters — manual_personal-Ticker (persönliche Watchlist) sind
         # vollständig befreit: kein Cap-Filter, kein Short-Float-Filter, kein
@@ -6943,9 +7211,13 @@ def main():
             # Short-float filter: strict for US; relaxed for non-US (data rarely available)
             is_us = c.get("market", "US") == "US"
             has_sf_data = c["short_float"] > 0
+            if is_us and c.get("short_float_source") == "none":
+                log.info("    skip %s: short_float unknown (alle Quellen ausgefallen)", t)
+                continue
             if is_us and c["short_float"] < MIN_SHORT_FLOAT:
-                log.info("    skip %s: short_float %.1f%% < %.0f%%",
-                         t, c["short_float"], MIN_SHORT_FLOAT)
+                log.info("    skip %s: short_float %.1f%% < %.0f%% (Quelle: %s)",
+                         t, c["short_float"], MIN_SHORT_FLOAT,
+                         c.get("short_float_source", "?"))
                 continue
             if not is_us and not has_sf_data:
                 # Keep intl stock if volume signals activity despite missing short data
@@ -6967,6 +7239,16 @@ def main():
     print(
         f"Angereichert: {len(enriched)}/{len(pool)} Kandidaten in {_enrich_elapsed:.1f}s",
         flush=True,
+    )
+    log.info(
+        "SF-Quellen: %d× yfinance, %d× finviz, %d× stockanalysis, %d× none",
+        sf_source_counts["yfinance"], sf_source_counts["finviz"],
+        sf_source_counts["stockanalysis"], sf_source_counts["none"],
+    )
+    log.info(
+        "SI-Quellen: %d× finra, %d× yfinance, %d× none",
+        si_source_counts["finra"], si_source_counts["yfinance"],
+        si_source_counts["none"],
     )
     print(f"Step 2 abgeschlossen in {time.time()-_t_batch:.1f}s", flush=True)
 
@@ -7170,8 +7452,9 @@ def main():
                     if 0 < sa_val < 100 and abs(sa_val - yf_val) > 0.1:
                         print(f"{st['ticker']} SI aktualisiert: yfinance={yf_val:.1f}% → "
                               f"stockanalysis={sa_val:.1f}%", flush=True)
-                        st["short_float"] = sa_val
+                        st["short_float"]        = sa_val
                         st["short_float_source"] = "stockanalysis"
+                        st["sf_source"]          = "Stockanalysis"  # legacy label
             except TimeoutError:
                 log.warning("stockanalysis SI Pool-Timeout")
         print(f"Stockanalysis SI: abgeschlossen in {time.time()-_t_sa:.1f}s", flush=True)
