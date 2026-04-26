@@ -44,6 +44,41 @@ log = logging.getLogger(__name__)
 # — siehe ``from config import *`` oben. Anpassungen dort vornehmen.
 
 
+def strip_surrogates(s):
+    """Entfernt nicht-UTF-8-fähige Surrogate-Codepoints (U+D800–U+DFFF) aus
+    Strings. Verhindert ``UnicodeEncodeError`` beim HTML-Write.
+
+    yfinance/RSS-Feeds liefern in seltenen Fällen halbe Surrogate-Paare
+    (z. B. wenn ein 4-Byte-Emoji in zwei UTF-16-Halften zerschnitten wurde),
+    die zwar als Python-``str`` existieren dürfen, aber bei
+    ``str.encode("utf-8")`` einen ``UnicodeEncodeError`` werfen.
+    """
+    if not isinstance(s, str):
+        return s
+    return s.encode("utf-8", errors="replace").decode("utf-8")
+
+
+def _test_strip_surrogates():
+    """Selbsttest. Aufrufbar via ``python -c
+    'import generate_report as g; g._test_strip_surrogates()'``."""
+    bad = "Hallo \ud83d Welt"
+    try:
+        bad.encode("utf-8")
+    except UnicodeEncodeError:
+        pass  # erwartet
+    else:
+        raise AssertionError("Test-Setup defekt: Surrogate war encodbar")
+    cleaned = strip_surrogates(bad)
+    cleaned.encode("utf-8")  # darf nicht mehr crashen
+    assert "\ud83d" not in cleaned, "Surrogate nicht entfernt"
+    # Non-string Input darf nicht crashen
+    assert strip_surrogates(None) is None
+    assert strip_surrogates(42) == 42
+    # Sauberer Input bleibt unverändert
+    assert strip_surrogates("Hello 🚀 World") == "Hello 🚀 World"
+    print("OK: strip_surrogates self-test passed")
+
+
 # ===========================================================================
 # 1. FINVIZ SCREENER
 # ===========================================================================
@@ -212,8 +247,8 @@ def get_yahoo_screener_candidates() -> list[dict]:
                 "short_float":  sf_raw * 100 if sf_raw <= 1.0 else sf_raw,
                 "short_ratio":  float(q.get("shortRatio") or 0),
                 "rel_volume":   0.0,
-                "company_name": q.get("shortName") or q.get("longName") or t,
-                "sector":       q.get("sector") or "",
+                "company_name": strip_surrogates(q.get("shortName") or q.get("longName") or t),
+                "sector":       strip_surrogates(q.get("sector") or ""),
                 "source":       src_tag,
             })
 
@@ -434,9 +469,9 @@ def get_yfinance_data(ticker: str) -> dict:
                 pass
 
         return {
-            "company_name": info.get("longName") or info.get("shortName") or ticker,
-            "sector":       info.get("sector") or "",
-            "industry":     info.get("industry") or "",
+            "company_name": strip_surrogates(info.get("longName") or info.get("shortName") or ticker),
+            "sector":       strip_surrogates(info.get("sector") or ""),
+            "industry":     strip_surrogates(info.get("industry") or ""),
             "market_cap":   info.get("marketCap"),
             "short_ratio":  info.get("shortRatio") or 0.0,
             "short_float_yf": (info.get("shortPercentOfFloat") or 0.0) * 100,
@@ -625,9 +660,9 @@ def get_yfinance_batch(tickers: list[str]) -> dict[str, dict]:
             continue
 
         results[ticker] = {
-            "company_name":   info.get("longName") or info.get("shortName") or ticker,
-            "sector":         info.get("sector") or "",
-            "industry":       info.get("industry") or "",
+            "company_name":   strip_surrogates(info.get("longName") or info.get("shortName") or ticker),
+            "sector":         strip_surrogates(info.get("sector") or ""),
+            "industry":       strip_surrogates(info.get("industry") or ""),
             "market_cap":     info.get("marketCap"),
             "short_ratio":    info.get("shortRatio") or 0.0,
             "short_float_yf": (info.get("shortPercentOfFloat") or 0.0) * 100,
@@ -701,10 +736,10 @@ def get_yahoo_news(ticker: str, n: int = 5) -> list[dict]:
                 datetime.fromtimestamp(pub_ts).strftime("%d.%m.%Y %H:%M")
                 if pub_ts else ""
             )
-            title_orig = content.get("title") or item.get("title") or ""
+            title_orig = strip_surrogates(content.get("title") or item.get("title") or "")
             # Collect every candidate field that might carry article body text.
             # yfinance uses different field names across versions.
-            raw_summary = (
+            raw_summary = strip_surrogates((
                 content.get("body")
                 or content.get("summary")
                 or content.get("description")
@@ -714,7 +749,7 @@ def get_yahoo_news(ticker: str, n: int = 5) -> list[dict]:
                 or item.get("description")
                 or item.get("snippet")
                 or ""
-            ).strip()
+            ).strip())
             # If the "summary" is just a copy of the title, discard it.
             if raw_summary and raw_summary.strip(".").strip() == title_orig.strip(".").strip():
                 raw_summary = ""
@@ -723,9 +758,10 @@ def get_yahoo_news(ticker: str, n: int = 5) -> list[dict]:
                 "title":       _translate(title_orig) if title_orig else "",
                 "title_orig":  title_orig,
                 "summary_raw": raw_summary,
-                "publisher":   (content.get("provider", {}) or {}).get("displayName")
+                "publisher":   strip_surrogates(
+                                (content.get("provider", {}) or {}).get("displayName")
                                 or content.get("publisher")
-                                or item.get("publisher") or "Yahoo Finance",
+                                or item.get("publisher") or "Yahoo Finance"),
                 "source":      "Yahoo Finance",
                 "link":        (content.get("canonicalUrl", {}) or {}).get("url")
                                 or content.get("link")
@@ -751,11 +787,11 @@ def _rss_news(ticker: str, url: str, source_label: str, timeout: int = 3) -> lis
         items = root.findall(".//item") or root.findall(".//atom:entry", ns)
         result = []
         for item in items[:5]:
-            title = (
+            title = strip_surrogates((
                 item.findtext("title")
                 or item.findtext("atom:title", namespaces=ns)
                 or ""
-            ).strip()
+            ).strip())
             link = (
                 item.findtext("link")
                 or (item.find("atom:link", ns) or ET.Element("x")).get("href", "")
@@ -1151,7 +1187,7 @@ def fetch_earningswhispers_rss() -> dict[str, dict]:
     try:
         root = ET.fromstring(resp.content)
         for item in root.findall(".//item"):
-            title = (item.findtext("title") or "").strip()
+            title = strip_surrogates((item.findtext("title") or "").strip())
             pub   = (item.findtext("pubDate") or "").strip()
             # Ticker: erstes Token bis nicht-Buchstaben
             mt = re.match(r'^([A-Z0-9.\-]{1,12})\b', title)
@@ -7191,6 +7227,18 @@ def main():
     html = generate_html(top10, report_date)
     if os.environ.get("JINJA_RENDER_TEST") == "1":
         _render_test(top10, report_date)
+
+    # Defense-in-Depth: trotz Sanitizing am Ingestion-Point können Surrogates
+    # auf neuen API-Pfaden auftauchen. Diagnose + Fallback verhindert den Crash.
+    surrogates = [(i, hex(ord(c))) for i, c in enumerate(html)
+                  if 0xD800 <= ord(c) <= 0xDFFF]
+    if surrogates:
+        log.warning("Surrogates im HTML gefunden (%d Stück): %s",
+                    len(surrogates), surrogates[:5])
+        pos = surrogates[0][0]
+        log.warning("Kontext um erste Fundstelle: %r",
+                    html[max(0, pos - 100):pos + 100])
+        html = strip_surrogates(html)
 
     with open("index.html", "w", encoding="utf-8") as fh:
         fh.write(html)
