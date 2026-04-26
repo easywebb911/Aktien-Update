@@ -1,10 +1,10 @@
 {
-  "updated": "2026-04-26T12:33:27.898511+02:00",
+  "updated": "2026-04-26T15:42:44.558143+02:00",
   "run_info": {
     "tickers_checked": 12,
     "signals_active": 1,
     "alerts_sent": 0,
-    "elapsed_s": 46.8,
+    "elapsed_s": 42.7,
     "market_phase": "Geschlossen"
   },
   "signals": {
@@ -48,9 +48,9 @@
       "stocktwits": null
     },
     "GRPN": {
-      "score": 13,
-      "confidence": 33,
-      "drivers": "News-KI 5/30: Neutral earnings announcement and unrelated OpenAI news show no short-squeeze catalysts; market underperformance suggest + Earnings in 11d",
+      "score": 8,
+      "confidence": 17,
+      "drivers": "Earnings in 11d",
       "price": 14.67,
       "chg_pct": 0.0,
       "rvol": 0.0,
@@ -89,7 +89,7 @@
     "INBX": {
       "score": 16,
       "confidence": 33,
-      "drivers": "News-KI 8/30: Positive clinical data drives stock momentum but lacks short squeeze indicators like high short interest, low float, or  + Earnings in 17d",
+      "drivers": "News-KI 8/30: Positive clinical trial data drives stock appreciation, but lacks the extreme short interest, catalyst intensity, and re + Earnings in 17d",
       "price": 129.06,
       "chg_pct": 0.0,
       "rvol": 0.0,
