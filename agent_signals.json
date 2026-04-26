@@ -1,10 +1,10 @@
 {
-  "updated": "2026-04-26T18:05:48.913586+02:00",
+  "updated": "2026-04-26T18:48:33.302860+02:00",
   "run_info": {
     "tickers_checked": 12,
-    "signals_active": 1,
+    "signals_active": 2,
     "alerts_sent": 0,
-    "elapsed_s": 41.1,
+    "elapsed_s": 44.9,
     "market_phase": "Geschlossen"
   },
   "signals": {
@@ -69,28 +69,13 @@
       "active_triggers": 0
     },
     "ANAB": {
-      "score": 16,
-      "confidence": 33,
-      "drivers": "News-KI 8/30: Positive legal and corporate developments, but lack of short interest data, volume catalysts, and momentum indicators ne + Earnings in 9d",
+      "score": 8,
+      "confidence": 17,
+      "drivers": "Earnings in 9d",
       "price": 58.88,
       "chg_pct": 0.0,
       "rvol": 0.0,
       "earnings": "in 9 Tagen (05.05.2026)",
-      "fda_date": null,
-      "upcoming_event": null,
-      "insider_buy": false,
-      "stocktwits": null,
-      "combo_mult": 1.0,
-      "active_triggers": 0
-    },
-    "INBX": {
-      "score": 16,
-      "confidence": 33,
-      "drivers": "News-KI 8/30: Biotech clinical data updates generate interest but lack the high short interest, extreme valuation metrics, and catalys + Earnings in 17d",
-      "price": 129.06,
-      "chg_pct": 0.0,
-      "rvol": 0.0,
-      "earnings": "in 17 Tagen (13.05.2026)",
       "fda_date": null,
       "upcoming_event": null,
       "insider_buy": false,
@@ -113,10 +98,25 @@
       "combo_mult": 1.0,
       "active_triggers": 1
     },
+    "INBX": {
+      "score": 38,
+      "confidence": 33,
+      "drivers": "News: catalyst, revenue beat + Earnings in 17d",
+      "price": 129.06,
+      "chg_pct": 0.0,
+      "rvol": 0.0,
+      "earnings": "in 17 Tagen (13.05.2026)",
+      "fda_date": null,
+      "upcoming_event": null,
+      "insider_buy": false,
+      "stocktwits": null,
+      "combo_mult": 1.0,
+      "active_triggers": 1
+    },
     "PRLD": {
-      "score": 8,
-      "confidence": 17,
-      "drivers": "Earnings in 17d",
+      "score": 20,
+      "confidence": 33,
+      "drivers": "News-KI 12/30: Positive pipeline and leadership news, but no short squeeze indicators like high short interest, low float, or technical + Earnings in 17d",
       "price": 4.7,
       "chg_pct": 0.0,
       "rvol": 0.0,
@@ -126,7 +126,7 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 0
+      "active_triggers": 1
     },
     "IIPR": {
       "score": 8,
@@ -159,9 +159,9 @@
       "active_triggers": 0
     },
     "CVNA": {
-      "score": 25,
-      "confidence": 17,
-      "drivers": "Earnings in 3 Tagen (29.04.2026) + Earnings in 3d",
+      "score": 33,
+      "confidence": 33,
+      "drivers": "Earnings in 3 Tagen (29.04.2026) + News-KI 8/30: CVNA shows no significant short squeeze indicators; headline discusses business strategy pivot rather than funding press + Earnings in 3d",
       "price": 409.08,
       "chg_pct": 0.0,
       "rvol": 0.0,
