@@ -63,21 +63,24 @@
     <div class="detail-table-wrap">
       <table class="detail-table">
         {{ agent_boost_row }}
+        <tr class="detail-group-header"><td colspan="2">Stammdaten</td></tr>
         <tr><td>Marktkapitalisierung</td><td>{{ cap_fmt }}</td></tr>
         {{ float_row }}
         {{ sector_detail_row }}
         <tr><td>52W-Hoch / -Tief</td><td>${{ hi_str }} / ${{ lo_str }}</td></tr>
-        <tr><td>Ø Volumen 20T</td><td>{{ avg_vol_str }}</td></tr>
-        <tr><td>Heutiges Volumen</td><td>{{ cur_vol_str }}</td></tr>
+        <tr class="detail-group-header"><td colspan="2">Short-Daten</td></tr>
         {{ edgar_row }}
         <tr><td>SI-Trend (3M)</td><td>{{ trend_html }}</td></tr>
         {{ si_velocity_row }}
         <tr><td>Short-Vol. T-1 (FINRA)</td><td>{{ si_t1_disp }}</td></tr>
         <tr><td>Short-Vol. T-2</td><td>{{ si_t2_disp }}</td></tr>
         <tr><td>Short-Vol. T-3</td><td>{{ si_t3_disp }}</td></tr>
-
-        {{ rsi_ma_rows }}
-        {{ options_rows }}
+        <tr class="detail-group-header"><td colspan="2">Volumen &amp; Momentum</td></tr>
+        <tr><td>Ø Volumen 20T</td><td>{{ avg_vol_str }}</td></tr>
+        <tr><td>Heutiges Volumen</td><td>{{ cur_vol_str }}</td></tr>
+        {{ momentum_rows }}
+        <tr class="detail-group-header"><td colspan="2">Katalysatoren</td></tr>
+        {{ catalyst_rows }}
         {{ inst_row }}
         <tr><td>Risiko-Detail</td><td style="color:{{ risk_col }}">{{ risk_txt }}</td></tr>
       </table>

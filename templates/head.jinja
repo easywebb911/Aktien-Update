@@ -491,6 +491,14 @@ a{color:var(--accent);text-decoration:none}
 .detail-table td{padding:4px 0;border-bottom:1px solid var(--brd)}
 .detail-table td:first-child{color:var(--txt-dim);padding-right:10px}
 .detail-table td:last-child{text-align:right;font-weight:600;color:var(--txt)}
+/* Sub-Header zur visuellen Gruppierung der Detail-Zeilen — kein Akkordeon,
+   nur dezente Trennung. Erste Zeile ohne border-top, damit der Rahmen
+   nicht doppelt mit der Tabellen-Oberkante kollidiert. */
+.detail-table tr.detail-group-header td{
+  padding:14px 0 4px;border-bottom:0;border-top:1px solid var(--brd);
+  font-size:.66rem;letter-spacing:.09em;text-transform:uppercase;
+  color:var(--txt-dim);font-weight:700;text-align:left}
+.detail-table tr.detail-group-header:first-child td{border-top:0;padding-top:6px}
 /* ── Footer – full width ── */
 .footer{padding:16px 14px 32px;
   border-top:1px solid var(--brd);text-align:center}

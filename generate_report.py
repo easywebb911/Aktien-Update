@@ -2950,14 +2950,21 @@ def _card(i: int, s: dict) -> str:
         _vs_ma50  = ((_price - _ma50) / _ma50 * 100) if _ma50 > 0 else None
         _ma50_col = "#22c55e" if (_vs_ma50 is not None and _vs_ma50 >= 0) else "#ef4444"
         _ma50_pct = f'({_vs_ma50:+.1f}%)' if _vs_ma50 is not None else ""
-        _ma50_row1 = f"<tr><td>MA 50T</td><td>${_ma50:.2f}</td></tr>"
         _ma50_row2 = f'<tr><td>Kurs vs. MA50</td><td><span style="color:{_ma50_col}">{_ma50_pct}</span></td></tr>'
     else:
-        _ma50_row1, _ma50_row2 = "", ""
-    if _ma200 is not None:
-        _ma200_row = f"<tr><td>MA 200T</td><td>${_ma200:.2f}</td></tr>"
+        _ma50_row2 = ""
+    # Kombinierte MA-Zeile (Stammdaten-Block: ein einziger Eintrag statt zwei)
+    if _ma50 is not None and _ma200 is not None:
+        _ma_combined_row = (
+            f"<tr><td>MA 50T / 200T</td>"
+            f"<td>${_ma50:.2f} / ${_ma200:.2f}</td></tr>"
+        )
+    elif _ma50 is not None:
+        _ma_combined_row = f"<tr><td>MA 50T</td><td>${_ma50:.2f}</td></tr>"
+    elif _ma200 is not None:
+        _ma_combined_row = f"<tr><td>MA 200T</td><td>${_ma200:.2f}</td></tr>"
     else:
-        _ma200_row = ""
+        _ma_combined_row = ""
     if _rs20 is not None:
         _rs_col  = "#22c55e" if _rs20 >= 0 else "#ef4444"
         _p20_str = f" (Aktie {_p20:+.1f}%)" if _p20 is not None else ""
@@ -2967,7 +2974,9 @@ def _card(i: int, s: dict) -> str:
         _rs_row  = ""
     sector_rs_row = _sector_rs_row(s)          # Feature 5
     earn_surp_row = _earnings_surprise_html(s) # Feature 3
-    rsi_ma_rows = _rsi_row + _ma50_row1 + _ma200_row + _ma50_row2 + _rs_row + sector_rs_row + earn_surp_row
+    # Volumen & Momentum (RSI + kombinierte MA + Kurs-vs-MA50 + RS-20T + RS-Sektor).
+    # Earnings-Surprise wandert in den Katalysatoren-Block.
+    momentum_rows = _rsi_row + _ma_combined_row + _ma50_row2 + _rs_row + sector_rs_row
 
     # Options market data rows — Feature 4: <0.5 bullisch, 0.5–1.5 neutral, >1.5 bearisch
     _opts     = s.get("options") or {}
@@ -2999,7 +3008,9 @@ def _card(i: int, s: dict) -> str:
         )
     else:
         _iv_row = ""
-    options_rows = _pc_row + _iv_row
+    # Katalysatoren-Block: Earnings-Surprise + Optionsdaten zusammengefasst
+    catalyst_rows = earn_surp_row + _pc_row + _iv_row
+    options_rows  = _pc_row + _iv_row  # legacy v1 placeholder, unused
 
     # Institutional ownership row (+ optional 13F note)
     _inst      = s.get("inst_ownership")
@@ -3168,21 +3179,24 @@ def _card(i: int, s: dict) -> str:
     <div class="detail-table-wrap">
       <table class="detail-table">
         {agent_boost_row}
+        <tr class="detail-group-header"><td colspan="2">Stammdaten</td></tr>
         <tr><td>Marktkapitalisierung</td><td>{fmt_cap(cap_val)}</td></tr>
         {_float_row}
         {sector_detail_row}
         <tr><td>52W-Hoch / -Tief</td><td>${s.get('52w_high') or 0:.2f} / ${s.get('52w_low') or 0:.2f}</td></tr>
-        <tr><td>Ø Volumen 20T</td><td>{s.get('avg_vol_20d',0):,.0f}</td></tr>
-        <tr><td>Heutiges Volumen</td><td>{s.get('cur_vol',0):,.0f}</td></tr>
+        <tr class="detail-group-header"><td colspan="2">Short-Daten</td></tr>
         {edgar_row}
         <tr><td>SI-Trend (3M)</td><td>{trend_html}</td></tr>
         {si_velocity_row}
         <tr><td>Short-Vol. T-1 (FINRA)</td><td>{si_t1_disp}</td></tr>
         <tr><td>Short-Vol. T-2</td><td>{si_t2_disp}</td></tr>
         <tr><td>Short-Vol. T-3</td><td>{si_t3_disp}</td></tr>
-
-        {rsi_ma_rows}
-        {options_rows}
+        <tr class="detail-group-header"><td colspan="2">Volumen &amp; Momentum</td></tr>
+        <tr><td>Ø Volumen 20T</td><td>{s.get('avg_vol_20d',0):,.0f}</td></tr>
+        <tr><td>Heutiges Volumen</td><td>{s.get('cur_vol',0):,.0f}</td></tr>
+        {momentum_rows}
+        <tr class="detail-group-header"><td colspan="2">Katalysatoren</td></tr>
+        {catalyst_rows}
         {_inst_row}
         <tr><td>Risiko-Detail</td><td style="color:{risk_col}">{risk_txt}</td></tr>
       </table>
@@ -3417,14 +3431,21 @@ def _build_card_ctx(i: int, s: dict) -> dict:
         _vs_ma50  = ((price - _ma50) / _ma50 * 100) if _ma50 > 0 else None
         _ma50_col = "#22c55e" if (_vs_ma50 is not None and _vs_ma50 >= 0) else "#ef4444"
         _ma50_pct = f'({_vs_ma50:+.1f}%)' if _vs_ma50 is not None else ""
-        _ma50_row1 = f"<tr><td>MA 50T</td><td>${_ma50:.2f}</td></tr>"
         _ma50_row2 = f'<tr><td>Kurs vs. MA50</td><td><span style="color:{_ma50_col}">{_ma50_pct}</span></td></tr>'
     else:
-        _ma50_row1, _ma50_row2 = "", ""
-    if _ma200 is not None:
-        _ma200_row = f"<tr><td>MA 200T</td><td>${_ma200:.2f}</td></tr>"
+        _ma50_row2 = ""
+    # Kombinierte MA-Zeile (Stammdaten-Block: ein einziger Eintrag statt zwei)
+    if _ma50 is not None and _ma200 is not None:
+        _ma_combined_row = (
+            f"<tr><td>MA 50T / 200T</td>"
+            f"<td>${_ma50:.2f} / ${_ma200:.2f}</td></tr>"
+        )
+    elif _ma50 is not None:
+        _ma_combined_row = f"<tr><td>MA 50T</td><td>${_ma50:.2f}</td></tr>"
+    elif _ma200 is not None:
+        _ma_combined_row = f"<tr><td>MA 200T</td><td>${_ma200:.2f}</td></tr>"
     else:
-        _ma200_row = ""
+        _ma_combined_row = ""
     if _rs20 is not None:
         _rs_col  = "#22c55e" if _rs20 >= 0 else "#ef4444"
         _p20_str = f" (Aktie {_p20:+.1f}%)" if _p20 is not None else ""
@@ -3434,7 +3455,9 @@ def _build_card_ctx(i: int, s: dict) -> dict:
         _rs_row  = ""
     _sector_rs_row_ = _sector_rs_row(s)            # Feature 5
     _earn_surp_row_ = _earnings_surprise_html(s)   # Feature 3
-    rsi_ma_rows = _rsi_row + _ma50_row1 + _ma200_row + _ma50_row2 + _rs_row + _sector_rs_row_ + _earn_surp_row_
+    # Volumen & Momentum (RSI + kombinierte MA + Kurs-vs-MA50 + RS-20T + RS-Sektor).
+    # Earnings-Surprise wandert in den Katalysatoren-Block.
+    momentum_rows = _rsi_row + _ma_combined_row + _ma50_row2 + _rs_row + _sector_rs_row_
 
     # ── Options rows — Feature 4 (<0.5 bullisch, 0.5–1.5 neutral, >1.5 bearisch) ──
     _opts     = s.get("options") or {}
@@ -3466,7 +3489,9 @@ def _build_card_ctx(i: int, s: dict) -> dict:
         )
     else:
         _iv_row = ""
-    options_rows = _pc_row + _iv_row
+    # Katalysatoren-Block: Earnings-Surprise + Optionsdaten zusammengefasst
+    catalyst_rows = _earn_surp_row_ + _pc_row + _iv_row
+    options_rows  = _pc_row + _iv_row  # legacy v1 placeholder, unused
 
     # ── Institutional ownership ──────────────────────────────────────────
     _inst      = s.get("inst_ownership")
@@ -3670,8 +3695,8 @@ def _build_card_ctx(i: int, s: dict) -> dict:
         "below_min_score_html": below_min_score_html,
         "si_velocity_row":      si_velocity_row,
         "trend_html":           trend_html,
-        "rsi_ma_rows":          rsi_ma_rows,
-        "options_rows":         options_rows,
+        "momentum_rows":        momentum_rows,
+        "catalyst_rows":        catalyst_rows,
         "inst_row":             inst_row,
         "ssr_tile_html":        ssr_tile_html,        # Feature 1
         "squeeze_badge_html":   squeeze_badge_html,   # Feature 6
