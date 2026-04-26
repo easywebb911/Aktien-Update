@@ -1,17 +1,17 @@
 {
-  "updated": "2026-04-26T19:08:47.467666+02:00",
+  "updated": "2026-04-26T20:06:30.065662+02:00",
   "run_info": {
     "tickers_checked": 12,
-    "signals_active": 1,
+    "signals_active": 3,
     "alerts_sent": 0,
-    "elapsed_s": 41.7,
+    "elapsed_s": 40.6,
     "market_phase": "Geschlossen"
   },
   "signals": {
     "INDI": {
-      "score": 23,
+      "score": 16,
       "confidence": 33,
-      "drivers": "News: catalyst + Earnings in 11d",
+      "drivers": "News-KI 8/30: Positive fundamental news but no indicators of short squeeze potential (no short interest data, catalyst timing, or vola + Earnings in 11d",
       "price": 3.66,
       "chg_pct": 0.0,
       "rvol": 0.0,
@@ -21,12 +21,12 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 1
+      "active_triggers": 0
     },
     "HRTX": {
-      "score": 33,
-      "confidence": 17,
-      "drivers": "Earnings in 9d + FINRA Short-Vol 74%",
+      "score": 41,
+      "confidence": 33,
+      "drivers": "News-KI 8/30: Positive earnings coverage lacks short squeeze catalysts like high short interest, borrow costs, or forced buying pressu + Earnings in 9d + FINRA Short-Vol 74%",
       "price": 1.19,
       "chg_pct": 0.0,
       "rvol": 0.0,
@@ -69,9 +69,9 @@
       "active_triggers": 0
     },
     "ANAB": {
-      "score": 8,
-      "confidence": 17,
-      "drivers": "Earnings in 9d",
+      "score": 16,
+      "confidence": 33,
+      "drivers": "News-KI 8/30: Positive legal and operational developments, but lacking short interest data, recent short squeeze indicators, and catal + Earnings in 9d",
       "price": 58.88,
       "chg_pct": 0.0,
       "rvol": 0.0,
@@ -99,9 +99,9 @@
       "active_triggers": 1
     },
     "INBX": {
-      "score": 16,
+      "score": 38,
       "confidence": 33,
-      "drivers": "News-KI 8/30: Positive clinical data supports stock movement but lacks the short interest, volatility, and forced-buying catalysts typ + Earnings in 17d",
+      "drivers": "News: catalyst, revenue beat + Earnings in 17d",
       "price": 129.06,
       "chg_pct": 0.0,
       "rvol": 0.0,
@@ -111,12 +111,12 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 0
+      "active_triggers": 1
     },
     "PRLD": {
-      "score": 8,
-      "confidence": 17,
-      "drivers": "Earnings in 17d",
+      "score": 16,
+      "confidence": 33,
+      "drivers": "News-KI 8/30: Positive clinical/leadership news but lacks short squeeze catalysts like high short interest, gamma squeeze potential, o + Earnings in 17d",
       "price": 4.7,
       "chg_pct": 0.0,
       "rvol": 0.0,
