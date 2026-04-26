@@ -1287,16 +1287,21 @@ def compute_signal(
         earnings_days is not None and earnings_days <= 7,
     ])
     if active_triggers >= 4:
+        combo_mult = COMBO_MULT_4
         score = score * COMBO_MULT_4
         drivers.append(f"⚡ Perfect Storm: {active_triggers}/4 Trigger aktiv")
         print(f"{ticker} Perfect-Storm ×{COMBO_MULT_4}: 4/4 Trigger", flush=True)
     elif active_triggers >= 3:
+        combo_mult = COMBO_MULT_3
         score = score * COMBO_MULT_3
         drivers.append(f"{active_triggers}/4 Trigger")
         print(f"{ticker} Combo ×{COMBO_MULT_3}: 3/4 Trigger", flush=True)
     elif active_triggers >= 2:
+        combo_mult = COMBO_MULT_2
         score = score * COMBO_MULT_2
         print(f"{ticker} Combo ×{COMBO_MULT_2}: 2/4 Trigger (silent)", flush=True)
+    else:
+        combo_mult = 1.0
 
     total = min(int(round(score)), 100)
     print(
@@ -1308,7 +1313,10 @@ def compute_signal(
     print(f"{ticker} Konfidenz: {confidence}% ({n_types}/{MAX_SIGNAL_TYPES} Signaltypen aktiv)",
           flush=True)
 
-    return total, drivers, confidence
+    # meta exposes Komponenten/Multiplikatoren für persistente Logging-
+    # Zwecke (backtest_history.json Schema-Erweiterung, Bahn B).
+    meta = {"combo_mult": combo_mult, "active_triggers": active_triggers}
+    return total, drivers, confidence, meta
 
 
 # ── E-Mail-Versand ────────────────────────────────────────────────────────────
@@ -1638,7 +1646,7 @@ def main() -> None:
         # StockTwits Sentiment (öffentliche Read-API, fail-soft)
         stocktwits_data = fetch_stocktwits_sentiment(ticker)
 
-        score, drivers, confidence = compute_signal(
+        score, drivers, confidence, _meta = compute_signal(
             ticker, yfd, news, reddit, has_8k, sec_title,
             earnings_days, fda_days,
             insider=insider, finra_ssr_ratio=finra_ssr_ratio,
@@ -1694,6 +1702,11 @@ def main() -> None:
             "upcoming_event": upcoming_event,
             "insider_buy":    insider.get("count", 0) > 0,
             "stocktwits":     _st_payload,
+            # Bahn B (Schema-Erweiterung): Perfect-Storm-Multiplikator und
+            # Trigger-Anzahl prospektiv loggen, damit der Daily-Report sie
+            # in backtest_history.json mitschreiben kann.
+            "combo_mult":     _meta.get("combo_mult", 1.0),
+            "active_triggers": _meta.get("active_triggers", 0),
         }
 
         if score >= alert_threshold:

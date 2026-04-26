@@ -171,6 +171,84 @@ def _test_fallback_chain():
     print("OK: fallback-chain self-test passed")
 
 
+def _test_extended_schema():
+    """Selbsttest für die backtest_history.json Schema-Erweiterung (Bahn B).
+
+    Aufrufbar via ``python -c
+    'import generate_report as g; g._test_extended_schema()'``.
+
+    Baut zwei synthetische Top-10-Stocks (volle Boni vs. keine Boni) und
+    verifiziert dass alle 14 neuen Felder korrekt im Extension-Dict landen,
+    inklusive Default-Werten.
+    """
+    # Stock 1: alle Boni aktiv
+    full = {
+        "ticker": "TEST", "score": 88.5, "score_raw": 76.3,
+        "price": 5.10, "short_float": 35.0, "short_ratio": 6.0,
+        "rel_volume": 2.5, "change": 3.0, "spx_daily_perf": 0.0,
+        "float_shares": 50_000_000, "rsi14": 55, "ma50": 4.8,
+        "rel_strength_20d": 8.0, "earnings_days": 5, "options": {"pc_ratio": 0.4},
+        "borrow_rate": 60.0, "sec_13f_note": True,
+        "finra_data": {"trend": "up", "trend_pct": 25.0,
+                       "history": [{"short_interest": 600},
+                                   {"short_interest": 700},
+                                   {"short_interest": 800}],
+                       "si_trend_source": "finra"},
+        "agent_boost_pts": 5.0, "agent_boost_factor": 1.10,
+        "score_trend_bonus_pts": 3.0, "finra_bonus_pts": 7.0,
+        "short_float_source": "yfinance",
+    }
+    sigs_full = {"TEST": {"combo_mult": 1.20, "active_triggers": 3}}
+    ext = _build_backtest_extension(full, pool_position=1, pool_size=78,
+                                    agent_signals=sigs_full)
+    expected_keys = {
+        "score_struct","score_catalyst","score_timing","score_raw",
+        "combo_bonus","score_trend_bonus","agent_boost_factor",
+        "perfect_storm_mult","finra_bonus","pool_member","pool_position",
+        "pool_size","short_float_source","si_trend_source",
+    }
+    assert set(ext.keys()) == expected_keys, set(ext.keys()) ^ expected_keys
+    assert ext["score_raw"]          == 76.3, ext
+    assert ext["combo_bonus"]        == float(COMBO_BONUS), ext  # 4/4 Bedingungen
+    assert ext["score_trend_bonus"]  == 3.0, ext
+    assert ext["agent_boost_factor"] == 1.10, ext
+    assert ext["perfect_storm_mult"] == 1.20, ext
+    assert ext["finra_bonus"]        == 7.0, ext
+    assert ext["pool_member"]        is True, ext
+    assert ext["pool_position"]      == 1, ext
+    assert ext["pool_size"]          == 78, ext
+    assert ext["short_float_source"] == "yfinance", ext
+    assert ext["si_trend_source"]    == "finra", ext
+    assert ext["score_struct"]   is not None, ext
+    assert ext["score_catalyst"] is not None, ext
+    assert ext["score_timing"]   is not None, ext
+
+    # Stock 2: keine Boni, fehlende Source-Felder, kein Agent-Signal
+    bare = {
+        "ticker": "BARE", "score": 42.0, "price": 1.5,
+        "short_float": 10.0, "short_ratio": 2.0, "rel_volume": 1.2,
+        "change": 0.5, "float_shares": 200_000_000,
+        "finra_data": {"trend": "no_data", "history": []},
+    }
+    ext2 = _build_backtest_extension(bare, pool_position=10, pool_size=42,
+                                     agent_signals={})
+    # Defaults für inaktive Boni
+    assert ext2["combo_bonus"]        == 0.0, ext2
+    assert ext2["score_trend_bonus"]  == 0.0, ext2
+    assert ext2["agent_boost_factor"] == 1.0, ext2
+    assert ext2["perfect_storm_mult"] == 1.0, ext2
+    assert ext2["finra_bonus"]        == 0.0, ext2
+    # Source-Defaults
+    assert ext2["short_float_source"] == "unknown", ext2
+    assert ext2["si_trend_source"]    == "unknown", ext2
+    # Pool-Kontext bleibt korrekt
+    assert ext2["pool_position"] == 10, ext2
+    assert ext2["pool_size"]     == 42, ext2
+    # score_raw default 0.0 wenn Stock kein score_raw mitführt (Edge-Case)
+    assert ext2["score_raw"] == 0.0, ext2
+    print("OK: extended-schema self-test passed")
+
+
 # ===========================================================================
 # 1. FINVIZ SCREENER
 # ===========================================================================
@@ -2145,8 +2223,9 @@ def apply_agent_boost(stocks: list[dict]) -> None:
         if boost <= 0:
             continue
         s["score"] = new
-        s["agent_boost_pts"]   = boost
-        s["agent_boost_score"] = ag_score
+        s["agent_boost_pts"]    = boost
+        s["agent_boost_score"]  = ag_score
+        s["agent_boost_factor"] = factor
         log.info("  Agent-Boost %s: base=%.2f × %.2f → %.2f (+%.2f, KI-Score %.0f)",
                  s["ticker"], base, factor, new, boost, ag_score)
 
@@ -2164,6 +2243,9 @@ def apply_score_smoothing(stocks: list[dict], today: str) -> None:
     for s in stocks:
         ticker    = s["ticker"]
         today_raw = s["score"]
+        # Pre-smoothing Wert für backtest_history.score_raw aufheben.
+        s["score_raw"] = today_raw
+        s["score_trend_bonus_pts"] = 0.0  # default; wird unten gesetzt falls aktiv
 
         # Past entries (exclude today to avoid double-counting)
         past = sorted(
@@ -2185,8 +2267,10 @@ def apply_score_smoothing(stocks: list[dict], today: str) -> None:
             _tscores = [e["score"] for e in trend_entries]
             if all(_tscores[i] < _tscores[i + 1] for i in range(len(_tscores) - 1)):
                 s["score"] = round(min(s["score"] + SCORE_TREND_BONUS, 100.0), 1)
+                s["score_trend_bonus_pts"] = float(SCORE_TREND_BONUS)
             elif all(_tscores[i] > _tscores[i + 1] for i in range(len(_tscores) - 1)):
                 s["score"] = round(max(s["score"] - SCORE_TREND_MALUS, 0.0), 1)
+                s["score_trend_bonus_pts"] = -float(SCORE_TREND_MALUS)
 
         # Store today's raw score only if it differs from what's already there
         existing = [e for e in history.get(ticker, []) if e.get("date", "") == today]
@@ -6675,17 +6759,77 @@ def _prune_backtest_history(entries: list[dict], max_days: int = None) -> list[d
     return kept
 
 
-def _append_backtest_entries(top10: list[dict], report_date: str) -> None:
+def _build_backtest_extension(s: dict, pool_position: int, pool_size: int,
+                              agent_signals: dict) -> dict:
+    """Liefert das Schema-Erweiterungs-Dict (Bahn B) für einen Top-10-Eintrag.
+
+    Felder, die retroaktiv NICHT rekonstruierbar sind:
+      • Score-Komponenten + roher Pre-Smoothing-Score
+      • Boni-Breakdown (combo, score-trend, agent-boost, perfect-storm, finra)
+      • Pool-Kontext (Position + Größe — pool_member ist immer True für Top-10)
+      • Source-Tracking aus den Fallback-Ketten
+
+    Defaults:
+      • Boni nicht aktiv  → 0.0  (Faktoren default 1.0)
+      • Komponente nicht berechenbar → None  (NICHT 0)
+      • Source unbekannt → "unknown"
+    """
+    sub = _compute_sub_scores(s) if s.get("short_float") is not None else None
+    # Combo-Bonus aus den Bedingungen in score() rekonstruieren — Recompute
+    # statt Refactor des autoritativen score()-Pfads.
+    sf_val = _safe_float(s.get("short_float", 0))
+    sr_val = _safe_float(s.get("short_ratio", 0))
+    rv_val = _safe_float(s.get("rel_volume", 0))
+    fd     = s.get("finra_data") or {}
+    n_combo = sum([
+        sf_val >= 30,
+        sr_val >= 5,
+        rv_val >= 2.0,
+        fd.get("trend") == "up",
+    ])
+    combo_bonus = float(COMBO_BONUS) if n_combo >= 3 else 0.0
+    # Perfect-Storm-Multiplikator: aus agent_signals.json pro Ticker (vom
+    # KI-Agent persistiert in Bahn B). Default 1.0 wenn kein Signal vorhanden.
+    sig = (agent_signals or {}).get(s["ticker"]) or {}
+    return {
+        "score_struct":         sub["struct"]   if sub is not None else None,
+        "score_catalyst":       sub["catalyst"] if sub is not None else None,
+        "score_timing":         sub["timing"]   if sub is not None else None,
+        "score_raw":            round(float(s.get("score_raw") or 0), 2),
+        "combo_bonus":          combo_bonus,
+        "score_trend_bonus":    float(s.get("score_trend_bonus_pts") or 0.0),
+        "agent_boost_factor":   float(s.get("agent_boost_factor") or 1.0),
+        "perfect_storm_mult":   float(sig.get("combo_mult") or 1.0),
+        "finra_bonus":          float(s.get("finra_bonus_pts") or 0.0),
+        "pool_member":          True,
+        "pool_position":        int(pool_position),
+        "pool_size":            int(pool_size),
+        "short_float_source":   s.get("short_float_source") or "unknown",
+        "si_trend_source":      fd.get("si_trend_source") or "unknown",
+    }
+
+
+def _append_backtest_entries(top10: list[dict], report_date: str,
+                             pool_size: int = 0) -> None:
     """Fügt für jeden Top-10-Kandidaten einen neuen Backtest-Eintrag hinzu,
     dedupliziert nach (ticker, date), prunet auf 90 Tage und schreibt die Datei.
     Idempotent: wiederholter Aufruf am gleichen Tag ändert nichts.
+
+    ``pool_size`` ist die Anzahl der enriched Kandidaten BEVOR der Top-10-Cut
+    erfolgt — Kontext für spätere „Pool-Position vs. Return"-Auswertung.
     """
     if not BACKTEST_ENABLED:
         return
     history = _load_backtest_history()
     existing_keys = {(e.get("ticker"), e.get("date")) for e in history}
+    # Agent-Signals einmalig laden (pro-Ticker-Lookup für perfect_storm_mult).
+    try:
+        with open("agent_signals.json", "r", encoding="utf-8") as fh:
+            agent_signals = (json.load(fh) or {}).get("signals") or {}
+    except (FileNotFoundError, json.JSONDecodeError):
+        agent_signals = {}
     n_added = 0
-    for s in top10:
+    for pos, s in enumerate(top10, start=1):
         key = (s["ticker"], report_date)
         if key in existing_keys:
             continue
@@ -6707,6 +6851,12 @@ def _append_backtest_entries(top10: list[dict], report_date: str) -> None:
             "return_5d_t1":  None,
             "return_10d_t1": None,
         }
+        # Bahn B: Schema-Erweiterung (rückwärtskompatibel — alte Einträge
+        # bleiben mit 16 Feldern unverändert; neue bekommen 14 zusätzliche).
+        entry.update(_build_backtest_extension(
+            s, pool_position=pos, pool_size=pool_size,
+            agent_signals=agent_signals,
+        ))
         history.append(entry)
         n_added += 1
     history = _prune_backtest_history(history)
@@ -7352,6 +7502,7 @@ def main():
     # --- Step 3b: FINRA-Trend-Bonus ---
     for s in top10:
         bonus = score_bonus(s)
+        s["finra_bonus_pts"] = float(bonus)  # 0.0 wenn kein Bonus
         if bonus > 0:
             base = s["score"]
             s["score"] = round(min(base + bonus, 100.0), 2)
@@ -7539,7 +7690,7 @@ def main():
     # Backtest-History: pro Top-10-Ticker einen Eintrag anlegen (idempotent,
     # dedupliziert nach ticker+date). Returns werden später vom KI-Agent
     # aktualisiert, sobald 3/5/10 Handelstage vergangen sind.
-    _append_backtest_entries(top10, report_date)
+    _append_backtest_entries(top10, report_date, pool_size=len(enriched))
 
     # --- Step 4: HTML ---
     _t4 = time.time()
