@@ -1,17 +1,17 @@
 {
-  "updated": "2026-04-26T20:06:30.065662+02:00",
+  "updated": "2026-04-26T22:12:54.850770+02:00",
   "run_info": {
     "tickers_checked": 12,
-    "signals_active": 3,
+    "signals_active": 1,
     "alerts_sent": 0,
-    "elapsed_s": 40.6,
+    "elapsed_s": 43.6,
     "market_phase": "Geschlossen"
   },
   "signals": {
     "INDI": {
-      "score": 16,
+      "score": 23,
       "confidence": 33,
-      "drivers": "News-KI 8/30: Positive fundamental news but no indicators of short squeeze potential (no short interest data, catalyst timing, or vola + Earnings in 11d",
+      "drivers": "News: catalyst + Earnings in 11d",
       "price": 3.66,
       "chg_pct": 0.0,
       "rvol": 0.0,
@@ -21,12 +21,12 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 0
+      "active_triggers": 1
     },
     "HRTX": {
-      "score": 41,
-      "confidence": 33,
-      "drivers": "News-KI 8/30: Positive earnings coverage lacks short squeeze catalysts like high short interest, borrow costs, or forced buying pressu + Earnings in 9d + FINRA Short-Vol 74%",
+      "score": 33,
+      "confidence": 17,
+      "drivers": "Earnings in 9d + FINRA Short-Vol 74%",
       "price": 1.19,
       "chg_pct": 0.0,
       "rvol": 0.0,
@@ -69,9 +69,9 @@
       "active_triggers": 0
     },
     "ANAB": {
-      "score": 16,
-      "confidence": 33,
-      "drivers": "News-KI 8/30: Positive legal and operational developments, but lacking short interest data, recent short squeeze indicators, and catal + Earnings in 9d",
+      "score": 8,
+      "confidence": 17,
+      "drivers": "Earnings in 9d",
       "price": 58.88,
       "chg_pct": 0.0,
       "rvol": 0.0,
@@ -82,21 +82,6 @@
       "stocktwits": null,
       "combo_mult": 1.0,
       "active_triggers": 0
-    },
-    "CWH": {
-      "score": 25,
-      "confidence": 17,
-      "drivers": "Earnings in 3 Tagen (29.04.2026) + Earnings in 3d",
-      "price": 7.48,
-      "chg_pct": 0.0,
-      "rvol": 0.0,
-      "earnings": "in 3 Tagen (29.04.2026)",
-      "fda_date": null,
-      "upcoming_event": "Earnings in 3 Tagen (29.04.2026)",
-      "insider_buy": false,
-      "stocktwits": null,
-      "combo_mult": 1.0,
-      "active_triggers": 1
     },
     "INBX": {
       "score": 38,
@@ -113,10 +98,25 @@
       "combo_mult": 1.0,
       "active_triggers": 1
     },
+    "CWH": {
+      "score": 25,
+      "confidence": 17,
+      "drivers": "Earnings in 3 Tagen (29.04.2026) + Earnings in 3d",
+      "price": 7.48,
+      "chg_pct": 0.0,
+      "rvol": 0.0,
+      "earnings": "in 3 Tagen (29.04.2026)",
+      "fda_date": null,
+      "upcoming_event": "Earnings in 3 Tagen (29.04.2026)",
+      "insider_buy": false,
+      "stocktwits": null,
+      "combo_mult": 1.0,
+      "active_triggers": 1
+    },
     "PRLD": {
-      "score": 16,
-      "confidence": 33,
-      "drivers": "News-KI 8/30: Positive clinical/leadership news but lacks short squeeze catalysts like high short interest, gamma squeeze potential, o + Earnings in 17d",
+      "score": 8,
+      "confidence": 17,
+      "drivers": "Earnings in 17d",
       "price": 4.7,
       "chg_pct": 0.0,
       "rvol": 0.0,
@@ -174,9 +174,9 @@
       "active_triggers": 1
     },
     "AMC": {
-      "score": 38,
+      "score": 16,
       "confidence": 33,
-      "drivers": "News: squeeze, short squeeze + Earnings in 10d",
+      "drivers": "News-KI 8/30: Negative sentiment with bearish headlines and comparison to failed squeeze (Avis), indicating weak short-squeeze momentu + Earnings in 10d",
       "price": 1.64,
       "chg_pct": 0.0,
       "rvol": 0.0,
@@ -186,7 +186,7 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 1
+      "active_triggers": 0
     }
   }
 }
