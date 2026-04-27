@@ -1,10 +1,10 @@
 {
-  "updated": "2026-04-27T22:28:31.934573+02:00",
+  "updated": "2026-04-27T22:30:38.955758+02:00",
   "run_info": {
     "tickers_checked": 12,
-    "signals_active": 7,
+    "signals_active": 8,
     "alerts_sent": 0,
-    "elapsed_s": 14.7,
+    "elapsed_s": 11.7,
     "market_phase": "After-Hours"
   },
   "signals": {
@@ -99,9 +99,9 @@
       "active_triggers": 1
     },
     "ANAB": {
-      "score": 16,
+      "score": 20,
       "confidence": 33,
-      "drivers": "News-KI 8/30: Negative earnings outlook, legal disputes with GSK, and modest price surge lack sustained momentum indicators needed for + Earnings in 8d",
+      "drivers": "News-KI 12/30: Negative earnings outlook, legal dispute with GSK, and price surge without fundamental support suggest weak squeeze pote + Earnings in 8d",
       "price": 66.59,
       "chg_pct": 0.0,
       "rvol": 0.0,
@@ -111,7 +111,7 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 0
+      "active_triggers": 1
     },
     "FTRE": {
       "score": 33,
