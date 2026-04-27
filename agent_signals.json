@@ -1,10 +1,10 @@
 {
-  "updated": "2026-04-26T23:58:12.501068+02:00",
+  "updated": "2026-04-27T02:02:46.908516+02:00",
   "run_info": {
     "tickers_checked": 12,
-    "signals_active": 1,
+    "signals_active": 2,
     "alerts_sent": 0,
-    "elapsed_s": 42.9,
+    "elapsed_s": 42.6,
     "market_phase": "Geschlossen"
   },
   "signals": {
@@ -69,9 +69,9 @@
       "active_triggers": 0
     },
     "ANAB": {
-      "score": 8,
-      "confidence": 17,
-      "drivers": "Earnings in 9d",
+      "score": 16,
+      "confidence": 33,
+      "drivers": "News-KI 8/30: Positive legal and corporate news, but lacks high short interest indicators, catalyst urgency, or significant stock mome + Earnings in 9d",
       "price": 58.88,
       "chg_pct": 0.0,
       "rvol": 0.0,
@@ -84,9 +84,9 @@
       "active_triggers": 0
     },
     "INBX": {
-      "score": 16,
+      "score": 38,
       "confidence": 33,
-      "drivers": "News-KI 8/30: Positive clinical data supports stock momentum but lacks short squeeze indicators like high short interest, low float, o + Earnings in 17d",
+      "drivers": "News: catalyst, revenue beat + Earnings in 17d",
       "price": 129.06,
       "chg_pct": 0.0,
       "rvol": 0.0,
@@ -96,7 +96,7 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 0
+      "active_triggers": 1
     },
     "CWH": {
       "score": 25,
@@ -114,9 +114,9 @@
       "active_triggers": 1
     },
     "PRLD": {
-      "score": 20,
-      "confidence": 33,
-      "drivers": "News-KI 12/30: Positive clinical/operational news but lacking short squeeze catalysts like high short interest, low float, or forced bu + Earnings in 17d",
+      "score": 8,
+      "confidence": 17,
+      "drivers": "Earnings in 17d",
       "price": 4.7,
       "chg_pct": 0.0,
       "rvol": 0.0,
@@ -126,7 +126,7 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 1
+      "active_triggers": 0
     },
     "IIPR": {
       "score": 8,
