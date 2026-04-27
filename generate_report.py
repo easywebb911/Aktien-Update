@@ -3974,7 +3974,7 @@ def generate_html_v1(stocks: list[dict], report_date: str, _ctx: dict | None = N
       <button id="btn-reload" class="btn btn-g" onclick="reloadPage()">&#8635; Reload</button>
       <button id="btn-recalc" class="btn btn-b" onclick="triggerWorkflow()">&#9881; Recalculate</button>
       <button id="btn-ki" class="btn btn-ki" onclick="triggerKiAgent()">&#9889; Agent Run</button>
-      <button id="btn-chat" class="btn btn-chat" onclick="toggleChat()">&#x1F4AC; Chat</button>
+      <button id="btn-chat" class="btn btn-chat" onclick="toggleChat()">Chat</button>
       <button id="btn-backtest" class="btn btn-bt" onclick="toggleBacktesting()">Backtesting</button>
     </div>
     <div class="hdr-icons">
@@ -4236,8 +4236,8 @@ def generate_html_v1(stocks: list[dict], report_date: str, _ctx: dict | None = N
       text-transform:uppercase;letter-spacing:.2px}}
     .bt-src-bootstrap{{color:#a78bfa;background:#a78bfa22}}
     .bt-src-daily{{color:#22c55e;background:#22c55e22}}
-    .btn-bt{{background:#7f1d1d;color:#fff}}
-    .btn-bt:hover{{background:#6b1212}}
+    .btn-bt{{background:#1e293b;color:#94a3b8;border:1px solid #334155}}
+    .btn-bt:hover{{background:#334155;color:#e2e8f0}}
     .bt-reco{{margin-top:14px;padding:12px 14px;background:var(--bg-met);
       border:1px solid var(--brd);border-left:3px solid #6366f1;border-radius:6px;
       font-size:.84rem;line-height:1.55;color:var(--txt)}}
