@@ -4753,7 +4753,7 @@ function _btRenderTable(data){{
 }}
 // ── GitHub Actions Config ─────────────────────────────────────────────────
 const GH_OWNER    = 'easywebb911';
-const GH_REPO     = 'Aktien-update';
+const GH_REPO     = 'Aktien-Update';
 const GH_WORKFLOW    = 'daily-squeeze-report.yml';
 const GH_WORKFLOW_KI = 'ki_agent.yml';
 const GH_BRANCH   = 'main';
