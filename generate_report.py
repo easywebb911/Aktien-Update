@@ -7541,8 +7541,8 @@ def main():
 
     # Opt 3 — Parallel news fetching (all 10 tickers × 3 sources concurrently).
     _t_news = time.time()
-    log.info("Step 3 – Fetching news for %d stocks (parallel, max 5 threads) …", len(top10))
-    with ThreadPoolExecutor(max_workers=5) as _news_ex:
+    log.info("Step 3 – Fetching news for %d stocks (parallel, max 13 threads) …", len(top10))
+    with ThreadPoolExecutor(max_workers=13) as _news_ex:
         _news_futures = {_news_ex.submit(get_combined_news, s["ticker"]): s for s in top10}
         for _fut in as_completed(_news_futures):
             _news_futures[_fut]["news"] = _fut.result() or []
