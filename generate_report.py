@@ -4790,7 +4790,7 @@ async function dispatchWorkflow(token){{
   // _pollStart MUSS vor dem Dispatch gesetzt werden, damit der server-
   // seitige created_at des neuen Runs (entsteht *während* des fetch)
   // garantiert >= _pollStart-15000ms ist und vom find()-Predikat erfasst wird.
-  _pollStart = Date.now(); _pollToken = token;
+  _pollStart = Date.now(); _pollToken = token; _noRunPolls = 0;
   console.log(`[Recalculate] _pollStart=${{_pollStart}} (${{new Date(_pollStart).toISOString()}})`);
   try {{
     const r = await fetch(
@@ -4831,7 +4831,7 @@ async function dispatchKiWorkflow(token){{
   const btn = document.getElementById('btn-ki');
   if (btn) {{ btn.disabled=true; btn.innerHTML='&#9889; L\u00e4uft\u2026'; }}
   // _pollStart MUSS vor dem Dispatch gesetzt werden \u2014 siehe dispatchWorkflow.
-  _pollStart = Date.now(); _pollToken = token;
+  _pollStart = Date.now(); _pollToken = token; _noRunPolls = 0;
   console.log(`[KI-Agent] _pollStart=${{_pollStart}} (${{new Date(_pollStart).toISOString()}})`);
   try {{
     const r = await fetch(
@@ -4880,11 +4880,13 @@ function _kiAgentSuccess(){{
 // ── Workflow polling ──────────────────────────────────────────────────────
 const POLL_MS    = 10000;
 const TIMEOUT_MS = 600000;
+const NO_RUN_MAX = 3;
 let _pollStart = null, _pollToken = null, _pollTimer = null;
 let _timeInterval = null;
 let _pendingDispatch = null;
 let _pollWorkflowId = GH_WORKFLOW, _pollRunningLabel = 'Neuberechnung';
 let _pollEnableBtn = null, _pollOnSuccess = null;
+let _noRunPolls = 0;
 function _elapsedStr(){{
   const s = Math.floor((Date.now()-_pollStart)/1000);
   const m = Math.floor(s/60), r = s%60;
@@ -4897,7 +4899,7 @@ function _enableRecalcBtn(){{
   const btn = document.getElementById('btn-recalc');
   btn.disabled=false; btn.innerHTML='&#9881; Recalculate';
 }}
-function _showPollStatus(state){{
+function _showPollStatus(state, msg){{
   const el = document.getElementById('amsg');
   el.style.display='block';
   if (state==='running'){{
@@ -4913,11 +4915,12 @@ function _showPollStatus(state){{
   }} else if (state==='failure'){{
     _stopTimeInterval();
     el.className='amsg amsg-error';
-    el.innerHTML=`<span class="poll-dot poll-dot-err"></span>Workflow fehlgeschlagen — bitte GitHub Actions prüfen.`;
+    el.innerHTML='<span class="poll-dot poll-dot-err"></span>';
+    el.appendChild(document.createTextNode(msg || 'Workflow fehlgeschlagen — bitte GitHub Actions prüfen.'));
   }} else if (state==='timeout'){{
     _stopTimeInterval();
     el.className='amsg amsg-error';
-    el.textContent='Zeitüberschreitung — bitte Seite manuell neu laden.';
+    el.textContent = msg || 'Zeitüberschreitung — bitte Seite manuell neu laden.';
   }}
 }}
 const CD_SECS = 30;
@@ -4965,10 +4968,15 @@ async function _doPoll(){{
       {{headers:{{'Authorization':`Bearer ${{_pollToken}}`,'Accept':'application/vnd.github+json','X-GitHub-Api-Version':'2022-11-28'}}}}
     );
     console.log(`[Poll] HTTP ${{res.status}} elapsed=${{_elapsedS}}s workflow=${{_pollWorkflowId}}`);
-    if (!res.ok) {{
+    if (res.status !== 200) {{
       const _errBody = await res.text().catch(()=>'');
-      console.log(`[Poll] !res.ok body:`, _errBody.slice(0,200));
-      _pollTimer=setTimeout(_doPoll,POLL_MS); return;
+      console.log(`[Poll] !ok body:`, _errBody.slice(0,200));
+      const _hint = (res.status===401||res.status===403) ? ' (Token-Scope?)'
+                  : (res.status===429) ? ' (Rate-Limit)'
+                  : '';
+      _showPollStatus('failure', `Polling-Fehler: HTTP ${{res.status}}${{_hint}}`);
+      if(_pollEnableBtn)_pollEnableBtn();
+      return;
     }}
     const data = await res.json();
     const _runs = data.workflow_runs||[];
@@ -4980,17 +4988,30 @@ async function _doPoll(){{
     console.log(`[Poll] ${{_runs.length}} runs zurück (threshold=_pollStart-15s):`, _runDump);
     const run = _runs.find(w=>new Date(w.created_at).getTime()>=_threshold);
     console.log(`[Poll] find() →`, run ? `id=${{run.id}} status=${{run.status}} conclusion=${{run.conclusion}}` : '(keiner — Run noch nicht erschienen oder zu alt)');
-    if (!run) {{ _pollTimer=setTimeout(_doPoll,POLL_MS); return; }}
+    if (!run) {{
+      _noRunPolls++;
+      console.log(`[Poll] kein Run gefunden — Versuch ${{_noRunPolls}}/${{NO_RUN_MAX}}`);
+      if (_noRunPolls >= NO_RUN_MAX) {{
+        _showPollStatus('failure', `Kein Workflow-Run nach ${{_noRunPolls}} Versuchen gefunden`);
+        if(_pollEnableBtn)_pollEnableBtn();
+        return;
+      }}
+      _pollTimer=setTimeout(_doPoll,POLL_MS); return;
+    }}
     if (run.status==='completed'){{
       console.log(`[Poll] Run ${{run.id}} completed — conclusion=${{run.conclusion}} → ${{run.conclusion==='success'?'success path':'failure path'}}`);
       if (run.conclusion==='success') {{ _stopTimeInterval(); if(_pollOnSuccess)_pollOnSuccess(); }}
-      else {{ _showPollStatus('failure'); if(_pollEnableBtn)_pollEnableBtn(); }}
+      else {{
+        _showPollStatus('failure', `Workflow fehlgeschlagen: ${{run.conclusion}}`);
+        if(_pollEnableBtn)_pollEnableBtn();
+      }}
     }} else {{
       _pollTimer=setTimeout(_doPoll,POLL_MS);
     }}
   }} catch(e) {{
     console.log(`[Poll] Exception (elapsed ${{_elapsedS}}s):`, e.message);
-    _pollTimer=setTimeout(_doPoll,POLL_MS);
+    _showPollStatus('failure', `Polling-Exception: ${{e.message}}`);
+    if(_pollEnableBtn)_pollEnableBtn();
   }}
 }}
 function resetToken(){{
