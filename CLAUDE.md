@@ -1,5 +1,10 @@
 # Entwicklungsregeln — Aktien-Update
 
+## Git-Workflow
+- Commits immer direkt auf `main`
+- Niemals einen neuen Branch erstellen, außer explizit angewiesen
+- Kein Pull Request, kein Branch-Umweg
+
 ## generate_report.py — Template-Sicherheitsregel
 
 **Die gesamte HTML/JS-Sektion in `generate_report.py` ist ein Python-f-String.**
