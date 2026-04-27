@@ -1,10 +1,10 @@
 {
-  "updated": "2026-04-27T22:30:38.955758+02:00",
+  "updated": "2026-04-27T22:34:37.034019+02:00",
   "run_info": {
     "tickers_checked": 12,
     "signals_active": 8,
     "alerts_sent": 0,
-    "elapsed_s": 11.7,
+    "elapsed_s": 10.7,
     "market_phase": "After-Hours"
   },
   "signals": {
@@ -41,7 +41,7 @@
     "GRPN": {
       "score": 38,
       "confidence": 33,
-      "drivers": "News: squeeze, short squeeze + Earnings in 10d",
+      "drivers": "News: short squeeze, squeeze + Earnings in 10d",
       "price": 14.96,
       "chg_pct": 0.0,
       "rvol": 0.0,
@@ -101,7 +101,7 @@
     "ANAB": {
       "score": 20,
       "confidence": 33,
-      "drivers": "News-KI 12/30: Negative earnings outlook, legal dispute with GSK, and price surge without fundamental support suggest weak squeeze pote + Earnings in 8d",
+      "drivers": "News-KI 12/30: Negative earnings expectations, legal disputes, and isolated price spike without sustained momentum indicate weak short- + Earnings in 8d",
       "price": 66.59,
       "chg_pct": 0.0,
       "rvol": 0.0,
@@ -176,7 +176,7 @@
     "AMC": {
       "score": 38,
       "confidence": 33,
-      "drivers": "News: squeeze, short squeeze + Earnings in 9d",
+      "drivers": "News: short squeeze, squeeze + Earnings in 9d",
       "price": 1.65,
       "chg_pct": 0.0,
       "rvol": 0.0,
