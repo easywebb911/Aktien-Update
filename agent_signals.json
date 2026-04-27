@@ -1,10 +1,10 @@
 {
-  "updated": "2026-04-27T22:34:37.034019+02:00",
+  "updated": "2026-04-27T23:37:37.311255+02:00",
   "run_info": {
     "tickers_checked": 12,
-    "signals_active": 8,
+    "signals_active": 9,
     "alerts_sent": 0,
-    "elapsed_s": 10.7,
+    "elapsed_s": 10.8,
     "market_phase": "After-Hours"
   },
   "signals": {
@@ -26,7 +26,7 @@
     "LENZ": {
       "score": 33,
       "confidence": 17,
-      "drivers": "Earnings in 9d + FINRA Short-Vol 99%",
+      "drivers": "Earnings in 9d + FINRA Short-Vol 100%",
       "price": 9.76,
       "chg_pct": 0.0,
       "rvol": 0.0,
@@ -86,7 +86,7 @@
     "WBTN": {
       "score": 48,
       "confidence": 33,
-      "drivers": "News: partnership + Earnings in 18d + FINRA Short-Vol 80%",
+      "drivers": "News: partnership + Earnings in 18d + FINRA Short-Vol 96%",
       "price": 11.83,
       "chg_pct": 0.0,
       "rvol": 0.0,
@@ -99,9 +99,9 @@
       "active_triggers": 1
     },
     "ANAB": {
-      "score": 20,
+      "score": 38,
       "confidence": 33,
-      "drivers": "News-KI 12/30: Negative earnings expectations, legal disputes, and isolated price spike without sustained momentum indicate weak short- + Earnings in 8d",
+      "drivers": "News: contract, partnership + Earnings in 8d",
       "price": 66.59,
       "chg_pct": 0.0,
       "rvol": 0.0,
@@ -116,7 +116,7 @@
     "FTRE": {
       "score": 33,
       "confidence": 17,
-      "drivers": "Earnings in 8d + FINRA Short-Vol 85%",
+      "drivers": "Earnings in 8d + FINRA Short-Vol 100%",
       "price": 10.6,
       "chg_pct": 0.0,
       "rvol": 0.0,
@@ -144,9 +144,9 @@
       "active_triggers": 0
     },
     "OMER": {
-      "score": 8,
-      "confidence": 17,
-      "drivers": "Earnings in 17d",
+      "score": 20,
+      "confidence": 33,
+      "drivers": "News-KI 12/30: Positive momentum headlines but no short squeeze indicators like high short interest, low float, or forced covering cata + Earnings in 17d",
       "price": 14.74,
       "chg_pct": 0.0,
       "rvol": 0.0,
@@ -156,7 +156,7 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 0
+      "active_triggers": 1
     },
     "CWH": {
       "score": 25,
