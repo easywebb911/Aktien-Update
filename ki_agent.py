@@ -30,7 +30,7 @@ import re
 import smtplib
 import time
 import xml.etree.ElementTree as ET
-from concurrent.futures import ThreadPoolExecutor
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime, time as dt_time, timedelta, timezone
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
@@ -1505,6 +1505,270 @@ def send_daily_summary(
 
 # ── Hauptlogik ────────────────────────────────────────────────────────────────
 
+def _process_ticker(ticker: str, shared: dict) -> dict:
+    """Berechnet Signal + Alert-Daten für einen Ticker.
+
+    Reine Funktion ohne Schreibzugriffe auf shared state. ``shared`` ist ein
+    read-only Bündel mit ``yf_batch``, ``fda_calendar``, ``finra_ssr_data``,
+    ``today_et``, ``old_sigs``, ``phase``, ``alert_threshold``.
+
+    Wird von der parallelen Ticker-Verarbeitung in ``main()`` aufgerufen.
+    Alle Counter-Updates und Alert-Versand passieren post-pool sequenziell.
+    """
+    yf_batch       = shared["yf_batch"]
+    fda_calendar   = shared["fda_calendar"]
+    finra_ssr_data = shared["finra_ssr_data"]
+    today_et       = shared["today_et"]
+    old_sigs       = shared["old_sigs"]
+
+    log.info("Prüfe %s …", ticker)
+    yfd = yf_batch.get(ticker, {})
+    if not yfd:
+        log.debug("  Keine yfinance-Daten für %s", ticker)
+
+    yahoo_news  = fetch_yahoo_news(ticker)
+    base        = ticker.split(".")[0]
+    finviz_news = fetch_rss_news("https://finviz.com/rss.ashx?t={ticker}", ticker)
+    google_news = fetch_rss_news(
+        "https://news.google.com/rss/search?q={ticker}+stock&hl=en-US&gl=US&ceid=US:en",
+        base,
+    )
+    uw_news = fetch_rss_news("https://unusualwhales.com/rss/ticker/{ticker}", base)
+    mb_news = fetch_rss_news("https://www.marketbeat.com/stocks/NASDAQ/{ticker}/rss/", base)
+    sa_news = fetch_rss_news("https://seekingalpha.com/api/sa/combined/{ticker}.xml", base)
+    news = yahoo_news + finviz_news + google_news + uw_news + mb_news + sa_news
+    print(f"{ticker} Quellen: Yahoo={len(yahoo_news)}, Google={len(google_news)}, "
+          f"UnusualWhales={len(uw_news)}, MarketBeat={len(mb_news)}, "
+          f"SeekingAlpha={len(sa_news)}", flush=True)
+
+    reddit: dict = {"count": 0, "sentiment": 0.0}
+    reddit_ok = True
+    reddit_blocked = False
+    try:
+        reddit = fetch_reddit_mentions(ticker)
+        if reddit.get("blocked"):
+            reddit_blocked = True
+    except Exception as exc:
+        log.debug("Reddit Fehler %s: %s", ticker, exc)
+        reddit_ok = False
+
+    has_8k    = False
+    sec_title = ""
+    sec_8k_dt: datetime | None = None
+    sec_ok    = True
+    sec_rel_hit = False
+    is_us     = "." not in ticker
+    if is_us:
+        try:
+            has_8k, sec_title, sec_8k_dt = fetch_sec_8k(ticker)
+            if has_8k:
+                title_lower = sec_title.lower()
+                if any(kw in title_lower for kw in SEC_RELEVANT_KEYWORDS):
+                    sec_rel_hit = True
+        except Exception as exc:
+            log.debug("SEC Fehler %s: %s", ticker, exc)
+            sec_ok = False
+
+    insider: dict = {"count": 0, "csuite": False}
+    if is_us:
+        try:
+            insider = fetch_openinsider(ticker)
+        except Exception as exc:
+            log.debug("OpenInsider Fehler %s: %s", ticker, exc)
+
+    base_sym        = ticker.split(".")[0].upper()
+    finra_ssr_ratio = finra_ssr_data.get(base_sym, 0.0)
+
+    has_form4   = False
+    form4_title = ""
+    if is_us:
+        try:
+            has_form4, form4_title = fetch_sec_form4(ticker)
+        except Exception as exc:
+            log.debug("Form 4 Fehler %s: %s", ticker, exc)
+
+    earnings_days: int | None = None
+    earnings_date_str: str | None = None
+    try:
+        earnings_days, earnings_date_str = fetch_earnings_date(ticker)
+    except Exception as exc:
+        log.debug("Earnings Fehler %s: %s", ticker, exc)
+
+    fda_days: int | None = None
+    fda_date_str: str | None = None
+    base_ticker = ticker.split(".")[0].upper()
+    if base_ticker in fda_calendar:
+        try:
+            fda_iso  = fda_calendar[base_ticker]
+            fda_date = datetime.strptime(fda_iso, "%Y-%m-%d").date()
+            fda_days = (fda_date - today_et).days
+            fda_date_str = fda_date.strftime("%d.%m.%Y")
+        except Exception as exc:
+            log.debug("FDA-Datum Parse %s: %s", ticker, exc)
+
+    stocktwits_data = fetch_stocktwits_sentiment(ticker)
+
+    score, drivers, confidence, _meta = compute_signal(
+        ticker, yfd, news, reddit, has_8k, sec_title,
+        earnings_days, fda_days,
+        insider=insider, finra_ssr_ratio=finra_ssr_ratio,
+        has_form4=has_form4, form4_title=form4_title,
+        stocktwits=stocktwits_data,
+        prev_rvol=float(old_sigs.get(ticker, {}).get("rvol", 0) or 0),
+    )
+    n_active_types = sum([
+        any(d.startswith("Kurs") for d in drivers),
+        any(d.startswith("Volumen") for d in drivers),
+        any(d.startswith("Spanne") for d in drivers),
+        any(d.startswith("Reddit") for d in drivers),
+        any(d.startswith(("News", "SEC 8-K")) for d in drivers),
+        any(d.startswith(("Earnings", "FDA", "Insider", "C-Suite", "FINRA", "SEC Form")) for d in drivers),
+    ])
+    log.info("  %s Score=%d Konfidenz=%d%% Treiber=%s",
+             ticker, score, confidence, " | ".join(drivers))
+
+    upcoming_event: str | None = None
+    if earnings_days is not None and earnings_days <= 7 and earnings_date_str:
+        upcoming_event = f"Earnings in {earnings_days} Tagen ({earnings_date_str})"
+    elif fda_days is not None and 0 <= fda_days <= 7 and fda_date_str:
+        upcoming_event = f"FDA PDUFA in {fda_days} Tagen ({fda_date_str})"
+
+    drivers_with_event = (
+        [upcoming_event] + drivers if upcoming_event else drivers
+    )
+
+    _st_payload = None
+    if stocktwits_data and stocktwits_data.get("n_total", 0) >= 3:
+        _st_payload = {
+            "bull_ratio": stocktwits_data.get("bull_ratio"),
+            "msg_per_h":  stocktwits_data.get("msg_per_h", 0),
+            "n_total":    stocktwits_data.get("n_total", 0),
+            "pts":        _stocktwits_pts(stocktwits_data),
+        }
+
+    signal = {
+        "score":          score,
+        "confidence":     confidence,
+        "drivers":        " + ".join(drivers_with_event) if drivers_with_event else "",
+        "price":          yfd.get("price", 0.0),
+        "chg_pct":        yfd.get("chg_pct", 0.0),
+        "rvol":           yfd.get("rvol", 0.0),
+        "earnings":       (f"in {earnings_days} Tagen ({earnings_date_str})"
+                           if earnings_days is not None else None),
+        "fda_date":       (f"PDUFA {fda_date_str}"
+                           if fda_date_str else None),
+        "upcoming_event": upcoming_event,
+        "insider_buy":    insider.get("count", 0) > 0,
+        "stocktwits":     _st_payload,
+        "combo_mult":     _meta.get("combo_mult", 1.0),
+        "active_triggers": _meta.get("active_triggers", 0),
+    }
+
+    flags = {
+        "reddit_ok":     reddit_ok,
+        "reddit_blocked": reddit_blocked,
+        "sec_ok":        sec_ok,
+        "earnings_hit":  earnings_days is not None and earnings_days <= EARNINGS_FAR_DAYS,
+        "fda_hit":       fda_days is not None and 0 <= fda_days <= 30,
+        "sec_rel_hit":   sec_rel_hit,
+        "insider_hit":   insider.get("count", 0) > 0,
+        "finra_ssr_hit": finra_ssr_ratio >= FINRA_DAILY_SSR_MID,
+        "form4_hit":     has_form4,
+    }
+
+    return {
+        "ticker":         ticker,
+        "signal":         signal,
+        "score":          score,
+        "drivers":        drivers,
+        "confidence":     confidence,
+        "n_active_types": n_active_types,
+        "yfd":            yfd,
+        "reddit":         reddit,
+        "insider":        insider,
+        "news":           news,
+        "has_8k":         has_8k,
+        "sec_title":      sec_title,
+        "sec_8k_dt":      sec_8k_dt,
+        "earnings_days":  earnings_days,
+        "earnings_date_str": earnings_date_str,
+        "fda_days":       fda_days,
+        "fda_date_str":   fda_date_str,
+        "upcoming_event": upcoming_event,
+        "flags":          flags,
+    }
+
+
+def _test_process_ticker_isolation() -> None:
+    """Selbsttest: zwei Ticker werden parallel verarbeitet ohne Cross-Talk.
+
+    Aufruf::
+
+        python -c 'import ki_agent as k; k._test_process_ticker_isolation()'
+
+    Stubt alle externen Calls per ``unittest.mock.patch`` und führt zwei
+    ``_process_ticker``-Aufrufe in einem 2-Worker-Pool gleichzeitig aus.
+    """
+    from unittest.mock import patch
+
+    shared = {
+        "yf_batch":       {"AAA": {"price": 10.0, "chg_pct": 5.0, "rvol": 2.0},
+                            "BBB": {"price": 20.0, "chg_pct": -3.0, "rvol": 1.5}},
+        "fda_calendar":   {},
+        "finra_ssr_data": {"AAA": 0.4, "BBB": 0.6},
+        "today_et":       datetime.now(EASTERN).date(),
+        "old_sigs":       {},
+        "phase":          "Trading",
+        "alert_threshold": 999,  # niemals Alert in Test
+    }
+
+    def _per_ticker_news(t):
+        return [f"{t}-news-1", f"{t}-news-2"]
+    def _per_ticker_rss(url, t, max_results=5):
+        return [f"{t}-rss-{url[:10]}"]
+    def _per_ticker_reddit(t):
+        return {"count": 1, "sentiment": 0.1, "blocked": False}
+    def _per_ticker_sec_8k(t):
+        return False, "", None
+    def _per_ticker_insider(t):
+        return {"count": 0, "csuite": False}
+    def _per_ticker_form4(t):
+        return False, ""
+    def _per_ticker_earnings(t):
+        return None, None
+    def _per_ticker_stocktwits(t):
+        return {"n_total": 0}
+    def _per_ticker_signal(t, *args, **kwargs):
+        # Score baut auf Ticker auf, damit Cross-Talk erkennbar wäre.
+        score = 50 if t == "AAA" else 30
+        return score, [f"{t}-driver"], 60, {"combo_mult": 1.0, "active_triggers": 1}
+
+    with patch.object(__import__("ki_agent"), "fetch_yahoo_news", _per_ticker_news), \
+         patch.object(__import__("ki_agent"), "fetch_rss_news", _per_ticker_rss), \
+         patch.object(__import__("ki_agent"), "fetch_reddit_mentions", _per_ticker_reddit), \
+         patch.object(__import__("ki_agent"), "fetch_sec_8k", _per_ticker_sec_8k), \
+         patch.object(__import__("ki_agent"), "fetch_openinsider", _per_ticker_insider), \
+         patch.object(__import__("ki_agent"), "fetch_sec_form4", _per_ticker_form4), \
+         patch.object(__import__("ki_agent"), "fetch_earnings_date", _per_ticker_earnings), \
+         patch.object(__import__("ki_agent"), "fetch_stocktwits_sentiment", _per_ticker_stocktwits), \
+         patch.object(__import__("ki_agent"), "compute_signal", _per_ticker_signal):
+        with ThreadPoolExecutor(max_workers=2) as ex:
+            futs = {ex.submit(_process_ticker, t, shared): t for t in ["AAA", "BBB"]}
+            results = {}
+            for f in as_completed(futs):
+                t = futs[f]
+                results[t] = f.result()
+
+    assert "AAA" in results and "BBB" in results, "beide Ticker müssen Result haben"
+    assert results["AAA"]["ticker"] == "AAA", "Ticker-Identität AAA korrupt"
+    assert results["BBB"]["ticker"] == "BBB", "Ticker-Identität BBB korrupt"
+    assert results["AAA"]["score"] == 50, f"AAA score erwartet 50, erhalten {results['AAA']['score']}"
+    assert results["BBB"]["score"] == 30, f"BBB score erwartet 30, erhalten {results['BBB']['score']}"
+    assert results["AAA"]["yfd"]["price"] == 10.0, "AAA yfd-Daten korrupt"
+    assert results["BBB"]["yfd"]["price"] == 20.0, "BBB yfd-Daten korrupt"
+    print("OK: _process_ticker isoliert pro Ticker, kein Cross-Talk.")
+
+
 def main() -> None:
     t_start = time.time()
     phase            = get_market_phase()
@@ -1546,173 +1810,69 @@ def main() -> None:
     n_finra_ssr  = 0
     n_form4      = 0
 
-    for ticker in tickers:
-        log.info("Prüfe %s …", ticker)
-        yfd = yf_batch.get(ticker, {})
-        if not yfd:
-            log.debug("  Keine yfinance-Daten für %s", ticker)
+    shared = {
+        "yf_batch":        yf_batch,
+        "fda_calendar":    fda_calendar,
+        "finra_ssr_data":  finra_ssr_data,
+        "today_et":        today_et,
+        "old_sigs":        old_sigs,
+        "phase":           phase,
+        "alert_threshold": alert_threshold,
+    }
 
-        yahoo_news  = fetch_yahoo_news(ticker)
-        base        = ticker.split(".")[0]
-        finviz_news = fetch_rss_news("https://finviz.com/rss.ashx?t={ticker}", ticker)
-        google_news = fetch_rss_news(
-            "https://news.google.com/rss/search?q={ticker}+stock&hl=en-US&gl=US&ceid=US:en",
-            base,
-        )
-        uw_news = fetch_rss_news("https://unusualwhales.com/rss/ticker/{ticker}", base)
-        mb_news = fetch_rss_news("https://www.marketbeat.com/stocks/NASDAQ/{ticker}/rss/", base)
-        sa_news = fetch_rss_news("https://seekingalpha.com/api/sa/combined/{ticker}.xml", base)
-        news = yahoo_news + finviz_news + google_news + uw_news + mb_news + sa_news
-        print(f"{ticker} Quellen: Yahoo={len(yahoo_news)}, Google={len(google_news)}, "
-              f"UnusualWhales={len(uw_news)}, MarketBeat={len(mb_news)}, "
-              f"SeekingAlpha={len(sa_news)}", flush=True)
-
-        reddit: dict = {"count": 0, "sentiment": 0.0}
-        try:
-            reddit = fetch_reddit_mentions(ticker)
-            if reddit.get("blocked"):
-                reddit_blocked = True
-        except Exception as exc:
-            log.debug("Reddit Fehler %s: %s", ticker, exc)
-            reddit_ok = False
-
-        has_8k    = False
-        sec_title = ""
-        sec_8k_dt: datetime | None = None
-        is_us     = "." not in ticker
-        if is_us:
+    _t_pool = time.time()
+    results: dict[str, dict] = {}
+    with ThreadPoolExecutor(max_workers=8) as executor:
+        futures = {executor.submit(_process_ticker, t, shared): t for t in tickers}
+        for future in as_completed(futures):
+            t = futures[future]
             try:
-                has_8k, sec_title, sec_8k_dt = fetch_sec_8k(ticker)
-                if has_8k:
-                    title_lower = sec_title.lower()
-                    if any(kw in title_lower for kw in SEC_RELEVANT_KEYWORDS):
-                        n_sec_rel += 1
+                results[t] = future.result()
             except Exception as exc:
-                log.debug("SEC Fehler %s: %s", ticker, exc)
-                sec_ok = False
+                log.warning("Ticker %s fehlgeschlagen: %s", t, exc)
+    log.info("KI-Agent parallelisiert: %d Ticker in %.1fs (max_workers=8)",
+             len(tickers), time.time() - _t_pool)
 
-        # OpenInsider — Insider-Käufe
-        insider: dict = {"count": 0, "csuite": False}
-        if is_us:
-            try:
-                insider = fetch_openinsider(ticker)
-                if insider.get("count", 0) > 0:
-                    n_insider += 1
-            except Exception as exc:
-                log.debug("OpenInsider Fehler %s: %s", ticker, exc)
-
-        # FINRA Daily Short Volume
-        base_sym        = ticker.split(".")[0].upper()
-        finra_ssr_ratio = finra_ssr_data.get(base_sym, 0.0)
-        if finra_ssr_ratio >= FINRA_DAILY_SSR_MID:
-            n_finra_ssr += 1
-
-        # SEC Form 4 — Insider-Transaktionen
-        has_form4   = False
-        form4_title = ""
-        if is_us:
-            try:
-                has_form4, form4_title = fetch_sec_form4(ticker)
-                if has_form4:
-                    n_form4 += 1
-            except Exception as exc:
-                log.debug("Form 4 Fehler %s: %s", ticker, exc)
-
-        # Earnings-Datum
-        earnings_days: int | None = None
-        earnings_date_str: str | None = None
-        try:
-            earnings_days, earnings_date_str = fetch_earnings_date(ticker)
-            if earnings_days is not None and earnings_days <= EARNINGS_FAR_DAYS:
-                n_earnings += 1
-        except Exception as exc:
-            log.debug("Earnings Fehler %s: %s", ticker, exc)
-
-        # FDA PDUFA-Datum aus Kalender
-        fda_days: int | None = None
-        fda_date_str: str | None = None
-        base_ticker = ticker.split(".")[0].upper()
-        if base_ticker in fda_calendar:
-            try:
-                fda_iso  = fda_calendar[base_ticker]
-                fda_date = datetime.strptime(fda_iso, "%Y-%m-%d").date()
-                fda_days = (fda_date - today_et).days
-                fda_date_str = fda_date.strftime("%d.%m.%Y")
-                if 0 <= fda_days <= 30:
-                    n_fda += 1
-            except Exception as exc:
-                log.debug("FDA-Datum Parse %s: %s", ticker, exc)
-
-        # StockTwits Sentiment (öffentliche Read-API, fail-soft)
-        stocktwits_data = fetch_stocktwits_sentiment(ticker)
-
-        score, drivers, confidence, _meta = compute_signal(
-            ticker, yfd, news, reddit, has_8k, sec_title,
-            earnings_days, fda_days,
-            insider=insider, finra_ssr_ratio=finra_ssr_ratio,
-            has_form4=has_form4, form4_title=form4_title,
-            stocktwits=stocktwits_data,
-            prev_rvol=float(old_sigs.get(ticker, {}).get("rvol", 0) or 0),
-        )
-        n_active_types = sum([
-            any(d.startswith("Kurs") for d in drivers),
-            any(d.startswith("Volumen") for d in drivers),
-            any(d.startswith("Spanne") for d in drivers),
-            any(d.startswith("Reddit") for d in drivers),
-            any(d.startswith(("News", "SEC 8-K")) for d in drivers),
-            any(d.startswith(("Earnings", "FDA", "Insider", "C-Suite", "FINRA", "SEC Form")) for d in drivers),
-        ])
-        log.info("  %s Score=%d Konfidenz=%d%% Treiber=%s",
-                 ticker, score, confidence, " | ".join(drivers))
-
-        # upcoming_event: nächster Termin ≤ 7 Tage (Earnings vor FDA)
-        upcoming_event: str | None = None
-        if earnings_days is not None and earnings_days <= 7 and earnings_date_str:
-            upcoming_event = f"Earnings in {earnings_days} Tagen ({earnings_date_str})"
-        elif fda_days is not None and 0 <= fda_days <= 7 and fda_date_str:
-            upcoming_event = f"FDA PDUFA in {fda_days} Tagen ({fda_date_str})"
-
-        # Termin-Hinweis als erster Treiber im Tooltip
-        drivers_with_event = (
-            [upcoming_event] + drivers if upcoming_event else drivers
-        )
-
-        # StockTwits — nur wenn aussagekräftige Stichprobe (≥ 3 sentiment-tagged
-        # Messages); sonst null, damit Frontend einfach `if (sig.stocktwits)` prüft.
-        _st_payload = None
-        if stocktwits_data and stocktwits_data.get("n_total", 0) >= 3:
-            _st_payload = {
-                "bull_ratio": stocktwits_data.get("bull_ratio"),
-                "msg_per_h":  stocktwits_data.get("msg_per_h", 0),
-                "n_total":    stocktwits_data.get("n_total", 0),
-                "pts":        _stocktwits_pts(stocktwits_data),
-            }
-
-        new_signals[ticker] = {
-            "score":          score,
-            "confidence":     confidence,
-            "drivers":        " + ".join(drivers_with_event) if drivers_with_event else "",
-            "price":          yfd.get("price", 0.0),
-            "chg_pct":        yfd.get("chg_pct", 0.0),
-            "rvol":           yfd.get("rvol", 0.0),
-            "earnings":       (f"in {earnings_days} Tagen ({earnings_date_str})"
-                               if earnings_days is not None else None),
-            "fda_date":       (f"PDUFA {fda_date_str}"
-                               if fda_date_str else None),
-            "upcoming_event": upcoming_event,
-            "insider_buy":    insider.get("count", 0) > 0,
-            "stocktwits":     _st_payload,
-            # Bahn B (Schema-Erweiterung): Perfect-Storm-Multiplikator und
-            # Trigger-Anzahl prospektiv loggen, damit der Daily-Report sie
-            # in backtest_history.json mitschreiben kann.
-            "combo_mult":     _meta.get("combo_mult", 1.0),
-            "active_triggers": _meta.get("active_triggers", 0),
-        }
-
-        if score >= alert_threshold:
+    # Counter und new_signals aus den Worker-Ergebnissen aggregieren.
+    for t in tickers:
+        r = results.get(t)
+        if not r:
+            continue
+        new_signals[t] = r["signal"]
+        flags = r["flags"]
+        if not flags["reddit_ok"]:    reddit_ok = False
+        if flags["reddit_blocked"]:   reddit_blocked = True
+        if not flags["sec_ok"]:       sec_ok = False
+        if flags["earnings_hit"]:     n_earnings  += 1
+        if flags["fda_hit"]:          n_fda       += 1
+        if flags["sec_rel_hit"]:      n_sec_rel   += 1
+        if flags["insider_hit"]:      n_insider   += 1
+        if flags["finra_ssr_hit"]:    n_finra_ssr += 1
+        if flags["form4_hit"]:        n_form4     += 1
+        if r["score"] >= alert_threshold:
             n_signals += 1
 
-        # Fix 3 — Earnings-Sofort-Alert (After-Hours, Earnings in 0–1 Tagen)
+    # Alerts sequenziell in Original-Ticker-Reihenfolge versenden — die SMTP-
+    # Verbindung pro send_alert() ist isoliert, aber Gmail rate-limit'et
+    # parallele Logins; sequenziell ist robuster. set_cooldown mutiert state,
+    # dieser Block ist single-threaded.
+    for ticker in tickers:
+        r = results.get(ticker)
+        if not r:
+            continue
+        score          = r["score"]
+        drivers        = r["drivers"]
+        confidence     = r["confidence"]
+        n_active_types = r["n_active_types"]
+        yfd            = r["yfd"]
+        reddit         = r["reddit"]
+        insider        = r["insider"]
+        news           = r["news"]
+        has_8k         = r["has_8k"]
+        sec_8k_dt      = r["sec_8k_dt"]
+        earnings_days  = r["earnings_days"]
+        upcoming_event = r["upcoming_event"]
+
         earnings_immediate = False
         if (EARNINGS_IMMEDIATE_ALERT
                 and phase == "After-Hours"
