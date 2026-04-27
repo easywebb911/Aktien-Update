@@ -1,10 +1,10 @@
 {
-  "updated": "2026-04-27T22:22:22.711562+02:00",
+  "updated": "2026-04-27T22:28:31.934573+02:00",
   "run_info": {
     "tickers_checked": 12,
-    "signals_active": 8,
+    "signals_active": 7,
     "alerts_sent": 0,
-    "elapsed_s": 15.1,
+    "elapsed_s": 14.7,
     "market_phase": "After-Hours"
   },
   "signals": {
@@ -23,25 +23,10 @@
       "combo_mult": 1.0,
       "active_triggers": 1
     },
-    "GRPN": {
-      "score": 38,
-      "confidence": 33,
-      "drivers": "News: short squeeze, squeeze + Earnings in 10d",
-      "price": 14.96,
-      "chg_pct": 0.0,
-      "rvol": 0.0,
-      "earnings": "in 10 Tagen (07.05.2026)",
-      "fda_date": null,
-      "upcoming_event": null,
-      "insider_buy": false,
-      "stocktwits": null,
-      "combo_mult": 1.0,
-      "active_triggers": 1
-    },
     "LENZ": {
-      "score": 41,
-      "confidence": 33,
-      "drivers": "News-KI 8/30: Positive regulatory news and insider buying are bullish, but dramatically falling EPS estimates signal fundamental weakn + Earnings in 9d + FINRA Short-Vol 99%",
+      "score": 33,
+      "confidence": 17,
+      "drivers": "Earnings in 9d + FINRA Short-Vol 99%",
       "price": 9.76,
       "chg_pct": 0.0,
       "rvol": 0.0,
@@ -52,6 +37,21 @@
       "stocktwits": null,
       "combo_mult": 1.0,
       "active_triggers": 0
+    },
+    "GRPN": {
+      "score": 38,
+      "confidence": 33,
+      "drivers": "News: squeeze, short squeeze + Earnings in 10d",
+      "price": 14.96,
+      "chg_pct": 0.0,
+      "rvol": 0.0,
+      "earnings": "in 10 Tagen (07.05.2026)",
+      "fda_date": null,
+      "upcoming_event": null,
+      "insider_buy": false,
+      "stocktwits": null,
+      "combo_mult": 1.0,
+      "active_triggers": 1
     },
     "ABSI": {
       "score": 8,
@@ -99,9 +99,9 @@
       "active_triggers": 1
     },
     "ANAB": {
-      "score": 38,
+      "score": 16,
       "confidence": 33,
-      "drivers": "News: partnership, contract + Earnings in 8d",
+      "drivers": "News-KI 8/30: Negative earnings outlook, legal disputes with GSK, and modest price surge lack sustained momentum indicators needed for + Earnings in 8d",
       "price": 66.59,
       "chg_pct": 0.0,
       "rvol": 0.0,
@@ -111,7 +111,7 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 1
+      "active_triggers": 0
     },
     "FTRE": {
       "score": 33,
@@ -144,9 +144,9 @@
       "active_triggers": 0
     },
     "OMER": {
-      "score": 16,
-      "confidence": 33,
-      "drivers": "News-KI 8/30: Positive momentum language but no short squeeze indicators like high short interest, recent squeeze activity, or forced  + Earnings in 17d",
+      "score": 8,
+      "confidence": 17,
+      "drivers": "Earnings in 17d",
       "price": 14.74,
       "chg_pct": 0.0,
       "rvol": 0.0,
@@ -176,7 +176,7 @@
     "AMC": {
       "score": 38,
       "confidence": 33,
-      "drivers": "News: short squeeze, squeeze + Earnings in 9d",
+      "drivers": "News: squeeze, short squeeze + Earnings in 9d",
       "price": 1.65,
       "chg_pct": 0.0,
       "rvol": 0.0,
