@@ -4947,7 +4947,7 @@ async function _doPoll(){{
   if (Date.now()-_pollStart>TIMEOUT_MS) {{ _showPollStatus('timeout'); if(_pollEnableBtn)_pollEnableBtn(); return; }}
   try {{
     const res = await fetch(
-      `https://api.github.com/repos/${{GH_OWNER}}/${{GH_REPO}}/actions/runs?workflow_id=${{_pollWorkflowId}}&per_page=5&event=workflow_dispatch`,
+      `https://api.github.com/repos/${{GH_OWNER}}/${{GH_REPO}}/actions/workflows/${{_pollWorkflowId}}/runs?per_page=5&event=workflow_dispatch`,
       {{headers:{{'Authorization':`Bearer ${{_pollToken}}`,'Accept':'application/vnd.github+json','X-GitHub-Api-Version':'2022-11-28'}}}}
     );
     if (!res.ok) {{ _pollTimer=setTimeout(_doPoll,POLL_MS); return; }}
