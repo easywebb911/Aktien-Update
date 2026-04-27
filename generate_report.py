@@ -4794,6 +4794,8 @@ async function dispatchWorkflow(token){{
         'X-GitHub-Api-Version':'2022-11-28','Content-Type':'application/json'}},
         body:JSON.stringify({{ref:GH_BRANCH}})}}
     );
+    const _dispatchBody = await r.clone().text().catch(()=>'');
+    console.log(`[Recalculate] Dispatch HTTP ${{r.status}} body:`, _dispatchBody || '(leer)');
     if (r.status === 204) {{
       _pollWorkflowId = GH_WORKFLOW; _pollRunningLabel = 'Neuberechnung';
       _pollEnableBtn = _enableRecalcBtn; _pollOnSuccess = _startSuccessCountdown;
@@ -4944,23 +4946,38 @@ window.addEventListener('beforeunload', ()=>{{
   _stopTimeInterval();
 }});
 async function _doPoll(){{
-  if (Date.now()-_pollStart>TIMEOUT_MS) {{ _showPollStatus('timeout'); if(_pollEnableBtn)_pollEnableBtn(); return; }}
+  const _elapsedS = Math.floor((Date.now()-_pollStart)/1000);
+  if (Date.now()-_pollStart>TIMEOUT_MS) {{
+    console.log(`[Poll] Timeout nach ${{_elapsedS}}s — workflow=${{_pollWorkflowId}}`);
+    _showPollStatus('timeout'); if(_pollEnableBtn)_pollEnableBtn(); return;
+  }}
   try {{
     const res = await fetch(
       `https://api.github.com/repos/${{GH_OWNER}}/${{GH_REPO}}/actions/workflows/${{_pollWorkflowId}}/runs?per_page=5&event=workflow_dispatch`,
       {{headers:{{'Authorization':`Bearer ${{_pollToken}}`,'Accept':'application/vnd.github+json','X-GitHub-Api-Version':'2022-11-28'}}}}
     );
-    if (!res.ok) {{ _pollTimer=setTimeout(_doPoll,POLL_MS); return; }}
+    if (!res.ok) {{
+      const _errBody = await res.text().catch(()=>'');
+      console.log(`[Poll] runs-Endpoint HTTP ${{res.status}} (elapsed ${{_elapsedS}}s) — retry in ${{POLL_MS}}ms`, _errBody.slice(0,200));
+      _pollTimer=setTimeout(_doPoll,POLL_MS); return;
+    }}
     const data = await res.json();
-    const run = (data.workflow_runs||[]).find(w=>new Date(w.created_at).getTime()>=_pollStart-15000);
+    const _runs = data.workflow_runs||[];
+    const run = _runs.find(w=>new Date(w.created_at).getTime()>=_pollStart-15000);
+    console.log(`[Poll] elapsed=${{_elapsedS}}s runs_returned=${{_runs.length}} matched=`,
+      run ? `id=${{run.id}} status=${{run.status}} conclusion=${{run.conclusion}} created_at=${{run.created_at}}` : '(none new enough)');
     if (!run) {{ _pollTimer=setTimeout(_doPoll,POLL_MS); return; }}
     if (run.status==='completed'){{
+      console.log(`[Poll] Run ${{run.id}} completed — conclusion=${{run.conclusion}}`);
       if (run.conclusion==='success') {{ _stopTimeInterval(); if(_pollOnSuccess)_pollOnSuccess(); }}
       else {{ _showPollStatus('failure'); if(_pollEnableBtn)_pollEnableBtn(); }}
     }} else {{
       _pollTimer=setTimeout(_doPoll,POLL_MS);
     }}
-  }} catch(e) {{ _pollTimer=setTimeout(_doPoll,POLL_MS); }}
+  }} catch(e) {{
+    console.log(`[Poll] Exception (elapsed ${{_elapsedS}}s):`, e.message);
+    _pollTimer=setTimeout(_doPoll,POLL_MS);
+  }}
 }}
 function resetToken(){{
   localStorage.removeItem(TOK_KEY);
