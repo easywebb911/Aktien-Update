@@ -4787,6 +4787,11 @@ async function saveTokenAndDispatch(){{
 async function dispatchWorkflow(token){{
   const btn = document.getElementById('btn-recalc');
   btn.disabled = true; btn.innerHTML = 'Startet…';
+  // _pollStart MUSS vor dem Dispatch gesetzt werden, damit der server-
+  // seitige created_at des neuen Runs (entsteht *während* des fetch)
+  // garantiert >= _pollStart-15000ms ist und vom find()-Predikat erfasst wird.
+  _pollStart = Date.now(); _pollToken = token;
+  console.log(`[Recalculate] _pollStart=${{_pollStart}} (${{new Date(_pollStart).toISOString()}})`);
   try {{
     const r = await fetch(
       `https://api.github.com/repos/${{GH_OWNER}}/${{GH_REPO}}/actions/workflows/${{GH_WORKFLOW}}/dispatches`,
@@ -4799,7 +4804,6 @@ async function dispatchWorkflow(token){{
     if (r.status === 204) {{
       _pollWorkflowId = GH_WORKFLOW; _pollRunningLabel = 'Neuberechnung';
       _pollEnableBtn = _enableRecalcBtn; _pollOnSuccess = _startSuccessCountdown;
-      _pollStart = Date.now(); _pollToken = token;
       _showPollStatus('running');
       setTimeout(_doPoll, 5000);
     }} else if (r.status === 401 || r.status === 403) {{
@@ -4826,6 +4830,9 @@ function triggerKiAgent(){{
 async function dispatchKiWorkflow(token){{
   const btn = document.getElementById('btn-ki');
   if (btn) {{ btn.disabled=true; btn.innerHTML='&#9889; L\u00e4uft\u2026'; }}
+  // _pollStart MUSS vor dem Dispatch gesetzt werden \u2014 siehe dispatchWorkflow.
+  _pollStart = Date.now(); _pollToken = token;
+  console.log(`[KI-Agent] _pollStart=${{_pollStart}} (${{new Date(_pollStart).toISOString()}})`);
   try {{
     const r = await fetch(
       `https://api.github.com/repos/${{GH_OWNER}}/${{GH_REPO}}/actions/workflows/${{GH_WORKFLOW_KI}}/dispatches`,
@@ -4833,10 +4840,11 @@ async function dispatchKiWorkflow(token){{
         'X-GitHub-Api-Version':'2022-11-28','Content-Type':'application/json'}},
         body:JSON.stringify({{ref:GH_BRANCH}})}}
     );
+    const _dispatchBody = await r.clone().text().catch(()=>'');
+    console.log(`[KI-Agent] Dispatch HTTP ${{r.status}} body:`, _dispatchBody || '(leer)');
     if (r.status === 204) {{
       _pollWorkflowId = GH_WORKFLOW_KI; _pollRunningLabel = 'KI-Agent';
       _pollEnableBtn = _enableKiBtn; _pollOnSuccess = _kiAgentSuccess;
-      _pollStart = Date.now(); _pollToken = token;
       _showPollStatus('running');
       setTimeout(_doPoll, 5000);
     }} else if (r.status === 401 || r.status === 403) {{
@@ -4956,19 +4964,25 @@ async function _doPoll(){{
       `https://api.github.com/repos/${{GH_OWNER}}/${{GH_REPO}}/actions/workflows/${{_pollWorkflowId}}/runs?per_page=5&event=workflow_dispatch`,
       {{headers:{{'Authorization':`Bearer ${{_pollToken}}`,'Accept':'application/vnd.github+json','X-GitHub-Api-Version':'2022-11-28'}}}}
     );
+    console.log(`[Poll] HTTP ${{res.status}} elapsed=${{_elapsedS}}s workflow=${{_pollWorkflowId}}`);
     if (!res.ok) {{
       const _errBody = await res.text().catch(()=>'');
-      console.log(`[Poll] runs-Endpoint HTTP ${{res.status}} (elapsed ${{_elapsedS}}s) — retry in ${{POLL_MS}}ms`, _errBody.slice(0,200));
+      console.log(`[Poll] !res.ok body:`, _errBody.slice(0,200));
       _pollTimer=setTimeout(_doPoll,POLL_MS); return;
     }}
     const data = await res.json();
     const _runs = data.workflow_runs||[];
-    const run = _runs.find(w=>new Date(w.created_at).getTime()>=_pollStart-15000);
-    console.log(`[Poll] elapsed=${{_elapsedS}}s runs_returned=${{_runs.length}} matched=`,
-      run ? `id=${{run.id}} status=${{run.status}} conclusion=${{run.conclusion}} created_at=${{run.created_at}}` : '(none new enough)');
+    const _threshold = _pollStart - 15000;
+    const _runDump = _runs.map(w => {{
+      const _ts = new Date(w.created_at).getTime();
+      return `id=${{w.id}} status=${{w.status}} conclusion=${{w.conclusion}} created_at=${{w.created_at}} delta=${{Math.round((_ts-_pollStart)/1000)}}s matches=${{_ts>=_threshold}}`;
+    }});
+    console.log(`[Poll] ${{_runs.length}} runs zurück (threshold=_pollStart-15s):`, _runDump);
+    const run = _runs.find(w=>new Date(w.created_at).getTime()>=_threshold);
+    console.log(`[Poll] find() →`, run ? `id=${{run.id}} status=${{run.status}} conclusion=${{run.conclusion}}` : '(keiner — Run noch nicht erschienen oder zu alt)');
     if (!run) {{ _pollTimer=setTimeout(_doPoll,POLL_MS); return; }}
     if (run.status==='completed'){{
-      console.log(`[Poll] Run ${{run.id}} completed — conclusion=${{run.conclusion}}`);
+      console.log(`[Poll] Run ${{run.id}} completed — conclusion=${{run.conclusion}} → ${{run.conclusion==='success'?'success path':'failure path'}}`);
       if (run.conclusion==='success') {{ _stopTimeInterval(); if(_pollOnSuccess)_pollOnSuccess(); }}
       else {{ _showPollStatus('failure'); if(_pollEnableBtn)_pollEnableBtn(); }}
     }} else {{
