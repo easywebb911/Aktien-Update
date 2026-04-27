@@ -4880,7 +4880,7 @@ function _kiAgentSuccess(){{
 // ── Workflow polling ──────────────────────────────────────────────────────
 const POLL_MS    = 10000;
 const TIMEOUT_MS = 600000;
-const NO_RUN_MAX = 3;
+const NO_RUN_MAX = 20;
 let _pollStart = null, _pollToken = null, _pollTimer = null;
 let _timeInterval = null;
 let _pendingDispatch = null;
@@ -4980,12 +4980,13 @@ async function _doPoll(){{
     }}
     const data = await res.json();
     const _runs = data.workflow_runs||[];
-    const _threshold = _pollStart - 15000;
+    // Fenster: 3 min — GH-Runner starten oft 30–60s nach dem Dispatch.
+    const _threshold = _pollStart - 180000;
     const _runDump = _runs.map(w => {{
       const _ts = new Date(w.created_at).getTime();
       return `id=${{w.id}} status=${{w.status}} conclusion=${{w.conclusion}} created_at=${{w.created_at}} delta=${{Math.round((_ts-_pollStart)/1000)}}s matches=${{_ts>=_threshold}}`;
     }});
-    console.log(`[Poll] ${{_runs.length}} runs zurück (threshold=_pollStart-15s):`, _runDump);
+    console.log(`[Poll] ${{_runs.length}} runs zurück (threshold=_pollStart-3min):`, _runDump);
     const run = _runs.find(w=>new Date(w.created_at).getTime()>=_threshold);
     console.log(`[Poll] find() →`, run ? `id=${{run.id}} status=${{run.status}} conclusion=${{run.conclusion}}` : '(keiner — Run noch nicht erschienen oder zu alt)');
     if (!run) {{
