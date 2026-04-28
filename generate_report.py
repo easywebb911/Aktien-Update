@@ -3934,6 +3934,12 @@ def _build_context(stocks: list[dict], report_date: str) -> dict:
     cards = "\n".join(_card(i + 1, s) for i, s in enumerate(stocks))
     card_ctxs = [_build_card_ctx(i + 1, s) for i, s in enumerate(stocks)]
 
+    # Dynamische Datenpunkt-Zahl für die Backtesting-Status-Sektion. Liest
+    # backtest_history.json (silently [] bei Fehlern) — ersetzt die früher
+    # hardcodierte „1.046 Datenpunkte"-Marke.
+    backtest_count = len(_load_backtest_history())
+    backtest_count_str = f"{backtest_count:,}".replace(",", ".")
+
     n       = max(len(stocks), 1)
     avg_sf  = sum(s["short_float"] for s in stocks) / n
     avg_sr  = sum(s["short_ratio"]  for s in stocks) / n
@@ -4047,6 +4053,7 @@ def _build_context(stocks: list[dict], report_date: str) -> dict:
         "head_html":      head_html,
         "chat_panel_html": chat_panel_html,
         "chat_script_html": chat_script_html,
+        "backtest_count_str": backtest_count_str,
     }
 
 
@@ -4076,6 +4083,7 @@ def generate_html_v1(stocks: list[dict], report_date: str, _ctx: dict | None = N
     head_html        = ctx["head_html"]
     chat_panel_html  = ctx["chat_panel_html"]
     chat_script_html = ctx["chat_script_html"]
+    backtest_count_str = ctx["backtest_count_str"]
 
     return f"""{head_html}
 <body>
@@ -4200,7 +4208,7 @@ def generate_html_v1(stocks: list[dict], report_date: str, _ctx: dict | None = N
       <div class="info-box info-box--full">
         <h4>📊 Backtesting-Status</h4>
         <p style="font-size:.82rem;color:var(--txt-sub);margin:0;line-height:1.55">
-          1.046 Datenpunkte (bootstrap + daily) — Details im Backtesting-Panel.
+          {backtest_count_str} Datenpunkte (bootstrap + daily) — Details im Backtesting-Panel.
           Bootstrap-Scores vereinfacht (SF + RVOL + Momentum) — nicht 1:1 mit Live-Scores vergleichbar.
           Belastbare Live-Statistiken ab Juli 2026 (60+ Tage Daily-Daten).
         </p>

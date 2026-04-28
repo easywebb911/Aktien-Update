@@ -28,6 +28,7 @@ import logging
 import os
 import re
 import smtplib
+import threading
 import time
 import xml.etree.ElementTree as ET
 from concurrent.futures import ThreadPoolExecutor, as_completed
@@ -128,6 +129,13 @@ def save_state(state: dict) -> None:
     STATE_FILE.write_text(
         json.dumps(state, ensure_ascii=False, indent=2), encoding="utf-8"
     )
+
+
+# Schützt den Alert-Block (is_on_cooldown-Check + send_alert + set_cooldown)
+# gegen Doppel-Alerts, falls der Block jemals aus mehreren Threads erreicht
+# wird. Aktuell ist der Versand sequenziell, aber der Lock härtet die
+# Check-then-Act-Sequenz für künftige Parallelisierung ab.
+_alert_lock = threading.Lock()
 
 
 def is_on_cooldown(ticker: str, state: dict) -> bool:
@@ -1981,26 +1989,46 @@ def main() -> None:
         setup_sc       = prod_scores.get(ticker)
         monster        = _monster_score(setup_sc, score)
 
-        earnings_immediate = False
-        if (EARNINGS_IMMEDIATE_ALERT
-                and phase == "After-Hours"
-                and earnings_days is not None
-                and 0 <= earnings_days <= 1
-                and not is_on_cooldown(ticker, state)):
-            cutoff_fresh = datetime.now(timezone.utc) - timedelta(hours=EARNINGS_IMMEDIATE_HOURS)
-            is_8k_fresh  = (
-                has_8k and sec_8k_dt is not None and sec_8k_dt >= cutoff_fresh
-            )
-            has_earnings_news = any("earnings" in h.lower() for h in news)
-            if is_8k_fresh or has_earnings_news:
-                earnings_immediate = True
-                log.info("  %s Earnings-Sofort-Alert (Earnings in %dd, 8K-frisch: %s, News: %s)",
-                         ticker, earnings_days, is_8k_fresh, has_earnings_news)
+        # Cooldown-Check + Alert + set_cooldown atomar: verhindert Doppel-Alert,
+        # falls der Versand jemals parallelisiert wird (zwei Threads sähen
+        # sonst is_on_cooldown=False, bevor einer set_cooldown aufruft).
+        with _alert_lock:
+            earnings_immediate = False
+            if (EARNINGS_IMMEDIATE_ALERT
+                    and phase == "After-Hours"
+                    and earnings_days is not None
+                    and 0 <= earnings_days <= 1
+                    and not is_on_cooldown(ticker, state)):
+                cutoff_fresh = datetime.now(timezone.utc) - timedelta(hours=EARNINGS_IMMEDIATE_HOURS)
+                is_8k_fresh  = (
+                    has_8k and sec_8k_dt is not None and sec_8k_dt >= cutoff_fresh
+                )
+                has_earnings_news = any("earnings" in h.lower() for h in news)
+                if is_8k_fresh or has_earnings_news:
+                    earnings_immediate = True
+                    log.info("  %s Earnings-Sofort-Alert (Earnings in %dd, 8K-frisch: %s, News: %s)",
+                             ticker, earnings_days, is_8k_fresh, has_earnings_news)
+                    send_ntfy_alert(ticker, score, drivers,
+                                    production_score=setup_sc, monster_score=monster)
+                    sent = send_alert(
+                        ticker, score, drivers, yfd, reddit, news,
+                        upcoming_event=upcoming_event or f"Earnings in {earnings_days} Tagen — Sofort-Alert",
+                        insider=insider,
+                        confidence=confidence,
+                        n_types=n_active_types,
+                    )
+                    if sent:
+                        set_cooldown(ticker, state)
+                        n_alerts += 1
+
+            if (monster is not None and monster >= 70
+                    and not is_on_cooldown(ticker, state)
+                    and not earnings_immediate):
                 send_ntfy_alert(ticker, score, drivers,
                                 production_score=setup_sc, monster_score=monster)
                 sent = send_alert(
                     ticker, score, drivers, yfd, reddit, news,
-                    upcoming_event=upcoming_event or f"Earnings in {earnings_days} Tagen — Sofort-Alert",
+                    upcoming_event=upcoming_event,
                     insider=insider,
                     confidence=confidence,
                     n_types=n_active_types,
@@ -2008,22 +2036,6 @@ def main() -> None:
                 if sent:
                     set_cooldown(ticker, state)
                     n_alerts += 1
-
-        if (monster is not None and monster >= 70
-                and not is_on_cooldown(ticker, state)
-                and not earnings_immediate):
-            send_ntfy_alert(ticker, score, drivers,
-                            production_score=setup_sc, monster_score=monster)
-            sent = send_alert(
-                ticker, score, drivers, yfd, reddit, news,
-                upcoming_event=upcoming_event,
-                insider=insider,
-                confidence=confidence,
-                n_types=n_active_types,
-            )
-            if sent:
-                set_cooldown(ticker, state)
-                n_alerts += 1
 
     t_elapsed = round(time.time() - t_start, 1)
     out = {
