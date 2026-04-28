@@ -5,6 +5,7 @@ nicht mehr in den einzelnen Skript-Dateien. Beide Skripte importieren die
 Werte via ``from config import *``.
 """
 
+import os
 from pathlib import Path
 from zoneinfo import ZoneInfo
 
@@ -428,5 +429,5 @@ SEC_HEADERS    = {"User-Agent": "SqueezeReport/1.0 github-actions@squeeze-report
 # ── ntfy.sh Push-Notifications ───────────────────────────────────────────────
 # Leer = deaktiviert. Topic frei wählbar (z.B. "squeeze-xk7q2m9p"); auf
 # https://ntfy.sh/<topic> oder per ntfy-App abonnieren.
-NTFY_TOPIC   = ""
+NTFY_TOPIC   = os.environ.get("NTFY_TOPIC", "")
 NTFY_ENABLED = True

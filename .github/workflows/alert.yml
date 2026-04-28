@@ -35,6 +35,7 @@ jobs:
           MAIL_TO: ${{ secrets.MAIL_TO }}
           MAIL_PASSWORD: ${{ secrets.MAIL_PASSWORD }}
           MAIL_FROM: ${{ secrets.MAIL_FROM }}
+          NTFY_TOPIC: ${{ secrets.NTFY_TOPIC }}
         run: python alert.py
 
       - name: Commit state files
