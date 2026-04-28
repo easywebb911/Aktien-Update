@@ -1409,6 +1409,33 @@ def send_alert(
         return False
 
 
+def send_ntfy_alert(ticker: str, score: int, drivers) -> None:
+    """ntfy.sh Push-Notification — parallel zur E-Mail. Fail-soft.
+
+    ``drivers`` darf ``list[str]`` oder ``str`` sein. Topic leer oder
+    ``NTFY_ENABLED=False`` → no-op (graceful skip).
+    """
+    if not NTFY_ENABLED or not NTFY_TOPIC:
+        return
+    if isinstance(drivers, list):
+        drivers_str = " + ".join(drivers) if drivers else "—"
+    else:
+        drivers_str = str(drivers) if drivers else "—"
+    try:
+        requests.post(
+            f"https://ntfy.sh/{NTFY_TOPIC}",
+            data=f"{ticker} 🚀 Score {score} – {drivers_str}".encode("utf-8"),
+            headers={
+                "Title": f"Squeeze Alert: {ticker}",
+                "Priority": "high",
+                "Tags": "chart_with_upwards_trend",
+            },
+            timeout=5,
+        )
+    except Exception as exc:
+        log.warning("ntfy push fehlgeschlagen für %s: %s", ticker, exc)
+
+
 # ── Tägliche Zusammenfassung ──────────────────────────────────────────────────
 
 def _is_summary_window() -> bool:
@@ -1888,6 +1915,7 @@ def main() -> None:
                 earnings_immediate = True
                 log.info("  %s Earnings-Sofort-Alert (Earnings in %dd, 8K-frisch: %s, News: %s)",
                          ticker, earnings_days, is_8k_fresh, has_earnings_news)
+                send_ntfy_alert(ticker, score, drivers)
                 sent = send_alert(
                     ticker, score, drivers, yfd, reddit, news,
                     upcoming_event=upcoming_event or f"Earnings in {earnings_days} Tagen — Sofort-Alert",
@@ -1900,6 +1928,7 @@ def main() -> None:
                     n_alerts += 1
 
         if score >= alert_threshold and not is_on_cooldown(ticker, state) and not earnings_immediate:
+            send_ntfy_alert(ticker, score, drivers)
             sent = send_alert(
                 ticker, score, drivers, yfd, reddit, news,
                 upcoming_event=upcoming_event,

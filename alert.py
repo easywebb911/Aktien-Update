@@ -23,6 +23,8 @@ from zoneinfo import ZoneInfo
 import requests
 import yfinance as yf
 
+from config import NTFY_ENABLED, NTFY_TOPIC
+
 # ---------------------------------------------------------------------------
 # Alarm-Schwellenwerte — hier konfigurieren, nirgendwo sonst
 # ---------------------------------------------------------------------------
@@ -359,6 +361,33 @@ def send_alert_email(
 # Alarm auslösen + Cooldown aktualisieren
 # ---------------------------------------------------------------------------
 
+def send_ntfy_alert(ticker: str, score: int, drivers) -> None:
+    """ntfy.sh Push-Notification — parallel zur E-Mail. Fail-soft.
+
+    ``drivers`` darf ``list[str]`` oder ``str`` sein. Topic leer oder
+    ``NTFY_ENABLED=False`` → no-op (graceful skip).
+    """
+    if not NTFY_ENABLED or not NTFY_TOPIC:
+        return
+    if isinstance(drivers, list):
+        drivers_str = " + ".join(drivers) if drivers else "—"
+    else:
+        drivers_str = str(drivers) if drivers else "—"
+    try:
+        requests.post(
+            f"https://ntfy.sh/{NTFY_TOPIC}",
+            data=f"{ticker} 🚀 Score {score} – {drivers_str}".encode("utf-8"),
+            headers={
+                "Title": f"Squeeze Alert: {ticker}",
+                "Priority": "high",
+                "Tags": "chart_with_upwards_trend",
+            },
+            timeout=5,
+        )
+    except Exception as exc:
+        log.warning("ntfy push fehlgeschlagen für %s: %s", ticker, exc)
+
+
 def trigger_alert(
     ticker: str,
     reason: str,
@@ -367,6 +396,7 @@ def trigger_alert(
     last_alerts: dict,
 ) -> bool:
     """Sendet E-Mail und setzt Cooldown. Gibt True zurück wenn E-Mail rausging."""
+    send_ntfy_alert(ticker, live.get("score", 0), reason)
     sent = send_alert_email(ticker, reason, live, base)
     if sent:
         last_alerts[ticker] = {

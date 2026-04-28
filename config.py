@@ -424,3 +424,9 @@ EASTERN = ZoneInfo("America/New_York")
 # ── Service-spezifische HTTP-Header ──────────────────────────────────────────
 REDDIT_HEADERS = {"User-Agent": "SqueezeAgent/1.0"}
 SEC_HEADERS    = {"User-Agent": "SqueezeReport/1.0 github-actions@squeeze-report.com"}
+
+# ── ntfy.sh Push-Notifications ───────────────────────────────────────────────
+# Leer = deaktiviert. Topic frei wählbar (z.B. "squeeze-xk7q2m9p"); auf
+# https://ntfy.sh/<topic> oder per ntfy-App abonnieren.
+NTFY_TOPIC   = ""
+NTFY_ENABLED = True
