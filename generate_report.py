@@ -4161,8 +4161,9 @@ def generate_html_v1(stocks: list[dict], report_date: str, _ctx: dict | None = N
           <li><strong>Struktur (0–40):</strong> Short Float (32) + Days to Cover (23) + Float-Größe (8) + SI-Trend (5) — normiert</li>
           <li><strong>Katalysator (0–35):</strong> Earnings + News-KI + P/C-Ratio + Short-Druck + Gamma Squeeze + Insider</li>
           <li><strong>Timing (0–25):</strong> Rel. Volumen (23) + Momentum (14) + RS vs. Sektor-ETF (3) — normiert</li>
-          <li><strong>Boni:</strong> Kombinations-Bonus +5 · Score-Trend ±3 · Agent-Boost ×1.05–×1.15</li>
+          <li><strong>Boni:</strong> Kombinations-Bonus +5 · Score-Trend ±3 · Agent-Boost ×1.05 · Monster-Score: Setup × KI-Boost</li>
           <li><strong>Malus:</strong> Historischer Squeeze −3 / −5 Pkt (90 / 30 Tage)</li>
+          <li><strong>Monster-Score:</strong> Setup-Score × KI-Boost — KI≥60: +20% · KI&lt;25: −20% · sonst neutral · Cap 100</li>
           <li><em>Sub-Scores sind unabhängige Qualitätsindikatoren — nicht die Zerlegung des Gesamt-Scores.</em></li>
         </ul>
       </div>
@@ -4178,7 +4179,7 @@ def generate_html_v1(stocks: list[dict], report_date: str, _ctx: dict | None = N
         <h4>⚡ KI-Agent</h4>
         <ul class="info-compact">
           <li>Läuft alle 2 Stunden · Analysiert News, Earnings, Insider, FINRA SSR, Gamma</li>
-          <li>Signal aktiv bei Score ≥ {ALERT_THRESHOLD_REGULAR} · Agent-Boost: ×1.05 / ×1.10 / ×1.15 bei KI-Score ≥ 25 / 50 / 75 (≤ {AGENT_BOOST_MAX_AGE_H} h alt)</li>
+          <li>Alert aktiv bei Monster-Score ≥ 70 · Monster-Score = Setup-Score × KI-Boost (KI≥60: ×1.20 / KI&lt;25: ×0.80 / sonst neutral) · Push-Notification via ntfy.sh</li>
         </ul>
       </div>
       <div class="info-box info-box--full">
