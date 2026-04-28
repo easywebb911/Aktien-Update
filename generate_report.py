@@ -2858,48 +2858,72 @@ def _score_hint_html(score: float) -> str:
     return ""
 
 
-def _ki_signal_badge_html(s: dict) -> str:
-    """Optionaler ``KI: NN`` Badge im Score-Block.
+def _tri_score_color(sc) -> str:
+    """Einheitliche Farblogik für Setup-, Monster- und KI-Score.
 
-    Quelle: ``s["ki_signal_score"]`` (gesetzt durch ``apply_agent_boost`` aus
-    ``agent_signals.json``). Farbe: ≥60 grün, 30-59 orange, <30 rot.
-    Bei fehlendem Wert → leerer String (Badge wird nicht gerendert).
+    ≥80 grün · 60–79 orange · 30–59 gelb · <30 rot · None grau.
     """
-    ki_score = s.get("ki_signal_score")
-    if ki_score is None:
-        return ""
-    if ki_score >= 60:
-        col = "#22c55e"
-    elif ki_score >= 30:
-        col = "#f59e0b"
-    else:
-        col = "#ef4444"
-    return (
-        f'<span class="ki-signal-badge" style="color:{col}">'
-        f'KI: {ki_score:.0f}</span>'
-    )
+    if sc is None:
+        return "#94a3b8"
+    if sc >= 80:
+        return "#22c55e"
+    if sc >= 60:
+        return "#f59e0b"
+    if sc >= 30:
+        return "#eab308"
+    return "#ef4444"
 
 
-def _monster_score_badge_html(s: dict) -> str:
-    """``🔥 Monster: NN`` Badge im Score-Block.
+def _score_block_inner_html(s: dict, hint_html: str = "") -> str:
+    """Erzeugt das komplette Innere des ``<div class="score-block">``.
 
-    Quelle: ``s["monster_score"]`` (gesetzt durch ``apply_monster_score``).
-    Farbe: ≥80 grün, 60-79 orange, <60 rot. Bei fehlendem Wert → leerer
-    String (Badge wird nicht gerendert).
+    Drei Zeilen (Setup/Monster/KI) — Reihenfolge & Schriftgröße werden
+    rein über CSS-Klassen ``.sort-setup`` / ``.sort-monster`` am Container
+    gesteuert (siehe head.jinja). Monster/KI-Zeilen werden nur gerendert,
+    wenn die zugehörigen Werte vorhanden sind.
     """
+    setup_val = s.get("score") or 0.0
+    setup_pct = max(0.0, min(100.0, float(setup_val)))
+    setup_col = _tri_score_color(setup_val)
+
+    rows = [(
+        f'<div class="sb-row" data-sb="setup">'
+        f'<span class="sb-num" style="color:{setup_col}" '
+        f'onclick="showScoreExplain(this,event)" role="button" tabindex="0">'
+        f'{setup_val:.1f}</span>'
+        f'<span class="sb-lbl">Setup-Score</span>'
+        f'<div class="sb-track"><div class="sb-fill" '
+        f'style="width:{setup_pct:.0f}%;background:{setup_col}"></div></div>'
+        f'</div>'
+    )]
+
     ms = s.get("monster_score")
-    if ms is None:
-        return ""
-    if ms >= 80:
-        col = "#22c55e"
-    elif ms >= 60:
-        col = "#f59e0b"
-    else:
-        col = "#ef4444"
-    return (
-        f'<span class="monster-badge" style="color:{col}">'
-        f'🔥 Monster: {ms:.0f}</span>'
-    )
+    if ms is not None:
+        m_pct = max(0.0, min(100.0, float(ms)))
+        m_col = _tri_score_color(ms)
+        rows.append(
+            f'<div class="sb-row" data-sb="monster">'
+            f'<span class="sb-num" style="color:{m_col}">{ms:.0f}</span>'
+            f'<span class="sb-lbl">Monster</span>'
+            f'<div class="sb-track"><div class="sb-fill" '
+            f'style="width:{m_pct:.0f}%;background:{m_col}"></div></div>'
+            f'</div>'
+        )
+
+    ki = s.get("ki_signal_score")
+    if ki is not None:
+        k_pct = max(0.0, min(100.0, float(ki)))
+        k_col = _tri_score_color(ki)
+        rows.append(
+            f'<div class="sb-row" data-sb="ki">'
+            f'<span class="sb-num" style="color:{k_col}">{ki:.0f}</span>'
+            f'<span class="sb-lbl">KI-Score</span>'
+            f'<div class="sb-track"><div class="sb-fill" '
+            f'style="width:{k_pct:.0f}%;background:{k_col}"></div></div>'
+            f'</div>'
+        )
+
+    return "".join(rows) + (hint_html or "")
 
 
 def _detect_short_pressure(s: dict) -> bool:
@@ -3051,8 +3075,7 @@ def _card(i: int, s: dict) -> str:
 
     # Informational hint for candidates below the MIN_SCORE reference value
     below_min_score_html = _score_hint_html(s["score"])
-    ki_signal_html = _ki_signal_badge_html(s)
-    monster_score_html = _monster_score_badge_html(s)
+    score_block_html = _score_block_inner_html(s, below_min_score_html)
     monster_score_val = s.get("monster_score")
     monster_data_attr = (f' data-monster="{monster_score_val:.1f}"'
                          if monster_score_val is not None else '')
@@ -3317,14 +3340,7 @@ def _card(i: int, s: dict) -> str:
         {sector_tag_html}{earnings_tag_html}{squeeze_badge_html}{pd_badges_html}
       </div>
     </div>
-    <div class="score-block">
-      <span class="score-num" style="color:{sc_col}" onclick="showScoreExplain(this,event)" role="button" tabindex="0">{s['score']:.1f}</span>
-      <span class="score-lbl">Score</span>
-      <div class="score-track"><div class="score-fill" style="width:{sc:.0f}%;background:{sc_col}"></div></div>
-      {below_min_score_html}
-      {monster_score_html}
-      {ki_signal_html}
-    </div>
+    <div class="score-block sort-setup">{score_block_html}</div>
   </div>
   {sub_scores_html}
   {sparkline_html}
@@ -3546,8 +3562,7 @@ def _build_card_ctx(i: int, s: dict) -> dict:
     rv_col = _metric_color("rv", rv)
 
     below_min_score_html = _score_hint_html(s["score"])
-    ki_signal_html = _ki_signal_badge_html(s)
-    monster_score_html = _monster_score_badge_html(s)
+    score_block_html = _score_block_inner_html(s, below_min_score_html)
     monster_score_val = s.get("monster_score")
     monster_data_attr = (f' data-monster="{monster_score_val:.1f}"'
                          if monster_score_val is not None else '')
@@ -3886,8 +3901,7 @@ def _build_card_ctx(i: int, s: dict) -> dict:
         "chg_5d_html":          chg_5d_html,
         "no_data_html":         no_data_html,
         "below_min_score_html": below_min_score_html,
-        "ki_signal_html":       ki_signal_html,
-        "monster_score_html":   monster_score_html,
+        "score_block_html":     score_block_html,
         "monster_data_attr":    monster_data_attr,
         "setup_rank":           i,
         "si_velocity_row":      si_velocity_row,
@@ -4077,7 +4091,10 @@ def generate_html_v1(stocks: list[dict], report_date: str, _ctx: dict | None = N
       <button id="btn-ki" class="btn btn-ki" onclick="triggerKiAgent()">&#9889; Agent Run</button>
       <button id="btn-chat" class="btn btn-chat" onclick="toggleChat()">Chat</button>
       <button id="btn-backtest" class="btn btn-bt" onclick="toggleBacktesting()">Backtesting</button>
-      <button id="btn-sort" class="btn btn-b" onclick="toggleSortMode()">Sortierung: Setup</button>
+      <select id="sort-select" class="btn btn-b sort-select" onchange="setSortMode(this.value)" aria-label="Sortierung" title="Sortierung">
+        <option value="setup">Setup-Score</option>
+        <option value="monster">Monster-Score</option>
+      </select>
     </div>
     <div class="hdr-icons">
       <button class="fs-btn" id="fs-down" onclick="changeFontSize(-1)" aria-label="Schrift kleiner">A−</button>
@@ -4447,23 +4464,28 @@ function changeFontSize(dir){{
 // ── Sortierung Setup ↔ Monster ─────────────────────────────────────────────
 const _SORT_KEY = 'squeeze_sort_mode';
 function _applySortMode(mode){{
+  const m = (mode === 'monster') ? 'monster' : 'setup';
   const grid = document.querySelector('.cards-grid');
-  if (!grid) return;
-  const cards = Array.from(grid.querySelectorAll('article.card'));
-  if (mode === 'monster') {{
-    cards.sort((a, b) => parseFloat(b.dataset.monster || '0') - parseFloat(a.dataset.monster || '0'));
-  }} else {{
-    cards.sort((a, b) => parseInt(a.dataset.setupRank || '0', 10) - parseInt(b.dataset.setupRank || '0', 10));
+  if (grid) {{
+    const cards = Array.from(grid.querySelectorAll('article.card'));
+    if (m === 'monster') {{
+      cards.sort((a, b) => parseFloat(b.dataset.monster || '0') - parseFloat(a.dataset.monster || '0'));
+    }} else {{
+      cards.sort((a, b) => parseInt(a.dataset.setupRank || '0', 10) - parseInt(b.dataset.setupRank || '0', 10));
+    }}
+    cards.forEach(c => grid.appendChild(c));
   }}
-  cards.forEach(c => grid.appendChild(c));
-  const btn = document.getElementById('btn-sort');
-  if (btn) btn.textContent = (mode === 'monster') ? 'Sortierung: Monster' : 'Sortierung: Setup';
+  document.querySelectorAll('.score-block').forEach(sb => {{
+    sb.classList.toggle('sort-monster', m === 'monster');
+    sb.classList.toggle('sort-setup',   m !== 'monster');
+  }});
+  const sel = document.getElementById('sort-select');
+  if (sel && sel.value !== m) sel.value = m;
 }}
-function toggleSortMode(){{
-  const cur  = localStorage.getItem(_SORT_KEY) || 'setup';
-  const next = (cur === 'setup') ? 'monster' : 'setup';
-  localStorage.setItem(_SORT_KEY, next);
-  _applySortMode(next);
+function setSortMode(mode){{
+  const m = (mode === 'monster') ? 'monster' : 'setup';
+  localStorage.setItem(_SORT_KEY, m);
+  _applySortMode(m);
 }}
 window.addEventListener('DOMContentLoaded', () => {{
   const cur = localStorage.getItem(_SORT_KEY) || 'setup';

@@ -21,14 +21,7 @@
         {{ sector_tag_html }}{{ earnings_tag_html }}{{ squeeze_badge_html }}{{ pd_badges_html }}
       </div>
     </div>
-    <div class="score-block">
-      <span class="score-num" style="color:{{ score_col }}" onclick="showScoreExplain(this,event)" role="button" tabindex="0">{{ score_raw_str }}</span>
-      <span class="score-lbl">Score</span>
-      <div class="score-track"><div class="score-fill" style="width:{{ score_pct_str }}%;background:{{ score_col }}"></div></div>
-      {{ below_min_score_html }}
-      {{ monster_score_html }}
-      {{ ki_signal_html }}
-    </div>
+    <div class="score-block sort-setup">{{ score_block_html }}</div>
   </div>
   {{ sub_scores_html }}
   {{ sparkline_html }}
