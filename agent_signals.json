@@ -1,17 +1,17 @@
 {
-  "updated": "2026-04-27T23:37:37.311255+02:00",
+  "updated": "2026-04-28T05:56:46.227645+02:00",
   "run_info": {
     "tickers_checked": 12,
-    "signals_active": 9,
+    "signals_active": 2,
     "alerts_sent": 0,
-    "elapsed_s": 10.8,
-    "market_phase": "After-Hours"
+    "elapsed_s": 19.8,
+    "market_phase": "Geschlossen"
   },
   "signals": {
     "INDI": {
-      "score": 23,
-      "confidence": 33,
-      "drivers": "News: catalyst + Earnings in 10d",
+      "score": 8,
+      "confidence": 17,
+      "drivers": "Earnings in 10d",
       "price": 3.96,
       "chg_pct": 0.0,
       "rvol": 0.0,
@@ -21,12 +21,12 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 1
+      "active_triggers": 0
     },
     "LENZ": {
-      "score": 33,
-      "confidence": 17,
-      "drivers": "Earnings in 9d + FINRA Short-Vol 100%",
+      "score": 45,
+      "confidence": 33,
+      "drivers": "News-KI 12/30: Insider buying is bullish, but dramatically falling EPS estimates and regulatory submission (not approval) are weak cata + Earnings in 9d + FINRA Short-Vol 100%",
       "price": 9.76,
       "chg_pct": 0.0,
       "rvol": 0.0,
@@ -36,12 +36,12 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 0
+      "active_triggers": 1
     },
     "GRPN": {
-      "score": 38,
-      "confidence": 33,
-      "drivers": "News: short squeeze, squeeze + Earnings in 10d",
+      "score": 8,
+      "confidence": 17,
+      "drivers": "Earnings in 10d",
       "price": 14.96,
       "chg_pct": 0.0,
       "rvol": 0.0,
@@ -51,7 +51,7 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 1
+      "active_triggers": 0
     },
     "ABSI": {
       "score": 8,
@@ -86,11 +86,11 @@
     "WBTN": {
       "score": 48,
       "confidence": 33,
-      "drivers": "News: partnership + Earnings in 18d + FINRA Short-Vol 96%",
+      "drivers": "News: partnership + Earnings in 14d + FINRA Short-Vol 96%",
       "price": 11.83,
       "chg_pct": 0.0,
       "rvol": 0.0,
-      "earnings": "in 18 Tagen (15.05.2026)",
+      "earnings": "in 14 Tagen (11.05.2026)",
       "fda_date": null,
       "upcoming_event": null,
       "insider_buy": false,
@@ -99,9 +99,9 @@
       "active_triggers": 1
     },
     "ANAB": {
-      "score": 38,
+      "score": 23,
       "confidence": 33,
-      "drivers": "News: contract, partnership + Earnings in 8d",
+      "drivers": "News: contract + Earnings in 8d",
       "price": 66.59,
       "chg_pct": 0.0,
       "rvol": 0.0,
@@ -144,9 +144,9 @@
       "active_triggers": 0
     },
     "OMER": {
-      "score": 20,
-      "confidence": 33,
-      "drivers": "News-KI 12/30: Positive momentum headlines but no short squeeze indicators like high short interest, low float, or forced covering cata + Earnings in 17d",
+      "score": 8,
+      "confidence": 17,
+      "drivers": "Earnings in 17d",
       "price": 14.74,
       "chg_pct": 0.0,
       "rvol": 0.0,
@@ -156,7 +156,7 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 1
+      "active_triggers": 0
     },
     "CWH": {
       "score": 25,
@@ -174,9 +174,9 @@
       "active_triggers": 1
     },
     "AMC": {
-      "score": 38,
-      "confidence": 33,
-      "drivers": "News: short squeeze, squeeze + Earnings in 9d",
+      "score": 8,
+      "confidence": 17,
+      "drivers": "Earnings in 9d",
       "price": 1.65,
       "chg_pct": 0.0,
       "rvol": 0.0,
@@ -186,7 +186,7 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 1
+      "active_triggers": 0
     }
   }
 }
