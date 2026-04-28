@@ -69,6 +69,12 @@ a{color:var(--accent);text-decoration:none}
 .btn-b:hover:not(:disabled){background:#334155;color:#e2e8f0}
 .btn-ki{background:#1e293b;color:#94a3b8;border:1px solid #334155}
 .btn-ki:hover:not(:disabled){background:#334155;color:#e2e8f0}
+select.sort-select{appearance:none;-webkit-appearance:none;-moz-appearance:none;
+  font-family:inherit;padding-right:28px;
+  background-image:linear-gradient(45deg,transparent 50%,#94a3b8 50%),linear-gradient(135deg,#94a3b8 50%,transparent 50%);
+  background-position:calc(100% - 14px) 50%,calc(100% - 9px) 50%;
+  background-size:5px 5px,5px 5px;background-repeat:no-repeat}
+select.sort-select:hover:not(:disabled){background-image:linear-gradient(45deg,transparent 50%,#e2e8f0 50%),linear-gradient(135deg,#e2e8f0 50%,transparent 50%)}
 /* token panel */
 .tok-panel{padding:0 0 10px}
 .tok-hint{font-size:.8rem;color:var(--txt-sub);margin-bottom:8px;line-height:1.5}
@@ -354,7 +360,26 @@ a{color:var(--accent);text-decoration:none}
   padding:0 16px;height:42px;font-size:.95rem;font-weight:700;cursor:pointer;flex-shrink:0}
 .chat-send-btn:hover:not(:disabled){background:#1d4ed8}
 .chat-send-btn:disabled{opacity:.45;cursor:not-allowed}
-.score-block{display:flex;flex-direction:column;align-items:flex-end;min-width:64px}
+.score-block{display:flex;flex-direction:column;align-items:flex-end;gap:7px;min-width:80px}
+.sb-row{display:flex;flex-direction:column;align-items:flex-end;line-height:1}
+.sb-num{font-weight:900;line-height:1;font-size:22px;
+  user-select:none;-webkit-tap-highlight-color:transparent}
+.sb-row[data-sb="setup"] .sb-num{cursor:pointer}
+.sb-row[data-sb="setup"] .sb-num:hover,
+.sb-row[data-sb="setup"] .sb-num:focus-visible{opacity:.85;outline:none}
+.sb-lbl{font-size:.58rem;color:var(--txt-dim);text-transform:uppercase;
+  letter-spacing:.4px;margin:3px 0 4px;font-weight:700}
+.sb-track{width:70px;height:4px;background:var(--brd);border-radius:3px;overflow:hidden}
+.sb-fill{height:100%;border-radius:3px;transition:width .3s,background .3s}
+.score-block.sort-setup .sb-row[data-sb="setup"]{order:1}
+.score-block.sort-setup .sb-row[data-sb="monster"]{order:2}
+.score-block.sort-setup .sb-row[data-sb="ki"]{order:3}
+.score-block.sort-setup .sb-row[data-sb="setup"] .sb-num{font-size:36px}
+.score-block.sort-monster .sb-row[data-sb="monster"]{order:1}
+.score-block.sort-monster .sb-row[data-sb="setup"]{order:2}
+.score-block.sort-monster .sb-row[data-sb="ki"]{order:3}
+.score-block.sort-monster .sb-row[data-sb="monster"] .sb-num{font-size:36px}
+/* Legacy aliases — old class names kept as no-op fallback for cached pages */
 .score-num{font-size:1.7rem;font-weight:900;line-height:1;cursor:pointer;
   user-select:none;-webkit-tap-highlight-color:transparent}
 .score-num:hover,.score-num:focus-visible{opacity:.85;outline:none}
@@ -377,10 +402,6 @@ a{color:var(--accent);text-decoration:none}
 .score-hist-lbl{font-size:.58rem;color:var(--txt-dim);margin-top:2px;text-align:center}
 .score-below-min{display:block;font-size:.58rem;color:var(--txt-dim);margin-top:3px;
   text-align:right;font-style:italic;line-height:1.3;max-width:68px}
-.monster-badge{display:block;font-size:.78rem;font-weight:800;margin-top:5px;
-  letter-spacing:.2px;text-align:right;white-space:nowrap}
-.ki-signal-badge{display:block;font-size:.69rem;font-weight:700;margin-top:4px;
-  letter-spacing:.2px;text-align:right}
 /* ── Sparkline ── */
 .spark-wrap{padding:8px 12px 4px;border-top:1px solid var(--brd)}
 .spark-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;gap:8px}
@@ -594,14 +615,17 @@ a{color:var(--accent);text-decoration:none}
 <header class="app-hdr">
   <div class="hdr-main">
     <span class="app-title">Squeeze <span>Report</span></span>
-    <span class="hdr-ts">Stand: 28.04.2026, 21:02 Uhr</span>
+    <span class="hdr-ts">Stand: 28.04.2026, 21:09 Uhr</span>
     <div class="hdr-btns">
       <button id="btn-reload" class="btn btn-g" onclick="reloadPage()">&#8635; Reload</button>
       <button id="btn-recalc" class="btn btn-b" onclick="triggerWorkflow()">&#9881; Recalculate</button>
       <button id="btn-ki" class="btn btn-ki" onclick="triggerKiAgent()">&#9889; Agent Run</button>
       <button id="btn-chat" class="btn btn-chat" onclick="toggleChat()">Chat</button>
       <button id="btn-backtest" class="btn btn-bt" onclick="toggleBacktesting()">Backtesting</button>
-      <button id="btn-sort" class="btn btn-b" onclick="toggleSortMode()">Sortierung: Setup</button>
+      <select id="sort-select" class="btn btn-b sort-select" onchange="setSortMode(this.value)" aria-label="Sortierung" title="Sortierung">
+        <option value="setup">Setup-Score</option>
+        <option value="monster">Monster-Score</option>
+      </select>
     </div>
     <div class="hdr-icons">
       <button class="fs-btn" id="fs-down" onclick="changeFontSize(-1)" aria-label="Schrift kleiner">A−</button>
@@ -681,12 +705,12 @@ a{color:var(--accent);text-decoration:none}
   <div class="agent-status-bar" id="agent-status">⚡ KI-Agent: Wird geladen …</div>
   <div class="stats-bar">
     <div class="stat-title">TopTen Squeezer</div>
-    <div class="stat-box"><span class="stat-val">37.1%</span><span class="stat-lbl">Ø Short Float</span></div>
-    <div class="stat-box"><span class="stat-val">7.5d</span><span class="stat-lbl">Ø Days to Cover</span></div>
+    <div class="stat-box"><span class="stat-val">35.5%</span><span class="stat-lbl">Ø Short Float</span></div>
+    <div class="stat-box"><span class="stat-val">7.9d</span><span class="stat-lbl">Ø Days to Cover</span></div>
     <div class="stat-box"><span class="stat-val">1.6×</span><span class="stat-lbl">Ø Volumen</span></div>
-    <div class="stat-box"><span class="stat-val">+6.8%</span><span class="stat-lbl">Ø Kursmomentum</span></div>
-    <div class="stat-box"><span class="stat-val">135,8 Mio,</span><span class="stat-lbl">Ø Float</span></div>
-    <div class="stat-box"><span class="stat-val">+22,9 %</span><span class="stat-lbl">Ø SI-Trend</span></div>
+    <div class="stat-box"><span class="stat-val">+7.5%</span><span class="stat-lbl">Ø Kursmomentum</span></div>
+    <div class="stat-box"><span class="stat-val">128,0 Mio,</span><span class="stat-lbl">Ø Float</span></div>
+    <div class="stat-box"><span class="stat-val">+10,5 %</span><span class="stat-lbl">Ø SI-Trend</span></div>
   </div>
 
   <details class="info-panel">
@@ -963,11 +987,11 @@ a{color:var(--accent);text-decoration:none}
   
 <article class="card" id="c1" data-ticker="SNBR" data-setup-rank="1" data-monster="75.8"
   data-score="75.8" data-company="Sleep Number Corporation"
-  data-price="3.25" data-sf="29.6" data-sr="2.5"
-  data-rv="10.39" data-chg="46.83" data-si="sideways"
-  data-rsi="57.3" data-iv="242.2" data-earn="14"
+  data-price="3.31" data-sf="29.6" data-sr="2.5"
+  data-rv="10.41" data-chg="49.97" data-si="sideways"
+  data-rsi="57.8" data-iv="218.8" data-earn="14"
   data-earn-date="12.05." data-float="18.8M"
-  data-cap="74878680" data-sector="Consumer Cyclical" data-news="[&quot;SNBR startet die erste große Kampagne seit Jahren – Kann ein Marketingwandel eine Trendwende herbeiführen?&quot;, &quot;Sleep Number (SNBR) Verdienstübersicht Q3 2024&quot;, &quot;Aktien des Wohnmöbelhändlers Q4-Ergebnis: Sleep Number (NASDAQ:SNBR) Best of the Bunch&quot;]">
+  data-cap="75689728" data-sector="Consumer Cyclical" data-news="[&quot;SNBR startet die erste große Kampagne seit Jahren – Kann ein Marketingwandel eine Trendwende herbeiführen?&quot;, &quot;Sleep Number (SNBR) Verdienstübersicht Q3 2024&quot;, &quot;Aktien des Wohnmöbelhändlers Q4-Ergebnis: Sleep Number (NASDAQ:SNBR) Best of the Bunch&quot;]">
   <div class="card-top">
     <div class="card-left">
       <span class="rank">1</span>
@@ -976,21 +1000,14 @@ a{color:var(--accent);text-decoration:none}
           <span class="ticker">SNBR</span>
           
           <a class="chart-badge chart-badge-s" href="https://stockanalysis.com/stocks/snbr/" target="_blank" rel="noopener noreferrer" title="Stockanalysis Chart &amp; Short-Interest">S</a>
-          <span class="price-tag">$3.25</span>
+          <span class="price-tag">$3.31</span>
           <button class="wl-add-btn" data-ticker="SNBR" onclick="wlToggle(this)" title="Zur Watchlist hinzufügen">＋</button>
         </div>
         <span class="company">Sleep Number Corporation</span>
         <span class="sector-tag">Consumer Cyclical · Furnishings, Fixtures & Appliances</span><span class="earnings-tag" style="color:#f59e0b">Earnings in 14d (12.05.)</span>
       </div>
     </div>
-    <div class="score-block">
-      <span class="score-num" style="color:#22c55e" onclick="showScoreExplain(this,event)" role="button" tabindex="0">75.8</span>
-      <span class="score-lbl">Score</span>
-      <div class="score-track"><div class="score-fill" style="width:76%;background:#22c55e"></div></div>
-      
-      <span class="monster-badge" style="color:#f59e0b">🔥 Monster: 76</span>
-      <span class="ki-signal-badge" style="color:#f59e0b">KI: 33</span>
-    </div>
+    <div class="score-block sort-setup"><div class="sb-row" data-sb="setup"><span class="sb-num" style="color:#f59e0b" onclick="showScoreExplain(this,event)" role="button" tabindex="0">75.8</span><span class="sb-lbl">Setup-Score</span><div class="sb-track"><div class="sb-fill" style="width:76%;background:#f59e0b"></div></div></div><div class="sb-row" data-sb="monster"><span class="sb-num" style="color:#f59e0b">76</span><span class="sb-lbl">Monster</span><div class="sb-track"><div class="sb-fill" style="width:76%;background:#f59e0b"></div></div></div><div class="sb-row" data-sb="ki"><span class="sb-num" style="color:#eab308">33</span><span class="sb-lbl">KI-Score</span><div class="sb-track"><div class="sb-fill" style="width:33%;background:#eab308"></div></div></div></div>
   </div>
   <div class="sub-scores-wrap"><div class="sub-scores-header">SETUP-ANALYSE</div><div class="sub-scores-hint">unabhängige Qualitätsindikatoren</div><div class="sub-scores"><span class="sub-score" title="Diese Werte sind unabhängige Qualitätsindikatoren und ergeben nicht den Gesamt-Score"><span class="sub-score-lbl">Struktur</span><span class="sub-score-val" style="color:#f59e0b">21/40</span></span><span class="sub-score" title="Diese Werte sind unabhängige Qualitätsindikatoren und ergeben nicht den Gesamt-Score"><span class="sub-score-lbl">Katalysator</span><span class="sub-score-val" style="color:#94a3b8">13/35</span></span><span class="sub-score" title="Diese Werte sind unabhängige Qualitätsindikatoren und ergeben nicht den Gesamt-Score"><span class="sub-score-lbl">Timing</span><span class="sub-score-val" style="color:#22c55e">25/25</span></span></div></div>
   <p class="spark-placeholder">Verlauf ab morgen verfügbar.</p>
@@ -1008,7 +1025,7 @@ a{color:var(--accent);text-decoration:none}
       <span class="m-lbl">Volumen</span>
     </div>
     <div class="metric-box" style="--mc:#22c55e">
-      <span class="m-val">+46.8%<br><span style="font-size:0.75em;color:var(--color-text-secondary)">5T: +33.2%</span></span>
+      <span class="m-val">+50.0%<br><span style="font-size:0.75em;color:var(--color-text-secondary)">5T: +34.9%</span></span>
       <span class="m-lbl">Momentum</span>
     </div>
     <div class="metric-box" style="--mc:#22c55e">
@@ -1028,7 +1045,7 @@ a{color:var(--accent);text-decoration:none}
       <table class="detail-table">
         <tr><td>⚡ Agent-Boost</td><td><span style="color:#a78bfa">+3.6 Pkt</span> <span style="color:var(--txt-dim);font-size:.8em">(KI-Score 33/100)</span></td></tr><tr aria-hidden="true"><td colspan="2" style="height:8px;padding:0;border:0"></td></tr>
         <tr class="detail-group-header"><td colspan="2">Stammdaten</td></tr>
-        <tr><td>Marktkapitalisierung</td><td>$75 M</td></tr>
+        <tr><td>Marktkapitalisierung</td><td>$76 M</td></tr>
         <tr><td>Float (frei handelbar)</td><td>18.8 Mio. Aktien</td></tr>
         <tr><td>Sektor</td><td>Consumer Cyclical · Furnishings, Fixtures & Appliances</td></tr>
         <tr><td>52W-Hoch / -Tief</td><td>$13.94 / $1.06</td></tr>
@@ -1041,12 +1058,12 @@ a{color:var(--accent);text-decoration:none}
         <tr><td>Short-Vol. T-2</td><td>32 Aktien (23.04.2026)</td></tr>
         <tr><td>Short-Vol. T-3</td><td>1,600 Aktien (22.04.2026)</td></tr>
         <tr class="detail-group-header"><td colspan="2">Volumen &amp; Momentum</td></tr>
-        <tr><td>Ø Volumen 20T</td><td>4,792,582</td></tr>
-        <tr><td>Heutiges Volumen</td><td>49,777,042</td></tr>
-        <tr><td>RSI (14T)</td><td><span style="color:var(--txt)">57.3</span></td></tr><tr><td>MA 50T / 200T</td><td>$3.83 / $7.01</td></tr><tr><td>Kurs vs. MA50</td><td><span style="color:#ef4444">(-15.3%)</span></td></tr><tr><td>Rel. Stärke (20T)</td><td><span style="color:#22c55e">+49.9% vs. S&amp;P 500 (Aktie +62.5%)</span></td></tr><tr><td>RS vs. Sektor (XRT)</td><td><span style="color:#22c55e">+54.8%</span></td></tr>
+        <tr><td>Ø Volumen 20T</td><td>4,806,531</td></tr>
+        <tr><td>Heutiges Volumen</td><td>50,056,011</td></tr>
+        <tr><td>RSI (14T)</td><td><span style="color:var(--txt)">57.8</span></td></tr><tr><td>MA 50T / 200T</td><td>$3.83 / $7.01</td></tr><tr><td>Kurs vs. MA50</td><td><span style="color:#ef4444">(-13.5%)</span></td></tr><tr><td>Rel. Stärke (20T)</td><td><span style="color:#22c55e">+52.0% vs. S&amp;P 500 (Aktie +64.6%)</span></td></tr><tr><td>RS vs. Sektor (XRT)</td><td><span style="color:#22c55e">+56.8%</span></td></tr>
         <tr class="detail-group-header"><td colspan="2">Katalysatoren</td></tr>
-        <tr><td>Letztes Earnings</td><td><span style="color:#ef4444">❌ Miss -364%</span></td></tr><tr><td>Put/Call-Ratio <span style='color:var(--txt-dim);font-size:.8em'>(2026-05-15)</span></td><td><span style="color:#22c55e">0.32 — bullisch</span></td></tr><tr><td>Impl. Volatilität (ATM)</td><td><span style="color:#22c55e">242.2%</span></td></tr>
-        <tr><td>Risiko-Detail</td><td style="color:#ef4444">Hohes Short-Interesse (29.6 %) erhöht die Volatilität deutlich. Micro-Cap ($75 M) – geringe Liquidität, Kursmanipulation möglich.</td></tr>
+        <tr><td>Letztes Earnings</td><td><span style="color:#ef4444">❌ Miss -364%</span></td></tr><tr><td>Put/Call-Ratio <span style='color:var(--txt-dim);font-size:.8em'>(2026-05-15)</span></td><td><span style="color:#22c55e">0.32 — bullisch</span></td></tr><tr><td>Impl. Volatilität (ATM)</td><td><span style="color:#22c55e">218.8%</span></td></tr>
+        <tr><td>Risiko-Detail</td><td style="color:#ef4444">Hohes Short-Interesse (29.6 %) erhöht die Volatilität deutlich. Micro-Cap ($76 M) – geringe Liquidität, Kursmanipulation möglich.</td></tr>
       </table>
     </div>
     
@@ -1076,12 +1093,12 @@ a{color:var(--accent);text-decoration:none}
 </article>
 
 <article class="card" id="c2" data-ticker="NTLA" data-setup-rank="2" data-monster="59.0"
-  data-score="73.9" data-company="Intellia Therapeutics, Inc."
-  data-price="13.75" data-sf="36.8" data-sr="12.4"
-  data-rv="1.89" data-chg="5.53" data-si="up"
-  data-rsi="48.2" data-iv="79.4" data-earn="9"
+  data-score="73.8" data-company="Intellia Therapeutics, Inc."
+  data-price="13.72" data-sf="36.8" data-sr="12.4"
+  data-rv="1.92" data-chg="5.30" data-si="up"
+  data-rsi="48.1" data-iv="80.1" data-earn="9"
   data-earn-date="07.05." data-float="111.9M"
-  data-cap="1624336256" data-sector="Healthcare" data-news="[&quot;EXTERNAL fällt trotz starker Phase-III-HIS-Daten um 4 % und leitet rollierendes BLA ein&quot;, &quot;Intellia Therapeutics gibt Phase-3-HAELO-Sieg für lonvo-z bekannt und beginnt mit der Einreichung der BLA-Einreichung bei der FDA&quot;, &quot;Warum sich die Darstellung von Intellia Therapeutics (NTLA) ändert, nachdem die FDA Beschlüsse gefasst hat&quot;]">
+  data-cap="1621382912" data-sector="Healthcare" data-news="[&quot;EXTERNAL fällt trotz starker Phase-III-HIS-Daten um 4 % und leitet rollierendes BLA ein&quot;, &quot;Intellia Therapeutics gibt Phase-3-HAELO-Sieg für lonvo-z bekannt und beginnt mit der Einreichung der BLA-Einreichung bei der FDA&quot;, &quot;Warum sich die Darstellung von Intellia Therapeutics (NTLA) ändert, nachdem die FDA Beschlüsse gefasst hat&quot;]">
   <div class="card-top">
     <div class="card-left">
       <span class="rank">2</span>
@@ -1090,24 +1107,17 @@ a{color:var(--accent);text-decoration:none}
           <span class="ticker">NTLA</span>
           
           <a class="chart-badge chart-badge-s" href="https://stockanalysis.com/stocks/ntla/" target="_blank" rel="noopener noreferrer" title="Stockanalysis Chart &amp; Short-Interest">S</a>
-          <span class="price-tag">$13.75</span>
+          <span class="price-tag">$13.72</span>
           <button class="wl-add-btn" data-ticker="NTLA" onclick="wlToggle(this)" title="Zur Watchlist hinzufügen">＋</button>
         </div>
         <span class="company">Intellia Therapeutics, Inc.</span>
         <span class="sector-tag">Healthcare · Biotechnology</span><span class="earnings-tag" style="color:#f59e0b">Earnings in 9d (07.05.)</span>
       </div>
     </div>
-    <div class="score-block">
-      <span class="score-num" style="color:#22c55e" onclick="showScoreExplain(this,event)" role="button" tabindex="0">73.9</span>
-      <span class="score-lbl">Score</span>
-      <div class="score-track"><div class="score-fill" style="width:74%;background:#22c55e"></div></div>
-      
-      <span class="monster-badge" style="color:#ef4444">🔥 Monster: 59</span>
-      <span class="ki-signal-badge" style="color:#ef4444">KI: 8</span>
-    </div>
+    <div class="score-block sort-setup"><div class="sb-row" data-sb="setup"><span class="sb-num" style="color:#f59e0b" onclick="showScoreExplain(this,event)" role="button" tabindex="0">73.8</span><span class="sb-lbl">Setup-Score</span><div class="sb-track"><div class="sb-fill" style="width:74%;background:#f59e0b"></div></div></div><div class="sb-row" data-sb="monster"><span class="sb-num" style="color:#eab308">59</span><span class="sb-lbl">Monster</span><div class="sb-track"><div class="sb-fill" style="width:59%;background:#eab308"></div></div></div><div class="sb-row" data-sb="ki"><span class="sb-num" style="color:#ef4444">8</span><span class="sb-lbl">KI-Score</span><div class="sb-track"><div class="sb-fill" style="width:8%;background:#ef4444"></div></div></div></div>
   </div>
   <div class="sub-scores-wrap"><div class="sub-scores-header">SETUP-ANALYSE</div><div class="sub-scores-hint">unabhängige Qualitätsindikatoren</div><div class="sub-scores"><span class="sub-score" title="Diese Werte sind unabhängige Qualitätsindikatoren und ergeben nicht den Gesamt-Score"><span class="sub-score-lbl">Struktur</span><span class="sub-score-val" style="color:#22c55e">30/40</span></span><span class="sub-score" title="Diese Werte sind unabhängige Qualitätsindikatoren und ergeben nicht den Gesamt-Score"><span class="sub-score-lbl">Katalysator</span><span class="sub-score-val" style="color:#f59e0b">18/35</span></span><span class="sub-score" title="Diese Werte sind unabhängige Qualitätsindikatoren und ergeben nicht den Gesamt-Score"><span class="sub-score-lbl">Timing</span><span class="sub-score-val" style="color:#f59e0b">17/25</span></span></div></div>
-  <div class="spark-wrap" data-scores='[60.7, 68.8, 45.4, 83.7, 77.3]' data-dates='["21.04.2026", "22.04.2026", "23.04.2026", "27.04.2026", "28.04.2026"]' data-col="#22c55e" data-today="28.04.2026"><div class="spark-header"><div class="spark-title-wrap"><span class="spark-title">⚡ KI-Signalverlauf</span><span class="spark-subtitle">(KI-Agent Score der letzten 7 Tage)</span></div><span class="spark-trend" style="color:#22c55e">↑ +16.6 Pkt</span></div><div class="spark-svg-wrap"></div><div class="spark-days"></div></div>
+  <div class="spark-wrap" data-scores='[60.7, 68.8, 45.4, 83.7, 77.1]' data-dates='["21.04.2026", "22.04.2026", "23.04.2026", "27.04.2026", "28.04.2026"]' data-col="#22c55e" data-today="28.04.2026"><div class="spark-header"><div class="spark-title-wrap"><span class="spark-title">⚡ KI-Signalverlauf</span><span class="spark-subtitle">(KI-Agent Score der letzten 7 Tage)</span></div><span class="spark-trend" style="color:#22c55e">↑ +16.4 Pkt</span></div><div class="spark-svg-wrap"></div><div class="spark-days"></div></div>
   <div class="metrics-row">
     <div class="metric-box" style="--mc:#22c55e">
       <span class="m-val">36.8%</span>
@@ -1122,7 +1132,7 @@ a{color:var(--accent);text-decoration:none}
       <span class="m-lbl">Volumen</span>
     </div>
     <div class="metric-box" style="--mc:#22c55e">
-      <span class="m-val">+5.5%<br><span style="font-size:0.75em;color:var(--color-text-secondary)">5T: -10.2%</span></span>
+      <span class="m-val">+5.3%<br><span style="font-size:0.75em;color:var(--color-text-secondary)">5T: -10.3%</span></span>
       <span class="m-lbl">Momentum</span>
     </div>
     <div class="metric-box" style="--mc:#ef4444">
@@ -1155,11 +1165,11 @@ a{color:var(--accent);text-decoration:none}
         <tr><td>Short-Vol. T-2</td><td>5,159 Aktien (24.04.2026)</td></tr>
         <tr><td>Short-Vol. T-3</td><td>5,796 Aktien (23.04.2026)</td></tr>
         <tr class="detail-group-header"><td colspan="2">Volumen &amp; Momentum</td></tr>
-        <tr><td>Ø Volumen 20T</td><td>4,909,370</td></tr>
-        <tr><td>Heutiges Volumen</td><td>9,281,204</td></tr>
-        <tr><td>RSI (14T)</td><td><span style="color:var(--txt)">48.2</span></td></tr><tr><td>MA 50T / 200T</td><td>$13.61 / $13.14</td></tr><tr><td>Kurs vs. MA50</td><td><span style="color:#22c55e">(+1.1%)</span></td></tr><tr><td>Rel. Stärke (20T)</td><td><span style="color:#22c55e">+5.5% vs. S&amp;P 500 (Aktie +18.0%)</span></td></tr><tr><td>RS vs. Sektor (XBI)</td><td><span style="color:#22c55e">+7.1%</span></td></tr>
+        <tr><td>Ø Volumen 20T</td><td>4,917,177</td></tr>
+        <tr><td>Heutiges Volumen</td><td>9,437,331</td></tr>
+        <tr><td>RSI (14T)</td><td><span style="color:var(--txt)">48.1</span></td></tr><tr><td>MA 50T / 200T</td><td>$13.60 / $13.14</td></tr><tr><td>Kurs vs. MA50</td><td><span style="color:#22c55e">(+0.8%)</span></td></tr><tr><td>Rel. Stärke (20T)</td><td><span style="color:#22c55e">+5.2% vs. S&amp;P 500 (Aktie +17.8%)</span></td></tr><tr><td>RS vs. Sektor (XBI)</td><td><span style="color:#22c55e">+6.8%</span></td></tr>
         <tr class="detail-group-header"><td colspan="2">Katalysatoren</td></tr>
-        <tr><td>Letztes Earnings</td><td><span style="color:#22c55e">✅ Beat +14%</span></td></tr><tr><td>Put/Call-Ratio <span style='color:var(--txt-dim);font-size:.8em'>(2026-05-15)</span></td><td><span style="color:#f59e0b">0.70 — neutral</span></td></tr><tr><td>Impl. Volatilität (ATM)</td><td><span style="color:#f59e0b">79.4%</span></td></tr>
+        <tr><td>Letztes Earnings</td><td><span style="color:#22c55e">✅ Beat +14%</span></td></tr><tr><td>Put/Call-Ratio <span style='color:var(--txt-dim);font-size:.8em'>(2026-05-15)</span></td><td><span style="color:#f59e0b">0.70 — neutral</span></td></tr><tr><td>Impl. Volatilität (ATM)</td><td><span style="color:#f59e0b">80.1%</span></td></tr>
         <tr><td>Risiko-Detail</td><td style="color:#f59e0b">Hohes Short-Interesse (36.8 %) erhöht die Volatilität deutlich. Small-Cap ($1.6 B) mit eingeschränkter Liquidität.</td></tr>
       </table>
     </div>
@@ -1191,11 +1201,11 @@ a{color:var(--accent);text-decoration:none}
 
 <article class="card" id="c3" data-ticker="ARCT" data-setup-rank="3" data-monster="53.0"
   data-score="66.7" data-company="Arcturus Therapeutics Holdings Inc."
-  data-price="8.87" data-sf="33.2" data-sr="11.9"
-  data-rv="0.70" data-chg="6.88" data-si="up"
+  data-price="8.88" data-sf="33.2" data-sr="11.9"
+  data-rv="0.70" data-chg="6.93" data-si="up"
   data-rsi="62.1" data-iv="98.2" data-earn="9"
   data-earn-date="07.05." data-float="26.3M"
-  data-cap="252112608" data-sector="Healthcare" data-news="[&quot;Cathie Wood geht auf Schnäppchenjagd: 3 Aktien, die sie gerade gekauft hat&quot;, &quot;Arcturus Therapeutics konzentriert sich nach dem Erfolg des COVID-Impfstoffs auf der ROTH Conf. wieder auf die mRNA-Pipeline für seltene Kra&quot;, &quot;Dies sind die einzigen drei Aktien, die Cathie Wood letzte Woche gekauft hat&quot;]">
+  data-cap="252254736" data-sector="Healthcare" data-news="[&quot;Cathie Wood geht auf Schnäppchenjagd: 3 Aktien, die sie gerade gekauft hat&quot;, &quot;Arcturus Therapeutics konzentriert sich nach dem Erfolg des COVID-Impfstoffs auf der ROTH Conf. wieder auf die mRNA-Pipeline für seltene Kra&quot;, &quot;Dies sind die einzigen drei Aktien, die Cathie Wood letzte Woche gekauft hat&quot;]">
   <div class="card-top">
     <div class="card-left">
       <span class="rank">3</span>
@@ -1204,21 +1214,14 @@ a{color:var(--accent);text-decoration:none}
           <span class="ticker">ARCT</span>
           
           <a class="chart-badge chart-badge-s" href="https://stockanalysis.com/stocks/arct/" target="_blank" rel="noopener noreferrer" title="Stockanalysis Chart &amp; Short-Interest">S</a>
-          <span class="price-tag">$8.87</span>
+          <span class="price-tag">$8.88</span>
           <button class="wl-add-btn" data-ticker="ARCT" onclick="wlToggle(this)" title="Zur Watchlist hinzufügen">＋</button>
         </div>
         <span class="company">Arcturus Therapeutics Holdings Inc.</span>
         <span class="sector-tag">Healthcare · Biotechnology</span><span class="earnings-tag" style="color:#f59e0b">Earnings in 9d (07.05.)</span>
       </div>
     </div>
-    <div class="score-block">
-      <span class="score-num" style="color:#22c55e" onclick="showScoreExplain(this,event)" role="button" tabindex="0">66.7</span>
-      <span class="score-lbl">Score</span>
-      <div class="score-track"><div class="score-fill" style="width:67%;background:#22c55e"></div></div>
-      
-      <span class="monster-badge" style="color:#ef4444">🔥 Monster: 53</span>
-      <span class="ki-signal-badge" style="color:#ef4444">KI: 8</span>
-    </div>
+    <div class="score-block sort-setup"><div class="sb-row" data-sb="setup"><span class="sb-num" style="color:#f59e0b" onclick="showScoreExplain(this,event)" role="button" tabindex="0">66.7</span><span class="sb-lbl">Setup-Score</span><div class="sb-track"><div class="sb-fill" style="width:67%;background:#f59e0b"></div></div></div><div class="sb-row" data-sb="monster"><span class="sb-num" style="color:#eab308">53</span><span class="sb-lbl">Monster</span><div class="sb-track"><div class="sb-fill" style="width:53%;background:#eab308"></div></div></div><div class="sb-row" data-sb="ki"><span class="sb-num" style="color:#ef4444">8</span><span class="sb-lbl">KI-Score</span><div class="sb-track"><div class="sb-fill" style="width:8%;background:#ef4444"></div></div></div></div>
   </div>
   <div class="sub-scores-wrap"><div class="sub-scores-header">SETUP-ANALYSE</div><div class="sub-scores-hint">unabhängige Qualitätsindikatoren</div><div class="sub-scores"><span class="sub-score" title="Diese Werte sind unabhängige Qualitätsindikatoren und ergeben nicht den Gesamt-Score"><span class="sub-score-lbl">Struktur</span><span class="sub-score-val" style="color:#22c55e">34/40</span></span><span class="sub-score" title="Diese Werte sind unabhängige Qualitätsindikatoren und ergeben nicht den Gesamt-Score"><span class="sub-score-lbl">Katalysator</span><span class="sub-score-val" style="color:#94a3b8">8/35</span></span><span class="sub-score" title="Diese Werte sind unabhängige Qualitätsindikatoren und ergeben nicht den Gesamt-Score"><span class="sub-score-lbl">Timing</span><span class="sub-score-val" style="color:#94a3b8">12/25</span></span></div></div>
   <div class="spark-wrap" data-scores='[44.8, 66.7]' data-dates='["23.04.2026", "28.04.2026"]' data-col="#22c55e" data-today="28.04.2026"><div class="spark-header"><div class="spark-title-wrap"><span class="spark-title">⚡ KI-Signalverlauf</span><span class="spark-subtitle">(KI-Agent Score der letzten 7 Tage)</span></div><span class="spark-trend" style="color:#22c55e">↑ +21.9 Pkt</span></div><div class="spark-svg-wrap"></div><div class="spark-days"></div></div>
@@ -1269,9 +1272,9 @@ a{color:var(--accent);text-decoration:none}
         <tr><td>Short-Vol. T-2</td><td>900 Aktien (24.04.2026)</td></tr>
         <tr><td>Short-Vol. T-3</td><td>20 Aktien (22.04.2026)</td></tr>
         <tr class="detail-group-header"><td colspan="2">Volumen &amp; Momentum</td></tr>
-        <tr><td>Ø Volumen 20T</td><td>412,689</td></tr>
-        <tr><td>Heutiges Volumen</td><td>289,087</td></tr>
-        <tr><td>RSI (14T)</td><td><span style="color:var(--txt)">62.1</span></td></tr><tr><td>MA 50T / 200T</td><td>$7.78 / $11.08</td></tr><tr><td>Kurs vs. MA50</td><td><span style="color:#22c55e">(+13.9%)</span></td></tr><tr><td>Rel. Stärke (20T)</td><td><span style="color:#22c55e">+16.0% vs. S&amp;P 500 (Aktie +28.6%)</span></td></tr><tr><td>RS vs. Sektor (XBI)</td><td><span style="color:#22c55e">+17.6%</span></td></tr>
+        <tr><td>Ø Volumen 20T</td><td>412,768</td></tr>
+        <tr><td>Heutiges Volumen</td><td>290,650</td></tr>
+        <tr><td>RSI (14T)</td><td><span style="color:var(--txt)">62.1</span></td></tr><tr><td>MA 50T / 200T</td><td>$7.78 / $11.08</td></tr><tr><td>Kurs vs. MA50</td><td><span style="color:#22c55e">(+14.0%)</span></td></tr><tr><td>Rel. Stärke (20T)</td><td><span style="color:#22c55e">+16.0% vs. S&amp;P 500 (Aktie +28.6%)</span></td></tr><tr><td>RS vs. Sektor (XBI)</td><td><span style="color:#22c55e">+17.7%</span></td></tr>
         <tr class="detail-group-header"><td colspan="2">Katalysatoren</td></tr>
         <tr><td>Letztes Earnings</td><td><span style="color:#ef4444">❌ Miss -36%</span></td></tr><tr><td>Put/Call-Ratio <span style='color:var(--txt-dim);font-size:.8em'>(2026-05-15)</span></td><td><span style="color:#f59e0b">0.60 — neutral</span></td></tr><tr><td>Impl. Volatilität (ATM)</td><td><span style="color:#f59e0b">98.2%</span></td></tr>
         <tr><td>Risiko-Detail</td><td style="color:#ef4444">Hohes Short-Interesse (33.2 %) erhöht die Volatilität deutlich. Micro-Cap ($252 M) – geringe Liquidität, Kursmanipulation möglich.</td></tr>
@@ -1304,12 +1307,12 @@ a{color:var(--accent);text-decoration:none}
 </article>
 
 <article class="card card-manual card-lazy" id="c4" data-ticker="INDI" data-setup-rank="4" data-monster="50.0"
-  data-score="62.9" data-company="indie Semiconductor, Inc."
-  data-price="3.90" data-sf="30.6" data-sr="18.4"
-  data-rv="0.74" data-chg="-1.64" data-si="up"
-  data-rsi="73.1" data-iv="143.8" data-earn="9"
+  data-score="63.0" data-company="indie Semiconductor, Inc."
+  data-price="3.86" data-sf="30.6" data-sr="18.4"
+  data-rv="0.76" data-chg="-2.52" data-si="up"
+  data-rsi="71.4" data-iv="147.7" data-earn="9"
   data-earn-date="07.05." data-float="204.1M"
-  data-cap="821682496" data-sector="Technology" data-news="[&quot;Warum Indie Semiconductor (INDI) gerade einen Schritt über die Automobilbranche hinaus geschafft hat&quot;, &quot;Ist Indie Semiconductor (INDI) laut Analysten eine der besten Halbleiteraktien unter 10 US-Dollar, die man kaufen kann?&quot;, &quot;Starke Analystenstimmung zu Indie Semiconductor (INDI) angesichts der Preisankündigung für Wandelanleihen im Wert von 150 Millionen US-Dolla&quot;]">
+  data-cap="813276032" data-sector="Technology" data-news="[&quot;Warum Indie Semiconductor (INDI) gerade einen Schritt über die Automobilbranche hinaus geschafft hat&quot;, &quot;Ist Indie Semiconductor (INDI) laut Analysten eine der besten Halbleiteraktien unter 10 US-Dollar, die man kaufen kann?&quot;, &quot;Starke Analystenstimmung zu Indie Semiconductor (INDI) angesichts der Preisankündigung für Wandelanleihen im Wert von 150 Millionen US-Dolla&quot;]">
   <div class="card-top">
     <div class="card-left">
       <span class="rank">4</span>
@@ -1318,24 +1321,17 @@ a{color:var(--accent);text-decoration:none}
           <span class="ticker">INDI</span>
           
           <a class="chart-badge chart-badge-s" href="https://stockanalysis.com/stocks/indi/" target="_blank" rel="noopener noreferrer" title="Stockanalysis Chart &amp; Short-Interest">S</a>
-          <span class="price-tag">$3.90</span>
+          <span class="price-tag">$3.86</span>
           <button class="wl-add-btn" data-ticker="INDI" onclick="wlToggle(this)" title="Zur Watchlist hinzufügen">＋</button>
         </div>
         <span class="company">indie Semiconductor, Inc.</span>
         <span class="sector-tag">Technology · Semiconductors</span><span class="earnings-tag" style="color:#f59e0b">Earnings in 9d (07.05.)</span>
       </div>
     </div>
-    <div class="score-block">
-      <span class="score-num" style="color:#22c55e" onclick="showScoreExplain(this,event)" role="button" tabindex="0">62.9</span>
-      <span class="score-lbl">Score</span>
-      <div class="score-track"><div class="score-fill" style="width:63%;background:#22c55e"></div></div>
-      
-      <span class="monster-badge" style="color:#ef4444">🔥 Monster: 50</span>
-      <span class="ki-signal-badge" style="color:#ef4444">KI: 8</span>
-    </div>
+    <div class="score-block sort-setup"><div class="sb-row" data-sb="setup"><span class="sb-num" style="color:#f59e0b" onclick="showScoreExplain(this,event)" role="button" tabindex="0">63.0</span><span class="sb-lbl">Setup-Score</span><div class="sb-track"><div class="sb-fill" style="width:63%;background:#f59e0b"></div></div></div><div class="sb-row" data-sb="monster"><span class="sb-num" style="color:#eab308">50</span><span class="sb-lbl">Monster</span><div class="sb-track"><div class="sb-fill" style="width:50%;background:#eab308"></div></div></div><div class="sb-row" data-sb="ki"><span class="sb-num" style="color:#ef4444">8</span><span class="sb-lbl">KI-Score</span><div class="sb-track"><div class="sb-fill" style="width:8%;background:#ef4444"></div></div></div></div>
   </div>
   <div class="sub-scores-wrap"><div class="sub-scores-header">SETUP-ANALYSE</div><div class="sub-scores-hint">unabhängige Qualitätsindikatoren</div><div class="sub-scores"><span class="sub-score" title="Diese Werte sind unabhängige Qualitätsindikatoren und ergeben nicht den Gesamt-Score"><span class="sub-score-lbl">Struktur</span><span class="sub-score-val" style="color:#f59e0b">28/40</span></span><span class="sub-score" title="Diese Werte sind unabhängige Qualitätsindikatoren und ergeben nicht den Gesamt-Score"><span class="sub-score-lbl">Katalysator</span><span class="sub-score-val" style="color:#94a3b8">13/35</span></span><span class="sub-score" title="Diese Werte sind unabhängige Qualitätsindikatoren und ergeben nicht den Gesamt-Score"><span class="sub-score-lbl">Timing</span><span class="sub-score-val" style="color:#94a3b8">3/25</span></span></div></div>
-  <div class="spark-wrap" data-scores='[56.3, 71.5, 93.6, 87.9, 87.9, 91.6, 51.6]' data-dates='["22.04.2026", "23.04.2026", "24.04.2026", "25.04.2026", "26.04.2026", "27.04.2026", "28.04.2026"]' data-col="#ef4444" data-today="28.04.2026"><div class="spark-header"><div class="spark-title-wrap"><span class="spark-title">⚡ KI-Signalverlauf</span><span class="spark-subtitle">(KI-Agent Score der letzten 7 Tage)</span></div><span class="spark-trend" style="color:#ef4444">↓ -4.7 Pkt</span></div><div class="spark-svg-wrap"></div><div class="spark-days"></div></div>
+  <div class="spark-wrap" data-scores='[56.3, 71.5, 93.6, 87.9, 87.9, 91.6, 51.8]' data-dates='["22.04.2026", "23.04.2026", "24.04.2026", "25.04.2026", "26.04.2026", "27.04.2026", "28.04.2026"]' data-col="#ef4444" data-today="28.04.2026"><div class="spark-header"><div class="spark-title-wrap"><span class="spark-title">⚡ KI-Signalverlauf</span><span class="spark-subtitle">(KI-Agent Score der letzten 7 Tage)</span></div><span class="spark-trend" style="color:#ef4444">↓ -4.5 Pkt</span></div><div class="spark-svg-wrap"></div><div class="spark-days"></div></div>
   <div class="metrics-row">
     <div class="metric-box" style="--mc:#22c55e">
       <span class="m-val">30.6%</span>
@@ -1346,11 +1342,11 @@ a{color:var(--accent);text-decoration:none}
       <span class="m-lbl">Days to Cover</span>
     </div>
     <div class="metric-box" style="--mc:#ef4444">
-      <span class="m-val">0.7×</span>
+      <span class="m-val">0.8×</span>
       <span class="m-lbl">Volumen</span>
     </div>
     <div class="metric-box" style="--mc:#f59e0b">
-      <span class="m-val">-1.6%<br><span style="font-size:0.75em;color:var(--color-text-secondary)">5T: +15.2%</span></span>
+      <span class="m-val">-2.5%<br><span style="font-size:0.75em;color:var(--color-text-secondary)">5T: +14.2%</span></span>
       <span class="m-lbl">Momentum</span>
     </div>
     <div class="metric-box" style="--mc:#ef4444">
@@ -1370,7 +1366,7 @@ a{color:var(--accent);text-decoration:none}
       <table class="detail-table">
         
         <tr class="detail-group-header"><td colspan="2">Stammdaten</td></tr>
-        <tr><td>Marktkapitalisierung</td><td>$822 M</td></tr>
+        <tr><td>Marktkapitalisierung</td><td>$813 M</td></tr>
         <tr><td>Float (frei handelbar)</td><td>204.1 Mio. Aktien</td></tr>
         <tr><td>Sektor</td><td>Technology · Semiconductors</td></tr>
         <tr><td>52W-Hoch / -Tief</td><td>$6.05 / $1.90</td></tr>
@@ -1383,12 +1379,12 @@ a{color:var(--accent);text-decoration:none}
         <tr><td>Short-Vol. T-2</td><td>31,087 Aktien (24.04.2026)</td></tr>
         <tr><td>Short-Vol. T-3</td><td>8,114 Aktien (23.04.2026)</td></tr>
         <tr class="detail-group-header"><td colspan="2">Volumen &amp; Momentum</td></tr>
-        <tr><td>Ø Volumen 20T</td><td>4,218,622</td></tr>
-        <tr><td>Heutiges Volumen</td><td>3,134,130</td></tr>
-        <tr><td>RSI (14T)</td><td><span style="color:#ef4444">73.1 — überkauft</span></td></tr><tr><td>MA 50T / 200T</td><td>$3.10 / $3.96</td></tr><tr><td>Kurs vs. MA50</td><td><span style="color:#22c55e">(+25.6%)</span></td></tr><tr><td>Rel. Stärke (20T)</td><td><span style="color:#22c55e">+15.2% vs. S&amp;P 500 (Aktie +27.7%)</span></td></tr><tr><td>RS vs. Sektor (QQQ)</td><td><span style="color:#22c55e">+9.7%</span></td></tr>
+        <tr><td>Ø Volumen 20T</td><td>4,221,863</td></tr>
+        <tr><td>Heutiges Volumen</td><td>3,198,960</td></tr>
+        <tr><td>RSI (14T)</td><td><span style="color:#ef4444">71.4 — überkauft</span></td></tr><tr><td>MA 50T / 200T</td><td>$3.10 / $3.95</td></tr><tr><td>Kurs vs. MA50</td><td><span style="color:#22c55e">(+24.5%)</span></td></tr><tr><td>Rel. Stärke (20T)</td><td><span style="color:#22c55e">+14.0% vs. S&amp;P 500 (Aktie +26.6%)</span></td></tr><tr><td>RS vs. Sektor (QQQ)</td><td><span style="color:#22c55e">+8.6%</span></td></tr>
         <tr class="detail-group-header"><td colspan="2">Katalysatoren</td></tr>
-        <tr><td>Letztes Earnings</td><td><span style="color:#ef4444">❌ Miss -5%</span></td></tr><tr><td>Put/Call-Ratio <span style='color:var(--txt-dim);font-size:.8em'>(2026-05-15)</span></td><td><span style="color:#22c55e">0.21 — bullisch</span></td></tr><tr><td>Impl. Volatilität (ATM)</td><td><span style="color:#22c55e">143.8%</span></td></tr>
-        <tr><td>Risiko-Detail</td><td style="color:#f59e0b">Hohes Short-Interesse (30.6 %) erhöht die Volatilität deutlich. Small-Cap ($821 M) mit eingeschränkter Liquidität.</td></tr>
+        <tr><td>Letztes Earnings</td><td><span style="color:#ef4444">❌ Miss -5%</span></td></tr><tr><td>Put/Call-Ratio <span style='color:var(--txt-dim);font-size:.8em'>(2026-05-15)</span></td><td><span style="color:#22c55e">0.21 — bullisch</span></td></tr><tr><td>Impl. Volatilität (ATM)</td><td><span style="color:#22c55e">147.7%</span></td></tr>
+        <tr><td>Risiko-Detail</td><td style="color:#f59e0b">Hohes Short-Interesse (30.6 %) erhöht die Volatilität deutlich. Small-Cap ($813 M) mit eingeschränkter Liquidität.</td></tr>
       </table>
     </div>
     
@@ -1417,13 +1413,13 @@ a{color:var(--accent);text-decoration:none}
   <div class="ki-analyse-result" id="ka-res4"></div>
 </article>
 
-<article class="card card-manual card-lazy" id="c5" data-ticker="GRPN" data-setup-rank="5" data-monster="62.1"
-  data-score="62.1" data-company="Groupon, Inc."
-  data-price="14.43" data-sf="51.7" data-sr="9.1"
-  data-rv="0.31" data-chg="-3.54" data-si="sideways"
-  data-rsi="56.0" data-iv="129.5" data-earn="9"
+<article class="card card-manual card-lazy" id="c5" data-ticker="GRPN" data-setup-rank="5" data-monster="62.2"
+  data-score="62.2" data-company="Groupon, Inc."
+  data-price="14.47" data-sf="51.7" data-sr="9.1"
+  data-rv="0.32" data-chg="-3.28" data-si="sideways"
+  data-rsi="56.2" data-iv="118.0" data-earn="9"
   data-earn-date="07.05." data-float="29.0M"
-  data-cap="587928576" data-sector="Communication Services" data-news="[&quot;Avis Short Squeeze schockierte den Markt: Kommen diese drei Aktien als nächstes?&quot;, &quot;Groupon (GRPN) sieht einen deutlicheren Rückgang als der breitere Markt: Einige Fakten, die Sie wissen sollten&quot;, &quot;OpenAI wirbt Airbnb-Manager als ersten Direktor für EMEA ab&quot;]">
+  data-cap="589558336" data-sector="Communication Services" data-news="[&quot;Avis Short Squeeze schockierte den Markt: Kommen diese drei Aktien als nächstes?&quot;, &quot;Groupon (GRPN) sieht einen deutlicheren Rückgang als der breitere Markt: Einige Fakten, die Sie wissen sollten&quot;, &quot;OpenAI wirbt Airbnb-Manager als ersten Direktor für EMEA ab&quot;]">
   <div class="card-top">
     <div class="card-left">
       <span class="rank">5</span>
@@ -1432,24 +1428,17 @@ a{color:var(--accent);text-decoration:none}
           <span class="ticker">GRPN</span>
           
           <a class="chart-badge chart-badge-s" href="https://stockanalysis.com/stocks/grpn/" target="_blank" rel="noopener noreferrer" title="Stockanalysis Chart &amp; Short-Interest">S</a>
-          <span class="price-tag">$14.43</span>
+          <span class="price-tag">$14.47</span>
           <button class="wl-add-btn" data-ticker="GRPN" onclick="wlToggle(this)" title="Zur Watchlist hinzufügen">＋</button>
         </div>
         <span class="company">Groupon, Inc.</span>
         <span class="sector-tag">Communication Services · Internet Content & Information</span><span class="earnings-tag" style="color:#f59e0b">Earnings in 9d (07.05.)</span>
       </div>
     </div>
-    <div class="score-block">
-      <span class="score-num" style="color:#22c55e" onclick="showScoreExplain(this,event)" role="button" tabindex="0">62.1</span>
-      <span class="score-lbl">Score</span>
-      <div class="score-track"><div class="score-fill" style="width:62%;background:#22c55e"></div></div>
-      
-      <span class="monster-badge" style="color:#f59e0b">🔥 Monster: 62</span>
-      <span class="ki-signal-badge" style="color:#f59e0b">KI: 38</span>
-    </div>
+    <div class="score-block sort-setup"><div class="sb-row" data-sb="setup"><span class="sb-num" style="color:#f59e0b" onclick="showScoreExplain(this,event)" role="button" tabindex="0">62.2</span><span class="sb-lbl">Setup-Score</span><div class="sb-track"><div class="sb-fill" style="width:62%;background:#f59e0b"></div></div></div><div class="sb-row" data-sb="monster"><span class="sb-num" style="color:#f59e0b">62</span><span class="sb-lbl">Monster</span><div class="sb-track"><div class="sb-fill" style="width:62%;background:#f59e0b"></div></div></div><div class="sb-row" data-sb="ki"><span class="sb-num" style="color:#eab308">38</span><span class="sb-lbl">KI-Score</span><div class="sb-track"><div class="sb-fill" style="width:38%;background:#eab308"></div></div></div></div>
   </div>
   <div class="sub-scores-wrap"><div class="sub-scores-header">SETUP-ANALYSE</div><div class="sub-scores-hint">unabhängige Qualitätsindikatoren</div><div class="sub-scores"><span class="sub-score" title="Diese Werte sind unabhängige Qualitätsindikatoren und ergeben nicht den Gesamt-Score"><span class="sub-score-lbl">Struktur</span><span class="sub-score-val" style="color:#22c55e">37/40</span></span><span class="sub-score" title="Diese Werte sind unabhängige Qualitätsindikatoren und ergeben nicht den Gesamt-Score"><span class="sub-score-lbl">Katalysator</span><span class="sub-score-val" style="color:#f59e0b">18/35</span></span><span class="sub-score" title="Diese Werte sind unabhängige Qualitätsindikatoren und ergeben nicht den Gesamt-Score"><span class="sub-score-lbl">Timing</span><span class="sub-score-val" style="color:#94a3b8">3/25</span></span></div></div>
-  <div class="spark-wrap" data-scores='[100.0, 65.3, 48.6, 66.2, 66.2, 70.6, 55.4]' data-dates='["22.04.2026", "23.04.2026", "24.04.2026", "25.04.2026", "26.04.2026", "27.04.2026", "28.04.2026"]' data-col="#ef4444" data-today="28.04.2026"><div class="spark-header"><div class="spark-title-wrap"><span class="spark-title">⚡ KI-Signalverlauf</span><span class="spark-subtitle">(KI-Agent Score der letzten 7 Tage)</span></div><span class="spark-trend" style="color:#ef4444">↓ -44.6 Pkt</span></div><div class="spark-svg-wrap"></div><div class="spark-days"></div></div>
+  <div class="spark-wrap" data-scores='[100.0, 65.3, 48.6, 66.2, 66.2, 70.6, 55.5]' data-dates='["22.04.2026", "23.04.2026", "24.04.2026", "25.04.2026", "26.04.2026", "27.04.2026", "28.04.2026"]' data-col="#ef4444" data-today="28.04.2026"><div class="spark-header"><div class="spark-title-wrap"><span class="spark-title">⚡ KI-Signalverlauf</span><span class="spark-subtitle">(KI-Agent Score der letzten 7 Tage)</span></div><span class="spark-trend" style="color:#ef4444">↓ -44.5 Pkt</span></div><div class="spark-svg-wrap"></div><div class="spark-days"></div></div>
   <div class="metrics-row">
     <div class="metric-box" style="--mc:#22c55e">
       <span class="m-val">51.7%</span>
@@ -1464,7 +1453,7 @@ a{color:var(--accent);text-decoration:none}
       <span class="m-lbl">Volumen</span>
     </div>
     <div class="metric-box" style="--mc:#f59e0b">
-      <span class="m-val">-3.5%<br><span style="font-size:0.75em;color:var(--color-text-secondary)">5T: -13.4%</span></span>
+      <span class="m-val">-3.3%<br><span style="font-size:0.75em;color:var(--color-text-secondary)">5T: -13.2%</span></span>
       <span class="m-lbl">Momentum</span>
     </div>
     <div class="metric-box" style="--mc:#22c55e">
@@ -1484,7 +1473,7 @@ a{color:var(--accent);text-decoration:none}
       <table class="detail-table">
         <tr><td>⚡ Agent-Boost</td><td><span style="color:#a78bfa">+3.0 Pkt</span> <span style="color:var(--txt-dim);font-size:.8em">(KI-Score 38/100)</span></td></tr><tr aria-hidden="true"><td colspan="2" style="height:8px;padding:0;border:0"></td></tr>
         <tr class="detail-group-header"><td colspan="2">Stammdaten</td></tr>
-        <tr><td>Marktkapitalisierung</td><td>$588 M</td></tr>
+        <tr><td>Marktkapitalisierung</td><td>$590 M</td></tr>
         <tr><td>Float (frei handelbar)</td><td>29.0 Mio. Aktien</td></tr>
         <tr><td>Sektor</td><td>Communication Services · Internet Content & Information</td></tr>
         <tr><td>52W-Hoch / -Tief</td><td>$43.08 / $9.17</td></tr>
@@ -1497,12 +1486,12 @@ a{color:var(--accent);text-decoration:none}
         <tr><td>Short-Vol. T-2</td><td>261 Aktien (24.04.2026)</td></tr>
         <tr><td>Short-Vol. T-3</td><td>6,808 Aktien (23.04.2026)</td></tr>
         <tr class="detail-group-header"><td colspan="2">Volumen &amp; Momentum</td></tr>
-        <tr><td>Ø Volumen 20T</td><td>2,121,373</td></tr>
-        <tr><td>Heutiges Volumen</td><td>658,864</td></tr>
-        <tr><td>RSI (14T)</td><td><span style="color:var(--txt)">56.0</span></td></tr><tr><td>MA 50T / 200T</td><td>$12.35 / $19.15</td></tr><tr><td>Kurs vs. MA50</td><td><span style="color:#22c55e">(+16.8%)</span></td></tr><tr><td>Rel. Stärke (20T)</td><td><span style="color:#22c55e">+19.0% vs. S&amp;P 500 (Aktie +31.5%)</span></td></tr><tr><td>RS vs. Sektor (QQQ)</td><td><span style="color:#22c55e">+13.6%</span></td></tr>
+        <tr><td>Ø Volumen 20T</td><td>2,122,438</td></tr>
+        <tr><td>Heutiges Volumen</td><td>680,155</td></tr>
+        <tr><td>RSI (14T)</td><td><span style="color:var(--txt)">56.2</span></td></tr><tr><td>MA 50T / 200T</td><td>$12.35 / $19.16</td></tr><tr><td>Kurs vs. MA50</td><td><span style="color:#22c55e">(+17.1%)</span></td></tr><tr><td>Rel. Stärke (20T)</td><td><span style="color:#22c55e">+19.3% vs. S&amp;P 500 (Aktie +31.9%)</span></td></tr><tr><td>RS vs. Sektor (QQQ)</td><td><span style="color:#22c55e">+13.9%</span></td></tr>
         <tr class="detail-group-header"><td colspan="2">Katalysatoren</td></tr>
-        <tr><td>Letztes Earnings</td><td><span style="color:#22c55e">✅ Beat +19%</span></td></tr><tr><td>Put/Call-Ratio <span style='color:var(--txt-dim);font-size:.8em'>(2026-05-15)</span></td><td><span style="color:#22c55e">0.19 — bullisch</span></td></tr><tr><td>Impl. Volatilität (ATM)</td><td><span style="color:#22c55e">129.5%</span></td></tr>
-        <tr><td>Risiko-Detail</td><td style="color:#ef4444">Extrem hohes Short-Interesse (51.7 %) bedeutet massive Squeeze-Gefahr, aber auch starke Kursausschläge in beide Richtungen. Small-Cap ($588 M) mit eingeschränkter Liquidität.</td></tr>
+        <tr><td>Letztes Earnings</td><td><span style="color:#22c55e">✅ Beat +19%</span></td></tr><tr><td>Put/Call-Ratio <span style='color:var(--txt-dim);font-size:.8em'>(2026-05-15)</span></td><td><span style="color:#22c55e">0.19 — bullisch</span></td></tr><tr><td>Impl. Volatilität (ATM)</td><td><span style="color:#22c55e">118.0%</span></td></tr>
+        <tr><td>Risiko-Detail</td><td style="color:#ef4444">Extrem hohes Short-Interesse (51.7 %) bedeutet massive Squeeze-Gefahr, aber auch starke Kursausschläge in beide Richtungen. Small-Cap ($590 M) mit eingeschränkter Liquidität.</td></tr>
       </table>
     </div>
     
@@ -1531,8 +1520,8 @@ a{color:var(--accent);text-decoration:none}
   <div class="ki-analyse-result" id="ka-res5"></div>
 </article>
 
-<article class="card card-lazy" id="c6" data-ticker="MNPR" data-setup-rank="6" data-monster="54.5"
-  data-score="54.5" data-company="Monopar Therapeutics Inc."
+<article class="card card-lazy" id="c6" data-ticker="MNPR" data-setup-rank="6" data-monster="54.4"
+  data-score="54.4" data-company="Monopar Therapeutics Inc."
   data-price="54.65" data-sf="68.6" data-sr="8.6"
   data-rv="0.28" data-chg="1.16" data-si="sideways"
   data-rsi="46.8" data-iv="" data-earn="14"
@@ -1553,14 +1542,7 @@ a{color:var(--accent);text-decoration:none}
         <span class="sector-tag">Healthcare · Biotechnology</span><span class="earnings-tag" style="color:#f59e0b">Earnings in 14d (12.05.)</span>
       </div>
     </div>
-    <div class="score-block">
-      <span class="score-num" style="color:#22c55e" onclick="showScoreExplain(this,event)" role="button" tabindex="0">54.5</span>
-      <span class="score-lbl">Score</span>
-      <div class="score-track"><div class="score-fill" style="width:54%;background:#22c55e"></div></div>
-      
-      <span class="monster-badge" style="color:#ef4444">🔥 Monster: 54</span>
-      
-    </div>
+    <div class="score-block sort-setup"><div class="sb-row" data-sb="setup"><span class="sb-num" style="color:#eab308" onclick="showScoreExplain(this,event)" role="button" tabindex="0">54.4</span><span class="sb-lbl">Setup-Score</span><div class="sb-track"><div class="sb-fill" style="width:54%;background:#eab308"></div></div></div><div class="sb-row" data-sb="monster"><span class="sb-num" style="color:#eab308">54</span><span class="sb-lbl">Monster</span><div class="sb-track"><div class="sb-fill" style="width:54%;background:#eab308"></div></div></div></div>
   </div>
   <div class="sub-scores-wrap"><div class="sub-scores-header">SETUP-ANALYSE</div><div class="sub-scores-hint">unabhängige Qualitätsindikatoren</div><div class="sub-scores"><span class="sub-score" title="Diese Werte sind unabhängige Qualitätsindikatoren und ergeben nicht den Gesamt-Score"><span class="sub-score-lbl">Struktur</span><span class="sub-score-val" style="color:#22c55e">37/40</span></span><span class="sub-score" title="Diese Werte sind unabhängige Qualitätsindikatoren und ergeben nicht den Gesamt-Score"><span class="sub-score-lbl">Katalysator</span><span class="sub-score-val" style="color:#94a3b8">8/35</span></span><span class="sub-score" title="Diese Werte sind unabhängige Qualitätsindikatoren und ergeben nicht den Gesamt-Score"><span class="sub-score-lbl">Timing</span><span class="sub-score-val" style="color:#94a3b8">0/25</span></span></div></div>
   <p class="spark-placeholder">Verlauf ab morgen verfügbar.</p>
@@ -1611,9 +1593,9 @@ a{color:var(--accent);text-decoration:none}
         <tr><td>Short-Vol. T-2</td><td>13 Aktien (24.04.2026)</td></tr>
         <tr><td>Short-Vol. T-3</td><td>26 Aktien (22.04.2026)</td></tr>
         <tr class="detail-group-header"><td colspan="2">Volumen &amp; Momentum</td></tr>
-        <tr><td>Ø Volumen 20T</td><td>175,969</td></tr>
-        <tr><td>Heutiges Volumen</td><td>49,677</td></tr>
-        <tr><td>RSI (14T)</td><td><span style="color:var(--txt)">46.8</span></td></tr><tr><td>MA 50T / 200T</td><td>$55.90 / $62.65</td></tr><tr><td>Kurs vs. MA50</td><td><span style="color:#ef4444">(-2.2%)</span></td></tr><tr><td>Rel. Stärke (20T)</td><td><span style="color:#ef4444">-10.0% vs. S&amp;P 500 (Aktie +2.5%)</span></td></tr><tr><td>RS vs. Sektor (XBI)</td><td><span style="color:#ef4444">-8.4%</span></td></tr>
+        <tr><td>Ø Volumen 20T</td><td>175,978</td></tr>
+        <tr><td>Heutiges Volumen</td><td>49,864</td></tr>
+        <tr><td>RSI (14T)</td><td><span style="color:var(--txt)">46.8</span></td></tr><tr><td>MA 50T / 200T</td><td>$55.90 / $62.65</td></tr><tr><td>Kurs vs. MA50</td><td><span style="color:#ef4444">(-2.2%)</span></td></tr><tr><td>Rel. Stärke (20T)</td><td><span style="color:#ef4444">-10.1% vs. S&amp;P 500 (Aktie +2.5%)</span></td></tr><tr><td>RS vs. Sektor (XBI)</td><td><span style="color:#ef4444">-8.4%</span></td></tr>
         <tr class="detail-group-header"><td colspan="2">Katalysatoren</td></tr>
         <tr><td>Letztes Earnings</td><td><span style="color:#ef4444">❌ Miss -19%</span></td></tr>
         <tr><td>Risiko-Detail</td><td style="color:#ef4444">Extrem hohes Short-Interesse (68.6 %) bedeutet massive Squeeze-Gefahr, aber auch starke Kursausschläge in beide Richtungen. Small-Cap ($366 M) mit eingeschränkter Liquidität.</td></tr>
@@ -1645,13 +1627,13 @@ a{color:var(--accent);text-decoration:none}
   <div class="ki-analyse-result" id="ka-res6"></div>
 </article>
 
-<article class="card card-lazy" id="c7" data-ticker="BBAI" data-setup-rank="7" data-monster="52.1"
-  data-score="52.1" data-company="BigBear.ai Holdings, Inc."
-  data-price="4.05" data-sf="25.3" data-sr="4.4"
-  data-rv="1.82" data-chg="8.71" data-si="down"
-  data-rsi="59.2" data-iv="" data-earn="7"
+<article class="card card-lazy" id="c7" data-ticker="BBAI" data-setup-rank="7" data-monster="52.4"
+  data-score="52.4" data-company="BigBear.ai Holdings, Inc."
+  data-price="4.02" data-sf="25.3" data-sr="4.4"
+  data-rv="1.84" data-chg="7.77" data-si="down"
+  data-rsi="58.2" data-iv="" data-earn="7"
   data-earn-date="05.05." data-float="470.7M"
-  data-cap="1930409344" data-sector="Technology" data-news="[&quot;Die Cash War Chest von BigBear.ai wächst: KI-Erweiterungspläne vorantreiben?&quot;, &quot;BigBear.ai Holdings, Inc. (BBAI) verzeichnet einen stärkeren Rückgang als der Markt: Wichtige Fakten, die Sie beachten sollten&quot;, &quot;BigBear.ai strebt ein Wachstum der Pentagon-KI an, da der Vertragszugang erweitert wird&quot;]">
+  data-cap="1909034368" data-sector="Technology" data-news="[&quot;Die Cash War Chest von BigBear.ai wächst: KI-Erweiterungspläne vorantreiben?&quot;, &quot;BigBear.ai Holdings, Inc. (BBAI) verzeichnet einen stärkeren Rückgang als der Markt: Wichtige Fakten, die Sie beachten sollten&quot;, &quot;BigBear.ai strebt ein Wachstum der Pentagon-KI an, da der Vertragszugang erweitert wird&quot;]">
   <div class="card-top">
     <div class="card-left">
       <span class="rank">7</span>
@@ -1660,21 +1642,14 @@ a{color:var(--accent);text-decoration:none}
           <span class="ticker">BBAI</span>
           
           <a class="chart-badge chart-badge-s" href="https://stockanalysis.com/stocks/bbai/" target="_blank" rel="noopener noreferrer" title="Stockanalysis Chart &amp; Short-Interest">S</a>
-          <span class="price-tag">$4.05</span>
+          <span class="price-tag">$4.02</span>
           <button class="wl-add-btn" data-ticker="BBAI" onclick="wlToggle(this)" title="Zur Watchlist hinzufügen">＋</button>
         </div>
         <span class="company">BigBear.ai Holdings, Inc.</span>
         <span class="sector-tag">Technology · Information Technology Services</span><span class="earnings-tag" style="color:#f59e0b">Earnings in 7d (05.05.)</span>
       </div>
     </div>
-    <div class="score-block">
-      <span class="score-num" style="color:#22c55e" onclick="showScoreExplain(this,event)" role="button" tabindex="0">52.1</span>
-      <span class="score-lbl">Score</span>
-      <div class="score-track"><div class="score-fill" style="width:52%;background:#22c55e"></div></div>
-      
-      <span class="monster-badge" style="color:#ef4444">🔥 Monster: 52</span>
-      <span class="ki-signal-badge" style="color:#f59e0b">KI: 30</span>
-    </div>
+    <div class="score-block sort-setup"><div class="sb-row" data-sb="setup"><span class="sb-num" style="color:#eab308" onclick="showScoreExplain(this,event)" role="button" tabindex="0">52.4</span><span class="sb-lbl">Setup-Score</span><div class="sb-track"><div class="sb-fill" style="width:52%;background:#eab308"></div></div></div><div class="sb-row" data-sb="monster"><span class="sb-num" style="color:#eab308">52</span><span class="sb-lbl">Monster</span><div class="sb-track"><div class="sb-fill" style="width:52%;background:#eab308"></div></div></div><div class="sb-row" data-sb="ki"><span class="sb-num" style="color:#eab308">30</span><span class="sb-lbl">KI-Score</span><div class="sb-track"><div class="sb-fill" style="width:30%;background:#eab308"></div></div></div></div>
   </div>
   <div class="sub-scores-wrap"><div class="sub-scores-header">SETUP-ANALYSE</div><div class="sub-scores-hint">unabhängige Qualitätsindikatoren</div><div class="sub-scores"><span class="sub-score" title="Diese Werte sind unabhängige Qualitätsindikatoren und ergeben nicht den Gesamt-Score"><span class="sub-score-lbl">Struktur</span><span class="sub-score-val" style="color:#94a3b8">15/40</span></span><span class="sub-score" title="Diese Werte sind unabhängige Qualitätsindikatoren und ergeben nicht den Gesamt-Score"><span class="sub-score-lbl">Katalysator</span><span class="sub-score-val" style="color:#94a3b8">15/35</span></span><span class="sub-score" title="Diese Werte sind unabhängige Qualitätsindikatoren und ergeben nicht den Gesamt-Score"><span class="sub-score-lbl">Timing</span><span class="sub-score-val" style="color:#22c55e">19/25</span></span></div></div>
   <p class="spark-placeholder">Verlauf ab morgen verfügbar.</p>
@@ -1692,7 +1667,7 @@ a{color:var(--accent);text-decoration:none}
       <span class="m-lbl">Volumen</span>
     </div>
     <div class="metric-box" style="--mc:#22c55e">
-      <span class="m-val">+8.7%<br><span style="font-size:0.75em;color:var(--color-text-secondary)">5T: +7.0%</span></span>
+      <span class="m-val">+7.8%<br><span style="font-size:0.75em;color:var(--color-text-secondary)">5T: +5.8%</span></span>
       <span class="m-lbl">Momentum</span>
     </div>
     <div class="metric-box" style="--mc:#ef4444">
@@ -1725,9 +1700,9 @@ a{color:var(--accent);text-decoration:none}
         <tr><td>Short-Vol. T-2</td><td>41,679 Aktien (24.04.2026)</td></tr>
         <tr><td>Short-Vol. T-3</td><td>79,388 Aktien (23.04.2026)</td></tr>
         <tr class="detail-group-header"><td colspan="2">Volumen &amp; Momentum</td></tr>
-        <tr><td>Ø Volumen 20T</td><td>29,449,823</td></tr>
-        <tr><td>Heutiges Volumen</td><td>53,678,765</td></tr>
-        <tr><td>RSI (14T)</td><td><span style="color:var(--txt)">59.2</span></td></tr><tr><td>MA 50T / 200T</td><td>$3.76 / $5.61</td></tr><tr><td>Kurs vs. MA50</td><td><span style="color:#22c55e">(+7.8%)</span></td></tr><tr><td>Rel. Stärke (20T)</td><td><span style="color:#22c55e">+20.8% vs. S&amp;P 500 (Aktie +33.4%)</span></td></tr><tr><td>RS vs. Sektor (QQQ)</td><td><span style="color:#22c55e">+15.4%</span></td></tr>
+        <tr><td>Ø Volumen 20T</td><td>29,485,212</td></tr>
+        <tr><td>Heutiges Volumen</td><td>54,386,539</td></tr>
+        <tr><td>RSI (14T)</td><td><span style="color:var(--txt)">58.2</span></td></tr><tr><td>MA 50T / 200T</td><td>$3.76 / $5.61</td></tr><tr><td>Kurs vs. MA50</td><td><span style="color:#22c55e">(+6.9%)</span></td></tr><tr><td>Rel. Stärke (20T)</td><td><span style="color:#22c55e">+19.3% vs. S&amp;P 500 (Aktie +31.9%)</span></td></tr><tr><td>RS vs. Sektor (QQQ)</td><td><span style="color:#22c55e">+13.9%</span></td></tr>
         <tr class="detail-group-header"><td colspan="2">Katalysatoren</td></tr>
         <tr><td>Letztes Earnings</td><td><span style="color:#22c55e">✅ Beat +83%</span></td></tr>
         <tr><td>Risiko-Detail</td><td style="color:#f59e0b">Hohes Short-Interesse (25.3 %) erhöht die Volatilität deutlich. Small-Cap ($1.9 B) mit eingeschränkter Liquidität.</td></tr>
@@ -1736,7 +1711,7 @@ a{color:var(--accent);text-decoration:none}
     
     <div class="driver-row">
       <span class="risk-badge" style="color:#f59e0b;border-color:#f59e0b55;background:#f59e0b22">Risiko: MITTEL</span>
-      <p class="driver-text">Short Float 25.3 % liegt deutlich über dem Marktdurchschnitt. +8.7 % heute — mögliche Margin Calls bei Leerverkäufern.</p>
+      <p class="driver-text">Short Float 25.3 % liegt deutlich über dem Marktdurchschnitt. +7.8 % heute — mögliche Margin Calls bei Leerverkäufern.</p>
     </div>
   </div>
   <button class="news-btn" onclick="toggleNews(7)" id="nb7" aria-expanded="false">
@@ -1759,150 +1734,29 @@ a{color:var(--accent);text-decoration:none}
   <div class="ki-analyse-result" id="ka-res7"></div>
 </article>
 
-<article class="card card-lazy" id="c8" data-ticker="EVGO" data-setup-rank="8" data-monster="49.3"
-  data-score="49.3" data-company="EVgo, Inc."
-  data-price="2.15" data-sf="34.9" data-sr="9.6"
-  data-rv="0.45" data-chg="0.70" data-si="up"
-  data-rsi="52.5" data-iv="" data-earn="7"
-  data-earn-date="05.05." data-float="132.5M"
-  data-cap="672629120" data-sector="Consumer Cyclical" data-news="[&quot;Analysten gehen davon aus, dass EVgo Inc. (EVGO) einen Gewinnrückgang melden wird: Worauf Sie achten sollten&quot;, &quot;EVgo Inc. (EVGO) ist eine der am besten leerverkauften Penny Stocks, die man sich ansehen kann, hier ist der Grund dafür&quot;, &quot;3 Small-Cap-Aktien, die wir nicht auf dem Schirm haben&quot;]">
+<article class="card card-lazy" id="c8" data-ticker="CSIQ" data-setup-rank="8" data-monster="39.0"
+  data-score="48.5" data-company="Canadian Solar Inc."
+  data-price="14.98" data-sf="27.2" data-sr="5.4"
+  data-rv="1.32" data-chg="7.61" data-si="down"
+  data-rsi="55.2" data-iv="" data-earn="16"
+  data-earn-date="14.05." data-float="47.4M"
+  data-cap="1015406208" data-sector="Technology" data-news="[&quot;Enphase Energy gibt Ergebnisse für das erste Quartal bekannt: Was ist drin?&quot;, &quot;Welche Solaraktien steigen und fallen, da China ein Exportverbot erwägt?&quot;, &quot;Wie sich das Narrativ von Canadian Solar (CSIQ) durch Bewertungskürzungen und Hoffnungen auf Steuergutschriften verändert&quot;]">
   <div class="card-top">
     <div class="card-left">
       <span class="rank">8</span>
       <div class="ticker-block">
         <div class="ticker-row">
-          <span class="ticker">EVGO</span>
-          
-          <a class="chart-badge chart-badge-s" href="https://stockanalysis.com/stocks/evgo/" target="_blank" rel="noopener noreferrer" title="Stockanalysis Chart &amp; Short-Interest">S</a>
-          <span class="price-tag">$2.15</span>
-          <button class="wl-add-btn" data-ticker="EVGO" onclick="wlToggle(this)" title="Zur Watchlist hinzufügen">＋</button>
-        </div>
-        <span class="company">EVgo, Inc.</span>
-        <span class="sector-tag">Consumer Cyclical · Specialty Retail</span><span class="earnings-tag" style="color:#f59e0b">Earnings in 7d (05.05.)</span>
-      </div>
-    </div>
-    <div class="score-block">
-      <span class="score-num" style="color:#f59e0b" onclick="showScoreExplain(this,event)" role="button" tabindex="0">49.3</span>
-      <span class="score-lbl">Score</span>
-      <div class="score-track"><div class="score-fill" style="width:49%;background:#f59e0b"></div></div>
-      
-      <span class="monster-badge" style="color:#ef4444">🔥 Monster: 49</span>
-      
-    </div>
-  </div>
-  <div class="sub-scores-wrap"><div class="sub-scores-header">SETUP-ANALYSE</div><div class="sub-scores-hint">unabhängige Qualitätsindikatoren</div><div class="sub-scores"><span class="sub-score" title="Diese Werte sind unabhängige Qualitätsindikatoren und ergeben nicht den Gesamt-Score"><span class="sub-score-lbl">Struktur</span><span class="sub-score-val" style="color:#f59e0b">29/40</span></span><span class="sub-score" title="Diese Werte sind unabhängige Qualitätsindikatoren und ergeben nicht den Gesamt-Score"><span class="sub-score-lbl">Katalysator</span><span class="sub-score-val" style="color:#94a3b8">15/35</span></span><span class="sub-score" title="Diese Werte sind unabhängige Qualitätsindikatoren und ergeben nicht den Gesamt-Score"><span class="sub-score-lbl">Timing</span><span class="sub-score-val" style="color:#94a3b8">4/25</span></span></div></div>
-  <div class="spark-wrap" data-scores='[50.6, 44.6, 50.1]' data-dates='["17.04.2026", "24.04.2026", "28.04.2026"]' data-col="#94a3b8" data-today="28.04.2026"><div class="spark-header"><div class="spark-title-wrap"><span class="spark-title">⚡ KI-Signalverlauf</span><span class="spark-subtitle">(KI-Agent Score der letzten 7 Tage)</span></div><span class="spark-trend" style="color:#94a3b8">→ stabil</span></div><div class="spark-svg-wrap"></div><div class="spark-days"></div></div>
-  <div class="metrics-row">
-    <div class="metric-box" style="--mc:#22c55e">
-      <span class="m-val">34.9%</span>
-      <span class="m-lbl">Short Float</span>
-    </div>
-    <div class="metric-box" style="--mc:#22c55e">
-      <span class="m-val">9.6d</span>
-      <span class="m-lbl">Days to Cover</span>
-    </div>
-    <div class="metric-box" style="--mc:#ef4444">
-      <span class="m-val">0.4×</span>
-      <span class="m-lbl">Volumen</span>
-    </div>
-    <div class="metric-box" style="--mc:#f59e0b">
-      <span class="m-val">+0.7%<br><span style="font-size:0.75em;color:var(--color-text-secondary)">5T: +1.2%</span></span>
-      <span class="m-lbl">Momentum</span>
-    </div>
-    <div class="metric-box" style="--mc:#ef4444">
-      <span class="m-val">132,5 Mio,</span>
-      <span class="m-lbl">Float</span>
-    </div>
-    <div class="metric-box" style="--mc:#22c55e">
-      <span class="m-val">↑ +150 %</span>
-      <span class="m-lbl">SI-Trend</span>
-    </div>
-  </div>
-  <button class="details-btn" onclick="toggleDetails(8)" id="db8" aria-expanded="false">
-    <span class="details-arrow" id="da8">▾</span><span id="dl8"> Details anzeigen</span>
-  </button>
-  <div class="details-body" id="dd8">
-    <div class="detail-table-wrap">
-      <table class="detail-table">
-        
-        <tr class="detail-group-header"><td colspan="2">Stammdaten</td></tr>
-        <tr><td>Marktkapitalisierung</td><td>$673 M</td></tr>
-        <tr><td>Float (frei handelbar)</td><td>132.5 Mio. Aktien</td></tr>
-        <tr><td>Sektor</td><td>Consumer Cyclical · Specialty Retail</td></tr>
-        <tr><td>52W-Hoch / -Tief</td><td>$5.18 / $1.64</td></tr>
-        
-        <tr class="detail-group-header"><td colspan="2">Short-Daten</td></tr>
-        <tr><td>SEC-Meldungen</td><td><a href="https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&amp;CIK=EVGO&amp;type=&amp;dateb=&amp;owner=include&amp;count=10&amp;search_text=" target="_blank" rel="noopener noreferrer" class="edgar-link">EDGAR öffnen →</a></td></tr>
-        <tr><td>SI-Trend (3M)</td><td><span style="color:#22c55e">↑ Steigend +150.0 %</span></td></tr>
-        <tr><td>SI Velocity (tägl. Ø)</td><td><span style="color:#ef4444">-53 Aktien/Tag</span></td></tr>
-        <tr><td>Short-Vol. T-1 (FINRA)</td><td>696 Aktien (27.04.2026)</td></tr>
-        <tr><td>Short-Vol. T-2</td><td>372 Aktien (24.04.2026)</td></tr>
-        <tr><td>Short-Vol. T-3</td><td>9,156 Aktien (23.04.2026)</td></tr>
-        <tr class="detail-group-header"><td colspan="2">Volumen &amp; Momentum</td></tr>
-        <tr><td>Ø Volumen 20T</td><td>3,548,507</td></tr>
-        <tr><td>Heutiges Volumen</td><td>1,582,849</td></tr>
-        <tr><td>RSI (14T)</td><td><span style="color:var(--txt)">52.5</span></td></tr><tr><td>MA 50T / 200T</td><td>$2.19 / $3.27</td></tr><tr><td>Kurs vs. MA50</td><td><span style="color:#ef4444">(-2.1%)</span></td></tr><tr><td>Rel. Stärke (20T)</td><td><span style="color:#22c55e">+16.7% vs. S&amp;P 500 (Aktie +29.2%)</span></td></tr><tr><td>RS vs. Sektor (XRT)</td><td><span style="color:#22c55e">+21.5%</span></td></tr>
-        <tr class="detail-group-header"><td colspan="2">Katalysatoren</td></tr>
-        <tr><td>Letztes Earnings</td><td><span style="color:#22c55e">✅ Beat +162%</span></td></tr>
-        <tr><td>Risiko-Detail</td><td style="color:#f59e0b">Hohes Short-Interesse (34.9 %) erhöht die Volatilität deutlich. Small-Cap ($673 M) mit eingeschränkter Liquidität.</td></tr>
-      </table>
-    </div>
-    
-    <div class="driver-row">
-      <span class="risk-badge" style="color:#f59e0b;border-color:#f59e0b55;background:#f59e0b22">Risiko: MITTEL</span>
-      <p class="driver-text">Short Float 34.9 % — sehr hohes Leerverkaufsinteresse, starkes Squeeze-Potenzial. Short Ratio 9.6 Tage — Eindeckungsdruck erhöht den Squeeze-Druck.</p>
-    </div>
-  </div>
-  <button class="news-btn" onclick="toggleNews(8)" id="nb8" aria-expanded="false">
-    <span id="nb-icon8">▼</span> Aktuelle Meldungen
-  </button>
-  <div class="news-panel" id="np8" hidden>
-    <div class="ki-signal-block">
-      <div class="ki-signal-header">&#9889; KI-Agent Signale</div>
-      <div class="ki-signal-body"></div>
-    </div>
-    <div class="news-items"><div class="ni"><a href="https://finance.yahoo.com/markets/stocks/articles/analysts-estimate-evgo-inc-evgo-140023564.html" target="_blank" rel="noopener noreferrer">Analysten gehen davon aus, dass EVgo Inc. (EVGO) einen Gewinnrückgang melden wird: Worauf Sie achten sollten</a> <span class="ni-src">(Yahoo Finance)</span><span class="ni-meta">28.04.2026 14:00</span></div><div class="ni"><a href="https://finance.yahoo.com/markets/stocks/articles/evgo-inc-evgo-one-best-151309667.html" target="_blank" rel="noopener noreferrer">EVgo Inc. (EVGO) ist eine der am besten leerverkauften Penny Stocks, die man sich ansehen kann, hier ist der Grund dafür</a> <span class="ni-src">(Yahoo Finance)</span><span class="ni-meta">26.04.2026 15:13</span></div><div class="ni"><a href="https://finance.yahoo.com/markets/stocks/articles/3-small-cap-stocks-keep-093626251.html" target="_blank" rel="noopener noreferrer">3 Small-Cap-Aktien, die wir nicht auf dem Schirm haben</a> <span class="ni-src">(Yahoo Finance)</span><span class="ni-meta">18.04.2026 09:36</span></div></div>
-    <div class="news-summary-box">
-      <span class="summary-label">Zusammenfassung</span>
-      <p class="summary-text">EVgo (EVGO) verfügt in seinem kommenden Bericht nicht über die richtige Kombination der beiden Schlüsselfaktoren für einen wahrscheinlichen Gewinnanstieg. Bereiten Sie sich mit den wichtigsten Erwartungen vor.</p>
-    </div>
-  </div>
-  <button class="ki-analyse-btn" id="ka-btn8" onclick="runKiAnalyse(8)">
-    KI-Analyse
-  </button>
-  <div class="ki-analyse-result" id="ka-res8"></div>
-</article>
-
-<article class="card card-lazy" id="c9" data-ticker="CSIQ" data-setup-rank="9" data-monster="38.0"
-  data-score="47.9" data-company="Canadian Solar Inc."
-  data-price="14.94" data-sf="27.2" data-sr="5.4"
-  data-rv="1.30" data-chg="7.33" data-si="down"
-  data-rsi="55.0" data-iv="" data-earn="16"
-  data-earn-date="14.05." data-float="47.4M"
-  data-cap="1013181760" data-sector="Technology" data-news="[&quot;Enphase Energy gibt Ergebnisse für das erste Quartal bekannt: Was ist drin?&quot;, &quot;Welche Solaraktien steigen und fallen, da China ein Exportverbot erwägt?&quot;, &quot;Wie sich das Narrativ von Canadian Solar (CSIQ) durch Bewertungskürzungen und Hoffnungen auf Steuergutschriften verändert&quot;]">
-  <div class="card-top">
-    <div class="card-left">
-      <span class="rank">9</span>
-      <div class="ticker-block">
-        <div class="ticker-row">
           <span class="ticker">CSIQ</span>
           
           <a class="chart-badge chart-badge-s" href="https://stockanalysis.com/stocks/csiq/" target="_blank" rel="noopener noreferrer" title="Stockanalysis Chart &amp; Short-Interest">S</a>
-          <span class="price-tag">$14.94</span>
+          <span class="price-tag">$14.98</span>
           <button class="wl-add-btn" data-ticker="CSIQ" onclick="wlToggle(this)" title="Zur Watchlist hinzufügen">＋</button>
         </div>
         <span class="company">Canadian Solar Inc.</span>
         <span class="sector-tag">Technology · Solar</span>
       </div>
     </div>
-    <div class="score-block">
-      <span class="score-num" style="color:#f59e0b" onclick="showScoreExplain(this,event)" role="button" tabindex="0">47.9</span>
-      <span class="score-lbl">Score</span>
-      <div class="score-track"><div class="score-fill" style="width:48%;background:#f59e0b"></div></div>
-      
-      <span class="monster-badge" style="color:#ef4444">🔥 Monster: 38</span>
-      <span class="ki-signal-badge" style="color:#ef4444">KI: 8</span>
-    </div>
+    <div class="score-block sort-setup"><div class="sb-row" data-sb="setup"><span class="sb-num" style="color:#eab308" onclick="showScoreExplain(this,event)" role="button" tabindex="0">48.5</span><span class="sb-lbl">Setup-Score</span><div class="sb-track"><div class="sb-fill" style="width:48%;background:#eab308"></div></div></div><div class="sb-row" data-sb="monster"><span class="sb-num" style="color:#eab308">39</span><span class="sb-lbl">Monster</span><div class="sb-track"><div class="sb-fill" style="width:39%;background:#eab308"></div></div></div><div class="sb-row" data-sb="ki"><span class="sb-num" style="color:#ef4444">8</span><span class="sb-lbl">KI-Score</span><div class="sb-track"><div class="sb-fill" style="width:8%;background:#ef4444"></div></div></div></div>
   </div>
   <div class="sub-scores-wrap"><div class="sub-scores-header">SETUP-ANALYSE</div><div class="sub-scores-hint">unabhängige Qualitätsindikatoren</div><div class="sub-scores"><span class="sub-score" title="Diese Werte sind unabhängige Qualitätsindikatoren und ergeben nicht den Gesamt-Score"><span class="sub-score-lbl">Struktur</span><span class="sub-score-val" style="color:#94a3b8">18/40</span></span><span class="sub-score" title="Diese Werte sind unabhängige Qualitätsindikatoren und ergeben nicht den Gesamt-Score"><span class="sub-score-lbl">Katalysator</span><span class="sub-score-val" style="color:#94a3b8">0/35</span></span><span class="sub-score" title="Diese Werte sind unabhängige Qualitätsindikatoren und ergeben nicht den Gesamt-Score"><span class="sub-score-lbl">Timing</span><span class="sub-score-val" style="color:#94a3b8">12/25</span></span></div></div>
   <p class="spark-placeholder">Verlauf ab morgen verfügbar.</p>
@@ -1920,7 +1774,7 @@ a{color:var(--accent);text-decoration:none}
       <span class="m-lbl">Volumen</span>
     </div>
     <div class="metric-box" style="--mc:#22c55e">
-      <span class="m-val">+7.3%<br><span style="font-size:0.75em;color:var(--color-text-secondary)">5T: +20.7%</span></span>
+      <span class="m-val">+7.6%<br><span style="font-size:0.75em;color:var(--color-text-secondary)">5T: +20.9%</span></span>
       <span class="m-lbl">Momentum</span>
     </div>
     <div class="metric-box" style="--mc:#f59e0b">
@@ -1932,10 +1786,10 @@ a{color:var(--accent);text-decoration:none}
       <span class="m-lbl">SI-Trend</span>
     </div>
   </div>
-  <button class="details-btn" onclick="toggleDetails(9)" id="db9" aria-expanded="false">
-    <span class="details-arrow" id="da9">▾</span><span id="dl9"> Details anzeigen</span>
+  <button class="details-btn" onclick="toggleDetails(8)" id="db8" aria-expanded="false">
+    <span class="details-arrow" id="da8">▾</span><span id="dl8"> Details anzeigen</span>
   </button>
-  <div class="details-body" id="dd9">
+  <div class="details-body" id="dd8">
     <div class="detail-table-wrap">
       <table class="detail-table">
         
@@ -1953,9 +1807,9 @@ a{color:var(--accent);text-decoration:none}
         <tr><td>Short-Vol. T-2</td><td>7,931 Aktien (24.04.2026)</td></tr>
         <tr><td>Short-Vol. T-3</td><td>12,164 Aktien (23.04.2026)</td></tr>
         <tr class="detail-group-header"><td colspan="2">Volumen &amp; Momentum</td></tr>
-        <tr><td>Ø Volumen 20T</td><td>2,423,057</td></tr>
-        <tr><td>Heutiges Volumen</td><td>3,144,949</td></tr>
-        <tr><td>RSI (14T)</td><td><span style="color:var(--txt)">55.0</span></td></tr><tr><td>MA 50T / 200T</td><td>$15.60 / $17.35</td></tr><tr><td>Kurs vs. MA50</td><td><span style="color:#ef4444">(-4.2%)</span></td></tr><tr><td>Rel. Stärke (20T)</td><td><span style="color:#22c55e">+2.6% vs. S&amp;P 500 (Aktie +15.1%)</span></td></tr><tr><td>RS vs. Sektor (QQQ)</td><td><span style="color:#ef4444">-2.9%</span></td></tr>
+        <tr><td>Ø Volumen 20T</td><td>2,425,966</td></tr>
+        <tr><td>Heutiges Volumen</td><td>3,203,126</td></tr>
+        <tr><td>RSI (14T)</td><td><span style="color:var(--txt)">55.2</span></td></tr><tr><td>MA 50T / 200T</td><td>$15.60 / $17.35</td></tr><tr><td>Kurs vs. MA50</td><td><span style="color:#ef4444">(-4.0%)</span></td></tr><tr><td>Rel. Stärke (20T)</td><td><span style="color:#22c55e">+2.8% vs. S&amp;P 500 (Aktie +15.4%)</span></td></tr><tr><td>RS vs. Sektor (QQQ)</td><td><span style="color:#ef4444">-2.6%</span></td></tr>
         <tr class="detail-group-header"><td colspan="2">Katalysatoren</td></tr>
         <tr><td>Letztes Earnings</td><td><span style="color:#ef4444">❌ Miss +nan%</span></td></tr>
         <tr><td>Risiko-Detail</td><td style="color:#f59e0b">Hohes Short-Interesse (27.2 %) erhöht die Volatilität deutlich. Small-Cap ($1.0 B) mit eingeschränkter Liquidität.</td></tr>
@@ -1967,10 +1821,10 @@ a{color:var(--accent);text-decoration:none}
       <p class="driver-text">Short Float 27.2 % liegt deutlich über dem Marktdurchschnitt. Short Ratio 5.4 Tage — Eindeckungsdruck erhöht den Squeeze-Druck.</p>
     </div>
   </div>
-  <button class="news-btn" onclick="toggleNews(9)" id="nb9" aria-expanded="false">
-    <span id="nb-icon9">▼</span> Aktuelle Meldungen
+  <button class="news-btn" onclick="toggleNews(8)" id="nb8" aria-expanded="false">
+    <span id="nb-icon8">▼</span> Aktuelle Meldungen
   </button>
-  <div class="news-panel" id="np9" hidden>
+  <div class="news-panel" id="np8" hidden>
     <div class="ki-signal-block">
       <div class="ki-signal-header">&#9889; KI-Agent Signale</div>
       <div class="ki-signal-body"></div>
@@ -1981,6 +1835,113 @@ a{color:var(--accent);text-decoration:none}
       <p class="summary-text">Die Ergebnisse von ENPH für das erste Quartal 2026 zeigen möglicherweise Gewinne durch IQ-Einführungen und -Lieferungen, doch Zölle auf aus China bezogene Batteriepacks gefährden die Margen.</p>
     </div>
   </div>
+  <button class="ki-analyse-btn" id="ka-btn8" onclick="runKiAnalyse(8)">
+    KI-Analyse
+  </button>
+  <div class="ki-analyse-result" id="ka-res8"></div>
+</article>
+
+<article class="card card-lazy" id="c9" data-ticker="PRTA" data-setup-rank="9" data-monster="47.5"
+  data-score="47.5" data-company="Prothena Corporation plc"
+  data-price="11.47" data-sf="15.7" data-sr="13.5"
+  data-rv="0.66" data-chg="6.30" data-si="sideways"
+  data-rsi="71.6" data-iv="" data-earn="9"
+  data-earn-date="07.05." data-float="39.7M"
+  data-cap="617464320" data-sector="Healthcare" data-news="[&quot;AZN veröffentlicht Daten aus dem Hypophosphatasie-Programm zu Efzimfotase Alfa&quot;, &quot;Top-Wachstumsunternehmen mit hoher Insiderbeteiligung im März 2026&quot;, &quot;Sanofi erhält EU-Zustimmung für Rezurock bei chronischer Transplantat-gegen-Wirt-Krankheit&quot;]">
+  <div class="card-top">
+    <div class="card-left">
+      <span class="rank">9</span>
+      <div class="ticker-block">
+        <div class="ticker-row">
+          <span class="ticker">PRTA</span>
+          
+          <a class="chart-badge chart-badge-s" href="https://stockanalysis.com/stocks/prta/" target="_blank" rel="noopener noreferrer" title="Stockanalysis Chart &amp; Short-Interest">S</a>
+          <span class="price-tag">$11.47</span>
+          <button class="wl-add-btn" data-ticker="PRTA" onclick="wlToggle(this)" title="Zur Watchlist hinzufügen">＋</button>
+        </div>
+        <span class="company">Prothena Corporation plc</span>
+        <span class="sector-tag">Healthcare · Biotechnology</span><span class="earnings-tag" style="color:#f59e0b">Earnings in 9d (07.05.)</span>
+      </div>
+    </div>
+    <div class="score-block sort-setup"><div class="sb-row" data-sb="setup"><span class="sb-num" style="color:#eab308" onclick="showScoreExplain(this,event)" role="button" tabindex="0">47.5</span><span class="sb-lbl">Setup-Score</span><div class="sb-track"><div class="sb-fill" style="width:48%;background:#eab308"></div></div></div><div class="sb-row" data-sb="monster"><span class="sb-num" style="color:#eab308">48</span><span class="sb-lbl">Monster</span><div class="sb-track"><div class="sb-fill" style="width:48%;background:#eab308"></div></div></div></div>
+  </div>
+  <div class="sub-scores-wrap"><div class="sub-scores-header">SETUP-ANALYSE</div><div class="sub-scores-hint">unabhängige Qualitätsindikatoren</div><div class="sub-scores"><span class="sub-score" title="Diese Werte sind unabhängige Qualitätsindikatoren und ergeben nicht den Gesamt-Score"><span class="sub-score-lbl">Struktur</span><span class="sub-score-val" style="color:#f59e0b">23/40</span></span><span class="sub-score" title="Diese Werte sind unabhängige Qualitätsindikatoren und ergeben nicht den Gesamt-Score"><span class="sub-score-lbl">Katalysator</span><span class="sub-score-val" style="color:#94a3b8">8/35</span></span><span class="sub-score" title="Diese Werte sind unabhängige Qualitätsindikatoren und ergeben nicht den Gesamt-Score"><span class="sub-score-lbl">Timing</span><span class="sub-score-val" style="color:#94a3b8">11/25</span></span></div></div>
+  <p class="spark-placeholder">Verlauf ab morgen verfügbar.</p>
+  <div class="metrics-row">
+    <div class="metric-box" style="--mc:#f59e0b">
+      <span class="m-val">15.7%</span>
+      <span class="m-lbl">Short Float</span>
+    </div>
+    <div class="metric-box" style="--mc:#22c55e">
+      <span class="m-val">13.5d</span>
+      <span class="m-lbl">Days to Cover</span>
+    </div>
+    <div class="metric-box" style="--mc:#ef4444">
+      <span class="m-val">0.7×</span>
+      <span class="m-lbl">Volumen</span>
+    </div>
+    <div class="metric-box" style="--mc:#22c55e">
+      <span class="m-val">+6.3%<br><span style="font-size:0.75em;color:var(--color-text-secondary)">5T: +7.5%</span></span>
+      <span class="m-lbl">Momentum</span>
+    </div>
+    <div class="metric-box" style="--mc:#f59e0b">
+      <span class="m-val">39,7 Mio,</span>
+      <span class="m-lbl">Float</span>
+    </div>
+    <div class="metric-box" style="--mc:#f59e0b">
+      <span class="m-val">→ stabil</span>
+      <span class="m-lbl">SI-Trend</span>
+    </div>
+  </div>
+  <button class="details-btn" onclick="toggleDetails(9)" id="db9" aria-expanded="false">
+    <span class="details-arrow" id="da9">▾</span><span id="dl9"> Details anzeigen</span>
+  </button>
+  <div class="details-body" id="dd9">
+    <div class="detail-table-wrap">
+      <table class="detail-table">
+        
+        <tr class="detail-group-header"><td colspan="2">Stammdaten</td></tr>
+        <tr><td>Marktkapitalisierung</td><td>$617 M</td></tr>
+        <tr><td>Float (frei handelbar)</td><td>39.7 Mio. Aktien</td></tr>
+        <tr><td>Sektor</td><td>Healthcare · Biotechnology</td></tr>
+        <tr><td>52W-Hoch / -Tief</td><td>$11.69 / $4.32</td></tr>
+        
+        <tr class="detail-group-header"><td colspan="2">Short-Daten</td></tr>
+        <tr><td>SEC-Meldungen</td><td><a href="https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&amp;CIK=PRTA&amp;type=&amp;dateb=&amp;owner=include&amp;count=10&amp;search_text=" target="_blank" rel="noopener noreferrer" class="edgar-link">EDGAR öffnen →</a></td></tr>
+        <tr><td>SI-Trend (3M)</td><td><span style="color:#f59e0b">→ Seitwärts +0.5 %</span></td></tr>
+        <tr><td>SI Velocity (tägl. Ø)</td><td><span style="color:#22c55e">+21 Aktien/Tag</span></td></tr>
+        <tr><td>Short-Vol. T-1 (FINRA)</td><td>200 Aktien (21.04.2026)</td></tr>
+        <tr><td>Short-Vol. T-2</td><td>890 Aktien (20.04.2026)</td></tr>
+        <tr><td>Short-Vol. T-3</td><td>10 Aktien (17.04.2026)</td></tr>
+        <tr class="detail-group-header"><td colspan="2">Volumen &amp; Momentum</td></tr>
+        <tr><td>Ø Volumen 20T</td><td>429,568</td></tr>
+        <tr><td>Heutiges Volumen</td><td>283,255</td></tr>
+        <tr><td>RSI (14T)</td><td><span style="color:#ef4444">71.6 — überkauft</span></td></tr><tr><td>MA 50T / 200T</td><td>$9.71 / $9.26</td></tr><tr><td>Kurs vs. MA50</td><td><span style="color:#22c55e">(+18.1%)</span></td></tr><tr><td>Rel. Stärke (20T)</td><td><span style="color:#22c55e">+11.4% vs. S&amp;P 500 (Aktie +24.0%)</span></td></tr><tr><td>RS vs. Sektor (XBI)</td><td><span style="color:#22c55e">+13.0%</span></td></tr>
+        <tr class="detail-group-header"><td colspan="2">Katalysatoren</td></tr>
+        <tr><td>Letztes Earnings</td><td><span style="color:#22c55e">✅ Beat +1%</span></td></tr>
+        <tr><td>Risiko-Detail</td><td style="color:#f59e0b">Small-Cap ($617 M) mit eingeschränkter Liquidität.</td></tr>
+      </table>
+    </div>
+    
+    <div class="driver-row">
+      <span class="risk-badge" style="color:#f59e0b;border-color:#f59e0b55;background:#f59e0b22">Risiko: MITTEL</span>
+      <p class="driver-text">Short Float 15.7 % liegt deutlich über dem Marktdurchschnitt. Short Ratio 13.5 Tage — Eindeckungsdruck erhöht den Squeeze-Druck.</p>
+    </div>
+  </div>
+  <button class="news-btn" onclick="toggleNews(9)" id="nb9" aria-expanded="false">
+    <span id="nb-icon9">▼</span> Aktuelle Meldungen
+  </button>
+  <div class="news-panel" id="np9" hidden>
+    <div class="ki-signal-block">
+      <div class="ki-signal-header">&#9889; KI-Agent Signale</div>
+      <div class="ki-signal-body"></div>
+    </div>
+    <div class="news-items"><div class="ni"><a href="https://finance.yahoo.com/sectors/healthcare/articles/azn-posts-data-hypophosphatasia-program-150400565.html" target="_blank" rel="noopener noreferrer">AZN veröffentlicht Daten aus dem Hypophosphatasie-Programm zu Efzimfotase Alfa</a> <span class="ni-src">(Yahoo Finance)</span><span class="ni-meta">01.04.2026 15:04</span></div><div class="ni"><a href="https://finance.yahoo.com/markets/stocks/articles/top-growth-companies-high-insider-173608455.html" target="_blank" rel="noopener noreferrer">Top-Wachstumsunternehmen mit hoher Insiderbeteiligung im März 2026</a> <span class="ni-src">(Yahoo Finance)</span><span class="ni-meta">31.03.2026 17:36</span></div><div class="ni"><a href="https://finance.yahoo.com/sectors/healthcare/articles/sanofi-gets-eu-nod-rezurock-161200430.html" target="_blank" rel="noopener noreferrer">Sanofi erhält EU-Zustimmung für Rezurock bei chronischer Transplantat-gegen-Wirt-Krankheit</a> <span class="ni-src">(Yahoo Finance)</span><span class="ni-meta">31.03.2026 16:12</span></div></div>
+    <div class="news-summary-box">
+      <span class="summary-label">Zusammenfassung</span>
+      <p class="summary-text">AstraZeneca meldet Phase-III-Daten, die zeigen, dass Efzimfotase alfa die Knochengesundheit bei Kindern mit HPP verbessert, mit gemischten Ergebnissen bei Erwachsenen und einem insgesamt günstigen Sicherheitsprofil.</p>
+    </div>
+  </div>
   <button class="ki-analyse-btn" id="ka-btn9" onclick="runKiAnalyse(9)">
     KI-Analyse
   </button>
@@ -1989,11 +1950,11 @@ a{color:var(--accent);text-decoration:none}
 
 <article class="card card-lazy" id="c10" data-ticker="SKYQ" data-setup-rank="10" data-monster="44.4"
   data-score="44.4" data-company="Sky Quarry Inc."
-  data-price="6.20" data-sf="67.5" data-sr="0.1"
-  data-rv="0.57" data-chg="13.76" data-si="down"
+  data-price="6.21" data-sf="67.5" data-sr="0.1"
+  data-rv="0.57" data-chg="13.94" data-si="down"
   data-rsi="48.7" data-iv="" data-earn=""
   data-earn-date="" data-float="3.2M"
-  data-cap="23296190" data-sector="Energy" data-news="[&quot;Der VIX kehrt sich nach gescheiterten Friedensverhandlungen deutlich um und zeigt wieder auf 30&quot;, &quot;Was ist Sky Quarry? Wenig bekannte Energieaktien sind während des Dramas um die Straße von Hormus um 266 % gestiegen&quot;, &quot;Die Aktie von Sky Quarry steigt stark an, da die Rohölpreise über 110 US-Dollar steigen. Ist es zu spät zum Kaufen?&quot;]">
+  data-cap="23333764" data-sector="Energy" data-news="[&quot;Der VIX kehrt sich nach gescheiterten Friedensverhandlungen deutlich um und zeigt wieder auf 30&quot;, &quot;Was ist Sky Quarry? Wenig bekannte Energieaktien sind während des Dramas um die Straße von Hormus um 266 % gestiegen&quot;, &quot;Die Aktie von Sky Quarry steigt stark an, da die Rohölpreise über 110 US-Dollar steigen. Ist es zu spät zum Kaufen?&quot;]">
   <div class="card-top">
     <div class="card-left">
       <span class="rank">10</span>
@@ -2002,21 +1963,14 @@ a{color:var(--accent);text-decoration:none}
           <span class="ticker">SKYQ</span>
           
           <a class="chart-badge chart-badge-s" href="https://stockanalysis.com/stocks/skyq/" target="_blank" rel="noopener noreferrer" title="Stockanalysis Chart &amp; Short-Interest">S</a>
-          <span class="price-tag">$6.20</span>
+          <span class="price-tag">$6.21</span>
           <button class="wl-add-btn" data-ticker="SKYQ" onclick="wlToggle(this)" title="Zur Watchlist hinzufügen">＋</button>
         </div>
         <span class="company">Sky Quarry Inc.</span>
         <span class="sector-tag">Energy · Oil & Gas Integrated</span><span class="squeeze-hist-badge" title="Kursanstieg ≥ 50% in 5 Tagen bei Volumen ≥ 3× vor 11 Tagen">⚠️ Squeeze vor 11 Tagen</span>
       </div>
     </div>
-    <div class="score-block">
-      <span class="score-num" style="color:#f59e0b" onclick="showScoreExplain(this,event)" role="button" tabindex="0">44.4</span>
-      <span class="score-lbl">Score</span>
-      <div class="score-track"><div class="score-fill" style="width:44%;background:#f59e0b"></div></div>
-      
-      <span class="monster-badge" style="color:#ef4444">🔥 Monster: 44</span>
-      
-    </div>
+    <div class="score-block sort-setup"><div class="sb-row" data-sb="setup"><span class="sb-num" style="color:#eab308" onclick="showScoreExplain(this,event)" role="button" tabindex="0">44.4</span><span class="sb-lbl">Setup-Score</span><div class="sb-track"><div class="sb-fill" style="width:44%;background:#eab308"></div></div></div><div class="sb-row" data-sb="monster"><span class="sb-num" style="color:#eab308">44</span><span class="sb-lbl">Monster</span><div class="sb-track"><div class="sb-fill" style="width:44%;background:#eab308"></div></div></div></div>
   </div>
   <div class="sub-scores-wrap"><div class="sub-scores-header">SETUP-ANALYSE</div><div class="sub-scores-hint">unabhängige Qualitätsindikatoren</div><div class="sub-scores"><span class="sub-score" title="Diese Werte sind unabhängige Qualitätsindikatoren und ergeben nicht den Gesamt-Score"><span class="sub-score-lbl">Struktur</span><span class="sub-score-val" style="color:#f59e0b">24/40</span></span><span class="sub-score" title="Diese Werte sind unabhängige Qualitätsindikatoren und ergeben nicht den Gesamt-Score"><span class="sub-score-lbl">Katalysator</span><span class="sub-score-val" style="color:#94a3b8">0/35</span></span><span class="sub-score" title="Diese Werte sind unabhängige Qualitätsindikatoren und ergeben nicht den Gesamt-Score"><span class="sub-score-lbl">Timing</span><span class="sub-score-val" style="color:#f59e0b">12/25</span></span></div></div>
   <p class="spark-placeholder">Verlauf ab morgen verfügbar.</p>
@@ -2034,7 +1988,7 @@ a{color:var(--accent);text-decoration:none}
       <span class="m-lbl">Volumen</span>
     </div>
     <div class="metric-box" style="--mc:#22c55e">
-      <span class="m-val">+13.8%<br><span style="font-size:0.75em;color:var(--color-text-secondary)">5T: -30.9%</span></span>
+      <span class="m-val">+13.9%<br><span style="font-size:0.75em;color:var(--color-text-secondary)">5T: -30.8%</span></span>
       <span class="m-lbl">Momentum</span>
     </div>
     <div class="metric-box" style="--mc:#22c55e">
@@ -2067,9 +2021,9 @@ a{color:var(--accent);text-decoration:none}
         <tr><td>Short-Vol. T-2</td><td>658 Aktien (23.04.2026)</td></tr>
         <tr><td>Short-Vol. T-3</td><td>2,689 Aktien (22.04.2026)</td></tr>
         <tr class="detail-group-header"><td colspan="2">Volumen &amp; Momentum</td></tr>
-        <tr><td>Ø Volumen 20T</td><td>21,441,486</td></tr>
-        <tr><td>Heutiges Volumen</td><td>12,306,816</td></tr>
-        <tr><td>RSI (14T)</td><td><span style="color:var(--txt)">48.7</span></td></tr><tr><td>MA 50T / 200T</td><td>$4.79 / $3.87</td></tr><tr><td>Kurs vs. MA50</td><td><span style="color:#22c55e">(+29.6%)</span></td></tr><tr><td>Rel. Stärke (20T)</td><td><span style="color:#22c55e">+145.8% vs. S&amp;P 500 (Aktie +158.3%)</span></td></tr><tr><td>RS vs. Sektor (XLE)</td><td><span style="color:#22c55e">+165.3%</span></td></tr>
+        <tr><td>Ø Volumen 20T</td><td>21,442,109</td></tr>
+        <tr><td>Heutiges Volumen</td><td>12,319,284</td></tr>
+        <tr><td>RSI (14T)</td><td><span style="color:var(--txt)">48.7</span></td></tr><tr><td>MA 50T / 200T</td><td>$4.79 / $3.87</td></tr><tr><td>Kurs vs. MA50</td><td><span style="color:#22c55e">(+29.8%)</span></td></tr><tr><td>Rel. Stärke (20T)</td><td><span style="color:#22c55e">+146.2% vs. S&amp;P 500 (Aktie +158.7%)</span></td></tr><tr><td>RS vs. Sektor (XLE)</td><td><span style="color:#22c55e">+165.7%</span></td></tr>
         <tr class="detail-group-header"><td colspan="2">Katalysatoren</td></tr>
         
         <tr><td>Risiko-Detail</td><td style="color:#ef4444">Extrem hohes Short-Interesse (67.5 %) bedeutet massive Squeeze-Gefahr, aber auch starke Kursausschläge in beide Richtungen. Micro-Cap ($23 M) – geringe Liquidität, Kursmanipulation möglich.</td></tr>
@@ -2078,7 +2032,7 @@ a{color:var(--accent);text-decoration:none}
     
     <div class="driver-row">
       <span class="risk-badge" style="color:#ef4444;border-color:#ef444455;background:#ef444422">Risiko: HOCH</span>
-      <p class="driver-text">Short Float 67.5 % — sehr hohes Leerverkaufsinteresse, starkes Squeeze-Potenzial. +13.8 % heute — mögliche Margin Calls bei Leerverkäufern.</p>
+      <p class="driver-text">Short Float 67.5 % — sehr hohes Leerverkaufsinteresse, starkes Squeeze-Potenzial. +13.9 % heute — mögliche Margin Calls bei Leerverkäufern.</p>
     </div>
   </div>
   <button class="news-btn" onclick="toggleNews(10)" id="nb10" aria-expanded="false">
@@ -2103,11 +2057,11 @@ a{color:var(--accent);text-decoration:none}
 
 <article class="card card-manual card-lazy" id="c11" data-ticker="CWH" data-setup-rank="11" data-monster="30.1"
   data-score="30.1" data-company="Camping World Holdings, Inc."
-  data-price="6.85" data-sf="24.0" data-sr="5.0"
-  data-rv="0.38" data-chg="-0.87" data-si="down"
+  data-price="6.86" data-sf="24.0" data-sr="5.0"
+  data-rv="0.38" data-chg="-0.80" data-si="down"
   data-rsi="44.8" data-iv="" data-earn="1"
   data-earn-date="29.04." data-float="56.2M"
-  data-cap="435110528" data-sector="Consumer Cyclical" data-news="[&quot;Zu beobachtende Gewinne: Camping World (CWH) gibt morgen die Ergebnisse für das erste Quartal bekannt&quot;, &quot;Visteon (VC) hinkt den Gewinnschätzungen für das erste Quartal hinterher&quot;, &quot;Truist ist optimistisch gegenüber Camping World Holdings, Inc. (CWH)&quot;]">
+  data-cap="435745728" data-sector="Consumer Cyclical" data-news="[&quot;Zu beobachtende Gewinne: Camping World (CWH) gibt morgen die Ergebnisse für das erste Quartal bekannt&quot;, &quot;Visteon (VC) hinkt den Gewinnschätzungen für das erste Quartal hinterher&quot;, &quot;Truist ist optimistisch gegenüber Camping World Holdings, Inc. (CWH)&quot;]">
   <div class="card-top">
     <div class="card-left">
       <span class="rank rank-manual" title="Manuell beobachtet — via persönliche Watchlist hinzugefügt">📌</span>
@@ -2116,21 +2070,14 @@ a{color:var(--accent);text-decoration:none}
           <span class="ticker">CWH</span>
           
           <a class="chart-badge chart-badge-s" href="https://stockanalysis.com/stocks/cwh/" target="_blank" rel="noopener noreferrer" title="Stockanalysis Chart &amp; Short-Interest">S</a>
-          <span class="price-tag">$6.85</span>
+          <span class="price-tag">$6.86</span>
           <button class="wl-add-btn" data-ticker="CWH" onclick="wlToggle(this)" title="Zur Watchlist hinzufügen">＋</button>
         </div>
         <span class="company">Camping World Holdings, Inc.</span>
         <span class="sector-tag">Consumer Cyclical · Auto & Truck Dealerships</span><span class="earnings-tag" style="color:#ef4444">Earnings in 1d (29.04.)</span>
       </div>
     </div>
-    <div class="score-block">
-      <span class="score-num" style="color:#f59e0b" onclick="showScoreExplain(this,event)" role="button" tabindex="0">30.1</span>
-      <span class="score-lbl">Score</span>
-      <div class="score-track"><div class="score-fill" style="width:30%;background:#f59e0b"></div></div>
-      <span class="score-below-min" style="max-width:180px;color:#f59e0b;font-style:normal">Schwaches Setup — Backtesting zeigt keine positive Rendite unter Score 40</span>
-      <span class="monster-badge" style="color:#ef4444">🔥 Monster: 30</span>
-      <span class="ki-signal-badge" style="color:#f59e0b">KI: 33</span>
-    </div>
+    <div class="score-block sort-setup"><div class="sb-row" data-sb="setup"><span class="sb-num" style="color:#eab308" onclick="showScoreExplain(this,event)" role="button" tabindex="0">30.1</span><span class="sb-lbl">Setup-Score</span><div class="sb-track"><div class="sb-fill" style="width:30%;background:#eab308"></div></div></div><div class="sb-row" data-sb="monster"><span class="sb-num" style="color:#eab308">30</span><span class="sb-lbl">Monster</span><div class="sb-track"><div class="sb-fill" style="width:30%;background:#eab308"></div></div></div><div class="sb-row" data-sb="ki"><span class="sb-num" style="color:#eab308">33</span><span class="sb-lbl">KI-Score</span><div class="sb-track"><div class="sb-fill" style="width:33%;background:#eab308"></div></div></div><span class="score-below-min" style="max-width:180px;color:#f59e0b;font-style:normal">Schwaches Setup — Backtesting zeigt keine positive Rendite unter Score 40</span></div>
   </div>
   <div class="sub-scores-wrap"><div class="sub-scores-header">SETUP-ANALYSE</div><div class="sub-scores-hint">unabhängige Qualitätsindikatoren</div><div class="sub-scores"><span class="sub-score" title="Diese Werte sind unabhängige Qualitätsindikatoren und ergeben nicht den Gesamt-Score"><span class="sub-score-lbl">Struktur</span><span class="sub-score-val" style="color:#94a3b8">16/40</span></span><span class="sub-score" title="Diese Werte sind unabhängige Qualitätsindikatoren und ergeben nicht den Gesamt-Score"><span class="sub-score-lbl">Katalysator</span><span class="sub-score-val" style="color:#94a3b8">15/35</span></span><span class="sub-score" title="Diese Werte sind unabhängige Qualitätsindikatoren und ergeben nicht den Gesamt-Score"><span class="sub-score-lbl">Timing</span><span class="sub-score-val" style="color:#94a3b8">0/25</span></span></div></div>
   <div class="spark-wrap" data-scores='[29.0, 54.7, 64.7, 29.6, 19.8]' data-dates='["24.04.2026", "25.04.2026", "26.04.2026", "27.04.2026", "28.04.2026"]' data-col="#ef4444" data-today="28.04.2026"><div class="spark-header"><div class="spark-title-wrap"><span class="spark-title">⚡ KI-Signalverlauf</span><span class="spark-subtitle">(KI-Agent Score der letzten 7 Tage)</span></div><span class="spark-trend" style="color:#ef4444">↓ -9.2 Pkt</span></div><div class="spark-svg-wrap"></div><div class="spark-days"></div></div>
@@ -2148,7 +2095,7 @@ a{color:var(--accent);text-decoration:none}
       <span class="m-lbl">Volumen</span>
     </div>
     <div class="metric-box" style="--mc:#f59e0b">
-      <span class="m-val">-0.9%<br><span style="font-size:0.75em;color:var(--color-text-secondary)">5T: -4.6%</span></span>
+      <span class="m-val">-0.8%<br><span style="font-size:0.75em;color:var(--color-text-secondary)">5T: -4.5%</span></span>
       <span class="m-lbl">Momentum</span>
     </div>
     <div class="metric-box" style="--mc:#ef4444">
@@ -2168,7 +2115,7 @@ a{color:var(--accent);text-decoration:none}
       <table class="detail-table">
         <tr><td>⚡ Agent-Boost</td><td><span style="color:#a78bfa">+1.4 Pkt</span> <span style="color:var(--txt-dim);font-size:.8em">(KI-Score 33/100)</span></td></tr><tr aria-hidden="true"><td colspan="2" style="height:8px;padding:0;border:0"></td></tr>
         <tr class="detail-group-header"><td colspan="2">Stammdaten</td></tr>
-        <tr><td>Marktkapitalisierung</td><td>$435 M</td></tr>
+        <tr><td>Marktkapitalisierung</td><td>$436 M</td></tr>
         <tr><td>Float (frei handelbar)</td><td>56.2 Mio. Aktien</td></tr>
         <tr><td>Sektor</td><td>Consumer Cyclical · Auto & Truck Dealerships</td></tr>
         <tr><td>52W-Hoch / -Tief</td><td>$19.64 / $5.70</td></tr>
@@ -2181,9 +2128,9 @@ a{color:var(--accent);text-decoration:none}
         <tr><td>Short-Vol. T-2</td><td>1,605 Aktien (24.04.2026)</td></tr>
         <tr><td>Short-Vol. T-3</td><td>157 Aktien (20.04.2026)</td></tr>
         <tr class="detail-group-header"><td colspan="2">Volumen &amp; Momentum</td></tr>
-        <tr><td>Ø Volumen 20T</td><td>3,259,339</td></tr>
-        <tr><td>Heutiges Volumen</td><td>1,234,687</td></tr>
-        <tr><td>RSI (14T)</td><td><span style="color:var(--txt)">44.8</span></td></tr><tr><td>MA 50T / 200T</td><td>$7.62 / $12.39</td></tr><tr><td>Kurs vs. MA50</td><td><span style="color:#ef4444">(-10.1%)</span></td></tr><tr><td>Rel. Stärke (20T)</td><td><span style="color:#ef4444">-8.4% vs. S&amp;P 500 (Aktie +4.1%)</span></td></tr><tr><td>RS vs. Sektor (XRT)</td><td><span style="color:#ef4444">-3.6%</span></td></tr>
+        <tr><td>Ø Volumen 20T</td><td>3,259,949</td></tr>
+        <tr><td>Heutiges Volumen</td><td>1,246,875</td></tr>
+        <tr><td>RSI (14T)</td><td><span style="color:var(--txt)">44.8</span></td></tr><tr><td>MA 50T / 200T</td><td>$7.62 / $12.39</td></tr><tr><td>Kurs vs. MA50</td><td><span style="color:#ef4444">(-10.1%)</span></td></tr><tr><td>Rel. Stärke (20T)</td><td><span style="color:#ef4444">-8.4% vs. S&amp;P 500 (Aktie +4.2%)</span></td></tr><tr><td>RS vs. Sektor (XRT)</td><td><span style="color:#ef4444">-3.6%</span></td></tr>
         <tr class="detail-group-header"><td colspan="2">Katalysatoren</td></tr>
         <tr><td>Letztes Earnings</td><td><span style="color:#ef4444">❌ Miss -54%</span></td></tr>
         <tr><td>Risiko-Detail</td><td style="color:#f59e0b">Small-Cap ($435 M) mit eingeschränkter Liquidität.</td></tr>
@@ -2216,12 +2163,12 @@ a{color:var(--accent);text-decoration:none}
 </article>
 
 <article class="card card-manual card-lazy" id="c12" data-ticker="AMC" data-setup-rank="12" data-monster="11.0"
-  data-score="14.0" data-company="AMC Entertainment Holdings, Inc."
-  data-price="1.60" data-sf="15.4" data-sr="3.0"
-  data-rv="0.40" data-chg="-3.03" data-si="sideways"
-  data-rsi="59.5" data-iv="" data-earn="7"
+  data-score="14.1" data-company="AMC Entertainment Holdings, Inc."
+  data-price="1.61" data-sf="15.4" data-sr="3.0"
+  data-rv="0.41" data-chg="-2.12" data-si="sideways"
+  data-rsi="60.6" data-iv="" data-earn="7"
   data-earn-date="05.05." data-float="524.8M"
-  data-cap="932475584" data-sector="Communication Services" data-news="[&quot;COLM bereitet sich auf die Veröffentlichung der Ergebnisse für das erste Quartal vor: Was steht bevor?&quot;, &quot;AMC Entertainment (AMC) wird voraussichtlich die Gewinnschätzungen übertreffen: Sollten Sie kaufen?&quot;, &quot;Kaufen Sie AMC Entertainment nicht, bis dies geschieht&quot;]">
+  data-cap="941217536" data-sector="Communication Services" data-news="[&quot;COLM bereitet sich auf die Veröffentlichung der Ergebnisse für das erste Quartal vor: Was steht bevor?&quot;, &quot;AMC Entertainment (AMC) wird voraussichtlich die Gewinnschätzungen übertreffen: Sollten Sie kaufen?&quot;, &quot;Kaufen Sie AMC Entertainment nicht, bis dies geschieht&quot;]">
   <div class="card-top">
     <div class="card-left">
       <span class="rank rank-manual" title="Manuell beobachtet — via persönliche Watchlist hinzugefügt">📌</span>
@@ -2230,24 +2177,17 @@ a{color:var(--accent);text-decoration:none}
           <span class="ticker">AMC</span>
           
           <a class="chart-badge chart-badge-s" href="https://stockanalysis.com/stocks/amc/" target="_blank" rel="noopener noreferrer" title="Stockanalysis Chart &amp; Short-Interest">S</a>
-          <span class="price-tag">$1.60</span>
+          <span class="price-tag">$1.61</span>
           <button class="wl-add-btn" data-ticker="AMC" onclick="wlToggle(this)" title="Zur Watchlist hinzufügen">＋</button>
         </div>
         <span class="company">AMC Entertainment Holdings, Inc.</span>
         <span class="sector-tag">Communication Services · Entertainment</span><span class="earnings-tag" style="color:#f59e0b">Earnings in 7d (05.05.)</span>
       </div>
     </div>
-    <div class="score-block">
-      <span class="score-num" style="color:#ef4444" onclick="showScoreExplain(this,event)" role="button" tabindex="0">14.0</span>
-      <span class="score-lbl">Score</span>
-      <div class="score-track"><div class="score-fill" style="width:14%;background:#ef4444"></div></div>
-      <span class="score-below-min" style="max-width:150px;font-style:normal">Score zu niedrig für Squeeze-Signal</span>
-      <span class="monster-badge" style="color:#ef4444">🔥 Monster: 11</span>
-      <span class="ki-signal-badge" style="color:#ef4444">KI: 15</span>
-    </div>
+    <div class="score-block sort-setup"><div class="sb-row" data-sb="setup"><span class="sb-num" style="color:#ef4444" onclick="showScoreExplain(this,event)" role="button" tabindex="0">14.1</span><span class="sb-lbl">Setup-Score</span><div class="sb-track"><div class="sb-fill" style="width:14%;background:#ef4444"></div></div></div><div class="sb-row" data-sb="monster"><span class="sb-num" style="color:#ef4444">11</span><span class="sb-lbl">Monster</span><div class="sb-track"><div class="sb-fill" style="width:11%;background:#ef4444"></div></div></div><div class="sb-row" data-sb="ki"><span class="sb-num" style="color:#ef4444">15</span><span class="sb-lbl">KI-Score</span><div class="sb-track"><div class="sb-fill" style="width:15%;background:#ef4444"></div></div></div><span class="score-below-min" style="max-width:150px;font-style:normal">Score zu niedrig für Squeeze-Signal</span></div>
   </div>
   <div class="sub-scores-wrap"><div class="sub-scores-header">SETUP-ANALYSE</div><div class="sub-scores-hint">unabhängige Qualitätsindikatoren</div><div class="sub-scores"><span class="sub-score" title="Diese Werte sind unabhängige Qualitätsindikatoren und ergeben nicht den Gesamt-Score"><span class="sub-score-lbl">Struktur</span><span class="sub-score-val" style="color:#94a3b8">11/40</span></span><span class="sub-score" title="Diese Werte sind unabhängige Qualitätsindikatoren und ergeben nicht den Gesamt-Score"><span class="sub-score-lbl">Katalysator</span><span class="sub-score-val" style="color:#94a3b8">15/35</span></span><span class="sub-score" title="Diese Werte sind unabhängige Qualitätsindikatoren und ergeben nicht den Gesamt-Score"><span class="sub-score-lbl">Timing</span><span class="sub-score-val" style="color:#94a3b8">3/25</span></span></div></div>
-  <div class="spark-wrap" data-scores='[21.5, 15.2, 18.6, 17.4, 17.4, 18.7, 12.4]' data-dates='["22.04.2026", "23.04.2026", "24.04.2026", "25.04.2026", "26.04.2026", "27.04.2026", "28.04.2026"]' data-col="#ef4444" data-today="28.04.2026"><div class="spark-header"><div class="spark-title-wrap"><span class="spark-title">⚡ KI-Signalverlauf</span><span class="spark-subtitle">(KI-Agent Score der letzten 7 Tage)</span></div><span class="spark-trend" style="color:#ef4444">↓ -9.1 Pkt</span></div><div class="spark-svg-wrap"></div><div class="spark-days"></div></div>
+  <div class="spark-wrap" data-scores='[21.5, 15.2, 18.6, 17.4, 17.4, 18.7, 12.5]' data-dates='["22.04.2026", "23.04.2026", "24.04.2026", "25.04.2026", "26.04.2026", "27.04.2026", "28.04.2026"]' data-col="#ef4444" data-today="28.04.2026"><div class="spark-header"><div class="spark-title-wrap"><span class="spark-title">⚡ KI-Signalverlauf</span><span class="spark-subtitle">(KI-Agent Score der letzten 7 Tage)</span></div><span class="spark-trend" style="color:#ef4444">↓ -9.0 Pkt</span></div><div class="spark-svg-wrap"></div><div class="spark-days"></div></div>
   <div class="metrics-row">
     <div class="metric-box" style="--mc:#f59e0b">
       <span class="m-val">15.4%</span>
@@ -2262,7 +2202,7 @@ a{color:var(--accent);text-decoration:none}
       <span class="m-lbl">Volumen</span>
     </div>
     <div class="metric-box" style="--mc:#f59e0b">
-      <span class="m-val">-3.0%<br><span style="font-size:0.75em;color:var(--color-text-secondary)">5T: -4.2%</span></span>
+      <span class="m-val">-2.1%<br><span style="font-size:0.75em;color:var(--color-text-secondary)">5T: -3.3%</span></span>
       <span class="m-lbl">Momentum</span>
     </div>
     <div class="metric-box" style="--mc:#ef4444">
@@ -2282,7 +2222,7 @@ a{color:var(--accent);text-decoration:none}
       <table class="detail-table">
         
         <tr class="detail-group-header"><td colspan="2">Stammdaten</td></tr>
-        <tr><td>Marktkapitalisierung</td><td>$932 M</td></tr>
+        <tr><td>Marktkapitalisierung</td><td>$941 M</td></tr>
         <tr><td>Float (frei handelbar)</td><td>524.8 Mio. Aktien</td></tr>
         <tr><td>Sektor</td><td>Communication Services · Entertainment</td></tr>
         <tr><td>52W-Hoch / -Tief</td><td>$4.08 / $0.93</td></tr>
@@ -2295,18 +2235,18 @@ a{color:var(--accent);text-decoration:none}
         <tr><td>Short-Vol. T-2</td><td>7,083 Aktien (24.04.2026)</td></tr>
         <tr><td>Short-Vol. T-3</td><td>61,699 Aktien (20.04.2026)</td></tr>
         <tr class="detail-group-header"><td colspan="2">Volumen &amp; Momentum</td></tr>
-        <tr><td>Ø Volumen 20T</td><td>35,136,888</td></tr>
-        <tr><td>Heutiges Volumen</td><td>14,065,652</td></tr>
-        <tr><td>RSI (14T)</td><td><span style="color:var(--txt)">59.5</span></td></tr><tr><td>MA 50T / 200T</td><td>$1.25 / $2.13</td></tr><tr><td>Kurs vs. MA50</td><td><span style="color:#22c55e">(+27.5%)</span></td></tr><tr><td>Rel. Stärke (20T)</td><td><span style="color:#22c55e">+50.7% vs. S&amp;P 500 (Aktie +63.3%)</span></td></tr><tr><td>RS vs. Sektor (QQQ)</td><td><span style="color:#22c55e">+45.3%</span></td></tr>
+        <tr><td>Ø Volumen 20T</td><td>35,154,366</td></tr>
+        <tr><td>Heutiges Volumen</td><td>14,415,220</td></tr>
+        <tr><td>RSI (14T)</td><td><span style="color:var(--txt)">60.6</span></td></tr><tr><td>MA 50T / 200T</td><td>$1.26 / $2.13</td></tr><tr><td>Kurs vs. MA50</td><td><span style="color:#22c55e">(+28.7%)</span></td></tr><tr><td>Rel. Stärke (20T)</td><td><span style="color:#22c55e">+52.2% vs. S&amp;P 500 (Aktie +64.8%)</span></td></tr><tr><td>RS vs. Sektor (QQQ)</td><td><span style="color:#22c55e">+46.8%</span></td></tr>
         <tr class="detail-group-header"><td colspan="2">Katalysatoren</td></tr>
         <tr><td>Letztes Earnings</td><td><span style="color:#22c55e">✅ Beat +28%</span></td></tr>
-        <tr><td>Risiko-Detail</td><td style="color:#f59e0b">Small-Cap ($932 M) mit eingeschränkter Liquidität.</td></tr>
+        <tr><td>Risiko-Detail</td><td style="color:#f59e0b">Small-Cap ($941 M) mit eingeschränkter Liquidität.</td></tr>
       </table>
     </div>
     
     <div class="driver-row">
       <span class="risk-badge" style="color:#f59e0b;border-color:#f59e0b55;background:#f59e0b22">Risiko: MITTEL</span>
-      <p class="driver-text">Short Float 15.4 % liegt deutlich über dem Marktdurchschnitt. -3.0 % heute — Short-Interesse könnte kurzfristig steigen.</p>
+      <p class="driver-text">Short Float 15.4 % liegt deutlich über dem Marktdurchschnitt.</p>
     </div>
   </div>
   <button class="news-btn" onclick="toggleNews(12)" id="nb12" aria-expanded="false">
@@ -2361,23 +2301,28 @@ function changeFontSize(dir){
 // ── Sortierung Setup ↔ Monster ─────────────────────────────────────────────
 const _SORT_KEY = 'squeeze_sort_mode';
 function _applySortMode(mode){
+  const m = (mode === 'monster') ? 'monster' : 'setup';
   const grid = document.querySelector('.cards-grid');
-  if (!grid) return;
-  const cards = Array.from(grid.querySelectorAll('article.card'));
-  if (mode === 'monster') {
-    cards.sort((a, b) => parseFloat(b.dataset.monster || '0') - parseFloat(a.dataset.monster || '0'));
-  } else {
-    cards.sort((a, b) => parseInt(a.dataset.setupRank || '0', 10) - parseInt(b.dataset.setupRank || '0', 10));
+  if (grid) {
+    const cards = Array.from(grid.querySelectorAll('article.card'));
+    if (m === 'monster') {
+      cards.sort((a, b) => parseFloat(b.dataset.monster || '0') - parseFloat(a.dataset.monster || '0'));
+    } else {
+      cards.sort((a, b) => parseInt(a.dataset.setupRank || '0', 10) - parseInt(b.dataset.setupRank || '0', 10));
+    }
+    cards.forEach(c => grid.appendChild(c));
   }
-  cards.forEach(c => grid.appendChild(c));
-  const btn = document.getElementById('btn-sort');
-  if (btn) btn.textContent = (mode === 'monster') ? 'Sortierung: Monster' : 'Sortierung: Setup';
+  document.querySelectorAll('.score-block').forEach(sb => {
+    sb.classList.toggle('sort-monster', m === 'monster');
+    sb.classList.toggle('sort-setup',   m !== 'monster');
+  });
+  const sel = document.getElementById('sort-select');
+  if (sel && sel.value !== m) sel.value = m;
 }
-function toggleSortMode(){
-  const cur  = localStorage.getItem(_SORT_KEY) || 'setup';
-  const next = (cur === 'setup') ? 'monster' : 'setup';
-  localStorage.setItem(_SORT_KEY, next);
-  _applySortMode(next);
+function setSortMode(mode){
+  const m = (mode === 'monster') ? 'monster' : 'setup';
+  localStorage.setItem(_SORT_KEY, m);
+  _applySortMode(m);
 }
 window.addEventListener('DOMContentLoaded', () => {
   const cur = localStorage.getItem(_SORT_KEY) || 'setup';
@@ -3637,9 +3582,9 @@ function _fmtGerman(d) {
   const WL_KEY     = 'squeeze_watchlist';
   const WL_MAX     = 20;
   const WL_GH_PATH = 'watchlist_personal.json';
-  const WL_SCORES  = {"GRPN": 55.43, "IBG": 88.4, "LESL": 58.29, "HIMS": 54.75, "EVTL": 62.11, "DFDV": 40.13, "BFLY": 57.62, "NKTX": 62.91, "FWRD": 41.6, "WOLF": 48.54, "VOYG": 44.48, "GPRO": 43.73, "BB.TO": 39.26, "OCDO.L": 23.11, "INDI": 51.6, "TTEC": 52.56, "SKIL": 51.44, "XRX": 54.12, "AVTX": 41.45, "DBI": 63.65, "DFH": 47.62, "TMDX": 57.28, "ULCC": 49.67, "RRGB": 49.33, "CADL": 53.99, "HELE": 85.71, "LZM": 44.83, "RH": 52.18, "EVGO": 50.07, "CRVS": 79.65, "ABSI": 67.94, "TSHA": 61.07, "KURA": 70.59, "BMEA": 36.63, "AMC": 12.37, "PAL": 59.78, "IFRX": 56.75, "ALGT": 55.85, "STRZ": 57.16, "HTZ": 59.38, "CRDF": 65.04, "FLWS": 62.52, "ARTL": 77.14, "PRLD": 56.63, "SNSE": 53.47, "SST": 45.67, "ANAB": 61.22, "ASTC": 41.89, "KYTX": 62.41, "AOSL": 60.61, "CHMG": 55.86, "EBON": 53.07, "SILA": 51.88, "CMPS": 49.98, "VBNK": 49.06, "BYND": 37.28, "TTGT": 45.6, "DNUT": 59.53, "ASAN": 61.64, "CABO": 53.21, "PLCE": 66.02, "SANA": 51.16, "DMRC": 52.0, "IIIV": 50.71, "WRLD": 44.95, "METC": 62.7, "KSS": 59.17, "AEVA": 40.94, "EEIQ": 34.48, "LOCL": 53.45, "OXM": 44.36, "SLDP": 51.24, "NTLA": 77.28, "RES": 54.29, "DDD": 34.92, "GLUE": 44.45, "KALV": 54.57, "RXRX": 55.1, "NMAX": 100.0, "INBX": 61.39, "REPL": 69.99, "SPRY": 48.43, "PCT": 54.93, "CHPT": 45.52, "ENVX": 54.81, "SQNS": 68.31, "JACK": 56.56, "IIPR": 52.8, "FTK": 59.47, "ARCT": 66.67, "TFIN": 72.13, "PLAY": 57.03, "LOVE": 53.13, "SKLZ": 90.17, "ACDC": 36.36, "PACB": 34.65, "PENG": 49.76, "ALT": 40.55, "WKC": 72.46, "HKIT": 50.33, "ABCL": 56.44, "TROX": 38.1, "PD": 49.02, "PGEN": 31.36, "CWH": 19.76, "HRTX": 42.88, "ROOT": 41.5, "VYX": 39.39, "CVNA": 17.99, "WBTN": 63.17, "SLS": 64.84, "OMER": 53.78, "VITL": 47.17, "CBRL": 49.75, "LENZ": 68.08, "FTRE": 57.68, "SNBR": 72.16, "LGIH": 53.93, "CRMT": 43.18, "SDGR": 51.78, "RIGL": 40.07, "BBAI": 49.67, "CSIQ": 47.87, "MNPR": 54.45, "SKYQ": 44.4};
-  const WL_TOP10   = {"SNBR": {"score": 75.77, "company_name": "Sleep Number Corporation", "sector": "Consumer Cyclical", "flag": "\ud83c\uddfa\ud83c\uddf8", "price": 3.245, "change": 46.832573, "change_5d": 33.19, "short_float": 29.59, "short_float_source": "yfinance", "short_ratio": 2.49, "rel_volume": 10.386267978591333, "float_shares": 18826446, "si_trend": "sideways", "si_trend_source": "finra", "si_tpct": -1.4, "si_velocity": 676.0, "si_accel": false, "si_t1": "7,060 Aktien (27.04.2026)", "si_t2": "32 Aktien (23.04.2026)", "si_t3": "1,600 Aktien (22.04.2026)", "rsi14": 57.31358119106612, "ma50": 3.82899599313736, "ma200": 7.0057489949464795, "inst_ownership": null, "52w_high": 13.94, "52w_low": 1.06, "avg_vol_20d": 4792582.1, "cur_vol": 49777042.0, "market_cap": 74878680, "earnings_days": 14, "earnings_date_str": "12.05.", "pc_ratio": 0.32281334535617673, "atm_iv": 2.4218789453125, "rel_strength_20d": 49.94058597036695, "perf_20d": 62.48999834060669, "news": [{"title": "SNBR startet die erste gro\u00dfe Kampagne seit Jahren \u2013 Kann ein Marketingwandel eine Trendwende herbeif\u00fchren?", "link": "https://investorshub.advfn.com/market-news/article/27385/snbr-rolls-out-first-major-campaign-in-years-can-marketing-shift-drive-a-turnaround", "time": "28.04.2026 14:38", "source": "Yahoo Finance"}, {"title": "Sleep Number (SNBR) Verdienst\u00fcbersicht Q3 2024", "link": "https://www.fool.com/earnings/call-transcripts/2026/04/22/sleep-number-snbr-q3-2024-earnings-transcript/", "time": "22.04.2026 20:40", "source": "Yahoo Finance"}, {"title": "Aktien des Wohnm\u00f6belh\u00e4ndlers Q4-Ergebnis: Sleep Number (NASDAQ:SNBR) Best of the Bunch", "link": "https://finance.yahoo.com/markets/stocks/articles/home-furniture-retailer-stocks-q4-170123632.html", "time": "22.04.2026 17:01", "source": "Yahoo Finance"}]}, "NTLA": {"score": 73.9, "company_name": "Intellia Therapeutics, Inc.", "sector": "Healthcare", "flag": "\ud83c\uddfa\ud83c\uddf8", "price": 13.75, "change": 5.5257125, "change_5d": -10.19, "short_float": 36.77, "short_float_source": "yfinance", "short_ratio": 12.41, "rel_volume": 1.890508073723998, "float_shares": 111938623, "si_trend": "up", "si_trend_source": "finra", "si_tpct": 150.0, "si_velocity": 3427.0, "si_accel": false, "si_t1": "41,404 Aktien (27.04.2026)", "si_t2": "5,159 Aktien (24.04.2026)", "si_t3": "5,796 Aktien (23.04.2026)", "rsi14": 48.226450428942044, "ma50": 13.605299949645996, "ma200": 13.143224968910218, "inst_ownership": null, "52w_high": 28.25, "52w_low": 6.83, "avg_vol_20d": 4909370.2, "cur_vol": 9281204.0, "market_cap": 1624336256, "earnings_days": 9, "earnings_date_str": "07.05.", "pc_ratio": 0.6993377483443709, "atm_iv": 0.7939473730468749, "rel_strength_20d": 5.476342567378506, "perf_20d": 18.025754937618238, "news": [{"title": "EXTERNAL f\u00e4llt trotz starker Phase-III-HIS-Daten um 4 % und leitet rollierendes BLA ein", "link": "https://finance.yahoo.com/sectors/healthcare/articles/ntla-falls-4-despite-strong-170200674.html", "time": "28.04.2026 17:02", "source": "Yahoo Finance"}, {"title": "Intellia Therapeutics gibt Phase-3-HAELO-Sieg f\u00fcr lonvo-z bekannt und beginnt mit der Einreichung der BLA-Einreichung bei der FDA", "link": "https://www.marketbeat.com/instant-alerts/intellia-therapeutics-posts-phase-3-haelo-win-for-lonvo-z-begins-rolling-fda-bla-filing-2026-04-27/?utm_source=yahoofinance&utm_medium=yahoofinance", "time": "28.04.2026 01:02", "source": "Yahoo Finance"}, {"title": "Warum sich die Darstellung von Intellia Therapeutics (NTLA) \u00e4ndert, nachdem die FDA Beschl\u00fcsse gefasst hat", "link": "https://finance.yahoo.com/sectors/healthcare/articles/why-narrative-around-intellia-therapeutics-001406750.html", "time": "28.04.2026 00:14", "source": "Yahoo Finance"}]}, "ARCT": {"score": 66.67, "company_name": "Arcturus Therapeutics Holdings Inc.", "sector": "Healthcare", "flag": "\ud83c\uddfa\ud83c\uddf8", "price": 8.87, "change": 6.87575, "change_5d": 0.57, "short_float": 33.2, "short_float_source": "yfinance", "short_ratio": 11.9, "rel_volume": 0.7004954210715639, "float_shares": 26283665, "si_trend": "up", "si_trend_source": "yfinance", "si_tpct": 5.3, "si_velocity": -16.0, "si_accel": false, "si_t1": "60 Aktien (27.04.2026)", "si_t2": "900 Aktien (24.04.2026)", "si_t3": "20 Aktien (22.04.2026)", "rsi14": 62.073752237132204, "ma50": 7.78480001449585, "ma200": 11.077350025177003, "inst_ownership": null, "52w_high": 24.17, "52w_low": 5.85, "avg_vol_20d": 412689.35, "cur_vol": 289087.0, "market_cap": 252112608, "earnings_days": 9, "earnings_date_str": "07.05.", "pc_ratio": 0.6034793041391722, "atm_iv": 0.98242205078125, "rel_strength_20d": 16.001308832130718, "perf_20d": 28.55072120237045, "news": [{"title": "Cathie Wood geht auf Schn\u00e4ppchenjagd: 3 Aktien, die sie gerade gekauft hat", "link": "https://www.fool.com/investing/2026/03/25/cathie-wood-goes-bargain-hunting-3-stocks-she-just/", "time": "25.03.2026 15:12", "source": "Yahoo Finance"}, {"title": "Arcturus Therapeutics konzentriert sich nach dem Erfolg des COVID-Impfstoffs auf der ROTH Conf. wieder auf die mRNA-Pipeline f\u00fcr seltene Krankheiten", "link": "https://www.marketbeat.com/instant-alerts/arcturus-therapeutics-refocuses-on-rare-disease-mrna-pipeline-after-covid-vaccine-success-at-roth-conf-2026-03-23/?utm_source=yahoofinance&utm_medium=yahoofinance", "time": "23.03.2026 18:47", "source": "Yahoo Finance"}, {"title": "Dies sind die einzigen drei Aktien, die Cathie Wood letzte Woche gekauft hat", "link": "https://www.fool.com/investing/2026/03/23/these-are-the-only-3-stocks-that-cathie-wood-bough/", "time": "23.03.2026 11:27", "source": "Yahoo Finance"}]}, "INDI": {"score": 62.9, "company_name": "indie Semiconductor, Inc.", "sector": "Technology", "flag": "\ud83c\uddfa\ud83c\uddf8", "price": 3.895, "change": -1.6414156, "change_5d": 15.24, "short_float": 30.56, "short_float_source": "yfinance", "short_ratio": 18.36, "rel_volume": 0.7429275179107677, "float_shares": 204139876, "si_trend": "up", "si_trend_source": "finra", "si_tpct": 150.0, "si_velocity": 8047.0, "si_accel": true, "si_t1": "100,041 Aktien (27.04.2026)", "si_t2": "31,087 Aktien (24.04.2026)", "si_t3": "8,114 Aktien (23.04.2026)", "rsi14": 73.06958386401473, "ma50": 3.1017000102996826, "ma200": 3.955025019645691, "inst_ownership": null, "52w_high": 6.05, "52w_low": 1.9, "avg_vol_20d": 4218621.5, "cur_vol": 3134130.0, "market_cap": 821682496, "earnings_days": 9, "earnings_date_str": "07.05.", "pc_ratio": 0.20521841102316035, "atm_iv": 1.4375028125, "rel_strength_20d": 15.155507033726316, "perf_20d": 27.70491940396605, "news": [{"title": "Warum Indie Semiconductor (INDI) gerade einen Schritt \u00fcber die Automobilbranche hinaus geschafft hat", "link": "https://finance.yahoo.com/sectors/technology/articles/why-indie-semiconductor-indi-just-203119827.html", "time": "21.04.2026 20:31", "source": "Yahoo Finance"}, {"title": "Ist Indie Semiconductor (INDI) laut Analysten eine der besten Halbleiteraktien unter 10 US-Dollar, die man kaufen kann?", "link": "https://finance.yahoo.com/sectors/technology/articles/indie-semiconductor-indi-one-best-144918351.html", "time": "20.04.2026 14:49", "source": "Yahoo Finance"}, {"title": "Starke Analystenstimmung zu Indie Semiconductor (INDI) angesichts der Preisank\u00fcndigung f\u00fcr Wandelanleihen im Wert von 150 Millionen US-Dollar", "link": "https://finance.yahoo.com/markets/stocks/articles/strong-analyst-sentiment-indie-semiconductor-064652624.html", "time": "20.03.2026 06:46", "source": "Yahoo Finance"}]}, "GRPN": {"score": 62.06, "company_name": "Groupon, Inc.", "sector": "Communication Services", "flag": "\ud83c\uddfa\ud83c\uddf8", "price": 14.43, "change": -3.542779, "change_5d": -13.39, "short_float": 51.71, "short_float_source": "yfinance", "short_ratio": 9.07, "rel_volume": 0.3105837294446823, "float_shares": 29002439, "si_trend": "sideways", "si_trend_source": "finra", "si_tpct": 4.0, "si_velocity": 56.0, "si_accel": false, "si_t1": "745 Aktien (27.04.2026)", "si_t2": "261 Aktien (24.04.2026)", "si_t3": "6,808 Aktien (23.04.2026)", "rsi14": 55.96785495406383, "ma50": 12.352600021362305, "ma200": 19.15495005607605, "inst_ownership": null, "52w_high": 43.08, "52w_low": 9.17, "avg_vol_20d": 2121373.2, "cur_vol": 658864.0, "market_cap": 587928576, "earnings_days": 9, "earnings_date_str": "07.05.", "pc_ratio": 0.19407436866176178, "atm_iv": 1.2949254003906248, "rel_strength_20d": 18.99115238750483, "perf_20d": 31.540564757744562, "news": [{"title": "Avis Short Squeeze schockierte den Markt: Kommen diese drei Aktien als n\u00e4chstes?", "link": "https://www.marketbeat.com/stock-ideas/avis-short-squeeze-shocked-the-market-are-these-3-stocks-next/?utm_source=yahoofinance&utm_medium=yahoofinance", "time": "27.04.2026 14:05", "source": "Yahoo Finance"}, {"title": "Groupon (GRPN) sieht einen deutlicheren R\u00fcckgang als der breitere Markt: Einige Fakten, die Sie wissen sollten", "link": "https://finance.yahoo.com/markets/stocks/articles/groupon-grpn-sees-more-significant-215005555.html", "time": "23.04.2026 21:50", "source": "Yahoo Finance"}, {"title": "OpenAI wirbt Airbnb-Manager als ersten Direktor f\u00fcr EMEA ab", "link": "https://finance.yahoo.com/sectors/technology/articles/openai-poaches-airbnb-executive-first-100000466.html", "time": "22.04.2026 10:00", "source": "Yahoo Finance"}]}, "MNPR": {"score": 54.45, "company_name": "Monopar Therapeutics Inc.", "sector": "Healthcare", "flag": "\ud83c\uddfa\ud83c\uddf8", "price": 54.645, "change": 1.1569788, "change_5d": 3.67, "short_float": 68.61, "short_float_source": "yfinance", "short_ratio": 8.63, "rel_volume": 0.2823056467096307, "float_shares": 4396803, "si_trend": "sideways", "si_trend_source": "yfinance", "si_tpct": 4.2, "si_velocity": -5.0, "si_accel": false, "si_t1": "124 Aktien (27.04.2026)", "si_t2": "13 Aktien (24.04.2026)", "si_t3": "26 Aktien (22.04.2026)", "rsi14": 46.750505604820624, "ma50": 55.89519996643067, "ma200": 62.650275011062625, "inst_ownership": null, "52w_high": 105.0, "52w_low": 28.4, "avg_vol_20d": 175968.85, "cur_vol": 49677.0, "market_cap": 365692000, "earnings_days": 14, "earnings_date_str": "12.05.", "pc_ratio": null, "atm_iv": null, "rel_strength_20d": -10.006722336542406, "perf_20d": 2.542690033697327, "news": [{"title": "Institutionelle Anleger in Monopar Therapeutics Inc. (NASDAQ:MNPR) sehen letzte Woche einen R\u00fcckgang der Marktkapitalisierung um 66 Mio. US-Dollar, obwohl ihnen langfristige Gewinne zugute gekommen sind.", "link": "https://finance.yahoo.com/news/institutional-investors-monopar-therapeutics-inc-130652399.html", "time": "11.02.2026 13:06", "source": "Yahoo Finance"}, {"title": "Broadcom-Aktie verzeichnet verbessertes Relative-St\u00e4rke-Rating", "link": "https://www.investors.com/news/broadcom-stock-sees-improved-relative-strength-rating/?src=A00220&yptr=yahoo", "time": "09.02.2026 18:21", "source": "Yahoo Finance"}, {"title": "Was diese 4 Biotech-Aktien erwartet, deren Wert sich im Jahr 2025 mehr als verdoppelt hat", "link": "https://finance.yahoo.com/news/awaits-4-biotech-stocks-more-151100013.html", "time": "22.12.2025 15:11", "source": "Yahoo Finance"}]}, "BBAI": {"score": 52.15, "company_name": "BigBear.ai Holdings, Inc.", "sector": "Technology", "flag": "\ud83c\uddfa\ud83c\uddf8", "price": 4.055, "change": 8.713132, "change_5d": 6.99, "short_float": 25.29, "short_float_source": "yfinance", "short_ratio": 4.36, "rel_volume": 1.8227194283755166, "float_shares": 470662856, "si_trend": "down", "si_trend_source": "finra", "si_tpct": -21.4, "si_velocity": -896.0, "si_accel": false, "si_t1": "82,937 Aktien (27.04.2026)", "si_t2": "41,679 Aktien (24.04.2026)", "si_t3": "79,388 Aktien (23.04.2026)", "rsi14": 59.16673610298911, "ma50": 3.7620999956130983, "ma200": 5.6096750056743625, "inst_ownership": null, "52w_high": 9.39, "52w_low": 2.96, "avg_vol_20d": 29449823.25, "cur_vol": 53678765.0, "market_cap": 1930409344, "earnings_days": 7, "earnings_date_str": "05.05.", "pc_ratio": null, "atm_iv": null, "rel_strength_20d": 20.838741551542032, "perf_20d": 33.388153921781765, "news": [{"title": "Die Cash War Chest von BigBear.ai w\u00e4chst: KI-Erweiterungspl\u00e4ne vorantreiben?", "link": "https://finance.yahoo.com/markets/stocks/articles/bigbear-ais-cash-war-chest-153300228.html", "time": "24.04.2026 15:33", "source": "Yahoo Finance"}, {"title": "BigBear.ai Holdings, Inc. (BBAI) verzeichnet einen st\u00e4rkeren R\u00fcckgang als der Markt: Wichtige Fakten, die Sie beachten sollten", "link": "https://finance.yahoo.com/markets/stocks/articles/bigbear-ai-holdings-inc-bbai-221504090.html", "time": "23.04.2026 22:15", "source": "Yahoo Finance"}, {"title": "BigBear.ai strebt ein Wachstum der Pentagon-KI an, da der Vertragszugang erweitert wird", "link": "https://finance.yahoo.com/markets/stocks/articles/bigbear-ai-aims-pentagon-ai-090613132.html", "time": "23.04.2026 09:06", "source": "Yahoo Finance"}]}, "EVGO": {"score": 49.3, "company_name": "EVgo, Inc.", "sector": "Consumer Cyclical", "flag": "\ud83c\uddfa\ud83c\uddf8", "price": 2.145, "change": 0.70421904, "change_5d": 1.18, "short_float": 34.91, "short_float_source": "yfinance", "short_ratio": 9.58, "rel_volume": 0.4460604979144118, "float_shares": 132486574, "si_trend": "up", "si_trend_source": "finra", "si_tpct": 150.0, "si_velocity": -53.0, "si_accel": false, "si_t1": "696 Aktien (27.04.2026)", "si_t2": "372 Aktien (24.04.2026)", "si_t3": "9,156 Aktien (23.04.2026)", "rsi14": 52.518872111986525, "ma50": 2.190699996948242, "ma200": 3.2729500007629393, "inst_ownership": null, "52w_high": 5.18, "52w_low": 1.64, "avg_vol_20d": 3548507.45, "cur_vol": 1582849.0, "market_cap": 672629120, "earnings_days": 7, "earnings_date_str": "05.05.", "pc_ratio": null, "atm_iv": null, "rel_strength_20d": 16.667456548874537, "perf_20d": 29.21686891911427, "news": [{"title": "Analysten gehen davon aus, dass EVgo Inc. (EVGO) einen Gewinnr\u00fcckgang melden wird: Worauf Sie achten sollten", "link": "https://finance.yahoo.com/markets/stocks/articles/analysts-estimate-evgo-inc-evgo-140023564.html", "time": "28.04.2026 14:00", "source": "Yahoo Finance"}, {"title": "EVgo Inc. (EVGO) ist eine der am besten leerverkauften Penny Stocks, die man sich ansehen kann, hier ist der Grund daf\u00fcr", "link": "https://finance.yahoo.com/markets/stocks/articles/evgo-inc-evgo-one-best-151309667.html", "time": "26.04.2026 15:13", "source": "Yahoo Finance"}, {"title": "3 Small-Cap-Aktien, die wir nicht auf dem Schirm haben", "link": "https://finance.yahoo.com/markets/stocks/articles/3-small-cap-stocks-keep-093626251.html", "time": "18.04.2026 09:36", "source": "Yahoo Finance"}]}, "CSIQ": {"score": 47.87, "company_name": "Canadian Solar Inc.", "sector": "Technology", "flag": "\ud83c\uddfa\ud83c\uddf8", "price": 14.94, "change": 7.327583, "change_5d": 20.68, "short_float": 27.16, "short_float_source": "yfinance", "short_ratio": 5.38, "rel_volume": 1.297925891109185, "float_shares": 47422201, "si_trend": "down", "si_trend_source": "finra", "si_tpct": -18.2, "si_velocity": -380.0, "si_accel": false, "si_t1": "2,105 Aktien (27.04.2026)", "si_t2": "7,931 Aktien (24.04.2026)", "si_t3": "12,164 Aktien (23.04.2026)", "rsi14": 55.020817612939865, "ma50": 15.597800045013427, "ma200": 17.351799993515016, "inst_ownership": null, "52w_high": 34.59, "52w_low": 8.84, "avg_vol_20d": 2423057.45, "cur_vol": 3144949.0, "market_cap": 1013181760, "earnings_days": 16, "earnings_date_str": "14.05.", "pc_ratio": null, "atm_iv": null, "rel_strength_20d": 2.5507425393904377, "perf_20d": 15.10015490963017, "news": [{"title": "Enphase Energy gibt Ergebnisse f\u00fcr das erste Quartal bekannt: Was ist drin?", "link": "https://finance.yahoo.com/sectors/energy/articles/enphase-energy-report-q1-earnings-151000943.html", "time": "22.04.2026 15:10", "source": "Yahoo Finance"}, {"title": "Welche Solaraktien steigen und fallen, da China ein Exportverbot erw\u00e4gt?", "link": "https://www.investors.com/news/china-solar-panel-export-controls-first-solar-enphase-renewable-energy/?src=A00220&yptr=yahoo", "time": "15.04.2026 13:42", "source": "Yahoo Finance"}, {"title": "Wie sich das Narrativ von Canadian Solar (CSIQ) durch Bewertungsk\u00fcrzungen und Hoffnungen auf Steuergutschriften ver\u00e4ndert", "link": "https://finance.yahoo.com/markets/stocks/articles/canadian-solar-csiq-narrative-shifting-151000825.html", "time": "05.04.2026 15:10", "source": "Yahoo Finance"}]}, "SKYQ": {"score": 44.4, "company_name": "Sky Quarry Inc.", "sector": "Energy", "flag": "\ud83c\uddfa\ud83c\uddf8", "price": 6.2, "change": 13.761468, "change_5d": -30.88, "short_float": 67.48, "short_float_source": "yfinance", "short_ratio": 0.13, "rel_volume": 0.5739721638133864, "float_shares": 3203563, "si_trend": "down", "si_trend_source": "finra", "si_tpct": -90.0, "si_velocity": -2314.0, "si_accel": false, "si_t1": "550 Aktien (27.04.2026)", "si_t2": "658 Aktien (23.04.2026)", "si_t3": "2,689 Aktien (22.04.2026)", "rsi14": 48.68602666272537, "ma50": 4.785739998817444, "ma200": 3.8685149937868117, "inst_ownership": null, "52w_high": 19.45, "52w_low": 1.664, "avg_vol_20d": 21441485.8, "cur_vol": 12306816.0, "market_cap": 23296190, "earnings_days": null, "earnings_date_str": null, "pc_ratio": null, "atm_iv": null, "rel_strength_20d": 145.78390275056398, "perf_20d": 158.33331512080372, "news": [{"title": "Der VIX kehrt sich nach gescheiterten Friedensverhandlungen deutlich um und zeigt wieder auf 30", "link": "https://247wallst.com/investing/2026/04/13/the-vix-sharply-reverses-and-points-back-towards-30-after-failed-peace-negotiations/", "time": "13.04.2026 14:16", "source": "Yahoo Finance"}, {"title": "Was ist Sky Quarry? Wenig bekannte Energieaktien sind w\u00e4hrend des Dramas um die Stra\u00dfe von Hormus um 266 % gestiegen", "link": "https://www.fastcompany.com/91525861/sky-quarry-stock-price-keeps-rising-in-2026-strait-of-hormuz-bump", "time": "13.04.2026 13:35", "source": "Yahoo Finance"}, {"title": "Die Aktie von Sky Quarry steigt stark an, da die Roh\u00f6lpreise \u00fcber 110 US-Dollar steigen. Ist es zu sp\u00e4t zum Kaufen?", "link": "https://www.barchart.com/story/news/1121946/sky-quarry-stock-is-surging-as-crude-oil-prices-spike-past-110-is-it-too-late-to-buy", "time": "02.04.2026 18:44", "source": "Yahoo Finance"}]}, "CWH": {"score": 30.14, "company_name": "Camping World Holdings, Inc.", "sector": "Consumer Cyclical", "flag": "\ud83c\uddfa\ud83c\uddf8", "price": 6.85, "change": -0.868306, "change_5d": -4.6, "short_float": 23.96, "short_float_source": "yfinance", "short_ratio": 5.03, "rel_volume": 0.37881511171888255, "float_shares": 56154030, "si_trend": "down", "si_trend_source": "finra", "si_tpct": -48.4, "si_velocity": 94.0, "si_accel": false, "si_t1": "946 Aktien (27.04.2026)", "si_t2": "1,605 Aktien (24.04.2026)", "si_t3": "157 Aktien (20.04.2026)", "rsi14": 44.78026057690794, "ma50": 7.622799997329712, "ma200": 12.388250572681427, "inst_ownership": null, "52w_high": 19.64, "52w_low": 5.7, "avg_vol_20d": 3259339.35, "cur_vol": 1234687.0, "market_cap": 435110528, "earnings_days": 1, "earnings_date_str": "29.04.", "pc_ratio": null, "atm_iv": null, "rel_strength_20d": -8.446069147487208, "perf_20d": 4.103343222752525, "news": [{"title": "Zu beobachtende Gewinne: Camping World (CWH) gibt morgen die Ergebnisse f\u00fcr das erste Quartal bekannt", "link": "https://finance.yahoo.com/markets/stocks/articles/earnings-watch-camping-world-cwh-144455045.html", "time": "28.04.2026 14:44", "source": "Yahoo Finance"}, {"title": "Visteon (VC) hinkt den Gewinnsch\u00e4tzungen f\u00fcr das erste Quartal hinterher", "link": "https://finance.yahoo.com/markets/stocks/articles/visteon-vc-lags-q1-earnings-121005860.html", "time": "23.04.2026 12:10", "source": "Yahoo Finance"}, {"title": "Truist ist optimistisch gegen\u00fcber Camping World Holdings, Inc. (CWH)", "link": "https://finance.yahoo.com/markets/stocks/articles/truist-bullish-camping-world-holdings-100652139.html", "time": "13.04.2026 10:06", "source": "Yahoo Finance"}]}, "AMC": {"score": 14.0, "company_name": "AMC Entertainment Holdings, Inc.", "sector": "Communication Services", "flag": "\ud83c\uddfa\ud83c\uddf8", "price": 1.6, "change": -3.0303001, "change_5d": -4.19, "short_float": 15.42, "short_float_source": "yfinance", "short_ratio": 3.0, "rel_volume": 0.40031012877759836, "float_shares": 524813311, "si_trend": "sideways", "si_trend_source": "finra", "si_tpct": -8.9, "si_velocity": 12681.0, "si_accel": false, "si_t1": "179,675 Aktien (27.04.2026)", "si_t2": "7,083 Aktien (24.04.2026)", "si_t3": "61,699 Aktien (20.04.2026)", "rsi14": 59.47346205627044, "ma50": 1.254999998807907, "ma200": 2.130699995458126, "inst_ownership": null, "52w_high": 4.08, "52w_low": 0.93, "avg_vol_20d": 35136887.6, "cur_vol": 14065652.0, "market_cap": 932475584, "earnings_days": 7, "earnings_date_str": "05.05.", "pc_ratio": null, "atm_iv": null, "rel_strength_20d": 50.7158930074615, "perf_20d": 63.26530537770124, "news": [{"title": "COLM bereitet sich auf die Ver\u00f6ffentlichung der Ergebnisse f\u00fcr das erste Quartal vor: Was steht bevor?", "link": "https://finance.yahoo.com/markets/stocks/articles/colm-gears-report-q1-earnings-145900921.html", "time": "28.04.2026 14:59", "source": "Yahoo Finance"}, {"title": "AMC Entertainment (AMC) wird voraussichtlich die Gewinnsch\u00e4tzungen \u00fcbertreffen: Sollten Sie kaufen?", "link": "https://finance.yahoo.com/markets/stocks/articles/amc-entertainment-amc-expected-beat-140008384.html", "time": "28.04.2026 14:00", "source": "Yahoo Finance"}, {"title": "Kaufen Sie AMC Entertainment nicht, bis dies geschieht", "link": "https://www.fool.com/investing/2026/04/28/dont-buy-amc-entertainment-until-this-happens/", "time": "28.04.2026 13:50", "source": "Yahoo Finance"}]}};
-  const WL_HIST    = {"GRPN": {"scores": [100.0, 65.26, 48.59, 66.19, 66.19, 70.63, 55.43], "dates": ["22.04.2026", "23.04.2026", "24.04.2026", "25.04.2026", "26.04.2026", "27.04.2026", "28.04.2026"], "col": "#ef4444", "trend": "\u2193 -44.6"}, "LESL": {"scores": [82.39, 56.43, 53.48, 51.02, 58.21, 58.29], "dates": ["16.04.2026", "17.04.2026", "21.04.2026", "22.04.2026", "23.04.2026", "24.04.2026"], "col": "#ef4444", "trend": "\u2193 -24.1"}, "HIMS": {"scores": [77.66, 57.21, 54.75], "dates": ["16.04.2026", "17.04.2026", "20.04.2026"], "col": "#ef4444", "trend": "\u2193 -22.9"}, "DFDV": {"scores": [61.81, 39.83, 40.13], "dates": ["16.04.2026", "17.04.2026", "22.04.2026"], "col": "#ef4444", "trend": "\u2193 -21.7"}, "NKTX": {"scores": [57.11, 62.91, 62.91, 62.91], "dates": ["16.04.2026", "18.04.2026", "19.04.2026", "20.04.2026"], "col": "#22c55e", "trend": "\u2191 +5.8"}, "FWRD": {"scores": [58.55, 41.6], "dates": ["16.04.2026", "17.04.2026"], "col": "#ef4444", "trend": "\u2193 -16.9"}, "BB.TO": {"scores": [37.18, 39.26], "dates": ["16.04.2026", "17.04.2026"], "col": "#94a3b8", "trend": "\u2192 stabil"}, "INDI": {"scores": [56.26, 71.51, 93.6, 87.9, 87.9, 91.56, 51.6], "dates": ["22.04.2026", "23.04.2026", "24.04.2026", "25.04.2026", "26.04.2026", "27.04.2026", "28.04.2026"], "col": "#ef4444", "trend": "\u2193 -4.7"}, "TTEC": {"scores": [73.92, 52.56], "dates": ["17.04.2026", "21.04.2026"], "col": "#ef4444", "trend": "\u2193 -21.4"}, "SKIL": {"scores": [46.44, 51.44], "dates": ["17.04.2026", "21.04.2026"], "col": "#22c55e", "trend": "\u2191 +5.0"}, "XRX": {"scores": [73.66, 71.62, 78.62, 75.49, 54.12], "dates": ["17.04.2026", "18.04.2026", "19.04.2026", "20.04.2026", "21.04.2026"], "col": "#ef4444", "trend": "\u2193 -19.5"}, "DFH": {"scores": [64.14, 47.62], "dates": ["17.04.2026", "21.04.2026"], "col": "#ef4444", "trend": "\u2193 -16.5"}, "ULCC": {"scores": [68.81, 69.32, 59.32, 68.66, 49.67], "dates": ["17.04.2026", "18.04.2026", "19.04.2026", "20.04.2026", "21.04.2026"], "col": "#ef4444", "trend": "\u2193 -19.1"}, "CADL": {"scores": [85.34, 75.34, 85.34, 85.34, 53.99], "dates": ["17.04.2026", "18.04.2026", "19.04.2026", "20.04.2026", "22.04.2026"], "col": "#ef4444", "trend": "\u2193 -31.4"}, "HELE": {"scores": [54.34, 60.39, 73.71, 85.71], "dates": ["17.04.2026", "19.04.2026", "23.04.2026", "24.04.2026"], "col": "#22c55e", "trend": "\u2191 +31.4"}, "EVGO": {"scores": [50.62, 44.64, 50.07], "dates": ["17.04.2026", "24.04.2026", "28.04.2026"], "col": "#94a3b8", "trend": "\u2192 stabil"}, "CRVS": {"scores": [79.33, 69.65, 79.65, 79.65], "dates": ["17.04.2026", "18.04.2026", "19.04.2026", "20.04.2026"], "col": "#94a3b8", "trend": "\u2192 stabil"}, "ABSI": {"scores": [66.19, 59.38, 66.38, 48.44, 70.17, 67.94], "dates": ["17.04.2026", "18.04.2026", "19.04.2026", "20.04.2026", "27.04.2026", "28.04.2026"], "col": "#94a3b8", "trend": "\u2192 stabil"}, "TSHA": {"scores": [60.79, 61.07, 61.07], "dates": ["17.04.2026", "18.04.2026", "20.04.2026"], "col": "#94a3b8", "trend": "\u2192 stabil"}, "KURA": {"scores": [60.46, 70.59, 60.59, 70.59], "dates": ["17.04.2026", "18.04.2026", "19.04.2026", "20.04.2026"], "col": "#22c55e", "trend": "\u2191 +10.1"}, "BMEA": {"scores": [56.33, 57.03, 57.03, 57.03, 36.63], "dates": ["17.04.2026", "18.04.2026", "19.04.2026", "20.04.2026", "24.04.2026"], "col": "#ef4444", "trend": "\u2193 -19.7"}, "AMC": {"scores": [21.54, 15.15, 18.63, 17.41, 17.41, 18.69, 12.37], "dates": ["22.04.2026", "23.04.2026", "24.04.2026", "25.04.2026", "26.04.2026", "27.04.2026", "28.04.2026"], "col": "#ef4444", "trend": "\u2193 -9.2"}, "PAL": {"scores": [59.78, 59.78, 59.78], "dates": ["18.04.2026", "19.04.2026", "20.04.2026"], "col": "#94a3b8", "trend": "\u2192 stabil"}, "ALGT": {"scores": [55.85, 55.85], "dates": ["18.04.2026", "20.04.2026"], "col": "#94a3b8", "trend": "\u2192 stabil"}, "STRZ": {"scores": [57.16, 57.16], "dates": ["19.04.2026", "20.04.2026"], "col": "#94a3b8", "trend": "\u2192 stabil"}, "HTZ": {"scores": [73.99, 59.38], "dates": ["19.04.2026", "20.04.2026"], "col": "#ef4444", "trend": "\u2193 -14.6"}, "FLWS": {"scores": [100.0, 87.19, 61.44, 78.21, 62.5, 62.52], "dates": ["20.04.2026", "21.04.2026", "23.04.2026", "24.04.2026", "27.04.2026", "28.04.2026"], "col": "#ef4444", "trend": "\u2193 -37.5"}, "PRLD": {"scores": [63.34, 51.12, 63.37, 56.63, 56.63, 56.63], "dates": ["20.04.2026", "21.04.2026", "24.04.2026", "25.04.2026", "26.04.2026", "27.04.2026"], "col": "#ef4444", "trend": "\u2193 -6.7"}, "SNSE": {"scores": [62.91, 50.72, 51.57, 58.43, 58.47, 53.47], "dates": ["20.04.2026", "21.04.2026", "22.04.2026", "23.04.2026", "24.04.2026", "27.04.2026"], "col": "#ef4444", "trend": "\u2193 -9.4"}, "SST": {"scores": [58.61, 80.56, 45.67], "dates": ["20.04.2026", "23.04.2026", "24.04.2026"], "col": "#ef4444", "trend": "\u2193 -12.9"}, "ANAB": {"scores": [66.42, 63.07, 63.07, 60.23, 61.22], "dates": ["20.04.2026", "25.04.2026", "26.04.2026", "27.04.2026", "28.04.2026"], "col": "#ef4444", "trend": "\u2193 -5.2"}, "ASTC": {"scores": [43.0, 48.1, 41.89], "dates": ["20.04.2026", "21.04.2026", "24.04.2026"], "col": "#94a3b8", "trend": "\u2192 stabil"}, "BYND": {"scores": [80.79, 67.5, 56.54, 37.28], "dates": ["20.04.2026", "21.04.2026", "22.04.2026", "24.04.2026"], "col": "#ef4444", "trend": "\u2193 -43.5"}, "TTGT": {"scores": [62.56, 45.6], "dates": ["20.04.2026", "21.04.2026"], "col": "#ef4444", "trend": "\u2193 -17.0"}, "METC": {"scores": [62.49, 62.7], "dates": ["21.04.2026", "22.04.2026"], "col": "#94a3b8", "trend": "\u2192 stabil"}, "KSS": {"scores": [62.63, 59.17], "dates": ["21.04.2026", "22.04.2026"], "col": "#ef4444", "trend": "\u2193 -3.5"}, "AEVA": {"scores": [51.55, 40.94], "dates": ["21.04.2026", "24.04.2026"], "col": "#ef4444", "trend": "\u2193 -10.6"}, "EEIQ": {"scores": [45.37, 43.15, 34.48], "dates": ["21.04.2026", "22.04.2026", "24.04.2026"], "col": "#ef4444", "trend": "\u2193 -10.9"}, "OXM": {"scores": [57.27, 58.55, 44.36], "dates": ["21.04.2026", "22.04.2026", "23.04.2026"], "col": "#ef4444", "trend": "\u2193 -12.9"}, "NTLA": {"scores": [60.68, 68.76, 45.44, 83.71, 77.28], "dates": ["21.04.2026", "22.04.2026", "23.04.2026", "27.04.2026", "28.04.2026"], "col": "#22c55e", "trend": "\u2191 +16.6"}, "RES": {"scores": [52.27, 54.29], "dates": ["21.04.2026", "22.04.2026"], "col": "#94a3b8", "trend": "\u2192 stabil"}, "DDD": {"scores": [45.13, 50.92, 34.92], "dates": ["21.04.2026", "22.04.2026", "24.04.2026"], "col": "#ef4444", "trend": "\u2193 -10.2"}, "GLUE": {"scores": [44.31, 44.45], "dates": ["21.04.2026", "22.04.2026"], "col": "#94a3b8", "trend": "\u2192 stabil"}, "KALV": {"scores": [69.91, 51.3, 58.33, 54.57], "dates": ["22.04.2026", "24.04.2026", "27.04.2026", "28.04.2026"], "col": "#ef4444", "trend": "\u2193 -15.3"}, "NMAX": {"scores": [100.0, 100.0], "dates": ["22.04.2026", "23.04.2026"], "col": "#94a3b8", "trend": "\u2192 stabil"}, "INBX": {"scores": [80.76, 59.34, 50.11, 56.39, 61.39, 61.39], "dates": ["22.04.2026", "23.04.2026", "24.04.2026", "25.04.2026", "26.04.2026", "27.04.2026"], "col": "#ef4444", "trend": "\u2193 -19.4"}, "REPL": {"scores": [70.19, 69.88, 69.99], "dates": ["22.04.2026", "23.04.2026", "24.04.2026"], "col": "#94a3b8", "trend": "\u2192 stabil"}, "SPRY": {"scores": [86.26, 86.37, 48.43], "dates": ["22.04.2026", "23.04.2026", "28.04.2026"], "col": "#ef4444", "trend": "\u2193 -37.8"}, "PCT": {"scores": [57.96, 52.14, 54.93], "dates": ["22.04.2026", "23.04.2026", "24.04.2026"], "col": "#ef4444", "trend": "\u2193 -3.0"}, "ENVX": {"scores": [54.76, 54.81], "dates": ["22.04.2026", "23.04.2026"], "col": "#94a3b8", "trend": "\u2192 stabil"}, "SQNS": {"scores": [68.31, 68.31], "dates": ["22.04.2026", "23.04.2026"], "col": "#94a3b8", "trend": "\u2192 stabil"}, "JACK": {"scores": [64.56, 62.2, 56.56], "dates": ["22.04.2026", "23.04.2026", "28.04.2026"], "col": "#ef4444", "trend": "\u2193 -8.0"}, "IIPR": {"scores": [67.21, 50.3, 52.8, 52.8], "dates": ["22.04.2026", "25.04.2026", "26.04.2026", "27.04.2026"], "col": "#ef4444", "trend": "\u2193 -14.4"}, "FTK": {"scores": [56.81, 59.47], "dates": ["22.04.2026", "23.04.2026"], "col": "#94a3b8", "trend": "\u2192 stabil"}, "ARCT": {"scores": [44.83, 66.67], "dates": ["23.04.2026", "28.04.2026"], "col": "#22c55e", "trend": "\u2191 +21.8"}, "TFIN": {"scores": [70.33, 72.13], "dates": ["23.04.2026", "24.04.2026"], "col": "#94a3b8", "trend": "\u2192 stabil"}, "PLAY": {"scores": [42.48, 54.5, 57.03], "dates": ["23.04.2026", "27.04.2026", "28.04.2026"], "col": "#22c55e", "trend": "\u2191 +14.6"}, "LOVE": {"scores": [53.1, 53.13], "dates": ["23.04.2026", "24.04.2026"], "col": "#94a3b8", "trend": "\u2192 stabil"}, "SKLZ": {"scores": [78.17, 90.17], "dates": ["23.04.2026", "24.04.2026"], "col": "#22c55e", "trend": "\u2191 +12.0"}, "PENG": {"scores": [53.36, 49.76, 49.76, 49.76], "dates": ["24.04.2026", "25.04.2026", "26.04.2026", "27.04.2026"], "col": "#ef4444", "trend": "\u2193 -3.6"}, "WKC": {"scores": [65.85, 67.45, 72.44, 72.46], "dates": ["24.04.2026", "25.04.2026", "26.04.2026", "27.04.2026"], "col": "#22c55e", "trend": "\u2191 +6.6"}, "PD": {"scores": [39.18, 49.02], "dates": ["24.04.2026", "25.04.2026"], "col": "#22c55e", "trend": "\u2191 +9.8"}, "CWH": {"scores": [29.0, 54.66, 64.66, 29.56, 19.76], "dates": ["24.04.2026", "25.04.2026", "26.04.2026", "27.04.2026", "28.04.2026"], "col": "#ef4444", "trend": "\u2193 -9.2"}, "HRTX": {"scores": [70.19, 77.18, 77.18, 47.66, 42.88], "dates": ["24.04.2026", "25.04.2026", "26.04.2026", "27.04.2026", "28.04.2026"], "col": "#ef4444", "trend": "\u2193 -27.3"}, "CVNA": {"scores": [14.89, 19.89, 17.99], "dates": ["25.04.2026", "26.04.2026", "27.04.2026"], "col": "#22c55e", "trend": "\u2191 +3.1"}, "WBTN": {"scores": [62.96, 63.17], "dates": ["27.04.2026", "28.04.2026"], "col": "#94a3b8", "trend": "\u2192 stabil"}, "SLS": {"scores": [51.11, 64.84], "dates": ["27.04.2026", "28.04.2026"], "col": "#22c55e", "trend": "\u2191 +13.7"}, "LENZ": {"scores": [68.03, 68.08], "dates": ["27.04.2026", "28.04.2026"], "col": "#94a3b8", "trend": "\u2192 stabil"}, "FTRE": {"scores": [57.41, 57.68], "dates": ["27.04.2026", "28.04.2026"], "col": "#94a3b8", "trend": "\u2192 stabil"}};
+  const WL_SCORES  = {"GRPN": 55.55, "IBG": 88.4, "LESL": 58.29, "HIMS": 54.75, "EVTL": 62.11, "DFDV": 40.13, "BFLY": 57.62, "NKTX": 62.91, "FWRD": 41.6, "WOLF": 48.54, "VOYG": 44.48, "GPRO": 43.73, "BB.TO": 39.26, "OCDO.L": 23.11, "INDI": 51.77, "TTEC": 52.56, "SKIL": 51.44, "XRX": 54.12, "AVTX": 41.45, "DBI": 63.65, "DFH": 47.62, "TMDX": 57.28, "ULCC": 49.67, "RRGB": 49.33, "CADL": 53.99, "HELE": 85.71, "LZM": 44.83, "RH": 52.18, "EVGO": 50.07, "CRVS": 79.65, "ABSI": 67.94, "TSHA": 61.07, "KURA": 70.59, "BMEA": 36.63, "AMC": 12.48, "PAL": 59.78, "IFRX": 56.75, "ALGT": 55.85, "STRZ": 57.16, "HTZ": 59.38, "CRDF": 65.04, "FLWS": 62.52, "ARTL": 77.14, "PRLD": 56.63, "SNSE": 53.47, "SST": 45.67, "ANAB": 61.22, "ASTC": 41.89, "KYTX": 62.41, "AOSL": 60.61, "CHMG": 55.86, "EBON": 53.07, "SILA": 51.88, "CMPS": 49.98, "VBNK": 49.06, "BYND": 37.28, "TTGT": 45.6, "DNUT": 59.53, "ASAN": 61.64, "CABO": 53.21, "PLCE": 66.02, "SANA": 51.16, "DMRC": 52.0, "IIIV": 50.71, "WRLD": 44.95, "METC": 62.7, "KSS": 59.17, "AEVA": 40.94, "EEIQ": 34.48, "LOCL": 53.45, "OXM": 44.36, "SLDP": 51.24, "NTLA": 77.13, "RES": 54.29, "DDD": 34.92, "GLUE": 44.45, "KALV": 54.57, "RXRX": 55.1, "NMAX": 100.0, "INBX": 61.39, "REPL": 69.99, "SPRY": 48.43, "PCT": 54.93, "CHPT": 45.52, "ENVX": 54.81, "SQNS": 68.31, "JACK": 56.56, "IIPR": 52.8, "FTK": 59.47, "ARCT": 66.73, "TFIN": 72.13, "PLAY": 57.03, "LOVE": 53.13, "SKLZ": 90.17, "ACDC": 36.36, "PACB": 34.65, "PENG": 49.76, "ALT": 40.55, "WKC": 72.46, "HKIT": 50.33, "ABCL": 56.44, "TROX": 38.1, "PD": 49.02, "PGEN": 31.36, "CWH": 19.8, "HRTX": 42.88, "ROOT": 41.5, "VYX": 39.39, "CVNA": 17.99, "WBTN": 63.17, "SLS": 64.84, "OMER": 53.78, "VITL": 47.17, "CBRL": 49.75, "LENZ": 68.08, "FTRE": 57.68, "SNBR": 72.16, "LGIH": 53.93, "CRMT": 43.18, "SDGR": 51.78, "RIGL": 40.07, "BBAI": 49.93, "CSIQ": 48.47, "MNPR": 54.39, "SKYQ": 44.41, "PRTA": 47.55};
+  const WL_TOP10   = {"SNBR": {"score": 75.77, "company_name": "Sleep Number Corporation", "sector": "Consumer Cyclical", "flag": "\ud83c\uddfa\ud83c\uddf8", "price": 3.3145, "change": 49.966072, "change_5d": 34.89, "short_float": 29.59, "short_float_source": "yfinance", "short_ratio": 2.49, "rel_volume": 10.41416682559107, "float_shares": 18826446, "si_trend": "sideways", "si_trend_source": "finra", "si_tpct": -1.4, "si_velocity": 676.0, "si_accel": false, "si_t1": "7,060 Aktien (27.04.2026)", "si_t2": "32 Aktien (23.04.2026)", "si_t3": "1,600 Aktien (22.04.2026)", "rsi14": 57.75659434426143, "ma50": 3.8298259949684144, "ma200": 7.005956495404243, "inst_ownership": null, "52w_high": 13.94, "52w_low": 1.06, "avg_vol_20d": 4806530.55, "cur_vol": 50056011.0, "market_cap": 75689728, "earnings_days": 14, "earnings_date_str": "12.05.", "pc_ratio": 0.32281334535617673, "atm_iv": 2.1875045312499997, "rel_strength_20d": 51.97034710897583, "perf_20d": 64.56500291824341, "news": [{"title": "SNBR startet die erste gro\u00dfe Kampagne seit Jahren \u2013 Kann ein Marketingwandel eine Trendwende herbeif\u00fchren?", "link": "https://investorshub.advfn.com/market-news/article/27385/snbr-rolls-out-first-major-campaign-in-years-can-marketing-shift-drive-a-turnaround", "time": "28.04.2026 14:38", "source": "Yahoo Finance"}, {"title": "Sleep Number (SNBR) Verdienst\u00fcbersicht Q3 2024", "link": "https://www.fool.com/earnings/call-transcripts/2026/04/22/sleep-number-snbr-q3-2024-earnings-transcript/", "time": "22.04.2026 20:40", "source": "Yahoo Finance"}, {"title": "Aktien des Wohnm\u00f6belh\u00e4ndlers Q4-Ergebnis: Sleep Number (NASDAQ:SNBR) Best of the Bunch", "link": "https://finance.yahoo.com/markets/stocks/articles/home-furniture-retailer-stocks-q4-170123632.html", "time": "22.04.2026 17:01", "source": "Yahoo Finance"}]}, "NTLA": {"score": 73.8, "company_name": "Intellia Therapeutics, Inc.", "sector": "Healthcare", "flag": "\ud83c\uddfa\ud83c\uddf8", "price": 13.72, "change": 5.295476, "change_5d": -10.35, "short_float": 36.77, "short_float_source": "yfinance", "short_ratio": 12.41, "rel_volume": 1.9192581157168336, "float_shares": 111938623, "si_trend": "up", "si_trend_source": "finra", "si_tpct": 150.0, "si_velocity": 3427.0, "si_accel": false, "si_t1": "41,404 Aktien (27.04.2026)", "si_t2": "5,159 Aktien (24.04.2026)", "si_t3": "5,796 Aktien (23.04.2026)", "rsi14": 48.07829980126765, "ma50": 13.604799957275391, "ma200": 13.143099970817566, "inst_ownership": null, "52w_high": 28.25, "52w_low": 6.83, "avg_vol_20d": 4917176.55, "cur_vol": 9437331.0, "market_cap": 1621382912, "earnings_days": 9, "earnings_date_str": "07.05.", "pc_ratio": 0.6993377483443709, "atm_iv": 0.8007832421875, "rel_strength_20d": 5.216510121064262, "perf_20d": 17.81116593033184, "news": [{"title": "EXTERNAL f\u00e4llt trotz starker Phase-III-HIS-Daten um 4 % und leitet rollierendes BLA ein", "link": "https://finance.yahoo.com/sectors/healthcare/articles/ntla-falls-4-despite-strong-170200674.html", "time": "28.04.2026 17:02", "source": "Yahoo Finance"}, {"title": "Intellia Therapeutics gibt Phase-3-HAELO-Sieg f\u00fcr lonvo-z bekannt und beginnt mit der Einreichung der BLA-Einreichung bei der FDA", "link": "https://www.marketbeat.com/instant-alerts/intellia-therapeutics-posts-phase-3-haelo-win-for-lonvo-z-begins-rolling-fda-bla-filing-2026-04-27/?utm_source=yahoofinance&utm_medium=yahoofinance", "time": "28.04.2026 01:02", "source": "Yahoo Finance"}, {"title": "Warum sich die Darstellung von Intellia Therapeutics (NTLA) \u00e4ndert, nachdem die FDA Beschl\u00fcsse gefasst hat", "link": "https://finance.yahoo.com/sectors/healthcare/articles/why-narrative-around-intellia-therapeutics-001406750.html", "time": "28.04.2026 00:14", "source": "Yahoo Finance"}]}, "ARCT": {"score": 66.73, "company_name": "Arcturus Therapeutics Holdings Inc.", "sector": "Healthcare", "flag": "\ud83c\uddfa\ud83c\uddf8", "price": 8.875, "change": 6.927708, "change_5d": 0.62, "short_float": 33.2, "short_float_source": "yfinance", "short_ratio": 11.9, "rel_volume": 0.7041494303693968, "float_shares": 26283665, "si_trend": "up", "si_trend_source": "yfinance", "si_tpct": 5.3, "si_velocity": -16.0, "si_accel": false, "si_t1": "60 Aktien (27.04.2026)", "si_t2": "900 Aktien (24.04.2026)", "si_t3": "20 Aktien (22.04.2026)", "rsi14": 62.13935514095985, "ma50": 7.784900016784668, "ma200": 11.077375025749207, "inst_ownership": null, "52w_high": 24.17, "52w_low": 5.85, "avg_vol_20d": 412767.5, "cur_vol": 290650.0, "market_cap": 252254736, "earnings_days": 9, "earnings_date_str": "07.05.", "pc_ratio": 0.6034793041391722, "atm_iv": 0.98242205078125, "rel_strength_20d": 16.02853081878127, "perf_20d": 28.623186628048845, "news": [{"title": "Cathie Wood geht auf Schn\u00e4ppchenjagd: 3 Aktien, die sie gerade gekauft hat", "link": "https://www.fool.com/investing/2026/03/25/cathie-wood-goes-bargain-hunting-3-stocks-she-just/", "time": "25.03.2026 15:12", "source": "Yahoo Finance"}, {"title": "Arcturus Therapeutics konzentriert sich nach dem Erfolg des COVID-Impfstoffs auf der ROTH Conf. wieder auf die mRNA-Pipeline f\u00fcr seltene Krankheiten", "link": "https://www.marketbeat.com/instant-alerts/arcturus-therapeutics-refocuses-on-rare-disease-mrna-pipeline-after-covid-vaccine-success-at-roth-conf-2026-03-23/?utm_source=yahoofinance&utm_medium=yahoofinance", "time": "23.03.2026 18:47", "source": "Yahoo Finance"}, {"title": "Dies sind die einzigen drei Aktien, die Cathie Wood letzte Woche gekauft hat", "link": "https://www.fool.com/investing/2026/03/23/these-are-the-only-3-stocks-that-cathie-wood-bough/", "time": "23.03.2026 11:27", "source": "Yahoo Finance"}]}, "INDI": {"score": 63.0, "company_name": "indie Semiconductor, Inc.", "sector": "Technology", "flag": "\ud83c\uddfa\ud83c\uddf8", "price": 3.8601, "change": -2.5227275, "change_5d": 14.2, "short_float": 30.56, "short_float_source": "yfinance", "short_ratio": 18.36, "rel_volume": 0.7577128864674197, "float_shares": 204139876, "si_trend": "up", "si_trend_source": "finra", "si_tpct": 150.0, "si_velocity": 8047.0, "si_accel": true, "si_t1": "100,041 Aktien (27.04.2026)", "si_t2": "31,087 Aktien (24.04.2026)", "si_t3": "8,114 Aktien (23.04.2026)", "rsi14": 71.35747735104842, "ma50": 3.1010020112991334, "ma200": 3.9548505198955537, "inst_ownership": null, "52w_high": 6.05, "52w_low": 1.9, "avg_vol_20d": 4221863.0, "cur_vol": 3198960.0, "market_cap": 813276032, "earnings_days": 9, "earnings_date_str": "07.05.", "pc_ratio": 0.20521841102316035, "atm_iv": 1.4765651171875, "rel_strength_20d": 13.96600292017087, "perf_20d": 26.560658729438448, "news": [{"title": "Warum Indie Semiconductor (INDI) gerade einen Schritt \u00fcber die Automobilbranche hinaus geschafft hat", "link": "https://finance.yahoo.com/sectors/technology/articles/why-indie-semiconductor-indi-just-203119827.html", "time": "21.04.2026 20:31", "source": "Yahoo Finance"}, {"title": "Ist Indie Semiconductor (INDI) laut Analysten eine der besten Halbleiteraktien unter 10 US-Dollar, die man kaufen kann?", "link": "https://finance.yahoo.com/sectors/technology/articles/indie-semiconductor-indi-one-best-144918351.html", "time": "20.04.2026 14:49", "source": "Yahoo Finance"}, {"title": "Starke Analystenstimmung zu Indie Semiconductor (INDI) angesichts der Preisank\u00fcndigung f\u00fcr Wandelanleihen im Wert von 150 Millionen US-Dollar", "link": "https://finance.yahoo.com/markets/stocks/articles/strong-analyst-sentiment-indie-semiconductor-064652624.html", "time": "20.03.2026 06:46", "source": "Yahoo Finance"}]}, "GRPN": {"score": 62.16, "company_name": "Groupon, Inc.", "sector": "Communication Services", "flag": "\ud83c\uddfa\ud83c\uddf8", "price": 14.47, "change": -3.2753994, "change_5d": -13.15, "short_float": 51.71, "short_float_source": "yfinance", "short_ratio": 9.07, "rel_volume": 0.320459339737997, "float_shares": 29002439, "si_trend": "sideways", "si_trend_source": "finra", "si_tpct": 4.0, "si_velocity": 56.0, "si_accel": false, "si_t1": "745 Aktien (27.04.2026)", "si_t2": "261 Aktien (24.04.2026)", "si_t3": "6,808 Aktien (23.04.2026)", "rsi14": 56.21213094276112, "ma50": 12.353400020599365, "ma200": 19.155150055885315, "inst_ownership": null, "52w_high": 43.08, "52w_low": 9.17, "avg_vol_20d": 2122437.75, "cur_vol": 680155.0, "market_cap": 589558336, "earnings_days": 9, "earnings_date_str": "07.05.", "pc_ratio": 0.19407436866176178, "atm_iv": 1.1796916015624999, "rel_strength_20d": 19.310539403165762, "perf_20d": 31.90519521243334, "news": [{"title": "Avis Short Squeeze schockierte den Markt: Kommen diese drei Aktien als n\u00e4chstes?", "link": "https://www.marketbeat.com/stock-ideas/avis-short-squeeze-shocked-the-market-are-these-3-stocks-next/?utm_source=yahoofinance&utm_medium=yahoofinance", "time": "27.04.2026 14:05", "source": "Yahoo Finance"}, {"title": "Groupon (GRPN) sieht einen deutlicheren R\u00fcckgang als der breitere Markt: Einige Fakten, die Sie wissen sollten", "link": "https://finance.yahoo.com/markets/stocks/articles/groupon-grpn-sees-more-significant-215005555.html", "time": "23.04.2026 21:50", "source": "Yahoo Finance"}, {"title": "OpenAI wirbt Airbnb-Manager als ersten Direktor f\u00fcr EMEA ab", "link": "https://finance.yahoo.com/sectors/technology/articles/openai-poaches-airbnb-executive-first-100000466.html", "time": "22.04.2026 10:00", "source": "Yahoo Finance"}]}, "MNPR": {"score": 54.39, "company_name": "Monopar Therapeutics Inc.", "sector": "Healthcare", "flag": "\ud83c\uddfa\ud83c\uddf8", "price": 54.645, "change": 1.1569788, "change_5d": 3.67, "short_float": 68.61, "short_float_source": "yfinance", "short_ratio": 8.63, "rel_volume": 0.2833532789856925, "float_shares": 4396803, "si_trend": "sideways", "si_trend_source": "yfinance", "si_tpct": 4.2, "si_velocity": -5.0, "si_accel": false, "si_t1": "124 Aktien (27.04.2026)", "si_t2": "13 Aktien (24.04.2026)", "si_t3": "26 Aktien (22.04.2026)", "rsi14": 46.750505604820624, "ma50": 55.89519996643067, "ma200": 62.650275011062625, "inst_ownership": null, "52w_high": 105.0, "52w_low": 28.4, "avg_vol_20d": 175978.2, "cur_vol": 49864.0, "market_cap": 365692000, "earnings_days": 14, "earnings_date_str": "12.05.", "pc_ratio": null, "atm_iv": null, "rel_strength_20d": -10.051965775570249, "perf_20d": 2.542690033697327, "news": [{"title": "Institutionelle Anleger in Monopar Therapeutics Inc. (NASDAQ:MNPR) sehen letzte Woche einen R\u00fcckgang der Marktkapitalisierung um 66 Mio. US-Dollar, obwohl ihnen langfristige Gewinne zugute gekommen sind.", "link": "https://finance.yahoo.com/news/institutional-investors-monopar-therapeutics-inc-130652399.html", "time": "11.02.2026 13:06", "source": "Yahoo Finance"}, {"title": "Broadcom-Aktie verzeichnet verbessertes Relative-St\u00e4rke-Rating", "link": "https://www.investors.com/news/broadcom-stock-sees-improved-relative-strength-rating/?src=A00220&yptr=yahoo", "time": "09.02.2026 18:21", "source": "Yahoo Finance"}, {"title": "Was diese 4 Biotech-Aktien erwartet, deren Wert sich im Jahr 2025 mehr als verdoppelt hat", "link": "https://finance.yahoo.com/news/awaits-4-biotech-stocks-more-151100013.html", "time": "22.12.2025 15:11", "source": "Yahoo Finance"}]}, "BBAI": {"score": 52.43, "company_name": "BigBear.ai Holdings, Inc.", "sector": "Technology", "flag": "\ud83c\uddfa\ud83c\uddf8", "price": 4.0199, "change": 7.7721133, "change_5d": 5.81, "short_float": 25.29, "short_float_source": "yfinance", "short_ratio": 4.36, "rel_volume": 1.8445361387337764, "float_shares": 470662856, "si_trend": "down", "si_trend_source": "finra", "si_tpct": -21.4, "si_velocity": -896.0, "si_accel": false, "si_t1": "82,937 Aktien (27.04.2026)", "si_t2": "41,679 Aktien (24.04.2026)", "si_t3": "79,388 Aktien (23.04.2026)", "rsi14": 58.16053647771989, "ma50": 3.7612019968032837, "ma200": 5.609450505971909, "inst_ownership": null, "52w_high": 9.39, "52w_low": 2.96, "avg_vol_20d": 29485211.95, "cur_vol": 54386539.0, "market_cap": 1909034368, "earnings_days": 7, "earnings_date_str": "05.05.", "pc_ratio": null, "atm_iv": null, "rel_strength_20d": 19.31652636731213, "perf_20d": 31.911182176579704, "news": [{"title": "Die Cash War Chest von BigBear.ai w\u00e4chst: KI-Erweiterungspl\u00e4ne vorantreiben?", "link": "https://finance.yahoo.com/markets/stocks/articles/bigbear-ais-cash-war-chest-153300228.html", "time": "24.04.2026 15:33", "source": "Yahoo Finance"}, {"title": "BigBear.ai Holdings, Inc. (BBAI) verzeichnet einen st\u00e4rkeren R\u00fcckgang als der Markt: Wichtige Fakten, die Sie beachten sollten", "link": "https://finance.yahoo.com/markets/stocks/articles/bigbear-ai-holdings-inc-bbai-221504090.html", "time": "23.04.2026 22:15", "source": "Yahoo Finance"}, {"title": "BigBear.ai strebt ein Wachstum der Pentagon-KI an, da der Vertragszugang erweitert wird", "link": "https://finance.yahoo.com/markets/stocks/articles/bigbear-ai-aims-pentagon-ai-090613132.html", "time": "23.04.2026 09:06", "source": "Yahoo Finance"}]}, "CSIQ": {"score": 48.47, "company_name": "Canadian Solar Inc.", "sector": "Technology", "flag": "\ud83c\uddfa\ud83c\uddf8", "price": 14.98, "change": 7.6105647, "change_5d": 20.94, "short_float": 27.16, "short_float_source": "yfinance", "short_ratio": 5.38, "rel_volume": 1.3203505753563025, "float_shares": 47422201, "si_trend": "down", "si_trend_source": "finra", "si_tpct": -18.2, "si_velocity": -380.0, "si_accel": false, "si_t1": "2,105 Aktien (27.04.2026)", "si_t2": "7,931 Aktien (24.04.2026)", "si_t3": "12,164 Aktien (23.04.2026)", "rsi14": 55.1923165754976, "ma50": 15.598456058502197, "ma200": 17.351963996887207, "inst_ownership": null, "52w_high": 34.59, "52w_low": 8.84, "avg_vol_20d": 2425966.3, "cur_vol": 3203126.0, "market_cap": 1015406208, "earnings_days": 16, "earnings_date_str": "14.05.", "pc_ratio": null, "atm_iv": null, "rel_strength_20d": 2.7582007613429713, "perf_20d": 15.352856570610548, "news": [{"title": "Enphase Energy gibt Ergebnisse f\u00fcr das erste Quartal bekannt: Was ist drin?", "link": "https://finance.yahoo.com/sectors/energy/articles/enphase-energy-report-q1-earnings-151000943.html", "time": "22.04.2026 15:10", "source": "Yahoo Finance"}, {"title": "Welche Solaraktien steigen und fallen, da China ein Exportverbot erw\u00e4gt?", "link": "https://www.investors.com/news/china-solar-panel-export-controls-first-solar-enphase-renewable-energy/?src=A00220&yptr=yahoo", "time": "15.04.2026 13:42", "source": "Yahoo Finance"}, {"title": "Wie sich das Narrativ von Canadian Solar (CSIQ) durch Bewertungsk\u00fcrzungen und Hoffnungen auf Steuergutschriften ver\u00e4ndert", "link": "https://finance.yahoo.com/markets/stocks/articles/canadian-solar-csiq-narrative-shifting-151000825.html", "time": "05.04.2026 15:10", "source": "Yahoo Finance"}]}, "PRTA": {"score": 47.55, "company_name": "Prothena Corporation plc", "sector": "Healthcare", "flag": "\ud83c\uddfa\ud83c\uddf8", "price": 11.47, "change": 6.3021345, "change_5d": 7.5, "short_float": 15.68, "short_float_source": "yfinance", "short_ratio": 13.51, "rel_volume": 0.6593954038681907, "float_shares": 39650145, "si_trend": "sideways", "si_trend_source": "yfinance", "si_tpct": 0.5, "si_velocity": 21.0, "si_accel": false, "si_t1": "200 Aktien (21.04.2026)", "si_t2": "890 Aktien (20.04.2026)", "si_t3": "10 Aktien (17.04.2026)", "rsi14": 71.63235681747739, "ma50": 9.708800010681152, "ma200": 9.261050028800964, "inst_ownership": null, "52w_high": 11.69, "52w_low": 4.32, "avg_vol_20d": 429567.75, "cur_vol": 283255.0, "market_cap": 617464320, "earnings_days": 9, "earnings_date_str": "07.05.", "pc_ratio": null, "atm_iv": null, "rel_strength_20d": 11.405347077530353, "perf_20d": 24.00000288679793, "news": [{"title": "AZN ver\u00f6ffentlicht Daten aus dem Hypophosphatasie-Programm zu Efzimfotase Alfa", "link": "https://finance.yahoo.com/sectors/healthcare/articles/azn-posts-data-hypophosphatasia-program-150400565.html", "time": "01.04.2026 15:04", "source": "Yahoo Finance"}, {"title": "Top-Wachstumsunternehmen mit hoher Insiderbeteiligung im M\u00e4rz 2026", "link": "https://finance.yahoo.com/markets/stocks/articles/top-growth-companies-high-insider-173608455.html", "time": "31.03.2026 17:36", "source": "Yahoo Finance"}, {"title": "Sanofi erh\u00e4lt EU-Zustimmung f\u00fcr Rezurock bei chronischer Transplantat-gegen-Wirt-Krankheit", "link": "https://finance.yahoo.com/sectors/healthcare/articles/sanofi-gets-eu-nod-rezurock-161200430.html", "time": "31.03.2026 16:12", "source": "Yahoo Finance"}]}, "SKYQ": {"score": 44.41, "company_name": "Sky Quarry Inc.", "sector": "Energy", "flag": "\ud83c\uddfa\ud83c\uddf8", "price": 6.21, "change": 13.944959, "change_5d": -30.77, "short_float": 67.48, "short_float_source": "yfinance", "short_ratio": 0.13, "rel_volume": 0.5745369490049981, "float_shares": 3203563, "si_trend": "down", "si_trend_source": "finra", "si_tpct": -90.0, "si_velocity": -2314.0, "si_accel": false, "si_t1": "550 Aktien (27.04.2026)", "si_t2": "658 Aktien (23.04.2026)", "si_t3": "2,689 Aktien (22.04.2026)", "rsi14": 48.72391138295507, "ma50": 4.785940003395081, "ma200": 3.868564994931221, "inst_ownership": null, "52w_high": 19.45, "52w_low": 1.664, "avg_vol_20d": 21442109.2, "cur_vol": 12319284.0, "market_cap": 23333764, "earnings_days": null, "earnings_date_str": null, "pc_ratio": null, "atm_iv": null, "rel_strength_20d": 146.15533549838875, "perf_20d": 158.74999130765633, "news": [{"title": "Der VIX kehrt sich nach gescheiterten Friedensverhandlungen deutlich um und zeigt wieder auf 30", "link": "https://247wallst.com/investing/2026/04/13/the-vix-sharply-reverses-and-points-back-towards-30-after-failed-peace-negotiations/", "time": "13.04.2026 14:16", "source": "Yahoo Finance"}, {"title": "Was ist Sky Quarry? Wenig bekannte Energieaktien sind w\u00e4hrend des Dramas um die Stra\u00dfe von Hormus um 266 % gestiegen", "link": "https://www.fastcompany.com/91525861/sky-quarry-stock-price-keeps-rising-in-2026-strait-of-hormuz-bump", "time": "13.04.2026 13:35", "source": "Yahoo Finance"}, {"title": "Die Aktie von Sky Quarry steigt stark an, da die Roh\u00f6lpreise \u00fcber 110 US-Dollar steigen. Ist es zu sp\u00e4t zum Kaufen?", "link": "https://www.barchart.com/story/news/1121946/sky-quarry-stock-is-surging-as-crude-oil-prices-spike-past-110-is-it-too-late-to-buy", "time": "02.04.2026 18:44", "source": "Yahoo Finance"}]}, "CWH": {"score": 30.14, "company_name": "Camping World Holdings, Inc.", "sector": "Consumer Cyclical", "flag": "\ud83c\uddfa\ud83c\uddf8", "price": 6.855, "change": -0.7959454, "change_5d": -4.53, "short_float": 23.96, "short_float_source": "yfinance", "short_ratio": 5.03, "rel_volume": 0.382483006826411, "float_shares": 56154030, "si_trend": "down", "si_trend_source": "finra", "si_tpct": -48.4, "si_velocity": 94.0, "si_accel": false, "si_t1": "946 Aktien (27.04.2026)", "si_t2": "1,605 Aktien (24.04.2026)", "si_t3": "157 Aktien (20.04.2026)", "rsi14": 44.83621274569638, "ma50": 7.6228999996185305, "ma200": 12.38827560186386, "inst_ownership": null, "52w_high": 19.64, "52w_low": 5.7, "avg_vol_20d": 3259948.75, "cur_vol": 1246875.0, "market_cap": 435745728, "earnings_days": 1, "earnings_date_str": "29.04.", "pc_ratio": null, "atm_iv": null, "rel_strength_20d": -8.415323004465002, "perf_20d": 4.179332804802576, "news": [{"title": "Zu beobachtende Gewinne: Camping World (CWH) gibt morgen die Ergebnisse f\u00fcr das erste Quartal bekannt", "link": "https://finance.yahoo.com/markets/stocks/articles/earnings-watch-camping-world-cwh-144455045.html", "time": "28.04.2026 14:44", "source": "Yahoo Finance"}, {"title": "Visteon (VC) hinkt den Gewinnsch\u00e4tzungen f\u00fcr das erste Quartal hinterher", "link": "https://finance.yahoo.com/markets/stocks/articles/visteon-vc-lags-q1-earnings-121005860.html", "time": "23.04.2026 12:10", "source": "Yahoo Finance"}, {"title": "Truist ist optimistisch gegen\u00fcber Camping World Holdings, Inc. (CWH)", "link": "https://finance.yahoo.com/markets/stocks/articles/truist-bullish-camping-world-holdings-100652139.html", "time": "13.04.2026 10:06", "source": "Yahoo Finance"}]}, "AMC": {"score": 14.1, "company_name": "AMC Entertainment Holdings, Inc.", "sector": "Communication Services", "flag": "\ud83c\uddfa\ud83c\uddf8", "price": 1.615, "change": -2.12121, "change_5d": -3.29, "short_float": 15.42, "short_float_source": "yfinance", "short_ratio": 3.0, "rel_volume": 0.41005489901311265, "float_shares": 524813311, "si_trend": "sideways", "si_trend_source": "finra", "si_tpct": -8.9, "si_velocity": 12681.0, "si_accel": false, "si_t1": "179,675 Aktien (27.04.2026)", "si_t2": "7,083 Aktien (24.04.2026)", "si_t3": "61,699 Aktien (20.04.2026)", "rsi14": 60.58661762538298, "ma50": 1.2552999985218047, "ma200": 2.1307749953866004, "inst_ownership": null, "52w_high": 4.08, "52w_low": 0.93, "avg_vol_20d": 35154366.0, "cur_vol": 14415220.0, "market_cap": 941217536, "earnings_days": 7, "earnings_date_str": "05.05.", "pc_ratio": null, "atm_iv": null, "rel_strength_20d": 52.20126032383615, "perf_20d": 64.79591613310373, "news": [{"title": "COLM bereitet sich auf die Ver\u00f6ffentlichung der Ergebnisse f\u00fcr das erste Quartal vor: Was steht bevor?", "link": "https://finance.yahoo.com/markets/stocks/articles/colm-gears-report-q1-earnings-145900921.html", "time": "28.04.2026 14:59", "source": "Yahoo Finance"}, {"title": "AMC Entertainment (AMC) wird voraussichtlich die Gewinnsch\u00e4tzungen \u00fcbertreffen: Sollten Sie kaufen?", "link": "https://finance.yahoo.com/markets/stocks/articles/amc-entertainment-amc-expected-beat-140008384.html", "time": "28.04.2026 14:00", "source": "Yahoo Finance"}, {"title": "Kaufen Sie AMC Entertainment nicht, bis dies geschieht", "link": "https://www.fool.com/investing/2026/04/28/dont-buy-amc-entertainment-until-this-happens/", "time": "28.04.2026 13:50", "source": "Yahoo Finance"}]}};
+  const WL_HIST    = {"GRPN": {"scores": [100.0, 65.26, 48.59, 66.19, 66.19, 70.63, 55.55], "dates": ["22.04.2026", "23.04.2026", "24.04.2026", "25.04.2026", "26.04.2026", "27.04.2026", "28.04.2026"], "col": "#ef4444", "trend": "\u2193 -44.5"}, "LESL": {"scores": [82.39, 56.43, 53.48, 51.02, 58.21, 58.29], "dates": ["16.04.2026", "17.04.2026", "21.04.2026", "22.04.2026", "23.04.2026", "24.04.2026"], "col": "#ef4444", "trend": "\u2193 -24.1"}, "HIMS": {"scores": [77.66, 57.21, 54.75], "dates": ["16.04.2026", "17.04.2026", "20.04.2026"], "col": "#ef4444", "trend": "\u2193 -22.9"}, "DFDV": {"scores": [61.81, 39.83, 40.13], "dates": ["16.04.2026", "17.04.2026", "22.04.2026"], "col": "#ef4444", "trend": "\u2193 -21.7"}, "NKTX": {"scores": [57.11, 62.91, 62.91, 62.91], "dates": ["16.04.2026", "18.04.2026", "19.04.2026", "20.04.2026"], "col": "#22c55e", "trend": "\u2191 +5.8"}, "FWRD": {"scores": [58.55, 41.6], "dates": ["16.04.2026", "17.04.2026"], "col": "#ef4444", "trend": "\u2193 -16.9"}, "BB.TO": {"scores": [37.18, 39.26], "dates": ["16.04.2026", "17.04.2026"], "col": "#94a3b8", "trend": "\u2192 stabil"}, "INDI": {"scores": [56.26, 71.51, 93.6, 87.9, 87.9, 91.56, 51.77], "dates": ["22.04.2026", "23.04.2026", "24.04.2026", "25.04.2026", "26.04.2026", "27.04.2026", "28.04.2026"], "col": "#ef4444", "trend": "\u2193 -4.5"}, "TTEC": {"scores": [73.92, 52.56], "dates": ["17.04.2026", "21.04.2026"], "col": "#ef4444", "trend": "\u2193 -21.4"}, "SKIL": {"scores": [46.44, 51.44], "dates": ["17.04.2026", "21.04.2026"], "col": "#22c55e", "trend": "\u2191 +5.0"}, "XRX": {"scores": [73.66, 71.62, 78.62, 75.49, 54.12], "dates": ["17.04.2026", "18.04.2026", "19.04.2026", "20.04.2026", "21.04.2026"], "col": "#ef4444", "trend": "\u2193 -19.5"}, "DFH": {"scores": [64.14, 47.62], "dates": ["17.04.2026", "21.04.2026"], "col": "#ef4444", "trend": "\u2193 -16.5"}, "ULCC": {"scores": [68.81, 69.32, 59.32, 68.66, 49.67], "dates": ["17.04.2026", "18.04.2026", "19.04.2026", "20.04.2026", "21.04.2026"], "col": "#ef4444", "trend": "\u2193 -19.1"}, "CADL": {"scores": [85.34, 75.34, 85.34, 85.34, 53.99], "dates": ["17.04.2026", "18.04.2026", "19.04.2026", "20.04.2026", "22.04.2026"], "col": "#ef4444", "trend": "\u2193 -31.4"}, "HELE": {"scores": [54.34, 60.39, 73.71, 85.71], "dates": ["17.04.2026", "19.04.2026", "23.04.2026", "24.04.2026"], "col": "#22c55e", "trend": "\u2191 +31.4"}, "EVGO": {"scores": [50.62, 44.64, 50.07], "dates": ["17.04.2026", "24.04.2026", "28.04.2026"], "col": "#94a3b8", "trend": "\u2192 stabil"}, "CRVS": {"scores": [79.33, 69.65, 79.65, 79.65], "dates": ["17.04.2026", "18.04.2026", "19.04.2026", "20.04.2026"], "col": "#94a3b8", "trend": "\u2192 stabil"}, "ABSI": {"scores": [66.19, 59.38, 66.38, 48.44, 70.17, 67.94], "dates": ["17.04.2026", "18.04.2026", "19.04.2026", "20.04.2026", "27.04.2026", "28.04.2026"], "col": "#94a3b8", "trend": "\u2192 stabil"}, "TSHA": {"scores": [60.79, 61.07, 61.07], "dates": ["17.04.2026", "18.04.2026", "20.04.2026"], "col": "#94a3b8", "trend": "\u2192 stabil"}, "KURA": {"scores": [60.46, 70.59, 60.59, 70.59], "dates": ["17.04.2026", "18.04.2026", "19.04.2026", "20.04.2026"], "col": "#22c55e", "trend": "\u2191 +10.1"}, "BMEA": {"scores": [56.33, 57.03, 57.03, 57.03, 36.63], "dates": ["17.04.2026", "18.04.2026", "19.04.2026", "20.04.2026", "24.04.2026"], "col": "#ef4444", "trend": "\u2193 -19.7"}, "AMC": {"scores": [21.54, 15.15, 18.63, 17.41, 17.41, 18.69, 12.48], "dates": ["22.04.2026", "23.04.2026", "24.04.2026", "25.04.2026", "26.04.2026", "27.04.2026", "28.04.2026"], "col": "#ef4444", "trend": "\u2193 -9.1"}, "PAL": {"scores": [59.78, 59.78, 59.78], "dates": ["18.04.2026", "19.04.2026", "20.04.2026"], "col": "#94a3b8", "trend": "\u2192 stabil"}, "ALGT": {"scores": [55.85, 55.85], "dates": ["18.04.2026", "20.04.2026"], "col": "#94a3b8", "trend": "\u2192 stabil"}, "STRZ": {"scores": [57.16, 57.16], "dates": ["19.04.2026", "20.04.2026"], "col": "#94a3b8", "trend": "\u2192 stabil"}, "HTZ": {"scores": [73.99, 59.38], "dates": ["19.04.2026", "20.04.2026"], "col": "#ef4444", "trend": "\u2193 -14.6"}, "FLWS": {"scores": [100.0, 87.19, 61.44, 78.21, 62.5, 62.52], "dates": ["20.04.2026", "21.04.2026", "23.04.2026", "24.04.2026", "27.04.2026", "28.04.2026"], "col": "#ef4444", "trend": "\u2193 -37.5"}, "PRLD": {"scores": [63.34, 51.12, 63.37, 56.63, 56.63, 56.63], "dates": ["20.04.2026", "21.04.2026", "24.04.2026", "25.04.2026", "26.04.2026", "27.04.2026"], "col": "#ef4444", "trend": "\u2193 -6.7"}, "SNSE": {"scores": [62.91, 50.72, 51.57, 58.43, 58.47, 53.47], "dates": ["20.04.2026", "21.04.2026", "22.04.2026", "23.04.2026", "24.04.2026", "27.04.2026"], "col": "#ef4444", "trend": "\u2193 -9.4"}, "SST": {"scores": [58.61, 80.56, 45.67], "dates": ["20.04.2026", "23.04.2026", "24.04.2026"], "col": "#ef4444", "trend": "\u2193 -12.9"}, "ANAB": {"scores": [66.42, 63.07, 63.07, 60.23, 61.22], "dates": ["20.04.2026", "25.04.2026", "26.04.2026", "27.04.2026", "28.04.2026"], "col": "#ef4444", "trend": "\u2193 -5.2"}, "ASTC": {"scores": [43.0, 48.1, 41.89], "dates": ["20.04.2026", "21.04.2026", "24.04.2026"], "col": "#94a3b8", "trend": "\u2192 stabil"}, "BYND": {"scores": [80.79, 67.5, 56.54, 37.28], "dates": ["20.04.2026", "21.04.2026", "22.04.2026", "24.04.2026"], "col": "#ef4444", "trend": "\u2193 -43.5"}, "TTGT": {"scores": [62.56, 45.6], "dates": ["20.04.2026", "21.04.2026"], "col": "#ef4444", "trend": "\u2193 -17.0"}, "METC": {"scores": [62.49, 62.7], "dates": ["21.04.2026", "22.04.2026"], "col": "#94a3b8", "trend": "\u2192 stabil"}, "KSS": {"scores": [62.63, 59.17], "dates": ["21.04.2026", "22.04.2026"], "col": "#ef4444", "trend": "\u2193 -3.5"}, "AEVA": {"scores": [51.55, 40.94], "dates": ["21.04.2026", "24.04.2026"], "col": "#ef4444", "trend": "\u2193 -10.6"}, "EEIQ": {"scores": [45.37, 43.15, 34.48], "dates": ["21.04.2026", "22.04.2026", "24.04.2026"], "col": "#ef4444", "trend": "\u2193 -10.9"}, "OXM": {"scores": [57.27, 58.55, 44.36], "dates": ["21.04.2026", "22.04.2026", "23.04.2026"], "col": "#ef4444", "trend": "\u2193 -12.9"}, "NTLA": {"scores": [60.68, 68.76, 45.44, 83.71, 77.13], "dates": ["21.04.2026", "22.04.2026", "23.04.2026", "27.04.2026", "28.04.2026"], "col": "#22c55e", "trend": "\u2191 +16.4"}, "RES": {"scores": [52.27, 54.29], "dates": ["21.04.2026", "22.04.2026"], "col": "#94a3b8", "trend": "\u2192 stabil"}, "DDD": {"scores": [45.13, 50.92, 34.92], "dates": ["21.04.2026", "22.04.2026", "24.04.2026"], "col": "#ef4444", "trend": "\u2193 -10.2"}, "GLUE": {"scores": [44.31, 44.45], "dates": ["21.04.2026", "22.04.2026"], "col": "#94a3b8", "trend": "\u2192 stabil"}, "KALV": {"scores": [69.91, 51.3, 58.33, 54.57], "dates": ["22.04.2026", "24.04.2026", "27.04.2026", "28.04.2026"], "col": "#ef4444", "trend": "\u2193 -15.3"}, "NMAX": {"scores": [100.0, 100.0], "dates": ["22.04.2026", "23.04.2026"], "col": "#94a3b8", "trend": "\u2192 stabil"}, "INBX": {"scores": [80.76, 59.34, 50.11, 56.39, 61.39, 61.39], "dates": ["22.04.2026", "23.04.2026", "24.04.2026", "25.04.2026", "26.04.2026", "27.04.2026"], "col": "#ef4444", "trend": "\u2193 -19.4"}, "REPL": {"scores": [70.19, 69.88, 69.99], "dates": ["22.04.2026", "23.04.2026", "24.04.2026"], "col": "#94a3b8", "trend": "\u2192 stabil"}, "SPRY": {"scores": [86.26, 86.37, 48.43], "dates": ["22.04.2026", "23.04.2026", "28.04.2026"], "col": "#ef4444", "trend": "\u2193 -37.8"}, "PCT": {"scores": [57.96, 52.14, 54.93], "dates": ["22.04.2026", "23.04.2026", "24.04.2026"], "col": "#ef4444", "trend": "\u2193 -3.0"}, "ENVX": {"scores": [54.76, 54.81], "dates": ["22.04.2026", "23.04.2026"], "col": "#94a3b8", "trend": "\u2192 stabil"}, "SQNS": {"scores": [68.31, 68.31], "dates": ["22.04.2026", "23.04.2026"], "col": "#94a3b8", "trend": "\u2192 stabil"}, "JACK": {"scores": [64.56, 62.2, 56.56], "dates": ["22.04.2026", "23.04.2026", "28.04.2026"], "col": "#ef4444", "trend": "\u2193 -8.0"}, "IIPR": {"scores": [67.21, 50.3, 52.8, 52.8], "dates": ["22.04.2026", "25.04.2026", "26.04.2026", "27.04.2026"], "col": "#ef4444", "trend": "\u2193 -14.4"}, "FTK": {"scores": [56.81, 59.47], "dates": ["22.04.2026", "23.04.2026"], "col": "#94a3b8", "trend": "\u2192 stabil"}, "ARCT": {"scores": [44.83, 66.73], "dates": ["23.04.2026", "28.04.2026"], "col": "#22c55e", "trend": "\u2191 +21.9"}, "TFIN": {"scores": [70.33, 72.13], "dates": ["23.04.2026", "24.04.2026"], "col": "#94a3b8", "trend": "\u2192 stabil"}, "PLAY": {"scores": [42.48, 54.5, 57.03], "dates": ["23.04.2026", "27.04.2026", "28.04.2026"], "col": "#22c55e", "trend": "\u2191 +14.6"}, "LOVE": {"scores": [53.1, 53.13], "dates": ["23.04.2026", "24.04.2026"], "col": "#94a3b8", "trend": "\u2192 stabil"}, "SKLZ": {"scores": [78.17, 90.17], "dates": ["23.04.2026", "24.04.2026"], "col": "#22c55e", "trend": "\u2191 +12.0"}, "PENG": {"scores": [53.36, 49.76, 49.76, 49.76], "dates": ["24.04.2026", "25.04.2026", "26.04.2026", "27.04.2026"], "col": "#ef4444", "trend": "\u2193 -3.6"}, "WKC": {"scores": [65.85, 67.45, 72.44, 72.46], "dates": ["24.04.2026", "25.04.2026", "26.04.2026", "27.04.2026"], "col": "#22c55e", "trend": "\u2191 +6.6"}, "PD": {"scores": [39.18, 49.02], "dates": ["24.04.2026", "25.04.2026"], "col": "#22c55e", "trend": "\u2191 +9.8"}, "CWH": {"scores": [29.0, 54.66, 64.66, 29.56, 19.8], "dates": ["24.04.2026", "25.04.2026", "26.04.2026", "27.04.2026", "28.04.2026"], "col": "#ef4444", "trend": "\u2193 -9.2"}, "HRTX": {"scores": [70.19, 77.18, 77.18, 47.66, 42.88], "dates": ["24.04.2026", "25.04.2026", "26.04.2026", "27.04.2026", "28.04.2026"], "col": "#ef4444", "trend": "\u2193 -27.3"}, "CVNA": {"scores": [14.89, 19.89, 17.99], "dates": ["25.04.2026", "26.04.2026", "27.04.2026"], "col": "#22c55e", "trend": "\u2191 +3.1"}, "WBTN": {"scores": [62.96, 63.17], "dates": ["27.04.2026", "28.04.2026"], "col": "#94a3b8", "trend": "\u2192 stabil"}, "SLS": {"scores": [51.11, 64.84], "dates": ["27.04.2026", "28.04.2026"], "col": "#22c55e", "trend": "\u2191 +13.7"}, "LENZ": {"scores": [68.03, 68.08], "dates": ["27.04.2026", "28.04.2026"], "col": "#94a3b8", "trend": "\u2192 stabil"}, "FTRE": {"scores": [57.41, 57.68], "dates": ["27.04.2026", "28.04.2026"], "col": "#94a3b8", "trend": "\u2192 stabil"}};
 
   let _wlGhSha = null;
   let _wlCache = null;
@@ -4558,7 +4503,7 @@ Gib eine knappe Einschätzung: Squeeze-Potenzial, wichtigste Treiber, kritische 
 
 // ── Claude Chat Panel ─────────────────────────────────────────────────────────
 (function(){
-  const STOCKS_CTX = [{"ticker": "SNBR", "score": 75.8, "company": "Sleep Number Corporation", "price": 3.25, "change": 46.83, "short_float": 29.6, "short_ratio": 2.5, "rel_volume": 10.39, "si_trend": "sideways", "rsi14": 57.31358119106612, "atm_iv": 2.4218789453125, "earnings_days": 14, "sector": "Consumer Cyclical"}, {"ticker": "NTLA", "score": 73.9, "company": "Intellia Therapeutics, Inc.", "price": 13.75, "change": 5.53, "short_float": 36.8, "short_ratio": 12.4, "rel_volume": 1.89, "si_trend": "up", "rsi14": 48.226450428942044, "atm_iv": 0.7939473730468749, "earnings_days": 9, "sector": "Healthcare"}, {"ticker": "ARCT", "score": 66.7, "company": "Arcturus Therapeutics Holdings Inc.", "price": 8.87, "change": 6.88, "short_float": 33.2, "short_ratio": 11.9, "rel_volume": 0.7, "si_trend": "up", "rsi14": 62.073752237132204, "atm_iv": 0.98242205078125, "earnings_days": 9, "sector": "Healthcare"}, {"ticker": "INDI", "score": 62.9, "company": "indie Semiconductor, Inc.", "price": 3.9, "change": -1.64, "short_float": 30.6, "short_ratio": 18.4, "rel_volume": 0.74, "si_trend": "up", "rsi14": 73.06958386401473, "atm_iv": 1.4375028125, "earnings_days": 9, "sector": "Technology"}, {"ticker": "GRPN", "score": 62.1, "company": "Groupon, Inc.", "price": 14.43, "change": -3.54, "short_float": 51.7, "short_ratio": 9.1, "rel_volume": 0.31, "si_trend": "sideways", "rsi14": 55.96785495406383, "atm_iv": 1.2949254003906248, "earnings_days": 9, "sector": "Communication Services"}, {"ticker": "MNPR", "score": 54.5, "company": "Monopar Therapeutics Inc.", "price": 54.65, "change": 1.16, "short_float": 68.6, "short_ratio": 8.6, "rel_volume": 0.28, "si_trend": "sideways", "rsi14": 46.750505604820624, "atm_iv": null, "earnings_days": 14, "sector": "Healthcare"}, {"ticker": "BBAI", "score": 52.1, "company": "BigBear.ai Holdings, Inc.", "price": 4.05, "change": 8.71, "short_float": 25.3, "short_ratio": 4.4, "rel_volume": 1.82, "si_trend": "down", "rsi14": 59.16673610298911, "atm_iv": null, "earnings_days": 7, "sector": "Technology"}, {"ticker": "EVGO", "score": 49.3, "company": "EVgo, Inc.", "price": 2.15, "change": 0.7, "short_float": 34.9, "short_ratio": 9.6, "rel_volume": 0.45, "si_trend": "up", "rsi14": 52.518872111986525, "atm_iv": null, "earnings_days": 7, "sector": "Consumer Cyclical"}, {"ticker": "CSIQ", "score": 47.9, "company": "Canadian Solar Inc.", "price": 14.94, "change": 7.33, "short_float": 27.2, "short_ratio": 5.4, "rel_volume": 1.3, "si_trend": "down", "rsi14": 55.020817612939865, "atm_iv": null, "earnings_days": 16, "sector": "Technology"}, {"ticker": "SKYQ", "score": 44.4, "company": "Sky Quarry Inc.", "price": 6.2, "change": 13.76, "short_float": 67.5, "short_ratio": 0.1, "rel_volume": 0.57, "si_trend": "down", "rsi14": 48.68602666272537, "atm_iv": null, "earnings_days": null, "sector": "Energy"}, {"ticker": "CWH", "score": 30.1, "company": "Camping World Holdings, Inc.", "price": 6.85, "change": -0.87, "short_float": 24.0, "short_ratio": 5.0, "rel_volume": 0.38, "si_trend": "down", "rsi14": 44.78026057690794, "atm_iv": null, "earnings_days": 1, "sector": "Consumer Cyclical"}, {"ticker": "AMC", "score": 14.0, "company": "AMC Entertainment Holdings, Inc.", "price": 1.6, "change": -3.03, "short_float": 15.4, "short_ratio": 3.0, "rel_volume": 0.4, "si_trend": "sideways", "rsi14": 59.47346205627044, "atm_iv": null, "earnings_days": 7, "sector": "Communication Services"}];
+  const STOCKS_CTX = [{"ticker": "SNBR", "score": 75.8, "company": "Sleep Number Corporation", "price": 3.31, "change": 49.97, "short_float": 29.6, "short_ratio": 2.5, "rel_volume": 10.41, "si_trend": "sideways", "rsi14": 57.75659434426143, "atm_iv": 2.1875045312499997, "earnings_days": 14, "sector": "Consumer Cyclical"}, {"ticker": "NTLA", "score": 73.8, "company": "Intellia Therapeutics, Inc.", "price": 13.72, "change": 5.3, "short_float": 36.8, "short_ratio": 12.4, "rel_volume": 1.92, "si_trend": "up", "rsi14": 48.07829980126765, "atm_iv": 0.8007832421875, "earnings_days": 9, "sector": "Healthcare"}, {"ticker": "ARCT", "score": 66.7, "company": "Arcturus Therapeutics Holdings Inc.", "price": 8.88, "change": 6.93, "short_float": 33.2, "short_ratio": 11.9, "rel_volume": 0.7, "si_trend": "up", "rsi14": 62.13935514095985, "atm_iv": 0.98242205078125, "earnings_days": 9, "sector": "Healthcare"}, {"ticker": "INDI", "score": 63.0, "company": "indie Semiconductor, Inc.", "price": 3.86, "change": -2.52, "short_float": 30.6, "short_ratio": 18.4, "rel_volume": 0.76, "si_trend": "up", "rsi14": 71.35747735104842, "atm_iv": 1.4765651171875, "earnings_days": 9, "sector": "Technology"}, {"ticker": "GRPN", "score": 62.2, "company": "Groupon, Inc.", "price": 14.47, "change": -3.28, "short_float": 51.7, "short_ratio": 9.1, "rel_volume": 0.32, "si_trend": "sideways", "rsi14": 56.21213094276112, "atm_iv": 1.1796916015624999, "earnings_days": 9, "sector": "Communication Services"}, {"ticker": "MNPR", "score": 54.4, "company": "Monopar Therapeutics Inc.", "price": 54.65, "change": 1.16, "short_float": 68.6, "short_ratio": 8.6, "rel_volume": 0.28, "si_trend": "sideways", "rsi14": 46.750505604820624, "atm_iv": null, "earnings_days": 14, "sector": "Healthcare"}, {"ticker": "BBAI", "score": 52.4, "company": "BigBear.ai Holdings, Inc.", "price": 4.02, "change": 7.77, "short_float": 25.3, "short_ratio": 4.4, "rel_volume": 1.84, "si_trend": "down", "rsi14": 58.16053647771989, "atm_iv": null, "earnings_days": 7, "sector": "Technology"}, {"ticker": "CSIQ", "score": 48.5, "company": "Canadian Solar Inc.", "price": 14.98, "change": 7.61, "short_float": 27.2, "short_ratio": 5.4, "rel_volume": 1.32, "si_trend": "down", "rsi14": 55.1923165754976, "atm_iv": null, "earnings_days": 16, "sector": "Technology"}, {"ticker": "PRTA", "score": 47.5, "company": "Prothena Corporation plc", "price": 11.47, "change": 6.3, "short_float": 15.7, "short_ratio": 13.5, "rel_volume": 0.66, "si_trend": "sideways", "rsi14": 71.63235681747739, "atm_iv": null, "earnings_days": 9, "sector": "Healthcare"}, {"ticker": "SKYQ", "score": 44.4, "company": "Sky Quarry Inc.", "price": 6.21, "change": 13.94, "short_float": 67.5, "short_ratio": 0.1, "rel_volume": 0.57, "si_trend": "down", "rsi14": 48.72391138295507, "atm_iv": null, "earnings_days": null, "sector": "Energy"}, {"ticker": "CWH", "score": 30.1, "company": "Camping World Holdings, Inc.", "price": 6.86, "change": -0.8, "short_float": 24.0, "short_ratio": 5.0, "rel_volume": 0.38, "si_trend": "down", "rsi14": 44.83621274569638, "atm_iv": null, "earnings_days": 1, "sector": "Consumer Cyclical"}, {"ticker": "AMC", "score": 14.1, "company": "AMC Entertainment Holdings, Inc.", "price": 1.61, "change": -2.12, "short_float": 15.4, "short_ratio": 3.0, "rel_volume": 0.41, "si_trend": "sideways", "rsi14": 60.58661762538298, "atm_iv": null, "earnings_days": 7, "sector": "Communication Services"}];
   let _history = [];
   let _open    = false;
 
