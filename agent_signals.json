@@ -1,10 +1,10 @@
 {
-  "updated": "2026-04-28T06:14:43.157244+02:00",
+  "updated": "2026-04-28T06:16:28.225649+02:00",
   "run_info": {
     "tickers_checked": 12,
-    "signals_active": 4,
+    "signals_active": 3,
     "alerts_sent": 0,
-    "elapsed_s": 9.5,
+    "elapsed_s": 9.6,
     "market_phase": "Geschlossen"
   },
   "signals": {
@@ -24,9 +24,9 @@
       "active_triggers": 1
     },
     "LENZ": {
-      "score": 45,
-      "confidence": 33,
-      "drivers": "News-KI 12/30: Insider buying is positive, but dramatic EPS estimate cuts and regulatory submission (not approval) signal fundamental c + Earnings in 8d + FINRA Short-Vol 100%",
+      "score": 33,
+      "confidence": 17,
+      "drivers": "Earnings in 8d + FINRA Short-Vol 100%",
       "price": 9.76,
       "chg_pct": 0.0,
       "rvol": 0.0,
@@ -36,7 +36,7 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 1
+      "active_triggers": 0
     },
     "WBTN": {
       "score": 48,
