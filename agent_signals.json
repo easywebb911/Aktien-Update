@@ -1,10 +1,10 @@
 {
-  "updated": "2026-04-28T22:18:03.126181+02:00",
+  "updated": "2026-04-28T22:24:28.490925+02:00",
   "run_info": {
     "tickers_checked": 12,
     "signals_active": 2,
     "alerts_sent": 0,
-    "elapsed_s": 10.6,
+    "elapsed_s": 11.6,
     "market_phase": "After-Hours"
   },
   "signals": {
@@ -24,9 +24,9 @@
       "active_triggers": 1
     },
     "NTLA": {
-      "score": 8,
-      "confidence": 17,
-      "drivers": "Earnings in 9d",
+      "score": 16,
+      "confidence": 33,
+      "drivers": "News-KI 8/30: Positive clinical data and FDA progress reduce short squeeze potential; stock fell despite strong results indicating fun + Earnings in 9d",
       "price": 13.2,
       "chg_pct": 0.0,
       "rvol": 0.0,
@@ -41,7 +41,7 @@
     "SNBR": {
       "score": 63,
       "confidence": 33,
-      "drivers": "News: short squeeze, squeeze + Earnings in 14d + FINRA Short-Vol 82%",
+      "drivers": "News: squeeze, short squeeze + Earnings in 14d + FINRA Short-Vol 82%",
       "price": 3.25,
       "chg_pct": 0.0,
       "rvol": 0.0,
@@ -69,9 +69,9 @@
       "active_triggers": 0
     },
     "GRPN": {
-      "score": 20,
+      "score": 38,
       "confidence": 33,
-      "drivers": "News-KI 12/30: Groupon mentioned only in generic market reports and speculative squeeze articles without fundamental catalysts or signi + Earnings in 9d",
+      "drivers": "News: squeeze, short squeeze + Earnings in 9d",
       "price": 14.29,
       "chg_pct": 0.0,
       "rvol": 0.0,
@@ -101,7 +101,7 @@
     "BBAI": {
       "score": 50,
       "confidence": 33,
-      "drivers": "Earnings in 7 Tagen (05.05.2026) + News: contract, acquisition + Earnings in 7d",
+      "drivers": "Earnings in 7 Tagen (05.05.2026) + News: acquisition, contract + Earnings in 7d",
       "price": 4.12,
       "chg_pct": 0.0,
       "rvol": 0.0,
