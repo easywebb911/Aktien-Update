@@ -1,17 +1,17 @@
 {
-  "updated": "2026-04-28T22:24:28.490925+02:00",
+  "updated": "2026-04-28T23:41:01.856212+02:00",
   "run_info": {
-    "tickers_checked": 12,
+    "tickers_checked": 13,
     "signals_active": 2,
     "alerts_sent": 0,
-    "elapsed_s": 11.6,
+    "elapsed_s": 11.1,
     "market_phase": "After-Hours"
   },
   "signals": {
     "LGIH": {
-      "score": 50,
+      "score": 25,
       "confidence": 17,
-      "drivers": "Earnings in 0 Tagen (28.04.2026) + Earnings in 0d + FINRA Short-Vol 88%",
+      "drivers": "Earnings in 0 Tagen (28.04.2026) + Earnings in 0d",
       "price": 48.96,
       "chg_pct": 0.0,
       "rvol": 0.0,
@@ -23,25 +23,10 @@
       "combo_mult": 1.0,
       "active_triggers": 1
     },
-    "NTLA": {
-      "score": 16,
-      "confidence": 33,
-      "drivers": "News-KI 8/30: Positive clinical data and FDA progress reduce short squeeze potential; stock fell despite strong results indicating fun + Earnings in 9d",
-      "price": 13.2,
-      "chg_pct": 0.0,
-      "rvol": 0.0,
-      "earnings": "in 9 Tagen (07.05.2026)",
-      "fda_date": null,
-      "upcoming_event": null,
-      "insider_buy": false,
-      "stocktwits": null,
-      "combo_mult": 1.0,
-      "active_triggers": 0
-    },
     "SNBR": {
-      "score": 63,
+      "score": 38,
       "confidence": 33,
-      "drivers": "News: squeeze, short squeeze + Earnings in 14d + FINRA Short-Vol 82%",
+      "drivers": "News: short squeeze, squeeze + Earnings in 14d",
       "price": 3.25,
       "chg_pct": 0.0,
       "rvol": 0.0,
@@ -52,6 +37,21 @@
       "stocktwits": null,
       "combo_mult": 1.0,
       "active_triggers": 1
+    },
+    "NTLA": {
+      "score": 8,
+      "confidence": 17,
+      "drivers": "Earnings in 9d",
+      "price": 13.2,
+      "chg_pct": 0.0,
+      "rvol": 0.0,
+      "earnings": "in 9 Tagen (07.05.2026)",
+      "fda_date": null,
+      "upcoming_event": null,
+      "insider_buy": false,
+      "stocktwits": null,
+      "combo_mult": 1.0,
+      "active_triggers": 0
     },
     "ARCT": {
       "score": 8,
@@ -69,9 +69,9 @@
       "active_triggers": 0
     },
     "GRPN": {
-      "score": 38,
+      "score": 16,
       "confidence": 33,
-      "drivers": "News: squeeze, short squeeze + Earnings in 9d",
+      "drivers": "News-KI 8/30: Groupon mentioned in market forecasts and squeeze speculation articles, but no concrete short interest data, recent cata + Earnings in 9d",
       "price": 14.29,
       "chg_pct": 0.0,
       "rvol": 0.0,
@@ -81,27 +81,12 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 1
-    },
-    "INDI": {
-      "score": 23,
-      "confidence": 33,
-      "drivers": "News: catalyst + Earnings in 9d",
-      "price": 3.84,
-      "chg_pct": 0.0,
-      "rvol": 0.0,
-      "earnings": "in 9 Tagen (07.05.2026)",
-      "fda_date": null,
-      "upcoming_event": null,
-      "insider_buy": false,
-      "stocktwits": null,
-      "combo_mult": 1.0,
-      "active_triggers": 1
+      "active_triggers": 0
     },
     "BBAI": {
       "score": 50,
       "confidence": 33,
-      "drivers": "Earnings in 7 Tagen (05.05.2026) + News: acquisition, contract + Earnings in 7d",
+      "drivers": "Earnings in 7 Tagen (05.05.2026) + News: contract, acquisition + Earnings in 7d",
       "price": 4.12,
       "chg_pct": 0.0,
       "rvol": 0.0,
@@ -112,6 +97,21 @@
       "stocktwits": null,
       "combo_mult": 1.1,
       "active_triggers": 2
+    },
+    "MNPR": {
+      "score": 38,
+      "confidence": 33,
+      "drivers": "News: catalyst + Earnings in 14d + FINRA Short-Vol 50%",
+      "price": 54.48,
+      "chg_pct": 0.0,
+      "rvol": 0.0,
+      "earnings": "in 14 Tagen (12.05.2026)",
+      "fda_date": null,
+      "upcoming_event": null,
+      "insider_buy": false,
+      "stocktwits": null,
+      "combo_mult": 1.0,
+      "active_triggers": 1
     },
     "PRTA": {
       "score": 8,
@@ -144,9 +144,9 @@
       "active_triggers": 0
     },
     "LOVE": {
-      "score": 8,
-      "confidence": 17,
-      "drivers": "Earnings in 44d",
+      "score": 23,
+      "confidence": 33,
+      "drivers": "News: covering + Earnings in 44d",
       "price": 16.3,
       "chg_pct": 0.0,
       "rvol": 0.0,
@@ -156,7 +156,22 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 0
+      "active_triggers": 1
+    },
+    "INDI": {
+      "score": 23,
+      "confidence": 33,
+      "drivers": "News: catalyst + Earnings in 9d",
+      "price": 3.84,
+      "chg_pct": 0.0,
+      "rvol": 0.0,
+      "earnings": "in 9 Tagen (07.05.2026)",
+      "fda_date": null,
+      "upcoming_event": null,
+      "insider_buy": false,
+      "stocktwits": null,
+      "combo_mult": 1.0,
+      "active_triggers": 1
     },
     "CWH": {
       "score": 25,
