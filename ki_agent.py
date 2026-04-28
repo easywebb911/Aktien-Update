@@ -1409,8 +1409,14 @@ def send_alert(
         return False
 
 
-def send_ntfy_alert(ticker: str, score: int, drivers) -> None:
+def send_ntfy_alert(ticker: str, ki_score: int, drivers,
+                    production_score: float | None = None) -> None:
     """ntfy.sh Push-Notification — parallel zur E-Mail. Fail-soft.
+
+    ``ki_score`` ist der KI-Signal-Score aus ``compute_signal``.
+    ``production_score`` ist der Score aus ``score_history.json`` (Daily
+    Squeeze-Report). Wenn vorhanden, zeigt der Push beide Werte an;
+    sonst Fallback auf nur KI-Signal.
 
     ``drivers`` darf ``list[str]`` oder ``str`` sein. Topic leer oder
     ``NTFY_ENABLED=False`` → no-op (graceful skip).
@@ -1421,10 +1427,14 @@ def send_ntfy_alert(ticker: str, score: int, drivers) -> None:
         drivers_str = " + ".join(drivers) if drivers else "—"
     else:
         drivers_str = str(drivers) if drivers else "—"
+    if production_score is not None:
+        body = f"{ticker} 🚀 Score {production_score:.1f} | KI-Signal {ki_score} – {drivers_str}"
+    else:
+        body = f"{ticker} 🚀 KI-Signal {ki_score} – {drivers_str}"
     try:
         requests.post(
             f"https://ntfy.sh/{NTFY_TOPIC}",
-            data=f"{ticker} 🚀 Score {score} – {drivers_str}".encode("utf-8"),
+            data=body.encode("utf-8"),
             headers={
                 "Title": f"Squeeze Alert: {ticker}",
                 "Priority": "high",
@@ -1434,6 +1444,41 @@ def send_ntfy_alert(ticker: str, score: int, drivers) -> None:
         )
     except Exception as exc:
         log.warning("ntfy push fehlgeschlagen für %s: %s", ticker, exc)
+
+
+def _load_production_scores() -> dict[str, float]:
+    """Liest neuesten Production-Score pro Ticker aus ``score_history.json``.
+
+    Format-tolerant (alt: dict-per-entry, neu: [date, score]-Tuple-per-entry).
+    Einträge sind chronologisch sortiert; ``entries[-1]`` ist neuester Wert.
+    Bei Fehler oder fehlender Datei → leeres Dict (Caller nutzt Fallback).
+    """
+    try:
+        path = Path("score_history.json")
+        if not path.exists():
+            return {}
+        raw = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return {}
+
+    result: dict[str, float] = {}
+    for ticker, entries in raw.items():
+        if not entries:
+            continue
+        latest = entries[-1]
+        try:
+            if isinstance(latest, dict):
+                score = latest.get("score")
+            elif isinstance(latest, (list, tuple)) and len(latest) >= 2:
+                score = latest[1]
+            else:
+                continue
+            if score is None:
+                continue
+            result[ticker] = float(score)
+        except (TypeError, ValueError):
+            continue
+    return result
 
 
 # ── Tägliche Zusammenfassung ──────────────────────────────────────────────────
@@ -1883,6 +1928,7 @@ def main() -> None:
     # Verbindung pro send_alert() ist isoliert, aber Gmail rate-limit'et
     # parallele Logins; sequenziell ist robuster. set_cooldown mutiert state,
     # dieser Block ist single-threaded.
+    prod_scores = _load_production_scores()
     for ticker in tickers:
         r = results.get(ticker)
         if not r:
@@ -1915,7 +1961,7 @@ def main() -> None:
                 earnings_immediate = True
                 log.info("  %s Earnings-Sofort-Alert (Earnings in %dd, 8K-frisch: %s, News: %s)",
                          ticker, earnings_days, is_8k_fresh, has_earnings_news)
-                send_ntfy_alert(ticker, score, drivers)
+                send_ntfy_alert(ticker, score, drivers, production_score=prod_scores.get(ticker))
                 sent = send_alert(
                     ticker, score, drivers, yfd, reddit, news,
                     upcoming_event=upcoming_event or f"Earnings in {earnings_days} Tagen — Sofort-Alert",
@@ -1928,7 +1974,7 @@ def main() -> None:
                     n_alerts += 1
 
         if score >= alert_threshold and not is_on_cooldown(ticker, state) and not earnings_immediate:
-            send_ntfy_alert(ticker, score, drivers)
+            send_ntfy_alert(ticker, score, drivers, production_score=prod_scores.get(ticker))
             sent = send_alert(
                 ticker, score, drivers, yfd, reddit, news,
                 upcoming_event=upcoming_event,
