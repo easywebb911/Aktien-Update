@@ -1410,16 +1410,20 @@ def send_alert(
 
 
 def send_ntfy_alert(ticker: str, ki_score: int, drivers,
-                    production_score: float | None = None) -> None:
+                    production_score: float | None = None,
+                    monster_score: float | None = None) -> None:
     """ntfy.sh Push-Notification — parallel zur E-Mail. Fail-soft.
 
     ``ki_score`` ist der KI-Signal-Score aus ``compute_signal``.
-    ``production_score`` ist der Score aus ``score_history.json`` (Daily
-    Squeeze-Report). Wenn vorhanden, zeigt der Push beide Werte an;
-    sonst Fallback auf nur KI-Signal.
+    ``production_score`` ist der Setup-Score aus ``score_history.json``.
+    ``monster_score`` ist die kombinierte Bewertung (siehe ``_monster_score``).
 
-    ``drivers`` darf ``list[str]`` oder ``str`` sein. Topic leer oder
-    ``NTFY_ENABLED=False`` → no-op (graceful skip).
+    Body-Format:
+      • Monster + Setup vorhanden → ``🔥 Monster N | Setup N | KI N – drivers``
+      • nur Setup vorhanden       → ``🚀 Score N | KI-Signal N – drivers``
+      • beide fehlend             → ``🚀 KI-Signal N – drivers``
+
+    Topic leer oder ``NTFY_ENABLED=False`` → no-op (graceful skip).
     """
     if not NTFY_ENABLED or not NTFY_TOPIC:
         return
@@ -1427,7 +1431,10 @@ def send_ntfy_alert(ticker: str, ki_score: int, drivers,
         drivers_str = " + ".join(drivers) if drivers else "—"
     else:
         drivers_str = str(drivers) if drivers else "—"
-    if production_score is not None:
+    if monster_score is not None and production_score is not None:
+        body = (f"{ticker} 🔥 Monster {monster_score:.0f} | "
+                f"Setup {production_score:.0f} | KI {ki_score} – {drivers_str}")
+    elif production_score is not None:
         body = f"{ticker} 🚀 Score {production_score:.1f} | KI-Signal {ki_score} – {drivers_str}"
     else:
         body = f"{ticker} 🚀 KI-Signal {ki_score} – {drivers_str}"
@@ -1479,6 +1486,26 @@ def _load_production_scores() -> dict[str, float]:
         except (TypeError, ValueError):
             continue
     return result
+
+
+def _monster_score(setup_score, ki_score):
+    """Monster-Score-Berechnung — identisch zu Frontend ``apply_monster_score``.
+
+    setup_score = Production-Score aus ``score_history.json``.
+    ki_score    = KI-Signal-Score aus ``compute_signal``.
+
+    Returns ``None`` wenn ``setup_score`` ``None`` ist (Ticker noch nicht in
+    score_history); ansonsten gewichteter Score (0-100).
+    """
+    if setup_score is None:
+        return None
+    if ki_score is None:
+        return setup_score
+    if ki_score >= 60:
+        return min(100, round(setup_score * 1.20))
+    if ki_score < 25:
+        return round(setup_score * 0.80)
+    return setup_score
 
 
 # ── Tägliche Zusammenfassung ──────────────────────────────────────────────────
@@ -1905,7 +1932,13 @@ def main() -> None:
     log.info("KI-Agent parallelisiert: %d Ticker in %.1fs (max_workers=8)",
              len(tickers), time.time() - _t_pool)
 
+    # Production-Scores einmalig laden — werden für Counter (Monster-Schwelle)
+    # UND Alert-Versand benötigt. _load_production_scores liest score_history.json.
+    prod_scores = _load_production_scores()
+
     # Counter und new_signals aus den Worker-Ergebnissen aggregieren.
+    # Alert-Schwelle: monster_score >= 70 (ersetzt phasenabhängige
+    # Setup-Schwellen 20/25/35).
     for t in tickers:
         r = results.get(t)
         if not r:
@@ -1921,14 +1954,14 @@ def main() -> None:
         if flags["insider_hit"]:      n_insider   += 1
         if flags["finra_ssr_hit"]:    n_finra_ssr += 1
         if flags["form4_hit"]:        n_form4     += 1
-        if r["score"] >= alert_threshold:
+        monster = _monster_score(prod_scores.get(t), r["score"])
+        if monster is not None and monster >= 70:
             n_signals += 1
 
     # Alerts sequenziell in Original-Ticker-Reihenfolge versenden — die SMTP-
     # Verbindung pro send_alert() ist isoliert, aber Gmail rate-limit'et
     # parallele Logins; sequenziell ist robuster. set_cooldown mutiert state,
     # dieser Block ist single-threaded.
-    prod_scores = _load_production_scores()
     for ticker in tickers:
         r = results.get(ticker)
         if not r:
@@ -1945,6 +1978,8 @@ def main() -> None:
         sec_8k_dt      = r["sec_8k_dt"]
         earnings_days  = r["earnings_days"]
         upcoming_event = r["upcoming_event"]
+        setup_sc       = prod_scores.get(ticker)
+        monster        = _monster_score(setup_sc, score)
 
         earnings_immediate = False
         if (EARNINGS_IMMEDIATE_ALERT
@@ -1961,7 +1996,8 @@ def main() -> None:
                 earnings_immediate = True
                 log.info("  %s Earnings-Sofort-Alert (Earnings in %dd, 8K-frisch: %s, News: %s)",
                          ticker, earnings_days, is_8k_fresh, has_earnings_news)
-                send_ntfy_alert(ticker, score, drivers, production_score=prod_scores.get(ticker))
+                send_ntfy_alert(ticker, score, drivers,
+                                production_score=setup_sc, monster_score=monster)
                 sent = send_alert(
                     ticker, score, drivers, yfd, reddit, news,
                     upcoming_event=upcoming_event or f"Earnings in {earnings_days} Tagen — Sofort-Alert",
@@ -1973,8 +2009,11 @@ def main() -> None:
                     set_cooldown(ticker, state)
                     n_alerts += 1
 
-        if score >= alert_threshold and not is_on_cooldown(ticker, state) and not earnings_immediate:
-            send_ntfy_alert(ticker, score, drivers, production_score=prod_scores.get(ticker))
+        if (monster is not None and monster >= 70
+                and not is_on_cooldown(ticker, state)
+                and not earnings_immediate):
+            send_ntfy_alert(ticker, score, drivers,
+                            production_score=setup_sc, monster_score=monster)
             sent = send_alert(
                 ticker, score, drivers, yfd, reddit, news,
                 upcoming_event=upcoming_event,
