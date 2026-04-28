@@ -2196,9 +2196,24 @@ def apply_agent_boost(stocks: list[dict]) -> None:
             data = json.load(fh)
     except (FileNotFoundError, json.JSONDecodeError):
         return
-    updated = data.get("updated")
     signals = data.get("signals") or {}
-    if not updated or not signals:
+    if not signals:
+        return
+
+    # KI-Signal-Score für die Card-Anzeige auf jeden Stock mit Signal-Eintrag
+    # exposen — unabhängig von Alter und Boost-Threshold. Anzeige selbst ist
+    # fail-soft (Badge nur wenn Wert vorhanden).
+    for s in stocks:
+        sig = signals.get(s["ticker"])
+        if not sig:
+            continue
+        try:
+            s["ki_signal_score"] = float(sig.get("score", 0))
+        except (TypeError, ValueError):
+            pass
+
+    updated = data.get("updated")
+    if not updated:
         return
     try:
         upd_dt = datetime.fromisoformat(updated)
@@ -2816,6 +2831,28 @@ def _score_hint_html(score: float) -> str:
     return ""
 
 
+def _ki_signal_badge_html(s: dict) -> str:
+    """Optionaler ``KI: NN`` Badge im Score-Block.
+
+    Quelle: ``s["ki_signal_score"]`` (gesetzt durch ``apply_agent_boost`` aus
+    ``agent_signals.json``). Farbe: ≥60 grün, 30-59 orange, <30 rot.
+    Bei fehlendem Wert → leerer String (Badge wird nicht gerendert).
+    """
+    ki_score = s.get("ki_signal_score")
+    if ki_score is None:
+        return ""
+    if ki_score >= 60:
+        col = "#22c55e"
+    elif ki_score >= 30:
+        col = "#f59e0b"
+    else:
+        col = "#ef4444"
+    return (
+        f'<span class="ki-signal-badge" style="color:{col}">'
+        f'KI: {ki_score:.0f}</span>'
+    )
+
+
 
 def _detect_short_pressure(s: dict) -> bool:
     """Short Ladder Attack Detection.
@@ -2966,6 +3003,7 @@ def _card(i: int, s: dict) -> str:
 
     # Informational hint for candidates below the MIN_SCORE reference value
     below_min_score_html = _score_hint_html(s["score"])
+    ki_signal_html = _ki_signal_badge_html(s)
 
 
     # SI trend history + velocity
@@ -3232,6 +3270,7 @@ def _card(i: int, s: dict) -> str:
       <span class="score-lbl">Score</span>
       <div class="score-track"><div class="score-fill" style="width:{sc:.0f}%;background:{sc_col}"></div></div>
       {below_min_score_html}
+      {ki_signal_html}
     </div>
   </div>
   {sub_scores_html}
@@ -3454,6 +3493,7 @@ def _build_card_ctx(i: int, s: dict) -> dict:
     rv_col = _metric_color("rv", rv)
 
     below_min_score_html = _score_hint_html(s["score"])
+    ki_signal_html = _ki_signal_badge_html(s)
 
     # ── FINRA SI-Trend & velocity ────────────────────────────────────────
     finra_d     = s.get("finra_data") or {}
@@ -3789,6 +3829,7 @@ def _build_card_ctx(i: int, s: dict) -> dict:
         "chg_5d_html":          chg_5d_html,
         "no_data_html":         no_data_html,
         "below_min_score_html": below_min_score_html,
+        "ki_signal_html":       ki_signal_html,
         "si_velocity_row":      si_velocity_row,
         "trend_html":           trend_html,
         "momentum_rows":        momentum_rows,
