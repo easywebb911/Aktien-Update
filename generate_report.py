@@ -2861,16 +2861,14 @@ def _score_hint_html(score: float) -> str:
 def _tri_score_color(sc) -> str:
     """Einheitliche Farblogik für Setup-, Monster- und KI-Score.
 
-    ≥80 grün · 60–79 orange · 30–59 gelb · <30 rot · None grau.
+    ≥60 grün · 30–59 orange · <30 rot · None grau.
     """
     if sc is None:
         return "#94a3b8"
-    if sc >= 80:
-        return "#22c55e"
     if sc >= 60:
-        return "#f59e0b"
+        return "#22c55e"
     if sc >= 30:
-        return "#eab308"
+        return "#f97316"
     return "#ef4444"
 
 
