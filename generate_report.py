@@ -4337,8 +4337,9 @@ def generate_html_v1(stocks: list[dict], report_date: str, _ctx: dict | None = N
       text-transform:uppercase;letter-spacing:.3px}}
     .bt-src-tag{{font-size:.62rem;padding:1px 5px;border-radius:3px;font-weight:700;
       text-transform:uppercase;letter-spacing:.2px}}
-    .bt-src-bootstrap{{color:#a78bfa;background:#a78bfa22}}
+    .bt-src-bootstrap{{color:#94a3b8;background:#94a3b822}}
     .bt-src-daily{{color:#22c55e;background:#22c55e22}}
+    .bt-hint{{display:block;margin-top:4px;font-size:.74rem;color:#f59e0b;font-style:italic}}
     .btn-bt{{background:#1e293b;color:#94a3b8;border:1px solid #334155}}
     .btn-bt:hover{{background:#334155;color:#e2e8f0}}
     .bt-reco{{margin-top:14px;padding:12px 14px;background:var(--bg-met);
@@ -4362,6 +4363,12 @@ def generate_html_v1(stocks: list[dict], report_date: str, _ctx: dict | None = N
               onclick="_btSetMode('t0')">T+0 (Signal-Tag)</button>
       <button type="button" class="bt-mode-btn" data-bt-mode="t1"
               onclick="_btSetMode('t1')">T+1 (nächster Tag)</button>
+    </div>
+    <div class="bt-mode" role="tablist" aria-label="Datenquelle">
+      <button type="button" class="bt-mode-btn active" data-bt-src="live"
+              onclick="_btSetSource('live')">Nur Live (DAILY)</button>
+      <button type="button" class="bt-mode-btn" data-bt-src="all"
+              onclick="_btSetSource('all')">Alle (Bootstrap + Daily)</button>
     </div>
     <div class="bt-grid">
       <div class="bt-tile">
@@ -4588,13 +4595,28 @@ function showScoreExplain(el, ev){{
 let _btLoaded = false;
 let _btData   = null;
 let _btMode   = 't0';   // 't0' (Signal-Tag) | 't1' (nächster Tag)
+let _btSrc    = 'live'; // 'live' (nur daily/live) | 'all' (inkl. bootstrap)
+const _BT_SRC_KEY = 'squeeze_bt_source';
 function _btSetMode(mode){{
   if (mode !== 't0' && mode !== 't1') return;
   _btMode = mode;
-  document.querySelectorAll('.bt-mode-btn').forEach(b => {{
+  document.querySelectorAll('[data-bt-mode]').forEach(b => {{
     b.classList.toggle('active', b.dataset.btMode === mode);
   }});
   if (_btData) _btRender();
+}}
+function _btSetSource(src){{
+  if (src !== 'live' && src !== 'all') return;
+  _btSrc = src;
+  localStorage.setItem(_BT_SRC_KEY, src);
+  document.querySelectorAll('[data-bt-src]').forEach(b => {{
+    b.classList.toggle('active', b.dataset.btSrc === src);
+  }});
+  if (_btData) _btRender();
+}}
+function _btFiltered(data){{
+  // 'live' filtert Bootstrap-Einträge raus; 'all' liefert alle.
+  return _btSrc === 'live' ? data.filter(e => e.source !== 'bootstrap') : data;
 }}
 function _btKeys(){{
   // Feldnamen je Modus: T+0 → return_3d / return_5d / return_10d
@@ -4616,6 +4638,14 @@ function toggleBacktesting(force){{
 }}
 function _btLoad(){{
   const meta = document.getElementById('bt-meta');
+  // Persistierte Filter-Wahl reaktivieren BEVOR der erste Render läuft.
+  const stored = localStorage.getItem(_BT_SRC_KEY);
+  if (stored === 'live' || stored === 'all') {{
+    _btSrc = stored;
+    document.querySelectorAll('[data-bt-src]').forEach(b => {{
+      b.classList.toggle('active', b.dataset.btSrc === _btSrc);
+    }});
+  }}
   fetch('./backtest_history.json?_=' + Date.now())
     .then(r => r.ok ? r.json() : Promise.reject(r.status))
     .then(data => {{
@@ -4644,17 +4674,23 @@ function _btRender(){{
   const nTot  = data.length;
   const nBoot = data.filter(e => e.source === 'bootstrap').length;
   const nDay  = nTot - nBoot;
-  meta.innerHTML = '<b>' + nTot + ' Datenpunkte</b> — davon <b>' + nBoot
+  const filtered = _btFiltered(data);
+  let metaHtml = '<b>' + nTot + ' Datenpunkte</b> — davon <b>' + nBoot
     + '</b> bootstrap (historisch geschätzt) + <b>' + nDay
     + '</b> daily (live gemessen). '
     + '<em>Bootstrap-Scores sind vereinfachte Schätzungen aus SF + RVOL + Momentum und '
     + 'daher nicht 1:1 mit Live-Scores vergleichbar.</em>';
+  if (_btSrc === 'live' && nBoot > 0){{
+    metaHtml += '<span class="bt-hint">Bootstrap-Daten ausgeblendet — '
+              + 'vereinfachter Score nicht mit Live-Scores vergleichbar</span>';
+  }}
+  meta.innerHTML = metaHtml;
 
-  _btRenderHitRates(data);
-  _btRenderMedian(data);
-  _btRenderSiTrend(data);
-  _btRenderTable(data);
-  _btRenderRecommendation(data);
+  _btRenderHitRates(filtered);
+  _btRenderMedian(filtered);
+  _btRenderSiTrend(filtered);
+  _btRenderTable(data);    // Tabelle zeigt IMMER alle Einträge (mit Quellen-Badge).
+  _btRenderRecommendation(filtered);
 }}
 function _btRenderHitRates(data){{
   const svg = document.getElementById('bt-chart-hit');
