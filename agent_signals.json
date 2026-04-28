@@ -1,10 +1,10 @@
 {
-  "updated": "2026-04-28T22:16:40.437939+02:00",
+  "updated": "2026-04-28T22:18:03.126181+02:00",
   "run_info": {
     "tickers_checked": 12,
     "signals_active": 2,
     "alerts_sent": 0,
-    "elapsed_s": 10.7,
+    "elapsed_s": 10.6,
     "market_phase": "After-Hours"
   },
   "signals": {
@@ -69,9 +69,9 @@
       "active_triggers": 0
     },
     "GRPN": {
-      "score": 38,
+      "score": 20,
       "confidence": 33,
-      "drivers": "News: short squeeze, squeeze + Earnings in 9d",
+      "drivers": "News-KI 12/30: Groupon mentioned only in generic market reports and speculative squeeze articles without fundamental catalysts or signi + Earnings in 9d",
       "price": 14.29,
       "chg_pct": 0.0,
       "rvol": 0.0,
