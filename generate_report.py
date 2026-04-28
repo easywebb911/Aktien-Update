@@ -2902,7 +2902,7 @@ def _score_block_inner_html(s: dict, hint_html: str = "") -> str:
         rows.append(
             f'<div class="sb-row" data-sb="monster">'
             f'<span class="sb-num" style="color:{m_col}">{ms:.0f}</span>'
-            f'<span class="sb-lbl">Monster</span>'
+            f'<span class="sb-lbl">Monster-Score</span>'
             f'<div class="sb-track"><div class="sb-fill" '
             f'style="width:{m_pct:.0f}%;background:{m_col}"></div></div>'
             f'</div>'
