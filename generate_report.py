@@ -2329,6 +2329,33 @@ def apply_score_smoothing(stocks: list[dict], today: str) -> None:
              f"saved to {SCORE_HISTORY_FILE}" if _dirty else "unchanged (skip write)")
 
 
+def apply_monster_score(stocks: list[dict]) -> None:
+    """Berechnet Monster-Score pro Stock = Setup-Score gewichtet mit KI-Signal.
+
+    Voraussetzung: ``apply_agent_boost`` lief bereits (setzt
+    ``s["ki_signal_score"]``). Logik:
+
+      kein KI-Signal  → monster = setup (unverändert)
+      KI ≥ 60         → monster = min(100, round(setup × 1.20))    (Boost)
+      KI < 25         → monster = round(setup × 0.80)              (Malus)
+      sonst (25-59)   → monster = setup                            (neutral)
+
+    Setzt ``s["monster_score"]`` (float) auf jedem Stock.
+    """
+    for s in stocks:
+        base = _safe_float(s.get("score", 0))
+        ki   = s.get("ki_signal_score")
+        if ki is None:
+            monster = base
+        elif ki >= 60:
+            monster = min(100.0, float(round(base * 1.20)))
+        elif ki < 25:
+            monster = float(round(base * 0.80))
+        else:
+            monster = base
+        s["monster_score"] = monster
+
+
 def risk_assessment(stock: dict) -> tuple[str, str, str]:
     """Returns (level_de, hex_color, reason)."""
     pts = 0
@@ -2853,6 +2880,27 @@ def _ki_signal_badge_html(s: dict) -> str:
     )
 
 
+def _monster_score_badge_html(s: dict) -> str:
+    """``🔥 Monster: NN`` Badge im Score-Block.
+
+    Quelle: ``s["monster_score"]`` (gesetzt durch ``apply_monster_score``).
+    Farbe: ≥80 grün, 60-79 orange, <60 rot. Bei fehlendem Wert → leerer
+    String (Badge wird nicht gerendert).
+    """
+    ms = s.get("monster_score")
+    if ms is None:
+        return ""
+    if ms >= 80:
+        col = "#22c55e"
+    elif ms >= 60:
+        col = "#f59e0b"
+    else:
+        col = "#ef4444"
+    return (
+        f'<span class="monster-badge" style="color:{col}">'
+        f'🔥 Monster: {ms:.0f}</span>'
+    )
+
 
 def _detect_short_pressure(s: dict) -> bool:
     """Short Ladder Attack Detection.
@@ -3004,6 +3052,10 @@ def _card(i: int, s: dict) -> str:
     # Informational hint for candidates below the MIN_SCORE reference value
     below_min_score_html = _score_hint_html(s["score"])
     ki_signal_html = _ki_signal_badge_html(s)
+    monster_score_html = _monster_score_badge_html(s)
+    monster_score_val = s.get("monster_score")
+    monster_data_attr = (f' data-monster="{monster_score_val:.1f}"'
+                         if monster_score_val is not None else '')
 
 
     # SI trend history + velocity
@@ -3243,7 +3295,7 @@ def _card(i: int, s: dict) -> str:
         rank_html = f'<span class="rank">{i}</span>'
 
     return f"""
-<article class="card{' card-manual' if s.get('manual_personal') else ''}{' card-lazy' if (LAZY_CARDS_ENABLED and i > LAZY_CARDS_EAGER) else ''}" id="c{i}" data-ticker="{s['ticker']}"
+<article class="card{' card-manual' if s.get('manual_personal') else ''}{' card-lazy' if (LAZY_CARDS_ENABLED and i > LAZY_CARDS_EAGER) else ''}" id="c{i}" data-ticker="{s['ticker']}" data-setup-rank="{i}"{monster_data_attr}
   data-score="{sc:.1f}" data-company="{s.get('company_name','')}"
   data-price="{_price:.2f}" data-sf="{sf:.1f}" data-sr="{sr:.1f}"
   data-rv="{rv:.2f}" data-chg="{chg:.2f}" data-si="{si_trend}"
@@ -3270,6 +3322,7 @@ def _card(i: int, s: dict) -> str:
       <span class="score-lbl">Score</span>
       <div class="score-track"><div class="score-fill" style="width:{sc:.0f}%;background:{sc_col}"></div></div>
       {below_min_score_html}
+      {monster_score_html}
       {ki_signal_html}
     </div>
   </div>
@@ -3494,6 +3547,10 @@ def _build_card_ctx(i: int, s: dict) -> dict:
 
     below_min_score_html = _score_hint_html(s["score"])
     ki_signal_html = _ki_signal_badge_html(s)
+    monster_score_html = _monster_score_badge_html(s)
+    monster_score_val = s.get("monster_score")
+    monster_data_attr = (f' data-monster="{monster_score_val:.1f}"'
+                         if monster_score_val is not None else '')
 
     # ── FINRA SI-Trend & velocity ────────────────────────────────────────
     finra_d     = s.get("finra_data") or {}
@@ -3830,6 +3887,9 @@ def _build_card_ctx(i: int, s: dict) -> dict:
         "no_data_html":         no_data_html,
         "below_min_score_html": below_min_score_html,
         "ki_signal_html":       ki_signal_html,
+        "monster_score_html":   monster_score_html,
+        "monster_data_attr":    monster_data_attr,
+        "setup_rank":           i,
         "si_velocity_row":      si_velocity_row,
         "trend_html":           trend_html,
         "momentum_rows":        momentum_rows,
@@ -4017,6 +4077,7 @@ def generate_html_v1(stocks: list[dict], report_date: str, _ctx: dict | None = N
       <button id="btn-ki" class="btn btn-ki" onclick="triggerKiAgent()">&#9889; Agent Run</button>
       <button id="btn-chat" class="btn btn-chat" onclick="toggleChat()">Chat</button>
       <button id="btn-backtest" class="btn btn-bt" onclick="toggleBacktesting()">Backtesting</button>
+      <button id="btn-sort" class="btn btn-b" onclick="toggleSortMode()">Sortierung: Setup</button>
     </div>
     <div class="hdr-icons">
       <button class="fs-btn" id="fs-down" onclick="changeFontSize(-1)" aria-label="Schrift kleiner">A−</button>
@@ -4375,6 +4436,31 @@ function changeFontSize(dir){{
   localStorage.setItem(_FS_KEY, String(next));
   _updateFsBtns(next);
 }}
+// ── Sortierung Setup ↔ Monster ─────────────────────────────────────────────
+const _SORT_KEY = 'squeeze_sort_mode';
+function _applySortMode(mode){{
+  const grid = document.querySelector('.cards-grid');
+  if (!grid) return;
+  const cards = Array.from(grid.querySelectorAll('article.card'));
+  if (mode === 'monster') {{
+    cards.sort((a, b) => parseFloat(b.dataset.monster || '0') - parseFloat(a.dataset.monster || '0'));
+  }} else {{
+    cards.sort((a, b) => parseInt(a.dataset.setupRank || '0', 10) - parseInt(b.dataset.setupRank || '0', 10));
+  }}
+  cards.forEach(c => grid.appendChild(c));
+  const btn = document.getElementById('btn-sort');
+  if (btn) btn.textContent = (mode === 'monster') ? 'Sortierung: Monster' : 'Sortierung: Setup';
+}}
+function toggleSortMode(){{
+  const cur  = localStorage.getItem(_SORT_KEY) || 'setup';
+  const next = (cur === 'setup') ? 'monster' : 'setup';
+  localStorage.setItem(_SORT_KEY, next);
+  _applySortMode(next);
+}}
+window.addEventListener('DOMContentLoaded', () => {{
+  const cur = localStorage.getItem(_SORT_KEY) || 'setup';
+  _applySortMode(cur);
+}});
 // ── Dark Mode ─────────────────────────────────────────────────────────────
 (function(){{
   const saved = localStorage.getItem('theme') ||
@@ -6967,7 +7053,8 @@ def _append_backtest_entries(top10: list[dict], report_date: str,
           f"(Cut-off: {BACKTEST_MAX_DAYS} Tage)", flush=True)
 
 
-def _write_app_data_json(watchlist_cards: dict | None = None) -> None:
+def _write_app_data_json(watchlist_cards: dict | None = None,
+                          monster_scores: dict | None = None) -> None:
     """Schreibt kombinierte app_data.json = score_history + agent_signals + watchlist_cards.
 
     Beide Quelldateien (score_history.json + agent_signals.json) bleiben separat
@@ -6997,6 +7084,7 @@ def _write_app_data_json(watchlist_cards: dict | None = None) -> None:
         "score_history":   score_history,
         "agent_signals":   agent_signals,
         "watchlist_cards": watchlist_cards or {},
+        "monster_scores":  monster_scores or {},
         "generated_at":    datetime.now(ZoneInfo("UTC")).strftime("%Y-%m-%dT%H:%M:%SZ"),
     }
     with open("app_data.json", "w", encoding="utf-8") as fh:
@@ -7624,6 +7712,10 @@ def main():
     # behält (sonst würde der Boost sich selbst verstärken).
     apply_agent_boost(top10)
 
+    # Monster-Score: Setup × KI-Signal-Gewichtung. Erfordert apply_agent_boost
+    # (für ki_signal_score). Schreibt s["monster_score"] (float).
+    apply_monster_score(top10)
+
     # IBKR Stock Borrow Rates (einmaliger Fetch, cached) — nur US-Ticker.
     # Fällt silent auf None zurück bei Cloudflare-Block / Timeout / Fehler.
     if IBKR_BORROW_ENABLED:
@@ -7835,7 +7927,13 @@ def main():
         log.info("Watchlist-Karten: %d Ticker per manual_personal-Flag, "
                  "%d zusätzlich per Namens-Fallback gefunden",
                  len(_wl_card_data) - _fallback_added, _fallback_added)
-    _write_app_data_json(watchlist_cards=_wl_card_data)
+    _monster_scores = {
+        s["ticker"]: round(s["monster_score"], 1)
+        for s in top10
+        if s.get("monster_score") is not None
+    }
+    _write_app_data_json(watchlist_cards=_wl_card_data,
+                         monster_scores=_monster_scores)
     print(f"Step 4 abgeschlossen in {time.time()-_t4:.1f}s", flush=True)
 
     log.info("Report written → index.html")

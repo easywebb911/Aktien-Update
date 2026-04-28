@@ -1,5 +1,5 @@
 
-<article class="card{{ card_manual_class }}{{ card_lazy_class }}" id="c{{ i }}" data-ticker="{{ ticker }}"
+<article class="card{{ card_manual_class }}{{ card_lazy_class }}" id="c{{ i }}" data-ticker="{{ ticker }}" data-setup-rank="{{ setup_rank }}"{{ monster_data_attr }}
   data-score="{{ score_cap_1f }}" data-company="{{ company }}"
   data-price="{{ price_str }}" data-sf="{{ sf_1f }}" data-sr="{{ sr_1f }}"
   data-rv="{{ rv_2f }}" data-chg="{{ chg_2f }}" data-si="{{ si_trend }}"
@@ -26,6 +26,7 @@
       <span class="score-lbl">Score</span>
       <div class="score-track"><div class="score-fill" style="width:{{ score_pct_str }}%;background:{{ score_col }}"></div></div>
       {{ below_min_score_html }}
+      {{ monster_score_html }}
       {{ ki_signal_html }}
     </div>
   </div>
