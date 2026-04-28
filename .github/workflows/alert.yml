@@ -1,8 +1,8 @@
 name: Squeeze Alert Monitor
 
 on:
-  # Cron deaktiviert — Funktion übernommen vom KI-Agent (ki_agent.yml)
-  workflow_dispatch:   # Nur noch manuell triggerbar (als Referenz)
+  # Manuelle Reserve – Alerts laufen primär via ki_agent.yml
+  workflow_dispatch:
 
 permissions:
   contents: write   # Benötigt um baseline.json und last_alert.json zu commiten
