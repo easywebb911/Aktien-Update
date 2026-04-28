@@ -56,8 +56,31 @@ jobs:
             exit 0
           fi
           git commit -m "Daily squeeze report $(date -u '+%Y-%m-%d')"
-          # Pull rebase before push to handle concurrent workflow runs
-          git pull --rebase origin main
+          # Pull rebase before push to handle concurrent workflow runs.
+          # Bei JSON-Konflikten (typisch: KI-Agent hat parallel
+          # app_data.json / backtest_history.json gepusht): --ours behalten.
+          # Im Rebase-Kontext ist --ours die bereits upstream gepushte
+          # Version — wir akzeptieren also den parallelen Stand statt unsere
+          # eigene überschreiben zu lassen. Konflikte in nicht-JSON-Dateien
+          # bleiben Fehler (kein Silent-Overwrite von index.html etc.).
+          if ! git pull --rebase origin main; then
+            conflicted=$(git diff --name-only --diff-filter=U)
+            conflicted_other=$(echo "$conflicted" | grep -v '\.json$' || true)
+            if [ -n "$conflicted_other" ]; then
+              echo "ERROR: Konflikt in nicht-JSON-Dateien — Abbruch:"
+              echo "$conflicted_other"
+              git rebase --abort
+              exit 1
+            fi
+            conflicted_json=$(echo "$conflicted" | grep '\.json$' || true)
+            echo "JSON-Konflikte erkannt, übernehme --ours (upstream):"
+            echo "$conflicted_json"
+            for f in $conflicted_json; do
+              git checkout --ours -- "$f"
+              git add -- "$f"
+            done
+            GIT_EDITOR=true git rebase --continue
+          fi
           git push origin main
           echo "COMMIT_EPOCH=$(date +%s)" >> "$GITHUB_OUTPUT"
 
