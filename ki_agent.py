@@ -1427,9 +1427,13 @@ def send_ntfy_alert(ticker: str, ki_score: int, drivers,
     ``monster_score`` ist die kombinierte Bewertung (siehe ``_monster_score``).
 
     Body-Format:
-      • Monster + Setup vorhanden → ``🔥 Monster N | Setup N | KI N – drivers``
-      • nur Setup vorhanden       → ``🚀 Score N | KI-Signal N – drivers``
+      • Monster + Setup vorhanden → ``🔥 Monster N | Setup N* | KI N – drivers\\n*Setup-Score vom letzten Daily-Run``
+      • nur Setup vorhanden       → ``🚀 Score N* | KI-Signal N – drivers\\n*Setup-Score vom letzten Daily-Run``
       • beide fehlend             → ``🚀 KI-Signal N – drivers``
+
+    Der Stern + Fußnote weisen darauf hin, dass der Setup-Score ein
+    Snapshot-Wert aus ``score_history.json`` ist (letzter Daily-Run) und
+    nicht in Echtzeit mit dem aktuellen KI-Score berechnet wurde.
 
     Topic leer oder ``NTFY_ENABLED=False`` → no-op (graceful skip).
     """
@@ -1439,11 +1443,15 @@ def send_ntfy_alert(ticker: str, ki_score: int, drivers,
         drivers_str = " + ".join(drivers) if drivers else "—"
     else:
         drivers_str = str(drivers) if drivers else "—"
+    setup_footnote = "\n*Setup-Score vom letzten Daily-Run"
     if monster_score is not None and production_score is not None:
         body = (f"{ticker} 🔥 Monster {monster_score:.0f} | "
-                f"Setup {production_score:.0f} | KI {ki_score} – {drivers_str}")
+                f"Setup {production_score:.0f}* | KI {ki_score} – {drivers_str}"
+                f"{setup_footnote}")
     elif production_score is not None:
-        body = f"{ticker} 🚀 Score {production_score:.1f} | KI-Signal {ki_score} – {drivers_str}"
+        body = (f"{ticker} 🚀 Score {production_score:.1f}* | "
+                f"KI-Signal {ki_score} – {drivers_str}"
+                f"{setup_footnote}")
     else:
         body = f"{ticker} 🚀 KI-Signal {ki_score} – {drivers_str}"
     try:
