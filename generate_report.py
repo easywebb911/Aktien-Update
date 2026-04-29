@@ -4183,7 +4183,7 @@ def generate_html_v1(stocks: list[dict], report_date: str, _ctx: dict | None = N
         <h4>Score-Formel</h4>
         <ul class="info-compact">
           <li><strong>Struktur (0–40):</strong> Short Float (32) + Days to Cover (23) + Float-Größe (8) + SI-Trend (5) — normiert</li>
-          <li><strong>Katalysator (0–35):</strong> Earnings + News-KI + P/C-Ratio + Short-Druck + Gamma Squeeze + Insider</li>
+          <li><strong>Katalysator (0–35):</strong> Earnings + News-KI + P/C-Ratio + Short-Druck + Gamma Squeeze + Insider + UOA</li>
           <li><strong>Timing (0–25):</strong> Rel. Volumen (23) + Momentum (14) + RS vs. Sektor-ETF (3) — normiert</li>
           <li><strong>Boni:</strong> Kombinations-Bonus +5 · Score-Trend ±3 · Agent-Boost ×1.05 · Monster-Score: Setup × KI-Boost</li>
           <li><strong>Malus:</strong> Historischer Squeeze −3 / −5 Pkt (90 / 30 Tage)</li>
@@ -4196,13 +4196,21 @@ def generate_html_v1(stocks: list[dict], report_date: str, _ctx: dict | None = N
         <ul class="info-compact">
           <li>Yahoo Finance (5 US-Screener) · Finviz Screener · FINRA Short Interest ({SI_TREND_PERIODS} Handelstage, 3 CDN-Feeds)</li>
           <li>yfinance · Stockanalysis.com (wöchentl. SI) · EarningsWhispers RSS · Sektor-ETFs (QQQ/XBI/XLE/XLF/XRT/SPY)</li>
-          <li>KI-Agent: Claude Haiku · News-Sentiment · Insider · FDA RSS · FINRA Daily SSR</li>
+          <li>KI-Agent: Claude Haiku · News-Sentiment · Insider · FDA RSS · FINRA Daily SSR · StockTwits API · yfinance Options-Chains (UOA) · ntfy.sh (Push-Notifications)</li>
         </ul>
       </div>
       <div class="info-box">
         <h4>⚡ KI-Agent</h4>
         <ul class="info-compact">
-          <li>Läuft alle 2 Stunden · Analysiert News, Earnings, Insider, FINRA SSR, Gamma</li>
+          <li>Läuft stündlich · Analysiert News, Earnings, Insider, FINRA SSR, Gamma, Options-Flow</li>
+          <li><strong>Boni:</strong>
+            StockTwits-Sentiment +8 / +15 / −5 ·
+            RVOL High-Alert +10 (≥3×) / +15 (≥5×) ·
+            RVOL Velocity +8 (≥1.5× Anstieg) ·
+            UOA (Options-Flow) +10 / +20 ATM Vol/OI · +10 Call/Put-Bias ·
+            Gamma Squeeze +8 / +15 ·
+            Perfect-Storm-Multiplikator ×1.10 / ×1.20 / ×1.35 bei 2 / 3 / 4 Triggern
+          </li>
           <li>Alert aktiv bei Monster-Score ≥ 70 · Monster-Score = Setup-Score × KI-Boost (KI≥60: ×1.20 / KI&lt;25: ×0.80 / sonst neutral) · Push-Notification via ntfy.sh</li>
         </ul>
       </div>
