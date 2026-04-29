@@ -1,28 +1,13 @@
 {
-  "updated": "2026-04-29T08:42:48.929272+02:00",
+  "updated": "2026-04-29T15:11:31.125408+02:00",
   "run_info": {
     "tickers_checked": 13,
-    "signals_active": 1,
+    "signals_active": 0,
     "alerts_sent": 0,
-    "elapsed_s": 10.4,
-    "market_phase": "Geschlossen"
+    "elapsed_s": 15.4,
+    "market_phase": "Pre-Market"
   },
   "signals": {
-    "SNBR": {
-      "score": 38,
-      "confidence": 33,
-      "drivers": "News: squeeze, short squeeze + Earnings in 13d",
-      "price": 3.25,
-      "chg_pct": 0.0,
-      "rvol": 0.0,
-      "earnings": "in 13 Tagen (12.05.2026)",
-      "fda_date": null,
-      "upcoming_event": null,
-      "insider_buy": false,
-      "stocktwits": null,
-      "combo_mult": 1.0,
-      "active_triggers": 1
-    },
     "NTLA": {
       "score": 8,
       "confidence": 17,
@@ -38,10 +23,25 @@
       "combo_mult": 1.0,
       "active_triggers": 0
     },
+    "SNBR": {
+      "score": 16,
+      "confidence": 33,
+      "drivers": "News-KI 8/30: Marketing campaign announcement shows positive momentum but lacks concrete catalysts like short interest surge, earnings + Earnings in 13d",
+      "price": 3.25,
+      "chg_pct": 0.0,
+      "rvol": 0.0,
+      "earnings": "in 13 Tagen (12.05.2026)",
+      "fda_date": null,
+      "upcoming_event": null,
+      "insider_buy": false,
+      "stocktwits": null,
+      "combo_mult": 1.0,
+      "active_triggers": 0
+    },
     "LGIH": {
-      "score": 8,
+      "score": 15,
       "confidence": 17,
-      "drivers": "News-KI 8/30: Routine earnings reports ohne Hinweise auf extreme Shorting, Volatilität oder Squeeze-Katalysatoren",
+      "drivers": "News: squeeze",
       "price": 48.96,
       "chg_pct": 0.0,
       "rvol": 0.0,
@@ -51,7 +51,7 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 0
+      "active_triggers": 1
     },
     "ARCT": {
       "score": 8,
@@ -69,9 +69,9 @@
       "active_triggers": 0
     },
     "BBAI": {
-      "score": 33,
+      "score": 36,
       "confidence": 33,
-      "drivers": "Earnings in 6 Tagen (05.05.2026) + News: contract + Earnings in 6d",
+      "drivers": "Earnings in 6 Tagen (05.05.2026) + News-KI 18/30: Moderate short-squeeze potential: heavy volume and positive sentiment around earnings, but valuation concerns and lack o + Earnings in 6d",
       "price": 4.12,
       "chg_pct": 0.0,
       "rvol": 0.0,
@@ -86,7 +86,7 @@
     "GRPN": {
       "score": 38,
       "confidence": 33,
-      "drivers": "News: squeeze, short squeeze + Earnings in 8d",
+      "drivers": "News: short squeeze, squeeze + Earnings in 8d",
       "price": 14.29,
       "chg_pct": 0.0,
       "rvol": 0.0,
@@ -174,9 +174,9 @@
       "active_triggers": 1
     },
     "CWH": {
-      "score": 33,
-      "confidence": 33,
-      "drivers": "Earnings in 0 Tagen (29.04.2026) + News-KI 8/30: Routine earnings announcement with no indicators of short squeeze setup; lacks high short interest signals, catalyst cla + Earnings in 0d",
+      "score": 25,
+      "confidence": 17,
+      "drivers": "Earnings in 0 Tagen (29.04.2026) + Earnings in 0d",
       "price": 6.81,
       "chg_pct": 0.0,
       "rvol": 0.0,
@@ -189,9 +189,9 @@
       "active_triggers": 1
     },
     "AMC": {
-      "score": 15,
-      "confidence": 17,
-      "drivers": "Earnings in 6 Tagen (05.05.2026) + Earnings in 6d",
+      "score": 33,
+      "confidence": 33,
+      "drivers": "Earnings in 6 Tagen (05.05.2026) + News: squeeze + Earnings in 6d",
       "price": 1.64,
       "chg_pct": 0.0,
       "rvol": 0.0,
@@ -200,8 +200,8 @@
       "upcoming_event": "Earnings in 6 Tagen (05.05.2026)",
       "insider_buy": false,
       "stocktwits": null,
-      "combo_mult": 1.0,
-      "active_triggers": 1
+      "combo_mult": 1.1,
+      "active_triggers": 2
     }
   }
 }
