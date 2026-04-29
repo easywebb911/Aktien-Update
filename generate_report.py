@@ -14,8 +14,9 @@ import time
 import logging
 import xml.etree.ElementTree as ET
 from concurrent.futures import ThreadPoolExecutor, as_completed
-from datetime import datetime
+from datetime import date, datetime, timedelta
 from email.utils import parsedate_to_datetime
+from pathlib import Path
 from zoneinfo import ZoneInfo
 
 import requests
@@ -7245,6 +7246,308 @@ p{{color:#8899bb;font-size:.88rem;line-height:1.65}}
     log.info("Error page written to index.html")
 
 
+# ═══════════════════════════════════════════════════════════════════════════
+# EXIT-SIGNALE FÜR OFFENE POSITIONEN (Phase 1, kein Frontend)
+# ═══════════════════════════════════════════════════════════════════════════
+# positions.json wird vom Workflow zur Laufzeit aus dem GitHub Secret
+# POSITIONS_JSON erzeugt — niemals committen (siehe .gitignore + CLAUDE.md).
+# Schema: { "TICKER": { "entry_date": "YYYY-MM-DD", "entry_price": float } }
+
+def _load_positions() -> dict:
+    """Lädt positions.json. Bei fehlender/korrupter Datei → leeres Dict."""
+    try:
+        path = Path("positions.json")
+        if not path.exists():
+            return {}
+        return json.loads(path.read_text(encoding="utf-8")) or {}
+    except (OSError, json.JSONDecodeError):
+        return {}
+
+
+def _exit_load_state() -> dict:
+    """Lädt agent_state.json (gemeinsam mit ki_agent). Bei Fehler leerer Dict.
+
+    Cooldowns werden über Key-Prefixe ``exit_TICKER`` / ``profit_TICKER``
+    von den ki_agent-Cooldowns (Plain-Ticker) getrennt gehalten.
+    """
+    try:
+        if STATE_FILE.exists():
+            return json.loads(STATE_FILE.read_text(encoding="utf-8")) or {}
+    except (OSError, json.JSONDecodeError):
+        pass
+    return {}
+
+
+def _exit_save_state(state: dict) -> None:
+    try:
+        STATE_FILE.write_text(
+            json.dumps(state, ensure_ascii=False, indent=2), encoding="utf-8"
+        )
+    except OSError as exc:
+        log.warning("agent_state.json Schreibfehler: %s", exc)
+
+
+def _exit_is_on_cooldown(key: str, state: dict) -> bool:
+    ts = (state.get("cooldowns") or {}).get(key)
+    if not ts:
+        return False
+    try:
+        last = datetime.fromisoformat(ts)
+    except ValueError:
+        return False
+    now = datetime.now(ZoneInfo("Europe/Berlin"))
+    if last.tzinfo is None:
+        last = last.replace(tzinfo=ZoneInfo("Europe/Berlin"))
+    return (now - last).total_seconds() < EXIT_COOLDOWN_HOURS * 3600
+
+
+def _exit_set_cooldown(key: str, state: dict) -> None:
+    state.setdefault("cooldowns", {})[key] = (
+        datetime.now(ZoneInfo("Europe/Berlin")).isoformat()
+    )
+
+
+def _send_exit_ntfy(ticker: str, body: str) -> bool:
+    """Single-shot ntfy.sh push (analog zu ki_agent.send_ntfy_alert).
+    Fail-soft: returnt False bei jedem Fehler, blockiert den Daily-Run nie.
+    """
+    if not NTFY_ENABLED or not NTFY_TOPIC:
+        return False
+    try:
+        requests.post(
+            f"https://ntfy.sh/{NTFY_TOPIC}",
+            data=body.encode("utf-8"),
+            headers={
+                "Title": f"Exit Alert: {ticker}",
+                "Priority": "high",
+                "Tags": "chart_with_downwards_trend",
+            },
+            timeout=5,
+        )
+        return True
+    except Exception as exc:
+        log.warning("ntfy exit-push fehlgeschlagen für %s: %s", ticker, exc)
+        return False
+
+
+def _fetch_position_market_data(ticker: str, entry_date: date) -> dict | None:
+    """Holt Tagesdaten ab (entry_date − 25 Handelstage) bis heute via yfinance.
+
+    Wird benötigt für high_since_entry, RVOL (heute vs. Ø 20T) und
+    Tagesperformance. Gibt None zurück bei jedem yfinance-Fehler.
+    """
+    try:
+        start = (entry_date - timedelta(days=40)).strftime("%Y-%m-%d")
+        hist = yf.Ticker(ticker).history(start=start, period=None, auto_adjust=False)
+        if hist is None or hist.empty:
+            return None
+        # Filter ab Entry-Datum für high_since_entry
+        try:
+            since_entry = hist[hist.index.date >= entry_date]
+        except Exception:
+            since_entry = hist
+        if since_entry.empty:
+            since_entry = hist.tail(1)
+        cur_close = float(hist["Close"].iloc[-1])
+        prev_close = float(hist["Close"].iloc[-2]) if len(hist) >= 2 else cur_close
+        chg_pct = ((cur_close - prev_close) / prev_close * 100.0) if prev_close > 0 else 0.0
+        avg_vol_20d = float(hist["Volume"].tail(20).mean() or 0.0)
+        cur_vol = float(hist["Volume"].iloc[-1] or 0.0)
+        rvol = (cur_vol / avg_vol_20d) if avg_vol_20d > 0 else 0.0
+        return {
+            "price":             cur_close,
+            "rvol":              rvol,
+            "change_pct":        chg_pct,
+            "history_since":     since_entry,
+        }
+    except Exception as exc:
+        log.warning("yfinance Position-Fetch %s: %s", ticker, exc)
+        return None
+
+
+def compute_exit_score(ticker: str, position: dict, current_data: dict,
+                        history: dict) -> dict:
+    """Bewertet eine offene Position auf Exit-Signal (0–100).
+
+    Komponenten (jeweils 0–100, mit Gewicht aus config.py):
+      • Trailing-Stop  (40 %): Drawdown vom high_since_entry, ≥ EXIT_TRAILING_STOP_PCT → 100, linear darunter.
+      • Setup-Verfall  (25 %): Setup-Score am Entry-Tag (aus score_history) vs. heute. Drop ≥ EXIT_SETUP_DROP_THRESHOLD → 100.
+      • Distribution   (20 %): heute RVOL ≥ EXIT_DISTRIBUTION_RVOL UND Tages-PnL < 0 → 100, sonst 0.
+      • Time-Decay     (15 %): ab EXIT_TIME_DECAY_DAYS Tagen ohne Tagesbewegung ≥ EXIT_TIME_DECAY_MOVE_PCT linear bis Tag = 2× Threshold → 100.
+
+    Returns dict: ``exit_score, drivers, pnl_pct, days_held, high_since_entry``.
+    """
+    entry_date_str = position.get("entry_date", "")
+    entry_price    = float(position.get("entry_price") or 0.0)
+    today          = date.today()
+    try:
+        entry_date = datetime.strptime(entry_date_str, "%Y-%m-%d").date()
+    except (ValueError, TypeError):
+        return {"exit_score": 0.0, "drivers": [], "pnl_pct": 0.0,
+                "days_held": 0, "high_since_entry": 0.0}
+
+    days_held = max(0, (today - entry_date).days)
+    cur_price = float(current_data.get("price") or 0.0)
+    pnl_pct   = (((cur_price - entry_price) / entry_price) * 100.0) if entry_price > 0 else 0.0
+
+    hist_df = current_data.get("history_since")
+    try:
+        high_since_entry = float(hist_df["High"].max()) if hist_df is not None and not hist_df.empty else max(cur_price, entry_price)
+    except Exception:
+        high_since_entry = max(cur_price, entry_price)
+
+    drivers: list[str] = []
+
+    # 1) Trailing-Stop
+    trailing_pct = 0.0
+    if high_since_entry > 0:
+        drawdown_pct = max(0.0, (high_since_entry - cur_price) / high_since_entry * 100.0)
+        if drawdown_pct >= EXIT_TRAILING_STOP_PCT:
+            trailing_pct = 100.0
+        else:
+            trailing_pct = (drawdown_pct / EXIT_TRAILING_STOP_PCT) * 100.0
+        if trailing_pct >= 50:
+            drivers.append(f"Trailing-Stop −{drawdown_pct:.1f}% vom Hoch")
+
+    # 2) Setup-Verfall
+    setup_pct = 0.0
+    setup_today = float(current_data.get("setup_today") or 0.0)
+    setup_at_entry: float | None = None
+    target = entry_date.strftime("%d.%m.%Y")
+    for e in (history.get(ticker) or []):
+        d = e.get("date") if isinstance(e, dict) else None
+        s = e.get("score") if isinstance(e, dict) else None
+        if d == target and s is not None:
+            try:
+                setup_at_entry = float(s)
+            except (TypeError, ValueError):
+                setup_at_entry = None
+            break
+    if setup_at_entry is not None and setup_today > 0:
+        drop = setup_at_entry - setup_today
+        if drop >= EXIT_SETUP_DROP_THRESHOLD:
+            setup_pct = 100.0
+        elif drop > 0:
+            setup_pct = (drop / EXIT_SETUP_DROP_THRESHOLD) * 100.0
+        if setup_pct >= 50:
+            drivers.append(f"Setup-Verfall −{drop:.0f} Pkt seit Entry")
+
+    # 3) Distribution-Day
+    dist_pct = 0.0
+    rvol_today = float(current_data.get("rvol") or 0.0)
+    chg_today  = float(current_data.get("change_pct") or 0.0)
+    if rvol_today >= EXIT_DISTRIBUTION_RVOL and chg_today < 0:
+        dist_pct = 100.0
+        drivers.append(f"Distribution {rvol_today:.1f}× / {chg_today:+.1f}%")
+
+    # 4) Time-Decay
+    decay_pct = 0.0
+    if days_held > EXIT_TIME_DECAY_DAYS and hist_df is not None and not hist_df.empty:
+        try:
+            recent_chg = (hist_df["Close"].pct_change().abs() * 100.0).fillna(0.0)
+            big_moves = int((recent_chg >= EXIT_TIME_DECAY_MOVE_PCT).sum())
+            if big_moves == 0:
+                excess = days_held - EXIT_TIME_DECAY_DAYS
+                decay_pct = min(100.0, (excess / EXIT_TIME_DECAY_DAYS) * 100.0)
+                if decay_pct >= 50:
+                    drivers.append(f"Time-Decay {days_held}d ohne ≥{EXIT_TIME_DECAY_MOVE_PCT:.0f}% Move")
+        except Exception:
+            pass
+
+    exit_score = min(100.0, (
+        trailing_pct * EXIT_WEIGHT_TRAILING +
+        setup_pct    * EXIT_WEIGHT_SETUP +
+        dist_pct     * EXIT_WEIGHT_DISTRIBUTION +
+        decay_pct    * EXIT_WEIGHT_TIMEDECAY
+    ))
+
+    return {
+        "exit_score":       round(exit_score, 1),
+        "drivers":          drivers,
+        "pnl_pct":          round(pnl_pct, 2),
+        "days_held":        days_held,
+        "high_since_entry": round(high_since_entry, 4),
+    }
+
+
+def process_exit_signals(stocks: list[dict] | None = None) -> int:
+    """Lädt positions.json und sendet ntfy-Pushes für offene Positionen.
+
+    • exit_score ≥ EXIT_ALERT_THRESHOLD → ``📉 Exit N | ±N% | top driver``
+    • pnl_pct    ≥ EXIT_PROFIT_TAKE_PCT → ``💰 Profit-Take | +N% seit Entry | Halbe Position?``
+    Cooldown ``EXIT_COOLDOWN_HOURS`` h pro (Ticker, Alert-Typ) via
+    Key-Prefix ``exit_`` / ``profit_`` in agent_state.json.
+
+    ``stocks`` (optional Top-10-Liste vom aktuellen Run) liefert für
+    bereits enriched Ticker den geglätteten Setup-Score ohne yfinance-
+    Refetch. Returns Anzahl gesendeter Pushes.
+    """
+    if not EXIT_ENABLED:
+        return 0
+    positions = _load_positions()
+    if not positions:
+        return 0
+
+    history = _load_score_history()
+    state   = _exit_load_state()
+    setup_today_by_ticker = {
+        s["ticker"]: float(s.get("score") or 0.0)
+        for s in (stocks or [])
+        if s.get("score") is not None
+    }
+    n_sent = 0
+
+    for ticker, pos in positions.items():
+        try:
+            entry_date = datetime.strptime(pos.get("entry_date", ""), "%Y-%m-%d").date()
+        except (ValueError, TypeError):
+            log.warning("Position %s: ungültiges entry_date %r", ticker, pos.get("entry_date"))
+            continue
+        market = _fetch_position_market_data(ticker, entry_date)
+        if not market:
+            continue
+        # Heutiger Setup-Score aus dem aktuellen Run (smoothed) bevorzugt;
+        # Fallback: letzter Eintrag aus score_history.
+        setup_today = setup_today_by_ticker.get(ticker)
+        if setup_today is None:
+            entries = history.get(ticker) or []
+            if entries:
+                last = entries[-1]
+                last_score = last.get("score") if isinstance(last, dict) else None
+                if last_score is not None:
+                    setup_today = float(last_score)
+        market["setup_today"] = setup_today or 0.0
+
+        result = compute_exit_score(ticker, pos, market, history)
+        log.info("Exit %s: score=%.1f pnl=%.1f%% days=%d drivers=%s",
+                 ticker, result["exit_score"], result["pnl_pct"],
+                 result["days_held"], result["drivers"])
+
+        top_driver = result["drivers"][0] if result["drivers"] else "—"
+
+        if result["exit_score"] >= EXIT_ALERT_THRESHOLD:
+            key = f"exit_{ticker}"
+            if not _exit_is_on_cooldown(key, state):
+                body = (f"{ticker} 📉 Exit {result['exit_score']:.0f} | "
+                        f"{result['pnl_pct']:+.0f}% | {top_driver}")
+                if _send_exit_ntfy(ticker, body):
+                    _exit_set_cooldown(key, state)
+                    n_sent += 1
+
+        if result["pnl_pct"] >= EXIT_PROFIT_TAKE_PCT:
+            key = f"profit_{ticker}"
+            if not _exit_is_on_cooldown(key, state):
+                body = (f"{ticker} 💰 Profit-Take | "
+                        f"+{result['pnl_pct']:.0f}% seit Entry | Halbe Position?")
+                if _send_exit_ntfy(ticker, body):
+                    _exit_set_cooldown(key, state)
+                    n_sent += 1
+
+    if n_sent > 0:
+        _exit_save_state(state)
+    return n_sent
+
+
 # ===========================================================================
 # 6. MAIN
 # ===========================================================================
@@ -8010,6 +8313,19 @@ def main():
                          monster_scores=_monster_scores,
                          setup_scores=_setup_scores)
     print(f"Step 4 abgeschlossen in {time.time()-_t4:.1f}s", flush=True)
+
+    # Step 5 — Exit-Signale für offene Positionen (Phase 1, kein Frontend).
+    # Liest positions.json (vom Workflow aus GitHub Secret POSITIONS_JSON
+    # erzeugt) und feuert ntfy-Pushes bei Exit-Score ≥ EXIT_ALERT_THRESHOLD
+    # bzw. PnL ≥ EXIT_PROFIT_TAKE_PCT — Cooldown EXIT_COOLDOWN_HOURS.
+    try:
+        _t5 = time.time()
+        n_exit = process_exit_signals(top10)
+        if n_exit > 0:
+            log.info("Step 5 — %d Exit/Profit-Push(es) gesendet (%.1fs)",
+                     n_exit, time.time() - _t5)
+    except Exception as exc:
+        log.warning("process_exit_signals fehlgeschlagen: %s", exc)
 
     log.info("Report written → index.html")
     log.info("Top 10: %s", [s["ticker"] for s in top10])

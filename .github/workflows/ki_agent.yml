@@ -34,6 +34,16 @@ jobs:
       - name: Install dependencies
         run: pip install -r requirements.txt
 
+      - name: Build positions.json from secret
+        env:
+          POSITIONS_JSON: ${{ secrets.POSITIONS_JSON }}
+        run: |
+          if [ -n "$POSITIONS_JSON" ]; then
+            echo "$POSITIONS_JSON" > positions.json
+          else
+            echo '{}' > positions.json
+          fi
+
       - name: Run KI-Agent
         env:
           MAIL_TO: ${{ secrets.MAIL_TO }}

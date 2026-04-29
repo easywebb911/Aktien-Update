@@ -63,3 +63,66 @@ else:
 - `ki_agent.py` schreibt `agent_signals.json` + `agent_state.json`
 - Alle Schwellen und Konstanten stehen im Konstantenblock ganz oben der jeweiligen Datei
 - Workflow-Dateien: `.github/workflows/daily-squeeze-report.yml` und `ki_agent.yml`
+
+---
+
+## Position-Tracking (Exit-Signale)
+
+`positions.json` listet offene Positionen für Exit-Score-Berechnung im
+Daily-Run. **Wird nicht im Repo gespeichert** (Privacy) — der Workflow
+schreibt sie zur Laufzeit aus dem GitHub-Secret `POSITIONS_JSON`.
+
+### Schema
+
+```json
+{
+  "TICKER": {
+    "entry_date":  "YYYY-MM-DD",
+    "entry_price": 12.34
+  }
+}
+```
+
+`entry_date` im ISO-Format (Achtung: `score_history.json` nutzt `DD.MM.YYYY`
+intern, der Lookup im Code rechnet um). `entry_price` als Float in USD.
+
+### Quelle: GitHub Secret `POSITIONS_JSON`
+
+Beide Workflows (`daily-squeeze-report.yml`, `ki_agent.yml`) bauen die Datei
+in einem Step `Build positions.json from secret` direkt vor dem Python-Run:
+
+```yaml
+- name: Build positions.json from secret
+  env:
+    POSITIONS_JSON: ${{ secrets.POSITIONS_JSON }}
+  run: |
+    if [ -n "$POSITIONS_JSON" ]; then
+      echo "$POSITIONS_JSON" > positions.json
+    else
+      echo '{}' > positions.json
+    fi
+```
+
+Secret leer → leeres Dict → `process_exit_signals()` no-op.
+
+### Exit-Score-Komponenten (0–100, gewichtet, Cap 100)
+
+| Komponente        | Gewicht | Logik |
+|-------------------|--------:|---|
+| Trailing-Stop     | **40 %** | Drawdown vom `high_since_entry`. ≥ `EXIT_TRAILING_STOP_PCT` (12 %) → 100, linear darunter |
+| Setup-Verfall     | **25 %** | Setup-Score am Entry-Tag (aus `score_history`) vs. heute (aus aktuellem Run). Drop ≥ `EXIT_SETUP_DROP_THRESHOLD` (20 Pkt) → 100 |
+| Distribution-Day  | **20 %** | heute RVOL ≥ `EXIT_DISTRIBUTION_RVOL` (3.0×) **und** Tages-PnL < 0 → 100, sonst 0 |
+| Time-Decay        | **15 %** | ab `EXIT_TIME_DECAY_DAYS` (10) Tagen ohne Tagesbewegung ≥ `EXIT_TIME_DECAY_MOVE_PCT` (8 %) linear bis Tag 20 → 100 |
+
+Alert-Schwellen + Cooldown (alles in `config.py` konfigurierbar):
+- `EXIT_ALERT_THRESHOLD = 60` → ntfy-Push `📉 Exit N | ±N% | top driver`
+- `EXIT_PROFIT_TAKE_PCT = 50.0` → ntfy-Push `💰 Profit-Take | +N% seit Entry | Halbe Position?`
+- `EXIT_COOLDOWN_HOURS = 4` pro **(Ticker, Alert-Typ)** via Key-Prefix `exit_` / `profit_` in `agent_state.json` (gemeinsame State-Datei mit ki_agent, kollisionssicher durch Prefix)
+
+Implementierung in `generate_report.py`:
+- `compute_exit_score(ticker, position, current_data, history)` — pure Funktion
+- `process_exit_signals(stocks)` — wird im Daily-Run nach Step 4 (HTML) aufgerufen, leise Fehler
+
+### Wichtig: niemals `positions.json` committen
+
+`.gitignore` enthält `positions.json`. Bei einem Refactor des `_load_positions()`-Pfads diese Regel beibehalten — die Datei darf nie ins Repo wandern. Bei lokalem Test eine `positions.json` anlegen ist OK; sie wird vom Git ignoriert.

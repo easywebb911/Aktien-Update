@@ -3,3 +3,4 @@ __pycache__/
 *.pyo
 .env
 finra_dates_cache.json
+positions.json

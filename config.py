@@ -328,6 +328,29 @@ ALERT_THRESHOLD         = 25   # Fallback (wird durch Phasen-Schwellen ersetzt)
 ALERT_THRESHOLD_STRONG  = 70   # Score ≥ → ⚡⚡ Starker Alert
 ALERT_COOLDOWN_HOURS    = 2    # Mindeststunden zwischen Alerts je Ticker
 
+# ── Exit-Signale für offene Positionen ───────────────────────────────────────
+# positions.json wird zur Laufzeit aus dem GitHub Secret POSITIONS_JSON
+# erzeugt (siehe daily-squeeze-report.yml + ki_agent.yml). Schema:
+#   { "TICKER": { "entry_date": "YYYY-MM-DD", "entry_price": 12.34 } }
+# Der Daily-Run berechnet pro offener Position einen Exit-Score 0–100 aus
+# vier Komponenten (Trailing-Stop 40 %, Setup-Verfall 25 %, Distribution
+# 20 %, Time-Decay 15 %). Bei Exit-Score ≥ EXIT_ALERT_THRESHOLD oder
+# pnl_pct ≥ EXIT_PROFIT_TAKE_PCT geht ein ntfy-Push raus, mit eigenem
+# Cooldown (separater Key-Prefix "exit_"/"profit_" in agent_state.json).
+EXIT_ENABLED              = True
+EXIT_ALERT_THRESHOLD      = 60     # Exit-Score ≥ → ntfy
+EXIT_PROFIT_TAKE_PCT      = 50.0   # PnL ≥ % seit Entry → Profit-Take-Push
+EXIT_TRAILING_STOP_PCT    = 12.0   # Drawdown vom Hoch → Trailing-Komponente max
+EXIT_SETUP_DROP_THRESHOLD = 20     # Setup-Score-Fall vs. Entry-Tag → max
+EXIT_DISTRIBUTION_RVOL    = 3.0    # heute RVOL ≥ + Tagesperformance < 0
+EXIT_TIME_DECAY_DAYS      = 10     # Stagnation ab Tag X
+EXIT_TIME_DECAY_MOVE_PCT  = 8.0    # ohne Tagesbewegung ≥ % zählt als Stagnation
+EXIT_WEIGHT_TRAILING      = 0.40
+EXIT_WEIGHT_SETUP         = 0.25
+EXIT_WEIGHT_DISTRIBUTION  = 0.20
+EXIT_WEIGHT_TIMEDECAY     = 0.15
+EXIT_COOLDOWN_HOURS       = 4      # Exit-/Profit-Cooldown je (Ticker, Typ)
+
 # ── Phasenabhängige Alert-Schwellen ──────────────────────────────────────────
 # Zurückgesetzt — Bootstrap-Backtesting nicht mit Live-Scores vergleichbar.
 # Kalibrierung nach 60+ Tagen Live-Daten.
