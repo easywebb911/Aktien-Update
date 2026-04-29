@@ -73,7 +73,7 @@ BACKTEST_RETURN_WINDOWS   = [3, 5, 10]   # Handelstage → return_3d / _5d / _10
 SHOW_SUB_SCORES     = True
 SUB_STRUCT_MAX      = 40
 SUB_CATALYST_MAX    = 35
-SUB_TIMING_MAX      = 25
+SUB_TIMING_MAX      = 30   # vorher 25 — auf 30 erweitert für Float-Turnover-Beitrag
 
 # ── Agent-Boost (KI-Agent-Score als Multiplikator) ──────────────────────────
 # Bei aktuellem Agent-Signal (<4h) mit hinreichend hohem KI-Agent-Score
@@ -209,6 +209,17 @@ STOCKTWITS_TIMEOUT      = 5    # Sekunden
 STOCKTWITS_BULL_STRONG  = 15   # Bullish-Ratio > 0.70 + Volume > 10/h
 STOCKTWITS_BULL_WEAK    = 8    # Bullish-Ratio > 0.60
 STOCKTWITS_BEAR_MALUS   = 5    # Bearish-Ratio > 0.70 → -Pkt
+
+# ── Float-Turnover (Timing-Sub-Signal) ───────────────────────────────────────
+# Vol/Float misst absolute Marktdurchdringung pro Tag — komplementär zu RVOL
+# (relative Abweichung vs. 20-Tage-Schnitt). Punkte zählen on-top zum Score
+# und werden im Timing-Sub-Score-Block aufaddiert (SUB_TIMING_MAX 25 → 30).
+FLOAT_TURNOVER_LOW       = 0.5
+FLOAT_TURNOVER_MID       = 1.0
+FLOAT_TURNOVER_HIGH      = 2.0
+FLOAT_TURNOVER_PTS_LOW   = 3
+FLOAT_TURNOVER_PTS_MID   = 6
+FLOAT_TURNOVER_PTS_HIGH  = 10
 
 # ── Unusual Options Activity (UOA) — yfinance Options-Chain ──────────────────
 # Bewertet ungewöhnliche Optionsaktivität pro Ticker:

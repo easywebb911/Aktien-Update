@@ -66,6 +66,30 @@ else:
 
 ---
 
+## Float Turnover (Timing-Sub-Signal)
+
+`Float Turnover = today_volume / float_shares` ist ein **komplementäres**
+Volumen-Signal zu RVOL: misst absolute Marktdurchdringung pro Tag, nicht
+relative Abweichung vom 20-Tage-Schnitt.
+
+| Schwelle (Vol/Float) | Punkte |
+|---|---:|
+| ≥ `FLOAT_TURNOVER_LOW`  (0.5) | +`FLOAT_TURNOVER_PTS_LOW`  (3) |
+| ≥ `FLOAT_TURNOVER_MID`  (1.0) | +`FLOAT_TURNOVER_PTS_MID`  (6) |
+| ≥ `FLOAT_TURNOVER_HIGH` (2.0) | +`FLOAT_TURNOVER_PTS_HIGH` (10) |
+
+Punkte zählen on-top zum Gesamt-Score (`score()` Fall 1 + Fall 2). Im Sub-
+Score-Block ist `SUB_TIMING_MAX` von 25 auf **30** erweitert; RV+Mom-
+Normierung bleibt unverändert (Faktor 25/37), Turnover wird unscaled
+addiert. Bei fehlendem Float oder Volumen → 0 Punkte (graceful Fallback,
+keine Exception).
+
+Helper: `_float_turnover_pts(stock) → (ratio, pts)` ist single source of
+truth — sowohl `score()` als auch `_compute_sub_scores()` und die Detail-
+Zeile `_float_turnover_row_html()` lesen daraus.
+
+---
+
 ## Position-Tracking (Exit-Signale)
 
 `positions.json` listet offene Positionen für Exit-Score-Berechnung im

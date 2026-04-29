@@ -2025,6 +2025,55 @@ def _safe_float(v, default: float = 0.0) -> float:
         return default
 
 
+def _float_turnover_row_html(stock: dict) -> str:
+    """Detail-Zeile „Float Turnover: X.XX× (+N Pkt)" für Volumen-Sektion.
+
+    Leerer String wenn Float-Daten fehlen (kein Wert angezeigt). Farb-
+    codierung der Punkte über den Standard-`color`-Wert.
+    """
+    ratio, pts = _float_turnover_pts(stock)
+    if (stock.get("float_shares") or 0) <= 0 or (stock.get("cur_vol") or 0) <= 0:
+        return ""
+    if pts >= FLOAT_TURNOVER_PTS_HIGH:
+        col = "#22c55e"
+    elif pts >= FLOAT_TURNOVER_PTS_MID:
+        col = "#f59e0b"
+    elif pts >= FLOAT_TURNOVER_PTS_LOW:
+        col = "#94a3b8"
+    else:
+        col = "var(--txt-dim)"
+    pts_str = f"+{int(pts)} Pkt" if pts > 0 else "0 Pkt"
+    return (
+        f'<tr><td>Float Turnover</td>'
+        f'<td><span style="color:{col}">{ratio:.2f}× '
+        f'<span style="color:var(--txt-dim);font-size:.85em">({pts_str})</span>'
+        f'</span></td></tr>'
+    )
+
+
+def _float_turnover_pts(stock: dict) -> tuple[float, float]:
+    """Float-Turnover = today_volume / float_shares.
+
+    Misst, welcher Bruchteil des Floats heute gehandelt wurde — komplementär
+    zu RVOL. Punkte: 0 / 3 / 6 / 10 bei Schwellen 0.5 / 1.0 / 2.0.
+
+    Returns ``(ratio, pts)``. Bei fehlendem Float oder Volumen → ``(0, 0)``
+    (graceful Fallback, kein Score-Beitrag).
+    """
+    fl  = stock.get("float_shares") or 0
+    vol = stock.get("cur_vol") or 0
+    if fl <= 0 or vol <= 0:
+        return 0.0, 0.0
+    ratio = float(vol) / float(fl)
+    if ratio >= FLOAT_TURNOVER_HIGH:
+        return ratio, float(FLOAT_TURNOVER_PTS_HIGH)
+    if ratio >= FLOAT_TURNOVER_MID:
+        return ratio, float(FLOAT_TURNOVER_PTS_MID)
+    if ratio >= FLOAT_TURNOVER_LOW:
+        return ratio, float(FLOAT_TURNOVER_PTS_LOW)
+    return ratio, 0.0
+
+
 def score(stock: dict) -> float:
     """Weighted squeeze score 0–100.
     When no short data is available (sf=0, sr=0) the score is capped at 50
@@ -2053,13 +2102,17 @@ def score(stock: dict) -> float:
     else:
         adjusted_chg = _chg_raw
 
+    # Float-Turnover (Vol/Float) — komplementäres Volumen-Signal zu RVOL.
+    _, turnover_pts = _float_turnover_pts(stock)
+
     if sf_val == 0 and sr_val == 0:
-        # Fall 2: keine Short-Daten → Volumen (max 30) + Momentum (max 20), Cap 50
+        # Fall 2: keine Short-Daten → Volumen (max 30) + Momentum (max 20)
+        #   + Float Turnover (max 10) + Float-Size, Cap 50.
         # Nur positive Tagesveränderungen zählen: fallende Kurse = kein Squeeze-Druck
         rv_component = rv_raw * 30
         chg = max(adjusted_chg, 0)
         momentum = min(chg /  8.0, 1.0) * 20  # sättigt bei +8% statt +15%
-        result = min(round(rv_component + momentum + _fs, 2), 50.0)
+        result = min(round(rv_component + momentum + _fs + turnover_pts, 2), 50.0)
         return result if math.isfinite(result) else 0.0
 
     # Fall 1: Short-Daten vorhanden → fünf Faktoren, max 100 Pkt
@@ -2098,7 +2151,9 @@ def score(stock: dict) -> float:
             print(f"{stock.get('ticker', '?')} Squeeze-Malus: -{_sq_malus:.0f} Pkt "
                   f"(Squeeze vor {_days} Tagen)", flush=True)
 
-    result = round(max(0.0, min(sf + sr + rv + mom + _fs + _pts - _sq_malus, 100.0)), 2)
+    result = round(max(0.0, min(
+        sf + sr + rv + mom + _fs + _pts + turnover_pts - _sq_malus, 100.0
+    )), 2)
     return result if math.isfinite(result) else 0.0
 
 
@@ -2686,12 +2741,14 @@ def _compute_sub_scores(s: dict) -> dict:
         SUB_CATALYST_MAX,
     )), 1)
 
-    # Timing (max 25) = RelVol + Momentum, normiert 37 -> 25
+    # Timing (max SUB_TIMING_MAX = 30):
+    #   RV-Pts + Mom-Pts (raw 0..37) → normalisiert auf 0..25 (unverändert)
+    #   + Rel. Stärke vs. Sektor-ETF (±3, ungerastet)
+    #   + Float Turnover (0/3/6/10 Pkt, ungerastet) — komplementär zu RVOL
+    #   Cap bei SUB_TIMING_MAX.
     rv_raw = min((rv - 1.0) / 2.0, 1.0) if rv > 0 else 0
     rv_pts = max(rv_raw, 0) * 23
     mom_pts = min(chg / 8.0, 1.0) * 14
-    # Relative Stärke vs. Sektor-ETF (20T): schlägt Sektor um > 5 % → +Bonus,
-    # hinkt Sektor hinterher < −5 % → −Malus. Nur wenn Daten verfügbar.
     rs_pts = 0
     _rs = s.get("rel_strength_20d")
     if _rs is not None:
@@ -2699,8 +2756,9 @@ def _compute_sub_scores(s: dict) -> dict:
             rs_pts = RS_SECTOR_BULL_BONUS
         elif _rs < -RS_SECTOR_THRESHOLD:
             rs_pts = -RS_SECTOR_BEAR_MALUS
+    turnover_ratio, turnover_pts = _float_turnover_pts(s)
     timing_pts = round(max(0.0, min(
-        (rv_pts + mom_pts) * (SUB_TIMING_MAX / 37.0) + rs_pts,
+        (rv_pts + mom_pts) * (25.0 / 37.0) + rs_pts + turnover_pts,
         SUB_TIMING_MAX,
     )), 1)
 
@@ -2719,6 +2777,8 @@ def _compute_sub_scores(s: dict) -> dict:
         "struct_col":    _col(struct_pts,   SUB_STRUCT_MAX),
         "catalyst_col":  _col(catalyst_pts, SUB_CATALYST_MAX),
         "timing_col":    _col(timing_pts,   SUB_TIMING_MAX),
+        "turnover":      round(turnover_ratio, 2),
+        "turnover_pts":  int(turnover_pts),
     }
 
 
@@ -3173,6 +3233,7 @@ def _card(i: int, s: dict) -> str:
     # Volumen & Momentum (RSI + kombinierte MA + Kurs-vs-MA50 + RS-20T + RS-Sektor).
     # Earnings-Surprise wandert in den Katalysatoren-Block.
     momentum_rows = _rsi_row + _ma_combined_row + _ma50_row2 + _rs_row + sector_rs_row
+    float_turnover_row = _float_turnover_row_html(s)
 
     # Options market data rows — Feature 4: <0.5 bullisch, 0.5–1.5 neutral, >1.5 bearisch
     _opts     = s.get("options") or {}
@@ -3392,6 +3453,7 @@ def _card(i: int, s: dict) -> str:
         <tr class="detail-group-header"><td colspan="2">Volumen &amp; Momentum</td></tr>
         <tr><td>Ø Volumen 20T</td><td>{s.get('avg_vol_20d',0):,.0f}</td></tr>
         <tr><td>Heutiges Volumen</td><td>{s.get('cur_vol',0):,.0f}</td></tr>
+        {float_turnover_row}
         {momentum_rows}
         <tr class="detail-group-header"><td colspan="2">Katalysatoren</td></tr>
         {catalyst_rows}
@@ -3659,6 +3721,7 @@ def _build_card_ctx(i: int, s: dict) -> dict:
     # Volumen & Momentum (RSI + kombinierte MA + Kurs-vs-MA50 + RS-20T + RS-Sektor).
     # Earnings-Surprise wandert in den Katalysatoren-Block.
     momentum_rows = _rsi_row + _ma_combined_row + _ma50_row2 + _rs_row + _sector_rs_row_
+    float_turnover_row = _float_turnover_row_html(s)
 
     # ── Options rows — Feature 4 (<0.5 bullisch, 0.5–1.5 neutral, >1.5 bearisch) ──
     _opts     = s.get("options") or {}
@@ -3906,6 +3969,7 @@ def _build_card_ctx(i: int, s: dict) -> dict:
         "si_velocity_row":      si_velocity_row,
         "trend_html":           trend_html,
         "momentum_rows":        momentum_rows,
+        "float_turnover_row":   float_turnover_row,
         "catalyst_rows":        catalyst_rows,
         "inst_row":             inst_row,
         "ssr_tile_html":        ssr_tile_html,        # Feature 1
@@ -4184,7 +4248,7 @@ def generate_html_v1(stocks: list[dict], report_date: str, _ctx: dict | None = N
         <ul class="info-compact">
           <li><strong>Struktur (0–40):</strong> Short Float (32) + Days to Cover (23) + Float-Größe (8) + SI-Trend (5) — normiert</li>
           <li><strong>Katalysator (0–35):</strong> Earnings + News-KI + P/C-Ratio + Short-Druck + Gamma Squeeze + Insider + UOA</li>
-          <li><strong>Timing (0–25):</strong> Rel. Volumen (23) + Momentum (14) + RS vs. Sektor-ETF (3) — normiert</li>
+          <li><strong>Timing (0–30):</strong> Rel. Volumen (23) + Momentum (14) + RS vs. Sektor-ETF (3) + Float Turnover (10) — normiert</li>
           <li><strong>Boni:</strong> Kombinations-Bonus +5 · Score-Trend ±3 · Agent-Boost ×1.05 · Monster-Score: Setup × KI-Boost</li>
           <li><strong>Malus:</strong> Historischer Squeeze −3 / −5 Pkt (90 / 30 Tage)</li>
           <li><strong>Monster-Score:</strong> Setup-Score × KI-Boost — KI≥60: +20% · KI&lt;25: −20% · sonst neutral · Cap 100</li>
