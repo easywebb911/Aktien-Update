@@ -2025,6 +2025,40 @@ def _safe_float(v, default: float = 0.0) -> float:
         return default
 
 
+def _news_age_weight(news_item: dict, now_ts: float | None = None) -> float:
+    """Liefert das Alters-Gewicht für ein News-Item via NEWS_DECAY_WEIGHTS.
+
+    Liest ``news_item.ts`` (Epoch-Sekunden, von ``_rss_news`` gesetzt) und
+    rechnet in Tages-Alter um (``floor((now − ts) / 86400)``).
+
+    - Tag im Mapping → entsprechendes Gewicht
+    - Älter als max. Stufe → 0.0 (Item effektiv ignoriert)
+    - ``ts`` fehlt / ≤ 0 / nicht parsebar → ``NEWS_DECAY_FALLBACK`` (0.5)
+    - Negative Alter (Item aus der Zukunft, Clock-Drift) → 1.0
+    """
+    raw = news_item.get("ts") if isinstance(news_item, dict) else None
+    try:
+        ts = float(raw or 0)
+    except (TypeError, ValueError):
+        return NEWS_DECAY_FALLBACK
+    if ts <= 0:
+        return NEWS_DECAY_FALLBACK
+    if now_ts is None:
+        now_ts = time.time()
+    age_days = int((now_ts - ts) // 86400)
+    if age_days < 0:
+        return 1.0
+    if age_days in NEWS_DECAY_WEIGHTS:
+        return NEWS_DECAY_WEIGHTS[age_days]
+    max_age = max(NEWS_DECAY_WEIGHTS.keys())
+    if age_days > max_age:
+        return 0.0
+    # age_days liegt im Bereich, aber nicht als Schlüssel definiert (z.B.
+    # ein Mapping mit Lücken) → nächstkleinere Stufe verwenden.
+    candidates = [d for d in NEWS_DECAY_WEIGHTS.keys() if d <= age_days]
+    return NEWS_DECAY_WEIGHTS[max(candidates)] if candidates else NEWS_DECAY_FALLBACK
+
+
 def _float_turnover_row_html(stock: dict) -> str:
     """Detail-Zeile „Float Turnover: X.XX× (+N Pkt)" für Volumen-Sektion.
 
@@ -2707,13 +2741,19 @@ def _compute_sub_scores(s: dict) -> dict:
            else 8  if (earn_days is not None and earn_days <= 14) \
            else 0
     insider_pts = 10 if s.get("sec_13f_note") else 0
-    news_pts = 0
+    # News-Score mit Alters-Gewichtung: ältere Headlines scoren weniger als
+    # frische. Gewichte aus NEWS_DECAY_WEIGHTS (T+0=1.0, T+3=0.2, älter=0.0).
+    # Ohne ``ts`` → NEWS_DECAY_FALLBACK (0.5). Cap 10 wie zuvor.
+    news_pts = 0.0
     _kw = ("squeeze", "catalyst", "beat", "fda", "merger",
            "activist", "halt", "short covering")
+    _now_ts = time.time()
     for n in (s.get("news") or [])[:5]:
         title = (n.get("title") or n.get("title_orig") or "").lower()
         if any(kw in title for kw in _kw):
-            news_pts = min(news_pts + 5, 10)
+            weight = _news_age_weight(n, now_ts=_now_ts)
+            news_pts = min(news_pts + 5 * weight, 10.0)
+    news_pts = round(news_pts, 1)
     pressure_pts = SHORT_PRESSURE_BONUS if _detect_short_pressure(s) else 0
     _gamma_lvl = _gamma_squeeze_level(s)
     gamma_pts  = (GAMMA_BONUS_LIKELY   if _gamma_lvl == "likely"
@@ -4247,7 +4287,7 @@ def generate_html_v1(stocks: list[dict], report_date: str, _ctx: dict | None = N
         <h4>Score-Formel</h4>
         <ul class="info-compact">
           <li><strong>Struktur (0–40):</strong> Short Float (32) + Days to Cover (23) + Float-Größe (8) + SI-Trend (5) — normiert</li>
-          <li><strong>Katalysator (0–35):</strong> Earnings + News-KI + P/C-Ratio + Short-Druck + Gamma Squeeze + Insider + UOA</li>
+          <li><strong>Katalysator (0–35):</strong> Earnings + News-KI mit Alters-Gewichtung (T+0: 100&nbsp;%, T+3: 20&nbsp;%) + P/C-Ratio + Short-Druck + Gamma Squeeze + Insider + UOA</li>
           <li><strong>Timing (0–30):</strong> Rel. Volumen (23) + Momentum (14) + RS vs. Sektor-ETF (3) + Float Turnover (10) — normiert</li>
           <li><strong>Boni:</strong> Kombinations-Bonus +5 · Score-Trend ±3 · Agent-Boost ×1.05 · Monster-Score: Setup × KI-Boost</li>
           <li><strong>Malus:</strong> Historischer Squeeze −3 / −5 Pkt (90 / 30 Tage)</li>

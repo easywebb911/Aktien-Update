@@ -90,6 +90,33 @@ Zeile `_float_turnover_row_html()` lesen daraus.
 
 ---
 
+## News-Sentiment-Decay
+
+News-Headlines im Katalysator-Sub-Score werden nach Alter gewichtet —
+frische Headlines scoren stärker als alte. Quelle ist das `ts`-Feld
+(Epoch), das `_rss_news()` aus dem RSS-`pubDate` parsed.
+
+| Tages-Alter | Gewicht (`NEWS_DECAY_WEIGHTS`) |
+|---:|---:|
+| 0 (heute)       | 1.0 |
+| 1 (gestern)     | 0.7 |
+| 2 (vorgestern)  | 0.4 |
+| 3               | 0.2 |
+| ≥ 4             | 0.0 (effektiv ignoriert) |
+
+Edge-Cases:
+- Fehlendes / nicht parsebares `ts` → `NEWS_DECAY_FALLBACK` (0.5).
+  Lieber halbe Wirkung als gar keine — sonst würden RSS-Items ohne
+  pubDate (kommt vor) den Score komplett verfehlen.
+- Negative Alter (Clock-Drift, Items aus der „Zukunft") → 1.0.
+
+Anwendung in `_compute_sub_scores()`: pro Match wird `5 × weight` zum
+`news_pts` addiert (Cap 10 wie zuvor). Helper `_news_age_weight(item,
+now_ts)` ist single source of truth — falls UOA/Insider später ähnliche
+Decay-Logik bekommen, dort wiederverwendbar.
+
+---
+
 ## Position-Tracking (Exit-Signale)
 
 `positions.json` listet offene Positionen für Exit-Score-Berechnung im

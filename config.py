@@ -221,6 +221,22 @@ FLOAT_TURNOVER_PTS_LOW   = 3
 FLOAT_TURNOVER_PTS_MID   = 6
 FLOAT_TURNOVER_PTS_HIGH  = 10
 
+# ── News-Sentiment-Decay nach Alter ──────────────────────────────────────────
+# Frische News scoren stärker als alte: pro News-Item wird ein Tages-Alter
+# berechnet (basierend auf dem ``ts``-Feld aus dem RSS-pubDate) und das
+# Keyword-Match mit dem entsprechenden Gewicht multipliziert. Items älter
+# als die größte Stufe → weight 0.0 (effektiv ignoriert). Fallback bei
+# fehlendem/korrupten ``ts``: weight 0.5 (Mittelwert, statt Item zu
+# verwerfen). Items aus der „Zukunft" (negative Alter durch Clock-Drift)
+# bekommen weight 1.0.
+NEWS_DECAY_WEIGHTS       = {
+    0: 1.0,   # heute
+    1: 0.7,   # gestern
+    2: 0.4,   # vorgestern
+    3: 0.2,   # 3 Tage alt
+}
+NEWS_DECAY_FALLBACK      = 0.5   # weight bei fehlendem/parse-fehlerhaftem ts
+
 # ── Unusual Options Activity (UOA) — yfinance Options-Chain ──────────────────
 # Bewertet ungewöhnliche Optionsaktivität pro Ticker:
 #   • Call-Vol/OI > 5× im ATM-Bereich (±10 % Strike)  → +UOA_ATM_STRONG Pkt
