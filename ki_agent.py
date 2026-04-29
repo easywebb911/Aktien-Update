@@ -1469,23 +1469,15 @@ def send_ntfy_alert(ticker: str, ki_score: int, drivers,
         log.warning("ntfy push fehlgeschlagen für %s: %s", ticker, exc)
 
 
-def _load_production_scores() -> dict[str, float]:
-    """Liest neuesten Production-Score pro Ticker aus ``score_history.json``.
+def _extract_latest_scores(raw: dict | None) -> dict[str, float]:
+    """Extrahiert den letzten Score pro Ticker aus einem score_history-Dict.
 
-    Format-tolerant (alt: dict-per-entry, neu: [date, score]-Tuple-per-entry).
-    Einträge sind chronologisch sortiert; ``entries[-1]`` ist neuester Wert.
-    Bei Fehler oder fehlender Datei → leeres Dict (Caller nutzt Fallback).
+    Format-tolerant: akzeptiert sowohl ``[date, score]``-Tupel als auch
+    ``{"date": ..., "score": ...}``-Dicts. Einträge sind chronologisch
+    sortiert; ``entries[-1]`` ist der neueste Wert.
     """
-    try:
-        path = Path("score_history.json")
-        if not path.exists():
-            return {}
-        raw = json.loads(path.read_text(encoding="utf-8"))
-    except (OSError, json.JSONDecodeError):
-        return {}
-
     result: dict[str, float] = {}
-    for ticker, entries in raw.items():
+    for ticker, entries in (raw or {}).items():
         if not entries:
             continue
         latest = entries[-1]
@@ -1502,6 +1494,39 @@ def _load_production_scores() -> dict[str, float]:
         except (TypeError, ValueError):
             continue
     return result
+
+
+def _load_production_scores() -> dict[str, float]:
+    """Liest neuesten Production-Score pro Ticker.
+
+    Primärquelle ist ``app_data.json`` (key ``score_history``) — der vom
+    letzten Report-Run geschriebene Snapshot enthält i. d. R. den
+    frischesten Wert. Pro fehlendem Ticker (oder wenn ``app_data.json``
+    nicht existiert/korrupt ist) → graceful Fallback auf
+    ``score_history.json``. Beide Dateien fehlen → leeres Dict.
+    """
+    primary: dict[str, float] = {}
+    try:
+        path = Path("app_data.json")
+        if path.exists():
+            data = json.loads(path.read_text(encoding="utf-8"))
+            primary = _extract_latest_scores(data.get("score_history"))
+    except (OSError, json.JSONDecodeError):
+        primary = {}
+
+    fallback: dict[str, float] = {}
+    try:
+        path = Path("score_history.json")
+        if path.exists():
+            fallback = _extract_latest_scores(
+                json.loads(path.read_text(encoding="utf-8"))
+            )
+    except (OSError, json.JSONDecodeError):
+        fallback = {}
+
+    # primary (app_data.json) überschreibt fallback (score_history.json) —
+    # frischester verfügbarer Wert pro Ticker wins.
+    return {**fallback, **primary}
 
 
 def _monster_score(setup_score, ki_score):
