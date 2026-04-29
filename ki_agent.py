@@ -183,9 +183,10 @@ def save_signals(signals: dict) -> None:
         score_history = {}
 
     # Read-modify-write: vom Daily-Report geschriebene Felder (monster_scores,
-    # watchlist_cards) durchreichen — der KI-Agent besitzt nur score_history,
-    # agent_signals und generated_at. Ohne diese Preservation würde der Alert-
-    # Pfad nach dem ersten 2 h-Tick keinen Monster-Score mehr finden.
+    # setup_scores, watchlist_cards) durchreichen — der KI-Agent besitzt nur
+    # score_history, agent_signals und generated_at. Ohne diese Preservation
+    # würde der Alert-Pfad nach dem ersten 2 h-Tick keine Monster-/Setup-
+    # Scores mehr finden und alle Folge-Alerts still skippen.
     existing: dict = {}
     try:
         path = Path("app_data.json")
@@ -2126,7 +2127,7 @@ def main() -> None:
     # wird der Alert geskippt (kein stale Re-Compute, lieber kein Alert).
     app_data       = _load_app_data_canonical()
     monster_scores = app_data.get("monster_scores") or {}
-    setup_scores   = _extract_latest_scores(app_data.get("score_history"))
+    setup_scores   = app_data.get("setup_scores") or {}
     _signals_blob  = (app_data.get("agent_signals") or {}).get("signals") or {}
     ki_scores      = {t: ((s or {}).get("score"))
                       for t, s in _signals_blob.items()}
@@ -2174,14 +2175,15 @@ def main() -> None:
         earnings_days  = r["earnings_days"]
         upcoming_event = r["upcoming_event"]
         # Single Source of Truth = app_data.json (geschrieben vom Daily-Report).
-        # Wenn der Ticker dort keinen Monster-Score hat (z. B. neuer Ticker oder
-        # app_data.json älter als zugehöriger Daily-Run): Alert komplett skippen
-        # — kein Re-Compute, kein stale Wert.
+        # Wenn der Ticker dort keinen Monster- oder Setup-Score hat (z. B.
+        # neuer Ticker oder app_data.json älter als zugehöriger Daily-Run):
+        # Alert komplett skippen — kein Re-Compute, kein stale Wert.
         monster  = monster_scores.get(ticker)
-        if monster is None:
-            log.debug("Alert-Skip %s: kein Monster-Score in app_data.json", ticker)
-            continue
         setup_sc = setup_scores.get(ticker)
+        if monster is None or setup_sc is None:
+            log.debug("Alert-Skip %s: monster=%s setup=%s in app_data.json",
+                      ticker, monster, setup_sc)
+            continue
         ki_sc    = ki_scores.get(ticker)
         if ki_sc is None:
             ki_sc = score   # Fallback: live berechneter KI dieses Runs

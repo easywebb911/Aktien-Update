@@ -7117,7 +7117,8 @@ def _append_backtest_entries(top10: list[dict], report_date: str,
 
 
 def _write_app_data_json(watchlist_cards: dict | None = None,
-                          monster_scores: dict | None = None) -> None:
+                          monster_scores: dict | None = None,
+                          setup_scores: dict | None = None) -> None:
     """Schreibt kombinierte app_data.json = score_history + agent_signals + watchlist_cards.
 
     Beide Quelldateien (score_history.json + agent_signals.json) bleiben separat
@@ -7148,6 +7149,7 @@ def _write_app_data_json(watchlist_cards: dict | None = None,
         "agent_signals":   agent_signals,
         "watchlist_cards": watchlist_cards or {},
         "monster_scores":  monster_scores or {},
+        "setup_scores":    setup_scores or {},
         "generated_at":    datetime.now(ZoneInfo("UTC")).strftime("%Y-%m-%dT%H:%M:%SZ"),
     }
     with open("app_data.json", "w", encoding="utf-8") as fh:
@@ -7995,8 +7997,18 @@ def main():
         for s in top10
         if s.get("monster_score") is not None
     }
+    # Geglätteter Setup-Score (post apply_score_smoothing) — exakt der Wert,
+    # den die Kachel rendert. Wird vom KI-Agent für den Alert-Text gelesen,
+    # damit Setup im Alert mit dem Frontend matcht (score_history enthält
+    # nur den rohen pre-smoothing-Wert).
+    _setup_scores = {
+        s["ticker"]: round(float(s["score"]), 1)
+        for s in top10
+        if s.get("score") is not None
+    }
     _write_app_data_json(watchlist_cards=_wl_card_data,
-                         monster_scores=_monster_scores)
+                         monster_scores=_monster_scores,
+                         setup_scores=_setup_scores)
     print(f"Step 4 abgeschlossen in {time.time()-_t4:.1f}s", flush=True)
 
     log.info("Report written → index.html")
