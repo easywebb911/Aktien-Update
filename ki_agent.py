@@ -181,7 +181,20 @@ def save_signals(signals: dict) -> None:
             score_history = {}
     except (OSError, json.JSONDecodeError):
         score_history = {}
+
+    # Read-modify-write: vom Daily-Report geschriebene Felder (monster_scores,
+    # watchlist_cards) durchreichen — der KI-Agent besitzt nur score_history,
+    # agent_signals und generated_at. Ohne diese Preservation würde der Alert-
+    # Pfad nach dem ersten 2 h-Tick keinen Monster-Score mehr finden.
+    existing: dict = {}
+    try:
+        path = Path("app_data.json")
+        if path.exists():
+            existing = json.loads(path.read_text(encoding="utf-8")) or {}
+    except (OSError, json.JSONDecodeError):
+        existing = {}
     payload = {
+        **existing,
         "score_history": score_history,
         "agent_signals": signals,
         "generated_at":  datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
@@ -1601,6 +1614,23 @@ def _extract_latest_scores(raw: dict | None) -> dict[str, float]:
     return result
 
 
+def _load_app_data_canonical() -> dict:
+    """Liest ``app_data.json`` einmal pro Run.
+
+    Single Source of Truth für Alert-Werte: das vom Daily-Report geschriebene
+    ``monster_scores``-Feld + ``score_history`` + ``agent_signals.signals``
+    enthalten genau die Zahlen, die das Frontend in der Kachel rendert.
+    Bei fehlender oder korrupter Datei → leeres Dict (Caller skippt Alerts).
+    """
+    try:
+        path = Path("app_data.json")
+        if not path.exists():
+            return {}
+        return json.loads(path.read_text(encoding="utf-8")) or {}
+    except (OSError, json.JSONDecodeError):
+        return {}
+
+
 def _load_production_scores() -> dict[str, float]:
     """Liest neuesten Production-Score pro Ticker.
 
@@ -2089,9 +2119,17 @@ def main() -> None:
     log.info("KI-Agent parallelisiert: %d Ticker in %.1fs (max_workers=8)",
              len(tickers), time.time() - _t_pool)
 
-    # Production-Scores einmalig laden — werden für Counter (Monster-Schwelle)
-    # UND Alert-Versand benötigt. _load_production_scores liest score_history.json.
-    prod_scores = _load_production_scores()
+    # Single Source of Truth: alle drei Zahlen für den Alert (Setup, Monster,
+    # KI) kommen aus app_data.json — identisch zu den Werten, die das Frontend
+    # in der Kachel rendert. monster_scores wird vom Daily-Report (in
+    # _write_app_data_json/apply_monster_score) befüllt; bei fehlendem Eintrag
+    # wird der Alert geskippt (kein stale Re-Compute, lieber kein Alert).
+    app_data       = _load_app_data_canonical()
+    monster_scores = app_data.get("monster_scores") or {}
+    setup_scores   = _extract_latest_scores(app_data.get("score_history"))
+    _signals_blob  = (app_data.get("agent_signals") or {}).get("signals") or {}
+    ki_scores      = {t: ((s or {}).get("score"))
+                      for t, s in _signals_blob.items()}
 
     # Counter und new_signals aus den Worker-Ergebnissen aggregieren.
     # Alert-Schwelle: monster_score >= 70 (ersetzt phasenabhängige
@@ -2111,7 +2149,7 @@ def main() -> None:
         if flags["insider_hit"]:      n_insider   += 1
         if flags["finra_ssr_hit"]:    n_finra_ssr += 1
         if flags["form4_hit"]:        n_form4     += 1
-        monster = _monster_score(prod_scores.get(t), r["score"])
+        monster = monster_scores.get(t)
         if monster is not None and monster >= 70:
             n_signals += 1
 
@@ -2135,8 +2173,18 @@ def main() -> None:
         sec_8k_dt      = r["sec_8k_dt"]
         earnings_days  = r["earnings_days"]
         upcoming_event = r["upcoming_event"]
-        setup_sc       = prod_scores.get(ticker)
-        monster        = _monster_score(setup_sc, score)
+        # Single Source of Truth = app_data.json (geschrieben vom Daily-Report).
+        # Wenn der Ticker dort keinen Monster-Score hat (z. B. neuer Ticker oder
+        # app_data.json älter als zugehöriger Daily-Run): Alert komplett skippen
+        # — kein Re-Compute, kein stale Wert.
+        monster  = monster_scores.get(ticker)
+        if monster is None:
+            log.debug("Alert-Skip %s: kein Monster-Score in app_data.json", ticker)
+            continue
+        setup_sc = setup_scores.get(ticker)
+        ki_sc    = ki_scores.get(ticker)
+        if ki_sc is None:
+            ki_sc = score   # Fallback: live berechneter KI dieses Runs
 
         # Cooldown-Check + Alert + set_cooldown atomar: verhindert Doppel-Alert,
         # falls der Versand jemals parallelisiert wird (zwei Threads sähen
@@ -2157,10 +2205,10 @@ def main() -> None:
                     earnings_immediate = True
                     log.info("  %s Earnings-Sofort-Alert (Earnings in %dd, 8K-frisch: %s, News: %s)",
                              ticker, earnings_days, is_8k_fresh, has_earnings_news)
-                    send_ntfy_alert(ticker, score, drivers,
+                    send_ntfy_alert(ticker, ki_sc, drivers,
                                     production_score=setup_sc, monster_score=monster)
                     sent = send_alert(
-                        ticker, score, drivers, yfd, reddit, news,
+                        ticker, ki_sc, drivers, yfd, reddit, news,
                         upcoming_event=upcoming_event or f"Earnings in {earnings_days} Tagen — Sofort-Alert",
                         insider=insider,
                         confidence=confidence,
@@ -2170,13 +2218,13 @@ def main() -> None:
                         set_cooldown(ticker, state)
                         n_alerts += 1
 
-            if (monster is not None and monster >= 70
+            if (monster >= 70
                     and not is_on_cooldown(ticker, state)
                     and not earnings_immediate):
-                send_ntfy_alert(ticker, score, drivers,
+                send_ntfy_alert(ticker, ki_sc, drivers,
                                 production_score=setup_sc, monster_score=monster)
                 sent = send_alert(
-                    ticker, score, drivers, yfd, reddit, news,
+                    ticker, ki_sc, drivers, yfd, reddit, news,
                     upcoming_event=upcoming_event,
                     insider=insider,
                     confidence=confidence,
