@@ -620,6 +620,8 @@ def get_yfinance_data(ticker: str) -> dict:
         avg_vol_20 = float(hist["Volume"].tail(20).mean()) if len(hist) >= 5 else 0.0
         cur_vol    = float(hist["Volume"].iloc[-1])         if len(hist) >= 1 else 0.0
         vol_ratio  = cur_vol / avg_vol_20 if avg_vol_20 > 0 else 0.0
+        cur_open   = float(hist["Open"].iloc[-1])  if "Open"  in hist.columns and len(hist) >= 1 else None
+        prev_close = float(hist["Close"].iloc[-2]) if len(hist) >= 2 else None
 
         rsi14, ma50, ma200, perf_20d = None, None, None, None
         if not hist.empty:
@@ -658,6 +660,8 @@ def get_yfinance_data(ticker: str) -> dict:
             "ma50":         ma50,
             "ma200":        ma200,
             "perf_20d":     perf_20d,
+            "cur_open":     cur_open,
+            "prev_close":   prev_close,
         }
     except Exception as exc:
         log.warning("yfinance error for %s: %s", ticker, exc)
@@ -720,7 +724,7 @@ def get_yfinance_batch(tickers: list[str]) -> dict[str, dict]:
         return rsi14, ma50, ma200, perf_20d
 
     def _hist_stats(ticker: str) -> tuple:
-        """Extract (avg_vol_20, cur_vol, vol_ratio, hi52, lo52, rsi14, ma50, ma200, perf_20d) from batch or fallback."""
+        """Extract (avg_vol_20, cur_vol, vol_ratio, hi52, lo52, rsi14, ma50, ma200, perf_20d, cur_open, prev_close) from batch or fallback."""
         try:
             if hist_batch is not None and not hist_batch.empty:
                 # yf.download with one ticker returns a flat DataFrame;
@@ -733,7 +737,9 @@ def get_yfinance_batch(tickers: list[str]) -> dict[str, dict]:
                     hi52    = float(df["High"].max())
                     lo52    = float(df["Low"].min())
                     rsi14, ma50, ma200, perf_20d = _compute_indicators(df)
-                    return avg_vol, cur_vol, vol_r, hi52, lo52, rsi14, ma50, ma200, perf_20d
+                    cur_open   = float(df["Open"].iloc[-1])  if "Open"  in df.columns and len(df) >= 1 else None
+                    prev_close = float(df["Close"].iloc[-2]) if len(df) >= 2 else None
+                    return avg_vol, cur_vol, vol_r, hi52, lo52, rsi14, ma50, ma200, perf_20d, cur_open, prev_close
         except Exception:
             pass
         # Fallback: individual history call for this ticker
@@ -745,10 +751,12 @@ def get_yfinance_batch(tickers: list[str]) -> dict[str, dict]:
                 cur_vol = float(df2["Volume"].iloc[-1])
                 vol_r   = cur_vol / avg_vol if avg_vol > 0 else 0.0
                 rsi14, ma50, ma200, perf_20d = _compute_indicators(df2)
-                return avg_vol, cur_vol, vol_r, float(df2["High"].max()), float(df2["Low"].min()), rsi14, ma50, ma200, perf_20d
+                cur_open   = float(df2["Open"].iloc[-1])  if "Open"  in df2.columns and len(df2) >= 1 else None
+                prev_close = float(df2["Close"].iloc[-2]) if len(df2) >= 2 else None
+                return avg_vol, cur_vol, vol_r, float(df2["High"].max()), float(df2["Low"].min()), rsi14, ma50, ma200, perf_20d, cur_open, prev_close
         except Exception as exc2:
             log.debug("Fallback history failed for %s: %s", ticker, exc2)
-        return 0.0, 0.0, 0.0, None, None, None, None, None, None
+        return 0.0, 0.0, 0.0, None, None, None, None, None, None, None, None
 
     # ── Phase B: Parallel .info fetches (metadata not in download payload) ──
     def _fetch_info(ticker: str) -> tuple[str, dict]:
@@ -821,7 +829,7 @@ def get_yfinance_batch(tickers: list[str]) -> dict[str, dict]:
 
     # ── Combine history + info; fallback to individual call if both are empty ──
     for ticker in tickers:
-        avg_vol_20, cur_vol, vol_ratio, hi52, lo52, rsi14, ma50, ma200, perf_20d = _hist_stats(ticker)
+        avg_vol_20, cur_vol, vol_ratio, hi52, lo52, rsi14, ma50, ma200, perf_20d, cur_open, prev_close = _hist_stats(ticker)
         info = info_map.get(ticker, {})
 
         # If the batch produced nothing useful for this ticker, fall back entirely
@@ -850,6 +858,8 @@ def get_yfinance_batch(tickers: list[str]) -> dict[str, dict]:
             "ma50":           ma50,
             "ma200":          ma200,
             "perf_20d":       perf_20d,
+            "cur_open":       cur_open,
+            "prev_close":     prev_close,
         }
 
         # change_5d aus Batch-History
@@ -2085,6 +2095,107 @@ def _float_turnover_row_html(stock: dict) -> str:
     )
 
 
+def _gap_hold_pts(stock: dict) -> tuple[float | None, str, float]:
+    """Misst Gap-Up + EOD-Hold (Eröffnungs-Stärke und Tagesverlauf).
+
+    Returns ``(gap_pct, state, pts)``:
+      • ``state="strong_hold"`` (+GAP_PTS_STRONG_HOLD): close > open + GAP_HOLD_FACTOR × gap_size
+      • ``state="weak_hold"``   (+GAP_PTS_WEAK_HOLD):   close zwischen yesterday_close und hold_threshold
+      • ``state="fail"``        (GAP_PTS_FAIL):         close < yesterday_close (Bull-Trap)
+      • ``state="no_gap"``      (0):                    gap_pct < GAP_THRESHOLD_PCT
+      • ``state="unknown"``     (0):                    Daten fehlen (cur_open/prev_close/price)
+    """
+    cur_open   = stock.get("cur_open")
+    prev_close = stock.get("prev_close")
+    price      = stock.get("price")
+    if cur_open is None or prev_close is None or price is None or prev_close <= 0:
+        return None, "unknown", 0.0
+    try:
+        cur_open   = float(cur_open)
+        prev_close = float(prev_close)
+        price      = float(price)
+    except (TypeError, ValueError):
+        return None, "unknown", 0.0
+    gap_size = cur_open - prev_close
+    gap_pct  = gap_size / prev_close * 100.0
+    if gap_pct < GAP_THRESHOLD_PCT:
+        return gap_pct, "no_gap", 0.0
+    hold_threshold = cur_open + GAP_HOLD_FACTOR * gap_size
+    if price > hold_threshold:
+        return gap_pct, "strong_hold", float(GAP_PTS_STRONG_HOLD)
+    if price < prev_close:
+        return gap_pct, "fail", float(GAP_PTS_FAIL)
+    # zwischen prev_close und hold_threshold (inklusive grenznah über open)
+    return gap_pct, "weak_hold", float(GAP_PTS_WEAK_HOLD)
+
+
+def _rs_spy_pts(stock: dict) -> tuple[float | None, float]:
+    """Lineare Relative-Stärke vs. SPY (basiert auf 20T-Differenz).
+
+    Eingabe: ``stock["rel_strength_20d"]`` = stock_perf_20d − ^GSPC_perf_20d
+    (in Prozentpunkten, bereits in Step 3 berechnet). Skaliert symmetrisch:
+
+      pts = round(clamp(rs / RS_SPY_THRESHOLD_PCT, −1, +1) × RS_SPY_PTS_MAX)
+
+    Returns ``(rs_pct, pts)``. Bei fehlendem Wert → ``(None, 0)``.
+    """
+    rs = stock.get("rel_strength_20d")
+    if rs is None:
+        return None, 0.0
+    try:
+        rs = float(rs)
+    except (TypeError, ValueError):
+        return None, 0.0
+    clamped = max(-RS_SPY_THRESHOLD_PCT, min(RS_SPY_THRESHOLD_PCT, rs))
+    pts = round(clamped / RS_SPY_THRESHOLD_PCT * RS_SPY_PTS_MAX)
+    return rs, float(pts)
+
+
+def _gap_hold_row_html(stock: dict) -> str:
+    """Detail-Zeile „Gap & Hold: +X.X% Open, [State] (±N Pkt)"."""
+    gap_pct, state, pts = _gap_hold_pts(stock)
+    if state == "unknown":
+        return ""
+    label_map = {
+        "strong_hold": ("Strong Hold",  "#22c55e"),
+        "weak_hold":   ("Weak Hold",    "#f59e0b"),
+        "fail":        ("Fail",         "#ef4444"),
+        "no_gap":      ("kein Gap",     "var(--txt-dim)"),
+    }
+    label, col = label_map.get(state, ("—", "var(--txt-dim)"))
+    if gap_pct is None:
+        gap_str = "—"
+    else:
+        gap_str = f"{gap_pct:+.1f}%"
+    pts_str = f"{int(pts):+d} Pkt" if pts != 0 else "0 Pkt"
+    return (
+        f'<tr><td>Gap &amp; Hold</td>'
+        f'<td><span style="color:{col}">{gap_str} Open · {label} '
+        f'<span style="color:var(--txt-dim);font-size:.85em">({pts_str})</span>'
+        f'</span></td></tr>'
+    )
+
+
+def _rs_spy_row_html(stock: dict) -> str:
+    """Detail-Zeile „RS vs. SPY: ±X.X% (+N Pkt)"."""
+    rs_pct, pts = _rs_spy_pts(stock)
+    if rs_pct is None:
+        return ""
+    if pts > 0:
+        col = "#22c55e"
+    elif pts < 0:
+        col = "#ef4444"
+    else:
+        col = "var(--txt-dim)"
+    pts_str = f"{int(pts):+d} Pkt" if pts != 0 else "0 Pkt"
+    return (
+        f'<tr><td>RS vs. SPY (20T)</td>'
+        f'<td><span style="color:{col}">{rs_pct:+.1f}% '
+        f'<span style="color:var(--txt-dim);font-size:.85em">({pts_str})</span>'
+        f'</span></td></tr>'
+    )
+
+
 def _float_turnover_pts(stock: dict) -> tuple[float, float]:
     """Float-Turnover = today_volume / float_shares.
 
@@ -2138,15 +2249,22 @@ def score(stock: dict) -> float:
 
     # Float-Turnover (Vol/Float) — komplementäres Volumen-Signal zu RVOL.
     _, turnover_pts = _float_turnover_pts(stock)
+    # Gap & Hold (EOD-Stärke des Eröffnungs-Gaps)
+    _, _gap_state, gap_pts = _gap_hold_pts(stock)
+    # Relative Stärke vs. SPY (ersetzt RS-vs-Sektor)
+    _, rs_spy_pts = _rs_spy_pts(stock)
 
     if sf_val == 0 and sr_val == 0:
         # Fall 2: keine Short-Daten → Volumen (max 30) + Momentum (max 20)
-        #   + Float Turnover (max 10) + Float-Size, Cap 50.
+        #   + Float Turnover (max 10) + Gap+Hold (-3..+5) + RS-vs-SPY (±3)
+        #   + Float-Size, Cap 50.
         # Nur positive Tagesveränderungen zählen: fallende Kurse = kein Squeeze-Druck
         rv_component = rv_raw * 30
         chg = max(adjusted_chg, 0)
         momentum = min(chg /  8.0, 1.0) * 20  # sättigt bei +8% statt +15%
-        result = min(round(rv_component + momentum + _fs + turnover_pts, 2), 50.0)
+        result = min(round(
+            rv_component + momentum + _fs + turnover_pts + gap_pts + rs_spy_pts, 2
+        ), 50.0)
         return result if math.isfinite(result) else 0.0
 
     # Fall 1: Short-Daten vorhanden → fünf Faktoren, max 100 Pkt
@@ -2186,7 +2304,8 @@ def score(stock: dict) -> float:
                   f"(Squeeze vor {_days} Tagen)", flush=True)
 
     result = round(max(0.0, min(
-        sf + sr + rv + mom + _fs + _pts + turnover_pts - _sq_malus, 100.0
+        sf + sr + rv + mom + _fs + _pts + turnover_pts + gap_pts + rs_spy_pts - _sq_malus,
+        100.0
     )), 2)
     return result if math.isfinite(result) else 0.0
 
@@ -2781,24 +2900,20 @@ def _compute_sub_scores(s: dict) -> dict:
         SUB_CATALYST_MAX,
     )), 1)
 
-    # Timing (max SUB_TIMING_MAX = 30):
+    # Timing (max SUB_TIMING_MAX = 35):
     #   RV-Pts + Mom-Pts (raw 0..37) → normalisiert auf 0..25 (unverändert)
-    #   + Rel. Stärke vs. Sektor-ETF (±3, ungerastet)
-    #   + Float Turnover (0/3/6/10 Pkt, ungerastet) — komplementär zu RVOL
-    #   Cap bei SUB_TIMING_MAX.
+    #   + RS vs. SPY (±3, linear bis ±RS_SPY_THRESHOLD_PCT)
+    #   + Float Turnover (0/3/6/10 Pkt) — komplementär zu RVOL
+    #   + Gap & Hold (-3..+5) — Eröffnungsstärke EOD-validiert
+    #   Cap bei SUB_TIMING_MAX. RS-vs-Sektor ist ersetzt; siehe CLAUDE.md.
     rv_raw = min((rv - 1.0) / 2.0, 1.0) if rv > 0 else 0
     rv_pts = max(rv_raw, 0) * 23
     mom_pts = min(chg / 8.0, 1.0) * 14
-    rs_pts = 0
-    _rs = s.get("rel_strength_20d")
-    if _rs is not None:
-        if _rs > RS_SECTOR_THRESHOLD:
-            rs_pts = RS_SECTOR_BULL_BONUS
-        elif _rs < -RS_SECTOR_THRESHOLD:
-            rs_pts = -RS_SECTOR_BEAR_MALUS
-    turnover_ratio, turnover_pts = _float_turnover_pts(s)
+    rs_spy_pct,    rs_spy_pts_v   = _rs_spy_pts(s)
+    turnover_ratio, turnover_pts  = _float_turnover_pts(s)
+    gap_pct, gap_state, gap_pts   = _gap_hold_pts(s)
     timing_pts = round(max(0.0, min(
-        (rv_pts + mom_pts) * (25.0 / 37.0) + rs_pts + turnover_pts,
+        (rv_pts + mom_pts) * (25.0 / 37.0) + rs_spy_pts_v + turnover_pts + gap_pts,
         SUB_TIMING_MAX,
     )), 1)
 
@@ -2819,6 +2934,11 @@ def _compute_sub_scores(s: dict) -> dict:
         "timing_col":    _col(timing_pts,   SUB_TIMING_MAX),
         "turnover":      round(turnover_ratio, 2),
         "turnover_pts":  int(turnover_pts),
+        "gap_pct":       (round(gap_pct, 2) if gap_pct is not None else None),
+        "gap_hold_state": gap_state,
+        "gap_pts":       int(gap_pts),
+        "rs_spy_pct":    (round(rs_spy_pct, 2) if rs_spy_pct is not None else None),
+        "rs_spy_pts":    int(rs_spy_pts_v),
     }
 
 
@@ -3268,11 +3388,12 @@ def _card(i: int, s: dict) -> str:
         _rs_row  = f"<tr><td>Rel. Stärke (20T)</td><td>{_rs_cell}</td></tr>"
     else:
         _rs_row  = ""
-    sector_rs_row = _sector_rs_row(s)          # Feature 5
+    rs_spy_row    = _rs_spy_row_html(s)        # ersetzt RS-vs-Sektor
+    gap_hold_row  = _gap_hold_row_html(s)
     earn_surp_row = _earnings_surprise_html(s) # Feature 3
-    # Volumen & Momentum (RSI + kombinierte MA + Kurs-vs-MA50 + RS-20T + RS-Sektor).
+    # Volumen & Momentum (RSI + kombinierte MA + Kurs-vs-MA50 + RS-20T + RS-SPY).
     # Earnings-Surprise wandert in den Katalysatoren-Block.
-    momentum_rows = _rsi_row + _ma_combined_row + _ma50_row2 + _rs_row + sector_rs_row
+    momentum_rows = _rsi_row + _ma_combined_row + _ma50_row2 + _rs_row + rs_spy_row
     float_turnover_row = _float_turnover_row_html(s)
 
     # Options market data rows — Feature 4: <0.5 bullisch, 0.5–1.5 neutral, >1.5 bearisch
@@ -3494,6 +3615,7 @@ def _card(i: int, s: dict) -> str:
         <tr><td>Ø Volumen 20T</td><td>{s.get('avg_vol_20d',0):,.0f}</td></tr>
         <tr><td>Heutiges Volumen</td><td>{s.get('cur_vol',0):,.0f}</td></tr>
         {float_turnover_row}
+        {gap_hold_row}
         {momentum_rows}
         <tr class="detail-group-header"><td colspan="2">Katalysatoren</td></tr>
         {catalyst_rows}
@@ -3756,11 +3878,12 @@ def _build_card_ctx(i: int, s: dict) -> dict:
         _rs_row  = f"<tr><td>Rel. Stärke (20T)</td><td>{_rs_cell}</td></tr>"
     else:
         _rs_row  = ""
-    _sector_rs_row_ = _sector_rs_row(s)            # Feature 5
+    _rs_spy_row_    = _rs_spy_row_html(s)          # ersetzt RS-vs-Sektor
+    gap_hold_row    = _gap_hold_row_html(s)
     _earn_surp_row_ = _earnings_surprise_html(s)   # Feature 3
-    # Volumen & Momentum (RSI + kombinierte MA + Kurs-vs-MA50 + RS-20T + RS-Sektor).
+    # Volumen & Momentum (RSI + kombinierte MA + Kurs-vs-MA50 + RS-20T + RS-SPY).
     # Earnings-Surprise wandert in den Katalysatoren-Block.
-    momentum_rows = _rsi_row + _ma_combined_row + _ma50_row2 + _rs_row + _sector_rs_row_
+    momentum_rows = _rsi_row + _ma_combined_row + _ma50_row2 + _rs_row + _rs_spy_row_
     float_turnover_row = _float_turnover_row_html(s)
 
     # ── Options rows — Feature 4 (<0.5 bullisch, 0.5–1.5 neutral, >1.5 bearisch) ──
@@ -4010,6 +4133,7 @@ def _build_card_ctx(i: int, s: dict) -> dict:
         "trend_html":           trend_html,
         "momentum_rows":        momentum_rows,
         "float_turnover_row":   float_turnover_row,
+        "gap_hold_row":         gap_hold_row,
         "catalyst_rows":        catalyst_rows,
         "inst_row":             inst_row,
         "ssr_tile_html":        ssr_tile_html,        # Feature 1
@@ -4288,7 +4412,7 @@ def generate_html_v1(stocks: list[dict], report_date: str, _ctx: dict | None = N
         <ul class="info-compact">
           <li><strong>Struktur (0–40):</strong> Short Float (32) + Days to Cover (23) + Float-Größe (8) + SI-Trend (5) — normiert</li>
           <li><strong>Katalysator (0–35):</strong> Earnings + News-KI mit Alters-Gewichtung (T+0: 100&nbsp;%, T+3: 20&nbsp;%) + P/C-Ratio + Short-Druck + Gamma Squeeze + Insider + UOA</li>
-          <li><strong>Timing (0–30):</strong> Rel. Volumen (23) + Momentum (14) + RS vs. Sektor-ETF (3) + Float Turnover (10) — normiert</li>
+          <li><strong>Timing (0–35):</strong> Rel. Volumen (23) + Momentum (14) + RS vs. SPY (3) + Float Turnover (10) + Gap &amp; Hold (−3 bis +5) — normiert</li>
           <li><strong>Boni:</strong> Kombinations-Bonus +5 · Score-Trend ±3 · Agent-Boost ×1.05 · Monster-Score: Setup × KI-Boost</li>
           <li><strong>Malus:</strong> Historischer Squeeze −3 / −5 Pkt (90 / 30 Tage)</li>
           <li><strong>Monster-Score:</strong> Setup-Score × KI-Boost — KI≥60: +20% · KI&lt;25: −20% · sonst neutral · Cap 100</li>
@@ -7981,8 +8105,10 @@ def main():
             "ma200":            yfd.get("ma200"),
             "perf_20d":         _stock_perf_20d,
             "rel_strength_20d": _rel_strength,
-            "rel_strength_sector": _rel_sector,        # Feature 5
-            "sector_etf":          _sector_etf,        # Feature 5
+            "rel_strength_sector": _rel_sector,        # Feature 5 (deprecated — RS-vs-Sektor entfernt)
+            "sector_etf":          _sector_etf,        # Feature 5 (nur noch interne Spur)
+            "cur_open":            yfd.get("cur_open"),
+            "prev_close":          yfd.get("prev_close"),
             "inst_ownership":  yfd.get("inst_ownership"),
             "float_shares":    yfd.get("float_shares", 0),
             "change_5d":       yfd.get("change_5d"),

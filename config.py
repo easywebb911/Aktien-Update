@@ -73,7 +73,7 @@ BACKTEST_RETURN_WINDOWS   = [3, 5, 10]   # Handelstage → return_3d / _5d / _10
 SHOW_SUB_SCORES     = True
 SUB_STRUCT_MAX      = 40
 SUB_CATALYST_MAX    = 35
-SUB_TIMING_MAX      = 30   # vorher 25 — auf 30 erweitert für Float-Turnover-Beitrag
+SUB_TIMING_MAX      = 35   # vorher 30 — auf 35 erweitert für Gap+Hold-Beitrag
 
 # ── Agent-Boost (KI-Agent-Score als Multiplikator) ──────────────────────────
 # Bei aktuellem Agent-Signal (<4h) mit hinreichend hohem KI-Agent-Score
@@ -143,12 +143,35 @@ PC_RATIO_BEAR_THRESHOLD = 1.5
 PC_RATIO_BULL_BONUS     = 5
 PC_RATIO_BEAR_MALUS     = 3
 
-# ── Relative Stärke vs. Sektor-ETF in Timing-Sub-Score ──────────────────────
-# RS > +5 % → +Bonus (Ticker schlägt Sektor deutlich)
-# RS < −5 % → −Malus (Ticker hinkt Sektor hinterher)
+# ── Relative Stärke vs. SPY in Timing-Sub-Score ─────────────────────────────
+# Squeezes sind oft idiosynkratisch — die Sektor-Korrelation ist gering, der
+# breite Markt-Benchmark (SPY ≙ ^GSPC) trennt die Outperformer schärfer.
+# Lineare Skalierung von 0 bis ±RS_SPY_THRESHOLD_PCT auf 0..±RS_SPY_PTS_MAX.
+RS_SPY_THRESHOLD_PCT   = 5.0   # ±% relative Outperformance für volle Punkte
+RS_SPY_PTS_MAX         = 3     # max. ±Punkte (symmetrisch)
+
+# Deprecated — wurde durch RS_SPY_* ersetzt; die Felder rel_strength_sector
+# und sector_etf werden noch im Datenmodell mitgeführt, aber nicht mehr
+# bewertet. Siehe SESSION_HANDOVER 30.04.2026 (idiosynkratische Squeezes).
 RS_SECTOR_THRESHOLD    = 5.0
 RS_SECTOR_BULL_BONUS   = 3
 RS_SECTOR_BEAR_MALUS   = 2
+
+# ── Gap & Hold (Eröffnungs-Stärke + Tagesverlauf) ────────────────────────────
+# Misst die Stärke des Eröffnungs-Gaps und ob das Gap im Tagesverlauf
+# gehalten wird (EOD). Lesart:
+#   gap_pct       = (today_open  − yesterday_close) / yesterday_close × 100
+#   hold_threshold = today_open + GAP_HOLD_FACTOR × (today_open − yesterday_close)
+# Punkte:
+#   today_close > hold_threshold      → strong_hold (+GAP_PTS_STRONG_HOLD)
+#   today_close zwischen open/threshold → weak_hold (+GAP_PTS_WEAK_HOLD)
+#   today_close < yesterday_close      → fail (Bull-Trap, GAP_PTS_FAIL = −3)
+# Gilt nur bei gap_pct ≥ GAP_THRESHOLD_PCT; sonst no_gap (0).
+GAP_THRESHOLD_PCT      = 3.0
+GAP_HOLD_FACTOR        = 0.5
+GAP_PTS_STRONG_HOLD    = 5
+GAP_PTS_WEAK_HOLD      = 2
+GAP_PTS_FAIL           = -3
 
 # ── Historischer Squeeze-Check als Score-Malus ──────────────────────────────
 # Falls der Ticker innerhalb der letzten 30 / 90 Tage bereits einen Squeeze

@@ -117,6 +117,56 @@ Decay-Logik bekommen, dort wiederverwendbar.
 
 ---
 
+## Gap & Hold (Timing-Sub-Signal)
+
+Misst Eröffnungsstärke + Tagesverlauf auf EOD-Basis:
+
+```
+gap_pct        = (today_open  − yesterday_close) / yesterday_close × 100
+hold_threshold = today_open + GAP_HOLD_FACTOR × (today_open − yesterday_close)
+```
+
+| Bedingung | State | Pts (`config.py`) |
+|---|---|---:|
+| `gap_pct < GAP_THRESHOLD_PCT` (3 %) | `no_gap` | 0 |
+| close > `hold_threshold` | `strong_hold` | +`GAP_PTS_STRONG_HOLD` (5) |
+| close < yesterday_close | `fail` (Bull-Trap) | `GAP_PTS_FAIL` (−3) |
+| dazwischen | `weak_hold` | +`GAP_PTS_WEAK_HOLD` (2) |
+| Daten fehlen (Open / prev_close / price) | `unknown` | 0 |
+
+Helper: `_gap_hold_pts(stock) → (gap_pct, state, pts)`. Single source of
+truth für Score, Sub-Score und Detail-Zeile (`_gap_hold_row_html()`).
+
+`cur_open` und `prev_close` werden in `_hist_stats()` (Batch) und
+`get_yfinance_data()` (Singleton-Fallback) extrahiert und in der
+Enrichment-Phase auf das Stock-Dict gelegt.
+
+---
+
+## RS vs. SPY (ersetzt RS-vs-Sektor)
+
+Squeezes sind oft idiosynkratisch — die Sektor-ETF-Korrelation ist gering;
+der breite Markt-Benchmark trennt Outperformer schärfer. Ab 30.04.2026
+fließt nur noch `rel_strength_20d` (= stock_perf_20d − ^GSPC_perf_20d) in
+den Timing-Sub-Score.
+
+| Wert | Punkte (linear, symmetrisch) |
+|---|---:|
+| `rs_pct ≥ RS_SPY_THRESHOLD_PCT` (5 %) | +`RS_SPY_PTS_MAX` (3) |
+| `0..+5 %` | linear 0..+3 |
+| `−5..0 %` | linear −3..0 |
+| `≤ −5 %` | −3 |
+| `None` | 0 |
+
+Helper: `_rs_spy_pts(stock) → (rs_pct, pts)`. Die alten `RS_SECTOR_*`-
+Konstanten in `config.py` sind als deprecated markiert, ebenso die
+Felder `rel_strength_sector` und `sector_etf` im Stock-Dict — beide
+werden noch befüllt, aber nicht mehr bewertet. Der Detail-Zeilen-Helper
+`_sector_rs_row()` ist nicht mehr verdrahtet (Aufrufstellen ersetzt
+durch `_rs_spy_row_html()`).
+
+---
+
 ## Position-Tracking (Exit-Signale)
 
 `positions.json` listet offene Positionen für Exit-Score-Berechnung im
