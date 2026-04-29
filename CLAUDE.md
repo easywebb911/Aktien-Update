@@ -150,3 +150,46 @@ Implementierung in `generate_report.py`:
 ### Wichtig: niemals `positions.json` committen
 
 `.gitignore` enthält `positions.json`. Bei einem Refactor des `_load_positions()`-Pfads diese Regel beibehalten — die Datei darf nie ins Repo wandern. Bei lokalem Test eine `positions.json` anlegen ist OK; sie wird vom Git ignoriert.
+
+---
+
+## Session-Handover-Regel
+
+Wenn der User die Sitzung mit „Gute Nacht" (oder Varianten wie „Schlaf gut",
+„Bis morgen", „Feierabend gute Nacht") beendet, **automatisch**
+`SESSION_HANDOVER.md` im Repo-Root aktualisieren — alte Inhalte komplett
+ersetzen, nicht anhängen — und direkt auf `main` committen mit Message
+`docs: handover update after session JJJJ-MM-TT`.
+
+### Struktur (genau diese Reihenfolge)
+
+```markdown
+# Session-Handover — Stand TT.MM.JJJJ
+
+## Heute implementiert (chronologisch)
+- <commit-hash> — <type>: <kurzbeschreibung>
+  (Klammer-Detail bei nicht-trivialen Änderungen)
+
+## Aktive Position (im Secret POSITIONS_JSON)
+- Tickerliste falls bekannt aus Session-Kontext
+
+## Verifikation ausstehend
+- Punkte die nach nächstem Daily / ki_agent-Tick zu prüfen sind
+
+## Geplante Aufgaben
+- Konkret formulierte nächste Schritte aus der Session
+
+## Optional / niedrig priorisiert
+- Backlog-Punkte
+
+## Architektur-Anker (nicht in CLAUDE.md, wichtig)
+- Neue/geänderte Architektur-Invarianten dieser Session
+```
+
+### Regeln
+
+- **Reihenfolge fix:** chronologische Commits → Status (Position, Verifikation) → Backlog (Geplant, Optional) → Architektur-Anker.
+- **Architektur-Anker** nur ergänzen, wenn diese Session welche eingeführt oder verändert hat. Bei reinen Bugfixes/Doku-Sessions weglassen.
+- **Session ohne Commits:** trotzdem aktualisieren — Datum oben + Hinweis „Session ohne Commits, [Stichpunkte zu Diskussionen]". Backlog-Sektionen bleiben gefüllt, falls relevant.
+- **Commit-Liste** mit kompletten 7-stelligen Hashes, Type-Prefix wie im echten Commit (`feat:`, `fix:`, `chore:`, `docs:`, `perf:`).
+- **Eigenständig committen** — nicht zusätzlich auf User-Bestätigung warten. „Gute Nacht" ist die Bestätigung.
