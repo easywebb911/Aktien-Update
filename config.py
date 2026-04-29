@@ -210,6 +210,23 @@ STOCKTWITS_BULL_STRONG  = 15   # Bullish-Ratio > 0.70 + Volume > 10/h
 STOCKTWITS_BULL_WEAK    = 8    # Bullish-Ratio > 0.60
 STOCKTWITS_BEAR_MALUS   = 5    # Bearish-Ratio > 0.70 → -Pkt
 
+# ── Unusual Options Activity (UOA) — yfinance Options-Chain ──────────────────
+# Bewertet ungewöhnliche Optionsaktivität pro Ticker:
+#   • Call-Vol/OI > 5× im ATM-Bereich (±10 % Strike)  → +UOA_ATM_STRONG Pkt
+#   • Call-Vol/OI > 3× im ATM-Bereich (±10 % Strike)  → +UOA_ATM_WEAK   Pkt (5× Vorrang)
+#   • Gesamt-Call-Volume > 2× Gesamt-Put-Volume       → +UOA_CP_BIAS    Pkt
+# Genutzt in compute_signal(); Werte landen in agent_signals.json (uoa_score,
+# uoa_drivers) und werden im nächsten Daily-Run auf der Kachel sichtbar.
+UOA_ENABLED             = True
+UOA_EXPIRATION_MAX_DAYS = 30
+UOA_ATM_BAND_PCT        = 0.10  # ±10 % um Spot
+UOA_VOL_OI_STRONG       = 5.0   # Call-Vol/OI Schwelle stark
+UOA_VOL_OI_WEAK         = 3.0   # Call-Vol/OI Schwelle schwach
+UOA_CP_RATIO            = 2.0   # Call/Put-Volume Schwelle
+UOA_ATM_STRONG          = 20    # Pkt bei Vol/OI > UOA_VOL_OI_STRONG
+UOA_ATM_WEAK            = 10    # Pkt bei Vol/OI > UOA_VOL_OI_WEAK
+UOA_CP_BIAS             = 10    # Pkt bei Call/Put > UOA_CP_RATIO
+
 # ── RVOL High-Alert + Velocity (KI-Agent) ────────────────────────────────────
 # Zusätzliche Boni über die bestehenden TRIGGER_RVOL_2X/4X-Stufen hinaus:
 #   ≥ 3 ×  → +RVOL_HIGH_BONUS    Pkt + ⚡-Marker im Driver

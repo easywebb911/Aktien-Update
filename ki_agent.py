@@ -32,7 +32,7 @@ import threading
 import time
 import xml.etree.ElementTree as ET
 from concurrent.futures import ThreadPoolExecutor, as_completed
-from datetime import datetime, time as dt_time, timedelta, timezone
+from datetime import date, datetime, time as dt_time, timedelta, timezone
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 
@@ -911,6 +911,103 @@ def fetch_stocktwits_sentiment(ticker: str) -> dict:
             "n_total": n_total, "n_bull": n_bull, "n_bear": n_bear}
 
 
+def fetch_uoa_signal(ticker: str) -> tuple[int, list[str]]:
+    """Unusual Options Activity Signal aus yfinance Options-Chain.
+
+    Heuristik (0–30 Pkt) für die nächste Expiration innerhalb
+    ``UOA_EXPIRATION_MAX_DAYS`` Tagen:
+
+      • Call-Vol/OI > ``UOA_VOL_OI_STRONG`` im ATM-Bereich
+        (±``UOA_ATM_BAND_PCT``) → +``UOA_ATM_STRONG`` Pkt
+      • Call-Vol/OI > ``UOA_VOL_OI_WEAK``   im ATM-Bereich
+        (±``UOA_ATM_BAND_PCT``) → +``UOA_ATM_WEAK`` Pkt (Vorrang: stark)
+      • Gesamt-Call-Vol > ``UOA_CP_RATIO`` × Gesamt-Put-Vol
+        → +``UOA_CP_BIAS`` Pkt
+
+    Returns:
+        ``(uoa_score, drivers)`` — z. B. ``(20, ["UOA Call-Vol/OI 6.2× ATM"])``.
+        ``(0, [])`` bei jedem Fehler oder fehlenden Daten. Niemals Raise.
+    """
+    if not UOA_ENABLED or not ticker:
+        return 0, []
+    try:
+        tk = yf.Ticker(ticker)
+
+        # Spot-Preis als ATM-Referenz (fast_info → history-Fallback).
+        spot = 0.0
+        try:
+            spot = float(getattr(tk, "fast_info", {}).get("last_price") or 0.0)
+        except Exception:
+            spot = 0.0
+        if spot <= 0:
+            try:
+                hist = tk.history(period="1d")
+                if hist is not None and not hist.empty:
+                    spot = float(hist["Close"].iloc[-1])
+            except Exception:
+                return 0, []
+        if spot <= 0:
+            return 0, []
+
+        # Nächste Expiration innerhalb des Fensters.
+        try:
+            expirations = tk.options or ()
+        except Exception:
+            return 0, []
+        if not expirations:
+            return 0, []
+        today = date.today()
+        chosen_exp: str | None = None
+        for exp in expirations:
+            try:
+                exp_date = datetime.strptime(exp, "%Y-%m-%d").date()
+            except (ValueError, TypeError):
+                continue
+            days = (exp_date - today).days
+            if 0 <= days <= UOA_EXPIRATION_MAX_DAYS:
+                chosen_exp = exp
+                break
+        if not chosen_exp:
+            return 0, []
+
+        chain = tk.option_chain(chosen_exp)
+        calls = getattr(chain, "calls", None)
+        puts  = getattr(chain, "puts",  None)
+        if calls is None or puts is None or calls.empty:
+            return 0, []
+
+        score = 0
+        drivers: list[str] = []
+
+        # ATM-Filter ±UOA_ATM_BAND_PCT um Spot.
+        lo = spot * (1 - UOA_ATM_BAND_PCT)
+        hi = spot * (1 + UOA_ATM_BAND_PCT)
+        atm_calls    = calls[(calls["strike"] >= lo) & (calls["strike"] <= hi)]
+        atm_call_vol = float(atm_calls["volume"].fillna(0).sum())
+        atm_call_oi  = float(atm_calls["openInterest"].fillna(0).sum())
+        if atm_call_oi > 0:
+            ratio = atm_call_vol / atm_call_oi
+            if ratio > UOA_VOL_OI_STRONG:
+                score += UOA_ATM_STRONG
+                drivers.append(f"UOA Call-Vol/OI {ratio:.1f}× ATM")
+            elif ratio > UOA_VOL_OI_WEAK:
+                score += UOA_ATM_WEAK
+                drivers.append(f"UOA Call-Vol/OI {ratio:.1f}× ATM")
+
+        # Gesamt-Call/Put-Volumen-Bias über alle Strikes.
+        total_call_vol = float(calls["volume"].fillna(0).sum())
+        total_put_vol  = float(puts["volume"].fillna(0).sum()) if puts is not None and not puts.empty else 0.0
+        if total_put_vol > 0 and total_call_vol > UOA_CP_RATIO * total_put_vol:
+            score += UOA_CP_BIAS
+            cp_ratio = total_call_vol / total_put_vol
+            drivers.append(f"UOA Call/Put {cp_ratio:.1f}×")
+
+        return score, drivers
+    except Exception as exc:
+        log.debug("UOA fetch failed for %s: %s", ticker, exc)
+        return 0, []
+
+
 def _stocktwits_pts(st: dict | None) -> int:
     """Score-Beitrag aus StockTwits-Sentiment-Dict — gemeinsame Logik für
     compute_signal() und für die agent_signals.json-Persistenz (Frontend)."""
@@ -1051,6 +1148,8 @@ def compute_signal(
     form4_title: str = "",
     stocktwits: dict | None = None,
     prev_rvol: float = 0.0,
+    uoa_score: int = 0,
+    uoa_drivers: list[str] | None = None,
 ) -> tuple[int, list[str], int]:
     score   = 0
     drivers = []
@@ -1260,6 +1359,19 @@ def compute_signal(
         print(f"{ticker} SEC Form 4: '{form4_title}' → +{pts} Pkt "
               f"(Kauf: {'ja' if is_purchase else 'nein'})")
 
+    # ── Unusual Options Activity ─────────────────────────────────────────────
+    # uoa_score und uoa_drivers werden in _process_ticker via fetch_uoa_signal
+    # vorberechnet und hereingereicht; bei UOA_ENABLED=False oder API-Fehler
+    # ist der Score 0 und drivers leer (siehe fetch_uoa_signal). Trägt zu
+    # sig_news bei → fließt in die Konfidenz-Berechnung ein.
+    if uoa_score > 0:
+        score += uoa_score
+        if uoa_drivers:
+            drivers.extend(uoa_drivers)
+        sig_news = True
+        print(f"{ticker} UOA: +{uoa_score} Pkt → {', '.join(uoa_drivers or [])}",
+              flush=True)
+
     # ── Konfidenz-Berechnung ─────────────────────────────────────────────────
     n_types   = sum([sig_kurs, sig_vol, sig_spanne, sig_reddit, sig_news, sig_insider])
     base_conf = round(n_types / MAX_SIGNAL_TYPES * 100)
@@ -1315,7 +1427,8 @@ def compute_signal(
     print(
         f"{ticker}: Kurs={chg:.1f}% ({kurs_pts}Pkt), RVOL={rvol:.1f}× ({vol_pts}Pkt), "
         f"News={news_pts}Pkt, Earnings={earn_pts}Pkt, OpenInsider={insider_pts}Pkt, "
-        f"FINRA_SSR={ssr_pts}Pkt, SEC={sec_pts}Pkt, StockTwits={st_pts}Pkt = {total}Pkt",
+        f"FINRA_SSR={ssr_pts}Pkt, SEC={sec_pts}Pkt, StockTwits={st_pts}Pkt, "
+        f"UOA={uoa_score}Pkt = {total}Pkt",
         flush=True,
     )
     print(f"{ticker} Konfidenz: {confidence}% ({n_types}/{MAX_SIGNAL_TYPES} Signaltypen aktiv)",
@@ -1740,6 +1853,13 @@ def _process_ticker(ticker: str, shared: dict) -> dict:
 
     stocktwits_data = fetch_stocktwits_sentiment(ticker)
 
+    # UOA — Unusual Options Activity aus yfinance Options-Chain.
+    # Sequenziell wie die anderen Fetches; Parallelität existiert bereits
+    # auf Ticker-Ebene über den outer ThreadPool (max_workers=8).
+    uoa_score, uoa_drivers = fetch_uoa_signal(ticker)
+    if uoa_score > 0 or uoa_drivers:
+        log.info("UOA %s: %d Pkt – %s", ticker, uoa_score, uoa_drivers)
+
     score, drivers, confidence, _meta = compute_signal(
         ticker, yfd, news, reddit, has_8k, sec_title,
         earnings_days, fda_days,
@@ -1747,6 +1867,8 @@ def _process_ticker(ticker: str, shared: dict) -> dict:
         has_form4=has_form4, form4_title=form4_title,
         stocktwits=stocktwits_data,
         prev_rvol=float(old_sigs.get(ticker, {}).get("rvol", 0) or 0),
+        uoa_score=uoa_score,
+        uoa_drivers=uoa_drivers,
     )
     n_active_types = sum([
         any(d.startswith("Kurs") for d in drivers),
@@ -1794,6 +1916,8 @@ def _process_ticker(ticker: str, shared: dict) -> dict:
         "stocktwits":     _st_payload,
         "combo_mult":     _meta.get("combo_mult", 1.0),
         "active_triggers": _meta.get("active_triggers", 0),
+        "uoa_score":      uoa_score,
+        "uoa_drivers":    uoa_drivers,
     }
 
     flags = {
