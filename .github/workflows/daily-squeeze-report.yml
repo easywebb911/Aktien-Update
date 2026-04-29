@@ -87,7 +87,7 @@ jobs:
       # Opt 6: Poll GitHub Pages Last-Modified until the new version is live.
       # Avoids blindly waiting a fixed interval; stops as soon as confirmed.
       - name: Verify GitHub Pages deployment
-        if: steps.commit_report.outputs.COMMIT_EPOCH != '0'
+        if: github.event_name == 'workflow_dispatch' && steps.commit_report.outputs.COMMIT_EPOCH != '0'
         run: |
           PAGES_URL="https://easywebb911.github.io/Aktien-Update/"
           COMMIT_TIME="${{ steps.commit_report.outputs.COMMIT_EPOCH }}"
