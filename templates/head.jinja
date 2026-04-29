@@ -263,12 +263,22 @@ select.sort-select:hover:not(:disabled){background-image:linear-gradient(45deg,t
 .wl-card-score{font-size:20px;font-weight:800;line-height:1;align-self:center}
 .wl-badge-star{position:absolute;top:4px;right:4px;font-size:.65rem;color:#3b82f6;opacity:.7;pointer-events:none}
 .wl-notop-badge{font-size:.62rem;color:#6b7280;background:#6b728022;border:1px solid #6b728044;border-radius:4px;padding:1px 5px;width:fit-content}
-.wl-details-btn{background:none;border:1px solid #3b82f644;color:#3b82f6;cursor:pointer;font-size:.75rem;padding:1px 6px;border-radius:6px}
+.wl-details-btn{background:none;border:1px solid #3b82f644;color:#3b82f6;cursor:pointer;
+  font-size:.75rem;padding:1px 6px;border-radius:6px;
+  min-width:44px;min-height:44px;
+  display:inline-flex;align-items:center;justify-content:center;flex-shrink:0}
 .wl-details-btn:hover{background:#3b82f622}
 .wl-details-body{border-top:1px solid var(--brd)}
 .wl-no-data{padding:10px 14px;color:var(--txt-dim);font-size:.8rem;font-style:italic}
-.wl-remove-btn{background:none;border:none;color:var(--txt-dim);cursor:pointer;font-size:.85rem;padding:0;opacity:.5}
-.wl-remove-btn:hover{color:#ef4444;opacity:1}
+/* Touch-Target 44×44 (Apple HIG) — visuelles X bleibt klein.
+   Negative Margins absorbieren die zusätzliche Höhe in das Header-Padding,
+   damit die Karte nicht ausfranst. */
+.wl-remove-btn{background:none;border:none;color:var(--txt-dim);cursor:pointer;
+  font-size:1.05rem;line-height:1;opacity:.55;padding:0;flex-shrink:0;
+  width:44px;height:44px;min-width:44px;
+  display:inline-flex;align-items:center;justify-content:center;
+  margin:-8px 4px -8px -8px}
+.wl-remove-btn:hover,.wl-remove-btn:focus-visible{color:#ef4444;opacity:1;outline:none}
 @media(max-width:479px){.wl-cards{grid-template-columns:repeat(2,1fr)}}
 .wl-sync-warn{font-size:.72rem;color:#f59e0b;background:#f59e0b18;border:1px solid #f59e0b44;
   border-radius:6px;padding:4px 8px;margin-bottom:6px;display:none}

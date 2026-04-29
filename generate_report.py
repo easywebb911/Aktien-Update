@@ -6165,6 +6165,7 @@ function _fmtGerman(d) {{
           ${{inTop ? '<span class="wl-badge-star">\u2605</span>' : ''}}
           <div class="wl-card-header">
             <div style="display:flex;align-items:center;gap:4px;width:100%">
+              <button class="wl-remove-btn" onclick="wlRemoveTicker('${{ticker}}')" title="Entfernen" aria-label="Aus Watchlist entfernen">\xd7</button>
               <span class="wl-card-ticker">${{ticker}}</span>
               ${{flag ? `<span style="font-size:.85rem">${{flag}}</span>` : ''}}
               <span class="wl-ki-dot agent-dot none" id="wlkd-${{ticker}}"></span>
@@ -6172,10 +6173,7 @@ function _fmtGerman(d) {{
             <span class="wl-card-score" style="color:${{scoreCol}}">${{scoreStr}}</span>
             <div style="display:flex;align-items:center;gap:4px;width:100%;justify-content:space-between">
               <span style="font-size:.8rem;color:${{trendCol}};font-weight:700">${{trendArrow}}</span>
-              <div style="display:flex;gap:3px">
-                <button class="wl-remove-btn" onclick="wlRemoveTicker('${{ticker}}')" title="Entfernen">\xd7</button>
-                <button class="wl-details-btn" id="wlb-${{ticker}}" onclick="wlExpand('${{ticker}}',this)" title="Details einblenden">\u25be</button>
-              </div>
+              <button class="wl-details-btn" id="wlb-${{ticker}}" onclick="wlExpand('${{ticker}}',this)" title="Details einblenden">\u25be</button>
             </div>
           </div>
           <div class="wl-details-body" id="wld-${{ticker}}" hidden></div>
