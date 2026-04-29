@@ -1,17 +1,17 @@
 {
-  "updated": "2026-04-29T22:37:24.349781+02:00",
+  "updated": "2026-04-30T00:13:36.321385+02:00",
   "run_info": {
     "tickers_checked": 12,
     "signals_active": 1,
     "alerts_sent": 0,
-    "elapsed_s": 11.1,
+    "elapsed_s": 10.2,
     "market_phase": "After-Hours"
   },
   "signals": {
     "KALV": {
-      "score": 30,
+      "score": 61,
       "confidence": 33,
-      "drivers": "Earnings in 6 Tagen (05.05.2026) + News-KI 5/30: Takeover deal eliminates squeeze potential as stock is being acquired at fixed price, removing volatility and short thes + Earnings in 6d + UOA Call/Put 2.1×",
+      "drivers": "Earnings in 6 Tagen (05.05.2026) + News: takeover, buyout + Earnings in 6d + UOA Call/Put 2.1×",
       "price": 26.67,
       "chg_pct": 0.0,
       "rvol": 0.0,
@@ -20,8 +20,8 @@
       "upcoming_event": "Earnings in 6 Tagen (05.05.2026)",
       "insider_buy": false,
       "stocktwits": null,
-      "combo_mult": 1.0,
-      "active_triggers": 1,
+      "combo_mult": 1.1,
+      "active_triggers": 2,
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 2.1×"
@@ -66,9 +66,9 @@
       ]
     },
     "PEB": {
-      "score": 30,
+      "score": 23,
       "confidence": 33,
-      "drivers": "News-KI 5/30: Positive earnings results indicate company health but lack short squeeze indicators like high short interest, low float, + FINRA Short-Vol 84%",
+      "drivers": "News-KI 8/30: Positive earnings results lack short-squeeze catalysts like high short interest, low float, or significant stock decline + FINRA Short-Vol 52%",
       "price": 14.32,
       "chg_pct": 0.0,
       "rvol": 0.0,
@@ -83,9 +83,9 @@
       "uoa_drivers": []
     },
     "PCT": {
-      "score": 44,
+      "score": 72,
       "confidence": 33,
-      "drivers": "Earnings in 7 Tagen (06.05.2026) + News: short interest + Earnings in 7d + UOA Call/Put 12.7×",
+      "drivers": "Earnings in 7 Tagen (06.05.2026) + News: short interest + Earnings in 7d + FINRA Short-Vol 87% + UOA Call/Put 12.7×",
       "price": 7.43,
       "chg_pct": 0.0,
       "rvol": 0.0,
@@ -102,9 +102,9 @@
       ]
     },
     "CLVT": {
-      "score": 82,
+      "score": 55,
       "confidence": 33,
-      "drivers": "Earnings in 0 Tagen (29.04.2026) + News: earnings beat + Earnings in 0d + FINRA Short-Vol 97% + UOA Call/Put 5.0×",
+      "drivers": "Earnings in 0 Tagen (29.04.2026) + News: earnings beat + Earnings in 0d + UOA Call/Put 5.0×",
       "price": 2.86,
       "chg_pct": 0.0,
       "rvol": 0.0,
