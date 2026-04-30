@@ -1,17 +1,17 @@
 {
-  "updated": "2026-04-30T09:41:20.534964+02:00",
+  "updated": "2026-04-30T15:11:00.341677+02:00",
   "run_info": {
     "tickers_checked": 12,
-    "signals_active": 3,
+    "signals_active": 4,
     "alerts_sent": 0,
-    "elapsed_s": 11.7,
-    "market_phase": "Geschlossen"
+    "elapsed_s": 12.2,
+    "market_phase": "Pre-Market"
   },
   "signals": {
     "KALV": {
       "score": 61,
       "confidence": 33,
-      "drivers": "Earnings in 5 Tagen (05.05.2026) + News: acquisition, takeover + Earnings in 5d + UOA Call/Put 2.1×",
+      "drivers": "Earnings in 5 Tagen (05.05.2026) + News: buyout, takeover + Earnings in 5d + UOA Call/Put 2.1×",
       "price": 26.67,
       "chg_pct": 0.0,
       "rvol": 0.0,
@@ -28,9 +28,9 @@
       ]
     },
     "INDI": {
-      "score": 25,
+      "score": 44,
       "confidence": 33,
-      "drivers": "Earnings in 7 Tagen (07.05.2026) + Earnings in 7d + UOA Call/Put 10.6×",
+      "drivers": "Earnings in 7 Tagen (07.05.2026) + News: catalyst + Earnings in 7d + UOA Call/Put 10.6×",
       "price": 4.09,
       "chg_pct": 0.0,
       "rvol": 0.0,
@@ -39,8 +39,8 @@
       "upcoming_event": "Earnings in 7 Tagen (07.05.2026)",
       "insider_buy": false,
       "stocktwits": null,
-      "combo_mult": 1.0,
-      "active_triggers": 1,
+      "combo_mult": 1.1,
+      "active_triggers": 2,
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 10.6×"
@@ -72,7 +72,7 @@
       "price": 2.86,
       "chg_pct": 0.0,
       "rvol": 0.0,
-      "earnings": null,
+      "earnings": "in 90 Tagen (29.07.2026)",
       "fda_date": null,
       "upcoming_event": null,
       "insider_buy": false,
@@ -85,9 +85,9 @@
       ]
     },
     "GRPN": {
-      "score": 61,
+      "score": 41,
       "confidence": 33,
-      "drivers": "Earnings in 7 Tagen (07.05.2026) + News: squeeze, short squeeze + Earnings in 7d + UOA Call/Put 10.1×",
+      "drivers": "Earnings in 7 Tagen (07.05.2026) + News-KI 12/30: GRPN appears in market reports and squeeze speculation but lacks specific catalyst evidence, short interest data, or mom + Earnings in 7d + UOA Call/Put 10.1×",
       "price": 14.24,
       "chg_pct": 0.0,
       "rvol": 0.0,
@@ -119,6 +119,25 @@
       "active_triggers": 1,
       "uoa_score": 0,
       "uoa_drivers": []
+    },
+    "ENVX": {
+      "score": 30,
+      "confidence": 33,
+      "drivers": "News-KI 12/30: Positive insider ownership signals confidence, but lacks specific catalysts, high short interest data, or bullish moment + Earnings in 13d + UOA Call/Put 7.6×",
+      "price": 6.4,
+      "chg_pct": 0.0,
+      "rvol": 0.0,
+      "earnings": "in 13 Tagen (13.05.2026)",
+      "fda_date": null,
+      "upcoming_event": null,
+      "insider_buy": false,
+      "stocktwits": null,
+      "combo_mult": 1.0,
+      "active_triggers": 1,
+      "uoa_score": 10,
+      "uoa_drivers": [
+        "UOA Call/Put 7.6×"
+      ]
     },
     "CBRL": {
       "score": 8,
@@ -156,29 +175,10 @@
         "UOA Call/Put 7.8×"
       ]
     },
-    "ENVX": {
-      "score": 48,
-      "confidence": 33,
-      "drivers": "News: earnings beat, partnership + Earnings in 13d + UOA Call/Put 7.6×",
-      "price": 6.4,
-      "chg_pct": 0.0,
-      "rvol": 0.0,
-      "earnings": "in 13 Tagen (13.05.2026)",
-      "fda_date": null,
-      "upcoming_event": null,
-      "insider_buy": false,
-      "stocktwits": null,
-      "combo_mult": 1.0,
-      "active_triggers": 1,
-      "uoa_score": 10,
-      "uoa_drivers": [
-        "UOA Call/Put 7.6×"
-      ]
-    },
     "TRIP": {
-      "score": 15,
-      "confidence": 17,
-      "drivers": "Earnings in 7 Tagen (07.05.2026) + Earnings in 7d",
+      "score": 23,
+      "confidence": 33,
+      "drivers": "Earnings in 7 Tagen (07.05.2026) + News-KI 8/30: Routine corporate announcements about awards and earnings calls lack the negative sentiment, short positioning, or funda + Earnings in 7d",
       "price": 11.18,
       "chg_pct": 0.0,
       "rvol": 0.0,
@@ -195,7 +195,7 @@
     "SNBR": {
       "score": 38,
       "confidence": 33,
-      "drivers": "News: squeeze, short squeeze + Earnings in 12d",
+      "drivers": "News: short squeeze, squeeze + Earnings in 12d",
       "price": 3.03,
       "chg_pct": 0.0,
       "rvol": 0.0,
@@ -210,9 +210,9 @@
       "uoa_drivers": []
     },
     "AMC": {
-      "score": 33,
+      "score": 50,
       "confidence": 33,
-      "drivers": "Earnings in 5 Tagen (05.05.2026) + News: squeeze + Earnings in 5d",
+      "drivers": "Earnings in 5 Tagen (05.05.2026) + News: breakout, squeeze + Earnings in 5d",
       "price": 1.56,
       "chg_pct": 0.0,
       "rvol": 0.0,
