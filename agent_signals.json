@@ -1,17 +1,17 @@
 {
-  "updated": "2026-04-30T23:41:35.787434+02:00",
+  "updated": "2026-05-01T00:13:16.352883+02:00",
   "run_info": {
     "tickers_checked": 13,
     "signals_active": 5,
     "alerts_sent": 0,
-    "elapsed_s": 12.3,
+    "elapsed_s": 11.7,
     "market_phase": "After-Hours"
   },
   "signals": {
     "SKLZ": {
       "score": 44,
       "confidence": 33,
-      "drivers": "Earnings in 7 Tagen (07.05.2026) + News-KI 15/30: Jury verdict creates uncertainty; analyst upgrade is positive but company remains unprofitable with limited short intere + Earnings in 7d + UOA Call/Put 2.7×",
+      "drivers": "Earnings in 7 Tagen (07.05.2026) + News: squeeze + Earnings in 7d + UOA Call/Put 2.7×",
       "price": 8.06,
       "chg_pct": 0.0,
       "rvol": 0.0,
@@ -121,9 +121,9 @@
       ]
     },
     "VITL": {
-      "score": 15,
-      "confidence": 17,
-      "drivers": "Earnings in 7 Tagen (07.05.2026) + Earnings in 7d",
+      "score": 23,
+      "confidence": 33,
+      "drivers": "Earnings in 7 Tagen (07.05.2026) + News-KI 8/30: Negative earnings outlook and underperformance against market indicate weak momentum; no signs of heavy short interest,  + Earnings in 7d",
       "price": 13.65,
       "chg_pct": 0.0,
       "rvol": 0.0,
@@ -178,7 +178,7 @@
     "CWH": {
       "score": 18,
       "confidence": 17,
-      "drivers": "News-KI 8/30: Negative earnings miss with revenue shortfall indicates weak fundamentals, low short-squeeze potential despite possible  + UOA Call/Put 3.7×",
+      "drivers": "News-KI 8/30: Negative earnings miss with losses reported indicates weak fundamental momentum and unlikely short-squeeze candidate des + UOA Call/Put 3.7×",
       "price": 8.19,
       "chg_pct": 0.0,
       "rvol": 0.0,
@@ -197,7 +197,7 @@
     "GRPN": {
       "score": 61,
       "confidence": 33,
-      "drivers": "Earnings in 7 Tagen (07.05.2026) + News: squeeze, short squeeze + Earnings in 7d + UOA Call/Put 4.9×",
+      "drivers": "Earnings in 7 Tagen (07.05.2026) + News: short squeeze, squeeze + Earnings in 7d + UOA Call/Put 4.9×",
       "price": 14.21,
       "chg_pct": 0.0,
       "rvol": 0.0,
@@ -216,7 +216,7 @@
     "SNBR": {
       "score": 38,
       "confidence": 33,
-      "drivers": "News: squeeze, short squeeze + Earnings in 12d",
+      "drivers": "News: short squeeze, squeeze + Earnings in 12d",
       "price": 3.01,
       "chg_pct": 0.0,
       "rvol": 0.0,
@@ -231,9 +231,9 @@
       "uoa_drivers": []
     },
     "AMC": {
-      "score": 15,
-      "confidence": 17,
-      "drivers": "Earnings in 5 Tagen (05.05.2026) + Earnings in 5d",
+      "score": 33,
+      "confidence": 33,
+      "drivers": "Earnings in 5 Tagen (05.05.2026) + News: breakout + Earnings in 5d",
       "price": 1.52,
       "chg_pct": 0.0,
       "rvol": 0.0,
@@ -242,8 +242,8 @@
       "upcoming_event": "Earnings in 5 Tagen (05.05.2026)",
       "insider_buy": false,
       "stocktwits": null,
-      "combo_mult": 1.0,
-      "active_triggers": 1,
+      "combo_mult": 1.1,
+      "active_triggers": 2,
       "uoa_score": 0,
       "uoa_drivers": []
     }
