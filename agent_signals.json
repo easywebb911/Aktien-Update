@@ -1,17 +1,17 @@
 {
-  "updated": "2026-04-30T06:30:25.726325+02:00",
+  "updated": "2026-04-30T09:41:20.534964+02:00",
   "run_info": {
     "tickers_checked": 12,
     "signals_active": 3,
     "alerts_sent": 0,
-    "elapsed_s": 9.8,
+    "elapsed_s": 11.7,
     "market_phase": "Geschlossen"
   },
   "signals": {
     "KALV": {
       "score": 61,
       "confidence": 33,
-      "drivers": "Earnings in 5 Tagen (05.05.2026) + News: takeover, acquisition + Earnings in 5d + UOA Call/Put 2.1×",
+      "drivers": "Earnings in 5 Tagen (05.05.2026) + News: acquisition, takeover + Earnings in 5d + UOA Call/Put 2.1×",
       "price": 26.67,
       "chg_pct": 0.0,
       "rvol": 0.0,
@@ -28,9 +28,9 @@
       ]
     },
     "INDI": {
-      "score": 44,
+      "score": 25,
       "confidence": 33,
-      "drivers": "Earnings in 7 Tagen (07.05.2026) + News: catalyst + Earnings in 7d + UOA Call/Put 10.6×",
+      "drivers": "Earnings in 7 Tagen (07.05.2026) + Earnings in 7d + UOA Call/Put 10.6×",
       "price": 4.09,
       "chg_pct": 0.0,
       "rvol": 0.0,
@@ -39,8 +39,8 @@
       "upcoming_event": "Earnings in 7 Tagen (07.05.2026)",
       "insider_buy": false,
       "stocktwits": null,
-      "combo_mult": 1.1,
-      "active_triggers": 2,
+      "combo_mult": 1.0,
+      "active_triggers": 1,
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 10.6×"
@@ -66,9 +66,9 @@
       ]
     },
     "CLVT": {
-      "score": 15,
+      "score": 25,
       "confidence": 17,
-      "drivers": "News-KI 5/30: Routine earnings announcements without indicators of high short interest, low float, or significant catalyst for forced  + UOA Call/Put 5.0×",
+      "drivers": "News: earnings beat + UOA Call/Put 5.0×",
       "price": 2.86,
       "chg_pct": 0.0,
       "rvol": 0.0,
@@ -78,16 +78,16 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 0,
+      "active_triggers": 1,
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 5.0×"
       ]
     },
     "GRPN": {
-      "score": 33,
+      "score": 61,
       "confidence": 33,
-      "drivers": "Earnings in 7 Tagen (07.05.2026) + News-KI 8/30: Groupon mentioned only in market forecasts and speculative squeeze articles with no concrete catalysts, short interest d + Earnings in 7d + UOA Call/Put 10.1×",
+      "drivers": "Earnings in 7 Tagen (07.05.2026) + News: squeeze, short squeeze + Earnings in 7d + UOA Call/Put 10.1×",
       "price": 14.24,
       "chg_pct": 0.0,
       "rvol": 0.0,
@@ -96,8 +96,8 @@
       "upcoming_event": "Earnings in 7 Tagen (07.05.2026)",
       "insider_buy": false,
       "stocktwits": null,
-      "combo_mult": 1.0,
-      "active_triggers": 1,
+      "combo_mult": 1.1,
+      "active_triggers": 2,
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 10.1×"
@@ -159,7 +159,7 @@
     "ENVX": {
       "score": 48,
       "confidence": 33,
-      "drivers": "News: partnership, earnings beat + Earnings in 13d + UOA Call/Put 7.6×",
+      "drivers": "News: earnings beat, partnership + Earnings in 13d + UOA Call/Put 7.6×",
       "price": 6.4,
       "chg_pct": 0.0,
       "rvol": 0.0,
