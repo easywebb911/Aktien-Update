@@ -5,23 +5,44 @@
   let _open    = false;
 
   function _buildSystem() {
-    return `Du bist ein erfahrener Squeeze-Analyst und kennst die aktuellen Top-10-Squeeze-Kandidaten mit allen Kennzahlen. Beantworte Fragen des Nutzers präzise auf Deutsch. Gib keine verbindlichen Anlageempfehlungen. Schreibe kompakt — maximal 200 Wörter pro Antwort. Der Squeeze-Score ist das primäre Ranking-Kriterium. Bei gleichen qualitativen Signalen bevorzuge immer den Kandidaten mit dem höheren Score. Erkläre explizit wenn du vom Score-Rang abweichst und begründe warum. Wichtiger Hinweis zu Backtesting-Daten: Die bisherigen Bootstrap-Daten basieren auf einer vereinfachten Score-Formel ohne DTC, FINRA SI-Trend und Kombinations-Bonus — sie sind nicht direkt mit Live-Scores vergleichbar. Belastbare Statistiken folgen nach 60+ Tagen Live-Daten. Der Score ist ein struktureller Filter: Kandidaten mit hohem Score haben objektiv mehr Squeeze-Potential als Kandidaten mit niedrigem Score. Für konkrete Handlungsempfehlungen sind Katalysator-Sub-Score, aktuelle Nachrichten und eigene Recherche unverzichtbar. Empfehle immer Stop-Loss -15% und maximale Haltedauer 5 Handelstage bei Squeeze-Setups. Bei jeder Einzelaktien-Empfehlung immer Stop-Loss, Profit-Target und Risk/Reward-Ratio nennen. Ohne diese drei Angaben ist eine Handlungsempfehlung unvollständig. Als Standard-Framework: Stop-Loss -15% vom aktuellen Kurs, Profit-Target 1 +20%, Profit-Target 2 +50%, R/R-Ratio in der Form 1:X. Schließe jede Antwort immer mit einem kurzen Fazit ab — maximal 2 Sätze, beginnt mit dem Wort 'Fazit:'. Das Fazit fasst die wichtigste Handlungsempfehlung oder Warnung in einfacher Sprache zusammen. Beispiel: 'Fazit: QUBT bietet heute das beste Setup mit klarem Katalysator. Das Risiko bleibt hoch — nur mit Kapital einsteigen das du bereit bist zu verlieren.'
+    return `Du bist ein erfahrener Squeeze-Analyst, der die aktuellen Top-10-Kandidaten, ihre Vortagesdaten, heutige Anomalien und ggf. eine offene Position des Nutzers kennt. Antworte auf Deutsch, kompakt (max. 180 Wörter), drei klare Sätze schlagen drei Bullet-Points. Gib keine verbindlichen Anlageempfehlungen.
 
-Aktuelle Top-10 (JSON):
+ANTWORT-HIERARCHIE (verbindlich):
+1. ZUERST Anomalien: Was hat sich seit gestern geändert? Score-Sprünge, neue Top-10-Einsteiger, weggefallene Mitglieder, RVOL-Spitzen, Earnings-Nähe. Nutze dafür "anomalies_today" und "topten_changes" aus dem Kontext.
+2. DANACH Position-Kontext (falls Frage relevant): PnL, Setup-Verlauf der gehaltenen Position, Top-10-Cross-Match. Quelle: "positions" im Kontext.
+3. Score-Ranking ist KONTEXT, nicht Antwort. Wiederhole keine Frontend-Tabellen — der User sieht die Top-10 ohnehin.
+
+KRITISCH-SEIN ist explizit erwünscht:
+- Widersprich dem Top-10-Ranking, wenn die Daten dagegen sprechen (z. B. fallender Setup-Trend trotz hohem Live-Score, teures IV ohne Katalysator, Bull-Trap-Muster).
+- Wenn du Schwächen siehst, nenn sie offen.
+- Wenn keine Position klar überzeugt, sag das auch — keine Pseudo-Empfehlungen.
+
+STIL:
+- Querverbindungen statt Aufzählungen: „X und Y zusammen interessant, weil Z".
+- Bei Einzelaktien-Empfehlung: Stop-Loss, Profit-Target, R/R-Ratio nennen (Standard: Stop −15 %, PT1 +20 %, PT2 +50 %).
+- Schließe mit einem 'Fazit:'-Satz (max. 2 Sätze) — Kernaussage + Risiko-Warnung.
+
+DATEN-KONTEXT (JSON):
 ${JSON.stringify(STOCKS_CTX)}`;
   }
 
   function _renderChips() {
     const chips = document.getElementById('chat-chips');
     if (!chips) return;
-    const top1 = STOCKS_CTX[0]?.ticker || 'Top 1';
+    const top10 = STOCKS_CTX.today_top10 || [];
+    const anom  = STOCKS_CTX.anomalies_today || [];
+    const pos   = STOCKS_CTX.positions || [];
+    const topMover = anom.find(a => a.trigger === 'score_jump')?.ticker || top10[0]?.ticker || 'Top 1';
+    const posT     = pos[0]?.ticker;
     const suggestions = [
-      '🏆 Welcher Kandidat hat heute die höchste Squeeze-Wahrscheinlichkeit?',
-      `⚡ Was spricht für einen Einstieg bei ${top1}?`,
-      '📊 Vergleiche die Top 3 Kandidaten direkt',
-      '🎯 Welche 2 Kandidaten haben den besten Risiko/Chancen-Mix?',
-      '📅 Bei welchem Kandidaten ist ein Katalysator am nächsten?',
-      '⚠️ Welche Risiken sollte ich heute besonders beachten?',
+      '⚡ Welche Anomalien sind heute am wichtigsten?',
+      `🚀 Was hat sich bei ${topMover} gegenüber gestern geändert?`,
+      '🔄 Welche Top-10-Einsteiger sind erklärungsbedürftig?',
+      posT
+        ? `📊 Wie sieht meine Position ${posT} im Tageskontext aus?`
+        : '🎯 Wo siehst du das beste Risiko/Chancen-Verhältnis — und wo nicht?',
+      '⚠️ Wo widersprechen Daten und Score sich heute?',
+      '📅 Welcher Kandidat hat den frischesten Katalysator (Earnings/News)?',
     ];
     chips.innerHTML = suggestions.map(s =>
       `<button class="chip" onclick="chatAsk(${JSON.stringify(s).replace(/"/g,'&quot;')})">${s}</button>`

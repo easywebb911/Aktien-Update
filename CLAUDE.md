@@ -291,6 +291,55 @@ Earnings-Sofort-Alert hat Vorrang vor Anomalien (kein Doppel-Push).
 
 ---
 
+## Chat-Verhalten
+
+Der Frontend-Chat (Claude Haiku via `chat_script.jinja`) soll **synthetisieren,
+nicht aufzählen** — sonst hat er keinen Mehrwert gegenüber dem sichtbaren
+Top-10-Block.
+
+### Antwort-Hierarchie (verbindlich, im System-Prompt verankert)
+
+1. **ZUERST Anomalien** — was hat sich seit gestern geändert? Score-Sprünge,
+   neue Top-10-Einsteiger, weggefallene Mitglieder, RVOL-Spitzen, Earnings-
+   Nähe. Quelle im Chat-Kontext: `anomalies_today` + `topten_changes`.
+2. **DANACH Position-Kontext** (wenn Frage relevant) — PnL, Setup-Verlauf
+   der gehaltenen Position, Top-10-Cross-Match. Quelle: `positions`.
+3. **Score-Ranking ist Kontext, nicht Antwort.** Wiederhole keine Frontend-
+   Tabellen.
+
+### Kritisch-sein ist explizit erlaubt
+
+- Widerspruch zum Top-10-Ranking ist erwünscht, wenn Daten dagegen sprechen
+  (fallender Setup-Trend trotz hohem Live-Score, teures IV ohne Katalysator,
+  Bull-Trap-Muster, etc.).
+- Schwächen offen benennen.
+- Wenn keine Position klar überzeugt: das auch sagen — keine Pseudo-
+  Empfehlungen.
+
+### Datenquellen im Chat-Kontext
+
+Aufgebaut von `_build_chat_synthesis_ctx()` in `generate_report.py`,
+serialisiert als JSON in `STOCKS_CTX` an den Chat:
+
+| Feld | Inhalt |
+|---|---|
+| `today_top10[]`     | pro Ticker `setup_today`, `setup_yesterday`, `setup_delta`, `monster_today`, `ki_today`, RVOL, RSI, Earnings-Tage, Sektor, SI-Trend |
+| `anomalies_today[]` | `{ticker, trigger, detail}` — `score_jump`, `rvol_high`, `earnings_imminent`, `topten_entry`, `topten_exit` |
+| `topten_changes`    | `{new: [...], dropped: [...]}` vs. Vortag |
+| `positions[]`       | `entry_date`, `entry_price`, `current_price`, `pnl_pct`, `in_top10`, `setup_today`, `monster_today` |
+| `today_date` / `yesterday_date` | DE-Datums-Strings, auf die die Diffs sich beziehen |
+
+### Hinweise
+
+- KI-Agent-Anomalien (UOA-Vol/OI-Extreme, RVOL-vs-Vortag-Sprung,
+  Gap+Hold-Combo) liegen erst im stündlichen ki_agent-Tick auf —
+  `anomalies_today` im Chat-Kontext deckt nur die Daily-Run-zugänglichen
+  Trigger ab. Für Echtzeit-Info dient der ntfy-Push.
+- Chips am Chat-Boden referenzieren jetzt Anomalie-Mover und Position
+  statt Top-1-Score-Ticker — siehe `_renderChips()` in `chat_script.jinja`.
+
+---
+
 ## Session-Handover-Regel
 
 Wenn der User die Sitzung mit „Gute Nacht" (oder Varianten wie „Schlaf gut",

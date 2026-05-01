@@ -4150,6 +4150,187 @@ def _build_card_ctx(i: int, s: dict) -> dict:
     }
 
 
+def _build_chat_synthesis_ctx(stocks: list[dict], score_history: dict) -> dict:
+    """Erweiterter Chat-Kontext mit Tagesvergleich + Anomalien + Position.
+
+    Liefert ein Dict mit:
+      - ``today_top10``: pro Top-10-Ticker setup_today + setup_yesterday +
+        setup_delta (sowie alle Roh-Kennzahlen).
+      - ``anomalies_today``: erkennbare „was hat sich geändert"-Events
+        (Score-Sprung ≥15, Top-10-Eintritte/-Austritte, frische Earnings,
+        starke RVOL-Werte). KI-Agent-Anomalien (UOA/RVOL-Vortagsvergleich)
+        sind nicht enthalten — die liegen erst im nächsten ki_agent-Tick vor.
+      - ``topten_changes``: ``{new: [...], dropped: [...]}`` vs. Vortag.
+      - ``positions``: positions.json + PnL gegen heutigen Spot (Top-10
+        Cross-Match) — leer wenn `positions.json` fehlt.
+      - ``yesterday_date``: deutscher Datums-String, auf den die Diffs
+        sich beziehen.
+    Keine Calls in Code-Pfade mit Side-Effects; pure-Funktion-Helper.
+    """
+    def _entry_date(e):
+        return e.get("date") if isinstance(e, dict) else (
+            e[0] if isinstance(e, (list, tuple)) and e else None)
+
+    def _entry_score(e):
+        return e.get("score") if isinstance(e, dict) else (
+            e[1] if isinstance(e, (list, tuple)) and len(e) >= 2 else None)
+
+    # Yesterday-Datum: zweitneuester Eintrag in score_history (alle Datums-
+    # Strings einsammeln, sortieren). Heute ist der neueste, gestern der
+    # zweitneueste — robust gegen Wochenenden/Feiertage.
+    all_dates: set[str] = set()
+    for entries in (score_history or {}).values():
+        for e in (entries or []):
+            d = _entry_date(e)
+            if d:
+                all_dates.add(d)
+
+    def _parse_de(d):
+        try:
+            return datetime.strptime(d, "%d.%m.%Y")
+        except (ValueError, TypeError):
+            return datetime.min
+
+    sorted_dates  = sorted(all_dates, key=_parse_de, reverse=True)
+    today_str     = sorted_dates[0] if sorted_dates else ""
+    yesterday_str = sorted_dates[1] if len(sorted_dates) >= 2 else ""
+
+    today_set = {s["ticker"] for s in stocks}
+    today_top10: list[dict] = []
+    for s in stocks:
+        ticker  = s["ticker"]
+        entries = (score_history or {}).get(ticker) or []
+        # Gestriger raw setup-Eintrag, wenn vorhanden.
+        prev_score = None
+        if yesterday_str:
+            for e in reversed(entries):
+                if _entry_date(e) == yesterday_str:
+                    prev_score = _entry_score(e)
+                    break
+
+        setup_today  = round(_safe_float(s.get("score", 0)), 1)
+        prev_score_f = (round(_safe_float(prev_score), 1)
+                        if prev_score is not None else None)
+        delta        = (round(setup_today - prev_score_f, 1)
+                        if prev_score_f is not None else None)
+
+        _fd   = s.get("finra_data") or {}
+        _opts = s.get("options") or {}
+        today_top10.append({
+            "ticker":          ticker,
+            "company":         s.get("company_name", ""),
+            "setup_today":     setup_today,
+            "setup_yesterday": prev_score_f,
+            "setup_delta":     delta,
+            "monster_today":   (round(_safe_float(s.get("monster_score", 0)), 1)
+                                if s.get("monster_score") is not None else None),
+            "ki_today":        s.get("ki_signal_score"),
+            "price":           round(_safe_float(s.get("price", 0)), 2),
+            "change":          round(_safe_float(s.get("change", 0)), 2),
+            "short_float":     round(_safe_float(s.get("short_float", 0)), 1),
+            "short_ratio":     round(_safe_float(s.get("short_ratio", 0)), 1),
+            "rel_volume":      round(_safe_float(s.get("rel_volume", 0)), 2),
+            "rsi14":           s.get("rsi14"),
+            "atm_iv":          _opts.get("atm_iv"),
+            "earnings_days":   s.get("earnings_days"),
+            "sector":          s.get("sector", ""),
+            "si_trend":        _fd.get("trend", "no_data"),
+        })
+
+    # Top-10-Eintritte/-Austritte vs. Vortag
+    yesterday_top10_set: set[str] = set()
+    if yesterday_str:
+        for t, entries in (score_history or {}).items():
+            for e in entries:
+                if _entry_date(e) == yesterday_str:
+                    yesterday_top10_set.add(t)
+                    break
+
+    new_in_top10  = sorted(today_set - yesterday_top10_set)
+    dropped_top10 = sorted(yesterday_top10_set - today_set)
+
+    # Anomalie-Liste — bewusst minimal, weil ki_agent-eigene Trigger
+    # (UOA-Extreme, RVOL-Combo) erst im stündlichen Tick auflaufen. Hier:
+    # gestern→heute Score-Sprung, Top-10-Bewegung, Earnings-Nähe, RVOL-Spike.
+    anomalies: list[dict] = []
+    for d in today_top10:
+        if d["setup_delta"] is not None and d["setup_delta"] >= ANOMALY_SCORE_JUMP:
+            anomalies.append({
+                "ticker":  d["ticker"],
+                "trigger": "score_jump",
+                "detail":  (f"Setup {d['setup_today']:.0f} ↑ "
+                            f"(gestern {d['setup_yesterday']:.0f}, +{d['setup_delta']:.0f})"),
+            })
+        if d["rel_volume"] >= ANOMALY_RVOL_TODAY:
+            anomalies.append({
+                "ticker":  d["ticker"],
+                "trigger": "rvol_high",
+                "detail":  f"RVOL {d['rel_volume']:.1f}× heute",
+            })
+        if d["earnings_days"] is not None and 0 <= d["earnings_days"] <= 2:
+            anomalies.append({
+                "ticker":  d["ticker"],
+                "trigger": "earnings_imminent",
+                "detail":  f"Earnings in {d['earnings_days']}d",
+            })
+    for t in new_in_top10:
+        anomalies.append({
+            "ticker":  t,
+            "trigger": "topten_entry",
+            "detail":  "Neu in Top-10",
+        })
+    for t in dropped_top10:
+        anomalies.append({
+            "ticker":  t,
+            "trigger": "topten_exit",
+            "detail":  "Aus Top-10 gefallen",
+        })
+
+    # Positions-Kontext: positions.json + PnL gegen heutigen Spot.
+    # Exit-Score wird hier NICHT berechnet (würde yfinance-Fetches je
+    # Position auslösen); compute_exit_score läuft separat in Step 5.
+    by_ticker = {s["ticker"]: s for s in stocks}
+    positions_out: list[dict] = []
+    try:
+        positions = _load_positions()
+    except Exception:
+        positions = {}
+    for ticker, pos in (positions or {}).items():
+        s = by_ticker.get(ticker)
+        entry_price = pos.get("entry_price")
+        cur_price   = s.get("price") if s else None
+        pnl_pct = None
+        try:
+            if entry_price and cur_price:
+                pnl_pct = round(
+                    (float(cur_price) - float(entry_price)) / float(entry_price) * 100, 2
+                )
+        except (TypeError, ValueError, ZeroDivisionError):
+            pnl_pct = None
+        positions_out.append({
+            "ticker":         ticker,
+            "entry_date":     pos.get("entry_date"),
+            "entry_price":    entry_price,
+            "current_price":  (round(_safe_float(cur_price), 2)
+                               if cur_price is not None else None),
+            "pnl_pct":        pnl_pct,
+            "in_top10":       s is not None,
+            "setup_today":    (round(_safe_float(s.get("score")), 1)
+                               if s and s.get("score") is not None else None),
+            "monster_today":  (round(_safe_float(s.get("monster_score")), 1)
+                               if (s and s.get("monster_score") is not None) else None),
+        })
+
+    return {
+        "today_top10":     today_top10,
+        "anomalies_today": anomalies,
+        "topten_changes":  {"new": new_in_top10, "dropped": dropped_top10},
+        "positions":       positions_out,
+        "yesterday_date":  yesterday_str,
+        "today_date":      today_str,
+    }
+
+
 def _build_context(stocks: list[dict], report_date: str) -> dict:
     """Zentrale Context-Erstellung für Template-Rendering.
 
@@ -4219,6 +4400,7 @@ def _build_context(stocks: list[dict], report_date: str) -> dict:
                                else "→ stabil"),
                 }
     except Exception:
+        _wl_raw    = {}
         _wl_scores = {}
         _wl_hist   = {}
     wl_scores_json = json.dumps(_wl_scores)
@@ -4230,26 +4412,10 @@ def _build_context(stocks: list[dict], report_date: str) -> dict:
     _wl_top10 = {_s["ticker"]: _wl_card_payload(_s) for _s in stocks}
     wl_top10_json = json.dumps(_wl_top10, default=str)
 
-    # Compact top-10 snapshot for Claude chat system prompt
-    _chat_ctx = []
-    for _s in stocks:
-        _fd   = _s.get("finra_data") or {}
-        _opts = _s.get("options") or {}
-        _chat_ctx.append({
-            "ticker":      _s["ticker"],
-            "score":       round(_s.get("score", 0), 1),
-            "company":     _s.get("company_name", ""),
-            "price":       round(_s.get("price", 0), 2),
-            "change":      round(_s.get("change", 0), 2),
-            "short_float": round(_s.get("short_float", 0), 1),
-            "short_ratio": round(_s.get("short_ratio", 0), 1),
-            "rel_volume":  round(_s.get("rel_volume", 0), 2),
-            "si_trend":    _fd.get("trend", "no_data"),
-            "rsi14":       _s.get("rsi14"),
-            "atm_iv":      _opts.get("atm_iv"),
-            "earnings_days": _s.get("earnings_days"),
-            "sector":      _s.get("sector", ""),
-        })
+    # Compact top-10 snapshot for Claude chat system prompt — strukturiert mit
+    # Tagesvergleich, Anomalie-Liste, Position-Kontext und Top-10-Diff.
+    # Siehe _build_chat_synthesis_ctx-Docstring für Schema.
+    _chat_ctx     = _build_chat_synthesis_ctx(stocks, _wl_raw)
     chat_ctx_json = json.dumps(_chat_ctx, default=str)
 
     # Pre-render Jinja2-Templates (Phase 2+: head/CSS, Phase 4a: Chat-Panel-HTML,
