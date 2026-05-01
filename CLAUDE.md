@@ -392,6 +392,44 @@ Komma).
 
 ---
 
+## Backtest-Schema (Stufe 1 — A2-Validierung)
+
+Drei neue Felder pro `backtest_history.json`-Eintrag, persistiert ab
+01.05.2026 für eine **spätere** Auswertung (Bahn A2 ab Juli 2026,
+≥ 200 Live-Einträge). Aktuell nur Daten-Persistierung — keine
+Frontend-Anzeige, keine Score-Konsequenzen.
+
+| Feld | Typ | Bedeutung | Initialwert |
+|---|---|---|---|
+| `max_drawdown_pct` | Float (negativ) | Max. Drawdown vom rolling Cummax-High zur Tagestief über die ersten ≤ 10 Handelstage seit Entry | `0.0` (kein Drawdown) |
+| `market_regime` | Str | SPY 50-Trading-Day-Trend zum Entry-Tag: `bull` (>+5 %), `bear` (<−5 %), `neutral` | aus `_market_regime_from_spy()` |
+| `vix_level` | Float \| None | VIX-Schluss zum Entry-Tag (yfinance `^VIX`) | `_vix_close()`, None bei Fehler |
+
+### Persistenz-Logik
+
+- **Neue Einträge** (heute): `market_regime` + `vix_level` als Snapshot
+  zum Entry-Zeitpunkt fest persistiert (immutable). `max_drawdown_pct`
+  startet bei `0.0`.
+- **Rolling Update** (< 14 Kalendertage alt, ≈ 10 Handelstage): pro
+  Daily-Run wird `max_drawdown_pct` über `_compute_max_drawdown()` neu
+  berechnet via Batch-yfinance-Download aller aktiven Ticker.
+  Idempotent — Ergebnis ist immer der bisher schlechteste Drawdown im
+  Fenster. Nach 14 Tagen ist der Wert finalisiert (kein Update mehr).
+- **Legacy-Einträge** ohne `max_drawdown_pct`-Feld bleiben unangetastet
+  (Backwards-Compat); nur neue Einträge ab Deploy bekommen das Feld.
+
+### Helper
+
+- `_market_regime_from_spy(spy_hist)` — pure, fail-soft → "neutral"
+- `_vix_close()` — None bei Fetch-Fehler
+- `_compute_max_drawdown(df_window)` — pure, akzeptiert max-10-Tage-Slice
+
+Alle drei Helper landen oben in `_append_backtest_entries`-Region in
+`generate_report.py`. SPY wird einmal pro Run gefetcht und an
+`_market_regime_from_spy` durchgereicht.
+
+---
+
 ## Score-Methodik-Sync-Regel
 
 Die **Score-Methodik & Filterkriterien**-Sektion in

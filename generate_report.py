@@ -7421,6 +7421,64 @@ def _prune_backtest_history(entries: list[dict], max_days: int = None) -> list[d
     return kept
 
 
+def _market_regime_from_spy(spy_hist=None) -> str:
+    """SPY 50-Trading-Day-Trend → ``bull`` / ``bear`` / ``neutral``.
+
+    Schwelle: ±5 % über die letzten 50 Handelstage. yfinance ``period="3mo"``
+    liefert ~63 Handelstage; ``Close.iloc[-51]`` ist genau 50 Handelstage
+    vor dem letzten Schlusskurs. Bei Daten- oder Fetch-Fehler → "neutral".
+    """
+    try:
+        if spy_hist is None:
+            spy_hist = yf.download("SPY", period="3mo",
+                                   progress=False, threads=False)
+        if spy_hist is None or spy_hist.empty:
+            return "neutral"
+        close = spy_hist["Close"].squeeze().dropna()
+        if len(close) < 51:
+            return "neutral"
+        cur = float(close.iloc[-1])
+        ref = float(close.iloc[-51])
+        if ref <= 0:
+            return "neutral"
+        delta_pct = (cur - ref) / ref * 100.0
+        if delta_pct >  5.0: return "bull"
+        if delta_pct < -5.0: return "bear"
+        return "neutral"
+    except Exception as exc:
+        log.debug("SPY market-regime fetch failed: %s", exc)
+        return "neutral"
+
+
+def _vix_close() -> float | None:
+    """Letzter VIX-Schlusskurs (yfinance ^VIX). None bei Fetch-Fehler."""
+    try:
+        h = yf.download("^VIX", period="5d", progress=False, threads=False)
+        if h is not None and not h.empty:
+            return round(float(h["Close"].squeeze().dropna().iloc[-1]), 2)
+    except Exception as exc:
+        log.debug("^VIX fetch failed: %s", exc)
+    return None
+
+
+def _compute_max_drawdown(df_window) -> float | None:
+    """Max-Drawdown vom rolling-Peak (Cummax-High) zur Tagestief (Low) im Fenster.
+
+    Args:
+        df_window: DataFrame mit Spalten ``High``/``Low`` für die ersten ≤10
+                   Handelstage seit Entry (inklusive Entry-Tag als Index 0).
+    Returns negativster %-Drop oder ``0.0`` bei zu wenig Daten.
+    """
+    try:
+        if df_window is None or df_window.empty or len(df_window) < 2:
+            return 0.0
+        roll_peak = df_window["High"].cummax()
+        dd = (df_window["Low"] - roll_peak) / roll_peak * 100.0
+        return round(float(dd.min()), 2)
+    except Exception:
+        return None
+
+
 def _build_backtest_extension(s: dict, pool_position: int, pool_size: int,
                               agent_signals: dict) -> dict:
     """Liefert das Schema-Erweiterungs-Dict (Bahn B) für einen Top-10-Eintrag.
@@ -7490,6 +7548,21 @@ def _append_backtest_entries(top10: list[dict], report_date: str,
             agent_signals = (json.load(fh) or {}).get("signals") or {}
     except (FileNotFoundError, json.JSONDecodeError):
         agent_signals = {}
+
+    # Bahn-A2-Stufe-1: Markt-Regime + VIX einmal pro Run abrufen. Werden auf
+    # NEUE Einträge persistiert; die rolling Drawdown-Aktualisierung läuft
+    # weiter unten für Einträge < 14 Kalendertage alt.
+    _spy_hist = None
+    try:
+        _spy_hist = yf.download("SPY", period="3mo",
+                                progress=False, threads=False)
+    except Exception as _exc:
+        log.debug("SPY pre-fetch for backtest schema failed: %s", _exc)
+    market_regime = _market_regime_from_spy(_spy_hist)
+    vix_level     = _vix_close()
+    log.info("Backtest-Schema (Stufe 1): market_regime=%s, vix=%s",
+             market_regime, vix_level)
+
     n_added = 0
     for pos, s in enumerate(top10, start=1):
         key = (s["ticker"], report_date)
@@ -7512,6 +7585,11 @@ def _append_backtest_entries(top10: list[dict], report_date: str,
             "return_3d_t1":  None,
             "return_5d_t1":  None,
             "return_10d_t1": None,
+            # Bahn A2 Stufe 1 — Schema-Erweiterung für spätere Auswertung.
+            # max_drawdown_pct wird über 10 Handelstage rolling aktualisiert.
+            "max_drawdown_pct": 0.0,
+            "market_regime":    market_regime,
+            "vix_level":        vix_level,
         }
         # Bahn B: Schema-Erweiterung (rückwärtskompatibel — alte Einträge
         # bleiben mit 16 Feldern unverändert; neue bekommen 14 zusätzliche).
@@ -7521,6 +7599,58 @@ def _append_backtest_entries(top10: list[dict], report_date: str,
         ))
         history.append(entry)
         n_added += 1
+
+    # Rolling Drawdown-Aktualisierung: pro Eintrag < 14 Kalendertage (≈10
+    # Handelstage) alt die Ticker-History seit Entry holen und max_drawdown
+    # neu berechnen. Ein Batch-Download für alle aktiven Ticker spart
+    # Round-Trips; pro Entry wird die Datums-Slice ausgewertet.
+    today_d = date.today()
+    active_dd: list[tuple[dict, "datetime"]] = []
+    for e in history:
+        try:
+            edate = datetime.strptime(e.get("date", ""), "%d.%m.%Y").date()
+        except (TypeError, ValueError):
+            continue
+        # Nur Einträge mit dem neuen Feld aktualisieren — alte Einträge
+        # ohne max_drawdown_pct bleiben unangetastet (Backwards-Compat).
+        if "max_drawdown_pct" not in e:
+            continue
+        days_old = (today_d - edate).days
+        if days_old <= 0 or days_old > 14:
+            continue
+        active_dd.append((e, edate))
+
+    if active_dd:
+        unique_tickers = sorted({e["ticker"] for e, _ in active_dd})
+        try:
+            dd_batch = yf.download(
+                " ".join(unique_tickers), period="1mo",
+                progress=False, threads=False,
+                group_by="ticker" if len(unique_tickers) > 1 else "column",
+            )
+        except Exception as _exc:
+            log.debug("Drawdown batch fetch failed: %s", _exc)
+            dd_batch = None
+
+        n_dd = 0
+        for e, edate in active_dd:
+            try:
+                if dd_batch is None or dd_batch.empty:
+                    continue
+                df = (dd_batch[e["ticker"]] if len(unique_tickers) > 1
+                      else dd_batch)
+                if df is None or df.empty:
+                    continue
+                df_since = df[df.index.date >= edate].iloc[:11]
+                dd = _compute_max_drawdown(df_since)
+                if dd is not None:
+                    e["max_drawdown_pct"] = dd
+                    n_dd += 1
+            except Exception:
+                continue
+        log.info("Backtest-Schema (Stufe 1): max_drawdown aktualisiert für %d/%d aktive Einträge",
+                 n_dd, len(active_dd))
+
     history = _prune_backtest_history(history)
     # Stabil sortieren: neueste Einträge zuletzt → Git-Diff zeigt nur den Append
     def _sortkey(e):
