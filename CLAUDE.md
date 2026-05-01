@@ -248,6 +248,49 @@ mit dem raw-Eintrag am `entry_date`.
 
 ---
 
+## Anomalie-Push-System
+
+Der KI-Agent feuert ntfy-Pushes **nicht mehr per Monster≥70-Schwelle**,
+sondern bei einer von sechs **Anomalien**. Begründung: User checkt die
+Top-10 ohnehin manuell — Push ist für Ereignisse, die sonst übersehen
+würden. Jeder Trigger-Typ hat einen eigenen Cooldown via Key-Prefix
+``anomaly_<trigger>_<ticker>`` in `agent_state.json`.
+
+| Trigger | Bedingung (alle Konstanten in `config.py`) | Severity |
+|---|---|---|
+| `rvol_explosion`  | RVOL ≥ `ANOMALY_RVOL_TODAY` (5.0) **und** RVOL ≥ `ANOMALY_RVOL_VS_YESTERDAY` × Vortag (2.0×) | high |
+| `uoa_extreme`     | Call-Vol/OI ATM ≥ `ANOMALY_UOA_VOL_OI` (10.0) | high |
+| `score_jump`      | Setup heute − gestern (raw aus `score_history`) ≥ `ANOMALY_SCORE_JUMP` (15) | medium |
+| `gap_combo`       | gap_pct ≥ `ANOMALY_GAP_PCT` (5 %) **und** state==`strong_hold` **und** RVOL ≥ `ANOMALY_GAP_RVOL` (3.0) | high |
+| `perfect_storm`   | active_triggers ≥ `ANOMALY_PERFECT_STORM_TRIGGERS` (4/4) | high |
+| `monster_backup`  | monster_score ≥ `ANOMALY_MONSTER_BACKUP` (90) — Sicherheitsnetz für extreme Fälle | high |
+
+Cooldown: `ANOMALY_COOLDOWN_HOURS = 6` pro **(Ticker × Trigger-Typ)**.
+Mehrere Anomalien gleichen Tickers in einem Run sind möglich.
+Earnings-Sofort-Alert hat Vorrang vor Anomalien (kein Doppel-Push).
+
+### Datenpfad
+
+- **`uoa_atm_ratio`** und `uoa_cp_ratio` werden in `fetch_uoa_signal()`
+  zusätzlich zum Score berechnet und in `agent_signals.signals[ticker]`
+  persistiert. `detect_anomalies()` liest direkt — keine String-Parses.
+- **`gap_states`** in `app_data.json` (`{ticker: {pct, state}}`) wird vom
+  Daily-Report via `_gap_hold_pts()` für jeden Top-10-Ticker geschrieben.
+  `save_signals()` (Read-Modify-Write, `**existing`-Spread) preserviert
+  das Feld zwischen ki_agent-Ticks.
+- **Score-Sprung**: vergleicht `setup_today` (smoothed, aus `setup_scores`)
+  gegen den vorletzten Eintrag in `score_history` (raw). Asymmetrisch
+  bewusst — der heutige geglättete Wert ist genau das, was die Kachel
+  zeigt; gestrige Vergleichsbasis ist der raw Vortags-Run-Score.
+
+### Deprecated
+
+- `ALERT_THRESHOLD_STRONG = 70` ist **kein** Push-Trigger mehr. Konstante
+  bleibt für E-Mail-Subject-Logik (`⚡⚡` vs `⚡`-Prefix) erhalten.
+- Frühere „Monster ≥ 70 → Push"-Logik in `ki_agent.main()` ist entfernt.
+
+---
+
 ## Session-Handover-Regel
 
 Wenn der User die Sitzung mit „Gute Nacht" (oder Varianten wie „Schlaf gut",

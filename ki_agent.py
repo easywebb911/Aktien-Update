@@ -183,10 +183,11 @@ def save_signals(signals: dict) -> None:
         score_history = {}
 
     # Read-modify-write: vom Daily-Report geschriebene Felder (monster_scores,
-    # setup_scores, watchlist_cards) durchreichen — der KI-Agent besitzt nur
-    # score_history, agent_signals und generated_at. Ohne diese Preservation
-    # würde der Alert-Pfad nach dem ersten 2 h-Tick keine Monster-/Setup-
-    # Scores mehr finden und alle Folge-Alerts still skippen.
+    # setup_scores, gap_states, watchlist_cards) durchreichen — der KI-Agent
+    # besitzt nur score_history, agent_signals und generated_at. Ohne diese
+    # Preservation würde der Alert-Pfad nach dem ersten Stundentick keine
+    # Monster-/Setup-Scores oder Gap-States mehr finden und Anomalie-Trigger
+    # (RVOL-Combo, Score-Sprung) still skippen.
     existing: dict = {}
     try:
         path = Path("app_data.json")
@@ -925,7 +926,7 @@ def fetch_stocktwits_sentiment(ticker: str) -> dict:
             "n_total": n_total, "n_bull": n_bull, "n_bear": n_bear}
 
 
-def fetch_uoa_signal(ticker: str) -> tuple[int, list[str]]:
+def fetch_uoa_signal(ticker: str) -> tuple[int, list[str], dict]:
     """Unusual Options Activity Signal aus yfinance Options-Chain.
 
     Heuristik (0–30 Pkt) für die nächste Expiration innerhalb
@@ -939,11 +940,13 @@ def fetch_uoa_signal(ticker: str) -> tuple[int, list[str]]:
         → +``UOA_CP_BIAS`` Pkt
 
     Returns:
-        ``(uoa_score, drivers)`` — z. B. ``(20, ["UOA Call-Vol/OI 6.2× ATM"])``.
-        ``(0, [])`` bei jedem Fehler oder fehlenden Daten. Niemals Raise.
+        ``(uoa_score, drivers, meta)`` — meta enthält numerische Roh-Ratios
+        ``atm_ratio`` und ``cp_ratio`` (Float oder ``None``), die in
+        ``agent_signals.json`` persistiert werden für die Anomalie-Detektion.
+        ``(0, [], {})`` bei jedem Fehler. Niemals Raise.
     """
     if not UOA_ENABLED or not ticker:
-        return 0, []
+        return 0, [], {}
     try:
         tk = yf.Ticker(ticker)
 
@@ -959,17 +962,17 @@ def fetch_uoa_signal(ticker: str) -> tuple[int, list[str]]:
                 if hist is not None and not hist.empty:
                     spot = float(hist["Close"].iloc[-1])
             except Exception:
-                return 0, []
+                return 0, [], {}
         if spot <= 0:
-            return 0, []
+            return 0, [], {}
 
         # Nächste Expiration innerhalb des Fensters.
         try:
             expirations = tk.options or ()
         except Exception:
-            return 0, []
+            return 0, [], {}
         if not expirations:
-            return 0, []
+            return 0, [], {}
         today = date.today()
         chosen_exp: str | None = None
         for exp in expirations:
@@ -982,16 +985,18 @@ def fetch_uoa_signal(ticker: str) -> tuple[int, list[str]]:
                 chosen_exp = exp
                 break
         if not chosen_exp:
-            return 0, []
+            return 0, [], {}
 
         chain = tk.option_chain(chosen_exp)
         calls = getattr(chain, "calls", None)
         puts  = getattr(chain, "puts",  None)
         if calls is None or puts is None or calls.empty:
-            return 0, []
+            return 0, [], {}
 
         score = 0
         drivers: list[str] = []
+        atm_ratio: float | None = None
+        cp_ratio:  float | None = None
 
         # ATM-Filter ±UOA_ATM_BAND_PCT um Spot.
         lo = spot * (1 - UOA_ATM_BAND_PCT)
@@ -1000,26 +1005,27 @@ def fetch_uoa_signal(ticker: str) -> tuple[int, list[str]]:
         atm_call_vol = float(atm_calls["volume"].fillna(0).sum())
         atm_call_oi  = float(atm_calls["openInterest"].fillna(0).sum())
         if atm_call_oi > 0:
-            ratio = atm_call_vol / atm_call_oi
-            if ratio > UOA_VOL_OI_STRONG:
+            atm_ratio = atm_call_vol / atm_call_oi
+            if atm_ratio > UOA_VOL_OI_STRONG:
                 score += UOA_ATM_STRONG
-                drivers.append(f"UOA Call-Vol/OI {ratio:.1f}× ATM")
-            elif ratio > UOA_VOL_OI_WEAK:
+                drivers.append(f"UOA Call-Vol/OI {atm_ratio:.1f}× ATM")
+            elif atm_ratio > UOA_VOL_OI_WEAK:
                 score += UOA_ATM_WEAK
-                drivers.append(f"UOA Call-Vol/OI {ratio:.1f}× ATM")
+                drivers.append(f"UOA Call-Vol/OI {atm_ratio:.1f}× ATM")
 
         # Gesamt-Call/Put-Volumen-Bias über alle Strikes.
         total_call_vol = float(calls["volume"].fillna(0).sum())
         total_put_vol  = float(puts["volume"].fillna(0).sum()) if puts is not None and not puts.empty else 0.0
-        if total_put_vol > 0 and total_call_vol > UOA_CP_RATIO * total_put_vol:
-            score += UOA_CP_BIAS
+        if total_put_vol > 0:
             cp_ratio = total_call_vol / total_put_vol
-            drivers.append(f"UOA Call/Put {cp_ratio:.1f}×")
+            if total_call_vol > UOA_CP_RATIO * total_put_vol:
+                score += UOA_CP_BIAS
+                drivers.append(f"UOA Call/Put {cp_ratio:.1f}×")
 
-        return score, drivers
+        return score, drivers, {"atm_ratio": atm_ratio, "cp_ratio": cp_ratio}
     except Exception as exc:
         log.debug("UOA fetch failed for %s: %s", ticker, exc)
-        return 0, []
+        return 0, [], {}
 
 
 def _stocktwits_pts(st: dict | None) -> int:
@@ -1615,6 +1621,171 @@ def _extract_latest_scores(raw: dict | None) -> dict[str, float]:
     return result
 
 
+def _anomaly_is_on_cooldown(key: str, state: dict) -> bool:
+    """Cooldown-Check für Anomalie-Push mit eigener Dauer (ANOMALY_COOLDOWN_HOURS).
+
+    State-File geteilt mit anderen Cooldowns; Kollisionen via Key-Prefix
+    ``anomaly_<trigger>_<ticker>`` ausgeschlossen.
+    """
+    ts = (state.get("cooldowns") or {}).get(key)
+    if not ts:
+        return False
+    try:
+        last = datetime.fromisoformat(ts)
+    except (TypeError, ValueError):
+        return False
+    return (now_berlin() - last).total_seconds() < ANOMALY_COOLDOWN_HOURS * 3600
+
+
+def _anomaly_set_cooldown(key: str, state: dict) -> None:
+    state.setdefault("cooldowns", {})[key] = now_berlin().isoformat()
+
+
+def _send_anomaly_ntfy(ticker: str, body: str) -> bool:
+    """Single-shot ntfy.sh Push für Anomalie-Trigger. Fail-soft."""
+    if not NTFY_ENABLED or not NTFY_TOPIC:
+        return False
+    try:
+        requests.post(
+            f"https://ntfy.sh/{NTFY_TOPIC}",
+            data=body.encode("utf-8"),
+            headers={
+                "Title":    f"Anomaly: {ticker}",
+                "Priority": "high",
+                "Tags":     "warning",
+            },
+            timeout=5,
+        )
+        return True
+    except Exception as exc:
+        log.warning("ntfy anomaly push fehlgeschlagen für %s: %s", ticker, exc)
+        return False
+
+
+def detect_anomalies(ticker: str, signal: dict, prev_signal: dict | None,
+                     app_data: dict) -> list[dict]:
+    """Erkennt sechs Anomalie-Trigger pro Ticker.
+
+    Argumente:
+      • ``signal``      — aktuelles ``new_signals[ticker]``-Dict (dieser Run)
+      • ``prev_signal`` — vorheriges Signal aus ``old_sigs.get(ticker)``
+                          (vorletzter Run, für RVOL-vs-Vortag-Vergleich)
+      • ``app_data``    — kompletter ``app_data.json``-Dict (für
+                          ``setup_scores``/``monster_scores``/``score_history``/
+                          ``gap_states``)
+
+    Returns: Liste von ``{trigger, severity, message}``-Dicts. Jeder Eintrag
+    löst einen separaten Push mit eigenem Cooldown aus. Mehrere Anomalien
+    gleichen Tickers in einem Run sind möglich (z. B. RVOL-Explosion plus
+    Score-Sprung).
+    """
+    out: list[dict] = []
+    if not ANOMALY_TRIGGERS_ENABLED:
+        return out
+
+    setup_today  = (app_data.get("setup_scores")   or {}).get(ticker)
+    monster      = (app_data.get("monster_scores") or {}).get(ticker)
+    gap_meta     = (app_data.get("gap_states")     or {}).get(ticker) or {}
+    ki_score     = signal.get("score") or 0
+    drivers_str  = signal.get("drivers") or ""
+
+    setup_str = (f"Setup {setup_today:.0f}"
+                 if isinstance(setup_today, (int, float)) else "Setup —")
+
+    # a) RVOL-Explosion
+    try:
+        rvol_today = float(signal.get("rvol") or 0.0)
+    except (TypeError, ValueError):
+        rvol_today = 0.0
+    try:
+        rvol_prev = float((prev_signal or {}).get("rvol") or 0.0)
+    except (TypeError, ValueError):
+        rvol_prev = 0.0
+    if (rvol_today >= ANOMALY_RVOL_TODAY
+            and rvol_prev > 0
+            and rvol_today / rvol_prev >= ANOMALY_RVOL_VS_YESTERDAY):
+        out.append({
+            "trigger":  "rvol_explosion",
+            "severity": "high",
+            "message":  (f"{ticker} ⚡ RVOL {rvol_today:.1f}× "
+                         f"(gestern {rvol_prev:.1f}×) | {setup_str}"),
+        })
+
+    # b) UOA-Extreme (ATM Vol/OI)
+    atm_ratio = signal.get("uoa_atm_ratio")
+    try:
+        if atm_ratio is not None and float(atm_ratio) >= ANOMALY_UOA_VOL_OI:
+            out.append({
+                "trigger":  "uoa_extreme",
+                "severity": "high",
+                "message":  (f"{ticker} 🎯 UOA Vol/OI {float(atm_ratio):.1f}× ATM | "
+                             f"{setup_str}"),
+            })
+    except (TypeError, ValueError):
+        pass
+
+    # c) Score-Sprung — heute vs. gestern aus score_history (raw)
+    if isinstance(setup_today, (int, float)):
+        history = (app_data.get("score_history") or {}).get(ticker) or []
+        prev_score: float | None = None
+        if len(history) >= 2:
+            prev_entry = history[-2]
+            try:
+                if isinstance(prev_entry, list) and len(prev_entry) >= 2:
+                    prev_score = float(prev_entry[1])
+                elif isinstance(prev_entry, dict):
+                    prev_score = float(prev_entry.get("score"))
+            except (TypeError, ValueError):
+                prev_score = None
+        if prev_score is not None and (setup_today - prev_score) >= ANOMALY_SCORE_JUMP:
+            drv_short = (drivers_str[:60] + "…") if len(drivers_str) > 60 else drivers_str
+            out.append({
+                "trigger":  "score_jump",
+                "severity": "medium",
+                "message":  (f"{ticker} 🚀 Setup {setup_today:.0f} ↑ "
+                             f"(gestern {prev_score:.0f}) | {drv_short or '—'}"),
+            })
+
+    # d) Gap+Hold + RVOL Combo
+    gap_pct   = gap_meta.get("pct")
+    gap_state = gap_meta.get("state")
+    if (isinstance(gap_pct, (int, float))
+            and gap_pct >= ANOMALY_GAP_PCT
+            and gap_state == "strong_hold"
+            and rvol_today >= ANOMALY_GAP_RVOL):
+        out.append({
+            "trigger":  "gap_combo",
+            "severity": "high",
+            "message":  (f"{ticker} 💥 Gap +{gap_pct:.1f}% Strong Hold + "
+                         f"RVOL {rvol_today:.1f}× | {setup_str}"),
+        })
+
+    # e) Perfect Storm (KI-Combo-Multiplikator)
+    try:
+        active_triggers = int(signal.get("active_triggers") or 0)
+    except (TypeError, ValueError):
+        active_triggers = 0
+    if active_triggers >= ANOMALY_PERFECT_STORM_TRIGGERS:
+        out.append({
+            "trigger":  "perfect_storm",
+            "severity": "high",
+            "message":  (f"{ticker} 🌪️ Perfect Storm {active_triggers}/4 Trigger | "
+                         f"{setup_str}"),
+        })
+
+    # f) Monster-Backup (nur Extremfälle, ehemalige 70-Schwelle jetzt 90)
+    if isinstance(monster, (int, float)) and monster >= ANOMALY_MONSTER_BACKUP:
+        msetup = setup_str if "—" not in setup_str else "Setup —"
+        out.append({
+            "trigger":  "monster_backup",
+            "severity": "high",
+            "message":  (f"{ticker} 🔥 Monster {monster:.0f} | {msetup} | "
+                         f"KI {ki_score}"),
+        })
+
+    return out
+
+
 def _load_app_data_canonical() -> dict:
     """Liest ``app_data.json`` einmal pro Run.
 
@@ -1887,9 +2058,11 @@ def _process_ticker(ticker: str, shared: dict) -> dict:
     # UOA — Unusual Options Activity aus yfinance Options-Chain.
     # Sequenziell wie die anderen Fetches; Parallelität existiert bereits
     # auf Ticker-Ebene über den outer ThreadPool (max_workers=8).
-    uoa_score, uoa_drivers = fetch_uoa_signal(ticker)
+    uoa_score, uoa_drivers, uoa_meta = fetch_uoa_signal(ticker)
     if uoa_score > 0 or uoa_drivers:
-        log.info("UOA %s: %d Pkt – %s", ticker, uoa_score, uoa_drivers)
+        log.info("UOA %s: %d Pkt – %s (atm=%s cp=%s)",
+                 ticker, uoa_score, uoa_drivers,
+                 uoa_meta.get("atm_ratio"), uoa_meta.get("cp_ratio"))
 
     score, drivers, confidence, _meta = compute_signal(
         ticker, yfd, news, reddit, has_8k, sec_title,
@@ -1949,6 +2122,8 @@ def _process_ticker(ticker: str, shared: dict) -> dict:
         "active_triggers": _meta.get("active_triggers", 0),
         "uoa_score":      uoa_score,
         "uoa_drivers":    uoa_drivers,
+        "uoa_atm_ratio":  uoa_meta.get("atm_ratio"),
+        "uoa_cp_ratio":   uoa_meta.get("cp_ratio"),
     }
 
     flags = {
@@ -2175,15 +2350,10 @@ def main() -> None:
         earnings_days  = r["earnings_days"]
         upcoming_event = r["upcoming_event"]
         # Single Source of Truth = app_data.json (geschrieben vom Daily-Report).
-        # Wenn der Ticker dort keinen Monster- oder Setup-Score hat (z. B.
-        # neuer Ticker oder app_data.json älter als zugehöriger Daily-Run):
-        # Alert komplett skippen — kein Re-Compute, kein stale Wert.
+        # detect_anomalies() behandelt fehlende Felder graceful pro Trigger;
+        # daher kein globaler Skip wenn monster/setup_sc nicht vorhanden sind.
         monster  = monster_scores.get(ticker)
         setup_sc = setup_scores.get(ticker)
-        if monster is None or setup_sc is None:
-            log.debug("Alert-Skip %s: monster=%s setup=%s in app_data.json",
-                      ticker, monster, setup_sc)
-            continue
         ki_sc    = ki_scores.get(ticker)
         if ki_sc is None:
             ki_sc = score   # Fallback: live berechneter KI dieses Runs
@@ -2220,21 +2390,24 @@ def main() -> None:
                         set_cooldown(ticker, state)
                         n_alerts += 1
 
-            if (monster >= 70
-                    and not is_on_cooldown(ticker, state)
-                    and not earnings_immediate):
-                send_ntfy_alert(ticker, ki_sc, drivers,
-                                production_score=setup_sc, monster_score=monster)
-                sent = send_alert(
-                    ticker, ki_sc, drivers, yfd, reddit, news,
-                    upcoming_event=upcoming_event,
-                    insider=insider,
-                    confidence=confidence,
-                    n_types=n_active_types,
-                )
-                if sent:
-                    set_cooldown(ticker, state)
-                    n_alerts += 1
+            # Anomalie-Trigger ersetzen die alte Monster≥70-Schwelle. Pro
+            # Ticker können mehrere Anomalien gleichzeitig feuern (z. B.
+            # RVOL-Explosion plus Score-Sprung), jede mit eigenem Cooldown
+            # via Key-Prefix anomaly_<trigger>_<ticker>. Earnings-Sofort-
+            # Alert hat Vorrang — kein Doppel-Push im selben Run.
+            if not earnings_immediate:
+                sig      = new_signals.get(ticker) or {}
+                prev_sig = old_sigs.get(ticker) or {}
+                for anom in detect_anomalies(ticker, sig, prev_sig, app_data):
+                    key = f"anomaly_{anom['trigger']}_{ticker}"
+                    if _anomaly_is_on_cooldown(key, state):
+                        log.debug("Anomaly cooldown skip: %s", key)
+                        continue
+                    if _send_anomaly_ntfy(ticker, anom["message"]):
+                        _anomaly_set_cooldown(key, state)
+                        n_alerts += 1
+                        log.info("Anomaly push (%s/%s): %s",
+                                 anom["trigger"], anom["severity"], anom["message"])
 
     t_elapsed = round(time.time() - t_start, 1)
     out = {

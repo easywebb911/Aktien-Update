@@ -375,8 +375,36 @@ SQUEEZE_MIN_RVOL       = 3.0    # gleichzeitig Volumen ≥ 3× Ø
 
 # ── Alert-Basis-Schwellen ────────────────────────────────────────────────────
 ALERT_THRESHOLD         = 25   # Fallback (wird durch Phasen-Schwellen ersetzt)
-ALERT_THRESHOLD_STRONG  = 70   # Score ≥ → ⚡⚡ Starker Alert
-ALERT_COOLDOWN_HOURS    = 2    # Mindeststunden zwischen Alerts je Ticker
+ALERT_THRESHOLD_STRONG  = 70   # Score ≥ → ⚡⚡ Starker Alert (deprecated als Push-Trigger; siehe ANOMALY_* unten)
+ALERT_COOLDOWN_HOURS    = 2    # Mindeststunden zwischen Alerts je Ticker (Earnings-Sofort-Alert)
+
+# ── Anomalie-Push-Trigger (ersetzt Monster≥70-Schwelle) ──────────────────────
+# Push feuert nur bei „echten" Anomalien, nicht bei jedem Top-10-Monster-Score.
+# Begründung: User checkt Top-10 selbst — Push ist für Ereignisse, die sonst
+# übersehen würden. Jeder Trigger-Typ hat eigenen Cooldown via Key-Prefix
+# „anomaly_<trigger>_<ticker>" in agent_state.json.
+ANOMALY_TRIGGERS_ENABLED          = True
+ANOMALY_COOLDOWN_HOURS            = 6   # pro (Ticker × Trigger-Typ)
+
+# RVOL-Explosion: heutiger RVOL ≥ X UND ≥ Y× des Vortags
+ANOMALY_RVOL_TODAY                = 5.0
+ANOMALY_RVOL_VS_YESTERDAY         = 2.0
+
+# UOA-Extreme: Call-Vol/OI im ATM-Bereich ≥ X
+ANOMALY_UOA_VOL_OI                = 10.0
+
+# Score-Sprung: Setup heute − gestern (raw aus score_history) ≥ X Pkt
+ANOMALY_SCORE_JUMP                = 15
+
+# Gap+Hold + RVOL Combo: gap_pct ≥ X UND state==strong_hold UND RVOL ≥ Y
+ANOMALY_GAP_PCT                   = 5.0
+ANOMALY_GAP_RVOL                  = 3.0
+
+# Perfect Storm: gleichzeitig aktive Trigger im KI-Combo-Multiplikator
+ANOMALY_PERFECT_STORM_TRIGGERS    = 4
+
+# Monster-Backup: nur extreme Werte (frühere Schwelle 70 → jetzt 90)
+ANOMALY_MONSTER_BACKUP            = 90
 
 # ── Exit-Signale für offene Positionen ───────────────────────────────────────
 # positions.json wird zur Laufzeit aus dem GitHub Secret POSITIONS_JSON

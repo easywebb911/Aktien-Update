@@ -4439,7 +4439,7 @@ def generate_html_v1(stocks: list[dict], report_date: str, _ctx: dict | None = N
             Gamma Squeeze +8 / +15 ·
             Perfect-Storm-Multiplikator ×1.10 / ×1.20 / ×1.35 bei 2 / 3 / 4 Triggern
           </li>
-          <li>Alert aktiv bei Monster-Score ≥ 70 · Monster-Score = Setup-Score × KI-Boost (KI≥60: ×1.20 / KI&lt;25: ×0.80 / sonst neutral) · Push-Notification via ntfy.sh</li>
+          <li>Anomalie-Push (statt Monster-Schwelle): RVOL-Explosion (≥5× heute &amp; ≥2× vs. Vortag) · UOA-Extreme (Call-Vol/OI ≥10×) · Score-Sprung (≥15 Pkt vs. Vortag) · Gap+Hold-Combo (Gap ≥5 %, Strong Hold, RVOL ≥3×) · Perfect Storm (4/4 Trigger) · Monster ≥90 als Backup. Cooldown 6 h pro (Ticker × Trigger-Typ).</li>
         </ul>
       </div>
       <div class="info-box info-box--full">
@@ -7355,7 +7355,8 @@ def _append_backtest_entries(top10: list[dict], report_date: str,
 
 def _write_app_data_json(watchlist_cards: dict | None = None,
                           monster_scores: dict | None = None,
-                          setup_scores: dict | None = None) -> None:
+                          setup_scores: dict | None = None,
+                          gap_states: dict | None = None) -> None:
     """Schreibt kombinierte app_data.json = score_history + agent_signals + watchlist_cards.
 
     Beide Quelldateien (score_history.json + agent_signals.json) bleiben separat
@@ -7387,6 +7388,7 @@ def _write_app_data_json(watchlist_cards: dict | None = None,
         "watchlist_cards": watchlist_cards or {},
         "monster_scores":  monster_scores or {},
         "setup_scores":    setup_scores or {},
+        "gap_states":      gap_states or {},
         "generated_at":    datetime.now(ZoneInfo("UTC")).strftime("%Y-%m-%dT%H:%M:%SZ"),
     }
     with open("app_data.json", "w", encoding="utf-8") as fh:
@@ -8547,9 +8549,22 @@ def main():
         for s in top10
         if s.get("score") is not None
     }
+    # Gap+Hold-State pro Top-10-Ticker — wird vom KI-Agent für die Anomalie-
+    # Erkennung „Gap-Hold + RVOL Combo" gelesen. Schema:
+    #   { ticker: { "pct": float, "state": "strong_hold"|"weak_hold"|"fail"|"no_gap"|"unknown" } }
+    _gap_states = {}
+    for s in top10:
+        gp, st, _pts = _gap_hold_pts(s)
+        if st == "unknown":
+            continue
+        _gap_states[s["ticker"]] = {
+            "pct":   round(gp, 2) if gp is not None else None,
+            "state": st,
+        }
     _write_app_data_json(watchlist_cards=_wl_card_data,
                          monster_scores=_monster_scores,
-                         setup_scores=_setup_scores)
+                         setup_scores=_setup_scores,
+                         gap_states=_gap_states)
     print(f"Step 4 abgeschlossen in {time.time()-_t4:.1f}s", flush=True)
 
     # Step 5 — Exit-Signale für offene Positionen (Phase 1, kein Frontend).
