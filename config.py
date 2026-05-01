@@ -406,6 +406,17 @@ ANOMALY_PERFECT_STORM_TRIGGERS    = 4
 # Monster-Backup: nur extreme Werte (frühere Schwelle 70 → jetzt 90)
 ANOMALY_MONSTER_BACKUP            = 90
 
+# ── KI-Score-Dot-Schwellen (Frontend-Pulsieren neben Ticker) ─────────────────
+# Steuert die Farbe des pulsierenden .agent-dot auf der Top-10- und Watchlist-
+# Kachel. Schwellen sind an die apply_monster_score-Semantik gekoppelt:
+#   ≥ KI_DOT_STRONG (60)   → grün  — Monster wird mit ×1.20 geboostet
+#   ≥ KI_DOT_MODERATE (30) → orange — sichtbares Signal, aber nicht boost-würdig
+#   ≥ KI_DOT_WEAK (15)     → rot   — Rauschen-Untergrund
+#   sonst                   → grau  — kein/kaum Signal, statisch (kein Pulsieren)
+KI_DOT_STRONG    = 60
+KI_DOT_MODERATE  = 30
+KI_DOT_WEAK      = 15
+
 # ── Exit-Signale für offene Positionen ───────────────────────────────────────
 # positions.json wird zur Laufzeit aus dem GitHub Secret POSITIONS_JSON
 # erzeugt (siehe daily-squeeze-report.yml + ki_agent.yml). Schema:

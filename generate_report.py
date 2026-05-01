@@ -5995,10 +5995,12 @@ function _fmtGerman(d) {{
 
       const dot = document.createElement('span');
       let dotClass;
-      if (score >= 70)      dotClass = 'strong';   // grün, schnell (1s)
-      else if (score >= 40) dotClass = 'moderate'; // orange, mittel (1.5s)
-      else if (score >= 15) dotClass = 'weak';     // rot, langsam (2s)
-      else                  dotClass = 'none';     // grau, kein Pulsieren (Score 0–14)
+      // Schwellen aus config.py (KI_DOT_STRONG/MODERATE/WEAK) — gekoppelt an
+      // apply_monster_score-Semantik: KI ≥ {KI_DOT_STRONG} → Monster ×1.20.
+      if (score >= {KI_DOT_STRONG})        dotClass = 'strong';   // grün, schnell (1s)
+      else if (score >= {KI_DOT_MODERATE}) dotClass = 'moderate'; // orange, mittel (1.5s)
+      else if (score >= {KI_DOT_WEAK})     dotClass = 'weak';     // rot, langsam (2s)
+      else                                  dotClass = 'none';     // grau, kein Pulsieren
       dot.className = 'agent-dot ' + dotClass;
 
       const driver = (sig && sig.drivers) || '?';
