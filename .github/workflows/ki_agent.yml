@@ -51,6 +51,7 @@ jobs:
           MAIL_FROM: ${{ secrets.MAIL_FROM }}
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           NTFY_TOPIC: ${{ secrets.NTFY_TOPIC }}
+          EDGAR_USER_AGENT: ${{ secrets.EDGAR_USER_AGENT }}
         run: python ki_agent.py
 
       - name: Commit state and signal files

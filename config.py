@@ -431,7 +431,14 @@ EDGAR_RSS_URL          = (
     "https://www.sec.gov/cgi-bin/browse-edgar"
     "?action=getcurrent&type=SC+13&owner=include&count=40&output=atom"
 )
-EDGAR_USER_AGENT       = "Squeeze Report your-email@example.com"
+# User-Agent kommt aus GitHub-Secret EDGAR_USER_AGENT (analog zu
+# POSITIONS_JSON, NTFY_TOPIC). Public Repo: keine Kontakt-E-Mail im Code.
+# Default-Fallback ist generisch und funktioniert für Tests/Forks; SEC
+# blockt aber bei produktiven Aufrufen ohne korrekten Kontakt-Header.
+EDGAR_USER_AGENT       = os.environ.get(
+    "EDGAR_USER_AGENT",
+    "Squeeze Report contact@example.com",
+)
 EDGAR_LOOKBACK_HOURS   = 6
 EDGAR_COOLDOWN_HOURS   = 24
 EDGAR_HTTP_TIMEOUT     = 10

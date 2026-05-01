@@ -332,9 +332,16 @@ Hybrid-Filter über die letzten `EDGAR_LOOKBACK_HOURS` (6 h):
 
 - **Datenquelle:** `EDGAR_RSS_URL` (Atom-Feed, `?action=getcurrent&type=SC+13`).
   Keine Auth nötig, aber SEC verlangt `User-Agent` mit Kontakt-E-Mail.
-  Default-Wert in `config.py` (`EDGAR_USER_AGENT`) ist Platzhalter — User
-  soll eigene Adresse eintragen für produktive Nutzung. Default funktioniert
-  in Tests, riskiert aber temporäre Rate-Limits.
+- **`EDGAR_USER_AGENT` ist GitHub-Secret** (analog zu `POSITIONS_JSON`,
+  `NTFY_TOPIC`) — niemals als Klartext im Repo. Konfiguration:
+  Repo Settings → Secrets and variables → Actions → New repository
+  secret → `EDGAR_USER_AGENT`, Format: `"Name email@domain"`. Beide
+  Workflows (`daily-squeeze-report.yml`, `ki_agent.yml`) injizieren das
+  Secret als Env-Variable in den Python-Run. `fetch_edgar_filings()`
+  liest zur Laufzeit via `os.environ.get("EDGAR_USER_AGENT", default)`.
+  Default-Fallback (`Squeeze Report contact@example.com`) funktioniert
+  für Tests/Forks, **SEC blockt aber bei produktiven Aufrufen ohne
+  korrekten Kontakt-Header**.
 - **Cooldown:** `EDGAR_COOLDOWN_HOURS = 24` pro **(Ticker × Filing-Typ)**.
   13D und 13G für denselben Ticker können beide pushen (verschiedene
   Cooldown-Keys), Amendments innerhalb 24 h für denselben Typ

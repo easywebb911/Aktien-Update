@@ -51,6 +51,7 @@ jobs:
       - name: Generate squeeze report
         env:
           NTFY_TOPIC: ${{ secrets.NTFY_TOPIC }}
+          EDGAR_USER_AGENT: ${{ secrets.EDGAR_USER_AGENT }}
         run: python generate_report.py
 
       - name: Commit and publish report

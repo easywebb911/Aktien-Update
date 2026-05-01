@@ -1732,8 +1732,16 @@ def fetch_edgar_filings(top10: list[dict]) -> list[dict]:
         return []
 
     try:
+        # User-Agent zur Laufzeit aus dem GitHub-Secret EDGAR_USER_AGENT lesen
+        # (analog zu POSITIONS_JSON / NTFY_TOPIC). Default-Fallback ist
+        # generisch — funktioniert für Tests, SEC blockt aber bei produktiven
+        # Aufrufen ohne korrekten Kontakt-Header.
+        ua = os.environ.get(
+            "EDGAR_USER_AGENT",
+            "Squeeze Report contact@example.com",
+        )
         headers = {
-            "User-Agent": EDGAR_USER_AGENT,
+            "User-Agent": ua,
             "Accept":     "application/atom+xml, application/xml",
         }
         resp = requests.get(EDGAR_RSS_URL, headers=headers,
