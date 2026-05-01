@@ -415,6 +415,56 @@ ANOMALY_MONSTER_BACKUP            = 90
 ANOMALY_VIX_PAUSE_THRESHOLD       = 35.0
 ANOMALY_VIX_WARN_THRESHOLD        = 25.0
 
+# ── SEC EDGAR 13D/13G Filings (Anomalie-Trigger) ────────────────────────────
+# Hybrid-Filter:
+#   • 13D / 13D/A: jeder Filing-Eintrag löst einen Push aus (aktive Stake-
+#     Erklärung — squeeze-relevant unabhängig vom Filer).
+#   • 13G / 13G/A: nur wenn Filer-Name eines der EDGAR_ACTIVIST_FILERS-
+#     Substrings enthält (passive Stake — uninteressant außer von „Smart-
+#     Money"-Firmen).
+# SEC verlangt einen User-Agent mit Kontakt-E-Mail (Default funktioniert
+# für Tests; User soll später eigene Adresse eintragen).
+# Cooldown 24h pro (Ticker × Filing-Typ) — Filings sind selten genug,
+# Amendment-Folgen werden so unterdrückt.
+EDGAR_FILINGS_ENABLED  = True
+EDGAR_RSS_URL          = (
+    "https://www.sec.gov/cgi-bin/browse-edgar"
+    "?action=getcurrent&type=SC+13&owner=include&count=40&output=atom"
+)
+EDGAR_USER_AGENT       = "Squeeze Report your-email@example.com"
+EDGAR_LOOKBACK_HOURS   = 6
+EDGAR_COOLDOWN_HOURS   = 24
+EDGAR_HTTP_TIMEOUT     = 10
+
+# Aktivist-/Smart-Money-Liste — nur für 13G-Filter relevant. Match
+# case-insensitive, Substring (z. B. "Pershing" matched „Pershing Square
+# Capital Management LP"). User darf erweitern.
+EDGAR_ACTIVIST_FILERS  = [
+    "Icahn",
+    "Ackman", "Pershing Square",
+    "Cohen", "Point72",
+    "Burry", "Scion",
+    "Loeb", "Third Point",
+    "Singer", "Elliott",
+    "Peltz", "Trian",
+    "Einhorn", "Greenlight",
+    "Hohn", "Children's Investment",
+    "Kovacs", "Engaged Capital",
+    "Smith", "Starboard",
+    "Marcato",
+    "ValueAct",
+    "Carlson", "Carlson Capital",
+    "Jana Partners",
+    "Land and Buildings",
+    "Sachem Head",
+    "Glenview",
+    "Corvex",
+    "Sarissa",
+    "RBC Capital",
+    "BlackRock",   # bei 13G ebenfalls relevant
+    "Vanguard",    # ebenfalls
+]
+
 # ── KI-Score-Dot-Schwellen (Frontend-Pulsieren neben Ticker) ─────────────────
 # Steuert die Farbe des pulsierenden .agent-dot auf der Top-10- und Watchlist-
 # Kachel. Schwellen sind an die apply_monster_score-Semantik gekoppelt:

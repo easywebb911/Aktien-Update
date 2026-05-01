@@ -4598,7 +4598,7 @@ def generate_html_v1(stocks: list[dict], report_date: str, _ctx: dict | None = N
         <ul class="info-compact">
           <li>Yahoo Finance (5 US-Screener) · Finviz Screener · FINRA Short Interest ({SI_TREND_PERIODS} Handelstage, 3 CDN-Feeds)</li>
           <li>yfinance · Stockanalysis.com (wöchentl. SI) · EarningsWhispers RSS · Sektor-ETFs (QQQ/XBI/XLE/XLF/XRT/SPY)</li>
-          <li>KI-Agent: Claude Haiku · News-Sentiment · Insider · FDA RSS · FINRA Daily SSR · StockTwits API · yfinance Options-Chains (UOA) · ntfy.sh (Push-Notifications)</li>
+          <li>KI-Agent: Claude Haiku · News-Sentiment · Insider · FDA RSS · FINRA Daily SSR · StockTwits API · yfinance Options-Chains (UOA) · SEC EDGAR (13D/13G Filings) · ntfy.sh (Push-Notifications)</li>
         </ul>
       </div>
       <div class="info-box">
@@ -4613,7 +4613,7 @@ def generate_html_v1(stocks: list[dict], report_date: str, _ctx: dict | None = N
             Gamma Squeeze +8 / +15 ·
             Perfect-Storm-Multiplikator ×1.10 / ×1.20 / ×1.35 bei 2 / 3 / 4 Triggern
           </li>
-          <li>Anomalie-Push (statt Monster-Schwelle): RVOL-Explosion (≥5× heute &amp; ≥2× vs. Vortag) · UOA-Extreme (Call-Vol/OI ≥10×) · Score-Sprung (≥15 Pkt vs. Vortag) · Gap+Hold-Combo (Gap ≥5 %, Strong Hold, RVOL ≥3×) · Perfect Storm (4/4 Trigger) · Monster ≥90 als Backup. Cooldown 6 h pro (Ticker × Trigger-Typ). Push pausiert bei VIX &gt; 35 (Krise), Warnung bei VIX &gt; 25.</li>
+          <li>Anomalie-Push (statt Monster-Schwelle): RVOL-Explosion (≥5× heute &amp; ≥2× vs. Vortag) · UOA-Extreme (Call-Vol/OI ≥10×) · Score-Sprung (≥15 Pkt vs. Vortag) · Gap+Hold-Combo (Gap ≥5 %, Strong Hold, RVOL ≥3×) · Perfect Storm (4/4 Trigger) · Monster ≥90 als Backup · 📜 SEC 13D/13G Filings auf Top-10 (Hybrid: 13D immer, 13G nur Aktivisten · 24 h Cooldown). Standard-Cooldown 6 h pro (Ticker × Trigger-Typ). Push pausiert bei VIX &gt; 35 (Krise), Warnung bei VIX &gt; 25.</li>
         </ul>
       </div>
       <div class="info-box info-box--full">

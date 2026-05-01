@@ -321,6 +321,37 @@ sonst den vorigen Wert via `**existing` nicht überschreiben).
 **Earnings-Sofort-Alerts werden nicht gegated** — Time-Critical-Pfad,
 muss in jeder Marktphase durchkommen.
 
+### SEC EDGAR 13D/13G-Trigger (`edgar_filing`)
+
+Hybrid-Filter über die letzten `EDGAR_LOOKBACK_HOURS` (6 h):
+
+| Filing-Typ | Push-Logik |
+|---|---|
+| `SC 13D` / `SC 13D/A` | **immer** pushen (aktive Stake-Erklärung — squeeze-relevant unabhängig vom Filer) |
+| `SC 13G` / `SC 13G/A` | nur wenn Filer-Name (case-insensitive Substring) eines der `EDGAR_ACTIVIST_FILERS` enthält |
+
+- **Datenquelle:** `EDGAR_RSS_URL` (Atom-Feed, `?action=getcurrent&type=SC+13`).
+  Keine Auth nötig, aber SEC verlangt `User-Agent` mit Kontakt-E-Mail.
+  Default-Wert in `config.py` (`EDGAR_USER_AGENT`) ist Platzhalter — User
+  soll eigene Adresse eintragen für produktive Nutzung. Default funktioniert
+  in Tests, riskiert aber temporäre Rate-Limits.
+- **Cooldown:** `EDGAR_COOLDOWN_HOURS = 24` pro **(Ticker × Filing-Typ)**.
+  13D und 13G für denselben Ticker können beide pushen (verschiedene
+  Cooldown-Keys), Amendments innerhalb 24 h für denselben Typ
+  unterdrückt.
+- **Aktivist-Liste pflegen:** `EDGAR_ACTIVIST_FILERS` in `config.py` ist
+  Liste mit Substring-Mustern. Erweitern bei neuem Smart-Money-Filer
+  (z. B. ein bisher unbekannter Hedge-Fund mit aggressivem Track Record).
+- **Fail-soft:** SEC down / 403 / Parse-Fehler / fehlende
+  Ticker-Mapping → `fetch_edgar_filings` returnt leere Liste, kein
+  EDGAR-Push, andere Anomalie-Trigger laufen unverändert weiter.
+
+Implementierung in `ki_agent.py`:
+- `fetch_edgar_filings(top10) → list[dict]` — pure-Funktion, niemals raise.
+- `detect_anomalies(...)` akzeptiert `edgar_filings`-Kwarg; pro-Ticker-Anomaly
+  setzt `cooldown_key` und `cooldown_hours` selbst (überschreibt
+  `ANOMALY_COOLDOWN_HOURS`).
+
 ### Datenpfad
 
 - **`uoa_atm_ratio`** und `uoa_cp_ratio` werden in `fetch_uoa_signal()`

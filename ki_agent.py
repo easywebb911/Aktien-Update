@@ -1644,12 +1644,17 @@ def _extract_latest_scores(raw: dict | None) -> dict[str, float]:
     return result
 
 
-def _anomaly_is_on_cooldown(key: str, state: dict) -> bool:
-    """Cooldown-Check für Anomalie-Push mit eigener Dauer (ANOMALY_COOLDOWN_HOURS).
+def _anomaly_is_on_cooldown(key: str, state: dict,
+                             hours: float = None) -> bool:
+    """Cooldown-Check für Anomalie-Push.
 
-    State-File geteilt mit anderen Cooldowns; Kollisionen via Key-Prefix
+    ``hours`` überschreibt die Default-Dauer ``ANOMALY_COOLDOWN_HOURS`` —
+    z. B. nutzt der EDGAR-Trigger ``EDGAR_COOLDOWN_HOURS = 24``. State-
+    File geteilt mit anderen Cooldowns; Kollisionen via Key-Prefix
     ``anomaly_<trigger>_<ticker>`` ausgeschlossen.
     """
+    if hours is None:
+        hours = ANOMALY_COOLDOWN_HOURS
     ts = (state.get("cooldowns") or {}).get(key)
     if not ts:
         return False
@@ -1657,7 +1662,7 @@ def _anomaly_is_on_cooldown(key: str, state: dict) -> bool:
         last = datetime.fromisoformat(ts)
     except (TypeError, ValueError):
         return False
-    return (now_berlin() - last).total_seconds() < ANOMALY_COOLDOWN_HOURS * 3600
+    return (now_berlin() - last).total_seconds() < hours * 3600
 
 
 def _anomaly_set_cooldown(key: str, state: dict) -> None:
@@ -1685,14 +1690,178 @@ def _send_anomaly_ntfy(ticker: str, body: str) -> bool:
         return False
 
 
+def _relative_time(filed_iso: str) -> str:
+    """„vor 2h"/„vor 3d"-Format für Filing-Alter im Push-Text. Leere
+    Rückgabe bei jedem Parsing-Fehler."""
+    try:
+        filed_at = datetime.fromisoformat(filed_iso.replace("Z", "+00:00"))
+        if filed_at.tzinfo is None:
+            filed_at = filed_at.replace(tzinfo=timezone.utc)
+        delta = datetime.now(timezone.utc) - filed_at
+        h = int(delta.total_seconds() // 3600)
+        if h < 1:
+            return "<1h"
+        if h < 24:
+            return f"vor {h}h"
+        return f"vor {h // 24}d"
+    except (TypeError, ValueError, AttributeError):
+        return ""
+
+
+def fetch_edgar_filings(top10: list[dict]) -> list[dict]:
+    """SEC EDGAR SC 13D/13G Filings auf die aktuellen Top-10 Ticker.
+
+    Args:
+        top10: Liste der aktuellen Top-10 Stock-Dicts mit ``ticker`` und
+               ``company_name``. Filings werden nur zurückgegeben, wenn der
+               Subject-Company-Name (Substring, case-insensitive) im Atom-
+               Entry-Title oder die Ticker-Abkürzung im Title vorkommt.
+
+    Returns:
+        Liste von ``{ticker, filing_type, filer, filed_at, url}``-Dicts.
+        Leere Liste bei jedem Fehler (HTTP, Parse, Connectivity, Disabled).
+        Niemals raise — Caller darf das Ergebnis direkt iterieren.
+
+    Failure-Modes (alle → leere Liste):
+        * EDGAR_FILINGS_ENABLED=False oder leeres top10
+        * SEC-Server down (Connection-Fehler)
+        * 403/429 (User-Agent-Reject, Rate-Limit)
+        * Atom-XML-Parse-Fehler
+    """
+    if not EDGAR_FILINGS_ENABLED or not top10:
+        return []
+
+    try:
+        headers = {
+            "User-Agent": EDGAR_USER_AGENT,
+            "Accept":     "application/atom+xml, application/xml",
+        }
+        resp = requests.get(EDGAR_RSS_URL, headers=headers,
+                            timeout=EDGAR_HTTP_TIMEOUT)
+        if resp.status_code != 200:
+            log.warning("EDGAR fetch HTTP %d (User-Agent? Rate-Limit?)",
+                        resp.status_code)
+            return []
+    except Exception as exc:
+        # Bewusst breit gefasst — fail-soft hat Vorrang vor Diagnose-
+        # Granularität. SEC-Probleme dürfen den ki_agent-Run niemals
+        # blockieren.
+        log.warning("EDGAR fetch failed: %s", exc)
+        return []
+
+    try:
+        root = ET.fromstring(resp.content)
+    except ET.ParseError as exc:
+        log.warning("EDGAR parse failed: %s", exc)
+        return []
+
+    ns = {"a": "http://www.w3.org/2005/Atom"}
+    cutoff = datetime.now(timezone.utc) - timedelta(hours=EDGAR_LOOKBACK_HOURS)
+
+    # Ticker-Lookup-Tabelle: Substring des Company-Namens → Ticker. Ergänzt
+    # durch Ticker-Abkürzung in spaces (z. B. " INDI ") für Symbol-Mention.
+    top10_meta = []
+    for s in top10:
+        t = (s.get("ticker") or "").strip()
+        c = (s.get("company_name") or "").strip().lower()
+        if t:
+            top10_meta.append((t, c))
+
+    results: list[dict] = []
+    for entry in root.findall("a:entry", ns):
+        try:
+            title_el = entry.find("a:title", ns)
+            if title_el is None or not title_el.text:
+                continue
+            title = title_el.text.strip()
+            title_l = title.lower()
+
+            # Filing-Type aus Title oder <category term="...">
+            filing_type = ""
+            cat_el = entry.find("a:category", ns)
+            if cat_el is not None:
+                filing_type = (cat_el.get("term") or "").strip()
+            if not filing_type:
+                m = re.search(r"\bSC\s*13[DG](?:/A)?\b", title, re.I)
+                if m:
+                    filing_type = m.group(0).upper().replace("  ", " ")
+            if not filing_type or "13" not in filing_type or "SC" not in filing_type.upper():
+                continue
+            filing_type = re.sub(r"\s+", " ", filing_type).upper()
+
+            # Datum
+            upd_el = entry.find("a:updated", ns)
+            if upd_el is None or not upd_el.text:
+                continue
+            try:
+                filed_at = datetime.fromisoformat(
+                    upd_el.text.strip().replace("Z", "+00:00"))
+            except (ValueError, TypeError):
+                continue
+            if filed_at.tzinfo is None:
+                filed_at = filed_at.replace(tzinfo=timezone.utc)
+            if filed_at < cutoff:
+                continue
+
+            # Ticker-Match: Company-Name Substring oder Ticker-Token im Title.
+            matched = None
+            for tk, comp in top10_meta:
+                if comp and comp in title_l:
+                    matched = tk
+                    break
+                # Ticker-Token nur als ganzes Wort
+                if tk and re.search(rf"\b{re.escape(tk)}\b", title, re.I):
+                    matched = tk
+                    break
+            if not matched:
+                continue
+
+            # Filer-Heuristik: SEC-Atom-Titles schreiben oft
+            # "SC 13G - SOMECOMPANY - FILER" oder enthalten den Filer in ()
+            filer = ""
+            sum_el = entry.find("a:summary", ns)
+            sum_txt = (sum_el.text or "") if sum_el is not None else ""
+            fm = re.search(r"\(([^)]+)\)\s*$", title)
+            if fm:
+                filer = fm.group(1).strip()
+            if not filer and sum_txt:
+                fm2 = re.search(r"Filer:\s*([^\n<]+)", sum_txt, re.I)
+                if fm2:
+                    filer = fm2.group(1).strip()
+
+            link_el = entry.find("a:link", ns)
+            url = link_el.get("href") if link_el is not None else ""
+
+            results.append({
+                "ticker":      matched,
+                "filing_type": filing_type,
+                "filer":       filer,
+                "filed_at":    filed_at.isoformat(),
+                "url":         url,
+            })
+        except Exception:
+            # Pro-Entry-Fehler nicht den ganzen Fetch killen.
+            continue
+
+    log.info("EDGAR: %d Filings auf Top-10 in letzten %dh",
+             len(results), EDGAR_LOOKBACK_HOURS)
+    return results
+
+
 def detect_anomalies(ticker: str, signal: dict, prev_signal: dict | None,
-                     app_data: dict) -> list[dict]:
-    """Erkennt sechs Anomalie-Trigger pro Ticker.
+                     app_data: dict,
+                     edgar_filings: list[dict] | None = None) -> list[dict]:
+    """Erkennt sieben Anomalie-Trigger pro Ticker.
 
     Argumente:
       • ``signal``      — aktuelles ``new_signals[ticker]``-Dict (dieser Run)
       • ``prev_signal`` — vorheriges Signal aus ``old_sigs.get(ticker)``
                           (vorletzter Run, für RVOL-vs-Vortag-Vergleich)
+      • ``edgar_filings`` — optional, einmal pro Run von
+                          ``fetch_edgar_filings(top10)`` gefetcht. Pro
+                          Anomaly-Eintrag werden ``cooldown_key`` und
+                          ``cooldown_hours`` gesetzt (überschreiben Default
+                          ``ANOMALY_COOLDOWN_HOURS``).
       • ``app_data``    — kompletter ``app_data.json``-Dict (für
                           ``setup_scores``/``monster_scores``/``score_history``/
                           ``gap_states``)
@@ -1805,6 +1974,38 @@ def detect_anomalies(ticker: str, signal: dict, prev_signal: dict | None,
             "message":  (f"{ticker} 🔥 Monster {monster:.0f} | {msetup} | "
                          f"KI {ki_score}"),
         })
+
+    # g) SEC EDGAR 13D/13G Filings (Hybrid: 13D immer, 13G nur Aktivisten).
+    # ``edgar_filings`` wird einmal pro Run von fetch_edgar_filings(top10)
+    # gefüllt und alle Tickern durchgereicht — pro Ticker filtern wir hier
+    # die zugehörigen Einträge raus. Custom cooldown 24h via per-Anomaly-
+    # Felder ``cooldown_key`` (mit Filing-Type-Suffix → 13D + 13G für
+    # selben Ticker können getrennt feuern) und ``cooldown_hours``.
+    if EDGAR_FILINGS_ENABLED and edgar_filings:
+        activists_lower = [a.lower() for a in EDGAR_ACTIVIST_FILERS]
+        for f in edgar_filings:
+            if f.get("ticker") != ticker:
+                continue
+            ftype = (f.get("filing_type") or "").upper()
+            is_13d = "13D" in ftype
+            is_13g = "13G" in ftype
+            if not (is_13d or is_13g):
+                continue
+            filer = (f.get("filer") or "").strip()
+            if is_13g:
+                if not filer or not any(a in filer.lower() for a in activists_lower):
+                    continue   # 13G non-activist → skip
+            rel = _relative_time(f.get("filed_at") or "")
+            filer_disp = filer or "unbekannt"
+            ftype_safe = ftype.replace(" ", "_").replace("/", "-")
+            out.append({
+                "trigger":        "edgar_filing",
+                "severity":       "high",
+                "message":        (f"{ticker} 📜 {ftype} — {filer_disp}"
+                                    + (f" ({rel})" if rel else "")),
+                "cooldown_key":   f"anomaly_edgar_filing_{ticker}_{ftype_safe}",
+                "cooldown_hours": EDGAR_COOLDOWN_HOURS,
+            })
 
     return out
 
@@ -2348,6 +2549,21 @@ def main() -> None:
     vix_warn_prefix = (f"⚠️ VIX {vix_now:.1f} | "
                        if vix_warn else "")
 
+    # SEC EDGAR 13D/13G Filings einmal pro Run abrufen — nur Top-10-relevante
+    # Filings; Hybrid-Filter (13D immer, 13G nur Aktivisten) läuft pro Anomaly
+    # in detect_anomalies(). Fail-soft: leere Liste bei jedem Fehler.
+    # Ticker-Lookup-Daten aus den parallel berechneten Worker-Ergebnissen
+    # holen: results[t]["yfd"]["company_name"] (oder ticker selbst als Fallback).
+    edgar_top10 = []
+    for t in tickers:
+        r = results.get(t) or {}
+        yfd = r.get("yfd") or {}
+        edgar_top10.append({
+            "ticker":       t,
+            "company_name": yfd.get("company_name", "") or t,
+        })
+    edgar_filings_cache = fetch_edgar_filings(edgar_top10)
+
     # Counter und new_signals aus den Worker-Ergebnissen aggregieren.
     # Alert-Schwelle: monster_score >= 70 (ersetzt phasenabhängige
     # Setup-Schwellen 20/25/35).
@@ -2441,9 +2657,14 @@ def main() -> None:
             if not earnings_immediate and not vix_pause:
                 sig      = new_signals.get(ticker) or {}
                 prev_sig = old_sigs.get(ticker) or {}
-                for anom in detect_anomalies(ticker, sig, prev_sig, app_data):
-                    key = f"anomaly_{anom['trigger']}_{ticker}"
-                    if _anomaly_is_on_cooldown(key, state):
+                for anom in detect_anomalies(ticker, sig, prev_sig, app_data,
+                                             edgar_filings=edgar_filings_cache):
+                    # Per-Anomaly Cooldown-Override: EDGAR setzt eigene
+                    # cooldown_key (mit Filing-Type-Suffix) + 24h-Dauer.
+                    key   = anom.get("cooldown_key") or \
+                            f"anomaly_{anom['trigger']}_{ticker}"
+                    hours = anom.get("cooldown_hours")
+                    if _anomaly_is_on_cooldown(key, state, hours=hours):
                         log.debug("Anomaly cooldown skip: %s", key)
                         continue
                     body = vix_warn_prefix + anom["message"]
