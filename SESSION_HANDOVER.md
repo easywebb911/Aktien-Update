@@ -77,6 +77,14 @@
    („Live-Renditestatistik verfügbar ab Mitte Mai").
 5. **Setup-Verfall-Symmetrie weiter beobachten**: jetzt raw vs. raw —
    ein paar Tage prüfen ob Drops jetzt seltener triggern (sollten).
+6. **⏰ Wiedervorlage 15.05.2026: Phase 3 Exit-Signale prüfen**
+   - Blow-off Top Detection (Tagesperformance > +15–20 % bei RVOL > 5×)
+   - IV Crush nach Event (Earnings/FDA-Decision) als Exit-Signal
+   - Voraussetzung: Phase 1 läuft seit ~2 Wochen, Schwächen sind
+     im realen Betrieb sichtbar
+   - Kontext: Analyse vom 01.05.2026, Entscheidung war „warten
+     bis Phase 1 kalibriert ist" — nicht vorher angehen, sonst
+     wird ohne Daten gegen Strohmänner optimiert
 
 ## Optional / niedrig priorisiert
 
