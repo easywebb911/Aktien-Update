@@ -360,6 +360,45 @@ Komma).
 
 ---
 
+## Score-Methodik-Sync-Regel
+
+Die **Score-Methodik & Filterkriterien**-Sektion in
+`generate_report.py:4170+` (gerendert in der Info-Panel-Aufklappbox auf
+der Website) **muss synchron mit dem Code bleiben**. Bei JEDER Code-
+Änderung, die einen der unten genannten Bereiche berührt, wird die
+Sektion **im selben Commit** mit aktualisiert — **ohne dass der User
+explizit darum bittet**.
+
+### Betroffene Bereiche
+
+- **Filter-Schwellen**: `MAX_MARKET_CAP_B`, `MIN_SHORT_FLOAT`, `MIN_PRICE`, `MIN_REL_VOLUME`, `INTL_SCREENING_*`, manuelle Watchlist-Bypass-Logik
+- **Score-Komponenten + Punkte**: `score()` Fall 1 / Fall 2 (Struktur/Katalysator/Timing-Gewichte), `_compute_sub_scores()` Sub-Score-Caps (`SUB_STRUCT_MAX`, `SUB_CATALYST_MAX`, `SUB_TIMING_MAX`)
+- **Boni / Malus**: `COMBO_BONUS`, `SCORE_TREND_BONUS/MALUS`, `AGENT_BOOST_*`, `SQUEEZE_HIST_MALUS_*`, `FLOAT_TURNOVER_PTS_*`, `GAP_PTS_*`, `RS_SPY_PTS_MAX`
+- **Monster-Score-Logik**: `apply_monster_score()` Faktoren (×1.20 / ×0.80 / neutral), Cap 100
+- **KI-Agent-Boni**: StockTwits-Skala, RVOL High/Velocity, UOA Vol/OI + Call/Put, Gamma Squeeze, Perfect-Storm-Multiplikator, News-Decay-Gewichte, Insider-Punkte, FINRA-SSR
+- **Push-Trigger**: `ANOMALY_*`-Schwellen (RVOL, UOA, Score-Sprung, Gap+Hold-Combo, Perfect Storm, Monster-Backup), `EARNINGS_IMMEDIATE_*`, `EXIT_*`-Trigger
+- **Datenquellen**: neue API, entfallene Quelle, Provider-Wechsel (Yahoo, Finviz, FINRA, yfinance, Stockanalysis, EarningsWhispers, Sektor-ETFs, StockTwits, ntfy.sh, OpenInsider, SEC, FDA RSS, Anthropic Claude)
+
+### Automatik-Workflow
+
+1. **Diagnostizieren** ob die Code-Änderung die Methodik berührt (Liste oben).
+2. **Identifizieren** der betroffenen Zeile(n) in der Sektion (`<li>`-Einträge in den vier `info-box`-Blöcken: Filterkriterien, Score-Formel, Datenquellen, ⚡ KI-Agent).
+3. **Anpassen** im selben Commit — Zahlen, Komponenten-Listen, Boni-Reihenfolge, Push-Trigger entsprechend dem neuen Code-Stand.
+4. **User nicht explizit fragen** — die Sync ist Pflicht-Bestandteil jedes Methodik-relevanten Commits.
+5. **Commit-Body** kurz erwähnen: „Methodik-Sektion aktualisiert" (oder Detail welche Zeile betroffen ist), damit beim Review nachvollziehbar ist.
+
+### Negativliste (kein Sync nötig)
+
+- Reine Refactorings ohne Verhaltensänderung (z. B. Helper extrahieren, Funktion umbenennen)
+- Frontend-CSS / Layout-Tweaks
+- Workflow-File-Änderungen, die keine Code-Logik betreffen
+- Bug-Fixes, die nur das dokumentierte Verhalten herstellen (ohne Schwellen zu ändern)
+- Test-/Smoke-Code
+
+Im Zweifel: lieber Sync mit kurzem Hinweis im Commit-Body als Drift-Risiko.
+
+---
+
 ## Session-Handover-Regel
 
 Wenn der User die Sitzung mit „Gute Nacht" (oder Varianten wie „Schlaf gut",
