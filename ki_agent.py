@@ -183,11 +183,11 @@ def save_signals(signals: dict) -> None:
         score_history = {}
 
     # Read-modify-write: vom Daily-Report geschriebene Felder (monster_scores,
-    # setup_scores, gap_states, watchlist_cards) durchreichen — der KI-Agent
-    # besitzt nur score_history, agent_signals und generated_at. Ohne diese
-    # Preservation würde der Alert-Pfad nach dem ersten Stundentick keine
-    # Monster-/Setup-Scores oder Gap-States mehr finden und Anomalie-Trigger
-    # (RVOL-Combo, Score-Sprung) still skippen.
+    # setup_scores, gap_states, watchlist_cards, fx_usd_eur) durchreichen —
+    # der KI-Agent besitzt nur score_history, agent_signals und generated_at.
+    # Ohne diese Preservation würde der Alert-Pfad nach dem ersten Stundentick
+    # keine Monster-/Setup-Scores, Gap-States oder FX-Rate mehr finden und
+    # Anomalie-Trigger / Chat-Format still scheitern.
     existing: dict = {}
     try:
         path = Path("app_data.json")

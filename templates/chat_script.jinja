@@ -1,6 +1,10 @@
 // ── Claude Chat Panel ─────────────────────────────────────────────────────────
 (function(){
   const STOCKS_CTX = {{ chat_ctx_json }};
+  // Globale Spiegel-Refs, damit runKiAnalyse() (außerhalb dieser IIFE) auf
+  // den USD→EUR-Faktor zugreifen kann. STOCKS_CTX selbst ist nur intern;
+  // window._FX_USD_EUR ist die einzige öffentliche Vertragspunkt-Variable.
+  window._FX_USD_EUR = (STOCKS_CTX && STOCKS_CTX.fx_usd_eur) || 0.92;
   let _history = [];
   let _open    = false;
 
@@ -21,6 +25,12 @@ STIL:
 - Querverbindungen statt Aufzählungen: „X und Y zusammen interessant, weil Z".
 - Bei Einzelaktien-Empfehlung: Stop-Loss, Profit-Target, R/R-Ratio nennen (Standard: Stop −15 %, PT1 +20 %, PT2 +50 %).
 - Schließe mit einem 'Fazit:'-Satz (max. 2 Sätze) — Kernaussage + Risiko-Warnung.
+
+WÄHRUNGS-FORMAT (verbindlich):
+- Bei JEDER Kursnennung beide Währungen: USD zuerst, EUR in Klammern mit deutschem Komma.
+- Format: "$4.47 (4,11 €)" — also Dollar-Betrag mit Punkt als Dezimaltrenner, dann Klammer mit Komma als Dezimaltrenner und „€".
+- Umrechnungsfaktor steht im Kontext als ``fx_usd_eur`` (= EUR pro 1 USD). Multipliziere USD × fx_usd_eur, runde auf 2 Nachkommastellen.
+- Gilt auch für Stop-Loss, Profit-Target, R/R-Ranges und PnL-Beträge.
 
 DATEN-KONTEXT (JSON):
 ${JSON.stringify(STOCKS_CTX)}`;

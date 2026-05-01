@@ -250,6 +250,13 @@ def _test_extended_schema():
     print("OK: extended-schema self-test passed")
 
 
+# Module-level state: aktueller USD→EUR-Wechselkurs. Wird in main() einmal
+# pro Daily-Run via yfinance „EURUSD=X" gesetzt (= EUR pro 1 USD, also der
+# Multiplikator für die Anzeige „$4.47 (4,11 €)"). Default 0.92 als Notnagel
+# bevor main() läuft. Read-only nach Initialisierung.
+_FX_USD_EUR: float = 0.92
+
+
 # ===========================================================================
 # 1. FINVIZ SCREENER
 # ===========================================================================
@@ -4328,6 +4335,7 @@ def _build_chat_synthesis_ctx(stocks: list[dict], score_history: dict) -> dict:
         "positions":       positions_out,
         "yesterday_date":  yesterday_str,
         "today_date":      today_str,
+        "fx_usd_eur":      _FX_USD_EUR,
     }
 
 
@@ -6999,24 +7007,30 @@ async function runKiAnalyse(cardIdx) {{
     kiConf:   d.kiConf  != null ? (d.kiConf  + '%')    : 'n/a',
     kiDrv:    d.kiDrivers || '',
     news:     newsArr,
+    // FX: USD→EUR-Multiplikator (EUR pro 1 USD). Wird vom Chat-Panel-IIFE
+    // aus app_data.json.fx_usd_eur auf window gespiegelt.
+    fxUsdEur: window._FX_USD_EUR || 0.92,
   }};
 
   const sysPrompt = 'Du bist ein erfahrener Squeeze-Analyst. Analysiere das folgende Squeeze-Setup und gib eine präzise Einschätzung auf Deutsch. Maximal 200 Wörter. '
     + 'Wichtiger Hinweis zu Backtesting-Daten: Die bisherigen Bootstrap-Daten basieren auf einer vereinfachten Score-Formel ohne DTC, FINRA SI-Trend und Kombinations-Bonus — sie sind nicht direkt mit Live-Scores vergleichbar. Belastbare Statistiken folgen nach 60+ Tagen Live-Daten. Der Score ist ein struktureller Filter: Kandidaten mit hohem Score haben objektiv mehr Squeeze-Potential als Kandidaten mit niedrigem Score. Für konkrete Handlungsempfehlungen sind Katalysator-Sub-Score, aktuelle Nachrichten und eigene Recherche unverzichtbar. Empfehle immer Stop-Loss -15% und maximale Haltedauer 5 Handelstage bei Squeeze-Setups. '
     + 'Falls RSI > 80 oder Kurs bereits stark gestiegen (> 20% in 5 Tagen): explizit auf Rückschlagsrisiko hinweisen. '
     + 'Gib nach der Analyse ZWINGEND folgendes Risk/Reward-Framework aus — jede Zeile beginnt mit dem Label + Doppelpunkt:\\n'
-    + 'Möglicher Einstieg: $<Kurs> (aktuell)\\n'
-    + 'Stop-Loss: $<Kurs -15%> — falls dieser Level bricht, ist das Setup gescheitert\\n'
-    + 'Profit-Target 1: $<Kurs +20%> — erstes Ziel bei Short-Covering\\n'
-    + 'Profit-Target 2: $<Kurs +50%> — Squeeze-Szenario\\n'
+    + 'Möglicher Einstieg: $<Kurs> (<EUR-Wert> €) (aktuell)\\n'
+    + 'Stop-Loss: $<Kurs -15%> (<EUR-Wert> €) — falls dieser Level bricht, ist das Setup gescheitert\\n'
+    + 'Profit-Target 1: $<Kurs +20%> (<EUR-Wert> €) — erstes Ziel bei Short-Covering\\n'
+    + 'Profit-Target 2: $<Kurs +50%> (<EUR-Wert> €) — Squeeze-Szenario\\n'
     + 'Risk/Reward: 1:1.3 (Stop -15% / Target +20%)\\n'
     + 'Berechne die konkreten Dollar-Beträge aus dem angegebenen aktuellen Kurs. '
+    + 'WÄHRUNGS-FORMAT: Bei JEDER Kursnennung beide Währungen — USD zuerst, EUR in Klammern mit deutschem Komma. Format: "$4.47 (4,11 €)". '
+    + 'Umrechnung: USD-Betrag × ' + ctx.fxUsdEur.toFixed(4) + ' = EUR-Betrag, auf 2 Nachkommastellen gerundet. '
+    + 'Gilt für Einstieg, Stop-Loss, beide Profit-Targets und jede weitere Kursnennung. '
     + 'Schließe immer mit einem Haftungshinweis ab: Diese Analyse ist keine Anlageempfehlung. '
     + 'Beende jede Analyse zwingend mit "Fazit:" gefolgt von einer konkreten Einschätzung in einem Satz.';
   const userPrompt =
 `Squeeze-Setup für ${{ctx.ticker}} (${{ctx.company}}):
 - Squeeze-Score: ${{ctx.score}}/100
-- Aktueller Kurs: $${{ctx.price}}
+- Aktueller Kurs: $${{ctx.price}} (${{(parseFloat(ctx.price) * ctx.fxUsdEur).toFixed(2).replace('.', ',')}} €)
 - Short Float: ${{ctx.sf}}%
 - Days to Cover: ${{ctx.sr}}d
 - Rel. Volumen: ${{ctx.rv}}×
@@ -7555,6 +7569,7 @@ def _write_app_data_json(watchlist_cards: dict | None = None,
         "monster_scores":  monster_scores or {},
         "setup_scores":    setup_scores or {},
         "gap_states":      gap_states or {},
+        "fx_usd_eur":      _FX_USD_EUR,
         "generated_at":    datetime.now(ZoneInfo("UTC")).strftime("%Y-%m-%dT%H:%M:%SZ"),
     }
     with open("app_data.json", "w", encoding="utf-8") as fh:
@@ -8183,6 +8198,35 @@ def main():
         log.warning("S&P 500 yf.download timeout after %ds — skipping relative strength", _SPX_TIMEOUT)
     except Exception as _spx_exc:
         log.warning("S&P 500 fetch failed: %s", _spx_exc)
+
+    # USD/EUR-Wechselkurs für Chat- + KI-Analyse-Anzeige (alle Kursangaben
+    # erscheinen in der Form „$X.XX (Y,YY €)"). Quelle: yfinance EURUSD=X
+    # (= Anzahl USD pro 1 EUR). Daraus invertiert: EUR pro 1 USD.
+    # Fail-soft: bei Fetch-Fehler letzten persistierten Wert aus app_data.json
+    # weiterverwenden, sonst Notnagel 0.92.
+    _fx_usd_eur: float = 0.92
+    try:
+        _fx_hist = yf.download("EURUSD=X", period="2d", auto_adjust=False,
+                               progress=False, threads=False)
+        if _fx_hist is not None and not _fx_hist.empty:
+            _eur_usd = float(_fx_hist["Close"].squeeze().dropna().iloc[-1])
+            if _eur_usd > 0:
+                _fx_usd_eur = round(1.0 / _eur_usd, 4)
+                log.info("USD/EUR Rate: 1 USD = %.4f EUR (EURUSD=%.4f)",
+                         _fx_usd_eur, _eur_usd)
+    except Exception as _fx_exc:
+        log.warning("EURUSD=X fetch failed: %s", _fx_exc)
+        try:
+            with open("app_data.json", "r", encoding="utf-8") as _adfh:
+                _prev = json.load(_adfh).get("fx_usd_eur")
+            if isinstance(_prev, (int, float)) and _prev > 0:
+                _fx_usd_eur = float(_prev)
+                log.info("USD/EUR Rate: stale fallback aus app_data.json: %.4f", _fx_usd_eur)
+        except (FileNotFoundError, json.JSONDecodeError, OSError):
+            pass
+    # Modul-Variable setzen, damit _build_chat_synthesis_ctx() und
+    # _write_app_data_json() denselben Wert sehen ohne Signatur-Plumbing.
+    globals()["_FX_USD_EUR"] = _fx_usd_eur
 
     # Feature 5 — Sektor-ETF 20T-Performance parallel holen
     _sector_perf_20d: dict[str, float] = {}

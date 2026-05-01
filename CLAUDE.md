@@ -338,6 +338,26 @@ serialisiert als JSON in `STOCKS_CTX` an den Chat:
 - Chips am Chat-Boden referenzieren jetzt Anomalie-Mover und Position
   statt Top-1-Score-Ticker — siehe `_renderChips()` in `chat_script.jinja`.
 
+### USD/EUR-Anzeige
+
+Alle Kursangaben in Chat **und** KI-Analyse erscheinen zweisprachig im
+Format `$4.47 (4,11 €)` (US-Format zuerst, EUR in Klammern mit deutschem
+Komma).
+
+- **Quelle:** `app_data.json.fx_usd_eur` (= EUR pro 1 USD, Multiplikator).
+- **Fetch:** im Daily-Run via yfinance `EURUSD=X` → invertiert zu
+  USD→EUR. Fail-soft: bei Fetch-Fehler wird der vorige Wert aus
+  `app_data.json` weiterverwendet, sonst Notnagel `0.92`.
+- **Modul-Variable:** `_FX_USD_EUR` in `generate_report.py` (gesetzt in
+  `main()` direkt nach SPX-Fetch). `_build_chat_synthesis_ctx()` und
+  `_write_app_data_json()` lesen sie ohne Signatur-Plumbing.
+- **Frontend-Bridge:** `chat_script.jinja` spiegelt den Wert auf
+  `window._FX_USD_EUR`, damit `runKiAnalyse()` (außerhalb der Chat-IIFE)
+  zugreifen kann. Der KI-Analyse-System-Prompt enthält den konkreten
+  Multiplikator als String und das EUR-Format-Schema.
+- **Persistenz nach ki_agent-Tick:** `save_signals()` Read-Modify-Write
+  preserviert `fx_usd_eur` im `**existing`-Spread.
+
 ---
 
 ## Session-Handover-Regel
