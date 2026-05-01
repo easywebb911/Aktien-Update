@@ -7726,11 +7726,6 @@ def process_exit_signals(stocks: list[dict] | None = None) -> int:
 
     history = _load_score_history()
     state   = _exit_load_state()
-    setup_today_by_ticker = {
-        s["ticker"]: float(s.get("score") or 0.0)
-        for s in (stocks or [])
-        if s.get("score") is not None
-    }
     n_sent = 0
 
     for ticker, pos in positions.items():
@@ -7742,16 +7737,21 @@ def process_exit_signals(stocks: list[dict] | None = None) -> int:
         market = _fetch_position_market_data(ticker, entry_date)
         if not market:
             continue
-        # Heutiger Setup-Score aus dem aktuellen Run (smoothed) bevorzugt;
-        # Fallback: letzter Eintrag aus score_history.
-        setup_today = setup_today_by_ticker.get(ticker)
-        if setup_today is None:
-            entries = history.get(ticker) or []
-            if entries:
-                last = entries[-1]
-                last_score = last.get("score") if isinstance(last, dict) else None
-                if last_score is not None:
+        # Heutiger Setup-Score aus score_history (raw, letzter Eintrag) — bewusst
+        # NICHT aus setup_scores (smoothed), damit der Vergleich gegen
+        # setup_at_entry symmetrisch raw vs. raw bleibt. Sonst erzeugen
+        # Eintages-Spikes am Entry-Tag falsche „Setup-Verfall"-Drops, die
+        # nur Glättungs-Artefakte sind.
+        setup_today: float | None = None
+        entries = history.get(ticker) or []
+        if entries:
+            last = entries[-1]
+            last_score = last.get("score") if isinstance(last, dict) else None
+            if last_score is not None:
+                try:
                     setup_today = float(last_score)
+                except (TypeError, ValueError):
+                    setup_today = None
         market["setup_today"] = setup_today or 0.0
 
         result = compute_exit_score(ticker, pos, market, history)

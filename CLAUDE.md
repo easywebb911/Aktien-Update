@@ -224,6 +224,24 @@ Implementierung in `generate_report.py`:
 - `compute_exit_score(ticker, position, current_data, history)` — pure Funktion
 - `process_exit_signals(stocks)` — wird im Daily-Run nach Step 4 (HTML) aufgerufen, leise Fehler
 
+### Setup-Verfall-Symmetrie: raw vs. raw
+
+**Wichtig:** `setup_at_entry` **und** `setup_today` werden beide aus
+`score_history` (raw, pre-smoothing) gelesen. `setup_scores` in
+`app_data.json` ist **smoothed** und wird nur fürs Frontend (Kachel)
+und die Alert-Anzeige genutzt — **nicht** für den Exit-Vergleich.
+
+Hintergrund (Bug, behoben am 02.05.2026): zuvor hatte
+`process_exit_signals` `setup_today` aus `setup_today_by_ticker`
+(= `s["score"]`, smoothed) gezogen. `setup_at_entry` kommt aber
+aus `score_history` (raw). Die Mischung erzeugte Glättungs-Artefakte:
+ein Eintages-Spike am Entry-Tag (z. B. INDI raw 91.56 am 27.04. nach
+einem Tag) lief gegen den smoothed Wert von heute (61.1 nach drei-
+Tage-Glättung) und produzierte einen scheinbaren „Drop" von 30 Pkt,
+der größtenteils Mittelung war. Symmetrische raw-vs-raw-Variante
+vergleicht heutigen raw-Eintrag aus `score_history.{ticker}[-1]`
+mit dem raw-Eintrag am `entry_date`.
+
 ### Wichtig: niemals `positions.json` committen
 
 `.gitignore` enthält `positions.json`. Bei einem Refactor des `_load_positions()`-Pfads diese Regel beibehalten — die Datei darf nie ins Repo wandern. Bei lokalem Test eine `positions.json` anlegen ist OK; sie wird vom Git ignoriert.
