@@ -296,9 +296,13 @@ select.sort-select:hover:not(:disabled){background-image:linear-gradient(45deg,t
      sonst verteilen sie sich auf Content-Größe statt 100 % der Karten-Breite. */
   .wl-card-header > div{min-width:0}
   /* Ticker wird zum schrumpfbaren flex-Item mit Ellipsis statt Push-Out.
-     letter-spacing kondensiert für 4-Buchstaben-Ticker (KALV/INDI/ABEO). */
-  .wl-card-ticker{font-size:.75rem;flex:1;min-width:0;overflow:hidden;
-    text-overflow:ellipsis;white-space:nowrap;letter-spacing:-.02em}
+     Breit-Glyphen-Worst-Case (GRPN/GOOG/MMMM): font-stretch condensed +
+     letter-spacing -0.04em + font-size 0.7rem. font-stretch wird vom
+     System-Font ggf. ignoriert (graceful), die anderen beiden wirken
+     immer. */
+  .wl-card-ticker{font-size:.7rem;flex:1;min-width:0;overflow:hidden;
+    text-overflow:ellipsis;white-space:nowrap;
+    letter-spacing:-.04em;font-stretch:condensed}
   /* Länder-Flagge ausblenden — auf US-Mobile-Layout ohnehin nur Lärm,
      spart Zeichen-Breite für den Ticker. Desktop unverändert. */
   .wl-flag{display:none}
