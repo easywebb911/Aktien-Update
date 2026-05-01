@@ -279,7 +279,32 @@ select.sort-select:hover:not(:disabled){background-image:linear-gradient(45deg,t
   display:inline-flex;align-items:center;justify-content:center;
   margin:-8px 4px -8px -8px}
 .wl-remove-btn:hover,.wl-remove-btn:focus-visible{color:#ef4444;opacity:1;outline:none}
-@media(max-width:479px){.wl-cards{grid-template-columns:repeat(2,1fr)}}
+
+/* ── Mobile (≤768px): Watchlist-Voransicht-Kacheln verkleinern ──────────────
+   Vier Kacheln pro Reihe bleiben (auch unter 480px), Padding/Schrift/Icons
+   ungefähr halbiert. Touch-Target X-Button via ::before-Overlay weiter
+   44×44 px, auch wenn das visuelle „×" auf ~28 px schrumpft. */
+@media(max-width:768px){
+  .wl-cards{grid-template-columns:repeat(4,1fr);gap:6px}
+  .wl-card-header{padding:5px;gap:2px}
+  .wl-card-ticker{font-size:.7rem}
+  .wl-card-score{font-size:14px}
+  .wl-badge-star{font-size:.55rem;top:2px;right:2px}
+  /* Bottom-Row (Trend-Pfeil links, Details-Button rechts) — Inline-Styles
+     der JS-erzeugten Spans/Divs werden hier per !important überschrieben. */
+  .wl-card-header > div:last-child{gap:2px!important}
+  .wl-card-header > div:last-child > span{font-size:.65rem!important}
+  .wl-details-btn{font-size:.62rem;padding:0;border-radius:5px;
+    min-width:34px;min-height:34px}
+  /* X-Button: visuelles Icon klein, Hit-Area via ::before-Overlay 44×44. */
+  .wl-remove-btn{width:28px;height:28px;min-width:28px;font-size:.85rem;
+    margin:-4px 2px -4px -4px;position:relative}
+  .wl-remove-btn::before{content:"";position:absolute;inset:-8px;
+    background:transparent}
+  /* Watchlist-internen ki-dot kompakter (Top-Card-Variante) */
+  .wl-card .agent-dot{transform:scale(.75);transform-origin:left center}
+}
+/* Alte 2-Spalten-Mobile-Regel (vor 30.04.) entfernt — siehe Block oben. */
 .wl-sync-warn{font-size:.72rem;color:#f59e0b;background:#f59e0b18;border:1px solid #f59e0b44;
   border-radius:6px;padding:4px 8px;margin-bottom:6px;display:none}
 .wl-sync-warn.visible{display:block}
