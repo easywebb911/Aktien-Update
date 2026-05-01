@@ -296,8 +296,11 @@ select.sort-select:hover:not(:disabled){background-image:linear-gradient(45deg,t
      sonst verteilen sie sich auf Content-Größe statt 100 % der Karten-Breite. */
   .wl-card-header > div{min-width:0}
   /* Ticker wird zum schrumpfbaren flex-Item mit Ellipsis statt Push-Out. */
-  .wl-card-ticker{font-size:.7rem;flex:1;min-width:0;overflow:hidden;
+  .wl-card-ticker{font-size:.85rem;flex:1;min-width:0;overflow:hidden;
     text-overflow:ellipsis;white-space:nowrap}
+  /* Länder-Flagge ausblenden — auf US-Mobile-Layout ohnehin nur Lärm,
+     spart Zeichen-Breite für den Ticker. Desktop unverändert. */
+  .wl-flag{display:none}
   .wl-card-score{font-size:14px}
   .wl-badge-star{font-size:.55rem;top:2px;right:2px}
   /* Bottom-Row (Trend-Pfeil links, Details-Button rechts) — Inline-Styles

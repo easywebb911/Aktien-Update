@@ -6404,7 +6404,7 @@ function _fmtGerman(d) {{
             <div style="display:flex;align-items:center;gap:4px;width:100%">
               <button class="wl-remove-btn" onclick="wlRemoveTicker('${{ticker}}')" title="Entfernen" aria-label="Aus Watchlist entfernen">\xd7</button>
               <span class="wl-card-ticker">${{ticker}}</span>
-              ${{flag ? `<span style="font-size:.85rem">${{flag}}</span>` : ''}}
+              ${{flag ? `<span class="wl-flag" style="font-size:.85rem">${{flag}}</span>` : ''}}
               <span class="wl-ki-dot agent-dot none" id="wlkd-${{ticker}}"></span>
             </div>
             <span class="wl-card-score" style="color:${{scoreCol}}">${{scoreStr}}</span>
