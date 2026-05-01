@@ -1,10 +1,10 @@
 {
-  "updated": "2026-05-01T22:40:37.020844+02:00",
+  "updated": "2026-05-01T22:42:44.631334+02:00",
   "run_info": {
     "tickers_checked": 12,
     "signals_active": 4,
     "alerts_sent": 0,
-    "elapsed_s": 10.8,
+    "elapsed_s": 10.4,
     "market_phase": "After-Hours"
   },
   "signals": {
@@ -54,7 +54,7 @@
     "GRPN": {
       "score": 61,
       "confidence": 33,
-      "drivers": "Earnings in 6 Tagen (07.05.2026) + News: short squeeze, squeeze + Earnings in 6d + UOA Call/Put 4.2×",
+      "drivers": "Earnings in 6 Tagen (07.05.2026) + News: squeeze, short squeeze + Earnings in 6d + UOA Call/Put 4.2×",
       "price": 14.89,
       "chg_pct": 0.0,
       "rvol": 0.0,
@@ -96,7 +96,7 @@
     "ASAN": {
       "score": 73,
       "confidence": 33,
-      "drivers": "News: short squeeze, squeeze + Earnings in 33d + FINRA Short-Vol 89% + UOA Call/Put 3.2×",
+      "drivers": "News: squeeze, short squeeze + Earnings in 33d + FINRA Short-Vol 89% + UOA Call/Put 3.2×",
       "price": 6.99,
       "chg_pct": 0.0,
       "rvol": 0.0,
@@ -155,9 +155,9 @@
       "uoa_cp_ratio": 13.534722222222221
     },
     "TDOC": {
-      "score": 10,
+      "score": 18,
       "confidence": 17,
-      "drivers": "UOA Call/Put 4.1×",
+      "drivers": "News-KI 8/30: Positive earnings narrative with narrower losses, but established profitable company with large float makes short squeez + UOA Call/Put 4.1×",
       "price": 6.46,
       "chg_pct": 0.0,
       "rvol": 0.0,
