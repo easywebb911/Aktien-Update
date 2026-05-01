@@ -137,6 +137,25 @@ def save_state(state: dict) -> None:
 # Check-then-Act-Sequenz für künftige Parallelisierung ab.
 _alert_lock = threading.Lock()
 
+# Aktueller VIX-Schluss, einmal pro KI-Agent-Run gesetzt. None bei Fetch-
+# Fehler oder bevor main() läuft. Wird als „vix_current" in app_data.json
+# persistiert (analog zu _FX_USD_EUR in generate_report.py) und steuert
+# das Anomaly-Push-Gating (ANOMALY_VIX_PAUSE_THRESHOLD / WARN_THRESHOLD).
+_VIX_CURRENT: float | None = None
+
+
+def _fetch_vix_current() -> float | None:
+    """Letzter VIX-Schluss via yfinance ``^VIX``. None bei Fetch-Fehler."""
+    try:
+        import yfinance as _yf  # local import — yf ist global, aber Klarheit
+        h = _yf.download("^VIX", period="5d",
+                         progress=False, threads=False)
+        if h is not None and not h.empty:
+            return round(float(h["Close"].squeeze().dropna().iloc[-1]), 2)
+    except Exception as exc:
+        log.debug("^VIX fetch failed: %s", exc)
+    return None
+
 
 def is_on_cooldown(ticker: str, state: dict) -> bool:
     ts = state.get("cooldowns", {}).get(ticker)
@@ -184,10 +203,10 @@ def save_signals(signals: dict) -> None:
 
     # Read-modify-write: vom Daily-Report geschriebene Felder (monster_scores,
     # setup_scores, gap_states, watchlist_cards, fx_usd_eur) durchreichen —
-    # der KI-Agent besitzt nur score_history, agent_signals und generated_at.
-    # Ohne diese Preservation würde der Alert-Pfad nach dem ersten Stundentick
-    # keine Monster-/Setup-Scores, Gap-States oder FX-Rate mehr finden und
-    # Anomalie-Trigger / Chat-Format still scheitern.
+    # der KI-Agent besitzt nur score_history, agent_signals, generated_at und
+    # vix_current. Ohne diese Preservation würde der Alert-Pfad nach dem
+    # ersten Stundentick keine Monster-/Setup-Scores, Gap-States oder FX-Rate
+    # mehr finden und Anomalie-Trigger / Chat-Format still scheitern.
     existing: dict = {}
     try:
         path = Path("app_data.json")
@@ -201,6 +220,10 @@ def save_signals(signals: dict) -> None:
         "agent_signals": signals,
         "generated_at":  datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
     }
+    # vix_current nur überschreiben wenn dieser Run einen erfolgreichen
+    # Fetch hatte — sonst bleibt der vorige Wert via existing erhalten.
+    if _VIX_CURRENT is not None:
+        payload["vix_current"] = _VIX_CURRENT
     Path("app_data.json").write_text(
         json.dumps(payload, separators=(",", ":")), encoding="utf-8"
     )
@@ -2307,6 +2330,24 @@ def main() -> None:
     ki_scores      = {t: ((s or {}).get("score"))
                       for t, s in _signals_blob.items()}
 
+    # VIX-Gating für Anomalie-Pushes: einmal pro Run fetchen, in der Modul-
+    # Variable für save_signals (→ app_data.json.vix_current) ablegen.
+    # Bei Fetch-Fehler bleibt _VIX_CURRENT None und das Gating ist aus
+    # (Default: Pushes laufen wie vorher).
+    globals()["_VIX_CURRENT"] = _fetch_vix_current()
+    vix_now = _VIX_CURRENT
+    vix_pause = (vix_now is not None and vix_now > ANOMALY_VIX_PAUSE_THRESHOLD)
+    vix_warn  = (vix_now is not None and vix_now > ANOMALY_VIX_WARN_THRESHOLD
+                 and not vix_pause)
+    if vix_pause:
+        log.info("Anomaly-Pushes pausiert: VIX %.1f > %.1f (Krise/Panik)",
+                 vix_now, ANOMALY_VIX_PAUSE_THRESHOLD)
+    elif vix_warn:
+        log.info("Anomaly-Pushes mit VIX-Warnung: VIX %.1f > %.1f",
+                 vix_now, ANOMALY_VIX_WARN_THRESHOLD)
+    vix_warn_prefix = (f"⚠️ VIX {vix_now:.1f} | "
+                       if vix_warn else "")
+
     # Counter und new_signals aus den Worker-Ergebnissen aggregieren.
     # Alert-Schwelle: monster_score >= 70 (ersetzt phasenabhängige
     # Setup-Schwellen 20/25/35).
@@ -2395,7 +2436,9 @@ def main() -> None:
             # RVOL-Explosion plus Score-Sprung), jede mit eigenem Cooldown
             # via Key-Prefix anomaly_<trigger>_<ticker>. Earnings-Sofort-
             # Alert hat Vorrang — kein Doppel-Push im selben Run.
-            if not earnings_immediate:
+            # VIX-Gating: bei vix_pause werden ALLE Anomalien geskippt;
+            # bei vix_warn bekommen die Messages einen ⚠️-Präfix.
+            if not earnings_immediate and not vix_pause:
                 sig      = new_signals.get(ticker) or {}
                 prev_sig = old_sigs.get(ticker) or {}
                 for anom in detect_anomalies(ticker, sig, prev_sig, app_data):
@@ -2403,11 +2446,12 @@ def main() -> None:
                     if _anomaly_is_on_cooldown(key, state):
                         log.debug("Anomaly cooldown skip: %s", key)
                         continue
-                    if _send_anomaly_ntfy(ticker, anom["message"]):
+                    body = vix_warn_prefix + anom["message"]
+                    if _send_anomaly_ntfy(ticker, body):
                         _anomaly_set_cooldown(key, state)
                         n_alerts += 1
                         log.info("Anomaly push (%s/%s): %s",
-                                 anom["trigger"], anom["severity"], anom["message"])
+                                 anom["trigger"], anom["severity"], body)
 
     t_elapsed = round(time.time() - t_start, 1)
     out = {

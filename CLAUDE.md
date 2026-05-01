@@ -301,6 +301,26 @@ Cooldown: `ANOMALY_COOLDOWN_HOURS = 6` pro **(Ticker × Trigger-Typ)**.
 Mehrere Anomalien gleichen Tickers in einem Run sind möglich.
 Earnings-Sofort-Alert hat Vorrang vor Anomalien (kein Doppel-Push).
 
+### VIX-Gating
+
+Bei hohem VIX (Krise/Panik) sind Squeeze-Setups oft Bull-Traps —
+Pushes werden gating-abhängig **pausiert** oder **gewarnt**:
+
+| VIX-Bereich | Verhalten |
+|---|---|
+| `> ANOMALY_VIX_PAUSE_THRESHOLD` (35.0) | **alle** Anomalie-Pushes geskippt, Log-Zeile „Anomaly-Pushes pausiert" |
+| `> ANOMALY_VIX_WARN_THRESHOLD` (25.0) und ≤ 35 | Pushes laufen, Message-Präfix `⚠️ VIX X.X \|` |
+| ≤ 25.0 oder `None` | unverändert |
+
+VIX wird einmal pro KI-Agent-Run via `_fetch_vix_current()` (yfinance
+`^VIX`) geholt und in der Modul-Variable `_VIX_CURRENT` zwischengelegt.
+`save_signals()` persistiert den Wert als `vix_current` in
+`app_data.json` — nur wenn der Fetch erfolgreich war (None würde
+sonst den vorigen Wert via `**existing` nicht überschreiben).
+
+**Earnings-Sofort-Alerts werden nicht gegated** — Time-Critical-Pfad,
+muss in jeder Marktphase durchkommen.
+
 ### Datenpfad
 
 - **`uoa_atm_ratio`** und `uoa_cp_ratio` werden in `fetch_uoa_signal()`

@@ -406,6 +406,15 @@ ANOMALY_PERFECT_STORM_TRIGGERS    = 4
 # Monster-Backup: nur extreme Werte (frühere Schwelle 70 → jetzt 90)
 ANOMALY_MONSTER_BACKUP            = 90
 
+# ── VIX-Gating für Anomalie-Pushes ──────────────────────────────────────────
+# Bei hohem VIX (Krise/Panik) sind Squeeze-Setups oft Bull-Traps. Schwellen:
+#   VIX > ANOMALY_VIX_PAUSE_THRESHOLD → alle Anomalie-Pushes pausiert
+#   VIX > ANOMALY_VIX_WARN_THRESHOLD  → Push läuft, Message bekommt „⚠️ VIX X.X"-Präfix
+#   sonst (oder None bei Fetch-Fehler) → unverändert
+# Earnings-Sofort-Alerts werden NICHT gegated (Time-Critical).
+ANOMALY_VIX_PAUSE_THRESHOLD       = 35.0
+ANOMALY_VIX_WARN_THRESHOLD        = 25.0
+
 # ── KI-Score-Dot-Schwellen (Frontend-Pulsieren neben Ticker) ─────────────────
 # Steuert die Farbe des pulsierenden .agent-dot auf der Top-10- und Watchlist-
 # Kachel. Schwellen sind an die apply_monster_score-Semantik gekoppelt:
