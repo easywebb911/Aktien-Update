@@ -1,11 +1,11 @@
 {
-  "updated": "2026-05-01T09:39:49.952213+02:00",
+  "updated": "2026-05-01T13:43:10.379628+02:00",
   "run_info": {
     "tickers_checked": 13,
     "signals_active": 5,
     "alerts_sent": 0,
-    "elapsed_s": 10.3,
-    "market_phase": "Geschlossen"
+    "elapsed_s": 12.1,
+    "market_phase": "Pre-Market"
   },
   "signals": {
     "SKLZ": {
@@ -53,7 +53,7 @@
       "price": 2.25,
       "chg_pct": 0.0,
       "rvol": 0.0,
-      "earnings": null,
+      "earnings": "in 90 Tagen (30.07.2026)",
       "fda_date": null,
       "upcoming_event": null,
       "insider_buy": false,
@@ -102,9 +102,9 @@
       "uoa_drivers": []
     },
     "QURE": {
-      "score": 25,
+      "score": 33,
       "confidence": 33,
-      "drivers": "Earnings in 4 Tagen (05.05.2026) + Earnings in 4d + UOA Call/Put 7.3×",
+      "drivers": "Earnings in 4 Tagen (05.05.2026) + News-KI 8/30: Positive clinical/regulatory news is constructive but lacks the short-squeeze catalysts of extreme short interest, techn + Earnings in 4d + UOA Call/Put 7.3×",
       "price": 19.95,
       "chg_pct": 0.0,
       "rvol": 0.0,
@@ -123,7 +123,7 @@
     "VITL": {
       "score": 23,
       "confidence": 33,
-      "drivers": "Earnings in 6 Tagen (07.05.2026) + News-KI 8/30: Mixed sentiment with brand strength questions offset by earnings decline expectations and underperformance; minimal shor + Earnings in 6d",
+      "drivers": "Earnings in 6 Tagen (07.05.2026) + News-KI 8/30: Negative earnings outlook and underperformance versus market indicate weak momentum, unfavorable conditions for short sq + Earnings in 6d",
       "price": 13.65,
       "chg_pct": 0.0,
       "rvol": 0.0,
