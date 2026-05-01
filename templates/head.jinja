@@ -291,31 +291,36 @@ select.sort-select:hover:not(:disabled){background-image:linear-gradient(45deg,t
   /* Grid-Items dürfen unter Content-Breite schrumpfen — sonst forcieren
      X-Button + Ticker + Flag + ki-dot eine Spaltenbreite > (container/4). */
   .wl-card{min-width:0;overflow:hidden}
-  .wl-card-header{padding:5px;gap:2px;min-width:0}
+  .wl-card-header{padding:5px;gap:1px;min-width:0}
   /* Inner-Flex-Rows (Ticker-Zeile + Bottom-Row) brauchen ebenfalls min-width:0,
      sonst verteilen sie sich auf Content-Größe statt 100 % der Karten-Breite. */
   .wl-card-header > div{min-width:0}
-  /* Ticker wird zum schrumpfbaren flex-Item mit Ellipsis statt Push-Out. */
-  .wl-card-ticker{font-size:.85rem;flex:1;min-width:0;overflow:hidden;
-    text-overflow:ellipsis;white-space:nowrap}
+  /* Ticker wird zum schrumpfbaren flex-Item mit Ellipsis statt Push-Out.
+     letter-spacing kondensiert für 4-Buchstaben-Ticker (KALV/INDI/ABEO). */
+  .wl-card-ticker{font-size:.75rem;flex:1;min-width:0;overflow:hidden;
+    text-overflow:ellipsis;white-space:nowrap;letter-spacing:-.02em}
   /* Länder-Flagge ausblenden — auf US-Mobile-Layout ohnehin nur Lärm,
      spart Zeichen-Breite für den Ticker. Desktop unverändert. */
   .wl-flag{display:none}
+  /* Star-Badge: in der Watchlist sind alle Kacheln per Position „Stars",
+     das Sternchen ist redundant und kostet ~12 px in der oberen rechten
+     Ecke (absolute, aber überlagert die Trim-Box). Mobile aus. */
+  .wl-badge-star{display:none}
   .wl-card-score{font-size:14px}
-  .wl-badge-star{font-size:.55rem;top:2px;right:2px}
   /* Bottom-Row (Trend-Pfeil links, Details-Button rechts) — Inline-Styles
      der JS-erzeugten Spans/Divs werden hier per !important überschrieben. */
   .wl-card-header > div:last-child{gap:2px!important}
   .wl-card-header > div:last-child > span{font-size:.65rem!important}
   .wl-details-btn{font-size:.62rem;padding:0;border-radius:5px;
     min-width:34px;min-height:34px}
-  /* X-Button: visuelles Icon klein, Hit-Area via ::before-Overlay 44×44. */
-  .wl-remove-btn{width:28px;height:28px;min-width:28px;font-size:.85rem;
-    margin:-4px 2px -4px -4px;position:relative}
-  .wl-remove-btn::before{content:"";position:absolute;inset:-8px;
+  /* X-Button: visuelles Icon kompakt (22×22), Hit-Area via ::before-Overlay
+     bleibt 44×44 (inset:-11px = 22+11+11). */
+  .wl-remove-btn{width:22px;height:22px;min-width:22px;font-size:.8rem;
+    margin:-3px 1px -3px -3px;position:relative}
+  .wl-remove-btn::before{content:"";position:absolute;inset:-11px;
     background:transparent}
-  /* Watchlist-internen ki-dot kompakter (Top-Card-Variante) */
-  .wl-card .agent-dot{transform:scale(.75);transform-origin:left center}
+  /* Watchlist-internen ki-dot stark verkleinern (Top-Card-Variante) */
+  .wl-card .agent-dot{transform:scale(.6);transform-origin:left center}
 }
 /* Alte 2-Spalten-Mobile-Regel (vor 30.04.) entfernt — siehe Block oben. */
 .wl-sync-warn{font-size:.72rem;color:#f59e0b;background:#f59e0b18;border:1px solid #f59e0b44;
