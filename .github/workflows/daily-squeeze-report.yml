@@ -35,6 +35,9 @@ jobs:
       - name: Install dependencies
         run: pip install -r requirements.txt
 
+      - name: Lint chat template
+        run: python scripts/lint_chat_template.py
+
       - name: Build positions.json from secret
         env:
           POSITIONS_JSON: ${{ secrets.POSITIONS_JSON }}

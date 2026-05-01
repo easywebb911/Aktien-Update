@@ -57,6 +57,38 @@ else:
 
 ---
 
+## Lint-Regeln (CI-Gates)
+
+Lint-Skripte unter `scripts/` laufen **vor** den Daily-Run im Workflow.
+Ein Lint-Fail bricht den Workflow ab — die kaputte Version wird nicht
+deployt.
+
+### `scripts/lint_chat_template.py` — Backticks im Chat-Prompt
+
+Prüft, dass `_buildSystem()` in `templates/chat_script.jinja` **genau
+zwei Backticks** enthält (öffnender + schließender Delimiter des JS-
+Template-Literals). Jede zusätzliche Backtick — typisch durch
+versehentliche Markdown-Code-Notation `` ``code`` `` — bricht das
+Literal vorzeitig, wirft einen `TypeError` zur Laufzeit und der
+`catch`-Handler in `chatSend` rendert die Error-Message (mit dem
+kompletten Prompt-Text) als rotes Chat-Bubble.
+
+**Bug-Verweis:** `1341af9` — Hot-Fix für genau dieses Symptom.
+
+**Workflow-Integration:** Step `Lint chat template` in
+`.github/workflows/daily-squeeze-report.yml` läuft direkt vor
+`Build positions.json from secret`. Ein-Befehl-Aufruf:
+
+```bash
+python scripts/lint_chat_template.py
+```
+
+Exit-Code 0 = OK, 1 = Fail. Bei Fail werden alle Backtick-Positionen
+im Body relativ zum Body-Start geloggt (Zeilenkontext ±30 Zeichen),
+damit man den Übeltäter direkt findet.
+
+---
+
 ## Allgemeine Architektur
 
 - `generate_report.py` erzeugt `index.html` — **niemals `index.html` direkt bearbeiten**
