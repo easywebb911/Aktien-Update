@@ -1,10 +1,10 @@
 {
-  "updated": "2026-05-02T21:55:05.160313+02:00",
+  "updated": "2026-05-02T22:39:20.948804+02:00",
   "run_info": {
     "tickers_checked": 12,
     "signals_active": 3,
-    "alerts_sent": 0,
-    "elapsed_s": 10.5,
+    "alerts_sent": 1,
+    "elapsed_s": 10.3,
     "market_phase": "Geschlossen"
   },
   "signals": {
@@ -132,9 +132,9 @@
       "uoa_cp_ratio": null
     },
     "TDOC": {
-      "score": 38,
+      "score": 30,
       "confidence": 17,
-      "drivers": "News-KI 8/30: Positive earnings and product news, but no indicators of high short interest, low float, or squeeze catalysts typical of + UOA Call-Vol/OI 9.0× ATM + UOA Call/Put 35.7×",
+      "drivers": "UOA Call-Vol/OI 9.0× ATM + UOA Call/Put 35.7×",
       "price": 6.46,
       "chg_pct": 0.0,
       "rvol": 0.0,
@@ -194,9 +194,9 @@
       "uoa_cp_ratio": 1.1095238095238096
     },
     "PAR": {
-      "score": 20,
-      "confidence": 33,
-      "drivers": "Earnings in 5 Tagen (07.05.2026) + News-KI 5/30: Negative fundamental headlines and lack of short interest catalyst; no mention of high short positions, squeeze potentia + Earnings in 5d",
+      "score": 15,
+      "confidence": 17,
+      "drivers": "Earnings in 5 Tagen (07.05.2026) + Earnings in 5d",
       "price": 14.26,
       "chg_pct": 0.0,
       "rvol": 0.0,
