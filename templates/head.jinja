@@ -317,6 +317,24 @@ select.sort-select:hover:not(:disabled){background-image:linear-gradient(45deg,t
    Details-Body ohne Border-Top (Expanded ist jetzt die „ganze Karte") */
 .wl-card--expanded > .wl-card-header{display:none}
 .wl-card--expanded .wl-details-body{border-top:none}
+/* Variante A: vorgerendertes TopTen-Layout im WL-Drawer.
+   Das eingefügte HTML enthält bereits ``card-top``, ``sub-scores``,
+   ``metrics-row`` etc. — die ``wl-details-body`` braucht weder Padding
+   noch Inner-Border, weil die Innen-Elemente ihr eigenes Padding
+   liefern. Im aufgeklappten Zustand ist die details-body bereits per
+   ``open``-Klasse expandiert (max-height aus der Standard-Regel
+   1200 px reicht für News + KI-Analyse + Drivers). */
+.wl-card--expanded .wl-details-body{padding:0}
+.wl-card--expanded .wl-details-body > .card-top{padding-top:10px}
+/* Schließen-Bar oberhalb des inneren TopTen-Layouts. Sticky-Position
+   sorgt dafür, dass der Schließen-Button auch in langen Karten
+   zugänglich bleibt. */
+.wl-exp-close-bar{position:sticky;top:0;z-index:5;
+  background:var(--bg-card);
+  border-bottom:1px solid var(--brd);
+  padding:6px 10px;display:flex;justify-content:flex-end}
+.wl-card.card-manual .wl-exp-close-bar{background:rgba(20,83,45,0.55)}
+.wl-card--expanded .wl-exp-close-bar + .card-top{padding-top:6px}
 /* Close-Button im expandierten Zustand (lila-passend zur KI-Thematik) */
 .wl-close-btn-inline{background:var(--bg-met);color:var(--txt-sub);
   border:1px solid var(--brd);border-radius:8px;padding:4px 10px;

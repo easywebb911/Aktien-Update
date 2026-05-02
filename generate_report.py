@@ -2028,28 +2028,99 @@ def _fmt_si_date(date_str: str) -> str:
     return date_str or "—"
 
 
+_WL_CARD_STRIP_RE = {
+    "article_open":  re.compile(r'^\s*<article\b[^>]*>'),
+    "article_close": re.compile(r'</article>\s*$'),
+    "rank":          re.compile(r'<span class="rank(?:[^"]*)"[^>]*>[^<]*</span>'),
+    "wl_add_btn":    re.compile(r'<button class="wl-add-btn"[^>]*>[^<]*</button>'),
+    "details_btn":   re.compile(r'<button class="details-btn"[^>]*>.*?</button>',
+                                re.DOTALL),
+    "news_btn":      re.compile(r'<button class="news-btn"[^>]*>.*?</button>',
+                                re.DOTALL),
+    "details_body":  re.compile(r'<div class="details-body" id="dd\d+">'),
+    "news_panel":    re.compile(r'<div class="news-panel" id="np\d+" hidden>'),
+    "stale_ids":     re.compile(
+        r' id="(?:c|dd|db|da|dl|nb|nb-icon|np|ka-btn|ka-res)\d+"'
+    ),
+    "ki_onclick":    re.compile(r'onclick="runKiAnalyse\(\d+\)"'),
+}
+
+
+def _wl_full_card_html(s: dict) -> str:
+    """Vorgerendertes TopTen-Karten-HTML für die Watchlist-Drawer-Open-Ansicht.
+
+    Ruft ``_card(0, s)`` und entfernt:
+    - ``<article>``-Wrapper (``.wl-card`` ist die Watchlist-Hülle)
+    - Rank-Badge (im Watchlist-Kontext redundant)
+    - ``wl-add-btn`` (Ticker ist per Definition in der Watchlist)
+    - ``details-btn`` und ``news-btn`` (Drawer zeigt alles vor-geöffnet)
+
+    ``.details-body`` bekommt die Klasse ``open`` und ``.news-panel``
+    verliert sein ``hidden``-Attribut. Verbleibende ``id="…N"``-Attribute
+    werden gestrippt, damit Top-10-Handler keine Watchlist-Elemente per
+    ``getElementById`` finden. Der KI-Analyse-Klick wird auf
+    ``wlOpenKiAnalyse(ticker)`` umgeleitet — der bestehende Handler
+    zeigt dann die Main-Karte und triggert dort den Button.
+
+    Bei Render-Fehler (z. B. fehlende Felder bei nicht-Top-10-Watchlist-
+    Tickern) leerer String — JS fällt dann auf ``buildWlSparkOnly``.
+    """
+    try:
+        raw = _card(0, s)
+    except Exception:
+        return ""
+    raw = _WL_CARD_STRIP_RE["article_open"].sub("", raw, count=1)
+    raw = _WL_CARD_STRIP_RE["article_close"].sub("", raw, count=1)
+    raw = _WL_CARD_STRIP_RE["rank"].sub("", raw, count=1)
+    raw = _WL_CARD_STRIP_RE["wl_add_btn"].sub("", raw, count=1)
+    raw = _WL_CARD_STRIP_RE["details_btn"].sub("", raw, count=1)
+    raw = _WL_CARD_STRIP_RE["news_btn"].sub("", raw, count=1)
+    raw = _WL_CARD_STRIP_RE["details_body"].sub(
+        '<div class="details-body open">', raw, count=1
+    )
+    raw = _WL_CARD_STRIP_RE["news_panel"].sub(
+        '<div class="news-panel">', raw, count=1
+    )
+    raw = _WL_CARD_STRIP_RE["stale_ids"].sub("", raw)
+    raw = _WL_CARD_STRIP_RE["ki_onclick"].sub(
+        f'onclick="wlOpenKiAnalyse(\'{s["ticker"]}\')"', raw, count=1
+    )
+    return raw.strip()
+
+
 def _wl_card_payload(_s: dict) -> dict:
     """Baut das Watchlist-Karten-Payload aus einem angereicherten Stock-Dict.
 
     Identisch zum in-page WL_TOP10-Format und zum app_data.watchlist_cards-
     Eintrag — eine Quelle für beide Konsumenten, damit Browser und Backend
     nicht auseinanderdriften.
+
+    ``card_html`` ist das vorgerenderte TopTen-Layout für den Drawer-
+    Open-State (siehe ``_wl_full_card_html``); die übrigen Felder bleiben
+    für das kompakte WL-Tile + KI-Dot + Tooltips.
     """
     _fd   = _s.get("finra_data") or {}
     _hist = _fd.get("history", [])
     _opts = _s.get("options") or {}
+    _spark = _s.get("sparkline") or None
     return {
         "score":         _s.get("score", 0),
+        "monster_score": _s.get("monster_score"),
+        "ki_signal_score":      _s.get("ki_signal_score"),
+        "ki_signal_confidence": _s.get("ki_signal_confidence"),
+        "ki_signal_drivers":    _s.get("ki_signal_drivers"),
         "company_name":  _s.get("company_name", ""),
         "sector":        _s.get("sector", ""),
         "flag":          get_flag(_s["ticker"]),
         "price":         _s.get("price", 0),
         "change":        _s.get("change", 0),
         "change_5d":     _s.get("change_5d"),
+        "spx_daily_perf": _s.get("spx_daily_perf"),
         "short_float":         _s.get("short_float", 0),
         "short_float_source":  _s.get("short_float_source", "yfinance"),
         "short_ratio":   _s.get("short_ratio", 0),
         "rel_volume":    _s.get("rel_volume", 0),
+        "rel_volume_yesterday": _s.get("rel_volume_yesterday"),
         "float_shares":  _s.get("float_shares") or 0,
         "si_trend":          _fd.get("trend", "no_data"),
         "si_trend_source":   _fd.get("si_trend_source", "finra"),
@@ -2063,28 +2134,47 @@ def _wl_card_payload(_s: dict) -> dict:
         "ma50":          _s.get("ma50"),
         "ma200":         _s.get("ma200"),
         "inst_ownership": _s.get("inst_ownership"),
+        "sec_13f_note":  _s.get("sec_13f_note"),
         "52w_high":      _s.get("52w_high") or 0,
         "52w_low":       _s.get("52w_low") or 0,
         "avg_vol_20d":   _s.get("avg_vol_20d", 0),
         "cur_vol":       _s.get("cur_vol", 0),
+        "cur_open":      _s.get("cur_open"),
+        "prev_close":    _s.get("prev_close"),
         "market_cap":    _s.get("yf_market_cap") or _s.get("market_cap") or 0,
         "earnings_days": _s.get("earnings_days"),
         "earnings_date_str": _s.get("earnings_date_str", ""),
         "pc_ratio":      _opts.get("pc_ratio"),
         "atm_iv":        _opts.get("atm_iv"),
+        "options_expiry":         _opts.get("expiry"),
+        "options_gamma_call_oi":  _opts.get("gamma_call_oi"),
         "rel_strength_20d": _s.get("rel_strength_20d"),
         "perf_20d":      _s.get("perf_20d"),
         "cost_to_borrow": _s.get("cost_to_borrow"),
         "utilization":    _s.get("utilization"),
+        "borrow_rate":    _s.get("borrow_rate"),
+        "sparkline":     ({
+            "scores": _spark.get("scores", []),
+            "dates":  _spark.get("dates", []),
+            "trend":  _spark.get("trend", ""),
+            "col":    _spark.get("col", "#94a3b8"),
+            "today":  _spark.get("today", ""),
+        } if _spark else None),
         "news": [
             {
                 "title":  n.get("title", ""),
                 "link":   n.get("link", "#"),
                 "time":   n.get("time", ""),
                 "source": n.get("source") or n.get("publisher", ""),
+                "ts":     n.get("ts"),
             }
             for n in _s.get("news", [])[:3]
         ],
+        # Vorgerendertes TopTen-Layout für den expandierten Drawer-State.
+        # Siehe ``_wl_full_card_html`` — Outer-``<article>``, Rank, Add-Button
+        # und Toggle-Buttons sind gestrippt; details-body + news-panel sind
+        # vor-geöffnet; KI-Analyse-Onclick zeigt auf ``wlOpenKiAnalyse``.
+        "card_html":     _wl_full_card_html(_s),
     }
 
 
@@ -6771,6 +6861,20 @@ function _fmtGerman(d) {{
   }}
 
   function buildWlDetails(ticker, d) {{
+    // Variante A: Server-seitig vorgerendertes TopTen-Karten-HTML
+    // (``_wl_full_card_html``). Layout, Sub-Scores, Drivers, Sparkline,
+    // Metrics-Tiles, News + KI-Signal-Block sind identisch zur Top-10-
+    // Karte. Wir setzen einen ``wl-close-btn-inline`` als Top-Bar
+    // davor \u2014 dadurch bleibt der Drawer-State schlie\u00dfbar, auch wenn
+    // die wl-card-header per CSS in expanded Mode versteckt ist.
+    if (d && d.card_html) {{
+      const closeBar = `<div class="wl-exp-close-bar">
+        <button class="wl-close-btn-inline"
+                onclick="wlExpand('${{ticker}}', document.getElementById('wlb-${{ticker}}'))"
+                title="Einklappen">\u25b2 Schlie\xdfen</button>
+      </div>`;
+      return closeBar + d.card_html;
+    }}
     try {{
       const sfCol  = metColor('sf',  d.short_float);
       const srCol  = metColor('sr',  d.short_ratio);
