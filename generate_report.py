@@ -3927,14 +3927,7 @@ def _card(i: int, s: dict) -> str:
     _da_news  = json.dumps(_news_titles, ensure_ascii=False).replace('"','&quot;')
     _da_earn_date = _earn_dstr
 
-    # Rank-Marker: Zahl für organische Top-10-Karten, 📌-Badge für Ticker,
-    # die ausschließlich wegen der persönlichen Watchlist sichtbar sind.
-    if s.get("manual_forced"):
-        rank_html = ('<span class="rank rank-manual" '
-                     'title="Manuell beobachtet — via persönliche Watchlist hinzugefügt">'
-                     '\U0001F4CC</span>')
-    else:
-        rank_html = f'<span class="rank">{i}</span>'
+    rank_html = f'<span class="rank">{i}</span>'
 
     return f"""
 <article class="card{' card-manual' if s.get('manual_personal') else ''}{' card-lazy' if (LAZY_CARDS_ENABLED and i > LAZY_CARDS_EAGER) else ''}" id="c{i}" data-ticker="{s['ticker']}" data-setup-rank="{i}"{monster_data_attr}
@@ -4430,16 +4423,12 @@ def _build_card_ctx(i: int, s: dict) -> dict:
     cur_vol_str   = f"{s.get('cur_vol',    0):,.0f}"
 
     # ── Rank-Marker & Card-Modifier ──────────────────────────────────────
-    # Rank-Badge: nur für FORCED Bonus-Slots (📌 statt Rang-Nummer).
-    # Grüner Kartenhintergrund: für ALLE Watchlist-Ticker, auch wenn sie
-    # organisch ranken — damit die persönliche Beobachtungsliste überall
-    # auf einen Blick erkennbar ist. Spiegelt _card() byte-identisch.
-    if s.get("manual_forced"):
-        rank_html = ('<span class="rank rank-manual" '
-                     'title="Manuell beobachtet — via persönliche Watchlist hinzugefügt">'
-                     '\U0001F4CC</span>')
-    else:
-        rank_html = f'<span class="rank">{i}</span>'
+    # Grüner Kartenhintergrund: für Watchlist-Ticker, die organisch in den
+    # Top-10 ranken (manual_personal=True) — damit die persönliche
+    # Beobachtungsliste auch in der Hauptliste auf einen Blick erkennbar
+    # ist. Watchlist-Ticker außerhalb Top-10 erscheinen nur noch in der
+    # separaten Watchlist-Sektion, nicht mehr als Bonus-Vollkachel hier.
+    rank_html = f'<span class="rank">{i}</span>'
     card_manual_class = " card-manual" if s.get("manual_personal") else ""
     card_lazy_class   = " card-lazy" if (LAZY_CARDS_ENABLED and i > LAZY_CARDS_EAGER) else ""
 
@@ -9887,24 +9876,13 @@ def main():
         )
         top10 = enriched  # show whatever survived
 
-    # Persönliche Watchlist: jeder markierte Ticker erscheint garantiert —
-    # entweder organisch im Top-10 (dann mit normaler Rang-Nummer) oder als
-    # "Bonus-Slot" angehängt (mit 📌 Manuell-beobachtet-Badge statt Rang).
-    # Bonus-Slots nach Score absteigend sortiert; Score=0/None/NaN ans Ende
-    # (via _safe_float → 0.0 bei reverse=True).
-    _top10_ids = {id(c) for c in top10}
-    manual_extras = sorted(
-        [c for c in enriched
-         if c.get("manual_personal") and id(c) not in _top10_ids],
-        key=lambda c: _safe_float(c.get("score")),
-        reverse=True,
-    )
-    if manual_extras:
-        for c in manual_extras:
-            c["manual_forced"] = True
-        log.info("Manuelle Watchlist-Ticker außerhalb Top-10: +%d Bonus-Slot(s): %s",
-                 len(manual_extras), [c["ticker"] for c in manual_extras])
-        top10.extend(manual_extras)
+    # Persönliche Watchlist erscheint NICHT mehr als Bonus-Vollkacheln am
+    # Ende der Top-10. Watchlist-Ticker bleiben in der separaten Watchlist-
+    # Sektion (Mini-Tile + expandierter Drawer mit vollem TopTen-Layout
+    # via `_wl_card_payload` → `_wl_full_card_html`). `enriched` enthält
+    # weiterhin alle `manual_personal=True`-Ticker, damit die Watchlist-
+    # Karten-Daten generiert werden können — sie wandern nur nicht mehr
+    # ins `top10`-Array.
 
     if not top10:
         log.error("No candidates survived all filters.")
@@ -9923,18 +9901,8 @@ def main():
             log.info("  %s: base=%.2f + bonus=%.2f = %.2f",
                      s["ticker"], base, bonus, s["score"])
 
-    # Sortierung: organische Top-10 und manual_forced-Bonus-Slots werden
-    # getrennt sortiert und erst am Ende zusammengeführt — damit der
-    # Watchlist-Block immer als Gruppe ganz hinten steht, nie nach Score
-    # zwischen die organischen Karten eingemischt.
-    def _sort_keeping_manual_last(stocks: list[dict]) -> list[dict]:
-        organic = [c for c in stocks if not c.get("manual_forced")]
-        manual  = [c for c in stocks if     c.get("manual_forced")]
-        organic.sort(key=lambda x: x.get("score") or 0, reverse=True)
-        manual.sort( key=lambda x: x.get("score") or 0, reverse=True)
-        return organic + manual
-
-    top10 = _sort_keeping_manual_last(top10)
+    # Sortierung nach Score absteigend.
+    top10.sort(key=lambda x: x.get("score") or 0, reverse=True)
 
     # --- Step 3a: Score smoothing (70 % today + 30 % avg last 3 runs) ---
     apply_score_smoothing(top10, report_date)
