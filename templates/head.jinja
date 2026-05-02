@@ -807,6 +807,16 @@ select.sort-select:hover:not(:disabled){background-image:linear-gradient(45deg,t
 .details-btn:hover{background:var(--brd)}
 .details-arrow{display:inline-block;font-size:.75rem;transition:transform .2s ease;
   flex-shrink:0}
+/* Akkordeon-Indikator: Chevron rotiert um 180° beim Öffnen — gilt für
+   alle drei Toggle-Buttons. Steuerung rein per ``.is-open``-Klasse, kein
+   Inline-``style.transform``-Setzen mehr. */
+.details-btn.is-open .details-arrow{transform:rotate(180deg)}
+.news-arrow{display:inline-block;font-size:.75rem;transition:transform .2s ease;
+  flex-shrink:0}
+.news-btn.is-open .news-arrow{transform:rotate(180deg)}
+.ki-analyse-btn::before{content:"\25BE";display:inline-block;
+  font-size:.75rem;margin-right:6px;transition:transform .2s ease}
+.ki-analyse-btn.is-open::before{transform:rotate(180deg)}
 /* ── Collapsible details body ── */
 .details-body{max-height:0;overflow:hidden;
   transition:max-height .25s ease}

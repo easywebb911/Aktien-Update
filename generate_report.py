@@ -4086,7 +4086,7 @@ def _card(i: int, s: dict) -> str:
     {drivers_block_html}
   </div>
   <button class="news-btn" onclick="toggleNews({i})" id="nb{i}" aria-expanded="false">
-    <span id="nb-icon{i}">▼</span> Aktuelle Meldungen
+    <span class="news-arrow" id="nb-icon{i}">▼</span><span class="news-label" id="nl{i}"> Aktuelle Meldungen</span>
   </button>
   <div class="news-panel" id="np{i}" hidden>
     <div class="ki-signal-block">
@@ -5819,11 +5819,12 @@ window.addEventListener('load', () => {{
 // ── Details dropdown ─────────────────────────────────────────────────────
 function toggleDetails(id){{
   const body  = document.getElementById('dd' + id);
-  const arrow = document.getElementById('da' + id);
   const label = document.getElementById('dl' + id);
   const btn   = document.getElementById('db' + id);
   const open  = body.classList.toggle('open');
-  arrow.style.transform = open ? 'rotate(180deg)' : '';
+  // Chevron-Rotation rein per CSS (``.details-btn.is-open .details-arrow``);
+  // keine Inline-``style.transform``-Manipulation mehr.
+  btn.classList.toggle('is-open', open);
   label.textContent = open ? ' Details ausblenden' : ' Details anzeigen';
   btn.setAttribute('aria-expanded', open);
 }}
@@ -5831,14 +5832,13 @@ function toggleDetails(id){{
 function toggleNews(id){{
   const panel = document.getElementById('np' + id);
   const btn   = document.getElementById('nb' + id);
-  const icon  = document.getElementById('nb-icon' + id);
+  const lbl   = document.getElementById('nl' + id);
   const open  = panel.hidden;
   panel.hidden = !open;
   btn.setAttribute('aria-expanded', open);
-  icon.textContent = open ? '▲' : '▼';
-  btn.textContent  = '';
-  btn.appendChild(icon);
-  btn.append(' ' + (open ? 'Meldungen verbergen' : 'Aktuelle Meldungen'));
+  // Chevron bleibt ▼; Rotation per CSS-Klasse statt Zeichen-Tausch.
+  btn.classList.toggle('is-open', open);
+  if (lbl) lbl.textContent = open ? ' Meldungen verbergen' : ' Aktuelle Meldungen';
 }}
 // ── Score-Erklärung Popup ─────────────────────────────────────────────────
 function _closeScorePopup(){{
@@ -7820,8 +7820,8 @@ function _fmtGerman(d) {{
     const body = card.querySelector('.details-body');
     if (!body) return;
     const open = body.classList.toggle('open');
-    const arrow = btn.querySelector('.details-arrow');
-    if (arrow) arrow.style.transform = open ? 'rotate(180deg)' : '';
+    btn.classList.toggle('is-open', open);
+    // Label ist das zweite ``<span>`` im Button (erstes = ``.details-arrow``).
     const labels = btn.querySelectorAll('span');
     if (labels.length >= 2) {{
       labels[1].textContent = open ? ' Details ausblenden' : ' Details anzeigen';
@@ -7837,11 +7837,14 @@ function _fmtGerman(d) {{
     const open = panel.hidden;
     panel.hidden = !open;
     btn.setAttribute('aria-expanded', open);
-    btn.innerHTML = '';
-    const icon = document.createElement('span');
-    icon.textContent = open ? '▲' : '▼';
-    btn.appendChild(icon);
-    btn.append(' ' + (open ? 'Meldungen verbergen' : 'Aktuelle Meldungen'));
+    btn.classList.toggle('is-open', open);
+    // Label-Span (zweites ``<span>``) im stabilen Markup aktualisieren —
+    // kein innerHTML-Rebuild, damit der Chevron stehen bleibt und die
+    // CSS-Rotation greift.
+    const lbl = btn.querySelector('.news-label');
+    if (lbl) {{
+      lbl.textContent = open ? ' Meldungen verbergen' : ' Aktuelle Meldungen';
+    }}
   }};
 
   // ── Position-Panel (in expandierter Watchlist-Karte) ─────────────────────
@@ -8172,7 +8175,9 @@ const ANT_WARN_TTL_MS  = 7 * 24 * 60 * 60 * 1000;
 const ANT_ENDPOINT     = 'https://api.anthropic.com/v1/messages';
 const ANT_MODEL        = 'claude-sonnet-4-6';
 const ANT_KI_LABEL     = 'KI-Analyse';
-const ANT_KI_LABEL_HIDE= '\u25b2 Analyse ausblenden';
+// Hide-Label ohne f\u00fchrenden \u25b2 \u2014 der Chevron ist als CSS-``::before`` an der
+// Schaltfl\u00e4che und rotiert per ``.is-open``-Klasse, doppelt w\u00fcrde st\u00f6ren.
+const ANT_KI_LABEL_HIDE= 'Analyse ausblenden';
 const ANT_KI_LABEL_NEW = 'Neu analysieren';
 const ANT_KI_LABEL_BUSY= 'Analysiere …';
 const ANT_KI_LABEL_KEY = '\U0001F511 API-Key erforderlich';
@@ -8417,6 +8422,7 @@ async function runKiAnalyse(cardIdx) {{
   if (btn.dataset.kaHasResult === '1') {{
     const nowVisible = res.classList.toggle('visible');
     btn.textContent  = nowVisible ? ANT_KI_LABEL_HIDE : ANT_KI_LABEL;
+    btn.classList.toggle('is-open', nowVisible);
     return;
   }}
 
@@ -8514,9 +8520,11 @@ Gib eine knappe Einschätzung: Squeeze-Potenzial, wichtigste Treiber, kritische 
     }}
     btn.dataset.kaHasResult = '1';
     btn.textContent = ANT_KI_LABEL_HIDE;
+    btn.classList.add('is-open');
   }} catch(e) {{
     res.innerHTML = '<span class="ka-label">Fehler</span>' + e.message;
     btn.textContent = ANT_KI_LABEL;   // kein has-result setzen → nächster Tap macht neuen Call
+    btn.classList.remove('is-open');
   }} finally {{
     btn.disabled = false;
   }}

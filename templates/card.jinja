@@ -87,7 +87,7 @@
     {{ drivers_block_html }}
   </div>
   <button class="news-btn" onclick="toggleNews({{ i }})" id="nb{{ i }}" aria-expanded="false">
-    <span id="nb-icon{{ i }}">▼</span> Aktuelle Meldungen
+    <span class="news-arrow" id="nb-icon{{ i }}">▼</span><span class="news-label" id="nl{{ i }}"> Aktuelle Meldungen</span>
   </button>
   <div class="news-panel" id="np{{ i }}" hidden>
     <div class="ki-signal-block">
