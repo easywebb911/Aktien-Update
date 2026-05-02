@@ -114,6 +114,15 @@ a{color:var(--accent);text-decoration:none}
    Desktop ≥768 px: zentriert in row 1 zwischen Title und Hamburger
    (Override im Desktop-Block). */
 .hdr-ts{font-size:.73rem;color:var(--txt-sub);width:100%;order:3}
+/* Inline-Hinweis an Wochenenden / US-Feiertagen — dezent neben dem
+   Zeitstempel, kein prominentes Banner. Nur sichtbar wenn JS das
+   ``hidden``-Attribut entfernt (siehe Non-trading-day status-IIFE). */
+.hdr-nontrading{display:inline-flex;align-items:center;
+  margin-left:8px;padding:1px 7px;border-radius:10px;
+  font-size:.7rem;font-weight:600;letter-spacing:.02em;
+  color:#f59e0b;background:rgba(245,158,11,.10);
+  border:1px solid rgba(245,158,11,.35);white-space:nowrap;cursor:help}
+.hdr-nontrading[hidden]{display:none}
 .btn{display:inline-flex;align-items:center;justify-content:center;
   gap:6px;min-height:44px;padding:0 16px;border:1px solid transparent;border-radius:6px;
   font-size:.9rem;font-weight:700;cursor:pointer;flex:1;
@@ -788,7 +797,7 @@ select.sort-select:hover:not(:disabled){background-image:linear-gradient(45deg,t
   }
   /* Hide interactive / non-content elements */
   .app-hdr,.hamburger-btn,.menu-drawer,.menu-overlay,
-  .tok-panel,#amsg,#non-trading-banner,
+  .tok-panel,#amsg,
   .details-btn,.news-btn,.tok-link,
   [id^="tok-"]{display:none!important}
   /* Show all collapsed sections */

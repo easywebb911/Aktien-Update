@@ -4881,7 +4881,7 @@ def generate_html_v1(stocks: list[dict], report_date: str, _ctx: dict | None = N
 <header class="app-hdr">
   <div class="hdr-main">
     <span class="app-title">Squeeze <span>Report</span></span>
-    <span class="hdr-ts">{timestamp}</span>
+    <span class="hdr-ts">{timestamp}<span id="hdr-nontrading" class="hdr-nontrading" hidden></span></span>
     <button class="hamburger-btn" id="hamburger-btn" aria-label="Menü" aria-expanded="false" onclick="toggleMenuDrawer()">
       <i data-lucide="menu" class="hamburger-icon"></i>
     </button>
@@ -4983,9 +4983,6 @@ def generate_html_v1(stocks: list[dict], report_date: str, _ctx: dict | None = N
     </div>
   </div>
   <div id="amsg" class="amsg" style="display:none"></div>
-  <div id="non-trading-banner" style="display:none;width:100%;background:#f59e0b;color:#1c1102;
-    font-size:.78rem;font-weight:500;padding:5px 16px;box-sizing:border-box;
-    border-top:1px solid #d97706;line-height:1.45" aria-live="polite"></div>
 {chat_panel_html}
 </header>
 
@@ -6246,20 +6243,22 @@ function _fmtGerman(d) {{
   return `${{weekdays[d.getDay()]}}, ${{d.getDate()}}. ${{months[d.getMonth()]}} ${{d.getFullYear()}}`;
 }}
 
-// ── Non-trading-day banner ────────────────────────────────────────────────────
+// ── Non-trading-day status (inline neben Zeitstempel) ────────────────────────
+// Dezent in der Top-Bar statt prominentes orange Banner: kleines Icon +
+// Kurzform „Mo 04.05. Handel". Vollständiges Datum im title-Tooltip.
 (function(){{
   const today = new Date();
   today.setHours(0,0,0,0);
-  if (_isNonTradingDay(today)) {{
-    const ntd = _nextTradingDay(today);
-    const dow = today.getDay();
-    const reason = (dow === 6 || dow === 0) ? 'Wochenende' : 'US-Feiertag';
-    const banner = document.getElementById('non-trading-banner');
-    // Einzeiliges Banner — Daten-Quelle-Hinweis weggelassen.
-    banner.textContent =
-      `\u26a0\ufe0f ${{reason}} \u2014 N\xe4chster US-Handelstag: ${{_fmtGerman(ntd)}}`;
-    banner.style.display = 'block';
-  }}
+  if (!_isNonTradingDay(today)) return;
+  const ntd = _nextTradingDay(today);
+  const el  = document.getElementById('hdr-nontrading');
+  if (!el) return;
+  const wd  = ['So','Mo','Di','Mi','Do','Fr','Sa'][ntd.getDay()];
+  const dd  = String(ntd.getDate()).padStart(2,'0');
+  const mm  = String(ntd.getMonth()+1).padStart(2,'0');
+  el.textContent = `\u26a0 ${{wd}} ${{dd}}.${{mm}}. Handel`;
+  el.title = `N\xe4chster US-Handelstag: ${{_fmtGerman(ntd)}}`;
+  el.hidden = false;
 }})();
 // ─────────────────────────────────────────────────────────────────────────────
 
