@@ -111,6 +111,19 @@
 
 ## Architektur-Anker (nicht in CLAUDE.md, wichtig)
 
+- **Token-Encryption (Phase 3):** GitHub-PAT liegt nur AES-GCM-
+  verschlüsselt (PBKDF2-SHA256 600k → 256-Bit-Key) in
+  `localStorage[TOK_ENC_KEY]`. Klartext-Token lebt nur in
+  `sessionStorage[TOK_KEY]` während der Tab-Session. **Einziger
+  Lese-Pfad** ist `getToken()` — alle 14 bisherigen
+  `localStorage.getItem(TOK_KEY)`-Aufrufe (Watchlist-Sync, Gist-Sync,
+  Workflow-Trigger, Position-Tracking, Trade-Journal) gehen jetzt
+  durchs Helper. Drei Modals (Setup / Unlock / Migrate) per
+  `_ensureToken(callback)`-Orchestrator. Cold-Start zeigt Migrate-
+  Modal automatisch, wenn ein Klartext-Token aus alter Phase
+  detektiert wird. Reset-Pfade clearen alle drei Slots
+  (`_clearAllTokens`). Krypto-Schema-Version `v: 1` im Blob für
+  zukünftige Re-Encrypt-Migrationen.
 - **`_wl_full_card_html(s)`** ist die Single Source of Truth für die
   Watchlist-Drawer-Open-Ansicht. Strippt `<article>`-Wrapper,
   Rank-Badge, `wl-add-btn` und alle stale `id="…N"`-Attribute aus dem

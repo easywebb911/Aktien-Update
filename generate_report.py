@@ -5104,6 +5104,72 @@ def generate_html_v1(stocks: list[dict], report_date: str, _ctx: dict | None = N
       <a class="tok-link" onclick="clearGhToken();return false;" href="#">Token löschen</a>
     </div>
   </div>
+  <!-- Phase 3: Token-Encryption-Modals (Setup / Unlock / Migrate).
+       Master-Passwort-basierte AES-GCM-Verschlüsselung für den GitHub-PAT.
+       Drei exklusive Dialoge — gesteuert via _ensureToken-Orchestrator. -->
+  <div class="tok-modal-overlay" id="tok-modal-overlay" hidden onclick="_closeTokenModals()"></div>
+
+  <div class="tok-modal" id="tok-modal-setup" hidden role="dialog" aria-modal="true" aria-labelledby="tok-setup-title">
+    <h3 id="tok-setup-title">GitHub-Token einrichten</h3>
+    <p class="tok-modal-hint">PAT mit Scopes <code>repo</code> und <code>gist</code>.
+      Token wird mit deinem Master-Passwort verschlüsselt im Browser gespeichert —
+      Passwort liegt nirgendwo persistent vor.</p>
+    <label class="tok-modal-lbl">GitHub Personal Access Token
+      <input type="password" id="tok-setup-token" class="tok-modal-inp"
+             autocomplete="off" spellcheck="false" placeholder="ghp_…">
+    </label>
+    <label class="tok-modal-lbl">Master-Passwort
+      <input type="password" id="tok-setup-pw" class="tok-modal-inp"
+             autocomplete="new-password" spellcheck="false" placeholder="mind. 8 Zeichen">
+    </label>
+    <label class="tok-modal-lbl">Passwort bestätigen
+      <input type="password" id="tok-setup-pw2" class="tok-modal-inp"
+             autocomplete="new-password" spellcheck="false">
+    </label>
+    <div class="tok-modal-err" id="tok-setup-err" hidden></div>
+    <div class="tok-modal-btns">
+      <button class="btn btn-cancel" onclick="_closeTokenModals()">Abbrechen</button>
+      <button class="btn btn-b" onclick="_submitTokenSetup()">Verschlüsseln &amp; Speichern</button>
+    </div>
+  </div>
+
+  <div class="tok-modal" id="tok-modal-unlock" hidden role="dialog" aria-modal="true" aria-labelledby="tok-unlock-title">
+    <h3 id="tok-unlock-title">Master-Passwort eingeben</h3>
+    <p class="tok-modal-hint">Token ist verschlüsselt gespeichert. Passwort entschlüsselt
+      ihn nur für diese Browser-Session.</p>
+    <label class="tok-modal-lbl">Master-Passwort
+      <input type="password" id="tok-unlock-pw" class="tok-modal-inp"
+             autocomplete="current-password" spellcheck="false"
+             onkeydown="if(event.key==='Enter')_submitTokenUnlock()">
+    </label>
+    <div class="tok-modal-err" id="tok-unlock-err" hidden></div>
+    <div class="tok-modal-btns">
+      <button class="btn btn-cancel" onclick="_closeTokenModals()">Abbrechen</button>
+      <a class="tok-link tok-modal-reset" onclick="_resetTokenForReentry();return false;" href="#">Token neu eingeben</a>
+      <button class="btn btn-b" onclick="_submitTokenUnlock()">Entschlüsseln</button>
+    </div>
+  </div>
+
+  <div class="tok-modal" id="tok-modal-migrate" hidden role="dialog" aria-modal="true" aria-labelledby="tok-mig-title">
+    <h3 id="tok-mig-title">Token verschlüsseln?</h3>
+    <p class="tok-modal-hint">Es wurde ein unverschlüsselter GitHub-Token in
+      <code>localStorage</code> gefunden. Setze jetzt ein Master-Passwort —
+      der Klartext-Slot wird danach gelöscht.</p>
+    <label class="tok-modal-lbl">Master-Passwort
+      <input type="password" id="tok-mig-pw" class="tok-modal-inp"
+             autocomplete="new-password" spellcheck="false" placeholder="mind. 8 Zeichen">
+    </label>
+    <label class="tok-modal-lbl">Passwort bestätigen
+      <input type="password" id="tok-mig-pw2" class="tok-modal-inp"
+             autocomplete="new-password" spellcheck="false">
+    </label>
+    <div class="tok-modal-err" id="tok-mig-err" hidden></div>
+    <div class="tok-modal-btns">
+      <button class="btn btn-cancel" onclick="_skipTokenMigrate()">Später</button>
+      <button class="btn btn-b" onclick="_submitTokenMigrate()">Verschlüsseln</button>
+    </div>
+  </div>
+
   <div id="amsg" class="amsg" style="display:none"></div>
 {chat_panel_html}
 </header>
@@ -6252,11 +6318,269 @@ const GH_REPO     = 'Aktien-Update';
 const GH_WORKFLOW    = 'daily-squeeze-report.yml';
 const GH_WORKFLOW_KI = 'ki_agent.yml';
 const GH_BRANCH   = 'main';
-const TOK_KEY     = 'ghpat_squeeze';
+// Phase 3 — Token-Storage:
+//   ``TOK_KEY``      = sessionStorage-Key für den entschlüsselten Token
+//                       (lebt nur bis Tab/Browser-Close).
+//   ``TOK_ENC_KEY``  = localStorage-Key für den AES-GCM-verschlüsselten Blob
+//                       (Klartext liegt nie persistent vor).
+//   ``TOK_LEGACY_KEY`` = alter Klartext-Slot in localStorage (vor Phase 3);
+//                       wird beim Start als „Migrations-Quelle" erkannt
+//                       und nach erfolgreicher Verschlüsselung gelöscht.
+const TOK_KEY        = 'ghpat_squeeze';
+const TOK_ENC_KEY    = 'ghpat_squeeze_encrypted';
+const TOK_LEGACY_KEY = 'ghpat_squeeze';   // identisch zu TOK_KEY — die
+// Migration prüft den localStorage-Slot mit demselben Namen, sobald
+// sessionStorage[TOK_KEY] leer ist und kein verschlüsselter Blob da ist.
 // Gist-ID: vom Workflow zur Render-Zeit per env-Variable injiziert.
 // Leerer String → kein Gist konfiguriert → JS-Position-Panel zeigt Hinweis.
 const GIST_ID     = '{gist_id_js}';
 const GIST_FILE   = 'squeeze_data.json';
+// ─────────────────────────────────────────────────────────────────────────
+
+// ── Token-Krypto (WebCrypto: PBKDF2-SHA256 600k → AES-GCM-256) ──────────
+// Master-Passwort wird NIE persistiert; nur während Ent-/Verschlüsselung
+// im JS-Memory. Salt + IV werden pro Verschlüsselung neu generiert und
+// zusammen mit dem Ciphertext gespeichert.
+const _TOK_PBKDF2_ITER = 600000;
+const _TOK_SALT_LEN    = 16;   // 128 bit
+const _TOK_IV_LEN      = 12;   // 96 bit (AES-GCM standard)
+const _TOK_KEY_BITS    = 256;
+
+function _b64encode(bytes) {{
+  let bin = '';
+  for (let i = 0; i < bytes.length; i++) bin += String.fromCharCode(bytes[i]);
+  return btoa(bin);
+}}
+function _b64decode(b64) {{
+  const bin = atob(b64);
+  const out = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i++) out[i] = bin.charCodeAt(i);
+  return out;
+}}
+async function _deriveTokenKey(password, salt) {{
+  const baseKey = await crypto.subtle.importKey(
+    'raw', new TextEncoder().encode(password), {{name: 'PBKDF2'}},
+    false, ['deriveKey']
+  );
+  return crypto.subtle.deriveKey(
+    {{name: 'PBKDF2', salt: salt, iterations: _TOK_PBKDF2_ITER, hash: 'SHA-256'}},
+    baseKey,
+    {{name: 'AES-GCM', length: _TOK_KEY_BITS}},
+    false, ['encrypt', 'decrypt']
+  );
+}}
+async function _encryptToken(token, password) {{
+  const salt = crypto.getRandomValues(new Uint8Array(_TOK_SALT_LEN));
+  const iv   = crypto.getRandomValues(new Uint8Array(_TOK_IV_LEN));
+  const key  = await _deriveTokenKey(password, salt);
+  const ct   = await crypto.subtle.encrypt(
+    {{name: 'AES-GCM', iv: iv}}, key, new TextEncoder().encode(token)
+  );
+  return JSON.stringify({{
+    v:    1,
+    salt: _b64encode(salt),
+    iv:   _b64encode(iv),
+    ct:   _b64encode(new Uint8Array(ct)),
+  }});
+}}
+async function _decryptToken(blobJson, password) {{
+  const blob = JSON.parse(blobJson);
+  if (blob.v !== 1) throw new Error('Unbekanntes Token-Schema v=' + blob.v);
+  const salt = _b64decode(blob.salt);
+  const iv   = _b64decode(blob.iv);
+  const ct   = _b64decode(blob.ct);
+  const key  = await _deriveTokenKey(password, salt);
+  const pt   = await crypto.subtle.decrypt({{name: 'AES-GCM', iv: iv}}, key, ct);
+  return new TextDecoder().decode(pt);
+}}
+
+// Token-Reader: alle bisherigen ``getToken()``-Stellen
+// lesen jetzt aus ``sessionStorage[TOK_KEY]``. Liefert leer-String wenn
+// die Session nicht entsperrt ist — Aufrufer behandeln das wie zuvor
+// als „kein Token".
+function getToken() {{
+  try {{ return sessionStorage.getItem(TOK_KEY) || ''; }}
+  catch(_) {{ return ''; }}
+}}
+// Setzt den entschlüsselten Token in sessionStorage. Wird ausschließlich
+// aus dem Unlock-/Setup-Modal-Flow aufgerufen.
+function _setSessionToken(tok) {{
+  try {{ sessionStorage.setItem(TOK_KEY, tok); }} catch(_) {{}}
+}}
+function _clearSessionToken() {{
+  try {{ sessionStorage.removeItem(TOK_KEY); }} catch(_) {{}}
+}}
+// Vollständiger Reset: löscht verschlüsselten Blob + Session-Token +
+// Legacy-Klartext-Slot. Aufrufer triggert anschließend Setup-Modal.
+function _clearAllTokens() {{
+  try {{ localStorage.removeItem(TOK_ENC_KEY); }} catch(_) {{}}
+  try {{ localStorage.removeItem(TOK_LEGACY_KEY); }} catch(_) {{}}
+  _clearSessionToken();
+}}
+
+// ── Token-Modal-Orchestrator ────────────────────────────────────────────
+// Zustands-Maschine über drei Modals: Setup (kein Token vorhanden),
+// Unlock (verschlüsselter Blob da), Migrate (Legacy-Klartext erkannt).
+// Aufrufer rufen ``_ensureToken(callback)`` — bekommen Token zurück oder
+// werden durch das passende Modal geführt.
+let _tokPending = null;       // callback nach erfolgreichem Setup/Unlock
+let _tokUnlockFails = 0;      // Fehlversuch-Counter (Reset-Hint nach 3)
+
+function _hasEncryptedToken() {{
+  try {{ return !!localStorage.getItem(TOK_ENC_KEY); }} catch(_) {{ return false; }}
+}}
+function _getLegacyPlaintextToken() {{
+  // Nur ein „Legacy"-Token, wenn KEIN Encrypted-Blob daneben liegt
+  // (sonst wäre es ein normaler Klartext-Schaden, kein Migrations-Slot).
+  if (_hasEncryptedToken()) return '';
+  try {{ return localStorage.getItem(TOK_LEGACY_KEY) || ''; }} catch(_) {{ return ''; }}
+}}
+
+function _showModal(id) {{
+  const ov = document.getElementById('tok-modal-overlay');
+  const m  = document.getElementById(id);
+  if (!ov || !m) return;
+  // Zuerst alle anderen Modals schließen
+  document.querySelectorAll('.tok-modal').forEach(el => el.hidden = true);
+  ov.hidden = false;
+  m.hidden  = false;
+  setTimeout(() => {{
+    const inp = m.querySelector('input');
+    if (inp) inp.focus();
+  }}, 60);
+}}
+function _closeTokenModals() {{
+  const ov = document.getElementById('tok-modal-overlay');
+  if (ov) ov.hidden = true;
+  document.querySelectorAll('.tok-modal').forEach(el => el.hidden = true);
+  // Clear sensitive inputs
+  ['tok-setup-token','tok-setup-pw','tok-setup-pw2',
+   'tok-unlock-pw','tok-mig-pw','tok-mig-pw2'].forEach(id => {{
+    const e = document.getElementById(id);
+    if (e) e.value = '';
+  }});
+  ['tok-setup-err','tok-unlock-err','tok-mig-err'].forEach(id => {{
+    const e = document.getElementById(id);
+    if (e) {{ e.hidden = true; e.textContent = ''; }}
+  }});
+  _tokPending = null;
+}}
+
+function _ensureToken(callback) {{
+  const tok = getToken();
+  if (tok) {{ callback(tok); return; }}
+  _tokPending = callback;
+  if (_hasEncryptedToken()) {{ _showModal('tok-modal-unlock'); return; }}
+  if (_getLegacyPlaintextToken()) {{ _showModal('tok-modal-migrate'); return; }}
+  _showModal('tok-modal-setup');
+}}
+
+function _showModalErr(errId, msg) {{
+  const e = document.getElementById(errId);
+  if (!e) return;
+  e.textContent = msg;
+  e.hidden = false;
+}}
+
+async function _submitTokenSetup() {{
+  const tok = (document.getElementById('tok-setup-token').value || '').trim();
+  const pw  = document.getElementById('tok-setup-pw').value || '';
+  const pw2 = document.getElementById('tok-setup-pw2').value || '';
+  if (!tok) {{ _showModalErr('tok-setup-err', 'Token erforderlich.'); return; }}
+  if (pw.length < 8) {{ _showModalErr('tok-setup-err', 'Master-Passwort min. 8 Zeichen.'); return; }}
+  if (pw !== pw2)   {{ _showModalErr('tok-setup-err', 'Passwörter stimmen nicht überein.'); return; }}
+  try {{
+    const blob = await _encryptToken(tok, pw);
+    localStorage.setItem(TOK_ENC_KEY, blob);
+    localStorage.removeItem(TOK_LEGACY_KEY);   // Falls Klartext-Reste lagen
+    _setSessionToken(tok);
+    const cb = _tokPending;
+    _closeTokenModals();
+    if (cb) cb(tok);
+  }} catch(e) {{
+    console.error('Token-Setup fehlgeschlagen:', e);
+    _showModalErr('tok-setup-err', 'Verschlüsselung fehlgeschlagen: ' + e.message);
+  }}
+}}
+
+async function _submitTokenUnlock() {{
+  const pw = document.getElementById('tok-unlock-pw').value || '';
+  if (!pw) return;
+  const blob = (function(){{ try {{ return localStorage.getItem(TOK_ENC_KEY); }} catch(_) {{ return null; }} }})();
+  if (!blob) {{ _showModalErr('tok-unlock-err', 'Kein verschlüsselter Token gefunden.'); return; }}
+  try {{
+    const tok = await _decryptToken(blob, pw);
+    _tokUnlockFails = 0;
+    _setSessionToken(tok);
+    const cb = _tokPending;
+    _closeTokenModals();
+    if (cb) cb(tok);
+  }} catch(e) {{
+    _tokUnlockFails++;
+    const hint = _tokUnlockFails >= 3
+      ? ' Nach 3 Fehlversuchen: ggf. Token neu eingeben (Link unten).'
+      : '';
+    _showModalErr('tok-unlock-err', 'Falsches Passwort.' + hint);
+    document.getElementById('tok-unlock-pw').value = '';
+  }}
+}}
+
+async function _submitTokenMigrate() {{
+  const pw  = document.getElementById('tok-mig-pw').value  || '';
+  const pw2 = document.getElementById('tok-mig-pw2').value || '';
+  if (pw.length < 8) {{ _showModalErr('tok-mig-err', 'Master-Passwort min. 8 Zeichen.'); return; }}
+  if (pw !== pw2)   {{ _showModalErr('tok-mig-err', 'Passwörter stimmen nicht überein.'); return; }}
+  const legacy = _getLegacyPlaintextToken();
+  if (!legacy) {{ _closeTokenModals(); return; }}
+  try {{
+    const blob = await _encryptToken(legacy, pw);
+    localStorage.setItem(TOK_ENC_KEY, blob);
+    localStorage.removeItem(TOK_LEGACY_KEY);
+    _setSessionToken(legacy);
+    const cb = _tokPending;
+    _closeTokenModals();
+    if (cb) cb(legacy);
+  }} catch(e) {{
+    console.error('Token-Migration fehlgeschlagen:', e);
+    _showModalErr('tok-mig-err', 'Verschlüsselung fehlgeschlagen: ' + e.message);
+  }}
+}}
+function _skipTokenMigrate() {{
+  // User entscheidet später — Migration-Modal nicht erneut bei dieser
+  // Session zeigen; sonst nervt es bei jedem _ensureToken-Aufruf.
+  // Fallback: User arbeitet weiter mit Klartext-Token (legacy-Pfad).
+  const legacy = _getLegacyPlaintextToken();
+  if (legacy) _setSessionToken(legacy);
+  const cb = _tokPending;
+  _closeTokenModals();
+  if (cb && legacy) cb(legacy);
+}}
+function _resetTokenForReentry() {{
+  if (!confirm('Token + verschlüsselter Blob werden gelöscht. Erneut eingeben?')) return;
+  _clearAllTokens();
+  _tokUnlockFails = 0;
+  _showModal('tok-modal-setup');
+}}
+
+// Esc schließt jedes offene Token-Modal
+window.addEventListener('keydown', (e) => {{
+  if (e.key !== 'Escape') return;
+  const ov = document.getElementById('tok-modal-overlay');
+  if (ov && !ov.hidden) _closeTokenModals();
+}});
+
+// Cold-Start-Hook: Migration-Modal anzeigen, wenn Klartext-Token existiert
+// und noch kein Encrypted-Blob daneben liegt. Wird einmal pro Page-Load
+// nach DOMContentLoaded aufgerufen — keine sonstigen Action-Trigger.
+function _coldStartTokenMigration() {{
+  if (_hasEncryptedToken()) return;
+  if (!_getLegacyPlaintextToken()) return;
+  // Direktes Migrations-Prompt; Skip-Button = später (Klartext bleibt
+  // vorerst).
+  _tokPending = null;
+  _showModal('tok-modal-migrate');
+}}
+document.addEventListener('DOMContentLoaded', _coldStartTokenMigration);
 // ─────────────────────────────────────────────────────────────────────────
 function reloadPage(){{
   const btn = document.getElementById('btn-reload');
@@ -6264,25 +6588,10 @@ function reloadPage(){{
   window.location.reload();
 }}
 function triggerWorkflow(){{
-  const token = localStorage.getItem(TOK_KEY);
-  if (!token) {{ _pendingDispatch='recalc'; showTokenInput(); return; }}
-  dispatchWorkflow(token);
+  _ensureToken(token => {{ _pendingDispatch = 'recalc'; dispatchWorkflow(token); }});
 }}
-function showTokenInput(){{
-  document.getElementById('tok-sec').style.display = 'block';
-  document.getElementById('amsg').style.display = 'none';
-  setTimeout(() => document.getElementById('tok-inp').focus(), 60);
-}}
-async function saveTokenAndDispatch(){{
-  const token = document.getElementById('tok-inp').value.trim();
-  if (!token) return;
-  localStorage.setItem(TOK_KEY, token);
-  document.getElementById('tok-sec').style.display = 'none';
-  document.getElementById('tok-inp').value = '';
-  if (_pendingDispatch === 'ki') {{ await dispatchKiWorkflow(token); }}
-  else {{ await dispatchWorkflow(token); }}
-  _pendingDispatch = null;
-}}
+// showTokenInput / saveTokenAndDispatch sind nach Phase 3 entfallen —
+// _ensureToken übernimmt den Token-Pfad via Setup/Unlock/Migrate-Modal.
 async function dispatchWorkflow(token){{
   const btn = document.getElementById('btn-recalc');
   if (btn) {{ btn.disabled = true; btn.innerHTML = 'Startet…'; }}
@@ -6306,7 +6615,7 @@ async function dispatchWorkflow(token){{
       _showPollStatus('running');
       setTimeout(_doPoll, 5000);
     }} else if (r.status === 401 || r.status === 403) {{
-      localStorage.removeItem(TOK_KEY);
+      _clearAllTokens();
       showMsg('error',`Token ungültig (HTTP ${{r.status}}). Bitte neu eingeben.`);
       _enableRecalcBtn();
     }} else {{
@@ -6322,9 +6631,7 @@ function _enableKiBtn(){{
   if (btn) {{ btn.disabled=false; btn.innerHTML='&#9889; Agent Run'; }}
 }}
 function triggerKiAgent(){{
-  const token = localStorage.getItem(TOK_KEY);
-  if (!token) {{ _pendingDispatch='ki'; showTokenInput(); return; }}
-  dispatchKiWorkflow(token);
+  _ensureToken(token => {{ _pendingDispatch = 'ki'; dispatchKiWorkflow(token); }});
 }}
 async function dispatchKiWorkflow(token){{
   const btn = document.getElementById('btn-ki');
@@ -6347,7 +6654,7 @@ async function dispatchKiWorkflow(token){{
       _showPollStatus('running');
       setTimeout(_doPoll, 5000);
     }} else if (r.status === 401 || r.status === 403) {{
-      localStorage.removeItem(TOK_KEY);
+      _clearAllTokens();
       showMsg('error',`Token ung\u00fcltig (HTTP ${{r.status}}). Bitte neu eingeben.`);
       _enableKiBtn();
     }} else {{
@@ -6521,7 +6828,7 @@ function resetToken(){{
   // wegen Mistap-Risiko entfernt; Reset weiterhin via Settings-Panel
   // (clearGhToken-Link).
   if (!confirm('GitHub-Token wirklich löschen?')) return;
-  localStorage.removeItem(TOK_KEY);
+  _clearAllTokens();
   document.getElementById('tok-sec').style.display='none';
   showMsg('info','Token zurückgesetzt.');
 }}
@@ -7143,7 +7450,7 @@ function _fmtGerman(d) {{
   // ── Async load — GitHub first (if token available), localStorage fallback ──
   async function wlLoad() {{
     if (_wlCache !== null) return _wlCache.slice();
-    const token = localStorage.getItem(TOK_KEY);
+    const token = getToken();
     const localArr = JSON.parse(localStorage.getItem(WL_KEY) || '[]');
     if (token) {{
       try {{
@@ -7197,7 +7504,7 @@ function _fmtGerman(d) {{
     arr = arr.slice(0, WL_MAX);
     _wlCache = arr;
     localStorage.setItem(WL_KEY, JSON.stringify(arr));
-    const token = localStorage.getItem(TOK_KEY);
+    const token = getToken();
     if (!token) {{
       _wlWarn('\u26a0 Kein GitHub Token \u2014 Watchlist wird nur lokal gespeichert');
       return;
@@ -7620,7 +7927,7 @@ function _fmtGerman(d) {{
       body.innerHTML = d ? buildWlDetails(ticker, d) : buildWlSparkOnly(ticker, WL_HIST[ticker]);
       body.dataset.loaded = '1';
       // Position-Panel nachladen, sobald Gist-Daten da sind (Lädt…-State).
-      if (GIST_ID && localStorage.getItem(TOK_KEY)
+      if (GIST_ID && getToken()
           && body.querySelector('.position-panel-loading')) {{
         gistLoad().then(() => _refreshPositionPanel(ticker)).catch(() => {{}});
       }}
@@ -7692,7 +7999,7 @@ function _fmtGerman(d) {{
   // Warnung, damit der User nicht ahnungslos weiter-speichert während
   // GitHub jeden PUT ablehnt.
   async function _wlValidateToken() {{
-    const token = localStorage.getItem(TOK_KEY);
+    const token = getToken();
     if (!token) return;  // kein Token ist OK — Watchlist-Save zeigt eigene Meldung
     try {{
       const r = await fetch('https://api.github.com/user', {{
@@ -7735,7 +8042,7 @@ function _fmtGerman(d) {{
   async function gistLoad() {{
     if (_GIST_DATA) return _gistClone(_GIST_DATA);
     if (!GIST_ID) return null;
-    const token = localStorage.getItem(TOK_KEY);
+    const token = getToken();
     if (!token) return null;
     try {{
       const r = await fetch(`https://api.github.com/gists/${{GIST_ID}}`, {{
@@ -7771,7 +8078,7 @@ function _fmtGerman(d) {{
       _wlWarn('⚠ GIST_ID nicht konfiguriert — Eingabe nicht persistiert');
       return false;
     }}
-    const token = localStorage.getItem(TOK_KEY);
+    const token = getToken();
     if (!token) {{
       _wlWarn('⚠ Kein GitHub Token — Eingabe nicht persistiert');
       return false;
@@ -7858,7 +8165,7 @@ function _fmtGerman(d) {{
         <p class="pos-msg">Position-Tracking inaktiv — Gist nicht konfiguriert (Repo-Secret <code>GIST_ID</code> fehlt).</p>
       </div>`;
     }}
-    const tok = localStorage.getItem(TOK_KEY);
+    const tok = getToken();
     if (!tok) {{
       return `<div class="position-panel position-panel-disabled">
         <p class="pos-msg">GitHub-Token fehlt — Position-Tracking ben\xf6tigt einen PAT mit <code>gist</code>-Scope (⚙ Einstellungen).</p>
@@ -8141,7 +8448,7 @@ function _fmtGerman(d) {{
     const msg = `${{ticker}} aus Watchlist entfernen?\nEine evtl. offene Position wird ebenfalls gel\xf6scht.`;
     if (!confirm(msg)) return;
     // Gist: Position + Watchlist-Spiegel synchronisieren
-    if (GIST_ID && localStorage.getItem(TOK_KEY)) {{
+    if (GIST_ID && getToken()) {{
       const data = (await gistLoad()) || {{watchlist: [], positions: {{}}}};
       data.watchlist = (data.watchlist || []).filter(t => t !== ticker);
       if (data.positions) delete data.positions[ticker];
@@ -8156,7 +8463,7 @@ function _fmtGerman(d) {{
     _wlValidateToken();
     // Eager-Preload des Gist-Caches, damit das Position-Panel beim ersten
     // Karten-Expand sofort den korrekten State zeigt (sonst kurzes „Lädt…").
-    if (GIST_ID && localStorage.getItem(TOK_KEY)) {{
+    if (GIST_ID && getToken()) {{
       gistLoad().catch(() => {{}});
     }}
     const inp = document.getElementById('wl-add-input');
@@ -8323,36 +8630,37 @@ function toggleSettings() {{
     if (inp && key) inp.value = key;
     // GitHub Token — gespeicherten Wert vor-ausfüllen
     const ghInp = document.getElementById('gh-inp');
-    const ghTok = localStorage.getItem(TOK_KEY) || '';
+    const ghTok = getToken() || '';
     if (ghInp && ghTok) ghInp.value = ghTok;
   }}
 }}
 
 // ── GitHub Token — speichern / testen / löschen ─────────────────────────────
+// Phase 3: ``saveGhToken`` schreibt nicht mehr Klartext in localStorage.
+// Stattdessen öffnet sie das Setup-Modal mit dem eingegebenen Token vor-
+// gefüllt — der User vergibt dort ein Master-Passwort, alles wird AES-GCM-
+// verschlüsselt persistiert. Bestehende Encrypted-Blobs werden ersetzt.
 function saveGhToken() {{
   const inp    = document.getElementById('gh-inp');
   const status = document.getElementById('gh-status');
   const tok    = (inp?.value || '').trim();
   if (!tok) {{
-    localStorage.removeItem(TOK_KEY);
-    if (status) {{ status.className = 'anth-status'; status.textContent = ''; }}
+    if (status) {{ status.className = 'anth-status err'; status.textContent = '❌ Token erforderlich'; }}
     return;
   }}
-  localStorage.setItem(TOK_KEY, tok);
-  if (status) {{
-    status.className = 'anth-status ok';
-    status.textContent = '✅ Gespeichert';
-    clearTimeout(status._hideT);
-    status._hideT = setTimeout(() => {{
-      status.textContent = ''; status.className = 'anth-status';
-    }}, 2500);
-  }}
+  // Token in Setup-Modal vorbefüllen, damit User nur Master-Passwort setzt.
+  const setupInp = document.getElementById('tok-setup-token');
+  if (setupInp) setupInp.value = tok;
+  if (inp) inp.value = '';
+  if (status) {{ status.className = 'anth-status'; status.textContent = ''; }}
+  _tokPending = null;
+  _showModal('tok-modal-setup');
 }}
 
 async function testGhToken() {{
   const inp    = document.getElementById('gh-inp');
   const status = document.getElementById('gh-status');
-  const tok    = (inp?.value || '').trim() || localStorage.getItem(TOK_KEY) || '';
+  const tok    = (inp?.value || '').trim() || getToken() || '';
   if (!tok) {{
     if (status) {{ status.className = 'anth-status err'; status.textContent = '❌ Kein Token eingegeben'; }}
     return;
@@ -8387,7 +8695,8 @@ async function testGhToken() {{
 function clearGhToken() {{
   const inp    = document.getElementById('gh-inp');
   const status = document.getElementById('gh-status');
-  localStorage.removeItem(TOK_KEY);
+  // Phase 3: räumt verschlüsselten Blob + Session-Token + Legacy-Klartext.
+  _clearAllTokens();
   if (inp) inp.value = '';
   if (status) {{ status.className = 'anth-status'; status.textContent = ''; }}
 }}

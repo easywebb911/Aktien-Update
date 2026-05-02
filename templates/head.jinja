@@ -150,6 +150,42 @@ select.sort-select:hover:not(:disabled){background-image:linear-gradient(45deg,t
   font-size:.85rem;font-family:monospace}
 .tok-inp:focus{outline:2px solid var(--accent);outline-offset:1px}
 .tok-link{font-size:.75rem;color:var(--txt-dim);padding:4px 2px;cursor:pointer}
+/* ── Token-Encryption-Modals (Phase 3) ─────────────────────────────── */
+.tok-modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.55);
+  z-index:9000}
+.tok-modal-overlay[hidden]{display:none}
+.tok-modal{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);
+  z-index:9001;background:var(--bg-card);border:1px solid var(--brd);
+  border-radius:12px;padding:18px 20px;
+  width:min(420px, calc(100vw - 32px));
+  box-shadow:0 12px 32px rgba(0,0,0,.5)}
+.tok-modal[hidden]{display:none}
+.tok-modal h3{margin:0 0 8px;font-size:1.05rem;font-weight:800;color:var(--txt)}
+.tok-modal-hint{font-size:.78rem;color:var(--txt-sub);line-height:1.5;
+  margin:0 0 12px}
+.tok-modal-hint code{background:var(--bg-met);padding:1px 5px;border-radius:4px;
+  font-size:.92em;border:1px solid var(--brd)}
+.tok-modal-lbl{display:flex;flex-direction:column;gap:4px;
+  font-size:.72rem;color:var(--txt-sub);font-weight:600;margin-bottom:10px}
+.tok-modal-inp{background:var(--bg-met);border:1px solid var(--brd);
+  border-radius:6px;padding:8px 10px;color:var(--txt);font-size:.85rem;
+  font-family:inherit;min-height:38px}
+.tok-modal-inp:focus{outline:2px solid var(--accent);outline-offset:1px}
+.tok-modal-err{background:rgba(239,68,68,0.12);border:1px solid rgba(239,68,68,0.45);
+  color:#ef4444;border-radius:6px;padding:8px 10px;font-size:.78rem;
+  line-height:1.45;margin:4px 0 10px;font-weight:600}
+.tok-modal-err[hidden]{display:none}
+.tok-modal-btns{display:flex;flex-wrap:wrap;align-items:center;gap:8px;
+  justify-content:flex-end;margin-top:10px}
+.tok-modal-reset{font-size:.72rem;color:#f59e0b;cursor:pointer;
+  margin-right:auto;text-decoration:underline}
+.tok-modal .btn{flex:0 0 auto;min-height:38px;padding:0 14px;
+  border-radius:8px;font-size:.85rem;font-weight:700;cursor:pointer;
+  border:1px solid var(--brd)}
+.tok-modal .btn-cancel{background:transparent;color:var(--txt-sub)}
+.tok-modal .btn-cancel:hover{background:var(--bg-met)}
+.tok-modal .btn-b{background:#2563eb;color:#fff;border-color:#2563eb}
+.tok-modal .btn-b:hover:not(:disabled){background:#1d4ed8}
 .amsg{margin-top:8px;padding:10px 13px;border-radius:8px;font-size:.8rem;line-height:1.5;display:flex;align-items:center}
 .amsg-success{background:#052a14;border:1px solid #166534;color:#86efac}
 .amsg-error{background:#2d0a0a;border:1px solid #991b1b;color:#fca5a5}

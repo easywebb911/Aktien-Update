@@ -569,6 +569,85 @@ gestrippt):
 
 ---
 
+## Master-Passwort-Token-Encryption (Phase 3)
+
+GitHub-PAT liegt nicht mehr im Klartext in `localStorage`. Stattdessen
+wird er mit einem User-Master-Passwort AES-GCM-verschlüsselt gespeichert;
+der entschlüsselte Token lebt nur in `sessionStorage` während der Tab-
+Session und ist mit Tab/Browser-Close weg.
+
+### Storage-Keys
+
+| Key | Storage | Inhalt |
+|---|---|---|
+| `ghpat_squeeze_encrypted` (`TOK_ENC_KEY`) | localStorage | JSON-Blob `{v, salt, iv, ct}` (alle Base64) |
+| `ghpat_squeeze` (`TOK_KEY`) | **sessionStorage** | Klartext-Token, nur während Session |
+| `ghpat_squeeze` (`TOK_LEGACY_KEY`) | localStorage | Alter Klartext-Slot vor Phase 3 — wird beim Cold-Start als Migrations-Quelle erkannt und nach Verschlüsselung gelöscht |
+
+`TOK_KEY` und `TOK_LEGACY_KEY` haben denselben String-Wert (`'ghpat_squeeze'`),
+liegen aber in unterschiedlichen Storages — `getToken()` liest immer aus
+sessionStorage; localStorage-Slot ist nur für Migrations-Detection.
+
+### Krypto-Parameter
+
+- **PBKDF2** mit SHA-256, **600 000 Iterationen**, 16-Byte Salt → 256-Bit-Key.
+- **AES-GCM** mit 12-Byte IV, 256-Bit-Key (Auth-Tag inklusive im Ciphertext).
+- Salt + IV werden **pro Verschlüsselung neu generiert** (`crypto.getRandomValues`)
+  und mit dem Ciphertext zusammen im Blob persistiert.
+- Schema-Version `v: 1` im Blob — bei späteren Krypto-Upgrades Pfad für
+  Re-Encrypt vorhanden.
+
+### User-Flow / Modale
+
+| Modal | Trigger | Aktion |
+|---|---|---|
+| **Setup** (`#tok-modal-setup`) | Erst-Setup ohne Token; Settings-Panel `saveGhToken` | Token + Master-Passwort + Bestätigung → Verschlüsseln + `localStorage[TOK_ENC_KEY]` + Session-Token setzen |
+| **Unlock** (`#tok-modal-unlock`) | Action benötigt Token + Session leer + Encrypted-Blob da | Master-Passwort → Entschlüsseln → Session-Token setzen → pending Callback ausführen |
+| **Migrate** (`#tok-modal-migrate`) | Cold-Start mit Klartext-Token + ohne Encrypted-Blob | Master-Passwort + Bestätigung → Klartext aus localStorage verschlüsseln + Klartext-Slot löschen |
+
+### Orchestrator: `_ensureToken(callback)`
+
+Aufrufer (z. B. `triggerWorkflow`, `triggerKiAgent`) rufen
+`_ensureToken(token => doSomething(token))`. Logik:
+1. `getToken()` liefert nicht-leer → callback sofort.
+2. Sonst Encrypted-Blob vorhanden → Unlock-Modal.
+3. Sonst Legacy-Klartext-Token → Migrate-Modal.
+4. Sonst Setup-Modal.
+
+`gistLoad` / `gistSave` / `wlLoad` / `wlSave` nutzen das gleiche Pattern
+nicht aktiv — sie lesen `getToken()` direkt; bei leerer Session geben sie
+silently auf (existierendes Verhalten). Der User wird via Recalculate-/
+KI-Agent-/Setup-Aktion zum Unlock geführt.
+
+### Reset-Pfad
+
+- Unlock-Modal-Link **„Token neu eingeben"** (nach 3 Fehlversuchen prominent
+  hervorgehoben) → `_clearAllTokens()` → Setup-Modal.
+- Settings-Panel-Link **„Token löschen"** → `_clearAllTokens()`.
+- `_clearAllTokens()` räumt `localStorage[TOK_ENC_KEY]` + `localStorage[TOK_LEGACY_KEY]`
+  + `sessionStorage[TOK_KEY]`.
+
+### 401/403-Handler im Workflow-Dispatch
+
+Wenn GitHub-API mit 401/403 antwortet (Token revoked / abgelaufen /
+falsche Scopes), wird `_clearAllTokens()` aufgerufen — der User landet
+beim nächsten Action-Trigger im Setup-Modal.
+
+### Pflege
+
+- Bei Änderung der Krypto-Parameter (`_TOK_PBKDF2_ITER` / `_TOK_KEY_BITS` /
+  `_TOK_SALT_LEN` / `_TOK_IV_LEN`): Schema-Version `v` in `_encryptToken`
+  hochzählen + Migrationspfad in `_decryptToken` ergänzen, sonst werden
+  alte Blobs unentschlüsselbar.
+- `getToken()` ist der **einzige** Lese-Pfad. Bei Refactor weitere
+  `localStorage.getItem(TOK_KEY)`-Aufrufe vermeiden — das Linter-Pattern
+  `grep -n 'localStorage.getItem(TOK_KEY)' generate_report.py` sollte
+  außerhalb der `_getLegacyPlaintextToken`-Helper leer bleiben.
+- Score-Methodik-Sync ist **nicht betroffen** — reines Frontend-Security-
+  Feature, keine Score- oder Filter-Logik berührt.
+
+---
+
 ## Anomalie-Push-System
 
 Der KI-Agent feuert ntfy-Pushes **nicht mehr per Monster≥70-Schwelle**,
