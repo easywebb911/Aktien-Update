@@ -4799,6 +4799,11 @@ def _build_context(stocks: list[dict], report_date: str) -> dict:
         _wl_hist   = {}
     wl_scores_json = json.dumps(_wl_scores)
     wl_hist_json   = json.dumps(_wl_hist)
+    # GIST_ID-Injection: vom Workflow per Env-Variable zur Render-Zeit
+    # gesetzt. Leer → JS-Position-Panel zeigt „Gist nicht konfiguriert"-
+    # Hinweis statt Save-/Load-Versuch. Sanitize: nur a-z0-9 erlaubt.
+    _gid_raw = os.environ.get("GIST_ID", "").strip()
+    gist_id_js = re.sub(r"[^A-Za-z0-9]", "", _gid_raw)[:64]
 
     # Full snapshots für Watchlist-Detail-Karten (gemeinsamer Builder, damit
     # sowohl in-page WL_TOP10 als auch app_data.watchlist_cards identisch
@@ -4838,6 +4843,7 @@ def _build_context(stocks: list[dict], report_date: str) -> dict:
         "wl_scores_json": wl_scores_json,
         "wl_hist_json":   wl_hist_json,
         "wl_top10_json":  wl_top10_json,
+        "gist_id_js":     gist_id_js,
         "chat_ctx_json":  chat_ctx_json,
         "head_html":      head_html,
         "chat_panel_html": chat_panel_html,
@@ -4868,6 +4874,7 @@ def generate_html_v1(stocks: list[dict], report_date: str, _ctx: dict | None = N
     wl_scores_json = ctx["wl_scores_json"]
     wl_hist_json   = ctx["wl_hist_json"]
     wl_top10_json  = ctx["wl_top10_json"]
+    gist_id_js     = ctx["gist_id_js"]
     chat_ctx_json    = ctx["chat_ctx_json"]
     head_html        = ctx["head_html"]
     chat_panel_html  = ctx["chat_panel_html"]
@@ -5908,6 +5915,10 @@ const GH_WORKFLOW    = 'daily-squeeze-report.yml';
 const GH_WORKFLOW_KI = 'ki_agent.yml';
 const GH_BRANCH   = 'main';
 const TOK_KEY     = 'ghpat_squeeze';
+// Gist-ID: vom Workflow zur Render-Zeit per env-Variable injiziert.
+// Leerer String → kein Gist konfiguriert → JS-Position-Panel zeigt Hinweis.
+const GIST_ID     = '{gist_id_js}';
+const GIST_FILE   = 'squeeze_data.json';
 // ─────────────────────────────────────────────────────────────────────────
 function reloadPage(){{
   const btn = document.getElementById('btn-reload');
@@ -6873,7 +6884,8 @@ function _fmtGerman(d) {{
                 onclick="wlExpand('${{ticker}}', document.getElementById('wlb-${{ticker}}'))"
                 title="Einklappen">\u25b2 Schlie\xdfen</button>
       </div>`;
-      return closeBar + d.card_html;
+      const posPanel = buildPositionPanel(ticker, d.price);
+      return closeBar + d.card_html + posPanel;
     }}
     try {{
       const sfCol  = metColor('sf',  d.short_float);
@@ -7084,7 +7096,10 @@ function _fmtGerman(d) {{
         Live-Daten erst verf\u00fcgbar wenn der Ticker wieder in den Top-10 erscheint.
       </div>`;
 
-      return topHdr + tiles + sparkHtml + tableHtml;
+      // Position-Panel auch im History-only-Fall — User kann eine
+      // Position auf einem nicht-Top-10-Watchlist-Ticker eröffnen.
+      const posPanel = buildPositionPanel(ticker, null);
+      return topHdr + tiles + sparkHtml + tableHtml + posPanel;
     }} catch(e) {{
       console.error('buildWlSparkOnly Fehler:', e);
       return topHdr + '<div class="wl-no-data">Fehler beim Laden der Details.</div>';
@@ -7194,6 +7209,11 @@ function _fmtGerman(d) {{
             || (window._WL_CARDS && window._WL_CARDS[ticker]);
       body.innerHTML = d ? buildWlDetails(ticker, d) : buildWlSparkOnly(ticker, WL_HIST[ticker]);
       body.dataset.loaded = '1';
+      // Position-Panel nachladen, sobald Gist-Daten da sind (Lädt…-State).
+      if (GIST_ID && localStorage.getItem(TOK_KEY)
+          && body.querySelector('.position-panel-loading')) {{
+        gistLoad().then(() => _refreshPositionPanel(ticker)).catch(() => {{}});
+      }}
       body.querySelectorAll('.wl-spark').forEach(w => {{
         if (typeof window.drawSparkline === 'function') window.drawSparkline(w);
       }});
@@ -7284,9 +7304,230 @@ function _fmtGerman(d) {{
     }}
   }}
 
+  // ── Gist-Datenstore (Watchlist + Positionen, privater User-Gist) ─────────
+  // Schema: {{ "watchlist": [...], "positions": {{ ticker: {{entry_date,
+  //          entry_price, shares}} }} }}.
+  // GIST_ID/GIST_FILE oben (Render-Zeit per env injiziert). Token aus
+  // localStorage[TOK_KEY] (Scope ``gist``). Cache lokal, Schreiben per
+  // PATCH /gists/:id.
+  let _GIST_DATA = null;
+
+  async function gistLoad() {{
+    if (_GIST_DATA) return _GIST_DATA;
+    if (!GIST_ID) return null;
+    const token = localStorage.getItem(TOK_KEY);
+    if (!token) return null;
+    try {{
+      const r = await fetch(`https://api.github.com/gists/${{GIST_ID}}`, {{
+        headers: {{'Authorization': `Bearer ${{token}}`,
+                  'Accept': 'application/vnd.github+json',
+                  'X-GitHub-Api-Version': '2022-11-28'}},
+      }});
+      if (!r.ok) {{
+        console.error('gistLoad fehlgeschlagen:', r.status, r.statusText);
+        return null;
+      }}
+      const j   = await r.json();
+      const f   = (j.files || {{}})[GIST_FILE];
+      const raw = (f && f.content) || '{{}}';
+      let data;
+      try {{ data = JSON.parse(raw); }} catch(_) {{ data = {{}}; }}
+      if (!data.watchlist) data.watchlist = [];
+      if (!data.positions) data.positions = {{}};
+      _GIST_DATA = data;
+      return data;
+    }} catch(e) {{
+      console.error('gistLoad Netzwerkfehler:', e);
+      return null;
+    }}
+  }}
+
+  async function gistSave(data) {{
+    if (!GIST_ID) return false;
+    const token = localStorage.getItem(TOK_KEY);
+    if (!token) {{
+      _wlWarn('⚠ Kein GitHub Token — Position nur lokal sichtbar');
+      return false;
+    }}
+    _GIST_DATA = data;   // Optimistic
+    try {{
+      const r = await fetch(`https://api.github.com/gists/${{GIST_ID}}`, {{
+        method: 'PATCH',
+        headers: {{'Authorization': `Bearer ${{token}}`,
+                  'Accept': 'application/vnd.github+json',
+                  'X-GitHub-Api-Version': '2022-11-28',
+                  'Content-Type': 'application/json'}},
+        body: JSON.stringify({{
+          files: {{ [GIST_FILE]: {{ content: JSON.stringify(data, null, 2) }} }}
+        }}),
+      }});
+      if (!r.ok) {{
+        console.error('gistSave fehlgeschlagen:', r.status, r.statusText);
+        _wlWarn(`⚠ Gist-Sync HTTP ${{r.status}} — Eingabe nur lokal`);
+        return false;
+      }}
+      return true;
+    }} catch(e) {{
+      console.error('gistSave Netzwerkfehler:', e);
+      _wlWarn('⚠ Gist unerreichbar — Eingabe nur lokal');
+      return false;
+    }}
+  }}
+
+  // Öffentliche Helper für Position-Panel (inline-onclick aus card_html)
+  window.gistLoad = gistLoad;
+  window.gistSave = gistSave;
+
+  // ── Position-Panel (in expandierter Watchlist-Karte) ─────────────────────
+  // Pure Render-Funktion — wird aus ``buildWlDetails`` an den card_html-
+  // Block angehängt und vor jedem State-Wechsel (open/close/edit) neu
+  // erzeugt. Liest Cache ``_GIST_DATA``; wenn der noch leer ist, zeigt
+  // sie ein „Lade…"-Placeholder, bis der Hintergrund-Load fertig ist.
+  function buildPositionPanel(ticker, currentPrice) {{
+    if (!GIST_ID) {{
+      return `<div class="position-panel position-panel-disabled">
+        <p class="pos-msg">Position-Tracking inaktiv — Gist nicht konfiguriert (Repo-Secret <code>GIST_ID</code> fehlt).</p>
+      </div>`;
+    }}
+    const tok = localStorage.getItem(TOK_KEY);
+    if (!tok) {{
+      return `<div class="position-panel position-panel-disabled">
+        <p class="pos-msg">GitHub-Token fehlt — Position-Tracking ben\xf6tigt einen PAT mit <code>gist</code>-Scope (⚙ Einstellungen).</p>
+      </div>`;
+    }}
+    const removeBtn = `<button class="pos-btn pos-btn-remove" onclick="wlRemoveFromExpanded('${{ticker}}')">\xd7 Aus Watchlist entfernen</button>`;
+    const data = _GIST_DATA;
+    if (!data) {{
+      return `<div class="position-panel position-panel-loading">
+        <p class="pos-msg">L\xe4dt Gist-Daten …</p>
+        <div class="pos-actions">${{removeBtn}}</div>
+      </div>`;
+    }}
+    const pos = data.positions ? data.positions[ticker] : null;
+    if (pos) {{
+      const ep = +pos.entry_price || 0;
+      const cp = currentPrice && isFinite(+currentPrice) ? +currentPrice : null;
+      const pnl = (cp != null && ep > 0) ? ((cp - ep) / ep * 100) : null;
+      const pnlStr = pnl != null ? (pnl >= 0 ? '+' : '') + pnl.toFixed(1) + '%' : '—';
+      const pnlCol = pnl == null ? '#94a3b8' : pnl >= 0 ? '#22c55e' : '#ef4444';
+      const sharesStr = pos.shares ? `${{pos.shares}} Stk` : '—';
+      return `<div class="position-panel position-panel-active">
+        <div class="pos-header">📍 Offene Position</div>
+        <div class="pos-grid">
+          <div><span class="pos-lbl">Entry-Datum</span><span class="pos-val">${{pos.entry_date || '—'}}</span></div>
+          <div><span class="pos-lbl">Einstiegskurs</span><span class="pos-val">$${{ep.toFixed(2)}}</span></div>
+          <div><span class="pos-lbl">St\xfcckzahl</span><span class="pos-val">${{sharesStr}}</span></div>
+          <div><span class="pos-lbl">P&amp;L</span><span class="pos-val" style="color:${{pnlCol}};font-weight:700">${{pnlStr}}</span></div>
+        </div>
+        <div class="pos-actions">
+          <button class="pos-btn pos-btn-close" onclick="wlClosePosition('${{ticker}}')">Position schlie\xdfen</button>
+          ${{removeBtn}}
+        </div>
+      </div>`;
+    }}
+    const today = new Date().toISOString().slice(0, 10);
+    const priceDef = currentPrice && isFinite(+currentPrice)
+      ? (+currentPrice).toFixed(2) : '';
+    return `<div class="position-panel position-panel-empty">
+      <div class="pos-header">Keine offene Position</div>
+      <div class="pos-form" id="pos-form-${{ticker}}" hidden>
+        <label class="pos-lbl-form">Datum
+          <input type="date" id="pos-d-${{ticker}}" value="${{today}}">
+        </label>
+        <label class="pos-lbl-form">Einstiegskurs ($)
+          <input type="number" inputmode="decimal" step="0.01" min="0"
+                 id="pos-p-${{ticker}}" value="${{priceDef}}" placeholder="0.00">
+        </label>
+        <label class="pos-lbl-form">St\xfcckzahl
+          <input type="number" inputmode="numeric" step="1" min="1"
+                 id="pos-s-${{ticker}}" placeholder="z. B. 35">
+        </label>
+        <div class="pos-form-btns">
+          <button class="pos-btn pos-btn-cancel" onclick="wlCancelOpenForm('${{ticker}}')">Abbrechen</button>
+          <button class="pos-btn pos-btn-save" onclick="wlSubmitPosition('${{ticker}}')">Speichern</button>
+        </div>
+      </div>
+      <div class="pos-actions">
+        <button class="pos-btn pos-btn-open" onclick="wlShowOpenForm('${{ticker}}')">Position er\xf6ffnen</button>
+        ${{removeBtn}}
+      </div>
+    </div>`;
+  }}
+
+  // Pure DOM-Helper — Wrapping ``buildPositionPanel`` damit es sich selbst
+  // refreshen kann (Inputs verschwinden / P&L-Zeile erscheint).
+  function _refreshPositionPanel(ticker) {{
+    const body = document.getElementById('wld-' + ticker);
+    if (!body) return;
+    const wrap = body.querySelector('.position-panel');
+    const priceTag = body.querySelector('.price-tag');
+    const cur = priceTag ? parseFloat((priceTag.textContent || '').replace(/[^\\d.]/g, '')) : null;
+    if (wrap) wrap.outerHTML = buildPositionPanel(ticker, cur);
+  }}
+
+  window.wlShowOpenForm = function(ticker) {{
+    const f = document.getElementById('pos-form-' + ticker);
+    if (f) f.hidden = false;
+  }};
+  window.wlCancelOpenForm = function(ticker) {{
+    const f = document.getElementById('pos-form-' + ticker);
+    if (f) f.hidden = true;
+  }};
+
+  window.wlSubmitPosition = async function(ticker) {{
+    const d = document.getElementById('pos-d-' + ticker);
+    const p = document.getElementById('pos-p-' + ticker);
+    const s = document.getElementById('pos-s-' + ticker);
+    if (!d || !p || !s) return;
+    const date   = d.value;
+    const price  = parseFloat(p.value);
+    const shares = parseInt(s.value, 10) || 0;
+    if (!date || !isFinite(price) || price <= 0 || shares <= 0) {{
+      alert('Datum, Einstiegskurs > 0 und St\xfcckzahl > 0 erforderlich.');
+      return;
+    }}
+    const data = (await gistLoad()) || {{watchlist: [], positions: {{}}}};
+    data.positions = data.positions || {{}};
+    data.positions[ticker] = {{
+      entry_date: date, entry_price: price, shares: shares,
+    }};
+    await gistSave(data);
+    _refreshPositionPanel(ticker);
+  }};
+
+  window.wlClosePosition = async function(ticker) {{
+    if (!confirm(`Position ${{ticker}} schlie\xdfen?`)) return;
+    const data = (await gistLoad()) || {{watchlist: [], positions: {{}}}};
+    if (data.positions) delete data.positions[ticker];
+    await gistSave(data);
+    _refreshPositionPanel(ticker);
+  }};
+
+  // Footer-Button im expandierten Card: entfernt Ticker aus Watchlist
+  // (Repo-Datei via wlSave) UND aus Gist (Position + Watchlist-Spiegel).
+  // Karte schließt sich automatisch durch wlRender.
+  window.wlRemoveFromExpanded = async function(ticker) {{
+    const msg = `${{ticker}} aus Watchlist entfernen?\nEine evtl. offene Position wird ebenfalls gel\xf6scht.`;
+    if (!confirm(msg)) return;
+    // Gist: Position + Watchlist-Spiegel synchronisieren
+    if (GIST_ID && localStorage.getItem(TOK_KEY)) {{
+      const data = (await gistLoad()) || {{watchlist: [], positions: {{}}}};
+      data.watchlist = (data.watchlist || []).filter(t => t !== ticker);
+      if (data.positions) delete data.positions[ticker];
+      await gistSave(data);
+    }}
+    // Repo-Datei (Bestand): existierender wlSave-Pfad
+    await window.wlRemoveTicker(ticker);
+  }};
+
   document.addEventListener('DOMContentLoaded', () => {{
     wlRender();
     _wlValidateToken();
+    // Eager-Preload des Gist-Caches, damit das Position-Panel beim ersten
+    // Karten-Expand sofort den korrekten State zeigt (sonst kurzes „Lädt…").
+    if (GIST_ID && localStorage.getItem(TOK_KEY)) {{
+      gistLoad().catch(() => {{}});
+    }}
     const inp = document.getElementById('wl-add-input');
     if (inp) {{
       inp.addEventListener('keydown', (e) => {{

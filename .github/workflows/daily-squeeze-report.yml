@@ -38,20 +38,18 @@ jobs:
       - name: Lint chat template
         run: python scripts/lint_chat_template.py
 
-      - name: Build positions.json from secret
+      - name: Pull squeeze_data from Gist
         env:
+          GIST_ID:        ${{ secrets.GIST_ID }}
+          GIST_TOKEN:     ${{ secrets.GIST_TOKEN }}
           POSITIONS_JSON: ${{ secrets.POSITIONS_JSON }}
-        run: |
-          if [ -n "$POSITIONS_JSON" ]; then
-            echo "$POSITIONS_JSON" > positions.json
-          else
-            echo '{}' > positions.json
-          fi
+        run: python scripts/pull_gist_data.py
 
       - name: Generate squeeze report
         env:
-          NTFY_TOPIC: ${{ secrets.NTFY_TOPIC }}
+          NTFY_TOPIC:       ${{ secrets.NTFY_TOPIC }}
           EDGAR_USER_AGENT: ${{ secrets.EDGAR_USER_AGENT }}
+          GIST_ID:          ${{ secrets.GIST_ID }}
         run: python generate_report.py
 
       - name: Commit and publish report

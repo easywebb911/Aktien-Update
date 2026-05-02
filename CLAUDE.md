@@ -219,24 +219,33 @@ schreibt sie zur Laufzeit aus dem GitHub-Secret `POSITIONS_JSON`.
 `entry_date` im ISO-Format (Achtung: `score_history.json` nutzt `DD.MM.YYYY`
 intern, der Lookup im Code rechnet um). `entry_price` als Float in USD.
 
-### Quelle: GitHub Secret `POSITIONS_JSON`
+### Quelle: privater Gist (Phase 2) mit POSITIONS_JSON-Fallback
 
-Beide Workflows (`daily-squeeze-report.yml`, `ki_agent.yml`) bauen die Datei
-in einem Step `Build positions.json from secret` direkt vor dem Python-Run:
+Ab Phase 2 ist die kanonische Quelle ein **privater User-Gist**
+(siehe Sektion **Position-Tracking (Phase 2 — Gist-Sync)** unten).
+Beide Workflows ziehen ``squeeze_data.json`` über
+``scripts/pull_gist_data.py`` und materialisieren daraus
+``positions.json``:
 
 ```yaml
-- name: Build positions.json from secret
+- name: Pull squeeze_data from Gist
   env:
-    POSITIONS_JSON: ${{ secrets.POSITIONS_JSON }}
-  run: |
-    if [ -n "$POSITIONS_JSON" ]; then
-      echo "$POSITIONS_JSON" > positions.json
-    else
-      echo '{}' > positions.json
-    fi
+    GIST_ID:        ${{ secrets.GIST_ID }}
+    GIST_TOKEN:     ${{ secrets.GIST_TOKEN }}
+    POSITIONS_JSON: ${{ secrets.POSITIONS_JSON }}   # Migration-Fallback
+  run: python scripts/pull_gist_data.py
 ```
 
-Secret leer → leeres Dict → `process_exit_signals()` no-op.
+Reihenfolge der Quellen (in pull_gist_data.py):
+1. Gist (``GIST_ID`` + ``GIST_TOKEN`` gesetzt, API erreichbar, Datei
+   ``squeeze_data.json`` enthält ``positions``).
+2. ``POSITIONS_JSON``-Secret als Migrations-/Fallback-Pfad
+   (alte Single-Position-Konfiguration).
+3. Leeres Dict → ``process_exit_signals()`` no-op.
+
+Sobald der User die Position in den Gist umgezogen hat, kann das
+``POSITIONS_JSON``-Secret entfernt werden — der Code-Pfad bleibt nur
+noch für Tests / Forks aktiv.
 
 ### Exit-Score-Komponenten (0–100, gewichtet, Cap 100)
 
@@ -277,6 +286,126 @@ mit dem raw-Eintrag am `entry_date`.
 ### Wichtig: niemals `positions.json` committen
 
 `.gitignore` enthält `positions.json`. Bei einem Refactor des `_load_positions()`-Pfads diese Regel beibehalten — die Datei darf nie ins Repo wandern. Bei lokalem Test eine `positions.json` anlegen ist OK; sie wird vom Git ignoriert.
+
+---
+
+## Position-Tracking (Phase 2 — Gist-Sync)
+
+Watchlist und Position sind ab Phase 2 **entkoppelt**: Watchlist-Ticker
+sind nur beobachtet; Position ist optional. Beide Datenstrukturen liegen
+in einem **privaten User-Gist**, der vom Browser (lesen + schreiben) und
+vom Workflow (nur lesen) angesprochen wird.
+
+### Setup (User-Action, einmalig)
+
+1. `gist.github.com` → **Create secret gist**, Filename
+   `squeeze_data.json`, Inhalt:
+   ```json
+   {
+     "watchlist": [],
+     "positions": {}
+   }
+   ```
+2. Gist-ID aus der URL kopieren (`gist.github.com/<user>/<id>` → `<id>`).
+3. Repo-Secrets setzen:
+   - `GIST_ID` = die kopierte ID
+   - `GIST_TOKEN` = PAT mit Scope `gist` (oft derselbe wie der bereits
+     für Watchlist genutzte PAT, falls dort `gist` schon aktiviert ist)
+4. Browser: bestehender PAT im Settings-Panel **muss `gist`-Scope haben**
+   (sonst können `gistLoad` / `gistSave` keine API-Calls absetzen — UI
+   zeigt dann `⚠ Gist-Sync HTTP 404` und merkt nur lokal). Token wird
+   im selben localStorage-Key (`ghpat_squeeze`) gespeichert wie für
+   Repo-Watchlist-Sync.
+5. Optional: ``POSITIONS_JSON``-Secret nach erfolgreicher Migration
+   leeren — der Fallback-Pfad bleibt aber aktiv, falls man später
+   ein zweites Repo provisioniert.
+
+### Schema
+
+```json
+{
+  "watchlist": ["TICKER", ...],
+  "positions": {
+    "TICKER": {
+      "entry_date":  "YYYY-MM-DD",
+      "entry_price": 12.34,
+      "shares":      35
+    }
+  }
+}
+```
+
+`shares` ist neu gegenüber Phase 1 — wird im Frontend für Stück-Anzeige
+genutzt. Die Exit-Score-Logik (`compute_exit_score`) ignoriert `shares`
+weiterhin (rechnet nur mit `entry_price`).
+
+### Datenfluss
+
+| Akteur | Lesen | Schreiben |
+|---|---|---|
+| `scripts/pull_gist_data.py` (Workflow) | GET `gists/<GIST_ID>` | `positions.json` + ggf. `watchlist_personal.json` (Materialisierung) |
+| `generate_report.py` (Workflow) | `positions.json`, `watchlist_personal.json` | (unverändert — beide Files weiterhin der Read-Pfad im Python-Code) |
+| Browser `gistLoad()` | GET `gists/<GIST_ID>` mit User-PAT | Cache `_GIST_DATA` |
+| Browser `gistSave(data)` | — | PATCH `gists/<GIST_ID>` mit User-PAT |
+| UI-Aktion „Position eröffnen" | `gistLoad()` | `gistSave({...positions: {ticker: {entry_date, entry_price, shares}}})` |
+| UI-Aktion „Position schließen" | `gistLoad()` | `gistSave(without ticker in positions)` |
+| UI-Aktion „Aus Watchlist entfernen" | `gistLoad()` + bestehender `wlRemoveTicker` | `gistSave(without ticker in watchlist & positions)` + `wlSave` (Repo-Datei) |
+
+`GIST_ID` wird zur Render-Zeit per ENV-Variable in den HTML-Output
+injiziert (`const GIST_ID = '…'` ganz oben im JS-Block, sanitized auf
+`[A-Za-z0-9]{,64}`). Leerer String → `buildPositionPanel` zeigt
+„Position-Tracking inaktiv — Gist nicht konfiguriert".
+
+### Workflow-Steps
+
+```yaml
+- name: Pull squeeze_data from Gist
+  env:
+    GIST_ID:        ${{ secrets.GIST_ID }}
+    GIST_TOKEN:     ${{ secrets.GIST_TOKEN }}
+    POSITIONS_JSON: ${{ secrets.POSITIONS_JSON }}
+  run: python scripts/pull_gist_data.py
+
+- name: Generate squeeze report
+  env:
+    NTFY_TOPIC:       ${{ secrets.NTFY_TOPIC }}
+    EDGAR_USER_AGENT: ${{ secrets.EDGAR_USER_AGENT }}
+    GIST_ID:          ${{ secrets.GIST_ID }}   # in HTML embedden
+  run: python generate_report.py
+```
+
+`pull_gist_data.py` ist **fail-soft**: API down / 401 / Parse-Fehler
+führen nicht zum Workflow-Abbruch — der Daily-Run greift dann auf den
+`POSITIONS_JSON`-Fallback zurück (Watchlist-File bleibt unangetastet,
+weil das in-Repo-File ohnehin als sekundäre Quelle gilt).
+
+### Frontend — Position-Panel in expandierter Watchlist-Karte
+
+`buildPositionPanel(ticker, currentPrice)` rendert je nach State:
+- **Position offen:** Entry-Datum, Einstiegskurs, Stückzahl, P&L
+  (gegen aktuellen Spot), Buttons „Position schließen" + „Aus
+  Watchlist entfernen".
+- **Keine Position:** Button „Position eröffnen" → klappt Formular
+  mit Datum (heute default), Einstiegskurs (Spot default) und
+  Stückzahl auf. Save → `gistSave` + Panel-Refresh.
+- **Lädt:** Placeholder, bis `gistLoad()`-Response da ist
+  (Async-Refresh via `_refreshPositionPanel(ticker)`).
+- **Kein GIST_ID / kein Token:** Hinweis + Settings-Verweis.
+
+Optimistic UI: `gistSave` schreibt erst den Cache, dann den Gist —
+die UI bleibt responsiv, Sync-Fehler erscheinen als `⚠ Gist-Sync …`-
+Warnung über `_wlWarn()`.
+
+### Pflege
+
+- Schema-Änderungen (z. B. neues Feld `entry_currency`) gleichzeitig
+  in `pull_gist_data.py`, `_load_positions()`, `compute_exit_score`
+  und `buildPositionPanel` (`pos.entry_*`-Lookups) durchziehen.
+- `GIST_FILE = "squeeze_data.json"` ist hartkodiert in
+  `scripts/pull_gist_data.py` und im JS — bei Umbenennung beide Stellen
+  synchron halten.
+- Niemals einen Public-Gist verwenden — Position-Daten sind
+  privacy-relevant.
 
 ---
 

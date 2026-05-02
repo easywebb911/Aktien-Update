@@ -335,6 +335,46 @@ select.sort-select:hover:not(:disabled){background-image:linear-gradient(45deg,t
   padding:6px 10px;display:flex;justify-content:flex-end}
 .wl-card.card-manual .wl-exp-close-bar{background:rgba(20,83,45,0.55)}
 .wl-card--expanded .wl-exp-close-bar + .card-top{padding-top:6px}
+/* ── Position-Panel (innerhalb expandierter Watchlist-Karte) ─── */
+.position-panel{padding:12px 14px 14px;border-top:1px solid var(--brd);
+  background:var(--bg-met)}
+.position-panel-active{background:rgba(34,197,94,0.08);
+  border-left:3px solid #22c55e}
+.position-panel-empty,.position-panel-loading,.position-panel-disabled{
+  background:rgba(148,163,184,0.06)}
+.pos-header{font-size:.75rem;font-weight:700;text-transform:uppercase;
+  letter-spacing:.5px;color:var(--txt-sub);margin-bottom:8px}
+.pos-msg{font-size:.78rem;color:var(--txt-dim);line-height:1.5;margin-bottom:8px}
+.pos-msg code{background:var(--bg-card);padding:1px 5px;border-radius:4px;
+  font-size:.92em;border:1px solid var(--brd)}
+.pos-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px 14px;margin-bottom:10px}
+.pos-grid > div{display:flex;flex-direction:column;gap:2px}
+.pos-lbl{font-size:.66rem;text-transform:uppercase;letter-spacing:.4px;
+  color:var(--txt-dim);font-weight:600}
+.pos-val{font-size:.92rem;color:var(--txt);font-weight:600}
+.pos-form{display:flex;flex-direction:column;gap:8px;
+  margin-bottom:10px;padding:10px;background:var(--bg-card);
+  border-radius:8px;border:1px solid var(--brd)}
+.pos-lbl-form{display:flex;flex-direction:column;gap:3px;
+  font-size:.72rem;color:var(--txt-sub);font-weight:600}
+.pos-lbl-form input{background:var(--bg-met);border:1px solid var(--brd);
+  border-radius:6px;padding:8px 10px;color:var(--txt);font-size:.85rem;
+  min-height:36px}
+.pos-lbl-form input:focus{outline:2px solid var(--accent);outline-offset:1px}
+.pos-form-btns{display:flex;gap:6px;justify-content:flex-end;margin-top:4px}
+.pos-actions{display:flex;flex-wrap:wrap;gap:6px}
+.pos-btn{min-height:36px;padding:0 12px;border:1px solid var(--brd);
+  border-radius:8px;font-size:.78rem;font-weight:700;cursor:pointer;
+  background:var(--bg-card);color:var(--txt);flex:1 1 auto;white-space:nowrap}
+.pos-btn:hover:not(:disabled){background:var(--brd)}
+.pos-btn-open,.pos-btn-save{background:#16a34a;color:#fff;border-color:#16a34a}
+.pos-btn-open:hover:not(:disabled),.pos-btn-save:hover:not(:disabled){background:#15803d}
+.pos-btn-close{background:#1e3a5f;color:#93c5fd;border-color:#1e3a5f}
+.pos-btn-close:hover:not(:disabled){background:#1e40af;color:#fff}
+.pos-btn-cancel{background:transparent;color:var(--txt-sub)}
+.pos-btn-remove{background:transparent;color:#ef4444;border-color:#ef444455;
+  font-weight:600}
+.pos-btn-remove:hover:not(:disabled){background:#ef444418}
 /* Close-Button im expandierten Zustand (lila-passend zur KI-Thematik) */
 .wl-close-btn-inline{background:var(--bg-met);color:var(--txt-sub);
   border:1px solid var(--brd);border-radius:8px;padding:4px 10px;
