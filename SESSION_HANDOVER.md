@@ -87,7 +87,13 @@
 6. **Setup-Verfall-Symmetrie weiter beobachten**: jetzt raw vs. raw.
 7. **⏰ Wiedervorlage 15.05.2026: Phase 3 Exit-Signale prüfen**
    (Blow-off-Top + IV-Crush; Voraussetzung: Phase 1 ~2 Wochen live)
-8. **Filter-Flexibilisierung prüfen (Bahn A2)**
+8. **⏰ Wiedervorlage 02.07.2026: Premium-Daten-Stack prüfen**
+   - Nach Bahn-A2-Auswertung: wo schwächelt das System konkret?
+   - Gezielter Datenzukauf für identifizierte Schwachpunkte
+     (Ortex / Fintel / etc. nur wenn ROI passt)
+   - Voraussetzung: echte Backtest-Trefferquote vorhanden
+   - Kontext: Analyse 02.05.2026, Free-Tier-Maximum bereits erreicht
+9. **Filter-Flexibilisierung prüfen (Bahn A2)**
    - Mid-Caps (2–10 Mrd. USD) und Non-US-Ticker als separate Bahnen
    - Erfordert: andere Volumen-Schwellen, KI-Agent-Anpassung,
      Backtest-Setup pro Bahn
