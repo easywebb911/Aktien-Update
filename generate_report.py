@@ -3130,6 +3130,15 @@ def _sub_scores_html(s: dict) -> str:
     sub = _compute_sub_scores(s)
     _tt = ("Diese Werte sind unabhängige Qualitätsindikatoren "
            "und ergeben nicht den Gesamt-Score")
+
+    def _pct(v: float, mx: float) -> int:
+        if mx <= 0:
+            return 0
+        return max(0, min(100, round((v / mx) * 100)))
+
+    struct_pct   = _pct(sub["struct"],   sub["struct_max"])
+    catalyst_pct = _pct(sub["catalyst"], sub["catalyst_max"])
+    timing_pct   = _pct(sub["timing"],   sub["timing_max"])
     return (
         f'<div class="sub-scores-wrap">'
         f'<div class="sub-scores-header">SETUP-ANALYSE</div>'
@@ -3138,14 +3147,17 @@ def _sub_scores_html(s: dict) -> str:
         f'<span class="sub-score" title="{_tt}">'
         f'<span class="sub-score-lbl">Struktur</span>'
         f'<span class="sub-score-val" style="color:{sub["struct_col"]}">{sub["struct"]:.0f}/{sub["struct_max"]}</span>'
+        f'<span class="sub-score-bar"><span class="sub-score-fill" style="width:{struct_pct}%;background:{sub["struct_col"]}"></span></span>'
         f'</span>'
         f'<span class="sub-score" title="{_tt}">'
         f'<span class="sub-score-lbl">Katalysator</span>'
         f'<span class="sub-score-val" style="color:{sub["catalyst_col"]}">{sub["catalyst"]:.0f}/{sub["catalyst_max"]}</span>'
+        f'<span class="sub-score-bar"><span class="sub-score-fill" style="width:{catalyst_pct}%;background:{sub["catalyst_col"]}"></span></span>'
         f'</span>'
         f'<span class="sub-score" title="{_tt}">'
         f'<span class="sub-score-lbl">Timing</span>'
         f'<span class="sub-score-val" style="color:{sub["timing_col"]}">{sub["timing"]:.0f}/{sub["timing_max"]}</span>'
+        f'<span class="sub-score-bar"><span class="sub-score-fill" style="width:{timing_pct}%;background:{sub["timing_col"]}"></span></span>'
         f'</span>'
         f'</div>'
         f'</div>'
