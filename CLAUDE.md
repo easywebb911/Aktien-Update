@@ -499,6 +499,76 @@ Ergebnis (alle / Gewinner / Verlierer).
 
 ---
 
+## Sparkline-Tooltips mit Driver-Historie
+
+Jeder Sparkline-Punkt zeigt bei Hover (Desktop) bzw. Tap (Mobile)
+einen Tooltip mit **Datum**, **Score-Punkten** und der **KI-Treiber-
+Historie** für genau diesen Tag. Quelle ist die persistierte
+``score_history.json`` — nicht nur der Live-Snapshot.
+
+### Schema-Erweiterung `score_history.json`
+
+Pro Eintrag ein optionales drittes Feld ``drivers`` (Array von
+Strings, max 6 Einträge — überzählige werden bei der Persistierung
+gestrippt):
+
+```json
+{
+  "INDI": [
+    ["2026-04-27", 82, ["RVOL 3.2×", "Volumen 4.1×", "SEC 8-K", "Reddit +47"]],
+    ["2026-04-28", 75]
+  ]
+}
+```
+
+- **3-Tuple:** ``[date, score, drivers[]]`` für Tage mit KI-Agent-Snapshot.
+- **2-Tuple:** ``[date, score]`` für Legacy-Einträge oder Tage ohne
+  KI-Agent-Daten — Migration ist null-cost: ``_load_score_history``
+  liefert ``drivers: []`` als Default.
+- Dict-Format ``{"date":..., "score":..., "drivers":[...]}`` ist
+  weiterhin akzeptiert (read-only-Kompatibilität).
+
+### Datenfluss
+
+| Komponente | Lesen | Schreiben |
+|---|---|---|
+| ``apply_agent_boost`` (generate_report.py) | ``agent_signals.json`` | setzt ``s["ki_signal_score"]`` + ``s["ki_signal_drivers"]`` (String ``"X + Y + Z"``) auf jedem Stock mit Signal-Eintrag |
+| ``apply_score_smoothing`` | ``s["ki_signal_drivers"]`` | persistiert ``[date, score, drivers[]]`` in ``score_history.json``; re-write wenn Score **oder** Drivers sich seit letztem Run geändert haben (jeder Tick erzeugt frische Snapshots) |
+| ``_save_score_history`` | history-Dict | 3-Tuple wenn drivers nicht leer, sonst 2-Tuple (Bytes-Optimierung) |
+| Sparkline-Payload (``s["sparkline"]``) | ``score_history`` | Liste ``drivers`` parallel zu ``scores`` und ``dates`` (gleiche Länge) |
+| Frontend ``drawSparkline`` | ``data-drivers`` JSON-Attribut auf ``.spark-wrap`` | Tooltip-DOM bei Hit-Rect-Click/Hover |
+
+### Frontend-UI
+
+- **Hit-Areas:** unsichtbares ``<rect class="sp-hit">`` pro Punkt, Höhe
+  = volle SVG-Höhe, Breite ``isMobile ? 28 : 22 px``. Erfüllt das
+  ≥ 20 px-Touch-Target-Pattern auf Mobile, visueller Punkt bleibt 6 px
+  Radius. Trägt JSON-Drivers + Score + Datum als data-Attribute.
+- **Tooltip ``.spark-tip``:** sticky positioniert, oberhalb des
+  getriggerten Punkts, horizontal zentriert + auf Sparkline-Breite
+  geclamped. Inhalt: Header (Datum links, Score rechts farbcodiert
+  gleich wie der Punkt), darunter ``<ul>`` mit max 4 Drivers oder
+  „Keine KI-Treiber für diesen Tag" wenn Liste leer.
+- **Schließen:** Tap außerhalb der ``.spark-wrap`` ODER Esc-Taste.
+  Listener pro wrap einmal angebunden via ``wrap._sparkTipBound``-Flag,
+  damit mehrere Sparklines auf der Seite unabhängig sind.
+- **Live-Sync für rechtesten Punkt:** ``drivers[lastIdx]`` wird beim
+  Live-Sync (KI-Agent-Snapshot ≤ 4 h alt) aus ``_AGENT_SIGNALS.signals
+  [ticker].drivers`` aktualisiert. Ghost-Pfad pusht eigenen Driver-
+  Eintrag, Overwrite-Pfad ersetzt nur wenn Live-Drivers nicht leer
+  sind (sonst bleiben die History-Drivers erhalten).
+
+### Pflege
+
+- Bei jeder Schema-Änderung in ``score_history`` (z. B. neues Feld
+  ``conf``): gleichzeitig ``_load_score_history``-Normalize,
+  ``_save_score_history``-Compact-Pfad, ``apply_score_smoothing``-
+  Persist und Sparkline-Payload-Builder (``s["sparkline"]``) anpassen.
+- Score-Methodik-Sync ist **nicht betroffen** — Tooltips zeigen nur,
+  was der KI-Agent als Drivers berichtet, nicht die Sub-Score-Komponenten.
+
+---
+
 ## Anomalie-Push-System
 
 Der KI-Agent feuert ntfy-Pushes **nicht mehr per Monster≥70-Schwelle**,

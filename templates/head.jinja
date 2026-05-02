@@ -704,12 +704,28 @@ select.sort-select:hover:not(:disabled){background-image:linear-gradient(45deg,t
 .spark-day-lbl.ghost{color:#6b7280}
 .spark-placeholder{font-size:.7rem;color:var(--txt-dim);font-style:italic;
   padding:8px 12px 6px;border-top:1px solid var(--brd)}
-/* Sparkline tooltip */
+/* Sparkline tooltip — Multi-line Variante mit Driver-Historie pro Tag.
+   Position: oberhalb des Sparkline-SVG, horizontal zentriert auf den
+   getriggerten Punkt (left wird per JS gesetzt + clamped). */
+.spark-wrap{position:relative}
 .spark-tip{position:absolute;background:var(--bg-card);border:1px solid var(--brd);
-  border-radius:5px;padding:2px 6px;font-size:.68rem;color:var(--txt);
-  pointer-events:none;white-space:nowrap;z-index:10;
-  transform:translate(-50%,-130%);opacity:0;transition:opacity .15s}
+  border-radius:7px;padding:5px 9px;font-size:.7rem;color:var(--txt);
+  pointer-events:none;z-index:20;max-width:240px;line-height:1.35;
+  box-shadow:0 4px 12px rgba(0,0,0,.35);
+  transform:translate(-50%,-110%);opacity:0;transition:opacity .15s}
 .spark-tip.visible{opacity:1}
+.spark-tip-head{display:flex;justify-content:space-between;gap:8px;
+  font-size:.7rem;border-bottom:1px solid var(--brd);
+  padding-bottom:3px;margin-bottom:4px}
+.spark-tip-date{color:var(--txt-sub);font-weight:600}
+.spark-tip-score{font-weight:800;font-variant-numeric:tabular-nums}
+.spark-tip-drv{list-style:none;margin:0;padding:0;display:flex;
+  flex-direction:column;gap:2px}
+.spark-tip-drv li{position:relative;padding-left:10px;font-size:.7rem;
+  color:var(--txt);line-height:1.4}
+.spark-tip-drv li::before{content:"•";position:absolute;left:0;color:var(--accent)}
+.spark-tip-no{color:var(--txt-dim);font-style:italic;font-size:.68rem}
+.sp-hit{cursor:pointer}
 /* ── Metrics — Mobile: 2-Spalten-Grid, Short-Float-Header volle Breite ── */
 /* 6 gleich große Kacheln: 3×2 auf iPhone + Desktop (SF oben-links, dann DTC/Vol/Mom/Float/SI-Trend) */
 .metrics-row{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;padding:0 12px 12px}

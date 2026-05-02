@@ -2516,14 +2516,21 @@ def _load_score_history() -> dict:
         return {}
 
     # Kompatibel zu altem UND neuem (komprimierten) Format:
-    #   alt:  [{"date": "...", "score": …}, ...]
-    #   neu:  [["...", …], ...]              ← Tuple/List-Einträge, spart ~45 %
+    #   v1:  [{"date": "...", "score": …}, ...]
+    #   v2:  [["...", …], ...]                       ← 2-Tuple ohne drivers
+    #   v3:  [["...", …, ["d1", "d2", …]], ...]      ← 3-Tuple mit drivers
+    #   v3-dict: [{"date":..., "score":..., "drivers":[...]}, ...]
     # Normalisiert zurück zum internen Dict-Format (Rest des Codes erwartet dict).
+    # Migration: Einträge ohne ``drivers`` bekommen leere Liste — Tooltip
+    # zeigt dann nur Datum + Score.
     def _normalize(entry):
         if isinstance(entry, dict):
-            return entry
+            e = dict(entry)
+            e.setdefault("drivers", [])
+            return e
         if isinstance(entry, (list, tuple)) and len(entry) >= 2:
-            return {"date": entry[0], "score": entry[1]}
+            drv = list(entry[2]) if len(entry) >= 3 and entry[2] else []
+            return {"date": entry[0], "score": entry[1], "drivers": drv}
         return None
 
     pruned: dict[str, list[dict]] = {}
@@ -2551,13 +2558,18 @@ def _save_score_history(history: dict, _dirty: bool = True) -> None:
         rows: list[list] = []
         for e in entries:
             if isinstance(e, dict):
-                d, sc = e.get("date", ""), e.get("score")
+                d  = e.get("date", "")
+                sc = e.get("score")
+                dr = e.get("drivers") or []
             elif isinstance(e, (list, tuple)) and len(e) >= 2:
                 d, sc = e[0], e[1]
+                dr = list(e[2]) if len(e) >= 3 and e[2] else []
             else:
                 continue
             if d and sc is not None and d >= cutoff:
-                rows.append([d, sc])
+                # 3-Tuple nur wenn drivers nicht leer — spart Bytes für
+                # Legacy-Einträge ohne KI-Agent-Daten.
+                rows.append([d, sc, dr] if dr else [d, sc])
         if rows:
             compact[ticker] = rows
     with open(SCORE_HISTORY_FILE, "w", encoding="utf-8") as fh:
@@ -2596,6 +2608,13 @@ def apply_agent_boost(stocks: list[dict]) -> None:
             s["ki_signal_score"] = float(sig.get("score", 0))
         except (TypeError, ValueError):
             pass
+        # Drivers für Sparkline-Tooltip — als String belassen wie ki_agent
+        # ihn schreibt (Format ``"X + Y + Z"``); split-by-" + " im Konsumenten.
+        _drv = sig.get("drivers")
+        if isinstance(_drv, str) and _drv.strip():
+            s["ki_signal_drivers"] = _drv.strip()
+        elif isinstance(_drv, (list, tuple)) and _drv:
+            s["ki_signal_drivers"] = " + ".join(str(d) for d in _drv)
 
     updated = data.get("updated")
     if not updated:
@@ -2672,11 +2691,23 @@ def apply_score_smoothing(stocks: list[dict], today: str) -> None:
                 s["score"] = round(max(s["score"] - SCORE_TREND_MALUS, 0.0), 1)
                 s["score_trend_bonus_pts"] = -float(SCORE_TREND_MALUS)
 
-        # Store today's raw score only if it differs from what's already there
+        # Drivers aus dem aktuellen agent_signals.json — kommen via
+        # apply_agent_boost als String " X + Y + Z " auf ``s``. Splitten,
+        # leere Strings filtern, max NEWS-/UI-freundlich 6 Einträge.
+        ki_drv_raw = s.get("ki_signal_drivers") or ""
+        ki_drivers = [d.strip() for d in ki_drv_raw.split(" + ")
+                      if d.strip()][:6]
+
+        # Store today's raw score (+ drivers) — re-write wenn Score ODER
+        # Drivers sich geändert haben (frischer ki_agent-Tick → frische
+        # Drivers für denselben Tag).
         existing = [e for e in history.get(ticker, []) if e.get("date", "") == today]
-        if not existing or existing[0]["score"] != today_raw:
+        existing_drv = (existing[0].get("drivers") if existing else None) or []
+        if (not existing
+                or existing[0]["score"] != today_raw
+                or existing_drv != ki_drivers):
             entries = [e for e in history.get(ticker, []) if e.get("date", "") != today]
-            entries.append({"date": today, "score": today_raw})
+            entries.append({"date": today, "score": today_raw, "drivers": ki_drivers})
             history[ticker] = entries
             _dirty = True   # mark that history was modified and needs saving
 
@@ -2686,8 +2717,9 @@ def apply_score_smoothing(stocks: list[dict], today: str) -> None:
             key=lambda x: x.get("date", ""),
         )[-7:]
         if len(all_entries) >= 2:
-            spark_scores = [round(e["score"], 1) for e in all_entries]
-            spark_dates  = [e["date"] for e in all_entries]   # ISO YYYY-MM-DD; JS parses weekday
+            spark_scores  = [round(e["score"], 1) for e in all_entries]
+            spark_dates   = [e["date"] for e in all_entries]   # ISO YYYY-MM-DD; JS parses weekday
+            spark_drivers = [list(e.get("drivers") or []) for e in all_entries]
             delta = spark_scores[-1] - spark_scores[0]
             if delta >= 3:
                 spark_trend = f"↑ +{delta:.1f} Pkt"
@@ -2699,11 +2731,12 @@ def apply_score_smoothing(stocks: list[dict], today: str) -> None:
                 spark_trend = "→ stabil"
                 spark_col   = "#94a3b8"
             s["sparkline"] = {
-                "scores": spark_scores,
-                "dates":  spark_dates,
-                "trend":  spark_trend,
-                "col":    spark_col,
-                "today":  today,
+                "scores":  spark_scores,
+                "dates":   spark_dates,
+                "drivers": spark_drivers,
+                "trend":   spark_trend,
+                "col":     spark_col,
+                "today":   today,
             }
         else:
             s["sparkline"] = None
@@ -3646,10 +3679,17 @@ def _card(i: int, s: dict) -> str:
     if _spark:
         _sc_json  = json.dumps(_spark["scores"])
         _dt_json  = json.dumps(_spark["dates"])
+        # Drivers per Punkt (Liste von Listen) — JSON-serialisiert in
+        # ``data-drivers``. Bei fehlendem Feld (Legacy-Sparkline) → leere
+        # Listen je Eintrag, damit der JS-Tooltip nur Datum + Score zeigt.
+        _spark_drv = (_spark.get("drivers")
+                      or [[] for _ in _spark["scores"]])
+        _drv_json = json.dumps(_spark_drv, ensure_ascii=False).replace("'", "&#39;")
         sparkline_html = (
             f'<div class="spark-wrap" '
             f'data-scores=\'{_sc_json}\' '
             f'data-dates=\'{_dt_json}\' '
+            f'data-drivers=\'{_drv_json}\' '
             f'data-col="{_spark["col"]}" '
             f'data-today="{_spark["today"]}">'
             f'<div class="spark-header">'
@@ -4134,10 +4174,17 @@ def _build_card_ctx(i: int, s: dict) -> dict:
     if _spark:
         _sc_json  = json.dumps(_spark["scores"])
         _dt_json  = json.dumps(_spark["dates"])
+        # Drivers per Punkt (Liste von Listen) — JSON-serialisiert in
+        # ``data-drivers``. Bei fehlendem Feld (Legacy-Sparkline) → leere
+        # Listen je Eintrag, damit der JS-Tooltip nur Datum + Score zeigt.
+        _spark_drv = (_spark.get("drivers")
+                      or [[] for _ in _spark["scores"]])
+        _drv_json = json.dumps(_spark_drv, ensure_ascii=False).replace("'", "&#39;")
         sparkline_html = (
             f'<div class="spark-wrap" '
             f'data-scores=\'{_sc_json}\' '
             f'data-dates=\'{_dt_json}\' '
+            f'data-drivers=\'{_drv_json}\' '
             f'data-col="{_spark["col"]}" '
             f'data-today="{_spark["today"]}">'
             f'<div class="spark-header">'
@@ -6595,6 +6642,14 @@ function _fmtGerman(d) {{
   function drawSparkline(wrap) {{
     const scores  = JSON.parse(wrap.dataset.scores || '[]');
     const dates   = JSON.parse(wrap.dataset.dates  || '[]'); // ISO YYYY-MM-DD
+    // Drivers pro Tag (Liste von Listen) — kommen aus score_history-Erweiterung;
+    // Legacy-Einträge ohne KI-Agent-Snapshot bekommen leere Listen → Tooltip
+    // zeigt dann nur Datum + Score.
+    let drivers = [];
+    try {{ drivers = JSON.parse(wrap.dataset.drivers || '[]'); }}
+    catch(_) {{ drivers = []; }}
+    if (!Array.isArray(drivers)) drivers = [];
+    while (drivers.length < scores.length) drivers.push([]);
     const col     = wrap.dataset.col   || '#94a3b8';
     const todayS  = wrap.dataset.today || '';
 
@@ -6618,9 +6673,18 @@ function _fmtGerman(d) {{
             // Ghost-Pfad: heute fehlt in History → neuen Datenpunkt anhängen
             scores.push(_ag);
             dates.push(todayS);
+            // Live-Drivers vom KI-Agent für den frischen Punkt einsetzen
+            const _liveDrv = (typeof _sig.drivers === 'string' && _sig.drivers)
+              ? _sig.drivers.split(' + ').map(d => d.trim()).filter(Boolean)
+              : (Array.isArray(_sig.drivers) ? _sig.drivers : []);
+            drivers.push(_liveDrv);
           }} else if (scores.length > 0) {{
             // Letzter History-Eintrag = heute (oder ≤ heute) → überschreiben
             scores[scores.length - 1] = _ag;
+            const _liveDrv = (typeof _sig.drivers === 'string' && _sig.drivers)
+              ? _sig.drivers.split(' + ').map(d => d.trim()).filter(Boolean)
+              : (Array.isArray(_sig.drivers) ? _sig.drivers : []);
+            if (_liveDrv.length) drivers[drivers.length - 1] = _liveDrv;
           }}
         }}
       }}
@@ -6679,18 +6743,27 @@ function _fmtGerman(d) {{
 
     const svgId = 'sp' + Math.random().toString(36).slice(2, 7);
 
-    // Real data circles — each point coloured by its own score value
+    // Real data circles — each point coloured by its own score value.
+    // Pro Punkt zusätzlich ein unsichtbares Hit-Rect für ≥20 px Touch-Target
+    // (volle Höhe der Sparkline, Breite ≈ Slot-Breite). Drivers liegen als
+    // JSON-String auf jedem ``.sp-hit`` für den Tooltip-Renderer.
+    const HIT_W = isMobile ? 28 : 22;
     let circlesHtml = '';
+    let hitsHtml    = '';
     for (let i = 0; i < n; i++) {{
       const cx  = xOf(i).toFixed(1);
       const cy  = yOf(scores[i]).toFixed(1);
       const dow = DAYS_DE[dateParsed[i].getDay()];
       const dd  = dates[i].slice(8, 10) + '.' + dates[i].slice(5, 7);
       const ptCol = scoreColor(scores[i]);
+      const drvJson = JSON.stringify(drivers[i] || []).replace(/"/g, '&quot;');
+      const hitX = (xOf(i) - HIT_W/2).toFixed(1);
       circlesHtml += `<circle class="sp-dot" cx="${{cx}}" cy="${{cy}}" r="${{PT_R}}" fill="${{ptCol}}" stroke="var(--bg-card)" stroke-width="1.5" data-score="${{scores[i]}}" data-label="${{dow}} ${{dd}} · ${{scores[i]}} Pkt"/>`;
+      hitsHtml += `<rect class="sp-hit" x="${{hitX}}" y="0" width="${{HIT_W}}" height="${{H}}" fill="transparent" data-idx="${{i}}" data-date="${{dow}} ${{dd}}" data-score="${{scores[i]}}" data-color="${{ptCol}}" data-drivers="${{drvJson}}"/>`;
     }}
 
-    // Ghost dot — gray, no connecting line
+    // Ghost dot — gray, no connecting line. Hit-Area trägt Live-Drivers
+    // (falls oben gepushed), sonst leeres Array → „Keine KI-Treiber".
     let ghostHtml = '';
     if (hasGhost) {{
       const cx = xOf(n).toFixed(1);
@@ -6707,7 +6780,7 @@ function _fmtGerman(d) {{
   </defs>
   <path d="${{areaD}}" fill="url(#sg${{svgId}})"/>
   <path d="${{lineD}}" fill="none" stroke="#6b7280" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
-  ${{circlesHtml}}${{ghostHtml}}
+  ${{circlesHtml}}${{ghostHtml}}${{hitsHtml}}
 </svg>`;
     svgWrap.innerHTML = svg;
 
@@ -6732,32 +6805,66 @@ function _fmtGerman(d) {{
       }}
     }}
 
-    // Tooltip
-    const tip = document.createElement('div');
-    tip.className = 'spark-tip';
-    svgWrap.appendChild(tip);
+    // Tooltip — multi-line: Datum · Score-Pkt · Drivers-Liste
+    let tip = wrap.querySelector('.spark-tip');
+    if (!tip) {{
+      tip = document.createElement('div');
+      tip.className = 'spark-tip';
+      svgWrap.appendChild(tip);
+    }}
+    const _esc = s => String(s == null ? '' : s).replace(/[&<>"]/g,
+      c => ({{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}})[c]);
 
-    let hideTimer = null;
-    const hideTip = () => {{ if (hideTimer) clearTimeout(hideTimer); tip.classList.remove('visible'); }};
+    function _showSparkTip(rect) {{
+      const score = rect.dataset.score || '';
+      const date  = rect.dataset.date  || '';
+      const ptCol = rect.dataset.color || 'var(--txt)';
+      let drv = [];
+      try {{ drv = JSON.parse((rect.dataset.drivers || '[]').replace(/&quot;/g, '"')); }}
+      catch(_) {{ drv = []; }}
+      const drvHtml = (drv && drv.length)
+        ? '<ul class="spark-tip-drv">' + drv.slice(0, 4)
+            .map(d => `<li>${{_esc(d)}}</li>`).join('') + '</ul>'
+        : '<div class="spark-tip-no">Keine KI-Treiber für diesen Tag</div>';
+      tip.innerHTML = `<div class="spark-tip-head">`
+                    + `<span class="spark-tip-date">${{_esc(date)}}</span>`
+                    + `<span class="spark-tip-score" style="color:${{_esc(ptCol)}}">${{_esc(score)}} Pkt</span>`
+                    + `</div>${{drvHtml}}`;
+      // Position: oberhalb des Punkts, horizontal zentriert; clamp innerhalb
+      // der Sparkline-Breite, damit der Tooltip nicht abgeschnitten wird.
+      const cx = +rect.getAttribute('x') + +rect.getAttribute('width') / 2;
+      tip.classList.add('visible');
+      const ttW = tip.offsetWidth || 180;
+      const wrapW = wrap.clientWidth || W;
+      let left = cx;
+      left = Math.max(ttW / 2 + 4, Math.min(left, wrapW - ttW / 2 - 4));
+      tip.style.left = left + 'px';
+      tip.style.top  = '0px';   // oberhalb der Sparkline-SVG
+    }}
+    function _hideSparkTip() {{ tip.classList.remove('visible'); tip.innerHTML = ''; }}
 
-    svgWrap.querySelectorAll('.sp-dot').forEach(dot => {{
-      const show = () => {{
-        if (hideTimer) clearTimeout(hideTimer);
-        tip.textContent = dot.dataset.label;
-        tip.style.left  = dot.getAttribute('cx') + 'px';
-        tip.style.top   = dot.getAttribute('cy') + 'px';
-        tip.classList.add('visible');
-      }};
-      if (isMobile) {{
-        dot.addEventListener('touchstart', e => {{
-          e.preventDefault(); show();
-          hideTimer = setTimeout(() => tip.classList.remove('visible'), 2000);
-        }}, {{passive: false}});
-      }} else {{
-        dot.addEventListener('mouseenter', show);
-        dot.addEventListener('mouseleave', hideTip);
+    svgWrap.querySelectorAll('.sp-hit').forEach(rect => {{
+      rect.addEventListener('click', e => {{
+        e.stopPropagation();
+        _showSparkTip(rect);
+      }});
+      if (!isMobile) {{
+        rect.addEventListener('mouseenter', () => _showSparkTip(rect));
+        rect.addEventListener('mouseleave', _hideSparkTip);
       }}
     }});
+    // Outside-Tap + Esc — schließt offene Tooltips wrap-weit. Wird per
+    // wrap einmal angehängt; mehrere Sparklines bekommen unabhängige
+    // Listener (kein globaler Konflikt).
+    if (!wrap._sparkTipBound) {{
+      document.addEventListener('click', (e) => {{
+        if (!wrap.contains(e.target)) _hideSparkTip();
+      }});
+      document.addEventListener('keydown', (e) => {{
+        if (e.key === 'Escape') _hideSparkTip();
+      }});
+      wrap._sparkTipBound = true;
+    }}
   }}
 
   function initAll() {{
