@@ -7438,7 +7438,11 @@ function _fmtGerman(d) {{
       if (card) card.classList.toggle('wl-card--expanded', opening);
       if (!opening) return;
       if (body.dataset.loaded) {{
-        body.querySelectorAll('.wl-spark').forEach(w => {{
+        // Selektor ``.spark-wrap`` matched sowohl das vom card_html-Pfad
+        // (TopTen-Layout, ohne ``wl-spark``-Klasse) als auch das vom
+        // buildWlSparkOnly-Fallback (mit ``wl-spark``-Klasse). Der alte
+        // Selektor ``.wl-spark`` ließ den TopTen-Pfad leer zurück.
+        body.querySelectorAll('.spark-wrap').forEach(w => {{
           if (typeof window.drawSparkline === 'function') window.drawSparkline(w);
         }});
         return;
@@ -7455,7 +7459,7 @@ function _fmtGerman(d) {{
           && body.querySelector('.position-panel-loading')) {{
         gistLoad().then(() => _refreshPositionPanel(ticker)).catch(() => {{}});
       }}
-      body.querySelectorAll('.wl-spark').forEach(w => {{
+      body.querySelectorAll('.spark-wrap').forEach(w => {{
         if (typeof window.drawSparkline === 'function') window.drawSparkline(w);
       }});
     }} catch(e) {{
