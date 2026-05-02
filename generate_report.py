@@ -3119,6 +3119,33 @@ def _compute_sub_scores(s: dict) -> dict:
     }
 
 
+def _methodology_rows_html(parts: list[tuple[str, float, str]]) -> str:
+    """Score-Methodik-Block: rendert Komponenten-Liste mit Pkt + % vom Block.
+
+    ``parts`` ist eine Liste von ``(label, pts_for_pct, display)``-Tupeln:
+    - ``label``: angezeigter Komponenten-Name (HTML zugelassen, z. B.
+      ``"Earnings (≤7 / ≤14 Tage)"``).
+    - ``pts_for_pct``: Roh-Punkte-Beitrag dieser Komponente, der für die
+      Prozent-Berechnung herangezogen wird (Maximum-Beitrag, nicht
+      Mittelwert/Range).
+    - ``display``: anzuzeigender Pkt-String (z. B. ``"32 Pkt"`` oder
+      ``"15 / 8 Pkt"``).
+
+    Prozent = Anteil an Block-Roh-Summe (`sum(pts_for_pct)`), gerundet
+    auf ganze Prozent. Block-Summe wird IMMER aus den Tupel-Werten neu
+    berechnet — keine Drift möglich.
+    """
+    total = sum(p for _, p, _ in parts) or 1
+    rows = []
+    for lbl, pts_basis, display in parts:
+        pct = round(pts_basis / total * 100)
+        rows.append(
+            f'<li><span class="sb-lbl">{lbl}</span>'
+            f'<span class="sb-pts">{display} ({pct}&nbsp;%)</span></li>'
+        )
+    return "\n              ".join(rows)
+
+
 def _sub_scores_html(s: dict) -> str:
     """3-teilige Sub-Score-Anzeige unter dem Haupt-Score (oder leer).
 
@@ -4878,6 +4905,48 @@ def generate_html_v1(stocks: list[dict], report_date: str, _ctx: dict | None = N
     chat_script_html = ctx["chat_script_html"]
     backtest_count_str = ctx["backtest_count_str"]
 
+    # Methodik-Sektion: Komponenten-Listen mit Pkt-Wert + Prozent-Anteil
+    # vom Block-Roh-Total. Werte stammen aus config.py-Konstanten (nicht
+    # hardgecodet im Template) — Methodik-Sync-Regel: wenn die
+    # Score-Funktion eine Schwelle ändert, muss die Konstante hier
+    # synchron bleiben.
+    methodology_struct_rows = _methodology_rows_html([
+        ("Short Float",   32, "32 Pkt"),
+        ("Days to Cover", 23, "23 Pkt"),
+        ("Float-Größe",   8,  "8 Pkt"),
+        ("SI-Trend",      5,  "5 Pkt"),
+    ])
+    methodology_catalyst_rows = _methodology_rows_html([
+        ("Earnings (≤7 / ≤14 Tage)",
+         SUB_EARN_NEAR_PTS,
+         f"{SUB_EARN_NEAR_PTS} / {SUB_EARN_MID_PTS} Pkt"),
+        ("News-KI mit Alters-Gewichtung (T+0: 100&nbsp;%, T+3: 20&nbsp;%)",
+         SUB_NEWS_CAP,
+         f"bis {SUB_NEWS_CAP} Pkt"),
+        ("P/C-Ratio (bullisch / bärisch)",
+         PC_RATIO_BULL_BONUS,
+         f"+{PC_RATIO_BULL_BONUS} / −{PC_RATIO_BEAR_MALUS} Pkt"),
+        ("Short-Druck-Muster",
+         SHORT_PRESSURE_BONUS,
+         f"{SHORT_PRESSURE_BONUS} Pkt"),
+        ("Gamma Squeeze (möglich / wahrscheinlich)",
+         GAMMA_BONUS_LIKELY,
+         f"{GAMMA_BONUS_POSSIBLE} / {GAMMA_BONUS_LIKELY} Pkt"),
+        ("Insider (13F-Akkumulation)",
+         SUB_INSIDER_PTS,
+         f"{SUB_INSIDER_PTS} Pkt"),
+        ("UOA (ATM Vol/OI &amp; C/P-Bias)",
+         UOA_ATM_STRONG + UOA_CP_BIAS,
+         f"bis {UOA_ATM_STRONG + UOA_CP_BIAS} Pkt"),
+    ])
+    methodology_timing_rows = _methodology_rows_html([
+        ("Rel. Volumen",   23, "23 Pkt"),
+        ("Momentum",       14, "14 Pkt"),
+        ("RS vs. SPY",     3,  "3 Pkt"),
+        ("Float Turnover", 10, "10 Pkt"),
+        ("Gap &amp; Hold", 5,  "−3 bis +5"),
+    ])
+
     return f"""{head_html}
 <body>
 <header class="app-hdr">
@@ -5032,10 +5101,7 @@ def generate_html_v1(stocks: list[dict], report_date: str, _ctx: dict | None = N
               <span class="score-block-badge">0–40</span>
             </div>
             <ul class="score-block-list">
-              <li><span class="sb-lbl">Short Float</span><span class="sb-pts">32 Pkt</span></li>
-              <li><span class="sb-lbl">Days to Cover</span><span class="sb-pts">23 Pkt</span></li>
-              <li><span class="sb-lbl">Float-Größe</span><span class="sb-pts">8 Pkt</span></li>
-              <li><span class="sb-lbl">SI-Trend</span><span class="sb-pts">5 Pkt</span></li>
+              {methodology_struct_rows}
             </ul>
             <p class="score-block-foot">Summe normiert auf 0–40</p>
           </div>
@@ -5045,13 +5111,7 @@ def generate_html_v1(stocks: list[dict], report_date: str, _ctx: dict | None = N
               <span class="score-block-badge">0–35</span>
             </div>
             <ul class="score-block-list">
-              <li><span class="sb-lbl">Earnings (≤7 / ≤14 Tage)</span><span class="sb-pts">{SUB_EARN_NEAR_PTS} / {SUB_EARN_MID_PTS} Pkt</span></li>
-              <li><span class="sb-lbl">News-KI mit Alters-Gewichtung (T+0: 100&nbsp;%, T+3: 20&nbsp;%)</span><span class="sb-pts">bis {SUB_NEWS_CAP} Pkt</span></li>
-              <li><span class="sb-lbl">P/C-Ratio (bullisch / bärisch)</span><span class="sb-pts">+{PC_RATIO_BULL_BONUS} / −{PC_RATIO_BEAR_MALUS} Pkt</span></li>
-              <li><span class="sb-lbl">Short-Druck-Muster</span><span class="sb-pts">{SHORT_PRESSURE_BONUS} Pkt</span></li>
-              <li><span class="sb-lbl">Gamma Squeeze (möglich / wahrscheinlich)</span><span class="sb-pts">{GAMMA_BONUS_POSSIBLE} / {GAMMA_BONUS_LIKELY} Pkt</span></li>
-              <li><span class="sb-lbl">Insider (13F-Akkumulation)</span><span class="sb-pts">{SUB_INSIDER_PTS} Pkt</span></li>
-              <li><span class="sb-lbl">UOA (ATM Vol/OI &amp; C/P-Bias)</span><span class="sb-pts">bis {UOA_ATM_STRONG + UOA_CP_BIAS} Pkt</span></li>
+              {methodology_catalyst_rows}
             </ul>
           </div>
           <div class="score-block-card">
@@ -5060,11 +5120,7 @@ def generate_html_v1(stocks: list[dict], report_date: str, _ctx: dict | None = N
               <span class="score-block-badge">0–35</span>
             </div>
             <ul class="score-block-list">
-              <li><span class="sb-lbl">Rel. Volumen</span><span class="sb-pts">23 Pkt</span></li>
-              <li><span class="sb-lbl">Momentum</span><span class="sb-pts">14 Pkt</span></li>
-              <li><span class="sb-lbl">RS vs. SPY</span><span class="sb-pts">3 Pkt</span></li>
-              <li><span class="sb-lbl">Float Turnover</span><span class="sb-pts">10 Pkt</span></li>
-              <li><span class="sb-lbl">Gap &amp; Hold</span><span class="sb-pts">−3 bis +5</span></li>
+              {methodology_timing_rows}
             </ul>
             <p class="score-block-foot">Summe normiert auf 0–35</p>
           </div>
