@@ -527,12 +527,16 @@ Im Zweifel: lieber Sync mit kurzem Hinweis im Commit-Body als Drift-Risiko.
 
 ---
 
-## Mobile-Navigation (Hamburger-Drawer)
+## Navigation (Hamburger-Drawer, universal)
 
 Der Header (`<header class="app-hdr">`) ist `position:sticky;top:0` mit
 `padding-top: env(safe-area-inset-top)` für iPhone-Notch. Beim Scrollen
 über 5 px setzt JS die Klasse `.scrolled` (dezenter Box-Shadow als
-visuelles Feedback).
+visuelles Feedback). **Identisches Verhalten auf allen Breakpoints** —
+Hamburger + Drawer auch auf Desktop, kein zweites Layout. Drawer-Breite
+280 px mobile, 320 px ≥ 768 px (`@media`-Override). Desktop-Header-Layout
+in einer Zeile: Title (links) | Timestamp (zentriert) | Hamburger (rechts);
+auf Mobile wraps der Timestamp in Reihe 2.
 
 ### Struktur
 

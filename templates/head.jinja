@@ -110,26 +110,10 @@ a{color:var(--accent);text-decoration:none}
 @media(min-width:768px){
   .menu-drawer{width:320px}
 }
-/* Legacy-Klassen (fs-btn, hdr-btns, hdr-icons) — können in alten Caches
-   noch referenziert sein. Behalten als no-op-Fallbacks. */
-.hdr-icons{display:flex;gap:4px;flex-shrink:0;order:2;align-items:center}
-.fs-btn{width:44px;height:44px;border:1px solid #2d3748;border-radius:6px;
-  background:transparent;color:#64748b;font-size:13px;font-weight:800;
-  cursor:pointer;display:flex;align-items:center;justify-content:center;
-  letter-spacing:-.5px;line-height:1}
-.fs-btn:disabled{opacity:.35;cursor:not-allowed}
-.fs-btn:hover:not(:disabled){background:#334155;color:#e2e8f0}
-.theme-btn{width:44px;height:44px;border:1px solid #2d3748;border-radius:6px;
-  background:transparent;color:#64748b;font-size:1.1rem;cursor:pointer;
-  display:flex;align-items:center;justify-content:center}
-.theme-btn:hover{background:#334155;color:#e2e8f0}
+/* Timestamp im Header. Mobile: wraps zur 2. Reihe (width:100%);
+   Desktop ≥768 px: zentriert in row 1 zwischen Title und Hamburger
+   (Override im Desktop-Block). */
 .hdr-ts{font-size:.73rem;color:var(--txt-sub);width:100%;order:3}
-.hdr-btns{display:flex;flex-wrap:wrap;gap:8px;width:100%;order:4}
-@media(max-width:479px){
-  .hdr-btns .btn{font-size:13px!important;min-height:40px!important;padding:0 10px!important}
-  #btn-reload,#btn-recalc{flex:1 1 calc(50% - 4px)}
-  #btn-ki,#btn-chat{flex:1 1 calc(50% - 4px);font-size:11px!important;min-height:28px!important;padding:4px 8px!important}
-}
 .btn{display:inline-flex;align-items:center;justify-content:center;
   gap:6px;min-height:44px;padding:0 16px;border:1px solid transparent;border-radius:6px;
   font-size:.9rem;font-weight:700;cursor:pointer;flex:1;
@@ -665,13 +649,13 @@ select.sort-select:hover:not(:disabled){background-image:linear-gradient(45deg,t
    ≥ 768 px  Tablet / kleiner Desktop
    ═════════════════════════════════════════════════════════════════════════ */
 @media(min-width:768px){
-  /* Header: single row – title | ts (centered) | btns | theme-btn */
+  /* Header single row: title (links) | timestamp (zentriert) | hamburger (rechts).
+     Identische Hamburger-Logik wie Mobile — Drawer-Breite via @media oben
+     auf 320 px; sticky/scroll-shadow gilt bereits universell. */
   .hdr-main{flex-wrap:nowrap;padding:0;height:60px;gap:12px}
   .app-title{order:1;flex:0 0 auto}
   .hdr-ts{order:2;flex:1;width:auto;text-align:center}
-  .hdr-btns{order:3;width:auto;flex:0 0 auto}
-  .hdr-btns .btn{flex:0 0 auto;min-height:44px;padding:0 16px;font-size:.87rem}
-  .hdr-icons{order:4}
+  .hamburger-btn{order:3}
   /* Info panel: 3 columns */
   .info-inner{grid-template-columns:repeat(3,1fr)}
   .color-legend{grid-template-columns:repeat(2,1fr)}
@@ -688,9 +672,6 @@ select.sort-select:hover:not(:disabled){background-image:linear-gradient(45deg,t
 @media(min-width:1200px){
   .app-hdr{padding:0 24px}
   .hdr-main{height:52px;gap:10px}
-  .hdr-btns .btn{min-height:36px;padding:0 14px;font-size:.82rem}
-  .theme-btn{width:32px;height:32px;font-size:.9rem}
-  .fs-btn{width:32px;height:32px;font-size:11px}
   .wrap{padding:24px 24px 40px}
   .footer{padding:24px 24px 40px}
 }
@@ -710,7 +691,8 @@ select.sort-select:hover:not(:disabled){background-image:linear-gradient(45deg,t
     --brd:#ccc;--shadow:none;
   }
   /* Hide interactive / non-content elements */
-  .app-hdr,.hdr-btns,.hdr-icons,.tok-panel,#amsg,#non-trading-banner,
+  .app-hdr,.hamburger-btn,.menu-drawer,.menu-overlay,
+  .tok-panel,#amsg,#non-trading-banner,
   .details-btn,.news-btn,.tok-link,
   [id^="tok-"],.info-panel summary::after{display:none!important}
   /* Show all collapsed sections */
