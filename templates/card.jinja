@@ -84,10 +84,7 @@
       </table>
     </div>
     {{ no_data_html }}
-    <div class="driver-row">
-      <span class="risk-badge" style="color:{{ risk_col }};border-color:{{ risk_col }}55;background:{{ risk_col }}22">Risiko: {{ risk_lv }}</span>
-      <p class="driver-text">{{ sit_txt }}</p>
-    </div>
+    {{ drivers_block_html }}
   </div>
   <button class="news-btn" onclick="toggleNews({{ i }})" id="nb{{ i }}" aria-expanded="false">
     <span id="nb-icon{{ i }}">▼</span> Aktuelle Meldungen

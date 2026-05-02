@@ -3067,6 +3067,195 @@ def _sub_scores_html(s: dict) -> str:
     )
 
 
+def _drivers_breakdown(s: dict) -> dict:
+    """Kategorisierte Treiber-Liste (Stärken / Risiken) aus Score-Komponenten.
+
+    Deterministisch — keine LLM-Calls. Liest dieselben Felder wie
+    ``_compute_sub_scores()`` und ``score()`` und ordnet jedem aktiven
+    Signal ein ``weight`` (Score-Beitrag in Punkten, gerundet) zu, damit
+    Sortierung nach Wirkungsstärke möglich ist.
+
+    Returns: ``{"strengths": [...], "risks": [...]}`` mit Items
+    ``{"label": str, "weight": float}`` — sortiert nach ``weight`` desc.
+    Single source of truth für die Drivers-Liste in der Detail-Ansicht
+    UND die deterministische Synthese-Zeile darüber.
+    """
+    strengths: list[tuple[float, str]] = []
+    risks:     list[tuple[float, str]] = []
+
+    sf  = _safe_float(s.get("short_float", 0))
+    sr  = _safe_float(s.get("short_ratio", 0))
+    rv  = _safe_float(s.get("rel_volume",  0))
+    chg = _safe_float(s.get("change",      0))
+    fl  = s.get("float_shares") or 0
+    rsi = s.get("rsi14")
+    finra    = s.get("finra_data") or {}
+    si_trend = finra.get("trend", "no_data")
+    si_tpct  = _safe_float(finra.get("trend_pct", 0.0))
+
+    if sf >= 15:
+        strengths.append((min(sf / 50.0, 1.0) * 32, f"Short Float {sf:.1f}%"))
+    if sr >= 5:
+        strengths.append((min(sr / 10.0, 1.0) * 23, f"Days-to-Cover {sr:.1f}d"))
+    if 0 < fl <= FLOAT_SATURATION_HIGH:
+        fs_w = max(0.0, min(1.0,
+            (FLOAT_SATURATION_HIGH - fl) / (FLOAT_SATURATION_HIGH - FLOAT_SATURATION_LOW)
+        )) * 8
+        if fs_w > 0:
+            strengths.append((fs_w, f"Float klein ({fl/1e6:.1f} M)"))
+    if si_trend == "up":
+        strengths.append((5.0, f"SI-Trend ↑ +{abs(si_tpct):.0f}%"))
+    elif si_trend == "down":
+        risks.append((5.0, f"SI-Trend ↓ −{abs(si_tpct):.0f}%"))
+
+    earn_days = s.get("earnings_days")
+    if earn_days is not None and earn_days <= 7:
+        strengths.append((15.0, f"Earnings in {earn_days}d"))
+    elif earn_days is not None and earn_days <= 14:
+        strengths.append((8.0, f"Earnings in {earn_days}d"))
+    if s.get("sec_13f_note"):
+        strengths.append((10.0, "Insider/13F-Signal"))
+    if _detect_short_pressure(s):
+        strengths.append((float(SHORT_PRESSURE_BONUS), "Short-Druck-Muster"))
+    g = _gamma_squeeze_level(s)
+    if g == "likely":
+        strengths.append((float(GAMMA_BONUS_LIKELY), "Gamma-Squeeze wahrscheinlich"))
+    elif g == "possible":
+        strengths.append((float(GAMMA_BONUS_POSSIBLE), "Gamma-Setup möglich"))
+    borrow = s.get("borrow_rate")
+    if borrow is not None:
+        if borrow > 100:
+            strengths.append((float(IBKR_BORROW_BONUS_EXTREME),
+                              f"Borrow {borrow:.0f}%/J extrem"))
+        elif borrow > IBKR_BORROW_HIGH:
+            strengths.append((float(IBKR_BORROW_BONUS_HOT),
+                              f"Borrow {borrow:.0f}%/Jahr"))
+
+    pc = (s.get("options") or {}).get("pc_ratio")
+    if pc is not None:
+        if pc < PC_RATIO_BULL_THRESHOLD:
+            strengths.append((float(PC_RATIO_BULL_BONUS), f"PC {pc:.2f} bullisch"))
+        elif pc > PC_RATIO_BEAR_THRESHOLD:
+            risks.append((float(PC_RATIO_BEAR_MALUS), f"PC {pc:.2f} bärisch"))
+
+    if rv >= 2.0:
+        rv_w = min((rv - 1.0) / 2.0, 1.0) * 23
+        strengths.append((rv_w, f"RVOL {rv:.1f}×"))
+    chg_eff = chg - _safe_float(s.get("spx_daily_perf", 0.0)) if USE_RELATIVE_MOMENTUM else chg
+    if chg_eff >= 5:
+        strengths.append((min(chg_eff / 8.0, 1.0) * 14, f"Momentum +{chg_eff:.1f}%"))
+    elif chg < -3:
+        risks.append((min(abs(chg) / 5.0, 1.0) * 8, f"Tagesverlust {chg:.1f}%"))
+
+    rs_pct, rs_pts = _rs_spy_pts(s)
+    if rs_pct is not None:
+        if rs_pts > 0.5:
+            strengths.append((rs_pts, f"RS vs. SPY +{rs_pct:.1f}%"))
+        elif rs_pts < -0.5:
+            risks.append((abs(rs_pts), f"RS vs. SPY {rs_pct:.1f}%"))
+
+    turnover_ratio, turnover_pts = _float_turnover_pts(s)
+    if turnover_pts > 0:
+        strengths.append((float(turnover_pts), f"Vol/Float {turnover_ratio:.1f}×"))
+
+    gap_pct, gap_state, gap_pts = _gap_hold_pts(s)
+    if gap_state == "strong_hold" and gap_pct is not None:
+        strengths.append((float(gap_pts), f"Strong Hold +{gap_pct:.1f}%"))
+    elif gap_state == "fail":
+        risks.append((float(abs(gap_pts)), "Bull-Trap (Gap-Fail)"))
+
+    if rsi is not None and rsi > 70:
+        risks.append((min((rsi - 70) / 2.0, 10.0), f"RSI {rsi:.0f} überkauft"))
+
+    ma50  = s.get("ma50")
+    price = _safe_float(s.get("price", 0))
+    if ma50 and price and ma50 > 0:
+        vs = (price - ma50) / ma50 * 100
+        if vs < -5:
+            risks.append((min(abs(vs) / 2.0, 12.0), f"Unter MA50 ({vs:+.1f}%)"))
+
+    strengths.sort(key=lambda x: -x[0])
+    risks.sort(key=lambda x: -x[0])
+    return {
+        "strengths": [{"label": l, "weight": round(w, 1)} for w, l in strengths],
+        "risks":     [{"label": l, "weight": round(w, 1)} for w, l in risks],
+    }
+
+
+def _drivers_synthesis_line(breakdown: dict) -> str:
+    """Ein-Satz-Synthese aus den Top-2 Stärken + Top-2 Risiken.
+
+    Liest die bereits sortierte ``_drivers_breakdown``-Ausgabe — zweite
+    Sortierung entfällt. Liefert HTML mit ``<strong>``-Labels (sicher,
+    da Driver-Labels intern erzeugt sind, kein User-Input).
+    Leerer String, wenn weder Stärken noch Risiken aktiv sind.
+    """
+    strengths = breakdown.get("strengths") or []
+    risks     = breakdown.get("risks")     or []
+    parts: list[str] = []
+    if strengths:
+        top = ", ".join(d["label"] for d in strengths[:2])
+        parts.append(f'<strong class="syn-pos">Stark:</strong> {top}')
+    if risks:
+        top = ", ".join(d["label"] for d in risks[:2])
+        parts.append(f'<strong class="syn-neg">Schwach:</strong> {top}')
+    if not parts:
+        return ""
+    return ". ".join(parts) + "."
+
+
+def _drivers_block_html(s: dict) -> str:
+    """Detail-Ansicht-Block: Synthese-Zeile + zwei kategorisierte Listen.
+
+    Ersetzt die alte einzeilige ``.driver-row`` (Risiko-Badge + sit_txt).
+    Risiko-Badge bleibt erhalten (visueller Anker), aber die freie
+    ``short_situation``-Prosa weicht der strukturierten Driver-Aufteilung.
+    Synthese-Zeile nur sichtbar, wenn mindestens eine Kategorie befüllt
+    ist — sonst leerer String (kein leerer Wrapper im DOM).
+    """
+    bd = _drivers_breakdown(s)
+    strengths = bd["strengths"][:5]
+    risks     = bd["risks"][:5]
+    if not strengths and not risks:
+        return ""
+    risk_lv, risk_col, _ = risk_assessment(s)
+    synth = _drivers_synthesis_line({"strengths": strengths, "risks": risks})
+    out = ['<div class="drivers-block">']
+    out.append(
+        f'<div class="drivers-header">'
+        f'<span class="risk-badge" style="color:{risk_col};'
+        f'border-color:{risk_col}55;background:{risk_col}22">Risiko: {risk_lv}</span>'
+        f'</div>'
+    )
+    if synth:
+        out.append(f'<p class="drivers-synthesis">{synth}</p>')
+    out.append('<div class="drivers-cats">')
+    if strengths:
+        items = "".join(
+            f'<li><span class="drv-w drv-w-pos">+{d["weight"]:.0f}</span>'
+            f'<span class="drv-lbl">{d["label"]}</span></li>'
+            for d in strengths
+        )
+        out.append(
+            '<div class="drivers-cat drivers-strengths">'
+            '<div class="drivers-cat-hdr">✓ Stärken</div>'
+            f'<ul class="drivers-list">{items}</ul></div>'
+        )
+    if risks:
+        items = "".join(
+            f'<li><span class="drv-w drv-w-neg">−{d["weight"]:.0f}</span>'
+            f'<span class="drv-lbl">{d["label"]}</span></li>'
+            for d in risks
+        )
+        out.append(
+            '<div class="drivers-cat drivers-risks">'
+            '<div class="drivers-cat-hdr">⚠ Risiken</div>'
+            f'<ul class="drivers-list">{items}</ul></div>'
+        )
+    out.append('</div></div>')
+    return "".join(out)
+
+
 def _pd_badges_html(s: dict) -> str:
     """Feature 3 — Pump-&-Dump Warnbadges (orange + rot)."""
     if not PD_FILTER_ENABLED:
@@ -3573,6 +3762,7 @@ def _card(i: int, s: dict) -> str:
     ssr_tile_html      = _ssr_tile_html(s)
     squeeze_badge_html = _squeeze_history_badge(s)
     sub_scores_html    = _sub_scores_html(s)         # Feature 1
+    drivers_block_html = _drivers_block_html(s)       # Synthese + kategorisierte Treiber
     pd_badges_html     = (                            # Feature 3 + Short-Druck
         _pd_badges_html(s) + _short_pressure_badge_html(s) + _gamma_badge_html(s)
     )
@@ -3735,10 +3925,7 @@ def _card(i: int, s: dict) -> str:
       </table>
     </div>
     {no_data_html}
-    <div class="driver-row">
-      <span class="risk-badge" style="color:{risk_col};border-color:{risk_col}55;background:{risk_col}22">Risiko: {risk_lv}</span>
-      <p class="driver-text">{sit_txt}</p>
-    </div>
+    {drivers_block_html}
   </div>
   <button class="news-btn" onclick="toggleNews({i})" id="nb{i}" aria-expanded="false">
     <span id="nb-icon{i}">▼</span> Aktuelle Meldungen
@@ -4065,6 +4252,7 @@ def _build_card_ctx(i: int, s: dict) -> dict:
     ssr_tile_html      = _ssr_tile_html(s)
     squeeze_badge_html = _squeeze_history_badge(s)
     sub_scores_html    = _sub_scores_html(s)         # NEU: Sub-Scores
+    drivers_block_html = _drivers_block_html(s)       # Synthese + kategorisierte Treiber
     pd_badges_html     = (                            # P&D + Short-Druck
         _pd_badges_html(s) + _short_pressure_badge_html(s) + _gamma_badge_html(s)
     )
@@ -4253,6 +4441,7 @@ def _build_card_ctx(i: int, s: dict) -> dict:
         "ssr_tile_html":        ssr_tile_html,        # Feature 1
         "squeeze_badge_html":   squeeze_badge_html,   # Feature 6
         "sub_scores_html":      sub_scores_html,      # Sub-Scores
+        "drivers_block_html":   drivers_block_html,   # Synthese + Stärken/Risiken
         "pd_badges_html":       pd_badges_html,       # P&D-Badges
         "agent_boost_row":      agent_boost_row,      # Agent-Boost-Zeile
         "float_row":            float_row,

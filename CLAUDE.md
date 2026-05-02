@@ -488,6 +488,81 @@ Alle drei Helper landen oben in `_append_backtest_entries`-Region in
 
 ---
 
+## Drivers-Block & Synthese-Zeile (Detail-Ansicht)
+
+Die alte einzeilige `.driver-row` (Risiko-Badge + freie ``short_situation``-
+Prosa) ist ersetzt durch einen kategorisierten **Drivers-Block** mit
+deterministischer **Synthese-Zeile** darüber. Quelle: rein die bereits
+berechneten Score-Komponenten — keine LLM-Calls, kein zweiter Datenpfad.
+
+### Helper-Trio (single source of truth)
+
+- ``_drivers_breakdown(s) → {strengths: [...], risks: [...]}`` — liest
+  dieselben Felder wie ``_compute_sub_scores()`` / ``score()``, klassi-
+  fiziert jedes aktive Signal als Stärke oder Risiko und ordnet ein
+  ``weight`` (Score-Beitrag in Punkten) zu. Sortiert nach ``weight`` desc.
+- ``_drivers_synthesis_line(breakdown) → str`` — Format
+  ``"Stark: <top-2>. Schwach: <top-2>."``. Liest die bereits sortierte
+  Breakdown-Ausgabe — keine zweite Sortierung. Leer, wenn weder
+  Stärken noch Risiken aktiv.
+- ``_drivers_block_html(s) → str`` — komplettes HTML inkl. Risiko-Badge,
+  Synthese-Zeile und zwei Kategorie-Listen (max 5 Items pro Kategorie).
+  Leer, wenn beide Listen leer sind.
+
+### Klassifikations-Regeln (deterministisch)
+
+| Signal | Stärke (Bedingung) | Risiko (Bedingung) |
+|---|---|---|
+| Short Float           | ≥ 15 %             | — |
+| Days-to-Cover         | ≥ 5                | — |
+| Float-Größe           | ≤ 50 M             | — |
+| SI-Trend              | up                 | down |
+| Earnings (Tage)       | ≤ 14               | — |
+| 13F-Insider           | sec_13f_note vorh. | — |
+| Short-Druck-Muster    | ja                 | — |
+| Gamma-Squeeze         | possible/likely    | — |
+| Borrow-Rate           | > 50 %/Jahr        | — |
+| Put/Call-Ratio        | < 0.5 (bullisch)   | > 1.5 (bärisch) |
+| RVOL                  | ≥ 2.0×             | — |
+| Momentum (rel. SPY)   | ≥ +5 %             | < −3 % (raw chg) |
+| RS vs. SPY            | rs_pts > +0.5      | rs_pts < −0.5 |
+| Float-Turnover        | turnover_pts > 0   | — |
+| Gap & Hold            | strong_hold        | fail (Bull-Trap) |
+| RSI                   | —                  | > 70 (überkauft) |
+| Kurs vs. MA50         | —                  | < −5 % |
+
+Keine Signale für Felder, deren Daten fehlen (None / 0) — graceful Fallback,
+keine Pseudo-Treiber.
+
+### Wiring
+
+Beide Card-Pfade emittieren denselben HTML-Block:
+- v1 (``_card`` f-String): Variable ``drivers_block_html`` ersetzt den
+  alten Inline-``<div class="driver-row">``.
+- v2 (``_build_card_ctx`` + ``card.jinja``): Key ``drivers_block_html``
+  im Render-Context, Template-Stelle ``{{ drivers_block_html }}``.
+
+Render-Test (``_render_test`` mit ``JINJA_RENDER_TEST=1``) muss byte-
+identisch v1 == v2 bleiben — beide Pfade rufen dieselbe Helper-Trio.
+
+### CSS-Klassen (in ``templates/head.jinja``)
+
+``.drivers-block`` (Container, border-top), ``.drivers-header``
+(Risiko-Badge rechts), ``.drivers-synthesis`` (Akzent-Bar links,
+``syn-pos`` / ``syn-neg``-Spans), ``.drivers-cats`` (1-spaltig mobil,
+2-spaltig ≥ 480 px), ``.drivers-strengths`` / ``.drivers-risks`` (links
+grüner / roter 3 px-Border), ``.drv-w`` (gewichtete Punktzahl,
+``tabular-nums``), ``.drv-lbl`` (Treiber-Label).
+
+### Pflege
+
+Bei jeder Änderung an Score-Komponenten (neuer Bonus, geänderter
+Schwellenwert) — ``_drivers_breakdown`` mit anpassen, sonst driften
+Detail-Ansicht und tatsächlicher Score auseinander. Klassifikations-
+Tabelle oben gleichzeitig aktualisieren.
+
+---
+
 ## Score-Methodik-Sync-Regel
 
 Die **Score-Methodik & Filterkriterien**-Sektion in
