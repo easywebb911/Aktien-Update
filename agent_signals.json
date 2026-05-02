@@ -1,10 +1,10 @@
 {
-  "updated": "2026-05-02T22:39:20.948804+02:00",
+  "updated": "2026-05-02T23:38:38.188579+02:00",
   "run_info": {
     "tickers_checked": 12,
     "signals_active": 3,
-    "alerts_sent": 1,
-    "elapsed_s": 10.3,
+    "alerts_sent": 0,
+    "elapsed_s": 10.7,
     "market_phase": "Geschlossen"
   },
   "signals": {
@@ -54,7 +54,7 @@
     "GRPN": {
       "score": 61,
       "confidence": 33,
-      "drivers": "Earnings in 5 Tagen (07.05.2026) + News: squeeze, short squeeze + Earnings in 5d + UOA Call/Put 4.2×",
+      "drivers": "Earnings in 5 Tagen (07.05.2026) + News: short squeeze, squeeze + Earnings in 5d + UOA Call/Put 4.2×",
       "price": 14.89,
       "chg_pct": 0.0,
       "rvol": 0.0,
@@ -96,7 +96,7 @@
     "ASAN": {
       "score": 38,
       "confidence": 33,
-      "drivers": "News: squeeze, short squeeze + Earnings in 26d",
+      "drivers": "News: short squeeze, squeeze + Earnings in 26d",
       "price": 6.99,
       "chg_pct": 0.0,
       "rvol": 0.0,
@@ -113,9 +113,9 @@
       "uoa_cp_ratio": 1.5406976744186047
     },
     "SST": {
-      "score": 8,
-      "confidence": 17,
-      "drivers": "Earnings in 10d",
+      "score": 16,
+      "confidence": 33,
+      "drivers": "News-KI 8/30: Positive earnings outlook shows fundamental improvement but lacks the high short interest, volatility catalyst, and forc + Earnings in 10d",
       "price": 3.94,
       "chg_pct": 0.0,
       "rvol": 0.0,
@@ -132,9 +132,9 @@
       "uoa_cp_ratio": null
     },
     "TDOC": {
-      "score": 30,
+      "score": 38,
       "confidence": 17,
-      "drivers": "UOA Call-Vol/OI 9.0× ATM + UOA Call/Put 35.7×",
+      "drivers": "News-KI 8/30: Positive fundamentals and strategic initiatives, but no indicators of short squeeze potential such as high short interes + UOA Call-Vol/OI 9.0× ATM + UOA Call/Put 35.7×",
       "price": 6.46,
       "chg_pct": 0.0,
       "rvol": 0.0,
