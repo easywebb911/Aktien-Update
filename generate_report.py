@@ -10104,7 +10104,7 @@ def main():
             # könnte es lesen).
             _s["borrow_rate"]    = _s["cost_to_borrow"]
 
-    top10 = _sort_keeping_manual_last(top10)
+    top10.sort(key=lambda x: x.get("score") or 0, reverse=True)
 
     # Opt 3 — Parallel news fetching (all 10 tickers × 3 sources concurrently).
     _t_news = time.time()
