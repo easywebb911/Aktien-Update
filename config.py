@@ -135,6 +135,17 @@ IBKR_BORROW_HIGH         = 50.0     # > 50 %/Jahr → rot (sehr teuer für Short
 IBKR_BORROW_BONUS_HOT    = 8        # Katalysator-Bonus bei > 50 %/Jahr
 IBKR_BORROW_BONUS_EXTREME = 15      # Katalysator-Bonus bei > 100 %/Jahr
 
+# ── CTB + Utilization (Display-Only, kein Score-Einfluss) ────────────────────
+# Stockanalysis.com zeigt auf der Stock-Page borrow-Metriken — Cost-to-Borrow
+# (jährliche Leihgebühr in %) und Utilization (%-Anteil des Floats, der
+# aktuell verliehen ist). Beide Werte fließen NICHT in den Score; sie werden
+# nur in der Detail-Ansicht angezeigt und in app_data.json persistiert
+# (für spätere Auswertung). Fallback bei CTB: IBKR-Borrow-Rate-Tabelle
+# (gleiche Daten in $/Jahr-Form, IBKR_BORROW_URL). Bei Stockanalysis-
+# 403/Parse-Fehler: silently None.
+STOCKANALYSIS_BORROW_ENABLED = True
+STOCKANALYSIS_BORROW_TIMEOUT = 8
+
 # ── Put/Call-Ratio in Katalysator-Sub-Score ─────────────────────────────────
 # PC-Ratio < 0.5 = bullisch (viele Calls) → +Bonus
 # PC-Ratio > 1.5 = bearisch (viele Puts)  → -Malus

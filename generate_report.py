@@ -1309,6 +1309,88 @@ def get_earnings_surprise(ticker: str) -> dict | None:
     return None
 
 
+def fetch_stockanalysis_borrow(ticker: str) -> dict:
+    """Cost-to-Borrow + Utilization von stockanalysis.com Stock-Page.
+
+    Beide Felder sind **display-only** — fließen nicht in den Score. Wird
+    pro Top-10-Ticker einmal gefetcht (kein Cache, weil Werte täglich neu).
+
+    Returns Dict ``{cost_to_borrow: float|None, utilization: float|None}``.
+    Fail-soft: HTTP-Fehler / Parse-Fail / deaktiviertes Flag → beide None.
+    Niemals raise.
+    """
+    out = {"cost_to_borrow": None, "utilization": None}
+    if not STOCKANALYSIS_BORROW_ENABLED or not ticker or "." in ticker:
+        return out
+    url = f"https://stockanalysis.com/stocks/{ticker.lower()}/short-interest/"
+    try:
+        # Browser-User-Agent, Stockanalysis blockt sonst hin und wieder.
+        headers = {
+            **HTTP_HEADERS,
+            "User-Agent": (
+                "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 "
+                "(KHTML, like Gecko) Chrome/120.0 Safari/537.36"
+            ),
+        }
+        resp = requests.get(url, headers=headers, timeout=STOCKANALYSIS_BORROW_TIMEOUT)
+        if resp.status_code != 200:
+            return out
+        text = resp.text
+    except Exception as exc:
+        log.debug("stockanalysis borrow %s: %s", ticker, exc)
+        return out
+
+    # CTB-Parser: tolerant gegen verschiedene Label-Schreibweisen.
+    # „Cost to Borrow", „Borrow Fee", „CTB Fee" — gefolgt von %-Wert.
+    for pattern in (
+        r'(?:Cost\s*to\s*Borrow|Borrow\s*Fee|CTB\s*Fee)[^<]*</t[dh]>\s*<t[dh][^>]*>\s*([\d.]+)\s*%',
+        r'"costToBorrow"\s*:\s*([\d.]+)',
+        r'"borrowFee"\s*:\s*([\d.]+)',
+    ):
+        m = re.search(pattern, text, re.IGNORECASE)
+        if m:
+            try:
+                out["cost_to_borrow"] = round(float(m.group(1)), 2)
+                break
+            except ValueError:
+                pass
+
+    # Utilization-Parser
+    for pattern in (
+        r'(?:Utilization|Utilization\s*Rate|Borrow\s*Utilization)[^<]*</t[dh]>\s*<t[dh][^>]*>\s*([\d.]+)\s*%',
+        r'"utilization(?:Rate)?"\s*:\s*([\d.]+)',
+    ):
+        m = re.search(pattern, text, re.IGNORECASE)
+        if m:
+            try:
+                val = float(m.group(1))
+                # JSON-Variante kann 0..1 als Anteil sein; auf Prozent normieren
+                if val <= 1.0:
+                    val *= 100
+                out["utilization"] = round(val, 2)
+                break
+            except ValueError:
+                pass
+
+    return out
+
+
+def fetch_borrow_metrics(ticker: str) -> dict:
+    """Orchestriert CTB + Utilization mit Stockanalysis als Primärquelle.
+
+    Bei fehlendem CTB von Stockanalysis → IBKR-Borrow-Rate-Tabelle als
+    Fallback (gleiche Semantik: %/Jahr Leihgebühr). Utilization hat keinen
+    IBKR-Fallback — nur Stockanalysis liefert das. Beide Felder können
+    unabhängig voneinander None sein.
+    """
+    metrics = fetch_stockanalysis_borrow(ticker)
+    if metrics["cost_to_borrow"] is None:
+        ibkr = fetch_ibkr_borrow_rate(ticker)
+        if ibkr is not None:
+            metrics["cost_to_borrow"] = round(float(ibkr), 2)
+    return metrics
+
+
 def fetch_stockanalysis_si(ticker: str) -> float | None:
     """Fetch wöchentlichen Short-Interest-Prozentwert von stockanalysis.com.
 
@@ -1992,6 +2074,8 @@ def _wl_card_payload(_s: dict) -> dict:
         "atm_iv":        _opts.get("atm_iv"),
         "rel_strength_20d": _s.get("rel_strength_20d"),
         "perf_20d":      _s.get("perf_20d"),
+        "cost_to_borrow": _s.get("cost_to_borrow"),
+        "utilization":    _s.get("utilization"),
         "news": [
             {
                 "title":  n.get("title", ""),
@@ -3219,6 +3303,25 @@ def _borrow_rate_row_html(s: dict) -> str:
     )
 
 
+def _ctb_util_rows_html(s: dict) -> str:
+    """Cost-to-Borrow + Utilization als Display-Only-Detail-Zeilen.
+
+    Beide werden auch dann gerendert, wenn der Wert ``None`` ist —
+    Anzeige als „—" statt Zeile zu verbergen. Quelle: Stockanalysis
+    (primär) → IBKR (Fallback nur für CTB).
+    """
+    ctb = s.get("cost_to_borrow")
+    util = s.get("utilization")
+    ctb_disp  = (f"{ctb:.1f} %/Jahr" if isinstance(ctb, (int, float))
+                 else "—")
+    util_disp = (f"{util:.1f} %"     if isinstance(util, (int, float))
+                 else "—")
+    return (
+        f'<tr><td>Cost-to-Borrow</td><td>{ctb_disp}</td></tr>'
+        f'<tr><td>Utilization</td><td>{util_disp}</td></tr>'
+    )
+
+
 def _card(i: int, s: dict) -> str:
     risk_lv, risk_col, risk_txt = risk_assessment(s)
     sit_txt  = short_situation(s)
@@ -3350,6 +3453,7 @@ def _card(i: int, s: dict) -> str:
     si_t1_disp = _fmt_si_record(si_hist[0]) if len(si_hist) >= 1 else "—"
     si_t2_disp = _fmt_si_record(si_hist[1]) if len(si_hist) >= 2 else "—"
     si_t3_disp = _fmt_si_record(si_hist[2]) if len(si_hist) >= 3 else "—"
+    ctb_util_rows = _ctb_util_rows_html(s)
 
     # RSI / MA / Relative-Strength rows for detail table
     _rsi   = s.get("rsi14")
@@ -3618,6 +3722,7 @@ def _card(i: int, s: dict) -> str:
         <tr><td>Short-Vol. T-1 (FINRA)</td><td>{si_t1_disp}</td></tr>
         <tr><td>Short-Vol. T-2</td><td>{si_t2_disp}</td></tr>
         <tr><td>Short-Vol. T-3</td><td>{si_t3_disp}</td></tr>
+        {ctb_util_rows}
         <tr class="detail-group-header"><td colspan="2">Volumen &amp; Momentum</td></tr>
         <tr><td>Ø Volumen 20T</td><td>{s.get('avg_vol_20d',0):,.0f}</td></tr>
         <tr><td>Heutiges Volumen</td><td>{s.get('cur_vol',0):,.0f}</td></tr>
@@ -3841,6 +3946,7 @@ def _build_card_ctx(i: int, s: dict) -> dict:
     si_t1_disp = _fmt_si_record(si_hist[0]) if len(si_hist) >= 1 else "—"
     si_t2_disp = _fmt_si_record(si_hist[1]) if len(si_hist) >= 2 else "—"
     si_t3_disp = _fmt_si_record(si_hist[2]) if len(si_hist) >= 3 else "—"
+    ctb_util_rows = _ctb_util_rows_html(s)
 
     # ── RSI / MA / Relative-Strength rows ────────────────────────────────
     _rsi   = s.get("rsi14")
@@ -4097,6 +4203,7 @@ def _build_card_ctx(i: int, s: dict) -> dict:
         "si_t1_disp":     si_t1_disp,
         "si_t2_disp":     si_t2_disp,
         "si_t3_disp":     si_t3_disp,
+        "ctb_util_rows":  ctb_util_rows,
         "cap_fmt":        cap_fmt,
         "hi_str":         hi_str,
         "lo_str":         lo_str,
@@ -8832,12 +8939,21 @@ def main():
     # (für ki_signal_score). Schreibt s["monster_score"] (float).
     apply_monster_score(top10)
 
-    # IBKR Stock Borrow Rates (einmaliger Fetch, cached) — nur US-Ticker.
-    # Fällt silent auf None zurück bei Cloudflare-Block / Timeout / Fehler.
-    if IBKR_BORROW_ENABLED:
+    # Borrow-Metriken (Display-Only): CTB + Utilization von Stockanalysis,
+    # Fallback IBKR für CTB. Beide Felder fließen NICHT in den Score und
+    # bleiben None bei Fetch-Fehler. Nur US-Ticker (Stockanalysis indexiert
+    # keine .DE/.L/.HK; IBKR-Tabelle ebenfalls US-only).
+    if IBKR_BORROW_ENABLED or STOCKANALYSIS_BORROW_ENABLED:
         for _s in top10:
-            if "." not in _s["ticker"]:
-                _s["borrow_rate"] = fetch_ibkr_borrow_rate(_s["ticker"])
+            if "." in _s["ticker"]:
+                continue
+            _bm = fetch_borrow_metrics(_s["ticker"])
+            _s["cost_to_borrow"] = _bm.get("cost_to_borrow")
+            _s["utilization"]    = _bm.get("utilization")
+            # Backwards-Compat: borrow_rate-Feld bleibt erhalten (nutzt
+            # gleichen Wert; existing-Code in _agent_boost_row_html etc.
+            # könnte es lesen).
+            _s["borrow_rate"]    = _s["cost_to_borrow"]
 
     top10 = _sort_keeping_manual_last(top10)
 
