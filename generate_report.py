@@ -7584,13 +7584,19 @@ function _fmtGerman(d) {{
   }}
 
   async function gistSave(data) {{
-    if (!GIST_ID) return false;
-    const token = localStorage.getItem(TOK_KEY);
-    if (!token) {{
-      _wlWarn('⚠ Kein GitHub Token — Position nur lokal sichtbar');
+    // Kein Optimistic-Cache mehr — der Cache wird erst nach
+    // erfolgreichem PATCH aktualisiert. Sonst hinterlässt ein
+    // fehlgeschlagener Save eine inkonsistente UI: Position scheint
+    // gespeichert (lokaler Cache), nach Reload aber weg.
+    if (!GIST_ID) {{
+      _wlWarn('⚠ GIST_ID nicht konfiguriert — Eingabe nicht persistiert');
       return false;
     }}
-    _GIST_DATA = data;   // Optimistic
+    const token = localStorage.getItem(TOK_KEY);
+    if (!token) {{
+      _wlWarn('⚠ Kein GitHub Token — Eingabe nicht persistiert');
+      return false;
+    }}
     try {{
       const r = await fetch(`https://api.github.com/gists/${{GIST_ID}}`, {{
         method: 'PATCH',
@@ -7604,13 +7610,16 @@ function _fmtGerman(d) {{
       }});
       if (!r.ok) {{
         console.error('gistSave fehlgeschlagen:', r.status, r.statusText);
-        _wlWarn(`⚠ Gist-Sync HTTP ${{r.status}} — Eingabe nur lokal`);
+        _wlWarn(`⚠ Gist-Sync HTTP ${{r.status}} — Eingabe nicht persistiert`);
         return false;
       }}
+      // Erfolg: Cache aktualisieren, damit nachfolgende gistLoad-Aufrufe
+      // den frischen Stand liefern ohne API-Round-Trip.
+      _GIST_DATA = data;
       return true;
     }} catch(e) {{
       console.error('gistSave Netzwerkfehler:', e);
-      _wlWarn('⚠ Gist unerreichbar — Eingabe nur lokal');
+      _wlWarn('⚠ Gist unerreichbar — Eingabe nicht persistiert');
       return false;
     }}
   }}
@@ -7679,25 +7688,24 @@ function _fmtGerman(d) {{
         <div class="pos-actions">${{removeBtn}}</div>
       </div>`;
     }}
+    // Exklusive States: 'view' (Default), 'open-form', 'close-form'.
+    // Es ist NIE Empty-State + Form gleichzeitig sichtbar — Form ersetzt
+    // die Action-Buttons. Komplettes Re-Render via _refreshPositionPanel.
+    const mode    = (window._POS_PANEL_MODE || {{}})[ticker] || 'view';
+    const errMsg  = (window._POS_PANEL_ERR  || {{}})[ticker] || '';
+    const errHtml = errMsg
+      ? `<div class="pos-form-err">${{errMsg.replace(/[<>&]/g, c => ({{'<':'&lt;','>':'&gt;','&':'&amp;'}})[c])}}</div>`
+      : '';
     const pos = data.positions ? data.positions[ticker] : null;
-    if (pos) {{
+    const today = new Date().toISOString().slice(0, 10);
+
+    if (pos && mode === 'close-form') {{
       const ep = +pos.entry_price || 0;
       const cp = currentPrice && isFinite(+currentPrice) ? +currentPrice : null;
-      const pnl = (cp != null && ep > 0) ? ((cp - ep) / ep * 100) : null;
-      const pnlStr = pnl != null ? (pnl >= 0 ? '+' : '') + pnl.toFixed(1) + '%' : '—';
-      const pnlCol = pnl == null ? '#94a3b8' : pnl >= 0 ? '#22c55e' : '#ef4444';
-      const sharesStr = pos.shares ? `${{pos.shares}} Stk` : '—';
-      const today    = new Date().toISOString().slice(0, 10);
-      const exitDef  = (cp != null) ? cp.toFixed(2) : '';
+      const exitDef = (cp != null) ? cp.toFixed(2) : ep.toFixed(2);
       return `<div class="position-panel position-panel-active">
-        <div class="pos-header">📍 Offene Position</div>
-        <div class="pos-grid">
-          <div><span class="pos-lbl">Entry-Datum</span><span class="pos-val">${{pos.entry_date || '—'}}</span></div>
-          <div><span class="pos-lbl">Einstiegskurs</span><span class="pos-val">$${{ep.toFixed(2)}}</span></div>
-          <div><span class="pos-lbl">St\xfcckzahl</span><span class="pos-val">${{sharesStr}}</span></div>
-          <div><span class="pos-lbl">P&amp;L</span><span class="pos-val" style="color:${{pnlCol}};font-weight:700">${{pnlStr}}</span></div>
-        </div>
-        <div class="pos-form pos-form-close" id="pos-close-${{ticker}}" hidden>
+        <div class="pos-header">Position schlie\xdfen — ${{ticker}}</div>
+        <div class="pos-form pos-form-close" id="pos-close-${{ticker}}">
           <label class="pos-lbl-form">Verkaufsdatum
             <input type="date" id="pos-xd-${{ticker}}" value="${{today}}">
           </label>
@@ -7713,10 +7721,28 @@ function _fmtGerman(d) {{
             <textarea id="pos-le-${{ticker}}" rows="2"
                       placeholder="Was hast du aus diesem Trade gelernt?"></textarea>
           </label>
+          ${{errHtml}}
           <div class="pos-form-btns">
             <button class="pos-btn pos-btn-cancel" onclick="wlCancelCloseForm('${{ticker}}')">Abbrechen</button>
             <button class="pos-btn pos-btn-save" onclick="wlSubmitClose('${{ticker}}')">Schlie\xdfen &amp; ins Journal</button>
           </div>
+        </div>
+      </div>`;
+    }}
+    if (pos) {{
+      const ep = +pos.entry_price || 0;
+      const cp = currentPrice && isFinite(+currentPrice) ? +currentPrice : null;
+      const pnl = (cp != null && ep > 0) ? ((cp - ep) / ep * 100) : null;
+      const pnlStr = pnl != null ? (pnl >= 0 ? '+' : '') + pnl.toFixed(1) + '%' : '—';
+      const pnlCol = pnl == null ? '#94a3b8' : pnl >= 0 ? '#22c55e' : '#ef4444';
+      const sharesStr = pos.shares ? `${{pos.shares}} Stk` : '—';
+      return `<div class="position-panel position-panel-active">
+        <div class="pos-header">📍 Offene Position</div>
+        <div class="pos-grid">
+          <div><span class="pos-lbl">Entry-Datum</span><span class="pos-val">${{pos.entry_date || '—'}}</span></div>
+          <div><span class="pos-lbl">Einstiegskurs</span><span class="pos-val">$${{ep.toFixed(2)}}</span></div>
+          <div><span class="pos-lbl">St\xfcckzahl</span><span class="pos-val">${{sharesStr}}</span></div>
+          <div><span class="pos-lbl">P&amp;L</span><span class="pos-val" style="color:${{pnlCol}};font-weight:700">${{pnlStr}}</span></div>
         </div>
         <div class="pos-actions">
           <button class="pos-btn pos-btn-close" onclick="wlShowCloseForm('${{ticker}}')">Position schlie\xdfen</button>
@@ -7724,28 +7750,33 @@ function _fmtGerman(d) {{
         </div>
       </div>`;
     }}
-    const today = new Date().toISOString().slice(0, 10);
-    const priceDef = currentPrice && isFinite(+currentPrice)
-      ? (+currentPrice).toFixed(2) : '';
+    if (mode === 'open-form') {{
+      const priceDef = currentPrice && isFinite(+currentPrice)
+        ? (+currentPrice).toFixed(2) : '';
+      return `<div class="position-panel position-panel-empty">
+        <div class="pos-header">Position er\xf6ffnen — ${{ticker}}</div>
+        <div class="pos-form" id="pos-form-${{ticker}}">
+          <label class="pos-lbl-form">Datum
+            <input type="date" id="pos-d-${{ticker}}" value="${{today}}">
+          </label>
+          <label class="pos-lbl-form">Einstiegskurs ($)
+            <input type="number" inputmode="decimal" step="0.01" min="0"
+                   id="pos-p-${{ticker}}" value="${{priceDef}}" placeholder="0.00">
+          </label>
+          <label class="pos-lbl-form">St\xfcckzahl
+            <input type="number" inputmode="numeric" step="1" min="1"
+                   id="pos-s-${{ticker}}" placeholder="z. B. 35">
+          </label>
+          ${{errHtml}}
+          <div class="pos-form-btns">
+            <button class="pos-btn pos-btn-cancel" onclick="wlCancelOpenForm('${{ticker}}')">Abbrechen</button>
+            <button class="pos-btn pos-btn-save" onclick="wlSubmitPosition('${{ticker}}')">Speichern</button>
+          </div>
+        </div>
+      </div>`;
+    }}
     return `<div class="position-panel position-panel-empty">
       <div class="pos-header">Keine offene Position</div>
-      <div class="pos-form" id="pos-form-${{ticker}}" hidden>
-        <label class="pos-lbl-form">Datum
-          <input type="date" id="pos-d-${{ticker}}" value="${{today}}">
-        </label>
-        <label class="pos-lbl-form">Einstiegskurs ($)
-          <input type="number" inputmode="decimal" step="0.01" min="0"
-                 id="pos-p-${{ticker}}" value="${{priceDef}}" placeholder="0.00">
-        </label>
-        <label class="pos-lbl-form">St\xfcckzahl
-          <input type="number" inputmode="numeric" step="1" min="1"
-                 id="pos-s-${{ticker}}" placeholder="z. B. 35">
-        </label>
-        <div class="pos-form-btns">
-          <button class="pos-btn pos-btn-cancel" onclick="wlCancelOpenForm('${{ticker}}')">Abbrechen</button>
-          <button class="pos-btn pos-btn-save" onclick="wlSubmitPosition('${{ticker}}')">Speichern</button>
-        </div>
-      </div>
       <div class="pos-actions">
         <button class="pos-btn pos-btn-open" onclick="wlShowOpenForm('${{ticker}}')">Position er\xf6ffnen</button>
         ${{removeBtn}}
@@ -7764,13 +7795,29 @@ function _fmtGerman(d) {{
     if (wrap) wrap.outerHTML = buildPositionPanel(ticker, cur);
   }}
 
+  // Mode + Error-State pro Ticker — wird in window-globals gehalten,
+  // damit ``buildPositionPanel`` (pure Render-Funktion) sie auslesen
+  // kann ohne Plumbing über jede Aufrufer-Schicht.
+  window._POS_PANEL_MODE = window._POS_PANEL_MODE || {{}};
+  window._POS_PANEL_ERR  = window._POS_PANEL_ERR  || {{}};
+  function _setPanelMode(ticker, mode) {{
+    if (!mode || mode === 'view') delete window._POS_PANEL_MODE[ticker];
+    else window._POS_PANEL_MODE[ticker] = mode;
+  }}
+  function _setPanelErr(ticker, msg) {{
+    if (!msg) delete window._POS_PANEL_ERR[ticker];
+    else window._POS_PANEL_ERR[ticker] = msg;
+  }}
+
   window.wlShowOpenForm = function(ticker) {{
-    const f = document.getElementById('pos-form-' + ticker);
-    if (f) f.hidden = false;
+    _setPanelMode(ticker, 'open-form');
+    _setPanelErr(ticker, '');
+    _refreshPositionPanel(ticker);
   }};
   window.wlCancelOpenForm = function(ticker) {{
-    const f = document.getElementById('pos-form-' + ticker);
-    if (f) f.hidden = true;
+    _setPanelMode(ticker, 'view');
+    _setPanelErr(ticker, '');
+    _refreshPositionPanel(ticker);
   }};
 
   window.wlSubmitPosition = async function(ticker) {{
@@ -7782,7 +7829,8 @@ function _fmtGerman(d) {{
     const price  = parseFloat(p.value);
     const shares = parseInt(s.value, 10) || 0;
     if (!date || !isFinite(price) || price <= 0 || shares <= 0) {{
-      alert('Datum, Einstiegskurs > 0 und St\xfcckzahl > 0 erforderlich.');
+      _setPanelErr(ticker, 'Datum, Einstiegskurs > 0 und St\xfcckzahl > 0 erforderlich.');
+      _refreshPositionPanel(ticker);
       return;
     }}
     const data = (await gistLoad()) || {{watchlist: [], positions: {{}}}};
@@ -7790,7 +7838,15 @@ function _fmtGerman(d) {{
     data.positions[ticker] = {{
       entry_date: date, entry_price: price, shares: shares,
     }};
-    await gistSave(data);
+    const ok = await gistSave(data);
+    if (!ok) {{
+      _setPanelErr(ticker,
+        'Speichern im Gist fehlgeschlagen — Token-Scope „gist" pr\xfcfen. NICHT persistiert.');
+      _refreshPositionPanel(ticker);   // Form bleibt offen, Fehler sichtbar
+      return;
+    }}
+    _setPanelMode(ticker, 'view');
+    _setPanelErr(ticker, '');
     _refreshPositionPanel(ticker);
   }};
 
@@ -7825,12 +7881,14 @@ function _fmtGerman(d) {{
   }}
 
   window.wlShowCloseForm = function(ticker) {{
-    const f = document.getElementById('pos-close-' + ticker);
-    if (f) f.hidden = false;
+    _setPanelMode(ticker, 'close-form');
+    _setPanelErr(ticker, '');
+    _refreshPositionPanel(ticker);
   }};
   window.wlCancelCloseForm = function(ticker) {{
-    const f = document.getElementById('pos-close-' + ticker);
-    if (f) f.hidden = true;
+    _setPanelMode(ticker, 'view');
+    _setPanelErr(ticker, '');
+    _refreshPositionPanel(ticker);
   }};
 
   // Position schließen → Verkaufsdaten erfassen + Trade ins Journal.
@@ -7845,13 +7903,18 @@ function _fmtGerman(d) {{
     const exitDate  = xd.value;
     const exitPrice = parseFloat(xp.value);
     if (!exitDate || !isFinite(exitPrice) || exitPrice <= 0) {{
-      alert('Verkaufsdatum und Verkaufskurs > 0 erforderlich.');
+      _setPanelErr(ticker, 'Verkaufsdatum und Verkaufskurs > 0 erforderlich.');
+      _refreshPositionPanel(ticker);
       return;
     }}
     const data = (await gistLoad()) || {{watchlist: [], positions: {{}}, closed_trades: []}};
     if (!data.closed_trades) data.closed_trades = [];
     const pos = (data.positions || {{}})[ticker];
-    if (!pos) {{ alert('Position nicht gefunden.'); return; }}
+    if (!pos) {{
+      _setPanelErr(ticker, 'Position nicht gefunden.');
+      _refreshPositionPanel(ticker);
+      return;
+    }}
     const ep     = +pos.entry_price || 0;
     const shares = +pos.shares      || 0;
     const pnlAbs = shares > 0 && ep > 0 ? +((exitPrice - ep) * shares).toFixed(2) : 0;
@@ -7874,7 +7937,15 @@ function _fmtGerman(d) {{
       closed_at:        new Date().toISOString(),
     }});
     delete data.positions[ticker];
-    await gistSave(data);
+    const ok = await gistSave(data);
+    if (!ok) {{
+      _setPanelErr(ticker,
+        'Trade-Save im Gist fehlgeschlagen — Token-Scope „gist" pr\xfcfen. NICHT persistiert.');
+      _refreshPositionPanel(ticker);
+      return;
+    }}
+    _setPanelMode(ticker, 'view');
+    _setPanelErr(ticker, '');
     _refreshPositionPanel(ticker);
   }};
 

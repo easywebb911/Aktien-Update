@@ -286,6 +286,11 @@ select.sort-select:hover:not(:disabled){background-image:linear-gradient(45deg,t
   border-radius:6px;padding:8px 10px;color:var(--txt);font-size:.82rem;
   font-family:inherit;line-height:1.4;resize:vertical;min-height:48px}
 .pos-form-close textarea:focus{outline:2px solid var(--accent);outline-offset:1px}
+/* Inline-Fehlermeldung im Position-Form — sichtbar im Panel selbst,
+   unabhängig vom Watchlist-#wl-sync-warn-Element. */
+.pos-form-err{background:rgba(239,68,68,0.12);border:1px solid rgba(239,68,68,0.45);
+  color:#ef4444;border-radius:6px;padding:8px 10px;font-size:.78rem;
+  line-height:1.45;margin-top:4px;font-weight:600}
 /* Boni / Malus — kompakte Modifier-Pills */
 .score-modifiers{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));
   gap:8px;margin-bottom:10px}
