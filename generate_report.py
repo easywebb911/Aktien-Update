@@ -5017,17 +5017,77 @@ def generate_html_v1(stocks: list[dict], report_date: str, _ctx: dict | None = N
           <li>Manuell hinzugefügte Ticker umgehen den Cap-Filter</li>
         </ul>
       </div>
-      <div class="info-box">
-        <h4>Score-Formel</h4>
-        <ul class="info-compact">
-          <li><strong>Struktur (0–40):</strong> Short Float (32) + Days to Cover (23) + Float-Größe (8) + SI-Trend (5) — normiert</li>
-          <li><strong>Katalysator (0–35):</strong> Earnings + News-KI mit Alters-Gewichtung (T+0: 100&nbsp;%, T+3: 20&nbsp;%) + P/C-Ratio + Short-Druck + Gamma Squeeze + Insider + UOA</li>
-          <li><strong>Timing (0–35):</strong> Rel. Volumen (23) + Momentum (14) + RS vs. SPY (3) + Float Turnover (10) + Gap &amp; Hold (−3 bis +5) — normiert</li>
-          <li><strong>Boni:</strong> Kombinations-Bonus +5 · Score-Trend ±3 · Agent-Boost ×1.05 · Monster-Score: Setup × KI-Boost</li>
-          <li><strong>Malus:</strong> Historischer Squeeze −3 / −5 Pkt (90 / 30 Tage)</li>
-          <li><strong>Monster-Score:</strong> Setup-Score × KI-Boost — KI≥60: +20% · KI&lt;25: −20% · sonst neutral · Cap 100</li>
-          <li><em>Sub-Scores sind unabhängige Qualitätsindikatoren — nicht die Zerlegung des Gesamt-Scores.</em></li>
-        </ul>
+      <div class="info-box info-box--full">
+        <h4>Score-Formel — Hauptblöcke</h4>
+        <div class="score-blocks">
+          <div class="score-block-card">
+            <div class="score-block-head">
+              <span class="score-block-name">Struktur</span>
+              <span class="score-block-badge">0–40</span>
+            </div>
+            <ul class="score-block-list">
+              <li><span class="sb-lbl">Short Float</span><span class="sb-pts">32 Pkt</span></li>
+              <li><span class="sb-lbl">Days to Cover</span><span class="sb-pts">23 Pkt</span></li>
+              <li><span class="sb-lbl">Float-Größe</span><span class="sb-pts">8 Pkt</span></li>
+              <li><span class="sb-lbl">SI-Trend</span><span class="sb-pts">5 Pkt</span></li>
+            </ul>
+            <p class="score-block-foot">Summe normiert auf 0–40</p>
+          </div>
+          <div class="score-block-card">
+            <div class="score-block-head">
+              <span class="score-block-name">Katalysator</span>
+              <span class="score-block-badge">0–35</span>
+            </div>
+            <ul class="score-block-list">
+              <li><span class="sb-lbl">Earnings</span></li>
+              <li><span class="sb-lbl">News-KI mit Alters-Gewichtung (T+0: 100&nbsp;%, T+3: 20&nbsp;%)</span></li>
+              <li><span class="sb-lbl">P/C-Ratio</span></li>
+              <li><span class="sb-lbl">Short-Druck</span></li>
+              <li><span class="sb-lbl">Gamma Squeeze</span></li>
+              <li><span class="sb-lbl">Insider</span></li>
+              <li><span class="sb-lbl">UOA</span></li>
+            </ul>
+          </div>
+          <div class="score-block-card">
+            <div class="score-block-head">
+              <span class="score-block-name">Timing</span>
+              <span class="score-block-badge">0–35</span>
+            </div>
+            <ul class="score-block-list">
+              <li><span class="sb-lbl">Rel. Volumen</span><span class="sb-pts">23 Pkt</span></li>
+              <li><span class="sb-lbl">Momentum</span><span class="sb-pts">14 Pkt</span></li>
+              <li><span class="sb-lbl">RS vs. SPY</span><span class="sb-pts">3 Pkt</span></li>
+              <li><span class="sb-lbl">Float Turnover</span><span class="sb-pts">10 Pkt</span></li>
+              <li><span class="sb-lbl">Gap &amp; Hold</span><span class="sb-pts">−3 bis +5</span></li>
+            </ul>
+            <p class="score-block-foot">Summe normiert auf 0–35</p>
+          </div>
+        </div>
+      </div>
+      <div class="info-box info-box--full">
+        <h4>Boni / Malus / Monster-Score</h4>
+        <div class="score-modifiers">
+          <div class="score-mod-card score-mod-bonus">
+            <span class="score-mod-name">Kombinations-Bonus</span>
+            <span class="score-mod-val">+5 Pkt</span>
+          </div>
+          <div class="score-mod-card score-mod-bonus">
+            <span class="score-mod-name">Score-Trend</span>
+            <span class="score-mod-val">±3 Pkt</span>
+          </div>
+          <div class="score-mod-card score-mod-bonus">
+            <span class="score-mod-name">Agent-Boost</span>
+            <span class="score-mod-val">×1.05</span>
+          </div>
+          <div class="score-mod-card score-mod-malus">
+            <span class="score-mod-name">Historischer Squeeze (90 / 30 Tage)</span>
+            <span class="score-mod-val">−3 / −5 Pkt</span>
+          </div>
+        </div>
+        <p class="score-block-foot score-block-foot-strong">
+          <strong>Monster-Score = Setup-Score × KI-Boost</strong> — KI ≥ 60: +20&nbsp;% · KI &lt; 25: −20&nbsp;% · sonst neutral · Cap 100
+        </p>
+        <p class="score-block-foot"><em>Sub-Scores sind unabhängige Qualitätsindikatoren — nicht die Zerlegung des Gesamt-Scores.</em></p>
       </div>
       <div class="info-box">
         <h4>Datenquellen</h4>

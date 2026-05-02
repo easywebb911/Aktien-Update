@@ -211,6 +211,43 @@ select.sort-select:hover:not(:disabled){background-image:linear-gradient(45deg,t
 .info-box li{font-size:.77rem;color:var(--txt-sub);line-height:1.5;
   padding-left:12px;position:relative}
 .info-box li::before{content:"–";position:absolute;left:0;color:var(--accent)}
+/* ── Score-Methodik: drei Hauptblöcke als visuelle Karten ── */
+.score-blocks{display:grid;grid-template-columns:1fr;gap:10px}
+@media(min-width:600px){.score-blocks{grid-template-columns:repeat(3,1fr)}}
+.score-block-card{background:var(--bg-card);border:1px solid var(--brd);
+  border-radius:8px;padding:10px 12px;display:flex;flex-direction:column;gap:8px}
+.score-block-head{display:flex;align-items:center;justify-content:space-between;
+  gap:8px;border-bottom:1px solid var(--brd);padding-bottom:6px}
+.score-block-name{font-size:.92rem;font-weight:800;color:var(--txt);
+  letter-spacing:.01em}
+.score-block-badge{flex-shrink:0;font-size:.68rem;font-weight:700;
+  letter-spacing:.04em;padding:3px 8px;border-radius:10px;
+  background:var(--bg-met);color:var(--accent);
+  border:1px solid var(--brd);font-variant-numeric:tabular-nums}
+.score-block-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;
+  gap:5px}
+.score-block-list li{display:flex;align-items:baseline;justify-content:space-between;
+  gap:8px;font-size:.78rem;color:var(--txt-sub);line-height:1.45;
+  padding:0;position:static}
+.score-block-list li::before{content:none}
+.sb-lbl{flex:1;min-width:0}
+.sb-pts{flex-shrink:0;font-weight:700;font-variant-numeric:tabular-nums;
+  color:var(--txt);font-size:.74rem}
+.score-block-foot{font-size:.7rem;color:var(--txt-dim);margin:0;
+  padding-top:4px;border-top:1px dashed var(--brd);line-height:1.5}
+.score-block-foot-strong{color:var(--txt-sub);
+  border-top:1px solid var(--brd);padding-top:8px}
+/* Boni / Malus — kompakte Modifier-Pills */
+.score-modifiers{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));
+  gap:8px;margin-bottom:10px}
+.score-mod-card{display:flex;align-items:center;justify-content:space-between;
+  gap:8px;padding:8px 10px;border-radius:8px;
+  background:var(--bg-card);border:1px solid var(--brd)}
+.score-mod-bonus{border-left:3px solid #22c55e}
+.score-mod-malus{border-left:3px solid #ef4444}
+.score-mod-name{font-size:.74rem;color:var(--txt-sub);line-height:1.3}
+.score-mod-val{font-size:.78rem;font-weight:800;color:var(--txt);
+  font-variant-numeric:tabular-nums;flex-shrink:0;letter-spacing:.01em}
 /* ── Color legend ── */
 .color-legend{display:grid;grid-template-columns:1fr;gap:12px;margin-top:2px}
 .cl-name{display:block;font-size:.67rem;text-transform:uppercase;letter-spacing:.5px;
