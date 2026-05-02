@@ -4602,6 +4602,7 @@ def generate_html_v1(stocks: list[dict], report_date: str, _ctx: dict | None = N
 </header>
 
 <main class="wrap">
+  <p class="top-disclaimer">Der Squeeze-Score ist ein rein rechnerischer Indikator und ersetzt keine individuelle Anlageberatung. Short-Squeeze-Kandidaten sind hochspekulative Investments mit erhöhtem Totalverlustrisiko. Nur mit kleinen Positionen und engem Stop-Loss handeln.</p>
   <div class="agent-status-bar" id="agent-status">⚡ KI-Agent: Wird geladen …</div>
   <div class="stats-bar">
     <div class="stat-title">TopTen Squeezer</div>
@@ -4613,8 +4614,8 @@ def generate_html_v1(stocks: list[dict], report_date: str, _ctx: dict | None = N
     <div class="stat-box"><span class="stat-val">{avg_si_str}</span><span class="stat-lbl">Ø SI-Trend</span></div>
   </div>
 
-  <details class="info-panel">
-    <summary>Score-Methodik &amp; Filterkriterien</summary>
+  <section class="info-panel" id="methodology-section" aria-label="Score-Methodik &amp; Filterkriterien">
+    <h2 class="info-panel-title">Score-Methodik &amp; Filterkriterien</h2>
     <div class="info-inner">
       <div class="info-box">
         <h4>Filterkriterien</h4>
@@ -4738,7 +4739,7 @@ def generate_html_v1(stocks: list[dict], report_date: str, _ctx: dict | None = N
         </div>
       </div>
     </div>
-  </details>
+  </section>
 
   <div class="disc">⚠ <strong>Disclaimer:</strong> Dieser Report dient ausschließlich Informationszwecken und stellt keine Anlageberatung dar. Keine Kauf- oder Verkaufsempfehlung.</div>
 
@@ -4897,7 +4898,6 @@ def generate_html_v1(stocks: list[dict], report_date: str, _ctx: dict | None = N
 </main>
 
 <footer class="footer">
-  <p>Der Squeeze-Score ist ein rein rechnerischer Indikator und ersetzt keine individuelle Anlageberatung. Short-Squeeze-Kandidaten sind hochspekulative Investments mit erhöhtem Totalverlustrisiko. Nur mit kleinen Positionen und engem Stop-Loss handeln.</p>
   <p>Automatisch generiert am {report_date} · Quellen: Yahoo Finance (US/DE/GB/FR/NL/CA/JP/HK/KR), Finviz · Übersetzung: Google Translate</p>
 </footer>
 
@@ -5048,12 +5048,10 @@ function scrollToBacktesting(){{
   if (t) t.scrollIntoView({{behavior:'smooth', block:'start'}});
 }}
 function scrollToMethodology(){{
-  // Score-Methodik liegt im <details class="info-panel"> — öffnen + scrollen.
-  const det = document.querySelector('details.info-panel');
-  if (det) {{
-    det.open = true;
-    det.scrollIntoView({{behavior:'smooth', block:'start'}});
-  }}
+  // Methodik-Sektion ist seit dem Drop-Down-Removal eine reguläre
+  // <section id="methodology-section"> — kein open()-Toggle mehr nötig.
+  const sec = document.getElementById('methodology-section');
+  if (sec) sec.scrollIntoView({{behavior:'smooth', block:'start'}});
 }}
 // ESC schließt Drawer
 window.addEventListener('keydown', (e) => {{
