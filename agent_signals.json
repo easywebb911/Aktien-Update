@@ -1,10 +1,10 @@
 {
-  "updated": "2026-05-02T16:16:28.481993+02:00",
+  "updated": "2026-05-02T17:43:20.157862+02:00",
   "run_info": {
     "tickers_checked": 12,
     "signals_active": 3,
-    "alerts_sent": 1,
-    "elapsed_s": 10.9,
+    "alerts_sent": 0,
+    "elapsed_s": 11.1,
     "market_phase": "Geschlossen"
   },
   "signals": {
@@ -196,7 +196,7 @@
     "PAR": {
       "score": 20,
       "confidence": 33,
-      "drivers": "Earnings in 5 Tagen (07.05.2026) + News-KI 5/30: Negative sentiment with insider selling and valuation concerns indicate weak squeeze potential despite any short interes + Earnings in 5d",
+      "drivers": "Earnings in 5 Tagen (07.05.2026) + News-KI 5/30: Negative sentiment with insider selling and valuation concerns indicate weak short-squeeze potential; no positive cataly + Earnings in 5d",
       "price": 14.26,
       "chg_pct": 0.0,
       "rvol": 0.0,
