@@ -5097,20 +5097,42 @@ def generate_html_v1(stocks: list[dict], report_date: str, _ctx: dict | None = N
           <li>KI-Agent: Claude Haiku · News-Sentiment · Insider · FDA RSS · FINRA Daily SSR · StockTwits API · yfinance Options-Chains (UOA) · SEC EDGAR (13D/13G Filings) · ntfy.sh (Push-Notifications)</li>
         </ul>
       </div>
-      <div class="info-box">
+      <div class="info-box info-box--full">
         <h4>⚡ KI-Agent</h4>
-        <ul class="info-compact">
-          <li>Läuft stündlich · Analysiert News, Earnings, Insider, FINRA SSR, Gamma, Options-Flow</li>
-          <li><strong>Boni:</strong>
-            StockTwits-Sentiment +8 / +15 / −5 ·
-            RVOL High-Alert +10 (≥3×) / +15 (≥5×) ·
-            RVOL Velocity +8 (≥1.5× Anstieg) ·
-            UOA (Options-Flow) +10 / +20 ATM Vol/OI · +10 Call/Put-Bias ·
-            Gamma Squeeze +8 / +15 ·
-            Perfect-Storm-Multiplikator ×1.10 / ×1.20 / ×1.35 bei 2 / 3 / 4 Triggern
-          </li>
-          <li>Anomalie-Push (statt Monster-Schwelle): RVOL-Explosion (≥5× heute &amp; ≥2× vs. Vortag) · UOA-Extreme (Call-Vol/OI ≥10×) · Score-Sprung (≥15 Pkt vs. Vortag) · Gap+Hold-Combo (Gap ≥5 %, Strong Hold, RVOL ≥3×) · Perfect Storm (4/4 Trigger) · Monster ≥90 als Backup · 📜 SEC 13D/13G Filings auf Top-10 (Hybrid: 13D immer, 13G nur Aktivisten · 24 h Cooldown). Standard-Cooldown 6 h pro (Ticker × Trigger-Typ). Push pausiert bei VIX &gt; 35 (Krise), Warnung bei VIX &gt; 25.</li>
-        </ul>
+        <p class="score-block-intro">Läuft stündlich · Analysiert News, Earnings, Insider, FINRA SSR, Gamma, Options-Flow</p>
+        <div class="score-blocks ki-agent-blocks">
+          <div class="score-block-card">
+            <div class="score-block-head">
+              <span class="score-block-name">Boni</span>
+            </div>
+            <ul class="score-block-list">
+              <li><span class="sb-lbl">StockTwits-Sentiment</span><span class="sb-pts">+8 / +15 / −5</span></li>
+              <li><span class="sb-lbl">RVOL High-Alert</span><span class="sb-pts">+10 (≥3×) / +15 (≥5×)</span></li>
+              <li><span class="sb-lbl">RVOL Velocity</span><span class="sb-pts">+8 (≥1.5× Anstieg)</span></li>
+              <li><span class="sb-lbl">UOA ATM Vol/OI</span><span class="sb-pts">+10 / +20</span></li>
+              <li><span class="sb-lbl">UOA Call/Put-Bias</span><span class="sb-pts">+10</span></li>
+              <li><span class="sb-lbl">Gamma Squeeze</span><span class="sb-pts">+8 / +15</span></li>
+              <li><span class="sb-lbl">Perfect-Storm-Multiplikator</span><span class="sb-pts">×1.10 / ×1.20 / ×1.35 bei 2 / 3 / 4 Triggern</span></li>
+            </ul>
+          </div>
+          <div class="score-block-card">
+            <div class="score-block-head">
+              <span class="score-block-name">Anomalie-Push-Trigger</span>
+            </div>
+            <ul class="score-block-list">
+              <li><span class="sb-lbl">RVOL-Explosion</span><span class="sb-pts">≥5× heute &amp; ≥2× vs. Vortag</span></li>
+              <li><span class="sb-lbl">UOA-Extreme</span><span class="sb-pts">Call-Vol/OI ≥10×</span></li>
+              <li><span class="sb-lbl">Score-Sprung</span><span class="sb-pts">≥15 Pkt vs. Vortag</span></li>
+              <li><span class="sb-lbl">Gap+Hold-Combo</span><span class="sb-pts">Gap ≥5 %, Strong Hold, RVOL ≥3×</span></li>
+              <li><span class="sb-lbl">Perfect Storm</span><span class="sb-pts">4/4 Trigger</span></li>
+              <li><span class="sb-lbl">Monster ≥90 (Backup)</span><span class="sb-pts">—</span></li>
+              <li><span class="sb-lbl">📜 SEC 13D/13G Filings (Top-10)</span><span class="sb-pts">13D immer · 13G nur Aktivisten · 24 h Cooldown</span></li>
+            </ul>
+          </div>
+        </div>
+        <p class="score-block-foot score-block-foot-strong">
+          <strong>Push-Logik:</strong> Standard-Cooldown 6 h pro (Ticker × Trigger-Typ) · Push pausiert bei VIX &gt; 35 (Krise) · Warnung bei VIX &gt; 25.
+        </p>
       </div>
       <div class="info-box info-box--full">
         <h4>📊 Backtesting-Status</h4>
