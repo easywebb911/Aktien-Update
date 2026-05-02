@@ -4913,6 +4913,10 @@ def generate_html_v1(stocks: list[dict], report_date: str, _ctx: dict | None = N
         <span class="menu-icon-box"><i data-lucide="book-open"></i></span>
         <span class="menu-label">Score-Methodik</span>
       </button>
+      <button class="menu-item" role="menuitem" onclick="showTradeJournal();toggleMenuDrawer(false)">
+        <span class="menu-icon-box"><i data-lucide="clipboard-list"></i></span>
+        <span class="menu-label">Trade-Journal</span>
+      </button>
       <button class="menu-item menu-item-toggle" id="menu-sort-toggle" role="menuitem" aria-expanded="false" onclick="toggleMenuSort()">
         <span class="menu-icon-box"><i data-lucide="arrow-up-down"></i></span>
         <span class="menu-label">Score-Sortierung: <span id="menu-sort-current">Setup</span></span>
@@ -5209,6 +5213,48 @@ def generate_html_v1(stocks: list[dict], report_date: str, _ctx: dict | None = N
             <p class="cl-desc">Hohe implizite Volatilität (IV &gt; 100 %) signalisiert dass der Markt eine extreme Kursbewegung erwartet — ein typisches Zeichen für erhöhtes Squeeze-Potential.</p>
           </div>
         </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Trade-Journal (versteckt — wird per Hamburger-Menü geöffnet).
+       Statistiken + Filter + Liste, Datenquelle ist der private Gist
+       (Sektion ``closed_trades``). -->
+  <section class="info-panel" id="trade-journal-section" aria-label="Trade-Journal" hidden>
+    <div class="info-panel-head">
+      <h2 class="info-panel-title">Trade-Journal</h2>
+      <button class="info-panel-close" type="button" onclick="hideTradeJournal()" aria-label="Schließen" title="Schließen">
+        <i data-lucide="x"></i>
+      </button>
+    </div>
+    <div class="info-inner">
+      <div class="info-box info-box--full" id="tj-stats">
+        <h4>Statistik</h4>
+        <p class="score-block-foot" style="border-top:none;padding-top:0">Lädt …</p>
+      </div>
+      <div class="info-box info-box--full">
+        <h4>Filter</h4>
+        <div class="tj-filters">
+          <label>Zeitraum
+            <select id="tj-filter-period" onchange="renderTradeJournal()">
+              <option value="all">Alle</option>
+              <option value="30">Letzte 30 Tage</option>
+              <option value="90">Letzte 90 Tage</option>
+              <option value="365">Letzte 12 Monate</option>
+            </select>
+          </label>
+          <label>Ergebnis
+            <select id="tj-filter-result" onchange="renderTradeJournal()">
+              <option value="all">Alle Trades</option>
+              <option value="hit">Nur Gewinner</option>
+              <option value="miss">Nur Verlierer</option>
+            </select>
+          </label>
+        </div>
+      </div>
+      <div class="info-box info-box--full" id="tj-list">
+        <h4>Trades (neueste zuerst)</h4>
+        <p class="score-block-foot" style="border-top:none;padding-top:0">Lädt …</p>
       </div>
     </div>
   </section>
@@ -5532,6 +5578,119 @@ function hideMethodology(){{
   const sec = document.getElementById('methodology-section');
   if (sec) sec.setAttribute('hidden', '');
 }}
+
+// ── Trade-Journal-Sektion ─────────────────────────────────────────────
+async function showTradeJournal(){{
+  const sec = document.getElementById('trade-journal-section');
+  if (!sec) return;
+  sec.removeAttribute('hidden');
+  if (window.lucide) lucide.createIcons();
+  await renderTradeJournal();
+  sec.scrollIntoView({{behavior: 'smooth', block: 'start'}});
+}}
+function hideTradeJournal(){{
+  const sec = document.getElementById('trade-journal-section');
+  if (sec) sec.setAttribute('hidden', '');
+}}
+
+// Render-Funktion: Filter aus DOM lesen, Statistiken + Trade-Liste neu
+// aufbauen. Datenquelle ist der Gist (closed_trades). Bei fehlendem
+// GIST_ID / Token zeigen wir einen Hinweis. Pure Render — kein eigener
+// State außer dem _GIST_DATA-Cache.
+async function renderTradeJournal(){{
+  const statsEl = document.getElementById('tj-stats');
+  const listEl  = document.getElementById('tj-list');
+  if (!statsEl || !listEl) return;
+  if (typeof gistLoad !== 'function') {{
+    statsEl.innerHTML = '<h4>Statistik</h4><p class="score-block-foot" style="border-top:none;padding-top:0">Trade-Journal benötigt Gist-Konfiguration.</p>';
+    listEl.innerHTML = '<h4>Trades (neueste zuerst)</h4>';
+    return;
+  }}
+  const data = await gistLoad();
+  const trades = (data && Array.isArray(data.closed_trades)) ? data.closed_trades.slice() : [];
+  // Filter
+  const periodSel = document.getElementById('tj-filter-period');
+  const resultSel = document.getElementById('tj-filter-result');
+  const periodVal = periodSel ? periodSel.value : 'all';
+  const resultVal = resultSel ? resultSel.value : 'all';
+  const now = Date.now();
+  const filtered = trades.filter(t => {{
+    if (periodVal !== 'all') {{
+      const d = new Date((t.exit_date || '') + 'T00:00:00');
+      if (isNaN(d)) return false;
+      const ageDays = (now - d.getTime()) / 86400000;
+      if (ageDays > +periodVal) return false;
+    }}
+    if (resultVal === 'hit'  && !((+t.pnl_pct || 0) > 0)) return false;
+    if (resultVal === 'miss' && !((+t.pnl_pct || 0) < 0)) return false;
+    return true;
+  }});
+  // Statistik
+  const fxUsdEur = window._FX_USD_EUR || 0.92;
+  if (filtered.length === 0) {{
+    statsEl.innerHTML = '<h4>Statistik</h4><p class="score-block-foot" style="border-top:none;padding-top:0">Noch keine geschlossenen Trades im gewählten Filter.</p>';
+    listEl.innerHTML = '<h4>Trades (neueste zuerst)</h4><p class="score-block-foot" style="border-top:none;padding-top:0">—</p>';
+    return;
+  }}
+  const winners = filtered.filter(t => (+t.pnl_pct || 0) > 0);
+  const losers  = filtered.filter(t => (+t.pnl_pct || 0) < 0);
+  const avg = arr => arr.length ? arr.reduce((s, t) => s + (+t.pnl_pct || 0), 0) / arr.length : 0;
+  const best  = filtered.reduce((b, t) => (+t.pnl_pct || 0) > (+b.pnl_pct || 0) ? t : b, filtered[0]);
+  const worst = filtered.reduce((w, t) => (+t.pnl_pct || 0) < (+w.pnl_pct || 0) ? t : w, filtered[0]);
+  const hitRate = filtered.length ? (winners.length / filtered.length * 100) : 0;
+  // Setup-Score-Korrelation: Ø max_setup_score je Hit/Miss
+  const avgSetup = arr => {{
+    const xs = arr.map(t => +t.max_setup_score).filter(v => !isNaN(v) && v > 0);
+    return xs.length ? xs.reduce((s, v) => s + v, 0) / xs.length : null;
+  }};
+  const setupWin  = avgSetup(winners);
+  const setupLose = avgSetup(losers);
+  const sumPnlAbs = filtered.reduce((s, t) => s + (+t.pnl_abs || 0), 0);
+  const _fmtPct = v => (v >= 0 ? '+' : '') + v.toFixed(1) + '%';
+  const _fmtUsd = v => '$' + v.toFixed(2);
+  const _fmtEur = v => (v * fxUsdEur).toFixed(2).replace('.', ',') + ' €';
+  statsEl.innerHTML = `<h4>Statistik</h4>
+    <div class="tj-stats-grid">
+      <div class="tj-stat"><span class="tj-stat-lbl">Trades</span><span class="tj-stat-val">${{filtered.length}}</span></div>
+      <div class="tj-stat"><span class="tj-stat-lbl">Hit-Rate</span><span class="tj-stat-val" style="color:${{hitRate >= 50 ? '#22c55e' : '#ef4444'}}">${{hitRate.toFixed(0)}}%</span></div>
+      <div class="tj-stat"><span class="tj-stat-lbl">Ø Rendite</span><span class="tj-stat-val">${{_fmtPct(avg(filtered))}}</span></div>
+      <div class="tj-stat"><span class="tj-stat-lbl">Ø Gewinner</span><span class="tj-stat-val" style="color:#22c55e">${{winners.length ? _fmtPct(avg(winners)) : '—'}}</span></div>
+      <div class="tj-stat"><span class="tj-stat-lbl">Ø Verlierer</span><span class="tj-stat-val" style="color:#ef4444">${{losers.length ? _fmtPct(avg(losers)) : '—'}}</span></div>
+      <div class="tj-stat"><span class="tj-stat-lbl">Summe P&amp;L</span><span class="tj-stat-val">${{_fmtUsd(sumPnlAbs)}} (${{_fmtEur(sumPnlAbs)}})</span></div>
+      <div class="tj-stat"><span class="tj-stat-lbl">Bester</span><span class="tj-stat-val">${{best.ticker}} ${{_fmtPct(+best.pnl_pct || 0)}}</span></div>
+      <div class="tj-stat"><span class="tj-stat-lbl">Schlechtester</span><span class="tj-stat-val">${{worst.ticker}} ${{_fmtPct(+worst.pnl_pct || 0)}}</span></div>
+      <div class="tj-stat tj-stat-wide"><span class="tj-stat-lbl">Setup-Score-Korrelation</span>
+        <span class="tj-stat-val">Gewinner ${{setupWin != null ? setupWin.toFixed(0) : '—'}} · Verlierer ${{setupLose != null ? setupLose.toFixed(0) : '—'}}</span></div>
+    </div>`;
+  // Liste — neueste zuerst (sortiert nach exit_date desc)
+  const sorted = filtered.slice().sort((a, b) => (b.exit_date || '').localeCompare(a.exit_date || ''));
+  const items = sorted.map(t => {{
+    const pnlPct = +t.pnl_pct || 0;
+    const pnlAbs = +t.pnl_abs || 0;
+    const pnlCol = pnlPct >= 0 ? '#22c55e' : '#ef4444';
+    const ep     = +t.entry_price || 0;
+    const xp     = +t.exit_price  || 0;
+    const dur    = (t.duration_days != null) ? `${{t.duration_days}}d` : '—';
+    const max    = (t.max_setup_score != null) ? `Setup max ${{(+t.max_setup_score).toFixed(0)}}` : 'Setup max —';
+    const _esc = s => String(s || '').replace(/[&<>]/g, c => ({{'&':'&amp;','<':'&lt;','>':'&gt;'}})[c]);
+    const thesisHtml = t.thesis ? `<div class="tj-trade-note tj-trade-thesis"><span class="tj-note-lbl">These</span> ${{_esc(t.thesis)}}</div>` : '';
+    const lessonHtml = t.lesson ? `<div class="tj-trade-note tj-trade-lesson"><span class="tj-note-lbl">Lesson</span> ${{_esc(t.lesson)}}</div>` : '';
+    return `<div class="tj-trade ${{pnlPct >= 0 ? 'tj-trade-win' : 'tj-trade-loss'}}">
+      <div class="tj-trade-head">
+        <span class="tj-trade-ticker">${{_esc(t.ticker)}}</span>
+        <span class="tj-trade-range">${{_esc(t.entry_date)}} → ${{_esc(t.exit_date)}} · ${{dur}}</span>
+        <span class="tj-trade-pnl" style="color:${{pnlCol}}">${{_fmtPct(pnlPct)}}</span>
+      </div>
+      <div class="tj-trade-meta">
+        Entry $${{ep.toFixed(2)}} → Exit $${{xp.toFixed(2)}} · ${{(+t.shares || 0)}} Stk ·
+        P&amp;L ${{_fmtUsd(pnlAbs)}} (${{_fmtEur(pnlAbs)}}) · ${{max}}
+      </div>
+      ${{thesisHtml}}${{lessonHtml}}
+    </div>`;
+  }}).join('');
+  listEl.innerHTML = `<h4>Trades (neueste zuerst, ${{filtered.length}})</h4>${{items}}`;
+}}
+
 // ESC schließt Drawer
 window.addEventListener('keydown', (e) => {{
   if (e.key === 'Escape') {{
@@ -6793,6 +6952,10 @@ function _fmtGerman(d) {{
     .then(r => r.ok ? r.json() : {{}})
     .then(appData => {{
       window._WL_CARDS = appData.watchlist_cards || {{}};
+      // Score-History für Trade-Journal-Statistiken (max_setup_score
+      // zwischen Entry- und Exit-Datum, Setup-Score-Korrelation der
+      // Trade-Journal-Statistik). Schema: {{ticker: [{{date, score}}]}}.
+      window._SCORE_HISTORY = appData.score_history || {{}};
       renderAgentSignals(appData.agent_signals || appData);
     }})
     .catch(() => {{
@@ -7524,6 +7687,8 @@ function _fmtGerman(d) {{
       const pnlStr = pnl != null ? (pnl >= 0 ? '+' : '') + pnl.toFixed(1) + '%' : '—';
       const pnlCol = pnl == null ? '#94a3b8' : pnl >= 0 ? '#22c55e' : '#ef4444';
       const sharesStr = pos.shares ? `${{pos.shares}} Stk` : '—';
+      const today    = new Date().toISOString().slice(0, 10);
+      const exitDef  = (cp != null) ? cp.toFixed(2) : '';
       return `<div class="position-panel position-panel-active">
         <div class="pos-header">📍 Offene Position</div>
         <div class="pos-grid">
@@ -7532,8 +7697,29 @@ function _fmtGerman(d) {{
           <div><span class="pos-lbl">St\xfcckzahl</span><span class="pos-val">${{sharesStr}}</span></div>
           <div><span class="pos-lbl">P&amp;L</span><span class="pos-val" style="color:${{pnlCol}};font-weight:700">${{pnlStr}}</span></div>
         </div>
+        <div class="pos-form pos-form-close" id="pos-close-${{ticker}}" hidden>
+          <label class="pos-lbl-form">Verkaufsdatum
+            <input type="date" id="pos-xd-${{ticker}}" value="${{today}}">
+          </label>
+          <label class="pos-lbl-form">Verkaufskurs ($)
+            <input type="number" inputmode="decimal" step="0.01" min="0"
+                   id="pos-xp-${{ticker}}" value="${{exitDef}}" placeholder="0.00">
+          </label>
+          <label class="pos-lbl-form">These (optional)
+            <textarea id="pos-th-${{ticker}}" rows="2"
+                      placeholder="Was war der Grund f\xfcr den Kauf?"></textarea>
+          </label>
+          <label class="pos-lbl-form">Lesson (optional)
+            <textarea id="pos-le-${{ticker}}" rows="2"
+                      placeholder="Was hast du aus diesem Trade gelernt?"></textarea>
+          </label>
+          <div class="pos-form-btns">
+            <button class="pos-btn pos-btn-cancel" onclick="wlCancelCloseForm('${{ticker}}')">Abbrechen</button>
+            <button class="pos-btn pos-btn-save" onclick="wlSubmitClose('${{ticker}}')">Schlie\xdfen &amp; ins Journal</button>
+          </div>
+        </div>
         <div class="pos-actions">
-          <button class="pos-btn pos-btn-close" onclick="wlClosePosition('${{ticker}}')">Position schlie\xdfen</button>
+          <button class="pos-btn pos-btn-close" onclick="wlShowCloseForm('${{ticker}}')">Position schlie\xdfen</button>
           ${{removeBtn}}
         </div>
       </div>`;
@@ -7608,10 +7794,86 @@ function _fmtGerman(d) {{
     _refreshPositionPanel(ticker);
   }};
 
-  window.wlClosePosition = async function(ticker) {{
-    if (!confirm(`Position ${{ticker}} schlie\xdfen?`)) return;
-    const data = (await gistLoad()) || {{watchlist: [], positions: {{}}}};
-    if (data.positions) delete data.positions[ticker];
+  // Trade-Journal: max Setup-Score zwischen Entry- und Exit-Datum aus
+  // window._SCORE_HISTORY (Schema {{ ticker: [{{date: "DD.MM.YYYY", score}}] }}).
+  // Datums-Strings werden zu ISO konvertiert für lexikographischen Vergleich.
+  function _maxSetupBetween(ticker, entryIso, exitIso) {{
+    const hist = (window._SCORE_HISTORY || {{}})[ticker] || [];
+    if (!hist.length) return null;
+    const _toIso = (de) => {{
+      if (!de || typeof de !== 'string') return '';
+      const p = de.split('.');
+      if (p.length !== 3) return '';
+      return `${{p[2]}}-${{p[1].padStart(2,'0')}}-${{p[0].padStart(2,'0')}}`;
+    }};
+    let max = null;
+    for (const e of hist) {{
+      const date  = _toIso((e && e.date) || '');
+      const score = (e && typeof e.score === 'number') ? e.score : null;
+      if (!date || score == null) continue;
+      if (date < entryIso || date > exitIso) continue;
+      if (max == null || score > max) max = score;
+    }}
+    return max;
+  }}
+
+  function _daysBetween(isoA, isoB) {{
+    const a = new Date(isoA + 'T00:00:00');
+    const b = new Date(isoB + 'T00:00:00');
+    if (isNaN(a) || isNaN(b)) return null;
+    return Math.max(0, Math.round((b - a) / 86400000));
+  }}
+
+  window.wlShowCloseForm = function(ticker) {{
+    const f = document.getElementById('pos-close-' + ticker);
+    if (f) f.hidden = false;
+  }};
+  window.wlCancelCloseForm = function(ticker) {{
+    const f = document.getElementById('pos-close-' + ticker);
+    if (f) f.hidden = true;
+  }};
+
+  // Position schließen → Verkaufsdaten erfassen + Trade ins Journal.
+  // Berechnet pnl_abs / pnl_pct / duration_days / max_setup_score und
+  // verschiebt Eintrag von ``positions[ticker]`` nach ``closed_trades``.
+  window.wlSubmitClose = async function(ticker) {{
+    const xd = document.getElementById('pos-xd-' + ticker);
+    const xp = document.getElementById('pos-xp-' + ticker);
+    const th = document.getElementById('pos-th-' + ticker);
+    const le = document.getElementById('pos-le-' + ticker);
+    if (!xd || !xp) return;
+    const exitDate  = xd.value;
+    const exitPrice = parseFloat(xp.value);
+    if (!exitDate || !isFinite(exitPrice) || exitPrice <= 0) {{
+      alert('Verkaufsdatum und Verkaufskurs > 0 erforderlich.');
+      return;
+    }}
+    const data = (await gistLoad()) || {{watchlist: [], positions: {{}}, closed_trades: []}};
+    if (!data.closed_trades) data.closed_trades = [];
+    const pos = (data.positions || {{}})[ticker];
+    if (!pos) {{ alert('Position nicht gefunden.'); return; }}
+    const ep     = +pos.entry_price || 0;
+    const shares = +pos.shares      || 0;
+    const pnlAbs = shares > 0 && ep > 0 ? +((exitPrice - ep) * shares).toFixed(2) : 0;
+    const pnlPct = ep > 0 ? +(((exitPrice - ep) / ep) * 100).toFixed(2) : 0;
+    const dur    = _daysBetween(pos.entry_date, exitDate);
+    const maxSet = _maxSetupBetween(ticker, pos.entry_date, exitDate);
+    data.closed_trades.push({{
+      ticker:           ticker,
+      entry_date:       pos.entry_date,
+      entry_price:      ep,
+      exit_date:        exitDate,
+      exit_price:       exitPrice,
+      shares:           shares,
+      pnl_abs:          pnlAbs,
+      pnl_pct:          pnlPct,
+      thesis:           (th && th.value || '').trim(),
+      lesson:           (le && le.value || '').trim(),
+      max_setup_score:  maxSet,
+      duration_days:    dur,
+      closed_at:        new Date().toISOString(),
+    }});
+    delete data.positions[ticker];
     await gistSave(data);
     _refreshPositionPanel(ticker);
   }};

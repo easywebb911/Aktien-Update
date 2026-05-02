@@ -409,6 +409,96 @@ Warnung über `_wlWarn()`.
 
 ---
 
+## Trade-Journal (Phase 2.5)
+
+Erweiterung des Position-Trackings um persistente Erfassung
+geschlossener Trades + Statistik-Übersicht. Daten leben im selben
+privaten Gist (`squeeze_data.json`), neue Top-Level-Sektion
+`closed_trades`. Reines Frontend-Feature — der Daily-Run / KI-Agent
+ignoriert `closed_trades` weiterhin (`pull_gist_data.py` zieht es
+nicht in eine Materialisierungs-Datei).
+
+### Schema-Erweiterung
+
+```json
+{
+  "watchlist":     [...],
+  "positions":     {...},
+  "closed_trades": [
+    {
+      "ticker":          "INDI",
+      "entry_date":      "2026-04-27",
+      "entry_price":     3.76,
+      "exit_date":       "2026-05-15",
+      "exit_price":      4.50,
+      "shares":          35,
+      "pnl_abs":         25.90,
+      "pnl_pct":         19.7,
+      "thesis":          "RVOL-Spike + Insider-Buy",
+      "lesson":          "zu früh verkauft, lief weiter",
+      "max_setup_score": 82,
+      "duration_days":   18,
+      "closed_at":       "2026-05-15T18:42:11.000Z"
+    }
+  ]
+}
+```
+
+`thesis` und `lesson` sind optionale Free-Text-Felder. `max_setup_score`
+wird beim Schließen aus `window._SCORE_HISTORY[ticker]` ermittelt
+(größter Score zwischen `entry_date` und `exit_date`, ISO-Vergleich
+nach DE→ISO-Konvertierung). `pnl_abs = (exit_price − entry_price) ×
+shares` in USD. `closed_at` ist Browser-Wallclock-ISO für
+Reihenfolge-Debug.
+
+### Datenfluss
+
+| Akteur | Lesen | Schreiben |
+|---|---|---|
+| `wlSubmitClose(ticker)` | `gistLoad()` + `_SCORE_HISTORY` | `gistSave({...positions: ohne ticker, closed_trades: [...alt, neu]})` |
+| `renderTradeJournal()` | `gistLoad()` (closed_trades) + DOM-Filter | — |
+| `pull_gist_data.py` (Workflow) | Gist (komplett) | nur `positions.json` + ggf. `watchlist_personal.json` — `closed_trades` wird ignoriert |
+
+### UI
+
+- **Hamburger-Menü** → neuer Eintrag „Trade-Journal" (Lucide-Icon
+  `clipboard-list`), zwischen „Score-Methodik" und „Score-Sortierung".
+- **Position-Close-Form** ersetzt den alten ein-Klick-`confirm()`-Dialog:
+  `<input type="date">` Verkaufsdatum (default heute),
+  `<input type="number">` Verkaufskurs (default Spot),
+  `<textarea>` These und Lesson (beide optional). Submit ruft
+  `wlSubmitClose(ticker)`.
+- **Trade-Journal-Sektion** (`#trade-journal-section`, hidden bis
+  geöffnet) — drei `info-box--full`-Karten: Statistik-Grid, Filter
+  (Zeitraum + Hit/Miss), Trade-Liste neueste zuerst.
+
+### Statistiken (`renderTradeJournal`)
+
+| Kennzahl | Berechnung |
+|---|---|
+| Trades | `filtered.length` |
+| Hit-Rate | `winners.length / filtered.length × 100` |
+| Ø Rendite | Mittelwert aller `pnl_pct` |
+| Ø Gewinner / Verlierer | Mittelwert nur positiver / nur negativer `pnl_pct` |
+| Summe P&L | `Σ pnl_abs` (USD + EUR-Spiegel via `_FX_USD_EUR`) |
+| Bester / Schlechtester | Trade mit `max(pnl_pct)` / `min(pnl_pct)` |
+| Setup-Score-Korrelation | Ø `max_setup_score` getrennt für Gewinner / Verlierer |
+
+Filter: Zeitraum (alle / 30 / 90 / 365 d, gegen `exit_date`) und
+Ergebnis (alle / Gewinner / Verlierer).
+
+### Pflege
+
+- Bei Schema-Änderung in `closed_trades` (z. B. neues Feld `tags[]`)
+  immer simultan: `wlSubmitClose` (Schreiber), `renderTradeJournal`
+  (Leser/Anzeige), CLAUDE.md-Schema-Block oben.
+- Score-Methodik-Sync-Regel ist **nicht betroffen** — Trade-Journal
+  ist außerhalb der Score-Berechnung.
+- Migration alter Trades (ohne `max_setup_score` / `duration_days`):
+  `renderTradeJournal` rendert `—` bei fehlendem Wert, kein Crash.
+
+---
+
 ## Anomalie-Push-System
 
 Der KI-Agent feuert ntfy-Pushes **nicht mehr per Monster≥70-Schwelle**,

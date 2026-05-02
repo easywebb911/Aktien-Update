@@ -247,6 +247,45 @@ select.sort-select:hover:not(:disabled){background-image:linear-gradient(45deg,t
 .ki-agent-blocks .sb-pts{font-family:ui-monospace,SFMono-Regular,
   "SF Mono",Menlo,Consolas,monospace;
   font-size:.7rem;font-weight:600;letter-spacing:-.01em}
+/* ── Trade-Journal ───────────────────────────────────────────────── */
+.tj-filters{display:flex;flex-wrap:wrap;gap:10px}
+.tj-filters label{display:flex;flex-direction:column;gap:3px;
+  font-size:.7rem;color:var(--txt-sub);font-weight:600}
+.tj-filters select{background:var(--bg-card);border:1px solid var(--brd);
+  border-radius:6px;padding:6px 10px;color:var(--txt);font-size:.82rem;
+  min-height:34px}
+.tj-stats-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));
+  gap:8px;margin-top:4px}
+.tj-stat{background:var(--bg-card);border:1px solid var(--brd);
+  border-radius:8px;padding:8px 10px;display:flex;flex-direction:column;gap:2px}
+.tj-stat-wide{grid-column:1 / -1}
+.tj-stat-lbl{font-size:.65rem;text-transform:uppercase;letter-spacing:.4px;
+  color:var(--txt-dim);font-weight:600}
+.tj-stat-val{font-size:.92rem;font-weight:800;color:var(--txt);
+  font-variant-numeric:tabular-nums}
+.tj-trade{background:var(--bg-card);border:1px solid var(--brd);
+  border-radius:8px;padding:10px 12px;margin-top:8px}
+.tj-trade-win{border-left:3px solid #22c55e}
+.tj-trade-loss{border-left:3px solid #ef4444}
+.tj-trade-head{display:flex;flex-wrap:wrap;align-items:baseline;
+  gap:8px;justify-content:space-between}
+.tj-trade-ticker{font-size:.95rem;font-weight:800;color:var(--txt);
+  letter-spacing:.01em}
+.tj-trade-range{font-size:.74rem;color:var(--txt-sub);flex:1;min-width:0}
+.tj-trade-pnl{font-size:.95rem;font-weight:800;font-variant-numeric:tabular-nums}
+.tj-trade-meta{font-size:.74rem;color:var(--txt-sub);margin-top:4px;line-height:1.5}
+.tj-trade-note{font-size:.78rem;color:var(--txt);margin-top:6px;
+  padding:6px 10px;border-radius:6px;background:var(--bg-met);line-height:1.5}
+.tj-trade-thesis{border-left:3px solid var(--accent)}
+.tj-trade-lesson{border-left:3px solid #f59e0b}
+.tj-note-lbl{display:inline-block;font-size:.62rem;text-transform:uppercase;
+  letter-spacing:.5px;color:var(--txt-dim);font-weight:700;margin-right:6px}
+/* Close-Form (Verkaufsdaten) — unterscheidet sich von Open-Form
+   durch zusätzliche Textareas. Dasselbe pos-form-Grundgerüst. */
+.pos-form-close textarea{background:var(--bg-met);border:1px solid var(--brd);
+  border-radius:6px;padding:8px 10px;color:var(--txt);font-size:.82rem;
+  font-family:inherit;line-height:1.4;resize:vertical;min-height:48px}
+.pos-form-close textarea:focus{outline:2px solid var(--accent);outline-offset:1px}
 /* Boni / Malus — kompakte Modifier-Pills */
 .score-modifiers{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));
   gap:8px;margin-bottom:10px}
