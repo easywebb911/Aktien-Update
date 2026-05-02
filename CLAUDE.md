@@ -556,8 +556,15 @@ visuelles Feedback).
 | 6 | `arrow-up-down`  | Score-Sortierung-Submenu (Setup ✓ / Monster ✓) |
 | 7 | `message-circle` | `toggleChat()` |
 
-**Footer-Reihe** (Utility): `minus` (A−) · `plus` (A+) · `settings` ·
-`rotate-ccw` (Token zurücksetzen).
+**Footer-Reihe** (4 Utility-Buttons): `minus` (A−) · `plus` (A+) ·
+`settings` · `moon`/`sun` (Theme-Toggle).
+
+**Token-Reset bewusst NICHT im Footer** — `rotate-ccw`-Icon (Refresh-
+Pfeil) wurde von Usern für Reload mistappt → Token wurde versehentlich
+gelöscht. Reset bleibt über das Settings-Panel zugänglich
+(`clearGhToken`-Link). Zusätzlich hat `resetToken()` einen
+`confirm()`-Dialog bekommen, falls die Funktion künftig wieder von
+irgendwo getriggert wird.
 
 ### Score-Sortierung-Submenu
 

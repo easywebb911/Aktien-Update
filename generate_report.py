@@ -4558,9 +4558,6 @@ def generate_html_v1(stocks: list[dict], report_date: str, _ctx: dict | None = N
       <button class="menu-foot-btn" id="theme-toggle-btn" onclick="toggleThemeMenu()" aria-label="Theme umschalten" title="Theme umschalten">
         <i data-lucide="moon" id="theme-icon"></i>
       </button>
-      <button class="menu-foot-btn" onclick="resetToken();return false" aria-label="Token zurücksetzen" title="Token zurücksetzen">
-        <i data-lucide="rotate-ccw"></i>
-      </button>
     </div>
   </nav>
   <div id="tok-sec" style="display:none" class="tok-panel">
@@ -5773,6 +5770,12 @@ async function _doPoll(){{
   }}
 }}
 function resetToken(){{
+  // Defensiv: Bestätigung verhindert versehentlichen Token-Verlust falls
+  // die Funktion künftig wieder von einem Button mit mehrdeutigem Icon
+  // (z. B. Refresh-Pfeil) getriggert wird. Drawer-Footer-Button wurde
+  // wegen Mistap-Risiko entfernt; Reset weiterhin via Settings-Panel
+  // (clearGhToken-Link).
+  if (!confirm('GitHub-Token wirklich löschen?')) return;
   localStorage.removeItem(TOK_KEY);
   document.getElementById('tok-sec').style.display='none';
   showMsg('info','Token zurückgesetzt.');
