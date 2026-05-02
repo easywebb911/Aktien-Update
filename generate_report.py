@@ -4494,24 +4494,72 @@ def generate_html_v1(stocks: list[dict], report_date: str, _ctx: dict | None = N
   <div class="hdr-main">
     <span class="app-title">Squeeze <span>Report</span></span>
     <span class="hdr-ts">{timestamp}</span>
-    <div class="hdr-btns">
-      <button id="btn-reload" class="btn btn-g" onclick="reloadPage()">&#8635; Reload</button>
-      <button id="btn-recalc" class="btn btn-b" onclick="triggerWorkflow()">&#9881; Recalculate</button>
-      <button id="btn-ki" class="btn btn-ki" onclick="triggerKiAgent()">&#9889; Agent Run</button>
-      <button id="btn-chat" class="btn btn-chat" onclick="toggleChat()">Chat</button>
-      <button id="btn-backtest" class="btn btn-bt" onclick="toggleBacktesting()">Backtesting</button>
-      <select id="sort-select" class="btn btn-b sort-select" onchange="setSortMode(this.value)" aria-label="Sortierung" title="Sortierung">
-        <option value="setup">Setup-Score</option>
-        <option value="monster">Monster-Score</option>
-      </select>
-    </div>
-    <div class="hdr-icons">
-      <button class="fs-btn" id="fs-down" onclick="changeFontSize(-1)" aria-label="Schrift kleiner">A−</button>
-      <button class="fs-btn" id="fs-up"   onclick="changeFontSize(1)"  aria-label="Schrift größer">A+</button>
-      <button class="fs-btn" onclick="toggleSettings()" id="settings-btn" aria-label="Einstellungen" title="Einstellungen">&#9881;</button>
-      <button class="theme-btn" onclick="toggleTheme()" id="theme-btn" aria-label="Dark Mode umschalten">🌙</button>
-    </div>
+    <button class="hamburger-btn" id="hamburger-btn" aria-label="Menü" aria-expanded="false" onclick="toggleMenuDrawer()">
+      <i data-lucide="menu" class="hamburger-icon"></i>
+    </button>
   </div>
+
+  <!-- Hamburger-Drawer (mobile + desktop) — wird per JS getoggelt.
+       Score-Sortierung als Sub-Menü mit Häkchen, Default aus
+       localStorage[squeeze_sort_mode]. Footer mit Utility-Buttons. -->
+  <div class="menu-overlay" id="menu-overlay" onclick="toggleMenuDrawer(false)" aria-hidden="true"></div>
+  <nav class="menu-drawer" id="menu-drawer" aria-hidden="true">
+    <div class="menu-list" role="menu">
+      <button class="menu-item menu-item-primary" role="menuitem" onclick="reloadPage();toggleMenuDrawer(false)">
+        <span class="menu-icon-box menu-icon-box-primary"><i data-lucide="refresh-cw"></i></span>
+        <span class="menu-label">Reload</span>
+      </button>
+      <button class="menu-item" role="menuitem" onclick="triggerWorkflow();toggleMenuDrawer(false)">
+        <span class="menu-icon-box"><i data-lucide="calculator"></i></span>
+        <span class="menu-label">Recalculate</span>
+      </button>
+      <button class="menu-item" role="menuitem" onclick="triggerKiAgent();toggleMenuDrawer(false)">
+        <span class="menu-icon-box"><i data-lucide="zap"></i></span>
+        <span class="menu-label">Agent Run</span>
+      </button>
+      <button class="menu-item" role="menuitem" onclick="scrollToBacktesting();toggleMenuDrawer(false)">
+        <span class="menu-icon-box"><i data-lucide="bar-chart-3"></i></span>
+        <span class="menu-label">Backtesting</span>
+      </button>
+      <button class="menu-item" role="menuitem" onclick="scrollToMethodology();toggleMenuDrawer(false)">
+        <span class="menu-icon-box"><i data-lucide="book-open"></i></span>
+        <span class="menu-label">Score-Methodik</span>
+      </button>
+      <button class="menu-item menu-item-toggle" id="menu-sort-toggle" role="menuitem" aria-expanded="false" onclick="toggleMenuSort()">
+        <span class="menu-icon-box"><i data-lucide="arrow-up-down"></i></span>
+        <span class="menu-label">Score-Sortierung: <span id="menu-sort-current">Setup</span></span>
+        <i data-lucide="chevron-down" class="menu-chevron" id="menu-sort-chevron"></i>
+      </button>
+      <div class="menu-submenu" id="menu-sort-submenu" hidden>
+        <button class="menu-subitem" data-sort="setup" role="menuitemradio" onclick="selectSortMode('setup')">
+          <i data-lucide="check" class="menu-check" id="menu-sort-check-setup"></i>
+          <span>Setup-Score</span>
+        </button>
+        <button class="menu-subitem" data-sort="monster" role="menuitemradio" onclick="selectSortMode('monster')">
+          <i data-lucide="check" class="menu-check" id="menu-sort-check-monster"></i>
+          <span>Monster-Score</span>
+        </button>
+      </div>
+      <button class="menu-item" role="menuitem" onclick="toggleChat();toggleMenuDrawer(false)">
+        <span class="menu-icon-box"><i data-lucide="message-circle"></i></span>
+        <span class="menu-label">Chat</span>
+      </button>
+    </div>
+    <div class="menu-footer">
+      <button class="menu-foot-btn" id="fs-down" onclick="changeFontSize(-1)" aria-label="Schrift kleiner" title="Schrift kleiner">
+        <i data-lucide="minus"></i>
+      </button>
+      <button class="menu-foot-btn" id="fs-up" onclick="changeFontSize(1)" aria-label="Schrift größer" title="Schrift größer">
+        <i data-lucide="plus"></i>
+      </button>
+      <button class="menu-foot-btn" id="settings-btn" onclick="toggleSettings()" aria-label="Einstellungen" title="Einstellungen">
+        <i data-lucide="settings"></i>
+      </button>
+      <button class="menu-foot-btn" onclick="resetToken();return false" aria-label="Token zurücksetzen" title="Token zurücksetzen">
+        <i data-lucide="rotate-ccw"></i>
+      </button>
+    </div>
+  </nav>
   <div id="tok-sec" style="display:none" class="tok-panel">
     <p class="tok-hint">GitHub-Token eingeben (nur lokal gespeichert, nie weitergegeben):</p>
     <div class="tok-row">
@@ -4896,8 +4944,13 @@ function _applySortMode(mode){{
     sb.classList.toggle('sort-monster', m === 'monster');
     sb.classList.toggle('sort-setup',   m !== 'monster');
   }});
-  const sel = document.getElementById('sort-select');
-  if (sel && sel.value !== m) sel.value = m;
+  // Hamburger-Menü-Label + Häkchen aktualisieren
+  const lbl = document.getElementById('menu-sort-current');
+  if (lbl) lbl.textContent = (m === 'monster') ? 'Monster' : 'Setup';
+  const cs = document.getElementById('menu-sort-check-setup');
+  const cm = document.getElementById('menu-sort-check-monster');
+  if (cs) cs.style.visibility = (m === 'setup')   ? 'visible' : 'hidden';
+  if (cm) cm.style.visibility = (m === 'monster') ? 'visible' : 'hidden';
 }}
 function setSortMode(mode){{
   const m = (mode === 'monster') ? 'monster' : 'setup';
@@ -4914,7 +4967,8 @@ window.addEventListener('DOMContentLoaded', () => {{
     (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
   document.documentElement.setAttribute('data-theme', saved);
   window.addEventListener('DOMContentLoaded', () => {{
-    document.getElementById('theme-btn').textContent = saved === 'dark' ? '☀️' : '🌙';
+    const tb = document.getElementById('theme-btn');
+    if (tb) tb.textContent = saved === 'dark' ? '☀️' : '🌙';
   }});
 }})();
 function toggleTheme(){{
@@ -4922,8 +4976,85 @@ function toggleTheme(){{
   const next = html.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
   html.setAttribute('data-theme', next);
   localStorage.setItem('theme', next);
-  document.getElementById('theme-btn').textContent = next === 'dark' ? '☀️' : '🌙';
+  const tb = document.getElementById('theme-btn');
+  if (tb) tb.textContent = next === 'dark' ? '☀️' : '🌙';
 }}
+
+// ── Hamburger-Menü ────────────────────────────────────────────────────────
+function _setMenuOpen(open){{
+  const drawer  = document.getElementById('menu-drawer');
+  const overlay = document.getElementById('menu-overlay');
+  const btn     = document.getElementById('hamburger-btn');
+  if (!drawer || !overlay || !btn) return;
+  drawer.classList.toggle('open', open);
+  overlay.classList.toggle('open', open);
+  drawer.setAttribute('aria-hidden', !open);
+  overlay.setAttribute('aria-hidden', !open);
+  btn.setAttribute('aria-expanded', open);
+  // Hamburger-Icon zwischen menu / x wechseln
+  const ic = btn.querySelector('[data-lucide]');
+  if (ic) {{
+    ic.setAttribute('data-lucide', open ? 'x' : 'menu');
+    if (window.lucide) lucide.createIcons();
+  }}
+  document.body.style.overflow = open ? 'hidden' : '';
+}}
+function toggleMenuDrawer(force){{
+  const drawer = document.getElementById('menu-drawer');
+  if (!drawer) return;
+  const open = (typeof force === 'boolean') ? force
+             : !drawer.classList.contains('open');
+  _setMenuOpen(open);
+}}
+function toggleMenuSort(){{
+  const sub = document.getElementById('menu-sort-submenu');
+  const tog = document.getElementById('menu-sort-toggle');
+  const chev = document.getElementById('menu-sort-chevron');
+  if (!sub || !tog) return;
+  const open = sub.hasAttribute('hidden');
+  if (open) sub.removeAttribute('hidden'); else sub.setAttribute('hidden', '');
+  tog.setAttribute('aria-expanded', open);
+  if (chev) chev.style.transform = open ? 'rotate(180deg)' : '';
+}}
+function selectSortMode(mode){{
+  setSortMode(mode);
+  // Submenu schließen, Drawer offen lassen — Auswahl ist Action im Sub-Menu.
+  toggleMenuSort();
+}}
+function scrollToBacktesting(){{
+  // Wenn Backtesting-Section kollabiert ist (hidden), zuerst öffnen.
+  if (typeof toggleBacktesting === 'function') toggleBacktesting(true);
+  const t = document.getElementById('bt-section');
+  if (t) t.scrollIntoView({{behavior:'smooth', block:'start'}});
+}}
+function scrollToMethodology(){{
+  // Score-Methodik liegt im <details class="info-panel"> — öffnen + scrollen.
+  const det = document.querySelector('details.info-panel');
+  if (det) {{
+    det.open = true;
+    det.scrollIntoView({{behavior:'smooth', block:'start'}});
+  }}
+}}
+// ESC schließt Drawer
+window.addEventListener('keydown', (e) => {{
+  if (e.key === 'Escape') {{
+    const drawer = document.getElementById('menu-drawer');
+    if (drawer && drawer.classList.contains('open')) toggleMenuDrawer(false);
+  }}
+}});
+// Sticky-Header Scroll-Schatten (>5 px)
+window.addEventListener('scroll', () => {{
+  const hdr = document.querySelector('.app-hdr');
+  if (hdr) hdr.classList.toggle('scrolled', window.scrollY > 5);
+}}, {{passive: true}});
+// Lucide-Icons rendern, sobald Library + DOM bereit sind
+window.addEventListener('DOMContentLoaded', () => {{
+  if (window.lucide) lucide.createIcons();
+}});
+window.addEventListener('load', () => {{
+  if (window.lucide) lucide.createIcons();
+}});
+
 // ── Details dropdown ─────────────────────────────────────────────────────
 function toggleDetails(id){{
   const body  = document.getElementById('dd' + id);
@@ -5696,10 +5827,9 @@ function _fmtGerman(d) {{
     const dow = today.getDay();
     const reason = (dow === 6 || dow === 0) ? 'Wochenende' : 'US-Feiertag';
     const banner = document.getElementById('non-trading-banner');
+    // Einzeiliges Banner — Daten-Quelle-Hinweis weggelassen.
     banner.textContent =
-      `\u26a0\ufe0f Kein Handelstag (${{reason}}) \u2014 ` +
-      `Nächster US-Handelstag: ${{_fmtGerman(ntd)}}. ` +
-      `Die angezeigten Daten stammen vom letzten Handelstag.`;
+      `\u26a0\ufe0f ${{reason}} \u2014 N\xe4chster US-Handelstag: ${{_fmtGerman(ntd)}}`;
     banner.style.display = 'block';
   }}
 }})();

@@ -527,6 +527,78 @@ Im Zweifel: lieber Sync mit kurzem Hinweis im Commit-Body als Drift-Risiko.
 
 ---
 
+## Mobile-Navigation (Hamburger-Drawer)
+
+Der Header (`<header class="app-hdr">`) ist `position:sticky;top:0` mit
+`padding-top: env(safe-area-inset-top)` für iPhone-Notch. Beim Scrollen
+über 5 px setzt JS die Klasse `.scrolled` (dezenter Box-Shadow als
+visuelles Feedback).
+
+### Struktur
+
+- **Hamburger-Button** (`#hamburger-btn`, 44×44 Touch-Target) rechts in
+  `.hdr-main`, ersetzt die alten Action-Tile-Blöcke `.hdr-btns` +
+  `.hdr-icons`. Icon togglet zwischen `data-lucide="menu"` und `="x"`.
+- **`.menu-drawer`** (280 px mobil / 320 px ≥768 px) fährt von oben
+  rechts ein (`transform:translateY(-110%)` → `translateY(0)`).
+- **`.menu-overlay`** (Backdrop) schließt bei Tap.
+- **ESC-Taste** schließt ebenfalls.
+
+### Menü-Inhalt (Reihenfolge fix)
+
+| Position | Icon | Aktion |
+|---:|---|---|
+| 1 (Primär, cyan) | `refresh-cw`    | `reloadPage()` |
+| 2 | `calculator`     | `triggerWorkflow()` |
+| 3 | `zap`            | `triggerKiAgent()` |
+| 4 | `bar-chart-3`    | `scrollToBacktesting()` (öffnet `#bt-section` + scroll) |
+| 5 | `book-open`      | `scrollToMethodology()` (öffnet `details.info-panel` + scroll) |
+| 6 | `arrow-up-down`  | Score-Sortierung-Submenu (Setup ✓ / Monster ✓) |
+| 7 | `message-circle` | `toggleChat()` |
+
+**Footer-Reihe** (Utility): `minus` (A−) · `plus` (A+) · `settings` ·
+`rotate-ccw` (Token zurücksetzen).
+
+### Score-Sortierung-Submenu
+
+Auswahl persistiert in `localStorage['squeeze_sort_mode']` (unverändert
+zur alten Logik). `_applySortMode(mode)` aktualisiert zusätzlich:
+- `#menu-sort-current` (Label „Setup" / „Monster")
+- `#menu-sort-check-setup` / `#menu-sort-check-monster` (`visibility`)
+
+Submenu-Toggle schließt **nicht** den Drawer — Auswahl ist eine Aktion
+INNERHALB des Sub-Menüs. Nach `selectSortMode()` schließt sich das
+Submenu, der Drawer bleibt offen.
+
+### Lucide-Icons
+
+CDN: `<script src="https://unpkg.com/lucide@latest" defer>` in
+`templates/head.jinja`. Icons via `<i data-lucide="name"></i>`. Aufruf
+`lucide.createIcons()` an drei Stellen:
+- `DOMContentLoaded`-Event
+- `load`-Event (für Fall, dass CDN bei DOMContentLoaded noch nicht da)
+- Nach jeder dynamischen Icon-Manipulation (z. B. Hamburger
+  `menu`↔`x`-Toggle in `_setMenuOpen`)
+
+Styling: `stroke-width:2`, Größe via Container (`.menu-icon-box i {width:18px}`,
+`.hamburger-icon {width:24px}`). Farbe via `currentColor` von Parent.
+
+### Wochenend-Banner
+
+`#non-trading-banner` einzeilig: `⚠️ {reason} — Nächster US-Handelstag:
+{date}`. Daten-Quelle-Hinweis impliziert, nicht mehr explizit.
+
+### Bestehende Funktionen unverändert
+
+`reloadPage()`, `triggerWorkflow()`, `triggerKiAgent()`, `toggleChat()`,
+`changeFontSize()`, `setSortMode()`, `toggleSettings()`, `resetToken()`,
+`toggleBacktesting()` werden vom Drawer aufgerufen, sind aber nicht
+umbenannt — Rückwärtskompatibilität für direkte Aufrufer (Polling-Code
+etc.). `toggleTheme()` bleibt definiert, ist aber aktuell nicht im
+Drawer verlinkt; `theme-btn`-Lookups sind defensive (`if (tb)`).
+
+---
+
 ## Session-Handover-Regel
 
 Wenn der User die Sitzung mit „Gute Nacht" (oder Varianten wie „Schlaf gut",
