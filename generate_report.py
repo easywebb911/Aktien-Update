@@ -6276,11 +6276,13 @@ function _fmtGerman(d) {{
 
   // Per-point color by score threshold — identical palette to ticker-dot
   // (.agent-dot strong/moderate/weak/none): grün / orange / rot / grau.
+  // Schwellen aus config.py (KI_DOT_STRONG/MODERATE/WEAK), damit Endpunkt-
+  // Farbe und pulsierender Dot immer im selben Score-Band liegen.
   function scoreColor(s) {{
     if (s == null || isNaN(+s)) return '#6b7280';
-    if (s >= 70) return '#22c55e';
-    if (s >= 40) return '#f59e0b';
-    if (s >= 15) return '#ef4444';
+    if (s >= {KI_DOT_STRONG})    return '#22c55e';
+    if (s >= {KI_DOT_MODERATE})  return '#f59e0b';
+    if (s >= {KI_DOT_WEAK})      return '#ef4444';
     return '#6b7280';
   }}
 
@@ -6302,15 +6304,15 @@ function _fmtGerman(d) {{
     // pulsierender Punkt und Sparkline-Endpunkt dieselbe Farbe + Wert zeigen.
     // Bei Ghost-Pfad (heute > letztes History-Datum): neuen Punkt anhängen,
     // sonst rechtester History-Eintrag in-place überschreiben.
+    // Ticker-Lookup robust: ``data-ticker`` ist sowohl auf TopTen-
+    // ``<article>`` als auch auf Watchlist-``<div class="wl-card">``
+    // gesetzt — ein einziger ``closest('[data-ticker]')`` deckt beide Pfade ab.
     const _agData = window._AGENT_SIGNALS;
     if (_agData && _agData.updated) {{
       const _ageMs = Date.now() - new Date(_agData.updated).getTime();
       if (_ageMs >= 0 && _ageMs <= 4 * 3600 * 1000) {{
-        const _art = wrap.closest('article[data-ticker]');
-        const _wlb = _art ? null : wrap.closest('[id^="wlb-"]');
-        const _ticker = (_art && _art.dataset.ticker)
-                     || (_wlb && _wlb.id.slice(4))
-                     || null;
+        const _host   = wrap.closest('[data-ticker]');
+        const _ticker = _host ? _host.dataset.ticker : null;
         const _sig = (_ticker && _agData.signals) ? _agData.signals[_ticker] : null;
         if (_sig && _sig.score != null && !isNaN(+_sig.score)) {{
           const _ag = +_sig.score;
