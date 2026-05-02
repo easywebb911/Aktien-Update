@@ -1,10 +1,10 @@
 {
-  "updated": "2026-05-03T01:40:58.608195+02:00",
+  "updated": "2026-05-03T01:46:56.937833+02:00",
   "run_info": {
     "tickers_checked": 10,
     "signals_active": 3,
     "alerts_sent": 0,
-    "elapsed_s": 14.0,
+    "elapsed_s": 14.5,
     "market_phase": "Geschlossen"
   },
   "signals": {
@@ -54,7 +54,7 @@
     "GRPN": {
       "score": 61,
       "confidence": 33,
-      "drivers": "Earnings in 5 Tagen (07.05.2026) + News: squeeze, short squeeze + Earnings in 5d + UOA Call/Put 4.2×",
+      "drivers": "Earnings in 5 Tagen (07.05.2026) + News: short squeeze, squeeze + Earnings in 5d + UOA Call/Put 4.2×",
       "price": 14.89,
       "chg_pct": 0.0,
       "rvol": 0.0,
@@ -75,7 +75,7 @@
     "ASAN": {
       "score": 38,
       "confidence": 33,
-      "drivers": "News: squeeze, short squeeze + Earnings in 26d",
+      "drivers": "News: short squeeze, squeeze + Earnings in 26d",
       "price": 6.99,
       "chg_pct": 0.0,
       "rvol": 0.0,
@@ -132,9 +132,9 @@
       "uoa_cp_ratio": null
     },
     "TDOC": {
-      "score": 30,
+      "score": 38,
       "confidence": 17,
-      "drivers": "UOA Call-Vol/OI 9.0× ATM + UOA Call/Put 35.7×",
+      "drivers": "News-KI 8/30: Positive earnings and product development news lacks the extreme short interest, high borrow costs, and catalyst urgency + UOA Call-Vol/OI 9.0× ATM + UOA Call/Put 35.7×",
       "price": 6.46,
       "chg_pct": 0.0,
       "rvol": 0.0,
