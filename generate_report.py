@@ -3032,13 +3032,13 @@ def _compute_sub_scores(s: dict) -> dict:
 
     # Katalysator (max 35) = Earnings + Insider + News-Keywords
     earn_days = s.get("earnings_days")
-    earn_pts = 15 if (earn_days is not None and earn_days <= 7) \
-           else 8  if (earn_days is not None and earn_days <= 14) \
-           else 0
-    insider_pts = 10 if s.get("sec_13f_note") else 0
+    earn_pts = (SUB_EARN_NEAR_PTS if (earn_days is not None and earn_days <= 7)
+                else SUB_EARN_MID_PTS if (earn_days is not None and earn_days <= 14)
+                else 0)
+    insider_pts = SUB_INSIDER_PTS if s.get("sec_13f_note") else 0
     # News-Score mit Alters-Gewichtung: ältere Headlines scoren weniger als
     # frische. Gewichte aus NEWS_DECAY_WEIGHTS (T+0=1.0, T+3=0.2, älter=0.0).
-    # Ohne ``ts`` → NEWS_DECAY_FALLBACK (0.5). Cap 10 wie zuvor.
+    # Ohne ``ts`` → NEWS_DECAY_FALLBACK (0.5). Cap SUB_NEWS_CAP wie zuvor.
     news_pts = 0.0
     _kw = ("squeeze", "catalyst", "beat", "fda", "merger",
            "activist", "halt", "short covering")
@@ -3047,7 +3047,8 @@ def _compute_sub_scores(s: dict) -> dict:
         title = (n.get("title") or n.get("title_orig") or "").lower()
         if any(kw in title for kw in _kw):
             weight = _news_age_weight(n, now_ts=_now_ts)
-            news_pts = min(news_pts + 5 * weight, 10.0)
+            news_pts = min(news_pts + SUB_NEWS_PER_MATCH * weight,
+                           float(SUB_NEWS_CAP))
     news_pts = round(news_pts, 1)
     pressure_pts = SHORT_PRESSURE_BONUS if _detect_short_pressure(s) else 0
     _gamma_lvl = _gamma_squeeze_level(s)
@@ -5044,13 +5045,13 @@ def generate_html_v1(stocks: list[dict], report_date: str, _ctx: dict | None = N
               <span class="score-block-badge">0–35</span>
             </div>
             <ul class="score-block-list">
-              <li><span class="sb-lbl">Earnings</span></li>
-              <li><span class="sb-lbl">News-KI mit Alters-Gewichtung (T+0: 100&nbsp;%, T+3: 20&nbsp;%)</span></li>
-              <li><span class="sb-lbl">P/C-Ratio</span></li>
-              <li><span class="sb-lbl">Short-Druck</span></li>
-              <li><span class="sb-lbl">Gamma Squeeze</span></li>
-              <li><span class="sb-lbl">Insider</span></li>
-              <li><span class="sb-lbl">UOA</span></li>
+              <li><span class="sb-lbl">Earnings (≤7 / ≤14 Tage)</span><span class="sb-pts">{SUB_EARN_NEAR_PTS} / {SUB_EARN_MID_PTS} Pkt</span></li>
+              <li><span class="sb-lbl">News-KI mit Alters-Gewichtung (T+0: 100&nbsp;%, T+3: 20&nbsp;%)</span><span class="sb-pts">bis {SUB_NEWS_CAP} Pkt</span></li>
+              <li><span class="sb-lbl">P/C-Ratio (bullisch / bärisch)</span><span class="sb-pts">+{PC_RATIO_BULL_BONUS} / −{PC_RATIO_BEAR_MALUS} Pkt</span></li>
+              <li><span class="sb-lbl">Short-Druck-Muster</span><span class="sb-pts">{SHORT_PRESSURE_BONUS} Pkt</span></li>
+              <li><span class="sb-lbl">Gamma Squeeze (möglich / wahrscheinlich)</span><span class="sb-pts">{GAMMA_BONUS_POSSIBLE} / {GAMMA_BONUS_LIKELY} Pkt</span></li>
+              <li><span class="sb-lbl">Insider (13F-Akkumulation)</span><span class="sb-pts">{SUB_INSIDER_PTS} Pkt</span></li>
+              <li><span class="sb-lbl">UOA (ATM Vol/OI &amp; C/P-Bias)</span><span class="sb-pts">bis {UOA_ATM_STRONG + UOA_CP_BIAS} Pkt</span></li>
             </ul>
           </div>
           <div class="score-block-card">

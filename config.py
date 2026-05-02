@@ -75,6 +75,14 @@ SUB_STRUCT_MAX      = 40
 SUB_CATALYST_MAX    = 35
 SUB_TIMING_MAX      = 35   # vorher 30 — auf 35 erweitert für Gap+Hold-Beitrag
 
+# Sub-Score Katalysator — Komponenten-Punkte. Single source of truth für
+# `_compute_sub_scores` UND die Methodik-Sektion (sonst Drift).
+SUB_EARN_NEAR_PTS    = 15   # Earnings ≤ 7 Tage
+SUB_EARN_MID_PTS     = 8    # Earnings ≤ 14 Tage
+SUB_INSIDER_PTS      = 10   # sec_13f_note vorhanden
+SUB_NEWS_PER_MATCH   = 5    # Pkt pro Keyword-Match (vor Decay-Gewicht)
+SUB_NEWS_CAP         = 10   # Cap für news_pts insgesamt
+
 # ── Agent-Boost (KI-Agent-Score als Multiplikator) ──────────────────────────
 # Bei aktuellem Agent-Signal (<4h) mit hinreichend hohem KI-Agent-Score
 # wird der Tages-Score multiplikativ angehoben:
