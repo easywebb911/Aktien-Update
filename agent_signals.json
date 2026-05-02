@@ -1,10 +1,10 @@
 {
-  "updated": "2026-05-02T10:04:37.651175+02:00",
+  "updated": "2026-05-02T10:21:39.601567+02:00",
   "run_info": {
     "tickers_checked": 12,
     "signals_active": 3,
     "alerts_sent": 0,
-    "elapsed_s": 12.6,
+    "elapsed_s": 9.6,
     "market_phase": "Geschlossen"
   },
   "signals": {
@@ -113,9 +113,9 @@
       "uoa_cp_ratio": 14.5
     },
     "SST": {
-      "score": 8,
-      "confidence": 17,
-      "drivers": "Earnings in 10d",
+      "score": 20,
+      "confidence": 33,
+      "drivers": "News-KI 12/30: Positive earnings sentiment and stock momentum, but no indicators of high short interest, low float, or squeeze catalyst + Earnings in 10d",
       "price": 3.94,
       "chg_pct": 0.0,
       "rvol": 0.0,
@@ -125,7 +125,7 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 0,
+      "active_triggers": 1,
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": null,
@@ -196,7 +196,7 @@
     "PAR": {
       "score": 20,
       "confidence": 33,
-      "drivers": "Earnings in 5 Tagen (07.05.2026) + News-KI 5/30: Negative sentiment with insider selling and valuation concerns directly contradicts short-squeeze fundamentals requiring + Earnings in 5d",
+      "drivers": "Earnings in 5 Tagen (07.05.2026) + News-KI 5/30: Negative sentiment with insider selling and valuation concerns indicate weakness, not short-squeeze potential. + Earnings in 5d",
       "price": 14.26,
       "chg_pct": 0.0,
       "rvol": 0.0,
