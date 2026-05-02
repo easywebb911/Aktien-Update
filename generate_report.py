@@ -2033,16 +2033,12 @@ _WL_CARD_STRIP_RE = {
     "article_close": re.compile(r'</article>\s*$'),
     "rank":          re.compile(r'<span class="rank(?:[^"]*)"[^>]*>[^<]*</span>'),
     "wl_add_btn":    re.compile(r'<button class="wl-add-btn"[^>]*>[^<]*</button>'),
-    "details_btn":   re.compile(r'<button class="details-btn"[^>]*>.*?</button>',
-                                re.DOTALL),
-    "news_btn":      re.compile(r'<button class="news-btn"[^>]*>.*?</button>',
-                                re.DOTALL),
-    "details_body":  re.compile(r'<div class="details-body" id="dd\d+">'),
-    "news_panel":    re.compile(r'<div class="news-panel" id="np\d+" hidden>'),
     "stale_ids":     re.compile(
         r' id="(?:c|dd|db|da|dl|nb|nb-icon|np|ka-btn|ka-res)\d+"'
     ),
-    "ki_onclick":    re.compile(r'onclick="runKiAnalyse\(\d+\)"'),
+    "details_onclick": re.compile(r'onclick="toggleDetails\(\d+\)"'),
+    "news_onclick":    re.compile(r'onclick="toggleNews\(\d+\)"'),
+    "ki_onclick":      re.compile(r'onclick="runKiAnalyse\(\d+\)"'),
 }
 
 
@@ -2053,14 +2049,15 @@ def _wl_full_card_html(s: dict) -> str:
     - ``<article>``-Wrapper (``.wl-card`` ist die Watchlist-Hülle)
     - Rank-Badge (im Watchlist-Kontext redundant)
     - ``wl-add-btn`` (Ticker ist per Definition in der Watchlist)
-    - ``details-btn`` und ``news-btn`` (Drawer zeigt alles vor-geöffnet)
 
-    ``.details-body`` bekommt die Klasse ``open`` und ``.news-panel``
-    verliert sein ``hidden``-Attribut. Verbleibende ``id="…N"``-Attribute
-    werden gestrippt, damit Top-10-Handler keine Watchlist-Elemente per
-    ``getElementById`` finden. Der KI-Analyse-Klick wird auf
-    ``wlOpenKiAnalyse(ticker)`` umgeleitet — der bestehende Handler
-    zeigt dann die Main-Karte und triggert dort den Button.
+    ``.details-body`` und ``.news-panel`` bleiben **wie in der TopTen-
+    Karte** zugeklappt (kein ``open``, ``hidden`` bleibt) — die Toggle-
+    Buttons ``.details-btn`` und ``.news-btn`` bleiben sichtbar und
+    werden auf ID-freie ``wlToggleDetails(this)`` / ``wlToggleNews(this)``
+    umgeleitet (Selektor-relativ via ``closest('.wl-card')``). Verbleibende
+    ``id="…N"``-Attribute werden gestrippt, damit Top-10-Handler keine
+    Watchlist-Elemente per ``getElementById`` finden. Der KI-Analyse-Klick
+    geht weiterhin auf ``wlOpenKiAnalyse(ticker)``.
 
     Bei Render-Fehler (z. B. fehlende Felder bei nicht-Top-10-Watchlist-
     Tickern) leerer String — JS fällt dann auf ``buildWlSparkOnly``.
@@ -2073,15 +2070,13 @@ def _wl_full_card_html(s: dict) -> str:
     raw = _WL_CARD_STRIP_RE["article_close"].sub("", raw, count=1)
     raw = _WL_CARD_STRIP_RE["rank"].sub("", raw, count=1)
     raw = _WL_CARD_STRIP_RE["wl_add_btn"].sub("", raw, count=1)
-    raw = _WL_CARD_STRIP_RE["details_btn"].sub("", raw, count=1)
-    raw = _WL_CARD_STRIP_RE["news_btn"].sub("", raw, count=1)
-    raw = _WL_CARD_STRIP_RE["details_body"].sub(
-        '<div class="details-body open">', raw, count=1
-    )
-    raw = _WL_CARD_STRIP_RE["news_panel"].sub(
-        '<div class="news-panel">', raw, count=1
-    )
     raw = _WL_CARD_STRIP_RE["stale_ids"].sub("", raw)
+    raw = _WL_CARD_STRIP_RE["details_onclick"].sub(
+        'onclick="wlToggleDetails(this)"', raw, count=1
+    )
+    raw = _WL_CARD_STRIP_RE["news_onclick"].sub(
+        'onclick="wlToggleNews(this)"', raw, count=1
+    )
     raw = _WL_CARD_STRIP_RE["ki_onclick"].sub(
         f'onclick="wlOpenKiAnalyse(\'{s["ticker"]}\')"', raw, count=1
     )
@@ -7377,6 +7372,41 @@ function _fmtGerman(d) {{
   // Öffentliche Helper für Position-Panel (inline-onclick aus card_html)
   window.gistLoad = gistLoad;
   window.gistSave = gistSave;
+
+  // ── Selektor-relative Toggle-Handler für Watchlist-Drawer-Karten ─────────
+  // Die Top-10-Karten-IDs (``dd0``, ``np0`` etc.) werden in
+  // ``_wl_full_card_html`` gestrippt — die Onclick-Calls dort werden
+  // statt ``toggleDetails(0)`` / ``toggleNews(0)`` auf diese Helper
+  // umgeleitet. Lookup per ``closest('.wl-card')`` + ``querySelector``.
+  window.wlToggleDetails = function(btn) {{
+    const card = btn.closest('.wl-card');
+    if (!card) return;
+    const body = card.querySelector('.details-body');
+    if (!body) return;
+    const open = body.classList.toggle('open');
+    const arrow = btn.querySelector('.details-arrow');
+    if (arrow) arrow.style.transform = open ? 'rotate(180deg)' : '';
+    const labels = btn.querySelectorAll('span');
+    if (labels.length >= 2) {{
+      labels[1].textContent = open ? ' Details ausblenden' : ' Details anzeigen';
+    }}
+    btn.setAttribute('aria-expanded', open);
+  }};
+
+  window.wlToggleNews = function(btn) {{
+    const card = btn.closest('.wl-card');
+    if (!card) return;
+    const panel = card.querySelector('.news-panel');
+    if (!panel) return;
+    const open = panel.hidden;
+    panel.hidden = !open;
+    btn.setAttribute('aria-expanded', open);
+    btn.innerHTML = '';
+    const icon = document.createElement('span');
+    icon.textContent = open ? '▲' : '▼';
+    btn.appendChild(icon);
+    btn.append(' ' + (open ? 'Meldungen verbergen' : 'Aktuelle Meldungen'));
+  }};
 
   // ── Position-Panel (in expandierter Watchlist-Karte) ─────────────────────
   // Pure Render-Funktion — wird aus ``buildWlDetails`` an den card_html-
