@@ -4555,6 +4555,9 @@ def generate_html_v1(stocks: list[dict], report_date: str, _ctx: dict | None = N
       <button class="menu-foot-btn" id="settings-btn" onclick="toggleSettings()" aria-label="Einstellungen" title="Einstellungen">
         <i data-lucide="settings"></i>
       </button>
+      <button class="menu-foot-btn" id="theme-toggle-btn" onclick="toggleThemeMenu()" aria-label="Theme umschalten" title="Theme umschalten">
+        <i data-lucide="moon" id="theme-icon"></i>
+      </button>
       <button class="menu-foot-btn" onclick="resetToken();return false" aria-label="Token zurücksetzen" title="Token zurücksetzen">
         <i data-lucide="rotate-ccw"></i>
       </button>
@@ -4595,9 +4598,6 @@ def generate_html_v1(stocks: list[dict], report_date: str, _ctx: dict | None = N
     </div>
   </div>
   <div id="amsg" class="amsg" style="display:none"></div>
-  <div style="padding-bottom:4px">
-    <a class="tok-link" onclick="resetToken();return false;" href="#">Token zurücksetzen</a>
-  </div>
   <div id="non-trading-banner" style="display:none;width:100%;background:#f59e0b;color:#1c1102;
     font-size:.78rem;font-weight:500;padding:5px 16px;box-sizing:border-box;
     border-top:1px solid #d97706;line-height:1.45" aria-live="polite"></div>
@@ -4979,6 +4979,29 @@ function toggleTheme(){{
   const tb = document.getElementById('theme-btn');
   if (tb) tb.textContent = next === 'dark' ? '☀️' : '🌙';
 }}
+// Theme-Toggle aus dem Hamburger-Footer: ruft toggleTheme() und tauscht das
+// Lucide-Icon (moon ↔ sun). Lucide ersetzt <i data-lucide> beim Mount durch
+// <svg> mit gleicher id — outerHTML-Swap rebuildet das <i> für re-render.
+function toggleThemeMenu(){{
+  toggleTheme();
+  const ic = document.getElementById('theme-icon');
+  if (!ic) return;
+  const cur = document.documentElement.getAttribute('data-theme');
+  const next = (cur === 'dark') ? 'moon' : 'sun';
+  ic.outerHTML = `<i data-lucide="${{next}}" id="theme-icon"></i>`;
+  if (window.lucide) lucide.createIcons();
+}}
+// Initialer Icon-Stand passend zum aktuellen Theme (dark→moon, light→sun)
+window.addEventListener('DOMContentLoaded', () => {{
+  const ic = document.getElementById('theme-icon');
+  if (!ic) return;
+  const cur = document.documentElement.getAttribute('data-theme');
+  const want = (cur === 'dark') ? 'moon' : 'sun';
+  if (ic.getAttribute('data-lucide') !== want) {{
+    ic.setAttribute('data-lucide', want);
+    if (window.lucide) lucide.createIcons();
+  }}
+}});
 
 // ── Hamburger-Menü ────────────────────────────────────────────────────────
 function _setMenuOpen(open){{
@@ -5495,7 +5518,7 @@ const TOK_KEY     = 'ghpat_squeeze';
 // ─────────────────────────────────────────────────────────────────────────
 function reloadPage(){{
   const btn = document.getElementById('btn-reload');
-  btn.disabled = true; btn.textContent = 'Lädt…';
+  if (btn) {{ btn.disabled = true; btn.textContent = 'Lädt…'; }}
   window.location.reload();
 }}
 function triggerWorkflow(){{
@@ -5520,7 +5543,7 @@ async function saveTokenAndDispatch(){{
 }}
 async function dispatchWorkflow(token){{
   const btn = document.getElementById('btn-recalc');
-  btn.disabled = true; btn.innerHTML = 'Startet…';
+  if (btn) {{ btn.disabled = true; btn.innerHTML = 'Startet…'; }}
   // _pollStart MUSS vor dem Dispatch gesetzt werden, damit der server-
   // seitige created_at des neuen Runs (entsteht *während* des fetch)
   // garantiert >= _pollStart-15000ms ist und vom find()-Predikat erfasst wird.
@@ -5631,7 +5654,7 @@ function _stopTimeInterval(){{
 }}
 function _enableRecalcBtn(){{
   const btn = document.getElementById('btn-recalc');
-  btn.disabled=false; btn.innerHTML='&#9881; Recalculate';
+  if (btn) {{ btn.disabled=false; btn.innerHTML='&#9881; Recalculate'; }}
 }}
 function _showPollStatus(state, msg){{
   const el = document.getElementById('amsg');
