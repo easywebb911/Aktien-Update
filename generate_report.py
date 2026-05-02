@@ -4602,7 +4602,7 @@ def generate_html_v1(stocks: list[dict], report_date: str, _ctx: dict | None = N
 </header>
 
 <main class="wrap">
-  <p class="top-disclaimer">Der Squeeze-Score ist ein rein rechnerischer Indikator und ersetzt keine individuelle Anlageberatung. Short-Squeeze-Kandidaten sind hochspekulative Investments mit erhöhtem Totalverlustrisiko. Nur mit kleinen Positionen und engem Stop-Loss handeln.</p>
+  <div class="disc">⚠ <strong>Disclaimer:</strong> Dieser Report dient ausschließlich Informationszwecken und stellt keine Anlageberatung dar. Keine Kauf- oder Verkaufsempfehlung.</div>
   <div class="agent-status-bar" id="agent-status">⚡ KI-Agent: Wird geladen …</div>
   <div class="stats-bar">
     <div class="stat-title">TopTen Squeezer</div>
@@ -4745,8 +4745,6 @@ def generate_html_v1(stocks: list[dict], report_date: str, _ctx: dict | None = N
       </div>
     </div>
   </section>
-
-  <div class="disc">⚠ <strong>Disclaimer:</strong> Dieser Report dient ausschließlich Informationszwecken und stellt keine Anlageberatung dar. Keine Kauf- oder Verkaufsempfehlung.</div>
 
   <style>
     .bt-section{{background:var(--bg-card);border:1px solid var(--brd);border-radius:10px;
@@ -4903,6 +4901,7 @@ def generate_html_v1(stocks: list[dict], report_date: str, _ctx: dict | None = N
 </main>
 
 <footer class="footer">
+  <p>Der Squeeze-Score ist ein rein rechnerischer Indikator und ersetzt keine individuelle Anlageberatung. Short-Squeeze-Kandidaten sind hochspekulative Investments mit erhöhtem Totalverlustrisiko. Nur mit kleinen Positionen und engem Stop-Loss handeln.</p>
   <p>Automatisch generiert am {report_date} · Quellen: Yahoo Finance (US/DE/GB/FR/NL/CA/JP/HK/KR), Finviz · Übersetzung: Google Translate</p>
 </footer>
 
