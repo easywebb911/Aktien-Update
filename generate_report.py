@@ -7553,8 +7553,18 @@ function _fmtGerman(d) {{
   // PATCH /gists/:id.
   let _GIST_DATA = null;
 
+  // Deep-Clone für alle Gist-Daten-Übergaben — verhindert, dass Aufrufer
+  // den internen Cache via Reference-Mutation überschreiben (sonst sieht
+  // ein lokal gemutiertes ``data`` aus wie ein erfolgreicher Save, obwohl
+  // der PATCH gescheitert ist → Reload zeigt die Daten nicht mehr).
+  function _gistClone(d) {{
+    if (d == null) return d;
+    try {{ return JSON.parse(JSON.stringify(d)); }}
+    catch(_) {{ return d; }}
+  }}
+
   async function gistLoad() {{
-    if (_GIST_DATA) return _GIST_DATA;
+    if (_GIST_DATA) return _gistClone(_GIST_DATA);
     if (!GIST_ID) return null;
     const token = localStorage.getItem(TOK_KEY);
     if (!token) return null;
@@ -7576,7 +7586,7 @@ function _fmtGerman(d) {{
       if (!data.watchlist) data.watchlist = [];
       if (!data.positions) data.positions = {{}};
       _GIST_DATA = data;
-      return data;
+      return _gistClone(data);
     }} catch(e) {{
       console.error('gistLoad Netzwerkfehler:', e);
       return null;
@@ -7614,8 +7624,10 @@ function _fmtGerman(d) {{
         return false;
       }}
       // Erfolg: Cache aktualisieren, damit nachfolgende gistLoad-Aufrufe
-      // den frischen Stand liefern ohne API-Round-Trip.
-      _GIST_DATA = data;
+      // den frischen Stand liefern ohne API-Round-Trip. Klon ablegen,
+      // damit weitere Caller-Mutationen am ``data``-Objekt nach dem
+      // Save den Cache nicht erneut korrumpieren.
+      _GIST_DATA = _gistClone(data);
       return true;
     }} catch(e) {{
       console.error('gistSave Netzwerkfehler:', e);
@@ -7744,6 +7756,7 @@ function _fmtGerman(d) {{
           <div><span class="pos-lbl">St\xfcckzahl</span><span class="pos-val">${{sharesStr}}</span></div>
           <div><span class="pos-lbl">P&amp;L</span><span class="pos-val" style="color:${{pnlCol}};font-weight:700">${{pnlStr}}</span></div>
         </div>
+        ${{errHtml}}
         <div class="pos-actions">
           <button class="pos-btn pos-btn-close" onclick="wlShowCloseForm('${{ticker}}')">Position schlie\xdfen</button>
           ${{removeBtn}}
