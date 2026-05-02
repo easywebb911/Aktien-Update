@@ -87,6 +87,15 @@
 6. **Setup-Verfall-Symmetrie weiter beobachten**: jetzt raw vs. raw.
 7. **⏰ Wiedervorlage 15.05.2026: Phase 3 Exit-Signale prüfen**
    (Blow-off-Top + IV-Crush; Voraussetzung: Phase 1 ~2 Wochen live)
+8. **Filter-Flexibilisierung prüfen (Bahn A2)**
+   - Mid-Caps (2–10 Mrd. USD) und Non-US-Ticker als separate Bahnen
+   - Erfordert: andere Volumen-Schwellen, KI-Agent-Anpassung,
+     Backtest-Setup pro Bahn
+   - Voraussetzung: Bahn-A2-Datenbasis ab Juli 2026
+     (`max_drawdown_pct` / `market_regime` / `vix_level` werden seit
+     `8214fd9` persistiert)
+   - **Workaround bis dahin:** Non-US-Ticker via Watchlist-Override
+     (`manual_personal=True` umgeht den Cap-/US-Filter)
 
 ## Optional / niedrig priorisiert
 
