@@ -183,8 +183,22 @@ select.sort-select:hover:not(:disabled){background-image:linear-gradient(45deg,t
    immer offen. Scrolling via Hamburger-Menü → scrollToMethodology). */
 .info-panel{background:var(--bg-card);border:1px solid var(--brd);border-radius:var(--radius);
   margin-bottom:12px;overflow:hidden;padding-top:14px}
-.info-panel-title{padding:0 16px 10px;font-size:.83rem;font-weight:700;
-  color:var(--txt-sub);text-transform:none;letter-spacing:0;margin:0}
+/* Standardmäßig hidden — wird via Hamburger-Menü → scrollToMethodology
+   eingeblendet. HTML hidden-Attribut + display:none-Override, damit nicht
+   andere Display-Properties (wie display:block) durchschlagen. */
+.info-panel[hidden]{display:none}
+/* Head: Title links, Schließen-Button rechts (44×44 Touch-Target). */
+.info-panel-head{display:flex;align-items:center;justify-content:space-between;
+  padding:0 12px 10px;gap:8px}
+.info-panel-title{font-size:.83rem;font-weight:700;
+  color:var(--txt-sub);text-transform:none;letter-spacing:0;margin:0;
+  padding:0 4px}
+.info-panel-close{background:transparent;border:1px solid var(--brd);
+  border-radius:6px;width:36px;height:36px;cursor:pointer;
+  color:var(--txt-sub);flex-shrink:0;
+  display:inline-flex;align-items:center;justify-content:center}
+.info-panel-close:hover,.info-panel-close:focus-visible{background:var(--bg-met);color:var(--txt);outline:none;border-color:var(--accent)}
+.info-panel-close i{width:18px;height:18px;stroke-width:2}
 /* Mobile: single column; tablet+ overrides to 3 */
 .info-inner{display:grid;grid-template-columns:1fr;gap:10px;padding:0 12px 14px}
 .info-box{background:var(--bg-met);border-radius:8px;padding:10px 12px}

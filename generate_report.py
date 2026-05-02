@@ -4614,8 +4614,13 @@ def generate_html_v1(stocks: list[dict], report_date: str, _ctx: dict | None = N
     <div class="stat-box"><span class="stat-val">{avg_si_str}</span><span class="stat-lbl">Ø SI-Trend</span></div>
   </div>
 
-  <section class="info-panel" id="methodology-section" aria-label="Score-Methodik &amp; Filterkriterien">
-    <h2 class="info-panel-title">Score-Methodik &amp; Filterkriterien</h2>
+  <section class="info-panel" id="methodology-section" aria-label="Score-Methodik &amp; Filterkriterien" hidden>
+    <div class="info-panel-head">
+      <h2 class="info-panel-title">Score-Methodik &amp; Filterkriterien</h2>
+      <button class="info-panel-close" type="button" onclick="hideMethodology()" aria-label="Schließen" title="Schließen">
+        <i data-lucide="x"></i>
+      </button>
+    </div>
     <div class="info-inner">
       <div class="info-box">
         <h4>Filterkriterien</h4>
@@ -5048,10 +5053,18 @@ function scrollToBacktesting(){{
   if (t) t.scrollIntoView({{behavior:'smooth', block:'start'}});
 }}
 function scrollToMethodology(){{
-  // Methodik-Sektion ist seit dem Drop-Down-Removal eine reguläre
-  // <section id="methodology-section"> — kein open()-Toggle mehr nötig.
+  // Methodik-Sektion ist standardmäßig hidden. Click im Hamburger-Menü
+  // macht sie sichtbar, scrollt hin, fokussiert für a11y. Schließen via
+  // hideMethodology()-Button oben rechts in der Sektion.
   const sec = document.getElementById('methodology-section');
-  if (sec) sec.scrollIntoView({{behavior:'smooth', block:'start'}});
+  if (!sec) return;
+  sec.removeAttribute('hidden');
+  // requestAnimationFrame, damit Layout den Reveal kennt bevor wir scrollen.
+  requestAnimationFrame(() => sec.scrollIntoView({{behavior:'smooth', block:'start'}}));
+}}
+function hideMethodology(){{
+  const sec = document.getElementById('methodology-section');
+  if (sec) sec.setAttribute('hidden', '');
 }}
 // ESC schließt Drawer
 window.addEventListener('keydown', (e) => {{
