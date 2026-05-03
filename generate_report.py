@@ -4020,7 +4020,6 @@ def _card(i: int, s: dict) -> str:
       </div>
     </div>
     <div class="score-block sort-setup">{score_block_html}</div>
-    <button class="card-expand-btn" type="button" onclick="_toggleCardExpand(this)" aria-label="Karte aus-/einklappen" title="Karte aus-/einklappen"></button>
   </div>
   {sub_scores_html}
   {sparkline_html}
@@ -5881,76 +5880,6 @@ window.addEventListener('DOMContentLoaded', () => {{
 window.addEventListener('load', () => {{
   if (window.lucide) lucide.createIcons();
 }});
-
-// ── Card-Expand: Vollbreiten-Layout mit 2-Spalten-Body ──────────────────
-// Klick auf den Expand-Button im ``.card-top`` toggelt ``.card--expanded``
-// am ``<article>``. CSS rendert dann grid-column:1/-1 + 2-Spalten-Grid
-// (Details-/News-/KI-Akkordeons rechts, Sub-Scores+Metrics links).
-// Beim Aufklappen wird das Position-Panel dynamisch via
-// ``window.buildPositionPanel`` injiziert (gleiche Render-Funktion wie
-// im Watchlist-Drawer). Beim Einklappen wieder entfernt.
-function _toggleCardExpand(btn){{
-  const article = btn.closest('article.card');
-  if (!article) return;
-  const expanding = !article.classList.contains('card--expanded');
-  // Single-card-only: andere expandierte Karten zuklappen, sonst verteilt
-  // sich das volle-Reihen-Layout chaotisch über mehrere Karten.
-  document.querySelectorAll('article.card.card--expanded').forEach(c => {{
-    if (c !== article) {{
-      c.classList.remove('card--expanded');
-      const ph = c.querySelector(':scope > .card-position-panel');
-      if (ph) ph.remove();
-    }}
-  }});
-  article.classList.toggle('card--expanded', expanding);
-  if (expanding) {{
-    _maybeInjectCardPositionPanel(article);
-    article.scrollIntoView({{behavior: 'smooth', block: 'start'}});
-  }} else {{
-    const ph = article.querySelector(':scope > .card-position-panel');
-    if (ph) ph.remove();
-  }}
-}}
-function _maybeInjectCardPositionPanel(article){{
-  if (article.querySelector(':scope > .card-position-panel')) return;
-  if (typeof window.buildPositionPanel !== 'function') return;
-  const ticker = article.dataset.ticker;
-  if (!ticker) return;
-  const priceStr = article.dataset.price;
-  const cur = priceStr ? parseFloat(priceStr) : null;
-  const html = window.buildPositionPanel(ticker, cur);
-  if (!html) return;
-  const wrapper = document.createElement('div');
-  wrapper.innerHTML = html;
-  const panel = wrapper.firstElementChild;
-  if (!panel) return;
-  // Marker-Klasse für CSS-Grid-Placement (rechte Spalte). Position-Panel
-  // erbt sein eigenes Styling über ``.position-panel``.
-  panel.classList.add('card-position-panel');
-  // Nach .spark-wrap einfügen (Reihenfolge in rechter Spalte:
-  // Sparkline → Position → Akkordeons).
-  const spark = article.querySelector(':scope > .spark-wrap');
-  if (spark && spark.nextSibling) article.insertBefore(panel, spark.nextSibling);
-  else article.appendChild(panel);
-  // Bei Cache-Refresh (z. B. nach gistSave) muss Panel auch im Card-Kontext
-  // refreshed werden — hängen wir an, wenn _refreshPositionPanel global ist.
-  if (typeof window.gistLoad === 'function') {{
-    window.gistLoad().then(() => {{
-      const fresh = article.querySelector(':scope > .card-position-panel');
-      if (!fresh) return;
-      const html2 = window.buildPositionPanel(ticker, cur);
-      if (html2) {{
-        const w = document.createElement('div');
-        w.innerHTML = html2;
-        const next = w.firstElementChild;
-        if (next) {{
-          next.classList.add('card-position-panel');
-          fresh.replaceWith(next);
-        }}
-      }}
-    }}).catch(() => {{}});
-  }}
-}}
 
 // ── Details dropdown ─────────────────────────────────────────────────────
 function toggleDetails(id){{
@@ -8199,14 +8128,9 @@ function _fmtGerman(d) {{
     }}
   }}
 
-  // Öffentliche Helper für Position-Panel (inline-onclick aus card_html
-  // + Card-Expand-Inject in TopTen-Karten).
+  // Öffentliche Helper für Position-Panel (inline-onclick aus card_html).
   window.gistLoad = gistLoad;
   window.gistSave = gistSave;
-  // ``buildPositionPanel`` wird weiter unten im Modul definiert — hier
-  // noch leer; der Setter unten überschreibt diesen Stub. (Closure-Pattern,
-  // damit der TopTen-Card-Expand-Pfad ``window.buildPositionPanel`` ohne
-  // IIFE-Boundary aufrufen kann.)
 
   // ── Selektor-relative Toggle-Handler für Watchlist-Drawer-Karten ─────────
   // Die Top-10-Karten-IDs (``dd0``, ``np0`` etc.) werden in
@@ -8367,10 +8291,6 @@ function _fmtGerman(d) {{
       </div>
     </div>`;
   }}
-
-  // Card-Expand-Pfad (TopTen-Karten) braucht ``buildPositionPanel`` —
-  // jetzt ist die Funktion definiert, also auf window setzen.
-  window.buildPositionPanel = buildPositionPanel;
 
   // Pure DOM-Helper — Wrapping ``buildPositionPanel`` damit es sich selbst
   // refreshen kann (Inputs verschwinden / P&L-Zeile erscheint).
