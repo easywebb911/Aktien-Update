@@ -1,10 +1,10 @@
 {
-  "updated": "2026-05-03T07:57:20.243515+02:00",
+  "updated": "2026-05-03T10:04:14.387567+02:00",
   "run_info": {
     "tickers_checked": 10,
     "signals_active": 3,
     "alerts_sent": 0,
-    "elapsed_s": 9.6,
+    "elapsed_s": 10.1,
     "market_phase": "Geschlossen"
   },
   "signals": {
@@ -54,7 +54,7 @@
     "GRPN": {
       "score": 61,
       "confidence": 33,
-      "drivers": "Earnings in 4 Tagen (07.05.2026) + News: short squeeze, squeeze + Earnings in 4d + UOA Call/Put 4.2×",
+      "drivers": "Earnings in 4 Tagen (07.05.2026) + News: squeeze, short squeeze + Earnings in 4d + UOA Call/Put 4.2×",
       "price": 14.89,
       "chg_pct": 0.0,
       "rvol": 0.0,
@@ -75,7 +75,7 @@
     "ASAN": {
       "score": 38,
       "confidence": 33,
-      "drivers": "News: short squeeze, squeeze + Earnings in 25d",
+      "drivers": "News: squeeze, short squeeze + Earnings in 25d",
       "price": 6.99,
       "chg_pct": 0.0,
       "rvol": 0.0,
@@ -115,7 +115,7 @@
     "SST": {
       "score": 16,
       "confidence": 33,
-      "drivers": "News-KI 8/30: Positive earnings outlook shows fundamentals improving, but no significant short interest catalyst, unusual volume, or i + Earnings in 9d",
+      "drivers": "News-KI 8/30: Positive earnings and growth outlook suggest improving fundamentals, but no indicators of high short interest, low float + Earnings in 9d",
       "price": 3.94,
       "chg_pct": 0.0,
       "rvol": 0.0,
