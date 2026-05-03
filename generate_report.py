@@ -5200,8 +5200,15 @@ def generate_html_v1(stocks: list[dict], report_date: str, _ctx: dict | None = N
 <main class="wrap">
   <div class="disc">⚠ <strong>Disclaimer:</strong> Dieser Report dient ausschließlich Informationszwecken und stellt keine Anlageberatung dar. Keine Kauf- oder Verkaufsempfehlung.</div>
   <div class="agent-status-bar" id="agent-status">⚡ KI-Agent: Wird geladen …</div>
+  <div class="topten-section-header">
+    <div class="topten-section-label">
+      <span class="topten-section-dot" aria-hidden="true"></span>
+      <span class="topten-section-title">TopTen Squeezer</span>
+    </div>
+    <span class="topten-section-divider" aria-hidden="true"></span>
+    <span class="topten-section-count">{len(stocks)}</span>
+  </div>
   <div class="stats-bar">
-    <div class="stat-title">TopTen Squeezer</div>
     <div class="stat-box"><span class="stat-val">{avg_sf:.1f}%</span><span class="stat-lbl">Ø Short Float</span></div>
     <div class="stat-box"><span class="stat-val">{avg_sr:.1f}d</span><span class="stat-lbl">Ø Days to Cover</span></div>
     <div class="stat-box"><span class="stat-val">{avg_rv:.1f}×</span><span class="stat-lbl">Ø Volumen</span></div>
