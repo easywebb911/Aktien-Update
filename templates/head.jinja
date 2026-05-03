@@ -384,6 +384,21 @@ select.sort-select:hover:not(:disabled){background-image:linear-gradient(45deg,t
 .chart-badge-s:hover{background:#6d28d9}
 .chart-badge-dis{background:#334155;color:#94a3b8;border-color:#475569;
   cursor:default;pointer-events:none}
+/* Stockanalysis-Outline-Button — ersetzt die alte ``.chart-badge-s``-Pille
+   neben dem Tickersymbol. Outline-Stil mit External-Link-Icon + Text
+   „Chart"; Border-Sub-Pixel über ``box-shadow`` simuliert (rendert auf
+   Retina exakt 0.5 px). */
+.sa-chart-btn{display:inline-flex;align-items:center;gap:4px;
+  padding:3px 8px;border-radius:4px;
+  background:transparent;color:var(--txt-sub);
+  font-size:11px;font-weight:500;line-height:1.2;
+  text-decoration:none;border:0;
+  box-shadow:0 0 0 .5px var(--brd);
+  transition:background .15s,color .15s,box-shadow .15s}
+.sa-chart-btn svg{width:11px;height:11px;flex-shrink:0}
+.sa-chart-btn:hover{background:var(--bg-met);color:var(--txt);
+  box-shadow:0 0 0 .5px var(--txt-dim)}
+.sa-chart-btn-dis{cursor:default;pointer-events:none;opacity:.45}
 .price-tag{font-size:.82rem;font-weight:600}
 .company{display:block;font-size:.78rem;color:var(--txt-sub);
   white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}

@@ -3965,11 +3965,21 @@ def _card(i: int, s: dict) -> str:
         f'target="_blank" rel="noopener noreferrer" title="Finviz Chart &amp; Kennzahlen">F</a>'
     )
     sa_badge      = (
-        '<span class="chart-badge chart-badge-s chart-badge-dis" '
-        'title="Stockanalysis unterstützt nur US-Aktien">S</span>'
+        '<span class="sa-chart-btn sa-chart-btn-dis" '
+        'title="Stockanalysis unterstützt nur US-Aktien">'
+        '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" '
+        'stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'
+        '<path d="M15 3h6v6"/><path d="M10 14 21 3"/>'
+        '<path d="M21 14v5a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5"/></svg>'
+        '<span>Chart</span></span>'
         if is_intl else
-        f'<a class="chart-badge chart-badge-s" href="{sa_url}" '
-        f'target="_blank" rel="noopener noreferrer" title="Stockanalysis Chart &amp; Short-Interest">S</a>'
+        f'<a class="sa-chart-btn" href="{sa_url}" '
+        f'target="_blank" rel="noopener noreferrer" title="Stockanalysis Chart &amp; Short-Interest">'
+        f'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" '
+        f'stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'
+        f'<path d="M15 3h6v6"/><path d="M10 14 21 3"/>'
+        f'<path d="M21 14v5a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5"/></svg>'
+        f'<span>Chart</span></a>'
     )
 
     _news_items = []
@@ -4455,11 +4465,21 @@ def _build_card_ctx(i: int, s: dict) -> dict:
         f'target="_blank" rel="noopener noreferrer" title="Finviz Chart &amp; Kennzahlen">F</a>'
     )
     sa_badge     = (
-        '<span class="chart-badge chart-badge-s chart-badge-dis" '
-        'title="Stockanalysis unterstützt nur US-Aktien">S</span>'
+        '<span class="sa-chart-btn sa-chart-btn-dis" '
+        'title="Stockanalysis unterstützt nur US-Aktien">'
+        '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" '
+        'stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'
+        '<path d="M15 3h6v6"/><path d="M10 14 21 3"/>'
+        '<path d="M21 14v5a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5"/></svg>'
+        '<span>Chart</span></span>'
         if is_intl else
-        f'<a class="chart-badge chart-badge-s" href="{sa_url}" '
-        f'target="_blank" rel="noopener noreferrer" title="Stockanalysis Chart &amp; Short-Interest">S</a>'
+        f'<a class="sa-chart-btn" href="{sa_url}" '
+        f'target="_blank" rel="noopener noreferrer" title="Stockanalysis Chart &amp; Short-Interest">'
+        f'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" '
+        f'stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'
+        f'<path d="M15 3h6v6"/><path d="M10 14 21 3"/>'
+        f'<path d="M21 14v5a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5"/></svg>'
+        f'<span>Chart</span></a>'
     )
 
     # ── News items ───────────────────────────────────────────────────────
