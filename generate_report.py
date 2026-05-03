@@ -5664,13 +5664,13 @@ function _applySortMode(mode){{
     }}
     cards.forEach(c => grid.appendChild(c));
   }}
-  // Score-Block-Layout: monster-Modus stellt Monster-Score nach oben,
-  // sonst (setup ODER ki) bleibt Setup-Score oben. Eigener ``sort-ki``-
-  // Block wäre möglich, ist aber bewusst nicht eingeführt — KI-Score
-  // bleibt visuell als drittes Element pro Card sichtbar.
+  // Score-Block-Layout: jeder Modus bekommt eine eigene ``sort-*``-
+  // Klasse, die den entsprechenden Score nach oben stellt + auf 36px
+  // hochzieht. Genau eine der drei ist gesetzt, die anderen sind aus.
   document.querySelectorAll('.score-block').forEach(sb => {{
+    sb.classList.toggle('sort-setup',   m === 'setup');
     sb.classList.toggle('sort-monster', m === 'monster');
-    sb.classList.toggle('sort-setup',   m !== 'monster');
+    sb.classList.toggle('sort-ki',      m === 'ki');
   }});
   // Häkchen im Submenu aktualisieren — exakt eine der drei Optionen aktiv.
   const cs = document.getElementById('menu-sort-check-setup');
