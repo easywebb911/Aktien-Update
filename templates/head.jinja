@@ -454,8 +454,15 @@ select.sort-select:hover:not(:disabled){background-image:linear-gradient(45deg,t
 .wl-add-err.visible{display:block}
 .wl-add-hint{font-size:.7rem;color:var(--txt-dim);padding:0 4px;margin-bottom:10px;line-height:1.45;
   font-style:italic}
-.wl-cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:8px}
-.wl-card{background:var(--bg-card);border:1px solid #3b82f644;border-radius:10px;position:relative}
+/* Watchlist-Grid — kompakt, 6 Karten/Reihe Desktop, 3 Mobile (s.u.).
+   Karten sind horizontal-Layout: Mini-Ring (Score) links, Ticker + Trend
+   in Spalte 2; X-Button und ▾-Toggle absolute oben rechts / unten rechts. */
+.wl-cards{display:grid;grid-template-columns:repeat(6,1fr);gap:8px}
+.wl-card{background:linear-gradient(180deg,rgba(255,255,255,.04) 0%,rgba(0,0,0,.06) 100%) var(--bg-card);
+  border:.5px solid var(--brd);border-radius:14px;position:relative;
+  box-shadow:0 1px 3px rgba(0,0,0,.06),inset 0 0 0 .5px rgba(255,255,255,.04);
+  min-height:58px;overflow:hidden;transition:box-shadow .15s,transform .1s}
+.wl-card:hover{box-shadow:0 2px 6px rgba(0,0,0,.10),inset 0 0 0 .5px rgba(255,255,255,.06)}
 /* Alle Watchlist-Kompaktkacheln bekommen dunkelgrünen Hintergrund +
    hellgrünen Rand. Specificity 0,2,0 schlägt die basis .wl-card-Regel. */
 .wl-card.card-manual{background:rgba(20,83,45,0.35);border:1.5px solid rgba(74,222,128,0.6)}
@@ -564,73 +571,61 @@ select.sort-select:hover:not(:disabled){background-image:linear-gradient(45deg,t
 /* Kopfzeile im expandierten Watchlist-Card-Layout an Main-Card anpassen */
 .wl-exp-top{display:flex;align-items:flex-start;justify-content:space-between;
   padding:10px 12px 8px;gap:10px}
-.wl-card-header{display:flex;flex-direction:column;align-items:flex-start;gap:4px;padding:8px}
-.wl-card-ticker{font-size:.9rem;font-weight:800;color:var(--txt)}
-.wl-card-score{font-size:20px;font-weight:800;line-height:1;align-self:center}
-.wl-badge-star{position:absolute;top:4px;right:4px;font-size:.65rem;color:#3b82f6;opacity:.7;pointer-events:none}
-.wl-notop-badge{font-size:.62rem;color:#6b7280;background:#6b728022;border:1px solid #6b728044;border-radius:4px;padding:1px 5px;width:fit-content}
-.wl-details-btn{background:none;border:1px solid #3b82f644;color:#3b82f6;cursor:pointer;
-  font-size:.75rem;padding:1px 6px;border-radius:6px;
-  min-width:44px;min-height:44px;
-  display:inline-flex;align-items:center;justify-content:center;flex-shrink:0}
-.wl-details-btn:hover{background:#3b82f622}
+/* Card-Header: horizontal — Mini-Ring + Ticker/Trend + KI-Dot.
+   Card-wide Click-Hit ist das Header-Element selbst (cursor:pointer);
+   ×- und ▾-Buttons stoppen Propagation. */
+.wl-card-header{display:flex;align-items:center;gap:8px;
+  padding:8px 10px 8px 8px;cursor:pointer;min-height:58px}
+.wl-card-meta{display:flex;flex-direction:column;align-items:flex-start;
+  gap:1px;flex:1;min-width:0}
+.wl-card-ticker{font-size:11px;font-weight:500;color:var(--txt);
+  letter-spacing:.01em;line-height:1.2;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100%}
+.wl-card-trend{font-size:9px;font-weight:600;line-height:1}
+/* Mini-Ring SVG — 34×34, r=14, circumference 88. */
+.wl-ring{width:34px;height:34px;flex-shrink:0;display:block}
+.wl-ring-bg{fill:none;stroke:var(--brd);stroke-width:2.5}
+.wl-ring-fg{fill:none;stroke-width:2.5;stroke-linecap:round;
+  transform:rotate(-90deg);transform-origin:50% 50%;
+  transition:stroke-dashoffset .25s ease,stroke .15s}
+.wl-ring-num{font-size:10px;font-weight:500;fill:var(--txt);
+  dominant-baseline:middle}
+.wl-badge-star{position:absolute;top:3px;left:5px;font-size:.55rem;
+  color:#3b82f6;opacity:.7;pointer-events:none;z-index:1}
+.wl-notop-badge{font-size:.62rem;color:#6b7280;background:#6b728022;
+  border:1px solid #6b728044;border-radius:4px;padding:1px 5px;width:fit-content}
+/* ▾-Toggle absolute unten-rechts, klein (kompaktes Layout). */
+.wl-details-btn{position:absolute;bottom:2px;right:4px;
+  background:none;border:none;color:var(--txt-dim);cursor:pointer;
+  font-size:.7rem;padding:0;border-radius:4px;
+  width:18px;height:18px;line-height:1;
+  display:inline-flex;align-items:center;justify-content:center}
+.wl-details-btn:hover{color:var(--accent);background:rgba(59,130,246,.10)}
 .wl-details-body{border-top:1px solid var(--brd)}
 .wl-no-data{padding:10px 14px;color:var(--txt-dim);font-size:.8rem;font-style:italic}
-/* Touch-Target 44×44 (Apple HIG) — visuelles X bleibt klein.
-   Negative Margins absorbieren die zusätzliche Höhe in das Header-Padding,
-   damit die Karte nicht ausfranst. */
-.wl-remove-btn{background:none;border:none;color:var(--txt-dim);cursor:pointer;
-  font-size:1.05rem;line-height:1;opacity:.55;padding:0;flex-shrink:0;
-  width:44px;height:44px;min-width:44px;
-  display:inline-flex;align-items:center;justify-content:center;
-  margin:-8px 4px -8px -8px}
-.wl-remove-btn:hover,.wl-remove-btn:focus-visible{color:#ef4444;opacity:1;outline:none}
+/* ×-Button absolute oben-rechts. Touch-Target via ::before-Overlay. */
+.wl-remove-btn{position:absolute;top:2px;right:4px;
+  background:none;border:none;color:var(--txt-dim);cursor:pointer;
+  font-size:.85rem;line-height:1;opacity:.5;padding:0;
+  width:18px;height:18px;display:inline-flex;
+  align-items:center;justify-content:center;border-radius:4px}
+.wl-remove-btn::before{content:"";position:absolute;inset:-8px;
+  background:transparent}
+.wl-remove-btn:hover,.wl-remove-btn:focus-visible{color:#ef4444;
+  opacity:1;outline:none;background:rgba(239,68,68,.10)}
 
-/* ── Mobile (≤768px): Watchlist-Voransicht-Kacheln verkleinern ──────────────
-   Vier Kacheln pro Reihe bleiben (auch unter 480px), Padding/Schrift/Icons
-   ungefähr halbiert. Touch-Target X-Button via ::before-Overlay weiter
-   44×44 px, auch wenn das visuelle „×" auf ~28 px schrumpft. */
+/* ── Mobile (≤768px): 3 Watchlist-Karten pro Reihe ──────────────
+   Sonst übernimmt das Desktop-Grid (6 Karten/Reihe). Mini-Ring +
+   horizontal-Layout bleiben unverändert. */
 @media(max-width:768px){
-  /* Grid-Container an Eltern-Breite (.wl-section / .wrap) binden — verhindert,
-     dass das Grid durch implizites min-width:auto der Items überdehnt wird. */
-  .wl-cards{grid-template-columns:repeat(4,1fr);gap:6px;width:100%;min-width:0}
-  /* Grid-Items dürfen unter Content-Breite schrumpfen — sonst forcieren
-     X-Button + Ticker + Flag + ki-dot eine Spaltenbreite > (container/4). */
-  .wl-card{min-width:0;overflow:hidden}
-  .wl-card-header{padding:5px;gap:1px;min-width:0}
-  /* Inner-Flex-Rows (Ticker-Zeile + Bottom-Row) brauchen ebenfalls min-width:0,
-     sonst verteilen sie sich auf Content-Größe statt 100 % der Karten-Breite. */
-  .wl-card-header > div{min-width:0}
-  /* Ticker wird zum schrumpfbaren flex-Item mit Ellipsis statt Push-Out.
-     Breit-Glyphen-Worst-Case (GRPN/GOOG/MMMM): font-stretch condensed +
-     letter-spacing -0.04em + font-size 0.7rem. font-stretch wird vom
-     System-Font ggf. ignoriert (graceful), die anderen beiden wirken
-     immer. */
-  .wl-card-ticker{font-size:.7rem;flex:1;min-width:0;overflow:hidden;
-    text-overflow:ellipsis;white-space:nowrap;
-    letter-spacing:-.04em;font-stretch:condensed}
-  /* Länder-Flagge ausblenden — auf US-Mobile-Layout ohnehin nur Lärm,
-     spart Zeichen-Breite für den Ticker. Desktop unverändert. */
-  .wl-flag{display:none}
-  /* Star-Badge: in der Watchlist sind alle Kacheln per Position „Stars",
-     das Sternchen ist redundant und kostet ~12 px in der oberen rechten
-     Ecke (absolute, aber überlagert die Trim-Box). Mobile aus. */
+  .wl-cards{grid-template-columns:repeat(3,1fr);gap:6px;width:100%;min-width:0}
+  .wl-card{min-width:0}
+  .wl-card-header{padding:6px 8px 6px 6px;gap:6px;min-height:54px}
+  .wl-ring{width:30px;height:30px}
+  .wl-card-ticker{font-size:10px}
+  .wl-card-trend{font-size:8px}
   .wl-badge-star{display:none}
-  .wl-card-score{font-size:14px}
-  /* Bottom-Row (Trend-Pfeil links, Details-Button rechts) — Inline-Styles
-     der JS-erzeugten Spans/Divs werden hier per !important überschrieben. */
-  .wl-card-header > div:last-child{gap:2px!important}
-  .wl-card-header > div:last-child > span{font-size:.65rem!important}
-  .wl-details-btn{font-size:.62rem;padding:0;border-radius:5px;
-    min-width:34px;min-height:34px}
-  /* X-Button: visuelles Icon kompakt (22×22), Hit-Area via ::before-Overlay
-     bleibt 44×44 (inset:-11px = 22+11+11). */
-  .wl-remove-btn{width:22px;height:22px;min-width:22px;font-size:.8rem;
-    margin:-3px 1px -3px -3px;position:relative}
-  .wl-remove-btn::before{content:"";position:absolute;inset:-11px;
-    background:transparent}
-  /* Watchlist-internen ki-dot stark verkleinern (Top-Card-Variante) */
-  .wl-card .agent-dot{transform:scale(.6);transform-origin:left center}
+  .wl-card .agent-dot{transform:scale(.6);transform-origin:right center}
 }
 /* Alte 2-Spalten-Mobile-Regel (vor 30.04.) entfernt — siehe Block oben. */
 .wl-sync-warn{font-size:.72rem;color:#f59e0b;background:#f59e0b18;border:1px solid #f59e0b44;

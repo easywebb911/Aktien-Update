@@ -7922,28 +7922,41 @@ function _fmtGerman(d) {{
         const scoreVal = inTop
           ? (WL_TOP10[ticker].score ?? null)
           : (WL_SCORES[ticker] ?? null);
-        const scoreStr = scoreVal !== null ? (+scoreVal).toFixed(1) : '\u2014';
+        const scoreNum = (scoreVal != null && isFinite(+scoreVal)) ? +scoreVal : null;
+        const scoreStr = scoreNum != null ? Math.round(scoreNum).toString() : '\u2014';
         const scoreCol = wlScoreColor(scoreVal);
-        const flag = (inTop && WL_TOP10[ticker].flag) ? WL_TOP10[ticker].flag : '';
         const h = WL_HIST[ticker];
-        const trendArrow = h ? (h.col === '#22c55e' ? '\u2191' : h.col === '#ef4444' ? '\u2193' : '\u2192') : '';
+        const trendArrow = h ? (h.col === '#22c55e' ? '\u2191' : h.col === '#ef4444' ? '\u2193' : '\u2192') : '\u2014';
         const trendCol   = h ? h.col : '#94a3b8';
+        // Mini-Ring: r=14 → Circumference 2π·14 ≈ 87.96. Score 0–100 →
+        // dashoffset 88..0. Bei fehlendem Score: Vordergrund-Stroke
+        // transparent (nur Hintergrund-Ring) + „—" als Mittelwert.
+        const pct = (scoreNum != null) ? Math.max(0, Math.min(100, scoreNum)) : null;
+        const dashOffset = (pct != null) ? (88 * (100 - pct) / 100).toFixed(1) : '88';
+        const fgStroke = (pct != null) ? scoreCol : 'transparent';
         // Bug 1 — card-manual-Klasse für dunkelgrünen Hintergrund + hellgrünen Rand
         // (Specificity 0,2,0 via .wl-card.card-manual-Regel in head.jinja)
         return `<div class="wl-card card-manual" data-ticker="${{ticker}}">
           ${{inTop ? '<span class="wl-badge-star">\u2605</span>' : ''}}
-          <div class="wl-card-header">
-            <div style="display:flex;align-items:center;gap:4px;width:100%">
-              <button class="wl-remove-btn" onclick="wlRemoveTicker('${{ticker}}')" title="Entfernen" aria-label="Aus Watchlist entfernen">\xd7</button>
+          <div class="wl-card-header" onclick="wlExpand('${{ticker}}', document.getElementById('wlb-${{ticker}}'))">
+            <svg class="wl-ring" viewBox="0 0 34 34" aria-hidden="true">
+              <circle class="wl-ring-bg" cx="17" cy="17" r="14"></circle>
+              <circle class="wl-ring-fg" cx="17" cy="17" r="14"
+                      stroke="${{fgStroke}}"
+                      stroke-dasharray="88" stroke-dashoffset="${{dashOffset}}"></circle>
+              <text class="wl-ring-num" x="17" y="20" text-anchor="middle">${{scoreStr}}</text>
+            </svg>
+            <div class="wl-card-meta">
               <span class="wl-card-ticker">${{ticker}}</span>
-              ${{flag ? `<span class="wl-flag" style="font-size:.85rem">${{flag}}</span>` : ''}}
-              <span class="wl-ki-dot agent-dot none" id="wlkd-${{ticker}}"></span>
+              <span class="wl-card-trend" style="color:${{trendCol}}">${{trendArrow}}</span>
             </div>
-            <span class="wl-card-score" style="color:${{scoreCol}}">${{scoreStr}}</span>
-            <div style="display:flex;align-items:center;gap:4px;width:100%;justify-content:space-between">
-              <span style="font-size:.8rem;color:${{trendCol}};font-weight:700">${{trendArrow}}</span>
-              <button class="wl-details-btn" id="wlb-${{ticker}}" onclick="wlExpand('${{ticker}}',this)" title="Details einblenden">\u25be</button>
-            </div>
+            <span class="wl-ki-dot agent-dot none" id="wlkd-${{ticker}}"></span>
+            <button class="wl-remove-btn"
+                    onclick="event.stopPropagation();wlRemoveTicker('${{ticker}}')"
+                    title="Entfernen" aria-label="Aus Watchlist entfernen">\xd7</button>
+            <button class="wl-details-btn" id="wlb-${{ticker}}"
+                    onclick="event.stopPropagation();wlExpand('${{ticker}}',this)"
+                    title="Details ein-/ausklappen" aria-label="Details">\u25be</button>
           </div>
           <div class="wl-details-body" id="wld-${{ticker}}" hidden></div>
         </div>`;
