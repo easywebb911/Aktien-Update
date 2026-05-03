@@ -3545,8 +3545,7 @@ def _score_block_inner_html(s: dict, hint_html: str = "") -> str:
 
     rows = [(
         f'<div class="sb-row" data-sb="setup">'
-        f'<span class="sb-num" style="color:{setup_col}" '
-        f'onclick="showScoreExplain(this,event)" role="button" tabindex="0">'
+        f'<span class="sb-num" style="color:{setup_col}">'
         f'{setup_val:.1f}</span>'
         f'<span class="sb-lbl">Setup-Score</span>'
         f'<div class="sb-track"><div class="sb-fill" '
@@ -5906,88 +5905,10 @@ function toggleNews(id){{
   btn.classList.toggle('is-open', open);
   if (lbl) lbl.textContent = open ? ' Meldungen verbergen' : ' Aktuelle Meldungen';
 }}
-// ── Score-Erklärung Popup ─────────────────────────────────────────────────
-function _closeScorePopup(){{
-  const pop = document.getElementById('score-popup');
-  if (!pop) return;
-  pop.classList.remove('open');
-  pop._src = null;
-  clearTimeout(pop._timer);
-}}
-function _outsideScorePopup(e){{
-  const pop = document.getElementById('score-popup');
-  if (!pop || !pop.classList.contains('open')) return;
-  if (pop.contains(e.target)) return;
-  _closeScorePopup();
-}}
-function showScoreExplain(el, ev){{
-  if (ev) ev.stopPropagation();
-  let pop = document.getElementById('score-popup');
-  if (!pop){{
-    pop = document.createElement('div');
-    pop.id = 'score-popup';
-    pop.className = 'score-popup';
-    pop.addEventListener('click', (e) => e.stopPropagation());
-    pop.addEventListener('mouseleave', () => {{
-      if (!window.matchMedia('(pointer: coarse)').matches) _closeScorePopup();
-    }});
-    document.body.appendChild(pop);
-  }}
-  if (pop.classList.contains('open') && pop._src === el){{
-    _closeScorePopup();
-    return;
-  }}
-  const art = el.closest('article');
-  if (!art) return;
-  const sc = parseFloat(art.dataset.score || '0');
-  const sf = parseFloat(art.dataset.sf || '0');
-  const sr = parseFloat(art.dataset.sr || '0');
-  const rv = parseFloat(art.dataset.rv || '0');
-  const si = art.dataset.si || 'no_data';
-  let rating = 'Kein relevantes Signal';
-  if      (sc >= 80) rating = 'Sehr starkes Setup';
-  else if (sc >= 60) rating = 'Starkes Setup';
-  else if (sc >= 40) rating = 'Moderates Setup';
-  else if (sc >= 15) rating = 'Schwaches Setup';
-  let sfTxt = 'geringer Leerverkaufsanteil';
-  if      (sf >= 30) sfTxt = 'sehr hoher Leerverkaufsanteil';
-  else if (sf >= 20) sfTxt = 'hoher Leerverkaufsanteil';
-  else if (sf >= 15) sfTxt = 'moderater Leerverkaufsanteil';
-  let rvTxt = 'normale Aktivität heute';
-  if      (rv >= 2.0) rvTxt = 'überdurchschnittliche Aktivität heute';
-  else if (rv >= 1.5) rvTxt = 'leicht erhöhte Aktivität heute';
-  const siMap = {{
-    up:       '↑ steigend — Short Interest wächst',
-    sideways: '→ seitwärts — Short Interest stabil',
-    down:     '↓ fallend — Short Interest sinkt'
-  }};
-  const siRow = siMap[si];
-  const srInt = Math.round(sr);
-  let inner = '<div class="sp-head">Score ' + sc.toFixed(0) + ' — ' + rating + '</div>'
-            + '<ul class="sp-list">'
-            + '<li><b>Short Float ' + sf.toFixed(0) + '%</b> — ' + sfTxt + '</li>'
-            + '<li><b>Days to Cover ' + srInt + 'd</b> — Leerverkäufer brauchen ' + srInt + ' Tage zum Eindecken</li>'
-            + '<li><b>Volumen ' + rv.toFixed(1) + '×</b> — ' + rvTxt + '</li>';
-  if (siRow) inner += '<li><b>SI-Trend</b> ' + siRow + '</li>';
-  inner += '</ul><p class="sp-foot">Je höher der Score, desto größer der potenzielle Squeeze-Druck.</p>';
-  pop.innerHTML = inner;
-  pop._src = el;
-  pop.classList.add('open');
-  const r  = el.getBoundingClientRect();
-  const pw = pop.offsetWidth;
-  const ph = pop.offsetHeight;
-  let left = r.left + r.width/2 - pw/2;
-  left = Math.max(8, Math.min(left, window.innerWidth - pw - 8));
-  let top  = r.bottom + 8;
-  if (top + ph > window.innerHeight - 8) top = Math.max(8, r.top - ph - 8);
-  pop.style.left = left + 'px';
-  pop.style.top  = top  + 'px';
-  clearTimeout(pop._timer);
-  if (window.matchMedia('(pointer: coarse)').matches){{
-    pop._timer = setTimeout(_closeScorePopup, 3000);
-  }}
-  setTimeout(() => document.addEventListener('click', _outsideScorePopup, {{once: true}}), 0);
-}}
+// Score-Erklärung-Popup ist entfallen — Setup-/Monster-/KI-Score-Werte
+// stehen ohnehin sichtbar auf der Karte (Score-Block + Sub-Scores +
+// Drivers-Block). showScoreExplain/_closeScorePopup/_outsideScorePopup
+// und die ``.score-popup``-CSS-Regeln waren ihre einzigen Konsumenten.
 // ── Backtesting-Sektion ───────────────────────────────────────────────────
 let _btLoaded = false;
 let _btData   = null;
