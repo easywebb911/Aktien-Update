@@ -7960,22 +7960,29 @@ function _fmtGerman(d) {{
       //      ebenfalls post-smoothing).
       //   3. ``WL_SCORES[t]`` — Score-History-Last-Entry (raw,
       //      pre-smoothing) als Fallback für Ticker ohne enrichment.
-      // Die Priorität ist wichtig, weil WL_SCORES (raw) systematisch von
-      // WL_TOP10/WL_CARDS (smoothed) abweicht — Bug-Symptom: Tile zeigte
-      // 80, Card zeigte 48.7 für denselben Ticker.
+      // Defensive: jeder Lookup ist null/undefined-tolerant; frische
+      // Ticker (in keiner Quelle) liefern ``null`` → Tile rendert mit „—".
       const _wlScoreOf = (t) => {{
-        if (top10Set.has(t) && WL_TOP10[t] && WL_TOP10[t].score != null) {{
-          const v = +WL_TOP10[t].score;
-          if (isFinite(v)) return v;
-        }}
-        const wlc = (window._WL_CARDS && window._WL_CARDS[t]) || null;
-        if (wlc && wlc.score != null && isFinite(+wlc.score)) return +wlc.score;
-        const v = WL_SCORES[t];
-        return (v != null && isFinite(+v)) ? +v : null;
+        try {{
+          if (top10Set.has(t)) {{
+            const tt = WL_TOP10 && WL_TOP10[t];
+            if (tt && tt.score != null && isFinite(+tt.score)) return +tt.score;
+          }}
+          const wlc = (typeof window !== 'undefined' && window._WL_CARDS)
+            ? window._WL_CARDS[t] : null;
+          if (wlc && wlc.score != null && isFinite(+wlc.score)) return +wlc.score;
+          const hv = WL_SCORES && WL_SCORES[t];
+          if (hv != null && isFinite(+hv)) return +hv;
+        }} catch(_) {{}}
+        return null;
       }};
       arr.sort((a, b) => (_wlScoreOf(b) || 0) - (_wlScoreOf(a) || 0));
 
       grid.innerHTML = arr.map(ticker => {{
+        // ``inTop`` wurde in df4aab5 versehentlich entfernt — Star-Badge-
+        // Template referenzierte die nicht-existente Variable, ReferenceError
+        // killte den gesamten arr.map. Wieder einführen.
+        const inTop    = top10Set.has(ticker);
         const scoreVal = _wlScoreOf(ticker);
         const scoreNum = (scoreVal != null && isFinite(+scoreVal)) ? +scoreVal : null;
         const scoreStr = scoreNum != null ? Math.round(scoreNum).toString() : '\u2014';
