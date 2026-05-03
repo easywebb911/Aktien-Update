@@ -1,88 +1,102 @@
-# Session-Handover — Stand 03.05.2026
+# Session-Handover — Stand 03.05.2026 (Abend-Update)
 
 ## Heute implementiert (chronologisch)
 - 8a71e30 — fix: leftover _sort_keeping_manual_last call site
-  (1c4dafe-Refactor-Reststand: zweiter Aufruf in main() nach
-  post-enrichment Score-Smoothing-Block übersehen, hätte beim
-  nächsten Daily-Run NameError geworfen; ersetzt durch
-  top10.sort(key=lambda x: x.get("score") or 0, reverse=True)
-  analog erste Call-Site. Repo-weit _sort_keeping_manual_last,
-  manual_forced, rank-manual jetzt komplett verschwunden.)
-- 4b04322 — feat: Phase 3 — Master-Passwort-Token-Encryption
-  (WebCrypto AES-GCM 256 + PBKDF2-SHA256 600k Iterationen,
-  Schema-Version v:1 im Blob; getToken() als Single-Reader,
-  _setSessionToken/_clearAllTokens als einzige Schreibpfade;
-  3 Modals: Setup/Unlock/Migrate; Cold-Start-Hook migriert
-  bestehenden Klartext-Token; 14 Token-Reads umgestellt in
-  Watchlist-Sync, Gist-Sync, Workflow-Trigger, Settings;
-  401/403-Handler räumt alle Token-Slots; Esc schließt Modals,
-  Inputs leeren beim Close. CLAUDE.md neue Sektion ergänzt.)
+- 4b04322, e2e1b81, a31ddfb, 864d818 — feat: Phase 3
+  Master-Passwort-Token-Encryption (mehrere Iterationen,
+  inkl. iOS-Storage-Quirk-Fixes und Settings-Panel-Routing-Fix)
+- 53b1d4e — feat: Auto-Redeploy-Workflow (redeploy-on-source-change)
+- 71a78fc — chore: Setup-Score-Tooltip entfernt
+- 415177e — refactor: Voll-Breite-Layout NUR für Watchlist-
+  Drawer (rückgängig auf Top-10)
+- ef38982 — fix: Toggle-Chevrons vereinheitlicht (▼ U+25BC)
+- abfdd9c — chore: drei statische Quick-Fragen im Chat
+- 6e5a4a3 — feat: KI-Score als dritte Sortier-Option +
+  Methodik-Sync
+- c2118cd — chore: Stockanalysis-Outline-Button (lila Pille weg)
+- 498a269 — feat: Watchlist-Tiles kompakt + 3D + Mini-Ring
+- 214b7fd — feat: Top-10-Karten-3D-Look (Variante 1B)
+- 211c198 — feat: Stat-Tiles eingelassen-3D
+- 22a5c82 — feat: TopTen-Banner E3 magazin-haft mit Akzentpunkt
+- 0de397b — fix: .sort-ki-Layout für KI-Sortier-Modus
+- df4aab5 — fix: Watchlist-Score Single-Source-of-Truth
+  (3-Stufen-Priorität: WL_TOP10 → _WL_CARDS → WL_SCORES)
+- d82cfcd — feat: Push-Silence-Filter (RSI > 75 ODER 2-Tages-
+  Move > 20%) inkl. Methodik-Sync
+- a97696b — fix: inTop-ReferenceError in wlRender +
+  defensive Härtung _wlScoreOf
+- ee91390 — chore: scripts/smoke_render.js (5 Szenarien,
+  manuell via node ausführbar)
+- e04ba6b — chore: 6 SAFE_DEAD-Items entfernt (RS_SECTOR_*,
+  _sector_rs_row, .chart-badge-s, verwaister Kommentar)
+- a395233 — docs: v1/v2-Render-Pfad-Architektur-Anker
+  (Code-Kommentar + CLAUDE.md-Sektion + Backlog-Eintrag)
 
 ## Aktive Position (im Secret POSITIONS_JSON)
 - INDI · Entry 27.04.2026 · 3,76 USD · 35 shares
-  (Stand vom Vor-Handover, in dieser Session nicht berührt)
+  (in dieser Session nicht berührt)
 
 ## Verifikation ausstehend
-- Nächster Daily-Run muss ohne NameError durchlaufen
-  (8a71e30 entfernt den Crash-Pfad).
-- Master-Passwort-Flow auf Desktop + iPhone bereits manuell
-  verifiziert in dieser Session — keine offene Verifikation.
+- Push-Silence-Filter: erst beim nächsten ki_agent-Tick
+  aktiv. Beobachten, ob überhitzte Anomalien (z.B. XRX-artige
+  Fälle) jetzt korrekt unterdrückt werden mit
+  "Bewegung gelaufen"-Badge.
+- Watchlist-Score-Konsistenz: nach nächstem Daily-Run
+  prüfen, dass Tile + Detail-Card identische Scores zeigen.
 
 ## Geplante Aufgaben
-1. GitHub Secret EDGAR_USER_AGENT setzen (aus Vor-Handover offen)
-2. Phase 2 Exit-Signale (UI-First) nach 1 Woche Live-Test
-3. Immediacy-Score-Feature
-4. Bahn A2 (Frontend-Auswertungs-Panel) ab Ende Mai
-5. UX Backtesting "Nur Live"-Modus
-6. Setup-Verfall-Symmetrie weiter beobachten
-7. ⏰ Wiedervorlage 15.05.2026: Phase 3 Exit-Signale prüfen
+1. Phase 2 Exit-Signale (UI-First) nach 1 Woche Live-Test
+2. Immediacy-Score-Feature
+3. Bahn A2 (Frontend-Auswertungs-Panel) ab Ende Mai
+4. UX Backtesting "Nur Live"-Modus
+5. Setup-Verfall-Symmetrie weiter beobachten
+6. ⏰ Wiedervorlage 15.05.2026: Phase 3 Exit-Signale prüfen
    (Blow-off-Top + IV-Crush)
-8. ⏰ Wiedervorlage 02.07.2026: Premium-Daten-Stack prüfen
-9. Filter-Flexibilisierung prüfen (Bahn A2)
-10. Phase X — v1-Pfad-Migration (drei Schritte zusammen):
-    1. `templates/page.jinja` für Outer-Page-Template anlegen
-       (Header, Watchlist-Section, Backtesting, Chat-Glue, JS,
-       Footer aus v1's f-String herauslösen).
-    2. `_wl_full_card_html()` ohne Regex-Stripping neu aufbauen
-       (eigene `wl_card.jinja` oder direkter Python-HTML-Zusammenbau
-       aus dem Card-Context).
-    3. `generate_html_v2()` autark machen — kein
-       `return generate_html_v1(...)` mehr am Ende.
-    Erst danach v1 entfernen. `JINJA_RENDER_TEST` muss vorher die
-    Outer-Page mit byte-vergleichen können — aktuell deckt der Test
-    nur die Karten-Snippets ab.
+7. ⏰ Wiedervorlage 02.07.2026: Premium-Daten-Stack prüfen
+8. Filter-Flexibilisierung prüfen (Bahn A2)
+9. Phase X — v1-Pfad-Migration (drei Schritte zusammen):
+   page.jinja anlegen, _wl_full_card_html ohne
+   Regex-Stripping neu, generate_html_v2 autark.
+   Erst dann v1 entfernen. JINJA_RENDER_TEST muss vorher
+   die Outer-Page byte-vergleichen können.
 
 ## Optional / niedrig priorisiert
-- IBKR Borrow Rate liefert konstant HTTP 404 — Provider-Fallback
-  prüfen (Stockanalysis o.ä.); aktuell fällt der Borrow-Rate-
-  Driver in _drivers_breakdown still aus.
+- IBKR Borrow Rate liefert konstant HTTP 404 — Provider-
+  Fallback prüfen (Stockanalysis o.ä.); aktuell fällt der
+  Borrow-Rate-Driver in _drivers_breakdown still aus.
+- DOUBTFUL Cleanup-Items aus Diagnose-Bericht prüfen:
+  rel_strength_sector / sector_etf (im JS noch gelesen?),
+  MIN_REL_VOLUME_INTL (Intl-Screening-Reaktivierung möglich?)
 - Per-Ticker Alert-Lock falls Alert-Loop parallelisiert wird
-- Watchlist-Drawer (buildWlDetails) auf neuen Score-Block migrieren
+- Watchlist-Drawer (buildWlDetails) auf neuen Score-Block
+  migrieren
 - backtest_history.json einmal cachen statt zwei Disk-Reads
-- Alte RS_SECTOR_*-Konstanten + _sector_rs_row() ganz entfernen
 - News-Decay-Logik auf UOA / Insider übertragen via
   _news_age_weight(), sobald Persistenz da ist
-- KI-Agent-eigene Anomalien (UOA-Vol/OI / RVOL-Vortagsvergleich /
-  Gap+Hold-Combo) auch in den Chat-Kontext einspeisen
+- KI-Agent-eigene Anomalien (UOA-Vol/OI / RVOL-Vortagsvergleich
+  / Gap+Hold-Combo) auch in den Chat-Kontext einspeisen
 - EDGAR_ACTIVIST_FILERS-Liste über Live-Beobachtung verfeinern
+- Smoke-Test-Suite ggf. um weitere kritische Pfade erweitern
 
-## Architektur-Anker (nicht in CLAUDE.md, wichtig)
-- Single-Reader-Pattern für GitHub-Token: getToken() ist der
-  einzige Lese-Pfad, _setSessionToken / _clearAllTokens die
-  einzigen Schreibpfade. Direktzugriffe auf
-  localStorage[TOK_KEY] / sessionStorage[TOK_KEY] sind
-  verboten — Lint-Idee für später: grep auf
-  localStorage.(get|set|remove)Item.*TOK_KEY mit erwartetem
-  Treffer-Count 0.
-- Token-Storage zweistufig: localStorage[TOK_ENC_KEY=
-  'ghpat_squeeze_encrypted'] persistent verschlüsselt,
-  sessionStorage[TOK_KEY='ghpat_squeeze'] Klartext nur Session.
-  Master-Passwort lebt nur im Memory.
-- Krypto-Schema versioniert (v:1 im Blob) — bei Upgrade
-  (z.B. Argon2 statt PBKDF2) v:2 einführen, Migration über
-  altes Passwort entschlüsseln + mit neuem Schema neu
-  verschlüsseln. Nicht still ändern.
-- Watchlist-Ticker außerhalb Top-10 erscheinen ausschließlich
-  in der Watchlist-Sektion (durch 1c4dafe etabliert,
-  durch 8a71e30 verfestigt). Kein manual_forced-Bucket mehr
-  in der Top-10-Liste.
+## Architektur-Anker (in CLAUDE.md, hier als Reminder)
+- Master-Passwort-Token-Encryption: Single-Reader-Pattern
+  getToken(), Two-Tier-Storage localStorage encrypted +
+  sessionStorage runtime, versioniertes Krypto-Schema (v:1)
+- Watchlist-Score Single-Source-of-Truth: 3-Stufen-Priorität
+  WL_TOP10 → _WL_CARDS → WL_SCORES, defensive _wlScoreOf
+  mit try/catch, Re-Render-Hook nach app_data-Fetch
+- v1/v2-Render-Pfad: v2 ist NICHT autark, ruft
+  generate_html_v1 für Outer-Page. Wer v1 löscht, killt v2 mit.
+  Migration nur in einem Zug (3 Schritte).
+- Push-Silence-Filter: Stille bei RSI > 75 ODER 2T-Move > 20%,
+  Earnings + EDGAR ausgenommen. Schwellen in config.py.
+- top10_metrics in app_data.json: read-modify-write mit
+  **existing-Spread bewahrt sie zwischen ki_agent-Ticks.
+
+## Heutige Smoke-Test-Bewährung
+scripts/smoke_render.js wurde heute eingeführt und sofort
+zweimal automatisch beim Konstanten-Cleanup + Architektur-
+Anker-Commit zur Verifikation genutzt — beide Male alle
+5 Szenarien grün. Manuell ausführbar via:
+  npm install jsdom (in /tmp empfohlen, nicht im Repo)
+  node scripts/smoke_render.js
