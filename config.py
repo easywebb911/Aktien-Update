@@ -172,9 +172,6 @@ RS_SPY_PTS_MAX         = 3     # max. ±Punkte (symmetrisch)
 # Deprecated — wurde durch RS_SPY_* ersetzt; die Felder rel_strength_sector
 # und sector_etf werden noch im Datenmodell mitgeführt, aber nicht mehr
 # bewertet. Siehe SESSION_HANDOVER 30.04.2026 (idiosynkratische Squeezes).
-RS_SECTOR_THRESHOLD    = 5.0
-RS_SECTOR_BULL_BONUS   = 3
-RS_SECTOR_BEAR_MALUS   = 2
 
 # ── Gap & Hold (Eröffnungs-Stärke + Tagesverlauf) ────────────────────────────
 # Misst die Stärke des Eröffnungs-Gaps und ob das Gap im Tagesverlauf

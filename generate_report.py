@@ -3012,21 +3012,6 @@ def _earnings_surprise_html(s: dict) -> str:
     )
 
 
-def _sector_rs_row(s: dict) -> str:
-    """Feature 5 — RS vs. Sektor-ETF als Detail-Tabellenzeile."""
-    if not USE_SECTOR_RS:
-        return ""
-    rs = s.get("rel_strength_sector")
-    if rs is None:
-        return ""
-    etf = s.get("sector_etf") or SECTOR_ETF_DEFAULT
-    col = "#22c55e" if rs >= 0 else "#ef4444"
-    return (
-        f'<tr><td>RS vs. Sektor ({etf})</td>'
-        f'<td><span style="color:{col}">{rs:+.1f}%</span></td></tr>'
-    )
-
-
 def _squeeze_history_badge(s: dict) -> str:
     """Feature 6 — '⚠️ Squeeze vor X Tagen'-Badge auf der Karte."""
     sq = s.get("recent_squeeze")
@@ -5957,10 +5942,6 @@ function toggleNews(id){{
   btn.classList.toggle('is-open', open);
   if (lbl) lbl.textContent = open ? ' Meldungen verbergen' : ' Aktuelle Meldungen';
 }}
-// Score-Erklärung-Popup ist entfallen — Setup-/Monster-/KI-Score-Werte
-// stehen ohnehin sichtbar auf der Karte (Score-Block + Sub-Scores +
-// Drivers-Block). showScoreExplain/_closeScorePopup/_outsideScorePopup
-// und die ``.score-popup``-CSS-Regeln waren ihre einzigen Konsumenten.
 // ── Backtesting-Sektion ───────────────────────────────────────────────────
 let _btLoaded = false;
 let _btData   = null;
