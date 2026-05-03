@@ -6398,16 +6398,29 @@ async function _decryptToken(blobJson, password) {{
 // lesen jetzt aus ``sessionStorage[TOK_KEY]``. Liefert leer-String wenn
 // die Session nicht entsperrt ist — Aufrufer behandeln das wie zuvor
 // als „kein Token".
+// iOS-Safari-Härtung: ``sessionStorage`` kann unter Cross-Site-Tracking-
+// Blockierung, Storage-Partitioning ab iOS 17 und im Standalone-/PWA-
+// Mode ``setItem`` *erfolgreich* annehmen aber ``getItem`` direkt danach
+// ``null`` zurückgeben — ohne Throw. Deshalb zweistufig: zusätzlich ein
+// Memory-Slot ``_inMemoryToken`` der mindestens bis zum Page-Reload hält
+// und damit den Endlosschleifen-Bug im Master-Passwort-Setup verhindert.
+let _inMemoryToken = '';
+
 function getToken() {{
-  try {{ return sessionStorage.getItem(TOK_KEY) || ''; }}
-  catch(_) {{ return ''; }}
+  let s = '';
+  try {{ s = sessionStorage.getItem(TOK_KEY) || ''; }} catch(_) {{}}
+  return s || _inMemoryToken || '';
 }}
-// Setzt den entschlüsselten Token in sessionStorage. Wird ausschließlich
-// aus dem Unlock-/Setup-Modal-Flow aufgerufen.
+// Setzt den entschlüsselten Token in sessionStorage + Memory-Slot. Memory
+// wird IMMER gesetzt, sessionStorage best-effort. Aufrufer kann
+// anschließend ``getToken()`` lesen — bei iOS-Quirks fällt das auf
+// Memory zurück.
 function _setSessionToken(tok) {{
+  _inMemoryToken = tok || '';
   try {{ sessionStorage.setItem(TOK_KEY, tok); }} catch(_) {{}}
 }}
 function _clearSessionToken() {{
+  _inMemoryToken = '';
   try {{ sessionStorage.removeItem(TOK_KEY); }} catch(_) {{}}
 }}
 // Vollständiger Reset: löscht verschlüsselten Blob + Session-Token +
@@ -6416,6 +6429,35 @@ function _clearAllTokens() {{
   try {{ localStorage.removeItem(TOK_ENC_KEY); }} catch(_) {{}}
   try {{ localStorage.removeItem(TOK_LEGACY_KEY); }} catch(_) {{}}
   _clearSessionToken();
+}}
+
+// Atomarer Persist-und-Verify-Block für Setup/Unlock/Migrate. Schreibt
+// optional den Encrypted-Blob nach localStorage und IMMER den Klartext
+// nach sessionStorage + Memory, liest beide direkt zurück und wirft
+// einen klaren Fehler, falls einer der Schritte stillschweigend
+// fehlschlug (iOS-Safari-Quirk). Der Setup-Modal-Handler hält das
+// Modal offen, statt blind zu schließen und in eine Endlosschleife zu
+// laufen.
+function _persistTokenAtomic(plaintext, encryptedBlob) {{
+  if (encryptedBlob != null) {{
+    try {{ localStorage.setItem(TOK_ENC_KEY, encryptedBlob); }}
+    catch(e) {{
+      throw new Error('localStorage-Schreiben gescheitert: ' + (e.message || e));
+    }}
+    let readBack = null;
+    try {{ readBack = localStorage.getItem(TOK_ENC_KEY); }} catch(_) {{}}
+    if (readBack !== encryptedBlob) {{
+      throw new Error('localStorage-Read-Back schlug fehl (iOS-Safari-Quirk?). ' +
+        'Bitte Cross-Site-Tracking-Blockierung deaktivieren oder Standard-Browser nutzen.');
+    }}
+    try {{ localStorage.removeItem(TOK_LEGACY_KEY); }} catch(_) {{}}
+  }}
+  _setSessionToken(plaintext);
+  // ``getToken`` deckt sessionStorage + Memory-Fallback ab. Wenn beide
+  // leer sind → harter Persist-Fehlschlag, Modal-Handler zeigt Error.
+  if (getToken() !== plaintext) {{
+    throw new Error('Token-Persistenz unmöglich — weder sessionStorage noch Memory verfügbar.');
+  }}
 }}
 
 // ── Token-Modal-Orchestrator ────────────────────────────────────────────
@@ -6491,15 +6533,18 @@ async function _submitTokenSetup() {{
   if (pw !== pw2)   {{ _showModalErr('tok-setup-err', 'Passwörter stimmen nicht überein.'); return; }}
   try {{
     const blob = await _encryptToken(tok, pw);
-    localStorage.setItem(TOK_ENC_KEY, blob);
-    localStorage.removeItem(TOK_LEGACY_KEY);   // Falls Klartext-Reste lagen
-    _setSessionToken(tok);
+    // Atomarer Block: persistieren UND verifizieren BEVOR Modal schließt.
+    // iOS-Safari-Quirk: ``setItem`` kann silent fehlschlagen → Read-Back-
+    // Check würfe sonst keine Exception, das Modal würde schließen, der
+    // nächste ``getToken()``-Read schlägt fehl, ``_ensureToken`` öffnet
+    // Setup-Modal erneut → Endlosschleife.
+    _persistTokenAtomic(tok, blob);
     const cb = _tokPending;
     _closeTokenModals();
     if (cb) cb(tok);
   }} catch(e) {{
     console.error('Token-Setup fehlgeschlagen:', e);
-    _showModalErr('tok-setup-err', 'Verschlüsselung fehlgeschlagen: ' + e.message);
+    _showModalErr('tok-setup-err', 'Speichern fehlgeschlagen: ' + e.message);
   }}
 }}
 
@@ -6511,7 +6556,9 @@ async function _submitTokenUnlock() {{
   try {{
     const tok = await _decryptToken(blob, pw);
     _tokUnlockFails = 0;
-    _setSessionToken(tok);
+    // Atomarer Persist-Verify (iOS-Safari-Härtung) — Encrypted-Blob ist
+    // schon da, also nur Session-Token.
+    _persistTokenAtomic(tok, null);
     const cb = _tokPending;
     _closeTokenModals();
     if (cb) cb(tok);
@@ -6534,15 +6581,14 @@ async function _submitTokenMigrate() {{
   if (!legacy) {{ _closeTokenModals(); return; }}
   try {{
     const blob = await _encryptToken(legacy, pw);
-    localStorage.setItem(TOK_ENC_KEY, blob);
-    localStorage.removeItem(TOK_LEGACY_KEY);
-    _setSessionToken(legacy);
+    // Atomarer Persist-Verify-Block (iOS-Safari-Härtung) — siehe Setup.
+    _persistTokenAtomic(legacy, blob);
     const cb = _tokPending;
     _closeTokenModals();
     if (cb) cb(legacy);
   }} catch(e) {{
     console.error('Token-Migration fehlgeschlagen:', e);
-    _showModalErr('tok-mig-err', 'Verschlüsselung fehlgeschlagen: ' + e.message);
+    _showModalErr('tok-mig-err', 'Speichern fehlgeschlagen: ' + e.message);
   }}
 }}
 function _skipTokenMigrate() {{
