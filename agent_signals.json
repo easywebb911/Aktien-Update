@@ -1,10 +1,10 @@
 {
-  "updated": "2026-05-03T23:39:28.394410+02:00",
+  "updated": "2026-05-04T00:38:45.527208+02:00",
   "run_info": {
     "tickers_checked": 10,
     "signals_active": 2,
     "alerts_sent": 0,
-    "elapsed_s": 11.5,
+    "elapsed_s": 9.8,
     "market_phase": "Geschlossen"
   },
   "signals": {
@@ -134,9 +134,9 @@
       "uoa_cp_ratio": 9.581896551724139
     },
     "TDOC": {
-      "score": 42,
+      "score": 38,
       "confidence": 17,
-      "drivers": "News-KI 12/30: Positive earnings and product developments indicate fundamental strength but lack the short squeeze catalysts of extreme + UOA Call-Vol/OI 9.0× ATM + UOA Call/Put 36.3×",
+      "drivers": "News-KI 8/30: Positive operational news (AI products, insurance expansion) lacks the extreme short positioning and catalysts needed fo + UOA Call-Vol/OI 9.0× ATM + UOA Call/Put 36.3×",
       "price": 6.46,
       "chg_pct": 0.0,
       "rvol": 0.0,
@@ -146,7 +146,7 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 1,
+      "active_triggers": 0,
       "uoa_score": 30,
       "uoa_drivers": [
         "UOA Call-Vol/OI 9.0× ATM",
@@ -156,9 +156,9 @@
       "uoa_cp_ratio": 36.30808950086058
     },
     "ALT": {
-      "score": 58,
+      "score": 55,
       "confidence": 33,
-      "drivers": "News-KI 15/30: Positive capital raise and analyst interest, but no short squeeze indicators (no high short interest, borrow issues, or  + Earnings in 9d + FINRA Short-Vol 89% + UOA Call/Put 19.1×",
+      "drivers": "News-KI 12/30: Positive financing and penny stock attention provide modest upside, but clinical stage biotech with future data risks an + Earnings in 9d + FINRA Short-Vol 89% + UOA Call/Put 19.1×",
       "price": 2.82,
       "chg_pct": 0.0,
       "rvol": 0.0,
@@ -200,7 +200,7 @@
     "ALMU": {
       "score": 38,
       "confidence": 33,
-      "drivers": "News: partnership, breakout + Earnings in 10d",
+      "drivers": "News: contract, partnership + Earnings in 10d",
       "price": 25.58,
       "chg_pct": 0.0,
       "rvol": 0.0,
