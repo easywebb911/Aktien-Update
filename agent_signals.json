@@ -1,10 +1,10 @@
 {
-  "updated": "2026-05-04T00:38:45.527208+02:00",
+  "updated": "2026-05-04T01:42:20.506021+02:00",
   "run_info": {
     "tickers_checked": 10,
     "signals_active": 2,
     "alerts_sent": 0,
-    "elapsed_s": 9.8,
+    "elapsed_s": 10.2,
     "market_phase": "Geschlossen"
   },
   "signals": {
@@ -27,7 +27,9 @@
         "UOA Call/Put 8.2×"
       ],
       "uoa_atm_ratio": null,
-      "uoa_cp_ratio": 8.188841201716738
+      "uoa_cp_ratio": 8.188841201716738,
+      "push_silenced": true,
+      "silenced_reason": "RSI 80"
     },
     "ULCC": {
       "score": 45,
@@ -73,9 +75,9 @@
       "uoa_cp_ratio": 14.5
     },
     "ASAN": {
-      "score": 48,
+      "score": 26,
       "confidence": 33,
-      "drivers": "News: squeeze, short squeeze + Earnings in 25d + UOA Call/Put 4.4×",
+      "drivers": "News-KI 8/30: Routine earnings announcement without indicators of high short interest, low float, or catalyst for rapid covering. + Earnings in 25d + UOA Call/Put 4.4×",
       "price": 6.99,
       "chg_pct": 0.0,
       "rvol": 0.0,
@@ -85,7 +87,7 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 1,
+      "active_triggers": 0,
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 4.4×"
@@ -136,7 +138,7 @@
     "TDOC": {
       "score": 38,
       "confidence": 17,
-      "drivers": "News-KI 8/30: Positive operational news (AI products, insurance expansion) lacks the extreme short positioning and catalysts needed fo + UOA Call-Vol/OI 9.0× ATM + UOA Call/Put 36.3×",
+      "drivers": "News-KI 8/30: Positive earnings and product news indicate fundamental strength rather than short-squeeze setup; low short interest and + UOA Call-Vol/OI 9.0× ATM + UOA Call/Put 36.3×",
       "price": 6.46,
       "chg_pct": 0.0,
       "rvol": 0.0,
@@ -158,7 +160,7 @@
     "ALT": {
       "score": 55,
       "confidence": 33,
-      "drivers": "News-KI 12/30: Positive financing and penny stock attention provide modest upside, but clinical stage biotech with future data risks an + Earnings in 9d + FINRA Short-Vol 89% + UOA Call/Put 19.1×",
+      "drivers": "News-KI 12/30: Positive funding news reduces squeeze potential, but penny stock status and clinical catalysts offer some volatility; ho + Earnings in 9d + FINRA Short-Vol 89% + UOA Call/Put 19.1×",
       "price": 2.82,
       "chg_pct": 0.0,
       "rvol": 0.0,
@@ -200,7 +202,7 @@
     "ALMU": {
       "score": 38,
       "confidence": 33,
-      "drivers": "News: contract, partnership + Earnings in 10d",
+      "drivers": "News: breakout, contract + Earnings in 10d",
       "price": 25.58,
       "chg_pct": 0.0,
       "rvol": 0.0,
