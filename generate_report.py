@@ -5036,7 +5036,7 @@ def generate_html_v1(stocks: list[dict], report_date: str, _ctx: dict | None = N
       </button>
       <button class="menu-item menu-item-toggle" id="menu-sort-toggle" role="menuitem" aria-expanded="false" onclick="toggleMenuSort()">
         <span class="menu-icon-box"><i data-lucide="arrow-up-down"></i></span>
-        <span class="menu-label">Score-Sortierung: <span id="menu-sort-current">Setup</span></span>
+        <span class="menu-label">Score-Sortierung</span>
         <i data-lucide="chevron-down" class="menu-chevron" id="menu-sort-chevron"></i>
       </button>
       <div class="menu-submenu" id="menu-sort-submenu" hidden>
@@ -5047,6 +5047,10 @@ def generate_html_v1(stocks: list[dict], report_date: str, _ctx: dict | None = N
         <button class="menu-subitem" data-sort="monster" role="menuitemradio" onclick="selectSortMode('monster')">
           <i data-lucide="check" class="menu-check" id="menu-sort-check-monster"></i>
           <span>Monster-Score</span>
+        </button>
+        <button class="menu-subitem" data-sort="ki" role="menuitemradio" onclick="selectSortMode('ki')">
+          <i data-lucide="check" class="menu-check" id="menu-sort-check-ki"></i>
+          <span>KI-Score</span>
         </button>
       </div>
       <button class="menu-item" role="menuitem" onclick="toggleChat();toggleMenuDrawer(false)">
@@ -5262,6 +5266,7 @@ def generate_html_v1(stocks: list[dict], report_date: str, _ctx: dict | None = N
           <strong>Monster-Score = Setup-Score × KI-Boost</strong> — KI ≥ 60: +20&nbsp;% · KI &lt; 25: −20&nbsp;% · sonst neutral · Cap 100
         </p>
         <p class="score-block-foot"><em>Sub-Scores sind unabhängige Qualitätsindikatoren — nicht die Zerlegung des Gesamt-Scores.</em></p>
+        <p class="score-block-foot"><strong>Top-10-Sortierung</strong> (Hamburger-Menü): drei Optionen — <strong>Setup-Score</strong> (Default, Server-seitige Reihenfolge), <strong>Monster-Score</strong> (absteigend nach Setup×KI-Boost) oder <strong>KI-Score</strong> (absteigend nach reinem KI-Agent-Score, auf Karten sichtbar als pulsierender Dot). KI-Sortierung wird nach Eingang des stündlichen agent_signals.json-Fetches angewandt.</p>
       </div>
       <div class="info-box">
         <h4>Datenquellen</h4>
@@ -5610,34 +5615,46 @@ function changeFontSize(dir){{
   localStorage.setItem(_FS_KEY, String(next));
   _updateFsBtns(next);
 }}
-// ── Sortierung Setup ↔ Monster ─────────────────────────────────────────────
+// ── Sortierung Setup ↔ Monster ↔ KI ─────────────────────────────────────────
+// Drei Optionen: ``setup`` (Default, sortiert nach data-setup-rank
+// aufsteigend = Server-seitige Reihenfolge), ``monster`` (data-monster
+// absteigend), ``ki`` (data-ki-score absteigend; wird zur Laufzeit von
+// renderAgentSignals auf jedem Card gesetzt — nicht-zugewiesene Karten
+// landen ans Ende). Persistenz in localStorage[``squeeze_sort_mode``].
 const _SORT_KEY = 'squeeze_sort_mode';
+const _SORT_VALID = ['setup', 'monster', 'ki'];
 function _applySortMode(mode){{
-  const m = (mode === 'monster') ? 'monster' : 'setup';
+  const m = _SORT_VALID.indexOf(mode) >= 0 ? mode : 'setup';
   const grid = document.querySelector('.cards-grid');
   if (grid) {{
     const cards = Array.from(grid.querySelectorAll('article.card'));
     if (m === 'monster') {{
       cards.sort((a, b) => parseFloat(b.dataset.monster || '0') - parseFloat(a.dataset.monster || '0'));
+    }} else if (m === 'ki') {{
+      cards.sort((a, b) => parseFloat(b.dataset.kiScore || '0') - parseFloat(a.dataset.kiScore || '0'));
     }} else {{
       cards.sort((a, b) => parseInt(a.dataset.setupRank || '0', 10) - parseInt(b.dataset.setupRank || '0', 10));
     }}
     cards.forEach(c => grid.appendChild(c));
   }}
+  // Score-Block-Layout: monster-Modus stellt Monster-Score nach oben,
+  // sonst (setup ODER ki) bleibt Setup-Score oben. Eigener ``sort-ki``-
+  // Block wäre möglich, ist aber bewusst nicht eingeführt — KI-Score
+  // bleibt visuell als drittes Element pro Card sichtbar.
   document.querySelectorAll('.score-block').forEach(sb => {{
     sb.classList.toggle('sort-monster', m === 'monster');
     sb.classList.toggle('sort-setup',   m !== 'monster');
   }});
-  // Hamburger-Menü-Label + Häkchen aktualisieren
-  const lbl = document.getElementById('menu-sort-current');
-  if (lbl) lbl.textContent = (m === 'monster') ? 'Monster' : 'Setup';
+  // Häkchen im Submenu aktualisieren — exakt eine der drei Optionen aktiv.
   const cs = document.getElementById('menu-sort-check-setup');
   const cm = document.getElementById('menu-sort-check-monster');
+  const ck = document.getElementById('menu-sort-check-ki');
   if (cs) cs.style.visibility = (m === 'setup')   ? 'visible' : 'hidden';
   if (cm) cm.style.visibility = (m === 'monster') ? 'visible' : 'hidden';
+  if (ck) ck.style.visibility = (m === 'ki')      ? 'visible' : 'hidden';
 }}
 function setSortMode(mode){{
-  const m = (mode === 'monster') ? 'monster' : 'setup';
+  const m = _SORT_VALID.indexOf(mode) >= 0 ? mode : 'setup';
   localStorage.setItem(_SORT_KEY, m);
   _applySortMode(m);
 }}
@@ -7432,6 +7449,15 @@ function _fmtGerman(d) {{
     if (typeof drawSparkline === 'function') {{
       document.querySelectorAll('.spark-wrap').forEach(drawSparkline);
     }}
+    // Re-Sort wenn KI-Modus aktiv — Card-DataAttr ``kiScore`` ist jetzt
+    // erst gefüllt (vor dem agent_signals.json-Fetch wäre der Sort
+    // sinnlos gewesen). Server-side Setup-/Monster-Sort braucht das nicht.
+    try {{
+      if ((localStorage.getItem(_SORT_KEY) || 'setup') === 'ki'
+          && typeof _applySortMode === 'function') {{
+        _applySortMode('ki');
+      }}
+    }} catch(_) {{}}
   }}
 
   // Commit 3: ein fetch auf app_data.json liefert score_history + agent_signals
