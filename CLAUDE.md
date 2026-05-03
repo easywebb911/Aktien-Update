@@ -931,6 +931,59 @@ Tabelle oben gleichzeitig aktualisieren.
 
 ---
 
+## Watchlist-Score Single Source of Truth
+
+Watchlist-Tile (Mini-Ring) UND aufgeklappte Detail-Card müssen IMMER
+denselben Setup-Score zeigen. Die displayte Wahrheit ist der
+**post-smoothing-Score** (= Wert in ``s["score"]`` nach
+``apply_score_smoothing`` + Trend-Bonus + Agent-Boost), exakt wie
+in der gerenderten ``card_html`` zu sehen.
+
+### Score-Quellen-Reihenfolge in `wlRender`
+
+```
+1. WL_TOP10[t].score         (in-page für heutige Top-10, smoothed)
+2. window._WL_CARDS[t].score (app_data.json für Watchlist-Ticker
+                              außerhalb Top-10, smoothed)
+3. WL_SCORES[t]               (score_history.json Last-Entry, RAW
+                              pre-smoothing — nur Fallback wenn weder
+                              Top-10 noch Watchlist-Card-Daten da)
+```
+
+Helper: ``_wlScoreOf(t)`` in `wlRender` ist die einzige Stelle, wo
+diese Priorität angewandt wird. ``buildWlSparkOnly`` nutzt
+denselben Branch (für Tickern ohne enrichment-Daten).
+
+### Re-Render-Hook
+
+`wlRender` wird zweimal aufgerufen:
+1. Bei `DOMContentLoaded` — vor dem `app_data.json`-Fetch.
+   Tile zeigt zunächst WL_TOP10/WL_SCORES (Top-10 sofort korrekt;
+   Non-Top-10 zeigt raw history-Score).
+2. Nach `app_data.json`-Fetch (`_WL_CARDS` ist gesetzt) — Re-Render
+   updated alle Tile-Scores auf den smoothed-Wert.
+
+`window.wlRender = wlRender` exponiert die Funktion aus dem
+Watchlist-IIFE.
+
+### Bug-Verweis
+
+Symptom (vor diesem Fix): Tile zeigte 80 (raw aus History), Card
+zeigte 48.7 (smoothed). Ursache: `wlRender` las nur `WL_SCORES`
+für Non-Top-10-Ticker; die nach Fetch verfügbaren `_WL_CARDS` mit
+smoothed Scores wurden ignoriert.
+
+### Pflege
+
+- Score-Field in `_wl_card_payload` (= `_s.get("score", 0)`) ist
+  der **smoothed**-Wert. Bei Refactor sicherstellen, dass diese
+  Quelle nicht versehentlich auf `score_raw` umgestellt wird —
+  sonst wäre das Tile + Card asymmetrisch zur restlichen Anzeige.
+- Falls neue WL-Render-Funktionen hinzukommen: dieselbe 3-Stufen-
+  Priorität nutzen, nicht direkt `WL_SCORES` lesen.
+
+---
+
 ## Score-Methodik-Sync-Regel
 
 Die **Score-Methodik & Filterkriterien**-Sektion in

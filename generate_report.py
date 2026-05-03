@@ -7497,6 +7497,11 @@ function _fmtGerman(d) {{
       // zwischen Entry- und Exit-Datum, Setup-Score-Korrelation der
       // Trade-Journal-Statistik). Schema: {{ticker: [{{date, score}}]}}.
       window._SCORE_HISTORY = appData.score_history || {{}};
+      // Watchlist-Tiles neu rendern — _WL_CARDS liefert jetzt die
+      // smoothed Scores, der erste Render-Pass nach DOMContentLoaded
+      // hatte nur die raw-History als Fallback. Sicherstellt
+      // Score-Konsistenz Tile ↔ aufgeklappte Card.
+      if (typeof window.wlRender === 'function') window.wlRender();
       renderAgentSignals(appData.agent_signals || appData);
     }})
     .catch(() => {{
@@ -7814,8 +7819,16 @@ function _fmtGerman(d) {{
   function buildWlSparkOnly(ticker, h) {{
     // Mini-Kopfzeile + Schließen-Button auch im History-only-Fall, damit
     // der expandierte Zustand konsistent aussieht (und schließbar ist).
-    const scNum  = (WL_SCORES[ticker] != null) ? (+WL_SCORES[ticker]).toFixed(1) : '—';
-    const scCol  = wlScoreColor2(WL_SCORES[ticker]);
+    // Score-Quelle: gleiche Priorität wie wlRender — WL_TOP10 (heute,
+    // smoothed) → window._WL_CARDS (heute, smoothed) → WL_SCORES (raw
+    // Fallback). Sonst zeigte dieser Pfad den raw-Score während die
+    // restliche Watchlist den smoothed-Score zeigt.
+    let _bso = null;
+    if (WL_TOP10[ticker] && WL_TOP10[ticker].score != null) _bso = +WL_TOP10[ticker].score;
+    else if (window._WL_CARDS && window._WL_CARDS[ticker] && window._WL_CARDS[ticker].score != null) _bso = +window._WL_CARDS[ticker].score;
+    else if (WL_SCORES[ticker] != null) _bso = +WL_SCORES[ticker];
+    const scNum  = (_bso != null && isFinite(_bso)) ? _bso.toFixed(1) : '—';
+    const scCol  = wlScoreColor2(_bso);
     const topHdr = `<div class="card-top wl-exp-top">
       <div class="card-left" style="align-items:center">
         <button class="wl-close-btn-inline" onclick="wlExpand('${{ticker}}', document.getElementById('wlb-${{ticker}}'))"
@@ -7913,22 +7926,32 @@ function _fmtGerman(d) {{
 
       const top10Set = new Set(Object.keys(WL_TOP10));
 
-      // Bug 2 — Sortierung nach Score absteigend. Quellen: Top-10-Ticker aus
-      // WL_TOP10[t].score; sonst WL_SCORES[t] (Score-History).
-      // Fehlt beides → 0 (landet ans Ende).
-      const scoreOf = (t) => {{
-        const v = top10Set.has(t)
-          ? (WL_TOP10[t] && WL_TOP10[t].score)
-          : WL_SCORES[t];
-        return (v != null && isFinite(+v)) ? +v : 0;
+      // Single Source of Truth für den angezeigten Setup-Score in
+      // Watchlist-Tile UND aufgeklappter Card. Reihenfolge der Quellen:
+      //   1. ``WL_TOP10[t].score`` — heutige Top-10, post-smoothing
+      //      (identisch zu ``s["score"]`` in der gerenderten ``card_html``).
+      //   2. ``window._WL_CARDS[t].score`` — enrichment-snapshot für
+      //      Watchlist-Ticker außerhalb Top-10 (kommt aus app_data.json,
+      //      ebenfalls post-smoothing).
+      //   3. ``WL_SCORES[t]`` — Score-History-Last-Entry (raw,
+      //      pre-smoothing) als Fallback für Ticker ohne enrichment.
+      // Die Priorität ist wichtig, weil WL_SCORES (raw) systematisch von
+      // WL_TOP10/WL_CARDS (smoothed) abweicht — Bug-Symptom: Tile zeigte
+      // 80, Card zeigte 48.7 für denselben Ticker.
+      const _wlScoreOf = (t) => {{
+        if (top10Set.has(t) && WL_TOP10[t] && WL_TOP10[t].score != null) {{
+          const v = +WL_TOP10[t].score;
+          if (isFinite(v)) return v;
+        }}
+        const wlc = (window._WL_CARDS && window._WL_CARDS[t]) || null;
+        if (wlc && wlc.score != null && isFinite(+wlc.score)) return +wlc.score;
+        const v = WL_SCORES[t];
+        return (v != null && isFinite(+v)) ? +v : null;
       }};
-      arr.sort((a, b) => scoreOf(b) - scoreOf(a));
+      arr.sort((a, b) => (_wlScoreOf(b) || 0) - (_wlScoreOf(a) || 0));
 
       grid.innerHTML = arr.map(ticker => {{
-        const inTop   = top10Set.has(ticker);
-        const scoreVal = inTop
-          ? (WL_TOP10[ticker].score ?? null)
-          : (WL_SCORES[ticker] ?? null);
+        const scoreVal = _wlScoreOf(ticker);
         const scoreNum = (scoreVal != null && isFinite(+scoreVal)) ? +scoreVal : null;
         const scoreStr = scoreNum != null ? Math.round(scoreNum).toString() : '\u2014';
         const scoreCol = wlScoreColor(scoreVal);
@@ -7980,6 +8003,11 @@ function _fmtGerman(d) {{
       console.error('wlRender Fehler:', e);
     }}
   }}
+  // Auf window legen, damit der ``app_data.json``-Fetch-Handler ein
+  // Re-Render triggern kann, sobald ``_WL_CARDS`` mit den heutigen
+  // smoothed Scores befüllt ist (sonst zeigt der Tile bis dahin den
+  // raw-Score aus der History).
+  window.wlRender = wlRender;
 
   window.wlExpand = function(ticker, btn) {{
     try {{
