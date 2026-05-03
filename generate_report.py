@@ -7332,51 +7332,10 @@ function _fmtGerman(d) {{
       else                                  dotClass = 'none';     // grau, kein Pulsieren
       dot.className = 'agent-dot ' + dotClass;
 
-      const driver = (sig && sig.drivers) || '?';
-      const phaseTip = info.market_phase || '?';
-      const lastScanTip = updated
-        ? updated.toLocaleTimeString('de-DE', {{hour:'2-digit', minute:'2-digit'}}) + ' Uhr'
-        : '?';
-      const tip = document.createElement('span');
-      tip.className = 'agent-tooltip';
-      // StockTwits-Suffix (Fix 1) \u2014 sichtbar nur wenn aussagekr\u00e4ftige Stichprobe
-      let stTip = '';
-      if (sig && sig.stocktwits && sig.stocktwits.bull_ratio != null) {{
-        const stPct = Math.round(sig.stocktwits.bull_ratio * 100);
-        const stMs  = sig.stocktwits.msg_per_h || 0;
-        const stP   = sig.stocktwits.pts || 0;
-        const stSign = stP > 0 ? '+' : '';
-        stTip = ` \u2014 StockTwits: ${{stPct}}% bullisch \u00b7 ${{stMs}} Nachrichten/h`
-              + (stP !== 0 ? ` \u00b7 ${{stSign}}${{stP}} Pkt` : '');
-      }}
-      // RVOL-Suffix \u2014 immer anzeigen falls Daten vorhanden, Marker nur \u2265 3\u00d7
-      let rvTip = '';
-      if (sig && sig.rvol != null && +sig.rvol > 0) {{
-        const rv = +sig.rvol;
-        const rvMark = rv >= 5 ? ' \u00b7 🚀 Massives Volumen'
-                     : rv >= 3 ? ' \u00b7 \u26a1 Extremes Volumen'
-                     : '';
-        rvTip = ` \u2014 RVOL: ${{rv.toFixed(1)}}\u00d7${{rvMark}}`;
-      }}
-      tip.textContent = `KI-Agent Score: ${{score}}/100 \u2014 ${{driver}} \u2014 ${{phaseTip}} \u2014 ${{lastScanTip}}${{stTip}}${{rvTip}}`;
-      dot.appendChild(tip);
-
-      // position:fixed → Koordinaten via getBoundingClientRect berechnen,
-      // damit der Tooltip nicht durch .card (overflow:hidden) abgeschnitten wird
-      const positionTip = () => {{
-        const rect = dot.getBoundingClientRect();
-        tip.style.left = (rect.left + rect.width / 2) + 'px';
-        tip.style.top  = (rect.top - 6) + 'px';
-      }};
-      dot.addEventListener('mouseenter', positionTip);
-
-      // iPhone: Antippen zeigt Tooltip für 3s
-      dot.addEventListener('click', function(e) {{
-        e.stopPropagation();
-        positionTip();
-        dot.classList.add('touch-visible');
-        setTimeout(() => dot.classList.remove('touch-visible'), 3000);
-      }});
+      // Tooltip-Bauen entfällt — der farbige Punkt selbst signalisiert
+      // den Score-Bereich (grün/orange/rot/grau, Pulsationsgeschwindigkeit
+      // per CSS); die zugehörigen Detail-Werte stehen sichtbar in der
+      // Karte (Sub-Scores, Drivers-Block, KI-Signal-Block).
 
       tickerSpan.parentNode.insertBefore(dot, tickerSpan.nextSibling);
 

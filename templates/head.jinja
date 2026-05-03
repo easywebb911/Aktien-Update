@@ -784,15 +784,8 @@ select.sort-select:hover:not(:disabled){background-image:linear-gradient(45deg,t
   .agent-dot.weak    {width:12px;height:12px}
   .agent-dot.none    {width:10px;height:10px}
 }
-.agent-tooltip{position:fixed;background:#1e293b;color:#f1f5f9;
-  font-size:.68rem;white-space:nowrap;max-width:none;
-  padding:5px 10px;border-radius:6px;
-  pointer-events:none;opacity:0;transition:opacity .15s;z-index:9999;
-  border:1px solid #334155;
-  transform:translate(-50%,-100%);
-  box-shadow:0 4px 12px rgba(0,0,0,.35)}
-.agent-dot:hover .agent-tooltip{opacity:1}
-.agent-dot.touch-visible .agent-tooltip{opacity:1}
+/* Agent-Dot-Tooltip ist entfallen — siehe ``renderAgentSignals`` in
+   generate_report.py. Der Punkt selbst signalisiert genug. */
 /* ── Detail table (top of details body) ── */
 .detail-table-wrap{padding:10px 12px 8px}
 /* ── Drivers block (Synthese-Zeile + kategorisierte Stärken/Risiken) ── */
