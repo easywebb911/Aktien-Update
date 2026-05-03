@@ -8764,28 +8764,56 @@ function toggleSettings() {{
     const inp  = document.getElementById('anth-inp');
     const key  = localStorage.getItem(ANT_KEY_LS) || '';
     if (inp && key) inp.value = key;
-    // GitHub Token — gespeicherten Wert vor-ausfüllen
+    // GitHub Token — Zustand sichtbar machen, damit User weiß ob „OK" Setup
+    // (neuer Token) oder Unlock (bestehender Blob) triggert.
     const ghInp = document.getElementById('gh-inp');
     const ghTok = getToken() || '';
     if (ghInp && ghTok) ghInp.value = ghTok;
+    const ghStatus = document.getElementById('gh-status');
+    if (ghStatus) {{
+      if (ghTok) {{
+        ghStatus.className = 'anth-status ok';
+        ghStatus.textContent = '✅ Token entsperrt — diese Browser-Session aktiv';
+      }} else if (_hasEncryptedToken()) {{
+        ghStatus.className = 'anth-status';
+        ghStatus.textContent = '🔒 Token verschlüsselt gespeichert — leer lassen + OK = entsperren · neuer Token im Feld = ersetzen';
+      }} else {{
+        ghStatus.className = 'anth-status';
+        ghStatus.textContent = '';
+      }}
+    }}
   }}
 }}
 
 // ── GitHub Token — speichern / testen / löschen ─────────────────────────────
 // Phase 3: ``saveGhToken`` schreibt nicht mehr Klartext in localStorage.
-// Stattdessen öffnet sie das Setup-Modal mit dem eingegebenen Token vor-
-// gefüllt — der User vergibt dort ein Master-Passwort, alles wird AES-GCM-
-// verschlüsselt persistiert. Bestehende Encrypted-Blobs werden ersetzt.
+// Routing nach Storage-Zustand:
+//   • Encrypted-Blob da + Session leer + KEIN neuer Token im Input
+//     → Unlock-Modal (das vorhandene Blob entschlüsseln).
+//   • Neuer Token im Input (egal ob Blob existiert oder nicht)
+//     → Setup-Modal mit Token vorbefüllt; Submit überschreibt evtl.
+//       vorhandenen Blob (= „Token ersetzen").
+//   • Kein Token im Input + kein Encrypted-Blob → Fehlermeldung.
 function saveGhToken() {{
   _tokLog('saveGhToken ENTER (Settings-Panel)');
   const inp    = document.getElementById('gh-inp');
   const status = document.getElementById('gh-status');
   const tok    = (inp?.value || '').trim();
+  if (!tok && _hasEncryptedToken()) {{
+    // Häufigster Cold-Start-Fall: Blob da, Session weg, User klickt OK auf
+    // leerem Input → Unlock statt Setup, sonst Endlosschleife.
+    _tokLog('saveGhToken → routing to UNLOCK (blob exists, no input)');
+    _tokPending = null;
+    _showModal('tok-modal-unlock');
+    return;
+  }}
   if (!tok) {{
     if (status) {{ status.className = 'anth-status err'; status.textContent = '❌ Token erforderlich'; }}
     return;
   }}
-  // Token in Setup-Modal vorbefüllen, damit User nur Master-Passwort setzt.
+  // Neuer Token eingegeben → Setup-Modal (überschreibt evtl. vorhandenen Blob).
+  _tokLog('saveGhToken → routing to SETUP (new token entered)',
+          {{overwriting_blob: _hasEncryptedToken()}});
   const setupInp = document.getElementById('tok-setup-token');
   if (setupInp) setupInp.value = tok;
   if (inp) inp.value = '';
