@@ -2665,6 +2665,26 @@ def main() -> None:
             if not earnings_immediate and not vix_pause:
                 sig      = new_signals.get(ticker) or {}
                 prev_sig = old_sigs.get(ticker) or {}
+                # Push-Stille-Filter: bei überhitztem Setup (RSI > MAX
+                # oder 2-Tages-Move > MAX) werden Anomalien NICHT als
+                # Push verschickt — die Bewegung ist gelaufen, ein
+                # Einstieg ist statistisch keine Gelegenheit mehr.
+                # Anomalie bleibt aber in agent_signals (UI zeigt
+                # „📊 Bewegung gelaufen"-Label). EDGAR-Filings und
+                # Earnings-Sofort-Alerts (oben separat behandelt) sind
+                # AUSGENOMMEN — Sofort-Charakter unabhängig vom Setup.
+                _t10m       = (app_data.get("top10_metrics") or {}).get(ticker) or {}
+                _rsi14      = _t10m.get("rsi14")
+                _chg2d_pct  = _t10m.get("change_2d")  # in %
+                _silence_reasons = []
+                if isinstance(_rsi14, (int, float)) and _rsi14 > PUSH_RSI_MAX:
+                    _silence_reasons.append(f"RSI {_rsi14:.0f}")
+                if (isinstance(_chg2d_pct, (int, float))
+                        and _chg2d_pct > PUSH_MOVE_2D_MAX * 100):
+                    _silence_reasons.append(f"+{_chg2d_pct:.0f}% 2T")
+                _silence_active  = bool(_silence_reasons)
+                _silence_summary = " · ".join(_silence_reasons) if _silence_reasons else ""
+
                 for anom in detect_anomalies(ticker, sig, prev_sig, app_data,
                                              edgar_filings=edgar_filings_cache):
                     # Per-Anomaly Cooldown-Override: EDGAR setzt eigene
@@ -2674,6 +2694,16 @@ def main() -> None:
                     hours = anom.get("cooldown_hours")
                     if _anomaly_is_on_cooldown(key, state, hours=hours):
                         log.debug("Anomaly cooldown skip: %s", key)
+                        continue
+                    # EDGAR-Filings sind explizit von der Stille
+                    # ausgenommen — sie haben Sofort-Charakter.
+                    if _silence_active and anom.get("trigger") != "edgar_filing":
+                        sig["push_silenced"]  = True
+                        sig["silenced_reason"] = _silence_summary
+                        new_signals[ticker]   = sig   # in-place persist für save_signals
+                        log.info("Anomaly silenced (%s/%s) %s: %s",
+                                 anom["trigger"], anom["severity"],
+                                 ticker, _silence_summary)
                         continue
                     body = vix_warn_prefix + anom["message"]
                     if _send_anomaly_ntfy(ticker, body):

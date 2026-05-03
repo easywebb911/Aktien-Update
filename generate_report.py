@@ -869,13 +869,21 @@ def get_yfinance_batch(tickers: list[str]) -> dict[str, dict]:
             "prev_close":     prev_close,
         }
 
-        # change_5d aus Batch-History
+        # change_5d und change_2d aus Batch-History.
+        # change_2d wird vom Push-Stille-Filter (PUSH_MOVE_2D_MAX) gelesen —
+        # 2-Tages-Move = (Close[-1] − Close[-3]) / Close[-3]. Close[-3] ist
+        # der Schlusskurs vor 2 Handelstagen.
         try:
             _df = hist_batch if len(tickers) == 1 else hist_batch[ticker]
             if _df is not None and len(_df) >= 6:
                 results[ticker]["change_5d"] = round(
                     (float(_df["Close"].iloc[-1]) - float(_df["Close"].iloc[-6])) /
                     float(_df["Close"].iloc[-6]) * 100, 2
+                )
+            if _df is not None and len(_df) >= 3:
+                results[ticker]["change_2d"] = round(
+                    (float(_df["Close"].iloc[-1]) - float(_df["Close"].iloc[-3])) /
+                    float(_df["Close"].iloc[-3]) * 100, 2
                 )
         except Exception:
             pass
@@ -5337,7 +5345,7 @@ def generate_html_v1(stocks: list[dict], report_date: str, _ctx: dict | None = N
           </div>
         </div>
         <p class="score-block-foot score-block-foot-strong">
-          <strong>Push-Logik:</strong> Standard-Cooldown 6 h pro (Ticker × Trigger-Typ) · Push pausiert bei VIX &gt; 35 (Krise) · Warnung bei VIX &gt; 25.
+          <strong>Push-Logik:</strong> Standard-Cooldown 6 h pro (Ticker × Trigger-Typ) · Push pausiert bei VIX &gt; 35 (Krise) · Warnung bei VIX &gt; 25 · <strong>Stille-Filter:</strong> Push wird unterdrückt, wenn RSI &gt; {PUSH_RSI_MAX:.0f} ODER 2-Tages-Move &gt; {(PUSH_MOVE_2D_MAX*100):.0f}&nbsp;%. Anomalie bleibt im UI sichtbar mit Label „Bewegung gelaufen". Earnings- und EDGAR-Sofort-Alerts sind ausgenommen.
         </p>
       </div>
       <div class="info-box info-box--full">
@@ -7382,6 +7390,23 @@ function _fmtGerman(d) {{
       // Karte (Sub-Scores, Drivers-Block, KI-Signal-Block).
 
       tickerSpan.parentNode.insertBefore(dot, tickerSpan.nextSibling);
+
+      // Push-Stille-Filter: bei überhitztem Setup (RSI > MAX oder
+      // 2-Tages-Move > MAX) hat der KI-Agent keinen Push verschickt.
+      // Anomalie ist trotzdem da → Label sichtbar machen, damit der User
+      // weiß, warum kein Alert kam. Idempotent: vorhandenes Label vor
+      // dem Re-Insert entfernen, sonst doppelt nach jedem Re-Render.
+      const oldBadge = card.querySelector('.push-silenced-badge');
+      if (oldBadge) oldBadge.remove();
+      if (sig && sig.push_silenced) {{
+        const badge = document.createElement('span');
+        badge.className = 'push-silenced-badge';
+        const reasonTxt = (sig.silenced_reason ? ' (' + sig.silenced_reason + ')' : '');
+        badge.textContent = '📊 Bewegung gelaufen' + reasonTxt;
+        badge.title = 'Anomalie wurde erkannt, Push-Alert aber unterdrückt — Setup gilt als überhitzt.';
+        const tickerBlock = card.querySelector('.ticker-block');
+        if (tickerBlock) tickerBlock.appendChild(badge);
+      }}
 
       // Watchlist-Kompaktkarte: dot synchronisieren
       const wlDot = document.getElementById('wlkd-' + ticker);
@@ -9560,7 +9585,8 @@ def _append_backtest_entries(top10: list[dict], report_date: str,
 def _write_app_data_json(watchlist_cards: dict | None = None,
                           monster_scores: dict | None = None,
                           setup_scores: dict | None = None,
-                          gap_states: dict | None = None) -> None:
+                          gap_states: dict | None = None,
+                          top10_metrics: dict | None = None) -> None:
     """Schreibt kombinierte app_data.json = score_history + agent_signals + watchlist_cards.
 
     Beide Quelldateien (score_history.json + agent_signals.json) bleiben separat
@@ -9593,6 +9619,11 @@ def _write_app_data_json(watchlist_cards: dict | None = None,
         "monster_scores":  monster_scores or {},
         "setup_scores":    setup_scores or {},
         "gap_states":      gap_states or {},
+        # top10_metrics: pro Top-10-Ticker {rsi14, change_2d}. Wird vom
+        # KI-Agent für den Push-Stille-Filter (PUSH_RSI_MAX/PUSH_MOVE_2D_MAX)
+        # gelesen — überhitzte Setups erzeugen keinen Push, bleiben aber
+        # im UI als „Bewegung gelaufen"-Label sichtbar.
+        "top10_metrics":   top10_metrics or {},
         "fx_usd_eur":      _FX_USD_EUR,
         "generated_at":    datetime.now(ZoneInfo("UTC")).strftime("%Y-%m-%dT%H:%M:%SZ"),
     }
@@ -10783,10 +10814,23 @@ def main():
             "pct":   round(gp, 2) if gp is not None else None,
             "state": st,
         }
+    # Top-10-Metrics pro Ticker für Push-Stille-Filter im KI-Agent.
+    # ki_agent fetcht nur 5d-yfinance-Historie, kann RSI14/2D-Move daher
+    # nicht selbst rechnen — der Daily-Run liefert die Werte mit.
+    _top10_metrics = {}
+    for s in top10:
+        _t = s.get("ticker")
+        if not _t:
+            continue
+        _top10_metrics[_t] = {
+            "rsi14":     s.get("rsi14"),
+            "change_2d": s.get("change_2d"),
+        }
     _write_app_data_json(watchlist_cards=_wl_card_data,
                          monster_scores=_monster_scores,
                          setup_scores=_setup_scores,
-                         gap_states=_gap_states)
+                         gap_states=_gap_states,
+                         top10_metrics=_top10_metrics)
     print(f"Step 4 abgeschlossen in {time.time()-_t4:.1f}s", flush=True)
 
     # Step 5 — Exit-Signale für offene Positionen (Phase 1, kein Frontend).

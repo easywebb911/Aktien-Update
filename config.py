@@ -434,6 +434,17 @@ ANOMALY_MONSTER_BACKUP            = 90
 ANOMALY_VIX_PAUSE_THRESHOLD       = 35.0
 ANOMALY_VIX_WARN_THRESHOLD        = 25.0
 
+# ── Push-Stille-Filter (Bewegung-gelaufen-Heuristik) ────────────────────────
+# Ticker mit Anomalie + überhitztem Setup bekommen KEINEN Push, weil die
+# Bewegung statistisch keine Einstiegs-Gelegenheit mehr ist. Anomalie bleibt
+# in agent_signals.json (UI zeigt „📊 Bewegung gelaufen"-Label).
+#   • RSI(14)        > PUSH_RSI_MAX    → silenced
+#   • 2-Tages-Move   > PUSH_MOVE_2D_MAX → silenced
+# Earnings-Sofort-Alerts und EDGAR 13D/13G-Filings sind explizit AUSGENOMMEN
+# (Sofort-Charakter unabhängig vom Setup-Zustand).
+PUSH_RSI_MAX                      = 75.0
+PUSH_MOVE_2D_MAX                  = 0.20   # 20 %; Fraction (Close[-1]/Close[-3] − 1)
+
 # ── SEC EDGAR 13D/13G Filings (Anomalie-Trigger) ────────────────────────────
 # Hybrid-Filter:
 #   • 13D / 13D/A: jeder Filing-Eintrag löst einen Push aus (aktive Stake-
