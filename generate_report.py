@@ -6394,6 +6394,50 @@ async function _decryptToken(blobJson, password) {{
   return new TextDecoder().decode(pt);
 }}
 
+// ── Diagnose-Build: Token-State-Logging ─────────────────────────────────
+// Liefert bei jedem relevanten Schritt einen Snapshot beider Storages +
+// Memory-Slot. User schickt Console-Output nach Reproduktion zur Auswertung.
+// Setze ``_TOK_DEBUG = false`` um die Logs später wieder ruhigzustellen.
+const _TOK_DEBUG = true;
+function _tokSnapshot() {{
+  let s = null, enc = null, leg = null, lsKeys = [], ssKeys = [];
+  try {{ s   = sessionStorage.getItem(TOK_KEY); }} catch(_) {{}}
+  try {{ enc = localStorage.getItem(TOK_ENC_KEY); }} catch(_) {{}}
+  try {{ leg = localStorage.getItem(TOK_LEGACY_KEY); }} catch(_) {{}}
+  try {{ for (let i = 0; i < localStorage.length; i++) lsKeys.push(localStorage.key(i)); }} catch(_) {{}}
+  try {{ for (let i = 0; i < sessionStorage.length; i++) ssKeys.push(sessionStorage.key(i)); }} catch(_) {{}}
+  return {{
+    session_len: s   ? s.length   : 0,
+    memory_len:  (typeof _inMemoryToken === 'string') ? _inMemoryToken.length : 0,
+    enc_blob_len: enc ? enc.length : 0,
+    legacy_len:  leg ? leg.length : 0,
+    enc_blob_first40: enc ? enc.slice(0, 40) : null,
+    ls_keys: lsKeys,
+    ss_keys: ssKeys,
+    origin: location.origin,
+    pathname: location.pathname,
+    standalone: !!(window.navigator.standalone || window.matchMedia('(display-mode: standalone)').matches),
+    href: location.href,
+  }};
+}}
+function _tokLog(label, extra) {{
+  if (!_TOK_DEBUG) return;
+  try {{
+    const snap = _tokSnapshot();
+    console.log('[TOK] ' + label, Object.assign(snap, extra || {{}}));
+  }} catch(e) {{
+    console.log('[TOK] ' + label + ' (snapshot failed)', e && e.message);
+  }}
+}}
+function _tokLogStack(label) {{
+  if (!_TOK_DEBUG) return;
+  try {{ throw new Error('stack-trace'); }}
+  catch(e) {{
+    console.log('[TOK] ' + label + ' STACK:', (e.stack || '').split('\\n').slice(1, 6).join(' | '));
+  }}
+  _tokLog(label);
+}}
+
 // Token-Reader: alle bisherigen ``getToken()``-Stellen
 // lesen jetzt aus ``sessionStorage[TOK_KEY]``. Liefert leer-String wenn
 // die Session nicht entsperrt ist — Aufrufer behandeln das wie zuvor
@@ -6417,18 +6461,25 @@ function getToken() {{
 // Memory zurück.
 function _setSessionToken(tok) {{
   _inMemoryToken = tok || '';
-  try {{ sessionStorage.setItem(TOK_KEY, tok); }} catch(_) {{}}
+  let setOk = true, errMsg = null;
+  try {{ sessionStorage.setItem(TOK_KEY, tok); }}
+  catch(e) {{ setOk = false; errMsg = e && e.message; }}
+  _tokLog('_setSessionToken', {{tok_len: (tok || '').length, ss_setItem_ok: setOk, ss_setItem_err: errMsg}});
 }}
 function _clearSessionToken() {{
+  _tokLog('_clearSessionToken (vor)');
   _inMemoryToken = '';
   try {{ sessionStorage.removeItem(TOK_KEY); }} catch(_) {{}}
+  _tokLog('_clearSessionToken (nach)');
 }}
 // Vollständiger Reset: löscht verschlüsselten Blob + Session-Token +
 // Legacy-Klartext-Slot. Aufrufer triggert anschließend Setup-Modal.
 function _clearAllTokens() {{
+  _tokLogStack('_clearAllTokens (vor)');   // Stack-Trace identifiziert Aufrufer
   try {{ localStorage.removeItem(TOK_ENC_KEY); }} catch(_) {{}}
   try {{ localStorage.removeItem(TOK_LEGACY_KEY); }} catch(_) {{}}
   _clearSessionToken();
+  _tokLog('_clearAllTokens (nach)');
 }}
 
 // Atomarer Persist-und-Verify-Block für Setup/Unlock/Migrate. Schreibt
@@ -6439,23 +6490,38 @@ function _clearAllTokens() {{
 // Modal offen, statt blind zu schließen und in eine Endlosschleife zu
 // laufen.
 function _persistTokenAtomic(plaintext, encryptedBlob) {{
+  _tokLog('_persistTokenAtomic ENTER', {{has_blob: encryptedBlob != null, blob_len: encryptedBlob ? encryptedBlob.length : 0}});
   if (encryptedBlob != null) {{
-    try {{ localStorage.setItem(TOK_ENC_KEY, encryptedBlob); }}
+    try {{
+      localStorage.setItem(TOK_ENC_KEY, encryptedBlob);
+      _tokLog('_persistTokenAtomic localStorage.setItem OK');
+    }}
     catch(e) {{
+      _tokLog('_persistTokenAtomic localStorage.setItem THREW', {{err: e && e.message}});
       throw new Error('localStorage-Schreiben gescheitert: ' + (e.message || e));
     }}
     let readBack = null;
     try {{ readBack = localStorage.getItem(TOK_ENC_KEY); }} catch(_) {{}}
+    _tokLog('_persistTokenAtomic readBack', {{
+      readback_len: readBack ? readBack.length : 0,
+      matches: readBack === encryptedBlob,
+    }});
     if (readBack !== encryptedBlob) {{
       throw new Error('localStorage-Read-Back schlug fehl (iOS-Safari-Quirk?). ' +
         'Bitte Cross-Site-Tracking-Blockierung deaktivieren oder Standard-Browser nutzen.');
     }}
     try {{ localStorage.removeItem(TOK_LEGACY_KEY); }} catch(_) {{}}
+    _tokLog('_persistTokenAtomic removed legacy slot');
   }}
   _setSessionToken(plaintext);
   // ``getToken`` deckt sessionStorage + Memory-Fallback ab. Wenn beide
   // leer sind → harter Persist-Fehlschlag, Modal-Handler zeigt Error.
-  if (getToken() !== plaintext) {{
+  const finalRead = getToken();
+  _tokLog('_persistTokenAtomic FINAL', {{
+    getToken_len: finalRead.length,
+    matches_plaintext: finalRead === plaintext,
+  }});
+  if (finalRead !== plaintext) {{
     throw new Error('Token-Persistenz unmöglich — weder sessionStorage noch Memory verfügbar.');
   }}
 }}
@@ -6479,6 +6545,7 @@ function _getLegacyPlaintextToken() {{
 }}
 
 function _showModal(id) {{
+  _tokLog('_showModal', {{which: id}});
   const ov = document.getElementById('tok-modal-overlay');
   const m  = document.getElementById(id);
   if (!ov || !m) return;
@@ -6510,10 +6577,12 @@ function _closeTokenModals() {{
 
 function _ensureToken(callback) {{
   const tok = getToken();
+  _tokLog('_ensureToken ENTER', {{has_session_tok: !!tok, has_enc: _hasEncryptedToken(), has_legacy: !!_getLegacyPlaintextToken()}});
   if (tok) {{ callback(tok); return; }}
   _tokPending = callback;
-  if (_hasEncryptedToken()) {{ _showModal('tok-modal-unlock'); return; }}
-  if (_getLegacyPlaintextToken()) {{ _showModal('tok-modal-migrate'); return; }}
+  if (_hasEncryptedToken()) {{ _tokLog('_ensureToken → unlock'); _showModal('tok-modal-unlock'); return; }}
+  if (_getLegacyPlaintextToken()) {{ _tokLog('_ensureToken → migrate'); _showModal('tok-modal-migrate'); return; }}
+  _tokLog('_ensureToken → setup');
   _showModal('tok-modal-setup');
 }}
 
@@ -6525,6 +6594,7 @@ function _showModalErr(errId, msg) {{
 }}
 
 async function _submitTokenSetup() {{
+  _tokLog('_submitTokenSetup ENTER');
   const tok = (document.getElementById('tok-setup-token').value || '').trim();
   const pw  = document.getElementById('tok-setup-pw').value || '';
   const pw2 = document.getElementById('tok-setup-pw2').value || '';
@@ -6533,36 +6603,45 @@ async function _submitTokenSetup() {{
   if (pw !== pw2)   {{ _showModalErr('tok-setup-err', 'Passwörter stimmen nicht überein.'); return; }}
   try {{
     const blob = await _encryptToken(tok, pw);
+    _tokLog('_submitTokenSetup encrypted', {{blob_len: blob.length}});
     // Atomarer Block: persistieren UND verifizieren BEVOR Modal schließt.
     // iOS-Safari-Quirk: ``setItem`` kann silent fehlschlagen → Read-Back-
     // Check würfe sonst keine Exception, das Modal würde schließen, der
     // nächste ``getToken()``-Read schlägt fehl, ``_ensureToken`` öffnet
     // Setup-Modal erneut → Endlosschleife.
     _persistTokenAtomic(tok, blob);
+    _tokLog('_submitTokenSetup AFTER persist (vor close)');
     const cb = _tokPending;
     _closeTokenModals();
+    _tokLog('_submitTokenSetup AFTER close');
     if (cb) cb(tok);
+    _tokLog('_submitTokenSetup AFTER callback');
   }} catch(e) {{
     console.error('Token-Setup fehlgeschlagen:', e);
+    _tokLog('_submitTokenSetup CAUGHT', {{err: e && e.message}});
     _showModalErr('tok-setup-err', 'Speichern fehlgeschlagen: ' + e.message);
   }}
 }}
 
 async function _submitTokenUnlock() {{
+  _tokLog('_submitTokenUnlock ENTER');
   const pw = document.getElementById('tok-unlock-pw').value || '';
   if (!pw) return;
   const blob = (function(){{ try {{ return localStorage.getItem(TOK_ENC_KEY); }} catch(_) {{ return null; }} }})();
   if (!blob) {{ _showModalErr('tok-unlock-err', 'Kein verschlüsselter Token gefunden.'); return; }}
   try {{
     const tok = await _decryptToken(blob, pw);
+    _tokLog('_submitTokenUnlock decrypted', {{tok_len: tok.length}});
     _tokUnlockFails = 0;
     // Atomarer Persist-Verify (iOS-Safari-Härtung) — Encrypted-Blob ist
     // schon da, also nur Session-Token.
     _persistTokenAtomic(tok, null);
     const cb = _tokPending;
     _closeTokenModals();
+    _tokLog('_submitTokenUnlock AFTER close');
     if (cb) cb(tok);
   }} catch(e) {{
+    _tokLog('_submitTokenUnlock CAUGHT', {{err: e && e.message}});
     _tokUnlockFails++;
     const hint = _tokUnlockFails >= 3
       ? ' Nach 3 Fehlversuchen: ggf. Token neu eingeben (Link unten).'
@@ -6573,21 +6652,26 @@ async function _submitTokenUnlock() {{
 }}
 
 async function _submitTokenMigrate() {{
+  _tokLog('_submitTokenMigrate ENTER');
   const pw  = document.getElementById('tok-mig-pw').value  || '';
   const pw2 = document.getElementById('tok-mig-pw2').value || '';
   if (pw.length < 8) {{ _showModalErr('tok-mig-err', 'Master-Passwort min. 8 Zeichen.'); return; }}
   if (pw !== pw2)   {{ _showModalErr('tok-mig-err', 'Passwörter stimmen nicht überein.'); return; }}
   const legacy = _getLegacyPlaintextToken();
+  _tokLog('_submitTokenMigrate legacy lookup', {{legacy_len: legacy.length}});
   if (!legacy) {{ _closeTokenModals(); return; }}
   try {{
     const blob = await _encryptToken(legacy, pw);
+    _tokLog('_submitTokenMigrate encrypted', {{blob_len: blob.length}});
     // Atomarer Persist-Verify-Block (iOS-Safari-Härtung) — siehe Setup.
     _persistTokenAtomic(legacy, blob);
     const cb = _tokPending;
     _closeTokenModals();
+    _tokLog('_submitTokenMigrate AFTER close');
     if (cb) cb(legacy);
   }} catch(e) {{
     console.error('Token-Migration fehlgeschlagen:', e);
+    _tokLog('_submitTokenMigrate CAUGHT', {{err: e && e.message}});
     _showModalErr('tok-mig-err', 'Speichern fehlgeschlagen: ' + e.message);
   }}
 }}
@@ -6619,14 +6703,20 @@ window.addEventListener('keydown', (e) => {{
 // und noch kein Encrypted-Blob daneben liegt. Wird einmal pro Page-Load
 // nach DOMContentLoaded aufgerufen — keine sonstigen Action-Trigger.
 function _coldStartTokenMigration() {{
-  if (_hasEncryptedToken()) return;
-  if (!_getLegacyPlaintextToken()) return;
-  // Direktes Migrations-Prompt; Skip-Button = später (Klartext bleibt
-  // vorerst).
+  _tokLog('_coldStartTokenMigration ENTER');
+  if (_hasEncryptedToken()) {{ _tokLog('_coldStartTokenMigration → encrypted exists, skip'); return; }}
+  if (!_getLegacyPlaintextToken()) {{ _tokLog('_coldStartTokenMigration → no legacy, skip'); return; }}
+  _tokLog('_coldStartTokenMigration → showing migrate modal');
   _tokPending = null;
   _showModal('tok-modal-migrate');
 }}
 document.addEventListener('DOMContentLoaded', _coldStartTokenMigration);
+// Cold-Start-Snapshot direkt bei Script-Load (kein DOMContentLoaded-Wait):
+_tokLog('SCRIPT LOAD');
+window.addEventListener('beforeunload', () => _tokLog('beforeunload'));
+window.addEventListener('pagehide', (e) => _tokLog('pagehide', {{persisted: e.persisted}}));
+document.addEventListener('visibilitychange', () => _tokLog('visibilitychange', {{state: document.visibilityState}}));
+window.addEventListener('storage', (e) => _tokLog('storage event (cross-tab)', {{key: e.key, oldLen: (e.oldValue || '').length, newLen: (e.newValue || '').length, url: e.url}}));
 // ─────────────────────────────────────────────────────────────────────────
 function reloadPage(){{
   const btn = document.getElementById('btn-reload');
@@ -8687,6 +8777,7 @@ function toggleSettings() {{
 // gefüllt — der User vergibt dort ein Master-Passwort, alles wird AES-GCM-
 // verschlüsselt persistiert. Bestehende Encrypted-Blobs werden ersetzt.
 function saveGhToken() {{
+  _tokLog('saveGhToken ENTER (Settings-Panel)');
   const inp    = document.getElementById('gh-inp');
   const status = document.getElementById('gh-status');
   const tok    = (inp?.value || '').trim();
@@ -8739,6 +8830,7 @@ async function testGhToken() {{
 }}
 
 function clearGhToken() {{
+  _tokLog('clearGhToken (Settings-Panel)');
   const inp    = document.getElementById('gh-inp');
   const status = document.getElementById('gh-status');
   // Phase 3: räumt verschlüsselten Blob + Session-Token + Legacy-Klartext.
