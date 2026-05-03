@@ -4050,7 +4050,7 @@ def _card(i: int, s: dict) -> str:
     </div>
   </div>
   <button class="details-btn" onclick="toggleDetails({i})" id="db{i}" aria-expanded="false">
-    <span class="details-arrow" id="da{i}">▾</span><span id="dl{i}"> Details anzeigen</span>
+    <span class="details-arrow" id="da{i}">▼</span><span id="dl{i}"> Details anzeigen</span>
   </button>
   <div class="details-body" id="dd{i}">
     <div class="detail-table-wrap">
