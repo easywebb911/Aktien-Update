@@ -39,20 +39,12 @@ ${JSON.stringify(STOCKS_CTX)}`;
   function _renderChips() {
     const chips = document.getElementById('chat-chips');
     if (!chips) return;
-    const top10 = STOCKS_CTX.today_top10 || [];
-    const anom  = STOCKS_CTX.anomalies_today || [];
-    const pos   = STOCKS_CTX.positions || [];
-    const topMover = anom.find(a => a.trigger === 'score_jump')?.ticker || top10[0]?.ticker || 'Top 1';
-    const posT     = pos[0]?.ticker;
+    // Drei feste Schnell-Fragen — keine dynamische Variation, keine Top-10-/
+    // Position-/Anomalie-Templates mehr. Quelle: Festlegung im Frontend-Spec.
     const suggestions = [
-      '⚡ Welche Anomalien sind heute am wichtigsten?',
-      `🚀 Was hat sich bei ${topMover} gegenüber gestern geändert?`,
-      '🔄 Welche Top-10-Einsteiger sind erklärungsbedürftig?',
-      posT
-        ? `📊 Wie sieht meine Position ${posT} im Tageskontext aus?`
-        : '🎯 Wo siehst du das beste Risiko/Chancen-Verhältnis — und wo nicht?',
-      '⚠️ Wo widersprechen Daten und Score sich heute?',
-      '📅 Welcher Kandidat hat den frischesten Katalysator (Earnings/News)?',
+      'Wie schätzt du die aktuelle Squeeze-Lage ein?',
+      'Welche Aktie hat heute den besten Setup-Score und warum?',
+      'Welcher Ticker hat das beste Risk-Reward gerade?',
     ];
     chips.innerHTML = suggestions.map(s =>
       `<button class="chip" onclick="chatAsk(${JSON.stringify(s).replace(/"/g,'&quot;')})">${s}</button>`
