@@ -211,8 +211,15 @@ select.sort-select:hover:not(:disabled){background-image:linear-gradient(45deg,t
 .stats-bar{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px}
 .stat-title{grid-column:1 / -1;background:#042C53;border-radius:10px;
   padding:11px 8px;text-align:center;color:#E6F1FB;font-size:1.19rem;font-weight:500}
-.stat-box{background:var(--bg-card);border:1px solid var(--brd);border-radius:10px;
-  padding:10px 8px;text-align:center}
+/* Stat-Tile 3D-Look (eingelassen): Gradient von dunkel oben → leichter
+   unten + Inset-Schatten erzeugt einen versenkten Effekt — bewusster
+   Kontrast zur erhabenen Card (linear-gradient hell-oben → dunkel-unten,
+   Outset-Schatten + Inset-Highlight). Klare visuelle Hierarchie:
+   reine Anzeige-Werte vs. interaktive Card. */
+.stat-box{background:linear-gradient(180deg,rgba(0,0,0,.08) 0%,rgba(0,0,0,.02) 100%) var(--bg-met);
+  border:.5px solid var(--brd);border-radius:14px;
+  box-shadow:inset 0 2px 4px rgba(0,0,0,.10);
+  padding:14px 10px;text-align:center}
 .stat-val{display:block;font-size:1.05rem;font-weight:800;color:var(--accent)}
 .stat-lbl{display:block;font-size:.62rem;color:var(--txt-dim);text-transform:uppercase;
   letter-spacing:.4px;margin-top:2px}
