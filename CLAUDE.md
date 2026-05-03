@@ -1106,6 +1106,42 @@ Drawer verlinkt; `theme-btn`-Lookups sind defensive (`if (tb)`).
 
 ---
 
+## v1/v2 Render-Pfad
+
+Es existieren zwei Render-Pfade für die HTML-Generierung — **v2 ist
+nicht autark** und delegiert am Ende an v1.
+
+- **v1** = f-String in `_card()` + `generate_html_v1()` (Outer-Page).
+- **v2** = `templates/card.jinja` via `generate_html_v2()` — rendert
+  **nur** die Karten-Snippets und schleust sie als `cards`-Key in
+  v1's Context ein. Die letzte Zeile von `generate_html_v2()` ist
+  `return generate_html_v1(stocks, report_date, _ctx=ctx_v2)` — die
+  komplette umschließende Seite (Header, Watchlist-Section,
+  Backtesting, Chat-Glue, JS, Footer) kommt weiterhin aus v1.
+- Zusätzlich ruft `_wl_full_card_html()` direkt `_card(0, s)` auf und
+  post-processed das HTML mit Regex-Stripping — der Watchlist-Drawer
+  hängt also ebenfalls am v1-Pfad.
+
+**Wer v1 löscht, killt v2 mit.** Eine vollständige Migration zu
+reinem Jinja erfordert drei Schritte in einem Zug:
+
+1. `templates/page.jinja` für die Outer-Page anlegen (Header,
+   Watchlist-Section, Backtesting, Chat-Glue, JS, Footer aus v1's
+   f-String herauslösen).
+2. `_wl_full_card_html()` ohne Regex-Stripping neu aufbauen
+   (eigene `wl_card.jinja` oder direkter Python-HTML-Zusammenbau aus
+   dem Card-Context).
+3. `generate_html_v2()` autark machen — kein
+   `return generate_html_v1(...)` mehr.
+
+Erst danach v1 entfernen. `JINJA_RENDER_TEST` muss vorher die
+Outer-Page mit byte-vergleichen können — aktuell deckt der Test nur
+die Karten-Snippets ab. Ein prominenter Architektur-Anker direkt vor
+`generate_html_v2()` in `generate_report.py` wiederholt diese
+Hinweise im Code.
+
+---
+
 ## Session-Handover-Regel
 
 Wenn der User die Sitzung mit „Gute Nacht" (oder Varianten wie „Schlaf gut",

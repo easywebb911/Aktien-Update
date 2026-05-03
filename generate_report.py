@@ -9007,6 +9007,35 @@ if ('serviceWorker' in navigator
 </html>"""
 
 
+# ============================================================================
+# ARCHITEKTUR-ANKER — v2 ist NICHT autark!
+# ============================================================================
+# v2 rendert NUR die einzelnen Karten-Snippets via ``templates/card.jinja``.
+# Die umschließende Seite (Header, Watchlist-Section, Backtesting-Section,
+# Chat-Glue, JS-Block, Footer) kommt weiterhin vollständig aus v1's f-String.
+# Konkret: v2 baut den Karten-String und delegiert am Ende an
+# ``generate_html_v1(stocks, report_date, _ctx=ctx_v2)`` — v2 schleust nur
+# den ``cards``-Key in v1's Context ein.
+#
+# **Wer v1 löscht, killt v2 mit.** Auch ``_wl_full_card_html()`` ruft
+# direkt ``_card(0, s)`` auf und post-processed dessen HTML mit Regex —
+# ohne v1 ist der Watchlist-Drawer leer.
+#
+# Vollständige Migration zu reinem Jinja erfordert drei Schritte in EINEM
+# Zug (siehe SESSION_HANDOVER „Phase X — v1-Pfad-Migration"):
+#   1. ``templates/page.jinja`` für die Outer-Page anlegen (Header,
+#      Watchlist-Section, Backtesting, Chat-Glue, JS, Footer).
+#   2. ``_wl_full_card_html()`` ohne Regex-Stripping neu aufbauen
+#      (eigene ``wl_card.jinja`` oder direkter Python-HTML-Zusammenbau
+#      aus dem Card-Context).
+#   3. ``generate_html_v2()`` autark machen — kein
+#      ``return generate_html_v1(...)`` mehr.
+# Erst danach v1 entfernen. ``JINJA_RENDER_TEST`` muss vorher die
+# Outer-Page mit byte-vergleichen können — aktuell deckt der Test nur
+# die Karten-Snippets ab.
+# ============================================================================
+
+
 def generate_html_v2(stocks: list[dict], report_date: str) -> str:
     """Jinja2-basiertes Rendering.
 
@@ -9014,6 +9043,9 @@ def generate_html_v2(stocks: list[dict], report_date: str) -> str:
     wird in den v1-Page-Context eingeschleust, sodass ``_render_test``
     die Karten-Quelle (f-String vs Jinja2) isoliert vergleichen kann.
     Äußere Seitenstruktur folgt in späteren Phasen; v1 bleibt Default.
+
+    **NICHT autark** — siehe Architektur-Anker oben. Endet mit
+    ``return generate_html_v1(stocks, report_date, _ctx=ctx_v2)``.
     """
     ctx = _build_context(stocks, report_date)
     env = _jinja_env()

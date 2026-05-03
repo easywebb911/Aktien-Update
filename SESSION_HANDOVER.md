@@ -39,6 +39,18 @@
    (Blow-off-Top + IV-Crush)
 8. ⏰ Wiedervorlage 02.07.2026: Premium-Daten-Stack prüfen
 9. Filter-Flexibilisierung prüfen (Bahn A2)
+10. Phase X — v1-Pfad-Migration (drei Schritte zusammen):
+    1. `templates/page.jinja` für Outer-Page-Template anlegen
+       (Header, Watchlist-Section, Backtesting, Chat-Glue, JS,
+       Footer aus v1's f-String herauslösen).
+    2. `_wl_full_card_html()` ohne Regex-Stripping neu aufbauen
+       (eigene `wl_card.jinja` oder direkter Python-HTML-Zusammenbau
+       aus dem Card-Context).
+    3. `generate_html_v2()` autark machen — kein
+       `return generate_html_v1(...)` mehr am Ende.
+    Erst danach v1 entfernen. `JINJA_RENDER_TEST` muss vorher die
+    Outer-Page mit byte-vergleichen können — aktuell deckt der Test
+    nur die Karten-Snippets ab.
 
 ## Optional / niedrig priorisiert
 - IBKR Borrow Rate liefert konstant HTTP 404 — Provider-Fallback
