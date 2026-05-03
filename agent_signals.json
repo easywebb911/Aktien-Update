@@ -1,10 +1,10 @@
 {
-  "updated": "2026-05-03T22:18:23.722712+02:00",
+  "updated": "2026-05-03T22:40:12.483241+02:00",
   "run_info": {
     "tickers_checked": 10,
     "signals_active": 2,
     "alerts_sent": 0,
-    "elapsed_s": 10.9,
+    "elapsed_s": 10.0,
     "market_phase": "Geschlossen"
   },
   "signals": {
@@ -75,7 +75,7 @@
     "ASAN": {
       "score": 48,
       "confidence": 33,
-      "drivers": "News: short squeeze, squeeze + Earnings in 25d + UOA Call/Put 4.4×",
+      "drivers": "News: squeeze, short squeeze + Earnings in 25d + UOA Call/Put 4.4×",
       "price": 6.99,
       "chg_pct": 0.0,
       "rvol": 0.0,
@@ -94,9 +94,9 @@
       "uoa_cp_ratio": 4.39572192513369
     },
     "SST": {
-      "score": 16,
-      "confidence": 33,
-      "drivers": "News-KI 8/30: Positive earnings and growth forecast lack the short squeeze indicators (high short interest, extreme volatility, retail + Earnings in 9d",
+      "score": 8,
+      "confidence": 17,
+      "drivers": "Earnings in 9d",
       "price": 3.94,
       "chg_pct": 0.0,
       "rvol": 0.0,
@@ -156,9 +156,9 @@
       "uoa_cp_ratio": 36.30808950086058
     },
     "ALT": {
-      "score": 58,
+      "score": 55,
       "confidence": 33,
-      "drivers": "News: catalyst + Earnings in 9d + FINRA Short-Vol 89% + UOA Call/Put 19.1×",
+      "drivers": "News-KI 12/30: Positive financing news reduces squeeze potential, but penny stock status and upcoming catalysts provide some volatility + Earnings in 9d + FINRA Short-Vol 89% + UOA Call/Put 19.1×",
       "price": 2.82,
       "chg_pct": 0.0,
       "rvol": 0.0,
@@ -177,9 +177,9 @@
       "uoa_cp_ratio": 19.13953488372093
     },
     "GOGO": {
-      "score": 33,
+      "score": 44,
       "confidence": 33,
-      "drivers": "Earnings in 4 Tagen (07.05.2026) + News-KI 8/30: Earnings report announcement combined with guidance concerns and capital returns suggest mixed fundamentals; limited sho + Earnings in 4d + UOA Call/Put 67.6×",
+      "drivers": "Earnings in 4 Tagen (07.05.2026) + News: catalyst + Earnings in 4d + UOA Call/Put 67.6×",
       "price": 4.47,
       "chg_pct": 0.0,
       "rvol": 0.0,
@@ -188,8 +188,8 @@
       "upcoming_event": "Earnings in 4 Tagen (07.05.2026)",
       "insider_buy": false,
       "stocktwits": null,
-      "combo_mult": 1.0,
-      "active_triggers": 1,
+      "combo_mult": 1.1,
+      "active_triggers": 2,
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 67.6×"
@@ -200,7 +200,7 @@
     "ALMU": {
       "score": 38,
       "confidence": 33,
-      "drivers": "News: breakout, partnership + Earnings in 10d",
+      "drivers": "News: partnership, breakout + Earnings in 10d",
       "price": 25.58,
       "chg_pct": 0.0,
       "rvol": 0.0,
