@@ -59,6 +59,19 @@
    Regex-Stripping neu, generate_html_v2 autark.
    Erst dann v1 entfernen. JINJA_RENDER_TEST muss vorher
    die Outer-Page byte-vergleichen können.
+10. Phase Y — Score-Aufschlüsselung pro Karte (UI-Transparenz):
+    beim Klick auf den Setup-Score eine Aufschlüsselung anzeigen,
+    die alle Schichten der Score-Berechnung sichtbar macht:
+    - Roh-Score (Basis aus Struktur/Katalysator/Timing/Squeeze)
+    - Treibersumme aus dem Driver-Breakdown (gewichtet)
+    - Score-Smoothing (vorher/nachher)
+    - FINRA-Trend-Bonus
+    - KI-Agent-Boost (Multiplikator)
+    - Final-Score
+    Ziel: Diskrepanz zwischen Driver-Summe und Final-Score
+    nachvollziehbar machen. Begründung: heute zeigt der Driver-
+    Block z.B. summiert 77, der Score aber 83.4 — das ist nicht
+    falsch, aber im UI nicht erklärt.
 
 ## Optional / niedrig priorisiert
 - IBKR Borrow Rate liefert konstant HTTP 404 — Provider-
