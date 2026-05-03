@@ -1,10 +1,10 @@
 {
-  "updated": "2026-05-03T15:05:15.318016+02:00",
+  "updated": "2026-05-03T16:46:33.852122+02:00",
   "run_info": {
     "tickers_checked": 10,
     "signals_active": 3,
     "alerts_sent": 0,
-    "elapsed_s": 12.3,
+    "elapsed_s": 12.7,
     "market_phase": "Geschlossen"
   },
   "signals": {
@@ -54,7 +54,7 @@
     "GRPN": {
       "score": 61,
       "confidence": 33,
-      "drivers": "Earnings in 4 Tagen (07.05.2026) + News: short squeeze, squeeze + Earnings in 4d + UOA Call/Put 4.2×",
+      "drivers": "Earnings in 4 Tagen (07.05.2026) + News: squeeze, short squeeze + Earnings in 4d + UOA Call/Put 4.2×",
       "price": 14.89,
       "chg_pct": 0.0,
       "rvol": 0.0,
@@ -71,6 +71,25 @@
       ],
       "uoa_atm_ratio": 0.13342579750346742,
       "uoa_cp_ratio": 4.22093023255814
+    },
+    "ASAN": {
+      "score": 38,
+      "confidence": 33,
+      "drivers": "News: squeeze, short squeeze + Earnings in 25d",
+      "price": 6.99,
+      "chg_pct": 0.0,
+      "rvol": 0.0,
+      "earnings": "in 25 Tagen (28.05.2026)",
+      "fda_date": null,
+      "upcoming_event": null,
+      "insider_buy": false,
+      "stocktwits": null,
+      "combo_mult": 1.0,
+      "active_triggers": 1,
+      "uoa_score": 0,
+      "uoa_drivers": [],
+      "uoa_atm_ratio": 0.35125448028673834,
+      "uoa_cp_ratio": 1.5406976744186047
     },
     "WBTN": {
       "score": 33,
@@ -93,29 +112,10 @@
       "uoa_atm_ratio": 0.11666666666666667,
       "uoa_cp_ratio": 14.5
     },
-    "ASAN": {
-      "score": 38,
-      "confidence": 33,
-      "drivers": "News: short squeeze, squeeze + Earnings in 25d",
-      "price": 6.99,
-      "chg_pct": 0.0,
-      "rvol": 0.0,
-      "earnings": "in 25 Tagen (28.05.2026)",
-      "fda_date": null,
-      "upcoming_event": null,
-      "insider_buy": false,
-      "stocktwits": null,
-      "combo_mult": 1.0,
-      "active_triggers": 1,
-      "uoa_score": 0,
-      "uoa_drivers": [],
-      "uoa_atm_ratio": 0.35125448028673834,
-      "uoa_cp_ratio": 1.5406976744186047
-    },
     "SST": {
-      "score": 16,
-      "confidence": 33,
-      "drivers": "News-KI 8/30: Positive earnings outlook shows operational improvement but lacks short squeeze catalysts like high short interest, gamm + Earnings in 9d",
+      "score": 8,
+      "confidence": 17,
+      "drivers": "Earnings in 9d",
       "price": 3.94,
       "chg_pct": 0.0,
       "rvol": 0.0,
@@ -132,9 +132,9 @@
       "uoa_cp_ratio": null
     },
     "TDOC": {
-      "score": 30,
+      "score": 35,
       "confidence": 17,
-      "drivers": "UOA Call-Vol/OI 9.0× ATM + UOA Call/Put 35.7×",
+      "drivers": "News-KI 5/30: Positive earnings and product developments lack the extreme bearish sentiment, high short interest confirmation, and for + UOA Call-Vol/OI 9.0× ATM + UOA Call/Put 35.7×",
       "price": 6.46,
       "chg_pct": 0.0,
       "rvol": 0.0,
@@ -194,9 +194,9 @@
       "uoa_cp_ratio": 1.1095238095238096
     },
     "PAR": {
-      "score": 23,
+      "score": 20,
       "confidence": 33,
-      "drivers": "Earnings in 4 Tagen (07.05.2026) + News-KI 8/30: Negative sentiment and questioning fundamentals suggest weak investor confidence, but no evidence of high short interest + Earnings in 4d",
+      "drivers": "Earnings in 4 Tagen (07.05.2026) + News-KI 5/30: Negative sentiment and fundamental criticism reduce short-squeeze potential; no short-squeeze catalysts evident. + Earnings in 4d",
       "price": 14.26,
       "chg_pct": 0.0,
       "rvol": 0.0,
