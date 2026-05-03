@@ -1,10 +1,10 @@
 {
-  "updated": "2026-05-03T22:40:12.483241+02:00",
+  "updated": "2026-05-03T23:39:28.394410+02:00",
   "run_info": {
     "tickers_checked": 10,
     "signals_active": 2,
     "alerts_sent": 0,
-    "elapsed_s": 10.0,
+    "elapsed_s": 11.5,
     "market_phase": "Geschlossen"
   },
   "signals": {
@@ -134,9 +134,9 @@
       "uoa_cp_ratio": 9.581896551724139
     },
     "TDOC": {
-      "score": 30,
+      "score": 42,
       "confidence": 17,
-      "drivers": "UOA Call-Vol/OI 9.0× ATM + UOA Call/Put 36.3×",
+      "drivers": "News-KI 12/30: Positive earnings and product developments indicate fundamental strength but lack the short squeeze catalysts of extreme + UOA Call-Vol/OI 9.0× ATM + UOA Call/Put 36.3×",
       "price": 6.46,
       "chg_pct": 0.0,
       "rvol": 0.0,
@@ -146,7 +146,7 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 0,
+      "active_triggers": 1,
       "uoa_score": 30,
       "uoa_drivers": [
         "UOA Call-Vol/OI 9.0× ATM",
@@ -156,9 +156,9 @@
       "uoa_cp_ratio": 36.30808950086058
     },
     "ALT": {
-      "score": 55,
+      "score": 58,
       "confidence": 33,
-      "drivers": "News-KI 12/30: Positive financing news reduces squeeze potential, but penny stock status and upcoming catalysts provide some volatility + Earnings in 9d + FINRA Short-Vol 89% + UOA Call/Put 19.1×",
+      "drivers": "News-KI 15/30: Positive capital raise and analyst interest, but no short squeeze indicators (no high short interest, borrow issues, or  + Earnings in 9d + FINRA Short-Vol 89% + UOA Call/Put 19.1×",
       "price": 2.82,
       "chg_pct": 0.0,
       "rvol": 0.0,
