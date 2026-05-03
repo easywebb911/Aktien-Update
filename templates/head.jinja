@@ -353,8 +353,15 @@ select.sort-select:hover:not(:disabled){background-image:linear-gradient(45deg,t
 /* ── Card grid: mobile 1-col (8px gap); ≥768px auto-fill (16px gap) ── */
 .cards-grid{display:grid;grid-template-columns:1fr;gap:8px}
 /* ── Card ── */
-.card{background:var(--bg-card);border:1px solid var(--brd);border-radius:var(--radius);
-  box-shadow:var(--shadow);overflow:hidden}
+/* TopTen-Card 3D-Look (Variante 1B): kräftiger als Watchlist (Gradient
+   2-Stops, 2px-Schatten, Inset-Highlight) — passend zur größeren Card-
+   Fläche. ``border-radius:14px`` ersetzt das vormals globale
+   ``var(--radius)`` (8px) für TopTen; andere Konsumenten der Variable
+   sind unberührt. ``box-shadow`` ersetzt ``var(--shadow)`` analog. */
+.card{background:linear-gradient(180deg,rgba(255,255,255,.05) 0%,rgba(0,0,0,.10) 100%) var(--bg-card);
+  border:.5px solid var(--brd);border-radius:14px;
+  box-shadow:0 2px 8px rgba(0,0,0,.08),inset 0 0 0 .5px rgba(255,255,255,.05);
+  overflow:hidden}
 .card-top{display:flex;align-items:flex-start;justify-content:space-between;
   padding:14px 14px 10px;gap:10px}
 .card-left{display:flex;align-items:flex-start;gap:10px;flex:1;min-width:0}
