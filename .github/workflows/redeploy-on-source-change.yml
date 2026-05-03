@@ -1,0 +1,47 @@
+name: Redeploy index.html on source change
+
+# GitHub Pages liefert das committed ``index.html`` 1:1 aus — kein
+# Build-Step. ``index.html`` wird nur vom ``daily-squeeze-report.yml``-
+# Workflow erzeugt (Schedule Mo-Fr 10:00 UTC + manueller Dispatch).
+# Bei reinen Code-Änderungen (Phase 3 z. B.) blieb das deployed HTML
+# bisher auf dem alten Stand bis zum nächsten Daily-Run.
+#
+# Dieser Workflow triggert ``daily-squeeze-report.yml`` automatisch
+# per Dispatch, sobald ein Code-Push auf ``main`` eine der relevanten
+# Quell-Dateien berührt — Pages bekommt das aktualisierte HTML
+# innerhalb weniger Minuten ohne Wartezeit auf den nächsten Cron.
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'generate_report.py'
+      - 'config.py'
+      - 'templates/**'
+      - 'scripts/lint_chat_template.py'
+      - 'requirements.txt'
+
+permissions:
+  actions: write
+
+concurrency:
+  # Mehrere schnell aufeinanderfolgende Source-Commits → nur den
+  # letzten Trigger ausführen. Vermeidet redundante Runs.
+  group: redeploy-on-source-change
+  cancel-in-progress: true
+
+jobs:
+  trigger-redeploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+
+    steps:
+      - name: Dispatch daily-squeeze-report.yml
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh workflow run daily-squeeze-report.yml \
+            --repo "${{ github.repository }}" \
+            --ref main
+          echo "Daily-Squeeze-Report dispatched — index.html wird ~5 min."
