@@ -1,10 +1,10 @@
 {
-  "updated": "2026-05-03T10:04:14.387567+02:00",
+  "updated": "2026-05-03T12:02:24.060588+02:00",
   "run_info": {
     "tickers_checked": 10,
     "signals_active": 3,
-    "alerts_sent": 0,
-    "elapsed_s": 10.1,
+    "alerts_sent": 1,
+    "elapsed_s": 10.5,
     "market_phase": "Geschlossen"
   },
   "signals": {
@@ -113,9 +113,9 @@
       "uoa_cp_ratio": 14.5
     },
     "SST": {
-      "score": 16,
+      "score": 20,
       "confidence": 33,
-      "drivers": "News-KI 8/30: Positive earnings and growth outlook suggest improving fundamentals, but no indicators of high short interest, low float + Earnings in 9d",
+      "drivers": "News-KI 12/30: Positive earnings outlook lacks the extreme bearish sentiment, high short interest confirmation, and technical catalyst  + Earnings in 9d",
       "price": 3.94,
       "chg_pct": 0.0,
       "rvol": 0.0,
@@ -125,16 +125,16 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 0,
+      "active_triggers": 1,
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": null,
       "uoa_cp_ratio": null
     },
     "TDOC": {
-      "score": 30,
+      "score": 38,
       "confidence": 17,
-      "drivers": "UOA Call-Vol/OI 9.0× ATM + UOA Call/Put 35.7×",
+      "drivers": "News-KI 8/30: Positive operational developments but no significant short-squeeze indicators like short-interest spikes, forced coverin + UOA Call-Vol/OI 9.0× ATM + UOA Call/Put 35.7×",
       "price": 6.46,
       "chg_pct": 0.0,
       "rvol": 0.0,
@@ -175,9 +175,9 @@
       "uoa_cp_ratio": 13.534722222222221
     },
     "FUBO": {
-      "score": 44,
+      "score": 33,
       "confidence": 33,
-      "drivers": "Earnings in 3 Tagen (06.05.2026) + News: merger + Earnings in 3d",
+      "drivers": "Earnings in 3 Tagen (06.05.2026) + News-KI 8/30: Negative earnings expectations and analyst downgrades in the sector create weak momentum; no short squeeze catalyst evid + Earnings in 3d",
       "price": 13.82,
       "chg_pct": 0.0,
       "rvol": 0.0,
@@ -186,8 +186,8 @@
       "upcoming_event": "Earnings in 3 Tagen (06.05.2026)",
       "insider_buy": false,
       "stocktwits": null,
-      "combo_mult": 1.1,
-      "active_triggers": 2,
+      "combo_mult": 1.0,
+      "active_triggers": 1,
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": 0.47162426614481406,
