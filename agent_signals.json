@@ -1,10 +1,10 @@
 {
-  "updated": "2026-05-03T16:46:33.852122+02:00",
+  "updated": "2026-05-03T17:27:38.055159+02:00",
   "run_info": {
     "tickers_checked": 10,
     "signals_active": 3,
     "alerts_sent": 0,
-    "elapsed_s": 12.7,
+    "elapsed_s": 11.1,
     "market_phase": "Geschlossen"
   },
   "signals": {
@@ -73,9 +73,9 @@
       "uoa_cp_ratio": 4.22093023255814
     },
     "ASAN": {
-      "score": 38,
+      "score": 13,
       "confidence": 33,
-      "drivers": "News: squeeze, short squeeze + Earnings in 25d",
+      "drivers": "News-KI 5/30: Routine earnings announcement with no short-squeeze catalysts; inclusion in generic listicle provides minimal relevance  + Earnings in 25d",
       "price": 6.99,
       "chg_pct": 0.0,
       "rvol": 0.0,
@@ -85,7 +85,7 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 1,
+      "active_triggers": 0,
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": 0.35125448028673834,
@@ -132,9 +132,9 @@
       "uoa_cp_ratio": null
     },
     "TDOC": {
-      "score": 35,
+      "score": 30,
       "confidence": 17,
-      "drivers": "News-KI 5/30: Positive earnings and product developments lack the extreme bearish sentiment, high short interest confirmation, and for + UOA Call-Vol/OI 9.0× ATM + UOA Call/Put 35.7×",
+      "drivers": "UOA Call-Vol/OI 9.0× ATM + UOA Call/Put 35.7×",
       "price": 6.46,
       "chg_pct": 0.0,
       "rvol": 0.0,
@@ -196,7 +196,7 @@
     "PAR": {
       "score": 20,
       "confidence": 33,
-      "drivers": "Earnings in 4 Tagen (07.05.2026) + News-KI 5/30: Negative sentiment and fundamental criticism reduce short-squeeze potential; no short-squeeze catalysts evident. + Earnings in 4d",
+      "drivers": "Earnings in 4 Tagen (07.05.2026) + News-KI 5/30: Negative sentiment, weak fundamentals, and no short squeeze catalysts; third headline is unrelated competitor news. + Earnings in 4d",
       "price": 14.26,
       "chg_pct": 0.0,
       "rvol": 0.0,
