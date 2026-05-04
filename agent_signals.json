@@ -1,17 +1,17 @@
 {
-  "updated": "2026-05-04T01:42:20.506021+02:00",
+  "updated": "2026-05-04T04:39:19.915460+02:00",
   "run_info": {
     "tickers_checked": 10,
     "signals_active": 2,
     "alerts_sent": 0,
-    "elapsed_s": 10.2,
+    "elapsed_s": 14.8,
     "market_phase": "Geschlossen"
   },
   "signals": {
     "XRX": {
-      "score": 25,
+      "score": 22,
       "confidence": 17,
-      "drivers": "News: revenue beat + UOA Call/Put 8.2×",
+      "drivers": "News-KI 12/30: Positive momentum and AI transformation narrative lack the critical short-squeeze indicators like extreme short interest + UOA Call/Put 8.2×",
       "price": 2.7,
       "chg_pct": 0.0,
       "rvol": 0.0,
@@ -75,9 +75,9 @@
       "uoa_cp_ratio": 14.5
     },
     "ASAN": {
-      "score": 26,
+      "score": 48,
       "confidence": 33,
-      "drivers": "News-KI 8/30: Routine earnings announcement without indicators of high short interest, low float, or catalyst for rapid covering. + Earnings in 25d + UOA Call/Put 4.4×",
+      "drivers": "News: short squeeze, squeeze + Earnings in 25d + UOA Call/Put 4.4×",
       "price": 6.99,
       "chg_pct": 0.0,
       "rvol": 0.0,
@@ -87,7 +87,7 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 0,
+      "active_triggers": 1,
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 4.4×"
@@ -96,9 +96,9 @@
       "uoa_cp_ratio": 4.39572192513369
     },
     "SST": {
-      "score": 8,
-      "confidence": 17,
-      "drivers": "Earnings in 9d",
+      "score": 16,
+      "confidence": 33,
+      "drivers": "News-KI 8/30: Positive earnings outlook shows improving fundamentals but lacks short-squeeze indicators like high short interest, low  + Earnings in 9d",
       "price": 3.94,
       "chg_pct": 0.0,
       "rvol": 0.0,
@@ -136,9 +136,9 @@
       "uoa_cp_ratio": 9.581896551724139
     },
     "TDOC": {
-      "score": 38,
+      "score": 30,
       "confidence": 17,
-      "drivers": "News-KI 8/30: Positive earnings and product news indicate fundamental strength rather than short-squeeze setup; low short interest and + UOA Call-Vol/OI 9.0× ATM + UOA Call/Put 36.3×",
+      "drivers": "UOA Call-Vol/OI 9.0× ATM + UOA Call/Put 36.3×",
       "price": 6.46,
       "chg_pct": 0.0,
       "rvol": 0.0,
@@ -158,9 +158,9 @@
       "uoa_cp_ratio": 36.30808950086058
     },
     "ALT": {
-      "score": 55,
+      "score": 51,
       "confidence": 33,
-      "drivers": "News-KI 12/30: Positive funding news reduces squeeze potential, but penny stock status and clinical catalysts offer some volatility; ho + Earnings in 9d + FINRA Short-Vol 89% + UOA Call/Put 19.1×",
+      "drivers": "News-KI 8/30: Positive financing news and potential catalysts, but high cash position reduces squeeze pressure and penny stock classif + Earnings in 9d + FINRA Short-Vol 89% + UOA Call/Put 19.1×",
       "price": 2.82,
       "chg_pct": 0.0,
       "rvol": 0.0,
@@ -170,7 +170,7 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 1,
+      "active_triggers": 0,
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 19.1×"
