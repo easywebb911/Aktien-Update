@@ -1,18 +1,18 @@
 {
-  "updated": "2026-05-04T15:57:24.757263+02:00",
+  "updated": "2026-05-04T16:47:54.536699+02:00",
   "run_info": {
     "tickers_checked": 10,
-    "signals_active": 1,
-    "alerts_sent": 0,
-    "elapsed_s": 13.5,
+    "signals_active": 2,
+    "alerts_sent": 1,
+    "elapsed_s": 12.0,
     "market_phase": "Regulär"
   },
   "signals": {
     "CABA": {
-      "score": 16,
+      "score": 18,
       "confidence": 33,
-      "drivers": "News-KI 8/30: Positive biotech news with strategic partnership, but large capital raise dilutes shares and reduces short-squeeze poten + Earnings in 10d",
-      "price": 3.31,
+      "drivers": "Earnings in 10d + UOA Call/Put 23.6×",
+      "price": 3.54,
       "chg_pct": 0.0,
       "rvol": 0.0,
       "earnings": "in 10 Tagen (14.05.2026)",
@@ -22,16 +22,18 @@
       "stocktwits": null,
       "combo_mult": 1.0,
       "active_triggers": 0,
-      "uoa_score": 0,
-      "uoa_drivers": [],
-      "uoa_atm_ratio": 0.0494801003944066,
-      "uoa_cp_ratio": 1.320754716981132
+      "uoa_score": 10,
+      "uoa_drivers": [
+        "UOA Call/Put 23.6×"
+      ],
+      "uoa_atm_ratio": 0.2596100278551532,
+      "uoa_cp_ratio": 23.636363636363637
     },
     "XRX": {
-      "score": 22,
+      "score": 25,
       "confidence": 17,
-      "drivers": "News-KI 12/30: Moderate bullish sentiment but lacks indicators of extreme short positioning, high short interest, or sudden catalyst th + UOA Call/Put 8.2×",
-      "price": 3.03,
+      "drivers": "News: revenue beat + UOA Call/Put 31.8×",
+      "price": 3.01,
       "chg_pct": 0.0,
       "rvol": 0.0,
       "earnings": "in 87 Tagen (30.07.2026)",
@@ -43,18 +45,58 @@
       "active_triggers": 1,
       "uoa_score": 10,
       "uoa_drivers": [
-        "UOA Call/Put 8.2×"
+        "UOA Call/Put 31.8×"
       ],
-      "uoa_atm_ratio": 0.828037946092456,
-      "uoa_cp_ratio": 8.188841201716738,
+      "uoa_atm_ratio": 0.634844149977413,
+      "uoa_cp_ratio": 31.81992337164751,
       "push_silenced": true,
-      "silenced_reason": "RSI 82"
+      "silenced_reason": "RSI 83"
+    },
+    "GRPN": {
+      "score": 72,
+      "confidence": 33,
+      "drivers": "Earnings in 3 Tagen (07.05.2026) + News: short squeeze, squeeze + Earnings in 3d + UOA Call/Put 6.0×",
+      "price": 16.19,
+      "chg_pct": 0.0,
+      "rvol": 0.0,
+      "earnings": "in 3 Tagen (07.05.2026)",
+      "fda_date": null,
+      "upcoming_event": "Earnings in 3 Tagen (07.05.2026)",
+      "insider_buy": false,
+      "stocktwits": null,
+      "combo_mult": 1.1,
+      "active_triggers": 2,
+      "uoa_score": 10,
+      "uoa_drivers": [
+        "UOA Call/Put 6.0×"
+      ],
+      "uoa_atm_ratio": 0.05467020805666224,
+      "uoa_cp_ratio": 5.962406015037594
+    },
+    "LENZ": {
+      "score": 15,
+      "confidence": 17,
+      "drivers": "Earnings in 7 Tagen (11.05.2026) + Earnings in 7d",
+      "price": 9.28,
+      "chg_pct": 0.0,
+      "rvol": 0.0,
+      "earnings": "in 7 Tagen (11.05.2026)",
+      "fda_date": null,
+      "upcoming_event": "Earnings in 7 Tagen (11.05.2026)",
+      "insider_buy": false,
+      "stocktwits": null,
+      "combo_mult": 1.0,
+      "active_triggers": 1,
+      "uoa_score": 0,
+      "uoa_drivers": [],
+      "uoa_atm_ratio": 0.05763688760806916,
+      "uoa_cp_ratio": 1.0576923076923077
     },
     "SNSE": {
       "score": 15,
       "confidence": 17,
       "drivers": "News: acquisition",
-      "price": 30.48,
+      "price": 30.45,
       "chg_pct": 0.0,
       "rvol": 0.0,
       "earnings": null,
@@ -69,53 +111,11 @@
       "uoa_atm_ratio": null,
       "uoa_cp_ratio": null
     },
-    "LENZ": {
-      "score": 35,
+    "DMRC": {
+      "score": 33,
       "confidence": 33,
-      "drivers": "Earnings in 2 Tagen (06.05.2026) + Earnings in 2d + UOA Call/Put 3.0×",
-      "price": 9.25,
-      "chg_pct": 0.0,
-      "rvol": 0.0,
-      "earnings": "in 2 Tagen (06.05.2026)",
-      "fda_date": null,
-      "upcoming_event": "Earnings in 2 Tagen (06.05.2026)",
-      "insider_buy": false,
-      "stocktwits": null,
-      "combo_mult": 1.0,
-      "active_triggers": 1,
-      "uoa_score": 10,
-      "uoa_drivers": [
-        "UOA Call/Put 3.0×"
-      ],
-      "uoa_atm_ratio": 0.9279538904899135,
-      "uoa_cp_ratio": 2.950413223140496
-    },
-    "GRPN": {
-      "score": 72,
-      "confidence": 33,
-      "drivers": "Earnings in 3 Tagen (07.05.2026) + News: squeeze, short squeeze + Earnings in 3d + UOA Call/Put 4.2×",
-      "price": 15.62,
-      "chg_pct": 0.0,
-      "rvol": 0.0,
-      "earnings": "in 3 Tagen (07.05.2026)",
-      "fda_date": null,
-      "upcoming_event": "Earnings in 3 Tagen (07.05.2026)",
-      "insider_buy": false,
-      "stocktwits": null,
-      "combo_mult": 1.1,
-      "active_triggers": 2,
-      "uoa_score": 10,
-      "uoa_drivers": [
-        "UOA Call/Put 4.2×"
-      ],
-      "uoa_atm_ratio": 0.10270030987162461,
-      "uoa_cp_ratio": 4.22093023255814
-    },
-    "CADL": {
-      "score": 8,
-      "confidence": 17,
-      "drivers": "Earnings in 8d",
-      "price": 7.0,
+      "drivers": "News: partnership + Earnings in 8d + UOA Call/Put 9.3×",
+      "price": 8.31,
       "chg_pct": 0.0,
       "rvol": 0.0,
       "earnings": "in 8 Tagen (12.05.2026)",
@@ -124,36 +124,40 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 0,
-      "uoa_score": 0,
-      "uoa_drivers": [],
-      "uoa_atm_ratio": 0.04461942257217848,
-      "uoa_cp_ratio": 1.6546762589928057
+      "active_triggers": 1,
+      "uoa_score": 10,
+      "uoa_drivers": [
+        "UOA Call/Put 9.3×"
+      ],
+      "uoa_atm_ratio": 2.7027027027027026,
+      "uoa_cp_ratio": 9.333333333333334
     },
     "ABEO": {
-      "score": 8,
-      "confidence": 17,
-      "drivers": "Earnings in 10d",
-      "price": 5.59,
+      "score": 18,
+      "confidence": 33,
+      "drivers": "Earnings in 9d + UOA Call/Put 7.3×",
+      "price": 5.82,
       "chg_pct": 0.0,
       "rvol": 0.0,
-      "earnings": "in 10 Tagen (14.05.2026)",
+      "earnings": "in 9 Tagen (13.05.2026)",
       "fda_date": null,
       "upcoming_event": null,
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
       "active_triggers": 0,
-      "uoa_score": 0,
-      "uoa_drivers": [],
-      "uoa_atm_ratio": 0.1044776119402985,
-      "uoa_cp_ratio": 0.9726027397260274
+      "uoa_score": 10,
+      "uoa_drivers": [
+        "UOA Call/Put 7.3×"
+      ],
+      "uoa_atm_ratio": 0.7598371777476255,
+      "uoa_cp_ratio": 7.322368421052632
     },
     "NTLA": {
-      "score": 55,
+      "score": 44,
       "confidence": 33,
-      "drivers": "Earnings in 3 Tagen (07.05.2026) + News: takeover + Earnings in 3d + UOA Call/Put 3.0×",
-      "price": 13.71,
+      "drivers": "Earnings in 3 Tagen (07.05.2026) + News: takeover + Earnings in 3d",
+      "price": 13.83,
       "chg_pct": 0.0,
       "rvol": 0.0,
       "earnings": "in 3 Tagen (07.05.2026)",
@@ -163,54 +167,48 @@
       "stocktwits": null,
       "combo_mult": 1.1,
       "active_triggers": 2,
-      "uoa_score": 10,
-      "uoa_drivers": [
-        "UOA Call/Put 3.0×"
-      ],
-      "uoa_atm_ratio": 0.11993933029984832,
-      "uoa_cp_ratio": 3.0467091295116773
+      "uoa_score": 0,
+      "uoa_drivers": [],
+      "uoa_atm_ratio": 0.04235211760588029,
+      "uoa_cp_ratio": 1.4031007751937985
     },
-    "SPRY": {
-      "score": 58,
-      "confidence": 33,
-      "drivers": "News: fda approval + Earnings in 10d + FINRA Short-Vol 96% + UOA Call/Put 31.1×",
-      "price": 8.66,
+    "ULCC": {
+      "score": 25,
+      "confidence": 17,
+      "drivers": "Earnings in 1 Tagen (05.05.2026) + Earnings in 1d",
+      "price": 4.28,
       "chg_pct": 0.0,
       "rvol": 0.0,
-      "earnings": "in 10 Tagen (14.05.2026)",
+      "earnings": "in 1 Tagen (05.05.2026)",
+      "fda_date": null,
+      "upcoming_event": "Earnings in 1 Tagen (05.05.2026)",
+      "insider_buy": false,
+      "stocktwits": null,
+      "combo_mult": 1.0,
+      "active_triggers": 1,
+      "uoa_score": 0,
+      "uoa_drivers": [],
+      "uoa_atm_ratio": 0.02950752950752951,
+      "uoa_cp_ratio": 1.9880478087649402
+    },
+    "ZBIO": {
+      "score": 0,
+      "confidence": 0,
+      "drivers": "",
+      "price": 21.18,
+      "chg_pct": 0.0,
+      "rvol": 0.0,
+      "earnings": null,
       "fda_date": null,
       "upcoming_event": null,
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 1,
-      "uoa_score": 10,
-      "uoa_drivers": [
-        "UOA Call/Put 31.1×"
-      ],
-      "uoa_atm_ratio": null,
-      "uoa_cp_ratio": 31.133333333333333
-    },
-    "ARCT": {
-      "score": 35,
-      "confidence": 33,
-      "drivers": "Earnings in 3 Tagen (07.05.2026) + Earnings in 3d + UOA Call/Put 3.4×",
-      "price": 8.88,
-      "chg_pct": 0.0,
-      "rvol": 0.0,
-      "earnings": "in 3 Tagen (07.05.2026)",
-      "fda_date": null,
-      "upcoming_event": "Earnings in 3 Tagen (07.05.2026)",
-      "insider_buy": false,
-      "stocktwits": null,
-      "combo_mult": 1.0,
-      "active_triggers": 1,
-      "uoa_score": 10,
-      "uoa_drivers": [
-        "UOA Call/Put 3.4×"
-      ],
-      "uoa_atm_ratio": null,
-      "uoa_cp_ratio": 3.4
+      "active_triggers": 0,
+      "uoa_score": 0,
+      "uoa_drivers": [],
+      "uoa_atm_ratio": 0.011019283746556474,
+      "uoa_cp_ratio": 0.5274725274725275
     }
   }
 }
