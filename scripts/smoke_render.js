@@ -281,6 +281,98 @@ function assert(cond, msg) {
     dom.window.close();
   });
 
+  // ── Szenario 6: Position-Status — Trigger-Block (Phase 2 Stufe 2a) ───
+  // Testet ``buildPositionStatus`` mit Mock-exit_state-Daten. Falls die
+  // Funktion in der geladenen ``index.html`` (alter Snapshot) noch nicht
+  // vorhanden ist, wird sie aus ``generate_report.py`` extrahiert und in
+  // jsdom evaluiert — der Test verifiziert immer die ECHTE Implementation,
+  // unabhängig vom Stand der ``index.html``.
+  await runScenario('buildPositionStatus — Trigger-Block (warn + crit + unavailable)', async () => {
+    const dom = await buildDom();
+    const win = dom.window;
+    if (typeof win.buildPositionStatus !== 'function') {
+      // Aus dem Python-f-String extrahieren. Marker-Boundaries wie im
+      // generate_report.py-Block. ``{{`` / ``}}`` werden zu ``{`` / ``}``
+      // entgegen-codiert (f-String-Brace-Escape).
+      const src = fs.readFileSync(
+        path.resolve(__dirname, '..', 'generate_report.py'), 'utf8');
+      const marker = src.indexOf('// ── Position-Status (Phase 2 — Stufe 2a)');
+      const endMarker = src.indexOf('// ── Backtesting-Sektion', marker);
+      assert(marker > 0 && endMarker > marker,
+        'Position-Status-Block in generate_report.py nicht gefunden');
+      const jsRaw = src.slice(marker, endMarker);
+      // Brace-Escape rückgängig: {{ → { und }} → }
+      const jsClean = jsRaw.replace(/\{\{/g, '{').replace(/\}\}/g, '}');
+      // Eval im jsdom-Window — Function-Decls landen auf window.
+      win.eval(jsClean);
+      assert(typeof win.buildPositionStatus === 'function',
+        'buildPositionStatus auch nach Eval nicht verfügbar');
+    }
+    // Alle 3 verfügbaren Trigger aktiv, die 3 unverfügbaren markiert
+    win._POSITIONS_DATA = {
+      XRX: {
+        entry_date: '2026-04-27', entry_price: 4.0, shares: 35,
+        exit_state: {
+          exit_pressure: 67,
+          peak_score_since_entry: 80, peak_pnl_pct_since_entry: 0.27,
+          triggers: {
+            score_decay: { score: 75, warn: true, crit: false, available: true,
+                            details: { drop_3d: 8, drop_5d: 18, drop_7d: null } },
+            profit_lock: { score: 100, warn: true, crit: true, available: true,
+                            details: { drawdown_from_peak: 0.27,
+                                        score_drop_from_peak: 12 } },
+            overheated:  { score: 60, warn: true, crit: false, available: true,
+                            details: { rsi14: 78, move_2d_pct: 0.22,
+                                        move_3d_pct: null } },
+            setup_erosion: { score: 0, warn: false, crit: false, available: false,
+                              reason: 'kein Entry-Snapshot' },
+            catalyst:      { score: 0, warn: false, crit: false, available: false,
+                              reason: 'kein Earnings-Lookup' },
+            trend_break:   { score: 0, warn: false, crit: false, available: false,
+                              reason: 'kein EMA21' },
+          },
+        },
+      },
+    };
+    const html = win.buildPositionStatus('XRX');
+    assert(html && html.length > 0, 'Erwartet Block, bekam leeren String');
+    const rowMatches = html.match(/class="ps-row"/g) || [];
+    assert(rowMatches.length === 3,
+      `Erwartet 3 ps-row (3 verfügbare aktive Trigger), fand ${rowMatches.length}`);
+    assert(html.includes('🔴'), 'Crit-Icon fehlt');
+    assert(html.includes('🟡'), 'Warn-Icon fehlt');
+    assert(html.includes('Score-Verfall'),  'Label score_decay fehlt');
+    assert(html.includes('Profit-Lock'),    'Label profit_lock fehlt');
+    assert(html.includes('Überhitzung'),    'Label overheated fehlt');
+    assert(!html.includes('Setup-Erosion'), 'Unavailable Trigger sichtbar');
+    assert(!html.includes('Catalyst'),      'Unavailable Trigger sichtbar');
+    assert(!html.includes('Trend-Bruch'),   'Unavailable Trigger sichtbar');
+    assert(html.includes('−8 Pkt in 3T'),   'Reason score_decay drop_3d fehlt');
+    assert(html.includes('RSI 78'),         'Reason overheated RSI fehlt');
+    assert(html.includes('📍 Position-Status'), 'Block-Header fehlt');
+
+    // Empty-Pfad 1: Position ohne exit_state → leerer String
+    win._POSITIONS_DATA = { XRX: { entry_price: 4.0 } };
+    const e1 = win.buildPositionStatus('XRX');
+    assert(e1 === '', `Erwartet '' bei fehlendem exit_state, bekam ${JSON.stringify(e1)}`);
+
+    // Empty-Pfad 2: alle Trigger inaktiv (warn=false, crit=false) → leerer String
+    win._POSITIONS_DATA = {
+      XRX: { exit_state: { triggers: {
+        score_decay: { warn: false, crit: false, available: true, details: {} },
+        setup_erosion: { warn: false, crit: false, available: false },
+      }}},
+    };
+    const e2 = win.buildPositionStatus('XRX');
+    assert(e2 === '', `Erwartet '' bei keinen aktiven Triggern, bekam ${JSON.stringify(e2)}`);
+
+    // Empty-Pfad 3: Ticker nicht in _POSITIONS_DATA → leerer String
+    const e3 = win.buildPositionStatus('UNKNOWN');
+    assert(e3 === '', `Erwartet '' bei unbekanntem Ticker, bekam ${JSON.stringify(e3)}`);
+
+    dom.window.close();
+  });
+
   console.log('OK: Alle Smoke-Szenarien grün.');
   process.exit(0);
 })().catch((e) => {

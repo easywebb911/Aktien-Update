@@ -6019,6 +6019,76 @@ function toggleNews(id){{
   btn.classList.toggle('is-open', open);
   if (lbl) lbl.textContent = open ? ' Meldungen verbergen' : ' Aktuelle Meldungen';
 }}
+// ── Position-Status (Phase 2 — Stufe 2a) ──────────────────────────────────
+// Liest exit_state aus window._POSITIONS_DATA und baut pro offener Position
+// einen kleinen Block mit aktiven Trigger-Zeilen (warn/crit). Trigger mit
+// available:false werden ausgeblendet. Returnt leeren String wenn kein
+// Trigger aktiv — Aufrufer (buildWlDetails / buildWlSparkOnly) hängen den
+// Block direkt nach dem Position-Panel an.
+const _PSTATUS_LABELS = {{
+  score_decay:   "Score-Verfall",
+  profit_lock:   "Profit-Lock",
+  overheated:    "Überhitzung",
+  setup_erosion: "Setup-Erosion",
+  catalyst:      "Catalyst",
+  trend_break:   "Trend-Bruch",
+}};
+function _pstatusReason(name, det) {{
+  if (!det || typeof det !== 'object') return '';
+  if (name === 'score_decay') {{
+    const out = [];
+    if (det.drop_3d != null && det.drop_3d > 0) out.push(`−${{det.drop_3d.toFixed(0)}} Pkt in 3T`);
+    if (det.drop_5d != null && det.drop_5d > 0) out.push(`−${{det.drop_5d.toFixed(0)}} Pkt in 5T`);
+    if (det.drop_7d != null && det.drop_7d > 0) out.push(`−${{det.drop_7d.toFixed(0)}} Pkt in 7T`);
+    return out.join(' · ');
+  }}
+  if (name === 'profit_lock') {{
+    const out = [];
+    if (det.drawdown_from_peak != null && det.drawdown_from_peak > 0)
+      out.push(`−${{(det.drawdown_from_peak*100).toFixed(0)}} pp vom Peak-PnL`);
+    if (det.score_drop_from_peak != null && det.score_drop_from_peak > 0)
+      out.push(`−${{det.score_drop_from_peak.toFixed(0)}} Pkt vom Peak-Score`);
+    return out.join(' · ');
+  }}
+  if (name === 'overheated') {{
+    const out = [];
+    if (det.rsi14 != null) out.push(`RSI ${{Math.round(det.rsi14)}}`);
+    if (det.move_2d_pct != null && det.move_2d_pct > 0)
+      out.push(`+${{(det.move_2d_pct*100).toFixed(0)}}% in 2T`);
+    return out.join(' · ');
+  }}
+  return '';
+}}
+function buildPositionStatus(ticker) {{
+  try {{
+    const all = (typeof window !== 'undefined') ? window._POSITIONS_DATA : null;
+    if (!all || typeof all !== 'object') return '';
+    const pos = all[ticker];
+    if (!pos || !pos.exit_state) return '';
+    const triggers = pos.exit_state.triggers || {{}};
+    const rows = [];
+    for (const name in triggers) {{
+      const t = triggers[name];
+      if (!t || t.available === false) continue;
+      if (!t.warn && !t.crit) continue;
+      const lbl = _PSTATUS_LABELS[name] || name;
+      const icon = t.crit ? '🔴' : '🟡';
+      const reason = _pstatusReason(name, t.details || {{}});
+      const reasonHtml = reason ? `: ${{reason}}` : '';
+      rows.push(`<div class="ps-row">${{icon}} <strong>${{lbl}}</strong>${{reasonHtml}}</div>`);
+    }}
+    if (!rows.length) return '';
+    return `<div class="position-status-block" data-ticker="${{ticker}}">
+      <div class="ps-head">📍 Position-Status</div>
+      ${{rows.join('')}}
+    </div>`;
+  }} catch (e) {{
+    console.warn('buildPositionStatus Fehler:', e);
+    return '';
+  }}
+}}
+// Auf window legen für Smoke-Test + spätere Nutzung außerhalb des Watchlist-IIFE.
+window.buildPositionStatus = buildPositionStatus;
 // ── Backtesting-Sektion ───────────────────────────────────────────────────
 let _btLoaded = false;
 let _btData   = null;
@@ -7580,6 +7650,9 @@ function _fmtGerman(d) {{
       // zwischen Entry- und Exit-Datum, Setup-Score-Korrelation der
       // Trade-Journal-Statistik). Schema: {{ticker: [{{date, score}}]}}.
       window._SCORE_HISTORY = appData.score_history || {{}};
+      // Phase 2 Stufe 2a: Position-Status-Daten für buildPositionStatus().
+      // Schema: {{ticker: {{entry_date, entry_price, shares, exit_state: {{...}}}}}}.
+      window._POSITIONS_DATA = appData.positions || {{}};
       // Watchlist-Tiles neu rendern — _WL_CARDS liefert jetzt die
       // smoothed Scores, der erste Render-Pass nach DOMContentLoaded
       // hatte nur die raw-History als Fallback. Sicherstellt
@@ -7754,8 +7827,9 @@ function _fmtGerman(d) {{
                 onclick="wlExpand('${{ticker}}', document.getElementById('wlb-${{ticker}}'))"
                 title="Einklappen">\u25b2 Schlie\xdfen</button>
       </div>`;
-      const posPanel = buildPositionPanel(ticker, d.price);
-      return closeBar + d.card_html + posPanel;
+      const posPanel  = buildPositionPanel(ticker, d.price);
+      const posStatus = buildPositionStatus(ticker);
+      return closeBar + d.card_html + posPanel + posStatus;
     }}
     try {{
       const sfCol  = metColor('sf',  d.short_float);
@@ -7976,8 +8050,9 @@ function _fmtGerman(d) {{
 
       // Position-Panel auch im History-only-Fall — User kann eine
       // Position auf einem nicht-Top-10-Watchlist-Ticker eröffnen.
-      const posPanel = buildPositionPanel(ticker, null);
-      return topHdr + tiles + sparkHtml + tableHtml + posPanel;
+      const posPanel  = buildPositionPanel(ticker, null);
+      const posStatus = buildPositionStatus(ticker);
+      return topHdr + tiles + sparkHtml + tableHtml + posPanel + posStatus;
     }} catch(e) {{
       console.error('buildWlSparkOnly Fehler:', e);
       return topHdr + '<div class="wl-no-data">Fehler beim Laden der Details.</div>';

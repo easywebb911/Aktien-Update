@@ -639,6 +639,15 @@ select.sort-select:hover:not(:disabled){background-image:linear-gradient(45deg,t
 .wl-details-btn:hover{color:var(--accent);background:rgba(59,130,246,.10)}
 .wl-details-body{border-top:1px solid var(--brd)}
 .wl-no-data{padding:10px 14px;color:var(--txt-dim);font-size:.8rem;font-style:italic}
+/* Position-Status (Phase 2 — Stufe 2a). Reiner Text-Block, kein Border-Glow,
+   kein Banner; dezent abgesetzt via dashed border-top. Wird client-seitig
+   von buildPositionStatus() gefüllt — leerer Slot wenn kein Trigger aktiv. */
+.position-status-block{margin:8px 12px 4px;padding:6px 10px;
+  font-size:.78rem;line-height:1.45;border-top:1px dashed var(--brd)}
+.position-status-block .ps-head{font-weight:600;color:var(--txt-sub);
+  margin-bottom:4px;font-size:.72rem;letter-spacing:.04em;text-transform:uppercase}
+.position-status-block .ps-row{padding:2px 0;color:var(--txt)}
+.position-status-block .ps-row strong{font-weight:600;margin-right:2px}
 /* ×-Button absolute oben-rechts. Touch-Target via ::before-Overlay. */
 .wl-remove-btn{position:absolute;top:2px;right:4px;
   background:none;border:none;color:var(--txt-dim);cursor:pointer;
