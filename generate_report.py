@@ -5342,6 +5342,83 @@ def generate_html_v1(stocks: list[dict], report_date: str, _ctx: dict | None = N
         </p>
       </div>
       <div class="info-box info-box--full">
+        <h4>📉 Exit-Signal-Berechnung (Phase 2 — Stufe 1/3, Daten-Pipeline)</h4>
+        <p style="font-size:.82rem;color:var(--txt-sub);margin:.2rem 0 .6rem;line-height:1.55">
+          Pro offener Position berechnet der Daily-Run sechs Trigger-Sub-Scores (jeweils 0–100) und einen gewichteten Composite ``exit_pressure``. Die Werte werden in <code>app_data.json["positions"][ticker]["exit_state"]</code> persistiert. Aktuell rein Daten-Pipeline — kein UI-Display, kein Push (folgen in Stufe 2/3). Skala: Wert &lt; WARN-Schwelle → 0–50 linear · WARN..CRIT → 50–100 linear · ≥ CRIT → 100. Trigger ohne verfügbare Datenbasis werden mit ``available: false`` markiert und vom Composite ausgeschlossen (Normierung über Summe der verfügbaren Gewichte).
+        </p>
+        <div class="score-blocks">
+          <div class="score-block-card">
+            <div class="score-block-head">
+              <span class="score-block-name">1. Score-Verfall</span>
+              <span class="score-block-pct">30 %</span>
+            </div>
+            <ul class="score-block-list">
+              <li><span class="sb-lbl">drop_3d (raw score_history)</span><span class="sb-pts">WARN {EXIT_SCORE_DROP_3D_WARN} / CRIT {EXIT_SCORE_DROP_3D_CRIT}</span></li>
+              <li><span class="sb-lbl">drop_5d</span><span class="sb-pts">WARN {EXIT_SCORE_DROP_5D_WARN} / CRIT {EXIT_SCORE_DROP_5D_CRIT}</span></li>
+              <li><span class="sb-lbl">drop_7d</span><span class="sb-pts">WARN {EXIT_SCORE_DROP_7D_WARN} / CRIT {EXIT_SCORE_DROP_7D_CRIT}</span></li>
+              <li><span class="sb-lbl">sub_scores_all_falling</span><span class="sb-pts">— available: false (sub_scores nicht in score_history)</span></li>
+            </ul>
+          </div>
+          <div class="score-block-card">
+            <div class="score-block-head">
+              <span class="score-block-name">2. Profit-Lock</span>
+              <span class="score-block-pct">25 %</span>
+            </div>
+            <ul class="score-block-list">
+              <li><span class="sb-lbl">Drawdown peak_pnl_pct → heute</span><span class="sb-pts">WARN {(EXIT_PROFIT_LOCK_WARN_PCT*100):.0f}&nbsp;% / CRIT {(EXIT_PROFIT_LOCK_CRIT_PCT*100):.0f}&nbsp;%</span></li>
+              <li><span class="sb-lbl">peak_score − current_score</span><span class="sb-pts">WARN {EXIT_PEAK_SCORE_DROP_WARN} / CRIT {EXIT_PEAK_SCORE_DROP_CRIT}</span></li>
+              <li><span class="sb-lbl">Peak-Felder</span><span class="sb-pts">ratchet-up only (nie nach unten)</span></li>
+            </ul>
+          </div>
+          <div class="score-block-card">
+            <div class="score-block-head">
+              <span class="score-block-name">3. Überhitzung</span>
+              <span class="score-block-pct">20 %</span>
+            </div>
+            <ul class="score-block-list">
+              <li><span class="sb-lbl">RSI14 (top10_metrics)</span><span class="sb-pts">WARN {EXIT_RSI_WARN} / CRIT {EXIT_RSI_CRIT}</span></li>
+              <li><span class="sb-lbl">2-Tages-Move</span><span class="sb-pts">WARN {(EXIT_MOVE_2D_WARN*100):.0f}&nbsp;% / CRIT {(EXIT_MOVE_2D_CRIT*100):.0f}&nbsp;%</span></li>
+              <li><span class="sb-lbl">3-Tages-Move</span><span class="sb-pts">— available: false (nicht in top10_metrics)</span></li>
+            </ul>
+          </div>
+          <div class="score-block-card">
+            <div class="score-block-head">
+              <span class="score-block-name">4. Setup-Erosion</span>
+              <span class="score-block-pct">15 %</span>
+            </div>
+            <ul class="score-block-list">
+              <li><span class="sb-lbl">DTC-Drop seit Entry</span><span class="sb-pts">WARN {(EXIT_DTC_DROP_WARN_PCT*100):.0f}&nbsp;% / CRIT {(EXIT_DTC_DROP_CRIT_PCT*100):.0f}&nbsp;%</span></li>
+              <li><span class="sb-lbl">Short-Float-Drop seit Entry (PP)</span><span class="sb-pts">WARN {EXIT_SHORT_FLOAT_DROP_WARN_PP} / CRIT {EXIT_SHORT_FLOAT_DROP_CRIT_PP}</span></li>
+              <li><span class="sb-lbl">Cost-to-Borrow-Drop</span><span class="sb-pts">WARN {(EXIT_CTB_DROP_WARN_PCT*100):.0f}&nbsp;% / CRIT {(EXIT_CTB_DROP_CRIT_PCT*100):.0f}&nbsp;%</span></li>
+              <li><span class="sb-lbl">Status</span><span class="sb-pts">— available: false (Entry-Snapshot fehlt in positions.json)</span></li>
+            </ul>
+          </div>
+          <div class="score-block-card">
+            <div class="score-block-head">
+              <span class="score-block-name">5. Catalyst</span>
+              <span class="score-block-pct">5 %</span>
+            </div>
+            <ul class="score-block-list">
+              <li><span class="sb-lbl">earnings_passed_since_entry</span><span class="sb-pts">— available: false (kein historischer Earnings-Lookup)</span></li>
+              <li><span class="sb-lbl">score_after_earnings_low</span><span class="sb-pts">— available: false</span></li>
+            </ul>
+          </div>
+          <div class="score-block-card">
+            <div class="score-block-head">
+              <span class="score-block-name">6. Trend-Bruch</span>
+              <span class="score-block-pct">5 %</span>
+            </div>
+            <ul class="score-block-list">
+              <li><span class="sb-lbl">price_below_ema21</span><span class="sb-pts">— available: false (EMA21 nicht im Datenmodell)</span></li>
+              <li><span class="sb-lbl">price_below_ema21_first_time</span><span class="sb-pts">— available: false</span></li>
+            </ul>
+          </div>
+        </div>
+        <p class="score-block-foot score-block-foot-strong">
+          <strong>Composite:</strong> Σ (sub_score × Gewicht) ÷ Σ (Gewicht der verfügbaren Trigger). Aktuell wirken in Stufe 1/3 nur Trigger 1–3 voll; Trigger 4–6 stehen ``available: false`` und kommen mit Persistenz-Erweiterungen (Entry-Snapshot, Earnings-Historie, EMA21) in Folgestufen.
+        </p>
+      </div>
+      <div class="info-box info-box--full">
         <h4>Farbcodierung der Kennzahlen</h4>
         <div class="color-legend">
           <div>
@@ -9606,7 +9683,8 @@ def _write_app_data_json(watchlist_cards: dict | None = None,
                           monster_scores: dict | None = None,
                           setup_scores: dict | None = None,
                           gap_states: dict | None = None,
-                          top10_metrics: dict | None = None) -> None:
+                          top10_metrics: dict | None = None,
+                          positions: dict | None = None) -> None:
     """Schreibt kombinierte app_data.json = score_history + agent_signals + watchlist_cards.
 
     Beide Quelldateien (score_history.json + agent_signals.json) bleiben separat
@@ -9644,6 +9722,13 @@ def _write_app_data_json(watchlist_cards: dict | None = None,
         # gelesen — überhitzte Setups erzeugen keinen Push, bleiben aber
         # im UI als „Bewegung gelaufen"-Label sichtbar.
         "top10_metrics":   top10_metrics or {},
+        # Phase 2 Exit-Signal-Daten-Pipeline (Stufe 1/3, kein UI/Push):
+        # pro offener Position {entry_date, entry_price, shares, exit_state}.
+        # ``exit_state`` enthält 6 Trigger-Sub-Scores + Composite
+        # ``exit_pressure`` (0–100) + Peak-Tracker. Read-modify-write durch
+        # _build_phase2_positions_payload (peak ratchet-up only). ki_agent
+        # bewahrt diesen Key zwischen Ticks via **existing-Spread.
+        "positions":       positions or {},
         "fx_usd_eur":      _FX_USD_EUR,
         "generated_at":    datetime.now(ZoneInfo("UTC")).strftime("%Y-%m-%dT%H:%M:%SZ"),
     }
@@ -10040,6 +10125,320 @@ def process_exit_signals(stocks: list[dict] | None = None) -> int:
     if n_sent > 0:
         _exit_save_state(state)
     return n_sent
+
+
+# ===========================================================================
+# 5b. Phase 2 Exit-Signal-Daten-Pipeline (Stufe 1/3 — kein UI/Push)
+# ---------------------------------------------------------------------------
+# Pure Compute-Funktionen für sechs Trigger-Sub-Scores plus Composite-
+# "exit_pressure". Persistierung erfolgt in app_data.json["positions"][ticker]
+# ["exit_state"] über _write_app_data_json (positions-Parameter). Frontend-
+# Konsumenten und Push-Pipeline kommen in Stufe 2/3 — diese Stufe hängt nur
+# Daten in app_data.json an.
+# ===========================================================================
+
+def _read_existing_app_data() -> dict:
+    """Liest app_data.json aus dem letzten Run. Bei Fehler leeres Dict."""
+    try:
+        with open("app_data.json", "r", encoding="utf-8") as fh:
+            return json.load(fh) or {}
+    except (FileNotFoundError, json.JSONDecodeError, OSError):
+        return {}
+
+
+def _exit_p2_scale(value: float | None, warn: float, crit: float
+                    ) -> tuple[int, bool, bool]:
+    """Skaliert ``value`` auf 0–100 nach WARN/CRIT-Konvention.
+
+    None/negativ → 0/False/False. ``0..warn`` → 0..50 linear. ``warn..crit``
+    → 50..100 linear. ``≥ crit`` → 100. Returnt ``(sub_score, warn_flag,
+    crit_flag)``. Sub-Score ist immer ein Int 0..100.
+    """
+    if value is None or value <= 0:
+        return 0, False, False
+    if value >= crit:
+        return 100, True, True
+    if value >= warn:
+        denom = max(1e-9, crit - warn)
+        sub = 50.0 + 50.0 * (value - warn) / denom
+        return int(round(min(100.0, max(50.0, sub)))), True, False
+    sub = 50.0 * value / max(1e-9, warn)
+    return int(round(min(50.0, max(0.0, sub)))), False, False
+
+
+def _exit_p2_score_at(entries: list, n_back: int) -> float | None:
+    """Liefert den Score n_back Einträge vor dem letzten in score_history.
+
+    Akzeptiert sowohl 2/3-Tuple ([date, score, drivers?]) als auch
+    Dict-Form ({date, score}). Returnt None bei fehlendem oder
+    unparsebarem Wert.
+    """
+    if not entries or n_back <= 0 or n_back >= len(entries):
+        return None
+    e = entries[-1 - n_back]
+    s = None
+    if isinstance(e, (list, tuple)) and len(e) >= 2:
+        s = e[1]
+    elif isinstance(e, dict):
+        s = e.get("score")
+    try:
+        return float(s) if s is not None else None
+    except (TypeError, ValueError):
+        return None
+
+
+def _exit_p2_trigger_score_decay(entries: list, cur_score: float | None
+                                  ) -> dict:
+    """Trigger 1: Score-Verfall — drop_3d/5d/7d aus score_history.
+
+    Sub-Score = Maximum der drei Drop-Skalen. ``sub_scores_all_falling``
+    bleibt available:false (sub_scores werden nicht in score_history
+    persistiert).
+    """
+    if cur_score is None or len(entries) < 4:
+        return {"score": 0, "warn": False, "crit": False, "available": False,
+                "reason": "score_history zu kurz"}
+    drops: dict[str, float | None] = {}
+    sub, warn, crit = 0, False, False
+    for n, w, c in (
+        (3, EXIT_SCORE_DROP_3D_WARN, EXIT_SCORE_DROP_3D_CRIT),
+        (5, EXIT_SCORE_DROP_5D_WARN, EXIT_SCORE_DROP_5D_CRIT),
+        (7, EXIT_SCORE_DROP_7D_WARN, EXIT_SCORE_DROP_7D_CRIT),
+    ):
+        ref = _exit_p2_score_at(entries, n)
+        if ref is None:
+            drops[f"drop_{n}d"] = None
+            continue
+        drop = ref - cur_score   # positiv = Score gefallen
+        drops[f"drop_{n}d"] = round(drop, 1)
+        s, wf, cf = _exit_p2_scale(drop, w, c)
+        if s > sub:
+            sub = s
+        warn = warn or wf
+        crit = crit or cf
+    return {
+        "score": sub, "warn": warn, "crit": crit,
+        "details": {**drops, "sub_scores_all_falling": None,
+                    "sub_scores_all_falling_available": False},
+    }
+
+
+def _exit_p2_trigger_profit_lock(pnl_frac: float | None,
+                                  peak_pnl_frac: float | None,
+                                  cur_score: float | None,
+                                  peak_score: float | None) -> dict:
+    """Trigger 2: Profit-Lock — Drawdown von Peak-PnL und Peak-Score."""
+    if pnl_frac is None:
+        return {"score": 0, "warn": False, "crit": False, "available": False,
+                "reason": "kein aktueller Preis"}
+    drawdown = None
+    score_drop_peak = None
+    if peak_pnl_frac is not None and peak_pnl_frac > 0:
+        drawdown = max(0.0, peak_pnl_frac - pnl_frac)
+    if peak_score is not None and cur_score is not None:
+        score_drop_peak = max(0.0, peak_score - cur_score)
+    s_dd, w_dd, c_dd = _exit_p2_scale(
+        drawdown, EXIT_PROFIT_LOCK_WARN_PCT, EXIT_PROFIT_LOCK_CRIT_PCT)
+    s_sd, w_sd, c_sd = _exit_p2_scale(
+        score_drop_peak, EXIT_PEAK_SCORE_DROP_WARN, EXIT_PEAK_SCORE_DROP_CRIT)
+    return {
+        "score": max(s_dd, s_sd),
+        "warn":  w_dd or w_sd,
+        "crit":  c_dd or c_sd,
+        "details": {
+            "pnl_pct":             round(pnl_frac, 4) if pnl_frac is not None else None,
+            "peak_pnl_pct":        round(peak_pnl_frac, 4) if peak_pnl_frac is not None else None,
+            "drawdown_from_peak":  round(drawdown, 4) if drawdown is not None else None,
+            "score_drop_from_peak": round(score_drop_peak, 1) if score_drop_peak is not None else None,
+        },
+    }
+
+
+def _exit_p2_trigger_overheated(metrics: dict | None) -> dict:
+    """Trigger 3: Überhitzung — RSI14 + 2-Tages-Move (aus top10_metrics).
+
+    move_3d_pct ist heute nicht im top10_metrics-Schema und wird daher als
+    None geliefert (Detail-Feld), fließt aber via Maximum-Aggregation nicht
+    in den Sub-Score ein, solange unverfügbar.
+    """
+    if not metrics:
+        return {"score": 0, "warn": False, "crit": False, "available": False,
+                "reason": "Position außerhalb top10_metrics"}
+    rsi = metrics.get("rsi14")
+    chg2d_pct = metrics.get("change_2d")   # Prozent (z.B. 12.5)
+    move_2d = (chg2d_pct / 100.0) if isinstance(chg2d_pct, (int, float)) else None
+    s_r, w_r, c_r = _exit_p2_scale(rsi, EXIT_RSI_WARN, EXIT_RSI_CRIT)
+    s_m, w_m, c_m = _exit_p2_scale(move_2d, EXIT_MOVE_2D_WARN, EXIT_MOVE_2D_CRIT)
+    return {
+        "score": max(s_r, s_m),
+        "warn":  w_r or w_m,
+        "crit":  c_r or c_m,
+        "details": {
+            "rsi14":       rsi,
+            "move_2d_pct": round(move_2d, 4) if move_2d is not None else None,
+            "move_3d_pct": None,
+            "move_3d_available": False,
+        },
+    }
+
+
+def _compute_exit_state(
+    ticker: str,
+    position: dict,
+    history: dict,
+    cur_price: float | None,
+    metrics: dict | None,
+    prev_state: dict | None,
+    now_utc: datetime,
+) -> dict:
+    """Pure compute pro Position — sechs Trigger + Composite. Fail-soft.
+
+    ``prev_state`` ist das vorige ``exit_state``-Dict aus app_data.json
+    (oder None). Peak-Felder werden NIE nach unten korrigiert:
+    peak_x = max(prev_peak_x, current_x).
+    """
+    entry_price = position.get("entry_price")
+    try:
+        entry_price = float(entry_price) if entry_price is not None else None
+    except (TypeError, ValueError):
+        entry_price = None
+    pnl_frac: float | None = None
+    if entry_price and entry_price > 0 and cur_price and cur_price > 0:
+        pnl_frac = (cur_price - entry_price) / entry_price
+
+    entries = (history or {}).get(ticker) or []
+    cur_score = _exit_p2_score_at(entries, 0) if entries else None
+
+    # Peak-Tracker — read previous, only ratchet up
+    prev = prev_state or {}
+    prev_peak_pnl = prev.get("peak_pnl_pct_since_entry")
+    try:
+        prev_peak_pnl = float(prev_peak_pnl) if prev_peak_pnl is not None else None
+    except (TypeError, ValueError):
+        prev_peak_pnl = None
+    prev_peak_score = prev.get("peak_score_since_entry")
+    try:
+        prev_peak_score = float(prev_peak_score) if prev_peak_score is not None else None
+    except (TypeError, ValueError):
+        prev_peak_score = None
+    peak_pnl = pnl_frac if prev_peak_pnl is None else (
+        max(prev_peak_pnl, pnl_frac) if pnl_frac is not None else prev_peak_pnl)
+    peak_score = cur_score if prev_peak_score is None else (
+        max(prev_peak_score, cur_score) if cur_score is not None else prev_peak_score)
+
+    triggers: dict[str, dict] = {
+        "score_decay":   _exit_p2_trigger_score_decay(entries, cur_score),
+        "profit_lock":   _exit_p2_trigger_profit_lock(pnl_frac, peak_pnl,
+                                                     cur_score, peak_score),
+        "overheated":    _exit_p2_trigger_overheated(metrics),
+        "setup_erosion": {
+            "score": 0, "warn": False, "crit": False,
+            "available": False,
+            "reason": "Entry-Snapshot (dtc/short_float/cost_to_borrow) "
+                      "nicht in positions.json persistiert",
+        },
+        "catalyst": {
+            "score": 0, "warn": False, "crit": False,
+            "available": False,
+            "reason": "kein historischer Earnings-Lookup zwischen Entry und heute",
+        },
+        "trend_break": {
+            "score": 0, "warn": False, "crit": False,
+            "available": False,
+            "reason": "EMA21 nicht im Datenmodell",
+        },
+    }
+
+    weights = {
+        "score_decay":   EXIT_PHASE2_W_SCORE_DECAY,
+        "profit_lock":   EXIT_PHASE2_W_PROFIT_LOCK,
+        "overheated":    EXIT_PHASE2_W_OVERHEATED,
+        "setup_erosion": EXIT_PHASE2_W_SETUP_EROSION,
+        "catalyst":      EXIT_PHASE2_W_CATALYST,
+        "trend_break":   EXIT_PHASE2_W_TREND_BREAK,
+    }
+    total_w, weighted = 0.0, 0.0
+    for k, t in triggers.items():
+        if not t.get("available", True):
+            continue
+        weighted += float(t.get("score") or 0) * weights[k]
+        total_w += weights[k]
+    pressure = int(round(weighted / total_w)) if total_w > 0 else 0
+
+    return {
+        "exit_pressure": pressure,
+        "triggers":      triggers,
+        "peak_score_since_entry":   round(peak_score, 1) if peak_score is not None else None,
+        "peak_pnl_pct_since_entry": round(peak_pnl, 4) if peak_pnl is not None else None,
+        "current_score":            round(cur_score, 1) if cur_score is not None else None,
+        "current_pnl_pct":          round(pnl_frac, 4) if pnl_frac is not None else None,
+        "computed_at":              now_utc.strftime("%Y-%m-%dT%H:%M:%SZ"),
+    }
+
+
+def _build_phase2_positions_payload(
+    top10: list[dict],
+    top10_metrics: dict,
+    history: dict,
+    prev_app_data: dict,
+    now_utc: datetime,
+) -> dict:
+    """Komponiert ``app_data.json["positions"]`` für den Daily-Run.
+
+    Jeder Eintrag enthält die positions.json-Stammdaten plus ``exit_state``.
+    Positionen ohne aktuellen Preis (yfinance-Fehler) werden trotzdem
+    geschrieben — exit_state markiert dann profit_lock als unavailable.
+    """
+    if not EXIT_PHASE2_ENABLED:
+        return {}
+    try:
+        positions = _load_positions()
+    except Exception as exc:
+        log.warning("Phase 2 Exit: _load_positions fehlgeschlagen: %s", exc)
+        return {}
+    if not positions:
+        return {}
+    by_ticker = {s.get("ticker"): s for s in (top10 or []) if s.get("ticker")}
+    prev_positions = (prev_app_data or {}).get("positions") or {}
+    out: dict[str, dict] = {}
+    for ticker, pos in positions.items():
+        try:
+            entry_date_obj = datetime.strptime(
+                pos.get("entry_date", ""), "%Y-%m-%d").date()
+        except (ValueError, TypeError):
+            log.warning("Phase 2 Exit %s: ungültiges entry_date %r — überspringe",
+                        ticker, pos.get("entry_date"))
+            continue
+        cur_price: float | None = None
+        s_top = by_ticker.get(ticker)
+        if s_top and s_top.get("price") is not None:
+            try:
+                cur_price = float(s_top["price"])
+            except (TypeError, ValueError):
+                cur_price = None
+        if cur_price is None:
+            try:
+                market = _fetch_position_market_data(ticker, entry_date_obj)
+                if market and market.get("price"):
+                    cur_price = float(market["price"])
+            except Exception as exc:
+                log.warning("Phase 2 Exit %s: _fetch_position_market_data: %s",
+                            ticker, exc)
+        prev_st = (prev_positions.get(ticker) or {}).get("exit_state")
+        try:
+            state = _compute_exit_state(
+                ticker, pos, history, cur_price,
+                top10_metrics.get(ticker), prev_st, now_utc)
+        except Exception as exc:
+            log.warning("Phase 2 Exit %s: _compute_exit_state: %s", ticker, exc)
+            continue
+        out[ticker] = {
+            "entry_date":  pos.get("entry_date"),
+            "entry_price": pos.get("entry_price"),
+            "shares":      pos.get("shares"),
+            "exit_state":  state,
+        }
+    return out
 
 
 # ===========================================================================
@@ -10846,11 +11245,28 @@ def main():
             "rsi14":     s.get("rsi14"),
             "change_2d": s.get("change_2d"),
         }
+    # Phase 2 Exit-Signal-Daten (Stufe 1/3) — pro offener Position 6 Trigger-
+    # Sub-Scores + Composite ``exit_pressure``. KEIN UI, KEIN Push in dieser
+    # Stufe; nur Persistierung in app_data.json["positions"]. Read-modify-
+    # write: vorige peak_pnl/peak_score aus prev app_data.json bewahrt,
+    # ratchet-up only (siehe _build_phase2_positions_payload).
+    _t_p2 = time.time()
+    _prev_app_data = _read_existing_app_data()
+    try:
+        _positions_payload = _build_phase2_positions_payload(
+            top10, _top10_metrics, _load_score_history(),
+            _prev_app_data, datetime.now(ZoneInfo("UTC")))
+    except Exception as _exc_p2:
+        log.warning("Phase 2 Exit-Pipeline fehlgeschlagen: %s", _exc_p2)
+        _positions_payload = {}
+    print(f"Step 4b Phase2-Exit ({len(_positions_payload)} Pos.) in "
+          f"{time.time()-_t_p2:.1f}s", flush=True)
     _write_app_data_json(watchlist_cards=_wl_card_data,
                          monster_scores=_monster_scores,
                          setup_scores=_setup_scores,
                          gap_states=_gap_states,
-                         top10_metrics=_top10_metrics)
+                         top10_metrics=_top10_metrics,
+                         positions=_positions_payload)
     print(f"Step 4 abgeschlossen in {time.time()-_t4:.1f}s", flush=True)
 
     # Step 5 — Exit-Signale für offene Positionen (Phase 1, kein Frontend).

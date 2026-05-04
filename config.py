@@ -533,6 +533,62 @@ EXIT_WEIGHT_DISTRIBUTION  = 0.20
 EXIT_WEIGHT_TIMEDECAY     = 0.15
 EXIT_COOLDOWN_HOURS       = 4      # Exit-/Profit-Cooldown je (Ticker, Typ)
 
+# ── Phase 2 Exit-Signal-Daten-Pipeline (Stufe 1/3 — kein UI/Push) ────────────
+# Pro offener Position berechnet der Daily-Run sechs Trigger-Sub-Scores
+# (jeweils 0–100) und einen gewichteten Composite ("exit_pressure").
+# Persistiert unter app_data.json["positions"][ticker]["exit_state"]; ki_agent
+# bewahrt die Sektion via **existing-Spread zwischen Ticks. Mapping: Werte
+# unter WARN-Schwelle werden linear auf 0–50 skaliert, WARN..CRIT linear auf
+# 50..100, ≥ CRIT auf 100. Trigger ohne Datenbasis (Setup-Erosion ohne
+# Entry-Snapshot, Trend-Bruch ohne EMA21, Catalyst ohne Earnings-Vergangenheits-
+# Lookup) werden als ``available: false`` ausgewiesen und vom Composite
+# ausgeschlossen — der Composite normiert über die Summe der verfügbaren
+# Gewichte, damit ein einziger aktiver Trigger nicht durch "available: false"-
+# Trigger künstlich verwässert wird.
+EXIT_PHASE2_ENABLED          = True
+
+# 1) Score-Verfall (Composite-Gewicht 30 %) — Drop in raw score_history
+EXIT_SCORE_DROP_3D_WARN      = 8
+EXIT_SCORE_DROP_3D_CRIT      = 15
+EXIT_SCORE_DROP_5D_WARN      = 12
+EXIT_SCORE_DROP_5D_CRIT      = 20
+EXIT_SCORE_DROP_7D_WARN      = 15
+EXIT_SCORE_DROP_7D_CRIT      = 25
+
+# 2) Profit-Lock (25 %) — Drawdown vom Peak-PnL und Peak-Score
+EXIT_PROFIT_LOCK_WARN_PCT    = 0.15   # Drawdown ≥ 15 Prozentpunkte vom Peak-PnL
+EXIT_PROFIT_LOCK_CRIT_PCT    = 0.25
+EXIT_PEAK_SCORE_DROP_WARN    = 10     # Score ≥ 10 Pkt unter peak_score_since_entry
+EXIT_PEAK_SCORE_DROP_CRIT    = 20
+
+# 3) Überhitzung (20 %) — RSI + Kurzzeit-Move
+EXIT_RSI_WARN                = 75
+EXIT_RSI_CRIT                = 82
+EXIT_MOVE_2D_WARN            = 0.20
+EXIT_MOVE_2D_CRIT            = 0.25
+EXIT_MOVE_3D_WARN            = 0.28
+EXIT_MOVE_3D_CRIT            = 0.35
+
+# 4) Setup-Erosion (15 %) — Entry-Snapshot vs. heute (heute available:false,
+# erfordert künftig Snapshot von dtc/short_float/cost_to_borrow zum Entry)
+EXIT_DTC_DROP_WARN_PCT       = 0.25
+EXIT_DTC_DROP_CRIT_PCT       = 0.40
+EXIT_SHORT_FLOAT_DROP_WARN_PP = 4     # Prozentpunkte
+EXIT_SHORT_FLOAT_DROP_CRIT_PP = 8
+EXIT_CTB_DROP_WARN_PCT       = 0.30
+EXIT_CTB_DROP_CRIT_PCT       = 0.50
+
+# 5) Catalyst (5 %) — Earnings-Vergangenheits-Lookup (heute available:false)
+# 6) Trend-Bruch (5 %) — EMA21 (heute available:false)
+
+# Composite-Gewichte (Summe = 1.0)
+EXIT_PHASE2_W_SCORE_DECAY    = 0.30
+EXIT_PHASE2_W_PROFIT_LOCK    = 0.25
+EXIT_PHASE2_W_OVERHEATED     = 0.20
+EXIT_PHASE2_W_SETUP_EROSION  = 0.15
+EXIT_PHASE2_W_CATALYST       = 0.05
+EXIT_PHASE2_W_TREND_BREAK    = 0.05
+
 # ── Phasenabhängige Alert-Schwellen ──────────────────────────────────────────
 # Zurückgesetzt — Bootstrap-Backtesting nicht mit Live-Scores vergleichbar.
 # Kalibrierung nach 60+ Tagen Live-Daten.
