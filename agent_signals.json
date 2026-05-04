@@ -1,17 +1,17 @@
 {
-  "updated": "2026-05-04T08:11:20.306233+02:00",
+  "updated": "2026-05-04T11:16:51.291328+02:00",
   "run_info": {
     "tickers_checked": 10,
     "signals_active": 1,
     "alerts_sent": 0,
-    "elapsed_s": 10.8,
-    "market_phase": "Geschlossen"
+    "elapsed_s": 9.6,
+    "market_phase": "Pre-Market"
   },
   "signals": {
     "XRX": {
-      "score": 25,
+      "score": 22,
       "confidence": 17,
-      "drivers": "News: revenue beat + UOA Call/Put 8.2×",
+      "drivers": "News-KI 12/30: Moderate positive sentiment with AI/transformation narrative, but no indicators of high short interest, recent shorts co + UOA Call/Put 8.2×",
       "price": 2.7,
       "chg_pct": 0.0,
       "rvol": 0.0,
@@ -137,7 +137,7 @@
     "TDOC": {
       "score": 18,
       "confidence": 17,
-      "drivers": "News-KI 8/30: Positive fundamentals and growth catalysts are bullish but lack short squeeze indicators like high short interest, low f + UOA Call/Put 36.3×",
+      "drivers": "News-KI 8/30: Positive earnings and product developments are bullish but lack the extreme short interest, institutional pressure, and  + UOA Call/Put 36.3×",
       "price": 6.46,
       "chg_pct": 0.0,
       "rvol": 0.0,
@@ -196,9 +196,9 @@
       "uoa_cp_ratio": 1.2023809523809523
     },
     "PAR": {
-      "score": 30,
-      "confidence": 33,
-      "drivers": "Earnings in 3 Tagen (07.05.2026) + News-KI 5/30: Negative headlines about fundamentals and profitability suggest weak institutional interest and potential downward press + Earnings in 3d",
+      "score": 25,
+      "confidence": 17,
+      "drivers": "Earnings in 3 Tagen (07.05.2026) + Earnings in 3d",
       "price": 14.26,
       "chg_pct": 0.0,
       "rvol": 0.0,
