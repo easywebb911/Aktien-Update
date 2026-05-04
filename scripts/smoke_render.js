@@ -290,24 +290,22 @@ function assert(cond, msg) {
   await runScenario('buildPositionStatus — Trigger-Block (warn + crit + unavailable)', async () => {
     const dom = await buildDom();
     const win = dom.window;
-    if (typeof win.buildPositionStatus !== 'function') {
-      // Aus dem Python-f-String extrahieren. Marker-Boundaries wie im
-      // generate_report.py-Block. ``{{`` / ``}}`` werden zu ``{`` / ``}``
-      // entgegen-codiert (f-String-Brace-Escape).
-      const src = fs.readFileSync(
-        path.resolve(__dirname, '..', 'generate_report.py'), 'utf8');
-      const marker = src.indexOf('// ── Position-Status (Phase 2 — Stufe 2a)');
-      const endMarker = src.indexOf('// ── Backtesting-Sektion', marker);
-      assert(marker > 0 && endMarker > marker,
-        'Position-Status-Block in generate_report.py nicht gefunden');
-      const jsRaw = src.slice(marker, endMarker);
-      // Brace-Escape rückgängig: {{ → { und }} → }
-      const jsClean = jsRaw.replace(/\{\{/g, '{').replace(/\}\}/g, '}');
-      // Eval im jsdom-Window — Function-Decls landen auf window.
-      win.eval(jsClean);
-      assert(typeof win.buildPositionStatus === 'function',
-        'buildPositionStatus auch nach Eval nicht verfügbar');
-    }
+    // IMMER aus generate_report.py re-evaluieren, damit der Smoke-Test
+    // die source-of-truth verifiziert — auch wenn index.html durch Auto-
+    // Redeploy zwischenzeitlich eine ältere Version dieser Funktion liefert.
+    // Marker-Boundaries wie im Block. ``{{`` / ``}}`` → ``{`` / ``}``
+    // (Python-f-String-Brace-Escape).
+    const src = fs.readFileSync(
+      path.resolve(__dirname, '..', 'generate_report.py'), 'utf8');
+    const marker = src.indexOf('// ── Position-Status (Phase 2 — Stufe 2a)');
+    const endMarker = src.indexOf('// ── Backtesting-Sektion', marker);
+    assert(marker > 0 && endMarker > marker,
+      'Position-Status-Block in generate_report.py nicht gefunden');
+    const jsRaw = src.slice(marker, endMarker);
+    const jsClean = jsRaw.replace(/\{\{/g, '{').replace(/\}\}/g, '}');
+    win.eval(jsClean);
+    assert(typeof win.buildPositionStatus === 'function',
+      'buildPositionStatus nach Eval nicht verfügbar');
     // Alle 3 verfügbaren Trigger aktiv, die 3 unverfügbaren markiert
     win._POSITIONS_DATA = {
       XRX: {
@@ -350,6 +348,38 @@ function assert(cond, msg) {
     assert(html.includes('−8 Pkt in 3T'),   'Reason score_decay drop_3d fehlt');
     assert(html.includes('RSI 78'),         'Reason overheated RSI fehlt');
     assert(html.includes('📍 Position-Status'), 'Block-Header fehlt');
+
+    // Phase 2 Stufe 2b-1 — Composite-Zeile "Exit-Druck: X/100"
+    assert(html.includes('Exit-Druck: 67/100'),
+      `Composite-Zeile fehlt — Mock hatte exit_pressure=67. HTML-Ausschnitt: ${html.slice(0, 500)}`);
+    // exit_pressure 67 → mid (30..74) → amber #f59e0b
+    assert(html.includes('color:#f59e0b'),
+      'Composite-Farbe fehlt für mid-range exit_pressure (erwartet #f59e0b)');
+    // ps-pressure-Klasse vorhanden
+    assert(html.includes('class="ps-pressure"'), 'CSS-Klasse ps-pressure fehlt');
+
+    // Crit-Range-Test (≥75 → #ef4444)
+    win._POSITIONS_DATA.XRX.exit_state.exit_pressure = 88;
+    const htmlCrit = win.buildPositionStatus('XRX');
+    assert(htmlCrit.includes('Exit-Druck: 88/100'), 'Crit-Range Composite-Zeile fehlt');
+    assert(htmlCrit.includes('color:#ef4444'),
+      'Crit-Range Farbe fehlt (erwartet #ef4444 bei exit_pressure≥75)');
+
+    // Low-Range-Test (<30 → var(--txt-dim))
+    win._POSITIONS_DATA.XRX.exit_state.exit_pressure = 12;
+    const htmlLow = win.buildPositionStatus('XRX');
+    assert(htmlLow.includes('Exit-Druck: 12/100'), 'Low-Range Composite-Zeile fehlt');
+    assert(htmlLow.includes('color:var(--txt-dim)'),
+      'Low-Range Farbe fehlt (erwartet var(--txt-dim) bei exit_pressure<30)');
+
+    // Fehlende exit_pressure → Composite-Zeile NICHT gerendert
+    delete win._POSITIONS_DATA.XRX.exit_state.exit_pressure;
+    const htmlNoEp = win.buildPositionStatus('XRX');
+    assert(!htmlNoEp.includes('Exit-Druck:'),
+      'Composite-Zeile dürfte ohne exit_pressure NICHT gerendert werden');
+    assert(htmlNoEp.includes('class="ps-row"'),
+      'Trigger-Rows müssen ohne exit_pressure trotzdem rendern');
+    win._POSITIONS_DATA.XRX.exit_state.exit_pressure = 67;   // restore
 
     // Empty-Pfad 1: Position ohne exit_state → leerer String
     win._POSITIONS_DATA = { XRX: { entry_price: 4.0 } };

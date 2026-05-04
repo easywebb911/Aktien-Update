@@ -6078,8 +6078,18 @@ function buildPositionStatus(ticker) {{
       rows.push(`<div class="ps-row">${{icon}} <strong>${{lbl}}</strong>${{reasonHtml}}</div>`);
     }}
     if (!rows.length) return '';
+    // Composite-Zeile (Phase 2 Stufe 2b-1) — nur wenn exit_pressure vorhanden.
+    // Color-Mapping per Pfad-1-Genehmigung: 0–29 dim, 30–74 amber, 75–100 rot.
+    const ep = pos.exit_state.exit_pressure;
+    let pressureLine = '';
+    if (typeof ep === 'number' && isFinite(ep)) {{
+      const v = Math.round(ep);
+      const c = v >= 75 ? '#ef4444' : v >= 30 ? '#f59e0b' : 'var(--txt-dim)';
+      pressureLine = `<div class="ps-pressure" style="color:${{c}}">Exit-Druck: ${{v}}/100</div>`;
+    }}
     return `<div class="position-status-block" data-ticker="${{ticker}}">
       <div class="ps-head">📍 Position-Status</div>
+      ${{pressureLine}}
       ${{rows.join('')}}
     </div>`;
   }} catch (e) {{
