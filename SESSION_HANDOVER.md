@@ -1,134 +1,102 @@
-# Session-Handover — Stand 03.05.2026 (Abend-Update)
+# Session-Handover — Stand 04.05.2026
 
 ## Heute implementiert (chronologisch)
-- 8a71e30 — fix: leftover _sort_keeping_manual_last call site
-- 4b04322, e2e1b81, a31ddfb, 864d818 — feat: Phase 3
-  Master-Passwort-Token-Encryption (mehrere Iterationen,
-  inkl. iOS-Storage-Quirk-Fixes und Settings-Panel-Routing-Fix)
-- 53b1d4e — feat: Auto-Redeploy-Workflow (redeploy-on-source-change)
-- 71a78fc — chore: Setup-Score-Tooltip entfernt
-- 415177e — refactor: Voll-Breite-Layout NUR für Watchlist-
-  Drawer (rückgängig auf Top-10)
-- ef38982 — fix: Toggle-Chevrons vereinheitlicht (▼ U+25BC)
-- abfdd9c — chore: drei statische Quick-Fragen im Chat
-- 6e5a4a3 — feat: KI-Score als dritte Sortier-Option +
-  Methodik-Sync
-- c2118cd — chore: Stockanalysis-Outline-Button (lila Pille weg)
-- 498a269 — feat: Watchlist-Tiles kompakt + 3D + Mini-Ring
-- 214b7fd — feat: Top-10-Karten-3D-Look (Variante 1B)
-- 211c198 — feat: Stat-Tiles eingelassen-3D
-- 22a5c82 — feat: TopTen-Banner E3 magazin-haft mit Akzentpunkt
-- 0de397b — fix: .sort-ki-Layout für KI-Sortier-Modus
-- df4aab5 — fix: Watchlist-Score Single-Source-of-Truth
-  (3-Stufen-Priorität: WL_TOP10 → _WL_CARDS → WL_SCORES)
-- d82cfcd — feat: Push-Silence-Filter (RSI > 75 ODER 2-Tages-
-  Move > 20%) inkl. Methodik-Sync
-- a97696b — fix: inTop-ReferenceError in wlRender +
-  defensive Härtung _wlScoreOf
-- ee91390 — chore: scripts/smoke_render.js (5 Szenarien,
-  manuell via node ausführbar)
-- e04ba6b — chore: 6 SAFE_DEAD-Items entfernt (RS_SECTOR_*,
-  _sector_rs_row, .chart-badge-s, verwaister Kommentar)
-- a395233 — docs: v1/v2-Render-Pfad-Architektur-Anker
-  (Code-Kommentar + CLAUDE.md-Sektion + Backlog-Eintrag)
+- dde32d3 — feat: Phase 2 Stufe 1/3 — Exit-Signal-Daten-Pipeline
+  (6 Trigger mit Composite-Score, 3 aktiv + 3 als available:false
+  markiert für später, Peak-Tracking ratchet-up-only,
+  app_data.json["positions"][ticker]["exit_state"]-Schema)
+- 14f1584 — feat: Phase 2 Stufe 2a — Position-Status-Block in
+  buildPositionStatus, Trigger-Zeilen mit warn/crit-Icons
+- ee8dee0 — feat: Phase 2 Stufe 2b-1 — Composite-Anzeige
+  "Exit-Druck: X/100" mit Color-Mapping (txt-dim/amber/red)
+- 1e3c612 — feat: Phase 2 Stufe 2b-2 — Border-Glow je nach
+  Druck-Stufe (additive box-shadow-Komposition, 3D-Look erhalten)
+- 92d7e34 — feat: Phase 2 Stufe 2b-3 — Banner "🚨 Exit-Kandidat"
+  bei pressure > 75 (XSS-sicher via createElement+textContent,
+  has-exit-banner-Parent-Klasse für Watchlist-Tile-Layout)
+- 7570cbb — docs: Phase 2 Stufe 3 ins Backlog (Push-Pipeline,
+  exitp2_*-Cooldown-Prefix, 2-3 Tage Stabilitäts-Voraussetzung)
+- 72b44a0 — fix: KI-Sortierung — NaN-Werte in app_data.json
+  brachen den Browser-Fetch komplett. Sanitizer-Helper +
+  allow_nan=False in beiden Writern (generate_report.py +
+  ki_agent.py), Belt-and-Suspenders gegen Read-Modify-Write-
+  Reinfektion via **existing-Spread
+- 9fb70c9 — refactor: Methodik-Sektion "Exit-Signal-Berechnung"
+  durch lesbare "Wann sollte ich aussteigen?"-Story ersetzt,
+  -73/+22 Zeilen, Berechnungs-Logik unverändert
 
-## Aktive Position (im Secret POSITIONS_JSON)
-- INDI · Entry 27.04.2026 · 3,76 USD · 35 shares
-  (in dieser Session nicht berührt)
+## Aktive Positionen (im Secret POSITIONS_JSON)
+- GRPN · offen · läuft im Plus
+- AMC · offen · läuft im Plus
+- INDI · GESCHLOSSEN am 04.05. mit +13.3% (Trade-Journal)
+  · bleibt auf Watchlist als Beobachtung ohne Position
 
 ## Verifikation ausstehend
-- Push-Silence-Filter: erst beim nächsten ki_agent-Tick
-  aktiv. Beobachten, ob überhitzte Anomalien (z.B. XRX-artige
-  Fälle) jetzt korrekt unterdrückt werden mit
-  "Bewegung gelaufen"-Badge.
-- Watchlist-Score-Konsistenz: nach nächstem Daily-Run
-  prüfen, dass Tile + Detail-Card identische Scores zeigen.
+- Beim nächsten Daily-Run morgens 10:00 UTC:
+  - exit_state für GRPN/AMC mit plausiblen Composite-Werten?
+  - Position-Status-Block sichtbar?
+  - Composite-Anzeige korrekt eingefärbt?
+  - Border-Glow je nach Druck-Stufe?
+  - Banner ggf. bei kritischen Werten?
+  - KI-Sortierung im Browser funktioniert?
+- Phase 2 Stufe 3 (Push-Pipeline) erst nach 2-3 Tagen
+  stabilem UI-Verhalten starten.
 
 ## Geplante Aufgaben
-1. Phase 2 Exit-Signale (UI-First) nach 1 Woche Live-Test
-2. Immediacy-Score-Feature
-3. Bahn A2 (Frontend-Auswertungs-Panel) ab Ende Mai
-4. UX Backtesting "Nur Live"-Modus
-5. Setup-Verfall-Symmetrie weiter beobachten
-6. ⏰ Wiedervorlage 15.05.2026: Phase 3 Exit-Signale prüfen
-   (Blow-off-Top + IV-Crush)
-7. ⏰ Wiedervorlage 02.07.2026: Premium-Daten-Stack prüfen
-8. Filter-Flexibilisierung prüfen (Bahn A2)
-9. Phase X — v1-Pfad-Migration (drei Schritte zusammen):
-   page.jinja anlegen, _wl_full_card_html ohne
-   Regex-Stripping neu, generate_html_v2 autark.
-   Erst dann v1 entfernen. JINJA_RENDER_TEST muss vorher
-   die Outer-Page byte-vergleichen können.
-10. Phase Y — Score-Aufschlüsselung pro Karte (UI-Transparenz):
-    beim Klick auf den Setup-Score eine Aufschlüsselung anzeigen,
-    die alle Schichten der Score-Berechnung sichtbar macht:
-    - Roh-Score (Basis aus Struktur/Katalysator/Timing/Squeeze)
-    - Treibersumme aus dem Driver-Breakdown (gewichtet)
-    - Score-Smoothing (vorher/nachher)
-    - FINRA-Trend-Bonus
-    - KI-Agent-Boost (Multiplikator)
-    - Final-Score
-    Ziel: Diskrepanz zwischen Driver-Summe und Final-Score
-    nachvollziehbar machen. Begründung: heute zeigt der Driver-
-    Block z.B. summiert 77, der Score aber 83.4 — das ist nicht
-    falsch, aber im UI nicht erklärt.
-11. Phase 2 Stufe 3 — Exit-Signal-Push-Pipeline (in ki_agent.py):
-    drei Push-Klassen für offene Positionen:
-    - Eskalations-Push: ``exit_pressure > 75`` → sofort, kein
-      Cooldown (Time-Critical)
-    - Warnungs-Push: ``exit_pressure 55..75`` → alle 12 h
-      Cooldown pro Ticker
-    - Trigger-Push: einzelner Crit-Trigger (auch wenn Composite
-      < 55) → alle 24 h Cooldown pro (Ticker × Trigger)
-    Cooldown-Keys mit Prefix ``exitp2_<klasse>_<ticker>[_<trigger>]``
-    in agent_state.json (kollisionssicher zu bestehenden
-    exit_/profit_/anomaly_-Keys). VIX-Gating und Push-Silence-
-    Filter (PUSH_RSI_MAX / PUSH_MOVE_2D_MAX) gelten NICHT für
-    Exit-Signale — Time-Critical-Pfad muss in jeder Marktphase
-    durchkommen, analog zum Earnings-Sofort-Alert.
-    **Voraussetzung:** Stufen 1, 2a, 2b-1, 2b-2, 2b-3 müssen
-    mindestens 2–3 Tage stabil laufen mit plausiblen Werten
-    bei GRPN/AMC oder anderen offenen Positionen. Erst nach
-    UI-Verifikation starten — Push-Bugs landen direkt auf dem
-    Handy.
+1. Phase 2 Stufe 3 (Push-Pipeline) — frühestens Donnerstag/
+   Freitag, nach UI-Verifikation
+2. Phase 3 Exit-Signale (Wiedervorlage 15.05.2026) —
+   Blow-off-Top + IV-Crush
+3. Score-Aufschlüsselung pro Karte (Phase Y, Backlog)
+4. Immediacy-Score-Feature
+5. Bahn A2 (Frontend-Auswertungs-Panel) ab Ende Mai
+6. UX Backtesting "Nur Live"-Modus
+7. Setup-Verfall-Symmetrie weiter beobachten
+8. ⏰ Wiedervorlage 02.07.2026: Premium-Daten-Stack prüfen
+9. Filter-Flexibilisierung prüfen (Bahn A2)
+10. Phase X — v1-Pfad-Migration (drei Schritte zusammen,
+    siehe CLAUDE.md-Sektion v1/v2-Render-Pfad)
+11. Phase 2 Trigger 4-6 aktivieren sobald Datenquellen da:
+    Setup-Erosion (DTC/Short-Float/CtB beim Entry persistieren),
+    Catalyst (Earnings-Datum + Score-3T-nach), Trend-Bruch (EMA21)
 
 ## Optional / niedrig priorisiert
 - IBKR Borrow Rate liefert konstant HTTP 404 — Provider-
-  Fallback prüfen (Stockanalysis o.ä.); aktuell fällt der
-  Borrow-Rate-Driver in _drivers_breakdown still aus.
-- DOUBTFUL Cleanup-Items aus Diagnose-Bericht prüfen:
-  rel_strength_sector / sector_etf (im JS noch gelesen?),
-  MIN_REL_VOLUME_INTL (Intl-Screening-Reaktivierung möglich?)
+  Fallback prüfen
+- DOUBTFUL Cleanup-Items (rel_strength_sector / sector_etf
+  im JS gelesen?, MIN_REL_VOLUME_INTL Reaktivierung möglich?)
 - Per-Ticker Alert-Lock falls Alert-Loop parallelisiert wird
 - Watchlist-Drawer (buildWlDetails) auf neuen Score-Block
   migrieren
-- backtest_history.json einmal cachen statt zwei Disk-Reads
-- News-Decay-Logik auf UOA / Insider übertragen via
-  _news_age_weight(), sobald Persistenz da ist
-- KI-Agent-eigene Anomalien (UOA-Vol/OI / RVOL-Vortagsvergleich
-  / Gap+Hold-Combo) auch in den Chat-Kontext einspeisen
+- backtest_history.json einmal cachen
+- News-Decay-Logik auf UOA / Insider übertragen
+- KI-Agent-eigene Anomalien in Chat-Kontext einspeisen
 - EDGAR_ACTIVIST_FILERS-Liste über Live-Beobachtung verfeinern
 - Smoke-Test-Suite ggf. um weitere kritische Pfade erweitern
 
 ## Architektur-Anker (in CLAUDE.md, hier als Reminder)
-- Master-Passwort-Token-Encryption: Single-Reader-Pattern
-  getToken(), Two-Tier-Storage localStorage encrypted +
-  sessionStorage runtime, versioniertes Krypto-Schema (v:1)
-- Watchlist-Score Single-Source-of-Truth: 3-Stufen-Priorität
-  WL_TOP10 → _WL_CARDS → WL_SCORES, defensive _wlScoreOf
-  mit try/catch, Re-Render-Hook nach app_data-Fetch
-- v1/v2-Render-Pfad: v2 ist NICHT autark, ruft
-  generate_html_v1 für Outer-Page. Wer v1 löscht, killt v2 mit.
-  Migration nur in einem Zug (3 Schritte).
-- Push-Silence-Filter: Stille bei RSI > 75 ODER 2T-Move > 20%,
-  Earnings + EDGAR ausgenommen. Schwellen in config.py.
-- top10_metrics in app_data.json: read-modify-write mit
-  **existing-Spread bewahrt sie zwischen ki_agent-Ticks.
+- Master-Passwort-Token-Encryption (Single-Reader getToken,
+  Two-Tier-Storage, versioniertes Krypto-Schema v:1)
+- Watchlist-Score Single-Source-of-Truth (3-Stufen-Priorität
+  WL_TOP10 → _WL_CARDS → WL_SCORES, defensive _wlScoreOf)
+- v1/v2-Render-Pfad — v2 NICHT autark, ruft v1 für Outer-Page
+- Push-Silence-Filter (RSI > 75 ODER 2T-Move > 20%, Earnings
+  + EDGAR ausgenommen)
+- top10_metrics in app_data.json (read-modify-write mit
+  **existing-Spread)
+- Phase 2 Exit-State (NEU): exit_state pro Position mit
+  6 Triggern + Composite-Pressure, Peak-Tracking ratchet-up,
+  read-modify-write-Spread bewahrt zwischen ki_agent-Ticks
+- JSON-Sanitizer (NEU): NaN/Infinity-Werte werden vor
+  json.dump entfernt (allow_nan=False als Belt-and-Suspenders).
+  Beide Writer (generate_report._write_app_data_json +
+  ki_agent.save_signals) müssen den Sanitizer anwenden, sonst
+  Reinfektion via **existing-Spread.
 
-## Heutige Smoke-Test-Bewährung
-scripts/smoke_render.js wurde heute eingeführt und sofort
-zweimal automatisch beim Konstanten-Cleanup + Architektur-
-Anker-Commit zur Verifikation genutzt — beide Male alle
-5 Szenarien grün. Manuell ausführbar via:
-  npm install jsdom (in /tmp empfohlen, nicht im Repo)
-  node scripts/smoke_render.js
+## Smoke-Test-Status
+scripts/smoke_render.js: jetzt 6 Szenarien, alle 6 grün.
+Heute mehrfach erweitert: Position-Status-Block, Composite-
+Score, Border-Glow, Banner — jeweils mit Boundary-Asserts und
+Position-Close-Reset-Tests. Smoke-Test extrahiert die JS-
+Funktion direkt aus generate_report.py (robust gegen
+Render-Verzug der index.html).
