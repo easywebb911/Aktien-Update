@@ -5342,80 +5342,29 @@ def generate_html_v1(stocks: list[dict], report_date: str, _ctx: dict | None = N
         </p>
       </div>
       <div class="info-box info-box--full">
-        <h4>📉 Exit-Signal-Berechnung (Phase 2 — Stufe 1/3, Daten-Pipeline)</h4>
-        <p style="font-size:.82rem;color:var(--txt-sub);margin:.2rem 0 .6rem;line-height:1.55">
-          Pro offener Position berechnet der Daily-Run sechs Trigger-Sub-Scores (jeweils 0–100) und einen gewichteten Composite ``exit_pressure``. Die Werte werden in <code>app_data.json["positions"][ticker]["exit_state"]</code> persistiert. Aktuell rein Daten-Pipeline — kein UI-Display, kein Push (folgen in Stufe 2/3). Skala: Wert &lt; WARN-Schwelle → 0–50 linear · WARN..CRIT → 50–100 linear · ≥ CRIT → 100. Trigger ohne verfügbare Datenbasis werden mit ``available: false`` markiert und vom Composite ausgeschlossen (Normierung über Summe der verfügbaren Gewichte).
+        <h4>Wann sollte ich aussteigen?</h4>
+        <p style="font-size:.82rem;color:var(--txt-sub);margin:.2rem 0 .8rem;line-height:1.55">
+          Bei jeder offenen Position prüft das System sechs Frühwarn-Signale und fasst sie zu einem <strong>„Exit-Druck"</strong> von 0 bis 100 zusammen. Je höher, desto dringender.
         </p>
-        <div class="score-blocks">
-          <div class="score-block-card">
-            <div class="score-block-head">
-              <span class="score-block-name">1. Score-Verfall</span>
-              <span class="score-block-pct">30 %</span>
-            </div>
-            <ul class="score-block-list">
-              <li><span class="sb-lbl">drop_3d (raw score_history)</span><span class="sb-pts">WARN {EXIT_SCORE_DROP_3D_WARN} / CRIT {EXIT_SCORE_DROP_3D_CRIT}</span></li>
-              <li><span class="sb-lbl">drop_5d</span><span class="sb-pts">WARN {EXIT_SCORE_DROP_5D_WARN} / CRIT {EXIT_SCORE_DROP_5D_CRIT}</span></li>
-              <li><span class="sb-lbl">drop_7d</span><span class="sb-pts">WARN {EXIT_SCORE_DROP_7D_WARN} / CRIT {EXIT_SCORE_DROP_7D_CRIT}</span></li>
-              <li><span class="sb-lbl">sub_scores_all_falling</span><span class="sb-pts">— available: false (sub_scores nicht in score_history)</span></li>
-            </ul>
-          </div>
-          <div class="score-block-card">
-            <div class="score-block-head">
-              <span class="score-block-name">2. Profit-Lock</span>
-              <span class="score-block-pct">25 %</span>
-            </div>
-            <ul class="score-block-list">
-              <li><span class="sb-lbl">Drawdown peak_pnl_pct → heute</span><span class="sb-pts">WARN {(EXIT_PROFIT_LOCK_WARN_PCT*100):.0f}&nbsp;% / CRIT {(EXIT_PROFIT_LOCK_CRIT_PCT*100):.0f}&nbsp;%</span></li>
-              <li><span class="sb-lbl">peak_score − current_score</span><span class="sb-pts">WARN {EXIT_PEAK_SCORE_DROP_WARN} / CRIT {EXIT_PEAK_SCORE_DROP_CRIT}</span></li>
-              <li><span class="sb-lbl">Peak-Felder</span><span class="sb-pts">ratchet-up only (nie nach unten)</span></li>
-            </ul>
-          </div>
-          <div class="score-block-card">
-            <div class="score-block-head">
-              <span class="score-block-name">3. Überhitzung</span>
-              <span class="score-block-pct">20 %</span>
-            </div>
-            <ul class="score-block-list">
-              <li><span class="sb-lbl">RSI14 (top10_metrics)</span><span class="sb-pts">WARN {EXIT_RSI_WARN} / CRIT {EXIT_RSI_CRIT}</span></li>
-              <li><span class="sb-lbl">2-Tages-Move</span><span class="sb-pts">WARN {(EXIT_MOVE_2D_WARN*100):.0f}&nbsp;% / CRIT {(EXIT_MOVE_2D_CRIT*100):.0f}&nbsp;%</span></li>
-              <li><span class="sb-lbl">3-Tages-Move</span><span class="sb-pts">— available: false (nicht in top10_metrics)</span></li>
-            </ul>
-          </div>
-          <div class="score-block-card">
-            <div class="score-block-head">
-              <span class="score-block-name">4. Setup-Erosion</span>
-              <span class="score-block-pct">15 %</span>
-            </div>
-            <ul class="score-block-list">
-              <li><span class="sb-lbl">DTC-Drop seit Entry</span><span class="sb-pts">WARN {(EXIT_DTC_DROP_WARN_PCT*100):.0f}&nbsp;% / CRIT {(EXIT_DTC_DROP_CRIT_PCT*100):.0f}&nbsp;%</span></li>
-              <li><span class="sb-lbl">Short-Float-Drop seit Entry (PP)</span><span class="sb-pts">WARN {EXIT_SHORT_FLOAT_DROP_WARN_PP} / CRIT {EXIT_SHORT_FLOAT_DROP_CRIT_PP}</span></li>
-              <li><span class="sb-lbl">Cost-to-Borrow-Drop</span><span class="sb-pts">WARN {(EXIT_CTB_DROP_WARN_PCT*100):.0f}&nbsp;% / CRIT {(EXIT_CTB_DROP_CRIT_PCT*100):.0f}&nbsp;%</span></li>
-              <li><span class="sb-lbl">Status</span><span class="sb-pts">— available: false (Entry-Snapshot fehlt in positions.json)</span></li>
-            </ul>
-          </div>
-          <div class="score-block-card">
-            <div class="score-block-head">
-              <span class="score-block-name">5. Catalyst</span>
-              <span class="score-block-pct">5 %</span>
-            </div>
-            <ul class="score-block-list">
-              <li><span class="sb-lbl">earnings_passed_since_entry</span><span class="sb-pts">— available: false (kein historischer Earnings-Lookup)</span></li>
-              <li><span class="sb-lbl">score_after_earnings_low</span><span class="sb-pts">— available: false</span></li>
-            </ul>
-          </div>
-          <div class="score-block-card">
-            <div class="score-block-head">
-              <span class="score-block-name">6. Trend-Bruch</span>
-              <span class="score-block-pct">5 %</span>
-            </div>
-            <ul class="score-block-list">
-              <li><span class="sb-lbl">price_below_ema21</span><span class="sb-pts">— available: false (EMA21 nicht im Datenmodell)</span></li>
-              <li><span class="sb-lbl">price_below_ema21_first_time</span><span class="sb-pts">— available: false</span></li>
-            </ul>
-          </div>
-        </div>
-        <p class="score-block-foot score-block-foot-strong">
-          <strong>Composite:</strong> Σ (sub_score × Gewicht) ÷ Σ (Gewicht der verfügbaren Trigger). Aktuell wirken in Stufe 1/3 nur Trigger 1–3 voll; Trigger 4–6 stehen ``available: false`` und kommen mit Persistenz-Erweiterungen (Entry-Snapshot, Earnings-Historie, EMA21) in Folgestufen.
+        <ul style="margin:0 0 .9rem">
+          <li><strong>0–30:</strong> Position ruhig halten</li>
+          <li><strong>30–55:</strong> Beobachten, eng tracken</li>
+          <li><strong>55–75:</strong> Teilverkauf erwägen</li>
+          <li><strong>75–100:</strong> Exit-Kandidat</li>
+        </ul>
+        <p style="font-size:.82rem;color:var(--txt-sub);margin:.2rem 0 .4rem;line-height:1.55">
+          Die sechs Signale, in der Reihenfolge ihrer Wichtigkeit:
+        </p>
+        <ul>
+          <li><strong>1. Score-Verfall (30 %)</strong> — Der Setup-Score zerfällt schneller als üblich</li>
+          <li><strong>2. Profit-Lock (25 %)</strong> — Im Plus, aber Score kühlt sich vom Höchststand ab</li>
+          <li><strong>3. Überhitzung (20 %)</strong> — RSI hoch oder schnelle Kursbewegung</li>
+          <li><strong>4. Setup-Erosion (15 %)</strong> — Short-Mechanik löst sich auf</li>
+          <li><strong>5. Catalyst (5 %)</strong> — Earnings ohne Wirkung</li>
+          <li><strong>6. Trend-Bruch (5 %)</strong> — Kurs unter 21-Tage-EMA</li>
+        </ul>
+        <p style="font-size:.78rem;color:var(--txt-dim);margin:.7rem 0 0;line-height:1.5;font-style:italic">
+          Nicht jedes Signal ist immer aktiv — Trigger ohne ausreichende Datenbasis werden übersprungen, das Gewicht der aktiven Trigger wird dann automatisch hochgerechnet.
         </p>
       </div>
       <div class="info-box info-box--full">
