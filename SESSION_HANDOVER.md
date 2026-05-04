@@ -1,5 +1,15 @@
 # Session-Handover — Stand 04.05.2026
 
+## DRINGEND — Vor Phase 2 Stufe 3 erledigen
+EUR-Anzeige zusätzlich zu USD in Watchlist-Tiles und
+Position-Panel — bei Position-Eröffnung, beim Beobachten
+(laufender Wert) und beim Schließen (Verkaufserlös).
+
+Offene Fragen vor Implementierung klären:
+- Wechselkurs-Quelle (welche API)?
+- Eingefroren beim Entry oder live aktualisiert?
+- Display-Format (parallel oder umschaltbar)?
+
 ## Heute implementiert (chronologisch)
 - dde32d3 — feat: Phase 2 Stufe 1/3 — Exit-Signal-Daten-Pipeline
   (6 Trigger mit Composite-Score, 3 aktiv + 3 als available:false
@@ -40,34 +50,32 @@
   - Banner ggf. bei kritischen Werten?
   - KI-Sortierung im Browser funktioniert?
 - Phase 2 Stufe 3 (Push-Pipeline) erst nach 2-3 Tagen
-  stabilem UI-Verhalten starten.
+  stabilem UI-Verhalten starten und nach EUR-Ergänzung.
 
 ## Geplante Aufgaben
-1. Phase 2 Stufe 3 (Push-Pipeline) — frühestens Donnerstag/
+1. EUR-Anzeige (siehe DRINGEND oben)
+2. Phase 2 Stufe 3 (Push-Pipeline) — frühestens Donnerstag/
    Freitag, nach UI-Verifikation
-2. Phase 3 Exit-Signale (Wiedervorlage 15.05.2026) —
+3. Phase 3 Exit-Signale (Wiedervorlage 15.05.2026) —
    Blow-off-Top + IV-Crush
-3. Score-Aufschlüsselung pro Karte (Phase Y, Backlog)
-4. Immediacy-Score-Feature
-5. Bahn A2 (Frontend-Auswertungs-Panel) ab Ende Mai
-6. UX Backtesting "Nur Live"-Modus
-7. Setup-Verfall-Symmetrie weiter beobachten
-8. ⏰ Wiedervorlage 02.07.2026: Premium-Daten-Stack prüfen
-9. Filter-Flexibilisierung prüfen (Bahn A2)
-10. Phase X — v1-Pfad-Migration (drei Schritte zusammen,
+4. Score-Aufschlüsselung pro Karte (Phase Y, Backlog)
+5. Immediacy-Score-Feature
+6. Bahn A2 (Frontend-Auswertungs-Panel) ab Ende Mai
+7. UX Backtesting "Nur Live"-Modus
+8. Setup-Verfall-Symmetrie weiter beobachten
+9. ⏰ Wiedervorlage 02.07.2026: Premium-Daten-Stack prüfen
+10. Filter-Flexibilisierung prüfen (Bahn A2)
+11. Phase X — v1-Pfad-Migration (drei Schritte zusammen,
     siehe CLAUDE.md-Sektion v1/v2-Render-Pfad)
-11. Phase 2 Trigger 4-6 aktivieren sobald Datenquellen da:
-    Setup-Erosion (DTC/Short-Float/CtB beim Entry persistieren),
-    Catalyst (Earnings-Datum + Score-3T-nach), Trend-Bruch (EMA21)
+12. Phase 2 Trigger 4-6 aktivieren sobald Datenquellen da:
+    Setup-Erosion, Catalyst, Trend-Bruch
 
 ## Optional / niedrig priorisiert
-- IBKR Borrow Rate liefert konstant HTTP 404 — Provider-
-  Fallback prüfen
-- DOUBTFUL Cleanup-Items (rel_strength_sector / sector_etf
-  im JS gelesen?, MIN_REL_VOLUME_INTL Reaktivierung möglich?)
+- IBKR Borrow Rate liefert konstant HTTP 404 — Provider-Fallback
+- DOUBTFUL Cleanup-Items (rel_strength_sector / sector_etf,
+  MIN_REL_VOLUME_INTL)
 - Per-Ticker Alert-Lock falls Alert-Loop parallelisiert wird
 - Watchlist-Drawer (buildWlDetails) auf neuen Score-Block
-  migrieren
 - backtest_history.json einmal cachen
 - News-Decay-Logik auf UOA / Insider übertragen
 - KI-Agent-eigene Anomalien in Chat-Kontext einspeisen
