@@ -424,16 +424,64 @@ function assert(cond, msg) {
         `Karte hat fälschlich ${cls} bei low-range pressure=12`);
     }
 
-    // Position geschlossen → Glow muss komplett verschwinden (idempotenter Reset)
+    // Phase 2 Stufe 2b-3 — Banner "🚨 Exit-Kandidat" bei exit_pressure > 75
+    // Strikt > 75: bei genau 75 KEIN Banner, bei 76 Banner aktiv.
+    const findBanner = () => firstDomCard.querySelector(':scope > .exit-banner');
+
+    // Boundary: exit_pressure = 75 → KEIN Banner
+    win._POSITIONS_DATA = buildEpData(75);
+    win._applyExitGlows();
+    assert(!findBanner(),
+      'Banner darf bei exit_pressure=75 NICHT erscheinen (Spec: strikt > 75)');
+    assert(!firstDomCard.classList.contains('has-exit-banner'),
+      'has-exit-banner-Klasse fälschlich gesetzt bei pressure=75');
+
+    // Boundary + 1: exit_pressure = 76 → Banner aktiv
+    win._POSITIONS_DATA = buildEpData(76);
+    win._applyExitGlows();
+    let banner = findBanner();
+    assert(banner, 'Banner fehlt bei exit_pressure=76');
+    assert(banner.textContent === '🚨 Exit-Kandidat',
+      `Banner-Text falsch: "${banner.textContent}"`);
+    assert(firstDomCard.classList.contains('has-exit-banner'),
+      'has-exit-banner-Klasse fehlt bei pressure=76');
+
+    // Hoher Wert (88) → Banner sichtbar
+    win._POSITIONS_DATA = buildEpData(88);
+    win._applyExitGlows();
+    banner = findBanner();
+    assert(banner, 'Banner fehlt bei exit_pressure=88');
+    // Banner ist erstes Kind der Karte (vor Card-Header)
+    assert(firstDomCard.firstChild === banner,
+      'Banner ist nicht erstes Kind der Karte');
+
+    // Mid-Range (50) → kein Banner
+    win._POSITIONS_DATA = buildEpData(50);
+    win._applyExitGlows();
+    assert(!findBanner(), 'Banner fälschlich aktiv bei mid-range pressure=50');
+
+    // Idempotenz: zweimaliger Aufruf bei pressure=88 erzeugt nicht zwei Banner
+    win._POSITIONS_DATA = buildEpData(88);
+    win._applyExitGlows();
+    win._applyExitGlows();
+    const allBanners = firstDomCard.querySelectorAll(':scope > .exit-banner');
+    assert(allBanners.length === 1,
+      `Idempotenz verletzt: ${allBanners.length} Banner statt 1 nach 2 Aufrufen`);
+
+    // Position geschlossen → Glow + Banner müssen verschwinden (idempotenter Reset)
     win._POSITIONS_DATA = buildEpData(88);
     win._applyExitGlows();
     assert(firstDomCard.classList.contains('exit-glow-crit'), 're-set crit failed');
+    assert(findBanner(), 're-set banner failed');
     win._POSITIONS_DATA = {};
     win._applyExitGlows();
     for (const cls of ['exit-glow-warn', 'exit-glow-mid', 'exit-glow-crit']) {
       assert(!firstDomCard.classList.contains(cls),
         `Glow ${cls} blieb nach Position-Close — idempotenter Reset fehlgeschlagen`);
     }
+    assert(!findBanner(), 'Banner blieb nach Position-Close — Reset fehlgeschlagen');
+    assert(!firstDomCard.classList.contains('has-exit-banner'),
+      'has-exit-banner-Klasse blieb nach Position-Close');
 
     // Empty-Pfad 1: Position ohne exit_state → leerer String
     win._POSITIONS_DATA = { XRX: { entry_price: 4.0 } };

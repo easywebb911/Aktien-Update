@@ -6107,8 +6107,14 @@ window.buildPositionStatus = buildPositionStatus;
 const _PSTATUS_GLOW_CLASSES = ['exit-glow-warn', 'exit-glow-mid', 'exit-glow-crit'];
 function _applyExitGlows() {{
   try {{
+    // Idempotenter Reset: Glow-Klassen, has-exit-banner und vorhandenes
+    // Banner-Element von ALLEN Karten entfernen — bei geschlossener
+    // Position oder gefallenem exit_pressure verschwindet alles automatisch.
     document.querySelectorAll('.card[data-ticker], .wl-card[data-ticker]').forEach(el => {{
       el.classList.remove(..._PSTATUS_GLOW_CLASSES);
+      el.classList.remove('has-exit-banner');
+      const oldBanner = el.querySelector(':scope > .exit-banner');
+      if (oldBanner) oldBanner.remove();
     }});
     const all = (typeof window !== 'undefined') ? window._POSITIONS_DATA : null;
     if (!all || typeof all !== 'object') return;
@@ -6121,10 +6127,20 @@ function _applyExitGlows() {{
       if (v >= 75)      cls = 'exit-glow-crit';
       else if (v >= 55) cls = 'exit-glow-mid';
       else if (v >= 30) cls = 'exit-glow-warn';
-      if (!cls) continue;
+      // Banner nur bei strikt > 75 (Spec Stufe 2b-3) — bei genau 75 reicht der Glow.
+      const showBanner = v > 75;
       document.querySelectorAll(
         `.card[data-ticker="${{ticker}}"], .wl-card[data-ticker="${{ticker}}"]`
-      ).forEach(el => el.classList.add(cls));
+      ).forEach(el => {{
+        if (cls) el.classList.add(cls);
+        if (showBanner) {{
+          const banner = document.createElement('div');
+          banner.className = 'exit-banner';
+          banner.textContent = '🚨 Exit-Kandidat';
+          el.insertBefore(banner, el.firstChild);
+          el.classList.add('has-exit-banner');
+        }}
+      }});
     }}
   }} catch (e) {{
     console.warn('_applyExitGlows Fehler:', e);
