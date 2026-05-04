@@ -1,9 +1,10 @@
 {
-  "last_run": "2026-05-04T21:24:03.099216+02:00",
+  "last_run": "2026-05-04T21:34:11.688517+02:00",
   "cooldowns": {
     "anomaly_score_jump_XRX": "2026-05-03T18:47:15.315486+02:00",
     "anomaly_uoa_extreme_TDOC": "2026-05-04T13:47:00.365949+02:00",
     "anomaly_score_jump_LENZ": "2026-05-04T16:47:54.536349+02:00",
-    "anomaly_monster_backup_GRPN": "2026-05-04T19:19:27.747291+02:00"
+    "anomaly_monster_backup_GRPN": "2026-05-04T19:19:27.747291+02:00",
+    "anomaly_score_jump_SPRY": "2026-05-04T21:34:05.480403+02:00"
   }
 }
