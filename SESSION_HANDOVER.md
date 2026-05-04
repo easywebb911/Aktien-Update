@@ -72,6 +72,25 @@
     nachvollziehbar machen. Begründung: heute zeigt der Driver-
     Block z.B. summiert 77, der Score aber 83.4 — das ist nicht
     falsch, aber im UI nicht erklärt.
+11. Phase 2 Stufe 3 — Exit-Signal-Push-Pipeline (in ki_agent.py):
+    drei Push-Klassen für offene Positionen:
+    - Eskalations-Push: ``exit_pressure > 75`` → sofort, kein
+      Cooldown (Time-Critical)
+    - Warnungs-Push: ``exit_pressure 55..75`` → alle 12 h
+      Cooldown pro Ticker
+    - Trigger-Push: einzelner Crit-Trigger (auch wenn Composite
+      < 55) → alle 24 h Cooldown pro (Ticker × Trigger)
+    Cooldown-Keys mit Prefix ``exitp2_<klasse>_<ticker>[_<trigger>]``
+    in agent_state.json (kollisionssicher zu bestehenden
+    exit_/profit_/anomaly_-Keys). VIX-Gating und Push-Silence-
+    Filter (PUSH_RSI_MAX / PUSH_MOVE_2D_MAX) gelten NICHT für
+    Exit-Signale — Time-Critical-Pfad muss in jeder Marktphase
+    durchkommen, analog zum Earnings-Sofort-Alert.
+    **Voraussetzung:** Stufen 1, 2a, 2b-1, 2b-2, 2b-3 müssen
+    mindestens 2–3 Tage stabil laufen mit plausiblen Werten
+    bei GRPN/AMC oder anderen offenen Positionen. Erst nach
+    UI-Verifikation starten — Push-Bugs landen direkt auf dem
+    Handy.
 
 ## Optional / niedrig priorisiert
 - IBKR Borrow Rate liefert konstant HTTP 404 — Provider-
