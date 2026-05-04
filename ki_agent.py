@@ -25,6 +25,7 @@ Outputs:
 
 import json
 import logging
+import math
 import os
 import re
 import smtplib
@@ -180,6 +181,25 @@ def load_signals() -> dict:
     return {"updated": None, "run_info": {}, "signals": {}}
 
 
+def _sanitize_for_json(obj):
+    """NaN/Infinity-Floats rekursiv durch None ersetzen — browser-safe JSON.
+
+    Gleiche Implementierung wie generate_report._sanitize_for_json. Inline
+    statt Cross-Modul-Import, damit ki_agent keine neue Abhängigkeit zu
+    generate_report bekommt. Bei Schema-Änderung beide Stellen synchron
+    halten.
+    """
+    if isinstance(obj, float):
+        if math.isnan(obj) or math.isinf(obj):
+            return None
+        return obj
+    if isinstance(obj, dict):
+        return {k: _sanitize_for_json(v) for k, v in obj.items()}
+    if isinstance(obj, (list, tuple)):
+        return [_sanitize_for_json(v) for v in obj]
+    return obj
+
+
 def save_signals(signals: dict) -> None:
     SIGNALS_FILE.write_text(
         json.dumps(signals, ensure_ascii=False, indent=2), encoding="utf-8"
@@ -224,8 +244,13 @@ def save_signals(signals: dict) -> None:
     # Fetch hatte — sonst bleibt der vorige Wert via existing erhalten.
     if _VIX_CURRENT is not None:
         payload["vix_current"] = _VIX_CURRENT
+    # Browser-strict-JSON: NaN/Infinity → None (siehe Hinweis in
+    # generate_report._sanitize_for_json — gleiche Inline-Implementierung,
+    # damit ki_agent.py keinen neuen Import von generate_report braucht).
+    payload = _sanitize_for_json(payload)
     Path("app_data.json").write_text(
-        json.dumps(payload, separators=(",", ":")), encoding="utf-8"
+        json.dumps(payload, separators=(",", ":"), allow_nan=False),
+        encoding="utf-8",
     )
 
 

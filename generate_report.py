@@ -9820,6 +9820,25 @@ def _append_backtest_entries(top10: list[dict], report_date: str,
           f"(Cut-off: {BACKTEST_MAX_DAYS} Tage)", flush=True)
 
 
+def _sanitize_for_json(obj):
+    """Rekursiv NaN/Infinity-Floats durch None ersetzen — browser-safe JSON.
+
+    Python's ``json.dump`` mit Default-``allow_nan=True`` schreibt NaN /
+    Infinity / -Infinity als Literale, die JSON-Spec-violations sind und
+    von Browser-``JSON.parse`` abgelehnt werden. Vor jeder Serialisierung
+    von Stock-/Position-/Signal-Daten anwenden.
+    """
+    if isinstance(obj, float):
+        if math.isnan(obj) or math.isinf(obj):
+            return None
+        return obj
+    if isinstance(obj, dict):
+        return {k: _sanitize_for_json(v) for k, v in obj.items()}
+    if isinstance(obj, (list, tuple)):
+        return [_sanitize_for_json(v) for v in obj]
+    return obj
+
+
 def _write_app_data_json(watchlist_cards: dict | None = None,
                           monster_scores: dict | None = None,
                           setup_scores: dict | None = None,
@@ -9873,8 +9892,16 @@ def _write_app_data_json(watchlist_cards: dict | None = None,
         "fx_usd_eur":      _FX_USD_EUR,
         "generated_at":    datetime.now(ZoneInfo("UTC")).strftime("%Y-%m-%dT%H:%M:%SZ"),
     }
+    # Browser-strict-JSON: NaN/Infinity → None vor Serialisierung. Python's
+    # ``json.dump`` schreibt NaN sonst als Literal ``NaN``, was kein gültiges
+    # JSON ist (Browser-``JSON.parse`` rejected). Bug-Symptom: fetch-Chain
+    # fällt komplett in .catch → ``renderAgentSignals`` läuft nie →
+    # ``data-ki-score`` bleibt unset → ``_applySortMode('ki')`` sortiert
+    # über lauter 0-Werte (no-op). ``allow_nan=False`` als Belt-and-Suspenders
+    # falls ein neuer Pfad mal NaN reinschummelt.
     with open("app_data.json", "w", encoding="utf-8") as fh:
-        json.dump(payload, fh, separators=(",", ":"), default=str)
+        json.dump(_sanitize_for_json(payload), fh,
+                  separators=(",", ":"), default=str, allow_nan=False)
     print(f"app_data.json: {len(score_history)} Ticker-History + "
           f"{len(agent_signals.get('signals', {}))} Signals + "
           f"{len(payload['watchlist_cards'])} Watchlist-Karten zusammengeführt",
