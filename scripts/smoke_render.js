@@ -381,6 +381,60 @@ function assert(cond, msg) {
       'Trigger-Rows müssen ohne exit_pressure trotzdem rendern');
     win._POSITIONS_DATA.XRX.exit_state.exit_pressure = 67;   // restore
 
+    // Phase 2 Stufe 2b-2 — Border-Glow je exit_pressure
+    assert(typeof win._applyExitGlows === 'function',
+      '_applyExitGlows nach Eval nicht verfügbar');
+    // Ersten verfügbaren Ticker aus dem DOM picken — robust gegen
+    // tagesaktuelle Top-10-Wechsel.
+    const firstDomCard = win.document.querySelector('.card[data-ticker]');
+    assert(firstDomCard, 'Keine .card[data-ticker] im DOM für Glow-Test');
+    const glowTicker = firstDomCard.getAttribute('data-ticker');
+    const buildEpData = (ep) => ({
+      [glowTicker]: { exit_state: { exit_pressure: ep, triggers: {} } },
+    });
+
+    // Mid-Range (67 → 55-74 → exit-glow-mid)
+    win._POSITIONS_DATA = buildEpData(67);
+    win._applyExitGlows();
+    assert(firstDomCard.classList.contains('exit-glow-mid'),
+      `Karte ${glowTicker} fehlt exit-glow-mid bei pressure=67. Klassen: ${firstDomCard.className}`);
+    assert(!firstDomCard.classList.contains('exit-glow-warn'),
+      'Karte hat fälschlich exit-glow-warn bei mid-range');
+    assert(!firstDomCard.classList.contains('exit-glow-crit'),
+      'Karte hat fälschlich exit-glow-crit bei mid-range');
+
+    // Warn-Range (35 → 30-54 → exit-glow-warn)
+    win._POSITIONS_DATA = buildEpData(35);
+    win._applyExitGlows();
+    assert(firstDomCard.classList.contains('exit-glow-warn'),
+      `Karte fehlt exit-glow-warn bei pressure=35. Klassen: ${firstDomCard.className}`);
+    assert(!firstDomCard.classList.contains('exit-glow-mid'), 'mid darf nicht aktiv sein');
+
+    // Crit-Range (88 → ≥75 → exit-glow-crit)
+    win._POSITIONS_DATA = buildEpData(88);
+    win._applyExitGlows();
+    assert(firstDomCard.classList.contains('exit-glow-crit'),
+      `Karte fehlt exit-glow-crit bei pressure=88. Klassen: ${firstDomCard.className}`);
+
+    // Low-Range (12 → <30 → keine Glow-Klasse)
+    win._POSITIONS_DATA = buildEpData(12);
+    win._applyExitGlows();
+    for (const cls of ['exit-glow-warn', 'exit-glow-mid', 'exit-glow-crit']) {
+      assert(!firstDomCard.classList.contains(cls),
+        `Karte hat fälschlich ${cls} bei low-range pressure=12`);
+    }
+
+    // Position geschlossen → Glow muss komplett verschwinden (idempotenter Reset)
+    win._POSITIONS_DATA = buildEpData(88);
+    win._applyExitGlows();
+    assert(firstDomCard.classList.contains('exit-glow-crit'), 're-set crit failed');
+    win._POSITIONS_DATA = {};
+    win._applyExitGlows();
+    for (const cls of ['exit-glow-warn', 'exit-glow-mid', 'exit-glow-crit']) {
+      assert(!firstDomCard.classList.contains(cls),
+        `Glow ${cls} blieb nach Position-Close — idempotenter Reset fehlgeschlagen`);
+    }
+
     // Empty-Pfad 1: Position ohne exit_state → leerer String
     win._POSITIONS_DATA = { XRX: { entry_price: 4.0 } };
     const e1 = win.buildPositionStatus('XRX');

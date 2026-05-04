@@ -6099,6 +6099,38 @@ function buildPositionStatus(ticker) {{
 }}
 // Auf window legen für Smoke-Test + spätere Nutzung außerhalb des Watchlist-IIFE.
 window.buildPositionStatus = buildPositionStatus;
+// Border-Glow je nach exit_pressure (Phase 2 Stufe 2b-2). Wendet die
+// CSS-Klassen ``exit-glow-{{warn,mid,crit}}`` auf alle ``.card[data-ticker]``
+// und ``.wl-card[data-ticker]`` mit offener Position an. Idempotent: vor
+// dem Setzen werden alle drei Klassen entfernt — bei geschlossener Position
+// oder gefallenem exit_pressure verschwindet der Glow.
+const _PSTATUS_GLOW_CLASSES = ['exit-glow-warn', 'exit-glow-mid', 'exit-glow-crit'];
+function _applyExitGlows() {{
+  try {{
+    document.querySelectorAll('.card[data-ticker], .wl-card[data-ticker]').forEach(el => {{
+      el.classList.remove(..._PSTATUS_GLOW_CLASSES);
+    }});
+    const all = (typeof window !== 'undefined') ? window._POSITIONS_DATA : null;
+    if (!all || typeof all !== 'object') return;
+    for (const ticker in all) {{
+      const pos = all[ticker];
+      const ep = pos && pos.exit_state && pos.exit_state.exit_pressure;
+      if (typeof ep !== 'number' || !isFinite(ep)) continue;
+      const v = Math.round(ep);
+      let cls = null;
+      if (v >= 75)      cls = 'exit-glow-crit';
+      else if (v >= 55) cls = 'exit-glow-mid';
+      else if (v >= 30) cls = 'exit-glow-warn';
+      if (!cls) continue;
+      document.querySelectorAll(
+        `.card[data-ticker="${{ticker}}"], .wl-card[data-ticker="${{ticker}}"]`
+      ).forEach(el => el.classList.add(cls));
+    }}
+  }} catch (e) {{
+    console.warn('_applyExitGlows Fehler:', e);
+  }}
+}}
+window._applyExitGlows = _applyExitGlows;
 // ── Backtesting-Sektion ───────────────────────────────────────────────────
 let _btLoaded = false;
 let _btData   = null;
@@ -7669,6 +7701,10 @@ function _fmtGerman(d) {{
       // Score-Konsistenz Tile ↔ aufgeklappte Card.
       if (typeof window.wlRender === 'function') window.wlRender();
       renderAgentSignals(appData.agent_signals || appData);
+      // Border-Glow je exit_pressure für alle Karten setzen (Phase 2 Stufe 2b-2).
+      // Server-gerenderte ``.card[data-ticker]`` sind sofort verfügbar; tile-
+      // Glow hängt am wlRender-internen _applyExitGlows-Aufruf.
+      if (typeof _applyExitGlows === 'function') _applyExitGlows();
     }})
     .catch(() => {{
       const el = document.getElementById('agent-status');
@@ -8174,6 +8210,10 @@ function _fmtGerman(d) {{
         b.classList.toggle('in-wl', active);
         b.title = active ? 'Aus Watchlist entfernen' : 'Zur Watchlist hinzuf\xfcgen';
       }});
+      // Border-Glow auf neu gerenderte Tiles applizieren (Phase 2 Stufe 2b-2).
+      // wlRender überschreibt innerHTML — alle vorher gesetzten Glow-Klassen
+      // verschwinden. Re-apply für die frisch gerenderten ``.wl-card``.
+      if (typeof _applyExitGlows === 'function') _applyExitGlows();
     }} catch(e) {{
       console.error('wlRender Fehler:', e);
     }}

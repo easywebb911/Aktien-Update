@@ -650,6 +650,25 @@ select.sort-select:hover:not(:disabled){background-image:linear-gradient(45deg,t
   margin-bottom:4px;font-variant-numeric:tabular-nums}
 .position-status-block .ps-row{padding:2px 0;color:var(--txt)}
 .position-status-block .ps-row strong{font-weight:600;margin-right:2px}
+/* Border-Glow je nach exit_pressure (Phase 2 Stufe 2b-2). Rein additiver
+   Layer VOR den bestehenden Card-Shadow-Layern (drop-shadow + inset-
+   highlight bleiben unangetastet — der 3D-Look „Variante 1B" wirkt weiter).
+   Skala: 0–29 kein Glow / 30–54 gelblich / 55–74 orange / 75–100 rot.
+   Reihenfolge ZWANGSLÄUFIG nach den .card / .wl-card :hover-Regeln, damit
+   der Glow bei gleicher Selector-Specificity (0,2,0) durch Cascade-Order
+   gewinnt und auch auf Hover sichtbar bleibt. */
+.card.exit-glow-warn{box-shadow:0 0 8px rgba(245,158,11,.25),
+  0 2px 8px rgba(0,0,0,.08),inset 0 0 0 .5px rgba(255,255,255,.05)}
+.card.exit-glow-mid{box-shadow:0 0 8px rgba(245,158,11,.45),
+  0 2px 8px rgba(0,0,0,.08),inset 0 0 0 .5px rgba(255,255,255,.05)}
+.card.exit-glow-crit{box-shadow:0 0 8px rgba(239,68,68,.45),
+  0 2px 8px rgba(0,0,0,.08),inset 0 0 0 .5px rgba(255,255,255,.05)}
+.wl-card.exit-glow-warn{box-shadow:0 0 8px rgba(245,158,11,.25),
+  0 1px 3px rgba(0,0,0,.06),inset 0 0 0 .5px rgba(255,255,255,.04)}
+.wl-card.exit-glow-mid{box-shadow:0 0 8px rgba(245,158,11,.45),
+  0 1px 3px rgba(0,0,0,.06),inset 0 0 0 .5px rgba(255,255,255,.04)}
+.wl-card.exit-glow-crit{box-shadow:0 0 8px rgba(239,68,68,.45),
+  0 1px 3px rgba(0,0,0,.06),inset 0 0 0 .5px rgba(255,255,255,.04)}
 /* ×-Button absolute oben-rechts. Touch-Target via ::before-Overlay. */
 .wl-remove-btn{position:absolute;top:2px;right:4px;
   background:none;border:none;color:var(--txt-dim);cursor:pointer;
