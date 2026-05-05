@@ -5223,6 +5223,13 @@ def generate_html_v1(stocks: list[dict], report_date: str, _ctx: dict | None = N
     <div class="stat-box"><span class="stat-val">{avg_si_str}</span><span class="stat-lbl">Ø SI-Trend</span></div>
   </div>
 
+  <!-- KI-Insight-Stream (Variante D) — Server liefert leeren Slot, JS füllt
+       client-seitig nach app_data.json-Fetch. Bei leerer Insights-Liste
+       bleibt der Slot hidden — kein Platzhalter-Banner. -->
+  <div class="ki-insight-stream" id="ki-insight-stream" hidden aria-hidden="true">
+    <div class="ki-insight-track" id="ki-insight-track"></div>
+  </div>
+
   <section class="info-panel" id="methodology-section" aria-label="Score-Methodik &amp; Filterkriterien" hidden>
     <div class="info-panel-head">
       <h2 class="info-panel-title">Score-Methodik &amp; Filterkriterien</h2>
@@ -6111,6 +6118,162 @@ function _applyExitGlows() {{
   }}
 }}
 window._applyExitGlows = _applyExitGlows;
+// ── KI-Insight-Stream (Variante D) ────────────────────────────────────────
+// Liest schon vorhandene app_data.json-Felder (vix_current, score_history,
+// agent_signals, positions, monster_scores) und baut bis zu N Insight-
+// Sätze. Falls 0 Items → Slot bleibt hidden. Datenquellen sind best-effort,
+// jeder einzelne Insight-Builder ist soft-fail (try/catch um den Body).
+function _kiInsightItems(appData) {{
+  if (!appData || typeof appData !== 'object') return [];
+  const items = [];
+  const _try = (fn) => {{ try {{ fn(); }} catch (_) {{}} }};
+  const sigs = (appData.agent_signals && appData.agent_signals.signals) || {{}};
+  const positions = appData.positions || {{}};
+  const history = appData.score_history || {{}};
+  const monster = appData.monster_scores || {{}};
+  const setupS  = appData.setup_scores || {{}};
+
+  // (1) Markt-Regime aus VIX
+  _try(() => {{
+    const vix = appData.vix_current;
+    if (typeof vix !== 'number' || !isFinite(vix)) return;
+    const v = vix.toFixed(1);
+    let phrase;
+    if (vix < 18)      phrase = `niedrige Volatilität, Squeeze-Setups laufen sauber`;
+    else if (vix < 25) phrase = `moderate Volatilität, Setups beobachten`;
+    else if (vix < 35) phrase = `erhöhte Volatilität, viele Trigger sind Bull-Traps`;
+    else               phrase = `Krisen-Volatilität, Pushes pausiert`;
+    items.push(`VIX bei ${{v}} — ${{phrase}}`);
+  }});
+
+  // (2) Monster-Score-Spitze
+  _try(() => {{
+    const entries = Object.entries(monster).filter(([_, v]) => typeof v === 'number' && isFinite(v));
+    if (!entries.length) return;
+    entries.sort((a, b) => b[1] - a[1]);
+    const [t, sc] = entries[0];
+    items.push(`${{t}} hat heute den höchsten Monster-Score mit ${{Math.round(sc)}}`);
+  }});
+
+  // (3) Stabilstes Setup unter den Top-3 Setup-Scores (kleine Score-
+  // Standardabweichung über die letzten ≤5 History-Einträge → "stabil")
+  _try(() => {{
+    const setupEntries = Object.entries(setupS).filter(([_, v]) => typeof v === 'number' && isFinite(v));
+    if (setupEntries.length < 3) return;
+    setupEntries.sort((a, b) => b[1] - a[1]);
+    const top3 = setupEntries.slice(0, 3);
+    const stability = top3.map(([t, sc]) => {{
+      const h = history[t] || [];
+      const recent = h.slice(-5).map(e => Array.isArray(e) ? e[1] : (e && e.score)).filter(s => typeof s === 'number' && isFinite(s));
+      if (recent.length < 3) return {{ t, sc, std: Infinity }};
+      const mean = recent.reduce((a, b) => a + b, 0) / recent.length;
+      const variance = recent.reduce((acc, v) => acc + (v - mean) ** 2, 0) / recent.length;
+      return {{ t, sc, std: Math.sqrt(variance) }};
+    }}).filter(x => isFinite(x.std));
+    if (!stability.length) return;
+    stability.sort((a, b) => a.std - b.std);
+    const winner = stability[0];
+    items.push(`${{winner.t}} bleibt das stabilste Setup mit Score ${{Math.round(winner.sc)}}`);
+  }});
+
+  // (4) Score-Sprung — Ticker mit größter positiver Änderung gegenüber
+  // dem vorletzten History-Eintrag
+  _try(() => {{
+    const jumps = [];
+    for (const t in history) {{
+      const h = history[t] || [];
+      if (h.length < 2) continue;
+      const cur = Array.isArray(h[h.length-1]) ? h[h.length-1][1] : null;
+      const prev = Array.isArray(h[h.length-2]) ? h[h.length-2][1] : null;
+      if (typeof cur !== 'number' || typeof prev !== 'number') continue;
+      const delta = cur - prev;
+      if (delta > 0) jumps.push({{ t, delta, cur }});
+    }}
+    if (!jumps.length) return;
+    jumps.sort((a, b) => b.delta - a.delta);
+    const top = jumps[0];
+    if (top.delta < 5) return;   // unter 5 Pkt nicht erwähnenswert
+    items.push(`${{top.t}} +${{top.delta.toFixed(0)}} Pkt vs. gestern — neuer Setup-Schub`);
+  }});
+
+  // (5) Anomalie: push_silenced (Setup überhitzt, Push unterdrückt)
+  _try(() => {{
+    for (const t in sigs) {{
+      const s = sigs[t];
+      if (s && s.push_silenced) {{
+        const reason = s.silenced_reason || 'überhitzt';
+        items.push(`${{t}} ${{reason}} — Push wegen Stille-Filter unterdrückt`);
+        break;
+      }}
+    }}
+  }});
+
+  // (6) Position mit hohem Exit-Druck
+  _try(() => {{
+    const open = Object.entries(positions).map(([t, p]) => {{
+      const ep = p && p.exit_state && p.exit_state.exit_pressure;
+      return (typeof ep === 'number' && isFinite(ep)) ? {{ t, ep: Math.round(ep) }} : null;
+    }}).filter(Boolean);
+    if (!open.length) return;
+    open.sort((a, b) => b.ep - a.ep);
+    const top = open[0];
+    if (top.ep < 30) return;
+    let phrase;
+    if (top.ep >= 75)      phrase = `Exit-Kandidat`;
+    else if (top.ep >= 55) phrase = `Teilverkauf erwägen`;
+    else                   phrase = `eng tracken`;
+    items.push(`${{top.t}} Exit-Druck ${{top.ep}}/100 — ${{phrase}}`);
+  }});
+
+  // (7) Hohe RSI im Top-10 (overheated-Fingerzeig)
+  _try(() => {{
+    const m = appData.top10_metrics || {{}};
+    let hot = null;
+    for (const t in m) {{
+      const r = m[t] && m[t].rsi14;
+      if (typeof r === 'number' && r > 75 && (!hot || r > hot.r)) hot = {{ t, r }};
+    }}
+    if (hot) items.push(`${{hot.t}} RSI ${{Math.round(hot.r)}} — Setup läuft heiß`);
+  }});
+
+  // Stabile Reihenfolge ohne Duplikate
+  const seen = new Set();
+  return items.filter(s => {{
+    if (!s || seen.has(s)) return false;
+    seen.add(s);
+    return true;
+  }});
+}}
+function _populateKiInsightStream(appData) {{
+  try {{
+    const stream = document.getElementById('ki-insight-stream');
+    const track  = document.getElementById('ki-insight-track');
+    if (!stream || !track) return;
+    const items = _kiInsightItems(appData);
+    if (!items || items.length < 4) {{
+      stream.hidden = true;
+      stream.setAttribute('aria-hidden', 'true');
+      track.innerHTML = '';
+      return;
+    }}
+    // textContent statt innerHTML im inneren Build, dann das fertige
+    // String-Konstrukt; HTML-Strings hier unkritisch da Items aus
+    // app_data.json kontrolliert generiert werden — trotzdem sanitizen.
+    const escape = (s) => String(s).replace(/[&<>"']/g, c =>
+      ({{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}}[c]));
+    const itemHtml = items.map(s =>
+      `<div class="ki-insight-item"><span class="ki-insight-label">KI-Beobachtung:</span>${{escape(s)}}</div>`
+    ).join('');
+    // Doppeln für nahtlosen Endlos-Loop bei -50%-Translate
+    track.innerHTML = itemHtml + itemHtml;
+    stream.hidden = false;
+    stream.setAttribute('aria-hidden', 'false');
+  }} catch (e) {{
+    console.warn('_populateKiInsightStream Fehler:', e);
+  }}
+}}
+window._populateKiInsightStream = _populateKiInsightStream;
+window._kiInsightItems = _kiInsightItems;
 // ── Backtesting-Sektion ───────────────────────────────────────────────────
 let _btLoaded = false;
 let _btData   = null;
@@ -7685,6 +7848,11 @@ function _fmtGerman(d) {{
       // Server-gerenderte ``.card[data-ticker]`` sind sofort verfügbar; tile-
       // Glow hängt am wlRender-internen _applyExitGlows-Aufruf.
       if (typeof _applyExitGlows === 'function') _applyExitGlows();
+      // KI-Insight-Stream (Variante D) — Banner-Slot mit Insights aus
+      // app_data.json befüllen. Soft-Fail: bei < 4 Items oder Fehler
+      // bleibt der Slot hidden (siehe _populateKiInsightStream).
+      if (typeof _populateKiInsightStream === 'function')
+        _populateKiInsightStream(appData);
     }})
     .catch(() => {{
       const el = document.getElementById('agent-status');

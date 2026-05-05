@@ -712,6 +712,26 @@ select.sort-select:hover:not(:disabled){background-image:linear-gradient(45deg,t
 .wl-sync-warn{font-size:.72rem;color:#f59e0b;background:#f59e0b18;border:1px solid #f59e0b44;
   border-radius:6px;padding:4px 8px;margin-bottom:6px;display:none}
 .wl-sync-warn.visible{display:block}
+/* ── KI-Insight-Stream (Variante D) — endlos laufender Crawl-Banner mit
+   lila Akzent-Linie. Server-seitiger Slot ist hidden; JS füllt nach
+   app_data.json-Fetch (siehe _populateKiInsightStream). overflow:hidden
+   maskiert Items, die aus dem Sicht-Container raus-translaten; das
+   Doppeln des Item-Strings im JS ergibt nahtlosen Loop bei -50%-
+   Translate. */
+.ki-insight-stream{position:relative;margin:8px 0 14px;padding:8px 12px 8px 16px;
+  background:linear-gradient(180deg,rgba(127,119,221,0.08),rgba(127,119,221,0.02));
+  border-left:3px solid #7F77DD;border-radius:0 6px 6px 0;
+  overflow:hidden;font-size:13px;font-weight:400;line-height:1.4;color:var(--txt)}
+.ki-insight-track{display:inline-flex;gap:48px;white-space:nowrap;
+  animation:ki-insight-scroll 55s linear infinite;will-change:transform}
+.ki-insight-stream:hover .ki-insight-track{animation-play-state:paused}
+.ki-insight-item{flex-shrink:0}
+.ki-insight-label{font-weight:700;color:#7F77DD;margin-right:4px}
+@keyframes ki-insight-scroll{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+@media (prefers-reduced-motion:reduce){
+  .ki-insight-track{animation:none}
+  .ki-insight-stream{white-space:normal}
+}
 /* ── Anthropic / Claude API ── */
 .anth-panel{padding:0 0 10px}
 .anth-panel .tok-hint{margin-bottom:6px}

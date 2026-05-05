@@ -641,6 +641,124 @@ function assert(cond, msg) {
     dom.window.close();
   });
 
+  // ── Szenario 9: KI-Insight-Stream rendert mit Mock-Daten,
+  // bleibt hidden bei leeren / unzureichenden Daten.
+  // (Variante D, 06.05.2026 — _populateKiInsightStream wird nach
+  // app_data.json-Fetch aufgerufen und füllt den Slot mit ≥4 Items
+  // oder lässt ihn hidden.)
+  await runScenario('KI-Insight-Stream — füllt Slot bei Insights, hidden bei leerem Daten-Set', async () => {
+    const dom = await buildDom();
+    const win = dom.window;
+    // Source-of-truth-Modus: die Funktion ist neu (06.05.2026); ältere
+    // index.html aus dem Repo hat sie noch nicht. Aus generate_report.py
+    // extrahieren und in jsdom evaluieren — analog zu Szenario 6.
+    if (typeof win._populateKiInsightStream !== 'function') {
+      const src = fs.readFileSync(
+        path.resolve(__dirname, '..', 'generate_report.py'), 'utf8');
+      const marker = src.indexOf('// ── KI-Insight-Stream (Variante D)');
+      const endMarker = src.indexOf('// ── Backtesting-Sektion', marker);
+      assert(marker > 0 && endMarker > marker,
+        'KI-Insight-Stream-Block in generate_report.py nicht gefunden');
+      const jsClean = src.slice(marker, endMarker)
+        .replace(/\{\{/g, '{').replace(/\}\}/g, '}');
+      win.eval(jsClean);
+    }
+    // Slot-DOM falls in der geladenen index.html noch nicht vorhanden:
+    // synthetisch einfügen, damit der Test gegen die JS-Logik unabhängig
+    // vom index.html-Render-Stand grün ist.
+    let stream = win.document.getElementById('ki-insight-stream');
+    let track  = win.document.getElementById('ki-insight-track');
+    if (!stream) {
+      stream = win.document.createElement('div');
+      stream.id = 'ki-insight-stream';
+      stream.className = 'ki-insight-stream';
+      stream.hidden = true;
+      track = win.document.createElement('div');
+      track.id = 'ki-insight-track';
+      track.className = 'ki-insight-track';
+      stream.appendChild(track);
+      win.document.body.appendChild(stream);
+    }
+    assert(stream && track, 'Slot-Setup fehlgeschlagen');
+    // Initial: hidden (Server-Default)
+    assert(stream.hidden === true,
+      'Banner sollte initial hidden sein (Server-Default)');
+
+    // Reicher Mock — VIX, Monster-Scores, Score-History, Push-Silenced,
+    // Position mit Exit-Druck → mehr als 4 Items
+    const richAppData = {
+      vix_current: 17.3,
+      monster_scores: {MED: 91.2, IART: 85.0, INDI: 78.5},
+      setup_scores:   {MED: 87, IART: 80, INDI: 75, GRPN: 60},
+      score_history: {
+        MED:  [['28.04.2026', 86], ['29.04.2026', 87], ['30.04.2026', 87],
+               ['01.05.2026', 87], ['02.05.2026', 87]],
+        IART: [['28.04.2026', 70], ['29.04.2026', 75], ['30.04.2026', 80]],
+        INDI: [['29.04.2026', 60], ['30.04.2026', 75]],   // +15 jump
+      },
+      agent_signals: {
+        signals: {
+          GRPN: { push_silenced: true, silenced_reason: 'RSI > 75', score: 50 },
+        },
+      },
+      positions: {
+        AMC: { exit_state: { exit_pressure: 67 } },
+      },
+      top10_metrics: {
+        TDUP: { rsi14: 78 },
+      },
+    };
+    assert(typeof win._populateKiInsightStream === 'function',
+      '_populateKiInsightStream nicht auf window');
+    win._populateKiInsightStream(richAppData);
+    assert(stream.hidden === false,
+      `Banner sollte sichtbar sein bei ≥4 Items. innerHTML.len=${track.innerHTML.length}`);
+    // Mindestens 4 .ki-insight-item-Knoten (Items werden gedoppelt für
+    // nahtlosen Loop, also ≥8 nach Render)
+    const items = track.querySelectorAll('.ki-insight-item');
+    assert(items.length >= 8,
+      `Erwartet ≥8 ki-insight-item (≥4 Items × 2 für Loop), fand ${items.length}`);
+    // Label-Span muss für JEDES Item da sein
+    const labels = track.querySelectorAll('.ki-insight-label');
+    assert(labels.length === items.length,
+      `Erwartet ki-insight-label für jedes Item, ${labels.length} vs ${items.length}`);
+    assert(labels[0].textContent === 'KI-Beobachtung:',
+      `Label-Text falsch: ${JSON.stringify(labels[0].textContent)}`);
+    // Inhalts-Spuren der gemockten Insights
+    const text = track.textContent;
+    assert(text.includes('VIX bei 17.3'), 'VIX-Item fehlt');
+    assert(text.includes('MED'), 'Monster-Score-Top-Ticker fehlt');
+    assert(text.includes('AMC') && text.includes('Exit-Druck'),
+      'Position-Exit-Druck-Item fehlt');
+
+    // Leerer Daten-Set → Slot bleibt hidden
+    win._populateKiInsightStream({});
+    assert(stream.hidden === true,
+      'Banner sollte hidden sein bei leerem appData');
+    assert(track.innerHTML === '',
+      'Track sollte bei hidden geleert werden');
+
+    // Datenarmer Fall (< 4 Items insgesamt) → Slot bleibt hidden
+    win._populateKiInsightStream({ vix_current: 17.0 });
+    assert(stream.hidden === true,
+      'Banner sollte hidden sein bei < 4 Items');
+
+    // null appData → kein Crash
+    win._populateKiInsightStream(null);
+    assert(stream.hidden === true);
+
+    // XSS-Sanity: Mock-Data mit "<script>"-Tag im setup_scores-Schlüssel
+    // (Edge-Case für escape-Helper). Nicht-realistisch, aber sicher gegen
+    // potenzielle Future-Schema-Loopholes.
+    const xssAppData = Object.assign({}, richAppData, {
+      monster_scores: { '<img onerror=x>EVIL': 99 },
+    });
+    win._populateKiInsightStream(xssAppData);
+    assert(!track.innerHTML.includes('<img onerror'),
+      'XSS-Payload nicht escaped');
+    dom.window.close();
+  });
+
   console.log('OK: Alle Smoke-Szenarien grün.');
   process.exit(0);
 })().catch((e) => {
