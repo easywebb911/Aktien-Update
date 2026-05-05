@@ -1,10 +1,10 @@
 {
-  "updated": "2026-05-06T00:37:08.230938+02:00",
+  "updated": "2026-05-06T01:03:36.840421+02:00",
   "run_info": {
     "tickers_checked": 10,
     "signals_active": 2,
     "alerts_sent": 0,
-    "elapsed_s": 10.3,
+    "elapsed_s": 10.5,
     "market_phase": "After-Hours"
   },
   "signals": {
@@ -93,9 +93,9 @@
       "uoa_cp_ratio": 3.4601113172541744
     },
     "IIPR": {
-      "score": 5,
+      "score": 15,
       "confidence": 17,
-      "drivers": "News-KI 5/30: Positive earnings beats indicate strong fundamentals, which typically reduces short-squeeze potential as the stock likel",
+      "drivers": "News: revenue beat",
       "price": 60.32,
       "chg_pct": 0.0,
       "rvol": 0.0,
@@ -105,7 +105,7 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 0,
+      "active_triggers": 1,
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": 0.45263532763532766,
@@ -135,9 +135,9 @@
       "silenced_reason": "RSI 83"
     },
     "EBS": {
-      "score": 23,
-      "confidence": 33,
-      "drivers": "News-KI 8/30: Positive corporate governance and earnings updates suggest operational stability rather than distressed fundamentals tha + FINRA Short-Vol 60%",
+      "score": 15,
+      "confidence": 17,
+      "drivers": "FINRA Short-Vol 60%",
       "price": 9.05,
       "chg_pct": 0.0,
       "rvol": 0.0,
