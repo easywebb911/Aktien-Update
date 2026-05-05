@@ -6017,6 +6017,8 @@ function _pstatusReason(name, det) {{
     if (det.rsi14 != null) out.push(`RSI ${{Math.round(det.rsi14)}}`);
     if (det.move_2d_pct != null && det.move_2d_pct > 0)
       out.push(`+${{(det.move_2d_pct*100).toFixed(0)}}% in 2T`);
+    if (det.move_3d_pct != null && det.move_3d_pct > 0)
+      out.push(`+${{(det.move_3d_pct*100).toFixed(0)}}% in 3T`);
     return out.join(' · ');
   }}
   return '';
@@ -10385,29 +10387,33 @@ def _exit_p2_trigger_profit_lock(pnl_frac: float | None,
 
 
 def _exit_p2_trigger_overheated(metrics: dict | None) -> dict:
-    """Trigger 3: Überhitzung — RSI14 + 2-Tages-Move (aus top10_metrics).
+    """Trigger 3: Überhitzung — RSI14 + 2-Tages- + 3-Tages-Move.
 
-    move_3d_pct ist heute nicht im top10_metrics-Schema und wird daher als
-    None geliefert (Detail-Feld), fließt aber via Maximum-Aggregation nicht
-    in den Sub-Score ein, solange unverfügbar.
+    Aggregation per Maximum über drei Sub-Skalen (RSI, 2T-Move, 3T-Move).
+    Sub-Skalen ohne Daten (None) liefern 0/False/False und beeinflussen
+    weder Score noch Flags. ``move_3d`` wird seit 06.05.2026 gewired —
+    change_3d kommt aus get_yfinance_batch via _all_metrics in main().
     """
     if not metrics:
         return {"score": 0, "warn": False, "crit": False, "available": False,
                 "reason": "Position außerhalb top10_metrics"}
     rsi = metrics.get("rsi14")
     chg2d_pct = metrics.get("change_2d")   # Prozent (z.B. 12.5)
+    chg3d_pct = metrics.get("change_3d")   # Prozent (z.B. 30.0)
     move_2d = (chg2d_pct / 100.0) if isinstance(chg2d_pct, (int, float)) else None
-    s_r, w_r, c_r = _exit_p2_scale(rsi, EXIT_RSI_WARN, EXIT_RSI_CRIT)
-    s_m, w_m, c_m = _exit_p2_scale(move_2d, EXIT_MOVE_2D_WARN, EXIT_MOVE_2D_CRIT)
+    move_3d = (chg3d_pct / 100.0) if isinstance(chg3d_pct, (int, float)) else None
+    s_r,  w_r,  c_r  = _exit_p2_scale(rsi,     EXIT_RSI_WARN,    EXIT_RSI_CRIT)
+    s_m2, w_m2, c_m2 = _exit_p2_scale(move_2d, EXIT_MOVE_2D_WARN, EXIT_MOVE_2D_CRIT)
+    s_m3, w_m3, c_m3 = _exit_p2_scale(move_3d, EXIT_MOVE_3D_WARN, EXIT_MOVE_3D_CRIT)
     return {
-        "score": max(s_r, s_m),
-        "warn":  w_r or w_m,
-        "crit":  c_r or c_m,
+        "score": max(s_r, s_m2, s_m3),
+        "warn":  w_r or w_m2 or w_m3,
+        "crit":  c_r or c_m2 or c_m3,
         "details": {
-            "rsi14":       rsi,
-            "move_2d_pct": round(move_2d, 4) if move_2d is not None else None,
-            "move_3d_pct": None,
-            "move_3d_available": False,
+            "rsi14":             rsi,
+            "move_2d_pct":       round(move_2d, 4) if move_2d is not None else None,
+            "move_3d_pct":       round(move_3d, 4) if move_3d is not None else None,
+            "move_3d_available": move_3d is not None,
         },
     }
 

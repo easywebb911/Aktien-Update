@@ -525,10 +525,11 @@ function assert(cond, msg) {
     const jsClean = src.slice(marker, endMarker)
       .replace(/\{\{/g, '{').replace(/\}\}/g, '}');
     win.eval(jsClean);
-    // GRPN ist bewusst NICHT in der DOM-Top-10 (data-ticker existiert
-    // nicht für diesen Ticker im statischen HTML) — exakt der Fall, der
-    // vor dem Phase-2-Fix mit ``available: false`` ignoriert wurde.
-    const nonTopTicker = 'GRPN';
+    // Synthetischer Ticker-String, der garantiert nicht im DOM existiert —
+    // robust gegen tagesaktuelle Top-10-Wechsel und gegen den Fix-B-
+    // Effekt vom 06.05. (Position-only-Ticker landen jetzt selbst im
+    // Pool und wären ggf. als Karte sichtbar).
+    const nonTopTicker = 'NONTOP_SMOKE_TST';
     assert(!win.document.querySelector(`.card[data-ticker="${nonTopTicker}"]`),
       `Test-Setup verletzt: ${nonTopTicker} sollte NICHT in Top-10-DOM sein`);
     win._POSITIONS_DATA = {
@@ -572,6 +573,71 @@ function assert(cond, msg) {
     // Sicherstellen, dass der "available: false"-Pfad NICHT mehr triggert
     assert(!html.includes('Position außerhalb top10_metrics'),
       'Alter "available: false"-Reason taucht fälschlich noch im UI auf');
+    dom.window.close();
+  });
+
+  // ── Szenario 8: overheated-Trigger durch reinen 3-Tages-Move
+  // (Phase 2 — 06.05.2026: change_3d wurde seit Stufe 1 in der Daten-
+  // Pipeline propagiert, war aber im _exit_p2_trigger_overheated-Helper
+  // noch nicht konsumiert. Jetzt aktiv. Test-Setup: RSI 50 unauffällig,
+  // move_2d=0 (kurzfristig flach), move_3d=0.32 (>= EXIT_MOVE_3D_WARN
+  // 0.28) — der Trigger soll trotzdem warn=true geben und der Reason-
+  // Text muss "in 3T" enthalten, damit der User die Quelle sieht.)
+  await runScenario('overheated-Trigger durch reinen 3-Tages-Move', async () => {
+    const dom = await buildDom();
+    const win = dom.window;
+    const src = fs.readFileSync(
+      path.resolve(__dirname, '..', 'generate_report.py'), 'utf8');
+    const marker = src.indexOf('// ── Position-Status (Phase 2 — Stufe 2a)');
+    const endMarker = src.indexOf('// ── Backtesting-Sektion', marker);
+    const jsClean = src.slice(marker, endMarker)
+      .replace(/\{\{/g, '{').replace(/\}\}/g, '}');
+    win.eval(jsClean);
+
+    win._POSITIONS_DATA = {
+      TST3D: {
+        entry_date: '2026-05-01', entry_price: 10.00, shares: 100,
+        exit_state: {
+          exit_pressure: 50,
+          peak_score_since_entry: 60, peak_pnl_pct_since_entry: 0.05,
+          triggers: {
+            score_decay: { score: 0, warn: false, crit: false, available: true,
+                            details: { drop_3d: -1, drop_5d: -2, drop_7d: null } },
+            profit_lock: { score: 0, warn: false, crit: false, available: true,
+                            details: { pnl_pct: 0.05, peak_pnl_pct: 0.05,
+                                        drawdown_from_peak: 0,
+                                        score_drop_from_peak: 0 } },
+            // Reiner 3T-Trigger: RSI unauffällig, 2T flach, 3T überhitzt.
+            // EXIT_MOVE_3D_WARN=0.28 → 0.32 > WARN → score >= 50, warn=true.
+            overheated:  { score: 60, warn: true, crit: false, available: true,
+                            details: { rsi14: 50, move_2d_pct: 0,
+                                        move_3d_pct: 0.32,
+                                        move_3d_available: true } },
+            setup_erosion: { score: 0, warn: false, crit: false, available: false,
+                              reason: 'kein Entry-Snapshot' },
+            catalyst:      { score: 0, warn: false, crit: false, available: false,
+                              reason: 'kein Earnings-Lookup' },
+            trend_break:   { score: 0, warn: false, crit: false, available: false,
+                              reason: 'kein EMA21' },
+          },
+        },
+      },
+    };
+    const html = win.buildPositionStatus('TST3D');
+    assert(html, 'Block fehlt für TST3D');
+    assert(html.includes('Überhitzung'),
+      'overheated-Trigger nicht im Block sichtbar');
+    assert(html.includes('🟡'),
+      'overheated mit warn=true sollte 🟡-Icon zeigen');
+    // Reason-Text muss den 3T-Bezug enthalten
+    assert(html.includes('in 3T'),
+      `Reason-Text zeigt 3T-Move nicht. HTML-Auszug: ${html}`);
+    assert(html.includes('+32%'),
+      `Reason-Text zeigt move_3d-Wert nicht. HTML-Auszug: ${html}`);
+    // 2T sollte NICHT angezeigt werden (move_2d=0 → > 0-Filter im
+    // _pstatusReason-Block schließt aus)
+    assert(!html.includes('in 2T'),
+      'Reason-Text zeigt 2T-Move obwohl move_2d=0 ist');
     dom.window.close();
   });
 
