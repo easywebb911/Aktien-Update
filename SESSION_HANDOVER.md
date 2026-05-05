@@ -1,136 +1,126 @@
-# Session-Handover — Stand 04.05.2026
-
-## DRINGEND — Vor Phase 2 Stufe 3 erledigen
-EUR-Anzeige zusätzlich zu USD in Watchlist-Tiles und
-Position-Panel — bei Position-Eröffnung, beim Beobachten
-(laufender Wert) und beim Schließen (Verkaufserlös).
-
-Offene Fragen vor Implementierung klären:
-- Wechselkurs-Quelle (welche API)?
-- Eingefroren beim Entry oder live aktualisiert?
-- Display-Format (parallel oder umschaltbar)?
+# Session-Handover — Stand 05.05.2026
 
 ## Heute implementiert (chronologisch)
-- dde32d3 — feat: Phase 2 Stufe 1/3 — Exit-Signal-Daten-Pipeline
-  (6 Trigger mit Composite-Score, 3 aktiv + 3 als available:false
-  markiert für später, Peak-Tracking ratchet-up-only,
-  app_data.json["positions"][ticker]["exit_state"]-Schema)
-- 14f1584 — feat: Phase 2 Stufe 2a — Position-Status-Block in
-  buildPositionStatus, Trigger-Zeilen mit warn/crit-Icons
-- ee8dee0 — feat: Phase 2 Stufe 2b-1 — Composite-Anzeige
-  "Exit-Druck: X/100" mit Color-Mapping (txt-dim/amber/red)
-- 1e3c612 — feat: Phase 2 Stufe 2b-2 — Border-Glow je nach
-  Druck-Stufe (additive box-shadow-Komposition, 3D-Look erhalten)
-- 92d7e34 — feat: Phase 2 Stufe 2b-3 — Banner "🚨 Exit-Kandidat"
-  bei pressure > 75 (XSS-sicher via createElement+textContent,
-  has-exit-banner-Parent-Klasse für Watchlist-Tile-Layout)
-- 7570cbb — docs: Phase 2 Stufe 3 ins Backlog (Push-Pipeline,
-  exitp2_*-Cooldown-Prefix, 2-3 Tage Stabilitäts-Voraussetzung)
-- 72b44a0 — fix: KI-Sortierung — NaN-Werte in app_data.json
-  brachen den Browser-Fetch komplett. Sanitizer-Helper +
-  allow_nan=False in beiden Writern (generate_report.py +
-  ki_agent.py), Belt-and-Suspenders gegen Read-Modify-Write-
-  Reinfektion via **existing-Spread
-- 9fb70c9 — refactor: Methodik-Sektion "Exit-Signal-Berechnung"
-  durch lesbare "Wann sollte ich aussteigen?"-Story ersetzt,
-  -73/+22 Zeilen, Berechnungs-Logik unverändert
+- a076115 — fix: Workflow-Pipeline-Bugs (watchlist_personal.json
+  + agent_state.json zu git add ergänzt, Recovery-Logik
+  präzisiert) nach GIST_TOKEN-Update via Repo-Settings
+- 4aa8cce — feat: Phase 2 — overheated-Trigger auch außerhalb
+  Top-10 (ChannelTSV erweitert via _all_metrics)
+- 21dcc4c — fix: Bug A+B (c.update fehlende change_2d/change_3d,
+  Position-only-Ticker im personal_tickers-Merge)
+- ec7affd — feat: move_3d im overheated-Trigger aktiviert
+  (3 Sub-Skalen Maximum)
+- 6d358a7 — feat: pull_gist_data.py Recovery-Logik aus voriger
+  app_data.json
+- 0eab188 — docs: Backlog Verifikations-Aufgabe für
+  POSITIONS_JSON-Secret-Löschung (Wiedervorlage 19.05.2026)
+- 82911fb — feat: KI-Insight-Stream-Banner (Variante D ohne
+  Emojis, Pfad 2 zwischen stats-bar und cards-grid, Hover-Pause,
+  prefers-reduced-motion-Fallback, 7 Insight-Builder)
+- d02b1f9 — refactor: Score-Methodik anfänger-freundlich
+  (Squeeze-Story mit Feuer-Metapher Brennstoff/Funke/Flamme,
+  Tooltips für Abkürzungen via native abbr-title, KI-Agent-Block
+  entschlackt)
+- b923a35 — feat: Profi-Details-Akkordeon mit allen
+  Push-Schwellen via f-string-Injection aus config.py
+- 7b1df0a — fix: KI-Analyse-Clipping-Bug via CSS :has-Selector
+  (content-visibility:visible bei offener KI-Analyse)
+- ee6a4c9 — feat: EUR-Stufe 1 — fx_usd_eur_computed_at +
+  entry_fx/fx_estimated in positions.json (flache Schema-Struktur,
+  Pfad 2)
+- 7a4eba3 — feat: EUR-Stufe 2 — UI-Anzeige $X.XX / Y,YY€
+  im Position-Panel (Helper _formatPositionEntry mit
+  dreistufiger Fallback-Kette)
+- ea52cfd — feat: EUR-Stufe 3 — USD+EUR im Eröffnungs- und
+  Schließen-Dialog (Live-Preview via oninput, 4 Helper,
+  closed_trades um exit_fx/exit_fx_eur/realized_pnl_eur erweitert)
+- c568590 — fix: KI-Analyse-Truncation (max_tokens 600→900,
+  stop_reason-Detection mit UI-Notice bei max_tokens-Stopp)
+- 6eedc8b — feat: EUR-Stufe 4 — Trade-Journal historische
+  EUR-Werte, entry_fx-Schema-Lücke aus Stufe 3 mitgeschlossen,
+  3 Resolver-Helper
 
-## Aktive Positionen (im Secret POSITIONS_JSON)
+## Aktive Positionen
 - GRPN · offen · läuft im Plus
 - AMC · offen · läuft im Plus
-- INDI · GESCHLOSSEN am 04.05. mit +13.3% (Trade-Journal)
-  · bleibt auf Watchlist als Beobachtung ohne Position
 
-## Verifikation ausstehend
-- Beim nächsten Daily-Run morgens 10:00 UTC:
-  - exit_state für GRPN/AMC mit plausiblen Composite-Werten?
-  - Position-Status-Block sichtbar?
-  - Composite-Anzeige korrekt eingefärbt?
-  - Border-Glow je nach Druck-Stufe?
-  - Banner ggf. bei kritischen Werten?
-  - KI-Sortierung im Browser funktioniert?
-- Phase 2 Stufe 3 (Push-Pipeline) erst nach 2-3 Tagen
-  stabilem UI-Verhalten starten und nach EUR-Ergänzung.
+## Verifikation morgen früh
+- Daily-Run regeneriert index.html mit allen heutigen UI-Features:
+  - KI-Insight-Stream-Banner zwischen Stat-Tiles und Cards
+  - Score-Methodik im neuen Anfänger-freundlichen Format
+  - Profi-Details-Akkordeon mit f-string-injizierten Schwellen
+  - KI-Analyse-Clipping behoben (auch auf Karten ab Rang 4)
+  - Position-Panel mit USD+EUR Einstiegskurs
+  - Eröffnungs-/Schließen-Dialog mit Live-EUR-Preview
+  - Trade-Journal mit historischen EUR-Werten
+- Phase 2 läuft jetzt komplett für GRPN/AMC mit echten
+  RSI/2T-Move/3T-Move-Werten
 
 ## Geplante Aufgaben
-1. EUR-Anzeige (siehe DRINGEND oben)
-2. Phase 2 Stufe 3 (Push-Pipeline) — frühestens Donnerstag/
-   Freitag, nach UI-Verifikation
-3. Phase 3 Exit-Signale (Wiedervorlage 15.05.2026) —
+1. Phase 2 Stufe 3 (Push-Pipeline) — frühestens Donnerstag/
+   Freitag, drei Push-Klassen, exitp2_*-Cooldown-Prefix,
+   2-3 Tage Stabilitäts-Voraussetzung
+2. Phase 3 Exit-Signale (Wiedervorlage 15.05.2026) —
    Blow-off-Top + IV-Crush
-4. Score-Aufschlüsselung pro Karte (Phase Y, Backlog)
-5. Immediacy-Score-Feature
-6. Bahn A2 (Frontend-Auswertungs-Panel) ab Ende Mai
-7. UX Backtesting "Nur Live"-Modus
-8. Setup-Verfall-Symmetrie weiter beobachten
-9. ⏰ Wiedervorlage 02.07.2026: Premium-Daten-Stack prüfen
-10. Filter-Flexibilisierung prüfen (Bahn A2)
-11. Phase X — v1-Pfad-Migration (drei Schritte zusammen,
+3. Score-Aufschlüsselung pro Karte (Phase Y, Backlog) —
+   6 Schichten anzeigen beim Klick auf Setup-Score
+4. Immediacy-Score-Feature
+5. Bahn A2 (Frontend-Auswertungs-Panel) ab Ende Mai
+6. UX Backtesting "Nur Live"-Modus
+7. Setup-Verfall-Symmetrie weiter beobachten
+8. ⏰ Wiedervorlage 19.05.2026: app_data-recovery-Logik
+   bei nächstem Gist-Hiccup verifizieren, dann
+   POSITIONS_JSON-Secret löschen
+9. ⏰ Wiedervorlage 02.06.2026: Chart-Indikatoren prüfen
+   (EMA21, VWAP-Position, Bollinger-Band-Squeeze;
+   NICHT MACD/Stochastic/Ichimoku/Fibonacci)
+10. ⏰ Wiedervorlage 02.07.2026: Premium-Daten-Stack prüfen
+11. Filter-Flexibilisierung prüfen (Bahn A2)
+12. Phase X — v1-Pfad-Migration (drei Schritte zusammen,
     siehe CLAUDE.md-Sektion v1/v2-Render-Pfad)
-12. Phase 2 Trigger 4-6 aktivieren sobald Datenquellen da:
-    Setup-Erosion, Catalyst, Trend-Bruch
-13. ⏰ Wiedervorlage 19.05.2026 — app_data-recovery-Logik
-    verifizieren (scripts/pull_gist_data.py, Commit 6d358a7).
-    Beim nächsten echten Gist-Hiccup im Workflow-Log prüfen,
-    ob die WARN-Zeile erscheint:
-    `WARN: positions.json aus app_data-recovery (N Pos.)`
-    Sobald einmal verifiziert: POSITIONS_JSON-Secret aus den
-    Repository-Secrets löschen — Re-Infektions-Pfad
-    (leerer Gist + altes Secret überschreibt mit veraltetem
-    Stand) ist dann endgültig geschlossen.
-    Falls bis 19.05. kein Hiccup aufgetreten ist: manuell
-    provozieren (GIST_TOKEN temporär kaputtmachen, Workflow
-    via workflow_dispatch starten, Log lesen, Token
-    wiederherstellen).
-14. ⏰ Wiedervorlage 02.06.2026 — Chart-Indikatoren für
-    Squeeze-Strategie diskutieren (kein Pre-Auftrag, erst
-    diskutieren, dann ggf. priorisieren).
-    Konkrete Kandidaten:
-    - EMA21 (überlappt mit Phase 2 Trigger 6 / Trend-Bruch
-      im Backlog-Punkt 12)
-    - VWAP-Position als Trend-Filter (intraday-aware)
-    - Bollinger-Band-Squeeze als Volatilitäts-Kontraktions-
-      Marker (Pre-Squeeze-Erkennung)
-    Nicht relevante Kandidaten (Erinnerung, NICHT diskutieren):
-    MACD, Stochastic, Ichimoku, Fibonacci, klassische
-    Chartmuster — laut Setup-Logik zu lagging oder zu wenig
-    spezifisch für Short-Squeeze-Mechanik.
+13. Phase 2 Trigger 4-6 aktivieren sobald Datenquellen da:
+    Setup-Erosion (DTC/Short-Float/CtB beim Entry persistieren),
+    Catalyst (Earnings-Datum + Score-3T-nach), Trend-Bruch (EMA21)
 
 ## Optional / niedrig priorisiert
-- IBKR Borrow Rate liefert konstant HTTP 404 — Provider-Fallback
+- IBKR Borrow Rate liefert konstant HTTP 404 — Provider-
+  Fallback prüfen
 - DOUBTFUL Cleanup-Items (rel_strength_sector / sector_etf,
   MIN_REL_VOLUME_INTL)
-- Per-Ticker Alert-Lock falls Alert-Loop parallelisiert wird
+- Per-Ticker Alert-Lock falls Alert-Loop parallelisiert
 - Watchlist-Drawer (buildWlDetails) auf neuen Score-Block
 - backtest_history.json einmal cachen
 - News-Decay-Logik auf UOA / Insider übertragen
-- KI-Agent-eigene Anomalien in Chat-Kontext einspeisen
-- EDGAR_ACTIVIST_FILERS-Liste über Live-Beobachtung verfeinern
-- Smoke-Test-Suite ggf. um weitere kritische Pfade erweitern
+- KI-Agent-eigene Anomalien in Chat-Kontext
+- EDGAR_ACTIVIST_FILERS-Liste verfeinern
+- Smoke-Test um weitere Pfade erweitern
 
 ## Architektur-Anker (in CLAUDE.md, hier als Reminder)
-- Master-Passwort-Token-Encryption (Single-Reader getToken,
-  Two-Tier-Storage, versioniertes Krypto-Schema v:1)
-- Watchlist-Score Single-Source-of-Truth (3-Stufen-Priorität
-  WL_TOP10 → _WL_CARDS → WL_SCORES, defensive _wlScoreOf)
+- Master-Passwort-Token-Encryption (Single-Reader, Two-Tier-Storage)
+- Watchlist-Score Single-Source-of-Truth (3-Stufen-Priorität)
 - v1/v2-Render-Pfad — v2 NICHT autark, ruft v1 für Outer-Page
-- Push-Silence-Filter (RSI > 75 ODER 2T-Move > 20%, Earnings
-  + EDGAR ausgenommen)
-- top10_metrics in app_data.json (read-modify-write mit
+- Push-Silence-Filter (RSI > 75 ODER 2T-Move > 20%)
+- top10_metrics + Phase 2 exit_state (read-modify-write mit
   **existing-Spread)
-- Phase 2 Exit-State (NEU): exit_state pro Position mit
-  6 Triggern + Composite-Pressure, Peak-Tracking ratchet-up,
-  read-modify-write-Spread bewahrt zwischen ki_agent-Ticks
-- JSON-Sanitizer (NEU): NaN/Infinity-Werte werden vor
-  json.dump entfernt (allow_nan=False als Belt-and-Suspenders).
-  Beide Writer (generate_report._write_app_data_json +
-  ki_agent.save_signals) müssen den Sanitizer anwenden, sonst
-  Reinfektion via **existing-Spread.
+- JSON-Sanitizer (NaN/Infinity entfernt vor json.dump,
+  allow_nan=False, beide Writer)
+- USD/EUR-Anzeige (NEU): flache Schema-Struktur
+  app_data.json["fx_usd_eur"] + computed_at, entry_fx in
+  positions.json write-once, exit_fx/exit_fx_eur/
+  realized_pnl_eur in closed_trades, Renderer-Resolver mit
+  Fallback-Kette (exakte FX-Felder → Aktuell-FX)
 
 ## Smoke-Test-Status
-scripts/smoke_render.js: jetzt 6 Szenarien, alle 6 grün.
-Heute mehrfach erweitert: Position-Status-Block, Composite-
-Score, Border-Glow, Banner — jeweils mit Boundary-Asserts und
-Position-Close-Reset-Tests. Smoke-Test extrahiert die JS-
-Funktion direkt aus generate_report.py (robust gegen
-Render-Verzug der index.html).
+scripts/smoke_render.js: jetzt 12 Szenarien, alle 12 grün.
+Heute mehrfach erweitert: Phase 2 non-Top-10-Position,
+move_3d-Trigger, KI-Insight-Banner, Position-Panel-EUR,
+Open-/Close-Dialog-EUR, Trade-Journal-EUR. Smoke-Test
+extrahiert die JS-Funktion direkt aus generate_report.py
+(robust gegen Render-Verzug der index.html).
+
+## Heutige große Themen
+- Workflow-Pipeline restored nach GIST_TOKEN-Update
+- Phase 2 läuft komplett für offene Positionen außerhalb Top-10
+- USD/EUR-Migration in 4 Stufen abgeschlossen
+- Score-Methodik anfänger-freundlich umgestaltet
+- KI-Analyse: Clipping-Bug + Truncation-Bug beide gefixt
