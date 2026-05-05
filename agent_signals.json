@@ -1,11 +1,11 @@
 {
-  "updated": "2026-05-05T01:00:25.655971+02:00",
+  "updated": "2026-05-05T02:02:37.958161+02:00",
   "run_info": {
     "tickers_checked": 10,
     "signals_active": 7,
     "alerts_sent": 0,
-    "elapsed_s": 17.2,
-    "market_phase": "After-Hours"
+    "elapsed_s": 16.2,
+    "market_phase": "Geschlossen"
   },
   "signals": {
     "CABA": {
@@ -30,9 +30,9 @@
       "uoa_cp_ratio": 15.239373601789708
     },
     "ABEO": {
-      "score": 18,
+      "score": 26,
       "confidence": 33,
-      "drivers": "Earnings in 9d + UOA Call/Put 15.0×",
+      "drivers": "News-KI 8/30: Routine earnings announcement and standard employee grants lack short-squeeze catalysts; insider interest mentioned but  + Earnings in 9d + UOA Call/Put 15.0×",
       "price": 5.95,
       "chg_pct": 0.0,
       "rvol": 0.0,
@@ -53,7 +53,7 @@
     "GRPN": {
       "score": 72,
       "confidence": 33,
-      "drivers": "Earnings in 3 Tagen (07.05.2026) + News: short squeeze, squeeze + Earnings in 3d + UOA Call/Put 10.4×",
+      "drivers": "Earnings in 3 Tagen (07.05.2026) + News: squeeze, short squeeze + Earnings in 3d + UOA Call/Put 10.4×",
       "price": 15.51,
       "chg_pct": 0.0,
       "rvol": 0.0,
@@ -154,7 +154,7 @@
     "XRX": {
       "score": 22,
       "confidence": 17,
-      "drivers": "News-KI 12/30: Xerox is a large, well-established company with high liquidity and institutional ownership, making a short squeeze highl + UOA Call/Put 9.2×",
+      "drivers": "News-KI 12/30: Moderate positive sentiment about AI services and earnings, but lacks specific short squeeze indicators like high short  + UOA Call/Put 9.2×",
       "price": 2.6,
       "chg_pct": 0.0,
       "rvol": 0.0,
@@ -175,9 +175,9 @@
       "silenced_reason": "RSI 77"
     },
     "CADL": {
-      "score": 30,
+      "score": 26,
       "confidence": 33,
-      "drivers": "News-KI 12/30: Clinical trial progression and commercial preparations show business development but lack the high short interest, low f + Earnings in 8d + UOA Call/Put 3.8×",
+      "drivers": "News-KI 8/30: Positive clinical and commercial developments, but no short-squeeze indicators present (low float, high SI, or extreme t + Earnings in 8d + UOA Call/Put 3.8×",
       "price": 7.53,
       "chg_pct": 0.0,
       "rvol": 0.0,
@@ -187,7 +187,7 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 1,
+      "active_triggers": 0,
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 3.8×"
