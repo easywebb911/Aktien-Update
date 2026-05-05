@@ -823,6 +823,14 @@ abbr[title]{text-decoration:underline dotted var(--txt-dim);
 .ka-rerun-btn{background:none;border:1px solid #4c1d95;color:#a78bfa;border-radius:6px;
   padding:1px 7px;font-size:.65rem;cursor:pointer;white-space:nowrap;flex-shrink:0}
 .ka-rerun-btn:hover{background:#4c1d9533}
+/* Truncation-Hinweis bei stop_reason='max_tokens' im KI-Analyse-Stream.
+   Dezent in Amber, nicht alarmistisch — die Analyse ist da, nur das Ende
+   fehlt. Wird per JS angefügt, idempotent ersetzt bei jedem Re-Analyse-
+   Klick (innerHTML-Reset wischt das Element zu Beginn jedes Calls). */
+.ki-truncated-notice{margin-top:8px;padding:6px 10px;
+  background:rgba(245,158,11,.10);border-left:3px solid #f59e0b;
+  border-radius:0 4px 4px 0;
+  font-size:.72rem;color:#f59e0b;line-height:1.4;font-weight:500}
 /* Chat panel — mobile full-screen, desktop right panel (380px) */
 .btn-chat{background:#1e293b;color:#94a3b8;border:1px solid #334155}
 .btn-chat:hover:not(:disabled){background:#334155;color:#e2e8f0}

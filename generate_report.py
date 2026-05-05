@@ -9215,11 +9215,11 @@ async function callAnthropicStream(messages, systemPrompt, onDelta, opts) {{
     const data = await res.json();
     const text = data?.content?.[0]?.text || '';
     if (onDelta && text) onDelta(text);
-    return text;
+    return {{ text: text, stopReason: data?.stop_reason || null }};
   }}
   const reader  = res.body.getReader();
   const decoder = new TextDecoder();
-  let buf = '', full = '';
+  let buf = '', full = '', stopReason = null;
   while (true) {{
     const {{ value, done }} = await reader.read();
     if (done) break;
@@ -9241,6 +9241,13 @@ async function callAnthropicStream(messages, systemPrompt, onDelta, opts) {{
           const t = obj.delta.text || '';
           full += t;
           if (onDelta) onDelta(t);
+        }} else if (obj.type === 'message_delta' && obj.delta && obj.delta.stop_reason) {{
+          // Anthropic-Stream signalisiert Stop-Grund über message_delta-
+          // Events: "end_turn" (natürliches Ende), "max_tokens" (Cap erreicht),
+          // "stop_sequence". Wir merken uns den Wert für den Aufrufer —
+          // er entscheidet, ob ein UI-Hinweis nötig ist (typisch: nur bei
+          // max_tokens, weil das auf Truncation hinweist).
+          stopReason = obj.delta.stop_reason;
         }} else if (obj.type === 'error') {{
           throw new Error(obj.error?.message || 'Stream-Fehler');
         }}
@@ -9249,7 +9256,7 @@ async function callAnthropicStream(messages, systemPrompt, onDelta, opts) {{
       }}
     }}
   }}
-  return full;
+  return {{ text: full, stopReason: stopReason }};
 }}
 
 async function testAnthropicKey() {{
@@ -9518,7 +9525,7 @@ Gib eine knappe Einschätzung: Squeeze-Potenzial, wichtigste Treiber, kritische 
 
   try {{
     let acc = '';
-    await callAnthropicStream(
+    const _streamRes = await callAnthropicStream(
       [{{role:'user', content: userPrompt}}],
       sysPrompt,
       (delta) => {{
@@ -9528,8 +9535,20 @@ Gib eine knappe Einschätzung: Squeeze-Potenzial, wichtigste Treiber, kritische 
         // aktuelle Token immer sichtbar bleibt (Fazit steht am Ende).
         if (res) res.scrollTop = res.scrollHeight;
       }},
-      {{model: ANT_MODEL, max_tokens: 600}}
+      {{model: ANT_MODEL, max_tokens: 900}}
     );
+    // Truncation-Hinweis bei stop_reason: 'max_tokens'. Idempotent —
+    // ``res.innerHTML`` wird oben zu Beginn jedes Calls neu gesetzt,
+    // alte Notices verschwinden damit automatisch; defensiv trotzdem
+    // explizit prüfen + entfernen, falls künftig der Reset-Pfad ändert.
+    const _oldNotice = res.querySelector('.ki-truncated-notice');
+    if (_oldNotice) _oldNotice.remove();
+    if (_streamRes && _streamRes.stopReason === 'max_tokens') {{
+      const notice = document.createElement('div');
+      notice.className = 'ki-truncated-notice';
+      notice.textContent = 'Antwort gekürzt — Token-Limit erreicht. Nochmal analysieren für vollständigen Text.';
+      res.appendChild(notice);
+    }}
     // Nach Stream-Ende: via requestAnimationFrame nachscrollen, damit
     // der letzte Layout-Pass wirklich drin ist bevor wir bottom-scrollen.
     if (res) {{
