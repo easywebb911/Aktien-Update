@@ -110,26 +110,92 @@ def _legacy_positions_from_env() -> dict:
         return {}
 
 
+def _recover_positions_from_app_data(path: Path = Path("app_data.json")) -> dict:
+    """Stammdaten-Recovery aus dem vorigen Daily-Run.
+
+    ``app_data.json`` ist im Repo getrackt und enthält seit Phase 2
+    Stufe 1 die Position-Stammdaten (``entry_date``, ``entry_price``,
+    ``shares``) plus den derivierten ``exit_state`` mit Peak-Tracker.
+    Bei einem Gist-API-Hiccup ist das die nächstbeste Quelle —
+    Stammdaten sind quasi-immutable, Peaks (im Phase-2-Pfad via
+    ``_read_existing_app_data`` beim nächsten Run gelesen) bleiben
+    erhalten.
+
+    Returnt ``{ticker: {entry_date, entry_price, shares}}`` (nur die
+    Stammdaten, exit_state wird hier NICHT übernommen — der wird beim
+    nächsten regulären Run aus den Stammdaten + History neu berechnet).
+    Bei jedem Fehler / fehlender Datei → ``{}``.
+    """
+    try:
+        if not path.exists():
+            return {}
+        data = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as exc:
+        print(f"[pull_gist_data] app_data.json-Recovery: Lesefehler ({exc})",
+              file=sys.stderr)
+        return {}
+    positions = (data or {}).get("positions") or {}
+    if not isinstance(positions, dict):
+        return {}
+    out: dict[str, dict] = {}
+    for ticker, p in positions.items():
+        if not isinstance(p, dict):
+            continue
+        if "entry_date" not in p or "entry_price" not in p:
+            continue
+        recovered = {
+            "entry_date":  p.get("entry_date"),
+            "entry_price": p.get("entry_price"),
+        }
+        if "shares" in p:
+            recovered["shares"] = p.get("shares")
+        out[ticker] = recovered
+    return out
+
+
+def _fallback_positions(legacy: dict) -> tuple[dict, str]:
+    """Wählt die nächstbeste Position-Quelle bei Gist-Fehler.
+
+    Reihenfolge:
+      1. Recovery aus voriger app_data.json (Stammdaten + Peak-Erhalt)
+      2. POSITIONS_JSON-Secret-Legacy (deprecated, aber kompatibel)
+      3. Leeres Dict (kein echter Recovery-Pfad verfügbar)
+
+    Returnt ``(positions_dict, source_label)`` für strukturierte Logs.
+    """
+    recovered = _recover_positions_from_app_data()
+    if recovered:
+        return recovered, "app_data-recovery"
+    if legacy:
+        return legacy, "POSITIONS_JSON-legacy"
+    return {}, "empty"
+
+
 def main() -> int:
     gist_id = os.environ.get("GIST_ID", "").strip()
     token   = os.environ.get("GIST_TOKEN", "").strip()
     legacy  = _legacy_positions_from_env()
 
     if not (gist_id and token):
-        # Kein Gist konfiguriert — Legacy-POSITIONS_JSON gewinnt.
-        _write_positions(legacy)
+        # Kein Gist konfiguriert — Recovery-Kette: app_data → legacy → leer.
+        positions, src = _fallback_positions(legacy)
+        _write_positions(positions)
         # Watchlist bleibt unverändert (in-Repo watchlist_personal.json
         # ist die Quelle, Datei wird hier nicht überschrieben).
-        print(f"[pull_gist_data] Kein Gist konfiguriert — "
-              f"positions.json aus POSITIONS_JSON ({len(legacy)} Einträge)")
+        print(f"[pull_gist_data] WARN: Kein Gist konfiguriert — "
+              f"positions.json aus {src} ({len(positions)} Einträge)")
         return 0
 
     gist = _http_get_gist(gist_id, token)
     if gist is None:
-        # API-Fehler: degradiere auf Legacy-Pfad, bricht aber nicht ab.
-        _write_positions(legacy)
-        print(f"[pull_gist_data] Gist-API-Fehler — Legacy-Fallback "
-              f"({len(legacy)} Positions-Einträge)")
+        # API-Fehler: Recovery-Kette greift, Workflow bricht NICHT ab.
+        # app_data-Recovery ist Peak-erhaltend — _read_existing_app_data
+        # im Daily-Run findet weiterhin die alten peak-Werte für die
+        # ratchet-up-Logik.
+        positions, src = _fallback_positions(legacy)
+        _write_positions(positions)
+        print(f"[pull_gist_data] WARN: Gist-API-Fehler — Fallback aus "
+              f"{src} ({len(positions)} Positions-Einträge)")
         return 0
 
     data = _extract_data(gist)
