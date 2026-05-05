@@ -1,17 +1,38 @@
 {
-  "updated": "2026-05-05T09:15:22.229328+02:00",
+  "updated": "2026-05-05T12:00:55.744631+02:00",
   "run_info": {
     "tickers_checked": 10,
-    "signals_active": 7,
+    "signals_active": 5,
     "alerts_sent": 0,
-    "elapsed_s": 10.1,
-    "market_phase": "Geschlossen"
+    "elapsed_s": 10.5,
+    "market_phase": "Pre-Market"
   },
   "signals": {
+    "RLYB": {
+      "score": 15,
+      "confidence": 17,
+      "drivers": "News: merger",
+      "price": 14.12,
+      "chg_pct": 0.0,
+      "rvol": 0.0,
+      "earnings": null,
+      "fda_date": null,
+      "upcoming_event": null,
+      "insider_buy": false,
+      "stocktwits": null,
+      "combo_mult": 1.0,
+      "active_triggers": 1,
+      "uoa_score": 0,
+      "uoa_drivers": [],
+      "uoa_atm_ratio": null,
+      "uoa_cp_ratio": null,
+      "push_silenced": true,
+      "silenced_reason": "RSI 90"
+    },
     "CABA": {
-      "score": 23,
+      "score": 18,
       "confidence": 33,
-      "drivers": "News-KI 5/30: Positive business developments (funding and supply agreement) reduce short-squeeze potential as they strengthen the comp + Earnings in 9d + UOA Call/Put 15.2×",
+      "drivers": "Earnings in 9d + UOA Call/Put 15.2×",
       "price": 3.83,
       "chg_pct": 0.0,
       "rvol": 0.0,
@@ -26,109 +47,8 @@
       "uoa_drivers": [
         "UOA Call/Put 15.2×"
       ],
-      "uoa_atm_ratio": 1.3867056856187292,
-      "uoa_cp_ratio": 15.239373601789708
-    },
-    "ABEO": {
-      "score": 18,
-      "confidence": 33,
-      "drivers": "Earnings in 8d + UOA Call/Put 15.0×",
-      "price": 5.95,
-      "chg_pct": 0.0,
-      "rvol": 0.0,
-      "earnings": "in 8 Tagen (13.05.2026)",
-      "fda_date": null,
-      "upcoming_event": null,
-      "insider_buy": false,
-      "stocktwits": null,
-      "combo_mult": 1.0,
-      "active_triggers": 0,
-      "uoa_score": 10,
-      "uoa_drivers": [
-        "UOA Call/Put 15.0×"
-      ],
-      "uoa_atm_ratio": 1.8765264586160109,
-      "uoa_cp_ratio": 14.97278911564626
-    },
-    "GRPN": {
-      "score": 72,
-      "confidence": 33,
-      "drivers": "Earnings in 2 Tagen (07.05.2026) + News: short squeeze, squeeze + Earnings in 2d + UOA Call/Put 10.4×",
-      "price": 15.51,
-      "chg_pct": 0.0,
-      "rvol": 0.0,
-      "earnings": "in 2 Tagen (07.05.2026)",
-      "fda_date": null,
-      "upcoming_event": "Earnings in 2 Tagen (07.05.2026)",
-      "insider_buy": false,
-      "stocktwits": null,
-      "combo_mult": 1.1,
-      "active_triggers": 2,
-      "uoa_score": 10,
-      "uoa_drivers": [
-        "UOA Call/Put 10.4×"
-      ],
-      "uoa_atm_ratio": 0.22796181920269512,
-      "uoa_cp_ratio": 10.437837837837838
-    },
-    "DMRC": {
-      "score": 41,
-      "confidence": 33,
-      "drivers": "Earnings in 7 Tagen (12.05.2026) + News-KI 12/30: Routine earnings calls and conference attendance lack short-squeeze catalysts like high short interest disclosure, sudde + Earnings in 7d + UOA Call/Put 22.7×",
-      "price": 8.2,
-      "chg_pct": 0.0,
-      "rvol": 0.0,
-      "earnings": "in 7 Tagen (12.05.2026)",
-      "fda_date": null,
-      "upcoming_event": "Earnings in 7 Tagen (12.05.2026)",
-      "insider_buy": false,
-      "stocktwits": null,
-      "combo_mult": 1.1,
-      "active_triggers": 2,
-      "uoa_score": 10,
-      "uoa_drivers": [
-        "UOA Call/Put 22.7×"
-      ],
-      "uoa_atm_ratio": 2.7027027027027026,
-      "uoa_cp_ratio": 22.666666666666668
-    },
-    "CGEM": {
-      "score": 33,
-      "confidence": 33,
-      "drivers": "Earnings in 2 Tagen (07.05.2026) + News-KI 8/30: Positive FDA regulatory catalyst provides fundamental support, but lacking short squeeze indicators like high short inte + Earnings in 2d",
-      "price": 15.34,
-      "chg_pct": 0.0,
-      "rvol": 0.0,
-      "earnings": "in 2 Tagen (07.05.2026)",
-      "fda_date": null,
-      "upcoming_event": "Earnings in 2 Tagen (07.05.2026)",
-      "insider_buy": false,
-      "stocktwits": null,
-      "combo_mult": 1.0,
-      "active_triggers": 1,
-      "uoa_score": 0,
-      "uoa_drivers": [],
-      "uoa_atm_ratio": 0.5540540540540541,
-      "uoa_cp_ratio": 0.38016528925619836
-    },
-    "SNSE": {
-      "score": 15,
-      "confidence": 17,
-      "drivers": "News: acquisition",
-      "price": 26.7,
-      "chg_pct": 0.0,
-      "rvol": 0.0,
-      "earnings": null,
-      "fda_date": null,
-      "upcoming_event": null,
-      "insider_buy": false,
-      "stocktwits": null,
-      "combo_mult": 1.0,
-      "active_triggers": 1,
-      "uoa_score": 0,
-      "uoa_drivers": [],
       "uoa_atm_ratio": null,
-      "uoa_cp_ratio": null
+      "uoa_cp_ratio": 15.239373601789708
     },
     "LENZ": {
       "score": 25,
@@ -148,13 +68,53 @@
       "uoa_drivers": [
         "UOA Call/Put 2.9×"
       ],
-      "uoa_atm_ratio": 0.09221902017291066,
+      "uoa_atm_ratio": null,
       "uoa_cp_ratio": 2.9423076923076925
+    },
+    "CGEM": {
+      "score": 44,
+      "confidence": 33,
+      "drivers": "Earnings in 2 Tagen (07.05.2026) + News: catalyst + Earnings in 2d",
+      "price": 15.34,
+      "chg_pct": 0.0,
+      "rvol": 0.0,
+      "earnings": "in 2 Tagen (07.05.2026)",
+      "fda_date": null,
+      "upcoming_event": "Earnings in 2 Tagen (07.05.2026)",
+      "insider_buy": false,
+      "stocktwits": null,
+      "combo_mult": 1.1,
+      "active_triggers": 2,
+      "uoa_score": 0,
+      "uoa_drivers": [],
+      "uoa_atm_ratio": null,
+      "uoa_cp_ratio": 0.38016528925619836
+    },
+    "ABEO": {
+      "score": 26,
+      "confidence": 33,
+      "drivers": "News-KI 8/30: Routine earnings announcement and standard employee grants lack short-squeeze catalysts; insider buying interest is mini + Earnings in 8d + UOA Call/Put 15.0×",
+      "price": 5.95,
+      "chg_pct": 0.0,
+      "rvol": 0.0,
+      "earnings": "in 8 Tagen (13.05.2026)",
+      "fda_date": null,
+      "upcoming_event": null,
+      "insider_buy": false,
+      "stocktwits": null,
+      "combo_mult": 1.0,
+      "active_triggers": 0,
+      "uoa_score": 10,
+      "uoa_drivers": [
+        "UOA Call/Put 15.0×"
+      ],
+      "uoa_atm_ratio": null,
+      "uoa_cp_ratio": 14.97278911564626
     },
     "XRX": {
       "score": 25,
       "confidence": 17,
-      "drivers": "News: earnings beat + UOA Call/Put 9.2×",
+      "drivers": "News: revenue beat + UOA Call/Put 9.2×",
       "price": 2.6,
       "chg_pct": 0.0,
       "rvol": 0.0,
@@ -172,34 +132,32 @@
       "uoa_atm_ratio": null,
       "uoa_cp_ratio": 9.201539538138558,
       "push_silenced": true,
-      "silenced_reason": "RSI 77"
+      "silenced_reason": "RSI 75"
     },
-    "CADL": {
-      "score": 25,
-      "confidence": 33,
-      "drivers": "Earnings in 7 Tagen (12.05.2026) + Earnings in 7d + UOA Call/Put 3.8×",
-      "price": 7.53,
+    "ZBIO": {
+      "score": 8,
+      "confidence": 17,
+      "drivers": "Earnings in 9d",
+      "price": 21.56,
       "chg_pct": 0.0,
       "rvol": 0.0,
-      "earnings": "in 7 Tagen (12.05.2026)",
+      "earnings": "in 9 Tagen (14.05.2026)",
       "fda_date": null,
-      "upcoming_event": "Earnings in 7 Tagen (12.05.2026)",
+      "upcoming_event": null,
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 1,
-      "uoa_score": 10,
-      "uoa_drivers": [
-        "UOA Call/Put 3.8×"
-      ],
-      "uoa_atm_ratio": 0.14702581369248036,
-      "uoa_cp_ratio": 3.778523489932886
+      "active_triggers": 0,
+      "uoa_score": 0,
+      "uoa_drivers": [],
+      "uoa_atm_ratio": null,
+      "uoa_cp_ratio": 0.5164835164835165
     },
-    "ABSI": {
+    "REAL": {
       "score": 35,
       "confidence": 33,
-      "drivers": "Earnings in 2 Tagen (07.05.2026) + Earnings in 2d + UOA Call/Put 10.8×",
-      "price": 5.62,
+      "drivers": "Earnings in 2 Tagen (07.05.2026) + Earnings in 2d + UOA Call/Put 10.3×",
+      "price": 12.85,
       "chg_pct": 0.0,
       "rvol": 0.0,
       "earnings": "in 2 Tagen (07.05.2026)",
@@ -211,10 +169,50 @@
       "active_triggers": 1,
       "uoa_score": 10,
       "uoa_drivers": [
-        "UOA Call/Put 10.8×"
+        "UOA Call/Put 10.3×"
       ],
-      "uoa_atm_ratio": 0.5700667302192565,
-      "uoa_cp_ratio": 10.758152173913043
+      "uoa_atm_ratio": null,
+      "uoa_cp_ratio": 10.344235924932976
+    },
+    "SNDX": {
+      "score": 15,
+      "confidence": 17,
+      "drivers": "News: analyst upgrade",
+      "price": 19.96,
+      "chg_pct": 0.0,
+      "rvol": 0.0,
+      "earnings": null,
+      "fda_date": null,
+      "upcoming_event": null,
+      "insider_buy": false,
+      "stocktwits": null,
+      "combo_mult": 1.0,
+      "active_triggers": 1,
+      "uoa_score": 0,
+      "uoa_drivers": [],
+      "uoa_atm_ratio": null,
+      "uoa_cp_ratio": 1.66
+    },
+    "RXT": {
+      "score": 43,
+      "confidence": 33,
+      "drivers": "Earnings in 2 Tagen (07.05.2026) + News-KI 8/30: Routine earnings announcement and leadership appointments lack short-squeeze catalysts; no significant shareholding acti + Earnings in 2d + UOA Call/Put 4.7×",
+      "price": 2.01,
+      "chg_pct": 0.0,
+      "rvol": 0.0,
+      "earnings": "in 2 Tagen (07.05.2026)",
+      "fda_date": null,
+      "upcoming_event": "Earnings in 2 Tagen (07.05.2026)",
+      "insider_buy": false,
+      "stocktwits": null,
+      "combo_mult": 1.0,
+      "active_triggers": 1,
+      "uoa_score": 10,
+      "uoa_drivers": [
+        "UOA Call/Put 4.7×"
+      ],
+      "uoa_atm_ratio": null,
+      "uoa_cp_ratio": 4.73046875
     }
   }
 }
