@@ -82,6 +82,19 @@ Offene Fragen vor Implementierung klären:
     provozieren (GIST_TOKEN temporär kaputtmachen, Workflow
     via workflow_dispatch starten, Log lesen, Token
     wiederherstellen).
+14. ⏰ Wiedervorlage 02.06.2026 — Chart-Indikatoren für
+    Squeeze-Strategie diskutieren (kein Pre-Auftrag, erst
+    diskutieren, dann ggf. priorisieren).
+    Konkrete Kandidaten:
+    - EMA21 (überlappt mit Phase 2 Trigger 6 / Trend-Bruch
+      im Backlog-Punkt 12)
+    - VWAP-Position als Trend-Filter (intraday-aware)
+    - Bollinger-Band-Squeeze als Volatilitäts-Kontraktions-
+      Marker (Pre-Squeeze-Erkennung)
+    Nicht relevante Kandidaten (Erinnerung, NICHT diskutieren):
+    MACD, Stochastic, Ichimoku, Fibonacci, klassische
+    Chartmuster — laut Setup-Logik zu lagging oder zu wenig
+    spezifisch für Short-Squeeze-Mechanik.
 
 ## Optional / niedrig priorisiert
 - IBKR Borrow Rate liefert konstant HTTP 404 — Provider-Fallback
