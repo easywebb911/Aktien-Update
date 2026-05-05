@@ -5935,9 +5935,13 @@ async function renderTradeJournal(){{
   const setupWin  = avgSetup(winners);
   const setupLose = avgSetup(losers);
   const sumPnlAbs = filtered.reduce((s, t) => s + (+t.pnl_abs || 0), 0);
+  // EUR-Stufe 4: gemischte Summe — bei Trades mit persistiertem
+  // realized_pnl_eur (ab Stufe 3) der exakte historische Wert,
+  // bei Bestandstrades Aktuell-FX-Multiplikation als Soft-Fallback.
+  const sumPnlEur = filtered.reduce((s, t) => s + _tjResolvePnlEur(t, fxUsdEur), 0);
   const _fmtPct = v => (v >= 0 ? '+' : '') + v.toFixed(1) + '%';
   const _fmtUsd = v => '$' + v.toFixed(2);
-  const _fmtEur = v => (v * fxUsdEur).toFixed(2).replace('.', ',') + ' €';
+  const _fmtEurFromVal = v => v.toFixed(2).replace('.', ',') + ' €';
   statsEl.innerHTML = `<h4>Statistik</h4>
     <div class="tj-stats-grid">
       <div class="tj-stat"><span class="tj-stat-lbl">Trades</span><span class="tj-stat-val">${{filtered.length}}</span></div>
@@ -5945,7 +5949,7 @@ async function renderTradeJournal(){{
       <div class="tj-stat"><span class="tj-stat-lbl">Ø Rendite</span><span class="tj-stat-val">${{_fmtPct(avg(filtered))}}</span></div>
       <div class="tj-stat"><span class="tj-stat-lbl">Ø Gewinner</span><span class="tj-stat-val" style="color:#22c55e">${{winners.length ? _fmtPct(avg(winners)) : '—'}}</span></div>
       <div class="tj-stat"><span class="tj-stat-lbl">Ø Verlierer</span><span class="tj-stat-val" style="color:#ef4444">${{losers.length ? _fmtPct(avg(losers)) : '—'}}</span></div>
-      <div class="tj-stat"><span class="tj-stat-lbl">Summe P&amp;L</span><span class="tj-stat-val">${{_fmtUsd(sumPnlAbs)}} (${{_fmtEur(sumPnlAbs)}})</span></div>
+      <div class="tj-stat"><span class="tj-stat-lbl">Summe P&amp;L</span><span class="tj-stat-val">${{_fmtUsd(sumPnlAbs)}} (${{_fmtEurFromVal(sumPnlEur)}})</span></div>
       <div class="tj-stat"><span class="tj-stat-lbl">Bester</span><span class="tj-stat-val">${{best.ticker}} ${{_fmtPct(+best.pnl_pct || 0)}}</span></div>
       <div class="tj-stat"><span class="tj-stat-lbl">Schlechtester</span><span class="tj-stat-val">${{worst.ticker}} ${{_fmtPct(+worst.pnl_pct || 0)}}</span></div>
       <div class="tj-stat tj-stat-wide"><span class="tj-stat-lbl">Setup-Score-Korrelation</span>
@@ -5962,6 +5966,16 @@ async function renderTradeJournal(){{
     const dur    = (t.duration_days != null) ? `${{t.duration_days}}d` : '—';
     const max    = (t.max_setup_score != null) ? `Setup max ${{(+t.max_setup_score).toFixed(0)}}` : 'Setup max —';
     const _esc = s => String(s || '').replace(/[&<>]/g, c => ({{'&':'&amp;','<':'&lt;','>':'&gt;'}})[c]);
+    // EUR-Stufe 4: Entry/Exit/P&L mit historisch genauen FX-Werten,
+    // wenn vorhanden — sonst Aktuell-FX-Fallback. Helpers aus Stufe 3
+    // wiederverwendet: _formatUsdEurPair (Plain-Pair für Kurse),
+    // _formatUsdEurPnl (mit explizitem +/− Vorzeichen für P&L).
+    const entryFxRes = _tjResolveEntryFx(t, fxUsdEur);
+    const exitFxRes  = _tjResolveExitFx(t, fxUsdEur);
+    const pnlEurRes  = _tjResolvePnlEur(t, fxUsdEur);
+    const entryStr   = _formatUsdEurPair(ep, entryFxRes);
+    const exitStr    = _formatUsdEurPair(xp, exitFxRes);
+    const pnlStr     = _formatUsdEurPnl(pnlAbs, pnlEurRes);
     const thesisHtml = t.thesis ? `<div class="tj-trade-note tj-trade-thesis"><span class="tj-note-lbl">These</span> ${{_esc(t.thesis)}}</div>` : '';
     const lessonHtml = t.lesson ? `<div class="tj-trade-note tj-trade-lesson"><span class="tj-note-lbl">Lesson</span> ${{_esc(t.lesson)}}</div>` : '';
     return `<div class="tj-trade ${{pnlPct >= 0 ? 'tj-trade-win' : 'tj-trade-loss'}}">
@@ -5971,8 +5985,8 @@ async function renderTradeJournal(){{
         <span class="tj-trade-pnl" style="color:${{pnlCol}}">${{_fmtPct(pnlPct)}}</span>
       </div>
       <div class="tj-trade-meta">
-        Entry $${{ep.toFixed(2)}} → Exit $${{xp.toFixed(2)}} · ${{(+t.shares || 0)}} Stk ·
-        P&amp;L ${{_fmtUsd(pnlAbs)}} (${{_fmtEur(pnlAbs)}}) · ${{max}}
+        Entry ${{entryStr}} → Exit ${{exitStr}} · ${{(+t.shares || 0)}} Stk ·
+        P&amp;L ${{pnlStr}} · ${{max}}
       </div>
       ${{thesisHtml}}${{lessonHtml}}
     </div>`;
@@ -6201,6 +6215,31 @@ function _updateClosePreview(ticker, ep, shares, entryFx) {{
   sumEl.innerHTML = '<div>' + erlosLine + '</div><div>' + pnlLine + '</div>';
 }}
 window._updateClosePreview = _updateClosePreview;
+// Trade-Journal EUR-Resolver (EUR-Stufe 4/4) — pro closed_trade-Eintrag
+// historisch korrekte FX-Werte mit Soft-Fallback auf Aktuell-FX bei
+// Bestandstrades, die vor Stufe 3 geschlossen wurden.
+function _tjResolveEntryFx(t, fallbackFx) {{
+  if (t && typeof t.entry_fx === 'number' && isFinite(t.entry_fx) && t.entry_fx > 0) {{
+    return t.entry_fx;
+  }}
+  return fallbackFx;
+}}
+window._tjResolveEntryFx = _tjResolveEntryFx;
+function _tjResolveExitFx(t, fallbackFx) {{
+  if (t && typeof t.exit_fx === 'number' && isFinite(t.exit_fx) && t.exit_fx > 0) {{
+    return t.exit_fx;
+  }}
+  return fallbackFx;
+}}
+window._tjResolveExitFx = _tjResolveExitFx;
+function _tjResolvePnlEur(t, fallbackFx) {{
+  if (t && typeof t.realized_pnl_eur === 'number' && isFinite(t.realized_pnl_eur)) {{
+    return t.realized_pnl_eur;
+  }}
+  const abs = (t && typeof t.pnl_abs === 'number' && isFinite(t.pnl_abs)) ? t.pnl_abs : 0;
+  return abs * fallbackFx;
+}}
+window._tjResolvePnlEur = _tjResolvePnlEur;
 // Border-Glow je nach exit_pressure (Phase 2 Stufe 2b-2). Wendet die
 // CSS-Klassen ``exit-glow-{{warn,mid,crit}}`` auf alle ``.card[data-ticker]``
 // und ``.wl-card[data-ticker]`` mit offener Position an. Idempotent: vor
@@ -9102,6 +9141,12 @@ function _fmtGerman(d) {{
       max_setup_score:  maxSet,
       duration_days:    dur,
       closed_at:        new Date().toISOString(),
+      // EUR-Stufe 4: entry_fx zusätzlich persistieren — _entryFxResolved
+      // wird ohnehin für realized_pnl_eur berechnet, ohne Schreibzugriff
+      // im Trade-Journal aber nicht mehr historisch korrekt rekonstruier-
+      // bar. Mit diesem Feld kann der Trade-Journal-Renderer Entry-Kurs
+      // exakt in EUR umrechnen statt auf Aktuell-FX zurückzufallen.
+      entry_fx:         _entryFxResolved,
       exit_fx:          _exitFxNow,
       exit_fx_eur:      _exitFxEur,
       realized_pnl_eur: _realizedPnlEur,

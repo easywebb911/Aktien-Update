@@ -955,6 +955,133 @@ function assert(cond, msg) {
     dom.window.close();
   });
 
+  // ── Szenario 12: Trade-Journal EUR-Resolver (EUR-Stufe 4/4)
+  // Verifiziert die drei _tjResolve*-Helper für historische FX-
+  // Auflösung (exakt wenn closed-trade-Felder vorhanden, sonst
+  // Soft-Fallback auf fxUsdEur). Plus Integration mit
+  // _formatUsdEurPair / _formatUsdEurPnl, wie sie in
+  // renderTradeJournal verwendet werden.
+  await runScenario('Trade-Journal EUR-Resolver — historisch + Fallback', async () => {
+    const dom = await buildDom();
+    const win = dom.window;
+    if (typeof win._tjResolveEntryFx !== 'function') {
+      const src = fs.readFileSync(
+        path.resolve(__dirname, '..', 'generate_report.py'), 'utf8');
+      const marker = src.indexOf('// ── Position-Status (Phase 2 — Stufe 2a)');
+      const endMarker = src.indexOf('// ── Backtesting-Sektion', marker);
+      assert(marker > 0 && endMarker > marker,
+        'Block-Marker nicht gefunden');
+      const jsClean = src.slice(marker, endMarker)
+        .replace(/\{\{/g, '{').replace(/\}\}/g, '}');
+      win.eval(jsClean);
+    }
+    assert(typeof win._tjResolveEntryFx === 'function',
+      '_tjResolveEntryFx fehlt');
+    assert(typeof win._tjResolveExitFx === 'function',
+      '_tjResolveExitFx fehlt');
+    assert(typeof win._tjResolvePnlEur === 'function',
+      '_tjResolvePnlEur fehlt');
+    const fallback = 0.92;
+
+    // === Resolver-Tests ===
+    // 1) Trade mit allen FX-Feldern → exakte Werte
+    const t1 = {
+      entry_price: 3.76, exit_price: 4.26, shares: 35,
+      pnl_abs: 17.50, pnl_pct: 13.30,
+      entry_fx: 0.91, exit_fx: 0.93,
+      exit_fx_eur: 138.74, realized_pnl_eur: 18.30,
+    };
+    assert(win._tjResolveEntryFx(t1, fallback) === 0.91,
+      'Trade mit entry_fx → exact');
+    assert(win._tjResolveExitFx(t1, fallback) === 0.93,
+      'Trade mit exit_fx → exact');
+    assert(win._tjResolvePnlEur(t1, fallback) === 18.30,
+      'Trade mit realized_pnl_eur → exact');
+
+    // 2) Bestandstrade (vor Stufe 3, keine FX-Felder) → fallback
+    const t2 = {
+      entry_price: 3.76, exit_price: 4.26, shares: 35,
+      pnl_abs: 17.50, pnl_pct: 13.30,
+    };
+    assert(win._tjResolveEntryFx(t2, fallback) === fallback,
+      'Bestandstrade ohne entry_fx → fallback');
+    assert(win._tjResolveExitFx(t2, fallback) === fallback,
+      'Bestandstrade ohne exit_fx → fallback');
+    // realized_pnl_eur: 17.50 × 0.92 = 16.10
+    const expectedPnlFb = 17.50 * fallback;
+    assert(Math.abs(win._tjResolvePnlEur(t2, fallback) - expectedPnlFb) < 0.001,
+      `Bestand ohne realized_pnl_eur → ${expectedPnlFb}, bekam ${win._tjResolvePnlEur(t2, fallback)}`);
+
+    // 3) Gemischter Trade — nur exit_fx vorhanden, entry_fx fehlt
+    const t3 = {
+      entry_price: 3.76, exit_price: 4.26, shares: 35, pnl_abs: 17.50,
+      exit_fx: 0.93,   // exit-side gesetzt
+      // entry_fx fehlt
+      // realized_pnl_eur fehlt → fallback berechnet
+    };
+    assert(win._tjResolveEntryFx(t3, fallback) === fallback,
+      'Mixed: entry_fx fehlt → fallback');
+    assert(win._tjResolveExitFx(t3, fallback) === 0.93,
+      'Mixed: exit_fx vorhanden → exact');
+    assert(Math.abs(win._tjResolvePnlEur(t3, fallback) - expectedPnlFb) < 0.001,
+      'Mixed: realized_pnl_eur fehlt → fallback aus pnl_abs');
+
+    // 4) Edge — invalide FX-Werte (0, negativ, NaN, string) → fallback
+    for (const bad of [0, -0.5, NaN, '0.91', null, undefined]) {
+      assert(win._tjResolveEntryFx({entry_fx: bad}, fallback) === fallback,
+        `Invalid entry_fx ${JSON.stringify(bad)} → fallback`);
+      assert(win._tjResolveExitFx({exit_fx: bad}, fallback) === fallback,
+        `Invalid exit_fx ${JSON.stringify(bad)} → fallback`);
+    }
+
+    // 5) realized_pnl_eur=0 → exact (nicht als "missing" interpretiert)
+    const t5 = {pnl_abs: 5.0, realized_pnl_eur: 0};
+    assert(win._tjResolvePnlEur(t5, fallback) === 0,
+      'realized_pnl_eur=0 ist gültig (Break-Even) → exact, nicht fallback');
+
+    // 6) Defensive: null trade → 0
+    assert(win._tjResolvePnlEur(null, fallback) === 0,
+      'null trade → 0');
+    assert(win._tjResolveEntryFx(null, fallback) === fallback,
+      'null trade → fallback');
+
+    // === Integration mit _formatUsdEurPair / _formatUsdEurPnl ===
+    // Beispiel aus User-Spec: Entry $3.76 / 3,42€
+    const entryStr = win._formatUsdEurPair(3.76, win._tjResolveEntryFx(t1, fallback));
+    assert(entryStr === '$3.76 / 3,42€',
+      `Entry-Format: erwartet "$3.76 / 3,42€", bekam "${entryStr}"`);
+    const exitStr = win._formatUsdEurPair(4.26, win._tjResolveExitFx(t1, fallback));
+    assert(exitStr === '$4.26 / 3,96€',
+      `Exit-Format: erwartet "$4.26 / 3,96€", bekam "${exitStr}"`);
+    const pnlStr = win._formatUsdEurPnl(17.50, win._tjResolvePnlEur(t1, fallback));
+    assert(pnlStr === '+$17.50 / +18,30€',
+      `PnL-Format: erwartet "+$17.50 / +18,30€", bekam "${pnlStr}"`);
+
+    // Bestand-Trade Integration (alles fallback)
+    const entryFb = win._formatUsdEurPair(3.76, win._tjResolveEntryFx(t2, fallback));
+    // 3.76 × 0.92 = 3.4592 → "3,46€"
+    assert(entryFb === '$3.76 / 3,46€',
+      `Bestand Entry-Format: erwartet "$3.76 / 3,46€", bekam "${entryFb}"`);
+    const pnlFb = win._formatUsdEurPnl(17.50, win._tjResolvePnlEur(t2, fallback));
+    // 17.50 × 0.92 = 16.10
+    assert(pnlFb === '+$17.50 / +16,10€',
+      `Bestand PnL-Format: erwartet "+$17.50 / +16,10€", bekam "${pnlFb}"`);
+
+    // Verlust-Trade
+    const tLoss = {pnl_abs: -25.50, realized_pnl_eur: -23.21};
+    const lossPnl = win._formatUsdEurPnl(tLoss.pnl_abs, win._tjResolvePnlEur(tLoss, fallback));
+    assert(lossPnl === '-$25.50 / -23,21€',
+      `Verlust PnL-Format: erwartet "-$25.50 / -23,21€", bekam "${lossPnl}"`);
+
+    // Gemischte Summe — eine exakte + eine Fallback-EUR
+    const sumEur = win._tjResolvePnlEur(t1, fallback) + win._tjResolvePnlEur(t2, fallback);
+    // = 18.30 + 16.10 = 34.40
+    assert(Math.abs(sumEur - 34.40) < 0.001,
+      `Gemischte Summe: erwartet 34.40, bekam ${sumEur}`);
+
+    dom.window.close();
+  });
+
   console.log('OK: Alle Smoke-Szenarien grün.');
   process.exit(0);
 })().catch((e) => {
