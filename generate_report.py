@@ -5345,6 +5345,45 @@ def generate_html_v1(stocks: list[dict], report_date: str, _ctx: dict | None = N
         <p style="font-size:.82rem;color:var(--txt-sub);margin:.4rem 0 0;line-height:1.55">
           Die KI überwacht den Markt live auf extreme Anomalien. Je mehr Faktoren (wie plötzliche Volumen-Explosionen oder ungewöhnliche Options-Käufe) gleichzeitig auftreten, desto stärker wird der Basis-Score automatisch nach oben korrigiert.
         </p>
+        <details class="ki-pro-details">
+          <summary>Profi-Details: Push-Schwellen und Cooldowns</summary>
+          <div class="ki-pro-content">
+            <div class="ki-pro-section">
+              <div class="ki-pro-section-title">KI-Agent-Boni (Komponenten-Punkte)</div>
+              <ul>
+                <li><span class="pro-lbl">StockTwits-Sentiment</span><span class="pro-val">+{STOCKTWITS_BULL_WEAK} / +{STOCKTWITS_BULL_STRONG} / −{STOCKTWITS_BEAR_MALUS}</span></li>
+                <li><span class="pro-lbl">RVOL High-Alert</span><span class="pro-val">+{RVOL_HIGH_BONUS} (≥{RVOL_HIGH_THRESHOLD:.0f}×) / +{RVOL_EXTREME_BONUS} (≥{RVOL_EXTREME_THRESHOLD:.0f}×)</span></li>
+                <li><span class="pro-lbl">RVOL Velocity</span><span class="pro-val">+{RVOL_VELOCITY_BONUS} (≥{RVOL_VELOCITY_FACTOR:.1f}× Anstieg)</span></li>
+                <li><span class="pro-lbl">UOA ATM Vol/OI</span><span class="pro-val">+{UOA_ATM_WEAK} / +{UOA_ATM_STRONG}</span></li>
+                <li><span class="pro-lbl">UOA Call/Put-Bias</span><span class="pro-val">+{UOA_CP_BIAS}</span></li>
+                <li><span class="pro-lbl">Gamma Squeeze</span><span class="pro-val">+{GAMMA_BONUS_POSSIBLE} / +{GAMMA_BONUS_LIKELY}</span></li>
+                <li><span class="pro-lbl">Perfect-Storm-Multiplikator</span><span class="pro-val">×{COMBO_MULT_2:.2f} / ×{COMBO_MULT_3:.2f} / ×{COMBO_MULT_4:.2f} bei 2 / 3 / 4 Triggern</span></li>
+              </ul>
+            </div>
+            <div class="ki-pro-section">
+              <div class="ki-pro-section-title">Anomalie-Push-Trigger</div>
+              <ul>
+                <li><span class="pro-lbl">RVOL-Explosion</span><span class="pro-val">≥{ANOMALY_RVOL_TODAY:.0f}× heute &amp; ≥{ANOMALY_RVOL_VS_YESTERDAY:.0f}× vs. Vortag</span></li>
+                <li><span class="pro-lbl">UOA-Extreme</span><span class="pro-val">Call-Vol/OI ≥{ANOMALY_UOA_VOL_OI:.0f}×</span></li>
+                <li><span class="pro-lbl">Score-Sprung</span><span class="pro-val">≥{ANOMALY_SCORE_JUMP} Pkt vs. Vortag</span></li>
+                <li><span class="pro-lbl">Gap+Hold-Combo</span><span class="pro-val">Gap ≥{ANOMALY_GAP_PCT:.0f}&nbsp;%, Strong Hold, RVOL ≥{ANOMALY_GAP_RVOL:.0f}×</span></li>
+                <li><span class="pro-lbl">Perfect Storm</span><span class="pro-val">{ANOMALY_PERFECT_STORM_TRIGGERS}/4 Trigger</span></li>
+                <li><span class="pro-lbl">Monster ≥{ANOMALY_MONSTER_BACKUP} (Backup)</span><span class="pro-val">—</span></li>
+                <li><span class="pro-lbl">SEC 13D/13G Filings (Top-10)</span><span class="pro-val">13D immer · 13G nur Aktivisten · {EDGAR_COOLDOWN_HOURS} h Cooldown</span></li>
+              </ul>
+            </div>
+            <div class="ki-pro-section">
+              <div class="ki-pro-section-title">Push-Logik &amp; Stille-Filter</div>
+              <ul>
+                <li><span class="pro-lbl">Standard-Cooldown</span><span class="pro-val">{ANOMALY_COOLDOWN_HOURS} h pro (Ticker × Trigger-Typ)</span></li>
+                <li><span class="pro-lbl">VIX-Pause (Krise)</span><span class="pro-val">VIX &gt; {ANOMALY_VIX_PAUSE_THRESHOLD:.0f}</span></li>
+                <li><span class="pro-lbl">VIX-Warnung</span><span class="pro-val">VIX &gt; {ANOMALY_VIX_WARN_THRESHOLD:.0f}</span></li>
+                <li><span class="pro-lbl">Stille-Filter aktiv</span><span class="pro-val">RSI &gt; {PUSH_RSI_MAX:.0f} ODER 2T-Move &gt; {(PUSH_MOVE_2D_MAX*100):.0f}&nbsp;%</span></li>
+              </ul>
+              <p class="ki-pro-foot">Anomalie bleibt im UI sichtbar mit Label „Bewegung gelaufen". Earnings- und EDGAR-Sofort-Alerts sind vom Stille-Filter ausgenommen.</p>
+            </div>
+          </div>
+        </details>
       </div>
       <div class="info-box info-box--full">
         <h4>📊 Backtesting-Status</h4>

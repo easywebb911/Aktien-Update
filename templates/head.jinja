@@ -311,6 +311,33 @@ select.sort-select:hover:not(:disabled){background-image:linear-gradient(45deg,t
    (browser-nativ über title-Attribut). */
 abbr[title]{text-decoration:underline dotted var(--txt-dim);
   text-underline-offset:3px;text-decoration-thickness:1px;cursor:help}
+/* KI-Agent Profi-Details — eingeklapptes Akkordeon mit allen Schwellen
+   und Cooldowns. Standard-Marker des <details>-Elements ist
+   browser-spezifisch; eigene ▸/▾-Anzeige via summary::before, der
+   default-Marker wird ausgeblendet. */
+.ki-pro-details{margin-top:14px;border-top:1px solid var(--brd);padding-top:10px}
+.ki-pro-details summary{cursor:pointer;font-size:.78rem;color:var(--txt-sub);
+  font-weight:600;list-style:none;user-select:none;padding:4px 0}
+.ki-pro-details summary::-webkit-details-marker{display:none}
+.ki-pro-details summary::before{content:"▸ ";color:var(--txt-dim);
+  display:inline-block;width:1em}
+.ki-pro-details[open] summary::before{content:"▾ "}
+.ki-pro-content{font-size:.76rem;color:var(--txt-sub);line-height:1.5;
+  padding:6px 4px 0 14px}
+.ki-pro-section{margin-bottom:.6rem}
+.ki-pro-section-title{font-weight:700;color:var(--txt);font-size:.72rem;
+  margin:.5rem 0 .25rem;text-transform:uppercase;letter-spacing:.04em}
+.ki-pro-content ul{margin:.2rem 0 .4rem;padding:0;list-style:none;
+  display:flex;flex-direction:column;gap:3px}
+.ki-pro-content li{display:flex;justify-content:space-between;gap:12px;
+  padding:2px 0;border-bottom:1px dashed var(--brd)}
+.ki-pro-content li:last-child{border-bottom:none}
+.ki-pro-content li::before{content:none}
+.ki-pro-content .pro-lbl{flex:1;color:var(--txt-sub)}
+.ki-pro-content .pro-val{color:var(--txt);font-weight:500;white-space:nowrap;
+  font-variant-numeric:tabular-nums;text-align:right}
+.ki-pro-foot{font-size:.7rem;color:var(--txt-dim);margin:.4rem 0 0;
+  line-height:1.45;font-style:italic}
 /* KI-Agent-Tabellen: technische Werte (z. B. „×1.10 / ×1.20 …"
    oder „≥5× heute & ≥2× vs. Vortag") in Mono-Font, damit Trigger und
    Schwellen visuell besser ausgerichtet bleiben. Greift nur, wenn
