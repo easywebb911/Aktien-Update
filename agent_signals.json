@@ -1,17 +1,17 @@
 {
-  "updated": "2026-05-05T06:15:45.705104+02:00",
+  "updated": "2026-05-05T09:15:22.229328+02:00",
   "run_info": {
     "tickers_checked": 10,
     "signals_active": 7,
-    "alerts_sent": 1,
-    "elapsed_s": 14.3,
+    "alerts_sent": 0,
+    "elapsed_s": 10.1,
     "market_phase": "Geschlossen"
   },
   "signals": {
     "CABA": {
-      "score": 18,
+      "score": 23,
       "confidence": 33,
-      "drivers": "Earnings in 9d + UOA Call/Put 15.2×",
+      "drivers": "News-KI 5/30: Positive business developments (funding and supply agreement) reduce short-squeeze potential as they strengthen the comp + Earnings in 9d + UOA Call/Put 15.2×",
       "price": 3.83,
       "chg_pct": 0.0,
       "rvol": 0.0,
@@ -30,9 +30,9 @@
       "uoa_cp_ratio": 15.239373601789708
     },
     "ABEO": {
-      "score": 26,
+      "score": 18,
       "confidence": 33,
-      "drivers": "News-KI 8/30: Routine earnings announcement and employee grants lack short-squeeze catalysts; insider buying interest is modest and in + Earnings in 8d + UOA Call/Put 15.0×",
+      "drivers": "Earnings in 8d + UOA Call/Put 15.0×",
       "price": 5.95,
       "chg_pct": 0.0,
       "rvol": 0.0,
@@ -53,7 +53,7 @@
     "GRPN": {
       "score": 72,
       "confidence": 33,
-      "drivers": "Earnings in 2 Tagen (07.05.2026) + News: squeeze, short squeeze + Earnings in 2d + UOA Call/Put 10.4×",
+      "drivers": "Earnings in 2 Tagen (07.05.2026) + News: short squeeze, squeeze + Earnings in 2d + UOA Call/Put 10.4×",
       "price": 15.51,
       "chg_pct": 0.0,
       "rvol": 0.0,
@@ -72,9 +72,9 @@
       "uoa_cp_ratio": 10.437837837837838
     },
     "DMRC": {
-      "score": 44,
+      "score": 41,
       "confidence": 33,
-      "drivers": "Earnings in 7 Tagen (12.05.2026) + News: partnership + Earnings in 7d + UOA Call/Put 22.7×",
+      "drivers": "Earnings in 7 Tagen (12.05.2026) + News-KI 12/30: Routine earnings calls and conference attendance lack short-squeeze catalysts like high short interest disclosure, sudde + Earnings in 7d + UOA Call/Put 22.7×",
       "price": 8.2,
       "chg_pct": 0.0,
       "rvol": 0.0,
@@ -93,9 +93,9 @@
       "uoa_cp_ratio": 22.666666666666668
     },
     "CGEM": {
-      "score": 44,
+      "score": 33,
       "confidence": 33,
-      "drivers": "Earnings in 2 Tagen (07.05.2026) + News: catalyst + Earnings in 2d",
+      "drivers": "Earnings in 2 Tagen (07.05.2026) + News-KI 8/30: Positive FDA regulatory catalyst provides fundamental support, but lacking short squeeze indicators like high short inte + Earnings in 2d",
       "price": 15.34,
       "chg_pct": 0.0,
       "rvol": 0.0,
@@ -104,8 +104,8 @@
       "upcoming_event": "Earnings in 2 Tagen (07.05.2026)",
       "insider_buy": false,
       "stocktwits": null,
-      "combo_mult": 1.1,
-      "active_triggers": 2,
+      "combo_mult": 1.0,
+      "active_triggers": 1,
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": 0.5540540540540541,
@@ -152,9 +152,9 @@
       "uoa_cp_ratio": 2.9423076923076925
     },
     "XRX": {
-      "score": 10,
+      "score": 25,
       "confidence": 17,
-      "drivers": "UOA Call/Put 9.2×",
+      "drivers": "News: earnings beat + UOA Call/Put 9.2×",
       "price": 2.6,
       "chg_pct": 0.0,
       "rvol": 0.0,
@@ -164,7 +164,7 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 0,
+      "active_triggers": 1,
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 9.2×"
@@ -196,9 +196,9 @@
       "uoa_cp_ratio": 3.778523489932886
     },
     "ABSI": {
-      "score": 43,
+      "score": 35,
       "confidence": 33,
-      "drivers": "Earnings in 2 Tagen (07.05.2026) + News-KI 8/30: Inducement grants and penny stock promotion lack fundamental short squeeze catalysts like high short interest, instituti + Earnings in 2d + UOA Call/Put 10.8×",
+      "drivers": "Earnings in 2 Tagen (07.05.2026) + Earnings in 2d + UOA Call/Put 10.8×",
       "price": 5.62,
       "chg_pct": 0.0,
       "rvol": 0.0,
