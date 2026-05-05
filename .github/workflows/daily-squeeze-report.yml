@@ -64,6 +64,20 @@ jobs:
           git add app_data.json 2>/dev/null || true
           git add service_worker.js 2>/dev/null || true
           git add backtest_history.json 2>/dev/null || true
+          # watchlist_personal.json wird vom vorigen Step
+          # ``Pull squeeze_data from Gist`` (scripts/pull_gist_data.py)
+          # aus dem User-Gist materialisiert. Ohne dieses ``git add`` bleibt
+          # die Datei modified-unstaged und blockiert die anschließende
+          # ``git pull --rebase``-Precondition (Bug-Symptom: „cannot pull
+          # with rebase: You have unstaged changes" + irreführendes
+          # „JSON-Konflikte erkannt"-Log via altem Recovery-Pfad).
+          git add watchlist_personal.json 2>/dev/null || true
+          # agent_state.json wird von process_exit_signals via
+          # _exit_save_state() geschrieben, wenn ein Exit-/Profit-Push
+          # gefeuert hat. Phase 2 Stufe 3 (Push-Pipeline) wird das
+          # häufiger triggern — staging hier vorgezogen, damit der
+          # Workflow nicht beim ersten echten Push-Event crashed.
+          git add agent_state.json 2>/dev/null || true
           if git diff --staged --quiet; then
             echo "Keine Aenderungen – Report ist aktuell."
             echo "COMMIT_EPOCH=0" >> "$GITHUB_OUTPUT"
@@ -71,29 +85,50 @@ jobs:
           fi
           git commit -m "Daily squeeze report $(date -u '+%Y-%m-%d')"
           # Pull rebase before push to handle concurrent workflow runs.
-          # Bei JSON-Konflikten (typisch: KI-Agent hat parallel
-          # app_data.json / backtest_history.json gepusht): --ours behalten.
-          # Im Rebase-Kontext ist --ours die bereits upstream gepushte
-          # Version — wir akzeptieren also den parallelen Stand statt unsere
-          # eigene überschreiben zu lassen. Konflikte in nicht-JSON-Dateien
-          # bleiben Fehler (kein Silent-Overwrite von index.html etc.).
+          # Zwei distinkte Fehlerklassen separat behandeln:
+          #
+          # (a) Precondition-Fail VOR Rebase-Start — z.B. unstaged
+          #     changes (Datei wurde geschrieben aber nicht ge-add-ed).
+          #     Es gibt keinen Rebase-State; ``git rebase --continue``
+          #     würde mit „no rebase in progress" crashen. Wir loggen
+          #     den Working-Tree-Status und brechen ab — das deutet auf
+          #     einen unvollständigen ``git add``-Block oben hin.
+          #
+          # (b) Konflikt MID-Rebase — typisch: KI-Agent hat parallel
+          #     app_data.json / backtest_history.json gepusht. ``--ours``
+          #     in dieser Phase = der LOKAL nach dem Pull aufliegende
+          #     (= upstream) Stand → wir akzeptieren den parallelen Stand
+          #     statt unseren zu erzwingen. Konflikte in nicht-JSON-
+          #     Dateien bleiben Fehler (kein Silent-Overwrite von
+          #     index.html etc.).
           if ! git pull --rebase origin main; then
-            conflicted=$(git diff --name-only --diff-filter=U)
-            conflicted_other=$(echo "$conflicted" | grep -v '\.json$' || true)
-            if [ -n "$conflicted_other" ]; then
-              echo "ERROR: Konflikt in nicht-JSON-Dateien — Abbruch:"
-              echo "$conflicted_other"
-              git rebase --abort
+            if [ -d .git/rebase-merge ] || [ -d .git/rebase-apply ]; then
+              # Fall (b): Rebase ist gestartet, hat Konflikte
+              conflicted=$(git diff --name-only --diff-filter=U)
+              conflicted_other=$(echo "$conflicted" | grep -v '\.json$' || true)
+              if [ -n "$conflicted_other" ]; then
+                echo "ERROR: Konflikt in nicht-JSON-Dateien — Abbruch:"
+                echo "$conflicted_other"
+                git rebase --abort
+                exit 1
+              fi
+              conflicted_json=$(echo "$conflicted" | grep '\.json$' || true)
+              echo "JSON-Konflikte erkannt, übernehme --ours (upstream):"
+              echo "$conflicted_json"
+              for f in $conflicted_json; do
+                git checkout --ours -- "$f"
+                git add -- "$f"
+              done
+              GIT_EDITOR=true git rebase --continue
+            else
+              # Fall (a): Precondition-Fail, kein Rebase aktiv
+              echo "ERROR: git pull --rebase scheiterte vor Rebase-Start."
+              echo "Wahrscheinliche Ursache: Datei wurde geschrieben aber"
+              echo "nicht ge-add-ed (siehe Working-Tree-Status unten)."
+              echo "→ git add-Block oben um die fehlende Datei erweitern."
+              git status --short
               exit 1
             fi
-            conflicted_json=$(echo "$conflicted" | grep '\.json$' || true)
-            echo "JSON-Konflikte erkannt, übernehme --ours (upstream):"
-            echo "$conflicted_json"
-            for f in $conflicted_json; do
-              git checkout --ours -- "$f"
-              git add -- "$f"
-            done
-            GIT_EDITOR=true git rebase --continue
           fi
           git push origin main
           echo "COMMIT_EPOCH=$(date +%s)" >> "$GITHUB_OUTPUT"

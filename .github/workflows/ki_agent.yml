@@ -58,10 +58,46 @@ jobs:
           git add agent_signals.json agent_state.json
           git add app_data.json 2>/dev/null || true
           git add backtest_history.json 2>/dev/null || true
+          # watchlist_personal.json wird vom Pull-Gist-Step
+          # (scripts/pull_gist_data.py) materialisiert. Ohne dieses
+          # ``git add`` bleibt die Datei modified-unstaged und blockiert
+          # die anschließende ``git pull --rebase``-Precondition (siehe
+          # auch daily-squeeze-report.yml mit identischem Fix).
+          git add watchlist_personal.json 2>/dev/null || true
           if git diff --staged --quiet; then
             echo "Keine Aenderungen — kein Commit noetig."
             exit 0
           fi
           git commit -m "KI-Agent update $(date -u '+%Y-%m-%d %H:%M') UTC"
-          git pull --rebase origin main
+          # Recovery-Logik analog zu daily-squeeze-report.yml: Precondition-
+          # Fail vor Rebase-Start vs. Konflikt mid-Rebase getrennt behandeln.
+          # Bei JSON-Konflikten ``--ours`` = upstream (paralleler Workflow-Run),
+          # nicht-JSON-Konflikte sind Fehler.
+          if ! git pull --rebase origin main; then
+            if [ -d .git/rebase-merge ] || [ -d .git/rebase-apply ]; then
+              conflicted=$(git diff --name-only --diff-filter=U)
+              conflicted_other=$(echo "$conflicted" | grep -v '\.json$' || true)
+              if [ -n "$conflicted_other" ]; then
+                echo "ERROR: Konflikt in nicht-JSON-Dateien — Abbruch:"
+                echo "$conflicted_other"
+                git rebase --abort
+                exit 1
+              fi
+              conflicted_json=$(echo "$conflicted" | grep '\.json$' || true)
+              echo "JSON-Konflikte erkannt, übernehme --ours (upstream):"
+              echo "$conflicted_json"
+              for f in $conflicted_json; do
+                git checkout --ours -- "$f"
+                git add -- "$f"
+              done
+              GIT_EDITOR=true git rebase --continue
+            else
+              echo "ERROR: git pull --rebase scheiterte vor Rebase-Start."
+              echo "Wahrscheinliche Ursache: Datei wurde geschrieben aber"
+              echo "nicht ge-add-ed (siehe Working-Tree-Status unten)."
+              echo "→ git add-Block oben um die fehlende Datei erweitern."
+              git status --short
+              exit 1
+            fi
+          fi
           git push origin main
