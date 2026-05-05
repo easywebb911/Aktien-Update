@@ -10638,6 +10638,25 @@ def main():
     # pflegt — unabhängig vom Screener-Ergebnis — und als "manual_personal"
     # markiert. So überleben sie später jeden Rang-/Volumen-Filter.
     personal_tickers = _load_personal_watchlist()
+    # Position-only-Ticker (offen in positions.json, aber NICHT in der
+    # Watchlist) bekommen den manual_personal-Bypass ebenfalls — sonst
+    # fallen sie durch alle Pool-Filter und Phase 2 hat keine RSI/Move-
+    # Daten, der overheated-Trigger steht auf available:false. Bug B,
+    # Diagnose 06.05.2026 (GRPN-Fall: Position offen, nicht in Watchlist).
+    try:
+        _open_position_tickers = list(_load_positions().keys())
+    except Exception:
+        _open_position_tickers = []
+    _watchlist_set: set[str] = set(personal_tickers)
+    _position_only_added: list[str] = []
+    for _pt in _open_position_tickers:
+        if _pt and _pt not in _watchlist_set:
+            personal_tickers.append(_pt)
+            _watchlist_set.add(_pt)
+            _position_only_added.append(_pt)
+    if _position_only_added:
+        log.info("Position-only-Ticker in personal_tickers gemergt: %s",
+                 _position_only_added)
     n_personal_added  = 0
     n_personal_marked = 0
     for pt in personal_tickers:
@@ -10928,6 +10947,13 @@ def main():
             "inst_ownership":  yfd.get("inst_ownership"),
             "float_shares":    yfd.get("float_shares", 0),
             "change_5d":       yfd.get("change_5d"),
+            # change_2d/change_3d kommen aus get_yfinance_batch (Zeile 884-895)
+            # — der Merge listete sie vor 06.05.2026 nicht auf, dadurch waren
+            # sie für ALLE Ticker None. Phase-2-overheated-Trigger braucht
+            # change_2d, Move-Signale für Watchlist-Karten und top10_metrics
+            # bauen ebenfalls darauf.
+            "change_2d":       yfd.get("change_2d"),
+            "change_3d":       yfd.get("change_3d"),
             "spx_daily_perf":  _spx_daily_perf,
             "recent_squeeze":  yfd.get("recent_squeeze"),   # Feature 6
             "rel_volume_yesterday": yfd.get("rel_volume_yesterday"),  # P&D Flag 1
