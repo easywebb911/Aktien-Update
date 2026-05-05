@@ -505,6 +505,76 @@ function assert(cond, msg) {
     dom.window.close();
   });
 
+  // ── Szenario 7: Position außerhalb Top-10 hat overheated-Trigger aktiv
+  // (Phase 2 — Diagnose 05.05.2026: GRPN/AMC standen mit
+  // ``available: false`` "Position außerhalb top10_metrics", obwohl ihre
+  // RSI/Move-Daten bereits in ``enriched`` vorhanden waren. Der Fix ergänzt
+  // ``_all_metrics`` um Watchlist-Ticker, sodass die Helper-Funktion nun für
+  // jede offene Position ein nicht-leeres metrics-Dict bekommt → Trigger
+  // aktiv. Verifikation auf der JS-Render-Seite: buildPositionStatus
+  // funktioniert für einen Ticker, der NICHT als ``.card[data-ticker]`` im
+  // Top-10-DOM existiert — die Funktion ist datenzentriert und unabhängig
+  // vom DOM-Stand des Tickers.
+  await runScenario('Position außerhalb Top-10 hat overheated-Trigger aktiv', async () => {
+    const dom = await buildDom();
+    const win = dom.window;
+    const src = fs.readFileSync(
+      path.resolve(__dirname, '..', 'generate_report.py'), 'utf8');
+    const marker = src.indexOf('// ── Position-Status (Phase 2 — Stufe 2a)');
+    const endMarker = src.indexOf('// ── Backtesting-Sektion', marker);
+    const jsClean = src.slice(marker, endMarker)
+      .replace(/\{\{/g, '{').replace(/\}\}/g, '}');
+    win.eval(jsClean);
+    // GRPN ist bewusst NICHT in der DOM-Top-10 (data-ticker existiert
+    // nicht für diesen Ticker im statischen HTML) — exakt der Fall, der
+    // vor dem Phase-2-Fix mit ``available: false`` ignoriert wurde.
+    const nonTopTicker = 'GRPN';
+    assert(!win.document.querySelector(`.card[data-ticker="${nonTopTicker}"]`),
+      `Test-Setup verletzt: ${nonTopTicker} sollte NICHT in Top-10-DOM sein`);
+    win._POSITIONS_DATA = {
+      [nonTopTicker]: {
+        entry_date: '2026-04-30', entry_price: 8.50, shares: 500,
+        exit_state: {
+          exit_pressure: 45,
+          peak_score_since_entry: 75, peak_pnl_pct_since_entry: 0.10,
+          triggers: {
+            score_decay: { score: 0, warn: false, crit: false, available: true,
+                            details: { drop_3d: -2, drop_5d: -3, drop_7d: null } },
+            profit_lock: { score: 0, warn: false, crit: false, available: true,
+                            details: { pnl_pct: 0.10, peak_pnl_pct: 0.10,
+                                        drawdown_from_peak: 0,
+                                        score_drop_from_peak: 0 } },
+            // KERN-CHECK: overheated jetzt available:true für non-top10
+            overheated:  { score: 75, warn: true, crit: false, available: true,
+                            details: { rsi14: 78, move_2d_pct: 0.225,
+                                        move_3d_pct: null,
+                                        move_3d_available: false } },
+            setup_erosion: { score: 0, warn: false, crit: false, available: false,
+                              reason: 'kein Entry-Snapshot' },
+            catalyst:      { score: 0, warn: false, crit: false, available: false,
+                              reason: 'kein Earnings-Lookup' },
+            trend_break:   { score: 0, warn: false, crit: false, available: false,
+                              reason: 'kein EMA21' },
+          },
+        },
+      },
+    };
+    const html = win.buildPositionStatus(nonTopTicker);
+    assert(html, `Block fehlt für non-top10-Ticker ${nonTopTicker}`);
+    assert(html.includes('Überhitzung'),
+      'overheated-Trigger nicht im Block sichtbar — der Phase-2-Fix sollte ihn aktivieren');
+    assert(html.includes('🟡'),
+      'overheated mit warn=true sollte 🟡-Icon zeigen');
+    assert(html.includes('RSI 78'),
+      'overheated-Reason zeigt rsi14 nicht');
+    assert(html.includes('+22% in 2T') || html.includes('+23% in 2T'),
+      'overheated-Reason zeigt 2-Tages-Move nicht');
+    // Sicherstellen, dass der "available: false"-Pfad NICHT mehr triggert
+    assert(!html.includes('Position außerhalb top10_metrics'),
+      'Alter "available: false"-Reason taucht fälschlich noch im UI auf');
+    dom.window.close();
+  });
+
   console.log('OK: Alle Smoke-Szenarien grün.');
   process.exit(0);
 })().catch((e) => {

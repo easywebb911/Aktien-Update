@@ -885,6 +885,14 @@ def get_yfinance_batch(tickers: list[str]) -> dict[str, dict]:
                     (float(_df["Close"].iloc[-1]) - float(_df["Close"].iloc[-3])) /
                     float(_df["Close"].iloc[-3]) * 100, 2
                 )
+            # change_3d analog — vom Phase-2-overheated-Trigger
+            # (EXIT_MOVE_3D_WARN/CRIT) gelesen. Close[-4] ist der
+            # Schlusskurs vor 3 Handelstagen.
+            if _df is not None and len(_df) >= 4:
+                results[ticker]["change_3d"] = round(
+                    (float(_df["Close"].iloc[-1]) - float(_df["Close"].iloc[-4])) /
+                    float(_df["Close"].iloc[-4]) * 100, 2
+                )
         except Exception:
             pass
 
@@ -2118,6 +2126,11 @@ def _wl_card_payload(_s: dict) -> dict:
         "price":         _s.get("price", 0),
         "change":        _s.get("change", 0),
         "change_5d":     _s.get("change_5d"),
+        # change_2d/change_3d für Phase-2-overheated-Trigger bei
+        # offenen Positionen außerhalb Top-10 (siehe _all_metrics-Bau
+        # in main(), Diagnose 05.05.2026).
+        "change_2d":     _s.get("change_2d"),
+        "change_3d":     _s.get("change_3d"),
         "spx_daily_perf": _s.get("spx_daily_perf"),
         "short_float":         _s.get("short_float", 0),
         "short_float_source":  _s.get("short_float_source", "yfinance"),
@@ -11353,6 +11366,7 @@ def main():
     # Top-10-Metrics pro Ticker für Push-Stille-Filter im KI-Agent.
     # ki_agent fetcht nur 5d-yfinance-Historie, kann RSI14/2D-Move daher
     # nicht selbst rechnen — der Daily-Run liefert die Werte mit.
+    # change_3d zusätzlich für Phase-2-overheated-Trigger.
     _top10_metrics = {}
     for s in top10:
         _t = s.get("ticker")
@@ -11361,6 +11375,26 @@ def main():
         _top10_metrics[_t] = {
             "rsi14":     s.get("rsi14"),
             "change_2d": s.get("change_2d"),
+            "change_3d": s.get("change_3d"),
+        }
+    # _all_metrics (Phase 2 — Diagnose 05.05.2026): erweitert _top10_metrics
+    # um alle persönlichen Watchlist-Ticker, sodass _build_phase2_positions_
+    # payload den overheated-Trigger auch für offene Positionen außerhalb
+    # Top-10 (z.B. GRPN/AMC) berechnen kann. Daten sind in ``enriched`` schon
+    # vorhanden — get_yfinance_batch fetcht den vollständigen Pool inkl.
+    # manual_personal-Bypass; nur der Export-Pfad nach _compute_exit_state
+    # war bisher zu eng (top10-only).
+    _all_metrics = dict(_top10_metrics)
+    for c in enriched:
+        _t = c.get("ticker")
+        if not _t or _t in _all_metrics:
+            continue
+        if not c.get("manual_personal"):
+            continue
+        _all_metrics[_t] = {
+            "rsi14":     c.get("rsi14"),
+            "change_2d": c.get("change_2d"),
+            "change_3d": c.get("change_3d"),
         }
     # Phase 2 Exit-Signal-Daten (Stufe 1/3) — pro offener Position 6 Trigger-
     # Sub-Scores + Composite ``exit_pressure``. KEIN UI, KEIN Push in dieser
@@ -11371,7 +11405,7 @@ def main():
     _prev_app_data = _read_existing_app_data()
     try:
         _positions_payload = _build_phase2_positions_payload(
-            top10, _top10_metrics, _load_score_history(),
+            top10, _all_metrics, _load_score_history(),
             _prev_app_data, datetime.now(ZoneInfo("UTC")))
     except Exception as _exc_p2:
         log.warning("Phase 2 Exit-Pipeline fehlgeschlagen: %s", _exc_p2)
