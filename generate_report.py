@@ -6129,6 +6129,78 @@ function _formatPositionEntry(ticker, pos) {{
   return usd + ' / ' + (ep * entryFx).toFixed(2).replace('.', ',') + '€';
 }}
 window._formatPositionEntry = _formatPositionEntry;
+// USD/EUR-Paar-Formatter (EUR-Stufe 3/4) für Position-Eröffnungs- und
+// Schließen-Dialoge. Format: "$X.XX / Y,YY€" wenn ``fx`` valide,
+// sonst nur "$X.XX". Negative Werte werden mit vorangestelltem Minus
+// für BEIDE Währungen gerendert ("-$X.XX / -Y,YY€"); USD-Punkt bleibt,
+// EUR bekommt deutsches Komma. Für PnL-Anzeigen (mit explizitem
+// Plus-Vorzeichen bei Gewinnen) → ``_formatUsdEurPnl``.
+function _formatUsdEurPair(usdValue, fx) {{
+  const v = (typeof usdValue === 'number' && isFinite(usdValue)) ? usdValue : 0;
+  const sign = v < 0 ? '-' : '';
+  const absU = Math.abs(v);
+  const usdStr = sign + '$' + absU.toFixed(2);
+  if (typeof fx !== 'number' || !isFinite(fx) || fx <= 0) return usdStr;
+  return usdStr + ' / ' + sign + (absU * fx).toFixed(2).replace('.', ',') + '€';
+}}
+window._formatUsdEurPair = _formatUsdEurPair;
+// PnL-Formatter — explizites "+" oder "-" Vorzeichen pro Währung.
+// pnlUsd und pnlEur werden GETRENNT übergeben (kein fx-Multiplikator),
+// weil PnL-EUR aus zwei Endpunkten berechnet werden muss (entry_fx
+// vs. exit_fx) — siehe wlSubmitClose / _updateClosePreview.
+// pnlEur=null/undefined → nur USD anzeigen.
+function _formatUsdEurPnl(pnlUsd, pnlEur) {{
+  const u = (typeof pnlUsd === 'number' && isFinite(pnlUsd)) ? pnlUsd : 0;
+  const usdPrefix = u >= 0 ? '+' : '-';
+  const usdStr = usdPrefix + '$' + Math.abs(u).toFixed(2);
+  if (typeof pnlEur !== 'number' || !isFinite(pnlEur)) return usdStr;
+  const eurPrefix = pnlEur >= 0 ? '+' : '-';
+  return usdStr + ' / ' + eurPrefix + Math.abs(pnlEur).toFixed(2).replace('.', ',') + '€';
+}}
+window._formatUsdEurPnl = _formatUsdEurPnl;
+// Live-Preview im Eröffnungs-Dialog (EUR-Stufe 3/4): Gesamt = Preis ×
+// Stückzahl, mit EUR-Suffix wenn _FX_USD_EUR vorhanden. oninput-Handler
+// auf den beiden Eingabefeldern (price + shares) ruft hier rein. Das
+// pos-tot-{ticker}-Element wird vom buildPositionPanel-open-form-HTML
+// gerendert.
+function _updatePositionTotal(ticker) {{
+  const p = document.getElementById('pos-p-' + ticker);
+  const s = document.getElementById('pos-s-' + ticker);
+  const tot = document.getElementById('pos-tot-' + ticker);
+  if (!tot) return;
+  const price = parseFloat(p && p.value) || 0;
+  const shares = parseInt(s && s.value, 10) || 0;
+  const total = price * shares;
+  const fx = (typeof window._FX_USD_EUR === 'number' && window._FX_USD_EUR > 0)
+    ? window._FX_USD_EUR : null;
+  tot.textContent = 'Gesamt: ' + _formatUsdEurPair(total, fx);
+}}
+window._updatePositionTotal = _updatePositionTotal;
+// Live-Preview im Schließen-Dialog: Verkaufserlös + realisierter Gewinn,
+// jeweils USD + optional EUR. ep/shares/entryFx werden zum Form-Render-
+// Zeitpunkt aus dem Gist-Pos-Snapshot in den oninput-Handler eingebettet
+// und sind während der Dialog-Lebensdauer immutable. ``_FX_USD_EUR``
+// (current fx) wird LIVE bei jedem Aufruf gelesen, damit ein verzögerter
+// app_data.json-Fetch den User nicht ausschließt.
+function _updateClosePreview(ticker, ep, shares, entryFx) {{
+  const xp = document.getElementById('pos-xp-' + ticker);
+  const sumEl = document.getElementById('pos-sum-' + ticker);
+  if (!sumEl) return;
+  const exitPrice = parseFloat(xp && xp.value) || 0;
+  const fxNow = (typeof window._FX_USD_EUR === 'number' && window._FX_USD_EUR > 0)
+    ? window._FX_USD_EUR : null;
+  const erlosUsd = exitPrice * shares;
+  const pnlUsd = (exitPrice - ep) * shares;
+  let pnlEur = null;
+  if (typeof entryFx === 'number' && entryFx > 0
+      && fxNow != null && shares > 0) {{
+    pnlEur = exitPrice * fxNow * shares - ep * entryFx * shares;
+  }}
+  const erlosLine = 'Verkaufserlös: ' + _formatUsdEurPair(erlosUsd, fxNow);
+  const pnlLine = 'Gewinn: ' + _formatUsdEurPnl(pnlUsd, pnlEur);
+  sumEl.innerHTML = '<div>' + erlosLine + '</div><div>' + pnlLine + '</div>';
+}}
+window._updateClosePreview = _updateClosePreview;
 // Border-Glow je nach exit_pressure (Phase 2 Stufe 2b-2). Wendet die
 // CSS-Klassen ``exit-glow-{{warn,mid,crit}}`` auf alle ``.card[data-ticker]``
 // und ``.wl-card[data-ticker]`` mit offener Position an. Idempotent: vor
@@ -8726,6 +8798,39 @@ function _fmtGerman(d) {{
       const ep = +pos.entry_price || 0;
       const cp = currentPrice && isFinite(+currentPrice) ? +currentPrice : null;
       const exitDef = (cp != null) ? cp.toFixed(2) : ep.toFixed(2);
+      // entry_fx zum Form-Render-Zeitpunkt erfassen (Gist → app_data-
+      // Fallback wie in _formatPositionEntry). Wert wird in den oninput-
+      // Handler eingebettet und ist während des Dialogs immutable;
+      // _FX_USD_EUR wird in _updateClosePreview live nachgelesen.
+      let _closeEntryFx = null;
+      if (typeof pos.entry_fx === 'number' && isFinite(pos.entry_fx) && pos.entry_fx > 0) {{
+        _closeEntryFx = pos.entry_fx;
+      }} else if (typeof window !== 'undefined' && window._POSITIONS_DATA) {{
+        const ph2 = window._POSITIONS_DATA[ticker];
+        if (ph2 && typeof ph2.entry_fx === 'number' && isFinite(ph2.entry_fx) && ph2.entry_fx > 0) {{
+          _closeEntryFx = ph2.entry_fx;
+        }}
+      }}
+      const _closeShares = +pos.shares || 0;
+      // entryFxArg = ``null`` (Literal) oder Float-Zahl, beides parsbar im
+      // generierten oninput-JS.
+      const entryFxArg = (_closeEntryFx == null) ? 'null' : _closeEntryFx;
+      const oninputCall = `_updateClosePreview('${{ticker}}', ${{ep}}, ${{_closeShares}}, ${{entryFxArg}})`;
+      // Initial-Summary server-seitig befüllen, damit der User den
+      // Verkaufserlös sofort sieht (default exitDef = currentPrice).
+      // Verwendet dieselben Helper wie _updateClosePreview.
+      const _initExit = parseFloat(exitDef) || 0;
+      const _erlosUsdInit = _initExit * _closeShares;
+      const _pnlUsdInit = (_initExit - ep) * _closeShares;
+      const _fxInit = (typeof window !== 'undefined' && typeof window._FX_USD_EUR === 'number'
+                       && window._FX_USD_EUR > 0) ? window._FX_USD_EUR : null;
+      let _pnlEurInit = null;
+      if (_closeEntryFx != null && _fxInit != null && _closeShares > 0) {{
+        _pnlEurInit = _initExit * _fxInit * _closeShares - ep * _closeEntryFx * _closeShares;
+      }}
+      const _initSum =
+        '<div>Verkaufserlös: ' + _formatUsdEurPair(_erlosUsdInit, _fxInit) + '</div>' +
+        '<div>Gewinn: ' + _formatUsdEurPnl(_pnlUsdInit, _pnlEurInit) + '</div>';
       return `<div class="position-panel position-panel-active">
         <div class="pos-header">Position schlie\xdfen — ${{ticker}}</div>
         <div class="pos-form pos-form-close" id="pos-close-${{ticker}}">
@@ -8734,8 +8839,10 @@ function _fmtGerman(d) {{
           </label>
           <label class="pos-lbl-form">Verkaufskurs ($)
             <input type="number" inputmode="decimal" step="0.01" min="0"
-                   id="pos-xp-${{ticker}}" value="${{exitDef}}" placeholder="0.00">
+                   id="pos-xp-${{ticker}}" value="${{exitDef}}" placeholder="0.00"
+                   oninput="${{oninputCall}}">
           </label>
+          <div class="pos-form-summary" id="pos-sum-${{ticker}}">${{_initSum}}</div>
           <label class="pos-lbl-form">These (optional)
             <textarea id="pos-th-${{ticker}}" rows="2"
                       placeholder="Was war der Grund f\xfcr den Kauf?"></textarea>
@@ -8788,12 +8895,15 @@ function _fmtGerman(d) {{
           </label>
           <label class="pos-lbl-form">Einstiegskurs ($)
             <input type="number" inputmode="decimal" step="0.01" min="0"
-                   id="pos-p-${{ticker}}" value="${{priceDef}}" placeholder="0.00">
+                   id="pos-p-${{ticker}}" value="${{priceDef}}" placeholder="0.00"
+                   oninput="_updatePositionTotal('${{ticker}}')">
           </label>
           <label class="pos-lbl-form">St\xfcckzahl
             <input type="number" inputmode="numeric" step="1" min="1"
-                   id="pos-s-${{ticker}}" placeholder="z. B. 35">
+                   id="pos-s-${{ticker}}" placeholder="z. B. 35"
+                   oninput="_updatePositionTotal('${{ticker}}')">
           </label>
+          <div class="pos-form-total" id="pos-tot-${{ticker}}">Gesamt: $0.00</div>
           ${{errHtml}}
           <div class="pos-form-btns">
             <button class="pos-btn pos-btn-cancel" onclick="wlCancelOpenForm('${{ticker}}')">Abbrechen</button>
@@ -8862,9 +8972,20 @@ function _fmtGerman(d) {{
     }}
     const data = (await gistLoad()) || {{watchlist: [], positions: {{}}}};
     data.positions = data.positions || {{}};
-    data.positions[ticker] = {{
+    // EUR-Stufe 3/4: aktuellen FX als entry_fx einfrieren — fx_estimated
+    // ist false, weil der User die Position JETZT eröffnet (kein Backfill).
+    // Bei fehlendem _FX_USD_EUR (z.B. pre-fetch-Zustand) bleiben die Felder
+    // weg → der nächste Daily-Run-Backfill stempelt fx_estimated=true.
+    const _entryFxNow = (typeof window._FX_USD_EUR === 'number'
+                         && window._FX_USD_EUR > 0) ? window._FX_USD_EUR : null;
+    const _newPos = {{
       entry_date: date, entry_price: price, shares: shares,
     }};
+    if (_entryFxNow != null) {{
+      _newPos.entry_fx = _entryFxNow;
+      _newPos.fx_estimated = false;
+    }}
+    data.positions[ticker] = _newPos;
     const ok = await gistSave(data);
     if (!ok) {{
       _setPanelErr(ticker,
@@ -8948,6 +9069,25 @@ function _fmtGerman(d) {{
     const pnlPct = ep > 0 ? +(((exitPrice - ep) / ep) * 100).toFixed(2) : 0;
     const dur    = _daysBetween(pos.entry_date, exitDate);
     const maxSet = _maxSetupBetween(ticker, pos.entry_date, exitDate);
+    // EUR-Stufe 3/4: exit_fx/exit_fx_eur/realized_pnl_eur ergänzen.
+    // Aktueller FX einfrieren; entry_fx aus Gist oder app_data-Fallback.
+    const _exitFxNow = (typeof window._FX_USD_EUR === 'number'
+                         && window._FX_USD_EUR > 0) ? window._FX_USD_EUR : null;
+    let _entryFxResolved = null;
+    if (typeof pos.entry_fx === 'number' && isFinite(pos.entry_fx) && pos.entry_fx > 0) {{
+      _entryFxResolved = pos.entry_fx;
+    }} else if (typeof window !== 'undefined' && window._POSITIONS_DATA) {{
+      const _ph2 = window._POSITIONS_DATA[ticker];
+      if (_ph2 && typeof _ph2.entry_fx === 'number'
+          && isFinite(_ph2.entry_fx) && _ph2.entry_fx > 0) {{
+        _entryFxResolved = _ph2.entry_fx;
+      }}
+    }}
+    const _exitFxEur = (_exitFxNow != null && shares > 0)
+      ? +(exitPrice * _exitFxNow * shares).toFixed(2) : null;
+    const _realizedPnlEur = (_entryFxResolved != null && _exitFxNow != null
+                              && shares > 0)
+      ? +(_exitFxEur - (ep * _entryFxResolved * shares)).toFixed(2) : null;
     data.closed_trades.push({{
       ticker:           ticker,
       entry_date:       pos.entry_date,
@@ -8962,6 +9102,9 @@ function _fmtGerman(d) {{
       max_setup_score:  maxSet,
       duration_days:    dur,
       closed_at:        new Date().toISOString(),
+      exit_fx:          _exitFxNow,
+      exit_fx_eur:      _exitFxEur,
+      realized_pnl_eur: _realizedPnlEur,
     }});
     delete data.positions[ticker];
     const ok = await gistSave(data);

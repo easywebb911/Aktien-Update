@@ -832,6 +832,129 @@ function assert(cond, msg) {
     dom.window.close();
   });
 
+  // ── Szenario 11: USD/EUR-Helpers für Eröffnungs-/Schließen-Dialoge
+  // (EUR-Stufe 3/4): _formatUsdEurPair (mit/ohne Vorzeichen),
+  // _formatUsdEurPnl (explizite +/− Vorzeichen), und die DOM-Live-
+  // Preview-Funktionen _updatePositionTotal + _updateClosePreview.
+  await runScenario('USD/EUR-Helpers für Position-Dialoge', async () => {
+    const dom = await buildDom();
+    const win = dom.window;
+    if (typeof win._formatUsdEurPair !== 'function') {
+      const src = fs.readFileSync(
+        path.resolve(__dirname, '..', 'generate_report.py'), 'utf8');
+      const marker = src.indexOf('// ── Position-Status (Phase 2 — Stufe 2a)');
+      const endMarker = src.indexOf('// ── Backtesting-Sektion', marker);
+      const jsClean = src.slice(marker, endMarker)
+        .replace(/\{\{/g, '{').replace(/\}\}/g, '}');
+      win.eval(jsClean);
+    }
+    assert(typeof win._formatUsdEurPair === 'function',
+      '_formatUsdEurPair fehlt');
+    assert(typeof win._formatUsdEurPnl === 'function',
+      '_formatUsdEurPnl fehlt');
+    assert(typeof win._updatePositionTotal === 'function',
+      '_updatePositionTotal fehlt');
+    assert(typeof win._updateClosePreview === 'function',
+      '_updateClosePreview fehlt');
+
+    // _formatUsdEurPair: positive Werte
+    let out = win._formatUsdEurPair(15.32, 0.91);
+    assert(out === '$15.32 / 13,94€',
+      `Pair positiv: erwartet "$15.32 / 13,94€", bekam "${out}"`);
+    // _formatUsdEurPair: negative Werte (sign-Prefix für beide)
+    out = win._formatUsdEurPair(-15.32, 0.91);
+    assert(out === '-$15.32 / -13,94€',
+      `Pair negativ: erwartet "-$15.32 / -13,94€", bekam "${out}"`);
+    // _formatUsdEurPair: ohne FX
+    out = win._formatUsdEurPair(15.32, null);
+    assert(out === '$15.32', `Pair ohne FX: erwartet "$15.32", bekam "${out}"`);
+    // _formatUsdEurPair: NaN/undef → 0
+    out = win._formatUsdEurPair(NaN, 0.91);
+    assert(out === '$0.00 / 0,00€', `Pair NaN: erwartet "$0.00 / 0,00€", bekam "${out}"`);
+
+    // _formatUsdEurPnl: Gewinn → "+"
+    out = win._formatUsdEurPnl(125.50, 114.21);
+    assert(out === '+$125.50 / +114,21€',
+      `Pnl Gewinn: erwartet "+$125.50 / +114,21€", bekam "${out}"`);
+    // _formatUsdEurPnl: Verlust → "-"
+    out = win._formatUsdEurPnl(-50.25, -45.73);
+    assert(out === '-$50.25 / -45,73€',
+      `Pnl Verlust: erwartet "-$50.25 / -45,73€", bekam "${out}"`);
+    // _formatUsdEurPnl: ohne EUR
+    out = win._formatUsdEurPnl(125.50, null);
+    assert(out === '+$125.50', `Pnl ohne EUR: erwartet "+$125.50", bekam "${out}"`);
+    // _formatUsdEurPnl: USD positiv, EUR negativ (FX-Drift-Edge-Case)
+    out = win._formatUsdEurPnl(10.00, -2.50);
+    assert(out === '+$10.00 / -2,50€',
+      `Pnl USD+/EUR-: erwartet "+$10.00 / -2,50€", bekam "${out}"`);
+
+    // === _updatePositionTotal — DOM-Live-Test ===
+    // Slots synthetisch einfügen
+    const root = win.document.body;
+    root.insertAdjacentHTML('beforeend',
+      '<input id="pos-p-AMC" value="6.20">' +
+      '<input id="pos-s-AMC" value="500">' +
+      '<div id="pos-tot-AMC"></div>');
+    win._FX_USD_EUR = 0.91;
+    win._updatePositionTotal('AMC');
+    let tot = win.document.getElementById('pos-tot-AMC').textContent;
+    // 6.20 × 500 = 3100, × 0.91 = 2821,00
+    assert(tot === 'Gesamt: $3100.00 / 2821,00€',
+      `Position-Total: erwartet "Gesamt: $3100.00 / 2821,00€", bekam "${tot}"`);
+    // Ohne FX
+    delete win._FX_USD_EUR;
+    win._updatePositionTotal('AMC');
+    tot = win.document.getElementById('pos-tot-AMC').textContent;
+    assert(tot === 'Gesamt: $3100.00',
+      `Position-Total ohne FX: erwartet "Gesamt: $3100.00", bekam "${tot}"`);
+
+    // === _updateClosePreview — DOM-Live-Test ===
+    root.insertAdjacentHTML('beforeend',
+      '<input id="pos-xp-AMC" value="8.00">' +
+      '<div id="pos-sum-AMC"></div>');
+    win._FX_USD_EUR = 0.93;
+    // ep=6.20, shares=500, entryFx=0.91 → exitPrice=8.00
+    // erlosUsd = 8.00 × 500 = 4000; pnlUsd = (8 - 6.20) × 500 = 900
+    // erlosEur = 8 × 0.93 × 500 = 3720
+    // costEur  = 6.20 × 0.91 × 500 = 2821
+    // pnlEur = 3720 - 2821 = 899
+    win._updateClosePreview('AMC', 6.20, 500, 0.91);
+    const sum = win.document.getElementById('pos-sum-AMC');
+    assert(sum.innerHTML.includes('Verkaufserlös: $4000.00 / 3720,00€'),
+      `Close-Preview Verkaufserlös fehlt. innerHTML: ${sum.innerHTML}`);
+    assert(sum.innerHTML.includes('Gewinn: +$900.00 / +899,00€'),
+      `Close-Preview Gewinn fehlt. innerHTML: ${sum.innerHTML}`);
+
+    // Mit Verlust (exit < entry)
+    win.document.getElementById('pos-xp-AMC').value = '5.50';
+    win._updateClosePreview('AMC', 6.20, 500, 0.91);
+    // pnlUsd = (5.50 - 6.20) × 500 = -350
+    // erlosEur = 5.50 × 0.93 × 500 = 2557.5
+    // costEur = 2821
+    // pnlEur = 2557.5 - 2821 = -263.5
+    assert(sum.innerHTML.includes('Gewinn: -$350.00 / -263,50€'),
+      `Close-Preview Verlust falsch. innerHTML: ${sum.innerHTML}`);
+
+    // Ohne entry_fx → kein EUR-Gewinn aber Verkaufserlös bleibt
+    win._updateClosePreview('AMC', 6.20, 500, null);
+    assert(sum.innerHTML.includes('Verkaufserlös: $2750.00 / 2557,50€'),
+      `Close-Preview Erlös ohne entry_fx falsch. innerHTML: ${sum.innerHTML}`);
+    assert(sum.innerHTML.includes('Gewinn: -$350.00</div>'),
+      `Close-Preview ohne entry_fx: kein EUR-Gewinn erwartet. innerHTML: ${sum.innerHTML}`);
+    assert(!sum.innerHTML.includes('Gewinn: -$350.00 / '),
+      'Gewinn-EUR sollte fehlen wenn entry_fx=null');
+
+    // Ohne aktuelles _FX_USD_EUR → kein EUR überall
+    delete win._FX_USD_EUR;
+    win.document.getElementById('pos-xp-AMC').value = '8.00';
+    win._updateClosePreview('AMC', 6.20, 500, 0.91);
+    assert(sum.innerHTML.includes('Verkaufserlös: $4000.00</div>'),
+      `Close-Preview ohne fxNow: nur USD-Erlös. innerHTML: ${sum.innerHTML}`);
+    assert(sum.innerHTML.includes('Gewinn: +$900.00</div>'),
+      `Close-Preview ohne fxNow: nur USD-Gewinn. innerHTML: ${sum.innerHTML}`);
+    dom.window.close();
+  });
+
   console.log('OK: Alle Smoke-Szenarien grün.');
   process.exit(0);
 })().catch((e) => {
