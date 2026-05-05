@@ -69,6 +69,19 @@ Offene Fragen vor Implementierung klären:
     siehe CLAUDE.md-Sektion v1/v2-Render-Pfad)
 12. Phase 2 Trigger 4-6 aktivieren sobald Datenquellen da:
     Setup-Erosion, Catalyst, Trend-Bruch
+13. ⏰ Wiedervorlage 19.05.2026 — app_data-recovery-Logik
+    verifizieren (scripts/pull_gist_data.py, Commit 6d358a7).
+    Beim nächsten echten Gist-Hiccup im Workflow-Log prüfen,
+    ob die WARN-Zeile erscheint:
+    `WARN: positions.json aus app_data-recovery (N Pos.)`
+    Sobald einmal verifiziert: POSITIONS_JSON-Secret aus den
+    Repository-Secrets löschen — Re-Infektions-Pfad
+    (leerer Gist + altes Secret überschreibt mit veraltetem
+    Stand) ist dann endgültig geschlossen.
+    Falls bis 19.05. kein Hiccup aufgetreten ist: manuell
+    provozieren (GIST_TOKEN temporär kaputtmachen, Workflow
+    via workflow_dispatch starten, Log lesen, Token
+    wiederherstellen).
 
 ## Optional / niedrig priorisiert
 - IBKR Borrow Rate liefert konstant HTTP 404 — Provider-Fallback
