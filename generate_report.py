@@ -6106,6 +6106,29 @@ function buildPositionStatus(ticker) {{
 }}
 // Auf window legen für Smoke-Test + spätere Nutzung außerhalb des Watchlist-IIFE.
 window.buildPositionStatus = buildPositionStatus;
+// Einstiegskurs-Formatter (EUR-Stufe 2/4) — gibt USD primary mit
+// optionalem EUR-Suffix nach Slash zurück. Format: "$15.32 / 14,02€"
+// (deutsche Lokalisierung: Komma statt Punkt, € hinten). Fallback-
+// Kette für entry_fx: Gist-Eintrag (pos.entry_fx) → app_data
+// (window._POSITIONS_DATA[ticker].entry_fx, gefüllt vom Stufe-1-
+// Backfill). Fehlt entry_fx in beiden → nur USD wie bisher. Kein
+// visueller Hinweis auf fx_estimated (Spec).
+function _formatPositionEntry(ticker, pos) {{
+  const ep = +(pos && pos.entry_price) || 0;
+  let entryFx = null;
+  if (pos && typeof pos.entry_fx === 'number' && isFinite(pos.entry_fx) && pos.entry_fx > 0) {{
+    entryFx = pos.entry_fx;
+  }} else if (typeof window !== 'undefined' && window._POSITIONS_DATA) {{
+    const ph2 = window._POSITIONS_DATA[ticker];
+    if (ph2 && typeof ph2.entry_fx === 'number' && isFinite(ph2.entry_fx) && ph2.entry_fx > 0) {{
+      entryFx = ph2.entry_fx;
+    }}
+  }}
+  const usd = '$' + ep.toFixed(2);
+  if (entryFx == null || ep <= 0) return usd;
+  return usd + ' / ' + (ep * entryFx).toFixed(2).replace('.', ',') + '€';
+}}
+window._formatPositionEntry = _formatPositionEntry;
 // Border-Glow je nach exit_pressure (Phase 2 Stufe 2b-2). Wendet die
 // CSS-Klassen ``exit-glow-{{warn,mid,crit}}`` auf alle ``.card[data-ticker]``
 // und ``.wl-card[data-ticker]`` mit offener Position an. Idempotent: vor
@@ -8736,11 +8759,14 @@ function _fmtGerman(d) {{
       const pnlStr = pnl != null ? (pnl >= 0 ? '+' : '') + pnl.toFixed(1) + '%' : '—';
       const pnlCol = pnl == null ? '#94a3b8' : pnl >= 0 ? '#22c55e' : '#ef4444';
       const sharesStr = pos.shares ? `${{pos.shares}} Stk` : '—';
+      // EUR-Stufe 2: Einstiegskurs zeigt USD primary + EUR-Suffix wenn
+      // entry_fx aus Gist oder app_data verfügbar ist (siehe Helper).
+      const entryStr = _formatPositionEntry(ticker, pos);
       return `<div class="position-panel position-panel-active">
         <div class="pos-header">📍 Offene Position</div>
         <div class="pos-grid">
           <div><span class="pos-lbl">Entry-Datum</span><span class="pos-val">${{pos.entry_date || '—'}}</span></div>
-          <div><span class="pos-lbl">Einstiegskurs</span><span class="pos-val">$${{ep.toFixed(2)}}</span></div>
+          <div><span class="pos-lbl">Einstiegskurs</span><span class="pos-val">${{entryStr}}</span></div>
           <div><span class="pos-lbl">St\xfcckzahl</span><span class="pos-val">${{sharesStr}}</span></div>
           <div><span class="pos-lbl">P&amp;L</span><span class="pos-val" style="color:${{pnlCol}};font-weight:700">${{pnlStr}}</span></div>
         </div>

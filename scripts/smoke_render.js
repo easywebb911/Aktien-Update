@@ -759,6 +759,79 @@ function assert(cond, msg) {
     dom.window.close();
   });
 
+  // ── Szenario 10: _formatPositionEntry — USD primary + EUR-Suffix
+  // (EUR-Stufe 2/4): rendert "$X.XX / Y,YY€" wenn entry_fx vorhanden,
+  // sonst nur "$X.XX". Quelle-Reihenfolge: Gist-Eintrag → app_data
+  // (window._POSITIONS_DATA). Deutsche Lokalisierung: Komma statt Punkt.
+  await runScenario('_formatPositionEntry — USD + EUR Parallel-Anzeige', async () => {
+    const dom = await buildDom();
+    const win = dom.window;
+    // Helper aus generate_report.py extrahieren — gleiche Source-of-Truth-
+    // Strategie wie Scenarios 6+. Marker liegen direkt bei buildPositionStatus.
+    if (typeof win._formatPositionEntry !== 'function') {
+      const src = fs.readFileSync(
+        path.resolve(__dirname, '..', 'generate_report.py'), 'utf8');
+      const marker = src.indexOf('// ── Position-Status (Phase 2 — Stufe 2a)');
+      const endMarker = src.indexOf('// ── Backtesting-Sektion', marker);
+      const jsClean = src.slice(marker, endMarker)
+        .replace(/\{\{/g, '{').replace(/\}\}/g, '}');
+      win.eval(jsClean);
+    }
+    assert(typeof win._formatPositionEntry === 'function',
+      '_formatPositionEntry nicht verfügbar nach Eval');
+
+    // 1) Gist liefert entry_fx → Vorrang
+    let out = win._formatPositionEntry('AMC', { entry_price: 15.32, entry_fx: 0.91 });
+    assert(out === '$15.32 / 13,94€', `Gist-entry_fx: erwartet "$15.32 / 13,94€", bekam "${out}"`);
+
+    // 2) Kein Gist-entry_fx, aber app_data hat einen → Fallback
+    win._POSITIONS_DATA = { AMC: { entry_fx: 0.91 } };
+    out = win._formatPositionEntry('AMC', { entry_price: 15.32 });
+    assert(out === '$15.32 / 13,94€',
+      `app_data-Fallback: erwartet "$15.32 / 13,94€", bekam "${out}"`);
+
+    // 3) Weder Gist noch app_data → nur USD
+    win._POSITIONS_DATA = {};
+    out = win._formatPositionEntry('AMC', { entry_price: 15.32 });
+    assert(out === '$15.32', `Kein FX: erwartet "$15.32", bekam "${out}"`);
+
+    // 4) entry_fx in app_data, aber für ANDEREN Ticker → kein Match
+    win._POSITIONS_DATA = { OTHER: { entry_fx: 0.91 } };
+    out = win._formatPositionEntry('AMC', { entry_price: 15.32 });
+    assert(out === '$15.32', `Wrong-ticker-FX: erwartet "$15.32", bekam "${out}"`);
+
+    // 5) entry_fx invalid (0, negativ, NaN, string) → nur USD
+    for (const bad of [0, -1, NaN, '0.91', null, undefined]) {
+      out = win._formatPositionEntry('AMC', { entry_price: 15.32, entry_fx: bad });
+      assert(out === '$15.32',
+        `entry_fx=${JSON.stringify(bad)}: erwartet "$15.32", bekam "${out}"`);
+    }
+
+    // 6) Deutsche Lokalisierung: Punkt → Komma im EUR-Wert
+    out = win._formatPositionEntry('AMC', { entry_price: 100.0, entry_fx: 0.9234 });
+    assert(out === '$100.00 / 92,34€',
+      `Lokalisierung: erwartet "$100.00 / 92,34€", bekam "${out}"`);
+    // Sicherstellen, dass das USD-Format Punkt behält (nicht doppelt ersetzt)
+    assert(out.startsWith('$100.00'),
+      'USD-Wert dürfte den Punkt NICHT verlieren');
+
+    // 7) Edge: entry_price=0 → kein EUR-Berechnung (sinnfrei)
+    out = win._formatPositionEntry('AMC', { entry_price: 0, entry_fx: 0.91 });
+    assert(out === '$0.00', `entry_price=0: erwartet "$0.00", bekam "${out}"`);
+
+    // 8) Sehr kleine Beträge runden auf 2 Nachkommastellen
+    out = win._formatPositionEntry('AMC', { entry_price: 0.123, entry_fx: 0.9 });
+    // 0.123 * 0.9 = 0.1107 → "0.11" → "0,11€"
+    assert(out === '$0.12 / 0,11€',
+      `Rundung: erwartet "$0.12 / 0,11€", bekam "${out}"`);
+
+    // 9) Fallback funktioniert auch wenn pos null/undefined ist (defensive)
+    out = win._formatPositionEntry('AMC', null);
+    assert(out === '$0.00', `null pos: erwartet "$0.00", bekam "${out}"`);
+
+    dom.window.close();
+  });
+
   console.log('OK: Alle Smoke-Szenarien grün.');
   process.exit(0);
 })().catch((e) => {
