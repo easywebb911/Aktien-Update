@@ -438,6 +438,20 @@ abbr[title]{text-decoration:underline dotted var(--txt-dim);
    browser überspringt Layout/Paint bis Element nahe am Viewport ist.
    Nicht-unterstützende Browser rendern normal (graceful fallback). */
 .card-lazy{content-visibility:auto;contain-intrinsic-size:auto 500px}
+/* Fix für KI-Analyse-Fazit-Clipping (Diagnose 06.05.2026):
+   ``content-visibility:auto`` cached die zuletzt-gemessene Höhe als
+   neuen ``contain-intrinsic-size`` über das ``auto``-Keyword. Wenn der
+   User auf einer Lazy-Karte (Rang ≥ LAZY_CARDS_EAGER, also 4–10) die
+   KI-Analyse aufklappt, wächst die Karte schnell von ~500 auf
+   ~1500–2000 px. Scrollt die Karte währenddessen partial off-screen
+   (oder war schon am Fold), wird der Layout-Pass mit der gecachten
+   500 px-Größe gemacht — durch ``overflow:hidden`` auf .card wird der
+   untere Teil (= Fazit-Text am Stream-Ende) abgeschnitten. CSS-:has
+   neutralisiert content-visibility solange das Akkordeon offen ist;
+   keine JS-Manipulation nötig. Browser-Support: Chrome ≥105, Safari
+   ≥15.4, Firefox ≥121 (alle current — ältere Browser fallen einfach
+   zurück auf das bisherige Verhalten, also kein Regressions-Risiko). */
+.card:has(.ki-analyse-result.visible){content-visibility:visible}
 .ticker-block{flex:1;min-width:0}
 .ticker-row{display:flex;align-items:center;gap:7px;flex-wrap:wrap;margin-bottom:3px}
 .ticker{font-size:1.25rem;font-weight:800;font-family:'SF Mono','Courier New',monospace;color:var(--txt)}
