@@ -255,6 +255,10 @@ def _test_extended_schema():
 # Multiplikator für die Anzeige „$4.47 (4,11 €)"). Default 0.92 als Notnagel
 # bevor main() läuft. Read-only nach Initialisierung.
 _FX_USD_EUR: float = 0.92
+# ISO-UTC-Timestamp der letzten erfolgreichen FX-Berechnung. Bleibt leer bis
+# main() den Wert via yfinance frisch zieht oder den Stale-Fallback aus
+# app_data.json zieht (dort wird der ursprüngliche Timestamp übernommen).
+_FX_USD_EUR_COMPUTED_AT: str = ""
 
 
 # ===========================================================================
@@ -10054,6 +10058,13 @@ def _write_app_data_json(watchlist_cards: dict | None = None,
         # bewahrt diesen Key zwischen Ticks via **existing-Spread.
         "positions":       positions or {},
         "fx_usd_eur":      _FX_USD_EUR,
+        # Schwester-Key seit EUR-Stufe 1: ISO-UTC-Timestamp der letzten
+        # erfolgreichen EURUSD=X-Berechnung. Beim Stale-Fallback wird der
+        # Original-Timestamp aus dem voherigen app_data.json bewahrt — der
+        # Wert reflektiert IMMER, wann der angegebene Kurs tatsächlich aus
+        # einer yfinance-Antwort stammt. Frontend (Stufe 2+) kann daraus
+        # ableiten, wie alt die FX-Quelle ist.
+        "fx_usd_eur_computed_at": _FX_USD_EUR_COMPUTED_AT,
         "generated_at":    datetime.now(ZoneInfo("UTC")).strftime("%Y-%m-%dT%H:%M:%SZ"),
     }
     # Browser-strict-JSON: NaN/Infinity → None vor Serialisierung. Python's
@@ -10760,7 +10771,8 @@ def _build_phase2_positions_payload(
             except Exception as exc:
                 log.warning("Phase 2 Exit %s: _fetch_position_market_data: %s",
                             ticker, exc)
-        prev_st = (prev_positions.get(ticker) or {}).get("exit_state")
+        prev_pos = prev_positions.get(ticker) or {}
+        prev_st = prev_pos.get("exit_state")
         try:
             state = _compute_exit_state(
                 ticker, pos, history, cur_price,
@@ -10768,11 +10780,37 @@ def _build_phase2_positions_payload(
         except Exception as exc:
             log.warning("Phase 2 Exit %s: _compute_exit_state: %s", ticker, exc)
             continue
+        # entry_fx-Resolution (EUR-Stufe 1, 06.05.2026):
+        # 1. Wenn der Gist-Eintrag (Stufe 2+) bereits entry_fx liefert →
+        #    verwenden (fx_estimated kommt mit, default False).
+        # 2. Sonst: prev app_data.json — Persistenz aus voriger Daily-Run-
+        #    Berechnung, write-once-style (nie überschreiben sobald gesetzt).
+        # 3. Fallback: aktuellen _FX_USD_EUR-Wert mit fx_estimated=true
+        #    markieren — Bestandspositionen ohne historischen FX-Lookup.
+        gist_entry_fx = pos.get("entry_fx")
+        if isinstance(gist_entry_fx, (int, float)) and gist_entry_fx > 0:
+            entry_fx = float(gist_entry_fx)
+            fx_estimated = bool(pos.get("fx_estimated", False))
+        else:
+            prev_entry_fx = prev_pos.get("entry_fx")
+            if isinstance(prev_entry_fx, (int, float)) and prev_entry_fx > 0:
+                entry_fx = float(prev_entry_fx)
+                fx_estimated = bool(prev_pos.get("fx_estimated", False))
+            else:
+                cur_fx = globals().get("_FX_USD_EUR")
+                if isinstance(cur_fx, (int, float)) and cur_fx > 0:
+                    entry_fx = float(cur_fx)
+                    fx_estimated = True
+                else:
+                    entry_fx = None
+                    fx_estimated = False
         out[ticker] = {
-            "entry_date":  pos.get("entry_date"),
-            "entry_price": pos.get("entry_price"),
-            "shares":      pos.get("shares"),
-            "exit_state":  state,
+            "entry_date":   pos.get("entry_date"),
+            "entry_price":  pos.get("entry_price"),
+            "shares":       pos.get("shares"),
+            "entry_fx":     entry_fx,
+            "fx_estimated": fx_estimated,
+            "exit_state":   state,
         }
     return out
 
@@ -11034,6 +11072,8 @@ def main():
     # Fail-soft: bei Fetch-Fehler letzten persistierten Wert aus app_data.json
     # weiterverwenden, sonst Notnagel 0.92.
     _fx_usd_eur: float = 0.92
+    _fx_computed_at: str = ""
+    _fx_fetch_ok = False
     try:
         _fx_hist = yf.download("EURUSD=X", period="2d", auto_adjust=False,
                                progress=False, threads=False)
@@ -11041,21 +11081,32 @@ def main():
             _eur_usd = float(_fx_hist["Close"].squeeze().dropna().iloc[-1])
             if _eur_usd > 0:
                 _fx_usd_eur = round(1.0 / _eur_usd, 4)
+                _fx_computed_at = datetime.now(ZoneInfo("UTC")).strftime("%Y-%m-%dT%H:%M:%SZ")
+                _fx_fetch_ok = True
                 log.info("USD/EUR Rate: 1 USD = %.4f EUR (EURUSD=%.4f)",
                          _fx_usd_eur, _eur_usd)
     except Exception as _fx_exc:
         log.warning("EURUSD=X fetch failed: %s", _fx_exc)
+    # Stale-Fallback: bei Fetch-Fehler ODER fehlendem Live-Wert den letzten
+    # persistierten Stand aus app_data.json holen — sowohl Wert als auch
+    # ``computed_at`` werden bewahrt, damit der Timestamp den echten
+    # Berechnungszeitpunkt reflektiert (nicht den Stale-Fallback-Moment).
+    if not _fx_fetch_ok:
         try:
             with open("app_data.json", "r", encoding="utf-8") as _adfh:
-                _prev = json.load(_adfh).get("fx_usd_eur")
+                _prev_app = json.load(_adfh)
+            _prev = _prev_app.get("fx_usd_eur")
             if isinstance(_prev, (int, float)) and _prev > 0:
                 _fx_usd_eur = float(_prev)
-                log.info("USD/EUR Rate: stale fallback aus app_data.json: %.4f", _fx_usd_eur)
+                _fx_computed_at = _prev_app.get("fx_usd_eur_computed_at", "") or ""
+                log.info("USD/EUR Rate: stale fallback aus app_data.json: %.4f "
+                         "(computed_at=%s)", _fx_usd_eur, _fx_computed_at or "—")
         except (FileNotFoundError, json.JSONDecodeError, OSError):
             pass
-    # Modul-Variable setzen, damit _build_chat_synthesis_ctx() und
+    # Modul-Variablen setzen, damit _build_chat_synthesis_ctx() und
     # _write_app_data_json() denselben Wert sehen ohne Signatur-Plumbing.
     globals()["_FX_USD_EUR"] = _fx_usd_eur
+    globals()["_FX_USD_EUR_COMPUTED_AT"] = _fx_computed_at
 
     # Feature 5 — Sektor-ETF 20T-Performance parallel holen
     _sector_perf_20d: dict[str, float] = {}

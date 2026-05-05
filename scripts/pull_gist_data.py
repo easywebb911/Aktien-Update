@@ -149,6 +149,15 @@ def _recover_positions_from_app_data(path: Path = Path("app_data.json")) -> dict
         }
         if "shares" in p:
             recovered["shares"] = p.get("shares")
+        # EUR-Stufe 1 (06.05.2026): entry_fx + fx_estimated mit recovern,
+        # damit der eingefrorene Wechselkurs einen Gist-Hiccup überlebt.
+        # Sonst würde die Bestandsposition beim nächsten Daily-Run als
+        # „Erst-Sicht" behandelt und mit aktuellem FX als estimated neu
+        # gestempelt — die Persistenz im app_data.json verlöre ihren Sinn.
+        if "entry_fx" in p:
+            recovered["entry_fx"] = p.get("entry_fx")
+        if "fx_estimated" in p:
+            recovered["fx_estimated"] = p.get("fx_estimated")
         out[ticker] = recovered
     return out
 
