@@ -297,6 +297,20 @@ select.sort-select:hover:not(:disabled){background-image:linear-gradient(45deg,t
   border-top:1px solid var(--brd);padding-top:8px}
 .score-block-intro{font-size:.78rem;color:var(--txt-sub);margin:0 0 10px;
   line-height:1.5;font-style:italic}
+/* Squeeze-Story: warm-aufgemachte Einleitung über den drei Hauptblöcken
+   (Variante: Brennstoff/Funke/Flamme). */
+.score-intro-story{font-size:.85rem;color:var(--txt);margin:.2rem 0 .9rem;
+  line-height:1.55}
+.score-intro-story strong{color:var(--txt)}
+/* Per-Block-Explainer (1 Satz unter dem Block-Head, vor der Komponenten-
+   Liste). Dezent, italic, keine eigene Border. */
+.score-block-explainer{font-size:.76rem;color:var(--txt-sub);
+  margin:6px 0 8px;line-height:1.5;font-style:italic}
+/* Tooltip-Stilisierung für <abbr title="..."> — gestrichelte
+   Unterstreichung + cursor:help signalisieren den Hover-Tooltip
+   (browser-nativ über title-Attribut). */
+abbr[title]{text-decoration:underline dotted var(--txt-dim);
+  text-underline-offset:3px;text-decoration-thickness:1px;cursor:help}
 /* KI-Agent-Tabellen: technische Werte (z. B. „×1.10 / ×1.20 …"
    oder „≥5× heute & ≥2× vs. Vortag") in Mono-Font, damit Trigger und
    Schwellen visuell besser ausgerichtet bleiben. Greift nur, wenn

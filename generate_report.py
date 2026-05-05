@@ -4982,11 +4982,22 @@ def generate_html_v1(stocks: list[dict], report_date: str, _ctx: dict | None = N
     # hardgecodet im Template) — Methodik-Sync-Regel: wenn die
     # Score-Funktion eine Schwelle ändert, muss die Konstante hier
     # synchron bleiben.
+    # Tooltip-Texte für Abkürzungen — _methodology_rows_html erlaubt HTML im
+    # Label, daher direkt mit <abbr title="..."> wrappen. Browser zeigt
+    # gestrichelte Unterstreichung + Tooltip bei Hover (zusätzliche CSS-
+    # Stilisierung in head.jinja).
+    _ABBR_SHORT_FLOAT   = '<abbr title="Anteil der frei handelbaren Aktien, die aktuell leer verkauft sind.">Short Float</abbr>'
+    _ABBR_DTC           = '<abbr title="Wie viele Tage Leerverkäufer bräuchten, um ihre Positionen zu schließen, gemessen am üblichen Tagesvolumen.">Days to Cover</abbr>'
+    _ABBR_SI_TREND      = '<abbr title="FINRA = Aufsichtsbehörde der Wertpapierhändler. SI-Trend = ob Short-Verkäufe zu- oder abnehmen.">SI-Trend</abbr>'
+    _ABBR_13F           = '<abbr title="Großinvestoren melden quartalsweise ihre Bestände. Akkumulation = sie kaufen sich massiv ein.">13F-Akkumulation</abbr>'
+    _ABBR_UOA           = '<abbr title="Ungewöhnliche Optionsaktivitäten: wenn große Marktteilnehmer plötzlich extrem viele Wetten auf rasante Kursbewegungen platzieren.">UOA</abbr>'
+    _ABBR_RVOL          = '<abbr title="Relatives Volumen: wieviel mehr als üblich heute gehandelt wird (z.B. 3× = dreifaches Normalvolumen).">RVOL</abbr>'
+
     methodology_struct_rows = _methodology_rows_html([
-        ("Short Float",   32, "32 Pkt"),
-        ("Days to Cover", 23, "23 Pkt"),
-        ("Float-Größe",   8,  "8 Pkt"),
-        ("SI-Trend",      5,  "5 Pkt"),
+        (_ABBR_SHORT_FLOAT, 32, "32 Pkt"),
+        (_ABBR_DTC,         23, "23 Pkt"),
+        ("Float-Größe",      8, "8 Pkt"),
+        (_ABBR_SI_TREND,     5, "5 Pkt"),
     ])
     methodology_catalyst_rows = _methodology_rows_html([
         ("Earnings (≤7 / ≤14 Tage)",
@@ -5004,15 +5015,15 @@ def generate_html_v1(stocks: list[dict], report_date: str, _ctx: dict | None = N
         ("Gamma Squeeze (möglich / wahrscheinlich)",
          GAMMA_BONUS_LIKELY,
          f"{GAMMA_BONUS_POSSIBLE} / {GAMMA_BONUS_LIKELY} Pkt"),
-        ("Insider (13F-Akkumulation)",
+        (f"Insider ({_ABBR_13F})",
          SUB_INSIDER_PTS,
          f"{SUB_INSIDER_PTS} Pkt"),
-        ("UOA (ATM Vol/OI &amp; C/P-Bias)",
+        (f"{_ABBR_UOA} (ATM Vol/OI &amp; C/P-Bias)",
          UOA_ATM_STRONG + UOA_CP_BIAS,
          f"bis {UOA_ATM_STRONG + UOA_CP_BIAS} Pkt"),
     ])
     methodology_timing_rows = _methodology_rows_html([
-        ("Rel. Volumen",   23, "23 Pkt"),
+        (f"Rel. Volumen ({_ABBR_RVOL})", 23, "23 Pkt"),
         ("Momentum",       14, "14 Pkt"),
         ("RS vs. SPY",     3,  "3 Pkt"),
         ("Float Turnover", 10, "10 Pkt"),
@@ -5250,12 +5261,19 @@ def generate_html_v1(stocks: list[dict], report_date: str, _ctx: dict | None = N
       </div>
       <div class="info-box info-box--full">
         <h4>Score-Formel — Hauptblöcke</h4>
+        <p class="score-intro-story">
+          <strong>Der Setup-Score bewertet, wie wahrscheinlich ein Short Squeeze ist.</strong>
+          Stell dir einen Squeeze wie ein Feuer vor: er braucht Brennstoff, einen Funken und eine sichtbare Flamme. Genau diese drei Komponenten misst der Score.
+        </p>
         <div class="score-blocks">
           <div class="score-block-card">
             <div class="score-block-head">
-              <span class="score-block-name">Struktur</span>
+              <span class="score-block-name">Struktur — der Brennstoff</span>
               <span class="score-block-badge">0–40</span>
             </div>
+            <p class="score-block-explainer">
+              Liegen genug leihbare Aktien (<abbr title="Anteil der frei handelbaren Aktien, die aktuell leer verkauft sind.">Short Float</abbr>) und Druck (<abbr title="Wie viele Tage Leerverkäufer bräuchten, um ihre Positionen zu schließen, gemessen am üblichen Tagesvolumen.">Days to Cover</abbr>) bereit, damit überhaupt etwas passieren kann?
+            </p>
             <ul class="score-block-list">
               {methodology_struct_rows}
             </ul>
@@ -5263,18 +5281,24 @@ def generate_html_v1(stocks: list[dict], report_date: str, _ctx: dict | None = N
           </div>
           <div class="score-block-card">
             <div class="score-block-head">
-              <span class="score-block-name">Katalysator</span>
+              <span class="score-block-name">Katalysator — der Funke</span>
               <span class="score-block-badge">0–35</span>
             </div>
+            <p class="score-block-explainer">
+              Gibt es ein Ereignis, das die Leerverkäufer in Panik versetzen könnte? Etwa Earnings, ungewöhnliche Optionsaktivitäten oder Insider-Käufe?
+            </p>
             <ul class="score-block-list">
               {methodology_catalyst_rows}
             </ul>
           </div>
           <div class="score-block-card">
             <div class="score-block-head">
-              <span class="score-block-name">Timing</span>
+              <span class="score-block-name">Timing — die Flamme</span>
               <span class="score-block-badge">0–35</span>
             </div>
+            <p class="score-block-explainer">
+              Ist das Feuer bereits entfacht? Zeigt der Markt durch extrem hohes Volumen und Momentum, dass der Squeeze gerade startet?
+            </p>
             <ul class="score-block-list">
               {methodology_timing_rows}
             </ul>
@@ -5313,44 +5337,13 @@ def generate_html_v1(stocks: list[dict], report_date: str, _ctx: dict | None = N
         <ul class="info-compact">
           <li>Yahoo Finance (5 US-Screener) · Finviz Screener · FINRA Short Interest ({SI_TREND_PERIODS} Handelstage, 3 CDN-Feeds)</li>
           <li>yfinance · Stockanalysis.com (wöchentl. SI) · EarningsWhispers RSS · Sektor-ETFs (QQQ/XBI/XLE/XLF/XRT/SPY)</li>
-          <li>KI-Agent: Claude Haiku · News-Sentiment · Insider · FDA RSS · FINRA Daily SSR · StockTwits API · yfinance Options-Chains (UOA) · SEC EDGAR (13D/13G Filings) · ntfy.sh (Push-Notifications)</li>
+          <li>KI-Agent: Claude Haiku · News-Sentiment · Insider · FDA RSS · FINRA Daily SSR · StockTwits API · yfinance Options-Chains (UOA) · SEC EDGAR (<abbr title="Pflicht-Meldung an die SEC, wenn ein Investor mehr als 5% einer Firma kauft — oft aktivistisch.">13D</abbr>/13G Filings) · ntfy.sh (Push-Notifications)</li>
         </ul>
       </div>
       <div class="info-box info-box--full">
         <h4>⚡ KI-Agent</h4>
-        <p class="score-block-intro">Läuft stündlich · Analysiert News, Earnings, Insider, FINRA SSR, Gamma, Options-Flow</p>
-        <div class="score-blocks ki-agent-blocks">
-          <div class="score-block-card">
-            <div class="score-block-head">
-              <span class="score-block-name">Boni</span>
-            </div>
-            <ul class="score-block-list">
-              <li><span class="sb-lbl">StockTwits-Sentiment</span><span class="sb-pts">+8 / +15 / −5</span></li>
-              <li><span class="sb-lbl">RVOL High-Alert</span><span class="sb-pts">+10 (≥3×) / +15 (≥5×)</span></li>
-              <li><span class="sb-lbl">RVOL Velocity</span><span class="sb-pts">+8 (≥1.5× Anstieg)</span></li>
-              <li><span class="sb-lbl">UOA ATM Vol/OI</span><span class="sb-pts">+10 / +20</span></li>
-              <li><span class="sb-lbl">UOA Call/Put-Bias</span><span class="sb-pts">+10</span></li>
-              <li><span class="sb-lbl">Gamma Squeeze</span><span class="sb-pts">+8 / +15</span></li>
-              <li><span class="sb-lbl">Perfect-Storm-Multiplikator</span><span class="sb-pts">×1.10 / ×1.20 / ×1.35 bei 2 / 3 / 4 Triggern</span></li>
-            </ul>
-          </div>
-          <div class="score-block-card">
-            <div class="score-block-head">
-              <span class="score-block-name">Anomalie-Push-Trigger</span>
-            </div>
-            <ul class="score-block-list">
-              <li><span class="sb-lbl">RVOL-Explosion</span><span class="sb-pts">≥5× heute &amp; ≥2× vs. Vortag</span></li>
-              <li><span class="sb-lbl">UOA-Extreme</span><span class="sb-pts">Call-Vol/OI ≥10×</span></li>
-              <li><span class="sb-lbl">Score-Sprung</span><span class="sb-pts">≥15 Pkt vs. Vortag</span></li>
-              <li><span class="sb-lbl">Gap+Hold-Combo</span><span class="sb-pts">Gap ≥5 %, Strong Hold, RVOL ≥3×</span></li>
-              <li><span class="sb-lbl">Perfect Storm</span><span class="sb-pts">4/4 Trigger</span></li>
-              <li><span class="sb-lbl">Monster ≥90 (Backup)</span><span class="sb-pts">—</span></li>
-              <li><span class="sb-lbl">📜 SEC 13D/13G Filings (Top-10)</span><span class="sb-pts">13D immer · 13G nur Aktivisten · 24 h Cooldown</span></li>
-            </ul>
-          </div>
-        </div>
-        <p class="score-block-foot score-block-foot-strong">
-          <strong>Push-Logik:</strong> Standard-Cooldown 6 h pro (Ticker × Trigger-Typ) · Push pausiert bei VIX &gt; 35 (Krise) · Warnung bei VIX &gt; 25 · <strong>Stille-Filter:</strong> Push wird unterdrückt, wenn RSI &gt; {PUSH_RSI_MAX:.0f} ODER 2-Tages-Move &gt; {(PUSH_MOVE_2D_MAX*100):.0f}&nbsp;%. Anomalie bleibt im UI sichtbar mit Label „Bewegung gelaufen". Earnings- und EDGAR-Sofort-Alerts sind ausgenommen.
+        <p style="font-size:.82rem;color:var(--txt-sub);margin:.4rem 0 0;line-height:1.55">
+          Die KI überwacht den Markt live auf extreme Anomalien. Je mehr Faktoren (wie plötzliche Volumen-Explosionen oder ungewöhnliche Options-Käufe) gleichzeitig auftreten, desto stärker wird der Basis-Score automatisch nach oben korrigiert.
         </p>
       </div>
       <div class="info-box info-box--full">
