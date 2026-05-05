@@ -1,17 +1,17 @@
 {
-  "updated": "2026-05-05T14:00:00.199409+02:00",
+  "updated": "2026-05-05T14:36:29.443398+02:00",
   "run_info": {
     "tickers_checked": 10,
-    "signals_active": 6,
-    "alerts_sent": 1,
-    "elapsed_s": 17.0,
+    "signals_active": 5,
+    "alerts_sent": 0,
+    "elapsed_s": 11.3,
     "market_phase": "Pre-Market"
   },
   "signals": {
     "RLYB": {
-      "score": 15,
+      "score": 8,
       "confidence": 17,
-      "drivers": "News: merger",
+      "drivers": "News-KI 8/30: Merger/acquisition ist mittelfristig verwässernd für Aktionäre, nicht bullish für Short-Squeeze.",
       "price": 14.12,
       "chg_pct": 0.0,
       "rvol": 0.0,
@@ -21,16 +21,16 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 1,
+      "active_triggers": 0,
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": null,
       "uoa_cp_ratio": null
     },
     "CABA": {
-      "score": 18,
+      "score": 26,
       "confidence": 33,
-      "drivers": "Earnings in 9d + UOA Call/Put 15.2×",
+      "drivers": "News-KI 8/30: Positive developments with supply agreement and capital raise, but lacks short squeeze catalysts like high short interes + Earnings in 9d + UOA Call/Put 15.2×",
       "price": 3.83,
       "chg_pct": 0.0,
       "rvol": 0.0,
@@ -48,29 +48,10 @@
       "uoa_atm_ratio": 1.1716707877075239,
       "uoa_cp_ratio": 15.239373601789708
     },
-    "LENZ": {
-      "score": 15,
-      "confidence": 17,
-      "drivers": "Earnings in 6 Tagen (11.05.2026) + Earnings in 6d",
-      "price": 9.28,
-      "chg_pct": 0.0,
-      "rvol": 0.0,
-      "earnings": "in 6 Tagen (11.05.2026)",
-      "fda_date": null,
-      "upcoming_event": "Earnings in 6 Tagen (11.05.2026)",
-      "insider_buy": false,
-      "stocktwits": null,
-      "combo_mult": 1.0,
-      "active_triggers": 1,
-      "uoa_score": 0,
-      "uoa_drivers": [],
-      "uoa_atm_ratio": null,
-      "uoa_cp_ratio": null
-    },
     "ABEO": {
       "score": 26,
       "confidence": 33,
-      "drivers": "News-KI 8/30: Routine earnings announcement and standard equity grants lack catalyst strength; insider buying mention provides minimal + Earnings in 8d + UOA Call/Put 15.0×",
+      "drivers": "News-KI 8/30: Routine earnings announcement and standard employee grants show no short-squeeze catalysts; insider buying mentioned but + Earnings in 8d + UOA Call/Put 15.0×",
       "price": 5.95,
       "chg_pct": 0.0,
       "rvol": 0.0,
@@ -104,13 +85,34 @@
       "active_triggers": 2,
       "uoa_score": 0,
       "uoa_drivers": [],
-      "uoa_atm_ratio": null,
-      "uoa_cp_ratio": null
+      "uoa_atm_ratio": 0.4606741573033708,
+      "uoa_cp_ratio": 0.38016528925619836
+    },
+    "LENZ": {
+      "score": 25,
+      "confidence": 33,
+      "drivers": "Earnings in 6 Tagen (11.05.2026) + Earnings in 6d + UOA Call/Put 2.9×",
+      "price": 9.28,
+      "chg_pct": 0.0,
+      "rvol": 0.0,
+      "earnings": "in 6 Tagen (11.05.2026)",
+      "fda_date": null,
+      "upcoming_event": "Earnings in 6 Tagen (11.05.2026)",
+      "insider_buy": false,
+      "stocktwits": null,
+      "combo_mult": 1.0,
+      "active_triggers": 1,
+      "uoa_score": 10,
+      "uoa_drivers": [
+        "UOA Call/Put 2.9×"
+      ],
+      "uoa_atm_ratio": 0.08465608465608465,
+      "uoa_cp_ratio": 2.9423076923076925
     },
     "XRX": {
       "score": 25,
       "confidence": 17,
-      "drivers": "News: revenue beat + UOA Call/Put 9.2×",
+      "drivers": "News: earnings beat + UOA Call/Put 9.2×",
       "price": 2.6,
       "chg_pct": 0.0,
       "rvol": 0.0,
@@ -171,9 +173,9 @@
       "uoa_cp_ratio": 10.344235924932976
     },
     "SNDX": {
-      "score": 15,
+      "score": 8,
       "confidence": 17,
-      "drivers": "News: analyst upgrade",
+      "drivers": "News-KI 8/30: Positive revenue growth is bullish for the company, but pharmaceutical earnings lack the high short interest and squeeze",
       "price": 19.96,
       "chg_pct": 0.0,
       "rvol": 0.0,
@@ -183,11 +185,11 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 1,
+      "active_triggers": 0,
       "uoa_score": 0,
       "uoa_drivers": [],
-      "uoa_atm_ratio": null,
-      "uoa_cp_ratio": null
+      "uoa_atm_ratio": 0.7843137254901961,
+      "uoa_cp_ratio": 1.66
     },
     "RXT": {
       "score": 55,
