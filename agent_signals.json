@@ -1,10 +1,10 @@
 {
-  "updated": "2026-05-05T23:32:20.951425+02:00",
+  "updated": "2026-05-05T23:59:52.442600+02:00",
   "run_info": {
     "tickers_checked": 10,
-    "signals_active": 4,
+    "signals_active": 2,
     "alerts_sent": 0,
-    "elapsed_s": 14.7,
+    "elapsed_s": 11.1,
     "market_phase": "After-Hours"
   },
   "signals": {
@@ -51,9 +51,9 @@
       "uoa_cp_ratio": 74.5
     },
     "NUVB": {
-      "score": 10,
+      "score": 15,
       "confidence": 17,
-      "drivers": "UOA Call/Put 43.5×",
+      "drivers": "News-KI 5/30: Routine corporate events and earnings calls show no unusual short interest catalysts or market-moving developments neede + UOA Call/Put 43.5×",
       "price": 4.83,
       "chg_pct": 0.0,
       "rvol": 0.0,
@@ -93,9 +93,9 @@
       "uoa_cp_ratio": 3.4601113172541744
     },
     "IIPR": {
-      "score": 5,
+      "score": 15,
       "confidence": 17,
-      "drivers": "News-KI 5/30: Positive earnings beats indicate strong business fundamentals, which typically reduce short squeeze potential as the sto",
+      "drivers": "News: revenue beat",
       "price": 60.32,
       "chg_pct": 0.0,
       "rvol": 0.0,
@@ -105,16 +105,16 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 0,
+      "active_triggers": 1,
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": 0.45263532763532766,
       "uoa_cp_ratio": 0.4918095238095238
     },
     "PENG": {
-      "score": 10,
+      "score": 18,
       "confidence": 17,
-      "drivers": "UOA Call/Put 14.8×",
+      "drivers": "News-KI 8/30: Positive technical signal (Golden Cross) overshadowed by two consecutive down-trading headlines suggesting weak momentum + UOA Call/Put 14.8×",
       "price": 36.45,
       "chg_pct": 0.0,
       "rvol": 0.0,
