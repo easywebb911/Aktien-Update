@@ -1,10 +1,10 @@
 {
-  "updated": "2026-05-06T00:18:13.590891+02:00",
+  "updated": "2026-05-06T00:37:08.230938+02:00",
   "run_info": {
     "tickers_checked": 10,
     "signals_active": 2,
     "alerts_sent": 0,
-    "elapsed_s": 11.2,
+    "elapsed_s": 10.3,
     "market_phase": "After-Hours"
   },
   "signals": {
@@ -95,7 +95,7 @@
     "IIPR": {
       "score": 5,
       "confidence": 17,
-      "drivers": "News-KI 5/30: Positive earnings results indicate fundamental strength but show no signs of short squeeze catalysts like high short int",
+      "drivers": "News-KI 5/30: Positive earnings beats indicate strong fundamentals, which typically reduces short-squeeze potential as the stock likel",
       "price": 60.32,
       "chg_pct": 0.0,
       "rvol": 0.0,
@@ -137,7 +137,7 @@
     "EBS": {
       "score": 23,
       "confidence": 33,
-      "drivers": "News-KI 8/30: Positive operational updates and earnings approvals indicate stabilization rather than distress catalysts needed for sho + FINRA Short-Vol 60%",
+      "drivers": "News-KI 8/30: Positive corporate governance and earnings updates suggest operational stability rather than distressed fundamentals tha + FINRA Short-Vol 60%",
       "price": 9.05,
       "chg_pct": 0.0,
       "rvol": 0.0,
