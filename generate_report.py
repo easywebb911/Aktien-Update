@@ -8607,6 +8607,18 @@ function _fmtGerman(d) {{
     else     {{ e.textContent = '';  e.classList.remove('visible'); }}
   }}
 
+  // Gist-Watchlist-Spiegel synchron zur Repo-Datei halten. Ohne diesen
+  // Sync driftet der Gist-Watchlist-Eintrag von der Repo-Datei weg —
+  // pull_gist_data.py materialisiert beim nächsten Workflow-Tick den
+  // veralteten Gist-Stand und überschreibt die User-Edits in
+  // watchlist_personal.json. Vorlage: wlRemoveFromExpanded.
+  async function _wlGistSyncWatchlist(arr) {{
+    if (!GIST_ID || !getToken()) return;
+    const data = (await gistLoad()) || {{watchlist: [], positions: {{}}}};
+    data.watchlist = arr.slice();
+    await gistSave(data);
+  }}
+
   window.wlAddManual = async function() {{
     const inp = document.getElementById('wl-add-input');
     if (!inp) return;
@@ -8628,6 +8640,7 @@ function _fmtGerman(d) {{
     arr.unshift(raw);
     _wlSetErr('');
     inp.value = '';
+    await _wlGistSyncWatchlist(arr);
     await wlSave(arr);
     await wlRender();
   }};
@@ -8641,13 +8654,16 @@ function _fmtGerman(d) {{
     }} else if (arr.length < WL_MAX) {{
       arr.unshift(ticker);
     }}
+    await _wlGistSyncWatchlist(arr);
     await wlSave(arr);
     await wlRender();
   }};
 
   window.wlRemoveTicker = async function(ticker) {{
-    const arr = await wlLoad();
-    await wlSave(arr.filter(t => t !== ticker));
+    const arr  = await wlLoad();
+    const next = arr.filter(t => t !== ticker);
+    await _wlGistSyncWatchlist(next);
+    await wlSave(next);
     await wlRender();
   }};
 
