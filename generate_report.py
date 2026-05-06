@@ -6175,7 +6175,7 @@ window._formatUsdEurPnl = _formatUsdEurPnl;
 // Live-Preview im Eröffnungs-Dialog (EUR-Stufe 3/4): Gesamt = Preis ×
 // Stückzahl, mit EUR-Suffix wenn _FX_USD_EUR vorhanden. oninput-Handler
 // auf den beiden Eingabefeldern (price + shares) ruft hier rein. Das
-// pos-tot-{ticker}-Element wird vom buildPositionPanel-open-form-HTML
+// pos-tot-{{ticker}}-Element wird vom buildPositionPanel-open-form-HTML
 // gerendert.
 function _updatePositionTotal(ticker) {{
   const p = document.getElementById('pos-p-' + ticker);
