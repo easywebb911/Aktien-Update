@@ -1,36 +1,13 @@
 {
-  "updated": "2026-05-06T06:12:49.307314+02:00",
+  "updated": "2026-05-06T07:56:03.870181+02:00",
   "run_info": {
     "tickers_checked": 10,
     "signals_active": 4,
     "alerts_sent": 0,
-    "elapsed_s": 10.5,
+    "elapsed_s": 10.9,
     "market_phase": "Geschlossen"
   },
   "signals": {
-    "IART": {
-      "score": 10,
-      "confidence": 17,
-      "drivers": "UOA Call/Put 3.3×",
-      "price": 13.22,
-      "chg_pct": 0.0,
-      "rvol": 0.0,
-      "earnings": null,
-      "fda_date": null,
-      "upcoming_event": null,
-      "insider_buy": false,
-      "stocktwits": null,
-      "combo_mult": 1.0,
-      "active_triggers": 0,
-      "uoa_score": 10,
-      "uoa_drivers": [
-        "UOA Call/Put 3.3×"
-      ],
-      "uoa_atm_ratio": 0.5471698113207547,
-      "uoa_cp_ratio": 3.3333333333333335,
-      "push_silenced": true,
-      "silenced_reason": "+21% 2T"
-    },
     "TDUP": {
       "score": 10,
       "confidence": 17,
@@ -49,8 +26,29 @@
       "uoa_drivers": [
         "UOA Call/Put 74.5×"
       ],
-      "uoa_atm_ratio": 1.2820512820512822,
+      "uoa_atm_ratio": null,
       "uoa_cp_ratio": 74.5
+    },
+    "IART": {
+      "score": 10,
+      "confidence": 17,
+      "drivers": "UOA Call/Put 3.3×",
+      "price": 13.22,
+      "chg_pct": 0.0,
+      "rvol": 0.0,
+      "earnings": null,
+      "fda_date": null,
+      "upcoming_event": null,
+      "insider_buy": false,
+      "stocktwits": null,
+      "combo_mult": 1.0,
+      "active_triggers": 0,
+      "uoa_score": 10,
+      "uoa_drivers": [
+        "UOA Call/Put 3.3×"
+      ],
+      "uoa_atm_ratio": null,
+      "uoa_cp_ratio": 3.3333333333333335
     },
     "MED": {
       "score": 10,
@@ -70,13 +68,32 @@
       "uoa_drivers": [
         "UOA Call/Put 13.6×"
       ],
-      "uoa_atm_ratio": 0.3333333333333333,
+      "uoa_atm_ratio": null,
       "uoa_cp_ratio": 13.571428571428571
+    },
+    "AVTX": {
+      "score": 12,
+      "confidence": 17,
+      "drivers": "News-KI 12/30: Massive dilution from $375M offering significantly weakens short-squeeze potential despite positive clinical trial resul",
+      "price": 16.26,
+      "chg_pct": 0.0,
+      "rvol": 0.0,
+      "earnings": null,
+      "fda_date": null,
+      "upcoming_event": null,
+      "insider_buy": false,
+      "stocktwits": null,
+      "combo_mult": 1.0,
+      "active_triggers": 1,
+      "uoa_score": 0,
+      "uoa_drivers": [],
+      "uoa_atm_ratio": null,
+      "uoa_cp_ratio": 0.4363979848866499
     },
     "NUVB": {
       "score": 15,
       "confidence": 17,
-      "drivers": "News-KI 5/30: Routine investor conference participation and earnings call updates show no catalysts for short squeeze; generic corpora + UOA Call/Put 43.5×",
+      "drivers": "News-KI 5/30: Routine corporate events and earnings calls lack the negative catalysts, high short interest, or dramatic price action i + UOA Call/Put 43.5×",
       "price": 4.83,
       "chg_pct": 0.0,
       "rvol": 0.0,
@@ -91,27 +108,8 @@
       "uoa_drivers": [
         "UOA Call/Put 43.5×"
       ],
-      "uoa_atm_ratio": 0.2553626149131767,
+      "uoa_atm_ratio": null,
       "uoa_cp_ratio": 43.5
-    },
-    "AVTX": {
-      "score": 30,
-      "confidence": 17,
-      "drivers": "News: catalyst, buyout",
-      "price": 16.26,
-      "chg_pct": 0.0,
-      "rvol": 0.0,
-      "earnings": null,
-      "fda_date": null,
-      "upcoming_event": null,
-      "insider_buy": false,
-      "stocktwits": null,
-      "combo_mult": 1.0,
-      "active_triggers": 1,
-      "uoa_score": 0,
-      "uoa_drivers": [],
-      "uoa_atm_ratio": 0.03493230820658533,
-      "uoa_cp_ratio": 0.4363979848866499
     },
     "CABA": {
       "score": 18,
@@ -131,7 +129,7 @@
       "uoa_drivers": [
         "UOA Call/Put 3.5×"
       ],
-      "uoa_atm_ratio": 0.3747323340471092,
+      "uoa_atm_ratio": null,
       "uoa_cp_ratio": 3.4601113172541744
     },
     "IIPR": {
@@ -150,7 +148,7 @@
       "active_triggers": 1,
       "uoa_score": 0,
       "uoa_drivers": [],
-      "uoa_atm_ratio": 0.45263532763532766,
+      "uoa_atm_ratio": null,
       "uoa_cp_ratio": 0.4918095238095238
     },
     "PENG": {
@@ -171,7 +169,7 @@
       "uoa_drivers": [
         "UOA Call/Put 14.8×"
       ],
-      "uoa_atm_ratio": 1.0926315789473684,
+      "uoa_atm_ratio": null,
       "uoa_cp_ratio": 14.816326530612244,
       "push_silenced": true,
       "silenced_reason": "RSI 83"
@@ -192,7 +190,7 @@
       "active_triggers": 0,
       "uoa_score": 0,
       "uoa_drivers": [],
-      "uoa_atm_ratio": 0.07492354740061162,
+      "uoa_atm_ratio": null,
       "uoa_cp_ratio": 0.5806451612903226
     },
     "OM": {
@@ -211,7 +209,7 @@
       "active_triggers": 1,
       "uoa_score": 0,
       "uoa_drivers": [],
-      "uoa_atm_ratio": 0.47808764940239046,
+      "uoa_atm_ratio": null,
       "uoa_cp_ratio": 0.7953216374269005
     }
   }
