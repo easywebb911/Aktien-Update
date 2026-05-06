@@ -1153,6 +1153,214 @@ function assert(cond, msg) {
     dom.window.close();
   });
 
+  // ── Szenario 13: Tier-1-Builder-Erweiterung im KI-Insight-Stream
+  // Verifiziert die fünf neuen Builder 8–12 von _kiInsightItems —
+  // jeweils mit Trigger-Daten und mit fehlenden/null-Daten (kein Crash).
+  await runScenario('KI-Insight-Stream — Tier-1-Builder 8-12 (Earnings/SI/RVOL/PnL/Insider)', async () => {
+    const dom = await buildDom();
+    const win = dom.window;
+    // IMMER re-evaluieren, damit Builder 8-12 garantiert die FRISCHE
+    // Version aus generate_report.py gegen die alte Version aus index.html
+    // (regeneriert vor diesem Commit) gewinnen — sonst hätte das Test-
+    // Setup keine Wirkung. Gleiche Strategie wie Szenario 6 (post-2b-1).
+    const src = fs.readFileSync(
+      path.resolve(__dirname, '..', 'generate_report.py'), 'utf8');
+    const marker = src.indexOf('// ── Position-Status (Phase 2 — Stufe 2a)');
+    const endMarker = src.indexOf('// ── Backtesting-Sektion', marker);
+    assert(marker > 0 && endMarker > marker, 'Marker nicht gefunden');
+    const jsClean = src.slice(marker, endMarker)
+      .replace(/\{\{/g, '{').replace(/\}\}/g, '}');
+    win.eval(jsClean);
+    assert(typeof win._kiInsightItems === 'function',
+      '_kiInsightItems nicht verfügbar');
+
+    // Builder 8: Earnings via watchlist_cards.earnings_days
+    let items = win._kiInsightItems({
+      watchlist_cards: { AMC: { earnings_days: 2 } },
+    });
+    assert(items.some(s => s.includes('AMC') && s.includes('Earnings in 2 Tagen')),
+      `Builder 8 (earnings_days=2): erwartet "AMC Earnings in 2 Tagen ..." in ${JSON.stringify(items)}`);
+
+    // Builder 8: Earnings heute (days=0) — anderer Wording
+    items = win._kiInsightItems({
+      watchlist_cards: { INDI: { earnings_days: 0 } },
+    });
+    assert(items.some(s => s.includes('INDI') && s.includes('hat heute Earnings')),
+      `Builder 8 (heute): erwartet "INDI hat heute Earnings ..."`);
+
+    // Builder 8: Earnings via agent_signals string-Format
+    items = win._kiInsightItems({
+      agent_signals: { signals: { GRPN: { earnings: 'in 1 Tagen (08.05.2026)' } } },
+    });
+    assert(items.some(s => s.includes('GRPN') && s.includes('Earnings in 1 Tagen')),
+      `Builder 8 (signal-string): erwartet "GRPN Earnings in 1 Tagen ..."`);
+
+    // Builder 8: zu weit weg → kein Item
+    items = win._kiInsightItems({
+      watchlist_cards: { TEST: { earnings_days: 5 } },
+    });
+    assert(!items.some(s => s.includes('TEST') && s.includes('Earnings')),
+      'Builder 8 (>3 Tage): KEIN Item erwartet');
+
+    // Builder 8: nächster Termin gewinnt (kleinster days)
+    items = win._kiInsightItems({
+      watchlist_cards: {
+        FAR: { earnings_days: 3 },
+        NEAR: { earnings_days: 1 },
+      },
+    });
+    assert(items.some(s => s.includes('NEAR') && s.includes('1 Tagen')),
+      'Builder 8: NEAR (1 Tag) sollte gewinnen');
+    assert(!items.some(s => s.includes('FAR')),
+      'Builder 8: FAR (3 Tage) sollte NICHT erscheinen wenn NEAR vorhanden');
+
+    // Builder 9: FINRA-Trend-Beschleunigung
+    items = win._kiInsightItems({
+      watchlist_cards: { NUVB: { si_accel: true, si_tpct: 80, si_velocity: 312 } },
+    });
+    assert(items.some(s => s.includes('NUVB') && s.includes('Short-Interest +80%') && s.includes('beschleunigt')),
+      `Builder 9: erwartet "NUVB Short-Interest +80% beschleunigt ..." in ${JSON.stringify(items)}`);
+
+    // Builder 9: si_accel=false → kein Item
+    items = win._kiInsightItems({
+      watchlist_cards: { TEST: { si_accel: false, si_tpct: 100 } },
+    });
+    assert(!items.some(s => s.includes('beschleunigt')),
+      'Builder 9 (si_accel=false): KEIN Item');
+
+    // Builder 9: si_tpct < 50 → kein Item
+    items = win._kiInsightItems({
+      watchlist_cards: { TEST: { si_accel: true, si_tpct: 30 } },
+    });
+    assert(!items.some(s => s.includes('TEST') && s.includes('beschleunigt')),
+      'Builder 9 (tpct<50): KEIN Item');
+
+    // Builder 9: höchster si_tpct gewinnt
+    items = win._kiInsightItems({
+      watchlist_cards: {
+        AAA: { si_accel: true, si_tpct: 60 },
+        BBB: { si_accel: true, si_tpct: 95 },
+      },
+    });
+    assert(items.some(s => s.includes('BBB') && s.includes('+95%')),
+      'Builder 9: höchster tpct (BBB +95%) sollte gewinnen');
+
+    // Builder 10: RVOL-Spike via watchlist_cards
+    items = win._kiInsightItems({
+      watchlist_cards: { TDUP: { rel_volume: 4.5 } },
+    });
+    assert(items.some(s => s.includes('TDUP') && s.includes('RVOL 4.5×')),
+      `Builder 10 (rel_volume=4.5): erwartet "TDUP RVOL 4.5× ..." in ${JSON.stringify(items)}`);
+
+    // Builder 10: RVOL via agent_signals.rvol
+    items = win._kiInsightItems({
+      agent_signals: { signals: { TEST: { rvol: 5.2 } } },
+    });
+    assert(items.some(s => s.includes('TEST') && s.includes('RVOL 5.2×')),
+      'Builder 10: agent_signals.rvol-Pfad funktioniert');
+
+    // Builder 10: RVOL <= 3 → kein Item
+    items = win._kiInsightItems({
+      watchlist_cards: { TEST: { rel_volume: 2.5 } },
+    });
+    assert(!items.some(s => s.includes('TEST') && s.includes('RVOL')),
+      'Builder 10 (rel_volume<=3): KEIN Item');
+
+    // Builder 11: Position-PnL-Highlight
+    items = win._kiInsightItems({
+      positions: { AMC: { exit_state: {
+        peak_pnl_pct_since_entry: 0.18,
+        current_pnl_pct: 0.12,
+      }}},
+    });
+    assert(items.some(s => s.includes('AMC') && s.includes('+12%') && s.includes('+18%') && s.includes('Profit-Lock')),
+      `Builder 11: erwartet "AMC läuft +12% ... Höchst +18% ... Profit-Lock ..." in ${JSON.stringify(items)}`);
+
+    // Builder 11: peak < 10% → kein Item
+    items = win._kiInsightItems({
+      positions: { TEST: { exit_state: { peak_pnl_pct_since_entry: 0.05 } } },
+    });
+    assert(!items.some(s => s.includes('TEST') && s.includes('Profit-Lock')),
+      'Builder 11 (peak<10%): KEIN Item');
+
+    // Builder 11: ohne current_pnl_pct → fallback-Wording
+    items = win._kiInsightItems({
+      positions: { TEST: { exit_state: { peak_pnl_pct_since_entry: 0.25 } } },
+    });
+    assert(items.some(s => s.includes('TEST') && s.includes('Höchst +25%')),
+      'Builder 11 ohne current_pnl: fallback-Wording mit Höchst-Wert');
+
+    // Builder 12: Insider-Käufe
+    items = win._kiInsightItems({
+      agent_signals: { signals: { ABC: { insider_buy: true } } },
+    });
+    assert(items.some(s => s.includes('ABC') && s.includes('Insider haben heute gekauft')),
+      `Builder 12: erwartet "ABC: Insider haben heute gekauft" in ${JSON.stringify(items)}`);
+
+    // Builder 12: insider_buy=false → kein Item
+    items = win._kiInsightItems({
+      agent_signals: { signals: { TEST: { insider_buy: false } } },
+    });
+    assert(!items.some(s => s.includes('Insider')),
+      'Builder 12 (false): KEIN Item');
+
+    // Builder 12: erster Treffer reicht (mehrere Insider-Buys → 1 Item)
+    items = win._kiInsightItems({
+      agent_signals: { signals: {
+        AAA: { insider_buy: true },
+        BBB: { insider_buy: true },
+      }},
+    });
+    const insiderItems = items.filter(s => s.includes('Insider'));
+    assert(insiderItems.length === 1,
+      `Builder 12: erwartet 1 Insider-Item, fand ${insiderItems.length}`);
+
+    // Defensive: alle 5 neuen Builder mit fehlenden/null-Daten → kein Crash
+    items = win._kiInsightItems({
+      watchlist_cards: { TST: { earnings_days: null, si_accel: null,
+                                  si_tpct: undefined, rel_volume: 'bad' } },
+      agent_signals: { signals: { TST: { earnings: null, rvol: NaN,
+                                          insider_buy: null } } },
+      positions: { TST: { exit_state: { peak_pnl_pct_since_entry: 'bad',
+                                         current_pnl_pct: undefined } } },
+    });
+    // Kein Crash, kein Builder-8/9/10/11/12-Item
+    assert(!items.some(s => s.includes('Earnings') || s.includes('beschleunigt') ||
+                              s.includes('RVOL') || s.includes('Profit-Lock') ||
+                              s.includes('Insider')),
+      `Defensive: bei invaliden Daten dürfen die 5 Builder NICHTS pushen. items=${JSON.stringify(items)}`);
+
+    // Integration: alle 5 Builder zusammen + bestehende → ≥5 Items für
+    // _populateKiInsightStream-Schwelle 4 sicher überschritten
+    items = win._kiInsightItems({
+      vix_current: 18.0,
+      monster_scores: { MED: 90 },
+      setup_scores: { MED: 87, IART: 80, INDI: 75 },
+      score_history: {
+        MED: [['28.04.', 86], ['29.04.', 87], ['30.04.', 87]],
+        IART: [['29.04.', 70], ['30.04.', 80]],
+        INDI: [['29.04.', 60], ['30.04.', 75]],
+      },
+      watchlist_cards: {
+        NUVB: { si_accel: true, si_tpct: 100, rel_volume: 3.5,
+                  earnings_days: 1 },
+      },
+      agent_signals: { signals: {
+        GRPN: { push_silenced: true, silenced_reason: 'RSI > 75' },
+        ABC:  { insider_buy: true },
+      }},
+      positions: {
+        AMC: { exit_state: { peak_pnl_pct_since_entry: 0.20,
+                              current_pnl_pct: 0.15, exit_pressure: 60 } },
+      },
+      top10_metrics: { TDUP: { rsi14: 80 } },
+    });
+    assert(items.length >= 5,
+      `Integration mit 5 Tier-1-Buildern: erwartet ≥5 Items, fand ${items.length}: ${JSON.stringify(items)}`);
+
+    dom.window.close();
+  });
+
   console.log('OK: Alle Smoke-Szenarien grün.');
   process.exit(0);
 })().catch((e) => {

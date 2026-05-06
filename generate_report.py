@@ -6420,6 +6420,121 @@ function _kiInsightItems(appData) {{
     if (hot) items.push(`${{hot.t}} RSI ${{Math.round(hot.r)}} — Setup läuft heiß`);
   }});
 
+  // (8) Earnings-Trigger — nächster Termin in den nächsten 3 Tagen.
+  // Quelle: agent_signals.signals[t].earnings (Format "in N Tagen ...")
+  // ODER watchlist_cards[t].earnings_days (Int). Beide Pfade prüfen.
+  _try(() => {{
+    let nearest = null;   // {{t, days}}
+    const _wl = appData.watchlist_cards || {{}};
+    for (const t in sigs) {{
+      const s = sigs[t];
+      if (!s) continue;
+      // earnings-String parsen: "in N Tagen (...)" → N
+      let days = null;
+      const e = s.earnings;
+      if (typeof e === 'string') {{
+        // Regex bewusst ohne \\s/\\d (Python-Escape-Konflikt mit Smoke-
+        // Test-Source-Extraktion); ` +` und `[0-9]+` sind funktional
+        // äquivalent für das Format "in N Tagen".
+        const m = e.match(/in +([0-9]+) +Tagen/);
+        if (m) days = parseInt(m[1], 10);
+      }}
+      // Fallback auf watchlist_cards-earnings_days
+      if (days == null) {{
+        const wl = _wl[t];
+        if (wl && typeof wl.earnings_days === 'number' && isFinite(wl.earnings_days)) {{
+          days = wl.earnings_days;
+        }}
+      }}
+      if (days == null || days < 0 || days > 3) continue;
+      if (!nearest || days < nearest.days) nearest = {{ t, days }};
+    }}
+    // Auch Watchlist-Karten ohne Signal-Eintrag durchgehen
+    for (const t in _wl) {{
+      const wl = _wl[t];
+      const days = wl && wl.earnings_days;
+      if (typeof days !== 'number' || !isFinite(days)) continue;
+      if (days < 0 || days > 3) continue;
+      if (!nearest || days < nearest.days) nearest = {{ t, days }};
+    }}
+    if (!nearest) return;
+    const phrase = nearest.days === 0
+      ? `${{nearest.t}} hat heute Earnings — klassischer Squeeze-Trigger`
+      : `${{nearest.t}} hat Earnings in ${{nearest.days}} Tagen — klassischer Squeeze-Trigger`;
+    items.push(phrase);
+  }});
+
+  // (9) FINRA-Trend-Beschleunigung — Short-Interest baut sich rasant auf.
+  _try(() => {{
+    const _wl = appData.watchlist_cards || {{}};
+    let top = null;    // {{t, tpct}}
+    for (const t in _wl) {{
+      const c = _wl[t];
+      if (!c || c.si_accel !== true) continue;
+      const tpct = c.si_tpct;
+      if (typeof tpct !== 'number' || !isFinite(tpct) || tpct < 50) continue;
+      if (!top || tpct > top.tpct) top = {{ t, tpct }};
+    }}
+    if (!top) return;
+    items.push(`${{top.t}} Short-Interest +${{top.tpct.toFixed(0)}}% beschleunigt — Druck baut sich auf`);
+  }});
+
+  // (10) RVOL-Spike — ungewöhnliches Tagesvolumen.
+  _try(() => {{
+    const _wl = appData.watchlist_cards || {{}};
+    let top = null;    // {{t, rv}}
+    for (const t in _wl) {{
+      const c = _wl[t];
+      const rv = c && c.rel_volume;
+      if (typeof rv !== 'number' || !isFinite(rv) || rv <= 3.0) continue;
+      if (!top || rv > top.rv) top = {{ t, rv }};
+    }}
+    // Sekundärquelle: agent_signals.signals[t].rvol — fängt Top-10-Ticker
+    // ohne manual_personal-Watchlist-Eintrag ab.
+    for (const t in sigs) {{
+      const s = sigs[t];
+      const rv = s && s.rvol;
+      if (typeof rv !== 'number' || !isFinite(rv) || rv <= 3.0) continue;
+      if (!top || rv > top.rv) top = {{ t, rv }};
+    }}
+    if (!top) return;
+    items.push(`${{top.t}} RVOL ${{top.rv.toFixed(1)}}× — extreme Aktivität`);
+  }});
+
+  // (11) Position-PnL-Highlight — Peak ≥ 10% jemals erreicht.
+  _try(() => {{
+    let top = null;   // {{t, peak, current}}
+    for (const t in positions) {{
+      const p = positions[t];
+      const exit = p && p.exit_state;
+      if (!exit) continue;
+      const peak = exit.peak_pnl_pct_since_entry;
+      if (typeof peak !== 'number' || !isFinite(peak) || peak < 0.10) continue;
+      const cur = (typeof exit.current_pnl_pct === 'number' && isFinite(exit.current_pnl_pct))
+        ? exit.current_pnl_pct : null;
+      if (!top || peak > top.peak) top = {{ t, peak, current: cur }};
+    }}
+    if (!top) return;
+    const peakPct = (top.peak * 100).toFixed(0);
+    if (top.current != null) {{
+      const curPct = (top.current * 100).toFixed(0);
+      items.push(`${{top.t}} läuft +${{curPct}}% seit Entry (Höchst: +${{peakPct}}%) — Profit-Lock im Blick behalten`);
+    }} else {{
+      items.push(`${{top.t}} Höchst +${{peakPct}}% seit Entry — Profit-Lock im Blick behalten`);
+    }}
+  }});
+
+  // (12) Insider-Käufe — direktes Smart-Money-Signal.
+  _try(() => {{
+    for (const t in sigs) {{
+      const s = sigs[t];
+      if (s && s.insider_buy === true) {{
+        items.push(`${{t}}: Insider haben heute gekauft`);
+        return;   // erster Treffer reicht
+      }}
+    }}
+  }});
+
   // Stabile Reihenfolge ohne Duplikate
   const seen = new Set();
   return items.filter(s => {{
