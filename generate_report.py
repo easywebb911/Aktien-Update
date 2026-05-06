@@ -6347,12 +6347,26 @@ function _kiInsightItems(appData) {{
   }});
 
   // (4) Score-Sprung — Ticker mit größter positiver Änderung gegenüber
-  // dem vorletzten History-Eintrag
+  // dem vorletzten History-Eintrag. Aktualitäts-Filter: nur Tickers,
+  // deren letzter History-Eintrag heute ist (DD.MM.YYYY-Format wie in
+  // score_history) UND die im aktuellen Universum (setup_scores /
+  // monster_scores) auftauchen — sonst persistiert ein veralteter
+  // History-Eintrag (score_history ist append-only) deterministisch
+  // als Sieger, obwohl der Ticker längst nicht mehr gescannt wird.
   _try(() => {{
+    const today = (() => {{
+      const d = new Date();
+      const dd = String(d.getDate()).padStart(2, '0');
+      const mm = String(d.getMonth() + 1).padStart(2, '0');
+      return `${{dd}}.${{mm}}.${{d.getFullYear()}}`;
+    }})();
     const jumps = [];
     for (const t in history) {{
       const h = history[t] || [];
       if (h.length < 2) continue;
+      const lastDate = Array.isArray(h[h.length-1]) ? h[h.length-1][0] : null;
+      if (lastDate !== today) continue;
+      if (!(t in setupS) && !(t in monster)) continue;
       const cur = Array.isArray(h[h.length-1]) ? h[h.length-1][1] : null;
       const prev = Array.isArray(h[h.length-2]) ? h[h.length-2][1] : null;
       if (typeof cur !== 'number' || typeof prev !== 'number') continue;

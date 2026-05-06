@@ -1082,6 +1082,77 @@ function assert(cond, msg) {
     dom.window.close();
   });
 
+  // ── Szenario 13: KI-Insight Score-Sprung — Aktualitäts-Filter
+  // Bug-Fix: Ticker mit veraltetem letzten History-Eintrag (z. B. XRX
+  // mit +48-Pkt-Sprung am 30.04.) persistierte deterministisch als
+  // Score-Sprung-Sieger. Builder #4 muss heute zwei Filter erfüllen:
+  // (A) lastDate == today (DD.MM.YYYY)
+  // (B) Ticker im aktuellen Universum (setup_scores ODER monster_scores)
+  await runScenario('KI-Insight Score-Sprung — Aktualitäts- und Universums-Filter', async () => {
+    const dom = await buildDom();
+    const win = dom.window;
+    // IMMER aus generate_report.py re-evaluieren — index.html im Repo
+    // kann eine ältere Version der Funktion liefern (vor dem Deploy
+    // dieses Patches), der Test soll aber gegen die Source-of-Truth
+    // verifizieren.
+    const src = fs.readFileSync(
+      path.resolve(__dirname, '..', 'generate_report.py'), 'utf8');
+    const marker = src.indexOf('// ── KI-Insight-Stream (Variante D)');
+    const endMarker = src.indexOf('// ── Backtesting-Sektion', marker);
+    assert(marker > 0 && endMarker > marker,
+      'KI-Insight-Stream-Block in generate_report.py nicht gefunden');
+    const jsClean = src.slice(marker, endMarker)
+      .replace(/\{\{/g, '{').replace(/\}\}/g, '}');
+    win.eval(jsClean);
+    assert(typeof win._kiInsightItems === 'function',
+      '_kiInsightItems nicht auf window');
+    const d = new Date();
+    const today = `${String(d.getDate()).padStart(2,'0')}.${String(d.getMonth()+1).padStart(2,'0')}.${d.getFullYear()}`;
+
+    // (A) Stale-Ticker mit großem Sprung (XRX-Reproducer):
+    // delta=+48, aber lastDate=30.04.2026 (nicht heute) → muss gefiltert
+    // werden, obwohl er den größten Delta hätte.
+    let items = win._kiInsightItems({
+      setup_scores: { ABC: 75 },
+      monster_scores: {},
+      score_history: {
+        XRX: [['29.04.2026', 40], ['30.04.2026', 88]],
+        ABC: [['30.04.2026', 70], [today, 76]],
+      },
+    });
+    let joined = items.join('\n');
+    assert(!joined.includes('XRX +'),
+      `Stale XRX (lastDate alt) erscheint im Score-Sprung-Insight: ${joined}`);
+    assert(joined.includes('ABC +6'),
+      `Aktueller ABC (lastDate=heute, in setup_scores, delta=+6) fehlt: ${joined}`);
+
+    // (B) Ticker mit lastDate=heute, aber NICHT im Universum → gefiltert
+    items = win._kiInsightItems({
+      setup_scores: {},
+      monster_scores: {},
+      score_history: {
+        GHOST: [['30.04.2026', 50], [today, 90]],   // delta=+40, heute, aber kein Universum
+      },
+    });
+    joined = items.join('\n');
+    assert(!joined.includes('GHOST +'),
+      `GHOST außerhalb Universum sollte gefiltert sein: ${joined}`);
+
+    // (B') Universum-Match via monster_scores reicht aus
+    items = win._kiInsightItems({
+      setup_scores: {},
+      monster_scores: { MON: 70 },
+      score_history: {
+        MON: [['30.04.2026', 40], [today, 60]],   // +20, heute, in monster_scores
+      },
+    });
+    joined = items.join('\n');
+    assert(joined.includes('MON +20'),
+      `MON in monster_scores sollte als Score-Sprung erscheinen: ${joined}`);
+
+    dom.window.close();
+  });
+
   console.log('OK: Alle Smoke-Szenarien grün.');
   process.exit(0);
 })().catch((e) => {
