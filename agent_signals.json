@@ -1,10 +1,10 @@
 {
-  "updated": "2026-05-07T00:52:05.891583+02:00",
+  "updated": "2026-05-07T01:49:07.109891+02:00",
   "run_info": {
     "tickers_checked": 10,
     "signals_active": 5,
     "alerts_sent": 0,
-    "elapsed_s": 17.0,
+    "elapsed_s": 14.9,
     "market_phase": "After-Hours"
   },
   "signals": {
@@ -30,9 +30,9 @@
       "uoa_cp_ratio": 5.319038642789821
     },
     "AVTX": {
-      "score": 15,
+      "score": 8,
       "confidence": 17,
-      "drivers": "News: breakout",
+      "drivers": "News-KI 8/30: Positive clinical data and capital raise support fundamentals but small biotech lacks short interest catalyst typical of",
       "price": 21.81,
       "chg_pct": 0.0,
       "rvol": 0.0,
@@ -42,7 +42,7 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 1,
+      "active_triggers": 0,
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": 0.26309161506978695,
@@ -131,7 +131,7 @@
     "GRPN": {
       "score": 72,
       "confidence": 33,
-      "drivers": "Earnings in 1 Tagen (07.05.2026) + News: short squeeze, squeeze + Earnings in 1d + UOA Call/Put 4.0×",
+      "drivers": "Earnings in 1 Tagen (07.05.2026) + News: squeeze, short squeeze + Earnings in 1d + UOA Call/Put 4.0×",
       "price": 15.85,
       "chg_pct": 0.0,
       "rvol": 0.0,
@@ -150,9 +150,9 @@
       "uoa_cp_ratio": 3.9641847313854854
     },
     "OXM": {
-      "score": 33,
-      "confidence": 17,
-      "drivers": "Earnings in 35d + FINRA Short-Vol 98%",
+      "score": 41,
+      "confidence": 33,
+      "drivers": "News-KI 8/30: Negative earnings outlook and analyst downgrades indicate weak fundamentals with limited short squeeze potential despite + Earnings in 35d + FINRA Short-Vol 98%",
       "price": 45.57,
       "chg_pct": 0.0,
       "rvol": 0.0,
@@ -169,9 +169,9 @@
       "uoa_cp_ratio": 0.25925925925925924
     },
     "ULCC": {
-      "score": 25,
+      "score": 10,
       "confidence": 17,
-      "drivers": "News: short interest + UOA Call/Put 21.3×",
+      "drivers": "UOA Call/Put 21.3×",
       "price": 4.78,
       "chg_pct": 0.0,
       "rvol": 0.0,
@@ -181,7 +181,7 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 1,
+      "active_triggers": 0,
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 21.3×"
