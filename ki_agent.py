@@ -1772,6 +1772,72 @@ def _exit_cooldown_expired_keys(state: dict, prefix: str,
     return out
 
 
+def process_exit_signals(app_data: dict, state: dict) -> None:
+    """Phase 2 Stufe 3b-1: Trigger-Auswertung mit Log-Output (KEIN Push).
+
+    Liest ``exit_state`` aus ``app_data["positions"]`` (vom Daily-Run via
+    generate_report._build_phase2_positions_payload geschrieben) und
+    ermittelt für jeden Ticker, welche Pushes FÄLLIG WÄREN — Eskalation
+    (pressure > 75), Warnung (55..75), Trigger (einzelner Crit). Statt zu
+    senden: ``print()`` mit ``[exit_p2] WOULD-PUSH ...`` oder
+    ``[exit_p2] SKIP ...`` bei aktivem Cooldown.
+
+    State-Verhalten: NUR LESEN über ``_exit_cooldown_active``,
+    NICHT SCHREIBEN. Sobald Stufe 3b-2 echte Pushes versendet, würde
+    sonst der hier gesetzte Cooldown den ersten Push blockieren.
+
+    Eskalations-Cooldown ist hours=0 (no-op) — once-per-cross-Logik
+    (Vergleich gegen voriges pressure aus prev-app_data) folgt in 3b-2.
+    """
+    positions = (app_data or {}).get("positions") or {}
+    if not positions:
+        return
+    for ticker, p in positions.items():
+        if not isinstance(p, dict):
+            continue
+        exit_state = p.get("exit_state")
+        if not isinstance(exit_state, dict):
+            continue
+        pressure = exit_state.get("exit_pressure")
+        try:
+            pressure_v = float(pressure) if pressure is not None else None
+        except (TypeError, ValueError):
+            pressure_v = None
+        triggers = exit_state.get("triggers") or {}
+
+        # Composite-Push: Eskalation und Warnung schließen sich aus.
+        if pressure_v is not None and pressure_v > EXIT_PUSH_ESCALATION_THRESHOLD:
+            key = f"exitp2_escalation_{ticker}"
+            if _exit_cooldown_active(state, key, 0):
+                # Mit hours=0 nie aktiv — Code-Symmetrie zu warning/trigger.
+                print(f"[exit_p2] SKIP escalation {ticker}: cooldown_active")
+            else:
+                print(f"[exit_p2] WOULD-PUSH escalation {ticker}: pressure={pressure_v:.0f}")
+        elif (pressure_v is not None
+              and EXIT_PUSH_WARNING_THRESHOLD_LOW <= pressure_v <= EXIT_PUSH_WARNING_THRESHOLD_HIGH):
+            key = f"exitp2_warning_{ticker}"
+            if _exit_cooldown_active(state, key, EXIT_PUSH_WARNING_COOLDOWN_HOURS):
+                print(f"[exit_p2] SKIP warning {ticker}: cooldown_active")
+            else:
+                print(f"[exit_p2] WOULD-PUSH warning {ticker}: pressure={pressure_v:.0f}")
+
+        # Trigger-Pushes pro Crit-Trigger — UNABHÄNGIG von pressure-Range,
+        # weil ein einzelner Crit-Trigger auch bei Composite < 55 sinnvoll
+        # alarmieren kann (z.B. profit_lock crit ohne andere aktive Trigger).
+        if isinstance(triggers, dict):
+            for tname, t in triggers.items():
+                if not isinstance(t, dict):
+                    continue
+                if t.get("crit") is not True:
+                    continue
+                key = f"exitp2_trigger_{ticker}_{tname}"
+                if _exit_cooldown_active(state, key, EXIT_PUSH_TRIGGER_COOLDOWN_HOURS):
+                    print(f"[exit_p2] SKIP trigger {ticker} {tname}: cooldown_active")
+                else:
+                    details = t.get("details") or {}
+                    print(f"[exit_p2] WOULD-PUSH trigger {ticker} {tname}: {details}")
+
+
 def _send_anomaly_ntfy(ticker: str, body: str) -> bool:
     """Single-shot ntfy.sh Push für Anomalie-Trigger. Fail-soft."""
     if not NTFY_ENABLED or not NTFY_TOPIC:
@@ -2853,6 +2919,17 @@ def main() -> None:
                 state["last_daily_summary"] = today_iso
         else:
             log.debug("Tages-Zusammenfassung bereits heute gesendet — übersprungen.")
+
+    # Phase 2 Stufe 3b-1: Exit-Push-Trigger-Auswertung als Log-Output.
+    # KEIN echter Push-Versand in dieser Stufe — process_exit_signals
+    # liest exit_state aus app_data und logt nur "WOULD-PUSH ..." /
+    # "SKIP ...". State wird NUR gelesen (Cooldown-Check), NICHT
+    # geschrieben — sonst würde der erste echte Push aus 3b-2 von
+    # diesem hier-gesetzten Cooldown blockiert.
+    try:
+        process_exit_signals(app_data, state)
+    except Exception as exc:
+        log.warning("process_exit_signals fehlgeschlagen: %s", exc)
 
     save_state(state)
 

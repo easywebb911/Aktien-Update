@@ -589,6 +589,16 @@ EXIT_PHASE2_W_SETUP_EROSION  = 0.15
 EXIT_PHASE2_W_CATALYST       = 0.05
 EXIT_PHASE2_W_TREND_BREAK    = 0.05
 
+# ── Phase 2 Stufe 3 Push-Schwellen + Cooldowns (3b-1: nur Log, kein Push) ────
+# Drei Push-Klassen, ihre Schwellenwerte und Cooldown-Dauern. In Stufe 3b-1
+# nur als Log-Output ausgewertet (process_exit_signals in ki_agent.py),
+# echter Push-Versand folgt in Stufe 3b-2/3c.
+EXIT_PUSH_ESCALATION_THRESHOLD     = 75   # exit_pressure > 75 → Eskalation
+EXIT_PUSH_WARNING_THRESHOLD_LOW    = 55   # 55 ≤ exit_pressure ≤ 75 → Warnung
+EXIT_PUSH_WARNING_THRESHOLD_HIGH   = 75
+EXIT_PUSH_WARNING_COOLDOWN_HOURS   = 12   # pro Ticker
+EXIT_PUSH_TRIGGER_COOLDOWN_HOURS   = 24   # pro (Ticker × Trigger-Name)
+
 # ── Phasenabhängige Alert-Schwellen ──────────────────────────────────────────
 # Zurückgesetzt — Bootstrap-Backtesting nicht mit Live-Scores vergleichbar.
 # Kalibrierung nach 60+ Tagen Live-Daten.
