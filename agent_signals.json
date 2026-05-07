@@ -1,17 +1,17 @@
 {
-  "updated": "2026-05-07T08:08:29.778767+02:00",
+  "updated": "2026-05-07T11:30:13.818310+02:00",
   "run_info": {
     "tickers_checked": 10,
     "signals_active": 3,
-    "alerts_sent": 0,
-    "elapsed_s": 13.2,
-    "market_phase": "Geschlossen"
+    "alerts_sent": 1,
+    "elapsed_s": 14.0,
+    "market_phase": "Pre-Market"
   },
   "signals": {
     "NVAX": {
-      "score": 25,
+      "score": 40,
       "confidence": 17,
-      "drivers": "News: halt + UOA Call/Put 5.3×",
+      "drivers": "News: breakout, halt + UOA Call/Put 5.3×",
       "price": 9.36,
       "chg_pct": 0.0,
       "rvol": 0.0,
@@ -32,7 +32,7 @@
     "TEAD": {
       "score": 99,
       "confidence": 33,
-      "drivers": "Earnings in 0 Tagen (07.05.2026) + News: partnership, merger + Earnings in 0d + FINRA Short-Vol 12876% + UOA Call/Put 180.8×",
+      "drivers": "Earnings in 0 Tagen (07.05.2026) + News: merger, partnership + Earnings in 0d + FINRA Short-Vol 12876% + UOA Call/Put 180.8×",
       "price": 1.15,
       "chg_pct": 0.0,
       "rvol": 0.0,
@@ -53,9 +53,9 @@
       "silenced_reason": "RSI 77 · +25% 2T"
     },
     "AVTX": {
-      "score": 8,
+      "score": 15,
       "confidence": 17,
-      "drivers": "News-KI 8/30: Positive clinical data and capital raise show progress, but small biotech with no short squeeze indicators; dilution fro",
+      "drivers": "News: breakout",
       "price": 21.81,
       "chg_pct": 0.0,
       "rvol": 0.0,
@@ -65,7 +65,7 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 0,
+      "active_triggers": 1,
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": null,
@@ -91,9 +91,9 @@
       "uoa_cp_ratio": null
     },
     "TNXP": {
-      "score": 44,
+      "score": 41,
       "confidence": 33,
-      "drivers": "Earnings in 4 Tagen (11.05.2026) + News: revenue beat + Earnings in 4d + UOA Call/Put 3.9×",
+      "drivers": "Earnings in 4 Tagen (11.05.2026) + News-KI 12/30: Positive clinical/commercial developments but small-cap biotech with limited short interest history and execution risks  + Earnings in 4d + UOA Call/Put 3.9×",
       "price": 14.69,
       "chg_pct": 0.0,
       "rvol": 0.0,
@@ -110,25 +110,6 @@
       ],
       "uoa_atm_ratio": null,
       "uoa_cp_ratio": 3.8947368421052633
-    },
-    "HRTX": {
-      "score": 15,
-      "confidence": 17,
-      "drivers": "Earnings in 4 Tagen (11.05.2026) + Earnings in 4d",
-      "price": 1.31,
-      "chg_pct": 0.0,
-      "rvol": 0.0,
-      "earnings": "in 4 Tagen (11.05.2026)",
-      "fda_date": null,
-      "upcoming_event": "Earnings in 4 Tagen (11.05.2026)",
-      "insider_buy": false,
-      "stocktwits": null,
-      "combo_mult": 1.0,
-      "active_triggers": 1,
-      "uoa_score": 0,
-      "uoa_drivers": [],
-      "uoa_atm_ratio": null,
-      "uoa_cp_ratio": 0.26666666666666666
     },
     "RR": {
       "score": 44,
@@ -150,6 +131,25 @@
       ],
       "uoa_atm_ratio": null,
       "uoa_cp_ratio": 14.27
+    },
+    "HRTX": {
+      "score": 15,
+      "confidence": 17,
+      "drivers": "Earnings in 4 Tagen (11.05.2026) + Earnings in 4d",
+      "price": 1.31,
+      "chg_pct": 0.0,
+      "rvol": 0.0,
+      "earnings": "in 4 Tagen (11.05.2026)",
+      "fda_date": null,
+      "upcoming_event": "Earnings in 4 Tagen (11.05.2026)",
+      "insider_buy": false,
+      "stocktwits": null,
+      "combo_mult": 1.0,
+      "active_triggers": 1,
+      "uoa_score": 0,
+      "uoa_drivers": [],
+      "uoa_atm_ratio": null,
+      "uoa_cp_ratio": 0.26666666666666666
     },
     "AEVA": {
       "score": 10,
