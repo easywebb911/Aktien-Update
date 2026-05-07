@@ -1,25 +1,19 @@
-# Session-Handover — Stand 06.05.2026
+# Session-Handover — Stand 07.05.2026
 
 ## Heute implementiert (chronologisch)
-- 1b64353 — fix: NameError 'ticker' in generate_report.py:6178
-  (JS-Kommentar mit {ticker}-Token in Python-f-String — durch
-  EUR-Stufe 3 ea52cfd eingeschleppt, Daily-Workflow scheiterte)
-- 726debf — fix: KI-Insight Score-Sprung (Builder #4) zeigt
-  veraltete Tickers wie XRX. Aktualitäts-Filter (lastDate ===
-  today) + Universums-Cross-Check gegen setup_scores/
-  monster_scores ergänzt
-- 4dfc140 — chore: node_modules/ in .gitignore (jsdom für
-  Smoke-Test, kein Repo-Inhalt)
-- cc9e9f9 — fix: Watchlist-Drift zwischen Browser und Gist —
-  3 von 4 Frontend-Schreibpfaden updaten den Gist nicht.
-  Helper _wlGistSyncWatchlist in wlAddManual, wlToggle,
-  wlRemoveTicker eingebaut. SNBR-Resurrection beim
-  nächsten Workflow-Tick gestoppt.
-- 742a1ab — feat: KI-Insight-Stream Tier-1-Erweiterung —
-  5 neue Builder (Earnings ≤3T, FINRA-Trend-Beschleunigung,
-  RVOL-Spike, Position-PnL-Highlight, Insider-Käufe).
-  Damit 12 Insight-Quellen statt 7 — Banner robust gegen
-  ruhige Tage.
+- d0d57e4 — feat: Phase 2 Stufe 3a (Cooldown-Infrastruktur in
+  ki_agent.py, KEIN Push-Versand)
+- ad52abc — feat: Phase 2 Stufe 3b-1 (Trigger-Auswertung mit
+  WOULD-PUSH-Logging, KEIN echter Push)
+- 1833ed4 — feat: Phase 2 Stufe 3b-2 (Trigger-Push-Klasse
+  scharfgeschaltet, 24h-Cooldown, Eskalation+Warnung bleiben
+  noch Logs)
+- a6a9209 — fix: price-Feld in watchlist_cards für Ticker mit
+  manual_personal-Bypass-only (NUVB/AMC zeigten 0)
+- 296a1e7 — feat: Score-Methodik Quick-Win Late-Runner-Penalty
+  (Score × 0.85 bei RSI > 75 ODER 2T-Move > 20%)
+- 507218c — feat: Score-Methodik Mittel-1 Earliness-Sub-Score
+  (compute_earliness_pts, NUR Logging, kein Score-Effekt)
 
 ## Aktive Positionen
 - GRPN · offen · läuft im Plus
@@ -27,85 +21,59 @@
 
 ## Verifikation morgen früh
 - Daily-Run regeneriert index.html mit:
-  - KI-Insight-Banner mit 12 Builder-Quellen (sollte
-    deutlich häufiger ≥4 Items haben)
-  - XRX-Stale-Bug behoben (Aktualitäts-Filter aktiv)
-  - Watchlist-Drift behoben (User-Edits werden
-    Gist-synchronisiert)
-- SNBR sollte nach heutigem Entfernen wegbleiben
-  (verifiziert)
-
-## Offene Tests/Beobachtungen
-- Beim nächsten Cmd+Shift+R: schauen ob Unlock-Modal
-  (nur Master-Passwort) oder Setup-Modal (Token + 2 PW)
-  kommt. Setup-Modal würde auf localStorage-Eviction
-  hindeuten (z.B. iOS Safari Storage-Räumung).
+  - NUVB/AMC zeigen jetzt Preis und P&L im Position-Panel
+  - Late-Runner-Penalty wirkt: TEAD-style 100-Tickers fallen
+    auf 85
+- ki_agent-Tick logged Earliness-Pts pro Ticker (Mittel-1)
+- ki_agent-Tick versendet bei Crit-Triggern echte Pushes
+  (3b-2, 24h-Cooldown)
 
 ## Geplante Aufgaben
-1. Phase 2 Stufe 3 (Push-Pipeline) — frühestens Donnerstag/
-   Freitag, drei Push-Klassen, exitp2_*-Cooldown-Prefix,
-   2-3 Tage Stabilitäts-Voraussetzung
-2. Phase 3 Exit-Signale (Wiedervorlage 15.05.2026) —
-   Blow-off-Top + IV-Crush
-3. Score-Aufschlüsselung pro Karte (Phase Y, Backlog) —
-   6 Schichten anzeigen beim Klick auf Setup-Score
-4. Immediacy-Score-Feature
-5. Bahn A2 (Frontend-Auswertungs-Panel) ab Ende Mai
-6. UX Backtesting "Nur Live"-Modus
-7. Setup-Verfall-Symmetrie weiter beobachten
-8. ⏰ Wiedervorlage 19.05.2026: app_data-recovery-Logik
-   bei nächstem Gist-Hiccup verifizieren, dann
-   POSITIONS_JSON-Secret löschen
-9. ⏰ Wiedervorlage 02.06.2026: Chart-Indikatoren prüfen
-   (EMA21, VWAP-Position, Bollinger-Band-Squeeze)
-10. ⏰ Wiedervorlage 02.07.2026: Premium-Daten-Stack prüfen
-11. Filter-Flexibilisierung prüfen (Bahn A2)
-12. Phase X — v1-Pfad-Migration (drei Schritte zusammen)
-13. Phase 2 Trigger 4-6 aktivieren (Setup-Erosion,
-    Catalyst, Trend-Bruch)
-14. Tier-2-Insight-Builder als Reserve falls 12er-Suite
-    nicht reicht: Sektor-Cluster, Days-to-Cover-Spitze,
-    52w-Distance
+1. Stufe Mittel-2 (Score-Effekt für Earliness) NACH
+   Empirik-Auswertung der Logs (mind. 1-2 Daily-Runs Daten)
+2. Phase 2 Stufe 3b-3 (Eskalations- + Warnungs-Pushes
+   scharfschalten)
+3. Phase 2 Stufe 3c (UI-Notification-History)
+4. Big-Refactor Zwei-Achsen-Ranking (Setup × Earliness),
+   nach 30+ Tagen Earliness-Daten
+5. Pre-Market-Volume als Earliness-Erweiterung (low-hanging
+   fruit)
+6. Phase 3 Exit-Signale (Wiedervorlage 15.05.2026)
+7. Score-Aufschlüsselung pro Karte (Phase Y)
+8. Immediacy-Score-Feature
+9. Bahn A2 (Frontend-Auswertungs-Panel)
+10. UX Backtesting "Nur Live"-Modus
+11. ⏰ Wiedervorlage 19.05.2026: app_data-recovery +
+    POSITIONS_JSON-Secret löschen
+12. ⏰ Wiedervorlage 02.06.2026: Chart-Indikatoren
+13. ⏰ Wiedervorlage 02.07.2026: Premium-Daten-Stack
+14. Phase X — v1-Pfad-Migration
+15. Phase 2 Trigger 4-6 (Setup-Erosion, Catalyst, Trend-Bruch)
+16. Tier-2-Insight-Builder als Reserve
 
-## Optional / niedrig priorisiert
-- IBKR Borrow Rate liefert konstant HTTP 404
-- DOUBTFUL Cleanup-Items
-- Per-Ticker Alert-Lock falls Alert-Loop parallelisiert
-- Watchlist-Drawer (buildWlDetails) auf neuen Score-Block
-- backtest_history.json einmal cachen
-- News-Decay-Logik auf UOA / Insider übertragen
-- KI-Agent-eigene Anomalien in Chat-Kontext
-- EDGAR_ACTIVIST_FILERS-Liste verfeinern
-- Smoke-Test um weitere Pfade erweitern
-- Verwaister Remote-Branch claude/diagnose-xrx-banner-bug
-  bereits gelöscht, andere Feature-Branches (last week,
-  2 weeks ago) ggf. aufräumen
+## Heutige große Themen
+- Phase 2 Stufe 3 in 3 Mini-Mini-Stufen (3a, 3b-1, 3b-2)
+- NUVB/AMC-Preis-Bug strukturell behoben
+- Score-Methodik um Late-Runner-Penalty + Earliness-Sub-Score
+  erweitert (TEAD-Phänomen adressiert)
 
 ## Architektur-Anker (in CLAUDE.md, hier als Reminder)
-- Master-Passwort-Token-Encryption (Single-Reader,
-  Two-Tier-Storage)
+- Master-Passwort-Token-Encryption
 - Watchlist-Score Single-Source-of-Truth
 - v1/v2-Render-Pfad — v2 NICHT autark
 - Push-Silence-Filter
 - top10_metrics + Phase 2 exit_state
-- JSON-Sanitizer (NaN/Infinity)
-- USD/EUR-Anzeige (flache Schema-Struktur, write-once
-  entry_fx)
-- Frontend-Watchlist-Sync (NEU): Browser muss bei jedem
-  Watchlist-Edit BEIDE Stores updaten (Repo-File via wlSave
-  + Gist via _wlGistSyncWatchlist), sonst werden User-Edits
-  vom nächsten Workflow-Tick zurückgerollt.
+- JSON-Sanitizer
+- USD/EUR-Anzeige
+- Frontend-Watchlist-Sync
+- Phase 2 Push-Pipeline (NEU): exitp2_*-Cooldown-Schema in
+  agent_state.json, Trigger-Push 24h aktiv, Eskalation+Warnung
+  noch Logs
+- Late-Runner-Penalty (NEU): Score × 0.85 bei RSI > 75 ODER
+  2T-Move > 20%
+- Earliness-Sub-Score (NEU): compute_earliness_pts schreibt
+  earliness_pts + breakdown ins Stock-Dict, ohne Score-Effekt
+  in Stufe 1; Score-Effekt erst nach Empirik-Verifikation
 
 ## Smoke-Test-Status
-scripts/smoke_render.js: jetzt 14 Szenarien, alle 14 grün.
-Heute erweitert: KI-Insight-Score-Sprung-Filter,
-Watchlist-Sync, 5 neue Insight-Builder.
-Echter f-String-Crash-Test (generate_html_v1-Aufruf mit
-Mock) ist jetzt Standard-Pflichtcheck nach NameError-Bug
-mit {ticker}.
-
-## Heutige große Themen
-- Daily-Workflow-Crash NameError {ticker} sofort gefixt
-- Watchlist-Drift-Bug zwischen Frontend und Gist behoben
-- KI-Insight-Banner robust gegen Stale-Daten + ruhige Tage
-- Phase 2 EUR-Migration (Stufe 4 von gestern verifiziert)
+14/14 grün, Echter f-String-Crash-Test ist Standard-Pflicht.
