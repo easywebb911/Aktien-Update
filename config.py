@@ -442,6 +442,17 @@ ANOMALY_VIX_WARN_THRESHOLD        = 25.0
 PUSH_RSI_MAX                      = 75.0
 PUSH_MOVE_2D_MAX                  = 0.20   # 20 %; Fraction (Close[-1]/Close[-3] − 1)
 
+# ── Late-Runner-Penalty (Score-Multiplikator für überhitzte Setups) ─────────
+# Setups mit RSI > LATE_RUNNER_RSI_THRESHOLD oder 2-Tages-Move >
+# LATE_RUNNER_MOVE_2D_THRESHOLD haben statistisch ihren Move bereits
+# gemacht — der hohe Score reflektiert vergangene Bewegung statt
+# Frühindikation. Score wird mit LATE_RUNNER_PENALTY (< 1.0) multipliziert,
+# damit „leise Akkumulation"-Kandidaten im Ranking nach oben rutschen.
+# Wirkt nach apply_score_smoothing, vor apply_monster_score.
+LATE_RUNNER_PENALTY               = 0.85
+LATE_RUNNER_RSI_THRESHOLD         = 75
+LATE_RUNNER_MOVE_2D_THRESHOLD     = 0.20   # Fraction (gleich PUSH_MOVE_2D_MAX, semantisch eigenständig)
+
 # ── SEC EDGAR 13D/13G Filings (Anomalie-Trigger) ────────────────────────────
 # Hybrid-Filter:
 #   • 13D / 13D/A: jeder Filing-Eintrag löst einen Push aus (aktive Stake-

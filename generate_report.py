@@ -2777,6 +2777,38 @@ def apply_score_smoothing(stocks: list[dict], today: str) -> None:
              f"saved to {SCORE_HISTORY_FILE}" if _dirty else "unchanged (skip write)")
 
 
+def apply_late_runner_penalty(stocks: list[dict]) -> None:
+    """Score-Multiplikator < 1.0 für überhitzte Setups (RSI > Threshold ODER
+    2-Tages-Move > Threshold). Adressiert die TEAD-Klasse: 100/100 obwohl
+    der Move schon gelaufen ist. Rein lesend auf rsi14 / change_2d —
+    keine Push-Silence-Mutation, keine UI-Änderungen, kein Schema-Change.
+    Setzt ``s["late_runner"] = True`` als Marker für spätere UI-Stufen.
+
+    Aufruf: nach apply_score_smoothing, vor apply_monster_score.
+    """
+    for s in stocks:
+        rsi14   = _safe_float(s.get("rsi14") or 0)
+        chg2d_p = s.get("change_2d")  # in Prozent, kann None sein
+        try:
+            chg2d_frac = float(chg2d_p) / 100.0 if chg2d_p is not None else 0.0
+        except (TypeError, ValueError):
+            chg2d_frac = 0.0
+
+        rsi_hot  = rsi14 > LATE_RUNNER_RSI_THRESHOLD
+        move_hot = chg2d_frac > LATE_RUNNER_MOVE_2D_THRESHOLD
+        if not (rsi_hot or move_hot):
+            continue
+
+        before = _safe_float(s.get("score") or 0)
+        after  = round(before * LATE_RUNNER_PENALTY, 1)
+        s["score"]       = after
+        s["late_runner"] = True
+        log.info(
+            "Late-Runner-Penalty %s: score=%.1f → %.1f (RSI=%.1f, move_2d=%.3f)",
+            s.get("ticker", "?"), before, after, rsi14, chg2d_frac,
+        )
+
+
 def apply_monster_score(stocks: list[dict]) -> None:
     """Berechnet Monster-Score pro Stock = Setup-Score gewichtet mit KI-Signal.
 
@@ -5426,6 +5458,16 @@ def generate_html_v1(stocks: list[dict], report_date: str, _ctx: dict | None = N
         </ul>
         <p style="font-size:.78rem;color:var(--txt-dim);margin:.7rem 0 0;line-height:1.5;font-style:italic">
           Nicht jedes Signal ist immer aktiv — Trigger ohne ausreichende Datenbasis werden übersprungen, das Gewicht der aktiven Trigger wird dann automatisch hochgerechnet.
+        </p>
+        <h4 style="margin-top:1.2rem">Late-Runner-Erkennung (vor dem Einstieg)</h4>
+        <p style="font-size:.82rem;color:var(--txt-sub);margin:.2rem 0 .6rem;line-height:1.55">
+          Manche Setups erreichen Top-Scores erst, <em>nachdem</em> der Move bereits gelaufen ist — der hohe Score reflektiert dann vergangene Bewegung statt einer frischen Einstiegs-Gelegenheit. Damit überhitzte Kandidaten nicht das Ranking dominieren, dämpft das System ihren Score automatisch:
+        </p>
+        <ul>
+          <li><strong>RSI(14) &gt; {LATE_RUNNER_RSI_THRESHOLD:.0f}</strong> ODER <strong>2-Tages-Move &gt; {(LATE_RUNNER_MOVE_2D_THRESHOLD*100):.0f}&nbsp;%</strong> → Score × {LATE_RUNNER_PENALTY:.2f}</li>
+        </ul>
+        <p style="font-size:.78rem;color:var(--txt-dim);margin:.5rem 0 0;line-height:1.5;font-style:italic">
+          Wirkt nach dem 3-Tage-Smoothing und vor der Monster-Score-Berechnung — der Penalty schlägt damit in beide Score-Anzeigen durch. „Leise Akkumulation"-Setups (niedriger RSI, geringer Tagesmove) werden so im Ranking gegenüber gelaufenen Tickern bevorzugt.
         </p>
       </div>
       <div class="info-box info-box--full">
@@ -11774,6 +11816,12 @@ def main():
 
     # --- Step 3a: Score smoothing (70 % today + 30 % avg last 3 runs) ---
     apply_score_smoothing(top10, report_date)
+
+    # Late-Runner-Penalty: überhitzte Setups (RSI > Threshold ODER 2T-Move >
+    # Threshold) bekommen Score × LATE_RUNNER_PENALTY. Adressiert
+    # TEAD-Klasse („100/100 obwohl gelaufen"). Vor apply_monster_score, damit
+    # der Penalty in den Monster-Score durchschlägt.
+    apply_late_runner_penalty(top10)
 
     # Feature 2 — Agent-Boost: KI-Agent-Score als Multiplikator on-top.
     # Kommt NACH dem Smoothing, damit die History den unboosted Base-Score
