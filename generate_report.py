@@ -2809,6 +2809,71 @@ def apply_late_runner_penalty(stocks: list[dict]) -> None:
         )
 
 
+def compute_earliness_pts(stocks: list[dict]) -> None:
+    """Stufe 1 — reine Beobachtungsgröße, KEIN Score-Effekt.
+
+    Misst „leise Akkumulation": FINRA-Short-Interest beschleunigt
+    (si_accelerating / si_velocity), während Kurs noch nicht gelaufen
+    ist (change_5d niedrig, RSI im normalen Bereich).
+
+    Schreibt nur ``s["earliness_pts"]`` (0..EARLINESS_PTS_MAX) und
+    ``s["earliness_breakdown"]`` (Debug-Dict). ``s["score"]`` bleibt
+    unberührt — Stufe Mittel-2 wird den Bonus später aktivieren.
+    """
+    for s in stocks:
+        # FINRA-Felder können entweder top-level (si_accel/si_velocity)
+        # oder verschachtelt (finra_data.si_accelerating/si_velocity)
+        # vorliegen — beide Quellen graceful zusammenziehen.
+        finra        = s.get("finra_data") or {}
+        accel_raw    = s.get("si_accel")
+        if accel_raw is None:
+            accel_raw = finra.get("si_accelerating")
+        velocity_raw = s.get("si_velocity")
+        if velocity_raw is None:
+            velocity_raw = finra.get("si_velocity")
+
+        try:
+            velocity = float(velocity_raw) if velocity_raw is not None else 0.0
+        except (TypeError, ValueError):
+            velocity = 0.0
+
+        chg5d_raw = s.get("change_5d")
+        try:
+            chg5d = float(chg5d_raw) if chg5d_raw is not None else None
+        except (TypeError, ValueError):
+            chg5d = None
+
+        rsi14_raw = s.get("rsi14")
+        try:
+            rsi14 = float(rsi14_raw) if rsi14_raw is not None else None
+        except (TypeError, ValueError):
+            rsi14 = None
+
+        accel_match    = bool(accel_raw) and chg5d is not None and chg5d < EARLINESS_MAX_CHANGE_5D_PCT
+        velocity_match = velocity >= EARLINESS_VELOCITY_THRESHOLD and rsi14 is not None and rsi14 < EARLINESS_MAX_RSI
+
+        pts = 0
+        if accel_match:
+            pts += EARLINESS_ACCEL_PTS
+        if velocity_match:
+            pts += EARLINESS_VELOCITY_PTS
+        pts = min(pts, EARLINESS_PTS_MAX)
+
+        s["earliness_pts"] = pts
+        s["earliness_breakdown"] = {
+            "accel_match":    accel_match,
+            "velocity_match": velocity_match,
+        }
+
+        if pts > 0:
+            log.info(
+                "Earliness %s: %d Pkt (accel=%s, velocity=%s, change_5d=%s, "
+                "rsi14=%s, si_velocity=%s)",
+                s.get("ticker", "?"), pts, accel_match, velocity_match,
+                chg5d, rsi14, velocity,
+            )
+
+
 def apply_monster_score(stocks: list[dict]) -> None:
     """Berechnet Monster-Score pro Stock = Setup-Score gewichtet mit KI-Signal.
 
@@ -11822,6 +11887,11 @@ def main():
     # TEAD-Klasse („100/100 obwohl gelaufen"). Vor apply_monster_score, damit
     # der Penalty in den Monster-Score durchschlägt.
     apply_late_runner_penalty(top10)
+
+    # Earliness-Sub-Score (Mittel-Refactor Stufe 1): reine Beobachtungs-
+    # größe — schreibt s["earliness_pts"] / s["earliness_breakdown"], lässt
+    # s["score"] unberührt. Stufe Mittel-2 aktiviert den Bonus später.
+    compute_earliness_pts(top10)
 
     # Feature 2 — Agent-Boost: KI-Agent-Score als Multiplikator on-top.
     # Kommt NACH dem Smoothing, damit die History den unboosted Base-Score

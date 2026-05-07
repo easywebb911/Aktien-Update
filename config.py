@@ -453,6 +453,18 @@ LATE_RUNNER_PENALTY               = 0.85
 LATE_RUNNER_RSI_THRESHOLD         = 75
 LATE_RUNNER_MOVE_2D_THRESHOLD     = 0.20   # Fraction (gleich PUSH_MOVE_2D_MAX, semantisch eigenständig)
 
+# ── Earliness-Sub-Score (Mittel-Refactor Stufe 1: Logging-only) ─────────────
+# Misst „leise Akkumulation" — FINRA-Short-Interest baut sich auf, während
+# der Kurs noch nicht gelaufen ist. Stufe 1 berechnet + persistiert nur
+# (s["earliness_pts"]); KEIN Score-Effekt — der Wert ist Beobachtungsgröße
+# bis Stufe Mittel-2 ihn als Bonus aktiviert.
+EARLINESS_PTS_MAX                 = 5
+EARLINESS_ACCEL_PTS               = 3      # si_accel + niedriger 5T-Move
+EARLINESS_VELOCITY_PTS            = 2      # si_velocity + niedriger RSI
+EARLINESS_VELOCITY_THRESHOLD      = 100    # tägliche FINRA-Velocity-Schwelle
+EARLINESS_MAX_CHANGE_5D_PCT       = 5.0    # Move noch nicht groß
+EARLINESS_MAX_RSI                 = 60     # RSI noch im normalen Bereich
+
 # ── SEC EDGAR 13D/13G Filings (Anomalie-Trigger) ────────────────────────────
 # Hybrid-Filter:
 #   • 13D / 13D/A: jeder Filing-Eintrag löst einen Push aus (aktive Stake-
