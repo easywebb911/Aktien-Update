@@ -1694,6 +1694,84 @@ def _anomaly_set_cooldown(key: str, state: dict) -> None:
     state.setdefault("cooldowns", {})[key] = now_berlin().isoformat()
 
 
+# ── Phase 2 Exit-Push-Cooldown-Infrastruktur (Stufe 3a/3) ────────────────────
+# KEIN Push-Versand in dieser Stufe — nur Cooldown-Verwaltung wird vorbereitet.
+# Drei Push-Klassen, ihre Cooldown-Dauern und Key-Schemas sind dokumentiert;
+# die Helper sind angelegt aber NIRGENDWO aufgerufen. Aktivierung erfolgt in
+# Stufe 3b/3c nach 2-3 Tagen UI-Verifikation der Stufen 1/2a/2b-1/2b-2/2b-3.
+#
+# Storage in agent_state.json["exit_cooldowns"] (separater Sub-Key, kollisions-
+# sicher zu state["cooldowns"] der Anomaly-/Agent-Classic-Pfade — Cleanup über
+# Prefix-Filter ohne Vermischung).
+#
+# Key-Schema:
+#   exitp2_escalation_<TICKER>
+#       Eskalations-Push bei exit_pressure > 75. Geplant: KEIN zeitbasierter
+#       Cooldown — Trigger nur on threshold-cross (once-per-cross via
+#       Vergleich mit voriger pressure aus app_data.json).
+#   exitp2_warning_<TICKER>
+#       Warnungs-Push bei exit_pressure 55..75. Geplant: 12h Cooldown.
+#   exitp2_trigger_<TICKER>_<TRIGGER_NAME>
+#       Einzelner Crit-Trigger (auch wenn Composite < 55). Geplant: 24h
+#       Cooldown pro (Ticker × Trigger). TRIGGER_NAME ∈ score_decay /
+#       profit_lock / overheated / setup_erosion / catalyst / trend_break.
+#
+# Hours-Werte werden als Parameter durchgereicht, NICHT als Modul-Konstanten —
+# erst in Stufe 3b verbindlich gesetzt.
+
+def _exit_cooldown_active(state: dict, key: str, hours: float) -> bool:
+    """Prüft, ob ``key`` in ``state["exit_cooldowns"]`` jünger als ``hours``
+    ist. Fail-soft: bei fehlendem Sub-Dict, fehlendem Key oder unparsebarem
+    Timestamp → ``False`` (= Cooldown nicht aktiv). In Stufe 3a aber ohnehin
+    nicht aufgerufen — die Funktion existiert für die spätere Push-Logik.
+    """
+    cd = state.get("exit_cooldowns") or {}
+    ts = cd.get(key)
+    if not ts:
+        return False
+    try:
+        last = datetime.fromisoformat(ts)
+    except (TypeError, ValueError):
+        return False
+    return (now_berlin() - last).total_seconds() < hours * 3600
+
+
+def _exit_cooldown_set(state: dict, key: str,
+                        ts: datetime | None = None) -> None:
+    """Setzt Cooldown-Timestamp für ``key``. ``ts`` default = now_berlin().
+    ``state["exit_cooldowns"]`` wird via ``setdefault`` lazy initialisiert —
+    keine separate Schema-Migration in load_state nötig.
+    """
+    if ts is None:
+        ts = now_berlin()
+    state.setdefault("exit_cooldowns", {})[key] = ts.isoformat()
+
+
+def _exit_cooldown_expired_keys(state: dict, prefix: str,
+                                  hours: float) -> list[str]:
+    """Liefert alle Keys aus ``state["exit_cooldowns"]`` mit dem angegebenen
+    Prefix, deren Timestamp älter als ``hours`` ist. Use-Case: periodisches
+    Aufräumen damit das State-File nicht ewig wächst (alte exitp2-Keys nach
+    z.B. 2× Cooldown-Dauer entfernen). Unparsebare Timestamps werden als
+    abgelaufen mit-zurückgegeben — der Aufrufer kann sie damit ebenfalls
+    entfernen.
+    """
+    cd = state.get("exit_cooldowns") or {}
+    threshold_s = hours * 3600
+    out: list[str] = []
+    for k, ts in cd.items():
+        if not k.startswith(prefix):
+            continue
+        try:
+            last = datetime.fromisoformat(ts)
+        except (TypeError, ValueError):
+            out.append(k)
+            continue
+        if (now_berlin() - last).total_seconds() >= threshold_s:
+            out.append(k)
+    return out
+
+
 def _send_anomaly_ntfy(ticker: str, body: str) -> bool:
     """Single-shot ntfy.sh Push für Anomalie-Trigger. Fail-soft."""
     if not NTFY_ENABLED or not NTFY_TOPIC:
