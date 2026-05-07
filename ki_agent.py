@@ -1782,12 +1782,15 @@ def process_exit_signals(app_data: dict, state: dict) -> None:
     senden: ``print()`` mit ``[exit_p2] WOULD-PUSH ...`` oder
     ``[exit_p2] SKIP ...`` bei aktivem Cooldown.
 
-    State-Verhalten: NUR LESEN über ``_exit_cooldown_active``,
-    NICHT SCHREIBEN. Sobald Stufe 3b-2 echte Pushes versendet, würde
-    sonst der hier gesetzte Cooldown den ersten Push blockieren.
+    Stufe-3b-2-Status (07.05.2026): Trigger-Klasse ist scharfgeschaltet —
+    bei crit-Trigger ohne aktiven Cooldown wird ein echter ntfy-Push
+    versendet (``_send_exit_p2_push``) und der Cooldown gesetzt
+    (24h pro Ticker × Trigger-Name). Composite-Klassen (Eskalation +
+    Warnung) bleiben weiterhin nur als WOULD-PUSH-Logs — schalten
+    erst in Stufe 3b-3 scharf.
 
     Eskalations-Cooldown ist hours=0 (no-op) — once-per-cross-Logik
-    (Vergleich gegen voriges pressure aus prev-app_data) folgt in 3b-2.
+    (Vergleich gegen voriges pressure aus prev-app_data) folgt in 3b-3.
     """
     positions = (app_data or {}).get("positions") or {}
     if not positions:
@@ -1824,6 +1827,9 @@ def process_exit_signals(app_data: dict, state: dict) -> None:
         # Trigger-Pushes pro Crit-Trigger — UNABHÄNGIG von pressure-Range,
         # weil ein einzelner Crit-Trigger auch bei Composite < 55 sinnvoll
         # alarmieren kann (z.B. profit_lock crit ohne andere aktive Trigger).
+        # SCHARFGESCHALTET in Stufe 3b-2: echter ntfy-Push, dann Cooldown
+        # 24h pro (Ticker × Trigger-Name). Push-Fail → KEIN Cooldown
+        # (nächster Tick versucht erneut, kein silent verloren).
         if isinstance(triggers, dict):
             for tname, t in triggers.items():
                 if not isinstance(t, dict):
@@ -1833,9 +1839,15 @@ def process_exit_signals(app_data: dict, state: dict) -> None:
                 key = f"exitp2_trigger_{ticker}_{tname}"
                 if _exit_cooldown_active(state, key, EXIT_PUSH_TRIGGER_COOLDOWN_HOURS):
                     print(f"[exit_p2] SKIP trigger {ticker} {tname}: cooldown_active")
+                    continue
+                details = t.get("details") or {}
+                body = f"🔻 Exit-Signal {ticker}: {tname} crit ({details})"
+                if _send_exit_p2_push(ticker, body):
+                    _exit_cooldown_set(state, key)
+                    print(f"[exit_p2] SENT trigger {ticker} {tname}: {details}")
                 else:
-                    details = t.get("details") or {}
-                    print(f"[exit_p2] WOULD-PUSH trigger {ticker} {tname}: {details}")
+                    # Fail-soft: kein Cooldown gesetzt → nächster Tick retried.
+                    print(f"[exit_p2] FAIL trigger {ticker} {tname}: send_failed")
 
 
 def _send_anomaly_ntfy(ticker: str, body: str) -> bool:
@@ -1856,6 +1868,35 @@ def _send_anomaly_ntfy(ticker: str, body: str) -> bool:
         return True
     except Exception as exc:
         log.warning("ntfy anomaly push fehlgeschlagen für %s: %s", ticker, exc)
+        return False
+
+
+def _send_exit_p2_push(ticker: str, body: str) -> bool:
+    """Single-shot ntfy.sh Push für Phase-2-Exit-Signale (Stufe 3b-2+).
+
+    Spiegelt ``_send_anomaly_ntfy`` strukturell — gleiches NTFY_TOPIC,
+    gleiche Priority — nutzt aber eigenen Title ``Exit-Signal: TICKER``
+    damit die Notification auf dem Handy klar als Exit-Trigger erkennbar
+    ist (separates Mental-Model zum Anomaly-Push). Fail-soft: bei
+    NTFY-Disabled oder POST-Fehler returnt False, der Aufrufer setzt
+    dann KEINEN Cooldown — nächster Tick versucht erneut.
+    """
+    if not NTFY_ENABLED or not NTFY_TOPIC:
+        return False
+    try:
+        requests.post(
+            f"https://ntfy.sh/{NTFY_TOPIC}",
+            data=body.encode("utf-8"),
+            headers={
+                "Title":    f"Exit-Signal: {ticker}",
+                "Priority": "high",
+                "Tags":     "rotating_light",
+            },
+            timeout=5,
+        )
+        return True
+    except Exception as exc:
+        log.warning("ntfy exit-p2 push fehlgeschlagen für %s: %s", ticker, exc)
         return False
 
 
