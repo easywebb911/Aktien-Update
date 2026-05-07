@@ -5,3 +5,5 @@ __pycache__/
 finra_dates_cache.json
 positions.json
 node_modules/
+package.json
+package-lock.json
