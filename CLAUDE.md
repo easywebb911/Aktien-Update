@@ -409,6 +409,31 @@ Warnung über `_wlWarn()`.
 
 ---
 
+## Phase 2 exit_state-Schema (app_data.json)
+
+Pro offener Position schreibt der Daily-Run via
+`_compute_exit_state` ein `exit_state`-Dict nach
+`app_data["positions"][ticker]["exit_state"]`. Felder:
+
+| Key | Typ | Bedeutung |
+|---|---|---|
+| `exit_pressure`             | int 0..100  | Composite aus den 6 Trigger-Sub-Scores |
+| `triggers`                  | dict        | Sub-Score-Dict pro Trigger (`score_decay`, `profit_lock`, `overheated`, `setup_erosion`, `catalyst`, `trend_break`) |
+| `peak_score_since_entry`    | float \| None | ratchet-up-only Setup-Score-Peak seit Entry |
+| `peak_pnl_pct_since_entry`  | float \| None | ratchet-up-only PnL-Peak seit Entry (Fraction) |
+| `current_score`             | float \| None | heutiger raw Setup-Score |
+| `current_pnl_pct`           | float \| None | heutige PnL-Fraction |
+| `prev_exit_pressure`        | int \| None   | `exit_pressure` des vorigen Daily-Runs, `None` bei Erstanlage / fehlendem prev_state / nicht-int-castbarem Wert. Wird in Stufe 3b-3 für once-per-cross-Eskalations-Logik gegen den aktuellen `exit_pressure` verglichen. |
+| `computed_at`               | str ISO-UTC | Schreib-Zeitstempel |
+
+Read-modify-write durch `_build_phase2_positions_payload`: voriges
+`exit_state` aus `prev_app_data` (= `_read_existing_app_data()`)
+wird als `prev_state`-Argument an `_compute_exit_state` durchgereicht.
+Peak-Felder sind ratchet-up-only; `prev_exit_pressure` ist ein
+reines Snapshot-Spiegelfeld (kein Ratchet).
+
+---
+
 ## Trade-Journal (Phase 2.5)
 
 Erweiterung des Position-Trackings um persistente Erfassung

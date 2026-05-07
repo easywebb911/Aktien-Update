@@ -11158,6 +11158,11 @@ def _compute_exit_state(
         prev_peak_score = float(prev_peak_score) if prev_peak_score is not None else None
     except (TypeError, ValueError):
         prev_peak_score = None
+    prev_pressure = prev.get("exit_pressure")
+    try:
+        prev_pressure = int(prev_pressure) if prev_pressure is not None else None
+    except (TypeError, ValueError):
+        prev_pressure = None
     peak_pnl = pnl_frac if prev_peak_pnl is None else (
         max(prev_peak_pnl, pnl_frac) if pnl_frac is not None else prev_peak_pnl)
     peak_score = cur_score if prev_peak_score is None else (
@@ -11209,6 +11214,7 @@ def _compute_exit_state(
         "peak_pnl_pct_since_entry": round(peak_pnl, 4) if peak_pnl is not None else None,
         "current_score":            round(cur_score, 1) if cur_score is not None else None,
         "current_pnl_pct":          round(pnl_frac, 4) if pnl_frac is not None else None,
+        "prev_exit_pressure":       prev_pressure,
         "computed_at":              now_utc.strftime("%Y-%m-%dT%H:%M:%SZ"),
     }
 
