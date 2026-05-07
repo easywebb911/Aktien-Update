@@ -633,6 +633,7 @@ def get_yfinance_data(ticker: str) -> dict:
         vol_ratio  = cur_vol / avg_vol_20 if avg_vol_20 > 0 else 0.0
         cur_open   = float(hist["Open"].iloc[-1])  if "Open"  in hist.columns and len(hist) >= 1 else None
         prev_close = float(hist["Close"].iloc[-2]) if len(hist) >= 2 else None
+        cur_close  = float(hist["Close"].iloc[-1]) if "Close" in hist.columns and len(hist) >= 1 else None
 
         rsi14, ma50, ma200, perf_20d = None, None, None, None
         if not hist.empty:
@@ -673,6 +674,7 @@ def get_yfinance_data(ticker: str) -> dict:
             "perf_20d":     perf_20d,
             "cur_open":     cur_open,
             "prev_close":   prev_close,
+            "price":        cur_close,
         }
     except Exception as exc:
         log.warning("yfinance error for %s: %s", ticker, exc)
@@ -735,7 +737,7 @@ def get_yfinance_batch(tickers: list[str]) -> dict[str, dict]:
         return rsi14, ma50, ma200, perf_20d
 
     def _hist_stats(ticker: str) -> tuple:
-        """Extract (avg_vol_20, cur_vol, vol_ratio, hi52, lo52, rsi14, ma50, ma200, perf_20d, cur_open, prev_close) from batch or fallback."""
+        """Extract (avg_vol_20, cur_vol, vol_ratio, hi52, lo52, rsi14, ma50, ma200, perf_20d, cur_open, prev_close, cur_close) from batch or fallback."""
         try:
             if hist_batch is not None and not hist_batch.empty:
                 # yf.download with one ticker returns a flat DataFrame;
@@ -750,7 +752,8 @@ def get_yfinance_batch(tickers: list[str]) -> dict[str, dict]:
                     rsi14, ma50, ma200, perf_20d = _compute_indicators(df)
                     cur_open   = float(df["Open"].iloc[-1])  if "Open"  in df.columns and len(df) >= 1 else None
                     prev_close = float(df["Close"].iloc[-2]) if len(df) >= 2 else None
-                    return avg_vol, cur_vol, vol_r, hi52, lo52, rsi14, ma50, ma200, perf_20d, cur_open, prev_close
+                    cur_close  = float(df["Close"].iloc[-1]) if "Close" in df.columns and len(df) >= 1 else None
+                    return avg_vol, cur_vol, vol_r, hi52, lo52, rsi14, ma50, ma200, perf_20d, cur_open, prev_close, cur_close
         except Exception:
             pass
         # Fallback: individual history call for this ticker
@@ -764,10 +767,11 @@ def get_yfinance_batch(tickers: list[str]) -> dict[str, dict]:
                 rsi14, ma50, ma200, perf_20d = _compute_indicators(df2)
                 cur_open   = float(df2["Open"].iloc[-1])  if "Open"  in df2.columns and len(df2) >= 1 else None
                 prev_close = float(df2["Close"].iloc[-2]) if len(df2) >= 2 else None
-                return avg_vol, cur_vol, vol_r, float(df2["High"].max()), float(df2["Low"].min()), rsi14, ma50, ma200, perf_20d, cur_open, prev_close
+                cur_close  = float(df2["Close"].iloc[-1]) if "Close" in df2.columns and len(df2) >= 1 else None
+                return avg_vol, cur_vol, vol_r, float(df2["High"].max()), float(df2["Low"].min()), rsi14, ma50, ma200, perf_20d, cur_open, prev_close, cur_close
         except Exception as exc2:
             log.debug("Fallback history failed for %s: %s", ticker, exc2)
-        return 0.0, 0.0, 0.0, None, None, None, None, None, None, None, None
+        return 0.0, 0.0, 0.0, None, None, None, None, None, None, None, None, None
 
     # ── Phase B: Parallel .info fetches (metadata not in download payload) ──
     def _fetch_info(ticker: str) -> tuple[str, dict]:
@@ -840,7 +844,7 @@ def get_yfinance_batch(tickers: list[str]) -> dict[str, dict]:
 
     # ── Combine history + info; fallback to individual call if both are empty ──
     for ticker in tickers:
-        avg_vol_20, cur_vol, vol_ratio, hi52, lo52, rsi14, ma50, ma200, perf_20d, cur_open, prev_close = _hist_stats(ticker)
+        avg_vol_20, cur_vol, vol_ratio, hi52, lo52, rsi14, ma50, ma200, perf_20d, cur_open, prev_close, cur_close = _hist_stats(ticker)
         info = info_map.get(ticker, {})
 
         # If the batch produced nothing useful for this ticker, fall back entirely
@@ -871,6 +875,7 @@ def get_yfinance_batch(tickers: list[str]) -> dict[str, dict]:
             "perf_20d":       perf_20d,
             "cur_open":       cur_open,
             "prev_close":     prev_close,
+            "price":          cur_close,
         }
 
         # change_5d und change_2d aus Batch-History.
@@ -11579,6 +11584,7 @@ def main():
             "sector_etf":          _sector_etf,        # Feature 5 (nur noch interne Spur)
             "cur_open":            yfd.get("cur_open"),
             "prev_close":          yfd.get("prev_close"),
+            "price":               yfd.get("price") or c.get("price"),
             "inst_ownership":  yfd.get("inst_ownership"),
             "float_shares":    yfd.get("float_shares", 0),
             "change_5d":       yfd.get("change_5d"),
