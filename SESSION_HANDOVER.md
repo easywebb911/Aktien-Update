@@ -24,23 +24,28 @@
   (3b-2, 24h-Cooldown), exit_cooldowns füllt sich
 
 ## Geplante Aufgaben
-1. Phase 2 Stufe 3b-3b — Eskalation + Warnung scharfschalten
+1. Pre-Market-Volume als Earliness-Erweiterung — Plan vorhanden,
+   Diff ~50-65 Zeilen, neuer 1m-prepost-Fetch-Pfad mit Timezone-
+   Handling. Wichtiger Conceptual-Risk-Hinweis aus
+   Bestandsaufnahme: change_overnight≥0-Filter sollte bei
+   Score-Effekt-Stufe (Mittel-2) mit drin sein, sonst Bad-News-
+   Panikverkauf als „Earliness" missinterpretierbar.
+   START NACH Daily-Run-Verifikation morgen früh.
+2. Phase 2 Stufe 3b-3b — Eskalation + Warnung scharfschalten
    (once-per-cross für Eskalation via prev_exit_pressure-
    Vergleich, 12h-Cooldown für Warnung, klassen-spezifische
    ntfy-Severity: urgent für Eskalation, high für Warnung).
    START NACH erfolgreicher Verifikation 3b-3a im Daily-Run.
-2. Phase 2 Stufe 3c (UI-Notification-History)
-3. Stufe Mittel-2 (Score-Effekt für Earliness) NACH
+3. Phase 2 Stufe 3c (UI-Notification-History)
+4. Stufe Mittel-2 (Score-Effekt für Earliness) NACH
    Empirik-Auswertung der Logs (mind. 1-2 Daily-Runs Daten)
-4. Big-Refactor Zwei-Achsen-Ranking (Setup × Earliness),
+5. Big-Refactor Zwei-Achsen-Ranking (Setup × Earliness),
    nach 30+ Tagen Earliness-Daten
-5. Pre-Market-Volume als Earliness-Erweiterung (low-hanging
-   fruit)
 6. Phase 3 Exit-Signale (Wiedervorlage 15.05.2026)
 7. Score-Aufschlüsselung pro Karte (Phase Y)
 8. Immediacy-Score-Feature
 9. Bahn A2 (Frontend-Auswertungs-Panel)
-10. UX Backtesting "Nur Live"-Modus
+10. UX Backtesting „Nur Live"-Modus
 11. ⏰ Wiedervorlage 19.05.2026: app_data-recovery +
     POSITIONS_JSON-Secret löschen
 12. ⏰ Wiedervorlage 02.06.2026: Chart-Indikatoren
@@ -51,7 +56,7 @@
 
 ## Heutige große Themen
 - Stufe 3b-3 in zwei Mini-Mini-Stufen zerlegt (3b-3a Schema,
-  3b-3b Push-Logik) — saubere Variante "perfekte Lösung"
+  3b-3b Push-Logik) — saubere Variante „perfekte Lösung"
   gewählt: once-per-cross statt Zeit-Cooldown für Eskalation,
   dafür Vorwert-Persistenz im exit_state-Schema nötig
 - Read-only-Bestandsaufnahme + Plan-Phase + Längen-Drift-
@@ -60,6 +65,11 @@
 - Längen-Drift im f-String-Crash-Test (337743 → 337718) als
   Disk-State/Mock-Artefakt entlarvt, kein Code-Drift
   (a7d5921 ist nur Doku, kategorisch ausgeschlossen)
+- Pre-Market-Volume-Erweiterung: Bestandsaufnahme + Plan
+  komplett, Implementierung auf morgen vertagt nach
+  Risiko-Analyse von Code (kein Mini-Add-On, sondern neuer
+  Fetch-Pfad mit DST/Timezone-Risiko + Conceptual Risk
+  Bad-News-Panikverkauf)
 
 ## Architektur-Anker (in CLAUDE.md, hier als Reminder)
 - Master-Passwort-Token-Encryption
