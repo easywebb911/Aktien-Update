@@ -1,17 +1,17 @@
 {
-  "updated": "2026-05-07T13:11:51.955953+02:00",
+  "updated": "2026-05-07T13:45:53.568609+02:00",
   "run_info": {
     "tickers_checked": 10,
     "signals_active": 3,
     "alerts_sent": 0,
-    "elapsed_s": 9.9,
+    "elapsed_s": 9.6,
     "market_phase": "Pre-Market"
   },
   "signals": {
     "NVAX": {
       "score": 40,
       "confidence": 17,
-      "drivers": "News: halt, breakout + UOA Call/Put 5.3×",
+      "drivers": "News: breakout, halt + UOA Call/Put 5.3×",
       "price": 9.36,
       "chg_pct": 0.0,
       "rvol": 0.0,
@@ -53,9 +53,9 @@
       "silenced_reason": "RSI 77 · +25% 2T"
     },
     "AVTX": {
-      "score": 12,
+      "score": 8,
       "confidence": 17,
-      "drivers": "News-KI 12/30: Positive clinical data and capital raise are bullish but dilution from $375M offering negates short-squeeze potential.",
+      "drivers": "News-KI 8/30: Positive clinical data and capital raise provide catalyst, but small biotech with dilutive offering and entrenched compe",
       "price": 21.81,
       "chg_pct": 0.0,
       "rvol": 0.0,
@@ -65,10 +65,10 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 1,
+      "active_triggers": 0,
       "uoa_score": 0,
       "uoa_drivers": [],
-      "uoa_atm_ratio": 0.2528492183560262,
+      "uoa_atm_ratio": 0.22338055778312393,
       "uoa_cp_ratio": 0.6396805512057626
     },
     "BV": {
@@ -87,7 +87,7 @@
       "active_triggers": 0,
       "uoa_score": 0,
       "uoa_drivers": [],
-      "uoa_atm_ratio": null,
+      "uoa_atm_ratio": 0.49019607843137253,
       "uoa_cp_ratio": null
     },
     "TNXP": {
@@ -108,7 +108,7 @@
       "uoa_drivers": [
         "UOA Call/Put 3.9×"
       ],
-      "uoa_atm_ratio": null,
+      "uoa_atm_ratio": 0.052364864864864864,
       "uoa_cp_ratio": 3.8947368421052633
     },
     "RR": {
@@ -129,13 +129,13 @@
       "uoa_drivers": [
         "UOA Call/Put 14.3×"
       ],
-      "uoa_atm_ratio": null,
+      "uoa_atm_ratio": 0.5332883056734852,
       "uoa_cp_ratio": 14.27
     },
     "HRTX": {
-      "score": 15,
-      "confidence": 17,
-      "drivers": "Earnings in 4 Tagen (11.05.2026) + Earnings in 4d",
+      "score": 23,
+      "confidence": 33,
+      "drivers": "Earnings in 4 Tagen (11.05.2026) + News-KI 8/30: Negative earnings outlook with expected decline provides no catalyst for short squeeze; weak fundamentals typically supp + Earnings in 4d",
       "price": 1.31,
       "chg_pct": 0.0,
       "rvol": 0.0,
