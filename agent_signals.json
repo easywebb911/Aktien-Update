@@ -1,18 +1,18 @@
 {
-  "updated": "2026-05-08T16:21:42.371412+02:00",
+  "updated": "2026-05-08T17:21:02.604254+02:00",
   "run_info": {
     "tickers_checked": 10,
     "signals_active": 1,
     "alerts_sent": 0,
-    "elapsed_s": 10.9,
+    "elapsed_s": 24.9,
     "market_phase": "Regulär"
   },
   "signals": {
     "GRPN": {
-      "score": 10,
+      "score": 18,
       "confidence": 17,
-      "drivers": "UOA Call/Put 16.4×",
-      "price": 18.61,
+      "drivers": "News-KI 8/30: Negative earnings miss with revenue shortfall indicates fundamental weakness rather than short-squeeze setup; no signifi + UOA Call/Put 14.5×",
+      "price": 18.32,
       "chg_pct": 0.0,
       "rvol": 0.0,
       "earnings": "in 89 Tagen (05.08.2026)",
@@ -24,16 +24,16 @@
       "active_triggers": 0,
       "uoa_score": 10,
       "uoa_drivers": [
-        "UOA Call/Put 16.4×"
+        "UOA Call/Put 14.5×"
       ],
-      "uoa_atm_ratio": 0.19807913314726647,
-      "uoa_cp_ratio": 16.364485981308412
+      "uoa_atm_ratio": 0.3637333771137744,
+      "uoa_cp_ratio": 14.46822033898305
     },
     "PRKS": {
-      "score": 35,
+      "score": 55,
       "confidence": 33,
-      "drivers": "Earnings in 3 Tagen (11.05.2026) + Earnings in 3d + UOA Call/Put 6.0×",
-      "price": 40.03,
+      "drivers": "Earnings in 3 Tagen (11.05.2026) + News: analyst upgrade + Earnings in 3d + UOA Call/Put 9.6×",
+      "price": 39.44,
       "chg_pct": 0.0,
       "rvol": 0.0,
       "earnings": "in 3 Tagen (11.05.2026)",
@@ -41,20 +41,20 @@
       "upcoming_event": "Earnings in 3 Tagen (11.05.2026)",
       "insider_buy": false,
       "stocktwits": null,
-      "combo_mult": 1.0,
-      "active_triggers": 1,
+      "combo_mult": 1.1,
+      "active_triggers": 2,
       "uoa_score": 10,
       "uoa_drivers": [
-        "UOA Call/Put 6.0×"
+        "UOA Call/Put 9.6×"
       ],
-      "uoa_atm_ratio": 0.07042253521126761,
-      "uoa_cp_ratio": 6.0
+      "uoa_atm_ratio": 0.323943661971831,
+      "uoa_cp_ratio": 9.6
     },
     "NVAX": {
-      "score": 30,
+      "score": 40,
       "confidence": 17,
-      "drivers": "News: breakout, earnings beat",
-      "price": 10.35,
+      "drivers": "News: halt, earnings beat + UOA Call/Put 40.7×",
+      "price": 10.41,
       "chg_pct": 0.0,
       "rvol": 0.0,
       "earnings": "in 89 Tagen (05.08.2026)",
@@ -64,16 +64,18 @@
       "stocktwits": null,
       "combo_mult": 1.0,
       "active_triggers": 1,
-      "uoa_score": 0,
-      "uoa_drivers": [],
-      "uoa_atm_ratio": 0.1683933817844441,
-      "uoa_cp_ratio": 1.2757936507936507
+      "uoa_score": 10,
+      "uoa_drivers": [
+        "UOA Call/Put 40.7×"
+      ],
+      "uoa_atm_ratio": 1.650842740064945,
+      "uoa_cp_ratio": 40.69288389513109
     },
     "PCT": {
       "score": 25,
       "confidence": 17,
-      "drivers": "News: catalyst + UOA Call/Put 2.9×",
-      "price": 9.18,
+      "drivers": "News: catalyst + UOA Call/Put 5.4×",
+      "price": 9.62,
       "chg_pct": 0.0,
       "rvol": 0.0,
       "earnings": "in 90 Tagen (06.08.2026)",
@@ -85,16 +87,16 @@
       "active_triggers": 1,
       "uoa_score": 10,
       "uoa_drivers": [
-        "UOA Call/Put 2.9×"
+        "UOA Call/Put 5.4×"
       ],
-      "uoa_atm_ratio": 0.654524089306698,
-      "uoa_cp_ratio": 2.885954381752701
+      "uoa_atm_ratio": 0.4371647509578544,
+      "uoa_cp_ratio": 5.414383561643835
     },
     "DMRC": {
       "score": 44,
       "confidence": 33,
-      "drivers": "Earnings in 4 Tagen (12.05.2026) + News: partnership + Earnings in 4d + UOA Call/Put 9.0×",
-      "price": 9.41,
+      "drivers": "Earnings in 4 Tagen (12.05.2026) + News: partnership + Earnings in 4d + UOA Call/Put 16.8×",
+      "price": 9.27,
       "chg_pct": 0.0,
       "rvol": 0.0,
       "earnings": "in 4 Tagen (12.05.2026)",
@@ -106,16 +108,16 @@
       "active_triggers": 2,
       "uoa_score": 10,
       "uoa_drivers": [
-        "UOA Call/Put 9.0×"
+        "UOA Call/Put 16.8×"
       ],
-      "uoa_atm_ratio": 0.012345679012345678,
-      "uoa_cp_ratio": 9.0
+      "uoa_atm_ratio": 0.205761316872428,
+      "uoa_cp_ratio": 16.833333333333332
     },
     "RXT": {
       "score": 15,
       "confidence": 17,
       "drivers": "News: partnership",
-      "price": 4.6,
+      "price": 4.91,
       "chg_pct": 0.0,
       "rvol": 0.0,
       "earnings": "in 90 Tagen (06.08.2026)",
@@ -128,13 +130,13 @@
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": null,
-      "uoa_cp_ratio": 0.25150602409638556
+      "uoa_cp_ratio": 0.7586206896551724
     },
     "CSIQ": {
       "score": 33,
       "confidence": 33,
       "drivers": "Earnings in 6 Tagen (14.05.2026) + News: earnings beat + Earnings in 6d",
-      "price": 19.33,
+      "price": 19.49,
       "chg_pct": 0.0,
       "rvol": 0.0,
       "earnings": "in 6 Tagen (14.05.2026)",
@@ -146,14 +148,14 @@
       "active_triggers": 2,
       "uoa_score": 0,
       "uoa_drivers": [],
-      "uoa_atm_ratio": 0.2079790712884238,
-      "uoa_cp_ratio": 1.3258785942492013
+      "uoa_atm_ratio": 0.7045454545454546,
+      "uoa_cp_ratio": 1.7768361581920904
     },
     "EVGO": {
-      "score": 15,
+      "score": 8,
       "confidence": 17,
-      "drivers": "News: short interest",
-      "price": 1.97,
+      "drivers": "News-KI 8/30: Positive revenue beat but Q1 loss and lack of significant growth catalysts or short-interest indicators present in headl",
+      "price": 1.98,
       "chg_pct": 0.0,
       "rvol": 0.0,
       "earnings": "in 88 Tagen (04.08.2026)",
@@ -162,17 +164,17 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 1,
+      "active_triggers": 0,
       "uoa_score": 0,
       "uoa_drivers": [],
-      "uoa_atm_ratio": 0.012307692307692308,
-      "uoa_cp_ratio": 0.5531914893617021
+      "uoa_atm_ratio": 0.006153846153846154,
+      "uoa_cp_ratio": 0.3230769230769231
     },
     "PRTA": {
-      "score": 25,
+      "score": 15,
       "confidence": 17,
-      "drivers": "News: acquisition + UOA Call/Put 7.0×",
-      "price": 11.05,
+      "drivers": "News-KI 5/30: Routine earnings announcement with no indicators of short squeeze potential such as high short interest, major instituti + UOA Call/Put 11.8×",
+      "price": 10.79,
       "chg_pct": 0.0,
       "rvol": 0.0,
       "earnings": "in 87 Tagen (03.08.2026)",
@@ -181,19 +183,19 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 1,
+      "active_triggers": 0,
       "uoa_score": 10,
       "uoa_drivers": [
-        "UOA Call/Put 7.0×"
+        "UOA Call/Put 11.8×"
       ],
-      "uoa_atm_ratio": 0.035555555555555556,
-      "uoa_cp_ratio": 7.0
+      "uoa_atm_ratio": 0.047058823529411764,
+      "uoa_cp_ratio": 11.75
     },
     "CADL": {
-      "score": 15,
-      "confidence": 17,
-      "drivers": "Earnings in 4 Tagen (12.05.2026) + Earnings in 4d",
-      "price": 8.19,
+      "score": 30,
+      "confidence": 33,
+      "drivers": "Earnings in 4 Tagen (12.05.2026) + News-KI 12/30: Positive clinical and commercial developments but no short squeeze catalysts like high short interest, failed capital ra + Earnings in 4d",
+      "price": 8.11,
       "chg_pct": 0.0,
       "rvol": 0.0,
       "earnings": "in 4 Tagen (12.05.2026)",
@@ -201,12 +203,12 @@
       "upcoming_event": "Earnings in 4 Tagen (12.05.2026)",
       "insider_buy": false,
       "stocktwits": null,
-      "combo_mult": 1.0,
-      "active_triggers": 1,
+      "combo_mult": 1.1,
+      "active_triggers": 2,
       "uoa_score": 0,
       "uoa_drivers": [],
-      "uoa_atm_ratio": 0.0620253164556962,
-      "uoa_cp_ratio": 0.47058823529411764
+      "uoa_atm_ratio": 0.1082024432809773,
+      "uoa_cp_ratio": 0.6631016042780749
     }
   }
 }
