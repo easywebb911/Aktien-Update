@@ -1,75 +1,98 @@
-# Session-Handover — Stand 07.05.2026
+# Session-Handover — Stand 08.05.2026
 
 ## Heute implementiert (chronologisch)
 - 7f2da3b — feat: Phase 2 Stufe 3b-3a — prev_exit_pressure im
-  exit_state persistieren
-  (Schema-Erweiterung in _compute_exit_state, Vorbereitung für
-  once-per-cross-Eskalation in 3b-3b)
+  exit_state persistieren (gestern Abend, schon dokumentiert,
+  heute im Daily-Run gegen-verifiziert)
+- 0eaba01 — feat: Phase 2 Stufe 3b-3b — Eskalation once-per-cross
+  + Warnung 12h scharfgeschaltet (cherry-picked auf main nach
+  Branch-/PR-Korrektur, byte-identisches Diff zu 460e226)
 
 ## Aktive Positionen
-- GRPN · offen · läuft im Plus (PnL +4.0 %, exit_pressure 20)
-- AMC · offen · läuft im Plus (PnL +3.7 %, exit_pressure 39)
-- NUVB · offen (PnL +0.8 %, exit_pressure 25)
+- AMC · offen · läuft im Plus (heutige exit_pressure 43,
+  profit_lock=warn)
+- SABR · offen · läuft im Plus (heutige exit_pressure 22,
+  prev_exit_pressure 20 → sauberer Übergang persistiert,
+  3b-3a-Verifikation)
+
+## Heute geschlossen
+- GRPN · −16.1 % · Stop-Loss durch Pre-Earnings-Risk-Off
+  (+35 % Earnings-Pop danach verpasst). Trade-Journal-Eintrag
+  mit These und Lesson manuell im Gist nachgepflegt — Decision
+  Quality vs. Outcome Quality bewusst getrennt: Stop war
+  regelkonform, Outcome leider unglücklich.
 
 ## Verifikation morgen früh
-- Daily-Run regeneriert index.html mit:
-  - NUVB/AMC zeigen Preis und P&L im Position-Panel
-  - Late-Runner-Penalty wirkt: TEAD-style 100-Tickers fallen
-    auf 85
-  - prev_exit_pressure-Feld in positions[*].exit_state befüllt
-    (NEU 3b-3a) — beim ERSTEN Run nach Deploy ist der Wert
-    None, ab dem zweiten Daily-Run erscheint der echte Vorwert
-- ki_agent-Tick logged earliness_pts pro Ticker (Mittel-1)
-- ki_agent-Tick versendet bei Crit-Triggern echte Pushes
-  (3b-2, 24h-Cooldown), exit_cooldowns füllt sich
+- ki_agent-Tick: bei Composite-Cross (`prev_exit_pressure ≤ 75
+  < pressure_v`) echter Eskalations-Push raus mit 🚨 +
+  `priority=urgent`, kein Cooldown gesetzt
+- ki_agent-Tick: bei `pressure_v` 55–75 echter Warnungs-Push
+  raus mit ⚠️ + `priority=high` + 12 h-Cooldown via
+  `exitp2_warning_<TICKER>`-Key in `agent_state.json`
+- Beide Klassen brauchen aktiv ein Trigger-Event — bisher
+  liegen AMC bei pressure=43 und SABR bei pressure=22 beide
+  unter Warn-Schwelle (55), daher kein Push-Test heute.
+  Trigger-Klasse (24 h) bleibt wie 3b-2 gestern verifiziert.
 
-## Geplante Aufgaben
-1. Pre-Market-Volume als Earliness-Erweiterung — Plan vorhanden,
-   Diff ~50-65 Zeilen, neuer 1m-prepost-Fetch-Pfad mit Timezone-
-   Handling. Wichtiger Conceptual-Risk-Hinweis aus
-   Bestandsaufnahme: change_overnight≥0-Filter sollte bei
-   Score-Effekt-Stufe (Mittel-2) mit drin sein, sonst Bad-News-
-   Panikverkauf als „Earliness" missinterpretierbar.
-   START NACH Daily-Run-Verifikation morgen früh.
-2. Phase 2 Stufe 3b-3b — Eskalation + Warnung scharfschalten
-   (once-per-cross für Eskalation via prev_exit_pressure-
-   Vergleich, 12h-Cooldown für Warnung, klassen-spezifische
-   ntfy-Severity: urgent für Eskalation, high für Warnung).
-   START NACH erfolgreicher Verifikation 3b-3a im Daily-Run.
-3. Phase 2 Stufe 3c (UI-Notification-History)
-4. Stufe Mittel-2 (Score-Effekt für Earliness) NACH
-   Empirik-Auswertung der Logs (mind. 1-2 Daily-Runs Daten)
-5. Big-Refactor Zwei-Achsen-Ranking (Setup × Earliness),
-   nach 30+ Tagen Earliness-Daten
+## Geplante Aufgaben (geordnet)
+1. Phase 2 Stufe 3c — UI-Notification-History (nächster
+   großer Schritt, da Stufe 3b komplett fertig)
+2. Pre-Market-Volume als Earliness-Erweiterung —
+   Bestandsaufnahme/Plan komplett (Diff ~50–65 Zeilen,
+   Conceptual Risk: `change_overnight ≥ 0`-Filter bei
+   Score-Effekt-Stufe mitnehmen)
+3. Stufe Mittel-2 (Score-Effekt für Earliness) NACH
+   Empirik (1–2 Daily-Runs Earliness-Daten — heute null
+   Matches im Top-10, datenbedingt)
+4. Trade-Journal-Bugs (NEU heute aufgedeckt):
+   a) `wlSubmitClose` schreibt `thesis`/`lesson` als
+      Leerstring (UI-Bug oder Form-Submit-Pfad)
+   b) `max_setup_score` bleibt `null` bei allen Trades —
+      `_SCORE_HISTORY`-Lookup zwischen `entry_date` und
+      `exit_date` funktioniert nicht
+   c) Trade-Journal-UI-Detail-Ansicht zeigt thesis/lesson
+      bei Hover/Tap nicht (klärt sich teils — UI rendert
+      sie inline nur wenn nicht-leer)
+5. Big-Refactor Zwei-Achsen-Ranking (nach 30+ Tagen
+   Earliness-Daten)
 6. Phase 3 Exit-Signale (Wiedervorlage 15.05.2026)
 7. Score-Aufschlüsselung pro Karte (Phase Y)
 8. Immediacy-Score-Feature
 9. Bahn A2 (Frontend-Auswertungs-Panel)
 10. UX Backtesting „Nur Live"-Modus
 11. ⏰ Wiedervorlage 19.05.2026: app_data-recovery +
-    POSITIONS_JSON-Secret löschen
+    `POSITIONS_JSON`-Secret löschen
 12. ⏰ Wiedervorlage 02.06.2026: Chart-Indikatoren
 13. ⏰ Wiedervorlage 02.07.2026: Premium-Daten-Stack
 14. Phase X — v1-Pfad-Migration
-15. Phase 2 Trigger 4-6 (Setup-Erosion, Catalyst, Trend-Bruch)
+15. Phase 2 Trigger 4–6 (Setup-Erosion, Catalyst,
+    Trend-Bruch)
 16. Tier-2-Insight-Builder als Reserve
 
 ## Heutige große Themen
-- Stufe 3b-3 in zwei Mini-Mini-Stufen zerlegt (3b-3a Schema,
-  3b-3b Push-Logik) — saubere Variante „perfekte Lösung"
-  gewählt: once-per-cross statt Zeit-Cooldown für Eskalation,
-  dafür Vorwert-Persistenz im exit_state-Schema nötig
-- Read-only-Bestandsaufnahme + Plan-Phase + Längen-Drift-
-  Klärung VOR der Implementierung — keine Improvisation,
-  jeder Schritt zuerst verifiziert
-- Längen-Drift im f-String-Crash-Test (337743 → 337718) als
-  Disk-State/Mock-Artefakt entlarvt, kein Code-Drift
-  (a7d5921 ist nur Doku, kategorisch ausgeschlossen)
-- Pre-Market-Volume-Erweiterung: Bestandsaufnahme + Plan
-  komplett, Implementierung auf morgen vertagt nach
-  Risiko-Analyse von Code (kein Mini-Add-On, sondern neuer
-  Fetch-Pfad mit DST/Timezone-Risiko + Conceptual Risk
-  Bad-News-Panikverkauf)
+- Phase 2 Stufe 3b komplett fertig (3b-3a + 3b-3b an einem
+  Tag): alle drei Push-Klassen scharf. Eskalation läuft
+  once-per-cross via `prev_exit_pressure`-Vergleich, Warnung
+  12 h-Cooldown, Trigger 24 h-Cooldown.
+- Severity klassen-spezifisch: Eskalation urgent/🚨, Warnung
+  high/⚠️, Trigger high/rotating_light.
+- GRPN-Stop-Loss-Aufarbeitung: Decision Quality vs. Outcome
+  Quality klar getrennt, Reflexion ins Trade-Journal.
+- Architektur-Regel-Verstoß durch Code (Branch + PR statt
+  direkt main) sauber korrigiert via Cherry-pick auf main
+  + PR-Close + Branch-Delete (Remote-Delete blockiert mit
+  HTTP 403, von User manuell erledigt bzw. zu erledigen).
+- Daily-Run-Verifikation aller 6 Punkte gegen 7f2da3b
+  vollständig grün — Late-Runner-Penalty mit Byte-Belegen
+  (DMRC/PCT/RXT/CADL × 0.85 dokumentiert), `prev_exit_pressure`
+  in `app_data` persistiert (SABR zeigte 20→22-Übergang).
+
+## Smoke-Test-Status
+14/14 grün, f-String-Crash-Test grün, v1==v2 byte-identisch.
+Hinweis: f-String-Crash-Test-Längenzahl ist KEIN
+Golden-Vertrag — `generate_html_v1` ist nicht rein (liest
+Disk-State + Wallclock), Längen-Drift zwischen Sessions ist
+legitim, der Test verifiziert nur „raise / kein-raise".
 
 ## Architektur-Anker (in CLAUDE.md, hier als Reminder)
 - Master-Passwort-Token-Encryption
@@ -80,23 +103,15 @@
 - JSON-Sanitizer
 - USD/EUR-Anzeige
 - Frontend-Watchlist-Sync
-- Phase 2 Push-Pipeline: exitp2_*-Cooldown-Schema in
-  agent_state.json, Trigger-Push 24h aktiv (3b-2),
-  Eskalation+Warnung noch Logs (3b-3 in Vorbereitung)
+- **Phase 2 Push-Pipeline (KOMPLETT)**: `exitp2_*`-Cooldown-
+  Schema, Trigger 24 h scharf, Eskalation once-per-cross via
+  `prev_exit_pressure`, Warnung 12 h scharf, Severity
+  klassen-spezifisch (urgent/high/high mit
+  rotating_light/warning/rotating_light)
 - Late-Runner-Penalty: Score × 0.85 bei RSI > 75 ODER
   2T-Move > 20 %
-- Earliness-Sub-Score: compute_earliness_pts schreibt
-  earliness_pts + breakdown ins Stock-Dict, ohne Score-Effekt
-  in Stufe 1; Score-Effekt erst nach Empirik-Verifikation
-- Phase 2 exit_state-Schema (NEU 3b-3a): prev_exit_pressure
-  als Snapshot des vorigen Daily-Run-Werts persistiert; None
-  bei Erstanlage / fehlendem prev_state / nicht-int-castbarem
-  Wert. Wird in 3b-3b für once-per-cross-Eskalations-Logik
-  gegen den aktuellen exit_pressure verglichen.
-
-## Smoke-Test-Status
-14/14 grün, Echter f-String-Crash-Test ist Standard-Pflicht.
-Hinweis: f-String-Crash-Test-Längenzahl ist KEIN
-Golden-Vertrag — generate_html_v1 ist nicht rein (liest
-Disk-State + Wallclock), Längen-Drift zwischen Sessions ist
-legitim, der Test verifiziert nur „raise / kein-raise".
+- Earliness-Sub-Score: `compute_earliness_pts` schreibt
+  `earliness_pts` + `breakdown` ins Stock-Dict, ohne
+  Score-Effekt in Stufe 1
+- `prev_exit_pressure` im exit_state: live in Produktion,
+  versorgt 3b-3b once-per-cross-Logik
