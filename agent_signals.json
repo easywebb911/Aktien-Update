@@ -1,11 +1,11 @@
 {
-  "updated": "2026-05-08T01:00:55.355334+02:00",
+  "updated": "2026-05-08T04:44:46.586999+02:00",
   "run_info": {
     "tickers_checked": 10,
     "signals_active": 3,
     "alerts_sent": 1,
-    "elapsed_s": 11.9,
-    "market_phase": "After-Hours"
+    "elapsed_s": 12.1,
+    "market_phase": "Geschlossen"
   },
   "signals": {
     "PCT": {
@@ -32,7 +32,7 @@
     "VYX": {
       "score": 43,
       "confidence": 33,
-      "drivers": "Earnings in 0 Tagen (07.05.2026) + News-KI 8/30: Positive earnings beats and customer engagement suggest fundamental strength, which typically reduces short-squeeze pote + Earnings in 0d + UOA Call/Put 69.0×",
+      "drivers": "Earnings in 0 Tagen (07.05.2026) + News-KI 8/30: Positive earnings beats and customer engagement improvements suggest fundamental strength, reducing short-squeeze potent + Earnings in 0d + UOA Call/Put 69.0×",
       "price": 8.09,
       "chg_pct": 0.0,
       "rvol": 0.0,
@@ -51,9 +51,9 @@
       "uoa_cp_ratio": 69.0
     },
     "SABR": {
-      "score": 52,
+      "score": 35,
       "confidence": 33,
-      "drivers": "Earnings in 0 Tagen (07.05.2026) + News-KI 12/30: Positive earnings beat shows fundamental strength but lacks the high short interest, low float, or extreme technical set + Earnings in 0d + UOA Call/Put 9.8×",
+      "drivers": "Earnings in 0 Tagen (07.05.2026) + Earnings in 0d + UOA Call/Put 9.8×",
       "price": 2.07,
       "chg_pct": 0.0,
       "rvol": 0.0,
@@ -62,8 +62,8 @@
       "upcoming_event": "Earnings in 0 Tagen (07.05.2026)",
       "insider_buy": false,
       "stocktwits": null,
-      "combo_mult": 1.1,
-      "active_triggers": 2,
+      "combo_mult": 1.0,
+      "active_triggers": 1,
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 9.8×"
@@ -72,9 +72,9 @@
       "uoa_cp_ratio": 9.818181818181818
     },
     "WGS": {
-      "score": 8,
-      "confidence": 17,
-      "drivers": "News-KI 8/30: Negative catalyst (49% plunge) reduces short-squeeze potential as stock is already severely punished and unlikely to tri",
+      "score": 0,
+      "confidence": 0,
+      "drivers": "",
       "price": 40.5,
       "chg_pct": 0.0,
       "rvol": 0.0,
