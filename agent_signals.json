@@ -1,10 +1,10 @@
 {
-  "updated": "2026-05-08T07:29:05.057517+02:00",
+  "updated": "2026-05-08T09:27:36.879525+02:00",
   "run_info": {
     "tickers_checked": 10,
     "signals_active": 3,
-    "alerts_sent": 1,
-    "elapsed_s": 15.6,
+    "alerts_sent": 0,
+    "elapsed_s": 10.6,
     "market_phase": "Geschlossen"
   },
   "signals": {
@@ -30,9 +30,9 @@
       "uoa_cp_ratio": 5.823741007194244
     },
     "VYX": {
-      "score": 25,
+      "score": 18,
       "confidence": 17,
-      "drivers": "News: partnership + UOA Call/Put 69.0×",
+      "drivers": "News-KI 8/30: Positive earnings beats and strong fundamentals indicate healthy business momentum, which reduces short-squeeze potentia + UOA Call/Put 69.0×",
       "price": 8.09,
       "chg_pct": 0.0,
       "rvol": 0.0,
@@ -42,7 +42,7 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 1,
+      "active_triggers": 0,
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 69.0×"
@@ -72,9 +72,9 @@
       "uoa_cp_ratio": 9.818181818181818
     },
     "WGS": {
-      "score": 0,
-      "confidence": 0,
-      "drivers": "",
+      "score": 8,
+      "confidence": 17,
+      "drivers": "News-KI 8/30: Massive selloff (-49%) indicates weak fundamental outlook and likely low short interest concentration, making a squeeze ",
       "price": 40.5,
       "chg_pct": 0.0,
       "rvol": 0.0,
@@ -91,9 +91,9 @@
       "uoa_cp_ratio": 0.6111111111111112
     },
     "BOBS": {
-      "score": 8,
-      "confidence": 17,
-      "drivers": "News-KI 8/30: Modest revenue growth and price decline lack the extreme short interest, catalyst urgency, or institutional pressure typ",
+      "score": 0,
+      "confidence": 0,
+      "drivers": "",
       "price": 12.67,
       "chg_pct": 0.0,
       "rvol": 0.0,
@@ -150,9 +150,9 @@
       "uoa_cp_ratio": 0.5263157894736842
     },
     "HUMA": {
-      "score": 30,
+      "score": 25,
       "confidence": 33,
-      "drivers": "Earnings in 4 Tagen (12.05.2026) + News-KI 5/30: Keine direkten Nachrichten zu HUMA; die anderen Ticker sind für Short-Squeeze-Analyse irrelevant. + Earnings in 4d + UOA Call/Put 3.7×",
+      "drivers": "Earnings in 4 Tagen (12.05.2026) + Earnings in 4d + UOA Call/Put 3.7×",
       "price": 1.08,
       "chg_pct": 0.0,
       "rvol": 0.0,
