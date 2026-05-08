@@ -1773,24 +1773,26 @@ def _exit_cooldown_expired_keys(state: dict, prefix: str,
 
 
 def process_exit_signals(app_data: dict, state: dict) -> None:
-    """Phase 2 Stufe 3b-1: Trigger-Auswertung mit Log-Output (KEIN Push).
+    """Phase 2 Exit-Push-Pipeline (Stufe 3b-3b — alle Klassen scharf).
 
     Liest ``exit_state`` aus ``app_data["positions"]`` (vom Daily-Run via
     generate_report._build_phase2_positions_payload geschrieben) und
-    ermittelt für jeden Ticker, welche Pushes FÄLLIG WÄREN — Eskalation
-    (pressure > 75), Warnung (55..75), Trigger (einzelner Crit). Statt zu
-    senden: ``print()`` mit ``[exit_p2] WOULD-PUSH ...`` oder
-    ``[exit_p2] SKIP ...`` bei aktivem Cooldown.
+    sendet — pro Ticker, klassen-priorisiert — echte ntfy-Pushes via
+    ``_send_exit_p2_push``. Audit-Spur als ``print()`` auf stdout
+    (Workflow-Log): ``[exit_p2] SENT|SKIP|FAIL <klasse> <ticker>: …``.
 
-    Stufe-3b-2-Status (07.05.2026): Trigger-Klasse ist scharfgeschaltet —
-    bei crit-Trigger ohne aktiven Cooldown wird ein echter ntfy-Push
-    versendet (``_send_exit_p2_push``) und der Cooldown gesetzt
-    (24h pro Ticker × Trigger-Name). Composite-Klassen (Eskalation +
-    Warnung) bleiben weiterhin nur als WOULD-PUSH-Logs — schalten
-    erst in Stufe 3b-3 scharf.
+    Stufe-3b-3b-Status (08.05.2026): alle drei Push-Klassen sind
+    scharfgeschaltet, jede mit eigener Drossel-Strategie:
+      - **Eskalation** (pressure > 75): once-per-cross — feuert nur,
+        wenn ``prev_exit_pressure <= 75 < pressure_v``. Kein Zeit-
+        Cooldown — der Cross ist selbst-limitierend (re-Eskalation
+        erst nach Wieder-Unterschreiten + erneutem Cross).
+      - **Warnung** (55..75): zeitbasierter Cooldown
+        (``EXIT_PUSH_WARNING_COOLDOWN_HOURS = 12``) pro Ticker.
+      - **Trigger** (einzelner Crit, unabhängig von pressure):
+        24h pro (Ticker × Trigger-Name) — UNVERÄNDERT seit 3b-2.
 
-    Eskalations-Cooldown ist hours=0 (no-op) — once-per-cross-Logik
-    (Vergleich gegen voriges pressure aus prev-app_data) folgt in 3b-3.
+    Severity steuert ntfy-Priority + Tag (siehe ``_send_exit_p2_push``).
     """
     positions = (app_data or {}).get("positions") or {}
     if not positions:
@@ -1810,19 +1812,42 @@ def process_exit_signals(app_data: dict, state: dict) -> None:
 
         # Composite-Push: Eskalation und Warnung schließen sich aus.
         if pressure_v is not None and pressure_v > EXIT_PUSH_ESCALATION_THRESHOLD:
-            key = f"exitp2_escalation_{ticker}"
-            if _exit_cooldown_active(state, key, 0):
-                # Mit hours=0 nie aktiv — Code-Symmetrie zu warning/trigger.
-                print(f"[exit_p2] SKIP escalation {ticker}: cooldown_active")
+            # Once-per-cross: nur feuern, wenn der Vortags-Wert klar
+            # UNTER bzw. AUF dem Threshold lag. ``prev_exit_pressure``
+            # wird vom Daily-Run in _compute_exit_state geschrieben
+            # (Stufe 3b-3a). None = Erstanlage / unparsbar → KEIN Push,
+            # sonst würde jede frisch eröffnete Position über Threshold
+            # sofort einen Eskalations-Push triggern.
+            prev_raw = exit_state.get("prev_exit_pressure")
+            try:
+                prev_v = float(prev_raw) if prev_raw is not None else None
+            except (TypeError, ValueError):
+                prev_v = None
+            if prev_v is None or prev_v > EXIT_PUSH_ESCALATION_THRESHOLD:
+                print(f"[exit_p2] SKIP escalation {ticker}: no_cross "
+                      f"(prev={prev_raw}, now={pressure_v:.0f})")
             else:
-                print(f"[exit_p2] WOULD-PUSH escalation {ticker}: pressure={pressure_v:.0f}")
+                body = (f"🚨 Exit-Eskalation {ticker}: pressure "
+                        f"{prev_v:.0f}→{pressure_v:.0f}/100")
+                if _send_exit_p2_push(ticker, body, severity="escalation"):
+                    # KEIN Cooldown — der Cross ist die Bremse.
+                    print(f"[exit_p2] SENT escalation {ticker}: "
+                          f"pressure {prev_v:.0f}→{pressure_v:.0f}")
+                else:
+                    print(f"[exit_p2] FAIL escalation {ticker}: send_failed")
         elif (pressure_v is not None
               and EXIT_PUSH_WARNING_THRESHOLD_LOW <= pressure_v <= EXIT_PUSH_WARNING_THRESHOLD_HIGH):
             key = f"exitp2_warning_{ticker}"
             if _exit_cooldown_active(state, key, EXIT_PUSH_WARNING_COOLDOWN_HOURS):
                 print(f"[exit_p2] SKIP warning {ticker}: cooldown_active")
             else:
-                print(f"[exit_p2] WOULD-PUSH warning {ticker}: pressure={pressure_v:.0f}")
+                body = f"⚠️ Exit-Warnung {ticker}: pressure {pressure_v:.0f}/100"
+                if _send_exit_p2_push(ticker, body, severity="warning"):
+                    _exit_cooldown_set(state, key)
+                    print(f"[exit_p2] SENT warning {ticker}: pressure={pressure_v:.0f}")
+                else:
+                    # Fail-soft: kein Cooldown gesetzt → nächster Tick retried.
+                    print(f"[exit_p2] FAIL warning {ticker}: send_failed")
 
         # Trigger-Pushes pro Crit-Trigger — UNABHÄNGIG von pressure-Range,
         # weil ein einzelner Crit-Trigger auch bei Composite < 55 sinnvoll
@@ -1871,26 +1896,39 @@ def _send_anomaly_ntfy(ticker: str, body: str) -> bool:
         return False
 
 
-def _send_exit_p2_push(ticker: str, body: str) -> bool:
+def _send_exit_p2_push(ticker: str, body: str, severity: str = "trigger") -> bool:
     """Single-shot ntfy.sh Push für Phase-2-Exit-Signale (Stufe 3b-2+).
 
     Spiegelt ``_send_anomaly_ntfy`` strukturell — gleiches NTFY_TOPIC,
-    gleiche Priority — nutzt aber eigenen Title ``Exit-Signal: TICKER``
-    damit die Notification auf dem Handy klar als Exit-Trigger erkennbar
-    ist (separates Mental-Model zum Anomaly-Push). Fail-soft: bei
-    NTFY-Disabled oder POST-Fehler returnt False, der Aufrufer setzt
-    dann KEINEN Cooldown — nächster Tick versucht erneut.
+    nutzt aber eigenen Title ``Exit-Signal: TICKER`` damit die
+    Notification auf dem Handy klar als Exit-Trigger erkennbar ist
+    (separates Mental-Model zum Anomaly-Push).
+
+    ``severity`` (Stufe 3b-3b) steuert ntfy-Priority + Tag pro Klasse:
+      - ``escalation`` → ``urgent`` + ``rotating_light``
+      - ``warning``    → ``high``   + ``warning``
+      - ``trigger``    → ``high``   + ``rotating_light`` (default,
+                         identisch zum 3b-2-Verhalten)
+
+    Fail-soft: bei NTFY-Disabled oder POST-Fehler returnt False, der
+    Aufrufer setzt dann KEINEN Cooldown — nächster Tick versucht erneut.
     """
     if not NTFY_ENABLED or not NTFY_TOPIC:
         return False
+    if severity == "escalation":
+        priority, tags = "urgent", "rotating_light"
+    elif severity == "warning":
+        priority, tags = "high", "warning"
+    else:  # "trigger" — Default, behält 3b-2-Verhalten bei.
+        priority, tags = "high", "rotating_light"
     try:
         requests.post(
             f"https://ntfy.sh/{NTFY_TOPIC}",
             data=body.encode("utf-8"),
             headers={
                 "Title":    f"Exit-Signal: {ticker}",
-                "Priority": "high",
-                "Tags":     "rotating_light",
+                "Priority": priority,
+                "Tags":     tags,
             },
             timeout=5,
         )
@@ -2961,12 +2999,14 @@ def main() -> None:
         else:
             log.debug("Tages-Zusammenfassung bereits heute gesendet — übersprungen.")
 
-    # Phase 2 Stufe 3b-1: Exit-Push-Trigger-Auswertung als Log-Output.
-    # KEIN echter Push-Versand in dieser Stufe — process_exit_signals
-    # liest exit_state aus app_data und logt nur "WOULD-PUSH ..." /
-    # "SKIP ...". State wird NUR gelesen (Cooldown-Check), NICHT
-    # geschrieben — sonst würde der erste echte Push aus 3b-2 von
-    # diesem hier-gesetzten Cooldown blockiert.
+    # Phase 2 Exit-Push-Pipeline (Stufe 3b-3b — alle Klassen scharf).
+    # process_exit_signals liest exit_state aus app_data und sendet
+    # echte ntfy-Pushes für Eskalation (once-per-cross), Warnung
+    # (12h-Cooldown) und Trigger (24h pro Ticker × Trigger-Name).
+    # Cooldown-State wird in state["exit_cooldowns"] R/W geführt;
+    # save_state(state) am Run-Ende persistiert Warnung/Trigger-
+    # Cooldowns. Eskalation setzt KEINEN Cooldown — der Cross gegen
+    # prev_exit_pressure ist selbst-limitierend.
     try:
         process_exit_signals(app_data, state)
     except Exception as exc:
