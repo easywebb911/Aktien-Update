@@ -1,17 +1,17 @@
 {
-  "updated": "2026-05-09T00:01:53.226687+02:00",
+  "updated": "2026-05-09T01:54:47.783765+02:00",
   "run_info": {
     "tickers_checked": 10,
     "signals_active": 5,
-    "alerts_sent": 0,
-    "elapsed_s": 10.5,
+    "alerts_sent": 1,
+    "elapsed_s": 10.9,
     "market_phase": "After-Hours"
   },
   "signals": {
     "NVAX": {
-      "score": 40,
+      "score": 25,
       "confidence": 17,
-      "drivers": "News: halt, earnings beat + UOA Call/Put 25.2×",
+      "drivers": "News: earnings beat + UOA Call/Put 25.2×",
       "price": 10.11,
       "chg_pct": 0.0,
       "rvol": 0.0,
@@ -30,9 +30,9 @@
       "uoa_cp_ratio": 25.242152466367713
     },
     "GRPN": {
-      "score": 10,
+      "score": 15,
       "confidence": 17,
-      "drivers": "UOA Call/Put 11.5×",
+      "drivers": "News-KI 5/30: Negative earnings miss with flat revenues indicates fundamental weakness, not short-squeeze potential which requires bul + UOA Call/Put 11.5×",
       "price": 17.78,
       "chg_pct": 0.0,
       "rvol": 0.0,
