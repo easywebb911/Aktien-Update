@@ -432,6 +432,30 @@ wird als `prev_state`-Argument an `_compute_exit_state` durchgereicht.
 Peak-Felder sind ratchet-up-only; `prev_exit_pressure` ist ein
 reines Snapshot-Spiegelfeld (kein Ratchet).
 
+### Phase-2-Push-Pipeline-Status (Stufe 3b-3b)
+
+Alle drei Klassen in `process_exit_signals` (ki_agent.py) sind
+**scharfgeschaltet** — jede mit eigener Drossel-Strategie und
+klassen-spezifischer ntfy-Severity. Single Push-Helper
+`_send_exit_p2_push(ticker, body, severity="trigger")` verteilt
+Priority + Tag inline pro Severity.
+
+| Klasse | Bedingung | Drossel | ntfy-Priority | Tag | Body-Format | Cooldown-Key |
+|---|---|---|---|---|---|---|
+| **Eskalation** | `prev_exit_pressure ≤ 75 < pressure_v` (once-per-cross) | KEIN Zeit-Cooldown — Cross ist selbst-limitierend | `urgent` | `rotating_light` | `🚨 Exit-Eskalation {T}: pressure {prev}→{now}/100` | — (kein Set) |
+| **Warnung** | `55 ≤ pressure_v ≤ 75` | `EXIT_PUSH_WARNING_COOLDOWN_HOURS = 12` h pro Ticker | `high` | `warning` | `⚠️ Exit-Warnung {T}: pressure {now}/100` | `exitp2_warning_{T}` |
+| **Trigger** | einzelner `crit=True` (unabhängig von pressure) | `EXIT_PUSH_TRIGGER_COOLDOWN_HOURS = 24` h pro (Ticker × Trigger-Name) | `high` | `rotating_light` | `🔻 Exit-Signal {T}: {name} crit ({details})` | `exitp2_trigger_{T}_{name}` |
+
+Eskalations-Pflichtinvariante: `prev_exit_pressure` ist `None` bei
+Erstanlage/unparsbar → **KEIN** Push (sonst würde jede frisch
+eröffnete Position über Threshold sofort feuern). Gilt auch wenn
+`prev_v > 75` (war bereits über Threshold) — kein erneuter Push,
+SKIP-Audit-Log mit `no_cross`-Reason.
+
+Audit-Log-Präfixe: `[exit_p2] SENT|SKIP|FAIL <klasse> <ticker>: …`
+in stdout (Workflow-Log). Push-Fail (NTFY-Disabled, POST-Fehler) →
+KEIN Cooldown gesetzt, nächster Tick retried.
+
 ---
 
 ## Trade-Journal (Phase 2.5)
