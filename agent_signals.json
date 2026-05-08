@@ -1,17 +1,17 @@
 {
-  "updated": "2026-05-08T22:58:30.622475+02:00",
+  "updated": "2026-05-09T00:01:53.226687+02:00",
   "run_info": {
     "tickers_checked": 10,
     "signals_active": 5,
-    "alerts_sent": 1,
-    "elapsed_s": 15.8,
+    "alerts_sent": 0,
+    "elapsed_s": 10.5,
     "market_phase": "After-Hours"
   },
   "signals": {
     "NVAX": {
       "score": 40,
       "confidence": 17,
-      "drivers": "News: earnings beat, halt + UOA Call/Put 25.2×",
+      "drivers": "News: halt, earnings beat + UOA Call/Put 25.2×",
       "price": 10.11,
       "chg_pct": 0.0,
       "rvol": 0.0,
@@ -95,7 +95,7 @@
     "LUCK": {
       "score": 25,
       "confidence": 17,
-      "drivers": "FINRA Short-Vol 76%",
+      "drivers": "FINRA Short-Vol 100%",
       "price": 8.24,
       "chg_pct": 0.0,
       "rvol": 0.0,
@@ -152,9 +152,9 @@
       "uoa_cp_ratio": 2.826923076923077
     },
     "TNYA": {
-      "score": 40,
+      "score": 25,
       "confidence": 33,
-      "drivers": "Earnings in 5 Tagen (13.05.2026) + Earnings in 5d + FINRA Short-Vol 67% + UOA Call/Put 38.1×",
+      "drivers": "Earnings in 5 Tagen (13.05.2026) + Earnings in 5d + UOA Call/Put 38.1×",
       "price": 1.0,
       "chg_pct": 0.0,
       "rvol": 0.0,
