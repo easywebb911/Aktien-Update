@@ -1092,27 +1092,55 @@ smoothed Scores wurden ignoriert.
 
 ## Earliness-Indikator (Stufe 1, ohne Score-Effekt)
 
-`compute_earliness_pts(stocks)` (`generate_report.py:2812-2871`) misst
-„leise Akkumulation" — FINRA-Short-Interest beschleunigt
-(`si_accelerating` / `si_velocity ≥ EARLINESS_VELOCITY_THRESHOLD`),
-während der Kurs noch nicht gelaufen ist
-(`change_5d < EARLINESS_MAX_CHANGE_5D_PCT`, `rsi14 < EARLINESS_MAX_RSI`).
+`compute_earliness_pts(stocks)` misst „leise Akkumulation" — drei
+additive Komponenten:
+
+1. **FINRA-Acceleration** (`accel_match`): `si_accelerating` aktiv und
+   `change_5d < EARLINESS_MAX_CHANGE_5D_PCT` → `+EARLINESS_ACCEL_PTS` (3).
+2. **FINRA-Velocity** (`velocity_match`):
+   `si_velocity ≥ EARLINESS_VELOCITY_THRESHOLD` und
+   `rsi14 < EARLINESS_MAX_RSI` → `+EARLINESS_VELOCITY_PTS` (2).
+3. **Pre-Market-Volume** (`pm_vol_match`):
+   `premarket_volume / avg_vol_20d × 100`, gefiltert über
+   `change_5d < EARLINESS_MAX_CHANGE_5D_PCT` (Earliness-Charakter wahren)
+   **und** `change_overnight ≥ 0` (kein PM-Selloff).
+   - `≥ EARLINESS_PM_VOL_HIGH_PCT` (8 %) → `+EARLINESS_PM_VOL_PTS_HIGH` (2)
+   - `≥ EARLINESS_PM_VOL_LOW_PCT`  (3 %) → `+EARLINESS_PM_VOL_PTS_LOW`  (1)
+   - sonst → 0
+
+Summe gecappt auf `EARLINESS_PTS_MAX = 7` (5 → 7 nach Aufnahme der
+PM-Vol-Komponente).
+
+`change_overnight = (cur_open − prev_close) / prev_close × 100`. Bei
+fehlendem `cur_open` / `prev_close` / `avg_vol_20d` greift die Bedingung
+nicht → `pm_vol_pts = 0` (graceful Fallback, keine Exception).
 
 **Stufe 1 ist reine Persistenz / Beobachtung — `s["score"]` wird
 nicht beeinflusst.** Die Werte werden später in Stufe Mittel-2 als
 Score-Bonus aktiviert, sobald genug Empirik vorliegt. Bis dahin nur
 Logging und optionale UI-Anzeige.
 
-### Zwei Felder auf dem Stock-Dict
+### Datenquelle Pre-Market-Volume
+
+`_fetch_premarket_volumes_batch(tickers) → dict[str, float]` ruft
+einmal pro Daily-Run `yf.download(period="1d", interval="1m",
+prepost=True)` für alle Top-10-Ticker auf, mappt auf
+`America/New_York`-Timezone und summiert das `Volume` zwischen
+04:00 und 09:30 ET. Multi- und Single-Ticker-Form werden beide
+unterstützt; jeder yfinance-Fehler ergibt `0.0` für den betroffenen
+Ticker (Batch-Fail → leeres Dict, Stock-Dict-Default 0.0).
+
+### Felder auf dem Stock-Dict
 
 | Feld | Typ | Bedeutung |
 |---|---|---|
-| `earliness_pts`        | int 0..`EARLINESS_PTS_MAX` (5) | Punkte-Snapshot: `EARLINESS_ACCEL_PTS` (3) bei `accel_match`, `EARLINESS_VELOCITY_PTS` (2) bei `velocity_match`, gecappt. |
-| `earliness_breakdown`  | dict `{accel_match: bool, velocity_match: bool}` | **Debug-Feld** — zeigt, *welche* der zwei Sub-Bedingungen aktiv waren. Verwechslungsgefahr: nicht mit `_drivers_breakdown` (Drivers-Block-Helper) verwechseln, andere Funktion. |
+| `premarket_volume`     | Float ≥ 0 | PM-Volumen-Snapshot, gesetzt vor `compute_earliness_pts`. Default 0.0 wenn Fetch fehlschlägt. |
+| `earliness_pts`        | int 0..`EARLINESS_PTS_MAX` (7) | Summe der drei Sub-Komponenten, gecappt. |
+| `earliness_breakdown`  | dict `{accel_match, velocity_match, pm_vol_match}` | **Debug-Feld** — zeigt, *welche* der drei Sub-Bedingungen aktiv waren. Verwechslungsgefahr: nicht mit `_drivers_breakdown` (Drivers-Block-Helper, andere Funktion) verwechseln. |
 
-Beide Felder werden **immer** geschrieben (auch bei `pts == 0`), so
-dass Konsumenten nicht zwischen „nicht berechnet" und „berechnet, alle
-Sub-Matches false" unterscheiden müssen.
+`earliness_pts` und `earliness_breakdown` werden **immer** geschrieben
+(auch bei `pts == 0`), so dass Konsumenten nicht zwischen „nicht
+berechnet" und „berechnet, alle Sub-Matches false" unterscheiden müssen.
 
 ### Pflege
 
@@ -1120,6 +1148,9 @@ Bei Aktivierung in Stufe Mittel-2: `earliness_pts` als on-top-Bonus in
 `score()` integrieren (analog zu `_float_turnover_pts`), `_compute_sub_scores`
 um Sub-Score-Anzeige erweitern, **Score-Methodik-Sektion synchronisieren**,
 diese Sektion oben „ohne Score-Effekt" → „mit Score-Effekt" umschreiben.
+Beim Hinzufügen weiterer Sub-Komponenten zur Earliness-Logik (z. B.
+Insider-Cluster) das `earliness_breakdown`-Dict-Schema und den
+PTS_MAX-Cap konsistent in Code, CLAUDE.md und Mock-Tests nachziehen.
 
 ---
 
