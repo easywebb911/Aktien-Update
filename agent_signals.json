@@ -1,17 +1,17 @@
 {
-  "updated": "2026-05-09T18:53:05.823573+02:00",
+  "updated": "2026-05-09T19:49:08.822594+02:00",
   "run_info": {
     "tickers_checked": 10,
     "signals_active": 6,
     "alerts_sent": 0,
-    "elapsed_s": 11.4,
+    "elapsed_s": 10.6,
     "market_phase": "Geschlossen"
   },
   "signals": {
     "NVAX": {
       "score": 40,
       "confidence": 17,
-      "drivers": "News: breakout, earnings beat + UOA Call/Put 15.7×",
+      "drivers": "News: earnings beat, breakout + UOA Call/Put 15.7×",
       "price": 10.11,
       "chg_pct": 0.0,
       "rvol": 0.0,
@@ -173,9 +173,9 @@
       "uoa_cp_ratio": 38.125
     },
     "RXT": {
-      "score": 22,
+      "score": 25,
       "confidence": 17,
-      "drivers": "News-KI 12/30: Positive fundamentals from AMD partnership and earnings don't indicate short squeeze conditions; stock already surged si + UOA Call/Put 37.7×",
+      "drivers": "News: partnership + UOA Call/Put 37.7×",
       "price": 5.49,
       "chg_pct": 0.0,
       "rvol": 0.0,
