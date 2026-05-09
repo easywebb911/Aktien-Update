@@ -461,6 +461,34 @@ Audit-Log-Präfixe: `[exit_p2] SENT|SKIP|FAIL <klasse> <ticker>: …`
 in stdout (Workflow-Log). Push-Fail (NTFY-Disabled, POST-Fehler) →
 KEIN Cooldown gesetzt, nächster Tick retried.
 
+### Push-History-Persistenz (Stufe 3c-1)
+
+Vier ntfy-Push-Sender sind instrumentiert und persistieren jeden Versuch
+(SENT **und** FAIL) als FIFO in `agent_state.json["push_history"]`:
+
+| Sender | Kind | Severity | Trigger-Feld |
+|---|---|---|---|
+| `_send_anomaly_ntfy` (ki_agent) | `anomaly` | aus `anom["severity"]` | `anom["trigger"]` |
+| `_send_exit_p2_push` (ki_agent) | `exit_p2` | `escalation` / `warning` / `trigger` | bei `trigger`-Klasse: Trigger-Name; sonst `null` |
+| `send_ntfy_alert` (ki_agent, Earnings) | `earnings_immediate` | `default` | `null` |
+| `_send_exit_ntfy` (generate_report) | `exit_p1` | `default` | `exit_alert` / `profit_take` |
+
+Schema pro Eintrag:
+`{ts (Berlin-ISO), ticker, kind, severity, trigger, body, success}`.
+
+Cap: `PUSH_HISTORY_MAX = 100` (FIFO, älteste raus). Helper `_record_push`
+ist in `ki_agent.py` und `generate_report.py` dupliziert (gleiches Schema,
+gleiche Cap-Semantik) — bei Schema-Änderung beide Stellen synchron halten.
+
+Daily-Summary-E-Mail (`send_daily_summary`) ist **nicht** instrumentiert —
+push_history ist auf ntfy-Versand beschränkt, E-Mail-Pfad bleibt außen vor.
+
+State-Race-Robustheit: FIFO-Cap = 100 macht uns gegen einzelne fehlende
+Einträge robust bei Race zwischen ki_agent und Daily-Run. Last-Write-Wins
+akzeptiert. Im Daily-Run wird der State nur gespeichert, wenn `n_sent > 0`
+oder `push_history` in diesem Run gewachsen ist (failed-Push-Audit muss
+erhalten bleiben).
+
 ---
 
 ## Trade-Journal (Phase 2.5)

@@ -10767,6 +10767,32 @@ def _exit_set_cooldown(key: str, state: dict) -> None:
     )
 
 
+def _record_push(state: dict, ticker: str, kind: str, severity: str,
+                 trigger: str | None, body: str, success: bool) -> None:
+    """FIFO-Append eines Push-Versuchs in ``state["push_history"]``.
+
+    Strukturell identisch zum Pendant in ``ki_agent.py`` — gleiche
+    Schema-Felder, gleicher Cap, gleiche Persistier-Semantik (auch
+    failed Pushes).
+
+    FIFO-Cap = 100 macht uns gegen einzelne fehlende Einträge robust bei
+    Race zwischen ki_agent und Daily-Run. Last-Write-Wins akzeptiert.
+    """
+    entry = {
+        "ts":       datetime.now(ZoneInfo("Europe/Berlin")).isoformat(),
+        "ticker":   ticker,
+        "kind":     kind,
+        "severity": severity,
+        "trigger":  trigger,
+        "body":     body,
+        "success":  bool(success),
+    }
+    hist = state.setdefault("push_history", [])
+    hist.append(entry)
+    if len(hist) > PUSH_HISTORY_MAX:
+        del hist[: len(hist) - PUSH_HISTORY_MAX]
+
+
 def _send_exit_ntfy(ticker: str, body: str) -> bool:
     """Single-shot ntfy.sh push (analog zu ki_agent.send_ntfy_alert).
     Fail-soft: returnt False bei jedem Fehler, blockiert den Daily-Run nie.
@@ -10950,6 +10976,10 @@ def process_exit_signals(stocks: list[dict] | None = None) -> int:
 
     history = _load_score_history()
     state   = _exit_load_state()
+    # Snapshot der Push-History-Länge vor dem Run, um Save-Trigger zu
+    # entscheiden — neu hinzugefügte (auch failed) Einträge müssen
+    # persistiert werden, sonst geht success=False-Audit verloren.
+    push_hist_len_before = len(state.get("push_history") or [])
     n_sent = 0
 
     for ticker, pos in positions.items():
@@ -10990,7 +11020,11 @@ def process_exit_signals(stocks: list[dict] | None = None) -> int:
             if not _exit_is_on_cooldown(key, state):
                 body = (f"{ticker} 📉 Exit {result['exit_score']:.0f} | "
                         f"{result['pnl_pct']:+.0f}% | {top_driver}")
-                if _send_exit_ntfy(ticker, body):
+                _ok = _send_exit_ntfy(ticker, body)
+                _record_push(state, ticker, kind="exit_p1",
+                             severity="default", trigger="exit_alert",
+                             body=body, success=_ok)
+                if _ok:
                     _exit_set_cooldown(key, state)
                     n_sent += 1
 
@@ -10999,11 +11033,18 @@ def process_exit_signals(stocks: list[dict] | None = None) -> int:
             if not _exit_is_on_cooldown(key, state):
                 body = (f"{ticker} 💰 Profit-Take | "
                         f"+{result['pnl_pct']:.0f}% seit Entry | Halbe Position?")
-                if _send_exit_ntfy(ticker, body):
+                _ok = _send_exit_ntfy(ticker, body)
+                _record_push(state, ticker, kind="exit_p1",
+                             severity="default", trigger="profit_take",
+                             body=body, success=_ok)
+                if _ok:
                     _exit_set_cooldown(key, state)
                     n_sent += 1
 
-    if n_sent > 0:
+    # State speichern, sobald (a) ein Push erfolgreich war (Cooldown-
+    # Update) ODER (b) push_history dieses Run gewachsen ist (auch
+    # failed-Push-Audit muss erhalten bleiben).
+    if n_sent > 0 or len(state.get("push_history") or []) > push_hist_len_before:
         _exit_save_state(state)
     return n_sent
 

@@ -170,6 +170,38 @@ def set_cooldown(ticker: str, state: dict) -> None:
     state.setdefault("cooldowns", {})[ticker] = now_berlin().isoformat()
 
 
+# ── Push-History (Phase 2 Stufe 3c-1) ────────────────────────────────────────
+
+def _record_push(state: dict, ticker: str, kind: str, severity: str,
+                 trigger: str | None, body: str, success: bool) -> None:
+    """FIFO-Append eines Push-Versuchs in ``state["push_history"]``.
+
+    Entry-Schema:
+      ``{ts, ticker, kind, severity, trigger, body, success}``
+
+    Cap = ``PUSH_HISTORY_MAX`` (älteste Einträge werden abgeschnitten).
+    Auch fehlgeschlagene Pushes (``success=False``) werden persistiert,
+    damit Audit-Trails beim ntfy-Disable / POST-Fehler nachvollziehbar
+    bleiben.
+
+    FIFO-Cap = 100 macht uns gegen einzelne fehlende Einträge robust bei
+    Race zwischen ki_agent und Daily-Run. Last-Write-Wins akzeptiert.
+    """
+    entry = {
+        "ts":       now_berlin().isoformat(),
+        "ticker":   ticker,
+        "kind":     kind,
+        "severity": severity,
+        "trigger":  trigger,
+        "body":     body,
+        "success":  bool(success),
+    }
+    hist = state.setdefault("push_history", [])
+    hist.append(entry)
+    if len(hist) > PUSH_HISTORY_MAX:
+        del hist[: len(hist) - PUSH_HISTORY_MAX]
+
+
 # ── Signale laden/speichern ───────────────────────────────────────────────────
 
 def load_signals() -> dict:
@@ -1829,7 +1861,11 @@ def process_exit_signals(app_data: dict, state: dict) -> None:
             else:
                 body = (f"🚨 Exit-Eskalation {ticker}: pressure "
                         f"{prev_v:.0f}→{pressure_v:.0f}/100")
-                if _send_exit_p2_push(ticker, body, severity="escalation"):
+                _ok = _send_exit_p2_push(ticker, body, severity="escalation")
+                _record_push(state, ticker, kind="exit_p2",
+                             severity="escalation", trigger=None,
+                             body=body, success=_ok)
+                if _ok:
                     # KEIN Cooldown — der Cross ist die Bremse.
                     print(f"[exit_p2] SENT escalation {ticker}: "
                           f"pressure {prev_v:.0f}→{pressure_v:.0f}")
@@ -1842,7 +1878,11 @@ def process_exit_signals(app_data: dict, state: dict) -> None:
                 print(f"[exit_p2] SKIP warning {ticker}: cooldown_active")
             else:
                 body = f"⚠️ Exit-Warnung {ticker}: pressure {pressure_v:.0f}/100"
-                if _send_exit_p2_push(ticker, body, severity="warning"):
+                _ok = _send_exit_p2_push(ticker, body, severity="warning")
+                _record_push(state, ticker, kind="exit_p2",
+                             severity="warning", trigger=None,
+                             body=body, success=_ok)
+                if _ok:
                     _exit_cooldown_set(state, key)
                     print(f"[exit_p2] SENT warning {ticker}: pressure={pressure_v:.0f}")
                 else:
@@ -1867,7 +1907,11 @@ def process_exit_signals(app_data: dict, state: dict) -> None:
                     continue
                 details = t.get("details") or {}
                 body = f"🔻 Exit-Signal {ticker}: {tname} crit ({details})"
-                if _send_exit_p2_push(ticker, body):
+                _ok = _send_exit_p2_push(ticker, body)
+                _record_push(state, ticker, kind="exit_p2",
+                             severity="trigger", trigger=tname,
+                             body=body, success=_ok)
+                if _ok:
                     _exit_cooldown_set(state, key)
                     print(f"[exit_p2] SENT trigger {ticker} {tname}: {details}")
                 else:
@@ -2892,6 +2936,16 @@ def main() -> None:
                              ticker, earnings_days, is_8k_fresh, has_earnings_news)
                     send_ntfy_alert(ticker, ki_sc, drivers,
                                     production_score=setup_sc, monster_score=monster)
+                    # send_ntfy_alert returnt None — Success-Proxy aus
+                    # ntfy-Config (POST-Fehler werden dort nur geloggt,
+                    # nicht propagiert; akzeptierter Drift gegenüber den
+                    # bool-returnenden Sendern).
+                    _ok = bool(NTFY_ENABLED and NTFY_TOPIC)
+                    body = (f"{ticker} Earnings-Sofort-Alert "
+                            f"(in {earnings_days}d, KI {ki_sc})")
+                    _record_push(state, ticker, kind="earnings_immediate",
+                                 severity="default", trigger=None,
+                                 body=body, success=_ok)
                     sent = send_alert(
                         ticker, ki_sc, drivers, yfd, reddit, news,
                         upcoming_event=upcoming_event or f"Earnings in {earnings_days} Tagen — Sofort-Alert",
@@ -2954,7 +3008,12 @@ def main() -> None:
                                  ticker, _silence_summary)
                         continue
                     body = vix_warn_prefix + anom["message"]
-                    if _send_anomaly_ntfy(ticker, body):
+                    _ok = _send_anomaly_ntfy(ticker, body)
+                    _record_push(state, ticker, kind="anomaly",
+                                 severity=anom.get("severity") or "default",
+                                 trigger=anom.get("trigger"),
+                                 body=body, success=_ok)
+                    if _ok:
                         _anomaly_set_cooldown(key, state)
                         n_alerts += 1
                         log.info("Anomaly push (%s/%s): %s",
