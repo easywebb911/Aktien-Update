@@ -622,6 +622,12 @@ EXIT_PUSH_WARNING_THRESHOLD_HIGH   = 75
 EXIT_PUSH_WARNING_COOLDOWN_HOURS   = 12   # pro Ticker
 EXIT_PUSH_TRIGGER_COOLDOWN_HOURS   = 24   # pro (Ticker × Trigger-Name)
 
+# ── Phase 2 Stufe 3c-1 Push-History-Persistenz ───────────────────────────────
+# Ringpuffer in agent_state.json["push_history"]. FIFO-Cap entkoppelt
+# Wachstum vom Tick-Volumen — bei stündlichem ki_agent + Daily-Run reichen
+# 100 Einträge für ca. 4 Tage Historie, danach rollen ältere raus.
+PUSH_HISTORY_MAX = 100
+
 # ── Phasenabhängige Alert-Schwellen ──────────────────────────────────────────
 # Zurückgesetzt — Bootstrap-Backtesting nicht mit Live-Scores vergleichbar.
 # Kalibrierung nach 60+ Tagen Live-Daten.
