@@ -477,8 +477,10 @@ Schema pro Eintrag:
 `{ts (Berlin-ISO), ticker, kind, severity, trigger, body, success}`.
 
 Cap: `PUSH_HISTORY_MAX = 100` (FIFO, älteste raus). Helper `_record_push`
-ist in `ki_agent.py` und `generate_report.py` dupliziert (gleiches Schema,
-gleiche Cap-Semantik) — bei Schema-Änderung beide Stellen synchron halten.
+lebt als Single-Source-of-Truth in `push_history.py` (Repo-Root) und wird
+sowohl von `ki_agent.py` als auch von `generate_report.py` per `from
+push_history import _record_push` eingezogen — bei Schema-Änderung nur
+diese eine Stelle anpassen.
 
 Daily-Summary-E-Mail (`send_daily_summary`) ist **nicht** instrumentiert —
 push_history ist auf ntfy-Versand beschränkt, E-Mail-Pfad bleibt außen vor.

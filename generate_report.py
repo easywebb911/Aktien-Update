@@ -10923,30 +10923,9 @@ def _exit_set_cooldown(key: str, state: dict) -> None:
     )
 
 
-def _record_push(state: dict, ticker: str, kind: str, severity: str,
-                 trigger: str | None, body: str, success: bool) -> None:
-    """FIFO-Append eines Push-Versuchs in ``state["push_history"]``.
-
-    Strukturell identisch zum Pendant in ``ki_agent.py`` — gleiche
-    Schema-Felder, gleicher Cap, gleiche Persistier-Semantik (auch
-    failed Pushes).
-
-    FIFO-Cap = 100 macht uns gegen einzelne fehlende Einträge robust bei
-    Race zwischen ki_agent und Daily-Run. Last-Write-Wins akzeptiert.
-    """
-    entry = {
-        "ts":       datetime.now(ZoneInfo("Europe/Berlin")).isoformat(),
-        "ticker":   ticker,
-        "kind":     kind,
-        "severity": severity,
-        "trigger":  trigger,
-        "body":     body,
-        "success":  bool(success),
-    }
-    hist = state.setdefault("push_history", [])
-    hist.append(entry)
-    if len(hist) > PUSH_HISTORY_MAX:
-        del hist[: len(hist) - PUSH_HISTORY_MAX]
+# Push-History-Helper lebt jetzt in ``push_history.py`` (Repo-Root) —
+# Single-Source-of-Truth, gemeinsam mit ki_agent.py.
+from push_history import _record_push  # noqa: E402,F401
 
 
 def _send_exit_ntfy(ticker: str, body: str) -> bool:
