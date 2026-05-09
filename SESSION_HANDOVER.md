@@ -193,6 +193,45 @@ berühren), nicht *verändern*.
   alle plausibel geblieben. Eine zielgerichtete Probe in der Sandbox
   hat die Hypothese auf eine eindeutige reduziert.
 
+## Code-Hygiene-Backlog
+
+Code-Hygiene-Punkte aus der Diskussion vom 09.05.2026. Punkt 1
+(`_record_push`-Single-Source-of-Truth) wurde via PR #76 erledigt. Die
+folgenden Punkte sind als Wiedervorlage offen — anfassen wenn konkreter
+Anlass besteht (geplante Erweiterung wäre ohne Refactor unverhältnismäßig
+komplex) oder als bewusste Aufräum-Session.
+
+- **Punkt 2 — v1/v2 Render-Pfad in `generate_report.py`:** vollständige
+  Migration zu Jinja (Phase X). Aktuell delegiert `generate_html_v2()`
+  am Ende an `generate_html_v1()` (Outer-Page) — keine Autarkie. Drei-
+  Schritt-Migration nötig (page.jinja, wl_card.jinja-Refactor von
+  `_wl_full_card_html`, autarkes v2). Voraussetzung für Punkt 3.
+
+- **Punkt 3 — Monolith `generate_report.py` aufsplitten:** ~12 000 Zeilen
+  in einer Datei. Modulisierung in `score/`, `data_fetch/`, `frontend/`,
+  `backtest/` reduziert kognitive Last und macht Tests fokussierter. Hohe
+  Risiko-Operation — erfordert Render-Test-Schutznetz (`JINJA_RENDER_TEST=1`)
+  + Smoke-Tests, sonst silent Drift.
+
+- **Punkt 4 — HTML/JS-im-f-String-Pattern durch Template-Engine ersetzen:**
+  hängt mit Punkt 2 zusammen. Aktuell ist die JS-Sektion ein Python-f-String,
+  was `${...}`-Eskapes (`${{...}}`) erzwingt und ein Lint-Skript
+  (`scripts/lint_chat_template.py`) als Sicherheitsnetz braucht. Mit echter
+  Template-Engine wären beide Sicherheitsnetze überflüssig.
+
+- **Punkt 5 — Score-Methodik-Sync-Regel strukturell absichern:** aktuell
+  disziplin-abhängig (Sync-Sektion in CLAUDE.md, manueller Pflicht-Sync
+  pro Methodik-relevanten Commit). Idee: Methodik-HTML-Sektion aus den
+  Konstanten in `config.py` auto-generieren — dann ist Drift unmöglich,
+  Sync-Regel wird obsolet.
+
+- **Punkt 6 — `_drivers_breakdown`-Klassifikations-Regeln in gemeinsamen
+  Helper mit `score()` ziehen:** aktuell muss bei jeder neuen Score-
+  Komponente `_drivers_breakdown` manuell mitwachsen (Drift-Risiko, in
+  CLAUDE.md "Drivers-Block"-Sektion explizit als Pflege-Aufgabe markiert).
+  Single-Source-of-Truth aus einer Komponenten-Spezifikation, die Score
+  und Drivers gemeinsam ableiten.
+
 ## Architektur-Anker (eingeführt/geändert in dieser Session)
 
 - **`agent_state.json["push_history"]`** (Phase 2 Stufe 3c-1) —
