@@ -487,7 +487,11 @@ nicht in eine Materialisierungs-Datei).
       "lesson":          "zu früh verkauft, lief weiter",
       "max_setup_score": 82,
       "duration_days":   18,
-      "closed_at":       "2026-05-15T18:42:11.000Z"
+      "closed_at":       "2026-05-15T18:42:11.000Z",
+      "entry_fx":         0.92,
+      "exit_fx":          0.91,
+      "exit_fx_eur":     143.33,
+      "realized_pnl_eur": 22.10
     }
   ]
 }
@@ -499,6 +503,26 @@ wird beim Schließen aus `window._SCORE_HISTORY[ticker]` ermittelt
 nach DE→ISO-Konvertierung). `pnl_abs = (exit_price − entry_price) ×
 shares` in USD. `closed_at` ist Browser-Wallclock-ISO für
 Reihenfolge-Debug.
+
+#### EUR-Felder (Stufe 3/4, persistiert ab 06.05.2026)
+
+Vier optionale numerische Felder, die den realisierten Gewinn auch
+historisch korrekt in EUR rekonstruierbar machen — ohne sie würde der
+Trade-Journal-Renderer auf den **aktuellen** `_FX_USD_EUR` zurückfallen
+und alte Trades bei FX-Schwankungen falsch darstellen.
+
+| Feld | Typ | Bedeutung |
+|---|---|---|
+| `entry_fx`         | Float \| None | EUR pro 1 USD zum **Entry-Tag**. Resolution-Kette in `wlSubmitClose` (`generate_report.py:9387-9396`): zuerst `pos.entry_fx` aus dem Gist, sonst Backfill aus `window._POSITIONS_DATA[ticker].entry_fx` (gesetzt vom Daily-Run, `generate_report.py:11294-11301`). `null` wenn beide Quellen leer. |
+| `exit_fx`          | Float \| None | EUR pro 1 USD zum **Exit-Zeitpunkt** = aktueller `window._FX_USD_EUR` beim Schließen. `null` wenn FX-Bridge nicht verfügbar. |
+| `exit_fx_eur`      | Float \| None | `exit_price × exit_fx × shares`, gerundet auf 2 Nachkommastellen — das EUR-Äquivalent des Verkaufserlöses (Brutto). |
+| `realized_pnl_eur` | Float \| None | `exit_fx_eur − (entry_price × entry_fx × shares)`, gerundet auf 2 Nachkommastellen — der tatsächliche EUR-PnL unter Berücksichtigung beider FX-Endpunkte. `null` wenn `entry_fx` oder `exit_fx` fehlt. |
+
+Reader-Helper in `generate_report.py:6333-6354`: `_tjResolveEntryFx`,
+`_tjResolveExitFx`, `_tjResolvePnlEur` sind die Single-Source-of-Truth
+für die Trade-Journal-Anzeige; alte Trades ohne diese Felder fallen
+auf den Live-`_FX_USD_EUR`-Approx zurück (Migrations-Pfad,
+dokumentiert in den Helpern).
 
 ### Datenfluss
 
@@ -1030,6 +1054,39 @@ smoothed Scores wurden ignoriert.
   sonst wäre das Tile + Card asymmetrisch zur restlichen Anzeige.
 - Falls neue WL-Render-Funktionen hinzukommen: dieselbe 3-Stufen-
   Priorität nutzen, nicht direkt `WL_SCORES` lesen.
+
+---
+
+## Earliness-Indikator (Stufe 1, ohne Score-Effekt)
+
+`compute_earliness_pts(stocks)` (`generate_report.py:2812-2871`) misst
+„leise Akkumulation" — FINRA-Short-Interest beschleunigt
+(`si_accelerating` / `si_velocity ≥ EARLINESS_VELOCITY_THRESHOLD`),
+während der Kurs noch nicht gelaufen ist
+(`change_5d < EARLINESS_MAX_CHANGE_5D_PCT`, `rsi14 < EARLINESS_MAX_RSI`).
+
+**Stufe 1 ist reine Persistenz / Beobachtung — `s["score"]` wird
+nicht beeinflusst.** Die Werte werden später in Stufe Mittel-2 als
+Score-Bonus aktiviert, sobald genug Empirik vorliegt. Bis dahin nur
+Logging und optionale UI-Anzeige.
+
+### Zwei Felder auf dem Stock-Dict
+
+| Feld | Typ | Bedeutung |
+|---|---|---|
+| `earliness_pts`        | int 0..`EARLINESS_PTS_MAX` (5) | Punkte-Snapshot: `EARLINESS_ACCEL_PTS` (3) bei `accel_match`, `EARLINESS_VELOCITY_PTS` (2) bei `velocity_match`, gecappt. |
+| `earliness_breakdown`  | dict `{accel_match: bool, velocity_match: bool}` | **Debug-Feld** — zeigt, *welche* der zwei Sub-Bedingungen aktiv waren. Verwechslungsgefahr: nicht mit `_drivers_breakdown` (Drivers-Block-Helper) verwechseln, andere Funktion. |
+
+Beide Felder werden **immer** geschrieben (auch bei `pts == 0`), so
+dass Konsumenten nicht zwischen „nicht berechnet" und „berechnet, alle
+Sub-Matches false" unterscheiden müssen.
+
+### Pflege
+
+Bei Aktivierung in Stufe Mittel-2: `earliness_pts` als on-top-Bonus in
+`score()` integrieren (analog zu `_float_turnover_pts`), `_compute_sub_scores`
+um Sub-Score-Anzeige erweitern, **Score-Methodik-Sektion synchronisieren**,
+diese Sektion oben „ohne Score-Effekt" → „mit Score-Effekt" umschreiben.
 
 ---
 
