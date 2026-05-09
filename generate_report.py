@@ -9127,6 +9127,11 @@ function _fmtGerman(d) {{
       const _initSum =
         '<div>Verkaufserlös: ' + _formatUsdEurPair(_erlosUsdInit, _fxInit) + '</div>' +
         '<div>Gewinn: ' + _formatUsdEurPnl(_pnlUsdInit, _pnlEurInit) + '</div>';
+      // Bug A: thesis/lesson aus Cache restaurieren — sonst gehen die
+      // Werte beim Validation-Fail-Re-Render verloren.
+      const _formState = (window._POS_PANEL_FORM_STATE || {{}})[ticker] || {{}};
+      const _thInit    = _escAttr(_formState.thesis || '');
+      const _leInit    = _escAttr(_formState.lesson || '');
       return `<div class="position-panel position-panel-active">
         <div class="pos-header">Position schlie\xdfen — ${{ticker}}</div>
         <div class="pos-form pos-form-close" id="pos-close-${{ticker}}">
@@ -9141,11 +9146,11 @@ function _fmtGerman(d) {{
           <div class="pos-form-summary" id="pos-sum-${{ticker}}">${{_initSum}}</div>
           <label class="pos-lbl-form">These (optional)
             <textarea id="pos-th-${{ticker}}" rows="2"
-                      placeholder="Was war der Grund f\xfcr den Kauf?"></textarea>
+                      placeholder="Was war der Grund f\xfcr den Kauf?">${{_thInit}}</textarea>
           </label>
           <label class="pos-lbl-form">Lesson (optional)
             <textarea id="pos-le-${{ticker}}" rows="2"
-                      placeholder="Was hast du aus diesem Trade gelernt?"></textarea>
+                      placeholder="Was hast du aus diesem Trade gelernt?">${{_leInit}}</textarea>
           </label>
           ${{errHtml}}
           <div class="pos-form-btns">
@@ -9233,6 +9238,13 @@ function _fmtGerman(d) {{
   // kann ohne Plumbing über jede Aufrufer-Schicht.
   window._POS_PANEL_MODE = window._POS_PANEL_MODE || {{}};
   window._POS_PANEL_ERR  = window._POS_PANEL_ERR  || {{}};
+  // Form-Field-Cache pro Ticker für Felder OHNE eigenen Default-Render
+  // (textareas thesis/lesson). Bei Validation-Fail-Re-Render würden diese
+  // Werte sonst weggewischt, weil ``buildPositionPanel`` die Form neu
+  // aufbaut. Felder mit Default-Render (Datum=heute, Verkaufskurs=Spot)
+  // bleiben außen vor — der Default ist gewünscht, nicht der vorherige
+  // User-Wert.
+  window._POS_PANEL_FORM_STATE = window._POS_PANEL_FORM_STATE || {{}};
   function _setPanelMode(ticker, mode) {{
     if (!mode || mode === 'view') delete window._POS_PANEL_MODE[ticker];
     else window._POS_PANEL_MODE[ticker] = mode;
@@ -9240,6 +9252,22 @@ function _fmtGerman(d) {{
   function _setPanelErr(ticker, msg) {{
     if (!msg) delete window._POS_PANEL_ERR[ticker];
     else window._POS_PANEL_ERR[ticker] = msg;
+  }}
+  function _setPanelFormState(ticker, state) {{
+    if (!state) delete window._POS_PANEL_FORM_STATE[ticker];
+    else window._POS_PANEL_FORM_STATE[ticker] = state;
+  }}
+  function _cacheCloseFormFields(ticker) {{
+    const th = document.getElementById('pos-th-' + ticker);
+    const le = document.getElementById('pos-le-' + ticker);
+    _setPanelFormState(ticker, {{
+      thesis: (th && th.value) || '',
+      lesson: (le && le.value) || '',
+    }});
+  }}
+  function _escAttr(s) {{
+    return String(s == null ? '' : s).replace(/[<>&]/g, c => (
+      {{'<':'&lt;','>':'&gt;','&':'&amp;'}})[c]);
   }}
 
   window.wlShowOpenForm = function(ticker) {{
@@ -9347,6 +9375,7 @@ function _fmtGerman(d) {{
   window.wlCancelCloseForm = function(ticker) {{
     _setPanelMode(ticker, 'view');
     _setPanelErr(ticker, '');
+    _setPanelFormState(ticker, null);  // Bug A: gecachte thesis/lesson verwerfen
     _refreshPositionPanel(ticker);
   }};
 
@@ -9362,6 +9391,7 @@ function _fmtGerman(d) {{
     const exitDate  = xd.value;
     const exitPrice = parseFloat(xp.value);
     if (!exitDate || !isFinite(exitPrice) || exitPrice <= 0) {{
+      _cacheCloseFormFields(ticker);  // Bug A: thesis/lesson über Re-Render erhalten
       _setPanelErr(ticker, 'Verkaufsdatum und Verkaufskurs > 0 erforderlich.');
       _refreshPositionPanel(ticker);
       return;
@@ -9370,6 +9400,7 @@ function _fmtGerman(d) {{
     if (!data.closed_trades) data.closed_trades = [];
     const pos = (data.positions || {{}})[ticker];
     if (!pos) {{
+      _cacheCloseFormFields(ticker);
       _setPanelErr(ticker, 'Position nicht gefunden.');
       _refreshPositionPanel(ticker);
       return;
@@ -9426,6 +9457,7 @@ function _fmtGerman(d) {{
     delete data.positions[ticker];
     const ok = await gistSave(data);
     if (!ok) {{
+      _cacheCloseFormFields(ticker);
       _setPanelErr(ticker,
         'Trade-Save im Gist fehlgeschlagen — Token-Scope „gist" pr\xfcfen. NICHT persistiert.');
       _refreshPositionPanel(ticker);
@@ -9433,6 +9465,7 @@ function _fmtGerman(d) {{
     }}
     _setPanelMode(ticker, 'view');
     _setPanelErr(ticker, '');
+    _setPanelFormState(ticker, null);  // Bug A: Cache bei Erfolg verwerfen
     _refreshPositionPanel(ticker);
   }};
 
