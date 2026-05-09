@@ -1,9 +1,14 @@
 # Entwicklungsregeln — Aktien-Update
 
-## Git-Workflow
-- Commits immer direkt auf `main`
-- Niemals einen neuen Branch erstellen, außer explizit angewiesen
-- Kein Pull Request, kein Branch-Umweg
+## Git-Workflow (PR-only)
+
+**ALLE Änderungen** — Code, Doku **und** Config — gehen über Pull Request.
+
+- Branch-Name-Pattern: `claude/<kurze-beschreibung>-<random>`
+- User merged manuell via GitHub-Webseite nach Review.
+- Direkt-auf-`main` ist **nicht möglich** (Sandbox-Restriktion seit
+  09.05.2026: alle `main`-Pushes — auch reine Doku — werden mit
+  HTTP 403 abgewiesen). Branch-Pushes funktionieren weiterhin.
 
 ## generate_report.py — Template-Sicherheitsregel
 
