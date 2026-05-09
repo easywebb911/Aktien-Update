@@ -379,6 +379,22 @@ abbr[title]{text-decoration:underline dotted var(--txt-dim);
 .tj-trade-lesson{border-left:3px solid #f59e0b}
 .tj-note-lbl{display:inline-block;font-size:.62rem;text-transform:uppercase;
   letter-spacing:.5px;color:var(--txt-dim);font-weight:700;margin-right:6px}
+/* Details-Toggle pro Trade — nur sichtbar wenn thesis ODER lesson gesetzt.
+   ≥44 px Tap-Target via min-height. Chevron rotiert per Klassen-Wechsel. */
+.tj-trade-details-btn{display:flex;align-items:center;gap:8px;
+  margin-top:8px;padding:10px 12px;width:100%;min-height:44px;
+  background:transparent;border:1px solid var(--brd);border-radius:6px;
+  color:var(--txt-sub);font-size:.74rem;font-weight:700;font-family:inherit;
+  cursor:pointer;text-align:left;letter-spacing:.2px;
+  transition:background 120ms ease,color 120ms ease}
+.tj-trade-details-btn:hover{background:var(--bg-met);color:var(--txt)}
+.tj-trade-details-btn:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+.tj-trade-details-arr{display:inline-block;width:10px;text-align:center;
+  font-size:.7rem;color:var(--txt-dim)}
+.tj-trade-details-btn.is-open{color:var(--txt);border-color:var(--accent)}
+.tj-trade-details-body{margin-top:6px}
+.tj-trade-details-body[hidden]{display:none}
+.tj-trade-details-body .tj-trade-note:first-child{margin-top:0}
 /* Close-Form (Verkaufsdaten) — unterscheidet sich von Open-Form
    durch zusätzliche Textareas. Dasselbe pos-form-Grundgerüst. */
 .pos-form-close textarea{background:var(--bg-met);border:1px solid var(--brd);
