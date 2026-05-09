@@ -9295,8 +9295,14 @@ function _fmtGerman(d) {{
   }};
 
   // Trade-Journal: max Setup-Score zwischen Entry- und Exit-Datum aus
-  // window._SCORE_HISTORY (Schema {{ ticker: [{{date: "DD.MM.YYYY", score}}] }}).
-  // Datums-Strings werden zu ISO konvertiert für lexikographischen Vergleich.
+  // window._SCORE_HISTORY. app_data.json shippt das kompakte Disk-Format
+  // direkt, also sind die Eintraege Tuples:
+  //   [date, score]                 (2-Tuple, Legacy ohne Drivers)
+  //   [date, score, drivers[]]      (3-Tuple mit KI-Agent-Drivers)
+  // Dict-Form {{date, score, drivers}} bleibt als Read-Only-Fallback
+  // toleriert (z. B. falls ein anderer Producer normalisiert geschriebenes
+  // Format ausliefert). Datums-Strings sind DD.MM.YYYY und werden zu ISO
+  // konvertiert fuer lexikographischen Vergleich.
   function _maxSetupBetween(ticker, entryIso, exitIso) {{
     const hist = (window._SCORE_HISTORY || {{}})[ticker] || [];
     if (!hist.length) return null;
@@ -9308,8 +9314,17 @@ function _fmtGerman(d) {{
     }};
     let max = null;
     for (const e of hist) {{
-      const date  = _toIso((e && e.date) || '');
-      const score = (e && typeof e.score === 'number') ? e.score : null;
+      let rawDate = '';
+      let rawScore = null;
+      if (Array.isArray(e) && e.length >= 2) {{
+        rawDate  = e[0];
+        rawScore = e[1];
+      }} else if (e && typeof e === 'object') {{
+        rawDate  = e.date;
+        rawScore = e.score;
+      }}
+      const date  = _toIso(rawDate || '');
+      const score = (typeof rawScore === 'number') ? rawScore : null;
       if (!date || score == null) continue;
       if (date < entryIso || date > exitIso) continue;
       if (max == null || score > max) max = score;
