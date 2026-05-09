@@ -458,12 +458,19 @@ LATE_RUNNER_MOVE_2D_THRESHOLD     = 0.20   # Fraction (gleich PUSH_MOVE_2D_MAX, 
 # der Kurs noch nicht gelaufen ist. Stufe 1 berechnet + persistiert nur
 # (s["earliness_pts"]); KEIN Score-Effekt — der Wert ist Beobachtungsgröße
 # bis Stufe Mittel-2 ihn als Bonus aktiviert.
-EARLINESS_PTS_MAX                 = 5
+EARLINESS_PTS_MAX                 = 7      # 5→7 nach PM-Vol-Komponente
 EARLINESS_ACCEL_PTS               = 3      # si_accel + niedriger 5T-Move
 EARLINESS_VELOCITY_PTS            = 2      # si_velocity + niedriger RSI
 EARLINESS_VELOCITY_THRESHOLD      = 100    # tägliche FINRA-Velocity-Schwelle
 EARLINESS_MAX_CHANGE_5D_PCT       = 5.0    # Move noch nicht groß
 EARLINESS_MAX_RSI                 = 60     # RSI noch im normalen Bereich
+# PM-Vol-Komponente (3.): Pre-Market-Volume in % vom 20T-Avg-Volume,
+# Trigger nur bei change_overnight ≥ 0 (kein PM-Selloff). Stufe 1 wie
+# der Rest des Earliness-Blocks: nur Logging + Persistenz.
+EARLINESS_PM_VOL_LOW_PCT          = 3.0    # ≥3 % PM-vs-Avg → +1
+EARLINESS_PM_VOL_HIGH_PCT         = 8.0    # ≥8 % PM-vs-Avg → +2
+EARLINESS_PM_VOL_PTS_LOW          = 1
+EARLINESS_PM_VOL_PTS_HIGH         = 2
 
 # ── SEC EDGAR 13D/13G Filings (Anomalie-Trigger) ────────────────────────────
 # Hybrid-Filter:

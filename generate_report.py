@@ -2809,12 +2809,81 @@ def apply_late_runner_penalty(stocks: list[dict]) -> None:
         )
 
 
+def _fetch_premarket_volumes_batch(tickers: list[str]) -> dict[str, float]:
+    """Pre-Market-Volume (04:00–09:30 ET) als Summe der 1-Minuten-Bars.
+
+    Single Batch via ``yf.download(prepost=True, period="1d",
+    interval="1m")`` — eine HTTP-Round-Trip pro Daily-Run statt N
+    Einzelfetches.
+
+    Multi-Ticker-Form: yfinance liefert MultiLevel-Spalten
+    ``(ticker, "Volume")``. Single-Ticker-Form: flacher DataFrame.
+    Helper deckt beide Pfade ab und gibt ``0.0`` für Ticker zurück,
+    deren Daten leer/kaputt sind.
+
+    Fail-soft: yfinance-Exception → leeres Dict (Aufrufer fällt auf
+    0.0-Default zurück).
+    """
+    out: dict[str, float] = {}
+    if not tickers:
+        return out
+    try:
+        df = yf.download(
+            tickers,
+            period="1d",
+            interval="1m",
+            prepost=True,
+            group_by="ticker",
+            auto_adjust=False,
+            threads=True,
+            progress=False,
+        )
+    except Exception as exc:
+        log.warning("Pre-Market-Volume Batch fetch failed: %s", exc)
+        return out
+    if df is None or df.empty:
+        return out
+    try:
+        # yfinance liefert tz-aware (UTC) für intraday — auf
+        # America/New_York mappen, dann Pre-Market-Slot ausschneiden.
+        if getattr(df.index, "tz", None) is None:
+            try:
+                df.index = df.index.tz_localize("UTC")
+            except Exception:
+                pass
+        try:
+            df = df.tz_convert("America/New_York")
+        except Exception:
+            pass
+    except Exception:
+        pass
+    multi = len(tickers) > 1
+    for t in tickers:
+        try:
+            sub = df[t] if multi else df
+            if sub is None or sub.empty:
+                out[t] = 0.0
+                continue
+            pm_slice = sub.between_time("04:00", "09:30")
+            vol_col = pm_slice.get("Volume")
+            if vol_col is None or vol_col.empty:
+                out[t] = 0.0
+                continue
+            pm_vol = float(vol_col.fillna(0).sum())
+            out[t] = pm_vol if pm_vol > 0 else 0.0
+        except Exception as exc:
+            log.debug("PM-Vol Extraction für %s fehlgeschlagen: %s", t, exc)
+            out[t] = 0.0
+    return out
+
+
 def compute_earliness_pts(stocks: list[dict]) -> None:
     """Stufe 1 — reine Beobachtungsgröße, KEIN Score-Effekt.
 
     Misst „leise Akkumulation": FINRA-Short-Interest beschleunigt
     (si_accelerating / si_velocity), während Kurs noch nicht gelaufen
-    ist (change_5d niedrig, RSI im normalen Bereich).
+    ist (change_5d niedrig, RSI im normalen Bereich). Dritte Komponente:
+    Pre-Market-Volume hoch in % vom 20T-Avg ohne PM-Selloff.
 
     Schreibt nur ``s["earliness_pts"]`` (0..EARLINESS_PTS_MAX) und
     ``s["earliness_breakdown"]`` (Debug-Dict). ``s["score"]`` bleibt
@@ -2852,25 +2921,68 @@ def compute_earliness_pts(stocks: list[dict]) -> None:
         accel_match    = bool(accel_raw) and chg5d is not None and chg5d < EARLINESS_MAX_CHANGE_5D_PCT
         velocity_match = velocity >= EARLINESS_VELOCITY_THRESHOLD and rsi14 is not None and rsi14 < EARLINESS_MAX_RSI
 
+        # PM-Vol-Komponente — graceful Fallback bei jeder fehlenden Quelle.
+        # Filter-Stack: avg_vol > 0 (sonst Ratio undefiniert), change_5d <
+        # EARLINESS_MAX_CHANGE_5D_PCT (Earliness-Charakter wahren) und
+        # change_overnight ≥ 0 (kein PM-Selloff).
+        pm_vol_raw = s.get("premarket_volume")
+        try:
+            pm_vol = float(pm_vol_raw) if pm_vol_raw is not None else 0.0
+        except (TypeError, ValueError):
+            pm_vol = 0.0
+        avg_vol_raw = s.get("avg_vol_20d")
+        try:
+            avg_vol = float(avg_vol_raw) if avg_vol_raw is not None else 0.0
+        except (TypeError, ValueError):
+            avg_vol = 0.0
+        cur_open_raw  = s.get("cur_open")
+        prev_close_raw = s.get("prev_close")
+        try:
+            cur_open   = float(cur_open_raw)   if cur_open_raw   is not None else None
+            prev_close = float(prev_close_raw) if prev_close_raw is not None else None
+        except (TypeError, ValueError):
+            cur_open, prev_close = None, None
+        change_overnight = None
+        if cur_open is not None and prev_close is not None and prev_close > 0:
+            change_overnight = (cur_open - prev_close) / prev_close * 100.0
+        pm_vol_pts = 0
+        pm_vol_match = False
+        pm_ratio = None
+        if (avg_vol > 0
+                and change_overnight is not None and change_overnight >= 0
+                and chg5d is not None and chg5d < EARLINESS_MAX_CHANGE_5D_PCT):
+            pm_ratio = pm_vol / avg_vol * 100.0
+            if pm_ratio >= EARLINESS_PM_VOL_HIGH_PCT:
+                pm_vol_pts  = EARLINESS_PM_VOL_PTS_HIGH
+                pm_vol_match = True
+            elif pm_ratio >= EARLINESS_PM_VOL_LOW_PCT:
+                pm_vol_pts  = EARLINESS_PM_VOL_PTS_LOW
+                pm_vol_match = True
+
         pts = 0
         if accel_match:
             pts += EARLINESS_ACCEL_PTS
         if velocity_match:
             pts += EARLINESS_VELOCITY_PTS
+        pts += pm_vol_pts
         pts = min(pts, EARLINESS_PTS_MAX)
 
         s["earliness_pts"] = pts
         s["earliness_breakdown"] = {
             "accel_match":    accel_match,
             "velocity_match": velocity_match,
+            "pm_vol_match":   pm_vol_match,
         }
 
         if pts > 0:
             log.info(
-                "Earliness %s: %d Pkt (accel=%s, velocity=%s, change_5d=%s, "
-                "rsi14=%s, si_velocity=%s)",
+                "Earliness %s: %d Pkt (accel=%s, velocity=%s, pm_vol=%s, "
+                "change_5d=%s, rsi14=%s, si_velocity=%s, pm_ratio=%s, "
+                "change_overnight=%s)",
                 s.get("ticker", "?"), pts, accel_match, velocity_match,
-                chg5d, rsi14, velocity,
+                pm_vol_match, chg5d, rsi14, velocity,
+                f"{pm_ratio:.2f}%" if pm_ratio is not None else None,
+                f"{change_overnight:.2f}%" if change_overnight is not None else None,
             )
 
 
@@ -11982,6 +12094,13 @@ def main():
     # TEAD-Klasse („100/100 obwohl gelaufen"). Vor apply_monster_score, damit
     # der Penalty in den Monster-Score durchschlägt.
     apply_late_runner_penalty(top10)
+
+    # Pre-Market-Volume-Snapshot für Earliness-Komponente 3 — Single
+    # yfinance-Batch (intraday 1m, prepost=True) über alle top10-Ticker
+    # statt N Einzelfetches. Fail-soft: leeres Dict → Default 0.0.
+    _pm_vols = _fetch_premarket_volumes_batch([s["ticker"] for s in top10])
+    for _s in top10:
+        _s["premarket_volume"] = float(_pm_vols.get(_s["ticker"], 0.0) or 0.0)
 
     # Earliness-Sub-Score (Mittel-Refactor Stufe 1): reine Beobachtungs-
     # größe — schreibt s["earliness_pts"] / s["earliness_breakdown"], lässt
