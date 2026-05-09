@@ -1,6 +1,6 @@
 // Auto-generiert von generate_report.py — Service Worker
-// Cache-Version: 20260509-2105 (wird bei jedem Daily-Run aktualisiert)
-const CACHE_NAME = 'squeeze-20260509-2105';
+// Cache-Version: 20260509-2126 (wird bei jedem Daily-Run aktualisiert)
+const CACHE_NAME = 'squeeze-20260509-2126';
 const URLS = [
   './',
   './index.html',
