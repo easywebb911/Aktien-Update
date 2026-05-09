@@ -10925,7 +10925,7 @@ def _exit_set_cooldown(key: str, state: dict) -> None:
 
 # Push-History-Helper lebt jetzt in ``push_history.py`` (Repo-Root) —
 # Single-Source-of-Truth, gemeinsam mit ki_agent.py.
-from push_history import _record_push  # noqa: E402,F401
+from push_history import _record_push  # noqa: E402
 
 
 def _send_exit_ntfy(ticker: str, body: str) -> bool:
