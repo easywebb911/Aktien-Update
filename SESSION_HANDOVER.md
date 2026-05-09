@@ -64,6 +64,69 @@
 15. **Phase 2 Trigger 4–6** — Setup-Erosion, Catalyst, Trend-Bruch.
 16. **Tier-2-Insight-Builder** als Reserve.
 
+## Strategische Roadmap
+
+### Übergeordnetes Ziel
+
+Squeeze-Früherkennungssystem mit empirisch validierter Edge. Drei
+parallele Arbeitsstränge:
+
+- **Bauen** — Code-Erweiterungen (neue Trigger, UI-Ergänzungen,
+  Persistenz-Schichten).
+- **Sammeln** — passives Warten auf Backtest- und Earliness-Empirik
+  (jeder Daily-Run + ki_agent-Tick füttert die History).
+- **Validieren** — Score-Logik gegen reale R-Werte testen, sobald
+  genug Datenpunkte da sind.
+
+### Drei Zeit-Achsen
+
+**Kurzfristig (Tage bis 1–2 Wochen, aktiv planbar)**
+
+- **Stufe Mittel-2** — Earliness-Score-Effekt aktivieren, sobald
+  1–2 Daily-Runs mit drei Komponenten (`accel_match`/`velocity_match`/
+  `pm_vol_match`) in den Logs plausible Werte zeigen.
+- **Phase 3 Exit-Signale** (Wiedervorlage 15.05.2026).
+- **Phase 2 Stufe 3c-2** — `push_history` in `app_data.json`
+  materialisieren, danach **Stufe 3c-3** UI-Notification-History.
+
+**Mittelfristig (Wochen, datenabhängig)**
+
+- **Backtest-Validierung** — Frontend-Auswertung Backtest-T+0/T+1
+  funktioniert erst belastbar, sobald je Score-Bucket
+  (`<50`/`50–69`/`≥70`) mindestens 30 Tage Live-R-Werte vorliegen.
+  Aktuell: Bucket-Mediane existieren noch nicht (`—`-Anzeige), seit
+  PR #72 läuft der Backfill aber endlich; erste Werte ab morgen,
+  statistisch belastbar in ~30 Tagen.
+- **Bahn A2** — Frontend-Auswertungs-Panel (≥ 200 Live-Backtest-
+  Einträge erforderlich).
+
+**Längerfristig (Monate, Empirik-basiert)**
+
+- **Big-Refactor Zwei-Achsen-Ranking** — nach 30+ Tagen Earliness-
+  Daten, sobald die PM-Vol-Komponente kalibriert ist.
+- **Premium-Daten-Stack** (Wiedervorlage 02.07.2026).
+- **Sektor-Rotation / Marktkontext** — noch nicht im Backlog,
+  aber natürliche Erweiterung sobald die Single-Stock-Edge
+  empirisch sitzt.
+
+### Lackmus-Test
+
+**Phase 3 Validieren ist der entscheidende Test.** Backtest muss
+zeigen: Score ≥ 70 hat einen klar besseren Median-R-Wert nach 5T
+als Score < 50.
+
+- **Wenn ja** → Earliness-Score-Aktivierung und Big-Refactor mit
+  Rückenwind, weil die Score-Komponenten als Ganzes das richtige
+  Signal produzieren.
+- **Wenn nein** → Score-Komponenten **neu kalibrieren bevor weiter
+  gebaut wird**. Eine Earliness-Bonus-Aktivierung auf einem
+  unkalibrierten Score würde Bug auf Bug stapeln.
+
+Bis der Test laufen kann, ist passives Sammeln der primäre Modus —
+neue Features werden so gewählt, dass sie *unterstützen* (z. B.
+Phase 2 Stufe 3c-2 verbessert Audit-Spur, ohne Score-Logik zu
+berühren), nicht *verändern*.
+
 ## Heutige große Themen
 
 - **GRPN-Stop-Loss vom Vortag aufgearbeitet** — These und Lesson
