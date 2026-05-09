@@ -238,10 +238,12 @@ komplex) oder als bewusste Aufräum-Session.
   FIFO-Ringpuffer mit Cap `PUSH_HISTORY_MAX = 100`, instrumentiert
   in `_send_anomaly_ntfy`, `_send_exit_p2_push` (3 Severities),
   `send_ntfy_alert` (earnings_immediate) sowie `_send_exit_ntfy`
-  (Daily-Run, 2 Aufrufstellen). Helper `_record_push` ist in
-  `ki_agent.py` und `generate_report.py` dupliziert; Schema-
-  Änderungen müssen beide Stellen synchron treffen. Daily-Summary-
-  E-Mail ist explizit ausgenommen.
+  (Daily-Run, 2 Aufrufstellen). Helper `_record_push` lebt als
+  Single-Source-of-Truth in `push_history.py` (Repo-Root) und wird
+  von `ki_agent.py` und `generate_report.py` per `from push_history
+  import _record_push` eingezogen — bei Schema-Änderung nur diese
+  eine Stelle anpassen (PR #76). Daily-Summary-E-Mail ist explizit
+  ausgenommen.
 - **Earliness-Indikator: 3 statt 2 Komponenten** — neu PM-Vol
   (`pm_vol_match`) zusätzlich zu `accel_match` + `velocity_match`,
   Cap `EARLINESS_PTS_MAX` von 5 auf 7. Datenquelle

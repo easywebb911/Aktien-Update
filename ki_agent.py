@@ -173,7 +173,7 @@ def set_cooldown(ticker: str, state: dict) -> None:
 # ── Push-History (Phase 2 Stufe 3c-1) ────────────────────────────────────────
 # Single-Source-of-Truth lebt in ``push_history.py`` (Repo-Root). Schema-
 # Änderungen am push_history-Eintrag müssen dort gemacht werden.
-from push_history import _record_push  # noqa: E402,F401
+from push_history import _record_push  # noqa: E402
 
 
 # ── Signale laden/speichern ───────────────────────────────────────────────────
