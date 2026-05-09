@@ -74,3 +74,4 @@ Diese Zeilen befinden sich in der Funktion `generate_html()` in `generate_report
 **Filterkriterien:** Short Float >15 % · Rel. Volumen ≥1,5× · Marktkapitalisierung <$10 Mrd. · Kurs >$1 USD
 # Aktien-Update
 Automatische Meldungen zu Squeeze Kandidaten
+<!-- test -->
