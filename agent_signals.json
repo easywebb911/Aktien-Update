@@ -1,10 +1,10 @@
 {
-  "updated": "2026-05-09T07:47:33.526364+02:00",
+  "updated": "2026-05-09T09:53:43.692467+02:00",
   "run_info": {
     "tickers_checked": 10,
     "signals_active": 5,
     "alerts_sent": 1,
-    "elapsed_s": 15.4,
+    "elapsed_s": 10.7,
     "market_phase": "Geschlossen"
   },
   "signals": {
@@ -194,9 +194,9 @@
       "uoa_cp_ratio": 3.51579605880513
     },
     "RXT": {
-      "score": 25,
+      "score": 18,
       "confidence": 17,
-      "drivers": "News: partnership + UOA Call/Put 37.7×",
+      "drivers": "News-KI 8/30: Positive fundamentals and growth catalysts reduce short squeeze potential as bullish sentiment is driven by business dea + UOA Call/Put 37.7×",
       "price": 5.49,
       "chg_pct": 0.0,
       "rvol": 0.0,
@@ -206,7 +206,7 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 1,
+      "active_triggers": 0,
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 37.7×"
