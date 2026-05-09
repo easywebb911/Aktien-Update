@@ -171,35 +171,9 @@ def set_cooldown(ticker: str, state: dict) -> None:
 
 
 # ── Push-History (Phase 2 Stufe 3c-1) ────────────────────────────────────────
-
-def _record_push(state: dict, ticker: str, kind: str, severity: str,
-                 trigger: str | None, body: str, success: bool) -> None:
-    """FIFO-Append eines Push-Versuchs in ``state["push_history"]``.
-
-    Entry-Schema:
-      ``{ts, ticker, kind, severity, trigger, body, success}``
-
-    Cap = ``PUSH_HISTORY_MAX`` (älteste Einträge werden abgeschnitten).
-    Auch fehlgeschlagene Pushes (``success=False``) werden persistiert,
-    damit Audit-Trails beim ntfy-Disable / POST-Fehler nachvollziehbar
-    bleiben.
-
-    FIFO-Cap = 100 macht uns gegen einzelne fehlende Einträge robust bei
-    Race zwischen ki_agent und Daily-Run. Last-Write-Wins akzeptiert.
-    """
-    entry = {
-        "ts":       now_berlin().isoformat(),
-        "ticker":   ticker,
-        "kind":     kind,
-        "severity": severity,
-        "trigger":  trigger,
-        "body":     body,
-        "success":  bool(success),
-    }
-    hist = state.setdefault("push_history", [])
-    hist.append(entry)
-    if len(hist) > PUSH_HISTORY_MAX:
-        del hist[: len(hist) - PUSH_HISTORY_MAX]
+# Single-Source-of-Truth lebt in ``push_history.py`` (Repo-Root). Schema-
+# Änderungen am push_history-Eintrag müssen dort gemacht werden.
+from push_history import _record_push  # noqa: E402,F401
 
 
 # ── Signale laden/speichern ───────────────────────────────────────────────────

@@ -9,42 +9,15 @@ Erfolg, 1 bei jedem AssertionError.
 """
 
 import sys
-import importlib.util
 import pathlib
-import re
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
 
-# ki_agent importiert beim Modul-Load externe Pakete (yfinance, requests …),
-# die in dieser Umgebung evtl. nicht verfügbar sind. Wir extrahieren die
-# Helper-Definition daher per Source-Slice statt vollem Import.
-
-src = (ROOT / "ki_agent.py").read_text(encoding="utf-8")
-m = re.search(
-    r"^def _record_push\([\s\S]+?(?=^\ndef\s|\n# ── )",
-    src,
-    re.MULTILINE,
-)
-assert m, "_record_push-Block in ki_agent.py nicht gefunden"
-helper_src = m.group(0)
-
-# Stub-Modul mit den Abhängigkeiten, die der Helper im echten Modul aus
-# Top-Level-Imports zieht. now_berlin → fester ISO-String, damit ts
-# deterministisch testbar ist.
-ns: dict = {}
-exec(
-    "from config import PUSH_HISTORY_MAX\n"
-    "def now_berlin():\n"
-    "    class _N:\n"
-    "        def isoformat(self):\n"
-    "            return '2026-05-09T18:00:00+02:00'\n"
-    "    return _N()\n"
-    + helper_src,
-    ns,
-)
-_record_push = ns["_record_push"]
-PUSH_HISTORY_MAX = ns["PUSH_HISTORY_MAX"]
+# Single-Source-of-Truth: ``push_history`` ist ein leichtes Modul ohne
+# externe Drittpakete (nur ``datetime`` + ``zoneinfo`` + ``config``),
+# darum direkter Import statt Source-Slice.
+from push_history import _record_push, PUSH_HISTORY_MAX  # noqa: E402
 
 
 def _expect(cond, msg):
