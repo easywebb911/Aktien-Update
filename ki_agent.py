@@ -359,7 +359,8 @@ def update_backtest_returns() -> None:
              len(tickers))
     try:
         hist = yf.download(tickers, period="90d", auto_adjust=True,
-                           progress=False, threads=True)
+                           progress=False, threads=True,
+                           group_by="ticker")
     except Exception as exc:
         log.warning("Backtest-Returns yf.download failed: %s", exc)
         return
