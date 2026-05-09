@@ -4,18 +4,33 @@
 
 - `24e039b` — fix: thesis/lesson über Validation-Re-Render erhalten
   (Bug A Trade-Journal) — gemerged via PR #67
-- `ca4604b` — docs: CLAUDE.md Git-Workflow auf reine PR-Strategie
+- `ca4604b` — docs: CLAUDE.md Git-Workflow auf reine PR-only-Strategie
   umgestellt — gemerged via PR #68
 - `f29f8ee` — feat: Phase 2 Stufe 3c-1 — Push-History-Persistenz
   (4 ntfy-Sender instrumentiert, FIFO Cap 100) — gemerged via PR #69
 - `adbb079` — feat: Pre-Market-Volume als Earliness-Komponente
   (Logging-only, additiv mit change_overnight-Filter,
   EARLINESS_PTS_MAX 5→7) — gemerged via PR #70
+- `46df9a5` — docs: handover update after session (Vormittag) —
+  gemerged via PR #71
 - `2578fc5` — fix: yfinance Multi-Ticker `group_by='ticker'` im
   Backtest-Backfill (`update_backtest_returns`) — gemerged via PR #72
 - `a534352` — feat: Trade-Journal Details-Toggle für thesis/lesson
   (pro Trade-Zeile ausklappbar, lokaler In-Memory-State) — gemerged
   via PR #73
+- `e2cd96b` — docs: handover update after evening session — gemerged
+  via PR #74
+- `4ffab93` — docs: strategische Roadmap-Sektion in
+  SESSION_HANDOVER.md — gemerged via PR #75
+- `0e82c53` — refactor: `_record_push` in gemeinsames Modul
+  `push_history.py` ausgliedern (SSOT) — gemerged via PR #76
+- `b478f96` — fix: yfinance Multi-Ticker `group_by='ticker'` in
+  `fetch_yfinance` (gleicher Pattern wie PR #72, von Squeeze-Guardian
+  entdeckt) — gemerged via PR #77
+- `74d992d` — docs: Code-Hygiene-Backlog in SESSION_HANDOVER.md —
+  gemerged via PR #78
+- `0e7dc55` — chore: Guardian-Findings 2 + 3 abarbeiten
+  (Architektur-Anker-Drift + F401-noqa-Kosmetik) — gemerged via PR #79
 
 ## Aktive Positionen (im Gist `squeeze_data.json`)
 
@@ -24,19 +39,23 @@
 
 ## Verifikation morgen früh nach Daily-Run + ki_agent-Tick
 
+- `agent_signals.json` zeigt **`rvol > 0` und `chg_pct ≠ 0`** für die
+  meisten Top-10-Ticker (PR #77-Wirkung — `fetch_yfinance` lieferte
+  vor dem Fix systematisch `0.0` für alle Felder).
 - `agent_state.json` hat `push_history`-Sub-Dict (3c-1 live, FIFO ≤ 100).
-- `app_data.json` zeigt — sobald Stage 1.5 die Persistenz nachzieht —
-  `premarket_volume` in den Stock-Dicts (aktuell by-design nur in
-  Workflow-stdout-Logs sichtbar).
-- Earliness-Logs zeigen ggf. dritte Komponente `pm_vol_match`.
-- Trade-Journal: bei nächstem Close zeigen `thesis` und `lesson` korrekte
-  Werte (Bug A live).
-- `backtest_history.json`: erste R-Werte für die 21./22.04.2026-Einträge
-  sollten nach 1–2 ki_agent-Ticks gefüllt sein (Backfill-Fix `2578fc5`
-  wirkt — der erste KI-Agent-Commit der die Datei je modifiziert hat
-  ist `8774206`, direkt nach Merge von PR #72).
-- Trade-Journal: Details-Toggle erscheint bei jedem Trade mit thesis
-  ODER lesson nicht-leer; Trades ohne Notes bleiben kompakt.
+  Nach mehreren ki_agent-Ticks sollten dort mehrere Einträge stehen.
+- `backtest_history.json`: erste R-Werte für die 21./22.04.2026-DAILY-
+  Einträge sollten gefüllt sein (Backfill-Fix `2578fc5` wirkt — der
+  erste KI-Agent-Commit der die Datei je modifiziert hat ist
+  `8774206`, direkt nach Merge von PR #72).
+- **Frontend Backtest-Panel „Nur Live (DAILY)"** zeigt erste konkrete
+  Median-R-Werte pro Score-Bucket statt `—`. Mindest-n=5-Schwelle wird
+  evtl. erst nach 1–2 Tagen Backfill erreicht.
+- Trade-Journal: bei nächstem Close zeigen `thesis` und `lesson`
+  korrekte Werte (Bug A live), und der Details-Toggle erscheint nur
+  bei Trades mit nicht-leeren Notes (PR #73).
+- Earliness-Logs zeigen ggf. dritte Komponente `pm_vol_match` in
+  Workflow-stdout (Stage 1 ist by-design Logging-only).
 
 ## Geplante Aufgaben
 
@@ -45,10 +64,10 @@
 2. **Phase 2 Stufe 3c-3** — UI Notification-History (NACH 3c-2).
 3. **Stufe Mittel-2** — Score-Effekt für Earliness aktivieren NACH
    1–2 Daily-Runs mit drei Komponenten.
-4. **Backtest-T+0/T+1-Auswertung** — Frontend-Verifikation nach 1–2
-   Backfill-Tagen: pro Score-Bucket (`<50`, `50–69`, `≥70`) sollte
-   `n > 0` für `return_3d/5d/10d` auftauchen, Median-Werte ersetzen
-   die `—`-Anzeige.
+4. **Backtest-T+0/T+1-Auswertung** — Frontend-Verifikation nach
+   1–2 Backfill-Tagen: pro Score-Bucket (`<50`, `50–69`, `≥70`)
+   sollte `n > 0` für `return_3d/5d/10d` auftauchen, Median-Werte
+   ersetzen die `—`-Anzeige.
 5. **Big-Refactor Zwei-Achsen-Ranking** — nach 30+ Tagen Earliness-
    Daten.
 6. **Phase 3 Exit-Signale** — Wiedervorlage 15.05.2026.
@@ -60,7 +79,7 @@
     `POSITIONS_JSON`-Secret löschen.
 12. ⏰ **Wiedervorlage 02.06.2026** — Chart-Indikatoren.
 13. ⏰ **Wiedervorlage 02.07.2026** — Premium-Daten-Stack.
-14. **Phase X** — v1-Pfad-Migration.
+14. **Phase X** — v1-Pfad-Migration (siehe auch Code-Hygiene Punkt 2).
 15. **Phase 2 Trigger 4–6** — Setup-Erosion, Catalyst, Trend-Bruch.
 16. **Tier-2-Insight-Builder** als Reserve.
 
@@ -142,25 +161,34 @@ berühren), nicht *verändern*.
   Patch-Migration aufgelöst (Patches und Sandbox später verloren).
 - **Sandbox-Push-Restriktion** erkannt: alle `main`-Pushes via Code
   liefern HTTP 403, Branch-Pushes funktionieren weiterhin.
-- **CLAUDE.md auf reine PR-Strategie umgestellt** — ALLE Änderungen
-  (Code + Doku) via Branch + PR (PR #68).
+- **CLAUDE.md auf reine PR-only-Strategie umgestellt** — ALLE
+  Änderungen (Code + Doku) via Branch + PR (PR #68).
 - **Backtest-Backfill-Diagnose Stufe 1 + 2 read-only durchgezogen** —
   0/451 DAILY-Einträge mit R-Werten gefunden, Schema/Counts/Cluster-
   Analyse, vier Hypothesen empirisch auf eine reduziert (yfinance
   Multi-Ticker-Form-Mismatch), Live-Probe verifiziert. Fix in
   PR #72: ein zusätzliches `group_by='ticker'` im `yf.download`-Call.
-  Erster KI-Agent-Commit der `backtest_history.json` je modifiziert
-  hat (`8774206`) bestätigt, dass der Fix wirkt.
 - **CLAUDE.md-Earliness-Konsistenz read-only verifiziert** — genau
   eine Sektion, `EARLINESS_PTS_MAX = 7`, drei Komponenten korrekt
   dokumentiert, keine Doppel-Sektion durch Sandbox-Verlust.
-- **PM-Vol Live-Status verifiziert** — `premarket_volume` /
-  `earliness_pts` / `earliness_breakdown` werden by-design **nicht**
-  in `app_data.json` / `index.html` / `backtest_history.json`
-  persistiert; Stage 1 ist reines Logging in stdout. Spätere Persistenz
-  (z. B. Stage Mittel-2 oder ein Stage 1.5) müsste das nachziehen.
+- **PM-Vol Live-Status verifiziert** — Stage 1 ist Logging-only,
+  Felder werden by-design **nicht** persistiert.
 - **Trade-Journal Detail-Ansicht** — pro Trade ausklappbarer
   Details-Toggle, nur wenn thesis ODER lesson nicht-leer (PR #73).
+- **`_record_push` Single-Source-of-Truth** — Duplikat in ki_agent
+  + generate_report eliminiert, Helper liegt jetzt zentral in
+  `push_history.py` (PR #76, −72 Zeilen netto).
+- **Squeeze-Guardian-Konformitäts-Check** über alle 8 PRs — fand
+  einen produktiven stillen Datenverlust (`fetch_yfinance` in
+  ki_agent.py:420 hatte denselben yfinance-`group_by`-Bug wie
+  PR #72; live-verifiziert in `agent_signals.json`: `rvol=0.0`
+  und `chg_pct=0.0` für **alle 10** Signale → RVOL-Explosion- und
+  Score-Sprung-Anomalien konnten nicht mehr feuern). Fix als
+  Single-Liner in PR #77, plus Drift-Cleanup in PR #79.
+- **Code-Hygiene-Backlog** explizit dokumentiert (PR #78) — fünf
+  offene Refactor-Punkte (v1/v2-Migration, Monolith-Split, Template-
+  Engine, Methodik-Auto-Generation, Drivers-/Score-SSOT) als
+  Wiedervorlage.
 
 ## Wichtige Lernerfahrungen
 
@@ -185,13 +213,20 @@ berühren), nicht *verändern*.
   → `hist[ticker]` wirft `KeyError`. Bei jedem `yf.download(tickers,
   …)` mit Ticker-Liste **explizit `group_by='ticker'` setzen**, sonst
   fällt der `hist[ticker]`-Lookup silently in einen `try/except` und
-  produziert Stage-Bugs (siehe `update_backtest_returns` vor PR #72).
+  produziert Stage-Bugs (PR #72 für `update_backtest_returns`,
+  PR #77 für `fetch_yfinance` — beide identischer Pattern).
 - **Read-only-Diagnose vor blindem Fix lohnt sich.** Beim Backtest-
   Backfill-Bug wären ohne Stufe-2-Probe (Live-yfinance-Form-
   Verifikation) die vier Hypothesen — `--ours`-Recovery,
   `ei < 0`-Lookup, yfinance-Multi-Ticker-Fail, Funktion-läuft-nie —
   alle plausibel geblieben. Eine zielgerichtete Probe in der Sandbox
   hat die Hypothese auf eine eindeutige reduziert.
+- **Squeeze-Guardian-Konformitäts-Check nach Multi-PR-Sessions ist
+  kein Overhead, sondern Versicherung.** Heute hat ein Routine-Run
+  einen produktiven stillen Datenverlust aufgedeckt (rvol=0.0 in
+  allen 10 ki_agent-Signalen), der ohne den Check Tage unbemerkt
+  weitergelaufen wäre. Nach jeder Session mit ≥ 3 Code-PRs
+  empfehlenswert.
 
 ## Code-Hygiene-Backlog
 
@@ -260,14 +295,14 @@ komplex) oder als bewusste Aufräum-Session.
   Re-Render; `wlCancelCloseForm` und Submit-Erfolg verwerfen den
   Cache. Single Helper `_escAttr` für HTML-Escape der Initial-
   Content-Injection in Textareas.
-- **`update_backtest_returns` nutzt `yf.download(group_by='ticker')`** —
-  Top-Level der MultiIndex columns ist nun der Ticker, `hist[ticker]`
-  liefert ein flaches DataFrame mit `['Open','High','Low','Close',
-  'Adj Close','Volume']`. Der bestehende `_closes_for`-Lookup
-  funktioniert ohne weitere Änderung. Single-Ticker-Pfad
-  (`len(tickers) == 1`) bleibt der Direktzugriff `df = hist`.
-  **Invariante:** Jeder neue Multi-Ticker-`yf.download` im Codebase
-  muss explizit `group_by='ticker'` setzen.
+- **yfinance Multi-Ticker `group_by='ticker'` ist Pflicht-Invariante.**
+  Sowohl `update_backtest_returns` (PR #72) als auch `fetch_yfinance`
+  (PR #77) hatten den default-`group_by='column'`-Bug. Default-Form
+  liefert MultiIndex `(Field, Ticker)` → `hist[ticker]`-Lookup wirft
+  `KeyError`, der typischerweise von einem `try/except` still
+  geschluckt wird. **Jeder neue `yf.download(tickers, ...)` mit
+  Multi-Ticker-Liste muss `group_by='ticker'` explizit setzen.**
+  Stand 09.05.2026 sind alle bekannten Aufrufstellen gefixt.
 - **Trade-Journal Details-Toggle** (PR #73) — pro Trade-Zeile
   ausklappbarer Detail-Block für `thesis` und `lesson`, **nur wenn
   mindestens eines der beiden Felder nicht-leer ist**. State lebt in
