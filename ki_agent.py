@@ -420,6 +420,7 @@ def fetch_yfinance(tickers: list[str]) -> dict[str, dict]:
         hist  = yf.download(
             tickers, period="5d", auto_adjust=True,
             threads=True, progress=False,
+            group_by="ticker",
         )
         multi = len(tickers) > 1
         for t in tickers:
