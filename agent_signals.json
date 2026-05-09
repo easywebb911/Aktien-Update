@@ -1,17 +1,17 @@
 {
-  "updated": "2026-05-09T12:55:42.226461+02:00",
+  "updated": "2026-05-09T13:50:21.179858+02:00",
   "run_info": {
     "tickers_checked": 10,
     "signals_active": 6,
-    "alerts_sent": 0,
-    "elapsed_s": 11.2,
+    "alerts_sent": 1,
+    "elapsed_s": 11.5,
     "market_phase": "Geschlossen"
   },
   "signals": {
     "NVAX": {
       "score": 40,
       "confidence": 17,
-      "drivers": "News: earnings beat, breakout + UOA Call/Put 15.7×",
+      "drivers": "News: breakout, earnings beat + UOA Call/Put 15.7×",
       "price": 10.11,
       "chg_pct": 0.0,
       "rvol": 0.0,
@@ -172,27 +172,6 @@
       "uoa_atm_ratio": 0.5576208178438662,
       "uoa_cp_ratio": 38.125
     },
-    "QURE": {
-      "score": 10,
-      "confidence": 17,
-      "drivers": "UOA Call/Put 3.5×",
-      "price": 27.66,
-      "chg_pct": 0.0,
-      "rvol": 0.0,
-      "earnings": "in 81 Tagen (29.07.2026)",
-      "fda_date": null,
-      "upcoming_event": null,
-      "insider_buy": false,
-      "stocktwits": null,
-      "combo_mult": 1.0,
-      "active_triggers": 0,
-      "uoa_score": 10,
-      "uoa_drivers": [
-        "UOA Call/Put 3.5×"
-      ],
-      "uoa_atm_ratio": 1.056257521058965,
-      "uoa_cp_ratio": 3.51579605880513
-    },
     "RXT": {
       "score": 25,
       "confidence": 17,
@@ -213,6 +192,27 @@
       ],
       "uoa_atm_ratio": 1.5735474517675923,
       "uoa_cp_ratio": 37.67763157894737
+    },
+    "QURE": {
+      "score": 10,
+      "confidence": 17,
+      "drivers": "UOA Call/Put 3.5×",
+      "price": 27.66,
+      "chg_pct": 0.0,
+      "rvol": 0.0,
+      "earnings": "in 81 Tagen (29.07.2026)",
+      "fda_date": null,
+      "upcoming_event": null,
+      "insider_buy": false,
+      "stocktwits": null,
+      "combo_mult": 1.0,
+      "active_triggers": 0,
+      "uoa_score": 10,
+      "uoa_drivers": [
+        "UOA Call/Put 3.5×"
+      ],
+      "uoa_atm_ratio": 1.056257521058965,
+      "uoa_cp_ratio": 3.51579605880513
     }
   }
 }
