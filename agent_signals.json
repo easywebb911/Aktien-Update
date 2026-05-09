@@ -1,10 +1,10 @@
 {
-  "updated": "2026-05-09T21:58:47.523134+02:00",
+  "updated": "2026-05-09T22:52:54.878376+02:00",
   "run_info": {
     "tickers_checked": 10,
     "signals_active": 6,
-    "alerts_sent": 0,
-    "elapsed_s": 14.3,
+    "alerts_sent": 1,
+    "elapsed_s": 10.1,
     "market_phase": "Geschlossen"
   },
   "signals": {
@@ -173,9 +173,9 @@
       "uoa_cp_ratio": 38.125
     },
     "RXT": {
-      "score": 25,
+      "score": 22,
       "confidence": 17,
-      "drivers": "News: partnership + UOA Call/Put 37.7×",
+      "drivers": "News-KI 12/30: Positive fundamentals from AMD partnership and earnings growth reduce short squeeze potential, as bullish sentiment typi + UOA Call/Put 37.7×",
       "price": 5.49,
       "chg_pct": 0.0,
       "rvol": 0.0,
