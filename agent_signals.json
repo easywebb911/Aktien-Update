@@ -1,10 +1,10 @@
 {
-  "updated": "2026-05-09T11:17:44.095237+02:00",
+  "updated": "2026-05-09T12:37:02.418699+02:00",
   "run_info": {
     "tickers_checked": 10,
     "signals_active": 6,
     "alerts_sent": 0,
-    "elapsed_s": 12.3,
+    "elapsed_s": 11.0,
     "market_phase": "Geschlossen"
   },
   "signals": {
@@ -131,9 +131,9 @@
       "uoa_cp_ratio": null
     },
     "OFRM": {
-      "score": 18,
+      "score": 10,
       "confidence": 17,
-      "drivers": "News-KI 8/30: Positive earnings growth but no indicators of high short interest, significant price momentum, or technical squeeze setu + UOA Call/Put 2.8×",
+      "drivers": "UOA Call/Put 2.8×",
       "price": 16.33,
       "chg_pct": 0.0,
       "rvol": 0.0,
