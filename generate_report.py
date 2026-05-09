@@ -6110,6 +6110,33 @@ function hideTradeJournal(){{
 // aufbauen. Datenquelle ist der Gist (closed_trades). Bei fehlendem
 // GIST_ID / Token zeigen wir einen Hinweis. Pure Render — kein eigener
 // State außer dem _GIST_DATA-Cache.
+// Trade-Journal Details-Toggle — In-Memory-Set aus stabilen Trade-Keys
+// (closed_at|ticker|entry_date|exit_date). Kein localStorage / Gist —
+// State lebt nur für die Session. Re-Render (Filter-Wechsel) liest das
+// Set, damit offene Details über Filter-Wechsel hinweg offen bleiben.
+const _tjExpanded = new Set();
+function _tjDetailsKey(t) {{
+  return [t.closed_at || '', t.ticker || '', t.entry_date || '',
+          t.exit_date || ''].join('|');
+}}
+window.tjToggleDetails = function(btn) {{
+  if (!btn) return;
+  const key = btn.getAttribute('data-tj-key') || '';
+  const trade = btn.closest('.tj-trade');
+  if (!trade) return;
+  const body = trade.querySelector('.tj-trade-details-body');
+  if (!body) return;
+  const isOpen = body.hasAttribute('hidden');  // war hidden → wird offen
+  if (isOpen) {{ body.removeAttribute('hidden'); _tjExpanded.add(key); }}
+  else        {{ body.setAttribute('hidden', ''); _tjExpanded.delete(key); }}
+  btn.classList.toggle('is-open', isOpen);
+  btn.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+  const arr = btn.querySelector('.tj-trade-details-arr');
+  if (arr) arr.textContent = isOpen ? '▾' : '▸';
+  const lbl = btn.querySelector('.tj-trade-details-lbl');
+  if (lbl) lbl.textContent = isOpen ? 'Details ausblenden' : 'Details anzeigen';
+}};
+
 async function renderTradeJournal(){{
   const statsEl = document.getElementById('tj-stats');
   const listEl  = document.getElementById('tj-list');
@@ -6200,8 +6227,25 @@ async function renderTradeJournal(){{
     const entryStr   = _formatUsdEurPair(ep, entryFxRes);
     const exitStr    = _formatUsdEurPair(xp, exitFxRes);
     const pnlStr     = _formatUsdEurPnl(pnlAbs, pnlEurRes);
+    const hasNotes = !!(t.thesis || t.lesson);
+    const tradeKey = _tjDetailsKey(t);
+    const isOpen   = hasNotes && _tjExpanded.has(tradeKey);
     const thesisHtml = t.thesis ? `<div class="tj-trade-note tj-trade-thesis"><span class="tj-note-lbl">These</span> ${{_esc(t.thesis)}}</div>` : '';
     const lessonHtml = t.lesson ? `<div class="tj-trade-note tj-trade-lesson"><span class="tj-note-lbl">Lesson</span> ${{_esc(t.lesson)}}</div>` : '';
+    // ``data-tj-key`` als Bridge in den onclick-Handler (DOM-Manipulation,
+    // kein Re-Render); _tjExpanded wird parallel aktualisiert, damit der
+    // Open-State Filter-Wechsel überlebt.
+    const detailsBtn = hasNotes
+      ? `<button type="button" class="tj-trade-details-btn${{isOpen ? ' is-open' : ''}}"
+            aria-expanded="${{isOpen}}" data-tj-key="${{_esc(tradeKey)}}"
+            onclick="tjToggleDetails(this)">
+           <span class="tj-trade-details-arr">${{isOpen ? '▾' : '▸'}}</span>
+           <span class="tj-trade-details-lbl">${{isOpen ? 'Details ausblenden' : 'Details anzeigen'}}</span>
+         </button>`
+      : '';
+    const detailsBody = hasNotes
+      ? `<div class="tj-trade-details-body"${{isOpen ? '' : ' hidden'}}>${{thesisHtml}}${{lessonHtml}}</div>`
+      : '';
     return `<div class="tj-trade ${{pnlPct >= 0 ? 'tj-trade-win' : 'tj-trade-loss'}}">
       <div class="tj-trade-head">
         <span class="tj-trade-ticker">${{_esc(t.ticker)}}</span>
@@ -6212,7 +6256,7 @@ async function renderTradeJournal(){{
         Entry ${{entryStr}} → Exit ${{exitStr}} · ${{(+t.shares || 0)}} Stk ·
         P&amp;L ${{pnlStr}} · ${{max}}
       </div>
-      ${{thesisHtml}}${{lessonHtml}}
+      ${{detailsBtn}}${{detailsBody}}
     </div>`;
   }}).join('');
   listEl.innerHTML = `<h4>Trades (neueste zuerst, ${{filtered.length}})</h4>${{items}}`;
