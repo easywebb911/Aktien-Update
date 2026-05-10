@@ -5501,7 +5501,13 @@ def generate_html_v1(stocks: list[dict], report_date: str, _ctx: dict | None = N
         (_ABBR_SHORT_FLOAT, SUB_SHORT_FLOAT_DISPLAY_PTS_MAX, f"{SUB_SHORT_FLOAT_DISPLAY_PTS_MAX} Pkt"),
         (_ABBR_DTC,         SUB_DTC_DISPLAY_PTS_MAX,         f"{SUB_DTC_DISPLAY_PTS_MAX} Pkt"),
         ("Float-Größe",     SUB_FLOAT_SIZE_DISPLAY_PTS_MAX,  f"{SUB_FLOAT_SIZE_DISPLAY_PTS_MAX} Pkt"),
-        (_ABBR_SI_TREND,    SUB_SI_TREND_DISPLAY_PTS_MAX,    f"{SUB_SI_TREND_DISPLAY_PTS_MAX} Pkt"),
+        # SI-Trend hat zwei Pfade: Sub-Score-Cap (5 Pkt im Struct-Score)
+        # UND zusätzlich score_bonus() als On-Top auf den Gesamt-Score
+        # — base 5 (Trend up), erhöht auf 7 bei si_accelerating=True.
+        # Display-String reflektiert beide Pfade; SUB_SI_TREND_DISPLAY_PTS_MAX
+        # bleibt 5 (gilt nur für die Sub-Score-Komponente).
+        (_ABBR_SI_TREND,    SUB_SI_TREND_DISPLAY_PTS_MAX,
+         f"{SUB_SI_TREND_DISPLAY_PTS_MAX} Pkt ({FINRA_ACCELERATION_BONUS} bei Beschleunigung)"),
     ])
     methodology_catalyst_rows = _methodology_rows_html([
         ("Earnings (≤7 / ≤14 Tage)",
@@ -5830,7 +5836,7 @@ def generate_html_v1(stocks: list[dict], report_date: str, _ctx: dict | None = N
           </div>
           <div class="score-mod-card score-mod-bonus">
             <span class="score-mod-name">Agent-Boost</span>
-            <span class="score-mod-val">×1.05</span>
+            <span class="score-mod-val">×1.05–1.15 (je KI-Score-Stufe)</span>
           </div>
           <div class="score-mod-card score-mod-malus">
             <span class="score-mod-name">Historischer Squeeze (90 / 30 Tage)</span>
