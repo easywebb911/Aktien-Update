@@ -1202,6 +1202,33 @@ explizit darum bittet**.
 - Bug-Fixes, die nur das dokumentierte Verhalten herstellen (ohne Schwellen zu ändern)
 - Test-/Smoke-Code
 
+### Auto-Generation für Score-Komponenten-Caps (seit 10.05.2026)
+
+Die **Score-Formel-Box** (drei Sub-Score-Listen Struktur / Katalysator /
+Timing) wird seit Code-Hygiene Punkt 5, Schritt 1 aus `config.py`-
+Konstanten auto-generiert. Bei einer neuen oder geänderten Sub-Score-
+Komponente:
+
+- Punkt-Cap in `config.py` ergänzen (Naming: `SUB_<SIGNAL>_DISPLAY_PTS_MAX`,
+  bei elif-Buckets `..._LOW`/`..._HIGH`).
+- Tupel-Eintrag in der entsprechenden `methodology_*_rows`-Liste
+  (`generate_report.py`) referenziert die Konstante per f-String —
+  **kein manuelles Pflegen des Display-Werts mehr nötig**.
+
+**Weiterhin manuell synchron** zu halten:
+
+- Filter-Schwellen-Box (Filterkriterien)
+- Boni / Malus / Monster-Score-Box (hardcodierte Werte +5 / ±3 / ×1.05 / −3/−5)
+- Datenquellen-Liste
+- ⚡ KI-Agent-Box
+
+Drift-Schutz für die Sub-Score-Caps ist damit strukturell gesichert,
+solange `score()` und `_compute_sub_scores()` mit den gleichen
+Konstanten arbeiten. Die Drift zwischen Code und Konstante (`score()`-
+Cap weicht von `SUB_*_DISPLAY_PTS_MAX` ab) bleibt manuell zu pflegen —
+Schritt B würde `score()` aus den gleichen Konstanten ableiten und
+diese letzte Drift-Quelle eliminieren.
+
 Im Zweifel: lieber Sync mit kurzem Hinweis im Commit-Body als Drift-Risiko.
 
 ---

@@ -75,6 +75,18 @@ SUB_STRUCT_MAX      = 40
 SUB_CATALYST_MAX    = 35
 SUB_TIMING_MAX      = 35   # vorher 30 — auf 35 erweitert für Gap+Hold-Beitrag
 
+# Methodik-Anzeige: maximale Display-Punkte pro Sub-Score-Komponente.
+# Werden ausschließlich von der Score-Methodik-Sektion gelesen (Auto-
+# Generation, kein manueller HTML-Sync mehr nötig). Drift gegen score()
+# bleibt manuell zu pflegen — die Werte sind die normalisierten Caps der
+# jeweiligen Komponenten in `score()`.
+SUB_SHORT_FLOAT_DISPLAY_PTS_MAX     = 32
+SUB_DTC_DISPLAY_PTS_MAX             = 23
+SUB_FLOAT_SIZE_DISPLAY_PTS_MAX      = 8
+SUB_SI_TREND_DISPLAY_PTS_MAX        = 5
+SUB_RVOL_DISPLAY_PTS_MAX            = 23
+SUB_MOMENTUM_DISPLAY_PTS_MAX        = 14
+
 # Sub-Score Katalysator — Komponenten-Punkte. Single source of truth für
 # `_compute_sub_scores` UND die Methodik-Sektion (sonst Drift).
 SUB_EARN_NEAR_PTS    = 15   # Earnings ≤ 7 Tage
