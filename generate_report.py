@@ -3842,16 +3842,50 @@ def _tri_score_color(sc) -> str:
 def _score_block_inner_html(s: dict, hint_html: str = "") -> str:
     """Erzeugt das komplette Innere des ``<div class="score-block">``.
 
-    Drei Zeilen (Setup/Monster/KI) — Reihenfolge & Schriftgröße werden
-    rein über CSS-Klassen ``.sort-setup`` / ``.sort-monster`` am Container
-    gesteuert (siehe head.jinja). Monster/KI-Zeilen werden nur gerendert,
-    wenn die zugehörigen Werte vorhanden sind.
+    Vier Zeilen (Conviction/Setup/Monster/KI). Conviction (Schritt B)
+    liegt visuell oben und prominent — Aktions-Frage „jetzt
+    einsteigen?". Setup/Monster/KI bleiben in bisheriger Größe darunter.
+    Reihenfolge & Schriftgröße werden rein über CSS-Klassen
+    ``.sort-setup`` / ``.sort-monster`` am Container gesteuert
+    (Conviction immer Order 0). Monster/KI/Conviction-Zeilen werden nur
+    gerendert, wenn die zugehörigen Werte vorhanden sind.
     """
+    rows: list[str] = []
+
+    # Conviction-Row (Schritt B) — wenn Daten vorhanden, ganz oben und
+    # größer als Setup. Color level-basiert: high → Grün, medium → Gelb,
+    # low → Grau (statt _tri_score_color, das auf Score-Bereiche mappt).
+    conv = s.get("conviction") or {}
+    conv_score = conv.get("score")
+    conv_level = conv.get("level")
+    conv_action = conv.get("action_text") or ""
+    if isinstance(conv_score, (int, float)):
+        cv_pct = max(0.0, min(100.0, float(conv_score)))
+        if conv_level == "high":
+            cv_col, action_col = "#22c55e", "#22c55e"
+        elif conv_level == "medium":
+            cv_col, action_col = "#f59e0b", "var(--txt-dim)"
+        else:
+            cv_col, action_col = "#94a3b8", "var(--txt-dim)"
+        action_html = (
+            f'<span class="sb-conv-action" style="color:{action_col}">'
+            f'{conv_action}</span>'
+        ) if conv_action else ""
+        rows.append(
+            f'<div class="sb-row" data-sb="conviction">'
+            f'<span class="sb-num" style="color:{cv_col}">{int(round(cv_pct))}</span>'
+            f'<span class="sb-lbl">Conviction</span>'
+            f'<div class="sb-track"><div class="sb-fill" '
+            f'style="width:{cv_pct:.0f}%;background:{cv_col}"></div></div>'
+            f'{action_html}'
+            f'</div>'
+        )
+
     setup_val = s.get("score") or 0.0
     setup_pct = max(0.0, min(100.0, float(setup_val)))
     setup_col = _tri_score_color(setup_val)
 
-    rows = [(
+    rows.append(
         f'<div class="sb-row" data-sb="setup">'
         f'<span class="sb-num" style="color:{setup_col}">'
         f'{setup_val:.1f}</span>'
@@ -3859,7 +3893,7 @@ def _score_block_inner_html(s: dict, hint_html: str = "") -> str:
         f'<div class="sb-track"><div class="sb-fill" '
         f'style="width:{setup_pct:.0f}%;background:{setup_col}"></div></div>'
         f'</div>'
-    )]
+    )
 
     ms = s.get("monster_score")
     if ms is not None:
@@ -3911,6 +3945,42 @@ def _detect_short_pressure(s: dict) -> bool:
     if rvol < SHORT_PRESSURE_RVOL_MIN:
         return False
     return True
+
+
+def _conviction_row_html(s: dict) -> str:
+    """Conviction-Components-Zeile für die Detail-Tabelle (Schritt B).
+
+    Format ``Setup 33/33 · Earliness 0/28 · Anomaly 14/28 · Regime 11/11``
+    plus Action-Text. Bei fehlendem ``s["conviction"]``-Feld → "—".
+    Caps entsprechen ``compute_conviction_score``-Spec (33/28/28/11).
+    """
+    conv = s.get("conviction") or {}
+    score = conv.get("score")
+    comps = conv.get("components") or {}
+    action = conv.get("action_text") or ""
+    if not isinstance(score, (int, float)) or not comps:
+        return (
+            '<tr><td>Conviction-Score</td>'
+            '<td><span style="color:var(--txt-dim)">—</span></td></tr>'
+        )
+    setup_pts = int(comps.get("setup", 0))
+    earl_pts  = int(comps.get("earliness", 0))
+    anom_pts  = int(comps.get("anomaly", 0))
+    reg_pts   = int(comps.get("regime", 0))
+    parts = (
+        f'Setup {setup_pts}/33 · Earliness {earl_pts}/28 · '
+        f'Anomaly {anom_pts}/28 · Regime {reg_pts}/11'
+    )
+    action_html = (
+        f'<br><span style="color:var(--txt-dim);font-size:.85em">{action}</span>'
+        if action else ""
+    )
+    return (
+        f'<tr><td>Conviction-Score</td>'
+        f'<td><span style="font-weight:700">{int(round(score))}</span> '
+        f'<span style="color:var(--txt-dim);font-size:.85em">({parts})</span>'
+        f'{action_html}</td></tr>'
+    )
 
 
 def _short_pressure_badge_html(s: dict) -> str:
@@ -4235,6 +4305,7 @@ def _card(i: int, s: dict) -> str:
     squeeze_badge_html = _squeeze_history_badge(s)
     sub_scores_html    = _sub_scores_html(s)         # Feature 1
     drivers_block_html = _drivers_block_html(s)       # Synthese + kategorisierte Treiber
+    conviction_row     = _conviction_row_html(s)      # Schritt B — Components in Detail-Tabelle
     pd_badges_html     = (                            # Feature 3 + Short-Druck
         _pd_badges_html(s) + _short_pressure_badge_html(s) + _gamma_badge_html(s)
     )
@@ -4374,6 +4445,7 @@ def _card(i: int, s: dict) -> str:
     <div class="detail-table-wrap">
       <table class="detail-table">
         {agent_boost_row}
+        {conviction_row}
         <tr class="detail-group-header"><td colspan="2">Stammdaten</td></tr>
         <tr><td>Marktkapitalisierung</td><td>{fmt_cap(cap_val)}</td></tr>
         {_float_row}
@@ -4735,6 +4807,7 @@ def _build_card_ctx(i: int, s: dict) -> dict:
     squeeze_badge_html = _squeeze_history_badge(s)
     sub_scores_html    = _sub_scores_html(s)         # NEU: Sub-Scores
     drivers_block_html = _drivers_block_html(s)       # Synthese + kategorisierte Treiber
+    conviction_row     = _conviction_row_html(s)      # Schritt B — Components in Detail-Tabelle
     pd_badges_html     = (                            # P&D + Short-Druck
         _pd_badges_html(s) + _short_pressure_badge_html(s) + _gamma_badge_html(s)
     )
@@ -4930,6 +5003,7 @@ def _build_card_ctx(i: int, s: dict) -> dict:
         "squeeze_badge_html":   squeeze_badge_html,   # Feature 6
         "sub_scores_html":      sub_scores_html,      # Sub-Scores
         "drivers_block_html":   drivers_block_html,   # Synthese + Stärken/Risiken
+        "conviction_row":       conviction_row,       # Schritt B — Conviction-Components
         "pd_badges_html":       pd_badges_html,       # P&D-Badges
         "agent_boost_row":      agent_boost_row,      # Agent-Boost-Zeile
         "float_row":            float_row,

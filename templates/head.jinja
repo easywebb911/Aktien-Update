@@ -914,6 +914,13 @@ abbr[title]{text-decoration:underline dotted var(--txt-dim);
 .chat-send-btn:disabled{opacity:.45;cursor:not-allowed}
 .score-block{display:flex;flex-direction:column;align-items:flex-end;gap:7px;min-width:80px}
 .sb-row{display:flex;flex-direction:column;align-items:flex-end;line-height:1}
+/* Conviction (Schritt B) — größter Score-Block, immer ganz oben.
+   Action-Text als kleiner Hint unter Track. Width-Alignment via
+   flex-end vom Eltern-.sb-row. */
+.sb-row[data-sb="conviction"] .sb-num{font-size:50px;font-weight:900;line-height:1}
+.sb-row[data-sb="conviction"]{order:0 !important;margin-bottom:6px}
+.sb-conv-action{display:block;font-size:.6rem;line-height:1.25;margin-top:4px;
+  text-align:right;max-width:160px;font-weight:600;letter-spacing:.2px}
 .sb-num{font-weight:400;line-height:1;font-size:22px;
   user-select:none;-webkit-tap-highlight-color:transparent}
 .sb-row[data-sb="setup"] .sb-num{cursor:pointer}
@@ -1017,6 +1024,10 @@ abbr[title]{text-decoration:underline dotted var(--txt-dim);
   .agent-dot.moderate{width:13px;height:13px}
   .agent-dot.weak    {width:12px;height:12px}
   .agent-dot.none    {width:10px;height:10px}
+  /* Conviction-Number etwas kleiner auf Mobile, damit sie
+     nicht aus der schmalen Score-Block-Spalte überläuft. */
+  .sb-row[data-sb="conviction"] .sb-num{font-size:40px}
+  .sb-conv-action{max-width:130px;font-size:.55rem}
 }
 /* Agent-Dot-Tooltip ist entfallen — siehe ``renderAgentSignals`` in
    generate_report.py. Der Punkt selbst signalisiert genug. */
