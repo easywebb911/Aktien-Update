@@ -103,6 +103,69 @@ damit man den Übeltäter direkt findet.
 
 ---
 
+## Conviction-Score (Schritt A — Daten, ohne UI)
+
+Vierte Bewertungs-Achse neben Setup-Score, Monster-Score und KI-Score.
+Beantwortet die Aktions-Frage („jetzt einsteigen?") via Aggregation aus
+Setup-Qualität, Earliness, aktiven Anomalie-Triggern und Marktphasen-
+Konformität (VIX-Regime). **Schritt A liefert nur die Daten** — Anzeige
+im Frontend kommt in Schritt B nach Plausibilitäts-Verifikation.
+
+### Komponenten-Gewichte (Summe ≤ 100)
+
+| Komponente | Cap | Berechnung |
+|---|---:|---|
+| `setup`     | 33 | `setup_score / 100 × 33` (gerundet) |
+| `earliness` | 28 | `earliness_pts / EARLINESS_PTS_MAX × 28` (gerundet) |
+| `anomaly`   | 28 | 0 / 14 / 28 für 0 / 1 / ≥2 aktive Anomalie-Trigger |
+| `regime`    | 11 | VIX < `ANOMALY_VIX_WARN_THRESHOLD` → 11 · VIX < `ANOMALY_VIX_PAUSE_THRESHOLD` → 6 · sonst (oder None) → 0 |
+
+### Action-Text-Mapping
+
+| Score | Level | Text |
+|---:|---|---|
+| ≥ 75 | high   | „Conviction hoch — Setup, Earliness und Timing konvergieren. Erwartungswert positiv." |
+| 50–74 | medium | „Substrat stark, Timing-Signal fehlt. Auf Volume-Spike oder Anomalie-Trigger warten." |
+| 30–49 | low    | „Setup gut, aber Phase oder Marktkontext ungünstig. Genau hinschauen." |
+| < 30 | low    | „Aktuell kein klares Aktions-Signal." |
+
+Bei fehlenden Anomalie-Daten (`anomalies_today=None`) wird der Text um
+`(Anomalie-Daten nicht verfügbar)` ergänzt — kein Crash, nur Hinweis
+für Diagnose.
+
+### Pipeline-Aufruf
+
+`apply_conviction_scores(stocks, anomalies_today, vix)` läuft in
+`main()` zwischen Step 4 (HTML-Render) und Step 4b
+(`_write_app_data_json`). Quellen:
+
+- `anomalies_today` aus `_build_chat_synthesis_ctx(top10, score_history)`
+  — gleiche Liste wie der Chat-Kontext, deterministisch.
+- `vix` aus `_read_existing_app_data().get("vix_current")` — vom
+  letzten ki_agent-Tick gesetzt; bei fehlendem Wert → regime=0.
+
+Pure Funktion `compute_conviction_score(stock, anomalies_today, vix)`
+ist Single-Source-of-Truth für die Score-Logik; `apply_*_scores`
+schreibt nur ins Stock-Dict.
+
+### Persistenz
+
+`app_data.json["conviction_scores"]: {ticker: {score, components,
+action_text, level}}` — separater Top-Level-Key analog zu
+`monster_scores`/`setup_scores`. Schritt B konsumiert das im Frontend.
+
+### Pflege
+
+Bei Änderung der Komponenten-Gewichte (Cap-Werte 33/28/28/11),
+Action-Text-Schwellen (75/50/30) oder Anomaly-Bucket-Werte (0/14/28):
+diese Sektion + `compute_conviction_score`-Doku synchron halten. Bei
+Anpassung der Schwellen-Konstanten in `config.py`
+(`ANOMALY_VIX_WARN_THRESHOLD` / `ANOMALY_VIX_PAUSE_THRESHOLD`,
+`EARLINESS_PTS_MAX`) wirkt das automatisch — kein zusätzlicher Sync
+für die Conviction-Berechnung nötig.
+
+---
+
 ## Float Turnover (Timing-Sub-Signal)
 
 `Float Turnover = today_volume / float_shares` ist ein **komplementäres**
