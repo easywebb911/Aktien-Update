@@ -1,4 +1,4 @@
-# Session-Handover — Stand 10.05.2026 (Tagesabschluss)
+# Session-Handover — Stand 10.05.2026 (späte Abend-Session)
 
 ## Heute implementiert (chronologisch, alle gemerged via PR)
 
@@ -16,6 +16,8 @@
   statt suppress — gemerged via PR #93
 - `edc9cfb` — feat: Backtest-Panel UX-Polish (Toggles, Farbe, Bucket-
   Trennung, Stern-Icon) — gemerged via PR #94
+- `36e7e7e` — feat: SI-Trend-Vergleich-Box mit klaren Labels
+  (Trefferquote / Median / Hinweistext) — gemerged via PR #105
 
 ### Phase 2 Stufe 3c-2 — push_history-Spiegel
 
@@ -51,6 +53,8 @@
   (SI-Trend-Beschleunigung, Agent-Boost-Bandbreite) — PR #98
 - `ee60986` — feat: Methodik-Display Schritt 2 — FINRA-Bonus und
   Late-Runner-Penalty in Boni-Box — gemerged via PR #99
+- `1da0442` — docs: KI-Score-Block in Score-Methodik-Sektion ergänzen
+  — gemerged via PR #107
 
 ### UX-Detail
 
@@ -67,6 +71,20 @@
   „> 50 %/Jahr", Code (`_drivers_breakdown`) hat aber zwei Schwellen
   mit unterschiedlichen Gewichten.
 
+### Späte Abend-Session — UI-Polish, Conviction-Push, Severity-Tiering
+
+- `5af7510` — fix: Watchlist-Drawer KI-Analyse läuft inline (geteilter
+  `_kiAnalyseFromCtx`-Kern), News-Toggle defensiver mit explicit
+  attribute-toggle + `scrollIntoView` — gemerged via PR #106
+- `0e55b5a` — feat: Exit-Druck-Composite-Zeile immer anzeigen (auch
+  bei ruhigen Triggern, dezent „Alle Frühwarn-Signale ruhig"-Hinweis)
+  — gemerged via PR #108
+- `f4db74c` — feat: Conviction-basierte Push-Trigger (`conviction_high`
+  mit Threshold-Crossing-Logik, `prev_conviction_scores`-Persistenz
+  in `agent_state.json`) — gemerged via PR #109
+- `c3d9737` — feat: Severity-Tiering — Conviction high, andere
+  Anomaly-Trigger medium — gemerged via PR #110
+
 ## Aktive Positionen (im Gist `squeeze_data.json`)
 
 - **AMC** · offen · läuft im Plus
@@ -74,6 +92,26 @@
 
 ## Verifikation morgen früh nach erstem Trading-Tag-Daily-Run
 
+- **Conviction-Push:** erreicht ein Setup im Daily-Run conviction ≥ 75,
+  feuert beim ersten Hourly-Tick ein `conviction_high`-Push („🎯
+  KAUFSIGNAL …")? `agent_state.json["prev_conviction_scores"]` muss
+  nach dem ersten Tick die heutigen Werte enthalten — danach gilt
+  Threshold-Crossing-Logik (Sustained-High feuert NICHT erneut).
+- **Severity-Unterschied im Push-Stream:** Conviction- / Perfect-Storm-
+  / Monster-Backup-Pushes erscheinen mit `severity="high"` in
+  `push_history`, alle anderen Anomaly-Trigger mit `severity="medium"`.
+  Hinweis: ntfy-Priority ist aktuell hardcoded `high` für alle (siehe
+  Backlog-Punkt zu ntfy-Priority-Mapping) — Tiering wirkt heute nur
+  in der State-Datei + Frontend-Anzeige.
+- **Exit-Druck-Composite bei SABR sichtbar:** Watchlist-Tile SABR
+  aufklappen → Position-Status-Block mit „Exit-Druck: 26/100" und
+  dezenter „Alle Frühwarn-Signale ruhig"-Zeile. AMC zeigt
+  zusätzlich 🟡 Profit-Lock-Zeile (unverändert).
+- **Watchlist-Toggles funktionieren:** auf jeder Watchlist-Karte
+  (auch Nicht-Top-10-Tickern) „Details anzeigen" / „Aktuelle
+  Meldungen" / „KI-Analyse" einzeln testen. KI-Analyse läuft
+  jetzt inline im Drawer (kein Redirect zur Main-Karte mehr); bei
+  Watchlist-Tickern ohne Daten erscheint Graceful-Fallback.
 - **Conviction-Werte mit echten VIX und Anomaly-Triggern:** Erreichen
   ≥ 75-Setups jetzt high-Level (grün)? Heutige Top-10 hatten
   durchschnittlich Conviction ~50 (medium), nachdem PR #90 vix_current
@@ -100,30 +138,43 @@
    bereits live).
 3. **Stufe Mittel-2** — Score-Effekt für Earliness aktivieren NACH
    1–2 Daily-Runs mit gefüllter PM-Vol-Komponente.
-3. **Backtest-T+0/T+1-Auswertung** — Frontend-Verifikation läuft
+4. **Backtest-T+0/T+1-Auswertung** — Frontend-Verifikation läuft
    weiter; je Score-Bucket sollten 30+ Tage Live-R-Werte für
    belastbare Mediane vorliegen.
-4. **Big-Refactor Zwei-Achsen-Ranking** — nach 30+ Tagen Earliness-
+5. **Big-Refactor Zwei-Achsen-Ranking** — nach 30+ Tagen Earliness-
    Daten.
-5. **Phase 3 Exit-Signale** — Wiedervorlage 15.05.2026.
-6. **Score-Aufschlüsselung pro Karte** (Phase Y).
-7. **Immediacy-Score-Feature**.
-8. **Bahn A2** — Frontend-Auswertungs-Panel.
-9. **UX Backtesting „Nur Live"-Modus**.
-10. ⏰ **Wiedervorlage 19.05.2026** — `app_data`-recovery +
+6. **Phase 3 Exit-Signale** — Wiedervorlage 15.05.2026.
+7. **Score-Aufschlüsselung pro Karte** (Phase Y).
+8. **Immediacy-Score-Feature**.
+9. **Bahn A2** — Frontend-Auswertungs-Panel (≥ 200 Live-Backtest-
+   Einträge erforderlich).
+10. **UX Backtesting „Nur Live"-Modus**.
+11. ⏰ **Wiedervorlage 19.05.2026** — `app_data`-recovery +
     `POSITIONS_JSON`-Secret löschen.
-11. ⏰ **Wiedervorlage 02.06.2026** — Chart-Indikatoren.
-12. ⏰ **Wiedervorlage 02.07.2026** — Premium-Daten-Stack.
-13. **Phase X** — v1-Pfad-Migration (siehe Code-Hygiene Punkt 2).
-14. **Phase 2 Trigger 4–6** — Setup-Erosion, Catalyst, Trend-Bruch.
-15. **Tier-2-Insight-Builder** als Reserve.
-16. **Methodik-Asymmetrien Schritt 3** — Late-Runner-Penalty- und
+12. ⏰ **Wiedervorlage 02.06.2026** — Chart-Indikatoren.
+13. ⏰ **Wiedervorlage 02.07.2026** — Premium-Daten-Stack.
+14. **Phase X** — v1-Pfad-Migration (siehe Code-Hygiene Punkt 2).
+15. **Phase 2 Trigger 4–6** — Setup-Erosion, Catalyst, Trend-Bruch.
+    (Aktueller Stand: Stubs mit `available=False`, Methodik-Sektion
+    listet alle sechs Trigger mit Gewichten 30/25/20/15/5/5 %; die
+    drei offenen brauchen Entry-Snapshot, historischen Earnings-
+    Lookup, EMA21 im Datenmodell.)
+16. **Tier-2-Insight-Builder** als Reserve.
+17. **Methodik-Asymmetrien Schritt 3** — Late-Runner-Penalty- und
     FINRA-Konstanten-Display ist seit PR #99 aus `config.py` gelesen,
     aber `score_bonus()` selbst und `apply_late_runner_penalty()`
     nutzen die Werte unverändert. Sollten weitere bedingte Boni
     eingeführt werden (z. B. neue ki_agent-Multiplikator-Pfade), muss
     der Display-String beide Pfade reflektieren — Pflege-Regel in
     CLAUDE.md Score-Methodik-Sync-Regel-Sektion dokumentiert.
+18. **NEU: ntfy-Priority-Mapping nach Severity** — `_send_anomaly_ntfy`
+    sendet aktuell hardcoded `Priority: high` an ntfy, unabhängig
+    vom Severity-Wert. Für echtes Tiering auf dem Handy müsste ein
+    `severity`-Parameter eingeführt und auf ntfy-Priority gemappt
+    werden (high → `urgent`, medium → `default`/`high`). Vom
+    Squeeze-Guardian in der Konformitäts-Prüfung als bewusstes,
+    in CLAUDE.md dokumentiertes Verhalten erkannt — kein Bug, nur
+    Backlog-Erweiterung.
 
 ## Strategische Roadmap
 
@@ -146,10 +197,15 @@ parallele Arbeitsstränge:
 - **Conviction-Score Stage 2** — Plausibilitäts-Beobachtung über
   Trading-Woche; ggf. Komponenten-Gewichte rekalibrieren wenn
   Earliness systematisch 0 bleibt.
+- **Conviction-Push-Verifikation** — beobachten, ob `conviction_high`-
+  Trigger in der ersten Trading-Woche überhaupt feuert; falls 75-
+  Schwelle nie erreicht wird, Schwellen-Kalibrierung erwägen.
 - **Stufe Mittel-2** — Earliness-Score-Effekt aktivieren, sobald
   1–2 Daily-Runs mit drei Komponenten plausible Werte zeigen.
 - **Phase 3 Exit-Signale** (Wiedervorlage 15.05.2026).
 - **Phase 2 Stufe 3c-3** — UI-Notification-History.
+- **Phase 2 Trigger 4–6** — setup_erosion, catalyst, trend_break
+  von Stubs auf echte Daten umstellen.
 
 **Mittelfristig (Wochen, datenabhängig)**
 
@@ -160,6 +216,8 @@ parallele Arbeitsstränge:
   Hinweise auf rechtsschiefe Squeeze-Knaller.
 - **Bahn A2** — Frontend-Auswertungs-Panel (≥ 200 Live-Backtest-
   Einträge erforderlich).
+- **ntfy-Priority-Mapping nach Severity** — sobald sich das Tiering
+  als sinnvoll bestätigt, ntfy-Priority an `severity` koppeln.
 
 **Längerfristig (Monate, Empirik-basiert)**
 
@@ -182,7 +240,11 @@ als Score < 50.
 Bis der Test laufen kann, ist passives Sammeln der primäre Modus.
 Conviction-Score (PR #89/#95) liefert die Aktions-Frage als
 zusätzlichen Indikator, ohne die Score-Logik selbst zu verändern —
-ein „nur unterstützender" Baustein im Sinne der Roadmap.
+ein „nur unterstützender" Baustein im Sinne der Roadmap. Der neue
+`conviction_high`-Push (PR #109) macht die Aktions-Achse jetzt auch
+außerhalb des Frontends sichtbar; das Severity-Tiering (PR #110)
+trennt Aktions-Signale von Beobachtungs-Signalen im Push-Stream
+sauber.
 
 ## Heutige große Themen
 
@@ -191,6 +253,8 @@ ein „nur unterstützender" Baustein im Sinne der Roadmap.
   zum UX-Polish (kompakte Toggles, neutrale Hit-Chart-Farbe,
   Bucket-Cards, Akzent-Stern). Verteilungs-Erkenntnis aus
   Lesson #87 wird jetzt visuell direkt im Panel sichtbar.
+  SI-Trend-Box bekam in PR #105 klare Labels (Trefferquote /
+  Median) + Hinweistext.
 - **Conviction-Score in zwei Schritten live gemacht.** Schritt A
   (PR #89) liefert Daten, Schritt B (PR #95) macht sie sichtbar.
   Drei Folge-Fixes nötig: VIX-Persistenz (PR #90), Pipeline-
@@ -204,17 +268,44 @@ ein „nur unterstützender" Baustein im Sinne der Roadmap.
   Konstanten / DRIVER_CLASSIFICATIONS ableiten) bleiben offen.
 - **Methodik-Asymmetrien systematisch durchgegangen.** Vier
   Diskrepanzen Display ↔ Code identifiziert; alle vier in zwei
-  PRs (#98, #99) gefixt. Kein Drift mehr zwischen Methodik-Sektion
-  und Score-Pfaden.
+  PRs (#98, #99) gefixt. KI-Score-Methodik-Block in PR #107
+  ergänzt, damit die vierte Bewertungs-Achse genauso erklärt wird
+  wie Setup / Monster / Conviction. Kein Drift mehr zwischen
+  Methodik-Sektion und Score-Pfaden.
 - **Trade-Journal um Entry-Snapshot und 7-Tage-Filter erweitert.**
   Beim Position-Open werden Score-Bucket + Conviction-Level
   gespeichert; im Journal sichtbar. 7-Tage-Filter zwischen „Alle"
   und „30 Tage" für aktuelle Reflexion.
+- **Watchlist-Drawer-UX repariert.** PR #106 hat `wlOpenKiAnalyse`
+  von einem Main-Karten-Redirect auf inline-Analyse umgebaut —
+  Top-10- und Watchlist-Pfad teilen sich jetzt den extrahierten
+  Helper `_kiAnalyseFromCtx`. Bei Nicht-Top-10-Watchlist-Tickern
+  Graceful-Fallback. News-Toggle wurde defensiv mit explicit-
+  attribute-toggle + `scrollIntoView` verstärkt.
+- **Exit-Druck endlich für jede Position sichtbar.** PR #108 zeigt
+  die Composite-Pressure-Zeile jetzt immer, sobald `exit_pressure`
+  vorliegt — auch bei vollständig ruhigen Triggern. Erkennbar
+  „ruhig" vs „kaputt" — bei SABR (alle Trigger unter Schwelle) war
+  der Block vorher unsichtbar, jetzt zeigt er „Exit-Druck: 26/100"
+  + dezenter „Alle Frühwarn-Signale ruhig"-Hinweis.
+- **Conviction-Push als Aktions-Signal eingeführt.** PR #109 fügt
+  den neuen Anomaly-Trigger `conviction_high` ein (Threshold-
+  Crossing-Logik: cur ≥ 75 UND prev < 75). prev_conviction_scores
+  wird in `agent_state.json` persistiert, am Run-Ende neu
+  geschrieben. PR #110 hebt das Tiering der gesamten Anomaly-
+  Familie an: `conviction_high`, `perfect_storm`, `monster_backup`
+  bleiben high; `rvol_explosion`, `uoa_extreme`, `score_jump`,
+  `gap_combo`, `edgar_filing` werden medium. Damit ist semantisch
+  klar: high = Aktions-Signal, medium = Beobachtungs-Signal.
 - **Squeeze-Guardian-Konformitäts-Check zum Sessionende.** Status
   OK für alle Architektur-Invarianten (Conviction-Pipeline-Order,
   VIX-Persistenz, DRIVER_CLASSIFICATIONS-SSOT, Methodik-Sync,
-  Token-Encryption, push_history-SSOT). Ein einziger Doku-Drift
-  gefunden → in PR #103 sofort gefixt. Keine Code-Drifts.
+  Token-Encryption, push_history-SSOT, neue
+  `prev_conviction_scores`-Persistenz, geteilter
+  `_kiAnalyseFromCtx`-Kern, Severity-Tiering-Konsistenz). Ein
+  Doku-Drift zur Borrow-Rate-Tabelle in PR #103 sofort gefixt;
+  ntfy-Priority-Mapping als bewusste, in CLAUDE.md dokumentierte
+  Entscheidung erkannt — kein Bug, Backlog-Punkt.
 
 ## Wichtige Lernerfahrungen
 
@@ -233,7 +324,8 @@ ein „nur unterstützender" Baustein im Sinne der Roadmap.
 - **Read-only-Diagnose vor blindem Fix lohnt sich.** Mehrfach
   bestätigt: Backtest-Backfill (PR #72), VIX-Persistenz (PR #90),
   Conviction-Pipeline-Order (PR #96), Skew-Suppression-vs-Dimming
-  (PR #93). Jedes Mal hat ein 5–10-min-Read-only-Check vor dem
+  (PR #93), Exit-Druck-Composite-Sichtbarkeit (Diagnose →
+  PR #108). Jedes Mal hat ein 5–10-min-Read-only-Check vor dem
   Fix die richtige Stelle isoliert. **Auch bei Refactors gilt:
   Read-only-Pfad-Inspektion bevor man Code bewegt** (Beispiel
   DRIVER_CLASSIFICATIONS-Schema-Konflikt-Klärung, PR #83).
@@ -247,7 +339,9 @@ ein „nur unterstützender" Baustein im Sinne der Roadmap.
   konsumiert.
 - **Squeeze-Guardian-Konformitäts-Check nach Multi-PR-Sessions ist
   kein Overhead, sondern Versicherung.** Hat am 09.05. einen
-  produktiven stillen Datenverlust aufgedeckt.
+  produktiven stillen Datenverlust aufgedeckt, am 10.05. zwei
+  Doku-Drifts und einen bewussten Architektur-Trade-off
+  (ntfy-Priority hardcoded high) sauber benannt.
 - **Backtest-Verteilungs-Erkenntnis (10.05.2026) — Median allein
   unterschätzt die Edge.** Squeeze-Renditen sind extrem
   rechtsschief; einzelne Knaller treiben den Mean weit über den
@@ -266,6 +360,23 @@ ein „nur unterstützender" Baustein im Sinne der Roadmap.
   `console.log`) ist schnell und zuverlässig.** Mehrfach für
   Conviction-Daten-Inspection und Backtest-Bucket-Replay genutzt.
   Keine zusätzliche Tool-Installation, kein Workflow-Lauf nötig.
+- **UI-Lücken kommen oft erst beim echten Nutzen ans Licht.**
+  Exit-Druck-Composite-Block existierte schon seit Phase 2 Stufe
+  2b-1, aber war bei ruhigen Positionen unsichtbar — User merkte
+  erst bei der SABR-Position, dass nichts angezeigt wird, und
+  konnte nicht zwischen „ruhig" und „kaputt" unterscheiden.
+  Lehre: bei jeder neuen Daten-Pipeline-Sichtbarkeitsregel die
+  Frage stellen „was sieht der User bei leerem/ruhigem Zustand?"
+  und prüfen, ob das Fehlen einer Anzeige bewusst oder unbeabsichtigt
+  ist.
+- **Conviction-Push als Aktions-Signal vs. Anomaly-Push als
+  Beobachtungs-Signal — semantische Trennung im Severity-Tiering.**
+  PR #109 hat `conviction_high` als ersten echten Aktions-Push
+  eingeführt. Im selben Atemzug (PR #110) wurde die Severity der
+  bestehenden Anomaly-Trigger auf `medium` herabgestuft, damit
+  Conviction sich klar abhebt. Lehre: bei der Einführung eines
+  qualitativ neuen Signal-Typs die bestehenden Signale neu
+  einordnen — sonst geht das neue Signal im Rauschen unter.
 
 ## Code-Hygiene-Backlog
 
@@ -322,10 +433,47 @@ erledigt. Verbleibende Punkte als Wiedervorlage.
   konsistent für alle vier. UX-Polish: kompakte Pill-Toggles statt
   breiter Buttons, neutrale Hit-Chart-Farbe (App-Lila statt Rot/Grün),
   Bucket-Cards mit Border-Top + dezent abgesetztem Hintergrund,
-  Best-Median-Stern in Akzent-Lila statt Emoji-Gelb.
+  Best-Median-Stern in Akzent-Lila statt Emoji-Gelb. SI-Trend-Box
+  bekam in PR #105 klare Labels (Trefferquote / Median).
 - **Trade-Journal Entry-Snapshot** (PR #91) — bei Position-Open werden
   vier neue Felder ins `pos`-Dict geschrieben (`entry_score`,
   `entry_score_bucket`, `entry_conviction_score`, `entry_conviction_level`).
   Beim Close 1:1 ins `closed_trades` durchgereicht; Render im Journal
   als „Score 87 (≥ 70) · Conv 76 (high)"-Zeile. Backwards-compat für
   alte Trades (`—`-Fallback).
+- **`prev_conviction_scores`-Persistenz für Threshold-Crossing** (PR #109)
+  — `agent_state.json["prev_conviction_scores"]` speichert pro Ticker
+  den letzten Conviction-Score (Skalar, nicht Components-Dict). Wird
+  am Run-Ende neu geschrieben aus `app_data["conviction_scores"]` und
+  beim nächsten Tick als kwarg an `detect_anomalies` durchgereicht.
+  Der `conviction_high`-Trigger feuert nur beim Threshold-Crossing
+  (cur ≥ 75 ∧ prev < 75) — Sustained-High wird unterdrückt. Standard-
+  Cooldown `ANOMALY_COOLDOWN_HOURS` (6 h) als zusätzliche Sicherheit
+  gegen Spike-Oszillationen knapp um die Schwelle.
+- **Geteilter `_kiAnalyseFromCtx`-Kern** (PR #106) — `runKiAnalyse`
+  (Top-10) und `wlOpenKiAnalyse` (Watchlist-Drawer) teilen sich die
+  Anthropic-API-Logik (Token-Check, hasResult-Toggle, Prompt-Bau,
+  Streaming, Truncation-Hinweis, Fehler-Pfad). Top-10 liest ctx aus
+  Article-`data-*`-Attributen, Watchlist liest aus
+  `WL_TOP10[ticker]`/`_WL_CARDS[ticker]` und ruft denselben Helper.
+  Rerun läuft pro Pfad über separaten Handler (`kaRerun(cardIdx)` vs
+  `wlKaRerun(rerunBtn, ticker)`). Schema-Stabilität: bei Änderung
+  der ctx-Felder beide Aufrufstellen synchron halten.
+- **Severity-Tiering** (PR #110) — semantische Trennung im Anomaly-
+  Push-Stream. **high (Aktions-Signal):** `conviction_high`,
+  `perfect_storm`, `monster_backup`. **medium (Beobachtungs-Signal):**
+  `rvol_explosion`, `uoa_extreme`, `score_jump`, `gap_combo`,
+  `edgar_filing`. Severity landet in `push_history` und in der
+  CLAUDE.md-Anomaly-Tabelle. **Wichtig:** `_send_anomaly_ntfy`
+  sendet aktuell hardcoded `Priority: high` an ntfy, unabhängig vom
+  Severity-Wert — das ist in CLAUDE.md explizit als beabsichtigt
+  dokumentiert. Für ein echtes Tiering auf dem Handy wäre ein
+  `severity`-Parameter in `_send_anomaly_ntfy` nötig (Backlog-Punkt).
+- **Exit-Druck-Composite-Render: Composite immer zeigen** (PR #108) —
+  `buildPositionStatus` rendert die „Exit-Druck: N/100"-Zeile
+  jederzeit, sobald `exit_pressure` ein valider Wert ist. Trigger-
+  Zeilen weiterhin nur bei warn/crit. Bei vollständig ruhiger
+  Position erscheint dezent „Alle Frühwarn-Signale ruhig" (CSS
+  `.ps-quiet`, italic, `--txt-dim`). Render-Bedingung: `pressureLine
+  || rows.length > 0`. Damit kann der User „ruhig" von „kaputter
+  Pipeline" unterscheiden.
