@@ -1,87 +1,109 @@
-# Session-Handover — Stand 09.05.2026
+# Session-Handover — Stand 10.05.2026
 
 ## Heute implementiert (chronologisch, alle gemerged via PR)
 
-- `24e039b` — fix: thesis/lesson über Validation-Re-Render erhalten
-  (Bug A Trade-Journal) — gemerged via PR #67
-- `ca4604b` — docs: CLAUDE.md Git-Workflow auf reine PR-only-Strategie
-  umgestellt — gemerged via PR #68
-- `f29f8ee` — feat: Phase 2 Stufe 3c-1 — Push-History-Persistenz
-  (4 ntfy-Sender instrumentiert, FIFO Cap 100) — gemerged via PR #69
-- `adbb079` — feat: Pre-Market-Volume als Earliness-Komponente
-  (Logging-only, additiv mit change_overnight-Filter,
-  EARLINESS_PTS_MAX 5→7) — gemerged via PR #70
-- `46df9a5` — docs: handover update after session (Vormittag) —
-  gemerged via PR #71
-- `2578fc5` — fix: yfinance Multi-Ticker `group_by='ticker'` im
-  Backtest-Backfill (`update_backtest_returns`) — gemerged via PR #72
-- `a534352` — feat: Trade-Journal Details-Toggle für thesis/lesson
-  (pro Trade-Zeile ausklappbar, lokaler In-Memory-State) — gemerged
-  via PR #73
-- `e2cd96b` — docs: handover update after evening session — gemerged
-  via PR #74
-- `4ffab93` — docs: strategische Roadmap-Sektion in
-  SESSION_HANDOVER.md — gemerged via PR #75
-- `0e82c53` — refactor: `_record_push` in gemeinsames Modul
-  `push_history.py` ausgliedern (SSOT) — gemerged via PR #76
-- `b478f96` — fix: yfinance Multi-Ticker `group_by='ticker'` in
-  `fetch_yfinance` (gleicher Pattern wie PR #72, von Squeeze-Guardian
-  entdeckt) — gemerged via PR #77
-- `74d992d` — docs: Code-Hygiene-Backlog in SESSION_HANDOVER.md —
-  gemerged via PR #78
-- `0e7dc55` — chore: Guardian-Findings 2 + 3 abarbeiten
-  (Architektur-Anker-Drift + F401-noqa-Kosmetik) — gemerged via PR #79
+### Backtest-Panel-Verbesserungen
+
+- `20d19de` — feat: Backtest dünne Buckets (n<20) visuell als statistisch
+  unsicher markieren — gemerged via PR #81
+- `d64f247` — feat: Backtest Mean-Renditen zusätzlich zu Median anzeigen
+  — gemerged via PR #86
+- `fa60721` — feat: Backtest Min/Max-Range zusätzlich zu Median und Mean
+  anzeigen — gemerged via PR #88
+- `a00ab67` — feat: Backtest Mean-vs-Median-Spread-Indikator
+  (Verteilungs-Schiefe) — gemerged via PR #92
+- `c842536` — feat: Backtest-Skew-Indikator bei n<MIN_BUCKET_N grau
+  statt suppress — gemerged via PR #93
+- `edc9cfb` — feat: Backtest-Panel UX-Polish (Toggles, Farbe, Bucket-
+  Trennung, Stern-Icon) — gemerged via PR #94
+
+### Phase 2 Stufe 3c-2 — push_history-Spiegel
+
+- `6230fd2` — feat: Phase 2 Stufe 3c-2 — push_history in app_data.json
+  materialisieren — gemerged via PR #82
+
+### Code-Hygiene Refactors
+
+- `1721835` — refactor: _drivers_breakdown auf zentrale
+  DRIVER_CLASSIFICATIONS-Tabelle umbauen (Punkt 6/A) — PR #83
+- `c68d4e5` — refactor: Score-Formel-Box aus SCORE_FORMULA_ITEMS
+  auto-generieren (Punkt 5/1) — PR #84
+- `d635b99` — docs: Code-Hygiene-Backlog-Status aktualisieren — PR #85
+
+### Conviction-Score-Aufbau
+
+- `acd4597` — docs: Backtest-Verteilungs-Erkenntnis als Lesson verankern
+  (Median vs Mean) — gemerged via PR #87
+- `6970d27` — feat: Conviction-Score Schritt A — Berechnungs-Logik
+  (ohne UI) — gemerged via PR #89
+- `0cea357` — fix: vix_current Persistenz im Daily-Run via
+  **existing-Spread (analog zu ki_agent) — gemerged via PR #90
+- `2431704` — feat: Conviction-Score Schritt B — UI-Integration auf
+  Stock-Fliese — gemerged via PR #95
+- `3e949d8` — fix: apply_conviction_scores vor generate_html
+  (Pipeline-Reihenfolge für UI-Render) — gemerged via PR #96
+- `82d8e51` — feat: Conviction-UI Nachschärfung (Sortier-Option, Größe,
+  Methodik-Block) — gemerged via PR #97
+
+### Methodik-Asymmetrien
+
+- `d5c59cd` — fix: Methodik-Display zeigt jetzt bedingte Boni
+  (SI-Trend-Beschleunigung, Agent-Boost-Bandbreite) — PR #98
+- `ee60986` — feat: Methodik-Display Schritt 2 — FINRA-Bonus und
+  Late-Runner-Penalty in Boni-Box — gemerged via PR #99
+
+### UX-Detail
+
+- `74b5f24` — feat: Trade-Journal Entry-Score-Bucket + Conviction
+  snapshot — gemerged via PR #91
+- `0c10456` — feat: Trade-Journal 7-Tage-Filter ergänzen — gemerged
+  via PR #100
 
 ## Aktive Positionen (im Gist `squeeze_data.json`)
 
 - **AMC** · offen · läuft im Plus
 - **SABR** · offen · läuft im Plus
 
-## Verifikation morgen früh nach Daily-Run + ki_agent-Tick
+## Verifikation morgen früh nach erstem Trading-Tag-Daily-Run
 
-- `agent_signals.json` zeigt **`rvol > 0` und `chg_pct ≠ 0`** für die
-  meisten Top-10-Ticker (PR #77-Wirkung — `fetch_yfinance` lieferte
-  vor dem Fix systematisch `0.0` für alle Felder).
-- `agent_state.json` hat `push_history`-Sub-Dict (3c-1 live, FIFO ≤ 100).
-  Nach mehreren ki_agent-Ticks sollten dort mehrere Einträge stehen.
-- `backtest_history.json`: erste R-Werte für die 21./22.04.2026-DAILY-
-  Einträge sollten gefüllt sein (Backfill-Fix `2578fc5` wirkt — der
-  erste KI-Agent-Commit der die Datei je modifiziert hat ist
-  `8774206`, direkt nach Merge von PR #72).
-- **Frontend Backtest-Panel „Nur Live (DAILY)"** zeigt erste konkrete
-  Median-R-Werte pro Score-Bucket statt `—`. Mindest-n=5-Schwelle wird
-  evtl. erst nach 1–2 Tagen Backfill erreicht.
-- Trade-Journal: bei nächstem Close zeigen `thesis` und `lesson`
-  korrekte Werte (Bug A live), und der Details-Toggle erscheint nur
-  bei Trades mit nicht-leeren Notes (PR #73).
-- Earliness-Logs zeigen ggf. dritte Komponente `pm_vol_match` in
-  Workflow-stdout (Stage 1 ist by-design Logging-only).
+- **Conviction-Werte mit echten VIX und Anomaly-Triggern:** Erreichen
+  ≥ 75-Setups jetzt high-Level (grün)? Heutige Top-10 hatten
+  durchschnittlich Conviction ~50 (medium), nachdem PR #90 vix_current
+  preserviert. Trading-Tag bringt frische RVOL-Spikes → mehr Anomaly-
+  Trigger → höhere Conviction-Komponenten.
+- **`chg_pct` in `agent_signals.json`:** sollte nicht mehr 0.0 sein
+  (Wochenend-Effekt verschwindet — Mo-Fr liefert echte Tagesdifferenz).
+- **Backtest-Mediane mit weiteren Tagen Daten:** Bucket-Cards zeigen
+  zunehmend stabile Werte; Skew-Indikator dürfte beim ≥ 70-Bucket /
+  10T-T+1 weiterhin „rechtsschief" zeigen, jetzt mit n > 11.
+- **Earliness-Werte in echten Top-10:** heute waren 9/10 Top-10 zu
+  „heißgelaufen" (RSI > 60 oder change_5d ≥ 5 %). Bei einem ruhigeren
+  Trading-Tag könnten frühere Setups in der Top-10 erscheinen — mit
+  earliness_pts > 0.
 
 ## Geplante Aufgaben
 
-1. **Phase 2 Stufe 3c-2** — Materialisierung `push_history` in
-   `app_data.json` (NACH 1–2 Tagen Live-Lauf von 3c-1).
-2. **Phase 2 Stufe 3c-3** — UI Notification-History (NACH 3c-2).
-3. **Stufe Mittel-2** — Score-Effekt für Earliness aktivieren NACH
-   1–2 Daily-Runs mit drei Komponenten.
-4. **Backtest-T+0/T+1-Auswertung** — Frontend-Verifikation nach
-   1–2 Backfill-Tagen: pro Score-Bucket (`<50`, `50–69`, `≥70`)
-   sollte `n > 0` für `return_3d/5d/10d` auftauchen, Median-Werte
-   ersetzen die `—`-Anzeige.
-5. **Big-Refactor Zwei-Achsen-Ranking** — nach 30+ Tagen Earliness-
+1. **Phase 2 Stufe 3c-3** — UI Notification-History (NACH 3c-2 = PR #82
+   bereits live).
+2. **Stufe Mittel-2** — Score-Effekt für Earliness aktivieren NACH
+   1–2 Daily-Runs mit gefüllter PM-Vol-Komponente.
+3. **Backtest-T+0/T+1-Auswertung** — Frontend-Verifikation läuft
+   weiter; je Score-Bucket sollten 30+ Tage Live-R-Werte für
+   belastbare Mediane vorliegen.
+4. **Big-Refactor Zwei-Achsen-Ranking** — nach 30+ Tagen Earliness-
    Daten.
-6. **Phase 3 Exit-Signale** — Wiedervorlage 15.05.2026.
-7. **Score-Aufschlüsselung pro Karte** (Phase Y).
-8. **Immediacy-Score-Feature**.
-9. **Bahn A2** — Frontend-Auswertungs-Panel.
-10. **UX Backtesting „Nur Live"-Modus**.
-11. ⏰ **Wiedervorlage 19.05.2026** — `app_data`-recovery +
+5. **Phase 3 Exit-Signale** — Wiedervorlage 15.05.2026.
+6. **Score-Aufschlüsselung pro Karte** (Phase Y).
+7. **Immediacy-Score-Feature**.
+8. **Bahn A2** — Frontend-Auswertungs-Panel.
+9. **UX Backtesting „Nur Live"-Modus**.
+10. ⏰ **Wiedervorlage 19.05.2026** — `app_data`-recovery +
     `POSITIONS_JSON`-Secret löschen.
-12. ⏰ **Wiedervorlage 02.06.2026** — Chart-Indikatoren.
-13. ⏰ **Wiedervorlage 02.07.2026** — Premium-Daten-Stack.
-14. **Phase X** — v1-Pfad-Migration (siehe auch Code-Hygiene Punkt 2).
-15. **Phase 2 Trigger 4–6** — Setup-Erosion, Catalyst, Trend-Bruch.
-16. **Tier-2-Insight-Builder** als Reserve.
+11. ⏰ **Wiedervorlage 02.06.2026** — Chart-Indikatoren.
+12. ⏰ **Wiedervorlage 02.07.2026** — Premium-Daten-Stack.
+13. **Phase X** — v1-Pfad-Migration (siehe Code-Hygiene Punkt 2).
+14. **Phase 2 Trigger 4–6** — Setup-Erosion, Catalyst, Trend-Bruch.
+15. **Tier-2-Insight-Builder** als Reserve.
 
 ## Strategische Roadmap
 
@@ -101,32 +123,30 @@ parallele Arbeitsstränge:
 
 **Kurzfristig (Tage bis 1–2 Wochen, aktiv planbar)**
 
+- **Conviction-Score Stage 2** — Plausibilitäts-Beobachtung über
+  Trading-Woche; ggf. Komponenten-Gewichte rekalibrieren wenn
+  Earliness systematisch 0 bleibt.
 - **Stufe Mittel-2** — Earliness-Score-Effekt aktivieren, sobald
-  1–2 Daily-Runs mit drei Komponenten (`accel_match`/`velocity_match`/
-  `pm_vol_match`) in den Logs plausible Werte zeigen.
+  1–2 Daily-Runs mit drei Komponenten plausible Werte zeigen.
 - **Phase 3 Exit-Signale** (Wiedervorlage 15.05.2026).
-- **Phase 2 Stufe 3c-2** — `push_history` in `app_data.json`
-  materialisieren, danach **Stufe 3c-3** UI-Notification-History.
+- **Phase 2 Stufe 3c-3** — UI-Notification-History.
 
 **Mittelfristig (Wochen, datenabhängig)**
 
 - **Backtest-Validierung** — Frontend-Auswertung Backtest-T+0/T+1
   funktioniert erst belastbar, sobald je Score-Bucket
   (`<50`/`50–69`/`≥70`) mindestens 30 Tage Live-R-Werte vorliegen.
-  Aktuell: Bucket-Mediane existieren noch nicht (`—`-Anzeige), seit
-  PR #72 läuft der Backfill aber endlich; erste Werte ab morgen,
-  statistisch belastbar in ~30 Tagen.
+  Mean-vs-Median-Skew (PR #92/#93) gibt schon heute hilfreiche
+  Hinweise auf rechtsschiefe Squeeze-Knaller.
 - **Bahn A2** — Frontend-Auswertungs-Panel (≥ 200 Live-Backtest-
   Einträge erforderlich).
 
 **Längerfristig (Monate, Empirik-basiert)**
 
 - **Big-Refactor Zwei-Achsen-Ranking** — nach 30+ Tagen Earliness-
-  Daten, sobald die PM-Vol-Komponente kalibriert ist.
+  Daten.
 - **Premium-Daten-Stack** (Wiedervorlage 02.07.2026).
-- **Sektor-Rotation / Marktkontext** — noch nicht im Backlog,
-  aber natürliche Erweiterung sobald die Single-Stock-Edge
-  empirisch sitzt.
+- **Sektor-Rotation / Marktkontext** — noch nicht im Backlog.
 
 ### Lackmus-Test
 
@@ -135,217 +155,142 @@ zeigen: Score ≥ 70 hat einen klar besseren Median-R-Wert nach 5T
 als Score < 50.
 
 - **Wenn ja** → Earliness-Score-Aktivierung und Big-Refactor mit
-  Rückenwind, weil die Score-Komponenten als Ganzes das richtige
-  Signal produzieren.
+  Rückenwind.
 - **Wenn nein** → Score-Komponenten **neu kalibrieren bevor weiter
-  gebaut wird**. Eine Earliness-Bonus-Aktivierung auf einem
-  unkalibrierten Score würde Bug auf Bug stapeln.
+  gebaut wird**.
 
-Bis der Test laufen kann, ist passives Sammeln der primäre Modus —
-neue Features werden so gewählt, dass sie *unterstützen* (z. B.
-Phase 2 Stufe 3c-2 verbessert Audit-Spur, ohne Score-Logik zu
-berühren), nicht *verändern*.
+Bis der Test laufen kann, ist passives Sammeln der primäre Modus.
+Conviction-Score (PR #89/#95) liefert die Aktions-Frage als
+zusätzlichen Indikator, ohne die Score-Logik selbst zu verändern —
+ein „nur unterstützender" Baustein im Sinne der Roadmap.
 
 ## Heutige große Themen
 
-- **GRPN-Stop-Loss vom Vortag aufgearbeitet** — These und Lesson
-  manuell im Gist nachgepflegt.
-- **Trade-Journal Bug A** diagnostiziert mit Browser-DevTools-
-  Reproduktion, lokal gefixt, gemerged (PR #67).
-- **Bug B** war im Parallel-Chat schon gefixt → redundant.
-- **Phase 2 Stufe 3c-1** implementiert + reproduziert nach Sandbox-
-  Verlust, gemerged (PR #69).
-- **Pre-Market-Volume als 3. Earliness-Komponente** implementiert +
-  reproduziert, gemerged (PR #70).
-- **Multi-Session-Konflikt** mit parallelem Chat erkannt und via
-  Patch-Migration aufgelöst (Patches und Sandbox später verloren).
-- **Sandbox-Push-Restriktion** erkannt: alle `main`-Pushes via Code
-  liefern HTTP 403, Branch-Pushes funktionieren weiterhin.
-- **CLAUDE.md auf reine PR-only-Strategie umgestellt** — ALLE
-  Änderungen (Code + Doku) via Branch + PR (PR #68).
-- **Backtest-Backfill-Diagnose Stufe 1 + 2 read-only durchgezogen** —
-  0/451 DAILY-Einträge mit R-Werten gefunden, Schema/Counts/Cluster-
-  Analyse, vier Hypothesen empirisch auf eine reduziert (yfinance
-  Multi-Ticker-Form-Mismatch), Live-Probe verifiziert. Fix in
-  PR #72: ein zusätzliches `group_by='ticker'` im `yf.download`-Call.
-- **CLAUDE.md-Earliness-Konsistenz read-only verifiziert** — genau
-  eine Sektion, `EARLINESS_PTS_MAX = 7`, drei Komponenten korrekt
-  dokumentiert, keine Doppel-Sektion durch Sandbox-Verlust.
-- **PM-Vol Live-Status verifiziert** — Stage 1 ist Logging-only,
-  Felder werden by-design **nicht** persistiert.
-- **Trade-Journal Detail-Ansicht** — pro Trade ausklappbarer
-  Details-Toggle, nur wenn thesis ODER lesson nicht-leer (PR #73).
-- **`_record_push` Single-Source-of-Truth** — Duplikat in ki_agent
-  + generate_report eliminiert, Helper liegt jetzt zentral in
-  `push_history.py` (PR #76, −72 Zeilen netto).
-- **Squeeze-Guardian-Konformitäts-Check** über alle 8 PRs — fand
-  einen produktiven stillen Datenverlust (`fetch_yfinance` in
-  ki_agent.py:420 hatte denselben yfinance-`group_by`-Bug wie
-  PR #72; live-verifiziert in `agent_signals.json`: `rvol=0.0`
-  und `chg_pct=0.0` für **alle 10** Signale → RVOL-Explosion- und
-  Score-Sprung-Anomalien konnten nicht mehr feuern). Fix als
-  Single-Liner in PR #77, plus Drift-Cleanup in PR #79.
-- **Code-Hygiene-Backlog** explizit dokumentiert (PR #78) — fünf
-  offene Refactor-Punkte (v1/v2-Migration, Monolith-Split, Template-
-  Engine, Methodik-Auto-Generation, Drivers-/Score-SSOT) als
-  Wiedervorlage.
+- **Backtest-Panel komplett ausgebaut.** Sechs Iterationen vom
+  Grau-Dimming dünner Buckets über Mean/Min/Max/Skew-Anzeige bis
+  zum UX-Polish (kompakte Toggles, neutrale Hit-Chart-Farbe,
+  Bucket-Cards, Akzent-Stern). Verteilungs-Erkenntnis aus
+  Lesson #87 wird jetzt visuell direkt im Panel sichtbar.
+- **Conviction-Score in zwei Schritten live gemacht.** Schritt A
+  (PR #89) liefert Daten, Schritt B (PR #95) macht sie sichtbar.
+  Drei Folge-Fixes nötig: VIX-Persistenz (PR #90), Pipeline-
+  Reihenfolge (PR #96), UI-Polish (PR #97). Read-only-Diagnose
+  (Daten-Pfad / Pipeline-Order) hat in zwei Fällen Fix-Pfad
+  klar gemacht, bevor blind gefixt wurde.
+- **Code-Hygiene Punkte 5 & 6 (Schritt 1/A) erledigt.** Score-
+  Formel-Display ist auto-generiert aus config-Konstanten;
+  DRIVER_CLASSIFICATIONS ist Single-Source-of-Truth für
+  `_drivers_breakdown`. Schritt 5/2 und 6/B (Score() aus
+  Konstanten / DRIVER_CLASSIFICATIONS ableiten) bleiben offen.
+- **Methodik-Asymmetrien systematisch durchgegangen.** Vier
+  Diskrepanzen Display ↔ Code identifiziert; alle vier in zwei
+  PRs (#98, #99) gefixt. Kein Drift mehr zwischen Methodik-Sektion
+  und Score-Pfaden.
+- **Trade-Journal um Entry-Snapshot und 7-Tage-Filter erweitert.**
+  Beim Position-Open werden Score-Bucket + Conviction-Level
+  gespeichert; im Journal sichtbar. 7-Tage-Filter zwischen „Alle"
+  und „30 Tage" für aktuelle Reflexion.
 
 ## Wichtige Lernerfahrungen
 
 - **Multi-Session-Arbeit am gleichen Repo nicht mehr machen.**
-  Parallele Chat-Sandboxes erzeugen redundante Implementierungen,
-  Konflikte und verlorene Patches, sobald eine Sandbox abgebaut wird.
   Single-Session pro Tag ist die Defaultregel.
-- **Sandbox-Verluste sind erwartbar.** Code-Stand IMMER über PR auf
-  GitHub spiegeln — der gemergte main ist die einzige verlässliche
-  Persistenz. Lokale Branches und uncommittete Diffs sind flüchtig.
-- **`main`-Pushes sind in der Sandbox blockiert (HTTP 403).** Die
-  hybride „Doku direkt main / Code via PR"-Variante hat NICHT
-  funktioniert (auch reine Doku-Pushes werden abgewiesen). Ergebnis:
-  PR-only-Workflow für alle Änderungen, dokumentiert in CLAUDE.md.
-- **Git-Diff vor Commit prüfen.** Mehrfach hat sich die Pflicht-
-  Checkliste „nur file X im Diff" als nützlicher Letztcheck erwiesen,
-  bevor ein Commit raus geht — verhindert versehentliches Mit-
-  Committen von Sandbox-Artefakten (z. B. `node_modules/jsdom`).
-- **yfinance-Default Multi-Ticker-Form ist `(Field, Ticker)`, nicht
-  `(Ticker, Field)`.** `yf.download(['AMC','DDD'], ...)` ohne
-  `group_by`-Param liefert MultiIndex columns mit Field auf Top-Level
-  → `hist[ticker]` wirft `KeyError`. Bei jedem `yf.download(tickers,
-  …)` mit Ticker-Liste **explizit `group_by='ticker'` setzen**, sonst
-  fällt der `hist[ticker]`-Lookup silently in einen `try/except` und
-  produziert Stage-Bugs (PR #72 für `update_backtest_returns`,
-  PR #77 für `fetch_yfinance` — beide identischer Pattern).
-- **Read-only-Diagnose vor blindem Fix lohnt sich.** Beim Backtest-
-  Backfill-Bug wären ohne Stufe-2-Probe (Live-yfinance-Form-
-  Verifikation) die vier Hypothesen — `--ours`-Recovery,
-  `ei < 0`-Lookup, yfinance-Multi-Ticker-Fail, Funktion-läuft-nie —
-  alle plausibel geblieben. Eine zielgerichtete Probe in der Sandbox
-  hat die Hypothese auf eine eindeutige reduziert.
+- **Sandbox-Verluste sind erwartbar.** Code-Stand IMMER über PR
+  auf GitHub spiegeln — der gemergte main ist die einzige
+  verlässliche Persistenz.
+- **`main`-Pushes sind in der Sandbox blockiert (HTTP 403).** PR-
+  only-Workflow für alle Änderungen, dokumentiert in CLAUDE.md.
+- **Git-Diff vor Commit prüfen.** Verhindert versehentliches
+  Mit-Committen von Sandbox-Artefakten.
+- **yfinance-Default Multi-Ticker-Form ist `(Field, Ticker)`,
+  nicht `(Ticker, Field)`.** Bei jedem `yf.download(tickers, …)`
+  mit Liste explizit `group_by='ticker'` setzen.
+- **Read-only-Diagnose vor blindem Fix lohnt sich.** Mehrfach
+  bestätigt: Backtest-Backfill (PR #72), VIX-Persistenz (PR #90),
+  Conviction-Pipeline-Order (PR #96), Skew-Suppression-vs-Dimming
+  (PR #93). Jedes Mal hat ein 5–10-min-Read-only-Check vor dem
+  Fix die richtige Stelle isoliert.
 - **Squeeze-Guardian-Konformitäts-Check nach Multi-PR-Sessions ist
-  kein Overhead, sondern Versicherung.** Heute hat ein Routine-Run
-  einen produktiven stillen Datenverlust aufgedeckt (rvol=0.0 in
-  allen 10 ki_agent-Signalen), der ohne den Check Tage unbemerkt
-  weitergelaufen wäre. Nach jeder Session mit ≥ 3 Code-PRs
-  empfehlenswert.
+  kein Overhead, sondern Versicherung.** Hat am 09.05. einen
+  produktiven stillen Datenverlust aufgedeckt.
 - **Backtest-Verteilungs-Erkenntnis (10.05.2026) — Median allein
-  unterschätzt die Edge.** Squeeze-Renditen sind extrem rechtsschief;
-  einzelne Knaller treiben den Mean weit über den Median, ohne dass
-  der Median sie sieht. Konkrete Beobachtung nach PR #86 (Mean-Feature):
-  - Score ≥ 70, 10T-T+1: **Median +4.1 %** vs **Mean +12.2 %** (3× Spread)
-  - Score 50–69, 10T-T+0: **Median −0.3 %** vs **Mean +2.5 %** (Vorzeichen-Wechsel)
-  - Score < 50: Median und Mean nah beieinander → symmetrische Negativ-
-    Verteilung, keine versteckten Knaller.
-
-  **Implikation für Trading:** Bei asymmetrischer Auszahlungs-Struktur
-  (Stops klein, Gewinne durchlaufen lassen) ist Mean der relevantere
-  Indikator. Median ist nicht falsch, aber unvollständig — er glättet
-  genau die Squeeze-Knaller weg, die das Setup ausmachen.
-
-  **Korrektur der Erst-Interpretation vom 09.05.2026:** Der ≥70-Bucket
-  hat sehr wohl Edge, sie ist nur in der Verteilungs-Schiefe versteckt.
-  Die ursprüngliche Diagnose „kein klarer Sortier-Effekt an der Spitze"
-  war ein Median-Artefakt. Diese Erkenntnis ist primärer Input für die
-  spätere Score-Lackmus-Test-Bewertung (siehe Strategische Roadmap):
-  Mean ≥ Median × 2 im ≥70-Bucket gilt als positive Bestätigung der
-  Score-Edge.
+  unterschätzt die Edge.** Squeeze-Renditen sind extrem
+  rechtsschief; einzelne Knaller treiben den Mean weit über den
+  Median, ohne dass der Median sie sieht. Score ≥ 70 / 10T-T+1:
+  Median +4.1 % vs Mean +12.2 % (3× Spread). Implikation: bei
+  asymmetrischer Auszahlungs-Struktur ist Mean der relevantere
+  Indikator. Mean-Anzeige (PR #86) + Skew-Indikator (PR #92/#93)
+  machen das jetzt direkt im Panel sichtbar.
+- **Conviction-Score-Aufbau: Daten erst, UI danach.** Schritt A
+  (Daten ohne UI) erlaubt Plausibilitäts-Verifikation der Werte
+  bevor man die UI baut. Hat bei Conviction zwei Folge-Fixes
+  (VIX-Persistenz, Pipeline-Reihenfolge) entdeckt, die ohne
+  diesen Zwischenschritt erst nach UI-Deployment sichtbar
+  geworden wären.
+- **Frontend-Verifikation in Browser-Konsole (`fetch` +
+  `console.log`) ist schnell und zuverlässig.** Mehrfach für
+  Conviction-Daten-Inspection und Backtest-Bucket-Replay genutzt.
+  Keine zusätzliche Tool-Installation, kein Workflow-Lauf nötig.
 
 ## Code-Hygiene-Backlog
 
-Code-Hygiene-Punkte aus der Diskussion vom 09.05.2026. Punkt 1
-(`_record_push`-SSOT, PR #76), Punkt 5 Schritt 1 (Score-Formel-Box
-auto-generiert, PR #84) und Punkt 6 Schritt A (DRIVER_CLASSIFICATIONS-
-Tabelle, PR #83) sind erledigt. Verbleibende Punkte sind als
-Wiedervorlage offen — anfassen wenn konkreter Anlass besteht (geplante
-Erweiterung wäre ohne Refactor unverhältnismäßig komplex) oder als
-bewusste Aufräum-Session.
+Aus der Diskussion vom 09.05.2026. Punkt 1 (`_record_push`-SSOT, PR
+#76), Punkt 5 Schritt 1 (Score-Formel-Box auto-generiert, PR #84) und
+Punkt 6 Schritt A (DRIVER_CLASSIFICATIONS-Tabelle, PR #83) sind
+erledigt. Verbleibende Punkte als Wiedervorlage.
 
 - **Punkt 2 — v1/v2 Render-Pfad in `generate_report.py`:** vollständige
-  Migration zu Jinja (Phase X). Aktuell delegiert `generate_html_v2()`
-  am Ende an `generate_html_v1()` (Outer-Page) — keine Autarkie. Drei-
-  Schritt-Migration nötig (page.jinja, wl_card.jinja-Refactor von
-  `_wl_full_card_html`, autarkes v2). Voraussetzung für Punkt 3.
-
+  Migration zu Jinja (Phase X). Voraussetzung für Punkt 3.
 - **Punkt 3 — Monolith `generate_report.py` aufsplitten:** ~12 000 Zeilen
-  in einer Datei. Modulisierung in `score/`, `data_fetch/`, `frontend/`,
-  `backtest/` reduziert kognitive Last und macht Tests fokussierter. Hohe
-  Risiko-Operation — erfordert Render-Test-Schutznetz (`JINJA_RENDER_TEST=1`)
-  + Smoke-Tests, sonst silent Drift.
-
-- **Punkt 4 — HTML/JS-im-f-String-Pattern durch Template-Engine ersetzen:**
-  hängt mit Punkt 2 zusammen. Aktuell ist die JS-Sektion ein Python-f-String,
-  was `${...}`-Eskapes (`${{...}}`) erzwingt und ein Lint-Skript
-  (`scripts/lint_chat_template.py`) als Sicherheitsnetz braucht. Mit echter
-  Template-Engine wären beide Sicherheitsnetze überflüssig.
-
+  in einer Datei. Hohe Risiko-Operation.
+- **Punkt 4 — HTML/JS-im-f-String-Pattern durch Template-Engine
+  ersetzen:** hängt mit Punkt 2 zusammen.
 - **Punkt 5 — Score-Methodik-Sync-Regel strukturell absichern**
-  - **Schritt 1: erledigt via PR #84 (10.05.2026)** — Score-Formel-Box
-    auto-generiert aus `config.py`-Konstanten `SUB_*_DISPLAY_PTS_MAX`.
-    Strukturell drift-geschützt für Sub-Score-Caps; manueller HTML-Sync
-    für diese Werte entfällt.
+  - **Schritt 1: erledigt via PR #84 (10.05.2026)**.
   - **Schritt 2 (offen):** `score()` und `_compute_sub_scores()` aus
-    denselben Konstanten ableiten, statt eigene Caps zu rechnen —
-    eliminiert die letzte Drift-Quelle in dem Bereich (heute kann
-    z. B. ein Score-Faktor von 32 auf 35 wandern, ohne dass
-    `SUB_SHORT_FLOAT_DISPLAY_PTS_MAX` mitgepflegt wird).
-
-- **Punkt 6 — `_drivers_breakdown`-Klassifikations-Regeln in gemeinsamen
-  Helper mit `score()` ziehen**
-  - **Schritt A: erledigt via PR #83 (10.05.2026)** — `DRIVER_CLASSIFICATIONS`-
-    Tabelle als Single-Source-of-Truth für `_drivers_breakdown`,
-    Hybrid-Schema mit Callables für dynamische Labels/Gewichte,
-    bit-identisch zur vorherigen Inline-Logik (3 Mock-Stocks verifiziert).
+    denselben `SUB_*_DISPLAY_PTS_MAX`-Konstanten ableiten.
+- **Punkt 6 — `_drivers_breakdown` mit `score()` zusammenziehen**
+  - **Schritt A: erledigt via PR #83 (10.05.2026)**.
   - **Schritt B (offen):** `score()` und `_compute_sub_scores()` aus
-    `DRIVER_CLASSIFICATIONS` ableiten lassen, sofern sinnvoll umsetzbar —
-    macht Klassifikator + Score-Berechnung zur gemeinsamen Spec, dann
-    ist die Score-Faktor ↔ Display-Cap-Drift aus Schritt 2 von Punkt 5
-    auf demselben Weg eliminiert.
+    `DRIVER_CLASSIFICATIONS` ableiten lassen.
 
 ## Architektur-Anker (eingeführt/geändert in dieser Session)
 
-- **`agent_state.json["push_history"]`** (Phase 2 Stufe 3c-1) —
-  FIFO-Ringpuffer mit Cap `PUSH_HISTORY_MAX = 100`, instrumentiert
-  in `_send_anomaly_ntfy`, `_send_exit_p2_push` (3 Severities),
-  `send_ntfy_alert` (earnings_immediate) sowie `_send_exit_ntfy`
-  (Daily-Run, 2 Aufrufstellen). Helper `_record_push` lebt als
-  Single-Source-of-Truth in `push_history.py` (Repo-Root) und wird
-  von `ki_agent.py` und `generate_report.py` per `from push_history
-  import _record_push` eingezogen — bei Schema-Änderung nur diese
-  eine Stelle anpassen (PR #76). Daily-Summary-E-Mail ist explizit
-  ausgenommen.
-- **Earliness-Indikator: 3 statt 2 Komponenten** — neu PM-Vol
-  (`pm_vol_match`) zusätzlich zu `accel_match` + `velocity_match`,
-  Cap `EARLINESS_PTS_MAX` von 5 auf 7. Datenquelle
-  `_fetch_premarket_volumes_batch` (yfinance `prepost=True`,
-  1m-Bars, America/New_York 04:00–09:30, **bereits mit
-  `group_by='ticker'`**). Filter: `avg_vol_20d > 0` ∧
-  `change_overnight ≥ 0` ∧ `change_5d < EARLINESS_MAX_CHANGE_5D_PCT`.
-  Stock-Dict-Feld `premarket_volume` wird vor `compute_earliness_pts`
-  gefüllt. Stufe 1 bleibt: kein Score-Effekt, nur Logging + Persistenz.
-- **`closed_trades`-Schema unverändert** — Bug-A-Fix war reine
-  Frontend-State-Cache-Logik (`_POS_PANEL_FORM_STATE`), keine
-  Schema-Migration. `wlSubmitClose` cached Textareas
-  (`_cacheCloseFormFields`) vor jedem Validation-/gistSave-Fail-
-  Re-Render; `wlCancelCloseForm` und Submit-Erfolg verwerfen den
-  Cache. Single Helper `_escAttr` für HTML-Escape der Initial-
-  Content-Injection in Textareas.
-- **yfinance Multi-Ticker `group_by='ticker'` ist Pflicht-Invariante.**
-  Sowohl `update_backtest_returns` (PR #72) als auch `fetch_yfinance`
-  (PR #77) hatten den default-`group_by='column'`-Bug. Default-Form
-  liefert MultiIndex `(Field, Ticker)` → `hist[ticker]`-Lookup wirft
-  `KeyError`, der typischerweise von einem `try/except` still
-  geschluckt wird. **Jeder neue `yf.download(tickers, ...)` mit
-  Multi-Ticker-Liste muss `group_by='ticker'` explizit setzen.**
-  Stand 09.05.2026 sind alle bekannten Aufrufstellen gefixt.
-- **Trade-Journal Details-Toggle** (PR #73) — pro Trade-Zeile
-  ausklappbarer Detail-Block für `thesis` und `lesson`, **nur wenn
-  mindestens eines der beiden Felder nicht-leer ist**. State lebt in
-  einem In-Memory-Set `_tjExpanded` (Modul-Scope, kein localStorage,
-  kein Gist-Roundtrip), keyed über
-  `closed_at|ticker|entry_date|exit_date`. `tjToggleDetails(btn)`
-  macht DOM-Direct-Manipulation und aktualisiert das Set parallel,
-  damit Filter-Wechsel den State korrekt rekonstruieren. Schema
-  `closed_trades` ist nicht angefasst.
-- **Git-Workflow: PR-only.** Kein direkter `main`-Push mehr,
-  Branch-Name-Pattern `claude/<beschreibung>-<random>`, manueller
-  Merge via GitHub-UI nach Review. Begründung in CLAUDE.md
-  (Sandbox-Restriktion seit 09.05.2026, alle main-Pushes 403).
+- **`Conviction-Score`** (PR #89, Schritt A + PR #95, Schritt B) —
+  vierte Bewertungs-Achse neben Setup/Monster/KI. Vier Komponenten:
+  Setup max 33, Earliness max 28, Anomaly max 28, Regime (VIX) max 11.
+  Levels: ≥ 75 high (grün), 50–74 medium (orange), < 50 low (grau).
+  `compute_conviction_score(stock, anomalies_today, vix)` ist pure
+  Funktion; `apply_conviction_scores` ist Side-Effect-Wrapper.
+- **`apply_conviction_scores` muss VOR `generate_html` laufen** (PR #96).
+  Render-Code prüft `isinstance(s["conviction"]["score"], (int, float))`
+  — ohne Voraufruf wird die Conviction-Row im `_score_block_inner_html`
+  übersprungen. Pipeline-Reihenfolge ist Pflicht-Invariante.
+- **VIX-Persistenz via `**existing`-Spread** (PR #90) — `_write_app_data_json`
+  baut payload jetzt mit `{**_existing_app_data, ...explicit}`-Spread,
+  analog zu ki_agent. Bewahrt `vix_current` und alle nicht explizit
+  übergebenen Keys zwischen Daily-Run-Schreibvorgängen.
+- **`DRIVER_CLASSIFICATIONS` Hybrid-Schema** (PR #83) — Liste von
+  Dict-Einträgen mit primitive ODER Callable-Werten für `label` und
+  `weight`. Erlaubt dynamische Labels (z. B. „Short Float 23.4 %") und
+  dynamische Gewichte (z. B. `min(sf/50, 1) * 32`) aus einer einzigen
+  Tabelle, ohne 25 separate Helper-Funktionen.
+- **Methodik-Display zeigt bedingte Boni** (PR #98 + #99) — bei jeder
+  Komponente mit zusätzlichem Beschleunigungs- oder Multiplikator-
+  Pfad reflektiert der Display-String alle aktivierbaren Maxima
+  (z. B. „5 Pkt (7 bei Beschleunigung)" für SI-Trend, „×1.05–1.15
+  (je KI-Score-Stufe)" für Agent-Boost). Pflege-Regel in CLAUDE.md
+  Score-Methodik-Sync-Regel-Sektion dokumentiert.
+- **Backtest-Panel: Median, Mean, Min/Max, Skew pro Bucket × Horizont**
+  (PRs #81/#86/#88/#92/#93/#94). Vier Sub-Zeilen pro Horizont (M, Ø, R,
+  Skew-Hinweis). Grau-Dimming bei n < `MIN_BUCKET_N` (= 20) gilt
+  konsistent für alle vier. UX-Polish: kompakte Pill-Toggles statt
+  breiter Buttons, neutrale Hit-Chart-Farbe (App-Lila statt Rot/Grün),
+  Bucket-Cards mit Border-Top + dezent abgesetztem Hintergrund,
+  Best-Median-Stern in Akzent-Lila statt Emoji-Gelb.
+- **Trade-Journal Entry-Snapshot** (PR #91) — bei Position-Open werden
+  vier neue Felder ins `pos`-Dict geschrieben (`entry_score`,
+  `entry_score_bucket`, `entry_conviction_score`, `entry_conviction_level`).
+  Beim Close 1:1 ins `closed_trades` durchgereicht; Render im Journal
+  als „Score 87 (≥ 70) · Conv 76 (high)"-Zeile. Backwards-compat für
+  alte Trades (`—`-Fallback).
