@@ -1,4 +1,4 @@
-# Session-Handover — Stand 10.05.2026
+# Session-Handover — Stand 10.05.2026 (Tagesabschluss)
 
 ## Heute implementiert (chronologisch, alle gemerged via PR)
 
@@ -58,6 +58,14 @@
   snapshot — gemerged via PR #91
 - `0c10456` — feat: Trade-Journal 7-Tage-Filter ergänzen — gemerged
   via PR #100
+
+### Tagesabschluss (Doku-Drift-Fix nach Guardian-Check)
+
+- `0b8a6f4` — docs: CLAUDE.md Drivers-Block-Tabelle — Borrow-Rate auf
+  zwei Buckets (>100 extreme, >50..100 hot) erweitert — gemerged via
+  PR #103. Vom Squeeze-Guardian aufgespürt: Tabelle zeigte nur
+  „> 50 %/Jahr", Code (`_drivers_breakdown`) hat aber zwei Schwellen
+  mit unterschiedlichen Gewichten.
 
 ## Aktive Positionen (im Gist `squeeze_data.json`)
 
@@ -202,6 +210,11 @@ ein „nur unterstützender" Baustein im Sinne der Roadmap.
   Beim Position-Open werden Score-Bucket + Conviction-Level
   gespeichert; im Journal sichtbar. 7-Tage-Filter zwischen „Alle"
   und „30 Tage" für aktuelle Reflexion.
+- **Squeeze-Guardian-Konformitäts-Check zum Sessionende.** Status
+  OK für alle Architektur-Invarianten (Conviction-Pipeline-Order,
+  VIX-Persistenz, DRIVER_CLASSIFICATIONS-SSOT, Methodik-Sync,
+  Token-Encryption, push_history-SSOT). Ein einziger Doku-Drift
+  gefunden → in PR #103 sofort gefixt. Keine Code-Drifts.
 
 ## Wichtige Lernerfahrungen
 
