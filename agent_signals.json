@@ -1,17 +1,17 @@
 {
-  "updated": "2026-05-10T15:07:57.381571+02:00",
+  "updated": "2026-05-10T15:13:46.714637+02:00",
   "run_info": {
     "tickers_checked": 10,
     "signals_active": 8,
     "alerts_sent": 0,
-    "elapsed_s": 15.0,
+    "elapsed_s": 10.0,
     "market_phase": "Geschlossen"
   },
   "signals": {
     "NVAX": {
       "score": 65,
       "confidence": 70,
-      "drivers": "Volumen 1.6× + Spanne 15.3% + News: breakout, earnings beat + UOA Call/Put 15.7×",
+      "drivers": "Volumen 1.6× + Spanne 15.3% + News: earnings beat, breakout + UOA Call/Put 15.7×",
       "price": 10.11,
       "chg_pct": -0.0,
       "rvol": 1.62,
@@ -95,9 +95,9 @@
       "uoa_cp_ratio": 2.826923076923077
     },
     "LUCK": {
-      "score": 35,
-      "confidence": 33,
-      "drivers": "Spanne 14.7% + FINRA Short-Vol 100%",
+      "score": 43,
+      "confidence": 70,
+      "drivers": "Spanne 14.7% + News-KI 8/30: Negative earnings misses and analyst downgrades indicate weak fundamental momentum, reducing short-squeeze potential des + FINRA Short-Vol 100%",
       "price": 8.24,
       "chg_pct": -0.0,
       "rvol": 1.31,
