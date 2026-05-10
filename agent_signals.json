@@ -1,17 +1,17 @@
 {
-  "updated": "2026-05-10T15:05:37.947846+02:00",
+  "updated": "2026-05-10T15:07:57.381571+02:00",
   "run_info": {
     "tickers_checked": 10,
     "signals_active": 8,
-    "alerts_sent": 1,
-    "elapsed_s": 13.3,
+    "alerts_sent": 0,
+    "elapsed_s": 15.0,
     "market_phase": "Geschlossen"
   },
   "signals": {
     "NVAX": {
       "score": 65,
       "confidence": 70,
-      "drivers": "Volumen 1.6× + Spanne 15.3% + News: earnings beat, breakout + UOA Call/Put 15.7×",
+      "drivers": "Volumen 1.6× + Spanne 15.3% + News: breakout, earnings beat + UOA Call/Put 15.7×",
       "price": 10.11,
       "chg_pct": -0.0,
       "rvol": 1.62,
@@ -74,9 +74,9 @@
       "silenced_reason": "RSI 76"
     },
     "OFRM": {
-      "score": 60,
+      "score": 55,
       "confidence": 70,
-      "drivers": "Volumen 3.3× + ⚡ Extremes Volumen 3.3×+ + Spanne 17.8% + News-KI 5/30: Positive earnings and sales growth are bullish but show no short squeeze indicators like high short interest, low float, + UOA Call/Put 2.8×",
+      "drivers": "Volumen 3.3× + ⚡ Extremes Volumen 3.3×+ + Spanne 17.8% + UOA Call/Put 2.8×",
       "price": 16.33,
       "chg_pct": -0.0,
       "rvol": 3.34,
