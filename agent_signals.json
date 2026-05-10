@@ -1,10 +1,10 @@
 {
-  "updated": "2026-05-10T09:30:52.737134+02:00",
+  "updated": "2026-05-10T10:52:08.834956+02:00",
   "run_info": {
     "tickers_checked": 10,
     "signals_active": 8,
-    "alerts_sent": 2,
-    "elapsed_s": 12.6,
+    "alerts_sent": 1,
+    "elapsed_s": 12.9,
     "market_phase": "Geschlossen"
   },
   "signals": {
@@ -135,9 +135,9 @@
       "uoa_cp_ratio": 12.416666666666666
     },
     "ATLC": {
-      "score": 25,
-      "confidence": 33,
-      "drivers": "Volumen 2.9× + Spanne 17.6%",
+      "score": 44,
+      "confidence": 70,
+      "drivers": "Volumen 2.9× + Spanne 17.6% + News: earnings beat",
       "price": 84.81,
       "chg_pct": -0.0,
       "rvol": 2.91,
@@ -146,8 +146,8 @@
       "upcoming_event": null,
       "insider_buy": false,
       "stocktwits": null,
-      "combo_mult": 1.0,
-      "active_triggers": 1,
+      "combo_mult": 1.1,
+      "active_triggers": 2,
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": null,
