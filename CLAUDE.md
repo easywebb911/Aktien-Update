@@ -1309,13 +1309,14 @@ Pflege-Regel: bei jeder neuen oder geänderten Acceleration-/Multiplikator-
 Logik den Display-String entsprechend ergänzen, nicht nur den Standard-
 Wert zeigen.
 
-**TODO offen** (separater PR): zwei weitere Boni fehlen aktuell komplett
-in der Boni-/Malus-Box:
+Vollständig in der Boni-/Malus-Box gelistet (Stand 10.05.2026):
 
-- `score_bonus()` (FINRA-Trend-Bonus) — On-Top +5 / +7 auf den Gesamt-
-  Score, gleicher Pfad wie SI-Trend-Beschleunigung.
-- `apply_late_runner_penalty` — Multiplikator ×0.85 bei RSI > 75 oder
-  2-T-Move > 20 %.
+- **Kombinations-Bonus** (`COMBO_BONUS = 5`).
+- **Score-Trend** (`SCORE_TREND_BONUS = 3`).
+- **Agent-Boost** (`apply_agent_boost`, ×1.05–1.15).
+- **FINRA Trend-Up Bonus** (`score_bonus()`, +5 / +7 bei Beschleunigung).
+- **Historischer Squeeze** (`SQUEEZE_HIST_MALUS_30D / _90D`).
+- **Late-Runner-Penalty** (`apply_late_runner_penalty`, ×0.85).
 
 Im Zweifel: lieber Sync mit kurzem Hinweis im Commit-Body als Drift-Risiko.
 
