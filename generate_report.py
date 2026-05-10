@@ -6208,8 +6208,11 @@ def generate_html_v1(stocks: list[dict], report_date: str, _ctx: dict | None = N
       padding:8px 6px;text-align:center}}
     .bt-si-cell-ttl{{font-size:.68rem;color:var(--txt-dim);text-transform:uppercase;
       letter-spacing:.3px;margin-bottom:4px}}
-    .bt-si-cell-hr{{font-size:1.15rem;font-weight:800;line-height:1.1}}
+    .bt-si-cell-hr-lbl{{font-size:.62rem;color:var(--txt-dim);font-weight:600;
+      text-transform:uppercase;letter-spacing:.04em;line-height:1}}
+    .bt-si-cell-hr{{font-size:1.15rem;font-weight:800;line-height:1.1;margin-top:1px}}
     .bt-si-cell-med{{font-size:.78rem;font-weight:700;margin-top:2px}}
+    .bt-si-cell-med-lbl{{color:var(--txt-dim);font-weight:600}}
     .bt-si-cell-n{{font-size:.65rem;color:var(--txt-dim);margin-top:3px}}
     /* Tabelle: 8 Spalten sprengen iPhone-Breite → horizontal scrollbar */
     #bt-tbl-wrap{{overflow-x:auto;-webkit-overflow-scrolling:touch;
@@ -6274,6 +6277,7 @@ def generate_html_v1(stocks: list[dict], report_date: str, _ctx: dict | None = N
       <div class="bt-tile">
         <div class="bt-tile-title">SI-Trend Vergleich (5T-Rendite)</div>
         <div class="bt-si-grid" id="bt-si-grid"></div>
+        <div class="bt-thin-hint">Trefferquote = Anteil Trades mit &ge;+5% Rendite nach 5T &middot; Median = typischer Verlauf</div>
       </div>
       <div class="bt-tile bt-tile--wide">
         <div class="bt-tile-title">Letzte 20 Einträge</div>
@@ -7645,10 +7649,12 @@ function _btRenderSiTrend(data){{
     const medCol = med === null ? 'var(--txt-dim)' : (med >= 0 ? '#22c55e' : '#ef4444');
     return '<div class="bt-si-cell">'
          + '<div class="bt-si-cell-ttl">' + lbl + '</div>'
+         + '<div class="bt-si-cell-hr-lbl">Trefferquote</div>'
          + '<div class="bt-si-cell-hr" style="color:' + rateCol + '">'
          + (rate === null ? '—' : rate.toFixed(0) + '%') + '</div>'
          + '<div class="bt-si-cell-med" style="color:' + medCol + '">'
-         + (med === null ? '—' : (med >= 0 ? '+' : '') + med.toFixed(1) + '% Median')
+         + '<span class="bt-si-cell-med-lbl">Median:</span> '
+         + (med === null ? '—' : (med >= 0 ? '+' : '') + med.toFixed(1) + '%')
          + '</div>'
          + '<div class="bt-si-cell-n">n=' + n + '</div>'
          + '</div>';
