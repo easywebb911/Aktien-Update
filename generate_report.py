@@ -10754,6 +10754,19 @@ def _write_app_data_json(watchlist_cards: dict | None = None,
             agent_signals = json.load(fh)
     except (FileNotFoundError, json.JSONDecodeError):
         agent_signals = {}
+    # Phase 2 Stufe 3c-2: push_history aus agent_state.json (SSOT) als
+    # read-only-Spiegel in app_data.json materialisieren. Identisches
+    # Schema, identische Reihenfolge — Frontend-Konsumenten (Stufe 3c-3)
+    # lesen es ohne Aggregation oder Filterung. Fail-soft: fehlende oder
+    # unparsbare State-Datei → leere Liste, kein Crash.
+    try:
+        with open(STATE_FILE, "r", encoding="utf-8") as fh:
+            _agent_state = json.load(fh) or {}
+    except (FileNotFoundError, json.JSONDecodeError):
+        _agent_state = {}
+    push_history_mirror = _agent_state.get("push_history") or []
+    if not isinstance(push_history_mirror, list):
+        push_history_mirror = []
     payload = {
         "score_history":   score_history,
         "agent_signals":   agent_signals,
@@ -10773,6 +10786,11 @@ def _write_app_data_json(watchlist_cards: dict | None = None,
         # _build_phase2_positions_payload (peak ratchet-up only). ki_agent
         # bewahrt diesen Key zwischen Ticks via **existing-Spread.
         "positions":       positions or {},
+        # Phase 2 Stufe 3c-2: read-only-Spiegel von agent_state.push_history.
+        # Last-Write-Wins zwischen Daily-Run und parallelen ki_agent-Ticks
+        # akzeptiert (kein Lock, FIFO-Cap=100 macht uns gegen einzelne
+        # fehlende Einträge robust).
+        "push_history":    push_history_mirror,
         "fx_usd_eur":      _FX_USD_EUR,
         # Schwester-Key seit EUR-Stufe 1: ISO-UTC-Timestamp der letzten
         # erfolgreichen EURUSD=X-Berechnung. Beim Stale-Fallback wird der
