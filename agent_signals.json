@@ -1,10 +1,10 @@
 {
-  "updated": "2026-05-11T00:44:09.735448+02:00",
+  "updated": "2026-05-11T01:51:13.819573+02:00",
   "run_info": {
     "tickers_checked": 10,
     "signals_active": 8,
-    "alerts_sent": 1,
-    "elapsed_s": 11.0,
+    "alerts_sent": 0,
+    "elapsed_s": 10.6,
     "market_phase": "Geschlossen"
   },
   "signals": {
