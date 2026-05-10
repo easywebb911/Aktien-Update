@@ -6845,9 +6845,10 @@ function buildPositionStatus(ticker) {{
       const reasonHtml = reason ? `: ${{reason}}` : '';
       rows.push(`<div class="ps-row">${{icon}} <strong>${{lbl}}</strong>${{reasonHtml}}</div>`);
     }}
-    if (!rows.length) return '';
-    // Composite-Zeile (Phase 2 Stufe 2b-1) — nur wenn exit_pressure vorhanden.
-    // Color-Mapping per Pfad-1-Genehmigung: 0–29 dim, 30–74 amber, 75–100 rot.
+    // Composite-Zeile (Phase 2 Stufe 2b-1) — Color-Mapping:
+    // 0–29 dim, 30–74 amber, 75–100 rot. Wird IMMER gezeigt, sofern
+    // exit_pressure vorliegt — auch bei vollständig ruhiger Position,
+    // damit User „ruhig" von „kaputter Pipeline" unterscheiden kann.
     const ep = pos.exit_state.exit_pressure;
     let pressureLine = '';
     if (typeof ep === 'number' && isFinite(ep)) {{
@@ -6855,10 +6856,20 @@ function buildPositionStatus(ticker) {{
       const c = v >= 75 ? '#ef4444' : v >= 30 ? '#f59e0b' : 'var(--txt-dim)';
       pressureLine = `<div class="ps-pressure" style="color:${{c}}">Exit-Druck: ${{v}}/100</div>`;
     }}
+    // Render-Bedingung: mindestens Composite ODER mindestens eine
+    // warn/crit-Trigger-Zeile muss vorhanden sein. Kein exit_pressure
+    // UND keine Zeile → kein Block (= keine sinnvolle Information).
+    if (!pressureLine && !rows.length) return '';
+    // Ruhig-Hinweis nur wenn Composite gezeigt wird, aber keine Warn-
+    // oder Crit-Trigger aktiv sind — dezent in --txt-dim.
+    const quietHint = (pressureLine && !rows.length)
+      ? '<div class="ps-quiet">Alle Fr\xfchwarn-Signale ruhig.</div>'
+      : '';
     return `<div class="position-status-block" data-ticker="${{ticker}}">
       <div class="ps-head">📍 Position-Status</div>
       ${{pressureLine}}
       ${{rows.join('')}}
+      ${{quietHint}}
     </div>`;
   }} catch (e) {{
     console.warn('buildPositionStatus Fehler:', e);
