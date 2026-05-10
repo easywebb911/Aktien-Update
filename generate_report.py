@@ -11021,7 +11021,15 @@ def _write_app_data_json(watchlist_cards: dict | None = None,
     push_history_mirror = _agent_state.get("push_history") or []
     if not isinstance(push_history_mirror, list):
         push_history_mirror = []
+    # Existing app_data.json einmalig laden, damit `vix_current` (vom
+    # ki_agent gesetzt) und andere nicht explizit übergebene Felder
+    # zwischen Daily-Run-Schreibvorgängen erhalten bleiben. Analog zum
+    # ki_agent-Pattern (`payload = {**existing, ...}`). Ohne diesen
+    # Spread klatscht der Daily-Run jeden ki_agent-only-Key auf None
+    # und Conviction-`regime_pts` wird systematisch 0.
+    _existing_app_data = _read_existing_app_data()
     payload = {
+        **_existing_app_data,
         "score_history":   score_history,
         "agent_signals":   agent_signals,
         "watchlist_cards": watchlist_cards or {},
