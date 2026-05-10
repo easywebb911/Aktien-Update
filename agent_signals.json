@@ -1,10 +1,10 @@
 {
-  "updated": "2026-05-10T22:02:17.182379+02:00",
+  "updated": "2026-05-10T23:39:35.812826+02:00",
   "run_info": {
     "tickers_checked": 10,
     "signals_active": 8,
     "alerts_sent": 1,
-    "elapsed_s": 14.8,
+    "elapsed_s": 13.4,
     "market_phase": "Geschlossen"
   },
   "signals": {
@@ -30,9 +30,9 @@
       "uoa_cp_ratio": 15.684810126582278
     },
     "GRPN": {
-      "score": 55,
+      "score": 63,
       "confidence": 70,
-      "drivers": "Volumen 3.0× + ⚡ Extremes Volumen 3.0×+ + Spanne 19.6% + UOA Call/Put 11.5×",
+      "drivers": "Volumen 3.0× + ⚡ Extremes Volumen 3.0×+ + Spanne 19.6% + News-KI 8/30: Negative earnings miss with flat revenues shows weakness, but no short-squeeze indicators like high short interest, low  + UOA Call/Put 11.5×",
       "price": 17.78,
       "chg_pct": 0.0,
       "rvol": 3.05,
@@ -51,9 +51,9 @@
       "uoa_cp_ratio": 11.538260869565217
     },
     "DMRC": {
-      "score": 90,
+      "score": 75,
       "confidence": 70,
-      "drivers": "Earnings in 2 Tagen (12.05.2026) + Volumen 2.5× + Spanne 15.3% + News: partnership + Earnings in 2d + UOA Call/Put 10.2× + 3/4 Trigger",
+      "drivers": "Earnings in 2 Tagen (12.05.2026) + Volumen 2.5× + Spanne 15.3% + News-KI 8/30: Neutral corporate updates with no catalysts indicating short squeeze potential; standard earnings call and conference at + Earnings in 2d + UOA Call/Put 10.2×",
       "price": 9.36,
       "chg_pct": -0.0,
       "rvol": 2.47,
@@ -62,8 +62,8 @@
       "upcoming_event": "Earnings in 2 Tagen (12.05.2026)",
       "insider_buy": false,
       "stocktwits": null,
-      "combo_mult": 1.2,
-      "active_triggers": 3,
+      "combo_mult": 1.1,
+      "active_triggers": 2,
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 10.2×"
@@ -94,36 +94,13 @@
       "uoa_atm_ratio": 0.25048923679060664,
       "uoa_cp_ratio": 2.826923076923077
     },
-    "TNYA": {
-      "score": 66,
-      "confidence": 70,
-      "drivers": "Earnings in 3 Tagen (13.05.2026) + Volumen 2.3× + Spanne 17.4% + Earnings in 3d + UOA Call/Put 38.1×",
-      "price": 1.0,
-      "chg_pct": 0.0,
-      "rvol": 2.29,
-      "earnings": "in 3 Tagen (13.05.2026)",
-      "fda_date": null,
-      "upcoming_event": "Earnings in 3 Tagen (13.05.2026)",
-      "insider_buy": false,
-      "stocktwits": null,
-      "combo_mult": 1.1,
-      "active_triggers": 2,
-      "uoa_score": 10,
-      "uoa_drivers": [
-        "UOA Call/Put 38.1×"
-      ],
-      "uoa_atm_ratio": 0.5576208178438662,
-      "uoa_cp_ratio": 38.125,
-      "push_silenced": true,
-      "silenced_reason": "+27% 2T"
-    },
     "LUCK": {
-      "score": 25,
-      "confidence": 17,
-      "drivers": "FINRA Short-Vol 100%",
+      "score": 35,
+      "confidence": 33,
+      "drivers": "Spanne 14.7% + FINRA Short-Vol 100%",
       "price": 8.24,
-      "chg_pct": 0.0,
-      "rvol": 0.0,
+      "chg_pct": -0.0,
+      "rvol": 1.31,
       "earnings": null,
       "fda_date": null,
       "upcoming_event": null,
@@ -176,10 +153,31 @@
       "uoa_atm_ratio": null,
       "uoa_cp_ratio": null
     },
-    "RXT": {
-      "score": 52,
+    "TNYA": {
+      "score": 66,
       "confidence": 70,
-      "drivers": "Volumen 2.7× + Spanne 58.4% + News-KI 12/30: Positive AMD partnership news drives sentiment but lacks short-squeeze catalysts like high short interest, forced coveri + UOA Call/Put 37.7×",
+      "drivers": "Earnings in 3 Tagen (13.05.2026) + Volumen 2.3× + Spanne 17.4% + Earnings in 3d + UOA Call/Put 38.1×",
+      "price": 1.0,
+      "chg_pct": 0.0,
+      "rvol": 2.29,
+      "earnings": "in 3 Tagen (13.05.2026)",
+      "fda_date": null,
+      "upcoming_event": "Earnings in 3 Tagen (13.05.2026)",
+      "insider_buy": false,
+      "stocktwits": null,
+      "combo_mult": 1.1,
+      "active_triggers": 2,
+      "uoa_score": 10,
+      "uoa_drivers": [
+        "UOA Call/Put 38.1×"
+      ],
+      "uoa_atm_ratio": 0.5576208178438662,
+      "uoa_cp_ratio": 38.125
+    },
+    "RXT": {
+      "score": 55,
+      "confidence": 70,
+      "drivers": "Volumen 2.7× + Spanne 58.4% + News: partnership + UOA Call/Put 37.7×",
       "price": 5.49,
       "chg_pct": -0.0,
       "rvol": 2.66,
