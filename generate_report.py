@@ -5793,6 +5793,10 @@ def generate_html_v1(stocks: list[dict], report_date: str, _ctx: dict | None = N
     .bt-chart{{width:100%;height:auto;display:block;max-height:180px}}
     .bt-chart-lbl{{font-size:.68rem;fill:var(--txt-dim)}}
     .bt-chart-val{{font-size:.7rem;font-weight:700;fill:var(--txt)}}
+    /* Hinweis am unteren Rand der Tiles — gedämpft und kursiv,
+       erklärt die graue Balken-Darstellung dünner Buckets (n<20). */
+    .bt-thin-hint{{margin-top:8px;font-size:.66rem;font-style:italic;
+      color:var(--txt-dim);line-height:1.4}}
     .bt-bar-stack{{display:flex;flex-direction:column;gap:6px;margin-top:2px}}
     .bt-bar-row{{display:flex;align-items:center;gap:8px;font-size:.78rem}}
     .bt-bar-row--best{{font-size:.88rem}}
@@ -5873,10 +5877,12 @@ def generate_html_v1(stocks: list[dict], report_date: str, _ctx: dict | None = N
         <svg class="bt-chart" id="bt-chart-hit" viewBox="0 0 320 160"
              preserveAspectRatio="xMidYMid meet"
              aria-label="Trefferquote je Score-Schwelle"></svg>
+        <div class="bt-thin-hint">Graue Balken: n&lt;20, statistisch nicht aussagekräftig.</div>
       </div>
       <div class="bt-tile">
         <div class="bt-tile-title">Median-Rendite nach Zeithorizont</div>
         <div class="bt-bar-stack" id="bt-bars-median"></div>
+        <div class="bt-thin-hint">Graue Balken: n&lt;20, statistisch nicht aussagekräftig.</div>
       </div>
       <div class="bt-tile">
         <div class="bt-tile-title">SI-Trend Vergleich (5T-Rendite)</div>
@@ -6847,6 +6853,12 @@ let _btData   = null;
 let _btMode   = 't0';   // 't0' (Signal-Tag) | 't1' (nächster Tag)
 let _btSrc    = 'live'; // 'live' (nur daily/live) | 'all' (inkl. bootstrap)
 const _BT_SRC_KEY = 'squeeze_bt_source';
+// Dünn-Bucket-Schwelle: unterhalb dieser Stichprobengröße werden Balken
+// und Werte gedämpft gerendert. Bucket bleibt sichtbar (kein Hide), nur
+// die visuelle Prominenz sinkt — verhindert Fehlinterpretation kleiner
+// Stichproben als belastbare Aussage.
+const MIN_BUCKET_N = 20;
+const _BT_DIM_COL  = 'var(--txt-dim)';
 function _btSetMode(mode){{
   if (mode !== 't0' && mode !== 't1') return;
   _btMode = mode;
@@ -6976,11 +6988,15 @@ function _btRenderHitRates(data){{
       const h  = plotH * r.rate;
       const y  = PAD_T + plotH - h;
       const pct = r.rate * 100;
-      const col = pct > 65 ? '#22c55e' : pct >= 50 ? '#f59e0b' : '#ef4444';
+      // Dünn-Bucket: fill + Wert in Grau, sonst rot/gelb/grün nach pct.
+      const thin = r.n < MIN_BUCKET_N;
+      const col = thin ? _BT_DIM_COL
+                       : (pct > 65 ? '#22c55e' : pct >= 50 ? '#f59e0b' : '#ef4444');
       body += '<rect x="' + x + '" y="' + y + '" width="' + barW + '" height="' + h
             + '" fill="' + col + '" rx="2"/>';
       body += '<text class="bt-chart-val" x="' + (x+barW/2) + '" y="' + (y-3) + '" '
-            + 'text-anchor="middle">' + pct.toFixed(0) + '%</text>';
+            + 'text-anchor="middle"' + (thin ? ' fill="' + _BT_DIM_COL + '"' : '')
+            + '>' + pct.toFixed(0) + '%</text>';
     }}
     const lx = PAD_L + i * (plotW/thresholds.length) + (plotW/thresholds.length)/2;
     body += '<text class="bt-chart-lbl" x="' + lx + '" y="' + (H-PAD_B+14)
@@ -7030,7 +7046,13 @@ function _btRenderMedian(data){{
       const med = m.med;
       const pct = med === null ? 0 : Math.max(-30, Math.min(30, med));
       const fillW = Math.abs(pct) / 30 * 50;
-      const col  = med === null ? 'var(--brd)' : (med >= 0 ? '#22c55e' : '#ef4444');
+      // Dünn-Bucket (nicht-null R-Werte < MIN_BUCKET_N) → grauer Balken
+      // statt rot/grün, Renditezahl ebenfalls in Grau. „Best"-Markierung
+      // bleibt unangetastet (rein semantisch — höchster Median im Bucket).
+      const thin = med !== null && m.n < MIN_BUCKET_N;
+      const col  = med === null ? 'var(--brd)'
+                                : thin ? _BT_DIM_COL
+                                       : (med >= 0 ? '#22c55e' : '#ef4444');
       const side = med === null || med >= 0 ? 'left:50%' : ('left:' + (50-fillW) + '%');
       const cls  = (i === s.bestIdx) ? ' bt-bar-row--best' : '';
       html += '<div class="bt-bar-row' + cls + '">'
