@@ -6357,6 +6357,18 @@ window.tjToggleDetails = function(btn) {{
   if (lbl) lbl.textContent = isOpen ? 'Details ausblenden' : 'Details anzeigen';
 }};
 
+// Score-Bucket-Helper — Single-Source-of-Truth für Trade-Journal-Anzeige
+// und Position-Open-Snapshot. Modul-Top-Level, damit sowohl
+// renderTradeJournal als auch wlSubmitPosition (in der wlIIFE) per
+// Closure zugreifen können. Bei null/undefined → "n/a".
+function _tjScoreBucket(score) {{
+  if (score === null || score === undefined || isNaN(score)) return 'n/a';
+  const s = +score;
+  if (s < 50) return '<50';
+  if (s < 70) return '50-69';
+  return '≥70';
+}}
+
 async function renderTradeJournal(){{
   const statsEl = document.getElementById('tj-stats');
   const listEl  = document.getElementById('tj-list');
@@ -6450,6 +6462,21 @@ async function renderTradeJournal(){{
     const hasNotes = !!(t.thesis || t.lesson);
     const tradeKey = _tjDetailsKey(t);
     const isOpen   = hasNotes && _tjExpanded.has(tradeKey);
+    // Entry-Snapshot — Setup-Score + Bucket + Conviction zum Entry-
+    // Zeitpunkt. Backwards-compat: bei alten Trades ohne diese Felder
+    // wird „—" angezeigt, kein Crash.
+    const _entrySc = (typeof t.entry_score === 'number') ? t.entry_score : null;
+    const _entryBk = t.entry_score_bucket || (_entrySc !== null ? _tjScoreBucket(_entrySc) : null);
+    const _entryCv = (typeof t.entry_conviction_score === 'number')
+                     ? t.entry_conviction_score : null;
+    const _entryCl = t.entry_conviction_level || null;
+    const _scoreTxt = _entrySc !== null
+      ? `Score ${{_entrySc.toFixed(0)}}` + (_entryBk ? ` (${{_entryBk}})` : '')
+      : 'Score —';
+    const _convTxt = _entryCv !== null
+      ? `Conv ${{_entryCv}}` + (_entryCl ? ` (${{_entryCl}})` : '')
+      : 'Conv —';
+    const entrySnapHtml = `<div class="tj-trade-entry-snap">${{_scoreTxt}} · ${{_convTxt}}</div>`;
     const thesisHtml = t.thesis ? `<div class="tj-trade-note tj-trade-thesis"><span class="tj-note-lbl">These</span> ${{_esc(t.thesis)}}</div>` : '';
     const lessonHtml = t.lesson ? `<div class="tj-trade-note tj-trade-lesson"><span class="tj-note-lbl">Lesson</span> ${{_esc(t.lesson)}}</div>` : '';
     // ``data-tj-key`` als Bridge in den onclick-Handler (DOM-Manipulation,
@@ -6476,6 +6503,7 @@ async function renderTradeJournal(){{
         Entry ${{entryStr}} → Exit ${{exitStr}} · ${{(+t.shares || 0)}} Stk ·
         P&amp;L ${{pnlStr}} · ${{max}}
       </div>
+      ${{entrySnapHtml}}
       ${{detailsBtn}}${{detailsBody}}
     </div>`;
   }}).join('');
@@ -8680,6 +8708,10 @@ function _fmtGerman(d) {{
       // Phase 2 Stufe 2a: Position-Status-Daten für buildPositionStatus().
       // Schema: {{ticker: {{entry_date, entry_price, shares, exit_state: {{...}}}}}}.
       window._POSITIONS_DATA = appData.positions || {{}};
+      // Komplettes app_data-Payload für nachgelagerte Lese-Pfade
+      // (wlSubmitPosition snapshottet entry_score + entry_conviction_score
+      // beim Position-Open). Identisch zum Fetch-Result, kein Filter.
+      window._APP_DATA = appData;
       // Watchlist-Tiles neu rendern — _WL_CARDS liefert jetzt die
       // smoothed Scores, der erste Render-Pass nach DOMContentLoaded
       // hatte nur die raw-History als Fallback. Sicherstellt
@@ -9712,6 +9744,9 @@ function _fmtGerman(d) {{
     _refreshPositionPanel(ticker);
   }};
 
+  // Score-Bucket-Helper _tjScoreBucket lebt auf Modul-Top-Level (vor
+  // renderTradeJournal) — diese IIFE referenziert ihn per Closure.
+
   window.wlSubmitPosition = async function(ticker) {{
     const d = document.getElementById('pos-d-' + ticker);
     const p = document.getElementById('pos-p-' + ticker);
@@ -9739,6 +9774,26 @@ function _fmtGerman(d) {{
     if (_entryFxNow != null) {{
       _newPos.entry_fx = _entryFxNow;
       _newPos.fx_estimated = false;
+    }}
+    // Trade-Journal-Snapshot: aktueller Setup-Score + Conviction zum
+    // Entry-Zeitpunkt. Werte werden bei Position-Close (wlSubmitClose)
+    // 1:1 ins closed_trades durchgereicht. Fail-soft: falls _APP_DATA
+    // noch nicht geladen oder Ticker fehlt, bleiben die Felder weg
+    // (Render im Trade-Journal zeigt dann „—").
+    const _appD     = (typeof window !== 'undefined') ? window._APP_DATA : null;
+    const _entrySc  = _appD && _appD.setup_scores
+                      ? _appD.setup_scores[ticker] : null;
+    const _entryCv  = _appD && _appD.conviction_scores
+                      ? _appD.conviction_scores[ticker] : null;
+    if (_entrySc !== undefined && _entrySc !== null && !isNaN(+_entrySc)) {{
+      _newPos.entry_score        = +_entrySc;
+      _newPos.entry_score_bucket = _tjScoreBucket(_entrySc);
+    }}
+    if (_entryCv && typeof _entryCv === 'object') {{
+      if (typeof _entryCv.score === 'number')
+        _newPos.entry_conviction_score = _entryCv.score;
+      if (typeof _entryCv.level === 'string')
+        _newPos.entry_conviction_level = _entryCv.level;
     }}
     data.positions[ticker] = _newPos;
     const ok = await gistSave(data);
@@ -9861,6 +9916,26 @@ function _fmtGerman(d) {{
     const _realizedPnlEur = (_entryFxResolved != null && _exitFxNow != null
                               && shares > 0)
       ? +(_exitFxEur - (ep * _entryFxResolved * shares)).toFixed(2) : null;
+    // Trade-Journal: entry_score / entry_conviction aus pos durchreichen
+    // (gefangen bei wlSubmitPosition). Bei alten Positionen ohne diese
+    // Felder als Fallback aktuelle Werte aus _APP_DATA — besser als
+    // null, aber dem User signalisiert das im Render via fehlendem
+    // entry_score-bucket-Feld. Reines Best-Effort, kein Crash.
+    const _appDClose = (typeof window !== 'undefined') ? window._APP_DATA : null;
+    const _curSc = _appDClose && _appDClose.setup_scores
+                   ? _appDClose.setup_scores[ticker] : null;
+    const _curCv = _appDClose && _appDClose.conviction_scores
+                   ? _appDClose.conviction_scores[ticker] : null;
+    const _entryScore  = (typeof pos.entry_score === 'number')
+                         ? pos.entry_score
+                         : (typeof _curSc === 'number' ? _curSc : null);
+    const _entryBucket = pos.entry_score_bucket
+                         || (_entryScore !== null ? _tjScoreBucket(_entryScore) : null);
+    const _entryConvSc = (typeof pos.entry_conviction_score === 'number')
+                         ? pos.entry_conviction_score
+                         : (_curCv && typeof _curCv.score === 'number' ? _curCv.score : null);
+    const _entryConvLv = pos.entry_conviction_level
+                         || (_curCv && typeof _curCv.level === 'string' ? _curCv.level : null);
     data.closed_trades.push({{
       ticker:           ticker,
       entry_date:       pos.entry_date,
@@ -9884,6 +9959,13 @@ function _fmtGerman(d) {{
       exit_fx:          _exitFxNow,
       exit_fx_eur:      _exitFxEur,
       realized_pnl_eur: _realizedPnlEur,
+      // Trade-Journal Setup-/Conviction-Snapshot: Werte aus pos
+      // (Position-Open) oder Live-Fallback (Backwards-Compat für alte
+      // Positionen ohne Snapshot). Render-Helper gracen bei null.
+      entry_score:             _entryScore,
+      entry_score_bucket:      _entryBucket,
+      entry_conviction_score:  _entryConvSc,
+      entry_conviction_level:  _entryConvLv,
     }});
     delete data.positions[ticker];
     const ok = await gistSave(data);
