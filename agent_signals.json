@@ -1,17 +1,17 @@
 {
-  "updated": "2026-05-10T20:59:54.206263+02:00",
+  "updated": "2026-05-10T22:02:17.182379+02:00",
   "run_info": {
     "tickers_checked": 10,
     "signals_active": 8,
-    "alerts_sent": 0,
-    "elapsed_s": 13.6,
+    "alerts_sent": 1,
+    "elapsed_s": 14.8,
     "market_phase": "Geschlossen"
   },
   "signals": {
     "NVAX": {
       "score": 65,
       "confidence": 70,
-      "drivers": "Volumen 1.6× + Spanne 15.3% + News: breakout, earnings beat + UOA Call/Put 15.7×",
+      "drivers": "Volumen 1.6× + Spanne 15.3% + News: earnings beat, breakout + UOA Call/Put 15.7×",
       "price": 10.11,
       "chg_pct": -0.0,
       "rvol": 1.62,
@@ -94,13 +94,36 @@
       "uoa_atm_ratio": 0.25048923679060664,
       "uoa_cp_ratio": 2.826923076923077
     },
+    "TNYA": {
+      "score": 66,
+      "confidence": 70,
+      "drivers": "Earnings in 3 Tagen (13.05.2026) + Volumen 2.3× + Spanne 17.4% + Earnings in 3d + UOA Call/Put 38.1×",
+      "price": 1.0,
+      "chg_pct": 0.0,
+      "rvol": 2.29,
+      "earnings": "in 3 Tagen (13.05.2026)",
+      "fda_date": null,
+      "upcoming_event": "Earnings in 3 Tagen (13.05.2026)",
+      "insider_buy": false,
+      "stocktwits": null,
+      "combo_mult": 1.1,
+      "active_triggers": 2,
+      "uoa_score": 10,
+      "uoa_drivers": [
+        "UOA Call/Put 38.1×"
+      ],
+      "uoa_atm_ratio": 0.5576208178438662,
+      "uoa_cp_ratio": 38.125,
+      "push_silenced": true,
+      "silenced_reason": "+27% 2T"
+    },
     "LUCK": {
-      "score": 35,
-      "confidence": 33,
-      "drivers": "Spanne 14.7% + FINRA Short-Vol 100%",
+      "score": 25,
+      "confidence": 17,
+      "drivers": "FINRA Short-Vol 100%",
       "price": 8.24,
-      "chg_pct": -0.0,
-      "rvol": 1.31,
+      "chg_pct": 0.0,
+      "rvol": 0.0,
       "earnings": null,
       "fda_date": null,
       "upcoming_event": null,
@@ -153,31 +176,10 @@
       "uoa_atm_ratio": null,
       "uoa_cp_ratio": null
     },
-    "TNYA": {
-      "score": 75,
-      "confidence": 70,
-      "drivers": "Earnings in 3 Tagen (13.05.2026) + Volumen 2.3× + Spanne 17.4% + News-KI 8/30: Biotech company with earnings miss and losses shows fundamental weakness; no indicators of high short interest, squeeze  + Earnings in 3d + UOA Call/Put 38.1×",
-      "price": 1.0,
-      "chg_pct": 0.0,
-      "rvol": 2.29,
-      "earnings": "in 3 Tagen (13.05.2026)",
-      "fda_date": null,
-      "upcoming_event": "Earnings in 3 Tagen (13.05.2026)",
-      "insider_buy": false,
-      "stocktwits": null,
-      "combo_mult": 1.1,
-      "active_triggers": 2,
-      "uoa_score": 10,
-      "uoa_drivers": [
-        "UOA Call/Put 38.1×"
-      ],
-      "uoa_atm_ratio": 0.5576208178438662,
-      "uoa_cp_ratio": 38.125
-    },
     "RXT": {
-      "score": 55,
+      "score": 52,
       "confidence": 70,
-      "drivers": "Volumen 2.7× + Spanne 58.4% + News: partnership + UOA Call/Put 37.7×",
+      "drivers": "Volumen 2.7× + Spanne 58.4% + News-KI 12/30: Positive AMD partnership news drives sentiment but lacks short-squeeze catalysts like high short interest, forced coveri + UOA Call/Put 37.7×",
       "price": 5.49,
       "chg_pct": -0.0,
       "rvol": 2.66,
