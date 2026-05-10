@@ -491,6 +491,17 @@ akzeptiert. Im Daily-Run wird der State nur gespeichert, wenn `n_sent > 0`
 oder `push_history` in diesem Run gewachsen ist (failed-Push-Audit muss
 erhalten bleiben).
 
+### app_data.json-Spiegel (Stufe 3c-2)
+
+`push_history` wird im Daily-Run aus `agent_state.json` nach
+`app_data.json` gespiegelt (read-only-Spiegel, identisches Schema,
+identische Reihenfolge — keine Filterung, kein Renaming). Quelle bleibt
+`agent_state.json`; Stufe 3c-2 liefert nur den Browser-Lese-Pfad ohne
+zusätzlichen HTTP-Request. Last-Write-Wins zwischen Daily-Run und
+parallelen ki_agent-Ticks akzeptiert. Fail-soft bei fehlender oder
+unparsbarer State-Datei → leere Liste, kein Crash. Frontend-UI folgt
+in Stufe 3c-3.
+
 ---
 
 ## Trade-Journal (Phase 2.5)
