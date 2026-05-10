@@ -5838,9 +5838,17 @@ def generate_html_v1(stocks: list[dict], report_date: str, _ctx: dict | None = N
             <span class="score-mod-name">Agent-Boost</span>
             <span class="score-mod-val">×1.05–1.15 (je KI-Score-Stufe)</span>
           </div>
+          <div class="score-mod-card score-mod-bonus">
+            <span class="score-mod-name">FINRA Trend-Up Bonus</span>
+            <span class="score-mod-val">+{FINRA_BONUS_MAX} / +{FINRA_ACCELERATION_BONUS} Pkt (bei Beschleunigung)</span>
+          </div>
           <div class="score-mod-card score-mod-malus">
             <span class="score-mod-name">Historischer Squeeze (90 / 30 Tage)</span>
             <span class="score-mod-val">−3 / −5 Pkt</span>
+          </div>
+          <div class="score-mod-card score-mod-malus">
+            <span class="score-mod-name">Late-Runner-Penalty</span>
+            <span class="score-mod-val">×{LATE_RUNNER_PENALTY} (RSI &gt; {LATE_RUNNER_RSI_THRESHOLD} oder 2T-Move &gt; {int(LATE_RUNNER_MOVE_2D_THRESHOLD*100)}&nbsp;%)</span>
           </div>
         </div>
         <p class="score-block-foot score-block-foot-strong">
