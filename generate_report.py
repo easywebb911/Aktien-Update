@@ -7352,18 +7352,21 @@ function _btRenderMedian(data){{
          + ' · Max ' + fmt(m.max) + '</span>'
          + '</div>';
   }}
-  // Skew-Sub-Zeile (Mean − Median) — sehr dezent unter Range-Zeile.
-  // Bei spread null oder n<MIN_BUCKET_N kein Hinweis (statt
-  // missverständlichem Text bei dünner Datenbasis).
+  // Skew-Sub-Zeile (Mean − Median). Bei spread===null kein Hinweis
+  // (echter Daten-Mangel). Bei n<MIN_BUCKET_N wird der Hinweis
+  // trotzdem gerendert, aber in Grau — konsistent zum Median/Mean-
+  // Dimming aus PR #81. Macht Knaller-Spread auch bei dünner
+  // Stichprobe sichtbar, ohne ihn als belastbar zu suggerieren.
   function _renderSkew(m){{
-    if (m.spread === null || m.n < MIN_BUCKET_N) return '';
+    if (m.spread === null) return '';
+    const thin = m.n < MIN_BUCKET_N;
     let label, col;
     if (m.spread >= BT_SKEW_THRESHOLD) {{
       label = '↗ rechtsschief (Knaller drin)';
-      col   = '#22c55e';
+      col   = thin ? _BT_DIM_COL : '#22c55e';
     }} else if (m.spread <= -BT_SKEW_THRESHOLD) {{
       label = '↘ linksschief (Verlierer dominieren)';
-      col   = '#ef4444';
+      col   = thin ? _BT_DIM_COL : '#ef4444';
     }} else {{
       label = '≈ symmetrisch';
       col   = _BT_DIM_COL;
