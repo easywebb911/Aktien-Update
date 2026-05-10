@@ -5890,6 +5890,11 @@ def generate_html_v1(stocks: list[dict], report_date: str, _ctx: dict | None = N
     .bt-bar-stack{{display:flex;flex-direction:column;gap:6px;margin-top:2px}}
     .bt-bar-row{{display:flex;align-items:center;gap:8px;font-size:.78rem}}
     .bt-bar-row--best{{font-size:.88rem}}
+    /* Mean-Sub-Zeile direkt unter Median-Zeile — dezenter Font, leicht
+       reduzierte Höhe damit Median visuell der Primär-Indikator bleibt. */
+    .bt-bar-row--mean{{font-size:.7rem;opacity:.85;margin-top:-2px}}
+    .bt-bar-row--mean .bt-bar-row-bar{{height:6px}}
+    .bt-bar-row--mean .bt-bar-row-lbl{{font-weight:600}}
     .bt-bar-row--best .bt-bar-row-lbl{{color:var(--txt);font-weight:900}}
     .bt-bar-row--best .bt-bar-row-val{{font-weight:900;font-size:.95rem}}
     .bt-bar-row--best .bt-bar-row-bar{{height:14px}}
@@ -5970,9 +5975,10 @@ def generate_html_v1(stocks: list[dict], report_date: str, _ctx: dict | None = N
         <div class="bt-thin-hint">Graue Balken: n&lt;20, statistisch nicht aussagekräftig.</div>
       </div>
       <div class="bt-tile">
-        <div class="bt-tile-title">Median-Rendite nach Zeithorizont</div>
+        <div class="bt-tile-title">Median &amp; Ø nach Zeithorizont</div>
         <div class="bt-bar-stack" id="bt-bars-median"></div>
         <div class="bt-thin-hint">Graue Balken: n&lt;20, statistisch nicht aussagekräftig.</div>
+        <div class="bt-thin-hint">Median (M) ist robust gegen Ausreißer, Ø (Mean) zeigt den Einfluss seltener Knaller. Bei großem M↔Ø-Abstand: Verteilung rechtsschief.</div>
       </div>
       <div class="bt-tile">
         <div class="bt-tile-title">SI-Trend Vergleich (5T-Rendite)</div>
@@ -7015,6 +7021,15 @@ function _btMedian(arr){{
   const m = Math.floor(v.length / 2);
   return v.length % 2 ? v[m] : (v[m-1] + v[m]) / 2;
 }}
+function _btMean(arr){{
+  // Ø-Pendant zu _btMedian — gleicher Filter, gleicher null-Return bei
+  // leerem Array. Benutzt Math.fround nicht — Float-Precision reicht
+  // für Renditeprozente.
+  const v = arr.filter(x => x !== null && x !== undefined && !isNaN(x))
+               .map(Number);
+  if (!v.length) return null;
+  return v.reduce((s, x) => s + x, 0) / v.length;
+}}
 function _btRender(){{
   const data = _btData || [];
   const meta = document.getElementById('bt-meta');
@@ -7110,8 +7125,9 @@ function _btBucketStats(data){{
     const meds = horizons.map(([lbl, key]) => {{
       const vals = slice.map(e => e[key])
                         .filter(v => v !== null && v !== undefined);
-      const med = _btMedian(vals);
-      return {{lbl, key, med, n: vals.length}};
+      const med  = _btMedian(vals);
+      const mean = _btMean(vals);
+      return {{lbl, key, med, mean, n: vals.length}};
     }});
     // Best = höchster Median mit mind. 1 Datenpunkt; null/keine Daten zählen nicht
     let bestIdx = -1;
@@ -7128,32 +7144,41 @@ function _btBucketStats(data){{
 function _btRenderMedian(data){{
   const stats = _btBucketStats(data);
   const container = document.getElementById('bt-bars-median');
+  // Eine Bucket × Horizon × Stat-Zeile rendern. ``stat`` ist 'median'
+  // (prominent, kann best-Highlight haben) oder 'mean' (dezent, kein
+  // best-Highlight). Grau-Dimming gilt für beide bei n<MIN_BUCKET_N.
+  function _renderRow(m, i, stat, isBest){{
+    const val = stat === 'mean' ? m.mean : m.med;
+    const pct = val === null ? 0 : Math.max(-30, Math.min(30, val));
+    const fillW = Math.abs(pct) / 30 * 50;
+    const thin  = val !== null && m.n < MIN_BUCKET_N;
+    const col   = val === null ? 'var(--brd)'
+                               : thin ? _BT_DIM_COL
+                                      : (val >= 0 ? '#22c55e' : '#ef4444');
+    const side  = val === null || val >= 0 ? 'left:50%' : ('left:' + (50-fillW) + '%');
+    // Best-Highlight nur an der Median-Zeile — Median bleibt Primär-
+    // Indikator. Mean-Zeile bekommt eigene CSS-Klasse für dezenteres Layout.
+    const bestCls = (stat === 'median' && isBest) ? ' bt-bar-row--best' : '';
+    const meanCls = stat === 'mean' ? ' bt-bar-row--mean' : '';
+    const lblPrefix = stat === 'mean' ? 'Ø ' : 'M ';
+    return '<div class="bt-bar-row' + bestCls + meanCls + '">'
+         + '<span class="bt-bar-row-lbl">' + lblPrefix + m.lbl + '</span>'
+         + '<span class="bt-bar-row-bar">'
+         + '<span class="bt-bar-row-fill" style="' + side
+         + ';width:' + fillW + '%;background:' + col + '"></span>'
+         + '</span>'
+         + '<span class="bt-bar-row-val" style="color:' + col + '">'
+         + (val === null ? '—' : (val >= 0 ? '+' : '') + val.toFixed(1) + '%')
+         + '</span></div>';
+  }}
   let html = '';
   stats.forEach(s => {{
     html += '<div style="font-size:.72rem;color:var(--txt-dim);font-weight:700;margin-top:4px">'
           + 'Score ' + s.key + ' <span style="font-weight:400">(n=' + s.n + ')</span></div>';
     s.meds.forEach((m, i) => {{
-      const med = m.med;
-      const pct = med === null ? 0 : Math.max(-30, Math.min(30, med));
-      const fillW = Math.abs(pct) / 30 * 50;
-      // Dünn-Bucket (nicht-null R-Werte < MIN_BUCKET_N) → grauer Balken
-      // statt rot/grün, Renditezahl ebenfalls in Grau. „Best"-Markierung
-      // bleibt unangetastet (rein semantisch — höchster Median im Bucket).
-      const thin = med !== null && m.n < MIN_BUCKET_N;
-      const col  = med === null ? 'var(--brd)'
-                                : thin ? _BT_DIM_COL
-                                       : (med >= 0 ? '#22c55e' : '#ef4444');
-      const side = med === null || med >= 0 ? 'left:50%' : ('left:' + (50-fillW) + '%');
-      const cls  = (i === s.bestIdx) ? ' bt-bar-row--best' : '';
-      html += '<div class="bt-bar-row' + cls + '">'
-            + '<span class="bt-bar-row-lbl">' + m.lbl + '</span>'
-            + '<span class="bt-bar-row-bar">'
-            + '<span class="bt-bar-row-fill" style="' + side
-            + ';width:' + fillW + '%;background:' + col + '"></span>'
-            + '</span>'
-            + '<span class="bt-bar-row-val" style="color:' + col + '">'
-            + (med === null ? '—' : (med >= 0 ? '+' : '') + med.toFixed(1) + '%')
-            + '</span></div>';
+      const isBest = (i === s.bestIdx);
+      html += _renderRow(m, i, 'median', isBest);
+      html += _renderRow(m, i, 'mean',   false);
     }});
   }});
   container.innerHTML = html;
