@@ -5859,6 +5859,48 @@ def generate_html_v1(stocks: list[dict], report_date: str, _ctx: dict | None = N
         <p class="score-block-foot"><strong>Top-10-Sortierung</strong> (Hamburger-Menü): vier Optionen — <strong>Setup-Score</strong> (Default, Server-seitige Reihenfolge), <strong>Monster-Score</strong> (absteigend nach Setup×KI-Boost), <strong>KI-Score</strong> (absteigend nach reinem KI-Agent-Score, auf Karten sichtbar als pulsierender Dot) oder <strong>Conviction-Score</strong> (absteigend nach Aktions-Empfehlung — Stocks ohne Conviction-Daten ans Ende). KI-Sortierung wird nach Eingang des stündlichen agent_signals.json-Fetches angewandt.</p>
       </div>
       <div class="info-box info-box--full">
+        <h4>KI-Score — Live-Bewertung durch den KI-Agent</h4>
+        <p class="score-intro-story">
+          <strong>Der KI-Score bewertet, was sich am Markt gerade <em>jetzt</em> bewegt.</strong>
+          Während der Setup-Score die strukturelle Squeeze-Mechanik misst, schaut der KI-Score auf Live-Trigger: Kurs, Volumen, News, Reddit, Insider, Termine. Er ergänzt den Setup-Score — er ersetzt ihn nicht.
+        </p>
+        <div class="score-blocks">
+          <div class="score-block-card">
+            <div class="score-block-head">
+              <span class="score-block-name">Was fließt ein</span>
+              <span class="score-block-badge">0–100</span>
+            </div>
+            <p class="score-block-explainer">
+              {MAX_SIGNAL_TYPES} Signaltypen werden parallel überwacht; zusätzliche Multiplikatoren bei Mehrfach-Triggern.
+            </p>
+            <ul class="score-block-list">
+              <li><span class="sb-lbl">Kursbewegung</span><span class="sb-pts">+{SCORE_PRICE_UP_3} / +{SCORE_PRICE_UP_7} Pkt</span></li>
+              <li><span class="sb-lbl">Volumen (RVOL)</span><span class="sb-pts">+{SCORE_RVOL_2X} / +{SCORE_RVOL_4X} Pkt (+{RVOL_HIGH_BONUS}/+{RVOL_EXTREME_BONUS} bei Extrem)</span></li>
+              <li><span class="sb-lbl">Intraday-Spanne</span><span class="sb-pts">+{SCORE_INTRADAY_RANGE} Pkt</span></li>
+              <li><span class="sb-lbl">Reddit / News-Sentiment</span><span class="sb-pts">max +{KI_SENTIMENT_MAX_SCORE} Pkt</span></li>
+              <li><span class="sb-lbl">SEC 8-K · Form 4 · FDA</span><span class="sb-pts">+{SCORE_SEC_8K}…+{SCORE_FORM4_PURCHASE} Pkt</span></li>
+              <li><span class="sb-lbl">Insider / Earnings / FINRA-SSR</span><span class="sb-pts">+{SCORE_INSIDER_BUY}…+{SCORE_INSIDER_CSUITE} Pkt</span></li>
+            </ul>
+            <p class="score-block-foot">Plus StockTwits, UOA und Perfect-Storm-Multiplikator (×{COMBO_MULT_2:.2f}…×{COMBO_MULT_4:.2f}). Summe gecappt auf 100.</p>
+          </div>
+          <div class="score-block-card">
+            <div class="score-block-head">
+              <span class="score-block-name">Update &amp; Verwendung</span>
+              <span class="score-block-badge">stündlich</span>
+            </div>
+            <ul class="score-block-list">
+              <li><span class="sb-lbl">Aktualisierung</span><span class="sb-pts">jede volle Stunde (ki_agent.yml)</span></li>
+              <li><span class="sb-lbl">Frische-Fenster</span><span class="sb-pts">≤ {AGENT_BOOST_MAX_AGE_H} h für Boost-Wirkung</span></li>
+              <li><span class="sb-lbl">Anzeige</span><span class="sb-pts">pulsierender Dot auf jeder Stock-Karte</span></li>
+              <li><span class="sb-lbl">Konfidenz</span><span class="sb-pts">Anteil aktiver Signaltypen ({MAX_SIGNAL_TYPES} max)</span></li>
+              <li><span class="sb-lbl">Beziehung zu Setup</span><span class="sb-pts">komplementär — eigene Achse</span></li>
+              <li><span class="sb-lbl">Beziehung zu Monster</span><span class="sb-pts">Faktor in Monster = Setup × KI-Boost</span></li>
+            </ul>
+            <p class="score-block-foot">Treiber-Aufschlüsselung in „Aktuelle Meldungen" → KI-Agent-Signale auf jeder Karte.</p>
+          </div>
+        </div>
+      </div>
+      <div class="info-box info-box--full">
         <h4>Conviction-Score — Aktions-Empfehlung</h4>
         <p class="score-intro-story">
           <strong>Conviction beantwortet die Aktions-Frage „jetzt einsteigen?"</strong>
