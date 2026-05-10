@@ -231,10 +231,12 @@ berühren), nicht *verändern*.
 ## Code-Hygiene-Backlog
 
 Code-Hygiene-Punkte aus der Diskussion vom 09.05.2026. Punkt 1
-(`_record_push`-Single-Source-of-Truth) wurde via PR #76 erledigt. Die
-folgenden Punkte sind als Wiedervorlage offen — anfassen wenn konkreter
-Anlass besteht (geplante Erweiterung wäre ohne Refactor unverhältnismäßig
-komplex) oder als bewusste Aufräum-Session.
+(`_record_push`-SSOT, PR #76), Punkt 5 Schritt 1 (Score-Formel-Box
+auto-generiert, PR #84) und Punkt 6 Schritt A (DRIVER_CLASSIFICATIONS-
+Tabelle, PR #83) sind erledigt. Verbleibende Punkte sind als
+Wiedervorlage offen — anfassen wenn konkreter Anlass besteht (geplante
+Erweiterung wäre ohne Refactor unverhältnismäßig komplex) oder als
+bewusste Aufräum-Session.
 
 - **Punkt 2 — v1/v2 Render-Pfad in `generate_report.py`:** vollständige
   Migration zu Jinja (Phase X). Aktuell delegiert `generate_html_v2()`
@@ -254,18 +256,28 @@ komplex) oder als bewusste Aufräum-Session.
   (`scripts/lint_chat_template.py`) als Sicherheitsnetz braucht. Mit echter
   Template-Engine wären beide Sicherheitsnetze überflüssig.
 
-- **Punkt 5 — Score-Methodik-Sync-Regel strukturell absichern:** aktuell
-  disziplin-abhängig (Sync-Sektion in CLAUDE.md, manueller Pflicht-Sync
-  pro Methodik-relevanten Commit). Idee: Methodik-HTML-Sektion aus den
-  Konstanten in `config.py` auto-generieren — dann ist Drift unmöglich,
-  Sync-Regel wird obsolet.
+- **Punkt 5 — Score-Methodik-Sync-Regel strukturell absichern**
+  - **Schritt 1: erledigt via PR #84 (10.05.2026)** — Score-Formel-Box
+    auto-generiert aus `config.py`-Konstanten `SUB_*_DISPLAY_PTS_MAX`.
+    Strukturell drift-geschützt für Sub-Score-Caps; manueller HTML-Sync
+    für diese Werte entfällt.
+  - **Schritt 2 (offen):** `score()` und `_compute_sub_scores()` aus
+    denselben Konstanten ableiten, statt eigene Caps zu rechnen —
+    eliminiert die letzte Drift-Quelle in dem Bereich (heute kann
+    z. B. ein Score-Faktor von 32 auf 35 wandern, ohne dass
+    `SUB_SHORT_FLOAT_DISPLAY_PTS_MAX` mitgepflegt wird).
 
 - **Punkt 6 — `_drivers_breakdown`-Klassifikations-Regeln in gemeinsamen
-  Helper mit `score()` ziehen:** aktuell muss bei jeder neuen Score-
-  Komponente `_drivers_breakdown` manuell mitwachsen (Drift-Risiko, in
-  CLAUDE.md "Drivers-Block"-Sektion explizit als Pflege-Aufgabe markiert).
-  Single-Source-of-Truth aus einer Komponenten-Spezifikation, die Score
-  und Drivers gemeinsam ableiten.
+  Helper mit `score()` ziehen**
+  - **Schritt A: erledigt via PR #83 (10.05.2026)** — `DRIVER_CLASSIFICATIONS`-
+    Tabelle als Single-Source-of-Truth für `_drivers_breakdown`,
+    Hybrid-Schema mit Callables für dynamische Labels/Gewichte,
+    bit-identisch zur vorherigen Inline-Logik (3 Mock-Stocks verifiziert).
+  - **Schritt B (offen):** `score()` und `_compute_sub_scores()` aus
+    `DRIVER_CLASSIFICATIONS` ableiten lassen, sofern sinnvoll umsetzbar —
+    macht Klassifikator + Score-Berechnung zur gemeinsamen Spec, dann
+    ist die Score-Faktor ↔ Display-Cap-Drift aus Schritt 2 von Punkt 5
+    auf demselben Weg eliminiert.
 
 ## Architektur-Anker (eingeführt/geändert in dieser Session)
 
