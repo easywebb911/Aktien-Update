@@ -5295,11 +5295,14 @@ def generate_html_v1(stocks: list[dict], report_date: str, _ctx: dict | None = N
     _ABBR_UOA           = '<abbr title="Ungewöhnliche Optionsaktivitäten: wenn große Marktteilnehmer plötzlich extrem viele Wetten auf rasante Kursbewegungen platzieren.">UOA</abbr>'
     _ABBR_RVOL          = '<abbr title="Relatives Volumen: wieviel mehr als üblich heute gehandelt wird (z.B. 3× = dreifaches Normalvolumen).">RVOL</abbr>'
 
+    # Display-Punkte pro Komponente kommen seit dem Methodik-Auto-Generation-
+    # Refactor (Code-Hygiene Punkt 5, Schritt 1) aus config.py — kein manueller
+    # HTML-Sync mehr für Sub-Score-Caps.
     methodology_struct_rows = _methodology_rows_html([
-        (_ABBR_SHORT_FLOAT, 32, "32 Pkt"),
-        (_ABBR_DTC,         23, "23 Pkt"),
-        ("Float-Größe",      8, "8 Pkt"),
-        (_ABBR_SI_TREND,     5, "5 Pkt"),
+        (_ABBR_SHORT_FLOAT, SUB_SHORT_FLOAT_DISPLAY_PTS_MAX, f"{SUB_SHORT_FLOAT_DISPLAY_PTS_MAX} Pkt"),
+        (_ABBR_DTC,         SUB_DTC_DISPLAY_PTS_MAX,         f"{SUB_DTC_DISPLAY_PTS_MAX} Pkt"),
+        ("Float-Größe",     SUB_FLOAT_SIZE_DISPLAY_PTS_MAX,  f"{SUB_FLOAT_SIZE_DISPLAY_PTS_MAX} Pkt"),
+        (_ABBR_SI_TREND,    SUB_SI_TREND_DISPLAY_PTS_MAX,    f"{SUB_SI_TREND_DISPLAY_PTS_MAX} Pkt"),
     ])
     methodology_catalyst_rows = _methodology_rows_html([
         ("Earnings (≤7 / ≤14 Tage)",
@@ -5325,11 +5328,14 @@ def generate_html_v1(stocks: list[dict], report_date: str, _ctx: dict | None = N
          f"bis {UOA_ATM_STRONG + UOA_CP_BIAS} Pkt"),
     ])
     methodology_timing_rows = _methodology_rows_html([
-        (f"Rel. Volumen ({_ABBR_RVOL})", 23, "23 Pkt"),
-        ("Momentum",       14, "14 Pkt"),
-        ("RS vs. SPY",     3,  "3 Pkt"),
-        ("Float Turnover", 10, "10 Pkt"),
-        ("Gap &amp; Hold", 5,  "−3 bis +5"),
+        (f"Rel. Volumen ({_ABBR_RVOL})", SUB_RVOL_DISPLAY_PTS_MAX,     f"{SUB_RVOL_DISPLAY_PTS_MAX} Pkt"),
+        ("Momentum",                     SUB_MOMENTUM_DISPLAY_PTS_MAX, f"{SUB_MOMENTUM_DISPLAY_PTS_MAX} Pkt"),
+        ("RS vs. SPY",                   RS_SPY_PTS_MAX,               f"{RS_SPY_PTS_MAX} Pkt"),
+        ("Float Turnover",               FLOAT_TURNOVER_PTS_HIGH,      f"{FLOAT_TURNOVER_PTS_HIGH} Pkt"),
+        # Unicode-Minus (U+2212) bewusst, damit Gap-Fail-Wert konsistent
+        # mit dem typografisch sauberen Setup im restlichen Methodik-HTML
+        # gerendert wird (ASCII-Hyphen wäre eine sichtbare Drift).
+        ("Gap &amp; Hold",               GAP_PTS_STRONG_HOLD,          f"−{abs(GAP_PTS_FAIL)} bis +{GAP_PTS_STRONG_HOLD}"),
     ])
 
     return f"""{head_html}
