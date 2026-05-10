@@ -12841,6 +12841,22 @@ def main():
     # aktualisiert, sobald 3/5/10 Handelstage vergangen sind.
     _append_backtest_entries(top10, report_date, pool_size=len(enriched))
 
+    # Conviction-Score (Schritt A) — vor dem HTML-Render aufrufen, damit
+    # _score_block_inner_html das s["conviction"]-Feld sieht. Anomalien
+    # via _build_chat_synthesis_ctx (gleiche Quelle wie Chat-Kontext);
+    # VIX aus existing app_data.json (vom letzten ki_agent-Tick gesetzt).
+    # Doppelter _read_existing_app_data()-Aufruf gegenüber Step 4b
+    # akzeptiert (pragmatisch, kein Optimierungs-Refactor jetzt).
+    _prev_app_data_for_conv = _read_existing_app_data()
+    try:
+        _anomalies_today = _build_chat_synthesis_ctx(
+            top10, _load_score_history()).get("anomalies_today")
+    except Exception as _exc_anom:
+        log.warning("Conviction-Score: anomalies_today nicht verfügbar (%s)", _exc_anom)
+        _anomalies_today = None
+    _vix_for_conv = _prev_app_data_for_conv.get("vix_current")
+    apply_conviction_scores(top10, _anomalies_today, _vix_for_conv)
+
     # --- Step 4: HTML ---
     _t4 = time.time()
     log.info("Step 4 – Generating HTML report …")
@@ -12966,18 +12982,10 @@ def main():
     print(f"Step 4b Phase2-Exit ({len(_positions_payload)} Pos.) in "
           f"{time.time()-_t_p2:.1f}s", flush=True)
 
-    # Conviction-Score Schritt A — Berechnung pro Top-10-Stock. Anomalien
-    # via _build_chat_synthesis_ctx (gleiche Quelle wie Chat-Kontext); VIX
-    # aus existing app_data.json (vom letzten ki_agent-Tick gesetzt).
-    # Schritt A ist Daten-only, keine UI-Anbindung.
-    try:
-        _anomalies_today = _build_chat_synthesis_ctx(
-            top10, _load_score_history()).get("anomalies_today")
-    except Exception as _exc_anom:
-        log.warning("Conviction-Score: anomalies_today nicht verfügbar (%s)", _exc_anom)
-        _anomalies_today = None
-    _vix_for_conv = _prev_app_data.get("vix_current")
-    apply_conviction_scores(top10, _anomalies_today, _vix_for_conv)
+    # Conviction-Scores wurden bereits VOR generate_html berechnet
+    # (siehe pre-HTML-Block oben), damit _score_block_inner_html das
+    # s["conviction"]-Feld zur Render-Zeit sieht. Hier nur das Dict
+    # für die app_data-Persistenz aus den Stock-Dicts ableiten.
     _conviction_scores = {s["ticker"]: s.get("conviction")
                           for s in top10 if s.get("ticker") and s.get("conviction")}
     _write_app_data_json(watchlist_cards=_wl_card_data,
