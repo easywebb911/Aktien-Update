@@ -83,9 +83,14 @@
 
 ## Geplante Aufgaben
 
-1. **Phase 2 Stufe 3c-3** — UI Notification-History (NACH 3c-2 = PR #82
+1. **Conviction-Formel-Anpassung** — nach 1–2 Trading-Tagen beobachten:
+   bleibt Earliness systematisch 0 in der Top-10? Ggf. Earliness-Cap
+   28 → 14 (Score-Budget zu Setup oder Anomaly verschieben), oder
+   Earliness-Filter weicher (RSI < 65 statt 60, change_5d < 7 statt 5).
+   User-Entscheidung nach Empirik.
+2. **Phase 2 Stufe 3c-3** — UI Notification-History (NACH 3c-2 = PR #82
    bereits live).
-2. **Stufe Mittel-2** — Score-Effekt für Earliness aktivieren NACH
+3. **Stufe Mittel-2** — Score-Effekt für Earliness aktivieren NACH
    1–2 Daily-Runs mit gefüllter PM-Vol-Komponente.
 3. **Backtest-T+0/T+1-Auswertung** — Frontend-Verifikation läuft
    weiter; je Score-Bucket sollten 30+ Tage Live-R-Werte für
@@ -104,6 +109,13 @@
 13. **Phase X** — v1-Pfad-Migration (siehe Code-Hygiene Punkt 2).
 14. **Phase 2 Trigger 4–6** — Setup-Erosion, Catalyst, Trend-Bruch.
 15. **Tier-2-Insight-Builder** als Reserve.
+16. **Methodik-Asymmetrien Schritt 3** — Late-Runner-Penalty- und
+    FINRA-Konstanten-Display ist seit PR #99 aus `config.py` gelesen,
+    aber `score_bonus()` selbst und `apply_late_runner_penalty()`
+    nutzen die Werte unverändert. Sollten weitere bedingte Boni
+    eingeführt werden (z. B. neue ki_agent-Multiplikator-Pfade), muss
+    der Display-String beide Pfade reflektieren — Pflege-Regel in
+    CLAUDE.md Score-Methodik-Sync-Regel-Sektion dokumentiert.
 
 ## Strategische Roadmap
 
@@ -209,7 +221,17 @@ ein „nur unterstützender" Baustein im Sinne der Roadmap.
   bestätigt: Backtest-Backfill (PR #72), VIX-Persistenz (PR #90),
   Conviction-Pipeline-Order (PR #96), Skew-Suppression-vs-Dimming
   (PR #93). Jedes Mal hat ein 5–10-min-Read-only-Check vor dem
-  Fix die richtige Stelle isoliert.
+  Fix die richtige Stelle isoliert. **Auch bei Refactors gilt:
+  Read-only-Pfad-Inspektion bevor man Code bewegt** (Beispiel
+  DRIVER_CLASSIFICATIONS-Schema-Konflikt-Klärung, PR #83).
+- **Pipeline-Reihenfolge ist eine eigene Klasse von Bug.** Render-
+  Code prüft `s["conviction"]`, das von einer separaten Funktion
+  gesetzt wird. Wenn die Funktion NACH dem Render läuft, ist das
+  Feld leer — kein Crash, kein Log-Eintrag, nur eine stille Lücke
+  im UI. Lehre: jede neue Side-Effect-Funktion mit Stock-Dict-
+  Mutation muss in der `main()`-Pipeline an der richtigen Stelle
+  einsortiert werden, BEVOR der HTML-Render läuft, der die Werte
+  konsumiert.
 - **Squeeze-Guardian-Konformitäts-Check nach Multi-PR-Sessions ist
   kein Overhead, sondern Versicherung.** Hat am 09.05. einen
   produktiven stillen Datenverlust aufgedeckt.
