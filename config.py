@@ -434,6 +434,13 @@ ANOMALY_PERFECT_STORM_TRIGGERS    = 4
 # Monster-Backup: nur extreme Werte (frühere Schwelle 70 → jetzt 90)
 ANOMALY_MONSTER_BACKUP            = 90
 
+# Conviction-Hochstufung: Aktions-Signal wenn conviction_score (aus
+# app_data.json["conviction_scores"]) ≥ Schwelle erreicht UND vorheriger
+# Tick noch darunter lag (Threshold-Crossing — kein erneuter Push bei
+# sustained high). prev_conviction_scores wird in agent_state.json
+# persistiert (Key: "prev_conviction_scores").
+ANOMALY_CONVICTION_HIGH_THRESHOLD = 75
+
 # ── VIX-Gating für Anomalie-Pushes ──────────────────────────────────────────
 # Bei hohem VIX (Krise/Panik) sind Squeeze-Setups oft Bull-Traps. Schwellen:
 #   VIX > ANOMALY_VIX_PAUSE_THRESHOLD → alle Anomalie-Pushes pausiert
