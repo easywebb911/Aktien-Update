@@ -846,6 +846,7 @@ würden. Jeder Trigger-Typ hat einen eigenen Cooldown via Key-Prefix
 | `gap_combo`       | gap_pct ≥ `ANOMALY_GAP_PCT` (5 %) **und** state==`strong_hold` **und** RVOL ≥ `ANOMALY_GAP_RVOL` (3.0) | high |
 | `perfect_storm`   | active_triggers ≥ `ANOMALY_PERFECT_STORM_TRIGGERS` (4/4) | high |
 | `monster_backup`  | monster_score ≥ `ANOMALY_MONSTER_BACKUP` (90) — Sicherheitsnetz für extreme Fälle | high |
+| `conviction_high` | `conviction_score ≥ ANOMALY_CONVICTION_HIGH_THRESHOLD` (75) **und** prev-Tick < Schwelle (Threshold-Crossing — Sustained-High feuert NICHT). prev wird in `agent_state["prev_conviction_scores"]` persistiert | high |
 
 Cooldown: `ANOMALY_COOLDOWN_HOURS = 6` pro **(Ticker × Trigger-Typ)**.
 Mehrere Anomalien gleichen Tickers in einem Run sind möglich.

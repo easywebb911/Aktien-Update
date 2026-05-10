@@ -2126,8 +2126,9 @@ def fetch_edgar_filings(top10: list[dict]) -> list[dict]:
 
 def detect_anomalies(ticker: str, signal: dict, prev_signal: dict | None,
                      app_data: dict,
-                     edgar_filings: list[dict] | None = None) -> list[dict]:
-    """Erkennt sieben Anomalie-Trigger pro Ticker.
+                     edgar_filings: list[dict] | None = None,
+                     prev_conviction_scores: dict | None = None) -> list[dict]:
+    """Erkennt acht Anomalie-Trigger pro Ticker.
 
     Argumente:
       • ``signal``      — aktuelles ``new_signals[ticker]``-Dict (dieser Run)
@@ -2140,7 +2141,13 @@ def detect_anomalies(ticker: str, signal: dict, prev_signal: dict | None,
                           ``ANOMALY_COOLDOWN_HOURS``).
       • ``app_data``    — kompletter ``app_data.json``-Dict (für
                           ``setup_scores``/``monster_scores``/``score_history``/
-                          ``gap_states``)
+                          ``gap_states``/``conviction_scores``)
+      • ``prev_conviction_scores`` — Snapshot der ``conviction_scores``-
+                          Werte aus dem vorigen Run (aus
+                          ``agent_state["prev_conviction_scores"]``). Wird
+                          für das Threshold-Crossing der ``conviction_high``-
+                          Anomalie benötigt — Sustained-High (prev ≥ Schwelle)
+                          feuert NICHT erneut.
 
     Returns: Liste von ``{trigger, severity, message}``-Dicts. Jeder Eintrag
     löst einen separaten Push mit eigenem Cooldown aus. Mehrere Anomalien
@@ -2251,7 +2258,43 @@ def detect_anomalies(ticker: str, signal: dict, prev_signal: dict | None,
                          f"KI {ki_score}"),
         })
 
-    # g) SEC EDGAR 13D/13G Filings (Hybrid: 13D immer, 13G nur Aktivisten).
+    # g) Conviction-Hochstufung — Threshold-Crossing
+    # Aktions-Signal: conviction_score erreicht ANOMALY_CONVICTION_HIGH_THRESHOLD
+    # erstmalig (prev < Schwelle). Pattern „Sustained High" (prev ≥ Schwelle)
+    # feuert NICHT erneut — der Vergleich zum vorigen Tick verhindert
+    # stündliche Wiederholungs-Pushes, der Standard-Cooldown
+    # (ANOMALY_COOLDOWN_HOURS) härtet zusätzlich gegen Spike-Oszillationen
+    # knapp um die Schwelle.
+    conv = (app_data.get("conviction_scores") or {}).get(ticker) or {}
+    cur_conv = conv.get("score")
+    try:
+        cur_conv_f = float(cur_conv) if cur_conv is not None else None
+    except (TypeError, ValueError):
+        cur_conv_f = None
+    if cur_conv_f is not None and cur_conv_f >= ANOMALY_CONVICTION_HIGH_THRESHOLD:
+        prev_conv = (prev_conviction_scores or {}).get(ticker)
+        try:
+            prev_conv_f = float(prev_conv) if prev_conv is not None else None
+        except (TypeError, ValueError):
+            prev_conv_f = None
+        # Threshold-Cross: prev fehlt (Erstdurchlauf nach Aktivierung) oder
+        # lag unter Schwelle. Sustained High → kein erneuter Push.
+        is_cross = (prev_conv_f is None
+                    or prev_conv_f < ANOMALY_CONVICTION_HIGH_THRESHOLD)
+        if is_cross:
+            action_text = conv.get("action_text") or ""
+            action_short = (action_text[:80] + "…") if len(action_text) > 80 else action_text
+            prev_disp = (f" (vorher {prev_conv_f:.0f})"
+                         if prev_conv_f is not None else "")
+            out.append({
+                "trigger":  "conviction_high",
+                "severity": "high",
+                "message":  (f"{ticker} 🎯 KAUFSIGNAL — Conviction "
+                             f"{cur_conv_f:.0f}/100 (high){prev_disp}"
+                             + (f" | {action_short}" if action_short else "")),
+            })
+
+    # h) SEC EDGAR 13D/13G Filings (Hybrid: 13D immer, 13G nur Aktivisten).
     # ``edgar_filings`` wird einmal pro Run von fetch_edgar_filings(top10)
     # gefüllt und alle Tickern durchgereicht — pro Ticker filtern wir hier
     # die zugehörigen Einträge raus. Custom cooldown 24h via per-Anomaly-
@@ -2806,6 +2849,11 @@ def main() -> None:
     _signals_blob  = (app_data.get("agent_signals") or {}).get("signals") or {}
     ki_scores      = {t: ((s or {}).get("score"))
                       for t, s in _signals_blob.items()}
+    # prev_conviction_scores für conviction_high-Threshold-Crossing-Logik.
+    # Sustained-High (prev ≥ Schwelle) feuert NICHT erneut — der Snapshot
+    # wird am Run-Ende aus dem aktuellen app_data["conviction_scores"] neu
+    # geschrieben, sodass beim nächsten Tick der heute-Vergleich greift.
+    prev_conviction_scores = state.get("prev_conviction_scores") or {}
 
     # VIX-Gating für Anomalie-Pushes: einmal pro Run fetchen, in der Modul-
     # Variable für save_signals (→ app_data.json.vix_current) ablegen.
@@ -2964,7 +3012,8 @@ def main() -> None:
                 _silence_summary = " · ".join(_silence_reasons) if _silence_reasons else ""
 
                 for anom in detect_anomalies(ticker, sig, prev_sig, app_data,
-                                             edgar_filings=edgar_filings_cache):
+                                             edgar_filings=edgar_filings_cache,
+                                             prev_conviction_scores=prev_conviction_scores):
                     # Per-Anomaly Cooldown-Override: EDGAR setzt eigene
                     # cooldown_key (mit Filing-Type-Suffix) + 24h-Dauer.
                     key   = anom.get("cooldown_key") or \
@@ -3046,6 +3095,20 @@ def main() -> None:
         process_exit_signals(app_data, state)
     except Exception as exc:
         log.warning("process_exit_signals fehlgeschlagen: %s", exc)
+
+    # Snapshot der aktuellen conviction_scores nach state schreiben —
+    # nächster Tick vergleicht damit, ob ein Threshold-Crossing
+    # vorliegt. Wir speichern nur den Score (Float), nicht das ganze
+    # Components-Dict — der Vergleich braucht nur den Skalarwert.
+    try:
+        _conv_now = app_data.get("conviction_scores") or {}
+        state["prev_conviction_scores"] = {
+            t: float(v["score"])
+            for t, v in _conv_now.items()
+            if isinstance(v, dict) and isinstance(v.get("score"), (int, float))
+        }
+    except (TypeError, ValueError, KeyError) as exc:
+        log.debug("prev_conviction_scores-Snapshot fehlgeschlagen: %s", exc)
 
     save_state(state)
 
