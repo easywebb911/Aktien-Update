@@ -1071,7 +1071,8 @@ berechneten Score-Komponenten — keine LLM-Calls, kein zweiter Datenpfad.
 | 13F-Insider           | sec_13f_note vorh. | — |
 | Short-Druck-Muster    | ja                 | — |
 | Gamma-Squeeze         | possible/likely    | — |
-| Borrow-Rate           | > 50 %/Jahr        | — |
+| Borrow-Rate (extrem)  | > 100 %/Jahr (`IBKR_BORROW_BONUS_EXTREME`) | — |
+| Borrow-Rate (hot)     | > `IBKR_BORROW_HIGH` (50 %) bis ≤ 100 %/Jahr (`IBKR_BORROW_BONUS_HOT`) | — |
 | Put/Call-Ratio        | < 0.5 (bullisch)   | > 1.5 (bärisch) |
 | RVOL                  | ≥ 2.0×             | — |
 | Momentum (rel. SPY)   | ≥ +5 %             | < −3 % (raw chg) |
