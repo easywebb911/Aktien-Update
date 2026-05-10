@@ -1,10 +1,10 @@
 {
-  "last_run": "2026-05-10T15:13:47.689682+02:00",
+  "last_run": "2026-05-10T16:51:02.105296+02:00",
   "cooldowns": {
     "anomaly_score_jump_XRX": "2026-05-03T18:47:15.315486+02:00",
     "anomaly_uoa_extreme_TDOC": "2026-05-04T13:47:00.365949+02:00",
     "anomaly_score_jump_LENZ": "2026-05-06T23:55:17.218333+02:00",
-    "anomaly_monster_backup_GRPN": "2026-05-10T09:30:52.501939+02:00",
+    "anomaly_monster_backup_GRPN": "2026-05-10T16:51:01.063749+02:00",
     "anomaly_score_jump_SPRY": "2026-05-04T21:34:05.480403+02:00",
     "anomaly_score_jump_IIPR": "2026-05-06T13:05:33.421454+02:00",
     "anomaly_monster_backup_NVAX": "2026-05-10T10:52:08.834405+02:00",
@@ -86,6 +86,15 @@
       "severity": "medium",
       "trigger": "score_jump",
       "body": "GRPN 🚀 Setup 97 ↑ (gestern 62) | Volumen 3.0× + ⚡ Extremes Volumen 3.0×+ + Spanne 19.6% + UOA…",
+      "success": true
+    },
+    {
+      "ts": "2026-05-10T16:51:01.063729+02:00",
+      "ticker": "GRPN",
+      "kind": "anomaly",
+      "severity": "high",
+      "trigger": "monster_backup",
+      "body": "GRPN 🔥 Monster 97 | Setup 97 | KI 55",
       "success": true
     }
   ]
