@@ -1,10 +1,10 @@
 {
-  "updated": "2026-05-10T08:10:20.027854+02:00",
+  "updated": "2026-05-10T09:30:52.737134+02:00",
   "run_info": {
     "tickers_checked": 10,
     "signals_active": 8,
-    "alerts_sent": 1,
-    "elapsed_s": 15.7,
+    "alerts_sent": 2,
+    "elapsed_s": 12.6,
     "market_phase": "Geschlossen"
   },
   "signals": {
@@ -74,9 +74,9 @@
       "silenced_reason": "RSI 76"
     },
     "OFRM": {
-      "score": 60,
+      "score": 55,
       "confidence": 70,
-      "drivers": "Volumen 3.3× + ⚡ Extremes Volumen 3.3×+ + Spanne 17.8% + News-KI 5/30: Positive earnings and sales growth indicate fundamental strength, which typically reduces short-squeeze potential as sho + UOA Call/Put 2.8×",
+      "drivers": "Volumen 3.3× + ⚡ Extremes Volumen 3.3×+ + Spanne 17.8% + UOA Call/Put 2.8×",
       "price": 16.33,
       "chg_pct": -0.0,
       "rvol": 3.34,
