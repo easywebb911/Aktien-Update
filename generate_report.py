@@ -6013,6 +6013,13 @@ def generate_html_v1(stocks: list[dict], report_date: str, _ctx: dict | None = N
     .bt-bar-row--range .bt-bar-row-lbl{{font-weight:600}}
     .bt-range-text{{flex:1 1 auto;min-width:0;font-weight:400;
       letter-spacing:.2px;line-height:1.3}}
+    /* Skew-Sub-Zeile (Mean − Median) — noch dezenter als Range, da
+       interpretativer Hinweis statt Roh-Werte. Color via inline-Style
+       (rot/grün/grau) je nach Verteilungs-Schiefe. */
+    .bt-bar-row--skew{{font-size:.6rem;opacity:.65;margin-top:-3px;
+      margin-bottom:4px;letter-spacing:.2px}}
+    .bt-bar-row--skew .bt-bar-row-lbl{{font-weight:600}}
+    .bt-skew-text{{flex:1 1 auto;min-width:0;font-weight:500;line-height:1.3}}
     .bt-bar-row--best .bt-bar-row-lbl{{color:var(--txt);font-weight:900}}
     .bt-bar-row--best .bt-bar-row-val{{font-weight:900;font-size:.95rem}}
     .bt-bar-row--best .bt-bar-row-bar{{height:14px}}
@@ -7101,6 +7108,11 @@ const _BT_SRC_KEY = 'squeeze_bt_source';
 // Stichproben als belastbare Aussage.
 const MIN_BUCKET_N = 20;
 const _BT_DIM_COL  = 'var(--txt-dim)';
+// Skew-Schwelle in Prozentpunkten: Spread (Mean − Median) ≥ Schwelle →
+// rechtsschief (Knaller treiben Mean), ≤ −Schwelle → linksschief
+// (Verlierer dominieren), dazwischen → symmetrisch. Unter
+// MIN_BUCKET_N kein Hinweis (statistisch nicht aussagekräftig).
+const BT_SKEW_THRESHOLD = 3;
 function _btSetMode(mode){{
   if (mode !== 't0' && mode !== 't1') return;
   _btMode = mode;
@@ -7278,7 +7290,11 @@ function _btBucketStats(data){{
       // sauber „—" anzeigt.
       const min  = vals.length ? Math.min(...vals) : null;
       const max  = vals.length ? Math.max(...vals) : null;
-      return {{lbl, key, med, mean, min, max, n: vals.length}};
+      // Skew-Indikator: Mean − Median. Positiv = rechtsschief
+      // (Squeeze-Knaller); Negativ = linksschief; nahe 0 = symmetrisch.
+      // null bei fehlenden Median- oder Mean-Werten.
+      const spread = (med !== null && mean !== null) ? (mean - med) : null;
+      return {{lbl, key, med, mean, min, max, spread, n: vals.length}};
     }});
     // Best = höchster Median mit mind. 1 Datenpunkt; null/keine Daten zählen nicht
     let bestIdx = -1;
@@ -7336,6 +7352,27 @@ function _btRenderMedian(data){{
          + ' · Max ' + fmt(m.max) + '</span>'
          + '</div>';
   }}
+  // Skew-Sub-Zeile (Mean − Median) — sehr dezent unter Range-Zeile.
+  // Bei spread null oder n<MIN_BUCKET_N kein Hinweis (statt
+  // missverständlichem Text bei dünner Datenbasis).
+  function _renderSkew(m){{
+    if (m.spread === null || m.n < MIN_BUCKET_N) return '';
+    let label, col;
+    if (m.spread >= BT_SKEW_THRESHOLD) {{
+      label = '↗ rechtsschief (Knaller drin)';
+      col   = '#22c55e';
+    }} else if (m.spread <= -BT_SKEW_THRESHOLD) {{
+      label = '↘ linksschief (Verlierer dominieren)';
+      col   = '#ef4444';
+    }} else {{
+      label = '≈ symmetrisch';
+      col   = _BT_DIM_COL;
+    }}
+    return '<div class="bt-bar-row bt-bar-row--skew" style="color:' + col + '">'
+         + '<span class="bt-bar-row-lbl">' + m.lbl + '</span>'
+         + '<span class="bt-skew-text">' + label + '</span>'
+         + '</div>';
+  }}
   let html = '';
   stats.forEach(s => {{
     html += '<div style="font-size:.72rem;color:var(--txt-dim);font-weight:700;margin-top:4px">'
@@ -7345,6 +7382,7 @@ function _btRenderMedian(data){{
       html += _renderRow(m, i, 'median', isBest);
       html += _renderRow(m, i, 'mean',   false);
       html += _renderRange(m);
+      html += _renderSkew(m);
     }});
   }});
   container.innerHTML = html;
