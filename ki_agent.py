@@ -2181,7 +2181,7 @@ def detect_anomalies(ticker: str, signal: dict, prev_signal: dict | None,
             and rvol_today / rvol_prev >= ANOMALY_RVOL_VS_YESTERDAY):
         out.append({
             "trigger":  "rvol_explosion",
-            "severity": "high",
+            "severity": "medium",
             "message":  (f"{ticker} ⚡ RVOL {rvol_today:.1f}× "
                          f"(gestern {rvol_prev:.1f}×) | {setup_str}"),
         })
@@ -2192,7 +2192,7 @@ def detect_anomalies(ticker: str, signal: dict, prev_signal: dict | None,
         if atm_ratio is not None and float(atm_ratio) >= ANOMALY_UOA_VOL_OI:
             out.append({
                 "trigger":  "uoa_extreme",
-                "severity": "high",
+                "severity": "medium",
                 "message":  (f"{ticker} 🎯 UOA Vol/OI {float(atm_ratio):.1f}× ATM | "
                              f"{setup_str}"),
             })
@@ -2230,7 +2230,7 @@ def detect_anomalies(ticker: str, signal: dict, prev_signal: dict | None,
             and rvol_today >= ANOMALY_GAP_RVOL):
         out.append({
             "trigger":  "gap_combo",
-            "severity": "high",
+            "severity": "medium",
             "message":  (f"{ticker} 💥 Gap +{gap_pct:.1f}% Strong Hold + "
                          f"RVOL {rvol_today:.1f}× | {setup_str}"),
         })
@@ -2319,7 +2319,7 @@ def detect_anomalies(ticker: str, signal: dict, prev_signal: dict | None,
             ftype_safe = ftype.replace(" ", "_").replace("/", "-")
             out.append({
                 "trigger":        "edgar_filing",
-                "severity":       "high",
+                "severity":       "medium",
                 "message":        (f"{ticker} 📜 {ftype} — {filer_disp}"
                                     + (f" ({rel})" if rel else "")),
                 "cooldown_key":   f"anomaly_edgar_filing_{ticker}_{ftype_safe}",

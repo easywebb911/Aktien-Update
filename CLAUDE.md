@@ -840,13 +840,27 @@ würden. Jeder Trigger-Typ hat einen eigenen Cooldown via Key-Prefix
 
 | Trigger | Bedingung (alle Konstanten in `config.py`) | Severity |
 |---|---|---|
-| `rvol_explosion`  | RVOL ≥ `ANOMALY_RVOL_TODAY` (5.0) **und** RVOL ≥ `ANOMALY_RVOL_VS_YESTERDAY` × Vortag (2.0×) | high |
-| `uoa_extreme`     | Call-Vol/OI ATM ≥ `ANOMALY_UOA_VOL_OI` (10.0) | high |
+| `rvol_explosion`  | RVOL ≥ `ANOMALY_RVOL_TODAY` (5.0) **und** RVOL ≥ `ANOMALY_RVOL_VS_YESTERDAY` × Vortag (2.0×) | medium |
+| `uoa_extreme`     | Call-Vol/OI ATM ≥ `ANOMALY_UOA_VOL_OI` (10.0) | medium |
 | `score_jump`      | Setup heute − gestern (raw aus `score_history`) ≥ `ANOMALY_SCORE_JUMP` (15) | medium |
-| `gap_combo`       | gap_pct ≥ `ANOMALY_GAP_PCT` (5 %) **und** state==`strong_hold` **und** RVOL ≥ `ANOMALY_GAP_RVOL` (3.0) | high |
+| `gap_combo`       | gap_pct ≥ `ANOMALY_GAP_PCT` (5 %) **und** state==`strong_hold` **und** RVOL ≥ `ANOMALY_GAP_RVOL` (3.0) | medium |
 | `perfect_storm`   | active_triggers ≥ `ANOMALY_PERFECT_STORM_TRIGGERS` (4/4) | high |
 | `monster_backup`  | monster_score ≥ `ANOMALY_MONSTER_BACKUP` (90) — Sicherheitsnetz für extreme Fälle | high |
 | `conviction_high` | `conviction_score ≥ ANOMALY_CONVICTION_HIGH_THRESHOLD` (75) **und** prev-Tick < Schwelle (Threshold-Crossing — Sustained-High feuert NICHT). prev wird in `agent_state["prev_conviction_scores"]` persistiert | high |
+| `edgar_filing`    | SC 13D (immer) oder SC 13G (nur `EDGAR_ACTIVIST_FILERS`) in den letzten `EDGAR_LOOKBACK_HOURS` (6 h) | medium |
+
+**Severity-Tiering (Stand 10.05.2026):**
+
+| Severity | Bedeutung | Trigger |
+|---|---|---|
+| **high** | **Aktions-Signal** — direkter Hinweis, jetzt einsteigen oder hingucken. ntfy-Priority maximal, prominenter Ton. | `conviction_high`, `perfect_storm`, `monster_backup` |
+| **medium** | **Beobachtungs-Signal** — etwas bewegt sich, aber noch keine klare Aktions-Empfehlung. ntfy-Priority normal, dezentere Anzeige. | `rvol_explosion`, `uoa_extreme`, `score_jump`, `gap_combo`, `edgar_filing` |
+
+Die Severity wird vom `_send_anomaly_ntfy`-Sender unverändert
+durchgereicht (kein Mapping auf ntfy-Priority-Levels im Code derzeit);
+sie landet im `push_history`-Eintrag (`kind="anomaly"`, `severity=…`)
+und kann von Frontend / Daily-Summary später für Sortierung oder
+Filterung genutzt werden.
 
 Cooldown: `ANOMALY_COOLDOWN_HOURS = 6` pro **(Ticker × Trigger-Typ)**.
 Mehrere Anomalien gleichen Tickers in einem Run sind möglich.
