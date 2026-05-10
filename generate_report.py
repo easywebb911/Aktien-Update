@@ -3449,113 +3449,197 @@ def _sub_scores_html(s: dict) -> str:
     )
 
 
-def _drivers_breakdown(s: dict) -> dict:
-    """Kategorisierte Treiber-Liste (Stärken / Risiken) aus Score-Komponenten.
+# ── Drivers-Klassifikations-Tabelle (Single-Source-of-Truth) ────────────────
+# Hybrid-Schema: ``label``/``weight`` können primitive Werte oder
+# Callables ``f(stock) → str|float`` sein. Bei Callables wird der Wert
+# beim Iterieren aus dem Stock-Dict abgeleitet — das erlaubt dynamische
+# Anzeige-Werte (z. B. „Short Float 23.4 %") und Score-Beitrag-formeln
+# (z. B. ``min(sf/50, 1)*32``) ohne die Score-Logik aus _drivers_breakdown
+# zu entkoppeln. ``field_check`` ist immer ein Callable → bool.
+# Reihenfolge entspricht der Inline-Reihenfolge der ursprünglichen
+# Inline-Logik — Tie-Breaks bei gleichem ``weight`` bleiben damit
+# durch Pythons stabile Sortierung erhalten.
 
-    Deterministisch — keine LLM-Calls. Liest dieselben Felder wie
-    ``_compute_sub_scores()`` und ``score()`` und ordnet jedem aktiven
-    Signal ein ``weight`` (Score-Beitrag in Punkten, gerundet) zu, damit
-    Sortierung nach Wirkungsstärke möglich ist.
+def _fs_weight(fl: float) -> float:
+    """Float-Saturation-Gewicht (0..8 Punkte, linear zwischen LOW und HIGH)."""
+    return max(0.0, min(1.0,
+        (FLOAT_SATURATION_HIGH - fl) / (FLOAT_SATURATION_HIGH - FLOAT_SATURATION_LOW)
+    )) * 8
 
-    Returns: ``{"strengths": [...], "risks": [...]}`` mit Items
-    ``{"label": str, "weight": float}`` — sortiert nach ``weight`` desc.
-    Single source of truth für die Drivers-Liste in der Detail-Ansicht
-    UND die deterministische Synthese-Zeile darüber.
-    """
-    strengths: list[tuple[float, str]] = []
-    risks:     list[tuple[float, str]] = []
 
-    sf  = _safe_float(s.get("short_float", 0))
-    sr  = _safe_float(s.get("short_ratio", 0))
-    rv  = _safe_float(s.get("rel_volume",  0))
-    chg = _safe_float(s.get("change",      0))
-    fl  = s.get("float_shares") or 0
-    rsi = s.get("rsi14")
-    finra    = s.get("finra_data") or {}
-    si_trend = finra.get("trend", "no_data")
-    si_tpct  = _safe_float(finra.get("trend_pct", 0.0))
+def _chg_eff(s: dict) -> float:
+    """Relativer Tages-Move (chg minus SPX-Tagesperformance, falls aktiv)."""
+    chg = _safe_float(s.get("change", 0))
+    return chg - _safe_float(s.get("spx_daily_perf", 0.0)) if USE_RELATIVE_MOMENTUM else chg
 
-    if sf >= 15:
-        strengths.append((min(sf / 50.0, 1.0) * 32, f"Short Float {sf:.1f}%"))
-    if sr >= 5:
-        strengths.append((min(sr / 10.0, 1.0) * 23, f"Days-to-Cover {sr:.1f}d"))
-    if 0 < fl <= FLOAT_SATURATION_HIGH:
-        fs_w = max(0.0, min(1.0,
-            (FLOAT_SATURATION_HIGH - fl) / (FLOAT_SATURATION_HIGH - FLOAT_SATURATION_LOW)
-        )) * 8
-        if fs_w > 0:
-            strengths.append((fs_w, f"Float klein ({fl/1e6:.1f} M)"))
-    if si_trend == "up":
-        strengths.append((5.0, f"SI-Trend ↑ +{abs(si_tpct):.0f}%"))
-    elif si_trend == "down":
-        risks.append((5.0, f"SI-Trend ↓ −{abs(si_tpct):.0f}%"))
 
-    earn_days = s.get("earnings_days")
-    if earn_days is not None and earn_days <= 7:
-        strengths.append((15.0, f"Earnings in {earn_days}d"))
-    elif earn_days is not None and earn_days <= 14:
-        strengths.append((8.0, f"Earnings in {earn_days}d"))
-    if s.get("sec_13f_note"):
-        strengths.append((10.0, "Insider/13F-Signal"))
-    if _detect_short_pressure(s):
-        strengths.append((float(SHORT_PRESSURE_BONUS), "Short-Druck-Muster"))
-    g = _gamma_squeeze_level(s)
-    if g == "likely":
-        strengths.append((float(GAMMA_BONUS_LIKELY), "Gamma-Squeeze wahrscheinlich"))
-    elif g == "possible":
-        strengths.append((float(GAMMA_BONUS_POSSIBLE), "Gamma-Setup möglich"))
-    borrow = s.get("borrow_rate")
-    if borrow is not None:
-        if borrow > 100:
-            strengths.append((float(IBKR_BORROW_BONUS_EXTREME),
-                              f"Borrow {borrow:.0f}%/J extrem"))
-        elif borrow > IBKR_BORROW_HIGH:
-            strengths.append((float(IBKR_BORROW_BONUS_HOT),
-                              f"Borrow {borrow:.0f}%/Jahr"))
-
-    pc = (s.get("options") or {}).get("pc_ratio")
-    if pc is not None:
-        if pc < PC_RATIO_BULL_THRESHOLD:
-            strengths.append((float(PC_RATIO_BULL_BONUS), f"PC {pc:.2f} bullisch"))
-        elif pc > PC_RATIO_BEAR_THRESHOLD:
-            risks.append((float(PC_RATIO_BEAR_MALUS), f"PC {pc:.2f} bärisch"))
-
-    if rv >= 2.0:
-        rv_w = min((rv - 1.0) / 2.0, 1.0) * 23
-        strengths.append((rv_w, f"RVOL {rv:.1f}×"))
-    chg_eff = chg - _safe_float(s.get("spx_daily_perf", 0.0)) if USE_RELATIVE_MOMENTUM else chg
-    if chg_eff >= 5:
-        strengths.append((min(chg_eff / 8.0, 1.0) * 14, f"Momentum +{chg_eff:.1f}%"))
-    elif chg < -3:
-        risks.append((min(abs(chg) / 5.0, 1.0) * 8, f"Tagesverlust {chg:.1f}%"))
-
-    rs_pct, rs_pts = _rs_spy_pts(s)
-    if rs_pct is not None:
-        if rs_pts > 0.5:
-            strengths.append((rs_pts, f"RS vs. SPY +{rs_pct:.1f}%"))
-        elif rs_pts < -0.5:
-            risks.append((abs(rs_pts), f"RS vs. SPY {rs_pct:.1f}%"))
-
-    turnover_ratio, turnover_pts = _float_turnover_pts(s)
-    if turnover_pts > 0:
-        strengths.append((float(turnover_pts), f"Vol/Float {turnover_ratio:.1f}×"))
-
-    gap_pct, gap_state, gap_pts = _gap_hold_pts(s)
-    if gap_state == "strong_hold" and gap_pct is not None:
-        strengths.append((float(gap_pts), f"Strong Hold +{gap_pct:.1f}%"))
-    elif gap_state == "fail":
-        risks.append((float(abs(gap_pts)), "Bull-Trap (Gap-Fail)"))
-
-    if rsi is not None and rsi > 70:
-        risks.append((min((rsi - 70) / 2.0, 10.0), f"RSI {rsi:.0f} überkauft"))
-
+def _ma50_vs_pct(s: dict) -> float | None:
+    """(price − ma50) / ma50 × 100, oder None wenn eines fehlt / ma50 ≤ 0."""
     ma50  = s.get("ma50")
     price = _safe_float(s.get("price", 0))
     if ma50 and price and ma50 > 0:
-        vs = (price - ma50) / ma50 * 100
-        if vs < -5:
-            risks.append((min(abs(vs) / 2.0, 12.0), f"Unter MA50 ({vs:+.1f}%)"))
+        return (price - ma50) / ma50 * 100
+    return None
 
+
+DRIVER_CLASSIFICATIONS: list[dict] = [
+    # Short Float
+    {"category": "strength",
+     "field_check": lambda s: _safe_float(s.get("short_float", 0)) >= 15,
+     "label":  lambda s: f"Short Float {_safe_float(s.get('short_float', 0)):.1f}%",
+     "weight": lambda s: min(_safe_float(s.get('short_float', 0)) / 50.0, 1.0) * 32},
+    # Days-to-Cover
+    {"category": "strength",
+     "field_check": lambda s: _safe_float(s.get("short_ratio", 0)) >= 5,
+     "label":  lambda s: f"Days-to-Cover {_safe_float(s.get('short_ratio', 0)):.1f}d",
+     "weight": lambda s: min(_safe_float(s.get('short_ratio', 0)) / 10.0, 1.0) * 23},
+    # Float-Größe
+    {"category": "strength",
+     "field_check": lambda s: 0 < (s.get("float_shares") or 0) <= FLOAT_SATURATION_HIGH
+                              and _fs_weight(s.get("float_shares") or 0) > 0,
+     "label":  lambda s: f"Float klein ({(s.get('float_shares') or 0)/1e6:.1f} M)",
+     "weight": lambda s: _fs_weight(s.get("float_shares") or 0)},
+    # SI-Trend up
+    {"category": "strength",
+     "field_check": lambda s: (s.get("finra_data") or {}).get("trend") == "up",
+     "label":  lambda s: f"SI-Trend ↑ +{abs(_safe_float((s.get('finra_data') or {}).get('trend_pct', 0.0))):.0f}%",
+     "weight": 5.0},
+    # SI-Trend down
+    {"category": "risk",
+     "field_check": lambda s: (s.get("finra_data") or {}).get("trend") == "down",
+     "label":  lambda s: f"SI-Trend ↓ −{abs(_safe_float((s.get('finra_data') or {}).get('trend_pct', 0.0))):.0f}%",
+     "weight": 5.0},
+    # Earnings ≤ 7d (elif: zuerst engster Bucket)
+    {"category": "strength",
+     "field_check": lambda s: s.get("earnings_days") is not None and s.get("earnings_days") <= 7,
+     "label":  lambda s: f"Earnings in {s.get('earnings_days')}d",
+     "weight": 15.0},
+    # Earnings 8–14d (elif des engeren Buckets)
+    {"category": "strength",
+     "field_check": lambda s: s.get("earnings_days") is not None
+                              and s.get("earnings_days") > 7 and s.get("earnings_days") <= 14,
+     "label":  lambda s: f"Earnings in {s.get('earnings_days')}d",
+     "weight": 8.0},
+    # 13F-Insider
+    {"category": "strength",
+     "field_check": lambda s: bool(s.get("sec_13f_note")),
+     "label":  "Insider/13F-Signal",
+     "weight": 10.0},
+    # Short-Druck-Muster
+    {"category": "strength",
+     "field_check": lambda s: _detect_short_pressure(s),
+     "label":  "Short-Druck-Muster",
+     "weight": float(SHORT_PRESSURE_BONUS)},
+    # Gamma „likely" (vor „possible")
+    {"category": "strength",
+     "field_check": lambda s: _gamma_squeeze_level(s) == "likely",
+     "label":  "Gamma-Squeeze wahrscheinlich",
+     "weight": float(GAMMA_BONUS_LIKELY)},
+    # Gamma „possible" (mutually exclusive zu „likely")
+    {"category": "strength",
+     "field_check": lambda s: _gamma_squeeze_level(s) == "possible",
+     "label":  "Gamma-Setup möglich",
+     "weight": float(GAMMA_BONUS_POSSIBLE)},
+    # Borrow > 100 %/J (extrem)
+    {"category": "strength",
+     "field_check": lambda s: s.get("borrow_rate") is not None and s.get("borrow_rate") > 100,
+     "label":  lambda s: f"Borrow {s.get('borrow_rate'):.0f}%/J extrem",
+     "weight": float(IBKR_BORROW_BONUS_EXTREME)},
+    # Borrow > IBKR_BORROW_HIGH bis ≤ 100 %/J (elif des Extrem-Buckets)
+    {"category": "strength",
+     "field_check": lambda s: s.get("borrow_rate") is not None
+                              and IBKR_BORROW_HIGH < s.get("borrow_rate") <= 100,
+     "label":  lambda s: f"Borrow {s.get('borrow_rate'):.0f}%/Jahr",
+     "weight": float(IBKR_BORROW_BONUS_HOT)},
+    # PC bullisch
+    {"category": "strength",
+     "field_check": lambda s: ((s.get("options") or {}).get("pc_ratio") is not None
+                               and (s.get("options") or {}).get("pc_ratio") < PC_RATIO_BULL_THRESHOLD),
+     "label":  lambda s: f"PC {(s.get('options') or {}).get('pc_ratio'):.2f} bullisch",
+     "weight": float(PC_RATIO_BULL_BONUS)},
+    # PC bärisch
+    {"category": "risk",
+     "field_check": lambda s: ((s.get("options") or {}).get("pc_ratio") is not None
+                               and (s.get("options") or {}).get("pc_ratio") > PC_RATIO_BEAR_THRESHOLD),
+     "label":  lambda s: f"PC {(s.get('options') or {}).get('pc_ratio'):.2f} bärisch",
+     "weight": float(PC_RATIO_BEAR_MALUS)},
+    # RVOL ≥ 2×
+    {"category": "strength",
+     "field_check": lambda s: _safe_float(s.get("rel_volume", 0)) >= 2.0,
+     "label":  lambda s: f"RVOL {_safe_float(s.get('rel_volume', 0)):.1f}×",
+     "weight": lambda s: min((_safe_float(s.get('rel_volume', 0)) - 1.0) / 2.0, 1.0) * 23},
+    # Momentum (chg_eff ≥ 5)
+    {"category": "strength",
+     "field_check": lambda s: _chg_eff(s) >= 5,
+     "label":  lambda s: f"Momentum +{_chg_eff(s):.1f}%",
+     "weight": lambda s: min(_chg_eff(s) / 8.0, 1.0) * 14},
+    # Tagesverlust (chg < -3, elif von Momentum)
+    {"category": "risk",
+     "field_check": lambda s: _chg_eff(s) < 5
+                              and _safe_float(s.get("change", 0)) < -3,
+     "label":  lambda s: f"Tagesverlust {_safe_float(s.get('change', 0)):.1f}%",
+     "weight": lambda s: min(abs(_safe_float(s.get('change', 0))) / 5.0, 1.0) * 8},
+    # RS vs. SPY positiv
+    {"category": "strength",
+     "field_check": lambda s: (_rs_spy_pts(s)[0] is not None and _rs_spy_pts(s)[1] > 0.5),
+     "label":  lambda s: f"RS vs. SPY +{_rs_spy_pts(s)[0]:.1f}%",
+     "weight": lambda s: _rs_spy_pts(s)[1]},
+    # RS vs. SPY negativ
+    {"category": "risk",
+     "field_check": lambda s: (_rs_spy_pts(s)[0] is not None and _rs_spy_pts(s)[1] < -0.5),
+     "label":  lambda s: f"RS vs. SPY {_rs_spy_pts(s)[0]:.1f}%",
+     "weight": lambda s: abs(_rs_spy_pts(s)[1])},
+    # Float-Turnover
+    {"category": "strength",
+     "field_check": lambda s: _float_turnover_pts(s)[1] > 0,
+     "label":  lambda s: f"Vol/Float {_float_turnover_pts(s)[0]:.1f}×",
+     "weight": lambda s: float(_float_turnover_pts(s)[1])},
+    # Gap & Hold — Strong Hold
+    {"category": "strength",
+     "field_check": lambda s: (_gap_hold_pts(s)[1] == "strong_hold"
+                               and _gap_hold_pts(s)[0] is not None),
+     "label":  lambda s: f"Strong Hold +{_gap_hold_pts(s)[0]:.1f}%",
+     "weight": lambda s: float(_gap_hold_pts(s)[2])},
+    # Gap & Hold — Bull-Trap
+    {"category": "risk",
+     "field_check": lambda s: _gap_hold_pts(s)[1] == "fail",
+     "label":  "Bull-Trap (Gap-Fail)",
+     "weight": lambda s: float(abs(_gap_hold_pts(s)[2]))},
+    # RSI > 70 überkauft
+    {"category": "risk",
+     "field_check": lambda s: s.get("rsi14") is not None and s.get("rsi14") > 70,
+     "label":  lambda s: f"RSI {s.get('rsi14'):.0f} überkauft",
+     "weight": lambda s: min((s.get('rsi14') - 70) / 2.0, 10.0)},
+    # Unter MA50 < −5 %
+    {"category": "risk",
+     "field_check": lambda s: _ma50_vs_pct(s) is not None and _ma50_vs_pct(s) < -5,
+     "label":  lambda s: f"Unter MA50 ({_ma50_vs_pct(s):+.1f}%)",
+     "weight": lambda s: min(abs(_ma50_vs_pct(s)) / 2.0, 12.0)},
+]
+
+
+def _drivers_breakdown(s: dict) -> dict:
+    """Kategorisierte Treiber-Liste (Stärken / Risiken) aus Score-Komponenten.
+
+    Liest die zentrale ``DRIVER_CLASSIFICATIONS``-Tabelle (oben) als
+    Single-Source-of-Truth — pro Eintrag wird ``field_check(s)`` geprüft;
+    bei True werden ``label`` und ``weight`` resolved (Callable oder
+    primitive Wert). Output ``{"strengths": [...], "risks": [...]}``
+    mit Items ``{"label": str, "weight": float}``, sortiert nach
+    ``weight`` desc (stabile Sortierung → Tie-Break = Tabellen-
+    Reihenfolge).
+    """
+    strengths: list[tuple[float, str]] = []
+    risks:     list[tuple[float, str]] = []
+    for entry in DRIVER_CLASSIFICATIONS:
+        if not entry["field_check"](s):
+            continue
+        label_raw  = entry["label"]
+        weight_raw = entry["weight"]
+        label      = label_raw(s)  if callable(label_raw)  else label_raw
+        weight     = weight_raw(s) if callable(weight_raw) else weight_raw
+        target     = strengths if entry["category"] == "strength" else risks
+        target.append((float(weight), label))
     strengths.sort(key=lambda x: -x[0])
     risks.sort(key=lambda x: -x[0])
     return {
