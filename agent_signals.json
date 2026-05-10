@@ -1,17 +1,17 @@
 {
-  "updated": "2026-05-10T10:52:08.834956+02:00",
+  "updated": "2026-05-10T12:12:53.432707+02:00",
   "run_info": {
     "tickers_checked": 10,
     "signals_active": 8,
-    "alerts_sent": 1,
-    "elapsed_s": 12.9,
+    "alerts_sent": 0,
+    "elapsed_s": 13.1,
     "market_phase": "Geschlossen"
   },
   "signals": {
     "NVAX": {
       "score": 65,
       "confidence": 70,
-      "drivers": "Volumen 1.6× + Spanne 15.3% + News: breakout, earnings beat + UOA Call/Put 15.7×",
+      "drivers": "Volumen 1.6× + Spanne 15.3% + News: earnings beat, breakout + UOA Call/Put 15.7×",
       "price": 10.11,
       "chg_pct": -0.0,
       "rvol": 1.62,
@@ -114,9 +114,9 @@
       "uoa_cp_ratio": 0.4666666666666667
     },
     "TEAD": {
-      "score": 35,
+      "score": 25,
       "confidence": 33,
-      "drivers": "Spanne 24.7% + News: partnership + UOA Call/Put 12.4×",
+      "drivers": "Spanne 24.7% + News-KI 5/30: Neutral earnings announcement and partnership news with no indicators of high short interest, low float, or squeeze cata + UOA Call/Put 12.4×",
       "price": 1.06,
       "chg_pct": -0.0,
       "rvol": 0.97,
@@ -126,7 +126,7 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 1,
+      "active_triggers": 0,
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 12.4×"
