@@ -1,17 +1,17 @@
 {
-  "updated": "2026-05-10T16:51:01.064214+02:00",
+  "updated": "2026-05-10T17:51:47.059340+02:00",
   "run_info": {
     "tickers_checked": 10,
     "signals_active": 8,
     "alerts_sent": 1,
-    "elapsed_s": 10.9,
+    "elapsed_s": 12.0,
     "market_phase": "Geschlossen"
   },
   "signals": {
     "NVAX": {
       "score": 65,
       "confidence": 70,
-      "drivers": "Volumen 1.6× + Spanne 15.3% + News: breakout, earnings beat + UOA Call/Put 15.7×",
+      "drivers": "Volumen 1.6× + Spanne 15.3% + News: earnings beat, breakout + UOA Call/Put 15.7×",
       "price": 10.11,
       "chg_pct": -0.0,
       "rvol": 1.62,
@@ -51,9 +51,9 @@
       "uoa_cp_ratio": 11.538260869565217
     },
     "DMRC": {
-      "score": 72,
+      "score": 90,
       "confidence": 70,
-      "drivers": "Earnings in 2 Tagen (12.05.2026) + Volumen 2.5× + Spanne 15.3% + News-KI 5/30: Neutral operational news with no indicators of short squeeze potential; routine conference calls and earnings announceme + Earnings in 2d + UOA Call/Put 10.2×",
+      "drivers": "Earnings in 2 Tagen (12.05.2026) + Volumen 2.5× + Spanne 15.3% + News: partnership + Earnings in 2d + UOA Call/Put 10.2× + 3/4 Trigger",
       "price": 9.36,
       "chg_pct": -0.0,
       "rvol": 2.47,
@@ -62,8 +62,8 @@
       "upcoming_event": "Earnings in 2 Tagen (12.05.2026)",
       "insider_buy": false,
       "stocktwits": null,
-      "combo_mult": 1.1,
-      "active_triggers": 2,
+      "combo_mult": 1.2,
+      "active_triggers": 3,
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 10.2×"
@@ -74,9 +74,9 @@
       "silenced_reason": "RSI 76"
     },
     "OFRM": {
-      "score": 55,
+      "score": 60,
       "confidence": 70,
-      "drivers": "Volumen 3.3× + ⚡ Extremes Volumen 3.3×+ + Spanne 17.8% + UOA Call/Put 2.8×",
+      "drivers": "Volumen 3.3× + ⚡ Extremes Volumen 3.3×+ + Spanne 17.8% + News-KI 5/30: Positive earnings growth but no indicators of short squeeze potential: low short interest visibility, strong fundamental + UOA Call/Put 2.8×",
       "price": 16.33,
       "chg_pct": -0.0,
       "rvol": 3.34,
@@ -95,9 +95,9 @@
       "uoa_cp_ratio": 2.826923076923077
     },
     "LUCK": {
-      "score": 43,
-      "confidence": 70,
-      "drivers": "Spanne 14.7% + News-KI 8/30: Negative earnings misses and analyst downgrades typically reduce short-squeeze potential as they weaken bullish sentimen + FINRA Short-Vol 100%",
+      "score": 35,
+      "confidence": 33,
+      "drivers": "Spanne 14.7% + FINRA Short-Vol 100%",
       "price": 8.24,
       "chg_pct": -0.0,
       "rvol": 1.31,
