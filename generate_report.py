@@ -4941,6 +4941,116 @@ def _build_card_ctx(i: int, s: dict) -> dict:
     }
 
 
+# ── Conviction-Score (Schritt A: Berechnung, ohne UI-Anbindung) ──────────────
+# Vierte Bewertungs-Achse neben Setup-Score, Monster-Score und KI-Score.
+# Beantwortet die Aktions-Frage („jetzt einsteigen?") via Aggregation aus
+# Setup-Qualität, Earliness, aktiven Anomalie-Triggern und Marktphasen-
+# Konformität (VIX-Regime). Komponenten-Gewichte/Schwellen siehe CLAUDE.md.
+
+def compute_conviction_score(stock: dict,
+                             anomalies_today: list[dict] | None,
+                             vix: float | None) -> dict:
+    """Berechnet Conviction-Score 0–100 + Components + Action-Text.
+
+    Pure Funktion — keine Side-Effects, alle Inputs explizit. Bei
+    fehlenden Eingaben (anomalies_today=None, earliness_pts fehlt,
+    setup_score=None) wird die jeweilige Komponente auf 0 gesetzt;
+    `action_text` bekommt einen Hinweis, wenn Anomalie-Daten fehlen.
+    """
+    setup_raw = stock.get("score")
+    try:
+        setup_pts = int(round((float(setup_raw) / 100.0) * 33)) if setup_raw is not None else 0
+    except (TypeError, ValueError):
+        setup_pts = 0
+    setup_pts = max(0, min(33, setup_pts))
+
+    earliness_raw = stock.get("earliness_pts")
+    try:
+        earl_max  = max(int(EARLINESS_PTS_MAX), 1)
+        earl_pts  = int(round((float(earliness_raw) / earl_max) * 28)) if earliness_raw is not None else 0
+    except (TypeError, ValueError):
+        earl_pts = 0
+    earl_pts = max(0, min(28, earl_pts))
+
+    anomaly_count = 0
+    anomalies_missing = anomalies_today is None
+    if isinstance(anomalies_today, list):
+        ticker = stock.get("ticker")
+        anomaly_count = sum(
+            1 for a in anomalies_today
+            if isinstance(a, dict) and a.get("ticker") == ticker
+        )
+    if anomaly_count >= 2:
+        anomaly_pts = 28
+    elif anomaly_count == 1:
+        anomaly_pts = 14
+    else:
+        anomaly_pts = 0
+
+    # Regime: VIX < WARN → ruhig (volle 11), zw. WARN und PAUSE → mittel (6),
+    # ≥ PAUSE oder None → 0. Hardcap 11.
+    if vix is None:
+        regime_pts = 0
+    else:
+        try:
+            vix_v = float(vix)
+            if vix_v < ANOMALY_VIX_WARN_THRESHOLD:
+                regime_pts = 11
+            elif vix_v < ANOMALY_VIX_PAUSE_THRESHOLD:
+                regime_pts = 6
+            else:
+                regime_pts = 0
+        except (TypeError, ValueError):
+            regime_pts = 0
+
+    score = setup_pts + earl_pts + anomaly_pts + regime_pts
+    score = max(0, min(100, int(score)))
+
+    if score >= 75:
+        level, action = "high", (
+            "Conviction hoch — Setup, Earliness und Timing konvergieren. "
+            "Erwartungswert positiv.")
+    elif score >= 50:
+        level, action = "medium", (
+            "Substrat stark, Timing-Signal fehlt. Auf Volume-Spike oder "
+            "Anomalie-Trigger warten.")
+    elif score >= 30:
+        level, action = "low", (
+            "Setup gut, aber Phase oder Marktkontext ungünstig. "
+            "Genau hinschauen.")
+    else:
+        level, action = "low", "Aktuell kein klares Aktions-Signal."
+
+    if anomalies_missing:
+        action = action + " (Anomalie-Daten nicht verfügbar)"
+
+    return {
+        "score": score,
+        "components": {
+            "setup":     setup_pts,
+            "earliness": earl_pts,
+            "anomaly":   anomaly_pts,
+            "regime":    regime_pts,
+        },
+        "action_text": action,
+        "level":       level,
+    }
+
+
+def apply_conviction_scores(stocks: list[dict],
+                            anomalies_today: list[dict] | None,
+                            vix: float | None) -> None:
+    """Schreibt ``s["conviction"]`` auf jeden Stock im Pool.
+
+    Aufruf in ``main()`` zwischen Step 4 (HTML-Render) und Step 4b
+    (``_write_app_data_json``), damit Conviction in app_data.json
+    landet. Schritt A liefert nur die Daten; Frontend-Anbindung
+    folgt in Schritt B.
+    """
+    for s in stocks:
+        s["conviction"] = compute_conviction_score(s, anomalies_today, vix)
+
+
 def _build_chat_synthesis_ctx(stocks: list[dict], score_history: dict) -> dict:
     """Erweiterter Chat-Kontext mit Tagesvergleich + Anomalien + Position.
 
@@ -10871,7 +10981,8 @@ def _write_app_data_json(watchlist_cards: dict | None = None,
                           setup_scores: dict | None = None,
                           gap_states: dict | None = None,
                           top10_metrics: dict | None = None,
-                          positions: dict | None = None) -> None:
+                          positions: dict | None = None,
+                          conviction_scores: dict | None = None) -> None:
     """Schreibt kombinierte app_data.json = score_history + agent_signals + watchlist_cards.
 
     Beide Quelldateien (score_history.json + agent_signals.json) bleiben separat
@@ -10922,6 +11033,10 @@ def _write_app_data_json(watchlist_cards: dict | None = None,
         # gelesen — überhitzte Setups erzeugen keinen Push, bleiben aber
         # im UI als „Bewegung gelaufen"-Label sichtbar.
         "top10_metrics":   top10_metrics or {},
+        # Conviction-Score Schritt A — pro Top-10-Ticker {score, components,
+        # action_text, level}. Schritt A ist Daten-only; UI-Integration
+        # folgt in Schritt B (siehe CLAUDE.md "Conviction-Score").
+        "conviction_scores": conviction_scores or {},
         # Phase 2 Exit-Signal-Daten-Pipeline (Stufe 1/3, kein UI/Push):
         # pro offener Position {entry_date, entry_price, shares, exit_state}.
         # ``exit_state`` enthält 6 Trigger-Sub-Scores + Composite
@@ -12617,11 +12732,27 @@ def main():
         _positions_payload = {}
     print(f"Step 4b Phase2-Exit ({len(_positions_payload)} Pos.) in "
           f"{time.time()-_t_p2:.1f}s", flush=True)
+
+    # Conviction-Score Schritt A — Berechnung pro Top-10-Stock. Anomalien
+    # via _build_chat_synthesis_ctx (gleiche Quelle wie Chat-Kontext); VIX
+    # aus existing app_data.json (vom letzten ki_agent-Tick gesetzt).
+    # Schritt A ist Daten-only, keine UI-Anbindung.
+    try:
+        _anomalies_today = _build_chat_synthesis_ctx(
+            top10, _load_score_history()).get("anomalies_today")
+    except Exception as _exc_anom:
+        log.warning("Conviction-Score: anomalies_today nicht verfügbar (%s)", _exc_anom)
+        _anomalies_today = None
+    _vix_for_conv = _prev_app_data.get("vix_current")
+    apply_conviction_scores(top10, _anomalies_today, _vix_for_conv)
+    _conviction_scores = {s["ticker"]: s.get("conviction")
+                          for s in top10 if s.get("ticker") and s.get("conviction")}
     _write_app_data_json(watchlist_cards=_wl_card_data,
                          monster_scores=_monster_scores,
                          setup_scores=_setup_scores,
                          gap_states=_gap_states,
                          top10_metrics=_top10_metrics,
+                         conviction_scores=_conviction_scores,
                          positions=_positions_payload)
     print(f"Step 4 abgeschlossen in {time.time()-_t4:.1f}s", flush=True)
 
