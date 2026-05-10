@@ -1292,6 +1292,31 @@ Cap weicht von `SUB_*_DISPLAY_PTS_MAX` ab) bleibt manuell zu pflegen —
 Schritt B würde `score()` aus den gleichen Konstanten ableiten und
 diese letzte Drift-Quelle eliminieren.
 
+### Bedingte Boni — Display-String muss Pfad-Vielfalt zeigen (10.05.2026)
+
+Eine Komponente kann mehrere Punkt-Pfade haben (Standard-Wert UND
+Bonus-Bedingung). Der Methodik-Display-String muss **alle aktivierbaren
+Maxima** zeigen, sonst unterschätzt er den tatsächlichen Score-Beitrag.
+
+Beispiele aktuell wirksam:
+
+- **SI-Trend** (Struct): `5 Pkt (7 bei Beschleunigung)` — Sub-Score-Cap
+  ist 5, aber `score_bonus()` addiert on-top 7 bei `si_accelerating=True`.
+- **Agent-Boost** (Boni-Box): `×1.05–1.15 (je KI-Score-Stufe)` — nicht
+  nur `×1.05`, sondern Bandbreite.
+
+Pflege-Regel: bei jeder neuen oder geänderten Acceleration-/Multiplikator-
+Logik den Display-String entsprechend ergänzen, nicht nur den Standard-
+Wert zeigen.
+
+**TODO offen** (separater PR): zwei weitere Boni fehlen aktuell komplett
+in der Boni-/Malus-Box:
+
+- `score_bonus()` (FINRA-Trend-Bonus) — On-Top +5 / +7 auf den Gesamt-
+  Score, gleicher Pfad wie SI-Trend-Beschleunigung.
+- `apply_late_runner_penalty` — Multiplikator ×0.85 bei RSI > 75 oder
+  2-T-Move > 20 %.
+
 Im Zweifel: lieber Sync mit kurzem Hinweis im Commit-Body als Drift-Risiko.
 
 ---
