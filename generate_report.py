@@ -2059,7 +2059,7 @@ _WL_CARD_STRIP_RE = {
     "rank":          re.compile(r'<span class="rank(?:[^"]*)"[^>]*>[^<]*</span>'),
     "wl_add_btn":    re.compile(r'<button class="wl-add-btn"[^>]*>[^<]*</button>'),
     "stale_ids":     re.compile(
-        r' id="(?:c|dd|db|da|dl|nb|nb-icon|np|ka-btn|ka-res)\d+"'
+        r' id="(?:c|dd|db|da|dl|nb|nb-icon|nl|np|ka-btn|ka-res)\d+"'
     ),
     "details_onclick": re.compile(r'onclick="toggleDetails\(\d+\)"'),
     "news_onclick":    re.compile(r'onclick="toggleNews\(\d+\)"'),
@@ -2082,7 +2082,8 @@ def _wl_full_card_html(s: dict) -> str:
     umgeleitet (Selektor-relativ via ``closest('.wl-card')``). Verbleibende
     ``id="…N"``-Attribute werden gestrippt, damit Top-10-Handler keine
     Watchlist-Elemente per ``getElementById`` finden. Der KI-Analyse-Klick
-    geht weiterhin auf ``wlOpenKiAnalyse(ticker)``.
+    geht auf ``wlOpenKiAnalyse(ticker, this)`` und läuft inline im
+    Drawer (statt zur Main-Karte zu redirecten).
 
     Bei Render-Fehler (z. B. fehlende Felder bei nicht-Top-10-Watchlist-
     Tickern) leerer String — JS fällt dann auf ``buildWlSparkOnly``.
@@ -2103,7 +2104,7 @@ def _wl_full_card_html(s: dict) -> str:
         'onclick="wlToggleNews(this)"', raw, count=1
     )
     raw = _WL_CARD_STRIP_RE["ki_onclick"].sub(
-        f'onclick="wlOpenKiAnalyse(\'{s["ticker"]}\')"', raw, count=1
+        f'onclick="wlOpenKiAnalyse(\'{s["ticker"]}\', this)"', raw, count=1
     )
     return raw.strip()
 
@@ -9247,14 +9248,12 @@ function _fmtGerman(d) {{
         newsHtml = `<div class="news-items" style="padding:0 12px 10px">${{items}}</div>`;
       }}
 
-      // KI-Analyse-Button — leitet bei Top-10-Tickern auf die Main-Karte
-      // weiter (runKiAnalyse dort hat alle data-attrs). Bei History-only
-      // Tickern deaktiviert mit Tooltip.
-      const kiEnabled = !!WL_TOP10[ticker];
-      const kiBtn = kiEnabled
-        ? `<button class="ki-analyse-btn" onclick="wlOpenKiAnalyse('${{ticker}}')">KI-Analyse</button>`
-        : `<button class="ki-analyse-btn" disabled
-             title="Nur für Ticker in den aktuellen Top-10 verfügbar">KI-Analyse (nicht verfügbar)</button>`;
+      // KI-Analyse-Button — läuft inline im Watchlist-Drawer via
+      // ``wlOpenKiAnalyse(ticker, btn)``. Bei fehlender Datenbasis
+      // (kein WL_TOP10- und kein _WL_CARDS-Eintrag) zeigt der Handler
+      // selbst den graceful Fallback ``Keine Daten verfügbar``.
+      const kiBtn = `<button class="ki-analyse-btn" onclick="wlOpenKiAnalyse('${{ticker}}', this)">KI-Analyse</button>
+        <div class="ki-analyse-result"></div>`;
 
       // Close-Button am Ende — zweite Griff-Stelle für lange Karten
       const closeBottom = `<div style="padding:0 12px 14px;text-align:center">
@@ -9359,16 +9358,84 @@ function _fmtGerman(d) {{
 
   // Klick auf „KI-Analyse" im expandierten Watchlist-Kontext →
   // Main-Karte sichtbar machen und deren KI-Analyse-Button auslösen.
-  window.wlOpenKiAnalyse = function(ticker) {{
+  // KI-Analyse läuft INLINE im Watchlist-Drawer. Liest Watchlist-
+  // Payload (WL_TOP10 oder _WL_CARDS), baut den gleichen ctx wie
+  // ``runKiAnalyse`` und ruft den geteilten Kern ``_kiAnalyseFromCtx``
+  // auf. Bei fehlender Datenbasis (Ticker weder in WL_TOP10 noch in
+  // _WL_CARDS) graceful Fallback statt stummes Nicht-Funktionieren.
+  window.wlOpenKiAnalyse = function(ticker, btn) {{
     try {{
-      const mainBtn = document.querySelector(
-        `article.card[data-ticker="${{ticker}}"] .ki-analyse-btn`);
-      if (!mainBtn) return;
-      const card = mainBtn.closest('article.card');
-      if (card) card.scrollIntoView({{ behavior: 'smooth', block: 'center' }});
-      setTimeout(() => mainBtn.click(), 400);
+      // Backwards-compat: bei Legacy-Aufrufen ohne ``this`` versuchen,
+      // den Button via aktuellem Click-Event zu finden.
+      if (!btn && window.event && window.event.target) {{
+        btn = window.event.target.closest('.ki-analyse-btn');
+      }}
+      if (!btn || !ticker) return;
+      const res = btn.nextElementSibling;
+      if (!res || !res.classList.contains('ki-analyse-result')) return;
+
+      const data = (typeof WL_TOP10 !== 'undefined' && WL_TOP10[ticker])
+                || (window._WL_CARDS && window._WL_CARDS[ticker]);
+      if (!data) {{
+        res.innerHTML = '<span class="ka-label">Claude &middot; ' + ticker + '</span>'
+          + '<span class="ka-no-data">Keine Daten f\xfcr diesen Ticker verf\xfcgbar — KI-Analyse ben\xf6tigt einen Snapshot aus dem heutigen Daily-Run.</span>';
+        res.classList.add('visible');
+        return;
+      }}
+
+      const newsTitles = (data.news || [])
+        .slice(0, 3)
+        .map(n => (n && n.title) || '')
+        .filter(s => s);
+      const ctx = {{
+        ticker:   ticker,
+        company:  data.company_name || ticker,
+        score:    data.score != null ? Math.round(+data.score) : '?',
+        price:    data.price != null ? (+data.price).toFixed(2) : '?',
+        sf:       data.short_float    != null ? (+data.short_float).toFixed(2) : '?',
+        sr:       data.short_ratio    != null ? (+data.short_ratio).toFixed(2) : '?',
+        rv:       data.rel_volume     != null ? (+data.rel_volume).toFixed(2)  : '?',
+        chg:      data.change         != null ? (+data.change).toFixed(2)      : '?',
+        floatM:   data.float_shares   ? (data.float_shares/1e6).toFixed(1) + 'M' : 'n/a',
+        si:       data.si_trend       || 'no_data',
+        rsi:      data.rsi14          != null ? (+data.rsi14).toFixed(1) : 'n/a',
+        iv:       data.atm_iv         != null ? (+data.atm_iv * 100).toFixed(1) : 'n/a',
+        earn:     data.earnings_days  != null
+                    ? ('in ' + data.earnings_days + 'd'
+                        + (data.earnings_date_str ? ' (' + data.earnings_date_str + ')' : ''))
+                    : 'keine in 14T',
+        cap:      data.market_cap     ? (data.market_cap/1e9).toFixed(1) + 'B USD' : 'n/a',
+        sector:   data.sector         || 'n/a',
+        kiScore:  data.ki_signal_score      != null ? (data.ki_signal_score + '/100') : 'nicht bewertet',
+        kiConf:   data.ki_signal_confidence != null ? (data.ki_signal_confidence + '%') : 'n/a',
+        kiDrv:    data.ki_signal_drivers    || '',
+        news:     newsTitles,
+        fxUsdEur: window._FX_USD_EUR || 0.92,
+      }};
+
+      // Globaler Helper für Rerun: liest den aktuellen Button via
+      // ``ki-analyse-result``-Sibling-Lookup, damit der Onclick-String
+      // im stream-Header keinen DOM-Index braucht.
+      const rerunOnclick = "wlKaRerun(this, '" + ticker.replace(/'/g, "\\\\'") + "')";
+      return _kiAnalyseFromCtx(btn, res, ctx, rerunOnclick);
     }} catch(e) {{
       console.error('wlOpenKiAnalyse Fehler:', e);
+    }}
+  }};
+
+  // Rerun-Helper: vom ka-rerun-btn im Stream-Header aufgerufen. Findet
+  // den ki-analyse-btn als Vorgeschwister von ``ki-analyse-result``,
+  // löscht ``kaHasResult``-Flag und feuert wlOpenKiAnalyse erneut.
+  window.wlKaRerun = function(rerunBtn, ticker) {{
+    try {{
+      const res = rerunBtn.closest('.ki-analyse-result');
+      if (!res) return;
+      const kiBtn = res.previousElementSibling;
+      if (!kiBtn || !kiBtn.classList.contains('ki-analyse-btn')) return;
+      delete kiBtn.dataset.kaHasResult;
+      window.wlOpenKiAnalyse(ticker, kiBtn);
+    }} catch(e) {{
+      console.error('wlKaRerun Fehler:', e);
     }}
   }};
 
@@ -9734,16 +9801,33 @@ function _fmtGerman(d) {{
     if (!card) return;
     const panel = card.querySelector('.news-panel');
     if (!panel) return;
-    const open = panel.hidden;
-    panel.hidden = !open;
-    btn.setAttribute('aria-expanded', open);
-    btn.classList.toggle('is-open', open);
-    // Label-Span (zweites ``<span>``) im stabilen Markup aktualisieren —
+    // Beide Pfade (Attribut + IDL-Property) explizit setzen — Browser
+    // synchronisieren in der Regel automatisch, aber defensiv beides
+    // anfassen vermeidet Edge-Cases bei Detail-Body-Inserts.
+    const wasHidden = panel.hasAttribute('hidden') || !!panel.hidden;
+    if (wasHidden) {{
+      panel.removeAttribute('hidden');
+      panel.hidden = false;
+    }} else {{
+      panel.setAttribute('hidden', '');
+      panel.hidden = true;
+    }}
+    btn.setAttribute('aria-expanded', wasHidden);
+    btn.classList.toggle('is-open', wasHidden);
+    // Label-Span (``.news-label``) im stabilen Markup aktualisieren —
     // kein innerHTML-Rebuild, damit der Chevron stehen bleibt und die
     // CSS-Rotation greift.
     const lbl = btn.querySelector('.news-label');
     if (lbl) {{
-      lbl.textContent = open ? ' Meldungen verbergen' : ' Aktuelle Meldungen';
+      lbl.textContent = wasHidden ? ' Meldungen verbergen' : ' Aktuelle Meldungen';
+    }}
+    // Beim Öffnen das Panel in den Sichtbereich scrollen — auf langen
+    // Drawer-Karten ist es sonst leicht außerhalb des Viewports.
+    if (wasHidden) {{
+      setTimeout(() => {{
+        try {{ panel.scrollIntoView({{behavior: 'smooth', block: 'nearest'}}); }}
+        catch(_) {{}}
+      }}, 80);
     }}
   }};
 
@@ -10523,54 +10607,25 @@ function kaRerun(cardIdx) {{
   runKiAnalyse(cardIdx);
 }}
 
-async function runKiAnalyse(cardIdx) {{
-  const article = document.getElementById('c' + cardIdx);
-  const btn     = document.getElementById('ka-btn' + cardIdx);
-  const res     = document.getElementById('ka-res' + cardIdx);
-  if (!article || !btn || !res) return;
-
+// Geteilter Kern für Top-10 (``runKiAnalyse``) und Watchlist-Drawer
+// (``wlOpenKiAnalyse``). Erwartet bereits aufgelöste DOM-Elemente und
+// einen vorgebauten ``ctx``-Dict; schreibt Stream-Output in ``res``.
+// ``rerunOnclick`` ist ein vollständiger onclick-String für den
+// Rerun-Button im Header; bei leerem String wird der Button weggelassen.
+async function _kiAnalyseFromCtx(btn, res, ctx, rerunOnclick) {{
   if (!localStorage.getItem(ANT_KEY_LS)) {{
     btn.textContent = ANT_KI_LABEL_KEY;
     toggleSettings();
     return;
   }}
 
-  // ── Bereits ein Ergebnis vorhanden → nur ein-/ausklappen ─────────────────
+  // Bereits ein Ergebnis vorhanden → nur ein-/ausklappen.
   if (btn.dataset.kaHasResult === '1') {{
     const nowVisible = res.classList.toggle('visible');
     btn.textContent  = nowVisible ? ANT_KI_LABEL_HIDE : ANT_KI_LABEL;
     btn.classList.toggle('is-open', nowVisible);
     return;
   }}
-
-  // ── Neuer API-Call ────────────────────────────────────────────────────────
-  const d = article.dataset;
-  let newsArr = [];
-  try {{ newsArr = JSON.parse(d.news || '[]'); }} catch(_) {{}}
-  const ctx = {{
-    ticker:   d.ticker  || '',
-    company:  d.company || d.ticker || '',
-    score:    d.score   || '?',
-    price:    d.price   || '?',
-    sf:       d.sf      || '?',
-    sr:       d.sr      || '?',
-    rv:       d.rv      || '?',
-    chg:      d.chg     || '?',
-    floatM:   d.float   || 'n/a',
-    si:       d.si      || 'no_data',
-    rsi:      d.rsi     || 'n/a',
-    iv:       d.iv      || 'n/a',
-    earn:     d.earn    ? ('in ' + d.earn + 'd' + (d.earnDate ? ' (' + d.earnDate + ')' : '')) : 'keine in 14T',
-    cap:      d.cap     ? (parseInt(d.cap)/1e9).toFixed(1) + 'B USD' : 'n/a',
-    sector:   d.sector  || 'n/a',
-    kiScore:  d.kiScore != null ? (d.kiScore + '/100') : 'nicht bewertet',
-    kiConf:   d.kiConf  != null ? (d.kiConf  + '%')    : 'n/a',
-    kiDrv:    d.kiDrivers || '',
-    news:     newsArr,
-    // FX: USD→EUR-Multiplikator (EUR pro 1 USD). Wird vom Chat-Panel-IIFE
-    // aus app_data.json.fx_usd_eur auf window gespiegelt.
-    fxUsdEur: window._FX_USD_EUR || 0.92,
-  }};
 
   const sysPrompt = 'Du bist ein erfahrener Squeeze-Analyst. Analysiere das folgende Squeeze-Setup und gib eine präzise Einschätzung auf Deutsch. Maximal 200 Wörter. '
     + 'Wichtiger Hinweis zu Backtesting-Daten: Die bisherigen Bootstrap-Daten basieren auf einer vereinfachten Score-Formel ohne DTC, FINRA SI-Trend und Kombinations-Bonus — sie sind nicht direkt mit Live-Scores vergleichbar. Belastbare Statistiken folgen nach 60+ Tagen Live-Daten. Der Score ist ein struktureller Filter: Kandidaten mit hohem Score haben objektiv mehr Squeeze-Potential als Kandidaten mit niedrigem Score. Für konkrete Handlungsempfehlungen sind Katalysator-Sub-Score, aktuelle Nachrichten und eigene Recherche unverzichtbar. Empfehle immer Stop-Loss -15% und maximale Haltedauer 5 Handelstage bei Squeeze-Setups. '
@@ -10609,9 +10664,12 @@ Gib eine knappe Einschätzung: Squeeze-Potenzial, wichtigste Treiber, kritische 
 
   btn.disabled = true;
   btn.textContent = ANT_KI_LABEL_BUSY;
+  const rerunBtnHtml = rerunOnclick
+    ? '<button class="ka-rerun-btn" onclick="' + rerunOnclick + '">' + ANT_KI_LABEL_NEW + '</button>'
+    : '';
   res.innerHTML =
     '<span class="ka-label">Claude &middot; ' + ctx.ticker +
-    '<button class="ka-rerun-btn" onclick="kaRerun(' + cardIdx + ')">' + ANT_KI_LABEL_NEW + '</button></span>' +
+    rerunBtnHtml + '</span>' +
     '<span class="ka-stream"></span>';
   res.classList.add('visible');
   const streamSpan = res.querySelector('.ka-stream');
@@ -10624,16 +10682,10 @@ Gib eine knappe Einschätzung: Squeeze-Potenzial, wichtigste Treiber, kritische 
       (delta) => {{
         acc += delta;
         if (streamSpan) streamSpan.innerHTML = acc.replace(/\\n/g, '<br>');
-        // Während des Streamings den Container mitscrollen, damit das
-        // aktuelle Token immer sichtbar bleibt (Fazit steht am Ende).
         if (res) res.scrollTop = res.scrollHeight;
       }},
       {{model: ANT_MODEL, max_tokens: 900}}
     );
-    // Truncation-Hinweis bei stop_reason: 'max_tokens'. Idempotent —
-    // ``res.innerHTML`` wird oben zu Beginn jedes Calls neu gesetzt,
-    // alte Notices verschwinden damit automatisch; defensiv trotzdem
-    // explizit prüfen + entfernen, falls künftig der Reset-Pfad ändert.
     const _oldNotice = res.querySelector('.ki-truncated-notice');
     if (_oldNotice) _oldNotice.remove();
     if (_streamRes && _streamRes.stopReason === 'max_tokens') {{
@@ -10642,8 +10694,6 @@ Gib eine knappe Einschätzung: Squeeze-Potenzial, wichtigste Treiber, kritische 
       notice.textContent = 'Antwort gekürzt — Token-Limit erreicht. Nochmal analysieren für vollständigen Text.';
       res.appendChild(notice);
     }}
-    // Nach Stream-Ende: via requestAnimationFrame nachscrollen, damit
-    // der letzte Layout-Pass wirklich drin ist bevor wir bottom-scrollen.
     if (res) {{
       requestAnimationFrame(() => {{ res.scrollTop = res.scrollHeight; }});
     }}
@@ -10652,11 +10702,48 @@ Gib eine knappe Einschätzung: Squeeze-Potenzial, wichtigste Treiber, kritische 
     btn.classList.add('is-open');
   }} catch(e) {{
     res.innerHTML = '<span class="ka-label">Fehler</span>' + e.message;
-    btn.textContent = ANT_KI_LABEL;   // kein has-result setzen → nächster Tap macht neuen Call
+    btn.textContent = ANT_KI_LABEL;
     btn.classList.remove('is-open');
   }} finally {{
     btn.disabled = false;
   }}
+}}
+
+async function runKiAnalyse(cardIdx) {{
+  const article = document.getElementById('c' + cardIdx);
+  const btn     = document.getElementById('ka-btn' + cardIdx);
+  const res     = document.getElementById('ka-res' + cardIdx);
+  if (!article || !btn || !res) return;
+
+  const d = article.dataset;
+  let newsArr = [];
+  try {{ newsArr = JSON.parse(d.news || '[]'); }} catch(_) {{}}
+  const ctx = {{
+    ticker:   d.ticker  || '',
+    company:  d.company || d.ticker || '',
+    score:    d.score   || '?',
+    price:    d.price   || '?',
+    sf:       d.sf      || '?',
+    sr:       d.sr      || '?',
+    rv:       d.rv      || '?',
+    chg:      d.chg     || '?',
+    floatM:   d.float   || 'n/a',
+    si:       d.si      || 'no_data',
+    rsi:      d.rsi     || 'n/a',
+    iv:       d.iv      || 'n/a',
+    earn:     d.earn    ? ('in ' + d.earn + 'd' + (d.earnDate ? ' (' + d.earnDate + ')' : '')) : 'keine in 14T',
+    cap:      d.cap     ? (parseInt(d.cap)/1e9).toFixed(1) + 'B USD' : 'n/a',
+    sector:   d.sector  || 'n/a',
+    kiScore:  d.kiScore != null ? (d.kiScore + '/100') : 'nicht bewertet',
+    kiConf:   d.kiConf  != null ? (d.kiConf  + '%')    : 'n/a',
+    kiDrv:    d.kiDrivers || '',
+    news:     newsArr,
+    // FX: USD→EUR-Multiplikator (EUR pro 1 USD). Wird vom Chat-Panel-IIFE
+    // aus app_data.json.fx_usd_eur auf window gespiegelt.
+    fxUsdEur: window._FX_USD_EUR || 0.92,
+  }};
+
+  return _kiAnalyseFromCtx(btn, res, ctx, 'kaRerun(' + cardIdx + ')');
 }}
 
 {chat_script_html}
