@@ -5972,13 +5972,22 @@ def generate_html_v1(stocks: list[dict], report_date: str, _ctx: dict | None = N
     .bt-meta{{font-size:.78rem;color:var(--txt-dim);margin:0 0 12px;line-height:1.5;
       overflow-wrap:break-word}}
     .bt-meta b{{color:var(--txt)}}
-    .bt-mode{{display:flex;gap:6px;margin:0 0 10px;flex-wrap:wrap}}
-    .bt-mode-btn{{flex:1;min-width:140px;padding:6px 10px;font-size:.78rem;
-      font-weight:700;color:var(--txt-dim);background:var(--bg-met);
-      border:1px solid var(--brd);border-radius:6px;cursor:pointer;
-      transition:background .12s,color .12s}}
+    /* Filter-Toggles als kompakte Segmented Controls — gemeinsamer
+       dunkelgrauer Container-Pill, aktiver Status mit dezentem Akzent.
+       Tap-Target via min-height 44 px für Mobile-Konformität trotz
+       Kompaktheit. */
+    .bt-mode{{display:flex;gap:4px;margin:0 0 8px;padding:4px;
+      background:var(--bg-card);border:1px solid var(--brd);
+      border-radius:8px;flex-wrap:wrap}}
+    .bt-mode-btn{{flex:1 1 auto;min-width:120px;min-height:44px;
+      padding:8px 12px;font-size:.74rem;font-weight:600;
+      color:var(--txt-dim);background:transparent;
+      border:none;border-radius:6px;cursor:pointer;
+      transition:background .12s,color .12s;
+      display:inline-flex;align-items:center;justify-content:center}}
     .bt-mode-btn:hover{{color:var(--txt)}}
-    .bt-mode-btn.active{{color:#fff;background:#6366f1;border-color:#4f46e5}}
+    .bt-mode-btn.active{{color:var(--txt);background:rgba(127,119,221,.18);
+      font-weight:700}}
     /* Mobile-first: 1 Spalte auf iPhone, 2 Spalten ab 768 px */
     .bt-grid{{display:grid;grid-template-columns:1fr;gap:12px}}
     @media (min-width:768px){{ .bt-grid{{grid-template-columns:1fr 1fr}} }}
@@ -6023,7 +6032,20 @@ def generate_html_v1(stocks: list[dict], report_date: str, _ctx: dict | None = N
     .bt-bar-row--best .bt-bar-row-lbl{{color:var(--txt);font-weight:900}}
     .bt-bar-row--best .bt-bar-row-val{{font-weight:900;font-size:.95rem}}
     .bt-bar-row--best .bt-bar-row-bar{{height:14px}}
-    .bt-bar-row--best .bt-bar-row-lbl::before{{content:'★ ';color:#f59e0b}}
+    /* Best-Median-Marker: dezenter Akzent-Stern (App-Farbe) statt
+       Emoji-Gelb. Symbol bleibt ★ — nur color in --accent. */
+    .bt-bar-row--best .bt-bar-row-lbl::before{{content:'★ ';color:var(--accent)}}
+    /* Score-Bucket-Card: visuelle Trennung der drei Buckets innerhalb
+       des Median-Tiles. Leicht hellerer Hintergrund + Top-Border + mehr
+       Abstand zwischen Buckets. */
+    .bt-bucket-card{{background:rgba(255,255,255,.02);
+      border-top:1px solid var(--brd);border-radius:6px;
+      padding:10px 8px 6px;margin-top:10px}}
+    .bt-bucket-card:first-child{{margin-top:2px;border-top:none}}
+    .bt-bucket-header{{font-size:.88rem;font-weight:800;color:var(--txt);
+      margin-bottom:8px;letter-spacing:.2px}}
+    .bt-bucket-n{{font-weight:500;color:var(--txt-dim);font-size:.78rem;
+      margin-left:4px}}
     .bt-bar-row-lbl{{flex:0 0 62px;color:var(--txt-dim);font-weight:700}}
     .bt-bar-row-bar{{flex:1 1 auto;min-width:0;height:10px;background:var(--brd);
       border-radius:4px;position:relative;overflow:hidden}}
@@ -7251,10 +7273,11 @@ function _btRenderHitRates(data){{
       const h  = plotH * r.rate;
       const y  = PAD_T + plotH - h;
       const pct = r.rate * 100;
-      // Dünn-Bucket: fill + Wert in Grau, sonst rot/gelb/grün nach pct.
+      // Trefferquote ist eine Statistik, keine Rendite — neutrale Akzent-
+      // farbe (App-Lila) statt rot/grün, damit Rot strikt für Verlust-
+      // Renditen reserviert bleibt. Dünn-Bucket weiterhin grau (PR #81).
       const thin = r.n < MIN_BUCKET_N;
-      const col = thin ? _BT_DIM_COL
-                       : (pct > 65 ? '#22c55e' : pct >= 50 ? '#f59e0b' : '#ef4444');
+      const col = thin ? _BT_DIM_COL : 'var(--accent)';
       body += '<rect x="' + x + '" y="' + y + '" width="' + barW + '" height="' + h
             + '" fill="' + col + '" rx="2"/>';
       body += '<text class="bt-chart-val" x="' + (x+barW/2) + '" y="' + (y-3) + '" '
@@ -7378,8 +7401,12 @@ function _btRenderMedian(data){{
   }}
   let html = '';
   stats.forEach(s => {{
-    html += '<div style="font-size:.72rem;color:var(--txt-dim);font-weight:700;margin-top:4px">'
-          + 'Score ' + s.key + ' <span style="font-weight:400">(n=' + s.n + ')</span></div>';
+    // Bucket-Card: dezent abgesetzte Hintergrundfarbe + Border-Top
+    // pro Score-Bucket. Header prominenter (größerer Font, Vollkontrast).
+    html += '<div class="bt-bucket-card">'
+          + '<div class="bt-bucket-header">'
+          + 'Score ' + s.key
+          + ' <span class="bt-bucket-n">(n=' + s.n + ')</span></div>';
     s.meds.forEach((m, i) => {{
       const isBest = (i === s.bestIdx);
       html += _renderRow(m, i, 'median', isBest);
@@ -7387,6 +7414,7 @@ function _btRenderMedian(data){{
       html += _renderRange(m);
       html += _renderSkew(m);
     }});
+    html += '</div>';
   }});
   container.innerHTML = html;
 }}
