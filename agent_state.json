@@ -1,5 +1,5 @@
 {
-  "last_run": "2026-05-10T17:51:48.438567+02:00",
+  "last_run": "2026-05-10T18:53:06.877476+02:00",
   "cooldowns": {
     "anomaly_score_jump_XRX": "2026-05-03T18:47:15.315486+02:00",
     "anomaly_uoa_extreme_TDOC": "2026-05-04T13:47:00.365949+02:00",
@@ -13,7 +13,7 @@
     "anomaly_monster_backup_PCT": "2026-05-08T11:18:11.392228+02:00",
     "anomaly_monster_backup_VYX": "2026-05-08T13:12:12.367458+02:00",
     "anomaly_score_jump_GRPN": "2026-05-10T15:05:37.947367+02:00",
-    "anomaly_monster_backup_OFRM": "2026-05-10T09:30:52.736770+02:00"
+    "anomaly_monster_backup_OFRM": "2026-05-10T18:53:05.781481+02:00"
   },
   "push_history": [
     {
@@ -104,6 +104,15 @@
       "severity": "high",
       "trigger": "monster_backup",
       "body": "NVAX 🔥 Monster 100 | Setup 100 | KI 65",
+      "success": true
+    },
+    {
+      "ts": "2026-05-10T18:53:05.781458+02:00",
+      "ticker": "OFRM",
+      "kind": "anomaly",
+      "severity": "high",
+      "trigger": "monster_backup",
+      "body": "OFRM 🔥 Monster 94 | Setup 78 | KI 63",
       "success": true
     }
   ]
