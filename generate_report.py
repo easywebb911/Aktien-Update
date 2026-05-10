@@ -6082,6 +6082,7 @@ def generate_html_v1(stocks: list[dict], report_date: str, _ctx: dict | None = N
           <label>Zeitraum
             <select id="tj-filter-period" onchange="renderTradeJournal()">
               <option value="all">Alle</option>
+              <option value="7">Letzte 7 Tage</option>
               <option value="30">Letzte 30 Tage</option>
               <option value="90">Letzte 90 Tage</option>
               <option value="365">Letzte 12 Monate</option>
