@@ -914,10 +914,11 @@ abbr[title]{text-decoration:underline dotted var(--txt-dim);
 .chat-send-btn:disabled{opacity:.45;cursor:not-allowed}
 .score-block{display:flex;flex-direction:column;align-items:flex-end;gap:7px;min-width:80px}
 .sb-row{display:flex;flex-direction:column;align-items:flex-end;line-height:1}
-/* Conviction (Schritt B) — größter Score-Block, immer ganz oben.
-   Action-Text als kleiner Hint unter Track. Width-Alignment via
-   flex-end vom Eltern-.sb-row. */
-.sb-row[data-sb="conviction"] .sb-num{font-size:50px;font-weight:900;line-height:1}
+/* Conviction (Schritt B) — eleganter Akzent oben im Score-Block.
+   Reduziert von 50px/900 auf 36px/700 (1.6× Setup-Größe statt 2.3×).
+   Wenn Sort-Mode = conviction, wird die Zeile auf 42px/900 hochgezogen
+   (analog zu setup/monster/ki Sort-Active-Style). */
+.sb-row[data-sb="conviction"] .sb-num{font-size:36px;font-weight:700;line-height:1}
 .sb-row[data-sb="conviction"]{order:0 !important;margin-bottom:6px}
 .sb-conv-action{display:block;font-size:.6rem;line-height:1.25;margin-top:4px;
   text-align:right;max-width:160px;font-weight:600;letter-spacing:.2px}
@@ -942,6 +943,14 @@ abbr[title]{text-decoration:underline dotted var(--txt-dim);
 .score-block.sort-ki .sb-row[data-sb="setup"]{order:2}
 .score-block.sort-ki .sb-row[data-sb="monster"]{order:3}
 .score-block.sort-ki .sb-row[data-sb="ki"] .sb-num{font-size:36px;font-weight:900}
+/* sort-conviction: Conviction bleibt order:0 (immer oben); aktiver
+   Sortier-Modus zieht die Zahl von 36 auf 42 px und ändert das
+   Font-Weight auf 900 — Setup/Monster/KI darunter behalten ihre
+   Default-Reihenfolge. */
+.score-block.sort-conviction .sb-row[data-sb="conviction"] .sb-num{font-size:42px;font-weight:900}
+.score-block.sort-conviction .sb-row[data-sb="setup"]{order:1}
+.score-block.sort-conviction .sb-row[data-sb="monster"]{order:2}
+.score-block.sort-conviction .sb-row[data-sb="ki"]{order:3}
 /* Legacy aliases — old class names kept as no-op fallback for cached pages.
    ``cursor: default`` (statt pointer): Setup-Score reagiert nicht mehr
    auf Klicks — die Tooltip-Erklärung ist entfallen, alle Werte stehen
@@ -1026,7 +1035,8 @@ abbr[title]{text-decoration:underline dotted var(--txt-dim);
   .agent-dot.none    {width:10px;height:10px}
   /* Conviction-Number etwas kleiner auf Mobile, damit sie
      nicht aus der schmalen Score-Block-Spalte überläuft. */
-  .sb-row[data-sb="conviction"] .sb-num{font-size:40px}
+  .sb-row[data-sb="conviction"] .sb-num{font-size:30px}
+  .score-block.sort-conviction .sb-row[data-sb="conviction"] .sb-num{font-size:34px}
   .sb-conv-action{max-width:130px;font-size:.55rem}
 }
 /* Agent-Dot-Tooltip ist entfallen — siehe ``renderAgentSignals`` in

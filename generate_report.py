@@ -4139,6 +4139,13 @@ def _card(i: int, s: dict) -> str:
     monster_score_val = s.get("monster_score")
     monster_data_attr = (f' data-monster="{monster_score_val:.1f}"'
                          if monster_score_val is not None else '')
+    # Conviction-Score als data-Attribut für die Sortier-Logik im
+    # Hamburger-Menü (sort-conviction). Stocks ohne conviction-Feld
+    # bleiben ohne Attribut → JS-Fallback sortiert sie ans Ende.
+    _conv = s.get("conviction") or {}
+    _conv_sc = _conv.get("score")
+    conviction_data_attr = (f' data-conviction="{int(round(float(_conv_sc)))}"'
+                            if isinstance(_conv_sc, (int, float)) else '')
 
 
     # SI trend history + velocity
@@ -4386,7 +4393,7 @@ def _card(i: int, s: dict) -> str:
     rank_html = f'<span class="rank">{i}</span>'
 
     return f"""
-<article class="card{' card-manual' if s.get('manual_personal') else ''}{' card-lazy' if (LAZY_CARDS_ENABLED and i > LAZY_CARDS_EAGER) else ''}" id="c{i}" data-ticker="{s['ticker']}" data-setup-rank="{i}"{monster_data_attr}
+<article class="card{' card-manual' if s.get('manual_personal') else ''}{' card-lazy' if (LAZY_CARDS_ENABLED and i > LAZY_CARDS_EAGER) else ''}" id="c{i}" data-ticker="{s['ticker']}" data-setup-rank="{i}"{monster_data_attr}{conviction_data_attr}
   data-score="{sc:.1f}" data-company="{s.get('company_name','')}"
   data-price="{_price:.2f}" data-sf="{sf:.1f}" data-sr="{sr:.1f}"
   data-rv="{rv:.2f}" data-chg="{chg:.2f}" data-si="{si_trend}"
@@ -4642,6 +4649,13 @@ def _build_card_ctx(i: int, s: dict) -> dict:
     monster_score_val = s.get("monster_score")
     monster_data_attr = (f' data-monster="{monster_score_val:.1f}"'
                          if monster_score_val is not None else '')
+    # Conviction-Score als data-Attribut für die Sortier-Logik im
+    # Hamburger-Menü (sort-conviction). Stocks ohne conviction-Feld
+    # bleiben ohne Attribut → JS-Fallback sortiert sie ans Ende.
+    _conv = s.get("conviction") or {}
+    _conv_sc = _conv.get("score")
+    conviction_data_attr = (f' data-conviction="{int(round(float(_conv_sc)))}"'
+                            if isinstance(_conv_sc, (int, float)) else '')
 
     # ── FINRA SI-Trend & velocity ────────────────────────────────────────
     finra_d     = s.get("finra_data") or {}
@@ -4991,6 +5005,7 @@ def _build_card_ctx(i: int, s: dict) -> dict:
         "below_min_score_html": below_min_score_html,
         "score_block_html":     score_block_html,
         "monster_data_attr":    monster_data_attr,
+        "conviction_data_attr": conviction_data_attr,
         "setup_rank":           i,
         "si_velocity_row":      si_velocity_row,
         "trend_html":           trend_html,
@@ -5581,6 +5596,10 @@ def generate_html_v1(stocks: list[dict], report_date: str, _ctx: dict | None = N
           <i data-lucide="check" class="menu-check" id="menu-sort-check-ki"></i>
           <span>KI-Score</span>
         </button>
+        <button class="menu-subitem" data-sort="conviction" role="menuitemradio" onclick="selectSortMode('conviction')">
+          <i data-lucide="check" class="menu-check" id="menu-sort-check-conviction"></i>
+          <span>Conviction-Score</span>
+        </button>
       </div>
       <button class="menu-item" role="menuitem" onclick="toggleChat();toggleMenuDrawer(false)">
         <span class="menu-icon-box"><i data-lucide="message-circle"></i></span>
@@ -5822,7 +5841,43 @@ def generate_html_v1(stocks: list[dict], report_date: str, _ctx: dict | None = N
           <strong>Monster-Score = Setup-Score × KI-Boost</strong> — KI ≥ 60: +20&nbsp;% · KI &lt; 25: −20&nbsp;% · sonst neutral · Cap 100
         </p>
         <p class="score-block-foot"><em>Sub-Scores sind unabhängige Qualitätsindikatoren — nicht die Zerlegung des Gesamt-Scores.</em></p>
-        <p class="score-block-foot"><strong>Top-10-Sortierung</strong> (Hamburger-Menü): drei Optionen — <strong>Setup-Score</strong> (Default, Server-seitige Reihenfolge), <strong>Monster-Score</strong> (absteigend nach Setup×KI-Boost) oder <strong>KI-Score</strong> (absteigend nach reinem KI-Agent-Score, auf Karten sichtbar als pulsierender Dot). KI-Sortierung wird nach Eingang des stündlichen agent_signals.json-Fetches angewandt.</p>
+        <p class="score-block-foot"><strong>Top-10-Sortierung</strong> (Hamburger-Menü): vier Optionen — <strong>Setup-Score</strong> (Default, Server-seitige Reihenfolge), <strong>Monster-Score</strong> (absteigend nach Setup×KI-Boost), <strong>KI-Score</strong> (absteigend nach reinem KI-Agent-Score, auf Karten sichtbar als pulsierender Dot) oder <strong>Conviction-Score</strong> (absteigend nach Aktions-Empfehlung — Stocks ohne Conviction-Daten ans Ende). KI-Sortierung wird nach Eingang des stündlichen agent_signals.json-Fetches angewandt.</p>
+      </div>
+      <div class="info-box info-box--full">
+        <h4>Conviction-Score — Aktions-Empfehlung</h4>
+        <p class="score-intro-story">
+          <strong>Conviction beantwortet die Aktions-Frage „jetzt einsteigen?"</strong>
+          obendrauf zu Setup/Monster/KI. Aggregiert vier Komponenten:
+          Setup-Qualität, Earliness, aktive Anomalie-Trigger und
+          Marktphasen-Konformität (VIX-Regime).
+        </p>
+        <div class="score-blocks">
+          <div class="score-block-card">
+            <div class="score-block-head">
+              <span class="score-block-name">Komponenten</span>
+              <span class="score-block-badge">0–100</span>
+            </div>
+            <ul class="score-block-list">
+              <li><span class="sb-lbl">Setup</span><span class="sb-pts">max 33 Pkt</span></li>
+              <li><span class="sb-lbl">Earliness</span><span class="sb-pts">max 28 Pkt</span></li>
+              <li><span class="sb-lbl">Anomaly</span><span class="sb-pts">max 28 Pkt</span></li>
+              <li><span class="sb-lbl">Regime (VIX)</span><span class="sb-pts">max 11 Pkt</span></li>
+            </ul>
+            <p class="score-block-foot">Summe gecappt auf 100</p>
+          </div>
+          <div class="score-block-card">
+            <div class="score-block-head">
+              <span class="score-block-name">Level &amp; Aktion</span>
+              <span class="score-block-badge">3 Stufen</span>
+            </div>
+            <ul class="score-block-list">
+              <li><span class="sb-lbl">≥ 75 — high</span><span class="sb-pts" style="color:#22c55e">Erwartungswert positiv</span></li>
+              <li><span class="sb-lbl">50–74 — medium</span><span class="sb-pts" style="color:#f59e0b">Substrat stark, Timing fehlt</span></li>
+              <li><span class="sb-lbl">&lt; 50 — low</span><span class="sb-pts" style="color:var(--txt-dim)">Phase oder Marktkontext ungünstig</span></li>
+            </ul>
+            <p class="score-block-foot">Component-Aufschlüsselung in der Detail-Ansicht pro Stock</p>
+          </div>
+        </div>
       </div>
       <div class="info-box">
         <h4>Datenquellen</h4>
@@ -6271,7 +6326,7 @@ function changeFontSize(dir){{
 // renderAgentSignals auf jedem Card gesetzt — nicht-zugewiesene Karten
 // landen ans Ende). Persistenz in localStorage[``squeeze_sort_mode``].
 const _SORT_KEY = 'squeeze_sort_mode';
-const _SORT_VALID = ['setup', 'monster', 'ki'];
+const _SORT_VALID = ['setup', 'monster', 'ki', 'conviction'];
 function _applySortMode(mode){{
   const m = _SORT_VALID.indexOf(mode) >= 0 ? mode : 'setup';
   const grid = document.querySelector('.cards-grid');
@@ -6281,6 +6336,14 @@ function _applySortMode(mode){{
       cards.sort((a, b) => parseFloat(b.dataset.monster || '0') - parseFloat(a.dataset.monster || '0'));
     }} else if (m === 'ki') {{
       cards.sort((a, b) => parseFloat(b.dataset.kiScore || '0') - parseFloat(a.dataset.kiScore || '0'));
+    }} else if (m === 'conviction') {{
+      // Conviction: data-conviction (gesetzt nur wenn Wert vorhanden) absteigend.
+      // Stocks ohne Attribut → -1 → ans Ende sortiert.
+      cards.sort((a, b) => {{
+        const av = a.dataset.conviction !== undefined ? parseFloat(a.dataset.conviction) : -1;
+        const bv = b.dataset.conviction !== undefined ? parseFloat(b.dataset.conviction) : -1;
+        return bv - av;
+      }});
     }} else {{
       cards.sort((a, b) => parseInt(a.dataset.setupRank || '0', 10) - parseInt(b.dataset.setupRank || '0', 10));
     }}
@@ -6288,19 +6351,22 @@ function _applySortMode(mode){{
   }}
   // Score-Block-Layout: jeder Modus bekommt eine eigene ``sort-*``-
   // Klasse, die den entsprechenden Score nach oben stellt + auf 36px
-  // hochzieht. Genau eine der drei ist gesetzt, die anderen sind aus.
+  // hochzieht. Genau eine der vier ist gesetzt, die anderen sind aus.
   document.querySelectorAll('.score-block').forEach(sb => {{
-    sb.classList.toggle('sort-setup',   m === 'setup');
-    sb.classList.toggle('sort-monster', m === 'monster');
-    sb.classList.toggle('sort-ki',      m === 'ki');
+    sb.classList.toggle('sort-setup',      m === 'setup');
+    sb.classList.toggle('sort-monster',    m === 'monster');
+    sb.classList.toggle('sort-ki',         m === 'ki');
+    sb.classList.toggle('sort-conviction', m === 'conviction');
   }});
-  // Häkchen im Submenu aktualisieren — exakt eine der drei Optionen aktiv.
+  // Häkchen im Submenu aktualisieren — exakt eine der vier Optionen aktiv.
   const cs = document.getElementById('menu-sort-check-setup');
   const cm = document.getElementById('menu-sort-check-monster');
   const ck = document.getElementById('menu-sort-check-ki');
-  if (cs) cs.style.visibility = (m === 'setup')   ? 'visible' : 'hidden';
-  if (cm) cm.style.visibility = (m === 'monster') ? 'visible' : 'hidden';
-  if (ck) ck.style.visibility = (m === 'ki')      ? 'visible' : 'hidden';
+  const cc = document.getElementById('menu-sort-check-conviction');
+  if (cs) cs.style.visibility = (m === 'setup')      ? 'visible' : 'hidden';
+  if (cm) cm.style.visibility = (m === 'monster')    ? 'visible' : 'hidden';
+  if (ck) ck.style.visibility = (m === 'ki')         ? 'visible' : 'hidden';
+  if (cc) cc.style.visibility = (m === 'conviction') ? 'visible' : 'hidden';
 }}
 function setSortMode(mode){{
   const m = _SORT_VALID.indexOf(mode) >= 0 ? mode : 'setup';
