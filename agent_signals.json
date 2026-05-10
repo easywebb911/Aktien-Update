@@ -1,10 +1,10 @@
 {
-  "updated": "2026-05-10T12:12:53.432707+02:00",
+  "updated": "2026-05-10T13:50:16.457002+02:00",
   "run_info": {
     "tickers_checked": 10,
     "signals_active": 8,
     "alerts_sent": 0,
-    "elapsed_s": 13.1,
+    "elapsed_s": 9.3,
     "market_phase": "Geschlossen"
   },
   "signals": {
@@ -114,9 +114,9 @@
       "uoa_cp_ratio": 0.4666666666666667
     },
     "TEAD": {
-      "score": 25,
+      "score": 35,
       "confidence": 33,
-      "drivers": "Spanne 24.7% + News-KI 5/30: Neutral earnings announcement and partnership news with no indicators of high short interest, low float, or squeeze cata + UOA Call/Put 12.4×",
+      "drivers": "Spanne 24.7% + News: partnership + UOA Call/Put 12.4×",
       "price": 1.06,
       "chg_pct": -0.0,
       "rvol": 0.97,
@@ -126,7 +126,7 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 0,
+      "active_triggers": 1,
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 12.4×"
