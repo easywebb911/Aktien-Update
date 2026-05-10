@@ -5895,6 +5895,14 @@ def generate_html_v1(stocks: list[dict], report_date: str, _ctx: dict | None = N
     .bt-bar-row--mean{{font-size:.7rem;opacity:.85;margin-top:-2px}}
     .bt-bar-row--mean .bt-bar-row-bar{{height:6px}}
     .bt-bar-row--mean .bt-bar-row-lbl{{font-weight:600}}
+    /* Range-Sub-Zeile (Min/Max) — reine Text-Anzeige, kein Balken.
+       Sehr dezent damit Median/Mean dominieren; Grau-Dimming bei
+       n<MIN_BUCKET_N wird inline per Color-Style gesetzt. */
+    .bt-bar-row--range{{font-size:.65rem;opacity:.7;margin-top:-2px;
+      margin-bottom:4px;font-variant-numeric:tabular-nums}}
+    .bt-bar-row--range .bt-bar-row-lbl{{font-weight:600}}
+    .bt-range-text{{flex:1 1 auto;min-width:0;font-weight:400;
+      letter-spacing:.2px;line-height:1.3}}
     .bt-bar-row--best .bt-bar-row-lbl{{color:var(--txt);font-weight:900}}
     .bt-bar-row--best .bt-bar-row-val{{font-weight:900;font-size:.95rem}}
     .bt-bar-row--best .bt-bar-row-bar{{height:14px}}
@@ -7127,7 +7135,12 @@ function _btBucketStats(data){{
                         .filter(v => v !== null && v !== undefined);
       const med  = _btMedian(vals);
       const mean = _btMean(vals);
-      return {{lbl, key, med, mean, n: vals.length}};
+      // Range-Erweiterung: Min/Max der Roh-Werte. Math.min/max auf
+      // leerem Array liefert ±Infinity → null mappen, damit Render
+      // sauber „—" anzeigt.
+      const min  = vals.length ? Math.min(...vals) : null;
+      const max  = vals.length ? Math.max(...vals) : null;
+      return {{lbl, key, med, mean, min, max, n: vals.length}};
     }});
     // Best = höchster Median mit mind. 1 Datenpunkt; null/keine Daten zählen nicht
     let bestIdx = -1;
@@ -7171,6 +7184,20 @@ function _btRenderMedian(data){{
          + (val === null ? '—' : (val >= 0 ? '+' : '') + val.toFixed(1) + '%')
          + '</span></div>';
   }}
+  // Range-Sub-Zeile (Min/Max) — reine Text-Anzeige unter dem
+  // Median/Mean-Pärchen, kein zusätzlicher Balken.
+  function _renderRange(m){{
+    const thin = (m.min !== null || m.max !== null) && m.n < MIN_BUCKET_N;
+    const col  = thin ? _BT_DIM_COL : 'var(--txt-dim)';
+    const fmt  = v => v === null
+                       ? '—'
+                       : (v >= 0 ? '+' : '') + v.toFixed(1) + '%';
+    return '<div class="bt-bar-row bt-bar-row--range" style="color:' + col + '">'
+         + '<span class="bt-bar-row-lbl">R ' + m.lbl + '</span>'
+         + '<span class="bt-range-text">Min ' + fmt(m.min)
+         + ' · Max ' + fmt(m.max) + '</span>'
+         + '</div>';
+  }}
   let html = '';
   stats.forEach(s => {{
     html += '<div style="font-size:.72rem;color:var(--txt-dim);font-weight:700;margin-top:4px">'
@@ -7179,6 +7206,7 @@ function _btRenderMedian(data){{
       const isBest = (i === s.bestIdx);
       html += _renderRow(m, i, 'median', isBest);
       html += _renderRow(m, i, 'mean',   false);
+      html += _renderRange(m);
     }});
   }});
   container.innerHTML = html;
