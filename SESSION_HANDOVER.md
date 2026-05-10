@@ -227,6 +227,27 @@ berühren), nicht *verändern*.
   allen 10 ki_agent-Signalen), der ohne den Check Tage unbemerkt
   weitergelaufen wäre. Nach jeder Session mit ≥ 3 Code-PRs
   empfehlenswert.
+- **Backtest-Verteilungs-Erkenntnis (10.05.2026) — Median allein
+  unterschätzt die Edge.** Squeeze-Renditen sind extrem rechtsschief;
+  einzelne Knaller treiben den Mean weit über den Median, ohne dass
+  der Median sie sieht. Konkrete Beobachtung nach PR #86 (Mean-Feature):
+  - Score ≥ 70, 10T-T+1: **Median +4.1 %** vs **Mean +12.2 %** (3× Spread)
+  - Score 50–69, 10T-T+0: **Median −0.3 %** vs **Mean +2.5 %** (Vorzeichen-Wechsel)
+  - Score < 50: Median und Mean nah beieinander → symmetrische Negativ-
+    Verteilung, keine versteckten Knaller.
+
+  **Implikation für Trading:** Bei asymmetrischer Auszahlungs-Struktur
+  (Stops klein, Gewinne durchlaufen lassen) ist Mean der relevantere
+  Indikator. Median ist nicht falsch, aber unvollständig — er glättet
+  genau die Squeeze-Knaller weg, die das Setup ausmachen.
+
+  **Korrektur der Erst-Interpretation vom 09.05.2026:** Der ≥70-Bucket
+  hat sehr wohl Edge, sie ist nur in der Verteilungs-Schiefe versteckt.
+  Die ursprüngliche Diagnose „kein klarer Sortier-Effekt an der Spitze"
+  war ein Median-Artefakt. Diese Erkenntnis ist primärer Input für die
+  spätere Score-Lackmus-Test-Bewertung (siehe Strategische Roadmap):
+  Mean ≥ Median × 2 im ≥70-Bucket gilt als positive Bestätigung der
+  Score-Edge.
 
 ## Code-Hygiene-Backlog
 
