@@ -952,7 +952,7 @@ ein medium+-Substrat zeigen. `conviction_high` (≥ 75) selbst ist
 ungefiltert (Aktions-Push).
 
 Gating-Reihenfolge im Consumer-Loop:
-`vix_pause → silence_filter → cooldown → conviction_gate → push`.
+`vix_pause → cooldown → silence_filter → conviction_gate → push`.
 
 `push_history` wird **immer** geschrieben, auch bei unterdrücktem
 Push — mit `suppressed=True` und
