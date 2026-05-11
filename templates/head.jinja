@@ -399,6 +399,42 @@ abbr[title]{text-decoration:underline dotted var(--txt-dim);
 .tj-trade-details-body{margin-top:6px}
 .tj-trade-details-body[hidden]{display:none}
 .tj-trade-details-body .tj-trade-note:first-child{margin-top:0}
+/* ── Push-Historie (Phase 2 Stufe 3c-3) ──────────────────────────── */
+.tj-filters input[type="text"]{background:var(--bg-card);border:1px solid var(--brd);
+  border-radius:6px;padding:6px 10px;color:var(--txt);font-size:.82rem;
+  min-height:34px;font-family:inherit;text-transform:uppercase;
+  letter-spacing:.02em}
+.tj-filters input[type="text"]:focus{outline:2px solid var(--accent);outline-offset:1px}
+.ph-row{background:var(--bg-card);border:1px solid var(--brd);border-radius:8px;
+  padding:8px 10px;margin-top:8px;font-size:.78rem;line-height:1.45}
+.ph-row-head{display:flex;flex-wrap:wrap;align-items:center;gap:6px;
+  margin-bottom:4px;font-weight:600}
+.ph-ts{color:var(--txt-dim);font-size:.72rem;font-variant-numeric:tabular-nums;
+  letter-spacing:.01em}
+.ph-ticker{color:var(--txt);font-size:.82rem;font-weight:800;letter-spacing:.01em}
+.ph-trig{color:var(--txt-sub);font-size:.7rem;font-family:ui-monospace,SFMono-Regular,
+  "SF Mono",Menlo,Consolas,monospace;background:var(--bg-met);
+  border:1px solid var(--brd);padding:1px 5px;border-radius:4px}
+.ph-row-body{color:var(--txt);word-break:break-word}
+.ph-sev-pill{display:inline-block;font-size:.65rem;font-weight:700;
+  text-transform:uppercase;letter-spacing:.04em;padding:2px 6px;border-radius:4px;
+  background:var(--bg-met);color:var(--txt-sub);border:1px solid var(--brd)}
+.ph-sev-pill.ph-sev-high{background:rgba(239,68,68,0.14);color:#ef4444;
+  border-color:rgba(239,68,68,0.45)}
+.ph-sev-pill.ph-sev-medium{background:rgba(148,163,184,0.14);color:var(--txt-dim);
+  border-color:rgba(148,163,184,0.45)}
+.ph-kind-pill{display:inline-block;font-size:.7rem;padding:2px 6px;border-radius:4px;
+  background:var(--bg-met);color:var(--txt-sub);border:1px solid var(--brd);
+  margin-right:4px;margin-bottom:2px}
+.ph-fail{color:#ef4444;font-weight:700;margin-left:2px}
+.ph-empty{color:var(--txt-dim);font-size:.78rem;font-style:italic;
+  padding:8px 4px;line-height:1.5}
+@media (max-width: 480px) {
+  .tj-filters{gap:8px}
+  .tj-filters label{flex:1 1 100%}
+  .ph-row{padding:7px 9px;font-size:.76rem}
+  .ph-ticker{font-size:.78rem}
+}
 /* Close-Form (Verkaufsdaten) — unterscheidet sich von Open-Form
    durch zusätzliche Textareas. Dasselbe pos-form-Grundgerüst. */
 .pos-form-close textarea{background:var(--bg-met);border:1px solid var(--brd);
