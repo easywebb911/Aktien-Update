@@ -158,8 +158,8 @@
     Braucht Entry-Snapshot (dtc/short_float/cost_to_borrow) im Gist
     — Schema-Erweiterung am Position-Open-Form notwendig.
     Trigger 5 (catalyst, forward-looking Earnings-Lookup, Finnhub
-    + yfinance-Fallback) und Trigger 6 (trend_break, EMA21) sind
-    seit PR #113 / PR-Catalyst live.
+    + yfinance-Fallback) ist seit PR #116 live, Trigger 6
+    (trend_break, EMA21) seit PR #113.
 16. **Tier-2-Insight-Builder** als Reserve.
 17. **Methodik-Asymmetrien Schritt 3** — Late-Runner-Penalty- und
     FINRA-Konstanten-Display ist seit PR #99 aus `config.py` gelesen,
@@ -206,8 +206,8 @@ parallele Arbeitsstränge:
 - **Phase 3 Exit-Signale** (Wiedervorlage 15.05.2026).
 - **Phase 2 Stufe 3c-3** — UI-Notification-History.
 - **Phase 2 Trigger 4 (setup_erosion)** — von Stub auf echte Daten
-  umstellen; catalyst + trend_break sind seit PR #113 / PR-Catalyst
-  live.
+  umstellen; trend_break ist seit PR #113 live, catalyst seit
+  PR #116.
 
 **Mittelfristig (Wochen, datenabhängig)**
 
