@@ -441,6 +441,14 @@ ANOMALY_MONSTER_BACKUP            = 90
 # persistiert (Key: "prev_conviction_scores").
 ANOMALY_CONVICTION_HIGH_THRESHOLD = 75
 
+# Conviction-Gating: Anomaly-Pushes (außer conviction_high selbst) werden
+# nur an ntfy gesendet, wenn der Ticker mindestens diese Conviction
+# erreicht. push_history wird in jedem Fall geschrieben — bei
+# unterdrücktem Push mit suppressed=True + suppress_reason. Ticker
+# ohne Conviction-Score (z.B. nicht in heutigen conviction_scores)
+# pushen konservativ wie bisher (keine Filterung).
+ANOMALY_CONVICTION_MIN_THRESHOLD  = 50
+
 # ── VIX-Gating für Anomalie-Pushes ──────────────────────────────────────────
 # Bei hohem VIX (Krise/Panik) sind Squeeze-Setups oft Bull-Traps. Schwellen:
 #   VIX > ANOMALY_VIX_PAUSE_THRESHOLD → alle Anomalie-Pushes pausiert
