@@ -1,5 +1,5 @@
 {
-  "last_run": "2026-05-11T21:19:51.171166+02:00",
+  "last_run": "2026-05-11T22:47:56.093582+02:00",
   "cooldowns": {
     "anomaly_score_jump_XRX": "2026-05-03T18:47:15.315486+02:00",
     "anomaly_uoa_extreme_TDOC": "2026-05-04T13:47:00.365949+02:00",
@@ -14,7 +14,8 @@
     "anomaly_monster_backup_VYX": "2026-05-08T13:12:12.367458+02:00",
     "anomaly_score_jump_GRPN": "2026-05-11T12:37:11.234314+02:00",
     "anomaly_monster_backup_OFRM": "2026-05-10T18:53:05.781481+02:00",
-    "anomaly_score_jump_ENVX": "2026-05-11T20:57:21.330160+02:00"
+    "anomaly_score_jump_ENVX": "2026-05-11T20:57:21.330160+02:00",
+    "anomaly_monster_backup_DFDV": "2026-05-11T22:47:53.756888+02:00"
   },
   "push_history": [
     {
@@ -229,19 +230,41 @@
       "success": true,
       "suppressed": false,
       "suppress_reason": null
+    },
+    {
+      "ts": "2026-05-11T22:47:53.756857+02:00",
+      "ticker": "DFDV",
+      "kind": "anomaly",
+      "severity": "high",
+      "trigger": "monster_backup",
+      "body": "DFDV 🔥 Monster 92 | Setup 77 | KI 82",
+      "success": true,
+      "suppressed": false,
+      "suppress_reason": null
+    },
+    {
+      "ts": "2026-05-11T22:47:54.032620+02:00",
+      "ticker": "DMRC",
+      "kind": "earnings_immediate",
+      "severity": "default",
+      "trigger": null,
+      "body": "DMRC Earnings-Sofort-Alert (in 1d, KI 66)",
+      "success": true,
+      "suppressed": false,
+      "suppress_reason": null
     }
   ],
   "prev_conviction_scores": {
-    "DFDV": 63.0,
-    "INDI": 33.0,
+    "DFDV": 64.0,
+    "INDI": 34.0,
+    "AEVA": 55.0,
     "ENVX": 60.0,
-    "FTK": 54.0,
-    "PCT": 31.0,
-    "AEVA": 53.0,
-    "CADL": 59.0,
+    "FTK": 58.0,
     "DMRC": 59.0,
+    "CADL": 58.0,
     "MNTS": 44.0,
-    "CCCC": 55.0
+    "PZZA": 67.0,
+    "BKSY": 40.0
   },
   "exit_cooldowns": {
     "exitp2_warning_AMC": "2026-05-11T20:57:23.344379+02:00",
