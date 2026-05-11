@@ -635,7 +635,7 @@ def get_yfinance_data(ticker: str) -> dict:
         prev_close = float(hist["Close"].iloc[-2]) if len(hist) >= 2 else None
         cur_close  = float(hist["Close"].iloc[-1]) if "Close" in hist.columns and len(hist) >= 1 else None
 
-        rsi14, ma50, ma200, perf_20d = None, None, None, None
+        rsi14, ma21, ma50, ma200, perf_20d = None, None, None, None, None
         if not hist.empty:
             try:
                 close = hist["Close"].dropna()
@@ -643,6 +643,8 @@ def get_yfinance_data(ticker: str) -> dict:
                     perf_20d = float(
                         (close.iloc[-1] - close.iloc[-21]) / close.iloc[-21] * 100
                     )
+                    ema21_s = close.ewm(span=21, adjust=False).mean()
+                    ma21 = float(ema21_s.iloc[-1]) if not ema21_s.empty else None
                 if _HAS_PANDAS_TA and len(close) >= 14:
                     rsi_s = ta.rsi(close, length=14)
                     rsi14 = float(rsi_s.iloc[-1]) if rsi_s is not None and not rsi_s.empty else None
@@ -669,6 +671,7 @@ def get_yfinance_data(ticker: str) -> dict:
             "inst_ownership":     info.get("institutionHeldPercentOutstanding")
                                   or info.get("institutionsPercentHeld"),
             "rsi14":        rsi14,
+            "ma21":         ma21,
             "ma50":         ma50,
             "ma200":        ma200,
             "perf_20d":     perf_20d,
@@ -715,16 +718,23 @@ def get_yfinance_batch(tickers: list[str]) -> dict[str, dict]:
         log.warning("Batch history download failed (%s) — will use individual fallbacks", exc)
 
     def _compute_indicators(df) -> tuple:
-        """Compute (rsi14, ma50, ma200, perf_20d) from a Close series."""
-        rsi14, ma50, ma200, perf_20d = None, None, None, None
+        """Compute (rsi14, ma21, ma50, ma200, perf_20d) from a Close series.
+
+        ``ma21`` ist der **exponential** moving average über 21 Tage —
+        wird für den Phase-2-Trigger ``trend_break`` (Kurs unter EMA21)
+        gelesen. ma50/ma200 bleiben simple moving averages (unverändert).
+        """
+        rsi14, ma21, ma50, ma200, perf_20d = None, None, None, None, None
         if df is None or df.empty:
-            return rsi14, ma50, ma200, perf_20d
+            return rsi14, ma21, ma50, ma200, perf_20d
         try:
             close = df["Close"].dropna()
             if len(close) >= 21:
                 perf_20d = float(
                     (close.iloc[-1] - close.iloc[-21]) / close.iloc[-21] * 100
                 )
+                ema21_series = close.ewm(span=21, adjust=False).mean()
+                ma21 = float(ema21_series.iloc[-1]) if not ema21_series.empty else None
             if _HAS_PANDAS_TA and len(close) >= 14:
                 rsi_series = ta.rsi(close, length=14)
                 rsi14 = float(rsi_series.iloc[-1]) if rsi_series is not None and not rsi_series.empty else None
@@ -734,10 +744,10 @@ def get_yfinance_batch(tickers: list[str]) -> dict[str, dict]:
                 ma200 = float(close.tail(200).mean())
         except Exception:
             pass
-        return rsi14, ma50, ma200, perf_20d
+        return rsi14, ma21, ma50, ma200, perf_20d
 
     def _hist_stats(ticker: str) -> tuple:
-        """Extract (avg_vol_20, cur_vol, vol_ratio, hi52, lo52, rsi14, ma50, ma200, perf_20d, cur_open, prev_close, cur_close) from batch or fallback."""
+        """Extract (avg_vol_20, cur_vol, vol_ratio, hi52, lo52, rsi14, ma21, ma50, ma200, perf_20d, cur_open, prev_close, cur_close) from batch or fallback."""
         try:
             if hist_batch is not None and not hist_batch.empty:
                 # yf.download with one ticker returns a flat DataFrame;
@@ -749,11 +759,11 @@ def get_yfinance_batch(tickers: list[str]) -> dict[str, dict]:
                     vol_r   = cur_vol / avg_vol if avg_vol > 0 else 0.0
                     hi52    = float(df["High"].max())
                     lo52    = float(df["Low"].min())
-                    rsi14, ma50, ma200, perf_20d = _compute_indicators(df)
+                    rsi14, ma21, ma50, ma200, perf_20d = _compute_indicators(df)
                     cur_open   = float(df["Open"].iloc[-1])  if "Open"  in df.columns and len(df) >= 1 else None
                     prev_close = float(df["Close"].iloc[-2]) if len(df) >= 2 else None
                     cur_close  = float(df["Close"].iloc[-1]) if "Close" in df.columns and len(df) >= 1 else None
-                    return avg_vol, cur_vol, vol_r, hi52, lo52, rsi14, ma50, ma200, perf_20d, cur_open, prev_close, cur_close
+                    return avg_vol, cur_vol, vol_r, hi52, lo52, rsi14, ma21, ma50, ma200, perf_20d, cur_open, prev_close, cur_close
         except Exception:
             pass
         # Fallback: individual history call for this ticker
@@ -764,14 +774,14 @@ def get_yfinance_batch(tickers: list[str]) -> dict[str, dict]:
                 avg_vol = float(df2["Volume"].tail(20).mean())
                 cur_vol = float(df2["Volume"].iloc[-1])
                 vol_r   = cur_vol / avg_vol if avg_vol > 0 else 0.0
-                rsi14, ma50, ma200, perf_20d = _compute_indicators(df2)
+                rsi14, ma21, ma50, ma200, perf_20d = _compute_indicators(df2)
                 cur_open   = float(df2["Open"].iloc[-1])  if "Open"  in df2.columns and len(df2) >= 1 else None
                 prev_close = float(df2["Close"].iloc[-2]) if len(df2) >= 2 else None
                 cur_close  = float(df2["Close"].iloc[-1]) if "Close" in df2.columns and len(df2) >= 1 else None
-                return avg_vol, cur_vol, vol_r, float(df2["High"].max()), float(df2["Low"].min()), rsi14, ma50, ma200, perf_20d, cur_open, prev_close, cur_close
+                return avg_vol, cur_vol, vol_r, float(df2["High"].max()), float(df2["Low"].min()), rsi14, ma21, ma50, ma200, perf_20d, cur_open, prev_close, cur_close
         except Exception as exc2:
             log.debug("Fallback history failed for %s: %s", ticker, exc2)
-        return 0.0, 0.0, 0.0, None, None, None, None, None, None, None, None, None
+        return 0.0, 0.0, 0.0, None, None, None, None, None, None, None, None, None, None
 
     # ── Phase B: Parallel .info fetches (metadata not in download payload) ──
     def _fetch_info(ticker: str) -> tuple[str, dict]:
@@ -844,7 +854,7 @@ def get_yfinance_batch(tickers: list[str]) -> dict[str, dict]:
 
     # ── Combine history + info; fallback to individual call if both are empty ──
     for ticker in tickers:
-        avg_vol_20, cur_vol, vol_ratio, hi52, lo52, rsi14, ma50, ma200, perf_20d, cur_open, prev_close, cur_close = _hist_stats(ticker)
+        avg_vol_20, cur_vol, vol_ratio, hi52, lo52, rsi14, ma21, ma50, ma200, perf_20d, cur_open, prev_close, cur_close = _hist_stats(ticker)
         info = info_map.get(ticker, {})
 
         # If the batch produced nothing useful for this ticker, fall back entirely
@@ -870,6 +880,7 @@ def get_yfinance_batch(tickers: list[str]) -> dict[str, dict]:
             "inst_ownership": info.get("institutionHeldPercentOutstanding")
                               or info.get("institutionsPercentHeld"),
             "rsi14":          rsi14,
+            "ma21":           ma21,
             "ma50":           ma50,
             "ma200":          ma200,
             "perf_20d":       perf_20d,
@@ -12084,6 +12095,52 @@ def _exit_p2_trigger_profit_lock(pnl_frac: float | None,
     }
 
 
+def _exit_p2_trigger_trend_break(metrics: dict | None,
+                                  cur_price: float | None) -> dict:
+    """Trigger 6: Trend-Bruch — Kurs vs. EMA21.
+
+    EMA21 wird im Daily-Run via ``_compute_indicators`` aus den Close-
+    Kursen (21-Tage exponential moving average, ``ewm(span=21)``)
+    berechnet und über ``_all_metrics`` an offene Positionen
+    durchgereicht. Sub-Score-Stufung:
+
+      • ``price > ma21``                      → 0   (kein Trend-Bruch)
+      • ``0 < drop_pct ≤ EXIT_TREND_BREAK_CRIT_PCT`` → 50  (warn)
+      • ``drop_pct > EXIT_TREND_BREAK_CRIT_PCT``     → 100 (crit)
+
+    ``drop_pct = (ma21 − cur_price) / ma21 × 100``. Fehlt eines der
+    Eingaben (Position außerhalb metrics, EMA21 < 21 Handelstage
+    History) → ``available=False`` mit Begründung.
+    """
+    if not metrics:
+        return {"score": 0, "warn": False, "crit": False, "available": False,
+                "reason": "Position außerhalb top10_metrics"}
+    ma21 = metrics.get("ma21")
+    if not isinstance(ma21, (int, float)) or ma21 <= 0:
+        return {"score": 0, "warn": False, "crit": False, "available": False,
+                "reason": "EMA21 nicht verfügbar (< 21 Handelstage History)"}
+    if not isinstance(cur_price, (int, float)) or cur_price <= 0:
+        return {"score": 0, "warn": False, "crit": False, "available": False,
+                "reason": "cur_price fehlt"}
+    drop_pct = (float(ma21) - float(cur_price)) / float(ma21) * 100.0
+    if drop_pct <= 0:
+        score, warn, crit = 0, False, False
+    elif drop_pct <= EXIT_TREND_BREAK_CRIT_PCT:
+        score, warn, crit = 50, True, False
+    else:
+        score, warn, crit = 100, True, True
+    return {
+        "score": score,
+        "warn":  warn,
+        "crit":  crit,
+        "details": {
+            "ma21":     round(float(ma21), 4),
+            "price":    round(float(cur_price), 4),
+            "drop_pct": round(drop_pct, 2),
+        },
+    }
+
+
 def _exit_p2_trigger_overheated(metrics: dict | None) -> dict:
     """Trigger 3: Überhitzung — RSI14 + 2-Tages- + 3-Tages-Move.
 
@@ -12181,11 +12238,7 @@ def _compute_exit_state(
             "available": False,
             "reason": "kein historischer Earnings-Lookup zwischen Entry und heute",
         },
-        "trend_break": {
-            "score": 0, "warn": False, "crit": False,
-            "available": False,
-            "reason": "EMA21 nicht im Datenmodell",
-        },
+        "trend_break":   _exit_p2_trigger_trend_break(metrics, cur_price),
     }
 
     weights = {
@@ -12686,6 +12739,7 @@ def main():
             "avg_vol_20d":     yfd.get("avg_vol_20d", 0),
             "cur_vol":         yfd.get("cur_vol", 0),
             "rsi14":           yfd.get("rsi14"),
+            "ma21":             yfd.get("ma21"),
             "ma50":             yfd.get("ma50"),
             "ma200":            yfd.get("ma200"),
             "perf_20d":         _stock_perf_20d,
@@ -13192,6 +13246,7 @@ def main():
             continue
         _top10_metrics[_t] = {
             "rsi14":     s.get("rsi14"),
+            "ma21":      s.get("ma21"),
             "change_2d": s.get("change_2d"),
             "change_3d": s.get("change_3d"),
         }
@@ -13211,6 +13266,7 @@ def main():
             continue
         _all_metrics[_t] = {
             "rsi14":     c.get("rsi14"),
+            "ma21":      c.get("ma21"),
             "change_2d": c.get("change_2d"),
             "change_3d": c.get("change_3d"),
         }
