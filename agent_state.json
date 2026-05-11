@@ -1,5 +1,5 @@
 {
-  "last_run": "2026-05-11T15:47:30.903514+02:00",
+  "last_run": "2026-05-11T18:18:54.279382+02:00",
   "cooldowns": {
     "anomaly_score_jump_XRX": "2026-05-03T18:47:15.315486+02:00",
     "anomaly_uoa_extreme_TDOC": "2026-05-04T13:47:00.365949+02:00",
@@ -198,15 +198,15 @@
     }
   ],
   "prev_conviction_scores": {
-    "NVAX": 58.0,
-    "GRPN": 57.0,
-    "DMRC": 66.0,
-    "OFRM": 51.0,
-    "LUCK": 50.0,
-    "TEAD": 50.0,
-    "ATLC": 50.0,
-    "TNYA": 63.0,
-    "RXT": 61.0,
-    "QURE": 47.0
+    "INDI": 31.0,
+    "DFDV": 59.0,
+    "EVGO": 44.0,
+    "FTK": 56.0,
+    "DMRC": 58.0,
+    "FDMT": 43.0,
+    "ENVX": 43.0,
+    "CADL": 56.0,
+    "MNTS": 41.0,
+    "ABCL": 55.0
   }
 }
