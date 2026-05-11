@@ -12366,6 +12366,187 @@ def _exit_p2_trigger_trend_break(metrics: dict | None,
     }
 
 
+def _trading_days_until(target_date: date, today: date) -> int | None:
+    """Zählt Handels-Tage (Mo–Fr) zwischen ``today`` und ``target_date``.
+
+    Returnt ``None``, wenn ``target_date`` in der Vergangenheit liegt.
+    US-Feiertage werden derzeit nicht berücksichtigt — Spec setzt nur
+    Wochenend-Filter voraus (siehe Trigger-5-Doku in CLAUDE.md).
+    """
+    if target_date is None or today is None:
+        return None
+    if target_date < today:
+        return None
+    days = 0
+    cur = today
+    while cur < target_date:
+        cur = cur + timedelta(days=1)
+        if cur.weekday() < 5:  # 0=Mo … 4=Fr
+            days += 1
+    return days
+
+
+def _fetch_finnhub_next_earnings(ticker: str, today: date,
+                                  *, lookahead_days: int = 90,
+                                  api_key: str | None = None,
+                                  ) -> date | None:
+    """Holt das nächste Earnings-Datum aus dem Finnhub Earnings Calendar.
+
+    Returnt ``date`` oder ``None`` bei fehlendem API-Key, Netzwerk-/Parse-
+    Fehlern oder leerer Antwort. Pure ``requests`` mit Timeout — kein
+    Caching (Earnings-Datum wird pro Daily-Run für 1–3 offene Positionen
+    geholt, vernachlässigbarer API-Traffic).
+    """
+    key = api_key if api_key is not None else os.environ.get("FINNHUB_API_KEY")
+    if not key:
+        return None
+    try:
+        from_s = today.strftime("%Y-%m-%d")
+        to_s   = (today + timedelta(days=lookahead_days)).strftime("%Y-%m-%d")
+        url    = "https://finnhub.io/api/v1/calendar/earnings"
+        resp   = requests.get(
+            url,
+            params={"from": from_s, "to": to_s, "symbol": ticker, "token": key},
+            headers=HTTP_HEADERS,
+            timeout=8,
+        )
+        resp.raise_for_status()
+        data = resp.json() or {}
+        rows = data.get("earningsCalendar") or []
+        candidates: list[date] = []
+        for row in rows:
+            raw = row.get("date") if isinstance(row, dict) else None
+            if not raw:
+                continue
+            try:
+                cand = datetime.strptime(str(raw), "%Y-%m-%d").date()
+            except ValueError:
+                continue
+            if cand >= today:
+                candidates.append(cand)
+        if candidates:
+            return min(candidates)
+    except (requests.RequestException, ValueError, KeyError) as exc:
+        log.debug("Finnhub earnings %s: %s", ticker, exc)
+    return None
+
+
+def _fetch_yfinance_next_earnings(ticker: str, today: date) -> date | None:
+    """Fallback: nächste Earnings via ``yf.Ticker(t).calendar``.
+
+    Akzeptiert sowohl Dict- als auch DataFrame-Form (yfinance hat
+    Versionen, die unterschiedlich liefern). Returnt ``None`` bei
+    jedem Fehler — kein Crash für den Caller.
+    """
+    try:
+        cal = yf.Ticker(ticker).calendar
+        if cal is None:
+            return None
+        raw_list: list = []
+        if hasattr(cal, "empty"):  # pandas DataFrame
+            if not cal.empty:
+                raw_list = list(cal.columns)
+        elif isinstance(cal, dict):
+            raw = cal.get("Earnings Date") or cal.get("earningsDate") or []
+            raw_list = raw if isinstance(raw, list) else [raw]
+        candidates: list[date] = []
+        for d in raw_list:
+            try:
+                if hasattr(d, "to_pydatetime"):
+                    edate = d.to_pydatetime().date()
+                elif isinstance(d, datetime):
+                    edate = d.date()
+                elif isinstance(d, date):
+                    edate = d
+                elif isinstance(d, str):
+                    edate = datetime.strptime(d[:10], "%Y-%m-%d").date()
+                else:
+                    continue
+                if edate >= today:
+                    candidates.append(edate)
+            except (ValueError, AttributeError):
+                continue
+        if candidates:
+            return min(candidates)
+    except Exception as exc:
+        log.debug("yfinance earnings %s: %s", ticker, exc)
+    return None
+
+
+def _fetch_next_earnings_date(ticker: str, today: date | None = None
+                               ) -> date | None:
+    """Single-Source-of-Truth für Trigger 5 (catalyst).
+
+    Reihenfolge: Finnhub (wenn FINNHUB_API_KEY gesetzt) → yfinance.
+    Returnt ``date`` (Earnings-Tag in US-Eastern-Zeitzone) oder
+    ``None``. Bei beiden Quellen leer wird der Aufrufer
+    ``available=False`` setzen.
+    """
+    if today is None:
+        today = datetime.now(EASTERN).date()
+    edate = _fetch_finnhub_next_earnings(ticker, today)
+    if edate is None:
+        edate = _fetch_yfinance_next_earnings(ticker, today)
+    return edate
+
+
+def _exit_p2_trigger_catalyst(ticker: str,
+                               now_utc: datetime,
+                               fetcher: "callable | None" = None,
+                               ) -> dict:
+    """Trigger 5: Catalyst — Earnings innerhalb ``CATALYST_DAYS_WINDOW``
+    Handels-Tagen ahead.
+
+    Sub-Score-Stufung:
+      • Earnings heute (``days_until == 0``)               → 100 (crit)
+      • ``0 < days_until ≤ CATALYST_DAYS_WINDOW``          →  50 (warn)
+      • ``days_until > CATALYST_DAYS_WINDOW`` oder None    →   0 (kein Trigger)
+
+    Datenquelle wird über ``fetcher`` injiziert (Default:
+    ``_fetch_next_earnings_date``); Tests können einen Stub übergeben
+    ohne Netzwerk-Calls.
+
+    Forward-looking — hohes binäres Risiko (Earnings) löst Exit-Signal
+    aus. Historische Earnings (zwischen Entry und heute ohne Reaktion)
+    sind nicht Teil dieses Triggers; sie würden ein separater
+    Trigger sein.
+    """
+    fetch = fetcher or _fetch_next_earnings_date
+    today_east = now_utc.astimezone(EASTERN).date() if now_utc else \
+                 datetime.now(EASTERN).date()
+    try:
+        edate = fetch(ticker, today_east) if fetcher else fetch(ticker, today_east)
+    except TypeError:
+        # Fetcher mit (ticker)-Signatur (Backward-Compat)
+        edate = fetch(ticker)
+    except Exception as exc:
+        log.debug("catalyst fetcher %s: %s", ticker, exc)
+        edate = None
+    if edate is None:
+        return {"score": 0, "warn": False, "crit": False, "available": False,
+                "reason": "kein Earnings-Datum aus Finnhub/yfinance"}
+    days_until = _trading_days_until(edate, today_east)
+    if days_until is None:
+        return {"score": 0, "warn": False, "crit": False, "available": False,
+                "reason": "Earnings-Datum liegt in der Vergangenheit"}
+    if days_until == 0:
+        score, warn, crit = 100, True, True
+    elif days_until <= CATALYST_DAYS_WINDOW:
+        score, warn, crit = 50, True, False
+    else:
+        score, warn, crit = 0, False, False
+    return {
+        "score": score,
+        "warn":  warn,
+        "crit":  crit,
+        "details": {
+            "earnings_date":     edate.strftime("%Y-%m-%d"),
+            "trading_days_until": days_until,
+            "window":            CATALYST_DAYS_WINDOW,
+        },
+    }
+
+
 def _exit_p2_trigger_overheated(metrics: dict | None) -> dict:
     """Trigger 3: Überhitzung — RSI14 + 2-Tages- + 3-Tages-Move.
 
@@ -12458,11 +12639,7 @@ def _compute_exit_state(
             "reason": "Entry-Snapshot (dtc/short_float/cost_to_borrow) "
                       "nicht in positions.json persistiert",
         },
-        "catalyst": {
-            "score": 0, "warn": False, "crit": False,
-            "available": False,
-            "reason": "kein historischer Earnings-Lookup zwischen Entry und heute",
-        },
+        "catalyst":      _exit_p2_trigger_catalyst(ticker, now_utc),
         "trend_break":   _exit_p2_trigger_trend_break(metrics, cur_price),
     }
 

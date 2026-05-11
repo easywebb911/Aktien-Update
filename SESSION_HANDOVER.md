@@ -154,11 +154,12 @@
 12. ⏰ **Wiedervorlage 02.06.2026** — Chart-Indikatoren.
 13. ⏰ **Wiedervorlage 02.07.2026** — Premium-Daten-Stack.
 14. **Phase X** — v1-Pfad-Migration (siehe Code-Hygiene Punkt 2).
-15. **Phase 2 Trigger 4–6** — Setup-Erosion, Catalyst, Trend-Bruch.
-    (Aktueller Stand: Stubs mit `available=False`, Methodik-Sektion
-    listet alle sechs Trigger mit Gewichten 30/25/20/15/5/5 %; die
-    drei offenen brauchen Entry-Snapshot, historischen Earnings-
-    Lookup, EMA21 im Datenmodell.)
+15. **Phase 2 Trigger 4** — Setup-Erosion (verbleibendes Stub).
+    Braucht Entry-Snapshot (dtc/short_float/cost_to_borrow) im Gist
+    — Schema-Erweiterung am Position-Open-Form notwendig.
+    Trigger 5 (catalyst, forward-looking Earnings-Lookup, Finnhub
+    + yfinance-Fallback) und Trigger 6 (trend_break, EMA21) sind
+    seit PR #113 / PR-Catalyst live.
 16. **Tier-2-Insight-Builder** als Reserve.
 17. **Methodik-Asymmetrien Schritt 3** — Late-Runner-Penalty- und
     FINRA-Konstanten-Display ist seit PR #99 aus `config.py` gelesen,
@@ -204,8 +205,9 @@ parallele Arbeitsstränge:
   1–2 Daily-Runs mit drei Komponenten plausible Werte zeigen.
 - **Phase 3 Exit-Signale** (Wiedervorlage 15.05.2026).
 - **Phase 2 Stufe 3c-3** — UI-Notification-History.
-- **Phase 2 Trigger 4–6** — setup_erosion, catalyst, trend_break
-  von Stubs auf echte Daten umstellen.
+- **Phase 2 Trigger 4 (setup_erosion)** — von Stub auf echte Daten
+  umstellen; catalyst + trend_break sind seit PR #113 / PR-Catalyst
+  live.
 
 **Mittelfristig (Wochen, datenabhängig)**
 
