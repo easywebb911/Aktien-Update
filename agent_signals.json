@@ -1,17 +1,17 @@
 {
-  "updated": "2026-05-11T08:38:43.742965+02:00",
+  "updated": "2026-05-11T12:37:11.234795+02:00",
   "run_info": {
     "tickers_checked": 10,
     "signals_active": 8,
-    "alerts_sent": 2,
-    "elapsed_s": 11.2,
-    "market_phase": "Geschlossen"
+    "alerts_sent": 1,
+    "elapsed_s": 11.9,
+    "market_phase": "Pre-Market"
   },
   "signals": {
     "NVAX": {
       "score": 65,
       "confidence": 70,
-      "drivers": "Volumen 1.6× + Spanne 15.3% + News: breakout, earnings beat + UOA Call/Put 15.7×",
+      "drivers": "Volumen 1.6× + Spanne 15.3% + News: earnings beat, breakout + UOA Call/Put 15.7×",
       "price": 10.11,
       "chg_pct": -0.0,
       "rvol": 1.62,
@@ -175,9 +175,9 @@
       "uoa_cp_ratio": 38.125
     },
     "RXT": {
-      "score": 52,
+      "score": 55,
       "confidence": 70,
-      "drivers": "Volumen 2.7× + Spanne 58.4% + News-KI 12/30: Positive AMD partnership news drives sentiment but lacks short squeeze indicators like high short interest, low float, o + UOA Call/Put 37.7×",
+      "drivers": "Volumen 2.7× + Spanne 58.4% + News: partnership + UOA Call/Put 37.7×",
       "price": 5.49,
       "chg_pct": -0.0,
       "rvol": 2.66,
