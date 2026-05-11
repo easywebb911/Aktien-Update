@@ -3033,6 +3033,32 @@ def main() -> None:
                                  ticker, _silence_summary)
                         continue
                     body = vix_warn_prefix + anom["message"]
+                    # Conviction-Gating: Anomaly-Pushes (außer
+                    # conviction_high selbst) gehen nur an ntfy, wenn
+                    # der Ticker mindestens ``ANOMALY_CONVICTION_MIN_
+                    # THRESHOLD`` Conviction hat. Ticker ohne
+                    # Conviction-Score (None) pushen konservativ
+                    # ungefiltert. push_history wird in jedem Fall
+                    # geschrieben — bei unterdrücktem Push mit
+                    # ``suppressed=True`` für UI-Transparenz.
+                    _suppress = False
+                    if anom.get("trigger") != "conviction_high":
+                        _conv = ((app_data.get("conviction_scores") or {})
+                                 .get(ticker) or {}).get("score")
+                        if isinstance(_conv, (int, float)) \
+                                and _conv < ANOMALY_CONVICTION_MIN_THRESHOLD:
+                            _suppress = True
+                    if _suppress:
+                        _record_push(state, ticker, kind="anomaly",
+                                     severity=anom.get("severity") or "default",
+                                     trigger=anom.get("trigger"),
+                                     body=body, success=False,
+                                     suppressed=True,
+                                     suppress_reason="conviction_below_threshold")
+                        log.info("Anomaly suppressed (conviction<%d) %s/%s: %s",
+                                 ANOMALY_CONVICTION_MIN_THRESHOLD,
+                                 anom["trigger"], anom["severity"], ticker)
+                        continue
                     _ok = _send_anomaly_ntfy(ticker, body)
                     _record_push(state, ticker, kind="anomaly",
                                  severity=anom.get("severity") or "default",

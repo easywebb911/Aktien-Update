@@ -6786,13 +6786,20 @@ function renderPushHistory(){{
       const sevClass = sev === 'high' ? 'ph-sev-high' : sev === 'medium' ? 'ph-sev-medium' : '';
       const sevHtml  = sev ? `<span class="ph-sev-pill ${{sevClass}}">${{_phEscape(sev)}}</span>` : '';
       const trig     = (e && e.trigger) ? `<span class="ph-trig">${{_phEscape(e.trigger)}}</span>` : '';
-      const okMark   = (e && e.success === false) ? ' <span class="ph-fail" title="Push fehlgeschlagen">⚠</span>' : '';
+      const suppressed = !!(e && e.suppressed);
+      const okMark   = (!suppressed && e && e.success === false)
+        ? ' <span class="ph-fail" title="Push fehlgeschlagen">⚠</span>' : '';
+      const supReason = suppressed ? _phEscape(e.suppress_reason || '') : '';
+      const supMark  = suppressed
+        ? ` <span class="ph-suppressed" title="Push absichtlich unterdrückt${{supReason ? ': ' + supReason : ''}}">⊘ unterdrückt</span>`
+        : '';
+      const rowClass = suppressed ? 'ph-row ph-row--suppressed' : 'ph-row';
       const body     = _phEscape((e && e.body) || '');
-      return `<div class="ph-row">
+      return `<div class="${{rowClass}}">
         <div class="ph-row-head">
           <span class="ph-ts">${{ts}}</span>
           <span class="ph-ticker">${{ticker}}</span>
-          ${{sevHtml}}${{trig}}${{okMark}}
+          ${{sevHtml}}${{trig}}${{okMark}}${{supMark}}
         </div>
         <div class="ph-row-body">${{body}}</div>
       </div>`;

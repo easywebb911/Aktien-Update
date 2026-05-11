@@ -555,7 +555,11 @@ Vier ntfy-Push-Sender sind instrumentiert und persistieren jeden Versuch
 | `_send_exit_ntfy` (generate_report) | `exit_p1` | `default` | `exit_alert` / `profit_take` |
 
 Schema pro Eintrag:
-`{ts (Berlin-ISO), ticker, kind, severity, trigger, body, success}`.
+`{ts (Berlin-ISO), ticker, kind, severity, trigger, body, success,
+suppressed, suppress_reason}`. `suppressed=True` markiert absichtlich
+nicht-versendete Pushes (Conviction-Gating); `suppress_reason` enthält
+den Kurz-Code (`"conviction_below_threshold"` etc.). Bei `suppressed=False`
+ist `suppress_reason=None`.
 
 Cap: `PUSH_HISTORY_MAX = 100` (FIFO, älteste raus). Helper `_record_push`
 lebt als Single-Source-of-Truth in `push_history.py` (Repo-Root) und wird
@@ -915,6 +919,28 @@ Filterung genutzt werden.
 Cooldown: `ANOMALY_COOLDOWN_HOURS = 6` pro **(Ticker × Trigger-Typ)**.
 Mehrere Anomalien gleichen Tickers in einem Run sind möglich.
 Earnings-Sofort-Alert hat Vorrang vor Anomalien (kein Doppel-Push).
+
+### Conviction-Gating
+
+Anomaly-Pushes (alle außer `conviction_high` selbst) werden nur an
+ntfy gesendet, wenn der Ticker mindestens
+`ANOMALY_CONVICTION_MIN_THRESHOLD` (Standard 50) Conviction hat.
+Damit verschwinden „Zwischen-Pushes" für strukturell starke Setups,
+bei denen Earliness/Anomaly-Konvergenz fehlt — der User bekommt nur
+noch Pushes, bei denen alle vier Conviction-Komponenten zusammen
+ein medium+-Substrat zeigen. `conviction_high` (≥ 75) selbst ist
+ungefiltert (Aktions-Push).
+
+Gating-Reihenfolge im Consumer-Loop:
+`vix_pause → silence_filter → cooldown → conviction_gate → push`.
+
+`push_history` wird **immer** geschrieben, auch bei unterdrücktem
+Push — mit `suppressed=True` und
+`suppress_reason="conviction_below_threshold"`. UI zeigt unterdrückte
+Einträge dezent (Strike-Through-Body, ⊘-Marker, gestrichelter Rand).
+Ticker ohne Conviction-Score (z. B. nicht in heutigen
+`conviction_scores`) pushen konservativ ungefiltert — kein
+Filter-Effekt durch fehlende Daten.
 
 ### VIX-Gating
 

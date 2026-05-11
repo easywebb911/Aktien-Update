@@ -21,16 +21,25 @@ _BERLIN = ZoneInfo("Europe/Berlin")
 
 
 def _record_push(state: dict, ticker: str, kind: str, severity: str,
-                 trigger: str | None, body: str, success: bool) -> None:
+                 trigger: str | None, body: str, success: bool,
+                 suppressed: bool = False,
+                 suppress_reason: str | None = None) -> None:
     """FIFO-Append eines Push-Versuchs in ``state["push_history"]``.
 
     Entry-Schema:
-      ``{ts, ticker, kind, severity, trigger, body, success}``
+      ``{ts, ticker, kind, severity, trigger, body, success,
+         suppressed, suppress_reason}``
 
     Cap = ``PUSH_HISTORY_MAX`` (älteste Einträge werden abgeschnitten).
     Auch fehlgeschlagene Pushes (``success=False``) werden persistiert,
     damit Audit-Trails beim ntfy-Disable / POST-Fehler nachvollziehbar
     bleiben.
+
+    ``suppressed=True`` bedeutet: Push wurde absichtlich nicht an ntfy
+    geschickt (z. B. Conviction-Gating). ``success`` ist dann ``False``
+    (kein Push erfolgreich), aber ``suppressed`` markiert die Absicht
+    statt eines Netzwerk-/Konfig-Fehlers. ``suppress_reason`` liefert
+    den Kurz-Code (``"conviction_below_threshold"`` etc.) für die UI.
 
     FIFO-Cap = 100 macht uns gegen einzelne fehlende Einträge robust bei
     Race zwischen ki_agent und Daily-Run. Last-Write-Wins akzeptiert.
@@ -43,6 +52,8 @@ def _record_push(state: dict, ticker: str, kind: str, severity: str,
         "trigger":  trigger,
         "body":     body,
         "success":  bool(success),
+        "suppressed":       bool(suppressed),
+        "suppress_reason":  suppress_reason if suppressed else None,
     }
     hist = state.setdefault("push_history", [])
     hist.append(entry)
