@@ -508,8 +508,28 @@ reines Snapshot-Spiegelfeld (kein Ratchet).
 | `profit_lock`   | 25 % | **live** | `peak_pnl_pct_since_entry` + `current_pnl_pct` |
 | `overheated`    | 20 % | **live** | `rsi14` / `change_2d` / `change_3d` in `top10_metrics` |
 | `setup_erosion` | 15 % | **Stub** | Entry-Snapshot (dtc/short_float/cost_to_borrow) im Gist (Schema-Erweiterung offen) |
-| `catalyst`      |  5 % | **Stub** | Historischer Earnings-Lookup zwischen Entry und heute |
+| `catalyst`      |  5 % | **live** | Nächstes Earnings-Datum via Finnhub (FINNHUB_API_KEY) → yfinance-Fallback; Trading-Tage bis Earnings ≤ `CATALYST_DAYS_WINDOW` |
 | `trend_break`   |  5 % | **live** | `ma21` (EMA21) in `top10_metrics` + `cur_price` aus `_fetch_position_market_data` |
+
+**Spec-Divergenz Trigger 5:** Frühere Stub-Note („Historischer
+Earnings-Lookup zwischen Entry und heute") war backward-looking
+(Earnings vergangen ohne Reaktion). Die jetzt implementierte
+Forward-Variante feuert, wenn die NÄCHSTE Earnings-Veröffentlichung
+innerhalb `CATALYST_DAYS_WINDOW` (Default 2) Trading-Tage ahead
+liegt — binäres Risiko, vor dem die Position bewusst gesichert
+oder geschlossen werden kann. Backward-Variante kann später als
+separater Trigger nachgereicht werden, ohne diesen zu ersetzen.
+
+`catalyst`-Schwellen (`config.py`): Sub-Score = 0 wenn keine
+Earnings im Fenster, 50 (warn) wenn `0 < days_until ≤
+CATALYST_DAYS_WINDOW`, 100 (crit) wenn `days_until == 0`
+(Earnings heute). `days_until` zählt Werktage (Mo–Fr), US-
+Feiertage werden nicht abgezogen.
+
+Datenfluss: `_fetch_next_earnings_date(ticker, today)` ist
+Single-Source-of-Truth — Reihenfolge Finnhub → yfinance. Beide
+Quellen leer → `available=False`. Fetcher wird per kwarg in den
+Trigger injiziert (Tests mocken ohne Netzwerk).
 
 `trend_break`-Schwellen (`config.py`): Sub-Score = 0 wenn
 `price ≥ ma21`, 50 (warn) wenn `0 < drop_pct ≤ EXIT_TREND_BREAK_CRIT_PCT`

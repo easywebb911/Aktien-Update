@@ -635,7 +635,14 @@ EXIT_SHORT_FLOAT_DROP_CRIT_PP = 8
 EXIT_CTB_DROP_WARN_PCT       = 0.30
 EXIT_CTB_DROP_CRIT_PCT       = 0.50
 
-# 5) Catalyst (5 %) — Earnings-Vergangenheits-Lookup (heute available:false)
+# 5) Catalyst (5 %) — Earnings-Fenster: feuert, wenn die nächste
+#    Earnings-Veröffentlichung innerhalb CATALYST_DAYS_WINDOW Handels-
+#    tage liegt (Earnings-Datum heute → crit, 1..N Tage entfernt → warn).
+#    Forward-looking: hohes binäres Risiko, Position vor Earnings
+#    schließen oder bewusst halten. Datenquelle Primär = Finnhub
+#    Earnings Calendar (FINNHUB_API_KEY in env), Fallback yfinance
+#    `Ticker.calendar`.
+CATALYST_DAYS_WINDOW         = 2
 # 6) Trend-Bruch (5 %) — Kurs vs. EMA21. Sub-Score-Stufung:
 #    drop_pct = (ma21 − price) / ma21 × 100
 #      drop ≤ 0 (Kurs ≥ EMA21)               → 0   (kein Trigger)
