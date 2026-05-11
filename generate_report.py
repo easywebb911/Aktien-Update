@@ -5611,6 +5611,10 @@ def generate_html_v1(stocks: list[dict], report_date: str, _ctx: dict | None = N
         <span class="menu-icon-box"><i data-lucide="clipboard-list"></i></span>
         <span class="menu-label">Trade-Journal</span>
       </button>
+      <button class="menu-item" role="menuitem" onclick="showPushHistory();toggleMenuDrawer(false)">
+        <span class="menu-icon-box"><i data-lucide="bell"></i></span>
+        <span class="menu-label">Push-Historie</span>
+      </button>
       <button class="menu-item menu-item-toggle" id="menu-sort-toggle" role="menuitem" aria-expanded="false" onclick="toggleMenuSort()">
         <span class="menu-icon-box"><i data-lucide="arrow-up-down"></i></span>
         <span class="menu-label">Score-Sortierung</span>
@@ -6173,6 +6177,63 @@ def generate_html_v1(stocks: list[dict], report_date: str, _ctx: dict | None = N
     </div>
   </section>
 
+  <!-- Push-Historie (Phase 2 Stufe 3c-3) — versteckt, per Hamburger-Menü
+       geöffnet. Datenquelle: window._APP_DATA.push_history (Spiegel aus
+       agent_state.json, Cap PUSH_HISTORY_MAX = 100, FIFO). Reine
+       Lese-/Filter-Ansicht — kein Netzwerk-Call. -->
+  <section class="info-panel" id="push-history-section" aria-label="Push-Historie" hidden>
+    <div class="info-panel-head">
+      <h2 class="info-panel-title">Push-Historie</h2>
+      <button class="info-panel-close" type="button" onclick="hidePushHistory()" aria-label="Schließen" title="Schließen">
+        <i data-lucide="x"></i>
+      </button>
+    </div>
+    <div class="info-inner">
+      <div class="info-box info-box--full" id="ph-stats">
+        <h4>Statistik</h4>
+        <p class="score-block-foot" style="border-top:none;padding-top:0">Lädt …</p>
+      </div>
+      <div class="info-box info-box--full">
+        <h4>Filter</h4>
+        <div class="tj-filters">
+          <label>Zeitraum
+            <select id="ph-filter-period" onchange="renderPushHistory()">
+              <option value="all">Alle</option>
+              <option value="24h">Letzte 24 h</option>
+              <option value="7d">Letzte 7 Tage</option>
+            </select>
+          </label>
+          <label>Severity
+            <select id="ph-filter-severity" onchange="renderPushHistory()">
+              <option value="all">Alle</option>
+              <option value="high">high</option>
+              <option value="medium">medium</option>
+            </select>
+          </label>
+          <label>Art
+            <select id="ph-filter-kind" onchange="renderPushHistory()">
+              <option value="all">Alle</option>
+              <option value="anomaly">anomaly</option>
+              <option value="exit_p1">exit_p1</option>
+              <option value="exit_p2">exit_p2</option>
+              <option value="conviction_high">conviction_high</option>
+              <option value="earnings_immediate">earnings_immediate</option>
+            </select>
+          </label>
+          <label>Ticker
+            <input type="text" id="ph-filter-ticker" placeholder="z. B. NVAX" maxlength="12"
+                   autocomplete="off" autocapitalize="characters" spellcheck="false"
+                   inputmode="latin" oninput="renderPushHistory()">
+          </label>
+        </div>
+      </div>
+      <div class="info-box info-box--full" id="ph-list">
+        <h4>Einträge (neueste zuerst)</h4>
+        <p class="score-block-foot" style="border-top:none;padding-top:0">Lädt …</p>
+      </div>
+    </div>
+  </section>
+
   <style>
     .bt-section{{background:var(--bg-card);border:1px solid var(--brd);border-radius:10px;
       padding:14px 16px;margin-bottom:14px;
@@ -6581,6 +6642,163 @@ async function showTradeJournal(){{
 function hideTradeJournal(){{
   const sec = document.getElementById('trade-journal-section');
   if (sec) sec.setAttribute('hidden', '');
+}}
+
+// ── Push-Historie-Sektion (Phase 2 Stufe 3c-3) ────────────────────────
+// Strukturell analog zu Trade-Journal: show/hide + render. Datenquelle
+// ist window._APP_DATA.push_history (Spiegel aus agent_state.json,
+// Cap 100 FIFO). Reine Lese-/Filter-Ansicht — kein eigener State.
+function showPushHistory(){{
+  const sec = document.getElementById('push-history-section');
+  if (!sec) return;
+  sec.removeAttribute('hidden');
+  if (window.lucide) lucide.createIcons();
+  renderPushHistory();
+  sec.scrollIntoView({{behavior: 'smooth', block: 'start'}});
+}}
+function hidePushHistory(){{
+  const sec = document.getElementById('push-history-section');
+  if (sec) sec.setAttribute('hidden', '');
+}}
+
+const _PH_KIND_LABELS = {{
+  anomaly:            'Anomalie',
+  exit_p1:            'Exit (P1)',
+  exit_p2:            'Exit (P2)',
+  conviction_high:    'Conviction',
+  earnings_immediate: 'Earnings',
+}};
+
+function _phEscape(s){{
+  return String(s == null ? '' : s).replace(/[&<>"']/g, (c) => ({{
+    '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
+  }}[c]));
+}}
+
+function _phFmtTs(ts){{
+  if (!ts) return '—';
+  try {{
+    const d = new Date(ts);
+    if (isNaN(d.getTime())) return _phEscape(ts);
+    const pad = (n) => String(n).padStart(2, '0');
+    return pad(d.getDate()) + '.' + pad(d.getMonth()+1) + '.' + d.getFullYear()
+         + ' ' + pad(d.getHours()) + ':' + pad(d.getMinutes());
+  }} catch (_) {{ return _phEscape(ts); }}
+}}
+
+function renderPushHistory(){{
+  const statsEl = document.getElementById('ph-stats');
+  const listEl  = document.getElementById('ph-list');
+  if (!statsEl || !listEl) return;
+
+  const all = (window._APP_DATA && Array.isArray(window._APP_DATA.push_history))
+    ? window._APP_DATA.push_history
+    : [];
+
+  // Stats über die KOMPLETTE Historie (nicht über die gefilterte Sicht) —
+  // sonst wäre die Erfolgsrate vom aktiven Filter abhängig.
+  const total      = all.length;
+  const successN   = all.filter(e => e && e.success === true).length;
+  const successPct = total ? Math.round(successN / total * 1000) / 10 : null;
+  const sevCounts = {{ high: 0, medium: 0, other: 0 }};
+  for (const e of all) {{
+    const s = (e && e.severity) || 'other';
+    if (s === 'high' || s === 'medium') sevCounts[s] += 1;
+    else sevCounts.other += 1;
+  }}
+  const kindCounts = {{}};
+  for (const e of all) {{
+    const k = (e && e.kind) || '—';
+    kindCounts[k] = (kindCounts[k] || 0) + 1;
+  }}
+  const tsList = all.map(e => e && e.ts).filter(Boolean).sort();
+  const oldest = tsList[0] || null;
+  const newest = tsList[tsList.length - 1] || null;
+
+  const sevLine = `<span class="ph-sev-pill ph-sev-high">high ${{sevCounts.high}}</span>`
+    + ` <span class="ph-sev-pill ph-sev-medium">medium ${{sevCounts.medium}}</span>`
+    + (sevCounts.other ? ` <span class="ph-sev-pill">andere ${{sevCounts.other}}</span>` : '');
+  const kindLine = Object.entries(kindCounts)
+    .sort((a, b) => b[1] - a[1])
+    .map(([k, n]) => `<span class="ph-kind-pill">${{_phEscape(_PH_KIND_LABELS[k] || k)}}: ${{n}}</span>`)
+    .join(' ') || '<span style="color:var(--txt-dim)">—</span>';
+
+  statsEl.innerHTML = `<h4>Statistik</h4>
+    <div class="tj-stats-grid">
+      <div class="tj-stat"><span class="tj-stat-lbl">Gesamt</span>
+        <span class="tj-stat-val">${{total}}</span></div>
+      <div class="tj-stat"><span class="tj-stat-lbl">Erfolgsrate</span>
+        <span class="tj-stat-val">${{successPct != null ? successPct.toFixed(1) + ' %' : '—'}}</span></div>
+      <div class="tj-stat"><span class="tj-stat-lbl">Ältester</span>
+        <span class="tj-stat-val" style="font-size:.74rem">${{_phEscape(_phFmtTs(oldest))}}</span></div>
+      <div class="tj-stat"><span class="tj-stat-lbl">Neuester</span>
+        <span class="tj-stat-val" style="font-size:.74rem">${{_phEscape(_phFmtTs(newest))}}</span></div>
+      <div class="tj-stat tj-stat-wide"><span class="tj-stat-lbl">Severity</span>
+        <span class="tj-stat-val" style="font-size:.78rem;font-weight:600">${{sevLine}}</span></div>
+      <div class="tj-stat tj-stat-wide"><span class="tj-stat-lbl">Art</span>
+        <span class="tj-stat-val" style="font-size:.78rem;font-weight:600">${{kindLine}}</span></div>
+    </div>`;
+
+  // Filter aus DOM lesen.
+  const fPeriod   = (document.getElementById('ph-filter-period')   || {{}}).value || 'all';
+  const fSeverity = (document.getElementById('ph-filter-severity') || {{}}).value || 'all';
+  const fKind     = (document.getElementById('ph-filter-kind')     || {{}}).value || 'all';
+  const fTicker   = ((document.getElementById('ph-filter-ticker')  || {{}}).value || '').trim().toUpperCase();
+
+  const now = Date.now();
+  const cutoffMs = fPeriod === '24h' ? 24 * 3600 * 1000
+                 : fPeriod === '7d'  ? 7 * 24 * 3600 * 1000
+                 : null;
+
+  let filtered = all.slice();
+  if (cutoffMs != null) {{
+    filtered = filtered.filter(e => {{
+      const t = e && e.ts ? Date.parse(e.ts) : NaN;
+      return isFinite(t) && (now - t) <= cutoffMs;
+    }});
+  }}
+  if (fSeverity !== 'all') filtered = filtered.filter(e => (e && e.severity) === fSeverity);
+  if (fKind     !== 'all') filtered = filtered.filter(e => (e && e.kind) === fKind);
+  if (fTicker)             filtered = filtered.filter(e => ((e && e.ticker) || '').toUpperCase().includes(fTicker));
+
+  // Neueste oben.
+  filtered.sort((a, b) => {{
+    const ta = a && a.ts ? Date.parse(a.ts) : 0;
+    const tb = b && b.ts ? Date.parse(b.ts) : 0;
+    return tb - ta;
+  }});
+
+  let listHtml = '<h4>Einträge (neueste zuerst)</h4>';
+  if (!filtered.length) {{
+    // Dezenter Hinweis statt verwirrend leerer Liste.
+    if (!total) {{
+      listHtml += '<p class="ph-empty">Noch keine Push-Einträge gespeichert.</p>';
+    }} else if (fKind !== 'all' && !kindCounts[fKind]) {{
+      listHtml += `<p class="ph-empty">Noch keine ${{_phEscape(_PH_KIND_LABELS[fKind] || fKind)}}-Pushes gespeichert.</p>`;
+    }} else {{
+      listHtml += '<p class="ph-empty">Keine Einträge mit den aktiven Filtern.</p>';
+    }}
+  }} else {{
+    listHtml += filtered.map(e => {{
+      const ts       = _phEscape(_phFmtTs(e && e.ts));
+      const ticker   = _phEscape((e && e.ticker) || '—');
+      const sev      = (e && e.severity) || '';
+      const sevClass = sev === 'high' ? 'ph-sev-high' : sev === 'medium' ? 'ph-sev-medium' : '';
+      const sevHtml  = sev ? `<span class="ph-sev-pill ${{sevClass}}">${{_phEscape(sev)}}</span>` : '';
+      const trig     = (e && e.trigger) ? `<span class="ph-trig">${{_phEscape(e.trigger)}}</span>` : '';
+      const okMark   = (e && e.success === false) ? ' <span class="ph-fail" title="Push fehlgeschlagen">⚠</span>' : '';
+      const body     = _phEscape((e && e.body) || '');
+      return `<div class="ph-row">
+        <div class="ph-row-head">
+          <span class="ph-ts">${{ts}}</span>
+          <span class="ph-ticker">${{ticker}}</span>
+          ${{sevHtml}}${{trig}}${{okMark}}
+        </div>
+        <div class="ph-row-body">${{body}}</div>
+      </div>`;
+    }}).join('');
+  }}
+  listEl.innerHTML = listHtml;
 }}
 
 // Render-Funktion: Filter aus DOM lesen, Statistiken + Trade-Liste neu

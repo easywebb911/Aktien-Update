@@ -580,8 +580,40 @@ identische Reihenfolge — keine Filterung, kein Renaming). Quelle bleibt
 `agent_state.json`; Stufe 3c-2 liefert nur den Browser-Lese-Pfad ohne
 zusätzlichen HTTP-Request. Last-Write-Wins zwischen Daily-Run und
 parallelen ki_agent-Ticks akzeptiert. Fail-soft bei fehlender oder
-unparsbarer State-Datei → leere Liste, kein Crash. Frontend-UI folgt
-in Stufe 3c-3.
+unparsbarer State-Datei → leere Liste, kein Crash.
+
+### UI Notification-History (Stufe 3c-3 — live)
+
+Hamburger-Menü-Eintrag „Push-Historie" öffnet
+`<section id="push-history-section">` (analog zu Trade-Journal-Pattern,
+gleiche `info-panel`/`info-box`-Klassen, gleiche `.tj-filters`-Optik
+für Filter und Stats-Grid für Statistik). Drei Boxen:
+
+- **Stats:** Gesamt-Anzahl, Erfolgsrate, ältester / neuester Eintrag,
+  Aufteilung nach Severity (`high` / `medium`), Aufteilung nach `kind`.
+  Stats werden aus der **kompletten** push_history berechnet — nicht
+  aus der gefilterten Sicht, damit die Erfolgsrate nicht vom aktiven
+  Filter abhängt.
+- **Filter:** Zeitraum (alle / 24 h / 7 d), Severity (alle / high /
+  medium), Art / `kind` (alle / anomaly / exit_p1 / exit_p2 /
+  conviction_high / earnings_immediate), Ticker-Free-Text. Default
+  „alle" für jeden Slot.
+- **Liste:** Eine `.ph-row` pro Eintrag, neueste oben. Format:
+  Zeitstempel · Ticker · Severity-Pill (rot/grau) · Trigger-Name ·
+  Body (raw — enthält bereits Emojis aus den Sender-Funktionen, keine
+  zusätzliche Icon-Logik im Frontend). Bei `success=false` zusätzlich
+  ⚠-Indikator.
+
+Render-Funktion `renderPushHistory()` ist rein lesend auf
+`window._APP_DATA.push_history` und filtert clientseitig. Bei leeren
+Filter-Slots zeigt sie dezenten Hinweis statt verwirrend leerer Liste
+(z. B. „Noch keine Exit-P2-Pushes gespeichert" wenn der `kind`-Filter
+auf einen nie aktiven Sender zeigt).
+
+CSS lebt in `templates/head.jinja` unter „Push-Historie (Phase 2 Stufe
+3c-3)" — eigene `.ph-row`/`.ph-sev-pill`/`.ph-kind-pill`/`.ph-empty`-
+Klassen plus eine Mobile-Override-Regel ab 480 px für volle Spalten-
+Breite der Filter-Labels.
 
 ---
 
