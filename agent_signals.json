@@ -1,17 +1,17 @@
 {
-  "updated": "2026-05-11T01:51:13.819573+02:00",
+  "updated": "2026-05-11T04:53:48.343694+02:00",
   "run_info": {
     "tickers_checked": 10,
     "signals_active": 8,
-    "alerts_sent": 0,
-    "elapsed_s": 10.6,
+    "alerts_sent": 1,
+    "elapsed_s": 11.1,
     "market_phase": "Geschlossen"
   },
   "signals": {
     "NVAX": {
       "score": 65,
       "confidence": 70,
-      "drivers": "Volumen 1.6× + Spanne 15.3% + News: breakout, earnings beat + UOA Call/Put 15.7×",
+      "drivers": "Volumen 1.6× + Spanne 15.3% + News: earnings beat, breakout + UOA Call/Put 15.7×",
       "price": 10.11,
       "chg_pct": -0.0,
       "rvol": 1.62,
@@ -51,9 +51,9 @@
       "uoa_cp_ratio": 11.538260869565217
     },
     "DMRC": {
-      "score": 90,
+      "score": 75,
       "confidence": 70,
-      "drivers": "Earnings in 2 Tagen (12.05.2026) + Volumen 2.5× + Spanne 15.3% + News: partnership + Earnings in 2d + UOA Call/Put 10.2× + 3/4 Trigger",
+      "drivers": "Earnings in 2 Tagen (12.05.2026) + Volumen 2.5× + Spanne 15.3% + News-KI 8/30: Positive fundamental developments but no indicators of high short interest, catalyst potential, or momentum needed for s + Earnings in 2d + UOA Call/Put 10.2×",
       "price": 9.36,
       "chg_pct": -0.0,
       "rvol": 2.47,
@@ -62,8 +62,8 @@
       "upcoming_event": "Earnings in 2 Tagen (12.05.2026)",
       "insider_buy": false,
       "stocktwits": null,
-      "combo_mult": 1.2,
-      "active_triggers": 3,
+      "combo_mult": 1.1,
+      "active_triggers": 2,
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 10.2×"
