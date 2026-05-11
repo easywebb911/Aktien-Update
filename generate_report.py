@@ -905,6 +905,21 @@ def get_yfinance_batch(tickers: list[str]) -> dict[str, dict]:
         except Exception:
             pass
 
+        # Tages-``change``-Fallback aus prev_close/cur_close — wird im
+        # Merge bei Z. 12664+ NUR übernommen, wenn der Screener-Wert
+        # auf dem Kandidaten leer/0 ist (Top-10-Tickern bleibt also
+        # ihr ``regularMarketChangePercent`` erhalten). Watchlist-only-
+        # Tickers durchlaufen den Synthetic-Add-Pfad (Z. ~12394) ohne
+        # ``change``-Initialisierung; ohne diesen Fallback bleibt das
+        # Frontend-Momentum auf 0. ``cur_close`` und ``prev_close``
+        # stammen aus _hist_stats — gleiche Quelle wie die anderen
+        # change_*-Felder, kein zusätzlicher Fetch.
+        if results[ticker].get("change") in (None, 0):
+            if prev_close and prev_close > 0 and cur_close:
+                results[ticker]["change"] = round(
+                    (cur_close - prev_close) / prev_close * 100.0, 2
+                )
+
         # Feature 6 — Squeeze-History-Detektor über Batch-Daten
         results[ticker]["recent_squeeze"] = _detect_recent_squeeze(_df_for(ticker))
 
@@ -12690,6 +12705,13 @@ def main():
             # bauen ebenfalls darauf.
             "change_2d":       yfd.get("change_2d"),
             "change_3d":       yfd.get("change_3d"),
+            # Tages-``change`` — Screener-Wert (regularMarketChangePercent
+            # aus Z. 427/552) hat Vorrang; nur bei leerem/0er Wert greift
+            # der Close-zu-Close-Fallback aus get_yfinance_batch. Damit
+            # bekommen Watchlist-only-Synthetic-Tickers (Z. ~12394 ohne
+            # ``change``-Init) einen echten Tagesmove statt 0.
+            "change":          (c.get("change") if c.get("change") not in (None, 0)
+                                else yfd.get("change")),
             "spx_daily_perf":  _spx_daily_perf,
             "recent_squeeze":  yfd.get("recent_squeeze"),   # Feature 6
             "rel_volume_yesterday": yfd.get("rel_volume_yesterday"),  # P&D Flag 1
