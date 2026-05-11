@@ -12468,7 +12468,12 @@ def _fetch_yfinance_next_earnings(ticker: str, today: date) -> date | None:
                 continue
         if candidates:
             return min(candidates)
-    except Exception as exc:
+    except (AttributeError, ValueError, KeyError, TypeError) as exc:
+        # yfinance kann je nach Version unterschiedliche Exceptions
+        # werfen (Ticker.calendar liefert mal Dict, mal DataFrame, mal
+        # None; bei Quota-Exhaustion auch HTTPError-Wrappers). Diese
+        # vier decken die typischen Pfade ohne legitime Fehler zu
+        # schlucken.
         log.debug("yfinance earnings %s: %s", ticker, exc)
     return None
 
@@ -12515,11 +12520,11 @@ def _exit_p2_trigger_catalyst(ticker: str,
     today_east = now_utc.astimezone(EASTERN).date() if now_utc else \
                  datetime.now(EASTERN).date()
     try:
-        edate = fetch(ticker, today_east) if fetcher else fetch(ticker, today_east)
-    except TypeError:
-        # Fetcher mit (ticker)-Signatur (Backward-Compat)
-        edate = fetch(ticker)
-    except Exception as exc:
+        edate = fetch(ticker, today_east)
+    except (TypeError, ValueError) as exc:
+        # Fetcher liefert defekte Daten / falsche Signatur — die
+        # eigentlichen Netzwerk-/Parse-Fehler werden bereits in den
+        # Helpern (Finnhub/yfinance) gefangen.
         log.debug("catalyst fetcher %s: %s", ticker, exc)
         edate = None
     if edate is None:
