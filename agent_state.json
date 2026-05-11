@@ -1,5 +1,5 @@
 {
-  "last_run": "2026-05-11T18:18:54.279382+02:00",
+  "last_run": "2026-05-11T18:31:44.824694+02:00",
   "cooldowns": {
     "anomaly_score_jump_XRX": "2026-05-03T18:47:15.315486+02:00",
     "anomaly_uoa_extreme_TDOC": "2026-05-04T13:47:00.365949+02:00",
@@ -198,15 +198,15 @@
     }
   ],
   "prev_conviction_scores": {
-    "INDI": 31.0,
-    "DFDV": 59.0,
-    "EVGO": 44.0,
-    "FTK": 56.0,
+    "DFDV": 61.0,
+    "INDI": 33.0,
+    "TNYA": 59.0,
+    "ENVX": 44.0,
     "DMRC": 58.0,
+    "AEVA": 52.0,
+    "CADL": 57.0,
     "FDMT": 43.0,
-    "ENVX": 43.0,
-    "CADL": 56.0,
-    "MNTS": 41.0,
-    "ABCL": 55.0
+    "MNTS": 43.0,
+    "ABCL": 57.0
   }
 }
