@@ -133,10 +133,16 @@ Dreizehn PRs (#105–#117) seit dem vorletzten Handover-Update (PR #102 vom 10.0
     Bootstrap-Einträge ausblendet.
 11. **Phase X — v1-Pfad-Migration** (siehe Code-Hygiene Punkt 2).
 12. **Tier-2-Insight-Builder** als Reserve.
-13. **ntfy-Priority-Mapping nach Severity** — `_send_anomaly_ntfy`
-    sendet aktuell hardcoded `Priority: high`. Wenn das Tiering
-    auch auf dem Handy sichtbar werden soll: `severity` an ntfy
-    durchreichen.
+13. **ntfy-Priority-Mapping nach Severity — Lücke nur bei
+    Anomaly-Sender.** `_send_exit_p2_push` (ki_agent.py:1941/1943)
+    verdrahtet das Severity-Tiering bereits auf ntfy-Priority +
+    Tag. Nur `_send_anomaly_ntfy` (ki_agent.py:1908) sendet
+    weiter hardcoded `Priority: high` für alle Severities.
+    Aufgabe: `severity`-kwarg in `_send_anomaly_ntfy` einführen
+    und auf ntfy-Priority mappen (high → `urgent`, medium →
+    `default`/`high`), analog zum Exit-P2-Sender. Bewusst nicht
+    Teil von PR #110, in CLAUDE.md als bekanntes Verhalten
+    dokumentiert.
 
 ### Wiedervorlagen mit Termin
 
@@ -338,7 +344,7 @@ Aus der Diskussion vom 09.05.2026. Status zum 11.05. abends:
   Filter zwischen Beobachtungs- und Aktions-Triggern.
   `ANOMALY_CONVICTION_MIN_THRESHOLD = 50` filtert alle Anomaly-
   Trigger AUSSER `conviction_high` (das ist selbst der Aktions-
-  Push). Reihenfolge: `vix_pause → silence_filter → cooldown →
+  Push). Reihenfolge: `vix_pause → cooldown → silence_filter →
   conviction_gate → push`. push_history wird IMMER geschrieben,
   bei unterdrücktem Push mit `suppressed=True` +
   `suppress_reason="conviction_below_threshold"`. Ticker ohne
