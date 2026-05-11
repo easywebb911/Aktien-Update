@@ -1,5 +1,5 @@
 {
-  "last_run": "2026-05-11T18:31:44.824694+02:00",
+  "last_run": "2026-05-11T20:57:23.203020+02:00",
   "cooldowns": {
     "anomaly_score_jump_XRX": "2026-05-03T18:47:15.315486+02:00",
     "anomaly_uoa_extreme_TDOC": "2026-05-04T13:47:00.365949+02:00",
@@ -13,7 +13,8 @@
     "anomaly_monster_backup_PCT": "2026-05-08T11:18:11.392228+02:00",
     "anomaly_monster_backup_VYX": "2026-05-08T13:12:12.367458+02:00",
     "anomaly_score_jump_GRPN": "2026-05-11T12:37:11.234314+02:00",
-    "anomaly_monster_backup_OFRM": "2026-05-10T18:53:05.781481+02:00"
+    "anomaly_monster_backup_OFRM": "2026-05-10T18:53:05.781481+02:00",
+    "anomaly_score_jump_ENVX": "2026-05-11T20:57:21.330160+02:00"
   },
   "push_history": [
     {
@@ -195,18 +196,55 @@
       "trigger": "monster_backup",
       "body": "GRPN 🔥 Monster 97 | Setup 97 | KI 20",
       "success": true
+    },
+    {
+      "ts": "2026-05-11T20:57:21.330145+02:00",
+      "ticker": "ENVX",
+      "kind": "anomaly",
+      "severity": "medium",
+      "trigger": "score_jump",
+      "body": "ENVX 🚀 Setup 63 ↑ (gestern 44) | Earnings in 2 Tagen (13.05.2026) + Volumen 1.6× + Spanne 13.…",
+      "success": true,
+      "suppressed": false,
+      "suppress_reason": null
+    },
+    {
+      "ts": "2026-05-11T20:57:23.344359+02:00",
+      "ticker": "AMC",
+      "kind": "exit_p2",
+      "severity": "warning",
+      "trigger": null,
+      "body": "⚠️ Exit-Warnung AMC: pressure 61/100",
+      "success": true,
+      "suppressed": false,
+      "suppress_reason": null
+    },
+    {
+      "ts": "2026-05-11T20:57:23.522897+02:00",
+      "ticker": "AMC",
+      "kind": "exit_p2",
+      "severity": "trigger",
+      "trigger": "trend_break",
+      "body": "🔻 Exit-Signal AMC: trend_break crit ({'ma21': 1.5114, 'price': 1.435, 'drop_pct': 5.06})",
+      "success": true,
+      "suppressed": false,
+      "suppress_reason": null
     }
   ],
   "prev_conviction_scores": {
-    "DFDV": 61.0,
+    "DFDV": 63.0,
     "INDI": 33.0,
-    "TNYA": 59.0,
-    "ENVX": 44.0,
-    "DMRC": 58.0,
-    "AEVA": 52.0,
-    "CADL": 57.0,
-    "FDMT": 43.0,
-    "MNTS": 43.0,
-    "ABCL": 57.0
+    "ENVX": 60.0,
+    "FTK": 54.0,
+    "PCT": 31.0,
+    "AEVA": 53.0,
+    "CADL": 59.0,
+    "DMRC": 59.0,
+    "MNTS": 44.0,
+    "CCCC": 55.0
+  },
+  "exit_cooldowns": {
+    "exitp2_warning_AMC": "2026-05-11T20:57:23.344379+02:00",
+    "exitp2_trigger_AMC_trend_break": "2026-05-11T20:57:23.522913+02:00"
   }
 }
