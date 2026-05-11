@@ -500,6 +500,24 @@ wird als `prev_state`-Argument an `_compute_exit_state` durchgereicht.
 Peak-Felder sind ratchet-up-only; `prev_exit_pressure` ist ein
 reines Snapshot-Spiegelfeld (kein Ratchet).
 
+### Trigger-Implementierungs-Status
+
+| Trigger | Gewicht | Status | Daten-Voraussetzung |
+|---|---:|---|---|
+| `score_decay`   | 30 % | **live** | ≥ 7 Einträge in `score_history` für den Ticker |
+| `profit_lock`   | 25 % | **live** | `peak_pnl_pct_since_entry` + `current_pnl_pct` |
+| `overheated`    | 20 % | **live** | `rsi14` / `change_2d` / `change_3d` in `top10_metrics` |
+| `setup_erosion` | 15 % | **Stub** | Entry-Snapshot (dtc/short_float/cost_to_borrow) im Gist (Schema-Erweiterung offen) |
+| `catalyst`      |  5 % | **Stub** | Historischer Earnings-Lookup zwischen Entry und heute |
+| `trend_break`   |  5 % | **live** | `ma21` (EMA21) in `top10_metrics` + `cur_price` aus `_fetch_position_market_data` |
+
+`trend_break`-Schwellen (`config.py`): Sub-Score = 0 wenn
+`price ≥ ma21`, 50 (warn) wenn `0 < drop_pct ≤ EXIT_TREND_BREAK_CRIT_PCT`
+(3 %), 100 (crit) wenn `drop_pct > 3 %`. `drop_pct = (ma21 − price) /
+ma21 × 100`. EMA21 wird in `_compute_indicators` via
+`close.ewm(span=21, adjust=False)` berechnet und im
+`results[ticker]`-Dict / merge bei Z. ~12700 als `ma21` mitgeführt.
+
 ### Phase-2-Push-Pipeline-Status (Stufe 3b-3b)
 
 Alle drei Klassen in `process_exit_signals` (ki_agent.py) sind

@@ -628,7 +628,12 @@ EXIT_CTB_DROP_WARN_PCT       = 0.30
 EXIT_CTB_DROP_CRIT_PCT       = 0.50
 
 # 5) Catalyst (5 %) — Earnings-Vergangenheits-Lookup (heute available:false)
-# 6) Trend-Bruch (5 %) — EMA21 (heute available:false)
+# 6) Trend-Bruch (5 %) — Kurs vs. EMA21. Sub-Score-Stufung:
+#    drop_pct = (ma21 − price) / ma21 × 100
+#      drop ≤ 0 (Kurs ≥ EMA21)               → 0   (kein Trigger)
+#      0 < drop ≤ EXIT_TREND_BREAK_CRIT_PCT   → 50  (warn)
+#      drop > EXIT_TREND_BREAK_CRIT_PCT       → 100 (crit)
+EXIT_TREND_BREAK_CRIT_PCT    = 3.0
 
 # Composite-Gewichte (Summe = 1.0)
 EXIT_PHASE2_W_SCORE_DECAY    = 0.30
