@@ -123,6 +123,14 @@ a{color:var(--accent);text-decoration:none}
   color:#f59e0b;background:rgba(245,158,11,.10);
   border:1px solid rgba(245,158,11,.35);white-space:nowrap;cursor:help}
 .hdr-nontrading[hidden]{display:none}
+/* Run-Phase-Pill (Zwei-Run-Architektur 12.05.2026):
+   premarket = gelb (Vorschau, RVOL noch nicht final),
+   postclose = grün (EOD-konsolidiert, Wahrheit). */
+.hdr-runphase{display:inline;font-weight:600;letter-spacing:.01em;
+  margin-left:2px}
+.hdr-runphase-premarket{color:#f59e0b}
+.hdr-runphase-postclose{color:#22c55e}
+.hdr-runphase[hidden]{display:none}
 .btn{display:inline-flex;align-items:center;justify-content:center;
   gap:6px;min-height:44px;padding:0 16px;border:1px solid transparent;border-radius:6px;
   font-size:.9rem;font-weight:700;cursor:pointer;flex:1;

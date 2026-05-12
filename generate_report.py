@@ -5633,7 +5633,7 @@ def generate_html_v1(stocks: list[dict], report_date: str,
 <header class="app-hdr">
   <div class="hdr-main">
     <span class="app-title">Squeeze <span>Report</span></span>
-    <span class="hdr-ts">{timestamp}<span id="hdr-nontrading" class="hdr-nontrading" hidden></span></span>
+    <span class="hdr-ts">{timestamp}<span id="hdr-runphase" class="hdr-runphase" hidden></span><span id="hdr-nontrading" class="hdr-nontrading" hidden></span></span>
     <button class="hamburger-btn" id="hamburger-btn" aria-label="Menü" aria-expanded="false" onclick="toggleMenuDrawer()">
       <i data-lucide="menu" class="hamburger-icon"></i>
     </button>
@@ -7313,6 +7313,34 @@ window._tjResolvePnlEur = _tjResolvePnlEur;
 // dem Setzen werden alle drei Klassen entfernt — bei geschlossener Position
 // oder gefallenem exit_pressure verschwindet der Glow.
 const _PSTATUS_GLOW_CLASSES = ['exit-glow-warn', 'exit-glow-mid', 'exit-glow-crit'];
+function _renderRunPhasePill(phase) {{
+  // Header-Pill für Zwei-Run-Architektur (12.05.2026).
+  // ``phase`` ist "premarket" (10:00-UTC-Cron, Vorschau) oder "postclose"
+  // (21:00-UTC-Cron, EOD-Wahrheit). Bei fehlendem Wert bleibt das Pill
+  // hidden — alte app_data ohne run_phase-Feld zeigt keinen verwirrenden
+  // „Unbekannt"-Status.
+  try {{
+    const el = document.getElementById('hdr-runphase');
+    if (!el) return;
+    if (phase === 'premarket') {{
+      el.textContent = ' · Pre-Open-Vorschau';
+      el.classList.remove('hdr-runphase-postclose');
+      el.classList.add('hdr-runphase-premarket');
+      el.hidden = false;
+    }} else if (phase === 'postclose') {{
+      el.textContent = ' · Post-Close';
+      el.classList.remove('hdr-runphase-premarket');
+      el.classList.add('hdr-runphase-postclose');
+      el.hidden = false;
+    }} else {{
+      el.hidden = true;
+      el.textContent = '';
+    }}
+  }} catch (e) {{
+    console.warn('_renderRunPhasePill error:', e);
+  }}
+}}
+
 function _applyExitGlows() {{
   try {{
     // Idempotenter Reset: Glow-Klassen, has-exit-banner und vorhandenes
@@ -9305,6 +9333,12 @@ function _fmtGerman(d) {{
       // (wlSubmitPosition snapshottet entry_score + entry_conviction_score
       // beim Position-Open). Identisch zum Fetch-Result, kein Filter.
       window._APP_DATA = appData;
+      // Run-Phase-Pill im Header rendern (Zwei-Run-Architektur 12.05.2026).
+      // appData.run_phase ist "premarket" (10:00-UTC-Cron, Vorschau, gelb)
+      // oder "postclose" (21:00-UTC-Cron, EOD-Wahrheit, grün). Fehlt das
+      // Feld (alte app_data), bleibt das Pill hidden — kein verwirrendes
+      // „Unbekannt"-Label.
+      _renderRunPhasePill(appData.run_phase);
       // Watchlist-Tiles neu rendern — _WL_CARDS liefert jetzt die
       // smoothed Scores, der erste Render-Pass nach DOMContentLoaded
       // hatte nur die raw-History als Fallback. Sicherstellt
@@ -11781,7 +11815,8 @@ def _write_app_data_json(watchlist_cards: dict | None = None,
                           gap_states: dict | None = None,
                           top10_metrics: dict | None = None,
                           positions: dict | None = None,
-                          conviction_scores: dict | None = None) -> None:
+                          conviction_scores: dict | None = None,
+                          run_phase: str = "premarket") -> None:
     """Schreibt kombinierte app_data.json = score_history + agent_signals + watchlist_cards.
 
     Beide Quelldateien (score_history.json + agent_signals.json) bleiben separat
@@ -11865,6 +11900,13 @@ def _write_app_data_json(watchlist_cards: dict | None = None,
         # ableiten, wie alt die FX-Quelle ist.
         "fx_usd_eur_computed_at": _FX_USD_EUR_COMPUTED_AT,
         "generated_at":    datetime.now(ZoneInfo("UTC")).strftime("%Y-%m-%dT%H:%M:%SZ"),
+        # Zwei-Run-Architektur (12.05.2026): ``premarket`` (10:00-UTC-Cron)
+        # vs. ``postclose`` (21:00-UTC-Cron) — Frontend rendert das Banner
+        # entsprechend, ki_agent gating-t Anomaly-Pushes daran. Default
+        # ``premarket`` ist konservativ (sicher), würde aber bei Stale-
+        # Persistenz von der Realität abweichen — der nächste Run
+        # überschreibt.
+        "run_phase":       run_phase,
     }
     # Browser-strict-JSON: NaN/Infinity → None vor Serialisierung. Python's
     # ``json.dump`` schreibt NaN sonst als Literal ``NaN``, was kein gültiges
@@ -13022,11 +13064,33 @@ def _build_phase2_positions_payload(
 # 6. MAIN
 # ===========================================================================
 
+def _resolve_run_phase() -> str:
+    """Liest RUN_PHASE aus der Workflow-ENV; Default ``premarket``.
+
+    Zwei-Run-Architektur (12.05.2026):
+      - 10:00-UTC-Cron → ``premarket`` (US-Open ~3,5h voraus, Daten
+        nicht final, RVOL strukturell unter-skaliert)
+      - 21:00-UTC-Cron → ``postclose`` (EOD-konsolidiert, „Wahrheit")
+      - workflow_dispatch (manuell) → ``postclose`` per Default
+      - lokaler Test ohne ENV → ``premarket`` (sicher, weil
+        backtest_history NICHT befüllt wird)
+
+    Unbekannte Werte werden zu ``premarket`` herabgestuft + Warning.
+    """
+    raw = (os.environ.get("RUN_PHASE") or "").strip().lower()
+    if raw in ("premarket", "postclose"):
+        return raw
+    if raw:
+        log.warning("Unbekanntes RUN_PHASE=%r — Fallback auf premarket", raw)
+    return "premarket"
+
+
 def main():
     t_run_start = time.time()
     berlin = ZoneInfo("Europe/Berlin")
     report_date = datetime.now(berlin).strftime("%d.%m.%Y")
-    log.info("=== Squeeze Report %s ===", report_date)
+    run_phase   = _resolve_run_phase()
+    log.info("=== Squeeze Report %s (run_phase=%s) ===", report_date, run_phase)
 
     # --- Step 1: Get candidate pool ---
     # Primary: Yahoo Finance Screener (reliable from GitHub Actions runners)
@@ -13636,7 +13700,8 @@ def main():
     # Append-only; pruned auf 30 Tage Cutoff zum Run-Start. Fail-soft —
     # Daily-Run crasht nie wegen Log-Fehler.
     score_inflation_log.prune_log()
-    score_inflation_log.record_top10_inflation(top10, _compute_sub_scores)
+    score_inflation_log.record_top10_inflation(
+        top10, _compute_sub_scores, run_phase=run_phase)
 
     # Borrow-Metriken (Display-Only): CTB + Utilization von Stockanalysis,
     # Fallback IBKR für CTB. Beide Felder fließen NICHT in den Score und
@@ -13807,7 +13872,17 @@ def main():
     # Backtest-History: pro Top-10-Ticker einen Eintrag anlegen (idempotent,
     # dedupliziert nach ticker+date). Returns werden später vom KI-Agent
     # aktualisiert, sobald 3/5/10 Handelstage vergangen sind.
-    _append_backtest_entries(top10, report_date, pool_size=len(enriched))
+    # Zwei-Run-Disziplin (12.05.2026): nur ``postclose``-Run darf Einträge
+    # anlegen. ``premarket`` würde die Score-Inflation in die Historie
+    # verschleppen — RVOL ist mid-day unter-skaliert (siehe Bestandsaufnahme
+    # 12.05.). Bestehende premarket-Einträge bleiben unverändert (kein
+    # retroaktiver Cleanup), die Backtest-Auswertung muss dafür später per
+    # ``market_regime``/``vix_level``-Filter bereinigt werden.
+    if run_phase == "postclose":
+        _append_backtest_entries(top10, report_date, pool_size=len(enriched))
+    else:
+        log.info("Backtest-Schema: skip in premarket-Phase (run_phase=%s)",
+                 run_phase)
 
     # Conviction-Score (Schritt A) — vor dem HTML-Render aufrufen, damit
     # _score_block_inner_html das s["conviction"]-Feld sieht. Anomalien
@@ -13970,7 +14045,8 @@ def main():
                          gap_states=_gap_states,
                          top10_metrics=_top10_metrics,
                          conviction_scores=_conviction_scores,
-                         positions=_positions_payload)
+                         positions=_positions_payload,
+                         run_phase=run_phase)
     print(f"Step 4 abgeschlossen in {time.time()-_t4:.1f}s", flush=True)
 
     # Step 5 — Exit-Signale für offene Positionen (Phase 1, kein Frontend).
