@@ -158,6 +158,14 @@ def _recover_positions_from_app_data(path: Path = Path("app_data.json")) -> dict
             recovered["entry_fx"] = p.get("entry_fx")
         if "fx_estimated" in p:
             recovered["fx_estimated"] = p.get("fx_estimated")
+        # Trigger-4-Snapshot (Setup-Erosion): entry_dtc/entry_short_float/
+        # entry_cost_to_borrow/entry_snapshot_ts müssen den Gist-Hiccup
+        # überleben, sonst fällt der Trigger bei der nächsten Position
+        # auf available=False zurück und die Empirik beginnt von vorn.
+        for _snap_key in ("entry_dtc", "entry_short_float",
+                          "entry_cost_to_borrow", "entry_snapshot_ts"):
+            if _snap_key in p:
+                recovered[_snap_key] = p.get(_snap_key)
         out[ticker] = recovered
     return out
 

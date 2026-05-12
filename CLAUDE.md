@@ -395,9 +395,13 @@ vom Workflow (nur lesen) angesprochen wird.
   "watchlist": ["TICKER", ...],
   "positions": {
     "TICKER": {
-      "entry_date":  "YYYY-MM-DD",
-      "entry_price": 12.34,
-      "shares":      35
+      "entry_date":           "YYYY-MM-DD",
+      "entry_price":          12.34,
+      "shares":               35,
+      "entry_dtc":            18.36,
+      "entry_short_float":    30.56,
+      "entry_cost_to_borrow": 20.0,
+      "entry_snapshot_ts":    "2026-04-27T14:00:00Z"
     }
   }
 }
@@ -406,6 +410,17 @@ vom Workflow (nur lesen) angesprochen wird.
 `shares` ist neu gegenüber Phase 1 — wird im Frontend für Stück-Anzeige
 genutzt. Die Exit-Score-Logik (`compute_exit_score`) ignoriert `shares`
 weiterhin (rechnet nur mit `entry_price`).
+
+**Trigger-4-Snapshot (`entry_dtc` / `entry_short_float` /
+`entry_cost_to_borrow` / `entry_snapshot_ts`)** ist optional und wird
+beim Position-Open im Frontend aus `_APP_DATA.watchlist_cards[ticker]`
+gelesen (Quelle: enriched Top-10-Daten). Felder dürfen einzeln `null`
+sein (Driver wird bei der Erosion-Berechnung übersprungen, aber andere
+Drivers bleiben bewertbar). `entry_snapshot_ts` markiert die Existenz
+des Snapshots — fehlt es, ist der Setup-Erosion-Trigger auf
+`available=False` mit reason `no_entry_snapshot`, was Bestandspositionen
+vor der Schema-Erweiterung (06.05.2026) sauber abgrenzt. Backfill ist
+manuell (Position schließen + neu eröffnen).
 
 ### Datenfluss
 
@@ -507,7 +522,7 @@ reines Snapshot-Spiegelfeld (kein Ratchet).
 | `score_decay`   | 30 % | **live** | ≥ 7 Einträge in `score_history` für den Ticker |
 | `profit_lock`   | 25 % | **live** | `peak_pnl_pct_since_entry` + `current_pnl_pct` |
 | `overheated`    | 20 % | **live** | `rsi14` / `change_2d` / `change_3d` in `top10_metrics` |
-| `setup_erosion` | 15 % | **Stub** | Entry-Snapshot (dtc/short_float/cost_to_borrow) im Gist (Schema-Erweiterung offen) |
+| `setup_erosion` | 15 % | **live** | Entry-Snapshot (`entry_dtc` / `entry_short_float` / `entry_cost_to_borrow` / `entry_snapshot_ts`) im Gist + aktuelle Werte aus `s_top` (Top-10-enriched). Drei relative Drops gegen `SETUP_EROSION_WARN_THRESHOLD` (0.30) / `SETUP_EROSION_CRIT_THRESHOLD` (0.50); Combo-Bonus bei ≥ `SETUP_EROSION_COMBO_DRIVERS_MIN` (2) Drivers gleichzeitig in warn. Bestandsposition ohne Snapshot → `available=False` (reason `no_entry_snapshot`). |
 | `catalyst`      |  5 % | **live** | Nächstes Earnings-Datum via Finnhub (FINNHUB_API_KEY) → yfinance-Fallback; Trading-Tage bis Earnings ≤ `CATALYST_DAYS_WINDOW` |
 | `trend_break`   |  5 % | **live** | `ma21` (EMA21) in `top10_metrics` + `cur_price` aus `_fetch_position_market_data` |
 
