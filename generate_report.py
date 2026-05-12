@@ -2558,14 +2558,30 @@ def fmt_cap(v) -> str:
 # SCORE HISTORY — smoothing across trading days
 # ===========================================================================
 
+def _parse_de_date(date_str: str) -> "date | None":
+    """Parse DD.MM.YYYY → date. None bei leer / falschem Format.
+
+    Single source of truth für Cutoff-Vergleiche in _load_score_history /
+    _save_score_history. KRITISCH: nicht durch lexikographischen
+    String-Vergleich ersetzen — `"12.05.2026" >= "28.04.2026"` wertet
+    string-vergleichend zu False aus und kappte vor diesem Fix alle
+    Mai-Einträge bei jedem Load/Save (Bug behoben Mai 2026).
+    """
+    if not date_str:
+        return None
+    try:
+        return datetime.strptime(date_str, "%d.%m.%Y").date()
+    except ValueError:
+        return None
+
+
 def _load_score_history() -> dict:
     """Opt 7 — Load history and immediately prune stale entries at read time.
 
     Entries older than SCORE_HISTORY_DAYS (14) are dropped on load so
     _save_score_history() only serialises what is still needed — no second pass.
     """
-    from datetime import date, timedelta
-    cutoff = (date.today() - timedelta(days=SCORE_HISTORY_DAYS)).strftime("%d.%m.%Y")
+    cutoff_date = date.today() - timedelta(days=SCORE_HISTORY_DAYS)
     try:
         with open(SCORE_HISTORY_FILE, "r", encoding="utf-8") as fh:
             raw = json.load(fh)
@@ -2591,11 +2607,24 @@ def _load_score_history() -> dict:
         return None
 
     pruned: dict[str, list[dict]] = {}
+    n_dropped_bad = 0
     for ticker, entries in raw.items():
-        normalised = [_normalize(e) for e in entries]
-        kept = [e for e in normalised if e and e.get("date", "") >= cutoff]
+        kept: list[dict] = []
+        for e_raw in entries:
+            e = _normalize(e_raw)
+            if not e:
+                continue
+            ed = _parse_de_date(e.get("date", ""))
+            if ed is None:
+                n_dropped_bad += 1
+                continue
+            if ed >= cutoff_date:
+                kept.append(e)
         if kept:
             pruned[ticker] = kept
+    if n_dropped_bad:
+        log.warning("score_history: %d Einträge mit kaputtem Datumsformat verworfen "
+                    "(erwartet DD.MM.YYYY)", n_dropped_bad)
     return pruned
 
 
@@ -2608,8 +2637,7 @@ def _save_score_history(history: dict, _dirty: bool = True) -> None:
     """
     if not _dirty:
         return
-    from datetime import date, timedelta
-    cutoff = (date.today() - timedelta(days=SCORE_HISTORY_DAYS)).strftime("%d.%m.%Y")
+    cutoff_date = date.today() - timedelta(days=SCORE_HISTORY_DAYS)
     compact: dict[str, list] = {}
     for ticker, entries in history.items():
         rows: list[list] = []
@@ -2623,7 +2651,8 @@ def _save_score_history(history: dict, _dirty: bool = True) -> None:
                 dr = list(e[2]) if len(e) >= 3 and e[2] else []
             else:
                 continue
-            if d and sc is not None and d >= cutoff:
+            ed = _parse_de_date(d) if d else None
+            if ed is not None and sc is not None and ed >= cutoff_date:
                 # 3-Tuple nur wenn drivers nicht leer — spart Bytes für
                 # Legacy-Einträge ohne KI-Agent-Daten.
                 rows.append([d, sc, dr] if dr else [d, sc])
