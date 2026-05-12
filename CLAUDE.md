@@ -1084,16 +1084,49 @@ Top-10-Block.
 
 ### Datenquellen im Chat-Kontext
 
-Aufgebaut von `_build_chat_synthesis_ctx()` in `generate_report.py`,
-serialisiert als JSON in `STOCKS_CTX` an den Chat:
+Aufgebaut von `_build_chat_synthesis_ctx(stocks, score_history,
+watchlist_cards=None)` in `generate_report.py`, serialisiert als JSON
+in `STOCKS_CTX` an den Chat:
 
 | Feld | Inhalt |
 |---|---|
 | `today_top10[]`     | pro Ticker `setup_today`, `setup_yesterday`, `setup_delta`, `monster_today`, `ki_today`, RVOL, RSI, Earnings-Tage, Sektor, SI-Trend |
 | `anomalies_today[]` | `{ticker, trigger, detail}` — `score_jump`, `rvol_high`, `earnings_imminent`, `topten_entry`, `topten_exit` |
 | `topten_changes`    | `{new: [...], dropped: [...]}` vs. Vortag |
-| `positions[]`       | `entry_date`, `entry_price`, `current_price`, `pnl_pct`, `in_top10`, `setup_today`, `monster_today` |
+| `positions[]`       | `entry_date`, `entry_price`, `current_price`, `pnl_pct`, `in_top10`, `in_watchlist_card`, `setup_today`, `monster_today` |
 | `today_date` / `yesterday_date` | DE-Datums-Strings, auf die die Diffs sich beziehen |
+
+### Quellen-Priorität für Positions-Felder (current_price / setup_today / monster_today)
+
+Reihenfolge in `_build_chat_synthesis_ctx`:
+
+1. **`stocks` (heutige Top-10)** — wenn der Position-Ticker hier ist:
+   `s = by_ticker.get(ticker)`, `in_top10=True`.
+2. **`watchlist_cards` (enriched Watchlist-Snapshot)** — Fallback, wenn
+   der Ticker nicht in Top-10 ist: `wl = watchlist_cards.get(ticker)`.
+   `in_top10=False`, `in_watchlist_card=True`. Dasselbe Dict, das auch
+   `app_data.json["watchlist_cards"]` füllt und das Frontend für das
+   Position-Panel liest — Single-Source-Konsistenz zwischen Chat-Ctx
+   und Position-Panel.
+3. **Keine Quelle** — beide Flags `False`, `current_price=None`,
+   `setup_today=None`, `monster_today=None`. Das ist die echte
+   „ohne aktuellen Kurs"-Lage.
+
+**`in_top10` bleibt strikt** = Membership in heutiger Top-10 — KEIN
+Watchlist-Smearing. Sonst verliert die LLM das Signal „aus Top-10
+gefallen". `in_watchlist_card` flaggt den Fallback-Pfad explizit, damit
+die LLM zwischen „Spot da via Watchlist" und „Spot komplett fehlt"
+unterscheiden kann. System-Prompt in `chat_script.jinja:_buildSystem`
+instruiert die LLM entsprechend.
+
+**Aufrufer-Pipeline:** `main()` baut `_wl_card_data` VOR `generate_html`
+(hochgezogen aus dem ursprünglichen post-Render-Slot, weil der Chat-
+Ctx in `_build_context` darauf zugreifen muss). Dasselbe Dict wird
+parallel an `_write_app_data_json` weitergereicht — kein doppelter
+Build, keine Datenquellen-Drift. `_build_chat_synthesis_ctx`
+behält den optionalen `watchlist_cards=None`-Default für
+Backward-Compat-Aufrufer (`apply_conviction_scores`-Pfad nutzt nur
+`anomalies_today` und braucht den Fallback nicht).
 
 ### Hinweise
 

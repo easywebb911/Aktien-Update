@@ -5203,7 +5203,8 @@ def apply_conviction_scores(stocks: list[dict],
         s["conviction"] = compute_conviction_score(s, anomalies_today, vix)
 
 
-def _build_chat_synthesis_ctx(stocks: list[dict], score_history: dict) -> dict:
+def _build_chat_synthesis_ctx(stocks: list[dict], score_history: dict,
+                               watchlist_cards: dict | None = None) -> dict:
     """Erweiterter Chat-Kontext mit Tagesvergleich + Anomalien + Position.
 
     Liefert ein Dict mit:
@@ -5214,8 +5215,11 @@ def _build_chat_synthesis_ctx(stocks: list[dict], score_history: dict) -> dict:
         starke RVOL-Werte). KI-Agent-Anomalien (UOA/RVOL-Vortagsvergleich)
         sind nicht enthalten — die liegen erst im nächsten ki_agent-Tick vor.
       - ``topten_changes``: ``{new: [...], dropped: [...]}`` vs. Vortag.
-      - ``positions``: positions.json + PnL gegen heutigen Spot (Top-10
-        Cross-Match) — leer wenn `positions.json` fehlt.
+      - ``positions``: positions.json + PnL gegen heutigen Spot. Quelle
+        primär ``stocks`` (heutige Top-10) → Fallback ``watchlist_cards``
+        (enriched Watchlist-Daten für Position-Ticker außerhalb der Top-10).
+        Felder ``in_top10`` (= heutige Top-10) und ``in_watchlist_card``
+        (= Fallback-Quelle erfolgreich) zeigen die effektive Datenherkunft.
       - ``yesterday_date``: deutscher Datums-String, auf den die Diffs
         sich beziehen.
     Keine Calls in Code-Pfade mit Side-Effects; pure-Funktion-Helper.
@@ -5343,15 +5347,18 @@ def _build_chat_synthesis_ctx(stocks: list[dict], score_history: dict) -> dict:
     # Exit-Score wird hier NICHT berechnet (würde yfinance-Fetches je
     # Position auslösen); compute_exit_score läuft separat in Step 5.
     by_ticker = {s["ticker"]: s for s in stocks}
+    wl_cards  = watchlist_cards or {}
     positions_out: list[dict] = []
     try:
         positions = _load_positions()
     except Exception:
         positions = {}
     for ticker, pos in (positions or {}).items():
-        s = by_ticker.get(ticker)
+        s  = by_ticker.get(ticker)             # heutige Top-10
+        wl = wl_cards.get(ticker) if s is None else None   # Fallback nur wenn nicht in Top-10
+        src = s or wl                          # primary: Top-10, fallback: Watchlist-Card
         entry_price = pos.get("entry_price")
-        cur_price   = s.get("price") if s else None
+        cur_price   = src.get("price") if src else None
         pnl_pct = None
         try:
             if entry_price and cur_price:
@@ -5361,17 +5368,24 @@ def _build_chat_synthesis_ctx(stocks: list[dict], score_history: dict) -> dict:
         except (TypeError, ValueError, ZeroDivisionError):
             pnl_pct = None
         positions_out.append({
-            "ticker":         ticker,
-            "entry_date":     pos.get("entry_date"),
-            "entry_price":    entry_price,
-            "current_price":  (round(_safe_float(cur_price), 2)
-                               if cur_price is not None else None),
-            "pnl_pct":        pnl_pct,
-            "in_top10":       s is not None,
-            "setup_today":    (round(_safe_float(s.get("score")), 1)
-                               if s and s.get("score") is not None else None),
-            "monster_today":  (round(_safe_float(s.get("monster_score")), 1)
-                               if (s and s.get("monster_score") is not None) else None),
+            "ticker":            ticker,
+            "entry_date":        pos.get("entry_date"),
+            "entry_price":       entry_price,
+            "current_price":     (round(_safe_float(cur_price), 2)
+                                  if cur_price is not None else None),
+            "pnl_pct":           pnl_pct,
+            # ``in_top10`` bleibt STRIKT = Membership in heutiger Top-10.
+            # Keine Watchlist-Vermischung (sonst verliert die LLM das
+            # Signal „aus Top-10 gefallen"). ``in_watchlist_card`` flaggt
+            # den Fallback-Pfad: Position-Ticker hat zwar keine Top-10-
+            # Rückendeckung, aber Live-Daten aus dem enriched Watchlist-
+            # Snapshot stehen zur Verfügung.
+            "in_top10":          s is not None,
+            "in_watchlist_card": (s is None and wl is not None),
+            "setup_today":       (round(_safe_float(src.get("score")), 1)
+                                  if src and src.get("score") is not None else None),
+            "monster_today":     (round(_safe_float(src.get("monster_score")), 1)
+                                  if (src and src.get("monster_score") is not None) else None),
         })
 
     return {
@@ -5385,7 +5399,8 @@ def _build_chat_synthesis_ctx(stocks: list[dict], score_history: dict) -> dict:
     }
 
 
-def _build_context(stocks: list[dict], report_date: str) -> dict:
+def _build_context(stocks: list[dict], report_date: str,
+                    watchlist_cards: dict | None = None) -> dict:
     """Zentrale Context-Erstellung für Template-Rendering.
 
     Liefert ein Dict mit allen vorberechneten Aggregaten + JSON-Blobs,
@@ -5474,7 +5489,11 @@ def _build_context(stocks: list[dict], report_date: str) -> dict:
     # Compact top-10 snapshot for Claude chat system prompt — strukturiert mit
     # Tagesvergleich, Anomalie-Liste, Position-Kontext und Top-10-Diff.
     # Siehe _build_chat_synthesis_ctx-Docstring für Schema.
-    _chat_ctx     = _build_chat_synthesis_ctx(stocks, _wl_raw)
+    # watchlist_cards wird durchgereicht, damit Position-Ticker außerhalb der
+    # heutigen Top-10 (z.B. AMC nach Drop, SABR seit 07.05.) Live-Kurs +
+    # Setup-Score aus dem enriched Watchlist-Snapshot bekommen, statt
+    # current_price=null im Chat-Kontext zu landen.
+    _chat_ctx     = _build_chat_synthesis_ctx(stocks, _wl_raw, watchlist_cards)
     chat_ctx_json = json.dumps(_chat_ctx, default=str)
 
     # Pre-render Jinja2-Templates (Phase 2+: head/CSS, Phase 4a: Chat-Panel-HTML,
@@ -5512,7 +5531,9 @@ def _build_context(stocks: list[dict], report_date: str) -> dict:
     }
 
 
-def generate_html_v1(stocks: list[dict], report_date: str, _ctx: dict | None = None) -> str:
+def generate_html_v1(stocks: list[dict], report_date: str,
+                      _ctx: dict | None = None,
+                      watchlist_cards: dict | None = None) -> str:
     """Legacy f-String-Rendering — aktuell autoritativ.
 
     ``_ctx`` ist ein optionaler Context-Override, den ``generate_html_v2``
@@ -5520,7 +5541,8 @@ def generate_html_v1(stocks: list[dict], report_date: str, _ctx: dict | None = N
     vergleicht ``_render_test`` v1 gegen v2 in einer Konfiguration, in der
     einzig die Kartenquelle (f-String vs Jinja2) variiert.
     """
-    ctx = _ctx if _ctx is not None else _build_context(stocks, report_date)
+    ctx = _ctx if _ctx is not None else _build_context(
+        stocks, report_date, watchlist_cards=watchlist_cards)
     # Unpack context for f-string access
     report_date    = ctx["report_date"]
     timestamp      = ctx["timestamp"]
@@ -11156,7 +11178,8 @@ if ('serviceWorker' in navigator
 # ============================================================================
 
 
-def generate_html_v2(stocks: list[dict], report_date: str) -> str:
+def generate_html_v2(stocks: list[dict], report_date: str,
+                      watchlist_cards: dict | None = None) -> str:
     """Jinja2-basiertes Rendering.
 
     Phase 3d: ``templates/card.jinja`` rendert alle Karten; das Ergebnis
@@ -11167,7 +11190,7 @@ def generate_html_v2(stocks: list[dict], report_date: str) -> str:
     **NICHT autark** — siehe Architektur-Anker oben. Endet mit
     ``return generate_html_v1(stocks, report_date, _ctx=ctx_v2)``.
     """
-    ctx = _build_context(stocks, report_date)
+    ctx = _build_context(stocks, report_date, watchlist_cards=watchlist_cards)
     env = _jinja_env()
     card_tmpl = env.get_template("card.jinja")
     cards_v2 = "\n".join(
@@ -11177,27 +11200,38 @@ def generate_html_v2(stocks: list[dict], report_date: str) -> str:
     return generate_html_v1(stocks, report_date, _ctx=ctx_v2)
 
 
-def generate_html(stocks: list[dict], report_date: str) -> str:
+def generate_html(stocks: list[dict], report_date: str,
+                   watchlist_cards: dict | None = None) -> str:
     """Öffentlicher Einstiegspunkt — ab Phase 3e Jinja2-basiert (v2).
 
     Byte-Identität v1==v2 ist in Phase 3d per ``_render_test`` verifiziert.
     v1 bleibt als Fallback erreichbar über die Umgebungsvariable
     ``JINJA_USE_V1=1`` (Rollback-Pfad, falls v2 produktiv auffällt).
+
+    ``watchlist_cards`` ist der enriched Watchlist-Snapshot, der vom
+    Daily-Run aus ``enriched``-Pool gebaut wird (= dieselbe Quelle wie
+    ``app_data.json.watchlist_cards``). Wird im Chat-Synthese-Builder
+    als Fallback-Source für Position-Ticker außerhalb der Top-10 genutzt.
     """
     if os.environ.get("JINJA_USE_V1"):
-        return generate_html_v1(stocks, report_date)
-    return generate_html_v2(stocks, report_date)
+        return generate_html_v1(stocks, report_date,
+                                 watchlist_cards=watchlist_cards)
+    return generate_html_v2(stocks, report_date,
+                             watchlist_cards=watchlist_cards)
 
 
-def _render_test(stocks: list[dict], report_date: str) -> None:
+def _render_test(stocks: list[dict], report_date: str,
+                  watchlist_cards: dict | None = None) -> None:
     """Sanity-Check: v1 und v2 müssen byte-identischen Output liefern.
 
     In Phase 0 delegiert v2 an v1 → trivial identisch. Der Test bleibt bis
     zum Abschluss der Migration Pflicht und wird bei jeder Phase aktiv.
     Aktivierung via Umgebungsvariable ``JINJA_RENDER_TEST=1``.
     """
-    out_v1 = generate_html_v1(stocks, report_date)
-    out_v2 = generate_html_v2(stocks, report_date)
+    out_v1 = generate_html_v1(stocks, report_date,
+                               watchlist_cards=watchlist_cards)
+    out_v2 = generate_html_v2(stocks, report_date,
+                               watchlist_cards=watchlist_cards)
     if out_v1 != out_v2:
         raise AssertionError(
             f"Render-Test fehlgeschlagen: "
@@ -13791,12 +13825,35 @@ def main():
     _vix_for_conv = _prev_app_data_for_conv.get("vix_current")
     apply_conviction_scores(top10, _anomalies_today, _vix_for_conv)
 
+    # Watchlist-Karten-Snapshot VOR generate_html aufbauen, damit der
+    # Chat-Synthese-Builder (_build_chat_synthesis_ctx) den enriched
+    # Watchlist-Stand als Fallback für Position-Ticker außerhalb der
+    # heutigen Top-10 lesen kann. Identische Quelle wie das später
+    # nach app_data.json geschriebene watchlist_cards-Feld — wir bauen
+    # sie hier einmal und reichen sie sowohl in den Render als auch in
+    # _write_app_data_json weiter (Z. ~13927).
+    _wl_card_data = {
+        c["ticker"]: _wl_card_payload(c)
+        for c in enriched
+        if c.get("manual_personal")
+    }
+    _personal_tickers = set(_load_personal_watchlist())
+    _fallback_added = 0
+    for c in enriched:
+        if c["ticker"] in _personal_tickers and c["ticker"] not in _wl_card_data:
+            _wl_card_data[c["ticker"]] = _wl_card_payload(c)
+            _fallback_added += 1
+    if _fallback_added:
+        log.info("Watchlist-Karten: %d Ticker per manual_personal-Flag, "
+                 "%d zusätzlich per Namens-Fallback gefunden",
+                 len(_wl_card_data) - _fallback_added, _fallback_added)
+
     # --- Step 4: HTML ---
     _t4 = time.time()
     log.info("Step 4 – Generating HTML report …")
-    html = generate_html(top10, report_date)
+    html = generate_html(top10, report_date, watchlist_cards=_wl_card_data)
     if os.environ.get("JINJA_RENDER_TEST") == "1":
-        _render_test(top10, report_date)
+        _render_test(top10, report_date, watchlist_cards=_wl_card_data)
 
     # Defense-in-Depth: trotz Sanitizing am Ingestion-Point können Surrogates
     # auf neuen API-Pfaden auftauchen. Diagnose + Fallback verhindert den Crash.
@@ -13817,29 +13874,12 @@ def main():
     # Zeitstempel) — Browser invalidieren alten Cache beim nächsten Besuch.
     if SW_ENABLED:
         _write_service_worker()
-    # Kombinierte app_data.json (PWA-Single-Fetch).
-    # watchlist_cards: vollständige Karten-Daten für ALLE persönlichen
-    # Watchlist-Ticker (auch nicht-Top-10), damit der Browser im expandierten
-    # Watchlist-Zustand echte Werte statt „—"-Platzhalter zeigen kann.
-    # Primär: alle in enriched markierten manual_personal-Einträge.
-    # Fallback: Ticker aus watchlist_personal.json per Namen suchen — falls
-    # das manual_personal-Flag durch Pool-Filter verloren ging, sind die Daten
-    # trotzdem in enriched, wir matchen sie via Ticker-Symbol.
-    _wl_card_data = {
-        c["ticker"]: _wl_card_payload(c)
-        for c in enriched
-        if c.get("manual_personal")
-    }
-    _personal_tickers = set(_load_personal_watchlist())
-    _fallback_added = 0
-    for c in enriched:
-        if c["ticker"] in _personal_tickers and c["ticker"] not in _wl_card_data:
-            _wl_card_data[c["ticker"]] = _wl_card_payload(c)
-            _fallback_added += 1
-    if _fallback_added:
-        log.info("Watchlist-Karten: %d Ticker per manual_personal-Flag, "
-                 "%d zusätzlich per Namens-Fallback gefunden",
-                 len(_wl_card_data) - _fallback_added, _fallback_added)
+    # Kombinierte app_data.json (PWA-Single-Fetch). ``_wl_card_data``
+    # wurde oben (vor generate_html) gebaut und an den Chat-Synthese-
+    # Builder als Fallback-Source für Position-Ticker außerhalb der
+    # Top-10 durchgereicht — dasselbe Dict landet hier auch in
+    # ``app_data.json["watchlist_cards"]``, sodass der Browser im
+    # expandierten Watchlist-Zustand identische Daten sieht.
     _monster_scores = {
         s["ticker"]: round(s["monster_score"], 1)
         for s in top10
