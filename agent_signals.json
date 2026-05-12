@@ -1,17 +1,17 @@
 {
-  "updated": "2026-05-12T01:56:34.568809+02:00",
+  "updated": "2026-05-12T04:57:18.127327+02:00",
   "run_info": {
     "tickers_checked": 10,
     "signals_active": 5,
-    "alerts_sent": 0,
-    "elapsed_s": 10.0,
-    "market_phase": "After-Hours"
+    "alerts_sent": 1,
+    "elapsed_s": 12.0,
+    "market_phase": "Geschlossen"
   },
   "signals": {
     "DFDV": {
-      "score": 68,
+      "score": 82,
       "confidence": 70,
-      "drivers": "Earnings in 2 Tagen (13.05.2026) + Volumen 1.9× + Spanne 14.6% + News-KI 8/30: Dilutive ATM facility and treasury expansion strategies typically weaken short-squeeze potential despite positive revenu + Earnings in 2d + UOA Call/Put 185.8×",
+      "drivers": "Earnings in 2 Tagen (13.05.2026) + Volumen 1.9× + Spanne 14.6% + News: short interest + Earnings in 2d + UOA Call/Put 185.8×",
       "price": 4.92,
       "chg_pct": 0.0,
       "rvol": 1.95,
@@ -20,8 +20,8 @@
       "upcoming_event": "Earnings in 2 Tagen (13.05.2026)",
       "insider_buy": false,
       "stocktwits": null,
-      "combo_mult": 1.0,
-      "active_triggers": 1,
+      "combo_mult": 1.1,
+      "active_triggers": 2,
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 185.8×"
@@ -51,9 +51,9 @@
       "uoa_cp_ratio": 2.372720897615708
     },
     "INDI": {
-      "score": 32,
+      "score": 35,
       "confidence": 33,
-      "drivers": "Spanne 12.9% + News-KI 12/30: Positive fundamentals (acquisition, earnings) suggest company strength rather than short squeeze setup; rising price lik + UOA Call/Put 18.0×",
+      "drivers": "Spanne 12.9% + News: acquisition + UOA Call/Put 18.0×",
       "price": 4.74,
       "chg_pct": -0.0,
       "rvol": 1.38,
