@@ -5760,40 +5760,54 @@ def generate_html_v1(stocks: list[dict], report_date: str,
     <p class="tok-modal-hint">PAT mit Scopes <code>repo</code> und <code>gist</code>.
       Token wird mit deinem Master-Passwort verschlüsselt im Browser gespeichert —
       Passwort liegt nirgendwo persistent vor.</p>
-    <label class="tok-modal-lbl">GitHub Personal Access Token
-      <input type="password" id="tok-setup-token" class="tok-modal-inp"
-             autocomplete="off" spellcheck="false" placeholder="ghp_…">
-    </label>
-    <label class="tok-modal-lbl">Master-Passwort
-      <input type="password" id="tok-setup-pw" class="tok-modal-inp"
-             autocomplete="new-password" spellcheck="false" placeholder="mind. 8 Zeichen">
-    </label>
-    <label class="tok-modal-lbl">Passwort bestätigen
-      <input type="password" id="tok-setup-pw2" class="tok-modal-inp"
-             autocomplete="new-password" spellcheck="false">
-    </label>
-    <div class="tok-modal-err" id="tok-setup-err" hidden></div>
-    <div class="tok-modal-btns">
-      <button class="btn btn-cancel" onclick="_closeTokenModals()">Abbrechen</button>
-      <button class="btn btn-b" onclick="_submitTokenSetup()">Verschlüsseln &amp; Speichern</button>
-    </div>
+    <!-- <form>-Wrapper (F2 Token-Reentry-Fix): Safari + iCloud-Schlüsselbund
+         erkennen Credential-Felder nur in einer <form>. onsubmit="return false"
+         verhindert Browser-Default-Submit (Page-Reload); _submitTokenSetup()
+         läuft weiterhin per Button-onclick. autocomplete="username" auf
+         hidden-Input bindet das Master-Passwort an einen Account-Identifier
+         im Schlüsselbund (Safari verlangt das, sonst keine Speicher-Bubble). -->
+    <form onsubmit="return false" autocomplete="on">
+      <input type="text" autocomplete="username" name="username"
+             value="squeeze-report-master" hidden aria-hidden="true">
+      <label class="tok-modal-lbl">GitHub Personal Access Token
+        <input type="password" id="tok-setup-token" class="tok-modal-inp"
+               autocomplete="off" spellcheck="false" placeholder="ghp_…">
+      </label>
+      <label class="tok-modal-lbl">Master-Passwort
+        <input type="password" id="tok-setup-pw" class="tok-modal-inp"
+               autocomplete="new-password" spellcheck="false" placeholder="mind. 8 Zeichen">
+      </label>
+      <label class="tok-modal-lbl">Passwort bestätigen
+        <input type="password" id="tok-setup-pw2" class="tok-modal-inp"
+               autocomplete="new-password" spellcheck="false">
+      </label>
+      <div class="tok-modal-err" id="tok-setup-err" hidden></div>
+      <div class="tok-modal-btns">
+        <button type="button" class="btn btn-cancel" onclick="_closeTokenModals()">Abbrechen</button>
+        <button type="submit" class="btn btn-b" onclick="_submitTokenSetup()">Verschlüsseln &amp; Speichern</button>
+      </div>
+    </form>
   </div>
 
   <div class="tok-modal" id="tok-modal-unlock" hidden role="dialog" aria-modal="true" aria-labelledby="tok-unlock-title">
     <h3 id="tok-unlock-title">Master-Passwort eingeben</h3>
     <p class="tok-modal-hint">Token ist verschlüsselt gespeichert. Passwort entschlüsselt
       ihn nur für diese Browser-Session.</p>
-    <label class="tok-modal-lbl">Master-Passwort
-      <input type="password" id="tok-unlock-pw" class="tok-modal-inp"
-             autocomplete="current-password" spellcheck="false"
-             onkeydown="if(event.key==='Enter')_submitTokenUnlock()">
-    </label>
-    <div class="tok-modal-err" id="tok-unlock-err" hidden></div>
-    <div class="tok-modal-btns">
-      <button class="btn btn-cancel" onclick="_closeTokenModals()">Abbrechen</button>
-      <a class="tok-link tok-modal-reset" onclick="_resetTokenForReentry();return false;" href="#">Token neu eingeben</a>
-      <button class="btn btn-b" onclick="_submitTokenUnlock()">Entschlüsseln</button>
-    </div>
+    <form onsubmit="return false" autocomplete="on">
+      <input type="text" autocomplete="username" name="username"
+             value="squeeze-report-master" hidden aria-hidden="true">
+      <label class="tok-modal-lbl">Master-Passwort
+        <input type="password" id="tok-unlock-pw" class="tok-modal-inp"
+               autocomplete="current-password" spellcheck="false"
+               onkeydown="if(event.key==='Enter')_submitTokenUnlock()">
+      </label>
+      <div class="tok-modal-err" id="tok-unlock-err" hidden></div>
+      <div class="tok-modal-btns">
+        <button type="button" class="btn btn-cancel" onclick="_closeTokenModals()">Abbrechen</button>
+        <a class="tok-link tok-modal-reset" onclick="_resetTokenForReentry();return false;" href="#">Token neu eingeben</a>
+        <button type="submit" class="btn btn-b" onclick="_submitTokenUnlock()">Entschlüsseln</button>
+      </div>
+    </form>
   </div>
 
   <div class="tok-modal" id="tok-modal-migrate" hidden role="dialog" aria-modal="true" aria-labelledby="tok-mig-title">
@@ -5801,19 +5815,23 @@ def generate_html_v1(stocks: list[dict], report_date: str,
     <p class="tok-modal-hint">Es wurde ein unverschlüsselter GitHub-Token in
       <code>localStorage</code> gefunden. Setze jetzt ein Master-Passwort —
       der Klartext-Slot wird danach gelöscht.</p>
-    <label class="tok-modal-lbl">Master-Passwort
-      <input type="password" id="tok-mig-pw" class="tok-modal-inp"
-             autocomplete="new-password" spellcheck="false" placeholder="mind. 8 Zeichen">
-    </label>
-    <label class="tok-modal-lbl">Passwort bestätigen
-      <input type="password" id="tok-mig-pw2" class="tok-modal-inp"
-             autocomplete="new-password" spellcheck="false">
-    </label>
-    <div class="tok-modal-err" id="tok-mig-err" hidden></div>
-    <div class="tok-modal-btns">
-      <button class="btn btn-cancel" onclick="_skipTokenMigrate()">Später</button>
-      <button class="btn btn-b" onclick="_submitTokenMigrate()">Verschlüsseln</button>
-    </div>
+    <form onsubmit="return false" autocomplete="on">
+      <input type="text" autocomplete="username" name="username"
+             value="squeeze-report-master" hidden aria-hidden="true">
+      <label class="tok-modal-lbl">Master-Passwort
+        <input type="password" id="tok-mig-pw" class="tok-modal-inp"
+               autocomplete="new-password" spellcheck="false" placeholder="mind. 8 Zeichen">
+      </label>
+      <label class="tok-modal-lbl">Passwort bestätigen
+        <input type="password" id="tok-mig-pw2" class="tok-modal-inp"
+               autocomplete="new-password" spellcheck="false">
+      </label>
+      <div class="tok-modal-err" id="tok-mig-err" hidden></div>
+      <div class="tok-modal-btns">
+        <button type="button" class="btn btn-cancel" onclick="_skipTokenMigrate()">Später</button>
+        <button type="submit" class="btn btn-b" onclick="_submitTokenMigrate()">Verschlüsseln</button>
+      </div>
+    </form>
   </div>
 
   <div id="amsg" class="amsg" style="display:none"></div>
@@ -8230,7 +8248,18 @@ let _inMemoryToken = '';
 function getToken() {{
   let s = '';
   try {{ s = sessionStorage.getItem(TOK_KEY) || ''; }} catch(_) {{}}
-  return s || _inMemoryToken || '';
+  const tok = s || _inMemoryToken || '';
+  // F5 (Token-Reentry-Fix, 12.05.2026): Keep-Alive-Touch bei jedem
+  // erfolgreichen Token-Read. Schreibt einen Timestamp in localStorage,
+  // damit Apples ITP-7-Tage-Inaktivitäts-Timer auf jeder User-Aktion
+  // zurückgesetzt wird (laut Apple-Doku: jeder Storage-Write resettet
+  // den Counter). Spekulatives Workaround, kostet fast nichts. Defensiv
+  // try/catch — bei iOS-Storage-Errors lautlos schlucken.
+  if (tok) {{
+    try {{ localStorage.setItem('_tok_keepalive', String(Date.now())); }}
+    catch(_) {{}}
+  }}
+  return tok;
 }}
 // Setzt den entschlüsselten Token in sessionStorage + Memory-Slot. Memory
 // wird IMMER gesetzt, sessionStorage best-effort. Aufrufer kann
@@ -8257,6 +8286,52 @@ function _clearAllTokens() {{
   try {{ localStorage.removeItem(TOK_LEGACY_KEY); }} catch(_) {{}}
   _clearSessionToken();
   _tokLog('_clearAllTokens (nach)');
+}}
+
+// ── Soft-Reset bei transientem 401/403 (F1, 12.05.2026) ─────────────────
+// GitHub-API liefert auch bei gültigem Token gelegentlich 401/403 zurück
+// (rate-limit, IP-Wechsel, transient). Der frühere Code rief sofort
+// _clearAllTokens() auf → encrypted Blob weg → User muss Token + Master-
+// Passwort neu eingeben. Am iPhone besonders schmerzhaft (mobile IPs).
+// Neue Logik:
+//   1. Erstes/zweites transientes 401/403: nur Session+Memory löschen,
+//      encrypted Blob bleibt. Nächste Action öffnet das Unlock-Modal
+//      (nur Master-Passwort, kein Token-Reentry).
+//   2. Counter wird auf jedes erfolgreiche Token-tragende Request
+//      (HTTP 2xx) zurückgesetzt → echte Auth-Fails laufen nicht durch
+//      eine alte Folge.
+//   3. Drittes aufeinanderfolgendes 401/403 (TOKEN_AUTH_FAIL_HARD_THRESHOLD):
+//      DANN _clearAllTokens(). Token ist tatsächlich revoked, nicht
+//      transient.
+// Counter lebt im _inMemoryToken-Scope (Tab-scoped) — bei Tab-Schließen
+// resettet die Sequenz, was bewusst akzeptiert ist (neuer Tab = neuer
+// Versuch).
+const TOKEN_AUTH_FAIL_HARD_THRESHOLD = 3;
+let _tokAuthFailCount = 0;
+
+function _onTokenAuthFail(status, reason) {{
+  _tokAuthFailCount += 1;
+  _tokLog('_onTokenAuthFail', {{
+    status, reason,
+    count: _tokAuthFailCount,
+    threshold: TOKEN_AUTH_FAIL_HARD_THRESHOLD,
+  }});
+  if (_tokAuthFailCount >= TOKEN_AUTH_FAIL_HARD_THRESHOLD) {{
+    _tokLog('_onTokenAuthFail → HARD RESET (Threshold erreicht)');
+    _clearAllTokens();
+    _tokAuthFailCount = 0;
+    return 'hard';
+  }}
+  _tokLog('_onTokenAuthFail → soft reset (Session+Memory, Blob bleibt)');
+  _clearSessionToken();
+  return 'soft';
+}}
+
+function _resetTokenAuthFailCount() {{
+  if (_tokAuthFailCount > 0) {{
+    _tokLog('_resetTokenAuthFailCount', {{prev: _tokAuthFailCount}});
+    _tokAuthFailCount = 0;
+  }}
 }}
 
 // Atomarer Persist-und-Verify-Block für Setup/Unlock/Migrate. Schreibt
@@ -8523,13 +8598,17 @@ async function dispatchWorkflow(token){{
     const _dispatchBody = await r.clone().text().catch(()=>'');
     console.log(`[Recalculate] Dispatch HTTP ${{r.status}} body:`, _dispatchBody || '(leer)');
     if (r.status === 204) {{
+      _resetTokenAuthFailCount();   // erfolgreich → Auth-Fail-Counter zurück
       _pollWorkflowId = GH_WORKFLOW; _pollRunningLabel = 'Neuberechnung';
       _pollEnableBtn = _enableRecalcBtn; _pollOnSuccess = _startSuccessCountdown;
       _showPollStatus('running');
       setTimeout(_doPoll, 5000);
     }} else if (r.status === 401 || r.status === 403) {{
-      _clearAllTokens();
-      showMsg('error',`Token ungültig (HTTP ${{r.status}}). Bitte neu eingeben.`);
+      const mode = _onTokenAuthFail(r.status, 'recalc-dispatch');
+      const msg = (mode === 'hard')
+        ? `Token nach ${{TOKEN_AUTH_FAIL_HARD_THRESHOLD}} Auth-Fails neu eingeben (HTTP ${{r.status}}).`
+        : `Token-Auth fehlgeschlagen (HTTP ${{r.status}}). Bitte Master-Passwort neu eingeben — verschlüsselter Token bleibt erhalten.`;
+      showMsg('error', msg);
       _enableRecalcBtn();
     }} else {{
       const bd = await r.text().catch(()=>'');
@@ -8562,13 +8641,17 @@ async function dispatchKiWorkflow(token){{
     const _dispatchBody = await r.clone().text().catch(()=>'');
     console.log(`[KI-Agent] Dispatch HTTP ${{r.status}} body:`, _dispatchBody || '(leer)');
     if (r.status === 204) {{
+      _resetTokenAuthFailCount();   // erfolgreich \u2192 Auth-Fail-Counter zur\u00fcck
       _pollWorkflowId = GH_WORKFLOW_KI; _pollRunningLabel = 'KI-Agent';
       _pollEnableBtn = _enableKiBtn; _pollOnSuccess = _kiAgentSuccess;
       _showPollStatus('running');
       setTimeout(_doPoll, 5000);
     }} else if (r.status === 401 || r.status === 403) {{
-      _clearAllTokens();
-      showMsg('error',`Token ung\u00fcltig (HTTP ${{r.status}}). Bitte neu eingeben.`);
+      const mode = _onTokenAuthFail(r.status, 'ki-dispatch');
+      const msg = (mode === 'hard')
+        ? `Token nach ${{TOKEN_AUTH_FAIL_HARD_THRESHOLD}} Auth-Fails neu eingeben (HTTP ${{r.status}}).`
+        : `Token-Auth fehlgeschlagen (HTTP ${{r.status}}). Bitte Master-Passwort neu eingeben \u2014 verschl\u00fcsselter Token bleibt erhalten.`;
+      showMsg('error', msg);
       _enableKiBtn();
     }} else {{
       const bd = await r.text().catch(()=>'');
