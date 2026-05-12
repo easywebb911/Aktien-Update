@@ -107,6 +107,18 @@ Reduktion, Zwei-Run-Architektur, Token-Reentry-Hardening.
 14. **ntfy-Priority-Mapping nach Severity** — Lücke nur bei
     `_send_anomaly_ntfy` (hardcoded `Priority: high`). Exit-P2-Sender
     macht das Mapping bereits korrekt.
+15. **Health-Check-Workflow für System-Invariants** —
+    deterministisches Skript am Ende jedes Daily-Runs prüft
+    fundamentale Annahmen (`score_history` wächst pro Run statt zu
+    schrumpfen, Push-Volumen in erwartetem Range, aktive Positionen
+    haben Live-Kurs, `_WL_CARDS` vollständig, `app_data`-Felder
+    aktualisiert, `score_inflation_log` bekommt 10–20 Zeilen/Tag).
+    Fail → ntfy-Push. Vor Code-Bau erst **Spec-Session (30 min,
+    ohne Code)** zur Definition der 10–15 wichtigsten Invariants.
+    Idee entstanden aus heutiger Beobachtung: score_history-Pruning-
+    Bug blieb 11 Tage unentdeckt, obwohl die Symptome im Git-Log
+    sichtbar waren (-48/-112 Zeilen pro Run statt Anwachsen).
+    Kein LLM-Agent — deterministisch, schnell, erklärbar.
 
 ### Wiedervorlagen mit Termin
 
@@ -386,6 +398,16 @@ Aus der Diskussion vom 09.05.2026. Status zum 12.05. abends:
   ist — und entsprechend die Architektur explizit umparken. PR #123
   hat das für monster_backup gemacht (jetzt Conviction-gated wie alle
   anderen), CLAUDE.md begründet die Entscheidung.
+- **Health-Check-Pattern als Ergänzung zu Mock-Tests.** Mock-Tests
+  prüfen Code-Logik (Unit-Verhalten von Funktionen, Regex-Konformität
+  von Source-Markup, Schema-Vollständigkeit). Health-Checks prüfen
+  Runtime-Invariants (Daten-Konsistenz, Pipeline-Funktion, Volumen-
+  Ranges der Live-Daten). **Beide nötig, kein Ersatz** — verschiedene
+  Bug-Klassen. Beispiele: der score_history-Pruning-Bug (PR #119)
+  wäre vom Mock-Test nicht erfasst worden (Cutoff-Vergleich war
+  syntaktisch korrekt), wohl aber von einem Health-Check „score_history
+  wächst pro Daily-Run statt zu schrumpfen". Backlog-Punkt 15 macht
+  daraus eine konkrete Spec.
 
 ### Aus vorherigen Sessions (kumuliert, beibehalten)
 
