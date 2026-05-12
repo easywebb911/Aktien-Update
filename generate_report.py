@@ -10413,6 +10413,32 @@ function _fmtGerman(d) {{
       if (typeof _entryCv.level === 'string')
         _newPos.entry_conviction_level = _entryCv.level;
     }}
+    // Phase-2-Trigger-4-Snapshot: dtc / short_float / cost_to_borrow zum
+    // Entry-Zeitpunkt persistieren, damit Setup-Erosion über die
+    // Halte-Dauer messbar wird. Quelle = watchlist_cards (Ticker ist in
+    // diesem UI-Pfad immer in der Watchlist). Fehlende Felder dürfen
+    // null bleiben — der Trigger gradet sich graceful auf
+    // available=False herunter wenn alle drei null sind.
+    const _wlCard = _appD && _appD.watchlist_cards
+                    ? _appD.watchlist_cards[ticker] : null;
+    if (_wlCard && typeof _wlCard === 'object') {{
+      const _dtc = (typeof _wlCard.short_ratio === 'number'
+                    && isFinite(_wlCard.short_ratio)) ? _wlCard.short_ratio : null;
+      const _sf  = (typeof _wlCard.short_float === 'number'
+                    && isFinite(_wlCard.short_float)) ? _wlCard.short_float : null;
+      const _ctb = (typeof _wlCard.cost_to_borrow === 'number'
+                    && isFinite(_wlCard.cost_to_borrow)) ? _wlCard.cost_to_borrow : null;
+      if (_dtc != null) _newPos.entry_dtc = _dtc;
+      if (_sf  != null) _newPos.entry_short_float = _sf;
+      if (_ctb != null) _newPos.entry_cost_to_borrow = _ctb;
+      // entry_snapshot_ts wird IMMER gesetzt, sobald mindestens ein
+      // Driver-Feld erfolgreich erfasst werden konnte — markiert die
+      // Existenz des Snapshots (vs. Bestandsposition ohne Snapshot, wo
+      // entry_snapshot_ts fehlt und Trigger 4 unverfügbar bleibt).
+      if (_dtc != null || _sf != null || _ctb != null) {{
+        _newPos.entry_snapshot_ts = new Date().toISOString();
+      }}
+    }}
     data.positions[ticker] = _newPos;
     const ok = await gistSave(data);
     if (!ok) {{
@@ -12552,6 +12578,144 @@ def _exit_p2_trigger_catalyst(ticker: str,
     }
 
 
+def _exit_p2_trigger_setup_erosion(position: dict,
+                                    cur_setup: dict | None) -> dict:
+    """Trigger 4: Setup-Erosion — Drop der drei Squeeze-Mechanik-Drivers
+    seit Position-Open.
+
+    Drei relative Drops, alle auf [0..1] geclampt (negative Drops = Driver
+    hat sich VERBESSERT seit Entry → 0):
+
+      dtc_drop = (entry_dtc          − current_dtc)          / entry_dtc
+      sf_drop  = (entry_short_float  − current_short_float)  / entry_short_float
+      ctb_drop = (entry_cost_to_borrow − current_cost_to_borrow) / entry_cost_to_borrow
+
+    Stufung pro Driver (analog Trigger 6):
+
+      drop < WARN_THRESHOLD          → 0
+      WARN ≤ drop < CRIT             → 50 (warn)
+      drop ≥ CRIT_THRESHOLD          → 100 (crit)
+
+    Gesamt-Score = max(dtc_stufe, sf_stufe, ctb_stufe). Combo-Bonus:
+    wenn ≥ SETUP_EROSION_COMBO_DRIVERS_MIN (Default 2) Drivers
+    GLEICHZEITIG in warn-Stufe sind, wird der Score auf crit (100)
+    angehoben; bei ≥ 2 Drivers in crit setzt zusätzlich ``combo_crit``-
+    Flag im reason-String für stärkere Push-Priorität.
+
+    Available-Logik:
+      • False wenn entry_snapshot_ts fehlt (Bestandsposition vor
+        Schema-Erweiterung) — Reason ``no_entry_snapshot``.
+      • False wenn ALLE drei current_-Werte null sind — Reason
+        ``all_drivers_null``.
+      • True wenn mindestens ein Driver bewertbar ist; nicht-bewertbare
+        Drivers (entry-Wert ≤ 0 / current=null / ctb mit null-Endpoints)
+        liefern 0 und werden NICHT als Drop gewertet.
+
+    Reason-String (für Push-Body / Debug-Log): „dtc -32% | sf -41% | ctb -18%"
+    — nur Drivers ≥ WARN_THRESHOLD; bei combo_crit Suffix „ · COMBO".
+    """
+    if not position.get("entry_snapshot_ts"):
+        return {"score": 0, "warn": False, "crit": False,
+                "available": False, "reason": "no_entry_snapshot"}
+
+    cur = cur_setup or {}
+
+    def _to_f(v):
+        try:
+            f = float(v) if v is not None else None
+        except (TypeError, ValueError):
+            return None
+        return f
+
+    entry_dtc = _to_f(position.get("entry_dtc"))
+    entry_sf  = _to_f(position.get("entry_short_float"))
+    entry_ctb = _to_f(position.get("entry_cost_to_borrow"))
+    cur_dtc   = _to_f(cur.get("dtc"))
+    cur_sf    = _to_f(cur.get("short_float"))
+    cur_ctb   = _to_f(cur.get("cost_to_borrow"))
+
+    if cur_dtc is None and cur_sf is None and cur_ctb is None:
+        return {"score": 0, "warn": False, "crit": False,
+                "available": False, "reason": "all_drivers_null"}
+
+    def _drop_and_stage(entry_v, cur_v):
+        """Returnt (drop_clamped, stage 0/50/100, available_bool)."""
+        if entry_v is None or entry_v <= 0 or cur_v is None:
+            return None, 0, False
+        raw = (entry_v - cur_v) / entry_v
+        drop = max(0.0, raw)   # negative Drops auf 0 clampen
+        if drop >= SETUP_EROSION_CRIT_THRESHOLD:
+            return drop, 100, True
+        if drop >= SETUP_EROSION_WARN_THRESHOLD:
+            return drop, 50, True
+        return drop, 0, True
+
+    dtc_drop, dtc_stage, dtc_av = _drop_and_stage(entry_dtc, cur_dtc)
+    sf_drop,  sf_stage,  sf_av  = _drop_and_stage(entry_sf,  cur_sf)
+    ctb_drop, ctb_stage, ctb_av = _drop_and_stage(entry_ctb, cur_ctb)
+
+    # Combo-Zählung: ctb nur berücksichtigen, wenn beide Endpunkte vorhanden
+    # (ctb_av=True). Andere Drivers werden mitgezählt, sobald Stage > 0.
+    drivers_above_warn = sum([
+        dtc_stage >= 50,
+        sf_stage  >= 50,
+        ctb_stage >= 50 if ctb_av else False,
+    ])
+    drivers_at_crit = sum([
+        dtc_stage >= 100,
+        sf_stage  >= 100,
+        ctb_stage >= 100 if ctb_av else False,
+    ])
+
+    score = max(dtc_stage, sf_stage, ctb_stage)
+    combo_crit = False
+    if drivers_above_warn >= SETUP_EROSION_COMBO_DRIVERS_MIN:
+        # 2 Drivers in warn → gemeinsamer crit-Score (100); bei 2 in crit
+        # bleibt der Score, aber combo_crit-Flag dokumentiert die Härte.
+        score = 100
+        if drivers_at_crit >= SETUP_EROSION_COMBO_DRIVERS_MIN:
+            combo_crit = True
+
+    warn = score >= 50
+    crit = score >= 100
+
+    # Reason-String — nur feuernde Drivers (Stage ≥ 50).
+    parts: list[str] = []
+    if dtc_stage >= 50 and dtc_drop is not None:
+        parts.append(f"dtc -{round(dtc_drop * 100)}%")
+    if sf_stage >= 50 and sf_drop is not None:
+        parts.append(f"sf -{round(sf_drop * 100)}%")
+    if ctb_stage >= 50 and ctb_drop is not None and ctb_av:
+        parts.append(f"ctb -{round(ctb_drop * 100)}%")
+    reason = " | ".join(parts)
+    if combo_crit and reason:
+        reason += " · COMBO"
+
+    return {
+        "score":  int(score),
+        "warn":   bool(warn),
+        "crit":   bool(crit),
+        "details": {
+            "entry_dtc":          entry_dtc,
+            "entry_short_float":  entry_sf,
+            "entry_cost_to_borrow": entry_ctb,
+            "cur_dtc":            cur_dtc,
+            "cur_short_float":    cur_sf,
+            "cur_cost_to_borrow": cur_ctb,
+            "dtc_drop":  round(dtc_drop, 4) if dtc_drop is not None else None,
+            "sf_drop":   round(sf_drop, 4)  if sf_drop  is not None else None,
+            "ctb_drop":  round(ctb_drop, 4) if ctb_drop is not None else None,
+            "dtc_stage": dtc_stage,
+            "sf_stage":  sf_stage,
+            "ctb_stage": ctb_stage if ctb_av else None,
+            "drivers_above_warn": drivers_above_warn,
+            "drivers_at_crit":    drivers_at_crit,
+            "combo_crit":         combo_crit,
+        },
+        "reason": reason,
+    }
+
+
 def _exit_p2_trigger_overheated(metrics: dict | None) -> dict:
     """Trigger 3: Überhitzung — RSI14 + 2-Tages- + 3-Tages-Move.
 
@@ -12592,6 +12756,7 @@ def _compute_exit_state(
     metrics: dict | None,
     prev_state: dict | None,
     now_utc: datetime,
+    cur_setup: dict | None = None,
 ) -> dict:
     """Pure compute pro Position — sechs Trigger + Composite. Fail-soft.
 
@@ -12638,12 +12803,7 @@ def _compute_exit_state(
         "profit_lock":   _exit_p2_trigger_profit_lock(pnl_frac, peak_pnl,
                                                      cur_score, peak_score),
         "overheated":    _exit_p2_trigger_overheated(metrics),
-        "setup_erosion": {
-            "score": 0, "warn": False, "crit": False,
-            "available": False,
-            "reason": "Entry-Snapshot (dtc/short_float/cost_to_borrow) "
-                      "nicht in positions.json persistiert",
-        },
+        "setup_erosion": _exit_p2_trigger_setup_erosion(position, cur_setup),
         "catalyst":      _exit_p2_trigger_catalyst(ticker, now_utc),
         "trend_break":   _exit_p2_trigger_trend_break(metrics, cur_price),
     }
@@ -12726,10 +12886,22 @@ def _build_phase2_positions_payload(
                             ticker, exc)
         prev_pos = prev_positions.get(ticker) or {}
         prev_st = prev_pos.get("exit_state")
+        # Setup-Erosion (Trigger 4) braucht aktuelle dtc/short_float/
+        # cost_to_borrow. Quelle ist primär s_top (enriched Top-10),
+        # Fallback bleibt None — der Trigger gradet sich dann graceful
+        # auf available=False herunter.
+        cur_setup: dict | None = None
+        if s_top:
+            cur_setup = {
+                "dtc":            s_top.get("short_ratio"),
+                "short_float":    s_top.get("short_float"),
+                "cost_to_borrow": s_top.get("cost_to_borrow"),
+            }
         try:
             state = _compute_exit_state(
                 ticker, pos, history, cur_price,
-                top10_metrics.get(ticker), prev_st, now_utc)
+                top10_metrics.get(ticker), prev_st, now_utc,
+                cur_setup=cur_setup)
         except Exception as exc:
             log.warning("Phase 2 Exit %s: _compute_exit_state: %s", ticker, exc)
             continue
@@ -12763,6 +12935,14 @@ def _build_phase2_positions_payload(
             "shares":       pos.get("shares"),
             "entry_fx":     entry_fx,
             "fx_estimated": fx_estimated,
+            # Trigger-4-Snapshot (Setup-Erosion) im app_data spiegeln,
+            # damit ein Gist-Hiccup über _recover_positions_from_app_data
+            # die Snapshot-Werte ebenfalls erhält. Felder dürfen None sein
+            # (Bestandsposition ohne Snapshot → Trigger 4 unverfügbar).
+            "entry_dtc":            pos.get("entry_dtc"),
+            "entry_short_float":    pos.get("entry_short_float"),
+            "entry_cost_to_borrow": pos.get("entry_cost_to_borrow"),
+            "entry_snapshot_ts":    pos.get("entry_snapshot_ts"),
             "exit_state":   state,
         }
     return out

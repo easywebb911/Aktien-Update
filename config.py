@@ -626,14 +626,25 @@ EXIT_MOVE_2D_CRIT            = 0.25
 EXIT_MOVE_3D_WARN            = 0.28
 EXIT_MOVE_3D_CRIT            = 0.35
 
-# 4) Setup-Erosion (15 %) — Entry-Snapshot vs. heute (heute available:false,
-# erfordert künftig Snapshot von dtc/short_float/cost_to_borrow zum Entry)
-EXIT_DTC_DROP_WARN_PCT       = 0.25
-EXIT_DTC_DROP_CRIT_PCT       = 0.40
-EXIT_SHORT_FLOAT_DROP_WARN_PP = 4     # Prozentpunkte
-EXIT_SHORT_FLOAT_DROP_CRIT_PP = 8
-EXIT_CTB_DROP_WARN_PCT       = 0.30
-EXIT_CTB_DROP_CRIT_PCT       = 0.50
+# 4) Setup-Erosion (15 %) — Entry-Snapshot vs. heute. Misst, wie stark sich
+#    die Short-Squeeze-Mechanik seit Entry abgeschwächt hat. Drei Drivers
+#    (relative Drops): dtc_drop, sf_drop, ctb_drop. Trigger ist „live" seit
+#    der Schema-Erweiterung im Position-Open (entry_dtc / entry_short_float
+#    / entry_cost_to_borrow / entry_snapshot_ts im Gist).
+#    Schwellen einheitlich pro Driver (nicht per-Driver wie früher geplant),
+#    siehe CLAUDE.md Phase-2-Sektion.
+SETUP_EROSION_WARN_THRESHOLD = 0.30   # 30 % relative Abnahme → warn (50)
+SETUP_EROSION_CRIT_THRESHOLD = 0.50   # 50 % relative Abnahme → crit (100)
+SETUP_EROSION_COMBO_DRIVERS_MIN = 2   # ≥ 2 Drivers in warn → combo-crit
+# Deprecated: alte per-Driver-Konstanten — Trigger nutzt jetzt einheitlich
+# SETUP_EROSION_WARN/CRIT_THRESHOLD. Werden vom Code nicht mehr gelesen,
+# bleiben aber als Hinweis auf die alte Spec stehen.
+EXIT_DTC_DROP_WARN_PCT       = 0.25   # DEPRECATED → SETUP_EROSION_WARN_THRESHOLD
+EXIT_DTC_DROP_CRIT_PCT       = 0.40   # DEPRECATED → SETUP_EROSION_CRIT_THRESHOLD
+EXIT_SHORT_FLOAT_DROP_WARN_PP = 4     # DEPRECATED — alte PP-Variante, nicht in Verwendung
+EXIT_SHORT_FLOAT_DROP_CRIT_PP = 8     # DEPRECATED
+EXIT_CTB_DROP_WARN_PCT       = 0.30   # DEPRECATED → SETUP_EROSION_WARN_THRESHOLD
+EXIT_CTB_DROP_CRIT_PCT       = 0.50   # DEPRECATED → SETUP_EROSION_CRIT_THRESHOLD
 
 # 5) Catalyst (5 %) — Earnings-Fenster: feuert, wenn die nächste
 #    Earnings-Veröffentlichung innerhalb CATALYST_DAYS_WINDOW Handels-
