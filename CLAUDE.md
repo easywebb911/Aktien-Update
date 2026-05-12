@@ -103,6 +103,78 @@ damit man den Übeltäter direkt findet.
 
 ---
 
+## Zwei-Run-Architektur (seit 12.05.2026)
+
+Der Daily-Run läuft **zweimal pro Werktag** mit unterschiedlicher
+Datenqualität:
+
+| Cron | Phase | Daten | Push-Pipeline | Backtest-History |
+|---|---|---|---|---|
+| `0 10 * * 1-5` (10:00 UTC) | `premarket` | Vorschau, RVOL strukturell unter-skaliert (US-Open ~3,5 h voraus) | Anomaly-Pushes **aktiv** (Aktions-Fenster für die KI-Agent-Ticks) | **kein** Backtest-Eintrag |
+| `0 21 * * 1-5` (21:00 UTC) | `postclose` | EOD-konsolidiert = „Wahrheit" | Anomaly-Pushes **aus** (kein abendliches Rauschen) | Backtest-Eintrag wird angelegt |
+| `workflow_dispatch` (manuell) | per User-Input (default `postclose`) | wie oben | wie oben | wie oben |
+
+### Felder & Persistenz
+
+- **`app_data.json["run_phase"]`** (`premarket` / `postclose`) — vom
+  Daily-Run beim Schreiben gesetzt, von `ki_agent.py` beim Tick gelesen
+  und via `**existing`-Spread preserviert.
+- **`score_inflation_log.jsonl`** — pro Zeile zusätzlich
+  `run_phase`-Feld (neben dem bestehenden `trading_session_phase`-Feld,
+  das den ET-Wall-Clock-Slot abbildet). `run_phase` ist die Workflow-
+  Intention, `trading_session_phase` der tatsächliche ET-Slot zur
+  Run-Zeit — beide Felder messen unterschiedliche Dinge und werden
+  beide persistiert.
+- **`_resolve_run_phase()`** in `generate_report.py` liest `RUN_PHASE`-
+  ENV (Workflow setzt das), validiert auf `premarket`/`postclose` und
+  fällt bei Garbage auf `premarket` zurück (sicher: kein Backtest-
+  Befüllen, kein Schaden).
+
+### Push-Differenzierung (ki_agent.py)
+
+```
+run_phase=premarket → anomaly-pushes aktiv + exit-p2 aktiv
+run_phase=postclose →                     nur exit-p2 aktiv
+```
+
+Eingehängt direkt vor dem `for anom in detect_anomalies(...)`-Loop
+(`if not earnings_immediate and not vix_pause and anomaly_pushes_enabled`).
+`process_exit_signals()` läuft NACH dem Loop und ist von dieser Gate
+NICHT betroffen — Exit-Trigger feuern in beiden Phasen.
+
+### Frontend (Banner)
+
+`_renderRunPhasePill(phase)` ergänzt die Header-Timestamp-Zeile um eine
+farbcodierte Pill:
+
+- `premarket` → gelbe „· Pre-Open-Vorschau"-Pill (Hinweis: Daten noch
+  nicht final)
+- `postclose` → grüne „· Post-Close"-Pill (EOD-Wahrheit)
+- fehlendes Feld (alte app_data ohne `run_phase`) → kein Pill (statt
+  verwirrendem „Unbekannt"-Label)
+
+### Backtest-Disziplin
+
+`_append_backtest_entries()` wird in `main()` **nur** im
+`postclose`-Mode aufgerufen. Bestehende premarket-Einträge in
+`backtest_history.json` (vor Einführung der Zwei-Run-Architektur)
+bleiben unverändert — kein retroaktiver Cleanup, keine Migration. Die
+Backtest-Auswertung kann sie später per `market_regime`/`vix_level`-
+Filter bereinigen.
+
+### Failure-Modes
+
+- 21:00-Run fällt aus → app_data behält letzten Stand (run_phase
+  bleibt was sie war). Nächster 10:00-Run flippt auf premarket, App
+  zeigt „Pre-Open-Vorschau"-Banner — Easy sieht sofort, dass Daten
+  älter sind.
+- 10:00-Run fällt aus → 21:00-Run liefert volle Wahrheit, kein
+  Schaden.
+- Beide Runs nutzen denselben Code-Pfad — Unterschied nur durch
+  `RUN_PHASE`-ENV-Flag, kein Code-Duplikat.
+
+---
+
 ## Conviction-Score (Schritt A — Daten, ohne UI)
 
 Vierte Bewertungs-Achse neben Setup-Score, Monster-Score und KI-Score.

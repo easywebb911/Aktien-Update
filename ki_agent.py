@@ -2849,6 +2849,23 @@ def main() -> None:
     _signals_blob  = (app_data.get("agent_signals") or {}).get("signals") or {}
     ki_scores      = {t: ((s or {}).get("score"))
                       for t, s in _signals_blob.items()}
+    # Zwei-Run-Architektur (12.05.2026): `run_phase` wird vom Daily-Run
+    # in app_data.json gesetzt — premarket (10:00-UTC-Cron) oder
+    # postclose (21:00-UTC-Cron). Anomaly-Pushes sind im postclose-Mode
+    # ausgeschaltet (abendliches NVAX/GRPN-Rauschen war ein Hauptgrund
+    # für Push-Fatigue, siehe Bestandsaufnahme 12.05.). Exit-P2-Trigger
+    # laufen weiterhin in beiden Phasen (aktionsrelevant für offene
+    # Positionen). Default ``premarket`` für Backward-Compat — alte
+    # app_data ohne run_phase verhält sich wie früher.
+    run_phase = str(app_data.get("run_phase") or "premarket").lower()
+    if run_phase not in ("premarket", "postclose"):
+        log.warning("Unbekanntes run_phase=%r in app_data — als premarket behandelt",
+                    run_phase)
+        run_phase = "premarket"
+    anomaly_pushes_enabled = (run_phase == "premarket")
+    if not anomaly_pushes_enabled:
+        log.info("Anomaly-Pushes deaktiviert (run_phase=%s) — nur Exit-P2 läuft",
+                 run_phase)
     # prev_conviction_scores für conviction_high-Threshold-Crossing-Logik.
     # Sustained-High (prev ≥ Schwelle) feuert NICHT erneut — der Snapshot
     # wird am Run-Ende aus dem aktuellen app_data["conviction_scores"] neu
@@ -3019,7 +3036,13 @@ def main() -> None:
             # Alert hat Vorrang — kein Doppel-Push im selben Run.
             # VIX-Gating: bei vix_pause werden ALLE Anomalien geskippt;
             # bei vix_warn bekommen die Messages einen ⚠️-Präfix.
-            if not earnings_immediate and not vix_pause:
+            # postclose-Mode (run_phase=postclose) skip-t die Anomaly-Pushes
+            # komplett — abendliches NVAX/GRPN-Rauschen ist nicht erwünscht
+            # (siehe 12.05.-Bestandsaufnahme). Exit-P2-Pushes auf offene
+            # Positionen sind davon NICHT betroffen (laufen NACH diesem Loop
+            # in process_exit_signals, ohne run_phase-Gate, in beiden Phasen).
+            if (not earnings_immediate and not vix_pause
+                    and anomaly_pushes_enabled):
                 sig      = new_signals.get(ticker) or {}
                 prev_sig = old_sigs.get(ticker) or {}
                 # Push-Stille-Filter: bei überhitztem Setup (RSI > MAX

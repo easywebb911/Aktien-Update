@@ -101,17 +101,29 @@ def _finra_combo_active(stock: dict) -> bool:
 
 
 def _build_entry(stock: dict, run_ts: datetime,
-                 sub_scores: dict | None) -> dict:
+                 sub_scores: dict | None,
+                 run_phase: str | None = None) -> dict:
     """Komponiere eine JSONL-Zeile aus dem Stock-Dict.
 
     ``sub_scores`` ist das Ergebnis von ``_compute_sub_scores(stock)`` —
     wird vom Caller übergeben, damit dieses Modul keinen Zirkel-Import
     auf ``generate_report`` braucht.
+
+    ``run_phase`` ist die Workflow-Phase (``premarket``/``postclose``,
+    siehe Zwei-Run-Architektur 12.05.2026). Ergänzt das vorhandene
+    ``trading_session_phase``, das aus dem Wall-Clock-ET-Zeitpunkt
+    abgeleitet wird — die beiden Felder messen unterschiedliche
+    Dinge: ``run_phase`` ist die intentional gewählte Phase des
+    Workflows, ``trading_session_phase`` ist der tatsächliche ET-
+    Slot zur Ausführungszeit. Inflations-Analyse vergleicht primär
+    nach ``run_phase``, ``trading_session_phase`` bleibt für Detail-
+    Audit erhalten.
     """
     finra = stock.get("finra_data") or {}
     sub = sub_scores or {}
     return {
         "run_ts":  run_ts.astimezone(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
+        "run_phase": run_phase,
         "ticker":  stock.get("ticker"),
         "score_total":    _safe_float(stock.get("score"), 0.0),
         "score_raw":      _safe_float(stock.get("score_raw"), 0.0),
@@ -149,7 +161,8 @@ def _build_entry(stock: dict, run_ts: datetime,
 def record_top10_inflation(stocks: Iterable[dict],
                            sub_scores_fn,
                            run_ts: datetime | None = None,
-                           path: str = LOG_FILE) -> int:
+                           path: str = LOG_FILE,
+                           run_phase: str | None = None) -> int:
     """Append-only-Logger für Top-10-Ticker.
 
     Schreibt eine Zeile pro Stock in ``path`` (JSON Lines). Bei Schreib-
@@ -159,6 +172,11 @@ def record_top10_inflation(stocks: Iterable[dict],
     ``sub_scores_fn(stock) -> dict`` ist die ``_compute_sub_scores``-
     Funktion aus ``generate_report`` — als Callable übergeben, damit
     dieses Modul keinen Zirkel-Import braucht.
+
+    ``run_phase`` (``premarket`` / ``postclose``) wird in jeden Eintrag
+    persistiert — ist der Schlüssel für die Inflations-Vergleichs-
+    Analyse: gleicher Ticker, premarket vs. postclose desselben
+    Tages = direkte Messung der Intra-Day-Score-Inflation.
 
     Returnt die Anzahl erfolgreich geschriebener Zeilen.
     """
@@ -170,7 +188,7 @@ def record_top10_inflation(stocks: Iterable[dict],
             for stock in stocks:
                 try:
                     sub = sub_scores_fn(stock) if sub_scores_fn else None
-                    entry = _build_entry(stock, run_ts, sub)
+                    entry = _build_entry(stock, run_ts, sub, run_phase=run_phase)
                     fh.write(json.dumps(entry, ensure_ascii=False) + "\n")
                     n_written += 1
                 except Exception as exc:

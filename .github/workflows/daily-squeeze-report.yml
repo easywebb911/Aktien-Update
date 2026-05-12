@@ -2,11 +2,29 @@ name: Daily Squeeze Report
 
 on:
   schedule:
-    # 10:00 UTC = 12:00 CEST (Sommer, UTC+2) / 11:00 CET (Winter, UTC+1)
-    # Europäische Märkte haben dann bereits 3h gehandelt → rel_volume aussagekräftig
-    # Nur Handelstage Mo–Fr
+    # Zwei-Run-Architektur (seit 12.05.2026):
+    #
+    # 10:00 UTC = 12:00 CEST / 11:00 CET — `premarket`-Run, ~3,5h
+    # vor US-Open. Liefert Vorschau mit noch nicht final konsolidierten
+    # Tagesdaten (RVOL strukturell unter-skaliert). Anomaly-Pushes laufen
+    # in dieser Phase (Aktions-Fenster), Backtest-History wird hier
+    # NICHT befüllt.
     - cron: '0 10 * * 1-5'
+    # 21:00 UTC = 23:00 CEST / 22:00 CET — `postclose`-Run, ~30min nach
+    # US-Close. Liefert EOD-konsolidierte Daten = die „Wahrheit". Backtest-
+    # History bekommt einen Eintrag pro Top-10-Ticker; Anomaly-Pushes
+    # bleiben aus (kein abendliches Rauschen aufs Handy).
+    - cron: '0 21 * * 1-5'
   workflow_dispatch:   # Manueller Start jederzeit möglich
+    inputs:
+      run_phase:
+        description: 'Run-Phase: premarket (Vorschau) oder postclose (EOD-Wahrheit)'
+        required: false
+        default: 'postclose'
+        type: choice
+        options:
+          - postclose
+          - premarket
 
 permissions:
   contents: write   # Benötigt um index.html in main zu commiten
@@ -50,6 +68,15 @@ jobs:
           NTFY_TOPIC:       ${{ secrets.NTFY_TOPIC }}
           EDGAR_USER_AGENT: ${{ secrets.EDGAR_USER_AGENT }}
           GIST_ID:          ${{ secrets.GIST_ID }}
+          # Zwei-Run-Architektur: RUN_PHASE wird per Workflow-Trigger
+          # gesetzt. Cron `0 21 * * 1-5` → postclose; `0 10 * * 1-5` →
+          # premarket; workflow_dispatch nimmt den User-Input (Default
+          # postclose). Fallback (kein Match) → premarket (sicher, weil
+          # Backtest-History dann nicht befüllt wird und Score-Inflation
+          # nicht in die Historie verschleppt wird).
+          RUN_PHASE: >-
+            ${{ github.event.inputs.run_phase ||
+                (github.event.schedule == '0 21 * * 1-5' && 'postclose' || 'premarket') }}
         run: python generate_report.py
 
       - name: Commit and publish report
