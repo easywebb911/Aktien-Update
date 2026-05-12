@@ -8586,6 +8586,19 @@ function _kiAgentSuccess(){{
   fetch('./app_data.json?_=' + Date.now())
     .then(r => r.ok ? r.json() : {{}})
     .then(appData => {{
+      // Stale-Data-Fix Phase 1 Stufe 2a (12.05.2026): Watchlist-Drawer-
+      // Datenquelle (_WL_CARDS) wird nach ki_agent-Tick frisch belegt,
+      // sonst beh\u00e4lt der Drawer beim n\u00e4chsten Open die Daily-Run-
+      // Baseline-Daten und sieht die ki_agent-Updates nicht.
+      // Reihenfolge: erst _WL_CARDS updaten, dann offene Drawer
+      // invalidieren ([data-loaded]-Selektor \u2192 n\u00e4chster Open re-rendert
+      // statt cached zu bleiben \u2014 funktional redundant zu Stufe 1, aber
+      // forward-kompatibel zu Stufe 2c), dann renderAgentSignals
+      // (Top-10-DOM-Patches).
+      window._WL_CARDS = appData.watchlist_cards || {{}};
+      document.querySelectorAll('.wl-body[data-loaded]').forEach(b => {{
+        delete b.dataset.loaded;
+      }});
       const data = appData.agent_signals || appData;  // Backwards-compat
       if (typeof renderAgentSignals === 'function') renderAgentSignals(data);
       el.innerHTML='<span class="poll-dot poll-dot-done"></span>KI-Agent abgeschlossen \u2014 Signale aktualisiert.';
@@ -9949,22 +9962,24 @@ function _fmtGerman(d) {{
       btn.textContent = opening ? '\u25b4' : '\u25be';
       if (card) card.classList.toggle('wl-card--expanded', opening);
       if (!opening) return;
-      if (body.dataset.loaded) {{
-        // Selektor ``.spark-wrap`` matched sowohl das vom card_html-Pfad
-        // (TopTen-Layout, ohne ``wl-spark``-Klasse) als auch das vom
-        // buildWlSparkOnly-Fallback (mit ``wl-spark``-Klasse). Der alte
-        // Selektor ``.wl-spark`` ließ den TopTen-Pfad leer zurück.
-        body.querySelectorAll('.spark-wrap').forEach(w => {{
-          if (typeof window.drawSparkline === 'function') window.drawSparkline(w);
-        }});
-        return;
-      }}
+      // Stale-Data-Fix Phase 1 Stufe 1 (12.05.2026): keine dataset.loaded-
+      // Cache-Gate mehr — bei jedem Open läuft buildWlDetails(ticker, d)
+      // neu und liest den aktuellen Stand von WL_TOP10 / _WL_CARDS.
+      // Vorher blockte ein ``if (body.dataset.loaded)``-Early-Return den
+      // Re-Render, sodass der Drawer nach erstem Open mit veralteten
+      // Daten eingefroren blieb — ki_agent-Tick-Updates erreichten den
+      // Drawer-HTML nicht.
       // Daten-Quellen-Reihenfolge: WL_TOP10 (in-page, nur heutige Top-10) →
       // window._WL_CARDS (aus app_data.json, alle Watchlist-Ticker) → Sparkline-
       // only Fallback. So sehen auch nicht-Top-10-Watchlist-Karten echte Werte.
       const d = WL_TOP10[ticker]
             || (window._WL_CARDS && window._WL_CARDS[ticker]);
       body.innerHTML = d ? buildWlDetails(ticker, d) : buildWlSparkOnly(ticker, WL_HIST[ticker]);
+      // ``data-loaded`` bleibt als „Drawer ist offen"-Marker erhalten —
+      // wird vom ki_agent-Trigger-Pfad (Stufe 2a) per
+      // ``[data-loaded]``-Selektor invalidiert. Mit Stufe 1 hat das
+      // Attribut keinen Funktions-Bypass mehr, ist aber forward-kompatibel
+      // zu Stufe 2c (auto-Re-Render offener Drawer).
       body.dataset.loaded = '1';
       // Position-Panel nachladen, sobald Gist-Daten da sind (Lädt…-State).
       if (GIST_ID && getToken()

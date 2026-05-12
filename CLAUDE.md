@@ -1447,6 +1447,66 @@ smoothed Scores wurden ignoriert.
 
 ---
 
+## Watchlist-Drawer Render-Pfad (Stale-Data-Fix Phase 1, 12.05.2026)
+
+Der expandierte Watchlist-Drawer (Detail-Ansicht beim Aufklappen)
+wird von `wlExpand(ticker, btn)` (`generate_report.py`-JS, Definition
+unter `window.wlExpand = function`) gemanagt. Phase 1 adressiert zwei
+Stale-Data-Symptome:
+
+### Stufe 1 — `dataset.loaded`-Cache-Gate ENTFERNT
+
+Vorher blockte ein `if (body.dataset.loaded) { … return; }` direkt
+nach dem Open-Check den Re-Render. Folge: nach erstem Open lieferten
+folgende Open-Vorgänge die eingefrorene HTML-Body-Snapshot — selbst
+wenn `WL_TOP10` / `_WL_CARDS` zwischenzeitlich aktualisiert wurden.
+
+**Nach dem Fix:** bei jedem Drawer-Open läuft
+`buildWlDetails(ticker, d)` neu und liest den aktuellen Stand der
+JS-Datenquellen. Der `body.dataset.loaded='1'`-Marker bleibt
+**erhalten** — er hat keinen Funktions-Bypass mehr, dient aber als
+selectorbarer „Drawer ist offen"-Marker für Stufe 2a.
+
+### Stufe 2a — `_WL_CARDS`-Re-Assign nach ki_agent-Tick
+
+Der KI-Agent-Trigger-Success-Handler (`_kiAgentSuccess`,
+`generate_report.py:8580+`) fetcht `app_data.json` nach erfolgreichem
+Workflow-Lauf und ruft `renderAgentSignals` für die Top-10-DOM-Patches.
+Vorher fehlte das **Re-Assign von `window._WL_CARDS`** — folge: jeder
+zukünftige Drawer-Open zog die alte Page-Load-Snapshot statt der
+ki_agent-Updates.
+
+**Nach dem Fix:** Reihenfolge im Then-Block ist hartcodiert:
+
+1. `window._WL_CARDS = appData.watchlist_cards || {}` — frische
+   Drawer-Daten verfügbar machen (null-Fallback robust).
+2. `document.querySelectorAll('.wl-body[data-loaded]').forEach(b => delete b.dataset.loaded)` —
+   `data-loaded`-Marker auf allen offenen Drawer entfernen. Funktional
+   nach Stufe 1 redundant (Cache-Gate ist eh weg), aber forward-
+   kompatibel zu Stufe 2c.
+3. `renderAgentSignals(data)` — Top-10-DOM-Patches.
+
+### Nicht in Phase 1
+
+- **Stufe 2b** (komplettes Client-Side-Drawer-Render aus Live-Feldern):
+  Statt eingefrorenen `card_html`-String würde der Drawer aus
+  `_WL_CARDS[t].score`/`.price`/etc. dynamisch neu gebaut. Größerer
+  Eingriff, eigene Session falls Phase 1 nicht reicht.
+- **Stufe 2c** (auto-Re-Render offener Drawer bei ki_agent-Tick):
+  `[data-loaded]`-Marker wird vom Selektor in 2a bereits ausgewertet —
+  Stufe 2c würde danach `buildWlDetails` für jeden offenen Drawer
+  aufrufen, statt nur das Attribut zu löschen.
+
+### Verifikation
+
+- `python scripts/mock_test_watchlist_drawer_stale_data.py` (Source-
+  Inspektion, 9 Tests).
+- Manuell am Browser: Drawer öffnen → ki_agent-Trigger ausführen →
+  Drawer schließen + neu öffnen → Werte müssen den ki_agent-Updates
+  entsprechen, identisch zu den frischen Top-10-Fliesen.
+
+---
+
 ## Earliness-Indikator (Stufe 1, ohne Score-Effekt)
 
 `compute_earliness_pts(stocks)` misst „leise Akkumulation" — drei
