@@ -107,18 +107,37 @@ Reduktion, Zwei-Run-Architektur, Token-Reentry-Hardening.
 14. **ntfy-Priority-Mapping nach Severity** — Lücke nur bei
     `_send_anomaly_ntfy` (hardcoded `Priority: high`). Exit-P2-Sender
     macht das Mapping bereits korrekt.
-15. **Health-Check-Workflow für System-Invariants** —
-    deterministisches Skript am Ende jedes Daily-Runs prüft
-    fundamentale Annahmen (`score_history` wächst pro Run statt zu
-    schrumpfen, Push-Volumen in erwartetem Range, aktive Positionen
-    haben Live-Kurs, `_WL_CARDS` vollständig, `app_data`-Felder
-    aktualisiert, `score_inflation_log` bekommt 10–20 Zeilen/Tag).
-    Fail → ntfy-Push. Vor Code-Bau erst **Spec-Session (30 min,
-    ohne Code)** zur Definition der 10–15 wichtigsten Invariants.
-    Idee entstanden aus heutiger Beobachtung: score_history-Pruning-
-    Bug blieb 11 Tage unentdeckt, obwohl die Symptome im Git-Log
-    sichtbar waren (-48/-112 Zeilen pro Run statt Anwachsen).
-    Kein LLM-Agent — deterministisch, schnell, erklärbar.
+15. **Health-Check-Workflow mit zwei Achsen** —
+    deterministisches Skript prüft System-Gesundheit am Ende
+    jedes Daily-Runs.
+
+    **Achse 1 (State-Invariants nach Run):** `score_history`
+    wächst (nie schrumpfen außer durch Cutoff-Pruning),
+    Push-Volumen in erwartetem Range, aktive Positionen haben
+    Live-Kurs, `_WL_CARDS` vollständig, `app_data`-Felder
+    aktualisiert, `score_inflation_log` bekommt 10–20 Zeilen/Tag.
+
+    **Achse 2 (Provider-Health pro API-Call):** während des Runs
+    Latenz / HTTP-Status / Item-Count für jede Datenquelle
+    loggen — Yahoo Screener, Finviz v161/v111, yfinance Batch,
+    FINRA Short-Volume, Finnhub Earnings, StockTwits, UOA,
+    EDGAR-Filings. Beispiel-Fail: yfinance liefert plötzlich
+    NaN für `rel_volume` → State-Invariants sehen „Datei da",
+    Provider-Health sieht „Coverage 12 % statt 95 %".
+
+    Beide Achsen feuern auf dasselbe ntfy bei Fail. Vor Code-Bau
+    erst **Spec-Session (30 min, ohne Code)** zur Definition der
+    10–15 wichtigsten Invariants beider Klassen. Kein LLM-Agent —
+    deterministisch, schnell, erklärbar.
+
+    Hintergrund: score_history-Pruning-Bug (PR #119) blieb 11 Tage
+    unentdeckt, obwohl die Symptome im Git-Log sichtbar waren
+    (-48/-112 Zeilen pro Run statt Anwachsen). **State-Invariants
+    hätten den gefangen.** **Provider-Health** fängt eine
+    orthogonale Bug-Klasse: stille Datenausfälle bei externen APIs
+    (z. B. yfinance liefert leere History, Finviz blockt 403, FINRA-
+    Auth expired) — der Daily-Run läuft scheinbar durch, die
+    Datenqualität ist aber unauffällig kollabiert.
 
 ### Wiedervorlagen mit Termin
 
@@ -398,16 +417,22 @@ Aus der Diskussion vom 09.05.2026. Status zum 12.05. abends:
   ist — und entsprechend die Architektur explizit umparken. PR #123
   hat das für monster_backup gemacht (jetzt Conviction-gated wie alle
   anderen), CLAUDE.md begründet die Entscheidung.
-- **Health-Check-Pattern als Ergänzung zu Mock-Tests.** Mock-Tests
-  prüfen Code-Logik (Unit-Verhalten von Funktionen, Regex-Konformität
-  von Source-Markup, Schema-Vollständigkeit). Health-Checks prüfen
-  Runtime-Invariants (Daten-Konsistenz, Pipeline-Funktion, Volumen-
-  Ranges der Live-Daten). **Beide nötig, kein Ersatz** — verschiedene
-  Bug-Klassen. Beispiele: der score_history-Pruning-Bug (PR #119)
-  wäre vom Mock-Test nicht erfasst worden (Cutoff-Vergleich war
-  syntaktisch korrekt), wohl aber von einem Health-Check „score_history
-  wächst pro Daily-Run statt zu schrumpfen". Backlog-Punkt 15 macht
-  daraus eine konkrete Spec.
+- **Drei Achsen von Tests/Checks.** Mock-Tests prüfen
+  **Code-Logik** (Unit-Verhalten von Funktionen, Regex-Konformität
+  von Source-Markup, Schema-Vollständigkeit). State-Invariants
+  prüfen **abgeleitete Artefakte nach dem Run** (Daten-Konsistenz
+  in den geschriebenen JSON-Files, Pipeline-Funktion am Outcome).
+  Provider-Health prüft **externe Datenquellen während des Runs**
+  (HTTP-Status, Latenz, Coverage, NaN-Anteil pro API-Call).
+  **Drei verschiedene Bug-Klassen, kein Ersatz füreinander, alle
+  drei nötig für Vertrauen.** Beispiele:
+  - score_history-Pruning-Bug (PR #119): Mock-Test grün (Cutoff-
+    Vergleich syntaktisch korrekt), State-Invariant „score_history
+    wächst" hätte gefangen.
+  - Hypothetischer yfinance-Ausfall: Mock-Test grün (Code-Pfad
+    intakt), State-Invariant grün (Datei existiert), erst
+    Provider-Health sieht „Coverage 12 % statt 95 %".
+  Backlog-Punkt 15 macht daraus eine konkrete Zwei-Achsen-Spec.
 
 ### Aus vorherigen Sessions (kumuliert, beibehalten)
 
