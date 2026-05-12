@@ -64,6 +64,12 @@ jobs:
           git add app_data.json 2>/dev/null || true
           git add service_worker.js 2>/dev/null || true
           git add backtest_history.json 2>/dev/null || true
+          # score_inflation_log.jsonl: append-only Diagnose-Log für die
+          # Intra-Day-Score-Inflations-Untersuchung. Pro Daily-Run werden
+          # 10 Zeilen angehängt; prune entfernt Einträge > 30 Tage. Persistenz
+          # über Commit nötig, sonst geht die Empirik bei jedem Workflow-Lauf
+          # verloren.
+          git add score_inflation_log.jsonl 2>/dev/null || true
           # watchlist_personal.json wird vom vorigen Step
           # ``Pull squeeze_data from Gist`` (scripts/pull_gist_data.py)
           # aus dem User-Gist materialisiert. Ohne dieses ``git add`` bleibt
