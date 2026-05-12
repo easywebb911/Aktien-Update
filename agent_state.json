@@ -1,5 +1,5 @@
 {
-  "last_run": "2026-05-12T19:09:35.427448+02:00",
+  "last_run": "2026-05-12T20:19:26.253024+02:00",
   "cooldowns": {
     "anomaly_score_jump_XRX": "2026-05-03T18:47:15.315486+02:00",
     "anomaly_uoa_extreme_TDOC": "2026-05-04T13:47:00.365949+02:00",
@@ -16,7 +16,9 @@
     "anomaly_monster_backup_OFRM": "2026-05-10T18:53:05.781481+02:00",
     "anomaly_score_jump_ENVX": "2026-05-12T11:36:37.993181+02:00",
     "anomaly_monster_backup_DFDV": "2026-05-12T08:16:37.443111+02:00",
-    "anomaly_monster_backup_ENVX": "2026-05-12T16:19:41.504068+02:00"
+    "anomaly_monster_backup_ENVX": "2026-05-12T16:19:41.504068+02:00",
+    "anomaly_monster_backup_WEN": "2026-05-12T20:19:24.529699+02:00",
+    "anomaly_score_jump_RIGL": "2026-05-12T20:19:24.801725+02:00"
   },
   "push_history": [
     {
@@ -363,19 +365,41 @@
       "success": true,
       "suppressed": false,
       "suppress_reason": null
+    },
+    {
+      "ts": "2026-05-12T20:19:24.529672+02:00",
+      "ticker": "WEN",
+      "kind": "anomaly",
+      "severity": "high",
+      "trigger": "monster_backup",
+      "body": "WEN 🔥 Monster 100 | Setup 97 | KI 77",
+      "success": true,
+      "suppressed": false,
+      "suppress_reason": null
+    },
+    {
+      "ts": "2026-05-12T20:19:24.801701+02:00",
+      "ticker": "RIGL",
+      "kind": "anomaly",
+      "severity": "medium",
+      "trigger": "score_jump",
+      "body": "RIGL 🚀 Setup 78 ↑ (gestern 40) | Volumen 1.7× + Spanne 11.6% + News: short interest",
+      "success": true,
+      "suppressed": false,
+      "suppress_reason": null
     }
   ],
   "prev_conviction_scores": {
-    "WEN": 54.0,
-    "DDD": 48.0,
-    "RIGL": 55.0,
-    "FABC": 46.0,
-    "GRPN": 32.0,
-    "SNSE": 31.0,
-    "NVAX": 44.0,
-    "AEVA": 50.0,
-    "GO": 55.0,
-    "JACK": 55.0
+    "WEN": 57.0,
+    "DDD": 65.0,
+    "RIGL": 59.0,
+    "FABC": 51.0,
+    "METC": 49.0,
+    "GRPN": 33.0,
+    "NVAX": 45.0,
+    "GO": 58.0,
+    "SNSE": 30.0,
+    "AEVA": 43.0
   },
   "exit_cooldowns": {
     "exitp2_warning_AMC": "2026-05-12T11:36:46.134279+02:00",
