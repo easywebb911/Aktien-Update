@@ -1,10 +1,10 @@
 {
-  "updated": "2026-05-12T23:18:00.042924+02:00",
+  "updated": "2026-05-13T00:58:48.861682+02:00",
   "run_info": {
     "tickers_checked": 10,
     "signals_active": 5,
     "alerts_sent": 0,
-    "elapsed_s": 13.0,
+    "elapsed_s": 10.8,
     "market_phase": "After-Hours"
   },
   "signals": {
@@ -30,9 +30,9 @@
       "uoa_cp_ratio": 15.770034843205575
     },
     "WEN": {
-      "score": 63,
+      "score": 74,
       "confidence": 70,
-      "drivers": "Volumen 4.1× + ⚡ Extremes Volumen 4.1×+ + Spanne 11.8% + News-KI 8/30: Positive price movement, but lacks short squeeze catalysts like high short interest, borrow difficulty, or forced coveri + UOA Call/Put 6.4×",
+      "drivers": "Volumen 4.1× + ⚡ Extremes Volumen 4.1×+ + Spanne 11.8% + News-KI 12/30: Positive price action but no indication of short squeeze catalysts like high short interest, borrowing costs, or forced  + UOA Call/Put 6.4×",
       "price": 7.9,
       "chg_pct": 0.0,
       "rvol": 4.06,
@@ -41,33 +41,14 @@
       "upcoming_event": null,
       "insider_buy": false,
       "stocktwits": null,
-      "combo_mult": 1.0,
-      "active_triggers": 1,
+      "combo_mult": 1.1,
+      "active_triggers": 2,
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 6.4×"
       ],
       "uoa_atm_ratio": 0.7954545454545454,
       "uoa_cp_ratio": 6.4242176870748295
-    },
-    "RIGL": {
-      "score": 33,
-      "confidence": 70,
-      "drivers": "Volumen 2.6× + Spanne 11.6% + News-KI 8/30: Negative earnings outlook and competitive partnership announcements indicate weak fundamentals with no short squeeze cat",
-      "price": 29.37,
-      "chg_pct": 0.0,
-      "rvol": 2.61,
-      "earnings": "in 84 Tagen (04.08.2026)",
-      "fda_date": null,
-      "upcoming_event": null,
-      "insider_buy": false,
-      "stocktwits": null,
-      "combo_mult": 1.0,
-      "active_triggers": 1,
-      "uoa_score": 0,
-      "uoa_drivers": [],
-      "uoa_atm_ratio": 0.25263157894736843,
-      "uoa_cp_ratio": 0.29491525423728815
     },
     "DDD": {
       "score": 82,
@@ -90,10 +71,29 @@
       "uoa_atm_ratio": 0.8487320837927232,
       "uoa_cp_ratio": 13.575221238938052
     },
-    "CGEM": {
-      "score": 58,
+    "RIGL": {
+      "score": 44,
       "confidence": 70,
-      "drivers": "Volumen 1.8× + Spanne 11.0% + News-KI 8/30: FDA acceptance is positive but common regulatory step; no financial distress, short interest data, or catalysts indicati + FINRA Short-Vol 100%",
+      "drivers": "Volumen 2.6× + Spanne 11.6% + News: short interest",
+      "price": 29.37,
+      "chg_pct": 0.0,
+      "rvol": 2.61,
+      "earnings": "in 84 Tagen (04.08.2026)",
+      "fda_date": null,
+      "upcoming_event": null,
+      "insider_buy": false,
+      "stocktwits": null,
+      "combo_mult": 1.1,
+      "active_triggers": 2,
+      "uoa_score": 0,
+      "uoa_drivers": [],
+      "uoa_atm_ratio": 0.25263157894736843,
+      "uoa_cp_ratio": 0.29491525423728815
+    },
+    "CGEM": {
+      "score": 65,
+      "confidence": 70,
+      "drivers": "Volumen 1.8× + Spanne 11.0% + News: catalyst + FINRA Short-Vol 77%",
       "price": 16.15,
       "chg_pct": -0.0,
       "rvol": 1.8,
@@ -103,7 +103,7 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 0,
+      "active_triggers": 1,
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": 0.5,
@@ -154,7 +154,7 @@
     "RXT": {
       "score": 50,
       "confidence": 33,
-      "drivers": "Spanne 33.2% + News: short covering, covering + UOA Call/Put 6.9×",
+      "drivers": "Spanne 33.2% + News: covering, partnership + UOA Call/Put 6.9×",
       "price": 6.33,
       "chg_pct": -0.0,
       "rvol": 0.57,
