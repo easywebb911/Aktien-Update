@@ -447,7 +447,24 @@ ANOMALY_CONVICTION_HIGH_THRESHOLD = 75
 # unterdrücktem Push mit suppressed=True + suppress_reason. Ticker
 # ohne Conviction-Score (z.B. nicht in heutigen conviction_scores)
 # pushen konservativ wie bisher (keine Filterung).
-ANOMALY_CONVICTION_MIN_THRESHOLD  = 50
+#
+# Seit 12.05.2026 auf 75 angehoben (vorher 50). Diagnose ergab ~10
+# Pushes/Tag, davon 51 % monster_backup mit dauerhaft hohen Setup-
+# Scores aber moderater Conviction. Mit 75 fließen nur noch echte
+# Aktions-Substrate durch — gleiche Schwelle wie conviction_high
+# (= aktiver Aktions-Push). Beide Konstanten bleiben semantisch
+# getrennt: HIGH triggert den eigenen conviction_high-Push beim
+# Threshold-Crossing, MIN ist das Gating für ALLE anderen Anomaly-
+# Trigger. Bei zukünftigen Re-Kalibrierungen sind beide unabhängig
+# anpassbar.
+ANOMALY_CONVICTION_MIN_THRESHOLD  = 75
+
+# Earnings-Sofort-Alert (Per-Event-Dedup). Cooldown gilt pro
+# (Ticker × Earnings-Date) — verhindert Mehrfach-Pushes für dasselbe
+# Earnings-Event innerhalb des EARNINGS_IMMEDIATE_HOURS-Fensters.
+# 24h ist großzügig: ein Earnings-Event dauert keine 24h, eine
+# Wiederholung wäre also definitiv ein Bug.
+EARNINGS_IMMEDIATE_COOLDOWN_HOURS = 24
 
 # ── VIX-Gating für Anomalie-Pushes ──────────────────────────────────────────
 # Bei hohem VIX (Krise/Panik) sind Squeeze-Setups oft Bull-Traps. Schwellen:

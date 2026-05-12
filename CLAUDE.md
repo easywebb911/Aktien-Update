@@ -959,12 +959,32 @@ Earnings-Sofort-Alert hat Vorrang vor Anomalien (kein Doppel-Push).
 
 Anomaly-Pushes (alle außer `conviction_high` selbst) werden nur an
 ntfy gesendet, wenn der Ticker mindestens
-`ANOMALY_CONVICTION_MIN_THRESHOLD` (Standard 50) Conviction hat.
-Damit verschwinden „Zwischen-Pushes" für strukturell starke Setups,
-bei denen Earliness/Anomaly-Konvergenz fehlt — der User bekommt nur
-noch Pushes, bei denen alle vier Conviction-Komponenten zusammen
-ein medium+-Substrat zeigen. `conviction_high` (≥ 75) selbst ist
-ungefiltert (Aktions-Push).
+`ANOMALY_CONVICTION_MIN_THRESHOLD` (seit 12.05.2026: **75**, vorher 50)
+Conviction hat. Damit gehen nur noch „Aktions-Substrate" raus — der
+User bekommt keine Pushes mehr für strukturell hohe Monster/Setup-
+Scores ohne Earliness/Regime-Rückendeckung. `conviction_high` (≥ 75)
+selbst ist ungefiltert (Aktions-Push).
+
+**Coverage (12.05.2026):** Gating greift auf **ALLE** Anomaly-Trigger
+inklusive `monster_backup` — einzige Ausnahme ist `conviction_high`,
+das selbst der Aktions-Push ist. monster_backup war früher als
+„Sicherheitsnetz für extreme Fälle" ungated gedacht, ist aber in der
+Praxis die lauteste Klasse (51 % aller Pushes laut Bestandsaufnahme
+12.05., dominiert von NVAX/GRPN). Bewusste Architektur-Entscheidung:
+bei Conviction < 75 ist ein Setup per Definition kein „extremer Fall",
+auch wenn der Monster-Score hoch ist.
+
+**Beziehung zur `ANOMALY_CONVICTION_HIGH_THRESHOLD`-Konstante** (auch
+75): Beide bleiben semantisch getrennt:
+
+- `HIGH_THRESHOLD = 75` triggert den `conviction_high`-Aktions-Push
+  selbst beim Threshold-Crossing (Setup von < 75 auf ≥ 75).
+- `MIN_THRESHOLD = 75` ist das Gating für **alle anderen** Anomaly-
+  Trigger (monster_backup, score_jump, rvol_explosion, …).
+
+Bei künftigen Re-Kalibrierungen können beide unabhängig angepasst
+werden. Numerisch deckungsgleich aktuell, aber konzeptionell zwei
+unterschiedliche Schwellen — kein Konstanten-Merge.
 
 Gating-Reihenfolge im Consumer-Loop:
 `vix_pause → cooldown → silence_filter → conviction_gate → push`.
@@ -976,6 +996,35 @@ Einträge dezent (Strike-Through-Body, ⊘-Marker, gestrichelter Rand).
 Ticker ohne Conviction-Score (z. B. nicht in heutigen
 `conviction_scores`) pushen konservativ ungefiltert — kein
 Filter-Effekt durch fehlende Daten.
+
+### Earnings-Sofort-Alert Per-Event-Dedup (seit 12.05.2026)
+
+Cooldown-Key trägt das **Earnings-Datum**, nicht nur den Ticker:
+``earnings_immediate_{ticker}_{DD.MM.YYYY}`` in
+``agent_state.json["cooldowns"]``. Cooldown-Dauer
+`EARNINGS_IMMEDIATE_COOLDOWN_HOURS` (Default 24h). Vorher nutzte der
+Pfad den generischen `is_on_cooldown(ticker)` mit
+`ALERT_COOLDOWN_HOURS=2` → derselbe Earnings-Event konnte alle 2h neu
+feuern (Bug-Symptom: DMRC 3× Push innerhalb 6h für dasselbe Event am
+11./12.05.2026).
+
+Per-Event-Cooldown wird gesetzt sobald der ntfy-Push erfolgreich
+abging — nicht erst nach erfolgreichem E-Mail-Versand. Der alte
+per-ticker `set_cooldown(ticker)` (für die SMTP-Pipeline) bleibt
+zusätzlich aktiv, ist aber nicht mehr die kanonische Dedup-Quelle.
+Bei fehlendem ``earnings_date_str`` (Edge-Case: yfinance liefert
+das Datum nicht) wird der Push komplett übersprungen — defensiv, weil
+ohne Datum kein Dedup-Key bildbar ist.
+
+### push_history-Schema-Erweiterung `conviction_score` (seit 12.05.2026)
+
+Neues optionales Feld in jedem `push_history`-Eintrag. Anomaly- und
+Earnings-Pushes schreiben den Conviction-Score zum Push-Zeitpunkt mit
+hinein; Exit-Pushes (exit_p1/exit_p2) lassen das Feld auf `None`
+(Conviction misst Setup-Substrat, nicht Exit-Druck). Backward-
+kompatibel: alte Einträge ohne das Feld bleiben lesbar, Reader sehen
+`None`. Single-Source-of-Truth: `push_history.py:_record_push` —
+Schema-Änderungen nur dort.
 
 ### VIX-Gating
 

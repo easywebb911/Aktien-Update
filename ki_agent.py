@@ -2942,13 +2942,31 @@ def main() -> None:
         # Cooldown-Check + Alert + set_cooldown atomar: verhindert Doppel-Alert,
         # falls der Versand jemals parallelisiert wird (zwei Threads sähen
         # sonst is_on_cooldown=False, bevor einer set_cooldown aufruft).
+        # Conviction-Score zum Push-Zeitpunkt — wird für push_history-Audit
+        # mitgeschrieben und vom Conviction-Gating der Anomaly-Path unten
+        # nochmals gelesen. Single-Lookup, kein doppelter Dict-Walk.
+        _conv_today = ((app_data.get("conviction_scores") or {})
+                       .get(ticker) or {}).get("score")
+        # Earnings-Sofort-Alert Per-Event-Dedup: Cooldown-Key trägt das
+        # Earnings-Datum, sodass dasselbe Event innerhalb von 24h nur
+        # einmal alarmiert wird (vorher: per-ticker 2h-Cooldown via
+        # is_on_cooldown(ticker) → 3 Pushes pro Event waren möglich).
+        earnings_date_str = r.get("earnings_date_str")
+        earnings_event_key = (f"earnings_immediate_{ticker}_{earnings_date_str}"
+                              if earnings_date_str else None)
+        _event_cooldown_active = bool(
+            earnings_event_key
+            and _anomaly_is_on_cooldown(
+                earnings_event_key, state,
+                hours=EARNINGS_IMMEDIATE_COOLDOWN_HOURS))
         with _alert_lock:
             earnings_immediate = False
             if (EARNINGS_IMMEDIATE_ALERT
                     and phase == "After-Hours"
                     and earnings_days is not None
                     and 0 <= earnings_days <= 1
-                    and not is_on_cooldown(ticker, state)):
+                    and earnings_event_key is not None
+                    and not _event_cooldown_active):
                 cutoff_fresh = datetime.now(timezone.utc) - timedelta(hours=EARNINGS_IMMEDIATE_HOURS)
                 is_8k_fresh  = (
                     has_8k and sec_8k_dt is not None and sec_8k_dt >= cutoff_fresh
@@ -2969,7 +2987,15 @@ def main() -> None:
                             f"(in {earnings_days}d, KI {ki_sc})")
                     _record_push(state, ticker, kind="earnings_immediate",
                                  severity="default", trigger=None,
-                                 body=body, success=_ok)
+                                 body=body, success=_ok,
+                                 conviction_score=_conv_today)
+                    # Per-Event-Cooldown setzen sobald ntfy-Versand
+                    # (erfolgreich oder als Fail-Audit gezählt) gelaufen
+                    # ist — nicht erst nach send_alert(email), weil das
+                    # zuvor zu fehlenden Cooldown-Sets bei E-Mail-Fehlern
+                    # geführt hat (Bug: DMRC 3× Push 11.-12.05.).
+                    if _ok:
+                        _anomaly_set_cooldown(earnings_event_key, state)
                     sent = send_alert(
                         ticker, ki_sc, drivers, yfd, reddit, news,
                         upcoming_event=upcoming_event or f"Earnings in {earnings_days} Tagen — Sofort-Alert",
@@ -2978,6 +3004,11 @@ def main() -> None:
                         n_types=n_active_types,
                     )
                     if sent:
+                        # set_cooldown(ticker) bleibt für die E-Mail-
+                        # Pipeline (parallelläufer-Schutz innerhalb von
+                        # ALERT_COOLDOWN_HOURS). Per-Event-Cooldown oben
+                        # ist die kanonische Dedup-Quelle für den Push-
+                        # Versand.
                         set_cooldown(ticker, state)
                         n_alerts += 1
 
@@ -3041,12 +3072,22 @@ def main() -> None:
                     # ungefiltert. push_history wird in jedem Fall
                     # geschrieben — bei unterdrücktem Push mit
                     # ``suppressed=True`` für UI-Transparenz.
+                    #
+                    # Coverage (Stand 12.05.2026): Gating greift auf
+                    # ALLE Anomaly-Trigger inkl. monster_backup —
+                    # einzige Ausnahme ist ``conviction_high`` selbst,
+                    # weil das DER Aktions-Push ist. monster_backup
+                    # wurde mit Anhebung der Schwelle auf 75 (vorher
+                    # 50) bewusst mit gegated: bei Conviction < 75 ist
+                    # ein Setup per Definition kein „extremer Fall",
+                    # auch wenn der Monster-Score hoch ist. Vorher
+                    # konnte ein 100-Monster-Setup mit Conviction 45
+                    # alle 6h pushen — das ist der „Push-Inflation"-
+                    # Effekt, den dieser Refactor adressiert.
                     _suppress = False
                     if anom.get("trigger") != "conviction_high":
-                        _conv = ((app_data.get("conviction_scores") or {})
-                                 .get(ticker) or {}).get("score")
-                        if isinstance(_conv, (int, float)) \
-                                and _conv < ANOMALY_CONVICTION_MIN_THRESHOLD:
+                        if isinstance(_conv_today, (int, float)) \
+                                and _conv_today < ANOMALY_CONVICTION_MIN_THRESHOLD:
                             _suppress = True
                     if _suppress:
                         _record_push(state, ticker, kind="anomaly",
@@ -3054,7 +3095,8 @@ def main() -> None:
                                      trigger=anom.get("trigger"),
                                      body=body, success=False,
                                      suppressed=True,
-                                     suppress_reason="conviction_below_threshold")
+                                     suppress_reason="conviction_below_threshold",
+                                     conviction_score=_conv_today)
                         log.info("Anomaly suppressed (conviction<%d) %s/%s: %s",
                                  ANOMALY_CONVICTION_MIN_THRESHOLD,
                                  anom["trigger"], anom["severity"], ticker)
@@ -3063,7 +3105,8 @@ def main() -> None:
                     _record_push(state, ticker, kind="anomaly",
                                  severity=anom.get("severity") or "default",
                                  trigger=anom.get("trigger"),
-                                 body=body, success=_ok)
+                                 body=body, success=_ok,
+                                 conviction_score=_conv_today)
                     if _ok:
                         _anomaly_set_cooldown(key, state)
                         n_alerts += 1

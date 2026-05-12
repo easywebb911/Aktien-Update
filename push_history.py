@@ -23,12 +23,13 @@ _BERLIN = ZoneInfo("Europe/Berlin")
 def _record_push(state: dict, ticker: str, kind: str, severity: str,
                  trigger: str | None, body: str, success: bool,
                  suppressed: bool = False,
-                 suppress_reason: str | None = None) -> None:
+                 suppress_reason: str | None = None,
+                 conviction_score: int | float | None = None) -> None:
     """FIFO-Append eines Push-Versuchs in ``state["push_history"]``.
 
     Entry-Schema:
       ``{ts, ticker, kind, severity, trigger, body, success,
-         suppressed, suppress_reason}``
+         suppressed, suppress_reason, conviction_score}``
 
     Cap = ``PUSH_HISTORY_MAX`` (älteste Einträge werden abgeschnitten).
     Auch fehlgeschlagene Pushes (``success=False``) werden persistiert,
@@ -41,9 +42,20 @@ def _record_push(state: dict, ticker: str, kind: str, severity: str,
     statt eines Netzwerk-/Konfig-Fehlers. ``suppress_reason`` liefert
     den Kurz-Code (``"conviction_below_threshold"`` etc.) für die UI.
 
+    ``conviction_score`` ist optional. Bei Anomaly- und Earnings-
+    Pushes wird der Wert zum Push-Zeitpunkt mitpersistiert — damit
+    spätere Aktivitäts-Berichte sehen können, ob ein Push aktions-
+    relevant war oder im Rauschen unterging. Bei Exit-Pushes
+    (kind=exit_p2/exit_p1) ist der Wert in der Regel ``None``
+    (Conviction misst Substrat des Setups, nicht Exit-Druck).
+
     FIFO-Cap = 100 macht uns gegen einzelne fehlende Einträge robust bei
     Race zwischen ki_agent und Daily-Run. Last-Write-Wins akzeptiert.
     """
+    try:
+        conv_int = int(round(conviction_score)) if conviction_score is not None else None
+    except (TypeError, ValueError):
+        conv_int = None
     entry = {
         "ts":       datetime.now(_BERLIN).isoformat(),
         "ticker":   ticker,
@@ -54,6 +66,7 @@ def _record_push(state: dict, ticker: str, kind: str, severity: str,
         "success":  bool(success),
         "suppressed":       bool(suppressed),
         "suppress_reason":  suppress_reason if suppressed else None,
+        "conviction_score": conv_int,
     }
     hist = state.setdefault("push_history", [])
     hist.append(entry)
