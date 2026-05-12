@@ -1,5 +1,5 @@
 {
-  "last_run": "2026-05-12T13:52:59.459016+02:00",
+  "last_run": "2026-05-12T16:19:45.387590+02:00",
   "cooldowns": {
     "anomaly_score_jump_XRX": "2026-05-03T18:47:15.315486+02:00",
     "anomaly_uoa_extreme_TDOC": "2026-05-04T13:47:00.365949+02:00",
@@ -16,7 +16,7 @@
     "anomaly_monster_backup_OFRM": "2026-05-10T18:53:05.781481+02:00",
     "anomaly_score_jump_ENVX": "2026-05-12T11:36:37.993181+02:00",
     "anomaly_monster_backup_DFDV": "2026-05-12T08:16:37.443111+02:00",
-    "anomaly_monster_backup_ENVX": "2026-05-12T08:16:37.513702+02:00"
+    "anomaly_monster_backup_ENVX": "2026-05-12T16:19:41.504068+02:00"
   },
   "push_history": [
     {
@@ -341,19 +341,30 @@
       "success": true,
       "suppressed": false,
       "suppress_reason": null
+    },
+    {
+      "ts": "2026-05-12T16:19:41.504021+02:00",
+      "ticker": "ENVX",
+      "kind": "anomaly",
+      "severity": "high",
+      "trigger": "monster_backup",
+      "body": "ENVX 🔥 Monster 92 | Setup 77 | KI 25",
+      "success": true,
+      "suppressed": false,
+      "suppress_reason": null
     }
   ],
   "prev_conviction_scores": {
-    "PAR": 52.0,
-    "DFDV": 65.0,
-    "ENVX": 65.0,
-    "FWRD": 65.0,
+    "PAR": 54.0,
+    "PZZA": 72.0,
+    "ENVX": 64.0,
+    "DFDV": 64.0,
     "INDI": 34.0,
     "FDMT": 47.0,
-    "AEVA": 55.0,
-    "FTK": 50.0,
-    "CADL": 60.0,
-    "PZZA": 69.0
+    "AEVA": 54.0,
+    "FTK": 46.0,
+    "CADL": 59.0,
+    "UPXI": 59.0
   },
   "exit_cooldowns": {
     "exitp2_warning_AMC": "2026-05-12T11:36:46.134279+02:00",
