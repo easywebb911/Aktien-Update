@@ -27,6 +27,7 @@ from jinja2 import Environment, FileSystemLoader, select_autoescape
 
 from config import *   # zentrale Konstanten (Schwellen, Score-Gewichte, Timeouts, URLs)
 from watchlist import WATCHLIST
+import score_inflation_log
 
 try:
     import pandas_ta as ta  # optional: RSI / MA computation
@@ -2776,6 +2777,12 @@ def apply_score_smoothing(stocks: list[dict], today: str) -> None:
             elif all(_tscores[i] > _tscores[i + 1] for i in range(len(_tscores) - 1)):
                 s["score"] = round(max(s["score"] - SCORE_TREND_MALUS, 0.0), 1)
                 s["score_trend_bonus_pts"] = -float(SCORE_TREND_MALUS)
+
+        # Snapshot des Score-Werts NACH Smoothing/Trend-Bonus, aber VOR
+        # Late-Runner-Penalty und Agent-Boost — für score_inflation_log.
+        # Wird im weiteren Pipeline-Verlauf nicht wieder verändert; reines
+        # Persistenz-Feld.
+        s["score_smoothed"] = float(s["score"])
 
         # Drivers aus dem aktuellen agent_signals.json — kommen via
         # apply_agent_boost als String " X + Y + Z " auf ``s``. Splitten,
@@ -13408,6 +13415,14 @@ def main():
     # Monster-Score: Setup × KI-Signal-Gewichtung. Erfordert apply_agent_boost
     # (für ki_signal_score). Schreibt s["monster_score"] (float).
     apply_monster_score(top10)
+
+    # Score-Inflation-Persistenz (Bestandsaufnahme Mai 2026 — Empirik-
+    # Sammlung für Intra-Day-Score-Inflation). Schreibt eine JSONL-Zeile
+    # pro Top-10-Ticker mit Sub-Score-Breakdown + Drivers + Session-Phase.
+    # Append-only; pruned auf 30 Tage Cutoff zum Run-Start. Fail-soft —
+    # Daily-Run crasht nie wegen Log-Fehler.
+    score_inflation_log.prune_log()
+    score_inflation_log.record_top10_inflation(top10, _compute_sub_scores)
 
     # Borrow-Metriken (Display-Only): CTB + Utilization von Stockanalysis,
     # Fallback IBKR für CTB. Beide Felder fließen NICHT in den Score und
