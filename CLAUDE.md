@@ -970,11 +970,45 @@ KI-Agent-/Setup-Aktion zum Unlock geführt.
 - `_clearAllTokens()` räumt `localStorage[TOK_ENC_KEY]` + `localStorage[TOK_LEGACY_KEY]`
   + `sessionStorage[TOK_KEY]`.
 
-### 401/403-Handler im Workflow-Dispatch
+### 401/403-Handler im Workflow-Dispatch (seit 12.05.2026 mit Soft-Reset)
 
-Wenn GitHub-API mit 401/403 antwortet (Token revoked / abgelaufen /
-falsche Scopes), wird `_clearAllTokens()` aufgerufen — der User landet
-beim nächsten Action-Trigger im Setup-Modal.
+GitHub-API liefert auch bei gültigem Token gelegentlich 401/403 zurück
+(rate-limit, IP-Wechsel, transient — am iPhone besonders häufig wegen
+mobiler IPs). Frühere Logik rief sofort `_clearAllTokens()` → User
+musste Token + Master-Passwort neu eingeben. Neue Logik:
+
+| Counter-Stand | Aktion bei 401/403 |
+|---:|---|
+| 1, 2 | `_onTokenAuthFail` → **nur** Session+Memory löschen (Soft-Reset). Encrypted Blob bleibt. Nächste Action öffnet Unlock-Modal (nur Master-Passwort, kein Token-Reentry). |
+| 3 (`TOKEN_AUTH_FAIL_HARD_THRESHOLD`) | `_clearAllTokens()` (Hard-Reset). Token ist tatsächlich revoked, nicht transient. User landet im Setup-Modal. |
+
+`_resetTokenAuthFailCount()` wird auf **jeden** erfolgreichen Dispatch
+(HTTP 204) aufgerufen — der Counter wird nicht durch eine alte 401/403-
+Folge belastet. Counter lebt im `_inMemoryToken`-Scope (Tab-scoped) —
+bei Tab-Schließen resettet die Sequenz, bewusst akzeptiert (neuer Tab
+= neuer Versuch).
+
+### Keep-Alive-Touch (F5, seit 12.05.2026)
+
+`getToken()` schreibt bei jedem erfolgreichen Token-Read einen
+`_tok_keepalive`-Timestamp in `localStorage`. Spekulatives Anti-ITP-
+Workaround: Apples 7-Tage-Inaktivitäts-Cleanup soll laut Doku durch
+jeden Storage-Write zurückgesetzt werden. Defensiv try/catch — bei
+iOS-Storage-Errors lautlos schlucken. Write läuft nur wenn `tok`
+nicht leer ist (sonst würde der Counter ohne User-Action resetten).
+
+### iCloud-Schlüsselbund-Integration (F2, seit 12.05.2026)
+
+Token-Modale (Setup / Unlock / Migrate) sind in `<form
+onsubmit="return false">`-Wrapper gepackt. Safari + iCloud-Schlüsselbund
+erkennen Credential-Felder nur in `<form>`. Submit-Buttons sind
+`type="submit"`, Cancel/Skip sind `type="button"`. Jeder Form enthält
+einen hidden `<input autocomplete="username" value="squeeze-report-master">`
+— Safari verlangt eine Account-Identität, sonst keine Speicher-Bubble.
+Master-Passwort-Felder haben `autocomplete="current-password"` (Unlock)
+bzw. `autocomplete="new-password"` (Setup, Migrate). Beim nächsten
+Unlock-Modal bietet iOS Safari den im Schlüsselbund gespeicherten Wert
+automatisch zum Ausfüllen an.
 
 ### Pflege
 
