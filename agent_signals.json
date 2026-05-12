@@ -1,11 +1,11 @@
 {
-  "updated": "2026-05-12T08:16:37.514138+02:00",
+  "updated": "2026-05-12T11:36:37.993568+02:00",
   "run_info": {
     "tickers_checked": 10,
     "signals_active": 6,
-    "alerts_sent": 2,
-    "elapsed_s": 10.4,
-    "market_phase": "Geschlossen"
+    "alerts_sent": 1,
+    "elapsed_s": 15.2,
+    "market_phase": "Pre-Market"
   },
   "signals": {
     "PAR": {
@@ -30,9 +30,9 @@
       "uoa_cp_ratio": 6.5266272189349115
     },
     "DFDV": {
-      "score": 68,
+      "score": 82,
       "confidence": 70,
-      "drivers": "Earnings in 1 Tagen (13.05.2026) + Volumen 2.0× + Spanne 14.7% + News-KI 8/30: Positive treasury and funding developments lack typical short-squeeze catalysts like high short interest, earnings beats + Earnings in 1d + UOA Call/Put 185.8×",
+      "drivers": "Earnings in 1 Tagen (13.05.2026) + Volumen 2.0× + Spanne 14.7% + News: short interest + Earnings in 1d + UOA Call/Put 185.8×",
       "price": 4.92,
       "chg_pct": 0.0,
       "rvol": 1.96,
@@ -41,8 +41,8 @@
       "upcoming_event": "Earnings in 1 Tagen (13.05.2026)",
       "insider_buy": false,
       "stocktwits": null,
-      "combo_mult": 1.0,
-      "active_triggers": 1,
+      "combo_mult": 1.1,
+      "active_triggers": 2,
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 185.8×"
@@ -72,12 +72,12 @@
       "uoa_cp_ratio": 2.372720897615708
     },
     "FWRD": {
-      "score": 0,
-      "confidence": 0,
-      "drivers": "",
+      "score": 10,
+      "confidence": 17,
+      "drivers": "Spanne 10.8%",
       "price": 10.46,
       "chg_pct": 0.0,
-      "rvol": 0.0,
+      "rvol": 1.02,
       "earnings": null,
       "fda_date": null,
       "upcoming_event": null,
@@ -91,9 +91,9 @@
       "uoa_cp_ratio": 0.6770451770451771
     },
     "INDI": {
-      "score": 35,
+      "score": 28,
       "confidence": 33,
-      "drivers": "Spanne 12.9% + News: acquisition + UOA Call/Put 18.0×",
+      "drivers": "Spanne 12.9% + News-KI 8/30: Moderate positive catalysts (acquisition, earnings) but recent price surge reduces short-squeeze potential as shorts lik + UOA Call/Put 18.0×",
       "price": 4.74,
       "chg_pct": -0.0,
       "rvol": 1.38,
@@ -103,7 +103,7 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 1,
+      "active_triggers": 0,
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 18.0×"
@@ -131,9 +131,9 @@
       "uoa_cp_ratio": 0.08695652173913043
     },
     "AEVA": {
-      "score": 20,
+      "score": 32,
       "confidence": 33,
-      "drivers": "Spanne 25.3% + UOA Call/Put 5.7×",
+      "drivers": "Spanne 25.3% + News-KI 12/30: Positive operational momentum with revenue beats and new business wins, but Q1 losses and lack of short interest catalys + UOA Call/Put 5.7×",
       "price": 15.53,
       "chg_pct": -0.0,
       "rvol": 1.1,
@@ -143,7 +143,7 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 0,
+      "active_triggers": 1,
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 5.7×"

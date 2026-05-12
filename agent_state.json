@@ -1,5 +1,5 @@
 {
-  "last_run": "2026-05-12T08:16:46.320075+02:00",
+  "last_run": "2026-05-12T11:36:45.931023+02:00",
   "cooldowns": {
     "anomaly_score_jump_XRX": "2026-05-03T18:47:15.315486+02:00",
     "anomaly_uoa_extreme_TDOC": "2026-05-04T13:47:00.365949+02:00",
@@ -14,7 +14,7 @@
     "anomaly_monster_backup_VYX": "2026-05-08T13:12:12.367458+02:00",
     "anomaly_score_jump_GRPN": "2026-05-11T12:37:11.234314+02:00",
     "anomaly_monster_backup_OFRM": "2026-05-10T18:53:05.781481+02:00",
-    "anomaly_score_jump_ENVX": "2026-05-12T04:57:18.126965+02:00",
+    "anomaly_score_jump_ENVX": "2026-05-12T11:36:37.993181+02:00",
     "anomaly_monster_backup_DFDV": "2026-05-12T08:16:37.443111+02:00",
     "anomaly_monster_backup_ENVX": "2026-05-12T08:16:37.513702+02:00"
   },
@@ -319,6 +319,28 @@
       "success": true,
       "suppressed": false,
       "suppress_reason": null
+    },
+    {
+      "ts": "2026-05-12T11:36:37.993151+02:00",
+      "ticker": "ENVX",
+      "kind": "anomaly",
+      "severity": "medium",
+      "trigger": "score_jump",
+      "body": "ENVX 🚀 Setup 78 ↑ (gestern 44) | Earnings in 1 Tagen (13.05.2026) + Volumen 2.0× + Spanne 13.…",
+      "success": true,
+      "suppressed": false,
+      "suppress_reason": null
+    },
+    {
+      "ts": "2026-05-12T11:36:46.134240+02:00",
+      "ticker": "AMC",
+      "kind": "exit_p2",
+      "severity": "warning",
+      "trigger": null,
+      "body": "⚠️ Exit-Warnung AMC: pressure 64/100",
+      "success": true,
+      "suppressed": false,
+      "suppress_reason": null
     }
   ],
   "prev_conviction_scores": {
@@ -334,7 +356,7 @@
     "PZZA": 69.0
   },
   "exit_cooldowns": {
-    "exitp2_warning_AMC": "2026-05-11T20:57:23.344379+02:00",
+    "exitp2_warning_AMC": "2026-05-12T11:36:46.134279+02:00",
     "exitp2_trigger_AMC_trend_break": "2026-05-11T20:57:23.522913+02:00",
     "exitp2_trigger_DMRC_catalyst": "2026-05-12T08:16:46.397344+02:00"
   }
