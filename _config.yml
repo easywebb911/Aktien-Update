@@ -1,0 +1,36 @@
+# GitHub-Pages-/Jekyll-Konfiguration.
+#
+# Hintergrund: GitHub-Pages baut standardmäßig mit Jekyll. Jeder ``*.md``
+# im Repo-Root wird durch den Liquid-Template-Parser geschleust und zu
+# HTML konvertiert. Wenn Markdown wörtlich ``{{ … }}`` enthält (z.B. weil
+# wir Python-f-String-Escape-Pattern dokumentieren), interpretiert Liquid
+# das als Variable und bricht den Page-Build ab (Symptom 13.05.2026:
+# CLAUDE.md:113 „Variable '{{ escapeden `{name}' was not properly
+# terminated" nach Merge von PR #138).
+#
+# Pragmatischer Fix: interne Doku-Files aus dem Jekyll-Build ausschließen
+# — sie sind ohnehin nicht zur Veröffentlichung gedacht, sondern leben
+# als Markdown im Repo für Claude + Mensch.
+
+exclude:
+  # Interne Architektur-/Workflow-Doku (Liquid-unsafe wegen {{...}}-Patterns).
+  - CLAUDE.md
+  - SESSION_HANDOVER.md
+  - docs/
+
+  # Code- und Daten-Stack, der bereits über andere Wege ausgeliefert wird
+  # (``index.html`` als Build-Artefakt, ``service_worker.js`` als Cache-
+  # Worker, ``*.json`` als Data-Files). Python-Quelldateien und Linter
+  # gehören nicht in den Pages-Output.
+  - "*.py"
+  - cloudflare/
+  - scripts/
+  - templates/
+  - requirements.txt
+  - Gemfile
+  - Gemfile.lock
+
+  # Daten-JSONs liegen im Repo-Root und sollen über Pages erreichbar sein
+  # (Frontend fetched sie via fetch('./app_data.json')). Daher KEIN
+  # Ausschluss von *.json — Jekyll lässt rohe JSON-Files unverändert
+  # durch.
