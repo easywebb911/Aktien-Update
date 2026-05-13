@@ -1,11 +1,11 @@
 {
-  "updated": "2026-05-13T09:47:38.474981+02:00",
+  "updated": "2026-05-13T12:24:52.501639+02:00",
   "run_info": {
     "tickers_checked": 10,
     "signals_active": 5,
     "alerts_sent": 0,
-    "elapsed_s": 11.2,
-    "market_phase": "Geschlossen"
+    "elapsed_s": 10.9,
+    "market_phase": "Pre-Market"
   },
   "signals": {
     "METC": {
@@ -173,7 +173,7 @@
     "RXT": {
       "score": 50,
       "confidence": 33,
-      "drivers": "Spanne 33.2% + News: short covering, partnership + UOA Call/Put 6.9×",
+      "drivers": "Spanne 33.2% + News: short covering, covering + UOA Call/Put 6.9×",
       "price": 6.33,
       "chg_pct": -0.0,
       "rvol": 0.58,
