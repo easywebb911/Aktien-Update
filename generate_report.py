@@ -8578,6 +8578,18 @@ function reloadPage(){{
 function triggerWorkflow(){{
   _ensureToken(token => {{ _pendingDispatch = 'recalc'; dispatchWorkflow(token); }});
 }}
+// _computeClientRunPhase — bestimmt run_phase aus aktueller UTC-Zeit für
+// den Recalculate-Dispatch. Workflow erwartet seit PR #132 das Feld als
+// required (Default raus); ohne Wert antwortet die GitHub-API HTTP 422.
+// US-Session [13:30, 20:00) UTC → 'premarket', sonst 'postclose'. Der
+// Plausibilitäts-Override in scripts/resolve_run_phase.py bleibt als
+// Safety-Net aktiv (Clock-Drift, Timezone-Bugs).
+function _computeClientRunPhase(){{
+  const now = new Date();
+  const utcMin = now.getUTCHours() * 60 + now.getUTCMinutes();
+  // 810 = 13*60+30 (US-Open), 1200 = 20*60 (US-Close)
+  return (utcMin >= 810 && utcMin < 1200) ? 'premarket' : 'postclose';
+}}
 // showTokenInput / saveTokenAndDispatch sind nach Phase 3 entfallen —
 // _ensureToken übernimmt den Token-Pfad via Setup/Unlock/Migrate-Modal.
 async function dispatchWorkflow(token){{
@@ -8588,12 +8600,14 @@ async function dispatchWorkflow(token){{
   // garantiert >= _pollStart-15000ms ist und vom find()-Predikat erfasst wird.
   _pollStart = Date.now(); _pollToken = token; _noRunPolls = 0;
   console.log(`[Recalculate] _pollStart=${{_pollStart}} (${{new Date(_pollStart).toISOString()}})`);
+  const _runPhase = _computeClientRunPhase();
+  console.log(`[Recalculate] run_phase=${{_runPhase}} (client-side aus UTC bestimmt)`);
   try {{
     const r = await fetch(
       `https://api.github.com/repos/${{GH_OWNER}}/${{GH_REPO}}/actions/workflows/${{GH_WORKFLOW}}/dispatches`,
       {{method:'POST',headers:{{'Authorization':`Bearer ${{token}}`,'Accept':'application/vnd.github+json',
         'X-GitHub-Api-Version':'2022-11-28','Content-Type':'application/json'}},
-        body:JSON.stringify({{ref:GH_BRANCH}})}}
+        body:JSON.stringify({{ref:GH_BRANCH, inputs:{{run_phase:_runPhase}}}})}}
     );
     const _dispatchBody = await r.clone().text().catch(()=>'');
     console.log(`[Recalculate] Dispatch HTTP ${{r.status}} body:`, _dispatchBody || '(leer)');
