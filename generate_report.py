@@ -8200,7 +8200,7 @@ const QUOTE_POLL_INTERVAL_MS = 15000;
 // - Preis: `.price-tag` (im card-top-Header)
 // - Momentum-Box: gleiches Pattern wie `_patchWlMomentumLive`
 // - Live-Dot: `.quote-live-dot` (vom Konsumenten ins HTML eingehängt)
-const _quotePollers = new Map();   // ticker → {intervalId, scope, indicator}
+const _quotePollers = new Map();   // ticker → {{intervalId, scope, indicator}}
 let   _quotePollerVisHook = false; // visibilitychange-Listener-Guard
 
 function _quoteSetIndicator(scope, state) {{

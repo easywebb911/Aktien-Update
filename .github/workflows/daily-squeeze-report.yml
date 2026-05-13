@@ -60,6 +60,12 @@ jobs:
       - name: Lint chat template
         run: python scripts/lint_chat_template.py
 
+      - name: Lint JS-format escape
+        # Fängt unescapte ``{...}``-Pattern im f-String von
+        # generate_html_v1 (JS-Code, JS-Kommentare, JS-Destructuring).
+        # Hintergrund: PR #138 — siehe scripts/lint_jsformat_escape.py.
+        run: python scripts/lint_jsformat_escape.py
+
       - name: Resolve run phase
         # Single-Source-of-Truth: scripts/resolve_run_phase.py löst den
         # RUN_PHASE-Wert auf. Schedule-Trigger nutzen festen Cron-Mapping
