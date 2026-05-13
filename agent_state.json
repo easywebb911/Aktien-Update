@@ -1,5 +1,5 @@
 {
-  "last_run": "2026-05-13T15:10:02.322534+02:00",
+  "last_run": "2026-05-13T16:33:31.778731+02:00",
   "cooldowns": {
     "anomaly_score_jump_XRX": "2026-05-03T18:47:15.315486+02:00",
     "anomaly_uoa_extreme_TDOC": "2026-05-04T13:47:00.365949+02:00",
@@ -471,24 +471,37 @@
       "suppressed": false,
       "suppress_reason": null,
       "conviction_score": null
+    },
+    {
+      "ts": "2026-05-13T16:33:31.855055+02:00",
+      "ticker": "SABR",
+      "kind": "exit_p2",
+      "severity": "trigger",
+      "trigger": "trend_break",
+      "body": "🔻 Exit-Signal SABR: trend_break crit ({'ma21': 1.8145, 'price': 1.74, 'drop_pct': 4.11})",
+      "success": true,
+      "suppressed": false,
+      "suppress_reason": null,
+      "conviction_score": null
     }
   ],
   "prev_conviction_scores": {
-    "METC": 44.0,
-    "WEN": 58.0,
-    "DDD": 57.0,
-    "RIGL": 62.0,
-    "CGEM": 37.0,
-    "ENOV": 33.0,
-    "AEVA": 33.0,
-    "NVRI": 28.0,
-    "RXT": 28.0,
-    "QURE": 26.0
+    "SLS": 48.0,
+    "HUMA": 57.0,
+    "CCCC": 43.0,
+    "SNSE": 28.0,
+    "TTEC": 50.0,
+    "DDD": 27.0,
+    "RIGL": 27.0,
+    "CSIQ": 55.0,
+    "DMRC": 41.0,
+    "GO": 40.0
   },
   "exit_cooldowns": {
     "exitp2_warning_AMC": "2026-05-13T15:10:02.724888+02:00",
     "exitp2_trigger_AMC_trend_break": "2026-05-12T21:48:10.078831+02:00",
     "exitp2_trigger_DMRC_catalyst": "2026-05-12T08:16:46.397344+02:00",
-    "exitp2_trigger_AMC_profit_lock": "2026-05-12T19:09:35.655909+02:00"
+    "exitp2_trigger_AMC_profit_lock": "2026-05-12T19:09:35.655909+02:00",
+    "exitp2_trigger_SABR_trend_break": "2026-05-13T16:33:31.855081+02:00"
   }
 }
