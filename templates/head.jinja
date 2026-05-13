@@ -664,8 +664,25 @@ abbr[title]{text-decoration:underline dotted var(--txt-dim);
 .wl-exp-close-bar{position:sticky;top:0;z-index:5;
   background:var(--bg-card);
   border-bottom:1px solid var(--brd);
-  padding:6px 10px;display:flex;justify-content:flex-end}
+  padding:6px 10px;display:flex;justify-content:flex-end;align-items:center;gap:8px}
 .wl-card.card-manual .wl-exp-close-bar{background:rgba(20,83,45,0.55)}
+/* Live-Quote-Indikator (siehe „Live-Quote-Polling"-Sektion in CLAUDE.md).
+   Default unsichtbar/grau; .quote-live-on = pulsierendes Grün (Polling
+   aktiv & letzter Fetch erfolgreich); .quote-live-stale = statisches Grau
+   (Fetch-Fehler / Worker nicht erreichbar); .quote-live-paused = gedimmtes
+   Grün (Tab inaktiv, Polling pausiert). */
+.quote-live-dot{display:inline-block;width:8px;height:8px;border-radius:50%;
+  background:#475569;flex-shrink:0;vertical-align:middle;margin-left:6px}
+.quote-live-dot.quote-live-on{background:#22c55e;
+  box-shadow:0 0 6px rgba(34,197,94,0.55);
+  animation:quote-pulse 2s ease-in-out infinite}
+.quote-live-dot.quote-live-stale{background:#94a3b8;box-shadow:none;animation:none}
+.quote-live-dot.quote-live-paused{background:#22c55e;opacity:0.4;
+  box-shadow:none;animation:none}
+@keyframes quote-pulse{
+  0%,100%{box-shadow:0 0 6px rgba(34,197,94,0.55)}
+  50%   {box-shadow:0 0 10px rgba(34,197,94,0.95)}
+}
 .wl-card--expanded .wl-exp-close-bar + .card-top{padding-top:6px}
 /* 2-Spalten-Body für die expandierte Watchlist-Drawer-Karte. Reihenfolge
    der DOM-Kinder bleibt unverändert — explizite ``grid-column``-Zuweisung

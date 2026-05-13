@@ -87,6 +87,11 @@ jobs:
           NTFY_TOPIC:       ${{ secrets.NTFY_TOPIC }}
           EDGAR_USER_AGENT: ${{ secrets.EDGAR_USER_AGENT }}
           GIST_ID:          ${{ secrets.GIST_ID }}
+          # QUOTE_PROXY_URL — Cloudflare-Worker-Endpoint für Live-Quotes
+          # im Watchlist-Drawer / Top-10-Detail-Bereich. Optional: leer
+          # → Frontend-Polling no-op, eingebrannte Werte bleiben sichtbar.
+          # Setup: cloudflare/quote-proxy/README.md.
+          QUOTE_PROXY_URL:  ${{ secrets.QUOTE_PROXY_URL }}
           # RUN_PHASE wird vom vorherigen Step `Resolve run phase` in
           # $GITHUB_ENV geschrieben — Resolution-Logik siehe
           # scripts/resolve_run_phase.py.
