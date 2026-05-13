@@ -5534,6 +5534,7 @@ def _build_context(stocks: list[dict], report_date: str,
         "wl_hist_json":   wl_hist_json,
         "wl_top10_json":  wl_top10_json,
         "gist_id_js":     gist_id_js,
+        "quote_proxy_url_js": quote_proxy_url_js,
         "chat_ctx_json":  chat_ctx_json,
         "head_html":      head_html,
         "chat_panel_html": chat_panel_html,
@@ -5568,6 +5569,11 @@ def generate_html_v1(stocks: list[dict], report_date: str,
     wl_hist_json   = ctx["wl_hist_json"]
     wl_top10_json  = ctx["wl_top10_json"]
     gist_id_js     = ctx["gist_id_js"]
+    # QUOTE_PROXY_URL: Cloudflare-Worker für Live-Quote-Polling. Aus
+    # ENV bestimmt + URL-sanitized im _build_context. Leer → JS-Modul
+    # ist no-op (siehe Sektion „Live-Quote-Polling" in CLAUDE.md).
+    # Fehlt der Key (alter Context ohne Phase-2-Feature) → Default leer.
+    quote_proxy_url_js = ctx.get("quote_proxy_url_js", "")
     chat_ctx_json    = ctx["chat_ctx_json"]
     head_html        = ctx["head_html"]
     chat_panel_html  = ctx["chat_panel_html"]
