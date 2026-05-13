@@ -112,7 +112,55 @@ Datenqualität:
 |---|---|---|---|---|
 | `0 10 * * 1-5` (10:00 UTC) | `premarket` | Vorschau, RVOL strukturell unter-skaliert (US-Open ~3,5 h voraus) | Anomaly-Pushes **aktiv** (Aktions-Fenster für die KI-Agent-Ticks) | **kein** Backtest-Eintrag |
 | `0 21 * * 1-5` (21:00 UTC) | `postclose` | EOD-konsolidiert = „Wahrheit" | Anomaly-Pushes **aus** (kein abendliches Rauschen) | Backtest-Eintrag wird angelegt |
-| `workflow_dispatch` (manuell) | per User-Input (default `postclose`) | wie oben | wie oben | wie oben |
+| `workflow_dispatch` (manuell) | per User-Input, **required, kein Default** — Plausibilitäts-Override aktiv (siehe unten) | wie oben | wie oben | wie oben |
+
+### Plausibilitäts-Override für workflow_dispatch (seit 13.05.2026)
+
+**Motivation:** Am 13.05.2026 wurden drei manuelle Daily-Run-Trigger
+während laufender US-Session abgesetzt — der damalige Default-Wert
+`postclose` (im YAML) sorgte für **22 Intraday-Mid-Day-Backtest-Einträge**
+(RVOL teils < 0.2, zwei VIX-Snapshots im selben Run). Cleanup via
+PR #131. Der Fix unten verhindert die Wiederholung.
+
+Die RUN_PHASE-Resolution lebt jetzt in
+`scripts/resolve_run_phase.py` und wird vom Workflow-Step
+`Resolve run phase` aufgerufen (schreibt `RUN_PHASE` nach
+`$GITHUB_ENV`). Logik:
+
+| Trigger | Input | Aktuelle UTC-Zeit | Resultat | Override-Reason |
+|---|---|---|---|---|
+| `schedule` `0 10 * * 1-5` | — | — | `premarket` | — (fester Cron-Mapping) |
+| `schedule` `0 21 * * 1-5` | — | — | `postclose` | — (fester Cron-Mapping) |
+| `workflow_dispatch` | `postclose` | 13:30 ≤ UTC < 20:00 (US-Session) | **`premarket`** | `us_session_override` |
+| `workflow_dispatch` | `premarket` | UTC ≥ 20:00 (Post-Close) | **`postclose`** | `post_close_override` |
+| `workflow_dispatch` | `premarket` | 13:30 ≤ UTC < 20:00 | `premarket` | — (plausibel) |
+| `workflow_dispatch` | `postclose` | UTC ≥ 20:00 | `postclose` | — (plausibel) |
+| `workflow_dispatch` | `postclose` / `premarket` | UTC < 13:30 (pre-Open) | unverändert | — (User-Wahl gilt) |
+| `workflow_dispatch` | empty / garbage | — | `premarket` | `no_input_fallback` |
+
+US-Session-Grenzen: `US_SESSION_START = 13:30 UTC` (inkl.) =
+US-Market-Open, `US_SESSION_END = 20:00 UTC` (exkl.) = US-Market-Close.
+Zeitfenster `[13:30, 20:00)` als „US-Session". Die 30-Minuten-Schonfrist
+vor Open (13:00–13:30 UTC) ist intentional kein Override-Pfad — wer in
+diesem Slot manuell triggert, will typischerweise einen Pre-Open-
+Snapshot (= premarket) und kann das frei wählen.
+
+**Cron-Trigger sind vom Override ausgenommen** — der Schedule-Wert
+ist YAML-festgelegt und konsistent zur jeweiligen Cron-Zeit, kein
+Korrektur-Bedarf.
+
+**Override-Warnungen** landen mit Präfix `⚠ Override:` im
+`Resolve run phase`-Step-Log und sind im GitHub-Actions-UI direkt
+sichtbar. Der nachfolgende `Generate squeeze report`-Step liest
+`${{ env.RUN_PHASE }}` (= aufgelöster Wert), nicht mehr den rohen
+User-Input.
+
+**workflow_dispatch-Input ist seit 13.05.2026 `required: true`** und
+hat keinen Default mehr — User muss bewusst wählen (zwingt zur
+Entscheidung statt unbemerktem Falsch-Default).
+
+Tests: `scripts/mock_test_run_phase_resolution.py` (12 Cases,
+inkl. Edge-Boundary 13:29/13:30/20:00 UTC).
 
 ### Felder & Persistenz
 
