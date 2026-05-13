@@ -1,11 +1,11 @@
 {
-  "updated": "2026-05-13T00:58:48.861682+02:00",
+  "updated": "2026-05-13T02:06:21.362408+02:00",
   "run_info": {
     "tickers_checked": 10,
     "signals_active": 5,
     "alerts_sent": 0,
-    "elapsed_s": 10.8,
-    "market_phase": "After-Hours"
+    "elapsed_s": 11.2,
+    "market_phase": "Geschlossen"
   },
   "signals": {
     "METC": {
@@ -30,9 +30,9 @@
       "uoa_cp_ratio": 15.770034843205575
     },
     "WEN": {
-      "score": 74,
+      "score": 94,
       "confidence": 70,
-      "drivers": "Volumen 4.1× + ⚡ Extremes Volumen 4.1×+ + Spanne 11.8% + News-KI 12/30: Positive price action but no indication of short squeeze catalysts like high short interest, borrowing costs, or forced  + UOA Call/Put 6.4×",
+      "drivers": "Volumen 4.1× + ⚡ Extremes Volumen 4.1×+ + Spanne 11.8% + News: takeover, buyout + UOA Call/Put 6.4×",
       "price": 7.9,
       "chg_pct": 0.0,
       "rvol": 4.06,
@@ -51,9 +51,9 @@
       "uoa_cp_ratio": 6.4242176870748295
     },
     "DDD": {
-      "score": 82,
+      "score": 68,
       "confidence": 70,
-      "drivers": "Volumen 7.5× + 🚀 Massives Volumen 7.5×+ + Spanne 18.8% + News: earnings beat + UOA Call/Put 13.6×",
+      "drivers": "Volumen 7.5× + 🚀 Massives Volumen 7.5×+ + Spanne 18.8% + News-KI 8/30: Standard earnings reporting without indicators of high short interest, significant bearish sentiment reversals, or catal + UOA Call/Put 13.6×",
       "price": 3.11,
       "chg_pct": -0.0,
       "rvol": 7.45,
@@ -62,8 +62,8 @@
       "upcoming_event": null,
       "insider_buy": false,
       "stocktwits": null,
-      "combo_mult": 1.1,
-      "active_triggers": 2,
+      "combo_mult": 1.0,
+      "active_triggers": 1,
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 13.6×"
@@ -154,7 +154,7 @@
     "RXT": {
       "score": 50,
       "confidence": 33,
-      "drivers": "Spanne 33.2% + News: covering, partnership + UOA Call/Put 6.9×",
+      "drivers": "Spanne 33.2% + News: partnership, covering + UOA Call/Put 6.9×",
       "price": 6.33,
       "chg_pct": -0.0,
       "rvol": 0.57,
@@ -173,9 +173,9 @@
       "uoa_cp_ratio": 6.946780708006653
     },
     "NVRI": {
-      "score": 25,
+      "score": 15,
       "confidence": 33,
-      "drivers": "Spanne 7.2% + News: earnings beat",
+      "drivers": "Spanne 7.2% + News-KI 5/30: Positive earnings headlines indicate improving fundamentals, which typically reduces short-squeeze potential as bearish ",
       "price": 19.67,
       "chg_pct": 0.0,
       "rvol": 1.45,
@@ -185,7 +185,7 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 1,
+      "active_triggers": 0,
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": 0.00046533271288971617,
