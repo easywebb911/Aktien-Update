@@ -1,0 +1,227 @@
+# Health-Check-Workflow Spec
+
+> **Status:** Spec-Dokument für die spätere Implementierungs-Session.
+> **Kein Code, keine Implementierung in diesem Dokument.**
+> Single-Source-of-Truth für die Anforderungen — alle Werte, Tier-
+> Zuordnungen und Schwellen hier sind verbindlich für den Code-Bau.
+
+## Zweck
+
+Frühwarnsystem für Tool-Funktion und Datenquellen-Verfügbarkeit.
+Hintergrund: der score_history-Pruning-Bug (PR #119) blieb **11 Tage
+unentdeckt**, obwohl Symptome im Git-Log sichtbar waren (-48/-112 Zeilen
+pro Daily-Run statt Anwachsen). Dieser Workflow soll solche stillen
+Ausfälle automatisch erkennen — zwei orthogonale Bug-Klassen:
+
+- **State-Invariants** (Outcome-Artefakte sind plausibel) — fangen
+  Bugs wie #119, wo Pipeline-Code grün lief aber das geschriebene
+  Artefakt sich falsch verhielt.
+- **Provider-Health** (externe Datenquellen funktionieren) — fangen
+  stille Datenausfälle (yfinance liefert leere History, Finviz blockt
+  403, FINRA-Auth expired) während der Daily-Run scheinbar durchläuft.
+
+Beide Klassen ergänzen Mock-Tests (Code-Logik) — siehe
+SESSION_HANDOVER „Drei Achsen von Tests/Checks".
+
+## Architektur
+
+- **Detection-Frequenz:** nach jedem Daily-Run (premarket + postclose)
+  UND nach jedem ki_agent-Tick (stündlich).
+- **Persistenz:** `health_check_log.jsonl` + `provider_health.jsonl`
+  im Repo-Root, 30-Tage-Cutoff (Pattern wie
+  `score_inflation_log.jsonl`: append-only JSONL,
+  `datetime.fromisoformat`-Cutoff, atomare `tmp + replace`-Writes
+  beim Pruning).
+- **Alarm-Modus:** **silent Logging** in der Detection-Phase. Pro
+  Run nur Schreiben, kein Push. **Täglicher Digest-Push um 08:00 UTC**
+  aggregiert die letzten 24 h.
+- **Positives Feedback:** Bei **0 Fails** über die letzten 24 h →
+  „alles grün"-Bestätigungs-Push. Damit ist die Push-Pipeline selbst
+  täglich auf Liveness geprüft — wenn dieser Push ausbleibt, weiß
+  Easy, dass ntfy oder der Digest-Workflow ausgefallen ist.
+
+## State-Invariants (6)
+
+| ID | Invariant | Severity | Konkret geprüft |
+|----|-----------|----------|-----------------|
+| **S1** | `score_history.json` hat neue Einträge für Top-10-Ticker | **crit** | Letzter Eintrag pro Top-10-Ticker hat heutiges Datum |
+| **S2** | `setup_scores` enthält ≥ 10 Tickers | **crit** | `len(app_data.setup_scores) ≥ 10` |
+| **S3** | Aktive Positionen haben `current_price != null` | **crit** | Für jeden Ticker in `positions`: `positions_out[t].current_price != null` |
+| **S4** | `backtest_history` wächst nur bei `postclose`, nicht bei `premarket` | warn | Vergleich Zeilenzahl Pre/Post-Run mit `run_phase` |
+| **S5** | `score_inflation_log.jsonl` bekommt pro Run ≥ 10 Zeilen | warn | `wc -l`-Diff nach Run |
+| **S6** | `monster_scores`: ≥ 3 Tickers > 0 | warn | `sum(1 for s in monster_scores.values() if s > 0) ≥ 3` |
+
+## Provider-Tiers
+
+### Tier-1 (crit, sofortiger Alarm bei Fail)
+
+- **Yahoo Screener** (primäre Ticker-Quelle)
+- **Finviz v161 / v111** (rel_volume, short_float, Sektoren)
+- **yfinance Batch** (Preise, RSI, EMA21, change_2d/3d)
+
+### Tier-2 (warn, erst bei wiederholtem Fail)
+
+- **FINRA Short-Volume Sums**
+- **Finnhub Earnings Calendar**
+- **Stockanalysis-Konsolidierung**
+- **EarningsWhispers**
+
+### Tier-3 (warn, erst bei wiederholtem Fail)
+
+- **StockTwits / UOA / News**
+- **EDGAR 13F-Filings**
+
+## Provider-Trigger-Bedingungen
+
+| Bedingung | Tier-1 (crit) | Tier-2/3 (warn) |
+|-----------|---------------|-----------------|
+| HTTP-Fehler 4xx/5xx | sofort | 3 in Folge |
+| Coverage < 80 % | sofort | < 50 % |
+| Werte alle NaN/null | sofort | 3 Runs in Folge |
+| Letzte Aktualisierung > 24 h | sofort | > 48 h |
+| Latenz > 30 s | nur Log | nur Log |
+
+## Persistenz-Schema
+
+### `provider_health.jsonl` (eine Zeile pro Provider pro Run)
+
+```json
+{
+  "run_ts":       "<UTC-ISO-8601>",
+  "run_phase":    "premarket|postclose|ki_agent_tick",
+  "provider":     "<name>",
+  "tier":         1,
+  "http_status":  200,
+  "latency_ms":   <int>,
+  "item_count":   <int>,
+  "coverage_pct": <float>|null,
+  "nan_pct":      <float>|null,
+  "error":        "<string>"|null
+}
+```
+
+### `health_check_log.jsonl` (eine Zeile pro Run mit Aggregat)
+
+```json
+{
+  "run_ts":    "<UTC-ISO-8601>",
+  "run_phase": "...",
+  "state_fails": [
+    {"id": "S1", "detail": "..."}
+  ],
+  "provider_fails": [
+    {
+      "provider":    "...",
+      "tier":        1,
+      "reason":      "...",
+      "consecutive": <int>
+    }
+  ]
+}
+```
+
+## Daily-Digest-Format
+
+Digest-Workflow läuft täglich 08:00 UTC, liest die letzten 24 h aus
+beiden `.jsonl`-Files, aggregiert nach Severity, schickt **einen**
+Push.
+
+### Bei Fails (≥ 1 crit oder ≥ 3 warn)
+
+ntfy-Priority `high`, Titel `⚠️ Health-Check-Digest`. Body-Format
+(verbindliche Reihenfolge):
+
+```
+⚠️ Health-Check-Digest <YYYY-MM-DD>
+🔴 <N crit> · 🟡 <N warn> · ✅ <N ok>
+
+State-Fails:
+  • S1: score_history stagniert (Top-10 ohne heutiges Datum)
+  • S3: AMC ohne current_price (5 Runs in Folge)
+
+Provider-Fails:
+  • Yahoo Screener (Tier 1): HTTP 503 sofort
+  • Finnhub (Tier 2): 3× Coverage 0%
+
+Letzter erfolgreicher Run: <ISO-Timestamp>
+```
+
+Felder weglassen, wenn leer (keine State-Fails → Sektion entfällt
+komplett, kein „—"-Platzhalter).
+
+### Bei 0 Fails
+
+ntfy-Priority `default`, Titel `✅ Health-Check OK`. Kurzer
+Bestätigungs-Push:
+
+```
+✅ Health-Check OK <YYYY-MM-DD>
+24h ohne Fails. <N> Runs geprüft (premarket + postclose + ki_agent).
+Letzter Run: <ISO-Timestamp>
+```
+
+Zweck: Push-Pipeline-Liveness-Check. Wenn dieser Push **ausbleibt**,
+weiß Easy ohne weiteres Hinschauen, dass entweder der Digest-Workflow
+nicht lief, ntfy down ist, oder Token-Probleme bestehen.
+
+## Implementierungs-Hinweise (für spätere Code-Session)
+
+- **Modul `scripts/health_check.py`** analog dem
+  `scripts/push_history.py`-Pattern. Zwei Helper:
+  `record_run(state_results, provider_results, run_phase)` und
+  `prune_logs(max_days=30)`.
+- **Hook-Points:**
+  - am Ende von `main()` in `generate_report.py` (Daily-Run, beide
+    Phasen)
+  - am Ende von `ki_agent.py` (stündlicher Tick)
+- **Digest-Workflow:** separater
+  `.github/workflows/health_check_digest.yml` mit Cron `0 8 * * *`.
+  Liest beide `.jsonl`, baut Push-Body, schickt via NTFY-Topic.
+- **Mock-Tests:** für jeden State-Invariant + jede Provider-Tier-
+  Klasse je ein Fail-Pfad + Pass-Pfad. Analog
+  `mock_test_score_inflation_log.py`-Stil (`scripts/mock_test_*.py`,
+  keine pytest-Abhängigkeit, plain assertions + Runner).
+- **Idempotenz:** Re-Run am selben Tag (z. B. zweimaliger
+  workflow_dispatch) darf nicht doppelt zählen. Empfohlen: pro
+  Provider-Tier-Klasse pro `run_phase` höchstens ein Eintrag pro
+  Stunden-Slot via `(run_ts hour-truncated, run_phase, provider)`-
+  Dedup-Key.
+- **Provider-Probes:** pro Provider ein leichter Probe-Call (z. B.
+  Yahoo Screener „Test-Ticker AAPL", FINRA „Test-Date 2025-01-02",
+  yfinance „SPY 1 day"). Probes laufen im selben Workflow wie die
+  echte Datenabfrage und nutzen die in-process Latency-Messung —
+  keine zusätzlichen HTTP-Calls.
+- **Provider-State-Persistenz für „N in Folge":** Counter in
+  `agent_state.json["provider_health_state"]` pro Provider, Reset
+  bei erfolgreichem Run.
+- **Fail-soft:** Ein Bug im Health-Check-Modul darf den Daily-Run
+  NICHT crashen. Try/except + WARNING-Log, kein Re-Raise.
+
+## Out-of-Scope für erste Iteration
+
+- **Trend-Erkennung** („Coverage sinkt seit 7 Tagen kontinuierlich")
+- **Self-Healing** (Auto-Retry bei transient errors)
+- **Provider-Failover** (Finviz down → alternative Quelle)
+- **Frontend-Anzeige** des Health-Status (kommt evtl. später als
+  Aufklapp-Sektion analog zum Push-Historien-UI)
+- **Multi-Channel-Eskalation** (E-Mail bei mehrfachen crit-Fails) —
+  erst nach Empirik, ob ntfy reicht
+
+## Pflege
+
+- Bei Schema-Änderung an einem der `.jsonl`-Files: Version-Marker im
+  Eintrag (`"schema_v": 1`) ergänzen + Migrations-Pfad im Reader
+  dokumentieren.
+- Neue Provider hinzufügen: Tier-Zuordnung in dieser Spec eintragen,
+  Probe-Logik in `health_check.py` ergänzen, Mock-Test ergänzen.
+- Schwellen-Änderungen (z. B. Coverage 80 % → 90 %): hier in der
+  Tabelle aktualisieren UND als Konstante in `config.py` mit Bezug
+  auf diese Spec-Sektion.
+
+## Verlinkung
+
+- **SESSION_HANDOVER Backlog-Punkt 15** verweist auf dieses Dokument
+  als Spec-Quelle.
+- **CLAUDE.md** sollte beim Code-Bau eine Sektion „Health-Check-
+  Workflow" bekommen, die diese Spec referenziert (kein Duplikat —
+  Single-Source-of-Truth hier in `docs/health_check_spec.md`).
