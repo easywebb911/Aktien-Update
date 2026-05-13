@@ -92,6 +92,56 @@ Exit-Code 0 = OK, 1 = Fail. Bei Fail werden alle Backtick-Positionen
 im Body relativ zum Body-Start geloggt (Zeilenkontext ±30 Zeichen),
 damit man den Übeltäter direkt findet.
 
+### `scripts/lint_jsformat_escape.py` — Unescapte `{...}` in f-Strings
+
+Fängt die zweite Klasse von f-String-Bugs, die der `${var}`-Check oben
+**nicht** abdeckt: einzelne `{name}` im JS-Code/-Kommentar/-Destructuring,
+die Python als Variable-Lookup interpretiert. Beispiele aus der Praxis:
+
+- PR #135 zweite Welle: `// ticker → {intervalId, scope, indicator}` im
+  JS-Kommentar → `NameError: 'intervalId' is not defined` (Fix: PR #138).
+- Generisch: `const x = {key: value}` oder `function({a, b}) {...}` —
+  alles Python-Format-Trigger ohne Escape.
+
+**Funktionsweise (AST-basiert):**
+
+1. Top-Level-Namen aus `generate_report.py` + `config.py` sammeln
+   (Imports, Konstanten, Funktionen, Klassen).
+2. Lokale Namen aus dem Funktions-Body (Assigns, For-Targets,
+   Comprehension-Bindings, Argumente).
+3. f-String-Bereich (`return f"""` bis `</html>"""`) scannen: für jedes
+   nicht-mit `{{` escapeden `{name}` prüfen, ob `name` im Scope ist.
+4. Wenn nicht: Bug — Var-Name, Pattern und Code-Kontext werden geloggt.
+
+**Welche Funktionen werden geprüft?** Aktuell nur `generate_html_v1`
+(das ist der einzige große f-String mit JS-Block). Weitere Targets in
+`_F_STRING_TARGETS` ergänzen (Tuple `(func_name, start_pat, end_pat)`).
+
+**Bug-Verweis:** `0b0a229` Daily-Run-Crash am 13.05.2026 Abend (PR #135
+introducierte das Pattern, PR #137 hat nur die legitime Variable
+gefixt, PR #138 fängt die JS-Kommentar-Klasse).
+
+**Workflow-Integration:** Step `Lint JS-format escape` in
+`.github/workflows/daily-squeeze-report.yml` läuft direkt nach
+`Lint chat template`. Ein-Befehl-Aufruf:
+
+```bash
+python scripts/lint_jsformat_escape.py
+```
+
+Exit-Code 0 = OK, 1 = Fail. Bei Fail werden Funktion, Zeilennummer,
+Variable und Pattern geloggt.
+
+**Verhältnis zum `${var}`-Check oben:**
+
+| Pattern | Beispiel | Linter |
+|---|---|---|
+| `${var}` in JS-Template-Literal | `` `Hi ${{name}}` `` | bestehende grep-Pflichtprüfung |
+| `{var}` in JS-Code/-Kommentar | `// → {intervalId, scope}` | `lint_jsformat_escape.py` (neu) |
+
+Beide Linter sind komplementär — das grep-Pattern fängt Dollar-Pattern,
+der AST-Linter fängt blanke Klammern.
+
 ---
 
 ## Allgemeine Architektur
