@@ -1864,6 +1864,136 @@ Hinweise im Code.
 
 ---
 
+## Live-Quote-Polling (Cloudflare-Worker-basiert)
+
+Watchlist-Drawer und expandierte Top-10-Karten pollen Preis + Tages-
+gewinn live alle **15 Sekunden** aus yfinance. Datenpfad:
+
+```
+Browser  ──GET QUOTE_PROXY_URL?ticker=DMRC──▶  Cloudflare Worker  ──▶  Yahoo v8 chart
+   ▲                                                  │
+   └────── JSON {ticker, price, change, …} mit CORS ──┘
+                  + Edge-Cache 10s
+```
+
+**v8 statt v7:** Yahoo verlangt seit Mai 2026 für den v7-Quote-
+Endpoint einen Crumb-Auth-Token (HTTP 401 ohne). v8-Chart ist
+öffentlich, liefert `meta.regularMarketPrice` + `meta.chartPreviousClose`
+— daraus rechnet der Worker `change_abs` und `change` (Tages-Prozent).
+
+**Single-Ticker pro Request:** v8 ist nicht batch-fähig. Mehrere
+Tickers parallel = Frontend macht `n` separate Fetches in `Promise.all`
+(typisch 1 Fetch pro offenem Drawer / aufgeklappter Top-10-Karte).
+
+### Setup (User-Action, einmalig)
+
+1. `cloudflare/quote-proxy/README.md` durchlesen
+2. `wrangler login` + `wrangler deploy` aus `cloudflare/quote-proxy/`
+3. Worker-URL kopieren (z.B. `https://quote-proxy.<account>.workers.dev`)
+4. Repo-Secret `QUOTE_PROXY_URL` setzen
+5. Nächster Daily-Run injiziert die URL als JS-Konstante in `index.html`
+
+Bei leerem `QUOTE_PROXY_URL` ist `_startQuotePoll` no-op — Frontend
+bleibt funktional, eingebrannte Werte bleiben sichtbar (kein UI-Bruch).
+
+### URL-Sanitize
+
+`_qp_raw` aus ENV wird gegen
+`^https://[A-Za-z0-9.\-]+(/[A-Za-z0-9._\-/]*)?$` validiert. Pfad und
+Subdomain erlaubt, aber **kein Query/Anker** (Polling hängt
+`?symbols=…` selbst an). Max 256 Zeichen.
+
+### DOM-Patches
+
+`_quotePatchScope(scope, ticker, price, change)` überschreibt
+(Argument `change` = Tages-Prozent, kommt 1:1 aus dem Worker-Feld
+`change`):
+
+- **Preis**: alle `.price-tag` im scope (Top-10-Header + Drawer-Header)
+- **Momentum-Box**: `.metric-box` mit `.m-lbl=Momentum` (`.m-val`-Inhalt
+  ersetzen, `change_5d`-Sub-Span konservieren — identische Logik zu
+  `_patchWlMomentumLive`)
+
+Andere Felder (Score, RVOL, DTC, Float, SI-Trend) bleiben eingebrannt
+— Polling deckt nur die zwei Echtzeit-relevanten Felder ab.
+
+### Lifecycle
+
+| Konsument | Open-Trigger | Close-Trigger |
+|---|---|---|
+| **Watchlist-Drawer** | `wlExpand(ticker, btn)` mit `opening=true` → `_startQuotePoll(body, ticker)` | `wlExpand` mit `opening=false` → `_stopQuotePoll(ticker)` |
+| **Top-10-Karte** | `toggleDetails(id)` mit neuem `open=true` → `_startQuotePoll(card, ticker)` (Live-Dot wird lazy in `.score-block` injiziert beim ersten Open) | `toggleDetails(id)` mit `open=false` → `_stopQuotePoll(ticker)` |
+
+`_quotePollers: Map<ticker, {intervalId, scope}>` — pro Ticker genau
+ein Eintrag. Doppel-Open für denselben Ticker stoppt zuerst den
+bestehenden Poller, dann startet einen neuen (verhindert
+verwaiste Intervalle).
+
+### visibilitychange-Handling
+
+Globaler `visibilitychange`-Listener (lazy via
+`_ensureQuoteVisibilityHook`):
+
+- Tab wird **hidden** → alle aktiven Intervalle gestoppt, Indikatoren
+  auf `paused` (gedimmtes Grün).
+- Tab wird wieder **visible** → sofortiger Fetch + neues Intervall pro
+  Eintrag in `_quotePollers`.
+
+Das deckt Tab-Wechsel, Browser-Background, iPhone-Lock-Screen ab —
+kein Hintergrund-Verkehr im inaktiven Tab.
+
+### Live-Indikator (`.quote-live-dot`)
+
+8-px-runder Dot, drei Zustände (CSS in `templates/head.jinja`):
+
+| Klasse | Farbe | Bedeutung |
+|---|---|---|
+| (default, kein Modifier) | `#475569` | Polling noch nicht gestartet / inaktiv |
+| `.quote-live-on` | `#22c55e` + Pulse-Animation 2s | Polling aktiv, letzter Fetch erfolgreich |
+| `.quote-live-stale` | `#94a3b8` static | Worker/Yahoo nicht erreichbar — eingebrannte Werte stehen sichtbar |
+| `.quote-live-paused` | `#22c55e` opacity 0.4 | Tab inaktiv, Polling pausiert |
+
+Bei Fetch-Fehler **kein Toast** (Spec — Push-Müll vermeiden), nur
+Indikator-Update.
+
+### Worker-Code
+
+Lebt in `cloudflare/quote-proxy/`. Single-Source-of-Truth für die
+Yahoo-Backend-Mapping-Logik:
+
+- `worker.js`: Fetch-Handler, CORS-Allow-List (default
+  `https://easywebb911.github.io`), Edge-Cache 10s, max 10 Symbole
+  pro Request.
+- `wrangler.toml`: minimal-config; account_id auto via `wrangler
+  login`, Custom-Domain optional.
+- `README.md`: Deploy-Schritte, Free-Tier-Quota-Check, Fail-Modes.
+
+### Quoten-Rechnung
+
+Cloudflare-Workers-Free: 100 000 Req/Tag.
+- 1 Drawer × 4 Polls/min × 60 min × 24 h = **5 760 Req/Tag**.
+- 4 parallele Drawer × 24 h = **23 040 Req/Tag** — entspannt im Limit.
+- Yahoo selbst: Edge-Cache 10s reduziert Backend-Load drastisch
+  (Symbol-Sets sind sortiert+dedupliziert für höhere Hit-Rate).
+
+### Pflege
+
+- Bei Schema-Änderung der Worker-Response (`{ticker, price, change,
+  change_abs, volume, market_state, prev_close, ts}`): gleichzeitig
+  `_quoteFetchOnce` (Browser-Reader) und `worker.js` (Server-Mapper)
+  anpassen. Tests in `scripts/mock_test_quote_polling.py` decken
+  beide Seiten ab.
+- Bei Yahoo-Endpoint-Break (z.B. `chart.result[0].meta` weg): Worker
+  antwortet `HTTP 502 yahoo_no_meta`, Frontend zeigt
+  `.quote-live-stale` — kein UI-Crash. Diagnose via `wrangler tail`.
+- Bei zusätzlichen Live-Feldern (z.B. RSI live): NICHT in dieser
+  Architektur — RSI braucht historische Bars, nicht echtzeit-snap.
+  Eigener Pfad notwendig.
+- Score-Methodik-Sync ist **nicht betroffen** — reines Frontend-
+  Anzeige-Feature, keine Score-/Filter-Logik berührt.
+
+---
+
 ## Session-Handover-Regel
 
 Wenn der User die Sitzung mit „Gute Nacht" (oder Varianten wie „Schlaf gut",

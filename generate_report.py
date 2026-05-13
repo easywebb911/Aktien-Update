@@ -5480,6 +5480,17 @@ def _build_context(stocks: list[dict], report_date: str,
     _gid_raw = os.environ.get("GIST_ID", "").strip()
     gist_id_js = re.sub(r"[^A-Za-z0-9]", "", _gid_raw)[:64]
 
+    # QUOTE_PROXY_URL-Injection: Cloudflare-Worker-Endpoint für Live-
+    # Quote-Polling im Watchlist-Drawer / Top-10-Detail-Bereich. Leer →
+    # _startQuotePoll ist no-op, eingebrannte Werte bleiben sichtbar.
+    # Sanitize: nur https://-Schema, host als a-zA-Z0-9.- + Pfad ohne
+    # Query/Anker (Polling hängt ?symbols=… selbst an).
+    _qp_raw = os.environ.get("QUOTE_PROXY_URL", "").strip().rstrip("/")
+    quote_proxy_url_js = ""
+    if re.match(r"^https://[A-Za-z0-9.\-]+(/[A-Za-z0-9._\-/]*)?$",
+                _qp_raw or ""):
+        quote_proxy_url_js = _qp_raw[:256]
+
     # Full snapshots für Watchlist-Detail-Karten (gemeinsamer Builder, damit
     # sowohl in-page WL_TOP10 als auch app_data.watchlist_cards identisch
     # befüllt sind).
@@ -7099,6 +7110,37 @@ function toggleDetails(id){{
   btn.classList.toggle('is-open', open);
   label.textContent = open ? ' Details ausblenden' : ' Details anzeigen';
   btn.setAttribute('aria-expanded', open);
+  // Live-Quote-Polling für Top-10-Karten: hängt am toggleDetails-State
+  // (siehe ``Live-Quote-Polling``-Sektion in CLAUDE.md). Open → start,
+  // Close → stop. Card-Wrapper ``#c<id>`` enthält data-ticker, das ist
+  // das Polling-Subjekt. Live-Dot wird beim ersten Open lazy injiziert.
+  try {{
+    const card = document.getElementById('c' + id);
+    if (!card) return;
+    const ticker = card.dataset.ticker;
+    if (!ticker) return;
+    if (open) {{
+      // Live-Dot in den Card-Header injizieren, falls noch nicht da.
+      // Konsumenten von _quoteSetIndicator suchen ``.quote-live-dot``
+      // im scope — der Selektor erfordert das DOM-Element.
+      if (QUOTE_PROXY_URL && !card.querySelector('.quote-live-dot')) {{
+        const target = card.querySelector('.score-block') || card.querySelector('.card-top');
+        if (target) {{
+          const dot = document.createElement('span');
+          dot.className = 'quote-live-dot';
+          dot.title = 'Live-Quote-Status';
+          target.appendChild(dot);
+        }}
+      }}
+      if (typeof window._startQuotePoll === 'function') {{
+        window._startQuotePoll(card, ticker);
+      }}
+    }} else {{
+      if (typeof window._stopQuotePoll === 'function') {{
+        window._stopQuotePoll(ticker);
+      }}
+    }}
+  }} catch (_) {{}}
 }}
 // ── News toggle ───────────────────────────────────────────────────────────
 function toggleNews(id){{
@@ -8130,6 +8172,143 @@ const TOK_LEGACY_KEY = 'ghpat_squeeze';   // identisch zu TOK_KEY — die
 // Leerer String → kein Gist konfiguriert → JS-Position-Panel zeigt Hinweis.
 const GIST_ID     = '{gist_id_js}';
 const GIST_FILE   = 'squeeze_data.json';
+// QUOTE_PROXY_URL: Cloudflare-Worker-Endpoint für Live-Quote-Polling.
+// Leerer String → _startQuotePoll ist no-op (eingebrannte Werte bleiben).
+// Setup: cloudflare/quote-proxy/README.md.
+const QUOTE_PROXY_URL = '{quote_proxy_url_js}';
+// Polling-Intervall in ms. 15 s ist die Spec-Vorgabe; Cloudflare-Worker
+// cached 10 s edge-side, Yahoo-Backend bekommt also max ~6 Req/min pro
+// Symbol-Set über alle aktiven Browser zusammen.
+const QUOTE_POLL_INTERVAL_MS = 15000;
+// ─────────────────────────────────────────────────────────────────────────
+
+// ── Live-Quote-Polling (Cloudflare-Worker-basiert) ──────────────────────
+// Pollt yfinance via QUOTE_PROXY_URL in einem 15-s-Intervall pro aktivem
+// Drawer (Watchlist) bzw. expandierter Top-10-Karte. Jeder Konsument hat
+// einen eigenen Interval-Handle in `_quotePollers` (Map: ticker → state).
+// visibilitychange pausiert/resumed alle aktiven Polls — kein Hintergrund-
+// Verkehr im inaktiven Tab. Bei Fetch-Fehler bleiben die eingebrannten
+// Werte stehen, der Live-Indikator wird grau (kein Toast — laut Spec).
+//
+// DOM-Patch:
+// - Preis: `.price-tag` (im card-top-Header)
+// - Momentum-Box: gleiches Pattern wie `_patchWlMomentumLive`
+// - Live-Dot: `.quote-live-dot` (vom Konsumenten ins HTML eingehängt)
+const _quotePollers = new Map();   // ticker → {intervalId, scope, indicator}
+let   _quotePollerVisHook = false; // visibilitychange-Listener-Guard
+
+function _quoteSetIndicator(scope, state) {{
+  // state: 'live' (grün), 'stale' (grau), 'paused' (gedimmt grün).
+  if (!scope) return;
+  scope.querySelectorAll('.quote-live-dot').forEach(dot => {{
+    dot.classList.remove('quote-live-on', 'quote-live-stale', 'quote-live-paused');
+    if (state === 'live')    dot.classList.add('quote-live-on');
+    if (state === 'stale')   dot.classList.add('quote-live-stale');
+    if (state === 'paused')  dot.classList.add('quote-live-paused');
+    dot.title = state === 'live'   ? 'Live (alle 15 s)' :
+                state === 'paused' ? 'Pausiert (Tab inaktiv)' :
+                                     'Live-Quelle nicht erreichbar';
+  }});
+}}
+
+function _quotePatchScope(scope, ticker, price, changePct) {{
+  // Preis-Tag: kann Top-10-Header-`.price-tag` oder Watchlist-Drawer-Header sein.
+  if (typeof price === 'number' && isFinite(price)) {{
+    scope.querySelectorAll('.price-tag').forEach(el => {{
+      el.textContent = '$' + price.toFixed(2);
+    }});
+  }}
+  // Momentum-Box: identische Logik zu _patchWlMomentumLive (nur dass wir
+  // hier den Live-Wert einsetzen, nicht den eingebrannten).
+  if (typeof changePct === 'number' && isFinite(changePct)) {{
+    const sign   = changePct >= 0 ? '+' : '';
+    const newVal = sign + changePct.toFixed(1) + '%';
+    scope.querySelectorAll('.metric-box').forEach(box => {{
+      const lbl = box.querySelector('.m-lbl');
+      if (!lbl || lbl.textContent.trim() !== 'Momentum') return;
+      const val = box.querySelector('.m-val');
+      if (!val) return;
+      const subSpan = val.querySelector('span');
+      val.textContent = newVal;
+      if (subSpan) {{
+        val.appendChild(document.createElement('br'));
+        val.appendChild(subSpan);
+      }}
+    }});
+  }}
+}}
+
+async function _quoteFetchOnce(scope, ticker) {{
+  if (!QUOTE_PROXY_URL || !ticker) return;
+  try {{
+    // v8-Chart-Endpoint ist single-ticker (siehe cloudflare/quote-proxy/README.md).
+    // Response-Schema: {{ticker, price, change, change_abs, volume,
+    // market_state, prev_close, ts}}. `change` ist Tages-Prozent.
+    const url = `${{QUOTE_PROXY_URL}}/?ticker=${{encodeURIComponent(ticker)}}`;
+    const res = await fetch(url, {{cache: 'no-store'}});
+    if (!res.ok) {{ _quoteSetIndicator(scope, 'stale'); return; }}
+    const q = await res.json();
+    if (!q || q.error || q.ticker !== ticker) {{
+      _quoteSetIndicator(scope, 'stale');
+      return;
+    }}
+    _quotePatchScope(scope, ticker, q.price, q.change);
+    _quoteSetIndicator(scope, 'live');
+  }} catch (_) {{
+    _quoteSetIndicator(scope, 'stale');
+  }}
+}}
+
+function _ensureQuoteVisibilityHook() {{
+  if (_quotePollerVisHook) return;
+  _quotePollerVisHook = true;
+  document.addEventListener('visibilitychange', () => {{
+    const hidden = document.visibilityState === 'hidden';
+    _quotePollers.forEach((st, ticker) => {{
+      if (hidden) {{
+        if (st.intervalId) {{ clearInterval(st.intervalId); st.intervalId = null; }}
+        _quoteSetIndicator(st.scope, 'paused');
+      }} else if (!st.intervalId) {{
+        // Resume: sofort einen Fetch + neues Intervall.
+        _quoteFetchOnce(st.scope, ticker);
+        st.intervalId = setInterval(
+          () => _quoteFetchOnce(st.scope, ticker),
+          QUOTE_POLL_INTERVAL_MS);
+      }}
+    }});
+  }});
+}}
+
+function _startQuotePoll(scope, ticker) {{
+  if (!QUOTE_PROXY_URL || !scope || !ticker) return;
+  // Bestehenden Poller für diesen Ticker stoppen — verhindert doppelte
+  // Intervalle wenn dieselbe Karte zweimal expanded/collapsed wird.
+  _stopQuotePoll(ticker);
+  _ensureQuoteVisibilityHook();
+  // Sofort initialer Fetch (User wartet nicht 15 s auf das erste Update).
+  _quoteFetchOnce(scope, ticker);
+  if (document.visibilityState === 'hidden') {{
+    // Tab inaktiv: kein Intervall starten — visibilitychange übernimmt.
+    _quotePollers.set(ticker, {{intervalId: null, scope, ticker}});
+    _quoteSetIndicator(scope, 'paused');
+    return;
+  }}
+  const intervalId = setInterval(
+    () => _quoteFetchOnce(scope, ticker),
+    QUOTE_POLL_INTERVAL_MS);
+  _quotePollers.set(ticker, {{intervalId, scope, ticker}});
+}}
+
+function _stopQuotePoll(ticker) {{
+  const st = _quotePollers.get(ticker);
+  if (!st) return;
+  if (st.intervalId) clearInterval(st.intervalId);
+  _quotePollers.delete(ticker);
+}}
+// Auf window exposen — wlExpand (in der WL-IIFE) und toggleDetails
+// (top-level in einem anderen Block) müssen aufrufen können.
+window._startQuotePoll = _startQuotePoll;
+window._stopQuotePoll  = _stopQuotePoll;
 // ─────────────────────────────────────────────────────────────────────────
 
 // ── Token-Krypto (WebCrypto: PBKDF2-SHA256 600k → AES-GCM-256) ──────────
@@ -9627,10 +9806,15 @@ function _fmtGerman(d) {{
     // davor \u2014 dadurch bleibt der Drawer-State schlie\u00dfbar, auch wenn
     // die wl-card-header per CSS in expanded Mode versteckt ist.
     if (d && d.card_html) {{
+      // Live-Quote-Dot wird neben dem Schlie\u00dfen-Button platziert; der
+      // Polling-Lifecycle wird in wlExpand getriggert (Open \u2192 start,
+      // Close \u2192 stop). Bei leerer QUOTE_PROXY_URL bleibt der Dot
+      // unsichtbar (CSS .quote-live-dot:empty oder fehlende active-Klasse).
       const closeBar = `<div class="wl-exp-close-bar">
         <button class="wl-close-btn-inline"
                 onclick="wlExpand('${{ticker}}', document.getElementById('wlb-${{ticker}}'))"
                 title="Einklappen">\u25b2 Schlie\xdfen</button>
+        ${{QUOTE_PROXY_URL ? '<span class="quote-live-dot" title="Live-Quote-Status"></span>' : ''}}
       </div>`;
       const posPanel  = buildPositionPanel(ticker, d.price);
       const posStatus = buildPositionStatus(ticker);
@@ -10093,7 +10277,14 @@ function _fmtGerman(d) {{
       body.hidden = !opening;
       btn.textContent = opening ? '\u25b4' : '\u25be';
       if (card) card.classList.toggle('wl-card--expanded', opening);
-      if (!opening) return;
+      if (!opening) {{
+        // Drawer schlie\u00dft \u2192 Live-Quote-Polling stoppen, sonst l\u00e4uft das
+        // setInterval im Hintergrund weiter und verbrennt Worker-Quota.
+        if (typeof window._stopQuotePoll === 'function') {{
+          window._stopQuotePoll(ticker);
+        }}
+        return;
+      }}
       // Stale-Data-Fix Phase 1 Stufe 1 (12.05.2026): keine dataset.loaded-
       // Cache-Gate mehr — bei jedem Open läuft buildWlDetails(ticker, d)
       // neu und liest den aktuellen Stand von WL_TOP10 / _WL_CARDS.
@@ -10124,6 +10315,11 @@ function _fmtGerman(d) {{
       body.querySelectorAll('.spark-wrap').forEach(w => {{
         if (typeof window.drawSparkline === 'function') window.drawSparkline(w);
       }});
+      // Live-Quote-Polling starten — initialer Fetch + 15-s-Intervall.
+      // No-op bei leerer QUOTE_PROXY_URL (Worker nicht konfiguriert).
+      if (typeof window._startQuotePoll === 'function') {{
+        window._startQuotePoll(body, ticker);
+      }}
     }} catch(e) {{
       console.error('wlExpand Fehler:', e);
     }}

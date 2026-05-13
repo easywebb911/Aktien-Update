@@ -1,0 +1,16 @@
+name = "quote-proxy"
+main = "worker.js"
+compatibility_date = "2025-01-01"
+
+# Account-ID nicht hartcodiert — wrangler liest sie aus dem aktiven
+# `wrangler login`-State. Bei mehreren Accounts manuell setzen:
+#   account_id = "<your-account-id>"
+
+# Default workers.dev-Subdomain. Custom-Domain via Cloudflare-Dashboard
+# oder per `routes`-Block:
+#   routes = [{ pattern = "quote.example.com/*", zone_name = "example.com" }]
+
+# Worker-Logs zur Diagnose im Dashboard aktivieren.
+[observability]
+enabled = true
+head_sampling_rate = 1.0
