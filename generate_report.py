@@ -10049,6 +10049,41 @@ function _fmtGerman(d) {{
   // raw-Score aus der History).
   window.wlRender = wlRender;
 
+  // _patchWlMomentumLive — überschreibt die Momentum-Box im expandierten
+  // Watchlist-Drawer mit dem aktuellen ``_WL_CARDS[ticker].change``-Wert.
+  // Hintergrund: ``buildWlDetails`` Variante A nutzt das server-seitig
+  // vorgerenderte ``card_html``, in dem ``change`` zum Daily-Run-Zeitpunkt
+  // eingebrannt wurde. Zwischen Daily-Runs (Pre-Open vs. Mid-Day vs. Post-
+  // Close) kann der Tagesgewinn um Größenordnungen abweichen — DMRC am
+  // 13.05.2026: card_html aus 12:05-UTC-Premarket-Run zeigte +0,8 %, real
+  // war's mid-day +12,9 %. Live-Sync repariert das post-insert für genau
+  // dieses Feld; die übrigen Werte (Score, RVOL, DTC, …) bleiben
+  // eingebrannt (Pflege-Aufwand sonst zu hoch).
+  // Der 5T-Sub-Span (``change_5d``) im selben m-val wird konserviert.
+  function _patchWlMomentumLive(scope, ticker) {{
+    try {{
+      const wlc = (typeof window !== 'undefined' && window._WL_CARDS)
+        ? window._WL_CARDS[ticker] : null;
+      if (!wlc || wlc.change == null || !isFinite(+wlc.change)) return;
+      const change = +wlc.change;
+      const sign   = change >= 0 ? '+' : '';
+      const newVal = sign + change.toFixed(1) + '%';
+      scope.querySelectorAll('.metric-box').forEach(box => {{
+        const lbl = box.querySelector('.m-lbl');
+        if (!lbl || lbl.textContent.trim() !== 'Momentum') return;
+        const val = box.querySelector('.m-val');
+        if (!val) return;
+        // Sub-Span (5T-Detail) erhalten — sucht das letzte <span> innerhalb m-val.
+        const subSpan = val.querySelector('span');
+        val.textContent = newVal;
+        if (subSpan) {{
+          val.appendChild(document.createElement('br'));
+          val.appendChild(subSpan);
+        }}
+      }});
+    }} catch(_) {{}}
+  }}
+
   window.wlExpand = function(ticker, btn) {{
     try {{
       const body = document.getElementById('wld-' + ticker);
@@ -10072,6 +10107,9 @@ function _fmtGerman(d) {{
       const d = WL_TOP10[ticker]
             || (window._WL_CARDS && window._WL_CARDS[ticker]);
       body.innerHTML = d ? buildWlDetails(ticker, d) : buildWlSparkOnly(ticker, WL_HIST[ticker]);
+      // Live-Sync: Momentum-Box aus eingebranntem card_html mit aktuellem
+      // _WL_CARDS[ticker].change überschreiben (siehe _patchWlMomentumLive).
+      _patchWlMomentumLive(body, ticker);
       // ``data-loaded`` bleibt als „Drawer ist offen"-Marker erhalten —
       // wird vom ki_agent-Trigger-Pfad (Stufe 2a) per
       // ``[data-loaded]``-Selektor invalidiert. Mit Stufe 1 hat das
