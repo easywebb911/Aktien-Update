@@ -18,13 +18,17 @@ on:
   workflow_dispatch:   # Manueller Start jederzeit möglich
     inputs:
       run_phase:
-        description: 'Run-Phase: premarket (Vorschau) oder postclose (EOD-Wahrheit)'
-        required: false
-        default: 'postclose'
+        description: >-
+          WICHTIG: 'premarket' während US-Session (13:30–20:00 UTC,
+          Vorschau ohne Backtest-Append). 'postclose' NUR nach US-Close
+          (≥20:00 UTC, EOD-konsolidiert, schreibt Backtest-Eintrag).
+          Plausibilitäts-Override aktiv — falscher Input wird mit
+          Warnung im Run-Log korrigiert (siehe scripts/resolve_run_phase.py).
+        required: true
         type: choice
         options:
-          - postclose
           - premarket
+          - postclose
 
 permissions:
   contents: write   # Benötigt um index.html in main zu commiten
@@ -56,6 +60,21 @@ jobs:
       - name: Lint chat template
         run: python scripts/lint_chat_template.py
 
+      - name: Resolve run phase
+        # Single-Source-of-Truth: scripts/resolve_run_phase.py löst den
+        # RUN_PHASE-Wert auf. Schedule-Trigger nutzen festen Cron-Mapping
+        # (0 10 → premarket, 0 21 → postclose). workflow_dispatch validiert
+        # den User-Input gegen die aktuelle UTC-Zeit und forciert ein
+        # Override, wenn Input + Tageszeit inkonsistent sind (z.B. iPhone-
+        # Trigger mit `postclose` während laufender US-Session).
+        # Schreibt RUN_PHASE in $GITHUB_ENV, sodass der nächste Step
+        # ${{ env.RUN_PHASE }} liest.
+        env:
+          EVENT_NAME:     ${{ github.event_name }}
+          EVENT_SCHEDULE: ${{ github.event.schedule }}
+          USER_INPUT:     ${{ github.event.inputs.run_phase }}
+        run: python scripts/resolve_run_phase.py
+
       - name: Pull squeeze_data from Gist
         env:
           GIST_ID:        ${{ secrets.GIST_ID }}
@@ -68,15 +87,9 @@ jobs:
           NTFY_TOPIC:       ${{ secrets.NTFY_TOPIC }}
           EDGAR_USER_AGENT: ${{ secrets.EDGAR_USER_AGENT }}
           GIST_ID:          ${{ secrets.GIST_ID }}
-          # Zwei-Run-Architektur: RUN_PHASE wird per Workflow-Trigger
-          # gesetzt. Cron `0 21 * * 1-5` → postclose; `0 10 * * 1-5` →
-          # premarket; workflow_dispatch nimmt den User-Input (Default
-          # postclose). Fallback (kein Match) → premarket (sicher, weil
-          # Backtest-History dann nicht befüllt wird und Score-Inflation
-          # nicht in die Historie verschleppt wird).
-          RUN_PHASE: >-
-            ${{ github.event.inputs.run_phase ||
-                (github.event.schedule == '0 21 * * 1-5' && 'postclose' || 'premarket') }}
+          # RUN_PHASE wird vom vorherigen Step `Resolve run phase` in
+          # $GITHUB_ENV geschrieben — Resolution-Logik siehe
+          # scripts/resolve_run_phase.py.
         run: python generate_report.py
 
       - name: Commit and publish report

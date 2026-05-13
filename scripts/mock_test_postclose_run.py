@@ -140,15 +140,18 @@ def test_workflow_yaml_has_two_crons():
 def test_workflow_yaml_sets_run_phase_env():
     path = ROOT / ".github" / "workflows" / "daily-squeeze-report.yml"
     content = path.read_text(encoding="utf-8")
-    # ENV-Block für RUN_PHASE existiert
-    assert "RUN_PHASE:" in content, "RUN_PHASE-ENV im Generate-Step fehlt"
+    # ENV-Block für RUN_PHASE existiert (jetzt aus $GITHUB_ENV gelesen,
+    # geschrieben vom `Resolve run phase`-Step)
+    assert "RUN_PHASE" in content, "RUN_PHASE-Referenz im Workflow fehlt"
+    assert "resolve_run_phase.py" in content, (
+        "Resolve-Step (scripts/resolve_run_phase.py) fehlt")
     # workflow_dispatch-Input für run_phase definiert
     assert "run_phase:" in content, "workflow_dispatch.inputs.run_phase fehlt"
-    assert "default: 'postclose'" in content, (
-        "workflow_dispatch defaultet nicht auf postclose")
-    # Mapping: Cron-Schedule 21:00 → postclose
-    assert "'0 21 * * 1-5' && 'postclose'" in content, (
-        "21:00-Cron → postclose Mapping fehlt")
+    # Default raus, required: true (UX-Falle entschärft)
+    assert "required: true" in content, (
+        "workflow_dispatch.inputs.run_phase muss required: true sein")
+    assert "default: 'postclose'" not in content, (
+        "Default 'postclose' wurde nicht entfernt — UX-Falle bleibt offen")
 
 
 def test_workflow_yaml_parseable():
