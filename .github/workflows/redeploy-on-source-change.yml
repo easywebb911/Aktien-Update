@@ -41,7 +41,27 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
+          # daily-squeeze-report.yml verlangt seit PR #132 einen
+          # workflow_dispatch.inputs.run_phase (required: true). Ohne
+          # antwortet die GitHub-API HTTP 422 und der gesamte Auto-
+          # Redeploy schlägt fehl. Phase clientseitig aus aktueller
+          # UTC-Zeit bestimmen — analog zu scripts/resolve_run_phase.py
+          # und der client-side-Logik in generate_report.py (PR #133):
+          #   US-Session [13:30, 20:00) UTC → premarket
+          #   sonst                          → postclose
+          # Der Plausibilitäts-Override (resolve_run_phase.py) im
+          # Daily-Run-Workflow korrigiert ohnehin Inkonsistenzen, der
+          # Wert hier ist also nur ein „bester Vorschlag" und keine
+          # harte Anforderung.
+          NOW_HHMM=$(date -u +%H%M)
+          if [ "$NOW_HHMM" -ge 1330 ] && [ "$NOW_HHMM" -lt 2000 ]; then
+            RUN_PHASE="premarket"
+          else
+            RUN_PHASE="postclose"
+          fi
+          echo "UTC-Zeit ${NOW_HHMM} → run_phase=${RUN_PHASE}"
           gh workflow run daily-squeeze-report.yml \
             --repo "${{ github.repository }}" \
-            --ref main
-          echo "Daily-Squeeze-Report dispatched — index.html wird ~5 min."
+            --ref main \
+            -f run_phase="${RUN_PHASE}"
+          echo "Daily-Squeeze-Report dispatched (run_phase=${RUN_PHASE}) — index.html wird ~5 min."
