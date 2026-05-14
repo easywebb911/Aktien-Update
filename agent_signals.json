@@ -1,11 +1,11 @@
 {
-  "updated": "2026-05-14T01:56:00.568728+02:00",
+  "updated": "2026-05-14T04:56:07.506142+02:00",
   "run_info": {
     "tickers_checked": 10,
     "signals_active": 7,
     "alerts_sent": 0,
-    "elapsed_s": 15.7,
-    "market_phase": "After-Hours"
+    "elapsed_s": 16.4,
+    "market_phase": "Geschlossen"
   },
   "signals": {
     "CCCC": {
@@ -112,9 +112,9 @@
       "uoa_cp_ratio": 9.411764705882353
     },
     "RR": {
-      "score": 82,
+      "score": 79,
       "confidence": 70,
-      "drivers": "Earnings in 1 Tagen (14.05.2026) + Volumen 1.7× + Spanne 19.1% + News: partnership + Earnings in 1d + UOA Call/Put 6.8×",
+      "drivers": "Earnings in 1 Tagen (14.05.2026) + Volumen 1.7× + Spanne 19.1% + News-KI 12/30: Partnership announcements lack short-squeeze catalysts; no extreme valuation metrics, debt stress, or major insider acti + Earnings in 1d + UOA Call/Put 6.8×",
       "price": 2.82,
       "chg_pct": -0.0,
       "rvol": 1.66,
