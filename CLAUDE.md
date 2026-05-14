@@ -142,6 +142,31 @@ Variable und Pattern geloggt.
 Beide Linter sind komplementär — das grep-Pattern fängt Dollar-Pattern,
 der AST-Linter fängt blanke Klammern.
 
+### `scripts/lint_score_confidence_isolation.py` — Konfidenz darf nicht in Score-Berechnung
+
+Stellt sicher, dass die rein anzeigenden Score-Konfidenz-Stufen
+(`_SCORE_CONFIDENCE` / `score_confidence` / `compute_score_confidence`)
+**niemals** in Score- oder Conviction-Berechnungs-Funktionen gelesen
+werden. Würde das passieren, würde sich das Tool selbst belohnen
+(„hohe Konfidenz → höhere Conviction → höhere Konfidenz") und die
+externe Methodik-Bewertung wäre wertlos.
+
+**Allow-Liste** kritischer Berechnungs-Funktionen in
+`_FORBIDDEN_FUNCS` (Stand: 15 Funktionen — `compute_conviction_score`,
+`apply_conviction_scores`, `compute_earliness_pts`,
+`_earliness_pts_v1/v2`, `score`, `score_bonus`, `apply_monster_score`,
+`apply_agent_boost`, `apply_late_runner_penalty`,
+`apply_score_smoothing`, `_compute_sub_scores`, `_drivers_breakdown`,
+`compute_exit_score`, `process_exit_signals`).
+
+**Workflow-Integration:** Step `Lint score-confidence isolation` in
+`.github/workflows/daily-squeeze-report.yml`, direkt nach
+`Lint JS-format escape`. Exit-Code 0 = OK, 1 = Fail. Bei Fail wird
+Funktion + Zeile + Code-Match geloggt.
+
+Bei neuen Score-Berechnungs-Pfaden die Allow-Liste in
+`_FORBIDDEN_FUNCS` ergänzen.
+
 ---
 
 ## Allgemeine Architektur
@@ -1939,6 +1964,84 @@ Vollständig in der Boni-/Malus-Box gelistet (Stand 10.05.2026):
 - **Late-Runner-Penalty** (`apply_late_runner_penalty`, ×0.85).
 
 Im Zweifel: lieber Sync mit kurzem Hinweis im Commit-Body als Drift-Risiko.
+
+---
+
+## Score-Konfidenz-Stufen (Stufe 1, rein anzeigend)
+
+Externe Methodik-Bewertung: solange Live-Datenmenge klein ist (heutige
+Validierungs-Diagnose 13.05.2026: n=78 für Earliness V2), soll das
+Tool transparent kommunizieren, **wie belastbar** die Scores
+statistisch sind. Stufe 1 zeigt **eine** qualitative Konfidenz-Stufe
+pro Score-Klasse im Methodik-Panel — keine Anzeige auf der Karte,
+keine Score-Berechnungs-Beeinflussung.
+
+### Vier Stufen (qualitativ, nicht prozentual)
+
+Bewusste Wahl gegen prozentuale Anzeige — verhindert das
+„85 %-Garantie"-Missverständnis.
+
+| Stufe | Emoji | Bedeutung | Trigger |
+|---|---|---|---|
+| **robust**       | 🟢 | > 500 Backtest-Datenpunkte mit Returns + AUC-Test belegt | Setup-Score (heute n≈1200) |
+| **mittel**       | 🟡 | 50–500 Datenpunkte mit AUC, oder ≥ 500 ohne AUC | Earliness V2 (heute), Monster-Score (Komposition) |
+| **provisorisch** | 🟠 | 1–50 Datenpunkte mit AUC | (heute keine — Übergangs-Stufe nach Schema-Erweiterung) |
+| **heuristisch**  | 🔴 | Keine Validierung, rein theoretisch zusammengesetzt | Conviction, KI-Score, Exit-Druck heute |
+
+### Aktuelle Stufen pro Score (Stand 14.05.2026)
+
+| Score | Tier | n | Anmerkung |
+|---|---|---:|---|
+| Setup-Score | 🟢 robust | ~1200 | Backtest-Bucket-Auswertung gegen `return_10d` |
+| Earliness V2 | 🟡 mittel | 78 | Mann-Whitney-U 13.05.2026 (AUC 0.77); Re-Test in 14–30 d via Trend-Logging (PR #142) |
+| Monster-Score | 🟢 robust | ~1200 | erbt Setup-Konfidenz (Komposition) |
+| KI-Score | 🔴 heuristisch | 0 | Wirkt nur als Boost-Multiplikator ×1.05–1.15 |
+| Conviction | 🔴 heuristisch | 0 | Keine Backtest-Persistenz; Komponenten-Konfidenz (Stufe 2) erst nach Schema-Erweiterung |
+| Exit-Druck | 🔴 heuristisch | 0 | Closed-Trades-Snapshot-Schema offen |
+
+### Implementations-Architektur
+
+- **Berechnung**: `compute_score_confidence(backtest_history)` in
+  `generate_report.py`. Pure Funktion — kein State, kein I/O,
+  Stichprobe ist die übergebene `backtest_history`-Liste.
+- **Modul-State**: `_SCORE_CONFIDENCE: dict` (analog `_FX_USD_EUR`).
+  Gesetzt in `main()` direkt vor `generate_html` via
+  `globals()["_SCORE_CONFIDENCE"] = compute_score_confidence(...)`.
+- **HTML-Render**: `_score_confidence_rows_html(confidence)` baut die
+  `<li>`-Liste für das Methodik-Panel. Bei leerem Snapshot →
+  Hinweis-Zeile statt Crash.
+- **Persistenz**: `app_data.json["score_confidence"]` — Frontend kann
+  später Stufe 2 (Tooltip auf Conviction-Pill) daraus rendern.
+- **Schwellen in `config.py`**: `SCORE_CONFIDENCE_N_ROBUST = 500`,
+  `_N_MITTEL = 50`, `_N_PROVISORISCH = 1`,
+  `_MAX_AGE_DAYS = 14` (Stale-Hinweis).
+- **CI-Lint**: `scripts/lint_score_confidence_isolation.py` erzwingt,
+  dass die Konfidenz NICHT in Score-Berechnungs-Pfaden gelesen wird.
+
+### Nicht in Stufe 1 (Folge-PRs)
+
+- **Stufe 2 — Konfidenz-Pill auf der Karte selbst** (Tooltip auf
+  Conviction-Score, Komponenten-Aufschlüsselung). Erfordert
+  Conviction-Backtest-Persistenz (Schema-Erweiterung), die heute
+  noch fehlt.
+- **Auto-Hochstufung Earliness** nach 14–30 d Live-Daten:
+  `compute_score_confidence` muss dann den Trend-Logging-AUC-Wert
+  aus `backtest_history.{backtest_schema_version: 4}` rechnen.
+  Aktuell ist die Earliness-Stufe **hartkodiert** auf `mittel` mit
+  Hinweis auf den Re-Test-Termin.
+- **Validierungs-Auto-Refresh**: bei Stale (≥ `MAX_AGE_DAYS`)
+  Hinweis „Konfidenz-Daten veraltet". Logik im Frontend, nicht jetzt.
+
+### Pflege
+
+- Tier-Schwellen-Anpassung: in `config.py`. Code-Logik liest rein
+  über Konstanten.
+- Bei neuem Score: `compute_score_confidence`-Return-Dict ergänzen
+  + `_score_confidence_rows_html`-`_labels` ergänzen + CLAUDE.md-
+  Tabelle oben ergänzen.
+- Bei Aufnahme eines neuen Backtest-Schemas, das Conviction-Werte
+  persistiert: hardgecodete Heuristik-Stufe für Conviction durch
+  Auswertungs-Helper ersetzen.
 
 ---
 
