@@ -1639,67 +1639,124 @@ ki_agent-Updates.
 
 ---
 
-## Earliness-Indikator (Stufe 1, ohne Score-Effekt)
+## Earliness-Indikator (V2 — DTC-Niveau-Basis, ohne Score-Effekt)
 
-`compute_earliness_pts(stocks)` misst „leise Akkumulation" — drei
-additive Komponenten:
+`compute_earliness_pts(stocks)` misst **Squeeze-Reife / Short-Stack-
+Druck** — operationalisiert via DTC (Spot, Days-to-Cover). „Earliness"
+heißt hier **nicht** „zeitliche Nähe zum Move", sondern „ist das
+Substrat reif für eine Bewegung?". Hoher DTC = der Short-Stack ist
+bereits aufgebaut = mehr potentieller Squeeze-Brennstoff.
 
-1. **FINRA-Acceleration** (`accel_match`): `si_accelerating` aktiv und
-   `change_5d < EARLINESS_MAX_CHANGE_5D_PCT` → `+EARLINESS_ACCEL_PTS` (3).
-2. **FINRA-Velocity** (`velocity_match`):
-   `si_velocity ≥ EARLINESS_VELOCITY_THRESHOLD` und
-   `rsi14 < EARLINESS_MAX_RSI` → `+EARLINESS_VELOCITY_PTS` (2).
-3. **Pre-Market-Volume** (`pm_vol_match`):
-   `premarket_volume / avg_vol_20d × 100`, gefiltert über
-   `change_5d < EARLINESS_MAX_CHANGE_5D_PCT` (Earliness-Charakter wahren)
-   **und** `change_overnight ≥ 0` (kein PM-Selloff).
-   - `≥ EARLINESS_PM_VOL_HIGH_PCT` (8 %) → `+EARLINESS_PM_VOL_PTS_HIGH` (2)
-   - `≥ EARLINESS_PM_VOL_LOW_PCT`  (3 %) → `+EARLINESS_PM_VOL_PTS_LOW`  (1)
-   - sonst → 0
+**Datenbeleg (Diagnose 13.05.2026):** Mann-Whitney-U über 14
+Trading-Tage, Gewinner (return_10d ≥ +10 %, n=34) vs. Verlierer
+(return_10d ≤ −5 %, n=44): DTC liefert **AUC 0.77** (Median 10.05 vs
+5.40). Die ursprünglichen V1-Sub-Signale (si_accel, si_velocity,
+PM-Volume) sind aus `backtest_history.json` nicht rückwirkbar
+berechenbar — werden nicht weiter geführt.
 
-Summe gecappt auf `EARLINESS_PTS_MAX = 7` (5 → 7 nach Aufnahme der
-PM-Vol-Komponente).
+### V2-Formel (aktiv, Default)
 
-`change_overnight = (cur_open − prev_close) / prev_close × 100`. Bei
-fehlendem `cur_open` / `prev_close` / `avg_vol_20d` greift die Bedingung
-nicht → `pm_vol_pts = 0` (graceful Fallback, keine Exception).
+`EARLINESS_FORMULA_VERSION = 2`. Skala: 0..`EARLINESS_PTS_MAX` (= 100).
 
-**Stufe 1 ist reine Persistenz / Beobachtung — `s["score"]` wird
-nicht beeinflusst.** Die Werte werden später in Stufe Mittel-2 als
-Score-Bonus aktiviert, sobald genug Empirik vorliegt. Bis dahin nur
-Logging und optionale UI-Anzeige.
+```
+DTC-Bucket-Mapping  (s["short_ratio"])
+  dtc < 3      →   0 Pkt   bucket=below_3
+  3 ≤ dtc < 5  →  25 Pkt   bucket=3_to_5
+  5 ≤ dtc < 8  →  50 Pkt   bucket=5_to_8
+  8 ≤ dtc < 12 →  75 Pkt   bucket=8_to_12
+  dtc ≥ 12     → 100 Pkt   bucket=ge_12
 
-### Datenquelle Pre-Market-Volume
+Late-Runner-Penalty   (s["rel_volume"])
+  rvol > EARLINESS_LATE_RUNNER_RVOL_MAX (= 5)  →  pts × EARLINESS_LATE_RUNNER_FACTOR (= 0.5)
+```
 
-`_fetch_premarket_volumes_batch(tickers) → dict[str, float]` ruft
-einmal pro Daily-Run `yf.download(period="1d", interval="1m",
-prepost=True)` für alle Top-10-Ticker auf, mappt auf
-`America/New_York`-Timezone und summiert das `Volume` zwischen
-04:00 und 09:30 ET. Multi- und Single-Ticker-Form werden beide
-unterstützt; jeder yfinance-Fehler ergibt `0.0` für den betroffenen
-Ticker (Batch-Fail → leeres Dict, Stock-Dict-Default 0.0).
+Schwellen in `config.py`: `EARLINESS_DTC_BUCKET_1_MIN = 3.0`,
+`_2_MIN = 5.0`, `_3_MIN = 8.0`, `_4_MIN = 12.0`,
+`EARLINESS_DTC_BUCKET_PTS = (0, 25, 50, 75, 100)`.
 
-### Felder auf dem Stock-Dict
+Bei fehlendem `short_ratio` / `rel_volume` → 0.0 als Default → Bucket 0
+(graceful Fallback, keine Exception).
+
+### Doppel-Penalty für Late-Runner (bewusst)
+
+Es wirken **zwei eigenständige Late-Runner-Penalties parallel** — bewusste
+Doppel-Bestrafung, weil ein Late-Runner zwei Probleme hat (Move schon
+gelaufen UND Setup-Hot):
+
+| Penalty | Trigger | Effekt | Implementierung |
+|---|---|---|---|
+| **Setup-Score-Penalty** (`apply_late_runner_penalty`) | `rsi14 > LATE_RUNNER_RSI_THRESHOLD` (75) ODER `chg2d > LATE_RUNNER_MOVE_2D_THRESHOLD` (20 %) | `s["score"] × LATE_RUNNER_PENALTY` (0.85, also −15 %) | `generate_report.py:2843+` |
+| **Earliness-Penalty** (V2-intern) | `rvol > EARLINESS_LATE_RUNNER_RVOL_MAX` (5×) | `earliness_pts × EARLINESS_LATE_RUNNER_FACTOR` (0.5, also −50 %) | `_earliness_pts_v2` |
+
+Beide treffen typischerweise denselben Stock-Typ (RSI hoch + RVOL-Spike
+zusammen) — der kombinierte Conviction-Effekt ist beabsichtigt: dieser
+Stock soll deutlich tiefer in der Top-10 landen.
+
+### Version-Schalter / Notfall-Rollback
+
+`EARLINESS_FORMULA_VERSION` in `config.py` (= 2 Default). Bei `= 1`
+fällt `compute_earliness_pts` auf den alten V1-Pfad zurück (siehe
+`_earliness_pts_v1` — `si_accel` + `si_velocity` + PM-Vol-Komponente).
+V1-Konstanten bleiben im config als `# V1-only` markiert, neue Pfade
+sollen nicht darauf zugreifen.
+
+Rollback-Kriterien (nach 30 Tagen Live-Daten reevaluieren): falls
+die DTC-AUC auf < 0.55 einbricht oder Conviction-Median systematisch
+> 80 driftet (Push-Inflation zurück), Version-Schalter auf 1 setzen
+und Re-Kalibrierung diskutieren.
+
+### Felder auf dem Stock-Dict (V2)
 
 | Feld | Typ | Bedeutung |
 |---|---|---|
-| `premarket_volume`     | Float ≥ 0 | PM-Volumen-Snapshot, gesetzt vor `compute_earliness_pts`. Default 0.0 wenn Fetch fehlschlägt. |
-| `earliness_pts`        | int 0..`EARLINESS_PTS_MAX` (7) | Summe der drei Sub-Komponenten, gecappt. |
-| `earliness_breakdown`  | dict `{accel_match, velocity_match, pm_vol_match}` | **Debug-Feld** — zeigt, *welche* der drei Sub-Bedingungen aktiv waren. Verwechslungsgefahr: nicht mit `_drivers_breakdown` (Drivers-Block-Helper, andere Funktion) verwechseln. |
+| `earliness_pts`       | int 0..`EARLINESS_PTS_MAX` (= 100) | DTC-Bucket-Punkte, ggf. halbiert bei Late-Runner |
+| `earliness_breakdown` | dict | V2-Keys: `version=2`, `dtc`, `rvol`, `dtc_bucket`, `base_pts`, `late_runner`, `final_pts` |
+
+Bei `EARLINESS_FORMULA_VERSION = 1` enthält `breakdown` die V1-Keys
+(`version=1`, `accel_match`, `velocity_match`, `pm_vol_match`).
 
 `earliness_pts` und `earliness_breakdown` werden **immer** geschrieben
 (auch bei `pts == 0`), so dass Konsumenten nicht zwischen „nicht
-berechnet" und „berechnet, alle Sub-Matches false" unterscheiden müssen.
+berechnet" und „berechnet, Bucket 0" unterscheiden müssen.
+
+### Conviction-Integration (unverändert)
+
+`compute_conviction_score` normalisiert `earliness_pts /
+EARLINESS_PTS_MAX × 28` → Conviction-Earliness-Anteil 0..28. Die
+Normalisierung ist **relativ**, der V1/V2-Schalter ist transparent für
+diesen Code-Pfad (PTS_MAX ändert sich von 7 auf 100, Quotient bleibt
+sinnvoll).
+
+Erwarteter Effekt: Top-10-Median DTC ≈ 10 → `earliness_pts ≈ 75` →
+Conviction-Earliness ≈ 21/28 (vorher in V1 systematisch 0/28). Die
+Spitzen-Conviction wird häufiger ≥ 75 erreichen — Wirkung wird in der
+„Conviction-Formel-Beobachtung Tag 3–6"-Wiedervorlage sichtbar.
 
 ### Pflege
 
-Bei Aktivierung in Stufe Mittel-2: `earliness_pts` als on-top-Bonus in
-`score()` integrieren (analog zu `_float_turnover_pts`), `_compute_sub_scores`
-um Sub-Score-Anzeige erweitern, **Score-Methodik-Sektion synchronisieren**,
-diese Sektion oben „ohne Score-Effekt" → „mit Score-Effekt" umschreiben.
-Beim Hinzufügen weiterer Sub-Komponenten zur Earliness-Logik (z. B.
-Insider-Cluster) das `earliness_breakdown`-Dict-Schema und den
-PTS_MAX-Cap konsistent in Code, CLAUDE.md und Mock-Tests nachziehen.
+- Schwellen-Anpassung (`EARLINESS_DTC_BUCKET_*_MIN`, `_PTS`,
+  `EARLINESS_LATE_RUNNER_*`): nur in `config.py`, Code-Logik liest
+  rein über Konstanten.
+- Bei Erweiterung des V2-`earliness_breakdown`-Schemas (z.B. neues
+  Feld `dtc_source`): gleichzeitig Mock-Test
+  `scripts/mock_test_earliness_dtc.py` + diese Sektion + CLAUDE.md-
+  Conviction-Tabelle prüfen.
+- Score-Methodik-Sync-Regel: weiterhin **kein** Score-Effekt aus
+  `earliness_pts` (nur via Conviction-Komponente). Bei späterer
+  Aktivierung als on-top-Bonus in `score()` (analog `_float_turnover_pts`)
+  diese Sektion oben „ohne Score-Effekt" → „mit Score-Effekt"
+  umschreiben.
+- V1-Pfad (`_earliness_pts_v1`) und V1-Konstanten **nicht entfernen**,
+  bevor der Version-Schalter wieder ausgebaut wird — sonst kein
+  Rollback-Pfad mehr.
+
+### Bug-Verweis
+
+Vor V2: Mittel-Refactor Stufe 1 lief seit ~30.04.2026 mit Logging-only
+und lieferte in Top-10 systematisch `earliness_pts = 0` (V1-Sub-Signale
+zu eng kalibriert, vor allem `EARLINESS_MAX_CHANGE_5D_PCT = 5 %` schloss
+fast jedes Top-10-Setup aus). Conviction-Median lag deshalb dauerhaft
+≈ 50 (medium) — Aktions-Pushes fehlten. V2 löst das datenbelegt.
 
 ---
 

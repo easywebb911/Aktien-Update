@@ -497,24 +497,61 @@ LATE_RUNNER_PENALTY               = 0.85
 LATE_RUNNER_RSI_THRESHOLD         = 75
 LATE_RUNNER_MOVE_2D_THRESHOLD     = 0.20   # Fraction (gleich PUSH_MOVE_2D_MAX, semantisch eigenständig)
 
-# ── Earliness-Sub-Score (Mittel-Refactor Stufe 1: Logging-only) ─────────────
-# Misst „leise Akkumulation" — FINRA-Short-Interest baut sich auf, während
-# der Kurs noch nicht gelaufen ist. Stufe 1 berechnet + persistiert nur
-# (s["earliness_pts"]); KEIN Score-Effekt — der Wert ist Beobachtungsgröße
-# bis Stufe Mittel-2 ihn als Bonus aktiviert.
-EARLINESS_PTS_MAX                 = 7      # 5→7 nach PM-Vol-Komponente
-EARLINESS_ACCEL_PTS               = 3      # si_accel + niedriger 5T-Move
-EARLINESS_VELOCITY_PTS            = 2      # si_velocity + niedriger RSI
-EARLINESS_VELOCITY_THRESHOLD      = 100    # tägliche FINRA-Velocity-Schwelle
-EARLINESS_MAX_CHANGE_5D_PCT       = 5.0    # Move noch nicht groß
-EARLINESS_MAX_RSI                 = 60     # RSI noch im normalen Bereich
-# PM-Vol-Komponente (3.): Pre-Market-Volume in % vom 20T-Avg-Volume,
-# Trigger nur bei change_overnight ≥ 0 (kein PM-Selloff). Stufe 1 wie
-# der Rest des Earliness-Blocks: nur Logging + Persistenz.
-EARLINESS_PM_VOL_LOW_PCT          = 3.0    # ≥3 % PM-vs-Avg → +1
-EARLINESS_PM_VOL_HIGH_PCT         = 8.0    # ≥8 % PM-vs-Avg → +2
-EARLINESS_PM_VOL_PTS_LOW          = 1
-EARLINESS_PM_VOL_PTS_HIGH         = 2
+# ── Earliness-Sub-Score — DTC-Niveau-Basis (Mittel-Refactor Stufe 2) ────────
+# Datenbeleg: Diagnose 13.05.2026 — DTC (Spot) trennt Gewinner (return_10d
+# ≥ +10 %) und Verlierer (return_10d ≤ −5 %) über 14d am stärksten
+# (Mann-Whitney-U → AUC 0.77; Median Gewinner 10.05, Verlierer 5.40, n=78).
+# Sub-Signale „SI-Trend 5d-Slope" / „RVOL-Build-up 5d" / „Coiled Spring"
+# aus der ursprünglichen Mittel-Refactor-Stufe-1 sind aus dem heutigen
+# backtest_history.json nicht rückwirkbar berechenbar — werden nicht
+# weiter geführt.
+#
+# Operationalisierung: hoher DTC = Short-Stack bereits aufgebaut = mehr
+# Squeeze-Brennstoff = „Setup ist reif für die Bewegung". RVOL > 5 als
+# Negativ-Marker (Verlierer-Bucket-Mean RVOL = 2.56 vs Gewinner 1.46, mit
+# Outliers bis 17.9× — Late-Runner-Pattern, kein Earliness-Substrat mehr).
+#
+# Version-Schalter: ``EARLINESS_FORMULA_VERSION = 2`` ist der scharfe
+# Pfad. Version 1 (alte Stufe-1-Logik mit accel/velocity/pm_vol) bleibt
+# im Code-Branch erhalten als Notfall-Rollback — bei strukturellen
+# Problemen mit der DTC-Hypothese (nach 30 Tagen Live-Daten reevaluieren).
+EARLINESS_FORMULA_VERSION         = 2
+
+# Skala: V2 nutzt 0..100, V1 nutzt 0..7. Conviction-Normalisierung in
+# compute_conviction_score ist relativ (earliness_pts / EARLINESS_PTS_MAX
+# × 28), funktioniert für beide Skalen identisch.
+EARLINESS_PTS_MAX                 = 100    # V2 (vorher 7 = V1)
+
+# DTC-Bucket-Schwellen (Spot-Wert ``s["short_ratio"]``).
+EARLINESS_DTC_BUCKET_1_MIN        = 3.0    # < 3   → Bucket 0 →   0 Pkt
+EARLINESS_DTC_BUCKET_2_MIN        = 5.0    # < 5   → Bucket 1 →  25 Pkt
+EARLINESS_DTC_BUCKET_3_MIN        = 8.0    # < 8   → Bucket 2 →  50 Pkt
+EARLINESS_DTC_BUCKET_4_MIN        = 12.0   # < 12  → Bucket 3 →  75 Pkt
+                                           # ≥ 12 → Bucket 4 → 100 Pkt
+EARLINESS_DTC_BUCKET_PTS          = (0, 25, 50, 75, 100)
+
+# Late-Runner-Penalty auf den Earliness-Wert. Semantisch eigenständig zu
+# apply_late_runner_penalty, das auf s["score"] wirkt (×0.85 bei RSI > 75
+# oder chg2d > 20 %). Beide Penalties wirken parallel — bewusste Doppel-
+# Bestrafung von Late-Runnern, siehe CLAUDE.md.
+EARLINESS_LATE_RUNNER_RVOL_MAX    = 5.0    # RVOL > 5× → halbieren
+EARLINESS_LATE_RUNNER_FACTOR      = 0.5    # ×0.5
+
+# ── DEPRECATED — Earliness V1 (Mittel-Refactor Stufe 1, accel/velocity/PM-Vol) ──
+# Werden NICHT entfernt: bleiben für den Version-1-Branch in
+# compute_earliness_pts (Notfall-Rollback via EARLINESS_FORMULA_VERSION=1).
+# Neue Code-Pfade sollen NICHT auf diese Konstanten zugreifen — V2 ersetzt
+# die Sub-Signale komplett.
+EARLINESS_ACCEL_PTS               = 3      # V1-only: si_accel + niedriger 5T-Move
+EARLINESS_VELOCITY_PTS            = 2      # V1-only: si_velocity + niedriger RSI
+EARLINESS_VELOCITY_THRESHOLD      = 100    # V1-only: tägliche FINRA-Velocity-Schwelle
+EARLINESS_MAX_CHANGE_5D_PCT       = 5.0    # V1-only: Move noch nicht groß
+EARLINESS_MAX_RSI                 = 60     # V1-only: RSI noch im normalen Bereich
+EARLINESS_PM_VOL_LOW_PCT          = 3.0    # V1-only: ≥3 % PM-vs-Avg → +1
+EARLINESS_PM_VOL_HIGH_PCT         = 8.0    # V1-only: ≥8 % PM-vs-Avg → +2
+EARLINESS_PM_VOL_PTS_LOW          = 1      # V1-only
+EARLINESS_PM_VOL_PTS_HIGH         = 2      # V1-only
+EARLINESS_PTS_MAX_V1              = 7      # V1-only-Cap (für Rollback-Pfad)
 
 # ── SEC EDGAR 13D/13G Filings (Anomalie-Trigger) ────────────────────────────
 # Hybrid-Filter:
