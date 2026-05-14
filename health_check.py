@@ -588,3 +588,231 @@ def instrument_provider_call(acct: dict, fn, *args,
             )
         except Exception:
             pass   # Accumulator-Fehler bricht Pipeline nicht
+
+
+# ── Phase 3: Digest-Aggregation (Tool-Helper, kein Laufzeit-Hook) ──────────
+#
+# Diese Funktionen sind pure und werden vom Digest-Workflow
+# (scripts/health_check_digest.py) aufgerufen. Trennen Aggregations-
+# Logik (testbar Pythonisch) von I/O + ntfy-Send (Skript-Level).
+#
+# Konsekutiv-Counter laut User-Klärung 15.05.2026: separate State-
+# Datei ``health_check_digest_state.json`` (statt
+# ``agent_state.json["provider_health_state"]``), damit ki_agent +
+# Daily-Run keinen Race auf den Counter haben.
+
+
+# Provider-Schwellen für Coverage-basierte Fails (Spec Z. 124).
+DIGEST_COVERAGE_THRESHOLD_TIER1 = 80.0   # < 80 % → fail sofort
+DIGEST_COVERAGE_THRESHOLD_TIER23 = 50.0  # < 50 % → fail (+ consecutive für T2/T3)
+DIGEST_CONSECUTIVE_THRESHOLD = 3         # 3-in-Folge für Tier 2/3
+DIGEST_STALE_DAYS = 7                    # Counter-Reset nach 7 d Inaktivität
+
+
+def aggregate_state_fails(entries: list[dict]) -> list[dict]:
+    """Aggregiert State-Fails über ein Zeitfenster von Einträgen.
+
+    Pro State-Invariant (S1–S7) wird die Maximal-Severity gemeldet,
+    plus die Anzahl Vorkommnisse im Fenster. Bei mehrfachen Treffern
+    desselben Invariants wird der jüngste detail-String genutzt
+    (Spec: „X Runs in Folge" sichtbar via count).
+
+    Returnt Liste von Fail-Dicts in stabiler Reihenfolge (S1 → S7).
+    """
+    by_id: dict[str, dict] = {}
+    for e in entries or []:
+        for f in (e.get("state_fails") or []):
+            fid = f.get("id")
+            if not fid:
+                continue
+            sev = f.get("severity", "warn")
+            cur = by_id.get(fid)
+            if cur is None:
+                by_id[fid] = {
+                    "id":       fid,
+                    "severity": sev,
+                    "detail":   f.get("detail", ""),
+                    "count":    1,
+                }
+            else:
+                # crit überschreibt warn
+                if sev == "crit" and cur["severity"] != "crit":
+                    cur["severity"] = "crit"
+                cur["detail"] = f.get("detail", cur["detail"])  # jüngster
+                cur["count"]  += 1
+    # Stabile Reihenfolge S1 → S7
+    return sorted(by_id.values(), key=lambda f: f["id"])
+
+
+def aggregate_provider_fails(entries: list[dict],
+                              counters: dict | None = None,
+                              tier_map: dict | None = None,
+                              now_ts: datetime | None = None,
+                              ) -> list[dict]:
+    """Aggregiert Provider-Fails + verwaltet Konsekutiv-Counter.
+
+    Pro Provider werden die Einträge des 24-h-Fensters chronologisch
+    durchgegangen. ``counters`` ist das Dict aus
+    ``health_check_digest_state.json["consecutive_failures"]`` —
+    wird in-place mutiert.
+
+    Trigger-Bedingungen pro Tier (Spec Z. 124):
+      - Tier 1: ``http_status != 200`` ODER ``coverage_pct < 80``
+                → sofort, kein Counter-Increment nötig
+      - Tier 2/3: gleiche Bedingung, aber erst ab
+                  ``DIGEST_CONSECUTIVE_THRESHOLD`` Konsekutiv-Fails
+
+    Ein erfolgreicher Run (http_status=200 UND coverage≥50/80) reset
+    den Counter auf 0. Provider, die im Fenster gar nicht erschienen
+    sind, behalten ihren Counter bis ``DIGEST_STALE_DAYS`` Tage —
+    danach wird er auf 0 gesetzt (z. B. Provider deaktiviert).
+
+    Returnt Liste von Fail-Dicts in stabiler Reihenfolge (alphabetisch
+    nach Provider-Key).
+    """
+    counters  = counters if counters is not None else {}
+    tier_map  = tier_map or {}
+    now_ts    = now_ts or datetime.now(timezone.utc)
+    consecutive = counters.setdefault("consecutive_failures", {})
+    last_seen   = counters.setdefault("last_seen", {})
+
+    # Gruppieren chronologisch pro Provider
+    by_provider: dict[str, list[dict]] = {}
+    for e in entries or []:
+        prov = e.get("provider")
+        if not prov:
+            continue
+        by_provider.setdefault(prov, []).append(e)
+
+    fails: list[dict] = []
+    for prov, rows in by_provider.items():
+        rows.sort(key=lambda r: r.get("run_ts", ""))
+        tier = int(tier_map.get(prov, rows[-1].get("tier", 3)))
+        last_seen[prov] = rows[-1].get("run_ts", now_ts.strftime("%Y-%m-%dT%H:%M:%SZ"))
+        for row in rows:
+            http_ok = row.get("http_status") == 200
+            cov     = row.get("coverage_pct")
+            cov_threshold = (DIGEST_COVERAGE_THRESHOLD_TIER1 if tier == 1
+                             else DIGEST_COVERAGE_THRESHOLD_TIER23)
+            cov_fail = (cov is not None) and (cov < cov_threshold)
+            row_fail = (not http_ok) or cov_fail
+            if row_fail:
+                consecutive[prov] = consecutive.get(prov, 0) + 1
+            else:
+                consecutive[prov] = 0
+
+        n_consec = consecutive.get(prov, 0)
+        if n_consec <= 0:
+            continue
+        last_row = rows[-1]
+        reason   = (last_row.get("error")
+                    or (f"coverage {last_row.get('coverage_pct')}%"
+                        if last_row.get("coverage_pct") is not None
+                           and last_row["coverage_pct"] < (
+                               DIGEST_COVERAGE_THRESHOLD_TIER1 if tier == 1
+                               else DIGEST_COVERAGE_THRESHOLD_TIER23
+                           )
+                        else f"HTTP {last_row.get('http_status')}"))
+        if tier == 1:
+            severity = "crit"
+            fails.append({
+                "provider":    prov,
+                "tier":        tier,
+                "severity":    severity,
+                "reason":      reason,
+                "consecutive": n_consec,
+            })
+        elif n_consec >= DIGEST_CONSECUTIVE_THRESHOLD:
+            severity = "warn"
+            fails.append({
+                "provider":    prov,
+                "tier":        tier,
+                "severity":    severity,
+                "reason":      reason,
+                "consecutive": n_consec,
+            })
+
+    # Stale-Counter-Reset (Drift-Schutz): Provider, die seit > N Tagen
+    # nicht erschienen sind, bekommen Counter auf 0 (z. B. ENABLED=False
+    # für stockanalysis dauerhaft → Counter sollte nicht ewig stale bleiben).
+    cutoff = now_ts - timedelta(days=DIGEST_STALE_DAYS)
+    for prov in list(consecutive.keys()):
+        seen = last_seen.get(prov)
+        if not seen:
+            continue
+        try:
+            ts_str = seen[:-1] + "+00:00" if seen.endswith("Z") else seen
+            ts = datetime.fromisoformat(ts_str)
+            if ts.tzinfo is None:
+                ts = ts.replace(tzinfo=timezone.utc)
+        except (ValueError, TypeError):
+            continue
+        if ts < cutoff:
+            consecutive[prov] = 0
+
+    return sorted(fails, key=lambda f: f["provider"])
+
+
+def format_digest_body(state_fails: list[dict],
+                       provider_fails: list[dict],
+                       *,
+                       n_runs: int,
+                       last_run_iso: str | None,
+                       digest_date: str) -> tuple[str, str, str, str | None]:
+    """Komponiert den ntfy-Body laut Spec Z. 175–211.
+
+    Returnt ``(body, title, priority, tags)``.
+
+    Drei Klassen:
+      - „📭 Health-Check ohne Daten"  (leere JSONL → Frischbild oder
+                                       Run-Ausfall) — high
+      - „⚠️ Health-Check-Digest"      (≥ 1 crit ODER ≥ 3 warn) — high
+      - „✅ Health-Check OK"          (sonst) — default
+    """
+    if n_runs == 0:
+        body = (
+            f"📭 Health-Check ohne Daten {digest_date}\n"
+            f"0 Runs in den letzten 24h gefunden. Daily-Run oder "
+            f"ki_agent liefen nicht — JSONL-Files leer."
+        )
+        return body, "📭 Health-Check ohne Daten", "high", "warning"
+
+    n_crit = sum(1 for f in state_fails if f["severity"] == "crit")
+    n_crit += sum(1 for f in provider_fails if f["severity"] == "crit")
+    n_warn = sum(1 for f in state_fails if f["severity"] == "warn")
+    n_warn += sum(1 for f in provider_fails if f["severity"] == "warn")
+
+    fails_present = (n_crit >= 1) or (n_warn >= 3)
+
+    if not fails_present:
+        body = (
+            f"✅ Health-Check OK {digest_date}\n"
+            f"24h ohne Fails. {n_runs} Runs geprüft (Daily-Run + ki_agent).\n"
+            f"Letzter Run: {last_run_iso or '—'}"
+        )
+        return body, "✅ Health-Check OK", "default", None
+
+    n_ok = max(0, n_runs - n_crit - n_warn)
+    lines = [
+        f"⚠️ Health-Check-Digest {digest_date}",
+        f"🔴 {n_crit} crit · 🟡 {n_warn} warn · ✅ {n_ok} ok",
+        "",
+    ]
+    if state_fails:
+        lines.append("State-Fails:")
+        for f in state_fails:
+            tail = (f" ({f['count']} Runs in Folge)"
+                    if f.get("count", 1) > 1 else "")
+            lines.append(f"  • {f['id']}: {f.get('detail','')}{tail}")
+        lines.append("")
+    if provider_fails:
+        lines.append("Provider-Fails:")
+        for f in provider_fails:
+            tail = (f" ({f['consecutive']} Runs in Folge)"
+                    if f.get("consecutive", 0) > 1 else "")
+            lines.append(f"  • {f['provider']} (Tier {f['tier']}): "
+                         f"{f.get('reason','')}{tail}")
+        lines.append("")
+    lines.append(f"Letzter erfolgreicher Run: {last_run_iso or '—'}")
+    body = "\n".join(lines).rstrip() + "\n"
+    return body, "⚠️ Health-Check-Digest", "high", "warning"

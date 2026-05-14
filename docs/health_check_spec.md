@@ -168,7 +168,27 @@ für saubere Coverage-Berechnung und Phase-3-Digest-Granularität.
 
 ## Daily-Digest-Format
 
-Digest-Workflow läuft täglich 08:00 UTC, liest die letzten 24 h aus
+> **Phase-3-Implementations-Status:** umgesetzt mit Workflow
+> `.github/workflows/health_check_digest.yml`, Tool-Skript
+> `scripts/health_check_digest.py` und Helper-Erweiterungen in
+> `health_check.py`. Klärungen 15.05.2026:
+> - **Cron-Offset auf `13 8 * * *`** (statt Spec-Wortlaut `0 8`)
+>   analog ki_agent xx:17 als Schutz gegen GitHub-Actions-Last-Peak-
+>   Drops zur vollen Stunde.
+> - **Counter-Storage in separater Datei** `health_check_digest_state.json`
+>   statt `agent_state.json["provider_health_state"]` — letzteres hätte
+>   Race-Conditions mit ki_agent (stündliche Writes) + Daily-Run +
+>   Digest-Workflow auf demselben State-Slot erzeugt. Die separate
+>   Datei ist write-once (nur Digest-Workflow schreibt).
+> - **`📭 Health-Check ohne Daten`-Klasse** zusätzlich zu OK/Digest
+>   (Frischbild-Edge-Case: leere JSONL-Files signalisieren Run-Ausfall,
+>   nicht „alles grün").
+> - **Mehrfach-Trigger-Schutz**: `last_digest_sent`-Datum verhindert
+>   doppelten Push am selben Tag bei manuellem `workflow_dispatch`.
+> - **7-Tage-Drift-Schutz**: stale Provider-Counter (z. B. dauerhaft
+>   `ENABLED=False`) werden automatisch zurückgesetzt.
+
+Digest-Workflow läuft täglich 08:13 UTC, liest die letzten 24 h aus
 beiden `.jsonl`-Files, aggregiert nach Severity, schickt **einen**
 Push.
 
