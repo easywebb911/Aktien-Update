@@ -1450,6 +1450,96 @@ Alle drei Helper landen oben in `_append_backtest_entries`-Region in
 
 ---
 
+## Backtest-Schema (Stufe 4 — Earliness-Trend-Logging, prospektiv)
+
+Vier neue Felder + Schema-Version-Marker pro neuem
+`backtest_history.json`-Eintrag, persistiert ab dieser PR. **Reines
+Logging** — kein Conviction-Effekt, kein Score-Effekt, kein Frontend-
+Render. Zweck: nach 14–30 Tagen Live-Daten ein AUC-Vergleich gegen
+`return_10d` für die drei Sub-Signale, die aus der heutigen Diagnose
+13.05.2026 nicht rückwirkbar berechenbar waren (SI-Trend 5d-Slope,
+RVOL-Build-up 5d, Vol-Stability/Coiled Spring).
+
+### Schema-Version-Marker
+
+`backtest_schema_version` ist die **kumulative Major-Version** des
+Schemas:
+
+| Version | Erweiterung | Wirksam ab |
+|---:|---|---|
+| 1 | Original (date, ticker, score, return_*d, …) | initial |
+| 2 | Bahn B (score_struct/catalyst/timing, score_raw, combo_bonus, …) | ~PR #80 |
+| 3 | Bahn A2 (max_drawdown_pct, market_regime, vix_level) | 01.05.2026 |
+| **4** | **Earliness-Trend-Logging (4 Felder, prospektiv)** | **diese PR** |
+
+Alte Einträge ohne den Marker bleiben unverändert (kein Backfill).
+Reader sind null-tolerant via `e.get(...)`-Pattern — Schema-Version-
+Check ist optional, nicht Pflicht für die bestehenden Konsumenten.
+
+### Felder pro neuem Eintrag
+
+| Feld | Typ | Bedeutung | None bei … |
+|---|---|---|---|
+| `si_trend_5d_slope` | Float \| None | `(si_neuestes − si_ältestes) / si_ältestes` über die ersten 5 Punkte in `finra_data.history` (sortiert neueste → älteste). Dimensionslos; > 0 = SI baut auf, < 0 = abnehmend. | < `EARLINESS_TREND_MIN_FINRA_POINTS` Punkten (= 5) oder `si_old ≤ 0` |
+| `rvol_buildup_5d` | Float \| None | `mean(rvol_letzte_3T) / mean(rvol_erste_2T)` über das 5-Trading-Tage-Fenster. > 1 = Volumen baut auf, < 1 = abnehmend. | < 5 Tage `hist_5d` oder `avg_vol_20d ≤ 0` oder Division-by-zero |
+| `vol_stability_5d` | Float \| None | ATR-Range / Mittelwert-Close über die letzten 5 Tage. Niedrig = stabile Range (Coiled-Spring-Substrat). | < 5 Tage `hist_5d` oder `avg_close ≤ 0` |
+| `coiled_spring_score` | Float 0..100 \| None | Composite: `stability_inv × slope_norm × 100`. Niedrige Volatilität (cap `EARLINESS_TREND_VOL_STAB_CAP` = 0.10) **und** positiver SI-Slope (cap `EARLINESS_TREND_SI_SLOPE_CAP` = 0.20) ergeben hohe Werte. | Falls eine der beiden Eingaben None |
+
+### Datenquelle `hist_5d`
+
+`_hist_stats(ticker)` returnt jetzt am Tupel-Ende eine `hist_5d`-Liste
+mit den letzten 5 Trading-Tagen als Dicts `{volume, high, low, close}`,
+sortiert ältester → neuester. Bei < 5 Tagen → leere Liste. Der Caller
+legt das auf das Stock-Dict als `s["hist_5d"]`; `_build_backtest_extension`
+konsumiert daraus die Slope-/Buildup-/Stability-Berechnungen.
+
+→ **Keine zusätzlichen yfinance-Calls.** Die Daten stammen aus dem
+existierenden `hist_batch`-Download im Daily-Run.
+
+### Pure-Function-Helpers
+
+In `generate_report.py` direkt vor `_build_backtest_extension`:
+
+| Helper | Signatur | Defensive |
+|---|---|---|
+| `_compute_si_slope_5d(finra_history)` | Liste → Float \| None | < 5 Punkte / `si_old ≤ 0` / fehlende Keys |
+| `_compute_rvol_buildup_5d(volumes_5d, avg_vol_20d)` | Liste + Float → Float \| None | < 5 Volumes / avg_vol ≤ 0 / Division-by-zero |
+| `_compute_vol_stability_5d(highs, lows, closes)` | Drei Listen → Float \| None | < 5 Werte / avg_close ≤ 0 / TypeError |
+| `_compute_coiled_spring_score(vol_stability, si_slope)` | Float + Float → Float 0..100 \| None | Eingaben None / negativer Slope (→ 0 Beitrag) |
+
+Alle Helper sind **pure** (kein State, kein I/O, keine Side-Effects)
+und liefern bei jedem Edge-Case `None` zurück — keine Exceptions.
+
+### Konstanten in `config.py`
+
+```python
+EARLINESS_TREND_LOG_WINDOW_DAYS    = 5     # 5-Trading-Tage-Fenster
+EARLINESS_TREND_MIN_FINRA_POINTS   = 5     # Slope braucht ≥ 5 SI-Werte
+EARLINESS_TREND_SI_SLOPE_CAP       = 0.20  # 20 % cap für coiled_spring-Norm
+EARLINESS_TREND_VOL_STAB_CAP       = 0.10  # 10 % ATR/Close cap für coiled_spring-Norm
+```
+
+### Validierungs-Pfad (nach 14–30 Tagen Live-Daten)
+
+1. `backtest_history.json` filtern auf Einträge mit
+   `backtest_schema_version >= 4` UND `return_10d != null`.
+2. Buckets: Gewinner (`return_10d ≥ +10 %`), Verlierer (`≤ −5 %`).
+3. Mann-Whitney-U pro Sub-Signal: AUC zwischen Gewinner und Verlierer.
+4. Falls AUC ≥ 0.70 für eines der vier Signale → Kandidat für
+   Aufnahme in Earliness V3 (analog DTC in V2).
+
+### Pflege
+
+- Schwellen-Anpassung (`EARLINESS_TREND_*_CAP`) nur in `config.py`,
+  Code-Logik liest rein über Konstanten.
+- Bei Schema-Erweiterung: `backtest_schema_version` hochzählen, neuen
+  Block in dieser Sektion ergänzen, `_test_extended_schema`-
+  `expected_keys` synchron pflegen.
+- Reader müssen weiterhin null-tolerant bleiben (`e.get("xyz")`-
+  Pattern). Schema-Marker ist informativ, nicht enforcement.
+
+---
+
 ## Drivers-Block & Synthese-Zeile (Detail-Ansicht)
 
 Die alte einzeilige `.driver-row` (Risiko-Badge + freie ``short_situation``-
