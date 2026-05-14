@@ -1,5 +1,5 @@
 {
-  "last_run": "2026-05-14T22:03:04.298944+02:00",
+  "last_run": "2026-05-14T22:11:35.681722+02:00",
   "cooldowns": {
     "anomaly_score_jump_XRX": "2026-05-03T18:47:15.315486+02:00",
     "anomaly_uoa_extreme_TDOC": "2026-05-04T13:47:00.365949+02:00",
@@ -746,16 +746,16 @@
     }
   ],
   "prev_conviction_scores": {
-    "CRMD": 98.0,
-    "PGEN": 75.0,
+    "PGEN": 78.0,
+    "CRMD": 96.0,
     "LESL": 74.0,
-    "SLS": 57.0,
-    "KPTI": 82.0,
-    "FTK": 66.0,
-    "FLWS": 59.0,
-    "PLCE": 58.0,
-    "UPXI": 57.0,
-    "DIN": 57.0
+    "SLS": 58.0,
+    "KPTI": 84.0,
+    "PLCE": 59.0,
+    "FLWS": 58.0,
+    "UPXI": 58.0,
+    "FTK": 65.0,
+    "DIN": 58.0
   },
   "exit_cooldowns": {
     "exitp2_warning_AMC": "2026-05-14T19:17:50.269766+02:00",
