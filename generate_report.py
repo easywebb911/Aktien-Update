@@ -8885,6 +8885,10 @@ async function _submitTokenSetup() {{
     const cb = _tokPending;
     _closeTokenModals();
     _tokLog('_submitTokenSetup AFTER close');
+    // Settings-Panel-UI-Refresh, falls offen (z.B. Settings-Panel-
+    // getriggerter Setup-Pfad via saveGhToken). Single-Source-Helper,
+    // no-op wenn Panel unsichtbar.
+    _refreshGhSettingsUI();
     if (cb) cb(tok);
     _tokLog('_submitTokenSetup AFTER callback');
   }} catch(e) {{
@@ -8910,6 +8914,8 @@ async function _submitTokenUnlock() {{
     const cb = _tokPending;
     _closeTokenModals();
     _tokLog('_submitTokenUnlock AFTER close');
+    // Settings-Panel-UI-Refresh, falls offen — siehe _refreshGhSettingsUI.
+    _refreshGhSettingsUI();
     if (cb) cb(tok);
   }} catch(e) {{
     _tokLog('_submitTokenUnlock CAUGHT', {{err: e && e.message}});
@@ -8939,6 +8945,8 @@ async function _submitTokenMigrate() {{
     const cb = _tokPending;
     _closeTokenModals();
     _tokLog('_submitTokenMigrate AFTER close');
+    // Settings-Panel-UI-Refresh, falls offen — siehe _refreshGhSettingsUI.
+    _refreshGhSettingsUI();
     if (cb) cb(legacy);
   }} catch(e) {{
     console.error('Token-Migration fehlgeschlagen:', e);
@@ -11488,6 +11496,44 @@ function clearAnthropicKey() {{
   document.querySelectorAll('.ki-analyse-btn').forEach(b => {{ b.textContent = ANT_KI_LABEL_KEY; }});
 }}
 
+// _refreshGhSettingsUI — Single-Source-of-Truth für die GitHub-Token-
+// Status-Anzeige im Settings-Panel.
+//
+// Hintergrund (Diagnose 14.05.2026): vor diesem Helper renderte
+// ``toggleSettings()`` die Status-Anzeige direkt — die drei Submit-
+// Funktionen (``_submitTokenSetup`` / ``_submitTokenUnlock`` /
+// ``_submitTokenMigrate``) refreshten danach das Settings-Panel-UI
+// NICHT. Symptom auf iPhone: nach erfolgreichem Setup-Submit
+// (Token persistiert, Session aktiv) zeigte das Panel weiter
+// „🔒 verschlüsselt gespeichert", weil ``toggleSettings`` nicht
+// erneut lief. Workaround „zweimal Einstellungs-Icon klicken"
+// triggerte einen 2. Toggle-Cycle (close + open) → frischer Render
+// mit getToken() → „✅ entsperrt".
+//
+// No-op, wenn das Settings-Panel nicht sichtbar ist — kein Schaden
+// für Aufrufer ohne offene Panel-UI.
+function _refreshGhSettingsUI() {{
+  const anth = document.getElementById('anth-sec');
+  if (!anth || anth.style.display !== 'block') return;
+  const ghStatus = document.getElementById('gh-status');
+  const ghInp    = document.getElementById('gh-inp');
+  const ghTok    = getToken() || '';
+  // Token-Feld nur befüllen, wenn aktiv (sonst bleibt es leer für neue
+  // Eingabe — gleiche Semantik wie in toggleSettings).
+  if (ghInp && ghTok) ghInp.value = ghTok;
+  if (!ghStatus) return;
+  if (ghTok) {{
+    ghStatus.className = 'anth-status ok';
+    ghStatus.textContent = '✅ Token entsperrt — diese Browser-Session aktiv';
+  }} else if (_hasEncryptedToken()) {{
+    ghStatus.className = 'anth-status';
+    ghStatus.textContent = '🔒 Token verschlüsselt gespeichert — leer lassen + OK = entsperren · neuer Token im Feld = ersetzen';
+  }} else {{
+    ghStatus.className = 'anth-status';
+    ghStatus.textContent = '';
+  }}
+}}
+
 function toggleSettings() {{
   const tok  = document.getElementById('tok-sec');
   const anth = document.getElementById('anth-sec');
@@ -11498,24 +11544,11 @@ function toggleSettings() {{
     const inp  = document.getElementById('anth-inp');
     const key  = localStorage.getItem(ANT_KEY_LS) || '';
     if (inp && key) inp.value = key;
-    // GitHub Token — Zustand sichtbar machen, damit User weiß ob „OK" Setup
-    // (neuer Token) oder Unlock (bestehender Blob) triggert.
-    const ghInp = document.getElementById('gh-inp');
-    const ghTok = getToken() || '';
-    if (ghInp && ghTok) ghInp.value = ghTok;
-    const ghStatus = document.getElementById('gh-status');
-    if (ghStatus) {{
-      if (ghTok) {{
-        ghStatus.className = 'anth-status ok';
-        ghStatus.textContent = '✅ Token entsperrt — diese Browser-Session aktiv';
-      }} else if (_hasEncryptedToken()) {{
-        ghStatus.className = 'anth-status';
-        ghStatus.textContent = '🔒 Token verschlüsselt gespeichert — leer lassen + OK = entsperren · neuer Token im Feld = ersetzen';
-      }} else {{
-        ghStatus.className = 'anth-status';
-        ghStatus.textContent = '';
-      }}
-    }}
+    // GitHub-Token-Status-Anzeige via Single-Source-Helper. Setting des
+    // sichtbaren Panel-Zustands (display:block oben) muss VOR diesem
+    // Aufruf passieren, weil _refreshGhSettingsUI no-op ist, wenn Panel
+    // unsichtbar ist.
+    _refreshGhSettingsUI();
   }}
 }}
 
