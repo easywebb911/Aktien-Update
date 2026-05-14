@@ -208,8 +208,13 @@ def _test_extended_schema():
         "combo_bonus","score_trend_bonus","agent_boost_factor",
         "perfect_storm_mult","finra_bonus","pool_member","pool_position",
         "pool_size","short_float_source","si_trend_source",
+        # Schema v4 — Earliness-Trend-Logging (prospektiv, kein
+        # Conviction-Effekt). Werte sind None bei unzureichenden Daten.
+        "si_trend_5d_slope","rvol_buildup_5d","vol_stability_5d",
+        "coiled_spring_score","backtest_schema_version",
     }
     assert set(ext.keys()) == expected_keys, set(ext.keys()) ^ expected_keys
+    assert ext["backtest_schema_version"] == 4, ext
     assert ext["score_raw"]          == 76.3, ext
     assert ext["combo_bonus"]        == float(COMBO_BONUS), ext  # 4/4 Bedingungen
     assert ext["score_trend_bonus"]  == 3.0, ext
@@ -248,6 +253,18 @@ def _test_extended_schema():
     assert ext2["pool_size"]     == 42, ext2
     # score_raw default 0.0 wenn Stock kein score_raw mitführt (Edge-Case)
     assert ext2["score_raw"] == 0.0, ext2
+    # Schema v4 — Earliness-Trend-Logging: alle Trend-Felder None bei
+    # unzureichenden Daten (< 5 FINRA-Punkte ODER < 5 Trading-Tage).
+    # full hat nur 3 SI-History-Punkte und kein hist_5d → alle None.
+    assert ext["si_trend_5d_slope"]   is None, ext
+    assert ext["rvol_buildup_5d"]     is None, ext
+    assert ext["vol_stability_5d"]    is None, ext
+    assert ext["coiled_spring_score"] is None, ext
+    assert ext2["si_trend_5d_slope"]   is None, ext2
+    assert ext2["rvol_buildup_5d"]     is None, ext2
+    assert ext2["vol_stability_5d"]    is None, ext2
+    assert ext2["coiled_spring_score"] is None, ext2
+    assert ext2["backtest_schema_version"] == 4, ext2
     print("OK: extended-schema self-test passed")
 
 
@@ -747,8 +764,37 @@ def get_yfinance_batch(tickers: list[str]) -> dict[str, dict]:
             pass
         return rsi14, ma21, ma50, ma200, perf_20d
 
+    def _extract_hist_5d(df) -> list:
+        """Extrahiert die letzten 5 Trading-Tage als Liste von Dicts
+        ``{volume, high, low, close}`` (ältester → neuester). Bei < 5
+        Zeilen oder fehlenden Spalten leere Liste — Konsumenten
+        (Earliness-Trend-Helper) sind null-tolerant auf len < 5.
+        """
+        try:
+            tail = df.tail(EARLINESS_TREND_LOG_WINDOW_DAYS)
+            if len(tail) < EARLINESS_TREND_LOG_WINDOW_DAYS:
+                return []
+            return [
+                {
+                    "volume": float(row.get("Volume", 0) or 0),
+                    "high":   float(row.get("High",   0) or 0),
+                    "low":    float(row.get("Low",    0) or 0),
+                    "close":  float(row.get("Close",  0) or 0),
+                }
+                for _, row in tail.iterrows()
+            ]
+        except Exception:
+            return []
+
     def _hist_stats(ticker: str) -> tuple:
-        """Extract (avg_vol_20, cur_vol, vol_ratio, hi52, lo52, rsi14, ma21, ma50, ma200, perf_20d, cur_open, prev_close, cur_close) from batch or fallback."""
+        """Extract (avg_vol_20, cur_vol, vol_ratio, hi52, lo52, rsi14,
+        ma21, ma50, ma200, perf_20d, cur_open, prev_close, cur_close,
+        hist_5d) from batch or fallback.
+
+        ``hist_5d`` (am Tupel-Ende, neu seit Earliness-Trend-Logging):
+        Liste von 5 Dicts mit Volume/High/Low/Close pro Trading-Tag,
+        ältester → neuester. Leere Liste bei < 5 Zeilen oder Fehler.
+        """
         try:
             if hist_batch is not None and not hist_batch.empty:
                 # yf.download with one ticker returns a flat DataFrame;
@@ -764,7 +810,8 @@ def get_yfinance_batch(tickers: list[str]) -> dict[str, dict]:
                     cur_open   = float(df["Open"].iloc[-1])  if "Open"  in df.columns and len(df) >= 1 else None
                     prev_close = float(df["Close"].iloc[-2]) if len(df) >= 2 else None
                     cur_close  = float(df["Close"].iloc[-1]) if "Close" in df.columns and len(df) >= 1 else None
-                    return avg_vol, cur_vol, vol_r, hi52, lo52, rsi14, ma21, ma50, ma200, perf_20d, cur_open, prev_close, cur_close
+                    hist_5d    = _extract_hist_5d(df)
+                    return avg_vol, cur_vol, vol_r, hi52, lo52, rsi14, ma21, ma50, ma200, perf_20d, cur_open, prev_close, cur_close, hist_5d
         except Exception:
             pass
         # Fallback: individual history call for this ticker
@@ -779,10 +826,11 @@ def get_yfinance_batch(tickers: list[str]) -> dict[str, dict]:
                 cur_open   = float(df2["Open"].iloc[-1])  if "Open"  in df2.columns and len(df2) >= 1 else None
                 prev_close = float(df2["Close"].iloc[-2]) if len(df2) >= 2 else None
                 cur_close  = float(df2["Close"].iloc[-1]) if "Close" in df2.columns and len(df2) >= 1 else None
-                return avg_vol, cur_vol, vol_r, float(df2["High"].max()), float(df2["Low"].min()), rsi14, ma21, ma50, ma200, perf_20d, cur_open, prev_close, cur_close
+                hist_5d    = _extract_hist_5d(df2)
+                return avg_vol, cur_vol, vol_r, float(df2["High"].max()), float(df2["Low"].min()), rsi14, ma21, ma50, ma200, perf_20d, cur_open, prev_close, cur_close, hist_5d
         except Exception as exc2:
             log.debug("Fallback history failed for %s: %s", ticker, exc2)
-        return 0.0, 0.0, 0.0, None, None, None, None, None, None, None, None, None, None
+        return 0.0, 0.0, 0.0, None, None, None, None, None, None, None, None, None, None, []
 
     # ── Phase B: Parallel .info fetches (metadata not in download payload) ──
     def _fetch_info(ticker: str) -> tuple[str, dict]:
@@ -855,7 +903,7 @@ def get_yfinance_batch(tickers: list[str]) -> dict[str, dict]:
 
     # ── Combine history + info; fallback to individual call if both are empty ──
     for ticker in tickers:
-        avg_vol_20, cur_vol, vol_ratio, hi52, lo52, rsi14, ma21, ma50, ma200, perf_20d, cur_open, prev_close, cur_close = _hist_stats(ticker)
+        avg_vol_20, cur_vol, vol_ratio, hi52, lo52, rsi14, ma21, ma50, ma200, perf_20d, cur_open, prev_close, cur_close, hist_5d = _hist_stats(ticker)
         info = info_map.get(ticker, {})
 
         # If the batch produced nothing useful for this ticker, fall back entirely
@@ -888,6 +936,12 @@ def get_yfinance_batch(tickers: list[str]) -> dict[str, dict]:
             "cur_open":       cur_open,
             "prev_close":     prev_close,
             "price":          cur_close,
+            # Earliness-Trend-Logging — Liste der letzten 5 Tage
+            # ({volume,high,low,close}, ältester → neuester). Wird von
+            # _build_backtest_extension für die 3 Trend-Sub-Signale
+            # (rvol_buildup_5d, vol_stability_5d, coiled_spring_score)
+            # konsumiert. Leere Liste bei < 5 Tagen Historie.
+            "hist_5d":        hist_5d,
         }
 
         # change_5d und change_2d aus Batch-History.
@@ -12029,6 +12083,97 @@ def _compute_max_drawdown(df_window) -> float | None:
         return None
 
 
+# ── Earliness-Trend-Logging Helpers (pure, kein Side-Effect) ───────────────
+# Prospektives Logging für die spätere AUC-Validierung der drei Sub-Signale,
+# die aus dem heutigen backtest_history.json nicht rückwirkbar berechenbar
+# sind (siehe Diagnose 13.05.2026, PR-Bericht „Trennschärfe Earliness").
+# Reine Datensammlung — keine Conviction-Effekte, keine Score-Effekte.
+
+def _compute_si_slope_5d(finra_history: list | None) -> float | None:
+    """Relative Änderung short_interest neuester vs. ältester Wert im
+    ersten 5-Punkte-Fenster.
+
+    ``finra_history`` ist sortiert neueste → älteste (siehe
+    ``get_finra_short_interest``). Liefert ``None`` wenn < 5 Punkte
+    vorhanden oder ältester Wert nicht-positiv.
+    """
+    if not finra_history or len(finra_history) < EARLINESS_TREND_MIN_FINRA_POINTS:
+        return None
+    pts = finra_history[:EARLINESS_TREND_MIN_FINRA_POINTS]
+    si_new = pts[0].get("short_interest") or 0
+    si_old = pts[-1].get("short_interest") or 0
+    if si_old <= 0:
+        return None
+    return round((si_new - si_old) / si_old, 4)
+
+
+def _compute_rvol_buildup_5d(volumes_5d: list, avg_vol_20d: float | None) -> float | None:
+    """Verhältnis Mittelwert-RVOL letzte 3 Tage / Mittelwert-RVOL erste 2 Tage.
+
+    ``volumes_5d`` ist eine Liste der 5 Tagesvolumen (ältester → neuester).
+    > 1 = Volumen baut auf (Earliness-Substrat), < 1 = abnehmend.
+    ``None`` bei < 5 Werten, fehlendem ``avg_vol_20d`` oder Division-by-zero.
+    """
+    if (not volumes_5d
+            or len(volumes_5d) < EARLINESS_TREND_LOG_WINDOW_DAYS
+            or avg_vol_20d is None
+            or avg_vol_20d <= 0):
+        return None
+    try:
+        early_avg = sum(volumes_5d[:2]) / 2
+        late_avg  = sum(volumes_5d[2:]) / 3
+    except (TypeError, ValueError):
+        return None
+    rvol_early = early_avg / avg_vol_20d
+    rvol_late  = late_avg / avg_vol_20d
+    if rvol_early <= 0:
+        return None
+    return round(rvol_late / rvol_early, 3)
+
+
+def _compute_vol_stability_5d(highs_5d: list, lows_5d: list,
+                              closes_5d: list) -> float | None:
+    """ATR-Range / Mittelwert-Close der letzten 5 Tage.
+
+    Niedrig = stabile Preisrange (Coiled-Spring-Substrat). Niedrige Werte
+    (z.B. 0.02 = 2 % Range) deuten auf Volatility-Compression hin.
+    ``None`` bei unzureichenden Daten oder Division-by-zero.
+    """
+    w = EARLINESS_TREND_LOG_WINDOW_DAYS
+    if (not highs_5d or not lows_5d or not closes_5d
+            or len(highs_5d) < w or len(lows_5d) < w or len(closes_5d) < w):
+        return None
+    try:
+        ranges = [h - l for h, l in zip(highs_5d, lows_5d)]
+        atr = sum(ranges) / w
+        avg_close = sum(closes_5d) / w
+    except (TypeError, ValueError):
+        return None
+    if avg_close <= 0:
+        return None
+    return round(atr / avg_close, 4)
+
+
+def _compute_coiled_spring_score(vol_stability: float | None,
+                                 si_slope: float | None) -> float | None:
+    """0..100 — Kombination niedrige Volatilität + positiver SI-Slope.
+
+    Heuristische Kalibrierung (Caps via EARLINESS_TREND_*_CAP-Konstanten).
+    Wird nach 14–30 Tagen Live-Daten neu kalibriert, sobald AUC-Vergleich
+    gegen ``return_10d`` möglich. ``None`` bei fehlenden Eingaben.
+    """
+    if vol_stability is None or si_slope is None:
+        return None
+    # Stability invertieren (niedrig = gut). Cap bei VOL_STAB_CAP (10 %),
+    # darüber → 0 Punkte für die Stability-Komponente.
+    stab_cap = EARLINESS_TREND_VOL_STAB_CAP
+    stability_inv = max(0.0, 1.0 - min(vol_stability, stab_cap) / stab_cap)
+    # Slope: nur positiv zählt. Cap bei SLOPE_CAP (20 %).
+    slope_cap = EARLINESS_TREND_SI_SLOPE_CAP
+    slope_norm = max(0.0, min(si_slope, slope_cap) / slope_cap) if si_slope > 0 else 0.0
+    return round(stability_inv * slope_norm * 100, 1)
+
+
 def _build_backtest_extension(s: dict, pool_position: int, pool_size: int,
                               agent_signals: dict) -> dict:
     """Liefert das Schema-Erweiterungs-Dict (Bahn B) für einen Top-10-Eintrag.
@@ -12061,6 +12206,22 @@ def _build_backtest_extension(s: dict, pool_position: int, pool_size: int,
     # Perfect-Storm-Multiplikator: aus agent_signals.json pro Ticker (vom
     # KI-Agent persistiert in Bahn B). Default 1.0 wenn kein Signal vorhanden.
     sig = (agent_signals or {}).get(s["ticker"]) or {}
+
+    # Earliness-Trend-Logging (prospektiv, KEIN Conviction-/Score-Effekt).
+    # Vier optionale Felder + schema_version=4-Marker. Alle Werte None bei
+    # unzureichenden Daten (< 5 FINRA-Punkte oder < 5 Trading-Tage).
+    finra_hist = fd.get("history") or []
+    hist_5d    = s.get("hist_5d") or []
+    avg_vol_20 = s.get("avg_vol_20d") or 0
+    volumes_5d = [d.get("volume", 0) for d in hist_5d]
+    highs_5d   = [d.get("high",   0) for d in hist_5d]
+    lows_5d    = [d.get("low",    0) for d in hist_5d]
+    closes_5d  = [d.get("close",  0) for d in hist_5d]
+    si_slope_5d   = _compute_si_slope_5d(finra_hist)
+    rvol_buildup  = _compute_rvol_buildup_5d(volumes_5d, avg_vol_20)
+    vol_stability = _compute_vol_stability_5d(highs_5d, lows_5d, closes_5d)
+    coiled_spring = _compute_coiled_spring_score(vol_stability, si_slope_5d)
+
     return {
         "score_struct":         sub["struct"]   if sub is not None else None,
         "score_catalyst":       sub["catalyst"] if sub is not None else None,
@@ -12076,6 +12237,14 @@ def _build_backtest_extension(s: dict, pool_position: int, pool_size: int,
         "pool_size":            int(pool_size),
         "short_float_source":   s.get("short_float_source") or "unknown",
         "si_trend_source":      fd.get("si_trend_source") or "unknown",
+        # Earliness-Trend-Logging (Schema v4 — kumulativ: v1 Original,
+        # v2 Bahn B, v3 Bahn A2, v4 jetzt). Alte Einträge ohne diese
+        # Felder bleiben unverändert (kein Backfill).
+        "si_trend_5d_slope":      si_slope_5d,
+        "rvol_buildup_5d":        rvol_buildup,
+        "vol_stability_5d":       vol_stability,
+        "coiled_spring_score":    coiled_spring,
+        "backtest_schema_version": 4,
     }
 
 

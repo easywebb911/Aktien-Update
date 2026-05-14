@@ -553,6 +553,19 @@ EARLINESS_PM_VOL_PTS_LOW          = 1      # V1-only
 EARLINESS_PM_VOL_PTS_HIGH         = 2      # V1-only
 EARLINESS_PTS_MAX_V1              = 7      # V1-only-Cap (für Rollback-Pfad)
 
+# ── Earliness-Trend-Logging (prospektiv, KEIN Conviction-/Score-Effekt) ─────
+# Felder werden ab dieser PR pro neuem Backtest-Eintrag persistiert, damit
+# nach 14–30 Tagen Live-Daten ein AUC-Vergleich gegen return_10d möglich ist
+# (analog zur DTC-Validierung 13.05.2026, die V2 belegt hat). Drei
+# Sub-Signale aus der ursprünglichen Diagnose, die aus dem heutigen
+# backtest_history.json NICHT rückwirkbar berechenbar waren: SI-Trend
+# 5d-Slope, RVOL-Build-up 5d, Vol-Stability 5d (ATR-Proxy). Plus
+# abgeleiteter Coiled-Spring-Composite.
+EARLINESS_TREND_LOG_WINDOW_DAYS    = 5     # 5-Trading-Tage-Fenster
+EARLINESS_TREND_MIN_FINRA_POINTS   = 5     # Slope braucht ≥ 5 SI-Werte
+EARLINESS_TREND_SI_SLOPE_CAP       = 0.20  # 20 % cap für coiled_spring-Norm
+EARLINESS_TREND_VOL_STAB_CAP       = 0.10  # 10 % ATR/Close cap für coiled_spring-Norm
+
 # ── SEC EDGAR 13D/13G Filings (Anomalie-Trigger) ────────────────────────────
 # Hybrid-Filter:
 #   • 13D / 13D/A: jeder Filing-Eintrag löst einen Push aus (aktive Stake-
