@@ -1,5 +1,5 @@
 {
-  "last_run": "2026-05-14T16:48:50.848689+02:00",
+  "last_run": "2026-05-14T19:17:49.969252+02:00",
   "cooldowns": {
     "anomaly_score_jump_XRX": "2026-05-03T18:47:15.315486+02:00",
     "anomaly_uoa_extreme_TDOC": "2026-05-04T13:47:00.365949+02:00",
@@ -692,6 +692,18 @@
       "suppressed": false,
       "suppress_reason": null,
       "conviction_score": null
+    },
+    {
+      "ts": "2026-05-14T19:17:50.269743+02:00",
+      "ticker": "AMC",
+      "kind": "exit_p2",
+      "severity": "warning",
+      "trigger": null,
+      "body": "⚠️ Exit-Warnung AMC: pressure 71/100",
+      "success": true,
+      "suppressed": false,
+      "suppress_reason": null,
+      "conviction_score": null
     }
   ],
   "prev_conviction_scores": {
@@ -707,7 +719,7 @@
     "ABSI": 53.0
   },
   "exit_cooldowns": {
-    "exitp2_warning_AMC": "2026-05-14T04:56:19.165188+02:00",
+    "exitp2_warning_AMC": "2026-05-14T19:17:50.269766+02:00",
     "exitp2_trigger_AMC_trend_break": "2026-05-13T22:21:29.965054+02:00",
     "exitp2_trigger_DMRC_catalyst": "2026-05-12T08:16:46.397344+02:00",
     "exitp2_trigger_AMC_profit_lock": "2026-05-14T00:08:46.149247+02:00",
