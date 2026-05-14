@@ -73,23 +73,49 @@ arbeitet, die er via ``parse_top_tickers()`` aus index.html zieht.
 
 ## Provider-Tiers
 
+> **Phase-2-Implementations-Status** (Stand PR „Health-Check Phase 2
+> Tier-1"): die vier Tier-1-Aggregate sind in `provider_health.jsonl`
+> instrumentiert. Tier 2 + 3 folgen in Folge-PRs. Diagnose-Klärung
+> (15.05.2026):
+> - VIX/SPY/FX als logischer Provider `yfinance_singletons` (Tier 1).
+>   Daily-Run emittiert eine Zeile (SPY + FX, max 2 items), KI-Agent
+>   eine Zeile (VIX, max 1 item). Phase-3-Digest aggregiert.
+> - Tier-3 (StockTwits/UOA/News): 3 getrennte Provider-Zeilen statt
+>   Spec-Wortlaut-Aggregat.
+> - EDGAR: 4 getrennte Provider-Zeilen (`edgar_13f`, `edgar_8k`,
+>   `edgar_form4`, `edgar_13d_g`).
+
 ### Tier-1 (crit, sofortiger Alarm bei Fail)
 
-- **Yahoo Screener** (primäre Ticker-Quelle)
-- **Finviz v161 / v111** (rel_volume, short_float, Sektoren)
-- **yfinance Batch** (Preise, RSI, EMA21, change_2d/3d)
+- **Yahoo Screener** (primäre Ticker-Quelle) — Provider-Key
+  `yahoo_screener`
+- **Finviz v161 / v111 / Quote-Page-Fallback** (rel_volume,
+  short_float, Sektoren) — Provider-Key `finviz` (Aggregat)
+- **yfinance Batch** (Preise, RSI, EMA21, change_2d/3d) —
+  Provider-Key `yfinance_batch`
+- **yfinance Singletons** (^VIX + ^GSPC + EURUSD=X) —
+  Provider-Key `yfinance_singletons`
 
 ### Tier-2 (warn, erst bei wiederholtem Fail)
 
-- **FINRA Short-Volume Sums**
-- **Finnhub Earnings Calendar**
-- **Stockanalysis-Konsolidierung**
-- **EarningsWhispers**
+- **FINRA Short-Volume Sums** — Provider-Key `finra`
+- **Finnhub Earnings Calendar** — Provider-Key `finnhub`
+- **Stockanalysis-Konsolidierung** — Provider-Key `stockanalysis`
+- **EarningsWhispers** — Provider-Key `earningswhispers`
 
 ### Tier-3 (warn, erst bei wiederholtem Fail)
 
-- **StockTwits / UOA / News**
-- **EDGAR 13F-Filings**
+Klärung 15.05.2026: keine Aggregate, sondern getrennte Provider-Keys
+für saubere Coverage-Berechnung und Phase-3-Digest-Granularität.
+
+- **StockTwits** — Provider-Key `stocktwits` (Social-Sentiment)
+- **UOA (Options-Activity)** — Provider-Key `uoa` (Calls/Puts-Ratio)
+- **News-RSS** — Provider-Key `news_rss` (Finviz / Google / Yahoo /
+  UnusualWhales / MarketBeat / SeekingAlpha)
+- **EDGAR 13F-Filings** — Provider-Key `edgar_13f`
+- **EDGAR 8-K-Filings** — Provider-Key `edgar_8k`
+- **EDGAR Form 4 (Insider-Transaktionen)** — Provider-Key `edgar_form4`
+- **EDGAR 13D/13G (Stake-Erklärungen)** — Provider-Key `edgar_13d_g`
 
 ## Provider-Trigger-Bedingungen
 

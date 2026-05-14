@@ -2410,6 +2410,57 @@ gedropt / ki_agent crasht silent).
 - Score-Methodik-Sync **nicht betroffen** — reines Logging-Feature,
   keine Score-/Filter-Logik berührt.
 
+### Phase 2 — Provider-Health (PR 1: Tier 1)
+
+Ergänzt State-Invariants um Provider-Latenz/Coverage-Telemetrie.
+Schema gemäß ``docs/health_check_spec.md`` Z. 86–101, persistiert
+in ``provider_health.jsonl`` (Append-Only, 30-Tage-Cutoff analog
+``health_check_log.jsonl``).
+
+**Helper in ``health_check.py``:**
+- ``record_provider_call(provider, tier, latency_ms, http_status,
+  item_count, error, coverage_pct, nan_pct, run_phase, run_ts, path)``
+- ``prune_provider_log(max_days, path)``
+- ``read_all_provider(path)`` (Diagnose-Helper)
+- ``SCHEMA_V_PROVIDER = 1``, ``LOG_FILE_PROVIDER =
+  "provider_health.jsonl"``
+
+**PR 1 Scope — vier Tier-1-Provider:**
+
+| Provider-Key | Tier | Quelle | Coverage |
+|---|---:|---|---|
+| ``yahoo_screener`` | 1 | ``get_yahoo_screener_candidates()`` (1 Call/Daily-Run) | Pool-Größe variabel, ``coverage_pct=null`` |
+| ``finviz`` | 1 | Aggregat aus ``get_finviz_candidates`` (v161), ``get_finviz_screener_v111`` (v111), ``_fetch_short_float_finviz`` (Quote-Page-Fallback, N×Top-10). Akkumulator ``_FINVIZ_ACCT`` summiert Latenzen + Item-Counts; main() emittiert 1 Zeile am Ende. | ``item_count = len(v161 ∪ v111)``; ``coverage_pct=null`` |
+| ``yfinance_batch`` | 1 | ``get_yfinance_batch(pool_tickers)`` (1 Call/Daily-Run, Z. ~14409) | ``coverage_pct = ok_items / pool_size × 100`` |
+| ``yfinance_singletons`` | 1 | 2 Emissions: Daily-Run schreibt 1 Zeile für SPY + FX, KI-Agent schreibt 1 Zeile für VIX. Beide Zeilen tragen denselben Provider-Key. | ``coverage_pct`` pro Zeile: Daily-Run 0/50/100 %, KI-Agent 0 oder 100 %. Phase-3-Digest aggregiert. |
+
+**Konstanten in ``config.py``:**
+- ``HEALTH_CHECK_PROVIDER_TIER = {"yahoo_screener": 1, "finviz": 1,
+  "yfinance_batch": 1, "yfinance_singletons": 1}`` (Tier 2/3 in
+  Folge-PRs ergänzt)
+- ``HEALTH_CHECK_PROVIDER_EXPECTED = {"yahoo_screener": None,
+  "finviz": None, "yfinance_batch": None, "yfinance_singletons": 3}``
+  (``None`` = variabel, Coverage übersprungen)
+
+**Pflege:**
+- Bei Schema-Erweiterung am ``provider_health.jsonl``-Eintrag:
+  ``SCHEMA_V_PROVIDER`` in ``health_check.py`` hochzählen +
+  Reader-Migrationspfad dokumentieren.
+- Bei neuem Provider: ``HEALTH_CHECK_PROVIDER_TIER``-Eintrag +
+  Instrumentierungs-Spot + Mock-Test (Fail/Pass-Pfad).
+- ``yfinance_singletons`` ist ein **Multi-Emitter-Provider**
+  (Daily-Run + KI-Agent emittieren je eine Zeile). Bei
+  Digest-Workflow (Phase 3) muss die Aggregation pro Tag über
+  beide Quellen joinen.
+- Score-Methodik-Sync **nicht betroffen**.
+
+**Nicht in PR 1:**
+- Tier-2 (FINRA, Finnhub, Stockanalysis, EarningsWhispers) — eigener
+  Folge-PR. Tier-2-Trigger-Bedingung „3 in Folge" erfordert
+  Counter-State in ``agent_state.json[provider_health_state]``.
+- Tier-3 (StockTwits, UOA, News-RSS, EDGAR-Set) — eigener Folge-PR.
+- Digest-Workflow 08:00 UTC — Phase 3.
+
 ---
 
 ## Session-Handover-Regel

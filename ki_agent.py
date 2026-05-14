@@ -2877,7 +2877,34 @@ def main() -> None:
     # Variable für save_signals (→ app_data.json.vix_current) ablegen.
     # Bei Fetch-Fehler bleibt _VIX_CURRENT None und das Gating ist aus
     # (Default: Pushes laufen wie vorher).
-    globals()["_VIX_CURRENT"] = _fetch_vix_current()
+    # Health-Check Phase 2 — yfinance_singletons-Zeile (KI-Agent-Seite,
+    # deckt VIX ab; SPY+FX werden im Daily-Run als separate Zeile mit
+    # demselben provider-Key geschrieben). try/finally garantiert
+    # Latency-Capture auch bei unerwartetem Crash; Exception bubbelt
+    # sauber durch.
+    _vix_t0 = time.perf_counter()
+    _vix_err: str | None = None
+    try:
+        globals()["_VIX_CURRENT"] = _fetch_vix_current()
+    except Exception as _exc:
+        _vix_err = f"{type(_exc).__name__}: {str(_exc)[:120]}"
+        raise
+    finally:
+        try:
+            _vix_ok = (_vix_err is None) and (_VIX_CURRENT is not None)
+            health_check.record_provider_call(
+                provider="yfinance_singletons",
+                tier=HEALTH_CHECK_PROVIDER_TIER.get("yfinance_singletons", 1),
+                latency_ms=int((time.perf_counter() - _vix_t0) * 1000),
+                http_status=200 if _vix_ok else None,
+                item_count=int(_vix_ok),
+                coverage_pct=100.0 if _vix_ok else 0.0,
+                error=_vix_err if _vix_err else (
+                    None if _vix_ok else "vix_fetch_failed"),
+                run_phase="ki_agent_tick",
+            )
+        except Exception as _hc_exc:
+            log.debug("yfinance_singletons (VIX) provider-record skipped: %s", _hc_exc)
     vix_now = _VIX_CURRENT
     vix_pause = (vix_now is not None and vix_now > ANOMALY_VIX_PAUSE_THRESHOLD)
     vix_warn  = (vix_now is not None and vix_now > ANOMALY_VIX_WARN_THRESHOLD

@@ -899,3 +899,27 @@ HEALTH_CHECK_S5_MIN_INFLATION_LINES = 10   # neue Zeilen in score_inflation_log
 HEALTH_CHECK_S6_MIN_MONSTER_NONZERO = 3    # monster_scores > 0
 HEALTH_CHECK_S7_MIN_AGENT_OVERLAP   = 5    # |agent_signals ∩ top10|
 HEALTH_CHECK_CUTOFF_DAYS            = 30   # JSONL-Prune-Cutoff
+
+# Phase 2 — Provider-Health-Instrumentierung. Tier-Zuordnung (1=crit,
+# 2=warn-3-in-Folge, 3=warn-3-in-Folge) gemäß
+# docs/health_check_spec.md. Phase 2 PR 1 instrumentiert nur Tier-1;
+# Tier-2/3 werden in Folge-PRs ergänzt.
+HEALTH_CHECK_PROVIDER_TIER = {
+    # Tier 1 (crit, sofortiger Alarm bei Fail)
+    "yahoo_screener":      1,
+    "finviz":              1,   # Aggregat aus v161 + v111 + Quote-Fallback
+    "yfinance_batch":      1,   # Pool-Batch (OHLCV/RSI/EMA21/change_2d_3d)
+    "yfinance_singletons": 1,   # ^VIX + ^GSPC (SPY) + EURUSD=X
+    # Tier 2 (Folge-PR): finra, finnhub, stockanalysis, earningswhispers
+    # Tier 3 (Folge-PR): stocktwits, uoa, news_rss, edgar_*
+}
+
+# Erwartete Item-Counts pro Provider — Basis für Coverage-Berechnung.
+# ``None`` = variabel (Coverage-Berechnung übersprungen, coverage_pct
+# bleibt null in der JSONL-Zeile).
+HEALTH_CHECK_PROVIDER_EXPECTED = {
+    "yahoo_screener":      None,   # Pool-Größe schwankt natürlich
+    "finviz":              None,   # v161 + v111-Pool variabel
+    "yfinance_batch":      None,   # ticker-abhängig (Pool-Größe)
+    "yfinance_singletons": 3,      # ^VIX + ^GSPC + EURUSD=X
+}

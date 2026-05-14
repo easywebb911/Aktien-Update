@@ -286,6 +286,37 @@ _FX_USD_EUR_COMPUTED_AT: str = ""
 # leerem Dict rendert der Methodik-Block einen Hinweis statt eine Tabelle.
 _SCORE_CONFIDENCE: dict = {}
 
+# Health-Check Phase 2 — Finviz-Aggregator. Akkumuliert Latenzen +
+# Item-Counts der drei Finviz-Funktionen (v161, v111, Quote-Page-
+# Fallback) während eines Daily-Runs. main() emittiert nach Step 3
+# eine konsolidierte ``record_provider_call("finviz", …)``-Zeile.
+# Reset pro main()-Aufruf (Funktion ``_finviz_acct_reset``).
+_FINVIZ_ACCT: dict = {
+    "latency_ms": 0,
+    "calls":      0,
+    "failures":   0,
+    "v161_count": 0,
+    "v111_count": 0,
+}
+
+
+def _finviz_acct_reset() -> None:
+    _FINVIZ_ACCT["latency_ms"] = 0
+    _FINVIZ_ACCT["calls"]      = 0
+    _FINVIZ_ACCT["failures"]   = 0
+    _FINVIZ_ACCT["v161_count"] = 0
+    _FINVIZ_ACCT["v111_count"] = 0
+
+
+def _finviz_acct_record(latency_ms: int, success: bool,
+                        v161: int = 0, v111: int = 0) -> None:
+    _FINVIZ_ACCT["latency_ms"] += int(latency_ms)
+    _FINVIZ_ACCT["calls"]      += 1
+    if not success:
+        _FINVIZ_ACCT["failures"] += 1
+    _FINVIZ_ACCT["v161_count"] += int(v161)
+    _FINVIZ_ACCT["v111_count"] += int(v111)
+
 
 # ===========================================================================
 # 1. FINVIZ SCREENER
@@ -1632,7 +1663,17 @@ def get_short_float_with_fallback(
         return (round(float(yf_value), 2), "yfinance")
     if screener_value is not None and screener_value >= _SF_MIN_VALID:
         return (round(float(screener_value), 2), "finviz")
+    # Health-Check Phase 2 — Finviz-Quote-Page-Fallback füttert nur den
+    # Latency-Aggregator (item_count bleibt v161 ∪ v111 lt. Auftrag).
+    _fv_qp_t0 = time.perf_counter()
     fv = _fetch_short_float_finviz(ticker)
+    try:
+        _finviz_acct_record(
+            latency_ms=int((time.perf_counter() - _fv_qp_t0) * 1000),
+            success=fv is not None,
+        )
+    except Exception:
+        pass
     if fv is not None and fv >= _SF_MIN_VALID:
         return (fv, "finviz")
     sa = _fetch_short_float_stockanalysis(ticker)
@@ -14133,23 +14174,66 @@ def main():
     report_date = datetime.now(berlin).strftime("%d.%m.%Y")
     run_phase   = _resolve_run_phase()
     log.info("=== Squeeze Report %s (run_phase=%s) ===", report_date, run_phase)
+    # Health-Check Phase 2 — Provider-Aggregatoren zurücksetzen, damit
+    # wiederholte main()-Aufrufe (Tests) sauber starten.
+    _finviz_acct_reset()
 
     # --- Step 1: Get candidate pool ---
     # Primary: Yahoo Finance Screener (reliable from GitHub Actions runners)
     _t1 = time.time()
     log.info("Step 1 – Yahoo Finance Screener …")
-    candidates = get_yahoo_screener_candidates()
+    # Health-Check Phase 2 — Tier-1-Instrumentierung yahoo_screener.
+    # try/finally garantiert Latency-Capture auch bei Exception; die
+    # Exception bubbelt sauber durch (kein swallow). Funktion ist
+    # fail-soft (returnt [] bei Fehler) — try/finally ist defensive
+    # Vorsicht für unerwartete Crashes.
+    _yh_t0 = time.perf_counter()
+    _yh_err = None
+    candidates: list = []
+    try:
+        candidates = get_yahoo_screener_candidates()
+    except Exception as _exc:
+        _yh_err = f"{type(_exc).__name__}: {str(_exc)[:120]}"
+        raise
+    finally:
+        try:
+            health_check.record_provider_call(
+                provider="yahoo_screener",
+                tier=HEALTH_CHECK_PROVIDER_TIER.get("yahoo_screener", 1),
+                latency_ms=int((time.perf_counter() - _yh_t0) * 1000),
+                http_status=200 if candidates else None,
+                item_count=len(candidates) if candidates else 0,
+                error=_yh_err if _yh_err else (
+                    None if candidates else "empty_result"),
+                run_phase=run_phase,
+            )
+        except Exception as _hc_exc:
+            log.debug("yahoo_screener provider-record skipped: %s", _hc_exc)
 
     if not candidates:
         # Fallback: Finviz v141 (may be blocked on cloud IPs, but worth trying)
         log.warning("Yahoo screener returned 0 results. Trying Finviz as fallback …")
+        # Health-Check Phase 2 — Finviz-Aggregator füttern (v161-Pfad).
+        _fv_t0 = time.perf_counter()
         candidates = get_finviz_candidates(max_pages=6)
+        _finviz_acct_record(
+            latency_ms=int((time.perf_counter() - _fv_t0) * 1000),
+            success=bool(candidates),
+            v161=len(candidates),
+        )
 
     # Zusätzliche Quelle: Finviz v=111 mit SF>20% + Rel-Vol≥1.5× + Small+-Cap.
     # Läuft parallel zur Yahoo-Primärquelle (nicht nur als Fallback) — erweitert
     # die Kandidaten-Vielfalt um hochspezifische Short-Kandidaten.
     if FINVIZ_SCREENER_ENABLED:
+        # Health-Check Phase 2 — Finviz-Aggregator füttern (v111-Pfad).
+        _fv_t0 = time.perf_counter()
         fv_extra = get_finviz_screener_v111()
+        _finviz_acct_record(
+            latency_ms=int((time.perf_counter() - _fv_t0) * 1000),
+            success=bool(fv_extra),
+            v111=len(fv_extra),
+        )
         seen_ids = {c["ticker"] for c in candidates}
         n_new = 0
         for fv in fv_extra:
@@ -14333,16 +14417,47 @@ def main():
     log.info("Step 2b – Batch yfinance fetch for %d pool tickers …", len(pool_tickers))
     # Fix 1: hard 45s timeout — a hanging yf.download would otherwise block forever
     _YF_BATCH_TIMEOUT = 45
+    # Health-Check Phase 2 — Tier-1-Instrumentierung yfinance_batch.
+    # try/finally garantiert Latency-Capture auch bei Exception. Existing
+    # TimeoutError-Handler bleibt; ein unerwartetes Crash der wrapped
+    # Funktion bubbelt sauber durch.
+    # item_count = Anzahl Pool-Tickers mit non-empty Result-Dict.
+    # coverage_pct = item_count / pool_size × 100.
+    _yfb_t0    = time.perf_counter()
+    _yfb_err   = None
+    _yfb_pool  = len(pool_tickers)
+    batch_yfd: dict = {}
     try:
-        with ThreadPoolExecutor(max_workers=1) as _yf_ex:
-            batch_yfd = _yf_ex.submit(get_yfinance_batch, pool_tickers).result(
-                timeout=_YF_BATCH_TIMEOUT
+        try:
+            with ThreadPoolExecutor(max_workers=1) as _yf_ex:
+                batch_yfd = _yf_ex.submit(get_yfinance_batch, pool_tickers).result(
+                    timeout=_YF_BATCH_TIMEOUT
+                )
+        except TimeoutError:
+            print(f"yfinance Batch-Download Timeout nach {_YF_BATCH_TIMEOUT}s — leeres Ergebnis",
+                  flush=True)
+            log.warning("get_yfinance_batch timeout after %ds — using empty dict", _YF_BATCH_TIMEOUT)
+            batch_yfd = {}
+            _yfb_err = f"timeout_after_{_YF_BATCH_TIMEOUT}s"
+    except Exception as _exc:
+        _yfb_err = f"{type(_exc).__name__}: {str(_exc)[:120]}"
+        raise
+    finally:
+        try:
+            _yfb_ok_items = sum(1 for _v in (batch_yfd or {}).values() if _v)
+            _yfb_cov = (_yfb_ok_items / _yfb_pool * 100.0) if _yfb_pool > 0 else None
+            health_check.record_provider_call(
+                provider="yfinance_batch",
+                tier=HEALTH_CHECK_PROVIDER_TIER.get("yfinance_batch", 1),
+                latency_ms=int((time.perf_counter() - _yfb_t0) * 1000),
+                http_status=200 if _yfb_err is None else None,
+                item_count=_yfb_ok_items,
+                coverage_pct=round(_yfb_cov, 1) if _yfb_cov is not None else None,
+                error=_yfb_err,
+                run_phase=run_phase,
             )
-    except TimeoutError:
-        print(f"yfinance Batch-Download Timeout nach {_YF_BATCH_TIMEOUT}s — leeres Ergebnis",
-              flush=True)
-        log.warning("get_yfinance_batch timeout after %ds — using empty dict", _YF_BATCH_TIMEOUT)
-        batch_yfd = {}
+        except Exception as _hc_exc:
+            log.debug("yfinance_batch provider-record skipped: %s", _hc_exc)
     print(f"Step 2b (yfinance batch) abgeschlossen in {time.time()-_t_batch:.1f}s", flush=True)
 
     # Relative Stärke vs. S&P 500 (20T) + heutige Tagesveränderung
@@ -14350,6 +14465,13 @@ def main():
     _spx_perf_20d:   float | None = None
     _spx_daily_perf: float        = 0.0   # heutige S&P 500 Tagesveränderung in %
     _SPX_TIMEOUT = 15
+    # Health-Check Phase 2 — yfinance_singletons-Aggregator (Daily-Run-Seite,
+    # SPY + FX). VIX wird parallel in ki_agent.py instrumentiert. Beide
+    # Files emittieren je 1 Zeile pro Run unter demselben provider-Key —
+    # Phase-3-Digest aggregiert ueber den Tag.
+    _yfs_t0     = time.perf_counter()
+    _yfs_spy_ok = False
+    _yfs_fx_ok  = False
     def _fetch_spx():
         return yf.download("^GSPC", period="25d", auto_adjust=True,
                            progress=False, threads=False)
@@ -14362,6 +14484,7 @@ def main():
             _last  = float(_spx_close.iloc[-1])
             _first = float(_spx_close.iloc[-21])
             _spx_perf_20d = (_last - _first) / _first * 100
+            _yfs_spy_ok = True
             log.info("S&P 500 20T-Perf: %.2f%%", _spx_perf_20d)
             print(f"S&P 500 20T Performance: {_spx_perf_20d:.1f}%", flush=True)
             # Daily perf for relative momentum
@@ -14392,10 +14515,38 @@ def main():
                 _fx_usd_eur = round(1.0 / _eur_usd, 4)
                 _fx_computed_at = datetime.now(ZoneInfo("UTC")).strftime("%Y-%m-%dT%H:%M:%SZ")
                 _fx_fetch_ok = True
+                _yfs_fx_ok = True
                 log.info("USD/EUR Rate: 1 USD = %.4f EUR (EURUSD=%.4f)",
                          _fx_usd_eur, _eur_usd)
     except Exception as _fx_exc:
         log.warning("EURUSD=X fetch failed: %s", _fx_exc)
+    # Health-Check Phase 2 — yfinance_singletons-Zeile (Daily-Run-Seite,
+    # deckt SPY + FX ab; VIX als separate Zeile in ki_agent.py).
+    # try/finally garantiert Emission auch bei unerwartetem Crash der
+    # SPY/FX-Blöcke (beide haben eigene try/except, aber defensive
+    # Vorsicht).
+    try:
+        _yfs_items = int(_yfs_spy_ok) + int(_yfs_fx_ok)
+        _yfs_cov   = (_yfs_items / 2.0) * 100.0
+        _yfs_err   = None
+        if not _yfs_spy_ok and not _yfs_fx_ok:
+            _yfs_err = "spy_and_fx_failed"
+        elif not _yfs_spy_ok:
+            _yfs_err = "spy_failed"
+        elif not _yfs_fx_ok:
+            _yfs_err = "fx_failed"
+        health_check.record_provider_call(
+            provider="yfinance_singletons",
+            tier=HEALTH_CHECK_PROVIDER_TIER.get("yfinance_singletons", 1),
+            latency_ms=int((time.perf_counter() - _yfs_t0) * 1000),
+            http_status=200 if _yfs_err is None else None,
+            item_count=_yfs_items,
+            coverage_pct=round(_yfs_cov, 1),
+            error=_yfs_err,
+            run_phase=run_phase,
+        )
+    except Exception as _hc_exc:
+        log.debug("yfinance_singletons provider-record skipped: %s", _hc_exc)
     # Stale-Fallback: bei Fetch-Fehler ODER fehlendem Live-Wert den letzten
     # persistierten Stand aus app_data.json holen — sowohl Wert als auch
     # ``computed_at`` werden bewahrt, damit der Timestamp den echten
@@ -15155,6 +15306,31 @@ def main():
         )
     except Exception as exc:
         log.warning("health_check (Daily-Run) fehlgeschlagen: %s", exc)
+
+    # Health-Check Phase 2 — Tier-1-Provider provider_health.jsonl-
+    # Aggregate emittieren (Finviz). yahoo_screener + yfinance_batch +
+    # yfinance_singletons schreiben ihre Zeilen inline am Call-Site.
+    # Finviz aggregiert 3 Funktionen, daher End-of-main-Emission.
+    try:
+        _fv_acct = _FINVIZ_ACCT
+        if _fv_acct["calls"] > 0:
+            _fv_items = _fv_acct["v161_count"] + _fv_acct["v111_count"]
+            health_check.record_provider_call(
+                provider="finviz",
+                tier=HEALTH_CHECK_PROVIDER_TIER.get("finviz", 1),
+                latency_ms=_fv_acct["latency_ms"],
+                http_status=200 if _fv_acct["failures"] == 0 else None,
+                item_count=_fv_items,
+                error=None if _fv_acct["failures"] == 0
+                      else f"{_fv_acct['failures']}/{_fv_acct['calls']} calls failed",
+                run_phase=run_phase,
+            )
+        try:
+            health_check.prune_provider_log()
+        except Exception as _exc_pp:
+            log.debug("prune_provider_log skipped: %s", _exc_pp)
+    except Exception as exc:
+        log.warning("finviz provider-record failed: %s", exc)
 
     log.info("Report written → index.html")
     log.info("Top 10: %s", [s["ticker"] for s in top10])
