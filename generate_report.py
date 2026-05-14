@@ -5421,17 +5421,44 @@ def _build_chat_synthesis_ctx(stocks: list[dict], score_history: dict,
             "si_trend":        _fd.get("trend", "no_data"),
         })
 
-    # Top-10-Eintritte/-Austritte vs. Vortag
+    # Top-10-Eintritte/-Austritte vs. Vortag.
+    #
+    # SSOT für gestrige Top-10: backtest_history.json (Einträge sind
+    # per Definition Top-10-Mitglieder, weil `_append_backtest_entries`
+    # nur Top-10 schreibt). Vorher (bis 14.05.2026): wurde score_history
+    # genutzt — das ist aber ein Misch-Set (Top-10 + Watchlist + KI-Agent-
+    # Boosted-Ticker), nicht echte gestrige Top-10. Konsequenz: `new_in_top10`
+    # war effektiv immer leer, `topten_entry`-Anomaly feuerte praktisch nie
+    # (Conviction-Diagnose 14.05.2026 zeigte 3 echte Neuzugänge AEVA/ENVX/RR
+    # ohne Trigger).
+    #
+    # Fallback (Easys Spec): wenn backtest_history.{yesterday} leer ist
+    # (kompletter Run-Ausfall am Vortag, leerer Repo, Feiertags-Lücke) →
+    # Skip mit Warning-Log. Pseudo-„alles neu"-Trigger werden so vermieden;
+    # die Top-10-Bewegungs-Info im Chat-Context fehlt in dem seltenen Fall.
     yesterday_top10_set: set[str] = set()
     if yesterday_str:
-        for t, entries in (score_history or {}).items():
-            for e in entries:
-                if _entry_date(e) == yesterday_str:
-                    yesterday_top10_set.add(t)
-                    break
+        try:
+            _bh = _load_backtest_history()
+            yesterday_top10_set = {
+                e.get("ticker") for e in _bh
+                if e.get("date") == yesterday_str and e.get("ticker")
+            }
+        except Exception as _exc:
+            log.warning("topten_entry: backtest_history load failed (%s) — "
+                        "skip topten_entry/exit-Anomalies", _exc)
+            yesterday_top10_set = set()
+        if not yesterday_top10_set:
+            log.warning("topten_entry: keine backtest_history-Einträge für "
+                        "%s — skip topten_entry/exit-Anomalies", yesterday_str)
 
-    new_in_top10  = sorted(today_set - yesterday_top10_set)
-    dropped_top10 = sorted(yesterday_top10_set - today_set)
+    if yesterday_top10_set:
+        new_in_top10  = sorted(today_set - yesterday_top10_set)
+        dropped_top10 = sorted(yesterday_top10_set - today_set)
+    else:
+        # Edge-Case-Skip: keine zuverlässige Vortags-Top-10-Quelle.
+        new_in_top10  = []
+        dropped_top10 = []
 
     # Anomalie-Liste — bewusst minimal, weil ki_agent-eigene Trigger
     # (UOA-Extreme, RVOL-Combo) erst im stündlichen Tick auflaufen. Hier:
