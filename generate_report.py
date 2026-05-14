@@ -278,6 +278,13 @@ _FX_USD_EUR: float = 0.92
 # app_data.json zieht (dort wird der ursprüngliche Timestamp übernommen).
 _FX_USD_EUR_COMPUTED_AT: str = ""
 
+# Score-Konfidenz-Snapshot — gesetzt in main() VOR generate_html, gelesen in
+# _build_context für den Methodik-Panel-Block. Reines Anzeige-Feld, keine
+# Score-/Conviction-Reader-Pfade (CI-Lint
+# scripts/lint_score_confidence_isolation.py erzwingt die Trennung). Bei
+# leerem Dict rendert der Methodik-Block einen Hinweis statt eine Tabelle.
+_SCORE_CONFIDENCE: dict = {}
+
 
 # ===========================================================================
 # 1. FINVIZ SCREENER
@@ -5553,6 +5560,51 @@ def _build_chat_synthesis_ctx(stocks: list[dict], score_history: dict,
     }
 
 
+def _score_confidence_rows_html(confidence: dict) -> tuple[str, str]:
+    """Rendert das Konfidenz-Panel: pro Score eine Zeile mit Stufe + Note.
+
+    Liefert ``(rows_html, computed_at_str)``. Bei leerem ``confidence``-Dict:
+    Hinweis-Zeile, kein Crash. Stufen werden mit Emoji-Pill als visuelles
+    Anker dargestellt (🟢 robust / 🟡 mittel / 🟠 prov. / 🔴 heuristisch).
+    """
+    if not confidence:
+        return (
+            '<li class="sb-empty">Konfidenz-Daten noch nicht verfügbar — '
+            'wird beim nächsten Daily-Run berechnet.</li>',
+            "—",
+        )
+    _tier_icon = {
+        "robust":       "🟢 robust",
+        "mittel":       "🟡 mittel",
+        "provisorisch": "🟠 provisorisch",
+        "heuristisch":  "🔴 heuristisch",
+    }
+    _labels = {
+        "setup":          "Setup-Score",
+        "earliness":      "Earliness V2",
+        "monster":        "Monster-Score",
+        "ki":             "KI-Score",
+        "conviction":     "Conviction",
+        "exit_pressure":  "Exit-Druck",
+    }
+    rows = []
+    for key in ("setup", "earliness", "monster", "ki", "conviction",
+                "exit_pressure"):
+        entry = (confidence.get(key) or {})
+        tier = entry.get("tier") or "heuristisch"
+        icon = _tier_icon.get(tier, f"⚪ {tier}")
+        note = (entry.get("note") or "")
+        n    = entry.get("n")
+        n_str = f" (n={n})" if isinstance(n, int) and n > 0 else ""
+        rows.append(
+            f'<li><span class="sb-lbl">{_labels.get(key, key)}</span>'
+            f'<span class="sb-pts">{icon}{n_str}</span>'
+            f'<span class="sb-note">{note}</span></li>'
+        )
+    computed_at = confidence.get("computed_at") or "—"
+    return ("\n".join(rows), computed_at)
+
+
 def _build_context(stocks: list[dict], report_date: str,
                     watchlist_cards: dict | None = None) -> dict:
     """Zentrale Context-Erstellung für Template-Rendering.
@@ -5673,6 +5725,15 @@ def _build_context(stocks: list[dict], report_date: str,
         chat_ctx_json=chat_ctx_json,
     )
 
+    # Score-Konfidenz-Rows für Methodik-Panel. Quelle ist die Modul-Variable
+    # ``_SCORE_CONFIDENCE``, die in main() VOR generate_html via
+    # ``compute_score_confidence`` gesetzt wird. Defensiver Fallback bei
+    # leerem Snapshot (z.B. erster Lauf oder Backtest-History-Fail).
+    _conf_snapshot = globals().get("_SCORE_CONFIDENCE") or {}
+    score_confidence_rows_html, score_confidence_computed_at = (
+        _score_confidence_rows_html(_conf_snapshot)
+    )
+
     return {
         "report_date":    report_date,
         "timestamp":      timestamp,
@@ -5694,6 +5755,8 @@ def _build_context(stocks: list[dict], report_date: str,
         "chat_panel_html": chat_panel_html,
         "chat_script_html": chat_script_html,
         "backtest_count_str": backtest_count_str,
+        "score_confidence_rows_html":    score_confidence_rows_html,
+        "score_confidence_computed_at":  score_confidence_computed_at,
     }
 
 
@@ -5733,6 +5796,9 @@ def generate_html_v1(stocks: list[dict], report_date: str,
     chat_panel_html  = ctx["chat_panel_html"]
     chat_script_html = ctx["chat_script_html"]
     backtest_count_str = ctx["backtest_count_str"]
+    # Score-Konfidenz (defensiver Fallback bei alten Cached-Contexts).
+    score_confidence_rows_html   = ctx.get("score_confidence_rows_html", "")
+    score_confidence_computed_at = ctx.get("score_confidence_computed_at", "—")
 
     # Methodik-Sektion: Komponenten-Listen mit Pkt-Wert + Prozent-Anteil
     # vom Block-Roh-Total. Werte stammen aus config.py-Konstanten (nicht
@@ -6212,6 +6278,20 @@ def generate_html_v1(stocks: list[dict], report_date: str,
             <p class="score-block-foot">Component-Aufschlüsselung in der Detail-Ansicht pro Stock</p>
           </div>
         </div>
+      </div>
+      <div class="info-box info-box--full">
+        <h4>Konfidenz der Scores</h4>
+        <p class="score-intro-story">
+          Wie belastbar sind die Scores statistisch?
+          Vier qualitative Stufen statt prozentual — verhindert
+          das „85-%-Garantie"-Missverständnis. <strong>Reine
+          Anzeige</strong> — beeinflusst die Score-Berechnung
+          NICHT (Trennung durch CI-Lint erzwungen).
+        </p>
+        <ul class="score-block-list">
+          {score_confidence_rows_html}
+        </ul>
+        <p class="score-block-foot">Stand: {score_confidence_computed_at}</p>
       </div>
       <div class="info-box">
         <h4>Datenquellen</h4>
@@ -12430,6 +12510,79 @@ def _sanitize_for_json(obj):
     return obj
 
 
+def compute_score_confidence(backtest_history: list | None = None) -> dict:
+    """Konfidenz-Stufen für die 6 Score-Klassen (rein anzeigend, KEIN
+    Score-/Conviction-Effekt — CI-Lint
+    ``scripts/lint_score_confidence_isolation.py`` erzwingt die Trennung).
+
+    Berechnung:
+      - ``n_returns`` = Anzahl Backtest-Einträge mit ``return_10d`` befüllt.
+        Das ist die Stichprobe für die Bucket-Auswertung Setup-Score gegen
+        return_10d (also robust ab ``SCORE_CONFIDENCE_N_ROBUST`` Datenpunkten).
+      - Earliness V2: feste Stufe ``mittel`` (n=78 in 14-Tage-Diagnose 13.05.2026,
+        AUC 0.77). Wird nach 14-30 Tagen Live-Daten via Trend-Logging-Auswertung
+        manuell hochgestuft.
+      - Monster: erbt Setup-Stufe (Komposition).
+      - KI / Conviction / Exit-Druck: heuristisch (keine Backtest-Persistenz).
+
+    Liefert ein Dict ``{<score_name>: {tier, n, note, ...}, computed_at}``.
+    """
+    bh = backtest_history if backtest_history is not None else []
+    n_returns = sum(1 for e in bh if e.get("return_10d") is not None)
+
+    def _tier(n: int, has_auc: bool) -> str:
+        if n >= SCORE_CONFIDENCE_N_ROBUST and has_auc:
+            return "robust"
+        if n >= SCORE_CONFIDENCE_N_MITTEL and has_auc:
+            return "mittel"
+        if n >= SCORE_CONFIDENCE_N_MITTEL:
+            return "mittel"   # viele Daten, AUC-Test ausstehend
+        if n >= SCORE_CONFIDENCE_N_PROVISORISCH:
+            return "provisorisch"
+        return "heuristisch"
+
+    setup_tier = _tier(n_returns, has_auc=True)
+    return {
+        "setup": {
+            "tier": setup_tier,
+            "n":    n_returns,
+            "note": "Backtest-Bucket-Auswertung gegen return_10d (≥, mid, <)",
+        },
+        "earliness": {
+            "tier":  "mittel",
+            "n":     78,
+            "auc":   0.77,
+            "note":  ("Mann-Whitney-U 13.05.2026, 14-Tage-Stichprobe (n_w=34, "
+                      "n_l=44). AUC-Re-Test nach 14-30d Live-Daten geplant "
+                      "(Trend-Logging-Felder, PR #142)."),
+        },
+        "monster": {
+            "tier": setup_tier,
+            "n":    n_returns,
+            "note": "Komposition Setup × KI-Boost — erbt Setup-Konfidenz.",
+        },
+        "ki": {
+            "tier": "heuristisch",
+            "n":    0,
+            "note": ("Wirkt nur als Multiplikator ×1.05–1.15. Kein "
+                     "eigenständiger Backtest-Pfad."),
+        },
+        "conviction": {
+            "tier": "heuristisch",
+            "n":    0,
+            "note": ("Keine Backtest-Persistenz. Komponenten-Konfidenz "
+                     "(Stufe 2) geplant nach Schema-Erweiterung."),
+        },
+        "exit_pressure": {
+            "tier": "heuristisch",
+            "n":    0,
+            "note": ("Closed-Trades-Snapshot-Schema offen — Validierungs-Pfad "
+                     "wartet auf Trade-Journal-Erweiterung."),
+        },
+        "computed_at": datetime.now(ZoneInfo("UTC")).strftime("%Y-%m-%dT%H:%M:%SZ"),
+    }
+
+
 def _write_app_data_json(watchlist_cards: dict | None = None,
                           monster_scores: dict | None = None,
                           setup_scores: dict | None = None,
@@ -12437,6 +12590,7 @@ def _write_app_data_json(watchlist_cards: dict | None = None,
                           top10_metrics: dict | None = None,
                           positions: dict | None = None,
                           conviction_scores: dict | None = None,
+                          score_confidence: dict | None = None,
                           run_phase: str = "premarket") -> None:
     """Schreibt kombinierte app_data.json = score_history + agent_signals + watchlist_cards.
 
@@ -12528,6 +12682,12 @@ def _write_app_data_json(watchlist_cards: dict | None = None,
         # Persistenz von der Realität abweichen — der nächste Run
         # überschreibt.
         "run_phase":       run_phase,
+        # Score-Konfidenz-Stufen (rein anzeigend im Methodik-Panel, KEIN
+        # Score-/Conviction-Reader-Pfad — Trennung wird von
+        # scripts/lint_score_confidence_isolation.py erzwungen).
+        # Default leeres Dict für Backward-Compat bei Aufrufern, die
+        # diesen Parameter (noch) nicht übergeben.
+        "score_confidence": score_confidence or {},
     }
     # Browser-strict-JSON: NaN/Infinity → None vor Serialisierung. Python's
     # ``json.dump`` schreibt NaN sonst als Literal ``NaN``, was kein gültiges
@@ -14545,6 +14705,17 @@ def main():
                  len(_wl_card_data) - _fallback_added, _fallback_added)
 
     # --- Step 4: HTML ---
+    # Score-Konfidenz-Snapshot VOR generate_html, damit der Methodik-Block
+    # die Stufen aus _SCORE_CONFIDENCE rendern kann. Pure Funktion, kein
+    # Side-Effect auf Score-/Conviction-Pfaden — siehe CI-Lint
+    # scripts/lint_score_confidence_isolation.py.
+    try:
+        globals()["_SCORE_CONFIDENCE"] = compute_score_confidence(
+            _load_backtest_history())
+    except Exception as _exc_conf:
+        log.warning("Score-Konfidenz-Snapshot fehlgeschlagen: %s", _exc_conf)
+        globals()["_SCORE_CONFIDENCE"] = {}
+
     _t4 = time.time()
     log.info("Step 4 – Generating HTML report …")
     html = generate_html(top10, report_date, watchlist_cards=_wl_card_data)
@@ -14667,6 +14838,10 @@ def main():
                          top10_metrics=_top10_metrics,
                          conviction_scores=_conviction_scores,
                          positions=_positions_payload,
+                         # _SCORE_CONFIDENCE wurde VOR generate_html
+                         # in main() berechnet (Modul-Variable). Hier
+                         # wird derselbe Snapshot durchgereicht.
+                         score_confidence=globals().get("_SCORE_CONFIDENCE", {}),
                          run_phase=run_phase)
     print(f"Step 4 abgeschlossen in {time.time()-_t4:.1f}s", flush=True)
 

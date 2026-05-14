@@ -70,6 +70,13 @@ jobs:
         # Hintergrund: PR #138 — siehe scripts/lint_jsformat_escape.py.
         run: python scripts/lint_jsformat_escape.py
 
+      - name: Lint score-confidence isolation
+        # Stellt sicher, dass die rein anzeigenden Score-Konfidenz-Stufen
+        # NICHT in Score-/Conviction-Berechnungs-Pfaden gelesen werden
+        # (sonst Self-Reinforcement). Hintergrund: PR Score-Konfidenz-
+        # Tiers — siehe scripts/lint_score_confidence_isolation.py.
+        run: python scripts/lint_score_confidence_isolation.py
+
       - name: Resolve run phase
         # Single-Source-of-Truth: scripts/resolve_run_phase.py löst den
         # RUN_PHASE-Wert auf. Schedule-Trigger nutzen festen Cron-Mapping

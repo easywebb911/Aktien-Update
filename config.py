@@ -566,6 +566,23 @@ EARLINESS_TREND_MIN_FINRA_POINTS   = 5     # Slope braucht ≥ 5 SI-Werte
 EARLINESS_TREND_SI_SLOPE_CAP       = 0.20  # 20 % cap für coiled_spring-Norm
 EARLINESS_TREND_VOL_STAB_CAP       = 0.10  # 10 % ATR/Close cap für coiled_spring-Norm
 
+# ── Score-Konfidenz-Stufen (rein anzeigend, KEIN Score-/Conviction-Effekt) ──
+# Vier qualitative Stufen (statt prozentual, um „85 %-Garantie"-Trap zu
+# vermeiden). Werden im Methodik-Panel angezeigt. Trennung von Score-
+# Berechnungs-Pfaden wird vom Linter `scripts/lint_score_confidence_isolation.py`
+# erzwungen.
+#
+# Schwellen für `compute_score_confidence`:
+#   ≥ N_ROBUST + AUC-Test belegt        → "robust"      (🟢)
+#   ≥ N_MITTEL UND AUC-Test belegt       → "mittel"      (🟡)
+#   ≥ N_MITTEL ohne AUC-Test ODER
+#   ≥ N_PROVISORISCH mit AUC-Test        → "provisorisch" (🟠)
+#   < N_PROVISORISCH ODER keine Validierung → "heuristisch" (🔴)
+SCORE_CONFIDENCE_N_ROBUST         = 500    # Datenpunkte mit Returns für robust
+SCORE_CONFIDENCE_N_MITTEL         = 50     # Datenpunkte für mittel
+SCORE_CONFIDENCE_N_PROVISORISCH   = 1      # mind. 1 Datenpunkt für provisorisch
+SCORE_CONFIDENCE_MAX_AGE_DAYS     = 14     # Snapshot älter → 🔴-Hinweis im Panel
+
 # ── SEC EDGAR 13D/13G Filings (Anomalie-Trigger) ────────────────────────────
 # Hybrid-Filter:
 #   • 13D / 13D/A: jeder Filing-Eintrag löst einen Push aus (aktive Stake-
