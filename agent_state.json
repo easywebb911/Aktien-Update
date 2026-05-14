@@ -1,5 +1,5 @@
 {
-  "last_run": "2026-05-14T21:54:33.617609+02:00",
+  "last_run": "2026-05-14T22:03:04.298944+02:00",
   "cooldowns": {
     "anomaly_score_jump_XRX": "2026-05-03T18:47:15.315486+02:00",
     "anomaly_uoa_extreme_TDOC": "2026-05-04T13:47:00.365949+02:00",
@@ -24,7 +24,9 @@
     "anomaly_conviction_high_CRMD": "2026-05-14T16:29:35.793627+02:00",
     "anomaly_conviction_high_KPTI": "2026-05-14T16:29:35.855813+02:00",
     "anomaly_monster_backup_CRMD": "2026-05-14T16:48:48.159358+02:00",
-    "anomaly_conviction_high_PGEN": "2026-05-14T20:28:25.670906+02:00"
+    "anomaly_conviction_high_PGEN": "2026-05-14T20:28:25.670906+02:00",
+    "earnings_immediate_CRMD_14.05.2026": "2026-05-14T22:03:01.392755+02:00",
+    "earnings_immediate_KPTI_14.05.2026": "2026-05-14T22:03:01.470447+02:00"
   },
   "push_history": [
     {
@@ -717,6 +719,30 @@
       "suppressed": false,
       "suppress_reason": null,
       "conviction_score": 75
+    },
+    {
+      "ts": "2026-05-14T22:03:01.392697+02:00",
+      "ticker": "CRMD",
+      "kind": "earnings_immediate",
+      "severity": "default",
+      "trigger": null,
+      "body": "CRMD Earnings-Sofort-Alert (in 0d, KI 100)",
+      "success": true,
+      "suppressed": false,
+      "suppress_reason": null,
+      "conviction_score": 98
+    },
+    {
+      "ts": "2026-05-14T22:03:01.470430+02:00",
+      "ticker": "KPTI",
+      "kind": "earnings_immediate",
+      "severity": "default",
+      "trigger": null,
+      "body": "KPTI Earnings-Sofort-Alert (in 0d, KI 79)",
+      "success": true,
+      "suppressed": false,
+      "suppress_reason": null,
+      "conviction_score": 82
     }
   ],
   "prev_conviction_scores": {
