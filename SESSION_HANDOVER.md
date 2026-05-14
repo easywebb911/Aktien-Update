@@ -1,179 +1,174 @@
-# Session-Handover — Stand Ende 13.05.2026
+# Session-Handover — Stand 14.05.2026
 
 ## Heute implementiert (chronologisch, alle gemerged via PR)
 
-Die Sitzung startete als Backtest-Pollution-Cleanup und entwickelte
-sich zur Folge-Bug-Kaskade rund um die Zwei-Run-Architektur (PR #124),
-plus zwei größere Features: Live-Quote-Polling via Cloudflare-Worker
-und zwei strukturelle CI-Lints.
+### Earliness & Conviction
 
-- **`41c54ad` PR #131** — `fix: remove 22 polluted backtest entries
-  from 2026-05-13`. Manuelle `workflow_dispatch`-Trigger heute Nachmittag
-  während laufender US-Session schrieben mit Default `postclose` 22
-  Intraday-Mid-Day-Einträge (5 Ticker mit RVOL < 0.2, zwei VIX-Snapshots
-  17.99/18.12 im selben Run). Cleanup: alle 13.05.-Einträge raus,
-  `app_data.json.run_phase` von `postclose` → `premarket` zurückgesetzt
-  (sonst blockte ki_agent weiter Anomaly-Pushes).
-- **`19c6cdb` PR #132** — `fix: workflow_dispatch run_phase validation —
-  Default raus, Plausibilitäts-Override`. UX-Falle struktureller
-  Fix: `daily-squeeze-report.yml` `workflow_dispatch.inputs.run_phase`
-  ist jetzt `required: true` ohne Default. Neues Modul
-  `scripts/resolve_run_phase.py` (Single-Source-of-Truth für die
-  Resolution) wird via Workflow-Step `Resolve run phase` aufgerufen
-  und schreibt `RUN_PHASE` nach `$GITHUB_ENV`. Plausibilitäts-Override:
-  13:30 ≤ UTC < 20:00 + `postclose` → `premarket`; UTC ≥ 20:00 +
-  `premarket` → `postclose`. Cron-Trigger ausgenommen. 12 Mock-Tests.
-- **`f60bcec` PR #133** — `fix: Recalculate-Dispatch sendet client-side
-  bestimmtes run_phase (HTTP 422 Folge-Bug PR #132)`. PR #132 hatte die
-  Frontend-Recalculate-Funktion übersehen: `dispatchWorkflow` schickte
-  weiterhin nur `{ref: GH_BRANCH}` ohne `inputs.run_phase` →
-  GitHub-API HTTP 422. Neuer JS-Helper `_computeClientRunPhase()`
-  bestimmt die Phase aus `new Date().getUTCHours()/getUTCMinutes()`,
-  Dispatch-Body sendet `inputs: {run_phase: …}`. KI-Agent-Pfad
-  unverändert (kein run_phase-Input im ki_agent.yml).
-- **`87beb5b` PR #134** — `fix: Watchlist-Drawer Momentum live aus
-  _WL_CARDS.change überschreiben`. Quick-Fix für Easys DMRC-Diagnose:
-  Drawer zeigte `+0,8 %` (eingebranntes card_html aus 12:05-UTC-
-  Premarket-Run), real waren `+12,9 %` mid-day. Neuer JS-Helper
-  `_patchWlMomentumLive(scope, ticker)` überschreibt **nach** dem
-  `body.innerHTML`-Insert in `wlExpand` die Momentum-Box mit
-  `_WL_CARDS[ticker].change` — andere Felder bleiben eingebrannt.
-  10 Mock-Tests.
-- **`5082fc7` PR #135** — `feat: Live-Quote-Polling für Watchlist-
-  Drawer + Top-10-Detail (Cloudflare-Worker, Yahoo v8)`. Echte
-  Echtzeit-Werte alle 15 s. Architektur-Wahl: Cloudflare Worker als
-  CORS-Proxy zu Yahoo v8 chart (`/v8/finance/chart/{ticker}` —
-  v7-quote verlangt seit Mai 2026 Crumb-Auth und antwortet sonst
-  HTTP 401). Worker-Code in `cloudflare/quote-proxy/` (worker.js,
-  wrangler.toml, README). Frontend-Polling-Modul in
-  `generate_report.py` (start/stop/visibilitychange/DOM-Patch/Live-
-  Indikator), Lifecycle in `wlExpand` + `toggleDetails`. Easy hat den
-  Worker als `quote-proxy.easywebb.workers.dev` manuell deployed,
-  URL als Repo-Secret `QUOTE_PROXY_URL` gesetzt. Initial-Commit
-  startete mit v7-Endpoint, force-pushed auf v8 nach Easys
-  Deploy-Test (HTTP 401 reproduziert). 16 Mock-Tests.
-- **`f2c5198` PR #136** — `fix: redeploy-on-source-change übergibt
-  run_phase an gh workflow run (HTTP 422 Folge-Bug PR #132)`. Dritter
-  Aufrufer übersehen: `redeploy-on-source-change.yml` rief
-  `gh workflow run daily-squeeze-report.yml` ohne `-f run_phase=…` auf
-  → Auto-Redeploy nach Source-Pushes schlug fehl. Bash-Logik berechnet
-  `NOW_HHMM=$(date -u +%H%M)` und mappt 1330–1959 → `premarket`,
-  sonst `postclose`. 7 Mock-Tests.
-- **`58759fa` PR #137** — `fix: quote_proxy_url_js im Context-Dict
-  eintragen (NameError-Hotfix nach PR #135)`. PR #135 hatte die
-  Konstante `const QUOTE_PROXY_URL = '{quote_proxy_url_js}'` im
-  JS-Block, aber den Key im `_build_context`-Return-Dict + den
-  Unpacker in `generate_html_v1` vergessen. Daily-Run crashte mit
-  `NameError: name 'quote_proxy_url_js' is not defined`. Fix:
-  Context-Key gesetzt, defensiver `ctx.get(..., "")`-Unpacker.
-  10 Mock-Tests.
-- **`612ddd2` PR #138** — `fix: unescaptes {intervalId, scope,
-  indicator} in JS-Kommentar + neuer AST-Linter (CI-Gate)`. Zweite
-  Welle des PR-#135-Bugs: ein JS-Kommentar
-  `// ticker → {intervalId, scope, indicator}` blieb unescaped →
-  Python interpretierte als Variable. Neuer Linter
-  `scripts/lint_jsformat_escape.py` (AST-basiert, ~165 Z.) scannt den
-  kompletten `generate_html_v1`-f-String gegen alle Top-Level-Namen
-  aus `generate_report.py` + `config.py` plus Locals. Einzige
-  Bug-Stelle: Z. 8203, gefixt durch `{{…}}`-Escaping. Workflow-Step
-  `Lint JS-format escape` als zweiter CI-Gate neben `Lint chat
-  template`. CLAUDE.md dokumentiert beide Linter komplementär.
-  9 Mock-Tests.
-- **`591792b` PR #139** — `fix: Jekyll-Pages-Build excludiert interne
-  Doku ({{...}}-Liquid-Crash nach PR #138)`. PR #138 hatte in
-  CLAUDE.md die `{{…}}`-Patterns wörtlich dokumentiert →
-  GitHub-Pages-Jekyll-Build crashte mit `Variable '{{ escapeden …'
-  was not properly terminated`. Pragmatischer Pfad statt
-  `{% raw %}`-Tags: neues `_config.yml` mit `exclude:`-Liste —
-  `CLAUDE.md`, `SESSION_HANDOVER.md`, `docs/`, `*.py`, `cloudflare/`,
-  `scripts/`, `templates/`, `requirements.txt`, `Gemfile*`. Daten-
-  JSONs und `index.html` bleiben Pages-erreichbar. 6 Mock-Tests inkl.
-  Drift-Schutz (excludete konkrete Pfade müssen existieren).
+- `fa8d87f` — **feat: Earliness V2 — DTC-Niveau-Basis** (PR #141).
+  Datenbelegter Refactor aus Mann-Whitney-U-Diagnose 13.05. (AUC
+  **0.77** für DTC). V1-Sub-Signale (`si_accel` + `si_velocity` +
+  PM-Vol-Komponente) waren aus `backtest_history` nicht rückwirkbar
+  berechenbar. Neue Formel: DTC-Buckets 3/5/8/12 → 0/25/50/75/100 Pkt,
+  Late-Runner-Penalty bei RVOL > 5 halbiert. `EARLINESS_FORMULA_VERSION=2`
+  als Default, V1-Pfad bleibt als Rollback. Verifikation: WBTN
+  Conviction 39 → 67, RR erstmals high mit 82.
+- `19ff84a` — **feat: Earliness-Trend-Logging** (PR #142). Vier
+  prospektive Felder pro `backtest_history`-Eintrag:
+  `si_trend_5d_slope`, `rvol_buildup_5d`, `vol_stability_5d`,
+  `coiled_spring_score`. Schema-Version 4. Reines Logging — kein
+  Conviction-Effekt. AUC-Re-Check nach 14–30 Live-Tagen (Wiedervorlage
+  28.05.).
+- `fcf7151` — **fix: KI-Agent Cron-Offset 0 → 17** (PR #143).
+  GitHub-Actions-Last-Peak-Vermeidung. Erwartete Coverage 45 % →
+  80–90 %.
+- `fbbc372` — **fix: topten_entry-Anomaly aus backtest_history**
+  (PR #144). `_build_chat_synthesis_ctx` liest `yesterday_top10_set`
+  jetzt aus `backtest_history` statt `score_history`. Edge-Case
+  leerer Backtest: Skip mit Warning.
+- `e149c78` — **fix: Daily-Run Cron-Offset 0 → 17** (PR #145).
+  5 Stellen synchron: `daily-squeeze-report.yml`,
+  `resolve_run_phase.py`, `mock_test_postclose_run.py`,
+  `mock_test_run_phase_resolution.py`, CLAUDE.md.
+- `0a9d299` — **feat: Score-Konfidenz-Stufen Phase 1** (PR #146).
+  Vier qualitative Stufen (robust / mittel / provisorisch /
+  heuristisch) im Methodik-Panel. CI-Lint
+  `lint_score_confidence_isolation.py` stellt sicher, dass Konfidenz
+  NICHT in Score-Berechnung einfließt (Trennung von Anzeige und
+  Logik).
+
+### Token-Pipeline
+
+- `93501b9` — **fix: Settings-Panel-UI-Refresh nach Token-Submit**
+  (PR #147). Behebt iPhone-„zweimal-Icon-klicken"-Workaround.
+- `4e415d0` — **feat: Storage-Diagnose-Panel im Settings** (PR #148).
+  Zeigt Blob-Length, Standalone-Status, Keep-Alive-Alter etc. für
+  iPhone-Token-Verlust-Debug.
+- `d6c1701` — **fix: buildPositionPanel — Drei Token-Zustände**
+  (PR #149). Locked-State bei Session-Verlust mit Unlock-Button
+  (`_unlockFromPositionPanel`) statt irreführender „Token fehlt"-
+  Meldung.
+- `89b53b3` — **fix: gist-Action-Token-Routing** (PR #151). Folge-Fix
+  zu #149. Vier Action-Pfade durch `_ensureToken`-Wrapper
+  (`wlSubmitPosition`, `wlSubmitClose`, `wlAddManual`,
+  `wlRemoveFromExpanded`). Trade-Journal mit
+  Drei-Zustände-Locked-Box (`.gist-locked-box` als generische CSS-
+  Klasse). Behebt HIGH-Severity Geister-Position-Risiko (Repo-File-
+  Delete ohne Gist-Cleanup).
+
+### Health-Check-Projekt (5 PRs, komplett)
+
+- `0d3088a` — **feat: Health-Check Phase 1 (S1–S7)** (PR #150).
+  `health_check.py` mit 7 State-Invariants, Append-only-Persistenz in
+  `health_check_log.jsonl` (30-Tage-Cutoff), Hook-Points in
+  `generate_report.py:main()` und `ki_agent.py:main()`. Plus:
+  Auto-Trigger des KI-Agent am Ende jedes Daily-Run (strukturelle
+  Lösung für KI-Score-Drift gefangen durch S7).
+- `7414563` + `5f8c7b4` — **feat: Phase 2 PR 1 — Tier-1-Provider**
+  (PR #152). `record_provider_call`-Infrastruktur + try/finally-
+  Wrapper-Pattern. 4 Tier-1-Provider: `yahoo_screener`, `finviz`,
+  `yfinance_batch`, `yfinance_singletons` (VIX+SPY+FX). Nachtrag-
+  Commit mit try/finally-Latency-Capture + Pass/Fail-Tests +
+  Spec-Tabellen-Update.
+- `94f2f58` — **feat: Phase 2 PR 2 — Tier-2-Provider** (PR #153). Vier
+  Tier-2-Provider: `finra`, `finnhub`, `stockanalysis`,
+  `earningswhispers`. Helper `_instrument_provider_call` als
+  gemeinsame Abstraktion für per-Call-aggregierte Provider.
+- `48fc391` — **feat: Phase 2 PR 3 — Tier-3-Provider** (PR #154).
+  Sieben Tier-3-Provider (3 Social + 4 EDGAR getrennt): `stocktwits`,
+  `uoa`, `news_rss`, `edgar_13f`, `edgar_8k`, `edgar_form4`,
+  `edgar_13d_g`. Helper-Refactor: `instrument_provider_call` von
+  `generate_report.py` nach `health_check.py` umgezogen (true reuse).
+  Neuer `success_check`-Kwarg für Provider mit reichhaltigen
+  fail-soft-Returns.
+- `5970847` — **feat: Phase 3 — Daily-Digest-Workflow** (PR #155).
+  `health_check_digest.yml` (Cron `13 8 * * *`),
+  `scripts/health_check_digest.py`, 3 Push-Klassen (✅ OK / ⚠️
+  Digest / 📭 keine Daten), Konsekutiv-Counter in separater
+  `health_check_digest_state.json` (race-frei), Mehrfach-Trigger-
+  Schutz via `last_digest_sent`-Datum, 7-Tage-Drift-Schutz für stale
+  Provider.
+
+### Methodik-Schärfung
+
+- `4c15727` — **fix: Methodik-Display versteckte Boni sichtbar**
+  (PR #156). Borrow-Rate-Bonus (+8/+15) komplett neu in Catalyst-Box.
+  Float-Turnover 3-Tier statt binär (3/6/10 mit Vol/Float-Schwellen).
+  UOA `<abbr>`-Tooltip mit Aufschlüsselung (10/20 + 10). Reine
+  Display-Änderung, Konstanten unverändert.
 
 ---
 
 ## Aktive Positionen (im Gist `squeeze_data.json`)
 
-Stand Ende 13.05.2026:
+- **AMC** — Bestand
+- **IONQ** — Bestand
+- **RR** — heute morgen 14.05. gekauft, basierend auf Top-Ten-Liste.
+  Erster Conviction ≥ 75 nach V2-Aktivierung (Score 82).
 
-- **AMC**
-- **SABR**
-- **IONQ**
-
-**Geschlossen heute:** DMRC mit ~+12 % Tagesgewinn verkauft. Trade-
-Journal sollte den Eintrag (Entry/Exit-FX, max_setup_score,
-duration_days) automatisch persistieren.
+**Geschlossen am 13.05.:** SABR mit −13.3 %, DMRC mit +12.8 %.
 
 ---
 
-## Verifikation morgen (14.05.2026)
+## Verifikation morgen (15.05.2026)
 
-- **iPhone Live-Polling-Test** — Watchlist-Drawer öffnen für einen
-  beobachteten Ticker. Grüner pulsierender `.quote-live-dot` muss
-  erscheinen. Alle 15 s muss `.price-tag` (Preis) und die Momentum-
-  Box (`.metric-box` mit `.m-lbl=Momentum`) sich aktualisieren.
-  Tab wechseln → Dot gedimmt grün (`paused`). Drawer schließen → kein
-  weiterer Worker-Request im Network-Tab. Top-10-Karte mit
-  „Details anzeigen" → identisches Verhalten, Live-Dot lazy in
-  `.score-block` injiziert.
-- **Daily-Run heute Abend (21:00 UTC Postclose) + morgen früh
-  (10:00 UTC Premarket)** müssen ohne `NameError` durchpassen — PRs
-  #137 + #138 sind die Voraussetzung. `Resolve run phase`-Step-Log
-  prüfen: `event=schedule`, korrekte Cron→Phase-Mapping.
-- **Backtest-History-Sauberkeit** — heute Abend appendet der
-  21:00-UTC-Postclose-Cron sauber neue 13.05.-Einträge mit echten
-  EOD-Werten. Stichprobe `python -c "import json; d=json.load(open(
-  'backtest_history.json')); print(sum(1 for e in d if e['date']==
-  '13.05.2026'))"` — Erwartung ~10 (Top-N).
-- **Erster voller Tag mit allen Anti-Inflation-Mechanismen** kombiniert:
-  Conviction-75-Gating (PR #123, gestern), `run_phase`-Plausibilitäts-
-  Override (PR #132, heute), Live-Polling (PR #135, heute). Push-Volumen
-  pro Tag im `push_history` prüfen — Erwartung weiter im niedrigen
-  einstelligen Bereich.
-- **Daily-Run-Dauer beobachten** — heute mehrfach „mehrere Minuten"
-  Laufzeit (anekdotisch, nicht aus Logs verifiziert). Falls erneut
-  auffällig: Workflow-Step-Timings aus den Actions-Logs ziehen,
-  Hauptverdacht sequenzielle API-Calls (Yahoo/Finviz/yfinance).
-- **`score_inflation_log.jsonl`** sammelt weiter Daten — pro Daily-Run
-  10 Zeilen, premarket-vs-postclose-Diff für identische Ticker. Tag 2
-  von 5 ab morgen.
+- **Health-Check-Digest** — erster Push um **09:13 deutscher Zeit**
+  (08:13 UTC) via ntfy. Erwartet: „✅ Health-Check OK" bei sauberem
+  Stand. Falls Push **ausbleibt**, hakt entweder der Workflow, ntfy
+  oder Token (Liveness-Check by-design).
+- **topten_entry-Trigger** — sollte morgen auf neue Top-10-Zugänge
+  feuern (sichtbar in `push_history`-Stream).
+- **KI-Agent-Coverage** — nach Cron-Verschiebung erwartet 80–90 %
+  (vorher ~45 %).
+- **iPhone Token-Pipeline** — keine „Token fehlt"-Bugs mehr nach
+  PRs #147–#149 + #151. Position-Panel zeigt Locked-State mit
+  Unlock-Button, Settings-Panel refresht nach Submit, Trade-Journal
+  hat eigenen Locked-Modus.
+- **Auto-Trigger Daily-Run → KI-Agent** — sollte keine
+  `agent_signals`-Drift mehr produzieren. KI-Score auf Top-10-Karten
+  sichtbar (war heute durch Drift weg).
+- **`health_check_log.jsonl`** — bekommt täglich neue Einträge (1 pro
+  Daily-Run + 1 pro KI-Agent-Tick).
+- **`provider_health.jsonl`** — bekommt pro Run Provider-Zeilen (Tier
+  1+2+3 entsprechend Aufruf-Pfad).
 
 ---
 
 ## Geplante Aufgaben + Wiedervorlagen
 
-### Offene Aufgaben (nicht datums-getriggert)
+### Offene Aufgaben
 
-- **Health-Check-Workflow Implementierung.** Spec liegt in
-  `docs/health_check_spec.md` (PR #130 merged 13.05. mittags). Eigener
-  4–6h Code-Slot, separate Session. Sechs State-Invariants + Provider-
-  Health für 9 Quellen, 3-Tier-Severity. Spec ist SSOT — Code folgt 1:1.
-- **Methodik-Display-Session: Standard- vs Maximal-Werte.** Asymmetrien
-  wie `SUB_SI_TREND_DISPLAY_PTS_MAX=5` (Sub-Score-Cap) vs.
-  `FINRA_ACCELERATION_BONUS=7` (on-top-Bonus bei Beschleunigung)
-  korrekt im Methodik-Render zeigen. Heute schon dokumentiert in
-  CLAUDE.md („Bedingte Boni — Display-String muss Pfad-Vielfalt
-  zeigen"), Code-Anpassung steht aus.
-- **Daily-Run-Dauer-Diagnose.** Step-Timings aus letzten 5 Workflow-
-  Runs sammeln, Bottleneck-Hypothese (sequenzielle API-Calls)
-  bestätigen. Falls bestätigt: `asyncio` / `concurrent.futures` für
-  unabhängige Fetches.
+- **Methodik-Display-Doku-Frage** (Standard vs. Maximum) — heute
+  teilweise mit PR #156 erledigt (Borrow-Rate / Float-Turnover-Tiers
+  / UOA-Tooltip). Frage offen, ob bei anderen Konstanten ähnliche
+  Lücken bestehen — Inventur kann wiederholt werden falls neue
+  Symptome auftreten.
+- **Daily-Run-Dauer-Diagnose** — sequenzielle API-Calls sind die
+  vermutete Wurzel. Profiling steht aus.
+- **AMC mit 7 Exit-Pushes in 36 h** — Easy ignoriert das bewusst
+  (Sonderfall). Keine Code-Aktion.
 
 ### Wiedervorlagen mit Datum
 
-- **14.05.2026** — iPhone Live-Polling-Test (s.o.), Daily-Run-
-  Verifikation der heutigen 9 Merges (NameError-Freiheit).
-- **14.–17.05.2026** — Score-Inflation-Empirik Tag 2–5; Conviction-
-  Formel-Beobachtung Tag 3–6 (Spitze erreicht regelmäßig ≥ 75?).
-- **15.05.2026** — Phase 3 Exit-Signale (Blow-off-Top + IV-Crush;
-  Konzept liegt, Code noch nicht begonnen).
-- **19.05.2026** — `app_data`-Recovery prüfen +
-  `POSITIONS_JSON`-Secret löschen (Gist-Migration ist Ende April
-  abgeschlossen, Fallback ist seitdem unaktiv).
-- **02.06.2026** — Chart-Indikatoren prüfen (welcher Stand?
-  Empirik-Review).
-- **02.07.2026** — Premium-Daten-Stack prüfen (Polygon, IEX,
-  Alpha Vantage paid-Tier vs. yfinance-Stack).
+- **15.05.2026** — Erster Health-Check-Digest-Push verifizieren,
+  Verifikation aller heutigen Merges, iPhone-Token-Flow im Alltag.
+- **15.05.2026** — Phase 3 Exit-Signale (Blow-off-Top + IV-Crush) —
+  separater Backlog-Punkt, noch nicht begonnen.
+- **15.–31.05.2026** — Konsekutiv-Counter im Health-Check beobachten,
+  Push-Volumen kalibrieren. Tier-2/3-Schwelle (3-in-Folge) ggf.
+  nachjustieren falls zu viele/zu wenige Pushes.
+- **19.05.2026** — `app_data`-Recovery + `POSITIONS_JSON`-Secret
+  löschen.
+- **28.05.2026** — Earliness-Trend-Logging AUC-Re-Check (14 Tage
+  nach PR #142 Merge).
+- **02.06.2026** — Chart-Indikatoren prüfen.
+- **13.06.2026** — Earliness V3 Entscheidung (30 Tage Trend-Logging-
+  Daten).
+- **02.07.2026** — Premium-Daten-Stack prüfen.
+- **Wiedervorlage Konfidenz-Wasserzeichen** — Phase 2 von PR #146.
+  Aktuell nur Methodik-Panel-Anzeige. Phase 2 wäre visuelle Markierung
+  auf Top-10-Karte (gedimmter Score bei low confidence oder Badge).
+  Bewusst verschoben, um die Karte nicht zu überladen. Re-Visit wenn
+  Earliness V2 nach 14–30 Tagen validiert ist.
 
 ---
 
@@ -184,54 +179,53 @@ duration_days) automatisch persistieren.
 Squeeze-Früherkennungssystem mit empirisch validierter Edge. Drei
 parallele Arbeitsstränge laufen permanent nebeneinander:
 
-- **Bauen** — Code-Erweiterungen (neue Trigger, UI-Ergänzungen,
-  Persistenz-Schichten). Aktuell: Phase 3 Exit-Signale (IV-basiert,
-  Wiedervorlage 15.05.), Code-Hygiene-Backlog Punkte 2/3/4/5-2/6-B,
-  Health-Check-Workflow, Live-Polling-Erweiterung (falls Easy mehr
-  Felder live haben will).
-- **Sammeln** — passives Warten auf Backtest-, Earliness-, Conviction-,
-  **Score-Inflations-** und **Push-Volumen-Empirik** (jeder Daily-Run +
-  ki_agent-Tick füttert die History; seit PR #120
-  `score_inflation_log.jsonl` mit Sub-Score-Breakdown). Aktuell:
-  Conviction-Formel-Tag-3-bis-6, Setup-Inflation-premarket-vs-
-  postclose-Diff, Push-Volumen-pre/post-Conviction-75.
-- **Validieren** — Score-Logik gegen reale R-Werte testen, sobald genug
-  Datenpunkte da sind. Aktuell: Daily-Run-Checks (NameError-Freiheit,
-  Trigger-Verfügbarkeit, Push-Filter-Wirkung, Stale-Data-Drawer),
-  Position-Verläufe (AMC/SABR/IONQ; DMRC heute geschlossen),
-  Methodik-Konsistenz-Pflege.
+- **Bauen** — Code-Erweiterungen. **Health-Check-Projekt komplett
+  abgeschlossen** mit den heutigen 5 PRs (#150, #152–#155) — ein
+  großer Meilenstein. Aktuell offen: Phase 3 Exit-Signale (IV-
+  basiert, Wiedervorlage 15.05.), Code-Hygiene-Backlog-Punkte
+  2/3/4/5-2/6-B.
+- **Sammeln** — passives Warten auf Backtest-, Earliness-,
+  Conviction-, **Score-Inflations-**, **Push-Volumen-**,
+  **Earliness-Trend-Logging-**, **Provider-Health-** und
+  **State-Invariants-Empirik**. Jeder Daily-Run + ki_agent-Tick
+  füttert die History. Aktuell: Conviction-Formel-Beobachtung nach
+  V2-Aktivierung, Setup-Inflation-premarket-vs-postclose-Diff,
+  Push-Volumen-pre/post-Conviction-75, neue Health-Check-Counter
+  und Earliness-Trend-Felder.
+- **Validieren** — Score-Logik gegen reale R-Werte testen, sobald
+  genug Datenpunkte da sind. Aktuell: Daily-Run-Checks (NameError-
+  Freiheit, Trigger-Verfügbarkeit, Push-Filter-Wirkung, Stale-
+  Data-Drawer), Position-Verläufe (AMC/IONQ/RR), Methodik-
+  Konsistenz-Pflege.
 
 ### Drei Zeit-Achsen
 
 **Kurzfristig (Tage bis 1–2 Wochen, aktiv planbar)**
 
-- **Score-Inflations-Empirik** auswerten (Wiedervorlage 14.–17.05.).
-  premarket-vs-postclose-Vergleich für identische Ticker, Sub-Score-
-  Beitrag identifizieren. Danach Entscheidung über Schwellen-Tuning
-  vs. rel_volume-Zeitnormierung.
-- **Push-Volumen-Tracking** nach Conviction-75-Anhebung. Erwartung
-  ~10/Tag → ~2–3/Tag. Falls noch zu laut: monster_backup-Schwelle
-  90 → 95 oder Cooldown 6h → 24h.
-- **Conviction-Formel-Beobachtung Tag 3–6.** Erreicht die Spitze
-  regelmäßig ≥ 75? Sonst Re-Distribution-Vorschlag.
+- **Health-Check-Empirik** — Push-Volumen + Konsekutiv-Counter-
+  Verhalten 15.–31.05.
+- **Earliness-V2-Beobachtung** — Conviction-Median-Veränderung
+  empirisch validieren (vorher systematisch ≈ 50, jetzt erwartet
+  häufiger ≥ 75).
 - **Phase 3 Exit-Signale** (Wiedervorlage 15.05.2026).
-- **Stufe Mittel-2** — Earliness-Score-Effekt scharfschalten.
+- **Score-Inflations-Empirik** auswerten — premarket-vs-postclose-
+  Vergleich für identische Ticker.
 
 **Mittelfristig (Wochen, datenabhängig)**
 
+- **Earliness-Trend-Logging-AUC-Re-Check** (28.05.).
+- **Earliness V3 Entscheidung** (13.06., 30 Live-Tage).
 - **Backtest-Validierung** — Frontend-Auswertung Backtest-T+0/T+1
   funktioniert erst belastbar, sobald je Score-Bucket
-  (`<50`/`50–69`/`≥70`) mindestens 30 Tage Live-R-Werte vorliegen. Seit
-  PR #124 fließen nur noch postclose-Werte in die Historie — saubere
-  Datenbasis. Bahn A2 (Frontend-Auswertungs-Panel) erfordert
-  ≥ 200 Live-Einträge.
-- **ntfy-Priority-Mapping nach Severity** — sobald sich das Tiering als
-  sinnvoll bestätigt, ntfy-Priority an `severity` koppeln (Lücke: nur
-  Anomaly-Sender hardcoded).
+  (`<50`/`50–69`/`≥70`) mindestens 30 Tage Live-R-Werte vorliegen.
+  Bahn A2 (Frontend-Auswertungs-Panel) erfordert ≥ 200 Live-Einträge.
+- **ntfy-Priority-Mapping nach Severity** — sobald sich das Tiering
+  als sinnvoll bestätigt, ntfy-Priority an `severity` koppeln.
 
 **Längerfristig (Monate, Empirik-basiert)**
 
-- **Big-Refactor Zwei-Achsen-Ranking** — nach 30+ Tagen Earliness-Daten.
+- **Big-Refactor Zwei-Achsen-Ranking** — nach 30+ Tagen Earliness-
+  V2-Daten.
 - **Premium-Daten-Stack** (Wiedervorlage 02.07.2026).
 - **Sektor-Rotation / Marktkontext** — noch nicht im Backlog.
 
@@ -244,33 +238,32 @@ Historie nur noch mit postclose-Werten befüllt — vorherige premarket-
 Einträge bleiben unverändert, müssen in der Auswertung über
 `market_regime`/`vix_level`-Filter bereinigt werden.
 
-- **Wenn ja** → Earliness-Score-Aktivierung und Big-Refactor mit
-  Rückenwind.
+- **Wenn ja** → Earliness-V2-Aktivierung im Score selbst (heute nur
+  Conviction-Komponente) und Big-Refactor mit Rückenwind.
 - **Wenn nein** → Score-Komponenten **neu kalibrieren bevor weiter
   gebaut wird**.
 
 Bis der Test laufen kann, ist passives Sammeln der primäre Modus. Mit
-dem heutigen Stand ist Phase 2 vollständig (alle sechs Exit-Trigger
-live), Push-System nach Conviction-75 streng gefiltert, Drawer-Live-
-Polling über Cloudflare-Worker scharf, zwei CI-Lints gegen f-String-
-Klassen-Bugs aktiv.
+dem heutigen Stand ist das Health-Check-Projekt komplett, Earliness
+V2 datenbelegt aktiviert, Token-Pipeline saniert, und die Methodik-
+Anzeige zeigt versteckte Boni sichtbar an.
 
 ---
 
 ## Code-Hygiene-Backlog
 
-Aus der Diskussion vom 09.05.2026. Status zum Ende 13.05.:
+Aus der Diskussion vom 09.05.2026. Status zum Ende 14.05.:
 
 - **Punkt 1 — `_record_push`-SSOT** — erledigt via PR #76.
 - **Punkt 2 — v1/v2 Render-Pfad in `generate_report.py`:** **offen.**
   Vollständige Migration zu Jinja (Phase X). Voraussetzung für Punkt 3.
 - **Punkt 3 — Monolith `generate_report.py` aufsplitten:** **offen.**
-  ~14 200 Zeilen in einer Datei (heute weiter gewachsen durch PRs
-  #134/#135/#137/#138). Hohe Risiko-Operation.
+  Datei weiter gewachsen durch die heutigen 5 Health-Check-PRs +
+  Methodik-Erweiterung. Hohe Risiko-Operation.
 - **Punkt 4 — HTML/JS-im-f-String-Pattern durch Template-Engine
-  ersetzen:** **offen.** Hängt mit Punkt 2 zusammen. Aktuelle Bug-
-  Kaskade (#137 + #138) zeigt die strukturelle Schwäche dieses
-  Patterns — dafür gibt's jetzt zwei CI-Linter als Abhilfe, aber die
+  ersetzen:** **offen.** Hängt mit Punkt 2 zusammen. Zwei CI-Lints
+  als Abhilfe aktiv (`lint_jsformat_escape.py`,
+  `lint_score_confidence_isolation.py`), aber die strukturelle
   Ursache bleibt.
 - **Punkt 5 — Score-Methodik-Sync-Regel strukturell absichern**
   - **Schritt 1: erledigt via PR #84 (10.05.2026).**
@@ -285,161 +278,141 @@ Aus der Diskussion vom 09.05.2026. Status zum Ende 13.05.:
 
 ## Architektur-Anker (kumuliert + heutige Erweiterungen)
 
-### Heute neu (13.05.2026)
+### Earliness V2 — DTC-Niveau-Basis (PR #141)
 
-- **Plausibilitäts-Override für `workflow_dispatch.inputs.run_phase`**
-  (PR #132) — `scripts/resolve_run_phase.py` ist SSOT. Workflow-Step
-  `Resolve run phase` schreibt `RUN_PHASE` nach `$GITHUB_ENV`. US-
-  Session-Grenzen: `13:30 UTC` (inkl.) bis `20:00 UTC` (exkl.). Cron-
-  Trigger ausgenommen, `workflow_dispatch` mit `required: true` ohne
-  Default. Override-Warnungen mit `⚠ Override:`-Präfix im Step-Log.
-- **Drei Aufrufer-Konsumenten von `run_phase`** — die strukturelle
-  Änderung in PR #132 hatte zwei zunächst übersehene Aufrufer:
-  - `daily-squeeze-report.yml` (Workflow-Owner, PR #132)
-  - Frontend-Recalculate-Dispatch `dispatchWorkflow` (PR #133) —
-    JS-Helper `_computeClientRunPhase()` aus `new Date()`-UTC.
-  - `redeploy-on-source-change.yml` (PR #136) — Bash-Logik
-    `NOW_HHMM=$(date -u +%H%M)`, mappt 1330–1959 → premarket.
-  Linter-Idee für künftige `required`-Änderungen: `grep -rn
-  "workflow run daily-squeeze-report\|workflows/daily-squeeze-report"
-  .github/ generate_report.py scripts/` und alle Aufrufer
-  synchron pflegen.
-- **Live-Quote-Polling via Cloudflare-Worker** (PR #135) — Worker-
-  Endpoint `quote-proxy.easywebb.workers.dev` (manuell deployed, URL
-  als Repo-Secret `QUOTE_PROXY_URL`). Worker-Code in
-  `cloudflare/quote-proxy/worker.js` (Yahoo v8 chart-Endpoint —
-  v7-quote verlangt seit Mai 2026 Crumb-Auth → HTTP 401). Single-
-  Ticker pro Request, Edge-Cache 10 s, CORS-Allow-List für
-  `https://easywebb911.github.io`. Frontend-Modul in
-  `generate_report.py` direkt nach den GH-Konstanten:
-  `_quotePollers: Map<ticker, {intervalId, scope}>`, `_quoteFetchOnce`,
-  `_quotePatchScope`, `_quoteSetIndicator`, `_startQuotePoll`,
-  `_stopQuotePoll`. Lifecycle in `wlExpand` (Open → start, Close →
-  stop) und `toggleDetails` (Top-10-Karte, Live-Dot lazy in
-  `.score-block` injiziert). `visibilitychange`-Listener pausiert
-  alle aktiven Intervalle bei Tab-hidden, resumed bei Tab-visible —
-  kein Background-Traffic. Indikator-States: `.quote-live-on` (grün
-  pulsierend), `.quote-live-stale` (grau bei Fehler), `.quote-live-
-  paused` (gedimmtes Grün bei Tab-hidden). Bei Fetch-Fehler **kein
-  Toast** — laut Spec.
-- **`_patchWlMomentumLive`** (PR #134) — Quick-Fix für die Lücke
-  zwischen Daily-Run und Polling: überschreibt nach `body.innerHTML`-
-  Insert in `wlExpand` die Momentum-Box mit `_WL_CARDS[ticker]
-  .change`. `change_5d`-Sub-Span im selben `.m-val` wird konserviert.
-  Wird durch Live-Polling überholt, sobald der Drawer offen bleibt —
-  bei kurzem Hover-Open ist der Patch der einzige frische Wert.
-- **Jekyll-`_config.yml` mit `exclude:`-Liste** (PR #139) — interne
-  Doku (`CLAUDE.md`, `SESSION_HANDOVER.md`, `docs/`) wird nicht durch
-  Liquid geleitet. Code-/Build-Stack (`*.py`, `cloudflare/`, `scripts/`,
-  `templates/`, `requirements.txt`) auch ausgeschlossen. `*.json`-
-  Daten-Files explizit **nicht** excluded (Frontend-fetch). Pages-
-  Landing-Assets (`README.md`, `index.html`, `service_worker.js`)
-  bleiben sichtbar.
-- **Zwei komplementäre CI-Lints für f-String-Bugs:**
-  - `scripts/lint_chat_template.py` (bestand schon) — Backtick-Balance
-    im Chat-Template.
-  - `scripts/lint_jsformat_escape.py` (PR #138, **neu**) — AST-basiert,
-    scannt den `generate_html_v1`-f-String (Z. 5648–11535) gegen alle
-    Top-Level-Namen aus `generate_report.py` + `config.py` plus Locals.
-    Findet **unescapte** `{name}`-Patterns, deren `name` nicht im Scope
-    ist. Workflow-Step `Lint JS-format escape` zwischen `Lint chat
-    template` und `Resolve run phase`. Erweiterbar via
-    `_F_STRING_TARGETS`-Tuple-Liste (weitere f-String-Funktionen).
-- **Grep-Pflichtprüfung** für `${var}`-JS-Template-Literals (besteht
-  seit langem in CLAUDE.md) — komplementär zum AST-Linter. Beide
-  Pattern fangen unterschiedliche Bug-Klassen:
-  - `${name}` ohne `${{name}}` → Dollar-Pattern-grep
-  - `{name}` ohne `{{name}}` (JS-Code/-Kommentar/-Destructuring) →
-    AST-Linter
+- `EARLINESS_FORMULA_VERSION = 2` als Default, V1-Pfad bleibt als
+  Rollback.
+- DTC-Buckets 3/5/8/12 → 0/25/50/75/100 Pkt.
+- Late-Runner-Penalty bei RVOL > 5 halbiert Earliness-Pkt.
+- Datengrundlage: Mann-Whitney-U-Diagnose 13.05.2026 mit AUC 0.77 für
+  DTC.
 
-### Kumuliert (Auszug — siehe vorige Handover-Updates für
-Vollständigkeit)
+### Earliness-Trend-Logging (PR #142)
 
-- **Zwei-Run-Architektur** (PR #124, 12.05.) —
-  `app_data.json["run_phase"]` ∈ `{premarket, postclose}`. 10:00-UTC-
-  Cron premarket (Vorschau, Anomaly-Pushes aktiv), 21:00-UTC-Cron
-  postclose (EOD-Wahrheit, Backtest-Append). PR #132 (heute) ergänzt
-  den Plausibilitäts-Override für manuelle Trigger.
-- **`_record_push`-SSOT** (PR #76) — Push-History persistiert
-  einheitlich für alle vier ntfy-Sender (`anomaly`, `exit_p1`,
-  `exit_p2`, `earnings_immediate`). Schema-Erweiterung
-  `conviction_score` via PR #123.
-- **`Conviction-Score`** (PR #89 + #95) — vierte Bewertungs-Achse.
-  Komponenten Setup 33 / Earliness 28 / Anomaly 28 / Regime 11.
-  Threshold-Crossing löst `conviction_high`-Push aus.
-- **Conviction-75-Gating** (PR #123, 12.05.) — alle Anomaly-Trigger
-  inkl. `monster_backup` werden bei Conviction < 75 unterdrückt.
-  `conviction_high` selbst ist ungated.
-- **Phase 2 Exit-Framework vollständig — alle sechs Trigger live**
-  (Abschluss PR #121, 12.05.): `score_decay` (30 %), `profit_lock`
-  (25 %), `overheated` (20 %), `setup_erosion` (15 %), `catalyst`
-  (5 %), `trend_break` (5 %).
-- **Chat-Synthese watchlist_cards-aware** (PR #122) — Position-Felder
-  fallen über `watchlist_cards` zurück, wenn Ticker nicht in Top-10.
-- **Earnings-Per-Event-Dedup** (PR #123) — Cooldown-Key
-  `earnings_immediate_{ticker}_{DD.MM.YYYY}`,
-  `EARNINGS_IMMEDIATE_COOLDOWN_HOURS=24`.
-- **Token-Soft-Reset bei 401/403** (PR #125) — Counter 1+2 nur
-  Session-Reset, 3 Hard-Reset (`TOKEN_AUTH_FAIL_HARD_THRESHOLD=3`).
-  Plus iCloud-Schlüsselbund-Integration via `<form>`-Wrapper +
-  hidden username-input, plus Keep-Alive-Touch in `getToken()`.
-- **Watchlist-Drawer kein `dataset.loaded`-Cache mehr** (PR #126).
-  Drawer rendert bei jedem Open neu via `buildWlDetails`.
-- **`_WL_CARDS`-Re-Assign nach ki_agent-Tick** (PR #126) — frische
-  Drawer-Daten nach KI-Agent-Run.
-- **`_parse_de_date`-SSOT für DD.MM.YYYY-Cutoff-Vergleiche** (PR #119).
-- **`score_inflation_log.jsonl`** (PR #120) — append-only JSONL für
-  Intra-Day-Score-Inflation-Diagnose, 30-Tage-Cutoff.
+- 4 prospektive Felder pro `backtest_history`-Eintrag:
+  `si_trend_5d_slope`, `rvol_buildup_5d`, `vol_stability_5d`,
+  `coiled_spring_score`.
+- `backtest_schema_version: 4` ab Merge.
+- Reines Logging, kein Conviction-Effekt. AUC-Re-Check 28.05.
+
+### `topten_entry` aus `backtest_history` (PR #144)
+
+- `_build_chat_synthesis_ctx` liest `yesterday_top10_set` aus
+  `backtest_history` statt `score_history`.
+- Skip mit Warning bei leerem Vortags-Backtest.
+
+### Cron-Offset xx:17 (PRs #143 + #145)
+
+- KI-Agent und Daily-Run beide auf Minute 17 — Schutz gegen
+  GitHub-Actions-Last-Peak-Drops zur vollen Stunde.
+- 5 Stellen synchron für Daily-Run.
+
+### Daily-Run → KI-Agent Auto-Trigger (PR #150)
+
+- Daily-Run triggert am Ende automatisch `ki_agent.yml` via
+  `gh workflow run` (non-blocking, `continue-on-error: true`).
+- Workflow-Permission `actions: write` ergänzt.
+
+### Score-Konfidenz-Stufen (PR #146)
+
+- 4 qualitative Stufen im Methodik-Panel.
+- Persistiert in `app_data.json["score_confidence"]`.
+- CI-Lint `lint_score_confidence_isolation.py` verhindert Lesen in
+  Score-Funktionen (Trennung Anzeige/Logik).
+
+### Token-Pipeline saniert (PRs #147, #148, #149, #151)
+
+- **Settings-Panel-UI-Refresh** nach jedem Token-Submit (Helper
+  `_refreshGhSettingsUI`).
+- **Position-Panel + Trade-Journal** mit Drei-Zustände-Routing:
+  active / locked / no-config. Locked-State mit Unlock-Button.
+- **4 Action-Pfade** durch `_ensureToken`-Wrapper:
+  `wlSubmitPosition`, `wlSubmitClose`, `wlAddManual`,
+  `wlRemoveFromExpanded`.
+- **`.gist-locked-box`** als generische CSS-Klasse, wiederverwendbar.
+- **Storage-Diagnose-Panel** im Settings für iPhone-Token-Debugging.
+- **Helper `_unlockFromPositionPanel` / `_unlockFromTradeJournal`**
+  exposed auf `window` für inline-onclick.
+
+### Health-Check-Projekt vollständig
+
+**Phase 1 (PR #150):**
+- 7 State-Invariants (S1–S7) — S1/S2/S3 crit, S4/S5/S6/S7 warn.
+- Hook-Points: `generate_report.py:main()` (alle 7) +
+  `ki_agent.py:main()` (S2/S3/S6 mit `ki_agent_only=True`).
+- Persistenz: `health_check_log.jsonl`, 30-Tage-Cutoff.
+
+**Phase 2 — 15 Provider instrumentiert (PRs #152, #153, #154):**
+- **Tier 1 (4):** `yahoo_screener`, `finviz`, `yfinance_batch`,
+  `yfinance_singletons` (VIX+SPY+FX, Multi-Emitter-Provider).
+- **Tier 2 (4):** `finra`, `finnhub`, `stockanalysis`,
+  `earningswhispers`. `call_attempted`-Gating und ENABLED-Gating je
+  nach Provider.
+- **Tier 3 (7):** `stocktwits`, `uoa`, `news_rss` + 4 EDGAR-Keys
+  (`edgar_13f`, `edgar_8k`, `edgar_form4`, `edgar_13d_g`).
+- Wrapper-Helper `instrument_provider_call(acct, fn, *, success_check)`
+  in `health_check.py` als gemeinsame Abstraktion.
+- Persistenz: `provider_health.jsonl`, 30-Tage-Cutoff.
+
+**Phase 3 (PR #155):**
+- Workflow `.github/workflows/health_check_digest.yml`, Cron
+  `13 8 * * *`.
+- Tool-Skript `scripts/health_check_digest.py`.
+- 3 Push-Klassen: **✅ Health-Check OK** (default-Priority), **⚠️
+  Health-Check-Digest** (high, ≥ 1 crit oder ≥ 3 warn), **📭
+  Health-Check ohne Daten** (high, leere JSONL).
+- Konsekutiv-Counter in separater `health_check_digest_state.json`
+  (race-frei, write-once-Pattern).
+- Mehrfach-Trigger-Schutz via `last_digest_sent`-Datum.
+- 7-Tage-Drift-Schutz für stale Provider-Counter.
+
+### Methodik-Display versteckte Boni (PR #156)
+
+- **Borrow-Rate-Bonus** (+8 / +15 Pkt) neu in Katalysator-Box
+  (Schwellen >50 % / >100 % p.a.).
+- **Float-Turnover** 3-Tier-Display (3 / 6 / 10 Pkt) mit Vol/Float-
+  Schwellen (≥ 0.5 / 1.0 / 2.0).
+- **UOA** mit `<abbr>`-Tooltip auf der „30" — Aufschlüsselung
+  10 (weak) / 20 (strong) + 10 (Bias).
+- Konstanten unverändert, reine Display-Schärfung.
 
 ---
 
-## Wichtige Lernerfahrungen (13.05.2026)
+## Lessons Learned (14.05.2026)
 
-- **Folge-Bug-Kaskade bei strukturellen `required`-Änderungen.** PR
-  #132 hatte drei Aufrufer übersehen (Frontend-Recalculate-Dispatch,
-  Redeploy-Workflow, Manual-iPhone-Trigger als Initial-Auslöser).
-  Lehre: bei jeder `required`-Änderung an einem Workflow-Input
-  **erst grep über alle Aufrufer-Stellen** (`grep -rn "workflow run
-  daily-squeeze-report\|workflows/daily-squeeze-report" .github/
-  generate_report.py scripts/`), dann erst Schema ändern.
-- **Container-Cache veraltet schnell.** Claude Code's Sandbox hatte
-  heute zweimal eine veraltete `origin/main`-Referenz (48 h und 2 h
-  alt). `git fetch origin main` ist der erste Schritt jeder
-  Session-Aufgabe — der GitHub-Stand auf github.com ist die einzige
-  Wahrheit.
-- **Yahoo v7 API jetzt mit Crumb-Auth.** `/v7/finance/quote` antwortet
-  seit Mai 2026 HTTP 401 ohne `crumb`/`cookie`. v8-Chart-Endpoint
-  (`/v8/finance/chart/{ticker}`) ist öffentlich erreichbar, aber
-  single-ticker pro Request. yfinance-Library nutzt intern wohl
-  einen Crumb-Mechanismus, Browser-Direktzugriff hat den nicht.
-- **Live-Polling-Architektur via Cloudflare-Worker** ist der saubere
-  Browser→Yahoo-Pfad. Free-Tier 100 k Req/Tag reicht locker für 4
-  parallele Drawer á 4 Polls/min á 24 h ≈ 23 k Req. Edge-Cache 10 s
-  reduziert Yahoo-Backend-Load drastisch. **Polling-Lifecycle muss
-  `visibilitychange` respektieren** — sonst läuft Background-Polling
-  bei jeder gesperrten iPhone-Session.
-- **f-String-Bug-Klasse strukturell verhindern.** Zwei unabhängige
-  Linter (`${var}`-grep + `{var}`-AST-Scan) als CI-Gates fangen die
-  zwei distinkten Pattern-Klassen. Beide laufen vor dem Generate-
-  Step — kaputte Versionen werden nicht deployed.
-- **Jekyll vs. interne Doku.** GitHub-Pages-Build parst standardmäßig
-  alle `*.md`-Files als Liquid-Templates. Interne Doku mit `{{...}}`-
-  Patterns (z.B. Code-Beispiele in CLAUDE.md) muss explizit in
-  `_config.yml exclude` — der pragmatische Pfad ist sauberer als jede
-  Markdown-Stelle in `{% raw %}` einzuwickeln.
-- **Setup-Schritte für externe Services in Service-Folder-README.**
-  Cloudflare-Worker-Setup (`wrangler login` + `wrangler deploy` +
-  Repo-Secret `QUOTE_PROXY_URL`) ist eine einmalige User-Action —
-  gehört in `cloudflare/quote-proxy/README.md`, nicht in CLAUDE.md
-  (= Entwicklungsregeln) und nicht in den PR-Body (= ephemer).
-  CLAUDE.md verlinkt darauf.
-- **PR-Body als Setup-Doku zu unzuverlässig.** Easy fand den Bug in
-  PR #135 (v7 → v8) erst beim manuellen Deploy, nicht im Code-Review.
-  Lehre: nicht-triviale externe Services brauchen einen Smoke-Test-
-  Schritt im README („`curl 'https://quote-proxy.…/?ticker=AAPL'`
-  liefert valid JSON mit `price`?"), bevor Repo-Secret gesetzt wird.
-- **Bug-Reproduktions-Test als Regression-Guard.** Mock-Test in
-  PR #137 enthält explizit den Negativ-Test (f-String ohne Variable
-  → `KeyError`). Dokumentiert das ursprüngliche Bug-Verhalten, dass
-  ein zukünftiger Refactor die Fix-Stelle nicht wieder entfernt
-  ohne den Test zu brechen.
+- **Diagnose-Schritt vor Implementation zahlt sich aus.** Bei
+  Earliness war die ursprüngliche Spec (SI-Trend-5d + RVOL-Build-up
+  + Coiled Spring) nicht rückwirkbar berechenbar — Diagnose
+  entdeckte das **bevor** Code geschrieben wurde. Stattdessen kam
+  datenbelegtes DTC-Niveau heraus mit AUC 0.77.
+- **Symptom vs. Wurzel.** Token-Reentry-Bug schien iPhone-Storage-
+  Verlust. Wirkliche Wurzel war `buildPositionPanel` mit passivem
+  `getToken()`-Check ohne Modal-Routing. Drei Vermutungen alle falsch,
+  bis die Storage-Diagnose-Anzeige Klarheit brachte.
+- **PR-Aufteilung nach Risiko-Klassen statt nach Code-Größe.**
+  Health-Check Phase 2 in 3 PRs nach Tier (1/2/3) erlaubte saubere
+  Iteration ohne Mega-PR-Risiko.
+- **Helper-Refactor erst nach 3 Wiederholungen.**
+  `_instrument_provider_call` wurde erst bei PR #154 zentral nach
+  `health_check.py` umgezogen — vorher hatte der Code es lokal in
+  `generate_report.py`. Pattern wird erst nach drei Use-Cases
+  offensichtlich.
+- **Race-Conditions bei State-Files vermeiden.**
+  `health_check_digest_state.json` separat statt `agent_state.json`-
+  Sub-Key (das hätten mehrere parallele Writer aktualisiert).
+  Spec-Wortlaut musste hier abgewichen werden — User-Freigabe vor
+  Implementation.
+- **Auto-Trigger statt Cron-Hoffnung.** Daily-Run triggert KI-Agent
+  direkt am Ende, statt auf nächsten regulären Cron-Slot zu warten.
+  Strukturelle Lösung vs. zeitliche Hoffnung.
+- **iCloud-Schlüsselbund-Autofill funktioniert nicht zuverlässig**
+  mit unserem Token-Modal-Setup. Bleibt als bekannte Limitation,
+  lohnt nur als großer Refactor später.
+- **GitHub-Pages-Crons droppen bei `:00`.** Betroffen alle Workflows
+  mit Cron `0 * * * *` oder `0 X * * *`. Lösung: 17-Minuten-Offset
+  zur Last-Peak-Vermeidung. Heute auf KI-Agent und Daily-Run
+  angewandt, neue Workflows (Health-Check-Digest auf 13:08) nutzen
+  sofort den Offset.
+- **Schwellen konservativ als Default.** Health-Check Tier-2/3 erst
+  ab 3-in-Folge triggern Counter, nicht ab erstem Fail. Vermeidet
+  Push-Spam in den ersten Wochen.
