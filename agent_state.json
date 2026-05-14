@@ -1,5 +1,5 @@
 {
-  "last_run": "2026-05-14T22:11:35.681722+02:00",
+  "last_run": "2026-05-14T23:25:11.051163+02:00",
   "cooldowns": {
     "anomaly_score_jump_XRX": "2026-05-03T18:47:15.315486+02:00",
     "anomaly_uoa_extreme_TDOC": "2026-05-04T13:47:00.365949+02:00",
@@ -26,7 +26,8 @@
     "anomaly_monster_backup_CRMD": "2026-05-14T16:48:48.159358+02:00",
     "anomaly_conviction_high_PGEN": "2026-05-14T20:28:25.670906+02:00",
     "earnings_immediate_CRMD_14.05.2026": "2026-05-14T22:03:01.392755+02:00",
-    "earnings_immediate_KPTI_14.05.2026": "2026-05-14T22:03:01.470447+02:00"
+    "earnings_immediate_KPTI_14.05.2026": "2026-05-14T22:03:01.470447+02:00",
+    "earnings_immediate_GEMI_14.05.2026": "2026-05-14T23:25:08.201852+02:00"
   },
   "push_history": [
     {
@@ -743,6 +744,30 @@
       "suppressed": false,
       "suppress_reason": null,
       "conviction_score": 82
+    },
+    {
+      "ts": "2026-05-14T23:25:08.201822+02:00",
+      "ticker": "GEMI",
+      "kind": "earnings_immediate",
+      "severity": "default",
+      "trigger": null,
+      "body": "GEMI Earnings-Sofort-Alert (in 0d, KI 90)",
+      "success": true,
+      "suppressed": false,
+      "suppress_reason": null,
+      "conviction_score": 64
+    },
+    {
+      "ts": "2026-05-14T23:25:11.116493+02:00",
+      "ticker": "AMC",
+      "kind": "exit_p2",
+      "severity": "trigger",
+      "trigger": "trend_break",
+      "body": "🔻 Exit-Signal AMC: trend_break crit ({'ma21': 1.4662, 'price': 1.34, 'drop_pct': 8.61})",
+      "success": true,
+      "suppressed": false,
+      "suppress_reason": null,
+      "conviction_score": null
     }
   ],
   "prev_conviction_scores": {
@@ -750,16 +775,16 @@
     "CRMD": 96.0,
     "LESL": 74.0,
     "SLS": 58.0,
-    "KPTI": 84.0,
+    "KPTI": 85.0,
+    "FLWS": 59.0,
     "PLCE": 59.0,
-    "FLWS": 58.0,
-    "UPXI": 58.0,
     "FTK": 65.0,
-    "DIN": 58.0
+    "DIN": 58.0,
+    "GEMI": 64.0
   },
   "exit_cooldowns": {
     "exitp2_warning_AMC": "2026-05-14T19:17:50.269766+02:00",
-    "exitp2_trigger_AMC_trend_break": "2026-05-13T22:21:29.965054+02:00",
+    "exitp2_trigger_AMC_trend_break": "2026-05-14T23:25:11.116544+02:00",
     "exitp2_trigger_DMRC_catalyst": "2026-05-12T08:16:46.397344+02:00",
     "exitp2_trigger_AMC_profit_lock": "2026-05-14T00:08:46.149247+02:00",
     "exitp2_trigger_SABR_trend_break": "2026-05-13T16:33:31.855081+02:00",
