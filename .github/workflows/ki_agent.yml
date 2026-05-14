@@ -2,9 +2,13 @@ name: KI-Agent Squeeze Monitor
 
 on:
   schedule:
-    # Stündlich, 24/7 — Alert-Cooldown (ALERT_COOLDOWN_HOURS=2 in config.py)
-    # bleibt unverändert und verhindert Spam unabhängig vom Run-Intervall.
-    - cron: '0 * * * *'
+    # Stündlich auf Minute 17, 24/7 — Offset weg von der vollen Stunde,
+    # weil GitHub Actions Scheduled-Workflows bei Last-Peaks zur :00 dropped
+    # (dokumentiertes Verhalten, beobachtet 11.–14.05.2026 mit nur ~45 %
+    # der erwarteten Ticks bei `0 * * * *`). Alert-Cooldown
+    # (ALERT_COOLDOWN_HOURS=2 in config.py) bleibt unverändert und
+    # verhindert Spam unabhängig vom Run-Intervall.
+    - cron: '17 * * * *'
   workflow_dispatch:   # Manueller Start jederzeit möglich
 
 permissions:
