@@ -1,5 +1,5 @@
 {
-  "last_run": "2026-05-14T13:22:43.418436+02:00",
+  "last_run": "2026-05-14T16:29:46.004088+02:00",
   "cooldowns": {
     "anomaly_score_jump_XRX": "2026-05-03T18:47:15.315486+02:00",
     "anomaly_uoa_extreme_TDOC": "2026-05-04T13:47:00.365949+02:00",
@@ -20,7 +20,9 @@
     "anomaly_monster_backup_WEN": "2026-05-12T20:19:24.529699+02:00",
     "anomaly_score_jump_RIGL": "2026-05-12T20:19:24.801725+02:00",
     "earnings_immediate_HUMA_13.05.2026": "2026-05-13T22:21:27.421658+02:00",
-    "earnings_immediate_ENVX_13.05.2026": "2026-05-14T00:08:43.482251+02:00"
+    "earnings_immediate_ENVX_13.05.2026": "2026-05-14T00:08:43.482251+02:00",
+    "anomaly_conviction_high_CRMD": "2026-05-14T16:29:35.793627+02:00",
+    "anomaly_conviction_high_KPTI": "2026-05-14T16:29:35.855813+02:00"
   },
   "push_history": [
     {
@@ -629,19 +631,43 @@
       "suppressed": false,
       "suppress_reason": null,
       "conviction_score": null
+    },
+    {
+      "ts": "2026-05-14T16:29:35.793597+02:00",
+      "ticker": "CRMD",
+      "kind": "anomaly",
+      "severity": "high",
+      "trigger": "conviction_high",
+      "body": "CRMD 🎯 KAUFSIGNAL — Conviction 90/100 (high) | Conviction hoch — Setup, Earliness und Timing konvergieren. Erwartungswert posit…",
+      "success": true,
+      "suppressed": false,
+      "suppress_reason": null,
+      "conviction_score": 90
+    },
+    {
+      "ts": "2026-05-14T16:29:35.855786+02:00",
+      "ticker": "KPTI",
+      "kind": "anomaly",
+      "severity": "high",
+      "trigger": "conviction_high",
+      "body": "KPTI 🎯 KAUFSIGNAL — Conviction 81/100 (high) | Conviction hoch — Setup, Earliness und Timing konvergieren. Erwartungswert posit…",
+      "success": true,
+      "suppressed": false,
+      "suppress_reason": null,
+      "conviction_score": 81
     }
   ],
   "prev_conviction_scores": {
-    "CCCC": 62.0,
-    "RR": 82.0,
-    "SLS": 64.0,
-    "WBTN": 67.0,
-    "DMRC": 66.0,
-    "HUMA": 58.0,
-    "ENVX": 55.0,
-    "RIGL": 53.0,
-    "REPL": 32.0,
-    "AEVA": 43.0
+    "LESL": 70.0,
+    "CRMD": 90.0,
+    "KPTI": 81.0,
+    "PGEN": 65.0,
+    "DBI": 65.0,
+    "GO": 63.0,
+    "VITL": 55.0,
+    "AI": 62.0,
+    "CBRL": 53.0,
+    "ABSI": 53.0
   },
   "exit_cooldowns": {
     "exitp2_warning_AMC": "2026-05-14T04:56:19.165188+02:00",
