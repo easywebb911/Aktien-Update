@@ -10782,6 +10782,19 @@ function _fmtGerman(d) {{
   window.gistLoad = gistLoad;
   window.gistSave = gistSave;
 
+  // Locked-State-Helper: Token-Session abgelaufen, Blob da → User klickt
+  // „Token entsperren" → _ensureToken öffnet Unlock-Modal → nach Success
+  // Position-Panel neu rendern (mit echten Daten). Single-Source-of-Truth
+  // für Position-spezifische Unlock-Trigger (Watchlist-Drawer + Top-10).
+  window._unlockFromPositionPanel = function(ticker) {{
+    if (typeof _ensureToken !== 'function') return;
+    _ensureToken(function() {{
+      if (typeof _refreshPositionPanel === 'function') {{
+        _refreshPositionPanel(ticker);
+      }}
+    }});
+  }};
+
   // ── Selektor-relative Toggle-Handler für Watchlist-Drawer-Karten ─────────
   // Die Top-10-Karten-IDs (``dd0``, ``np0`` etc.) werden in
   // ``_wl_full_card_html`` gestrippt — die Onclick-Calls dort werden
@@ -10850,6 +10863,20 @@ function _fmtGerman(d) {{
     }}
     const tok = getToken();
     if (!tok) {{
+      // Dritter Zustand seit PR #125 (Token-Encryption): Token-Session
+      // ist leer (z.B. Tab-Restart auf iOS-Safari), aber der encrypted
+      // Blob liegt im localStorage. User braucht NUR Master-Passwort,
+      // keine Token-Neueingabe. Vor diesem Fix wurde der gleiche
+      // „Token fehlt"-Block gerendert wie bei wirklich leerem Storage —
+      // verwirrend und blockierend (Diagnose 14.05.2026).
+      if (typeof _hasEncryptedToken === 'function' && _hasEncryptedToken()) {{
+        return `<div class="position-panel position-panel-locked">
+          <p class="pos-msg">🔒 Token-Session abgelaufen — Position-Tracking ben\xf6tigt einmalige Master-Passwort-Eingabe.</p>
+          <div class="pos-actions">
+            <button class="pos-btn pos-btn-unlock" onclick="_unlockFromPositionPanel('${{ticker}}')">Token entsperren</button>
+          </div>
+        </div>`;
+      }}
       return `<div class="position-panel position-panel-disabled">
         <p class="pos-msg">GitHub-Token fehlt — Position-Tracking ben\xf6tigt einen PAT mit <code>gist</code>-Scope (⚙ Einstellungen).</p>
       </div>`;

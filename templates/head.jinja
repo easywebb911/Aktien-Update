@@ -717,6 +717,13 @@ abbr[title]{text-decoration:underline dotted var(--txt-dim);
   border-left:3px solid #22c55e}
 .position-panel-empty,.position-panel-loading,.position-panel-disabled{
   background:rgba(148,163,184,0.06)}
+/* Locked-State: Token-Session abgelaufen, Blob ist da → User muss
+   einmalig das Master-Passwort eingeben. Visuell warnender Farbton
+   (gelb-orange) zur Abgrenzung von -disabled (= grau, kein Token überhaupt). */
+.position-panel-locked{background:rgba(234,179,8,0.08);
+  border-left:3px solid #eab308}
+.pos-btn-unlock{background:#eab308;color:#1e293b;border-color:#eab308;font-weight:600}
+.pos-btn-unlock:hover:not(:disabled){background:#ca8a04}
 .pos-header{font-size:.75rem;font-weight:700;text-transform:uppercase;
   letter-spacing:.5px;color:var(--txt-sub);margin-bottom:8px}
 .pos-msg{font-size:.78rem;color:var(--txt-dim);line-height:1.5;margin-bottom:8px}
