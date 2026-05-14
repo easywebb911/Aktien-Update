@@ -5884,6 +5884,18 @@ def generate_html_v1(stocks: list[dict], report_date: str,
     _ABBR_13F           = '<abbr title="Großinvestoren melden quartalsweise ihre Bestände. Akkumulation = sie kaufen sich massiv ein.">13F-Akkumulation</abbr>'
     _ABBR_UOA           = '<abbr title="Ungewöhnliche Optionsaktivitäten: wenn große Marktteilnehmer plötzlich extrem viele Wetten auf rasante Kursbewegungen platzieren.">UOA</abbr>'
     _ABBR_RVOL          = '<abbr title="Relatives Volumen: wieviel mehr als üblich heute gehandelt wird (z.B. 3× = dreifaches Normalvolumen).">RVOL</abbr>'
+    # UOA-Punkte-Aufschlüsselung als eigener <abbr>-Tooltip (Inventur
+    # 14.05.2026: Aggregat-Cap "bis 30 Pkt" verschluckte die drei
+    # Komponenten ATM-weak/strong + C/P-Bias). Tooltip-Element ist
+    # eine sichtbare Zahl, damit auch Touch-Geräte (kein Hover) den
+    # Hinweis erschließen — Tap auf "30" zeigt das Title-Tooltip.
+    _ABBR_UOA_BREAKDOWN = (
+        f'<abbr title="ATM Vol/OI weak ({UOA_ATM_WEAK} Pkt) / strong '
+        f'({UOA_ATM_STRONG} Pkt) + Call/Put-Bias ({UOA_CP_BIAS} Pkt) — '
+        f'Komponenten addieren sich bis zum Aggregat-Cap.">'
+        f'{UOA_ATM_STRONG + UOA_CP_BIAS}'
+        f'</abbr>'
+    )
 
     # Display-Punkte pro Komponente kommen seit dem Methodik-Auto-Generation-
     # Refactor (Code-Hygiene Punkt 5, Schritt 1) aus config.py — kein manueller
@@ -5916,18 +5928,36 @@ def generate_html_v1(stocks: list[dict], report_date: str,
         ("Gamma Squeeze (möglich / wahrscheinlich)",
          GAMMA_BONUS_LIKELY,
          f"{GAMMA_BONUS_POSSIBLE} / {GAMMA_BONUS_LIKELY} Pkt"),
+        # Borrow-Rate-Bonus war bis Inventur 14.05.2026 vollständig
+        # unsichtbar — wird in _compute_sub_scores als catalyst_pts-
+        # Komponente addiert. +8 bei cost_to_borrow > IBKR_BORROW_HIGH
+        # (50 %/J), +15 bei > 100 %/J (extrem teure Leihe = harter
+        # Short-Druck-Indikator).
+        ("Borrow-Rate p.a. (Leihgebühr für Shorts)",
+         IBKR_BORROW_BONUS_EXTREME,
+         f"+{IBKR_BORROW_BONUS_HOT} (&gt;{int(IBKR_BORROW_HIGH)}&nbsp;%) / "
+         f"+{IBKR_BORROW_BONUS_EXTREME} (&gt;100&nbsp;%) Pkt"),
         (f"Insider ({_ABBR_13F})",
          SUB_INSIDER_PTS,
          f"{SUB_INSIDER_PTS} Pkt"),
+        # UOA: <abbr>-Tooltip auf der Zahl zeigt die Aufschlüsselung
+        # ATM-weak/strong + C/P-Bias (Inventur 14.05.2026).
         (f"{_ABBR_UOA} (ATM Vol/OI &amp; C/P-Bias)",
          UOA_ATM_STRONG + UOA_CP_BIAS,
-         f"bis {UOA_ATM_STRONG + UOA_CP_BIAS} Pkt"),
+         f"bis {_ABBR_UOA_BREAKDOWN} Pkt"),
     ])
     methodology_timing_rows = _methodology_rows_html([
         (f"Rel. Volumen ({_ABBR_RVOL})", SUB_RVOL_DISPLAY_PTS_MAX,     f"{SUB_RVOL_DISPLAY_PTS_MAX} Pkt"),
         ("Momentum",                     SUB_MOMENTUM_DISPLAY_PTS_MAX, f"{SUB_MOMENTUM_DISPLAY_PTS_MAX} Pkt"),
         ("RS vs. SPY",                   RS_SPY_PTS_MAX,               f"{RS_SPY_PTS_MAX} Pkt"),
-        ("Float Turnover",               FLOAT_TURNOVER_PTS_HIGH,      f"{FLOAT_TURNOVER_PTS_HIGH} Pkt"),
+        # Float-Turnover ist 3-stufig (Vol/Float ≥ 0.5/1.0/2.0 → 3/6/10 Pkt).
+        # Bis Inventur 14.05.2026 zeigte der Display nur den HIGH-Wert —
+        # User glaubte binär. Tooltip macht die Schwellen-Quelle sichtbar.
+        ("Float Turnover",               FLOAT_TURNOVER_PTS_HIGH,
+         f"{FLOAT_TURNOVER_PTS_LOW} / {FLOAT_TURNOVER_PTS_MID} / "
+         f"{FLOAT_TURNOVER_PTS_HIGH} Pkt "
+         f"(Vol/Float &ge;{FLOAT_TURNOVER_LOW:g}/{FLOAT_TURNOVER_MID:g}/"
+         f"{FLOAT_TURNOVER_HIGH:g})"),
         # Unicode-Minus (U+2212) bewusst, damit Gap-Fail-Wert konsistent
         # mit dem typografisch sauberen Setup im restlichen Methodik-HTML
         # gerendert wird (ASCII-Hyphen wäre eine sichtbare Drift).
