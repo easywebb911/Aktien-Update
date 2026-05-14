@@ -2,9 +2,10 @@
 
 Resolution-Logik:
 
-1. ``schedule``-Trigger: fester Mapping pro Cron — `0 21 * * 1-5` → postclose,
-   alles andere (insb. `0 10 * * 1-5`) → premarket. **Plausibilitäts-Override
-   greift hier nicht**, weil Cron-Trigger zeitlich gepinnt sind.
+1. ``schedule``-Trigger: fester Mapping pro Cron — `17 21 * * 1-5` → postclose,
+   alles andere (insb. `17 10 * * 1-5`) → premarket. **Plausibilitäts-Override
+   greift hier nicht**, weil Cron-Trigger zeitlich gepinnt sind. Minute-17-
+   Offset gegen GitHub-Actions-Load-Peak-Drops (siehe Workflow-Kommentar).
 
 2. ``workflow_dispatch``-Trigger: User-Input wird gegen die aktuelle UTC-Zeit
    plausibilitäts-geprüft:
@@ -49,7 +50,7 @@ def resolve_run_phase(
     ``"no_input_fallback"``), den der Caller ins Run-Log schreibt.
     """
     if event_name == "schedule":
-        if schedule == "0 21 * * 1-5":
+        if schedule == "17 21 * * 1-5":
             return "postclose", None
         return "premarket", None
 

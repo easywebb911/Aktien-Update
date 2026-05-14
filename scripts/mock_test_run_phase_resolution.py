@@ -88,27 +88,28 @@ def test_post_close_postclose_stays_postclose():
 
 
 def test_cron_ignores_override_logic_premarket():
-    # 10:00-UTC-Cron ist `premarket` per YAML-Definition. Selbst wenn die
+    # 10:17-UTC-Cron ist `premarket` per YAML-Definition. Selbst wenn die
     # Cron-Zeit theoretisch im US-Pre-Open liegt, gilt der Cron-Mapping.
+    # (Minute-17-Offset gegen GitHub-Actions-Drops zur vollen Stunde.)
     phase, reason = resolve_run_phase(
         event_name="schedule",
-        schedule="0 10 * * 1-5",
+        schedule="17 10 * * 1-5",
         user_input=None,
-        now_utc=_at(10, 0),
+        now_utc=_at(10, 17),
     )
     assert phase == "premarket", phase
     assert reason is None, reason
 
 
 def test_cron_ignores_override_logic_postclose():
-    # 21:00-UTC-Cron ist `postclose`. Diese Zeit liegt nach US-Close — der
+    # 21:17-UTC-Cron ist `postclose`. Diese Zeit liegt nach US-Close — der
     # Override würde hier keinen Schaden anrichten, aber wir wollen
     # konsistente Cron-Semantik (kein Override-Pfad für Schedule-Trigger).
     phase, reason = resolve_run_phase(
         event_name="schedule",
-        schedule="0 21 * * 1-5",
+        schedule="17 21 * * 1-5",
         user_input=None,
-        now_utc=_at(21, 0),
+        now_utc=_at(21, 17),
     )
     assert phase == "postclose", phase
     assert reason is None, reason
@@ -187,7 +188,7 @@ def test_cli_writes_run_phase_to_github_env():
         env = os.environ.copy()
         env.update({
             "EVENT_NAME":     "schedule",
-            "EVENT_SCHEDULE": "0 21 * * 1-5",
+            "EVENT_SCHEDULE": "17 21 * * 1-5",
             "USER_INPUT":     "",
             "GITHUB_ENV":     env_file,
         })

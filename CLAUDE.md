@@ -160,8 +160,8 @@ Datenqualität:
 
 | Cron | Phase | Daten | Push-Pipeline | Backtest-History |
 |---|---|---|---|---|
-| `0 10 * * 1-5` (10:00 UTC) | `premarket` | Vorschau, RVOL strukturell unter-skaliert (US-Open ~3,5 h voraus) | Anomaly-Pushes **aktiv** (Aktions-Fenster für die KI-Agent-Ticks) | **kein** Backtest-Eintrag |
-| `0 21 * * 1-5` (21:00 UTC) | `postclose` | EOD-konsolidiert = „Wahrheit" | Anomaly-Pushes **aus** (kein abendliches Rauschen) | Backtest-Eintrag wird angelegt |
+| `17 10 * * 1-5` (10:17 UTC) | `premarket` | Vorschau, RVOL strukturell unter-skaliert (US-Open ~3,2 h voraus) | Anomaly-Pushes **aktiv** (Aktions-Fenster für die KI-Agent-Ticks) | **kein** Backtest-Eintrag |
+| `17 21 * * 1-5` (21:17 UTC) | `postclose` | EOD-konsolidiert = „Wahrheit" | Anomaly-Pushes **aus** (kein abendliches Rauschen) | Backtest-Eintrag wird angelegt |
 | `workflow_dispatch` (manuell) | per User-Input, **required, kein Default** — Plausibilitäts-Override aktiv (siehe unten) | wie oben | wie oben | wie oben |
 
 ### Plausibilitäts-Override für workflow_dispatch (seit 13.05.2026)
@@ -179,8 +179,8 @@ Die RUN_PHASE-Resolution lebt jetzt in
 
 | Trigger | Input | Aktuelle UTC-Zeit | Resultat | Override-Reason |
 |---|---|---|---|---|
-| `schedule` `0 10 * * 1-5` | — | — | `premarket` | — (fester Cron-Mapping) |
-| `schedule` `0 21 * * 1-5` | — | — | `postclose` | — (fester Cron-Mapping) |
+| `schedule` `17 10 * * 1-5` | — | — | `premarket` | — (fester Cron-Mapping) |
+| `schedule` `17 21 * * 1-5` | — | — | `postclose` | — (fester Cron-Mapping) |
 | `workflow_dispatch` | `postclose` | 13:30 ≤ UTC < 20:00 (US-Session) | **`premarket`** | `us_session_override` |
 | `workflow_dispatch` | `premarket` | UTC ≥ 20:00 (Post-Close) | **`postclose`** | `post_close_override` |
 | `workflow_dispatch` | `premarket` | 13:30 ≤ UTC < 20:00 | `premarket` | — (plausibel) |
