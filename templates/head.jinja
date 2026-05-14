@@ -724,6 +724,15 @@ abbr[title]{text-decoration:underline dotted var(--txt-dim);
   border-left:3px solid #eab308}
 .pos-btn-unlock{background:#eab308;color:#1e293b;border-color:#eab308;font-weight:600}
 .pos-btn-unlock:hover:not(:disabled){background:#ca8a04}
+/* Generische Locked-Box (Trade-Journal + zukünftige Gist-Display-Pfade).
+   Selbe visuelle Sprache wie .position-panel-locked, aber Padding + Margin
+   für info-box-Slot statt position-panel. */
+.gist-locked-box{background:rgba(234,179,8,0.08);
+  border-left:3px solid #eab308;border-radius:6px;
+  padding:12px 14px;margin-top:8px}
+.gist-locked-msg{font-size:.85rem;color:var(--txt-dim);line-height:1.5;
+  margin:0 0 10px 0}
+.gist-locked-actions{display:flex;gap:8px}
 .pos-header{font-size:.75rem;font-weight:700;text-transform:uppercase;
   letter-spacing:.5px;color:var(--txt-sub);margin-bottom:8px}
 .pos-msg{font-size:.78rem;color:var(--txt-dim);line-height:1.5;margin-bottom:8px}

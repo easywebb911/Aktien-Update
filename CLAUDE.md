@@ -1146,6 +1146,42 @@ automatisch zum Ausfüllen an.
 - Score-Methodik-Sync ist **nicht betroffen** — reines Frontend-Security-
   Feature, keine Score- oder Filter-Logik berührt.
 
+### Gist-Action-Token-Routing (PR-Folge zu #149)
+
+Vier User-Aktionen, die über den privaten Gist persistieren, sind als
+„Action-Pfade" durch ``_ensureToken`` gewrappt — bei leerer Session +
+Encrypted-Blob öffnet sich das Unlock-Modal, nach Master-Passwort-
+Submit läuft der Callback weiter. Vorher liefen sie mit passivem
+``getToken()``-Check ins Leere (Toast ohne Modal-Routing oder komplett
+silent skip).
+
+| Funktion | User-Action | Vorher (silent/irreführend) | Jetzt |
+|---|---|---|---|
+| ``wlSubmitPosition`` | Position eröffnen | Toast „Token-Scope prüfen" obwohl Session-Verlust | Unlock-Modal |
+| ``wlSubmitClose`` | Position schließen + Trade-Journal | Toast „Token-Scope prüfen" | Unlock-Modal |
+| ``wlAddManual`` | Watchlist-Ticker hinzufügen | Silent skip im Gist-Sync, lokal sichtbar aber kein Cross-Device-Sync | Unlock-Modal |
+| ``wlRemoveFromExpanded`` | Drawer-Footer „Aus Watchlist entfernen" | Repo-Datei wird gelöscht, **Position bleibt im Gist** (Geister-Position für ``process_exit_signals``) | Unlock-Modal — beide Pfade konsistent |
+
+**Display-Pfad** für Trade-Journal: ``renderTradeJournal`` bekommt
+analog ``buildPositionPanel`` (PR #149) drei Token-Zustände — bei
+Session-Verlust + Blob da rendert eine Locked-Box mit „Token entsperren"-
+Button (Helper ``_unlockFromTradeJournal``). Ohne diesen Fix sah der
+User eine leere Statistik und schloss fälschlich „keine Trades"
+statt „Daten verschlüsselt".
+
+**``gistLoad``/``gistSave`` selbst bleiben unverändert** —
+defensive catch-net (innerer ``if (!token) return null``-Skip), aber
+nicht mehr der primäre Pfad für Action-getriebenes UI-Feedback.
+
+**Generische CSS-Klasse** ``.gist-locked-box`` in ``head.jinja`` —
+selbe visuelle Sprache wie ``.position-panel-locked``, eigenes
+Padding/Margin für ``info-box``-Slot des Trade-Journal-Sections.
+Zukünftige Display-Pfade mit Gist-Abhängigkeit können dieselbe Klasse
+nutzen.
+
+**DOMContentLoaded-Preload** (``gistLoad().catch(...)``) bleibt
+silent — passiv, kein User-Action, kein Modal-Spawn beim Page-Load.
+
 ---
 
 ## Anomalie-Push-System
