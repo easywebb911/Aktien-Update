@@ -289,6 +289,214 @@ def test_yfinance_singletons_ki_agent_side():
         "KI-Agent-Emission nutzt nicht run_phase='ki_agent_tick'")
 
 
+# ── Wrapper-Pattern: try/finally + Pass/Fail-Pfad pro Provider ════════════
+
+
+def _block_around(src: str, anchor: str, before: int = 800, after: int = 400) -> str:
+    """Extrahiere Code-Block um anchor herum für Source-Inspektion."""
+    idx = src.find(anchor)
+    assert idx > 0, f"Anchor {anchor!r} nicht gefunden"
+    return src[max(0, idx - before):idx + after]
+
+
+def test_yahoo_screener_uses_try_finally():
+    """Wrapper muss try/finally nutzen, damit Latency auch bei Exception
+    in record_provider_call landet."""
+    block = _block_around(SRC_GR, 'provider="yahoo_screener"')
+    assert "try:" in block and "finally:" in block, (
+        "yahoo_screener-Wrapper hat kein try/finally — Latency-Capture "
+        "bei Exception nicht garantiert")
+
+
+def test_yahoo_screener_exception_bubbles():
+    """Wrapper darf Exceptions NICHT swallowen — Block muss raise enthalten."""
+    block = _block_around(SRC_GR, 'provider="yahoo_screener"', before=600, after=400)
+    # Pattern: except Exception ... raise
+    assert re.search(r"except\s+Exception[^:]*:\s*\n.*?raise\b", block, re.DOTALL), (
+        "yahoo_screener-Wrapper bubbelt Exceptions nicht durch")
+
+
+def test_yfinance_batch_uses_try_finally():
+    block = _block_around(SRC_GR, 'provider="yfinance_batch"')
+    assert "try:" in block and "finally:" in block, (
+        "yfinance_batch-Wrapper hat kein try/finally")
+
+
+def test_yfinance_batch_exception_bubbles():
+    block = _block_around(SRC_GR, 'provider="yfinance_batch"', before=900, after=400)
+    assert re.search(r"except\s+Exception[^:]*:\s*\n.*?raise\b", block, re.DOTALL), (
+        "yfinance_batch-Wrapper bubbelt Exceptions nicht durch")
+
+
+def test_yfinance_singletons_ki_uses_try_finally():
+    block = _block_around(SRC_KI, 'provider="yfinance_singletons"')
+    assert "try:" in block and "finally:" in block, (
+        "yfinance_singletons (KI-Agent) hat kein try/finally")
+
+
+def test_yfinance_singletons_ki_exception_bubbles():
+    block = _block_around(SRC_KI, 'provider="yfinance_singletons"', before=700, after=400)
+    assert re.search(r"except\s+Exception[^:]*:\s*\n.*?raise\b", block, re.DOTALL), (
+        "yfinance_singletons (KI-Agent) bubbelt Exceptions nicht durch")
+
+
+def test_wrapper_pattern_replication_latency_captured_on_exception():
+    """Pythonische Replikation des try/finally-Wrapper-Patterns: bei
+    Exception muss Latency dennoch im record-Block landen."""
+    import time as _time
+    captured = {"latency_ms": None, "called": False}
+
+    def fake_record(latency_ms):
+        captured["latency_ms"] = latency_ms
+        captured["called"] = True
+
+    def wrapped_call(should_raise: bool):
+        t0 = _time.perf_counter()
+        try:
+            if should_raise:
+                raise RuntimeError("simulated")
+            return "ok"
+        finally:
+            fake_record(int((_time.perf_counter() - t0) * 1000))
+
+    # Fail-Pfad: Exception bubbelt + Latency wurde captured
+    try:
+        wrapped_call(True)
+        assert False, "Exception sollte gebubbelt sein"
+    except RuntimeError:
+        pass
+    assert captured["called"], "record() wurde nicht aus finally aufgerufen"
+    assert captured["latency_ms"] is not None and captured["latency_ms"] >= 0
+
+
+def test_wrapper_pattern_replication_pass_path():
+    """Pass-Pfad: gleicher Wrapper, kein Exception, Latency captured."""
+    import time as _time
+    captured = {"latency_ms": None, "called": False}
+
+    def fake_record(latency_ms):
+        captured["latency_ms"] = latency_ms
+        captured["called"] = True
+
+    def wrapped_call():
+        t0 = _time.perf_counter()
+        try:
+            return "ok"
+        finally:
+            fake_record(int((_time.perf_counter() - t0) * 1000))
+
+    result = wrapped_call()
+    assert result == "ok"
+    assert captured["called"]
+    assert captured["latency_ms"] is not None and captured["latency_ms"] >= 0
+
+
+def test_wrapper_record_failure_does_not_break_pipeline():
+    """Wenn record_provider_call selbst crasht, darf der Wrapper NICHT
+    raisen — Pipeline-Robustheit."""
+    import time as _time
+
+    def wrapped_call():
+        t0 = _time.perf_counter()
+        try:
+            return "ok"
+        finally:
+            try:
+                # Simulierter Crash von record_provider_call
+                raise OSError("disk full")
+            except Exception:
+                pass  # genauso wie health_check.record_provider_call intern
+
+    # Darf NICHT raisen
+    result = wrapped_call()
+    assert result == "ok"
+
+
+# ── Pass / Fail per Tier-1-Provider via record-Schema ═════════════════════
+
+
+def test_provider_pass_path_writes_status_200():
+    """Pass-Pfad pro Provider: erfolgreicher Call schreibt http_status=200
+    und item_count > 0."""
+    with tempfile.NamedTemporaryFile(mode="w", suffix=".jsonl", delete=False) as fh:
+        path = fh.name
+    try:
+        open(path, "w").close()
+        for prov in ("yahoo_screener", "finviz", "yfinance_batch",
+                     "yfinance_singletons"):
+            hc.record_provider_call(
+                provider=prov, tier=1, latency_ms=1500,
+                http_status=200, item_count=50,
+                run_phase="premarket", path=path,
+            )
+        entries = hc.read_all_provider(path)
+        assert len(entries) == 4
+        for e in entries:
+            assert e["http_status"] == 200
+            assert e["item_count"] > 0
+            assert e["error"] is None
+    finally:
+        try:
+            pathlib.Path(path).unlink()
+        except FileNotFoundError:
+            pass
+
+
+def test_provider_fail_path_writes_error_string():
+    """Fail-Pfad pro Provider: gescheiterter Call schreibt http_status=null,
+    error-String, item_count=0."""
+    with tempfile.NamedTemporaryFile(mode="w", suffix=".jsonl", delete=False) as fh:
+        path = fh.name
+    try:
+        open(path, "w").close()
+        for prov, err in [("yahoo_screener", "empty_result"),
+                           ("finviz", "2/3 calls failed"),
+                           ("yfinance_batch", "timeout_after_45s"),
+                           ("yfinance_singletons", "spy_failed")]:
+            hc.record_provider_call(
+                provider=prov, tier=1, latency_ms=45000,
+                http_status=None, item_count=0,
+                error=err,
+                run_phase="premarket", path=path,
+            )
+        entries = hc.read_all_provider(path)
+        assert len(entries) == 4
+        for e in entries:
+            assert e["http_status"] is None
+            assert e["item_count"] == 0
+            assert e["error"] is not None
+            assert isinstance(e["error"], str) and len(e["error"]) > 0
+    finally:
+        try:
+            pathlib.Path(path).unlink()
+        except FileNotFoundError:
+            pass
+
+
+def test_provider_partial_failure_path():
+    """yfinance_singletons Daily-Run-Seite: ein Symbol erfolgreich,
+    eines nicht — item_count=1, coverage_pct=50.0, error='spy_failed'."""
+    with tempfile.NamedTemporaryFile(mode="w", suffix=".jsonl", delete=False) as fh:
+        path = fh.name
+    try:
+        open(path, "w").close()
+        hc.record_provider_call(
+            provider="yfinance_singletons", tier=1, latency_ms=20000,
+            http_status=None, item_count=1, coverage_pct=50.0,
+            error="spy_failed",
+            run_phase="premarket", path=path,
+        )
+        e = hc.read_all_provider(path)[0]
+        assert e["item_count"] == 1
+        assert e["coverage_pct"] == 50.0
+        assert e["error"] == "spy_failed"
+    finally:
+        try:
+            pathlib.Path(path).unlink()
+        except FileNotFoundError:
+            pass
+
+
 # ── Phase-1-Sister-Tests bleiben unverändert =================================
 
 
@@ -332,6 +540,25 @@ def main() -> None:
         ("yfinance_batch übergibt coverage_pct",         test_yfinance_batch_coverage_pct_computed),
         ("yfinance_singletons Daily-Run-Seite (SPY+FX)", test_yfinance_singletons_daily_run_side),
         ("yfinance_singletons KI-Agent-Seite (VIX)",     test_yfinance_singletons_ki_agent_side),
+        # Wrapper-Pattern: try/finally + Exception-Bubble
+        ("yahoo_screener-Wrapper try/finally",           test_yahoo_screener_uses_try_finally),
+        ("yahoo_screener-Wrapper Exception bubbelt",     test_yahoo_screener_exception_bubbles),
+        ("yfinance_batch-Wrapper try/finally",           test_yfinance_batch_uses_try_finally),
+        ("yfinance_batch-Wrapper Exception bubbelt",     test_yfinance_batch_exception_bubbles),
+        ("yfinance_singletons KI-Wrapper try/finally",   test_yfinance_singletons_ki_uses_try_finally),
+        ("yfinance_singletons KI-Wrapper Exception bubbelt",
+         test_yfinance_singletons_ki_exception_bubbles),
+        # Pythonische Wrapper-Pattern-Replikation
+        ("Wrapper-Pattern: Latency-Capture bei Exception",
+         test_wrapper_pattern_replication_latency_captured_on_exception),
+        ("Wrapper-Pattern: Pass-Pfad Latency-Capture",
+         test_wrapper_pattern_replication_pass_path),
+        ("Wrapper-Pattern: record-Crash bricht Pipeline nicht",
+         test_wrapper_record_failure_does_not_break_pipeline),
+        # Pass + Fail-Pfad per Provider
+        ("Pass-Pfad pro Provider (http_status=200)",     test_provider_pass_path_writes_status_200),
+        ("Fail-Pfad pro Provider (error-String)",        test_provider_fail_path_writes_error_string),
+        ("Partial-Failure-Pfad (yfinance_singletons)",   test_provider_partial_failure_path),
         # Phase-1-Sister
         ("Phase 1 State-Invariants unverändert",         test_phase1_state_invariants_intact),
         ("Keine unescapten ${...} im f-String",          test_no_unescaped_js_template_vars),

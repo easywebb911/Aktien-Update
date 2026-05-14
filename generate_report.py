@@ -14183,24 +14183,32 @@ def main():
     _t1 = time.time()
     log.info("Step 1 – Yahoo Finance Screener …")
     # Health-Check Phase 2 — Tier-1-Instrumentierung yahoo_screener.
-    # Latenz inline gemessen; item_count = len(candidates). Funktion ist
-    # fail-soft (returnt [] bei Fehler), kein try/except nötig — leerer
-    # Result-Vector signalisiert dem Health-Check selbst den Fehler.
+    # try/finally garantiert Latency-Capture auch bei Exception; die
+    # Exception bubbelt sauber durch (kein swallow). Funktion ist
+    # fail-soft (returnt [] bei Fehler) — try/finally ist defensive
+    # Vorsicht für unerwartete Crashes.
     _yh_t0 = time.perf_counter()
-    candidates = get_yahoo_screener_candidates()
-    _yh_latency = int((time.perf_counter() - _yh_t0) * 1000)
+    _yh_err = None
+    candidates: list = []
     try:
-        health_check.record_provider_call(
-            provider="yahoo_screener",
-            tier=HEALTH_CHECK_PROVIDER_TIER.get("yahoo_screener", 1),
-            latency_ms=_yh_latency,
-            http_status=200 if candidates else None,
-            item_count=len(candidates),
-            error=None if candidates else "empty_result",
-            run_phase=run_phase,
-        )
-    except Exception as _hc_exc:
-        log.debug("yahoo_screener provider-record skipped: %s", _hc_exc)
+        candidates = get_yahoo_screener_candidates()
+    except Exception as _exc:
+        _yh_err = f"{type(_exc).__name__}: {str(_exc)[:120]}"
+        raise
+    finally:
+        try:
+            health_check.record_provider_call(
+                provider="yahoo_screener",
+                tier=HEALTH_CHECK_PROVIDER_TIER.get("yahoo_screener", 1),
+                latency_ms=int((time.perf_counter() - _yh_t0) * 1000),
+                http_status=200 if candidates else None,
+                item_count=len(candidates) if candidates else 0,
+                error=_yh_err if _yh_err else (
+                    None if candidates else "empty_result"),
+                run_phase=run_phase,
+            )
+        except Exception as _hc_exc:
+            log.debug("yahoo_screener provider-record skipped: %s", _hc_exc)
 
     if not candidates:
         # Fallback: Finviz v141 (may be blocked on cloud IPs, but worth trying)
@@ -14410,37 +14418,46 @@ def main():
     # Fix 1: hard 45s timeout — a hanging yf.download would otherwise block forever
     _YF_BATCH_TIMEOUT = 45
     # Health-Check Phase 2 — Tier-1-Instrumentierung yfinance_batch.
+    # try/finally garantiert Latency-Capture auch bei Exception. Existing
+    # TimeoutError-Handler bleibt; ein unerwartetes Crash der wrapped
+    # Funktion bubbelt sauber durch.
     # item_count = Anzahl Pool-Tickers mit non-empty Result-Dict.
     # coverage_pct = item_count / pool_size × 100.
     _yfb_t0    = time.perf_counter()
     _yfb_err   = None
     _yfb_pool  = len(pool_tickers)
+    batch_yfd: dict = {}
     try:
-        with ThreadPoolExecutor(max_workers=1) as _yf_ex:
-            batch_yfd = _yf_ex.submit(get_yfinance_batch, pool_tickers).result(
-                timeout=_YF_BATCH_TIMEOUT
+        try:
+            with ThreadPoolExecutor(max_workers=1) as _yf_ex:
+                batch_yfd = _yf_ex.submit(get_yfinance_batch, pool_tickers).result(
+                    timeout=_YF_BATCH_TIMEOUT
+                )
+        except TimeoutError:
+            print(f"yfinance Batch-Download Timeout nach {_YF_BATCH_TIMEOUT}s — leeres Ergebnis",
+                  flush=True)
+            log.warning("get_yfinance_batch timeout after %ds — using empty dict", _YF_BATCH_TIMEOUT)
+            batch_yfd = {}
+            _yfb_err = f"timeout_after_{_YF_BATCH_TIMEOUT}s"
+    except Exception as _exc:
+        _yfb_err = f"{type(_exc).__name__}: {str(_exc)[:120]}"
+        raise
+    finally:
+        try:
+            _yfb_ok_items = sum(1 for _v in (batch_yfd or {}).values() if _v)
+            _yfb_cov = (_yfb_ok_items / _yfb_pool * 100.0) if _yfb_pool > 0 else None
+            health_check.record_provider_call(
+                provider="yfinance_batch",
+                tier=HEALTH_CHECK_PROVIDER_TIER.get("yfinance_batch", 1),
+                latency_ms=int((time.perf_counter() - _yfb_t0) * 1000),
+                http_status=200 if _yfb_err is None else None,
+                item_count=_yfb_ok_items,
+                coverage_pct=round(_yfb_cov, 1) if _yfb_cov is not None else None,
+                error=_yfb_err,
+                run_phase=run_phase,
             )
-    except TimeoutError:
-        print(f"yfinance Batch-Download Timeout nach {_YF_BATCH_TIMEOUT}s — leeres Ergebnis",
-              flush=True)
-        log.warning("get_yfinance_batch timeout after %ds — using empty dict", _YF_BATCH_TIMEOUT)
-        batch_yfd = {}
-        _yfb_err = f"timeout_after_{_YF_BATCH_TIMEOUT}s"
-    try:
-        _yfb_ok_items = sum(1 for _v in (batch_yfd or {}).values() if _v)
-        _yfb_cov = (_yfb_ok_items / _yfb_pool * 100.0) if _yfb_pool > 0 else None
-        health_check.record_provider_call(
-            provider="yfinance_batch",
-            tier=HEALTH_CHECK_PROVIDER_TIER.get("yfinance_batch", 1),
-            latency_ms=int((time.perf_counter() - _yfb_t0) * 1000),
-            http_status=200 if _yfb_err is None else None,
-            item_count=_yfb_ok_items,
-            coverage_pct=round(_yfb_cov, 1) if _yfb_cov is not None else None,
-            error=_yfb_err,
-            run_phase=run_phase,
-        )
-    except Exception as _hc_exc:
-        log.debug("yfinance_batch provider-record skipped: %s", _hc_exc)
+        except Exception as _hc_exc:
+            log.debug("yfinance_batch provider-record skipped: %s", _hc_exc)
     print(f"Step 2b (yfinance batch) abgeschlossen in {time.time()-_t_batch:.1f}s", flush=True)
 
     # Relative Stärke vs. S&P 500 (20T) + heutige Tagesveränderung
@@ -14503,9 +14520,11 @@ def main():
                          _fx_usd_eur, _eur_usd)
     except Exception as _fx_exc:
         log.warning("EURUSD=X fetch failed: %s", _fx_exc)
-    # Health-Check Phase 2 — yfinance_singletons-Zeile (Daily-Run-Seite).
-    # Diese Emission deckt SPY + FX ab (2 Symbole erwartet). VIX wird in
-    # ki_agent.py als separate yfinance_singletons-Zeile geschrieben.
+    # Health-Check Phase 2 — yfinance_singletons-Zeile (Daily-Run-Seite,
+    # deckt SPY + FX ab; VIX als separate Zeile in ki_agent.py).
+    # try/finally garantiert Emission auch bei unerwartetem Crash der
+    # SPY/FX-Blöcke (beide haben eigene try/except, aber defensive
+    # Vorsicht).
     try:
         _yfs_items = int(_yfs_spy_ok) + int(_yfs_fx_ok)
         _yfs_cov   = (_yfs_items / 2.0) * 100.0

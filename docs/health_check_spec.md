@@ -98,15 +98,24 @@ arbeitet, die er via ``parse_top_tickers()`` aus index.html zieht.
 
 ### Tier-2 (warn, erst bei wiederholtem Fail)
 
-- **FINRA Short-Volume Sums**
-- **Finnhub Earnings Calendar**
-- **Stockanalysis-Konsolidierung**
-- **EarningsWhispers**
+- **FINRA Short-Volume Sums** — Provider-Key `finra`
+- **Finnhub Earnings Calendar** — Provider-Key `finnhub`
+- **Stockanalysis-Konsolidierung** — Provider-Key `stockanalysis`
+- **EarningsWhispers** — Provider-Key `earningswhispers`
 
 ### Tier-3 (warn, erst bei wiederholtem Fail)
 
-- **StockTwits / UOA / News**
-- **EDGAR 13F-Filings**
+Klärung 15.05.2026: keine Aggregate, sondern getrennte Provider-Keys
+für saubere Coverage-Berechnung und Phase-3-Digest-Granularität.
+
+- **StockTwits** — Provider-Key `stocktwits` (Social-Sentiment)
+- **UOA (Options-Activity)** — Provider-Key `uoa` (Calls/Puts-Ratio)
+- **News-RSS** — Provider-Key `news_rss` (Finviz / Google / Yahoo /
+  UnusualWhales / MarketBeat / SeekingAlpha)
+- **EDGAR 13F-Filings** — Provider-Key `edgar_13f`
+- **EDGAR 8-K-Filings** — Provider-Key `edgar_8k`
+- **EDGAR Form 4 (Insider-Transaktionen)** — Provider-Key `edgar_form4`
+- **EDGAR 13D/13G (Stake-Erklärungen)** — Provider-Key `edgar_13d_g`
 
 ## Provider-Trigger-Bedingungen
 
