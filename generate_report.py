@@ -5986,6 +5986,22 @@ def generate_html_v1(stocks: list[dict], report_date: str,
     <div style="padding-top:4px">
       <a class="tok-link" onclick="clearGhToken();return false;" href="#">Token löschen</a>
     </div>
+    <!-- Storage-Diagnose (14.05.2026): liest nur, manipuliert nichts.
+         Zeigt Blob/Session/Keep-Alive-Status + Standalone-PWA-Erkennung.
+         Token-/Master-Passwort-Werte werden NIE angezeigt — nur Längen
+         und Existenz-Flags. -->
+    <details class="tok-diag-details" style="margin-top:10px">
+      <summary class="tok-diag-summary" style="cursor:pointer;font-size:0.85rem;color:var(--txt-sub)">
+        🔍 Storage-Diagnose (debug)
+      </summary>
+      <pre id="tok-diag-output" class="tok-diag-pre"
+           style="font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:0.78rem;background:rgba(0,0,0,0.18);border:1px solid var(--brd);border-radius:6px;padding:8px 10px;margin-top:6px;white-space:pre-wrap;overflow-x:auto;line-height:1.45"></pre>
+      <button class="btn btn-b" type="button" onclick="_copyStorageSnapshot()"
+              style="padding:4px 10px;font-size:0.78rem;margin-top:6px">
+        Snapshot in Zwischenablage
+      </button>
+      <span id="tok-diag-copied" class="anth-status" style="margin-left:8px;font-size:0.78rem"></span>
+    </details>
   </div>
   <!-- Phase 3: Token-Encryption-Modals (Setup / Unlock / Migrate).
        Master-Passwort-basierte AES-GCM-Verschlüsselung für den GitHub-PAT.
@@ -11512,6 +11528,120 @@ function clearAnthropicKey() {{
 //
 // No-op, wenn das Settings-Panel nicht sichtbar ist — kein Schaden
 // für Aufrufer ohne offene Panel-UI.
+
+// _buildStorageSnapshot — liest alle Token-relevanten Storage-Slots OHNE
+// sensible Daten (Token-Wert / Master-Passwort) zu leaken. Liefert ein
+// JSON-serialisierbares Dict für die On-Page-Diagnose-Anzeige + Clipboard-
+// Copy. Reine Anzeige, keine Manipulation.
+//
+// Hintergrund (Diagnose 14.05.2026): Easys iPhone verliert den encrypted
+// Token-Blob mehrmals täglich, trotz Standalone-PWA-Modus. Dieser
+// Snapshot ermöglicht ein „was war WIRKLICH im Storage zum Verlust-
+// Zeitpunkt"-Audit ohne Mac-Web-Inspector. Nur Längen + Existenz-Flags
+// werden ausgegeben, nie die echten Token- oder Passwort-Werte.
+function _buildStorageSnapshot() {{
+  function _safeGet(store, key) {{
+    try {{
+      const v = store.getItem(key);
+      return v == null ? null : v;
+    }} catch (_) {{ return '<error>'; }}
+  }}
+  function _len(v) {{ return typeof v === 'string' ? v.length : null; }}
+  const lsBlob      = _safeGet(localStorage,   TOK_ENC_KEY);
+  const lsLegacy    = _safeGet(localStorage,   TOK_LEGACY_KEY);
+  const lsKeepalive = _safeGet(localStorage,   '_tok_keepalive');
+  const ssTok       = _safeGet(sessionStorage, TOK_KEY);
+  // Standalone-PWA-Erkennung — iOS-Quirk: navigator.standalone vs.
+  // matchMedia. Wir prüfen beide.
+  let standalone_navigator = null;
+  try {{ standalone_navigator = navigator.standalone === true; }} catch (_) {{}}
+  let standalone_media = null;
+  try {{
+    standalone_media = window.matchMedia
+      ? window.matchMedia('(display-mode: standalone)').matches
+      : null;
+  }} catch (_) {{}}
+  // Browser-Eckdaten — UA + Plattform helfen bei iOS-Bug-Klassifikation.
+  let ua = '', platform = '';
+  try {{ ua = navigator.userAgent || ''; }} catch (_) {{}}
+  try {{
+    platform = (navigator.userAgentData && navigator.userAgentData.platform)
+      || navigator.platform || '';
+  }} catch (_) {{}}
+  // localStorage-Key-Liste (NUR Keys, keine Werte — Token bleibt privat).
+  const lsKeys = [];
+  try {{
+    for (let i = 0; i < localStorage.length; i++) {{
+      const k = localStorage.key(i);
+      if (k) lsKeys.push(k);
+    }}
+  }} catch (_) {{}}
+  // Keep-Alive-Alter in Stunden (2 Nachkommastellen).
+  let keepalive_age_h = null;
+  if (lsKeepalive) {{
+    const ts = Number(lsKeepalive);
+    if (Number.isFinite(ts) && ts > 0) {{
+      keepalive_age_h = Math.round((Date.now() - ts) / 36000) / 100;
+    }}
+  }}
+  return {{
+    timestamp:                new Date().toISOString(),
+    blob_present:             !!lsBlob,
+    blob_len:                 _len(lsBlob),
+    legacy_present:           !!lsLegacy && lsLegacy !== lsBlob,
+    session_token_present:    !!ssTok,
+    session_token_len:        _len(ssTok),
+    in_memory_token_present:  !!_inMemoryToken,
+    in_memory_token_len:      _len(_inMemoryToken),
+    keepalive_ts:             lsKeepalive,
+    keepalive_age_h:          keepalive_age_h,
+    standalone_navigator:     standalone_navigator,
+    standalone_media:         standalone_media,
+    is_standalone:            standalone_navigator === true || standalone_media === true,
+    localStorage_total_keys:  lsKeys.length,
+    localStorage_keys:        lsKeys,
+    user_agent:               ua,
+    platform:                 platform,
+    auth_fail_count:          _tokAuthFailCount,
+  }};
+}}
+
+function _renderStorageDiagnose() {{
+  const out = document.getElementById('tok-diag-output');
+  if (!out) return;
+  out.textContent = JSON.stringify(_buildStorageSnapshot(), null, 2);
+}}
+
+function _copyStorageSnapshot() {{
+  const text = JSON.stringify(_buildStorageSnapshot(), null, 2);
+  const note = document.getElementById('tok-diag-copied');
+  const okMsg  = (m) => {{ if (note) {{ note.className = 'anth-status ok';  note.textContent = '✅ ' + m; }} }};
+  const errMsg = (m) => {{ if (note) {{ note.className = 'anth-status err'; note.textContent = '❌ ' + m; }} }};
+  function _fallback() {{
+    try {{
+      const ta = document.createElement('textarea');
+      ta.value = text;
+      ta.style.position = 'fixed';
+      ta.style.left = '-9999px';
+      document.body.appendChild(ta);
+      ta.select();
+      const ok = document.execCommand('copy');
+      ta.remove();
+      return ok;
+    }} catch (_) {{ return false; }}
+  }}
+  // navigator.clipboard kann auf iOS-PWA in bestimmten Konfigurationen
+  // fehlschlagen — graceful Fallback auf hidden-textarea + execCommand.
+  if (navigator.clipboard && navigator.clipboard.writeText) {{
+    navigator.clipboard.writeText(text).then(
+      () => okMsg('Snapshot kopiert'),
+      () => {{ _fallback() ? okMsg('Snapshot kopiert (fallback)') : errMsg('Kopieren gescheitert'); }}
+    );
+  }} else {{
+    _fallback() ? okMsg('Snapshot kopiert') : errMsg('Clipboard nicht verfügbar');
+  }}
+}}
+
 function _refreshGhSettingsUI() {{
   const anth = document.getElementById('anth-sec');
   if (!anth || anth.style.display !== 'block') return;
@@ -11521,17 +11651,22 @@ function _refreshGhSettingsUI() {{
   // Token-Feld nur befüllen, wenn aktiv (sonst bleibt es leer für neue
   // Eingabe — gleiche Semantik wie in toggleSettings).
   if (ghInp && ghTok) ghInp.value = ghTok;
-  if (!ghStatus) return;
-  if (ghTok) {{
-    ghStatus.className = 'anth-status ok';
-    ghStatus.textContent = '✅ Token entsperrt — diese Browser-Session aktiv';
-  }} else if (_hasEncryptedToken()) {{
-    ghStatus.className = 'anth-status';
-    ghStatus.textContent = '🔒 Token verschlüsselt gespeichert — leer lassen + OK = entsperren · neuer Token im Feld = ersetzen';
-  }} else {{
-    ghStatus.className = 'anth-status';
-    ghStatus.textContent = '';
+  if (ghStatus) {{
+    if (ghTok) {{
+      ghStatus.className = 'anth-status ok';
+      ghStatus.textContent = '✅ Token entsperrt — diese Browser-Session aktiv';
+    }} else if (_hasEncryptedToken()) {{
+      ghStatus.className = 'anth-status';
+      ghStatus.textContent = '🔒 Token verschlüsselt gespeichert — leer lassen + OK = entsperren · neuer Token im Feld = ersetzen';
+    }} else {{
+      ghStatus.className = 'anth-status';
+      ghStatus.textContent = '';
+    }}
   }}
+  // Storage-Diagnose-Block synchron aktualisieren — reine Anzeige, kein
+  // Side-Effect. Falls Diagnose-Element nicht gerendert (alte HTML-Version),
+  // ist _renderStorageDiagnose ein No-op.
+  _renderStorageDiagnose();
 }}
 
 function toggleSettings() {{
