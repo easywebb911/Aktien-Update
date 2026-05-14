@@ -2802,7 +2802,32 @@ def main() -> None:
     today_et = datetime.now(EASTERN).date()
 
     log.info("FINRA Daily Short Volume wird geladen …")
-    finra_ssr_data = fetch_finra_ssr(tickers)
+    # Health-Check Phase 2 — Tier-2-Instrumentierung finra. try/finally
+    # garantiert Latency-Capture auch bei Exception; Exception bubbelt
+    # sauber durch. fetch_finra_ssr ist fail-soft (returnt {} bei
+    # 404/Exception), aber defensive Vorsicht für Crashes.
+    _finra_t0  = time.perf_counter()
+    _finra_err: str | None = None
+    finra_ssr_data: dict = {}
+    try:
+        finra_ssr_data = fetch_finra_ssr(tickers)
+    except Exception as _exc:
+        _finra_err = f"{type(_exc).__name__}: {str(_exc)[:120]}"
+        raise
+    finally:
+        try:
+            health_check.record_provider_call(
+                provider="finra",
+                tier=HEALTH_CHECK_PROVIDER_TIER.get("finra", 2),
+                latency_ms=int((time.perf_counter() - _finra_t0) * 1000),
+                http_status=200 if (finra_ssr_data and _finra_err is None) else None,
+                item_count=len(finra_ssr_data) if finra_ssr_data else 0,
+                error=_finra_err if _finra_err else (
+                    None if finra_ssr_data else "empty_result"),
+                run_phase="ki_agent_tick",
+            )
+        except Exception as _hc_exc:
+            log.debug("finra provider-record skipped: %s", _hc_exc)
 
     reddit_ok      = True
     reddit_blocked = False

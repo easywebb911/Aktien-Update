@@ -910,7 +910,11 @@ HEALTH_CHECK_PROVIDER_TIER = {
     "finviz":              1,   # Aggregat aus v161 + v111 + Quote-Fallback
     "yfinance_batch":      1,   # Pool-Batch (OHLCV/RSI/EMA21/change_2d_3d)
     "yfinance_singletons": 1,   # ^VIX + ^GSPC (SPY) + EURUSD=X
-    # Tier 2 (Folge-PR): finra, finnhub, stockanalysis, earningswhispers
+    # Tier 2 (warn, 3-in-Folge-Trigger — Konsekutiv-Persistenz in Phase 3)
+    "finra":               2,   # FINRA Short-Volume Sums (3 File-Downloads)
+    "finnhub":             2,   # Earnings Calendar (pro offene Position)
+    "stockanalysis":       2,   # Aggregat aus _si + _borrow
+    "earningswhispers":    2,   # RSS Calendar (1× pro Daily-Run)
     # Tier 3 (Folge-PR): stocktwits, uoa, news_rss, edgar_*
 }
 
@@ -922,4 +926,9 @@ HEALTH_CHECK_PROVIDER_EXPECTED = {
     "finviz":              None,   # v161 + v111-Pool variabel
     "yfinance_batch":      None,   # ticker-abhängig (Pool-Größe)
     "yfinance_singletons": 3,      # ^VIX + ^GSPC + EURUSD=X
+    # Tier 2
+    "finra":               None,   # Universum aller US-Tickers, Subset variabel
+    "finnhub":             None,   # 1 Call pro Position; emittiert nur bei calls>0
+    "stockanalysis":       None,   # N pro Top-10 (ENABLED-gated)
+    "earningswhispers":    None,   # RSS-Feed-Größe schwankt (~30–80)
 }
