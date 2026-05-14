@@ -2940,113 +2940,186 @@ def _fetch_premarket_volumes_batch(tickers: list[str]) -> dict[str, float]:
     return out
 
 
-def compute_earliness_pts(stocks: list[dict]) -> None:
-    """Stufe 1 — reine Beobachtungsgröße, KEIN Score-Effekt.
+def _earliness_pts_v2(s: dict) -> tuple[int, dict]:
+    """Earliness V2 — DTC-Niveau-Basis (datenbelegt aus Diagnose
+    13.05.2026, AUC 0.77 in 14d-Stichprobe). Liefert
+    ``(pts, breakdown)`` für genau einen Stock.
 
-    Misst „leise Akkumulation": FINRA-Short-Interest beschleunigt
-    (si_accelerating / si_velocity), während Kurs noch nicht gelaufen
-    ist (change_5d niedrig, RSI im normalen Bereich). Dritte Komponente:
-    Pre-Market-Volume hoch in % vom 20T-Avg ohne PM-Selloff.
-
-    Schreibt nur ``s["earliness_pts"]`` (0..EARLINESS_PTS_MAX) und
-    ``s["earliness_breakdown"]`` (Debug-Dict). ``s["score"]`` bleibt
-    unberührt — Stufe Mittel-2 wird den Bonus später aktivieren.
+    Operationalisierung: DTC (Spot, ``s["short_ratio"]``) als Proxy für
+    „Squeeze-Reife" — hoher DTC = Short-Stack aufgebaut. Late-Runner-
+    Penalty: RVOL > ``EARLINESS_LATE_RUNNER_RVOL_MAX`` halbiert den
+    Earliness-Wert (Volumen-Spike = Move bereits gelaufen).
     """
+    dtc_raw  = s.get("short_ratio")
+    rvol_raw = s.get("rel_volume")
+    try:
+        dtc = float(dtc_raw) if dtc_raw is not None else 0.0
+    except (TypeError, ValueError):
+        dtc = 0.0
+    try:
+        rvol = float(rvol_raw) if rvol_raw is not None else 0.0
+    except (TypeError, ValueError):
+        rvol = 0.0
+    # NaN-Defensive: NaN vergleicht in allen Bucket-Schwellen als False,
+    # würde sonst in den else-Branch (Bucket 4 = 100 Pkt) fallen. Hart auf
+    # 0 normalisieren — keine Pseudo-Squeeze-Reife aus durchgesickertem
+    # yfinance-NaN.
+    if dtc != dtc:  # NaN-Check
+        dtc = 0.0
+    if rvol != rvol:
+        rvol = 0.0
+
+    # DTC-Bucket-Mapping aus EARLINESS_DTC_BUCKET_*_MIN-Konstanten.
+    # Schwellen sind „strikt unter" (`<`); ≥ EARLINESS_DTC_BUCKET_4_MIN
+    # landet im obersten Bucket. Bucket-Index 0..4 indiziert in
+    # EARLINESS_DTC_BUCKET_PTS.
+    if   dtc < EARLINESS_DTC_BUCKET_1_MIN: bucket_idx = 0
+    elif dtc < EARLINESS_DTC_BUCKET_2_MIN: bucket_idx = 1
+    elif dtc < EARLINESS_DTC_BUCKET_3_MIN: bucket_idx = 2
+    elif dtc < EARLINESS_DTC_BUCKET_4_MIN: bucket_idx = 3
+    else:                                  bucket_idx = 4
+    base_pts = EARLINESS_DTC_BUCKET_PTS[bucket_idx]
+
+    late_runner = rvol > EARLINESS_LATE_RUNNER_RVOL_MAX
+    pts = int(round(base_pts * EARLINESS_LATE_RUNNER_FACTOR)) if late_runner else base_pts
+
+    bucket_label = ("below_3", "3_to_5", "5_to_8", "8_to_12", "ge_12")[bucket_idx]
+    return pts, {
+        "version":     2,
+        "dtc":         dtc,
+        "rvol":        rvol,
+        "dtc_bucket":  bucket_label,
+        "base_pts":    base_pts,
+        "late_runner": late_runner,
+        "final_pts":   pts,
+    }
+
+
+def _earliness_pts_v1(s: dict) -> tuple[int, dict]:
+    """Earliness V1 — Mittel-Refactor Stufe 1 (Notfall-Rollback-Pfad).
+
+    Kombiniert FINRA-Acceleration, FINRA-Velocity und Pre-Market-Volume.
+    Wird nur noch aufgerufen, wenn ``EARLINESS_FORMULA_VERSION == 1``.
+    """
+    # FINRA-Felder können entweder top-level (si_accel/si_velocity)
+    # oder verschachtelt (finra_data.si_accelerating/si_velocity)
+    # vorliegen — beide Quellen graceful zusammenziehen.
+    finra        = s.get("finra_data") or {}
+    accel_raw    = s.get("si_accel")
+    if accel_raw is None:
+        accel_raw = finra.get("si_accelerating")
+    velocity_raw = s.get("si_velocity")
+    if velocity_raw is None:
+        velocity_raw = finra.get("si_velocity")
+
+    try:
+        velocity = float(velocity_raw) if velocity_raw is not None else 0.0
+    except (TypeError, ValueError):
+        velocity = 0.0
+
+    chg5d_raw = s.get("change_5d")
+    try:
+        chg5d = float(chg5d_raw) if chg5d_raw is not None else None
+    except (TypeError, ValueError):
+        chg5d = None
+
+    rsi14_raw = s.get("rsi14")
+    try:
+        rsi14 = float(rsi14_raw) if rsi14_raw is not None else None
+    except (TypeError, ValueError):
+        rsi14 = None
+
+    accel_match    = bool(accel_raw) and chg5d is not None and chg5d < EARLINESS_MAX_CHANGE_5D_PCT
+    velocity_match = velocity >= EARLINESS_VELOCITY_THRESHOLD and rsi14 is not None and rsi14 < EARLINESS_MAX_RSI
+
+    # PM-Vol-Komponente — graceful Fallback bei jeder fehlenden Quelle.
+    pm_vol_raw = s.get("premarket_volume")
+    try:
+        pm_vol = float(pm_vol_raw) if pm_vol_raw is not None else 0.0
+    except (TypeError, ValueError):
+        pm_vol = 0.0
+    avg_vol_raw = s.get("avg_vol_20d")
+    try:
+        avg_vol = float(avg_vol_raw) if avg_vol_raw is not None else 0.0
+    except (TypeError, ValueError):
+        avg_vol = 0.0
+    cur_open_raw  = s.get("cur_open")
+    prev_close_raw = s.get("prev_close")
+    try:
+        cur_open   = float(cur_open_raw)   if cur_open_raw   is not None else None
+        prev_close = float(prev_close_raw) if prev_close_raw is not None else None
+    except (TypeError, ValueError):
+        cur_open, prev_close = None, None
+    change_overnight = None
+    if cur_open is not None and prev_close is not None and prev_close > 0:
+        change_overnight = (cur_open - prev_close) / prev_close * 100.0
+    pm_vol_pts = 0
+    pm_vol_match = False
+    pm_ratio = None
+    if (avg_vol > 0
+            and change_overnight is not None and change_overnight >= 0
+            and chg5d is not None and chg5d < EARLINESS_MAX_CHANGE_5D_PCT):
+        pm_ratio = pm_vol / avg_vol * 100.0
+        if pm_ratio >= EARLINESS_PM_VOL_HIGH_PCT:
+            pm_vol_pts  = EARLINESS_PM_VOL_PTS_HIGH
+            pm_vol_match = True
+        elif pm_ratio >= EARLINESS_PM_VOL_LOW_PCT:
+            pm_vol_pts  = EARLINESS_PM_VOL_PTS_LOW
+            pm_vol_match = True
+
+    pts = 0
+    if accel_match:
+        pts += EARLINESS_ACCEL_PTS
+    if velocity_match:
+        pts += EARLINESS_VELOCITY_PTS
+    pts += pm_vol_pts
+    pts = min(pts, EARLINESS_PTS_MAX_V1)
+
+    return pts, {
+        "version":        1,
+        "accel_match":    accel_match,
+        "velocity_match": velocity_match,
+        "pm_vol_match":   pm_vol_match,
+    }
+
+
+def compute_earliness_pts(stocks: list[dict]) -> None:
+    """Earliness-Sub-Score.
+
+    Schreibt ``s["earliness_pts"]`` (0..EARLINESS_PTS_MAX) und
+    ``s["earliness_breakdown"]`` (Debug-Dict mit ``version``-Marker).
+    ``s["score"]`` bleibt unberührt — Earliness wirkt nur via Conviction-
+    Komponente (``compute_conviction_score``-Normalisierung 0..28).
+
+    Aktive Formel via ``EARLINESS_FORMULA_VERSION``-Schalter:
+      • V2 (Default): DTC-Niveau-Basis (datenbelegt 13.05.2026, AUC 0.77)
+      • V1 (Rollback): si_accel + si_velocity + premarket_volume
+    """
+    use_v2 = EARLINESS_FORMULA_VERSION != 1
     for s in stocks:
-        # FINRA-Felder können entweder top-level (si_accel/si_velocity)
-        # oder verschachtelt (finra_data.si_accelerating/si_velocity)
-        # vorliegen — beide Quellen graceful zusammenziehen.
-        finra        = s.get("finra_data") or {}
-        accel_raw    = s.get("si_accel")
-        if accel_raw is None:
-            accel_raw = finra.get("si_accelerating")
-        velocity_raw = s.get("si_velocity")
-        if velocity_raw is None:
-            velocity_raw = finra.get("si_velocity")
-
-        try:
-            velocity = float(velocity_raw) if velocity_raw is not None else 0.0
-        except (TypeError, ValueError):
-            velocity = 0.0
-
-        chg5d_raw = s.get("change_5d")
-        try:
-            chg5d = float(chg5d_raw) if chg5d_raw is not None else None
-        except (TypeError, ValueError):
-            chg5d = None
-
-        rsi14_raw = s.get("rsi14")
-        try:
-            rsi14 = float(rsi14_raw) if rsi14_raw is not None else None
-        except (TypeError, ValueError):
-            rsi14 = None
-
-        accel_match    = bool(accel_raw) and chg5d is not None and chg5d < EARLINESS_MAX_CHANGE_5D_PCT
-        velocity_match = velocity >= EARLINESS_VELOCITY_THRESHOLD and rsi14 is not None and rsi14 < EARLINESS_MAX_RSI
-
-        # PM-Vol-Komponente — graceful Fallback bei jeder fehlenden Quelle.
-        # Filter-Stack: avg_vol > 0 (sonst Ratio undefiniert), change_5d <
-        # EARLINESS_MAX_CHANGE_5D_PCT (Earliness-Charakter wahren) und
-        # change_overnight ≥ 0 (kein PM-Selloff).
-        pm_vol_raw = s.get("premarket_volume")
-        try:
-            pm_vol = float(pm_vol_raw) if pm_vol_raw is not None else 0.0
-        except (TypeError, ValueError):
-            pm_vol = 0.0
-        avg_vol_raw = s.get("avg_vol_20d")
-        try:
-            avg_vol = float(avg_vol_raw) if avg_vol_raw is not None else 0.0
-        except (TypeError, ValueError):
-            avg_vol = 0.0
-        cur_open_raw  = s.get("cur_open")
-        prev_close_raw = s.get("prev_close")
-        try:
-            cur_open   = float(cur_open_raw)   if cur_open_raw   is not None else None
-            prev_close = float(prev_close_raw) if prev_close_raw is not None else None
-        except (TypeError, ValueError):
-            cur_open, prev_close = None, None
-        change_overnight = None
-        if cur_open is not None and prev_close is not None and prev_close > 0:
-            change_overnight = (cur_open - prev_close) / prev_close * 100.0
-        pm_vol_pts = 0
-        pm_vol_match = False
-        pm_ratio = None
-        if (avg_vol > 0
-                and change_overnight is not None and change_overnight >= 0
-                and chg5d is not None and chg5d < EARLINESS_MAX_CHANGE_5D_PCT):
-            pm_ratio = pm_vol / avg_vol * 100.0
-            if pm_ratio >= EARLINESS_PM_VOL_HIGH_PCT:
-                pm_vol_pts  = EARLINESS_PM_VOL_PTS_HIGH
-                pm_vol_match = True
-            elif pm_ratio >= EARLINESS_PM_VOL_LOW_PCT:
-                pm_vol_pts  = EARLINESS_PM_VOL_PTS_LOW
-                pm_vol_match = True
-
-        pts = 0
-        if accel_match:
-            pts += EARLINESS_ACCEL_PTS
-        if velocity_match:
-            pts += EARLINESS_VELOCITY_PTS
-        pts += pm_vol_pts
-        pts = min(pts, EARLINESS_PTS_MAX)
-
+        pts, breakdown = _earliness_pts_v2(s) if use_v2 else _earliness_pts_v1(s)
         s["earliness_pts"] = pts
-        s["earliness_breakdown"] = {
-            "accel_match":    accel_match,
-            "velocity_match": velocity_match,
-            "pm_vol_match":   pm_vol_match,
-        }
+        s["earliness_breakdown"] = breakdown
 
         if pts > 0:
-            log.info(
-                "Earliness %s: %d Pkt (accel=%s, velocity=%s, pm_vol=%s, "
-                "change_5d=%s, rsi14=%s, si_velocity=%s, pm_ratio=%s, "
-                "change_overnight=%s)",
-                s.get("ticker", "?"), pts, accel_match, velocity_match,
-                pm_vol_match, chg5d, rsi14, velocity,
-                f"{pm_ratio:.2f}%" if pm_ratio is not None else None,
-                f"{change_overnight:.2f}%" if change_overnight is not None else None,
-            )
+            if use_v2:
+                log.info(
+                    "Earliness V2 %s: %d Pkt (dtc=%.2f, rvol=%.2f, "
+                    "bucket=%s, late_runner=%s)",
+                    s.get("ticker", "?"), pts,
+                    breakdown.get("dtc", 0.0),
+                    breakdown.get("rvol", 0.0),
+                    breakdown.get("dtc_bucket"),
+                    breakdown.get("late_runner"),
+                )
+            else:
+                log.info(
+                    "Earliness V1 %s: %d Pkt (accel=%s, velocity=%s, pm_vol=%s)",
+                    s.get("ticker", "?"), pts,
+                    breakdown.get("accel_match"),
+                    breakdown.get("velocity_match"),
+                    breakdown.get("pm_vol_match"),
+                )
 
 
 def apply_monster_score(stocks: list[dict]) -> None:

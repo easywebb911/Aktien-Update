@@ -1,8 +1,12 @@
-"""Mock-Tests für Earliness-Komponente 3 (Pre-Market-Volume).
+"""Mock-Tests für Earliness V1 — PM-Vol-Komponente (Rollback-Pfad).
 
-Testet ``compute_earliness_pts`` aus generate_report.py mit präparierten
-Stock-Dicts; FINRA-Komponenten sind so gewählt, dass sie nicht feuern,
-damit der PM-Vol-Pfad isoliert bewertet werden kann.
+Seit PR „Earliness DTC-Niveau" ist V2 (DTC-Basis) der scharfe Default.
+V1 (si_accel + si_velocity + premarket_volume) bleibt im Code als
+Notfall-Rollback erhalten — dieser Test forciert
+``EARLINESS_FORMULA_VERSION = 1`` und prüft die alte PM-Vol-Logik
+weiter durch, damit der Rollback-Pfad nicht unbemerkt verrottet.
+
+Neuer V2-Test: ``scripts/mock_test_earliness_dtc.py``.
 
 Ausführung: ``python scripts/mock_test_earliness_pm_vol.py``.
 Exit 0 bei Erfolg, 1 bei AssertionError.
@@ -15,18 +19,28 @@ ROOT = pathlib.Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
 
 # generate_report.py importiert Drittpakete (yfinance, requests, …) beim
-# Modul-Load. Wir extrahieren ``compute_earliness_pts`` per Source-Slice
-# und führen es in einem isolierten Namespace aus, der nur die nötigen
-# config-Konstanten + ein Logger-Stub bereitstellt.
+# Modul-Load. Wir extrahieren die drei Earliness-Helper (V1 + V2 +
+# Dispatcher) per Source-Slice und führen sie in einem isolierten
+# Namespace aus, in dem wir EARLINESS_FORMULA_VERSION = 1 setzen.
 import re
 
 src = (ROOT / "generate_report.py").read_text(encoding="utf-8")
-m = re.search(
-    r"^def compute_earliness_pts\([\s\S]+?(?=^def\s|^class\s|^# ====)",
-    src, re.MULTILINE,
+
+
+def _extract(func_def: str) -> str:
+    pat = rf"^def {re.escape(func_def)}\([\s\S]+?(?=^def\s|^class\s|^# ====)"
+    m = re.search(pat, src, re.MULTILINE)
+    assert m, f"{func_def} nicht in generate_report.py gefunden"
+    return m.group(0)
+
+
+helpers_src = (
+    _extract("_earliness_pts_v2")
+    + "\n"
+    + _extract("_earliness_pts_v1")
+    + "\n"
+    + _extract("compute_earliness_pts")
 )
-assert m, "compute_earliness_pts in generate_report.py nicht gefunden"
-helper_src = m.group(0)
 
 
 class _Log:
@@ -40,14 +54,27 @@ class _Log:
 
 ns: dict = {"log": _Log()}
 exec(
-    "from config import (EARLINESS_PTS_MAX, EARLINESS_ACCEL_PTS, "
-    "EARLINESS_VELOCITY_PTS, EARLINESS_VELOCITY_THRESHOLD, "
-    "EARLINESS_MAX_CHANGE_5D_PCT, EARLINESS_MAX_RSI, "
-    "EARLINESS_PM_VOL_LOW_PCT, EARLINESS_PM_VOL_HIGH_PCT, "
-    "EARLINESS_PM_VOL_PTS_LOW, EARLINESS_PM_VOL_PTS_HIGH)\n"
-    + helper_src,
+    "from config import (\n"
+    "    EARLINESS_FORMULA_VERSION, EARLINESS_PTS_MAX,\n"
+    "    EARLINESS_DTC_BUCKET_1_MIN, EARLINESS_DTC_BUCKET_2_MIN,\n"
+    "    EARLINESS_DTC_BUCKET_3_MIN, EARLINESS_DTC_BUCKET_4_MIN,\n"
+    "    EARLINESS_DTC_BUCKET_PTS,\n"
+    "    EARLINESS_LATE_RUNNER_RVOL_MAX, EARLINESS_LATE_RUNNER_FACTOR,\n"
+    "    EARLINESS_ACCEL_PTS, EARLINESS_VELOCITY_PTS,\n"
+    "    EARLINESS_VELOCITY_THRESHOLD, EARLINESS_MAX_CHANGE_5D_PCT,\n"
+    "    EARLINESS_MAX_RSI,\n"
+    "    EARLINESS_PM_VOL_LOW_PCT, EARLINESS_PM_VOL_HIGH_PCT,\n"
+    "    EARLINESS_PM_VOL_PTS_LOW, EARLINESS_PM_VOL_PTS_HIGH,\n"
+    "    EARLINESS_PTS_MAX_V1,\n"
+    ")\n"
+    + helpers_src,
     ns,
 )
+# Forciere V1-Branch für diesen Test (Rollback-Pfad). Cap-Wert für V1
+# ist EARLINESS_PTS_MAX_V1 (= 7), nicht das produktive EARLINESS_PTS_MAX.
+ns["EARLINESS_FORMULA_VERSION"] = 1
+ns["EARLINESS_PTS_MAX"] = ns["EARLINESS_PTS_MAX_V1"]
+
 compute_earliness_pts = ns["compute_earliness_pts"]
 EARLINESS_PTS_MAX        = ns["EARLINESS_PTS_MAX"]
 EARLINESS_PM_VOL_PTS_LOW  = ns["EARLINESS_PM_VOL_PTS_LOW"]
