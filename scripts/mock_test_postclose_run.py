@@ -133,8 +133,8 @@ def test_workflow_yaml_has_two_crons():
     path = ROOT / ".github" / "workflows" / "daily-squeeze-report.yml"
     content = path.read_text(encoding="utf-8")
     # Beide Crons drin
-    assert "cron: '0 10 * * 1-5'" in content, "10:00-UTC-Cron fehlt"
-    assert "cron: '0 21 * * 1-5'" in content, "21:00-UTC-Cron fehlt"
+    assert "cron: '17 10 * * 1-5'" in content, "10:17-UTC-Cron (Min-17-Offset) fehlt"
+    assert "cron: '17 21 * * 1-5'" in content, "21:17-UTC-Cron (Min-17-Offset) fehlt"
 
 
 def test_workflow_yaml_sets_run_phase_env():
@@ -170,7 +170,7 @@ def test_workflow_yaml_parseable():
     schedules = on.get("schedule") or []
     assert len(schedules) == 2, schedules
     crons = sorted(s.get("cron") for s in schedules)
-    assert crons == ["0 10 * * 1-5", "0 21 * * 1-5"], crons
+    assert crons == ["17 10 * * 1-5", "17 21 * * 1-5"], crons
 
 
 # === Runner ================================================================
