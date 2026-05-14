@@ -40,6 +40,12 @@ log = logging.getLogger(__name__)
 LOG_FILE = "health_check_log.jsonl"
 SCHEMA_V = 1
 
+# Phase 2 — Provider-Health-Persistenz (analog state_fails-Logging).
+# Eine Zeile pro Provider pro Run. Schema siehe Spec:
+# docs/health_check_spec.md Z. 86–101.
+LOG_FILE_PROVIDER = "provider_health.jsonl"
+SCHEMA_V_PROVIDER = 1
+
 
 def _today_iso_from_ts(run_ts: datetime) -> str:
     """ISO-Datum (YYYY-MM-DD) im US-Eastern-Slot. Match zur Daily-Run-
@@ -373,3 +379,136 @@ def run_and_record(*,
         log.debug("health_check: prune_log fehlgeschlagen: %s", exc)
     record_run(fails, run_phase=run_phase, run_ts=run_ts, path=path)
     return fails
+
+
+# ── Provider-Health (Phase 2) ──────────────────────────────────────────────
+
+
+def record_provider_call(provider: str,
+                         tier: int,
+                         latency_ms: int,
+                         http_status: int | None,
+                         item_count: int,
+                         error: str | None = None,
+                         coverage_pct: float | None = None,
+                         nan_pct: float | None = None,
+                         run_phase: str = "premarket",
+                         run_ts: datetime | None = None,
+                         path: str = LOG_FILE_PROVIDER) -> bool:
+    """Append-only-Eintrag pro Provider-Call in ``provider_health.jsonl``.
+
+    Schema gemäß Spec ``docs/health_check_spec.md`` Z. 86–101:
+    ``{run_ts, run_phase, provider, tier, http_status, latency_ms,
+       item_count, coverage_pct, nan_pct, error, schema_v}``.
+
+    Fail-soft: Schreibfehler werden geloggt, nicht re-raised — kein
+    Daily-Run/KI-Agent-Crash wegen Health-Check-Logging.
+
+    Returnt ``True`` bei erfolgreichem Write, ``False`` bei Fehler.
+    """
+    if run_ts is None:
+        run_ts = datetime.now(timezone.utc)
+    entry = {
+        "run_ts":       run_ts.astimezone(timezone.utc)
+                              .strftime("%Y-%m-%dT%H:%M:%SZ"),
+        "run_phase":    run_phase,
+        "provider":     provider,
+        "tier":         int(tier),
+        "http_status":  http_status,
+        "latency_ms":   int(latency_ms) if latency_ms is not None else None,
+        "item_count":   int(item_count) if item_count is not None else 0,
+        "coverage_pct": coverage_pct,
+        "nan_pct":      nan_pct,
+        "error":        error,
+        "schema_v":     SCHEMA_V_PROVIDER,
+    }
+    try:
+        with open(path, "a", encoding="utf-8") as fh:
+            fh.write(json.dumps(entry, ensure_ascii=False) + "\n")
+        log.debug("provider_health: %s tier=%d items=%d latency=%dms",
+                  provider, tier, entry["item_count"], entry["latency_ms"] or 0)
+        return True
+    except OSError as exc:
+        log.warning("provider_health: Schreibfehler an %s — übersprungen: %s",
+                    path, exc)
+        return False
+
+
+def prune_provider_log(max_days: int = HEALTH_CHECK_CUTOFF_DAYS,
+                       path: str = LOG_FILE_PROVIDER) -> int:
+    """Entfernt Einträge älter als ``max_days`` Tage. Analog ``prune_log``:
+    atomic ``tmp + os.replace``, kaputte Zeilen bleiben erhalten.
+
+    Returnt Anzahl entfernter Zeilen (0 bei Fehler oder leerer Diff).
+    """
+    if not os.path.exists(path):
+        return 0
+    cutoff = datetime.now(timezone.utc) - timedelta(days=max_days)
+    kept: list[str] = []
+    n_seen = 0
+    n_bad = 0
+    try:
+        with open(path, "r", encoding="utf-8") as fh:
+            for line in fh:
+                line = line.rstrip("\n")
+                if not line.strip():
+                    continue
+                n_seen += 1
+                try:
+                    obj = json.loads(line)
+                    ts_str = obj.get("run_ts", "")
+                    if ts_str.endswith("Z"):
+                        ts_str = ts_str[:-1] + "+00:00"
+                    ts = datetime.fromisoformat(ts_str)
+                    if ts.tzinfo is None:
+                        ts = ts.replace(tzinfo=timezone.utc)
+                except (ValueError, TypeError, json.JSONDecodeError) as exc:
+                    n_bad += 1
+                    log.warning("provider_health: kaputte Zeile übersprungen "
+                                "(behält sie bis Manual-Cleanup): %s", exc)
+                    kept.append(line)
+                    continue
+                if ts >= cutoff:
+                    kept.append(line)
+    except OSError as exc:
+        log.warning("provider_health: Prune-Read-Fehler — übersprungen: %s", exc)
+        return 0
+
+    n_removed = n_seen - (len(kept) - n_bad)
+    if n_removed <= 0:
+        return 0
+    tmp_path = f"{path}.tmp"
+    try:
+        with open(tmp_path, "w", encoding="utf-8") as fh:
+            for line in kept:
+                fh.write(line + "\n")
+        os.replace(tmp_path, path)
+    except OSError as exc:
+        log.warning("provider_health: Prune-Write-Fehler — Datei unverändert: %s",
+                    exc)
+        try:
+            os.remove(tmp_path)
+        except OSError:
+            pass
+        return 0
+    log.info("provider_health: %d Einträge (älter als %d Tage) geprunt",
+             n_removed, max_days)
+    return n_removed
+
+
+def read_all_provider(path: str = LOG_FILE_PROVIDER) -> list[dict]:
+    """Diagnose-Helper: alle Provider-Einträge als Liste. Kaputte Zeilen
+    geskippt (kein Crash). Für CLI-Diagnose und Tests."""
+    if not os.path.exists(path):
+        return []
+    entries: list[dict] = []
+    with open(path, "r", encoding="utf-8") as fh:
+        for line in fh:
+            line = line.strip()
+            if not line:
+                continue
+            try:
+                entries.append(json.loads(line))
+            except json.JSONDecodeError:
+                continue
+    return entries
