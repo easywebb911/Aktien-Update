@@ -328,56 +328,21 @@ _FINNHUB_ACCT: dict = {
 _STOCKANALYSIS_ACCT: dict = {
     "latency_ms": 0, "calls": 0, "failures": 0, "successes": 0,
 }
+# Phase 2 PR 3 — Tier-3 edgar_13f (im Daily-Run, per US-Top-10
+# ThreadPool). Andere edgar_*-Pfade leben in ki_agent.py.
+_EDGAR_13F_ACCT: dict = {
+    "latency_ms": 0, "calls": 0, "failures": 0, "successes": 0,
+}
 
 
-def _provider_acct_reset(acct: dict) -> None:
-    for k in ("latency_ms", "calls", "failures", "successes"):
-        if k in acct:
-            acct[k] = 0
-
-
-def _provider_acct_record(acct: dict, latency_ms: int, success: bool) -> None:
-    """Generischer Akkumulator-Record für try/finally-Wrapper-Pattern.
-    Wird in ``_instrument_provider_call`` aus dem finally-Block aufgerufen."""
-    acct["latency_ms"] += int(latency_ms)
-    acct["calls"]      += 1
-    if success:
-        acct["successes"] += 1
-    else:
-        acct["failures"] += 1
-
-
-def _instrument_provider_call(acct: dict, fn, *args, **kwargs):
-    """Wrapper-Helper: misst Latency + Success-Bool, akkumuliert in
-    ``acct`` und propagiert Exceptions. Pattern wie Tier 1 (try/except
-    Exception/raise/finally), aber als wiederverwendbarer Helper für
-    per-call-instrumentierte Tier-2-Funktionen.
-
-    Success-Definition: Call lief ohne Exception UND Result ist nicht
-    None und nicht leeres Mapping. Damit zählen sowohl Exceptions als
-    auch silent fail-soft-Returns (z. B. {}) als Failure.
-    """
-    t0 = time.perf_counter()
-    result = None
-    raised = False
-    try:
-        result = fn(*args, **kwargs)
-        return result
-    except Exception:
-        raised = True
-        raise
-    finally:
-        try:
-            ok = (not raised) and (result is not None) and (
-                result if not isinstance(result, (dict, list, tuple, set)) else len(result) > 0
-            )
-            _provider_acct_record(
-                acct,
-                int((time.perf_counter() - t0) * 1000),
-                success=bool(ok),
-            )
-        except Exception:
-            pass   # Accumulator-Fehler bricht Pipeline nicht
+# PR 3 (Phase 2): Helper-Logik aus PR 2 nach health_check.py umgezogen
+# (true reuse für ki_agent.py-Tier-3-Wrapper). Backward-compat-Aliase
+# halten alle PR-2-Aufrufer arbeitsfähig. ``success_check``-Argument
+# (optional) erlaubt Tier-3-Providern mit reichhaltigen fail-soft-
+# Returns (Tuple/Dict mit Nullen) eine eigene Erfolgsdefinition.
+_provider_acct_reset      = health_check.provider_acct_reset
+_provider_acct_record     = health_check.provider_acct_record
+_instrument_provider_call = health_check.instrument_provider_call
 
 
 # ===========================================================================
@@ -14246,6 +14211,7 @@ def main():
     _finviz_acct_reset()
     _provider_acct_reset(_FINNHUB_ACCT)
     _provider_acct_reset(_STOCKANALYSIS_ACCT)
+    _provider_acct_reset(_EDGAR_13F_ACCT)
 
     # --- Step 1: Get candidate pool ---
     # Primary: Yahoo Finance Screener (reliable from GitHub Actions runners)
@@ -15159,8 +15125,14 @@ def main():
     if SEC_13F_ENABLED:
         _t_13f = time.time()
         log.info("Step 3d – Checking SEC 13F for %d US stocks …", len(us_top10))
+        # Health-Check Phase 2 PR 3 — Tier-3 edgar_13f. Pro-Ticker-
+        # Akkumulator unter provider="edgar_13f"; main() emittiert
+        # Zeile am Ende falls calls > 0 (SEC_13F_ENABLED-gated).
         with ThreadPoolExecutor(max_workers=5) as _13f_ex:
-            _13f_futures = {_13f_ex.submit(fetch_sec_13f, s["ticker"]): s for s in us_top10}
+            _13f_futures = {_13f_ex.submit(
+                _instrument_provider_call,
+                _EDGAR_13F_ACCT, fetch_sec_13f, s["ticker"]
+            ): s for s in us_top10}
             try:
                 for _fut in as_completed(_13f_futures, timeout=_POOL_STEP3_TIMEOUT):
                     note = _fut.result()
@@ -15465,6 +15437,20 @@ def main():
                 item_count=_sa_acct["successes"],
                 error=None if _sa_acct["failures"] == 0
                       else f"{_sa_acct['failures']}/{_sa_acct['calls']} calls failed",
+                run_phase=run_phase,
+            )
+        # Tier 3: edgar_13f — gegated über SEC_13F_ENABLED (Funktion
+        # läuft nur wenn Flag gesetzt). Bei calls == 0 keine Zeile.
+        _13f_acct = _EDGAR_13F_ACCT
+        if _13f_acct["calls"] > 0:
+            health_check.record_provider_call(
+                provider="edgar_13f",
+                tier=HEALTH_CHECK_PROVIDER_TIER.get("edgar_13f", 3),
+                latency_ms=_13f_acct["latency_ms"],
+                http_status=200 if _13f_acct["successes"] > 0 else None,
+                item_count=_13f_acct["successes"],
+                error=None if _13f_acct["failures"] == 0
+                      else f"{_13f_acct['failures']}/{_13f_acct['calls']} calls failed",
                 run_phase=run_phase,
             )
         try:
