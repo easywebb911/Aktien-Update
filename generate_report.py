@@ -318,6 +318,68 @@ def _finviz_acct_record(latency_ms: int, success: bool,
     _FINVIZ_ACCT["v111_count"] += int(v111)
 
 
+# Health-Check Phase 2 PR 2 — Tier-2-Aggregatoren.
+# Symmetrisch zu _FINVIZ_ACCT: pro-Call-Akkumulation + Single-Row-
+# Emission am Ende von main(). Reset bei main()-Start damit Tests
+# wiederholt ausführbar sind.
+_FINNHUB_ACCT: dict = {
+    "latency_ms": 0, "calls": 0, "failures": 0, "successes": 0,
+}
+_STOCKANALYSIS_ACCT: dict = {
+    "latency_ms": 0, "calls": 0, "failures": 0, "successes": 0,
+}
+
+
+def _provider_acct_reset(acct: dict) -> None:
+    for k in ("latency_ms", "calls", "failures", "successes"):
+        if k in acct:
+            acct[k] = 0
+
+
+def _provider_acct_record(acct: dict, latency_ms: int, success: bool) -> None:
+    """Generischer Akkumulator-Record für try/finally-Wrapper-Pattern.
+    Wird in ``_instrument_provider_call`` aus dem finally-Block aufgerufen."""
+    acct["latency_ms"] += int(latency_ms)
+    acct["calls"]      += 1
+    if success:
+        acct["successes"] += 1
+    else:
+        acct["failures"] += 1
+
+
+def _instrument_provider_call(acct: dict, fn, *args, **kwargs):
+    """Wrapper-Helper: misst Latency + Success-Bool, akkumuliert in
+    ``acct`` und propagiert Exceptions. Pattern wie Tier 1 (try/except
+    Exception/raise/finally), aber als wiederverwendbarer Helper für
+    per-call-instrumentierte Tier-2-Funktionen.
+
+    Success-Definition: Call lief ohne Exception UND Result ist nicht
+    None und nicht leeres Mapping. Damit zählen sowohl Exceptions als
+    auch silent fail-soft-Returns (z. B. {}) als Failure.
+    """
+    t0 = time.perf_counter()
+    result = None
+    raised = False
+    try:
+        result = fn(*args, **kwargs)
+        return result
+    except Exception:
+        raised = True
+        raise
+    finally:
+        try:
+            ok = (not raised) and (result is not None) and (
+                result if not isinstance(result, (dict, list, tuple, set)) else len(result) > 0
+            )
+            _provider_acct_record(
+                acct,
+                int((time.perf_counter() - t0) * 1000),
+                success=bool(ok),
+            )
+        except Exception:
+            pass   # Accumulator-Fehler bricht Pipeline nicht
+
+
 # ===========================================================================
 # 1. FINVIZ SCREENER
 # ===========================================================================
@@ -13710,7 +13772,12 @@ def _fetch_next_earnings_date(ticker: str, today: date | None = None
     """
     if today is None:
         today = datetime.now(EASTERN).date()
-    edate = _fetch_finnhub_next_earnings(ticker, today)
+    # Health-Check Phase 2 PR 2 — Tier-2 Finnhub. Akkumulator-Pattern:
+    # Per-Call-Latency + Success in _FINNHUB_ACCT; main() emittiert eine
+    # Zeile am Ende falls _FINNHUB_ACCT["calls"] > 0 (call_attempted-
+    # Gating).
+    edate = _instrument_provider_call(
+        _FINNHUB_ACCT, _fetch_finnhub_next_earnings, ticker, today)
     if edate is None:
         edate = _fetch_yfinance_next_earnings(ticker, today)
     return edate
@@ -14177,6 +14244,8 @@ def main():
     # Health-Check Phase 2 — Provider-Aggregatoren zurücksetzen, damit
     # wiederholte main()-Aufrufe (Tests) sauber starten.
     _finviz_acct_reset()
+    _provider_acct_reset(_FINNHUB_ACCT)
+    _provider_acct_reset(_STOCKANALYSIS_ACCT)
 
     # --- Step 1: Get candidate pool ---
     # Primary: Yahoo Finance Screener (reliable from GitHub Actions runners)
@@ -14256,7 +14325,40 @@ def main():
 
     # EarningsWhispers-Cache einmal pro Run vorladen — wird später bei
     # Top-10-Enrichment (Step 3c) als Preference über yfinance.Calendar genutzt.
-    ew_calendar = fetch_earningswhispers_rss() if EARNINGSWHISPERS_ENABLED else {}
+    # Health-Check Phase 2 PR 2 — Tier-2-Instrumentierung earningswhispers.
+    # ENABLED-Gate aussen herum: bei Disabled wird keine Provider-Zeile
+    # geschrieben (no call_attempted). try/finally fuer Latency-Capture.
+    ew_calendar: dict = {}
+    if EARNINGSWHISPERS_ENABLED:
+        _ew_t0  = time.perf_counter()
+        _ew_err: str | None = None
+        try:
+            ew_calendar = fetch_earningswhispers_rss()
+        except Exception as _exc:
+            _ew_err = f"{type(_exc).__name__}: {str(_exc)[:120]}"
+            raise
+        finally:
+            try:
+                _ew_total = len(ew_calendar) if ew_calendar else 0
+                _ew_missing_date = sum(
+                    1 for v in (ew_calendar or {}).values()
+                    if isinstance(v, dict) and not v.get("date")
+                )
+                _ew_nan = (round(_ew_missing_date / _ew_total * 100.0, 1)
+                           if _ew_total > 0 else None)
+                health_check.record_provider_call(
+                    provider="earningswhispers",
+                    tier=HEALTH_CHECK_PROVIDER_TIER.get("earningswhispers", 2),
+                    latency_ms=int((time.perf_counter() - _ew_t0) * 1000),
+                    http_status=200 if (ew_calendar and _ew_err is None) else None,
+                    item_count=_ew_total,
+                    nan_pct=_ew_nan,
+                    error=_ew_err if _ew_err else (
+                        None if ew_calendar else "empty_result"),
+                    run_phase=run_phase,
+                )
+            except Exception as _hc_exc:
+                log.debug("earningswhispers provider-record skipped: %s", _hc_exc)
 
     # Supplement with watchlist volume scan (JP, HK, KR + any that screener missed)
     # — nur wenn INTL_SCREENING_ENABLED; sonst komplett übersprungen.
@@ -14904,7 +15006,15 @@ def main():
         for _s in top10:
             if "." in _s["ticker"]:
                 continue
-            _bm = fetch_borrow_metrics(_s["ticker"])
+            # Health-Check Phase 2 PR 2 — Tier-2 Stockanalysis (Borrow-Pfad).
+            # Wir messen fetch_borrow_metrics; bei aktiviertem IBKR-Fallback
+            # ist die Latency leicht ueberhoeht. Akzeptable Naeherung, da
+            # IBKR-Lookup im statischen Dict erfolgt (sub-ms).
+            if STOCKANALYSIS_BORROW_ENABLED:
+                _bm = _instrument_provider_call(
+                    _STOCKANALYSIS_ACCT, fetch_borrow_metrics, _s["ticker"])
+            else:
+                _bm = fetch_borrow_metrics(_s["ticker"])
             _s["cost_to_borrow"] = _bm.get("cost_to_borrow")
             _s["utilization"]    = _bm.get("utilization")
             # Backwards-Compat: borrow_rate-Feld bleibt erhalten (nutzt
@@ -15001,9 +15111,13 @@ def main():
     if STOCKANALYSIS_SI_ENABLED:
         _t_sa = time.time()
         log.info("Step 3c3 – Stockanalysis.com SI für %d US-Ticker …", len(us_top10))
+        # Health-Check Phase 2 PR 2 — Tier-2 Stockanalysis (SI-Pfad).
+        # Wrapper-Helper instrumentiert jeden parallelen Call.
         with ThreadPoolExecutor(max_workers=5) as _sa_ex:
-            _sa_futures = {_sa_ex.submit(fetch_stockanalysis_si, s["ticker"]): s
-                           for s in us_top10}
+            _sa_futures = {_sa_ex.submit(
+                _instrument_provider_call,
+                _STOCKANALYSIS_ACCT, fetch_stockanalysis_si, s["ticker"]
+            ): s for s in us_top10}
             try:
                 for _fut in as_completed(_sa_futures, timeout=_POOL_STEP3_TIMEOUT):
                     sa_val = _fut.result()
@@ -15307,10 +15421,11 @@ def main():
     except Exception as exc:
         log.warning("health_check (Daily-Run) fehlgeschlagen: %s", exc)
 
-    # Health-Check Phase 2 — Tier-1-Provider provider_health.jsonl-
-    # Aggregate emittieren (Finviz). yahoo_screener + yfinance_batch +
-    # yfinance_singletons schreiben ihre Zeilen inline am Call-Site.
-    # Finviz aggregiert 3 Funktionen, daher End-of-main-Emission.
+    # Health-Check Phase 2 — Tier-1- + Tier-2-Aggregator-Provider
+    # emittieren ihre konsolidierten Zeilen. Inline-Provider (yahoo_
+    # screener, yfinance_batch, yfinance_singletons, earningswhispers)
+    # schreiben am Call-Site; per-Call-akkumulierte Provider (finviz,
+    # finnhub, stockanalysis) emittieren erst hier am Ende.
     try:
         _fv_acct = _FINVIZ_ACCT
         if _fv_acct["calls"] > 0:
@@ -15325,12 +15440,39 @@ def main():
                       else f"{_fv_acct['failures']}/{_fv_acct['calls']} calls failed",
                 run_phase=run_phase,
             )
+        # Tier 2: finnhub — call_attempted-Gating via calls > 0.
+        _fh_acct = _FINNHUB_ACCT
+        if _fh_acct["calls"] > 0:
+            health_check.record_provider_call(
+                provider="finnhub",
+                tier=HEALTH_CHECK_PROVIDER_TIER.get("finnhub", 2),
+                latency_ms=_fh_acct["latency_ms"],
+                http_status=200 if _fh_acct["successes"] > 0 else None,
+                item_count=_fh_acct["successes"],
+                error=None if _fh_acct["failures"] == 0
+                      else f"{_fh_acct['failures']}/{_fh_acct['calls']} calls failed",
+                run_phase=run_phase,
+            )
+        # Tier 2: stockanalysis — ENABLED-Gating bereits aussen herum;
+        # hier emittieren wir nur wenn mindestens 1 Call attempted wurde.
+        _sa_acct = _STOCKANALYSIS_ACCT
+        if _sa_acct["calls"] > 0:
+            health_check.record_provider_call(
+                provider="stockanalysis",
+                tier=HEALTH_CHECK_PROVIDER_TIER.get("stockanalysis", 2),
+                latency_ms=_sa_acct["latency_ms"],
+                http_status=200 if _sa_acct["successes"] > 0 else None,
+                item_count=_sa_acct["successes"],
+                error=None if _sa_acct["failures"] == 0
+                      else f"{_sa_acct['failures']}/{_sa_acct['calls']} calls failed",
+                run_phase=run_phase,
+            )
         try:
             health_check.prune_provider_log()
         except Exception as _exc_pp:
             log.debug("prune_provider_log skipped: %s", _exc_pp)
     except Exception as exc:
-        log.warning("finviz provider-record failed: %s", exc)
+        log.warning("provider-aggregator-records failed: %s", exc)
 
     log.info("Report written → index.html")
     log.info("Top 10: %s", [s["ticker"] for s in top10])

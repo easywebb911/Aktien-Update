@@ -2461,6 +2461,43 @@ in ``provider_health.jsonl`` (Append-Only, 30-Tage-Cutoff analog
 - Tier-3 (StockTwits, UOA, News-RSS, EDGAR-Set) — eigener Folge-PR.
 - Digest-Workflow 08:00 UTC — Phase 3.
 
+### Phase 2 — Provider-Health (PR 2: Tier 2)
+
+Vier Tier-2-Provider ergänzen die Telemetrie. Trigger-Semantik laut
+Spec: „warn, erst bei 3-in-Folge-Fail" (Konsekutiv-Counter persistiert
+erst in Phase 3 im Digest-Workflow — PR 2 sammelt nur die Rohdaten).
+
+| Provider-Key | Quelle | Special |
+|---|---|---|
+| ``finra`` | ``fetch_finra_ssr(tickers)`` — KI-Agent-Tick (ki_agent.py:2805), 3 parallele File-Downloads T/T-1/T-2 als Fallback | run_phase=``ki_agent_tick`` (eigene Zeile pro KI-Agent-Tick) |
+| ``finnhub`` | ``_fetch_finnhub_next_earnings(ticker, today)`` — Phase-2-Exit pro offene Position. Wrapper via ``_instrument_provider_call(_FINNHUB_ACCT, …)``. main() emittiert Zeile nur wenn ``_FINNHUB_ACCT["calls"] > 0`` (**call_attempted-Gating**) — bei keinen offenen Positionen keine leere Zeile. | call_attempted-Gating |
+| ``stockanalysis`` | Aggregat aus ``fetch_borrow_metrics`` (SI-Borrow per Top-10) + ``fetch_stockanalysis_si`` (Short-Int per US-Top-10, ThreadPoolExecutor). Wrapper via ``_instrument_provider_call(_STOCKANALYSIS_ACCT, …)``. main() emittiert Zeile nur wenn ``calls > 0``. Latency-Note: Borrow-Pfad misst ``fetch_borrow_metrics`` inkl. IBKR-Fallback (sub-ms-Lookup, akzeptable Näherung). | ENABLED-Gating (``STOCKANALYSIS_BORROW_ENABLED`` + ``STOCKANALYSIS_SI_ENABLED``) |
+| ``earningswhispers`` | ``fetch_earningswhispers_rss()`` — 1× pro Daily-Run (Z. 14328). Inline try/finally, ``nan_pct`` aus Items ohne ``date``-Feld berechnet. | ENABLED-Gating (``EARNINGSWHISPERS_ENABLED``); ``nan_pct``-Persistenz |
+
+**Wrapper-Helper ``_instrument_provider_call(acct, fn, *args, **kw)``**
+in ``generate_report.py`` ist Wiederverwendung-Bausstein für alle
+per-Call-aggregierten Provider (heute Finnhub + Stockanalysis, in
+PR 3 voraussichtlich UOA + StockTwits + News-RSS). Pattern:
+``try: result = fn(...); return result; except Exception: raised=True; raise;
+finally: record(latency, success)``.
+
+**Success-Heuristik im Helper:** Erfolg = nicht raised AND
+``result is not None`` AND (für dict/list/tuple/set: nicht leer; sonst:
+truthiness). Damit zählt ein ``return None`` oder ``return {}`` aus
+einem fail-soft-Pfad als Failure — sauberes Coverage-Signal.
+
+**Konstanten-Erweiterung in ``config.py``:**
+- ``HEALTH_CHECK_PROVIDER_TIER`` ergänzt: finra/finnhub/stockanalysis/
+  earningswhispers = 2
+- ``HEALTH_CHECK_PROVIDER_EXPECTED``: alle vier mit ``None`` (variable
+  Coverage)
+
+**Nicht in PR 2:**
+- Konsekutiv-Persistenz (``agent_state.json["provider_health_state"]``
+  Counter pro Provider) — Phase 3 (Digest-Workflow)
+- Push-Aggregation, ntfy-Trigger bei „3-in-Folge"
+- Tier 3 (StockTwits, UOA, News-RSS, 4× EDGAR) — PR 3
+
 ---
 
 ## Session-Handover-Regel
