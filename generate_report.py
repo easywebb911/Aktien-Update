@@ -6988,6 +6988,19 @@ function hideTradeJournal(){{
   if (sec) sec.setAttribute('hidden', '');
 }}
 
+// Locked-State-Helper für Trade-Journal (analog _unlockFromPositionPanel
+// PR #149): Token-Session abgelaufen + Blob da → User klickt
+// „Token entsperren" → _ensureToken öffnet Unlock-Modal → nach Success
+// renderTradeJournal() läuft erneut und zeigt jetzt echte Daten.
+window._unlockFromTradeJournal = function() {{
+  if (typeof _ensureToken !== 'function') return;
+  _ensureToken(function() {{
+    if (typeof renderTradeJournal === 'function') {{
+      renderTradeJournal();
+    }}
+  }});
+}};
+
 // ── Push-Historie-Sektion (Phase 2 Stufe 3c-3) ────────────────────────
 // Strukturell analog zu Trade-Journal: show/hide + render. Datenquelle
 // ist window._APP_DATA.push_history (Spiegel aus agent_state.json,
@@ -7201,6 +7214,31 @@ async function renderTradeJournal(){{
   if (!statsEl || !listEl) return;
   if (typeof gistLoad !== 'function') {{
     statsEl.innerHTML = '<h4>Statistik</h4><p class="score-block-foot" style="border-top:none;padding-top:0">Trade-Journal benötigt Gist-Konfiguration.</p>';
+    listEl.innerHTML = '<h4>Trades (neueste zuerst)</h4>';
+    return;
+  }}
+  // Drei-Zustände-Routing (analog buildPositionPanel, PR #149):
+  //   1. Token aktiv → Statistik + Liste (Status quo unten)
+  //   2. Token leer + Encrypted-Blob → Locked-Box + Unlock-Button
+  //   3. Token leer + kein Blob → Konfig-Hinweis bleibt unten silent
+  //      via gistLoad() → null → trades=[].
+  // Vorher: gistLoad() returnt silent null → trades=[] → leere Statistik
+  // ohne Hinweis. User glaubt fälschlich "keine Trades" obwohl Daten
+  // hinter Master-Passwort verschlüsselt liegen.
+  const _tokNow = (typeof getToken === 'function') ? getToken() : '';
+  const _hasEnc = (typeof _hasEncryptedToken === 'function') && _hasEncryptedToken();
+  if (!_tokNow && _hasEnc) {{
+    statsEl.innerHTML = (
+      '<h4>Statistik</h4>'
+      + '<div class="gist-locked-box">'
+      + '<p class="gist-locked-msg">🔒 Trade-Journal verschlüsselt — '
+      + 'Token-Session abgelaufen. Master-Passwort eingeben, um die '
+      + 'Trade-Historie zu sehen.</p>'
+      + '<div class="gist-locked-actions">'
+      + '<button class="pos-btn pos-btn-unlock" '
+      + 'onclick="_unlockFromTradeJournal()">Token entsperren</button>'
+      + '</div></div>'
+    );
     listEl.innerHTML = '<h4>Trades (neueste zuerst)</h4>';
     return;
   }}
@@ -10613,7 +10651,7 @@ function _fmtGerman(d) {{
     await gistSave(data);
   }}
 
-  window.wlAddManual = async function() {{
+  window.wlAddManual = function() {{
     const inp = document.getElementById('wl-add-input');
     if (!inp) return;
     const raw = (inp.value || '').trim().toUpperCase();
@@ -10621,22 +10659,27 @@ function _fmtGerman(d) {{
       _wlSetErr('Ung\xfcltiger Ticker \u2014 Beispiele: GME, SAP.DE, 0700.HK');
       return;
     }}
-    const arr = await wlLoad();
-    if (arr.includes(raw)) {{
+    // _ensureToken-Routing: vorher liefen _wlGistSyncWatchlist + wlSave
+    // ohne Token silent ins Leere (Watchlist-Sync zwischen Geraeten +
+    // Repo-Push beide tot). Jetzt oeffnet Unlock-Modal bei Session-Verlust.
+    _ensureToken(async function(_token) {{
+      const arr = await wlLoad();
+      if (arr.includes(raw)) {{
+        _wlSetErr('');
+        inp.value = '';
+        return;  // bereits drin — stillschweigend ok
+      }}
+      if (arr.length >= WL_MAX) {{
+        _wlSetErr(`Watchlist voll (max ${{WL_MAX}} Ticker).`);
+        return;
+      }}
+      arr.unshift(raw);
       _wlSetErr('');
       inp.value = '';
-      return;  // bereits drin — stillschweigend ok
-    }}
-    if (arr.length >= WL_MAX) {{
-      _wlSetErr(`Watchlist voll (max ${{WL_MAX}} Ticker).`);
-      return;
-    }}
-    arr.unshift(raw);
-    _wlSetErr('');
-    inp.value = '';
-    await _wlGistSyncWatchlist(arr);
-    await wlSave(arr);
-    await wlRender();
+      await _wlGistSyncWatchlist(arr);
+      await wlSave(arr);
+      await wlRender();
+    }});
   }};
 
   window.wlToggle = async function(btn) {{
@@ -11095,7 +11138,13 @@ function _fmtGerman(d) {{
   // Score-Bucket-Helper _tjScoreBucket lebt auf Modul-Top-Level (vor
   // renderTradeJournal) — diese IIFE referenziert ihn per Closure.
 
-  window.wlSubmitPosition = async function(ticker) {{
+  window.wlSubmitPosition = function(ticker) {{
+    // _ensureToken-Routing: bei leerer Session + Encrypted-Blob → Unlock-
+    // Modal; bei keinem Token → Setup-Modal. Vorher liefen die gistLoad/
+    // gistSave-Aufrufe direkt durch und scheiterten silent (irreführende
+    // „Token-Scope prüfen"-Fehlermeldung statt Unlock-Modal). Pattern wie
+    // _unlockFromPositionPanel — Aktion läuft nach erfolgreichem Unlock.
+    _ensureToken(async function(_token) {{
     const d = document.getElementById('pos-d-' + ticker);
     const p = document.getElementById('pos-p-' + ticker);
     const s = document.getElementById('pos-s-' + ticker);
@@ -11180,6 +11229,7 @@ function _fmtGerman(d) {{
     _setPanelMode(ticker, 'view');
     _setPanelErr(ticker, '');
     _refreshPositionPanel(ticker);
+    }});  // _ensureToken
   }};
 
   // Trade-Journal: max Setup-Score zwischen Entry- und Exit-Datum aus
@@ -11242,7 +11292,10 @@ function _fmtGerman(d) {{
   // Position schließen → Verkaufsdaten erfassen + Trade ins Journal.
   // Berechnet pnl_abs / pnl_pct / duration_days / max_setup_score und
   // verschiebt Eintrag von ``positions[ticker]`` nach ``closed_trades``.
-  window.wlSubmitClose = async function(ticker) {{
+  // _ensureToken-Routing: Unlock-Modal bei leerer Session statt silent
+  // Save-Fail.
+  window.wlSubmitClose = function(ticker) {{
+    _ensureToken(async function(_token) {{
     const xd = document.getElementById('pos-xd-' + ticker);
     const xp = document.getElementById('pos-xp-' + ticker);
     const th = document.getElementById('pos-th-' + ticker);
@@ -11354,23 +11407,30 @@ function _fmtGerman(d) {{
     _setPanelErr(ticker, '');
     _setPanelFormState(ticker, null);  // Bug A: Cache bei Erfolg verwerfen
     _refreshPositionPanel(ticker);
+    }});  // _ensureToken
   }};
 
   // Footer-Button im expandierten Card: entfernt Ticker aus Watchlist
   // (Repo-Datei via wlSave) UND aus Gist (Position + Watchlist-Spiegel).
-  // Karte schließt sich automatisch durch wlRender.
-  window.wlRemoveFromExpanded = async function(ticker) {{
+  // Karte schließt sich automatisch durch wlRender. _ensureToken-Routing:
+  // ohne Unlock würde der Gist-Pfad silent skippen → Geister-Position
+  // bleibt im Gist obwohl Ticker aus Watchlist gelöscht.
+  window.wlRemoveFromExpanded = function(ticker) {{
     const msg = `${{ticker}} aus Watchlist entfernen?\nEine evtl. offene Position wird ebenfalls gel\xf6scht.`;
     if (!confirm(msg)) return;
-    // Gist: Position + Watchlist-Spiegel synchronisieren
-    if (GIST_ID && getToken()) {{
-      const data = (await gistLoad()) || {{watchlist: [], positions: {{}}}};
-      data.watchlist = (data.watchlist || []).filter(t => t !== ticker);
-      if (data.positions) delete data.positions[ticker];
-      await gistSave(data);
-    }}
-    // Repo-Datei (Bestand): existierender wlSave-Pfad
-    await window.wlRemoveTicker(ticker);
+    _ensureToken(async function(_token) {{
+      // Gist: Position + Watchlist-Spiegel synchronisieren. Innerer
+      // GIST_ID-Check bleibt als defensive catch-net (kein Gist
+      // konfiguriert → Repo-Pfad allein läuft weiter).
+      if (GIST_ID) {{
+        const data = (await gistLoad()) || {{watchlist: [], positions: {{}}}};
+        data.watchlist = (data.watchlist || []).filter(t => t !== ticker);
+        if (data.positions) delete data.positions[ticker];
+        await gistSave(data);
+      }}
+      // Repo-Datei (Bestand): existierender wlSave-Pfad
+      await window.wlRemoveTicker(ticker);
+    }});
   }};
 
   document.addEventListener('DOMContentLoaded', () => {{
