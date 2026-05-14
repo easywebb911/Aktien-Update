@@ -2544,6 +2544,96 @@ Digest erkennt das als „3-in-Folge"-Trigger-Kandidat.
 - Daily-Digest-Workflow 08:00 UTC mit ntfy-Push
 - „3-in-Folge"-Trigger-Logik für Tier 2 + 3 Pushes
 
+### Phase 3 — Daily-Digest-Workflow
+
+Liest täglich um **08:13 UTC** die letzten 24 h aus
+``health_check_log.jsonl`` + ``provider_health.jsonl``, aggregiert
+State-Fails + Provider-Fails (mit Konsekutiv-Counter für Tier-2/3)
+und sendet **einen** ntfy-Push.
+
+**Cron-Offset 13 8** (statt Spec-Wortlaut ``0 8``) analog
+``ki_agent.yml:17 * * * *`` — GitHub-Actions-Scheduled-Workflows
+werden zur vollen Stunde gehäuft gedropt (Klärung 15.05.2026).
+
+**Komponenten:**
+
+| Datei | Zweck |
+|---|---|
+| ``.github/workflows/health_check_digest.yml`` | Cron + ``workflow_dispatch``, ``timeout-minutes: 3``, ``permissions: contents: write``, JSON-Konflikt-Recovery analog ki_agent |
+| ``scripts/health_check_digest.py`` | Tool-Skript (KEIN Laufzeit-Modul). ``main(now_ts, force, dry_run)`` lädt JSONL-Window, aggregiert, sendet ntfy, schreibt state |
+| ``health_check.py`` neue Helper | ``aggregate_state_fails``, ``aggregate_provider_fails(counters, tier_map)``, ``format_digest_body`` — pure |
+| ``health_check_digest_state.json`` | State-Datei (separater Slot statt ``agent_state.json``, race-frei) |
+
+**Drei Push-Klassen:**
+
+| Bedingung | Title | Priority | Tags |
+|---|---|---|---|
+| ≥ 1 crit ODER ≥ 3 warn | ``⚠️ Health-Check-Digest`` | ``high`` | ``warning`` |
+| Sonst (0 Fails, n_runs > 0) | ``✅ Health-Check OK`` | ``default`` | — |
+| ``n_runs == 0`` (leere JSONL) | ``📭 Health-Check ohne Daten`` | ``high`` | ``warning`` |
+
+OK-Push ist **bewusst täglich**, dient als Liveness-Check für die
+Push-Pipeline selbst — wenn er ausbleibt weiß Easy, dass Workflow
+oder ntfy hakt.
+
+**State-Datei-Schema ``health_check_digest_state.json``:**
+
+```json
+{
+  "consecutive_failures": {"finra": 0, "finnhub": 3, ...},
+  "last_seen":             {"stocktwits": "2026-05-15T07:17:00Z", ...},
+  "last_digest_sent":      "2026-05-15",
+  "last_successful_run":   "2026-05-15T07:17:00Z"
+}
+```
+
+Counter-Storage absichtlich in eigener Datei (statt
+``agent_state.json["provider_health_state"]`` laut Spec): die
+Spec-Variante hätte Race-Conditions zwischen ki_agent (stündliche
+Schreibe), Daily-Run (2× pro Tag) und Digest-Workflow (1× pro Tag)
+auf demselben State-Slot erzeugt. Die separate Datei wird nur vom
+Digest-Workflow geschrieben → write-once-Pattern.
+
+**Schwellen pro Trigger-Klasse:**
+
+| Klasse | Sofort-Trigger | 3-in-Folge-Trigger |
+|---|---|---|
+| State S1–S3 (crit) | bei einem Vorkommnis | — |
+| State S4–S7 (warn) | — | ≥ 3 Vorkommnisse |
+| Provider Tier 1 | ``http_status ≠ 200`` ODER ``coverage_pct < 80`` | — |
+| Provider Tier 2/3 | — | ``http_status ≠ 200`` ODER ``coverage_pct < 50``, **3 Konsekutiv-Fails** |
+
+**Konstanten in ``health_check.py``:**
+- ``DIGEST_COVERAGE_THRESHOLD_TIER1 = 80.0``
+- ``DIGEST_COVERAGE_THRESHOLD_TIER23 = 50.0``
+- ``DIGEST_CONSECUTIVE_THRESHOLD = 3`` (3-in-Folge für Tier 2/3)
+- ``DIGEST_STALE_DAYS = 7`` (Counter-Reset bei stale provider)
+
+**Mehrfach-Trigger-Schutz:** state-Datei merkt sich
+``last_digest_sent`` (YYYY-MM-DD). Zweiter Aufruf am selben Tag (z. B.
+manueller ``workflow_dispatch``) skipt — außer ``--force``.
+
+**7-Tage-Drift-Schutz:** Provider, die seit > 7 Tagen nicht in der
+JSONL aufgetaucht sind (z. B. weil ``STOCKTWITS_ENABLED=False`` für
+längere Zeit), bekommen ihren Counter auf 0 zurückgesetzt.
+
+**Tests:** ``scripts/mock_test_digest.py`` — 31 Cases:
+Aggregations-Logik per Invariant, Konsekutiv-Counter (3-in-Folge +
+Reset-bei-Erfolg + Stale-Drift), Body-Format (4 Klassen),
+``_load_jsonl_window`` Cutoff + kaputte-Zeile-Tolerance, Multi-
+Trigger-Schutz, ntfy-POST monkey-patched (kein Netzwerk-Call),
+YAML-Validität + Cron-Match + Permissions.
+
+**Phase 3 abgeschlossen — Health-Check-Projekt komplett:**
+
+| Phase | PR | Scope |
+|---|---|---|
+| 1 | #150 | 7 State-Invariants + Auto-Trigger KI-Agent |
+| 2 PR 1 | #152 | Tier-1 Provider-Health (yahoo_screener, finviz, yfinance_batch, yfinance_singletons) |
+| 2 PR 2 | #153 | Tier-2 Provider-Health (finra, finnhub, stockanalysis, earningswhispers) + ``_instrument_provider_call``-Helper |
+| 2 PR 3 | #154 | Tier-3 Provider-Health (7 getrennte Keys: stocktwits, uoa, news_rss + 4× edgar) + ``success_check``-Param |
+| 3 | (dieser PR) | Digest-Workflow + Konsekutiv-Counter + Daily-Push |
+
 ---
 
 ## Session-Handover-Regel

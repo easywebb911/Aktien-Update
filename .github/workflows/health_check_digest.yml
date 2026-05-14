@@ -1,0 +1,85 @@
+name: Health-Check Daily Digest
+
+# Phase 3 — täglicher Aggregations-Push laut Spec
+# docs/health_check_spec.md "Daily-Digest-Format".
+#
+# Cron `13 8 * * *` — 08:13 UTC. Offset-Schutz analog ki_agent (xx:17),
+# weil GitHub Actions Scheduled Workflows zur vollen Stunde gehäuft
+# gedropt werden. Spec-Wortlaut "0 8 * * *" wurde 15.05.2026 durch den
+# 13-Minute-Offset ersetzt — Begründung im Diagnose-Bericht.
+
+on:
+  schedule:
+    - cron: '13 8 * * *'
+  workflow_dispatch:   # Manueller Trigger jederzeit (Mehrfach-Trigger-
+                       # Schutz im Skript via last_digest_sent-Datum).
+
+permissions:
+  contents: write   # Für Commit von health_check_digest_state.json
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
+jobs:
+  digest:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+
+    steps:
+      - name: Checkout main branch
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+          cache: 'pip'
+
+      - name: Install runtime dependencies
+        run: pip install requests
+
+      - name: Run Health-Check Digest
+        env:
+          NTFY_TOPIC: ${{ secrets.NTFY_TOPIC }}
+        run: python scripts/health_check_digest.py
+
+      - name: Commit digest state
+        run: |
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git config user.name "github-actions[bot]"
+          git add health_check_digest_state.json 2>/dev/null || true
+          if git diff --staged --quiet; then
+            echo "Keine state-Aenderung — kein Commit."
+            exit 0
+          fi
+          git commit -m "Health-Check-Digest state $(date -u '+%Y-%m-%d')"
+          # Cleanup-Logik analog ki_agent: bei Konflikten mit parallelem
+          # Daily-Run/ki_agent-Push nehmen wir --ours fuer JSON-Files.
+          if ! git pull --rebase origin main; then
+            if [ -d .git/rebase-merge ] || [ -d .git/rebase-apply ]; then
+              conflicted=$(git diff --name-only --diff-filter=U)
+              conflicted_other=$(echo "$conflicted" | grep -v '\.json$' || true)
+              if [ -n "$conflicted_other" ]; then
+                echo "ERROR: Konflikt in nicht-JSON-Dateien — Abbruch:"
+                echo "$conflicted_other"
+                git rebase --abort
+                exit 1
+              fi
+              conflicted_json=$(echo "$conflicted" | grep '\.json$' || true)
+              echo "JSON-Konflikte erkannt, uebernehme --ours (digest-state):"
+              echo "$conflicted_json"
+              for f in $conflicted_json; do
+                git checkout --ours -- "$f"
+                git add -- "$f"
+              done
+              GIT_EDITOR=true git rebase --continue
+            else
+              echo "ERROR: git pull --rebase scheiterte vor Rebase-Start."
+              git status --short
+              exit 1
+            fi
+          fi
+          git push origin main
