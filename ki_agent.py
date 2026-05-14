@@ -174,6 +174,7 @@ def set_cooldown(ticker: str, state: dict) -> None:
 # Single-Source-of-Truth lebt in ``push_history.py`` (Repo-Root). Schema-
 # Änderungen am push_history-Eintrag müssen dort gemacht werden.
 from push_history import _record_push  # noqa: E402
+import health_check  # noqa: E402
 
 
 # ── Signale laden/speichern ───────────────────────────────────────────────────
@@ -3203,6 +3204,23 @@ def main() -> None:
         log.debug("prev_conviction_scores-Snapshot fehlgeschlagen: %s", exc)
 
     save_state(state)
+
+    # Health-Check Phase 1 (S2/S3/S6 — agent-tick-relevante Invariants).
+    # S1/S4/S5/S7 sind Daily-Run-Outputs (score_history-Schreibe, backtest-
+    # Append, score_inflation_log-Persistenz, agent_signals selber) — im
+    # ki_agent-Tick redundant bzw. tautologisch. Spec:
+    # docs/health_check_spec.md. Fail-soft via run_and_record.
+    try:
+        _ad = app_data or {}
+        health_check.run_and_record(
+            run_phase="ki_agent_tick",
+            ki_agent_only=True,
+            setup_scores=_ad.get("setup_scores") or {},
+            monster_scores=_ad.get("monster_scores") or {},
+            positions=_ad.get("positions") or {},
+        )
+    except Exception as exc:
+        log.warning("health_check (ki_agent_tick) fehlgeschlagen: %s", exc)
 
     print(
         f"Agent-Run {now_str}: {len(tickers)} Ticker geprüft, "

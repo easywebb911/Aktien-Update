@@ -889,3 +889,13 @@ SEC_HEADERS    = {"User-Agent": "SqueezeReport/1.0 github-actions@squeeze-report
 # https://ntfy.sh/<topic> oder per ntfy-App abonnieren.
 NTFY_TOPIC   = os.environ.get("NTFY_TOPIC", "")
 NTFY_ENABLED = True
+
+# ── Health-Check (Phase 1 — State-Invariants) ────────────────────────────────
+# Frühwarnsystem für stille Datenausfälle (Pipeline grün, Artefakt kaputt).
+# Spec: docs/health_check_spec.md. Persistenz: health_check_log.jsonl im
+# Repo-Root, 30-Tage-Cutoff (analog score_inflation_log.jsonl).
+HEALTH_CHECK_S2_MIN_TICKERS         = 8    # setup_scores ≥ 8 Tickers
+HEALTH_CHECK_S5_MIN_INFLATION_LINES = 10   # neue Zeilen in score_inflation_log
+HEALTH_CHECK_S6_MIN_MONSTER_NONZERO = 3    # monster_scores > 0
+HEALTH_CHECK_S7_MIN_AGENT_OVERLAP   = 5    # |agent_signals ∩ top10|
+HEALTH_CHECK_CUTOFF_DAYS            = 30   # JSONL-Prune-Cutoff

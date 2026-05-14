@@ -28,6 +28,7 @@ from jinja2 import Environment, FileSystemLoader, select_autoescape
 from config import *   # zentrale Konstanten (Schwellen, Score-Gewichte, Timeouts, URLs)
 from watchlist import WATCHLIST
 import score_inflation_log
+import health_check
 
 try:
     import pandas_ta as ta  # optional: RSI / MA computation
@@ -12551,16 +12552,20 @@ def _build_backtest_extension(s: dict, pool_position: int, pool_size: int,
 
 
 def _append_backtest_entries(top10: list[dict], report_date: str,
-                             pool_size: int = 0) -> None:
+                             pool_size: int = 0) -> int:
     """Fügt für jeden Top-10-Kandidaten einen neuen Backtest-Eintrag hinzu,
     dedupliziert nach (ticker, date), prunet auf 90 Tage und schreibt die Datei.
     Idempotent: wiederholter Aufruf am gleichen Tag ändert nichts.
 
     ``pool_size`` ist die Anzahl der enriched Kandidaten BEVOR der Top-10-Cut
     erfolgt — Kontext für spätere „Pool-Position vs. Return"-Auswertung.
+
+    Returnt die Anzahl der NEU angehängten Einträge (``n_added``). Wird
+    vom Health-Check S4 gelesen, um Premarket/Postclose-Disziplin zu
+    überwachen (siehe ``health_check.py``).
     """
     if not BACKTEST_ENABLED:
-        return
+        return 0
     history = _load_backtest_history()
     existing_keys = {(e.get("ticker"), e.get("date")) for e in history}
     # Agent-Signals einmalig laden (pro-Ticker-Lookup für perfect_storm_mult).
@@ -12684,6 +12689,7 @@ def _append_backtest_entries(top10: list[dict], report_date: str,
     _save_backtest_history(history)
     print(f"Backtest-History: +{n_added} neue Einträge, total {len(history)} "
           f"(Cut-off: {BACKTEST_MAX_DAYS} Tage)", flush=True)
+    return n_added
 
 
 def _sanitize_for_json(obj):
@@ -14676,7 +14682,7 @@ def main():
     # Append-only; pruned auf 30 Tage Cutoff zum Run-Start. Fail-soft —
     # Daily-Run crasht nie wegen Log-Fehler.
     score_inflation_log.prune_log()
-    score_inflation_log.record_top10_inflation(
+    _n_inflation_lines = score_inflation_log.record_top10_inflation(
         top10, _compute_sub_scores, run_phase=run_phase)
 
     # Borrow-Metriken (Display-Only): CTB + Utilization von Stockanalysis,
@@ -14855,10 +14861,12 @@ def main():
     # retroaktiver Cleanup), die Backtest-Auswertung muss dafür später per
     # ``market_regime``/``vix_level``-Filter bereinigt werden.
     if run_phase == "postclose":
-        _append_backtest_entries(top10, report_date, pool_size=len(enriched))
+        _n_backtest_appended = _append_backtest_entries(
+            top10, report_date, pool_size=len(enriched))
     else:
         log.info("Backtest-Schema: skip in premarket-Phase (run_phase=%s)",
                  run_phase)
+        _n_backtest_appended = 0
 
     # Conviction-Score (Schritt A) — vor dem HTML-Render aufrufen, damit
     # _score_block_inner_html das s["conviction"]-Feld sieht. Anomalien
@@ -15052,6 +15060,41 @@ def main():
                      n_exit, time.time() - _t5)
     except Exception as exc:
         log.warning("process_exit_signals fehlgeschlagen: %s", exc)
+
+    # Step 6 — Health-Check Phase 1 (State-Invariants S1-S7).
+    # Silent Logging in health_check_log.jsonl. Push-Aggregation kommt
+    # in Phase 3 (separater Digest-Workflow 08:00 UTC). Spec:
+    # docs/health_check_spec.md. Fail-soft via run_and_record (eigener
+    # try/except inside) — Daily-Run wird nie wegen Health-Check
+    # gecrasht.
+    try:
+        _today_iso = datetime.now(berlin).strftime("%Y-%m-%d")
+        _top10_tickers = [s["ticker"] for s in top10 if s.get("ticker")]
+        try:
+            with open(SCORE_HISTORY_FILE, "r", encoding="utf-8") as _fh:
+                _sh_for_check = json.load(_fh) or {}
+        except (FileNotFoundError, json.JSONDecodeError):
+            _sh_for_check = {}
+        try:
+            with open("agent_signals.json", "r", encoding="utf-8") as _fh:
+                _ag_for_check = (json.load(_fh) or {}).get("signals") or {}
+        except (FileNotFoundError, json.JSONDecodeError):
+            _ag_for_check = {}
+        health_check.run_and_record(
+            run_phase=run_phase,
+            ki_agent_only=False,
+            top10_tickers=_top10_tickers,
+            setup_scores=_setup_scores,
+            monster_scores=_monster_scores,
+            positions=_positions_payload,
+            score_history=_sh_for_check,
+            today_iso=_today_iso,
+            n_inflation_lines=_n_inflation_lines,
+            n_backtest_appended=_n_backtest_appended,
+            agent_signal_keys=set(_ag_for_check.keys()),
+        )
+    except Exception as exc:
+        log.warning("health_check (Daily-Run) fehlgeschlagen: %s", exc)
 
     log.info("Report written → index.html")
     log.info("Top 10: %s", [s["ticker"] for s in top10])
