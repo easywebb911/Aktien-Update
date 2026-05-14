@@ -36,6 +36,7 @@ on:
 
 permissions:
   contents: write   # Benötigt um index.html in main zu commiten
+  actions:  write   # Benötigt um ki_agent.yml am Ende zu triggern
 
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
@@ -231,3 +232,28 @@ jobs:
             fi
             sleep "$INTERVAL"
           done
+
+      # Auto-Trigger des KI-Agent direkt nach erfolgreichem Daily-Run.
+      # Hintergrund (Diagnose 14.05.2026): Daily-Run und KI-Agent driften
+      # auseinander, sobald der Daily-Run außerhalb des regulären Cron-
+      # Slots läuft (workflow_dispatch oder Re-Run nach Merge). Folge:
+      # agent_signals.json hat alte Top-10, Daily-Run rendert ohne
+      # KI-Score auf den Karten. Strukturelle Lösung: jeder Daily-Run
+      # triggert seinen eigenen KI-Agent-Tick danach.
+      #
+      # Nicht-blockierend: `gh workflow run` returnt sofort, ohne auf
+      # Completion zu warten. Fehler werden nur geloggt — Daily-Run-
+      # Erfolg hängt nicht davon ab. Health-Check S7 fängt das Rest-
+      # risiko (KI-Agent ist gestartet aber liefert keine Overlap-
+      # Signale für die heutige Top-10) im nächsten Daily-Run.
+      - name: Trigger KI-Agent tick
+        if: success()
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          if gh workflow run ki_agent.yml --ref main; then
+            echo "KI-Agent-Tick erfolgreich getriggert (non-blocking)."
+          else
+            echo "WARNUNG: KI-Agent-Trigger fehlgeschlagen — Daily-Run nicht betroffen."
+          fi

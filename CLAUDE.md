@@ -2294,6 +2294,88 @@ Cloudflare-Workers-Free: 100 000 Req/Tag.
 
 ---
 
+## Health-Check (Phase 1 — State-Invariants)
+
+Frühwarnsystem für stille Datenausfälle. Pipeline-Code läuft grün,
+aber das geschriebene Artefakt verhält sich falsch (Bug-Klasse PR #119
+score_history-Pruning, KI-Score-Drift 14.05.2026). Spec ist
+**Single-Source-of-Truth** in ``docs/health_check_spec.md`` — diese
+Sektion ist nur ein CLAUDE.md-Anker auf das Doku-File.
+
+### Architektur (Phase 1)
+
+- **Modul:** ``health_check.py`` im Repo-Root (analog
+  ``score_inflation_log.py``, ``push_history.py``).
+- **Persistenz:** ``health_check_log.jsonl`` (append-only, JSONL,
+  ``HEALTH_CHECK_CUTOFF_DAYS = 30`` Tage Prune). Atomic
+  ``tmp + os.replace``-Write beim Pruning; kaputte Zeilen bleiben
+  erhalten.
+- **Schema-Marker:** ``schema_v: 1`` pro Eintrag.
+- **Alarm-Modus:** silent Logging — kein Push in Phase 1. Phase 3
+  liest die Datei und sendet Daily-Digest (08:00 UTC, separater
+  Workflow).
+- **Hook-Points:** Ende ``main()`` in ``generate_report.py`` (nach
+  ``process_exit_signals``) und Ende ``main()`` in ``ki_agent.py``
+  (nach ``save_state``). Fail-soft via ``run_and_record`` —
+  Daily-Run/KI-Agent crashen nie wegen Health-Check.
+
+### 7 State-Invariants (Phase 1)
+
+Voller Detailtext + Schwellen-Tabelle in
+``docs/health_check_spec.md``. Hier nur Kurz-Übersicht:
+
+| ID | Severity | Was wird geprüft |
+|----|----------|------------------|
+| S1 | crit | ``score_history.json`` hat heutigen Eintrag pro Top-10-Ticker |
+| S2 | crit | ``app_data.setup_scores`` hat ≥ ``HEALTH_CHECK_S2_MIN_TICKERS`` (8) Tickers |
+| S3 | crit | Aktive Positionen haben ``current_price != None`` |
+| S4 | warn | ``backtest_history`` wächst nur in ``postclose`` (n_appended-Returnwert) |
+| S5 | warn | ``score_inflation_log`` bekommt ≥ ``HEALTH_CHECK_S5_MIN_INFLATION_LINES`` (10) neue Zeilen |
+| S6 | warn | ``monster_scores`` ≥ ``HEALTH_CHECK_S6_MIN_MONSTER_NONZERO`` (3) Tickers > 0 |
+| S7 | warn | ``agent_signals`` ∩ Top-10 ≥ ``HEALTH_CHECK_S7_MIN_AGENT_OVERLAP`` (5) |
+
+### ki_agent-Tick-Coverage
+
+Der ki_agent-Hook übergibt ``ki_agent_only=True`` —
+``evaluate_state_invariants`` prüft dann **nur S2/S3/S6**:
+
+- **S1** Daily-Run-Output (``score_history.json``-Schreibe).
+- **S4** Backtest-Append nur im Daily-Run.
+- **S5** ``score_inflation_log``-Persistenz nur im Daily-Run.
+- **S7** Tautologie — ki_agent schreibt ``agent_signals.json`` selbst
+  und arbeitet per Definition auf der Top-10, die er aus
+  ``index.html`` zieht.
+
+### Auto-Trigger des KI-Agent (gegen S7-Drift, 14.05.2026)
+
+``daily-squeeze-report.yml`` triggert am Ende automatisch einen
+ki_agent-Tick via ``gh workflow run ki_agent.yml --ref main``
+(non-blocking, ``continue-on-error: true``). Brauchst Workflow-
+Permission ``actions: write`` zusätzlich zu ``contents: write``.
+
+Damit: jeder Daily-Run-Cron und jeder manuelle ``workflow_dispatch``
+und jeder Re-Run nach Code-Merge feuert einen frischen ki_agent-Tick
+auf die heutige Top-10 → ``agent_signals.json`` enthält im nächsten
+Daily-Run die richtigen Tickers → KI-Score auf allen Karten sichtbar.
+
+S7 ist das Restrisiko-Netz (Trigger fehlgeschlagen / ki_agent-Cron
+gedropt / ki_agent crasht silent).
+
+### Pflege
+
+- Schwellen-Anpassung: nur in ``config.py`` (``HEALTH_CHECK_*``-
+  Block). Code-Logik liest rein über Konstanten.
+- Bei neuer State-Invariant S8: ``evaluate_state_invariants``
+  erweitern + Konstante + Spec-Tabelle + Mock-Test pro Fail/Pass-
+  Pfad ergänzen + diese CLAUDE.md-Tabelle aktualisieren.
+- Schema-Änderung am JSONL-Eintrag: ``SCHEMA_V`` in ``health_check.py``
+  hochzählen + Migrations-Pfad im Reader dokumentieren (Phase 3
+  Digest-Workflow).
+- Score-Methodik-Sync **nicht betroffen** — reines Logging-Feature,
+  keine Score-/Filter-Logik berührt.
+
+---
+
 ## Session-Handover-Regel
 
 Wenn der User die Sitzung mit „Gute Nacht" (oder Varianten wie „Schlaf gut",

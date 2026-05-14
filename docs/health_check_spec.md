@@ -50,6 +50,26 @@ SESSION_HANDOVER „Drei Achsen von Tests/Checks".
 | **S4** | `backtest_history` wächst nur bei `postclose`, nicht bei `premarket` | warn | Vergleich Zeilenzahl Pre/Post-Run mit `run_phase` |
 | **S5** | `score_inflation_log.jsonl` bekommt pro Run ≥ 10 Zeilen | warn | `wc -l`-Diff nach Run |
 | **S6** | `monster_scores`: ≥ 3 Tickers > 0 | warn | `sum(1 for s in monster_scores.values() if s > 0) ≥ 3` |
+| **S7** | `agent_signals` ∩ Top-10 ≥ 5 | warn | `len(set(agent_signals.keys()) & set(top10_tickers)) ≥ HEALTH_CHECK_S7_MIN_AGENT_OVERLAP` |
+
+### S7 — Begründung (KI-Score-Drift, 14.05.2026)
+
+Diagnose 14.05.2026: Daily-Run rendert auf allen Top-10-Karten ohne
+KI-Score, weil ``agent_signals.json`` die Top-10-Ticker vom Vortag
+enthält und der heutige Daily-Run komplett andere Tickers selektiert
+hat. Schnittmenge = ∅ → ``apply_agent_boost`` matcht keinen Ticker →
+``s["ki_signal_score"]`` bleibt None → Render-Pfad lässt die KI-Score-
+Zeile weg.
+
+S7 fängt diese Klasse von Drift-Bug. Strukturelle Hauptlösung: der
+Daily-Run triggert seit dieser PR automatisch einen KI-Agent-Tick am
+Ende (``gh workflow run ki_agent.yml``, non-blocking). S7 ist das
+Restrisiko-Netz für die Lücke zwischen Trigger und Tick-Completion
+bzw. für gedroppte ki_agent-Cron-Slots.
+
+**ki_agent-Tick prüft S7 NICHT** — wäre tautologisch, weil der Tick
+selbst ``agent_signals.json`` schreibt und naturgemäß auf der Top-10
+arbeitet, die er via ``parse_top_tickers()`` aus index.html zieht.
 
 ## Provider-Tiers
 
