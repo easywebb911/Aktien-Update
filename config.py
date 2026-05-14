@@ -915,7 +915,16 @@ HEALTH_CHECK_PROVIDER_TIER = {
     "finnhub":             2,   # Earnings Calendar (pro offene Position)
     "stockanalysis":       2,   # Aggregat aus _si + _borrow
     "earningswhispers":    2,   # RSS Calendar (1× pro Daily-Run)
-    # Tier 3 (Folge-PR): stocktwits, uoa, news_rss, edgar_*
+    # Tier 3 (warn, 3-in-Folge-Trigger — Konsekutiv-Persistenz in Phase 3).
+    # Klärung 15.05.2026: getrennte Provider-Keys statt Spec-Wortlaut-
+    # Aggregate, für saubere Coverage-Granularität.
+    "stocktwits":          3,   # Social-Sentiment (per-Top-10, KI-Agent)
+    "uoa":                 3,   # Unusual Options Activity (per-Top-10)
+    "news_rss":            3,   # 5+ RSS-Quellen (Finviz/Google/Yahoo/UW/MB/SA)
+    "edgar_13f":           3,   # SEC 13F-Filings (per-Top-10)
+    "edgar_8k":            3,   # SEC 8-K-Filings (per-Top-10, KI-Agent)
+    "edgar_form4":         3,   # SEC Form 4 Insider (per-Top-10, KI-Agent)
+    "edgar_13d_g":         3,   # SEC 13D/G-Filings (1× pro KI-Agent-Tick)
 }
 
 # Erwartete Item-Counts pro Provider — Basis für Coverage-Berechnung.
@@ -931,4 +940,12 @@ HEALTH_CHECK_PROVIDER_EXPECTED = {
     "finnhub":             None,   # 1 Call pro Position; emittiert nur bei calls>0
     "stockanalysis":       None,   # N pro Top-10 (ENABLED-gated)
     "earningswhispers":    None,   # RSS-Feed-Größe schwankt (~30–80)
+    # Tier 3 — alle Coverage-variabel (per-Top-10-Aufrufe schwanken)
+    "stocktwits":          None,
+    "uoa":                 None,
+    "news_rss":            None,   # 5+ RSS-Quellen × N Top-10
+    "edgar_13f":           None,
+    "edgar_8k":            None,
+    "edgar_form4":         None,
+    "edgar_13d_g":         None,
 }

@@ -24,6 +24,7 @@ from __future__ import annotations
 import json
 import logging
 import os
+import time
 from datetime import datetime, timedelta, timezone
 from typing import Any
 
@@ -512,3 +513,78 @@ def read_all_provider(path: str = LOG_FILE_PROVIDER) -> list[dict]:
             except json.JSONDecodeError:
                 continue
     return entries
+
+
+# ── Per-Call-Akkumulator-Pattern (extrahiert aus PR 2, generalisiert PR 3) ─
+#
+# Wird von Tier-2/3-Providern genutzt, die N-mal pro Run aufgerufen werden
+# (Finnhub, Stockanalysis, StockTwits, UOA, News-RSS, EDGAR-pro-Ticker).
+# main() emittiert am Ende eine konsolidierte Zeile pro Provider, sofern
+# der Akkumulator ``calls > 0`` zeigt (call_attempted-Gating).
+
+
+def provider_acct_reset(acct: dict) -> None:
+    """Setzt Akkumulator-Felder zurück. Aufruf in main()-Start für
+    saubere Test-Wiederholbarkeit."""
+    for k in ("latency_ms", "calls", "failures", "successes"):
+        if k in acct:
+            acct[k] = 0
+
+
+def provider_acct_record(acct: dict, latency_ms: int, success: bool) -> None:
+    """Akkumuliert per-Call-Metriken. Wird aus dem ``finally``-Block
+    von ``instrument_provider_call`` aufgerufen."""
+    acct["latency_ms"] += int(latency_ms)
+    acct["calls"]      += 1
+    if success:
+        acct["successes"] += 1
+    else:
+        acct["failures"] += 1
+
+
+def instrument_provider_call(acct: dict, fn, *args,
+                              success_check=None, **kwargs):
+    """Wrapper-Helper: misst Latency + Success-Bool, akkumuliert in
+    ``acct`` und propagiert Exceptions. Pattern: try/except/raise/finally.
+
+    ``success_check`` ist optional. Erwartet eine Funktion
+    ``(result) -> bool``. Bei None wird die Default-Heuristik genutzt:
+    Erfolg = nicht raised AND ``result is not None`` AND (für dict/list/
+    tuple/set: ``len(result) > 0``; sonst: truthiness von result).
+
+    Für Tier-3-Provider, deren fail-soft-Returns dieselbe Struktur wie
+    Erfolgs-Returns haben (z. B. StockTwits-Dict mit allen Werten None,
+    UOA-Tuple ``(0, [], {})``, SEC-Tuple ``(False, "", None)``),
+    sollte ein expliziter ``success_check`` mitgegeben werden — sonst
+    wertet der Wrapper jeden Call als erfolgreich.
+    """
+    t0 = time.perf_counter()
+    result = None
+    raised = False
+    try:
+        result = fn(*args, **kwargs)
+        return result
+    except Exception:
+        raised = True
+        raise
+    finally:
+        try:
+            if raised:
+                ok = False
+            elif success_check is not None:
+                try:
+                    ok = bool(success_check(result))
+                except Exception:
+                    ok = False
+            else:
+                ok = (result is not None) and (
+                    result if not isinstance(result, (dict, list, tuple, set))
+                    else len(result) > 0
+                )
+            provider_acct_record(
+                acct,
+                int((time.perf_counter() - t0) * 1000),
+                success=bool(ok),
+            )
+        except Exception:
+            pass   # Accumulator-Fehler bricht Pipeline nicht

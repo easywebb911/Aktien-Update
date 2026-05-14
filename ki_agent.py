@@ -177,6 +177,26 @@ from push_history import _record_push  # noqa: E402
 import health_check  # noqa: E402
 
 
+# Health-Check Phase 2 PR 3 — Tier-3-Provider-Akkumulatoren.
+# Pro Provider: per-Call-Latency + Success-Bool wird in _process_ticker
+# (oder direkt in main() für single-call Provider) akkumuliert; main()
+# emittiert am Ende eine konsolidierte ``record_provider_call``-Zeile,
+# sofern ``calls > 0`` (call_attempted-Gating). Reset via
+# ``_reset_tier3_accumulators()`` am Anfang von main().
+_STOCKTWITS_ACCT:   dict = {"latency_ms": 0, "calls": 0, "failures": 0, "successes": 0}
+_UOA_ACCT:          dict = {"latency_ms": 0, "calls": 0, "failures": 0, "successes": 0}
+_NEWS_RSS_ACCT:     dict = {"latency_ms": 0, "calls": 0, "failures": 0, "successes": 0}
+_EDGAR_8K_ACCT:     dict = {"latency_ms": 0, "calls": 0, "failures": 0, "successes": 0}
+_EDGAR_FORM4_ACCT:  dict = {"latency_ms": 0, "calls": 0, "failures": 0, "successes": 0}
+_EDGAR_13D_G_ACCT:  dict = {"latency_ms": 0, "calls": 0, "failures": 0, "successes": 0}
+
+
+def _reset_tier3_accumulators() -> None:
+    for acct in (_STOCKTWITS_ACCT, _UOA_ACCT, _NEWS_RSS_ACCT,
+                 _EDGAR_8K_ACCT, _EDGAR_FORM4_ACCT, _EDGAR_13D_G_ACCT):
+        health_check.provider_acct_reset(acct)
+
+
 # ── Signale laden/speichern ───────────────────────────────────────────────────
 
 def load_signals() -> dict:
@@ -2517,16 +2537,29 @@ def _process_ticker(ticker: str, shared: dict) -> dict:
     if not yfd:
         log.debug("  Keine yfinance-Daten für %s", ticker)
 
-    yahoo_news  = fetch_yahoo_news(ticker)
+    # Health-Check Phase 2 PR 3 — Tier-3 news_rss. 6 RSS-Calls (Yahoo +
+    # 5 generische) werden in einen gemeinsamen Akkumulator gepoolt.
+    # success_check = "Liste hat ≥1 Item" — die default-Heuristik (len>0)
+    # passt hier exakt, expliziter Pass für Klarheit.
+    yahoo_news  = health_check.instrument_provider_call(
+        _NEWS_RSS_ACCT, fetch_yahoo_news, ticker)
     base        = ticker.split(".")[0]
-    finviz_news = fetch_rss_news("https://finviz.com/rss.ashx?t={ticker}", ticker)
-    google_news = fetch_rss_news(
+    finviz_news = health_check.instrument_provider_call(
+        _NEWS_RSS_ACCT, fetch_rss_news,
+        "https://finviz.com/rss.ashx?t={ticker}", ticker)
+    google_news = health_check.instrument_provider_call(
+        _NEWS_RSS_ACCT, fetch_rss_news,
         "https://news.google.com/rss/search?q={ticker}+stock&hl=en-US&gl=US&ceid=US:en",
-        base,
-    )
-    uw_news = fetch_rss_news("https://unusualwhales.com/rss/ticker/{ticker}", base)
-    mb_news = fetch_rss_news("https://www.marketbeat.com/stocks/NASDAQ/{ticker}/rss/", base)
-    sa_news = fetch_rss_news("https://seekingalpha.com/api/sa/combined/{ticker}.xml", base)
+        base)
+    uw_news = health_check.instrument_provider_call(
+        _NEWS_RSS_ACCT, fetch_rss_news,
+        "https://unusualwhales.com/rss/ticker/{ticker}", base)
+    mb_news = health_check.instrument_provider_call(
+        _NEWS_RSS_ACCT, fetch_rss_news,
+        "https://www.marketbeat.com/stocks/NASDAQ/{ticker}/rss/", base)
+    sa_news = health_check.instrument_provider_call(
+        _NEWS_RSS_ACCT, fetch_rss_news,
+        "https://seekingalpha.com/api/sa/combined/{ticker}.xml", base)
     news = yahoo_news + finviz_news + google_news + uw_news + mb_news + sa_news
     print(f"{ticker} Quellen: Yahoo={len(yahoo_news)}, Google={len(google_news)}, "
           f"UnusualWhales={len(uw_news)}, MarketBeat={len(mb_news)}, "
@@ -2551,7 +2584,11 @@ def _process_ticker(ticker: str, shared: dict) -> dict:
     is_us     = "." not in ticker
     if is_us:
         try:
-            has_8k, sec_title, sec_8k_dt = fetch_sec_8k(ticker)
+            # Health-Check Phase 2 PR 3 — Tier-3 edgar_8k. Return-Tuple
+            # ``(has_8k, sec_title, sec_8k_dt)`` — Erfolg = has_8k=True.
+            has_8k, sec_title, sec_8k_dt = health_check.instrument_provider_call(
+                _EDGAR_8K_ACCT, fetch_sec_8k, ticker,
+                success_check=lambda r: bool(r and r[0]))
             if has_8k:
                 title_lower = sec_title.lower()
                 if any(kw in title_lower for kw in SEC_RELEVANT_KEYWORDS):
@@ -2574,7 +2611,11 @@ def _process_ticker(ticker: str, shared: dict) -> dict:
     form4_title = ""
     if is_us:
         try:
-            has_form4, form4_title = fetch_sec_form4(ticker)
+            # Health-Check Phase 2 PR 3 — Tier-3 edgar_form4. Return-Tuple
+            # ``(has_form4, form4_title)`` — Erfolg = has_form4=True.
+            has_form4, form4_title = health_check.instrument_provider_call(
+                _EDGAR_FORM4_ACCT, fetch_sec_form4, ticker,
+                success_check=lambda r: bool(r and r[0]))
         except Exception as exc:
             log.debug("Form 4 Fehler %s: %s", ticker, exc)
 
@@ -2597,12 +2638,22 @@ def _process_ticker(ticker: str, shared: dict) -> dict:
         except Exception as exc:
             log.debug("FDA-Datum Parse %s: %s", ticker, exc)
 
-    stocktwits_data = fetch_stocktwits_sentiment(ticker)
+    # Health-Check Phase 2 PR 3 — Tier-3 stocktwits. fail-soft-Return
+    # ist Dict mit allen Werten 0/None bei Fehler → Default-Heuristik
+    # würde irrtümlich Success melden. success_check: ``n_total > 0``.
+    stocktwits_data = health_check.instrument_provider_call(
+        _STOCKTWITS_ACCT, fetch_stocktwits_sentiment, ticker,
+        success_check=lambda r: bool(r and r.get("n_total", 0) > 0))
 
     # UOA — Unusual Options Activity aus yfinance Options-Chain.
     # Sequenziell wie die anderen Fetches; Parallelität existiert bereits
     # auf Ticker-Ebene über den outer ThreadPool (max_workers=8).
-    uoa_score, uoa_drivers, uoa_meta = fetch_uoa_signal(ticker)
+    # Health-Check Phase 2 PR 3 — Tier-3 uoa. Return-Tuple
+    # ``(score, drivers, meta)`` — fail-soft = ``(0, [], {})``.
+    # Erfolg = drivers nicht leer (signalisiert detected UOA).
+    uoa_score, uoa_drivers, uoa_meta = health_check.instrument_provider_call(
+        _UOA_ACCT, fetch_uoa_signal, ticker,
+        success_check=lambda r: bool(r and len(r) > 1 and r[1]))
     if uoa_score > 0 or uoa_drivers:
         log.info("UOA %s: %d Pkt – %s (atm=%s cp=%s)",
                  ticker, uoa_score, uoa_drivers,
@@ -2777,6 +2828,9 @@ def _test_process_ticker_isolation() -> None:
 
 def main() -> None:
     t_start = time.time()
+    # Health-Check Phase 2 PR 3 — Tier-3-Aggregatoren zurücksetzen für
+    # saubere Test-Wiederholbarkeit und konsistente Per-Run-Werte.
+    _reset_tier3_accumulators()
     phase            = get_market_phase()
     alert_threshold  = get_alert_threshold(phase)   # Fix 2
     print(f"Marktphase: {phase} — Alert-Schwelle: {alert_threshold}", flush=True)
@@ -2956,7 +3010,12 @@ def main() -> None:
             "ticker":       t,
             "company_name": yfd.get("company_name", "") or t,
         })
-    edgar_filings_cache = fetch_edgar_filings(edgar_top10)
+    # Health-Check Phase 2 PR 3 — Tier-3 edgar_13d_g. Single call pro
+    # KI-Agent-Tick; Akkumulator-Pattern fuer Konsistenz mit anderen
+    # Tier-3-Providern (1 Aufruf → calls=1, success bei nicht-leerer
+    # Liste). Default-Heuristik ist hier korrekt.
+    edgar_filings_cache = health_check.instrument_provider_call(
+        _EDGAR_13D_G_ACCT, fetch_edgar_filings, edgar_top10)
 
     # Counter und new_signals aus den Worker-Ergebnissen aggregieren.
     # Alert-Schwelle: monster_score >= 70 (ersetzt phasenabhängige
@@ -3256,6 +3315,39 @@ def main() -> None:
         log.debug("prev_conviction_scores-Snapshot fehlgeschlagen: %s", exc)
 
     save_state(state)
+
+    # Health-Check Phase 2 PR 3 — Tier-3-Provider-Aggregator-Zeilen.
+    # Pro Provider eine Zeile, sofern calls > 0 (call_attempted-Gating).
+    # Provider, die niemals gefeuert haben (z. B. STOCKTWITS_ENABLED=False
+    # → fetch_stocktwits_sentiment returnt sofort default-dict; success_
+    # check rates it als failure, calls=N>0), bekommen trotzdem eine Zeile
+    # — das ist intentional, damit Drift erkennbar bleibt.
+    try:
+        for prov_key, acct in (
+            ("stocktwits",  _STOCKTWITS_ACCT),
+            ("uoa",         _UOA_ACCT),
+            ("news_rss",    _NEWS_RSS_ACCT),
+            ("edgar_8k",    _EDGAR_8K_ACCT),
+            ("edgar_form4", _EDGAR_FORM4_ACCT),
+            ("edgar_13d_g", _EDGAR_13D_G_ACCT),
+        ):
+            if acct["calls"] <= 0:
+                continue
+            try:
+                health_check.record_provider_call(
+                    provider=prov_key,
+                    tier=HEALTH_CHECK_PROVIDER_TIER.get(prov_key, 3),
+                    latency_ms=acct["latency_ms"],
+                    http_status=200 if acct["successes"] > 0 else None,
+                    item_count=acct["successes"],
+                    error=None if acct["failures"] == 0
+                          else f"{acct['failures']}/{acct['calls']} calls failed",
+                    run_phase="ki_agent_tick",
+                )
+            except Exception as _hc_exc:
+                log.debug("%s provider-record skipped: %s", prov_key, _hc_exc)
+    except Exception as exc:
+        log.warning("tier3 provider-aggregator-records failed: %s", exc)
 
     # Health-Check Phase 1 (S2/S3/S6 — agent-tick-relevante Invariants).
     # S1/S4/S5/S7 sind Daily-Run-Outputs (score_history-Schreibe, backtest-

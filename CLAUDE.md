@@ -2498,6 +2498,52 @@ einem fail-soft-Pfad als Failure — sauberes Coverage-Signal.
 - Push-Aggregation, ntfy-Trigger bei „3-in-Folge"
 - Tier 3 (StockTwits, UOA, News-RSS, 4× EDGAR) — PR 3
 
+### Phase 2 — Provider-Health (PR 3: Tier 3) — Phase 2 abgeschlossen
+
+Sieben Tier-3-Provider ergänzen Tier 1 + 2. Klärung 15.05.2026:
+getrennte Provider-Keys statt Spec-Wortlaut-Aggregate für saubere
+Coverage-Granularität.
+
+**Helper-Refactor** (PR 3): ``_provider_acct_reset``,
+``_provider_acct_record``, ``_instrument_provider_call`` von
+``generate_report.py`` nach ``health_check.py`` umgezogen (Reuse
+von ``ki_agent.py`` aus). Backward-compat-Aliase in
+``generate_report.py`` (Underscore-Prefix bleibt für PR-2-Aufrufer).
+``instrument_provider_call`` bekommt optional ``success_check``-
+Kwarg für Tier-3-Provider mit reichhaltigen fail-soft-Returns
+(``(False, "", None)``, ``{"n_total": 0, …}``, ``(0, [], {})``).
+
+| Provider-Key | Quelle | success_check |
+|---|---|---|
+| ``stocktwits`` | ``fetch_stocktwits_sentiment(ticker)`` in ``_process_ticker`` — KI-Agent-Tick | ``r.get("n_total", 0) > 0`` (fail-soft-Default-Dict mit ``n_total=0`` würde sonst als success zählen) |
+| ``uoa`` | ``fetch_uoa_signal(ticker)`` in ``_process_ticker`` — Return-Tuple ``(score, drivers, meta)`` | ``bool(r[1])`` (drivers-Liste non-empty signalisiert detected UOA) |
+| ``news_rss`` | ``fetch_yahoo_news`` + 5× ``fetch_rss_news`` in ``_process_ticker``. Gemeinsamer Akkumulator → 1 Zeile pro KI-Agent-Tick für alle 6 RSS-Quellen × N Top-10 = 60+ Calls aggregiert | Default (``len(list) > 0``) |
+| ``edgar_13f`` | ``fetch_sec_13f`` im Daily-Run-ThreadPool (US-Top-10, ``SEC_13F_ENABLED``-gated). 1 Zeile pro Daily-Run mit ``run_phase=premarket/postclose`` | Default (``str is not None``) |
+| ``edgar_8k`` | ``fetch_sec_8k(ticker)`` in ``_process_ticker`` — Return-Tuple ``(has_8k, sec_title, sec_8k_dt)`` | ``bool(r[0])`` |
+| ``edgar_form4`` | ``fetch_sec_form4(ticker)`` in ``_process_ticker`` — Return-Tuple ``(has_form4, form4_title)`` | ``bool(r[0])`` |
+| ``edgar_13d_g`` | ``fetch_edgar_filings(top10)`` — 1× pro KI-Agent-Tick | Default (``len(list) > 0``) |
+
+**Akkumulator-Architektur** (ki_agent.py):
+``_STOCKTWITS_ACCT``, ``_UOA_ACCT``, ``_NEWS_RSS_ACCT``,
+``_EDGAR_8K_ACCT``, ``_EDGAR_FORM4_ACCT``, ``_EDGAR_13D_G_ACCT`` —
+plus ``_reset_tier3_accumulators()`` am main()-Start.
+generate_report.py: ``_EDGAR_13F_ACCT`` analog für den Daily-Run-Pfad.
+
+**EDGAR 403-Behandlung**: SEC-Rate-Limit returnt leere Liste/Tuple →
+Default-/Custom-success_check markiert als failure → Record-Eintrag
+mit ``http_status=null`` + ``error="N/N calls failed"``. Phase-3-
+Digest erkennt das als „3-in-Folge"-Trigger-Kandidat.
+
+**Konstanten-Erweiterung in ``config.py``:**
+- ``HEALTH_CHECK_PROVIDER_TIER`` ergänzt: alle 7 Tier-3-Keys = 3
+- ``HEALTH_CHECK_PROVIDER_EXPECTED``: alle 7 mit ``None`` (Coverage
+  pro-Ticker-variabel)
+
+**Phase 2 ist mit PR 3 abgeschlossen.** Folgendes bleibt für Phase 3:
+- Konsekutiv-Counter-State in ``agent_state.json["provider_health_state"]``
+- Daily-Digest-Workflow 08:00 UTC mit ntfy-Push
+- „3-in-Folge"-Trigger-Logik für Tier 2 + 3 Pushes
+
 ---
 
 ## Session-Handover-Regel
