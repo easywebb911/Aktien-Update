@@ -1,5 +1,5 @@
 {
-  "last_run": "2026-05-15T19:01:55.835494+02:00",
+  "last_run": "2026-05-15T19:25:34.474401+02:00",
   "cooldowns": {
     "anomaly_score_jump_XRX": "2026-05-03T18:47:15.315486+02:00",
     "anomaly_uoa_extreme_TDOC": "2026-05-04T13:47:00.365949+02:00",
@@ -916,6 +916,30 @@
     },
     {
       "ts": "2026-05-15T19:01:53.064257+02:00",
+      "ticker": "GEMI",
+      "kind": "anomaly",
+      "severity": "high",
+      "trigger": "monster_backup",
+      "body": "GEMI 🔥 Monster 92 | Setup 76 | KI 72",
+      "success": false,
+      "suppressed": true,
+      "suppress_reason": "conviction_below_threshold",
+      "conviction_score": 67
+    },
+    {
+      "ts": "2026-05-15T19:25:32.068094+02:00",
+      "ticker": "GEMI",
+      "kind": "anomaly",
+      "severity": "medium",
+      "trigger": "score_jump",
+      "body": "GEMI 🚀 Setup 76 ↑ (gestern 53) | Volumen 7.5× + 🚀 Massives Volumen 7.5×+ + Spanne 22.9% + New…",
+      "success": false,
+      "suppressed": true,
+      "suppress_reason": "conviction_below_threshold",
+      "conviction_score": 67
+    },
+    {
+      "ts": "2026-05-15T19:25:32.068384+02:00",
       "ticker": "GEMI",
       "kind": "anomaly",
       "severity": "high",
