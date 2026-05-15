@@ -33,6 +33,22 @@ Code-Bau ist:
   `overheated` und `profit_lock` nicht klar genug ausgeschlagen
   haben)
 
+### Aktueller Live-Test-Kandidat (15.05.2026)
+
+**CRMD** ist die natürliche Live-Test-Position für Phase 3:
+- Conviction-Score **98** am 14.05.2026 — höchster bisher beobachteter
+  Wert nach Earliness-V2-Aktivierung.
+- Easy hat am 14.05. gekauft, hält durch.
+- Heute (15.05.) im Minus, geplant: durchhalten bis Earnings.
+- Wenn CRMD in den nächsten Tagen parabolisch läuft und dann scharf
+  umkippt → genau der Setup-Typ für Phase 3.
+
+**Auswerten nach Position-Close:**
+- Phase-2-Trigger haben sauber geschlossen (vor scharfem Reversal) →
+  Phase 3 nicht nötig, Spec bleibt im Backlog.
+- Phase-2-Trigger haben zu spät geschlossen (Position lief erst auf
+  großen PnL hoch, brach dann ein) → Phase 3 implementieren.
+
 Bis dahin **kein Code**. Die Spec ist abrufbereit, wenn der Bedarf
 empirisch belegt ist.
 
@@ -199,7 +215,19 @@ EXIT_BLOWOFF_REVERSAL_PCT    = -5.0   # heutige Tages-Performance ≤ N %
 EXIT_PHASE3_W_BLOWOFF_TOP    = 0.05   # Gewicht im Composite-Pressure
 ```
 
-## E) IV-Crush — gestrichen
+## E) Risiken-Bewertung
+
+| Risiko | Wahrscheinlichkeit | Mitigation |
+|---|---|---|
+| **False-Positive bei normaler Volatilität** | gering | Schwelle 50 % in 5 d ist deutlich strenger als alles in `overheated` (35 % in 3 d). Empirik: max 1–2 Treffer pro Monat erwartet. |
+| **Live-Quote nicht verfügbar** (Cloudflare-Worker down, `QUOTE_PROXY_URL` leer, Cache leer) | mittel | Trigger fällt graceful auf `available=False` zurück. Fallback-Pfad: EOD-Vergleich aus yfinance-Batch (`cur_close vs prev_close`) — funktioniert spätestens beim nächsten postclose-Daily-Run. |
+| **Overlap mit `overheated`-Trigger** (RSI-Basis ähnlich) | bewusst akzeptiert | `blowoff_top` ist die **strengere Spezialisierung** (50 % in 5 d + Reversal ist >> 35 % in 3 d). Wenn beide gleichzeitig feuern, ist der Pressure-Score bewusst hoch — Doppel-Bestrafung des Endphasen-Setups ist gewollt. Daher `overheated`-Gewicht NICHT reduzieren (siehe D). |
+| **Daten-Gap am Wochenende / Feiertag** | niedrig | `today_change_pct` ist None → Trigger schweigt korrekt (`available=False`). Keine spurious Pushes außerhalb Trading-Zeiten. |
+| **Reversal-Definition zu schmal**: `today_change ≤ −5 %` könnte echte Bull-Trap-Reversals verpassen, die intraday viel weiter fielen aber bis zum Close erholten | mittel | Wir haben keine Intraday-Bars und können kein „Long upper wick"-Pattern erkennen. Akzeptable Einschränkung — der Trigger soll lieber präzise als sensibel sein. Bei Bedarf später Live-Quote zusätzlich mit `prev_quote.high`/`low` anreichern. |
+| **Cloudflare-Worker-Quote ist Snapshot, nicht Close** | niedrig | Im EOD-Lauf (postclose-Daily-Run 21:17 UTC) ist die Live-Quote sehr nah am Schlusskurs. Im premarket-Lauf (10:17 UTC) ist der `today_change` für den **vorigen Trading-Tag** schon abgeschlossen → trotzdem belastbar. |
+| **Push-Spam bei mehreren parabolischen Setups gleichzeitig** | niedrig | 24-h-Cooldown pro `(ticker × "blowoff_top")` analog Phase-2-Trigger-Klasse. Plus: Trigger feuert nur bei `crit` — und `crit` ist binär. Pro Tag und Ticker maximal 1 Push. |
+
+## F) IV-Crush — gestrichen
 
 IV-Crush war ursprünglich als zweiter Phase-3-Trigger geplant
 („Implied Volatility kollabiert nach Earnings oder Squeeze-Peak,
@@ -229,6 +257,59 @@ gestrichen aus zwei Gründen:
 Falls IV-Crush in einer späteren Phase relevant wird (z. B. wenn
 Easy auf Options-Trading umstellt), kann die Spec ergänzt werden.
 Bis dahin ist `blowoff_top` der einzige Phase-3-Trigger.
+
+## G) Implementations-Aufwand (Schätzung)
+
+| Komponente | LOC | Risiko |
+|---|---:|---|
+| Backend: `_exit_p3_trigger_blowoff_top(metrics)` Funktion + Aufnahme in `_compute_exit_state.triggers`-Dict + Gewicht in `weights`-Dict | ~80 | gering — pure Funktion analog Phase-2-Trigger |
+| Backend: `change_today_pct` aus EOD-Vergleich oder Live-Quote-Lookup ins `metrics`-Dict mit-übergeben | ~20 | gering — `_all_metrics` ergänzen |
+| `config.py`: 3 neue Konstanten (`EXIT_BLOWOFF_5D_PCT`, `EXIT_BLOWOFF_REVERSAL_PCT`, `EXIT_PHASE3_W_BLOWOFF_TOP`) | ~10 | nahe null |
+| Mock-Tests: 4 Cases (beide erfüllt → crit, nur parabolisch → no trigger, nur Reversal → no trigger, fehlende Daten → available=False) | ~80 | nahe null |
+| CLAUDE.md-Block „Phase 3 Exit-Signal (blowoff_top, live)" — Tabelle Trigger + Schwellen + Gewicht | ~30 | — |
+| Push-Klasse-Integration in `ki_agent.py:process_exit_signals` (Trigger-Body-Format) | ~10 | gering — analoges Pattern für Phase-2-trigger-Klasse |
+
+**Geschätzte Gesamt-PR-Größe**: ~230 LOC, ein PR, kein Mega-Refactor.
+Implementation-Risiko gering, weil der Trigger-Pattern aus Phase 2
+übernommen werden kann (`_exit_p2_trigger_*`-Funktionen sind alle
+struktur-gleich).
+
+## H) Implementations-Bedingung — Pass/Fail-Kriterien
+
+Phase 3 wird **nicht spekulativ** gebaut. Nach Position-Close von CRMD
+(oder einem späteren CRMD-artigen Setup) wird ausgewertet:
+
+### Pass-Kriterium (Phase 3 NICHT implementieren)
+
+Phase-2-Trigger haben sauber geschlossen:
+- Pressure-Score hat **vor** dem scharfen Reversal (≥ −10 % vom Peak)
+  die Push-Schwelle erreicht (`exit_pressure ≥ 60` und/oder ein
+  einzelner Trigger crit).
+- Easy hatte rechtzeitig Exit-Signal und konnte mit weniger als
+  −10 % vom Peak schließen.
+- → Phase 2 reicht. Phase 3 bleibt im Backlog. Spec hier bleibt
+  abrufbereit, falls in einer späteren Position erneut zu spät
+  reagiert wird.
+
+### Fail-Kriterium (Phase 3 implementieren)
+
+Phase-2-Trigger haben zu spät reagiert:
+- Position lief erst auf großen PnL hoch (z. B. +50 %, +100 %), brach
+  dann scharf ein (>−20 % vom Peak).
+- `exit_pressure` ist erst nach dem Reversal in den crit-Bereich
+  gekommen — als Easy schon im Drawdown war.
+- Spezifisch: `profit_lock` hat den Peak nicht früh genug markiert
+  oder `overheated` ist nicht crit gegangen, weil RSI/Move erst nach
+  dem Reversal anstieg.
+- → Phase 3 implementieren. Mit dieser Spec-Datei als Single-Source-
+  of-Truth.
+
+### Entscheidungs-Trigger
+
+Auswertung erfolgt **nach Position-Close in CRMD** (oder spätestens
+nach 30 Trading-Tagen ohne Close, falls Easy lang hält). Easy
+entscheidet via Chat-Session: „Phase 3 implementieren" oder „Phase 3
+bleibt im Backlog".
 
 ## Verifikations-Plan (für die spätere Implementation)
 
