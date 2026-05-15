@@ -27,7 +27,8 @@
     "anomaly_conviction_high_PGEN": "2026-05-14T20:28:25.670906+02:00",
     "earnings_immediate_CRMD_14.05.2026": "2026-05-14T22:03:01.392755+02:00",
     "earnings_immediate_KPTI_14.05.2026": "2026-05-14T22:03:01.470447+02:00",
-    "earnings_immediate_GEMI_14.05.2026": "2026-05-14T23:25:08.201852+02:00"
+    "earnings_immediate_GEMI_14.05.2026": "2026-05-14T23:25:08.201852+02:00",
+    "exit_KPTI": "2026-05-15T18:17:09.325572+02:00"
   },
   "push_history": [
     {
@@ -852,6 +853,18 @@
       "suppressed": true,
       "suppress_reason": "conviction_below_threshold",
       "conviction_score": 68
+    },
+    {
+      "ts": "2026-05-15T18:17:09.325547+02:00",
+      "ticker": "KPTI",
+      "kind": "exit_p1",
+      "severity": "default",
+      "trigger": "exit_alert",
+      "body": "KPTI 📉 Exit 65 | -17% | Trailing-Stop −23.9% vom Hoch",
+      "success": true,
+      "suppressed": false,
+      "suppress_reason": null,
+      "conviction_score": null
     }
   ],
   "prev_conviction_scores": {
