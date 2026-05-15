@@ -173,12 +173,24 @@ def _ntfy_send(title: str, body: str, priority: str,
             headers=headers,
             timeout=10,
         )
+        # Diagnose-Erweiterung (15.05.2026): HTTP-Status auch bei Success
+        # loggen — beim ersten ausbleibenden Push (heute Morgen) konnten
+        # wir nicht zwischen "Push gesendet, ntfy hat es geschluckt" und
+        # "Push gefailed, return False" unterscheiden. INFO-Level damit
+        # in Workflow-Logs sichtbar.
         if resp.status_code >= 400:
-            log.warning("ntfy-Push HTTP %d: %s", resp.status_code, resp.text[:200])
+            log.warning("ntfy-Push HTTP %d (FAIL): %s",
+                        resp.status_code, resp.text[:200])
             return False
+        log.info("ntfy-Push HTTP %d (OK) — title=%r priority=%s",
+                 resp.status_code, title, priority)
         return True
     except Exception as exc:
-        log.warning("ntfy-Push Netzwerk-Fehler: %s", exc)
+        # Diagnose-Erweiterung (15.05.2026): Exception-Type mit-loggen,
+        # damit zwischen Timeout / ConnectionError / SSL-Fehler /
+        # DNS-Fail unterschieden werden kann.
+        log.warning("ntfy-Push Netzwerk-Fehler %s: %s",
+                    type(exc).__name__, exc)
         return False
 
 

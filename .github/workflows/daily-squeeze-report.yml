@@ -133,6 +133,13 @@ jobs:
           # über Commit nötig, sonst geht die Empirik bei jedem Workflow-Lauf
           # verloren.
           git add score_inflation_log.jsonl 2>/dev/null || true
+          # Health-Check-Persistenz (Phase 1/2): die JSONL-Files werden vom
+          # health_check.py-Hook lokal im Runner geschrieben — ohne ``git add``
+          # gehen sie beim nächsten Workflow-Checkout verloren und der
+          # Digest-Workflow findet nie echte Daten (Symptom 15.05.2026:
+          # Digest sah dauerhaft 0 Runs).
+          git add health_check_log.jsonl 2>/dev/null || true
+          git add provider_health.jsonl 2>/dev/null || true
           # watchlist_personal.json wird vom vorigen Step
           # ``Pull squeeze_data from Gist`` (scripts/pull_gist_data.py)
           # aus dem User-Gist materialisiert. Ohne dieses ``git add`` bleibt

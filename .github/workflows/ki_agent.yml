@@ -68,6 +68,12 @@ jobs:
           # die anschließende ``git pull --rebase``-Precondition (siehe
           # auch daily-squeeze-report.yml mit identischem Fix).
           git add watchlist_personal.json 2>/dev/null || true
+          # Health-Check-Persistenz (Phase 1/2): JSONL-Files werden vom
+          # health_check.py-Hook im KI-Agent-Tick geschrieben (S2/S3/S6
+          # + Provider-Rows). Ohne git add gehen sie zwischen Runs
+          # verloren — Digest-Workflow sah dauerhaft 0 Daten.
+          git add health_check_log.jsonl 2>/dev/null || true
+          git add provider_health.jsonl 2>/dev/null || true
           if git diff --staged --quiet; then
             echo "Keine Aenderungen — kein Commit noetig."
             exit 0

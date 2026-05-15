@@ -455,7 +455,7 @@ def test_workflow_yaml_valid():
 
 
 def test_workflow_cron_matches_user_choice():
-    """Cron `13 8 * * *` (User-Klärung 15.05.2026 — Offset gegen
+    """Cron `21 8 * * *` (Migration 15.05.2026 — Drift-Diagnose, Offset gegen
     GitHub-Actions-Last-Peak)."""
     import yaml as _yaml
     path = ROOT / ".github" / "workflows" / "health_check_digest.yml"
@@ -464,7 +464,7 @@ def test_workflow_cron_matches_user_choice():
     schedule = triggers["schedule"] if isinstance(triggers, dict) else None
     assert schedule, "schedule-Trigger fehlt"
     cron = schedule[0]["cron"]
-    assert cron == "13 8 * * *", f"Cron sollte '13 8 * * *' sein, ist {cron!r}"
+    assert cron == "21 8 * * *", f"Cron sollte '21 8 * * *' sein, ist {cron!r}"
 
 
 def test_workflow_has_workflow_dispatch():

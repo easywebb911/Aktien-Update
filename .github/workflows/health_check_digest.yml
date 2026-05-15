@@ -3,14 +3,16 @@ name: Health-Check Daily Digest
 # Phase 3 — täglicher Aggregations-Push laut Spec
 # docs/health_check_spec.md "Daily-Digest-Format".
 #
-# Cron `13 8 * * *` — 08:13 UTC. Offset-Schutz analog ki_agent (xx:17),
-# weil GitHub Actions Scheduled Workflows zur vollen Stunde gehäuft
-# gedropt werden. Spec-Wortlaut "0 8 * * *" wurde 15.05.2026 durch den
-# 13-Minute-Offset ersetzt — Begründung im Diagnose-Bericht.
+# Cron-Offset (Stand 15.05.2026 nach Diagnose):
+# - Spec-Wortlaut war ``0 8 * * *``.
+# - Erste Iteration ``13 8 * * *`` wurde am 15.05. gedropt (State-Commit
+#   erst um 10:37 UTC statt 08:13 → Drift > 2 h).
+# - Jetzt ``21 8 * * *`` — analog ki_agent ``17 * * * *``-Offset weiter
+#   weg vom Stunden-Last-Peak. Empirisch dort ~80-90 % Coverage.
 
 on:
   schedule:
-    - cron: '13 8 * * *'
+    - cron: '21 8 * * *'
   workflow_dispatch:   # Manueller Trigger jederzeit (Mehrfach-Trigger-
                        # Schutz im Skript via last_digest_sent-Datum).
 
