@@ -1,11 +1,11 @@
 {
-  "updated": "2026-05-15T06:19:09.867831+02:00",
+  "updated": "2026-05-15T10:18:12.320082+02:00",
   "run_info": {
     "tickers_checked": 10,
     "signals_active": 7,
     "alerts_sent": 0,
-    "elapsed_s": 12.1,
-    "market_phase": "Geschlossen"
+    "elapsed_s": 16.3,
+    "market_phase": "Pre-Market"
   },
   "signals": {
     "PGEN": {
@@ -26,7 +26,7 @@
       "uoa_drivers": [
         "UOA Call/Put 18.8×"
       ],
-      "uoa_atm_ratio": 0.305111821086262,
+      "uoa_atm_ratio": null,
       "uoa_cp_ratio": 18.771186440677965
     },
     "LESL": {
@@ -66,7 +66,7 @@
       "uoa_drivers": [
         "UOA Call/Put 7.5×"
       ],
-      "uoa_atm_ratio": 0.04338394793926247,
+      "uoa_atm_ratio": null,
       "uoa_cp_ratio": 7.532019704433497
     },
     "SLS": {
@@ -87,13 +87,13 @@
       "uoa_drivers": [
         "UOA Call/Put 16.1×"
       ],
-      "uoa_atm_ratio": 1.34940928952905,
+      "uoa_atm_ratio": null,
       "uoa_cp_ratio": 16.092215568862276
     },
     "KPTI": {
-      "score": 55,
+      "score": 35,
       "confidence": 70,
-      "drivers": "Volumen 2.0× + Spanne 16.1% + News-KI 15/30: Positive earnings growth signals fundamental strength, but provides no evidence of high short interest, low float, or ca + UOA Call/Put 5.8×",
+      "drivers": "Volumen 2.0× + Spanne 16.1% + UOA Call/Put 5.8×",
       "price": 8.9,
       "chg_pct": -0.0,
       "rvol": 2.03,
@@ -102,8 +102,8 @@
       "upcoming_event": null,
       "insider_buy": false,
       "stocktwits": null,
-      "combo_mult": 1.1,
-      "active_triggers": 2,
+      "combo_mult": 1.0,
+      "active_triggers": 1,
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 5.8×"
@@ -112,9 +112,9 @@
       "uoa_cp_ratio": 5.796296296296297
     },
     "FTK": {
-      "score": 45,
+      "score": 60,
       "confidence": 70,
-      "drivers": "Spanne 12.3% + FINRA Short-Vol 89% + UOA Call/Put 6.8×",
+      "drivers": "Spanne 12.3% + News: contract + FINRA Short-Vol 89% + UOA Call/Put 6.8×",
       "price": 20.5,
       "chg_pct": 0.0,
       "rvol": 1.13,
@@ -124,18 +124,18 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 0,
+      "active_triggers": 1,
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 6.8×"
       ],
-      "uoa_atm_ratio": 0.276657060518732,
+      "uoa_atm_ratio": null,
       "uoa_cp_ratio": 6.75
     },
     "FLWS": {
-      "score": 53,
+      "score": 45,
       "confidence": 70,
-      "drivers": "Spanne 9.8% + News-KI 8/30: Earnings call coverage lacks short-squeeze indicators; no unusual volume, short interest pressure, or catalyst sentiment + FINRA Short-Vol 100% + UOA Call/Put 4.5×",
+      "drivers": "Spanne 9.8% + FINRA Short-Vol 100% + UOA Call/Put 4.5×",
       "price": 4.57,
       "chg_pct": 0.0,
       "rvol": 0.67,
@@ -150,13 +150,13 @@
       "uoa_drivers": [
         "UOA Call/Put 4.5×"
       ],
-      "uoa_atm_ratio": 0.04678362573099415,
+      "uoa_atm_ratio": null,
       "uoa_cp_ratio": 4.542857142857143
     },
     "GEMI": {
-      "score": 52,
+      "score": 72,
       "confidence": 70,
-      "drivers": "Volumen 2.8× + Spanne 11.4% + News-KI 12/30: Positive fundamentals and earnings growth reduce short-squeeze potential; stock already surged 15%, limiting squeeze cat + UOA Call/Put 4.5×",
+      "drivers": "Volumen 2.8× + Spanne 11.4% + News: earnings beat, revenue beat + UOA Call/Put 4.5×",
       "price": 5.26,
       "chg_pct": 0.0,
       "rvol": 2.78,
@@ -171,7 +171,7 @@
       "uoa_drivers": [
         "UOA Call/Put 4.5×"
       ],
-      "uoa_atm_ratio": 0.4135048231511254,
+      "uoa_atm_ratio": null,
       "uoa_cp_ratio": 4.458227848101266
     },
     "PLCE": {
@@ -190,7 +190,7 @@
       "active_triggers": 2,
       "uoa_score": 0,
       "uoa_drivers": [],
-      "uoa_atm_ratio": 0.02835538752362949,
+      "uoa_atm_ratio": null,
       "uoa_cp_ratio": 0.20072992700729927
     },
     "DIN": {
@@ -209,7 +209,7 @@
       "active_triggers": 0,
       "uoa_score": 0,
       "uoa_drivers": [],
-      "uoa_atm_ratio": 0.11940298507462686,
+      "uoa_atm_ratio": null,
       "uoa_cp_ratio": 0.25190839694656486
     }
   }
