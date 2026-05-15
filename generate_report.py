@@ -15124,14 +15124,35 @@ def main():
     top10.sort(key=lambda x: x.get("score") or 0, reverse=True)
 
     # Opt 3 — Parallel news fetching (all 10 tickers × 3 sources concurrently).
+    # Coverage-Erweiterung 15.05.2026: News werden seit dem Watchlist-Drawer-
+    # „Aktuelle Meldungen"-Bug auch für persönliche Watchlist-Ticker
+    # gefetcht (sonst zeigt der Drawer „Keine Nachrichten verfügbar" für
+    # offene Positionen wie CRMD, die nicht in der heutigen Top-10 sind).
+    # Pool = Top-10 ∪ manual_personal-Tickers aus enriched. Set-Dedup
+    # vermeidet Doppel-Fetch wenn ein Ticker in beiden Listen steckt.
     _t_news = time.time()
-    log.info("Step 3 – Fetching news for %d stocks (parallel, max 13 threads) …", len(top10))
-    with ThreadPoolExecutor(max_workers=13) as _news_ex:
-        _news_futures = {_news_ex.submit(get_combined_news, s["ticker"]): s for s in top10}
+    _news_pool = {s["ticker"] for s in top10}
+    _news_pool |= {c["ticker"] for c in enriched if c.get("manual_personal")}
+    log.info("Step 3 – Fetching news for %d tickers (Top-10 %d + Watchlist-Extras %d, parallel) …",
+             len(_news_pool), len(top10), len(_news_pool) - len(top10))
+    _news_by_ticker: dict[str, list] = {}
+    with ThreadPoolExecutor(max_workers=16) as _news_ex:
+        _news_futures = {_news_ex.submit(get_combined_news, t): t
+                         for t in _news_pool}
         for _fut in as_completed(_news_futures):
-            _news_futures[_fut]["news"] = _fut.result() or []
+            _news_by_ticker[_news_futures[_fut]] = _fut.result() or []
+    # Attachment: pro Stock-Dict in top10 + in enriched. Top-10-Dicts sind
+    # Referenz-equal zu ihren enriched-Pendants — Mutation wirkt auf beide,
+    # daher reicht ein iteratives Attach über enriched (Top-10-Dicts sind
+    # darin enthalten). Für persönliche Watchlist-Outsider bekommt ihr
+    # enriched-Stock-Dict ebenfalls die news, was dann via
+    # _wl_card_payload in watchlist_cards[ticker].news landet.
+    for _c in enriched:
+        _t = _c.get("ticker")
+        if _t in _news_by_ticker:
+            _c["news"] = _news_by_ticker[_t]
     _news_elapsed = time.time() - _t_news
-    print(f"News: {len(top10)} Ticker parallel in {_news_elapsed:.1f}s abgerufen", flush=True)
+    print(f"News: {len(_news_pool)} Ticker parallel in {_news_elapsed:.1f}s abgerufen", flush=True)
 
     # Parallel options data fetch (US-only, Top-5, max 5 threads).
     # Opt 4 (2026-04): nur erste 5 Ticker von us_top10 — restliche Karten
