@@ -5,10 +5,38 @@
 **ALLE Änderungen** — Code, Doku **und** Config — gehen über Pull Request.
 
 - Branch-Name-Pattern: `claude/<kurze-beschreibung>-<random>`
-- User merged manuell via GitHub-Webseite nach Review.
 - Direkt-auf-`main` ist **nicht möglich** (Sandbox-Restriktion seit
   09.05.2026: alle `main`-Pushes — auch reine Doku — werden mit
   HTTP 403 abgewiesen). Branch-Pushes funktionieren weiterhin.
+
+### Auto-Merge-Regel (ab 15.05.2026)
+
+Claude Code mergt PRs **selbst** nach grünem squeeze-guardian + grünen
+Tests, Branch danach löschen.
+
+**Ausnahmen — manueller Easy-Merge mit Code-Review-Pflicht:**
+
+- Neue Workflow-Dateien (`.github/workflows/*.yml` neu angelegt)
+- Neue JSON-Schemas (neue Top-Level-Keys in `app_data.json`,
+  `positions[ticker]`, `closed_trades[i]`, `backtest_history.json`,
+  neue JSONL-Schemas)
+- Neue API-Integrationen (neue externe Datenquellen)
+- Score-/Conviction-/Filter-Logik-Änderungen (`score()`,
+  `score_bonus()`, `apply_*`, `compute_*_score`, `_compute_sub_scores`,
+  Filter-Schwellen, Conviction-Komponenten-Gewichte)
+
+**Auto-Merge erlaubt für:**
+
+- Doku-PRs (CLAUDE.md, SESSION_HANDOVER, Spec-Updates)
+- Frontend-Tweaks (Display-Labels, UI-Refresh, CSS-Anpassungen)
+- Workflow-Tweaks innerhalb existierender YAMLs (Cron-Offsets,
+  `git add`-Listen, Permission-Fixes)
+- Helper-Refactor (Modul-Umzüge, gemeinsame Abstraktionen)
+- State-Logging (`log.info`/`log.warning`, Diagnose-Verbesserungen)
+- Mock-Test-Erweiterungen
+- Backward-compat-Aliase
+
+Im Zweifel: lieber Easy-Merge anfragen als Auto-Merge.
 
 ## generate_report.py — Template-Sicherheitsregel
 
@@ -879,6 +907,19 @@ CSS lebt in `templates/head.jinja` unter „Push-Historie (Phase 2 Stufe
 3c-3)" — eigene `.ph-row`/`.ph-sev-pill`/`.ph-kind-pill`/`.ph-empty`-
 Klassen plus eine Mobile-Override-Regel ab 480 px für volle Spalten-
 Breite der Filter-Labels.
+
+### Phase 3 Exit-Signal — Blow-off-Top (spec'd, noch nicht implementiert)
+
+Phase 3 ergänzt einen einzelnen Trigger `blowoff_top` für parabolische
+Endphasen-Squeezes (50 % in 5 d UND Reversal heute ≤ −5 %). Spec liegt
+in ``docs/phase3_exit_spec.md`` — Single-Source-of-Truth für den
+späteren Code-Bau. **Implementation erfolgt erst nach Live-Test bei
+einer offen-gehaltenen Position in einem CRMD-artigen Setup**, in der
+Phase-2-Trigger empirisch zu spät reagiert haben.
+
+IV-Crush war ursprünglich als zweiter Phase-3-Trigger geplant, wurde
+aber 15.05.2026 gestrichen (Daten-Limits + geringer Trading-Wert für
+Aktien-Halter). Begründung steht in Sektion E der Spec.
 
 ---
 
