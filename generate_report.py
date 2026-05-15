@@ -11111,8 +11111,15 @@ function _fmtGerman(d) {{
         '<div>Gewinn: ' + _formatUsdEurPnl(_pnlUsdInit, _pnlEurInit) + '</div>';
       // Bug A: thesis/lesson aus Cache restaurieren — sonst gehen die
       // Werte beim Validation-Fail-Re-Render verloren.
+      // Pre-Fill-Erweiterung 15.05.2026: thesis kommt zusaetzlich aus
+      // pos.entry_thesis (User-Notiz beim Eroeffnen), falls Cache leer.
+      // User-Edit ueberschreibt den Pre-Fill (Cache hat Vorrang).
       const _formState = (window._POS_PANEL_FORM_STATE || {{}})[ticker] || {{}};
-      const _thInit    = _escAttr(_formState.thesis || '');
+      const _thInit    = _escAttr(
+        _formState.thesis
+        || (pos && pos.entry_thesis)
+        || ''
+      );
       const _leInit    = _escAttr(_formState.lesson || '');
       return `<div class="position-panel position-panel-active">
         <div class="pos-header">Position schlie\xdfen — ${{ticker}}</div>
@@ -11170,6 +11177,11 @@ function _fmtGerman(d) {{
     if (mode === 'open-form') {{
       const priceDef = currentPrice && isFinite(+currentPrice)
         ? (+currentPrice).toFixed(2) : '';
+      // Bug-A-Spiegel: entry_thesis aus _POS_PANEL_FORM_STATE-Cache
+      // restaurieren bei Validation-Fail-Re-Render. _escAttr verhindert
+      // </textarea>-Injection auf User-Eingaben.
+      const _openState   = (window._POS_PANEL_FORM_STATE || {{}})[ticker] || {{}};
+      const _thesisInit  = _escAttr(_openState.entry_thesis || '');
       return `<div class="position-panel position-panel-empty">
         <div class="pos-header">Position er\xf6ffnen — ${{ticker}}</div>
         <div class="pos-form" id="pos-form-${{ticker}}">
@@ -11187,6 +11199,10 @@ function _fmtGerman(d) {{
                    oninput="_updatePositionTotal('${{ticker}}')">
           </label>
           <div class="pos-form-total" id="pos-tot-${{ticker}}">Gesamt: $0.00</div>
+          <label class="pos-lbl-form">Begr\xfcndung (optional)
+            <textarea id="pos-thesis-${{ticker}}" rows="3" maxlength="500"
+                      placeholder="Warum jetzt? Setup, Trigger, erwarteter Verlauf. Beim Schlie\xdfen wird das automatisch vorbef\xfcllt — du kannst es dann erg\xe4nzen.">${{_thesisInit}}</textarea>
+          </label>
           ${{errHtml}}
           <div class="pos-form-btns">
             <button class="pos-btn pos-btn-cancel" onclick="wlCancelOpenForm('${{ticker}}')">Abbrechen</button>
@@ -11247,6 +11263,14 @@ function _fmtGerman(d) {{
       lesson: (le && le.value) || '',
     }});
   }}
+  // Spiegel-Helper für Open-Form: persistiert thesis bei Validation-
+  // Fail, damit User-Tipparbeit nicht durch Re-Render verlorengeht.
+  function _cacheOpenFormFields(ticker) {{
+    const t = document.getElementById('pos-thesis-' + ticker);
+    _setPanelFormState(ticker, {{
+      entry_thesis: (t && t.value) || '',
+    }});
+  }}
   function _escAttr(s) {{
     return String(s == null ? '' : s).replace(/[<>&]/g, c => (
       {{'<':'&lt;','>':'&gt;','&':'&amp;'}})[c]);
@@ -11281,10 +11305,14 @@ function _fmtGerman(d) {{
     const price  = parseFloat(p.value);
     const shares = parseInt(s.value, 10) || 0;
     if (!date || !isFinite(price) || price <= 0 || shares <= 0) {{
+      _cacheOpenFormFields(ticker);   // entry_thesis ueber Re-Render erhalten
       _setPanelErr(ticker, 'Datum, Einstiegskurs > 0 und St\xfcckzahl > 0 erforderlich.');
       _refreshPositionPanel(ticker);
       return;
     }}
+    // entry_thesis-Freitext lesen (optional, max 500 Zeichen via maxlength)
+    const _thesisEl = document.getElementById('pos-thesis-' + ticker);
+    const _entryThesis = ((_thesisEl && _thesisEl.value) || '').trim();
     const data = (await gistLoad()) || {{watchlist: [], positions: {{}}}};
     data.positions = data.positions || {{}};
     // EUR-Stufe 3/4: aktuellen FX als entry_fx einfrieren — fx_estimated
@@ -11319,6 +11347,29 @@ function _fmtGerman(d) {{
         _newPos.entry_conviction_score = _entryCv.score;
       if (typeof _entryCv.level === 'string')
         _newPos.entry_conviction_level = _entryCv.level;
+      // Conviction-Komponenten-Snapshot (Sub-Objekt): zerlegt den
+      // Conviction-Score in setup/earliness/anomaly/regime, damit das
+      // Trade-Journal spaeter sehen kann, welche Komponente getragen
+      // hat. Alle Felder null-tolerant — bei fehlenden Werten fehlt
+      // das Sub-Objekt komplett (kein Halbzustand).
+      if (_entryCv.components && typeof _entryCv.components === 'object') {{
+        const _c = _entryCv.components;
+        const _comp = {{}};
+        if (typeof _c.setup     === 'number') _comp.setup     = _c.setup;
+        if (typeof _c.earliness === 'number') _comp.earliness = _c.earliness;
+        if (typeof _c.anomaly   === 'number') _comp.anomaly   = _c.anomaly;
+        if (typeof _c.regime    === 'number') _comp.regime    = _c.regime;
+        if (Object.keys(_comp).length > 0) {{
+          _newPos.entry_conviction_components = _comp;
+        }}
+      }}
+    }}
+    // Monster-Score-Snapshot — aus _APP_DATA.monster_scores. Liefert
+    // Setup-x-KI-Boost-Aggregat zur Entry-Zeit fuer spaeteren Vergleich.
+    const _entryMonster = _appD && _appD.monster_scores
+                          ? _appD.monster_scores[ticker] : null;
+    if (typeof _entryMonster === 'number' && !isNaN(+_entryMonster)) {{
+      _newPos.entry_monster_score = +_entryMonster;
     }}
     // Phase-2-Trigger-4-Snapshot: dtc / short_float / cost_to_borrow zum
     // Entry-Zeitpunkt persistieren, damit Setup-Erosion über die
@@ -11338,13 +11389,34 @@ function _fmtGerman(d) {{
       if (_dtc != null) _newPos.entry_dtc = _dtc;
       if (_sf  != null) _newPos.entry_short_float = _sf;
       if (_ctb != null) _newPos.entry_cost_to_borrow = _ctb;
+      // KI-Signal-Score Snapshot — Marktstimmungs-Indikator zum Entry.
+      const _ki = (typeof _wlCard.ki_signal_score === 'number'
+                   && isFinite(_wlCard.ki_signal_score)) ? _wlCard.ki_signal_score : null;
+      if (_ki != null) _newPos.entry_ki_score = _ki;
+      // RVOL-Snapshot — Volumen-Spike-Magnitude zum Entry.
+      const _rv = (typeof _wlCard.rel_volume === 'number'
+                   && isFinite(_wlCard.rel_volume)) ? _wlCard.rel_volume : null;
+      if (_rv != null) _newPos.entry_rvol = _rv;
+      // SI-Trend-Kategorie ("up"/"down"/"sideways"/"no_data") —
+      // Short-Pressure-Richtung zum Entry.
+      const _trend = (typeof _wlCard.si_trend === 'string'
+                      && _wlCard.si_trend) ? _wlCard.si_trend : null;
+      if (_trend != null) _newPos.entry_si_trend = _trend;
       // entry_snapshot_ts wird IMMER gesetzt, sobald mindestens ein
       // Driver-Feld erfolgreich erfasst werden konnte — markiert die
       // Existenz des Snapshots (vs. Bestandsposition ohne Snapshot, wo
       // entry_snapshot_ts fehlt und Trigger 4 unverfügbar bleibt).
-      if (_dtc != null || _sf != null || _ctb != null) {{
+      if (_dtc != null || _sf != null || _ctb != null
+          || _ki != null || _rv != null || _trend != null) {{
         _newPos.entry_snapshot_ts = new Date().toISOString();
       }}
+    }}
+    // entry_thesis — User-Freitext, optional. Soft-Limit auf 500
+    // Zeichen ist im HTML-maxlength-Attribut, hier Schutz gegen
+    // leeren String. Im Schliess-Pre-Fill (wlSubmitClose) wird der
+    // Wert via _escAttr in die thesis-Textarea injiziert.
+    if (_entryThesis) {{
+      _newPos.entry_thesis = _entryThesis.slice(0, 500);
     }}
     data.positions[ticker] = _newPos;
     const ok = await gistSave(data);
@@ -11356,6 +11428,7 @@ function _fmtGerman(d) {{
     }}
     _setPanelMode(ticker, 'view');
     _setPanelErr(ticker, '');
+    _setPanelFormState(ticker, null);   // Open-Form-Cache verwerfen
     _refreshPositionPanel(ticker);
     }});  // _ensureToken
   }};

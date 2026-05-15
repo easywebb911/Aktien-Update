@@ -596,7 +596,15 @@ vom Workflow (nur lesen) angesprochen wird.
       "entry_dtc":            18.36,
       "entry_short_float":    30.56,
       "entry_cost_to_borrow": 20.0,
-      "entry_snapshot_ts":    "2026-04-27T14:00:00Z"
+      "entry_snapshot_ts":    "2026-04-27T14:00:00Z",
+      "entry_monster_score":  72.5,
+      "entry_ki_score":       80,
+      "entry_rvol":           3.2,
+      "entry_si_trend":       "up",
+      "entry_conviction_components": {
+        "setup": 28, "earliness": 21, "anomaly": 14, "regime": 11
+      },
+      "entry_thesis":         "Trigger: 13D-Filing + DTC 12 + RVOL-Spike."
     }
   }
 }
@@ -616,6 +624,29 @@ des Snapshots — fehlt es, ist der Setup-Erosion-Trigger auf
 `available=False` mit reason `no_entry_snapshot`, was Bestandspositionen
 vor der Schema-Erweiterung (06.05.2026) sauber abgrenzt. Backfill ist
 manuell (Position schließen + neu eröffnen).
+
+**Score-Snapshot-Erweiterung (15.05.2026)** — fünf zusätzliche Felder
+beim Position-Open auto-snapshottet (alle optional, alle aus
+`_APP_DATA`):
+
+| Feld | Quelle | Bedeutung |
+|---|---|---|
+| `entry_monster_score` | `monster_scores[ticker]` | Setup × KI-Boost-Aggregat zum Entry |
+| `entry_ki_score` | `watchlist_cards[ticker].ki_signal_score` | KI-Agent-Score zum Entry |
+| `entry_rvol` | `watchlist_cards[ticker].rel_volume` | Volumen-Spike-Magnitude zum Entry |
+| `entry_si_trend` | `watchlist_cards[ticker].si_trend` | SI-Trend-Kategorie (`up`/`down`/`sideways`/`no_data`) |
+| `entry_conviction_components` | `conviction_scores[ticker].components` | Sub-Objekt `{setup, earliness, anomaly, regime}` mit Conviction-Aufschlüsselung |
+
+Plus User-Freitext `entry_thesis` (optional, max 500 Zeichen) — wird
+beim Position-Schließen automatisch in die These-Textarea
+**pre-gefüllt** (Cache aus Bug-A-Recovery hat Vorrang vor Pre-Fill).
+Wenn beim Schließen editiert, landet der finale Wert im
+`closed_trades[i].thesis` (Schema dort unverändert). Bestandspositionen
+vor 15.05.2026 haben kein `entry_thesis` — Pre-Fill fällt auf leer,
+User füllt manuell wie zuvor.
+
+Soft-Migration für alle Score-Snapshot-Felder: bei Bestandspositionen
+sind sie schlicht `undefined`, Render und Auswertung sind null-tolerant.
 
 ### Datenfluss
 
