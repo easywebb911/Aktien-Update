@@ -1,10 +1,10 @@
 {
-  "updated": "2026-05-15T10:18:12.320082+02:00",
+  "updated": "2026-05-15T13:30:44.355773+02:00",
   "run_info": {
     "tickers_checked": 10,
     "signals_active": 7,
     "alerts_sent": 0,
-    "elapsed_s": 16.3,
+    "elapsed_s": 15.8,
     "market_phase": "Pre-Market"
   },
   "signals": {
@@ -55,7 +55,7 @@
       "price": 7.93,
       "chg_pct": -0.0,
       "rvol": 4.03,
-      "earnings": null,
+      "earnings": "in 83 Tagen (06.08.2026)",
       "fda_date": null,
       "upcoming_event": null,
       "insider_buy": false,
@@ -66,7 +66,7 @@
       "uoa_drivers": [
         "UOA Call/Put 7.5×"
       ],
-      "uoa_atm_ratio": null,
+      "uoa_atm_ratio": 0.04365620736698499,
       "uoa_cp_ratio": 7.532019704433497
     },
     "SLS": {
@@ -87,7 +87,7 @@
       "uoa_drivers": [
         "UOA Call/Put 16.1×"
       ],
-      "uoa_atm_ratio": null,
+      "uoa_atm_ratio": 1.031164976502597,
       "uoa_cp_ratio": 16.092215568862276
     },
     "KPTI": {
@@ -97,7 +97,7 @@
       "price": 8.9,
       "chg_pct": -0.0,
       "rvol": 2.03,
-      "earnings": null,
+      "earnings": "in 88 Tagen (11.08.2026)",
       "fda_date": null,
       "upcoming_event": null,
       "insider_buy": false,
@@ -129,7 +129,7 @@
       "uoa_drivers": [
         "UOA Call/Put 6.8×"
       ],
-      "uoa_atm_ratio": null,
+      "uoa_atm_ratio": 0.2882882882882883,
       "uoa_cp_ratio": 6.75
     },
     "FLWS": {
@@ -150,17 +150,17 @@
       "uoa_drivers": [
         "UOA Call/Put 4.5×"
       ],
-      "uoa_atm_ratio": null,
+      "uoa_atm_ratio": 0.046688899475940925,
       "uoa_cp_ratio": 4.542857142857143
     },
     "GEMI": {
-      "score": 72,
+      "score": 55,
       "confidence": 70,
-      "drivers": "Volumen 2.8× + Spanne 11.4% + News: earnings beat, revenue beat + UOA Call/Put 4.5×",
+      "drivers": "Volumen 2.8× + Spanne 11.4% + News: earnings beat + UOA Call/Put 4.5×",
       "price": 5.26,
       "chg_pct": 0.0,
       "rvol": 2.78,
-      "earnings": null,
+      "earnings": "in 90 Tagen (13.08.2026)",
       "fda_date": null,
       "upcoming_event": null,
       "insider_buy": false,
@@ -175,9 +175,9 @@
       "uoa_cp_ratio": 4.458227848101266
     },
     "PLCE": {
-      "score": 53,
+      "score": 50,
       "confidence": 70,
-      "drivers": "Volumen 2.1× + Spanne 10.9% + News: partnership + Earnings in 20d",
+      "drivers": "Volumen 2.1× + Spanne 10.9% + News-KI 12/30: Positive news (Saudi partnership, earnings) typically reduces short pressure; stock appears fundamentally improving rath + Earnings in 20d",
       "price": 3.31,
       "chg_pct": -0.0,
       "rvol": 2.08,
@@ -190,7 +190,7 @@
       "active_triggers": 2,
       "uoa_score": 0,
       "uoa_drivers": [],
-      "uoa_atm_ratio": null,
+      "uoa_atm_ratio": 0.02835538752362949,
       "uoa_cp_ratio": 0.20072992700729927
     },
     "DIN": {
@@ -209,7 +209,7 @@
       "active_triggers": 0,
       "uoa_score": 0,
       "uoa_drivers": [],
-      "uoa_atm_ratio": null,
+      "uoa_atm_ratio": 0.12598425196850394,
       "uoa_cp_ratio": 0.25190839694656486
     }
   }
