@@ -1,17 +1,17 @@
 {
-  "updated": "2026-05-15T23:21:39.482916+02:00",
+  "updated": "2026-05-16T00:12:02.199944+02:00",
   "run_info": {
     "tickers_checked": 10,
     "signals_active": 4,
     "alerts_sent": 0,
-    "elapsed_s": 12.6,
+    "elapsed_s": 13.5,
     "market_phase": "After-Hours"
   },
   "signals": {
     "PZZA": {
       "score": 65,
       "confidence": 70,
-      "drivers": "Volumen 1.8× + Spanne 6.2% + News: acquisition, takeover + UOA Call/Put 2.6×",
+      "drivers": "Volumen 1.8× + Spanne 6.2% + News: takeover, acquisition + UOA Call/Put 2.6×",
       "price": 34.73,
       "chg_pct": -0.0,
       "rvol": 1.77,
@@ -88,12 +88,12 @@
         "UOA Call/Put 14.9×"
       ],
       "uoa_atm_ratio": 1.7938069216757742,
-      "uoa_cp_ratio": 14.92517006802721
+      "uoa_cp_ratio": 14.934240362811792
     },
     "TNXP": {
-      "score": 43,
+      "score": 50,
       "confidence": 70,
-      "drivers": "Volumen 1.8× + Spanne 16.9% + News-KI 8/30: Routine corporate announcements about conferences and financial results lack catalyst strength for short squeeze; no sig + UOA Call/Put 11.1×",
+      "drivers": "Volumen 1.8× + Spanne 16.9% + News: revenue beat + UOA Call/Put 11.1×",
       "price": 15.74,
       "chg_pct": -0.0,
       "rvol": 1.81,
@@ -103,7 +103,7 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 0,
+      "active_triggers": 1,
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 11.1×"
@@ -114,7 +114,7 @@
     "SKYQ": {
       "score": 88,
       "confidence": 70,
-      "drivers": "Volumen 7.7× + 🚀 Massives Volumen 7.7×+ + Spanne 50.8% + News: partnership, short interest",
+      "drivers": "Volumen 7.7× + 🚀 Massives Volumen 7.7×+ + Spanne 50.8% + News: short interest, partnership",
       "price": 3.07,
       "chg_pct": -0.0,
       "rvol": 7.68,
