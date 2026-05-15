@@ -29,7 +29,8 @@
     "earnings_immediate_KPTI_14.05.2026": "2026-05-14T22:03:01.470447+02:00",
     "earnings_immediate_GEMI_14.05.2026": "2026-05-14T23:25:08.201852+02:00",
     "exit_KPTI": "2026-05-15T18:17:09.325572+02:00",
-    "anomaly_conviction_high_SNSE": "2026-05-15T19:30:32.046324+02:00"
+    "anomaly_conviction_high_SNSE": "2026-05-15T19:30:32.046324+02:00",
+    "exit_CRMD": "2026-05-15T23:20:20.293241+02:00"
   },
   "push_history": [
     {
@@ -1066,6 +1067,18 @@
       "severity": "warning",
       "trigger": null,
       "body": "⚠️ Exit-Warnung AMC: pressure 71/100",
+      "success": true,
+      "suppressed": false,
+      "suppress_reason": null,
+      "conviction_score": null
+    },
+    {
+      "ts": "2026-05-15T23:20:20.293213+02:00",
+      "ticker": "CRMD",
+      "kind": "exit_p1",
+      "severity": "default",
+      "trigger": "exit_alert",
+      "body": "CRMD 📉 Exit 65 | -5% | Trailing-Stop −15.5% vom Hoch",
       "success": true,
       "suppressed": false,
       "suppress_reason": null,
