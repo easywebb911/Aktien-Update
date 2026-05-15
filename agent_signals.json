@@ -1,10 +1,10 @@
 {
-  "updated": "2026-05-15T06:01:58.783424+02:00",
+  "updated": "2026-05-15T06:19:09.867831+02:00",
   "run_info": {
     "tickers_checked": 10,
     "signals_active": 7,
     "alerts_sent": 0,
-    "elapsed_s": 13.7,
+    "elapsed_s": 12.1,
     "market_phase": "Geschlossen"
   },
   "signals": {
@@ -91,9 +91,9 @@
       "uoa_cp_ratio": 16.092215568862276
     },
     "KPTI": {
-      "score": 35,
+      "score": 55,
       "confidence": 70,
-      "drivers": "Volumen 2.0× + Spanne 16.1% + UOA Call/Put 5.8×",
+      "drivers": "Volumen 2.0× + Spanne 16.1% + News-KI 15/30: Positive earnings growth signals fundamental strength, but provides no evidence of high short interest, low float, or ca + UOA Call/Put 5.8×",
       "price": 8.9,
       "chg_pct": -0.0,
       "rvol": 2.03,
@@ -102,8 +102,8 @@
       "upcoming_event": null,
       "insider_buy": false,
       "stocktwits": null,
-      "combo_mult": 1.0,
-      "active_triggers": 1,
+      "combo_mult": 1.1,
+      "active_triggers": 2,
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 5.8×"
@@ -133,9 +133,9 @@
       "uoa_cp_ratio": 6.75
     },
     "FLWS": {
-      "score": 45,
+      "score": 53,
       "confidence": 70,
-      "drivers": "Spanne 9.8% + FINRA Short-Vol 100% + UOA Call/Put 4.5×",
+      "drivers": "Spanne 9.8% + News-KI 8/30: Earnings call coverage lacks short-squeeze indicators; no unusual volume, short interest pressure, or catalyst sentiment + FINRA Short-Vol 100% + UOA Call/Put 4.5×",
       "price": 4.57,
       "chg_pct": 0.0,
       "rvol": 0.67,
@@ -154,9 +154,9 @@
       "uoa_cp_ratio": 4.542857142857143
     },
     "GEMI": {
-      "score": 55,
+      "score": 52,
       "confidence": 70,
-      "drivers": "Volumen 2.8× + Spanne 11.4% + News: earnings beat + UOA Call/Put 4.5×",
+      "drivers": "Volumen 2.8× + Spanne 11.4% + News-KI 12/30: Positive fundamentals and earnings growth reduce short-squeeze potential; stock already surged 15%, limiting squeeze cat + UOA Call/Put 4.5×",
       "price": 5.26,
       "chg_pct": 0.0,
       "rvol": 2.78,
