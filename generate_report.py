@@ -7766,17 +7766,44 @@ window._tjResolvePnlEur = _tjResolvePnlEur;
 // dem Setzen werden alle drei Klassen entfernt — bei geschlossener Position
 // oder gefallenem exit_pressure verschwindet der Glow.
 const _PSTATUS_GLOW_CLASSES = ['exit-glow-warn', 'exit-glow-mid', 'exit-glow-crit'];
-function _renderRunPhasePill(phase) {{
-  // Header-Pill für Zwei-Run-Architektur (12.05.2026).
+function _renderRunPhasePill(phase, generatedAt) {{
+  // Header-Pill für Zwei-Run-Architektur (12.05.2026) + Intraday-
+  // Disambiguation (15.05.2026).
+  //
   // ``phase`` ist "premarket" (10:00-UTC-Cron, Vorschau) oder "postclose"
   // (21:00-UTC-Cron, EOD-Wahrheit). Bei fehlendem Wert bleibt das Pill
   // hidden — alte app_data ohne run_phase-Feld zeigt keinen verwirrenden
   // „Unbekannt"-Status.
+  //
+  // ``generatedAt`` (ISO-String aus ``app_data.json.generated_at``) erlaubt
+  // Drei-Klassen-Disambiguation:
+  //   premarket + UTC ∈ [13:30, 20:00) → "Intraday-Snapshot"
+  //     (US-Session läuft, run_phase=premarket gepinnt fürs Backtest-Schutz)
+  //   premarket + UTC außerhalb        → "Pre-Open-Vorschau"
+  //     (echter Pre-Open-Run vor US-Open)
+  //   postclose                        → "Post-Close"
+  // Gleiche CSS-Klasse hdr-runphase-premarket für beide premarket-Varianten —
+  // gelb signalisiert „Daten nicht final" in beiden Fällen.
+  // Fail-soft: bei fehlendem/ungueltigem generatedAt fallt zurueck auf
+  // jetzt — verhindert "(invalid date)"-Label.
   try {{
     const el = document.getElementById('hdr-runphase');
     if (!el) return;
     if (phase === 'premarket') {{
-      el.textContent = ' · Pre-Open-Vorschau';
+      // UTC-Minuten-of-day aus generatedAt (oder now)
+      let utcMinutes = null;
+      try {{
+        const t = generatedAt ? new Date(generatedAt) : new Date();
+        if (!isNaN(t.getTime())) {{
+          utcMinutes = t.getUTCHours() * 60 + t.getUTCMinutes();
+        }}
+      }} catch(_) {{ /* fall through */ }}
+      const inUsSession = (utcMinutes != null
+                           && utcMinutes >= 13 * 60 + 30
+                           && utcMinutes <  20 * 60);
+      el.textContent = inUsSession
+        ? ' · Intraday-Snapshot'
+        : ' · Pre-Open-Vorschau';
       el.classList.remove('hdr-runphase-postclose');
       el.classList.add('hdr-runphase-premarket');
       el.hidden = false;
@@ -10023,12 +10050,15 @@ function _fmtGerman(d) {{
       // (wlSubmitPosition snapshottet entry_score + entry_conviction_score
       // beim Position-Open). Identisch zum Fetch-Result, kein Filter.
       window._APP_DATA = appData;
-      // Run-Phase-Pill im Header rendern (Zwei-Run-Architektur 12.05.2026).
-      // appData.run_phase ist "premarket" (10:00-UTC-Cron, Vorschau, gelb)
-      // oder "postclose" (21:00-UTC-Cron, EOD-Wahrheit, grün). Fehlt das
-      // Feld (alte app_data), bleibt das Pill hidden — kein verwirrendes
-      // „Unbekannt"-Label.
-      _renderRunPhasePill(appData.run_phase);
+      // Run-Phase-Pill im Header rendern (Zwei-Run-Architektur 12.05.2026
+      // + Intraday-Disambiguation 15.05.2026). appData.run_phase ist
+      // "premarket" (10:00-UTC-Cron, Vorschau, gelb) oder "postclose"
+      // (21:00-UTC-Cron, EOD-Wahrheit, grün). Fehlt das Feld (alte
+      // app_data), bleibt das Pill hidden. ``generated_at`` erlaubt
+      // dem Pill, "Pre-Open-Vorschau" (vor US-Open) von "Intraday-
+      // Snapshot" (waehrend US-Session) zu unterscheiden — beide
+      // premarket, aber unterschiedlicher Wallclock-Kontext.
+      _renderRunPhasePill(appData.run_phase, appData.generated_at);
       // Watchlist-Tiles neu rendern — _WL_CARDS liefert jetzt die
       // smoothed Scores, der erste Render-Pass nach DOMContentLoaded
       // hatte nur die raw-History als Fallback. Sicherstellt
