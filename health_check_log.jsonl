@@ -4,3 +4,4 @@
 {"run_ts": "2026-05-15T21:21:42Z", "run_phase": "ki_agent_tick", "schema_v": 1, "state_fails": [{"id": "S3", "severity": "crit", "detail": "current_price fehlt bei 4 Position(en): AMC, IONQ, RR, CRMD"}], "provider_fails": []}
 {"run_ts": "2026-05-15T22:12:05Z", "run_phase": "ki_agent_tick", "schema_v": 1, "state_fails": [{"id": "S3", "severity": "crit", "detail": "current_price fehlt bei 4 Position(en): AMC, IONQ, RR, CRMD"}], "provider_fails": []}
 {"run_ts": "2026-05-15T22:14:56Z", "run_phase": "postclose", "schema_v": 1, "state_fails": [{"id": "S3", "severity": "crit", "detail": "current_price fehlt bei 4 Position(en): AMC, IONQ, RR, CRMD"}], "provider_fails": []}
+{"run_ts": "2026-05-15T22:15:41Z", "run_phase": "ki_agent_tick", "schema_v": 1, "state_fails": [{"id": "S3", "severity": "crit", "detail": "current_price fehlt bei 4 Position(en): AMC, IONQ, RR, CRMD"}], "provider_fails": []}
