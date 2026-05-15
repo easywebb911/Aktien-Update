@@ -1,11 +1,11 @@
 {
-  "updated": "2026-05-15T01:13:00.690666+02:00",
+  "updated": "2026-05-15T02:10:54.541673+02:00",
   "run_info": {
     "tickers_checked": 10,
     "signals_active": 7,
     "alerts_sent": 0,
-    "elapsed_s": 10.7,
-    "market_phase": "After-Hours"
+    "elapsed_s": 13.6,
+    "market_phase": "Geschlossen"
   },
   "signals": {
     "PGEN": {
@@ -91,9 +91,9 @@
       "uoa_cp_ratio": 16.092215568862276
     },
     "KPTI": {
-      "score": 66,
+      "score": 86,
       "confidence": 70,
-      "drivers": "Earnings in 0 Tagen (14.05.2026) + Volumen 2.0× + Spanne 16.1% + Earnings in 0d + UOA Call/Put 5.8×",
+      "drivers": "Earnings in 0 Tagen (14.05.2026) + Volumen 2.0× + Spanne 16.1% + News-KI 12/30: Positive earnings results reduce short-squeeze potential as they justify stock price and reduce short pressure, making a + Earnings in 0d + UOA Call/Put 5.8× + 3/4 Trigger",
       "price": 8.9,
       "chg_pct": -0.0,
       "rvol": 2.03,
@@ -102,8 +102,8 @@
       "upcoming_event": "Earnings in 0 Tagen (14.05.2026)",
       "insider_buy": false,
       "stocktwits": null,
-      "combo_mult": 1.1,
-      "active_triggers": 2,
+      "combo_mult": 1.2,
+      "active_triggers": 3,
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 5.8×"
@@ -112,9 +112,9 @@
       "uoa_cp_ratio": 5.796296296296297
     },
     "FLWS": {
-      "score": 53,
+      "score": 45,
       "confidence": 70,
-      "drivers": "Spanne 9.9% + News-KI 8/30: Earnings-focused headlines with no mention of short interest, technical setups, or bullish catalysts that would typicall + FINRA Short-Vol 100% + UOA Call/Put 4.5×",
+      "drivers": "Spanne 9.9% + FINRA Short-Vol 100% + UOA Call/Put 4.5×",
       "price": 4.57,
       "chg_pct": 0.0,
       "rvol": 0.67,
@@ -133,9 +133,9 @@
       "uoa_cp_ratio": 4.542857142857143
     },
     "FTK": {
-      "score": 45,
+      "score": 60,
       "confidence": 70,
-      "drivers": "Spanne 12.3% + FINRA Short-Vol 89% + UOA Call/Put 6.8×",
+      "drivers": "Spanne 12.3% + News: contract + FINRA Short-Vol 89% + UOA Call/Put 6.8×",
       "price": 20.5,
       "chg_pct": 0.0,
       "rvol": 1.01,
@@ -145,7 +145,7 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 0,
+      "active_triggers": 1,
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 6.8×"
@@ -154,9 +154,9 @@
       "uoa_cp_ratio": 6.75
     },
     "GEMI": {
-      "score": 90,
+      "score": 86,
       "confidence": 70,
-      "drivers": "Earnings in 0 Tagen (14.05.2026) + Volumen 2.5× + Spanne 11.4% + News: earnings beat + Earnings in 0d + UOA Call/Put 4.5× + 3/4 Trigger",
+      "drivers": "Earnings in 0 Tagen (14.05.2026) + Volumen 2.5× + Spanne 11.4% + News-KI 12/30: Positive earnings and revenue growth reduce short-squeeze potential as fundamentals improve, though crypto volatility co + Earnings in 0d + UOA Call/Put 4.5× + 3/4 Trigger",
       "price": 5.26,
       "chg_pct": 0.0,
       "rvol": 2.55,
