@@ -1,5 +1,5 @@
 {
-  "last_run": "2026-05-15T22:35:46.057603+02:00",
+  "last_run": "2026-05-15T23:21:42.003032+02:00",
   "cooldowns": {
     "anomaly_score_jump_XRX": "2026-05-03T18:47:15.315486+02:00",
     "anomaly_uoa_extreme_TDOC": "2026-05-04T13:47:00.365949+02:00",
@@ -1086,16 +1086,16 @@
     }
   ],
   "prev_conviction_scores": {
-    "GRPN": 64.0,
-    "GEMI": 67.0,
-    "DMRC": 63.0,
-    "GLOB": 63.0,
-    "PZZA": 61.0,
-    "SNSE": 74.0,
-    "SEAT": 67.0,
-    "SKYQ": 44.0,
-    "CBRL": 57.0,
-    "SG": 54.0
+    "PZZA": 66.0,
+    "GLOB": 64.0,
+    "GEMI": 66.0,
+    "SG": 61.0,
+    "TNXP": 59.0,
+    "SKYQ": 45.0,
+    "DXC": 65.0,
+    "NTLA": 57.0,
+    "CRMD": 56.0,
+    "PRA": 63.0
   },
   "exit_cooldowns": {
     "exitp2_warning_AMC": "2026-05-15T22:35:46.281966+02:00",
