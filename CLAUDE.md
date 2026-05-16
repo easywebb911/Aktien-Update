@@ -9,10 +9,17 @@
   09.05.2026: alle `main`-Pushes — auch reine Doku — werden mit
   HTTP 403 abgewiesen). Branch-Pushes funktionieren weiterhin.
 
-### Auto-Merge-Regel (ab 15.05.2026)
+### Auto-Merge-Regel (ab 15.05.2026, finalisiert 16.05.2026)
 
-Claude Code mergt PRs **selbst** nach grünem squeeze-guardian + grünen
-Tests, Branch danach löschen.
+Claude Code mergt PRs **selbst** sobald Tests grün sind, Branch danach
+löschen.
+
+**Wichtig (Verfeinerung 16.05.2026):** Subagent (`squeeze-guardian`)
+ist **Bonus, kein Gatekeeper**. Bei vielen PR-Typen springt der Hook
+nicht zuverlässig an (Doku, Helper-Refactor, CSS-Tweaks). Nicht
+darauf warten — Tests grün + keine Review-Comments reicht für
+Auto-Merge. Wenn der Subagent doch anspringt und findings hat, diese
+adressieren und neu pushen.
 
 **Ausnahmen — manueller Easy-Merge mit Code-Review-Pflicht:**
 
@@ -3324,6 +3331,68 @@ YAML-Validität + Cron-Match + Permissions.
 | 2 PR 2 | #153 | Tier-2 Provider-Health (finra, finnhub, stockanalysis, earningswhispers) + ``_instrument_provider_call``-Helper |
 | 2 PR 3 | #154 | Tier-3 Provider-Health (7 getrennte Keys: stocktwits, uoa, news_rss + 4× edgar) + ``success_check``-Param |
 | 3 | (dieser PR) | Digest-Workflow + Konsekutiv-Counter + Daily-Push |
+
+---
+
+## Arbeits-Regeln für Claude Code (Process-Anker)
+
+Vier Prinzipien, die sich über die Sessions als robust erwiesen haben
+und für jeden Auftrag gelten.
+
+### Vorsichts-Prinzip: read-only Diagnose vor jeder Code-Änderung
+
+Bei nicht-trivialen Themen (mehr als 1-2 Zeilen Refactor, Schema-
+Erweiterung, Logik-Touch) zuerst **Diagnose-Auftrag** anfragen oder
+selbst durchführen — Source-Inspektion, Aufruf-Ketten-Audit,
+Daten-Empirik. Easy nutzt häufig den Trigger „NUR DIAGNOSE, kein Code,
+kein PR" → strikt einhalten, keine Code-Änderung produzieren.
+
+Wirkung: Fehl-Refactors und Symptom-Verschiebung werden vermieden.
+Beispiele aus Sessions 12.-16.05.2026:
+- Tier-3-success_check-Bug-Klasse zuerst diagnostiziert (4 Provider
+  betroffen), dann gemeinsam gefixt.
+- Score-Inflation-Empirik vor PR-α-Plan ausgewertet (Mean-Drift +3.87
+  Pkt belegt).
+- KI-Agent-Coverage-Phase-2 erst nach Conviction-Coverage-Phase-1
+  (sonst Push-Gating broken).
+
+### Trading-Wert-Filter
+
+Vor jedem PR die Frage: **„bringt das Trading konkret weiter?"** Wenn
+die Antwort „rein Engineering-Hygiene, kein Trade-Impact" ist, kommt
+der PR ans Ende der Prioritätenliste — nicht als heutige Arbeit.
+
+Beispiele heute:
+- ✓ KI-Agent-Coverage Phase 2 (Easy bekommt KI-Score für seine
+  4 Positionen)
+- ✓ Padding-Skalierung iPhone (User-Symptom direkt adressiert)
+- ✗ RS-vs-Sektor-Cleanup (technisch tot, aber kein Trading-Wert →
+  Backlog statt heute)
+- ✗ Earliness-V1-Pfad entfernen (Rollback-Wert > Cleanup-Wert,
+  Wiedervorlage nach 30 d V2-Stable)
+
+### Zeit-Schätzungs-Regel
+
+Claude überschätzt Aufwand typisch **2-3× zu hoch**. Beispiel:
+„~110 min für Konfidenz-Wasserzeichen Phase 2" → tatsächlich ~30 min
+implementiert. Bei nächster Schätzung bewusst kürzen oder
+Easy-Feedback einbauen statt zu raten.
+
+Hintergrund: viele Patterns sind heute etablierte Routine
+(Mock-Test-Pattern, em-Padding-Fix, `<details>`-Accordion). Was beim
+ersten Mal 60 min war, ist beim fünften 15 min.
+
+### Uhrzeit-Regel
+
+Claude kennt die echte UTC-Uhrzeit nicht zuverlässig (Modell-Trainings-
+Cutoff vs. Live-Zeit). Bei zeit-abhängigen Diagnosen — Cron-Slot-
+Wartezeit, „läuft der Workflow heute schon?", Fenster-Berechnungen —
+immer Easy fragen statt zu raten. Beispiel: Health-Check-Digest-Cron-
+Drop-Diagnose 16.05. → ohne aktuelle UTC-Zeit nicht entscheidbar.
+
+Bei `date -u`-Verfügbarkeit im Sandbox-Bash kann Claude das selbst
+prüfen — aber bei Berlin-Zeit-Konvertierungen und „in N Stunden"-
+Schätzungen vorsichtig bleiben.
 
 ---
 
