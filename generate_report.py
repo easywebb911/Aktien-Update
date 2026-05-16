@@ -14397,6 +14397,13 @@ def _build_phase2_positions_payload(
             "shares":       pos.get("shares"),
             "entry_fx":     entry_fx,
             "fx_estimated": fx_estimated,
+            # current_price wird oben (Z. 14334-14348) aus Top-10-Lookup
+            # oder _fetch_position_market_data-Singleton-Fallback berechnet.
+            # Hier persistiert für Live-PnL-Anzeige im Frontend und für
+            # Health-Check S3 (16.05.2026 — schließt die crit-Meldung
+            # „current_price fehlt bei N Position(en)" für jede Position
+            # mit yfinance-Verfügbarkeit). None bei echtem Fetch-Fehler.
+            "current_price": cur_price,
             # Trigger-4-Snapshot (Setup-Erosion) im app_data spiegeln,
             # damit ein Gist-Hiccup über _recover_positions_from_app_data
             # die Snapshot-Werte ebenfalls erhält. Felder dürfen None sein
