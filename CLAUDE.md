@@ -377,6 +377,42 @@ schreibt nur ins Stock-Dict.
 action_text, level}}` — separater Top-Level-Key analog zu
 `monster_scores`/`setup_scores`. Schritt B konsumiert das im Frontend.
 
+### Coverage-Erweiterung (Phase 1, 16.05.2026)
+
+`apply_conviction_scores` läuft nicht mehr nur über Top-10, sondern
+zusätzlich über den **Watchlist-Outsider-Pool**:
+
+```
+pool_outsiders = {c for c in enriched
+                  if c.get("manual_personal") and c["ticker"] not in top10_tickers}
+```
+
+→ heutige Pool-Mitglieder: persönliche Watchlist-Tickers, die NICHT in
+der heutigen Top-10 stehen (z. B. CRMD/AMC/IONQ/RR/AI bei Easy am
+16.05.2026).
+
+**Vorbedingung Earliness:** `compute_earliness_pts` muss auch über
+diesen Pool laufen (sonst ist `earliness_pts=None` → Conviction-Komp.
+auf 0 gedeckelt → künstlich niedrige Conviction für Watchlist).
+Aufruf direkt nach dem Top-10-`compute_earliness_pts`-Block in
+`main()`. Single-Source-of-Truth `_wl_outsiders_for_pool`-Variable
+sammelt beide Pipelines.
+
+**Anomalie-Komponente bleibt 0 für Watchlist-Outsider** (KI-Agent-
+Anomalien existieren erst nach Phase 2, KI-Agent-Coverage-Erweiterung).
+Conviction-Berechnung ist null-tolerant: `anomalies_today=None` →
+`anomaly_pts=0` + Hinweis im Action-Text.
+
+**Zweck**: Vorbereitung für **Phase 2** (KI-Agent-Coverage). Conviction-
+Gating in `ki_agent.detect_anomalies` (Schwelle `ANOMALY_CONVICTION_MIN_THRESHOLD = 75`)
+braucht für jeden zu pushenden Ticker einen `conviction_scores[t]`-
+Eintrag. Ohne Coverage-Erweiterung würde Phase 2 ungefilterte Anomaly-
+Pushes für Watchlist-Outsider produzieren (Push-Spam-Risiko).
+
+**Persistenz**: `_conviction_scores`-Dict-Sammler in `_write_app_data_json`
+iteriert über Top-10 UND Watchlist-Outsider — neue Tickers erscheinen
+als zusätzliche Keys im additiven Schema.
+
 ### Pflege
 
 Bei Änderung der Komponenten-Gewichte (Cap-Werte 33/28/28/11),

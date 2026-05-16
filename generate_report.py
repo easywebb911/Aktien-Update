@@ -15506,6 +15506,20 @@ def main():
     # größe — schreibt s["earliness_pts"] / s["earliness_breakdown"], lässt
     # s["score"] unberührt. Stufe Mittel-2 aktiviert den Bonus später.
     compute_earliness_pts(top10)
+    # Phase 1 Conviction-Coverage (16.05.2026): auch Watchlist-Outsider
+    # (manual_personal, nicht in Top-10) bekommen earliness_pts, damit
+    # apply_conviction_scores die Komponente für sie berechnen kann.
+    # Pool-Definition siehe _watchlist_outside_top10-Helper.
+    _top10_tickers_for_pool = {s.get("ticker") for s in top10
+                                if s.get("ticker")}
+    _wl_outsiders_for_pool = [
+        c for c in enriched
+        if c.get("manual_personal")
+        and c.get("ticker")
+        and c.get("ticker") not in _top10_tickers_for_pool
+    ]
+    if _wl_outsiders_for_pool:
+        compute_earliness_pts(_wl_outsiders_for_pool)
 
     # Feature 2 — Agent-Boost: KI-Agent-Score als Multiplikator on-top.
     # Kommt NACH dem Smoothing, damit die History den unboosted Base-Score
@@ -15767,6 +15781,18 @@ def main():
         _anomalies_today = None
     _vix_for_conv = _prev_app_data_for_conv.get("vix_current")
     apply_conviction_scores(top10, _anomalies_today, _vix_for_conv)
+    # Phase 1 Conviction-Coverage (16.05.2026): Watchlist-Outsider-Pool
+    # (manual_personal ∖ Top-10) bekommt ebenfalls Conviction-Scores.
+    # Vorbereitung für Phase 2 (KI-Agent-Coverage-Erweiterung) — der
+    # Conviction-Gating-Filter in ki_agent.detect_anomalies braucht für
+    # Watchlist-Outsider conviction_scores[t]-Einträge, sonst feuern
+    # Pushes ungefiltert. anomalies_today / vix sind identisch zur
+    # Top-10-Berechnung (gleiche Liste, gleicher Marktkontext).
+    # _wl_outsiders_for_pool wurde oben im compute_earliness_pts-Block
+    # bereits gebaut (gleiche Pool-Definition, Single-Source-of-Truth).
+    if _wl_outsiders_for_pool:
+        apply_conviction_scores(_wl_outsiders_for_pool,
+                                 _anomalies_today, _vix_for_conv)
 
     # Watchlist-Karten-Snapshot VOR generate_html aufbauen, damit der
     # Chat-Synthese-Builder (_build_chat_synthesis_ctx) den enriched
@@ -15916,8 +15942,13 @@ def main():
     # (siehe pre-HTML-Block oben), damit _score_block_inner_html das
     # s["conviction"]-Feld zur Render-Zeit sieht. Hier nur das Dict
     # für die app_data-Persistenz aus den Stock-Dicts ableiten.
+    # Phase 1 Conviction-Coverage (16.05.2026): Watchlist-Outsider-Pool
+    # wird zusätzlich aufgesammelt — Vorbereitung für KI-Agent-Phase 2.
     _conviction_scores = {s["ticker"]: s.get("conviction")
                           for s in top10 if s.get("ticker") and s.get("conviction")}
+    for _s in _wl_outsiders_for_pool:
+        if _s.get("ticker") and _s.get("conviction"):
+            _conviction_scores[_s["ticker"]] = _s["conviction"]
     _write_app_data_json(watchlist_cards=_wl_card_data,
                          monster_scores=_monster_scores,
                          setup_scores=_setup_scores,
