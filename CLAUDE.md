@@ -2505,6 +2505,33 @@ neuen Container-Klassen mit Toggle-Logik (`.details-body`-artig):
 **max-height in em (≥150em Safety-Margin), Padding in em, Sides
 in px (Konsistenz)**.
 
+### CSS-Spezifitäts-Scope für `.sb-*`-Klassen
+
+Die `.sb-`-Klassen-Familie wird an zwei strukturell unterschiedlichen
+Stellen verwendet:
+
+| Konsument | HTML-Wrapper | Gedachte CSS-Regel |
+|---|---|---|
+| **Karten-Score-Block** (Top-10 + Watchlist-Drawer) | `<div class="sb-row" data-sb="...">` | `.sb-row .sb-lbl{...}` — Mini-Uppercase-Label (`.58rem`, letter-spaced, dim) |
+| **Methodik-Panel-Listen** (Konfidenz-Tabelle, Score-Formel, Datenquellen, ⚡ KI-Agent — 8 `<ul>`-Blöcke) | `<ul class="score-block-list"><li>` | `.sb-lbl{flex:1;min-width:0}` — Normal-Größe (`.78rem`, mixed-case, Standard-Kontrast) |
+
+**Pflicht-Regel:** Karten-Score-Block-spezifische CSS muss **immer**
+mit `.sb-row`-Parent-Selektor gescoped sein (Spezifität 0,2,0). Sonst
+bleed die Mini-Label-Properties (`font-size:.58rem`,
+`text-transform:uppercase`, `letter-spacing:.4px`) auf die Methodik-
+Tabelle und kollidieren mit den farbigen Tier-Dots (🟢/🟡/🟠/🔴) in
+der Konfidenz-Sektion → visuelle Überlappung „Surobust" / „Emittel"
+/ „KIheuristisch" auf iPhone bei größerer Schrift.
+
+Identisches Pattern gilt für künftige `.sb-`-Klassen mit Karten-
+spezifischer Optik (z. B. `.sb-num`, `.sb-fill` haben heute schon
+Wrapper-Spezifität via `.sb-row[data-sb="..."]`-Modifier-Selektoren).
+
+**`.sb-note`-Regel** liegt explizit unter `.score-block-list .sb-note`
+(Methodik-Listen-Scope) — heute ist `.sb-note` nicht in Karten-Score-
+Blöcken verwendet, der Scope macht Layout-Drift bei späteren Re-Uses
+sicher.
+
 ---
 
 ## Score-Methodik-Sync-Regel
