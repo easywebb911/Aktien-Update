@@ -1,21 +1,21 @@
 {
-  "updated": "2026-05-16T13:24:52.278767+02:00",
+  "updated": "2026-05-16T14:07:09.568157+02:00",
   "run_info": {
     "tickers_checked": 10,
     "signals_active": 4,
     "alerts_sent": 0,
-    "elapsed_s": 16.3,
+    "elapsed_s": 10.4,
     "market_phase": "Geschlossen"
   },
   "signals": {
     "PZZA": {
-      "score": 30,
-      "confidence": 17,
-      "drivers": "News: acquisition, takeover",
+      "score": 55,
+      "confidence": 70,
+      "drivers": "Volumen 1.8× + Spanne 6.3% + News: takeover, acquisition",
       "price": 34.73,
-      "chg_pct": 0.0,
-      "rvol_4d": 0.0,
-      "rvol_20d": null,
+      "chg_pct": -0.0,
+      "rvol_4d": 1.78,
+      "rvol_20d": 2.91,
       "earnings": "in 82 Tagen (06.08.2026)",
       "fda_date": null,
       "upcoming_event": null,
@@ -51,7 +51,7 @@
     "GEMI": {
       "score": 68,
       "confidence": 70,
-      "drivers": "Volumen 8.2× + 🚀 Massives Volumen 8.2×+ + Spanne 22.8% + News-KI 8/30: Positive earnings growth and stock surge indicate institutional buying interest, but no indicators of high short interes + UOA Call/Put 2.9×",
+      "drivers": "Volumen 8.2× + 🚀 Massives Volumen 8.2×+ + Spanne 22.8% + News-KI 8/30: Positive earnings headlines lack specific short squeeze indicators like high short interest, institutional buying, or te + UOA Call/Put 2.9×",
       "price": 5.58,
       "chg_pct": -0.0,
       "rvol_4d": 8.22,
@@ -93,7 +93,7 @@
     "SKYQ": {
       "score": 88,
       "confidence": 70,
-      "drivers": "Volumen 7.7× + 🚀 Massives Volumen 7.7×+ + Spanne 51.2% + News: partnership, short interest",
+      "drivers": "Volumen 7.7× + 🚀 Massives Volumen 7.7×+ + Spanne 51.2% + News: short interest, partnership",
       "price": 3.07,
       "chg_pct": -0.0,
       "rvol_4d": 7.69,
@@ -133,7 +133,7 @@
     "NTLA": {
       "score": 55,
       "confidence": 70,
-      "drivers": "Volumen 2.0× + Spanne 6.8% + News: earnings beat, short interest",
+      "drivers": "Volumen 2.0× + Spanne 6.8% + News: short interest, earnings beat",
       "price": 13.67,
       "chg_pct": 0.0,
       "rvol_4d": 1.99,
