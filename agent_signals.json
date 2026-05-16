@@ -1,10 +1,10 @@
 {
-  "updated": "2026-05-16T19:22:42.316723+02:00",
+  "updated": "2026-05-16T19:23:38.873800+02:00",
   "run_info": {
     "tickers_checked": 14,
     "signals_active": 4,
     "alerts_sent": 0,
-    "elapsed_s": 14.0,
+    "elapsed_s": 14.1,
     "market_phase": "Geschlossen"
   },
   "signals": {
@@ -53,9 +53,9 @@
       "uoa_cp_ratio": 4.439244663382595
     },
     "CRMD": {
-      "score": 18,
+      "score": 40,
       "confidence": 33,
-      "drivers": "Spanne 8.8% + News-KI 8/30: Positive earnings and raised guidance suggest fundamental strength but lack short squeeze indicators like high short int",
+      "drivers": "Spanne 8.8% + News: earnings beat, guidance raised",
       "price": 7.55,
       "chg_pct": 0.0,
       "rvol_4d": 1.46,
@@ -66,7 +66,7 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 0,
+      "active_triggers": 1,
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": null,
@@ -239,7 +239,7 @@
     "SKYQ": {
       "score": 88,
       "confidence": 70,
-      "drivers": "Volumen 7.7× + 🚀 Massives Volumen 7.7×+ + Spanne 51.2% + News: partnership, short interest",
+      "drivers": "Volumen 7.7× + 🚀 Massives Volumen 7.7×+ + Spanne 51.2% + News: short interest, partnership",
       "price": 3.07,
       "chg_pct": -0.0,
       "rvol_4d": 7.69,
