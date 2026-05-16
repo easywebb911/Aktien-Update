@@ -1,388 +1,202 @@
-# Session-Handover — Stand 15.05.2026
+# Session-Handover — Stand 16.05.2026
 
-## Heute implementiert (chronologisch, alle gemerged via PR)
+## Heute implementiert (chronologisch)
 
-### Anzeige & Trade-Journal
+Außerordentlich produktive Session — **16 PRs gemerged**, drei Major-
+Pipelines abgeschlossen (RVOL-Normalisierung Phase 1, Health-Check-
+Fail-Visibility, KI-Agent-Coverage-Erweiterung), zwei UX-Redesigns
+(Konfidenz-Wasserzeichen, Methodik-Panel-Accordion) und mehrere
+Bug-Fixes.
 
-- `82bfb27` — **fix: Intraday-Snapshot-Label im Header** (PR #158).
-  `_renderRunPhasePill(phase, generatedAt)` mit dritter Anzeige-
-  Klasse — bei `premarket` + UTC ∈ [13:30, 20:00) zeigt der Pill
-  jetzt „Intraday-Snapshot" statt irreführendem „Pre-Open-Vorschau".
-  Disambiguation aus `app_data.generated_at`. Backend (`run_phase`-
-  Logik + Override + Backtest-Schutz) unverändert.
-- `1a4d0d9` — **feat: Trade-Journal-Eröffnungs-These** (PR #159).
-  Neue Open-Form-Textarea `pos-thesis-{ticker}` (rows=3, maxlength
-  500, optional). Plus 5 zusätzliche Auto-Snapshot-Felder beim
-  Position-Open: `entry_monster_score`, `entry_ki_score`,
-  `entry_rvol`, `entry_si_trend`, `entry_conviction_components`.
-  Close-Form mit dreistufigem Pre-Fill (Cache → `entry_thesis` →
-  `''`). Neuer `_cacheOpenFormFields`-Helper analog Phase-2-Cache.
+**Score-Inflation-Empirik-Pipeline (3-PR-Plan startet)**:
+- `6d0336d` — **PR #165** refactor: RVOL-Disambiguation in ki_agent
+  (4d-Basis als `rvol_4d` umbenannt + additives `rvol_20d`-Logging in
+  agent_signals.json)
+- `dd3d0f7` — **PR #166** feat: RVOL-Normalisierungs-Helper
+  `_normalize_rvol()` + Konstanten + Feature-Flag
+  (`RVOL_NORMALIZATION_ENABLED=False`)
+- `f29bc95` — **PR #167** feat: `score_inflation_log` Schema v2 mit
+  `drivers_raw.rel_volume_normalized` (parallele Empirik-Datensammlung)
 
-### Health-Check-Stabilisierung
+**Health-Check-Pipeline (alle Fail-Visibility-Bugs adressiert)**:
+- `2f3ad81` — **PR #168** fix: Health-Check-Digest mit 4-in-1 Fix
+  (Cron `47 8`, exit 1 bei ntfy-Fail, S8-Invariant für stale Digest,
+  Unicode-via-JSON-API gegen RFC-7230-Header-Bug)
+- `1d756ea` — **PR #169** fix: Finnhub Provider-Health-Logging skippen
+  wenn API-Key nicht konfiguriert (False-Positive eliminiert)
+- `fe31d86` — **PR #175** fix: Tier-3 success_check Recalibration —
+  edgar_8k/form4/13d_g/stocktwits-Fetcher returnen None bei echtem
+  Outage, legitim leer zählt als success
 
-- `c6cdb37` — **fix: Health-Check JSONL-Persistenz + Cron-Offset**
-  (PR #160). Drei strukturelle Bugs in einem Fix:
-  - `daily-squeeze-report.yml` + `ki_agent.yml`: `git add
-    health_check_log.jsonl` + `provider_health.jsonl` ergänzt (war
-    Follow-up-Bug aus Phase-2-PRs #152–#154 — Files wurden lokal
-    geschrieben, aber nie commited)
-  - `health_check_digest.yml`: Cron `13 8 * * *` → `21 8 * * *`
-    (Last-Peak-Vermeidung analog ki_agent `xx:17`-Pattern)
-  - `scripts/health_check_digest.py`: detaillierteres Logging im
-    ntfy-Send-Pfad (Success-HTTP-Status, Exception-Type)
+**Frontend-UX-Verbesserungen**:
+- `095e107` — **PR #170** fix: positions.current_price persistieren
+  (schließt Health-Check S3 für 4 Position-Karten)
+- `af019ef` — **PR #171** feat: Konfidenz-Wasserzeichen Phase 2 —
+  Hybrid-Ansatz (Dimming + gepunktete Unterstreichung pro sb-num)
+- `675ab88` — **PR #172** feat: Knaller-Trade-Label Phase 2 mit
+  Bucket-P90/P10-Klassifikation aus backtest_history
+- `086eeed` — **PR #173** feat: Knaller-Badge `▲ TOP 10%` /
+  `▼ BOT 10%` statt Emoji (professioneller Look)
+- `4a53a00` — **PR #174** feat: Score-Delta T-1 für Setup-Score mit
+  Hybrid-Stille-Schwelle (|Δ|<2 = nichts rendern)
+- `1f63cdc` — **PR #178** feat: Score-Methodik-Panel UX-Redesign —
+  11 Sektionen als `<details>`-Accordion (Konfidenz default-open)
+- `03ad70c` — **PR #179** fix: KI-Analyse padding-bottom in em statt
+  fest 48 px (iPhone-Truncation bei großer Schrift behoben)
 
-  Adressiert das Symptom „kein Digest-Push heute morgen" — State-
-  Commit war erst um 10:37 UTC statt geplant 08:13, JSONL-Files
-  permanent leer.
+**Coverage-Erweiterungen (2-Phasen)**:
+- `b0ad676` — **PR #176** feat: Conviction-Coverage Phase 1 —
+  `apply_conviction_scores` läuft jetzt über Watchlist-Outsider-Pool
+- `6b1f28d` — **PR #177** feat: KI-Agent-Coverage Phase 2 —
+  `parse_monitored_tickers()` (Top-10 ∪ Watchlist ∪ Positions),
+  Push-Spam-Schutz via Conviction-Gating + defensive None-Gating
 
-### Phase-3-Exit-Spec
+## Aktive Positionen (Stand Ende 16.05.2026)
 
-- `d3e0c42` — **docs: Phase 3 Exit-Signal Spec — Blow-off-Top**
-  (PR #161). Initiale Spec-Datei `docs/phase3_exit_spec.md` mit
-  Sektionen A–E. IV-Crush als ursprünglich geplanter zweiter Trigger
-  **gestrichen** (Easy handelt Aktien nicht Optionen; yfinance-IV-
-  Coverage nur Top-5; IV-Historie nicht persistiert).
-- `af259f6` — **docs: Phase 3 Spec Erweiterung** (PR #162). Sektionen
-  E (Risiken-Bewertung), G (Aufwand), H (Implementations-Bedingung
-  mit Pass/Fail-Kriterien) ergänzt. CRMD-Live-Test-Kontext explizit
-  als „natürlicher Triggerpunkt" für Implementations-Entscheidung
-  verankert.
+| Ticker | Status | Anmerkung |
+|---|---|---|
+| **AMC** | offen | Watchlist-Outsider — KI-Score ab nächstem KI-Agent-Tick |
+| **IONQ** | offen | Watchlist-Outsider — KI-Score ab nächstem KI-Agent-Tick |
+| **RR** | offen | Watchlist-Outsider — KI-Score ab nächstem KI-Agent-Tick |
+| **CRMD** | offen | Diagnose heute: **Substrat intakt** (DTC 16, SF 21 %, Float 67.5 M, SI-Trend sideways). **Conviction 58 / medium** (von 98 am Entry runter). Phase-2 `exit_pressure` **28/100** (trend_break warn 50, profit_lock 26, overheated 33). **PnL −4.79 %** vom Entry $7.93. CRMD ist **kein Phase-3-Blow-off-Top-Fall** (`change_5d < 10 %`). Strategie: durchhalten. |
 
-  Blow-off-Top-Trigger-Bedingung verbindlich festgelegt:
-  - `change_5d ≥ 50 %` UND
-  - Live-Quote heute ≤ −5 % (vs. Vortag-Close)
-  - Beide Bedingungen müssen erfüllt sein → crit
-  - Gewicht 0.05 im Composite-Pressure
-  - Implementation **erst nach Live-Test** bei CRMD-artigem Setup,
-    in dem Phase-2-Trigger empirisch zu spät reagiert haben
+**Wichtige Hinweise zur Position-Karte**:
+- `current_price` ist heute NULL für alle 4 Positionen (S3-crit) → Live-PnL fehlt im Frontend-Position-Panel
+- **PR #170 wirkt erst beim nächsten Daily-Run** (heute postclose 21:17 UTC). Ab morgen sichtbar
+- **KPTI heute geschlossen mit −17.3 %** nach Setup-bricht-Push (Conviction-Kalibrierungs-Beobachtung gestartet — siehe Lessons)
 
-### News-Coverage
+## Verifikation morgen 17.05.2026
 
-- `82a3d8c` — **feat: News-Coverage auf persönliche Watchlist**
-  (PR #163, **bei Session-Ende noch nicht gemerged**). News-Pool
-  erweitert von `top10` auf `top10 ∪ manual_personal` aus
-  `enriched`. ThreadPool-Workers von 13 → 16. Set-Dedup verhindert
-  Doppel-Fetch. Adressiert das Symptom „Aktuelle Meldungen leer"
-  auf der CRMD-Watchlist-Karte trotz frischer Earnings — CRMD ist
-  heute nicht in den Top-10, daher fetchte `get_combined_news` ihn
-  nicht.
-
-### Doku-Updates
-
-- `e0b3ba2` — **docs: SESSION_HANDOVER update Stand 14.05.2026**
-  (PR #157, heute Morgen)
-- Auto-Merge-Regel ab 15.05. in CLAUDE.md verankert (über PR #161
-  mit-eingeführt): Code mergt selbst nach grünem Guardian +
-  grünen Tests; manueller Easy-Merge bleibt für neue Workflows /
-  Schemas / API-Integrationen / Score-Logik
-
----
-
-## Aktive Positionen (im Gist `squeeze_data.json`)
-
-**4 aktive Positionen:** AMC · IONQ · RR · CRMD
-
-### Neuer Trade heute: CRMD
-
-- Am **14.05.2026** gekauft mit **Conviction 98** (höchster bisher
-  beobachteter Wert nach Earliness-V2-Aktivierung)
-- Nach **positiven Earnings 15.05.** Sell-the-news-Reaktion mit
-  **−3.2 % P&L** auf Position
-- **Plan: durchhalten** — Squeeze-Substrat intakt:
-  - DTC 16 Tage
-  - Short Float 21 %
-  - SI-Trend stabil
-- Tool-`exit_pressure` aktuell **22/100** stützt den „halten"-Plan
-- Doppelt relevant: CRMD ist der **natürliche Live-Test-Kandidat
-  für Phase-3-Spec** — wenn Phase-2-Trigger den Verlauf sauber
-  steuern, wird Phase 3 nicht implementiert. Wenn Position trotz
-  fundamentaler Stärke ins Drawdown läuft und die Phase-2-Trigger
-  zu spät schließen, wird Phase 3 nach `docs/phase3_exit_spec.md`
-  gebaut.
-
----
-
-## Verifikation morgen (16.05.2026)
-
-- **Erster Health-Check-Digest-Push** um **10:21 deutscher Zeit**
-  (08:21 UTC). Nach PR #160-Merge + heute laufender JSONL-
-  Persistenz sollte morgen erstmals ein `✅ Health-Check OK`
-  ankommen (statt `📭` wegen leerer JSONL-Files).
-- **News auf CRMD-Karte** nach PR #163-Merge + nächstem Daily-Run
-  sichtbar — „Aktuelle Meldungen"-Drawer zeigt echte Items statt
-  „Keine Nachrichten verfügbar".
-- **Intraday-Snapshot-Label** beim nächsten US-Session-Run
-  (Re-deploy oder manueller Trigger zwischen 13:30 und 20:00 UTC)
-  sichtbar.
-- **Trade-Journal-Eröffnungs-These** bei nächster Position-Eröffnung
-  testen — Textarea unter Stückzahl, Pre-Fill beim Schließen.
-
----
+| Slot | Was prüfen | Bezug |
+|---|---|---|
+| 08:47 UTC (10:47 dt.) | Health-Check-Digest-Push mit echten Inhalten (statt 100 %-False-Positive) | PR #168 + #169 + #175 |
+| Erster KI-Agent-Tick | `agent_signals.json` enthält AMC/IONQ/RR/CRMD/AI-Keys (~15 Tickers statt 10) | PR #177 |
+| Position-Karten | Live-PnL sichtbar (`current_price` gesetzt) | PR #170 |
+| Top-10-Karten | Konfidenz-Wasserzeichen sichtbar (gepunktete Unterstreichung bei Conviction/KI) | PR #171 |
+| Trade-Journal | `▲ TOP 10%` / `▼ BOT 10%`-Badges bei abgeschlossenen Trades | PR #172 + #173 |
+| Top-10-Karten | Score-Delta `▲ +5.0` bei GEMI/TNXP/SKYQ | PR #174 |
+| Methodik-Panel | 11 Sektionen kollapsibel, Konfidenz default-open | PR #178 |
+| KI-Analyse | iPhone bei größter Schrift: letzte Zeile sichtbar über Home-Indicator | PR #179 |
+| Watchlist-Drawer (CRMD) | KI-Score-Row vorhanden (vorher fehlend, Phase 2 erweitert Coverage) | PR #177 |
+| CRMD-Drawer „Aktuelle Meldungen" | News-Items vorhanden | PR #163 (gestern) |
 
 ## Geplante Aufgaben + Wiedervorlagen
 
-### Offene Aufgaben
+| Datum | Aufgabe | Trigger |
+|---|---|---|
+| **17.05.** | Health-Check-Digest-Push verifizieren + iPhone-Padding-Test bei größter Schrift | sofort morgens |
+| **28.05.** | Earliness-Trend-Logging AUC-Re-Check (Schema v4, 14 d Live-Daten) | Datensammlung läuft |
+| **30.05.** | **PR-γ aktivieren**: `RVOL_NORMALIZATION_ENABLED = True` mit empirischem Skalierer (Median des `rel_volume_normalized / rel_volume`-Quotienten aus 14 d v2-Logs) | nach PR #167 |
+| **30.05.** | KI-Agent-Coverage-Empirik: Push-Spam-Volumen messen (> 5 zusätzliche Pushes/Tag → `WATCHLIST_OUTSIDER_CONVICTION_MIN` einführen) | nach PR #177 |
+| **02.06.** | Chart-Indikatoren erweitern prüfen | Backlog |
+| **13.06.** | Earliness V3 Entscheidung — DTC-Bucket-Logik mit Trend-Logging-Auswertung | Datensammlung läuft |
+| **02.07.** | Premium-Daten-Stack prüfen (60 d Live-Daten, Konfidenz-Re-Assessment) | Datensammlung läuft |
+| nach 5+ high-Conviction-Trades | **Conviction-Kalibrierungs-Beobachtung** — heutiges KPTI-Verlust trotz Conviction 81 als erstes Indiz | empirisch |
+| nach Easy-Feedback | Score-Delta T-1 Phase 2 (Conviction/Monster/KI-History-Persistenz) | wenn Setup-Delta sich bewährt |
+| pending Live-Test | **Phase-3-Exit-Implementation** (Blow-off-Top) — wartet auf parabolisches Endphasen-Setup (CRMD ist nicht das) | `docs/phase3_exit_spec.md` fertig |
 
-- **Phase-3-Implementation** auf CRMD-Live-Test warten:
-  - Phase-2-Trigger schließen sauber (max −10 % vom Peak) →
-    Phase 3 nicht nötig, Spec bleibt im Backlog
-  - Phase-2-Trigger schließen zu spät (> −20 % vom Peak) → Phase 3
-    nach `docs/phase3_exit_spec.md` implementieren
-- **KI-Agent-Coverage-Erweiterung** (Option B aus News-Diagnose
-  15.05.): KI-Score / StockTwits / UOA / EDGAR / FINRA-SSR auch für
-  Watchlist-Outsider? Push-Frage (Anomaly-Pushes für Non-Top-10-
-  Tickers gewünscht?) muss geklärt werden bevor Implementation.
+**Erledigt heute**:
+- ~~Konfidenz-Wasserzeichen Phase 2~~ → PR #171
+- ~~Knaller-Trade-Label~~ → PR #172 + #173
+- ~~Tier-3 success_check Recalibration~~ → PR #175
+- ~~positions.current_price S3-Fix~~ → PR #170
+- ~~Methodik-Panel UX-Redesign~~ → PR #178
 
-### Wiedervorlagen mit Datum
+## Optional / niedrig priorisiert
 
-- **16.05.2026** — Health-Check-Digest-Push erstmals mit echten
-  Daten verifizieren (10:21 deutscher Zeit)
-- **16.05.2026** — News auf CRMD-Karte verifizieren
-- **17.05.2026** — Intraday-Label im US-Session-Fenster verifizieren
-- **15.–31.05.2026** — Health-Check Konsekutiv-Counter beobachten,
-  Push-Volumen kalibrieren
-- **19.05.2026** — `app_data`-Recovery + `POSITIONS_JSON`-Secret
-  löschen
-- **28.05.2026** — Earliness-Trend-Logging AUC-Re-Check (14 Tage
-  nach PR #142 Merge)
-- **02.06.2026** — Chart-Indikatoren prüfen
-- **13.06.2026** — Earliness V3 Entscheidung (30 Tage Trend-
-  Logging-Daten)
-- **02.07.2026** — Premium-Daten-Stack prüfen
-- **Wiedervorlage Konfidenz-Wasserzeichen** — Phase 2 von PR #146.
-  Re-Visit wenn Earliness V2 nach 14–30 Tagen validiert ist.
-- **Wiedervorlage Knaller-Trade-Label** — einzelne Outlier-Trades
-  markieren statt nur Bucket-Skew-Statistik. Eigenes Feature, kein
-  akuter Bedarf.
-
----
+- **Drei-stufiges Provider-Health-Schema** (`ok` / `empty` / `fail`) — heute 2-stufig mit besserer Semantik reicht
+- **Stündliche `current_price`-Updates** via KI-Agent-Tick — heute 2× täglich via Daily-Run reicht
+- **Skeleton-UI** für ladenden Card-State — abgelehnt (kein akuter Bedarf)
+- **Hotkeys** — abgelehnt (iPhone-Fokus)
 
 ## Strategische Roadmap
 
-### Übergeordnetes Ziel
+| Pipeline | Status | Nächster Meilenstein |
+|---|---|---|
+| Score-Inflation-Pipeline | PR-α/β heute (#166, #167), PR-γ am **30.05.** | Empirische Aktivierung nach 14 d v2-Daten |
+| Conviction-Kalibrierung | Beobachtung gestartet (KPTI als erstes Indiz) | nach 5+ weiteren high-Conviction-Trades |
+| Phase-3 Exit-Trigger (Blow-off-Top) | Spec fertig (`docs/phase3_exit_spec.md`) | wartet auf parabolisches Setup, NICHT CRMD |
+| Earliness V2 → V3 | V2 läuft live mit AUC 0.77 | V3-Entscheidung am 13.06. |
+| Backtest-Datenpunkte | 1263 (Bootstrap + Daily) heute | belastbare Live-Statistik ab Juli 2026 |
+| KI-Agent-Coverage | Phase 2 live (15 Tickers) | Empirik-Auswertung 30.05. |
 
-Squeeze-Früherkennungssystem mit empirisch validierter Edge. Drei
-parallele Arbeitsstränge laufen permanent nebeneinander:
+## Code-Hygiene-Backlog mit Status
 
-- **Bauen** — Code-Erweiterungen. Health-Check-Projekt komplett
-  abgeschlossen (PRs #150, #152–#155, gestern). Heute kleinere
-  UI/UX-Härtungen + Phase-3-Spec ohne Code. Aktuell offen:
-  Phase-3-Implementation (wartet auf CRMD-Live-Test), KI-Agent-
-  Coverage-Erweiterung, Code-Hygiene-Backlog-Punkte 2/3/4/5-2/6-B.
-- **Sammeln** — passives Warten auf Backtest-, Earliness-,
-  Conviction-, Score-Inflations-, Push-Volumen-, Earliness-Trend-
-  Logging-, Provider-Health- und State-Invariants-Empirik. Jeder
-  Daily-Run + ki_agent-Tick füttert die History. Plus seit heute:
-  **CRMD-Live-Trade als spezifischer Datenpunkt** für Phase-3-
-  Empirik.
-- **Validieren** — Score-Logik gegen reale R-Werte testen, sobald
-  genug Datenpunkte da sind. Aktuell: Daily-Run-Checks, Position-
-  Verläufe (AMC / IONQ / RR / CRMD), Methodik-Konsistenz-Pflege.
-  **Heute starker Tag für „Validieren"** — CRMD ist der erste
-  Conviction-98-Trade nach V2-Aktivierung, sein Verlauf liefert
-  empirische Datenbasis für die Phase-3-Implementations-Entscheidung.
+| Punkt | Status |
+|---|---|
+| (1) v1/v2 Render-Pfad-Doku-Anker | erledigt PR #76 |
+| (5/1) `score()` aus DISPLAY_PTS_MAX-Konstanten (Methodik-Cap-Drift-Schutz) | erledigt PR #84 |
+| (6/A) `_drivers_breakdown` als Single Source of Truth | erledigt PR #83 |
+| (2) v1/v2 Render-Pfad → reines Jinja (`page.jinja` + `wl_card.jinja`) | pending — größerer Refactor |
+| (3) `generate_report.py` Monolith splitten | pending — größerer Refactor |
+| (4) Template-Engine statt f-Strings | pending |
+| (5/2) `score()` aus DISPLAY_PTS_MAX (Berechnungs-Seite) | pending |
+| (6/B) `score()` aus DRIVER_CLASSIFICATIONS | pending |
 
-### Drei Zeit-Achsen
+**Heute keine Hygiene-PRs** — Fokus lag auf Feature-Pipelines + Bug-Fixes.
 
-**Kurzfristig (Tage bis 1–2 Wochen, aktiv planbar)**
+## Architektur-Anker (in dieser Session zementiert)
 
-- **CRMD-Live-Test-Beobachtung** — Phase-2-Exit-Trigger-Verhalten
-  bei sell-the-news → recovery- oder breakdown-Pfad.
-- **Health-Check-Empirik** — Push-Volumen + Konsekutiv-Counter-
-  Verhalten 15.–31.05.
-- **Earliness-V2-Beobachtung** — Conviction-Median-Veränderung
-  empirisch validieren (CRMD-98 ist erster Datenpunkt).
-- **Score-Inflations-Empirik** auswerten.
+- **Auto-Merge-Regel ab 16.05.2026 final**: Subagent (squeeze-guardian) ist
+  **Bonus, kein Gatekeeper**. Claude mergt selbst sobald Tests grün sind.
+  Manueller Easy-Merge nur bei „neue JSON-Schemas, neue Workflow-Dateien,
+  neue API-Integrationen, Score-/Conviction-/Filter-Logik-Änderungen".
+- **Sandbox-Force-Push-Workaround**: Stacked-PR-Pattern wenn nötig
+  (direkt-auf-`main` HTTP 403 seit 09.05.2026).
+- **Caution-Prinzip**: read-only Diagnose VOR jeder Code-Änderung. User
+  fragt explizit „NUR DIAGNOSE, kein Code" — Claude hält sich strikt daran.
+- **Trading-Wert-Filter**: vor jedem PR die Frage „bringt das Trading
+  konkret weiter?" — heute z. B. mehrere Phase-1-PRs (Coverage,
+  Konfidenz) statt theoretischer Hygiene.
+- **Zeit-Schätzungs-Regel**: Claude überschätzt Aufwand typisch 2-3× —
+  bei nächster Session bei Aufwand-Angaben bewusst reduzieren oder
+  Easy-Feedback abwarten.
+- **Uhrzeit-Regel**: Claude weiß die echte Uhrzeit nicht — bei zeit-
+  abhängigen Diagnosen (Cron-Slots, Wartezeiten) immer Easy fragen
+  statt zu raten.
+- **`<details>`-Accordion-Pattern** etabliert (PR #178) — Standard für
+  künftige Methodik-Erweiterungen.
+- **Hybrid-Stille-Schwelle-Pattern** (PR #174) — visuelle Hervorhebung
+  nur ab signifikantem Delta (`|Δ| < 2` = nichts rendern). Anwendbar
+  auf künftige Delta-/Trend-Anzeigen.
+- **em-Padding für aufklappbare Mobile-Container** (PR #179) — CLAUDE.md-
+  Pflege-Hinweis dokumentiert. Pattern für künftige iPhone-Bottom-Edge-
+  Probleme.
+- **Provider-Health-success_check-Semantik klarer** (PR #175) — „Call
+  funktioniert" statt „Daten gefunden". Fetcher returnen `None` bei
+  echtem Outage. Vorbild für künftige Tier-Provider.
 
-**Mittelfristig (Wochen, datenabhängig)**
+## Lessons heute
 
-- **Earliness-Trend-Logging-AUC-Re-Check** (28.05.).
-- **Earliness V3 Entscheidung** (13.06., 30 Live-Tage).
-- **Phase-3-Implementations-Entscheidung** — nach CRMD-Position-
-  Close oder spätestens nach 30 Trading-Tagen.
-- **Backtest-Validierung** — Frontend-Auswertung erfordert ≥ 200
-  Live-Einträge je Score-Bucket. Bahn A2 läuft seit Zwei-Run-
-  Architektur (PR #124) mit nur postclose-Werten.
-- **ntfy-Priority-Mapping nach Severity**.
-
-**Längerfristig (Monate, Empirik-basiert)**
-
-- **Big-Refactor Zwei-Achsen-Ranking** — nach 30+ Tagen Earliness-
-  V2-Daten.
-- **Premium-Daten-Stack** (Wiedervorlage 02.07.2026).
-- **Sektor-Rotation / Marktkontext** — noch nicht im Backlog.
-
-### Lackmus-Test
-
-**Phase 3 Validieren ist der entscheidende Test.** Backtest muss
-zeigen: Score ≥ 70 hat einen klar besseren Median-R-Wert nach 5 T
-als Score < 50. Mit der Zwei-Run-Architektur wird die Historie nur
-noch mit postclose-Werten befüllt — saubere Datenbasis.
-
-- **Wenn ja** → Earliness-V2-Aktivierung im Score selbst und
-  Big-Refactor mit Rückenwind.
-- **Wenn nein** → Score-Komponenten neu kalibrieren bevor weiter
-  gebaut wird.
-
-Bis der Test laufen kann, ist passives Sammeln der primäre Modus.
-Mit dem heutigen Stand sind alle Tools für Trade-Auswertung scharf:
-Health-Check-Digest läuft ab 16.05. mit echten Daten, News-Coverage
-deckt persönliche Watchlist ab, Trade-Journal hat Eröffnungs-These
-+ erweiterten Score-Snapshot, Intraday-Label disambiguiert das
-Header-Pill.
-
----
-
-## Code-Hygiene-Backlog
-
-Aus der Diskussion vom 09.05.2026. Status zum Ende 15.05.:
-
-- **Punkt 1 — `_record_push`-SSOT** — erledigt via PR #76.
-- **Punkt 2 — v1/v2 Render-Pfad in `generate_report.py`:** **offen.**
-  Vollständige Migration zu Jinja (Phase X). Voraussetzung für Punkt 3.
-- **Punkt 3 — Monolith `generate_report.py` aufsplitten:** **offen.**
-  Datei weiter gewachsen durch heutige UI-Tweaks (Intraday-Label,
-  Trade-Journal-These, News-Coverage). Hohe Risiko-Operation.
-- **Punkt 4 — HTML/JS-im-f-String-Pattern durch Template-Engine
-  ersetzen:** **offen.** Zwei CI-Lints als Abhilfe aktiv, aber
-  strukturelle Ursache bleibt.
-- **Punkt 5 — Score-Methodik-Sync-Regel strukturell absichern**
-  - **Schritt 1: erledigt via PR #84 (10.05.2026).**
-  - **Schritt 2 (offen):** `score()` und `_compute_sub_scores()` aus
-    denselben `SUB_*_DISPLAY_PTS_MAX`-Konstanten ableiten.
-- **Punkt 6 — `_drivers_breakdown` mit `score()` zusammenziehen**
-  - **Schritt A: erledigt via PR #83 (10.05.2026).**
-  - **Schritt B (offen):** `score()` und `_compute_sub_scores()` aus
-    `DRIVER_CLASSIFICATIONS` ableiten lassen.
-
----
-
-## Architektur-Anker (kumuliert + heutige Erweiterungen)
-
-### Intraday-Snapshot-Label (PR #158)
-
-- `_renderRunPhasePill(phase, generatedAt)` mit drei Anzeige-Klassen.
-- Disambiguation **clientseitig** aus `app_data.generated_at`-Timestamp
-  → kein Backend-Refactor, `run_phase`-Semantik unverändert (weiterhin
-  nur premarket/postclose, Backtest-Schutz wirkt wie zuvor).
-- Beide premarket-Varianten teilen CSS-Klasse `hdr-runphase-premarket`
-  (gelb = „Daten nicht final").
-
-### Trade-Journal-Eröffnungs-These (PR #159)
-
-- `positions[ticker]` hat jetzt **`entry_thesis`** (User-Freitext,
-  optional, max 500 Zeichen) **plus 12 entry_*-Snapshot-Felder**:
-  `entry_score`, `entry_score_bucket`, `entry_conviction_score`,
-  `entry_conviction_level`, `entry_conviction_components` (Sub-Objekt
-  mit setup/earliness/anomaly/regime), `entry_dtc`, `entry_short_float`,
-  `entry_cost_to_borrow`, `entry_monster_score`, `entry_ki_score`,
-  `entry_rvol`, `entry_si_trend`, `entry_snapshot_ts`, plus FX-Felder.
-- Pre-Fill beim Schließen **dreistufig**: Cache (Bug-A-Recovery) →
-  `pos.entry_thesis` → `''`. `_escAttr` umschließt für XSS-Schutz.
-- Bestandspositionen ohne `entry_thesis` (vor 15.05. eröffnet) fallen
-  graceful auf leeren Pre-Fill — Soft-Migration.
-
-### Health-Check-JSONL-Persistenz (PR #160)
-
-- `daily-squeeze-report.yml` und `ki_agent.yml`: `git add` für
-  `health_check_log.jsonl` und `provider_health.jsonl` ergänzt.
-- Digest-Cron auf `21 8 * * *` verschoben (Last-Peak-Vermeidung).
-- ntfy-Send-Logging: Success-HTTP-Status + Exception-Type für
-  Diagnose-Schärfung.
-
-### Phase-3-Exit-Spec (PRs #161 + #162)
-
-- `docs/phase3_exit_spec.md` als Single-Source-of-Truth für die
-  spätere Implementation. Sektionen A–H.
-- Blow-off-Top als einziger Phase-3-Trigger:
-  - `change_5d ≥ 50 %` UND Live-Quote heute ≤ −5 %
-  - Gewicht 0.05 im Composite-Pressure
-  - `overheated`-Gewicht **nicht reduzieren** (bewusste
-    Spezialisierung — 50 % in 5 d ist deutlich strenger)
-- IV-Crush **gestrichen** (Aktien-Trader, yfinance-Limits).
-- **Implementation pending** — auf CRMD-Live-Test-Auswertung warten.
-
-### News-Coverage-Pool (PR #163)
-
-- `get_combined_news`-Pool ist **Set-Union** `top10 ∪ manual_personal`.
-- ThreadPool `max_workers=16` deckt erweiterten Pool ab.
-- Attachment via `_news_by_ticker`-Dict → Loop über `enriched`.
-- Top-10-Stocks bekommen news weiterhin direkt (Referenz-equal);
-  Watchlist-Outsider via `_wl_card_payload → watchlist_cards`.
-
-### Auto-Merge-Regel (CLAUDE.md, ab 15.05.2026)
-
-- **Auto-Merge erlaubt für**: Doku, Frontend-Tweaks, Workflow-Tweaks
-  innerhalb existierender YAMLs, Helper-Refactor, State-Logging,
-  Mock-Tests, Backward-compat-Aliase.
-- **Manueller Easy-Merge mit Code-Review-Pflicht für**: neue Workflow-
-  Dateien, neue JSON-Schemas, neue API-Integrationen, Score-/
-  Conviction-/Filter-Logik-Änderungen.
-- Im Zweifel: lieber Easy-Merge anfragen als Auto-Merge.
-
-### Frühere Architektur-Anker (Bestand aus 14.05.2026)
-
-- **Earliness V2** DTC-Niveau-Basis als Default (`EARLINESS_FORMULA_VERSION=2`,
-  V1 als Rollback-Pfad). PR #141.
-- **Earliness-Trend-Logging** — 4 prospektive Felder im Backtest-
-  Schema v4. PR #142.
-- **`topten_entry`** liest aus `backtest_history`. PR #144.
-- **KI-Agent und Daily-Run beide auf `xx:17`-Cron**. PRs #143 + #145.
-- **Daily-Run-Auto-Trigger KI-Agent**. PR #150.
-- **Score-Konfidenz-Stufen** in `app_data.json` mit CI-Lint-Isolation.
-  PR #146.
-- **Token-Pipeline saniert**: Settings-Panel-UI-Refresh,
-  Drei-Zustände-Routing für Position-Panel + Trade-Journal, 4
-  Action-Pfade durch `_ensureToken`-Wrapper, `.gist-locked-box`-
-  CSS-Klasse, Storage-Diagnose-Panel. PRs #147, #148, #149, #151.
-- **Health-Check-Projekt vollständig**: 7 State-Invariants + 15
-  Provider (4 Tier 1 / 4 Tier 2 / 7 Tier 3) + Daily-Digest 08:21 UTC.
-  PRs #150, #152, #153, #154, #155.
-- **Methodik-Display zeigt versteckte Boni**: Borrow-Rate-Tiers,
-  Float-Turnover-3-Tier, UOA-Aufschlüsselung. PR #156.
-
----
-
-## Lessons Learned (15.05.2026)
-
-- **Ausbleibender Health-Check-Push war wertvolles Liveness-Signal.**
-  Zwei strukturelle Bugs auf einmal enthüllt: JSONL-Persistenz fehlte
-  komplett (Folgefehler aus Phase-2-PRs #152–#154) UND Cron-Slot
-  gedroppt. Beide in einem kleinen Fix (PR #160) adressiert. Die
-  „Liveness-Check by Absence"-Idee aus der Health-Check-Spec hat sich
-  in der ersten Woche bewährt.
-
-- **Spec-Workshop ohne Implementation als eigenständiger Wert.**
-  Phase-3-Spec heute geschrieben ohne Code zu produzieren. Ergebnis:
-  IV-Crush konnte sauber abgewählt werden (Daten-Limits + zu wenig
-  Aktien-Trading-Wert), Blow-off-Top als spezifischer Endphase-
-  Trigger ausgearbeitet. Implementation wartet auf empirischen
-  Live-Test (CRMD) statt auf Engineering-Bauchgefühl.
-
-- **Auto-Merge-Regel: Trade-off Vier-Augen vs. Workflow-Geschwindigkeit.**
-  Neue Regel reduziert manuelle Merges für Doku/Frontend/Workflow-
-  Tweaks drastisch. Manueller Merge bleibt nur bei strukturell
-  riskanten Änderungen (neue Schemas, neue APIs, Score-Logik). Erste
-  Erfahrung: deutlich flüssigerer Workflow, kein qualitativer Verlust.
-
-- **CRMD-Trade als Live-Datenpunkt für Phase-3-Spec.** Conviction 98
-  vor Earnings gekauft, positive Earnings, Sell-the-news-Reaktion.
-  Tool-Exit-Druck 22/100 stützt „halten"-Plan. Wenn Position trotz
-  Sell-the-news im Recovery-Pfad bleibt → Phase 2 reicht aus. Wenn
-  schlechter Verlauf → Phase 3 als spezifischer Endphase-Trigger
-  validiert. **Single Live-Trade gibt die Implementations-Entscheidung
-  für ein Feature, das sonst spekulativ gebaut worden wäre.**
-
-- **Coverage-Lücken zeigen sich erst bei Position-Halt.** News-
-  Fetcher war auf Top-10 beschränkt. Easy bemerkte das erst, als CRMD
-  nach Earnings aus Top-10 fiel. Trading-Wert-Filter etabliert
-  (12.05.) hat sich bewährt: nicht „Engineering-Vollständigkeit"
-  sondern „hilft das bei nächster Trade-Entscheidung" als
-  Priorisierungs-Maßstab.
-
-- **Karten-Anzeige soll Datenlücken klar kommunizieren — oder besser
-  schließen.** CRMD „Aktuelle Meldungen leer" war kein Bug sondern
-  fehlende Coverage. Aber visuell vom User nicht unterscheidbar.
-  PR #163 löst es mit echten Daten — Option C (Frontend-Hinweis) wäre
-  nur Symptom-Bekämpfung gewesen. **Echte Daten schlagen Erklär-
-  Tooltips.**
+1. **Tier-3-success_check-Bug-Klasse** war breiter als gedacht — Finnhub-
+   Diagnose (PR #169) führte zu 4 weiteren Providern mit demselben
+   Symptom (edgar_8k/form4/13d_g/stocktwits, PR #175). Eine Diagnose,
+   fünf Fixes. **Pattern-Diagnose schlägt Einzelfall-Fix.**
+2. **2-Phasen-Approach für Coverage-Erweiterungen** — Conviction-Coverage
+   musste vor KI-Agent-Coverage gehen (Push-Spam-Schutz). Ohne Phase 1
+   wäre Phase 2 broken gewesen (Gating-Filter hätte nicht gegriffen
+   für Watchlist-Outsider).
+3. **KPTI-Verlust trotz Conviction 81 high** = Kalibrierungs-Indiz.
+   Conviction war hoch, aber Setup brach trotzdem. Erste Empirik gegen
+   die `ANOMALY_CONVICTION_MIN_THRESHOLD = 75`-Schwelle gestartet —
+   Beobachtung nach 5+ weiteren high-Conviction-Trades.
+4. **CRMD ist kein Phase-3-Fall** — Pre-Earnings-Spike-Klassiker, nicht
+   parabolischer Endphasen-Squeeze. `change_5d < 10 %`, kein Reversal-
+   Pattern. Phase-3-Implementation wartet auf eine andere Position-Klasse.
+5. **Score-Inflation-Empirik braucht 14 Tage Daten** bevor PR-γ-Aktivierung
+   sinnvoll ist. Heute Helper + Schema v2 gebaut, OFF by default.
+   Aktivierung am 30.05. mit echten Daten statt 0.10-Daumenwert.
+6. **Knaller-Definition: Hybrid mit Floor schlägt reine P90/P10** — bei
+   flachen Buckets (Median ≈ 0) wäre 3×-Median-Definition sinnlos. P90
+   plus absoluter Floor (≥ 10 %) ist robust ab Trade #1.
+7. **Skeleton-UI abgelehnt, Hotkeys abgelehnt** — iPhone-Fokus dominiert
+   UX-Entscheidungen. Desktop-Power-User-Features sind out of scope.
+8. **Diagnose-Reports vorm Code zahlen sich aus** — 8+ NUR-DIAGNOSE-
+   Aufträge heute, jedes Mal saubere Bug-/Architektur-Klärung vor
+   Implementation. Verhindert Fehl-Refactors.
+9. **CSS-Padding fest in px vs em-skaliert mit Schrift** — schlummernder
+   Mobile-UX-Bug (PR #179). Pattern für weitere Container im Backlog
+   prüfen.
+10. **`<details>`-Pattern ist Mobile-Gold** — 3500 px → ~700 px Methodik-
+    Panel (PR #178). Native Browser-Accessibility, kein JS, Tap-Target
+    automatisch. Vorbild für andere lange Read-only-Sektionen.
