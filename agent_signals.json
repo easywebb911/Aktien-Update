@@ -1,17 +1,17 @@
 {
-  "updated": "2026-05-16T18:13:41.519778+02:00",
+  "updated": "2026-05-16T18:50:16.733895+02:00",
   "run_info": {
     "tickers_checked": 14,
     "signals_active": 4,
     "alerts_sent": 0,
-    "elapsed_s": 17.6,
+    "elapsed_s": 19.2,
     "market_phase": "Geschlossen"
   },
   "signals": {
     "AI": {
-      "score": 18,
+      "score": 26,
       "confidence": 33,
-      "drivers": "Earnings in 11d + UOA Call/Put 3.5×",
+      "drivers": "News-KI 8/30: Massive selling pressure across multiple AI stocks with no short-covering catalysts evident; negative momentum contradic + Earnings in 11d + UOA Call/Put 3.5×",
       "price": 8.65,
       "chg_pct": -0.0,
       "rvol_4d": 1.01,
@@ -53,9 +53,9 @@
       "uoa_cp_ratio": 4.439244663382595
     },
     "CRMD": {
-      "score": 18,
+      "score": 40,
       "confidence": 33,
-      "drivers": "Spanne 8.8% + News-KI 8/30: Positive earnings and guidance raise are bullish but lack short squeeze indicators like high short interest, low float, ",
+      "drivers": "Spanne 8.8% + News: earnings beat, guidance raised",
       "price": 7.55,
       "chg_pct": 0.0,
       "rvol_4d": 1.46,
@@ -66,7 +66,7 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 0,
+      "active_triggers": 1,
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": null,
@@ -95,7 +95,7 @@
     "GEMI": {
       "score": 68,
       "confidence": 70,
-      "drivers": "Volumen 8.2× + 🚀 Massives Volumen 8.2×+ + Spanne 22.8% + News-KI 8/30: Positive earnings and stock movement lack short-squeeze indicators like high short interest, low float, or forced coveri + UOA Call/Put 2.9×",
+      "drivers": "Volumen 8.2× + 🚀 Massives Volumen 8.2×+ + Spanne 22.8% + News-KI 8/30: Positive earnings and price movement noted, but no indicators of high short interest, low float, or squeeze catalysts ty + UOA Call/Put 2.9×",
       "price": 5.58,
       "chg_pct": -0.0,
       "rvol_4d": 8.22,
@@ -154,6 +154,26 @@
       "uoa_atm_ratio": 0.8742079761461051,
       "uoa_cp_ratio": 0.6368927426060103
     },
+    "LESL": {
+      "score": 10,
+      "confidence": 17,
+      "drivers": "Spanne 40.7%",
+      "price": 3.03,
+      "chg_pct": -0.0,
+      "rvol_4d": 0.53,
+      "rvol_20d": 2.63,
+      "earnings": "in 82 Tagen (06.08.2026)",
+      "fda_date": null,
+      "upcoming_event": null,
+      "insider_buy": false,
+      "stocktwits": null,
+      "combo_mult": 1.0,
+      "active_triggers": 0,
+      "uoa_score": 0,
+      "uoa_drivers": [],
+      "uoa_atm_ratio": null,
+      "uoa_cp_ratio": null
+    },
     "NTLA": {
       "score": 55,
       "confidence": 70,
@@ -174,30 +194,10 @@
       "uoa_atm_ratio": null,
       "uoa_cp_ratio": null
     },
-    "PRA": {
-      "score": 61,
-      "confidence": 70,
-      "drivers": "Volumen 2.5× + News: acquisition + FINRA Short-Vol 100%",
-      "price": 24.51,
-      "chg_pct": 0.0,
-      "rvol_4d": 2.47,
-      "rvol_20d": 2.0,
-      "earnings": "in 80 Tagen (04.08.2026)",
-      "fda_date": null,
-      "upcoming_event": null,
-      "insider_buy": false,
-      "stocktwits": null,
-      "combo_mult": 1.1,
-      "active_triggers": 2,
-      "uoa_score": 0,
-      "uoa_drivers": [],
-      "uoa_atm_ratio": null,
-      "uoa_cp_ratio": null
-    },
     "PZZA": {
       "score": 55,
       "confidence": 70,
-      "drivers": "Volumen 1.8× + Spanne 6.3% + News: buyout, takeover",
+      "drivers": "Volumen 1.8× + Spanne 6.3% + News: takeover, buyout",
       "price": 34.73,
       "chg_pct": -0.0,
       "rvol_4d": 1.78,
@@ -215,9 +215,9 @@
       "uoa_cp_ratio": null
     },
     "RR": {
-      "score": 55,
+      "score": 43,
       "confidence": 70,
-      "drivers": "Earnings in 6 Tagen (22.05.2026) + Spanne 6.4% + News: partnership + Earnings in 6d + UOA Call/Put 3.9×",
+      "drivers": "Earnings in 6 Tagen (22.05.2026) + Spanne 6.4% + News-KI 8/30: Positive partnership news with SoundHound AI lacks short-squeeze indicators like high short interest, low float, or extr + Earnings in 6d + UOA Call/Put 3.9×",
       "price": 2.68,
       "chg_pct": 0.0,
       "rvol_4d": 0.65,
@@ -227,8 +227,8 @@
       "upcoming_event": "Earnings in 6 Tagen (22.05.2026)",
       "insider_buy": false,
       "stocktwits": null,
-      "combo_mult": 1.1,
-      "active_triggers": 2,
+      "combo_mult": 1.0,
+      "active_triggers": 1,
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 3.9×"
@@ -259,7 +259,7 @@
     "SKYQ": {
       "score": 88,
       "confidence": 70,
-      "drivers": "Volumen 7.7× + 🚀 Massives Volumen 7.7×+ + Spanne 51.2% + News: short interest, partnership",
+      "drivers": "Volumen 7.7× + 🚀 Massives Volumen 7.7×+ + Spanne 51.2% + News: partnership, short interest",
       "price": 3.07,
       "chg_pct": -0.0,
       "rvol_4d": 7.69,
