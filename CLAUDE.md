@@ -1142,6 +1142,67 @@ solide berechenbar.
 
 ---
 
+## Score-Delta T-1 (Setup-Score, Phase 1)
+
+Macht den Tagesvergleich des Setup-Scores direkt auf jeder Top-10-
+und Watchlist-Drawer-Karte sichtbar — als kleine Span unter dem
+Score-Wert. Design-Berater-Empfehlung 16.05.2026: prominent zeigen
+wenn Setup-Score gegenüber gestern stark gestiegen oder gefallen ist;
+Easy entscheidet ob „Squeeze in Ignition" oder „sterbend".
+
+**Hybrid-Stille-Schwelle (verhindert Mini-Drift-Lärm):**
+
+| |Δ| | Verhalten | CSS-Klasse |
+|---|---|---|
+| `< 2` | **nichts rendern** | (leerer String) |
+| `2..5` (exklusiv) | dezent grau | `.sb-delta-mute` |
+| `≥ 5` (positiv) | grün ▲ | `.sb-delta-up` |
+| `≥ 5` (negativ) | rot ▼ | `.sb-delta-down` |
+| `≥ 15` (zusätzlich) | bold | `.sb-delta-strong` Modifier |
+
+**Quelle**: `s["sparkline"]["scores"]` (raw Setup-Scores aus
+`score_history.json`, materialisiert in `apply_score_smoothing`).
+Letzte zwei Einträge: `[-2]` = Vortag, `[-1]` = heute. Bei < 2
+Einträgen kein Delta.
+
+**Helper `_score_delta_html(s)`** in `generate_report.py` direkt vor
+`_score_block_inner_html`. Pure Funktion ohne Side-Effects. Liest aus
+`s.sparkline` — kein Threading durch Aufrufer-Pfade nötig. Returnt
+`""` bei Edge-Cases (fehlende Sparkline, invalid scores, < 2 Einträge,
+|Δ| < 2).
+
+**Wiring**: nur Setup-Row in `_score_block_inner_html` zeigt Delta.
+Conviction/Monster/KI-Rows ohne Delta — sie haben **keine
+persistierte History** heute. Folge-PR-Idee siehe „Pflege" unten.
+
+**Tooltip-Format**:
+```
+title="Δ +7.0 ggü. letztem Daily-Run (15.05.2026, raw 50.0 → 57.0)"
+aria-label="Delta +7.0"
+```
+
+**Phasen-Mismatch**: premarket-heute vs postclose-gestern liefert
+strukturell verzerrte Deltas (RVOL-Drift im premarket-Run). Helper
+zeigt das ohne Disclaimer an — die Normalisierung adressiert das
+Problem in der Berechnung (PR-α/β/γ-Pipeline), nicht in der Anzeige.
+
+### Pflege
+
+- Schwellen-Anpassung (2/5/15): aktuell als JS-/Python-Literal in
+  `_score_delta_html` zentralisiert. Bei Änderung sowohl Helper als
+  auch CLAUDE.md-Tabelle oben synchron pflegen.
+- **Folge-PR-Idee (Phase 2)**: Conviction/Monster/KI-Delta erfordern
+  eigene History-Persistenz. Vorschlag: `conviction_history.json`,
+  `monster_history.json`, `ki_history.json` analog
+  `score_history.json` (Schema `{ticker: [[date, value], ...]}`,
+  14-Tage-Cutoff). Helper `_score_delta_html` mehrfach instanziieren
+  mit Score-Klasse-Parameter. Vor diesem PR Easy fragen ob Setup-
+  Delta nützlich im Alltag.
+- Score-Methodik-Sync-Regel: **nicht betroffen** — reines Display-
+  Feature, keine Score-Berechnung berührt.
+
+---
+
 ## Sparkline-Tooltips mit Driver-Historie
 
 Jeder Sparkline-Punkt zeigt bei Hover (Desktop) bzw. Tap (Mobile)
