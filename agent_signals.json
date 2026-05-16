@@ -1,10 +1,10 @@
 {
-  "updated": "2026-05-16T18:06:54.430474+02:00",
+  "updated": "2026-05-16T18:13:41.519778+02:00",
   "run_info": {
     "tickers_checked": 14,
     "signals_active": 4,
     "alerts_sent": 0,
-    "elapsed_s": 14.4,
+    "elapsed_s": 17.6,
     "market_phase": "Geschlossen"
   },
   "signals": {
@@ -53,9 +53,9 @@
       "uoa_cp_ratio": 4.439244663382595
     },
     "CRMD": {
-      "score": 40,
+      "score": 18,
       "confidence": 33,
-      "drivers": "Spanne 8.8% + News: guidance raised, earnings beat",
+      "drivers": "Spanne 8.8% + News-KI 8/30: Positive earnings and guidance raise are bullish but lack short squeeze indicators like high short interest, low float, ",
       "price": 7.55,
       "chg_pct": 0.0,
       "rvol_4d": 1.46,
@@ -66,7 +66,7 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 1,
+      "active_triggers": 0,
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": null,
@@ -93,9 +93,9 @@
       "uoa_cp_ratio": null
     },
     "GEMI": {
-      "score": 82,
+      "score": 68,
       "confidence": 70,
-      "drivers": "Volumen 8.2× + 🚀 Massives Volumen 8.2×+ + Spanne 22.8% + News: earnings beat + UOA Call/Put 2.9×",
+      "drivers": "Volumen 8.2× + 🚀 Massives Volumen 8.2×+ + Spanne 22.8% + News-KI 8/30: Positive earnings and stock movement lack short-squeeze indicators like high short interest, low float, or forced coveri + UOA Call/Put 2.9×",
       "price": 5.58,
       "chg_pct": -0.0,
       "rvol_4d": 8.22,
@@ -105,8 +105,8 @@
       "upcoming_event": null,
       "insider_buy": false,
       "stocktwits": null,
-      "combo_mult": 1.1,
-      "active_triggers": 2,
+      "combo_mult": 1.0,
+      "active_triggers": 1,
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 2.9×"
@@ -157,7 +157,7 @@
     "NTLA": {
       "score": 55,
       "confidence": 70,
-      "drivers": "Volumen 2.0× + Spanne 6.8% + News: short interest, earnings beat",
+      "drivers": "Volumen 2.0× + Spanne 6.8% + News: earnings beat, short interest",
       "price": 13.67,
       "chg_pct": 0.0,
       "rvol_4d": 1.99,
@@ -197,7 +197,7 @@
     "PZZA": {
       "score": 55,
       "confidence": 70,
-      "drivers": "Volumen 1.8× + Spanne 6.3% + News: takeover, buyout",
+      "drivers": "Volumen 1.8× + Spanne 6.3% + News: buyout, takeover",
       "price": 34.73,
       "chg_pct": -0.0,
       "rvol_4d": 1.78,
