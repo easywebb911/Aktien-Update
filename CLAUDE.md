@@ -776,8 +776,23 @@ Warnung über `_wlWarn()`.
 ## Phase 2 exit_state-Schema (app_data.json)
 
 Pro offener Position schreibt der Daily-Run via
-`_compute_exit_state` ein `exit_state`-Dict nach
-`app_data["positions"][ticker]["exit_state"]`. Felder:
+`_build_phase2_positions_payload` ein Position-Sub-Dict nach
+`app_data["positions"][ticker]`. Felder (Top-Level):
+
+| Key | Typ | Bedeutung |
+|---|---|---|
+| `entry_date`, `entry_price`, `shares`, `entry_fx`, `fx_estimated` | aus Gist | Stammdaten beim Position-Open |
+| `entry_dtc`, `entry_short_float`, `entry_cost_to_borrow`, `entry_snapshot_ts` | aus Gist (optional) | Trigger-4-Setup-Erosion-Snapshot beim Open |
+| **`current_price`** (neu seit 16.05.2026) | float \| None | Aktueller Spot-Preis. Reihenfolge: Top-10-Lookup (`stocks[t].price`) → `_fetch_position_market_data`-yfinance-Singleton-Fallback → `None`. Update-Frequenz: **2× pro Werktag** (premarket 10:17 UTC + postclose 21:17 UTC Daily-Run). KI-Agent-Tick (xx:17) berührt das Feld nicht; `**existing`-Spread in `save_signals` preserviert den letzten Daily-Run-Wert. Stündliche Updates wären separater Folge-PR (KI-Agent-Tick-Erweiterung). |
+| `exit_state` | dict | siehe Sub-Schema unten |
+
+`current_price` schließt Health-Check S3 für alle Positionen mit
+yfinance-Verfügbarkeit. Bei echtem Fetch-Fehler bleibt das Feld `None`
+— S3 meldet dann zurecht (echter Daten-Lücken-Indikator).
+
+### Sub-Schema `exit_state`
+
+(via `_compute_exit_state` befüllt, in `app_data["positions"][ticker]["exit_state"]`)
 
 | Key | Typ | Bedeutung |
 |---|---|---|
