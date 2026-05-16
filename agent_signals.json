@@ -1,17 +1,17 @@
 {
-  "updated": "2026-05-16T12:51:48.692235+02:00",
+  "updated": "2026-05-16T13:11:19.039249+02:00",
   "run_info": {
     "tickers_checked": 10,
     "signals_active": 4,
     "alerts_sent": 0,
-    "elapsed_s": 10.2,
+    "elapsed_s": 12.9,
     "market_phase": "Geschlossen"
   },
   "signals": {
     "PZZA": {
       "score": 55,
       "confidence": 70,
-      "drivers": "Volumen 1.8× + Spanne 6.3% + News: acquisition, buyout",
+      "drivers": "Volumen 1.8× + Spanne 6.3% + News: buyout, acquisition",
       "price": 34.73,
       "chg_pct": -0.0,
       "rvol_4d": 1.78,
@@ -51,7 +51,7 @@
     "GEMI": {
       "score": 68,
       "confidence": 70,
-      "drivers": "Volumen 8.2× + 🚀 Massives Volumen 8.2×+ + Spanne 22.8% + News-KI 8/30: Positive earnings and revenue growth are bullish but lack short squeeze catalysts like high short interest, low float, o + UOA Call/Put 2.9×",
+      "drivers": "Volumen 8.2× + 🚀 Massives Volumen 8.2×+ + Spanne 22.8% + News-KI 8/30: Positive earnings and stock movement lack short-squeeze indicators like high short interest, low float, or explicit gamm + UOA Call/Put 2.9×",
       "price": 5.58,
       "chg_pct": -0.0,
       "rvol_4d": 8.22,
@@ -133,7 +133,7 @@
     "NTLA": {
       "score": 55,
       "confidence": 70,
-      "drivers": "Volumen 2.0× + Spanne 6.8% + News: earnings beat, short interest",
+      "drivers": "Volumen 2.0× + Spanne 6.8% + News: short interest, earnings beat",
       "price": 13.67,
       "chg_pct": 0.0,
       "rvol_4d": 1.99,
@@ -153,7 +153,7 @@
     "CRMD": {
       "score": 40,
       "confidence": 33,
-      "drivers": "Spanne 8.8% + News: earnings beat, guidance raised",
+      "drivers": "Spanne 8.8% + News: guidance raised, earnings beat",
       "price": 7.55,
       "chg_pct": 0.0,
       "rvol_4d": 1.46,
@@ -190,15 +190,15 @@
       "uoa_atm_ratio": null,
       "uoa_cp_ratio": null
     },
-    "SPIR": {
-      "score": 40,
-      "confidence": 70,
-      "drivers": "Volumen 1.6× + Spanne 15.5% + News: contract",
-      "price": 20.01,
-      "chg_pct": 0.0,
-      "rvol_4d": 1.55,
-      "rvol_20d": 1.75,
-      "earnings": "in 88 Tagen (12.08.2026)",
+    "LESL": {
+      "score": 25,
+      "confidence": 33,
+      "drivers": "Spanne 40.7% + News: unusual volume",
+      "price": 3.03,
+      "chg_pct": -0.0,
+      "rvol_4d": 0.53,
+      "rvol_20d": 2.63,
+      "earnings": "in 82 Tagen (06.08.2026)",
       "fda_date": null,
       "upcoming_event": null,
       "insider_buy": false,
