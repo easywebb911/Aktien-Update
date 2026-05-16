@@ -3,16 +3,19 @@ name: Health-Check Daily Digest
 # Phase 3 — täglicher Aggregations-Push laut Spec
 # docs/health_check_spec.md "Daily-Digest-Format".
 #
-# Cron-Offset (Stand 15.05.2026 nach Diagnose):
+# Cron-Offset (Stand 16.05.2026 nach erneuter Diagnose):
 # - Spec-Wortlaut war ``0 8 * * *``.
-# - Erste Iteration ``13 8 * * *`` wurde am 15.05. gedropt (State-Commit
+# - Iteration 1 ``13 8 * * *`` wurde am 15.05. gedropt (State-Commit
 #   erst um 10:37 UTC statt 08:13 → Drift > 2 h).
-# - Jetzt ``21 8 * * *`` — analog ki_agent ``17 * * * *``-Offset weiter
-#   weg vom Stunden-Last-Peak. Empirisch dort ~80-90 % Coverage.
+# - Iteration 2 ``21 8 * * *`` ebenfalls gedropt am 16.05. (08:21 Slot
+#   nicht gefeuert; die 15.05.-Korrektur war nicht weit genug vom
+#   Stunden-Peak entfernt).
+# - Iteration 3 ``47 8 * * *`` — deutlich näher zur Stunden-Mitte,
+#   analog ki_agent ``17 * * * *``-Erfolgs-Pattern (Coverage > 95 %).
 
 on:
   schedule:
-    - cron: '21 8 * * *'
+    - cron: '47 8 * * *'
   workflow_dispatch:   # Manueller Trigger jederzeit (Mehrfach-Trigger-
                        # Schutz im Skript via last_digest_sent-Datum).
 
@@ -49,6 +52,9 @@ jobs:
         run: python scripts/health_check_digest.py
 
       - name: Commit digest state
+        if: always()   # state immer persistieren, auch wenn Skript exit 1
+                       # bei ntfy-Send-Fail (16.05.2026 — Fail-Visibility-Fix).
+                       # Sonst würde Mehrfach-Trigger-Schutz nicht greifen.
         run: |
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git config user.name "github-actions[bot]"

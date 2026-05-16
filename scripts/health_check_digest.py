@@ -209,11 +209,19 @@ def _already_sent_today(state: dict, today_iso: str) -> bool:
 def main(*, now_ts: datetime | None = None,
          force: bool = False,
          dry_run: bool = False) -> int:
-    """Returnt Exit-Code: 0 = OK (Push gesendet oder skip), 1 = Fehler.
+    """Returnt Exit-Code:
+      0 = OK (Push gesendet / ntfy disabled / dry-run / skip)
+      1 = ntfy-Send-Fail bei aktivem NTFY_TOPIC (16.05.2026 — macht
+          GitHub-Actions-Run rot, Email-Notification an Easy).
 
     ``force=True`` umgeht den Mehrfach-Trigger-Schutz (für Debug).
     ``dry_run=True`` schreibt State nicht zurück und sendet keinen
     Push — nur Stdout-Print für lokale Tests.
+
+    State-Datei wird IMMER vor dem Exit-Code-Return geschrieben
+    (außer dry_run), damit Cooldown-Logik auch bei ntfy-Fail wirkt
+    und der Workflow-Commit-Step (``if: always()``) den Stand
+    persistieren kann.
     """
     now_ts = now_ts or datetime.now(timezone.utc)
     today_iso = now_ts.strftime("%Y-%m-%d")
@@ -253,10 +261,20 @@ def main(*, now_ts: datetime | None = None,
         print(body)
         return 0
 
-    sent = _ntfy_send(title, body, priority, tags)
-    if sent or not NTFY_TOPIC:
-        # Wenn ntfy aktiv UND gesendet → mark today as sent.
-        # Wenn ntfy disabled → trotzdem state-update, damit auch ohne
+    # ntfy-Send mit Exception-Auffang: hartes Versagen (Netzwerk-Bug,
+    # Exception in requests.post) wird wie sent=False behandelt und
+    # zum Workflow-Fail eskaliert. _ntfy_send selbst ist fail-soft,
+    # aber wir wollen kein Silent-Fail wenn NTFY_TOPIC erwartet wird.
+    ntfy_active = bool(NTFY_TOPIC and NTFY_ENABLED)
+    try:
+        sent = _ntfy_send(title, body, priority, tags)
+    except Exception as exc:
+        log.warning("ntfy-Send Exception: %s: %s", type(exc).__name__, exc)
+        sent = False
+
+    if sent or not ntfy_active:
+        # ntfy aktiv UND gesendet → mark today as sent.
+        # ntfy disabled / Test-Mode → trotzdem state-update, damit auch ohne
         # ntfy nicht mehrfach pro Tag gerechnet wird (lokale Test-Runs).
         state["last_digest_sent"] = today_iso
     if n_runs > 0 and not state_fails and not prov_fails:
@@ -264,6 +282,15 @@ def main(*, now_ts: datetime | None = None,
             last_run_iso or now_ts.strftime("%Y-%m-%dT%H:%M:%SZ"))
 
     _save_digest_state(state)
+
+    # Fail-Visibility-Fix (16.05.2026): Wenn ntfy aktiv erwartet wird
+    # aber der Send fehlgeschlagen ist → exit 1. State ist bereits
+    # persistiert; der `if: always()`-Commit-Step im Workflow läuft
+    # trotzdem; aber der Run wird rot und Easy bekommt eine
+    # GitHub-Notification. Vermeidet Silent-Fails wie am 15.05.2026.
+    if ntfy_active and not sent:
+        log.error("Digest-Push fehlgeschlagen — Workflow wird rot markiert.")
+        return 1
     return 0
 
 
