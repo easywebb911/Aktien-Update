@@ -1,10 +1,10 @@
 {
-  "updated": "2026-05-16T19:16:46.720374+02:00",
+  "updated": "2026-05-16T19:22:42.316723+02:00",
   "run_info": {
     "tickers_checked": 14,
     "signals_active": 4,
     "alerts_sent": 0,
-    "elapsed_s": 14.4,
+    "elapsed_s": 14.0,
     "market_phase": "Geschlossen"
   },
   "signals": {
@@ -53,9 +53,9 @@
       "uoa_cp_ratio": 4.439244663382595
     },
     "CRMD": {
-      "score": 40,
+      "score": 18,
       "confidence": 33,
-      "drivers": "Spanne 8.8% + News: earnings beat, guidance raised",
+      "drivers": "Spanne 8.8% + News-KI 8/30: Positive earnings and raised guidance suggest fundamental strength but lack short squeeze indicators like high short int",
       "price": 7.55,
       "chg_pct": 0.0,
       "rvol_4d": 1.46,
@@ -66,7 +66,7 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 1,
+      "active_triggers": 0,
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": null,
@@ -135,9 +135,9 @@
       "uoa_cp_ratio": null
     },
     "IONQ": {
-      "score": 18,
-      "confidence": 33,
-      "drivers": "Spanne 6.3% + News-KI 8/30: Positive fundamental narrative but no indicators of elevated short interest, recent short squeezes, or technical compres",
+      "score": 10,
+      "confidence": 17,
+      "drivers": "Spanne 6.3%",
       "price": 51.95,
       "chg_pct": 0.0,
       "rvol_4d": 0.66,
@@ -153,26 +153,6 @@
       "uoa_drivers": [],
       "uoa_atm_ratio": 0.8742079761461051,
       "uoa_cp_ratio": 0.6368927426060103
-    },
-    "LESL": {
-      "score": 10,
-      "confidence": 17,
-      "drivers": "Spanne 40.7%",
-      "price": 3.03,
-      "chg_pct": -0.0,
-      "rvol_4d": 0.53,
-      "rvol_20d": 2.63,
-      "earnings": "in 82 Tagen (06.08.2026)",
-      "fda_date": null,
-      "upcoming_event": null,
-      "insider_buy": false,
-      "stocktwits": null,
-      "combo_mult": 1.0,
-      "active_triggers": 0,
-      "uoa_score": 0,
-      "uoa_drivers": [],
-      "uoa_atm_ratio": null,
-      "uoa_cp_ratio": null
     },
     "NTLA": {
       "score": 55,
@@ -197,7 +177,7 @@
     "PZZA": {
       "score": 55,
       "confidence": 70,
-      "drivers": "Volumen 1.8× + Spanne 6.3% + News: acquisition, buyout",
+      "drivers": "Volumen 1.8× + Spanne 6.3% + News: buyout, takeover",
       "price": 34.73,
       "chg_pct": -0.0,
       "rvol_4d": 1.78,
@@ -215,9 +195,9 @@
       "uoa_cp_ratio": null
     },
     "RR": {
-      "score": 52,
+      "score": 55,
       "confidence": 70,
-      "drivers": "Earnings in 6 Tagen (22.05.2026) + Spanne 6.4% + News-KI 12/30: Partnership announcements and business development news lack the short-squeeze catalysts of high short interest, earning + Earnings in 6d + UOA Call/Put 3.9×",
+      "drivers": "Earnings in 6 Tagen (22.05.2026) + Spanne 6.4% + News: partnership + Earnings in 6d + UOA Call/Put 3.9×",
       "price": 2.68,
       "chg_pct": 0.0,
       "rvol_4d": 0.65,
@@ -259,7 +239,7 @@
     "SKYQ": {
       "score": 88,
       "confidence": 70,
-      "drivers": "Volumen 7.7× + 🚀 Massives Volumen 7.7×+ + Spanne 51.2% + News: short interest, partnership",
+      "drivers": "Volumen 7.7× + 🚀 Massives Volumen 7.7×+ + Spanne 51.2% + News: partnership, short interest",
       "price": 3.07,
       "chg_pct": -0.0,
       "rvol_4d": 7.69,
@@ -276,10 +256,30 @@
       "uoa_atm_ratio": null,
       "uoa_cp_ratio": null
     },
-    "TNXP": {
-      "score": 30,
+    "SPIR": {
+      "score": 40,
       "confidence": 70,
-      "drivers": "Volumen 1.8× + Spanne 16.9% + News-KI 5/30: Routine corporate announcements lacking catalysts for short squeeze; no evidence of significant short interest, major pr",
+      "drivers": "Volumen 1.6× + Spanne 15.5% + News: contract",
+      "price": 20.01,
+      "chg_pct": 0.0,
+      "rvol_4d": 1.55,
+      "rvol_20d": 1.75,
+      "earnings": "in 88 Tagen (12.08.2026)",
+      "fda_date": null,
+      "upcoming_event": null,
+      "insider_buy": false,
+      "stocktwits": null,
+      "combo_mult": 1.0,
+      "active_triggers": 1,
+      "uoa_score": 0,
+      "uoa_drivers": [],
+      "uoa_atm_ratio": null,
+      "uoa_cp_ratio": null
+    },
+    "TNXP": {
+      "score": 40,
+      "confidence": 70,
+      "drivers": "Volumen 1.8× + Spanne 16.9% + News: revenue beat",
       "price": 15.74,
       "chg_pct": -0.0,
       "rvol_4d": 1.81,
@@ -290,7 +290,7 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 0,
+      "active_triggers": 1,
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": null,
