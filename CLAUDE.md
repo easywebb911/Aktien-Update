@@ -438,6 +438,33 @@ Anwendung in `_compute_sub_scores()`: pro Match wird `5 × weight` zum
 now_ts)` ist single source of truth — falls UOA/Insider später ähnliche
 Decay-Logik bekommen, dort wiederverwendbar.
 
+### News-Coverage-Pool (seit 15.05.2026)
+
+`get_combined_news` läuft seit Diagnose 15.05.2026 nicht mehr nur über
+die Top-10, sondern über:
+
+```
+news_pool = {s["ticker"] for s in top10}
+         ∪ {c["ticker"] for c in enriched if c.get("manual_personal")}
+```
+
+Hintergrund: Position-Halter brauchen News-Awareness auch für Tickers,
+die nicht in der heutigen Top-10 stehen. Symptom war ein leerer
+„Aktuelle Meldungen"-Drawer auf der CRMD-Watchlist-Karte trotz frischer
+Earnings — CRMD war an dem Tag nicht in den Top-10 und `get_combined_news`
+ignorierte den Ticker.
+
+Set-Dedup verhindert Doppel-Fetch wenn ein Ticker in beiden Listen
+steckt. `max_workers=16` deckt den erweiterten Pool ab. News werden via
+`_news_by_ticker`-Dict an alle Stock-Dicts in `enriched` attached —
+Top-10-Dicts sind Referenz-equal zu ihren enriched-Pendants, Watchlist-
+Outsider bekommen die news via `enriched → _wl_card_payload →
+watchlist_cards[ticker].news`.
+
+Laufzeit-Impact: bei 3 typischen Watchlist-Outsidern +1–2 s pro
+Daily-Run (jeder Ticker macht 2 sequenzielle HTTP-Calls in einem
+Worker-Thread).
+
 ---
 
 ## Gap & Hold (Timing-Sub-Signal)
