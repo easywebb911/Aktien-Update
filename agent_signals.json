@@ -1,17 +1,17 @@
 {
-  "updated": "2026-05-16T15:58:19.694370+02:00",
+  "updated": "2026-05-16T16:01:03.112191+02:00",
   "run_info": {
     "tickers_checked": 14,
     "signals_active": 4,
     "alerts_sent": 0,
-    "elapsed_s": 14.8,
+    "elapsed_s": 14.3,
     "market_phase": "Geschlossen"
   },
   "signals": {
     "AI": {
-      "score": 18,
+      "score": 26,
       "confidence": 33,
-      "drivers": "Earnings in 11d + UOA Call/Put 3.5×",
+      "drivers": "News-KI 8/30: Moderate selling pressure across tech stocks with no clear short squeeze indicators like low float, high short interest, + Earnings in 11d + UOA Call/Put 3.5×",
       "price": 8.65,
       "chg_pct": -0.0,
       "rvol_4d": 1.01,
@@ -55,7 +55,7 @@
     "CRMD": {
       "score": 40,
       "confidence": 33,
-      "drivers": "Spanne 8.8% + News: earnings beat, guidance raised",
+      "drivers": "Spanne 8.8% + News: guidance raised, earnings beat",
       "price": 7.55,
       "chg_pct": 0.0,
       "rvol_4d": 1.46,
@@ -157,7 +157,7 @@
     "NTLA": {
       "score": 55,
       "confidence": 70,
-      "drivers": "Volumen 2.0× + Spanne 6.8% + News: earnings beat, short interest",
+      "drivers": "Volumen 2.0× + Spanne 6.8% + News: short interest, earnings beat",
       "price": 13.67,
       "chg_pct": 0.0,
       "rvol_4d": 1.99,
@@ -197,7 +197,7 @@
     "PZZA": {
       "score": 55,
       "confidence": 70,
-      "drivers": "Volumen 1.8× + Spanne 6.3% + News: takeover, buyout",
+      "drivers": "Volumen 1.8× + Spanne 6.3% + News: buyout, acquisition",
       "price": 34.73,
       "chg_pct": -0.0,
       "rvol_4d": 1.78,
@@ -259,7 +259,7 @@
     "SKYQ": {
       "score": 88,
       "confidence": 70,
-      "drivers": "Volumen 7.7× + 🚀 Massives Volumen 7.7×+ + Spanne 51.2% + News: partnership, short interest",
+      "drivers": "Volumen 7.7× + 🚀 Massives Volumen 7.7×+ + Spanne 51.2% + News: short interest, partnership",
       "price": 3.07,
       "chg_pct": -0.0,
       "rvol_4d": 7.69,
