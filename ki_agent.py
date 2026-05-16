@@ -115,6 +115,70 @@ def parse_top_tickers() -> list[str]:
     return clean
 
 
+_TICKER_RE = re.compile(r"^[A-Z0-9]{1,6}$")
+
+
+def parse_monitored_tickers() -> list[str]:
+    """Coverage-Pool für KI-Agent-Tick (Phase 2, 16.05.2026).
+
+    Pool = Top-10 (aus ``index.html``) ∪ persönliche Watchlist (aus
+    ``watchlist_personal.json``) ∪ aktive Positionen (aus
+    ``positions.json``). Set-Union vermeidet Duplikate.
+
+    Hintergrund: KI-Agent lief bislang nur über Top-10. Watchlist-
+    Outsider (z. B. Easys offene Positionen außerhalb der Top-10) hatten
+    keinen KI-Score / StockTwits / UOA / EDGAR-Tracking. Nach Phase 1
+    (Conviction-Coverage, PR #176) steht Conviction-Gating auch für
+    Watchlist-Outsider zur Verfügung — der Coverage-Pool kann
+    sicher erweitert werden, Push-Spam-Schutz bleibt durch das Gating
+    (≥ 75) erhalten.
+
+    Fail-soft: fehlende oder kaputte Dateien werden geskippt; Watchlist
+    und Positions sind beide optional. Returnt mindestens den
+    Top-10-Pool.
+
+    Ticker-Hygiene: 1–6 alphanumerische Zeichen (analog
+    parse_top_tickers); ungültige Symbole werden gefiltert.
+    """
+    tickers: set[str] = set(parse_top_tickers())
+
+    # Persönliche Watchlist (manual_personal-Tickers, materialisiert
+    # vom pull_gist_data.py-Workflow-Step).
+    wl_path = Path("watchlist_personal.json")
+    if wl_path.exists():
+        try:
+            wl = json.loads(wl_path.read_text(encoding="utf-8"))
+            if isinstance(wl, list):
+                for raw in wl:
+                    if not raw:
+                        continue
+                    t = str(raw).strip().upper().split(".")[0]
+                    if _TICKER_RE.match(t):
+                        tickers.add(t)
+        except (OSError, json.JSONDecodeError) as exc:
+            log.debug("parse_monitored_tickers: watchlist_personal "
+                      "Lese-Fehler: %s", exc)
+
+    # Aktive Positionen (gerade auch wenn nicht in Top-10 / Watchlist).
+    pos_path = Path("positions.json")
+    if pos_path.exists():
+        try:
+            pos = json.loads(pos_path.read_text(encoding="utf-8"))
+            if isinstance(pos, dict):
+                for raw in pos.keys():
+                    t = str(raw).strip().upper().split(".")[0]
+                    if _TICKER_RE.match(t):
+                        tickers.add(t)
+        except (OSError, json.JSONDecodeError) as exc:
+            log.debug("parse_monitored_tickers: positions Lese-Fehler: %s",
+                      exc)
+
+    result = sorted(tickers)
+    log.info("Monitored Coverage-Pool: %d Tickers (Top-10 ∪ Watchlist ∪ "
+             "Positions): %s", len(result), result)
+    return result
+
+
 # ── Zustand laden/speichern ───────────────────────────────────────────────────
 
 def load_state() -> dict:
@@ -2920,7 +2984,10 @@ def main() -> None:
     log.info("=== KI-Agent Start %s — %s (Schwelle: %d) ===",
              now_berlin().strftime("%Y-%m-%d %H:%M"), phase, alert_threshold)
 
-    tickers = parse_top_tickers()
+    # KI-Agent-Coverage Phase 2 (16.05.2026): Pool = Top-10 ∪ Watchlist
+    # ∪ Positions. Conviction-Gating in detect_anomalies (Phase 1
+    # PR #176) sichert Push-Spam-Schutz für Watchlist-Outsider.
+    tickers = parse_monitored_tickers()
     if not tickers:
         log.warning("Keine Ticker gefunden — Abbruch.")
         return
@@ -2988,7 +3055,12 @@ def main() -> None:
 
     _t_pool = time.time()
     results: dict[str, dict] = {}
-    with ThreadPoolExecutor(max_workers=8) as executor:
+    # max_workers von 8 auf 10 (16.05.2026, Phase-2-Coverage-Erweiterung):
+    # Pool ist um Watchlist-Outsider + Positions gewachsen (10 -> ~15
+    # typisch), Parallelitäts-Margin angehoben, damit Tick-Laufzeit
+    # nicht spürbar steigt. Per-Worker-IO-Wartezeit dominiert ohnehin
+    # (RSS/yfinance/SEC-Sleep), CPU-Limit unkritisch.
+    with ThreadPoolExecutor(max_workers=10) as executor:
         futures = {executor.submit(_process_ticker, t, shared): t for t in tickers}
         for future in as_completed(futures):
             t = futures[future]
@@ -3078,16 +3150,17 @@ def main() -> None:
     vix_warn_prefix = (f"⚠️ VIX {vix_now:.1f} | "
                        if vix_warn else "")
 
-    # SEC EDGAR 13D/13G Filings einmal pro Run abrufen — nur Top-10-relevante
-    # Filings; Hybrid-Filter (13D immer, 13G nur Aktivisten) läuft pro Anomaly
+    # SEC EDGAR 13D/13G Filings einmal pro Run abrufen — fuer ALLE monitored
+    # Tickers (Top-10 ∪ Watchlist ∪ Positions, Phase-2-Coverage 16.05.2026).
+    # Hybrid-Filter (13D immer, 13G nur Aktivisten) läuft pro Anomaly
     # in detect_anomalies(). Fail-soft: leere Liste bei jedem Fehler.
     # Ticker-Lookup-Daten aus den parallel berechneten Worker-Ergebnissen
     # holen: results[t]["yfd"]["company_name"] (oder ticker selbst als Fallback).
-    edgar_top10 = []
+    edgar_monitored = []
     for t in tickers:
         r = results.get(t) or {}
         yfd = r.get("yfd") or {}
-        edgar_top10.append({
+        edgar_monitored.append({
             "ticker":       t,
             "company_name": yfd.get("company_name", "") or t,
         })
@@ -3100,7 +3173,7 @@ def main() -> None:
     # Connection). Leere Liste bei legitim "keine 13D/G-Filings"
     # (z. B. Wochenende). success_check prüft nur "Call funktioniert".
     _r = health_check.instrument_provider_call(
-        _EDGAR_13D_G_ACCT, fetch_edgar_filings, edgar_top10,
+        _EDGAR_13D_G_ACCT, fetch_edgar_filings, edgar_monitored,
         success_check=lambda r: r is not None)
     edgar_filings_cache = _unpack_or_default(_r, [])
 
@@ -3125,6 +3198,15 @@ def main() -> None:
         monster = monster_scores.get(t)
         if monster is not None and monster >= 70:
             n_signals += 1
+
+    # Top-10-Set für defensives Conviction-Gating bei Watchlist-Outsidern
+    # (Phase 2, 16.05.2026). parse_top_tickers ist idempotent (Regex auf
+    # index.html, kein Seiteneffekt) — zweiter Aufruf ist okay. Wird im
+    # Anomaly-Gating unten genutzt, um bei _conv_today=None nur Watchlist-
+    # Outsider zu unterdrücken (Top-10 ohne Conviction wäre ein Phase-1-
+    # Coverage-Defekt; S2-Health-Check sollte das fangen, nicht das
+    # Push-Gating).
+    _top10_set = set(parse_top_tickers())
 
     # Alerts sequenziell in Original-Ticker-Reihenfolge versenden — die SMTP-
     # Verbindung pro send_alert() ist isoliert, aber Gmail rate-limit'et
@@ -3310,6 +3392,15 @@ def main() -> None:
                     if anom.get("trigger") != "conviction_high":
                         if isinstance(_conv_today, (int, float)) \
                                 and _conv_today < ANOMALY_CONVICTION_MIN_THRESHOLD:
+                            _suppress = True
+                        # Defensive (Phase 2 Coverage, 16.05.2026):
+                        # Watchlist-Outsider ohne conviction_scores-Eintrag
+                        # (Daten-Lücke trotz Phase-1-Coverage) konservativ
+                        # unterdrücken — vermeidet Push-Spam wenn Conviction-
+                        # Berechnung im Daily-Run fehlschlug. Top-10 ohne
+                        # Conviction NICHT unterdrücken (das wäre ein
+                        # Phase-1-Coverage-Defekt → S2-Health-Check fängt das).
+                        elif _conv_today is None and ticker not in _top10_set:
                             _suppress = True
                     if _suppress:
                         _record_push(state, ticker, kind="anomaly",

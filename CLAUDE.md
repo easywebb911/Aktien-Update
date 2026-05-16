@@ -413,6 +413,49 @@ Pushes für Watchlist-Outsider produzieren (Push-Spam-Risiko).
 iteriert über Top-10 UND Watchlist-Outsider — neue Tickers erscheinen
 als zusätzliche Keys im additiven Schema.
 
+### KI-Agent-Coverage (Phase 2, 16.05.2026)
+
+`ki_agent.py:parse_monitored_tickers()` ersetzt den
+`parse_top_tickers()`-Aufruf in `main()`. Pool:
+
+```
+monitored = parse_top_tickers()              # aus index.html
+           ∪ watchlist_personal.json         # persönliche Watchlist
+           ∪ positions.json.keys()           # aktive Positionen
+```
+
+Heutige Pool-Größe: 10 (Top-10) + 5 (Watchlist) + 0 neue (Positions
+sind Subset Watchlist) = ~15 Tickers. Worker-Pool von `max_workers=8`
+auf `max_workers=10` erhöht.
+
+**Performance-Impact:** +15-20 s pro KI-Agent-Tick (von ~40-50 s auf
+~55-70 s). Stunden-Cron-Slot xx:17 hat reichlich Puffer.
+
+**Push-Spam-Schutz** bleibt 3-fach abgesichert:
+1. **Conviction-Gating ≥ 75** (Phase 1 PR #176 hat Coverage gefüllt;
+   detect_anomalies liest `app_data["conviction_scores"][ticker]`).
+2. **Defensive None-Gating** (Phase 2): wenn `_conv_today is None`
+   UND `ticker not in _top10_set` → suppress. Vermeidet Push-Spam
+   wenn Phase-1-Coverage für einen Ticker fehlschlägt (Daten-Lücke).
+   Top-10 ohne Conviction wird NICHT suppress'd — das wäre ein
+   Coverage-Defekt, der vom S2-Health-Check gefangen werden sollte.
+3. **6h-Cooldown + Silence-Filter + VIX-Gating** unverändert.
+
+**EDGAR-Filings**: `fetch_edgar_filings(edgar_monitored)` läuft jetzt
+auf dem erweiterten Pool — alle Watchlist-Outsider werden auf 13D/G-
+Filings gematcht. Variable wurde `edgar_top10` → `edgar_monitored`
+umbenannt (Naming-Klarheit, kein Verhaltens-Drift).
+
+**agent_signals.json-Schema**: rein additiv. Watchlist-Outsider
+erscheinen als zusätzliche Keys; kein Schema-Versions-Bump.
+
+**Wiedervorlage 30.05.2026**: nach 14 Tagen Live-Daten prüfen, ob
+ein zusätzlicher `WATCHLIST_OUTSIDER_CONVICTION_MIN` (z. B. 85)
+nötig ist. Hypothese: Conviction-Gating ≥ 75 reicht — die meisten
+Watchlist-Outsider haben Substrat unter 75, Pushes feuern nur bei
+echten Bewegungen. Bei > 5 zusätzlichen Pushes/Tag im Durchschnitt
+→ härtere Schwelle empirisch ableiten.
+
 ### Pflege
 
 Bei Änderung der Komponenten-Gewichte (Cap-Werte 33/28/28/11),
