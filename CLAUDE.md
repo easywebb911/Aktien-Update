@@ -1067,15 +1067,72 @@ dokumentiert in den Helpern).
 Filter: Zeitraum (alle / 30 / 90 / 365 d, gegen `exit_date`) und
 Ergebnis (alle / Gewinner / Verlierer).
 
+### Knaller-Trade-Label (Phase 2, 16.05.2026)
+
+Markiert einzelne Trades als **Knaller-Hit** (🌟) oder **Knaller-Crash**
+(⛈) basierend auf der Backtest-Bucket-Tail-Verteilung. Pure Display-
+Auswertung, keine Score-Logik berührt.
+
+**Definition (Hybrid mit absolutem Floor):**
+
+| Label | Bedingung | Floor | Fallback bei n<30 im Bucket |
+|---|---|---|---|
+| 🌟 Hit | `pnl_pct ≥ P90(return_10d)` im passenden `entry_score_bucket` | `pnl_pct ≥ +10%` | absolute Schwelle `≥ +25%` |
+| ⛈ Crash | `pnl_pct ≤ P10(return_10d)` im passenden Bucket | `pnl_pct ≤ −10%` | absolute Schwelle `≤ −20%` |
+
+**Bucket-Sync:** Bucket-Grenzen `<50` / `50-69` / `≥70` sind in **drei**
+Stellen identisch zu halten:
+- `_tjScoreBucket(score)` (Trade-Journal-Klassifikation pro Trade)
+- `_btBucketStats(data)` (Backtest-Panel-Aggregation)
+- `_tjBucketRef()` (Knaller-Phase-2-Referenz, lazy lazy-async)
+
+Bei Bucket-Grenzen-Änderung alle drei Stellen synchron pflegen.
+
+**Datenquelle:** `backtest_history.json` über `window._BT_DATA`-Bridge
+(gesetzt nach `_btData`-Load im Backtest-Panel) — Fallback eigener
+`fetch('./backtest_history.json')` wenn Trade-Journal vor dem
+Backtest-Panel gerendert wird. `_tjBucketRef` cached das Ergebnis in
+`window._TJ_BUCKET_REF._cached = true`.
+
+**Statistik-Zelle „Knaller"** im Stats-Grid (full-width):
+`🌟 H/W X% · ⛈ C/L Y%` (H=Hits, W=Gewinner-total, X=Quote · C=Crashes,
+L=Verlierer-total, Y=Quote). Bei <5 Gewinnern: `(n=N zu wenig)` statt
+Prozentzahl. Tooltip mit Definitions-Erklärung.
+
+**Per-Trade-UI:** Icon `🌟`/`⛈` direkt nach dem Ticker. Tooltip enthält
+konkrete Bucket-P90/P10-Schwelle und n. Container bekommt CSS-Klasse
+`.tj-trade-knaller-hit` / `-crash` für 5-px-Border-Akzent statt 3 px
+(bestehende `.tj-trade-win`/`-loss`-Border-Farbe bleibt unverändert).
+
+**Backtest-Referenz-Charakter:** Knaller-Label vergleicht gegen die
+**komplette Backtest-Verteilung pro Bucket**, nicht gegen Easy's eigene
+Trade-Sammlung. Damit ist die Klassifikation ab Trade #1 nutzbar —
+Sample-Size-Effekt nur in der aggregierten Hit-Rate-Statistik
+(„statistisch erwartet ≤ 10% deiner Gewinner als Hits"). Bei
+`backtest_history.json` heute n=818/327/118 je Bucket → P90/P10
+solide berechenbar.
+
 ### Pflege
 
 - Bei Schema-Änderung in `closed_trades` (z. B. neues Feld `tags[]`)
   immer simultan: `wlSubmitClose` (Schreiber), `renderTradeJournal`
   (Leser/Anzeige), CLAUDE.md-Schema-Block oben.
+- **Bucket-Grenzen-Änderung** (50/70): `_tjScoreBucket`,
+  `_btBucketStats` und Bucket-Iteration in `_tjBucketRef` synchron
+  halten. Falls neue Bucket-Klasse hinzukommt, auch
+  `entry_score_bucket`-Klassifikation für Bestandstrades bedenken
+  (kein automatischer Backfill — pro Trade beim Re-Open neu).
+- **Knaller-Schwellen-Anpassung** (`_TJ_KNALLER_FLOOR_HIT/CRASH` /
+  `_TJ_KNALLER_FALLBACK_HIT/CRASH` / `_TJ_KNALLER_MIN_N`): aktuell als
+  JS-Konstanten in `renderTradeJournal`-Umfeld. Bei Bedarf nach
+  `config.py` exportieren und via Render-Context durchreichen.
 - Score-Methodik-Sync-Regel ist **nicht betroffen** — Trade-Journal
-  ist außerhalb der Score-Berechnung.
+  ist außerhalb der Score-Berechnung. Knaller-Label ebenfalls.
 - Migration alter Trades (ohne `max_setup_score` / `duration_days`):
   `renderTradeJournal` rendert `—` bei fehlendem Wert, kein Crash.
+  Alte Trades ohne `entry_score_bucket`: Knaller-Klassifikation nutzt
+  `entry_score`-Fallback; ohne beides → Bucket=null → Fallback-
+  Schwellen.
 
 ---
 

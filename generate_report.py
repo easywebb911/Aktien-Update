@@ -7445,6 +7445,130 @@ function _tjScoreBucket(score) {{
   return '≥70';
 }}
 
+// ─ Knaller-Trade-Label (16.05.2026) ────────────────────────────────────────
+// Knaller-Hit:  pnl_pct >= P90(return_10d) im passenden entry_score_bucket
+//               UND pnl_pct >= 10% (Floor)
+// Knaller-Crash: pnl_pct <= P10(return_10d) im passenden Bucket
+//               UND pnl_pct <= -10% (Floor)
+// Fallback bei n<30 im Bucket: rein absolute Schwellen
+//   Hit >= 25%, Crash <= -20%
+// Konstanten lokal (kein config.py-Roundtrip noetig — pure Frontend-Heuristik).
+const _TJ_KNALLER_FLOOR_HIT   = 10;
+const _TJ_KNALLER_FLOOR_CRASH = -10;
+const _TJ_KNALLER_FALLBACK_HIT   = 25;
+const _TJ_KNALLER_FALLBACK_CRASH = -20;
+const _TJ_KNALLER_MIN_N      = 30;
+
+// Cache-Slot fuer Bucket-Referenz-Stats (P90/P10/n_returns pro Bucket).
+// Wird beim ersten renderTradeJournal-Call gefuellt, danach reused.
+// Invalidierung: bei Page-Reload (Force-Refresh) sowieso neu geladen.
+window._TJ_BUCKET_REF = window._TJ_BUCKET_REF || null;
+
+async function _tjBucketRef() {{
+  // Lazy-build der Bucket-Referenz. Nutzt window._BT_DATA wenn das
+  // Backtest-Panel bereits geladen ist; sonst eigener fetch als Fallback
+  // (Trade-Journal kann auch ohne aufgeklapptes Backtest-Panel rendern).
+  if (window._TJ_BUCKET_REF && window._TJ_BUCKET_REF._cached) {{
+    return window._TJ_BUCKET_REF;
+  }}
+  let data = (Array.isArray(window._BT_DATA) && window._BT_DATA.length)
+             ? window._BT_DATA : null;
+  if (!data) {{
+    try {{
+      const resp = await fetch('./backtest_history.json?_=' + Date.now());
+      if (resp.ok) {{
+        const json = await resp.json();
+        data = Array.isArray(json) ? json : [];
+        window._BT_DATA = data;
+      }} else {{
+        data = [];
+      }}
+    }} catch (err) {{
+      data = [];
+    }}
+  }}
+  const ref = {{}};
+  const buckets = [
+    {{key: '<50',   pred: e => (e.score || 0) < 50}},
+    {{key: '50-69', pred: e => (e.score || 0) >= 50 && (e.score || 0) < 70}},
+    {{key: '≥70',   pred: e => (e.score || 0) >= 70}},
+  ];
+  buckets.forEach(b => {{
+    const slice = data.filter(b.pred);
+    const vals = slice.map(e => e.return_10d)
+                       .filter(v => v !== null && v !== undefined && !isNaN(v))
+                       .map(Number);
+    ref[b.key] = {{
+      n_with_returns: vals.length,
+      p90: vals.length ? _btPercentile(vals, 90) : null,
+      p10: vals.length ? _btPercentile(vals, 10) : null,
+    }};
+  }});
+  ref._cached = true;
+  window._TJ_BUCKET_REF = ref;
+  return ref;
+}}
+
+function _tjIsKnaller(trade, ref) {{
+  // Returnt 'hit' / 'crash' / null. Fail-soft bei fehlenden Inputs.
+  if (!trade) return null;
+  const pnl = +trade.pnl_pct;
+  if (!isFinite(pnl)) return null;
+  // Bucket-Lookup: bevorzugt entry_score_bucket (seit PR #121
+  // persistiert); Fallback aus entry_score wenn fehlt.
+  let bucket = trade.entry_score_bucket;
+  if (!bucket && typeof trade.entry_score === 'number') {{
+    bucket = _tjScoreBucket(trade.entry_score);
+  }}
+  const bRef = (ref && bucket) ? ref[bucket] : null;
+  // Hit-Pruefung
+  if (pnl >= _TJ_KNALLER_FLOOR_HIT) {{
+    if (bRef && bRef.n_with_returns >= _TJ_KNALLER_MIN_N
+        && bRef.p90 !== null && pnl >= bRef.p90) {{
+      return 'hit';
+    }}
+    if ((!bRef || bRef.n_with_returns < _TJ_KNALLER_MIN_N)
+        && pnl >= _TJ_KNALLER_FALLBACK_HIT) {{
+      return 'hit';
+    }}
+  }}
+  // Crash-Pruefung
+  if (pnl <= _TJ_KNALLER_FLOOR_CRASH) {{
+    if (bRef && bRef.n_with_returns >= _TJ_KNALLER_MIN_N
+        && bRef.p10 !== null && pnl <= bRef.p10) {{
+      return 'crash';
+    }}
+    if ((!bRef || bRef.n_with_returns < _TJ_KNALLER_MIN_N)
+        && pnl <= _TJ_KNALLER_FALLBACK_CRASH) {{
+      return 'crash';
+    }}
+  }}
+  return null;
+}}
+
+function _tjKnallerTooltip(kind, trade, ref) {{
+  // Tooltip-Text mit konkretem P90/P10-Wert oder Fallback-Vermerk.
+  const bucket = trade.entry_score_bucket
+    || (typeof trade.entry_score === 'number' ? _tjScoreBucket(trade.entry_score) : null);
+  const bRef = (ref && bucket) ? ref[bucket] : null;
+  const useFallback = !bRef || bRef.n_with_returns < _TJ_KNALLER_MIN_N;
+  if (kind === 'hit') {{
+    if (useFallback) {{
+      return 'Knaller-Hit — Floor +' + _TJ_KNALLER_FALLBACK_HIT + '% (Bucket-Sample n<' + _TJ_KNALLER_MIN_N + ')';
+    }}
+    return 'Knaller-Hit — Top 10% des ' + bucket + '-Buckets (P90 = '
+      + (bRef.p90 >= 0 ? '+' : '') + bRef.p90.toFixed(1) + '%, n=' + bRef.n_with_returns + ')';
+  }}
+  if (kind === 'crash') {{
+    if (useFallback) {{
+      return 'Knaller-Crash — Floor ' + _TJ_KNALLER_FALLBACK_CRASH + '% (Bucket-Sample n<' + _TJ_KNALLER_MIN_N + ')';
+    }}
+    return 'Knaller-Crash — Bottom 10% des ' + bucket + '-Buckets (P10 = '
+      + (bRef.p10 >= 0 ? '+' : '') + bRef.p10.toFixed(1) + '%, n=' + bRef.n_with_returns + ')';
+  }}
+  return '';
+}}
+
 async function renderTradeJournal(){{
   const statsEl = document.getElementById('tj-stats');
   const listEl  = document.getElementById('tj-list');
@@ -7498,6 +7622,12 @@ async function renderTradeJournal(){{
     if (resultVal === 'miss' && !((+t.pnl_pct || 0) < 0)) return false;
     return true;
   }});
+  // Knaller-Bucket-Referenz fuer pro-Trade-Klassifikation (P90/P10 des
+  // entry_score_bucket aus backtest_history.json). Lazy gefetcht + gecacht
+  // in window._TJ_BUCKET_REF. Async — wir warten hier einmal, da fuer
+  // Stats und Liste benoetigt.
+  const bucketRef = await _tjBucketRef();
+
   // Statistik
   const fxUsdEur = window._FX_USD_EUR || 0.92;
   if (filtered.length === 0) {{
@@ -7526,6 +7656,36 @@ async function renderTradeJournal(){{
   const _fmtPct = v => (v >= 0 ? '+' : '') + v.toFixed(1) + '%';
   const _fmtUsd = v => '$' + v.toFixed(2);
   const _fmtEurFromVal = v => v.toFixed(2).replace('.', ',') + ' €';
+  // Knaller-Stats (Phase 2, 16.05.2026): Hit-/Crash-Counter ueber alle
+  // gefilterten Trades. Erwartungswert ist 10% (P90/P10-Tail), Abweichung
+  // davon ist die eigentliche Selbsteinschaetzungs-Info.
+  let _knallerHits = 0, _knallerCrashes = 0;
+  filtered.forEach(t => {{
+    const k = _tjIsKnaller(t, bucketRef);
+    if (k === 'hit') _knallerHits += 1;
+    else if (k === 'crash') _knallerCrashes += 1;
+  }});
+  const _knallerStatHtml = (() => {{
+    const winN = winners.length;
+    const lossN = losers.length;
+    const tooltip = ('Knaller-Hit: pnl ≥ P90(return_10d) im jeweiligen Score-Bucket UND ≥ +10%. '
+      + 'Crash analog. Bei n<30 im Bucket: absolute Schwellen +25% / -20%. '
+      + 'Statistisch erwartet ≤ 10% deiner Gewinner als Hits.');
+    const winRate = winN ? (_knallerHits / winN * 100) : 0;
+    const winRateStr = winN >= 5
+      ? winRate.toFixed(0) + '%'
+      : '(n=' + winN + ' zu wenig)';
+    const lossRate = lossN ? (_knallerCrashes / lossN * 100) : 0;
+    const lossRateStr = lossN >= 5
+      ? lossRate.toFixed(0) + '%'
+      : '(n=' + lossN + ' zu wenig)';
+    return '<div class="tj-stat tj-stat-wide" title="' + tooltip + '">'
+      + '<span class="tj-stat-lbl">Knaller</span>'
+      + '<span class="tj-stat-val">'
+      + '🌟 ' + _knallerHits + '/' + winN + ' ' + winRateStr
+      + ' · ⛈ ' + _knallerCrashes + '/' + lossN + ' ' + lossRateStr
+      + '</span></div>';
+  }})();
   statsEl.innerHTML = `<h4>Statistik</h4>
     <div class="tj-stats-grid">
       <div class="tj-stat"><span class="tj-stat-lbl">Trades</span><span class="tj-stat-val">${{filtered.length}}</span></div>
@@ -7538,6 +7698,7 @@ async function renderTradeJournal(){{
       <div class="tj-stat"><span class="tj-stat-lbl">Schlechtester</span><span class="tj-stat-val">${{worst.ticker}} ${{_fmtPct(+worst.pnl_pct || 0)}}</span></div>
       <div class="tj-stat tj-stat-wide"><span class="tj-stat-lbl">Setup-Score-Korrelation</span>
         <span class="tj-stat-val">Gewinner ${{setupWin != null ? setupWin.toFixed(0) : '—'}} · Verlierer ${{setupLose != null ? setupLose.toFixed(0) : '—'}}</span></div>
+      ${{_knallerStatHtml}}
     </div>`;
   // Liste — neueste zuerst (sortiert nach exit_date desc)
   const sorted = filtered.slice().sort((a, b) => (b.exit_date || '').localeCompare(a.exit_date || ''));
@@ -7594,9 +7755,20 @@ async function renderTradeJournal(){{
     const detailsBody = hasNotes
       ? `<div class="tj-trade-details-body"${{isOpen ? '' : ' hidden'}}>${{thesisHtml}}${{lessonHtml}}</div>`
       : '';
-    return `<div class="tj-trade ${{pnlPct >= 0 ? 'tj-trade-win' : 'tj-trade-loss'}}">
+    // Knaller-Klassifikation pro Trade (Phase 2, 16.05.2026).
+    const _kn = _tjIsKnaller(t, bucketRef);
+    const _knClass = _kn === 'hit'   ? ' tj-trade-knaller-hit'
+                   : _kn === 'crash' ? ' tj-trade-knaller-crash'
+                   : '';
+    const _knIconHtml = _kn ? (
+      '<span class="tj-knaller-icon" title="' + _tjKnallerTooltip(_kn, t, bucketRef) + '"'
+      + ' aria-label="' + (_kn === 'hit' ? 'Knaller-Hit' : 'Knaller-Crash') + '">'
+      + (_kn === 'hit' ? '🌟' : '⛈')
+      + '</span>'
+    ) : '';
+    return `<div class="tj-trade ${{pnlPct >= 0 ? 'tj-trade-win' : 'tj-trade-loss'}}${{_knClass}}">
       <div class="tj-trade-head">
-        <span class="tj-trade-ticker">${{_esc(t.ticker)}}</span>
+        <span class="tj-trade-ticker">${{_esc(t.ticker)}}</span>${{_knIconHtml}}
         <span class="tj-trade-range">${{_esc(t.entry_date)}} → ${{_esc(t.exit_date)}} · ${{dur}}</span>
         <span class="tj-trade-pnl" style="color:${{pnlCol}}">${{_fmtPct(pnlPct)}}</span>
       </div>
@@ -8359,6 +8531,10 @@ function _btLoad(){{
     .then(r => r.ok ? r.json() : Promise.reject(r.status))
     .then(data => {{
       _btData = Array.isArray(data) ? data : [];
+      // Bridge fuer renderTradeJournal: Knaller-Klassifikation pro Trade
+      // braucht dieselbe Backtest-Verteilung. Module-Scope-Variable
+      // _btData ist in der Trade-Journal-Funktion nicht direkt sichtbar.
+      window._BT_DATA = _btData;
       _btRender();
     }})
     .catch(err => {{
@@ -8380,6 +8556,21 @@ function _btMean(arr){{
                .map(Number);
   if (!v.length) return null;
   return v.reduce((s, x) => s + x, 0) / v.length;
+}}
+function _btPercentile(arr, p){{
+  // Linear-interpolation Perzentil (Type 7, wie numpy.percentile-Default).
+  // ``p`` in [0, 100]. Returnt null bei leerem Array.
+  // Knaller-Trade-Label (16.05.2026): wird für P90 (Knaller-Hit-Schwelle)
+  // und P10 (Crash-Schwelle) pro Score-Bucket genutzt.
+  const v = arr.filter(x => x !== null && x !== undefined && !isNaN(x))
+               .map(Number).sort((a,b) => a-b);
+  if (!v.length) return null;
+  if (v.length === 1) return v[0];
+  const idx = (p / 100) * (v.length - 1);
+  const lo  = Math.floor(idx);
+  const hi  = Math.ceil(idx);
+  if (lo === hi) return v[lo];
+  return v[lo] + (v[hi] - v[lo]) * (idx - lo);
 }}
 function _btRender(){{
   const data = _btData || [];
@@ -8488,7 +8679,13 @@ function _btBucketStats(data){{
       // (Squeeze-Knaller); Negativ = linksschief; nahe 0 = symmetrisch.
       // null bei fehlenden Median- oder Mean-Werten.
       const spread = (med !== null && mean !== null) ? (mean - med) : null;
-      return {{lbl, key, med, mean, min, max, spread, n: vals.length}};
+      // P90/P10: Tail-Schwellen für Knaller-Hit/Crash-Klassifikation pro
+      // einzelnem closed_trade (Knaller-Trade-Label 16.05.2026). Werden
+      // im Backtest-Panel selbst noch nicht gerendert — Konsument ist
+      // _tjBucketRef im Trade-Journal.
+      const p90  = _btPercentile(vals, 90);
+      const p10  = _btPercentile(vals, 10);
+      return {{lbl, key, med, mean, min, max, spread, p90, p10, n: vals.length}};
     }});
     // Best = höchster Median mit mind. 1 Datenpunkt; null/keine Daten zählen nicht
     let bestIdx = -1;
