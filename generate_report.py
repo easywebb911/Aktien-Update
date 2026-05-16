@@ -4231,6 +4231,57 @@ def _conf_class(score_class: str) -> tuple[str, str, str]:
     return css, title, aria
 
 
+def _score_delta_html(s: dict) -> str:
+    """Setup-Score-Delta T-1 als kleine Span unter der Score-Zahl.
+
+    Hybrid-Stille-Schwelle (Design-Berater-Empfehlung 16.05.2026):
+      - ``|Δ| < 2``:  leerer String (kein visueller Lärm bei Mini-Drifts)
+      - ``|Δ| 2..5``: dezent grau (``.sb-delta-mute``)
+      - ``|Δ| ≥ 5``:  farbig grün/rot mit ▲/▼ (``.sb-delta-up`` / ``-down``)
+      - ``|Δ| ≥ 15``: zusätzlich Bold (``.sb-delta-strong`` als Modifier)
+
+    Quelle: ``s["sparkline"]["scores"]`` (raw Setup-Scores, oldest→newest,
+    bereits aus ``score_history.json`` materialisiert). Nutzt die zwei
+    jüngsten Einträge. Bei < 2 Einträgen (Erst-Render, Ticker neu in
+    Top-10): leerer String.
+
+    Tooltip: konkreter Δ-Wert + Vortags-Datum aus ``sparkline.dates``.
+    Phasen-Mismatch (premarket↔postclose) wird nicht ausgewiesen —
+    RVOL-Normalisierung (PR-α/β/γ) adressiert die strukturelle Drift
+    in der Berechnung selbst.
+
+    Conviction/Monster/KI-Delta: heute nicht persistiert. Folge-PR via
+    eigene History-Files wenn gewünscht (CLAUDE.md-Sektion).
+    """
+    spark = s.get("sparkline") or {}
+    scores = spark.get("scores") or []
+    dates = spark.get("dates") or []
+    if len(scores) < 2:
+        return ""
+    try:
+        today_raw = float(scores[-1])
+        prev_raw  = float(scores[-2])
+    except (TypeError, ValueError):
+        return ""
+    delta = today_raw - prev_raw
+    abs_d = abs(delta)
+    if abs_d < 2:
+        return ""
+    prev_date = dates[-2] if len(dates) >= 2 else "—"
+    sign      = "▲" if delta > 0 else "▼"
+    sign_pref = "+"  if delta > 0 else ""
+    if abs_d < 5:
+        css = "sb-delta sb-delta-mute"
+    else:
+        css = "sb-delta sb-delta-up" if delta > 0 else "sb-delta sb-delta-down"
+        if abs_d >= 15:
+            css += " sb-delta-strong"
+    title = (f"Δ {sign_pref}{delta:.1f} ggü. letztem Daily-Run "
+             f"({prev_date}, raw {prev_raw:.1f} → {today_raw:.1f})")
+    return (f'<span class="{css}" title="{title}" aria-label="Delta '
+            f'{sign_pref}{delta:.1f}">{sign} {sign_pref}{delta:.1f}</span>')
+
+
 def _score_block_inner_html(s: dict, hint_html: str = "") -> str:
     """Erzeugt das komplette Innere des ``<div class="score-block">``.
 
@@ -4284,10 +4335,14 @@ def _score_block_inner_html(s: dict, hint_html: str = "") -> str:
     setup_col = _tri_score_color(setup_val)
     s_css, s_title, s_aria = _conf_class("setup")
     s_attrs = f' title="{s_title}" aria-label="{s_aria}"' if s_title else ""
+    # Score-Delta T-1 (16.05.2026): kleine Span unter dem Score-Wert
+    # mit Stille-Schwelle |Δ|<2. Leerer String bei Mini-Drifts.
+    s_delta_html = _score_delta_html(s)
     rows.append(
         f'<div class="sb-row" data-sb="setup">'
         f'<span class="sb-num {s_css}" style="color:{setup_col}"{s_attrs}>'
         f'{setup_val:.1f}</span>'
+        f'{s_delta_html}'
         f'<span class="sb-lbl">Setup-Score</span>'
         f'<div class="sb-track"><div class="sb-fill" '
         f'style="width:{setup_pct:.0f}%;background:{setup_col}"></div></div>'

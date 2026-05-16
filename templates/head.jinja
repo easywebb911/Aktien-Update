@@ -1045,6 +1045,16 @@ abbr[title]{text-decoration:underline dotted var(--txt-dim);
 .sb-conf-heur{opacity:.85;text-decoration:underline dotted;
   text-decoration-thickness:1px;text-underline-offset:3px;
   text-decoration-color:currentColor;cursor:help}
+/* Score-Delta T-1 (16.05.2026): dezenter Hinweis-Wert unter dem
+   Setup-Score. Stille-Schwelle |Δ|<2 (Server-Side gerendert als ""),
+   2..5 grau, ≥5 farbig, ≥15 zusätzlich bold. */
+.sb-delta{display:block;font-size:.62rem;font-weight:600;line-height:1;
+  letter-spacing:.3px;margin-top:2px;font-variant-numeric:tabular-nums;
+  cursor:help}
+.sb-delta-up{color:#22c55e}
+.sb-delta-down{color:#ef4444}
+.sb-delta-mute{color:var(--txt-dim);font-weight:400}
+.sb-delta-strong{font-weight:800}
 .score-block.sort-setup .sb-row[data-sb="setup"]{order:1}
 .score-block.sort-setup .sb-row[data-sb="monster"]{order:2}
 .score-block.sort-setup .sb-row[data-sb="ki"]{order:3}
