@@ -2513,7 +2513,7 @@ Stellen verwendet:
 | Konsument | HTML-Wrapper | Gedachte CSS-Regel |
 |---|---|---|
 | **Karten-Score-Block** (Top-10 + Watchlist-Drawer) | `<div class="sb-row" data-sb="...">` | `.sb-row .sb-lbl{...}` — Mini-Uppercase-Label (`.58rem`, letter-spaced, dim) |
-| **Methodik-Panel-Listen** (Konfidenz-Tabelle, Score-Formel, Datenquellen, ⚡ KI-Agent — 8 `<ul>`-Blöcke) | `<ul class="score-block-list"><li>` | `.sb-lbl{flex:1;min-width:0}` — Normal-Größe (`.78rem`, mixed-case, Standard-Kontrast) |
+| **Methodik-Panel-Listen** (Konfidenz-Tabelle, Score-Formel, Datenquellen, ⚡ KI-Agent — 8 `<ul>`-Blöcke) | `<ul class="score-block-list"><li>` | `.sb-lbl{grid-area:label;min-width:0}` — Normal-Größe (`.78rem`, mixed-case, Standard-Kontrast) |
 
 **Pflicht-Regel:** Karten-Score-Block-spezifische CSS muss **immer**
 mit `.sb-row`-Parent-Selektor gescoped sein (Spezifität 0,2,0). Sonst
@@ -2531,6 +2531,51 @@ Wrapper-Spezifität via `.sb-row[data-sb="..."]`-Modifier-Selektoren).
 (Methodik-Listen-Scope) — heute ist `.sb-note` nicht in Karten-Score-
 Blöcken verwendet, der Scope macht Layout-Drift bei späteren Re-Uses
 sicher.
+
+### Methodik-Listen-Layout (CSS-Grid, 16.05.2026)
+
+`.score-block-list li` ist seit Layout-Restrukturierung **CSS-Grid**
+statt Flex. Hintergrund: Flex-Layout mit `flex:1;min-width:0` auf
+`.sb-lbl` ergab pathologische Schrumpfung — bei langem `.sb-note`-
+Inhalt bekam das Label **0 px Slack** (Shrink-Weight = `flex-shrink ×
+flex-basis` = `1 × 0`) und der Browser wickelte den Label-Text
+zeichenweise neben die Pts-Span. Sichtbares Symptom auf iPhone:
+„S" + 🟢 + „robust" → „Surobust" (Line 1 von Label = `S`, danach
+Baseline-aligned Pts-Span).
+
+Grid-Layout pro `<li>`:
+
+```css
+.score-block-list li{display:grid;
+  grid-template-columns:minmax(0, 1fr) max-content;
+  grid-template-areas:"label pts" "note note";
+  column-gap:8px;row-gap:2px;align-items:baseline;...}
+.sb-lbl{grid-area:label;min-width:0}
+.sb-pts{grid-area:pts;...}
+.score-block-list .sb-note{grid-area:note;min-width:0;text-align:left;...}
+```
+
+Resultat: Row 1 hat `[label-flex] [pts-content]` mit pts content-
+sized (`max-content`, schrumpft nicht), label nimmt den Rest und
+wrapt nur bei echtem Platzmangel. Row 2 hat `[note]` über volle
+Breite. Die 7 anderen `.score-block-list`-Blöcke ohne `<sb-note>`
+zeigen nur Row 1 — `row-gap:2px` minimal sichtbar.
+
+**Lesson (Layout-Bugs):** Source-Inspektion-Tests sind **notwendig,
+nicht hinreichend**. CSS-Source kann grün sein während der Browser
+ein pathologisches Computed-Layout rendert. Bei UX-Symptomen mit
+Layout-Drift-Verdacht **immer Live-Verifikation auf iPhone vor
+PR-Merge** — Mock-Tests sichern Regression der CSS-Source, nicht
+der visuellen Output-Korrektheit. Pre-PR-#185-Theorie war
+„Spezifitäts-Bleed" — tatsächliches Problem war Flex-Basis-0-Math.
+Erst Diagnose-Runde 2 mit Browser-Inspect-Simulation an der
+gerenderten `index.html` deckte die Pathologie auf.
+
+**Pattern-Faustregel:** Grid statt Flex für **strukturierte 2D-
+Layouts** (mehrere Items in feste Spalten/Reihen). Flex für
+**eindimensionale Streams** mit homogenem Wrap-Verhalten. Konfidenz-
+Tabelle ist konzeptionell 2D (Label-Pts auf Row 1, Note auf Row 2)
+— gehört in Grid.
 
 ---
 

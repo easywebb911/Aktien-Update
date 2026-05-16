@@ -39,9 +39,11 @@ def test_01_sb_row_lbl_scoped_exists() -> None:
 
 
 def test_02_methodik_sb_lbl_rule_preserved() -> None:
-    # Z. 323-Regel (Methodik-Tabelle) muss erhalten bleiben
-    assert ".sb-lbl{flex:1;min-width:0}" in HJ, \
-        "Methodik-Tabellen .sb-lbl-Regel (flex:1) entfernt"
+    # Z. 323-Regel (Methodik-Tabelle) muss erhalten bleiben. Seit Grid-
+    # Layout-Restrukturierung (PR-Folge zu #185) ist flex:1 durch
+    # grid-area:label ersetzt — Selektor + min-width:0 unveraendert.
+    assert ".sb-lbl{grid-area:label;min-width:0}" in HJ, \
+        "Methodik-Tabellen .sb-lbl-Regel (grid-area:label) entfernt"
 
 
 def test_03_no_duplicate_bare_sb_lbl() -> None:
@@ -60,13 +62,14 @@ def test_04_sb_note_rule_added() -> None:
 
 
 def test_05_sb_note_properties_correct() -> None:
+    # Seit Grid-Layout-Restrukturierung (PR-Folge zu #185): flex-Properties
+    # ersetzt durch grid-area:note + text-align:left (Vollbreiten-Row).
     idx = HJ.find(".score-block-list .sb-note{")
     assert idx > 0
     block = HJ[idx:idx + 200]
-    # Erwartete Properties laut Spec
-    assert "flex:1 1 auto" in block, "sb-note: flex:1 1 auto fehlt"
+    assert "grid-area:note" in block, "sb-note: grid-area:note fehlt"
     assert "min-width:0" in block, "sb-note: min-width:0 fehlt"
-    assert "text-align:right" in block, "sb-note: text-align:right fehlt"
+    assert "text-align:left" in block, "sb-note: text-align:left fehlt"
     assert "color:var(--txt-dim)" in block, "sb-note: color:var(--txt-dim) fehlt"
     assert "font-size:.72rem" in block, "sb-note: font-size:.72rem fehlt"
 
