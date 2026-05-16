@@ -1298,9 +1298,43 @@ Empirik 16.05.2026 dokumentiert wurde:
 
 | PR | Scope | Status |
 |---|---|---|
-| **PR-α** (diese PR) | Helper `_normalize_rvol` + Konstanten + Feature-Flag, **`RVOL_NORMALIZATION_ENABLED = False`**. Kein Verhaltens-Drift im Default. | aktiv |
-| PR-β | 14 Tage Empirik-Datensammlung über `rvol_20d` in `agent_signals.json` (Vor-PR #165 liefert das Feld bereits). | offen |
+| **PR-α** (#166) | Helper `_normalize_rvol` + Konstanten + Feature-Flag, **`RVOL_NORMALIZATION_ENABLED = False`**. Kein Verhaltens-Drift im Default. | aktiv |
+| **PR-β** (diese PR) | `score_inflation_log.jsonl` Schema v2: zusätzliches Feld `drivers_raw.rel_volume_normalized` mit hypothetischem Wert (`force_enabled=True`). 14 Tage parallele Datensammlung. | aktiv |
 | PR-γ | Aktivierung (`ENABLED = True`) nach Daten-Validierung + ggf. Re-Kalibrierung von `PREMARKET_RVOL_SCALER` (heute 0.10 als Daumenwert). | offen |
+
+### score_inflation_log Schema-Version-Geschichte
+
+| Version | Marker | Zeitraum | Felder zusätzlich zu Vorgänger |
+|---|---|---|---|
+| **v1** | `schema_v` **fehlt** | 12.05.–16.05.2026 | Original-Format (run_ts, run_phase, ticker, sub_scores, drivers_raw, trading_session_phase) |
+| **v2** | `schema_v: 2` | ab 16.05.2026 | `drivers_raw.rel_volume_normalized` (float \| None) |
+
+**Reader-Vertrag:** Diagnose-Tools / Auswertungs-Skripte lesen
+`entry.get("schema_v", 1)` — Bestands-Einträge ohne Marker werden
+implizit als v1 erkannt. Bei `v >= 2` ist `drivers_raw.rel_volume_normalized`
+verfügbar, bei v1 nicht (kein Crash, defensiv via `.get()`).
+
+**Auswertungs-Hinweis (PR-γ-Vorbereitung):** Für die Skalierer-
+Re-Kalibrierung pro Ticker den Quotienten
+`rel_volume_normalized / rel_volume` über 14 d sammeln — das ist
+der effektive Phase-Multiplikator. Bei `run_phase=postclose` ist der
+Quotient ≈ 1.0 (kein Effekt). Bei `run_phase=premarket` zeigt er
+die Skalierungs-Wirkung; Median-pro-Ticker als ground truth statt
+des Daumenwerts 0.10.
+
+### Helper-Signatur-Erweiterung (`force_enabled`)
+
+```python
+_normalize_rvol(raw_vol, avg_20d, *, run_phase=None, now_utc=None, force_enabled=False)
+```
+
+`force_enabled=True` aktiviert die Normalisierungs-Logik unabhängig
+vom globalen `RVOL_NORMALIZATION_ENABLED`-Flag. **Genutzt
+ausschließlich vom score_inflation_log-Writer** (Callable-Injection
+via `record_top10_inflation(..., normalize_rvol_fn=_normalize_rvol)`).
+Andere Konsumenten (3 Call-Sites in `_hist_stats` / `get_yfinance_data`)
+lassen den Default `False` — Verhalten unverändert solange
+`RVOL_NORMALIZATION_ENABLED=False`.
 
 ### Helper-Vertrag (`generate_report.py:_normalize_rvol`)
 

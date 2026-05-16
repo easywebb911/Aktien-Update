@@ -715,15 +715,22 @@ def _normalize_rvol(
     *,
     run_phase: str | None = None,
     now_utc: datetime | None = None,
+    force_enabled: bool = False,
 ) -> float:
     """RVOL-Normalisierung gegen premarket→postclose-Score-Drift.
 
     Phase 1 (PR-α, 16.05.2026): Helper + Feature-Flag. **Default OFF**.
 
-    Wenn ``RVOL_NORMALIZATION_ENABLED`` (config) ist ``False``:
-    returnt ``raw_vol / avg_20d`` — Status quo, kein Verhaltens-Drift.
+    Wenn ``RVOL_NORMALIZATION_ENABLED`` (config) **und** ``force_enabled``
+    beide False sind: returnt ``raw_vol / avg_20d`` — Status quo, kein
+    Verhaltens-Drift.
 
-    Wenn ``True``: skaliert den 20d-Nenner entsprechend der Markt-Phase,
+    ``force_enabled=True`` (PR-β, Schema v2) erlaubt dem
+    ``score_inflation_log``-Writer, den hypothetischen normalisierten
+    Wert zu berechnen, ohne den globalen Flag zu setzen — Empirik-Daten-
+    sammlung über 14 Tage vor PR-γ-Aktivierung.
+
+    Wenn aktiv: skaliert den 20d-Nenner entsprechend der Markt-Phase,
     weil das heutige (premarket/intraday) Volumen noch nicht der volle
     Tagesumsatz ist und sonst die 20d-RVOL strukturell zu klein wäre:
 
@@ -749,7 +756,8 @@ def _normalize_rvol(
     if raw <= 0 or avg <= 0:
         return 0.0
 
-    if not RVOL_NORMALIZATION_ENABLED:
+    enabled = RVOL_NORMALIZATION_ENABLED or force_enabled
+    if not enabled:
         return raw / avg
 
     # Workflow-classified postclose → EOD-Wahrheit, kein Skalierer
@@ -15171,8 +15179,13 @@ def main():
     # Append-only; pruned auf 30 Tage Cutoff zum Run-Start. Fail-soft —
     # Daily-Run crasht nie wegen Log-Fehler.
     score_inflation_log.prune_log()
+    # PR-β (16.05.2026): normalize_rvol_fn injiziert, damit der Logger
+    # zusätzlich drivers_raw.rel_volume_normalized schreiben kann
+    # (Schema v2). Status quo unverändert — rel_volume bleibt der
+    # Live-Wert (ENABLED=False).
     _n_inflation_lines = score_inflation_log.record_top10_inflation(
-        top10, _compute_sub_scores, run_phase=run_phase)
+        top10, _compute_sub_scores, run_phase=run_phase,
+        normalize_rvol_fn=_normalize_rvol)
 
     # Borrow-Metriken (Display-Only): CTB + Utilization von Stockanalysis,
     # Fallback IBKR für CTB. Beide Felder fließen NICHT in den Score und
