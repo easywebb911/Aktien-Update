@@ -1,12 +1,13 @@
-# Session-Handover — Stand 16.05.2026 (final)
+# Session-Handover — Stand 16.05.2026 (final, 23 PRs)
 
 | Meta | Wert |
 |---|---|
 | Datum | 16.05.2026 |
-| Final-PRs | **21** gemerged |
-| Session-Dauer | lang (Morgen → Abend) |
+| Final-PRs | **23** gemerged |
+| Session-Dauer | lang (Morgen → spät Abend) |
 | Memory-Updates | Auto-Merge-Regel (#2), Aktive Positionen (#13), Code-Hygiene (#4), Zeit-Schätzungs-Regel (#27), Conviction-Beobachtung (#28) |
-| Vorgänger-Handover | PR #180 (Stand Mittag, 16 PRs) |
+| Vorgänger-Handover | PR #180 (Stand Mittag, 16 PRs) → PR #184 (Stand früher Abend, 21 PRs) |
+| **Offenes UI-Issue** | **Konfidenz-Tabelle Layout-Bug iPhone — 2 falsche Bug-Theorien (PR #185, #186), Live-DevTools-Diagnose nötig** |
 
 ## Heute implementiert (chronologisch)
 
@@ -81,6 +82,23 @@ Fixes plus finale Dead-Code-Cleanup-Welle.
   Reduzierer. Replacement RS_SPY-Pipeline unverändert (13 Call-Sites
   verifiziert). Inkl. neuem Mock-Test (9 Cases, Regression-Schutz).
 
+**Konfidenz-Tabelle Layout-Versuche (zwei falsche Theorien)**:
+- **PR #185** fix: `.sb-lbl`-Selektor auf `.sb-row .sb-lbl` geschärft.
+  Theorie: CSS-Spezifitäts-Bleed zwischen zwei `.sb-lbl`-Definitionen
+  macht Methodik-Labels visuell mit Tier-Dots verschmelzen. **Hat das
+  Problem NICHT gelöst** — Live-Test zeigte Bug unverändert.
+  Strukturell ist die Schärfung trotzdem sauber (Karten-spezifische
+  Optik gehört in `.sb-row`-Scope) — bleibt gemerged.
+- **PR #186** fix: `.score-block-list li` von Flex auf CSS-Grid mit
+  2-Row-Layout umgestellt. Theorie: Flexbox-Math (`flex:1` mit
+  `basis:0` → Shrink-Weight 0 → Label-Wrap auf 0 px). **Hat das
+  Problem NICHT gelöst** — Live-Test zeigte Bug unverändert.
+  Grid-Layout selbst ist konzeptionell besser (2D-Layout gehört in
+  Grid) — bleibt gemerged.
+- **Status**: Bug ist **weiterhin offen**. Beide Theorien waren am
+  Source-Code abgeleitet ohne Web-Inspector-Verifikation. Echte
+  Diagnose mit iPhone + Mac Safari Web-Inspector am 17.05. nötig.
+
 ## Aktive Positionen (Stand Ende 16.05.2026)
 
 | Ticker | Status | Anmerkung |
@@ -97,8 +115,26 @@ Fixes plus finale Dead-Code-Cleanup-Welle.
 
 ## Verifikation morgen 17.05.2026
 
+**PRIORITÄT 1 — Konfidenz-Tabelle Layout-Bug live diagnostizieren**
+
+Vorgehen: Mac Safari → Entwickler-Menü aktivieren → iPhone per USB
+anschließen → in Safari unter „Entwickler" → iPhone-Tab auswählen →
+Live-DOM der gerenderten `index.html` inspizieren → Methodik-Panel
+öffnen → Konfidenz-Sektion → einen `<li>`-Eintrag selektieren →
+Computed-Style + Box-Model + Stacking-Context prüfen. Mögliche
+Ursachen, die Source-Inspektion nicht abdeckt:
+- `position:absolute` / `transform` auf einem Vorfahr-Element
+- z-index-Konflikt mit `<details>`/`<summary>`-Stacking
+- `<details>`-spezifischer User-Agent-Stylesheet-Quirk auf Safari iOS
+- emoji-Glyph-Metrics (iOS rendert Emojis oversized in Inline-Text)
+- Iframe oder Shadow-DOM von der Pages-Deploy-Pipeline
+
+**Bis Ursache klar ist: KEIN weiterer blinder CSS-Fix-PR.** Zwei
+falsche Theorien in Folge sind genug Lesson.
+
 | Slot | Was prüfen | Bezug |
 |---|---|---|
+| **sofort morgens** | **iPhone Web-Inspector: Konfidenz-Tabelle Layout-Pathologie diagnostizieren** | **PR #185 + #186 falsche Theorien** |
 | 08:47 UTC (10:47 dt.) | Health-Check-Digest-Push mit echten Inhalten (statt 100 %-False-Positive) | PR #168 + #169 + #175 |
 | Erster KI-Agent-Tick | `agent_signals.json` enthält AMC/IONQ/RR/CRMD/AI-Keys (~15 Tickers statt 10) | PR #177 |
 | Position-Karten | Live-PnL sichtbar (`current_price` gesetzt) | PR #170 |
@@ -118,6 +154,7 @@ Fixes plus finale Dead-Code-Cleanup-Welle.
 
 | Datum | Aufgabe | Trigger |
 |---|---|---|
+| **17.05. SOFORT** | **Konfidenz-Tabelle Layout-Bug via iPhone Web-Inspector diagnostizieren** (Mac Safari Entwickler-Menü, iPhone per USB, Live-DOM + Computed-Style der überlappenden `<li>`-Einträge prüfen). **Kein weiterer blinder CSS-Fix-PR** bis Ursache eindeutig. | PR #185 + #186 falsche Theorien |
 | **17.05.** | Health-Check-Digest-Push verifizieren + iPhone-Padding-Test bei größter Schrift (KI-Analyse, Details, News) | sofort morgens |
 | **28.05.** | Earliness-Trend-Logging AUC-Re-Check (Schema v4, 14 d Live-Daten) | Datensammlung läuft |
 | **30.05.** | **PR-γ aktivieren**: `RVOL_NORMALIZATION_ENABLED = True` mit empirischem Skalierer (Median des `rel_volume_normalized / rel_volume`-Quotienten aus 14 d v2-Logs) | nach PR #167 |
@@ -138,6 +175,13 @@ Fixes plus finale Dead-Code-Cleanup-Welle.
 - ~~Details + News Padding-Skalierung~~ → PR #181
 - ~~CLAUDE.md-Pattern-Konsolidierung~~ → PR #182
 - ~~RS-vs-Sektor Dead-Code-Cleanup~~ → PR #183
+- `.sb-lbl`-Spezifitäts-Scoping → PR #185 (sauberer aber Bug nicht gelöst)
+- Methodik-Listen Grid-Layout → PR #186 (sauberer aber Bug nicht gelöst)
+
+**Offen — wartet auf Live-Diagnose 17.05.**:
+- **Konfidenz-Tabelle Layout-Bug iPhone** — zwei falsche Theorien
+  (Spezifität, Flexbox-Math) durchprobiert, Web-Inspector-Diagnose
+  am echten Gerät unausweichlich
 
 ## Optional / niedrig priorisiert
 
@@ -165,6 +209,8 @@ Fixes plus finale Dead-Code-Cleanup-Welle.
 | (5/1) `score()` aus DISPLAY_PTS_MAX-Konstanten (Methodik-Cap-Drift-Schutz) | erledigt PR #84 |
 | (6/A) `_drivers_breakdown` als Single Source of Truth | erledigt PR #83 |
 | **(Bonus) RS-vs-Sektor Dead-Code-Cleanup** | **erledigt PR #183** — 1 yfinance-Call/Daily-Run weniger |
+| **(Bonus) `.sb-lbl` Spezifitäts-Scoping** | **erledigt PR #185** — strukturell sauber, hat aber Easy's iPhone-Bug nicht gelöst |
+| **(Bonus) Methodik-Listen Grid-Layout** | **erledigt PR #186** — strukturell sauber, hat aber Easy's iPhone-Bug nicht gelöst |
 | (2) v1/v2 Render-Pfad → reines Jinja (`page.jinja` + `wl_card.jinja`) | pending — größerer Refactor |
 | (3) `generate_report.py` Monolith splitten | pending — größerer Refactor |
 | (4) Template-Engine statt f-Strings | pending |
@@ -254,3 +300,18 @@ Fixes plus finale Dead-Code-Cleanup-Welle.
     Zweite Runde mit pro-Kandidat-Grep über alle Konsumer-Pfade
     (Python, Jinja, JS, JSON) lieferte saubere RS-vs-Sektor-
     Identifikation (PR #183).
+12. **Zwei falsche Bug-Theorien in Folge bei Layout-Bug** (PR #185
+    Spezifitäts-Bleed, PR #186 Flexbox-Math). Beide Theorien aus
+    Source-Code abgeleitet, beide plausibel, beide am gerenderten
+    iPhone-Output **nicht wirksam**. Konfidenz-Tabelle-Layout bleibt
+    nach 2 PRs verbuggt. Lehre: **Source-Inspektion-Tests sind
+    notwendig, nicht hinreichend**. Bei UX-Layout-Bugs mit Sym-
+    ptomen, die Source-Code-Reasoning nicht eindeutig erklärt: **nach
+    erstem Fehlversuch KEIN weiterer blinder Patch-PR** — sondern
+    Web-Inspector-Live-Diagnose am echten Gerät (Mac Safari + iPhone
+    USB). Web-Inspector-Session ist günstiger als 2-3 falsche PRs.
+13. **PR #185 + #186 bleiben gemerged trotz Bug-Unbehoben**: beide
+    sind grundsätzlich saubere strukturelle Verbesserungen (Spezifi-
+    täts-Hygiene + Grid für 2D-Layout), nur der iPhone-Bug ist nicht
+    deren Symptom. Rollback wäre Verschlechterung. Open-Issue-
+    Tracking statt PR-Revert.
