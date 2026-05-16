@@ -1,10 +1,10 @@
 {
-  "updated": "2026-05-17T00:06:13.601338+02:00",
+  "updated": "2026-05-17T00:34:11.600794+02:00",
   "run_info": {
     "tickers_checked": 14,
-    "signals_active": 3,
+    "signals_active": 4,
     "alerts_sent": 0,
-    "elapsed_s": 16.6,
+    "elapsed_s": 11.4,
     "market_phase": "Geschlossen"
   },
   "signals": {
@@ -53,9 +53,9 @@
       "uoa_cp_ratio": 4.439244663382595
     },
     "CRMD": {
-      "score": 40,
+      "score": 18,
       "confidence": 33,
-      "drivers": "Spanne 8.8% + News: earnings beat, guidance raised",
+      "drivers": "Spanne 8.8% + News-KI 8/30: Positive earnings and guidance raise are bullish but lack short squeeze indicators like high short interest, squeeze set",
       "price": 7.55,
       "chg_pct": 0.0,
       "rvol_4d": 1.46,
@@ -66,7 +66,7 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 1,
+      "active_triggers": 0,
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": null,
