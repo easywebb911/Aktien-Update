@@ -8064,11 +8064,13 @@ function _kiInsightItems(appData) {{
       if (typeof rv !== 'number' || !isFinite(rv) || rv <= 3.0) continue;
       if (!top || rv > top.rv) top = {{ t, rv }};
     }}
-    // Sekundärquelle: agent_signals.signals[t].rvol — fängt Top-10-Ticker
-    // ohne manual_personal-Watchlist-Eintrag ab.
+    // Sekundärquelle: agent_signals.signals[t].rvol_4d — fängt Top-10-Ticker
+    // ohne manual_personal-Watchlist-Eintrag ab. Fallback auf .rvol für
+    // stale agent_signals.json (RVOL-Disambiguation 16.05.2026).
     for (const t in sigs) {{
       const s = sigs[t];
-      const rv = s && s.rvol;
+      const rv = (s && s.rvol_4d != null) ? s.rvol_4d
+               : (s && s.rvol    != null) ? s.rvol : null;
       if (typeof rv !== 'number' || !isFinite(rv) || rv <= 3.0) continue;
       if (!top || rv > top.rv) top = {{ t, rv }};
     }}
@@ -9845,7 +9847,11 @@ function _fmtGerman(d) {{
                              : '⚪';
       const topActive = Object.entries(signals)
         .map(([t, s]) => {{
-          const r = (s && s.rvol != null) ? +s.rvol : 0;
+          // RVOL-Disambiguation (16.05.2026): bevorzugt rvol_4d, Fallback
+          // rvol nur für stale agent_signals.json zwischen Merge + nächstem Tick.
+          const _rvRaw = (s && s.rvol_4d != null) ? s.rvol_4d
+                       : (s && s.rvol    != null) ? s.rvol : null;
+          const r = _rvRaw != null ? +_rvRaw : 0;
           const rvolMarker = r >= 5 ? ` 🚀 ${{r.toFixed(1)}}×`
                            : r >= 3 ? ` ⚡ ${{r.toFixed(1)}}×`
                            : '';
@@ -9967,8 +9973,11 @@ function _fmtGerman(d) {{
         }}
 
         // RVOL-Zeile aus agent_signals.json — gleiches Inject-Muster wie StockTwits.
+        // Bevorzugt rvol_4d (16.05.2026); Fallback rvol für stale Snapshots.
         let rvRow = detailTbl.querySelector('.detail-rvol-row');
-        const rv  = (sig && sig.rvol != null) ? +sig.rvol : null;
+        const _rvRaw = (sig && sig.rvol_4d != null) ? sig.rvol_4d
+                     : (sig && sig.rvol    != null) ? sig.rvol : null;
+        const rv  = _rvRaw != null ? +_rvRaw : null;
         if (rv != null && rv > 0) {{
           const rvCol = rv >= 3   ? '#22c55e'
                       : rv >= 1.5 ? '#f59e0b'
