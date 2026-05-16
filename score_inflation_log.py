@@ -29,6 +29,14 @@ LOG_FILE = "score_inflation_log.jsonl"
 CUTOFF_DAYS = 30   # Einträge älter als 30 Tage werden geprunt
 _EASTERN = ZoneInfo("America/New_York")
 
+# Schema-Version-Marker (PR-β, 16.05.2026).
+# v1: ursprüngliches Format (12.05.–16.05.2026, kein schema_v-Marker).
+# v2: ergänzt drivers_raw.rel_volume_normalized (hypothetischer Wert mit
+#     RVOL_NORMALIZATION_ENABLED=True, ohne globalen Flag zu setzen).
+# Reader (z. B. Diagnose-Skripte) sollen `entry.get("schema_v", 1)` lesen,
+# damit Bestands-Einträge ohne Marker als v1 erkannt werden.
+SCHEMA_V = 2
+
 
 def _session_phase(dt_utc: datetime) -> str:
     """Mappe UTC-Timestamp auf US-Handels-Phase.
@@ -102,7 +110,8 @@ def _finra_combo_active(stock: dict) -> bool:
 
 def _build_entry(stock: dict, run_ts: datetime,
                  sub_scores: dict | None,
-                 run_phase: str | None = None) -> dict:
+                 run_phase: str | None = None,
+                 normalize_rvol_fn=None) -> dict:
     """Komponiere eine JSONL-Zeile aus dem Stock-Dict.
 
     ``sub_scores`` ist das Ergebnis von ``_compute_sub_scores(stock)`` —
@@ -118,10 +127,37 @@ def _build_entry(stock: dict, run_ts: datetime,
     Slot zur Ausführungszeit. Inflations-Analyse vergleicht primär
     nach ``run_phase``, ``trading_session_phase`` bleibt für Detail-
     Audit erhalten.
+
+    ``normalize_rvol_fn`` (PR-β, Schema v2): wenn übergeben, wird der
+    hypothetische normalisierte RVOL-Wert berechnet und in
+    ``drivers_raw.rel_volume_normalized`` persistiert. Empirik-Daten-
+    sammlung für PR-γ-Aktivierungs-Entscheidung — der Live-Wert
+    ``rel_volume`` bleibt unverändert (status quo, ENABLED=False).
+    Callable-Injection vermeidet Zirkel-Import auf ``generate_report``.
     """
     finra = stock.get("finra_data") or {}
     sub = sub_scores or {}
+    rel_vol_live = _safe_float(stock.get("rel_volume"))
+    rel_vol_norm = None
+    if normalize_rvol_fn is not None:
+        avg_20d = _safe_float(stock.get("avg_vol_20d"))
+        if rel_vol_live is not None and avg_20d is not None and avg_20d > 0:
+            # rel_volume = cur_vol / avg_20d (status quo, ENABLED=False),
+            # also cur_vol = rel_volume × avg_20d — verlustfrei rückgewandelt.
+            cur_vol = rel_vol_live * avg_20d
+            try:
+                rel_vol_norm = normalize_rvol_fn(
+                    cur_vol, avg_20d,
+                    run_phase=run_phase,
+                    now_utc=run_ts,
+                    force_enabled=True,
+                )
+            except Exception as exc:
+                log.debug("score_inflation_log: normalize_rvol fehlgeschlagen für %s: %s",
+                          stock.get("ticker"), exc)
+                rel_vol_norm = None
     return {
+        "schema_v": SCHEMA_V,
         "run_ts":  run_ts.astimezone(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
         "run_phase": run_phase,
         "ticker":  stock.get("ticker"),
@@ -144,15 +180,16 @@ def _build_entry(stock: dict, run_ts: datetime,
             "late_runner_active":  bool(stock.get("late_runner") or False),
         },
         "drivers_raw": {
-            "rel_volume":         _safe_float(stock.get("rel_volume")),
-            "change_2d":          _safe_float(stock.get("change_2d")),
-            "change_3d":          _safe_float(stock.get("change_3d")),
-            "rsi14":              _safe_float(stock.get("rsi14")),
-            "short_float":        _safe_float(stock.get("short_float")),
-            "days_to_cover":      _safe_float(stock.get("short_ratio")),
-            "finra_si_trend":     _normalize_si_trend(finra.get("trend")),
-            "finra_combo_active": _finra_combo_active(stock),
-            "finra_bonus_pts":    int(_safe_float(stock.get("finra_bonus_pts"), 0) or 0),
+            "rel_volume":            rel_vol_live,
+            "rel_volume_normalized": rel_vol_norm,
+            "change_2d":             _safe_float(stock.get("change_2d")),
+            "change_3d":             _safe_float(stock.get("change_3d")),
+            "rsi14":                 _safe_float(stock.get("rsi14")),
+            "short_float":           _safe_float(stock.get("short_float")),
+            "days_to_cover":         _safe_float(stock.get("short_ratio")),
+            "finra_si_trend":        _normalize_si_trend(finra.get("trend")),
+            "finra_combo_active":    _finra_combo_active(stock),
+            "finra_bonus_pts":       int(_safe_float(stock.get("finra_bonus_pts"), 0) or 0),
         },
         "trading_session_phase": _session_phase(run_ts),
     }
@@ -162,7 +199,8 @@ def record_top10_inflation(stocks: Iterable[dict],
                            sub_scores_fn,
                            run_ts: datetime | None = None,
                            path: str = LOG_FILE,
-                           run_phase: str | None = None) -> int:
+                           run_phase: str | None = None,
+                           normalize_rvol_fn=None) -> int:
     """Append-only-Logger für Top-10-Ticker.
 
     Schreibt eine Zeile pro Stock in ``path`` (JSON Lines). Bei Schreib-
@@ -178,6 +216,14 @@ def record_top10_inflation(stocks: Iterable[dict],
     Analyse: gleicher Ticker, premarket vs. postclose desselben
     Tages = direkte Messung der Intra-Day-Score-Inflation.
 
+    ``normalize_rvol_fn`` (PR-β, 16.05.2026): Callable
+    ``(raw_vol, avg_20d, *, run_phase, now_utc, force_enabled) -> float``,
+    typischerweise ``generate_report._normalize_rvol``. Wenn gesetzt,
+    schreibt der Logger zusätzlich ``drivers_raw.rel_volume_normalized``
+    in jede Zeile — den hypothetischen Wert mit ``ENABLED=True``,
+    Empirik-Basis für PR-γ-Skalierer-Validierung. Status-quo-Verhalten
+    bleibt unverändert (``rel_volume`` zeigt weiterhin den Live-Wert).
+
     Returnt die Anzahl erfolgreich geschriebener Zeilen.
     """
     if run_ts is None:
@@ -188,7 +234,9 @@ def record_top10_inflation(stocks: Iterable[dict],
             for stock in stocks:
                 try:
                     sub = sub_scores_fn(stock) if sub_scores_fn else None
-                    entry = _build_entry(stock, run_ts, sub, run_phase=run_phase)
+                    entry = _build_entry(stock, run_ts, sub,
+                                          run_phase=run_phase,
+                                          normalize_rvol_fn=normalize_rvol_fn)
                     fh.write(json.dumps(entry, ensure_ascii=False) + "\n")
                     n_written += 1
                 except Exception as exc:
