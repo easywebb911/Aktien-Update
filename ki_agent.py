@@ -197,6 +197,17 @@ def _reset_tier3_accumulators() -> None:
         health_check.provider_acct_reset(acct)
 
 
+def _unpack_or_default(result, default):
+    """Default-Unpack-Helper für Tier-3-Fetcher (16.05.2026).
+
+    Nach success_check-Recalibration returnen die Fetcher None bei
+    echtem Provider-Fehler. Caller braucht aber den vorherigen Tuple-
+    bzw. Dict-Default, damit nachgelagerte Pipeline-Schritte stabil
+    bleiben. Einzeiler-Pattern statt verstreuter if-Blöcke.
+    """
+    return result if result is not None else default
+
+
 # ── Signale laden/speichern ───────────────────────────────────────────────────
 
 def load_signals() -> dict:
@@ -631,11 +642,21 @@ def fetch_reddit_mentions(ticker: str) -> dict:
 
 # ── Datenquelle 4: SEC EDGAR RSS ─────────────────────────────────────────────
 
-def fetch_sec_8k(ticker: str) -> tuple[bool, str, datetime | None]:
-    """Returns (has_recent_8k, title_of_8k, filing_dt).
+def fetch_sec_8k(ticker: str) -> tuple[bool, str, datetime | None] | None:
+    """Returns (has_recent_8k, title_of_8k, filing_dt) ODER None bei
+    echtem Provider-Fehler.
 
     filing_dt ist der UTC-Zeitstempel der Meldung — wird für den
     Earnings-Sofort-Alert (Fix 3) genutzt um die 2h-Aktualität zu prüfen.
+
+    Return-Semantik (16.05.2026, Tier-3-success_check-Recalibration):
+      * (True, title, dt)    — Filing gefunden im 24h-Fenster.
+      * (False, "", None)    — Fetch erfolgreich, kein Filing (LEGITIM).
+      * None                 — Provider-Fehler (HTTP 403, 4xx/5xx, Timeout,
+                                Parse-Error). Wrapper zählt als fail.
+
+    Trennung legitim-leer vs echter Outage erforderlich, damit
+    Provider-Health-Logging keine False-Positives produziert.
     """
     url = (
         "https://www.sec.gov/cgi-bin/browse-edgar"
@@ -647,8 +668,8 @@ def fetch_sec_8k(ticker: str) -> tuple[bool, str, datetime | None]:
     try:
         resp = requests.get(url, headers=SEC_HEADERS, timeout=12)
         if resp.status_code == 403:
-            log.debug("EDGAR %s: 403 geblockt — übersprungen.", ticker)
-            return False, "", None
+            log.debug("EDGAR %s: 403 geblockt — Provider-Fail.", ticker)
+            return None    # echter Fail: SEC-Rate-Limit oder UA-Block
         resp.raise_for_status()
         text = re.sub(r' xmlns="[^"]+"', "", resp.text, count=1)
         root = ET.fromstring(text)
@@ -664,8 +685,9 @@ def fetch_sec_8k(ticker: str) -> tuple[bool, str, datetime | None]:
             except Exception:
                 continue
     except Exception as exc:
-        pass
-    return False, "", None
+        log.debug("EDGAR 8-K %s: %s", ticker, exc)
+        return None        # echter Fail: HTTP-Fehler, Timeout, Parse-Error
+    return False, "", None  # legitim: Fetch OK, keine 8-K im Fenster
 
 
 # ── Datenquellen 5/8/9/10/11: Generischer RSS-Fetcher ────────────────────────
@@ -967,7 +989,7 @@ def fetch_finra_ssr(tickers: list[str]) -> dict[str, float]:
 
 # ── Datenquelle 11: StockTwits Sentiment (öffentliche Read-API) ──────────────
 
-def fetch_stocktwits_sentiment(ticker: str) -> dict:
+def fetch_stocktwits_sentiment(ticker: str) -> dict | None:
     """Liest die letzten Messages aus https://api.stocktwits.com/api/2/streams/symbol/.
 
     Rückgabe-Dict::
@@ -977,8 +999,16 @@ def fetch_stocktwits_sentiment(ticker: str) -> dict:
          "n_bull":     int,
          "n_bear":     int}
 
-    Bei HTTP-Fehler, Rate-Limit (429) oder Timeout → leeres Dict
-    (``{"bull_ratio": None, "msg_per_h": 0, ...}``). Niemals Raise.
+    Return-Semantik (16.05.2026, Tier-3-success_check-Recalibration):
+      * Volles Dict mit ``n_total > 0`` — Messages gefunden.
+      * Volles Dict mit ``n_total = 0`` — Fetch OK, keine Messages
+        (LEGITIM, z. B. Smallcap ohne Aktivität).
+      * None — HTTP 4xx/5xx (z. B. 429 Rate-Limit, 403 Block),
+        Timeout, Parse-Error. Wrapper zählt als fail.
+
+    STOCKTWITS_ENABLED=False oder leerer Ticker → leeres Dict (kein
+    Call versucht; wird vom Wrapper als success klassifiziert weil
+    result is not None).
     """
     if not STOCKTWITS_ENABLED or not ticker:
         return {"bull_ratio": None, "msg_per_h": 0, "n_total": 0,
@@ -989,13 +1019,11 @@ def fetch_stocktwits_sentiment(ticker: str) -> dict:
         resp = requests.get(url, headers=HTTP_HEADERS, timeout=STOCKTWITS_TIMEOUT)
         if resp.status_code != 200:
             log.debug("StockTwits %s HTTP %d", ticker, resp.status_code)
-            return {"bull_ratio": None, "msg_per_h": 0, "n_total": 0,
-                    "n_bull": 0, "n_bear": 0}
+            return None     # echter Fail: 429 Rate-Limit, 403 Block, 5xx
         data = resp.json()
     except (requests.RequestException, ValueError) as exc:
         log.debug("StockTwits %s fetch failed: %s", ticker, exc)
-        return {"bull_ratio": None, "msg_per_h": 0, "n_total": 0,
-                "n_bull": 0, "n_bear": 0}
+        return None         # echter Fail: Timeout, ConnectionError, Parse
 
     messages = (data.get("messages") or [])[:30]
     n_bull = n_bear = 0
@@ -1150,10 +1178,16 @@ def _stocktwits_pts(st: dict | None) -> int:
 
 # ── Datenquelle 10: SEC Form 4 ────────────────────────────────────────────────
 
-def fetch_sec_form4(ticker: str) -> tuple[bool, str]:
+def fetch_sec_form4(ticker: str) -> tuple[bool, str] | None:
     """Sucht SEC Form 4 (Insider-Transaktionen) in den letzten FORM4_LOOKBACK_DAYS Tagen.
 
-    Returns (has_recent_form4, title). Title is '' if none found.
+    Returns (has_recent_form4, title) ODER None bei echtem Provider-Fehler.
+
+    Return-Semantik (16.05.2026):
+      * (True, title)  — Form 4 gefunden im Fenster.
+      * (False, "")    — Fetch OK, kein Form 4 (LEGITIM).
+      * None           — HTTP 403, 4xx/5xx, Timeout, Parse-Error.
+
     Nur für US-Ticker; nutzt dieselbe EDGAR-Infrastruktur wie fetch_sec_8k.
     """
     url = (
@@ -1166,8 +1200,8 @@ def fetch_sec_form4(ticker: str) -> tuple[bool, str]:
     try:
         resp = requests.get(url, headers=SEC_HEADERS, timeout=12)
         if resp.status_code == 403:
-            log.debug("EDGAR Form4 %s: 403 geblockt — übersprungen.", ticker)
-            return False, ""
+            log.debug("EDGAR Form4 %s: 403 geblockt — Provider-Fail.", ticker)
+            return None
         resp.raise_for_status()
         text = re.sub(r' xmlns="[^"]+"', "", resp.text, count=1)
         root = ET.fromstring(text)
@@ -1184,6 +1218,7 @@ def fetch_sec_form4(ticker: str) -> tuple[bool, str]:
                 continue
     except Exception as exc:
         log.debug("EDGAR Form4 %s: %s", ticker, exc)
+        return None
     return False, ""
 
 
@@ -2023,7 +2058,7 @@ def _relative_time(filed_iso: str) -> str:
         return ""
 
 
-def fetch_edgar_filings(top10: list[dict]) -> list[dict]:
+def fetch_edgar_filings(top10: list[dict]) -> list[dict] | None:
     """SEC EDGAR SC 13D/13G Filings auf die aktuellen Top-10 Ticker.
 
     Args:
@@ -2032,18 +2067,23 @@ def fetch_edgar_filings(top10: list[dict]) -> list[dict]:
                Subject-Company-Name (Substring, case-insensitive) im Atom-
                Entry-Title oder die Ticker-Abkürzung im Title vorkommt.
 
-    Returns:
-        Liste von ``{ticker, filing_type, filer, filed_at, url}``-Dicts.
-        Leere Liste bei jedem Fehler (HTTP, Parse, Connectivity, Disabled).
-        Niemals raise — Caller darf das Ergebnis direkt iterieren.
+    Returns (16.05.2026, Tier-3-success_check-Recalibration):
+        * Liste ``[{ticker, filing_type, filer, filed_at, url}, ...]``
+          — Filings im Lookback-Fenster gefunden.
+        * Leere Liste ``[]`` — Fetch erfolgreich, keine 13D/G-Filings
+          (LEGITIM, z. B. Wochenende).
+        * None — Provider-Fehler: HTTP 4xx/5xx/Timeout/Parse-Error,
+          EDGAR_FILINGS_ENABLED=False oder leeres top10. Wrapper
+          klassifiziert als fail.
 
-    Failure-Modes (alle → leere Liste):
-        * EDGAR_FILINGS_ENABLED=False oder leeres top10
-        * SEC-Server down (Connection-Fehler)
-        * 403/429 (User-Agent-Reject, Rate-Limit)
-        * Atom-XML-Parse-Fehler
+    Niemals raise — Caller darf das Ergebnis direkt prüfen.
     """
     if not EDGAR_FILINGS_ENABLED or not top10:
+        # Disabled-Pfad: kein Call gemacht → klassifiziert nicht als fail.
+        # Aber: Caller-Pipeline erwartet iterable. Wir geben [] zurück
+        # statt None — der instrument_provider_call-Wrapper sieht "kein
+        # raise + result=[]", success_check=lambda r: r is not None
+        # → success. Damit zählt der ENABLED-Fall NICHT als fail.
         return []
 
     try:
@@ -2064,19 +2104,19 @@ def fetch_edgar_filings(top10: list[dict]) -> list[dict]:
         if resp.status_code != 200:
             log.warning("EDGAR fetch HTTP %d (User-Agent? Rate-Limit?)",
                         resp.status_code)
-            return []
+            return None       # echter Fail
     except Exception as exc:
         # Bewusst breit gefasst — fail-soft hat Vorrang vor Diagnose-
         # Granularität. SEC-Probleme dürfen den ki_agent-Run niemals
         # blockieren.
         log.warning("EDGAR fetch failed: %s", exc)
-        return []
+        return None           # echter Fail
 
     try:
         root = ET.fromstring(resp.content)
     except ET.ParseError as exc:
         log.warning("EDGAR parse failed: %s", exc)
-        return []
+        return None           # echter Fail
 
     ns = {"a": "http://www.w3.org/2005/Atom"}
     cutoff = datetime.now(timezone.utc) - timedelta(hours=EDGAR_LOOKBACK_HOURS)
@@ -2610,11 +2650,16 @@ def _process_ticker(ticker: str, shared: dict) -> dict:
     is_us     = "." not in ticker
     if is_us:
         try:
-            # Health-Check Phase 2 PR 3 — Tier-3 edgar_8k. Return-Tuple
-            # ``(has_8k, sec_title, sec_8k_dt)`` — Erfolg = has_8k=True.
-            has_8k, sec_title, sec_8k_dt = health_check.instrument_provider_call(
+            # Tier-3 success_check-Recalibration (16.05.2026): Fetcher
+            # returnt None bei echtem Provider-Fehler (HTTP 403, 4xx/5xx,
+            # Timeout). success_check prüft nur "Call funktioniert",
+            # nicht "Daten gefunden" — legitimes "keine 8-K" zählt als
+            # success.
+            _r = health_check.instrument_provider_call(
                 _EDGAR_8K_ACCT, fetch_sec_8k, ticker,
-                success_check=lambda r: bool(r and r[0]))
+                success_check=lambda r: r is not None)
+            has_8k, sec_title, sec_8k_dt = _unpack_or_default(
+                _r, (False, "", None))
             if has_8k:
                 title_lower = sec_title.lower()
                 if any(kw in title_lower for kw in SEC_RELEVANT_KEYWORDS):
@@ -2637,11 +2682,13 @@ def _process_ticker(ticker: str, shared: dict) -> dict:
     form4_title = ""
     if is_us:
         try:
-            # Health-Check Phase 2 PR 3 — Tier-3 edgar_form4. Return-Tuple
-            # ``(has_form4, form4_title)`` — Erfolg = has_form4=True.
-            has_form4, form4_title = health_check.instrument_provider_call(
+            # Tier-3 success_check-Recalibration (16.05.2026): Fetcher
+            # returnt None bei Provider-Fehler; legitimes "kein Form 4"
+            # zählt als success.
+            _r = health_check.instrument_provider_call(
                 _EDGAR_FORM4_ACCT, fetch_sec_form4, ticker,
-                success_check=lambda r: bool(r and r[0]))
+                success_check=lambda r: r is not None)
+            has_form4, form4_title = _unpack_or_default(_r, (False, ""))
         except Exception as exc:
             log.debug("Form 4 Fehler %s: %s", ticker, exc)
 
@@ -2664,12 +2711,17 @@ def _process_ticker(ticker: str, shared: dict) -> dict:
         except Exception as exc:
             log.debug("FDA-Datum Parse %s: %s", ticker, exc)
 
-    # Health-Check Phase 2 PR 3 — Tier-3 stocktwits. fail-soft-Return
-    # ist Dict mit allen Werten 0/None bei Fehler → Default-Heuristik
-    # würde irrtümlich Success melden. success_check: ``n_total > 0``.
-    stocktwits_data = health_check.instrument_provider_call(
+    # Tier-3 stocktwits (16.05.2026, success_check-Recalibration):
+    # Fetcher returnt None bei HTTP 4xx/5xx/Timeout, Default-Dict bei
+    # legitimer "keine Messages"-Antwort. success_check prüft nur
+    # "Call funktioniert".
+    _r = health_check.instrument_provider_call(
         _STOCKTWITS_ACCT, fetch_stocktwits_sentiment, ticker,
-        success_check=lambda r: bool(r and r.get("n_total", 0) > 0))
+        success_check=lambda r: r is not None)
+    stocktwits_data = _unpack_or_default(_r, {
+        "bull_ratio": None, "msg_per_h": 0, "n_total": 0,
+        "n_bull": 0, "n_bear": 0,
+    })
 
     # UOA — Unusual Options Activity aus yfinance Options-Chain.
     # Sequenziell wie die anderen Fetches; Parallelität existiert bereits
@@ -3043,8 +3095,14 @@ def main() -> None:
     # KI-Agent-Tick; Akkumulator-Pattern fuer Konsistenz mit anderen
     # Tier-3-Providern (1 Aufruf → calls=1, success bei nicht-leerer
     # Liste). Default-Heuristik ist hier korrekt.
-    edgar_filings_cache = health_check.instrument_provider_call(
-        _EDGAR_13D_G_ACCT, fetch_edgar_filings, edgar_top10)
+    # Tier-3 edgar_13d_g (16.05.2026, success_check-Recalibration):
+    # Fetcher returnt None bei Provider-Fehler (HTTP non-200, Parse,
+    # Connection). Leere Liste bei legitim "keine 13D/G-Filings"
+    # (z. B. Wochenende). success_check prüft nur "Call funktioniert".
+    _r = health_check.instrument_provider_call(
+        _EDGAR_13D_G_ACCT, fetch_edgar_filings, edgar_top10,
+        success_check=lambda r: r is not None)
+    edgar_filings_cache = _unpack_or_default(_r, [])
 
     # Counter und new_signals aus den Worker-Ergebnissen aggregieren.
     # Alert-Schwelle: monster_score >= 70 (ersetzt phasenabhängige

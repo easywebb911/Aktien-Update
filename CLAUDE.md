@@ -2989,15 +2989,32 @@ von ``ki_agent.py`` aus). Backward-compat-Aliase in
 Kwarg für Tier-3-Provider mit reichhaltigen fail-soft-Returns
 (``(False, "", None)``, ``{"n_total": 0, …}``, ``(0, [], {})``).
 
-| Provider-Key | Quelle | success_check |
+| Provider-Key | Quelle | success_check (seit 16.05.2026) |
 |---|---|---|
-| ``stocktwits`` | ``fetch_stocktwits_sentiment(ticker)`` in ``_process_ticker`` — KI-Agent-Tick | ``r.get("n_total", 0) > 0`` (fail-soft-Default-Dict mit ``n_total=0`` würde sonst als success zählen) |
+| ``stocktwits`` | ``fetch_stocktwits_sentiment(ticker)`` in ``_process_ticker`` — KI-Agent-Tick. **Return-Semantik:** Dict bei Erfolg (auch ``n_total=0`` = legitim leer), **None bei HTTP 4xx/5xx/Timeout**. | ``r is not None`` |
 | ``uoa`` | ``fetch_uoa_signal(ticker)`` in ``_process_ticker`` — Return-Tuple ``(score, drivers, meta)`` | ``bool(r[1])`` (drivers-Liste non-empty signalisiert detected UOA) |
 | ``news_rss`` | ``fetch_yahoo_news`` + 5× ``fetch_rss_news`` in ``_process_ticker``. Gemeinsamer Akkumulator → 1 Zeile pro KI-Agent-Tick für alle 6 RSS-Quellen × N Top-10 = 60+ Calls aggregiert | Default (``len(list) > 0``) |
 | ``edgar_13f`` | ``fetch_sec_13f`` im Daily-Run-ThreadPool (US-Top-10, ``SEC_13F_ENABLED``-gated). 1 Zeile pro Daily-Run mit ``run_phase=premarket/postclose`` | Default (``str is not None``) |
-| ``edgar_8k`` | ``fetch_sec_8k(ticker)`` in ``_process_ticker`` — Return-Tuple ``(has_8k, sec_title, sec_8k_dt)`` | ``bool(r[0])`` |
-| ``edgar_form4`` | ``fetch_sec_form4(ticker)`` in ``_process_ticker`` — Return-Tuple ``(has_form4, form4_title)`` | ``bool(r[0])`` |
-| ``edgar_13d_g`` | ``fetch_edgar_filings(top10)`` — 1× pro KI-Agent-Tick | Default (``len(list) > 0``) |
+| ``edgar_8k`` | ``fetch_sec_8k(ticker)`` in ``_process_ticker`` — Return-Tuple ``(has_8k, sec_title, sec_8k_dt)`` bei Erfolg (auch ``(False, "", None)`` = legitim keine 8-K), **None bei HTTP 403/4xx/5xx/Timeout**. | ``r is not None`` |
+| ``edgar_form4`` | ``fetch_sec_form4(ticker)`` in ``_process_ticker`` — Return-Tuple ``(has_form4, form4_title)`` bei Erfolg, **None bei Provider-Fehler**. | ``r is not None`` |
+| ``edgar_13d_g`` | ``fetch_edgar_filings(top10)`` — 1× pro KI-Agent-Tick. Liste bei Erfolg (auch ``[]`` = legitim leer), **None bei HTTP non-200 / Parse-Error**. | ``r is not None`` |
+
+**Tier-3-success_check-Recalibration (16.05.2026)** — Hintergrund:
+vier Tier-3-Provider (edgar_8k/form4/13d_g/stocktwits) zeigten 100 %
+Fail-Rate im Provider-Health-Log, weil die alten success_check-
+Lambdas „Daten gefunden" prüften statt „Call funktioniert". Legitim
+„kein Filing für Ticker X" wurde als Outage gezählt.
+
+**Neue Semantik:** Fetcher returnen **None** bei echtem Provider-
+Fehler (HTTP 403/4xx/5xx, Timeout, Parse-Error). Legitim leer returnt
+den bestehenden Default (``(False, "", None)`` / ``[]`` / Dict mit
+``n_total=0``). success_check vereinfacht auf ``lambda r: r is not None``
+— „Call funktioniert" statt „Daten vorhanden". Caller-Pipeline-Werte
+bleiben unverändert via Helper ``_unpack_or_default(result, default)``.
+
+**Wirkung:** Provider-Health-Fail-Rate fällt von 100 % auf den
+realistischen Outage-Anteil (Erwartung 0–15 %, je nach Wochenende /
+Werktag). Digest-Push zählt nur noch echte Provider-Outages.
 
 **Akkumulator-Architektur** (ki_agent.py):
 ``_STOCKTWITS_ACCT``, ``_UOA_ACCT``, ``_NEWS_RSS_ACCT``,
