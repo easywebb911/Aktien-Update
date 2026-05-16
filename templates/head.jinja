@@ -381,8 +381,13 @@ abbr[title]{text-decoration:underline dotted var(--txt-dim);
   box-shadow:inset 1px 0 0 rgba(34,197,94,.25)}
 .tj-trade-knaller-crash{border-left-width:5px;
   box-shadow:inset 1px 0 0 rgba(239,68,68,.25)}
-.tj-knaller-icon{display:inline-block;font-size:.85rem;line-height:1;
-  margin-left:4px;cursor:help;vertical-align:baseline}
+/* Knaller-Badge (16.05.2026, ersetzt Emoji-Icon): klein, klar lesbar,
+   konsistent zu anderen Tool-Badges (Conviction-Level / SI-Trend-Pill). */
+.tj-knaller-badge{display:inline-block;font-size:.7rem;font-weight:600;
+  letter-spacing:.5px;padding:2px 6px;border-radius:3px;margin-left:6px;
+  vertical-align:middle;cursor:help;line-height:1.3}
+.tj-knaller-hit{color:#22c55e;background:rgba(34,197,94,.1)}
+.tj-knaller-crash{color:#ef4444;background:rgba(239,68,68,.1)}
 .tj-trade-head{display:flex;flex-wrap:wrap;align-items:baseline;
   gap:8px;justify-content:space-between}
 .tj-trade-ticker{font-size:.95rem;font-weight:800;color:var(--txt);
