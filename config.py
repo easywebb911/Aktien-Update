@@ -181,10 +181,6 @@ PC_RATIO_BEAR_MALUS     = 3
 RS_SPY_THRESHOLD_PCT   = 5.0   # ±% relative Outperformance für volle Punkte
 RS_SPY_PTS_MAX         = 3     # max. ±Punkte (symmetrisch)
 
-# Deprecated — wurde durch RS_SPY_* ersetzt; die Felder rel_strength_sector
-# und sector_etf werden noch im Datenmodell mitgeführt, aber nicht mehr
-# bewertet. Siehe SESSION_HANDOVER 30.04.2026 (idiosynkratische Squeezes).
-
 # ── Gap & Hold (Eröffnungs-Stärke + Tagesverlauf) ────────────────────────────
 # Misst die Stärke des Eröffnungs-Gaps und ob das Gap im Tagesverlauf
 # gehalten wird (EOD). Lesart:
@@ -394,23 +390,6 @@ SHOW_EARNINGS_SURPRISE = True
 SHOW_PUT_CALL_RATIO = True
 PC_BULLISH  = 0.50
 PC_BEARISH  = 1.50
-
-# 5 — Relative Stärke gegen Sektor-ETF (statt nur gegen S&P 500)
-USE_SECTOR_RS = True
-SECTOR_ETF_MAP = {
-    "Technology":            "QQQ",
-    "Communication Services":"QQQ",
-    "Healthcare":            "XBI",
-    "Biotechnology":         "XBI",
-    "Energy":                "XLE",
-    "Financial":             "XLF",
-    "Financial Services":    "XLF",
-    "Consumer":              "XRT",
-    "Consumer Cyclical":     "XRT",
-    "Consumer Defensive":    "XRT",
-}
-SECTOR_ETF_DEFAULT = "SPY"
-SECTOR_ETFS_ALL    = ("QQQ", "XBI", "XLE", "XLF", "XRT", "SPY")
 
 # 6 — Historische Squeeze-Erkennung (90-Tage-Fenster)
 SQUEEZE_DETECTION_DAYS = 90

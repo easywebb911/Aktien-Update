@@ -15264,39 +15264,6 @@ def main():
     globals()["_FX_USD_EUR"] = _fx_usd_eur
     globals()["_FX_USD_EUR_COMPUTED_AT"] = _fx_computed_at
 
-    # Feature 5 — Sektor-ETF 20T-Performance parallel holen
-    _sector_perf_20d: dict[str, float] = {}
-    if USE_SECTOR_RS:
-        _t_sector = time.time()
-        _SECTOR_TIMEOUT = 15
-        try:
-            with ThreadPoolExecutor(max_workers=1) as _sec_ex:
-                _sec_hist = _sec_ex.submit(
-                    lambda: yf.download(list(SECTOR_ETFS_ALL), period="25d",
-                                        group_by="ticker", auto_adjust=True,
-                                        progress=False, threads=True)
-                ).result(timeout=_SECTOR_TIMEOUT)
-            import pandas as _pd  # local alias
-            if _sec_hist is not None and not _sec_hist.empty:
-                for _etf in SECTOR_ETFS_ALL:
-                    try:
-                        _df = _sec_hist[_etf] if isinstance(_sec_hist.columns, _pd.MultiIndex) else _sec_hist
-                        _close = _df["Close"].dropna()
-                        if len(_close) >= 21:
-                            _sector_perf_20d[_etf] = float(
-                                (_close.iloc[-1] - _close.iloc[-21]) / _close.iloc[-21] * 100
-                            )
-                    except Exception:
-                        continue
-                log.info("Sektor-ETF 20T-Perf: %s",
-                         {k: f"{v:.1f}%" for k, v in _sector_perf_20d.items()})
-            print(f"Sektor-ETFs ({len(_sector_perf_20d)}/{len(SECTOR_ETFS_ALL)}) "
-                  f"in {time.time()-_t_sector:.1f}s abgerufen", flush=True)
-        except TimeoutError:
-            log.warning("Sektor-ETF yf.download timeout after %ds", _SECTOR_TIMEOUT)
-        except Exception as _sec_exc:
-            log.warning("Sektor-ETF fetch failed: %s", _sec_exc)
-
     # --- Step 2: Filter loop — uses pre-fetched batch data, no HTTP per ticker ---
     log.info("Step 2 – Filtering %d candidates with enriched data …", len(pool))
     enriched = []
@@ -15329,19 +15296,9 @@ def main():
             if _stock_perf_20d is not None and _spx_perf_20d is not None
             else None
         )
-        # Feature 5 — Sektor-ETF mapping + RS-Berechnung
-        _sector_name = yfd.get("sector") or c.get("sector") or ""
-        _sector_etf  = SECTOR_ETF_MAP.get(_sector_name.strip(), SECTOR_ETF_DEFAULT) \
-                       if USE_SECTOR_RS else None
-        _etf_perf    = _sector_perf_20d.get(_sector_etf) if _sector_etf else None
-        _rel_sector  = (
-            (_stock_perf_20d - _etf_perf)
-            if (_stock_perf_20d is not None and _etf_perf is not None)
-            else None
-        )
         c.update({
             "company_name":    yfd.get("company_name") or c.get("company_name", t),
-            "sector":          _sector_name,
+            "sector":          yfd.get("sector") or c.get("sector") or "",
             "industry":        yfd.get("industry") or c.get("industry") or "",
             "yf_market_cap":   yfd.get("market_cap"),
             "52w_high":        yfd.get("52w_high"),
@@ -15354,8 +15311,6 @@ def main():
             "ma200":            yfd.get("ma200"),
             "perf_20d":         _stock_perf_20d,
             "rel_strength_20d": _rel_strength,
-            "rel_strength_sector": _rel_sector,        # Feature 5 (deprecated — RS-vs-Sektor entfernt)
-            "sector_etf":          _sector_etf,        # Feature 5 (nur noch interne Spur)
             "cur_open":            yfd.get("cur_open"),
             "prev_close":          yfd.get("prev_close"),
             "price":               yfd.get("price") or c.get("price"),

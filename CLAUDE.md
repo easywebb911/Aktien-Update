@@ -594,12 +594,12 @@ den Timing-Sub-Score.
 | `≤ −5 %` | −3 |
 | `None` | 0 |
 
-Helper: `_rs_spy_pts(stock) → (rs_pct, pts)`. Die alten `RS_SECTOR_*`-
-Konstanten in `config.py` sind als deprecated markiert, ebenso die
-Felder `rel_strength_sector` und `sector_etf` im Stock-Dict — beide
-werden noch befüllt, aber nicht mehr bewertet. Der Detail-Zeilen-Helper
-`_sector_rs_row()` ist nicht mehr verdrahtet (Aufrufstellen ersetzt
-durch `_rs_spy_row_html()`).
+Helper: `_rs_spy_pts(stock) → (rs_pct, pts)`. Die alten Sektor-RS-
+Strukturen (`SECTOR_ETF_MAP`, `SECTOR_ETF_DEFAULT`, `SECTOR_ETFS_ALL`,
+`USE_SECTOR_RS`, Felder `rel_strength_sector` / `sector_etf`, Helper
+`_sector_rs_row()`, der Sektor-ETF-yf.download-Block im Daily-Run) sind
+16.05.2026 vollständig entfernt. Detail-Row wird ausschließlich durch
+`_rs_spy_row_html()` gerendert.
 
 ---
 
