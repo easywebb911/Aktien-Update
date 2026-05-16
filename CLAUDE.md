@@ -1283,6 +1283,93 @@ silent — passiv, kein User-Action, kein Modal-Spawn beim Page-Load.
 
 ---
 
+## RVOL-Normalisierung (Phase 1 — Helper + Feature-Flag, OFF by default)
+
+Behebt die premarket→postclose-Score-Drift, die in der Score-Inflation-
+Empirik 16.05.2026 dokumentiert wurde:
+
+- Mean Drift: +3.87 Pkt
+- Median: +1.42 Pkt
+- Spitzen: +40.2 Pkt (DMRC 13.05.2026, RVOL 0.4 → 2.4)
+- Ursache zu >95 %: 20d-RVOL ist im premarket-Run strukturell unter-
+  skaliert (today_vol kumuliert intraday, 20d-Nenner fix).
+
+### 3-PR-Plan
+
+| PR | Scope | Status |
+|---|---|---|
+| **PR-α** (diese PR) | Helper `_normalize_rvol` + Konstanten + Feature-Flag, **`RVOL_NORMALIZATION_ENABLED = False`**. Kein Verhaltens-Drift im Default. | aktiv |
+| PR-β | 14 Tage Empirik-Datensammlung über `rvol_20d` in `agent_signals.json` (Vor-PR #165 liefert das Feld bereits). | offen |
+| PR-γ | Aktivierung (`ENABLED = True`) nach Daten-Validierung + ggf. Re-Kalibrierung von `PREMARKET_RVOL_SCALER` (heute 0.10 als Daumenwert). | offen |
+
+### Helper-Vertrag (`generate_report.py:_normalize_rvol`)
+
+```python
+_normalize_rvol(raw_vol, avg_20d, *, run_phase=None, now_utc=None) -> float
+```
+
+| ENABLED | Pfad | Resultat |
+|---|---|---|
+| `False` (Default) | jeder | `raw_vol / avg_20d` (Status quo) |
+| `True`, `run_phase == "postclose"` | Workflow-Override | `raw_vol / avg_20d` (EOD-Wahrheit) |
+| `True`, UTC < 13:30 | premarket | `raw_vol / (avg_20d × PREMARKET_RVOL_SCALER)` |
+| `True`, 13:30 ≤ UTC < 20:00 | intraday | `raw_vol / (avg_20d × max(hours_elapsed / 6.5, INTRADAY_RVOL_MIN_FRAC))` |
+| `True`, UTC ≥ 20:00 | postclose-Wallclock | `raw_vol / avg_20d` |
+
+Edge-Cases: `raw_vol` None/≤0 → 0.0 · `avg_20d` None/≤0 → 0.0 ·
+`now_utc` None → `datetime.now(timezone.utc)`.
+
+### Konstanten (config.py)
+
+| Konstante | Default | Zweck |
+|---|---|---|
+| `RVOL_NORMALIZATION_ENABLED` | `False` | Master-Switch. Default OFF — Aktivierung nur via PR-γ. |
+| `PREMARKET_RVOL_SCALER` | `0.10` | Premarket-Volumen typisch ~10 % des Tagesvolumens. Daumenwert. |
+| `INTRADAY_RVOL_MIN_FRAC` | `0.10` | Floor gegen Division-Explosion in ersten Minuten nach US-Open. |
+
+### Call-Sites (3 Stellen in `generate_report.py`)
+
+1. `get_yfinance_data` (Singleton-Fallback-Pfad)
+2. `_hist_stats` (Batch-Hauptpfad)
+3. `_hist_stats` (Singleton-Fallback innerhalb _hist_stats)
+
+Alle drei nutzen `_normalize_rvol(cur_vol, avg_vol_20)` ohne explizite
+`run_phase`/`now_utc`-Argumente — der Helper hat sichere Defaults
+(`datetime.now(timezone.utc)`) für den ENABLED=True-Pfad.
+
+### Außerhalb des Scope von PR-α
+
+- **ki_agent.py** ist von der Normalisierung **nicht betroffen**.
+  `rvol_4d` bleibt der Anomaly-Trigger-Basis-Wert (Disambiguation aus
+  PR #165). `rvol_20d` wird in `agent_signals.json` weiterhin
+  **unnormalisiert** geloggt — das ist der Rohwert, der in PR-β als
+  Empirik-Datenbasis dient.
+- **Earliness-V2 Late-Runner-Pfad** liest weiterhin unnormalisiertes
+  `rel_volume` aus dem Stock-Dict. Bei Aktivierung in PR-γ muss der
+  Pfad explizit auf `rel_volume_raw` umgestellt werden (siehe
+  Diagnose-Bericht Schritt 2 F-3).
+- **Backtest-History** behält den heutigen Schreib-Pfad (`rvol`-Feld =
+  unnormalisiert via `_normalize_rvol(..., ENABLED=False)`).
+  Bei PR-γ-Aktivierung wäre eine retroaktive Normalisierung **nicht**
+  möglich — Backtest-Auswertungen bleiben pre-cutover-kompatibel.
+
+### Pflege
+
+- **`PREMARKET_RVOL_SCALER`-Re-Kalibrierung** in PR-γ: aus
+  `rvol_20d`-Verteilung in `agent_signals.json` über 14 d ableiten;
+  Median-Faktor zwischen frühen (10:17 UTC) und späten (21:17 UTC)
+  Ticks pro Ticker als ground truth.
+- **Markt-Phase-Grenzen** (`_US_OPEN_MIN_UTC = 810`,
+  `_US_CLOSE_MIN_UTC = 1200`) sind hartkodiert im Helper als „Single
+  Source of Truth" — analog zu `US_SESSION_START/END` im
+  `resolve_run_phase`-Skript (CLAUDE.md → Zwei-Run-Architektur). Bei
+  Änderung beide synchron halten.
+- **Helper-Signatur** ist `*-keyword-only` für `run_phase`/`now_utc`
+  — zukünftige Erweiterung (z. B. `ticker`-spezifischer Skalierer)
+  kann via Keyword angehängt werden ohne Call-Site-Drift.
+
+---
+
 ## RVOL-Definitionen (zwei parallele Formeln, bewusst)
 
 Es existieren zwei RVOL-Berechnungen im Codebase, die unterschiedliche

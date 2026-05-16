@@ -14,7 +14,7 @@ import time
 import logging
 import xml.etree.ElementTree as ET
 from concurrent.futures import ThreadPoolExecutor, as_completed
-from datetime import date, datetime, timedelta
+from datetime import date, datetime, timedelta, timezone
 from email.utils import parsedate_to_datetime
 from pathlib import Path
 from zoneinfo import ZoneInfo
@@ -704,6 +704,74 @@ def get_finviz_screener_v111(max_tickers: int | None = None) -> list[dict]:
 # 2. YFINANCE ENRICHMENT
 # ===========================================================================
 
+# US-Market-Phase-Grenzen (UTC). Single Source of Truth für _normalize_rvol.
+_US_OPEN_MIN_UTC  = 13 * 60 + 30   # 13:30 UTC = regular market open
+_US_CLOSE_MIN_UTC = 20 * 60        # 20:00 UTC = regular market close
+
+
+def _normalize_rvol(
+    raw_vol,
+    avg_20d,
+    *,
+    run_phase: str | None = None,
+    now_utc: datetime | None = None,
+) -> float:
+    """RVOL-Normalisierung gegen premarket→postclose-Score-Drift.
+
+    Phase 1 (PR-α, 16.05.2026): Helper + Feature-Flag. **Default OFF**.
+
+    Wenn ``RVOL_NORMALIZATION_ENABLED`` (config) ist ``False``:
+    returnt ``raw_vol / avg_20d`` — Status quo, kein Verhaltens-Drift.
+
+    Wenn ``True``: skaliert den 20d-Nenner entsprechend der Markt-Phase,
+    weil das heutige (premarket/intraday) Volumen noch nicht der volle
+    Tagesumsatz ist und sonst die 20d-RVOL strukturell zu klein wäre:
+
+    - premarket  (UTC <  13:30):   denominator = avg_20d × PREMARKET_RVOL_SCALER
+    - intraday   (13:30..20:00):   denominator = avg_20d × max(h/6.5, INTRADAY_RVOL_MIN_FRAC)
+    - postclose  (UTC ≥ 20:00):    denominator = avg_20d (EOD-Wahrheit)
+
+    ``run_phase`` (Workflow-Klassifikation aus ``RUN_PHASE``-ENV) hat
+    Vorrang über die Wallclock-Heuristik: ``run_phase="postclose"`` zwingt
+    den postclose-Pfad auch wenn ``now_utc`` formal intraday wäre — die
+    Workflow-Intention ist authoritativ („Daten sind EOD-konsolidiert").
+
+    Edge-Cases:
+    - ``raw_vol`` None / negativ → 0.0
+    - ``avg_20d`` None / ≤ 0 → 0.0 (keine Division durch Null)
+    - ``now_utc`` None → ``datetime.now(timezone.utc)``
+    """
+    try:
+        raw = float(raw_vol) if raw_vol is not None else 0.0
+        avg = float(avg_20d) if avg_20d is not None else 0.0
+    except (TypeError, ValueError):
+        return 0.0
+    if raw <= 0 or avg <= 0:
+        return 0.0
+
+    if not RVOL_NORMALIZATION_ENABLED:
+        return raw / avg
+
+    # Workflow-classified postclose → EOD-Wahrheit, kein Skalierer
+    if run_phase == "postclose":
+        return raw / avg
+
+    if now_utc is None:
+        now_utc = datetime.now(timezone.utc)
+    mins = now_utc.hour * 60 + now_utc.minute
+
+    if mins < _US_OPEN_MIN_UTC:
+        scaler = PREMARKET_RVOL_SCALER
+    elif mins < _US_CLOSE_MIN_UTC:
+        hours_elapsed = (mins - _US_OPEN_MIN_UTC) / 60.0
+        scaler = max(hours_elapsed / 6.5, INTRADAY_RVOL_MIN_FRAC)
+    else:
+        scaler = 1.0
+
+    denom = avg * scaler
+    return raw / denom if denom > 0 else 0.0
+
+
 def get_yfinance_data(ticker: str) -> dict:
     """Single-ticker yfinance fetch — used as fallback when batch data is missing."""
     _req_counts["yfinance"] += 1
@@ -714,7 +782,7 @@ def get_yfinance_data(ticker: str) -> dict:
 
         avg_vol_20 = float(hist["Volume"].tail(20).mean()) if len(hist) >= 5 else 0.0
         cur_vol    = float(hist["Volume"].iloc[-1])         if len(hist) >= 1 else 0.0
-        vol_ratio  = cur_vol / avg_vol_20 if avg_vol_20 > 0 else 0.0
+        vol_ratio  = _normalize_rvol(cur_vol, avg_vol_20)
         cur_open   = float(hist["Open"].iloc[-1])  if "Open"  in hist.columns and len(hist) >= 1 else None
         prev_close = float(hist["Close"].iloc[-2]) if len(hist) >= 2 else None
         cur_close  = float(hist["Close"].iloc[-1]) if "Close" in hist.columns and len(hist) >= 1 else None
@@ -869,7 +937,7 @@ def get_yfinance_batch(tickers: list[str]) -> dict[str, dict]:
                 if df is not None and not df.empty and len(df) >= 5:
                     avg_vol = float(df["Volume"].tail(20).mean())
                     cur_vol = float(df["Volume"].iloc[-1])
-                    vol_r   = cur_vol / avg_vol if avg_vol > 0 else 0.0
+                    vol_r   = _normalize_rvol(cur_vol, avg_vol)
                     hi52    = float(df["High"].max())
                     lo52    = float(df["Low"].min())
                     rsi14, ma21, ma50, ma200, perf_20d = _compute_indicators(df)
@@ -887,7 +955,7 @@ def get_yfinance_batch(tickers: list[str]) -> dict[str, dict]:
             if not df2.empty and len(df2) >= 5:
                 avg_vol = float(df2["Volume"].tail(20).mean())
                 cur_vol = float(df2["Volume"].iloc[-1])
-                vol_r   = cur_vol / avg_vol if avg_vol > 0 else 0.0
+                vol_r   = _normalize_rvol(cur_vol, avg_vol)
                 rsi14, ma21, ma50, ma200, perf_20d = _compute_indicators(df2)
                 cur_open   = float(df2["Open"].iloc[-1])  if "Open"  in df2.columns and len(df2) >= 1 else None
                 prev_close = float(df2["Close"].iloc[-2]) if len(df2) >= 2 else None
