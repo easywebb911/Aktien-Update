@@ -2346,12 +2346,60 @@ Bewusste Wahl gegen prozentuale Anzeige — verhindert das
 - **CI-Lint**: `scripts/lint_score_confidence_isolation.py` erzwingt,
   dass die Konfidenz NICHT in Score-Berechnungs-Pfaden gelesen wird.
 
-### Nicht in Stufe 1 (Folge-PRs)
+### Phase 2 — Hybrid-Wasserzeichen auf der Karte (16.05.2026, live)
 
-- **Stufe 2 — Konfidenz-Pill auf der Karte selbst** (Tooltip auf
-  Conviction-Score, Komponenten-Aufschlüsselung). Erfordert
-  Conviction-Backtest-Persistenz (Schema-Erweiterung), die heute
-  noch fehlt.
+Macht die Konfidenz-Stufe pro Score-Klasse direkt auf jeder Top-10-
+und Watchlist-Drawer-Karte sichtbar — **ohne neue Farben, ohne
+Lesbarkeits-Verlust**.
+
+**Design-Prinzip:** subtiles Dimming (nur opacity 1.00 / 0.85) plus
+Unterstreichungs-Form als visuelle Hauptarbeit. Gepunktete Linie ist
+im Webdesign etabliertes Signal für „Tooltip verfügbar / fragliche
+Angabe" (analog Rechtschreibprüfung in Word). **Color-Blind-safe** —
+kein Farb-Code, nur Opacity + Form-Code.
+
+| Tier | CSS-Klasse | Opacity | Unterstreichung | Cursor |
+|---|---|---:|---|---|
+| robust | `.sb-conf-robust` | 1.00 | keine | default |
+| mittel | `.sb-conf-mittel` | 0.85 | keine | default |
+| provisorisch | `.sb-conf-prov` | 0.85 | durchgehend dünn | help |
+| heuristisch | `.sb-conf-heur` | 0.85 | gepunktet | help |
+
+CSS lebt in `templates/head.jinja` direkt nach den bestehenden
+`.sb-*`-Klassen (~Z. 1019).
+
+**Helper `_conf_class(score_class)`** in `generate_report.py` liest
+aus dem Modul-State `_SCORE_CONFIDENCE`, liefert `(css_class, title,
+aria_label)`. Bei tier=robust sind `title` und `aria_label` leer →
+das HTML bekommt keine unnötigen Attribute. Sonst:
+
+- `title="Konfidenz: heuristisch — Wirkt nur als Multiplikator ×1.05–1.15"`
+- `aria-label="Konfidenz heuristisch"`
+
+Fallback bei leerem `_SCORE_CONFIDENCE` oder unbekannter Stufe →
+`heuristisch` (konservativ, signalisiert „nicht-validiert" statt
+fälschlich Vertrauen). Doppelte Anführungszeichen in `note` werden
+zu Single-Quotes konvertiert — schützt die `title="..."`-Attribut-
+Syntax.
+
+`_score_block_inner_html` wendet die Klasse auf **alle 4 sb-num-
+Spans** an (Conviction / Setup / Monster / KI). Watchlist-Drawer-
+Karten erben über `_wl_full_card_html` (regex-Stripping, gleiche
+Render-Funktion).
+
+**Verhältnis zum CI-Lint** `lint_score_confidence_isolation.py`:
+`_score_block_inner_html` und `_conf_class` sind **Render-Funktionen**,
+nicht in `_FORBIDDEN_FUNCS`. Konfidenz darf in Render-Pfaden gelesen
+werden — verboten ist nur die Score-/Conviction-Berechnung selbst.
+
+**Phase-2-Wiedervorlagen (jetzt umgesetzt):**
+
+- Konfidenz pro Score-Row sichtbar ✓
+- Tooltip mit Note ✓
+- Color-Blind-sicher ✓
+
+### Nicht in Phase 2 (Folge-PRs)
+
 - **Auto-Hochstufung Earliness** nach 14–30 d Live-Daten:
   `compute_score_confidence` muss dann den Trend-Logging-AUC-Wert
   aus `backtest_history.{backtest_schema_version: 4}` rechnen.
@@ -2359,6 +2407,10 @@ Bewusste Wahl gegen prozentuale Anzeige — verhindert das
   Hinweis auf den Re-Test-Termin.
 - **Validierungs-Auto-Refresh**: bei Stale (≥ `MAX_AGE_DAYS`)
   Hinweis „Konfidenz-Daten veraltet". Logik im Frontend, nicht jetzt.
+- **Conviction-Komponenten-Aufschlüsselung im Tooltip**: Conviction-
+  Component-Konfidenz (Setup-Anteil vs. Earliness-Anteil) als
+  Detail-Tooltip. Erfordert Conviction-Backtest-Persistenz, die
+  heute noch fehlt.
 
 ### Pflege
 

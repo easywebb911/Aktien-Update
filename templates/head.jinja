@@ -1017,6 +1017,20 @@ abbr[title]{text-decoration:underline dotted var(--txt-dim);
   letter-spacing:.4px;margin:3px 0 4px;font-weight:700}
 .sb-track{width:70px;height:4px;background:var(--brd);border-radius:3px;overflow:hidden}
 .sb-fill{height:100%;border-radius:3px;transition:width .3s,background .3s}
+/* Konfidenz-Wasserzeichen Phase 2 (16.05.2026, PR-Folge zu #146).
+   Subtiles Dimming + gepunktete Unterstreichung als visuelle Hauptarbeit.
+   Gepunktete Linie ist im Webdesign etabliertes Signal für „Tooltip
+   verfügbar / fragliche Angabe" (analog Rechtschreibprüfung in Word).
+   KEINE Farben — Color-Blind-safe, nur Opacity + Form-Code.
+   Stufen-Mapping siehe CLAUDE.md → Score-Konfidenz-Stufen Phase 2. */
+.sb-conf-robust{opacity:1}
+.sb-conf-mittel{opacity:.85}
+.sb-conf-prov{opacity:.85;text-decoration:underline;
+  text-decoration-thickness:1px;text-underline-offset:3px;
+  text-decoration-color:currentColor;cursor:help}
+.sb-conf-heur{opacity:.85;text-decoration:underline dotted;
+  text-decoration-thickness:1px;text-underline-offset:3px;
+  text-decoration-color:currentColor;cursor:help}
 .score-block.sort-setup .sb-row[data-sb="setup"]{order:1}
 .score-block.sort-setup .sb-row[data-sb="monster"]{order:2}
 .score-block.sort-setup .sb-row[data-sb="ki"]{order:3}

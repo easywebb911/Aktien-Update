@@ -4181,6 +4181,56 @@ def _tri_score_color(sc) -> str:
     return "#ef4444"
 
 
+_CONF_TIER_CLASS = {
+    "robust":       "sb-conf-robust",
+    "mittel":       "sb-conf-mittel",
+    "provisorisch": "sb-conf-prov",
+    "heuristisch":  "sb-conf-heur",
+}
+_CONF_TIER_LABEL = {
+    "robust":       "robust",
+    "mittel":       "mittel",
+    "provisorisch": "provisorisch",
+    "heuristisch":  "heuristisch",
+}
+
+
+def _conf_class(score_class: str) -> tuple[str, str, str]:
+    """Liefert (css_class, title, aria_label) für ein Score-Wasserzeichen.
+
+    ``score_class`` ist einer der Keys aus ``compute_score_confidence``
+    (``setup`` / ``monster`` / ``ki`` / ``conviction`` / ``earliness`` /
+    ``exit_pressure``). Liest die Stufe aus dem Modul-State
+    ``_SCORE_CONFIDENCE`` (in ``main()`` gesetzt). Bei fehlenden oder
+    leeren Konfidenz-Daten Fallback auf ``heuristisch`` — konservativ,
+    weil die Markierung dann zumindest „nicht-validiert" signalisiert
+    statt fälschlich Vertrauen zu erzeugen.
+
+    Liefert leere Strings für CSS/Title/Aria bei tier=robust, damit kein
+    nutzloses Attribut-Geraffel im HTML steht — robust ist der visuelle
+    Default (keine Linie, keine Dimmung).
+
+    Verhältnis zum CI-Lint: ``_score_block_inner_html`` (Display-Pfad)
+    ist nicht in ``_FORBIDDEN_FUNCS`` von
+    ``scripts/lint_score_confidence_isolation.py`` — Konfidenz-Read aus
+    dem Render-Pfad ist erlaubt, nur Berechnungs-Funktionen (score(),
+    compute_conviction_score, …) dürfen NICHT lesen.
+    """
+    conf = globals().get("_SCORE_CONFIDENCE") or {}
+    entry = conf.get(score_class) or {}
+    tier = entry.get("tier") or "heuristisch"
+    css = _CONF_TIER_CLASS.get(tier, "sb-conf-heur")
+    if tier == "robust":
+        return "sb-conf-robust", "", ""
+    label = _CONF_TIER_LABEL.get(tier, tier)
+    note = (entry.get("note") or "").replace('"', "'")
+    n = entry.get("n")
+    n_str = f" (n={n})" if isinstance(n, int) and n > 0 else ""
+    title = f"Konfidenz: {label}{n_str} — {note}" if note else f"Konfidenz: {label}{n_str}"
+    aria = f"Konfidenz {label}"
+    return css, title, aria
+
+
 def _score_block_inner_html(s: dict, hint_html: str = "") -> str:
     """Erzeugt das komplette Innere des ``<div class="score-block">``.
 
@@ -4197,6 +4247,8 @@ def _score_block_inner_html(s: dict, hint_html: str = "") -> str:
     # Conviction-Row (Schritt B) — wenn Daten vorhanden, ganz oben und
     # größer als Setup. Color level-basiert: high → Grün, medium → Gelb,
     # low → Grau (statt _tri_score_color, das auf Score-Bereiche mappt).
+    # sb-num bekommt zusätzlich sb-conf-X-Klasse als Konfidenz-Wasser-
+    # zeichen (Phase 2, 16.05.2026) — Stufe aus globalem _SCORE_CONFIDENCE.
     conv = s.get("conviction") or {}
     conv_score = conv.get("score")
     conv_level = conv.get("level")
@@ -4213,9 +4265,13 @@ def _score_block_inner_html(s: dict, hint_html: str = "") -> str:
             f'<span class="sb-conv-action" style="color:{action_col}">'
             f'{conv_action}</span>'
         ) if conv_action else ""
+        cv_css, cv_title, cv_aria = _conf_class("conviction")
+        cv_attrs = (f' title="{cv_title}" aria-label="{cv_aria}"'
+                    if cv_title else "")
         rows.append(
             f'<div class="sb-row" data-sb="conviction">'
-            f'<span class="sb-num" style="color:{cv_col}">{int(round(cv_pct))}</span>'
+            f'<span class="sb-num {cv_css}" style="color:{cv_col}"{cv_attrs}>'
+            f'{int(round(cv_pct))}</span>'
             f'<span class="sb-lbl">Conviction</span>'
             f'<div class="sb-track"><div class="sb-fill" '
             f'style="width:{cv_pct:.0f}%;background:{cv_col}"></div></div>'
@@ -4226,10 +4282,11 @@ def _score_block_inner_html(s: dict, hint_html: str = "") -> str:
     setup_val = s.get("score") or 0.0
     setup_pct = max(0.0, min(100.0, float(setup_val)))
     setup_col = _tri_score_color(setup_val)
-
+    s_css, s_title, s_aria = _conf_class("setup")
+    s_attrs = f' title="{s_title}" aria-label="{s_aria}"' if s_title else ""
     rows.append(
         f'<div class="sb-row" data-sb="setup">'
-        f'<span class="sb-num" style="color:{setup_col}">'
+        f'<span class="sb-num {s_css}" style="color:{setup_col}"{s_attrs}>'
         f'{setup_val:.1f}</span>'
         f'<span class="sb-lbl">Setup-Score</span>'
         f'<div class="sb-track"><div class="sb-fill" '
@@ -4241,9 +4298,12 @@ def _score_block_inner_html(s: dict, hint_html: str = "") -> str:
     if ms is not None:
         m_pct = max(0.0, min(100.0, float(ms)))
         m_col = _tri_score_color(ms)
+        m_css, m_title, m_aria = _conf_class("monster")
+        m_attrs = f' title="{m_title}" aria-label="{m_aria}"' if m_title else ""
         rows.append(
             f'<div class="sb-row" data-sb="monster">'
-            f'<span class="sb-num" style="color:{m_col}">{ms:.0f}</span>'
+            f'<span class="sb-num {m_css}" style="color:{m_col}"{m_attrs}>'
+            f'{ms:.0f}</span>'
             f'<span class="sb-lbl">Monster-Score</span>'
             f'<div class="sb-track"><div class="sb-fill" '
             f'style="width:{m_pct:.0f}%;background:{m_col}"></div></div>'
@@ -4254,9 +4314,12 @@ def _score_block_inner_html(s: dict, hint_html: str = "") -> str:
     if ki is not None:
         k_pct = max(0.0, min(100.0, float(ki)))
         k_col = _tri_score_color(ki)
+        k_css, k_title, k_aria = _conf_class("ki")
+        k_attrs = f' title="{k_title}" aria-label="{k_aria}"' if k_title else ""
         rows.append(
             f'<div class="sb-row" data-sb="ki">'
-            f'<span class="sb-num" style="color:{k_col}">{ki:.0f}</span>'
+            f'<span class="sb-num {k_css}" style="color:{k_col}"{k_attrs}>'
+            f'{ki:.0f}</span>'
             f'<span class="sb-lbl">KI-Score</span>'
             f'<div class="sb-track"><div class="sb-fill" '
             f'style="width:{k_pct:.0f}%;background:{k_col}"></div></div>'
