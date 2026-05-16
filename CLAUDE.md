@@ -2632,7 +2632,7 @@ Sektion ist nur ein CLAUDE.md-Anker auf das Doku-File.
   (nach ``save_state``). Fail-soft via ``run_and_record`` —
   Daily-Run/KI-Agent crashen nie wegen Health-Check.
 
-### 7 State-Invariants (Phase 1)
+### 8 State-Invariants (Phase 1 + S8 ab 16.05.2026)
 
 Voller Detailtext + Schwellen-Tabelle in
 ``docs/health_check_spec.md``. Hier nur Kurz-Übersicht:
@@ -2646,6 +2646,14 @@ Voller Detailtext + Schwellen-Tabelle in
 | S5 | warn | ``score_inflation_log`` bekommt ≥ ``HEALTH_CHECK_S5_MIN_INFLATION_LINES`` (10) neue Zeilen |
 | S6 | warn | ``monster_scores`` ≥ ``HEALTH_CHECK_S6_MIN_MONSTER_NONZERO`` (3) Tickers > 0 |
 | S7 | warn | ``agent_signals`` ∩ Top-10 ≥ ``HEALTH_CHECK_S7_MIN_AGENT_OVERLAP`` (5) |
+| S8 | warn | ``last_digest_sent`` in ``health_check_digest_state.json`` ist ≤ ``HEALTH_CHECK_S8_MAX_AGE_HOURS`` (26) Stunden alt |
+
+**S8** (16.05.2026) erkennt silent Digest-Push-Fails (gestern 15.05.:
+ntfy-Send fehlgeschlagen, Workflow lief grün durch, keine Push-Email).
+Wenn ``last_digest_sent`` > 26 h alt ist, wurde mindestens ein geplanter
+Cron-Slot verpasst — wird im nächsten Daily-Run als warn protokolliert
+und damit im nächsten erfolgreichen Digest-Push sichtbar. Erstaufsetz-
+sicher: fehlende Datei / ``null``-Wert → kein Fail.
 
 ### ki_agent-Tick-Coverage
 
@@ -2823,14 +2831,39 @@ Digest erkennt das als „3-in-Folge"-Trigger-Kandidat.
 
 ### Phase 3 — Daily-Digest-Workflow
 
-Liest täglich um **08:13 UTC** die letzten 24 h aus
+Liest täglich um **08:47 UTC** die letzten 24 h aus
 ``health_check_log.jsonl`` + ``provider_health.jsonl``, aggregiert
 State-Fails + Provider-Fails (mit Konsekutiv-Counter für Tier-2/3)
 und sendet **einen** ntfy-Push.
 
-**Cron-Offset 13 8** (statt Spec-Wortlaut ``0 8``) analog
-``ki_agent.yml:17 * * * *`` — GitHub-Actions-Scheduled-Workflows
-werden zur vollen Stunde gehäuft gedropt (Klärung 15.05.2026).
+**Cron-Offset-Historie:**
+
+| Iteration | Offset | Datum | Ergebnis |
+|---|---|---|---|
+| Spec | ``0 8 * * *`` | initial | — (nie deployt) |
+| #1 | ``13 8 * * *`` | bis 15.05.2026 | gedropt — State-Commit 10:37 UTC statt 08:13 UTC (Drift > 2 h) |
+| #2 | ``21 8 * * *`` | 15.–16.05.2026 | gedropt — 08:21-Slot am 16.05. komplett ausgefallen |
+| **#3** | **``47 8 * * *``** | **ab 16.05.2026** | aktive Version, deutlich näher zur Stunden-Mitte, analog ki_agent-Pattern |
+
+**Fail-Visibility-Fix (16.05.2026):** Wenn ``_ntfy_send`` False zurück-
+gibt UND ``NTFY_TOPIC`` gesetzt ist, beendet ``health_check_digest.py``
+mit ``sys.exit(1)``. Der Workflow-Commit-Step trägt ``if: always()``,
+damit der State trotzdem persistiert wird (Cooldown-Logik bleibt
+intakt). GitHub markiert den Run als failed → Email-Notification an
+den User. Vermeidet Silent-Fails wie am 15.05.2026 (ntfy-Send
+gescheitert, Workflow grün, kein Push, kein Hinweis).
+
+**Unicode-Encoding-Fix (16.05.2026, Punkt D):** Wahre Ursache des
+15./16.05.-Silent-Fails war ein ``UnicodeEncodeError`` im requests-
+Stack: Title-Strings wie ``⚠️ Health-Check-Digest`` /
+``✅ Health-Check OK`` / ``📭 Health-Check ohne Daten`` enthalten
+Emojis. HTTP-Header sind per RFC 7230 latin-1-only — Emojis im
+``Title``-Header werfen Exception, ``_ntfy_send`` catched generic
+``Exception`` → returnt ``False`` ohne Aufklärung. Fix: Wechsel auf
+**ntfy JSON-API** (``POST https://ntfy.sh/`` mit ``{topic, title,
+message, priority, tags}`` im JSON-Body). JSON ist immer UTF-8,
+kein Header-Encoding. ``tags``-String wird zu Array gesplittet
+(``"warning,rotating_light"`` → ``["warning", "rotating_light"]``).
 
 **Komponenten:**
 

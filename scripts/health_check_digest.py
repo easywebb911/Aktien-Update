@@ -152,30 +152,46 @@ def _latest_run_ts(entries: list[dict]) -> str | None:
 
 def _ntfy_send(title: str, body: str, priority: str,
                tags: str | None) -> bool:
-    """Sendet Push via ntfy.sh. Fail-soft: Netzwerk-Fehler werden
+    """Sendet Push via ntfy.sh JSON-API. Fail-soft: Netzwerk-Fehler werden
     geloggt, kein Re-Raise — der Workflow kommt durch.
 
     ``NTFY_TOPIC`` leer oder ``NTFY_ENABLED=False`` → no-op
-    (graceful skip), Body wird geloggt für Diagnose."""
+    (graceful skip), Body wird geloggt für Diagnose.
+
+    Unicode-Fix (16.05.2026): Die ursprüngliche URL-Pattern-Variante
+    (``POST https://ntfy.sh/{topic}``) übergab ``Title`` als HTTP-
+    Header. HTTP-Header sind per RFC 7230 latin-1-only — Emojis im
+    Title (``⚠️📭✅🔴🟡``) werfen ``UnicodeEncodeError`` im requests-
+    Stack, der ``_ntfy_send`` lautlos auf ``False`` setzte.
+    JSON-API (``POST https://ntfy.sh/`` mit allen Feldern im Body)
+    umgeht das vollständig — JSON ist immer UTF-8, kein Header-
+    Encoding nötig.
+    """
     if not NTFY_ENABLED or not NTFY_TOPIC:
         log.info("ntfy disabled — Body würde sein:\n%s", body)
         return False
     if requests is None:
         log.warning("requests-Modul fehlt — ntfy-Push übersprungen")
         return False
-    headers = {"Title": title, "Priority": priority}
+    payload: dict = {
+        "topic":    NTFY_TOPIC,
+        "title":    title,
+        "message":  body,
+        "priority": priority,
+    }
     if tags:
-        headers["Tags"] = tags
+        # ntfy JSON-API erwartet tags als Array. Komma-getrennte String-
+        # Eingabe (Legacy-Konvention) wird gesplittet.
+        payload["tags"] = [t.strip() for t in tags.split(",") if t.strip()]
     try:
         resp = requests.post(
-            f"{NTFY_URL}/{NTFY_TOPIC}",
-            data=body.encode("utf-8"),
-            headers=headers,
+            NTFY_URL,           # JSON-API: topic ist im Body, NICHT in der URL
+            json=payload,       # requests serialisiert UTF-8 + setzt Content-Type
             timeout=10,
         )
         # Diagnose-Erweiterung (15.05.2026): HTTP-Status auch bei Success
-        # loggen — beim ersten ausbleibenden Push (heute Morgen) konnten
-        # wir nicht zwischen "Push gesendet, ntfy hat es geschluckt" und
+        # loggen — beim ersten ausbleibenden Push (15.05.) konnten wir
+        # nicht zwischen "Push gesendet, ntfy hat es geschluckt" und
         # "Push gefailed, return False" unterscheiden. INFO-Level damit
         # in Workflow-Logs sichtbar.
         if resp.status_code >= 400:
@@ -188,7 +204,7 @@ def _ntfy_send(title: str, body: str, priority: str,
     except Exception as exc:
         # Diagnose-Erweiterung (15.05.2026): Exception-Type mit-loggen,
         # damit zwischen Timeout / ConnectionError / SSL-Fehler /
-        # DNS-Fail unterschieden werden kann.
+        # DNS-Fail / UnicodeEncodeError unterschieden werden kann.
         log.warning("ntfy-Push Netzwerk-Fehler %s: %s",
                     type(exc).__name__, exc)
         return False
@@ -209,11 +225,19 @@ def _already_sent_today(state: dict, today_iso: str) -> bool:
 def main(*, now_ts: datetime | None = None,
          force: bool = False,
          dry_run: bool = False) -> int:
-    """Returnt Exit-Code: 0 = OK (Push gesendet oder skip), 1 = Fehler.
+    """Returnt Exit-Code:
+      0 = OK (Push gesendet / ntfy disabled / dry-run / skip)
+      1 = ntfy-Send-Fail bei aktivem NTFY_TOPIC (16.05.2026 — macht
+          GitHub-Actions-Run rot, Email-Notification an Easy).
 
     ``force=True`` umgeht den Mehrfach-Trigger-Schutz (für Debug).
     ``dry_run=True`` schreibt State nicht zurück und sendet keinen
     Push — nur Stdout-Print für lokale Tests.
+
+    State-Datei wird IMMER vor dem Exit-Code-Return geschrieben
+    (außer dry_run), damit Cooldown-Logik auch bei ntfy-Fail wirkt
+    und der Workflow-Commit-Step (``if: always()``) den Stand
+    persistieren kann.
     """
     now_ts = now_ts or datetime.now(timezone.utc)
     today_iso = now_ts.strftime("%Y-%m-%d")
@@ -253,10 +277,20 @@ def main(*, now_ts: datetime | None = None,
         print(body)
         return 0
 
-    sent = _ntfy_send(title, body, priority, tags)
-    if sent or not NTFY_TOPIC:
-        # Wenn ntfy aktiv UND gesendet → mark today as sent.
-        # Wenn ntfy disabled → trotzdem state-update, damit auch ohne
+    # ntfy-Send mit Exception-Auffang: hartes Versagen (Netzwerk-Bug,
+    # Exception in requests.post) wird wie sent=False behandelt und
+    # zum Workflow-Fail eskaliert. _ntfy_send selbst ist fail-soft,
+    # aber wir wollen kein Silent-Fail wenn NTFY_TOPIC erwartet wird.
+    ntfy_active = bool(NTFY_TOPIC and NTFY_ENABLED)
+    try:
+        sent = _ntfy_send(title, body, priority, tags)
+    except Exception as exc:
+        log.warning("ntfy-Send Exception: %s: %s", type(exc).__name__, exc)
+        sent = False
+
+    if sent or not ntfy_active:
+        # ntfy aktiv UND gesendet → mark today as sent.
+        # ntfy disabled / Test-Mode → trotzdem state-update, damit auch ohne
         # ntfy nicht mehrfach pro Tag gerechnet wird (lokale Test-Runs).
         state["last_digest_sent"] = today_iso
     if n_runs > 0 and not state_fails and not prov_fails:
@@ -264,6 +298,15 @@ def main(*, now_ts: datetime | None = None,
             last_run_iso or now_ts.strftime("%Y-%m-%dT%H:%M:%SZ"))
 
     _save_digest_state(state)
+
+    # Fail-Visibility-Fix (16.05.2026): Wenn ntfy aktiv erwartet wird
+    # aber der Send fehlgeschlagen ist → exit 1. State ist bereits
+    # persistiert; der `if: always()`-Commit-Step im Workflow läuft
+    # trotzdem; aber der Run wird rot und Easy bekommt eine
+    # GitHub-Notification. Vermeidet Silent-Fails wie am 15.05.2026.
+    if ntfy_active and not sent:
+        log.error("Digest-Push fehlgeschlagen — Workflow wird rot markiert.")
+        return 1
     return 0
 
 

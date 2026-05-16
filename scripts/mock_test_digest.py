@@ -422,12 +422,17 @@ def test_ntfy_send_skipped_when_disabled():
 
 
 def test_ntfy_send_monkey_patched_post():
-    """ntfy-Send geht durch requests.post — wird komplett gemockt."""
+    """ntfy-Send geht durch requests.post — wird komplett gemockt.
+
+    Seit 16.05.2026 (Unicode-Fix): JSON-API statt URL-mit-Topic-Suffix.
+    Topic / Title / Body / Priority / Tags landen alle im JSON-Body.
+    """
     dg = _import_digest_module()
     mock_resp = mock.Mock()
     mock_resp.status_code = 200
     mock_resp.text = "ok"
     with mock.patch.object(dg, "NTFY_TOPIC", "test-topic"), \
+         mock.patch.object(dg, "NTFY_ENABLED", True), \
          mock.patch.object(dg, "requests") as mock_requests:
         mock_requests.post.return_value = mock_resp
         ok = dg._ntfy_send("⚠️ Health-Check-Digest", "body",
@@ -435,11 +440,15 @@ def test_ntfy_send_monkey_patched_post():
         assert ok is True
         assert mock_requests.post.call_count == 1
         call_args = mock_requests.post.call_args
-        assert "test-topic" in call_args[0][0]
-        headers = call_args[1]["headers"]
-        assert headers["Title"] == "⚠️ Health-Check-Digest"
-        assert headers["Priority"] == "high"
-        assert headers["Tags"] == "warning"
+        # POST geht zu NTFY_URL ohne /{topic}-Suffix
+        assert call_args[0][0] == dg.NTFY_URL
+        # JSON-Payload hat alle Felder
+        payload = call_args[1]["json"]
+        assert payload["topic"] == "test-topic"
+        assert payload["title"] == "⚠️ Health-Check-Digest"
+        assert payload["message"] == "body"
+        assert payload["priority"] == "high"
+        assert payload["tags"] == ["warning"]
 
 
 # === 5. YAML-Workflow-Validität ============================================
@@ -455,8 +464,8 @@ def test_workflow_yaml_valid():
 
 
 def test_workflow_cron_matches_user_choice():
-    """Cron `21 8 * * *` (Migration 15.05.2026 — Drift-Diagnose, Offset gegen
-    GitHub-Actions-Last-Peak)."""
+    """Cron `47 8 * * *` (Migration 16.05.2026 — zweite Drift-Korrektur,
+    21-Offset wurde am 15./16.05. wiederholt gedropt)."""
     import yaml as _yaml
     path = ROOT / ".github" / "workflows" / "health_check_digest.yml"
     data = _yaml.safe_load(path.read_text(encoding="utf-8"))
@@ -464,7 +473,7 @@ def test_workflow_cron_matches_user_choice():
     schedule = triggers["schedule"] if isinstance(triggers, dict) else None
     assert schedule, "schedule-Trigger fehlt"
     cron = schedule[0]["cron"]
-    assert cron == "21 8 * * *", f"Cron sollte '21 8 * * *' sein, ist {cron!r}"
+    assert cron == "47 8 * * *", f"Cron sollte '47 8 * * *' sein, ist {cron!r}"
 
 
 def test_workflow_has_workflow_dispatch():

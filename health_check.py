@@ -34,7 +34,13 @@ from config import (
     HEALTH_CHECK_S5_MIN_INFLATION_LINES,
     HEALTH_CHECK_S6_MIN_MONSTER_NONZERO,
     HEALTH_CHECK_S7_MIN_AGENT_OVERLAP,
+    HEALTH_CHECK_S8_MAX_AGE_HOURS,
 )
+
+# Digest-State-Datei für S8-Invariant (single source of truth über
+# Digest-Push-Health). Lese-only — geschrieben von
+# scripts/health_check_digest.py.
+DIGEST_STATE_FILE = "health_check_digest_state.json"
 
 log = logging.getLogger(__name__)
 
@@ -101,6 +107,48 @@ def _normalize_date(raw: str) -> str:
     return raw
 
 
+def _digest_age_hours(now_utc: datetime,
+                       state_path: str | None = None) -> float | None:
+    """Alter (in Stunden) des letzten erfolgreichen Digest-Pushes.
+
+    Liest ``last_digest_sent`` (YYYY-MM-DD) aus
+    ``health_check_digest_state.json`` und gibt das Alter relativ zu
+    ``now_utc`` zurück. Returnt ``None`` wenn:
+    - Datei fehlt (S8 wird übersprungen, S2/S3 würden vorher schon
+      einen frischen Setup-Stand zeigen)
+    - Feld fehlt / nicht parsebar
+    - JSON kaputt
+
+    Damit S8 erst dann warnt, wenn die Pipeline schon mal erfolgreich
+    war — keine false positives beim Erstaufsetzen.
+
+    ``state_path`` wird zur Aufruf-Zeit aus dem Modul-Attribut gelesen
+    (kein Default-Argument-Binding), damit Tests die Datei via
+    ``patch.object(hc, "DIGEST_STATE_FILE", ...)`` umlenken können.
+    """
+    path = state_path if state_path is not None else DIGEST_STATE_FILE
+    if not os.path.exists(path):
+        return None
+    try:
+        with open(path, "r", encoding="utf-8") as fh:
+            state = json.load(fh)
+    except (OSError, json.JSONDecodeError):
+        return None
+    raw = state.get("last_digest_sent")
+    if not isinstance(raw, str) or not raw:
+        return None
+    try:
+        # last_digest_sent ist Datum (YYYY-MM-DD), nicht Timestamp.
+        # Wir nehmen Mitternacht UTC des Datums als Referenz —
+        # Push kann an dem Tag früher (08:47 UTC) oder später passiert
+        # sein, aber das Datum ist die kanonische Marke.
+        sent_dt = datetime.strptime(raw, "%Y-%m-%d").replace(tzinfo=timezone.utc)
+    except ValueError:
+        return None
+    delta = now_utc - sent_dt
+    return delta.total_seconds() / 3600.0
+
+
 # ── State-Invariants ────────────────────────────────────────────────────────
 
 
@@ -117,16 +165,18 @@ def evaluate_state_invariants(
     n_backtest_appended: int | None = None,
     agent_signal_keys: set[str] | list[str] | None = None,
     ki_agent_only: bool = False,
+    now_utc: datetime | None = None,
 ) -> list[dict]:
-    """Bewertet alle 7 State-Invariants. Returnt Liste von Fail-Dicts.
+    """Bewertet alle 8 State-Invariants. Returnt Liste von Fail-Dicts.
 
     Jeder Fail-Eintrag: ``{"id": "S<n>", "severity": "crit"|"warn",
     "detail": "<string>"}``.
 
-    ``ki_agent_only=True``: nur S2/S3/S6 werden bewertet (S1/S4/S5/S7
+    ``ki_agent_only=True``: nur S2/S3/S6/S8 werden bewertet (S1/S4/S5/S7
     sind ki_agent-Tick irrelevant — agent_signals.json wird vom Tick
     selbst geschrieben, also wäre S7 ein Tautologie-Pass; S1/S4/S5
-    sind Daily-Run-Outputs).
+    sind Daily-Run-Outputs). S8 läuft in beiden Pfaden, weil die
+    Digest-Stale-Diagnose nicht von der Phase abhängt.
 
     Spec: ``docs/health_check_spec.md`` Sektion „State-Invariants".
     """
@@ -224,6 +274,23 @@ def evaluate_state_invariants(
                            f"{HEALTH_CHECK_S7_MIN_AGENT_OVERLAP}. Möglicher "
                            f"Daily-Run-/KI-Agent-Drift — neuer Tick fällig"),
             })
+
+    # === S8 (warn) — Digest-Push-Pipeline frisch ===========================
+    # Erkennt silent Digest-Fails (15.05.2026: ntfy-Send fehlgeschlagen,
+    # Workflow lief grün durch, kein Push). Wenn last_digest_sent älter
+    # als HEALTH_CHECK_S8_MAX_AGE_HOURS (26 h) ist, wurde mindestens ein
+    # geplanter Slot verpasst. None = noch nie erfolgreich → übersprungen
+    # (keine false positives beim Erstaufsetzen).
+    now_for_s8 = now_utc or datetime.now(timezone.utc)
+    age_h = _digest_age_hours(now_for_s8)
+    if age_h is not None and age_h > HEALTH_CHECK_S8_MAX_AGE_HOURS:
+        fails.append({
+            "id": "S8", "severity": "warn",
+            "detail": (f"kein erfolgreicher Digest-Push seit "
+                       f"{age_h:.1f} h (Schwelle "
+                       f"{HEALTH_CHECK_S8_MAX_AGE_HOURS} h) — "
+                       f"silent ntfy-Fail oder Cron-Drop"),
+        })
 
     return fails
 

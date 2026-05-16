@@ -919,6 +919,9 @@ HEALTH_CHECK_S2_MIN_TICKERS         = 8    # setup_scores ≥ 8 Tickers
 HEALTH_CHECK_S5_MIN_INFLATION_LINES = 10   # neue Zeilen in score_inflation_log
 HEALTH_CHECK_S6_MIN_MONSTER_NONZERO = 3    # monster_scores > 0
 HEALTH_CHECK_S7_MIN_AGENT_OVERLAP   = 5    # |agent_signals ∩ top10|
+HEALTH_CHECK_S8_MAX_AGE_HOURS       = 26   # max Alter last_digest_sent
+                                            # (>26 h = mindestens ein
+                                            #  Daily-Digest-Slot verpasst)
 HEALTH_CHECK_CUTOFF_DAYS            = 30   # JSONL-Prune-Cutoff
 
 # Phase 2 — Provider-Health-Instrumentierung. Tier-Zuordnung (1=crit,
