@@ -1242,7 +1242,12 @@ abbr[title]{text-decoration:underline dotted var(--txt-dim);
 /* ── Collapsible details body ── */
 .details-body{max-height:0;overflow:hidden;
   transition:max-height .25s ease}
-.details-body.open{max-height:1200px}
+/* max-height in em (16.05.2026, analog PR #179): skaliert mit Schrift.
+   Bei 13 px ≈ 1950 px, bei 21 px ≈ 3150 px (Safety-Margin). Reale
+   Tabellen-Höhe ~600-1400 px → reichlich Puffer. Transition bleibt
+   funktional (Browser kann zwischen 0 und konkretem max-height
+   interpolieren — `max-height:none` würde Animation kaputt machen). */
+.details-body.open{max-height:150em}
 /* ── News toggle button ── */
 .news-btn{width:100%;min-height:44px;background:var(--bg-met);border:none;
   border-top:1px solid var(--brd);color:var(--txt-sub);font-size:.82rem;
@@ -1250,7 +1255,7 @@ abbr[title]{text-decoration:underline dotted var(--txt-dim);
   align-items:center;gap:6px}
 .news-btn:hover{background:var(--brd)}
 /* ── News panel ── */
-.news-panel{border-top:1px solid var(--brd);padding:12px 14px}
+.news-panel{border-top:1px solid var(--brd);padding:0.8em 14px}
 .ki-signal-block{border-bottom:1px solid var(--brd);padding:0 0 10px;margin-bottom:10px;display:none}
 .ki-signal-header{font-size:.72rem;font-weight:700;color:#f59e0b;letter-spacing:.4px;margin-bottom:5px}
 .ki-signal-body{display:flex;flex-direction:column;gap:3px}
