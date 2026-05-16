@@ -1,10 +1,10 @@
 {
-  "updated": "2026-05-16T21:09:44.144562+02:00",
+  "updated": "2026-05-16T21:34:13.078606+02:00",
   "run_info": {
     "tickers_checked": 14,
     "signals_active": 3,
     "alerts_sent": 0,
-    "elapsed_s": 14.5,
+    "elapsed_s": 13.8,
     "market_phase": "Geschlossen"
   },
   "signals": {
@@ -95,7 +95,7 @@
     "GEMI": {
       "score": 68,
       "confidence": 70,
-      "drivers": "Volumen 8.2× + 🚀 Massives Volumen 8.2×+ + Spanne 22.8% + News-KI 8/30: Positive earnings growth is bullish but lacks specific short squeeze indicators like high short interest, low float, or  + UOA Call/Put 2.9×",
+      "drivers": "Volumen 8.2× + 🚀 Massives Volumen 8.2×+ + Spanne 22.8% + News-KI 8/30: Positive earnings and stock movement are bullish signals, but lack specific short squeeze indicators like high short int + UOA Call/Put 2.9×",
       "price": 5.58,
       "chg_pct": -0.0,
       "rvol_4d": 8.22,
@@ -195,9 +195,9 @@
       "uoa_cp_ratio": null
     },
     "PZZA": {
-      "score": 55,
+      "score": 30,
       "confidence": 70,
-      "drivers": "Volumen 1.8× + Spanne 6.3% + News: acquisition, buyout",
+      "drivers": "Volumen 1.8× + Spanne 6.3% + News-KI 5/30: Negative market-wide headlines unrelated to PZZA-specific factors provide no indication of short squeeze potential.",
       "price": 34.73,
       "chg_pct": -0.0,
       "rvol_4d": 1.78,
@@ -208,7 +208,7 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 1,
+      "active_triggers": 0,
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": null,
@@ -257,9 +257,9 @@
       "uoa_cp_ratio": 0.5700280112044818
     },
     "SKYQ": {
-      "score": 88,
+      "score": 58,
       "confidence": 70,
-      "drivers": "Volumen 7.7× + 🚀 Massives Volumen 7.7×+ + Spanne 51.2% + News: partnership, short interest",
+      "drivers": "Volumen 7.7× + 🚀 Massives Volumen 7.7×+ + Spanne 51.2% + News-KI 8/30: Positive business developments, but no clear short squeeze catalysts such as high short interest, low float, or forced c",
       "price": 3.07,
       "chg_pct": -0.0,
       "rvol_4d": 7.69,
@@ -269,8 +269,8 @@
       "upcoming_event": null,
       "insider_buy": false,
       "stocktwits": null,
-      "combo_mult": 1.1,
-      "active_triggers": 2,
+      "combo_mult": 1.0,
+      "active_triggers": 1,
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": null,
