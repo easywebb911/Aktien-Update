@@ -1,17 +1,17 @@
 {
-  "updated": "2026-05-16T14:07:09.568157+02:00",
+  "updated": "2026-05-16T14:15:43.619945+02:00",
   "run_info": {
     "tickers_checked": 10,
     "signals_active": 4,
     "alerts_sent": 0,
-    "elapsed_s": 10.4,
+    "elapsed_s": 15.2,
     "market_phase": "Geschlossen"
   },
   "signals": {
     "PZZA": {
       "score": 55,
       "confidence": 70,
-      "drivers": "Volumen 1.8× + Spanne 6.3% + News: takeover, acquisition",
+      "drivers": "Volumen 1.8× + Spanne 6.3% + News: acquisition, buyout",
       "price": 34.73,
       "chg_pct": -0.0,
       "rvol_4d": 1.78,
@@ -49,9 +49,9 @@
       "uoa_cp_ratio": null
     },
     "GEMI": {
-      "score": 68,
+      "score": 82,
       "confidence": 70,
-      "drivers": "Volumen 8.2× + 🚀 Massives Volumen 8.2×+ + Spanne 22.8% + News-KI 8/30: Positive earnings headlines lack specific short squeeze indicators like high short interest, institutional buying, or te + UOA Call/Put 2.9×",
+      "drivers": "Volumen 8.2× + 🚀 Massives Volumen 8.2×+ + Spanne 22.8% + News: earnings beat + UOA Call/Put 2.9×",
       "price": 5.58,
       "chg_pct": -0.0,
       "rvol_4d": 8.22,
@@ -61,8 +61,8 @@
       "upcoming_event": null,
       "insider_buy": false,
       "stocktwits": null,
-      "combo_mult": 1.0,
-      "active_triggers": 1,
+      "combo_mult": 1.1,
+      "active_triggers": 2,
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 2.9×"
@@ -93,7 +93,7 @@
     "SKYQ": {
       "score": 88,
       "confidence": 70,
-      "drivers": "Volumen 7.7× + 🚀 Massives Volumen 7.7×+ + Spanne 51.2% + News: short interest, partnership",
+      "drivers": "Volumen 7.7× + 🚀 Massives Volumen 7.7×+ + Spanne 51.2% + News: partnership, short interest",
       "price": 3.07,
       "chg_pct": -0.0,
       "rvol_4d": 7.69,
@@ -153,7 +153,7 @@
     "CRMD": {
       "score": 40,
       "confidence": 33,
-      "drivers": "Spanne 8.8% + News: guidance raised, earnings beat",
+      "drivers": "Spanne 8.8% + News: earnings beat, guidance raised",
       "price": 7.55,
       "chg_pct": 0.0,
       "rvol_4d": 1.46,
@@ -190,21 +190,21 @@
       "uoa_atm_ratio": null,
       "uoa_cp_ratio": null
     },
-    "PRA": {
-      "score": 61,
+    "SPIR": {
+      "score": 40,
       "confidence": 70,
-      "drivers": "Volumen 2.5× + News: acquisition + FINRA Short-Vol 100%",
-      "price": 24.51,
+      "drivers": "Volumen 1.6× + Spanne 15.5% + News: contract",
+      "price": 20.01,
       "chg_pct": 0.0,
-      "rvol_4d": 2.47,
-      "rvol_20d": 2.0,
-      "earnings": "in 80 Tagen (04.08.2026)",
+      "rvol_4d": 1.55,
+      "rvol_20d": 1.75,
+      "earnings": "in 88 Tagen (12.08.2026)",
       "fda_date": null,
       "upcoming_event": null,
       "insider_buy": false,
       "stocktwits": null,
-      "combo_mult": 1.1,
-      "active_triggers": 2,
+      "combo_mult": 1.0,
+      "active_triggers": 1,
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": null,
