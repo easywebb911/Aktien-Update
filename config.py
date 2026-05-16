@@ -319,6 +319,27 @@ RVOL_VELOCITY_FACTOR    = 1.5   # current / previous
 RVOL_VELOCITY_BONUS     = 8
 RVOL_VELOCITY_MIN       = 1.5   # current_rvol-Mindestschwelle für Velocity-Check
 
+# ── RVOL-Normalisierung (Score-Inflation-Fix, Phase 1 PR-α, OFF by default) ──
+# Behebt premarket→postclose-Score-Drift: 20d-Avg-RVOL ist im premarket-Run
+# strukturell unter-skaliert (today_vol kumuliert intraday, 20d-Nenner fix).
+# Diagnose 16.05.2026: Mean Drift +3.87 Pkt, Median +1.42 Pkt, dramatische
+# Spitzen +40.2 Pkt (DMRC 13.05.2026 RVOL 0.4→2.4).
+#
+# Schalter-Logik (`generate_report.py:_normalize_rvol`):
+#   - ENABLED=False (Default): return raw_vol / avg_20d (Status quo)
+#   - ENABLED=True:
+#       premarket (< 13:30 UTC): raw_vol / (avg_20d × PREMARKET_RVOL_SCALER)
+#       intraday  (13:30-20:00): raw_vol / (avg_20d × max(h/6.5, INTRADAY_RVOL_MIN_FRAC))
+#       postclose (≥ 20:00 UTC): raw_vol / avg_20d (unverändert, EOD-Wahrheit)
+#
+# PR-α (diese PR): Helper + Konstanten, ENABLED=False. Kein Verhaltens-Drift.
+# PR-β: 14 Tage Empirik-Daten sammeln über rvol_20d in agent_signals.json.
+# PR-γ: Aktivierung (ENABLED=True) nach Daten-Validierung + ggf. PREMARKET_RVOL_SCALER-
+#        Re-Kalibrierung statt 0.10-Daumenwert.
+RVOL_NORMALIZATION_ENABLED = False
+PREMARKET_RVOL_SCALER      = 0.10  # Premarket-Volumen typisch ~10 % des Tagesvolumens
+INTRADAY_RVOL_MIN_FRAC     = 0.10  # Floor gegen Division-Explosion in ersten Open-Minuten
+
 # ── FINRA-Trend-Konfiguration ────────────────────────────────────────────────
 # Stabilisiert 2026-04: 12 Handelstage statt 6, 6 Mindest-Datenpunkte
 # statt 3 — deutlich weniger Tagesausreißer, dafür mehr „Keine Daten" bei
