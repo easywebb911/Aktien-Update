@@ -1,6 +1,36 @@
 {
-  "consecutive_failures": {},
-  "last_seen": {},
+  "consecutive_failures": {
+    "finra": 0,
+    "yfinance_singletons": 0,
+    "stocktwits": 13,
+    "uoa": 0,
+    "news_rss": 0,
+    "edgar_8k": 13,
+    "edgar_form4": 13,
+    "edgar_13d_g": 13,
+    "yahoo_screener": 0,
+    "earningswhispers": 6,
+    "yfinance_batch": 0,
+    "finviz": 6,
+    "finnhub": 6,
+    "stockanalysis": 0
+  },
+  "last_seen": {
+    "finra": "2026-05-16T08:26:21Z",
+    "yfinance_singletons": "2026-05-16T08:26:31Z",
+    "stocktwits": "2026-05-16T08:26:34Z",
+    "uoa": "2026-05-16T08:26:34Z",
+    "news_rss": "2026-05-16T08:26:34Z",
+    "edgar_8k": "2026-05-16T08:26:34Z",
+    "edgar_form4": "2026-05-16T08:26:34Z",
+    "edgar_13d_g": "2026-05-16T08:26:34Z",
+    "yahoo_screener": "2026-05-16T08:24:08Z",
+    "earningswhispers": "2026-05-16T08:24:09Z",
+    "yfinance_batch": "2026-05-16T08:24:19Z",
+    "finviz": "2026-05-16T08:25:06Z",
+    "finnhub": "2026-05-16T08:25:06Z",
+    "stockanalysis": "2026-05-16T08:25:06Z"
+  },
   "last_digest_sent": null,
   "last_successful_run": null
 }
