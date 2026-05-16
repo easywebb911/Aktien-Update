@@ -7682,8 +7682,8 @@ async function renderTradeJournal(){{
     return '<div class="tj-stat tj-stat-wide" title="' + tooltip + '">'
       + '<span class="tj-stat-lbl">Knaller</span>'
       + '<span class="tj-stat-val">'
-      + '🌟 ' + _knallerHits + '/' + winN + ' ' + winRateStr
-      + ' · ⛈ ' + _knallerCrashes + '/' + lossN + ' ' + lossRateStr
+      + '▲ ' + _knallerHits + '/' + winN + ' ' + winRateStr
+      + ' · ▼ ' + _knallerCrashes + '/' + lossN + ' ' + lossRateStr
       + '</span></div>';
   }})();
   statsEl.innerHTML = `<h4>Statistik</h4>
@@ -7760,15 +7760,19 @@ async function renderTradeJournal(){{
     const _knClass = _kn === 'hit'   ? ' tj-trade-knaller-hit'
                    : _kn === 'crash' ? ' tj-trade-knaller-crash'
                    : '';
-    const _knIconHtml = _kn ? (
-      '<span class="tj-knaller-icon" title="' + _tjKnallerTooltip(_kn, t, bucketRef) + '"'
+    // Badge-Variante (16.05.2026, ersetzt Emoji): klar lesbar ohne Tooltip,
+    // konsistent mit dem uebrigen Tool-Stil. Border-Akzent (5 px statt 3 px
+    // via .tj-trade-knaller-hit/crash) bleibt als zusaetzliches Signal.
+    const _knBadgeHtml = _kn ? (
+      '<span class="tj-knaller-badge ' + (_kn === 'hit' ? 'tj-knaller-hit' : 'tj-knaller-crash')
+      + '" title="' + _tjKnallerTooltip(_kn, t, bucketRef) + '"'
       + ' aria-label="' + (_kn === 'hit' ? 'Knaller-Hit' : 'Knaller-Crash') + '">'
-      + (_kn === 'hit' ? '🌟' : '⛈')
+      + (_kn === 'hit' ? '▲ TOP 10%' : '▼ BOT 10%')
       + '</span>'
     ) : '';
     return `<div class="tj-trade ${{pnlPct >= 0 ? 'tj-trade-win' : 'tj-trade-loss'}}${{_knClass}}">
       <div class="tj-trade-head">
-        <span class="tj-trade-ticker">${{_esc(t.ticker)}}</span>${{_knIconHtml}}
+        <span class="tj-trade-ticker">${{_esc(t.ticker)}}</span>${{_knBadgeHtml}}
         <span class="tj-trade-range">${{_esc(t.entry_date)}} → ${{_esc(t.exit_date)}} · ${{dur}}</span>
         <span class="tj-trade-pnl" style="color:${{pnlCol}}">${{_fmtPct(pnlPct)}}</span>
       </div>

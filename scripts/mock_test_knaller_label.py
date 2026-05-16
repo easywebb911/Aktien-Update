@@ -111,13 +111,26 @@ def test_08_stats_cell_present() -> None:
     rt_end = GR.find("\n// ESC schließt Drawer", rt_start)
     block = GR[rt_start:rt_end]
     assert "tj-stat-lbl\">Knaller" in block, "Knaller-Stat-Zelle fehlt"
-    assert "🌟" in block and "⛈" in block, "Icon im Stats-Block fehlt"
+    # Badge-Variante (16.05.2026): Pfeil-Marker ▲/▼ statt Emoji
+    assert "▲ " in block and "▼ " in block, \
+        "Stats-Block hat keine Pfeil-Marker (Badge-Variante)"
+    # Trade-Liste: Badge mit Klassen + Text
+    assert "tj-knaller-badge" in block, "Per-Trade-Badge fehlt"
+    assert "▲ TOP 10%" in block and "▼ BOT 10%" in block, \
+        "Per-Trade Badge-Text fehlt"
 
 
 def test_09_css_classes_in_head_jinja() -> None:
-    assert ".tj-trade-knaller-hit{" in HJ, "Hit-CSS fehlt"
-    assert ".tj-trade-knaller-crash{" in HJ, "Crash-CSS fehlt"
-    assert ".tj-knaller-icon{" in HJ, "Icon-CSS fehlt"
+    # Container-Akzent (Border) bleibt aus PR #172
+    assert ".tj-trade-knaller-hit{" in HJ, "Hit-Container-CSS fehlt"
+    assert ".tj-trade-knaller-crash{" in HJ, "Crash-Container-CSS fehlt"
+    # Neue Badge-Klassen (16.05.2026): ersetzen .tj-knaller-icon
+    assert ".tj-knaller-badge{" in HJ, "Badge-Basis-CSS fehlt"
+    assert ".tj-knaller-hit{" in HJ, "Hit-Badge-CSS fehlt"
+    assert ".tj-knaller-crash{" in HJ, "Crash-Badge-CSS fehlt"
+    # Alte Icon-Klasse darf nicht mehr existieren
+    assert ".tj-knaller-icon{" not in HJ, \
+        "Alte Icon-Klasse noch da — sollte entfernt sein"
 
 
 # ── Pythonische Replikation der Logik ────────────────────────────────────────

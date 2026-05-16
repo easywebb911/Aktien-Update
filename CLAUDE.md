@@ -1069,16 +1069,16 @@ Ergebnis (alle / Gewinner / Verlierer).
 
 ### Knaller-Trade-Label (Phase 2, 16.05.2026)
 
-Markiert einzelne Trades als **Knaller-Hit** (🌟) oder **Knaller-Crash**
-(⛈) basierend auf der Backtest-Bucket-Tail-Verteilung. Pure Display-
-Auswertung, keine Score-Logik berührt.
+Markiert einzelne Trades als **Knaller-Hit** (`▲ TOP 10%`) oder
+**Knaller-Crash** (`▼ BOT 10%`) basierend auf der Backtest-Bucket-Tail-
+Verteilung. Pure Display-Auswertung, keine Score-Logik berührt.
 
 **Definition (Hybrid mit absolutem Floor):**
 
 | Label | Bedingung | Floor | Fallback bei n<30 im Bucket |
 |---|---|---|---|
-| 🌟 Hit | `pnl_pct ≥ P90(return_10d)` im passenden `entry_score_bucket` | `pnl_pct ≥ +10%` | absolute Schwelle `≥ +25%` |
-| ⛈ Crash | `pnl_pct ≤ P10(return_10d)` im passenden Bucket | `pnl_pct ≤ −10%` | absolute Schwelle `≤ −20%` |
+| `▲ TOP 10%` (Hit) | `pnl_pct ≥ P90(return_10d)` im passenden `entry_score_bucket` | `pnl_pct ≥ +10%` | absolute Schwelle `≥ +25%` |
+| `▼ BOT 10%` (Crash) | `pnl_pct ≤ P10(return_10d)` im passenden Bucket | `pnl_pct ≤ −10%` | absolute Schwelle `≤ −20%` |
 
 **Bucket-Sync:** Bucket-Grenzen `<50` / `50-69` / `≥70` sind in **drei**
 Stellen identisch zu halten:
@@ -1095,14 +1095,20 @@ Backtest-Panel gerendert wird. `_tjBucketRef` cached das Ergebnis in
 `window._TJ_BUCKET_REF._cached = true`.
 
 **Statistik-Zelle „Knaller"** im Stats-Grid (full-width):
-`🌟 H/W X% · ⛈ C/L Y%` (H=Hits, W=Gewinner-total, X=Quote · C=Crashes,
+`▲ H/W X% · ▼ C/L Y%` (H=Hits, W=Gewinner-total, X=Quote · C=Crashes,
 L=Verlierer-total, Y=Quote). Bei <5 Gewinnern: `(n=N zu wenig)` statt
 Prozentzahl. Tooltip mit Definitions-Erklärung.
 
-**Per-Trade-UI:** Icon `🌟`/`⛈` direkt nach dem Ticker. Tooltip enthält
-konkrete Bucket-P90/P10-Schwelle und n. Container bekommt CSS-Klasse
+**Per-Trade-UI:** Text-Badge `▲ TOP 10%` (grün) bzw. `▼ BOT 10%` (rot)
+direkt nach dem Ticker. CSS-Klassen `.tj-knaller-badge`
++ `.tj-knaller-hit`/`.tj-knaller-crash`. Tooltip enthält konkrete
+Bucket-P90/P10-Schwelle und n. Zusätzlich Container-Klasse
 `.tj-trade-knaller-hit` / `-crash` für 5-px-Border-Akzent statt 3 px
 (bestehende `.tj-trade-win`/`-loss`-Border-Farbe bleibt unverändert).
+
+Badge-Design-Entscheidung (16.05.2026, ersetzt Emoji-Variante aus PR
+#172): klar lesbar ohne Tooltip-Hover, konsistent zur restlichen Tool-
+Pill-Optik (Conviction-Level, SI-Trend, Run-Phase-Pill), mobile-tauglich.
 
 **Backtest-Referenz-Charakter:** Knaller-Label vergleicht gegen die
 **komplette Backtest-Verteilung pro Bucket**, nicht gegen Easy's eigene
