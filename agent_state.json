@@ -1,5 +1,5 @@
 {
-  "last_run": "2026-05-16T15:40:42.065913+02:00",
+  "last_run": "2026-05-16T15:58:22.615089+02:00",
   "cooldowns": {
     "anomaly_score_jump_XRX": "2026-05-03T18:47:15.315486+02:00",
     "anomaly_uoa_extreme_TDOC": "2026-05-04T13:47:00.365949+02:00",
@@ -33,24 +33,6 @@
     "exit_CRMD": "2026-05-16T13:23:36.405281+02:00"
   },
   "push_history": [
-    {
-      "ts": "2026-05-09T22:52:54.877984+02:00",
-      "ticker": "GRPN",
-      "kind": "anomaly",
-      "severity": "medium",
-      "trigger": "score_jump",
-      "body": "GRPN 🚀 Setup 88 ↑ (gestern 62) | UOA Call/Put 11.5×",
-      "success": true
-    },
-    {
-      "ts": "2026-05-10T04:43:55.177170+02:00",
-      "ticker": "NVAX",
-      "kind": "anomaly",
-      "severity": "high",
-      "trigger": "monster_backup",
-      "body": "NVAX 🔥 Monster 100 | Setup 100 | KI 65",
-      "success": true
-    },
     {
       "ts": "2026-05-10T08:10:20.027404+02:00",
       "ticker": "GRPN",
@@ -1158,6 +1140,30 @@
       "suppressed": true,
       "suppress_reason": "conviction_below_threshold",
       "conviction_score": 47
+    },
+    {
+      "ts": "2026-05-16T15:58:19.694092+02:00",
+      "ticker": "GEMI",
+      "kind": "anomaly",
+      "severity": "high",
+      "trigger": "monster_backup",
+      "body": "GEMI 🔥 Monster 90 | Setup 75 | KI 82",
+      "success": false,
+      "suppressed": true,
+      "suppress_reason": "conviction_below_threshold",
+      "conviction_score": 53
+    },
+    {
+      "ts": "2026-05-16T15:58:19.694288+02:00",
+      "ticker": "SKYQ",
+      "kind": "anomaly",
+      "severity": "medium",
+      "trigger": "score_jump",
+      "body": "SKYQ 🚀 Setup 68 ↑ (gestern 52) | Volumen 7.7× + 🚀 Massives Volumen 7.7×+ + Spanne 51.2% + New…",
+      "success": false,
+      "suppressed": true,
+      "suppress_reason": "conviction_below_threshold",
+      "conviction_score": 47
     }
   ],
   "prev_conviction_scores": {
@@ -1168,9 +1174,9 @@
     "SKYQ": 47.0,
     "SG": 46.0,
     "NTLA": 45.0,
-    "DXC": 51.0,
-    "LESL": 44.0,
     "CRMD": 58.0,
+    "DXC": 51.0,
+    "PRA": 49.0,
     "AI": 48.0,
     "RR": 37.0,
     "IONQ": 16.0,
