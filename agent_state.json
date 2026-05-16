@@ -30,7 +30,7 @@
     "earnings_immediate_GEMI_14.05.2026": "2026-05-14T23:25:08.201852+02:00",
     "exit_KPTI": "2026-05-15T18:17:09.325572+02:00",
     "anomaly_conviction_high_SNSE": "2026-05-15T19:30:32.046324+02:00",
-    "exit_CRMD": "2026-05-15T23:20:20.293241+02:00"
+    "exit_CRMD": "2026-05-16T09:18:49.062437+02:00"
   },
   "push_history": [
     {
@@ -1103,6 +1103,18 @@
       "severity": "trigger",
       "trigger": "profit_lock",
       "body": "🔻 Exit-Signal AMC: profit_lock crit ({'pnl_pct': -0.1467, 'peak_pnl_pct': 0.16, 'drawdown_from_peak': 0.3067, 'score_drop_from_peak': None})",
+      "success": true,
+      "suppressed": false,
+      "suppress_reason": null,
+      "conviction_score": null
+    },
+    {
+      "ts": "2026-05-16T09:18:49.062381+02:00",
+      "ticker": "CRMD",
+      "kind": "exit_p1",
+      "severity": "default",
+      "trigger": "exit_alert",
+      "body": "CRMD 📉 Exit 65 | -5% | Trailing-Stop −15.5% vom Hoch",
       "success": true,
       "suppressed": false,
       "suppress_reason": null,
