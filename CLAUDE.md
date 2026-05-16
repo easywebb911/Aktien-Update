@@ -2459,6 +2459,33 @@ unverändert.
 (details-summary-content). Default-Closed wenn Inhalt statisch, nur
 default-open wenn Werte zwischen Daily-Runs wechseln.
 
+### Schriftgrößen-Skalierung von Container-Paddings
+
+Hintergrund: Schriftgrößen-Schalter setzt `--base-font-size` (13/15/17/19/21
+px). Container, deren Inhalt mit Schrift skaliert (font-size in `rem`),
+brauchen auch **proportionales Padding** — sonst werden Letzte-Zeile-
+Inhalte vom iPhone-Home-Indicator / iOS-Bottom-Overlay überdeckt.
+
+**Pattern für aufklappbare Mobile-Container** (z. B. `.ki-analyse-result`,
+`.ki-truncated-notice`):
+
+```css
+.aufklappbarer-container{
+  padding:0.7em 14px;                                   /* top/sides em */
+  padding-bottom:max(3em, env(safe-area-inset-bottom)); /* em + iOS-Floor */
+  font-size:.82rem;                                     /* skaliert mit Schrift */
+}
+```
+
+- `padding-bottom: max(3em, env(safe-area-inset-bottom))` statt fest in px
+- **Bei 15 px Schrift** ≈ 45 px (≈ vorheriges Verhalten)
+- **Bei 21 px Schrift** ≈ 63 px (skaliert proportional, deckt iOS-Home-Indicator ab)
+- iOS safe-area-inset-bottom-Floor garantiert Mindest-Abstand bei Notch-Devices
+
+**Wann _NICHT_ em**: feste UI-Elemente wie `.sb-num{font-size:22px}`
+(Score-Zahl) oder `.spark-wrap{max-height:90px}` (Sparkline-Größe)
+sollen bewusst nicht skalieren.
+
 ---
 
 ## Score-Methodik-Sync-Regel

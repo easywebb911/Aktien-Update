@@ -957,8 +957,8 @@ abbr[title]{text-decoration:underline dotted var(--txt-dim);
   transition:background .15s}
 .ki-analyse-btn:hover:not(:disabled){background:linear-gradient(90deg,#2d1460 0%,#3b1f6b 100%)}
 .ki-analyse-btn:disabled{opacity:.5;cursor:not-allowed}
-.ki-analyse-result{padding:10px 14px;
-  padding-bottom:max(48px, env(safe-area-inset-bottom));
+.ki-analyse-result{padding:0.7em 14px;
+  padding-bottom:max(3em, env(safe-area-inset-bottom));
   border-top:1px solid #4c1d9522;display:none;
   font-size:.82rem;line-height:1.6;color:var(--txt-sub);background:#0d0920}
 .ki-analyse-result.visible{display:block}
@@ -971,7 +971,7 @@ abbr[title]{text-decoration:underline dotted var(--txt-dim);
    Dezent in Amber, nicht alarmistisch — die Analyse ist da, nur das Ende
    fehlt. Wird per JS angefügt, idempotent ersetzt bei jedem Re-Analyse-
    Klick (innerHTML-Reset wischt das Element zu Beginn jedes Calls). */
-.ki-truncated-notice{margin-top:8px;padding:6px 10px;
+.ki-truncated-notice{margin-top:0.5em;padding:0.4em 0.7em;
   background:rgba(245,158,11,.10);border-left:3px solid #f59e0b;
   border-radius:0 4px 4px 0;
   font-size:.72rem;color:#f59e0b;line-height:1.4;font-weight:500}
