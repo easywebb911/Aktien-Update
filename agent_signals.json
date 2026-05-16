@@ -1,10 +1,10 @@
 {
-  "updated": "2026-05-16T17:17:19.574634+02:00",
+  "updated": "2026-05-16T18:06:54.430474+02:00",
   "run_info": {
     "tickers_checked": 14,
     "signals_active": 4,
     "alerts_sent": 0,
-    "elapsed_s": 16.3,
+    "elapsed_s": 14.4,
     "market_phase": "Geschlossen"
   },
   "signals": {
@@ -175,9 +175,9 @@
       "uoa_cp_ratio": null
     },
     "PRA": {
-      "score": 45,
+      "score": 61,
       "confidence": 70,
-      "drivers": "Volumen 2.5× + News-KI 5/30: Neutrale Earnings-Headlines ohne Volatilitätstrigger oder bullische Katalysatoren für einen Short-Squeeze. + FINRA Short-Vol 100%",
+      "drivers": "Volumen 2.5× + News: acquisition + FINRA Short-Vol 100%",
       "price": 24.51,
       "chg_pct": 0.0,
       "rvol_4d": 2.47,
@@ -187,8 +187,8 @@
       "upcoming_event": null,
       "insider_buy": false,
       "stocktwits": null,
-      "combo_mult": 1.0,
-      "active_triggers": 1,
+      "combo_mult": 1.1,
+      "active_triggers": 2,
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": null,
@@ -215,9 +215,9 @@
       "uoa_cp_ratio": null
     },
     "RR": {
-      "score": 52,
+      "score": 55,
       "confidence": 70,
-      "drivers": "Earnings in 6 Tagen (22.05.2026) + Spanne 6.4% + News-KI 12/30: Positive business developments and partnerships, but lacks evidence of high short interest, low float, or imminent catal + Earnings in 6d + UOA Call/Put 3.9×",
+      "drivers": "Earnings in 6 Tagen (22.05.2026) + Spanne 6.4% + News: partnership + Earnings in 6d + UOA Call/Put 3.9×",
       "price": 2.68,
       "chg_pct": 0.0,
       "rvol_4d": 0.65,
@@ -259,7 +259,7 @@
     "SKYQ": {
       "score": 88,
       "confidence": 70,
-      "drivers": "Volumen 7.7× + 🚀 Massives Volumen 7.7×+ + Spanne 51.2% + News: partnership, short interest",
+      "drivers": "Volumen 7.7× + 🚀 Massives Volumen 7.7×+ + Spanne 51.2% + News: short interest, partnership",
       "price": 3.07,
       "chg_pct": -0.0,
       "rvol_4d": 7.69,
