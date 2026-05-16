@@ -1,10 +1,10 @@
 {
-  "updated": "2026-05-16T19:35:57.512451+02:00",
+  "updated": "2026-05-16T20:09:46.764079+02:00",
   "run_info": {
     "tickers_checked": 14,
     "signals_active": 4,
     "alerts_sent": 0,
-    "elapsed_s": 19.2,
+    "elapsed_s": 28.2,
     "market_phase": "Geschlossen"
   },
   "signals": {
@@ -93,9 +93,9 @@
       "uoa_cp_ratio": null
     },
     "GEMI": {
-      "score": 82,
+      "score": 68,
       "confidence": 70,
-      "drivers": "Volumen 8.2× + 🚀 Massives Volumen 8.2×+ + Spanne 22.8% + News: earnings beat + UOA Call/Put 2.9×",
+      "drivers": "Volumen 8.2× + 🚀 Massives Volumen 8.2×+ + Spanne 22.8% + News-KI 8/30: Positive earnings and revenue growth are bullish but lack specific short squeeze catalysts like high short interest, sma + UOA Call/Put 2.9×",
       "price": 5.58,
       "chg_pct": -0.0,
       "rvol_4d": 8.22,
@@ -105,8 +105,8 @@
       "upcoming_event": null,
       "insider_buy": false,
       "stocktwits": null,
-      "combo_mult": 1.1,
-      "active_triggers": 2,
+      "combo_mult": 1.0,
+      "active_triggers": 1,
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 2.9×"
@@ -177,7 +177,7 @@
     "NTLA": {
       "score": 55,
       "confidence": 70,
-      "drivers": "Volumen 2.0× + Spanne 6.8% + News: short interest, earnings beat",
+      "drivers": "Volumen 2.0× + Spanne 6.8% + News: earnings beat, short interest",
       "price": 13.67,
       "chg_pct": 0.0,
       "rvol_4d": 1.99,
@@ -195,13 +195,13 @@
       "uoa_cp_ratio": null
     },
     "PZZA": {
-      "score": 30,
-      "confidence": 17,
-      "drivers": "News: buyout, takeover",
+      "score": 55,
+      "confidence": 70,
+      "drivers": "Volumen 1.8× + Spanne 6.3% + News: acquisition, buyout",
       "price": 34.73,
-      "chg_pct": 0.0,
-      "rvol_4d": 0.0,
-      "rvol_20d": null,
+      "chg_pct": -0.0,
+      "rvol_4d": 1.78,
+      "rvol_20d": 2.91,
       "earnings": "in 82 Tagen (06.08.2026)",
       "fda_date": null,
       "upcoming_event": null,
@@ -215,9 +215,9 @@
       "uoa_cp_ratio": null
     },
     "RR": {
-      "score": 52,
+      "score": 43,
       "confidence": 70,
-      "drivers": "Earnings in 6 Tagen (22.05.2026) + Spanne 6.4% + News-KI 12/30: Positive operational developments and partnership news, but no evidence of high short interest, low float, or catalysts  + Earnings in 6d + UOA Call/Put 3.9×",
+      "drivers": "Earnings in 6 Tagen (22.05.2026) + Spanne 6.4% + News-KI 8/30: Positive robotics/AI news but no evidence of high short interest, low float, or catalyst for forced buyback typical of s + Earnings in 6d + UOA Call/Put 3.9×",
       "price": 2.68,
       "chg_pct": 0.0,
       "rvol_4d": 0.65,
@@ -227,8 +227,8 @@
       "upcoming_event": "Earnings in 6 Tagen (22.05.2026)",
       "insider_buy": false,
       "stocktwits": null,
-      "combo_mult": 1.1,
-      "active_triggers": 2,
+      "combo_mult": 1.0,
+      "active_triggers": 1,
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 3.9×"
@@ -257,9 +257,9 @@
       "uoa_cp_ratio": 0.5700280112044818
     },
     "SKYQ": {
-      "score": 88,
+      "score": 58,
       "confidence": 70,
-      "drivers": "Volumen 7.7× + 🚀 Massives Volumen 7.7×+ + Spanne 51.2% + News: partnership, short interest",
+      "drivers": "Volumen 7.7× + 🚀 Massives Volumen 7.7×+ + Spanne 51.2% + News-KI 8/30: Positive business developments but lacks short-squeeze catalysts like high short interest, low float, or gamma dynamics.",
       "price": 3.07,
       "chg_pct": -0.0,
       "rvol_4d": 7.69,
@@ -269,8 +269,8 @@
       "upcoming_event": null,
       "insider_buy": false,
       "stocktwits": null,
-      "combo_mult": 1.1,
-      "active_triggers": 2,
+      "combo_mult": 1.0,
+      "active_triggers": 1,
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": null,
