@@ -271,6 +271,30 @@ select.sort-select:hover:not(:disabled){background-image:linear-gradient(45deg,t
 .info-inner{display:grid;grid-template-columns:1fr;gap:10px;padding:0 12px 14px}
 .info-box{background:var(--bg-met);border-radius:8px;padding:10px 12px}
 .info-box--full{grid-column:1 / -1}
+/* Methodology-Panel Accordion-Refactor (16.05.2026): jede info-box ist
+   ein <details>-Element. summary klappt content auf/zu, lead-Span zeigt
+   Kernaussage im collapsed state, caret rotiert bei [open]. Mobile-
+   Tap-Target ≥44 px via min-height auf summary. */
+.methodology-intro{font-size:.78rem;color:var(--txt-dim);margin:0 0 4px;
+  padding:0 4px;font-style:italic}
+details.methodology-card{padding:0}
+details.methodology-card>summary{list-style:none;cursor:pointer;
+  display:flex;align-items:center;gap:10px;flex-wrap:wrap;
+  min-height:44px;padding:10px 12px;margin:0;
+  -webkit-tap-highlight-color:transparent}
+details.methodology-card>summary::-webkit-details-marker{display:none}
+details.methodology-card>summary::marker{content:""}
+details.methodology-card>summary h4{margin:0;flex-shrink:0}
+details.methodology-card .method-lead{color:var(--txt-dim);
+  font-size:.78rem;flex:1 1 auto;min-width:0;line-height:1.35;
+  font-weight:500}
+details.methodology-card .method-caret{flex-shrink:0;width:18px;height:18px;
+  stroke-width:2;color:var(--txt-dim);transition:transform .2s ease}
+details.methodology-card[open]>summary .method-caret{transform:rotate(180deg)}
+details.methodology-card>summary:hover .method-caret,
+details.methodology-card>summary:focus-visible .method-caret{color:var(--accent)}
+details.methodology-card .method-content{padding:4px 12px 12px;
+  border-top:1px solid var(--brd);margin-top:4px}
 .info-box h4{font-size:.67rem;text-transform:uppercase;letter-spacing:.5px;
   color:var(--accent);margin-bottom:7px}
 .info-box ul{list-style:none;display:flex;flex-direction:column;gap:4px}

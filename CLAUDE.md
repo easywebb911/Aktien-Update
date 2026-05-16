@@ -2406,6 +2406,61 @@ fast jedes Top-10-Setup aus). Conviction-Median lag deshalb dauerhaft
 
 ---
 
+## Score-Methodik-Panel UX (Accordion-Redesign)
+
+Seit 16.05.2026 sind die 11 Sektionen des Methodik-Panels als
+HTML5-`<details>`-Elemente gebaut. Jede `<div class="info-box">`
+wurde zu `<details class="info-box methodology-card">` mit folgender
+Struktur:
+
+```html
+<details class="info-box info-box--full methodology-card">
+  <summary>
+    <h4>Titel</h4>
+    <span class="method-lead">Kernaussage in 1 Satz</span>
+    <i class="method-caret" data-lucide="chevron-down"></i>
+  </summary>
+  <div class="method-content">
+    <!-- bestehender Inhalt, byte-identisch -->
+  </div>
+</details>
+```
+
+**Default-State:**
+- **Konfidenz der Scores**: `<details open>` — einzige Sektion mit
+  run-frischen Werten (Tier-Stufen pro Score-Klasse).
+- **10 andere Sektionen**: default closed.
+
+**Erste Zeile im Panel**: `<p class="methodology-intro">` mit
+„Tap eine Sektion zum Aufklappen." — Onboarding-Hinweis.
+
+**CSS-Klassen** in `templates/head.jinja` direkt nach
+`.info-box--full`:
+- `.methodology-card` (Container, padding-0)
+- `.methodology-card>summary` (Tap-Target ≥44 px, flex layout,
+  cursor:pointer)
+- `.method-lead` (dimmed, .78rem, flex:1)
+- `.method-caret` (18 px Lucide-Icon, rotiert bei `[open]`)
+- `.method-content` (top-Border als Trenner)
+
+**Verschachtelte `<details>` in Sektion 8 (⚡ KI-Agent)**: das
+bestehende `<details class="ki-pro-details">` für Profi-Details bleibt
+**innerhalb** des `method-content`-Divs. Doppel-Click-Pattern: User
+öffnet die ⚡-KI-Agent-Sektion, sieht Story-Text, kann optional
+Profi-Details als Sub-Accordion auch noch erweitern.
+
+**Score-Methodik-Sync-Regel UNVERÄNDERT** — die ZAHLEN/SCHWELLEN/
+Texte sind byte-identisch in den `method-content`-Divs erhalten.
+Nur die HTML-Struktur (Wrapping mit `<details>/<summary>`) hat sich
+geändert. Auto-Generated `_methodology_*_rows`-Variablen sind
+unverändert.
+
+**Pflege**: Bei neuer Methodik-Sektion das gleiche Pattern nutzen
+(details-summary-content). Default-Closed wenn Inhalt statisch, nur
+default-open wenn Werte zwischen Daily-Runs wechseln.
+
+---
+
 ## Score-Methodik-Sync-Regel
 
 Die **Score-Methodik & Filterkriterien**-Sektion in

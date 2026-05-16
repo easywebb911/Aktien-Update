@@ -6419,8 +6419,14 @@ def generate_html_v1(stocks: list[dict], report_date: str,
       </button>
     </div>
     <div class="info-inner">
-      <div class="info-box">
-        <h4>Filterkriterien</h4>
+      <p class="methodology-intro">Tap eine Sektion zum Aufklappen.</p>
+      <details class="info-box methodology-card">
+        <summary>
+          <h4>Filterkriterien</h4>
+          <span class="method-lead">Small-Caps &lt; {MAX_MARKET_CAP_B:.0f} Mrd · Short Float ≥ {MIN_SHORT_FLOAT:.0f}%</span>
+          <i class="method-caret" data-lucide="chevron-down"></i>
+        </summary>
+        <div class="method-content">
         <ul class="info-compact">
           <li>Marktkapitalisierung &lt; {MAX_MARKET_CAP_B:.0f} Mrd. USD — Small-Cap-Fokus</li>
           <li>Short Float &gt; {MIN_SHORT_FLOAT:.0f} % — nur US</li>
@@ -6428,9 +6434,15 @@ def generate_html_v1(stocks: list[dict], report_date: str,
           <li>Nur 🇺🇸 US-Screening — internationale Ticker via 📌 Watchlist</li>
           <li>Manuell hinzugefügte Ticker umgehen den Cap-Filter</li>
         </ul>
-      </div>
-      <div class="info-box info-box--full">
-        <h4>Score-Formel — Hauptblöcke</h4>
+        </div>
+      </details>
+      <details class="info-box info-box--full methodology-card">
+        <summary>
+          <h4>Score-Formel — Hauptblöcke</h4>
+          <span class="method-lead">3 Sub-Dimensionen: Struktur 40 · Katalysator 35 · Timing 35</span>
+          <i class="method-caret" data-lucide="chevron-down"></i>
+        </summary>
+        <div class="method-content">
         <p class="score-intro-story">
           <strong>Der Setup-Score bewertet, wie wahrscheinlich ein Short Squeeze ist.</strong>
           Stell dir einen Squeeze wie ein Feuer vor: er braucht Brennstoff, einen Funken und eine sichtbare Flamme. Genau diese drei Komponenten misst der Score.
@@ -6475,9 +6487,15 @@ def generate_html_v1(stocks: list[dict], report_date: str,
             <p class="score-block-foot">Summe normiert auf 0–35</p>
           </div>
         </div>
-      </div>
-      <div class="info-box info-box--full">
-        <h4>Boni / Malus / Monster-Score</h4>
+        </div>
+      </details>
+      <details class="info-box info-box--full methodology-card">
+        <summary>
+          <h4>Boni / Malus / Monster-Score</h4>
+          <span class="method-lead">Kombi +5 · Trend ±3 · Agent ×1.05–1.15 · Late-Runner ×{LATE_RUNNER_PENALTY}</span>
+          <i class="method-caret" data-lucide="chevron-down"></i>
+        </summary>
+        <div class="method-content">
         <div class="score-modifiers">
           <div class="score-mod-card score-mod-bonus">
             <span class="score-mod-name">Kombinations-Bonus</span>
@@ -6509,9 +6527,15 @@ def generate_html_v1(stocks: list[dict], report_date: str,
         </p>
         <p class="score-block-foot"><em>Sub-Scores sind unabhängige Qualitätsindikatoren — nicht die Zerlegung des Gesamt-Scores.</em></p>
         <p class="score-block-foot"><strong>Top-10-Sortierung</strong> (Hamburger-Menü): vier Optionen — <strong>Setup-Score</strong> (Default, Server-seitige Reihenfolge), <strong>Monster-Score</strong> (absteigend nach Setup×KI-Boost), <strong>KI-Score</strong> (absteigend nach reinem KI-Agent-Score, auf Karten sichtbar als pulsierender Dot) oder <strong>Conviction-Score</strong> (absteigend nach Aktions-Empfehlung — Stocks ohne Conviction-Daten ans Ende). KI-Sortierung wird nach Eingang des stündlichen agent_signals.json-Fetches angewandt.</p>
-      </div>
-      <div class="info-box info-box--full">
-        <h4>KI-Score — Live-Bewertung durch den KI-Agent</h4>
+        </div>
+      </details>
+      <details class="info-box info-box--full methodology-card">
+        <summary>
+          <h4>KI-Score — Live-Bewertung durch den KI-Agent</h4>
+          <span class="method-lead">{MAX_SIGNAL_TYPES} Signale · Multi-Trigger-Multiplikator · stündlich</span>
+          <i class="method-caret" data-lucide="chevron-down"></i>
+        </summary>
+        <div class="method-content">
         <p class="score-intro-story">
           <strong>Der KI-Score bewertet, was sich am Markt gerade <em>jetzt</em> bewegt.</strong>
           Während der Setup-Score die strukturelle Squeeze-Mechanik misst, schaut der KI-Score auf Live-Trigger: Kurs, Volumen, News, Reddit, Insider, Termine. Er ergänzt den Setup-Score — er ersetzt ihn nicht.
@@ -6551,9 +6575,15 @@ def generate_html_v1(stocks: list[dict], report_date: str,
             <p class="score-block-foot">Treiber-Aufschlüsselung in „Aktuelle Meldungen" → KI-Agent-Signale auf jeder Karte.</p>
           </div>
         </div>
-      </div>
-      <div class="info-box info-box--full">
-        <h4>Conviction-Score — Aktions-Empfehlung</h4>
+        </div>
+      </details>
+      <details class="info-box info-box--full methodology-card">
+        <summary>
+          <h4>Conviction-Score — Aktions-Empfehlung</h4>
+          <span class="method-lead">4 Komponenten · 0–100 · 3 Aktions-Level (high/medium/low)</span>
+          <i class="method-caret" data-lucide="chevron-down"></i>
+        </summary>
+        <div class="method-content">
         <p class="score-intro-story">
           <strong>Conviction beantwortet die Aktions-Frage „jetzt einsteigen?"</strong>
           obendrauf zu Setup/Monster/KI. Aggregiert vier Komponenten:
@@ -6587,9 +6617,15 @@ def generate_html_v1(stocks: list[dict], report_date: str,
             <p class="score-block-foot">Component-Aufschlüsselung in der Detail-Ansicht pro Stock</p>
           </div>
         </div>
-      </div>
-      <div class="info-box info-box--full">
-        <h4>Konfidenz der Scores</h4>
+        </div>
+      </details>
+      <details class="info-box info-box--full methodology-card" open>
+        <summary>
+          <h4>Konfidenz der Scores</h4>
+          <span class="method-lead">4 qualitative Stufen pro Score-Klasse · aktuell sichtbar</span>
+          <i class="method-caret" data-lucide="chevron-down"></i>
+        </summary>
+        <div class="method-content">
         <p class="score-intro-story">
           Wie belastbar sind die Scores statistisch?
           Vier qualitative Stufen statt prozentual — verhindert
@@ -6601,17 +6637,29 @@ def generate_html_v1(stocks: list[dict], report_date: str,
           {score_confidence_rows_html}
         </ul>
         <p class="score-block-foot">Stand: {score_confidence_computed_at}</p>
-      </div>
-      <div class="info-box">
-        <h4>Datenquellen</h4>
+        </div>
+      </details>
+      <details class="info-box methodology-card">
+        <summary>
+          <h4>Datenquellen</h4>
+          <span class="method-lead">Yahoo + Finviz + FINRA + KI-Agent + SEC + ntfy</span>
+          <i class="method-caret" data-lucide="chevron-down"></i>
+        </summary>
+        <div class="method-content">
         <ul class="info-compact">
           <li>Yahoo Finance (5 US-Screener) · Finviz Screener · FINRA Short Interest ({SI_TREND_PERIODS} Handelstage, 3 CDN-Feeds)</li>
           <li>yfinance · Stockanalysis.com (wöchentl. SI) · EarningsWhispers RSS · Sektor-ETFs (QQQ/XBI/XLE/XLF/XRT/SPY)</li>
           <li>KI-Agent: Claude Haiku · News-Sentiment · Insider · FDA RSS · FINRA Daily SSR · StockTwits API · yfinance Options-Chains (UOA) · SEC EDGAR (<abbr title="Pflicht-Meldung an die SEC, wenn ein Investor mehr als 5% einer Firma kauft — oft aktivistisch.">13D</abbr>/13G Filings) · ntfy.sh (Push-Notifications)</li>
         </ul>
-      </div>
-      <div class="info-box info-box--full">
-        <h4>⚡ KI-Agent</h4>
+        </div>
+      </details>
+      <details class="info-box info-box--full methodology-card">
+        <summary>
+          <h4>⚡ KI-Agent</h4>
+          <span class="method-lead">Live-Multi-Trigger-Multiplikatoren · Profi-Details als Sub-Accordion</span>
+          <i class="method-caret" data-lucide="chevron-down"></i>
+        </summary>
+        <div class="method-content">
         <p style="font-size:.82rem;color:var(--txt-sub);margin:.4rem 0 0;line-height:1.55">
           Die KI überwacht den Markt live auf extreme Anomalien. Je mehr Faktoren (wie plötzliche Volumen-Explosionen oder ungewöhnliche Options-Käufe) gleichzeitig auftreten, desto stärker wird der Basis-Score automatisch nach oben korrigiert.
         </p>
@@ -6654,17 +6702,29 @@ def generate_html_v1(stocks: list[dict], report_date: str,
             </div>
           </div>
         </details>
-      </div>
-      <div class="info-box info-box--full">
-        <h4>📊 Backtesting-Status</h4>
+        </div>
+      </details>
+      <details class="info-box info-box--full methodology-card">
+        <summary>
+          <h4>📊 Backtesting-Status</h4>
+          <span class="method-lead">{backtest_count_str} Datenpunkte · belastbar ab Juli 2026</span>
+          <i class="method-caret" data-lucide="chevron-down"></i>
+        </summary>
+        <div class="method-content">
         <p style="font-size:.82rem;color:var(--txt-sub);margin:0;line-height:1.55">
           {backtest_count_str} Datenpunkte (bootstrap + daily) — Details im Backtesting-Panel.
           Bootstrap-Scores vereinfacht (SF + RVOL + Momentum) — nicht 1:1 mit Live-Scores vergleichbar.
           Belastbare Live-Statistiken ab Juli 2026 (60+ Tage Daily-Daten).
         </p>
-      </div>
-      <div class="info-box info-box--full">
-        <h4>Wann sollte ich aussteigen?</h4>
+        </div>
+      </details>
+      <details class="info-box info-box--full methodology-card">
+        <summary>
+          <h4>Wann sollte ich aussteigen?</h4>
+          <span class="method-lead">6 Frühwarn-Signale → Exit-Druck 0–100 · plus Late-Runner-Erkennung</span>
+          <i class="method-caret" data-lucide="chevron-down"></i>
+        </summary>
+        <div class="method-content">
         <p style="font-size:.82rem;color:var(--txt-sub);margin:.2rem 0 .8rem;line-height:1.55">
           Bei jeder offenen Position prüft das System sechs Frühwarn-Signale und fasst sie zu einem <strong>„Exit-Druck"</strong> von 0 bis 100 zusammen. Je höher, desto dringender.
         </p>
@@ -6698,9 +6758,15 @@ def generate_html_v1(stocks: list[dict], report_date: str,
         <p style="font-size:.78rem;color:var(--txt-dim);margin:.5rem 0 0;line-height:1.5;font-style:italic">
           Wirkt nach dem 3-Tage-Smoothing und vor der Monster-Score-Berechnung — der Penalty schlägt damit in beide Score-Anzeigen durch. „Leise Akkumulation"-Setups (niedriger RSI, geringer Tagesmove) werden so im Ranking gegenüber gelaufenen Tickern bevorzugt.
         </p>
-      </div>
-      <div class="info-box info-box--full">
-        <h4>Farbcodierung der Kennzahlen</h4>
+        </div>
+      </details>
+      <details class="info-box info-box--full methodology-card">
+        <summary>
+          <h4>Farbcodierung der Kennzahlen</h4>
+          <span class="method-lead">Grün = bullisch · Rot = bearish · gleiches Schema überall</span>
+          <i class="method-caret" data-lucide="chevron-down"></i>
+        </summary>
+        <div class="method-content">
         <div class="color-legend">
           <div>
             <span class="cl-name">Short Float</span>
@@ -6766,7 +6832,8 @@ def generate_html_v1(stocks: list[dict], report_date: str,
             <p class="cl-desc">Hohe implizite Volatilität (IV &gt; 100 %) signalisiert dass der Markt eine extreme Kursbewegung erwartet — ein typisches Zeichen für erhöhtes Squeeze-Potential.</p>
           </div>
         </div>
-      </div>
+        </div>
+      </details>
     </div>
   </section>
 
