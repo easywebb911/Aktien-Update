@@ -13952,6 +13952,13 @@ def _fetch_next_earnings_date(ticker: str, today: date | None = None
     Returnt ``date`` (Earnings-Tag in US-Eastern-Zeitzone) oder
     ``None``. Bei beiden Quellen leer wird der Aufrufer
     ``available=False`` setzen.
+
+    Finnhub ist eine Premium-Source-Fallback. Wenn ``FINNHUB_API_KEY``
+    nicht im Env gesetzt ist, läuft yfinance als Primärquelle — das ist
+    okay und seit Inception der reale Pfad. Provider-Health-Log soll
+    diesen Pfad nicht als „Fail" zählen (Hard-Skip vor HTTP-Call =
+    kein echter Outage). Spätere Aufräum-Welle wird Finnhub komplett
+    entfernen (Diagnose-Memo 16.05.2026).
     """
     if today is None:
         today = datetime.now(EASTERN).date()
@@ -13959,8 +13966,18 @@ def _fetch_next_earnings_date(ticker: str, today: date | None = None
     # Per-Call-Latency + Success in _FINNHUB_ACCT; main() emittiert eine
     # Zeile am Ende falls _FINNHUB_ACCT["calls"] > 0 (call_attempted-
     # Gating).
-    edate = _instrument_provider_call(
-        _FINNHUB_ACCT, _fetch_finnhub_next_earnings, ticker, today)
+    #
+    # Skip-Logging-Fix (16.05.2026): Wenn FINNHUB_API_KEY nicht
+    # konfiguriert ist, würde der Wrapper-Pfad pro Aufruf eine 0-ms-
+    # Fail-Zeile produzieren (N/N calls failed, kein echter Provider-
+    # Outage). Wir prüfen den Key vorweg und gehen direkt zum
+    # yfinance-Fallback, ohne den Provider-Health-Counter zu
+    # inkrementieren.
+    if os.environ.get("FINNHUB_API_KEY"):
+        edate = _instrument_provider_call(
+            _FINNHUB_ACCT, _fetch_finnhub_next_earnings, ticker, today)
+    else:
+        edate = None
     if edate is None:
         edate = _fetch_yfinance_next_earnings(ticker, today)
     return edate
