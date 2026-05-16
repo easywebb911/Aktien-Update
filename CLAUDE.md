@@ -2486,6 +2486,18 @@ Inhalte vom iPhone-Home-Indicator / iOS-Bottom-Overlay überdeckt.
 (Score-Zahl) oder `.spark-wrap{max-height:90px}` (Sparkline-Größe)
 sollen bewusst nicht skalieren.
 
+**Erweitert 16.05.2026 (PR-Folge nach #179)**: gleicher Fix für die
+Detail-Tabelle (`.details-body.open: max-height 1200px → 150em`) und
+das News-Panel (`.news-panel: padding 12px 14px → 0.8em 14px`).
+Beide Sektionen erscheinen in Top-10-Karten UND Watchlist-Drawer-
+Karten — gleiche CSS-Klassen via `_wl_full_card_html`-Regex-Strip,
+ein Fix wirkt für beide Card-Typen.
+
+Pattern für aufklappbare Mobile-Container ist damit zementiert. Bei
+neuen Container-Klassen mit Toggle-Logik (`.details-body`-artig):
+**max-height in em (≥150em Safety-Margin), Padding in em, Sides
+in px (Konsistenz)**.
+
 ---
 
 ## Score-Methodik-Sync-Regel
