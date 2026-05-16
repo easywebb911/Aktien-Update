@@ -422,12 +422,17 @@ def test_ntfy_send_skipped_when_disabled():
 
 
 def test_ntfy_send_monkey_patched_post():
-    """ntfy-Send geht durch requests.post — wird komplett gemockt."""
+    """ntfy-Send geht durch requests.post — wird komplett gemockt.
+
+    Seit 16.05.2026 (Unicode-Fix): JSON-API statt URL-mit-Topic-Suffix.
+    Topic / Title / Body / Priority / Tags landen alle im JSON-Body.
+    """
     dg = _import_digest_module()
     mock_resp = mock.Mock()
     mock_resp.status_code = 200
     mock_resp.text = "ok"
     with mock.patch.object(dg, "NTFY_TOPIC", "test-topic"), \
+         mock.patch.object(dg, "NTFY_ENABLED", True), \
          mock.patch.object(dg, "requests") as mock_requests:
         mock_requests.post.return_value = mock_resp
         ok = dg._ntfy_send("⚠️ Health-Check-Digest", "body",
@@ -435,11 +440,15 @@ def test_ntfy_send_monkey_patched_post():
         assert ok is True
         assert mock_requests.post.call_count == 1
         call_args = mock_requests.post.call_args
-        assert "test-topic" in call_args[0][0]
-        headers = call_args[1]["headers"]
-        assert headers["Title"] == "⚠️ Health-Check-Digest"
-        assert headers["Priority"] == "high"
-        assert headers["Tags"] == "warning"
+        # POST geht zu NTFY_URL ohne /{topic}-Suffix
+        assert call_args[0][0] == dg.NTFY_URL
+        # JSON-Payload hat alle Felder
+        payload = call_args[1]["json"]
+        assert payload["topic"] == "test-topic"
+        assert payload["title"] == "⚠️ Health-Check-Digest"
+        assert payload["message"] == "body"
+        assert payload["priority"] == "high"
+        assert payload["tags"] == ["warning"]
 
 
 # === 5. YAML-Workflow-Validität ============================================

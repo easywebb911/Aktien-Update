@@ -2853,6 +2853,18 @@ intakt). GitHub markiert den Run als failed → Email-Notification an
 den User. Vermeidet Silent-Fails wie am 15.05.2026 (ntfy-Send
 gescheitert, Workflow grün, kein Push, kein Hinweis).
 
+**Unicode-Encoding-Fix (16.05.2026, Punkt D):** Wahre Ursache des
+15./16.05.-Silent-Fails war ein ``UnicodeEncodeError`` im requests-
+Stack: Title-Strings wie ``⚠️ Health-Check-Digest`` /
+``✅ Health-Check OK`` / ``📭 Health-Check ohne Daten`` enthalten
+Emojis. HTTP-Header sind per RFC 7230 latin-1-only — Emojis im
+``Title``-Header werfen Exception, ``_ntfy_send`` catched generic
+``Exception`` → returnt ``False`` ohne Aufklärung. Fix: Wechsel auf
+**ntfy JSON-API** (``POST https://ntfy.sh/`` mit ``{topic, title,
+message, priority, tags}`` im JSON-Body). JSON ist immer UTF-8,
+kein Header-Encoding. ``tags``-String wird zu Array gesplittet
+(``"warning,rotating_light"`` → ``["warning", "rotating_light"]``).
+
 **Komponenten:**
 
 | Datei | Zweck |
