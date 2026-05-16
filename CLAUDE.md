@@ -1283,6 +1283,63 @@ silent — passiv, kein User-Action, kein Modal-Spawn beim Page-Load.
 
 ---
 
+## RVOL-Definitionen (zwei parallele Formeln, bewusst)
+
+Es existieren zwei RVOL-Berechnungen im Codebase, die unterschiedliche
+Fragen beantworten. Eine Vereinheitlichung würde Information vernichten
+(Empirik 16.05.2026: 20d/4d-Faktor schwankt zwischen 0.29 und 1.56 je
+nach Ticker-Profil — kein linearer Zusammenhang).
+
+| Größe | Ort | Formel | Frage |
+|---|---|---|---|
+| **`rvol_4d`** (ki_agent) | `ki_agent.py:fetch_yfinance` | `today_vol / mean(letzte 4 Vortage)` | „Hat sich Volumen in den letzten Tagen plötzlich verändert?" — kurzfristiger Trend-Bruch |
+| **`rel_volume`** (generate_report, = 20d-Basis) | `generate_report.py:_hist_stats` | `today_vol / mean(letzte 20 Vortage)` | „Ist Volumen heute über üblicher Langzeit-Baseline?" — absolute Anomalie |
+
+### Konsumenten
+
+| Pfad | Liest | Warum |
+|---|---|---|
+| KI-Agent Score-Komponenten (`TRIGGER_RVOL_2X/4X`, `RVOL_HIGH/EXTREME_THRESHOLD`, `RVOL_VELOCITY_*`, `COMBO_RVOL_MIN`) | `rvol_4d` | Schwellen sind seit Monaten auf 4d-Basis kalibriert; Push-Volumen-stabil |
+| KI-Agent Anomaly-Trigger (`ANOMALY_RVOL_TODAY/VS_YESTERDAY`, `ANOMALY_GAP_RVOL`) | `rvol_4d` | Erkennt kurzfristige Trend-Brüche |
+| Daily-Run `score()` / `_compute_sub_scores()` Timing-Komponente | `rel_volume` (20d) | Setup-Score misst Baseline-Anomalie |
+| Daily-Run `_earliness_pts_v2` Late-Runner-Penalty | `rel_volume` (20d) | „über 5× Langzeit-Schnitt" ist die belastbare Definition |
+| Backtest-History `rvol` | `rel_volume` (20d) | Historisch konsistent mit Setup-Score |
+
+### agent_signals.json-Schema (seit 16.05.2026)
+
+```json
+{
+  "signals": {
+    "TICKER": {
+      "rvol_4d":  2.3,       // Trigger-Basis (war früher: "rvol")
+      "rvol_20d": 1.8,       // additiv, für Empirik/Vergleich (kann None sein)
+      ...
+    }
+  }
+}
+```
+
+`rvol_4d` ersetzt den früheren Key `rvol`. Frontend-Reader (drei Stellen
+in `generate_report.py`: Insights-Chip, Statuszeile, Drawer-RVOL-Zeile)
+lesen bevorzugt `rvol_4d` mit Fallback auf `rvol` — backward-kompatibel
+für genau einen ki_agent-Tick nach dem Cutover. `rvol_20d` ist
+**rein logging**, kein Trigger-Pfad.
+
+### Pflege
+
+- Anomaly-Schwellen-Recalibration bei 4d→20d-Wechsel würde **systematisch
+  pro-Ticker driften** (Empirik n=10: Min 0.29×, Max 1.56×) — ein
+  pauschaler Multiplikator ist nicht möglich. Falls künftig
+  Vereinheitlichung gewünscht: 14 d empirische Datensammlung über
+  `rvol_20d`-Logging, dann ticker-spezifische Recalibration.
+- Score-Inflation-Empirik (PR-α/β/γ-Pipeline, 16.05.2026) adressiert
+  ausschließlich **20d-RVOL-Drift im premarket-Run** — nicht 4d-RVOL
+  in ki_agent.
+- Bei Schema-Erweiterung am `signal`-Dict in `_process_ticker`-Output:
+  CLAUDE.md-Schema-Block oben synchron halten.
+
+---
+
 ## Anomalie-Push-System
 
 Der KI-Agent feuert ntfy-Pushes **nicht mehr per Monster≥70-Schwelle**,

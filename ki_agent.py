@@ -426,20 +426,33 @@ def update_backtest_returns() -> None:
 def fetch_yfinance(tickers: list[str]) -> dict[str, dict]:
     """Batch-Download für alle Ticker. Gibt Dict ticker→Daten zurück.
 
-    Schritt 1: 5-Tage-Tagesbalken für Avg-Volumen, letzten regulären Close
-               und Intraday-Spanne.
+    Schritt 1: 1-Monats-Tagesbalken (~21 Trading-Tage) für zwei parallele
+               RVOL-Berechnungen:
+                 - rvol_4d  = today_vol / Mittel(4 Vortage)
+                   misst kurzfristigen Trend-Bruch; alle Anomaly-Schwellen
+                   in ki_agent (TRIGGER_RVOL_*, RVOL_HIGH/EXTREME, ANOMALY_RVOL_*,
+                   COMBO_RVOL_MIN) sind hierauf kalibriert.
+                 - rvol_20d = today_vol / Mittel(~20 Vortage)
+                   misst Langzeit-Baseline-Anomalie; additiv geloggt für
+                   Vergleich mit generate_report.py:_hist_stats (gleiche
+                   Definition) und für Score-Inflation-Empirik (PR-α/β/γ).
+               Plus letzter regulärer Close und Intraday-Spanne.
     Schritt 2 (wenn USE_PREPOST_DATA): 1-Minuten-Bars mit prepost=True für
                aktuellen Kurs auch in Pre-Market / After-Hours.
                chg_pct wird gegen den letzten regulären Close berechnet.
+
+    Hinweis: Beide RVOL-Größen sind bewusst beibehalten. Vereinheitlichung
+    auf eine einzige Formel würde Information vernichten (siehe
+    CLAUDE.md-Sektion „RVOL-Definitionen", 16.05.2026).
     """
     if not tickers:
         return {}
     results: dict[str, dict] = {}
 
-    # ── Schritt 1: Tagesbalken (reguläre Session, 5 Tage) ───────────────────
+    # ── Schritt 1: Tagesbalken (reguläre Session, 1 Monat ≈ 21 Tage) ───────
     try:
         hist  = yf.download(
-            tickers, period="5d", auto_adjust=True,
+            tickers, period="1mo", auto_adjust=True,
             threads=True, progress=False,
             group_by="ticker",
         )
@@ -450,9 +463,18 @@ def fetch_yfinance(tickers: list[str]) -> dict[str, dict]:
                 if df is None or df.empty or len(df) < 2:
                     continue
                 df = df.dropna(subset=["Close", "Volume"])
-                avg_vol        = float(df["Volume"].iloc[:-1].mean())
                 cur_vol        = float(df["Volume"].iloc[-1])
-                rvol           = round(cur_vol / avg_vol, 2) if avg_vol > 0 else 0.0
+                prior_vols     = df["Volume"].iloc[:-1]
+                # 4d-Mittel (Anomaly-Trigger-Basis, kalibriert)
+                last4          = prior_vols.iloc[-4:] if len(prior_vols) >= 4 else prior_vols
+                avg_vol_4d     = float(last4.mean()) if not last4.empty else 0.0
+                rvol_4d        = round(cur_vol / avg_vol_4d, 2) if avg_vol_4d > 0 else 0.0
+                # 20d-Mittel (additiv, ≥15 prior days für Aussagekraft)
+                if len(prior_vols) >= 15:
+                    avg_vol_20d = float(prior_vols.mean())
+                    rvol_20d    = round(cur_vol / avg_vol_20d, 2) if avg_vol_20d > 0 else None
+                else:
+                    rvol_20d    = None
                 last_reg_close = float(df["Close"].iloc[-1])
                 prev_close     = float(df["Close"].iloc[-2])
                 high_          = float(df["High"].iloc[-1])
@@ -467,7 +489,8 @@ def fetch_yfinance(tickers: list[str]) -> dict[str, dict]:
                     "price":          round(last_reg_close, 2),
                     "last_reg_close": round(last_reg_close, 2),
                     "chg_pct":        chg_pct,
-                    "rvol":           rvol,
+                    "rvol_4d":        rvol_4d,
+                    "rvol_20d":       rvol_20d,
                     "intraday":       intraday,
                 }
             except Exception as exc:
@@ -505,7 +528,8 @@ def fetch_yfinance(tickers: list[str]) -> dict[str, dict]:
                         "price":          round(current_price, 2),
                         "last_reg_close": round(current_price, 2),
                         "chg_pct":        chg_pct,
-                        "rvol":           0.0,
+                        "rvol_4d":        0.0,
+                        "rvol_20d":       None,
                         "intraday":       0.0,
                     }
                 log.debug("fast_info %s: last_price=%.2f chg=%.1f%%",
@@ -527,7 +551,8 @@ def fetch_yfinance(tickers: list[str]) -> dict[str, dict]:
                     "price":          0.0,
                     "last_reg_close": 0.0,
                     "chg_pct":        round(reg_chg, 2) if reg_chg is not None else 0.0,
-                    "rvol":           0.0,
+                    "rvol_4d":        0.0,
+                    "rvol_20d":       None,
                     "intraday":       0.0,
                 }
             elif reg_chg is not None and not results[t].get("chg_pct"):
@@ -1244,7 +1269,7 @@ def compute_signal(
     has_form4: bool = False,
     form4_title: str = "",
     stocktwits: dict | None = None,
-    prev_rvol: float = 0.0,
+    prev_rvol_4d: float = 0.0,
     uoa_score: int = 0,
     uoa_drivers: list[str] | None = None,
 ) -> tuple[int, list[str], int]:
@@ -1268,9 +1293,10 @@ def compute_signal(
     sig_news    = False  # 5. News / SEC 8-K
     sig_insider = False  # 6. Insider / Termine (SEC Form4, Earnings, FDA, FINRA-SSR)
 
-    chg  = yf_data.get("chg_pct", 0.0)
-    rvol = yf_data.get("rvol", 0.0)
-    intr = yf_data.get("intraday", 0.0)
+    chg     = yf_data.get("chg_pct", 0.0)
+    # 4-Tage-RVOL als Trigger-Basis (Schwellen seit langem hierauf kalibriert)
+    rvol_4d = yf_data.get("rvol_4d", 0.0)
+    intr    = yf_data.get("intraday", 0.0)
 
     if chg >= TRIGGER_PRICE_UP_7:
         kurs_pts = SCORE_PRICE_UP_7
@@ -1283,31 +1309,31 @@ def compute_signal(
         drivers.append(f"Kurs +{chg:.1f}%")
         sig_kurs = True
 
-    if rvol >= TRIGGER_RVOL_4X:
+    if rvol_4d >= TRIGGER_RVOL_4X:
         vol_pts = SCORE_RVOL_4X
         score += vol_pts
-        drivers.append(f"Volumen {rvol:.1f}×")
+        drivers.append(f"Volumen {rvol_4d:.1f}×")
         sig_vol = True
-    elif rvol >= TRIGGER_RVOL_2X:
+    elif rvol_4d >= TRIGGER_RVOL_2X:
         vol_pts = SCORE_RVOL_2X
         score += vol_pts
-        drivers.append(f"Volumen {rvol:.1f}×")
+        drivers.append(f"Volumen {rvol_4d:.1f}×")
         sig_vol = True
 
     # RVOL High-Alert: extra Bonus bei extremem Volumen (zusätzlich zu den
     # bestehenden 2×/4×-Punkten). 5× hat Vorrang vor 3× — kein Doppelbonus.
-    if rvol >= RVOL_EXTREME_THRESHOLD:
+    if rvol_4d >= RVOL_EXTREME_THRESHOLD:
         score += RVOL_EXTREME_BONUS
         vol_pts += RVOL_EXTREME_BONUS
-        drivers.append(f"🚀 Massives Volumen {rvol:.1f}×+")
-        print(f"{ticker} RVOL-Extreme +{RVOL_EXTREME_BONUS} Pkt ({rvol:.1f}×)",
+        drivers.append(f"🚀 Massives Volumen {rvol_4d:.1f}×+")
+        print(f"{ticker} RVOL-Extreme +{RVOL_EXTREME_BONUS} Pkt ({rvol_4d:.1f}×)",
               flush=True)
         sig_vol = True
-    elif rvol >= RVOL_HIGH_THRESHOLD:
+    elif rvol_4d >= RVOL_HIGH_THRESHOLD:
         score += RVOL_HIGH_BONUS
         vol_pts += RVOL_HIGH_BONUS
-        drivers.append(f"⚡ Extremes Volumen {rvol:.1f}×+")
-        print(f"{ticker} RVOL-High +{RVOL_HIGH_BONUS} Pkt ({rvol:.1f}×)",
+        drivers.append(f"⚡ Extremes Volumen {rvol_4d:.1f}×+")
+        print(f"{ticker} RVOL-High +{RVOL_HIGH_BONUS} Pkt ({rvol_4d:.1f}×)",
               flush=True)
         sig_vol = True
 
@@ -1316,13 +1342,13 @@ def compute_signal(
     # signalisiert beschleunigtes Trade-Volumen → klassisches Squeeze-
     # Vorläufer-Pattern. Nur ausgewertet wenn der aktuelle RVOL absolut
     # bereits relevant ist (≥ RVOL_VELOCITY_MIN).
-    if (rvol >= RVOL_VELOCITY_MIN and prev_rvol > 0
-            and rvol / prev_rvol >= RVOL_VELOCITY_FACTOR):
+    if (rvol_4d >= RVOL_VELOCITY_MIN and prev_rvol_4d > 0
+            and rvol_4d / prev_rvol_4d >= RVOL_VELOCITY_FACTOR):
         score += RVOL_VELOCITY_BONUS
         vol_pts += RVOL_VELOCITY_BONUS
-        drivers.append(f"📈 RVOL-Velocity: {prev_rvol:.1f}× → {rvol:.1f}×")
+        drivers.append(f"📈 RVOL-Velocity: {prev_rvol_4d:.1f}× → {rvol_4d:.1f}×")
         print(f"{ticker} RVOL-Velocity +{RVOL_VELOCITY_BONUS} Pkt "
-              f"({prev_rvol:.1f}× → {rvol:.1f}×, ×{rvol/prev_rvol:.2f})",
+              f"({prev_rvol_4d:.1f}× → {rvol_4d:.1f}×, ×{rvol_4d/prev_rvol_4d:.2f})",
               flush=True)
         sig_vol = True
 
@@ -1498,7 +1524,7 @@ def compute_signal(
     # ── Perfect-Storm Multiplikator: gestaffelter Score-Boost wenn mehrere
     # Trigger gleichzeitig aktiv sind (RVOL/Kurs/News/Earnings) ──────────────
     active_triggers = sum([
-        rvol >= COMBO_RVOL_MIN,
+        rvol_4d >= COMBO_RVOL_MIN,
         abs(chg) >= COMBO_CHG_MIN,
         news_pts >= COMBO_NEWS_MIN,
         earnings_days is not None and earnings_days <= 7,
@@ -1522,7 +1548,7 @@ def compute_signal(
 
     total = min(int(round(score)), 100)
     print(
-        f"{ticker}: Kurs={chg:.1f}% ({kurs_pts}Pkt), RVOL={rvol:.1f}× ({vol_pts}Pkt), "
+        f"{ticker}: Kurs={chg:.1f}% ({kurs_pts}Pkt), RVOL={rvol_4d:.1f}× ({vol_pts}Pkt), "
         f"News={news_pts}Pkt, Earnings={earn_pts}Pkt, OpenInsider={insider_pts}Pkt, "
         f"FINRA_SSR={ssr_pts}Pkt, SEC={sec_pts}Pkt, StockTwits={st_pts}Pkt, "
         f"UOA={uoa_score}Pkt = {total}Pkt",
@@ -1563,9 +1589,9 @@ def send_alert(
     prefix    = "⚡⚡" if score >= ALERT_THRESHOLD_STRONG else "⚡"
     subject   = f"{prefix} Squeeze-Alert — {ticker} — Score {score}/100 — {uhrzeit}"
 
-    chg   = yf_data.get("chg_pct", 0.0)
-    rvol  = yf_data.get("rvol", 0.0)
-    price = yf_data.get("price", 0.0)
+    chg     = yf_data.get("chg_pct", 0.0)
+    rvol_4d = yf_data.get("rvol_4d", 0.0)
+    price   = yf_data.get("price", 0.0)
     sign  = "+" if chg >= 0 else ""
     top_headline = news[0] if news else "—"
     driver_str   = " + ".join(drivers) if drivers else "—"
@@ -1600,7 +1626,7 @@ def send_alert(
         f"{conf_line}"
         f"Treiber:          {driver_str}\n\n"
         f"Kurs:             ${price:.2f}  ({sign}{chg:.1f}% heute)\n"
-        f"Rel. Volumen:     {rvol:.1f}×\n"
+        f"Rel. Volumen:     {rvol_4d:.1f}×\n"
         f"Reddit:           {rc} Erwähnungen | Sentiment {sentiment:+.2f}\n"
         f"Neueste Meldung:  {top_headline}\n\n"
         f"→ Website: {PWA_URL}\n\n"
@@ -2188,23 +2214,23 @@ def detect_anomalies(ticker: str, signal: dict, prev_signal: dict | None,
     setup_str = (f"Setup {setup_today:.0f}"
                  if isinstance(setup_today, (int, float)) else "Setup —")
 
-    # a) RVOL-Explosion
+    # a) RVOL-Explosion (4d-Basis — Anomaly-Schwellen sind hierauf kalibriert)
     try:
-        rvol_today = float(signal.get("rvol") or 0.0)
+        rvol_today_4d = float(signal.get("rvol_4d") or 0.0)
     except (TypeError, ValueError):
-        rvol_today = 0.0
+        rvol_today_4d = 0.0
     try:
-        rvol_prev = float((prev_signal or {}).get("rvol") or 0.0)
+        rvol_prev_4d = float((prev_signal or {}).get("rvol_4d") or 0.0)
     except (TypeError, ValueError):
-        rvol_prev = 0.0
-    if (rvol_today >= ANOMALY_RVOL_TODAY
-            and rvol_prev > 0
-            and rvol_today / rvol_prev >= ANOMALY_RVOL_VS_YESTERDAY):
+        rvol_prev_4d = 0.0
+    if (rvol_today_4d >= ANOMALY_RVOL_TODAY
+            and rvol_prev_4d > 0
+            and rvol_today_4d / rvol_prev_4d >= ANOMALY_RVOL_VS_YESTERDAY):
         out.append({
             "trigger":  "rvol_explosion",
             "severity": "medium",
-            "message":  (f"{ticker} ⚡ RVOL {rvol_today:.1f}× "
-                         f"(gestern {rvol_prev:.1f}×) | {setup_str}"),
+            "message":  (f"{ticker} ⚡ RVOL {rvol_today_4d:.1f}× "
+                         f"(gestern {rvol_prev_4d:.1f}×) | {setup_str}"),
         })
 
     # b) UOA-Extreme (ATM Vol/OI)
@@ -2248,12 +2274,12 @@ def detect_anomalies(ticker: str, signal: dict, prev_signal: dict | None,
     if (isinstance(gap_pct, (int, float))
             and gap_pct >= ANOMALY_GAP_PCT
             and gap_state == "strong_hold"
-            and rvol_today >= ANOMALY_GAP_RVOL):
+            and rvol_today_4d >= ANOMALY_GAP_RVOL):
         out.append({
             "trigger":  "gap_combo",
             "severity": "medium",
             "message":  (f"{ticker} 💥 Gap +{gap_pct:.1f}% Strong Hold + "
-                         f"RVOL {rvol_today:.1f}× | {setup_str}"),
+                         f"RVOL {rvol_today_4d:.1f}× | {setup_str}"),
         })
 
     # e) Perfect Storm (KI-Combo-Multiplikator)
@@ -2665,7 +2691,7 @@ def _process_ticker(ticker: str, shared: dict) -> dict:
         insider=insider, finra_ssr_ratio=finra_ssr_ratio,
         has_form4=has_form4, form4_title=form4_title,
         stocktwits=stocktwits_data,
-        prev_rvol=float(old_sigs.get(ticker, {}).get("rvol", 0) or 0),
+        prev_rvol_4d=float(old_sigs.get(ticker, {}).get("rvol_4d", 0) or 0),
         uoa_score=uoa_score,
         uoa_drivers=uoa_drivers,
     )
@@ -2705,7 +2731,10 @@ def _process_ticker(ticker: str, shared: dict) -> dict:
         "drivers":        " + ".join(drivers_with_event) if drivers_with_event else "",
         "price":          yfd.get("price", 0.0),
         "chg_pct":        yfd.get("chg_pct", 0.0),
-        "rvol":           yfd.get("rvol", 0.0),
+        # RVOL-Disambiguation (16.05.2026): rvol_4d ist die Trigger-Basis,
+        # rvol_20d ist additiv für Vergleich/Empirik (siehe CLAUDE.md).
+        "rvol_4d":        yfd.get("rvol_4d", 0.0),
+        "rvol_20d":       yfd.get("rvol_20d"),
         "earnings":       (f"in {earnings_days} Tagen ({earnings_date_str})"
                            if earnings_days is not None else None),
         "fda_date":       (f"PDUFA {fda_date_str}"
@@ -2769,8 +2798,8 @@ def _test_process_ticker_isolation() -> None:
     from unittest.mock import patch
 
     shared = {
-        "yf_batch":       {"AAA": {"price": 10.0, "chg_pct": 5.0, "rvol": 2.0},
-                            "BBB": {"price": 20.0, "chg_pct": -3.0, "rvol": 1.5}},
+        "yf_batch":       {"AAA": {"price": 10.0, "chg_pct": 5.0, "rvol_4d": 2.0, "rvol_20d": 2.3},
+                            "BBB": {"price": 20.0, "chg_pct": -3.0, "rvol_4d": 1.5, "rvol_20d": 1.6}},
         "fda_calendar":   {},
         "finra_ssr_data": {"AAA": 0.4, "BBB": 0.6},
         "today_et":       datetime.now(EASTERN).date(),
