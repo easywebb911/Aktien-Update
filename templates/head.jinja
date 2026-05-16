@@ -374,6 +374,15 @@ abbr[title]{text-decoration:underline dotted var(--txt-dim);
   border-radius:8px;padding:10px 12px;margin-top:8px}
 .tj-trade-win{border-left:3px solid #22c55e}
 .tj-trade-loss{border-left:3px solid #ef4444}
+/* Knaller-Trade-Label (Phase 2, 16.05.2026): subtile Akzentuierung
+   ueber die bestehenden win/loss-Border-Farben hinaus. Hit = dickerer
+   gruener Border, Crash = dickerer roter Border. Icon dezent klein. */
+.tj-trade-knaller-hit{border-left-width:5px;
+  box-shadow:inset 1px 0 0 rgba(34,197,94,.25)}
+.tj-trade-knaller-crash{border-left-width:5px;
+  box-shadow:inset 1px 0 0 rgba(239,68,68,.25)}
+.tj-knaller-icon{display:inline-block;font-size:.85rem;line-height:1;
+  margin-left:4px;cursor:help;vertical-align:baseline}
 .tj-trade-head{display:flex;flex-wrap:wrap;align-items:baseline;
   gap:8px;justify-content:space-between}
 .tj-trade-ticker{font-size:.95rem;font-weight:800;color:var(--txt);
