@@ -97,3 +97,4 @@
 {"run_ts": "2026-05-17T21:24:47Z", "run_phase": "postclose", "schema_v": 1, "state_fails": [{"id": "S4", "severity": "warn", "detail": "backtest_history wuchs in postclose-Run NICHT"}], "provider_fails": []}
 {"run_ts": "2026-05-17T21:26:15Z", "run_phase": "ki_agent_tick", "schema_v": 1, "state_fails": [], "provider_fails": []}
 {"run_ts": "2026-05-17T22:09:37Z", "run_phase": "ki_agent_tick", "schema_v": 1, "state_fails": [], "provider_fails": []}
+{"run_ts": "2026-05-17T23:12:27Z", "run_phase": "ki_agent_tick", "schema_v": 1, "state_fails": [], "provider_fails": []}

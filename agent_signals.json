@@ -1,10 +1,10 @@
 {
-  "updated": "2026-05-18T00:09:34.076334+02:00",
+  "updated": "2026-05-18T01:12:23.446168+02:00",
   "run_info": {
     "tickers_checked": 14,
     "signals_active": 4,
     "alerts_sent": 0,
-    "elapsed_s": 14.4,
+    "elapsed_s": 18.0,
     "market_phase": "Geschlossen"
   },
   "signals": {
@@ -239,7 +239,7 @@
     "SKYQ": {
       "score": 88,
       "confidence": 70,
-      "drivers": "Volumen 7.7× + 🚀 Massives Volumen 7.7×+ + Spanne 51.2% + News: partnership, short interest",
+      "drivers": "Volumen 7.7× + 🚀 Massives Volumen 7.7×+ + Spanne 51.2% + News: short interest, partnership",
       "price": 3.07,
       "chg_pct": -0.0,
       "rvol_4d": 7.69,
