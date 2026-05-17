@@ -10373,11 +10373,11 @@ function _fmtGerman(d) {{
       else if (score >= {KI_DOT_WEAK})     dotClass = 'weak';     // rot, langsam (2s)
       else                                  dotClass = 'none';     // grau, kein Pulsieren
       dot.className = 'agent-dot ' + dotClass;
-
-      // Tooltip-Bauen entfällt — der farbige Punkt selbst signalisiert
-      // den Score-Bereich (grün/orange/rot/grau, Pulsationsgeschwindigkeit
-      // per CSS); die zugehörigen Detail-Werte stehen sichtbar in der
-      // Karte (Sub-Scores, Drivers-Block, KI-Signal-Block).
+      // Tooltip klärt die Dot-Inkonsistenz: NEBEN Ticker = KI-Status
+      // (immer da, stündlich aktualisiert). Der grüne Punkt ÜBER der
+      // Setup-Score-Zahl ist ein anderer Indikator (Live-Quote-Polling,
+      // nur bei aufgeklappter Karte sichtbar via Lazy-Injection).
+      dot.title = 'KI-Status (stündlich) — Live-Quote-Status erscheint über Setup-Score beim Aufklappen';
 
       tickerSpan.parentNode.insertBefore(dot, tickerSpan.nextSibling);
 

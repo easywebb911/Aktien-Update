@@ -2659,6 +2659,16 @@ Wrapper-Spezifität via `.sb-row[data-sb="..."]`-Modifier-Selektoren).
 Blöcken verwendet, der Scope macht Layout-Drift bei späteren Re-Uses
 sicher.
 
+**Lesson „CSS-Reste bei Feature-Migration"** (17.05.2026): wenn
+Funktionalität migriert oder entfernt wird, **immer auch das
+zugehörige CSS prüfen**. Beispiel: Setup-Score-Quick-Sort-Click
+wurde irgendwann ins Hamburger-Menü migriert; das CSS-Trio
+`.sb-row[data-sb="setup"] .sb-num{cursor:pointer; :hover; :focus-visible}`
+blieb aber zurück und suggerierte fälschlich Click-Interaktivität.
+Bei jeder Migrations-PR (Feature wandert woandershin oder wird
+entfernt): grep nach `cursor:pointer`-/`:hover`-/`:focus-visible`-
+Regeln auf den betroffenen Selektoren und mit-aufräumen.
+
 ### Methodik-Listen-Layout (CSS-Grid, 16.05.2026)
 
 `.score-block-list li` ist seit Layout-Restrukturierung **CSS-Grid**
