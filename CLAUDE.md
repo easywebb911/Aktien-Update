@@ -45,6 +45,40 @@ adressieren und neu pushen.
 
 Im Zweifel: lieber Easy-Merge anfragen als Auto-Merge.
 
+### PR-Status-Meldung nach Push
+
+Das Repo hat **keine GitHub-Actions-CI-Workflows für PR-Validation**.
+PR-Push triggert keinen Workflow → es kommen **keine `check_run`-
+Webhook-Events**, an denen Claude warten könnte. „Warte auf Webhook-
+Events" als Standard-Abschluss ist daher Lärm und unnötig.
+
+**Regel nach PR-Push** — direkt eine Status-Meldung absetzen je nach
+PR-Klassifikation:
+
+| Klassifikation | Lokale Validierung | Standard-Abschluss-Meldung |
+|---|---|---|
+| **Auto-Merge erlaubt** | Mock-Tests grün + AST-Compile grün + Linter grün | Direkt mergen, „PR #N gemerged, branch gelöscht" |
+| **Manuell-Merge-Pflicht** (Score-Logik, neue Schemas, neue Workflows) | dito | „PR #N **ready for merge** — wartet auf Easy-Freigabe (Klassifikation: \<grund\>)" |
+| **Lokale Tests rot** | irgendein Check fehlgeschlagen | „PR #N **gepusht aber blockiert** — \<konkrete Fehlermeldung\>" |
+
+**Was Claude NICHT mehr melden soll:**
+
+- „Warte auf Webhook-Events" → wird nichts triggern.
+- „CI läuft" → es gibt keine CI-Workflows.
+- Passives Warten auf `check_run`-Events nach Push → kein automatischer
+  Output kommt; Easy müsste explizit fragen.
+
+**Ausnahme — `subscribe_pr_activity` aktiv:** Wenn Easy explizit „watch
+PR #N" anweist und `subscribe_pr_activity` aufgerufen wurde, dann ist
+das Warten auf Review-Comment-Webhooks legitim — diese kommen tatsächlich
+(GitHub liefert Review-/Comment-Events unabhängig von CI). Trotzdem:
+**erst** die Ready-for-Merge-Meldung absetzen, **dann** auf Easy/Review-
+Comments warten.
+
+**Begründung:** Status-Meldung statt Stille macht den PR-Fluss kürzer
+— Easy weiß sofort ob Aktion (Merge-Freigabe) erforderlich ist oder
+nicht. Spart einen Ping-Pong-Cycle pro PR.
+
 ## generate_report.py — Template-Sicherheitsregel
 
 **Die gesamte HTML/JS-Sektion in `generate_report.py` ist ein Python-f-String.**
