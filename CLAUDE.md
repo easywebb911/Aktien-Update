@@ -700,6 +700,34 @@ Strukturen (`SECTOR_ETF_MAP`, `SECTOR_ETF_DEFAULT`, `SECTOR_ETFS_ALL`,
 16.05.2026 vollständig entfernt. Detail-Row wird ausschließlich durch
 `_rs_spy_row_html()` gerendert.
 
+### Detail-Zeile (vereint seit 17.05.2026)
+
+`_rs_spy_row_html(stock)` rendert eine einzelne Zeile, die drei
+Kontexte zusammenfasst:
+
+```
+RS vs. SPY (20T)    -11.3% (Aktie -7.3%, -3 Pkt)
+```
+
+Aufbau:
+- Hauptwert: `rs_pct` aus `stock["rel_strength_20d"]` mit Vorzeichen,
+  rot/grün/dim je nach Punkte-Bilanz
+- Klammer-Kontext 1 (optional): `Aktie ±Y.Y%` aus
+  `stock["perf_20d"]` — Standalone-20T-Performance der Aktie für
+  Vergleich-Kontext zum Markt-Benchmark
+- Klammer-Kontext 2: Sub-Score-Punkte-Beitrag (`+N Pkt` / `0 Pkt`),
+  dimmed in `.85em`
+
+Vor 17.05.2026 lebten zwei separate `<tr>`-Zeilen nebeneinander
+(`Rel. Stärke (20T)` für Standalone-Kontext + `RS vs. SPY (20T)` für
+Punkte). Beide lasen denselben `rel_strength_20d`-Datenpunkt; die
+Doppel-Anzeige war Restzeile aus PR-Welle 30.04.2026 (RS-vs-Sektor-
+Ablösung). Zusammengeführt in PR 17.05.2026.
+
+Bei fehlendem `perf_20d` wird die Aktie-Klammer weggelassen — Edge-
+Case-tolerant. Bei `rel_strength_20d=None` returnt der Helper leeren
+String (gesamte Zeile unsichtbar).
+
 ---
 
 ## Position-Tracking (Exit-Signale)

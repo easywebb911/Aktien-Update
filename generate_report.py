@@ -2617,7 +2617,13 @@ def _gap_hold_row_html(stock: dict) -> str:
 
 
 def _rs_spy_row_html(stock: dict) -> str:
-    """Detail-Zeile „RS vs. SPY: ±X.X% (+N Pkt)"."""
+    """Detail-Zeile „RS vs. SPY: ±X.X% (Aktie ±Y.Y%, +N Pkt)".
+
+    Vereint Prozent-Wert, Standalone-Aktien-Performance (perf_20d als
+    Kontext) und Sub-Score-Punkte-Beitrag in einer Zeile — ersetzt
+    seit 17.05.2026 die fruehere Doppel-Anzeige aus separater
+    „Rel. Staerke (20T) vs. S&P 500"-Zeile + „RS vs. SPY (20T)"-Zeile.
+    """
     rs_pct, pts = _rs_spy_pts(stock)
     if rs_pct is None:
         return ""
@@ -2628,10 +2634,15 @@ def _rs_spy_row_html(stock: dict) -> str:
     else:
         col = "var(--txt-dim)"
     pts_str = f"{int(pts):+d} Pkt" if pts != 0 else "0 Pkt"
+    _p20 = stock.get("perf_20d")
+    if _p20 is not None:
+        ctx_str = f"Aktie {_p20:+.1f}%, {pts_str}"
+    else:
+        ctx_str = pts_str
     return (
         f'<tr><td>RS vs. SPY (20T)</td>'
         f'<td><span style="color:{col}">{rs_pct:+.1f}% '
-        f'<span style="color:var(--txt-dim);font-size:.85em">({pts_str})</span>'
+        f'<span style="color:var(--txt-dim);font-size:.85em">({ctx_str})</span>'
         f'</span></td></tr>'
     )
 
@@ -4658,8 +4669,6 @@ def _card(i: int, s: dict) -> str:
     _ma50  = s.get("ma50")
     _ma200 = s.get("ma200")
     _price = s.get("price", 0)
-    _rs20  = s.get("rel_strength_20d")
-    _p20   = s.get("perf_20d")
     if _rsi is not None:
         if _rsi < 30:
             _rsi_col, _rsi_lbl = "#22c55e", "überverkauft"
@@ -4690,19 +4699,16 @@ def _card(i: int, s: dict) -> str:
         _ma_combined_row = f"<tr><td>MA 200T</td><td>${_ma200:.2f}</td></tr>"
     else:
         _ma_combined_row = ""
-    if _rs20 is not None:
-        _rs_col  = "#22c55e" if _rs20 >= 0 else "#ef4444"
-        _p20_str = f" (Aktie {_p20:+.1f}%)" if _p20 is not None else ""
-        _rs_cell = f'<span style="color:{_rs_col}">{_rs20:+.1f}% vs. S&amp;P 500{_p20_str}</span>'
-        _rs_row  = f"<tr><td>Rel. Stärke (20T)</td><td>{_rs_cell}</td></tr>"
-    else:
-        _rs_row  = ""
-    rs_spy_row    = _rs_spy_row_html(s)        # ersetzt RS-vs-Sektor
+    # RS vs. SPY: zusammengefuehrte Zeile (Prozent + Standalone-Perf +
+    # Punkte-Beitrag) — vereint die fruehere "Rel. Staerke (20T)"-Zeile
+    # mit dem "RS vs. SPY"-Helper. _p20 wird in _rs_spy_row_html aus
+    # stock["perf_20d"] gelesen.
+    rs_spy_row    = _rs_spy_row_html(s)
     gap_hold_row  = _gap_hold_row_html(s)
     earn_surp_row = _earnings_surprise_html(s) # Feature 3
     # Volumen & Momentum (RSI + kombinierte MA + Kurs-vs-MA50 + RS-20T + RS-SPY).
     # Earnings-Surprise wandert in den Katalysatoren-Block.
-    momentum_rows = _rsi_row + _ma_combined_row + _ma50_row2 + _rs_row + rs_spy_row
+    momentum_rows = _rsi_row + _ma_combined_row + _ma50_row2 + rs_spy_row
     float_turnover_row = _float_turnover_row_html(s)
 
     # Options market data rows — Feature 4: <0.5 bullisch, 0.5–1.5 neutral, >1.5 bearisch
@@ -5167,8 +5173,6 @@ def _build_card_ctx(i: int, s: dict) -> dict:
     _rsi   = s.get("rsi14")
     _ma50  = s.get("ma50")
     _ma200 = s.get("ma200")
-    _rs20  = s.get("rel_strength_20d")
-    _p20   = s.get("perf_20d")
     if _rsi is not None:
         if _rsi < 30:
             _rsi_col, _rsi_lbl = "#22c55e", "überverkauft"
@@ -5199,19 +5203,16 @@ def _build_card_ctx(i: int, s: dict) -> dict:
         _ma_combined_row = f"<tr><td>MA 200T</td><td>${_ma200:.2f}</td></tr>"
     else:
         _ma_combined_row = ""
-    if _rs20 is not None:
-        _rs_col  = "#22c55e" if _rs20 >= 0 else "#ef4444"
-        _p20_str = f" (Aktie {_p20:+.1f}%)" if _p20 is not None else ""
-        _rs_cell = f'<span style="color:{_rs_col}">{_rs20:+.1f}% vs. S&amp;P 500{_p20_str}</span>'
-        _rs_row  = f"<tr><td>Rel. Stärke (20T)</td><td>{_rs_cell}</td></tr>"
-    else:
-        _rs_row  = ""
-    _rs_spy_row_    = _rs_spy_row_html(s)          # ersetzt RS-vs-Sektor
+    # RS vs. SPY: zusammengefuehrte Zeile (Prozent + Standalone-Perf +
+    # Punkte-Beitrag) — vereint die fruehere "Rel. Staerke (20T)"-Zeile
+    # mit dem "RS vs. SPY"-Helper. _p20 wird in _rs_spy_row_html aus
+    # stock["perf_20d"] gelesen.
+    _rs_spy_row_    = _rs_spy_row_html(s)
     gap_hold_row    = _gap_hold_row_html(s)
     _earn_surp_row_ = _earnings_surprise_html(s)   # Feature 3
-    # Volumen & Momentum (RSI + kombinierte MA + Kurs-vs-MA50 + RS-20T + RS-SPY).
+    # Volumen & Momentum (RSI + kombinierte MA + Kurs-vs-MA50 + RS-SPY).
     # Earnings-Surprise wandert in den Katalysatoren-Block.
-    momentum_rows = _rsi_row + _ma_combined_row + _ma50_row2 + _rs_row + _rs_spy_row_
+    momentum_rows = _rsi_row + _ma_combined_row + _ma50_row2 + _rs_spy_row_
     float_turnover_row = _float_turnover_row_html(s)
 
     # ── Options rows — Feature 4 (<0.5 bullisch, 0.5–1.5 neutral, >1.5 bearisch) ──
