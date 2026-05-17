@@ -17,7 +17,8 @@ Tests:
   8. Bei negativem chg: cockpit-change-down Klasse
   9. Konfidenz-Wasserzeichen-Klassen werden auf Saeulen + Donut angewendet
  10. CSS in head.jinja enthaelt .card-cockpit + .cockpit-pillar + .cockpit-donut
- 11. CSS hat 28px Kurs + 26px Saeulen-Wert + 50px Donut-Zahl
+ 11. CSS-Typografie: Kurs 26px+weight400 elegant, Saeulen 26px,
+     Donut-Zahl 40px, Change 11px+weight400 (iterativ getunt 18.05.)
  12. Bestehende _score_block_inner_html-Funktion UNVERAENDERT vorhanden
  13. Bestehender _card-Pfad UNVERAENDERT (kein cockpit-Aufruf)
  14. Render mit None-Werten fuer monster/ki -> graceful '—'
@@ -171,15 +172,26 @@ def test_10_css_classes_in_head_jinja() -> None:
 
 
 def test_11_css_font_sizes_match_spec() -> None:
-    # Kurs 28px, Saeulen-Wert 26px, Donut-Zahl 40px.
-    # Donut-Zahl-Sequenz 18.05.2026: 50 -> 42 -> 40 px (proportional
-    # zur Donut-Groesse-Reduzierung 185 -> 160 -> 150).
-    assert "font-size:28px" in HJ_SRC, \
-        "Kurs-font-size 28px fehlt"
+    # Tuning-Sequenz 18.05.2026 nach iPhone-Verify:
+    #   Donut-Zahl: 50 -> 42 -> 40 px (proportional zu Donut-Groesse-
+    #               Reduzierung 185 -> 160 -> 150 px).
+    #   Kurs-Anzeige: 28 -> 26 px + font-weight 600 -> 400 (elegant
+    #               schlank statt fett; Kurs nun in gleicher Groesse
+    #               wie Saeulen-Score-Werte).
+    #   Change: .85rem (~14 px) -> 11 px, font-weight 600 -> 400.
+    # Saeulen-Wert 26 px UNVERAENDERT.
+    m = re.search(r"\.cockpit-price\{[^}]*font-size:26px", HJ_SRC)
+    assert m, "cockpit-price font-size:26px fehlt"
+    m = re.search(r"\.cockpit-price\{[^}]*font-weight:400", HJ_SRC)
+    assert m, "cockpit-price font-weight:400 fehlt (schlanker Look)"
     m = re.search(r"\.cockpit-pillar-value\{[^}]*font-size:26px", HJ_SRC)
     assert m, "cockpit-pillar-value font-size:26px fehlt"
     m = re.search(r"\.cockpit-donut-number\{[^}]*font-size:40px", HJ_SRC)
     assert m, "cockpit-donut-number font-size:40px fehlt"
+    m = re.search(r"\.cockpit-change\{[^}]*font-size:11px", HJ_SRC)
+    assert m, "cockpit-change font-size:11px fehlt"
+    m = re.search(r"\.cockpit-change\{[^}]*font-weight:400", HJ_SRC)
+    assert m, "cockpit-change font-weight:400 fehlt"
 
 
 def test_12_score_block_inner_unchanged() -> None:
