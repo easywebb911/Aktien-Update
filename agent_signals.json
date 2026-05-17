@@ -1,17 +1,17 @@
 {
-  "updated": "2026-05-17T21:23:10.572959+02:00",
+  "updated": "2026-05-17T21:37:38.400346+02:00",
   "run_info": {
     "tickers_checked": 14,
     "signals_active": 4,
     "alerts_sent": 0,
-    "elapsed_s": 11.6,
+    "elapsed_s": 14.6,
     "market_phase": "Geschlossen"
   },
   "signals": {
     "AI": {
-      "score": 18,
+      "score": 26,
       "confidence": 33,
-      "drivers": "Earnings in 10d + UOA Call/Put 3.5×",
+      "drivers": "News-KI 8/30: Negative price action and restructuring suggest weak momentum; no evidence of high short interest, borrow scarcity, or c + Earnings in 10d + UOA Call/Put 3.5×",
       "price": 8.65,
       "chg_pct": -0.0,
       "rvol_4d": 1.01,
@@ -175,9 +175,9 @@
       "uoa_cp_ratio": null
     },
     "PRA": {
-      "score": 45,
+      "score": 61,
       "confidence": 70,
-      "drivers": "Volumen 2.5× + News-KI 5/30: Positive earnings news but neutral/meeting expectations with no catalyst for short squeeze; declining expenses suggest o + FINRA Short-Vol 100%",
+      "drivers": "Volumen 2.5× + News: acquisition + FINRA Short-Vol 100%",
       "price": 24.51,
       "chg_pct": 0.0,
       "rvol_4d": 2.47,
@@ -187,8 +187,8 @@
       "upcoming_event": null,
       "insider_buy": false,
       "stocktwits": null,
-      "combo_mult": 1.0,
-      "active_triggers": 1,
+      "combo_mult": 1.1,
+      "active_triggers": 2,
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": null,
@@ -197,7 +197,7 @@
     "PZZA": {
       "score": 55,
       "confidence": 70,
-      "drivers": "Volumen 1.8× + Spanne 6.3% + News: buyout, acquisition",
+      "drivers": "Volumen 1.8× + Spanne 6.3% + News: buyout, takeover",
       "price": 34.73,
       "chg_pct": -0.0,
       "rvol_4d": 1.78,
@@ -259,7 +259,7 @@
     "SKYQ": {
       "score": 88,
       "confidence": 70,
-      "drivers": "Volumen 7.7× + 🚀 Massives Volumen 7.7×+ + Spanne 51.2% + News: partnership, short interest",
+      "drivers": "Volumen 7.7× + 🚀 Massives Volumen 7.7×+ + Spanne 51.2% + News: short interest, partnership",
       "price": 3.07,
       "chg_pct": -0.0,
       "rvol_4d": 7.69,
