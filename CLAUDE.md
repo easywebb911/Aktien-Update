@@ -2034,6 +2034,7 @@ in `STOCKS_CTX` an den Chat:
 | Feld | Inhalt |
 |---|---|
 | `today_top10[]`     | pro Ticker `setup_today`, `setup_yesterday`, `setup_delta`, `monster_today`, `ki_today`, RVOL, RSI, Earnings-Tage, Sektor, SI-Trend |
+| `watchlist[]` (seit 17.05.2026) | Easy's persönlich beobachtete Tickers **außerhalb** der Top-10 (heute typischerweise AI, AMC, IONQ, RR, CRMD). 17 Felder analog `today_top10` (`setup_today`, `monster_today`, `ki_today`, `price`, `change`, `change_2d`, `change_5d`, `short_float`, `short_ratio`, `rel_volume`, `rsi14`, `atm_iv`, `earnings_days`, `sector`, `si_trend`, `company`, `ticker`). Quelle: `watchlist_cards`-Dict (= `app_data.json["watchlist_cards"]`). Top-10-Mitglieder werden ausgeschlossen — sind via `today_top10` abgedeckt. Datenqualität ist gleich Top-10 dank Conviction-Coverage Phase 1 + KI-Agent-Coverage Phase 2. **LLM-Vertrag:** bei User-Frage nach Watchlist-Ticker → `watchlist`-Daten nutzen, keine generischen Antworten mehr. Watchlist ist NICHT gerankt (User-pinned, nicht Score-sortiert). |
 | `anomalies_today[]` | `{ticker, trigger, detail}` — `score_jump`, `rvol_high`, `earnings_imminent`, `topten_entry`, `topten_exit` |
 | `topten_changes`    | `{new: [...], dropped: [...]}` vs. Vortag |
 | `positions[]`       | `entry_date`, `entry_price`, `current_price`, `pnl_pct`, `in_top10`, `in_watchlist_card`, `setup_today`, `monster_today` |
