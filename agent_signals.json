@@ -1,17 +1,17 @@
 {
-  "updated": "2026-05-17T23:26:12.330879+02:00",
+  "updated": "2026-05-18T00:09:34.076334+02:00",
   "run_info": {
     "tickers_checked": 14,
     "signals_active": 4,
     "alerts_sent": 0,
-    "elapsed_s": 16.7,
+    "elapsed_s": 14.4,
     "market_phase": "Geschlossen"
   },
   "signals": {
     "AI": {
-      "score": 30,
+      "score": 18,
       "confidence": 33,
-      "drivers": "News-KI 12/30: Negative headlines dominated by restructuring, cost-cutting, and stock declines indicate institutional weakness rather t + Earnings in 10d + UOA Call/Put 3.5×",
+      "drivers": "Earnings in 10d + UOA Call/Put 3.5×",
       "price": 8.65,
       "chg_pct": -0.0,
       "rvol_4d": 1.01,
@@ -22,7 +22,7 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 1,
+      "active_triggers": 0,
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 3.5×"
@@ -177,7 +177,7 @@
     "PZZA": {
       "score": 55,
       "confidence": 70,
-      "drivers": "Volumen 1.8× + Spanne 6.3% + News: acquisition, buyout",
+      "drivers": "Volumen 1.8× + Spanne 6.3% + News: takeover, buyout",
       "price": 34.73,
       "chg_pct": -0.0,
       "rvol_4d": 1.78,
