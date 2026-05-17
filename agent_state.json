@@ -30,20 +30,9 @@
     "earnings_immediate_GEMI_14.05.2026": "2026-05-14T23:25:08.201852+02:00",
     "exit_KPTI": "2026-05-15T18:17:09.325572+02:00",
     "anomaly_conviction_high_SNSE": "2026-05-15T19:30:32.046324+02:00",
-    "exit_CRMD": "2026-05-17T12:18:16.852775+02:00"
+    "exit_CRMD": "2026-05-17T17:30:31.960160+02:00"
   },
   "push_history": [
-    {
-      "ts": "2026-05-12T19:09:35.655880+02:00",
-      "ticker": "AMC",
-      "kind": "exit_p2",
-      "severity": "trigger",
-      "trigger": "profit_lock",
-      "body": "🔻 Exit-Signal AMC: profit_lock crit ({'pnl_pct': -0.0967, 'peak_pnl_pct': 0.16, 'drawdown_from_peak': 0.2567, 'score_drop_from_peak': None})",
-      "success": true,
-      "suppressed": false,
-      "suppress_reason": null
-    },
     {
       "ts": "2026-05-12T20:19:24.529672+02:00",
       "ticker": "WEN",
@@ -1220,6 +1209,18 @@
     },
     {
       "ts": "2026-05-17T12:18:16.852746+02:00",
+      "ticker": "CRMD",
+      "kind": "exit_p1",
+      "severity": "default",
+      "trigger": "exit_alert",
+      "body": "CRMD 📉 Exit 65 | -5% | Trailing-Stop −15.5% vom Hoch",
+      "success": true,
+      "suppressed": false,
+      "suppress_reason": null,
+      "conviction_score": null
+    },
+    {
+      "ts": "2026-05-17T17:30:31.960136+02:00",
       "ticker": "CRMD",
       "kind": "exit_p1",
       "severity": "default",
