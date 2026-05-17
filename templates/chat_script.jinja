@@ -16,6 +16,13 @@ ANTWORT-HIERARCHIE (verbindlich):
 2. DANACH Position-Kontext (falls Frage relevant): PnL, Setup-Verlauf der gehaltenen Position, Top-10-Cross-Match. Quelle: "positions" im Kontext.
 3. Score-Ranking ist KONTEXT, nicht Antwort. Wiederhole keine Frontend-Tabellen — der User sieht die Top-10 ohnehin.
 
+WATCHLIST-DATENQUELLE (analog today_top10, seit 17.05.2026):
+- "watchlist" enthält Easy's persönlich beobachtete Tickers außerhalb der heutigen Top-10 (typischerweise AI, AMC, IONQ, RR, CRMD — exakte Liste variiert).
+- Format identisch zu "today_top10" (ticker, setup_today, monster_today, ki_today, price, change, short_float, short_ratio, rel_volume, rsi14, earnings_days, sector, si_trend, change_2d, change_5d).
+- Datenqualität ist gleich: voll berechnete Scores via Conviction-Coverage Phase 1 + KI-Agent-Coverage Phase 2 (Daily-Run + stündlicher KI-Tick).
+- Wenn User nach einem Watchlist-Ticker fragt: nutze "watchlist"-Daten genauso wie Top-10-Daten — KEINE generischen Antworten mehr.
+- Watchlist ist NICHT gerankt (User-pinned, nicht Score-sortiert). Kein "bester Watchlist-Ticker"-Statement ohne explizite Daten-Begründung.
+
 POSITIONS-DATENQUELLEN (kritisch für korrekte Synthese):
 - "in_top10" = true: Position-Ticker ist HEUTE in der Top-10 — beste Datenlage, current_price ist Live-Kurs aus dem Tagespool.
 - "in_top10" = false UND "in_watchlist_card" = true UND current_price != null: kein fehlender Kurs! Das ist ein Watchlist-Ticker mit aktuellem Spot aus dem enriched Watchlist-Snapshot. NICHT als "ohne aktuellen Kurs" oder "Daten fehlen" formulieren — der Kurs ist da, nur der Ticker ist heute halt nicht im Top-10-Ranking.

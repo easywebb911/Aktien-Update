@@ -5813,8 +5813,45 @@ def _build_chat_synthesis_ctx(stocks: list[dict], score_history: dict,
                                   if (src and src.get("monster_score") is not None) else None),
         })
 
+    # Watchlist-Tickers außerhalb der heutigen Top-10 (analog today_top10-
+    # Format, 17 Felder). Easy's persönlich beobachtete Tickers haben
+    # gleiche Datenqualität wie Top-10 (Conviction-Coverage Phase 1 +
+    # KI-Agent-Coverage Phase 2). LLM bekommt sie damit als gleichwertige
+    # Datenquelle — keine generischen Antworten mehr bei Watchlist-Frage.
+    # Quelle: ``watchlist_cards``-Dict (= app_data.json["watchlist_cards"]).
+    # Top-10-Ticker werden ausgeschlossen, sind via today_top10 abgedeckt.
+    watchlist_out: list[dict] = []
+    for wl_ticker, wl_data in (watchlist_cards or {}).items():
+        if wl_ticker in today_set:
+            continue
+        if not isinstance(wl_data, dict):
+            continue
+        _wl_fd = (wl_data.get("finra_data") or {}) if isinstance(wl_data.get("finra_data"), dict) else {}
+        watchlist_out.append({
+            "ticker":          wl_ticker,
+            "company":         wl_data.get("company_name", ""),
+            "setup_today":     (round(_safe_float(wl_data.get("score", 0)), 1)
+                                if wl_data.get("score") is not None else None),
+            "monster_today":   (round(_safe_float(wl_data.get("monster_score", 0)), 1)
+                                if wl_data.get("monster_score") is not None else None),
+            "ki_today":        wl_data.get("ki_signal_score"),
+            "price":           round(_safe_float(wl_data.get("price", 0)), 2),
+            "change":          round(_safe_float(wl_data.get("change", 0)), 2),
+            "change_2d":       wl_data.get("change_2d"),
+            "change_5d":       wl_data.get("change_5d"),
+            "short_float":     round(_safe_float(wl_data.get("short_float", 0)), 1),
+            "short_ratio":     round(_safe_float(wl_data.get("short_ratio", 0)), 1),
+            "rel_volume":      round(_safe_float(wl_data.get("rel_volume", 0)), 2),
+            "rsi14":           wl_data.get("rsi14"),
+            "atm_iv":          wl_data.get("atm_iv"),
+            "earnings_days":   wl_data.get("earnings_days"),
+            "sector":          wl_data.get("sector", ""),
+            "si_trend":        wl_data.get("si_trend") or _wl_fd.get("trend", "no_data"),
+        })
+
     return {
         "today_top10":     today_top10,
+        "watchlist":       watchlist_out,
         "anomalies_today": anomalies,
         "topten_changes":  {"new": new_in_top10, "dropped": dropped_top10},
         "positions":       positions_out,
