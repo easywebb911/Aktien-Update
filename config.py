@@ -67,7 +67,7 @@ LAZY_CARDS_EAGER   = 3        # erste N Karten sofort vollständig rendern
 #     - Cleanup obsoleter .sb-row/.sb-num-CSS-Reste in Karten-Bereich.
 #     - Methodik-Panel-Verwendung (.score-block-list .sb-lbl etc.) bleibt
 #       unveraendert (eigene Konsumenten-Klasse).
-CARD_COCKPIT_ENABLED = False
+CARD_COCKPIT_ENABLED = True
 
 # ── app_data.json (kombinierter PWA-Data-Feed) ──────────────────────────────
 # True: zusätzlich zu score_history.json + agent_signals.json wird eine

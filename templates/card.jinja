@@ -6,23 +6,7 @@
   data-rsi="{{ da_rsi }}" data-iv="{{ da_iv }}" data-earn="{{ da_earn }}"
   data-earn-date="{{ da_earn_date }}" data-float="{{ da_float }}"
   data-cap="{{ da_cap }}" data-sector="{{ sector }}" data-news="{{ da_news }}">
-  <div class="card-top">
-    <div class="card-left">
-      {{ rank_html }}
-      <div class="ticker-block">
-        <div class="ticker-row">
-          <span class="ticker">{{ ticker }}</span>
-          {{ market_tag_html }}
-          {{ sa_badge }}
-          <span class="price-tag">${{ price_str }}</span>
-          <button class="wl-add-btn" data-ticker="{{ ticker }}" onclick="wlToggle(this)" title="Zur Watchlist hinzufügen">＋</button>
-        </div>
-        <span class="company">{{ company }}</span>
-        {{ sector_tag_html }}{{ earnings_tag_html }}{{ squeeze_badge_html }}{{ pd_badges_html }}
-      </div>
-    </div>
-    <div class="score-block sort-setup">{{ score_block_html }}</div>
-  </div>
+  {{ card_header_html }}
   {{ sub_scores_html }}
   {{ sparkline_html }}
   <div class="metrics-row">

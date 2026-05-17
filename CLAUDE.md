@@ -262,8 +262,8 @@ darunter, zweizeilige Erklärungs-Caption).
 
 | Stage | Status | Scope |
 |---|---|---|
-| **1** | **PR `feat/card-cockpit-stage1-helpers`** | Helper `_card_cockpit_html` + CSS-Klassen `.cockpit-*` in `head.jinja` + Tests. Flag `CARD_COCKPIT_ENABLED=False` → User sieht nichts. Bestehender `_score_block_inner_html` und `_card`-Pfad unverändert. |
-| 2 | offen | Flag auf `True`. `_card` (v1) + `_build_card_ctx` (v2) + `card.jinja` schalten auf Cockpit-Output um. **iPhone-Live-Verify Pflicht** (Cache-Bust falls nötig). Watchlist-Drawer bekommt Cockpit automatisch via `_wl_full_card_html`-Regex-Strip. |
+| 1 | ✅ erledigt PR #198 | Helper `_card_cockpit_html` + CSS-Klassen `.cockpit-*` in `head.jinja` + Tests. Flag `CARD_COCKPIT_ENABLED=False` → User sieht nichts. |
+| **2** | **PR `feat/card-cockpit-stage2-activation`** | Flag auf `True`. `_card` (v1) + `_build_card_ctx` (v2) + `card.jinja` schalten auf Cockpit-Output um via `card_header_html`-Context-Variable (v1==v2 byte-identisch durch shared Helper). Watchlist-Drawer bekommt Cockpit automatisch via `_wl_full_card_html`-Regex-Strip (+ neuer `cockpit_id`-Pattern für ID-Strip). Live-Polling-Selector um `.cockpit-header-right` / `.card-cockpit` erweitert. **iPhone-Live-Verify Pflicht.** Fallback-Branches für `Flag=False` bleiben in beiden Pfaden — Rollback ohne Code-Touch möglich. |
 | 3 | offen | Cleanup: obsolete `.sb-row` / `.sb-num`-Reste aus Karten-Bereich entfernen. Methodik-Panel-Verwendung (`.score-block-list .sb-lbl` etc.) bleibt — eigene Konsumenten-Klasse, eigenes CSS-Scope. |
 
 ### Helper-Vertrag (`_card_cockpit_html`)
