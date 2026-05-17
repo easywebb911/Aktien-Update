@@ -107,15 +107,20 @@ def test_sparkline_sync_intact():
         "versehentlich entfernt")
 
 
-# === 6 — Service-Worker network-first für app_data.json =====================
+# === 6 — Service-Worker entfernt (17.05.2026, iOS-Safari-Cache-Quirks) =====
 
-def test_service_worker_network_first_for_app_data():
-    sw = (ROOT / "service_worker.js").read_text(encoding="utf-8")
-    # network-first-Marker: erst fetch(req), nur bei Fehler caches.match(req)
-    assert "const fresh = await fetch(req);" in sw, (
-        "Service-Worker ist nicht network-first — app_data.json könnte "
-        "stale gecacht werden")
-    assert "'app_data.json'" in sw, "app_data.json fehlt in SW-Cache-Liste"
+def test_service_worker_removed():
+    # Service-Worker wurde entfernt — iOS-Safari hat den Network-First-Modus
+    # nicht korrekt umgesetzt (innerer fetch(req) respektierte WebKit-HTTP-
+    # Cache → CSS-Merges stundenlang unsichtbar). Easy ist iPhone-Trader,
+    # immer online — Offline-Wert war null.
+    assert not (ROOT / "service_worker.js").exists(), (
+        "service_worker.js existiert noch — sollte 17.05.2026 entfernt sein")
+    gr = (ROOT / "generate_report.py").read_text(encoding="utf-8")
+    assert "navigator.serviceWorker.register" not in gr, (
+        "SW-Registrierung noch in generate_report.py")
+    assert "_write_service_worker" not in gr, (
+        "_write_service_worker-Funktion noch in generate_report.py")
 
 
 # === 7 — Smoke: Regex-Patch trifft das echte card_html =====================
@@ -178,7 +183,7 @@ def main() -> None:
         ("Wert-Formel: 0 → '+0.0%'",                        test_chg_format_zero),
         ("Wert-Formel: null/NaN/Garbage → no-op",           test_chg_format_null_no_op),
         ("Sparkline-Sync nicht regressed",                  test_sparkline_sync_intact),
-        ("Service-Worker network-first für app_data.json",  test_service_worker_network_first_for_app_data),
+        ("Service-Worker entfernt (iOS-Cache-Quirks)",       test_service_worker_removed),
         ("Regex-Smoke: Momentum-Box im realen card_html",   test_regex_patch_finds_momentum_box),
         ("Keine unescapten ${...} im f-String",             test_no_unescaped_js_template_vars),
     ]

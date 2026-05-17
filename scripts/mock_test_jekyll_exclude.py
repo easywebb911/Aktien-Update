@@ -93,7 +93,7 @@ def test_pages_landing_assets_not_excluded():
     excluded = set(cfg["exclude"])
     # README.md ist optionale Landing-Page wenn kein index.html da wäre.
     # index.html ist die Haupt-App — auf gar keinen Fall excludieren.
-    for keep in ("README.md", "index.html", "service_worker.js"):
+    for keep in ("README.md", "index.html"):
         assert keep not in excluded, (
             f"{keep} darf NICHT excluded sein — Pages-Landing/App")
 
@@ -131,7 +131,7 @@ def main() -> None:
          test_code_and_build_stack_excluded),
         ("*.json NICHT excluded (Frontend-Daten)",
          test_json_data_files_not_excluded),
-        ("README.md / index.html / service_worker.js NICHT excluded",
+        ("README.md / index.html NICHT excluded",
          test_pages_landing_assets_not_excluded),
         ("Excludete Files existieren tatsächlich (Drift-Schutz)",
          test_excluded_files_actually_exist),

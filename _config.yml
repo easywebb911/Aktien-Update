@@ -19,9 +19,8 @@ exclude:
   - docs/
 
   # Code- und Daten-Stack, der bereits über andere Wege ausgeliefert wird
-  # (``index.html`` als Build-Artefakt, ``service_worker.js`` als Cache-
-  # Worker, ``*.json`` als Data-Files). Python-Quelldateien und Linter
-  # gehören nicht in den Pages-Output.
+  # (``index.html`` als Build-Artefakt, ``*.json`` als Data-Files).
+  # Python-Quelldateien und Linter gehören nicht in den Pages-Output.
   - "*.py"
   - cloudflare/
   - scripts/

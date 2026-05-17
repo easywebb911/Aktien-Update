@@ -213,6 +213,71 @@ Bei neuen Score-Berechnungs-Pfaden die Allow-Liste in
 
 ---
 
+## Cache-Strategie (kein Service-Worker, ab 17.05.2026)
+
+Service-Worker wurde am 17.05.2026 **komplett entfernt**. Frontend
+lebt jetzt als gewöhnliche statische Seite ohne Offline-Cache-Layer.
+
+### Begründung
+
+Frühere SW-Strategie war Network-First mit Cache-Fallback. Der innere
+`fetch(req)`-Call respektierte aber den WebKit-HTTP-Cache (Cache-Modus
+`'default'`), und GitHub-Pages liefert HTML mit `Cache-Control:
+max-age=600`. Folge auf iOS-Safari: PR #185 + #186 waren stundenlang
+unsichtbar trotz erfolgreichem Merge + Daily-Run-Deploy. Easy musste
+mit `?bust=N` + Tab-Close + Safari-App-Beenden manuell entkernen.
+
+Easy ist iPhone-Trader, dauerhaft online — Offline-Wert der SW war
+**null**. Engineering-Theater raus.
+
+### Deinstallations-Mechanik
+
+Inline-JS am Ende von `index.html` deregistriert beim nächsten Page-
+Load **aktiv** alle früheren SW-Instanzen und löscht deren Caches:
+
+```js
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.getRegistrations().then(regs => {
+    regs.forEach(reg => reg.unregister().catch(() => null));
+  }).catch(() => null);
+  if (window.caches && caches.keys) {
+    caches.keys().then(keys => {
+      keys.forEach(k => caches.delete(k).catch(() => null));
+    }).catch(() => null);
+  }
+}
+```
+
+Easy muss **einmalig** nach Deploy dieses PR Cache-Bust durchführen
+(`?bust=999` + Tab schließen + Safari-App komplett beenden) — dann ist
+die alte SW endgültig weg. Ab dann holt jeder Refresh frische Bytes
+direkt vom CDN.
+
+### Konsequenzen für künftige Merges
+
+- **CSS-/Doku-/Frontend-Änderungen**: nach Daily-Run-Deploy sofort
+  sichtbar bei nächstem Browser-Reload (modulo GitHub-Pages-CDN-TTL
+  10 min — meist deutlich schneller).
+- **Offline-Modus**: nicht mehr verfügbar. Bei Netzwerk-Ausfall zeigt
+  Safari die Standard-Fehlerseite statt zwischengespeicherter Daten.
+- **PWA-Verhalten**: „Zum Home-Bildschirm hinzufügen" funktioniert
+  weiterhin (Apple-Meta-Tags bleiben deklarativ), aber als reine Web-
+  App-Shortcut, nicht als offline-fähige PWA.
+
+### Wenn künftig Offline-Wunsch
+
+Bewusste Entscheidung mit anderer Strategie. Optionen:
+- Network-First mit `fetch(req, { cache: 'reload' })` (umgeht HTTP-
+  Cache-Bug, behält Offline-Toleranz)
+- Stale-While-Revalidate für JSON-Daten, Network-Only für HTML
+- Vollständiges PWA mit `manifest.json` und expliziter Update-Lifecycle-
+  UI-Anzeige
+
+In jedem Fall: Lesson 17.05.2026 — der innere `fetch(req)` im SW MUSS
+explizit `cache: 'reload'` setzen, sonst zieht er aus dem HTTP-Cache.
+
+---
+
 ## Zwei-Run-Architektur (seit 12.05.2026)
 
 Der Daily-Run läuft **zweimal pro Werktag** mit unterschiedlicher
