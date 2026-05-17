@@ -1,17 +1,17 @@
 {
-  "updated": "2026-05-17T01:09:24.194391+02:00",
+  "updated": "2026-05-17T02:09:49.872560+02:00",
   "run_info": {
     "tickers_checked": 14,
     "signals_active": 4,
     "alerts_sent": 0,
-    "elapsed_s": 11.5,
+    "elapsed_s": 16.8,
     "market_phase": "Geschlossen"
   },
   "signals": {
     "AI": {
-      "score": 18,
+      "score": 26,
       "confidence": 33,
-      "drivers": "Earnings in 11d + UOA Call/Put 3.5×",
+      "drivers": "News-KI 8/30: Negative sentiment with multiple stocks declining suggests weak momentum and limited short squeeze potential despite sec + Earnings in 11d + UOA Call/Put 3.5×",
       "price": 8.65,
       "chg_pct": -0.0,
       "rvol_4d": 1.01,
@@ -93,9 +93,9 @@
       "uoa_cp_ratio": null
     },
     "GEMI": {
-      "score": 82,
+      "score": 68,
       "confidence": 70,
-      "drivers": "Volumen 8.2× + 🚀 Massives Volumen 8.2×+ + Spanne 22.8% + News: earnings beat + UOA Call/Put 2.9×",
+      "drivers": "Volumen 8.2× + 🚀 Massives Volumen 8.2×+ + Spanne 22.8% + News-KI 8/30: Positive earnings and stock movement are bullish but lack short squeeze indicators like high short interest, low float,  + UOA Call/Put 2.9×",
       "price": 5.58,
       "chg_pct": -0.0,
       "rvol_4d": 8.22,
@@ -105,8 +105,8 @@
       "upcoming_event": null,
       "insider_buy": false,
       "stocktwits": null,
-      "combo_mult": 1.1,
-      "active_triggers": 2,
+      "combo_mult": 1.0,
+      "active_triggers": 1,
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 2.9×"
@@ -197,7 +197,7 @@
     "PZZA": {
       "score": 55,
       "confidence": 70,
-      "drivers": "Volumen 1.8× + Spanne 6.3% + News: takeover, acquisition",
+      "drivers": "Volumen 1.8× + Spanne 6.3% + News: buyout, acquisition",
       "price": 34.73,
       "chg_pct": -0.0,
       "rvol_4d": 1.78,
@@ -277,9 +277,9 @@
       "uoa_cp_ratio": null
     },
     "TNXP": {
-      "score": 40,
+      "score": 33,
       "confidence": 70,
-      "drivers": "Volumen 1.8× + Spanne 16.9% + News: revenue beat",
+      "drivers": "Volumen 1.8× + Spanne 16.9% + News-KI 8/30: Routine corporate announcements (conferences, presentations, earnings) with no catalyst indicating significant short int",
       "price": 15.74,
       "chg_pct": -0.0,
       "rvol_4d": 1.81,
@@ -290,7 +290,7 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 1,
+      "active_triggers": 0,
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": null,

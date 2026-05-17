@@ -1,5 +1,5 @@
 {
-  "last_run": "2026-05-17T01:09:25.551863+02:00",
+  "last_run": "2026-05-17T02:09:52.664462+02:00",
   "cooldowns": {
     "anomaly_score_jump_XRX": "2026-05-03T18:47:15.315486+02:00",
     "anomaly_uoa_extreme_TDOC": "2026-05-04T13:47:00.365949+02:00",
@@ -33,17 +33,6 @@
     "exit_CRMD": "2026-05-17T00:32:47.221308+02:00"
   },
   "push_history": [
-    {
-      "ts": "2026-05-12T11:36:37.993151+02:00",
-      "ticker": "ENVX",
-      "kind": "anomaly",
-      "severity": "medium",
-      "trigger": "score_jump",
-      "body": "ENVX 🚀 Setup 78 ↑ (gestern 44) | Earnings in 1 Tagen (13.05.2026) + Volumen 2.0× + Spanne 13.…",
-      "success": true,
-      "suppressed": false,
-      "suppress_reason": null
-    },
     {
       "ts": "2026-05-12T11:36:46.134240+02:00",
       "ticker": "AMC",
@@ -1226,6 +1215,18 @@
       "suppressed": false,
       "suppress_reason": null,
       "conviction_score": null
+    },
+    {
+      "ts": "2026-05-17T02:09:52.973996+02:00",
+      "ticker": "AMC",
+      "kind": "exit_p2",
+      "severity": "trigger",
+      "trigger": "profit_lock",
+      "body": "🔻 Exit-Signal AMC: profit_lock crit ({'pnl_pct': -0.1467, 'peak_pnl_pct': 0.16, 'drawdown_from_peak': 0.3067, 'score_drop_from_peak': None})",
+      "success": true,
+      "suppressed": false,
+      "suppress_reason": null,
+      "conviction_score": null
     }
   ],
   "prev_conviction_scores": {
@@ -1248,7 +1249,7 @@
     "exitp2_warning_AMC": "2026-05-16T23:05:43.173916+02:00",
     "exitp2_trigger_AMC_trend_break": "2026-05-17T00:34:13.398661+02:00",
     "exitp2_trigger_DMRC_catalyst": "2026-05-12T08:16:46.397344+02:00",
-    "exitp2_trigger_AMC_profit_lock": "2026-05-16T01:12:57.378541+02:00",
+    "exitp2_trigger_AMC_profit_lock": "2026-05-17T02:09:52.974028+02:00",
     "exitp2_trigger_SABR_trend_break": "2026-05-13T16:33:31.855081+02:00",
     "exitp2_warning_SABR": "2026-05-13T20:55:28.455870+02:00",
     "exitp2_trigger_RR_catalyst": "2026-05-15T13:30:53.744413+02:00",
