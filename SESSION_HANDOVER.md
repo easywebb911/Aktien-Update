@@ -1,12 +1,12 @@
-# Session-Handover — Stand 17.05.2026
+# Session-Handover — Stand 17.05.2026 (Final, mit Entry-Timing-Modul)
 
 | Meta | Wert |
 |---|---|
 | Datum | 17.05.2026 (Sonntag, Tag 4 Sprint-Phase) |
-| Final-PRs heute | **8 gemerged** |
+| Final-PRs heute | **8 gemerged** (+ 2 Handover-PRs: #196 initial, dieser final mit Entry-Timing-Modul) |
 | Session-Dauer | lang (Vormittag → spät Abend) |
-| Memory-Updates | Service-Worker-Entfernung (CLAUDE.md Cache-Strategie), PR-Status-Regel ohne Webhook-Warten, AMC-Halt-Strategie (Wiedervorlage) |
-| Vorgänger-Handover | PR #187 (Stand 16.05.2026 spät Abend, 23 PRs) |
+| Memory-Updates | Service-Worker-Entfernung (CLAUDE.md Cache-Strategie), PR-Status-Regel ohne Webhook-Warten, AMC-Halt-Strategie (Wiedervorlage), **Entry-Timing-Modul ab 10.06. (höchste Priorität)**, Earliness V3 vorgezogen 13.06.→07.06. |
+| Vorgänger-Handover | PR #187 (Stand 16.05.2026 spät Abend, 23 PRs), PR #196 (Stand 17.05. Initial) |
 
 ## Heute implementiert (chronologisch)
 
@@ -39,7 +39,7 @@ Vier Themen-Cluster über den Tag: **iOS-Cache-Diagnose** (SW raus + Konfidenz-L
 | **AMC** | offen | **Halt-Strategie** — Easy hält langfristig, Exit-Pushes irrelevant. Wiedervorlage: `no_exit_alerts: true`-Flag im Gist-Schema (Feature-Request, wenn nächster AMC-Exit-Push nervt). |
 | **IONQ** | offen | Watchlist-Outsider — KI-Score live ab nächstem KI-Agent-Tick |
 | **RR** | offen | Watchlist-Outsider |
-| **CRMD** | offen | Diagnose vom 16.05.: Substrat intakt (DTC 16, SF 21 %, SI-Trend sideways). PnL −4.8 % vom Entry $7.93. Kein Phase-3-Fall (kein parabolischer Reversal). Strategie: durchhalten. |
+| **CRMD** | offen | Diagnose vom 16.05.: Substrat intakt (DTC 16, SF 21 %, SI-Trend sideways). PnL −4.8 % vom Entry $7.93. Kein Phase-3-Fall (kein parabolischer Reversal). Strategie: durchhalten. **Wichtige Lesson:** Setup-Score 98 beim Entry war robust, aber Timing schlecht — dieser Fall ist der **Hauptaufhänger** für das Entry-Timing-Modul (siehe Wiedervorlage 10.06.). |
 
 ## Verifikation morgen 18.05.2026
 
@@ -63,7 +63,8 @@ Vier Themen-Cluster über den Tag: **iOS-Cache-Diagnose** (SW raus + Konfidenz-L
 | **30.05.** | **PR-γ aktivieren**: `RVOL_NORMALIZATION_ENABLED = True` mit empirischem Skalierer aus 14 d v2-Logs | nach PR #167 |
 | **30.05.** | KI-Agent-Coverage-Empirik: Push-Spam-Volumen messen (> 5 zusätzliche Pushes/Tag → `WATCHLIST_OUTSIDER_CONVICTION_MIN` einführen) | nach PR #177 |
 | **02.06.** | Chart-Indikatoren erweitern prüfen | Backlog |
-| **13.06.** | Earliness V3 Entscheidung — DTC-Bucket-Logik mit Trend-Logging-Auswertung | Datensammlung läuft |
+| **07.06.** | **Earliness V3 Entscheidung** — DTC-Bucket-Logik mit Trend-Logging-Auswertung. **Fundament für Entry-Timing-Modul** (siehe 10.06.). Datum vorgezogen vom 13.06., damit V3-Output für Entry-Score-Komponente verfügbar ist. | Datensammlung läuft |
+| **★★★ 10.06. ★★★** | **ENTRY-TIMING-MODUL — GROSSPROJEKT, HÖCHSTE PRIORITÄT.** Neuer **Entry-Score 0-100** pro Top-10-Kandidat, der **Reife im Moment** misst (Komponenten: Earliness-Trend aus V3, RVOL-Beschleunigung, Anomaly-Frische, Score-Delta T-1/T-3, Optionsfluss). **Backtest-validiert** gegen `return_3d`/`return_5d` (Mann-Whitney-U analog Earliness-V2-Validierung). Push bei Entry-Score-Spike (Schwelle empirisch nach Bootstrap). **CRMD-Lesson:** Setup 98 robust beim Entry, aber Timing schlecht → −5 % im 2-Wochen-Fenster. Entry-Score hätte „WAIT" signalisiert. **Voraussetzung Earliness V3** (07.06.). **Mehrwöchiges Projekt:** Spec → Backtest-Helper → Pure-Function-Implementation → Mock-Tests → Schwellen-Kalibrierung → Push-Pipeline-Integration → 14 d Live-Validierung. Geschätzt 3-5 Wochen. **Strategischer Wert: höchster im Roadmap.** | nach Earliness V3 |
 | **02.07.** | Premium-Daten-Stack prüfen (60 d Live-Daten, Konfidenz-Re-Assessment) | Datensammlung läuft |
 | nach 5+ high-Conviction-Trades | **Conviction-Kalibrierungs-Beobachtung** — KPTI-Verlust trotz Conviction 81 vom 16.05. als erstes Indiz | empirisch |
 | nach Easy-Feedback | Score-Delta T-1 Phase 2 (Conviction/Monster/KI-History-Persistenz) | wenn Setup-Delta sich bewährt |
@@ -89,7 +90,8 @@ Vier Themen-Cluster über den Tag: **iOS-Cache-Diagnose** (SW raus + Konfidenz-L
 | Score-Inflation-Pipeline | PR-α/β live (#166, #167), PR-γ am **30.05.** | Empirische Aktivierung |
 | Conviction-Kalibrierung | Beobachtung gestartet (KPTI 16.05. als erstes Indiz) | nach 5+ weiteren high-Conviction-Trades |
 | Phase-3 Exit-Trigger (Blow-off-Top) | Spec fertig (`docs/phase3_exit_spec.md`) | wartet auf parabolisches Setup |
-| Earliness V2 → V3 | V2 live mit AUC 0.77 | V3-Entscheidung am 13.06. |
+| Earliness V2 → V3 | V2 live mit AUC 0.77 | **V3-Entscheidung am 07.06.** (vorgezogen — Fundament für Entry-Timing-Modul) |
+| **★ Entry-Timing-Modul (NEU 17.05.)** | Spec-Phase | **Start ab 10.06. nach Earliness V3.** Höchste Priorität, mehrwöchig. CRMD-Lesson lieferte Aufhänger: Setup-Score robust, Timing fehlte. Entry-Score 0-100 misst Reife im Moment, Backtest-validiert. |
 | KI-Agent-Coverage | Phase 2 live (15 Tickers) | Empirik-Auswertung 30.05. |
 | **Health-Check-Push-Pipeline** | **PR #194 — Push-Fix deployt 17.05.** | **18.05. erster echter Push erwartet** |
 | **Cache-Strategie** | **SW komplett raus (#188)** — statische Seite, max-age=600 als einzige Cache-Schicht | Bei Offline-Wunsch: dann mit `cache: 'reload'` im SW-Fetch |
@@ -133,3 +135,4 @@ Vier Themen-Cluster über den Tag: **iOS-Cache-Diagnose** (SW raus + Konfidenz-L
 6. **Easy nutzt App-Chat und Claude-Chat komplementär** — App-Chat (PR #195) braucht keine Web-Suche, weil Easy primär nach Tool-Daten fragt (Setup, KI-Score, Risk-Reward). Web-Suche-Fragen passieren in Claude-Chat. Klare Tool-Trennung: App-Chat = Tool-Daten-LLM, Claude-Chat = Reasoning-LLM mit Web-Zugriff.
 7. **Source-Inspektion vs. Live-Verifikation** (Wiederholung aus 16.05.) bestätigt sich: heute haben wir vor Push-Pipeline-Fix den Workflow-Run-Log nicht eingesehen — Diagnose lief mit Schluss „Push-Fail", korrekt aber spekulativ über JSON-API. Real-Verifikation morgen Vormittag bestätigt (oder widerlegt) die Theorie.
 8. **Code-Hygiene-Backlog-Abschluss heute** — alle 5 kleinen Punkte gemeinsam mit den 3 wichtigen Bug-Fixes (Service-Worker, ntfy, RS-Doppel) plus 2 UX-Cleanups plus Chat-Erweiterung in EINEM Tag = 8 PRs. Hohe Velocity möglich durch klare Klassifikation (Diagnose → Spec → Implementation → Auto-Merge). Lesson: Diagnose-Schritte bezahlen sich nicht nur in Bug-Prevention, sondern auch in PR-Durchsatz.
+9. **CRMD-Lesson als Aufhänger für Entry-Timing-Modul-Großprojekt identifiziert** — Setup-Score 98 beim Entry war robust und korrekt klassifiziert, aber Timing schlecht. Aktuelle Score-Pipeline misst „Reife des Substrats", nicht „Reife im Moment". **Strategischer Bedarf:** neuer Entry-Score 0-100 als 4. Score-Achse (neben Setup/Monster/KI/Conviction), backtest-validiert gegen `return_3d`/`return_5d`. Voraussetzung Earliness V3 (Datum vorgezogen 13.06.→07.06.). Mehrwöchiges Projekt ab 10.06., höchste Priorität in der Roadmap. Lesson: ein einziger schmerzhafter Trade liefert die **konkrete Anforderung** für ein strukturelles Tool-Update — nicht jeder Verlust ist Pech, manche sind Architektur-Lücke.
