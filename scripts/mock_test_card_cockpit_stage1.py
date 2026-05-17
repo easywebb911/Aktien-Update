@@ -114,11 +114,11 @@ def test_04_three_pillars_in_order() -> None:
 def test_05_svg_has_html_size_attributes() -> None:
     out = _card_cockpit_html(1, _sample_stock())
     # SVG-Tag muss width und height als HTML-Attribute haben.
-    # Iterativ-Tuning 18.05.2026: 185 -> 160 -> 150 px nach iPhone-
-    # Verify (Donut zu dominant gegenueber Saeulen-Spalte).
-    assert 'width="150"' in out, "SVG width=150 als HTML-Attribut fehlt"
-    assert 'height="150"' in out, "SVG height=150 als HTML-Attribut fehlt"
-    assert 'viewBox="0 0 150 150"' in out, "SVG viewBox fehlt oder falsch"
+    # Iterativ-Tuning 18.05.2026: 185 -> 160 -> 150 -> 135 px nach
+    # iPhone-Live-Verify (Donut zu dominant gegenueber Saeulen-Spalte).
+    assert 'width="135"' in out, "SVG width=135 als HTML-Attribut fehlt"
+    assert 'height="135"' in out, "SVG height=135 als HTML-Attribut fehlt"
+    assert 'viewBox="0 0 135 135"' in out, "SVG viewBox fehlt oder falsch"
 
 
 def test_06_donut_has_100_scale() -> None:
@@ -186,8 +186,8 @@ def test_11_css_font_sizes_match_spec() -> None:
     assert m, "cockpit-price font-weight:400 fehlt (schlanker Look)"
     m = re.search(r"\.cockpit-pillar-value\{[^}]*font-size:26px", HJ_SRC)
     assert m, "cockpit-pillar-value font-size:26px fehlt"
-    m = re.search(r"\.cockpit-donut-number\{[^}]*font-size:40px", HJ_SRC)
-    assert m, "cockpit-donut-number font-size:40px fehlt"
+    m = re.search(r"\.cockpit-donut-number\{[^}]*font-size:36px", HJ_SRC)
+    assert m, "cockpit-donut-number font-size:36px fehlt"
     m = re.search(r"\.cockpit-change\{[^}]*font-size:11px", HJ_SRC)
     assert m, "cockpit-change font-size:11px fehlt"
     m = re.search(r"\.cockpit-change\{[^}]*font-weight:400", HJ_SRC)
@@ -214,6 +214,19 @@ def test_14_none_values_graceful() -> None:
     s = _sample_stock(monster_score=None, ki_signal_score=None)
     out = _card_cockpit_html(1, s)
     assert "—" in out, "None-Werte sollten als — gerendert werden"
+
+
+def test_16_cockpit_padding_matches_surrounding_containers() -> None:
+    # .card-cockpit muss horizontales Padding 14 px haben, analog
+    # zur alten .card-top (padding:14px 14px 10px) und zu
+    # .sub-scores-wrap (padding:5px 14px 5px). Sonst beginnt das
+    # Cockpit fluesch am Karten-Rand waehrend alle darunter
+    # liegenden Container 14 px Innenabstand haben.
+    m = re.search(r"\.card-cockpit\{[^}]*padding:14px 14px 10px", HJ_SRC)
+    assert m, (
+        "card-cockpit hat kein padding:14px 14px 10px — wuerde optisch "
+        "buendig zum Karten-Rand stehen statt zur Sub-Score-Zone "
+        "ausgerichtet sein.")
 
 
 def test_15_pillar_order_strict_in_html() -> None:
@@ -245,6 +258,7 @@ def main() -> int:
         ("13 Helper definiert + callable",            test_13_helper_callable_and_defined),
         ("14 None-Werte graceful (—)",                test_14_none_values_graceful),
         ("15 Saeulen-Reihenfolge im HTML strict",    test_15_pillar_order_strict_in_html),
+        ("16 Cockpit-Padding 14px (analog Sub-Sc.)", test_16_cockpit_padding_matches_surrounding_containers),
     ]
     failed = 0
     for name, fn in tests:
