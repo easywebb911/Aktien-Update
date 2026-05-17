@@ -1,17 +1,17 @@
 {
-  "updated": "2026-05-17T23:09:31.461544+02:00",
+  "updated": "2026-05-17T23:26:12.330879+02:00",
   "run_info": {
     "tickers_checked": 14,
     "signals_active": 4,
     "alerts_sent": 0,
-    "elapsed_s": 14.2,
+    "elapsed_s": 16.7,
     "market_phase": "Geschlossen"
   },
   "signals": {
     "AI": {
-      "score": 18,
+      "score": 30,
       "confidence": 33,
-      "drivers": "Earnings in 10d + UOA Call/Put 3.5×",
+      "drivers": "News-KI 12/30: Negative headlines dominated by restructuring, cost-cutting, and stock declines indicate institutional weakness rather t + Earnings in 10d + UOA Call/Put 3.5×",
       "price": 8.65,
       "chg_pct": -0.0,
       "rvol_4d": 1.01,
@@ -22,7 +22,7 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 0,
+      "active_triggers": 1,
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 3.5×"
@@ -55,7 +55,7 @@
     "CRMD": {
       "score": 40,
       "confidence": 33,
-      "drivers": "Spanne 8.8% + News: earnings beat, guidance raised",
+      "drivers": "Spanne 8.8% + News: guidance raised, earnings beat",
       "price": 7.55,
       "chg_pct": 0.0,
       "rvol_4d": 1.46,
@@ -174,30 +174,10 @@
       "uoa_atm_ratio": null,
       "uoa_cp_ratio": null
     },
-    "PRA": {
-      "score": 45,
-      "confidence": 70,
-      "drivers": "Volumen 2.5× + News-KI 5/30: Earnings berichten ohne Volatilität oder Überraschungen deuten nicht auf Short-Squeeze-Potential hin. + FINRA Short-Vol 100%",
-      "price": 24.51,
-      "chg_pct": 0.0,
-      "rvol_4d": 2.47,
-      "rvol_20d": 2.0,
-      "earnings": "in 79 Tagen (04.08.2026)",
-      "fda_date": null,
-      "upcoming_event": null,
-      "insider_buy": false,
-      "stocktwits": null,
-      "combo_mult": 1.0,
-      "active_triggers": 1,
-      "uoa_score": 0,
-      "uoa_drivers": [],
-      "uoa_atm_ratio": null,
-      "uoa_cp_ratio": null
-    },
     "PZZA": {
       "score": 55,
       "confidence": 70,
-      "drivers": "Volumen 1.8× + Spanne 6.3% + News: buyout, takeover",
+      "drivers": "Volumen 1.8× + Spanne 6.3% + News: acquisition, buyout",
       "price": 34.73,
       "chg_pct": -0.0,
       "rvol_4d": 1.78,
@@ -276,10 +256,30 @@
       "uoa_atm_ratio": null,
       "uoa_cp_ratio": null
     },
+    "SPIR": {
+      "score": 25,
+      "confidence": 33,
+      "drivers": "Volumen 1.6× + Spanne 15.5%",
+      "price": 20.01,
+      "chg_pct": 0.0,
+      "rvol_4d": 1.55,
+      "rvol_20d": 1.75,
+      "earnings": "in 87 Tagen (12.08.2026)",
+      "fda_date": null,
+      "upcoming_event": null,
+      "insider_buy": false,
+      "stocktwits": null,
+      "combo_mult": 1.0,
+      "active_triggers": 0,
+      "uoa_score": 0,
+      "uoa_drivers": [],
+      "uoa_atm_ratio": null,
+      "uoa_cp_ratio": null
+    },
     "TNXP": {
-      "score": 33,
+      "score": 40,
       "confidence": 70,
-      "drivers": "Volumen 1.8× + Spanne 16.9% + News-KI 8/30: Routine corporate announcements lacking catalysts for short squeeze; no significant negative news, insider buying, or ex",
+      "drivers": "Volumen 1.8× + Spanne 16.9% + News: revenue beat",
       "price": 15.74,
       "chg_pct": -0.0,
       "rvol_4d": 1.81,
@@ -290,7 +290,7 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 0,
+      "active_triggers": 1,
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": null,
