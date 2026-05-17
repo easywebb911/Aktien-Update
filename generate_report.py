@@ -12683,14 +12683,22 @@ async function runKiAnalyse(cardIdx) {{
 }}
 
 {chat_script_html}
-// ── Service Worker Registration (PWA-Cache) ─────────────────────────────────
-// Skip-Registration wenn Seite nicht über https/localhost geladen wird
-// (lokales file:// kann SW nicht).
-if ('serviceWorker' in navigator
-    && (location.protocol === 'https:' || location.hostname === 'localhost')) {{
-  navigator.serviceWorker.register('service_worker.js').catch((e) => {{
-    console.warn('Service Worker Registration fehlgeschlagen:', e);
-  }});
+// ── Service-Worker Entkopplung (entfernt 17.05.2026) ───────────────────────
+// Frühere PWA-Cache-Strategie (Network-First-SW) verursachte iOS-Safari-
+// Cache-Quirks — CSS-Merges blieben stundenlang unsichtbar weil das innere
+// fetch(req) im SW den WebKit-HTTP-Cache respektierte. Easy ist immer
+// online, Offline-Wert war null. Block unten deregistriert eine evtl. von
+// vorigen Page-Loads installierte Service-Worker-Instanz und löscht alle
+// dazugehörigen Caches — beim nächsten Reload danach ist die Seite SW-frei.
+if ('serviceWorker' in navigator) {{
+  navigator.serviceWorker.getRegistrations().then(regs => {{
+    regs.forEach(reg => reg.unregister().catch(() => null));
+  }}).catch(() => null);
+  if (window.caches && caches.keys) {{
+    caches.keys().then(keys => {{
+      keys.forEach(k => caches.delete(k).catch(() => null));
+    }}).catch(() => null);
+  }}
 }}
 </script>
 </body>
@@ -13636,68 +13644,6 @@ def _write_app_data_json(watchlist_cards: dict | None = None,
           f"{len(agent_signals.get('signals', {}))} Signals + "
           f"{len(payload['watchlist_cards'])} Watchlist-Karten zusammengeführt",
           flush=True)
-
-
-def _write_service_worker() -> None:
-    """Schreibt service_worker.js ins Repo-Root mit frischem Cache-Namen.
-
-    Strategie: Network-first mit Cache-Fallback für index.html,
-    score_history.json, agent_signals.json, app_data.json. Bei jedem
-    Report-Run erhält der Cache einen neuen Namen (Zeitstempel) — alte
-    Caches werden im activate-Handler automatisch gelöscht.
-    """
-    cache_version = datetime.now(ZoneInfo("UTC")).strftime("%Y%m%d-%H%M")
-    sw_code = f"""// Auto-generiert von generate_report.py — Service Worker
-// Cache-Version: {cache_version} (wird bei jedem Daily-Run aktualisiert)
-const CACHE_NAME = 'squeeze-{cache_version}';
-const URLS = [
-  './',
-  './index.html',
-  './score_history.json',
-  './agent_signals.json',
-  './app_data.json',
-];
-
-self.addEventListener('install', (event) => {{
-  self.skipWaiting();
-  event.waitUntil(caches.open(CACHE_NAME).then(c => c.addAll(URLS).catch(() => null)));
-}});
-
-self.addEventListener('activate', (event) => {{
-  event.waitUntil(
-    caches.keys().then(keys => Promise.all(
-      keys.filter(k => k !== CACHE_NAME).map(k => caches.delete(k))
-    )).then(() => self.clients.claim())
-  );
-}});
-
-self.addEventListener('fetch', (event) => {{
-  const req = event.request;
-  if (req.method !== 'GET') return;
-  const url = new URL(req.url);
-  // Nur Same-Origin und unsere 4 gecachten Pfade
-  if (url.origin !== self.location.origin) return;
-  const path = url.pathname.split('/').pop();
-  if (!['index.html', '', 'score_history.json', 'agent_signals.json', 'app_data.json'].includes(path)) return;
-  event.respondWith((async () => {{
-    try {{
-      const fresh = await fetch(req);
-      if (fresh && fresh.status === 200) {{
-        const cache = await caches.open(CACHE_NAME);
-        cache.put(req, fresh.clone()).catch(() => null);
-      }}
-      return fresh;
-    }} catch (err) {{
-      const cached = await caches.match(req);
-      if (cached) return cached;
-      throw err;
-    }}
-  }})());
-}});
-"""
-    with open("service_worker.js", "w", encoding="utf-8") as fh:
-        fh.write(sw_code)
-    print(f"Service Worker: service_worker.js geschrieben (cache {cache_version})", flush=True)
 
 
 def _write_error_page(report_date: str, message: str) -> None:
@@ -15872,10 +15818,6 @@ def main():
     with open("index.html", "w", encoding="utf-8") as fh:
         fh.write(html)
 
-    # Service-Worker mit frischem Cache-Version-String (pro Run ein neuer
-    # Zeitstempel) — Browser invalidieren alten Cache beim nächsten Besuch.
-    if SW_ENABLED:
-        _write_service_worker()
     # Kombinierte app_data.json (PWA-Single-Fetch). ``_wl_card_data``
     # wurde oben (vor generate_html) gebaut und an den Chat-Synthese-
     # Builder als Fallback-Source für Position-Ticker außerhalb der

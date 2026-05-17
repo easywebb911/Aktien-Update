@@ -44,10 +44,9 @@ MIN_SCORE            = 15.0                # Pkt — informativ; Karten unter di
 INTL_SCREENING_ENABLED = False
 
 # ── Progressive Web App ────────────────────────────────────────────────────
-# Service-Worker + Lazy Loading für schnellere PWA-Erfahrung.
-# SW_CACHE_VERSION wird bei jedem Report-Run automatisch auf einen Zeitstempel
-# gesetzt — alte Caches werden dadurch beim nächsten Besuch invalidiert.
-SW_ENABLED         = True
+# Service-Worker wurde 17.05.2026 entfernt (iOS-Safari-Cache-Quirks haben
+# CSS-Merges stundenlang unsichtbar gehalten; Offline-Wert für iPhone-Trader
+# = null). Lazy-Card-Rendering bleibt aktiv.
 LAZY_CARDS_ENABLED = True
 LAZY_CARDS_EAGER   = 3        # erste N Karten sofort vollständig rendern
 
