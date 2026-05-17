@@ -114,11 +114,11 @@ def test_04_three_pillars_in_order() -> None:
 def test_05_svg_has_html_size_attributes() -> None:
     out = _card_cockpit_html(1, _sample_stock())
     # SVG-Tag muss width und height als HTML-Attribute haben.
-    # Iterativ-Tuning 18.05.2026: 185 -> 160 -> 150 -> 135 px nach
-    # iPhone-Live-Verify (Donut zu dominant gegenueber Saeulen-Spalte).
-    assert 'width="135"' in out, "SVG width=135 als HTML-Attribut fehlt"
-    assert 'height="135"' in out, "SVG height=135 als HTML-Attribut fehlt"
-    assert 'viewBox="0 0 135 135"' in out, "SVG viewBox fehlt oder falsch"
+    # Iterativ-Tuning 18.05.2026: 185 -> 160 -> 150 -> 135 -> 120 px
+    # nach iPhone-Live-Verify (final-balancierte Donut-Groesse).
+    assert 'width="120"' in out, "SVG width=120 als HTML-Attribut fehlt"
+    assert 'height="120"' in out, "SVG height=120 als HTML-Attribut fehlt"
+    assert 'viewBox="0 0 120 120"' in out, "SVG viewBox fehlt oder falsch"
 
 
 def test_06_donut_has_100_scale() -> None:
@@ -186,8 +186,8 @@ def test_11_css_font_sizes_match_spec() -> None:
     assert m, "cockpit-price font-weight:400 fehlt (schlanker Look)"
     m = re.search(r"\.cockpit-pillar-value\{[^}]*font-size:26px", HJ_SRC)
     assert m, "cockpit-pillar-value font-size:26px fehlt"
-    m = re.search(r"\.cockpit-donut-number\{[^}]*font-size:36px", HJ_SRC)
-    assert m, "cockpit-donut-number font-size:36px fehlt"
+    m = re.search(r"\.cockpit-donut-number\{[^}]*font-size:32px", HJ_SRC)
+    assert m, "cockpit-donut-number font-size:32px fehlt"
     m = re.search(r"\.cockpit-change\{[^}]*font-size:11px", HJ_SRC)
     assert m, "cockpit-change font-size:11px fehlt"
     m = re.search(r"\.cockpit-change\{[^}]*font-weight:400", HJ_SRC)
