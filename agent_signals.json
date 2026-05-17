@@ -1,10 +1,10 @@
 {
-  "updated": "2026-05-17T19:15:20.925494+02:00",
+  "updated": "2026-05-17T20:12:43.798816+02:00",
   "run_info": {
     "tickers_checked": 14,
     "signals_active": 4,
     "alerts_sent": 0,
-    "elapsed_s": 15.2,
+    "elapsed_s": 16.7,
     "market_phase": "Geschlossen"
   },
   "signals": {
@@ -53,9 +53,9 @@
       "uoa_cp_ratio": 4.439244663382595
     },
     "CRMD": {
-      "score": 40,
+      "score": 18,
       "confidence": 33,
-      "drivers": "Spanne 8.8% + News: guidance raised, earnings beat",
+      "drivers": "Spanne 8.8% + News-KI 8/30: Positive earnings and guidance raise fundamental value but lack short-squeeze indicators like high short interest, optio",
       "price": 7.55,
       "chg_pct": 0.0,
       "rvol_4d": 1.46,
@@ -66,7 +66,7 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 1,
+      "active_triggers": 0,
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": null,
@@ -93,9 +93,9 @@
       "uoa_cp_ratio": null
     },
     "GEMI": {
-      "score": 68,
+      "score": 82,
       "confidence": 70,
-      "drivers": "Volumen 8.2× + 🚀 Massives Volumen 8.2×+ + Spanne 22.8% + News-KI 8/30: Positive earnings and stock movement show demand, but no indicators of high short interest, low float, or squeeze setup  + UOA Call/Put 2.9×",
+      "drivers": "Volumen 8.2× + 🚀 Massives Volumen 8.2×+ + Spanne 22.8% + News: earnings beat + UOA Call/Put 2.9×",
       "price": 5.58,
       "chg_pct": -0.0,
       "rvol_4d": 8.22,
@@ -105,8 +105,8 @@
       "upcoming_event": null,
       "insider_buy": false,
       "stocktwits": null,
-      "combo_mult": 1.0,
-      "active_triggers": 1,
+      "combo_mult": 1.1,
+      "active_triggers": 2,
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 2.9×"
@@ -197,7 +197,7 @@
     "PZZA": {
       "score": 55,
       "confidence": 70,
-      "drivers": "Volumen 1.8× + Spanne 6.3% + News: acquisition, takeover",
+      "drivers": "Volumen 1.8× + Spanne 6.3% + News: takeover, buyout",
       "price": 34.73,
       "chg_pct": -0.0,
       "rvol_4d": 1.78,
@@ -257,9 +257,9 @@
       "uoa_cp_ratio": 0.5700280112044818
     },
     "SKYQ": {
-      "score": 58,
+      "score": 88,
       "confidence": 70,
-      "drivers": "Volumen 7.7× + 🚀 Massives Volumen 7.7×+ + Spanne 51.2% + News-KI 8/30: Positive catalysts present but limited short squeeze potential due to low public awareness, small float, and execution r",
+      "drivers": "Volumen 7.7× + 🚀 Massives Volumen 7.7×+ + Spanne 51.2% + News: partnership, short interest",
       "price": 3.07,
       "chg_pct": -0.0,
       "rvol_4d": 7.69,
@@ -269,17 +269,17 @@
       "upcoming_event": null,
       "insider_buy": false,
       "stocktwits": null,
-      "combo_mult": 1.0,
-      "active_triggers": 1,
+      "combo_mult": 1.1,
+      "active_triggers": 2,
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": null,
       "uoa_cp_ratio": null
     },
     "TNXP": {
-      "score": 33,
+      "score": 40,
       "confidence": 70,
-      "drivers": "Volumen 1.8× + Spanne 16.9% + News-KI 8/30: Routine conference presentations and earnings reports lack catalysts for short-squeeze momentum; no dramatic development",
+      "drivers": "Volumen 1.8× + Spanne 16.9% + News: revenue beat",
       "price": 15.74,
       "chg_pct": -0.0,
       "rvol_4d": 1.81,
@@ -290,7 +290,7 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 0,
+      "active_triggers": 1,
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": null,
