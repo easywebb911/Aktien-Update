@@ -1,17 +1,17 @@
 {
-  "updated": "2026-05-17T15:58:23.599901+02:00",
+  "updated": "2026-05-17T17:18:23.933526+02:00",
   "run_info": {
     "tickers_checked": 14,
     "signals_active": 3,
     "alerts_sent": 0,
-    "elapsed_s": 22.8,
+    "elapsed_s": 14.7,
     "market_phase": "Geschlossen"
   },
   "signals": {
     "AI": {
-      "score": 26,
+      "score": 30,
       "confidence": 33,
-      "drivers": "News-KI 8/30: Negative sentiment from stock plunges and restructuring concerns with no evidence of short interest buildup, excessive m + Earnings in 10d + UOA Call/Put 3.5×",
+      "drivers": "News-KI 12/30: Negative sentiment with founder returning and restructuring, mixed analyst coverage, and recent sharp declines suggest w + Earnings in 10d + UOA Call/Put 3.5×",
       "price": 8.65,
       "chg_pct": -0.0,
       "rvol_4d": 1.01,
@@ -22,7 +22,7 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 0,
+      "active_triggers": 1,
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 3.5×"
@@ -93,9 +93,9 @@
       "uoa_cp_ratio": null
     },
     "GEMI": {
-      "score": 82,
+      "score": 68,
       "confidence": 70,
-      "drivers": "Volumen 8.2× + 🚀 Massives Volumen 8.2×+ + Spanne 22.8% + News: earnings beat + UOA Call/Put 2.9×",
+      "drivers": "Volumen 8.2× + 🚀 Massives Volumen 8.2×+ + Spanne 22.8% + News-KI 8/30: Positive earnings and stock movement lack short squeeze indicators like high short interest, unusual volume spikes, or f + UOA Call/Put 2.9×",
       "price": 5.58,
       "chg_pct": -0.0,
       "rvol_4d": 8.22,
@@ -105,8 +105,8 @@
       "upcoming_event": null,
       "insider_buy": false,
       "stocktwits": null,
-      "combo_mult": 1.1,
-      "active_triggers": 2,
+      "combo_mult": 1.0,
+      "active_triggers": 1,
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 2.9×"
@@ -177,7 +177,7 @@
     "PZZA": {
       "score": 55,
       "confidence": 70,
-      "drivers": "Volumen 1.8× + Spanne 6.3% + News: acquisition, buyout",
+      "drivers": "Volumen 1.8× + Spanne 6.3% + News: takeover, buyout",
       "price": 34.73,
       "chg_pct": -0.0,
       "rvol_4d": 1.78,
