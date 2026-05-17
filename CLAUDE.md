@@ -2765,26 +2765,42 @@ Drift-Schutz für die Sub-Score-Caps ist damit strukturell gesichert,
 solange `score()` und `_compute_sub_scores()` mit den gleichen
 Konstanten arbeiten.
 
-**AST-Sync-Test (seit 17.05.2026)** —
+**AST-Sync-Test (seit 17.05.2026, erweitert um DRIVER_CLASSIFICATIONS)** —
 `scripts/mock_test_score_multiplier_sync.py` prüft per AST-Inspektion,
-dass jeder `SUB_*_DISPLAY_PTS_MAX`-Wert tatsächlich als Multiplier in
-`score()` UND `_compute_sub_scores()` vorkommt. Wenn jemand eine
-Konstante ändert ohne den hartcodierten Multiplier mitzupflegen,
-schlägt der Test mit klarer Drift-Meldung an. Test ist
-**drift-resistent**: liest aktuellen Konstanten-Wert zur Laufzeit
-(keine hartcodierten Erwartungs-Werte im Test). Akzeptiert sowohl
-int-Literale (`* 32`) als auch Konstanten-Lookups
-(`* SUB_X_DISPLAY_PTS_MAX`) — zukunftssicher für eine eventuelle
-Option-A-Migration auf reine Konstanten-Binding.
+dass jeder `SUB_*_DISPLAY_PTS_MAX`-Wert tatsächlich als Multiplier an
+**drei Stellen** vorkommt: `score()`, `_compute_sub_scores()` UND
+`DRIVER_CLASSIFICATIONS` (Driver-Breakdown-Single-Source-of-Truth).
+Wenn jemand eine Konstante ändert ohne den hartcodierten Multiplier
+an einer der drei Stellen mitzupflegen, schlägt der Test mit klarer
+Drift-Meldung an. Test ist **drift-resistent**: liest aktuellen
+Konstanten-Wert zur Laufzeit (keine hartcodierten Erwartungs-Werte
+im Test). Akzeptiert sowohl int-Literale (`* 32`) als auch
+Konstanten-Lookups (`* SUB_X_DISPLAY_PTS_MAX`) — zukunftssicher für
+eine eventuelle Option-A-Migration auf reine Konstanten-Binding.
 
-Zusätzlich prüft der Test: `FLOAT_WEIGHT == SUB_FLOAT_SIZE_DISPLAY_PTS_MAX`
-(redundante Konstanten dürfen nicht auseinander driften) sowie die
-Vollständigkeit (jede `SUB_*`-Konstante muss in einer der beiden
-Funktionen genutzt werden — sonst ungenutzte Konstante zum Aufräumen).
+Zusätzlich prüft der Test:
+- `FLOAT_WEIGHT == SUB_FLOAT_SIZE_DISPLAY_PTS_MAX` (redundante
+  Konstanten dürfen nicht auseinander driften).
+- Vollständigkeit: jede `SUB_*`-Konstante muss in mindestens einer
+  der drei Stellen als Multiplier auftauchen — sonst ungenutzte
+  Konstante zum Aufräumen.
+- Catalyst-Werte (`SUB_EARN_NEAR_PTS`, `SUB_EARN_MID_PTS`,
+  `SUB_INSIDER_PTS`) tauchen als hartcodierte Floats in den Driver-
+  Weights auf.
+
+**Präzise Lambda-Walker-Extraktion:** der DRIVER_CLASSIFICATIONS-
+Walker erntet pro `weight`-Expression nur die unmittelbaren Multi-
+plikator-Werte (BinOp-Mult-Operanden in Lambda-Bodies), **nicht**
+beliebige `int`-Werte im Subtree. Damit werden Display-Only-Caps in
+`min(..., 10.0)`-Inner-Args ignoriert — verhindert Falsch-positiv
+wenn z. B. SUB_INSIDER_PTS=10 zufällig mit RSI-Cap-Wert 10 kollidieren
+würde. Ausnahme: Float-Größe-Weight ist `lambda s: _fs_weight(...)`
+mit `* 8` im Helper-Body — nicht sichtbar via DRIVER_CLASSIFICATIONS-
+Walk, dafür durch Test #03 (`_compute_sub_scores` Z. 3637) abgedeckt.
 
 Bei neuer `SUB_*_DISPLAY_PTS_MAX`-Konstante: Test-Eintrag in
 `required_constants`-Liste in `mock_test_score_multiplier_sync.py`
-ergänzen (Test #1 oder #3 je nach Pfad).
+ergänzen (Test #1, #3 oder #6 je nach Pfad).
 
 ### Bedingte Boni — Display-String muss Pfad-Vielfalt zeigen (10.05.2026)
 
