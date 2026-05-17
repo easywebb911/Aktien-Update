@@ -1,10 +1,10 @@
 {
-  "updated": "2026-05-17T21:50:35.210705+02:00",
+  "updated": "2026-05-17T22:18:54.452525+02:00",
   "run_info": {
     "tickers_checked": 14,
     "signals_active": 4,
     "alerts_sent": 0,
-    "elapsed_s": 13.5,
+    "elapsed_s": 14.2,
     "market_phase": "Geschlossen"
   },
   "signals": {
@@ -197,7 +197,7 @@
     "PZZA": {
       "score": 55,
       "confidence": 70,
-      "drivers": "Volumen 1.8× + Spanne 6.3% + News: buyout, takeover",
+      "drivers": "Volumen 1.8× + Spanne 6.3% + News: takeover, buyout",
       "price": 34.73,
       "chg_pct": -0.0,
       "rvol_4d": 1.78,
