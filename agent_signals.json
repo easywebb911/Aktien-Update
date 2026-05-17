@@ -1,17 +1,17 @@
 {
-  "updated": "2026-05-17T17:18:23.933526+02:00",
+  "updated": "2026-05-17T17:31:57.469757+02:00",
   "run_info": {
     "tickers_checked": 14,
-    "signals_active": 3,
+    "signals_active": 4,
     "alerts_sent": 0,
-    "elapsed_s": 14.7,
+    "elapsed_s": 11.7,
     "market_phase": "Geschlossen"
   },
   "signals": {
     "AI": {
       "score": 30,
       "confidence": 33,
-      "drivers": "News-KI 12/30: Negative sentiment with founder returning and restructuring, mixed analyst coverage, and recent sharp declines suggest w + Earnings in 10d + UOA Call/Put 3.5×",
+      "drivers": "News-KI 12/30: Negative sentiment with founder returning and restructuring suggests internal problems; stock plummeting indicates insti + Earnings in 10d + UOA Call/Put 3.5×",
       "price": 8.65,
       "chg_pct": -0.0,
       "rvol_4d": 1.01,
@@ -55,7 +55,7 @@
     "CRMD": {
       "score": 40,
       "confidence": 33,
-      "drivers": "Spanne 8.8% + News: earnings beat, guidance raised",
+      "drivers": "Spanne 8.8% + News: guidance raised, earnings beat",
       "price": 7.55,
       "chg_pct": 0.0,
       "rvol_4d": 1.46,
@@ -93,9 +93,9 @@
       "uoa_cp_ratio": null
     },
     "GEMI": {
-      "score": 68,
+      "score": 82,
       "confidence": 70,
-      "drivers": "Volumen 8.2× + 🚀 Massives Volumen 8.2×+ + Spanne 22.8% + News-KI 8/30: Positive earnings and stock movement lack short squeeze indicators like high short interest, unusual volume spikes, or f + UOA Call/Put 2.9×",
+      "drivers": "Volumen 8.2× + 🚀 Massives Volumen 8.2×+ + Spanne 22.8% + News: earnings beat + UOA Call/Put 2.9×",
       "price": 5.58,
       "chg_pct": -0.0,
       "rvol_4d": 8.22,
@@ -105,8 +105,8 @@
       "upcoming_event": null,
       "insider_buy": false,
       "stocktwits": null,
-      "combo_mult": 1.0,
-      "active_triggers": 1,
+      "combo_mult": 1.1,
+      "active_triggers": 2,
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 2.9×"
@@ -154,6 +154,26 @@
       "uoa_atm_ratio": 0.8742079761461051,
       "uoa_cp_ratio": 0.6368927426060103
     },
+    "LESL": {
+      "score": 10,
+      "confidence": 17,
+      "drivers": "Spanne 40.7%",
+      "price": 3.03,
+      "chg_pct": -0.0,
+      "rvol_4d": 0.53,
+      "rvol_20d": 2.63,
+      "earnings": "in 81 Tagen (06.08.2026)",
+      "fda_date": null,
+      "upcoming_event": null,
+      "insider_buy": false,
+      "stocktwits": null,
+      "combo_mult": 1.0,
+      "active_triggers": 0,
+      "uoa_score": 0,
+      "uoa_drivers": [],
+      "uoa_atm_ratio": null,
+      "uoa_cp_ratio": null
+    },
     "NTLA": {
       "score": 40,
       "confidence": 70,
@@ -177,7 +197,7 @@
     "PZZA": {
       "score": 55,
       "confidence": 70,
-      "drivers": "Volumen 1.8× + Spanne 6.3% + News: takeover, buyout",
+      "drivers": "Volumen 1.8× + Spanne 6.3% + News: takeover, acquisition",
       "price": 34.73,
       "chg_pct": -0.0,
       "rvol_4d": 1.78,
@@ -237,9 +257,9 @@
       "uoa_cp_ratio": 0.5700280112044818
     },
     "SKYQ": {
-      "score": 88,
+      "score": 58,
       "confidence": 70,
-      "drivers": "Volumen 7.7× + 🚀 Massives Volumen 7.7×+ + Spanne 51.2% + News: short interest, partnership",
+      "drivers": "Volumen 7.7× + 🚀 Massives Volumen 7.7×+ + Spanne 51.2% + News-KI 8/30: Strategic partnerships and asset development are positive but lack the debt/short position catalyst indicators and retai",
       "price": 3.07,
       "chg_pct": -0.0,
       "rvol_4d": 7.69,
@@ -249,28 +269,8 @@
       "upcoming_event": null,
       "insider_buy": false,
       "stocktwits": null,
-      "combo_mult": 1.1,
-      "active_triggers": 2,
-      "uoa_score": 0,
-      "uoa_drivers": [],
-      "uoa_atm_ratio": null,
-      "uoa_cp_ratio": null
-    },
-    "SPIR": {
-      "score": 25,
-      "confidence": 33,
-      "drivers": "Volumen 1.6× + Spanne 15.5%",
-      "price": 20.01,
-      "chg_pct": 0.0,
-      "rvol_4d": 1.55,
-      "rvol_20d": 1.75,
-      "earnings": "in 87 Tagen (12.08.2026)",
-      "fda_date": null,
-      "upcoming_event": null,
-      "insider_buy": false,
-      "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 0,
+      "active_triggers": 1,
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": null,
