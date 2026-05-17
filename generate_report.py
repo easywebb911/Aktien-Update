@@ -2294,6 +2294,10 @@ _WL_CARD_STRIP_RE = {
     "stale_ids":     re.compile(
         r' id="(?:c|dd|db|da|dl|nb|nb-icon|nl|np|ka-btn|ka-res)\d+"'
     ),
+    # Cockpit-Container hat eigene ID-Form id="cockpit-{i}" — separat
+    # gestrippt damit Top-10-Handler keine Watchlist-Cockpits per
+    # getElementById finden.
+    "cockpit_id":    re.compile(r' id="cockpit-\d+"'),
     "details_onclick": re.compile(r'onclick="toggleDetails\(\d+\)"'),
     "news_onclick":    re.compile(r'onclick="toggleNews\(\d+\)"'),
     "ki_onclick":      re.compile(r'onclick="runKiAnalyse\(\d+\)"'),
@@ -2330,6 +2334,7 @@ def _wl_full_card_html(s: dict) -> str:
     raw = _WL_CARD_STRIP_RE["rank"].sub("", raw, count=1)
     raw = _WL_CARD_STRIP_RE["wl_add_btn"].sub("", raw, count=1)
     raw = _WL_CARD_STRIP_RE["stale_ids"].sub("", raw)
+    raw = _WL_CARD_STRIP_RE["cockpit_id"].sub("", raw)
     raw = _WL_CARD_STRIP_RE["details_onclick"].sub(
         'onclick="wlToggleDetails(this)"', raw, count=1
     )
@@ -5022,6 +5027,44 @@ def _card(i: int, s: dict) -> str:
 
     rank_html = f'<span class="rank">{i}</span>'
 
+    # Karten-Header-Auswahl (Stage 2 ab 18.05.2026): bei
+    # CARD_COCKPIT_ENABLED=True Bloomberg-Cockpit-Layout via Helper;
+    # sonst klassisches card-top + score-block.
+    if CARD_COCKPIT_ENABLED:
+        _wl_add_btn = (
+            f'<button class="wl-add-btn" data-ticker="{s["ticker"]}" '
+            f'onclick="wlToggle(this)" title="Zur Watchlist hinzufügen">＋</button>'
+        )
+        card_header_html = _card_cockpit_html(
+            i, s,
+            rank_html=rank_html,
+            market_tag_html=_market_tag_html(s["ticker"]),
+            chart_badge_html=sa_badge + _wl_add_btn,
+            sector_tag_html=(sector_tag_html + earnings_tag_html
+                             + squeeze_badge_html + pd_badges_html),
+        )
+    else:
+        card_header_html = (
+            f'<div class="card-top">'
+            f'<div class="card-left">'
+            f'{rank_html}'
+            f'<div class="ticker-block">'
+            f'<div class="ticker-row">'
+            f'<span class="ticker">{s["ticker"]}</span>'
+            f'{_market_tag_html(s["ticker"])}'
+            f'{sa_badge}'
+            f'<span class="price-tag">${s.get("price",0):.2f}</span>'
+            f'<button class="wl-add-btn" data-ticker="{s["ticker"]}" '
+            f'onclick="wlToggle(this)" title="Zur Watchlist hinzufügen">＋</button>'
+            f'</div>'
+            f'<span class="company">{s.get("company_name","")}</span>'
+            f'{sector_tag_html}{earnings_tag_html}{squeeze_badge_html}{pd_badges_html}'
+            f'</div>'
+            f'</div>'
+            f'<div class="score-block sort-setup">{score_block_html}</div>'
+            f'</div>'
+        )
+
     return f"""
 <article class="card{' card-manual' if s.get('manual_personal') else ''}{' card-lazy' if (LAZY_CARDS_ENABLED and i > LAZY_CARDS_EAGER) else ''}" id="c{i}" data-ticker="{s['ticker']}" data-setup-rank="{i}"{monster_data_attr}{conviction_data_attr}
   data-score="{sc:.1f}" data-company="{s.get('company_name','')}"
@@ -5030,23 +5073,7 @@ def _card(i: int, s: dict) -> str:
   data-rsi="{_da_rsi}" data-iv="{_da_iv}" data-earn="{_da_earn}"
   data-earn-date="{_da_earn_date}" data-float="{_da_float}"
   data-cap="{_da_cap}" data-sector="{_sector}" data-news="{_da_news}">
-  <div class="card-top">
-    <div class="card-left">
-      {rank_html}
-      <div class="ticker-block">
-        <div class="ticker-row">
-          <span class="ticker">{s['ticker']}</span>
-          {_market_tag_html(s['ticker'])}
-          {sa_badge}
-          <span class="price-tag">${s.get('price',0):.2f}</span>
-          <button class="wl-add-btn" data-ticker="{s['ticker']}" onclick="wlToggle(this)" title="Zur Watchlist hinzufügen">＋</button>
-        </div>
-        <span class="company">{s.get('company_name','')}</span>
-        {sector_tag_html}{earnings_tag_html}{squeeze_badge_html}{pd_badges_html}
-      </div>
-    </div>
-    <div class="score-block sort-setup">{score_block_html}</div>
-  </div>
+  {card_header_html}
   {sub_scores_html}
   {sparkline_html}
   <div class="metrics-row">
@@ -5546,6 +5573,45 @@ def _build_card_ctx(i: int, s: dict) -> dict:
     card_manual_class = " card-manual" if s.get("manual_personal") else ""
     card_lazy_class   = " card-lazy" if (LAZY_CARDS_ENABLED and i > LAZY_CARDS_EAGER) else ""
 
+    # Karten-Header (Stage 2 ab 18.05.2026, analog v1): Cockpit-Layout
+    # via Helper bei CARD_COCKPIT_ENABLED=True; sonst klassisches
+    # card-top + score-block. v1/v2-Byte-Identitaet durch identische
+    # Helper-Aufruf-Parameter.
+    if CARD_COCKPIT_ENABLED:
+        _wl_add_btn = (
+            f'<button class="wl-add-btn" data-ticker="{ticker}" '
+            f'onclick="wlToggle(this)" title="Zur Watchlist hinzufügen">＋</button>'
+        )
+        card_header_html = _card_cockpit_html(
+            i, s,
+            rank_html=rank_html,
+            market_tag_html=_market_tag_html(ticker),
+            chart_badge_html=sa_badge + _wl_add_btn,
+            sector_tag_html=(sector_tag_html + earnings_tag_html
+                             + squeeze_badge_html + pd_badges_html),
+        )
+    else:
+        card_header_html = (
+            f'<div class="card-top">'
+            f'<div class="card-left">'
+            f'{rank_html}'
+            f'<div class="ticker-block">'
+            f'<div class="ticker-row">'
+            f'<span class="ticker">{ticker}</span>'
+            f'{_market_tag_html(ticker)}'
+            f'{sa_badge}'
+            f'<span class="price-tag">${price_str}</span>'
+            f'<button class="wl-add-btn" data-ticker="{ticker}" '
+            f'onclick="wlToggle(this)" title="Zur Watchlist hinzufügen">＋</button>'
+            f'</div>'
+            f'<span class="company">{company}</span>'
+            f'{sector_tag_html}{earnings_tag_html}{squeeze_badge_html}{pd_badges_html}'
+            f'</div>'
+            f'</div>'
+            f'<div class="score-block sort-setup">{score_block_html}</div>'
+            f'</div>'
+        )
+
     return {
         # Identity / rank
         "i":              i,
@@ -5598,6 +5664,7 @@ def _build_card_ctx(i: int, s: dict) -> dict:
         "avg_vol_str":    avg_vol_str,
         "cur_vol_str":    cur_vol_str,
         "rank_html":           rank_html,
+        "card_header_html":    card_header_html,
         "card_manual_class":   card_manual_class,
         "card_lazy_class":     card_lazy_class,
 
@@ -8156,7 +8223,15 @@ function toggleDetails(id){{
       // Konsumenten von _quoteSetIndicator suchen ``.quote-live-dot``
       // im scope — der Selektor erfordert das DOM-Element.
       if (QUOTE_PROXY_URL && !card.querySelector('.quote-live-dot')) {{
-        const target = card.querySelector('.score-block') || card.querySelector('.card-top');
+        // Cockpit-Layout-Adoption (Stage 2 ab 18.05.2026): .card-cockpit
+        // hat den .cockpit-header-right Container, der das ideale
+        // Injection-Ziel ist (neben Kurs + Tagesaenderung). Fallback-
+        // Kette: cockpit-header-right -> card-cockpit -> alte
+        // score-block -> card-top.
+        const target = card.querySelector('.cockpit-header-right')
+                    || card.querySelector('.card-cockpit')
+                    || card.querySelector('.score-block')
+                    || card.querySelector('.card-top');
         if (target) {{
           const dot = document.createElement('span');
           dot.className = 'quote-live-dot';
