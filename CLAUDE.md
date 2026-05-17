@@ -247,6 +247,65 @@ Bei neuen Score-Berechnungs-Pfaden die Allow-Liste in
 
 ---
 
+## Karten-Cockpit-Redesign (3-Stage-Plan, ab 18.05.2026)
+
+Bloomberg-Stil-Cockpit-Layout für Top-10-Karten + Watchlist-Drawer.
+Header zweispaltig (rank/ticker links · price/change rechts mit
+farbigem ▲/▼-Pfeil), darunter Cockpit-Body mit drei Sub-Score-Säulen
+(Setup → Monster → KI, jeweils 100 px breit, Label + /100 + 26 px
+Score-Wert + 3 px Progress-Bar) und großem Conviction-Donut rechts
+(SVG 185×185 mit `width`/`height` als HTML-Attribute, stroke-width 7,
+rotate(-90deg) für 12-Uhr-Start, 50 px Zahl in Donut-Mitte, „/ 100"
+darunter, zweizeilige Erklärungs-Caption).
+
+### Stage-Plan
+
+| Stage | Status | Scope |
+|---|---|---|
+| **1** | **PR `feat/card-cockpit-stage1-helpers`** | Helper `_card_cockpit_html` + CSS-Klassen `.cockpit-*` in `head.jinja` + Tests. Flag `CARD_COCKPIT_ENABLED=False` → User sieht nichts. Bestehender `_score_block_inner_html` und `_card`-Pfad unverändert. |
+| 2 | offen | Flag auf `True`. `_card` (v1) + `_build_card_ctx` (v2) + `card.jinja` schalten auf Cockpit-Output um. **iPhone-Live-Verify Pflicht** (Cache-Bust falls nötig). Watchlist-Drawer bekommt Cockpit automatisch via `_wl_full_card_html`-Regex-Strip. |
+| 3 | offen | Cleanup: obsolete `.sb-row` / `.sb-num`-Reste aus Karten-Bereich entfernen. Methodik-Panel-Verwendung (`.score-block-list .sb-lbl` etc.) bleibt — eigene Konsumenten-Klasse, eigenes CSS-Scope. |
+
+### Helper-Vertrag (`_card_cockpit_html`)
+
+```python
+def _card_cockpit_html(
+    i: int, s: dict, *,
+    rank_html: str = "",
+    market_tag_html: str = "",
+    chart_badge_html: str = "",
+    sector_tag_html: str = "",
+) -> str:
+```
+
+Stocks-Felder-Lesepfad: `ticker`, `price`, `change`, `company_name`,
+`score`, `monster_score`, `ki_signal_score`, `conviction.{score, level,
+action_text}`. Caller (Stage 2) baut `rank_html` / `market_tag_html` /
+`chart_badge_html` (= `sa_badge`) / `sector_tag_html` weiter selbst und
+reicht sie als Strings durch — analog zur heutigen `_card`-Render-Struktur.
+
+### Konfidenz-Wasserzeichen
+
+Die `.sb-conf-robust` / `-mittel` / `-prov` / `-heur`-Klassen aus PR #171
+sind **wiederverwendbar** auf `.cockpit-pillar-value` und
+`.cockpit-donut-number` — selbe CSS-Wirkung (Dimming + gepunktete
+Unterstreichung). `_conf_class("setup" | "monster" | "ki" | "conviction")`
+ist Single-Source-of-Truth für Tier-Bestimmung.
+
+### Pflege
+
+- Bei Schema-Erweiterung an Sub-Scores (z. B. neuer Entry-Score ab
+  Wiedervorlage 10.06.): Helper-Säulen-Liste erweitern, CSS-Klasse
+  `.cockpit-pillar` ist generisch und braucht keinen neuen Selektor.
+- Wenn `CARD_COCKPIT_ENABLED` jemals `True` ist UND `_card` / Jinja-
+  Template noch das alte `.score-block` rendern: visueller Konflikt
+  möglich. Stage 2 muss beide Pfade gleichzeitig umstellen.
+- v1-/v2-Byte-Identität wird in Stage 2 dadurch garantiert, dass der
+  Helper-Output als pre-computed Context-String (analog
+  `score_block_html` heute) in beide Render-Pfade eingebettet wird.
+
+---
+
 ## Cache-Strategie (kein Service-Worker, ab 17.05.2026)
 
 Service-Worker wurde am 17.05.2026 **komplett entfernt**. Frontend
