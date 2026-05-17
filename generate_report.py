@@ -4419,9 +4419,11 @@ def _card_cockpit_html(
     Stage 1: Helper existiert + ist testbar, aber NICHT im Render-Pfad
     verdrahtet. Aktivierung via ``CARD_COCKPIT_ENABLED=True`` in Stage 2.
 
-    SVG-Donut nutzt ``width="185" height="185"`` als HTML-Attribute (nicht
+    SVG-Donut nutzt ``width="160" height="160"`` als HTML-Attribute (nicht
     nur CSS), damit der Browser eine intrinsische Groesse rendert auch
-    wenn CSS noch nicht geladen ist.
+    wenn CSS noch nicht geladen ist. (Vorher 185 px — 18.05.2026 auf 160
+    reduziert weil Donut im Live-Render zu dominant gegenueber Saeulen
+    wirkte. Conviction-Zahl proportional 50 -> 42 px nachgezogen.)
     """
     ticker = s.get("ticker", "?")
     price = _safe_float(s.get("price", 0))
@@ -4464,8 +4466,8 @@ def _card_cockpit_html(
     cv_css, cv_title, cv_aria = _conf_class("conviction")
     cv_attrs = f' title="{cv_title}" aria-label="{cv_aria}"' if cv_title else ""
 
-    donut_size = 185
-    donut_r = 85
+    donut_size = 160
+    donut_r = 73
     donut_c = 2 * 3.141592653589793 * donut_r
     donut_dash = donut_c * (conv_pct / 100.0)
     donut_gap = donut_c - donut_dash
