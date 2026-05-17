@@ -46,7 +46,6 @@ log = logging.getLogger("health_check_digest")
 
 DIGEST_STATE_FILE = ROOT / "health_check_digest_state.json"
 DIGEST_WINDOW_HOURS = 24
-NTFY_URL = "https://ntfy.sh"
 
 
 # ── State-Datei (Konsekutiv-Counter + Mehrfach-Trigger-Schutz) ─────────────
@@ -152,20 +151,22 @@ def _latest_run_ts(entries: list[dict]) -> str | None:
 
 def _ntfy_send(title: str, body: str, priority: str,
                tags: str | None) -> bool:
-    """Sendet Push via ntfy.sh JSON-API. Fail-soft: Netzwerk-Fehler werden
-    geloggt, kein Re-Raise — der Workflow kommt durch.
+    """Sendet Push via ntfy.sh URL-Pattern (POST /{topic}). Fail-soft:
+    Netzwerk-Fehler werden geloggt, kein Re-Raise.
 
     ``NTFY_TOPIC`` leer oder ``NTFY_ENABLED=False`` → no-op
     (graceful skip), Body wird geloggt für Diagnose.
 
-    Unicode-Fix (16.05.2026): Die ursprüngliche URL-Pattern-Variante
-    (``POST https://ntfy.sh/{topic}``) übergab ``Title`` als HTTP-
-    Header. HTTP-Header sind per RFC 7230 latin-1-only — Emojis im
-    Title (``⚠️📭✅🔴🟡``) werfen ``UnicodeEncodeError`` im requests-
-    Stack, der ``_ntfy_send`` lautlos auf ``False`` setzte.
-    JSON-API (``POST https://ntfy.sh/`` mit allen Feldern im Body)
-    umgeht das vollständig — JSON ist immer UTF-8, kein Header-
-    Encoding nötig.
+    URL-Pattern-Adoption (17.05.2026): die JSON-API-Variante
+    (``POST https://ntfy.sh/`` + ``json={"topic": ...}``) hat auf
+    ntfy.sh nicht zuverlaessig gepusht — ``last_digest_sent`` blieb
+    seit 15.05. trotz Workflow-Runs auf ``null``. Andere ntfy-Sender
+    im Tool (``ki_agent._send_anomaly_ntfy``, ``_send_exit_p2_push``)
+    nutzen das URL-Pattern und funktionieren zuverlaessig — analog
+    adoptiert. Title MUSS ASCII-only sein (HTTP-Header-Limit per
+    RFC 7230 latin-1); Emoji-Reste aus ``format_digest_body`` werden
+    via ``.encode("ascii", "ignore")`` herausgefiltert. Body bleibt
+    UTF-8 (laeuft als ``data=``-Body, kein Header).
     """
     if not NTFY_ENABLED or not NTFY_TOPIC:
         log.info("ntfy disabled — Body würde sein:\n%s", body)
@@ -173,38 +174,39 @@ def _ntfy_send(title: str, body: str, priority: str,
     if requests is None:
         log.warning("requests-Modul fehlt — ntfy-Push übersprungen")
         return False
-    payload: dict = {
-        "topic":    NTFY_TOPIC,
-        "title":    title,
-        "message":  body,
-        "priority": priority,
+    # ASCII-clean title: HTTP-Header-Konstraints umgehen. Body bleibt UTF-8.
+    title_ascii = title.encode("ascii", "ignore").decode("ascii").strip()
+    if not title_ascii:
+        title_ascii = "Health-Check"
+    headers = {
+        "Title":    title_ascii,
+        "Priority": priority,
     }
     if tags:
-        # ntfy JSON-API erwartet tags als Array. Komma-getrennte String-
-        # Eingabe (Legacy-Konvention) wird gesplittet.
-        payload["tags"] = [t.strip() for t in tags.split(",") if t.strip()]
+        headers["Tags"] = tags
     try:
         resp = requests.post(
-            NTFY_URL,           # JSON-API: topic ist im Body, NICHT in der URL
-            json=payload,       # requests serialisiert UTF-8 + setzt Content-Type
+            f"https://ntfy.sh/{NTFY_TOPIC}",
+            data=body.encode("utf-8"),
+            headers=headers,
             timeout=10,
         )
         # Diagnose-Erweiterung (15.05.2026): HTTP-Status auch bei Success
-        # loggen — beim ersten ausbleibenden Push (15.05.) konnten wir
-        # nicht zwischen "Push gesendet, ntfy hat es geschluckt" und
-        # "Push gefailed, return False" unterscheiden. INFO-Level damit
-        # in Workflow-Logs sichtbar.
+        # loggen — beim ersten ausbleibenden Push konnten wir nicht
+        # zwischen "Push gesendet, ntfy hat es geschluckt" und "Push
+        # gefailed, return False" unterscheiden. INFO-Level damit in
+        # Workflow-Logs sichtbar.
         if resp.status_code >= 400:
             log.warning("ntfy-Push HTTP %d (FAIL): %s",
                         resp.status_code, resp.text[:200])
             return False
         log.info("ntfy-Push HTTP %d (OK) — title=%r priority=%s",
-                 resp.status_code, title, priority)
+                 resp.status_code, title_ascii, priority)
         return True
     except Exception as exc:
         # Diagnose-Erweiterung (15.05.2026): Exception-Type mit-loggen,
         # damit zwischen Timeout / ConnectionError / SSL-Fehler /
-        # DNS-Fail / UnicodeEncodeError unterschieden werden kann.
+        # DNS-Fail unterschieden werden kann.
         log.warning("ntfy-Push Netzwerk-Fehler %s: %s",
                     type(exc).__name__, exc)
         return False
