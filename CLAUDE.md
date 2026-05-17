@@ -2763,10 +2763,28 @@ Komponente:
 
 Drift-Schutz für die Sub-Score-Caps ist damit strukturell gesichert,
 solange `score()` und `_compute_sub_scores()` mit den gleichen
-Konstanten arbeiten. Die Drift zwischen Code und Konstante (`score()`-
-Cap weicht von `SUB_*_DISPLAY_PTS_MAX` ab) bleibt manuell zu pflegen —
-Schritt B würde `score()` aus den gleichen Konstanten ableiten und
-diese letzte Drift-Quelle eliminieren.
+Konstanten arbeiten.
+
+**AST-Sync-Test (seit 17.05.2026)** —
+`scripts/mock_test_score_multiplier_sync.py` prüft per AST-Inspektion,
+dass jeder `SUB_*_DISPLAY_PTS_MAX`-Wert tatsächlich als Multiplier in
+`score()` UND `_compute_sub_scores()` vorkommt. Wenn jemand eine
+Konstante ändert ohne den hartcodierten Multiplier mitzupflegen,
+schlägt der Test mit klarer Drift-Meldung an. Test ist
+**drift-resistent**: liest aktuellen Konstanten-Wert zur Laufzeit
+(keine hartcodierten Erwartungs-Werte im Test). Akzeptiert sowohl
+int-Literale (`* 32`) als auch Konstanten-Lookups
+(`* SUB_X_DISPLAY_PTS_MAX`) — zukunftssicher für eine eventuelle
+Option-A-Migration auf reine Konstanten-Binding.
+
+Zusätzlich prüft der Test: `FLOAT_WEIGHT == SUB_FLOAT_SIZE_DISPLAY_PTS_MAX`
+(redundante Konstanten dürfen nicht auseinander driften) sowie die
+Vollständigkeit (jede `SUB_*`-Konstante muss in einer der beiden
+Funktionen genutzt werden — sonst ungenutzte Konstante zum Aufräumen).
+
+Bei neuer `SUB_*_DISPLAY_PTS_MAX`-Konstante: Test-Eintrag in
+`required_constants`-Liste in `mock_test_score_multiplier_sync.py`
+ergänzen (Test #1 oder #3 je nach Pfad).
 
 ### Bedingte Boni — Display-String muss Pfad-Vielfalt zeigen (10.05.2026)
 
