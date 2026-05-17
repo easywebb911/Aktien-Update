@@ -1,5 +1,5 @@
 {
-  "last_run": "2026-05-17T17:31:58.761779+02:00",
+  "last_run": "2026-05-17T19:15:23.652137+02:00",
   "cooldowns": {
     "anomaly_score_jump_XRX": "2026-05-03T18:47:15.315486+02:00",
     "anomaly_uoa_extreme_TDOC": "2026-05-04T13:47:00.365949+02:00",
@@ -33,17 +33,6 @@
     "exit_CRMD": "2026-05-17T17:30:31.960160+02:00"
   },
   "push_history": [
-    {
-      "ts": "2026-05-12T20:19:24.801701+02:00",
-      "ticker": "RIGL",
-      "kind": "anomaly",
-      "severity": "medium",
-      "trigger": "score_jump",
-      "body": "RIGL 🚀 Setup 78 ↑ (gestern 40) | Volumen 1.7× + Spanne 11.6% + News: short interest",
-      "success": true,
-      "suppressed": false,
-      "suppress_reason": null
-    },
     {
       "ts": "2026-05-12T21:48:10.078812+02:00",
       "ticker": "AMC",
@@ -1227,6 +1216,18 @@
       "severity": "high",
       "trigger": "monster_backup",
       "body": "GEMI 🔥 Monster 96 | Setup 80 | KI 82",
+      "success": false,
+      "suppressed": true,
+      "suppress_reason": "conviction_below_threshold",
+      "conviction_score": 54
+    },
+    {
+      "ts": "2026-05-17T19:15:20.925304+02:00",
+      "ticker": "GEMI",
+      "kind": "anomaly",
+      "severity": "high",
+      "trigger": "monster_backup",
+      "body": "GEMI 🔥 Monster 96 | Setup 80 | KI 68",
       "success": false,
       "suppressed": true,
       "suppress_reason": "conviction_below_threshold",
