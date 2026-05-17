@@ -10,8 +10,8 @@ Tests:
   2. _card_cockpit_html-Funktion existiert in generate_report
   3. Output enthaelt Cockpit-Container-Klasse
   4. Output enthaelt drei Saeulen in Reihenfolge Setup -> Monster -> KI
-  5. SVG hat width="160" + height="160" als HTML-Attribute (NICHT nur CSS)
-     — Tuning 18.05.2026: 185 -> 160 fuer balanciertes Verhaeltnis zu Saeulen
+  5. SVG hat width="150" + height="150" als HTML-Attribute (NICHT nur CSS)
+     — Tuning-Sequenz 18.05.2026: 185 -> 160 -> 150 nach iPhone-Verify
   6. Donut hat /100-Skala
   7. Bei positivem chg: cockpit-change-up Klasse
   8. Bei negativem chg: cockpit-change-down Klasse
@@ -113,12 +113,11 @@ def test_04_three_pillars_in_order() -> None:
 def test_05_svg_has_html_size_attributes() -> None:
     out = _card_cockpit_html(1, _sample_stock())
     # SVG-Tag muss width und height als HTML-Attribute haben.
-    # Groesse 160 px seit Tuning 18.05.2026 (vorher 185 px — wirkte
-    # im Live-Render zu dominant gegenueber den Saeulen).
-    assert 'width="160"' in out, "SVG width=160 als HTML-Attribut fehlt"
-    assert 'height="160"' in out, "SVG height=160 als HTML-Attribut fehlt"
-    # viewBox skaliert proportional
-    assert 'viewBox="0 0 160 160"' in out, "SVG viewBox fehlt oder falsch"
+    # Iterativ-Tuning 18.05.2026: 185 -> 160 -> 150 px nach iPhone-
+    # Verify (Donut zu dominant gegenueber Saeulen-Spalte).
+    assert 'width="150"' in out, "SVG width=150 als HTML-Attribut fehlt"
+    assert 'height="150"' in out, "SVG height=150 als HTML-Attribut fehlt"
+    assert 'viewBox="0 0 150 150"' in out, "SVG viewBox fehlt oder falsch"
 
 
 def test_06_donut_has_100_scale() -> None:
@@ -172,15 +171,15 @@ def test_10_css_classes_in_head_jinja() -> None:
 
 
 def test_11_css_font_sizes_match_spec() -> None:
-    # Kurs 28px, Saeulen-Wert 26px, Donut-Zahl 42px
-    # (Donut-Zahl 50 -> 42 mit Tuning 18.05.2026, proportional zur
-    # reduzierten Donut-Groesse 185 -> 160).
+    # Kurs 28px, Saeulen-Wert 26px, Donut-Zahl 40px.
+    # Donut-Zahl-Sequenz 18.05.2026: 50 -> 42 -> 40 px (proportional
+    # zur Donut-Groesse-Reduzierung 185 -> 160 -> 150).
     assert "font-size:28px" in HJ_SRC, \
         "Kurs-font-size 28px fehlt"
     m = re.search(r"\.cockpit-pillar-value\{[^}]*font-size:26px", HJ_SRC)
     assert m, "cockpit-pillar-value font-size:26px fehlt"
-    m = re.search(r"\.cockpit-donut-number\{[^}]*font-size:42px", HJ_SRC)
-    assert m, "cockpit-donut-number font-size:42px fehlt"
+    m = re.search(r"\.cockpit-donut-number\{[^}]*font-size:40px", HJ_SRC)
+    assert m, "cockpit-donut-number font-size:40px fehlt"
 
 
 def test_12_score_block_inner_unchanged() -> None:
