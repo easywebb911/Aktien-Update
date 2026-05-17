@@ -4395,6 +4395,170 @@ def _score_block_inner_html(s: dict, hint_html: str = "") -> str:
     return "".join(rows) + (hint_html or "")
 
 
+def _card_cockpit_html(
+    i: int,
+    s: dict,
+    *,
+    rank_html: str = "",
+    market_tag_html: str = "",
+    chart_badge_html: str = "",
+    sector_tag_html: str = "",
+) -> str:
+    """Bloomberg-Stil-Cockpit-Layout fuer Karten-Header (Stage 1, 18.05.2026).
+
+    Parallel zu ``_score_block_inner_html``. Produziert komplettes Header-
+    Cockpit: Header-Zeile zweispaltig (ticker/badges links, price/change
+    rechts) + Cockpit-Body (Saeulen Setup/Monster/KI links 100 px,
+    Conviction-Donut rechts mit Label, Zahl, /100-Skala, Erklaerungstext).
+
+    Stage 1: Helper existiert + ist testbar, aber NICHT im Render-Pfad
+    verdrahtet. Aktivierung via ``CARD_COCKPIT_ENABLED=True`` in Stage 2.
+
+    SVG-Donut nutzt ``width="185" height="185"`` als HTML-Attribute (nicht
+    nur CSS), damit der Browser eine intrinsische Groesse rendert auch
+    wenn CSS noch nicht geladen ist.
+    """
+    ticker = s.get("ticker", "?")
+    price = _safe_float(s.get("price", 0))
+    chg = _safe_float(s.get("change", 0))
+    company = s.get("company_name", "")
+
+    if chg > 0:
+        chg_cls = "cockpit-change-up"
+        chg_arrow = "&#9650;"
+        chg_sign = "+"
+    elif chg < 0:
+        chg_cls = "cockpit-change-down"
+        chg_arrow = "&#9660;"
+        chg_sign = ""
+    else:
+        chg_cls = "cockpit-change-flat"
+        chg_arrow = "&#9632;"
+        chg_sign = ""
+    chg_abs = abs(price * chg / 100.0) if price else 0.0
+    chg_str = f"{chg_arrow} {chg_sign}{chg_abs:.2f} ({chg_sign}{chg:.2f}%)"
+
+    conv = s.get("conviction") or {}
+    conv_score = conv.get("score")
+    conv_level = conv.get("level")
+    conv_action = conv.get("action_text") or ""
+    if isinstance(conv_score, (int, float)):
+        conv_pct = max(0.0, min(100.0, float(conv_score)))
+        if conv_level == "high":
+            conv_col = "#22c55e"
+        elif conv_level == "medium":
+            conv_col = "#f59e0b"
+        else:
+            conv_col = "#94a3b8"
+        conv_value = str(int(round(conv_pct)))
+    else:
+        conv_pct = 0.0
+        conv_col = "#94a3b8"
+        conv_value = "—"
+
+    cv_css, cv_title, cv_aria = _conf_class("conviction")
+    cv_attrs = f' title="{cv_title}" aria-label="{cv_aria}"' if cv_title else ""
+
+    donut_size = 185
+    donut_r = 85
+    donut_c = 2 * 3.141592653589793 * donut_r
+    donut_dash = donut_c * (conv_pct / 100.0)
+    donut_gap = donut_c - donut_dash
+
+    setup_val = _safe_float(s.get("score", 0))
+    monster_val = s.get("monster_score")
+    ki_val = s.get("ki_signal_score")
+
+    pillar_specs = [
+        ("Setup",   setup_val,   "setup",   f"{setup_val:.1f}"),
+        ("Monster", monster_val, "monster",
+         f"{monster_val:.0f}" if monster_val is not None else "—"),
+        ("KI",      ki_val,      "ki",
+         f"{ki_val:.0f}" if ki_val is not None else "—"),
+    ]
+    pillars: list[str] = []
+    for label, val, conf_key, fmt in pillar_specs:
+        if val is None:
+            col = "#94a3b8"
+            pct = 0.0
+        else:
+            col = _tri_score_color(val)
+            pct = max(0.0, min(100.0, float(val)))
+        css, title, aria = _conf_class(conf_key)
+        attrs = f' title="{title}" aria-label="{aria}"' if title else ""
+        pillars.append(
+            f'<div class="cockpit-pillar" data-sb="{conf_key}">'
+            f'<div class="cockpit-pillar-label">'
+            f'<span class="cockpit-pillar-name">{label}</span>'
+            f'<span class="cockpit-pillar-scale">/100</span>'
+            f'</div>'
+            f'<div class="cockpit-pillar-value {css}" '
+            f'style="color:{col}"{attrs}>{fmt}</div>'
+            f'<div class="cockpit-pillar-bar">'
+            f'<div class="cockpit-pillar-bar-fill" '
+            f'style="width:{pct:.0f}%;background:{col}"></div>'
+            f'</div>'
+            f'</div>'
+        )
+
+    if conv_action:
+        idx = conv_action.find(". ")
+        if 0 < idx < len(conv_action) - 2:
+            caption = f"{conv_action[:idx + 1]}<br>{conv_action[idx + 2:]}"
+        else:
+            caption = conv_action
+    else:
+        caption = "&nbsp;"
+
+    half = donut_size // 2
+    return (
+        f'<div class="card-cockpit" id="cockpit-{i}">'
+        f'<div class="cockpit-header">'
+        f'<div class="cockpit-header-left">'
+        f'{rank_html}'
+        f'<div class="cockpit-ticker-block">'
+        f'<div class="cockpit-ticker-row">'
+        f'<span class="ticker">{ticker}</span>'
+        f'{market_tag_html}'
+        f'{chart_badge_html}'
+        f'</div>'
+        f'<span class="cockpit-company">{company}</span>'
+        f'{sector_tag_html}'
+        f'</div>'
+        f'</div>'
+        f'<div class="cockpit-header-right">'
+        f'<span class="cockpit-price">${price:.2f}</span>'
+        f'<span class="cockpit-change {chg_cls}">{chg_str}</span>'
+        f'</div>'
+        f'</div>'
+        f'<div class="cockpit-body">'
+        f'<div class="cockpit-pillars">{"".join(pillars)}</div>'
+        f'<div class="cockpit-donut-wrap">'
+        f'<div class="cockpit-donut-label">Conviction</div>'
+        f'<div class="cockpit-donut-inner">'
+        f'<svg class="cockpit-donut-svg" width="{donut_size}" height="{donut_size}" '
+        f'viewBox="0 0 {donut_size} {donut_size}" aria-hidden="true">'
+        f'<circle cx="{half}" cy="{half}" r="{donut_r}" '
+        f'fill="none" stroke="rgba(255,255,255,0.06)" stroke-width="7"/>'
+        f'<circle cx="{half}" cy="{half}" r="{donut_r}" '
+        f'fill="none" stroke="{conv_col}" stroke-width="7" '
+        f'stroke-linecap="round" '
+        f'stroke-dasharray="{donut_dash:.2f} {donut_gap:.2f}" '
+        f'transform="rotate(-90 {half} {half})"/>'
+        f'</svg>'
+        f'<div class="cockpit-donut-center">'
+        f'<span class="cockpit-donut-number {cv_css}" '
+        f'style="color:{conv_col}"{cv_attrs}>{conv_value}</span>'
+        f'<span class="cockpit-donut-scale">/ 100</span>'
+        f'</div>'
+        f'</div>'
+        f'<div class="cockpit-donut-caption">{caption}</div>'
+        f'</div>'
+        f'</div>'
+        f'</div>'
+    )
+
+
 def _detect_short_pressure(s: dict) -> bool:
     """Short Ladder Attack Detection.
 
