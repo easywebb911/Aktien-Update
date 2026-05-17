@@ -1,17 +1,17 @@
 {
-  "updated": "2026-05-17T21:37:38.400346+02:00",
+  "updated": "2026-05-17T21:50:35.210705+02:00",
   "run_info": {
     "tickers_checked": 14,
     "signals_active": 4,
     "alerts_sent": 0,
-    "elapsed_s": 14.6,
+    "elapsed_s": 13.5,
     "market_phase": "Geschlossen"
   },
   "signals": {
     "AI": {
-      "score": 26,
+      "score": 18,
       "confidence": 33,
-      "drivers": "News-KI 8/30: Negative price action and restructuring suggest weak momentum; no evidence of high short interest, borrow scarcity, or c + Earnings in 10d + UOA Call/Put 3.5×",
+      "drivers": "Earnings in 10d + UOA Call/Put 3.5×",
       "price": 8.65,
       "chg_pct": -0.0,
       "rvol_4d": 1.01,
@@ -259,7 +259,7 @@
     "SKYQ": {
       "score": 88,
       "confidence": 70,
-      "drivers": "Volumen 7.7× + 🚀 Massives Volumen 7.7×+ + Spanne 51.2% + News: short interest, partnership",
+      "drivers": "Volumen 7.7× + 🚀 Massives Volumen 7.7×+ + Spanne 51.2% + News: partnership, short interest",
       "price": 3.07,
       "chg_pct": -0.0,
       "rvol_4d": 7.69,

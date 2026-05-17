@@ -1,5 +1,5 @@
 {
-  "last_run": "2026-05-17T21:37:40.833994+02:00",
+  "last_run": "2026-05-17T21:50:37.787228+02:00",
   "cooldowns": {
     "anomaly_score_jump_XRX": "2026-05-03T18:47:15.315486+02:00",
     "anomaly_uoa_extreme_TDOC": "2026-05-04T13:47:00.365949+02:00",
@@ -33,18 +33,6 @@
     "exit_CRMD": "2026-05-17T21:49:11.016435+02:00"
   },
   "push_history": [
-    {
-      "ts": "2026-05-13T20:55:25.856712+02:00",
-      "ticker": "HUMA",
-      "kind": "anomaly",
-      "severity": "high",
-      "trigger": "monster_backup",
-      "body": "HUMA 🔥 Monster 100 | Setup 85 | KI 100",
-      "success": false,
-      "suppressed": true,
-      "suppress_reason": "conviction_below_threshold",
-      "conviction_score": 67
-    },
     {
       "ts": "2026-05-13T20:55:28.455836+02:00",
       "ticker": "SABR",
@@ -1232,6 +1220,18 @@
       "suppressed": false,
       "suppress_reason": null,
       "conviction_score": null
+    },
+    {
+      "ts": "2026-05-17T21:50:35.210508+02:00",
+      "ticker": "GEMI",
+      "kind": "anomaly",
+      "severity": "high",
+      "trigger": "monster_backup",
+      "body": "GEMI 🔥 Monster 100 | Setup 84 | KI 82",
+      "success": false,
+      "suppressed": true,
+      "suppress_reason": "conviction_below_threshold",
+      "conviction_score": 56
     }
   ],
   "prev_conviction_scores": {
@@ -1241,10 +1241,10 @@
     "TNXP": 48.0,
     "SKYQ": 33.0,
     "SG": 46.0,
+    "CRMD": 58.0,
     "NTLA": 44.0,
     "DXC": 51.0,
-    "CRMD": 57.0,
-    "PRA": 49.0,
+    "PRA": 51.0,
     "AI": 48.0,
     "RR": 37.0,
     "IONQ": 16.0,
