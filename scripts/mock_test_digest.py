@@ -424,8 +424,9 @@ def test_ntfy_send_skipped_when_disabled():
 def test_ntfy_send_monkey_patched_post():
     """ntfy-Send geht durch requests.post — wird komplett gemockt.
 
-    Seit 16.05.2026 (Unicode-Fix): JSON-API statt URL-mit-Topic-Suffix.
-    Topic / Title / Body / Priority / Tags landen alle im JSON-Body.
+    URL-Pattern-Adoption (17.05.2026): zurueck auf
+    POST https://ntfy.sh/{topic} mit Title-Header (ASCII-only).
+    Body bleibt UTF-8 (als data=).
     """
     dg = _import_digest_module()
     mock_resp = mock.Mock()
@@ -435,20 +436,23 @@ def test_ntfy_send_monkey_patched_post():
          mock.patch.object(dg, "NTFY_ENABLED", True), \
          mock.patch.object(dg, "requests") as mock_requests:
         mock_requests.post.return_value = mock_resp
-        ok = dg._ntfy_send("⚠️ Health-Check-Digest", "body",
+        # Title mit Emoji — wird ASCII-gestrippt im Send
+        ok = dg._ntfy_send("⚠️ Health-Check-Digest", "body mit ⚠️ emoji",
                            "high", "warning")
         assert ok is True
         assert mock_requests.post.call_count == 1
         call_args = mock_requests.post.call_args
-        # POST geht zu NTFY_URL ohne /{topic}-Suffix
-        assert call_args[0][0] == dg.NTFY_URL
-        # JSON-Payload hat alle Felder
-        payload = call_args[1]["json"]
-        assert payload["topic"] == "test-topic"
-        assert payload["title"] == "⚠️ Health-Check-Digest"
-        assert payload["message"] == "body"
-        assert payload["priority"] == "high"
-        assert payload["tags"] == ["warning"]
+        # POST geht zu https://ntfy.sh/{topic} (URL-Pattern)
+        assert call_args[0][0] == "https://ntfy.sh/test-topic"
+        # Body als UTF-8-Bytes
+        assert call_args[1]["data"] == "body mit ⚠️ emoji".encode("utf-8")
+        # Title-Header ist ASCII-only (Emoji entfernt)
+        headers = call_args[1]["headers"]
+        assert "Title" in headers
+        title_bytes = headers["Title"].encode("ascii")  # Darf nicht raisen
+        assert b"Health-Check-Digest" in title_bytes
+        assert headers["Priority"] == "high"
+        assert headers["Tags"] == "warning"
 
 
 # === 5. YAML-Workflow-Validität ============================================
@@ -537,7 +541,7 @@ def main() -> None:
         ("_ntfy_send: monkey-patched POST mit Headers",      test_ntfy_send_monkey_patched_post),
         # Workflow-YAML
         ("Workflow-YAML parsbar",                            test_workflow_yaml_valid),
-        ("Workflow-Cron = '13 8 * * *'",                     test_workflow_cron_matches_user_choice),
+        ("Workflow-Cron = '47 8 * * *'",                     test_workflow_cron_matches_user_choice),
         ("Workflow workflow_dispatch verfügbar",             test_workflow_has_workflow_dispatch),
         ("Workflow contents=write Permission",               test_workflow_writes_contents_permission),
         ("Workflow ruft digest-Script + NTFY_TOPIC",         test_workflow_runs_digest_script),

@@ -3484,17 +3484,39 @@ intakt). GitHub markiert den Run als failed → Email-Notification an
 den User. Vermeidet Silent-Fails wie am 15.05.2026 (ntfy-Send
 gescheitert, Workflow grün, kein Push, kein Hinweis).
 
-**Unicode-Encoding-Fix (16.05.2026, Punkt D):** Wahre Ursache des
+**Unicode-Encoding-Diagnose (16.05.2026, Punkt D):** Ursache des
 15./16.05.-Silent-Fails war ein ``UnicodeEncodeError`` im requests-
 Stack: Title-Strings wie ``⚠️ Health-Check-Digest`` /
 ``✅ Health-Check OK`` / ``📭 Health-Check ohne Daten`` enthalten
 Emojis. HTTP-Header sind per RFC 7230 latin-1-only — Emojis im
 ``Title``-Header werfen Exception, ``_ntfy_send`` catched generic
-``Exception`` → returnt ``False`` ohne Aufklärung. Fix: Wechsel auf
-**ntfy JSON-API** (``POST https://ntfy.sh/`` mit ``{topic, title,
-message, priority, tags}`` im JSON-Body). JSON ist immer UTF-8,
-kein Header-Encoding. ``tags``-String wird zu Array gesplittet
-(``"warning,rotating_light"`` → ``["warning", "rotating_light"]``).
+``Exception`` → returnt ``False`` ohne Aufklärung.
+
+**JSON-API-Versuch und Rollback (16.→17.05.2026):** PR #168
+versuchte den Fix per Wechsel auf ntfy JSON-API
+(``POST https://ntfy.sh/`` mit allen Feldern im JSON-Body). Diese
+Variante hat auf ntfy.sh **nicht zuverlässig** gepusht —
+``last_digest_sent`` blieb über mehrere Tage trotz Workflow-Runs
+auf ``null``. Diagnose 17.05.: keine andere ntfy-Stelle im Tool
+nutzt die JSON-API — alle funktionierenden Sender
+(``ki_agent._send_anomaly_ntfy``, ``_send_exit_p2_push``,
+``send_ntfy_alert``, ``generate_report._send_exit_ntfy``) nutzen
+das **URL-Pattern** (``POST https://ntfy.sh/{topic}`` + ``data=``-
+Body + Title/Priority/Tags-Header).
+
+**Endgültige Lösung (17.05.2026):** ``_ntfy_send`` in
+``scripts/health_check_digest.py`` adoptiert das URL-Pattern analog
+``ki_agent``. Title wird vor Send via
+``.encode("ascii", "ignore").decode("ascii").strip()`` zu ASCII
+gestrippt (Emoji-Reste raus, Text-Kern bleibt) — verhindert den
+ursprünglichen latin-1-Header-Bug ohne JSON-API-Komplexität.
+``format_digest_body`` darf weiterhin Emoji-Titel produzieren — sie
+sind im Body sichtbar (UTF-8 erlaubt), nur der Title-Header wird
+ASCII-clean. Body bleibt vollständig UTF-8 (läuft als ``data=``).
+
+**Faustregel für künftige ntfy-Sender:** **immer URL-Pattern**,
+ASCII-only Title, UTF-8 Body, Tags als komma-getrennter String im
+Header. JSON-API wird im Tool nicht mehr verwendet.
 
 **Komponenten:**
 
