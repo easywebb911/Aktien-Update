@@ -154,6 +154,123 @@ jobs:
           echo "----- item count (grep <item>) -----"
           grep -c "<item" "$OUT_DIR/04_earningswhispers_body.bin" || true
 
+      # ─────────────────────────────────────────────────────────────────────
+      # Probe 2 — finviz Parser-Drift-Check (URL-Migration .ashx → neu)
+      #
+      # Live-Probe 18.05.2026 zeigte: `screener.ashx` → HTTP 301 zum neuen
+      # Pfad. Die offene Frage ist nicht „läuft der Redirect", sondern
+      # „ist das Markup nach dem Redirect noch parsebar für unsere
+      # BS4-Table-Heuristik und die `quote.ashx?t=`-Regex". Probes 5-8
+      # holen die Ziel-Bodies + sniffen typische Hydration-/HTML-Marker.
+      # ─────────────────────────────────────────────────────────────────────
+
+      - name: Probe 5 — finviz Screener neu (/screener, ohne .ashx)
+        run: |
+          set +e
+          URL="https://finviz.com/screener?v=141&f=sh_short_o15,sh_price_o1&o=-shortfloat&r=1"
+          echo "URL: $URL"
+          echo "User-Agent: $CHROME_UA"
+          echo "----- verbose -----"
+          curl -v -L --max-filesize 51200 --max-time 30 \
+            -H "User-Agent: $CHROME_UA" \
+            -H "Accept-Language: $ACCEPT_LANG" \
+            -o "$OUT_DIR/05_finviz_screener_new_body.bin" \
+            -D "$OUT_DIR/05_finviz_screener_new_headers.txt" \
+            -w "\n----- summary -----\nHTTP_STATUS=%{http_code}\nSIZE_DOWNLOAD=%{size_download}\nTIME_TOTAL=%{time_total}\nREMOTE_IP=%{remote_ip}\nNUM_REDIRECTS=%{num_redirects}\nEFFECTIVE_URL=%{url_effective}\n" \
+            "$URL" 2>&1 || true
+          echo
+          echo "----- response headers (incl. redirect chain) -----"
+          cat "$OUT_DIR/05_finviz_screener_new_headers.txt" || true
+          echo "----- body (first 1000 chars) -----"
+          head -c 1000 "$OUT_DIR/05_finviz_screener_new_body.bin" || true
+          echo
+          echo "----- markup-sniff -----"
+          echo "  __NEXT_DATA__ hits: $(grep -c "__NEXT_DATA__" "$OUT_DIR/05_finviz_screener_new_body.bin" 2>/dev/null || echo 0)"
+          echo "  <table hits:       $(grep -c "<table" "$OUT_DIR/05_finviz_screener_new_body.bin" 2>/dev/null || echo 0)"
+          echo "  quote.ashx?t= hits: $(grep -c "quote\.ashx?t=" "$OUT_DIR/05_finviz_screener_new_body.bin" 2>/dev/null || echo 0)"
+          echo "  /quote/ hits:      $(grep -c "/quote/" "$OUT_DIR/05_finviz_screener_new_body.bin" 2>/dev/null || echo 0)"
+          echo "  Short Float hits:  $(grep -c "Short Float" "$OUT_DIR/05_finviz_screener_new_body.bin" 2>/dev/null || echo 0)"
+          echo "  body byte count:   $(wc -c < "$OUT_DIR/05_finviz_screener_new_body.bin" 2>/dev/null || echo 0)"
+
+      - name: Probe 6 — finviz Quote-Page neu (/quote/AMC, ohne .ashx)
+        run: |
+          set +e
+          URL="https://finviz.com/quote/AMC"
+          echo "URL: $URL"
+          echo "User-Agent: $CHROME_UA"
+          echo "----- verbose -----"
+          curl -v -L --max-filesize 51200 --max-time 30 \
+            -H "User-Agent: $CHROME_UA" \
+            -H "Accept-Language: $ACCEPT_LANG" \
+            -o "$OUT_DIR/06_finviz_quote_new_body.bin" \
+            -D "$OUT_DIR/06_finviz_quote_new_headers.txt" \
+            -w "\n----- summary -----\nHTTP_STATUS=%{http_code}\nSIZE_DOWNLOAD=%{size_download}\nTIME_TOTAL=%{time_total}\nREMOTE_IP=%{remote_ip}\nNUM_REDIRECTS=%{num_redirects}\nEFFECTIVE_URL=%{url_effective}\n" \
+            "$URL" 2>&1 || true
+          echo
+          echo "----- response headers (incl. redirect chain) -----"
+          cat "$OUT_DIR/06_finviz_quote_new_headers.txt" || true
+          echo "----- body (first 1000 chars) -----"
+          head -c 1000 "$OUT_DIR/06_finviz_quote_new_body.bin" || true
+          echo
+          echo "----- markup-sniff -----"
+          echo "  __NEXT_DATA__ hits: $(grep -c "__NEXT_DATA__" "$OUT_DIR/06_finviz_quote_new_body.bin" 2>/dev/null || echo 0)"
+          echo "  <table hits:       $(grep -c "<table" "$OUT_DIR/06_finviz_quote_new_body.bin" 2>/dev/null || echo 0)"
+          echo "  quote.ashx?t= hits: $(grep -c "quote\.ashx?t=" "$OUT_DIR/06_finviz_quote_new_body.bin" 2>/dev/null || echo 0)"
+          echo "  Short Float hits:  $(grep -c "Short Float" "$OUT_DIR/06_finviz_quote_new_body.bin" 2>/dev/null || echo 0)"
+          echo "  body byte count:   $(wc -c < "$OUT_DIR/06_finviz_quote_new_body.bin" 2>/dev/null || echo 0)"
+
+      - name: Probe 7 — finviz Quote-Page alt (quote.ashx?t=AMC, Vergleichs-Probe)
+        run: |
+          set +e
+          URL="https://finviz.com/quote.ashx?t=AMC"
+          echo "URL: $URL"
+          echo "User-Agent: $CHROME_UA"
+          echo "----- verbose -----"
+          curl -v -L --max-filesize 51200 --max-time 30 \
+            -H "User-Agent: $CHROME_UA" \
+            -H "Accept-Language: $ACCEPT_LANG" \
+            -o "$OUT_DIR/07_finviz_quote_ashx_body.bin" \
+            -D "$OUT_DIR/07_finviz_quote_ashx_headers.txt" \
+            -w "\n----- summary -----\nHTTP_STATUS=%{http_code}\nSIZE_DOWNLOAD=%{size_download}\nTIME_TOTAL=%{time_total}\nREMOTE_IP=%{remote_ip}\nNUM_REDIRECTS=%{num_redirects}\nEFFECTIVE_URL=%{url_effective}\n" \
+            "$URL" 2>&1 || true
+          echo
+          echo "----- response headers (incl. redirect chain) -----"
+          cat "$OUT_DIR/07_finviz_quote_ashx_headers.txt" || true
+          echo "----- body (first 1000 chars) -----"
+          head -c 1000 "$OUT_DIR/07_finviz_quote_ashx_body.bin" || true
+          echo
+          echo "----- markup-sniff -----"
+          echo "  __NEXT_DATA__ hits: $(grep -c "__NEXT_DATA__" "$OUT_DIR/07_finviz_quote_ashx_body.bin" 2>/dev/null || echo 0)"
+          echo "  <table hits:       $(grep -c "<table" "$OUT_DIR/07_finviz_quote_ashx_body.bin" 2>/dev/null || echo 0)"
+          echo "  quote.ashx?t= hits: $(grep -c "quote\.ashx?t=" "$OUT_DIR/07_finviz_quote_ashx_body.bin" 2>/dev/null || echo 0)"
+          echo "  Short Float hits:  $(grep -c "Short Float" "$OUT_DIR/07_finviz_quote_ashx_body.bin" 2>/dev/null || echo 0)"
+          echo "  body byte count:   $(wc -c < "$OUT_DIR/07_finviz_quote_ashx_body.bin" 2>/dev/null || echo 0)"
+
+      - name: Probe 8 — finviz RSS (rss.ashx?t=AMC, News-Pfad-Status)
+        run: |
+          set +e
+          URL="https://finviz.com/rss.ashx?t=AMC"
+          echo "URL: $URL"
+          echo "User-Agent: $CHROME_UA"
+          echo "----- verbose -----"
+          curl -v -L --max-filesize 51200 --max-time 30 \
+            -H "User-Agent: $CHROME_UA" \
+            -H "Accept-Language: $ACCEPT_LANG" \
+            -o "$OUT_DIR/08_finviz_rss_body.bin" \
+            -D "$OUT_DIR/08_finviz_rss_headers.txt" \
+            -w "\n----- summary -----\nHTTP_STATUS=%{http_code}\nSIZE_DOWNLOAD=%{size_download}\nTIME_TOTAL=%{time_total}\nREMOTE_IP=%{remote_ip}\nNUM_REDIRECTS=%{num_redirects}\nEFFECTIVE_URL=%{url_effective}\n" \
+            "$URL" 2>&1 || true
+          echo
+          echo "----- response headers -----"
+          cat "$OUT_DIR/08_finviz_rss_headers.txt" || true
+          echo "----- body (first 1000 chars) -----"
+          head -c 1000 "$OUT_DIR/08_finviz_rss_body.bin" || true
+          echo
+          echo "----- markup-sniff -----"
+          echo "  <item hits:        $(grep -c "<item" "$OUT_DIR/08_finviz_rss_body.bin" 2>/dev/null || echo 0)"
+          echo "  <rss hits:         $(grep -c "<rss" "$OUT_DIR/08_finviz_rss_body.bin" 2>/dev/null || echo 0)"
+          echo "  body byte count:   $(wc -c < "$OUT_DIR/08_finviz_rss_body.bin" 2>/dev/null || echo 0)"
+
       - name: Upload raw probe artefacts
         if: always()
         uses: actions/upload-artifact@v4
