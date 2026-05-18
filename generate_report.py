@@ -1875,7 +1875,7 @@ def fetch_earningswhispers_rss() -> dict[str, dict]:
     return out
 
 
-_SEC_HEADERS = {"User-Agent": "SqueezeReport/1.0 github-actions@squeeze-report.com"}
+_SEC_HEADERS = {"User-Agent": "Easy Webb easywebb@yahoo.de"}
 _13F_KEYWORDS = {"increase", "added", "new position", "added to"}
 
 
