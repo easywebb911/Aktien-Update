@@ -1,17 +1,17 @@
 {
-  "updated": "2026-05-19T00:14:17.051375+02:00",
+  "updated": "2026-05-19T00:17:39.208164+02:00",
   "run_info": {
     "tickers_checked": 15,
     "signals_active": 1,
     "alerts_sent": 0,
-    "elapsed_s": 15.2,
+    "elapsed_s": 17.0,
     "market_phase": "After-Hours"
   },
   "signals": {
     "AI": {
-      "score": 26,
-      "confidence": 70,
-      "drivers": "Spanne 5.9% + News-KI 8/30: Moderate AI sector enthusiasm but mixed signals with avoidance warnings, low short-squeeze potential without high short  + Earnings in 9d",
+      "score": 18,
+      "confidence": 33,
+      "drivers": "Spanne 5.9% + Earnings in 9d",
       "price": 8.75,
       "chg_pct": 0.0,
       "rvol_4d": 0.88,
@@ -73,7 +73,7 @@
     "CRMD": {
       "score": 40,
       "confidence": 33,
-      "drivers": "Spanne 6.1% + News: earnings beat, guidance raised",
+      "drivers": "Spanne 6.1% + News: guidance raised, earnings beat",
       "price": 7.91,
       "chg_pct": -0.0,
       "rvol_4d": 0.83,
@@ -150,10 +150,30 @@
       "uoa_atm_ratio": null,
       "uoa_cp_ratio": null
     },
+    "HCAT": {
+      "score": 50,
+      "confidence": 70,
+      "drivers": "Spanne 9.6% + News: catalyst + FINRA Short-Vol 100%",
+      "price": 1.27,
+      "chg_pct": -0.0,
+      "rvol_4d": 0.66,
+      "rvol_20d": 0.95,
+      "earnings": "in 80 Tagen (06.08.2026)",
+      "fda_date": null,
+      "upcoming_event": null,
+      "insider_buy": false,
+      "stocktwits": null,
+      "combo_mult": 1.0,
+      "active_triggers": 1,
+      "uoa_score": 0,
+      "uoa_drivers": [],
+      "uoa_atm_ratio": null,
+      "uoa_cp_ratio": null
+    },
     "IIIV": {
-      "score": 20,
-      "confidence": 33,
-      "drivers": "Spanne 7.1% + SEC Form 4",
+      "score": 28,
+      "confidence": 70,
+      "drivers": "Spanne 7.1% + News-KI 8/30: Negative earnings quality concerns and institutional exit signal weak fundamentals, making this a poor short-squeeze can + SEC Form 4",
       "price": 19.54,
       "chg_pct": 0.0,
       "rvol_4d": 1.14,
@@ -173,7 +193,7 @@
     "IONQ": {
       "score": 40,
       "confidence": 33,
-      "drivers": "Spanne 9.1% + News: merger, catalyst",
+      "drivers": "Spanne 9.1% + News: catalyst, merger",
       "price": 49.31,
       "chg_pct": 0.0,
       "rvol_4d": 0.97,
@@ -294,26 +314,6 @@
       "uoa_drivers": [],
       "uoa_atm_ratio": null,
       "uoa_cp_ratio": null
-    },
-    "WGS": {
-      "score": 10,
-      "confidence": 17,
-      "drivers": "Spanne 7.3%",
-      "price": 42.69,
-      "chg_pct": -0.0,
-      "rvol_4d": 1.07,
-      "rvol_20d": 0.79,
-      "earnings": "in 71 Tagen (28.07.2026)",
-      "fda_date": null,
-      "upcoming_event": null,
-      "insider_buy": false,
-      "stocktwits": null,
-      "combo_mult": 1.0,
-      "active_triggers": 0,
-      "uoa_score": 0,
-      "uoa_drivers": [],
-      "uoa_atm_ratio": 0.5865580448065173,
-      "uoa_cp_ratio": 0.8433333333333334
     }
   }
 }
