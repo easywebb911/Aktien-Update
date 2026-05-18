@@ -1,10 +1,10 @@
 {
-  "updated": "2026-05-18T10:28:59.761620+02:00",
+  "updated": "2026-05-18T10:53:52.345952+02:00",
   "run_info": {
     "tickers_checked": 14,
     "signals_active": 4,
     "alerts_sent": 0,
-    "elapsed_s": 15.5,
+    "elapsed_s": 11.8,
     "market_phase": "Pre-Market"
   },
   "signals": {
@@ -117,7 +117,7 @@
     "GLOB": {
       "score": 33,
       "confidence": 70,
-      "drivers": "Volumen 2.6× + Spanne 8.9% + News-KI 8/30: Positive fundamental catalysts (AI initiatives, buyback) drive organic growth rather than short-squeeze indicators like ",
+      "drivers": "Volumen 2.6× + Spanne 8.9% + News-KI 8/30: Positive fundamental news (AI push, buyback) drives organic growth but lacks short squeeze indicators like high short in",
       "price": 38.91,
       "chg_pct": -0.0,
       "rvol_4d": 2.56,
@@ -197,7 +197,7 @@
     "PZZA": {
       "score": 55,
       "confidence": 70,
-      "drivers": "Volumen 1.8× + Spanne 6.3% + News: acquisition, takeover",
+      "drivers": "Volumen 1.8× + Spanne 6.3% + News: takeover, acquisition",
       "price": 34.73,
       "chg_pct": -0.0,
       "rvol_4d": 1.78,
@@ -277,9 +277,9 @@
       "uoa_cp_ratio": null
     },
     "TNXP": {
-      "score": 40,
+      "score": 33,
       "confidence": 70,
-      "drivers": "Volumen 1.8× + Spanne 16.9% + News: revenue beat",
+      "drivers": "Volumen 1.8× + Spanne 16.9% + News-KI 8/30: Routine corporate announcements about conferences and financial reporting lack catalyst strength; no significant short-s",
       "price": 15.74,
       "chg_pct": -0.0,
       "rvol_4d": 1.81,
@@ -290,7 +290,7 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 1,
+      "active_triggers": 0,
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": null,
