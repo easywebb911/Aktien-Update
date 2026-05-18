@@ -1,10 +1,10 @@
 {
-  "updated": "2026-05-19T00:17:39.208164+02:00",
+  "updated": "2026-05-19T01:20:31.059649+02:00",
   "run_info": {
     "tickers_checked": 15,
     "signals_active": 1,
     "alerts_sent": 0,
-    "elapsed_s": 17.0,
+    "elapsed_s": 17.8,
     "market_phase": "After-Hours"
   },
   "signals": {
@@ -173,7 +173,7 @@
     "IIIV": {
       "score": 28,
       "confidence": 70,
-      "drivers": "Spanne 7.1% + News-KI 8/30: Negative earnings quality concerns and institutional exit signal weak fundamentals, making this a poor short-squeeze can + SEC Form 4",
+      "drivers": "Spanne 7.1% + News-KI 8/30: Negative earnings quality concerns and insider selling signal weak fundamentals, making this unlikely to squeeze; short  + SEC Form 4",
       "price": 19.54,
       "chg_pct": 0.0,
       "rvol_4d": 1.14,
@@ -193,7 +193,7 @@
     "IONQ": {
       "score": 40,
       "confidence": 33,
-      "drivers": "Spanne 9.1% + News: catalyst, merger",
+      "drivers": "Spanne 9.1% + News: merger, catalyst",
       "price": 49.31,
       "chg_pct": 0.0,
       "rvol_4d": 0.97,
