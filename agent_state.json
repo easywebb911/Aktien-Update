@@ -30,21 +30,9 @@
     "earnings_immediate_GEMI_14.05.2026": "2026-05-14T23:25:08.201852+02:00",
     "exit_KPTI": "2026-05-15T18:17:09.325572+02:00",
     "anomaly_conviction_high_SNSE": "2026-05-15T19:30:32.046324+02:00",
-    "exit_CRMD": "2026-05-18T06:13:37.854677+02:00"
+    "exit_CRMD": "2026-05-18T10:27:31.393540+02:00"
   },
   "push_history": [
-    {
-      "ts": "2026-05-14T00:08:43.482224+02:00",
-      "ticker": "ENVX",
-      "kind": "earnings_immediate",
-      "severity": "default",
-      "trigger": null,
-      "body": "ENVX Earnings-Sofort-Alert (in 0d, KI 60)",
-      "success": true,
-      "suppressed": false,
-      "suppress_reason": null,
-      "conviction_score": 58
-    },
     {
       "ts": "2026-05-14T00:08:46.149223+02:00",
       "ticker": "AMC",
@@ -1223,6 +1211,18 @@
     },
     {
       "ts": "2026-05-18T06:13:37.854644+02:00",
+      "ticker": "CRMD",
+      "kind": "exit_p1",
+      "severity": "default",
+      "trigger": "exit_alert",
+      "body": "CRMD 📉 Exit 65 | -5% | Trailing-Stop −15.5% vom Hoch",
+      "success": true,
+      "suppressed": false,
+      "suppress_reason": null,
+      "conviction_score": null
+    },
+    {
+      "ts": "2026-05-18T10:27:31.393506+02:00",
       "ticker": "CRMD",
       "kind": "exit_p1",
       "severity": "default",
