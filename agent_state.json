@@ -30,21 +30,9 @@
     "earnings_immediate_GEMI_14.05.2026": "2026-05-14T23:25:08.201852+02:00",
     "exit_KPTI": "2026-05-15T18:17:09.325572+02:00",
     "anomaly_conviction_high_SNSE": "2026-05-15T19:30:32.046324+02:00",
-    "exit_CRMD": "2026-05-18T15:52:36.657833+02:00"
+    "exit_CRMD": "2026-05-18T20:45:57.842098+02:00"
   },
   "push_history": [
-    {
-      "ts": "2026-05-14T16:29:35.793597+02:00",
-      "ticker": "CRMD",
-      "kind": "anomaly",
-      "severity": "high",
-      "trigger": "conviction_high",
-      "body": "CRMD 🎯 KAUFSIGNAL — Conviction 90/100 (high) | Conviction hoch — Setup, Earliness und Timing konvergieren. Erwartungswert posit…",
-      "success": true,
-      "suppressed": false,
-      "suppress_reason": null,
-      "conviction_score": 90
-    },
     {
       "ts": "2026-05-14T16:29:35.855786+02:00",
       "ticker": "KPTI",
@@ -1228,6 +1216,18 @@
       "severity": "trigger",
       "trigger": "trend_break",
       "body": "🔻 Exit-Signal RR: trend_break crit ({'ma21': 2.5627, 'price': 2.48, 'drop_pct': 3.23})",
+      "success": true,
+      "suppressed": false,
+      "suppress_reason": null,
+      "conviction_score": null
+    },
+    {
+      "ts": "2026-05-18T20:45:57.842068+02:00",
+      "ticker": "CRMD",
+      "kind": "exit_p1",
+      "severity": "default",
+      "trigger": "exit_alert",
+      "body": "CRMD 📉 Exit 65 | -3% | Trailing-Stop −13.6% vom Hoch",
       "success": true,
       "suppressed": false,
       "suppress_reason": null,
