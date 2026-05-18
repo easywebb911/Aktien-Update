@@ -197,6 +197,28 @@ jobs:
           echo "  short_float hits:  $(grep -c "short_float" "$OUT_DIR/05_finviz_screener_new_body.bin" 2>/dev/null || echo 0)"
           echo "  body byte count:   $(wc -c < "$OUT_DIR/05_finviz_screener_new_body.bin" 2>/dev/null || echo 0)"
 
+      - name: Inspect 5a — href-Patterns im Screener-Body (unique, max 50)
+        run: |
+          set +e
+          BODY="$OUT_DIR/05_finviz_screener_new_body.bin"
+          if [ ! -s "$BODY" ]; then
+            echo "(Body leer oder fehlt — Probe 5 hat nicht gefetched)"
+            exit 0
+          fi
+          echo "----- Erste 50 unique href-Werte im Screener-Body -----"
+          grep -oE 'href="[^"]*"' "$BODY" | sort -u | head -50
+
+      - name: Inspect 5b — Ticker-Header-Zeile + erste Datenzeile (Kontext ±5 lines)
+        run: |
+          set +e
+          BODY="$OUT_DIR/05_finviz_screener_new_body.bin"
+          if [ ! -s "$BODY" ]; then
+            echo "(Body leer oder fehlt — Probe 5 hat nicht gefetched)"
+            exit 0
+          fi
+          echo "----- Kontext um 'Ticker' (erste 20 Zeilen, +5 nach Match) -----"
+          grep -E "Ticker" "$BODY" -A 5 | head -20
+
       - name: Probe 6 — finviz Quote-Page neu (/quote/AMC, ohne .ashx)
         run: |
           set +e
@@ -255,6 +277,39 @@ jobs:
           echo "  quote.ashx?t= hits: $(grep -c "quote\.ashx?t=" "$OUT_DIR/07_finviz_quote_ashx_body.bin" 2>/dev/null || echo 0)"
           echo "  Short Float hits:  $(grep -c "Short Float" "$OUT_DIR/07_finviz_quote_ashx_body.bin" 2>/dev/null || echo 0)"
           echo "  body byte count:   $(wc -c < "$OUT_DIR/07_finviz_quote_ashx_body.bin" 2>/dev/null || echo 0)"
+
+      - name: Inspect 7a — Short Float Cell-Markup-Kontext (±200 chars um den ersten Match)
+        run: |
+          set +e
+          BODY="$OUT_DIR/07_finviz_quote_ashx_body.bin"
+          if [ ! -s "$BODY" ]; then
+            echo "(Body leer oder fehlt — Probe 7 hat nicht gefetched)"
+            exit 0
+          fi
+          echo "----- '>Short Float<' raw matches (max 3) -----"
+          grep -oE ">Short Float<" "$BODY" | head -3
+          echo
+          echo "----- 600 chars Kontext um den ersten Short-Float-Match -----"
+          pos=$(grep -boE ">Short Float<" "$BODY" 2>/dev/null | head -1 | cut -d: -f1)
+          if [ -n "$pos" ]; then
+            start=$((pos > 200 ? pos - 200 : 0))
+            dd if="$BODY" bs=1 skip="$start" count=600 2>/dev/null
+            echo
+            echo "(Match-Offset im Body: $pos, dumped 600 chars ab Offset $start)"
+          else
+            echo "(kein '>Short Float<'-Match — Label-Form hat sich geändert)"
+          fi
+
+      - name: Inspect 7b — href-Patterns im Quote-Body (unique, max 50)
+        run: |
+          set +e
+          BODY="$OUT_DIR/07_finviz_quote_ashx_body.bin"
+          if [ ! -s "$BODY" ]; then
+            echo "(Body leer oder fehlt — Probe 7 hat nicht gefetched)"
+            exit 0
+          fi
+          echo "----- Erste 50 unique href-Werte im Quote-Body -----"
+          grep -oE 'href="[^"]*"' "$BODY" | sort -u | head -50
 
       - name: Probe 8 — finviz RSS (rss.ashx?t=AMC, News-Pfad-Status)
         run: |
