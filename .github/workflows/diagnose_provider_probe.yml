@@ -1,0 +1,163 @@
+name: Diagnose Provider Probe (read-only)
+
+# Read-only curl-Probe gegen die vier Provider-Endpoints, die seit
+# 15.05.2026 100% Fail-Rate im provider_health.jsonl zeigen
+# (finviz, SEC browse-edgar, stocktwits, earningswhispers).
+#
+# KEINE Code-Pfade aus dem Tool werden aufgerufen — reines curl in bash.
+# KEINE Secrets verwendet. KEINE Repo-Writes.
+#
+# Trigger ausschließlich workflow_dispatch (manuell).
+# Output landet komplett im Run-Log und in einem Artefakt.
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    env:
+      CHROME_UA: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+      ACCEPT_LANG: "en-US,en;q=0.9"
+      OUT_DIR: ${{ github.workspace }}/probe-out
+
+    steps:
+      - name: Prepare output dir
+        run: mkdir -p "$OUT_DIR"
+
+      - name: Runner egress info (IP + DNS)
+        run: |
+          echo "## Runner public IP"
+          curl -sS --max-time 5 https://api.ipify.org || true
+          echo
+          echo
+          echo "## DNS resolution"
+          for h in finviz.com www.sec.gov api.stocktwits.com www.earningswhispers.com; do
+            echo "- $h"
+            getent hosts "$h" || echo "  (kein Eintrag)"
+          done
+
+      - name: Probe 1 — finviz screener v141
+        run: |
+          set +e
+          URL="https://finviz.com/screener.ashx?v=141&f=sh_short_o15,sh_price_o1&o=-shortfloat&r=1"
+          echo "URL: $URL"
+          echo "User-Agent: $CHROME_UA"
+          echo "Accept-Language: $ACCEPT_LANG"
+          echo "----- verbose -----"
+          curl -v --max-time 30 \
+            -H "User-Agent: $CHROME_UA" \
+            -H "Accept-Language: $ACCEPT_LANG" \
+            -o "$OUT_DIR/01_finviz_body.bin" \
+            -D "$OUT_DIR/01_finviz_headers.txt" \
+            -w "\n----- summary -----\nHTTP_STATUS=%{http_code}\nSIZE_DOWNLOAD=%{size_download}\nTIME_TOTAL=%{time_total}\nREMOTE_IP=%{remote_ip}\nSSL_VERIFY_RESULT=%{ssl_verify_result}\n" \
+            "$URL" 2>&1 || true
+          echo
+          echo "----- response headers -----"
+          cat "$OUT_DIR/01_finviz_headers.txt" || true
+          echo "----- body (first 1000 chars) -----"
+          head -c 1000 "$OUT_DIR/01_finviz_body.bin" || true
+          echo
+          echo "----- body byte count -----"
+          wc -c "$OUT_DIR/01_finviz_body.bin" || true
+
+      - name: Probe 2a — SEC browse-edgar (8-K IONQ) mit aktuellem SEC_HEADERS-UA
+        run: |
+          set +e
+          URL="https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=IONQ&type=8-K&dateb=&owner=include&count=5&search_text=&output=atom"
+          SEC_UA="SqueezeReport/1.0 github-actions@squeeze-report.com"
+          echo "URL: $URL"
+          echo "User-Agent: $SEC_UA   (aktuell in config.py:903)"
+          echo "----- verbose -----"
+          curl -v --max-time 12 \
+            -H "User-Agent: $SEC_UA" \
+            -o "$OUT_DIR/02a_sec_body.bin" \
+            -D "$OUT_DIR/02a_sec_headers.txt" \
+            -w "\n----- summary -----\nHTTP_STATUS=%{http_code}\nSIZE_DOWNLOAD=%{size_download}\nTIME_TOTAL=%{time_total}\nREMOTE_IP=%{remote_ip}\n" \
+            "$URL" 2>&1 || true
+          echo
+          echo "----- response headers -----"
+          cat "$OUT_DIR/02a_sec_headers.txt" || true
+          echo "----- body (first 1000 chars) -----"
+          head -c 1000 "$OUT_DIR/02a_sec_body.bin" || true
+          echo
+
+      - name: Probe 2b — SEC browse-edgar (8-K IONQ) mit SEC-konformem UA
+        run: |
+          set +e
+          URL="https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=IONQ&type=8-K&dateb=&owner=include&count=5&search_text=&output=atom"
+          SEC_UA="Easy Webb easy@example.com"
+          echo "URL: $URL"
+          echo "User-Agent: $SEC_UA   (SEC-konformes Format Name + Email)"
+          echo "----- verbose -----"
+          curl -v --max-time 12 \
+            -H "User-Agent: $SEC_UA" \
+            -o "$OUT_DIR/02b_sec_body.bin" \
+            -D "$OUT_DIR/02b_sec_headers.txt" \
+            -w "\n----- summary -----\nHTTP_STATUS=%{http_code}\nSIZE_DOWNLOAD=%{size_download}\nTIME_TOTAL=%{time_total}\nREMOTE_IP=%{remote_ip}\n" \
+            "$URL" 2>&1 || true
+          echo
+          echo "----- response headers -----"
+          cat "$OUT_DIR/02b_sec_headers.txt" || true
+          echo "----- body (first 1000 chars) -----"
+          head -c 1000 "$OUT_DIR/02b_sec_body.bin" || true
+          echo
+
+      - name: Probe 3 — Stocktwits AMC stream
+        run: |
+          set +e
+          URL="https://api.stocktwits.com/api/2/streams/symbol/AMC.json"
+          echo "URL: $URL"
+          echo "User-Agent: $CHROME_UA"
+          echo "Accept-Language: $ACCEPT_LANG"
+          echo "----- verbose -----"
+          curl -v --max-time 5 \
+            -H "User-Agent: $CHROME_UA" \
+            -H "Accept-Language: $ACCEPT_LANG" \
+            -o "$OUT_DIR/03_stocktwits_body.bin" \
+            -D "$OUT_DIR/03_stocktwits_headers.txt" \
+            -w "\n----- summary -----\nHTTP_STATUS=%{http_code}\nSIZE_DOWNLOAD=%{size_download}\nTIME_TOTAL=%{time_total}\nREMOTE_IP=%{remote_ip}\n" \
+            "$URL" 2>&1 || true
+          echo
+          echo "----- response headers -----"
+          cat "$OUT_DIR/03_stocktwits_headers.txt" || true
+          echo "----- body (first 1000 chars) -----"
+          head -c 1000 "$OUT_DIR/03_stocktwits_body.bin" || true
+          echo
+
+      - name: Probe 4 — EarningsWhispers RSS
+        run: |
+          set +e
+          URL="https://www.earningswhispers.com/rss/earningscalendar.asp"
+          echo "URL: $URL"
+          echo "User-Agent: $CHROME_UA"
+          echo "Accept-Language: $ACCEPT_LANG"
+          echo "----- verbose -----"
+          curl -v --max-time 10 \
+            -H "User-Agent: $CHROME_UA" \
+            -H "Accept-Language: $ACCEPT_LANG" \
+            -o "$OUT_DIR/04_earningswhispers_body.bin" \
+            -D "$OUT_DIR/04_earningswhispers_headers.txt" \
+            -w "\n----- summary -----\nHTTP_STATUS=%{http_code}\nSIZE_DOWNLOAD=%{size_download}\nTIME_TOTAL=%{time_total}\nREMOTE_IP=%{remote_ip}\n" \
+            "$URL" 2>&1 || true
+          echo
+          echo "----- response headers -----"
+          cat "$OUT_DIR/04_earningswhispers_headers.txt" || true
+          echo "----- body (first 1000 chars) -----"
+          head -c 1000 "$OUT_DIR/04_earningswhispers_body.bin" || true
+          echo
+          echo "----- item count (grep <item>) -----"
+          grep -c "<item" "$OUT_DIR/04_earningswhispers_body.bin" || true
+
+      - name: Upload raw probe artefacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: provider-probe-raw
+          path: ${{ env.OUT_DIR }}/
+          retention-days: 7
