@@ -47,7 +47,7 @@ SESSION_HANDOVER „Drei Achsen von Tests/Checks".
 | **S1** | `score_history.json` hat neue Einträge für Top-10-Ticker | **crit** | Letzter Eintrag pro Top-10-Ticker hat heutiges Datum |
 | **S2** | `setup_scores` enthält ≥ 10 Tickers | **crit** | `len(app_data.setup_scores) ≥ 10` |
 | **S3** | Aktive Positionen haben `current_price != null` | **crit** | Für jeden Ticker in `positions`: `positions_out[t].current_price != null` |
-| **S4** | `backtest_history` wächst nur bei `postclose`, nicht bei `premarket` | warn | Vergleich Zeilenzahl Pre/Post-Run mit `run_phase` |
+| **S4** | `backtest_history` hat heutigen Eintrag im `postclose`-Pfad (Tages-Basis); premarket darf nicht in den Backtest schreiben (Run-Basis) | warn | postclose: `any(e.date == today for e in backtest_history)`. premarket: `n_appended > 0` → WARN |
 | **S5** | `score_inflation_log.jsonl` bekommt pro Run ≥ 10 Zeilen | warn | `wc -l`-Diff nach Run |
 | **S6** | `monster_scores`: ≥ 3 Tickers > 0 | warn | `sum(1 for s in monster_scores.values() if s > 0) ≥ 3` |
 | **S7** | `agent_signals` ∩ Top-10 ≥ 5 | warn | `len(set(agent_signals.keys()) & set(top10_tickers)) ≥ HEALTH_CHECK_S7_MIN_AGENT_OVERLAP` |

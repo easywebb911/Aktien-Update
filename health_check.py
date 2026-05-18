@@ -163,6 +163,7 @@ def evaluate_state_invariants(
     run_phase: str = "premarket",
     n_inflation_lines: int | None = None,
     n_backtest_appended: int | None = None,
+    backtest_has_today: bool | None = None,
     agent_signal_keys: set[str] | list[str] | None = None,
     ki_agent_only: bool = False,
     now_utc: datetime | None = None,
@@ -227,18 +228,27 @@ def evaluate_state_invariants(
                            f"Position(en): {', '.join(missing_price[:5])}"),
             })
 
-    # === S4 (warn) — backtest_history wächst nur bei postclose =============
-    if not ki_agent_only and n_backtest_appended is not None:
-        if run_phase == "premarket" and n_backtest_appended > 0:
+    # === S4 (warn) — backtest_history-Disziplin (Tages-Invariante) =========
+    # premarket: WARN wenn dieser Run fälschlich appended hat (Run-Basis).
+    # postclose: WARN nur wenn der HEUTIGE Trading-Tag insgesamt KEINEN
+    # Eintrag in backtest_history hat (Tages-Basis). Re-Trigger am selben
+    # Tag (n_backtest_appended=0, weil _append_backtest_entries idempotent
+    # dedupliziert) sind dann kein False-Positive mehr.
+    if not ki_agent_only:
+        if (run_phase == "premarket"
+                and n_backtest_appended is not None
+                and n_backtest_appended > 0):
             fails.append({
                 "id": "S4", "severity": "warn",
                 "detail": (f"backtest_history wuchs in premarket-Run um "
                            f"{n_backtest_appended} Eintrag/Einträge"),
             })
-        elif run_phase == "postclose" and n_backtest_appended <= 0:
+        elif (run_phase == "postclose"
+                and backtest_has_today is False):
             fails.append({
                 "id": "S4", "severity": "warn",
-                "detail": "backtest_history wuchs in postclose-Run NICHT",
+                "detail": (f"backtest_history ohne Eintrag für "
+                           f"{today_iso or 'heute'} (postclose)"),
             })
 
     # === S5 (warn) — score_inflation_log ≥ N Zeilen pro Run ===============

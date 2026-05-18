@@ -3316,7 +3316,7 @@ Voller Detailtext + Schwellen-Tabelle in
 | S1 | crit | ``score_history.json`` hat heutigen Eintrag pro Top-10-Ticker |
 | S2 | crit | ``app_data.setup_scores`` hat ≥ ``HEALTH_CHECK_S2_MIN_TICKERS`` (8) Tickers |
 | S3 | crit | Aktive Positionen haben ``current_price != None`` |
-| S4 | warn | ``backtest_history`` wächst nur in ``postclose`` (n_appended-Returnwert) |
+| S4 | warn | ``backtest_history`` hat heutigen Eintrag im ``postclose``-Pfad (Tages-Invariante). premarket-Pfad bleibt Run-basiert: WARN wenn dieser Run fälschlich appended. |
 | S5 | warn | ``score_inflation_log`` bekommt ≥ ``HEALTH_CHECK_S5_MIN_INFLATION_LINES`` (10) neue Zeilen |
 | S6 | warn | ``monster_scores`` ≥ ``HEALTH_CHECK_S6_MIN_MONSTER_NONZERO`` (3) Tickers > 0 |
 | S7 | warn | ``agent_signals`` ∩ Top-10 ≥ ``HEALTH_CHECK_S7_MIN_AGENT_OVERLAP`` (5) |
