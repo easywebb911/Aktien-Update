@@ -426,6 +426,119 @@ jobs:
           echo "----- Erste 30 unique 'quote?t='-href-Werte -----"
           grep -oE 'href="[^"]*quote\?t=[^"]*"' "$BODY" | sort -u | head -30
 
+      # ─────────────────────────────────────────────────────────────────────
+      # Probe 4 — stocktwits Burst + earningswhispers URL-Discovery
+      #
+      # Stocktwits: Diagnose-Hypothese A „Burst-Rate-Limit". Production
+      # macht 14 parallele Calls via ThreadPoolExecutor(max_workers=10).
+      # Hier 5 schnelle sequentielle Calls — wenn 1× 200 dann 4× 429,
+      # bestätigt Burst-Limit. Wenn alle 5× 429/403, dann Auth-Wall.
+      #
+      # EarningsWhispers: alter .asp-Endpoint tot. Homepage-Sniff +
+      # 4 Kandidat-URLs für RSS/iCal/JSON-API-Replacement.
+      # ─────────────────────────────────────────────────────────────────────
+
+      - name: Probe 11 — Stocktwits Burst-Test (5 schnelle Calls, kein sleep)
+        run: |
+          set +e
+          echo "Hypothese: Production hat 14 parallele Calls → Burst-Limit?"
+          echo "Test: 5 sequentielle Calls in rapider Folge, kein Sleep."
+          echo
+          BURST_DIR="$OUT_DIR/11_stocktwits_burst"
+          mkdir -p "$BURST_DIR"
+          declare -A STATUS_COUNT
+          for sym in AMC IONQ RR CRMD NVDA; do
+            URL="https://api.stocktwits.com/api/2/streams/symbol/${sym}.json"
+            STATUS=$(curl -sS --max-time 5 \
+              -H "User-Agent: $CHROME_UA" \
+              -H "Accept-Language: $ACCEPT_LANG" \
+              -o "$BURST_DIR/${sym}_body.bin" \
+              -D "$BURST_DIR/${sym}_headers.txt" \
+              -w "%{http_code}|%{time_total}|%{size_download}" \
+              "$URL" 2>/dev/null)
+            http=$(echo "$STATUS" | cut -d'|' -f1)
+            time_s=$(echo "$STATUS" | cut -d'|' -f2)
+            bytes=$(echo "$STATUS" | cut -d'|' -f3)
+            echo "  $sym → HTTP $http  time=${time_s}s  bytes=$bytes"
+            # Rate-Limit-Header capturen wenn vorhanden
+            for h in "Retry-After" "X-RateLimit-Limit" "X-RateLimit-Remaining" "X-RateLimit-Reset" "X-Rate-Limit-Limit" "X-Rate-Limit-Remaining" "X-Rate-Limit-Reset"; do
+              val=$(grep -i "^$h:" "$BURST_DIR/${sym}_headers.txt" 2>/dev/null | head -1 | sed 's/\r$//')
+              if [ -n "$val" ]; then
+                echo "    [$sym] $val"
+              fi
+            done
+          done
+          echo
+          echo "----- Status-Count über 5 Calls -----"
+          for sym in AMC IONQ RR CRMD NVDA; do
+            grep -m1 -oE "HTTP/[12]\.?[0-9]? [0-9]{3}" "$BURST_DIR/${sym}_headers.txt" 2>/dev/null | head -1
+          done | sort | uniq -c | sort -rn
+          echo
+          echo "----- Body-Snippet pro Symbol (erste 300 chars) -----"
+          for sym in AMC IONQ RR CRMD NVDA; do
+            echo "--- $sym ---"
+            head -c 300 "$BURST_DIR/${sym}_body.bin" 2>/dev/null
+            echo
+          done
+
+      - name: Probe 12 — EarningsWhispers Homepage URL-Discovery
+        run: |
+          set +e
+          URL="https://www.earningswhispers.com/"
+          echo "URL: $URL"
+          echo "----- verbose -----"
+          curl -v -L --max-filesize 1048576 --max-time 15 \
+            -H "User-Agent: $CHROME_UA" \
+            -H "Accept-Language: $ACCEPT_LANG" \
+            -o "$OUT_DIR/12_ew_home_body.bin" \
+            -D "$OUT_DIR/12_ew_home_headers.txt" \
+            -w "\n----- summary -----\nHTTP_STATUS=%{http_code}\nSIZE_DOWNLOAD=%{size_download}\nTIME_TOTAL=%{time_total}\nREMOTE_IP=%{remote_ip}\nNUM_REDIRECTS=%{num_redirects}\nEFFECTIVE_URL=%{url_effective}\n" \
+            "$URL" 2>&1 || true
+          echo
+          echo "----- response headers -----"
+          cat "$OUT_DIR/12_ew_home_headers.txt" || true
+          echo
+          BODY="$OUT_DIR/12_ew_home_body.bin"
+          if [ ! -s "$BODY" ]; then
+            echo "(Body leer oder fehlt — Probe 12 hat nicht gefetched)"
+            exit 0
+          fi
+          echo "----- markup-sniff -----"
+          echo "  <rss hits:         $(grep -c "<rss" "$BODY" 2>/dev/null || echo 0)"
+          echo "  link rel=alternate hits: $(grep -ciE 'link[^>]*rel=\"alternate\"' "$BODY" 2>/dev/null || echo 0)"
+          echo "  body byte count:   $(wc -c < "$BODY" 2>/dev/null || echo 0)"
+          echo
+          echo "----- href= mit feed/rss/calendar/api/.ics (unique, max 30) -----"
+          grep -oE 'href="[^"]*(feed|rss|calendar|api|\.ics)[^"]*"' "$BODY" | sort -u | head -30
+          echo
+          echo "----- <link rel=alternate>-Tags (unique, max 15) -----"
+          grep -oiE '<link[^>]*rel="alternate"[^>]*>' "$BODY" | sort -u | head -15
+
+      - name: Probe 13 — EarningsWhispers 4 Kandidat-URLs
+        run: |
+          set +e
+          for path in "/calendar" "/feeds/calendar" "/api/calendar" "/iCalendar/calendar.ics"; do
+            URL="https://www.earningswhispers.com${path}"
+            slug=$(echo "$path" | tr '/.' '__')
+            HDR_FILE="$OUT_DIR/13_ew_candidate${slug}_headers.txt"
+            BODY_FILE="$OUT_DIR/13_ew_candidate${slug}_body.bin"
+            echo "=== Probing: $URL ==="
+            STATUS=$(curl -sS -L --max-filesize 1048576 --max-time 10 \
+              -H "User-Agent: $CHROME_UA" \
+              -H "Accept-Language: $ACCEPT_LANG" \
+              -o "$BODY_FILE" \
+              -D "$HDR_FILE" \
+              -w "HTTP_STATUS=%{http_code}|TIME=%{time_total}|SIZE=%{size_download}|EFFECTIVE_URL=%{url_effective}|NUM_REDIRECTS=%{num_redirects}" \
+              "$URL" 2>/dev/null)
+            echo "  $STATUS"
+            content_type=$(grep -i "^content-type:" "$HDR_FILE" 2>/dev/null | head -1 | sed 's/\r$//')
+            echo "  $content_type"
+            echo "  ----- body (first 200 chars) -----"
+            head -c 200 "$BODY_FILE" 2>/dev/null
+            echo
+            echo
+          done
+
       - name: Upload raw probe artefacts
         if: always()
         uses: actions/upload-artifact@v4
