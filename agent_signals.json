@@ -1,10 +1,10 @@
 {
-  "updated": "2026-05-18T01:12:23.446168+02:00",
+  "updated": "2026-05-18T02:11:04.182959+02:00",
   "run_info": {
     "tickers_checked": 14,
     "signals_active": 4,
     "alerts_sent": 0,
-    "elapsed_s": 18.0,
+    "elapsed_s": 14.7,
     "market_phase": "Geschlossen"
   },
   "signals": {
@@ -55,7 +55,7 @@
     "CRMD": {
       "score": 40,
       "confidence": 33,
-      "drivers": "Spanne 8.8% + News: guidance raised, earnings beat",
+      "drivers": "Spanne 8.8% + News: earnings beat, guidance raised",
       "price": 7.55,
       "chg_pct": 0.0,
       "rvol_4d": 1.46,
@@ -135,9 +135,9 @@
       "uoa_cp_ratio": null
     },
     "IONQ": {
-      "score": 10,
-      "confidence": 17,
-      "drivers": "Spanne 6.3%",
+      "score": 25,
+      "confidence": 33,
+      "drivers": "Spanne 6.3% + News: merger",
       "price": 51.95,
       "chg_pct": 0.0,
       "rvol_4d": 0.66,
@@ -148,7 +148,7 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 0,
+      "active_triggers": 1,
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": 0.8742079761461051,
@@ -177,7 +177,7 @@
     "PZZA": {
       "score": 55,
       "confidence": 70,
-      "drivers": "Volumen 1.8× + Spanne 6.3% + News: takeover, buyout",
+      "drivers": "Volumen 1.8× + Spanne 6.3% + News: buyout, takeover",
       "price": 34.73,
       "chg_pct": -0.0,
       "rvol_4d": 1.78,
@@ -239,7 +239,7 @@
     "SKYQ": {
       "score": 88,
       "confidence": 70,
-      "drivers": "Volumen 7.7× + 🚀 Massives Volumen 7.7×+ + Spanne 51.2% + News: short interest, partnership",
+      "drivers": "Volumen 7.7× + 🚀 Massives Volumen 7.7×+ + Spanne 51.2% + News: partnership, short interest",
       "price": 3.07,
       "chg_pct": -0.0,
       "rvol_4d": 7.69,
