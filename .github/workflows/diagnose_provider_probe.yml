@@ -171,7 +171,7 @@ jobs:
           echo "URL: $URL"
           echo "User-Agent: $CHROME_UA"
           echo "----- verbose -----"
-          curl -v -L --max-filesize 51200 --max-time 30 \
+          curl -v -L --max-filesize 1048576 --max-time 30 \
             -H "User-Agent: $CHROME_UA" \
             -H "Accept-Language: $ACCEPT_LANG" \
             -o "$OUT_DIR/05_finviz_screener_new_body.bin" \
@@ -181,15 +181,20 @@ jobs:
           echo
           echo "----- response headers (incl. redirect chain) -----"
           cat "$OUT_DIR/05_finviz_screener_new_headers.txt" || true
-          echo "----- body (first 1000 chars) -----"
-          head -c 1000 "$OUT_DIR/05_finviz_screener_new_body.bin" || true
+          echo "----- body (first 5000 chars) -----"
+          head -c 5000 "$OUT_DIR/05_finviz_screener_new_body.bin" || true
           echo
           echo "----- markup-sniff -----"
           echo "  __NEXT_DATA__ hits: $(grep -c "__NEXT_DATA__" "$OUT_DIR/05_finviz_screener_new_body.bin" 2>/dev/null || echo 0)"
           echo "  <table hits:       $(grep -c "<table" "$OUT_DIR/05_finviz_screener_new_body.bin" 2>/dev/null || echo 0)"
+          echo "  tr class hits:     $(grep -c "tr class" "$OUT_DIR/05_finviz_screener_new_body.bin" 2>/dev/null || echo 0)"
+          echo "  data-key hits:     $(grep -c "data-key" "$OUT_DIR/05_finviz_screener_new_body.bin" 2>/dev/null || echo 0)"
           echo "  quote.ashx?t= hits: $(grep -c "quote\.ashx?t=" "$OUT_DIR/05_finviz_screener_new_body.bin" 2>/dev/null || echo 0)"
           echo "  /quote/ hits:      $(grep -c "/quote/" "$OUT_DIR/05_finviz_screener_new_body.bin" 2>/dev/null || echo 0)"
           echo "  Short Float hits:  $(grep -c "Short Float" "$OUT_DIR/05_finviz_screener_new_body.bin" 2>/dev/null || echo 0)"
+          echo "  Float Short hits:  $(grep -c "Float Short" "$OUT_DIR/05_finviz_screener_new_body.bin" 2>/dev/null || echo 0)"
+          echo "  SF  hits:          $(grep -c "SF " "$OUT_DIR/05_finviz_screener_new_body.bin" 2>/dev/null || echo 0)"
+          echo "  short_float hits:  $(grep -c "short_float" "$OUT_DIR/05_finviz_screener_new_body.bin" 2>/dev/null || echo 0)"
           echo "  body byte count:   $(wc -c < "$OUT_DIR/05_finviz_screener_new_body.bin" 2>/dev/null || echo 0)"
 
       - name: Probe 6 — finviz Quote-Page neu (/quote/AMC, ohne .ashx)
@@ -199,7 +204,7 @@ jobs:
           echo "URL: $URL"
           echo "User-Agent: $CHROME_UA"
           echo "----- verbose -----"
-          curl -v -L --max-filesize 51200 --max-time 30 \
+          curl -v -L --max-filesize 1048576 --max-time 30 \
             -H "User-Agent: $CHROME_UA" \
             -H "Accept-Language: $ACCEPT_LANG" \
             -o "$OUT_DIR/06_finviz_quote_new_body.bin" \
@@ -209,14 +214,19 @@ jobs:
           echo
           echo "----- response headers (incl. redirect chain) -----"
           cat "$OUT_DIR/06_finviz_quote_new_headers.txt" || true
-          echo "----- body (first 1000 chars) -----"
-          head -c 1000 "$OUT_DIR/06_finviz_quote_new_body.bin" || true
+          echo "----- body (first 5000 chars) -----"
+          head -c 5000 "$OUT_DIR/06_finviz_quote_new_body.bin" || true
           echo
           echo "----- markup-sniff -----"
           echo "  __NEXT_DATA__ hits: $(grep -c "__NEXT_DATA__" "$OUT_DIR/06_finviz_quote_new_body.bin" 2>/dev/null || echo 0)"
           echo "  <table hits:       $(grep -c "<table" "$OUT_DIR/06_finviz_quote_new_body.bin" 2>/dev/null || echo 0)"
+          echo "  tr class hits:     $(grep -c "tr class" "$OUT_DIR/06_finviz_quote_new_body.bin" 2>/dev/null || echo 0)"
+          echo "  data-key hits:     $(grep -c "data-key" "$OUT_DIR/06_finviz_quote_new_body.bin" 2>/dev/null || echo 0)"
           echo "  quote.ashx?t= hits: $(grep -c "quote\.ashx?t=" "$OUT_DIR/06_finviz_quote_new_body.bin" 2>/dev/null || echo 0)"
           echo "  Short Float hits:  $(grep -c "Short Float" "$OUT_DIR/06_finviz_quote_new_body.bin" 2>/dev/null || echo 0)"
+          echo "  Float Short hits:  $(grep -c "Float Short" "$OUT_DIR/06_finviz_quote_new_body.bin" 2>/dev/null || echo 0)"
+          echo "  SF  hits:          $(grep -c "SF " "$OUT_DIR/06_finviz_quote_new_body.bin" 2>/dev/null || echo 0)"
+          echo "  short_float hits:  $(grep -c "short_float" "$OUT_DIR/06_finviz_quote_new_body.bin" 2>/dev/null || echo 0)"
           echo "  body byte count:   $(wc -c < "$OUT_DIR/06_finviz_quote_new_body.bin" 2>/dev/null || echo 0)"
 
       - name: Probe 7 — finviz Quote-Page alt (quote.ashx?t=AMC, Vergleichs-Probe)
@@ -226,7 +236,7 @@ jobs:
           echo "URL: $URL"
           echo "User-Agent: $CHROME_UA"
           echo "----- verbose -----"
-          curl -v -L --max-filesize 51200 --max-time 30 \
+          curl -v -L --max-filesize 1048576 --max-time 30 \
             -H "User-Agent: $CHROME_UA" \
             -H "Accept-Language: $ACCEPT_LANG" \
             -o "$OUT_DIR/07_finviz_quote_ashx_body.bin" \
@@ -253,7 +263,7 @@ jobs:
           echo "URL: $URL"
           echo "User-Agent: $CHROME_UA"
           echo "----- verbose -----"
-          curl -v -L --max-filesize 51200 --max-time 30 \
+          curl -v -L --max-filesize 1048576 --max-time 30 \
             -H "User-Agent: $CHROME_UA" \
             -H "Accept-Language: $ACCEPT_LANG" \
             -o "$OUT_DIR/08_finviz_rss_body.bin" \
