@@ -1841,56 +1841,25 @@ def _fetch_si_trend_from_yfinance(ticker: str) -> dict:
 
 
 def fetch_earningswhispers_rss() -> dict[str, dict]:
-    """EarningsWhispers RSS — einmal pro Run, liefert {ticker → {date, eps_estimate}}.
+    """EarningsWhispers RSS — DEAKTIVIERT seit 18.05.2026.
 
-    URL: https://www.earningswhispers.com/rss/earningscalendar.asp
+    Der frühere RSS-Endpoint
+    ``https://www.earningswhispers.com/rss/earningscalendar.asp``
+    liefert seit Mai 2026 HTTP 302 → 404 (Probe 4 vom 18.05.). Die
+    Homepage- + URL-Discovery-Probes (12, 13) haben keine maschinen-
+    lesbare Alternative-API gefunden — der Calendar ist nur noch als
+    HTML-Page verfügbar.
 
-    Der Feed enthält ~50 nächste US-Earnings-Termine. Titel-Format ist
-    in der Regel „TICKER — DD.MM.YYYY (vor/nach Markt) — Exp. $X.XX".
-    Parser ist tolerant gegenüber leichten Formatvarianten.
+    Der Consumer fällt auf yfinance-Earnings-Date zurück (bestehender
+    Fallback-Pfad, deckt den Earnings-Datum-Use-Case). EPS-Estimate
+    war ein Nice-to-have und entfällt mit der Deaktivierung.
 
-    Rückgabe: dict ticker → {"date": ISO-String, "eps_estimate": float|None}
-    Bei HTTP-Fehler: leeres Dict (Fallback auf yfinance im Consumer).
+    Re-Aktivierung erst wenn: a) EarningsWhispers wieder einen Feed
+    anbietet, ODER b) Paid-API (EarningsWhispers Premium) ins Budget
+    aufgenommen wird, ODER c) HTML-Scrape von /calendar implementiert
+    wird (mittlere Code-Investition).
     """
-    if not EARNINGSWHISPERS_ENABLED:
-        return {}
-    url = "https://www.earningswhispers.com/rss/earningscalendar.asp"
-    try:
-        resp = requests.get(url, headers=HTTP_HEADERS, timeout=10)
-        if resp.status_code != 200:
-            print(f"EarningsWhispers: HTTP {resp.status_code} — übersprungen", flush=True)
-            return {}
-    except Exception as exc:
-        print(f"EarningsWhispers: Fehler {exc} — übersprungen", flush=True)
-        return {}
-    out: dict[str, dict] = {}
-    try:
-        root = ET.fromstring(resp.content)
-        for item in root.findall(".//item"):
-            title = strip_surrogates((item.findtext("title") or "").strip())
-            pub   = (item.findtext("pubDate") or "").strip()
-            # Ticker: erstes Token bis nicht-Buchstaben
-            mt = re.match(r'^([A-Z0-9.\-]{1,12})\b', title)
-            if not mt:
-                continue
-            sym = mt.group(1)
-            # EPS-Schätzung: "Exp. $X.XX"
-            me = re.search(r'Exp\.\s*\$?\s*([\d.]+)', title)
-            eps = float(me.group(1)) if me else None
-            # Datum: aus pubDate via email.utils.parsedate_to_datetime (robust)
-            date_iso = None
-            if pub:
-                try:
-                    dt = parsedate_to_datetime(pub)
-                    date_iso = dt.date().isoformat()
-                except Exception:
-                    pass
-            out[sym] = {"date": date_iso, "eps_estimate": eps}
-    except ET.ParseError as exc:
-        print(f"EarningsWhispers: Parser-Fehler {exc}", flush=True)
-        return {}
-    print(f"EarningsWhispers: {len(out)} Termine geladen", flush=True)
-    return out
+    return {}
 
 
 _SEC_HEADERS = {"User-Agent": "Easy Webb easywebb@yahoo.de"}

@@ -236,7 +236,7 @@ FINVIZ_MAX_TICKERS      = 50
 STOCKANALYSIS_SI_ENABLED = True
 STOCKANALYSIS_SI_MAX_AGE_DAYS = 7
 # 3) EarningsWhispers-RSS für präzisere Earnings-Termine (einmal pro Run)
-EARNINGSWHISPERS_ENABLED = True
+EARNINGSWHISPERS_ENABLED = False  # 18.05.2026 deaktiviert — RSS-Feed tot (Probe 4 + 12/13), keine maschinen-lesbare Alternative; yfinance trägt
 # 4) Zusätzliche Yahoo-US-Screener (erweitert den Pool)
 EXTRA_SCREENERS = ["undervalued_growth_stocks", "day_gainers"]
 
@@ -269,7 +269,7 @@ COMBO_NEWS_MIN   = 10
 # ── StockTwits Sentiment (öffentliche Read-API) ──────────────────────────────
 # https://api.stocktwits.com/api/2/streams/symbol/{SYM}.json
 # Bei Rate-Limit (200 req/h pro IP) oder HTTP-Fehler → stiller 0-Pkt-Fallback.
-STOCKTWITS_ENABLED      = True
+STOCKTWITS_ENABLED      = False  # 18.05.2026 deaktiviert — Production-Fails seit 15.05. (14/14 parallel), Sentiment-Bonus nicht zentral
 STOCKTWITS_TIMEOUT      = 5    # Sekunden
 STOCKTWITS_BULL_STRONG  = 15   # Bullish-Ratio > 0.70 + Volume > 10/h
 STOCKTWITS_BULL_WEAK    = 8    # Bullish-Ratio > 0.60
