@@ -1054,70 +1054,26 @@ def fetch_finra_ssr(tickers: list[str]) -> dict[str, float]:
 # ── Datenquelle 11: StockTwits Sentiment (öffentliche Read-API) ──────────────
 
 def fetch_stocktwits_sentiment(ticker: str) -> dict | None:
-    """Liest die letzten Messages aus https://api.stocktwits.com/api/2/streams/symbol/.
+    """Stocktwits-Sentiment — DEAKTIVIERT seit 18.05.2026.
 
-    Rückgabe-Dict::
-        {"bull_ratio": 0..1 | None,   # bull / (bull + bear); None wenn keine Daten
-         "msg_per_h":  int,            # Messages innerhalb der letzten Stunde
-         "n_total":    int,            # Anzahl bewerteter Messages
-         "n_bull":     int,
-         "n_bear":     int}
+    Production-Fail-Streak seit 15.05.2026 (14/14 parallele Calls
+    schlagen fehl). Probe 3 (Single-Call) und Probe 11 (5-Call-Burst)
+    zeigen widersprüchliches Bild: einzelne Calls returnen HTTP 200,
+    aber die Production-Burst von 14 parallelen Calls produziert
+    100%-Fail-Rate. Verdacht: Schema-Drift im JSON-Response ODER
+    Burst-Rate-Limit ODER beides — ohne weitere Diagnostic-Welle
+    nicht klar trennbar.
 
-    Return-Semantik (16.05.2026, Tier-3-success_check-Recalibration):
-      * Volles Dict mit ``n_total > 0`` — Messages gefunden.
-      * Volles Dict mit ``n_total = 0`` — Fetch OK, keine Messages
-        (LEGITIM, z. B. Smallcap ohne Aktivität).
-      * None — HTTP 4xx/5xx (z. B. 429 Rate-Limit, 403 Block),
-        Timeout, Parse-Error. Wrapper zählt als fail.
+    Sentiment-Bonus ist nicht zentral für Setup-Scoring (KI-Score-
+    Boost-Multiplikator ×1.05-1.15, eine von mehreren Bonus-Quellen).
+    Deaktivierung ist günstiger als weitere Diagnose-Welle.
 
-    STOCKTWITS_ENABLED=False oder leerer Ticker → leeres Dict (kein
-    Call versucht; wird vom Wrapper als success klassifiziert weil
-    result is not None).
+    Re-Aktivierung erst wenn: a) Stocktwits ein stabil-paid-Tier
+    anbietet, ODER b) Schema-Drift-Diagnose den genauen Bug findet
+    + Fix < 2 h Aufwand, ODER c) Sentiment via anderer Quelle
+    (Reddit, Twitter API) bessere Daten liefert.
     """
-    if not STOCKTWITS_ENABLED or not ticker:
-        return {"bull_ratio": None, "msg_per_h": 0, "n_total": 0,
-                "n_bull": 0, "n_bear": 0}
-    sym = ticker.split(".")[0].upper()
-    url = f"https://api.stocktwits.com/api/2/streams/symbol/{sym}.json"
-    try:
-        resp = requests.get(url, headers=HTTP_HEADERS, timeout=STOCKTWITS_TIMEOUT)
-        if resp.status_code != 200:
-            log.debug("StockTwits %s HTTP %d", ticker, resp.status_code)
-            return None     # echter Fail: 429 Rate-Limit, 403 Block, 5xx
-        data = resp.json()
-    except (requests.RequestException, ValueError) as exc:
-        log.debug("StockTwits %s fetch failed: %s", ticker, exc)
-        return None         # echter Fail: Timeout, ConnectionError, Parse
-
-    messages = (data.get("messages") or [])[:30]
-    n_bull = n_bear = 0
-    msg_per_h = 0
-    one_hour_ago = datetime.now(timezone.utc) - timedelta(hours=1)
-    for m in messages:
-        # Sentiment auswerten (bull/bear; None wenn Verfasser keinen Tag setzt)
-        sent = ((m.get("entities") or {}).get("sentiment") or {}).get("basic")
-        if not sent:
-            sent = (m.get("sentiment") or {}).get("basic") if isinstance(
-                m.get("sentiment"), dict) else None
-        if sent == "Bullish":
-            n_bull += 1
-        elif sent == "Bearish":
-            n_bear += 1
-        # Nachrichten-Volumen-Indikator: Messages innerhalb der letzten Stunde
-        try:
-            ts = datetime.fromisoformat(
-                str(m.get("created_at", "")).replace("Z", "+00:00"))
-            if ts.tzinfo is None:
-                ts = ts.replace(tzinfo=timezone.utc)
-            if ts >= one_hour_ago:
-                msg_per_h += 1
-        except (ValueError, TypeError):
-            continue
-
-    n_total = n_bull + n_bear
-    bull_ratio = (n_bull / n_total) if n_total > 0 else None
-    return {"bull_ratio": bull_ratio, "msg_per_h": msg_per_h,
-            "n_total": n_total, "n_bull": n_bull, "n_bear": n_bear}
+    return None
 
 
 def fetch_uoa_signal(ticker: str) -> tuple[int, list[str], dict]:
@@ -2779,17 +2735,25 @@ def _process_ticker(ticker: str, shared: dict) -> dict:
         except Exception as exc:
             log.debug("FDA-Datum Parse %s: %s", ticker, exc)
 
-    # Tier-3 stocktwits (16.05.2026, success_check-Recalibration):
-    # Fetcher returnt None bei HTTP 4xx/5xx/Timeout, Default-Dict bei
-    # legitimer "keine Messages"-Antwort. success_check prüft nur
-    # "Call funktioniert".
-    _r = health_check.instrument_provider_call(
-        _STOCKTWITS_ACCT, fetch_stocktwits_sentiment, ticker,
-        success_check=lambda r: r is not None)
-    stocktwits_data = _unpack_or_default(_r, {
-        "bull_ratio": None, "msg_per_h": 0, "n_total": 0,
-        "n_bull": 0, "n_bear": 0,
-    })
+    # Tier-3 stocktwits — ENABLED-Gate (18.05.2026 deaktiviert).
+    # Symmetrisch zum EARNINGSWHISPERS_ENABLED-Gate in generate_report.
+    # main(): bei Disabled wird der Wrapper nicht aufgerufen → keine
+    # provider_health.jsonl-Zeile → 7d-Stale-Cutoff resettet den
+    # Digest-Counter automatisch. Default-Dict identisch zum früheren
+    # success-Pfad bei n_total=0.
+    if STOCKTWITS_ENABLED:
+        _r = health_check.instrument_provider_call(
+            _STOCKTWITS_ACCT, fetch_stocktwits_sentiment, ticker,
+            success_check=lambda r: r is not None)
+        stocktwits_data = _unpack_or_default(_r, {
+            "bull_ratio": None, "msg_per_h": 0, "n_total": 0,
+            "n_bull": 0, "n_bear": 0,
+        })
+    else:
+        stocktwits_data = {
+            "bull_ratio": None, "msg_per_h": 0, "n_total": 0,
+            "n_bull": 0, "n_bear": 0,
+        }
 
     # UOA — Unusual Options Activity aus yfinance Options-Chain.
     # Sequenziell wie die anderen Fetches; Parallelität existiert bereits
