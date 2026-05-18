@@ -1,11 +1,11 @@
 {
-  "updated": "2026-05-18T06:42:34.680926+02:00",
+  "updated": "2026-05-18T10:28:59.761620+02:00",
   "run_info": {
     "tickers_checked": 14,
     "signals_active": 4,
     "alerts_sent": 0,
-    "elapsed_s": 13.0,
-    "market_phase": "Geschlossen"
+    "elapsed_s": 15.5,
+    "market_phase": "Pre-Market"
   },
   "signals": {
     "AI": {
@@ -27,7 +27,7 @@
       "uoa_drivers": [
         "UOA Call/Put 3.5×"
       ],
-      "uoa_atm_ratio": 0.0693489327498437,
+      "uoa_atm_ratio": null,
       "uoa_cp_ratio": 3.5377358490566038
     },
     "AMC": {
@@ -55,7 +55,7 @@
     "CRMD": {
       "score": 40,
       "confidence": 33,
-      "drivers": "Spanne 8.8% + News: guidance raised, earnings beat",
+      "drivers": "Spanne 8.8% + News: earnings beat, guidance raised",
       "price": 7.55,
       "chg_pct": 0.0,
       "rvol_4d": 1.46,
@@ -111,13 +111,13 @@
       "uoa_drivers": [
         "UOA Call/Put 2.9×"
       ],
-      "uoa_atm_ratio": 2.339950372208437,
+      "uoa_atm_ratio": null,
       "uoa_cp_ratio": 2.865079365079365
     },
     "GLOB": {
-      "score": 25,
-      "confidence": 33,
-      "drivers": "Volumen 2.6× + Spanne 8.9%",
+      "score": 33,
+      "confidence": 70,
+      "drivers": "Volumen 2.6× + Spanne 8.9% + News-KI 8/30: Positive fundamental catalysts (AI initiatives, buyback) drive organic growth rather than short-squeeze indicators like ",
       "price": 38.91,
       "chg_pct": -0.0,
       "rvol_4d": 2.56,
@@ -135,9 +135,9 @@
       "uoa_cp_ratio": null
     },
     "IONQ": {
-      "score": 22,
+      "score": 25,
       "confidence": 33,
-      "drivers": "Spanne 6.3% + News-KI 12/30: Positive merger news and analyst interest provide some momentum, but no evidence of high short interest, significant pri",
+      "drivers": "Spanne 6.3% + News: merger",
       "price": 51.95,
       "chg_pct": 0.0,
       "rvol_4d": 0.66,
@@ -153,26 +153,6 @@
       "uoa_drivers": [],
       "uoa_atm_ratio": null,
       "uoa_cp_ratio": 0.6368927426060103
-    },
-    "LESL": {
-      "score": 10,
-      "confidence": 17,
-      "drivers": "Spanne 40.7%",
-      "price": 3.03,
-      "chg_pct": -0.0,
-      "rvol_4d": 0.53,
-      "rvol_20d": 2.63,
-      "earnings": "in 80 Tagen (06.08.2026)",
-      "fda_date": null,
-      "upcoming_event": null,
-      "insider_buy": false,
-      "stocktwits": null,
-      "combo_mult": 1.0,
-      "active_triggers": 0,
-      "uoa_score": 0,
-      "uoa_drivers": [],
-      "uoa_atm_ratio": null,
-      "uoa_cp_ratio": null
     },
     "NTLA": {
       "score": 40,
@@ -194,10 +174,30 @@
       "uoa_atm_ratio": null,
       "uoa_cp_ratio": null
     },
+    "PRA": {
+      "score": 61,
+      "confidence": 70,
+      "drivers": "Volumen 2.5× + News: acquisition + FINRA Short-Vol 100%",
+      "price": 24.51,
+      "chg_pct": 0.0,
+      "rvol_4d": 2.47,
+      "rvol_20d": 2.0,
+      "earnings": "in 78 Tagen (04.08.2026)",
+      "fda_date": null,
+      "upcoming_event": null,
+      "insider_buy": false,
+      "stocktwits": null,
+      "combo_mult": 1.1,
+      "active_triggers": 2,
+      "uoa_score": 0,
+      "uoa_drivers": [],
+      "uoa_atm_ratio": null,
+      "uoa_cp_ratio": null
+    },
     "PZZA": {
       "score": 55,
       "confidence": 70,
-      "drivers": "Volumen 1.8× + Spanne 6.3% + News: takeover, buyout",
+      "drivers": "Volumen 1.8× + Spanne 6.3% + News: acquisition, takeover",
       "price": 34.73,
       "chg_pct": -0.0,
       "rvol_4d": 1.78,
@@ -233,7 +233,7 @@
       "uoa_drivers": [
         "UOA Call/Put 3.9×"
       ],
-      "uoa_atm_ratio": 0.9786821705426356,
+      "uoa_atm_ratio": null,
       "uoa_cp_ratio": 3.8810408921933086
     },
     "SG": {
@@ -253,13 +253,13 @@
       "active_triggers": 2,
       "uoa_score": 0,
       "uoa_drivers": [],
-      "uoa_atm_ratio": 0.7333333333333333,
+      "uoa_atm_ratio": null,
       "uoa_cp_ratio": 0.5700280112044818
     },
     "SKYQ": {
       "score": 88,
       "confidence": 70,
-      "drivers": "Volumen 7.7× + 🚀 Massives Volumen 7.7×+ + Spanne 51.2% + News: partnership, short interest",
+      "drivers": "Volumen 7.7× + 🚀 Massives Volumen 7.7×+ + Spanne 51.2% + News: short interest, partnership",
       "price": 3.07,
       "chg_pct": -0.0,
       "rvol_4d": 7.69,
