@@ -1,10 +1,10 @@
 {
-  "updated": "2026-05-18T06:15:01.014558+02:00",
+  "updated": "2026-05-18T06:19:27.478957+02:00",
   "run_info": {
     "tickers_checked": 14,
     "signals_active": 4,
     "alerts_sent": 0,
-    "elapsed_s": 14.2,
+    "elapsed_s": 14.6,
     "market_phase": "Geschlossen"
   },
   "signals": {
@@ -154,6 +154,26 @@
       "uoa_atm_ratio": 0.8742079761461051,
       "uoa_cp_ratio": 0.6368927426060103
     },
+    "LESL": {
+      "score": 10,
+      "confidence": 17,
+      "drivers": "Spanne 40.7%",
+      "price": 3.03,
+      "chg_pct": -0.0,
+      "rvol_4d": 0.53,
+      "rvol_20d": 2.63,
+      "earnings": "in 80 Tagen (06.08.2026)",
+      "fda_date": null,
+      "upcoming_event": null,
+      "insider_buy": false,
+      "stocktwits": null,
+      "combo_mult": 1.0,
+      "active_triggers": 0,
+      "uoa_score": 0,
+      "uoa_drivers": [],
+      "uoa_atm_ratio": null,
+      "uoa_cp_ratio": null
+    },
     "NTLA": {
       "score": 40,
       "confidence": 70,
@@ -169,26 +189,6 @@
       "stocktwits": null,
       "combo_mult": 1.0,
       "active_triggers": 1,
-      "uoa_score": 0,
-      "uoa_drivers": [],
-      "uoa_atm_ratio": null,
-      "uoa_cp_ratio": null
-    },
-    "PRA": {
-      "score": 61,
-      "confidence": 70,
-      "drivers": "Volumen 2.5× + News: acquisition + FINRA Short-Vol 100%",
-      "price": 24.51,
-      "chg_pct": 0.0,
-      "rvol_4d": 2.47,
-      "rvol_20d": 2.0,
-      "earnings": "in 78 Tagen (04.08.2026)",
-      "fda_date": null,
-      "upcoming_event": null,
-      "insider_buy": false,
-      "stocktwits": null,
-      "combo_mult": 1.1,
-      "active_triggers": 2,
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": null,
@@ -277,9 +277,9 @@
       "uoa_cp_ratio": null
     },
     "TNXP": {
-      "score": 33,
+      "score": 40,
       "confidence": 70,
-      "drivers": "Volumen 1.8× + Spanne 16.9% + News-KI 8/30: Routine conference presentations and quarterly earnings lack catalysts for short squeeze; no announcement of significant",
+      "drivers": "Volumen 1.8× + Spanne 16.9% + News: revenue beat",
       "price": 15.74,
       "chg_pct": -0.0,
       "rvol_4d": 1.81,
@@ -290,7 +290,7 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 0,
+      "active_triggers": 1,
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": null,
