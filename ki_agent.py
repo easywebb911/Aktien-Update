@@ -2674,9 +2674,13 @@ def _process_ticker(ticker: str, shared: dict) -> dict:
     yahoo_news  = health_check.instrument_provider_call(
         _NEWS_RSS_ACCT, fetch_yahoo_news, ticker)
     base        = ticker.split(".")[0]
-    finviz_news = health_check.instrument_provider_call(
-        _NEWS_RSS_ACCT, fetch_rss_news,
-        "https://finviz.com/rss.ashx?t={ticker}", ticker)
+    # finviz RSS-Feed seit Mai 2026 tot (Probe 18.05.2026), liefert
+    # HTML-Page statt Feed. Die 5 anderen RSS-Quellen tragen die
+    # News-Versorgung.
+    # finviz_news = health_check.instrument_provider_call(
+    #     _NEWS_RSS_ACCT, fetch_rss_news,
+    #     "https://finviz.com/rss.ashx?t={ticker}", ticker)
+    finviz_news: list[dict] = []
     google_news = health_check.instrument_provider_call(
         _NEWS_RSS_ACCT, fetch_rss_news,
         "https://news.google.com/rss/search?q={ticker}+stock&hl=en-US&gl=US&ceid=US:en",
