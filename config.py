@@ -900,7 +900,7 @@ EASTERN = ZoneInfo("America/New_York")
 
 # ── Service-spezifische HTTP-Header ──────────────────────────────────────────
 REDDIT_HEADERS = {"User-Agent": "SqueezeAgent/1.0"}
-SEC_HEADERS    = {"User-Agent": "SqueezeReport/1.0 github-actions@squeeze-report.com"}
+SEC_HEADERS    = {"User-Agent": "Easy Webb easywebb@yahoo.de"}
 
 # ── ntfy.sh Push-Notifications ───────────────────────────────────────────────
 # Leer = deaktiviert. Topic frei wählbar (z.B. "squeeze-xk7q2m9p"); auf
