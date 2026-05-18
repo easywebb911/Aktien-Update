@@ -16031,6 +16031,20 @@ def main():
                  run_phase)
         _n_backtest_appended = 0
 
+    # S4 Tages-Invariante (statt Run-Basis): re-trigger am selben Tag soll
+    # kein WARN auslösen. Quelle ist backtest_history.json nach dem Append-
+    # Aufruf — wenn min. 1 Eintrag mit date == report_date existiert
+    # (egal ob heute neu oder durch vorigen Run gesetzt), gilt der
+    # heutige postclose-Tag als „erfüllt".
+    try:
+        _backtest_has_today = any(
+            (e or {}).get("date") == report_date
+            for e in _load_backtest_history()
+        )
+    except Exception as _exc:
+        log.debug("S4-Tagescheck _backtest_has_today fail-soft: %s", _exc)
+        _backtest_has_today = None
+
     # Conviction-Score (Schritt A) — vor dem HTML-Render aufrufen, damit
     # _score_block_inner_html das s["conviction"]-Feld sieht. Anomalien
     # via _build_chat_synthesis_ctx (gleiche Quelle wie Chat-Kontext);
@@ -16267,6 +16281,7 @@ def main():
             today_iso=_today_iso,
             n_inflation_lines=_n_inflation_lines,
             n_backtest_appended=_n_backtest_appended,
+            backtest_has_today=_backtest_has_today,
             agent_signal_keys=set(_ag_for_check.keys()),
         )
     except Exception as exc:

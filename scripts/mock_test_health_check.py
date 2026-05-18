@@ -204,6 +204,10 @@ def test_s4_fail_premarket_with_appends():
 
 
 def test_s4_fail_postclose_no_appends():
+    """Postclose-Run mit n_appended=0 UND backtest_has_today=False
+    (= echter Daten-Lücken-Pfad: weder dieser Run noch ein früherer
+    Run heute hat angehängt) muss WARN auslösen.
+    """
     fails = hc.evaluate_state_invariants(
         top10_tickers=TOP10,
         setup_scores=_full_setup(TOP10),
@@ -211,11 +215,33 @@ def test_s4_fail_postclose_no_appends():
         score_history=_full_history(TOP10),
         today_iso=TODAY,
         n_inflation_lines=10,
-        n_backtest_appended=0,    # postclose MUSS schreiben
+        n_backtest_appended=0,
+        backtest_has_today=False,  # Tages-Invariante: kein Eintrag heute
         agent_signal_keys=set(TOP10),
         run_phase="postclose",
     )
     assert "S4" in _ids(fails)
+
+
+def test_s4_pass_postclose_re_trigger():
+    """Postclose-Re-Trigger am selben Tag (n_appended=0 wegen Idempotenz,
+    aber backtest_has_today=True weil ein früherer Run heute angehängt
+    hat) darf KEIN WARN auslösen — das war der False-Positive vor dem
+    Tages-Basis-Fix.
+    """
+    fails = hc.evaluate_state_invariants(
+        top10_tickers=TOP10,
+        setup_scores=_full_setup(TOP10),
+        monster_scores=_full_monster(TOP10),
+        score_history=_full_history(TOP10),
+        today_iso=TODAY,
+        n_inflation_lines=10,
+        n_backtest_appended=0,
+        backtest_has_today=True,   # Tag hat schon Eintrag
+        agent_signal_keys=set(TOP10),
+        run_phase="postclose",
+    )
+    assert "S4" not in _ids(fails)
 
 
 def test_s4_pass_premarket_no_appends():
@@ -578,7 +604,8 @@ def main() -> None:
         ("S3 pass: keine Positionen",                      test_s3_pass_no_positions),
         # S4
         ("S4 fail: premarket mit appends",                 test_s4_fail_premarket_with_appends),
-        ("S4 fail: postclose ohne appends",                test_s4_fail_postclose_no_appends),
+        ("S4 fail: postclose ohne heutigen Eintrag",       test_s4_fail_postclose_no_appends),
+        ("S4 pass: postclose Re-Trigger (Tages-Basis)",    test_s4_pass_postclose_re_trigger),
         ("S4 pass: premarket ohne appends",                test_s4_pass_premarket_no_appends),
         ("S4 pass: postclose mit appends",                 test_s4_pass_postclose_with_appends),
         # S5
