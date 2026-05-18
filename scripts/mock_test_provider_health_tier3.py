@@ -171,12 +171,17 @@ def test_news_rss_wraps_yahoo_news():
 
 
 def test_news_rss_wraps_all_five_rss_sources():
-    """5+ RSS-Sources werden alle aggregiert (gemeinsamer Akkumulator)."""
+    """5+ RSS-Sources werden alle aggregiert (gemeinsamer Akkumulator).
+
+    Mai 2026: finviz RSS-Feed deaktiviert (liefert HTML statt Feed),
+    daher 5 statt vorher 6 Wrappings (Yahoo + 4 generische: Google,
+    UnusualWhales, MarketBeat, SeekingAlpha).
+    """
     # Heuristik: Anzahl Vorkommen von _NEWS_RSS_ACCT in Wrap-Position
     matches = re.findall(
         r"instrument_provider_call\(\s*\n?\s*_NEWS_RSS_ACCT", SRC_KI)
-    assert len(matches) >= 6, (
-        f"erwartet ≥ 6 News-RSS-Wrappings (Yahoo + 5 generische), "
+    assert len(matches) >= 5, (
+        f"erwartet ≥ 5 News-RSS-Wrappings (Yahoo + 4 generische), "
         f"gefunden {len(matches)}")
 
 
@@ -442,7 +447,8 @@ def main() -> None:
         ("stocktwits-Wrapper + success_check",             test_stocktwits_wrapped_with_success_check),
         ("uoa-Wrapper + success_check (Tuple-fail-soft)", test_uoa_wrapped_with_success_check),
         ("news_rss: yahoo_news gewrappt",                  test_news_rss_wraps_yahoo_news),
-        ("news_rss: ≥ 6 Wrappings (alle Sources)",         test_news_rss_wraps_all_five_rss_sources),
+        ("news_rss: ≥ 5 Wrappings (alle Sources, finviz seit Mai 2026 aus)",
+                                                           test_news_rss_wraps_all_five_rss_sources),
         ("edgar_8k-Wrapper + Tuple-success_check",         test_edgar_8k_wrapped_with_tuple_success_check),
         ("edgar_form4-Wrapper + Tuple-success_check",      test_edgar_form4_wrapped_with_tuple_success_check),
         ("edgar_13d_g-Wrapper (default success_check)",    test_edgar_13d_g_wrapped),

@@ -553,12 +553,19 @@ def get_finviz_candidates(max_pages: int = 6) -> list[dict]:
     col_map: dict[str, int] | None = None
 
     for page in range(max_pages):
-        row_start = page * 20 + 1
-        url = (
-            "https://finviz.com/screener.ashx"
+        # finviz URL-Migration Mai 2026: screener.ashx → screener,
+        # erste Seite OHNE r-Param (r=1 liefert seitdem leere Tabelle).
+        # Folge-Seiten weiterhin r=21, r=41, … (20-pro-Seite-Schema unverändert).
+        base = (
+            "https://finviz.com/screener"
             f"?v=141&f=sh_short_o{int(MIN_SHORT_FLOAT)},sh_price_o{int(MIN_PRICE)}"
-            f"&o=-shortfloat&r={row_start}"
+            f"&o=-shortfloat"
         )
+        if page == 0:
+            url = base
+        else:
+            row_start = page * 20 + 1
+            url = f"{base}&r={row_start}"
         try:
             resp = requests.get(url, headers=HTTP_HEADERS, timeout=30)
             resp.raise_for_status()
@@ -661,7 +668,8 @@ def get_finviz_screener_v111(max_tickers: int | None = None) -> list[dict]:
     if not FINVIZ_SCREENER_ENABLED:
         return []
     limit = max_tickers or FINVIZ_MAX_TICKERS
-    url = ("https://finviz.com/screener.ashx"
+    # finviz URL-Migration Mai 2026: screener.ashx → screener.
+    url = ("https://finviz.com/screener"
            "?v=111&f=sh_short_o20,sh_price_o1,sh_relvol_o1.5,cap_smallover"
            "&ft=4&o=-shortfloat")
     try:
@@ -674,11 +682,12 @@ def get_finviz_screener_v111(max_tickers: int | None = None) -> list[dict]:
         return []
 
     # Ticker-Symbole aus Finviz-Quote-Links extrahieren; v=111 zeigt die
-    # Tabelle mit quote.ashx?t=<TICKER>-Links. Regex ist robust gegen
-    # Markup-Varianten und vermeidet einen harten BeautifulSoup-Pfad.
+    # Tabelle mit quote?t=<TICKER>-Links (URL-Migration Mai 2026, vorher
+    # quote.ashx?t=). Regex ist robust gegen Markup-Varianten und
+    # vermeidet einen harten BeautifulSoup-Pfad.
     tickers: list[str] = []
     seen: set[str] = set()
-    for m in re.finditer(r'quote\.ashx\?t=([A-Z0-9.\-]{1,12})(?:&|")', resp.text):
+    for m in re.finditer(r'quote\?t=([A-Z0-9.\-]{1,12})(?:&|")', resp.text):
         t = m.group(1).upper()
         if t in seen:
             continue
@@ -1281,11 +1290,15 @@ def get_combined_news(ticker: str, n: int = 3) -> list[dict]:
     base_upper = ticker.split(".")[0].upper()
 
     yahoo_items = get_yahoo_news(ticker, n=5)
-    fv_items    = _rss_news(
-        ticker,
-        f"https://finviz.com/rss.ashx?t={base_upper}",
-        "Finviz",
-    )
+    # finviz RSS-Feed seit Mai 2026 tot (Probe 18.05.2026), liefert
+    # HTML-Page statt Feed. Die 5 anderen RSS-Quellen tragen die
+    # News-Versorgung.
+    # fv_items = _rss_news(
+    #     ticker,
+    #     f"https://finviz.com/rss.ashx?t={base_upper}",
+    #     "Finviz",
+    # )
+    fv_items: list[dict] = []
 
     n_yahoo, n_fv = len(yahoo_items), len(fv_items)
     combined = yahoo_items + fv_items
@@ -1702,14 +1715,14 @@ _FALLBACK_SESSION.headers.update(HTTP_HEADERS)
 def _fetch_short_float_finviz(ticker: str) -> float | None:
     """Fetcht die Finviz-Quote-Seite und parst „Short Float" %-Wert.
 
-    Nutzt ``screener.ashx``-Tabellen-Layout (Spalten enthalten Label →
-    Wert). Defensives Parsing: Tolerant ggü. Whitespace- und
-    HTML-Variationen. Skippt Punkt-Ticker (z. B. .DE) — Finviz indexiert
-    diese nicht.
+    URL-Migration Mai 2026: quote.ashx?t= → quote?t=. Markup-Drift
+    legte einen <a>-Wrapper um Label und Wert, daher BS4-Traversal
+    statt der alten Regex auf direkten <td>-Geschwistern.
+    Skippt Punkt-Ticker (z. B. .DE) — Finviz indexiert diese nicht.
     """
     if "." in ticker:
         return None
-    url = f"https://finviz.com/quote.ashx?t={ticker}"
+    url = f"https://finviz.com/quote?t={ticker}"
     try:
         resp = _FALLBACK_SESSION.get(url, timeout=5)
         if resp.status_code != 200:
@@ -1718,17 +1731,22 @@ def _fetch_short_float_finviz(ticker: str) -> float | None:
         log.debug("finviz quote %s: %s", ticker, exc)
         return None
     text = strip_surrogates(resp.text)
-    # Layout 2024+: <td …>Short Float</td><td …>X.XX%</td>
-    m = re.search(
-        r'>Short Float<[^<]*</td>\s*<td[^>]*>\s*([\d.]+)\s*%',
-        text,
-    )
-    if m:
-        try:
-            return round(float(m.group(1)), 2)
-        except ValueError:
+    try:
+        soup = BeautifulSoup(text, "lxml")
+        label = soup.find(string="Short Float")
+        if not label:
             return None
-    return None
+        parent_td = label.find_parent("td")
+        if parent_td is None:
+            return None
+        value_td = parent_td.find_next_sibling("td")
+        if value_td is None:
+            return None
+        raw = value_td.get_text(strip=True).replace("%", "").replace(",", ".")
+        return round(float(raw), 2)
+    except (ValueError, AttributeError) as exc:
+        log.debug("finviz quote %s: BS4-Parse %s", ticker, exc)
+        return None
 
 
 def _fetch_short_float_stockanalysis(ticker: str) -> float | None:
@@ -4974,7 +4992,7 @@ def _card(i: int, s: dict) -> str:
         f'</td></tr>'
     )
     sa_ticker     = s["ticker"].split(".")[0].lower()
-    fv_url        = f"https://finviz.com/quote.ashx?t={s['ticker'].split('.')[0].upper()}"
+    fv_url        = f"https://finviz.com/quote?t={s['ticker'].split('.')[0].upper()}"
     sa_url        = f"https://stockanalysis.com/stocks/{sa_ticker}/"
     yahoo_badge   = (
         f'<a class="chart-badge chart-badge-y" href="{yf_chart_url}" '
@@ -5500,7 +5518,7 @@ def _build_card_ctx(i: int, s: dict) -> dict:
         f'</td></tr>'
     )
     sa_ticker    = ticker.split(".")[0].lower()
-    fv_url       = f"https://finviz.com/quote.ashx?t={ticker.split('.')[0].upper()}"
+    fv_url       = f"https://finviz.com/quote?t={ticker.split('.')[0].upper()}"
     sa_url       = f"https://stockanalysis.com/stocks/{sa_ticker}/"
     yahoo_badge  = (
         f'<a class="chart-badge chart-badge-y" href="{yf_chart_url}" '
