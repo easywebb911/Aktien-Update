@@ -336,6 +336,96 @@ jobs:
           echo "  <rss hits:         $(grep -c "<rss" "$OUT_DIR/08_finviz_rss_body.bin" 2>/dev/null || echo 0)"
           echo "  body byte count:   $(wc -c < "$OUT_DIR/08_finviz_rss_body.bin" 2>/dev/null || echo 0)"
 
+      # ─────────────────────────────────────────────────────────────────────
+      # Probe 3 — finviz Screener Pagination-Verhalten
+      #
+      # Probe-3-Inspect hat zwei Sniff-Befunde:
+      #   - Screener-Body enthält 0× `quote.ashx?t=` und 0× `/quote/`
+      #   - Hypothese: neue Form ist `quote?t=TICKER` (passt zum 301-Pattern)
+      # Plus: aktueller Produktions-Fetcher nutzt `&r=1` (1-basierte Seite).
+      # Diese Probes klären: a) findet sich `quote?t=`-Pattern überhaupt im
+      # Body, b) funktioniert Pagination ohne r-Param und mit r=21 (zweite
+      # Seite klassisches 20-pro-Seite-Schema).
+      # ─────────────────────────────────────────────────────────────────────
+
+      - name: Probe 9 — finviz Screener OHNE r-Param
+        run: |
+          set +e
+          URL="https://finviz.com/screener?v=141&f=sh_short_o15,sh_price_o1&o=-shortfloat"
+          echo "URL: $URL"
+          echo "User-Agent: $CHROME_UA"
+          echo "----- verbose -----"
+          curl -v -L --max-filesize 1048576 --max-time 30 \
+            -H "User-Agent: $CHROME_UA" \
+            -H "Accept-Language: $ACCEPT_LANG" \
+            -o "$OUT_DIR/09_screener_no_r_body.bin" \
+            -D "$OUT_DIR/09_screener_no_r_headers.txt" \
+            -w "\n----- summary -----\nHTTP_STATUS=%{http_code}\nSIZE_DOWNLOAD=%{size_download}\nTIME_TOTAL=%{time_total}\nREMOTE_IP=%{remote_ip}\nNUM_REDIRECTS=%{num_redirects}\nEFFECTIVE_URL=%{url_effective}\n" \
+            "$URL" 2>&1 || true
+          echo
+          echo "----- response headers (incl. redirect chain) -----"
+          cat "$OUT_DIR/09_screener_no_r_headers.txt" || true
+          echo "----- body (first 1000 chars) -----"
+          head -c 1000 "$OUT_DIR/09_screener_no_r_body.bin" || true
+          echo
+          echo "----- markup-sniff -----"
+          echo "  <table hits:       $(grep -c "<table" "$OUT_DIR/09_screener_no_r_body.bin" 2>/dev/null || echo 0)"
+          echo "  tr class hits:     $(grep -c "tr class" "$OUT_DIR/09_screener_no_r_body.bin" 2>/dev/null || echo 0)"
+          echo "  quote?t= hits:     $(grep -c "quote?t=" "$OUT_DIR/09_screener_no_r_body.bin" 2>/dev/null || echo 0)"
+          echo "  quote.ashx?t= hits: $(grep -c "quote\.ashx?t=" "$OUT_DIR/09_screener_no_r_body.bin" 2>/dev/null || echo 0)"
+          echo "  Short Float hits:  $(grep -c "Short Float" "$OUT_DIR/09_screener_no_r_body.bin" 2>/dev/null || echo 0)"
+          echo "  body byte count:   $(wc -c < "$OUT_DIR/09_screener_no_r_body.bin" 2>/dev/null || echo 0)"
+
+      - name: Probe 10 — finviz Screener mit r=21 (zweite Seite, 20-pro-Seite-Schema)
+        run: |
+          set +e
+          URL="https://finviz.com/screener?v=141&f=sh_short_o15,sh_price_o1&o=-shortfloat&r=21"
+          echo "URL: $URL"
+          echo "User-Agent: $CHROME_UA"
+          echo "----- verbose -----"
+          curl -v -L --max-filesize 1048576 --max-time 30 \
+            -H "User-Agent: $CHROME_UA" \
+            -H "Accept-Language: $ACCEPT_LANG" \
+            -o "$OUT_DIR/10_screener_r21_body.bin" \
+            -D "$OUT_DIR/10_screener_r21_headers.txt" \
+            -w "\n----- summary -----\nHTTP_STATUS=%{http_code}\nSIZE_DOWNLOAD=%{size_download}\nTIME_TOTAL=%{time_total}\nREMOTE_IP=%{remote_ip}\nNUM_REDIRECTS=%{num_redirects}\nEFFECTIVE_URL=%{url_effective}\n" \
+            "$URL" 2>&1 || true
+          echo
+          echo "----- response headers (incl. redirect chain) -----"
+          cat "$OUT_DIR/10_screener_r21_headers.txt" || true
+          echo "----- body (first 1000 chars) -----"
+          head -c 1000 "$OUT_DIR/10_screener_r21_body.bin" || true
+          echo
+          echo "----- markup-sniff -----"
+          echo "  <table hits:       $(grep -c "<table" "$OUT_DIR/10_screener_r21_body.bin" 2>/dev/null || echo 0)"
+          echo "  tr class hits:     $(grep -c "tr class" "$OUT_DIR/10_screener_r21_body.bin" 2>/dev/null || echo 0)"
+          echo "  quote?t= hits:     $(grep -c "quote?t=" "$OUT_DIR/10_screener_r21_body.bin" 2>/dev/null || echo 0)"
+          echo "  quote.ashx?t= hits: $(grep -c "quote\.ashx?t=" "$OUT_DIR/10_screener_r21_body.bin" 2>/dev/null || echo 0)"
+          echo "  Short Float hits:  $(grep -c "Short Float" "$OUT_DIR/10_screener_r21_body.bin" 2>/dev/null || echo 0)"
+          echo "  body byte count:   $(wc -c < "$OUT_DIR/10_screener_r21_body.bin" 2>/dev/null || echo 0)"
+
+      - name: Inspect 9a — quote?t=-hrefs im Screener-Body OHNE r-Param (max 30 unique)
+        run: |
+          set +e
+          BODY="$OUT_DIR/09_screener_no_r_body.bin"
+          if [ ! -s "$BODY" ]; then
+            echo "(Body leer oder fehlt — Probe 9 hat nicht gefetched)"
+            exit 0
+          fi
+          echo "----- Erste 30 unique 'quote?t='-href-Werte -----"
+          grep -oE 'href="[^"]*quote\?t=[^"]*"' "$BODY" | sort -u | head -30
+
+      - name: Inspect 10a — quote?t=-hrefs im Screener-Body mit r=21 (max 30 unique)
+        run: |
+          set +e
+          BODY="$OUT_DIR/10_screener_r21_body.bin"
+          if [ ! -s "$BODY" ]; then
+            echo "(Body leer oder fehlt — Probe 10 hat nicht gefetched)"
+            exit 0
+          fi
+          echo "----- Erste 30 unique 'quote?t='-href-Werte -----"
+          grep -oE 'href="[^"]*quote\?t=[^"]*"' "$BODY" | sort -u | head -30
+
       - name: Upload raw probe artefacts
         if: always()
         uses: actions/upload-artifact@v4
