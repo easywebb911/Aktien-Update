@@ -1910,6 +1910,15 @@ def process_exit_signals(app_data: dict, state: dict) -> None:
     for ticker, p in positions.items():
         if not isinstance(p, dict):
             continue
+        # Opt-Out für Halt-Strategien (18.05.2026): positions[ticker].
+        # no_exit_alerts=True → alle Phase-2-Exit-Pushes (Eskalation,
+        # Warnung, Trigger) komplett unterdrücken. Wert kommt via
+        # _build_phase2_positions_payload aus dem Gist-Eintrag in
+        # app_data["positions"][ticker]. Default False / fehlend →
+        # bestehendes Verhalten.
+        if p.get("no_exit_alerts", False):
+            print(f"[exit_p2] SKIP all {ticker}: no_exit_alerts=True")
+            continue
         exit_state = p.get("exit_state")
         if not isinstance(exit_state, dict):
             continue

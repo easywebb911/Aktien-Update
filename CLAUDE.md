@@ -931,7 +931,8 @@ vom Workflow (nur lesen) angesprochen wird.
       "entry_conviction_components": {
         "setup": 28, "earliness": 21, "anomaly": 14, "regime": 11
       },
-      "entry_thesis":         "Trigger: 13D-Filing + DTC 12 + RVOL-Spike."
+      "entry_thesis":         "Trigger: 13D-Filing + DTC 12 + RVOL-Spike.",
+      "no_exit_alerts":       false
     }
   }
 }
@@ -974,6 +975,18 @@ User füllt manuell wie zuvor.
 
 Soft-Migration für alle Score-Snapshot-Felder: bei Bestandspositionen
 sind sie schlicht `undefined`, Render und Auswertung sind null-tolerant.
+
+**Opt-Out-Flag `no_exit_alerts` (18.05.2026):** Boolean-Feld auf
+Positions-Ebene. `True` → komplettes Skip aller Exit-Push-Trigger
+(Phase-1 `process_exit_signals` in `generate_report.py` und Phase-2
+`process_exit_signals` in `ki_agent.py` — beide loop-Heads prüfen das
+Flag und `continue`/`return` ohne `compute_exit_score` zu rufen).
+Gedacht für bewusste Halt-Positionen (Buy-and-Hold), bei denen
+Exit-Druck-Pushes nur Lärm sind. Default `False`/fehlend → bestehendes
+Verhalten unverändert (Backward-compat). Wird via
+`_build_phase2_positions_payload` als `bool()`-gewrappter Wert in
+`app_data["positions"][ticker]` propagiert, damit Phase-2 das Flag
+durch denselben Read-Pfad bekommt wie Phase-1.
 
 ### Datenfluss
 

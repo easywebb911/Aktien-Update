@@ -14191,6 +14191,14 @@ def process_exit_signals(stocks: list[dict] | None = None) -> int:
     n_sent = 0
 
     for ticker, pos in positions.items():
+        # Opt-Out für Halt-Strategien (18.05.2026): positions[ticker].
+        # no_exit_alerts=True → Exit-Alerts + Profit-Take komplett
+        # unterdrücken (bewusste Buy-and-Hold-Positionen, z. B. AMC).
+        # Default False / fehlend → bestehendes Verhalten.
+        if pos.get("no_exit_alerts", False):
+            log.debug("Exit-Alerts deaktiviert für %s (no_exit_alerts=True)",
+                      ticker)
+            continue
         try:
             entry_date = datetime.strptime(pos.get("entry_date", ""), "%Y-%m-%d").date()
         except (ValueError, TypeError):
@@ -15010,6 +15018,10 @@ def _build_phase2_positions_payload(
             "entry_short_float":    pos.get("entry_short_float"),
             "entry_cost_to_borrow": pos.get("entry_cost_to_borrow"),
             "entry_snapshot_ts":    pos.get("entry_snapshot_ts"),
+            # Opt-Out für Halt-Strategien (18.05.2026): wird in
+            # ki_agent.process_exit_signals geprüft. Default False bei
+            # Bestandspositionen ohne das Feld im Gist.
+            "no_exit_alerts": bool(pos.get("no_exit_alerts", False)),
             "exit_state":   state,
         }
     return out
