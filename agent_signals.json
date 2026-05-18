@@ -1,10 +1,10 @@
 {
-  "updated": "2026-05-18T10:53:52.345952+02:00",
+  "updated": "2026-05-18T14:48:34.642809+02:00",
   "run_info": {
     "tickers_checked": 14,
     "signals_active": 4,
     "alerts_sent": 0,
-    "elapsed_s": 11.8,
+    "elapsed_s": 16.0,
     "market_phase": "Pre-Market"
   },
   "signals": {
@@ -27,7 +27,7 @@
       "uoa_drivers": [
         "UOA Call/Put 3.5×"
       ],
-      "uoa_atm_ratio": null,
+      "uoa_atm_ratio": 0.06538947368421053,
       "uoa_cp_ratio": 3.5377358490566038
     },
     "AMC": {
@@ -55,7 +55,7 @@
     "CRMD": {
       "score": 40,
       "confidence": 33,
-      "drivers": "Spanne 8.8% + News: earnings beat, guidance raised",
+      "drivers": "Spanne 8.8% + News: guidance raised, earnings beat",
       "price": 7.55,
       "chg_pct": 0.0,
       "rvol_4d": 1.46,
@@ -111,13 +111,13 @@
       "uoa_drivers": [
         "UOA Call/Put 2.9×"
       ],
-      "uoa_atm_ratio": null,
+      "uoa_atm_ratio": 0.9164237123420796,
       "uoa_cp_ratio": 2.865079365079365
     },
     "GLOB": {
-      "score": 33,
-      "confidence": 70,
-      "drivers": "Volumen 2.6× + Spanne 8.9% + News-KI 8/30: Positive fundamental news (AI push, buyback) drives organic growth but lacks short squeeze indicators like high short in",
+      "score": 25,
+      "confidence": 33,
+      "drivers": "Volumen 2.6× + Spanne 8.9%",
       "price": 38.91,
       "chg_pct": -0.0,
       "rvol_4d": 2.56,
@@ -151,7 +151,7 @@
       "active_triggers": 1,
       "uoa_score": 0,
       "uoa_drivers": [],
-      "uoa_atm_ratio": null,
+      "uoa_atm_ratio": 0.6182944510346645,
       "uoa_cp_ratio": 0.6368927426060103
     },
     "NTLA": {
@@ -233,13 +233,13 @@
       "uoa_drivers": [
         "UOA Call/Put 3.9×"
       ],
-      "uoa_atm_ratio": null,
+      "uoa_atm_ratio": 0.6545690213869086,
       "uoa_cp_ratio": 3.8810408921933086
     },
     "SG": {
-      "score": 44,
-      "confidence": 70,
-      "drivers": "Volumen 2.3× + Spanne 19.2% + News: covering",
+      "score": 25,
+      "confidence": 33,
+      "drivers": "Volumen 2.3× + Spanne 19.2%",
       "price": 8.09,
       "chg_pct": 0.0,
       "rvol_4d": 2.31,
@@ -249,11 +249,11 @@
       "upcoming_event": null,
       "insider_buy": false,
       "stocktwits": null,
-      "combo_mult": 1.1,
-      "active_triggers": 2,
+      "combo_mult": 1.0,
+      "active_triggers": 1,
       "uoa_score": 0,
       "uoa_drivers": [],
-      "uoa_atm_ratio": null,
+      "uoa_atm_ratio": 0.47108637793370434,
       "uoa_cp_ratio": 0.5700280112044818
     },
     "SKYQ": {
@@ -277,9 +277,9 @@
       "uoa_cp_ratio": null
     },
     "TNXP": {
-      "score": 33,
+      "score": 40,
       "confidence": 70,
-      "drivers": "Volumen 1.8× + Spanne 16.9% + News-KI 8/30: Routine corporate announcements about conferences and financial reporting lack catalyst strength; no significant short-s",
+      "drivers": "Volumen 1.8× + Spanne 16.9% + News: revenue beat",
       "price": 15.74,
       "chg_pct": -0.0,
       "rvol_4d": 1.81,
@@ -290,7 +290,7 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 0,
+      "active_triggers": 1,
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": null,
