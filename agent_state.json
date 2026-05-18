@@ -1,5 +1,5 @@
 {
-  "last_run": "2026-05-18T21:01:36.973658+02:00",
+  "last_run": "2026-05-18T21:04:11.241746+02:00",
   "cooldowns": {
     "anomaly_score_jump_XRX": "2026-05-03T18:47:15.315486+02:00",
     "anomaly_uoa_extreme_TDOC": "2026-05-04T13:47:00.365949+02:00",
@@ -33,18 +33,6 @@
     "exit_CRMD": "2026-05-18T20:45:57.842098+02:00"
   },
   "push_history": [
-    {
-      "ts": "2026-05-14T16:29:35.855786+02:00",
-      "ticker": "KPTI",
-      "kind": "anomaly",
-      "severity": "high",
-      "trigger": "conviction_high",
-      "body": "KPTI 🎯 KAUFSIGNAL — Conviction 81/100 (high) | Conviction hoch — Setup, Earliness und Timing konvergieren. Erwartungswert posit…",
-      "success": true,
-      "suppressed": false,
-      "suppress_reason": null,
-      "conviction_score": 81
-    },
     {
       "ts": "2026-05-14T16:48:48.159328+02:00",
       "ticker": "CRMD",
@@ -1232,6 +1220,18 @@
       "suppressed": false,
       "suppress_reason": null,
       "conviction_score": null
+    },
+    {
+      "ts": "2026-05-18T21:04:06.345010+02:00",
+      "ticker": "TE",
+      "kind": "anomaly",
+      "severity": "medium",
+      "trigger": "uoa_extreme",
+      "body": "TE 🎯 UOA Vol/OI 11.5× ATM | Setup 73",
+      "success": false,
+      "suppressed": true,
+      "suppress_reason": "conviction_below_threshold",
+      "conviction_score": 49
     }
   ],
   "prev_conviction_scores": {
