@@ -1,11 +1,11 @@
 {
-  "updated": "2026-05-19T06:47:51.036298+02:00",
+  "updated": "2026-05-19T10:13:55.413803+02:00",
   "run_info": {
     "tickers_checked": 15,
-    "signals_active": 1,
+    "signals_active": 0,
     "alerts_sent": 0,
-    "elapsed_s": 17.9,
-    "market_phase": "Geschlossen"
+    "elapsed_s": 15.3,
+    "market_phase": "Pre-Market"
   },
   "signals": {
     "AI": {
@@ -25,7 +25,7 @@
       "active_triggers": 0,
       "uoa_score": 0,
       "uoa_drivers": [],
-      "uoa_atm_ratio": 0.08206315789473684,
+      "uoa_atm_ratio": null,
       "uoa_cp_ratio": 1.4560841720036597
     },
     "AMC": {
@@ -91,7 +91,7 @@
       "uoa_drivers": [
         "UOA Call/Put 2.7×"
       ],
-      "uoa_atm_ratio": 0.2681840672934191,
+      "uoa_atm_ratio": null,
       "uoa_cp_ratio": 2.707774798927614
     },
     "BL": {
@@ -113,13 +113,13 @@
       "uoa_drivers": [
         "UOA Call/Put 14.4×"
       ],
-      "uoa_atm_ratio": 1.1598173515981736,
+      "uoa_atm_ratio": null,
       "uoa_cp_ratio": 14.378378378378379
     },
     "CRMD": {
       "score": 50,
       "confidence": 33,
-      "drivers": "Spanne 6.2% + News: earnings beat, guidance raised + UOA Call/Put 3.8×",
+      "drivers": "Spanne 6.2% + News: guidance raised, earnings beat + UOA Call/Put 3.8×",
       "price": 7.91,
       "chg_pct": -0.0,
       "rvol_4d": 0.85,
@@ -175,7 +175,7 @@
       "active_triggers": 1,
       "uoa_score": 0,
       "uoa_drivers": [],
-      "uoa_atm_ratio": 0.23333333333333334,
+      "uoa_atm_ratio": null,
       "uoa_cp_ratio": 1.3695364238410597
     },
     "HCAT": {
@@ -237,7 +237,7 @@
       "uoa_drivers": [
         "UOA Call/Put 4.0×"
       ],
-      "uoa_atm_ratio": 0.23979591836734693,
+      "uoa_atm_ratio": null,
       "uoa_cp_ratio": 4.0
     },
     "RR": {
