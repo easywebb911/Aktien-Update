@@ -1864,7 +1864,6 @@ def fetch_earningswhispers_rss() -> dict[str, dict]:
     return {}
 
 
-_SEC_HEADERS = {"User-Agent": "Easy Webb easywebb@yahoo.de"}
 _13F_KEYWORDS = {"increase", "added", "new position", "added to"}
 
 
@@ -1886,7 +1885,7 @@ def fetch_sec_13f(ticker: str) -> str | None:
     )
     cutoff = datetime.now(_tz.utc) - timedelta(days=90)
     try:
-        resp = requests.get(url, headers=_SEC_HEADERS, timeout=12)
+        resp = requests.get(url, headers=SEC_HEADERS, timeout=12)
         if resp.status_code in (403, 404):
             return None
         resp.raise_for_status()
