@@ -1,17 +1,17 @@
 {
-  "updated": "2026-05-19T10:39:32.010166+02:00",
+  "updated": "2026-05-19T14:21:38.527541+02:00",
   "run_info": {
     "tickers_checked": 15,
     "signals_active": 0,
     "alerts_sent": 0,
-    "elapsed_s": 12.2,
+    "elapsed_s": 15.3,
     "market_phase": "Pre-Market"
   },
   "signals": {
     "AI": {
-      "score": 26,
-      "confidence": 70,
-      "drivers": "Spanne 6.0% + News-KI 8/30: C3.ai shows modest price movement but lacks the extreme short interest, low float, and catalyst intensity typically requ + Earnings in 8d",
+      "score": 18,
+      "confidence": 33,
+      "drivers": "Spanne 6.0% + Earnings in 8d",
       "price": 8.75,
       "chg_pct": 0.0,
       "rvol_4d": 0.88,
@@ -25,13 +25,13 @@
       "active_triggers": 0,
       "uoa_score": 0,
       "uoa_drivers": [],
-      "uoa_atm_ratio": null,
+      "uoa_atm_ratio": 0.07863627193867258,
       "uoa_cp_ratio": 1.4560841720036597
     },
     "AMC": {
-      "score": 20,
+      "score": 35,
       "confidence": 33,
-      "drivers": "Spanne 12.8% + UOA Call/Put 17.5×",
+      "drivers": "Spanne 12.8% + News: analyst upgrade + UOA Call/Put 17.5×",
       "price": 1.36,
       "chg_pct": 0.0,
       "rvol_4d": 1.01,
@@ -42,7 +42,7 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 0,
+      "active_triggers": 1,
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 17.5×"
@@ -69,7 +69,7 @@
       "uoa_drivers": [
         "UOA Call/Put 7.4×"
       ],
-      "uoa_atm_ratio": null,
+      "uoa_atm_ratio": 0.19057104913678619,
       "uoa_cp_ratio": 7.426229508196721
     },
     "BKSY": {
@@ -91,7 +91,7 @@
       "uoa_drivers": [
         "UOA Call/Put 2.7×"
       ],
-      "uoa_atm_ratio": null,
+      "uoa_atm_ratio": 0.23834652594547054,
       "uoa_cp_ratio": 2.707774798927614
     },
     "BL": {
@@ -113,7 +113,7 @@
       "uoa_drivers": [
         "UOA Call/Put 14.4×"
       ],
-      "uoa_atm_ratio": null,
+      "uoa_atm_ratio": 1.1545454545454545,
       "uoa_cp_ratio": 14.378378378378379
     },
     "CRMD": {
@@ -135,7 +135,7 @@
       "uoa_drivers": [
         "UOA Call/Put 3.8×"
       ],
-      "uoa_atm_ratio": null,
+      "uoa_atm_ratio": 0.581945661700263,
       "uoa_cp_ratio": 3.771019677996422
     },
     "FABC": {
@@ -159,9 +159,9 @@
       "uoa_cp_ratio": null
     },
     "GEMI": {
-      "score": 22,
+      "score": 25,
       "confidence": 33,
-      "drivers": "Spanne 9.1% + News-KI 12/30: Moderate positive momentum and funding news, but IPO lawsuits and lack of short interest data weigh against short-squeez",
+      "drivers": "Spanne 9.1% + News: earnings beat",
       "price": 5.37,
       "chg_pct": -0.0,
       "rvol_4d": 0.49,
@@ -175,7 +175,7 @@
       "active_triggers": 1,
       "uoa_score": 0,
       "uoa_drivers": [],
-      "uoa_atm_ratio": null,
+      "uoa_atm_ratio": 0.20672097759674135,
       "uoa_cp_ratio": 1.3695364238410597
     },
     "HCAT": {
@@ -215,7 +215,7 @@
       "active_triggers": 1,
       "uoa_score": 0,
       "uoa_drivers": [],
-      "uoa_atm_ratio": null,
+      "uoa_atm_ratio": 0.8832786142873316,
       "uoa_cp_ratio": 0.8884388807069219
     },
     "PDYN": {
@@ -237,7 +237,7 @@
       "uoa_drivers": [
         "UOA Call/Put 4.0×"
       ],
-      "uoa_atm_ratio": null,
+      "uoa_atm_ratio": 0.23383084577114427,
       "uoa_cp_ratio": 4.0
     },
     "RR": {
@@ -257,7 +257,7 @@
       "active_triggers": 1,
       "uoa_score": 0,
       "uoa_drivers": [],
-      "uoa_atm_ratio": null,
+      "uoa_atm_ratio": 0.6315035799522674,
       "uoa_cp_ratio": 1.2497005988023953
     },
     "SG": {
@@ -277,7 +277,7 @@
       "active_triggers": 1,
       "uoa_score": 0,
       "uoa_drivers": [],
-      "uoa_atm_ratio": null,
+      "uoa_atm_ratio": 1.5956756756756756,
       "uoa_cp_ratio": 0.5035401104254628
     },
     "TE": {
@@ -299,7 +299,7 @@
       "uoa_drivers": [
         "UOA Call/Put 5.9×"
       ],
-      "uoa_atm_ratio": null,
+      "uoa_atm_ratio": 1.5213642163876107,
       "uoa_cp_ratio": 5.859062170706006
     },
     "UPWK": {
