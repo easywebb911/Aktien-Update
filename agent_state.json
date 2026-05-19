@@ -1,5 +1,5 @@
 {
-  "last_run": "2026-05-19T21:38:49.187921+02:00",
+  "last_run": "2026-05-19T23:46:57.811195+02:00",
   "cooldowns": {
     "anomaly_score_jump_XRX": "2026-05-03T18:47:15.315486+02:00",
     "anomaly_uoa_extreme_TDOC": "2026-05-04T13:47:00.365949+02:00",
@@ -32,33 +32,9 @@
     "anomaly_conviction_high_SNSE": "2026-05-15T19:30:32.046324+02:00",
     "exit_CRMD": "2026-05-19T19:38:20.337519+02:00",
     "anomaly_conviction_high_CRDF": "2026-05-19T16:49:36.576105+02:00",
-    "anomaly_monster_backup_CRDF": "2026-05-19T17:44:53.087682+02:00"
+    "anomaly_monster_backup_CRDF": "2026-05-19T23:46:56.024867+02:00"
   },
   "push_history": [
-    {
-      "ts": "2026-05-15T18:18:42.391086+02:00",
-      "ticker": "GEMI",
-      "kind": "anomaly",
-      "severity": "medium",
-      "trigger": "score_jump",
-      "body": "GEMI 🚀 Setup 76 ↑ (gestern 53) | Volumen 7.0× + 🚀 Massives Volumen 7.0×+ + Spanne 22.0% + New…",
-      "success": false,
-      "suppressed": true,
-      "suppress_reason": "conviction_below_threshold",
-      "conviction_score": 67
-    },
-    {
-      "ts": "2026-05-15T18:18:42.391366+02:00",
-      "ticker": "GEMI",
-      "kind": "anomaly",
-      "severity": "high",
-      "trigger": "monster_backup",
-      "body": "GEMI 🔥 Monster 92 | Setup 76 | KI 72",
-      "success": false,
-      "suppressed": true,
-      "suppress_reason": "conviction_below_threshold",
-      "conviction_score": 67
-    },
     {
       "ts": "2026-05-15T18:18:45.093815+02:00",
       "ticker": "KPTI",
@@ -1225,6 +1201,30 @@
     },
     {
       "ts": "2026-05-19T21:38:45.628652+02:00",
+      "ticker": "PAR",
+      "kind": "anomaly",
+      "severity": "medium",
+      "trigger": "score_jump",
+      "body": "PAR 🚀 Setup 65 ↑ (gestern 49) | Spanne 8.3% + News: partnership + SEC Form 4 + UOA Call/Put …",
+      "success": false,
+      "suppressed": true,
+      "suppress_reason": "conviction_below_threshold",
+      "conviction_score": 60
+    },
+    {
+      "ts": "2026-05-19T23:46:56.024843+02:00",
+      "ticker": "CRDF",
+      "kind": "anomaly",
+      "severity": "high",
+      "trigger": "monster_backup",
+      "body": "CRDF 🔥 Monster 98 | Setup 98 | KI 100",
+      "success": true,
+      "suppressed": false,
+      "suppress_reason": null,
+      "conviction_score": 85
+    },
+    {
+      "ts": "2026-05-19T23:46:56.025279+02:00",
       "ticker": "PAR",
       "kind": "anomaly",
       "severity": "medium",
