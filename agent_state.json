@@ -30,21 +30,9 @@
     "earnings_immediate_GEMI_14.05.2026": "2026-05-14T23:25:08.201852+02:00",
     "exit_KPTI": "2026-05-15T18:17:09.325572+02:00",
     "anomaly_conviction_high_SNSE": "2026-05-15T19:30:32.046324+02:00",
-    "exit_CRMD": "2026-05-19T06:46:31.151441+02:00"
+    "exit_CRMD": "2026-05-19T15:34:06.063596+02:00"
   },
   "push_history": [
-    {
-      "ts": "2026-05-14T19:17:50.269743+02:00",
-      "ticker": "AMC",
-      "kind": "exit_p2",
-      "severity": "warning",
-      "trigger": null,
-      "body": "⚠️ Exit-Warnung AMC: pressure 71/100",
-      "success": true,
-      "suppressed": false,
-      "suppress_reason": null,
-      "conviction_score": null
-    },
     {
       "ts": "2026-05-14T20:28:25.670881+02:00",
       "ticker": "PGEN",
@@ -1228,6 +1216,18 @@
       "severity": "default",
       "trigger": "exit_alert",
       "body": "CRMD 📉 Exit 63 | -0% | Trailing-Stop −11.5% vom Hoch",
+      "success": true,
+      "suppressed": false,
+      "suppress_reason": null,
+      "conviction_score": null
+    },
+    {
+      "ts": "2026-05-19T15:34:06.063565+02:00",
+      "ticker": "CRMD",
+      "kind": "exit_p1",
+      "severity": "default",
+      "trigger": "exit_alert",
+      "body": "CRMD 📉 Exit 61 | +0% | Trailing-Stop −10.9% vom Hoch",
       "success": true,
       "suppressed": false,
       "suppress_reason": null,
