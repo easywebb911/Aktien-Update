@@ -50,25 +50,6 @@ INTL_SCREENING_ENABLED = False
 LAZY_CARDS_ENABLED = True
 LAZY_CARDS_EAGER   = 3        # erste N Karten sofort vollständig rendern
 
-# ── Karten-Cockpit-Redesign (Stage-Plan, ab 18.05.2026) ────────────────────
-# Bloomberg-Stil-Cockpit-Layout fuer Top-10-Karten + Watchlist-Drawer:
-# drei Sub-Score-Saeulen (Setup/Monster/KI) links, grosser Conviction-
-# Donut rechts. Implementation in drei Stages:
-#   Stage 1 (PR feat/card-cockpit-stage1-helpers, aktuell):
-#     - _card_cockpit_html-Helper + CSS-Klassen .cockpit-* in head.jinja
-#     - Flag OFF (CARD_COCKPIT_ENABLED=False) -> User sieht nichts.
-#     - Helper-Code + Tests live, aber nirgends im Render-Pfad verdrahtet.
-#   Stage 2 (Folge-PR):
-#     - CARD_COCKPIT_ENABLED=True, v1+v2 Card-Render-Pfade
-#       (_card + _build_card_ctx + card.jinja) auf Cockpit umgestellt.
-#     - iPhone-Live-Verify Pflicht (Cache-Bust falls noetig).
-#     - Watchlist-Drawer bekommt Cockpit automatisch via _wl_full_card_html.
-#   Stage 3 (Folge-PR):
-#     - Cleanup obsoleter .sb-row/.sb-num-CSS-Reste in Karten-Bereich.
-#     - Methodik-Panel-Verwendung (.score-block-list .sb-lbl etc.) bleibt
-#       unveraendert (eigene Konsumenten-Klasse).
-CARD_COCKPIT_ENABLED = True
-
 # ── app_data.json (kombinierter PWA-Data-Feed) ──────────────────────────────
 # True: zusätzlich zu score_history.json + agent_signals.json wird eine
 #       kombinierte app_data.json geschrieben — ein Fetch statt zwei.

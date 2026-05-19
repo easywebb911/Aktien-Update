@@ -264,7 +264,7 @@ darunter, zweizeilige Erklärungs-Caption).
 |---|---|---|
 | 1 | ✅ erledigt PR #198 | Helper `_card_cockpit_html` + CSS-Klassen `.cockpit-*` in `head.jinja` + Tests. Flag `CARD_COCKPIT_ENABLED=False` → User sieht nichts. |
 | **2** | **PR `feat/card-cockpit-stage2-activation`** | Flag auf `True`. `_card` (v1) + `_build_card_ctx` (v2) + `card.jinja` schalten auf Cockpit-Output um via `card_header_html`-Context-Variable (v1==v2 byte-identisch durch shared Helper). Watchlist-Drawer bekommt Cockpit automatisch via `_wl_full_card_html`-Regex-Strip (+ neuer `cockpit_id`-Pattern für ID-Strip). Live-Polling-Selector um `.cockpit-header-right` / `.card-cockpit` erweitert. **iPhone-Live-Verify Pflicht.** Fallback-Branches für `Flag=False` bleiben in beiden Pfaden — Rollback ohne Code-Touch möglich. |
-| 3 | offen | Cleanup: obsolete `.sb-row` / `.sb-num`-Reste aus Karten-Bereich entfernen. Methodik-Panel-Verwendung (`.score-block-list .sb-lbl` etc.) bleibt — eigene Konsumenten-Klasse, eigenes CSS-Scope. |
+| 3 | ✅ erledigt 19.05.2026 | Cleanup `.sb-row`/`.sb-num`/`.sb-track`/`.sb-fill`/`.sb-conv-action`/`.sb-delta-*` aus Karten-Bereich + `.score-block.sort-*`-Sort-Modi entfernt. `_score_block_inner_html` + `_score_delta_html` gelöscht. Score-Delta T-1 als `_cockpit_delta_html` ins Setup-Pillar von `_card_cockpit_html` migriert (neue CSS-Klassen `.cockpit-delta-*`). `CARD_COCKPIT_ENABLED`-Flag + Pre-Cockpit-Fallback-Branches entfernt. Methodik-Panel-Verwendung (`.score-block-list .sb-lbl`/`.sb-pts`/`.sb-note`) bleibt unverändert. Stage-1-Schutz-Tests (`mock_test_card_cockpit_stage1.py`, `mock_test_score_block_label_scoping.py`, `mock_test_setup_score_cursor_removed.py`) gelöscht. |
 
 ### Helper-Vertrag (`_card_cockpit_html`)
 

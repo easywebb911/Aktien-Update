@@ -1,4 +1,4 @@
-"""Mock-Tests fuer Score-Delta T-1 (16.05.2026).
+"""Mock-Tests fuer Score-Delta T-1 (16.05.2026, migriert 19.05.2026).
 
 Hintergrund: Design-Berater-Empfehlung — prominent zeigen wenn Setup-
 Score gegenueber gestern stark gestiegen oder gefallen ist. Easy
@@ -6,30 +6,26 @@ entscheidet ob Squeeze "ignition" oder "sterbend".
 
 Hybrid-Stille-Schwelle:
   - |Δ| < 2:  leerer String (kein visueller Laerm bei Mini-Drifts)
-  - |Δ| 2..5: dezent grau (.sb-delta-mute)
-  - |Δ| ≥ 5:  farbig gruen/rot mit ▲/▼ (.sb-delta-up/-down)
-  - |Δ| ≥ 15: zusaetzlich Bold (.sb-delta-strong)
+  - |Δ| 2..5: dezent grau (.cockpit-delta-mute)
+  - |Δ| ≥ 5:  farbig gruen/rot mit ▲/▼ (.cockpit-delta-up/-down)
+  - |Δ| ≥ 15: zusaetzlich Bold (.cockpit-delta-strong)
 
 Quelle: s["sparkline"]["scores"] — raw Setup-Scores aus
 score_history.json, materialisiert vom Daily-Run.
 
+Migration 19.05.2026: Helper hieß früher _score_delta_html, lebte in
+_score_block_inner_html. Beide Funktionen + .sb-delta-* CSS wurden mit
+Pre-Cockpit-Fallback entfernt. Logik unverändert, jetzt in
+_cockpit_delta_html, im Setup-Pillar von _card_cockpit_html eingebettet,
+CSS-Klassen .cockpit-delta-*.
+
 Tests (Source + pythonische Replikation):
-  1. Source: _score_delta_html existiert mit korrekter Signatur
-  2. Source: Setup-Row wendet _score_delta_html(s) an
-  3. Source: Andere Rows (Conviction/Monster/KI) bekommen KEIN Delta
-  4. Source: CSS-Klassen in head.jinja
-  5. Replik: |Δ|<2 -> leerer String
-  6. Replik: Δ=3 -> mute-Variante
-  7. Replik: Δ=7 -> up-Klasse + Farbe + ▲
-  8. Replik: Δ=-7 -> down-Klasse + Farbe + ▼
-  9. Replik: Δ=18 -> up-Klasse + strong-Modifier
- 10. Replik: Δ=-22 -> down-Klasse + strong-Modifier
- 11. Replik: Edge: nur 1 Score in History -> leerer String
- 12. Replik: Edge: keine sparkline -> leerer String
- 13. Replik: Edge: sparkline mit None-scores -> leerer String
- 14. Tooltip enthaelt Vortags-Datum und Delta-Wert
- 15. aria-label gesetzt
- 16. Stille-Schwellen-Grenze: |Δ|=2 -> wird gerendert (>= Schwelle)
+  1. Source: _cockpit_delta_html existiert mit korrekter Signatur
+  2. Source: Setup-Pillar wendet _cockpit_delta_html(s) an
+  3. Source: Andere Pillars (Monster/KI) bekommen KEIN Delta
+  4. Source: CSS-Klassen .cockpit-delta-* in head.jinja
+  5-16. Replik: Hybrid-Schwellen-Verhalten
+  17. CLAUDE.md-Sektion vorhanden
 """
 from __future__ import annotations
 
@@ -54,49 +50,41 @@ def _func_block(func_def: str) -> str:
 # ── Source-Inspektion ────────────────────────────────────────────────────────
 
 def test_01_helper_exists() -> None:
-    assert "def _score_delta_html(s: dict)" in GR, "Helper-Signatur fehlt"
+    assert "def _cockpit_delta_html(s: dict)" in GR, "Helper-Signatur fehlt"
 
 
-def test_02_setup_row_uses_delta() -> None:
-    block = _func_block("def _score_block_inner_html(")
-    # _score_delta_html(s) wird aufgerufen + Resultat im Setup-Row-HTML
-    assert "_score_delta_html(s)" in block, "Helper-Call fehlt"
-    assert "s_delta_html" in block, "Result-Variable fehlt"
-    # Setup-Row enthaelt {s_delta_html} zwischen .sb-num und .sb-lbl
-    setup_idx = block.find('data-sb="setup"')
-    assert setup_idx > 0
-    setup_html = block[setup_idx:setup_idx + 500]
-    # Reihenfolge sb-num -> s_delta_html -> sb-lbl
-    num_pos = setup_html.find("sb-num")
-    delta_pos = setup_html.find("{s_delta_html}")
-    lbl_pos = setup_html.find("sb-lbl")
-    assert num_pos > 0 and delta_pos > 0 and lbl_pos > 0
-    assert num_pos < delta_pos < lbl_pos, \
-        f"Reihenfolge im Setup-Row falsch: num={num_pos}, delta={delta_pos}, lbl={lbl_pos}"
+def test_02_setup_pillar_uses_delta() -> None:
+    block = _func_block("def _card_cockpit_html(")
+    # _cockpit_delta_html(s) wird aufgerufen + setup_delta_html-Variable
+    assert "_cockpit_delta_html(s)" in block, "Helper-Call fehlt"
+    assert "setup_delta_html" in block, "Result-Variable fehlt"
+    # Setup-Pillar bekommt delta_html im Pillar-Value
+    assert 'conf_key == "setup"' in block, \
+        "Setup-spezifische Bedingung fehlt"
+    assert "{delta_html}" in block, \
+        "delta_html nicht im Pillar-Value-Markup eingebettet"
 
 
-def test_03_other_rows_no_delta() -> None:
-    block = _func_block("def _score_block_inner_html(")
-    # Conviction / Monster / KI duerfen KEIN s_delta_html haben
-    for sb in ("conviction", "monster", "ki"):
-        idx = block.find(f'data-sb="{sb}"')
-        if idx < 0:
-            continue
-        section = block[idx:idx + 500]
-        assert "{s_delta_html}" not in section, \
-            f"{sb}-Row enthaelt Delta — Phase 1 ist nur Setup-Score"
+def test_03_other_pillars_no_delta() -> None:
+    block = _func_block("def _card_cockpit_html(")
+    # Pillar-Loop hat eine Bedingung 'if conf_key == "setup" else ""'
+    # — d.h. nur Setup-Pillar bekommt setup_delta_html, andere ""
+    # Wir prüfen direkt das else-leerer-String-Pattern
+    assert 'if conf_key == "setup" else ""' in block, \
+        "Pillar-Loop sollte nur Setup-Pillar mit Delta versorgen"
 
 
 def test_04_css_classes_in_head_jinja() -> None:
-    for cls in (".sb-delta{", ".sb-delta-up{", ".sb-delta-down{",
-                ".sb-delta-mute{", ".sb-delta-strong{"):
+    for cls in (".cockpit-delta{", ".cockpit-delta-up{",
+                ".cockpit-delta-down{", ".cockpit-delta-mute{",
+                ".cockpit-delta-strong{"):
         assert cls in HJ, f"CSS-Klasse {cls} fehlt in head.jinja"
 
 
 # ── Pythonische Replikation ─────────────────────────────────────────────────
 
-def _replicate_score_delta(s: dict) -> str:
-    """1:1-Replikat der _score_delta_html-Logik."""
+def _replicate_cockpit_delta(s: dict) -> str:
+    """1:1-Replikat der _cockpit_delta_html-Logik."""
     spark = s.get("sparkline") or {}
     scores = spark.get("scores") or []
     dates = spark.get("dates") or []
@@ -115,15 +103,16 @@ def _replicate_score_delta(s: dict) -> str:
     sign      = "▲" if delta > 0 else "▼"
     sign_pref = "+"  if delta > 0 else ""
     if abs_d < 5:
-        css = "sb-delta sb-delta-mute"
+        css = "cockpit-delta cockpit-delta-mute"
     else:
-        css = "sb-delta sb-delta-up" if delta > 0 else "sb-delta sb-delta-down"
+        css = ("cockpit-delta cockpit-delta-up" if delta > 0
+               else "cockpit-delta cockpit-delta-down")
         if abs_d >= 15:
-            css += " sb-delta-strong"
+            css += " cockpit-delta-strong"
     title = (f"Δ {sign_pref}{delta:.1f} ggü. letztem Daily-Run "
              f"({prev_date}, raw {prev_raw:.1f} → {today_raw:.1f})")
     return (f'<span class="{css}" title="{title}" aria-label="Delta '
-            f'{sign_pref}{delta:.1f}">{sign} {sign_pref}{delta:.1f}</span>')
+            f'{sign_pref}{delta:.1f}">{sign}{sign_pref}{delta:.1f}</span>')
 
 
 def _stock(scores, dates=None):
@@ -133,82 +122,73 @@ def _stock(scores, dates=None):
 
 
 def test_05_below_silence_threshold() -> None:
-    # |Δ|=0.03 wie CRMD heute
     s = _stock([52.59, 52.62])
-    assert _replicate_score_delta(s) == "", "Mini-Drift muss leer sein"
-    # |Δ|=1.9 — knapp unter 2
+    assert _replicate_cockpit_delta(s) == "", "Mini-Drift muss leer sein"
     s2 = _stock([50.0, 51.9])
-    assert _replicate_score_delta(s2) == ""
+    assert _replicate_cockpit_delta(s2) == ""
 
 
 def test_06_mute_variant() -> None:
-    # |Δ|=3 → grau
     s = _stock([50.0, 53.0])
-    html = _replicate_score_delta(s)
-    assert "sb-delta-mute" in html
-    assert "sb-delta-up" not in html
+    html = _replicate_cockpit_delta(s)
+    assert "cockpit-delta-mute" in html
+    assert "cockpit-delta-up" not in html
     assert "▲" in html
     assert "+3.0" in html
 
 
 def test_07_up_variant() -> None:
-    # |Δ|=7
     s = _stock([50.0, 57.0], dates=["15.05.2026", "16.05.2026"])
-    html = _replicate_score_delta(s)
-    assert "sb-delta-up" in html
-    assert "sb-delta-mute" not in html
-    assert "sb-delta-strong" not in html
+    html = _replicate_cockpit_delta(s)
+    assert "cockpit-delta-up" in html
+    assert "cockpit-delta-mute" not in html
+    assert "cockpit-delta-strong" not in html
     assert "▲" in html
     assert "+7.0" in html
 
 
 def test_08_down_variant() -> None:
-    # Δ=-7 (CRMD Earnings-Sell-the-news Pattern)
     s = _stock([75.6, 68.6])
-    html = _replicate_score_delta(s)
-    assert "sb-delta-down" in html
+    html = _replicate_cockpit_delta(s)
+    assert "cockpit-delta-down" in html
     assert "▼" in html
     assert "-7.0" in html
-    assert "+" not in html.replace("color:", "").replace("aria-label=\"Delta -", "")
 
 
 def test_09_strong_up() -> None:
-    # |Δ|=18 → up + strong
     s = _stock([50.0, 68.0])
-    html = _replicate_score_delta(s)
-    assert "sb-delta-up" in html
-    assert "sb-delta-strong" in html
+    html = _replicate_cockpit_delta(s)
+    assert "cockpit-delta-up" in html
+    assert "cockpit-delta-strong" in html
     assert "+18.0" in html
 
 
 def test_10_strong_down() -> None:
-    # Δ=-22 → down + strong
     s = _stock([80.0, 58.0])
-    html = _replicate_score_delta(s)
-    assert "sb-delta-down" in html
-    assert "sb-delta-strong" in html
+    html = _replicate_cockpit_delta(s)
+    assert "cockpit-delta-down" in html
+    assert "cockpit-delta-strong" in html
     assert "-22.0" in html
 
 
 def test_11_one_day_history() -> None:
     s = _stock([50.0])
-    assert _replicate_score_delta(s) == ""
+    assert _replicate_cockpit_delta(s) == ""
 
 
 def test_12_no_sparkline() -> None:
-    assert _replicate_score_delta({}) == ""
-    assert _replicate_score_delta({"sparkline": None}) == ""
+    assert _replicate_cockpit_delta({}) == ""
+    assert _replicate_cockpit_delta({"sparkline": None}) == ""
 
 
 def test_13_invalid_scores() -> None:
     s = {"sparkline": {"scores": [None, "abc"], "dates": ["x", "y"]}}
-    # None oder str -> ValueError → leer
-    assert _replicate_score_delta(s) == ""
+    assert _replicate_cockpit_delta(s) == ""
 
 
 def test_14_tooltip_has_prev_date() -> None:
     s = _stock([50.0, 57.0], dates=["15.05.2026", "16.05.2026"])
-    html = _replicate_score_delta(s)
+    html = _replicate_cockpit_delta(s)
     assert 'title=' in html
     assert "15.05.2026" in html
     assert "ggü. letztem Daily-Run" in html
@@ -217,25 +197,22 @@ def test_14_tooltip_has_prev_date() -> None:
 
 def test_15_aria_label_set() -> None:
     s = _stock([50.0, 57.0])
-    html = _replicate_score_delta(s)
+    html = _replicate_cockpit_delta(s)
     assert 'aria-label="Delta +7.0"' in html
 
 
 def test_16_boundary_exact_2() -> None:
-    # |Δ|=2.0 → rendert (>= Schwelle) als mute
     s = _stock([50.0, 52.0])
-    html = _replicate_score_delta(s)
+    html = _replicate_cockpit_delta(s)
     assert html != "", "|Δ|=2 muss rendern (Schwelle ist <2 für leer)"
-    assert "sb-delta-mute" in html
+    assert "cockpit-delta-mute" in html
 
 
 # ── CLAUDE.md ────────────────────────────────────────────────────────────────
 
 def test_17_claude_md_section() -> None:
     assert "Score-Delta T-1" in CMD, "CLAUDE.md-Sektion fehlt"
-    # Schwellen dokumentiert
     assert "|Δ|" in CMD or "Stille-Schwelle" in CMD
-    # Folge-PR-Wiedervorlage erwaehnt
     assert "conviction_history" in CMD or "History-Persistenz" in CMD
 
 
@@ -243,10 +220,10 @@ def test_17_claude_md_section() -> None:
 
 def main() -> int:
     tests = [
-        ("01 _score_delta_html-Signatur",         test_01_helper_exists),
-        ("02 Setup-Row nutzt Helper",             test_02_setup_row_uses_delta),
-        ("03 Andere Rows kein Delta",             test_03_other_rows_no_delta),
-        ("04 CSS-Klassen in head.jinja",          test_04_css_classes_in_head_jinja),
+        ("01 _cockpit_delta_html-Signatur",       test_01_helper_exists),
+        ("02 Setup-Pillar nutzt Helper",          test_02_setup_pillar_uses_delta),
+        ("03 Andere Pillars kein Delta",          test_03_other_pillars_no_delta),
+        ("04 CSS-Klassen .cockpit-delta-*",       test_04_css_classes_in_head_jinja),
         ("05 |Δ|<2 → leer",                       test_05_below_silence_threshold),
         ("06 |Δ|=3 → mute",                       test_06_mute_variant),
         ("07 |Δ|=7 → up + ▲",                     test_07_up_variant),
