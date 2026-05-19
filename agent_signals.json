@@ -1,17 +1,17 @@
 {
-  "updated": "2026-05-19T10:13:55.413803+02:00",
+  "updated": "2026-05-19T10:39:32.010166+02:00",
   "run_info": {
     "tickers_checked": 15,
     "signals_active": 0,
     "alerts_sent": 0,
-    "elapsed_s": 15.3,
+    "elapsed_s": 12.2,
     "market_phase": "Pre-Market"
   },
   "signals": {
     "AI": {
-      "score": 18,
-      "confidence": 33,
-      "drivers": "Spanne 6.0% + Earnings in 8d",
+      "score": 26,
+      "confidence": 70,
+      "drivers": "Spanne 6.0% + News-KI 8/30: C3.ai shows modest price movement but lacks the extreme short interest, low float, and catalyst intensity typically requ + Earnings in 8d",
       "price": 8.75,
       "chg_pct": 0.0,
       "rvol_4d": 0.88,
@@ -29,9 +29,9 @@
       "uoa_cp_ratio": 1.4560841720036597
     },
     "AMC": {
-      "score": 35,
+      "score": 20,
       "confidence": 33,
-      "drivers": "Spanne 12.8% + News: analyst upgrade + UOA Call/Put 17.5×",
+      "drivers": "Spanne 12.8% + UOA Call/Put 17.5×",
       "price": 1.36,
       "chg_pct": 0.0,
       "rvol_4d": 1.01,
@@ -42,7 +42,7 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 1,
+      "active_triggers": 0,
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 17.5×"
@@ -159,9 +159,9 @@
       "uoa_cp_ratio": null
     },
     "GEMI": {
-      "score": 25,
+      "score": 22,
       "confidence": 33,
-      "drivers": "Spanne 9.1% + News: earnings beat",
+      "drivers": "Spanne 9.1% + News-KI 12/30: Moderate positive momentum and funding news, but IPO lawsuits and lack of short interest data weigh against short-squeez",
       "price": 5.37,
       "chg_pct": -0.0,
       "rvol_4d": 0.49,
