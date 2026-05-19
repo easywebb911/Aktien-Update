@@ -1786,6 +1786,8 @@ def get_short_float_with_fallback(
         return (round(float(screener_value), 2), "finviz")
     # Health-Check Phase 2 — Finviz-Quote-Page-Fallback füttert nur den
     # Latency-Aggregator (item_count bleibt v161 ∪ v111 lt. Auftrag).
+    log.warning("[finviz_fallback] Stufe 3 für %s (yf_sf=%r, cached_sf=%r)",
+                ticker, yf_value, screener_value)
     _fv_qp_t0 = time.perf_counter()
     fv = _fetch_short_float_finviz(ticker)
     try:
