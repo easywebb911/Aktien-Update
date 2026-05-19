@@ -3402,7 +3402,7 @@ in ``provider_health.jsonl`` (Append-Only, 30-Tage-Cutoff analog
 | Provider-Key | Tier | Quelle | Coverage |
 |---|---:|---|---|
 | ``yahoo_screener`` | 1 | ``get_yahoo_screener_candidates()`` (1 Call/Daily-Run) | Pool-Größe variabel, ``coverage_pct=null`` |
-| ``finviz`` | 1 | Aggregat aus ``get_finviz_candidates`` (v161), ``get_finviz_screener_v111`` (v111), ``_fetch_short_float_finviz`` (Quote-Page-Fallback, N×Top-10). Akkumulator ``_FINVIZ_ACCT`` summiert Latenzen + Item-Counts; main() emittiert 1 Zeile am Ende. | ``item_count = len(v161 ∪ v111)``; ``coverage_pct=null`` |
+| ``finviz`` | 2 | Aggregat aus ``get_finviz_candidates`` (v161), ``get_finviz_screener_v111`` (v111), ``_fetch_short_float_finviz`` (Quote-Page-Fallback, N×Top-10). Akkumulator ``_FINVIZ_ACCT`` summiert Latenzen + Item-Counts; main() emittiert 1 Zeile am Ende. **Herabgestuft 19.05.2026 von Tier 1 → Tier 2** — Stufe-3-Fallback in der SF-Kette (`yfinance → screener-Cache → finviz → stockanalysis`), nicht primäre Datenquelle; 50-60 % Quote-Page-Fail-Rate ist Coverage-Lücke obskurer Pool-Smallcaps, kein Provider-Bug. | ``item_count = len(v161 ∪ v111)``; ``coverage_pct=null`` |
 | ``yfinance_batch`` | 1 | ``get_yfinance_batch(pool_tickers)`` (1 Call/Daily-Run, Z. ~14409) | ``coverage_pct = ok_items / pool_size × 100`` |
 | ``yfinance_singletons`` | 1 | 2 Emissions: Daily-Run schreibt 1 Zeile für SPY + FX, KI-Agent schreibt 1 Zeile für VIX. Beide Zeilen tragen denselben Provider-Key. | ``coverage_pct`` pro Zeile: Daily-Run 0/50/100 %, KI-Agent 0 oder 100 %. Phase-3-Digest aggregiert. |
 

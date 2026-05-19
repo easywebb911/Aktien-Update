@@ -404,8 +404,8 @@ def test_news_rss_partial_failure_persisted():
 
 
 def test_tier1_keys_still_tier_1():
-    for k in ("yahoo_screener", "finviz", "yfinance_batch",
-              "yfinance_singletons"):
+    # finviz wurde 19.05.2026 nach Tier 2 verschoben (Stufe-3-Fallback).
+    for k in ("yahoo_screener", "yfinance_batch", "yfinance_singletons"):
         assert HEALTH_CHECK_PROVIDER_TIER.get(k) == 1
 
 
