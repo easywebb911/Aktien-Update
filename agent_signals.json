@@ -1,17 +1,17 @@
 {
-  "updated": "2026-05-20T00:42:25.221898+02:00",
+  "updated": "2026-05-20T01:33:51.667592+02:00",
   "run_info": {
     "tickers_checked": 17,
     "signals_active": 3,
     "alerts_sent": 0,
-    "elapsed_s": 16.4,
+    "elapsed_s": 15.7,
     "market_phase": "After-Hours"
   },
   "signals": {
     "AI": {
-      "score": 18,
+      "score": 28,
       "confidence": 33,
-      "drivers": "Earnings in 8d + UOA Call/Put 5.4×",
+      "drivers": "Earnings in 8d + SEC Form 4 + UOA Call/Put 5.4×",
       "price": 8.83,
       "chg_pct": -0.0,
       "rvol_4d": 0.7,
@@ -205,7 +205,7 @@
     "IONQ": {
       "score": 22,
       "confidence": 33,
-      "drivers": "Spanne 8.2% + News-KI 12/30: Mixed sentiment with one positive mention among competitor-focused headlines; no specific bearish catalyst or unusual sh",
+      "drivers": "Spanne 8.2% + News-KI 12/30: IonQ mentioned only in passing among multiple tickers; no negative catalyst or short-specific sentiment detected, though",
       "price": 48.44,
       "chg_pct": -0.0,
       "rvol_4d": 0.81,
@@ -223,9 +223,9 @@
       "uoa_cp_ratio": 1.7285133184621442
     },
     "JACK": {
-      "score": 20,
-      "confidence": 33,
-      "drivers": "Spanne 7.6% + SEC Form 4",
+      "score": 28,
+      "confidence": 70,
+      "drivers": "Spanne 7.6% + News-KI 8/30: Negative guidance and target cuts with sales decline indicate deteriorating fundamentals, making this unlikely to attrac + SEC Form 4",
       "price": 11.44,
       "chg_pct": -0.0,
       "rvol_4d": 0.55,
@@ -309,9 +309,9 @@
       "uoa_cp_ratio": 2.3039485766758494
     },
     "SLS": {
-      "score": 35,
+      "score": 20,
       "confidence": 33,
-      "drivers": "Spanne 10.7% + News: catalyst + UOA Call/Put 2.1×",
+      "drivers": "Spanne 10.7% + UOA Call/Put 2.1×",
       "price": 7.59,
       "chg_pct": 0.0,
       "rvol_4d": 0.45,
@@ -322,7 +322,7 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 1,
+      "active_triggers": 0,
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 2.1×"
