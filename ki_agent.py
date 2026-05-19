@@ -2987,11 +2987,15 @@ def main() -> None:
     # 404/Exception), aber defensive Vorsicht für Crashes.
     _finra_t0  = time.perf_counter()
     _finra_err: str | None = None
+    _finra_http: int | None = None
     finra_ssr_data: dict = {}
     try:
         finra_ssr_data = fetch_finra_ssr(tickers)
     except Exception as _exc:
         _finra_err = f"{type(_exc).__name__}: {str(_exc)[:120]}"
+        _resp = getattr(_exc, "response", None)
+        _finra_http = (getattr(_resp, "status_code", None)
+                       if isinstance(_exc, requests.HTTPError) else None)
         raise
     finally:
         try:
@@ -2999,7 +3003,8 @@ def main() -> None:
                 provider="finra",
                 tier=HEALTH_CHECK_PROVIDER_TIER.get("finra", 2),
                 latency_ms=int((time.perf_counter() - _finra_t0) * 1000),
-                http_status=200 if (finra_ssr_data and _finra_err is None) else None,
+                http_status=(_finra_http if _finra_http is not None
+                             else (200 if (finra_ssr_data and _finra_err is None) else None)),
                 item_count=len(finra_ssr_data) if finra_ssr_data else 0,
                 error=_finra_err if _finra_err else (
                     None if finra_ssr_data else "empty_result"),
@@ -3093,10 +3098,14 @@ def main() -> None:
     # sauber durch.
     _vix_t0 = time.perf_counter()
     _vix_err: str | None = None
+    _vix_http: int | None = None
     try:
         globals()["_VIX_CURRENT"] = _fetch_vix_current()
     except Exception as _exc:
         _vix_err = f"{type(_exc).__name__}: {str(_exc)[:120]}"
+        _resp = getattr(_exc, "response", None)
+        _vix_http = (getattr(_resp, "status_code", None)
+                     if isinstance(_exc, requests.HTTPError) else None)
         raise
     finally:
         try:
@@ -3105,7 +3114,8 @@ def main() -> None:
                 provider="yfinance_singletons",
                 tier=HEALTH_CHECK_PROVIDER_TIER.get("yfinance_singletons", 1),
                 latency_ms=int((time.perf_counter() - _vix_t0) * 1000),
-                http_status=200 if _vix_ok else None,
+                http_status=(_vix_http if _vix_http is not None
+                             else (200 if _vix_ok else None)),
                 item_count=int(_vix_ok),
                 coverage_pct=100.0 if _vix_ok else 0.0,
                 error=_vix_err if _vix_err else (

@@ -15077,11 +15077,15 @@ def main():
     # Vorsicht für unerwartete Crashes.
     _yh_t0 = time.perf_counter()
     _yh_err = None
+    _yh_http: int | None = None
     candidates: list = []
     try:
         candidates = get_yahoo_screener_candidates()
     except Exception as _exc:
         _yh_err = f"{type(_exc).__name__}: {str(_exc)[:120]}"
+        _resp = getattr(_exc, "response", None)
+        _yh_http = (getattr(_resp, "status_code", None)
+                    if isinstance(_exc, requests.HTTPError) else None)
         raise
     finally:
         try:
@@ -15089,7 +15093,8 @@ def main():
                 provider="yahoo_screener",
                 tier=HEALTH_CHECK_PROVIDER_TIER.get("yahoo_screener", 1),
                 latency_ms=int((time.perf_counter() - _yh_t0) * 1000),
-                http_status=200 if candidates else None,
+                http_status=(_yh_http if _yh_http is not None
+                             else (200 if candidates else None)),
                 item_count=len(candidates) if candidates else 0,
                 error=_yh_err if _yh_err else (
                     None if candidates else "empty_result"),
@@ -15151,10 +15156,14 @@ def main():
     if EARNINGSWHISPERS_ENABLED:
         _ew_t0  = time.perf_counter()
         _ew_err: str | None = None
+        _ew_http: int | None = None
         try:
             ew_calendar = fetch_earningswhispers_rss()
         except Exception as _exc:
             _ew_err = f"{type(_exc).__name__}: {str(_exc)[:120]}"
+            _resp = getattr(_exc, "response", None)
+            _ew_http = (getattr(_resp, "status_code", None)
+                        if isinstance(_exc, requests.HTTPError) else None)
             raise
         finally:
             try:
@@ -15169,7 +15178,8 @@ def main():
                     provider="earningswhispers",
                     tier=HEALTH_CHECK_PROVIDER_TIER.get("earningswhispers", 2),
                     latency_ms=int((time.perf_counter() - _ew_t0) * 1000),
-                    http_status=200 if (ew_calendar and _ew_err is None) else None,
+                    http_status=(_ew_http if _ew_http is not None
+                                 else (200 if (ew_calendar and _ew_err is None) else None)),
                     item_count=_ew_total,
                     nan_pct=_ew_nan,
                     error=_ew_err if _ew_err else (
@@ -15346,6 +15356,7 @@ def main():
     # coverage_pct = item_count / pool_size × 100.
     _yfb_t0    = time.perf_counter()
     _yfb_err   = None
+    _yfb_http: int | None = None
     _yfb_pool  = len(pool_tickers)
     batch_yfd: dict = {}
     try:
@@ -15362,6 +15373,9 @@ def main():
             _yfb_err = f"timeout_after_{_YF_BATCH_TIMEOUT}s"
     except Exception as _exc:
         _yfb_err = f"{type(_exc).__name__}: {str(_exc)[:120]}"
+        _resp = getattr(_exc, "response", None)
+        _yfb_http = (getattr(_resp, "status_code", None)
+                     if isinstance(_exc, requests.HTTPError) else None)
         raise
     finally:
         try:
@@ -15371,7 +15385,8 @@ def main():
                 provider="yfinance_batch",
                 tier=HEALTH_CHECK_PROVIDER_TIER.get("yfinance_batch", 1),
                 latency_ms=int((time.perf_counter() - _yfb_t0) * 1000),
-                http_status=200 if _yfb_err is None else None,
+                http_status=(_yfb_http if _yfb_http is not None
+                             else (200 if _yfb_err is None else None)),
                 item_count=_yfb_ok_items,
                 coverage_pct=round(_yfb_cov, 1) if _yfb_cov is not None else None,
                 error=_yfb_err,
