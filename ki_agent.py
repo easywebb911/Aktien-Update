@@ -247,12 +247,12 @@ import health_check  # noqa: E402
 # emittiert am Ende eine konsolidierte ``record_provider_call``-Zeile,
 # sofern ``calls > 0`` (call_attempted-Gating). Reset via
 # ``_reset_tier3_accumulators()`` am Anfang von main().
-_STOCKTWITS_ACCT:   dict = {"latency_ms": 0, "calls": 0, "failures": 0, "successes": 0}
-_UOA_ACCT:          dict = {"latency_ms": 0, "calls": 0, "failures": 0, "successes": 0}
-_NEWS_RSS_ACCT:     dict = {"latency_ms": 0, "calls": 0, "failures": 0, "successes": 0}
-_EDGAR_8K_ACCT:     dict = {"latency_ms": 0, "calls": 0, "failures": 0, "successes": 0}
-_EDGAR_FORM4_ACCT:  dict = {"latency_ms": 0, "calls": 0, "failures": 0, "successes": 0}
-_EDGAR_13D_G_ACCT:  dict = {"latency_ms": 0, "calls": 0, "failures": 0, "successes": 0}
+_STOCKTWITS_ACCT:   dict = {"latency_ms": 0, "calls": 0, "failures": 0, "successes": 0, "last_error_repr": None}
+_UOA_ACCT:          dict = {"latency_ms": 0, "calls": 0, "failures": 0, "successes": 0, "last_error_repr": None}
+_NEWS_RSS_ACCT:     dict = {"latency_ms": 0, "calls": 0, "failures": 0, "successes": 0, "last_error_repr": None}
+_EDGAR_8K_ACCT:     dict = {"latency_ms": 0, "calls": 0, "failures": 0, "successes": 0, "last_error_repr": None}
+_EDGAR_FORM4_ACCT:  dict = {"latency_ms": 0, "calls": 0, "failures": 0, "successes": 0, "last_error_repr": None}
+_EDGAR_13D_G_ACCT:  dict = {"latency_ms": 0, "calls": 0, "failures": 0, "successes": 0, "last_error_repr": None}
 
 
 def _reset_tier3_accumulators() -> None:
@@ -3506,7 +3506,8 @@ def main() -> None:
                     http_status=200 if acct["successes"] > 0 else None,
                     item_count=acct["successes"],
                     error=None if acct["failures"] == 0
-                          else f"{acct['failures']}/{acct['calls']} calls failed",
+                          else (acct.get("last_error_repr")
+                                or f"{acct['failures']}/{acct['calls']} calls failed"),
                     run_phase="ki_agent_tick",
                 )
             except Exception as _hc_exc:

@@ -606,17 +606,32 @@ def provider_acct_reset(acct: dict) -> None:
     for k in ("latency_ms", "calls", "failures", "successes"):
         if k in acct:
             acct[k] = 0
+    # Variante E (19.05.2026): first-fail-wins-Repr für Aggregator-
+    # Emit-Sites. Beim Reset auf None setzen damit der nächste Run
+    # einen frischen Fail-String sehen kann.
+    acct["last_error_repr"] = None
 
 
-def provider_acct_record(acct: dict, latency_ms: int, success: bool) -> None:
+def provider_acct_record(acct: dict, latency_ms: int, success: bool,
+                          last_error_repr: str | None = None) -> None:
     """Akkumuliert per-Call-Metriken. Wird aus dem ``finally``-Block
-    von ``instrument_provider_call`` aufgerufen."""
+    von ``instrument_provider_call`` aufgerufen.
+
+    ``last_error_repr`` (Variante E, 19.05.2026): optionale Exception-
+    Repräsentation des ersten Fails im Akkumulations-Fenster. Wird nur
+    gesetzt wenn der bestehende Wert ``None`` ist (first-fail-wins —
+    spätere Fails überschreiben nicht, sonst maskieren transient-
+    Probleme den Wurzel-Fehler). Emit-Sites verwenden den String als
+    informativeren Ersatz für die ``N/M calls failed``-Aggregat-Zeile.
+    """
     acct["latency_ms"] += int(latency_ms)
     acct["calls"]      += 1
     if success:
         acct["successes"] += 1
     else:
         acct["failures"] += 1
+    if last_error_repr and not acct.get("last_error_repr"):
+        acct["last_error_repr"] = last_error_repr
 
 
 def instrument_provider_call(acct: dict, fn, *args,
@@ -638,11 +653,13 @@ def instrument_provider_call(acct: dict, fn, *args,
     t0 = time.perf_counter()
     result = None
     raised = False
+    exc_obj: BaseException | None = None
     try:
         result = fn(*args, **kwargs)
         return result
-    except Exception:
+    except Exception as _exc:
         raised = True
+        exc_obj = _exc
         raise
     finally:
         try:
@@ -658,10 +675,24 @@ def instrument_provider_call(acct: dict, fn, *args,
                     result if not isinstance(result, (dict, list, tuple, set))
                     else len(result) > 0
                 )
+            # Variante E (19.05.2026): bei Exception einen kompakten Repr
+            # für die Aggregator-Emit-Site bauen. Bei requests.HTTPError
+            # zusätzlich den HTTP-Status anhängen. Greift NICHT für
+            # Fetcher, die Exceptions intern catchen und None returnen —
+            # dort sieht der Wrapper kein Exception-Objekt.
+            _last_err = None
+            if exc_obj is not None:
+                _base = f"{type(exc_obj).__name__}: {str(exc_obj)[:120]}"
+                _resp = getattr(exc_obj, "response", None)
+                _status = (getattr(_resp, "status_code", None)
+                           if _resp is not None else None)
+                _last_err = (f"{_base} [HTTP {_status}]"
+                             if _status is not None else _base)
             provider_acct_record(
                 acct,
                 int((time.perf_counter() - t0) * 1000),
                 success=bool(ok),
+                last_error_repr=_last_err,
             )
         except Exception:
             pass   # Accumulator-Fehler bricht Pipeline nicht

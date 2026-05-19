@@ -297,6 +297,7 @@ _FINVIZ_ACCT: dict = {
     "failures":   0,
     "v161_count": 0,
     "v111_count": 0,
+    "last_error_repr": None,
 }
 
 
@@ -306,16 +307,22 @@ def _finviz_acct_reset() -> None:
     _FINVIZ_ACCT["failures"]   = 0
     _FINVIZ_ACCT["v161_count"] = 0
     _FINVIZ_ACCT["v111_count"] = 0
+    _FINVIZ_ACCT["last_error_repr"] = None
 
 
 def _finviz_acct_record(latency_ms: int, success: bool,
-                        v161: int = 0, v111: int = 0) -> None:
+                        v161: int = 0, v111: int = 0,
+                        last_error_repr: str | None = None) -> None:
     _FINVIZ_ACCT["latency_ms"] += int(latency_ms)
     _FINVIZ_ACCT["calls"]      += 1
     if not success:
         _FINVIZ_ACCT["failures"] += 1
     _FINVIZ_ACCT["v161_count"] += int(v161)
     _FINVIZ_ACCT["v111_count"] += int(v111)
+    # Variante E (19.05.2026): first-fail-wins — finviz-Caller können
+    # bei zukünftigem Fetcher-Refactor eine Exception-Repr durchreichen.
+    if last_error_repr and not _FINVIZ_ACCT.get("last_error_repr"):
+        _FINVIZ_ACCT["last_error_repr"] = last_error_repr
 
 
 # Health-Check Phase 2 PR 2 — Tier-2-Aggregatoren.
@@ -324,14 +331,17 @@ def _finviz_acct_record(latency_ms: int, success: bool,
 # wiederholt ausführbar sind.
 _FINNHUB_ACCT: dict = {
     "latency_ms": 0, "calls": 0, "failures": 0, "successes": 0,
+    "last_error_repr": None,
 }
 _STOCKANALYSIS_ACCT: dict = {
     "latency_ms": 0, "calls": 0, "failures": 0, "successes": 0,
+    "last_error_repr": None,
 }
 # Phase 2 PR 3 — Tier-3 edgar_13f (im Daily-Run, per US-Top-10
 # ThreadPool). Andere edgar_*-Pfade leben in ki_agent.py.
 _EDGAR_13F_ACCT: dict = {
     "latency_ms": 0, "calls": 0, "failures": 0, "successes": 0,
+    "last_error_repr": None,
 }
 
 
@@ -16300,7 +16310,8 @@ def main():
                 http_status=200 if _fv_acct["failures"] == 0 else None,
                 item_count=_fv_items,
                 error=None if _fv_acct["failures"] == 0
-                      else f"{_fv_acct['failures']}/{_fv_acct['calls']} calls failed",
+                      else (_fv_acct.get("last_error_repr")
+                            or f"{_fv_acct['failures']}/{_fv_acct['calls']} calls failed"),
                 run_phase=run_phase,
             )
         # Tier 2: finnhub — call_attempted-Gating via calls > 0.
@@ -16313,7 +16324,8 @@ def main():
                 http_status=200 if _fh_acct["successes"] > 0 else None,
                 item_count=_fh_acct["successes"],
                 error=None if _fh_acct["failures"] == 0
-                      else f"{_fh_acct['failures']}/{_fh_acct['calls']} calls failed",
+                      else (_fh_acct.get("last_error_repr")
+                            or f"{_fh_acct['failures']}/{_fh_acct['calls']} calls failed"),
                 run_phase=run_phase,
             )
         # Tier 2: stockanalysis — ENABLED-Gating bereits aussen herum;
@@ -16327,7 +16339,8 @@ def main():
                 http_status=200 if _sa_acct["successes"] > 0 else None,
                 item_count=_sa_acct["successes"],
                 error=None if _sa_acct["failures"] == 0
-                      else f"{_sa_acct['failures']}/{_sa_acct['calls']} calls failed",
+                      else (_sa_acct.get("last_error_repr")
+                            or f"{_sa_acct['failures']}/{_sa_acct['calls']} calls failed"),
                 run_phase=run_phase,
             )
         # Tier 3: edgar_13f — gegated über SEC_13F_ENABLED (Funktion
@@ -16341,7 +16354,8 @@ def main():
                 http_status=200 if _13f_acct["successes"] > 0 else None,
                 item_count=_13f_acct["successes"],
                 error=None if _13f_acct["failures"] == 0
-                      else f"{_13f_acct['failures']}/{_13f_acct['calls']} calls failed",
+                      else (_13f_acct.get("last_error_repr")
+                            or f"{_13f_acct['failures']}/{_13f_acct['calls']} calls failed"),
                 run_phase=run_phase,
             )
         try:
