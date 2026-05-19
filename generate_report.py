@@ -126,11 +126,18 @@ def _test_fallback_chain():
         v, s = get_short_float_with_fallback("X", None)
         assert (v, s) == (12.3, "stockanalysis"), (v, s)
 
-        # Schwelle 0.5 %: yf=0.4 wird abgelehnt, fällt in screener-Cache
+        # yf > 0 wird akzeptiert (19.05.2026): kein willkürlicher
+        # _SF_MIN_VALID-Cut auf yf, weil legitime Smallcap-Tickers
+        # SF unter 0.5 % haben (z. B. CRNT 0.22 %, SCOR 0.35 %,
+        # PBT 0.25 %). yf=0.4 ist gültiger Wert, kein Stage-2-Fallthrough.
         mod._fetch_short_float_finviz        = lambda t: None
         mod._fetch_short_float_stockanalysis = lambda t: None
         v, s = get_short_float_with_fallback("X", 0.4, screener_value=20.0)
-        assert (v, s) == (20.0, "finviz"), (v, s)
+        assert (v, s) == (0.4, "yfinance"), (v, s)
+
+        # yf > 0 mit sehr kleinem Wert: ebenfalls akzeptiert.
+        v, s = get_short_float_with_fallback("X", 0.22, screener_value=None)
+        assert (v, s) == (0.22, "yfinance"), (v, s)
     finally:
         mod._fetch_short_float_finviz        = saved["fv"]
         mod._fetch_short_float_stockanalysis = saved["sa"]
@@ -1774,9 +1781,17 @@ def get_short_float_with_fallback(
 ) -> tuple[float | None, str]:
     """Liefert ``(short_float_pct, source)`` durch eine geordnete Kette.
 
-    Akzeptanzkriterium pro Stufe: Wert ist ``not None`` und ``>= 0.5``.
-    Werte unter 0.5 % gelten praktisch immer als „fehlend" (yfinance
-    liefert oft 0.0 statt None bei Datenausfall).
+    Akzeptanzkriterium pro Stufe:
+      - yfinance:   Wert ist ``not None`` und ``> 0`` (jeder positive
+                    Wert akzeptiert, weil yfinance-Werte für sehr
+                    niedrige SF inkl. 0.22 % als legitime Antwort
+                    gelten — sie sind die echte Quelle, nicht „fehlend").
+      - Screener/Finviz/SA:  ``not None`` und ``>= _SF_MIN_VALID`` (0.5 %).
+                             Schwelle dient hier dem Schutz vor
+                             Screener-Cache-Bugs mit 0.0-Platzhaltern.
+
+    yfinance liefert oft 0.0 statt None bei Datenausfall — das fängt
+    der ``> 0``-Filter ab (Sentinel-Schutz bleibt erhalten).
 
     Reihenfolge:
       1. yfinance ``shortPercentOfFloat`` (Standardpfad)
@@ -1790,7 +1805,7 @@ def get_short_float_with_fallback(
     ``"none"``. Stufen 2 und 3 teilen sich „finviz" — beides stammt aus
     Finviz-Quellen und ist für Frontend-Tooltips ununterscheidbar.
     """
-    if yf_value is not None and yf_value >= _SF_MIN_VALID:
+    if yf_value is not None and yf_value > 0:
         return (round(float(yf_value), 2), "yfinance")
     if screener_value is not None and screener_value >= _SF_MIN_VALID:
         return (round(float(screener_value), 2), "finviz")
