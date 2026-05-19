@@ -30,23 +30,11 @@
     "earnings_immediate_GEMI_14.05.2026": "2026-05-14T23:25:08.201852+02:00",
     "exit_KPTI": "2026-05-15T18:17:09.325572+02:00",
     "anomaly_conviction_high_SNSE": "2026-05-15T19:30:32.046324+02:00",
-    "exit_CRMD": "2026-05-19T19:38:20.337519+02:00",
+    "exit_CRMD": "2026-05-20T00:41:38.904757+02:00",
     "anomaly_conviction_high_CRDF": "2026-05-19T16:49:36.576105+02:00",
     "anomaly_monster_backup_CRDF": "2026-05-19T23:46:56.024867+02:00"
   },
   "push_history": [
-    {
-      "ts": "2026-05-15T18:18:45.093815+02:00",
-      "ticker": "KPTI",
-      "kind": "exit_p2",
-      "severity": "trigger",
-      "trigger": "trend_break",
-      "body": "🔻 Exit-Signal KPTI: trend_break crit ({'ma21': 8.5812, 'price': 7.78, 'drop_pct': 9.34})",
-      "success": true,
-      "suppressed": false,
-      "suppress_reason": null,
-      "conviction_score": null
-    },
     {
       "ts": "2026-05-15T19:01:53.063986+02:00",
       "ticker": "GEMI",
@@ -1234,6 +1222,18 @@
       "suppressed": true,
       "suppress_reason": "conviction_below_threshold",
       "conviction_score": 60
+    },
+    {
+      "ts": "2026-05-20T00:41:38.904724+02:00",
+      "ticker": "CRMD",
+      "kind": "exit_p1",
+      "severity": "default",
+      "trigger": "exit_alert",
+      "body": "CRMD 📉 Exit 65 | -1% | Trailing-Stop −12.5% vom Hoch",
+      "success": true,
+      "suppressed": false,
+      "suppress_reason": null,
+      "conviction_score": null
     }
   ],
   "prev_conviction_scores": {
