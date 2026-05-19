@@ -31,13 +31,9 @@ CFG_SRC = (ROOT / "config.py").read_text(encoding="utf-8")
 CARD_JINJA = (ROOT / "templates" / "card.jinja").read_text(encoding="utf-8")
 
 
-def test_01_cockpit_is_default_render_path() -> None:
-    """Stage 3 (19.05.2026): CARD_COCKPIT_ENABLED-Flag wurde entfernt,
-    Cockpit ist der einzige Render-Pfad. Alte Stage-2-Variante des
-    Tests prüfte Flag = True; jetzt prüfen wir dass Flag gar nicht
-    mehr existiert."""
-    assert "CARD_COCKPIT_ENABLED" not in CFG_SRC, \
-        "CARD_COCKPIT_ENABLED-Flag sollte mit Stage 3 entfernt sein"
+def test_01_flag_enabled() -> None:
+    assert "CARD_COCKPIT_ENABLED = True" in CFG_SRC, \
+        "Stage 2 erwartet CARD_COCKPIT_ENABLED = True in config.py"
 
 
 def test_02_card_v1_calls_cockpit() -> None:
@@ -106,34 +102,32 @@ def test_08_live_polling_selector_extended() -> None:
         "Live-Polling-Selector kennt .cockpit-header-right nicht"
 
 
-def test_09_v1_no_fallback_branch() -> None:
-    """Stage 3 (19.05.2026): Pre-Cockpit-Fallback wurde entfernt.
-    v1 nutzt ausschließlich _card_cockpit_html, kein if/else mehr."""
+def test_09_v1_fallback_branch_exists() -> None:
     m = re.search(
         r"^def _card\(.*?(?=^def )",
         GR_SRC, re.MULTILINE | re.DOTALL,
     )
     assert m
     body = m.group(0)
-    assert "if CARD_COCKPIT_ENABLED" not in body, \
-        "v1 hat noch CARD_COCKPIT_ENABLED-Branch (sollte Stage 3 raus)"
-    assert "_card_cockpit_html(" in body, \
-        "v1 ruft _card_cockpit_html nicht mehr direkt auf"
+    # Beide Pfade vorhanden — if CARD_COCKPIT_ENABLED + else
+    assert "if CARD_COCKPIT_ENABLED" in body, \
+        "v1 hat keinen CARD_COCKPIT_ENABLED-Branch"
+    # Fallback hat score-block (alte Variante)
+    assert 'score-block sort-setup' in body, \
+        "v1-Fallback fuer Flag=False fehlt"
 
 
-def test_10_v2_no_fallback_branch() -> None:
-    """Stage 3 (19.05.2026): Pre-Cockpit-Fallback wurde entfernt.
-    v2 nutzt ausschließlich _card_cockpit_html, kein if/else mehr."""
+def test_10_v2_fallback_branch_exists() -> None:
     m = re.search(
         r"^def _build_card_ctx\(.*?(?=^def )",
         GR_SRC, re.MULTILINE | re.DOTALL,
     )
     assert m
     body = m.group(0)
-    assert "if CARD_COCKPIT_ENABLED" not in body, \
-        "v2 hat noch CARD_COCKPIT_ENABLED-Branch (sollte Stage 3 raus)"
-    assert "_card_cockpit_html(" in body, \
-        "v2 ruft _card_cockpit_html nicht mehr direkt auf"
+    assert "if CARD_COCKPIT_ENABLED" in body, \
+        "v2 hat keinen CARD_COCKPIT_ENABLED-Branch"
+    assert 'score-block sort-setup' in body, \
+        "v2-Fallback fuer Flag=False fehlt"
 
 
 def test_11_old_card_top_block_removed_from_jinja() -> None:
@@ -175,7 +169,7 @@ def test_12_v1_v2_header_html_construction_symmetric() -> None:
 
 def main() -> int:
     tests = [
-        ("01 Cockpit ist Default (Flag entfernt)",    test_01_cockpit_is_default_render_path),
+        ("01 CARD_COCKPIT_ENABLED = True",            test_01_flag_enabled),
         ("02 _card (v1) ruft Cockpit auf",            test_02_card_v1_calls_cockpit),
         ("03 _build_card_ctx (v2) ruft Cockpit auf",  test_03_build_card_ctx_v2_calls_cockpit),
         ("04 card.jinja nutzt card_header_html",      test_04_card_jinja_uses_card_header_html),
@@ -183,8 +177,8 @@ def main() -> int:
         ("06 cockpit_id-Pattern in _WL_CARD_STRIP",   test_06_wl_card_strip_re_has_cockpit_id_pattern),
         ("07 _wl_full_card_html strippt cockpit_id",  test_07_wl_full_card_html_strips_cockpit_id),
         ("08 Live-Polling-Selector erweitert",        test_08_live_polling_selector_extended),
-        ("09 v1 OHNE Fallback-Branch (Stage 3)",      test_09_v1_no_fallback_branch),
-        ("10 v2 OHNE Fallback-Branch (Stage 3)",      test_10_v2_no_fallback_branch),
+        ("09 v1-Fallback-Branch fuer Flag=False",     test_09_v1_fallback_branch_exists),
+        ("10 v2-Fallback-Branch fuer Flag=False",     test_10_v2_fallback_branch_exists),
         ("11 Alter card-top in card.jinja entfernt",  test_11_old_card_top_block_removed_from_jinja),
         ("12 v1==v2 Helper-Parameter-Symmetrie",      test_12_v1_v2_header_html_construction_symmetric),
     ]

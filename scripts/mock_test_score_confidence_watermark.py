@@ -133,30 +133,24 @@ def test_07_aria_label_set() -> None:
 # ── Source-Inspektion ────────────────────────────────────────────────────────
 
 def test_08_all_rows_have_conf_class() -> None:
-    """Migration 19.05.2026: Render-Helper ist jetzt _card_cockpit_html.
-    Conviction nutzt {cv_css} an cockpit-donut-number, Setup/Monster/KI
-    teilen sich das {css}-Loop im Pillar-Render."""
-    block = _func_block("def _card_cockpit_html(")
-    # Conviction explizit via cv_css am Donut-Number-Span
-    assert block.count("{cv_css}") >= 1, "Conviction-Donut hat keine conf-Klasse"
-    # Setup/Monster/KI gehen durch den pillar-loop mit Variable {css}
-    assert "{css}" in block, "Pillar-Loop verwendet keine generische css-Variable"
-    # pillar_specs enthält setup/monster/ki — _conf_class wird im Loop gerufen
-    assert '"setup"' in block and '"monster"' in block and '"ki"' in block, \
-        "Pillar-Loop deckt nicht alle 3 Sub-Scores ab"
+    block = _func_block("def _score_block_inner_html(")
+    # Conviction, Setup, Monster, KI — jede sb-num bekommt sb-conf-X-Klasse
+    assert block.count("{cv_css}") >= 1, "Conviction-Row hat keine conf-Klasse"
+    assert block.count("{s_css}")  >= 1, "Setup-Row hat keine conf-Klasse"
+    assert block.count("{m_css}")  >= 1, "Monster-Row hat keine conf-Klasse"
+    assert block.count("{k_css}")  >= 1, "KI-Row hat keine conf-Klasse"
 
 
 def test_09_title_attribute_injected() -> None:
-    """Migration 19.05.2026: Tooltip-Attrs jetzt cv_attrs (Conviction-Donut)
-    + generic {attrs} im Pillar-Loop für setup/monster/ki."""
-    block = _func_block("def _card_cockpit_html(")
-    assert "{cv_attrs}" in block, "cv_attrs fehlt im Donut-Render"
-    assert "{attrs}" in block, "attrs fehlt im Pillar-Render"
+    block = _func_block("def _score_block_inner_html(")
+    # cv_attrs / s_attrs / m_attrs / k_attrs werden injiziert
+    for var in ("cv_attrs", "s_attrs", "m_attrs", "k_attrs"):
+        assert "{" + var + "}" in block, f"{var} fehlt im Render"
     # Die _conf_class-Aufrufe sind vorhanden
     assert '_conf_class("conviction")' in block
-    # Setup/Monster/KI laufen durch den Loop mit conf_key-Variable
-    assert "_conf_class(conf_key)" in block, \
-        "Pillar-Loop ruft _conf_class(conf_key) nicht auf"
+    assert '_conf_class("setup")' in block
+    assert '_conf_class("monster")' in block
+    assert '_conf_class("ki")' in block
 
 
 def test_10_css_classes_in_head_jinja() -> None:

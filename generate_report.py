@@ -4237,7 +4237,7 @@ def _conf_class(score_class: str) -> tuple[str, str, str]:
     nutzloses Attribut-Geraffel im HTML steht — robust ist der visuelle
     Default (keine Linie, keine Dimmung).
 
-    Verhältnis zum CI-Lint: ``_card_cockpit_html`` (Display-Pfad)
+    Verhältnis zum CI-Lint: ``_score_block_inner_html`` (Display-Pfad)
     ist nicht in ``_FORBIDDEN_FUNCS`` von
     ``scripts/lint_score_confidence_isolation.py`` — Konfidenz-Read aus
     dem Render-Pfad ist erlaubt, nur Berechnungs-Funktionen (score(),
@@ -4258,22 +4258,24 @@ def _conf_class(score_class: str) -> tuple[str, str, str]:
     return css, title, aria
 
 
-def _cockpit_delta_html(s: dict) -> str:
-    """Setup-Score-Delta T-1 als kompakte Span für Cockpit-Setup-Pillar.
+def _score_delta_html(s: dict) -> str:
+    """Setup-Score-Delta T-1 als kleine Span unter der Score-Zahl.
 
-    Gleiche Hybrid-Stille-Schwelle wie der frühere _score_delta_html:
-      - |Δ| < 2:  leerer String (kein visueller Lärm bei Mini-Drifts)
-      - |Δ| 2..5: dezent grau (cockpit-delta-mute)
-      - |Δ| >= 5: farbig grün/rot mit ▲/▼ (cockpit-delta-up / -down)
-      - |Δ| >= 15: zusätzlich Bold (cockpit-delta-strong als Modifier)
+    Hybrid-Stille-Schwelle (Design-Berater-Empfehlung 16.05.2026):
+      - ``|Δ| < 2``:  leerer String (kein visueller Lärm bei Mini-Drifts)
+      - ``|Δ| 2..5``: dezent grau (``.sb-delta-mute``)
+      - ``|Δ| ≥ 5``:  farbig grün/rot mit ▲/▼ (``.sb-delta-up`` / ``-down``)
+      - ``|Δ| ≥ 15``: zusätzlich Bold (``.sb-delta-strong`` als Modifier)
 
     Quelle: ``s["sparkline"]["scores"]`` (raw Setup-Scores, oldest→newest,
-    aus score_history.json materialisiert). Nutzt die zwei jüngsten
-    Einträge. Bei < 2 Einträgen (Erst-Render, Ticker neu in Top-10):
-    leerer String.
+    bereits aus ``score_history.json`` materialisiert). Nutzt die zwei
+    jüngsten Einträge. Bei < 2 Einträgen (Erst-Render, Ticker neu in
+    Top-10): leerer String.
 
-    CSS-Form: kompakter Inline-Span neben dem Pillar-Value (kein
-    Layout-Bruch auf 100 px breitem Pillar — Mobile-tested).
+    Tooltip: konkreter Δ-Wert + Vortags-Datum aus ``sparkline.dates``.
+    Phasen-Mismatch (premarket↔postclose) wird nicht ausgewiesen —
+    RVOL-Normalisierung (PR-α/β/γ) adressiert die strukturelle Drift
+    in der Berechnung selbst.
 
     Conviction/Monster/KI-Delta: heute nicht persistiert. Folge-PR via
     eigene History-Files wenn gewünscht (CLAUDE.md-Sektion).
@@ -4285,7 +4287,7 @@ def _cockpit_delta_html(s: dict) -> str:
         return ""
     try:
         today_raw = float(scores[-1])
-        prev_raw = float(scores[-2])
+        prev_raw  = float(scores[-2])
     except (TypeError, ValueError):
         return ""
     delta = today_raw - prev_raw
@@ -4293,19 +4295,120 @@ def _cockpit_delta_html(s: dict) -> str:
     if abs_d < 2:
         return ""
     prev_date = dates[-2] if len(dates) >= 2 else "—"
-    sign = "▲" if delta > 0 else "▼"
-    sign_pref = "+" if delta > 0 else ""
+    sign      = "▲" if delta > 0 else "▼"
+    sign_pref = "+"  if delta > 0 else ""
     if abs_d < 5:
-        css = "cockpit-delta cockpit-delta-mute"
+        css = "sb-delta sb-delta-mute"
     else:
-        css = ("cockpit-delta cockpit-delta-up" if delta > 0
-               else "cockpit-delta cockpit-delta-down")
+        css = "sb-delta sb-delta-up" if delta > 0 else "sb-delta sb-delta-down"
         if abs_d >= 15:
-            css += " cockpit-delta-strong"
+            css += " sb-delta-strong"
     title = (f"Δ {sign_pref}{delta:.1f} ggü. letztem Daily-Run "
              f"({prev_date}, raw {prev_raw:.1f} → {today_raw:.1f})")
     return (f'<span class="{css}" title="{title}" aria-label="Delta '
-            f'{sign_pref}{delta:.1f}">{sign}{sign_pref}{delta:.1f}</span>')
+            f'{sign_pref}{delta:.1f}">{sign} {sign_pref}{delta:.1f}</span>')
+
+
+def _score_block_inner_html(s: dict, hint_html: str = "") -> str:
+    """Erzeugt das komplette Innere des ``<div class="score-block">``.
+
+    Vier Zeilen (Conviction/Setup/Monster/KI). Conviction (Schritt B)
+    liegt visuell oben und prominent — Aktions-Frage „jetzt
+    einsteigen?". Setup/Monster/KI bleiben in bisheriger Größe darunter.
+    Reihenfolge & Schriftgröße werden rein über CSS-Klassen
+    ``.sort-setup`` / ``.sort-monster`` am Container gesteuert
+    (Conviction immer Order 0). Monster/KI/Conviction-Zeilen werden nur
+    gerendert, wenn die zugehörigen Werte vorhanden sind.
+    """
+    rows: list[str] = []
+
+    # Conviction-Row (Schritt B) — wenn Daten vorhanden, ganz oben und
+    # größer als Setup. Color level-basiert: high → Grün, medium → Gelb,
+    # low → Grau (statt _tri_score_color, das auf Score-Bereiche mappt).
+    # sb-num bekommt zusätzlich sb-conf-X-Klasse als Konfidenz-Wasser-
+    # zeichen (Phase 2, 16.05.2026) — Stufe aus globalem _SCORE_CONFIDENCE.
+    conv = s.get("conviction") or {}
+    conv_score = conv.get("score")
+    conv_level = conv.get("level")
+    conv_action = conv.get("action_text") or ""
+    if isinstance(conv_score, (int, float)):
+        cv_pct = max(0.0, min(100.0, float(conv_score)))
+        if conv_level == "high":
+            cv_col, action_col = "#22c55e", "#22c55e"
+        elif conv_level == "medium":
+            cv_col, action_col = "#f59e0b", "var(--txt-dim)"
+        else:
+            cv_col, action_col = "#94a3b8", "var(--txt-dim)"
+        action_html = (
+            f'<span class="sb-conv-action" style="color:{action_col}">'
+            f'{conv_action}</span>'
+        ) if conv_action else ""
+        cv_css, cv_title, cv_aria = _conf_class("conviction")
+        cv_attrs = (f' title="{cv_title}" aria-label="{cv_aria}"'
+                    if cv_title else "")
+        rows.append(
+            f'<div class="sb-row" data-sb="conviction">'
+            f'<span class="sb-num {cv_css}" style="color:{cv_col}"{cv_attrs}>'
+            f'{int(round(cv_pct))}</span>'
+            f'<span class="sb-lbl">Conviction</span>'
+            f'<div class="sb-track"><div class="sb-fill" '
+            f'style="width:{cv_pct:.0f}%;background:{cv_col}"></div></div>'
+            f'{action_html}'
+            f'</div>'
+        )
+
+    setup_val = s.get("score") or 0.0
+    setup_pct = max(0.0, min(100.0, float(setup_val)))
+    setup_col = _tri_score_color(setup_val)
+    s_css, s_title, s_aria = _conf_class("setup")
+    s_attrs = f' title="{s_title}" aria-label="{s_aria}"' if s_title else ""
+    # Score-Delta T-1 (16.05.2026): kleine Span unter dem Score-Wert
+    # mit Stille-Schwelle |Δ|<2. Leerer String bei Mini-Drifts.
+    s_delta_html = _score_delta_html(s)
+    rows.append(
+        f'<div class="sb-row" data-sb="setup">'
+        f'<span class="sb-num {s_css}" style="color:{setup_col}"{s_attrs}>'
+        f'{setup_val:.1f}</span>'
+        f'{s_delta_html}'
+        f'<span class="sb-lbl">Setup-Score</span>'
+        f'<div class="sb-track"><div class="sb-fill" '
+        f'style="width:{setup_pct:.0f}%;background:{setup_col}"></div></div>'
+        f'</div>'
+    )
+
+    ms = s.get("monster_score")
+    if ms is not None:
+        m_pct = max(0.0, min(100.0, float(ms)))
+        m_col = _tri_score_color(ms)
+        m_css, m_title, m_aria = _conf_class("monster")
+        m_attrs = f' title="{m_title}" aria-label="{m_aria}"' if m_title else ""
+        rows.append(
+            f'<div class="sb-row" data-sb="monster">'
+            f'<span class="sb-num {m_css}" style="color:{m_col}"{m_attrs}>'
+            f'{ms:.0f}</span>'
+            f'<span class="sb-lbl">Monster-Score</span>'
+            f'<div class="sb-track"><div class="sb-fill" '
+            f'style="width:{m_pct:.0f}%;background:{m_col}"></div></div>'
+            f'</div>'
+        )
+
+    ki = s.get("ki_signal_score")
+    if ki is not None:
+        k_pct = max(0.0, min(100.0, float(ki)))
+        k_col = _tri_score_color(ki)
+        k_css, k_title, k_aria = _conf_class("ki")
+        k_attrs = f' title="{k_title}" aria-label="{k_aria}"' if k_title else ""
+        rows.append(
+            f'<div class="sb-row" data-sb="ki">'
+            f'<span class="sb-num {k_css}" style="color:{k_col}"{k_attrs}>'
+            f'{ki:.0f}</span>'
+            f'<span class="sb-lbl">KI-Score</span>'
+            f'<div class="sb-track"><div class="sb-fill" '
+            f'style="width:{k_pct:.0f}%;background:{k_col}"></div></div>'
+            f'</div>'
+        )
+
+    return "".join(rows) + (hint_html or "")
 
 
 def _card_cockpit_html(
@@ -4319,18 +4422,13 @@ def _card_cockpit_html(
 ) -> str:
     """Bloomberg-Stil-Cockpit-Layout fuer Karten-Header (Stage 1, 18.05.2026).
 
-    Produziert komplettes Header-Cockpit: Header-Zeile zweispaltig
-    (ticker/badges links, price/change rechts) + Cockpit-Body (Saeulen
-    Setup/Monster/KI links 100 px, Conviction-Donut rechts mit Label,
-    Zahl, /100-Skala, Erklaerungstext).
+    Parallel zu ``_score_block_inner_html``. Produziert komplettes Header-
+    Cockpit: Header-Zeile zweispaltig (ticker/badges links, price/change
+    rechts) + Cockpit-Body (Saeulen Setup/Monster/KI links 100 px,
+    Conviction-Donut rechts mit Label, Zahl, /100-Skala, Erklaerungstext).
 
-    Score-Delta T-1 (19.05.2026): Setup-Pillar bekommt eine kompakte
-    inline-Span via ``_cockpit_delta_html`` neben dem Pillar-Value
-    (Migration aus dem entfernten ``_score_block_inner_html``).
-
-    Render-Pfad seit 19.05.2026 alternativlos — Pre-Cockpit-Fallback
-    (CARD_COCKPIT_ENABLED-Flag) wurde entfernt, sobald sich das
-    Layout stabilisiert hatte.
+    Stage 1: Helper existiert + ist testbar, aber NICHT im Render-Pfad
+    verdrahtet. Aktivierung via ``CARD_COCKPIT_ENABLED=True`` in Stage 2.
 
     SVG-Donut nutzt ``width="120" height="120"`` als HTML-Attribute (nicht
     nur CSS), damit der Browser eine intrinsische Groesse rendert auch
@@ -4396,9 +4494,6 @@ def _card_cockpit_html(
         ("KI",      ki_val,      "ki",
          f"{ki_val:.0f}" if ki_val is not None else "—"),
     ]
-    # Score-Delta T-1 nur für Setup-Pillar — Conviction/Monster/KI haben
-    # heute keine History-Persistenz (Folge-PR siehe CLAUDE.md).
-    setup_delta_html = _cockpit_delta_html(s)
     pillars: list[str] = []
     for label, val, conf_key, fmt in pillar_specs:
         if val is None:
@@ -4409,7 +4504,6 @@ def _card_cockpit_html(
             pct = max(0.0, min(100.0, float(val)))
         css, title, aria = _conf_class(conf_key)
         attrs = f' title="{title}" aria-label="{aria}"' if title else ""
-        delta_html = setup_delta_html if conf_key == "setup" else ""
         pillars.append(
             f'<div class="cockpit-pillar" data-sb="{conf_key}">'
             f'<div class="cockpit-pillar-label">'
@@ -4417,7 +4511,7 @@ def _card_cockpit_html(
             f'<span class="cockpit-pillar-scale">/100</span>'
             f'</div>'
             f'<div class="cockpit-pillar-value {css}" '
-            f'style="color:{col}"{attrs}>{fmt}{delta_html}</div>'
+            f'style="color:{col}"{attrs}>{fmt}</div>'
             f'<div class="cockpit-pillar-bar">'
             f'<div class="cockpit-pillar-bar-fill" '
             f'style="width:{pct:.0f}%;background:{col}"></div>'
@@ -4692,6 +4786,9 @@ def _card(i: int, s: dict) -> str:
     sr_col = "#94a3b8" if has_no_short_data else _metric_color("sr", sr)
     rv_col = _metric_color("rv", rv)
 
+    # Informational hint for candidates below the MIN_SCORE reference value
+    below_min_score_html = _score_hint_html(s["score"])
+    score_block_html = _score_block_inner_html(s, below_min_score_html)
     monster_score_val = s.get("monster_score")
     monster_data_attr = (f' data-monster="{monster_score_val:.1f}"'
                          if monster_score_val is not None else '')
@@ -4943,21 +5040,43 @@ def _card(i: int, s: dict) -> str:
 
     rank_html = f'<span class="rank">{i}</span>'
 
-    # Karten-Header: Bloomberg-Cockpit-Layout via _card_cockpit_html.
-    # Pre-Cockpit-Fallback (CARD_COCKPIT_ENABLED-Flag, sb-row-Markup)
-    # entfernt am 19.05.2026 — Cockpit ist seit PR #199 stabil.
-    _wl_add_btn = (
-        f'<button class="wl-add-btn" data-ticker="{s["ticker"]}" '
-        f'onclick="wlToggle(this)" title="Zur Watchlist hinzufügen">＋</button>'
-    )
-    card_header_html = _card_cockpit_html(
-        i, s,
-        rank_html=rank_html,
-        market_tag_html=_market_tag_html(s["ticker"]),
-        chart_badge_html=sa_badge + _wl_add_btn,
-        sector_tag_html=(sector_tag_html + earnings_tag_html
-                         + squeeze_badge_html + pd_badges_html),
-    )
+    # Karten-Header-Auswahl (Stage 2 ab 18.05.2026): bei
+    # CARD_COCKPIT_ENABLED=True Bloomberg-Cockpit-Layout via Helper;
+    # sonst klassisches card-top + score-block.
+    if CARD_COCKPIT_ENABLED:
+        _wl_add_btn = (
+            f'<button class="wl-add-btn" data-ticker="{s["ticker"]}" '
+            f'onclick="wlToggle(this)" title="Zur Watchlist hinzufügen">＋</button>'
+        )
+        card_header_html = _card_cockpit_html(
+            i, s,
+            rank_html=rank_html,
+            market_tag_html=_market_tag_html(s["ticker"]),
+            chart_badge_html=sa_badge + _wl_add_btn,
+            sector_tag_html=(sector_tag_html + earnings_tag_html
+                             + squeeze_badge_html + pd_badges_html),
+        )
+    else:
+        card_header_html = (
+            f'<div class="card-top">'
+            f'<div class="card-left">'
+            f'{rank_html}'
+            f'<div class="ticker-block">'
+            f'<div class="ticker-row">'
+            f'<span class="ticker">{s["ticker"]}</span>'
+            f'{_market_tag_html(s["ticker"])}'
+            f'{sa_badge}'
+            f'<span class="price-tag">${s.get("price",0):.2f}</span>'
+            f'<button class="wl-add-btn" data-ticker="{s["ticker"]}" '
+            f'onclick="wlToggle(this)" title="Zur Watchlist hinzufügen">＋</button>'
+            f'</div>'
+            f'<span class="company">{s.get("company_name","")}</span>'
+            f'{sector_tag_html}{earnings_tag_html}{squeeze_badge_html}{pd_badges_html}'
+            f'</div>'
+            f'</div>'
+            f'<div class="score-block sort-setup">{score_block_html}</div>'
+            f'</div>'
+        )
 
     return f"""
 <article class="card{' card-manual' if s.get('manual_personal') else ''}{' card-lazy' if (LAZY_CARDS_ENABLED and i > LAZY_CARDS_EAGER) else ''}" id="c{i}" data-ticker="{s['ticker']}" data-setup-rank="{i}"{monster_data_attr}{conviction_data_attr}
@@ -5195,6 +5314,8 @@ def _build_card_ctx(i: int, s: dict) -> dict:
     sr_col = "#94a3b8" if has_no_short_data else _metric_color("sr", sr)
     rv_col = _metric_color("rv", rv)
 
+    below_min_score_html = _score_hint_html(s["score"])
+    score_block_html = _score_block_inner_html(s, below_min_score_html)
     monster_score_val = s.get("monster_score")
     monster_data_attr = (f' data-monster="{monster_score_val:.1f}"'
                          if monster_score_val is not None else '')
@@ -5465,22 +5586,44 @@ def _build_card_ctx(i: int, s: dict) -> dict:
     card_manual_class = " card-manual" if s.get("manual_personal") else ""
     card_lazy_class   = " card-lazy" if (LAZY_CARDS_ENABLED and i > LAZY_CARDS_EAGER) else ""
 
-    # Karten-Header: Bloomberg-Cockpit-Layout via _card_cockpit_html
-    # (v1/v2-Byte-Identitaet durch identische Helper-Aufruf-Parameter).
-    # Pre-Cockpit-Fallback (CARD_COCKPIT_ENABLED-Flag, sb-row-Markup)
-    # entfernt am 19.05.2026 — Cockpit ist seit PR #199 stabil.
-    _wl_add_btn = (
-        f'<button class="wl-add-btn" data-ticker="{ticker}" '
-        f'onclick="wlToggle(this)" title="Zur Watchlist hinzufügen">＋</button>'
-    )
-    card_header_html = _card_cockpit_html(
-        i, s,
-        rank_html=rank_html,
-        market_tag_html=_market_tag_html(ticker),
-        chart_badge_html=sa_badge + _wl_add_btn,
-        sector_tag_html=(sector_tag_html + earnings_tag_html
-                         + squeeze_badge_html + pd_badges_html),
-    )
+    # Karten-Header (Stage 2 ab 18.05.2026, analog v1): Cockpit-Layout
+    # via Helper bei CARD_COCKPIT_ENABLED=True; sonst klassisches
+    # card-top + score-block. v1/v2-Byte-Identitaet durch identische
+    # Helper-Aufruf-Parameter.
+    if CARD_COCKPIT_ENABLED:
+        _wl_add_btn = (
+            f'<button class="wl-add-btn" data-ticker="{ticker}" '
+            f'onclick="wlToggle(this)" title="Zur Watchlist hinzufügen">＋</button>'
+        )
+        card_header_html = _card_cockpit_html(
+            i, s,
+            rank_html=rank_html,
+            market_tag_html=_market_tag_html(ticker),
+            chart_badge_html=sa_badge + _wl_add_btn,
+            sector_tag_html=(sector_tag_html + earnings_tag_html
+                             + squeeze_badge_html + pd_badges_html),
+        )
+    else:
+        card_header_html = (
+            f'<div class="card-top">'
+            f'<div class="card-left">'
+            f'{rank_html}'
+            f'<div class="ticker-block">'
+            f'<div class="ticker-row">'
+            f'<span class="ticker">{ticker}</span>'
+            f'{_market_tag_html(ticker)}'
+            f'{sa_badge}'
+            f'<span class="price-tag">${price_str}</span>'
+            f'<button class="wl-add-btn" data-ticker="{ticker}" '
+            f'onclick="wlToggle(this)" title="Zur Watchlist hinzufügen">＋</button>'
+            f'</div>'
+            f'<span class="company">{company}</span>'
+            f'{sector_tag_html}{earnings_tag_html}{squeeze_badge_html}{pd_badges_html}'
+            f'</div>'
+            f'</div>'
+            f'<div class="score-block sort-setup">{score_block_html}</div>'
+            f'</div>'
+        )
 
     return {
         # Identity / rank
@@ -5564,6 +5707,8 @@ def _build_card_ctx(i: int, s: dict) -> dict:
         "earnings_tag_html":    earnings_tag_html,
         "chg_5d_html":          chg_5d_html,
         "no_data_html":         no_data_html,
+        "below_min_score_html": below_min_score_html,
+        "score_block_html":     score_block_html,
         "monster_data_attr":    monster_data_attr,
         "conviction_data_attr": conviction_data_attr,
         "setup_rank":           i,
@@ -15921,7 +16066,7 @@ def main():
         _backtest_has_today = None
 
     # Conviction-Score (Schritt A) — vor dem HTML-Render aufrufen, damit
-    # _card_cockpit_html das s["conviction"]-Feld sieht. Anomalien
+    # _score_block_inner_html das s["conviction"]-Feld sieht. Anomalien
     # via _build_chat_synthesis_ctx (gleiche Quelle wie Chat-Kontext);
     # VIX aus existing app_data.json (vom letzten ki_agent-Tick gesetzt).
     # Doppelter _read_existing_app_data()-Aufruf gegenüber Step 4b
@@ -16089,7 +16234,7 @@ def main():
           f"{time.time()-_t_p2:.1f}s", flush=True)
 
     # Conviction-Scores wurden bereits VOR generate_html berechnet
-    # (siehe pre-HTML-Block oben), damit _card_cockpit_html das
+    # (siehe pre-HTML-Block oben), damit _score_block_inner_html das
     # s["conviction"]-Feld zur Render-Zeit sieht. Hier nur das Dict
     # für die app_data-Persistenz aus den Stock-Dicts ableiten.
     # Phase 1 Conviction-Coverage (16.05.2026): Watchlist-Outsider-Pool
