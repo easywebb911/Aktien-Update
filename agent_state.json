@@ -30,23 +30,11 @@
     "earnings_immediate_GEMI_14.05.2026": "2026-05-14T23:25:08.201852+02:00",
     "exit_KPTI": "2026-05-15T18:17:09.325572+02:00",
     "anomaly_conviction_high_SNSE": "2026-05-15T19:30:32.046324+02:00",
-    "exit_CRMD": "2026-05-19T15:34:06.063596+02:00",
+    "exit_CRMD": "2026-05-19T19:38:20.337519+02:00",
     "anomaly_conviction_high_CRDF": "2026-05-19T16:49:36.576105+02:00",
     "anomaly_monster_backup_CRDF": "2026-05-19T17:44:53.087682+02:00"
   },
   "push_history": [
-    {
-      "ts": "2026-05-15T14:16:53.156438+02:00",
-      "ticker": "CRMD",
-      "kind": "anomaly",
-      "severity": "high",
-      "trigger": "monster_backup",
-      "body": "CRMD 🔥 Monster 100 | Setup 87 | KI 77",
-      "success": false,
-      "suppressed": true,
-      "suppress_reason": "conviction_below_threshold",
-      "conviction_score": 68
-    },
     {
       "ts": "2026-05-15T16:37:02.167915+02:00",
       "ticker": "PGEN",
@@ -1234,6 +1222,18 @@
       "suppressed": true,
       "suppress_reason": "conviction_below_threshold",
       "conviction_score": 61
+    },
+    {
+      "ts": "2026-05-19T19:38:20.337497+02:00",
+      "ticker": "CRMD",
+      "kind": "exit_p1",
+      "severity": "default",
+      "trigger": "exit_alert",
+      "body": "CRMD 📉 Exit 64 | -0% | Trailing-Stop −11.7% vom Hoch",
+      "success": true,
+      "suppressed": false,
+      "suppress_reason": null,
+      "conviction_score": null
     }
   ],
   "prev_conviction_scores": {
