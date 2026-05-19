@@ -539,6 +539,75 @@ jobs:
             echo
           done
 
+      # ─────────────────────────────────────────────────────────────────────
+      # Probe 14 — finviz Quote-Page Per-Ticker-Block-Test
+      #
+      # Production zeigt seit PR #212 ein Partial-Fail-Pattern in finviz
+      # (50-67 % der 4-6 Quote-Page-Calls failen). Provider_health.jsonl
+      # logged nicht pro Ticker — der Aggregator weiß nur N/M-Ratio.
+      # Diese Probe testet die häufigsten Tickers (Top-10 + Watchlist)
+      # einzeln und sniffed nach Cloudflare-Challenge / Direkt-Block /
+      # Markup-Drift pro Ticker.
+      #
+      # Sleep 0.3s zwischen Calls vermeidet Burst-Effekt — wenn alle
+      # 200 liefern bei sequentiellem Pacing, aber Production parallel
+      # failed, dann ist Burst die Ursache (nicht Per-Ticker-Block).
+      # ─────────────────────────────────────────────────────────────────────
+
+      - name: Probe 14 — finviz Quote-Page Per-Ticker-Block-Test (8 Tickers, 0.3s Sleep)
+        run: |
+          set +e
+          declare -A HTTP_STATUS_COUNT
+          for sym in AMC IONQ RR CRMD GME NVDA AAPL TSLA; do
+            URL="https://finviz.com/quote?t=${sym}"
+            HDR="$OUT_DIR/14_${sym}_hdr.txt"
+            BODY="$OUT_DIR/14_${sym}_body.bin"
+            STATUS=$(curl -sS -L --max-filesize 204800 --max-time 5 \
+              -H "User-Agent: $CHROME_UA" \
+              -H "Accept-Language: $ACCEPT_LANG" \
+              -o "$BODY" \
+              -D "$HDR" \
+              -w "%{http_code}|%{size_download}|%{time_total}|%{num_redirects}" \
+              "$URL" 2>/dev/null)
+            http=$(echo "$STATUS" | cut -d'|' -f1)
+            bytes=$(echo "$STATUS" | cut -d'|' -f2)
+            t_s=$(echo "$STATUS" | cut -d'|' -f3)
+            redirs=$(echo "$STATUS" | cut -d'|' -f4)
+            echo "=== $sym ==="
+            echo "  HTTP=$http  bytes=$bytes  time=${t_s}s  redirects=$redirs"
+            # Markup-Sniff pro Ticker
+            sf=$(grep -c "Short Float" "$BODY" 2>/dev/null || echo 0)
+            cf=$(grep -c "Cloudflare" "$BODY" 2>/dev/null || echo 0)
+            jm=$(grep -c "Just a moment" "$BODY" 2>/dev/null || echo 0)
+            cb=$(grep -c "Checking your browser" "$BODY" 2>/dev/null || echo 0)
+            ad=$(grep -c "Access denied" "$BODY" 2>/dev/null || echo 0)
+            echo "  Short Float hits:        $sf"
+            echo "  Cloudflare hits:         $cf"
+            echo "  'Just a moment' hits:    $jm"
+            echo "  'Checking your browser': $cb"
+            echo "  'Access denied' hits:    $ad"
+            # Rate-Limit-Header capturen wenn vorhanden
+            for h in "Retry-After" "X-RateLimit-Limit" "X-RateLimit-Remaining" "CF-RAY" "Server"; do
+              val=$(grep -i "^$h:" "$HDR" 2>/dev/null | head -1 | sed 's/\r$//')
+              if [ -n "$val" ]; then
+                echo "  [$sym] $val"
+              fi
+            done
+            # Burst-Vermeidung: 0.3s Sleep zwischen Tickers
+            sleep 0.3
+          done
+          echo
+          echo "----- HTTP-Status-Verteilung über 8 Calls -----"
+          for sym in AMC IONQ RR CRMD GME NVDA AAPL TSLA; do
+            grep -m1 -oE "HTTP/[12]\.?[0-9]? [0-9]{3}" "$OUT_DIR/14_${sym}_hdr.txt" 2>/dev/null | head -1
+          done | sort | uniq -c | sort -rn
+          echo
+          echo "----- 'Short Float'-Verteilung über 8 Calls -----"
+          for sym in AMC IONQ RR CRMD GME NVDA AAPL TSLA; do
+            sf=$(grep -c "Short Float" "$OUT_DIR/14_${sym}_body.bin" 2>/dev/null || echo 0)
+            echo "  $sym: $sf"
+          done
+
       - name: Upload raw probe artefacts
         if: always()
         uses: actions/upload-artifact@v4
