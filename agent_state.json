@@ -30,21 +30,9 @@
     "earnings_immediate_GEMI_14.05.2026": "2026-05-14T23:25:08.201852+02:00",
     "exit_KPTI": "2026-05-15T18:17:09.325572+02:00",
     "anomaly_conviction_high_SNSE": "2026-05-15T19:30:32.046324+02:00",
-    "exit_CRMD": "2026-05-18T20:45:57.842098+02:00"
+    "exit_CRMD": "2026-05-19T06:46:31.151441+02:00"
   },
   "push_history": [
-    {
-      "ts": "2026-05-14T16:48:50.948194+02:00",
-      "ticker": "CRMD",
-      "kind": "exit_p2",
-      "severity": "trigger",
-      "trigger": "catalyst",
-      "body": "🔻 Exit-Signal CRMD: catalyst crit ({'earnings_date': '2026-05-14', 'trading_days_until': 0, 'window': 2})",
-      "success": true,
-      "suppressed": false,
-      "suppress_reason": null,
-      "conviction_score": null
-    },
     {
       "ts": "2026-05-14T19:17:50.269743+02:00",
       "ticker": "AMC",
@@ -1232,6 +1220,18 @@
       "suppressed": true,
       "suppress_reason": "conviction_below_threshold",
       "conviction_score": 50
+    },
+    {
+      "ts": "2026-05-19T06:46:31.151409+02:00",
+      "ticker": "CRMD",
+      "kind": "exit_p1",
+      "severity": "default",
+      "trigger": "exit_alert",
+      "body": "CRMD 📉 Exit 63 | -0% | Trailing-Stop −11.5% vom Hoch",
+      "success": true,
+      "suppressed": false,
+      "suppress_reason": null,
+      "conviction_score": null
     }
   ],
   "prev_conviction_scores": {
