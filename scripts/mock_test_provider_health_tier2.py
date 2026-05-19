@@ -374,9 +374,12 @@ def test_earningswhispers_nan_pct_in_record():
 
 
 def test_pr1_tier1_keys_still_present():
-    """Strikt: PR 2 darf PR 1 nicht versehentlich brechen."""
-    for key in ("yahoo_screener", "finviz", "yfinance_batch",
-                "yfinance_singletons"):
+    """Strikt: PR 2 darf PR 1 nicht versehentlich brechen.
+
+    finviz wurde 19.05.2026 explizit von Tier 1 → Tier 2 verschoben
+    (Stufe-3-Fallback-Klassifizierung), daher nicht mehr in dieser Liste.
+    """
+    for key in ("yahoo_screener", "yfinance_batch", "yfinance_singletons"):
         assert HEALTH_CHECK_PROVIDER_TIER.get(key) == 1
 
 

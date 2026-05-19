@@ -178,13 +178,17 @@ def test_record_does_not_raise_on_bad_path():
 
 
 def test_tier_constants_match_pr1_scope():
-    for key in ("yahoo_screener", "finviz", "yfinance_batch",
-                "yfinance_singletons"):
+    # finviz wurde 19.05.2026 von Tier 1 → Tier 2 verschoben (Stufe-3-
+    # Fallback, nicht primär). Bleibt im EXPECTED-Map als Coverage-Eintrag.
+    for key in ("yahoo_screener", "yfinance_batch", "yfinance_singletons"):
         assert key in HEALTH_CHECK_PROVIDER_TIER, (
             f"PR-1-Provider {key!r} fehlt in HEALTH_CHECK_PROVIDER_TIER")
         assert HEALTH_CHECK_PROVIDER_TIER[key] == 1, (
             f"Provider {key!r} sollte Tier 1 sein")
         assert key in HEALTH_CHECK_PROVIDER_EXPECTED
+    assert HEALTH_CHECK_PROVIDER_TIER.get("finviz") == 2, (
+        "finviz sollte seit 19.05.2026 Tier 2 sein (Stufe-3-Fallback)")
+    assert "finviz" in HEALTH_CHECK_PROVIDER_EXPECTED
 
 
 def test_yfinance_singletons_expected_is_3():

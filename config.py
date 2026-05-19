@@ -928,10 +928,10 @@ HEALTH_CHECK_CUTOFF_DAYS            = 30   # JSONL-Prune-Cutoff
 HEALTH_CHECK_PROVIDER_TIER = {
     # Tier 1 (crit, sofortiger Alarm bei Fail)
     "yahoo_screener":      1,
-    "finviz":              1,   # Aggregat aus v161 + v111 + Quote-Fallback
     "yfinance_batch":      1,   # Pool-Batch (OHLCV/RSI/EMA21/change_2d_3d)
     "yfinance_singletons": 1,   # ^VIX + ^GSPC (SPY) + EURUSD=X
     # Tier 2 (warn, 3-in-Folge-Trigger — Konsekutiv-Persistenz in Phase 3)
+    "finviz":              2,   # Stufe-3-Fallback (v161+v111+Quote-Page), nicht primär — herabgestuft 19.05.2026
     "finra":               2,   # FINRA Short-Volume Sums (3 File-Downloads)
     "finnhub":             2,   # Earnings Calendar (pro offene Position)
     "stockanalysis":       2,   # Aggregat aus _si + _borrow
