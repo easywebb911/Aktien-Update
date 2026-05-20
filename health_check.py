@@ -167,6 +167,7 @@ def evaluate_state_invariants(
     agent_signal_keys: set[str] | list[str] | None = None,
     ki_agent_only: bool = False,
     now_utc: datetime | None = None,
+    html_path: str | None = None,
 ) -> list[dict]:
     """Bewertet alle 8 State-Invariants. Returnt Liste von Fail-Dicts.
 
@@ -283,6 +284,40 @@ def evaluate_state_invariants(
                            f"{len(tickers)} Top-10-Ticker, Schwelle ≥ "
                            f"{HEALTH_CHECK_S7_MIN_AGENT_OVERLAP}. Möglicher "
                            f"Daily-Run-/KI-Agent-Drift — neuer Tick fällig"),
+            })
+
+    # === S9 (crit/warn) — HTML-Sanity-Check (Frontend-Awareness Phase 1a) ==
+    # Liest den gerenderten ``index.html`` und prüft 4 deterministische
+    # Klassen-Counts (article, card-cockpit, cockpit-price, cockpit-pillar).
+    # Fängt stille DOM-Degradation durch Selektor-Mismatch (PR #199/226/235-
+    # Bugklasse). Phase 1a: nur Top-Counts; Pro-Card-Assertions kommen in
+    # Phase 1b.
+    #
+    # Fail-soft: jede Exception im Check selbst (Import, File-Read, Parse)
+    # wird zu WARN — ein Bug im S9-Check darf NIE den Daily-Run blockieren.
+    # Im ki_agent-Tick wird S9 NICHT ausgeführt (KI-Tick rendert kein HTML).
+    if not ki_agent_only and html_path:
+        try:
+            from scripts.check_html_assertions import evaluate_html_assertions
+            with open(html_path, "r", encoding="utf-8") as _fh:
+                _html = _fh.read()
+            _html_fails = evaluate_html_assertions(_html)
+            if _html_fails:
+                _worst = "crit" if any(f.get("severity") == "crit"
+                                       for f in _html_fails) else "warn"
+                _first = _html_fails[0].get("detail", "?")
+                fails.append({
+                    "id":       "S9",
+                    "severity": _worst,
+                    "detail":   (f"HTML-Sanity: {len(_html_fails)} Fail(s). "
+                                 f"Erster: {_first}"),
+                })
+        except Exception as _s9_exc:
+            fails.append({
+                "id":       "S9",
+                "severity": "warn",
+                "detail":   (f"S9-Check selbst fehlgeschlagen: "
+                             f"{_s9_exc!r}"),
             })
 
     # === S8 (warn) — Digest-Push-Pipeline frisch ===========================

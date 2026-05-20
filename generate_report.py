@@ -14167,6 +14167,52 @@ def _exit_set_cooldown(key: str, state: dict) -> None:
 from push_history import _record_push  # noqa: E402
 
 
+def _send_html_assertion_alert(severity: str, fails: list[dict]) -> bool:
+    """ntfy-Sofort-Push bei HTML-Sanity-CRIT (Health-Check S9, Phase 1a).
+
+    Wird VOR ``sys.exit(1)`` aufgerufen, sodass Easy auf dem Lock-Screen
+    sofort sieht warum der Daily-Run rot wurde — zusätzlich zur normalen
+    GitHub-Actions-Email-Notification.
+
+    Fail-soft: returnt False bei jedem Fehler, blockiert den Daily-Run
+    nie zusätzlich.
+    """
+    if not NTFY_ENABLED or not NTFY_TOPIC:
+        return False
+    try:
+        lines = []
+        for f in fails[:3]:
+            lines.append(f"• {f.get('detail', '?')}")
+        run_url = ""
+        srv = os.environ.get("GITHUB_SERVER_URL", "").rstrip("/")
+        repo = os.environ.get("GITHUB_REPOSITORY", "")
+        rid = os.environ.get("GITHUB_RUN_ID", "")
+        if srv and repo and rid:
+            run_url = f"\n\nRun: {srv}/{repo}/actions/runs/{rid}"
+        body = (
+            f"HTML-Sanity-Check fand {len(fails)} Fail(s).\n"
+            f"Daily-Run blockiert — alte index.html bleibt live.\n\n"
+            + "\n".join(lines)
+            + run_url
+        )
+        title = "HTML-Sanity CRIT - Daily-Run blockiert"
+        title_ascii = title.encode("ascii", "ignore").decode("ascii").strip()
+        requests.post(
+            f"https://ntfy.sh/{NTFY_TOPIC}",
+            data=body.encode("utf-8"),
+            headers={
+                "Title":    title_ascii,
+                "Priority": "urgent" if severity == "crit" else "high",
+                "Tags":     "rotating_light",
+            },
+            timeout=5,
+        )
+        return True
+    except Exception as exc:
+        log.warning("ntfy html-sanity-push fehlgeschlagen: %s", exc)
+        return False
+
+
 def _send_exit_ntfy(ticker: str, body: str) -> bool:
     """Single-shot ntfy.sh push (analog zu ki_agent.send_ntfy_alert).
     Fail-soft: returnt False bei jedem Fehler, blockiert den Daily-Run nie.
@@ -16432,7 +16478,7 @@ def main():
                 _ag_for_check = (json.load(_fh) or {}).get("signals") or {}
         except (FileNotFoundError, json.JSONDecodeError):
             _ag_for_check = {}
-        health_check.run_and_record(
+        _hc_fails = health_check.run_and_record(
             run_phase=run_phase,
             ki_agent_only=False,
             top10_tickers=_top10_tickers,
@@ -16445,9 +16491,40 @@ def main():
             n_backtest_appended=_n_backtest_appended,
             backtest_has_today=_backtest_has_today,
             agent_signal_keys=set(_ag_for_check.keys()),
+            html_path="index.html",
         )
     except Exception as exc:
         log.warning("health_check (Daily-Run) fehlgeschlagen: %s", exc)
+        _hc_fails = []
+
+    # Frontend-Awareness Phase 1a: bei HTML-Sanity-CRIT (Health-Check S9)
+    # senden wir einen Sofort-Push und beenden mit Exit-Code 1. Der
+    # Workflow-Commit-Step hat Default-`if: success()` und wird damit
+    # übersprungen — die alte funktionale index.html bleibt auf main
+    # deployed, GitHub markiert den Run als rot (Email-Notification).
+    # Variante-B-Architektur, fest entschieden.
+    #
+    # Sofortiger ntfy-Push, aber Exit erst am Ende von main() — damit
+    # die Provider-Aggregator-Records (FINVIZ/FINNHUB/…) noch lokal
+    # logged werden (Diagnose-Wert auch wenn nicht committed).
+    _s9_crit_exit_required = any(
+        f.get("id") == "S9" and f.get("severity") == "crit"
+        for f in (_hc_fails or [])
+    )
+    if _s9_crit_exit_required:
+        try:
+            from scripts.check_html_assertions import evaluate_html_assertions
+            with open("index.html", "r", encoding="utf-8") as _fh:
+                _html_for_alert = _fh.read()
+            _sub_fails = evaluate_html_assertions(_html_for_alert)
+        except Exception as _alert_exc:
+            log.warning("html-sanity alert sub-fails unavailable: %s",
+                        _alert_exc)
+            _sub_fails = [{"detail": "Sub-Fails nicht lesbar (Check selbst gecrasht)"}]
+        _send_html_assertion_alert("crit", _sub_fails)
+        log.error("HTML-Sanity-Check CRIT: %d Fail(s). Daily-Run beendet "
+                  "mit Exit-Code 1 — alte index.html bleibt deployed.",
+                  len(_sub_fails))
 
     # Health-Check Phase 2 — Tier-1- + Tier-2-Aggregator-Provider
     # emittieren ihre konsolidierten Zeilen. Inline-Provider (yahoo_
@@ -16542,6 +16619,14 @@ def main():
         f"Kandidaten: {len(pool)}→{len(top10)}",
         flush=True,
     )
+
+    # Frontend-Awareness Phase 1a — finaler Exit nach S9-CRIT.
+    # Der ntfy-Push wurde direkt nach dem Health-Check abgesetzt; hier
+    # signalisieren wir dem Workflow das Failure. Default-`if: success()`
+    # auf dem Commit-Step verhindert den Push der kaputten HTML.
+    if _s9_crit_exit_required:
+        import sys
+        sys.exit(1)
 
 
 if __name__ == "__main__":
