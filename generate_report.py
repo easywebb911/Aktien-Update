@@ -10711,11 +10711,7 @@ function _fmtGerman(d) {{
         const reasonTxt = (sig.silenced_reason ? ' (' + sig.silenced_reason + ')' : '');
         badge.textContent = '📊 Bewegung gelaufen' + reasonTxt;
         badge.title = 'Anomalie wurde erkannt, Push-Alert aber unterdrückt — Setup gilt als überhitzt.';
-        // Cockpit-Migration (PR #199) hat .ticker-block durch
-        // .cockpit-ticker-block ersetzt — beide Selektoren matchen, damit
-        // das Badge auf Cockpit-Top-10 UND auf v1-Fallback/WL-Outsider
-        // rendert.
-        const tickerBlock = card.querySelector('.ticker-block, .cockpit-ticker-block');
+        const tickerBlock = card.querySelector('.ticker-block');
         if (tickerBlock) tickerBlock.appendChild(badge);
       }}
 
@@ -12019,10 +12015,7 @@ function _fmtGerman(d) {{
     const body = document.getElementById('wld-' + ticker);
     if (!body) return;
     const wrap = body.querySelector('.position-panel');
-    // Cockpit-Migration (PR #199): WL-Drawer fuer Top-10-Ticker liefert
-    // gestripptes Cockpit-Markup mit .cockpit-price statt .price-tag;
-    // WL-Outsider-Client-Build behaelt .price-tag.
-    const priceTag = body.querySelector('.price-tag, .cockpit-price');
+    const priceTag = body.querySelector('.price-tag');
     const cur = priceTag ? parseFloat((priceTag.textContent || '').replace(/[^\\d.]/g, '')) : null;
     if (wrap) wrap.outerHTML = buildPositionPanel(ticker, cur);
   }}
