@@ -1,11 +1,11 @@
 {
-  "updated": "2026-05-20T06:37:33.004028+02:00",
+  "updated": "2026-05-20T10:36:27.456772+02:00",
   "run_info": {
     "tickers_checked": 17,
     "signals_active": 3,
     "alerts_sent": 0,
-    "elapsed_s": 19.9,
-    "market_phase": "Geschlossen"
+    "elapsed_s": 13.5,
+    "market_phase": "Pre-Market"
   },
   "signals": {
     "AI": {
@@ -27,7 +27,7 @@
       "uoa_drivers": [
         "UOA Call/Put 5.4×"
       ],
-      "uoa_atm_ratio": 0.10449868872301796,
+      "uoa_atm_ratio": null,
       "uoa_cp_ratio": 5.355982274741507
     },
     "AMC": {
@@ -69,13 +69,13 @@
       "active_triggers": 0,
       "uoa_score": 0,
       "uoa_drivers": [],
-      "uoa_atm_ratio": 0.29239766081871343,
+      "uoa_atm_ratio": null,
       "uoa_cp_ratio": 1.2434782608695651
     },
     "BKKT": {
-      "score": 65,
+      "score": 73,
       "confidence": 70,
-      "drivers": "Volumen 3.5× + ⚡ Extremes Volumen 3.5×+ + Spanne 13.3% + SEC Form 4 + UOA Call/Put 7.0×",
+      "drivers": "Volumen 3.5× + ⚡ Extremes Volumen 3.5×+ + Spanne 13.3% + News-KI 8/30: Negative revenue trends and pivot strategy suggest weak institutional interest and limited short-squeeze potential despi + SEC Form 4 + UOA Call/Put 7.0×",
       "price": 9.68,
       "chg_pct": 0.0,
       "rvol_4d": 3.46,
@@ -91,7 +91,7 @@
       "uoa_drivers": [
         "UOA Call/Put 7.0×"
       ],
-      "uoa_atm_ratio": 1.4967948717948718,
+      "uoa_atm_ratio": null,
       "uoa_cp_ratio": 7.0
     },
     "CRDF": {
@@ -119,7 +119,7 @@
     "CRMD": {
       "score": 40,
       "confidence": 17,
-      "drivers": "News: guidance raised, earnings beat + UOA Call/Put 2.1×",
+      "drivers": "News: earnings beat, guidance raised + UOA Call/Put 2.1×",
       "price": 7.82,
       "chg_pct": 0.0,
       "rvol_4d": 0.68,
@@ -135,7 +135,7 @@
       "uoa_drivers": [
         "UOA Call/Put 2.1×"
       ],
-      "uoa_atm_ratio": 0.07931638913234006,
+      "uoa_atm_ratio": null,
       "uoa_cp_ratio": 2.1027397260273974
     },
     "GEMI": {
@@ -157,7 +157,7 @@
       "uoa_drivers": [
         "UOA Call/Put 4.5×"
       ],
-      "uoa_atm_ratio": 1.982078853046595,
+      "uoa_atm_ratio": null,
       "uoa_cp_ratio": 4.4517374517374515
     },
     "GO": {
@@ -177,13 +177,13 @@
       "active_triggers": 1,
       "uoa_score": 0,
       "uoa_drivers": [],
-      "uoa_atm_ratio": 0.013544763792533861,
+      "uoa_atm_ratio": null,
       "uoa_cp_ratio": 0.19562043795620437
     },
     "GRPN": {
-      "score": 20,
+      "score": 32,
       "confidence": 33,
-      "drivers": "Spanne 6.6% + UOA Call/Put 7.6×",
+      "drivers": "Spanne 6.6% + News-KI 12/30: Moderate activist pressure and earnings focus present, but no evidence of high short interest, catalyst urgency, or forc + UOA Call/Put 7.6×",
       "price": 17.41,
       "chg_pct": -0.0,
       "rvol_4d": 1.03,
@@ -194,18 +194,18 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 0,
+      "active_triggers": 1,
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 7.6×"
       ],
-      "uoa_atm_ratio": 0.3677966101694915,
+      "uoa_atm_ratio": null,
       "uoa_cp_ratio": 7.588114754098361
     },
     "IONQ": {
-      "score": 22,
-      "confidence": 33,
-      "drivers": "Spanne 8.2% + News-KI 12/30: Positive sentiment mentions but no evidence of high short interest, borrowed shares pressure, or imminent catalyst that ",
+      "score": 10,
+      "confidence": 17,
+      "drivers": "Spanne 8.2%",
       "price": 48.44,
       "chg_pct": -0.0,
       "rvol_4d": 0.81,
@@ -216,10 +216,10 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 1,
+      "active_triggers": 0,
       "uoa_score": 0,
       "uoa_drivers": [],
-      "uoa_atm_ratio": 0.7493677288821446,
+      "uoa_atm_ratio": null,
       "uoa_cp_ratio": 1.7285133184621442
     },
     "JACK": {
@@ -239,7 +239,7 @@
       "active_triggers": 0,
       "uoa_score": 0,
       "uoa_drivers": [],
-      "uoa_atm_ratio": 0.4368231046931408,
+      "uoa_atm_ratio": null,
       "uoa_cp_ratio": 1.6216216216216217
     },
     "PAR": {
@@ -261,7 +261,7 @@
       "uoa_drivers": [
         "UOA Call/Put 3.3×"
       ],
-      "uoa_atm_ratio": 0.13537117903930132,
+      "uoa_atm_ratio": null,
       "uoa_cp_ratio": 3.2549019607843137
     },
     "PDYN": {
@@ -283,13 +283,13 @@
       "uoa_drivers": [
         "UOA Call/Put 3.2×"
       ],
-      "uoa_atm_ratio": 0.1890547263681592,
+      "uoa_atm_ratio": null,
       "uoa_cp_ratio": 3.1724137931034484
     },
     "RR": {
-      "score": 66,
+      "score": 45,
       "confidence": 70,
-      "drivers": "Earnings in 2 Tagen (22.05.2026) + Spanne 7.3% + News: partnership + Earnings in 2d + UOA Call/Put 2.3×",
+      "drivers": "Earnings in 2 Tagen (22.05.2026) + Spanne 7.3% + Earnings in 2d + UOA Call/Put 2.3×",
       "price": 2.38,
       "chg_pct": -0.21,
       "rvol_4d": 0.46,
@@ -299,13 +299,13 @@
       "upcoming_event": "Earnings in 2 Tagen (22.05.2026)",
       "insider_buy": false,
       "stocktwits": null,
-      "combo_mult": 1.1,
-      "active_triggers": 2,
+      "combo_mult": 1.0,
+      "active_triggers": 1,
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 2.3×"
       ],
-      "uoa_atm_ratio": 0.5250596658711217,
+      "uoa_atm_ratio": null,
       "uoa_cp_ratio": 2.3039485766758494
     },
     "SLS": {
@@ -327,7 +327,7 @@
       "uoa_drivers": [
         "UOA Call/Put 2.1×"
       ],
-      "uoa_atm_ratio": 0.443700547778454,
+      "uoa_atm_ratio": null,
       "uoa_cp_ratio": 2.1112107623318384
     },
     "VITL": {
@@ -349,7 +349,7 @@
       "uoa_drivers": [
         "UOA Call/Put 6.0×"
       ],
-      "uoa_atm_ratio": 1.0599747474747474,
+      "uoa_atm_ratio": null,
       "uoa_cp_ratio": 6.028846153846154
     },
     "XPOF": {
@@ -371,7 +371,7 @@
       "uoa_drivers": [
         "UOA Call/Put 9.0×"
       ],
-      "uoa_atm_ratio": 2.6666666666666665,
+      "uoa_atm_ratio": null,
       "uoa_cp_ratio": 9.0
     }
   }
