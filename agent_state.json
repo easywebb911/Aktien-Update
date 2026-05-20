@@ -30,7 +30,7 @@
     "earnings_immediate_GEMI_14.05.2026": "2026-05-14T23:25:08.201852+02:00",
     "exit_KPTI": "2026-05-15T18:17:09.325572+02:00",
     "anomaly_conviction_high_SNSE": "2026-05-15T19:30:32.046324+02:00",
-    "exit_CRMD": "2026-05-20T14:41:00.286362+02:00",
+    "exit_CRMD": "2026-05-20T19:09:35.377974+02:00",
     "anomaly_conviction_high_CRDF": "2026-05-19T16:49:36.576105+02:00",
     "anomaly_monster_backup_CRDF": "2026-05-20T14:41:53.889055+02:00",
     "anomaly_score_jump_XPOF": "2026-05-20T14:41:54.142279+02:00",
@@ -38,18 +38,6 @@
     "anomaly_conviction_high_DMRC": "2026-05-20T17:31:02.518802+02:00"
   },
   "push_history": [
-    {
-      "ts": "2026-05-15T20:06:36.537102+02:00",
-      "ticker": "GEMI",
-      "kind": "anomaly",
-      "severity": "high",
-      "trigger": "monster_backup",
-      "body": "GEMI 🔥 Monster 90 | Setup 75 | KI 72",
-      "success": false,
-      "suppressed": true,
-      "suppress_reason": "conviction_below_threshold",
-      "conviction_score": 67
-    },
     {
       "ts": "2026-05-15T20:55:10.257837+02:00",
       "ticker": "GEMI",
@@ -1237,6 +1225,18 @@
       "suppressed": false,
       "suppress_reason": null,
       "conviction_score": 76
+    },
+    {
+      "ts": "2026-05-20T19:09:35.377943+02:00",
+      "ticker": "CRMD",
+      "kind": "exit_p1",
+      "severity": "default",
+      "trigger": "exit_alert",
+      "body": "CRMD 📉 Exit 62 | +0% | Trailing-Stop −11.1% vom Hoch",
+      "success": true,
+      "suppressed": false,
+      "suppress_reason": null,
+      "conviction_score": null
     }
   ],
   "prev_conviction_scores": {
