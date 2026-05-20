@@ -9652,6 +9652,18 @@ function _setSessionToken(tok) {{
   try {{ sessionStorage.setItem(TOK_KEY, tok); }}
   catch(e) {{ setOk = false; errMsg = e && e.message; }}
   _tokLog('_setSessionToken', {{tok_len: (tok || '').length, ss_setItem_ok: setOk, ss_setItem_err: errMsg}});
+  // Watchlist nach Token-Setup automatisch nachladen (20.05.2026): nach
+  // Cache-Bust ist localStorage[WL_KEY] leer; sobald der User das
+  // Master-Passwort eingibt, ist getToken() != null und der naechste
+  // wlLoad-Call kann GitHub-Fetch durchfuehren. Cache vorher
+  // invalidieren, sonst liefert wlLoad weiter das leere _wlCache-Array.
+  // Guarded: vor IIFE-Run sind die window-Helper noch undefined; dann
+  // ist der Call ein No-op, der erste DOMContentLoaded-wlRender holt
+  // die Daten ohnehin.
+  if (tok) {{
+    try {{ if (typeof window._wlInvalidateCache === 'function') window._wlInvalidateCache(); }} catch(_) {{}}
+    try {{ if (typeof window.wlRender === 'function') window.wlRender(); }} catch(_) {{}}
+  }}
 }}
 function _clearSessionToken() {{
   _tokLog('_clearSessionToken (vor)');
@@ -11355,7 +11367,16 @@ function _fmtGerman(d) {{
       const grid = document.getElementById('wl-cards');
       const cnt  = document.getElementById('wl-count');
       cnt.textContent = arr.length;
-      if (!arr.length) {{ grid.innerHTML = ''; return; }}
+      if (!arr.length) {{
+        grid.innerHTML = '';
+        // UX-Feedback (20.05.2026): nach Cache-Bust ist localStorage[WL_KEY]
+        // leer; ohne Token gibt es auch keinen GitHub-Fetch. Resultat ist
+        // stumm-leere Watchlist. Toast macht den naechsten Schritt sichtbar.
+        if (!getToken()) {{
+          _wlWarn('⚠ Watchlist leer — Master-Passwort eingeben um GitHub-Sync zu reaktivieren');
+        }}
+        return;
+      }}
 
       const top10Set = new Set(Object.keys(WL_TOP10));
 
@@ -11478,6 +11499,11 @@ function _fmtGerman(d) {{
   // smoothed Scores befüllt ist (sonst zeigt der Tile bis dahin den
   // raw-Score aus der History).
   window.wlRender = wlRender;
+  // Cache-Invalidator exponieren, damit Token-Setup-Callback (top-level
+  // ``_setSessionToken``, ausserhalb dieser IIFE) den ``_wlCache`` nach
+  // Master-Passwort-Eingabe leeren kann. Sonst wuerde der naechste
+  // wlRender weiter die alte (leere) Liste aus dem Cache lesen.
+  window._wlInvalidateCache = () => {{ _wlCache = null; }};
 
   // _patchWlMomentumLive — überschreibt die Momentum-Box im expandierten
   // Watchlist-Drawer mit dem aktuellen ``_WL_CARDS[ticker].change``-Wert.
