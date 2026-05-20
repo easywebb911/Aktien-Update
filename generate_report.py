@@ -9364,7 +9364,7 @@ function _quotePatchScope(scope, ticker, price, changePct, changeAbs) {{
   }}
   // Cockpit-Header-Tagesaenderung: ".cockpit-change" Text + Klasse.
   // Format wie _card_cockpit_html: "▲ +0.69 (+12.63%)" / "▼ -0.84 (-8.18%)"
-  // / "■ 0.00 (0.00%)". Klasse cockpit-change-{up,down,flat}.
+  // / "■ 0.00 (0.00%)". Klasse cockpit-change-{{up,down,flat}}.
   if (typeof changePct === 'number' && isFinite(changePct)) {{
     const arrow = changePct > 0 ? '▲' : changePct < 0 ? '▼' : '■';
     const cls   = changePct > 0 ? 'cockpit-change-up'
