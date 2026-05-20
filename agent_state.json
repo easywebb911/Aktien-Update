@@ -1,5 +1,5 @@
 {
-  "last_run": "2026-05-20T17:58:17.595513+02:00",
+  "last_run": "2026-05-20T19:11:40.156663+02:00",
   "cooldowns": {
     "anomaly_score_jump_XRX": "2026-05-03T18:47:15.315486+02:00",
     "anomaly_uoa_extreme_TDOC": "2026-05-04T13:47:00.365949+02:00",
@@ -35,21 +35,10 @@
     "anomaly_monster_backup_CRDF": "2026-05-20T14:41:53.889055+02:00",
     "anomaly_score_jump_XPOF": "2026-05-20T14:41:54.142279+02:00",
     "anomaly_monster_backup_XPOF": "2026-05-20T14:41:54.388880+02:00",
-    "anomaly_conviction_high_DMRC": "2026-05-20T17:31:02.518802+02:00"
+    "anomaly_conviction_high_DMRC": "2026-05-20T17:31:02.518802+02:00",
+    "anomaly_conviction_high_LENZ": "2026-05-20T19:11:36.061944+02:00"
   },
   "push_history": [
-    {
-      "ts": "2026-05-15T20:55:10.257837+02:00",
-      "ticker": "GEMI",
-      "kind": "anomaly",
-      "severity": "medium",
-      "trigger": "score_jump",
-      "body": "GEMI 🚀 Setup 75 ↑ (gestern 53) | Volumen 8.1× + 🚀 Massives Volumen 8.1×+ + Spanne 22.9% + New…",
-      "success": false,
-      "suppressed": true,
-      "suppress_reason": "conviction_below_threshold",
-      "conviction_score": 67
-    },
     {
       "ts": "2026-05-15T20:55:10.258149+02:00",
       "ticker": "GEMI",
@@ -1237,23 +1226,35 @@
       "suppressed": false,
       "suppress_reason": null,
       "conviction_score": null
+    },
+    {
+      "ts": "2026-05-20T19:11:36.061916+02:00",
+      "ticker": "LENZ",
+      "kind": "anomaly",
+      "severity": "high",
+      "trigger": "conviction_high",
+      "body": "LENZ 🎯 KAUFSIGNAL — Conviction 75/100 (high) (vorher 73) | Conviction hoch — Setup, Earliness und Timing konvergieren. Erwartungswert posit…",
+      "success": true,
+      "suppressed": false,
+      "suppress_reason": null,
+      "conviction_score": 75
     }
   ],
   "prev_conviction_scores": {
-    "XPOF": 77.0,
-    "DMRC": 76.0,
-    "LENZ": 73.0,
-    "SLS": 52.0,
+    "XPOF": 79.0,
+    "KURA": 70.0,
+    "DMRC": 77.0,
+    "LENZ": 75.0,
+    "SLS": 53.0,
+    "FABC": 30.0,
     "CRDF": 71.0,
-    "PLCE": 57.0,
-    "FABC": 29.0,
     "AI": 50.0,
-    "CBRL": 56.0,
-    "KURA": 63.0,
-    "AMC": 28.0,
-    "CRMD": 62.0,
-    "RR": 33.0,
-    "GEMI": 25.0,
+    "VITL": 55.0,
+    "NVAX": 69.0,
+    "AMC": 29.0,
+    "CRMD": 64.0,
+    "RR": 34.0,
+    "GEMI": 26.0,
     "IONQ": 18.0,
     "PDYN": 32.0
   },
