@@ -8222,45 +8222,11 @@ function toggleDetails(id){{
   btn.classList.toggle('is-open', open);
   label.textContent = open ? ' Details ausblenden' : ' Details anzeigen';
   btn.setAttribute('aria-expanded', open);
-  // Live-Quote-Polling für Top-10-Karten: hängt am toggleDetails-State
-  // (siehe ``Live-Quote-Polling``-Sektion in CLAUDE.md). Open → start,
-  // Close → stop. Card-Wrapper ``#c<id>`` enthält data-ticker, das ist
-  // das Polling-Subjekt. Live-Dot wird beim ersten Open lazy injiziert.
-  try {{
-    const card = document.getElementById('c' + id);
-    if (!card) return;
-    const ticker = card.dataset.ticker;
-    if (!ticker) return;
-    if (open) {{
-      // Live-Dot in den Card-Header injizieren, falls noch nicht da.
-      // Konsumenten von _quoteSetIndicator suchen ``.quote-live-dot``
-      // im scope — der Selektor erfordert das DOM-Element.
-      if (QUOTE_PROXY_URL && !card.querySelector('.quote-live-dot')) {{
-        // Cockpit-Layout-Adoption (Stage 2 ab 18.05.2026): .card-cockpit
-        // hat den .cockpit-header-right Container, der das ideale
-        // Injection-Ziel ist (neben Kurs + Tagesaenderung). Fallback-
-        // Kette: cockpit-header-right -> card-cockpit -> alte
-        // score-block -> card-top.
-        const target = card.querySelector('.cockpit-header-right')
-                    || card.querySelector('.card-cockpit')
-                    || card.querySelector('.score-block')
-                    || card.querySelector('.card-top');
-        if (target) {{
-          const dot = document.createElement('span');
-          dot.className = 'quote-live-dot';
-          dot.title = 'Live-Quote-Status';
-          target.appendChild(dot);
-        }}
-      }}
-      if (typeof window._startQuotePoll === 'function') {{
-        window._startQuotePoll(card, ticker);
-      }}
-    }} else {{
-      if (typeof window._stopQuotePoll === 'function') {{
-        window._stopQuotePoll(ticker);
-      }}
-    }}
-  }} catch (_) {{}}
+  // Live-Quote-Polling für Top-10-Karten läuft seit 20.05.2026 als
+  // Dauer-Polling beim Page-Load (siehe DOMContentLoaded-Block in der
+  // Polling-Sektion). toggleDetails muss nichts mehr starten/stoppen.
+  // Live-Dot wird vom _startQuotePoll-Pfad lazy injiziert (via
+  // _quoteEnsureLiveDot).
 }}
 // ── News toggle ───────────────────────────────────────────────────────────
 function toggleNews(id){{
@@ -9385,11 +9351,38 @@ function _quoteSetIndicator(scope, state) {{
   }});
 }}
 
-function _quotePatchScope(scope, ticker, price, changePct) {{
-  // Preis-Tag: kann Top-10-Header-`.price-tag` oder Watchlist-Drawer-Header sein.
+function _quotePatchScope(scope, ticker, price, changePct, changeAbs) {{
+  // Preis-Tag: kann Watchlist-Drawer-Header (.price-tag) oder
+  // Top-10-Cockpit-Header (.cockpit-price) sein. Beide Selektoren
+  // gleichzeitig matchen (Cockpit-Migration PR #199 hat .price-tag
+  // im Top-10-Pfad durch .cockpit-price ersetzt; Watchlist-Outsider-
+  // client-build hat weiterhin .price-tag).
   if (typeof price === 'number' && isFinite(price)) {{
-    scope.querySelectorAll('.price-tag').forEach(el => {{
+    scope.querySelectorAll('.price-tag, .cockpit-price').forEach(el => {{
       el.textContent = '$' + price.toFixed(2);
+    }});
+  }}
+  // Cockpit-Header-Tagesaenderung: ".cockpit-change" Text + Klasse.
+  // Format wie _card_cockpit_html: "▲ +0.69 (+12.63%)" / "▼ -0.84 (-8.18%)"
+  // / "■ 0.00 (0.00%)". Klasse cockpit-change-{up,down,flat}.
+  if (typeof changePct === 'number' && isFinite(changePct)) {{
+    const arrow = changePct > 0 ? '▲' : changePct < 0 ? '▼' : '■';
+    const cls   = changePct > 0 ? 'cockpit-change-up'
+                : changePct < 0 ? 'cockpit-change-down'
+                : 'cockpit-change-flat';
+    const absUsd = (typeof changeAbs === 'number' && isFinite(changeAbs))
+                   ? Math.abs(changeAbs)
+                   : (typeof price === 'number' && isFinite(price)
+                      ? Math.abs(price * changePct / 100) : 0);
+    const sign = changePct >= 0 ? '+' : '-';
+    const pctTxt = changePct >= 0
+                   ? '+' + changePct.toFixed(2) + '%'
+                   : changePct.toFixed(2) + '%';
+    const newCockpitTxt = `${{arrow}} ${{sign}}${{absUsd.toFixed(2)}} (${{pctTxt}})`;
+    scope.querySelectorAll('.cockpit-change').forEach(el => {{
+      el.textContent = newCockpitTxt;
+      el.classList.remove('cockpit-change-up', 'cockpit-change-down', 'cockpit-change-flat');
+      el.classList.add(cls);
     }});
   }}
   // Momentum-Box: identische Logik zu _patchWlMomentumLive (nur dass wir
@@ -9426,7 +9419,7 @@ async function _quoteFetchOnce(scope, ticker) {{
       _quoteSetIndicator(scope, 'stale');
       return;
     }}
-    _quotePatchScope(scope, ticker, q.price, q.change);
+    _quotePatchScope(scope, ticker, q.price, q.change, q.change_abs);
     _quoteSetIndicator(scope, 'live');
   }} catch (_) {{
     _quoteSetIndicator(scope, 'stale');
@@ -9453,12 +9446,31 @@ function _ensureQuoteVisibilityHook() {{
   }});
 }}
 
+function _quoteEnsureLiveDot(scope) {{
+  // Lazy-Injection eines .quote-live-dot, falls scope keinen hat.
+  // Injection-Reihenfolge: Cockpit-Header-Rechts (Top-10) → Card-Cockpit
+  // → Score-Block (alt) → Card-Top (Watchlist-Drawer-Header). Aufruf
+  // zentral aus _startQuotePoll (statt nur lazy beim toggleDetails),
+  // damit Dauer-Polling auf zugeklappten Karten den Dot trotzdem zeigt.
+  if (!scope || scope.querySelector('.quote-live-dot')) return;
+  const target = scope.querySelector('.cockpit-header-right')
+              || scope.querySelector('.card-cockpit')
+              || scope.querySelector('.score-block')
+              || scope.querySelector('.card-top');
+  if (!target) return;
+  const dot = document.createElement('span');
+  dot.className = 'quote-live-dot';
+  dot.title = 'Live-Quote-Status';
+  target.appendChild(dot);
+}}
+
 function _startQuotePoll(scope, ticker) {{
   if (!QUOTE_PROXY_URL || !scope || !ticker) return;
   // Bestehenden Poller für diesen Ticker stoppen — verhindert doppelte
   // Intervalle wenn dieselbe Karte zweimal expanded/collapsed wird.
   _stopQuotePoll(ticker);
   _ensureQuoteVisibilityHook();
+  _quoteEnsureLiveDot(scope);
   // Sofort initialer Fetch (User wartet nicht 15 s auf das erste Update).
   _quoteFetchOnce(scope, ticker);
   if (document.visibilityState === 'hidden') {{
@@ -9483,6 +9495,22 @@ function _stopQuotePoll(ticker) {{
 // (top-level in einem anderen Block) müssen aufrufen können.
 window._startQuotePoll = _startQuotePoll;
 window._stopQuotePoll  = _stopQuotePoll;
+
+// Dauer-Polling für alle Top-10-Karten beim Page-Load (20.05.2026):
+// Easy will Kurse immer aktuell, auch wenn Karte zugeklappt ist.
+// Staffelung 1.5 s pro Ticker vermeidet Burst gegen Yahoo (Worker
+// hat 10-s-Edge-Cache, hilft nur teilweise).
+window.addEventListener('DOMContentLoaded', () => {{
+  if (!QUOTE_PROXY_URL) return;
+  const cards = document.querySelectorAll('article.card[data-ticker]');
+  cards.forEach((card, i) => {{
+    const ticker = card.dataset.ticker;
+    if (!ticker) return;
+    setTimeout(() => {{
+      try {{ _startQuotePoll(card, ticker); }} catch (_) {{}}
+    }}, i * 1500);
+  }});
+}});
 // ─────────────────────────────────────────────────────────────────────────
 
 // ── Token-Krypto (WebCrypto: PBKDF2-SHA256 600k → AES-GCM-256) ──────────

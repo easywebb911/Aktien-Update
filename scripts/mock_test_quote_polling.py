@@ -13,7 +13,7 @@ Tests:
   5. JS-Konstante ``QUOTE_PROXY_URL`` als Render-Zeit-Placeholder
   6. JS-Polling-Modul: alle Funktionen vorhanden + window-exposed
   7. wlExpand-Pfad: Start/Stop verdrahtet
-  8. toggleDetails-Pfad: Start/Stop verdrahtet + Live-Dot-Lazy-Inject
+  8. Top-10 Dauer-Polling (DOMContentLoaded-Hook + _quoteEnsureLiveDot)
   9. CSS für .quote-live-dot in templates/head.jinja
  10. CLAUDE.md-Pflichtcheck: keine unescapten ${...}-Vars im f-String
  11. Pythonische Replikation des Patch-Wert-Formats (chg → "+12.9%")
@@ -128,8 +128,11 @@ def test_fetch_uses_v8_schema():
     # Response wird flach gelesen (q.ticker, q.price, q.change), kein quotes[]
     assert "q.ticker !== ticker" in src, (
         "Frontend prüft nicht das flat-Schema-Feld q.ticker")
-    assert "q.change)" in src, (
-        "Frontend liest q.change nicht als Tages-Prozent")
+    # Tages-Prozent + Tages-Absolutwert werden beide an _quotePatchScope
+    # durchgereicht (Cockpit-Header: ".cockpit-change" zeigt
+    # "▲ +0.69 (+12.63%)" — braucht Absolutwert in USD).
+    assert "q.change, q.change_abs)" in src, (
+        "Frontend reicht q.change/q.change_abs nicht an _quotePatchScope")
     # Alte Indikatoren des v7-Schemas dürfen nicht mehr im Fetch-Pfad sein
     assert "data.quotes" not in src, (
         "Alter v7-Schema-Pfad data.quotes ist noch da — sollte entfernt sein")
@@ -153,22 +156,28 @@ def test_wl_expand_lifecycle():
         "_stopQuotePoll wird in wlExpand nicht aufgerufen")
 
 
-# === 8 — toggleDetails-Pfad ================================================
+# === 8 — Dauer-Polling-Pfad (Top-10) =======================================
 
-def test_toggle_details_lifecycle():
+def test_top10_continuous_polling():
+    """Seit 20.05.2026 läuft das Polling für alle Top-10-Karten als
+    Dauer-Polling beim Page-Load (auch wenn Karte zugeklappt ist).
+    toggleDetails managed das Polling nicht mehr — Bug-Fix für
+    Cockpit-".price-tag"/".cockpit-price"-Selektor-Mismatch."""
     src = (ROOT / "generate_report.py").read_text(encoding="utf-8")
-    # toggleDetails(id) ist top-level, terminiert vor toggleNews
-    match = re.search(
-        r"function toggleDetails\(id\).*?function toggleNews\(",
+    # DOMContentLoaded-Hook iteriert über article.card[data-ticker]
+    assert "article.card[data-ticker]" in src, (
+        "DOMContentLoaded-Hook scannt nicht article.card[data-ticker]")
+    # Im Hook wird _startQuotePoll pro Karte aufgerufen
+    hook_match = re.search(
+        r"DOMContentLoaded.*?_startQuotePoll\(card, ticker\)",
         src, re.DOTALL)
-    assert match, "toggleDetails-Block nicht gefunden"
-    block = match.group(0)
-    assert "window._startQuotePoll(card, ticker)" in block, (
-        "_startQuotePoll wird in toggleDetails nicht aufgerufen")
-    assert "window._stopQuotePoll(ticker)" in block, (
-        "_stopQuotePoll wird in toggleDetails nicht aufgerufen")
-    assert "quote-live-dot" in block, (
-        "Live-Dot-Lazy-Inject im toggleDetails fehlt")
+    assert hook_match, (
+        "DOMContentLoaded-Hook ruft _startQuotePoll(card, ticker) nicht auf")
+    # Live-Dot-Lazy-Inject lebt jetzt im _startQuotePoll-Pfad (Helper
+    # _quoteEnsureLiveDot), damit zugeklappte Karten den Dot trotzdem
+    # bekommen.
+    assert "_quoteEnsureLiveDot" in src, (
+        "Helper _quoteEnsureLiveDot fehlt")
 
 
 # === 9 — CSS ===============================================================
@@ -257,7 +266,7 @@ def main() -> None:
         ("Polling-Modul: visibilitychange-Handler",        test_polling_module_visibilitychange),
         ("Frontend: v8-Schema (ticker, price, change)",    test_fetch_uses_v8_schema),
         ("wlExpand: Start/Stop verdrahtet",                test_wl_expand_lifecycle),
-        ("toggleDetails: Start/Stop + Live-Dot-Inject",    test_toggle_details_lifecycle),
+        ("Top-10 Dauer-Polling (DOMContentLoaded-Hook)",   test_top10_continuous_polling),
         ("CSS .quote-live-dot + 3 States",                  test_quote_live_dot_css),
         ("Keine unescapten ${...} im f-String",            test_no_unescaped_js_template_vars),
         ("Wert-Format-Replikation",                        test_chg_format_basic),
