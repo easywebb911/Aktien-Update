@@ -30,23 +30,11 @@
     "earnings_immediate_GEMI_14.05.2026": "2026-05-14T23:25:08.201852+02:00",
     "exit_KPTI": "2026-05-15T18:17:09.325572+02:00",
     "anomaly_conviction_high_SNSE": "2026-05-15T19:30:32.046324+02:00",
-    "exit_CRMD": "2026-05-20T00:41:38.904757+02:00",
+    "exit_CRMD": "2026-05-20T06:08:04.488847+02:00",
     "anomaly_conviction_high_CRDF": "2026-05-19T16:49:36.576105+02:00",
     "anomaly_monster_backup_CRDF": "2026-05-19T23:46:56.024867+02:00"
   },
   "push_history": [
-    {
-      "ts": "2026-05-15T19:01:53.063986+02:00",
-      "ticker": "GEMI",
-      "kind": "anomaly",
-      "severity": "medium",
-      "trigger": "score_jump",
-      "body": "GEMI 🚀 Setup 76 ↑ (gestern 53) | Volumen 7.3× + 🚀 Massives Volumen 7.3×+ + Spanne 22.9% + New…",
-      "success": false,
-      "suppressed": true,
-      "suppress_reason": "conviction_below_threshold",
-      "conviction_score": 67
-    },
     {
       "ts": "2026-05-15T19:01:53.064257+02:00",
       "ticker": "GEMI",
@@ -1225,6 +1213,18 @@
     },
     {
       "ts": "2026-05-20T00:41:38.904724+02:00",
+      "ticker": "CRMD",
+      "kind": "exit_p1",
+      "severity": "default",
+      "trigger": "exit_alert",
+      "body": "CRMD 📉 Exit 65 | -1% | Trailing-Stop −12.5% vom Hoch",
+      "success": true,
+      "suppressed": false,
+      "suppress_reason": null,
+      "conviction_score": null
+    },
+    {
+      "ts": "2026-05-20T06:08:04.488818+02:00",
       "ticker": "CRMD",
       "kind": "exit_p1",
       "severity": "default",
