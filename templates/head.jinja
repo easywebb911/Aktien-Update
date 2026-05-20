@@ -681,6 +681,15 @@ abbr[title]{text-decoration:underline dotted var(--txt-dim);
 /* Alle Watchlist-Kompaktkacheln bekommen dunkelgrünen Hintergrund +
    hellgrünen Rand. Specificity 0,2,0 schlägt die basis .wl-card-Regel. */
 .wl-card.card-manual{background:rgba(20,83,45,0.35);border:1.5px solid rgba(74,222,128,0.6)}
+/* Pro-Tile-Fehler-Fallback (20.05.2026): wenn ein Tile-Build in
+   ``wlRender`` throws, wird ein Skeleton mit data-ticker gerendert
+   damit Konsumenten wie _applyExitGlows + renderAgentSignals den
+   Ticker noch finden. Visuell deutlich vom grünen .card-manual
+   abgehoben (rot/orange) + cursor:not-allowed signalisiert dem User,
+   dass das Tile nicht aufklappbar ist. NACH .card-manual platziert
+   damit die Specificity-Quellreihenfolge greift. */
+.wl-card.wl-card-error{background:rgba(127,29,29,0.25);border:1.5px solid rgba(248,113,113,0.6);opacity:0.85;cursor:not-allowed}
+.wl-card-error-marker{margin-left:8px;color:#f87171;font-size:1.1rem;cursor:help}
 /* Watchlist-Karte im aufgeklappten Drawer-Zustand: spannt eine ganze Grid-
    Reihe der ``.wl-cards``, läuft auf Desktop ÜBER die volle Reihen-Breite
    (kein 340px-Cap mehr) und erscheint mit 2-Spalten-Body — das ist die

@@ -11386,7 +11386,15 @@ function _fmtGerman(d) {{
       }};
       arr.sort((a, b) => (_wlScoreOf(b) || 0) - (_wlScoreOf(a) || 0));
 
+      // Pro-Tile-Fehler-Isolation (20.05.2026): historisch hat eine
+      // Exception in EINEM Tile-Build den gesamten arr.map gekillt
+      // (Commit df4aab5: ReferenceError auf inTop). Jetzt jeder Tile
+      // im eigenen try/catch — kaputter Ticker zeigt Skeleton-Fallback
+      // mit data-ticker (für _applyExitGlows + renderAgentSignals-Sync)
+      // statt die ganze Liste leer zu lassen.
+      let _tileFailCount = 0;
       grid.innerHTML = arr.map(ticker => {{
+        try {{
         // ``inTop`` wurde in df4aab5 versehentlich entfernt — Star-Badge-
         // Template referenzierte die nicht-existente Variable, ReferenceError
         // killte den gesamten arr.map. Wieder einführen.
@@ -11430,7 +11438,25 @@ function _fmtGerman(d) {{
           </div>
           <div class="wl-details-body" id="wld-${{ticker}}" hidden></div>
         </div>`;
+        }} catch(_tileErr) {{
+          // Skeleton-Fallback: data-ticker bleibt erhalten (Konsumenten
+          // wie _applyExitGlows + renderAgentSignals-KI-Dot-Sync ueber
+          // ``wlkd-${{ticker}}`` greifen weiterhin). KEIN onclick — User
+          // soll nicht in einen broken Drawer klicken. Marker macht den
+          // Fail sichtbar; Detail in der Console.
+          _tileFailCount++;
+          console.error(`wl-tile build failed for ${{ticker}}:`, _tileErr);
+          return `<div class="wl-card wl-card-error" data-ticker="${{ticker}}">
+            <div class="wl-card-header">
+              <span class="wl-card-ticker">${{ticker}}</span>
+              <span class="wl-card-error-marker" title="Tile-Build fehlgeschlagen — siehe Console">⚠</span>
+            </div>
+          </div>`;
+        }}
       }}).join('');
+      if (_tileFailCount > 0) {{
+        _wlWarn(`⚠ ${{_tileFailCount}}/${{arr.length}} Watchlist-Tile(s) konnten nicht gebaut werden`);
+      }}
 
       // Sync ＋ buttons on main cards
       document.querySelectorAll('.wl-add-btn').forEach(b => {{
