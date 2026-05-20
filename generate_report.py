@@ -4309,6 +4309,56 @@ def _score_delta_html(s: dict) -> str:
             f'{sign_pref}{delta:.1f}">{sign} {sign_pref}{delta:.1f}</span>')
 
 
+def _cockpit_delta_html(s: dict) -> str:
+    """Setup-Score-Delta T-1 als kompakte Inline-Span fuer Cockpit-Setup-Pillar.
+
+    Gleiche Hybrid-Stille-Schwelle wie das frühere _score_delta_html (PR #170):
+      - |Δ| < 2:  leerer String (kein visueller Lärm bei Mini-Drifts)
+      - |Δ| 2..5: dezent grau (cockpit-delta-mute)
+      - |Δ| ≥ 5:  farbig grün/rot mit ▲/▼ (cockpit-delta-up / -down)
+      - |Δ| ≥ 15: zusätzlich Bold (cockpit-delta-strong als Modifier)
+
+    Quelle: ``s["sparkline"]["scores"]`` (raw Setup-Scores oldest→newest,
+    bereits aus ``score_history.json`` materialisiert). Nutzt die zwei
+    jüngsten Einträge. Bei < 2 Einträgen (Erst-Render, neuer Top-10-
+    Einsteiger): leerer String.
+
+    CSS-Form: kompakte Inline-Span neben dem Pillar-Value (kein
+    Layout-Bruch auf 100 px breitem Pillar).
+
+    Score-Methodik-Sync: nicht betroffen — reine Display-Anzeige des
+    Score-Delta, keine Score-Berechnung beruehrt.
+    """
+    spark  = s.get("sparkline") or {}
+    scores = spark.get("scores") or []
+    dates  = spark.get("dates")  or []
+    if len(scores) < 2:
+        return ""
+    try:
+        today_raw = float(scores[-1])
+        prev_raw  = float(scores[-2])
+    except (TypeError, ValueError):
+        return ""
+    delta = today_raw - prev_raw
+    abs_d = abs(delta)
+    if abs_d < 2:
+        return ""
+    prev_date = dates[-2] if len(dates) >= 2 else "—"
+    sign      = "▲" if delta > 0 else "▼"
+    sign_pref = "+"  if delta > 0 else ""
+    if abs_d < 5:
+        css = "cockpit-delta cockpit-delta-mute"
+    else:
+        css = ("cockpit-delta cockpit-delta-up" if delta > 0
+               else "cockpit-delta cockpit-delta-down")
+        if abs_d >= 15:
+            css += " cockpit-delta-strong"
+    title = (f"Δ {sign_pref}{delta:.1f} ggü. letztem Daily-Run "
+             f"({prev_date}, raw {prev_raw:.1f} → {today_raw:.1f})")
+    return (f'<span class="{css}" title="{title}" aria-label="Delta '
+            f'{sign_pref}{delta:.1f}">{sign} {sign_pref}{delta:.1f}</span>')
+
+
 def _score_block_inner_html(s: dict, hint_html: str = "") -> str:
     """Erzeugt das komplette Innere des ``<div class="score-block">``.
 
@@ -4494,6 +4544,10 @@ def _card_cockpit_html(
         ("KI",      ki_val,      "ki",
          f"{ki_val:.0f}" if ki_val is not None else "—"),
     ]
+    # Score-Delta T-1 nur fuer Setup-Pillar — Conviction/Monster/KI haben
+    # heute keine eigene History-Persistenz (siehe CLAUDE.md "Score-Delta
+    # T-1 Phase 1 — Folge-PR-Idee Phase 2").
+    setup_delta_html = _cockpit_delta_html(s)
     pillars: list[str] = []
     for label, val, conf_key, fmt in pillar_specs:
         if val is None:
@@ -4504,6 +4558,7 @@ def _card_cockpit_html(
             pct = max(0.0, min(100.0, float(val)))
         css, title, aria = _conf_class(conf_key)
         attrs = f' title="{title}" aria-label="{aria}"' if title else ""
+        delta_html = setup_delta_html if conf_key == "setup" else ""
         pillars.append(
             f'<div class="cockpit-pillar" data-sb="{conf_key}">'
             f'<div class="cockpit-pillar-label">'
@@ -4511,7 +4566,7 @@ def _card_cockpit_html(
             f'<span class="cockpit-pillar-scale">/100</span>'
             f'</div>'
             f'<div class="cockpit-pillar-value {css}" '
-            f'style="color:{col}"{attrs}>{fmt}</div>'
+            f'style="color:{col}"{attrs}>{fmt}{delta_html}</div>'
             f'<div class="cockpit-pillar-bar">'
             f'<div class="cockpit-pillar-bar-fill" '
             f'style="width:{pct:.0f}%;background:{col}"></div>'
