@@ -1,1 +1,11 @@
-["INDI","CRDF","PDYN","GEMI","AI","CRMD","RR","IONQ","AMC"]
+[
+  "INDI",
+  "CRDF",
+  "PDYN",
+  "GEMI",
+  "AI",
+  "CRMD",
+  "RR",
+  "IONQ",
+  "AMC"
+]
