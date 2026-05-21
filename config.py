@@ -984,3 +984,72 @@ HEALTH_CHECK_PROVIDER_EXPECTED = {
     "edgar_form4":         None,
     "edgar_13d_g":         None,
 }
+
+
+# ── Health-Check S10 — Daten-Integritäts-Check (Phase 1, additiv) ──────────
+#
+# Erkennt wenn ein MUSS-gefülltes Feld in ``backtest_history.json`` dauerhaft
+# leer bleibt (Pattern hist_5d-Bug 14.05.–21.05.2026: drei Trend-Felder zu
+# 100 % null, eine Woche unbemerkt). Premium-Ziel-Baustein: das System fragt
+# sich selbst, ob die Daten-Mechanik durchläuft.
+#
+# Phase 1 ist bewusst minimal — nur die hist_5d-Bug-Klasse + die wahr-
+# scheinlichste rolling-Update-Bug-Klasse (return_3d/5d). Phase 2 wird die
+# Listen erweitern (restliche V4-MUSS-Felder, return_10d, agent_signals.json,
+# score_history.json), sobald 2–4 Wochen Betrieb gezeigt haben, dass die
+# Schwellen + false-positive-Rate beherrscht sind.
+#
+# Schwellen-Logik:
+#   - MUSS-Felder: pct_null in letzten 20 V4-Einträgen → warn ≥ warn_pct,
+#     crit ≥ crit_pct. CRIT nur für die „stiller-Tod"-Klasse.
+#   - LAG-Felder: pct_null in gealterten Einträgen (≥ lag_trading_days alt)
+#     → warn ≥ warn_pct. **Nie crit** (fehlende Outcomes ärgerlich, nicht akut).
+#   - Wochenend-Filter beim Laden: Einträge mit weekday() ≥ 5 werden
+#     ausgeklammert (die 96 Bestands-Leichen würden sonst LAG-Pfad
+#     dauerhaft false-positive machen).
+
+S10_MUSS_FIELDS = {
+    # Vier Trend-Felder aus PR #142 (Schema v4). hist_5d-Propagation seit
+    # PR #244 wieder funktional → Felder sollen ab nächstem postclose-Run
+    # gefüllt sein.
+    "rvol_buildup_5d":     {"warn_pct": 30.0, "crit_pct": 70.0},
+    "vol_stability_5d":    {"warn_pct": 30.0, "crit_pct": 70.0},
+    "coiled_spring_score": {"warn_pct": 30.0, "crit_pct": 70.0},
+    "si_trend_5d_slope":   {"warn_pct": 30.0, "crit_pct": 70.0},
+}
+
+S10_LAG_FIELDS = {
+    "return_3d": {"lag_trading_days": 3, "warn_pct": 20.0},
+    "return_5d": {"lag_trading_days": 5, "warn_pct": 20.0},
+}
+
+# Negativliste: bekannte V4-Felder, die wir bewusst NICHT prüfen.
+# Wer ein NEUES Feld einführt, das hier nicht steht, löst Auto-Detect-WARN
+# aus („Feld X aufgetaucht, nicht klassifiziert") und wird dadurch zur
+# Klassifikation gezwungen. Genau das Premium-Ziel-Prinzip: das System
+# bemerkt, was es nicht versteht.
+#
+# Liste wurde aus den 37 keys aller V4-Einträge in backtest_history.json
+# am 21.05.2026 abgeleitet. Minus die 6 in S10_MUSS_FIELDS + S10_LAG_FIELDS.
+S10_OBSERVED_FIELDS = frozenset({
+    # Core (immer gesetzt)
+    "date", "ticker", "score", "entry_price", "rvol", "dtc",
+    "short_float", "si_trend", "backtest_schema_version",
+    "short_float_source", "si_trend_source",
+    # V4-Setup-Snapshot
+    "score_struct", "score_catalyst", "score_timing", "score_raw",
+    "combo_bonus", "finra_bonus", "agent_boost_factor",
+    "perfect_storm_mult", "score_trend_bonus",
+    "pool_member", "pool_position", "pool_size",
+    "market_regime", "vix_level",
+    # LAG-Felder, später (Phase 2)
+    "entry_price_t1",
+    "return_10d", "return_10d_t1",
+    "return_3d_t1", "return_5d_t1",
+    "max_drawdown_pct",
+})
+
+S10_WINDOW_SIZE          = 20    # Letzte N V4-Einträge für MUSS-Check
+S10_MUSS_MIN_N           = 5     # Unter dieser Stichprobengröße → skip (zu früh)
+S10_LAG_MIN_AGED_N       = 10    # Unter dieser Stichprobengröße → skip
+

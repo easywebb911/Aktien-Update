@@ -25,7 +25,7 @@ import json
 import logging
 import os
 import time
-from datetime import datetime, timedelta, timezone
+from datetime import date, datetime, timedelta, timezone
 from typing import Any
 
 from config import (
@@ -35,6 +35,12 @@ from config import (
     HEALTH_CHECK_S6_MIN_MONSTER_NONZERO,
     HEALTH_CHECK_S7_MIN_AGENT_OVERLAP,
     HEALTH_CHECK_S8_MAX_AGE_HOURS,
+    S10_MUSS_FIELDS,
+    S10_LAG_FIELDS,
+    S10_OBSERVED_FIELDS,
+    S10_WINDOW_SIZE,
+    S10_MUSS_MIN_N,
+    S10_LAG_MIN_AGED_N,
 )
 
 # Digest-State-Datei für S8-Invariant (single source of truth über
@@ -147,6 +153,208 @@ def _digest_age_hours(now_utc: datetime,
         return None
     delta = now_utc - sent_dt
     return delta.total_seconds() / 3600.0
+
+
+# ── S10 — Daten-Integritäts-Check (Phase 1, minimal) ──────────────────────
+
+
+def _s10_trading_days_elapsed(entry_date_str: str,
+                               today: date | None = None) -> int:
+    """Strikt Mo–Fr nach ``entry_date`` zählen (analog
+    ``ki_agent._trading_days_elapsed``). Returnt -1 bei nicht parsebar.
+
+    Wir duplizieren die Funktion bewusst hier, damit ``health_check.py``
+    keine Cross-Import-Abhängigkeit zu ``ki_agent.py`` aufbauen muss
+    (ki_agent importiert seinerseits health_check).
+    """
+    try:
+        start = datetime.strptime(entry_date_str, "%d.%m.%Y").date()
+    except (TypeError, ValueError):
+        return -1
+    today = today or datetime.now(timezone.utc).date()
+    n = 0
+    d = start
+    while d < today:
+        d += timedelta(days=1)
+        if d.weekday() < 5:
+            n += 1
+    return n
+
+
+def _s10_load_v4_entries(bh_path: str = "backtest_history.json"
+                         ) -> list[dict]:
+    """Lädt backtest_history.json, filtert auf schema_v=4 + Wochenend-Filter.
+
+    Wochenend-Filter: Einträge mit ``date.weekday() >= 5`` werden
+    ausgeklammert. Die 96 Bestands-Leichen aus manuellen Sa/So-Triggern
+    würden sonst LAG-Pfad permanent false-positive machen. PR #244 hat
+    den Schreibschutz eingebaut, aber Bestandseinträge bleiben.
+
+    Returnt 0 Einträge bei FileNotFound/Parse-Fehler — Caller skipt S10.
+    """
+    if not os.path.exists(bh_path):
+        return []
+    try:
+        with open(bh_path, "r", encoding="utf-8") as fh:
+            bh = json.load(fh)
+    except (OSError, json.JSONDecodeError):
+        return []
+    if not isinstance(bh, list):
+        return []
+    v4: list[dict] = []
+    for e in bh:
+        if not isinstance(e, dict):
+            continue
+        if e.get("backtest_schema_version") != 4:
+            continue
+        d_str = e.get("date", "")
+        try:
+            d_obj = datetime.strptime(d_str, "%d.%m.%Y").date()
+        except (TypeError, ValueError):
+            continue
+        if d_obj.weekday() >= 5:
+            continue  # Wochenend-Filter
+        v4.append(e)
+    return v4
+
+
+def _s10_check_muss_field(entries: list[dict], field: str,
+                           warn_pct: float, crit_pct: float,
+                           window: int, min_n: int) -> dict | None:
+    """Letzte ``window`` Einträge: wie viele Prozent haben das Feld auf
+    ``None``? ``is None`` (nicht ``not v``) — sonst false-positive bei
+    legitim-0-Werten wie ``score_trend_bonus=0.0``.
+
+    Returnt None wenn n < min_n oder pct < warn_pct.
+    """
+    recent = entries[-window:] if window > 0 else entries
+    n = len(recent)
+    if n < min_n:
+        return None
+    n_null = sum(1 for e in recent if e.get(field) is None)
+    pct = 100.0 * n_null / n if n > 0 else 0.0
+    if pct >= crit_pct:
+        sev = "crit"
+    elif pct >= warn_pct:
+        sev = "warn"
+    else:
+        return None
+    return {
+        "severity": sev, "field": field, "n": n, "n_null": n_null,
+        "pct": pct,
+    }
+
+
+def _s10_check_lag_field(entries: list[dict], field: str,
+                          lag_trading_days: int, warn_pct: float,
+                          min_aged_n: int,
+                          today: date | None = None) -> dict | None:
+    """Einträge älter als ``lag_trading_days`` Trading-Tage: wie viele
+    Prozent haben das Feld noch ``None``?
+
+    Returnt None wenn aged_n < min_aged_n oder pct < warn_pct.
+    LAG-Felder werden NIE als crit klassifiziert — fehlende Outcomes
+    sind ärgerlich, nicht akut (kein Push-Block).
+    """
+    aged = [
+        e for e in entries
+        if _s10_trading_days_elapsed(e.get("date", ""), today)
+            >= lag_trading_days
+    ]
+    n = len(aged)
+    if n < min_aged_n:
+        return None
+    n_null = sum(1 for e in aged if e.get(field) is None)
+    pct = 100.0 * n_null / n if n > 0 else 0.0
+    if pct < warn_pct:
+        return None
+    return {
+        "severity": "warn", "field": field, "n_aged": n, "n_null": n_null,
+        "pct": pct, "lag": lag_trading_days,
+    }
+
+
+def _s10_check_unknown_fields(entries: list[dict]) -> set[str]:
+    """Auto-Detect-WARN: welche Feld-Keys tauchen in V4-Einträgen auf,
+    die weder in MUSS noch LAG noch OBSERVED stehen?
+
+    Schema-Erweiterer wird durch den WARN gezwungen, das Feld zu
+    klassifizieren — Premium-Ziel-Prinzip: das System bemerkt, was es
+    nicht versteht.
+    """
+    known = (set(S10_MUSS_FIELDS.keys())
+             | set(S10_LAG_FIELDS.keys())
+             | set(S10_OBSERVED_FIELDS))
+    seen: set[str] = set()
+    for e in entries:
+        seen |= set(e.keys())
+    return seen - known
+
+
+def evaluate_s10_data_integrity(bh_path: str = "backtest_history.json",
+                                 today: date | None = None,
+                                 ) -> list[dict]:
+    """S10 main entry. Returnt Liste von Fail-Dicts im Standard-Format.
+
+    Pure-Wrapper für leichtere Mock-Tests (Caller kann ``bh_path`` auf
+    Test-Fixture umlenken). Wird von ``evaluate_state_invariants`` mit
+    Default-Pfad aufgerufen.
+    """
+    v4 = _s10_load_v4_entries(bh_path)
+    if not v4:
+        # Kein V4-Eintrag (oder Datei fehlt) → S10 nichts zu sagen.
+        # Kein Fail emittieren — S2 hat den Universum-Check eh schon.
+        return []
+    out: list[dict] = []
+    # MUSS-Felder
+    for field, cfg in S10_MUSS_FIELDS.items():
+        res = _s10_check_muss_field(
+            v4, field,
+            warn_pct=cfg["warn_pct"], crit_pct=cfg["crit_pct"],
+            window=S10_WINDOW_SIZE, min_n=S10_MUSS_MIN_N,
+        )
+        if res is None:
+            continue
+        out.append({
+            "id":       "S10",
+            "severity": res["severity"],
+            "detail":   (f"MUSS-Feld {field!r}: {res['n_null']}/{res['n']} "
+                         f"null ({res['pct']:.0f}%) in letzten "
+                         f"{S10_WINDOW_SIZE} V4-Einträgen — "
+                         f"Daten-Pipeline füllt nicht"),
+        })
+    # LAG-Felder
+    for field, cfg in S10_LAG_FIELDS.items():
+        res = _s10_check_lag_field(
+            v4, field,
+            lag_trading_days=cfg["lag_trading_days"],
+            warn_pct=cfg["warn_pct"], min_aged_n=S10_LAG_MIN_AGED_N,
+            today=today,
+        )
+        if res is None:
+            continue
+        out.append({
+            "id":       "S10",
+            "severity": res["severity"],
+            "detail":   (f"LAG-Feld {field!r}: {res['n_null']}/{res['n_aged']} "
+                         f"gealterte Einträge (≥ {res['lag']} Trading-Tage) "
+                         f"haben kein Outcome ({res['pct']:.0f}%) — "
+                         f"Rolling-Update-Pipeline füllt nicht"),
+        })
+    # Auto-Detect: unbekannte Felder
+    unknown = _s10_check_unknown_fields(v4)
+    if unknown:
+        sample = ", ".join(sorted(unknown)[:5])
+        more   = f" und {len(unknown) - 5} weitere" if len(unknown) > 5 else ""
+        out.append({
+            "id":       "S10",
+            "severity": "warn",
+            "detail":   (f"Unklassifizierte Felder in V4-backtest_history "
+                         f"({len(unknown)}): {sample}{more} — "
+                         f"in S10_MUSS_FIELDS / S10_LAG_FIELDS / "
+                         f"S10_OBSERVED_FIELDS klassifizieren"),
+        })
+    return out
 
 
 # ── State-Invariants ────────────────────────────────────────────────────────
@@ -318,6 +526,28 @@ def evaluate_state_invariants(
                 "severity": "warn",
                 "detail":   (f"S9-Check selbst fehlgeschlagen: "
                              f"{_s9_exc!r}"),
+            })
+
+    # === S10 (warn/crit) — Daten-Integritäts-Check (Phase 1, additiv) ======
+    # Erkennt MUSS-Felder die dauerhaft null bleiben (hist_5d-Bug-Klasse —
+    # 3 Trend-Felder zu 100 % null seit PR #142, eine Woche unbemerkt) und
+    # LAG-Felder die nach ihrem Trading-Tag-Lag immer noch kein Outcome
+    # haben (rolling-Update-Bug-Klasse).
+    #
+    # WARN-Tier, KEIN Push-Block (anders als S9). Daily-Digest aggregiert
+    # 3-in-Folge wie bei S1-S7. Fail-soft via try/except — ein Bug im
+    # S10-Check selbst darf den Daily-Run NIE blockieren. Im ki_agent-Tick
+    # wird S10 NICHT ausgeführt (rendert keine Backtest-Daten neu).
+    if not ki_agent_only:
+        try:
+            _s10_fails = evaluate_s10_data_integrity()
+            fails.extend(_s10_fails)
+        except Exception as _s10_exc:
+            fails.append({
+                "id":       "S10",
+                "severity": "warn",
+                "detail":   (f"S10-Check selbst fehlgeschlagen: "
+                             f"{_s10_exc!r}"),
             })
 
     # === S8 (warn) — Digest-Push-Pipeline frisch ===========================

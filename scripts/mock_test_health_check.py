@@ -16,6 +16,7 @@ import json
 import pathlib
 import sys
 import tempfile
+import unittest.mock as mock
 from datetime import datetime, timedelta, timezone
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
@@ -562,18 +563,23 @@ def test_run_and_record_returns_fails_on_pass():
         path = fh.name
     try:
         open(path, "w").close()
-        fails = hc.run_and_record(
-            run_phase="premarket",
-            path=path,
-            top10_tickers=TOP10,
-            setup_scores=_full_setup(TOP10),
-            monster_scores=_full_monster(TOP10),
-            score_history=_full_history(TOP10),
-            today_iso=TODAY,
-            n_inflation_lines=10,
-            n_backtest_appended=0,
-            agent_signal_keys=set(TOP10),
-        )
+        # S10 mocken — der Test soll S1-S7 verifizieren, nicht den
+        # Datenstand der produktiven backtest_history.json (die je nach
+        # aktueller Trend-Feld-Coverage CRITs werfen kann).
+        with mock.patch.object(hc, "evaluate_s10_data_integrity",
+                                return_value=[]):
+            fails = hc.run_and_record(
+                run_phase="premarket",
+                path=path,
+                top10_tickers=TOP10,
+                setup_scores=_full_setup(TOP10),
+                monster_scores=_full_monster(TOP10),
+                score_history=_full_history(TOP10),
+                today_iso=TODAY,
+                n_inflation_lines=10,
+                n_backtest_appended=0,
+                agent_signal_keys=set(TOP10),
+            )
         assert fails == [], f"erwartet keine Fails, got {fails}"
         # Schreib-Smoketest:
         entries = hc.read_all(path)
