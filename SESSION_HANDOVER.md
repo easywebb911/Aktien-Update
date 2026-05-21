@@ -129,3 +129,17 @@
   — nicht V1/V2-Earliness und nicht PR-γ (beide wirken nicht aufs
   `score`-Feld bzw. nur premarket). Bestätigt die Disziplin: wenige
   Trades, bis die Basis sauber ist.
+- **Top-10-Fluktuation / Hysterese verworfen:** Hohe Top-10-Rotation
+  (50.9 % Eintags-Wonder) ist **gesund, kein Bug**. Diagnose: 74.5 %
+  der Exits sind Pool-Dropouts (Stufe-1-Screener-Wankelmut Yahoo /
+  Finviz), nur 11 % Score-Überholung, **RVOL nicht der Treiber**
+  (88 % der Dropouts erfüllten die RVOL-Schwelle am Exit-Tag noch).
+  Hysterese als Hebel **verworfen**: rausgefallene Ticker liefern
+  Forward-Return 5d Median **−8.68 %**, Win-Rate 10 %, 76 % kommen
+  nie zurück — das Exit-Signal ist statistisch korrekt. Hysterese
+  hätte 0–3 Setups „gerettet" + 30+ Verlierer-Karten länger
+  sichtbar gemacht. **Mentales Modell:** Top-10 = Such-Stream für
+  NEUE Einstiege, NICHT Hold-Liste. Awareness-Bedarf deckt
+  `manual_personal` / Watchlist-Add per UI ab (User-im-Loop statt
+  Auto-Verklebung). Falls je wieder Thema: Daten sind eindeutig,
+  **nicht neu bauen**.
