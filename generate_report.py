@@ -13738,6 +13738,27 @@ def _append_backtest_entries(top10: list[dict], report_date: str,
     """
     if not BACKTEST_ENABLED:
         return 0
+    # Wochenend-Schreibschutz (Diagnose 21.05.2026): manuelle workflow_
+    # dispatch-Trigger am Sa/So erzeugen sonst Backtest-Einträge mit
+    # Wochenend-Datum, deren Outcomes von ``ki_agent.update_backtest_returns``
+    # PERMANENT geskippt werden (Yahoo liefert keine Sa/So-Closes → entry_dt
+    # matcht nie gegen die Trading-Day-Index-Liste → continue-Branch). Stand
+    # heutiger Backtest-History: 96 solcher Leichen.
+    # Report-Anschauen am Wochenende läuft unverändert weiter — nur der
+    # Backtest-Append wird geblockt. Bestehende Wochenend-Leichen werden NICHT
+    # rückwirkend gelöscht (separater Cleanup-PR).
+    try:
+        _rd = datetime.strptime(report_date, "%d.%m.%Y").date()
+    except (TypeError, ValueError):
+        _rd = None
+    if _rd is not None and _rd.weekday() >= 5:
+        log.warning("Wochenend-Eintrag (%s, %s) übersprungen — kein "
+                    "Outcome-Lookup möglich (yfinance hat keine Sa/So-"
+                    "Closes). Daily-Run/Workflow-Dispatch sollte werktags "
+                    "laufen; manuelle Trigger am Wochenende sind kein "
+                    "Backtest-Pfad.",
+                    report_date, _rd.strftime("%A"))
+        return 0
     history = _load_backtest_history()
     existing_keys = {(e.get("ticker"), e.get("date")) for e in history}
     # Agent-Signals einmalig laden (pro-Ticker-Lookup für perfect_storm_mult).
@@ -15785,6 +15806,16 @@ def main():
             "spx_daily_perf":  _spx_daily_perf,
             "recent_squeeze":  yfd.get("recent_squeeze"),   # Feature 6
             "rel_volume_yesterday": yfd.get("rel_volume_yesterday"),  # P&D Flag 1
+            # Earliness-Trend-Logging (PR #142): Liste der letzten 5 Trading-
+            # Tage ({volume,high,low,close}, ältester → neuester). Wird von
+            # _build_backtest_extension für drei Trend-Sub-Signale konsumiert
+            # (rvol_buildup_5d, vol_stability_5d, coiled_spring_score). Ohne
+            # diesen Merge-Eintrag blieb s.get("hist_5d") in der Backtest-
+            # Schreibung None, die Helper lieferten alle None — die Felder
+            # waren seit PR #142-Deploy zu 0 % gefüllt (Diagnose 21.05.2026).
+            # si_trend_5d_slope ist nicht betroffen (anderer Pfad via FINRA-
+            # finra_data.history).
+            "hist_5d":         yfd.get("hist_5d") or [],
         })
         if i < 3:
             print(f"{t} float_shares={c.get('float_shares')} change_5d={c.get('change_5d')}", flush=True)
