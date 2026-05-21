@@ -1055,6 +1055,12 @@ S10_OBSERVED_FIELDS = frozenset({
     # γ-1-Merge ein false-positive WARN "Unklassifiziert: score_normalization_version"
     # ausloesen (PR #246).
     "score_normalization_version",
+    # Entry-Score-Vorarbeit (21.05.2026): zwei Sub-Signale fuer das Entry-
+    # Timing-Modul (geplant 10.06.). Beide LEGITIM-leer-tolerant, daher
+    # nur OBSERVED (kein MUSS-Check, kein LAG-Check). rvol_acceleration
+    # ist None wenn rel_volume_yesterday fehlt/0. uoa_atm_ratio ist None
+    # wenn Ticker nicht im KI-Agent-monitored-Pool.
+    "rvol_acceleration", "uoa_atm_ratio",
     # LAG-Felder, später (Phase 2)
     "entry_price_t1",
     "return_10d", "return_10d_t1",
