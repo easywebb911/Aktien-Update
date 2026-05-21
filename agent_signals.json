@@ -1,10 +1,10 @@
 {
-  "updated": "2026-05-21T23:25:43.038981+02:00",
+  "updated": "2026-05-21T23:49:29.537726+02:00",
   "run_info": {
     "tickers_checked": 19,
     "signals_active": 3,
     "alerts_sent": 0,
-    "elapsed_s": 26.9,
+    "elapsed_s": 14.9,
     "market_phase": "After-Hours"
   },
   "signals": {
@@ -117,9 +117,9 @@
       "uoa_cp_ratio": 4.435897435897436
     },
     "CBRL": {
-      "score": 18,
-      "confidence": 33,
-      "drivers": "Spanne 9.0% + Earnings in 14d",
+      "score": 26,
+      "confidence": 70,
+      "drivers": "Spanne 9.0% + News-KI 8/30: Positive marketing campaign and promotional activity show management confidence, but no catalyst for short squeeze; requ + Earnings in 14d",
       "price": 31.79,
       "chg_pct": 0.0,
       "rvol_4d": 0.84,
@@ -161,7 +161,7 @@
     "CRMD": {
       "score": 30,
       "confidence": 17,
-      "drivers": "News: guidance raised, earnings beat",
+      "drivers": "News: earnings beat, guidance raised",
       "price": 8.06,
       "chg_pct": 0.0,
       "rvol_4d": 0.66,
@@ -201,7 +201,7 @@
     "DDD": {
       "score": 18,
       "confidence": 33,
-      "drivers": "Spanne 9.5% + News-KI 8/30: Negative earnings sentiment and stock decline indicate weak momentum, contrary to short-squeeze requirements of high sho",
+      "drivers": "Spanne 9.5% + News-KI 8/30: Negative earnings sentiment and stock decline indicate weak momentum, unfavorable conditions for a short squeeze despite",
       "price": 2.99,
       "chg_pct": 0.0,
       "rvol_4d": 1.03,
@@ -327,9 +327,9 @@
       "uoa_cp_ratio": 2.782767830645959
     },
     "KURA": {
-      "score": 53,
+      "score": 45,
       "confidence": 70,
-      "drivers": "Volumen 2.2× + Spanne 12.4% + News-KI 8/30: Negative analyst sentiment and forecast cuts significantly reduce short-squeeze potential despite conference presentatio + SEC Form 4 + UOA Call/Put 8.6×",
+      "drivers": "Volumen 2.2× + Spanne 12.4% + SEC Form 4 + UOA Call/Put 8.6×",
       "price": 11.13,
       "chg_pct": 0.0,
       "rvol_4d": 2.21,
@@ -395,7 +395,7 @@
     "TTEC": {
       "score": 28,
       "confidence": 33,
-      "drivers": "Spanne 11.6% + News-KI 8/30: Positive business developments and partnerships, but no short-squeeze indicators like high short interest, low float, or + UOA Call/Put 23.0×",
+      "drivers": "Spanne 11.6% + News-KI 8/30: Positive business developments and partnerships, but no indicators of extreme short interest, retail sentiment, or catal + UOA Call/Put 23.0×",
       "price": 2.68,
       "chg_pct": 0.0,
       "rvol_4d": 1.17,
