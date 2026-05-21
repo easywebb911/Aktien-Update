@@ -219,7 +219,11 @@ def _test_extended_schema():
         # Schema v4 — Earliness-Trend-Logging (prospektiv, kein
         # Conviction-Effekt). Werte sind None bei unzureichenden Daten.
         "si_trend_5d_slope","rvol_buildup_5d","vol_stability_5d",
-        "coiled_spring_score","backtest_schema_version",
+        "coiled_spring_score",
+        # Entry-Score-Vorarbeit (21.05.2026) — additive Felder ohne
+        # backtest_schema_version-Bump.
+        "rvol_acceleration","uoa_atm_ratio",
+        "backtest_schema_version",
     }
     assert set(ext.keys()) == expected_keys, set(ext.keys()) ^ expected_keys
     assert ext["backtest_schema_version"] == 4, ext
@@ -13697,6 +13701,21 @@ def _build_backtest_extension(s: dict, pool_position: int, pool_size: int,
     vol_stability = _compute_vol_stability_5d(highs_5d, lows_5d, closes_5d)
     coiled_spring = _compute_coiled_spring_score(vol_stability, si_slope_5d)
 
+    # Entry-Score-Vorarbeit (PR vom 21.05.2026): zwei zusätzliche Felder fürs
+    # spätere Entry-Timing-Modul (10.06.) — JETZT persistieren statt am
+    # ~07.06., damit r10d-Outcomes bis zur Entry-AUC-Diagnose ~30.06. genug
+    # Lag haben. Beide Felder sind LEGITIM-leer-tolerant (None möglich) und
+    # bewusst NICHT in S10_MUSS_FIELDS — nur in S10_OBSERVED_FIELDS.
+    _rv      = _safe_float(s.get("rel_volume"))
+    _rv_yest = _safe_float(s.get("rel_volume_yesterday"))
+    # Division-Guard analog _compute_rvol_buildup_5d. None bei fehlendem
+    # Vortagswert ODER 0er-Nenner (frischer Ticker, kein Vortag).
+    rvol_acceleration = (
+        round(_rv / _rv_yest, 3)
+        if (_rv > 0 and _rv_yest > 0)
+        else None
+    )
+
     return {
         "score_struct":         sub["struct"]   if sub is not None else None,
         "score_catalyst":       sub["catalyst"] if sub is not None else None,
@@ -13719,6 +13738,12 @@ def _build_backtest_extension(s: dict, pool_position: int, pool_size: int,
         "rvol_buildup_5d":        rvol_buildup,
         "vol_stability_5d":       vol_stability,
         "coiled_spring_score":    coiled_spring,
+        # Entry-Score-Vorarbeit (21.05.2026): RVOL-Acceleration + UOA-ATM-
+        # Ratio aus dem KI-Agent-Signal-Dict. Beide LEGITIM-leer (None bei
+        # fehlendem Vortagswert bzw. nicht-monitored Ticker). Schema-additiv,
+        # kein backtest_schema_version-Bump.
+        "rvol_acceleration":      rvol_acceleration,
+        "uoa_atm_ratio":          sig.get("uoa_atm_ratio"),
         "backtest_schema_version": 4,
     }
 
