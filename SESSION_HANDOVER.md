@@ -93,13 +93,35 @@ prüfen-verstehen-entscheiden.**
 - **07.06.2026** — Earliness V3 bleibt im Kalender, **Entscheidung hängt
   an obiger AUC**. Falls 04.06.-Schätzung noch zu dünn → V3 weiter schieben.
 
+### Neu nach Entry-Modul-Vorarbeit (21.05.)
+
+- **~07.06.2026 (kritisch, VOR Entry-Modul) — Entry-Score-Persistenz-PR.**
+  `rvol_acceleration` (`rel_volume` / `rel_volume_yesterday`) + `uoa_atm_ratio`
+  ins V4-Backtest-Schema persistieren. Grund: beide sind **live verfügbar
+  aber nicht in `backtest_history.json`** — ohne Persistenz später nie
+  kalibrierbar (`hist_5d`-Lehre vorausschauend: nicht-persistiertes Signal
+  ist für Selbst-Validierung verloren). Kleiner additiver PR analog
+  #244-Schema-Erweiterung. **S10-OBSERVED-Liste mit-erweitern** (sonst
+  Auto-Detect-WARN am ersten Daily-Run nach Merge). **MUSS vor 10.06. fertig
+  sein**, sonst kann Entry-Score nicht in den ersten Live-Einträgen alle
+  Komponenten zur Auswertung tragen.
+- **~24.–30.06.2026** — Entry-AUC-Diagnose. `entry_score × return_5d/10d`.
+  Kriterien:
+  - AUC ≥ 0.65 → v1-heuristische Gewichte validiert
+  - AUC < 0.55 → Rauschen, Komponenten-Re-Mix
+  - Einzelne Komponente trägt meiste AUC → konzentrierter v2-Score
+- **30.05.2026 PR-γ präzisiert zu PR-γ-2:** Aktivierung nur Score-Pfad,
+  Schwellen bleiben raw, `SCORE_NORMALIZATION_VERSION` von 1 → 2.
+  PR-γ-1 (Marker) ist bereits am 21.05. als PR #248 vorgelegt.
+
 ### Unverändert
 
-- **30.05.2026** — PR-γ Score-Inflation-Normalisierung (manueller Merge)
+- **30.05.2026** — PR-γ-2 Score-Inflation-Normalisierung aktivieren
+  (manueller Merge, engster Scope nur Score, Schwellen raw, Marker → 2)
 - **02.06.2026** — Chart-Indikatoren (TTM Squeeze / VWAP / OBV) als
   ENTRY-Score-Komponenten
 - **10.06.2026** — ★★★ **Entry-Timing-Modul START** (höchste Prio,
-  mehrwöchig)
+  mehrwöchig) — Plan dokumentiert in „Architektur-Anker" weiter unten
 - **30.06.2026** — Erste belastbare Backtest-Auswertung
   (daily-≥70-Bucket-CI kreuzt Null nicht mehr — neues Kriterium aus #238)
 - **02.07.2026** — Premium-Daten-Stack
@@ -154,6 +176,37 @@ prüfen-verstehen-entscheiden.**
 - **Score-Delta T-1** (`_cockpit_delta_html`) live im Cockpit-Setup-Pillar
   seit PR #236. Schwellen |Δ| < 2 leer · 2–5 grau · ≥ 5 farbig ▲▼ ·
   ≥ 15 bold. Quelle: `sparkline.scores`.
+- **Entry-Timing-Modul — Plan aus Vorarbeit 21.05.2026** (Start 10.06.):
+  - **Andock:** ADDITIV in Score-Pipeline. Vorbild
+    `apply_conviction_scores`/`compute_conviction_score` (gleiche Signatur,
+    Aufruf in `main()` direkt **nach** `apply_conviction_scores` —
+    `anomalies_today` + `vix` dann verfügbar). 4. Cockpit-Pillar
+    Setup → Monster → KI → **Entry**. **KEIN `generate_report.py`-Split
+    nötig** (siehe Bewertung im Code-Hygiene-Backlog).
+  - **Komponenten (5, je 20 % heuristisch zum Start):**
+    - ✓ `rvol_acceleration = rel_volume / rel_volume_yesterday` (orthogonal
+      zu Setup-Level und Conviction)
+    - ✓ `anomaly_freshness = max(1 − age_h/72, 0)` aus `push_history`-`ts`
+      (orthogonal zu Anomaly-Count in Conviction)
+    - ✓ `score_delta_t1 = last − prev` aus `score_history`, Cap ±15
+    - ✓ `si_trend_5d_slope` (FINRA-direkt, robuster als
+      `coiled_spring_score`)
+    - ✓ `uoa_atm_ratio` (kontinuierlich)
+    - ✗ **MEIDEN:** `coiled_spring_score` (zu nah Conviction-Earliness),
+      binärer `uoa_score` (zu nah Conviction-Anomaly-Count)
+  - **Gewichtung:** heute **nicht datenbasiert** ableitbar (n = 10 mit
+    r5d + si_slope, andere Komponenten gar nicht im Backtest persistiert).
+    Start heuristisch je 20 %, Marker `entry_score_version = 1`.
+    v2-Kalibrierung nach AUC-Diagnose ~24.–30.06.
+  - **Backtest-Persistenz von Anfang an:** `entry_score` +
+    `entry_components` (Sub-Pkt-Dict) + `entry_score_version` in
+    `_build_backtest_extension`. `backtest_schema_version` 4 → 5 (neue
+    Welle). S10-OBSERVED mit-erweitern. **Selbst-Validierungs-Schleife**
+    — Premium-Ziel: System misst per AUC, ob das eigene Timing-Signal
+    trägt.
+  - **Vor-Schritt 07.06. (kritisch):** `rvol_acceleration` und
+    `uoa_atm_ratio` ins V4-Schema persistieren, **bevor** Entry-Modul
+    live geht — siehe Wiedervorlage oben.
 - **Bestehende Anker unverändert:** Earliness V2 (DTC, AUC 0.77),
   Phase-2 Exit (6 Trigger), Live-Polling Cloudflare-Worker,
   Cockpit-Layout seit #199, Token-Encryption AES-GCM/PBKDF2,
