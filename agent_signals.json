@@ -1,10 +1,10 @@
 {
-  "updated": "2026-05-22T00:46:14.164238+02:00",
+  "updated": "2026-05-22T01:18:03.601686+02:00",
   "run_info": {
     "tickers_checked": 19,
     "signals_active": 4,
     "alerts_sent": 0,
-    "elapsed_s": 20.5,
+    "elapsed_s": 17.9,
     "market_phase": "After-Hours"
   },
   "signals": {
@@ -199,9 +199,9 @@
       "uoa_cp_ratio": 1.1666666666666667
     },
     "DDD": {
-      "score": 18,
-      "confidence": 33,
-      "drivers": "Spanne 9.5% + News-KI 8/30: Negative earnings sentiment and stock decline indicate weak momentum, while no mention of short interest, debt concerns,",
+      "score": 10,
+      "confidence": 17,
+      "drivers": "Spanne 9.5%",
       "price": 2.99,
       "chg_pct": 0.0,
       "rvol_4d": 1.03,
@@ -241,9 +241,9 @@
       "uoa_cp_ratio": 7.604651162790698
     },
     "FLWS": {
-      "score": 38,
+      "score": 30,
       "confidence": 70,
-      "drivers": "Spanne 10.3% + News-KI 8/30: Negative sentiment and stock decline mentioned, but no indicators of high short interest, low float, or catalyst for squ + SEC Form 4 + UOA Call/Put 3.4×",
+      "drivers": "Spanne 10.3% + SEC Form 4 + UOA Call/Put 3.4×",
       "price": 4.23,
       "chg_pct": 0.0,
       "rvol_4d": 0.92,
@@ -327,9 +327,9 @@
       "uoa_cp_ratio": 2.782767830645959
     },
     "KURA": {
-      "score": 45,
+      "score": 63,
       "confidence": 70,
-      "drivers": "Volumen 2.2× + Spanne 12.4% + SEC Form 4 + UOA Call/Put 8.6×",
+      "drivers": "Volumen 2.2× + Spanne 12.4% + News-KI 12/30: Negative analyst sentiment with reduced forecasts and conference presentation activity suggest weakness rather than shor + SEC Form 4 + UOA Call/Put 8.6×",
       "price": 11.13,
       "chg_pct": 0.0,
       "rvol_4d": 2.21,
@@ -339,8 +339,8 @@
       "upcoming_event": null,
       "insider_buy": false,
       "stocktwits": null,
-      "combo_mult": 1.0,
-      "active_triggers": 1,
+      "combo_mult": 1.1,
+      "active_triggers": 2,
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 8.6×"
