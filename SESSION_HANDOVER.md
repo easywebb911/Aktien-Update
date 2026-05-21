@@ -123,10 +123,32 @@ prüfen-verstehen-entscheiden.**
 ### Code-Hygiene-Backlog
 
 - ✅ Cockpit Stage 3 `.sb`-Cleanup (20.05. ausgeführt, 0 Leichen)
+- ✅ **`generate_report.py`-Split — bewertet, großer Split verworfen
+  (21.05.2026).** Read-only-Diagnose: kein Split vor Entry-Modul (10.06.)
+  nötig oder klug. Gründe: (1) Entry-Modul passt additiv in bestehende
+  Score-Pipeline (Pattern wie `apply_conviction_scores`/`apply_monster_score`)
+  — kein Split-Voraussetzung. (2) Größter Block `generate_html_v1`
+  (6806 Z., 40.8 %) ist ein f-String, mechanisch nicht splittbar ohne
+  komplette Jinja-Migration. (3) Kritischer globaler State `_FX_USD_EUR`
+  + `_SCORE_CONFIDENCE` (via `globals()`-Trick in `main()` gesetzt, in
+  Display gelesen) = stille-Degradations-Falle bei Split. Trading-Wert
+  null, Risiko hoch → verworfen.
+
+  **Reihenfolge-Empfehlung:**
+  1. **10.06.: Entry-Modul ADDITIV** — `compute_entry_score` +
+     `apply_entry_scores` in Score-Pipeline ODER eigene
+     `entry_timing.py` nach `health_check.py`-Pattern; neuer
+     4. Cockpit-Pillar Setup → Monster → KI → **Entry**. Kein Split.
+  2. **Später, separat, kein Druck:** `backtest_history.py` extrahieren
+     (428 Z., 1 Cross-Call, Vorbild `score_inflation_log.py`, Risiko
+     niedrig). Nicht zwingend.
+  3. **Niemals (oder erst nach Nachweis):** `generate_html_v1`-Jinja-
+     Vollmigration. Trading-Wert nicht zu rechtfertigen.
+
+  Falls je wieder Thema: Diagnose eindeutig, nicht blind splitten.
 - 🔧 Offen (Engineering-Mehrwert, niedriger Trading-Wert):
-  - v1/v2-Render → reines Jinja
-  - `generate_report.py`-Monolith splitten (Risiko-Reduzierer vor
-    Entry-Timing-Modul-Start 10.06.)
+  - v1/v2-Render → reines Jinja (siehe oben — niemals ohne klaren
+    Trading-Wert)
   - Template-Engine statt f-strings (eliminiert
     `lint_jsformat_escape.py`-Bugklasse strukturell)
 
