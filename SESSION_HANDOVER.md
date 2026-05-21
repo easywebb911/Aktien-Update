@@ -3,7 +3,7 @@
 ## Premium-Ziel
 
 > „Ein System, das sich so weit selbst überwacht, dass meine menschliche
-> Aufmerksamkeit komplett frei wird für die Fragen, die nur ich stellen kann."
+> Aufmerksamkeit komplett frei wird für die Fragen, die nur ich beantworten kann."
 
 **Leitlinie:** KI überwacht die **Mechanik** (Feld leer, Provider down,
 Struktur kaputt, Daten-Drift). Mensch validiert die **Bedeutung** (ist die
