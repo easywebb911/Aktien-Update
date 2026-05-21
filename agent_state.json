@@ -30,7 +30,7 @@
     "earnings_immediate_GEMI_14.05.2026": "2026-05-14T23:25:08.201852+02:00",
     "exit_KPTI": "2026-05-15T18:17:09.325572+02:00",
     "anomaly_conviction_high_SNSE": "2026-05-15T19:30:32.046324+02:00",
-    "exit_CRMD": "2026-05-21T15:35:01.096914+02:00",
+    "exit_CRMD": "2026-05-21T19:38:46.648609+02:00",
     "anomaly_conviction_high_CRDF": "2026-05-19T16:49:36.576105+02:00",
     "anomaly_monster_backup_CRDF": "2026-05-20T14:41:53.889055+02:00",
     "anomaly_score_jump_XPOF": "2026-05-20T20:46:08.006968+02:00",
@@ -39,18 +39,6 @@
     "anomaly_conviction_high_LENZ": "2026-05-20T19:11:36.061944+02:00"
   },
   "push_history": [
-    {
-      "ts": "2026-05-16T00:12:05.271438+02:00",
-      "ticker": "AMC",
-      "kind": "exit_p2",
-      "severity": "trigger",
-      "trigger": "trend_break",
-      "body": "🔻 Exit-Signal AMC: trend_break crit ({'ma21': 1.4493, 'price': 1.28, 'drop_pct': 11.68})",
-      "success": true,
-      "suppressed": false,
-      "suppress_reason": null,
-      "conviction_score": null
-    },
     {
       "ts": "2026-05-16T01:12:57.378493+02:00",
       "ticker": "AMC",
@@ -1234,6 +1222,18 @@
       "severity": "default",
       "trigger": "exit_alert",
       "body": "CRMD 📉 Exit 65 | -2% | Trailing-Stop −12.8% vom Hoch",
+      "success": true,
+      "suppressed": false,
+      "suppress_reason": null,
+      "conviction_score": null
+    },
+    {
+      "ts": "2026-05-21T19:38:46.648569+02:00",
+      "ticker": "CRMD",
+      "kind": "exit_p1",
+      "severity": "default",
+      "trigger": "exit_alert",
+      "body": "CRMD 📉 Exit 62 | +0% | Trailing-Stop −11.2% vom Hoch",
       "success": true,
       "suppressed": false,
       "suppress_reason": null,
