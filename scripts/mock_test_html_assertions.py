@@ -21,27 +21,80 @@ from scripts.check_html_assertions import evaluate_html_assertions  # noqa: E402
 def _build_html(n_articles: int = 10,
                 n_cockpit: int | None = None,
                 n_price: int | None = None,
-                n_pillar: int | None = None) -> str:
-    """Baut synthetisches HTML mit gewünschten Klassen-Counts.
+                n_pillar: int | None = None,
+                broken_setup_idx: list[int] | None = None,
+                zero_setup_idx: list[int] | None = None,
+                pillar_value_with_suffix: bool = True) -> str:
+    """Baut synthetisches HTML mit Phase-1b-tauglicher Per-Card-Struktur.
 
-    None → defaultet auf article-konformes Pendant
-    (1× cockpit/article, 1× price/article, 3× pillar/article)."""
+    Jede Card wird als self-contained Article-Block gerendert (kein
+    flacher Dump von Sub-Elementen nach allen Article-Open-Tags).
+
+    Counter-Parameter ("erste N Cards mit dem Element"):
+    - n_cockpit:  erste N Cards mit ``<div class="card-cockpit">``
+    - n_price:    erste N Cards mit ``cockpit-price``
+    - n_pillar:   TOTAL-Anzahl ``cockpit-pillar`` über alle Cards
+                  (sequenziell ab Card #1 verteilt, max 3 pro Card).
+                  Pillar-Value wird immer mit dem Pillar zusammen
+                  gerendert.
+
+    Phase-1b-spezifische Knöpfe:
+    - broken_setup_idx: 1-basierte Card-Indizes, deren Setup-Pillar-
+      Wert auf ``"—"`` gesetzt wird (statt der numerischen Default)
+    - zero_setup_idx: 1-basierte Card-Indizes, deren Setup-Pillar-Wert
+      auf ``0.0`` gesetzt wird (Check 7-Pfad)
+    - pillar_value_with_suffix: ``False`` → Pillar-Value ohne
+      Konfidenz-Tier-Suffix (Regression-Test gegen die Exact-Match-
+      Falle aus Phase 1a)
+
+    Defaults: alle Cards Phase-1b-konform.
+    """
     if n_cockpit is None:
         n_cockpit = n_articles
     if n_price is None:
         n_price = n_articles
     if n_pillar is None:
         n_pillar = n_articles * 3
+    broken_setup_idx = set(broken_setup_idx or [])
+    zero_setup_idx = set(zero_setup_idx or [])
+
+    pv_suffix = " sb-conf-robust" if pillar_value_with_suffix else ""
+    dn_suffix = " sb-conf-heur"   if pillar_value_with_suffix else ""
+    pillar_names = ["setup", "monster", "ki"]
 
     parts = ["<html><body>"]
+    pillars_remaining = n_pillar
     for i in range(n_articles):
+        card_idx = i + 1  # 1-basiert für broken_setup_idx
         parts.append(f'<article class="card" id="c{i}">')
-    for _ in range(n_cockpit):
-        parts.append('<div class="card-cockpit"></div>')
-    for _ in range(n_price):
-        parts.append('<div class="cockpit-price"></div>')
-    for _ in range(n_pillar):
-        parts.append('<div class="cockpit-pillar"></div>')
+        has_cockpit = i < n_cockpit
+        if has_cockpit:
+            parts.append('<div class="card-cockpit">')
+        parts.append('<div class="cockpit-ticker-block"></div>')
+        if i < n_price:
+            parts.append('<div class="cockpit-price"></div>')
+        card_pillars = min(3, max(0, pillars_remaining))
+        for p_idx in range(card_pillars):
+            name = pillar_names[p_idx]
+            if name == "setup":
+                if card_idx in broken_setup_idx:
+                    val = "—"
+                elif card_idx in zero_setup_idx:
+                    val = "0.0"
+                else:
+                    val = "85.0"
+            else:
+                val = "70"
+            parts.append(
+                f'<div class="cockpit-pillar" data-sb="{name}">'
+                f'<div class="cockpit-pillar-value{pv_suffix}">{val}</div>'
+                f'</div>'
+            )
+        pillars_remaining -= card_pillars
+        parts.append(f'<div class="cockpit-donut-number{dn_suffix}">75</div>')
+        if has_cockpit:
+            parts.append('</div>')
+        parts.append('</article>')
     parts.append("</body></html>")
     return "".join(parts)
 
@@ -152,12 +205,128 @@ def test_10_invalid_input() -> None:
 def test_11_all_three_per_card_with_mix() -> None:
     """Mix-Szenario: alles passt außer card-cockpit (9 statt 10) → CRIT-Mix.
 
-    cockpit-price und pillar bleiben OK (10 / 30) — nur Mix-Eintrag."""
+    cockpit-price und pillar bleiben OK (10 / 30) — nur Mix-Eintrag.
+
+    Card #10 hat in der Phase-1b-Fixture auch keinen ``card-cockpit``-
+    Wrapper, aber alle 7 Gold-List-Per-Card-Checks (price/ticker-block/
+    pillar/pillar-value/donut-number) sind via Helper-Default trotzdem
+    in jeder Card vorhanden — daher KEIN zusätzlicher Phase-1b-Fail."""
     html = _build_html(10, n_cockpit=9, n_price=10, n_pillar=30)
     fails = evaluate_html_assertions(html)
     assert len(fails) == 1, f"erwartet exakt 1 Fail (Mix only), bekam: {fails}"
     assert fails[0]["id"] == "html_card_cockpit_count"
     assert fails[0]["severity"] == "crit"
+
+
+# ── Phase 1b — Pro-Card-Checks ────────────────────────────────────────────
+
+
+def test_12_per_card_all_healthy() -> None:
+    """Default-Fixture (10 Cards voll Phase-1b-konform) → 0 Phase-1b-Fails."""
+    html = _build_html(10)
+    fails = evaluate_html_assertions(html)
+    pc = [f for f in fails if f["id"].startswith("html_per_card_")
+          or f["id"].startswith("html_setup_pillar_")]
+    assert pc == [], f"erwartet 0 Phase-1b-Fails, bekam: {pc}"
+
+
+def test_13_per_card_price_one_defect_warn() -> None:
+    """1 von 10 Cards ohne cockpit-price → WARN (Phase 1b per-card)."""
+    html = _build_html(10, n_price=9)
+    fails = evaluate_html_assertions(html)
+    pc = [f for f in fails if f["id"] == "html_per_card_cockpit_price"]
+    assert len(pc) == 1, f"erwartet 1 Phase-1b-fail, bekam: {pc}"
+    assert pc[0]["severity"] == "warn"
+    assert pc[0]["card_indices"] == [10], \
+        f"erwartet card #10 als defekt, bekam: {pc[0]['card_indices']}"
+
+
+def test_14_per_card_price_six_defects_crit() -> None:
+    """6 von 10 Cards ohne cockpit-price → CRIT (Phase 1b per-card, ≥ ceil(n/2))."""
+    html = _build_html(10, n_price=4)
+    fails = evaluate_html_assertions(html)
+    pc = [f for f in fails if f["id"] == "html_per_card_cockpit_price"]
+    assert len(pc) == 1
+    assert pc[0]["severity"] == "crit", \
+        f"6/10 broken sollte CRIT sein, bekam: {pc[0]['severity']}"
+    assert len(pc[0]["card_indices"]) == 6
+
+
+def test_15_setup_pillar_em_dash_always_crit() -> None:
+    """Ein einzelnes Card mit Setup-Pillar="—" → IMMER CRIT (beschädigte
+    Trading-Info, unabhängig von n_broken)."""
+    html = _build_html(10, broken_setup_idx=[3])
+    fails = evaluate_html_assertions(html)
+    sp = [f for f in fails if f["id"] == "html_setup_pillar_non_numeric"]
+    assert len(sp) == 1, f"erwartet 1 non-numeric-fail, bekam: {sp}"
+    assert sp[0]["severity"] == "crit", \
+        "Setup-Pillar non-numeric muss IMMER CRIT sein (auch bei n=1)"
+    assert sp[0]["card_indices"] == [3]
+
+
+def test_16_setup_pillar_zero_one_card_warn() -> None:
+    """1 Card mit Setup-Pillar="0.0" → WARN (Check 7: <= 0, n=1)."""
+    html = _build_html(10, zero_setup_idx=[5])
+    fails = evaluate_html_assertions(html)
+    sp = [f for f in fails if f["id"] == "html_setup_pillar_non_positive"]
+    assert len(sp) == 1, f"erwartet 1 non-positive-fail, bekam: {sp}"
+    assert sp[0]["severity"] == "warn", \
+        f"1 Card mit Setup ≤ 0 sollte WARN sein, bekam: {sp[0]['severity']}"
+    assert sp[0]["card_indices"] == [5]
+
+
+def test_17_setup_pillar_zero_two_cards_crit() -> None:
+    """2 Cards mit Setup-Pillar="0.0" → CRIT (Check 7: n >= 2)."""
+    html = _build_html(10, zero_setup_idx=[2, 7])
+    fails = evaluate_html_assertions(html)
+    sp = [f for f in fails if f["id"] == "html_setup_pillar_non_positive"]
+    assert len(sp) == 1
+    assert sp[0]["severity"] == "crit", \
+        f"2 Cards mit Setup ≤ 0 sollten CRIT sein, bekam: {sp[0]['severity']}"
+    assert sorted(sp[0]["card_indices"]) == [2, 7]
+
+
+def test_18_prefix_match_with_conf_suffix_counts() -> None:
+    """Regression gegen die Exact-Match-Falle aus Phase 1a:
+    cockpit-pillar-value MIT sb-conf-Suffix wird vom Phase-1b-Per-Card-
+    Check korrekt als Treffer gezählt. Wenn Phase 1b versehentlich auf
+    Exact-Match (mit closing-quote) umgestellt würde, wären alle Cards
+    als defekt markiert.
+    """
+    html = _build_html(10, pillar_value_with_suffix=True)
+    fails = evaluate_html_assertions(html)
+    pc_val = [f for f in fails
+              if f["id"] == "html_per_card_cockpit_pillar_value"]
+    assert pc_val == [], \
+        f"Prefix-Match muss sb-conf-Suffix-Variante erkennen, bekam Fails: {pc_val}"
+
+    # Negative Kontrolle: ohne Suffix muss ebenfalls erkannt werden
+    html_no_sfx = _build_html(10, pillar_value_with_suffix=False)
+    fails_no_sfx = evaluate_html_assertions(html_no_sfx)
+    pc_val_no_sfx = [f for f in fails_no_sfx
+                     if f["id"] == "html_per_card_cockpit_pillar_value"]
+    assert pc_val_no_sfx == [], \
+        ("Prefix-Match muss AUCH ohne Suffix erkennen, bekam Fails: "
+         f"{pc_val_no_sfx}")
+
+
+def test_19_per_card_fail_detail_names_card_index() -> None:
+    """Fail-Detail-Text muss den Card-Index nennen (1-basiert)."""
+    html = _build_html(10, n_price=9)
+    fails = evaluate_html_assertions(html)
+    pc = [f for f in fails if f["id"] == "html_per_card_cockpit_price"]
+    assert len(pc) == 1
+    assert "#10" in pc[0]["detail"], \
+        f"erwartet '#10' im Detail, bekam: {pc[0]['detail']!r}"
+
+
+def test_20_per_card_donut_number_prefix_match() -> None:
+    """Phase-1b-Per-Card-Check für cockpit-donut-number trifft mit
+    Prefix-Match (Konfidenz-Tier-Suffix nicht obligat)."""
+    html = _build_html(10)  # default with sb-conf-heur-Suffix
+    fails = evaluate_html_assertions(html)
+    dn = [f for f in fails if f["id"] == "html_per_card_cockpit_donut_number"]
+    assert dn == [], f"erwartet 0 Donut-Fails, bekam: {dn}"
 
 
 def main() -> int:
@@ -173,6 +342,16 @@ def main() -> int:
         test_09_smaller_article_count_basis,
         test_10_invalid_input,
         test_11_all_three_per_card_with_mix,
+        # ── Phase 1b ────────────────────────────────────────────
+        test_12_per_card_all_healthy,
+        test_13_per_card_price_one_defect_warn,
+        test_14_per_card_price_six_defects_crit,
+        test_15_setup_pillar_em_dash_always_crit,
+        test_16_setup_pillar_zero_one_card_warn,
+        test_17_setup_pillar_zero_two_cards_crit,
+        test_18_prefix_match_with_conf_suffix_counts,
+        test_19_per_card_fail_detail_names_card_index,
+        test_20_per_card_donut_number_prefix_match,
     ]
     failed = 0
     for t in tests:
