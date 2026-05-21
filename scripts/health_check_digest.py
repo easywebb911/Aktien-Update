@@ -295,7 +295,15 @@ def main(*, now_ts: datetime | None = None,
         # ntfy disabled / Test-Mode → trotzdem state-update, damit auch ohne
         # ntfy nicht mehrfach pro Tag gerechnet wird (lokale Test-Runs).
         state["last_digest_sent"] = today_iso
-    if n_runs > 0 and not state_fails and not prov_fails:
+    # ``last_successful_run`` ist ein Liveness-Marker: „wann lief der
+    # Digest zuletzt überhaupt durch?". Vor 22.05.2026 wurde das Feld
+    # nur bei 0 Fails gesetzt — da seit 14.05. jeder Digest mindestens
+    # 1 Fail hatte, blieb es dauerhaft ``null`` und damit informations-
+    # los. Lockerung auf ``n_runs > 0``: Feld wird gesetzt sobald der
+    # Digest Daten im Fenster sieht und durchläuft, unabhängig vom
+    # Fail-Count. Nicht ``last_digest_sent`` ersetzen (das ist der
+    # ntfy-Push-Marker für S8); das hier ist der Workflow-Lauf-Marker.
+    if n_runs > 0:
         state["last_successful_run"] = (
             last_run_iso or now_ts.strftime("%Y-%m-%dT%H:%M:%SZ"))
 

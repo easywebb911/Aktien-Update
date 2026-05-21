@@ -373,6 +373,40 @@ def test_main_persists_state_on_real_run():
         assert state["last_digest_sent"] == "2026-05-15"
 
 
+def test_main_sets_last_successful_run_even_with_fails():
+    """Regression: ``last_successful_run`` muss auch bei n_runs>0 + Fails
+    gesetzt werden (vor 22.05.2026 nur bei 0 Fails, deshalb toter Code
+    seit 14.05.). Liveness-Marker, nicht 0-Fails-Marker.
+    """
+    dg = _import_digest_module()
+    # JSONL mit echten Daten füttern, damit n_runs > 0 ist und State-
+    # Fails entstehen (das ist genau die heutige Pre-22.05.-Lage).
+    fixture_run = {
+        "run_ts":     "2026-05-21T09:00:00Z",
+        "run_phase":  "postclose",
+        "state_fails": [{"id": "S6", "severity": "warn", "detail": "x"}],
+        "provider_fails": [],
+        "schema_v":   1,
+    }
+    with tempfile.TemporaryDirectory() as tmp:
+        tmp_state = pathlib.Path(tmp) / "state.json"
+        with mock.patch.object(dg, "DIGEST_STATE_FILE", tmp_state), \
+             mock.patch.object(dg, "_ntfy_send", return_value=False), \
+             mock.patch.object(dg, "NTFY_TOPIC", ""), \
+             mock.patch.object(dg, "_load_jsonl_window",
+                                return_value=[fixture_run]):
+            dg.main(now_ts=datetime(2026, 5, 21, 8, 47,
+                                     tzinfo=timezone.utc))
+        state = json.loads(tmp_state.read_text())
+    assert state.get("last_successful_run"), (
+        f"last_successful_run muss bei n_runs>0 gesetzt sein, auch "
+        f"wenn state_fails da sind. Bekam: {state.get('last_successful_run')!r}"
+    )
+    # Letzte run_ts aus dem Fenster wird übernommen.
+    assert state["last_successful_run"] == "2026-05-21T09:00:00Z", \
+        f"erwartet last-run-Timestamp aus Fenster, bekam: {state['last_successful_run']!r}"
+
+
 def test_main_skips_when_already_sent_today():
     dg = _import_digest_module()
     with tempfile.TemporaryDirectory() as tmp:
@@ -535,6 +569,7 @@ def main() -> None:
         ("_load_jsonl_window: kaputte Zeilen geskippt",      test_jsonl_window_tolerates_broken_lines),
         ("main(dry_run=True) schreibt keinen state",         test_main_dry_run_does_not_write_state),
         ("main() persistiert state",                          test_main_persists_state_on_real_run),
+        ("last_successful_run bei n_runs>0 + Fails",         test_main_sets_last_successful_run_even_with_fails),
         ("main() skipt bei already-sent-today",              test_main_skips_when_already_sent_today),
         ("main(force=True) überschreibt skip",               test_main_force_overrides_already_sent),
         ("_ntfy_send: disabled → no-op",                     test_ntfy_send_skipped_when_disabled),
