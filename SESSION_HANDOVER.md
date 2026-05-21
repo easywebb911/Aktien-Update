@@ -59,6 +59,20 @@ prüfen-verstehen-entscheiden.**
   - Wochenend-Schreibschutz für `_append_backtest_entries` — verhindert
     Akkumulation outcomeloser Sa/So-Einträge (96 Leichen Bestandsaufnahme)
   — gemerged
+- **PR #246** Health-Check S10 (Daten-Integritäts-Check, Phase 1
+  minimal): MUSS/LAG/OBSERVED-Klassifikation, Wochenend-Filter, Auto-
+  Detect-WARN für unklassifizierte Felder. Premium-Ziel-Erster-Baustein.
+  Live-Verifikation: 3 CRITs für die kaputten Trend-Felder, 0 false-
+  positives, 0 unbekannte Felder — gemerged
+- **PR #247** Cleanup der 96 Wochenend-Leichen aus `backtest_history.json`.
+  Backup-Marker-Commit `f242c86` + 5/5 Verifikationen grün. 1652 → 1556 —
+  gemerged
+- **PR #248** PR-γ-1 `score_normalization_version`-Marker (additiv, kein
+  Score-Effekt). Vorbereitung für γ-2 30.05. — gemerged
+- **PR #251** Entry-Score-Persistenz VORGEZOGEN (war 07.06. geplant):
+  `rvol_acceleration` + `uoa_atm_ratio` im V4-Schema. Grund:
+  Outcome-Lag — bei 07.06.-Start wäre r10d am 30.06.-Entry-AUC leer
+  gewesen. 14/14 Tests grün — gemerged
 
 ## Aktive Position (im Secret `POSITIONS_JSON`)
 
@@ -68,13 +82,25 @@ prüfen-verstehen-entscheiden.**
 
 ## Verifikation ausstehend
 
-- **PR #244 Live-Verifikation:** beim nächsten postclose-Daily-Run (Werktag,
-  21:17 UTC) prüfen, dass die neuen V4-Einträge tatsächlich `rvol_buildup_5d`,
-  `vol_stability_5d`, `coiled_spring_score` nicht-null haben. Schnell-Check
-  via `python3 -c "import json; bh=json.load(open('backtest_history.json'));
+- **PR #244 Live-Verifikation (morgen):** beim nächsten postclose-Daily-Run
+  (Werktag, 21:17 UTC) prüfen, dass die neuen V4-Einträge tatsächlich
+  `rvol_buildup_5d`, `vol_stability_5d`, `coiled_spring_score` nicht-null
+  haben. Schnell-Check via `python3 -c "import json;
+  bh=json.load(open('backtest_history.json'));
   v4=[e for e in bh if e.get('backtest_schema_version')==4 and e['date']=='<heute>'];
-  print({k: sum(1 for e in v4 if e.get(k) is not None) for k in ['rvol_buildup_5d',
-  'vol_stability_5d', 'coiled_spring_score']})"`.
+  print({k: sum(1 for e in v4 if e.get(k) is not None) for k in
+  ['rvol_buildup_5d', 'vol_stability_5d', 'coiled_spring_score']})"`.
+  **Falls Felder NACH einem postclose-Run noch null → Alarmsignal,
+  PR #244 re-diagnostizieren** (hist_5d-Propagation greift dann doch nicht).
+- **S10-Status-Verfolgung (morgen):** S10 meldet heute 3 CRITs für die drei
+  kaputten Felder. Nach dem ersten postclose-Run mit #244-Wirkung sollte
+  pct_null im 20er-Fenster von 100 % auf 50 % fallen (immer noch CRIT,
+  Schwelle 70 %). Nach 2 weiteren postclose-Tagen unter 30 % = WARN. Nach
+  ~4 Tagen unter 30 % → S10 grün. Falls S10 nicht kippt → Indiz dass #244
+  nicht greift.
+- **PR #251 Live-Verifikation:** beim nächsten postclose-Run prüfen, dass
+  `rvol_acceleration` + `uoa_atm_ratio` als zwei zusätzliche Keys in jedem
+  V4-Eintrag erscheinen (Wert numerisch oder `None`, beides legitim).
 - **Wochenend-Schreibschutz #244**: bei nächstem Easy-Sa/So-Trigger via
   `workflow_dispatch` erwartet — Workflow-Log enthält
   `Wochenend-Eintrag (...) übersprungen`, `backtest_history.json` unverändert.
@@ -95,16 +121,14 @@ prüfen-verstehen-entscheiden.**
 
 ### Neu nach Entry-Modul-Vorarbeit (21.05.)
 
-- **~07.06.2026 (kritisch, VOR Entry-Modul) — Entry-Score-Persistenz-PR.**
-  `rvol_acceleration` (`rel_volume` / `rel_volume_yesterday`) + `uoa_atm_ratio`
-  ins V4-Backtest-Schema persistieren. Grund: beide sind **live verfügbar
-  aber nicht in `backtest_history.json`** — ohne Persistenz später nie
-  kalibrierbar (`hist_5d`-Lehre vorausschauend: nicht-persistiertes Signal
-  ist für Selbst-Validierung verloren). Kleiner additiver PR analog
-  #244-Schema-Erweiterung. **S10-OBSERVED-Liste mit-erweitern** (sonst
-  Auto-Detect-WARN am ersten Daily-Run nach Merge). **MUSS vor 10.06. fertig
-  sein**, sonst kann Entry-Score nicht in den ersten Live-Einträgen alle
-  Komponenten zur Auswertung tragen.
+- ✅ **Entry-Score-Persistenz — ERLEDIGT 21.05. als PR #251 (vorgezogen vom
+  ursprünglich geplanten 07.06.).** `rvol_acceleration`
+  (`rel_volume` / `rel_volume_yesterday`) + `uoa_atm_ratio` sind ab jetzt
+  im V4-Backtest-Schema, `S10_OBSERVED` mit-erweitert. Grund Vorziehen:
+  Outcome-Lag — bei 07.06.-Start wäre `return_10d` am 30.06.-Entry-AUC
+  praktisch leer gewesen (10d-Lag überschreitet das Auswertungsfenster).
+  Mit Vorziehen ~80 r10d-Datenpunkte statt 0; Faktor 3× r5d-Coverage.
+  `hist_5d`-Lehre vorausschauend angewandt. **Nicht doppelt bauen.**
 - **~24.–30.06.2026** — Entry-AUC-Diagnose. `entry_score × return_5d/10d`.
   Kriterien:
   - AUC ≥ 0.65 → v1-heuristische Gewichte validiert
@@ -273,3 +297,21 @@ prüfen-verstehen-entscheiden.**
   bei asymmetrischer Strategie. Aber: jede Metrik mit zu dünnem n
   verpackt nur Rauschen schöner. Echter Confounder im Backtest:
   Bootstrap-Formel ≠ Live-Formel.
+- **Arbeitsprinzip — drei getrennte Rollen** (festgehalten 21.05.):
+  - **Diagnose** (read-only, Fakten ohne Meinung): Code liest, misst,
+    berichtet. Keine Empfehlung, keine Bewertung — nur Befunde.
+  - **Rat** (Code wägt ab, darf widersprechen — auch Easys eigener These):
+    Pro/Contra, klare Empfehlung, ehrlicher Widerspruch wenn Daten gegen
+    die Idee sprechen. „Nichts bauen" ist valides Ergebnis wenn begründet.
+  - **Entscheidung** (Easy allein, Trading-Wert-Filter): nach Rat wählt
+    Easy, was umgesetzt wird. Code baut erst nach explizitem OK.
+
+  Diese Methode **IST eine kleine Version des Premium-Ziels:** KI macht
+  Diagnose + Rat (= **Mechanik**), Mensch entscheidet (= **Bedeutung**).
+  Hartnäckigkeit ist an Prüfen gekoppelt, nicht an Verbissenheit —
+  derselbe Vorschlag kommt nur dann wieder, wenn neue Daten ihn stützen.
+  Belegt heute durch: 4 verworfene Wege (Hysterese, Stufe-3-Browser,
+  Frontend-Expectancy, großer `generate_report`-Split) + 6 vorgezogene
+  oder hinzugefügte PRs nach klarer Rat-Empfehlung (#247 Cleanup,
+  #248 γ-1-Marker, #251 Entry-Persistenz vorgezogen, S10/Phase 1b/HTML-
+  Sanity-2, quote_proxy-Probe).
