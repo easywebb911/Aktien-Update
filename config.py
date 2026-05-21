@@ -354,6 +354,14 @@ RVOL_NORMALIZATION_ENABLED = False
 PREMARKET_RVOL_SCALER      = 0.10  # Premarket-Volumen typisch ~10 % des Tagesvolumens
 INTRADAY_RVOL_MIN_FRAC     = 0.10  # Floor gegen Division-Explosion in ersten Open-Minuten
 
+# Backtest-Marker für die Score-Normalisierungs-Welle (PR-γ-1, additiv).
+# Jeder neue backtest_history.json-Eintrag traegt diesen Wert. Damit die
+# 30.06.-Auswertung pre-γ (raw-RVOL) sauber von post-γ (normalized-RVOL)
+# trennen kann — sonst Confounder analog Bootstrap-vs-Live (#238).
+# 1 = pre-γ (heutiger Stand, RVOL_NORMALIZATION_ENABLED=False)
+# 2 = post-γ (wird in PR-γ-2 auf 2 gesetzt zusammen mit ENABLED=True)
+SCORE_NORMALIZATION_VERSION = 1
+
 # ── FINRA-Trend-Konfiguration ────────────────────────────────────────────────
 # Stabilisiert 2026-04: 12 Handelstage statt 6, 6 Mindest-Datenpunkte
 # statt 3 — deutlich weniger Tagesausreißer, dafür mehr „Keine Daten" bei
@@ -1042,6 +1050,11 @@ S10_OBSERVED_FIELDS = frozenset({
     "perfect_storm_mult", "score_trend_bonus",
     "pool_member", "pool_position", "pool_size",
     "market_regime", "vix_level",
+    # PR-γ-1 Marker (additiv, kein Score-Effekt) — siehe SCORE_NORMALIZATION_VERSION.
+    # Ohne diesen Eintrag wuerde S10-Auto-Detect am ersten Daily-Run nach
+    # γ-1-Merge ein false-positive WARN "Unklassifiziert: score_normalization_version"
+    # ausloesen (PR #246).
+    "score_normalization_version",
     # LAG-Felder, später (Phase 2)
     "entry_price_t1",
     "return_10d", "return_10d_t1",

@@ -13809,6 +13809,11 @@ def _append_backtest_entries(top10: list[dict], report_date: str,
             "max_drawdown_pct": 0.0,
             "market_regime":    market_regime,
             "vix_level":        vix_level,
+            # PR-γ-1 Marker: 1 = pre-γ (raw-RVOL), 2 = post-γ (normalized).
+            # Heutiger Wert immer 1 (RVOL_NORMALIZATION_ENABLED=False). Wird
+            # in PR-γ-2 mit der Aktivierung auf 2 hochgezählt, damit die
+            # 30.06.-Backtest-Auswertung beide Welten sauber trennen kann.
+            "score_normalization_version": SCORE_NORMALIZATION_VERSION,
         }
         # Bahn B: Schema-Erweiterung (rückwärtskompatibel — alte Einträge
         # bleiben mit 16 Feldern unverändert; neue bekommen 14 zusätzliche).
