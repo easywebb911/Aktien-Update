@@ -16590,6 +16590,33 @@ def main():
                             or f"{_13f_acct['failures']}/{_13f_acct['calls']} calls failed"),
                 run_phase=run_phase,
             )
+        # Tier 2: quote_proxy — serverseitige Probe des Cloudflare-Workers.
+        # Fängt Worker-tot + Yahoo-v8-Bruch (Worker antwortet 200 mit
+        # error-Feld). CORS bewusst ausgeklammert — Browser-only. Probe
+        # läuft NUR wenn QUOTE_PROXY_URL gesetzt + URL-Format valide ist;
+        # sonst skipped=True → keine JSONL-Zeile (kein false-positive
+        # bei nicht-konfigurierten Tests/Forks). Tier 2 + kein Push-Block
+        # (Live-Charts sind Komfort, kein Score-Input).
+        try:
+            from scripts.probe_quote_proxy import probe_quote_proxy
+            _qp_res = probe_quote_proxy(
+                os.environ.get("QUOTE_PROXY_URL", ""),
+                ticker=QUOTE_PROXY_PROBE_TICKER,
+                timeout_s=QUOTE_PROXY_PROBE_TIMEOUT_S,
+                origin=QUOTE_PROXY_PROBE_ORIGIN,
+            )
+            if not _qp_res.get("skipped"):
+                health_check.record_provider_call(
+                    provider="quote_proxy",
+                    tier=HEALTH_CHECK_PROVIDER_TIER.get("quote_proxy", 2),
+                    latency_ms=_qp_res["latency_ms"],
+                    http_status=_qp_res["http_status"],
+                    item_count=_qp_res["item_count"],
+                    error=_qp_res["error"],
+                    run_phase=run_phase,
+                )
+        except Exception as _exc_qp:
+            log.debug("quote_proxy provider-record skipped: %s", _exc_qp)
         try:
             health_check.prune_provider_log()
         except Exception as _exc_pp:

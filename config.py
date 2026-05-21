@@ -921,6 +921,15 @@ HEALTH_CHECK_S8_MAX_AGE_HOURS       = 26   # max Alter last_digest_sent
                                             #  Daily-Digest-Slot verpasst)
 HEALTH_CHECK_CUTOFF_DAYS            = 30   # JSONL-Prune-Cutoff
 
+# Quote-Proxy-Probe (Tier-2-Provider, 1× pro Daily-Run):
+QUOTE_PROXY_PROBE_TICKER            = "NVDA"   # Bench-Ticker für Worker-Ping
+QUOTE_PROXY_PROBE_TIMEOUT_S         = 5.0      # Sekunden HTTP-Timeout
+# Origin-Header: identisch zum echten Client-Browser. Drift zwischen
+# diesem Wert und der Worker-ALLOWED_ORIGINS-Liste würde die Probe
+# weiterhin durchlaufen lassen (Worker fällt auf Allowlist[0] zurück
+# statt 403), aber so simuliert die Probe den Client möglichst genau.
+QUOTE_PROXY_PROBE_ORIGIN            = "https://easywebb911.github.io"
+
 # Phase 2 — Provider-Health-Instrumentierung. Tier-Zuordnung (1=crit,
 # 2=warn-3-in-Folge, 3=warn-3-in-Folge) gemäß
 # docs/health_check_spec.md. Phase 2 PR 1 instrumentiert nur Tier-1;
@@ -936,6 +945,10 @@ HEALTH_CHECK_PROVIDER_TIER = {
     "finnhub":             2,   # Earnings Calendar (pro offene Position)
     "stockanalysis":       2,   # Aggregat aus _si + _borrow
     "earningswhispers":    2,   # RSS Calendar (1× pro Daily-Run)
+    "quote_proxy":         2,   # Cloudflare-Worker → Yahoo v8 chart-Probe
+                                # (Frontend-Live-Quote-Pipeline-Health; 1×
+                                # pro Daily-Run; CORS bewusst ungeprüft —
+                                # Browser-only; nur Worker-tot + Yahoo-Bruch)
     # Tier 3 (warn, 3-in-Folge-Trigger — Konsekutiv-Persistenz in Phase 3).
     # Klärung 15.05.2026: getrennte Provider-Keys statt Spec-Wortlaut-
     # Aggregate, für saubere Coverage-Granularität.
@@ -961,6 +974,7 @@ HEALTH_CHECK_PROVIDER_EXPECTED = {
     "finnhub":             None,   # 1 Call pro Position; emittiert nur bei calls>0
     "stockanalysis":       None,   # N pro Top-10 (ENABLED-gated)
     "earningswhispers":    None,   # RSS-Feed-Größe schwankt (~30–80)
+    "quote_proxy":         1,      # genau 1 Probe-Quote (Bench-Ticker NVDA)
     # Tier 3 — alle Coverage-variabel (per-Top-10-Aufrufe schwanken)
     "stocktwits":          None,
     "uoa":                 None,
