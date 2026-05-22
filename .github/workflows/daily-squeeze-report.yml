@@ -13,7 +13,7 @@ on:
     # Minute-17-Offset (statt :00) gegen GitHub-Actions-Load-Peak-Drops
     # zur vollen Stunde (analog ki_agent.yml PR #143). Beleg: 14.05.2026
     # 10:00-UTC-Cron komplett ausgefallen.
-    - cron: '17 10 * * 1-5'
+    - cron: '17 8 * * 1-5'
     # 21:17 UTC = 23:17 CEST / 22:17 CET — `postclose`-Run, ~47min nach
     # US-Close. Liefert EOD-konsolidierte Daten = die „Wahrheit". Backtest-
     # History bekommt einen Eintrag pro Top-10-Ticker; Anomaly-Pushes
