@@ -1,10 +1,10 @@
 {
-  "updated": "2026-05-23T00:19:31.608903+02:00",
+  "updated": "2026-05-23T01:20:12.805509+02:00",
   "run_info": {
     "tickers_checked": 18,
     "signals_active": 1,
     "alerts_sent": 0,
-    "elapsed_s": 17.2,
+    "elapsed_s": 12.0,
     "market_phase": "After-Hours"
   },
   "signals": {
@@ -31,9 +31,9 @@
       "uoa_cp_ratio": 3.6621004566210047
     },
     "AI": {
-      "score": 53,
+      "score": 38,
       "confidence": 70,
-      "drivers": "Spanne 6.5% + News: breakout + Earnings in 12d + SEC Form 4 + UOA Call/Put 45.4×",
+      "drivers": "Spanne 6.5% + Earnings in 12d + SEC Form 4 + UOA Call/Put 45.4×",
       "price": 9.29,
       "chg_pct": -0.0,
       "rvol_4d": 1.02,
@@ -44,7 +44,7 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 1,
+      "active_triggers": 0,
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 45.4×"
@@ -179,9 +179,9 @@
       "uoa_cp_ratio": 10.183333333333334
     },
     "GOGO": {
-      "score": 53,
+      "score": 60,
       "confidence": 70,
-      "drivers": "Spanne 7.6% + News-KI 8/30: Positive fundamental articles lacking short squeeze indicators like high short interest, unusual volume spikes, or expli + FINRA Short-Vol 100% + UOA Call/Put 19.0×",
+      "drivers": "Spanne 7.6% + News: catalyst + FINRA Short-Vol 100% + UOA Call/Put 19.0×",
       "price": 4.33,
       "chg_pct": -0.0,
       "rvol_4d": 1.26,
@@ -192,7 +192,7 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 0,
+      "active_triggers": 1,
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 19.0×"
@@ -245,9 +245,9 @@
       "uoa_cp_ratio": 4.162274814553162
     },
     "IOVA": {
-      "score": 43,
+      "score": 35,
       "confidence": 70,
-      "drivers": "Volumen 2.3× + Spanne 13.8% + News-KI 8/30: Routine administrative filings and conference presentations lack catalysts for short squeeze; penny stock hype is specul + UOA Call/Put 32.1×",
+      "drivers": "Volumen 2.3× + Spanne 13.8% + UOA Call/Put 32.1×",
       "price": 4.11,
       "chg_pct": 0.0,
       "rvol_4d": 2.32,
@@ -267,13 +267,13 @@
       "uoa_cp_ratio": 32.14705882352941
     },
     "OXM": {
-      "score": 8,
-      "confidence": 17,
-      "drivers": "Earnings in 19d",
+      "score": 18,
+      "confidence": 33,
+      "drivers": "Spanne 6.4% + Earnings in 19d",
       "price": 41.73,
-      "chg_pct": 0.0,
-      "rvol_4d": 0.0,
-      "rvol_20d": null,
+      "chg_pct": -0.0,
+      "rvol_4d": 0.69,
+      "rvol_20d": 0.83,
       "earnings": "in 19 Tagen (10.06.2026)",
       "fda_date": null,
       "upcoming_event": null,
@@ -353,9 +353,9 @@
       "uoa_cp_ratio": 32.13966480446928
     },
     "SPCE": {
-      "score": 73,
+      "score": 65,
       "confidence": 70,
-      "drivers": "Volumen 3.3× + ⚡ Extremes Volumen 3.3×+ + Spanne 23.0% + News-KI 8/30: Routine earnings announcements lack short-squeeze catalysts like extreme short interest, low float, or bullish surprises + SEC Form 4 + UOA Call/Put 6.8×",
+      "drivers": "Volumen 3.3× + ⚡ Extremes Volumen 3.3×+ + Spanne 23.0% + SEC Form 4 + UOA Call/Put 6.8×",
       "price": 3.24,
       "chg_pct": 0.0,
       "rvol_4d": 3.32,
