@@ -64,8 +64,12 @@ jobs:
             exit 0
           fi
           git commit -m "Health-Check-Digest state $(date -u '+%Y-%m-%d')"
-          # Cleanup-Logik analog ki_agent: bei Konflikten mit parallelem
-          # Daily-Run/ki_agent-Push nehmen wir --ours fuer JSON-Files.
+          # Konflikt-Aufloesung: anders als bei daily-run/ki_agent (die
+          # bewusst Last-Write-Wins fuer regenerierbare Files wollen) ist
+          # health_check_digest_state.json ein nicht-regenerierbarer,
+          # monotoner Marker (last_digest_sent). Bei Konflikt MUSS die
+          # frische lokale Schreibung gewinnen, sonst stagniert der Marker
+          # und S8 meldet dauerhaft Fehlalarm.
           if ! git pull --rebase origin main; then
             if [ -d .git/rebase-merge ] || [ -d .git/rebase-apply ]; then
               conflicted=$(git diff --name-only --diff-filter=U)
@@ -77,10 +81,10 @@ jobs:
                 exit 1
               fi
               conflicted_json=$(echo "$conflicted" | grep '\.json$' || true)
-              echo "JSON-Konflikte erkannt, uebernehme --ours (digest-state):"
+              echo "JSON-Konflikte erkannt, uebernehme --theirs (frische digest-state-Schreibung, da unter Rebase --theirs = lokaler Commit):"
               echo "$conflicted_json"
               for f in $conflicted_json; do
-                git checkout --ours -- "$f"
+                git checkout --theirs -- "$f"
                 git add -- "$f"
               done
               GIT_EDITOR=true git rebase --continue
@@ -90,4 +94,12 @@ jobs:
               exit 1
             fi
           fi
+          # Robustheit/Diagnose (B): nach Rebase enthaelt HEAD die frische
+          # digest-state-Schreibung (clean-Rebase: lokaler Commit repliziert;
+          # Konflikt: --theirs hat die lokale Version behalten). Diese Zeile
+          # macht in den Workflow-Logs sichtbar, welcher last_digest_sent
+          # tatsaechlich nach main gepusht wird — verhindert stille
+          # Marker-Stagnation (S8-Fehlalarm) unbemerkt durchzulaufen.
+          echo "Push-Check — last_digest_sent in HEAD:"
+          grep last_digest_sent health_check_digest_state.json || true
           git push origin main
