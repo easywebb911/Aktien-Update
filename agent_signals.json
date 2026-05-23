@@ -1,10 +1,10 @@
 {
-  "updated": "2026-05-23T11:14:34.765314+02:00",
+  "updated": "2026-05-23T12:45:03.493893+02:00",
   "run_info": {
     "tickers_checked": 18,
     "signals_active": 1,
     "alerts_sent": 0,
-    "elapsed_s": 14.8,
+    "elapsed_s": 16.4,
     "market_phase": "Geschlossen"
   },
   "signals": {
@@ -119,7 +119,7 @@
     "CRMD": {
       "score": 30,
       "confidence": 17,
-      "drivers": "News: earnings beat, guidance raised",
+      "drivers": "News: guidance raised, earnings beat",
       "price": 7.98,
       "chg_pct": 0.0,
       "rvol_4d": 0.5,
@@ -349,7 +349,7 @@
     "SPCE": {
       "score": 73,
       "confidence": 70,
-      "drivers": "Volumen 3.3× + ⚡ Extremes Volumen 3.3×+ + Spanne 23.0% + News-KI 8/30: Earnings call highlights show operational updates but lack indicators of high short interest, low float, or extreme pric + SEC Form 4 + UOA Call/Put 6.1×",
+      "drivers": "Volumen 3.3× + ⚡ Extremes Volumen 3.3×+ + Spanne 23.0% + News-KI 8/30: Earnings call highlights show operational updates but lack indicators of high short interest, low float, or catalyst-dri + SEC Form 4 + UOA Call/Put 6.1×",
       "price": 3.24,
       "chg_pct": 0.0,
       "rvol_4d": 3.34,
