@@ -1,10 +1,10 @@
 {
-  "updated": "2026-05-23T14:08:38.864023+02:00",
+  "updated": "2026-05-23T15:55:03.231493+02:00",
   "run_info": {
     "tickers_checked": 18,
-    "signals_active": 1,
+    "signals_active": 3,
     "alerts_sent": 0,
-    "elapsed_s": 17.5,
+    "elapsed_s": 17.0,
     "market_phase": "Geschlossen"
   },
   "signals": {
@@ -31,9 +31,9 @@
       "uoa_cp_ratio": 3.6621004566210047
     },
     "AI": {
-      "score": 53,
+      "score": 46,
       "confidence": 70,
-      "drivers": "Spanne 6.5% + News: breakout + Earnings in 11d + SEC Form 4 + UOA Call/Put 69.1×",
+      "drivers": "Spanne 6.5% + News-KI 8/30: Positive operational metrics and yield story lack short-squeeze catalysts; no mention of high short interest, technical  + Earnings in 11d + SEC Form 4 + UOA Call/Put 69.1×",
       "price": 9.29,
       "chg_pct": -0.0,
       "rvol_4d": 1.04,
@@ -44,7 +44,7 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 1,
+      "active_triggers": 0,
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 69.1×"
@@ -119,7 +119,7 @@
     "CRMD": {
       "score": 30,
       "confidence": 17,
-      "drivers": "News: earnings beat, guidance raised",
+      "drivers": "News: guidance raised, earnings beat",
       "price": 7.98,
       "chg_pct": 0.0,
       "rvol_4d": 0.5,
@@ -218,7 +218,9 @@
         "UOA Call/Put 13.0×"
       ],
       "uoa_atm_ratio": 0.40851845373447615,
-      "uoa_cp_ratio": 13.038664323374341
+      "uoa_cp_ratio": 13.038664323374341,
+      "push_silenced": true,
+      "silenced_reason": "+23% 2T"
     },
     "IONQ": {
       "score": 25,
@@ -283,9 +285,9 @@
       "uoa_cp_ratio": 0.3090909090909091
     },
     "PDYN": {
-      "score": 18,
+      "score": 10,
       "confidence": 17,
-      "drivers": "News-KI 8/30: Routine corporate announcements and analyst rating changes lack the short-squeeze catalysts of high short interest, forc + UOA Call/Put 7.8×",
+      "drivers": "UOA Call/Put 7.8×",
       "price": 6.4,
       "chg_pct": 0.0,
       "rvol_4d": 1.2,
