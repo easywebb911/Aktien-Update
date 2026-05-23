@@ -1,5 +1,5 @@
 {
-  "last_run": "2026-05-23T15:55:03.380589+02:00",
+  "last_run": "2026-05-23T16:03:31.863805+02:00",
   "cooldowns": {
     "anomaly_score_jump_XRX": "2026-05-03T18:47:15.315486+02:00",
     "anomaly_uoa_extreme_TDOC": "2026-05-04T13:47:00.365949+02:00",
@@ -40,42 +40,6 @@
     "exit_CRDF": "2026-05-23T15:53:11.029636+02:00"
   },
   "push_history": [
-    {
-      "ts": "2026-05-16T16:01:03.112090+02:00",
-      "ticker": "SKYQ",
-      "kind": "anomaly",
-      "severity": "medium",
-      "trigger": "score_jump",
-      "body": "SKYQ 🚀 Setup 68 ↑ (gestern 52) | Volumen 7.7× + 🚀 Massives Volumen 7.7×+ + Spanne 51.2% + New…",
-      "success": false,
-      "suppressed": true,
-      "suppress_reason": "conviction_below_threshold",
-      "conviction_score": 47
-    },
-    {
-      "ts": "2026-05-16T17:17:19.574378+02:00",
-      "ticker": "GEMI",
-      "kind": "anomaly",
-      "severity": "high",
-      "trigger": "monster_backup",
-      "body": "GEMI 🔥 Monster 90 | Setup 75 | KI 82",
-      "success": false,
-      "suppressed": true,
-      "suppress_reason": "conviction_below_threshold",
-      "conviction_score": 53
-    },
-    {
-      "ts": "2026-05-16T17:17:19.574562+02:00",
-      "ticker": "SKYQ",
-      "kind": "anomaly",
-      "severity": "medium",
-      "trigger": "score_jump",
-      "body": "SKYQ 🚀 Setup 68 ↑ (gestern 52) | Volumen 7.7× + 🚀 Massives Volumen 7.7×+ + Spanne 51.2% + New…",
-      "success": false,
-      "suppressed": true,
-      "suppress_reason": "conviction_below_threshold",
-      "conviction_score": 47
-    },
     {
       "ts": "2026-05-16T18:06:54.430158+02:00",
       "ticker": "GEMI",
@@ -1230,6 +1194,42 @@
     },
     {
       "ts": "2026-05-23T15:55:03.231442+02:00",
+      "ticker": "VITL",
+      "kind": "anomaly",
+      "severity": "medium",
+      "trigger": "score_jump",
+      "body": "VITL 🚀 Setup 53 ↑ (gestern 36) | Spanne 8.5% + SEC Form 4 + UOA Call/Put 2.7×",
+      "success": false,
+      "suppressed": true,
+      "suppress_reason": "conviction_below_threshold",
+      "conviction_score": 56
+    },
+    {
+      "ts": "2026-05-23T16:03:31.714674+02:00",
+      "ticker": "AEVA",
+      "kind": "anomaly",
+      "severity": "medium",
+      "trigger": "score_jump",
+      "body": "AEVA 🚀 Setup 59 ↑ (gestern 39) | Volumen 2.0× + Spanne 15.6% + UOA Call/Put 3.7×",
+      "success": false,
+      "suppressed": true,
+      "suppress_reason": "conviction_below_threshold",
+      "conviction_score": 58
+    },
+    {
+      "ts": "2026-05-23T16:03:31.715007+02:00",
+      "ticker": "OXM",
+      "kind": "anomaly",
+      "severity": "medium",
+      "trigger": "score_jump",
+      "body": "OXM 🚀 Setup 56 ↑ (gestern 39) | Spanne 6.6% + Earnings in 18d",
+      "success": false,
+      "suppressed": true,
+      "suppress_reason": "conviction_below_threshold",
+      "conviction_score": 64
+    },
+    {
+      "ts": "2026-05-23T16:03:31.715122+02:00",
       "ticker": "VITL",
       "kind": "anomaly",
       "severity": "medium",

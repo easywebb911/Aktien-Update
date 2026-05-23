@@ -1,10 +1,10 @@
 {
-  "updated": "2026-05-23T15:55:03.231493+02:00",
+  "updated": "2026-05-23T16:03:31.715174+02:00",
   "run_info": {
     "tickers_checked": 18,
     "signals_active": 3,
     "alerts_sent": 0,
-    "elapsed_s": 17.0,
+    "elapsed_s": 24.8,
     "market_phase": "Geschlossen"
   },
   "signals": {
@@ -31,9 +31,9 @@
       "uoa_cp_ratio": 3.6621004566210047
     },
     "AI": {
-      "score": 46,
+      "score": 53,
       "confidence": 70,
-      "drivers": "Spanne 6.5% + News-KI 8/30: Positive operational metrics and yield story lack short-squeeze catalysts; no mention of high short interest, technical  + Earnings in 11d + SEC Form 4 + UOA Call/Put 69.1×",
+      "drivers": "Spanne 6.5% + News: breakout + Earnings in 11d + SEC Form 4 + UOA Call/Put 69.1×",
       "price": 9.29,
       "chg_pct": -0.0,
       "rvol_4d": 1.04,
@@ -44,7 +44,7 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 0,
+      "active_triggers": 1,
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 69.1×"
@@ -53,9 +53,9 @@
       "uoa_cp_ratio": 69.07622504537206
     },
     "AKAN": {
-      "score": 25,
-      "confidence": 33,
-      "drivers": "Volumen 2.9× + Spanne 25.8%",
+      "score": 30,
+      "confidence": 70,
+      "drivers": "Volumen 2.9× + Spanne 25.8% + News-KI 5/30: Negative corporate governance events (NASDAQ noncompliance, meeting cancellations) indicate financial distress rather th",
       "price": 27.12,
       "chg_pct": 0.0,
       "rvol_4d": 2.88,
