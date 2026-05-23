@@ -58,36 +58,51 @@ jobs:
         run: |
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git config user.name "github-actions[bot]"
-          git add health_check_digest_state.json 2>/dev/null || true
-          if git diff --staged --quiet; then
-            echo "Keine state-Aenderung — kein Commit."
-            exit 0
-          fi
-          git commit -m "Health-Check-Digest state $(date -u '+%Y-%m-%d')"
-          # Cleanup-Logik analog ki_agent: bei Konflikten mit parallelem
-          # Daily-Run/ki_agent-Push nehmen wir --ours fuer JSON-Files.
-          if ! git pull --rebase origin main; then
-            if [ -d .git/rebase-merge ] || [ -d .git/rebase-apply ]; then
-              conflicted=$(git diff --name-only --diff-filter=U)
-              conflicted_other=$(echo "$conflicted" | grep -v '\.json$' || true)
-              if [ -n "$conflicted_other" ]; then
-                echo "ERROR: Konflikt in nicht-JSON-Dateien — Abbruch:"
-                echo "$conflicted_other"
-                git rebase --abort
-                exit 1
-              fi
-              conflicted_json=$(echo "$conflicted" | grep '\.json$' || true)
-              echo "JSON-Konflikte erkannt, uebernehme --ours (digest-state):"
-              echo "$conflicted_json"
-              for f in $conflicted_json; do
-                git checkout --ours -- "$f"
-                git add -- "$f"
-              done
-              GIT_EDITOR=true git rebase --continue
-            else
-              echo "ERROR: git pull --rebase scheiterte vor Rebase-Start."
-              git status --short
-              exit 1
+          # Robustes Persistieren des digest-state-Markers gegen parallele
+          # Pushes. main ist sehr aktiv (ki_agent stuendlich `17 * * * *`,
+          # Daily-Run mehrmals taeglich). Die alte Rebase-mit-Konflikt-
+          # Aufloesung scheiterte reproduzierbar: entweder push-Reject
+          # (non-fast-forward, kein Retry) oder --ours verwarf unter Rebase
+          # die frische Schreibung. Folge: last_digest_sent kam nie nach
+          # main, S8 zaehlte hoch (Fehlalarm trotz gruenem ntfy-Push).
+          #
+          # Neues Muster: die vom Skript geschriebene digest-state-Version
+          # sichern, dann in einer Retry-Schleife auf den jeweils NEUESTEN
+          # origin/main-Stand aufsetzen (reset --hard) + die frische Version
+          # wieder einspielen + commit + push. Bei push-Reject neu fetchen
+          # und erneut versuchen. Nur health_check_digest_state.json wird von
+          # diesem Workflow geschrieben — keine anderen Files im Spiel, daher
+          # ist reset --hard hier verlustfrei (frische Version in $RUNNER_TEMP).
+          FRESH="${RUNNER_TEMP:-/tmp}/digest_state_fresh.json"
+          cp health_check_digest_state.json "$FRESH"
+          pushed=0
+          for attempt in 1 2 3 4 5; do
+            if ! git fetch origin main; then
+              echo "fetch fehlgeschlagen (Versuch $attempt) — retry."
+              sleep 2
+              continue
             fi
+            git reset --hard origin/main
+            cp "$FRESH" health_check_digest_state.json
+            git add health_check_digest_state.json
+            if git diff --staged --quiet; then
+              echo "Keine state-Aenderung gegenueber origin/main — kein Commit noetig."
+              pushed=1
+              break
+            fi
+            git commit -m "Health-Check-Digest state $(date -u '+%Y-%m-%d')"
+            if git push origin main; then
+              echo "digest-state gepusht (Versuch $attempt)."
+              pushed=1
+              break
+            fi
+            echo "push rejected (Versuch $attempt) — neu fetchen und retry."
+            sleep 2
+          done
+          if [ "$pushed" -ne 1 ]; then
+            echo "ERROR: digest-state konnte nach 5 Versuchen nicht gepusht werden."
+            exit 1
           fi
-          git push origin main
+          # Diagnose: welcher Marker tatsaechlich nach main ging.
+          echo "Push-Check — last_digest_sent in main:"
+          grep last_digest_sent health_check_digest_state.json || true
