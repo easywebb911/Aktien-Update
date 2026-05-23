@@ -1,10 +1,10 @@
 {
-  "updated": "2026-05-23T22:36:27.181824+02:00",
+  "updated": "2026-05-23T23:08:50.988918+02:00",
   "run_info": {
     "tickers_checked": 18,
     "signals_active": 3,
     "alerts_sent": 0,
-    "elapsed_s": 20.6,
+    "elapsed_s": 11.2,
     "market_phase": "Geschlossen"
   },
   "signals": {
@@ -75,7 +75,7 @@
     "AMC": {
       "score": 38,
       "confidence": 70,
-      "drivers": "Spanne 8.9% + News-KI 8/30: Negative analyst coverage combined with correction notice suggests weakness, not squeeze potential; no indicators of sho + SEC Form 4 + UOA Call/Put 11.0×",
+      "drivers": "Spanne 8.9% + News-KI 8/30: Negative Wall Street sentiment and correction news are bearish signals that reduce short-squeeze potential. + SEC Form 4 + UOA Call/Put 11.0×",
       "price": 1.51,
       "chg_pct": -0.0,
       "rvol_4d": 0.83,
@@ -119,7 +119,7 @@
     "CRMD": {
       "score": 30,
       "confidence": 17,
-      "drivers": "News: guidance raised, earnings beat",
+      "drivers": "News: earnings beat, guidance raised",
       "price": 7.98,
       "chg_pct": 0.0,
       "rvol_4d": 0.5,
@@ -351,7 +351,7 @@
     "SPCE": {
       "score": 73,
       "confidence": 70,
-      "drivers": "Volumen 3.3× + ⚡ Extremes Volumen 3.3×+ + Spanne 23.0% + News-KI 8/30: Routine quarterly earnings announcements with no indicators of high short interest, significant short covering, or catal + SEC Form 4 + UOA Call/Put 6.1×",
+      "drivers": "Volumen 3.3× + ⚡ Extremes Volumen 3.3×+ + Spanne 23.0% + News-KI 8/30: Routine Q1 earnings announcements lack the negative catalysts, high short interest, or technical signals typically requi + SEC Form 4 + UOA Call/Put 6.1×",
       "price": 3.24,
       "chg_pct": 0.0,
       "rvol_4d": 3.34,
