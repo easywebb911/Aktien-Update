@@ -30,40 +30,16 @@
     "earnings_immediate_GEMI_14.05.2026": "2026-05-14T23:25:08.201852+02:00",
     "exit_KPTI": "2026-05-15T18:17:09.325572+02:00",
     "anomaly_conviction_high_SNSE": "2026-05-15T19:30:32.046324+02:00",
-    "exit_CRMD": "2026-05-23T00:18:38.913185+02:00",
+    "exit_CRMD": "2026-05-23T15:53:10.933347+02:00",
     "anomaly_conviction_high_CRDF": "2026-05-19T16:49:36.576105+02:00",
     "anomaly_monster_backup_CRDF": "2026-05-20T14:41:53.889055+02:00",
     "anomaly_score_jump_XPOF": "2026-05-20T20:46:08.006968+02:00",
     "anomaly_monster_backup_XPOF": "2026-05-20T20:46:08.066894+02:00",
     "anomaly_conviction_high_DMRC": "2026-05-20T17:31:02.518802+02:00",
     "anomaly_conviction_high_LENZ": "2026-05-20T19:11:36.061944+02:00",
-    "exit_CRDF": "2026-05-23T00:18:39.048156+02:00"
+    "exit_CRDF": "2026-05-23T15:53:11.029636+02:00"
   },
   "push_history": [
-    {
-      "ts": "2026-05-16T15:40:38.675298+02:00",
-      "ticker": "GEMI",
-      "kind": "anomaly",
-      "severity": "high",
-      "trigger": "monster_backup",
-      "body": "GEMI 🔥 Monster 90 | Setup 75 | KI 68",
-      "success": false,
-      "suppressed": true,
-      "suppress_reason": "conviction_below_threshold",
-      "conviction_score": 53
-    },
-    {
-      "ts": "2026-05-16T15:40:38.675463+02:00",
-      "ticker": "SKYQ",
-      "kind": "anomaly",
-      "severity": "medium",
-      "trigger": "score_jump",
-      "body": "SKYQ 🚀 Setup 68 ↑ (gestern 52) | Volumen 7.7× + 🚀 Massives Volumen 7.7×+ + Spanne 51.2% + New…",
-      "success": false,
-      "suppressed": true,
-      "suppress_reason": "conviction_below_threshold",
-      "conviction_score": 47
-    },
     {
       "ts": "2026-05-16T15:58:19.694092+02:00",
       "ticker": "GEMI",
@@ -1235,6 +1211,30 @@
       "severity": "trigger",
       "trigger": "catalyst",
       "body": "🔻 Exit-Signal RR: catalyst crit ({'earnings_date': '2026-05-22', 'trading_days_until': 0, 'window': 2})",
+      "success": true,
+      "suppressed": false,
+      "suppress_reason": null,
+      "conviction_score": null
+    },
+    {
+      "ts": "2026-05-23T15:53:10.933298+02:00",
+      "ticker": "CRMD",
+      "kind": "exit_p1",
+      "severity": "default",
+      "trigger": "exit_alert",
+      "body": "CRMD 📉 Exit 61 | +1% | Trailing-Stop −10.7% vom Hoch",
+      "success": true,
+      "suppressed": false,
+      "suppress_reason": null,
+      "conviction_score": null
+    },
+    {
+      "ts": "2026-05-23T15:53:11.029607+02:00",
+      "ticker": "CRDF",
+      "kind": "exit_p1",
+      "severity": "default",
+      "trigger": "exit_alert",
+      "body": "CRDF 📉 Exit 60 | +1% | Trailing-Stop −10.6% vom Hoch",
       "success": true,
       "suppressed": false,
       "suppress_reason": null,
