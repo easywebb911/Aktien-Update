@@ -1,17 +1,17 @@
 {
-  "updated": "2026-05-24T21:42:09.648896+02:00",
+  "updated": "2026-05-24T23:12:14.327105+02:00",
   "run_info": {
     "tickers_checked": 18,
     "signals_active": 3,
     "alerts_sent": 0,
-    "elapsed_s": 12.5,
+    "elapsed_s": 12.2,
     "market_phase": "Geschlossen"
   },
   "signals": {
     "AEVA": {
-      "score": 43,
+      "score": 35,
       "confidence": 70,
-      "drivers": "Volumen 2.0× + Spanne 15.6% + News-KI 8/30: Moderate positive sentiment on lidar technology, but no short squeeze indicators like high short interest, dilution conc + UOA Call/Put 3.7×",
+      "drivers": "Volumen 2.0× + Spanne 15.6% + UOA Call/Put 3.7×",
       "price": 25.32,
       "chg_pct": -0.0,
       "rvol_4d": 2.03,
@@ -119,7 +119,7 @@
     "CRMD": {
       "score": 30,
       "confidence": 17,
-      "drivers": "News: guidance raised, earnings beat",
+      "drivers": "News: earnings beat, guidance raised",
       "price": 7.98,
       "chg_pct": 0.0,
       "rvol_4d": 0.5,
@@ -199,9 +199,9 @@
       "uoa_cp_ratio": 18.964285714285715
     },
     "INDI": {
-      "score": 77,
+      "score": 63,
       "confidence": 70,
-      "drivers": "Volumen 3.3× + ⚡ Extremes Volumen 3.3×+ + Spanne 22.4% + News: acquisition + UOA Call/Put 13.0×",
+      "drivers": "Volumen 3.3× + ⚡ Extremes Volumen 3.3×+ + Spanne 22.4% + News-KI 8/30: Neutral analyst rating, positive fundamentals, but recent price surge and no evidence of short interest concentration su + UOA Call/Put 13.0×",
       "price": 4.81,
       "chg_pct": -0.0,
       "rvol_4d": 3.32,
@@ -211,8 +211,8 @@
       "upcoming_event": null,
       "insider_buy": false,
       "stocktwits": null,
-      "combo_mult": 1.1,
-      "active_triggers": 2,
+      "combo_mult": 1.0,
+      "active_triggers": 1,
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 13.0×"
@@ -351,7 +351,7 @@
     "SPCE": {
       "score": 73,
       "confidence": 70,
-      "drivers": "Volumen 3.3× + ⚡ Extremes Volumen 3.3×+ + Spanne 23.0% + News-KI 8/30: Earnings announcements lack specific catalysts for short squeeze; company focuses on operational updates rather than dra + SEC Form 4 + UOA Call/Put 6.1×",
+      "drivers": "Volumen 3.3× + ⚡ Extremes Volumen 3.3×+ + Spanne 23.0% + News-KI 8/30: Earnings announcements are routine corporate events with no indication of short squeeze catalysts like short interest su + SEC Form 4 + UOA Call/Put 6.1×",
       "price": 3.24,
       "chg_pct": 0.0,
       "rvol_4d": 3.34,
