@@ -69,8 +69,8 @@ geklärt) + read-only Methodik-Bewertung des Setup-Scores.
 
 - premarket-Cron-Drift, RVOL-γ-2-Pool-Inflation, S8-Digest-Ursache,
   backtest_history-Extrahierbarkeit, Entry-Komponenten-Verteilungen.
-- **Methodik-Bewertung Setup-Score gegen akademische Literatur** (eigene
-  Sektion unten) — Vorzeichen-Test an echten Backtest-Daten.
+- **Methodik-Bewertung Setup-Score gegen akademische Literatur + Scanner +
+  eigene Daten** (eigene Sektion unten) — Vorzeichen-Test an echten Backtest-Daten.
 
 ---
 
@@ -186,9 +186,9 @@ Memorial Day, Börse + premarket-Cron-Sinn entfallen).
 - **Phasen-/perzentil-basierte Schwellen statt fester Absolut-Schwellen**
   (γ-getrennte Roadmap-Idee). Score-Inflation macht absolute Cutoffs
   zeitabhängig — Entry-Komponenten sollen, wo möglich, gegen Run-Rang/
-  Perzentil normiert werden statt gegen feste Absolutwerte. Im Einklang mit
-  der Methodik-Bewertung (Sektion unten): within-run-Rang ist die robuste
-  Messgröße.
+  Perzentil normiert werden statt gegen feste Absolutwerte. **Bestätigt durch
+  die Methodik-Bewertung (unten): within-run-Rang ist die robuste Messgröße —
+  UND es ist Scanner-Industriestandard (Fintel/Ortex relativ/perzentil).**
 
 ---
 
@@ -221,7 +221,7 @@ Memorial Day, Börse + premarket-Cron-Sinn entfallen).
   **v4** (additiv). `anomaly_freshness` nur **kind=anomaly inkl. suppressed**.
   **S10-Loader `_s10_load_v4_entries` filtert `schema_version == 4` — bei
   künftigem entry_score-v5-Bump (10.06.) MUSS der Filter auf `>= 4`, sonst
-  fallen neue Einträge aus S10.**
+  fallen neue Einträge aus S10. ADDITIV HALTEN.**
 - **Earliness V2** (DTC-Niveau-Basis, AUC 0.77 in 14d-Stichprobe).
 - **Earliness-Trend-Logging** (#244): si_trend_5d_slope / rvol_buildup_5d /
   vol_stability_5d / coiled_spring_score — **0 % null** im jüngsten Run.
@@ -277,6 +277,10 @@ Memorial Day, Börse + premarket-Cron-Sinn entfallen).
   Trading konkret weiter?". Engineering-Hygiene ohne Trade-Impact → Backlog.
 - **Zeitschätzung 2–3× überschätzt:** etablierte Patterns sind Routine
   geworden; bewusst kürzer schätzen.
+- **Range-Restriction (methodisch, neu 24.05.):** Literatur-Faktor-Vorzeichen
+  gelten für den BREITMARKT. Bei vorgefiltertem Universe (SF ≥ 15 %) greift
+  Range-Restriction — Breitmarkt-Edges können innerhalb der gefilterten
+  Cohorte verschwinden. **Eigene Daten schlagen Literatur-Analogie.**
 - **Arbeitsprinzip — drei getrennte Rollen** (Standing): **Diagnose**
   (read-only, Fakten ohne Meinung) → **Rat** (Code wägt ab, darf
   widersprechen, „nichts bauen" ist valide) → **Entscheidung** (Easy allein,
@@ -315,90 +319,120 @@ Memorial Day, Börse + premarket-Cron-Sinn entfallen).
 
 ## PLUS — Methodik-Bewertung Setup-Score (24.05., read-only)
 
-Externe Literatur-Bewertung + Vorzeichen-Test an echten Backtest-Daten.
-**Reine Bestandsaufnahme — KEINE Score-Änderung. Vorzeichen-Festschreibung
-für die Live-Pipeline erst 30.06.**
+Externe Bewertung des Setup-Scores gegen akademische Literatur + kommerzielle
+Scanner + eigene Daten. **Read-only, KEINE Score-Änderung. Reine
+Bestandsaufnahme + Bestätigung der Entry-Modul-Strategie. Stand `main @ c1ec26d`.**
 
-### Literatur-Stand (7 Punkte, verdichtet)
+### Kern-Erkenntnis (empirisch belegt, nicht nur Literatur)
 
-1. Akademische Breitmarkt-Literatur: hohes **Short-Interest** UND hohe
-   **Days-to-Cover** sagen im DURCHSCHNITT **negative** Forward-Returns
-   voraus (informierte Short-Seller).
-2. Der Setup-Score gewichtet genau diese zwei am stärksten **positiv**:
-   `short_float` 32 + DTC 23 = **55/100**.
-3. Kern-Hypothese: hoher Setup-Score misst **Squeeze-Disposition**, lädt aber
-   im Mittel **negativ/null** auf erwarteten Return — Edge nur aus dem
-   **Tail (Zündung)**, nicht aus dem Setup-Level.
-4. Confounder-Disziplin Pflicht: (a) Score-Inflation → **within-run-Rang**
-   statt absoluter Cutoffs; (b) V1/V2-Earliness irrelevant (wirkt nur auf
-   Conviction); (c) rechtsschiefes Sample → Median UND Mean + n getrennt.
-5. Range-Restriction-Lehre: Universe ist auf `SF ≥ 15 %` vorgefiltert →
-   die Breitmarkt-Monotonie „mehr SI = schlechter" greift INNERHALB der
-   bereits hoch-geshorteten Cohorte nicht mehr.
-6. Negative Base-Rate: der typische Squeeze-Kandidat **verliert** über 10d;
-   positive Erwartung kommt ausschließlich aus dem rechten Tail.
-7. Tail-These prüfbar: fängt der Score wenigstens den rechten Tail (die
-   Knaller), auch wenn der Mittelwert negativ/null lädt?
+Der Setup-Score lädt **WITHIN-RUN ≈ 0** auf den Forward-Return (Spearman
+ALL 10d **−0.01 n.s.**). Er ist **KEIN Return-Prädiktor, sondern ein
+DISPERSIONS-/DISPOSITIONS-Selektor.** Tail-Check beweist: hohe Scores liefern
+fettere Tails in **BEIDE** Richtungen, mit leichter Schlagseite zum **LINKEN**
+Tail (große Verlierer sitzen eher noch höher im Score als große Gewinner —
+bootstrap **74 % vs 59 %** in oberer Score-Hälfte). Das ist exakt die
+**„Pulverfass-Detektor, kein Zündungs-Detektor"-These — jetzt an echten Daten belegt.**
 
-### Datenbasis
+### Vorzeichen-Test (return_10d, within-run-Perzentil = inflations-robust)
 
-`backtest_history.json`, n=1577. **Zwei Populationen** (Haupt-Confounder):
-- **bootstrap** (n=1012, Apr 2025–Apr 2026): roher `score()`, retroaktiv.
-- **live** (`source=none`, n=565, Apr–Mai 2026, ~14 Runs): volle Pipeline.
-Returns: `return_{3,5,10}d` (+ `_t1` als Robustheits-Spiegel). 10d non-null:
-1401. Within-run-Perzentil-Pooling (Median 4 Ticker/Run → keine Per-Run-Quintile).
+Datenquelle: `backtest_history.json` (1577 Einträge). **ZWEI Populationen:**
+- **bootstrap n=1012** (Backfill, ROHER `score()` ohne Pipeline) — größer,
+  robuster, misst aber ANDEREN Score als live.
+- **live n=565** (`source=none`, volle Pipeline = angezeigter Score) — nur
+  ~14 Runs / 1 Monat.
 
-### Vorzeichen-Test (Setup-Score ↔ Forward-Return)
+Score-Aggregat: bootstrap **−0.070** (p .04) / live **+0.116** (p .02) →
+**GEGENLÄUFIG**. Globale neg. Ladung (−0.08 signifikant) verschwindet
+within-run fast komplett → war überwiegend **BETWEEN-RUN-ARTEFAKT**
+(Score-Inflation), kein Querschnitts-Signal.
 
-- **Global Spearman:** ALL −0.08 @10d (signifikant, p≈.002).
-- **Within-run (inflations-robust):** ALL **≈ 0** (−0.01 @10d, n.s.).
-  → Die globale negative Ladung ist überwiegend ein **Between-Run-Artefakt**
-  (Score-Inflation/Zeit), KEIN Querschnitts-Signal.
-- **bootstrap vs live gegenläufig:** bootstrap −0.07 @10d (p≈.04) vs live
-  **+0.116 @10d (p≈.02)**.
-
-### Faktor-Ebene (within-run @10d) — der eigentliche Literatur-Test
+### Faktor-Ebene (Literatur-Test, within-run 10d)
 
 | Faktor | bootstrap | live | Literatur erwartet |
 |---|---|---|---|
-| short_float | −0.028 (n.s.) | −0.012 (n.s.) | stark negativ |
-| DTC | −0.050 (n.s.) | **+0.187 (p≈.0002)** | stark negativ |
-| rvol | **−0.085 (p≈.01)** | +0.094 (p≈.06) | (nicht Teil der These) |
+| short_float | −0.03 | −0.01 (beide ≈0, n.s.) | stark negativ |
+| DTC | −0.05 | **+0.187 (p .0002)** ← entgegen Literatur | stark negativ |
+| rvol | **−0.085 (p .01)** | +0.094 (p .06) ← widersprüchlich | (nicht Teil der These) |
 
-→ **Weder SF noch DTC zeigen das robuste negative Vorzeichen.** SF ≈ 0
-in beiden. DTC ≈ 0 (bootstrap) bis **klar positiv** (live) — entgegengesetzt
-zur Literatur. Einzig `rvol` bootstrap-negativ, aber live-positiv (widersprüchlich).
+→ Literatur erwartet SF + DTC **stark negativ**. In den Daten **NICHT belegt.**
+**GRUND = RANGE-RESTRICTION:** Hard-Filter SF ≥ 15 % schneidet das Sample auf
+die hochgeshortete Cohorte. Die akademische „mehr SI = schlechter"-Beziehung
+gilt über den BREITMARKT (Apple bis Meme); innerhalb der oberen SI-Region ist
+die Steigung weg. **Kein Widerspruch zur Literatur — Literatur auf
+abgeschnittenen Bereich angewandt.**
 
-### Negative Base-Rate + Tail-Check
+### Base-Rate (hart)
 
-- **Skew:** Median return_10d NEGATIV überall (ALL −2.05, live −3.85),
-  Mean positiv nur tail-getrieben (ALL +1.04, max +1007 %).
-- **Tail-Check (Score-Within-Run-Perzentil-Median):** hoher Score
-  über-repräsentiert **BEIDE** Tails. Große Verlierer sogar eher höher im
-  Score als große Gewinner (bootstrap: 74 % der Bottom-Decile vs 59 % der
-  Top-Decile in oberer Score-Hälfte). Monster-Winner (≥+25 %) nur
-  55.–60. Perzentil → **der Score fängt den rechten Tail NICHT sauber.**
+Typischer Kandidat **VERLIERT** über 10d: Median live **−3.85 %** / bootstrap
+**−2.05 %**. Positive Mean (live +0.61) kommt AUSSCHLIESSLICH aus dem rechten
+Tail (max **+1007 %**). Ohne Entry-Timing = Handel einer **negativen
+Erwartung** mit seltenen Knallern. Monster-Winner (≥ +25 %) sitzen nur im
+**55.–60. Score-Perzentil** → Score trennt den rechten Tail NICHT. Genau das
+muss das Entry-Modul leisten.
 
-### Fazit + Strategie-Anker
+### Literatur-Stand (Quellen, für spätere Referenz)
 
-- Der Setup-Score lädt within-run **≈ 0** directional → er ist ein
-  **Dispersions-/Disposition-Selektor**, kein Richtungs-Prädiktor. Das
-  **bestätigt die Disposition-These empirisch.**
-- **KEINE Score-Umgewichtung.** Kein Faktor robust + konsistent negativ;
-  bootstrap/live widersprüchlich; −0.08 global ≈0 within-run fitten = Rauschen.
-- **3 Strategie-Anker:** (1) Score findet das Pulverfass, nicht die Richtung
-  → das **Entry-Timing-Modul ist der korrekte Hebel**. (2) Die Edge liegt in
-  der **Zündungs-Erkennung**, nicht im Setup-Level. (3) „Setup misst
-  Disposition"-These ist datenbelegt.
-- **30.06.-Re-Prüfpunkte:** (i) Faktor-Vorzeichen mit mehr live-Runs **ohne**
-  den +1007 %-Ausreißer (Winsorize/Median-Fokus); (ii) ob `rvol` auch live
-  robust negativ wird (dann echter Score-Kandidat — aber Timing, nicht das
-  SF/DTC-Literatur-Argument); (iii) ob das Entry-Modul den rechten Tail
-  trennt, den der Score allein nicht trennt.
-- **Roadmap-Kandidaten (NICHT jetzt, 30.06. mit-evaluieren):** **Borrow-Fee +
-  Utilization** als mögliche **autoritative `score()`-Faktoren** prüfen
-  (eigene Literatur-Basis, heute nur im Katalysator-Sub-Score bzw. ungescored).
-  Erst bei robustem Vorzeichen + Trading-Wert.
-- **Entscheidbarkeit:** Für die Live-Pipeline **noch nicht entscheidbar**
-  (14 Runs / 1 Monat, ein Ausreißer kippt Vorzeichen). bootstrap robuster,
-  misst aber einen anderen (rohen) Score. → **30.06. abwarten.**
+1. **Short-Interest → Returns:** ~25 Jahre einhellig NEGATIV im Breitmarkt
+   (Senchack/Starks 1993, Desai 2002, Asquith 2005, Boehmer 2008, Diether 2009).
+   Short-Seller = informierte Trader.
+2. **DTC stärkster Einzel-Prädiktor:** Hong (NBER) „DTC stärkerer Prädiktor
+   schlechter Returns als Short-Ratio". Boehmer global (38 Länder): DTC +
+   Utilization robusteste Vorhersagekraft über 5–60 Tage.
+3. **Squeeze-Wahrscheinlichkeit (≠ Return):** SI/Float/Turnover laden POSITIV
+   auf Squeeze-Likelihood. Trennung Squeeze-Disposition (positiv) vs.
+   erwarteter Return (negativ) ist DER Schlüssel — Literatur trennt sauber,
+   Setup-Score vermischte beides.
+4. **Utilization** (% verfügbarer Aktien verliehen) = laut Studie „einziger
+   bester Prädiktor von Squeezes". **FEHLT im Score komplett.** Datenseitig
+   schwer (kein freier Feed), aber konzeptionell wichtigste fehlende Variable.
+5. **Cost-to-Borrow:** Praktiker-Konsens „besserer Squeeze-Indikator als
+   SI-Ratio". Alle großen Scanner (Fintel/Ortex) gewichten zentral. Bei UNS
+   nur display-only im Katalysator-Sub-Score (> 50 %:8 / > 100 %:15),
+   **NICHT in autoritativem `score()`.**
+6. **RVOL richtungs-AMBIG:** einerseits High-Volume-Return-Premium (positiv),
+   andererseits Erschöpfungs-/Reversal-Signal (Blow-off-Top, negativ über
+   2/5/20d). RVOL als pauschal +23-Pkt-Faktor ohne Richtungs-Kontext
+   überschätzt das Signal.
+7. **Kommerzielle Scanner** (Fintel/Ortex/ShortSqueeze): alle Multi-Faktor
+   0–100, aber (a) RELATIV/perzentil („50 = Durchschnitt, relativ zu Peers")
+   statt absolut → immun gegen Inflation, (b) Borrow-Fee zentral gewichtet,
+   (c) als „Risiko/Wahrscheinlichkeit" geframt, nicht „Einstieg". **Bestätigt
+   Setup/Entry-Trennung.**
+
+### Handlungs-Konsequenz: KEINE Score-Umgewichtung
+
+Begründung: (1) Kein Faktor mit robustem konsistentem Vorzeichen — DTC +0.19
+von EINEM +1006 %-Ausreißer in 14 Runs getrieben, umgewichten =
+Ausreißer-Overfit. (2) bootstrap/live messen verschiedene Scores. (3)
+within-run ≈ 0 + symmetrische Tail-Anreicherung **BESTÄTIGT** das Design
+statt es zu widerlegen.
+
+### 3 fundierte Strategie-Anker (jetzt empirisch, nicht nur plausibel)
+
+- **A. Entry-Modul = einziger Hebel.** Edge liegt NICHT im Setup-Level
+  (Monster nur 55.–60. Perzentil). Stärkste mögliche Bestätigung des
+  10.06.-Vorhabens.
+- **B. Score-Inflation real + groß** (neg. Ladung verschwindet within-run) →
+  perzentil-/relativer Score (Roadmap-Idee + γ-Thema) ist strukturell richtig
+  UND Scanner-Industriestandard, nicht nur Option.
+- **C. Negative Median-Base-Rate einkalkulieren** → harte Version der
+  „wenige Trades, Conviction kein Solo-Signal"-Disziplin.
+
+### Re-Prüfpunkte 30.06. (an AUC-Checkpoint)
+
+- (i) Faktor-Vorzeichen mit ≥ 5–6 Wochen live OHNE +1006 %-Ausreißer
+  (winsorized / Median).
+- (ii) Wird `rvol` auch live robust negativ? (dann echter Kandidat — aber
+  rvol = Timing, nicht das SF/DTC-Literatur-Argument).
+- (iii) Trennt das Entry-Modul den rechten Tail, den der Score allein nicht fasst?
+- **ROADMAP-KANDIDATEN (kein Druck, nach Entry-Start):** **Borrow-Fee +
+  Utilization** vom display-only in autoritativen `score()` (laut Literatur
+  die 2 stärksten Squeeze-Prädiktoren, bei uns kosmetisch bzw. fehlend). Erst
+  nach Entry-Modul + sauberer 30.06.-Datenbasis bewerten.
+
+### Lehre (methodisch)
+
+Literatur-Faktor-Vorzeichen gelten für den Breitmarkt. Bei vorgefiltertem
+Universe (SF ≥ 15 %) **Range-Restriction beachten** — Breitmarkt-Edges können
+innerhalb der gefilterten Cohorte verschwinden. **Eigene Daten schlagen
+Literatur-Analogie.**
