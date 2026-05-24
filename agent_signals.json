@@ -1,10 +1,10 @@
 {
-  "updated": "2026-05-24T23:12:14.327105+02:00",
+  "updated": "2026-05-25T00:11:15.214643+02:00",
   "run_info": {
     "tickers_checked": 18,
     "signals_active": 3,
     "alerts_sent": 0,
-    "elapsed_s": 12.2,
+    "elapsed_s": 11.5,
     "market_phase": "Geschlossen"
   },
   "signals": {
@@ -31,9 +31,9 @@
       "uoa_cp_ratio": 3.6621004566210047
     },
     "AI": {
-      "score": 53,
+      "score": 50,
       "confidence": 70,
-      "drivers": "Spanne 6.5% + News: breakout + Earnings in 10d + SEC Form 4 + UOA Call/Put 69.1×",
+      "drivers": "Spanne 6.5% + News-KI 12/30: AI ticker shows negative sentiment (cash burn, lawsuits, IP disputes), low short-squeeze potential despite volatility in + Earnings in 10d + SEC Form 4 + UOA Call/Put 69.1×",
       "price": 9.29,
       "chg_pct": -0.0,
       "rvol_4d": 1.04,
@@ -73,9 +73,9 @@
       "uoa_cp_ratio": null
     },
     "AMC": {
-      "score": 30,
+      "score": 45,
       "confidence": 70,
-      "drivers": "Spanne 8.9% + SEC Form 4 + UOA Call/Put 11.0×",
+      "drivers": "Spanne 8.9% + News: insider buying + SEC Form 4 + UOA Call/Put 11.0×",
       "price": 1.51,
       "chg_pct": -0.0,
       "rvol_4d": 0.83,
@@ -86,7 +86,7 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 0,
+      "active_triggers": 1,
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 11.0×"
@@ -119,7 +119,7 @@
     "CRMD": {
       "score": 30,
       "confidence": 17,
-      "drivers": "News: earnings beat, guidance raised",
+      "drivers": "News: guidance raised, earnings beat",
       "price": 7.98,
       "chg_pct": 0.0,
       "rvol_4d": 0.5,
@@ -199,9 +199,9 @@
       "uoa_cp_ratio": 18.964285714285715
     },
     "INDI": {
-      "score": 63,
+      "score": 77,
       "confidence": 70,
-      "drivers": "Volumen 3.3× + ⚡ Extremes Volumen 3.3×+ + Spanne 22.4% + News-KI 8/30: Neutral analyst rating, positive fundamentals, but recent price surge and no evidence of short interest concentration su + UOA Call/Put 13.0×",
+      "drivers": "Volumen 3.3× + ⚡ Extremes Volumen 3.3×+ + Spanne 22.4% + News: acquisition + UOA Call/Put 13.0×",
       "price": 4.81,
       "chg_pct": -0.0,
       "rvol_4d": 3.32,
@@ -211,8 +211,8 @@
       "upcoming_event": null,
       "insider_buy": false,
       "stocktwits": null,
-      "combo_mult": 1.0,
-      "active_triggers": 1,
+      "combo_mult": 1.1,
+      "active_triggers": 2,
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 13.0×"
@@ -349,9 +349,9 @@
       "uoa_cp_ratio": 0.3083266291230893
     },
     "SPCE": {
-      "score": 73,
+      "score": 65,
       "confidence": 70,
-      "drivers": "Volumen 3.3× + ⚡ Extremes Volumen 3.3×+ + Spanne 23.0% + News-KI 8/30: Earnings announcements are routine corporate events with no indication of short squeeze catalysts like short interest su + SEC Form 4 + UOA Call/Put 6.1×",
+      "drivers": "Volumen 3.3× + ⚡ Extremes Volumen 3.3×+ + Spanne 23.0% + SEC Form 4 + UOA Call/Put 6.1×",
       "price": 3.24,
       "chg_pct": 0.0,
       "rvol_4d": 3.34,
