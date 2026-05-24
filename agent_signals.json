@@ -1,17 +1,17 @@
 {
-  "updated": "2026-05-24T06:40:15.406584+02:00",
+  "updated": "2026-05-24T10:01:22.658025+02:00",
   "run_info": {
     "tickers_checked": 18,
     "signals_active": 3,
     "alerts_sent": 0,
-    "elapsed_s": 17.3,
+    "elapsed_s": 11.7,
     "market_phase": "Geschlossen"
   },
   "signals": {
     "AEVA": {
-      "score": 43,
+      "score": 35,
       "confidence": 70,
-      "drivers": "Volumen 2.0× + Spanne 15.6% + News-KI 8/30: Positive lidar sector news and earnings coverage, but no clear signs of high short interest, technical weakness, or cata + UOA Call/Put 3.7×",
+      "drivers": "Volumen 2.0× + Spanne 15.6% + UOA Call/Put 3.7×",
       "price": 25.32,
       "chg_pct": -0.0,
       "rvol_4d": 2.03,
@@ -31,9 +31,9 @@
       "uoa_cp_ratio": 3.6621004566210047
     },
     "AI": {
-      "score": 53,
+      "score": 46,
       "confidence": 70,
-      "drivers": "Spanne 6.5% + News: breakout + Earnings in 10d + SEC Form 4 + UOA Call/Put 69.1×",
+      "drivers": "Spanne 6.5% + News-KI 8/30: Negative IP verdict, cash burn concerns, and lawsuit risks significantly reduce short-squeeze potential despite mentions + Earnings in 10d + SEC Form 4 + UOA Call/Put 69.1×",
       "price": 9.29,
       "chg_pct": -0.0,
       "rvol_4d": 1.04,
@@ -44,7 +44,7 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 1,
+      "active_triggers": 0,
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 69.1×"
@@ -351,7 +351,7 @@
     "SPCE": {
       "score": 73,
       "confidence": 70,
-      "drivers": "Volumen 3.3× + ⚡ Extremes Volumen 3.3×+ + Spanne 23.0% + News-KI 8/30: Routine earnings announcements lack the high short interest, catalyst intensity, and forced-buyback dynamics typically r + SEC Form 4 + UOA Call/Put 6.1×",
+      "drivers": "Volumen 3.3× + ⚡ Extremes Volumen 3.3×+ + Spanne 23.0% + News-KI 8/30: Routine earnings announcements lack short-squeeze catalysts like extreme short interest, sudden positive catalysts, or f + SEC Form 4 + UOA Call/Put 6.1×",
       "price": 3.24,
       "chg_pct": 0.0,
       "rvol_4d": 3.34,
