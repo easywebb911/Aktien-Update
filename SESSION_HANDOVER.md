@@ -1,4 +1,9 @@
-# Session-Handover — Stand 21.05.2026
+# Session-Handover — Stand 24.05.2026
+
+> **Datums-Kontext:** Heute So 24.05.2026. **Mo 25.05. = Memorial Day
+> (US-Börse zu).** Erster Handelstag wieder **Di 26.05.** Alle Live-
+> Verifikationen, die einen postclose-/premarket-Daily-Run brauchen,
+> frühestens Di 26.05.
 
 ## Premium-Ziel
 
@@ -11,307 +16,249 @@ Edge echt? trägt das Setup? kaufe ich oder schau ich nur?).
 
 **Vorhandene Bausteine (alle live auf `main`):**
 
-- **HTML-Sanity S9 Stufe 1 + 2** (PR #237 + #241) — fängt strukturelle
-  DOM-Defekte, blockt Push bei CRIT
-- **`quote_proxy` Tier-2-Probe** (PR #242) — fängt Worker-Tod + Yahoo-v8-
-  Bruch serverseitig im Daily-Run
-- **Health-Check S1–S8** — State-Invariants (score_history, setup_scores,
-  current_price, backtest_history-Disziplin, agent_signal-Overlap,
-  Digest-Push-Frische)
-- **Code als read-only Diagnose-/Rat-Agent** — Easy frägt, Code prüft +
-  rät ehrlich, Easy entscheidet
-
-**Geplante Bausteine:**
-
-1. **Daten-Integritäts-Check** — „Feld seit N Tagen 0 % gefüllt → WARN".
-   Hätte den `hist_5d`-Bug (PR #244) nach 1 Tag statt 1 Woche gefangen.
-2. **Periodische Diagnose-Subagents** — `manual_personal`-Check (sauber
-   bleibt?), Backtest-CI-Breite (schrumpft?), Provider-Drift, Confidence-
-   Stale-Check.
+- **HTML-Sanity S9 Stufe 1 + 2** (PR #237 + #241) — DOM-Defekte, blockt Push bei CRIT
+- **`quote_proxy` Tier-2-Probe** (PR #242) — Worker-Tod + Yahoo-v8-Bruch serverseitig
+- **Health-Check S1–S10** — State-Invariants + Daten-Integritäts-Check (S10, PR #246)
+- **Provider-Health Tier 1–3** — Latenz/Coverage-Telemetrie
+- **Code als read-only Diagnose-/Rat-Agent** — Easy frägt, Code prüft + rät ehrlich, Easy entscheidet
 
 **Prinzip:** Schicht für Schicht. Jede neue Sonde wird geprüft, bevor die
 nächste draufkommt. **Nicht durch „muss gelingen", sondern durch
 prüfen-verstehen-entscheiden.**
 
-## Heute implementiert (chronologisch)
+## Heute implementiert (chronologisch, 24.05.2026)
 
-- `a5787d6` (gestern) feat: Score-Delta T-1 ins Cockpit-Setup-Pillar
-- `4673859` (gestern) Merge PR #236 Cockpit-Delta — iPhone-verifiziert
-- **PR #237** HTML-Sanity S9 Stufe 1 (4 Top-Counts, CRIT blockiert
-  `git push` via `sys.exit(1)`) — gemerged
-- **PR #238** `expectancy_diagnose.py` CLI (Source-Trennung daily/bootstrap +
-  Bootstrap-95 %-CI). Befund: **kein daily-Bucket hat heute belastbare
-  Expectancy**, alle CIs kreuzen die Null. Tool bleibt ad-hoc-CLI, kein
-  Frontend — gemerged
-- **PR #241** HTML-Sanity Stufe 2 (Pro-Card-Vollständigkeit + Setup-
-  Pillar-Numerik > 0; 7 Gold-Checks, Setup-non-numerisch = IMMER CRIT) —
-  gemerged
-- **PR #242** `quote_proxy` Tier-2-Provider-Probe (1× pro Daily-Run pingt
-  Worker → Yahoo v8; fängt Worker-tot + Yahoo-Bruch; CORS bewusst nicht,
-  Browser-only) — gemerged
-- **PR #243** `last_successful_run` Liveness-Marker-Fix (toter Code seit
-  14.05.: Feld wurde nur bei 0 Fails gesetzt → permanent null. Jetzt
-  `n_runs > 0` als Bedingung) — gemerged
-- **PR #244** Backtest-Daten-Integrität (2 Bugs):
-  - `hist_5d`-Propagation im Enrichment-c.update-Block — fehlte seit PR #142,
-    Folge: 3 von 4 Trend-Feldern in `backtest_history.json` zu 0 % gefüllt
-    seit 14.05. (`si_trend_5d_slope` lief separat über FINRA-Pfad weiter)
-  - Wochenend-Schreibschutz für `_append_backtest_entries` — verhindert
-    Akkumulation outcomeloser Sa/So-Einträge (96 Leichen Bestandsaufnahme)
-  — gemerged
-- **PR #246** Health-Check S10 (Daten-Integritäts-Check, Phase 1
-  minimal): MUSS/LAG/OBSERVED-Klassifikation, Wochenend-Filter, Auto-
-  Detect-WARN für unklassifizierte Felder. Premium-Ziel-Erster-Baustein.
-  Live-Verifikation: 3 CRITs für die kaputten Trend-Felder, 0 false-
-  positives, 0 unbekannte Felder — gemerged
-- **PR #247** Cleanup der 96 Wochenend-Leichen aus `backtest_history.json`.
-  Backup-Marker-Commit `f242c86` + 5/5 Verifikationen grün. 1652 → 1556 —
-  gemerged
-- **PR #248** PR-γ-1 `score_normalization_version`-Marker (additiv, kein
-  Score-Effekt). Vorbereitung für γ-2 30.05. — gemerged
-- **PR #251** Entry-Score-Persistenz VORGEZOGEN (war 07.06. geplant):
-  `rvol_acceleration` + `uoa_atm_ratio` im V4-Schema. Grund:
-  Outcome-Lag — bei 07.06.-Start wäre r10d am 30.06.-Entry-AUC leer
-  gewesen. 14/14 Tests grün — gemerged
+Alle gemergt. Schwerpunkt: Backend-Hygiene + Entry-Modul-Vorarbeit (die
+zwei zuvor unfundierten Komponenten geklärt).
+
+- **PR #256** `backtest_history.py` EXTRAHIERT aus `generate_report.py`
+  (~455 Z., 12 Funktionen). Helper-Refactor, kein Verhaltens-Wechsel.
+  Kopplung `_compute_sub_scores` + `_safe_float` via Callable-Injektion
+  gelöst (kein Zirkular-Import, Muster wie `score_inflation_log`).
+  `compute_score_confidence` bleibt bewusst in generate_report
+  (`_SCORE_CONFIDENCE`-globals-Thematik). 4 Source-Inspektions-Mock-Tests
+  mit angepasst (Pfad → backtest_history, kwargs durchgereicht) — keine
+  Prüfung gelockert (assert-Count identisch).
+- **PR #257** Backend-Hygiene Tier 1a/1b/1d: 2 tote Funktionen
+  (`_exit_cooldown_expired_keys`, `_load_production_scores`), 3 ungenutzte
+  Importe (`timedelta` in backtest_history, `time as dt_time` in ki_agent,
+  `date` in score_inflation_log), 2 ungenutzte Locals (`exc`, `base_upper`).
+  Deletion-only, kein Frontend.
+- **PR #258** Kaskaden-Orphan `_extract_latest_scores` entfernt (war nur
+  von `_load_production_scores` aufgerufen, durch #257 verwaist).
+- **PR #259** Entry-Modul-SHADOW-PERSIST: `score_delta_t1` +
+  `anomaly_freshness` additiv ins V4-Backtest-Schema. Beide leer-tolerant,
+  in `S10_OBSERVED_FIELDS` (atomar). **KEIN v5-Bump** (S10-v4-Filter-Falle).
+  `score_delta_t1` self-contained aus `s["sparkline"]`; `anomaly_freshness`
+  aus `push_history`-ts. Neuer Mock-Test `mock_test_entry_shadow_persist`
+  (19/19).
+- **PR #260** `anomaly_freshness` kind-Filter-Korrektur: #259 maß
+  „any-push-freshness" (exit_p1/exit_p2 setzten fälschlich die Uhr =
+  gegenteiliges Signal). Fix: 1 Zeile `if _pe.get("kind") != "anomaly":
+  continue` — nur Anomalien (inkl. suppressed) zählen. test_20 ergänzt
+  (20/20). v4, kein Bump, Decay-Helper + S10 unberührt.
+
+**Vorbereitende Read-only-Diagnosen (kein Code, fundierten die Entscheidungen):**
+
+- premarket-Cron-Drift, RVOL-γ-2-Pool-Inflation, S8-Digest-Fehlalarm-
+  Ursache, backtest_history-Extrahierbarkeit, Entry-Komponenten-Verteilungen.
 
 ## Aktive Position (im Secret `POSITIONS_JSON`)
 
 - **AMC** — Halt, `no_exit_alerts=true`
-- **IONQ**, **RR** — unverändert
-- **CRMD** — ~−5 %, halten
+- **IONQ**, **RR** — unverändert (RR Earnings waren 22.05., catalyst-Exit feuerte korrekt)
+- **CRMD** — mehrere Trailing-Stop-Alerts, halten
 
 ## Verifikation ausstehend
 
-- **PR #244 Live-Verifikation (morgen):** beim nächsten postclose-Daily-Run
-  (Werktag, 21:17 UTC) prüfen, dass die neuen V4-Einträge tatsächlich
-  `rvol_buildup_5d`, `vol_stability_5d`, `coiled_spring_score` nicht-null
-  haben. Schnell-Check via `python3 -c "import json;
-  bh=json.load(open('backtest_history.json'));
-  v4=[e for e in bh if e.get('backtest_schema_version')==4 and e['date']=='<heute>'];
-  print({k: sum(1 for e in v4 if e.get(k) is not None) for k in
-  ['rvol_buildup_5d', 'vol_stability_5d', 'coiled_spring_score']})"`.
-  **Falls Felder NACH einem postclose-Run noch null → Alarmsignal,
-  PR #244 re-diagnostizieren** (hist_5d-Propagation greift dann doch nicht).
-- **S10-Status-Verfolgung (morgen):** S10 meldet heute 3 CRITs für die drei
-  kaputten Felder. Nach dem ersten postclose-Run mit #244-Wirkung sollte
-  pct_null im 20er-Fenster von 100 % auf 50 % fallen (immer noch CRIT,
-  Schwelle 70 %). Nach 2 weiteren postclose-Tagen unter 30 % = WARN. Nach
-  ~4 Tagen unter 30 % → S10 grün. Falls S10 nicht kippt → Indiz dass #244
-  nicht greift.
-- **PR #251 Live-Verifikation:** beim nächsten postclose-Run prüfen, dass
-  `rvol_acceleration` + `uoa_atm_ratio` als zwei zusätzliche Keys in jedem
-  V4-Eintrag erscheinen (Wert numerisch oder `None`, beides legitim).
-- **Wochenend-Schreibschutz #244**: bei nächstem Easy-Sa/So-Trigger via
-  `workflow_dispatch` erwartet — Workflow-Log enthält
-  `Wochenend-Eintrag (...) übersprungen`, `backtest_history.json` unverändert.
+Alle brauchen einen Daily-Run → **frühestens Di 26.05.** (Mo 25.05.
+Memorial Day, Börse + premarket-Cron-Sinn entfallen).
+
+- **#253 premarket-Cron (★ erster Test Di 26.05.):** Cron wurde 22.05.
+  von `17 10` auf `17 8 * * 1-5` (8:17 UTC) verschoben gegen GitHub-Drift
+  (2.4–3.6 h beobachtet). Prüfen: lief der Daily-Run Di ~8:17–11:52 UTC
+  **vor** 13:30 UTC US-Open, mit `run_phase=premarket`? Kamen Morgen-
+  Anomaly-Pushes? Schreibt `score_inflation_log` `trading_session_phase=premarket`?
+- **#259/#260 Shadow-Persist (Di 26.05.):** beim ersten postclose-Run
+  prüfen, dass `score_delta_t1` + `anomaly_freshness` als Keys in jedem
+  V4-Eintrag erscheinen (Wert numerisch/None, beides legitim). `anomaly_freshness`
+  wird meist 0/None sein (erwartet — sparse).
+- **#255 Digest-S8 (laufend):** Retry-Push-Fix (fetch+reset+push, max 5).
+  Prüfen: `last_digest_sent` springt aufs aktuelle Datum, S8-WARN
+  verschwindet. WE-Digest-Cron (08:47 UTC) lief evtl. Sa/So — Stand
+  read-only prüfbar.
+- **ERLEDIGT (nicht mehr offen):** #244 Trend-Felder (si_trend_5d_slope
+  n=98, rvol_buildup/vol_stability/coiled_spring 0 % null im jüngsten Run),
+  #251 rvol_acceleration (n=21) + uoa_atm_ratio (n=15) befüllt,
+  return_3d/5d-Backfill (S10-WARN war 23.05. weg).
 
 ## Geplante Aufgaben + Wiedervorlagen
 
-### Geändert nach #244-Fund
+### Roadmap (datiert)
 
-- **~04.06.2026** (statt 28.05.) — **Earliness-AUC erste Schätzung r5d**.
-  Grund: `hist_5d`-Bug hielt 3 von 4 Trend-Feldern bis 21.05. auf 0 %.
-  AUC-Uhr startet effektiv 21.05. neu (Fix nicht rückwirkend). Kriterium:
-  n und Klassen-Balance pro Feld × Horizont **prüfen, BEVOR** AUC gerechnet
-  wird (analog Expectancy-Befund #238 — eine schöne Zahl auf zu dünnem n
-  ist trügerische Präzision).
-- **~14.06.2026** — Earliness-AUC r10d (längerer Outcome-Lag).
-- **07.06.2026** — Earliness V3 bleibt im Kalender, **Entscheidung hängt
-  an obiger AUC**. Falls 04.06.-Schätzung noch zu dünn → V3 weiter schieben.
-
-### Neu nach Entry-Modul-Vorarbeit (21.05.)
-
-- ✅ **Entry-Score-Persistenz — ERLEDIGT 21.05. als PR #251 (vorgezogen vom
-  ursprünglich geplanten 07.06.).** `rvol_acceleration`
-  (`rel_volume` / `rel_volume_yesterday`) + `uoa_atm_ratio` sind ab jetzt
-  im V4-Backtest-Schema, `S10_OBSERVED` mit-erweitert. Grund Vorziehen:
-  Outcome-Lag — bei 07.06.-Start wäre `return_10d` am 30.06.-Entry-AUC
-  praktisch leer gewesen (10d-Lag überschreitet das Auswertungsfenster).
-  Mit Vorziehen ~80 r10d-Datenpunkte statt 0; Faktor 3× r5d-Coverage.
-  `hist_5d`-Lehre vorausschauend angewandt. **Nicht doppelt bauen.**
-- **~24.–30.06.2026** — Entry-AUC-Diagnose. `entry_score × return_5d/10d`.
-  Kriterien:
-  - AUC ≥ 0.65 → v1-heuristische Gewichte validiert
-  - AUC < 0.55 → Rauschen, Komponenten-Re-Mix
-  - Einzelne Komponente trägt meiste AUC → konzentrierter v2-Score
-- **30.05.2026 PR-γ präzisiert zu PR-γ-2:** Aktivierung nur Score-Pfad,
-  Schwellen bleiben raw, `SCORE_NORMALIZATION_VERSION` von 1 → 2.
-  PR-γ-1 (Marker) ist bereits am 21.05. als PR #248 vorgelegt.
-
-### Unverändert
-
-- **30.05.2026** — PR-γ-2 Score-Inflation-Normalisierung aktivieren
-  (manueller Merge, engster Scope nur Score, Schwellen raw, Marker → 2)
+- **Di 26.05.2026** — #253-premarket-Verify (erster Handelstag) +
+  #259/#260-Shadow-Persist-Verify.
+- **~04.06.2026** — Earliness-AUC erste Schätzung r5d (AUC-Uhr startete
+  21.05. neu wegen hist_5d-Bug). Kriterium: n + Klassen-Balance prüfen
+  BEVOR AUC gerechnet (Lehre #238: schöne Zahl auf dünnem n = trügerisch).
 - **02.06.2026** — Chart-Indikatoren (TTM Squeeze / VWAP / OBV) als
-  ENTRY-Score-Komponenten
+  Entry-Score-Komponenten.
 - **10.06.2026** — ★★★ **Entry-Timing-Modul START** (höchste Prio,
-  mehrwöchig) — Plan dokumentiert in „Architektur-Anker" weiter unten
-- **30.06.2026** — Erste belastbare Backtest-Auswertung
-  (daily-≥70-Bucket-CI kreuzt Null nicht mehr — neues Kriterium aus #238)
-- **02.07.2026** — Premium-Daten-Stack
+  mehrwöchig). Plan in „Architektur-Anker" unten. Alle 5 Komponenten
+  haben jetzt eine begründete Start-Normierung (s. u.).
+- **~24.–30.06.2026** — Entry-AUC-Diagnose (`entry_score × return_5d/10d`).
+  Plus: erste belastbare Backtest-Auswertung (daily-≥70-Bucket-CI kreuzt
+  Null nicht mehr — Kriterium aus #238).
+- **02.07.2026** — Premium-Daten-Stack.
+
+### γ-2 (RVOL-Normalisierung) — Status: datengated, NICHT mehr 30.05.-fix
+
+- Master-Switch-Variante verworfen (premarket-Pool-Inflation, Cap-Sättigung
+  würfelt Ranking ρ=−0.04). Parallel-Feld-Plan: 3 Drifts (Combo/short_pressure/
+  Earliness) alle im Score-only-Scope ≈0, mit L2752-raw-Pin entschärfbar.
+- **Echter Blocker: premarket-Daten fehlten (n=1), weil der Cron driftete.
+  #253 behebt die Sammlung.** γ-2 erst entscheidbar nach mehreren Werktagen
+  echter premarket-Daten (Skalierer 0.10 ist Daumenwert; Kipppunkt-Sweep
+  deutet ~0.40, aber n=6 vorläufig). Re-Evaluieren nach 26.05.-Sammelstart.
+
+### Entry-Modul — alle 5 Komponenten jetzt fundiert normierbar
+
+- **`score_delta_t1`: SYMMETRISCH ±15 starten.** Verteilung (n=74, score_history):
+  Median 0, Mean −1.85, Zentrum sauber bei 0. Vorbehalte dokumentiert:
+  35 %-0-Spike (ein Drittel → neutral 50, null Trennschärfe → wird voraussichtlich
+  SCHWÄCHSTE Komponente, beim 30.06.-Gewichts-Check einsortieren, nicht
+  nachjustieren) + negativer Tail schwerer (min −57 vs max +30, ±15-Cap clampt
+  abwärts mehr). **Perzentil-Variante vertagt an 30.06.** (n zu dünn = Overfitting).
+- **`anomaly_freshness`: MITTEL-VARIANTE** (kind=anomaly inkl. suppressed,
+  exits + earnings_immediate raus — #260). Coverage ~33 % (strikt-gesendet
+  nur 6 %) → meist 0/None, erwartet schwach. **Decay-Steilheit** (HWZ 1–3
+  Handelstage, tot ab 5) NICHT jetzt kalibrieren — linearer Platzhalter
+  `max(1−age_h/72,0)` reicht solange Feld meist 0. Vertagt an 30.06.
+- **3 fundierte aus Recherche:** `rvol_acceleration` (Cap 3.0; in unserem
+  Universe selten+explosiv, nicht graduell), `uoa_atm_ratio` (kontinuierlich,
+  lückig), `si_trend_5d_slope` (asymmetrisch: links ~−1 gebodet, rechts
+  Tail bis +374 — symmetrische Normierung falsch).
 
 ### Sonstige geplante Aufgaben
 
-- **HTML-Sanity Phase 1c** (irgendwann nach 1b stabil): Restliche
-  10er-Assertion-Liste + Setup-Pillar-Range-Check (z. B. 0–100).
-- **Sortino + Kelly-Inputs** als Spalten ans `expectancy_diagnose.py`
-  hängen (CLI-Output, **kein Frontend** bis Datenlage trägt).
+- **HTML-Sanity Phase 1c** (nach 1b stabil): 10er-Assertion-Liste +
+  Setup-Pillar-Range-Check.
+- **Sortino + Kelly-Inputs** ans `expectancy_diagnose.py` (CLI, kein Frontend).
 
 ## Optional / niedrig priorisiert
 
-### Nachzügler (kein Datum, niedrige Prio)
+### Datenposten / Caveats fürs 30.06.
 
-- **Cleanup der 96 Wochenend-Leichen** aus `backtest_history.json` —
-  separater JSON-PR, reiner Daten-Eingriff (kein Code).
-- **Verifikation #244-Fix im echten Lauf** — siehe „Verifikation
-  ausstehend" oben. Sobald grün, hier streichen.
+- **Kalender-Aging-Bias `anomaly_freshness`** (read-only verifiziert,
+  NICHT gefixt): `_compute_anomaly_freshness` (backtest_history.py:263)
+  rechnet **Kalenderstunden** (72 h-Horizont), nicht Handelstage. Folge im
+  Sammelzeitraum ab jetzt: wochenend-überspannende Einträge nach unten
+  verzerrt (Fr-Anomalie → Mo-Eintrag = 0 statt ~0.6–0.8). Beim 30.06.-AUC:
+  schwaches `anomaly_freshness` könnte teils Mess-Artefakt sein → wochenend-
+  überspannende Einträge separat betrachten. Handelstag-Umstellung gehört
+  SEMANTISCH in die 30.06.-Decay-Kalibrierung (in einem Zug). Entscheidung:
+  nicht jetzt fixen (Bias klein gegen 0-Anteil).
+- **Kontaminationsfenster:** ~1–2 Tage any-push-Einträge zwischen
+  #259-Merge und #260, kein Backfill. Für 30.06.-AUC vernachlässigbar —
+  ggf. per Datum ausklammern.
 
 ### Code-Hygiene-Backlog
 
-- ✅ Cockpit Stage 3 `.sb`-Cleanup (20.05. ausgeführt, 0 Leichen)
-- ✅ **`generate_report.py`-Split — bewertet, großer Split verworfen
-  (21.05.2026).** Read-only-Diagnose: kein Split vor Entry-Modul (10.06.)
-  nötig oder klug. Gründe: (1) Entry-Modul passt additiv in bestehende
-  Score-Pipeline (Pattern wie `apply_conviction_scores`/`apply_monster_score`)
-  — kein Split-Voraussetzung. (2) Größter Block `generate_html_v1`
-  (6806 Z., 40.8 %) ist ein f-String, mechanisch nicht splittbar ohne
-  komplette Jinja-Migration. (3) Kritischer globaler State `_FX_USD_EUR`
-  + `_SCORE_CONFIDENCE` (via `globals()`-Trick in `main()` gesetzt, in
-  Display gelesen) = stille-Degradations-Falle bei Split. Trading-Wert
-  null, Risiko hoch → verworfen.
-
-  **Reihenfolge-Empfehlung:**
-  1. **10.06.: Entry-Modul ADDITIV** — `compute_entry_score` +
-     `apply_entry_scores` in Score-Pipeline ODER eigene
-     `entry_timing.py` nach `health_check.py`-Pattern; neuer
-     4. Cockpit-Pillar Setup → Monster → KI → **Entry**. Kein Split.
-  2. **Später, separat, kein Druck:** `backtest_history.py` extrahieren
-     (428 Z., 1 Cross-Call, Vorbild `score_inflation_log.py`, Risiko
-     niedrig). Nicht zwingend.
-  3. **Niemals (oder erst nach Nachweis):** `generate_html_v1`-Jinja-
-     Vollmigration. Trading-Wert nicht zu rechtfertigen.
-
-  Falls je wieder Thema: Diagnose eindeutig, nicht blind splitten.
-- 🔧 Offen (Engineering-Mehrwert, niedriger Trading-Wert):
-  - v1/v2-Render → reines Jinja (siehe oben — niemals ohne klaren
-    Trading-Wert)
-  - Template-Engine statt f-strings (eliminiert
-    `lint_jsformat_escape.py`-Bugklasse strukturell)
+- ✅ Cockpit Stage 3 `.sb`-Cleanup (20.05.) — **Stage-3-Re-Eval 24.05.:
+  NICHT lohnend.** `.sb-conf-*` werden im Cockpit (`.cockpit-pillar-value`/
+  `-donut-number`) wiederverwendet (#199-Falle), `.sb-lbl/.sb-pts/.sb-note`
+  sind Methodik-Panel-Scope (live). Nur `.sb-row/.sb-num/...` im toten
+  Flag=False-Fallback (= Rollback-Pfad). Verworfen bis Cockpit-Stabilität.
+- ✅ **`backtest_history.py`-Split — ERLEDIGT 24.05. (PR #256).**
+- ✅ **Backend-Dead-Code — ERLEDIGT 24.05. (PR #257/#258).**
+- 🔧 Offen (niedriger Trading-Wert): v1/v2-Render → Jinja (niemals ohne
+  klaren Trading-Wert), Template-Engine statt f-strings,
+  `generate_report.py`-Großsplit (verworfen — globals-Falle, f-String-Block).
 
 ## Architektur-Anker (nicht in CLAUDE.md, wichtig)
 
-- **HTML-Sanity S9 Stufe 1 + 2** live: 4 Top-Counts (Stufe 1, gemergt
-  PR #237) + 7 Pro-Card-Gold-Checks inkl. Setup-Pillar-Numerik (Stufe 2,
-  gemergt PR #241). CRIT-Pfad blockiert Push via `sys.exit(1)` →
-  `if: success()` greift im Commit-Step. WARN landet im JSONL für
-  Phase-3-Digest.
-- **Health-Check liest sonst NUR JSONL/Dicts** (S1–S8); S9 ist der einzige
-  HTML-Aware-Check.
-- **`quote_proxy` Tier-2-Provider** (PR #242): einmal pro Daily-Run wird
-  der Cloudflare-Worker mit Bench-Ticker NVDA gepingt. Fängt
-  Worker-tot + Yahoo-v8-Bruch (Worker antwortet 200 mit `error`-Feld).
-  CORS bewusst nicht — Browser-only-Klasse.
-- **Backtest-Schreibpfad** (seit PR #244): `_append_backtest_entries`
-  schreibt nur an Trading-Tagen; `hist_5d` propagiert via c.update ins
-  Top-10-Stock-Dict → 3 zusätzliche Trend-Felder werden ab nächstem
-  Daily-Run real gefüllt.
-- **`last_successful_run`** (seit PR #243) = echter Workflow-Lauf-
-  Liveness-Marker (gesetzt wenn `n_runs > 0`, unabhängig vom Fail-Count).
-  `last_digest_sent` bleibt der ntfy-Push-Marker für S8 — beide Felder
-  messen unterschiedliche Dinge.
-- **Score-Delta T-1** (`_cockpit_delta_html`) live im Cockpit-Setup-Pillar
-  seit PR #236. Schwellen |Δ| < 2 leer · 2–5 grau · ≥ 5 farbig ▲▼ ·
-  ≥ 15 bold. Quelle: `sparkline.scores`.
-- **Entry-Timing-Modul — Plan aus Vorarbeit 21.05.2026** (Start 10.06.):
-  - **Andock:** ADDITIV in Score-Pipeline. Vorbild
-    `apply_conviction_scores`/`compute_conviction_score` (gleiche Signatur,
-    Aufruf in `main()` direkt **nach** `apply_conviction_scores` —
-    `anomalies_today` + `vix` dann verfügbar). 4. Cockpit-Pillar
-    Setup → Monster → KI → **Entry**. **KEIN `generate_report.py`-Split
-    nötig** (siehe Bewertung im Code-Hygiene-Backlog).
-  - **Komponenten (5, je 20 % heuristisch zum Start):**
-    - ✓ `rvol_acceleration = rel_volume / rel_volume_yesterday` (orthogonal
-      zu Setup-Level und Conviction)
-    - ✓ `anomaly_freshness = max(1 − age_h/72, 0)` aus `push_history`-`ts`
-      (orthogonal zu Anomaly-Count in Conviction)
-    - ✓ `score_delta_t1 = last − prev` aus `score_history`, Cap ±15
-    - ✓ `si_trend_5d_slope` (FINRA-direkt, robuster als
-      `coiled_spring_score`)
-    - ✓ `uoa_atm_ratio` (kontinuierlich)
-    - ✗ **MEIDEN:** `coiled_spring_score` (zu nah Conviction-Earliness),
-      binärer `uoa_score` (zu nah Conviction-Anomaly-Count)
-  - **Gewichtung:** heute **nicht datenbasiert** ableitbar (n = 10 mit
-    r5d + si_slope, andere Komponenten gar nicht im Backtest persistiert).
-    Start heuristisch je 20 %, Marker `entry_score_version = 1`.
-    v2-Kalibrierung nach AUC-Diagnose ~24.–30.06.
-  - **Backtest-Persistenz von Anfang an:** `entry_score` +
-    `entry_components` (Sub-Pkt-Dict) + `entry_score_version` in
-    `_build_backtest_extension`. `backtest_schema_version` 4 → 5 (neue
-    Welle). S10-OBSERVED mit-erweitern. **Selbst-Validierungs-Schleife**
-    — Premium-Ziel: System misst per AUC, ob das eigene Timing-Signal
-    trägt.
-  - **Vor-Schritt 07.06. (kritisch):** `rvol_acceleration` und
-    `uoa_atm_ratio` ins V4-Schema persistieren, **bevor** Entry-Modul
-    live geht — siehe Wiedervorlage oben.
-- **Bestehende Anker unverändert:** Earliness V2 (DTC, AUC 0.77),
-  Phase-2 Exit (6 Trigger), Live-Polling Cloudflare-Worker,
-  Cockpit-Layout seit #199, Token-Encryption AES-GCM/PBKDF2,
-  Service-Worker raus seit #188.
+- **`backtest_history.py` ist ein eigenes Modul** (seit #256). 12 Funktionen,
+  via Callable-Injektion (`compute_sub_scores_fn`, `safe_float_fn`) entkoppelt
+  — kein Zirkular-Import. `generate_report` importiert es. `_test_extended_schema`
+  + 4 Mock-Tests source-inspizieren backtest_history (nicht mehr generate_report)
+  für die verschobenen Funktionen.
+- **Entry-Shadow-Persist (seit #259/#260):** `score_delta_t1` +
+  `anomaly_freshness` sammeln ab Di 26.05. pro V4-Backtest-Eintrag. Schema
+  bleibt **v4** (additiv). `anomaly_freshness` nur kind=anomaly (inkl.
+  suppressed). **WICHTIG für Entry-Modul-Bau:** wenn `entry_score` selbst
+  persistiert wird (10.06.) und ein v4→v5-Bump erwogen wird — der
+  S10-v4-Filter (`_s10_load_v4_entries`, `== 4`) muss DANN mit auf `>= 4`
+  angepasst werden, sonst fallen neue Einträge aus S10-Überwachung.
+- **Entry-Timing-Modul — Plan (Start 10.06.):**
+  - **Andock:** ADDITIV in Score-Pipeline (Vorbild `apply_conviction_scores`),
+    Aufruf nach `apply_conviction_scores`. 4. Cockpit-Pillar Setup → Monster
+    → KI → **Entry**. KEIN `generate_report.py`-Split.
+  - **5 Komponenten, je 20 % heuristisch zum Start** (Normierung s.
+    „Entry-Modul" oben): `rvol_acceleration` (Cap 3.0), `anomaly_freshness`
+    (mittel, linear-Platzhalter), `score_delta_t1` (symmetrisch ±15),
+    `si_trend_5d_slope` (asymmetrisch), `uoa_atm_ratio` (kontinuierlich).
+    MEIDEN: `coiled_spring_score`, binärer `uoa_score`.
+  - **Bau-Schritte 2–5 am 10.06.:** `compute_entry_score` +
+    `apply_entry_scores` + `entry_score`/`entry_components`/
+    `entry_score_version` persistieren. v5-Bump NUR mit S10-Loader-Anpassung
+    (s. o.). Marker `entry_score_version=1`, v2-Kalibrierung nach 30.06.-AUC.
+- **HTML-Sanity S9 Stufe 1+2** live (#237/#241): CRIT blockt Push via
+  `sys.exit(1)`. Einziger HTML-Aware-Check; S1–S8 lesen nur JSONL/Dicts.
+- **`quote_proxy` Tier-2** (#242): 1× pro Daily-Run Worker-Ping. CORS bewusst
+  nicht (Browser-only-Klasse).
+- **Backtest-Schreibpfad** (#244): nur an Trading-Tagen; `hist_5d` propagiert
+  via c.update ins Stock-Dict → Trend-Felder gefüllt.
+- **`last_successful_run`** (#243) = Workflow-Lauf-Liveness (`n_runs > 0`);
+  `last_digest_sent` = ntfy-Push-Marker für S8 — unterschiedliche Dinge.
+- **#253 premarket-Cron** auf `17 8 * * 1-5` (8:17 UTC) gegen GitHub-Drift.
+  `run_phase` steuert: `_normalize_rvol`-Short-Circuit (postclose=Pass-through),
+  Backtest-Append-Gate (nur postclose), anomaly_pushes (nur premarket=Morgen).
+- **#255 Digest-Commit** nutzt Retry-Push (fetch → reset --hard origin/main →
+  frische digest-state → commit → push, bei Reject neu fetchen, max 5).
+  Ersetzt die alte Rebase-`--ours`-Logik (verwarf unter Rebase die frische
+  Schreibung). `--ours`-im-Rebase bei daily-run/ki_agent ist GEWOLLTES
+  Last-Write-Wins (regenerierbare Files), KEIN Bug — nicht anfassen.
+- **Bestehende Anker unverändert:** Earliness V2 (DTC, AUC 0.77), Phase-2
+  Exit (6 Trigger), Live-Polling Cloudflare-Worker, Cockpit-Layout seit #199,
+  Token-Encryption AES-GCM/PBKDF2, Service-Worker raus seit #188,
+  Conviction-Schwelle 75. RVOL-Norm: PR-α fertig+OFF, β sammelt, γ-1 gemergt,
+  γ-2 datengated offen (ENABLED=False, postclose=Pass-through).
 
-## Lessons aus dieser Session
+## Lessons aus dieser Session (24.05.)
 
-- **`hist_5d`-Bug-Lehre — stiller Tod im Logging:** Pipeline kann
-  „erfolgreich" laufen und trotzdem leeren Output produzieren.
-  Health-Check meldet grün (S1–S8 prüfen Existenz, nicht Coverage),
-  Trend-Felder bleiben 1 Woche lang zu 0 % gefüllt. **Nur die Frage
-  „trägt die Datenlage?"** (AUC-Reife-Diagnose) deckte es auf. Daraus
-  folgt die geplante Daten-Integritäts-Sonde: „Feld seit N Tagen 0 %
-  gefüllt → WARN" hätte den Bug nach 1 Tag statt 1 Woche gefangen.
-- **Stufe-3-Browser-Check verworfen:** Headless-Playwright im Workflow
-  würde CORS-Drift und JS-Bugs fangen, aber zum Preis von 1–2 d
-  Implementations-Aufwand + Selektoren-Wartung bei jeder UI-PR. Das
-  heutige 21.05.-CORS-Erlebnis war sofort sichtbar (Frontend-Indicator
-  `quote-live-stale`, Tooltip „Live-Quelle nicht erreichbar") — Stage 3
-  würde nur den Bemerk-Zeitpunkt um wenige Stunden vorverlegen.
-  **Wartungslast > Trading-Wert.** Falls je wieder Thema:
-  Frontend-Boot-Self-Check (2–3 h) statt Headless-Browser.
-- **Top-10-Fluktuation / Hysterese verworfen:** 50.9 % Eintags-Wonder im
-  Top-10 sind **gesund, kein Bug**. 74.5 % der Exits sind Pool-Dropouts
-  (Stufe-1-Screener-Wankelmut Yahoo/Finviz), nicht Score-Drift. RVOL
-  ist nicht der Treiber (88 % der Dropouts hatten am Exit-Tag noch RVOL ≥
-  1.5). Hysterese hätte 0–3 Setups gerettet + 30+ Verlierer-Karten
-  länger sichtbar gemacht (rausgefallene Ticker liefern 5d-Forward-
-  Median **−8.68 %**). Top-10 = Such-Stream für NEUE Einstiege, NICHT
-  Hold-Liste. Awareness-Bedarf deckt `manual_personal`/Watchlist-Add ab.
-  Falls je wieder Thema: **nicht neu bauen.**
-- **Arbeitsweise: Easy will Ideen GEPRÜFT, nicht bestätigt.** „Nichts
-  bauen" ist valides Ergebnis wenn begründet. Schleife: **Idee →
-  read-only-Diagnose → bei Trading-Impact Code-um-Rat → verstehen →
-  entscheiden.** Confirmation-Bias-Schutz: wenn Easys These und Daten
-  kollidieren, gewinnt die Datenseite. Ich melde Widerspruch, ohne
-  zu glätten. Belegt heute durch: Hysterese-Verwerf, Stufe-3-Verwerf,
-  Frontend-Expectancy-Verwerf (PR #238 zeigt n nicht belastbar).
-- **Draft-vs-Live-Verify** (aus 20.05.): Draft-PRs sind nicht im
-  Live-Deployment. Vor jedem UI-Verify Deployment-Stand prüfen.
-- **Falsche Metrik schlägt dünne Daten** (aus 20.05.): Hit-Rate verzerrt
-  bei asymmetrischer Strategie. Aber: jede Metrik mit zu dünnem n
-  verpackt nur Rauschen schöner. Echter Confounder im Backtest:
-  Bootstrap-Formel ≠ Live-Formel.
-- **Arbeitsprinzip — drei getrennte Rollen** (festgehalten 21.05.):
-  - **Diagnose** (read-only, Fakten ohne Meinung): Code liest, misst,
-    berichtet. Keine Empfehlung, keine Bewertung — nur Befunde.
-  - **Rat** (Code wägt ab, darf widersprechen — auch Easys eigener These):
-    Pro/Contra, klare Empfehlung, ehrlicher Widerspruch wenn Daten gegen
-    die Idee sprechen. „Nichts bauen" ist valides Ergebnis wenn begründet.
-  - **Entscheidung** (Easy allein, Trading-Wert-Filter): nach Rat wählt
-    Easy, was umgesetzt wird. Code baut erst nach explizitem OK.
-
-  Diese Methode **IST eine kleine Version des Premium-Ziels:** KI macht
-  Diagnose + Rat (= **Mechanik**), Mensch entscheidet (= **Bedeutung**).
-  Hartnäckigkeit ist an Prüfen gekoppelt, nicht an Verbissenheit —
-  derselbe Vorschlag kommt nur dann wieder, wenn neue Daten ihn stützen.
-  Belegt heute durch: 4 verworfene Wege (Hysterese, Stufe-3-Browser,
-  Frontend-Expectancy, großer `generate_report`-Split) + 6 vorgezogene
-  oder hinzugefügte PRs nach klarer Rat-Empfehlung (#247 Cleanup,
-  #248 γ-1-Marker, #251 Entry-Persistenz vorgezogen, S10/Phase 1b/HTML-
-  Sanity-2, quote_proxy-Probe).
+- **Semantik-Mismatch ≠ Dünndaten:** `anomaly_freshness` (#259) maß
+  „any-push" statt „anomaly" — exit-Pushes setzten die Freshness-Uhr
+  (gegenteiliges Signal). Das war ein **Definitions-Bug**, kein bloßes
+  n-zu-klein. Read-only-Diagnose der push_history-kinds deckte es auf,
+  BEVOR die Komponente gewichtet wurde. Lehre: bei jedem neuen Feld die
+  Datenquelle-Semantik prüfen, nicht nur die Datenmenge.
+- **Vorwärts > rückblickend:** der `score_history`-/`push_history`-Snapshot
+  ist rückblickend + dünn. Die belastbare Entscheidungsgrundlage ist die
+  VORWÄRTSGERICHTETE Shadow-Persist (#259/#260, sammelt ab 26.05.). Bei
+  n≥100 zum 30.06.: Verteilung absichern + AUC gegen return_10d.
+- **Erwartete Schwäche ≠ Defekt:** `score_delta_t1` (35 %-0-Spike) +
+  `anomaly_freshness` (~33 % Coverage) werden zum Start die schwächsten
+  Komponenten sein. Beim 30.06.-Gewichts-Check als ERWARTET einsortieren,
+  nicht als Bug nachjustieren.
+- **Dead-Code-Kaskade:** `_load_production_scores` entfernen (#257) verwaiste
+  `_extract_latest_scores` → Folge-PR #258. Bei Löschungen die Aufrufer-Kette
+  des Gelöschten mit-prüfen (Scope-Disziplin: Kaskade als eigenen PR, nicht
+  im selben ungefragt).
+- **S10-v4-Filter-Falle:** additive Backtest-Felder NICHT auf v5 bumpen —
+  `_s10_load_v4_entries` filtert `== 4`, ein Bump würde neue Einträge still
+  aus der gesamten S10-Überwachung nehmen. v4 behalten + S10_OBSERVED
+  erweitern ist der saubere additive Pfad.
+- **Diff-Lesen verschärft:** Unified-Diff zeigt Kontext-Zeilen (alt) neben
+  neuen — gepaarte `fi`/`}`-Zeilen können wie Syntaxfehler/Reste aussehen.
+  Vor „Code kaputt"-Meldung vollständigen Stand + `bash -n`/`py_compile`
+  + Keyword-Count statt Diff-Augenschein.
+- **GitHub-Cron ist best-effort:** Vormittags-UTC-Crons driften 2–4 h oder
+  droppen. Kritische Crons früh genug legen (Puffer bis 13:30 UTC) oder
+  robustes Retry — nicht auf Pünktlichkeit verlassen.
+- **Arbeitsprinzip — drei getrennte Rollen** (Standing, bestätigt):
+  **Diagnose** (read-only, Fakten ohne Meinung) → **Rat** (Code wägt ab,
+  darf widersprechen, „nichts bauen" ist valide) → **Entscheidung** (Easy
+  allein, Trading-Wert-Filter). KI macht Mechanik, Mensch macht Bedeutung.
+  Belegt heute: anomaly_freshness-Definition aus Diagnose, nicht Heuristik;
+  Cockpit-Stage-3 + großer Split als „nicht lohnend" verworfen; 5 PRs
+  nach klarer Rat-Empfehlung gemergt.
