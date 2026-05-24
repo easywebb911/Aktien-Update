@@ -1,17 +1,17 @@
 {
-  "updated": "2026-05-24T19:15:58.665249+02:00",
+  "updated": "2026-05-24T20:13:38.299057+02:00",
   "run_info": {
     "tickers_checked": 18,
     "signals_active": 3,
     "alerts_sent": 0,
-    "elapsed_s": 17.0,
+    "elapsed_s": 11.8,
     "market_phase": "Geschlossen"
   },
   "signals": {
     "AEVA": {
-      "score": 52,
+      "score": 35,
       "confidence": 70,
-      "drivers": "Volumen 2.0× + Spanne 15.6% + News-KI 12/30: Positive lidar/optical sector sentiment, but no short squeeze indicators like high short interest, borrow fees, or catal + UOA Call/Put 3.7×",
+      "drivers": "Volumen 2.0× + Spanne 15.6% + UOA Call/Put 3.7×",
       "price": 25.32,
       "chg_pct": -0.0,
       "rvol_4d": 2.03,
@@ -21,8 +21,8 @@
       "upcoming_event": null,
       "insider_buy": false,
       "stocktwits": null,
-      "combo_mult": 1.1,
-      "active_triggers": 2,
+      "combo_mult": 1.0,
+      "active_triggers": 1,
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 3.7×"
@@ -119,7 +119,7 @@
     "CRMD": {
       "score": 30,
       "confidence": 17,
-      "drivers": "News: guidance raised, earnings beat",
+      "drivers": "News: earnings beat, guidance raised",
       "price": 7.98,
       "chg_pct": 0.0,
       "rvol_4d": 0.5,
@@ -154,7 +154,7 @@
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": 0.2488020641356432,
-      "uoa_cp_ratio": 1.2806183115338883
+      "uoa_cp_ratio": 1.281807372175981
     },
     "GEMI": {
       "score": 25,
@@ -174,7 +174,7 @@
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": 2.026392961876833,
-      "uoa_cp_ratio": 1.949468085106383
+      "uoa_cp_ratio": 1.7662650602409637
     },
     "GOGO": {
       "score": 60,
@@ -218,7 +218,7 @@
         "UOA Call/Put 13.0×"
       ],
       "uoa_atm_ratio": 0.40851845373447615,
-      "uoa_cp_ratio": 13.038664323374341,
+      "uoa_cp_ratio": 13.019298245614035,
       "push_silenced": true,
       "silenced_reason": "+23% 2T"
     },
@@ -240,7 +240,7 @@
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": 2.4049217002237135,
-      "uoa_cp_ratio": 1.3484791233704894
+      "uoa_cp_ratio": 1.3426918735891649
     },
     "IOVA": {
       "score": 35,
@@ -326,7 +326,7 @@
         "UOA Call/Put 7.3×"
       ],
       "uoa_atm_ratio": 1.5635135135135134,
-      "uoa_cp_ratio": 7.319340329835082
+      "uoa_cp_ratio": 7.308383233532934
     },
     "SG": {
       "score": 20,
@@ -346,12 +346,12 @@
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": 0.222135955831608,
-      "uoa_cp_ratio": 0.5926076360682372
+      "uoa_cp_ratio": 0.3083266291230893
     },
     "SPCE": {
-      "score": 70,
+      "score": 65,
       "confidence": 70,
-      "drivers": "Volumen 3.3× + ⚡ Extremes Volumen 3.3×+ + Spanne 23.0% + News-KI 5/30: Routine Q1 earnings announcements lack the negative catalysts, high short interest, and technical setup signals typicall + SEC Form 4 + UOA Call/Put 6.1×",
+      "drivers": "Volumen 3.3× + ⚡ Extremes Volumen 3.3×+ + Spanne 23.0% + SEC Form 4 + UOA Call/Put 6.1×",
       "price": 3.24,
       "chg_pct": 0.0,
       "rvol_4d": 3.34,
@@ -368,12 +368,12 @@
         "UOA Call/Put 6.1×"
       ],
       "uoa_atm_ratio": 2.247798742138365,
-      "uoa_cp_ratio": 6.084989718985606
+      "uoa_cp_ratio": 6.083599817268159
     },
     "VITL": {
       "score": 30,
       "confidence": 70,
-      "drivers": "Spanne 8.5% + SEC Form 4 + UOA Call/Put 2.7×",
+      "drivers": "Spanne 8.5% + SEC Form 4 + UOA Call/Put 2.6×",
       "price": 10.13,
       "chg_pct": 0.0,
       "rvol_4d": 0.79,
@@ -387,10 +387,10 @@
       "active_triggers": 0,
       "uoa_score": 10,
       "uoa_drivers": [
-        "UOA Call/Put 2.7×"
+        "UOA Call/Put 2.6×"
       ],
       "uoa_atm_ratio": 0.07156748346946713,
-      "uoa_cp_ratio": 2.6924778761061945
+      "uoa_cp_ratio": 2.634199134199134
     }
   }
 }
