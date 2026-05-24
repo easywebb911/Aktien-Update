@@ -1,10 +1,10 @@
 {
-  "updated": "2026-05-24T16:13:45.658740+02:00",
+  "updated": "2026-05-24T17:34:03.448558+02:00",
   "run_info": {
     "tickers_checked": 18,
     "signals_active": 3,
     "alerts_sent": 0,
-    "elapsed_s": 13.2,
+    "elapsed_s": 17.2,
     "market_phase": "Geschlossen"
   },
   "signals": {
@@ -73,9 +73,9 @@
       "uoa_cp_ratio": null
     },
     "AMC": {
-      "score": 35,
+      "score": 30,
       "confidence": 70,
-      "drivers": "Spanne 8.9% + News-KI 5/30: Negative Wall Street sentiment und Corrections deuten auf Schwäche hin, nicht auf Short-Squeeze-Potenzial. + SEC Form 4 + UOA Call/Put 11.0×",
+      "drivers": "Spanne 8.9% + SEC Form 4 + UOA Call/Put 11.0×",
       "price": 1.51,
       "chg_pct": -0.0,
       "rvol_4d": 0.83,
@@ -119,7 +119,7 @@
     "CRMD": {
       "score": 30,
       "confidence": 17,
-      "drivers": "News: earnings beat, guidance raised",
+      "drivers": "News: guidance raised, earnings beat",
       "price": 7.98,
       "chg_pct": 0.0,
       "rvol_4d": 0.5,
@@ -137,9 +137,9 @@
       "uoa_cp_ratio": 0.8155136268343816
     },
     "ENVX": {
-      "score": 35,
+      "score": 43,
       "confidence": 70,
-      "drivers": "Volumen 1.5× + Spanne 9.4% + SEC Form 4",
+      "drivers": "Volumen 1.5× + Spanne 9.4% + News-KI 8/30: Positive fundamental catalysts (battery innovation, investor events) weakened by analyst price target cuts, indicating l + SEC Form 4",
       "price": 6.68,
       "chg_pct": -0.0,
       "rvol_4d": 1.5,
@@ -351,7 +351,7 @@
     "SPCE": {
       "score": 73,
       "confidence": 70,
-      "drivers": "Volumen 3.3× + ⚡ Extremes Volumen 3.3×+ + Spanne 23.0% + News-KI 8/30: Routine earnings announcements lack squeeze catalysts like high short interest, price volatility, or forced buying press + SEC Form 4 + UOA Call/Put 6.1×",
+      "drivers": "Volumen 3.3× + ⚡ Extremes Volumen 3.3×+ + Spanne 23.0% + News-KI 8/30: Routine earnings announcements lack catalysts for short squeeze; company focused on operational updates rather than fund + SEC Form 4 + UOA Call/Put 6.1×",
       "price": 3.24,
       "chg_pct": 0.0,
       "rvol_4d": 3.34,
