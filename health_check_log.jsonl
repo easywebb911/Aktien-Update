@@ -281,3 +281,4 @@
 {"run_ts": "2026-05-24T12:28:29Z", "run_phase": "postclose", "schema_v": 1, "state_fails": [{"id": "S4", "severity": "warn", "detail": "backtest_history ohne Eintrag für 2026-05-24 (postclose)"}], "provider_fails": []}
 {"run_ts": "2026-05-24T12:30:00Z", "run_phase": "ki_agent_tick", "schema_v": 1, "state_fails": [], "provider_fails": []}
 {"run_ts": "2026-05-24T14:00:36Z", "run_phase": "ki_agent_tick", "schema_v": 1, "state_fails": [], "provider_fails": []}
+{"run_ts": "2026-05-24T14:12:21Z", "run_phase": "premarket", "schema_v": 1, "state_fails": [], "provider_fails": []}
