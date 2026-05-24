@@ -243,6 +243,81 @@ def test_19_s10_auto_detect_does_not_warn():
     )
 
 
+# ── 7) kind-Filter an der Lade-Stelle (_append_backtest_entries) ──────────
+# Beweist, dass NUR kind=anomaly die Freshness-Uhr setzt — exit_p1/exit_p2/
+# earnings_immediate (mit JÜNGEREM ts) werden ignoriert. End-to-end, weil der
+# Filter inline in _append_backtest_entries lebt (kein extra Helper).
+
+
+def test_20_kind_filter_only_anomaly_sets_freshness():
+    import json as _json
+    import os as _os
+    import tempfile
+
+    now = datetime.now(timezone.utc)
+
+    def _iso(hours_ago):
+        return (now - timedelta(hours=hours_ago)).isoformat()
+
+    # Gemischte push_history fuer denselben Ticker: anomaly ALT (36h),
+    # exit/earnings JUENGER (1-2h). Ohne Filter wuerde der juengste (exit@1h)
+    # gewinnen -> freshness ~0.99. Mit Filter zaehlt nur anomaly@36h -> 0.5.
+    push_history = [
+        {"ticker": "TEST", "ts": _iso(36), "kind": "anomaly",
+         "severity": "high", "success": True, "suppressed": False},
+        {"ticker": "TEST", "ts": _iso(2),  "kind": "exit_p2",
+         "severity": "default", "success": True, "suppressed": False},
+        {"ticker": "TEST", "ts": _iso(1),  "kind": "exit_p1",
+         "severity": "default", "success": True, "suppressed": False},
+        {"ticker": "TEST", "ts": _iso(1),  "kind": "earnings_immediate",
+         "severity": "default", "success": True, "suppressed": False},
+    ]
+
+    # Report-Datum: jüngster Werktag <= heute (Wochenend-Guard umgehen).
+    rd = now
+    while rd.weekday() >= 5:
+        rd -= timedelta(days=1)
+    report_date = rd.strftime("%d.%m.%Y")
+
+    cwd0 = _os.getcwd()
+    with tempfile.TemporaryDirectory() as tmp:
+        try:
+            _os.chdir(tmp)
+            with open("agent_state.json", "w") as fh:
+                _json.dump({"push_history": push_history}, fh)
+            with open("agent_signals.json", "w") as fh:
+                _json.dump({"signals": {}}, fh)
+            with open("backtest_history.json", "w") as fh:
+                _json.dump([], fh)
+
+            top10 = [_baseline_stock([50.0, 57.0])]
+            bh._append_backtest_entries(
+                top10, report_date, pool_size=1,
+                compute_sub_scores_fn=lambda s: {"struct": 0, "catalyst": 0,
+                                                 "timing": 0},
+                safe_float_fn=lambda v, d=0.0: (float(v)
+                                                if v not in (None, "") else d),
+            )
+            written = _json.load(open("backtest_history.json"))
+        finally:
+            _os.chdir(cwd0)
+
+    entry = next((e for e in written if e.get("ticker") == "TEST"), None)
+    assert entry is not None, "TEST-Eintrag wurde nicht geschrieben"
+    fr = entry.get("anomaly_freshness")
+    assert fr is not None, "anomaly_freshness ist None trotz anomaly-Push"
+    # anomaly@36h -> 1 - 36/72 = 0.5. Toleranz fuer ms-Drift.
+    assert abs(fr - 0.5) < 0.03, (
+        f"Freshness {fr} != ~0.5 -> Filter falsch: vermutlich juengerer "
+        f"exit/earnings-ts (1-2h -> ~0.97-0.99) statt anomaly@36h verwendet."
+    )
+    # Doppelter Beleg: der juengere exit-ts (1h -> ~0.986) wurde NICHT genommen.
+    assert fr < 0.9, (
+        f"Freshness {fr} >= 0.9 -> exit/earnings-ts (juenger) hat die Uhr "
+        f"gesetzt; kind-Filter greift nicht."
+    )
+
+
 def main() -> int:
     tests = [
         test_01_both_in_observed_not_muss_not_lag,
@@ -264,6 +339,7 @@ def main() -> int:
         test_17_integration_freshness_none_when_ticker_absent,
         test_18_integration_both_keys_present,
         test_19_s10_auto_detect_does_not_warn,
+        test_20_kind_filter_only_anomaly_sets_freshness,
     ]
     failed = 0
     for t in tests:
