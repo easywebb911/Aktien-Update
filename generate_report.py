@@ -230,6 +230,8 @@ def _test_extended_schema():
         # Entry-Score-Vorarbeit (21.05.2026) — additive Felder ohne
         # backtest_schema_version-Bump.
         "rvol_acceleration","uoa_atm_ratio",
+        # Entry-Modul-Shadow-Persist (25.05.2026) — additiv, kein Bump.
+        "score_delta_t1","anomaly_freshness",
         "backtest_schema_version",
     }
     assert set(ext.keys()) == expected_keys, set(ext.keys()) ^ expected_keys

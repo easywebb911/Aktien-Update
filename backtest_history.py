@@ -18,7 +18,7 @@ from __future__ import annotations
 
 import json
 import logging
-from datetime import date, datetime
+from datetime import date, datetime, timezone
 
 import yfinance as yf
 
@@ -230,9 +230,45 @@ def _compute_coiled_spring_score(vol_stability: float | None,
     return round(stability_inv * slope_norm * 100, 1)
 
 
+def _compute_score_delta_t1(scores) -> float | None:
+    """``last − prev`` aus den Sparkline-Setup-Scores (raw, oldest→newest),
+    geclampt auf ±15. ``None`` bei < 2 Werten oder nicht-konvertierbar.
+
+    Entry-Modul-Vorarbeit (Shadow-Persist) — kein Score-/Push-Effekt.
+    """
+    if not scores or len(scores) < 2:
+        return None
+    try:
+        delta = float(scores[-1]) - float(scores[-2])
+    except (TypeError, ValueError):
+        return None
+    return round(max(-15.0, min(15.0, delta)), 2)
+
+
+def _compute_anomaly_freshness(latest_ts_iso, now_dt) -> float | None:
+    """``max(1 − age_h/72, 0)`` aus dem jüngsten Push-Timestamp eines Tickers.
+
+    ``None`` nur wenn gar kein (parsebarer) Timestamp vorliegt (Ticker nie
+    gepusht). Push älter als 72 h → ``0.0`` (legit-leer, kein None) — das ist
+    das echte Gegenargument-Signal „kein frischer Anomalie-Push".
+
+    Entry-Modul-Vorarbeit (Shadow-Persist) — kein Score-/Push-Effekt.
+    """
+    if not latest_ts_iso:
+        return None
+    try:
+        ts = datetime.fromisoformat(latest_ts_iso)
+    except (TypeError, ValueError):
+        return None
+    age_h = (now_dt - ts).total_seconds() / 3600.0
+    return round(max(1.0 - age_h / 72.0, 0.0), 4)
+
+
 def _build_backtest_extension(s: dict, pool_position: int, pool_size: int,
                               agent_signals: dict, *,
-                              compute_sub_scores_fn, safe_float_fn) -> dict:
+                              compute_sub_scores_fn, safe_float_fn,
+                              latest_push_ts_by_ticker: dict | None = None,
+                              now_dt=None) -> dict:
     """Liefert das Schema-Erweiterungs-Dict (Bahn B) für einen Top-10-Eintrag.
 
     Felder, die retroaktiv NICHT rekonstruierbar sind:
@@ -294,6 +330,17 @@ def _build_backtest_extension(s: dict, pool_position: int, pool_size: int,
         else None
     )
 
+    # Entry-Modul-Vorarbeit (Shadow-Persist 25.05.2026) — kein Score-/Push-
+    # Effekt, nur frühe Datensammlung. score_delta_t1 aus dem bereits am
+    # Stock-Dict liegenden sparkline (apply_score_smoothing läuft VOR dem
+    # Backtest-Append). anomaly_freshness aus dem per-Ticker durchgereichten
+    # jüngsten Push-Timestamp (Snapshot zur Report-Zeit).
+    _spark = s.get("sparkline") or {}
+    score_delta_t1 = _compute_score_delta_t1(_spark.get("scores"))
+    _now = now_dt or datetime.now(timezone.utc)
+    _latest_push_ts = (latest_push_ts_by_ticker or {}).get(s["ticker"])
+    anomaly_freshness = _compute_anomaly_freshness(_latest_push_ts, _now)
+
     return {
         "score_struct":         sub["struct"]   if sub is not None else None,
         "score_catalyst":       sub["catalyst"] if sub is not None else None,
@@ -322,6 +369,15 @@ def _build_backtest_extension(s: dict, pool_position: int, pool_size: int,
         # kein backtest_schema_version-Bump.
         "rvol_acceleration":      rvol_acceleration,
         "uoa_atm_ratio":          sig.get("uoa_atm_ratio"),
+        # Entry-Modul-Vorarbeit (Shadow-Persist 25.05.2026): zwei Felder
+        # früh sammeln für die Entry-AUC ~30.06. Beide leer-tolerant
+        # (None möglich). Schema-ADDITIV — KEIN v4→v5-Bump: der
+        # S10-v4-Filter (health_check._s10_load_v4_entries, == 4) würde
+        # neue Einträge sonst aus der Überwachung ausschließen.
+        #   score_delta_t1:    aus s["sparkline"]["scores"] (last−prev, ±15)
+        #   anomaly_freshness: aus push_history-ts (max(1−age_h/72, 0))
+        "score_delta_t1":         score_delta_t1,
+        "anomaly_freshness":      anomaly_freshness,
         "backtest_schema_version": 4,
     }
 
@@ -371,6 +427,25 @@ def _append_backtest_entries(top10: list[dict], report_date: str,
             agent_signals = (json.load(fh) or {}).get("signals") or {}
     except (FileNotFoundError, json.JSONDecodeError):
         agent_signals = {}
+
+    # Push-History einmalig laden für anomaly_freshness (Shadow-Persist,
+    # Entry-Modul-Vorarbeit). Self-contained analog agent_signals.json — nur
+    # Lese-Snapshot, KEIN Push-/Score-Effekt. Map ticker→jüngster Push-ts;
+    # ISO-8601 mit konstantem Berlin-Offset im 6-Tage-FIFO-Fenster sortiert
+    # lexikalisch = chronologisch (DST-Wechsel im Fenster vernachlässigbar).
+    latest_push_ts_by_ticker: dict[str, str] = {}
+    try:
+        with open("agent_state.json", "r", encoding="utf-8") as fh:
+            _push_hist = (json.load(fh) or {}).get("push_history") or []
+        for _pe in _push_hist:
+            _pt, _pts = _pe.get("ticker"), _pe.get("ts")
+            if not _pt or not _pts:
+                continue
+            if _pt not in latest_push_ts_by_ticker or _pts > latest_push_ts_by_ticker[_pt]:
+                latest_push_ts_by_ticker[_pt] = _pts
+    except (FileNotFoundError, json.JSONDecodeError):
+        latest_push_ts_by_ticker = {}
+    _now_dt = datetime.now(timezone.utc)
 
     # Bahn-A2-Stufe-1: Markt-Regime + VIX einmal pro Run abrufen. Werden auf
     # NEUE Einträge persistiert; die rolling Drawdown-Aktualisierung läuft
@@ -426,6 +501,8 @@ def _append_backtest_entries(top10: list[dict], report_date: str,
             agent_signals=agent_signals,
             compute_sub_scores_fn=compute_sub_scores_fn,
             safe_float_fn=safe_float_fn,
+            latest_push_ts_by_ticker=latest_push_ts_by_ticker,
+            now_dt=_now_dt,
         ))
         history.append(entry)
         n_added += 1
