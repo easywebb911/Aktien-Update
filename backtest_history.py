@@ -441,6 +441,14 @@ def _append_backtest_entries(top10: list[dict], report_date: str,
             _pt, _pts = _pe.get("ticker"), _pe.get("ts")
             if not _pt or not _pts:
                 continue
+            # Nur echte Anomalie-Detektionen zählen für anomaly_freshness
+            # (inkl. suppressed — Detektions-ts bleibt verwertbar). Exit-Pushes
+            # (exit_p1/exit_p2) sind ein GEGENTEILIGES Signal (Positions-Ausstieg)
+            # und earnings_immediate ist ein Event-Alarm, kein Anomalie-Signal —
+            # beide dürfen die Freshness-Uhr NICHT setzen. kind ist flach (keine
+            # anomaly_*-Subtypen), daher striktes ==.
+            if _pe.get("kind") != "anomaly":
+                continue
             if _pt not in latest_push_ts_by_ticker or _pts > latest_push_ts_by_ticker[_pt]:
                 latest_push_ts_by_ticker[_pt] = _pts
     except (FileNotFoundError, json.JSONDecodeError):
