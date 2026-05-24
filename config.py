@@ -1061,6 +1061,12 @@ S10_OBSERVED_FIELDS = frozenset({
     # ist None wenn rel_volume_yesterday fehlt/0. uoa_atm_ratio ist None
     # wenn Ticker nicht im KI-Agent-monitored-Pool.
     "rvol_acceleration", "uoa_atm_ratio",
+    # Entry-Modul-Vorarbeit (Shadow-Persist 25.05.2026): zwei weitere
+    # vorgezogene Felder für die Entry-AUC ~30.06. Beide LEGITIM-leer-
+    # tolerant (None möglich) → nur OBSERVED, kein MUSS-/LAG-Check.
+    # score_delta_t1 ist None bei < 2 Sparkline-Werten; anomaly_freshness
+    # ist None wenn der Ticker nie gepusht wurde (0.0 = Push älter 72 h).
+    "score_delta_t1", "anomaly_freshness",
     # LAG-Felder, später (Phase 2)
     "entry_price_t1",
     "return_10d", "return_10d_t1",
