@@ -1,10 +1,10 @@
 {
-  "updated": "2026-05-24T16:00:35.863848+02:00",
+  "updated": "2026-05-24T16:13:45.658740+02:00",
   "run_info": {
     "tickers_checked": 18,
     "signals_active": 3,
     "alerts_sent": 0,
-    "elapsed_s": 20.0,
+    "elapsed_s": 13.2,
     "market_phase": "Geschlossen"
   },
   "signals": {
@@ -73,9 +73,9 @@
       "uoa_cp_ratio": null
     },
     "AMC": {
-      "score": 30,
+      "score": 35,
       "confidence": 70,
-      "drivers": "Spanne 8.9% + SEC Form 4 + UOA Call/Put 11.0×",
+      "drivers": "Spanne 8.9% + News-KI 5/30: Negative Wall Street sentiment und Corrections deuten auf Schwäche hin, nicht auf Short-Squeeze-Potenzial. + SEC Form 4 + UOA Call/Put 11.0×",
       "price": 1.51,
       "chg_pct": -0.0,
       "rvol_4d": 0.83,
@@ -119,7 +119,7 @@
     "CRMD": {
       "score": 30,
       "confidence": 17,
-      "drivers": "News: guidance raised, earnings beat",
+      "drivers": "News: earnings beat, guidance raised",
       "price": 7.98,
       "chg_pct": 0.0,
       "rvol_4d": 0.5,
@@ -218,7 +218,9 @@
         "UOA Call/Put 13.0×"
       ],
       "uoa_atm_ratio": 0.40851845373447615,
-      "uoa_cp_ratio": 13.038664323374341
+      "uoa_cp_ratio": 13.038664323374341,
+      "push_silenced": true,
+      "silenced_reason": "+23% 2T"
     },
     "IONQ": {
       "score": 40,
@@ -349,7 +351,7 @@
     "SPCE": {
       "score": 73,
       "confidence": 70,
-      "drivers": "Volumen 3.3× + ⚡ Extremes Volumen 3.3×+ + Spanne 23.0% + News-KI 8/30: Positive earnings coverage increases institutional interest and reduces distress, making short squeeze less likely despi + SEC Form 4 + UOA Call/Put 6.1×",
+      "drivers": "Volumen 3.3× + ⚡ Extremes Volumen 3.3×+ + Spanne 23.0% + News-KI 8/30: Routine earnings announcements lack squeeze catalysts like high short interest, price volatility, or forced buying press + SEC Form 4 + UOA Call/Put 6.1×",
       "price": 3.24,
       "chg_pct": 0.0,
       "rvol_4d": 3.34,
