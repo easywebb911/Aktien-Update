@@ -1,17 +1,17 @@
 {
-  "updated": "2026-05-24T17:34:03.448558+02:00",
+  "updated": "2026-05-24T19:15:58.665249+02:00",
   "run_info": {
     "tickers_checked": 18,
     "signals_active": 3,
     "alerts_sent": 0,
-    "elapsed_s": 17.2,
+    "elapsed_s": 17.0,
     "market_phase": "Geschlossen"
   },
   "signals": {
     "AEVA": {
-      "score": 35,
+      "score": 52,
       "confidence": 70,
-      "drivers": "Volumen 2.0× + Spanne 15.6% + UOA Call/Put 3.7×",
+      "drivers": "Volumen 2.0× + Spanne 15.6% + News-KI 12/30: Positive lidar/optical sector sentiment, but no short squeeze indicators like high short interest, borrow fees, or catal + UOA Call/Put 3.7×",
       "price": 25.32,
       "chg_pct": -0.0,
       "rvol_4d": 2.03,
@@ -21,8 +21,8 @@
       "upcoming_event": null,
       "insider_buy": false,
       "stocktwits": null,
-      "combo_mult": 1.0,
-      "active_triggers": 1,
+      "combo_mult": 1.1,
+      "active_triggers": 2,
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 3.7×"
@@ -31,9 +31,9 @@
       "uoa_cp_ratio": 3.6621004566210047
     },
     "AI": {
-      "score": 53,
+      "score": 38,
       "confidence": 70,
-      "drivers": "Spanne 6.5% + News: breakout + Earnings in 10d + SEC Form 4 + UOA Call/Put 69.1×",
+      "drivers": "Spanne 6.5% + Earnings in 10d + SEC Form 4 + UOA Call/Put 69.1×",
       "price": 9.29,
       "chg_pct": -0.0,
       "rvol_4d": 1.04,
@@ -44,7 +44,7 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 1,
+      "active_triggers": 0,
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 69.1×"
@@ -137,9 +137,9 @@
       "uoa_cp_ratio": 0.8155136268343816
     },
     "ENVX": {
-      "score": 43,
+      "score": 35,
       "confidence": 70,
-      "drivers": "Volumen 1.5× + Spanne 9.4% + News-KI 8/30: Positive fundamental catalysts (battery innovation, investor events) weakened by analyst price target cuts, indicating l + SEC Form 4",
+      "drivers": "Volumen 1.5× + Spanne 9.4% + SEC Form 4",
       "price": 6.68,
       "chg_pct": -0.0,
       "rvol_4d": 1.5,
@@ -349,9 +349,9 @@
       "uoa_cp_ratio": 0.5926076360682372
     },
     "SPCE": {
-      "score": 73,
+      "score": 70,
       "confidence": 70,
-      "drivers": "Volumen 3.3× + ⚡ Extremes Volumen 3.3×+ + Spanne 23.0% + News-KI 8/30: Routine earnings announcements lack catalysts for short squeeze; company focused on operational updates rather than fund + SEC Form 4 + UOA Call/Put 6.1×",
+      "drivers": "Volumen 3.3× + ⚡ Extremes Volumen 3.3×+ + Spanne 23.0% + News-KI 5/30: Routine Q1 earnings announcements lack the negative catalysts, high short interest, and technical setup signals typicall + SEC Form 4 + UOA Call/Put 6.1×",
       "price": 3.24,
       "chg_pct": 0.0,
       "rvol_4d": 3.34,
