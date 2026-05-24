@@ -33,7 +33,7 @@ import threading
 import time
 import xml.etree.ElementTree as ET
 from concurrent.futures import ThreadPoolExecutor, as_completed
-from datetime import date, datetime, time as dt_time, timedelta, timezone
+from datetime import date, datetime, timedelta, timezone
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 
@@ -693,7 +693,7 @@ def fetch_reddit_mentions(ticker: str) -> dict:
                 pos_score += sum(1 for w in words if w in REDDIT_POSITIVE)
                 neg_score += sum(1 for w in words if w in REDDIT_NEGATIVE)
             time.sleep(0.5)
-        except Exception as exc:
+        except Exception:
             pass
 
     sentiment = 0.0
@@ -1857,31 +1857,6 @@ def _exit_cooldown_set(state: dict, key: str,
     state.setdefault("exit_cooldowns", {})[key] = ts.isoformat()
 
 
-def _exit_cooldown_expired_keys(state: dict, prefix: str,
-                                  hours: float) -> list[str]:
-    """Liefert alle Keys aus ``state["exit_cooldowns"]`` mit dem angegebenen
-    Prefix, deren Timestamp älter als ``hours`` ist. Use-Case: periodisches
-    Aufräumen damit das State-File nicht ewig wächst (alte exitp2-Keys nach
-    z.B. 2× Cooldown-Dauer entfernen). Unparsebare Timestamps werden als
-    abgelaufen mit-zurückgegeben — der Aufrufer kann sie damit ebenfalls
-    entfernen.
-    """
-    cd = state.get("exit_cooldowns") or {}
-    threshold_s = hours * 3600
-    out: list[str] = []
-    for k, ts in cd.items():
-        if not k.startswith(prefix):
-            continue
-        try:
-            last = datetime.fromisoformat(ts)
-        except (TypeError, ValueError):
-            out.append(k)
-            continue
-        if (now_berlin() - last).total_seconds() >= threshold_s:
-            out.append(k)
-    return out
-
-
 def process_exit_signals(app_data: dict, state: dict) -> None:
     """Phase 2 Exit-Push-Pipeline (Stufe 3b-3b — alle Klassen scharf).
 
@@ -2460,39 +2435,6 @@ def _load_app_data_canonical() -> dict:
         return json.loads(path.read_text(encoding="utf-8")) or {}
     except (OSError, json.JSONDecodeError):
         return {}
-
-
-def _load_production_scores() -> dict[str, float]:
-    """Liest neuesten Production-Score pro Ticker.
-
-    Primärquelle ist ``app_data.json`` (key ``score_history``) — der vom
-    letzten Report-Run geschriebene Snapshot enthält i. d. R. den
-    frischesten Wert. Pro fehlendem Ticker (oder wenn ``app_data.json``
-    nicht existiert/korrupt ist) → graceful Fallback auf
-    ``score_history.json``. Beide Dateien fehlen → leeres Dict.
-    """
-    primary: dict[str, float] = {}
-    try:
-        path = Path("app_data.json")
-        if path.exists():
-            data = json.loads(path.read_text(encoding="utf-8"))
-            primary = _extract_latest_scores(data.get("score_history"))
-    except (OSError, json.JSONDecodeError):
-        primary = {}
-
-    fallback: dict[str, float] = {}
-    try:
-        path = Path("score_history.json")
-        if path.exists():
-            fallback = _extract_latest_scores(
-                json.loads(path.read_text(encoding="utf-8"))
-            )
-    except (OSError, json.JSONDecodeError):
-        fallback = {}
-
-    # primary (app_data.json) überschreibt fallback (score_history.json) —
-    # frischester verfügbarer Wert pro Ticker wins.
-    return {**fallback, **primary}
 
 
 def _monster_score(setup_score, ki_score):

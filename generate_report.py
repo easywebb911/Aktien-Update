@@ -1317,8 +1317,6 @@ def get_combined_news(ticker: str, n: int = 3) -> list[dict]:
     oft dieselben Meldungen wie Yahoo und war langsam. Yahoo (JSON) +
     Finviz (RSS) decken die wichtigsten Catalysts ab.
     """
-    base_upper = ticker.split(".")[0].upper()
-
     yahoo_items = get_yahoo_news(ticker, n=5)
     # finviz RSS-Feed seit Mai 2026 tot (Probe 18.05.2026), liefert
     # HTML-Page statt Feed. Die 5 anderen RSS-Quellen tragen die
