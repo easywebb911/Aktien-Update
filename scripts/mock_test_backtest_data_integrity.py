@@ -46,7 +46,7 @@ def test_01_hist_5d_in_c_update_block():
     Vor 21.05.2026 fehlte dieser Eintrag → backtest_history hatte 3 von 4
     Trend-Feldern dauerhaft 0 % gefuellt seit PR #142.
     """
-    src = _read("generate_report.py")
+    src = _read("generate_report.py")  # c.update-Caller blieb in generate_report.py
     # Wir suchen einen c.update-Block, der "hist_5d" als Key + yfd.get(...)
     # als Value enthaelt. Robust gegen Whitespace-Variationen; non-greedy
     # zwischen Container-Start und Container-Ende (DOTALL).
@@ -66,7 +66,7 @@ def test_02_hist_5d_consumed_in_build_backtest_extension():
     """Der Backtest-Extension-Builder muss s.get('hist_5d') lesen — wenn
     diese Konsumentenstelle wegfaellt, ist der Propagations-Fix nutzlos.
     """
-    src = _read("generate_report.py")
+    src = _read("backtest_history.py")
     assert 's.get("hist_5d")' in src, (
         "_build_backtest_extension liest hist_5d nicht mehr — der "
         "Propagations-Fix ohne Konsument waere wirkungslos."
@@ -77,7 +77,7 @@ def test_03_yfd_writes_hist_5d():
     """Source-Pfad: get_yfinance_data schreibt hist_5d ins yfd-Dict.
     Falls dieser Schreibe wegfaellt, ist der c.update-Merge ohne Quelle.
     """
-    src = _read("generate_report.py")
+    src = _read("generate_report.py")  # get_yfinance_data blieb in generate_report.py
     # Suche nach dem yfd-Schreibe-Pattern: "hist_5d":        hist_5d,
     assert re.search(r'"hist_5d"\s*:\s*hist_5d', src), (
         "get_yfinance_data setzt yfd['hist_5d'] = hist_5d nicht mehr — "
@@ -94,7 +94,7 @@ def test_04_weekend_guard_in_append_backtest_entries():
     Outcomes update_backtest_returns permanent skipt — 96 Leichen
     Bestandsaufnahme.
     """
-    src = _read("generate_report.py")
+    src = _read("backtest_history.py")
     # Suche im Body von _append_backtest_entries nach einer weekday-Pruefung.
     fn_match = re.search(
         r"def _append_backtest_entries\(.*?(?=^def |\Z)",
@@ -126,7 +126,7 @@ def test_05_weekend_guard_returns_zero():
     n_added-Wert; ein Sa/So-Run soll als 'nichts angehaengt' gelten, nicht
     als Fehler).
     """
-    src = _read("generate_report.py")
+    src = _read("backtest_history.py")
     fn_match = re.search(
         r"def _append_backtest_entries\(.*?(?=^def |\Z)",
         src, re.MULTILINE | re.DOTALL,
@@ -146,7 +146,7 @@ def test_05_weekend_guard_returns_zero():
 def test_06_weekend_guard_logs_warning():
     """Easy braucht im Workflow-Log einen sichtbaren Hinweis warum nichts
     angehaengt wurde."""
-    src = _read("generate_report.py")
+    src = _read("backtest_history.py")
     fn_match = re.search(
         r"def _append_backtest_entries\(.*?(?=^def |\Z)",
         src, re.MULTILINE | re.DOTALL,
@@ -166,7 +166,7 @@ def test_07_backtest_enabled_check_remains_first():
     Wochenend-Guard kommt danach. Reihenfolge sichert: bei disabled
     Backtest gar nichts tun, kein Datums-Parse-Versuch.
     """
-    src = _read("generate_report.py")
+    src = _read("backtest_history.py")
     fn_match = re.search(
         r"def _append_backtest_entries\(.*?(?=^def |\Z)",
         src, re.MULTILINE | re.DOTALL,

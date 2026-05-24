@@ -31,13 +31,19 @@ sys.path.insert(0, str(ROOT))
 
 # === Source-Extraktion =====================================================
 
-src = (ROOT / "generate_report.py").read_text(encoding="utf-8")
+# Die vier Earliness-Trend-Helper UND _build_backtest_extension wurden
+# 23.05.2026 nach backtest_history.py extrahiert (Helper-Refactor) →
+# Source-Inspektion dieser folgt dem Umzug (``src``). _hist_stats + sein
+# Caller + der _test_extended_schema-Selbsttest blieben in generate_report.py
+# (``src_gr``).
+src = (ROOT / "backtest_history.py").read_text(encoding="utf-8")
+src_gr = (ROOT / "generate_report.py").read_text(encoding="utf-8")
 
 
 def _extract(func_def: str) -> str:
     pat = rf"^def {re.escape(func_def)}\([\s\S]+?(?=^def\s|^class\s|^# ====)"
     m = re.search(pat, src, re.MULTILINE)
-    assert m, f"{func_def} nicht in generate_report.py gefunden"
+    assert m, f"{func_def} nicht in backtest_history.py gefunden"
     return m.group(0)
 
 
@@ -271,7 +277,7 @@ def test_extended_schema_includes_trend_fields():
     for key in ("si_trend_5d_slope", "rvol_buildup_5d",
                 "vol_stability_5d", "coiled_spring_score",
                 "backtest_schema_version"):
-        assert f'"{key}"' in src, (
+        assert f'"{key}"' in src_gr, (
             f"Selbsttest in generate_report.py erwartet {key!r} nicht — "
             f"_test_extended_schema:expected_keys ergänzen")
 
@@ -290,13 +296,13 @@ def test_hist_stats_returns_14_elements():
     """_hist_stats returnt jetzt 14-Tupel (hist_5d am Ende). Caller
     muss entsprechend auspacken."""
     # Default-Return: 13 None/0.0 + leere Liste
-    assert "0.0, 0.0, 0.0, None, None, None, None, None, None, None, None, None, None, []" in src, (
+    assert "0.0, 0.0, 0.0, None, None, None, None, None, None, None, None, None, None, []" in src_gr, (
         "_hist_stats default-return wurde nicht um leere hist_5d-Liste am Ende erweitert")
     # Caller-Auspack-Stelle muss hist_5d-Variable enthalten
-    assert "cur_close, hist_5d = _hist_stats(ticker)" in src, (
+    assert "cur_close, hist_5d = _hist_stats(ticker)" in src_gr, (
         "_hist_stats-Caller wurde nicht um hist_5d erweitert")
     # Stock-Dict bekommt s["hist_5d"]
-    assert '"hist_5d":        hist_5d,' in src, (
+    assert '"hist_5d":        hist_5d,' in src_gr, (
         "Stock-Dict bekommt kein hist_5d-Feld vom Caller")
 
 

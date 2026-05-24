@@ -67,8 +67,9 @@ def test_01_both_in_observed_not_muss_not_lag():
 
 
 def test_02_fields_in_build_backtest_extension():
-    """generate_report._build_backtest_extension schreibt beide Felder."""
-    src = (ROOT / "generate_report.py").read_text(encoding="utf-8")
+    """_build_backtest_extension schreibt beide Felder.
+    (23.05.2026 nach backtest_history.py extrahiert — Source folgt dem Umzug.)"""
+    src = (ROOT / "backtest_history.py").read_text(encoding="utf-8")
     import re
     fn_match = re.search(
         r"def _build_backtest_extension\(.*?(?=^def |\Z)",
@@ -85,8 +86,9 @@ def test_02_fields_in_build_backtest_extension():
 
 
 def test_03_uoa_uses_sig_lookup():
-    """uoa_atm_ratio wird aus dem `sig`-Dict gelesen (agent_signals-Pfad)."""
-    src = (ROOT / "generate_report.py").read_text(encoding="utf-8")
+    """uoa_atm_ratio wird aus dem `sig`-Dict gelesen (agent_signals-Pfad).
+    (_build_backtest_extension lebt seit 23.05.2026 in backtest_history.py.)"""
+    src = (ROOT / "backtest_history.py").read_text(encoding="utf-8")
     assert 'sig.get("uoa_atm_ratio")' in src, (
         "uoa_atm_ratio sollte via sig.get aus agent_signals geholt werden."
     )
@@ -143,7 +145,9 @@ def test_05_rvol_acceleration_normal_case():
     import generate_report as g
     stock = _full_baseline_stock(rel_vol=2.4, rel_vol_yest=1.5)
     ext = g._build_backtest_extension(stock, pool_position=3, pool_size=20,
-                                       agent_signals={})
+                                       agent_signals={},
+                                       compute_sub_scores_fn=g._compute_sub_scores,
+                                       safe_float_fn=g._safe_float)
     assert ext["rvol_acceleration"] == round(2.4 / 1.5, 3), (
         f"erwartet {round(2.4/1.5, 3)}, bekam {ext['rvol_acceleration']}"
     )
@@ -154,7 +158,9 @@ def test_06_rvol_acceleration_yesterday_zero_yields_none():
     import generate_report as g
     stock = _full_baseline_stock(rel_vol=2.4, rel_vol_yest=0.0)
     ext = g._build_backtest_extension(stock, pool_position=1, pool_size=20,
-                                       agent_signals={})
+                                       agent_signals={},
+                                       compute_sub_scores_fn=g._compute_sub_scores,
+                                       safe_float_fn=g._safe_float)
     assert ext["rvol_acceleration"] is None, (
         f"Division durch 0 muss None liefern, bekam {ext['rvol_acceleration']}"
     )
@@ -166,7 +172,9 @@ def test_07_rvol_acceleration_yesterday_none_yields_none():
     stock = _full_baseline_stock()
     stock["rel_volume_yesterday"] = None
     ext = g._build_backtest_extension(stock, pool_position=1, pool_size=20,
-                                       agent_signals={})
+                                       agent_signals={},
+                                       compute_sub_scores_fn=g._compute_sub_scores,
+                                       safe_float_fn=g._safe_float)
     assert ext["rvol_acceleration"] is None
 
 
@@ -175,7 +183,9 @@ def test_08_rvol_acceleration_rel_volume_zero_yields_none():
     import generate_report as g
     stock = _full_baseline_stock(rel_vol=0.0, rel_vol_yest=1.5)
     ext = g._build_backtest_extension(stock, pool_position=1, pool_size=20,
-                                       agent_signals={})
+                                       agent_signals={},
+                                       compute_sub_scores_fn=g._compute_sub_scores,
+                                       safe_float_fn=g._safe_float)
     assert ext["rvol_acceleration"] is None
 
 
@@ -185,7 +195,9 @@ def test_09_uoa_atm_ratio_from_agent_signals():
     stock = _full_baseline_stock()
     sigs = {"TEST": {"uoa_atm_ratio": 12.5, "combo_mult": 1.0}}
     ext = g._build_backtest_extension(stock, pool_position=1, pool_size=20,
-                                       agent_signals=sigs)
+                                       agent_signals=sigs,
+                                       compute_sub_scores_fn=g._compute_sub_scores,
+                                       safe_float_fn=g._safe_float)
     assert ext["uoa_atm_ratio"] == 12.5, (
         f"erwartet 12.5, bekam {ext['uoa_atm_ratio']}"
     )
@@ -196,7 +208,9 @@ def test_10_uoa_atm_ratio_missing_signal_yields_none():
     import generate_report as g
     stock = _full_baseline_stock()
     ext = g._build_backtest_extension(stock, pool_position=1, pool_size=20,
-                                       agent_signals={})
+                                       agent_signals={},
+                                       compute_sub_scores_fn=g._compute_sub_scores,
+                                       safe_float_fn=g._safe_float)
     assert ext["uoa_atm_ratio"] is None
 
 
@@ -206,7 +220,9 @@ def test_11_uoa_atm_ratio_signal_without_uoa_field_yields_none():
     stock = _full_baseline_stock()
     sigs = {"TEST": {"combo_mult": 1.0}}  # kein uoa_atm_ratio
     ext = g._build_backtest_extension(stock, pool_position=1, pool_size=20,
-                                       agent_signals=sigs)
+                                       agent_signals=sigs,
+                                       compute_sub_scores_fn=g._compute_sub_scores,
+                                       safe_float_fn=g._safe_float)
     assert ext["uoa_atm_ratio"] is None
 
 
@@ -216,7 +232,9 @@ def test_12_schema_version_unchanged():
     import generate_report as g
     stock = _full_baseline_stock()
     ext = g._build_backtest_extension(stock, pool_position=1, pool_size=20,
-                                       agent_signals={})
+                                       agent_signals={},
+                                       compute_sub_scores_fn=g._compute_sub_scores,
+                                       safe_float_fn=g._safe_float)
     assert ext["backtest_schema_version"] == 4, (
         "backtest_schema_version darf nicht hochgezaehlt werden — additiv."
     )
