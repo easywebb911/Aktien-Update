@@ -1,10 +1,10 @@
 {
-  "updated": "2026-05-24T12:36:06.231516+02:00",
+  "updated": "2026-05-24T13:06:09.873663+02:00",
   "run_info": {
     "tickers_checked": 18,
     "signals_active": 3,
     "alerts_sent": 0,
-    "elapsed_s": 12.3,
+    "elapsed_s": 17.0,
     "market_phase": "Geschlossen"
   },
   "signals": {
@@ -177,9 +177,9 @@
       "uoa_cp_ratio": 1.949468085106383
     },
     "GOGO": {
-      "score": 60,
+      "score": 57,
       "confidence": 70,
-      "drivers": "Spanne 7.5% + News: catalyst + FINRA Short-Vol 100% + UOA Call/Put 19.0×",
+      "drivers": "Spanne 7.5% + News-KI 12/30: Positive fundamental coverage but no mention of short interest, squeeze catalysts, or forced buy-in dynamics typical of  + FINRA Short-Vol 100% + UOA Call/Put 19.0×",
       "price": 4.33,
       "chg_pct": -0.0,
       "rvol_4d": 1.26,
@@ -288,8 +288,8 @@
       "drivers": "UOA Call/Put 7.8×",
       "price": 6.4,
       "chg_pct": 0.0,
-      "rvol_4d": 0.0,
-      "rvol_20d": null,
+      "rvol_4d": 1.2,
+      "rvol_20d": 1.02,
       "earnings": "in 73 Tagen (05.08.2026)",
       "fda_date": null,
       "upcoming_event": null,
@@ -349,7 +349,7 @@
     "SPCE": {
       "score": 73,
       "confidence": 70,
-      "drivers": "Volumen 3.3× + ⚡ Extremes Volumen 3.3×+ + Spanne 23.0% + News-KI 8/30: Routine quarterly earnings announcements lack the negative catalysts (high short interest, forced liquidations, surprise + SEC Form 4 + UOA Call/Put 6.1×",
+      "drivers": "Volumen 3.3× + ⚡ Extremes Volumen 3.3×+ + Spanne 23.0% + News-KI 8/30: Routine earnings announcements lack the dramatic short-squeeze catalysts needed; company remains in development phase wi + SEC Form 4 + UOA Call/Put 6.1×",
       "price": 3.24,
       "chg_pct": 0.0,
       "rvol_4d": 3.34,
