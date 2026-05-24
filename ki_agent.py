@@ -1752,33 +1752,6 @@ def send_ntfy_alert(ticker: str, ki_score: int, drivers,
         log.warning("ntfy push fehlgeschlagen für %s: %s", ticker, exc)
 
 
-def _extract_latest_scores(raw: dict | None) -> dict[str, float]:
-    """Extrahiert den letzten Score pro Ticker aus einem score_history-Dict.
-
-    Format-tolerant: akzeptiert sowohl ``[date, score]``-Tupel als auch
-    ``{"date": ..., "score": ...}``-Dicts. Einträge sind chronologisch
-    sortiert; ``entries[-1]`` ist der neueste Wert.
-    """
-    result: dict[str, float] = {}
-    for ticker, entries in (raw or {}).items():
-        if not entries:
-            continue
-        latest = entries[-1]
-        try:
-            if isinstance(latest, dict):
-                score = latest.get("score")
-            elif isinstance(latest, (list, tuple)) and len(latest) >= 2:
-                score = latest[1]
-            else:
-                continue
-            if score is None:
-                continue
-            result[ticker] = float(score)
-        except (TypeError, ValueError):
-            continue
-    return result
-
-
 def _anomaly_is_on_cooldown(key: str, state: dict,
                              hours: float = None) -> bool:
     """Cooldown-Check für Anomalie-Push.
