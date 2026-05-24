@@ -71,7 +71,7 @@ def test_04_field_in_append_backtest_entries_source():
     selbst ist nicht moeglich (braucht yfinance + Live-Data), daher
     Source-Check.
     """
-    src = (ROOT / "generate_report.py").read_text(encoding="utf-8")
+    src = (ROOT / "backtest_history.py").read_text(encoding="utf-8")
     # Suche im Body von _append_backtest_entries nach dem Feld-Eintrag.
     import re
     fn_match = re.search(
@@ -92,7 +92,7 @@ def test_05_field_inside_entry_dict_not_extension():
     Schema-Erweiterungen mitwandert (auch wenn _build_backtest_extension
     irgendwann durch andere Bahn ersetzt wird).
     """
-    src = (ROOT / "generate_report.py").read_text(encoding="utf-8")
+    src = (ROOT / "backtest_history.py").read_text(encoding="utf-8")
     # Finde die Stelle direkt nach "vix_level":
     idx_vix = src.find('"vix_level":        vix_level,')
     idx_marker = src.find('"score_normalization_version"')
