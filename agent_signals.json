@@ -1,10 +1,10 @@
 {
-  "updated": "2026-05-25T14:01:32.249310+02:00",
+  "updated": "2026-05-25T14:45:47.271344+02:00",
   "run_info": {
     "tickers_checked": 18,
     "signals_active": 1,
     "alerts_sent": 0,
-    "elapsed_s": 24.3,
+    "elapsed_s": 20.8,
     "market_phase": "Pre-Market"
   },
   "signals": {
@@ -119,7 +119,7 @@
     "CRMD": {
       "score": 30,
       "confidence": 17,
-      "drivers": "News: guidance raised, earnings beat",
+      "drivers": "News: earnings beat, guidance raised",
       "price": 7.98,
       "chg_pct": 0.0,
       "rvol_4d": 0.5,
@@ -137,9 +137,9 @@
       "uoa_cp_ratio": 0.8155136268343816
     },
     "ENVX": {
-      "score": 47,
+      "score": 43,
       "confidence": 70,
-      "drivers": "Volumen 1.5× + Spanne 9.4% + News-KI 12/30: Positive battery innovation narrative undermined by analyst downgrades and lack of short interest/squeeze catalysts in h + SEC Form 4",
+      "drivers": "Volumen 1.5× + Spanne 9.4% + News-KI 8/30: Positive secular growth narrative undermined by analyst downgrades and lack of short interest catalyst signals. + SEC Form 4",
       "price": 6.68,
       "chg_pct": -0.0,
       "rvol_4d": 1.5,
@@ -150,16 +150,16 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 1,
+      "active_triggers": 0,
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": 0.2488020641356432,
       "uoa_cp_ratio": 1.281807372175981
     },
     "GEMI": {
-      "score": 40,
+      "score": 18,
       "confidence": 33,
-      "drivers": "Spanne 7.3% + News: takeover, earnings beat",
+      "drivers": "Spanne 7.3% + News-KI 8/30: Positive crypto sector news but lacks short interest data, high short volume, or catalysts specific to GEMI that would t",
       "price": 5.16,
       "chg_pct": -0.0,
       "rvol_4d": 0.66,
@@ -170,7 +170,7 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 1,
+      "active_triggers": 0,
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": 2.026392961876833,
@@ -349,7 +349,7 @@
     "SPCE": {
       "score": 73,
       "confidence": 70,
-      "drivers": "Volumen 3.3× + ⚡ Extremes Volumen 3.3×+ + Spanne 23.0% + News-KI 8/30: Routine quarterly earnings announcements lack the negative sentiment, short interest catalysts, or operational crises ty + SEC Form 4 + UOA Call/Put 6.1×",
+      "drivers": "Volumen 3.3× + ⚡ Extremes Volumen 3.3×+ + Spanne 23.0% + News-KI 8/30: Routine earnings announcements lack short-squeeze catalysts like high short interest, bullish surprises, or forced cover + SEC Form 4 + UOA Call/Put 6.1×",
       "price": 3.24,
       "chg_pct": 0.0,
       "rvol_4d": 3.34,
