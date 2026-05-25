@@ -1,10 +1,10 @@
 {
-  "updated": "2026-05-25T18:03:50.884565+02:00",
+  "updated": "2026-05-25T19:58:40.535859+02:00",
   "run_info": {
     "tickers_checked": 18,
     "signals_active": 1,
     "alerts_sent": 0,
-    "elapsed_s": 15.5,
+    "elapsed_s": 19.7,
     "market_phase": "Regulär"
   },
   "signals": {
@@ -53,9 +53,9 @@
       "uoa_cp_ratio": 69.07622504537206
     },
     "AKAN": {
-      "score": 30,
-      "confidence": 70,
-      "drivers": "Volumen 2.9× + Spanne 25.8% + News-KI 5/30: Negative corporate governance events (NASDAQ noncompliance, meeting cancellations) indicate financial distress rather th",
+      "score": 25,
+      "confidence": 33,
+      "drivers": "Volumen 2.9× + Spanne 25.8%",
       "price": 27.12,
       "chg_pct": 0.0,
       "rvol_4d": 2.88,
@@ -137,9 +137,9 @@
       "uoa_cp_ratio": 0.8155136268343816
     },
     "ENVX": {
-      "score": 43,
+      "score": 35,
       "confidence": 70,
-      "drivers": "Volumen 1.5× + Spanne 9.4% + News-KI 8/30: Positive secular growth narrative undermined by analyst downgrades; no short squeeze catalyst evident from headlines. + SEC Form 4",
+      "drivers": "Volumen 1.5× + Spanne 9.4% + SEC Form 4",
       "price": 6.68,
       "chg_pct": -0.0,
       "rvol_4d": 1.5,
@@ -157,9 +157,9 @@
       "uoa_cp_ratio": 1.281807372175981
     },
     "GEMI": {
-      "score": 40,
+      "score": 25,
       "confidence": 33,
-      "drivers": "Spanne 7.3% + News: takeover, earnings beat",
+      "drivers": "Spanne 7.3% + News: earnings beat",
       "price": 5.16,
       "chg_pct": -0.0,
       "rvol_4d": 0.66,
@@ -369,9 +369,9 @@
       "uoa_cp_ratio": 6.083599817268159
     },
     "VITL": {
-      "score": 38,
+      "score": 30,
       "confidence": 70,
-      "drivers": "Spanne 8.5% + News-KI 8/30: Negative catalysts (missed earnings, lawsuits, product exits) and cash burn reduce short-squeeze potential despite possi + SEC Form 4 + UOA Call/Put 2.6×",
+      "drivers": "Spanne 8.5% + SEC Form 4 + UOA Call/Put 2.6×",
       "price": 10.13,
       "chg_pct": 0.0,
       "rvol_4d": 0.79,

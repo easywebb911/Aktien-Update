@@ -296,3 +296,4 @@
 {"run_ts": "2026-05-25T12:01:35Z", "run_phase": "ki_agent_tick", "schema_v": 1, "state_fails": [{"id": "S8", "severity": "warn", "detail": "kein erfolgreicher Digest-Push seit 36.0 h (Schwelle 26 h) — silent ntfy-Fail oder Cron-Drop"}], "provider_fails": []}
 {"run_ts": "2026-05-25T12:45:52Z", "run_phase": "ki_agent_tick", "schema_v": 1, "state_fails": [], "provider_fails": []}
 {"run_ts": "2026-05-25T16:03:53Z", "run_phase": "ki_agent_tick", "schema_v": 1, "state_fails": [], "provider_fails": []}
+{"run_ts": "2026-05-25T17:58:43Z", "run_phase": "ki_agent_tick", "schema_v": 1, "state_fails": [], "provider_fails": []}
