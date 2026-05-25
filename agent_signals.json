@@ -1,10 +1,10 @@
 {
-  "updated": "2026-05-25T19:58:40.535859+02:00",
+  "updated": "2026-05-25T21:59:56.680546+02:00",
   "run_info": {
     "tickers_checked": 18,
     "signals_active": 1,
     "alerts_sent": 0,
-    "elapsed_s": 19.7,
+    "elapsed_s": 20.6,
     "market_phase": "Regulär"
   },
   "signals": {
@@ -33,7 +33,7 @@
     "AI": {
       "score": 68,
       "confidence": 70,
-      "drivers": "Spanne 6.5% + News: breakout, contract + Earnings in 9d + SEC Form 4 + UOA Call/Put 69.1×",
+      "drivers": "Spanne 6.5% + News: contract, breakout + Earnings in 9d + SEC Form 4 + UOA Call/Put 69.1×",
       "price": 9.29,
       "chg_pct": -0.0,
       "rvol_4d": 1.04,
@@ -137,9 +137,9 @@
       "uoa_cp_ratio": 0.8155136268343816
     },
     "ENVX": {
-      "score": 35,
+      "score": 43,
       "confidence": 70,
-      "drivers": "Volumen 1.5× + Spanne 9.4% + SEC Form 4",
+      "drivers": "Volumen 1.5× + Spanne 9.4% + News-KI 8/30: Positive innovation narrative but analyst price target cuts and lack of short-interest/ownership catalysts significantly + SEC Form 4",
       "price": 6.68,
       "chg_pct": -0.0,
       "rvol_4d": 1.5,
@@ -157,9 +157,9 @@
       "uoa_cp_ratio": 1.281807372175981
     },
     "GEMI": {
-      "score": 25,
+      "score": 40,
       "confidence": 33,
-      "drivers": "Spanne 7.3% + News: earnings beat",
+      "drivers": "Spanne 7.3% + News: earnings beat, takeover",
       "price": 5.16,
       "chg_pct": -0.0,
       "rvol_4d": 0.66,
@@ -327,9 +327,9 @@
       "uoa_cp_ratio": 7.308383233532934
     },
     "SG": {
-      "score": 20,
-      "confidence": 33,
-      "drivers": "Spanne 12.7% + SEC Form 4",
+      "score": 22,
+      "confidence": 70,
+      "drivers": "Spanne 12.7% + News-KI 2/30: Restaurant industry analysis with no short squeeze indicators; lacks short interest data, unusual volume, or extreme tec + SEC Form 4",
       "price": 9.78,
       "chg_pct": -0.0,
       "rvol_4d": 1.36,
