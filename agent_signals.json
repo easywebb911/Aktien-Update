@@ -1,11 +1,11 @@
 {
-  "updated": "2026-05-25T06:54:54.586371+02:00",
+  "updated": "2026-05-25T14:01:32.249310+02:00",
   "run_info": {
     "tickers_checked": 18,
-    "signals_active": 3,
+    "signals_active": 1,
     "alerts_sent": 0,
-    "elapsed_s": 12.6,
-    "market_phase": "Geschlossen"
+    "elapsed_s": 24.3,
+    "market_phase": "Pre-Market"
   },
   "signals": {
     "AEVA": {
@@ -31,9 +31,9 @@
       "uoa_cp_ratio": 3.6621004566210047
     },
     "AI": {
-      "score": 38,
+      "score": 53,
       "confidence": 70,
-      "drivers": "Spanne 6.5% + Earnings in 9d + SEC Form 4 + UOA Call/Put 69.1×",
+      "drivers": "Spanne 6.5% + News: breakout + Earnings in 9d + SEC Form 4 + UOA Call/Put 69.1×",
       "price": 9.29,
       "chg_pct": -0.0,
       "rvol_4d": 1.04,
@@ -44,7 +44,7 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 0,
+      "active_triggers": 1,
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 69.1×"
@@ -139,7 +139,7 @@
     "ENVX": {
       "score": 47,
       "confidence": 70,
-      "drivers": "Volumen 1.5× + Spanne 9.4% + News-KI 12/30: Positive innovation narrative undermined by analyst downgrades and lack of short interest catalysts or squeeze indicator + SEC Form 4",
+      "drivers": "Volumen 1.5× + Spanne 9.4% + News-KI 12/30: Positive battery innovation narrative undermined by analyst downgrades and lack of short interest/squeeze catalysts in h + SEC Form 4",
       "price": 6.68,
       "chg_pct": -0.0,
       "rvol_4d": 1.5,
@@ -218,9 +218,7 @@
         "UOA Call/Put 13.0×"
       ],
       "uoa_atm_ratio": 0.40851845373447615,
-      "uoa_cp_ratio": 13.019298245614035,
-      "push_silenced": true,
-      "silenced_reason": "+23% 2T"
+      "uoa_cp_ratio": 13.019298245614035
     },
     "IONQ": {
       "score": 40,
@@ -351,7 +349,7 @@
     "SPCE": {
       "score": 73,
       "confidence": 70,
-      "drivers": "Volumen 3.3× + ⚡ Extremes Volumen 3.3×+ + Spanne 23.0% + News-KI 8/30: Routine earnings announcements with no indicators of short squeeze catalysts such as short interest spikes, insider buyi + SEC Form 4 + UOA Call/Put 6.1×",
+      "drivers": "Volumen 3.3× + ⚡ Extremes Volumen 3.3×+ + Spanne 23.0% + News-KI 8/30: Routine quarterly earnings announcements lack the negative sentiment, short interest catalysts, or operational crises ty + SEC Form 4 + UOA Call/Put 6.1×",
       "price": 3.24,
       "chg_pct": 0.0,
       "rvol_4d": 3.34,
