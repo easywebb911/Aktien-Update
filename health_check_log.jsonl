@@ -299,3 +299,4 @@
 {"run_ts": "2026-05-25T17:58:43Z", "run_phase": "ki_agent_tick", "schema_v": 1, "state_fails": [], "provider_fails": []}
 {"run_ts": "2026-05-25T20:00:02Z", "run_phase": "ki_agent_tick", "schema_v": 1, "state_fails": [], "provider_fails": []}
 {"run_ts": "2026-05-25T21:34:56Z", "run_phase": "ki_agent_tick", "schema_v": 1, "state_fails": [], "provider_fails": []}
+{"run_ts": "2026-05-25T22:19:59Z", "run_phase": "postclose", "schema_v": 1, "state_fails": [{"id": "S10", "severity": "warn", "detail": "LAG-Feld 'return_3d': 17/78 gealterte Einträge (≥ 3 Trading-Tage) haben kein Outcome (22%) — Rolling-Update-Pipeline füllt nicht"}, {"id": "S10", "severity": "warn", "detail": "LAG-Feld 'return_5d': 20/48 gealterte Einträge (≥ 5 Trading-Tage) haben kein Outcome (42%) — Rolling-Update-Pipeline füllt nicht"}], "provider_fails": []}
