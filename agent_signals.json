@@ -1,11 +1,11 @@
 {
-  "updated": "2026-05-25T14:45:47.271344+02:00",
+  "updated": "2026-05-25T18:03:50.884565+02:00",
   "run_info": {
     "tickers_checked": 18,
     "signals_active": 1,
     "alerts_sent": 0,
-    "elapsed_s": 20.8,
-    "market_phase": "Pre-Market"
+    "elapsed_s": 15.5,
+    "market_phase": "Regulär"
   },
   "signals": {
     "AEVA": {
@@ -31,9 +31,9 @@
       "uoa_cp_ratio": 3.6621004566210047
     },
     "AI": {
-      "score": 53,
+      "score": 68,
       "confidence": 70,
-      "drivers": "Spanne 6.5% + News: breakout + Earnings in 9d + SEC Form 4 + UOA Call/Put 69.1×",
+      "drivers": "Spanne 6.5% + News: breakout, contract + Earnings in 9d + SEC Form 4 + UOA Call/Put 69.1×",
       "price": 9.29,
       "chg_pct": -0.0,
       "rvol_4d": 1.04,
@@ -53,9 +53,9 @@
       "uoa_cp_ratio": 69.07622504537206
     },
     "AKAN": {
-      "score": 25,
-      "confidence": 33,
-      "drivers": "Volumen 2.9× + Spanne 25.8%",
+      "score": 30,
+      "confidence": 70,
+      "drivers": "Volumen 2.9× + Spanne 25.8% + News-KI 5/30: Negative corporate governance events (NASDAQ noncompliance, meeting cancellations) indicate financial distress rather th",
       "price": 27.12,
       "chg_pct": 0.0,
       "rvol_4d": 2.88,
@@ -139,7 +139,7 @@
     "ENVX": {
       "score": 43,
       "confidence": 70,
-      "drivers": "Volumen 1.5× + Spanne 9.4% + News-KI 8/30: Positive secular growth narrative undermined by analyst downgrades and lack of short interest catalyst signals. + SEC Form 4",
+      "drivers": "Volumen 1.5× + Spanne 9.4% + News-KI 8/30: Positive secular growth narrative undermined by analyst downgrades; no short squeeze catalyst evident from headlines. + SEC Form 4",
       "price": 6.68,
       "chg_pct": -0.0,
       "rvol_4d": 1.5,
@@ -157,9 +157,9 @@
       "uoa_cp_ratio": 1.281807372175981
     },
     "GEMI": {
-      "score": 18,
+      "score": 40,
       "confidence": 33,
-      "drivers": "Spanne 7.3% + News-KI 8/30: Positive crypto sector news but lacks short interest data, high short volume, or catalysts specific to GEMI that would t",
+      "drivers": "Spanne 7.3% + News: takeover, earnings beat",
       "price": 5.16,
       "chg_pct": -0.0,
       "rvol_4d": 0.66,
@@ -170,7 +170,7 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 0,
+      "active_triggers": 1,
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": 2.026392961876833,
@@ -347,9 +347,9 @@
       "uoa_cp_ratio": 0.3083266291230893
     },
     "SPCE": {
-      "score": 73,
+      "score": 65,
       "confidence": 70,
-      "drivers": "Volumen 3.3× + ⚡ Extremes Volumen 3.3×+ + Spanne 23.0% + News-KI 8/30: Routine earnings announcements lack short-squeeze catalysts like high short interest, bullish surprises, or forced cover + SEC Form 4 + UOA Call/Put 6.1×",
+      "drivers": "Volumen 3.3× + ⚡ Extremes Volumen 3.3×+ + Spanne 23.0% + SEC Form 4 + UOA Call/Put 6.1×",
       "price": 3.24,
       "chg_pct": 0.0,
       "rvol_4d": 3.34,
@@ -369,9 +369,9 @@
       "uoa_cp_ratio": 6.083599817268159
     },
     "VITL": {
-      "score": 30,
+      "score": 38,
       "confidence": 70,
-      "drivers": "Spanne 8.5% + SEC Form 4 + UOA Call/Put 2.6×",
+      "drivers": "Spanne 8.5% + News-KI 8/30: Negative catalysts (missed earnings, lawsuits, product exits) and cash burn reduce short-squeeze potential despite possi + SEC Form 4 + UOA Call/Put 2.6×",
       "price": 10.13,
       "chg_pct": 0.0,
       "rvol_4d": 0.79,
