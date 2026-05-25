@@ -1,10 +1,10 @@
 {
-  "updated": "2026-05-25T23:34:53.078119+02:00",
+  "updated": "2026-05-26T00:20:42.944041+02:00",
   "run_info": {
     "tickers_checked": 18,
-    "signals_active": 1,
+    "signals_active": 3,
     "alerts_sent": 0,
-    "elapsed_s": 16.4,
+    "elapsed_s": 14.0,
     "market_phase": "After-Hours"
   },
   "signals": {
@@ -53,9 +53,9 @@
       "uoa_cp_ratio": 69.07622504537206
     },
     "AKAN": {
-      "score": 25,
-      "confidence": 33,
-      "drivers": "Volumen 2.9× + Spanne 25.8%",
+      "score": 30,
+      "confidence": 70,
+      "drivers": "Volumen 2.9× + Spanne 25.8% + News-KI 5/30: Negative corporate governance events (NASDAQ noncompliance, meeting cancellations) indicate fundamental problems rather ",
       "price": 27.12,
       "chg_pct": 0.0,
       "rvol_4d": 2.88,
@@ -119,7 +119,7 @@
     "CRMD": {
       "score": 30,
       "confidence": 17,
-      "drivers": "News: guidance raised, earnings beat",
+      "drivers": "News: earnings beat, guidance raised",
       "price": 7.98,
       "chg_pct": 0.0,
       "rvol_4d": 0.5,
@@ -157,9 +157,9 @@
       "uoa_cp_ratio": 1.281807372175981
     },
     "GEMI": {
-      "score": 40,
+      "score": 25,
       "confidence": 33,
-      "drivers": "Spanne 7.3% + News: takeover, earnings beat",
+      "drivers": "Spanne 7.3% + News: earnings beat",
       "price": 5.16,
       "chg_pct": -0.0,
       "rvol_4d": 0.66,
