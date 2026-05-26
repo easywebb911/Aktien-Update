@@ -1,10 +1,10 @@
 {
-  "updated": "2026-05-26T23:37:33.841202+02:00",
+  "updated": "2026-05-26T23:49:05.319914+02:00",
   "run_info": {
     "tickers_checked": 15,
     "signals_active": 6,
     "alerts_sent": 0,
-    "elapsed_s": 11.6,
+    "elapsed_s": 13.4,
     "market_phase": "After-Hours"
   },
   "signals": {
@@ -31,9 +31,9 @@
       "uoa_cp_ratio": 33.21455938697318
     },
     "AMC": {
-      "score": 32,
+      "score": 35,
       "confidence": 33,
-      "drivers": "Spanne 6.5% + News-KI 12/30: Positive attendance metrics show operational recovery, but lack short squeeze catalysts like high short interest, borrow + UOA Call/Put 6.9×",
+      "drivers": "Spanne 6.5% + News: insider buying + UOA Call/Put 6.9×",
       "price": 1.59,
       "chg_pct": 0.0,
       "rvol_4d": 1.16,
@@ -77,7 +77,7 @@
     "CRMD": {
       "score": 30,
       "confidence": 17,
-      "drivers": "News: guidance raised, earnings beat",
+      "drivers": "News: earnings beat, guidance raised",
       "price": 8.27,
       "chg_pct": 0.0,
       "rvol_4d": 0.86,
@@ -311,9 +311,9 @@
       "uoa_cp_ratio": 9.305555555555555
     },
     "TWN": {
-      "score": 27,
+      "score": 40,
       "confidence": 70,
-      "drivers": "Volumen 1.9× + Spanne 5.9% + News-KI 2/30: Routine corporate announcements with no indicators of short squeeze potential such as unusual short interest, stock lock",
+      "drivers": "Volumen 1.9× + Spanne 5.9% + News: acquisition",
       "price": 100.28,
       "chg_pct": -0.0,
       "rvol_4d": 1.88,
@@ -324,7 +324,7 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 0,
+      "active_triggers": 1,
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": null,
