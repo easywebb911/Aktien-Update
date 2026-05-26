@@ -179,6 +179,45 @@ Checkpoint koppeln. Nie auf Verdacht, nie für Aufräumarbeit.
 - **Cockpit Stage 3 `.sb`-Cleanup:** vertagt (#199-Falle, Risiko > Nutzen).
   Datum würde Druck für riskanten Null-Nutzen-Eingriff erzeugen.
 
+### Wiedervorlage: premarket-Cron-Drift beobachten (ab 26.05.)
+
+**Kontext:** #253 (8:17 UTC) belegt erfolgreich Mo 25.05. — aber Drift
+**+3h43m**, nur **1h30m Marge** bis 13:30 UTC. **n=1.**
+
+**Erkenntnis (Diagnose 26.05.): KEIN Zielkonflikt Drift vs. Daten-Dünne.**
+premarket-`rel_volume` = letzter **VORTAGS-Tagesbar** (yfinance daily),
+NICHT Live-PM-Liquidität → über das gesamte premarket-Fenster
+(03:18–09:56 ET) **KONSTANT, zeit-unabhängig gefüllt**. Datendünne ist ein
+OPEN-/Intraday-Effekt (Partial-Bar), nicht premarket. **Früherer Cron daher
+DATENSEITIG GRATIS.** (Einziges live-PM-Feld wäre
+`_fetch_premarket_volumes_batch` → nur Earliness V1, inaktiv seit V2.)
+Phasen-Logik: `_session_phase` (`score_inflation_log.py:41–68`),
+premarket = alles vor 09:30 ET / 13:30 UTC, **keine Untergrenze**. 8:17 UTC
+= 04:17 ET = 17 min nach PM-Start (04:00 ET).
+
+**Beobachten (Di 26. / Mi 27. / Do 28.05.):** premarket-Run-Timestamp
+gegen 13:30 UTC. Drift sammeln, **NICHT auf n=1 reagieren.**
+
+**Gestufte Entscheidung (Trigger statt Datum):**
+
+- Drift bleibt ~3–4h → **nichts ändern**, 8:17 reicht.
+- Drift wiederholt **> 4,5h** (Marge < 40 min) ODER premarket-Run kippt auf
+  `tsp=open` (23.05.-Muster `run_phase=premarket / tsp=open`) → Cron
+  **DIREKT auf 6:17 UTC**. KEIN Zwischenschritt 7:17 — früher ist gratis,
+  also max. Reserve nehmen.
+- Statt Drift ein **Cron-DROP** (Run fehlt GANZ, nicht nur spät) → zweiter
+  premarket-Slot (`cron: '17 6'` UND `'17 8 * * 1-5'`). Redundanz gegen
+  gedroppten Slot. Kosten: 2 premarket-Runs/Tag (doppelte log-Zeilen +
+  ki_agent-Trigger). **NUR wenn DROP empirisch auftritt, nicht prophylaktisch.**
+
+**Merge-Klasse falls gebaut:** neuer/geänderter Workflow-Cron =
+**manueller Merge**.
+
+**Offen Di 26.05.:** premarket-Run um 11:37–11:52 UTC noch nicht committet
+(nur KI-Agent-Ticks 04:35 / 08:44 UTC, kein neuer Daily-Run; keine
+26.05.-premarket-Zeile im score_inflation_log). Bei Ausbleiben bis
+~12:30 UTC ggf. **Tag 1 eines Drift-/Drop-Musters.**
+
 ### Sonstige geplante Aufgaben
 
 - **HTML-Sanity Phase 1c** (nach 1b stabil): 10er-Assertion-Liste +
