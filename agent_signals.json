@@ -1,10 +1,10 @@
 {
-  "updated": "2026-05-26T23:49:05.319914+02:00",
+  "updated": "2026-05-26T23:58:46.968411+02:00",
   "run_info": {
     "tickers_checked": 15,
     "signals_active": 6,
     "alerts_sent": 0,
-    "elapsed_s": 13.4,
+    "elapsed_s": 16.6,
     "market_phase": "After-Hours"
   },
   "signals": {
@@ -77,7 +77,7 @@
     "CRMD": {
       "score": 30,
       "confidence": 17,
-      "drivers": "News: earnings beat, guidance raised",
+      "drivers": "News: guidance raised, earnings beat",
       "price": 8.27,
       "chg_pct": 0.0,
       "rvol_4d": 0.86,
@@ -181,9 +181,9 @@
       "uoa_cp_ratio": 27.896174863387976
     },
     "IONQ": {
-      "score": 10,
-      "confidence": 17,
-      "drivers": "Spanne 7.0%",
+      "score": 40,
+      "confidence": 33,
+      "drivers": "Spanne 7.0% + News: squeeze, short squeeze",
       "price": 63.62,
       "chg_pct": -0.0,
       "rvol_4d": 0.75,
@@ -194,7 +194,7 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 0,
+      "active_triggers": 1,
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": 0.983303951052577,
