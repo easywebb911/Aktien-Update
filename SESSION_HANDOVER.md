@@ -218,6 +218,52 @@ gegen 13:30 UTC. Drift sammeln, **NICHT auf n=1 reagieren.**
 26.05.-premarket-Zeile im score_inflation_log). Bei Ausbleiben bis
 ~12:30 UTC ggf. **Tag 1 eines Drift-/Drop-Musters.**
 
+### Wiedervorlage: Abuse-Lock-Beobachtung + Frequenz-Reduktion (ab 27.05.)
+
+**Ursache Lock 26.05. NICHT eindeutig (n=1).** Drei Kandidaten:
+(1) KI-Agent-Hourly 24/7, (2) einmaliger 24.05.-Dev-Burst (23 Commits),
+(3) Auto-Trigger-Kette / API-Muster. Commit-Last moderat (8–13/Werktag)
+→ wahrscheinlicher Trigger ist die **RUN-/API-Last**, nicht die Commit-Zahl.
+
+**Zwei Spuren parallel — erst handeln wenn EINE Antwort da ist:**
+
+1. **GitHub-Ticket #4418923** — konkret nach dem Auslöser gefragt
+   (Run-Frequenz? Commits? API-Muster?). Eine konkrete Support-Antwort
+   schlägt jede Heuristik → dann gezielt fixen.
+2. **Beobachten Mi 27. / Do 28. / Fr 29.05.: erneuter Lock?**
+   - **KEIN Lock** → war der einmalige 24.05.-Burst, **KEINE Reduktion nötig**.
+   - **ZWEITER Lock** → struktureller Trigger bewiesen.
+
+**NICHT auf n=1 reagieren, NICHT prophylaktisch ausdünnen.**
+
+**Reduktions-Hebel (falls nötig):** KI-Agent-Hourly nur im Handelsfenster
+(~12–22 UTC werktags), off-hours/WE ausgedünnt → 24/Tag → ~10–12/Tag
+(Faktor ~2). Berührt **NICHT** die premarket-Sammlung oder den
+postclose-Append (separater Daily-Workflow). S7-Coverage bleibt via
+Daily-Auto-Trigger erhalten. **Merge-Klasse: Workflow-Cron = manueller Merge.**
+
+**Pipeline-Integrität nach Lock (26.05. verifiziert): sauber.** Schema v4
+intakt, Shadow-Felder (`score_delta_t1` / `anomaly_freshness`) da, kein
+Doppel-Append (18 unique Ticker trotz 2 postclose-Runs), keine Korruption
+(alle JSON/JSONL parsen, 0 kaputte Zeilen). **Offene Nuance (niedrig):**
+26.05.-Entry-Tag-Scores evtl. aus dem 03:21-Snapshot (stale premarket-RVOL)
+statt 21:35-EOD — für 30.06. im Blick, **nicht fixen**.
+
+**premarket-Verify #253: für 26.05. VERLOREN** (gedrifteter Slot ∩
+Lock-Fenster — null `run_phase=premarket`-Zeile heute, beide Daily-Runs
+resolveten postclose). Verschoben auf nächsten sauberen Werktag **Mi 27.05.**
+γ-2 bleibt bei n≈1 echten premarket-Tagen.
+
+**WARN-Status (selbstheilend erwartet):**
+- **S8 Digest-Lücke** — der 8:47-Digest-Cron starb im Lock,
+  `last_digest_sent` steht auf 25.05 (zur Run-Zeit 45.6 h alt). Heilt beim
+  nächsten erfolgreichen 8:47-Cron.
+- **S10 return_5d Rolling-Update** — 13/61 gealterte Einträge ohne Outcome
+  (21%), Holiday-Wochenende + Lock-Disruption. Ein sauberer postclose-Tag
+  zeigt, ob echt fortbestehend.
+- **finviz=16 consecutive_failures** — eingefroren auf 25.05-Stand (Digest-
+  State stale), Tier-2-Coverage-Lücke obskurer Smallcaps, **kein Bug**.
+
 ### Sonstige geplante Aufgaben
 
 - **HTML-Sanity Phase 1c** (nach 1b stabil): 10er-Assertion-Liste +
