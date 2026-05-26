@@ -149,6 +149,36 @@ Memorial Day, Börse + premarket-Cron-Sinn entfallen).
   echter premarket-Daten (Skalierer 0.10 = Daumenwert; Kipppunkt-Sweep
   deutet ~0.40, aber n=6 vorläufig). Re-Evaluieren nach 26.05.-Sammelstart.
 
+### Roadmap-Terminierung (Entscheidung 25.05.)
+
+**Regel:** Datum nur wenn Task **Trading-Wert UND Datenreife** hat → an
+Checkpoint koppeln. Nie auf Verdacht, nie für Aufräumarbeit.
+
+**AN 30.06.-CHECKPOINT GEKOPPELT (terminiert):**
+
+- **Perzentil-/relativer Score:** löst Score-Inflation strukturell +
+  Industriestandard. Wartet nur auf saubere Datenbasis (entsteht 30.06.
+  ohnehin). Fundierteste Erkenntnis der Methodik-Bewertung — **nicht
+  versanden lassen.**
+- **Kalender→Handelstag Decay-Fix:** ZWINGEND in einem Zug mit
+  Decay-Steilheit-Kalibrierung (sonst dieselbe Funktion zweimal angefasst).
+
+**BEWUSST NICHT TERMINIERT — datenabhängig (Trigger = Ereignis, nicht Datum):**
+
+- **γ-2:** braucht mehrere echte premarket-Werktage. Anzahl erst nach
+  Di-26.05.-Verify klar. Datum jetzt = n=1-Falle (wie alter „30.05."-Plan,
+  verworfen).
+- **Borrow-Fee + Utilization in `score()`:** erst nach Entry-Modul UND
+  30.06.-Datenbasis bewertbar. Nicht am Score schrauben bevor
+  Edge-im-Timing geklärt.
+
+**BEWUSST NICHT TERMINIERT — niedriger Trading-Wert (kein Aufschub-Schaden):**
+
+- **Hygiene v1/v2→Jinja, Template-Engine:** Engineering-Vollständigkeit,
+  null Trade-Wert.
+- **Cockpit Stage 3 `.sb`-Cleanup:** vertagt (#199-Falle, Risiko > Nutzen).
+  Datum würde Druck für riskanten Null-Nutzen-Eingriff erzeugen.
+
 ### Sonstige geplante Aufgaben
 
 - **HTML-Sanity Phase 1c** (nach 1b stabil): 10er-Assertion-Liste +
