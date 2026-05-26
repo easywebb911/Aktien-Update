@@ -305,6 +305,23 @@ resolveten postclose). Verschoben auf nächsten sauberen Werktag **Mi 27.05.**
   die Methodik-Bewertung (unten): within-run-Rang ist die robuste Messgröße —
   UND es ist Scanner-Industriestandard (Fintel/Ortex relativ/perzentil).**
 
+### Roadmap-Kandidat: Externer Dead-Man-Switch (Liveness der Mechanik-Überwachung)
+
+**Kein Sofort-Fix.** Ein Liveness-Check **AUSSERHALB** GitHub Actions, der
+alarmiert, wenn der erwartete Health-Push **AUSBLEIBT** (z.B. externer Cron /
+Healthchecks.io-artiger Dienst, der ein Signal vom Digest erwartet und bei
+Stille selbst pingt). So alarmiert die **Stille selbst** — schließt den blinden
+Fleck aus der Sektion-8-Lesson „Wächter teilt das Failure-Fate des Überwachten"
+(26.05.): der heutige Abuse-Lock blieb unbemerkt, weil der Health-Digest im
+selben Actions-Umfeld mit-starb.
+
+**Priorität:** erst **nach** Lock-Ursache-Klärung bewerten (Ticket #4418923 +
+Beobachtung 27.–29.05.). Falls Locks kein Muster sind, ist der Hebel niedriger.
+
+**Ebenen-Trennung beachten:** das ist Liveness der **MECHANIK-Überwachung
+selbst** — eine Ebene **über** dem geplanten premarket-Sammel-Wächter (der
+überwacht die Daten-Sammlung, nicht das Monitoring-System).
+
 ---
 
 ## SEKTION 6 — Code-Hygiene-Backlog (mit Status)
@@ -400,6 +417,16 @@ resolveten postclose). Verschoben auf nächsten sauberen Werktag **Mi 27.05.**
   (read-only, Fakten ohne Meinung) → **Rat** (Code wägt ab, darf
   widersprechen, „nichts bauen" ist valide) → **Entscheidung** (Easy allein,
   Trading-Wert-Filter). KI macht Mechanik, Mensch macht Bedeutung.
+- **Wächter teilt das Failure-Fate des Überwachten (26.05.):** Der
+  Health-Check-Digest läuft im **selben** GitHub-Actions-Umfeld wie die
+  Pipeline. Beim Abuse-Lock 26.05. starb der 8:47-Digest-Cron mit allem
+  anderen (git fetch 403) → kein Health-Push den ganzen Tag; die Sperre fiel
+  **nicht durch den Wächter** auf, sondern durch manuellen Blick in die
+  Actions-UI. Kernproblem: ein Monitoring, das **mit** dem überwachten System
+  zusammen ausfällt, hat einen blinden Fleck — bei Account-/Infra-Ausfall
+  schweigt der Wächter mit, statt zu alarmieren. Gegen das Premium-Ziel die
+  relevante Lücke: **Wer überwacht, ob der Überwacher lebt?** → Roadmap-Kandidat
+  „Externer Dead-Man-Switch" in Sektion 5.
 
 ---
 
