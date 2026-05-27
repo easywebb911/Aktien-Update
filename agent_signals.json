@@ -1,17 +1,17 @@
 {
-  "updated": "2026-05-27T01:34:03.827663+02:00",
+  "updated": "2026-05-27T04:55:51.093670+02:00",
   "run_info": {
     "tickers_checked": 15,
     "signals_active": 6,
     "alerts_sent": 0,
-    "elapsed_s": 11.3,
-    "market_phase": "After-Hours"
+    "elapsed_s": 23.1,
+    "market_phase": "Geschlossen"
   },
   "signals": {
     "AI": {
-      "score": 58,
+      "score": 51,
       "confidence": 70,
-      "drivers": "Volumen 1.5× + Spanne 7.0% + News: contract + Earnings in 8d + UOA Call/Put 33.2×",
+      "drivers": "Volumen 1.5× + Spanne 7.0% + News-KI 8/30: TRNS shows earnings strength but lacks short interest/squeeze catalysts; other tickers lack clear fundamental momentum o + Earnings in 8d + UOA Call/Put 33.2×",
       "price": 9.59,
       "chg_pct": 0.0,
       "rvol_4d": 1.5,
@@ -22,7 +22,7 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 1,
+      "active_triggers": 0,
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 33.2×"
@@ -77,7 +77,7 @@
     "CRMD": {
       "score": 30,
       "confidence": 17,
-      "drivers": "News: earnings beat, guidance raised",
+      "drivers": "News: guidance raised, earnings beat",
       "price": 8.27,
       "chg_pct": 0.0,
       "rvol_4d": 0.86,
@@ -183,7 +183,7 @@
     "IONQ": {
       "score": 40,
       "confidence": 33,
-      "drivers": "Spanne 7.0% + News: short squeeze, squeeze",
+      "drivers": "Spanne 7.0% + News: squeeze, short squeeze",
       "price": 63.62,
       "chg_pct": -0.0,
       "rvol_4d": 0.75,
@@ -247,14 +247,14 @@
     "RR": {
       "score": 100,
       "confidence": 70,
-      "drivers": "Earnings in 0 Tagen (26.05.2026) + Volumen 3.9× + ⚡ Extremes Volumen 3.9×+ + Spanne 19.1% + News: partnership + Earnings in 0d + UOA Call/Put 7.2× + 3/4 Trigger",
+      "drivers": "Earnings in 7 Tagen (02.06.2026) + Volumen 3.9× + ⚡ Extremes Volumen 3.9×+ + Spanne 19.1% + News: partnership + Earnings in 7d + UOA Call/Put 7.2× + 3/4 Trigger",
       "price": 3.17,
       "chg_pct": 0.0,
       "rvol_4d": 3.89,
       "rvol_20d": 3.3,
-      "earnings": "in 0 Tagen (26.05.2026)",
+      "earnings": "in 7 Tagen (02.06.2026)",
       "fda_date": null,
-      "upcoming_event": "Earnings in 0 Tagen (26.05.2026)",
+      "upcoming_event": "Earnings in 7 Tagen (02.06.2026)",
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.2,
@@ -311,9 +311,9 @@
       "uoa_cp_ratio": 9.305555555555555
     },
     "TWN": {
-      "score": 40,
-      "confidence": 70,
-      "drivers": "Volumen 1.9× + Spanne 5.9% + News: acquisition",
+      "score": 25,
+      "confidence": 33,
+      "drivers": "Volumen 1.9× + Spanne 5.9%",
       "price": 100.28,
       "chg_pct": -0.0,
       "rvol_4d": 1.88,
@@ -324,7 +324,7 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 1,
+      "active_triggers": 0,
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": null,
