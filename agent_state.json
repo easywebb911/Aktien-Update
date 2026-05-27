@@ -1,5 +1,5 @@
 {
-  "last_run": "2026-05-27T13:54:48.418069+02:00",
+  "last_run": "2026-05-27T14:33:23.536643+02:00",
   "cooldowns": {
     "anomaly_score_jump_XRX": "2026-05-03T18:47:15.315486+02:00",
     "anomaly_uoa_extreme_TDOC": "2026-05-04T13:47:00.365949+02:00",
@@ -40,54 +40,6 @@
     "exit_CRDF": "2026-05-26T05:21:41.746028+02:00"
   },
   "push_history": [
-    {
-      "ts": "2026-05-18T15:52:36.657807+02:00",
-      "ticker": "CRMD",
-      "kind": "exit_p1",
-      "severity": "default",
-      "trigger": "exit_alert",
-      "body": "CRMD 📉 Exit 65 | -4% | Trailing-Stop −15.2% vom Hoch",
-      "success": true,
-      "suppressed": false,
-      "suppress_reason": null,
-      "conviction_score": null
-    },
-    {
-      "ts": "2026-05-18T16:04:35.658316+02:00",
-      "ticker": "RR",
-      "kind": "exit_p2",
-      "severity": "trigger",
-      "trigger": "trend_break",
-      "body": "🔻 Exit-Signal RR: trend_break crit ({'ma21': 2.5627, 'price': 2.48, 'drop_pct': 3.23})",
-      "success": true,
-      "suppressed": false,
-      "suppress_reason": null,
-      "conviction_score": null
-    },
-    {
-      "ts": "2026-05-18T20:45:57.842068+02:00",
-      "ticker": "CRMD",
-      "kind": "exit_p1",
-      "severity": "default",
-      "trigger": "exit_alert",
-      "body": "CRMD 📉 Exit 65 | -3% | Trailing-Stop −13.6% vom Hoch",
-      "success": true,
-      "suppressed": false,
-      "suppress_reason": null,
-      "conviction_score": null
-    },
-    {
-      "ts": "2026-05-18T21:04:06.345010+02:00",
-      "ticker": "TE",
-      "kind": "anomaly",
-      "severity": "medium",
-      "trigger": "uoa_extreme",
-      "body": "TE 🎯 UOA Vol/OI 11.5× ATM | Setup 73",
-      "success": false,
-      "suppressed": true,
-      "suppress_reason": "conviction_below_threshold",
-      "conviction_score": 49
-    },
     {
       "ts": "2026-05-18T21:21:33.147059+02:00",
       "ticker": "TE",
@@ -1230,6 +1182,54 @@
     },
     {
       "ts": "2026-05-27T13:54:45.677189+02:00",
+      "ticker": "RR",
+      "kind": "anomaly",
+      "severity": "high",
+      "trigger": "monster_backup",
+      "body": "RR 🔥 Monster 100 | Setup 96 | KI 100",
+      "success": false,
+      "suppressed": true,
+      "suppress_reason": "conviction_below_threshold",
+      "conviction_score": 70
+    },
+    {
+      "ts": "2026-05-27T14:33:17.160403+02:00",
+      "ticker": "GRPN",
+      "kind": "anomaly",
+      "severity": "high",
+      "trigger": "monster_backup",
+      "body": "GRPN 🔥 Monster 100 | Setup 93 | KI 45",
+      "success": false,
+      "suppressed": true,
+      "suppress_reason": "conviction_below_threshold",
+      "conviction_score": 56
+    },
+    {
+      "ts": "2026-05-27T14:33:17.160524+02:00",
+      "ticker": "LUCK",
+      "kind": "anomaly",
+      "severity": "high",
+      "trigger": "monster_backup",
+      "body": "LUCK 🔥 Monster 100 | Setup 93 | KI 60",
+      "success": false,
+      "suppressed": true,
+      "suppress_reason": "conviction_below_threshold",
+      "conviction_score": 70
+    },
+    {
+      "ts": "2026-05-27T14:33:17.160646+02:00",
+      "ticker": "RR",
+      "kind": "anomaly",
+      "severity": "medium",
+      "trigger": "score_jump",
+      "body": "RR 🚀 Setup 96 ↑ (gestern 80) | Earnings in 6 Tagen (02.06.2026) + Volumen 3.9× + ⚡ Extremes…",
+      "success": false,
+      "suppressed": true,
+      "suppress_reason": "conviction_below_threshold",
+      "conviction_score": 70
+    },
+    {
+      "ts": "2026-05-27T14:33:17.160775+02:00",
       "ticker": "RR",
       "kind": "anomaly",
       "severity": "high",
