@@ -264,6 +264,39 @@ resolveten postclose). Verschoben auf nächsten sauberen Werktag **Mi 27.05.**
 - **finviz=16 consecutive_failures** — eingefroren auf 25.05-Stand (Digest-
   State stale), Tier-2-Coverage-Lücke obskurer Smallcaps, **kein Bug**.
 
+### #253 premarket-Verify ERFOLGREICH (27.05.)
+
+Erster sauberer Verify-Tag. premarket-Run **11:49 UTC**, `run_phase == tsp ==
+premarket`, **kein `open`-Kippen** (23.05.-Drift-Muster nicht wiedergekehrt).
+Drift **+3h32m** (Mo 25.05. war +3h43m → stabil), Marge **1h41m** vor 13:30.
+5 Anomalien premarket detektiert (GEMI/GRPN/LUCK/RR×2), **alle conviction-gated
+suppressed** (<75) — Pipeline aktiv, kein Spam. **γ-2-Sammlung jetzt n≈2**
+(25.05. + 27.05.). **Cron 8:17 bleibt, kein Eingriff.**
+
+**Nebenbefund (niedrig, beobachten):** Ein **02:53-UTC-postclose-Run**
+(gedrifteter 21:17-Cron der Vornacht +~5,5h ODER manuell) verkürzte das
+Morgen-Anomaly-Fenster (Ticks postclose-gated bis 11:49, Pushes aus). EOD-Daten
+zeitunabhängig gültig → datenseitig unkritisch. Für die Cron-Drift-Wiedervorlage:
+beobachten, ob der **postclose-Cron systematisch in die Nacht driftet** (gleicher
+Mechanismus wie premarket-Drift, nur am anderen Tagesende).
+
+### S10 return_5d — KEIN Pipeline-Problem, Holiday-/Lock-Nachlauf (27.05.)
+
+Ursache bewiesen (read-only). Fill = `update_backtest_returns()` in
+**ki_agent.py:380**, läuft stündlich pro Tick, indexiert reale yfinance-Bars,
+idempotent. **LÄUFT und HOLT NACH** (Beweis: 18.05.-Eintrag, return_5d am
+Lock-Tag fällig, ist gefüllt). Steigende Quote (21%→38%) = zwei harmlose
+Ursachen: (1) Alters-Zähler `_trading_days_elapsed` / `_s10_trading_days_elapsed`
+ignorieren US-Feiertage → Memorial Day 25.05. als Handelstag mitgezählt → S10
+flaggt 19./20.05.-Kohorte **~1 Tag ZU FRÜH** (vor Existenz des realen EOD-Bars).
+(2) 26.05.-Lock-Fill-Gap.
+
+**Vorhersage (Verifikations-Trigger):** 27.05.-EOD füllt 19.05.-Kohorte (13),
+28.05.-EOD die 20.05.-Kohorte (17). **Quote MUSS bis Do/Fr fallen.**
+**Beobachten Do 28./Fr 29.05.:** Quote fällt → Nachlauf bestätigt, erledigt.
+Bleibt hoch/steigt nach 2 sauberen EOD-Zyklen → echtes Problem, neu
+diagnostizieren. **KEIN Fix jetzt.**
+
 ### Sonstige geplante Aufgaben
 
 - **HTML-Sanity Phase 1c** (nach 1b stabil): 10er-Assertion-Liste +
@@ -338,6 +371,19 @@ selbst** — eine Ebene **über** dem geplanten premarket-Sammel-Wächter (der
   (#199-Falle); `.sb-lbl/.sb-pts/.sb-note` sind Methodik-Panel-Scope (live).
   Nur `.sb-row/.sb-num/...` im toten Flag=False-Fallback (Rollback-Pfad).
   **Null Trading-Wert** → verworfen bis Cockpit-Stabilität.
+- 📅 **AN 30.06.-DECAY-FIX KOPPELN — S10-Feiertags-Zähler (display-only):**
+  Die Alters-Zähler `_trading_days_elapsed` / `_s10_trading_days_elapsed`
+  ignorieren US-Feiertage → wiederkehrender ~1-Tag-Fehlalarm in
+  Feiertagswochen. Fill bleibt korrekt (indexiert reale Bars), nur S10-Flag
+  kosmetisch zu früh. Gleiche Kalender→Handelstag-Klasse wie der bereits an
+  30.06. gekoppelte Decay-Fix → dort mit-erledigen. Nicht datenkritisch.
+  Fix-Optionen (Präferenz absteigend): **(a)** Alters-Zähler an die
+  reale-Bar-Logik koppeln, die der Fill SCHON nutzt (yfinance-Bars = echte
+  Handelstage) — keine neue Dependency, im-Haus-konsistent. **(b)**
+  `holidays`-Paket (leichtgewichtig, nur US-Feiertage abziehen). **(c)**
+  `pandas_market_calendars` / `exchange_calendars` (mächtig, aber schwere
+  Dependency — angesichts Run-/API-Last-Sensitivität nach dem 26.05.-Lock
+  eher meiden).
 
 ---
 
@@ -427,6 +473,13 @@ selbst** — eine Ebene **über** dem geplanten premarket-Sammel-Wächter (der
   schweigt der Wächter mit, statt zu alarmieren. Gegen das Premium-Ziel die
   relevante Lücke: **Wer überwacht, ob der Überwacher lebt?** → Roadmap-Kandidat
   „Externer Dead-Man-Switch" in Sektion 5.
+- **Steigender Health-Check-WARN ≠ automatisch echter Bug (27.05.):** S10
+  return_5d stieg 21%→38% über 6 Runs — sah nach eskalierendem Problem aus,
+  war aber Holiday-Überzählung + Lock-Gap, Fill voll funktionsfähig. Lehre:
+  bei steigendem WARN erst die **Mechanik** prüfen (läuft der Fill? holt er
+  nach?), bevor „eskaliert = kaputt" geschlossen wird. Eine **falsifizierbare
+  Vorhersage** (Quote fällt bis Do/Fr) trennt Nachlauf von echtem Defekt
+  sauberer als Bauchgefühl.
 
 ---
 
