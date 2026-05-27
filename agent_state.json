@@ -1,5 +1,5 @@
 {
-  "last_run": "2026-05-27T14:33:23.536643+02:00",
+  "last_run": "2026-05-27T15:51:04.825029+02:00",
   "cooldowns": {
     "anomaly_score_jump_XRX": "2026-05-03T18:47:15.315486+02:00",
     "anomaly_uoa_extreme_TDOC": "2026-05-04T13:47:00.365949+02:00",
@@ -37,33 +37,11 @@
     "anomaly_monster_backup_XPOF": "2026-05-20T20:46:08.066894+02:00",
     "anomaly_conviction_high_DMRC": "2026-05-20T17:31:02.518802+02:00",
     "anomaly_conviction_high_LENZ": "2026-05-20T19:11:36.061944+02:00",
-    "exit_CRDF": "2026-05-26T05:21:41.746028+02:00"
+    "exit_CRDF": "2026-05-26T05:21:41.746028+02:00",
+    "anomaly_score_jump_MNRO": "2026-05-27T15:51:00.247121+02:00",
+    "anomaly_conviction_high_MNRO": "2026-05-27T15:51:00.309703+02:00"
   },
   "push_history": [
-    {
-      "ts": "2026-05-18T21:21:33.147059+02:00",
-      "ticker": "TE",
-      "kind": "anomaly",
-      "severity": "medium",
-      "trigger": "uoa_extreme",
-      "body": "TE 🎯 UOA Vol/OI 11.5× ATM | Setup 76",
-      "success": false,
-      "suppressed": true,
-      "suppress_reason": "conviction_below_threshold",
-      "conviction_score": 50
-    },
-    {
-      "ts": "2026-05-18T21:21:33.147141+02:00",
-      "ticker": "TE",
-      "kind": "anomaly",
-      "severity": "high",
-      "trigger": "monster_backup",
-      "body": "TE 🔥 Monster 91 | Setup 76 | KI 75",
-      "success": false,
-      "suppressed": true,
-      "suppress_reason": "conviction_below_threshold",
-      "conviction_score": 50
-    },
     {
       "ts": "2026-05-19T06:46:31.151409+02:00",
       "ticker": "CRMD",
@@ -1239,23 +1217,52 @@
       "suppressed": true,
       "suppress_reason": "conviction_below_threshold",
       "conviction_score": 70
+    },
+    {
+      "ts": "2026-05-27T15:51:00.247094+02:00",
+      "ticker": "MNRO",
+      "kind": "anomaly",
+      "severity": "medium",
+      "trigger": "score_jump",
+      "body": "MNRO 🚀 Setup 63 ↑ (gestern 45) | Earnings in 0 Tagen (27.05.2026) + Spanne 12.7% + SEC 8-K + …",
+      "success": true,
+      "suppressed": false,
+      "suppress_reason": null,
+      "conviction_score": 81
+    },
+    {
+      "ts": "2026-05-27T15:51:00.309679+02:00",
+      "ticker": "MNRO",
+      "kind": "anomaly",
+      "severity": "high",
+      "trigger": "conviction_high",
+      "body": "MNRO 🎯 KAUFSIGNAL — Conviction 81/100 (high) | Conviction hoch — Setup, Earliness und Timing konvergieren. Erwartungswert posit…",
+      "success": true,
+      "suppressed": false,
+      "suppress_reason": null,
+      "conviction_score": 81
     }
   ],
   "prev_conviction_scores": {
-    "RR": 70.0,
-    "GRPN": 56.0,
-    "LUCK": 70.0,
-    "TWN": 37.0,
-    "DDD": 64.0,
-    "PDYN": 49.0,
-    "INDI": 61.0,
-    "CRDF": 60.0,
-    "AI": 66.0,
-    "SPCE": 31.0,
-    "CRMD": 53.0,
-    "GEMI": 30.0,
-    "AMC": 26.0,
-    "IONQ": 17.0
+    "GRPN": 47.0,
+    "CBRL": 60.0,
+    "MNRO": 81.0,
+    "LENZ": 72.0,
+    "OXM": 51.0,
+    "PRKS": 64.0,
+    "JACK": 56.0,
+    "RLYB": 70.0,
+    "DFH": 63.0,
+    "NVAX": 68.0,
+    "AI": 44.0,
+    "CRDF": 65.0,
+    "INDI": 65.0,
+    "CRMD": 49.0,
+    "RR": 49.0,
+    "PDYN": 48.0,
+    "GEMI": 26.0,
+    "IONQ": 14.0,
+    "AMC": 20.0
   },
   "exit_cooldowns": {
     "exitp2_warning_AMC": "2026-05-18T14:48:43.872687+02:00",
