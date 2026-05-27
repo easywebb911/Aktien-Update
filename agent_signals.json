@@ -1,17 +1,17 @@
 {
-  "updated": "2026-05-27T06:49:56.666422+02:00",
+  "updated": "2026-05-27T10:49:35.027849+02:00",
   "run_info": {
     "tickers_checked": 15,
     "signals_active": 6,
     "alerts_sent": 0,
-    "elapsed_s": 11.3,
-    "market_phase": "Geschlossen"
+    "elapsed_s": 14.9,
+    "market_phase": "Pre-Market"
   },
   "signals": {
     "AI": {
-      "score": 72,
+      "score": 58,
       "confidence": 70,
-      "drivers": "Earnings in 7 Tagen (03.06.2026) + Volumen 1.6× + Spanne 7.0% + News: contract + Earnings in 7d + UOA Call/Put 33.2×",
+      "drivers": "Earnings in 7 Tagen (03.06.2026) + Volumen 1.6× + Spanne 7.0% + News-KI 8/30: TRNS shows positive earnings beat but lacks the short interest, volatility catalysts, and retail momentum indicators typ + Earnings in 7d + UOA Call/Put 33.2×",
       "price": 9.59,
       "chg_pct": 0.0,
       "rvol_4d": 1.63,
@@ -21,8 +21,8 @@
       "upcoming_event": "Earnings in 7 Tagen (03.06.2026)",
       "insider_buy": false,
       "stocktwits": null,
-      "combo_mult": 1.1,
-      "active_triggers": 2,
+      "combo_mult": 1.0,
+      "active_triggers": 1,
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 33.2×"
@@ -49,7 +49,7 @@
       "uoa_drivers": [
         "UOA Call/Put 6.9×"
       ],
-      "uoa_atm_ratio": 0.3572236706183285,
+      "uoa_atm_ratio": null,
       "uoa_cp_ratio": 6.857421875
     },
     "CRDF": {
@@ -77,7 +77,7 @@
     "CRMD": {
       "score": 30,
       "confidence": 17,
-      "drivers": "News: guidance raised, earnings beat",
+      "drivers": "News: earnings beat, guidance raised",
       "price": 8.27,
       "chg_pct": 0.0,
       "rvol_4d": 0.98,
@@ -177,13 +177,13 @@
       "uoa_drivers": [
         "UOA Call/Put 27.9×"
       ],
-      "uoa_atm_ratio": 0.3047031725982614,
+      "uoa_atm_ratio": null,
       "uoa_cp_ratio": 27.896174863387976
     },
     "IONQ": {
       "score": 40,
       "confidence": 33,
-      "drivers": "Spanne 7.6% + News: squeeze, short squeeze",
+      "drivers": "Spanne 7.6% + News: short squeeze, squeeze",
       "price": 63.62,
       "chg_pct": -0.0,
       "rvol_4d": 0.75,
@@ -219,7 +219,7 @@
       "uoa_drivers": [
         "UOA Call/Put 179.0×"
       ],
-      "uoa_atm_ratio": 2.3835616438356166,
+      "uoa_atm_ratio": null,
       "uoa_cp_ratio": 179.0
     },
     "PDYN": {
@@ -241,7 +241,7 @@
       "uoa_drivers": [
         "UOA Call/Put 8.9×"
       ],
-      "uoa_atm_ratio": 0.16721311475409836,
+      "uoa_atm_ratio": null,
       "uoa_cp_ratio": 8.890196078431373
     },
     "RR": {
@@ -307,13 +307,13 @@
       "uoa_drivers": [
         "UOA Call/Put 9.3×"
       ],
-      "uoa_atm_ratio": 0.5641277641277641,
+      "uoa_atm_ratio": null,
       "uoa_cp_ratio": 9.305555555555555
     },
     "TWN": {
-      "score": 27,
+      "score": 40,
       "confidence": 70,
-      "drivers": "Volumen 1.9× + Spanne 5.9% + News-KI 2/30: Routine corporate announcements with no indicators of short-squeeze potential such as high short interest, stock supply ",
+      "drivers": "Volumen 1.9× + Spanne 5.9% + News: acquisition",
       "price": 100.28,
       "chg_pct": -0.0,
       "rvol_4d": 1.89,
@@ -324,7 +324,7 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 0,
+      "active_triggers": 1,
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": null,
