@@ -328,3 +328,4 @@
 {"run_ts": "2026-05-27T18:04:21Z", "run_phase": "ki_agent_tick", "schema_v": 1, "state_fails": [], "provider_fails": []}
 {"run_ts": "2026-05-27T19:34:15Z", "run_phase": "ki_agent_tick", "schema_v": 1, "state_fails": [], "provider_fails": []}
 {"run_ts": "2026-05-27T19:42:32Z", "run_phase": "premarket", "schema_v": 1, "state_fails": [{"id": "S7", "severity": "warn", "detail": "agent_signals ∩ top10: 4 von 10 Top-10-Ticker, Schwelle ≥ 5. Möglicher Daily-Run-/KI-Agent-Drift — neuer Tick fällig"}, {"id": "S10", "severity": "warn", "detail": "LAG-Feld 'return_5d': 17/78 gealterte Einträge (≥ 5 Trading-Tage) haben kein Outcome (22%) — Rolling-Update-Pipeline füllt nicht"}], "provider_fails": []}
+{"run_ts": "2026-05-27T19:44:22Z", "run_phase": "ki_agent_tick", "schema_v": 1, "state_fails": [], "provider_fails": []}
