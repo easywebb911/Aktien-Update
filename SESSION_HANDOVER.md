@@ -65,6 +65,13 @@
 - **AMWD beobachten:** delisted-Warning (yfinance kein Preis) bei einem
   Top-10-Ticker. Einzel-Symptom — erst bei Muster diagnostizieren.
 - **GitHub-Ticket #4418923:** Antwort auf Lock-Auslöser (26.05.) abwarten.
+- **08.06.2026:** Backup-/Disaster-Recovery-Konzept. Read-only-
+  Bestandsaufnahme zuerst: Was liegt NUR auf GitHub? Existiert lokaler
+  Clone? Gibt es bereits Daten-Export? Schwerpunkt nicht-aufholbare Daten
+  (backtest_history.json, score_inflation_log.jsonl, score_history.json) —
+  Code via Clone ohnehin verteilt. Schützt gegen Account-Sperrung
+  (vgl. 26.05.-Lock) UND Hack (Löschung/Manipulation). Terminiert VOR
+  10.06.-Entry-Modul, das neue wertvolle Daten produziert.
 
 ## 5) STRATEGISCHE ROADMAP
 - Entry-Timing-Modul (★★★, 10.06.) — höchste Priorität.
@@ -78,6 +85,13 @@
 - γ-2 (Pool-Inflation premarket): erst entscheidbar nach mehreren Werktagen
   echter premarket-Daten. ENABLED=False. Skalierer ~0.40 Kipppunkt (dünnes n).
 - KI-Agent-Frequenz-Reduktion nur falls zweiter Abuse-Lock.
+- Backup/Disaster-Recovery (Wiedervorlage 08.06.): Doppelter Boden gegen
+  GitHub-Account-Verlust. Optionen gestaffelt: (a) lokaler git mirror
+  (sofort/gratis, deckt Code) | (b) Daten-Export außerhalb GitHub
+  (deckt nicht-aufholbare JSON/JSONL) | (c) Spiegel auf anderer Plattform/
+  anderem Account (härtester Schutz gegen Hack — kompromittierter Account
+  kann nicht beide löschen). Verwandt mit Roadmap-Punkt externer
+  Dead-Man-Switch (beim 26.05.-Lock schwieg der Health-Check mit).
 
 ## 6) CODE-HYGIENE-BACKLOG (mit Status)
 - **finviz Flag-aus (FINVIZ_SCREENER_ENABLED=False) + α (Provider komplett
