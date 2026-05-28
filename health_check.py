@@ -29,6 +29,7 @@ from datetime import date, datetime, timedelta, timezone
 from typing import Any
 
 from config import (
+    DIGEST_CONSECUTIVE_THRESHOLD_OVERRIDES,
     HEALTH_CHECK_CUTOFF_DAYS,
     HEALTH_CHECK_S2_MIN_TICKERS,
     HEALTH_CHECK_S5_MIN_INFLATION_LINES,
@@ -1230,7 +1231,8 @@ def aggregate_provider_fails(entries: list[dict],
                 "reason":      reason,
                 "consecutive": n_consec,
             })
-        elif n_consec >= DIGEST_CONSECUTIVE_THRESHOLD:
+        elif n_consec >= DIGEST_CONSECUTIVE_THRESHOLD_OVERRIDES.get(
+                prov, DIGEST_CONSECUTIVE_THRESHOLD):
             severity = "warn"
             fails.append({
                 "provider":    prov,

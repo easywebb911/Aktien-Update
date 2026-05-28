@@ -1002,6 +1002,47 @@ HEALTH_CHECK_PROVIDER_EXPECTED = {
 }
 
 
+# ── Digest-Konsekutiv-Schwelle: provider-spezifische Overrides ────────────
+#
+# Basis-Konstante ``DIGEST_CONSECUTIVE_THRESHOLD = 3`` lebt aus historischen
+# Gründen in ``health_check.py:1116`` (zusammen mit den Coverage-Schwellen
+# DIGEST_COVERAGE_THRESHOLD_TIER1/TIER23). Bewusste Inkonsistenz akzeptiert
+# — die Override-Konstante lebt hier zentral in config.py, der Default wird
+# in health_check.py weiter direkt verwendet (Override-Lookup via
+# ``.get(prov, DIGEST_CONSECUTIVE_THRESHOLD)`` in
+# ``aggregate_provider_fails``).
+#
+# WAS:
+#   Pro-Provider-Override für die N-in-Folge-Schwelle, ab der ein
+#   Tier-2/3-Provider als ``warn`` aggregiert wird. Default bleibt 3.
+#
+# WARUM finviz:
+#   - finviz ist seit 19.05.2026 dokumentiert von Tier 1 → Tier 2 herab-
+#     gestuft (HEALTH_CHECK_PROVIDER_TIER["finviz"]=2, oben).
+#   - Empirisch (28.05.2026): finviz speist als SF-Quelle 0/100 der letzten
+#     backtest_history-Einträge — yfinance deckt 100/100 ab, kein finviz-
+#     only Score-/Conviction-/Filter-Feld existiert (verifiziert per
+#     Source-Inspection).
+#   - Der 22-in-Folge-Alarm ist daher Mechanik-Rauschen (Provider zählt
+#     Failures agnostisch zur Wirkung), keine Datenqualitäts-Frage.
+#   - Schwelle 100 lässt einen ECHTEN Tier-1-Rückkehr-Ausfall weiterhin
+#     sichtbar (33× Lag gegenüber Default ist akzeptabel, weil finviz
+#     dokumentiert Tier-2 ist).
+#
+# 30.06.-BACKLOG (Option α aus der Diagnose 28.05.):
+#   Strukturelle Aufräumung — Provider zurückbauen (finviz-Pfade entfernen,
+#   Aggregator-Emit am Daily-Run-Ende konditional). Diese Schwelle hier
+#   wird damit obsolet und sollte entfernt werden.
+#
+# Pflege:
+#   Neuer Provider-Override → einfach Schlüssel ergänzen, KEIN Code-Touch
+#   in health_check.py nötig (Lookup ist dict-getrieben). Override-Dict
+#   leer/fehlend → fällt sauber auf Default 3 zurück.
+DIGEST_CONSECUTIVE_THRESHOLD_OVERRIDES = {
+    "finviz": 100,
+}
+
+
 # ── Health-Check S10 — Daten-Integritäts-Check (Phase 1, additiv) ──────────
 #
 # Erkennt wenn ein MUSS-gefülltes Feld in ``backtest_history.json`` dauerhaft
