@@ -1,17 +1,17 @@
 {
-  "updated": "2026-05-29T00:42:51.535658+02:00",
+  "updated": "2026-05-29T00:48:33.830258+02:00",
   "run_info": {
     "tickers_checked": 18,
     "signals_active": 6,
     "alerts_sent": 0,
-    "elapsed_s": 13.0,
+    "elapsed_s": 16.8,
     "market_phase": "After-Hours"
   },
   "signals": {
     "ABSI": {
-      "score": 40,
+      "score": 35,
       "confidence": 70,
-      "drivers": "Volumen 3.0× + Spanne 20.1% + News-KI 5/30: Positive sentiment but no short squeeze indicators like high short interest, catalyst-driven squeeze potential, or retai + UOA Call/Put 6.5×",
+      "drivers": "Volumen 3.0× + Spanne 20.1% + UOA Call/Put 6.5×",
       "price": 6.08,
       "chg_pct": -0.0,
       "rvol_4d": 2.95,
@@ -55,7 +55,7 @@
     "AMC": {
       "score": 40,
       "confidence": 17,
-      "drivers": "News: squeeze, insider buying + UOA Call/Put 3.3×",
+      "drivers": "News: insider buying, squeeze + UOA Call/Put 3.3×",
       "price": 1.58,
       "chg_pct": 0.0,
       "rvol_4d": 0.86,
@@ -141,7 +141,7 @@
     "HUMA": {
       "score": 65,
       "confidence": 70,
-      "drivers": "Volumen 1.9× + Spanne 16.5% + News: acquisition, contract + UOA Call/Put 5.7×",
+      "drivers": "Volumen 1.9× + Spanne 16.5% + News: contract, acquisition + UOA Call/Put 5.7×",
       "price": 1.28,
       "chg_pct": -0.0,
       "rvol_4d": 1.92,
@@ -207,7 +207,7 @@
     "KSS": {
       "score": 100,
       "confidence": 70,
-      "drivers": "Earnings in 0 Tagen (28.05.2026) + Volumen 2.9× + Spanne 9.3% + SEC 8-K + News: short squeeze, squeeze + Earnings in 0d + 3/4 Trigger",
+      "drivers": "Earnings in 0 Tagen (28.05.2026) + Volumen 2.9× + Spanne 9.3% + SEC 8-K + News: short squeeze, earnings beat + Earnings in 0d + 3/4 Trigger",
       "price": 15.59,
       "chg_pct": 0.0,
       "rvol_4d": 2.9,
