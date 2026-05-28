@@ -1,10 +1,10 @@
 {
-  "updated": "2026-05-29T00:08:11.088868+02:00",
+  "updated": "2026-05-29T00:11:02.422429+02:00",
   "run_info": {
     "tickers_checked": 17,
     "signals_active": 1,
     "alerts_sent": 0,
-    "elapsed_s": 17.9,
+    "elapsed_s": 15.8,
     "market_phase": "After-Hours"
   },
   "signals": {
@@ -33,7 +33,7 @@
     "AMC": {
       "score": 40,
       "confidence": 17,
-      "drivers": "News: insider buying, squeeze + UOA Call/Put 3.3×",
+      "drivers": "News: squeeze, insider buying + UOA Call/Put 3.3×",
       "price": 1.58,
       "chg_pct": 0.0,
       "rvol_4d": 0.86,
@@ -95,9 +95,9 @@
       "uoa_cp_ratio": 0.5399515738498789
     },
     "DMRC": {
-      "score": 28,
+      "score": 20,
       "confidence": 33,
-      "drivers": "Spanne 12.2% + News-KI 8/30: Positive product announcements and earnings release, but no indicators of high short interest, dramatic price suppressio + UOA Call/Put 3.0×",
+      "drivers": "Spanne 12.2% + UOA Call/Put 3.0×",
       "price": 15.02,
       "chg_pct": 0.0,
       "rvol_4d": 0.94,
@@ -117,9 +117,9 @@
       "uoa_cp_ratio": 2.983050847457627
     },
     "EVGO": {
-      "score": 25,
+      "score": 20,
       "confidence": 33,
-      "drivers": "Spanne 8.1% + News-KI 5/30: Negative price action with no short squeeze indicators; leadership appointments and general market weakness suggest fund + UOA Call/Put 17.8×",
+      "drivers": "Spanne 8.1% + UOA Call/Put 17.8×",
       "price": 2.16,
       "chg_pct": 0.0,
       "rvol_4d": 1.02,
@@ -207,7 +207,7 @@
     "KSS": {
       "score": 100,
       "confidence": 70,
-      "drivers": "Earnings in 0 Tagen (28.05.2026) + Volumen 2.9× + Spanne 9.3% + SEC 8-K + News: short squeeze, earnings beat + Earnings in 0d + SEC Form 4 + 3/4 Trigger",
+      "drivers": "Earnings in 0 Tagen (28.05.2026) + Volumen 2.9× + Spanne 9.3% + SEC 8-K + News: short squeeze, squeeze + Earnings in 0d + SEC Form 4 + 3/4 Trigger",
       "price": 15.59,
       "chg_pct": 0.0,
       "rvol_4d": 2.9,
@@ -331,9 +331,9 @@
       "uoa_cp_ratio": null
     },
     "RR": {
-      "score": 55,
+      "score": 35,
       "confidence": 70,
-      "drivers": "Earnings in 5 Tagen (02.06.2026) + Spanne 9.7% + News: partnership + Earnings in 5d + UOA Call/Put 3.9×",
+      "drivers": "Earnings in 5 Tagen (02.06.2026) + Spanne 9.7% + Earnings in 5d + UOA Call/Put 3.9×",
       "price": 3.25,
       "chg_pct": 0.0,
       "rvol_4d": 0.64,
@@ -343,8 +343,8 @@
       "upcoming_event": "Earnings in 5 Tagen (02.06.2026)",
       "insider_buy": false,
       "stocktwits": null,
-      "combo_mult": 1.1,
-      "active_triggers": 2,
+      "combo_mult": 1.0,
+      "active_triggers": 1,
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 3.9×"
