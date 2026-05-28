@@ -1,5 +1,5 @@
 {
-  "last_run": "2026-05-28T16:04:54.293769+02:00",
+  "last_run": "2026-05-28T18:12:36.264782+02:00",
   "cooldowns": {
     "anomaly_score_jump_XRX": "2026-05-03T18:47:15.315486+02:00",
     "anomaly_uoa_extreme_TDOC": "2026-05-04T13:47:00.365949+02:00",
@@ -40,45 +40,11 @@
     "exit_CRDF": "2026-05-28T18:10:41.578632+02:00",
     "anomaly_score_jump_MNRO": "2026-05-27T15:51:00.247121+02:00",
     "anomaly_conviction_high_MNRO": "2026-05-27T15:51:00.309703+02:00",
-    "anomaly_conviction_high_RXRX": "2026-05-27T21:44:19.507044+02:00"
+    "anomaly_conviction_high_RXRX": "2026-05-27T21:44:19.507044+02:00",
+    "anomaly_monster_backup_KSS": "2026-05-28T18:12:34.358635+02:00",
+    "anomaly_conviction_high_KSS": "2026-05-28T18:12:34.418615+02:00"
   },
   "push_history": [
-    {
-      "ts": "2026-05-19T16:56:31.646423+02:00",
-      "ticker": "PAR",
-      "kind": "anomaly",
-      "severity": "medium",
-      "trigger": "score_jump",
-      "body": "PAR 🚀 Setup 69 ↑ (gestern 49) | Spanne 8.3% + News: partnership + SEC Form 4",
-      "success": false,
-      "suppressed": true,
-      "suppress_reason": "conviction_below_threshold",
-      "conviction_score": 62
-    },
-    {
-      "ts": "2026-05-19T17:44:53.087655+02:00",
-      "ticker": "CRDF",
-      "kind": "anomaly",
-      "severity": "high",
-      "trigger": "monster_backup",
-      "body": "CRDF 🔥 Monster 93 | Setup 93 | KI 35",
-      "success": true,
-      "suppressed": false,
-      "suppress_reason": null,
-      "conviction_score": 84
-    },
-    {
-      "ts": "2026-05-19T17:44:53.088038+02:00",
-      "ticker": "PAR",
-      "kind": "anomaly",
-      "severity": "medium",
-      "trigger": "score_jump",
-      "body": "PAR 🚀 Setup 67 ↑ (gestern 49) | Spanne 8.3% + News: partnership + SEC Form 4",
-      "success": false,
-      "suppressed": true,
-      "suppress_reason": "conviction_below_threshold",
-      "conviction_score": 61
-    },
     {
       "ts": "2026-05-19T18:32:40.246054+02:00",
       "ticker": "PAR",
@@ -1242,25 +1208,61 @@
       "suppressed": false,
       "suppress_reason": null,
       "conviction_score": null
+    },
+    {
+      "ts": "2026-05-28T18:12:34.358605+02:00",
+      "ticker": "KSS",
+      "kind": "anomaly",
+      "severity": "high",
+      "trigger": "monster_backup",
+      "body": "KSS 🔥 Monster 90 | Setup 75 | KI 100",
+      "success": true,
+      "suppressed": false,
+      "suppress_reason": null,
+      "conviction_score": 78
+    },
+    {
+      "ts": "2026-05-28T18:12:34.418588+02:00",
+      "ticker": "KSS",
+      "kind": "anomaly",
+      "severity": "high",
+      "trigger": "conviction_high",
+      "body": "KSS 🎯 KAUFSIGNAL — Conviction 78/100 (high) (vorher 72) | Conviction hoch — Setup, Earliness und Timing konvergieren. Erwartungswert posit…",
+      "success": true,
+      "suppressed": false,
+      "suppress_reason": null,
+      "conviction_score": 78
+    },
+    {
+      "ts": "2026-05-28T18:12:36.334525+02:00",
+      "ticker": "PDYN",
+      "kind": "exit_p2",
+      "severity": "trigger",
+      "trigger": "overheated",
+      "body": "🔻 Exit-Signal PDYN: overheated crit ({'rsi14': 76.52729390937509, 'move_2d_pct': 0.2748, 'move_3d_pct': 0.4062, 'move_3d_available': True})",
+      "success": true,
+      "suppressed": false,
+      "suppress_reason": null,
+      "conviction_score": null
     }
   ],
   "prev_conviction_scores": {
-    "KSS": 72.0,
-    "SPRY": 72.0,
-    "AI": 64.0,
-    "LENZ": 71.0,
-    "SLS": 64.0,
-    "PDYN": 42.0,
-    "LNKS": 41.0,
-    "PAR": 61.0,
-    "QCLS": 46.0,
-    "HCWB": 39.0,
-    "INDI": 57.0,
-    "CRDF": 64.0,
-    "CRMD": 48.0,
-    "GEMI": 26.0,
-    "RR": 39.0,
-    "IONQ": 14.0,
+    "KSS": 78.0,
+    "DMRC": 73.0,
+    "NMAX": 45.0,
+    "SPRY": 73.0,
+    "METC": 58.0,
+    "AI": 65.0,
+    "QCLS": 51.0,
+    "LNKS": 44.0,
+    "PDYN": 44.0,
+    "EVGO": 64.0,
+    "INDI": 62.0,
+    "CRDF": 65.0,
+    "GEMI": 29.0,
+    "CRMD": 49.0,
+    "RR": 40.0,
+    "IONQ": 19.0,
     "AMC": 11.0
   },
   "exit_cooldowns": {
@@ -1278,6 +1280,7 @@
     "exitp2_warning_IONQ": "2026-05-19T16:49:41.484698+02:00",
     "exitp2_trigger_IONQ_trend_break": "2026-05-19T16:49:41.718695+02:00",
     "exitp2_trigger_PDYN_trend_break": "2026-05-20T19:32:41.471559+02:00",
-    "exitp2_trigger_GEMI_trend_break": "2026-05-28T00:12:24.700613+02:00"
+    "exitp2_trigger_GEMI_trend_break": "2026-05-28T00:12:24.700613+02:00",
+    "exitp2_trigger_PDYN_overheated": "2026-05-28T18:12:36.334552+02:00"
   }
 }
