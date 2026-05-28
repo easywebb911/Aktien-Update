@@ -15954,6 +15954,7 @@ def main():
 
     with open("index.html", "w", encoding="utf-8") as fh:
         fh.write(html)
+    log.info("index.html geschrieben (frischer Stand, vor S9-Check)")
 
     # Kombinierte app_data.json (PWA-Single-Fetch). ``_wl_card_data``
     # wurde oben (vor generate_html) gebaut und an den Chat-Synthese-
@@ -16242,7 +16243,7 @@ def main():
     except Exception as exc:
         log.warning("provider-aggregator-records failed: %s", exc)
 
-    log.info("Report written → index.html")
+    log.info("Post-Render-Pipeline abgeschlossen (Write erfolgte vor S9-Check)")
     log.info("Top 10: %s", [s["ticker"] for s in top10])
     log.info("Supplementary data summary: FINRA=%d/10", _finra_stats["ok"])
     print(
