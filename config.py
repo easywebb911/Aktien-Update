@@ -927,6 +927,14 @@ HEALTH_CHECK_S7_MIN_AGENT_OVERLAP   = 5    # |agent_signals ∩ top10|
 HEALTH_CHECK_S8_MAX_AGE_HOURS       = 26   # max Alter last_digest_sent
                                             # (>26 h = mindestens ein
                                             #  Daily-Digest-Slot verpasst)
+# S11/S12 — Phasen-Sammel-Frequenz-Wächter (additiv zu S1–S10/S8).
+# Erkennen stillen Tod der Sammel-Mechanik: mehrere Werktage ohne
+# echten premarket-/postclose-Run (run_phase == tsp == 'premarket'
+# bzw. 'postclose' im score_inflation_log). Holiday-/WE-robust durch
+# „absence of state-write"-Pattern — an Feiertagen/Wochenenden feuert
+# der Cron strukturell nicht, daher keine Erwartung → keine false-positives.
+HEALTH_CHECK_S11_MAX_WORKDAYS_NO_PREMARKET = 5   # warn ab Werktagen ohne echten premarket-Run
+HEALTH_CHECK_S12_MAX_WORKDAYS_NO_POSTCLOSE = 2   # crit (NUR-REPORTING) ab Werktagen ohne echten postclose-Run
 HEALTH_CHECK_CUTOFF_DAYS            = 30   # JSONL-Prune-Cutoff
 
 # Quote-Proxy-Probe (Tier-2-Provider, 1× pro Daily-Run):

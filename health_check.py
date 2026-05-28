@@ -35,6 +35,8 @@ from config import (
     HEALTH_CHECK_S6_MIN_MONSTER_NONZERO,
     HEALTH_CHECK_S7_MIN_AGENT_OVERLAP,
     HEALTH_CHECK_S8_MAX_AGE_HOURS,
+    HEALTH_CHECK_S11_MAX_WORKDAYS_NO_PREMARKET,
+    HEALTH_CHECK_S12_MAX_WORKDAYS_NO_POSTCLOSE,
     S10_MUSS_FIELDS,
     S10_LAG_FIELDS,
     S10_OBSERVED_FIELDS,
@@ -47,6 +49,12 @@ from config import (
 # Digest-Push-Health). Lese-only — geschrieben von
 # scripts/health_check_digest.py.
 DIGEST_STATE_FILE = "health_check_digest_state.json"
+
+# Score-Inflation-Log-Datei für S11/S12-Invarianten (Phasen-Sammel-
+# Frequenz). Analog DIGEST_STATE_FILE — Modul-Attribut, damit Tests die
+# Datei via ``patch.object(hc, "SCORE_INFLATION_LOG_FILE", ...)`` umlenken
+# können. Lese-only — geschrieben von score_inflation_log.py.
+SCORE_INFLATION_LOG_FILE = "score_inflation_log.jsonl"
 
 log = logging.getLogger(__name__)
 
@@ -153,6 +161,77 @@ def _digest_age_hours(now_utc: datetime,
         return None
     delta = now_utc - sent_dt
     return delta.total_seconds() / 3600.0
+
+
+def _last_phase_run_age_workdays(
+    target_run_phase: str,
+    target_tsp: str,
+    now_utc: datetime,
+    log_path: str | None = None,
+) -> int | None:
+    """Werktage (Mo–Fr) seit dem letzten ECHTEN Phasen-Run im
+    ``score_inflation_log.jsonl``.
+
+    Definition „echter Phasen-Run": ``run_phase == target_run_phase``
+    UND ``trading_session_phase == target_tsp`` (z. B. ``premarket``+
+    ``premarket`` oder ``postclose``+``postclose``). Damit werden
+    gedriftete Crons (run_phase=premarket aber tsp=open/midday) korrekt
+    NICHT als echter premarket-Run gezählt.
+
+    Werktag-Zählung Mo–Fr ab dem Tag NACH dem letzten Run-Datum bis
+    ``now_utc`` (inkl.) — analog ``ki_agent._trading_days_elapsed`` /
+    ``_s10_trading_days_elapsed``. Feiertage werden vereinfacht ignoriert;
+    durch das absence-of-write-Muster sicher: an Feiertagen/Wochenenden
+    feuern Crons strukturell nicht, daher entstehen keine false-positives.
+
+    Returnt ``None`` wenn:
+    - Datei fehlt (Erstaufsetzen — analog ``_digest_age_hours``)
+    - keine matchende Zeile vorhanden
+    - JSON/Datums-Parse-Fehler
+
+    ``log_path`` wird zur Aufruf-Zeit aus dem Modul-Attribut gelesen
+    (kein Default-Argument-Binding), damit Tests die Datei via
+    ``patch.object(hc, "SCORE_INFLATION_LOG_FILE", ...)`` umlenken können.
+    """
+    path = log_path if log_path is not None else SCORE_INFLATION_LOG_FILE
+    if not os.path.exists(path):
+        return None
+    latest_ts: str | None = None
+    try:
+        with open(path, "r", encoding="utf-8") as fh:
+            for line in fh:
+                line = line.strip()
+                if not line:
+                    continue
+                try:
+                    row = json.loads(line)
+                except json.JSONDecodeError:
+                    continue
+                if (row.get("run_phase") == target_run_phase
+                        and row.get("trading_session_phase") == target_tsp):
+                    ts = row.get("run_ts")
+                    if (isinstance(ts, str)
+                            and (latest_ts is None or ts > latest_ts)):
+                        latest_ts = ts
+    except OSError:
+        return None
+    if not latest_ts:
+        return None
+    try:
+        last_dt = datetime.fromisoformat(latest_ts.replace("Z", "+00:00"))
+    except (ValueError, TypeError):
+        return None
+    last_date = last_dt.date()
+    today = now_utc.date()
+    if last_date >= today:
+        return 0
+    n = 0
+    d = last_date
+    while d < today:
+        d += timedelta(days=1)
+        if d.weekday() < 5:
+            n += 1
+    return n
 
 
 # ── S10 — Daten-Integritäts-Check (Phase 1, minimal) ──────────────────────
@@ -566,6 +645,62 @@ def evaluate_state_invariants(
                        f"{HEALTH_CHECK_S8_MAX_AGE_HOURS} h) — "
                        f"silent ntfy-Fail oder Cron-Drop"),
         })
+
+    # === S11 (warn) — premarket-Sammel-Frequenz ============================
+    # Erkennt stillen Tod der premarket-Sammlung: wenn mehrere Werktage
+    # ohne echten premarket-Run vergangen sind. „Echter premarket-Run" =
+    # ``run_phase == 'premarket' AND trading_session_phase == 'premarket'``
+    # (gedriftete Crons mit tsp=open/midday zählen nicht als premarket).
+    # Quelle: score_inflation_log.jsonl. ``date`` in backtest_history ist
+    # KEIN Beweis (s. Diagnose 28.05.2026 — Manual-Frühdispatch um 02:53Z).
+    # None = Datei/Match fehlt → SKIP (kein false-positive beim Erstaufsetzen,
+    # analog S8). Nur im Daily-Run-Pfad sinnvoll (analog S5).
+    if not ki_agent_only:
+        s11_age_wd = _last_phase_run_age_workdays(
+            "premarket", "premarket", now_for_s8)
+        if (s11_age_wd is not None
+                and s11_age_wd > HEALTH_CHECK_S11_MAX_WORKDAYS_NO_PREMARKET):
+            fails.append({
+                "id": "S11", "severity": "warn",
+                "detail": (f"kein echter premarket-Run "
+                           f"(run_phase==tsp=='premarket') seit "
+                           f"{s11_age_wd} Werktagen (Schwelle "
+                           f"{HEALTH_CHECK_S11_MAX_WORKDAYS_NO_PREMARKET}) — "
+                           f"Cron-Drift/-Drop oder Sammlung gestorben"),
+            })
+
+    # === S12 (crit, NUR-REPORTING) — postclose-Sammel-Frequenz =============
+    # Analog S11 für postclose. ``severity='crit'`` wegen Datenverlust-
+    # Risiko: jeder gedroppte postclose = permanent verlorener Backtest-
+    # EOD-Snapshot (s. Diagnose 28.05.2026: 27.05.-21:17-Cron-Drop hat
+    # einen 27.05.-EOD-Append irreversibel zerstört, kein Backfill-Pfad).
+    #
+    # EXIT-SCHUTZ — KRITISCH: der einzige blockierende ``sys.exit``-Pfad
+    # in ``generate_report.py:16128–16131`` filtert EXPLIZIT auf
+    # ``id == "S9"``:
+    #   ``any(f.get("id") == "S9" and f.get("severity") == "crit" ...)``
+    # S12 mit ``id='S12'`` wird strukturell NICHT in den Block-Pfad
+    # aufgenommen — egal mit welcher severity. Diese Architektur ist die
+    # kanonische Trennung; S1/S2/S3 (ebenfalls crit) blockieren aus dem
+    # gleichen Grund nicht. Beim Refactor des Exit-Pfads das
+    # ``id == "S9"``-Filter UNBEDINGT beibehalten oder explizit eine
+    # id-Whitelist einführen (z. B. ``id in {"S9"}``) — niemals auf
+    # ``severity == "crit"`` allein umstellen, sonst würde S12 plötzlich
+    # blockieren und ein fehlender postclose würde künftige Runs anhalten.
+    if not ki_agent_only:
+        s12_age_wd = _last_phase_run_age_workdays(
+            "postclose", "postclose", now_for_s8)
+        if (s12_age_wd is not None
+                and s12_age_wd > HEALTH_CHECK_S12_MAX_WORKDAYS_NO_POSTCLOSE):
+            fails.append({
+                "id": "S12", "severity": "crit",
+                "detail": (f"kein echter postclose-Run "
+                           f"(run_phase==tsp=='postclose') seit "
+                           f"{s12_age_wd} Werktagen (Schwelle "
+                           f"{HEALTH_CHECK_S12_MAX_WORKDAYS_NO_POSTCLOSE}) — "
+                           f"Backtest-EOD-Append fehlt; jeder gedroppte "
+                           f"postclose ist permanenter Datenverlust"),
+            })
 
     return fails
 
