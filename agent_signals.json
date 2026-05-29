@@ -1,10 +1,10 @@
 {
-  "updated": "2026-05-30T00:05:38.426717+02:00",
+  "updated": "2026-05-30T00:25:39.642648+02:00",
   "run_info": {
-    "tickers_checked": 19,
-    "signals_active": 4,
+    "tickers_checked": 18,
+    "signals_active": 7,
     "alerts_sent": 0,
-    "elapsed_s": 16.7,
+    "elapsed_s": 14.5,
     "market_phase": "After-Hours"
   },
   "signals": {
@@ -31,9 +31,9 @@
       "uoa_cp_ratio": 48.490196078431374
     },
     "AI": {
-      "score": 72,
+      "score": 58,
       "confidence": 70,
-      "drivers": "Earnings in 5 Tagen (03.06.2026) + Volumen 1.9× + Spanne 8.2% + News: partnership + Earnings in 5d + UOA Call/Put 201.7×",
+      "drivers": "Earnings in 5 Tagen (03.06.2026) + Volumen 1.9× + Spanne 8.2% + News-KI 8/30: Enterprise AI stocks showing broad strength but no specific indicators of high short interest, unusual volume spikes, or + Earnings in 5d + UOA Call/Put 201.7×",
       "price": 10.77,
       "chg_pct": 0.0,
       "rvol_4d": 1.95,
@@ -43,8 +43,8 @@
       "upcoming_event": "Earnings in 5 Tagen (03.06.2026)",
       "insider_buy": false,
       "stocktwits": null,
-      "combo_mult": 1.1,
-      "active_triggers": 2,
+      "combo_mult": 1.0,
+      "active_triggers": 1,
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 201.7×"
@@ -75,9 +75,9 @@
       "uoa_cp_ratio": 16.166970802919707
     },
     "ASAN": {
-      "score": 55,
+      "score": 52,
       "confidence": 70,
-      "drivers": "Volumen 2.9× + Spanne 12.6% + News: acquisition + UOA Call/Put 8.1×",
+      "drivers": "Volumen 2.9× + Spanne 12.6% + News-KI 12/30: Positive product adoption news supports fundamentals but lacks the high short interest, low float, or extreme technicals + UOA Call/Put 8.1×",
       "price": 7.7,
       "chg_pct": -0.0,
       "rvol_4d": 2.92,
@@ -183,7 +183,7 @@
     "CRMD": {
       "score": 30,
       "confidence": 17,
-      "drivers": "News: earnings beat, guidance raised",
+      "drivers": "News: guidance raised, earnings beat",
       "price": 8.44,
       "chg_pct": -0.0,
       "rvol_4d": 0.92,
@@ -267,7 +267,7 @@
     "IONQ": {
       "score": 50,
       "confidence": 33,
-      "drivers": "Spanne 7.7% + News: squeeze, short squeeze + UOA Call/Put 3.9×",
+      "drivers": "Spanne 7.7% + News: short squeeze, squeeze + UOA Call/Put 3.9×",
       "price": 72.07,
       "chg_pct": -0.0,
       "rvol_4d": 0.78,
@@ -287,9 +287,9 @@
       "uoa_cp_ratio": 3.9498126239988243
     },
     "PDYN": {
-      "score": 10,
-      "confidence": 17,
-      "drivers": "Spanne 8.8%",
+      "score": 18,
+      "confidence": 33,
+      "drivers": "Spanne 8.8% + News-KI 8/30: Routine corporate announcements (equity awards, analyst target revision) lack the fundamental catalysts or market pressu",
       "price": 8.43,
       "chg_pct": 0.0,
       "rvol_4d": 0.91,
@@ -369,28 +369,6 @@
       ],
       "uoa_atm_ratio": 2.516881522406384,
       "uoa_cp_ratio": 71.49609375
-    },
-    "SDGR": {
-      "score": 35,
-      "confidence": 70,
-      "drivers": "Volumen 2.0× + Spanne 10.6% + UOA Call/Put 3.5×",
-      "price": 15.2,
-      "chg_pct": -0.0,
-      "rvol_4d": 1.98,
-      "rvol_20d": 1.71,
-      "earnings": "in 68 Tagen (05.08.2026)",
-      "fda_date": null,
-      "upcoming_event": null,
-      "insider_buy": false,
-      "stocktwits": null,
-      "combo_mult": 1.0,
-      "active_triggers": 0,
-      "uoa_score": 10,
-      "uoa_drivers": [
-        "UOA Call/Put 3.5×"
-      ],
-      "uoa_atm_ratio": 0.03596450256889304,
-      "uoa_cp_ratio": 3.451388888888889
     },
     "SPCE": {
       "score": 75,
