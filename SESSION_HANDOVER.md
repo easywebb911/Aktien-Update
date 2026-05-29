@@ -82,6 +82,22 @@
   Code via Clone ohnehin verteilt. Schützt gegen Account-Sperrung
   (vgl. 26.05.-Lock) UND Hack (Löschung/Manipulation). Terminiert VOR
   10.06.-Entry-Modul, das neue wertvolle Daten produziert.
+- **Nächste frische Session (kein festes Datum) — Token-Re-Entry-Komfort:**
+  iOS-PWA killt die App aggressiv aus dem Speicher → bei jedem Icon-Antippen
+  Master-Passwort neu (Token nur in _inMemoryToken + sessionStorage, beide
+  weg beim Prozess-Tod). KEIN Bug — direkte Folge der Phase-3-Sicherheitswahl
+  (Klartext nie persistent) + iOS-PWA-Standalone-Respawn. Lösung: Option C
+  (Time-bounded Re-Encrypt) — nach Master-PW-Unlock einen Session-Schlüssel
+  (z.B. 30 Tage) in IndexedDB ablegen, Token damit re-wrappen, innerhalb des
+  Fensters kein Re-Entry. Behält Master-PW als Anker; einziger neuer Angriffs-
+  Pfad = physischer Zugriff aufs entsperrte Gerät im Fenster (eh Game Over).
+  ABLAUF: Read-only-Diagnose ZUERST (IndexedDB-Verfügbarkeit im iOS-PWA-
+  Standalone-Mode verlässlich? Fenster-Länge? Re-Encrypt-Mechanik?), erst
+  dann Bau. Token-Schema-Refactor mit Mock-Tests + iPhone-Verify-Pflicht =
+  echte Baustelle, braucht frischen Kopf (Token-Krypto, wo Müdigkeit teuer
+  wird). KEINE Datenabhängigkeit — wartet auf nichts außer Energie/Ruhe.
+  Verworfen: B (PIN, brute-force-anfällig), D (Touch-ID, iOS-Safari zu
+  eingeschränkt), E (Klartext localStorage = Pre-Phase-3-Rückschritt).
 
 ## 5) STRATEGISCHE ROADMAP
 - Entry-Timing-Modul (★★★, 10.06.) — höchste Priorität.
