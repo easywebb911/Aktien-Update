@@ -1,10 +1,10 @@
 {
-  "updated": "2026-05-30T00:45:50.167200+02:00",
+  "updated": "2026-05-30T01:42:31.008945+02:00",
   "run_info": {
     "tickers_checked": 18,
     "signals_active": 7,
     "alerts_sent": 0,
-    "elapsed_s": 11.4,
+    "elapsed_s": 17.4,
     "market_phase": "After-Hours"
   },
   "signals": {
@@ -33,7 +33,7 @@
     "AI": {
       "score": 58,
       "confidence": 70,
-      "drivers": "Earnings in 5 Tagen (03.06.2026) + Volumen 1.9× + Spanne 8.2% + News-KI 8/30: Positive enterprise AI sentiment lacks short squeeze indicators like high short interest, low float, or forced covering  + Earnings in 5d + UOA Call/Put 201.7×",
+      "drivers": "Earnings in 5 Tagen (03.06.2026) + Volumen 1.9× + Spanne 8.2% + News-KI 8/30: Positive sentiment on enterprise AI stocks but no indicators of high short interest, low float, or squeeze catalysts typ + Earnings in 5d + UOA Call/Put 201.7×",
       "price": 10.77,
       "chg_pct": 0.0,
       "rvol_4d": 1.95,
@@ -75,9 +75,9 @@
       "uoa_cp_ratio": 16.166970802919707
     },
     "ASAN": {
-      "score": 55,
+      "score": 52,
       "confidence": 70,
-      "drivers": "Volumen 2.9× + Spanne 12.6% + News: acquisition + UOA Call/Put 8.1×",
+      "drivers": "Volumen 2.9× + Spanne 12.6% + News-KI 12/30: Positive sentiment but no evidence of high short interest, significant squeeze catalysts, or forced covering dynamics ty + UOA Call/Put 8.1×",
       "price": 7.7,
       "chg_pct": -0.0,
       "rvol_4d": 2.92,
@@ -183,7 +183,7 @@
     "CRMD": {
       "score": 30,
       "confidence": 17,
-      "drivers": "News: guidance raised, earnings beat",
+      "drivers": "News: earnings beat, guidance raised",
       "price": 8.44,
       "chg_pct": -0.0,
       "rvol_4d": 0.92,
@@ -223,7 +223,7 @@
     "GEMI": {
       "score": 35,
       "confidence": 33,
-      "drivers": "Spanne 7.0% + News-KI 15/30: IPO filings suggest potential dilution and reduced short squeeze likelihood; SpaceX partnership is positive but doesn't  + UOA Call/Put 10.9×",
+      "drivers": "Spanne 7.0% + News: takeover + UOA Call/Put 10.9×",
       "price": 5.27,
       "chg_pct": -0.0,
       "rvol_4d": 0.7,
