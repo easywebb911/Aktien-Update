@@ -117,9 +117,12 @@ def test_12_s8_invalid_date_format() -> None:
 
 
 def test_07_s8_stale_30h_warns() -> None:
-    # state vor 2 Tagen (Mitternacht-Referenz, also ~36-60 h alt)
-    two_days_ago = (datetime.now(timezone.utc) - timedelta(days=2)).strftime("%Y-%m-%d")
-    path = _write_state({"last_digest_sent": two_days_ago})
+    # Referenz-Wechsel 29.05.2026 (PR S8-last_successful_run): S8 misst
+    # jetzt last_successful_run (ISO-Timestamp), nicht last_digest_sent
+    # (YYYY-MM-DD). Test setzt last_successful_run 2 Tage alt → > 26 h → warn.
+    stale_ts = (datetime.now(timezone.utc) - timedelta(days=2)).strftime(
+        "%Y-%m-%dT%H:%M:%SZ")
+    path = _write_state({"last_successful_run": stale_ts})
     try:
         # evaluate über monkey-patch DIGEST_STATE_FILE
         original = hc.DIGEST_STATE_FILE
@@ -148,8 +151,9 @@ def test_07_s8_stale_30h_warns() -> None:
 
 
 def test_08_s8_fresh_no_fail() -> None:
-    today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
-    path = _write_state({"last_digest_sent": today})
+    # Referenz-Wechsel 29.05.2026: last_successful_run frisch gesetzt → kein S8.
+    fresh_ts = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+    path = _write_state({"last_successful_run": fresh_ts})
     try:
         original = hc.DIGEST_STATE_FILE
         hc.DIGEST_STATE_FILE = path
