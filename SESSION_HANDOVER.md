@@ -20,6 +20,16 @@
   ein Dict-Lookup in aggregate_provider_fails (health_check.py). Entschärft
   den finviz-Dauerfehlalarm (22 in Folge), ohne andere Provider zu berühren
   (Default bleibt 3) und ohne den Score-Pfad anzufassen. Auto-Merge (Squash).
+- **#274 (4fd0f00) — 29.05.** S8-Referenzwechsel. _digest_age_hours
+  (health_check.py:125+) misst jetzt last_successful_run (ISO-Timestamp)
+  statt last_digest_sent (YYYY-MM-DD). Behebt täglichen Selbstdefekt-
+  Fehlalarm: last_digest_sent warf Stunden weg + Mitternacht-UTC-Referenz
+  + stabiler Cron-Drift auf ~12:00Z → S8 meldete bei GESUNDEM Digest jeden
+  Vormittag warn (identische Tageswerte = Stempel-Pattern). Vorab-Check:
+  last_successful_run wird EXKLUSIV vom Digest-Workflow geschrieben
+  (kein KI-Tick) → kein toter Wächter, per Source-Inspection-Test
+  abgesichert. Zwei-Felder-Architektur erhalten (_already_sent_today
+  nutzt last_digest_sent weiter). Manueller Merge nach iPhone-Verify.
 
 ## 2) AKTIVE POSITIONEN
 - **AMC** — Halt-Strategie, no_exit_alerts=true. Conv 4, Setup stark gefallen.
@@ -129,6 +139,13 @@
 - Cron-Inventar: ki_agent 17 * * * * (24/Tag, NICHT phasen-gated), daily
   premarket 17 8 * * 1-5, daily postclose 17 21 * * 1-5, health-digest
   47 8 * * *, watchlist 0 7 * * 0.
+- **S8 misst seit #274 last_successful_run (ISO-Timestamp), NICHT mehr
+  last_digest_sent (YYYY-MM-DD).** last_successful_run wird EXKLUSIV von
+  scripts/health_check_digest.py:307 geschrieben (per Source-Inspection-Test
+  in mock_test_s8_last_successful_run.py zementiert — bei künftigem
+  Fremd-Schreibpfad schlägt der Test sofort an, S8 würde sonst zum toten
+  Wächter). last_digest_sent (YYYY-MM-DD) bleibt für _already_sent_today
+  (Mehrfach-Trigger-Schutz) → Zwei-Felder-Architektur bewusst erhalten.
 
 ## 8) LESSONS (28.05.2026)
 - **Card #10 CRIT — unlösbar ohne Artefakt:** Render-Code mehrfach geprüft,
@@ -150,3 +167,11 @@
   SF-Quote-Pfad ungated → konditionale Stille. γ (Schwellen-Override) ist
   deterministisch + kleinerer Touch. Provider-spezifische Schwellen als
   Dict-Pattern (wiederverwendbar) statt Magic-Number-Einzelkonstante.
+- **Datums-Stempel + Mitternacht-Referenz = struktureller Fehlalarm:**
+  S8 maß last_digest_sent als YYYY-MM-DD ab Mitternacht UTC. Bei stabilem
+  Cron-Drift (~12:00Z Push) erzeugt das täglich mehrere Stunden warn bei
+  funktionierendem Digest — NICHT über Schwellen-Tuning reparierbar, nur
+  über Referenz-Wechsel auf echten ISO-Liveness-Timestamp. Falsifizierbare
+  Trennung stale-vs-real: identische Tageswerte = Selbstdefekt, monoton
+  steigend = echter Drop (#274). Vor solchem Referenz-Wechsel IMMER alle
+  Schreib-Stellen des neuen Felds greppen (toter-Wächter-Falle).
