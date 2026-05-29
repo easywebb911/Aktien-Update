@@ -124,18 +124,40 @@ def _normalize_date(raw: str) -> str:
 
 def _digest_age_hours(now_utc: datetime,
                        state_path: str | None = None) -> float | None:
-    """Alter (in Stunden) des letzten erfolgreichen Digest-Pushes.
+    """Alter (in Stunden) seit dem letzten erfolgreichen Digest-Workflow-Lauf.
 
-    Liest ``last_digest_sent`` (YYYY-MM-DD) aus
+    Liest ``last_successful_run`` (ISO-Timestamp) aus
     ``health_check_digest_state.json`` und gibt das Alter relativ zu
     ``now_utc`` zurück. Returnt ``None`` wenn:
     - Datei fehlt (S8 wird übersprungen, S2/S3 würden vorher schon
       einen frischen Setup-Stand zeigen)
-    - Feld fehlt / nicht parsebar
+    - Feld fehlt / nicht parsebar / ``None`` (Erstaufsetzen)
     - JSON kaputt
 
     Damit S8 erst dann warnt, wenn die Pipeline schon mal erfolgreich
     war — keine false positives beim Erstaufsetzen.
+
+    **Referenz-Wechsel 29.05.2026:** vorher las S8 ``last_digest_sent``
+    (YYYY-MM-DD) und nahm Mitternacht UTC des Datums als Referenz. Das
+    erzeugte bei stabilem Cron-Drift (Digest fährt regulär ~12:00 UTC
+    durch statt 08:47 UTC) einen systematischen ~12 h Bias gegenüber
+    der echten Push-Zeit. Beleg: am 29.05 um 11:41Z mass S8 35.7 h
+    (Mitternacht 28.05 → 29.05 11:41 UTC), obwohl der echte Abstand
+    zur 28.05 12:04Z-Push-Zeit nur 23.6 h betrug → täglicher false-
+    positive S8-warn um den Vormittag.
+
+    ``last_successful_run`` ist ein **ISO-Timestamp** (Sekunden-Auflösung)
+    und gibt die echte Workflow-Lauf-Zeit — keine Mitternacht-
+    Konvention. Konsistent mit der Spec (Liveness-Marker für „Digest-
+    Workflow lief zuletzt durch"). Geschrieben EXKLUSIV von
+    ``scripts/health_check_digest.py:307`` (überprüft per Vorab-Grep),
+    daher echter Digest-Liveness-Marker (kein häufig-aktualisierendes
+    Fremdsystem hält das Feld künstlich frisch).
+
+    ``_already_sent_today`` (mehrfach-Trigger-Schutz im Digest-Script)
+    nutzt weiterhin ``last_digest_sent`` (YYYY-MM-DD) — Zwei-Felder-
+    Architektur ist bewusst, beide Felder werden vom selben Workflow-
+    Lauf-Block geschrieben.
 
     ``state_path`` wird zur Aufruf-Zeit aus dem Modul-Attribut gelesen
     (kein Default-Argument-Binding), damit Tests die Datei via
@@ -149,18 +171,20 @@ def _digest_age_hours(now_utc: datetime,
             state = json.load(fh)
     except (OSError, json.JSONDecodeError):
         return None
-    raw = state.get("last_digest_sent")
+    raw = state.get("last_successful_run")
     if not isinstance(raw, str) or not raw:
         return None
     try:
-        # last_digest_sent ist Datum (YYYY-MM-DD), nicht Timestamp.
-        # Wir nehmen Mitternacht UTC des Datums als Referenz —
-        # Push kann an dem Tag früher (08:47 UTC) oder später passiert
-        # sein, aber das Datum ist die kanonische Marke.
-        sent_dt = datetime.strptime(raw, "%Y-%m-%d").replace(tzinfo=timezone.utc)
-    except ValueError:
+        # ISO-8601 mit/ohne ``Z``-Suffix. Python 3.11+ akzeptiert ``Z``
+        # nativ; defensive auf +00:00 normalisieren für ältere Releases.
+        run_dt = datetime.fromisoformat(raw.replace("Z", "+00:00"))
+    except (ValueError, TypeError):
         return None
-    delta = now_utc - sent_dt
+    # Sicherstellen, dass run_dt timezone-aware ist (kann naiv sein wenn
+    # ein Schreibpfad mal ohne Z geschrieben hat).
+    if run_dt.tzinfo is None:
+        run_dt = run_dt.replace(tzinfo=timezone.utc)
+    delta = now_utc - run_dt
     return delta.total_seconds() / 3600.0
 
 
