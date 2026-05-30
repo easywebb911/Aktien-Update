@@ -68,6 +68,26 @@
   + 30 Tage Score-Inflation-bereinigt. Re-Visit: Score ≥70 klare Edge in
   Trefferquote UND Mean-Return? Faktor-Vorzeichen (DTC, short_float) re-prüfen.
   PLUS: finviz-Rückbau (siehe Backlog), Borrow-Fee-Entscheidung.
+- **UOA-Befund (Diagnose 29.05., entscheiden 30.06.):** uoa_atm_ratio
+  wird im Code STRUKTURELL ENG berechnet — nur ATM-Band (±10%), nur Calls,
+  nur nächste Expiration (ki_agent.py:1146-1158). Die Schwellen (intern
+  UOA_VOL_OI_WEAK=3.0 / STRONG=5.0 / ANOMALY_UOA_VOL_OI=10.0) stammen aber
+  aus der breiten Industrie-Konvention (Total-Vol/OI über alle Strikes +
+  Expirationen). Folge: reale Werte max 2.46 (n=43) → obere Schwellen
+  strukturell UNERREICHBAR. ZWEI Konsequenzen:
+  (a) Entry-Komponente uoa: vorläufige Start-Schwellen ~0.75/1.5/2.5 für
+      10.06.-Bau (n=43 knapp), finale Kalibrierung 30.06.
+  (b) UOA-Anomaly-Push ist DE FACTO TOT (ANOMALY_UOA_VOL_OI=10.0 nie
+      erreichbar) — feuert nie, ohne Fehler (stiller Tod). Für ein
+      Squeeze-Tool ist UOA ein gewollter Kern-Indikator → soll repariert
+      werden.
+  ENTSCHEIDUNG 30.06. (n≈100): Variante 1 = enge ATM-Berechnung behalten +
+  Schwellen rekalibrieren (klein, misst aber nur Ausschnitt) ODER Variante 2
+  = Berechnung auf Total-Vol/OI umbauen (breite Industrie-Definition,
+  Anomaly-Push lebt automatisch wieder, professioneller). Beide Fragen
+  (Entry-Komponente + Anomaly-Push) hängen an derselben ATM-vs-Total-
+  Entscheidung und werden GEMEINSAM entschieden. Code-Logik vor 10.06.
+  NICHT anfassen — Shadow-Persist + 30.06.-Datenbasis abwarten.
 - **Card #10 — MERKREGEL:** Bei manuellem Dispatch → HTML-Sanity-CRIT →
   SOFORT das HTML-Artefakt aus dem Actions-Run ziehen, bevor es weg ist.
   Das ist die einzige fehlende Evidenz, um das #10-Mysterium zu lösen.
@@ -205,3 +225,10 @@
   Trennung stale-vs-real: identische Tageswerte = Selbstdefekt, monoton
   steigend = echter Drop (#274). Vor solchem Referenz-Wechsel IMMER alle
   Schreib-Stellen des neuen Felds greppen (toter-Wächter-Falle).
+- **Schwellen-Skala muss zur Berechnungs-Definition passen:** Industrie-
+  Standard-Schwellen (UOA Total-Vol/OI 3-10x) wurden 1:1 auf eine enger
+  definierte Code-Metrik (ATM-Band, Call-only, single-expiration)
+  übertragen → strukturell unerreichbar, Alarm feuert nie. Klasse:
+  stiller Tod durch Skalen-Mismatch, kein Code-Fehler. Bei jedem neuen
+  Indikator prüfen: passt die Schwelle zur tatsächlichen Werteskala der
+  Berechnung?
