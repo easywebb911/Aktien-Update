@@ -1116,6 +1116,12 @@ S10_OBSERVED_FIELDS = frozenset({
     # score_delta_t1 ist None bei < 2 Sparkline-Werten; anomaly_freshness
     # ist None wenn der Ticker nie gepusht wurde (0.0 = Push älter 72 h).
     "score_delta_t1", "anomaly_freshness",
+    # Twin-Roh-Felder (Shadow-Persist 29.05.2026): ungecappte/un-
+    # transformierte Pendants für die Cap-vs-Perzentil-Auswertung ~30.06.
+    # score_delta_t1_raw = score_delta_t1 OHNE ±15-Clamp; anomaly_push_age_h
+    # = rohes Push-Alter h VOR der Decay-/0-Floor-Transform. Beide leer-
+    # tolerant (None) → nur OBSERVED. Schema bleibt v4.
+    "score_delta_t1_raw", "anomaly_push_age_h",
     # LAG-Felder, später (Phase 2)
     "entry_price_t1",
     "return_10d", "return_10d_t1",

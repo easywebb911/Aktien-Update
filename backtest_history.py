@@ -264,6 +264,49 @@ def _compute_anomaly_freshness(latest_ts_iso, now_dt) -> float | None:
     return round(max(1.0 - age_h / 72.0, 0.0), 4)
 
 
+def _compute_score_delta_t1_raw(scores) -> float | None:
+    """UNGECAPPTE ``last − prev`` aus den Sparkline-Setup-Scores (raw,
+    oldest→newest). ``None`` bei < 2 Werten oder nicht-konvertierbar.
+
+    Twin-Feld zu ``_compute_score_delta_t1`` (29.05.2026): identische
+    Quelle + Guard-Logik, aber OHNE ±15-Clamp. Grund: das geclampte
+    ``score_delta_t1`` zensiert die rohe Verteilung (raw-Range −57…+30
+    laut CLAUDE.md) und ist retroaktiv nicht rekonstruierbar
+    (score_history pruned + Sparkline-Index-Drift). Dieses Roh-Feld
+    macht die Cap-vs-Perzentil-Entscheidung ~30.06. ehrlich. Shadow-
+    Persist — kein Score-/Push-Effekt.
+    """
+    if not scores or len(scores) < 2:
+        return None
+    try:
+        delta = float(scores[-1]) - float(scores[-2])
+    except (TypeError, ValueError):
+        return None
+    return round(delta, 2)
+
+
+def _compute_anomaly_push_age_h(latest_ts_iso, now_dt) -> float | None:
+    """ROHES Push-Alter in Stunden VOR der Decay-Transform.
+
+    ``None`` nur wenn gar kein (parsebarer) Timestamp vorliegt — identische
+    Guard-Logik wie ``_compute_anomaly_freshness``, aber ohne
+    ``max(1 − age_h/72, 0)``-Decay + 0-Floor. Grund: das transformierte
+    ``anomaly_freshness`` quetscht alles > 72 h auf 0.0 (ununterscheidbar
+    von „exakt 72 h"); die push_history-FIFO (Cap 100) macht das rohe
+    age_h retroaktiv unrekonstruierbar. Dieses Feld erhält den Rohwert
+    für eine spätere Decay-Steilheit-Kalibrierung (~30.06.). Shadow-
+    Persist — kein Score-/Push-Effekt.
+    """
+    if not latest_ts_iso:
+        return None
+    try:
+        ts = datetime.fromisoformat(latest_ts_iso)
+    except (TypeError, ValueError):
+        return None
+    age_h = (now_dt - ts).total_seconds() / 3600.0
+    return round(age_h, 2)
+
+
 def _build_backtest_extension(s: dict, pool_position: int, pool_size: int,
                               agent_signals: dict, *,
                               compute_sub_scores_fn, safe_float_fn,
@@ -337,9 +380,13 @@ def _build_backtest_extension(s: dict, pool_position: int, pool_size: int,
     # jüngsten Push-Timestamp (Snapshot zur Report-Zeit).
     _spark = s.get("sparkline") or {}
     score_delta_t1 = _compute_score_delta_t1(_spark.get("scores"))
+    # Twin-Roh-Feld (29.05.2026): ungecappt, gleiche Quelle/Guard.
+    score_delta_t1_raw = _compute_score_delta_t1_raw(_spark.get("scores"))
     _now = now_dt or datetime.now(timezone.utc)
     _latest_push_ts = (latest_push_ts_by_ticker or {}).get(s["ticker"])
     anomaly_freshness = _compute_anomaly_freshness(_latest_push_ts, _now)
+    # Twin-Roh-Feld (29.05.2026): rohes Push-Alter h, vor Decay/0-Floor.
+    anomaly_push_age_h = _compute_anomaly_push_age_h(_latest_push_ts, _now)
 
     return {
         "score_struct":         sub["struct"]   if sub is not None else None,
@@ -378,6 +425,14 @@ def _build_backtest_extension(s: dict, pool_position: int, pool_size: int,
         #   anomaly_freshness: aus push_history-ts (max(1−age_h/72, 0))
         "score_delta_t1":         score_delta_t1,
         "anomaly_freshness":      anomaly_freshness,
+        # Twin-Roh-Felder (Shadow-Persist 29.05.2026) für die ehrliche
+        # Cap-vs-Perzentil-Auswertung ~30.06. Beide ungecappt/un-
+        # transformiert, leer-tolerant (None). Schema-ADDITIV — KEIN
+        # v4→v5-Bump (S10-Loader filtert == 4). Bestehende geclampte/
+        # transformierte Twins (score_delta_t1 / anomaly_freshness)
+        # bleiben unverändert.
+        "score_delta_t1_raw":     score_delta_t1_raw,
+        "anomaly_push_age_h":     anomaly_push_age_h,
         "backtest_schema_version": 4,
     }
 
