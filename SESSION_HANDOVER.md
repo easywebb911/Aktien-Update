@@ -242,6 +242,26 @@
   Pools). Bestätigt bestehende Entscheidung: Utilization NICHT jetzt — fließt
   eh nicht in den Score, erst 30.06.+ über Cost-Benefit entscheiden. CTB
   allein (gratis) reicht für den Setup-Score-Katalysator-Bonus.
+  STILLER-TOD-HÄRTUNG (Diagnose 31.05., am 08.06. MIT Quellen-Umstellung
+  in EINEM PR): Ursache, warum Stockanalysis 16 Tage unbemerkt tot war:
+  _instrument_provider_call Default-success_check (health_check.py:1123-1127)
+  wertet 'Dict nicht leer' als Erfolg — {cost_to_borrow:None, utilization:None}
+  rutscht durch (len=2>0). Stockanalysis-Borrow (gen._report.py:15938) ist
+  die EINZIGE Score-relevante Site mit diesem Default-Bug (Tier-3-Sites haben
+  seit PR#154 strenge Checks). Fix (klein, 1 PR):
+  (a) gen._report.py:15938 success_check schärfen →
+      lambda r: bool(r and r.get('cost_to_borrow') is not None)
+      (utilization bewusst NICHT im Check — wäre sonst dauerhaft fail-flag).
+  (b) coverage_pct an emit-site setzen (gen._report.py:~16475-16485) →
+      successes/calls*100. Dann greift die BESTEHENDE Digest-Aggregation
+      (aggregate_provider_fails, health_check.py:1205-1293, Konsekutiv-Counter
+      3) automatisch → Provider mit 0% echten Werten löst warn-Push aus.
+  (c) Mock-Test (Pattern mock_test_provider_health_tier2.py).
+  KEIN neuer Wächter (S13), KEIN Schema-Bump, KEIN value_coverage_pct-Feld —
+  coverage_pct existiert, nur ungenutzt. Scope eng: NUR Score-relevante
+  Provider (heute stockanalysis-borrow, nach 08.06. ggf. ibkr/fintel).
+  Generischer Wächter wäre FALSCH — news_rss/uoa/edgar/anomaly sind legitim
+  oft leer. Merge: manuell (Score-Pfad), gebündelt mit Quellen-Umstellung.
 - **#281 (a04de49) — 30.05.** Option C: Token-Session-Wrap gegen
   tägliches Master-PW-Re-Entry. Nach Master-PW-Unlock wird der Token mit
   random AES-GCM-Key gewrappt + in IndexedDB persistiert (Store
@@ -456,3 +476,10 @@
   automatisch ins Entry-Modul. Entry misst Veränderungs-/Frische-Signale
   (Differenz), nicht absolute Niveau-Werte. Vor jedem neuen Komponenten-
   Vorschlag fragen: misst das Timing (Entry) oder Wahrscheinlichkeit (Setup)?
+- **Stiller Tod durch laschen success_check:** Ein Provider, der HTTP-200
+  liefert + ein Dict voller None zurückgibt, galt als 'gesund' (Default-
+  Check = Dict-nicht-leer). So blieb Stockanalysis-Borrow 16 Tage unbemerkt
+  tot, Score-Bonus feuerte nie. Lehre: success_check muss INHALT prüfen
+  (echte Werte), nicht nur Container-Existenz — aber NUR für Score-relevante
+  Provider (sonst Fehlalarm bei legitim-leeren wie uoa/news/anomaly).
+  coverage_pct + bestehende Digest-Aggregation reichen, kein neuer Wächter.
