@@ -99,6 +99,55 @@
     final 30.06.
   - anomaly_freshness: 95% leer (sparser als geplante 80-90%), n=7 nicht-leer.
     Bringt mit 5% Coverage kaum Information — schwach wie erwartet.
+  BAU-FAHRPLAN (Diagnose 31.05., Reihenfolge gegenüber Ursprung angepasst):
+  Neues Modul entry_score.py (Pattern wie backtest_history.py). Pipeline-
+  Andock in generate_report.py:main() NACH apply_score_smoothing, VOR
+  compute_earliness_pts (alle 5 Rohwerte dann am Stock-Dict; UOA via
+  agent_signals.json-Direktlesen analog backtest_history.py:418).
+  Aggregations-Schablone: compute_conviction_score (gen._report.py:5814+).
+
+  SCHRITT-REIHENFOLGE (Persistenz-Spec VOR Aggregation — vermeidet späten
+  Schema-Refactor):
+   1. Persistenz Roh-Felder ✅ läuft (#259/#260/#279).
+   2. Komponenten-Compute: 5 Normalisierungs-Funktionen (Rohwert→0-100),
+      pure + isoliert testbar. MANUELLER Merge (Score-Logik). Größe: mittel.
+   3. Persistenz-Spec: Feld entry_score (0-100, None bei <N Komponenten) +
+      entry_score_components (5 Sub-Werte, für AUC pro Sub-Signal re-
+      aggregierbar) + entry_score_version. Additiv v4, S10_OBSERVED ergänzen
+      (KEIN v5-Bump). AUTO-Merge (additiv/Doku-Klasse). Größe: klein.
+   4. Aggregation: Schnitt 5×20%. MANUELLER Merge (Score-Logik). Größe: klein.
+   5. Cockpit-Pillar (4. Pillar 'Entry' in _card_cockpit_html:4479+):
+      Frontend+CSS-Layout+iPhone-Verify. MANUELLER Merge. Größe: mittel-groß.
+      RISIKO iPhone: 4 Pillars auf ~320px = eng (~75-80px/Pillar). Layout-
+      Bruch/Wrap möglich — zuletzt bauen, sorgfältig verifizieren.
+
+  MISSING-DEFAULTS (KORRIGIERT 31.05.): ALLE 5 Komponenten fehlend → neutral
+  50 (auch anomaly_freshness). Begründung: anomaly_freshness ist 95% leer →
+  ein 0-Default wäre ein pauschaler ~20-Punkte-Malus auf fast alle Entry-
+  Scores, kein gezieltes Gegenargument. Die '0-als-Gegenargument'-Hypothese
+  wird an 30.06.-Daten geprüft, nicht vorab angenommen. Konstante z.B.
+  ENTRY_COMPONENT_MISSING_DEFAULT-Dict in config.py.
+
+  SHADOW-MODE-GARANTIE: Es existiert KEIN Entry-Push-Pfad → Shadow ist
+  strukturell sicher. Zusätzlich Flag ENTRY_SCORE_PUSH_ENABLED=False ab
+  Schritt 2. PFLICHT: in keinem Schritt einen _send_-Sender hinzufügen.
+
+  PERSISTENZ-COVERAGE-IST (31.05.): si_trend_5d_slope 142/145 (belastbarst) |
+  rvol_acceleration 67 | uoa_atm_ratio 43 (dünn, + uoa-Befund 30.06.) |
+  score_delta_t1 46 (+_raw ab 02.06.) | anomaly_freshness 7 non-null
+  (+_age_h ab 02.06., dünnste Komponente).
+
+  LINT-HINWEIS: Schritte 2/4 in _FORBIDDEN_FUNCS von
+  scripts/lint_score_confidence_isolation.py aufnehmen (Score-Berechnung
+  darf Konfidenz nicht lesen).
+
+  BORROW-FEE/UTILIZATION-HOOK INS ENTRY-MODUL: ABGELEHNT (Diagnose 31.05.).
+  Gründe: (a) konzeptionell falsche Ebene — Borrow-Fee misst Squeeze-
+  WAHRSCHEINLICHKEIT (Setup), Entry-Modul misst TIMING; alle 5 Entry-
+  Komponenten sind Differenz-/Frische-Signale, Borrow-Fee ist absoluter
+  Niveau-Wert. (b) wirkt bereits im Setup-Score (Katalysator-Bonus
+  gen._report.py:3699-3706). (c) Datenlage tot (s. neuer Befund). Entry-Modul
+  bleibt bei 5 Komponenten.
 - **30.06.** Erste belastbare Backtest-Auswertung. V2-only ≥70-Bucket n≈100
   + 30 Tage Score-Inflation-bereinigt. Re-Visit: Score ≥70 klare Edge in
   Trefferquote UND Mean-Return? Faktor-Vorzeichen (DTC, short_float) re-prüfen.
@@ -107,6 +156,21 @@
   ungecappt gesammelt → Cap-vs-Perzentil-Entscheidung für alle 5 Komponenten
   ist 30.06. auf ECHTEN (nicht zensierten) Verteilungen entscheidbar, nicht
   mehr zirkulär.
+- **Borrow-Fee/Utilization-Fetcher tot — 30.06. (gekoppelt an Borrow-Fee-
+  Roadmap):** STOCKANALYSIS_BORROW_ENABLED=True, Fetcher läuft, liefert aber
+  systematisch None — 0/145 in backtest_history, 0/18 in agent_signals.
+  Folge: Katalysator-Bonus im Setup-Score (+8 CTB>50%, +15 >100%,
+  gen._report.py:3699-3706) feuert NIE (borrow_rate=None verfehlt den
+  is-not-None-Branch). Stiller Tod, unbekannt seit wann. Utilization hat
+  GAR KEINE funktionierende Quelle (Stockanalysis-Scrape tot, kein Fallback;
+  Ortex/S3 kostenpflichtig). REPARATUR-REIHENFOLGE 30.06.: erst diagnostizieren
+  WARUM Stockanalysis 0 liefert (Regex-Bruch? HTML-Schema-Drift? Cloudflare-
+  Block?), DANN Persistenz in backtest_history-v4 ergänzen (additiv,
+  S10_OBSERVED) → Coverage bauen, DANN empirisch validieren (Mann-Whitney-U
+  wie Earliness V2), DANN ggf. Bonus-Schwellen rekalibrieren. Erste Frage
+  ist 'wieso 0/18?', NICHT 'Score-Architektur ändern'. Relevant: Borrow-Fee
+  ist laut Methodik-Recherche (24.05.) einer der stärksten Squeeze-Faktoren —
+  sein stiller Ausfall verzerrt die 30.06.-Edge-Auswertung des Setup-Scores.
 - **#281 (a04de49) — 30.05.** Option C: Token-Session-Wrap gegen
   tägliches Master-PW-Re-Entry. Nach Master-PW-Unlock wird der Token mit
   random AES-GCM-Key gewrappt + in IndexedDB persistiert (Store
@@ -217,6 +281,10 @@
 - S10-Feiertags-Zähler (display-only) → an 30.06.-Decay-Fix koppeln. Bevorzugt:
   Alters-Zähler an reale yfinance-Bar-Logik koppeln (keine neue Dependency).
 - Großer generate_report.py-Split → VERWORFEN (globals-Falle).
+- **Stale-Kommentar fetch_stockanalysis_borrow (gen._report.py:1608):**
+  sagt 'display-only — fließen nicht in den Score', aber CTB fließt als
+  Catalyst-Bonus in _compute_sub_scores (3699-3706). Redaktioneller Fix,
+  Auto-Merge, niedrige Prio.
 
 ## 7) ARCHITEKTUR-ANKER
 - Earliness V2 (DTC, AUC 0.77) | Phase-2 Exit komplett (6 Trigger) |
@@ -312,3 +380,8 @@
   exakt verifiziert). Self-healing sobald der alte Eintrag aus dem 24h-
   Fenster ausaltert. Lehre: nach einem Monitoring-Fix einen Aggregations-
   Zyklus abwarten, bevor man den Fix für gescheitert hält.
+- **Setup-Wahrscheinlichkeit ≠ Entry-Timing — Ebenen-Trennung halten:**
+  Starke Literatur-Faktoren (Borrow-Fee/Utilization) gehören nicht
+  automatisch ins Entry-Modul. Entry misst Veränderungs-/Frische-Signale
+  (Differenz), nicht absolute Niveau-Werte. Vor jedem neuen Komponenten-
+  Vorschlag fragen: misst das Timing (Entry) oder Wahrscheinlichkeit (Setup)?
