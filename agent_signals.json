@@ -1,10 +1,10 @@
 {
-  "updated": "2026-05-31T01:17:05.376069+02:00",
+  "updated": "2026-05-31T01:25:52.702993+02:00",
   "run_info": {
     "tickers_checked": 18,
     "signals_active": 7,
     "alerts_sent": 0,
-    "elapsed_s": 17.8,
+    "elapsed_s": 12.8,
     "market_phase": "Geschlossen"
   },
   "signals": {
@@ -76,9 +76,9 @@
       "uoa_cp_ratio": 19.544929925803793
     },
     "ASAN": {
-      "score": 55,
+      "score": 52,
       "confidence": 70,
-      "drivers": "Volumen 2.9× + Spanne 12.8% + News: acquisition + UOA Call/Put 11.0×",
+      "drivers": "Volumen 2.9× + Spanne 12.8% + News-KI 12/30: Positive momentum but no fundamental short-squeeze indicators like high short interest, low float, or forced covering ca + UOA Call/Put 11.0×",
       "price": 7.7,
       "chg_pct": -0.0,
       "rvol_4d": 2.92,
@@ -202,9 +202,9 @@
       "uoa_cp_ratio": 1.6157407407407407
     },
     "FDMT": {
-      "score": 50,
-      "confidence": 33,
-      "drivers": "Volumen 8.4× + 🚀 Massives Volumen 8.4×+ + Spanne 12.4%",
+      "score": 58,
+      "confidence": 70,
+      "drivers": "Volumen 8.4× + 🚀 Massives Volumen 8.4×+ + Spanne 12.4% + News-KI 8/30: Positive therapeutic and conference developments, but no short-squeeze indicators like high short interest, rapid short ",
       "price": 9.91,
       "chg_pct": -0.0,
       "rvol_4d": 8.41,
@@ -308,7 +308,7 @@
     "REPL": {
       "score": 100,
       "confidence": 70,
-      "drivers": "Earnings in 2 Tagen (01.06.2026) + Volumen 19.2× + 🚀 Massives Volumen 19.2×+ + Spanne 17.6% + News: fda approval + Earnings in 2d + UOA Call/Put 6.5× + 3/4 Trigger",
+      "drivers": "Earnings in 2 Tagen (01.06.2026) + Volumen 19.2× + 🚀 Massives Volumen 19.2×+ + Spanne 17.6% + News-KI 8/30: Positive clinical trial data supports stock movement but lacks short squeeze indicators like high short interest, low fl + Earnings in 2d + UOA Call/Put 6.5×",
       "price": 8.69,
       "chg_pct": -0.0,
       "rvol_4d": 19.17,
@@ -318,8 +318,8 @@
       "upcoming_event": "Earnings in 2 Tagen (01.06.2026)",
       "insider_buy": false,
       "stocktwits": null,
-      "combo_mult": 1.2,
-      "active_triggers": 3,
+      "combo_mult": 1.1,
+      "active_triggers": 2,
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 6.5×"
