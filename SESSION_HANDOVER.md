@@ -74,7 +74,14 @@
   Cron-Runs sind sauber, kein prophylaktischer Fix.
 - **AMWD beobachten:** delisted-Warning (yfinance kein Preis) bei einem
   Top-10-Ticker. Einzel-Symptom — erst bei Muster diagnostizieren.
-- **GitHub-Ticket #4418923:** Antwort auf Lock-Auslöser (26.05.) abwarten.
+- **GitHub-Ticket #4418923 — AUFGEKLÄRT (29.05., geschlossen):** Antwort vom
+  GitHub-Support liegt vor. Der 26.05.-Vorfall war ein GitHub-Actions-INCIDENT
+  (githubstatus.com/incidents/gnftqj9htp0g, resolved), KEIN Account-Lock,
+  KEINE Abuse-Erkennung, KEINE Kompromittierung. Account nicht geflaggt/
+  suspendiert. Login/Repo war die ganze Zeit erreichbar — nur Actions-
+  Pipeline lief nicht. 2FA-Auffälligkeit = bestehende gültige Session,
+  harmlos. Sicherheitsmaßnahmen (2FA neu, Passwort neu, Token-Neuaufbau)
+  waren vorsichtig-richtig, im Nachhinein nicht nötig.
 - **08.06.2026:** Backup-/Disaster-Recovery-Konzept. Read-only-
   Bestandsaufnahme zuerst: Was liegt NUR auf GitHub? Existiert lokaler
   Clone? Gibt es bereits Daten-Export? Schwerpunkt nicht-aufholbare Daten
@@ -106,11 +113,18 @@
 - Borrow-Fee + Utilization in score() (laut Literatur stärkste Squeeze-
   Prädiktoren, bei mir fehlend/kosmetisch) — Entscheidung 30.06.
 - Externer Dead-Man-Switch außerhalb GitHub Actions (Health-Check teilt
-  Failure-Fate der Pipeline — beim Lock 26.05. schwieg der Wächter mit).
-  Priorität an Lock-Ursache-Klärung gekoppelt.
+  Failure-Fate der Pipeline — beim 26.05.-Vorfall schwieg der Wächter mit).
+  Begründung aktualisiert (29.05.): Auslöser war ein Actions-Incident
+  (Ticket #4418923 aufgeklärt), kein Lock — was den Punkt STÄRKER macht:
+  auch ohne Account-Problem kann die gesamte GitHub-Actions-Pipeline (inkl.
+  Health-Check-Wächter) gleichzeitig ausfallen. Ein echter Dead-Man-Switch
+  MUSS extern (außerhalb GitHub Actions) laufen, sonst teilt er das
+  Failure-Fate der Pipeline, die er überwachen soll.
 - γ-2 (Pool-Inflation premarket): erst entscheidbar nach mehreren Werktagen
   echter premarket-Daten. ENABLED=False. Skalierer ~0.40 Kipppunkt (dünnes n).
-- KI-Agent-Frequenz-Reduktion nur falls zweiter Abuse-Lock.
+- ~~KI-Agent-Frequenz-Reduktion nur falls zweiter Abuse-Lock.~~
+  **GEGENSTANDSLOS (29.05.):** Kein Abuse-Trigger existierte (Ticket #4418923
+  aufgeklärt = Actions-Incident), Begründung entfällt.
 - Backup/Disaster-Recovery (Wiedervorlage 08.06.): Doppelter Boden gegen
   GitHub-Account-Verlust. Optionen gestaffelt: (a) lokaler git mirror
   (sofort/gratis, deckt Code) | (b) Daten-Export außerhalb GitHub
