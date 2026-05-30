@@ -156,21 +156,27 @@
   ungecappt gesammelt → Cap-vs-Perzentil-Entscheidung für alle 5 Komponenten
   ist 30.06. auf ECHTEN (nicht zensierten) Verteilungen entscheidbar, nicht
   mehr zirkulär.
-- **Borrow-Fee/Utilization-Fetcher tot — 30.06. (gekoppelt an Borrow-Fee-
-  Roadmap):** STOCKANALYSIS_BORROW_ENABLED=True, Fetcher läuft, liefert aber
-  systematisch None — 0/145 in backtest_history, 0/18 in agent_signals.
-  Folge: Katalysator-Bonus im Setup-Score (+8 CTB>50%, +15 >100%,
-  gen._report.py:3699-3706) feuert NIE (borrow_rate=None verfehlt den
-  is-not-None-Branch). Stiller Tod, unbekannt seit wann. Utilization hat
-  GAR KEINE funktionierende Quelle (Stockanalysis-Scrape tot, kein Fallback;
-  Ortex/S3 kostenpflichtig). REPARATUR-REIHENFOLGE 30.06.: erst diagnostizieren
-  WARUM Stockanalysis 0 liefert (Regex-Bruch? HTML-Schema-Drift? Cloudflare-
-  Block?), DANN Persistenz in backtest_history-v4 ergänzen (additiv,
-  S10_OBSERVED) → Coverage bauen, DANN empirisch validieren (Mann-Whitney-U
-  wie Earliness V2), DANN ggf. Bonus-Schwellen rekalibrieren. Erste Frage
-  ist 'wieso 0/18?', NICHT 'Score-Architektur ändern'. Relevant: Borrow-Fee
-  ist laut Methodik-Recherche (24.05.) einer der stärksten Squeeze-Faktoren —
-  sein stiller Ausfall verzerrt die 30.06.-Edge-Auswertung des Setup-Scores.
+- **Borrow-Fee/Utilization-Fetcher tot — Quelle verifiziert entfernt
+  (31.05.), Quellenwechsel nötig:** fetch_stockanalysis_borrow liefert
+  systematisch None (0/145 backtest, 0/18 agent_signals). URSACHE
+  GEKLÄRT (iPhone-Live-Check 31.05.): Stockanalysis hat Cost-to-Borrow +
+  Utilization von der öffentlichen Seite entfernt — alte /short-interest/-
+  URL ist 404, neue Statistics-Seite zeigt Short-Interest-Daten ABER KEINE
+  Borrow-Kennzahlen mehr (vermutlich Pro-Tier). KEIN Parser-Fix möglich,
+  Quelle ist tot. Folge: Katalysator-Bonus im Setup-Score (+8/+15,
+  gen._report.py:3699-3706) feuert nie.
+  OFFENER PUNKT (braucht Rechner, ab 08.06.): IBKR-Fallback-Status prüfen —
+  Actions-Log-Zeile 'IBKR borrow-rate: N Ticker geparsed' (gen._report.py:1508).
+  Wenn IBKR die Pool-Ticker deckt, ist Cost-to-Borrow über IBKR RETTBAR
+  (+ Persistenz in backtest_history-v4 additiv ergänzen, analog #279).
+  Utilization hat NUR Stockanalysis als Quelle → verloren, bräuchte
+  kostenpflichtige Alternative (Ortex/S3).
+  NÄCHSTER SCHRITT 08.06.: (1) IBKR-Log prüfen → (2) falls IBKR ok: CTB-
+  Pfad auf IBKR umstellen + persistieren; falls IBKR auch tot: Quellen-
+  Entscheidung (Gratis-eingeschränkt vs. kostenpflichtig). Reparatur
+  vorziehen vor/parallel zum Entry-Modul 10.06., NICHT auf 30.06. schieben
+  (verlorene Sammelzeit nicht aufholbar). Empirische CTB-Edge-Validierung
+  bleibt 30.06.+ (braucht erst Coverage).
 - **#281 (a04de49) — 30.05.** Option C: Token-Session-Wrap gegen
   tägliches Master-PW-Re-Entry. Nach Master-PW-Unlock wird der Token mit
   random AES-GCM-Key gewrappt + in IndexedDB persistiert (Store
