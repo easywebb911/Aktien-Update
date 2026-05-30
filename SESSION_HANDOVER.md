@@ -177,6 +177,43 @@
   vorziehen vor/parallel zum Entry-Modul 10.06., NICHT auf 30.06. schieben
   (verlorene Sammelzeit nicht aufholbar). Empirische CTB-Edge-Validierung
   bleibt 30.06.+ (braucht erst Coverage).
+  08.06.-BAU-DREHBUCH (Bauplan-Diagnose 31.05., read-only fertig):
+  IBKR-Fallback-Logik ist NICHT der Bug — fetch_borrow_metrics
+  (gen._report.py:1671-1684) erreicht IBKR automatisch wenn Stockanalysis
+  None liefert. borrow_rate=None liegt also am IBKR-Fetch selbst: entweder
+  (A) Tabelle nicht geladen (Block/Timeout → leeres Cache-Dict), (B) Pool-
+  Smallcaps nicht in IBKR-Tabelle, oder (C) HTML-Struktur geändert. Alle drei
+  = gleiches Symptom, NUR Actions-Log trennt sie.
+  ENTSCHEIDUNGSBAUM 08.06.:
+  (1) 5 Min: Actions-Log letzter Daily-Run nach 'IBKR borrow-rate: N Ticker
+      geparsed' (gen._report.py:1508). Coverage-Zahl + Pool-Ticker-Abdeckung.
+  (2) IBKR ≥70% Pool-Coverage → VARIANTE A (klein, gratis, manueller Merge):
+      fetch_borrow_metrics umbauen — IBKR primär (fetch_ibkr_borrow_rate),
+      STOCKANALYSIS_BORROW_ENABLED=False (config.py:184, Kommentar 'Quelle
+      entfernt 31.05.'), Provider-Health-Eintrag bereinigen, Utilization
+      permanent None markieren (Display Z.4760-4761 defensiv, kein Score-Bruch
+      da Util nirgends im Score). + Persistenz (s.u.) + Stale-Doc-Fix
+      (Docstring 1605-1614) in EINEM PR.
+  (3) IBKR <30% → Fintel-curl-Live-Probe (https://fintel.io/ss/us/{ticker},
+      gleiches Verfahren wie Stockanalysis-Check 31.05.). Statische Borrow-
+      Daten da → VARIANTE B (mittel, ~15$/Mt, manueller Merge): neuer
+      fetch_fintel_borrow (Signatur identisch), FINTEL_BORROW_ENABLED-Flag,
+      eigener Provider-Health-Akkumulator. Fintel JS-only/blockiert → STOP,
+      mit Easy: kostenpflichtig (ORTEX/S3) oder Borrow-Bonus deaktivieren.
+  (4) 30-70% → Hybrid IBKR-primär + Fintel-Fallback, Aufwand mit Easy abstimmen.
+  PERSISTENZ (beide Varianten, ZUSAMMEN mit Quelle bauen, NICHT vorab —
+  sonst 1-3 Tage None-Lärm): cost_to_borrow + utilization + borrow_rate
+  additiv in backtest_history.py:391-436 Return-Dict + config.py
+  S10_OBSERVED_FIELDS (leer-tolerant, schema bleibt v4, analog #279).
+  KRITISCHER ANTI-STILLE-TOD-HINWEIS: _instrument_provider_call-Wrapper
+  braucht expliziten success_check (lambda r: r is not None) statt default-
+  Dict-non-empty — sonst stirbt IBKR/Fintel genauso still wie Stockanalysis
+  (16 Tage unbemerkt). PFLICHT im Bau.
+  UTILIZATION/ORTEX: NICHT jetzt. Util fließt heute nicht in Score (nur
+  Display), Literatur-Wert empirisch unvalidiert, ORTEX 50-200$/Mt nicht
+  rechtfertigbar ohne belegte Edge. Reihenfolge: CTB-Coverage 60-90 Tage →
+  CTB-Edge 30.06.+ (Mann-Whitney-U wie Earliness V2) → DANN Utilization-
+  Entscheidung mit echtem Cost-Benefit.
 - **#281 (a04de49) — 30.05.** Option C: Token-Session-Wrap gegen
   tägliches Master-PW-Re-Entry. Nach Master-PW-Unlock wird der Token mit
   random AES-GCM-Key gewrappt + in IndexedDB persistiert (Store
