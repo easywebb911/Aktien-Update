@@ -136,8 +136,18 @@
   SOFORT das HTML-Artefakt aus dem Actions-Run ziehen, bevor es weg ist.
   Das ist die einzige fehlende Evidenz, um das #10-Mysterium zu lösen.
   Cron-Runs sind sauber, kein prophylaktischer Fix.
-- **AMWD beobachten:** delisted-Warning (yfinance kein Preis) bei einem
-  Top-10-Ticker. Einzel-Symptom — erst bei Muster diagnostizieren.
+- **AMWD / yfinance-Falsch-Delisting beobachten:** Am 28.05. meldete
+  yfinance für AMWD 'possibly delisted; no price data' — der Ticker war
+  aber NACHWEISLICH weiter handelbar (User bestätigt 30.05.). Also KEIN
+  Delisting, sondern ein irreführender yfinance-Abruf-Aussetzer (bekannte
+  yfinance-Eigenheit: Timeout/Schluckauf wird als 'possibly delisted'
+  gemeldet). AMWD stand trotzdem auf Top-10-Position #5 — aber ohne Preis.
+  BEOBACHTEN (kein prophylaktischer Fix, ein Einzelfall reicht nicht):
+  Tritt es erneut auf (gleicher/anderer handelbarer Ticker mit falschem
+  'delisted')? Falls ja, ist die eigentliche Frage: greift ein Preis-
+  Fallback, oder steht der Top-10-Kandidat dann mit $0.00/leer in der Liste?
+  Trading-Wert: ein Top-10-Kandidat ohne Preis ist im Such-Stream wenig
+  nützlich. Erst bei Muster diagnostizieren.
 - **GitHub-Ticket #4418923 — AUFGEKLÄRT (29.05., geschlossen):** Antwort vom
   GitHub-Support liegt vor. Der 26.05.-Vorfall war ein GitHub-Actions-INCIDENT
   (githubstatus.com/incidents/gnftqj9htp0g, resolved), KEIN Account-Lock,
