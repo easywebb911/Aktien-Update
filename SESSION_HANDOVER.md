@@ -30,6 +30,14 @@
   (kein KI-Tick) → kein toter Wächter, per Source-Inspection-Test
   abgesichert. Zwei-Felder-Architektur erhalten (_already_sent_today
   nutzt last_digest_sent weiter). Manueller Merge nach iPhone-Verify.
+- **#279 (eafe053) — 29.05.** Entry-Vorarbeit: zwei ungecappte Twin-Roh-
+  Felder additiv im backtest_history-Persist. score_delta_t1_raw (ungecappt,
+  neben dem ±15-geclampten score_delta_t1) + anomaly_push_age_h (rohes
+  Push-Alter in h, vor der Decay-Transform). Grund: beide Original-Felder
+  sind zensiert + retroaktiv NICHT rekonstruierbar (score_history pruned
+  14d, push_history FIFO-100) → ohne Rohwerte wäre die 30.06.-Cap-vs-
+  Perzentil-Auswertung zirkulär. Sammeln ab nächstem postclose-Run.
+  schema bleibt v4, beide in S10_OBSERVED_FIELDS, atomar. Manueller Merge.
 
 ## 2) AKTIVE POSITIONEN
 - **AMC** — Halt-Strategie, no_exit_alerts=true. Conv 4, Setup stark gefallen.
@@ -64,10 +72,31 @@
   zuerst, kein Push bis Entry-AUC ~30.06. Bau-Ablauf: (1) Persistenz ✅ läuft
   | (2) 5 Normalisierungen | (3) Aggregation | (4) Entry-Score persistieren
   | (5) Cockpit-Pillar zuletzt (Frontend+iPhone-Verify).
+  DESIGN-ENTSCHEIDUNGEN (Verteilungs-Diagnose 29.05., empirisch belegt):
+  - NORMALISIERUNG: mit FESTEN Caps starten, NICHT Perzentil — Daten zu dünn
+    für stabile Perzentile (n≥100 nötig, nur si_trend_5d_slope erreicht das
+    mit n=142). Perzentil-Entscheidung an 30.06. koppeln, bis dahin Rohwerte
+    sammeln (#279).
+  - si_trend_5d_slope: Schema PERFEKT bestätigt (Links-Bodung −0.98, langer
+    Rechts-Tail bis p99=374). Asymmetrische Normierung wie geplant.
+  - rvol_acceleration: 'bimodal' ist Mythos — real kontinuierlich Pareto
+    (median 1.47, max 135.7). Cap 3.0 deckt 84% ab, als Start ok.
+  - score_delta_t1: geplante 'symmetrische ±15' war ein CAP-Artefakt, nicht
+    Datenbefund (raw asymmetrisch −57…+30, 54% 0-Spike). Schwächste Komponente
+    (Spec sagt das selbst) → klein gewichten, raw via #279 ab jetzt sammeln.
+  - uoa_atm_ratio: Start-Schwellen ~0.75/1.5/2.5 statt 1.25/3.0/5-10 (reale
+    max 2.46, enge ATM-Berechnung — Details im UOA-Befund-Eintrag). n=43 knapp,
+    final 30.06.
+  - anomaly_freshness: 95% leer (sparser als geplante 80-90%), n=7 nicht-leer.
+    Bringt mit 5% Coverage kaum Information — schwach wie erwartet.
 - **30.06.** Erste belastbare Backtest-Auswertung. V2-only ≥70-Bucket n≈100
   + 30 Tage Score-Inflation-bereinigt. Re-Visit: Score ≥70 klare Edge in
   Trefferquote UND Mean-Return? Faktor-Vorzeichen (DTC, short_float) re-prüfen.
   PLUS: finviz-Rückbau (siehe Backlog), Borrow-Fee-Entscheidung.
+  PLUS: Seit 29.05. (#279) werden score_delta_t1_raw + anomaly_push_age_h
+  ungecappt gesammelt → Cap-vs-Perzentil-Entscheidung für alle 5 Komponenten
+  ist 30.06. auf ECHTEN (nicht zensierten) Verteilungen entscheidbar, nicht
+  mehr zirkulär.
 - **UOA-Befund (Diagnose 29.05., entscheiden 30.06.):** uoa_atm_ratio
   wird im Code STRUKTURELL ENG berechnet — nur ATM-Band (±10%), nur Calls,
   nur nächste Expiration (ki_agent.py:1146-1158). Die Schwellen (intern
