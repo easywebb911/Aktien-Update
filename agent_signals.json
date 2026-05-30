@@ -1,17 +1,17 @@
 {
-  "updated": "2026-05-30T20:11:30.560044+02:00",
+  "updated": "2026-05-30T20:40:38.082068+02:00",
   "run_info": {
     "tickers_checked": 18,
     "signals_active": 7,
     "alerts_sent": 0,
-    "elapsed_s": 18.1,
+    "elapsed_s": 16.2,
     "market_phase": "Geschlossen"
   },
   "signals": {
     "ABSI": {
-      "score": 40,
+      "score": 35,
       "confidence": 70,
-      "drivers": "Volumen 2.5× + Spanne 25.0% + News-KI 5/30: Positive sentiment but no short squeeze indicators present: no mention of high short interest, borrowed shares, or catal + UOA Call/Put 48.5×",
+      "drivers": "Volumen 2.5× + Spanne 25.0% + UOA Call/Put 48.5×",
       "price": 6.75,
       "chg_pct": 0.0,
       "rvol_4d": 2.46,
@@ -76,9 +76,9 @@
       "uoa_cp_ratio": 19.544929925803793
     },
     "ASAN": {
-      "score": 55,
+      "score": 52,
       "confidence": 70,
-      "drivers": "Volumen 2.9× + Spanne 12.8% + News: acquisition + UOA Call/Put 11.0×",
+      "drivers": "Volumen 2.9× + Spanne 12.8% + News-KI 12/30: Positive sentiment but no short-squeeze indicators present (no high short interest mention, no forced covering catalyst, + UOA Call/Put 11.0×",
       "price": 7.7,
       "chg_pct": -0.0,
       "rvol_4d": 2.92,
@@ -184,7 +184,7 @@
     "CRMD": {
       "score": 30,
       "confidence": 17,
-      "drivers": "News: earnings beat, guidance raised",
+      "drivers": "News: guidance raised, earnings beat",
       "price": 8.44,
       "chg_pct": -0.0,
       "rvol_4d": 0.92,
