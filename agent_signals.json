@@ -1,10 +1,10 @@
 {
-  "updated": "2026-05-30T06:18:07.985884+02:00",
+  "updated": "2026-05-30T07:34:33.869050+02:00",
   "run_info": {
     "tickers_checked": 18,
     "signals_active": 7,
     "alerts_sent": 0,
-    "elapsed_s": 12.7,
+    "elapsed_s": 17.9,
     "market_phase": "Geschlossen"
   },
   "signals": {
@@ -202,9 +202,9 @@
       "uoa_cp_ratio": 1.6157407407407407
     },
     "FDMT": {
-      "score": 50,
-      "confidence": 33,
-      "drivers": "Volumen 8.4× + 🚀 Massives Volumen 8.4×+ + Spanne 12.4%",
+      "score": 58,
+      "confidence": 70,
+      "drivers": "Volumen 8.4× + 🚀 Massives Volumen 8.4×+ + Spanne 12.4% + News-KI 8/30: Positive biotech news but lacks catalyst momentum, short interest data, or price action indicators needed for short-sque",
       "price": 9.91,
       "chg_pct": -0.0,
       "rvol_4d": 8.41,

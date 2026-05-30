@@ -370,3 +370,4 @@
 {"run_ts": "2026-05-29T23:42:32Z", "run_phase": "ki_agent_tick", "schema_v": 1, "state_fails": [], "provider_fails": []}
 {"run_ts": "2026-05-30T04:18:09Z", "run_phase": "ki_agent_tick", "schema_v": 1, "state_fails": [], "provider_fails": []}
 {"run_ts": "2026-05-30T05:33:02Z", "run_phase": "postclose", "schema_v": 1, "state_fails": [{"id": "S4", "severity": "warn", "detail": "backtest_history ohne Eintrag für 2026-05-30 (postclose)"}], "provider_fails": []}
+{"run_ts": "2026-05-30T05:34:36Z", "run_phase": "ki_agent_tick", "schema_v": 1, "state_fails": [], "provider_fails": []}
