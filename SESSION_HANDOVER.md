@@ -38,6 +38,16 @@
   14d, push_history FIFO-100) → ohne Rohwerte wäre die 30.06.-Cap-vs-
   Perzentil-Auswertung zirkulär. Sammeln ab nächstem postclose-Run.
   schema bleibt v4, beide in S10_OBSERVED_FIELDS, atomar. Manueller Merge.
+- **#284 (dd6dd50) — 30.05.** S4-Wochenend-Gate. S4 (backtest_history-
+  ohne-postclose-Eintrag-Check) flaggte stur tagesbasiert ohne Wochentags-
+  Logik → an Sa/So (kein postclose-Cron, 17 21 * * 1-5) struktureller
+  Fehlalarm. Gate ergänzt: kein S4-Flag wenn today_iso ein Sa/So ist
+  (weekday>=5), geprüft auf dem DATUM des fehlenden Eintrags (nicht 'jetzt'
+  — fängt den Fr-postclose-nach-Berlin-Mitternacht-Fall). Mo-Fr-Catch-Wert
+  unverändert (S4 fängt weiter einen Werktags-postclose-Run der läuft aber
+  NICHT appended — das sieht S12 erst nach 2 Werktagen). Feiertage bewusst
+  NICHT abgedeckt (konsistent zu _trading_days_elapsed-Mo-Fr-Logik,
+  Restkante im Kommentar). 33/33 Tests grün. Manueller Merge.
 
 ## 2) AKTIVE POSITIONEN
 - **AMC** — Halt-Strategie, no_exit_alerts=true. Conv 4, Setup stark gefallen.
@@ -294,3 +304,11 @@
   30-Tage-Versprechen). Zweitlehre: async-Fenster in einem vorher
   synchronen Pfad kann latente Single-Slot-Races real machen — bei
   async-Umbau alle Callback-Slots auf Queues prüfen.
+- **Aggregations-Residual nach Deploy = scheinbarer Fix-Fehlschlag:**
+  S8 zeigte am 30.05. trotz #274-Fix nochmal '35.7h'. Ursache war KEIN
+  Defekt, sondern ein Carryover im 24h-Aggregations-Fenster des Digests,
+  das den #274-Deploy-Zeitpunkt (29.05. 13:30) überlappte — der 35.7h-Wert
+  stammte von einem PRE-Deploy-Eintrag (alte Mitternacht-UTC-Mathematik,
+  exakt verifiziert). Self-healing sobald der alte Eintrag aus dem 24h-
+  Fenster ausaltert. Lehre: nach einem Monitoring-Fix einen Aggregations-
+  Zyklus abwarten, bevor man den Fix für gescheitert hält.
