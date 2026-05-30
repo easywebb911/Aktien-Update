@@ -1,17 +1,17 @@
 {
-  "updated": "2026-05-30T14:16:50.209197+02:00",
+  "updated": "2026-05-30T15:55:07.705803+02:00",
   "run_info": {
     "tickers_checked": 18,
     "signals_active": 7,
     "alerts_sent": 0,
-    "elapsed_s": 15.2,
+    "elapsed_s": 13.0,
     "market_phase": "Geschlossen"
   },
   "signals": {
     "ABSI": {
-      "score": 35,
+      "score": 43,
       "confidence": 70,
-      "drivers": "Volumen 2.5× + Spanne 25.0% + UOA Call/Put 48.5×",
+      "drivers": "Volumen 2.5× + Spanne 25.0% + News-KI 8/30: Positive sentiment but lacks short-squeeze catalysts like high short interest, technical setup signals, or forced buying + UOA Call/Put 48.5×",
       "price": 6.75,
       "chg_pct": 0.0,
       "rvol_4d": 2.46,
@@ -76,9 +76,9 @@
       "uoa_cp_ratio": 19.544929925803793
     },
     "ASAN": {
-      "score": 52,
+      "score": 55,
       "confidence": 70,
-      "drivers": "Volumen 2.9× + Spanne 12.8% + News-KI 12/30: Positive sentiment but lacks short-squeeze catalysts like high short interest, borrowing difficulty, or forced covering  + UOA Call/Put 11.0×",
+      "drivers": "Volumen 2.9× + Spanne 12.8% + News: acquisition + UOA Call/Put 11.0×",
       "price": 7.7,
       "chg_pct": -0.0,
       "rvol_4d": 2.92,
@@ -184,7 +184,7 @@
     "CRMD": {
       "score": 30,
       "confidence": 17,
-      "drivers": "News: guidance raised, earnings beat",
+      "drivers": "News: earnings beat, guidance raised",
       "price": 8.44,
       "chg_pct": -0.0,
       "rvol_4d": 0.92,
@@ -325,7 +325,9 @@
         "UOA Call/Put 6.5×"
       ],
       "uoa_atm_ratio": 1.298888888888889,
-      "uoa_cp_ratio": 6.478527607361963
+      "uoa_cp_ratio": 6.478527607361963,
+      "push_silenced": true,
+      "silenced_reason": "RSI 76 · +85% 2T"
     },
     "RR": {
       "score": 66,
@@ -392,7 +394,9 @@
         "UOA Call/Put 4.3×"
       ],
       "uoa_atm_ratio": 3.513022781366882,
-      "uoa_cp_ratio": 4.3218568665377175
+      "uoa_cp_ratio": 4.3218568665377175,
+      "push_silenced": true,
+      "silenced_reason": "RSI 87 · +63% 2T"
     }
   }
 }
