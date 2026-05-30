@@ -174,13 +174,108 @@ def test_13_clear_all_tokens_deletes_idb():
 # ── 5) Defensive / Race / Master-PW-Anker ─────────────────────────────────
 
 
-def test_14_pending_callback_guard_present():
-    """Defensive _tokPending-Guard verhindert Slot-Ueberschreiben."""
+def test_14_pending_callback_queue_push():
+    """PR #282: _tokPending wurde durch Callback-Queue (FIFO) ersetzt.
+    _ensureToken pusht jeden Aufrufer in die Queue — kein Slot-Verlust
+    bei parallelen Aufrufen waehrend des PR-#281-Async-Windows."""
     body_start = SRC.index("function _ensureToken(callback)")
     body_end   = SRC.index("\nfunction _showModalErr", body_start)
     body = SRC[body_start:body_end]
-    assert "if (!_tokPending) _tokPending = callback" in body, \
-        "_tokPending-Single-Slot-Guard fehlt"
+    assert "_tokPendingQueue.push(callback)" in body, \
+        "_tokPendingQueue.push fehlt — Queue-Refactor PR #282 nicht angekommen"
+    # Kein Single-Slot-Rest mehr
+    assert "_tokPending = callback" not in body, \
+        "Single-Slot-Restcode in _ensureToken (sollte Queue sein)"
+    assert "if (!_tokPending)" not in body, \
+        "Single-Slot-Guard-Rest in _ensureToken (sollte Queue sein)"
+
+
+def test_14a_no_single_slot_residue_anywhere():
+    """Kein _tokPending-Single-Slot-Rest in der GANZEN Datei.
+    Nur _tokPendingQueue + _drainTokPendingQueue duerfen vorkommen."""
+    # \b matched word-boundary, also '_tokPendingX' wird nicht gefangen
+    pattern = re.compile(r"\b_tokPending\b")
+    hits = pattern.findall(SRC)
+    assert not hits, \
+        f"Single-Slot-Rest gefunden ({len(hits)} Hits) — sollten alle " \
+        "auf _tokPendingQueue migriert sein"
+
+
+def test_14b_drain_helper_present_and_fail_soft():
+    """_drainTokPendingQueue Helper: capture-then-clear-then-invoke,
+    jeder Callback in try/catch (werfender CB blockiert Rest nicht)."""
+    assert "function _drainTokPendingQueue(tok)" in SRC, \
+        "_drainTokPendingQueue-Helper fehlt"
+    body_start = SRC.index("function _drainTokPendingQueue(tok)")
+    body_end   = SRC.index("\n}}", body_start) + 3
+    body = SRC[body_start:body_end]
+    # capture-then-clear-Reihenfolge (race-sicher)
+    capture_pos = body.index("const callbacks = _tokPendingQueue")
+    clear_pos   = body.index("_tokPendingQueue = []")
+    assert capture_pos < clear_pos, \
+        "_drainTokPendingQueue muss zuerst capturen, dann clearen"
+    # try/catch pro Callback
+    assert "try {{" in body and "catch(e)" in body, \
+        "_drainTokPendingQueue muss try/catch pro Callback haben"
+
+
+def test_14c_trampoline_uses_drain_helper():
+    """_ensureToken-Trampoline-Success-Branch drained die Queue
+    statt nur einen Callback aufzurufen."""
+    body_start = SRC.index("function _ensureToken(callback)")
+    body_end   = SRC.index("\nfunction _showModalErr", body_start)
+    body = SRC[body_start:body_end]
+    # Erfolgreicher Unwrap drained die Queue
+    assert "_drainTokPendingQueue(unwrapped)" in body, \
+        "Trampoline-Success-Branch muss _drainTokPendingQueue aufrufen"
+    # Kein einzelner Slot-Capture-Rest mehr
+    assert "const pending = _tokPending" not in body, \
+        "Single-Slot-Capture-Rest in Trampoline (sollte Drain sein)"
+
+
+def test_14d_submit_handlers_drain_queue():
+    """Alle 4 Submit-Handler (Setup/Unlock/Migrate/Skip) capturen die
+    Queue VOR _closeTokenModals und invoken alle gequeueten Callbacks.
+    Single-Slot-Pattern `const cb = _tokPending` darf nicht mehr
+    vorkommen."""
+    for fn_name in ("_submitTokenSetup", "_submitTokenUnlock",
+                    "_submitTokenMigrate", "_skipTokenMigrate"):
+        # Begin
+        fn_start = SRC.index(f"function {fn_name}(")
+        # End ist naechste top-level function-decl oder Esc-Handler
+        rest = SRC[fn_start + 1:]
+        # naechste 'function ' oder '// Esc'-Marker als Body-Ende
+        next_fn = rest.find("\nfunction ")
+        next_esc = rest.find("\n// Esc ")
+        candidates = [c for c in (next_fn, next_esc) if c > 0]
+        fn_end = fn_start + 1 + min(candidates)
+        body = SRC[fn_start:fn_end]
+        # Capture-Pattern
+        assert "const _queuedCallbacks = _tokPendingQueue" in body, \
+            f"{fn_name}: Queue-Capture-Pattern fehlt"
+        assert "_tokPendingQueue = []" in body, \
+            f"{fn_name}: Queue-Clear nach Capture fehlt"
+        # Kein Single-Slot-Rest
+        assert "const cb = _tokPending" not in body, \
+            f"{fn_name}: Single-Slot-Capture-Rest"
+        # Drain-Loop mit try/catch (jeder Callback isoliert)
+        assert "for (const cb of _queuedCallbacks)" in body, \
+            f"{fn_name}: Drain-for-of-Loop fehlt"
+        assert "try {{ if (cb) cb(" in body, \
+            f"{fn_name}: try-around-cb fehlt"
+
+
+def test_14e_close_modals_drops_queue():
+    """_closeTokenModals droppt die Queue defensiv (identisch zum
+    alten Single-Slot-null-Verhalten — Esc-Taste etc. droppt wartende
+    Callbacks; Submit-Handler capturen VOR Close)."""
+    fn_start = SRC.index("function _closeTokenModals()")
+    fn_end   = SRC.index("\nfunction _ensureToken", fn_start)
+    body = SRC[fn_start:fn_end]
+    assert "_tokPendingQueue = []" in body, \
+        "_closeTokenModals muss Queue droppen (defensiv)"
+    assert "_tokPending = null" not in body, \
+        "Single-Slot-null-Rest in _closeTokenModals"
 
 
 def test_15_master_pw_anchor_unchanged():
@@ -238,7 +333,12 @@ if __name__ == "__main__":
         test_11_ensure_token_fail_soft_catch,
         test_12_set_session_token_fires_persist,
         test_13_clear_all_tokens_deletes_idb,
-        test_14_pending_callback_guard_present,
+        test_14_pending_callback_queue_push,
+        test_14a_no_single_slot_residue_anywhere,
+        test_14b_drain_helper_present_and_fail_soft,
+        test_14c_trampoline_uses_drain_helper,
+        test_14d_submit_handlers_drain_queue,
+        test_14e_close_modals_drops_queue,
         test_15_master_pw_anchor_unchanged,
         test_16_no_30_day_promise_in_code,
         test_17_diagnosis_reference_in_comment,

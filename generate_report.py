@@ -10046,8 +10046,30 @@ function _persistTokenAtomic(plaintext, encryptedBlob) {{
 // Unlock (verschlüsselter Blob da), Migrate (Legacy-Klartext erkannt).
 // Aufrufer rufen ``_ensureToken(callback)`` — bekommen Token zurück oder
 // werden durch das passende Modal geführt.
-let _tokPending = null;       // callback nach erfolgreichem Setup/Unlock
-let _tokUnlockFails = 0;      // Fehlversuch-Counter (Reset-Hint nach 3)
+// Callback-QUEUE (FIFO) nach erfolgreichem Setup/Unlock. Vor PR #282 war
+// das ein Single-Slot; PR #281 (Option C — Session-Wrap via IndexedDB)
+// hat einen Async-Window in _ensureToken eingefuehrt (Microtask vor
+// Modal-Open). Parallele _ensureToken-Aufrufe in diesem Window konnten
+// im Single-Slot den zweiten Callback verlieren (Defensive Guard
+// schuetzte nur vor Slot-Overwrite, nicht vor Slot-Verlust). Queue
+// stellt sicher: jeder Aufrufer bekommt seinen Callback ausgefuehrt.
+let _tokPendingQueue = [];
+let _tokUnlockFails  = 0;     // Fehlversuch-Counter (Reset-Hint nach 3)
+
+// Atomic capture-then-clear-then-invoke. Wichtig fuer Race-Sicherheit:
+// ein Callback, der waehrend des Drains erneut _ensureToken aufruft,
+// landet in der NAECHSTEN Drain-Runde (eigene Queue) — nicht in der
+// aktuellen Iteration (die haette einen unendlichen Loop ausloesen
+// koennen). Jeder Callback in try/catch — ein werfender Callback
+// blockiert den Rest nicht.
+function _drainTokPendingQueue(tok) {{
+  const callbacks = _tokPendingQueue;
+  _tokPendingQueue = [];
+  for (const cb of callbacks) {{
+    try {{ if (cb) cb(tok); }}
+    catch(e) {{ _tokLog('_drainTokPendingQueue cb threw', {{err: e && e.message}}); }}
+  }}
+}}
 
 function _hasEncryptedToken() {{
   try {{ return !!localStorage.getItem(TOK_ENC_KEY); }} catch(_) {{ return false; }}
@@ -10087,18 +10109,21 @@ function _closeTokenModals() {{
     const e = document.getElementById(id);
     if (e) {{ e.hidden = true; e.textContent = ''; }}
   }});
-  _tokPending = null;
+  // Defensive Queue-Drop bei Modal-Close (identisch zum Single-Slot-
+  // Status-quo: Esc-Taste oder programmatisches Close droppt wartende
+  // Callbacks). Submit-Handler capturen die Queue VOR _closeTokenModals.
+  _tokPendingQueue = [];
 }}
 
 function _ensureToken(callback) {{
   const tok = getToken();
   _tokLog('_ensureToken ENTER', {{has_session_tok: !!tok, has_enc: _hasEncryptedToken(), has_legacy: !!_getLegacyPlaintextToken()}});
   if (tok) {{ callback(tok); return; }}
-  // Defensive Single-Slot-Guard: _tokPending NICHT ueberschreiben, falls
-  // bereits ein Callback wartet (Race-frei genug — JS ist single-threaded,
-  // das Pattern hatte den 1-Slot-Charakter schon vor Option C; mein Patch
-  // verschlimmert nichts, der Guard verbessert leicht den Status quo).
-  if (!_tokPending) _tokPending = callback;
+  // Queue-Push (FIFO, PR #282): jeder Aufrufer landet in der Queue,
+  // egal ob parallel ein anderer Aufrufer bereits wartet. Der naechste
+  // erfolgreiche Drain (Trampoline-Hit oder Master-PW-Submit) ruft alle
+  // gequeueten Callbacks in Reihenfolge auf.
+  _tokPendingQueue.push(callback);
   // Option C (30.05.2026, 7-Tage-Rolling-Window):
   // VOR dem Master-PW-Modal asynchron versuchen, den Token aus dem
   // Session-Wrap (IndexedDB) zu entwickeln. Async-Trampolin laeuft als
@@ -10123,10 +10148,7 @@ function _ensureToken(callback) {{
   _trampolinePromise.then(unwrapped => {{
     if (unwrapped) {{
       _setSessionToken(unwrapped);
-      const pending = _tokPending;
-      _tokPending = null;
-      try {{ if (pending) pending(unwrapped); }}
-      catch(e) {{ _tokLog('_ensureToken pending-cb threw', {{err: e && e.message}}); }}
+      _drainTokPendingQueue(unwrapped);
       _tokLog('_ensureToken → session-wrap unwrap hit');
       return;
     }}
@@ -10167,15 +10189,21 @@ async function _submitTokenSetup() {{
     // Setup-Modal erneut → Endlosschleife.
     _persistTokenAtomic(tok, blob);
     _tokLog('_submitTokenSetup AFTER persist (vor close)');
-    const cb = _tokPending;
+    // Queue VOR _closeTokenModals capturen — close droppt die Queue
+    // defensiv. Anschliessend Drain mit dem frisch persistierten Token.
+    const _queuedCallbacks = _tokPendingQueue;
+    _tokPendingQueue = [];
     _closeTokenModals();
     _tokLog('_submitTokenSetup AFTER close');
     // Settings-Panel-UI-Refresh, falls offen (z.B. Settings-Panel-
     // getriggerter Setup-Pfad via saveGhToken). Single-Source-Helper,
     // no-op wenn Panel unsichtbar.
     _refreshGhSettingsUI();
-    if (cb) cb(tok);
-    _tokLog('_submitTokenSetup AFTER callback');
+    for (const cb of _queuedCallbacks) {{
+      try {{ if (cb) cb(tok); }}
+      catch(e) {{ _tokLog('_submitTokenSetup cb threw', {{err: e && e.message}}); }}
+    }}
+    _tokLog('_submitTokenSetup AFTER callbacks', {{count: _queuedCallbacks.length}});
   }} catch(e) {{
     console.error('Token-Setup fehlgeschlagen:', e);
     _tokLog('_submitTokenSetup CAUGHT', {{err: e && e.message}});
@@ -10196,12 +10224,18 @@ async function _submitTokenUnlock() {{
     // Atomarer Persist-Verify (iOS-Safari-Härtung) — Encrypted-Blob ist
     // schon da, also nur Session-Token.
     _persistTokenAtomic(tok, null);
-    const cb = _tokPending;
+    // Queue VOR _closeTokenModals capturen (siehe _submitTokenSetup).
+    const _queuedCallbacks = _tokPendingQueue;
+    _tokPendingQueue = [];
     _closeTokenModals();
     _tokLog('_submitTokenUnlock AFTER close');
     // Settings-Panel-UI-Refresh, falls offen — siehe _refreshGhSettingsUI.
     _refreshGhSettingsUI();
-    if (cb) cb(tok);
+    for (const cb of _queuedCallbacks) {{
+      try {{ if (cb) cb(tok); }}
+      catch(e) {{ _tokLog('_submitTokenUnlock cb threw', {{err: e && e.message}}); }}
+    }}
+    _tokLog('_submitTokenUnlock AFTER callbacks', {{count: _queuedCallbacks.length}});
   }} catch(e) {{
     _tokLog('_submitTokenUnlock CAUGHT', {{err: e && e.message}});
     _tokUnlockFails++;
@@ -10227,12 +10261,18 @@ async function _submitTokenMigrate() {{
     _tokLog('_submitTokenMigrate encrypted', {{blob_len: blob.length}});
     // Atomarer Persist-Verify-Block (iOS-Safari-Härtung) — siehe Setup.
     _persistTokenAtomic(legacy, blob);
-    const cb = _tokPending;
+    // Queue VOR _closeTokenModals capturen (siehe _submitTokenSetup).
+    const _queuedCallbacks = _tokPendingQueue;
+    _tokPendingQueue = [];
     _closeTokenModals();
     _tokLog('_submitTokenMigrate AFTER close');
     // Settings-Panel-UI-Refresh, falls offen — siehe _refreshGhSettingsUI.
     _refreshGhSettingsUI();
-    if (cb) cb(legacy);
+    for (const cb of _queuedCallbacks) {{
+      try {{ if (cb) cb(legacy); }}
+      catch(e) {{ _tokLog('_submitTokenMigrate cb threw', {{err: e && e.message}}); }}
+    }}
+    _tokLog('_submitTokenMigrate AFTER callbacks', {{count: _queuedCallbacks.length}});
   }} catch(e) {{
     console.error('Token-Migration fehlgeschlagen:', e);
     _tokLog('_submitTokenMigrate CAUGHT', {{err: e && e.message}});
@@ -10245,9 +10285,15 @@ function _skipTokenMigrate() {{
   // Fallback: User arbeitet weiter mit Klartext-Token (legacy-Pfad).
   const legacy = _getLegacyPlaintextToken();
   if (legacy) _setSessionToken(legacy);
-  const cb = _tokPending;
+  // Queue VOR _closeTokenModals capturen (siehe _submitTokenSetup).
+  const _queuedCallbacks = _tokPendingQueue;
+  _tokPendingQueue = [];
   _closeTokenModals();
-  if (cb && legacy) cb(legacy);
+  if (!legacy) return;
+  for (const cb of _queuedCallbacks) {{
+    try {{ if (cb) cb(legacy); }}
+    catch(e) {{ _tokLog('_skipTokenMigrate cb threw', {{err: e && e.message}}); }}
+  }}
 }}
 function _resetTokenForReentry() {{
   if (!confirm('Token + verschlüsselter Blob werden gelöscht. Erneut eingeben?')) return;
@@ -10271,7 +10317,7 @@ function _coldStartTokenMigration() {{
   if (_hasEncryptedToken()) {{ _tokLog('_coldStartTokenMigration → encrypted exists, skip'); return; }}
   if (!_getLegacyPlaintextToken()) {{ _tokLog('_coldStartTokenMigration → no legacy, skip'); return; }}
   _tokLog('_coldStartTokenMigration → showing migrate modal');
-  _tokPending = null;
+  _tokPendingQueue = [];
   _showModal('tok-modal-migrate');
 }}
 document.addEventListener('DOMContentLoaded', _coldStartTokenMigration);
@@ -13153,7 +13199,7 @@ function saveGhToken() {{
     // Häufigster Cold-Start-Fall: Blob da, Session weg, User klickt OK auf
     // leerem Input → Unlock statt Setup, sonst Endlosschleife.
     _tokLog('saveGhToken → routing to UNLOCK (blob exists, no input)');
-    _tokPending = null;
+    _tokPendingQueue = [];
     _showModal('tok-modal-unlock');
     return;
   }}
@@ -13168,7 +13214,7 @@ function saveGhToken() {{
   if (setupInp) setupInp.value = tok;
   if (inp) inp.value = '';
   if (status) {{ status.className = 'anth-status'; status.textContent = ''; }}
-  _tokPending = null;
+  _tokPendingQueue = [];
   _showModal('tok-modal-setup');
 }}
 
