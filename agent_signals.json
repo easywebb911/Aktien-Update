@@ -1,10 +1,10 @@
 {
-  "updated": "2026-05-30T07:34:33.869050+02:00",
+  "updated": "2026-05-30T09:58:19.509803+02:00",
   "run_info": {
     "tickers_checked": 18,
     "signals_active": 7,
     "alerts_sent": 0,
-    "elapsed_s": 17.9,
+    "elapsed_s": 11.6,
     "market_phase": "Geschlossen"
   },
   "signals": {
@@ -76,9 +76,9 @@
       "uoa_cp_ratio": 19.544929925803793
     },
     "ASAN": {
-      "score": 55,
+      "score": 43,
       "confidence": 70,
-      "drivers": "Volumen 2.9× + Spanne 12.8% + News: acquisition + UOA Call/Put 11.0×",
+      "drivers": "Volumen 2.9× + Spanne 12.8% + News-KI 8/30: Positive sentiment and strategic positioning, but no indicators of high short interest, low float, or catalyst for short + UOA Call/Put 11.0×",
       "price": 7.7,
       "chg_pct": -0.0,
       "rvol_4d": 2.92,
@@ -88,8 +88,8 @@
       "upcoming_event": null,
       "insider_buy": false,
       "stocktwits": null,
-      "combo_mult": 1.1,
-      "active_triggers": 2,
+      "combo_mult": 1.0,
+      "active_triggers": 1,
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 11.0×"
@@ -184,7 +184,7 @@
     "CRMD": {
       "score": 30,
       "confidence": 17,
-      "drivers": "News: guidance raised, earnings beat",
+      "drivers": "News: earnings beat, guidance raised",
       "price": 8.44,
       "chg_pct": -0.0,
       "rvol_4d": 0.92,
@@ -202,9 +202,9 @@
       "uoa_cp_ratio": 1.6157407407407407
     },
     "FDMT": {
-      "score": 58,
-      "confidence": 70,
-      "drivers": "Volumen 8.4× + 🚀 Massives Volumen 8.4×+ + Spanne 12.4% + News-KI 8/30: Positive biotech news but lacks catalyst momentum, short interest data, or price action indicators needed for short-sque",
+      "score": 50,
+      "confidence": 33,
+      "drivers": "Volumen 8.4× + 🚀 Massives Volumen 8.4×+ + Spanne 12.4%",
       "price": 9.91,
       "chg_pct": -0.0,
       "rvol_4d": 8.41,
@@ -308,7 +308,7 @@
     "REPL": {
       "score": 100,
       "confidence": 70,
-      "drivers": "Earnings in 2 Tagen (01.06.2026) + Volumen 19.2× + 🚀 Massives Volumen 19.2×+ + Spanne 17.6% + SEC 8-K + News: fda approval + Earnings in 2d + UOA Call/Put 6.5× + 3/4 Trigger",
+      "drivers": "Earnings in 2 Tagen (01.06.2026) + Volumen 19.2× + 🚀 Massives Volumen 19.2×+ + Spanne 17.6% + SEC 8-K + News-KI 18/30: Positive FDA catalyst provides momentum but lacks short interest data, high short ratio, and aggressive bear thesis need + Earnings in 2d + UOA Call/Put 6.5× + 3/4 Trigger",
       "price": 8.69,
       "chg_pct": -0.0,
       "rvol_4d": 19.17,
