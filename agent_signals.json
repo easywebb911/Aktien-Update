@@ -1,17 +1,17 @@
 {
-  "updated": "2026-05-30T15:55:07.705803+02:00",
+  "updated": "2026-05-30T16:03:29.709313+02:00",
   "run_info": {
     "tickers_checked": 18,
     "signals_active": 7,
     "alerts_sent": 0,
-    "elapsed_s": 13.0,
+    "elapsed_s": 11.1,
     "market_phase": "Geschlossen"
   },
   "signals": {
     "ABSI": {
-      "score": 43,
+      "score": 35,
       "confidence": 70,
-      "drivers": "Volumen 2.5× + Spanne 25.0% + News-KI 8/30: Positive sentiment but lacks short-squeeze catalysts like high short interest, technical setup signals, or forced buying + UOA Call/Put 48.5×",
+      "drivers": "Volumen 2.5× + Spanne 25.0% + UOA Call/Put 48.5×",
       "price": 6.75,
       "chg_pct": 0.0,
       "rvol_4d": 2.46,
@@ -76,9 +76,9 @@
       "uoa_cp_ratio": 19.544929925803793
     },
     "ASAN": {
-      "score": 55,
+      "score": 52,
       "confidence": 70,
-      "drivers": "Volumen 2.9× + Spanne 12.8% + News: acquisition + UOA Call/Put 11.0×",
+      "drivers": "Volumen 2.9× + Spanne 12.8% + News-KI 12/30: Positive sentiment but lacks short-squeeze catalysts like high short interest, low float, or forced buying pressure. + UOA Call/Put 11.0×",
       "price": 7.7,
       "chg_pct": -0.0,
       "rvol_4d": 2.92,
@@ -184,7 +184,7 @@
     "CRMD": {
       "score": 30,
       "confidence": 17,
-      "drivers": "News: earnings beat, guidance raised",
+      "drivers": "News: guidance raised, earnings beat",
       "price": 8.44,
       "chg_pct": -0.0,
       "rvol_4d": 0.92,
@@ -308,7 +308,7 @@
     "REPL": {
       "score": 100,
       "confidence": 70,
-      "drivers": "Earnings in 2 Tagen (01.06.2026) + Volumen 19.2× + 🚀 Massives Volumen 19.2×+ + Spanne 17.6% + SEC 8-K + News: fda approval + Earnings in 2d + UOA Call/Put 6.5× + 3/4 Trigger",
+      "drivers": "Earnings in 2 Tagen (01.06.2026) + Volumen 19.2× + 🚀 Massives Volumen 19.2×+ + Spanne 17.6% + News-KI 12/30: Positive clinical trial data supports fundamental value but lacks short squeeze catalysts like high short interest, low  + Earnings in 2d + UOA Call/Put 6.5× + 3/4 Trigger",
       "price": 8.69,
       "chg_pct": -0.0,
       "rvol_4d": 19.17,
@@ -374,9 +374,9 @@
       "uoa_cp_ratio": 19.32729468599034
     },
     "SPCE": {
-      "score": 65,
+      "score": 96,
       "confidence": 70,
-      "drivers": "Volumen 4.6× + ⚡ Extremes Volumen 4.6×+ + Spanne 47.3% + UOA Call-Vol/OI 3.5× ATM + UOA Call/Put 4.3×",
+      "drivers": "Volumen 4.6× + ⚡ Extremes Volumen 4.6×+ + Spanne 47.3% + News-KI 22/30: Moderate positive momentum with valuation concerns; sector headwinds from Blue Origin incident limit short-squeeze poten + UOA Call-Vol/OI 3.5× ATM + UOA Call/Put 4.3×",
       "price": 6.18,
       "chg_pct": -0.0,
       "rvol_4d": 4.56,
@@ -386,8 +386,8 @@
       "upcoming_event": null,
       "insider_buy": false,
       "stocktwits": null,
-      "combo_mult": 1.0,
-      "active_triggers": 1,
+      "combo_mult": 1.1,
+      "active_triggers": 2,
       "uoa_score": 20,
       "uoa_drivers": [
         "UOA Call-Vol/OI 3.5× ATM",

@@ -1,5 +1,5 @@
 {
-  "last_run": "2026-05-30T15:55:09.474907+02:00",
+  "last_run": "2026-05-30T16:03:31.022583+02:00",
   "cooldowns": {
     "anomaly_score_jump_XRX": "2026-05-03T18:47:15.315486+02:00",
     "anomaly_uoa_extreme_TDOC": "2026-05-04T13:47:00.365949+02:00",
@@ -46,30 +46,6 @@
     "earnings_immediate_KSS_28.05.2026": "2026-05-29T00:08:11.088516+02:00"
   },
   "push_history": [
-    {
-      "ts": "2026-05-20T14:41:53.585640+02:00",
-      "ticker": "BKKT",
-      "kind": "anomaly",
-      "severity": "high",
-      "trigger": "monster_backup",
-      "body": "BKKT 🔥 Monster 96 | Setup 80 | KI 65",
-      "success": false,
-      "suppressed": true,
-      "suppress_reason": "conviction_below_threshold",
-      "conviction_score": 58
-    },
-    {
-      "ts": "2026-05-20T14:41:53.889029+02:00",
-      "ticker": "CRDF",
-      "kind": "anomaly",
-      "severity": "high",
-      "trigger": "monster_backup",
-      "body": "CRDF 🔥 Monster 100 | Setup 85 | KI 100",
-      "success": true,
-      "suppressed": false,
-      "suppress_reason": null,
-      "conviction_score": 81
-    },
     {
       "ts": "2026-05-20T14:41:54.142254+02:00",
       "ticker": "XPOF",
@@ -1236,6 +1212,30 @@
     },
     {
       "ts": "2026-05-30T15:55:07.705503+02:00",
+      "ticker": "FDMT",
+      "kind": "anomaly",
+      "severity": "high",
+      "trigger": "monster_backup",
+      "body": "FDMT 🔥 Monster 93 | Setup 93 | KI 50",
+      "success": false,
+      "suppressed": true,
+      "suppress_reason": "conviction_below_threshold",
+      "conviction_score": 70
+    },
+    {
+      "ts": "2026-05-30T16:03:29.708850+02:00",
+      "ticker": "AI",
+      "kind": "anomaly",
+      "severity": "high",
+      "trigger": "monster_backup",
+      "body": "AI 🔥 Monster 99 | Setup 83 | KI 60",
+      "success": false,
+      "suppressed": true,
+      "suppress_reason": "conviction_below_threshold",
+      "conviction_score": 73
+    },
+    {
+      "ts": "2026-05-30T16:03:29.709055+02:00",
       "ticker": "FDMT",
       "kind": "anomaly",
       "severity": "high",
