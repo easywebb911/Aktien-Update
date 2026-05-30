@@ -1,5 +1,5 @@
 {
-  "last_run": "2026-05-30T16:03:31.022583+02:00",
+  "last_run": "2026-05-30T16:08:41.672905+02:00",
   "cooldowns": {
     "anomaly_score_jump_XRX": "2026-05-03T18:47:15.315486+02:00",
     "anomaly_uoa_extreme_TDOC": "2026-05-04T13:47:00.365949+02:00",
@@ -46,30 +46,6 @@
     "earnings_immediate_KSS_28.05.2026": "2026-05-29T00:08:11.088516+02:00"
   },
   "push_history": [
-    {
-      "ts": "2026-05-20T14:41:54.142254+02:00",
-      "ticker": "XPOF",
-      "kind": "anomaly",
-      "severity": "medium",
-      "trigger": "score_jump",
-      "body": "XPOF 🚀 Setup 80 ↑ (gestern 56) | Volumen 1.8× + Spanne 9.7% + FINRA Short-Vol 100% + UOA Call…",
-      "success": true,
-      "suppressed": false,
-      "suppress_reason": null,
-      "conviction_score": 79
-    },
-    {
-      "ts": "2026-05-20T14:41:54.388855+02:00",
-      "ticker": "XPOF",
-      "kind": "anomaly",
-      "severity": "high",
-      "trigger": "monster_backup",
-      "body": "XPOF 🔥 Monster 96 | Setup 80 | KI 60",
-      "success": true,
-      "suppressed": false,
-      "suppress_reason": null,
-      "conviction_score": 79
-    },
     {
       "ts": "2026-05-20T17:26:03.459633+02:00",
       "ticker": "RR",
@@ -1236,6 +1212,30 @@
     },
     {
       "ts": "2026-05-30T16:03:29.709055+02:00",
+      "ticker": "FDMT",
+      "kind": "anomaly",
+      "severity": "high",
+      "trigger": "monster_backup",
+      "body": "FDMT 🔥 Monster 93 | Setup 93 | KI 50",
+      "success": false,
+      "suppressed": true,
+      "suppress_reason": "conviction_below_threshold",
+      "conviction_score": 70
+    },
+    {
+      "ts": "2026-05-30T16:08:39.992918+02:00",
+      "ticker": "AI",
+      "kind": "anomaly",
+      "severity": "high",
+      "trigger": "monster_backup",
+      "body": "AI 🔥 Monster 99 | Setup 83 | KI 60",
+      "success": false,
+      "suppressed": true,
+      "suppress_reason": "conviction_below_threshold",
+      "conviction_score": 73
+    },
+    {
+      "ts": "2026-05-30T16:08:39.993108+02:00",
       "ticker": "FDMT",
       "kind": "anomaly",
       "severity": "high",
