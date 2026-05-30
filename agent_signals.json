@@ -1,10 +1,10 @@
 {
-  "updated": "2026-05-30T12:18:16.812713+02:00",
+  "updated": "2026-05-30T14:16:50.209197+02:00",
   "run_info": {
     "tickers_checked": 18,
     "signals_active": 7,
     "alerts_sent": 0,
-    "elapsed_s": 12.0,
+    "elapsed_s": 15.2,
     "market_phase": "Geschlossen"
   },
   "signals": {
@@ -76,9 +76,9 @@
       "uoa_cp_ratio": 19.544929925803793
     },
     "ASAN": {
-      "score": 55,
+      "score": 52,
       "confidence": 70,
-      "drivers": "Volumen 2.9× + Spanne 12.8% + News: acquisition + UOA Call/Put 11.0×",
+      "drivers": "Volumen 2.9× + Spanne 12.8% + News-KI 12/30: Positive sentiment but lacks short-squeeze catalysts like high short interest, borrowing difficulty, or forced covering  + UOA Call/Put 11.0×",
       "price": 7.7,
       "chg_pct": -0.0,
       "rvol_4d": 2.92,
