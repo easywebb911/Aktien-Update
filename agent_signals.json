@@ -1,17 +1,17 @@
 {
-  "updated": "2026-05-30T19:30:59.887083+02:00",
+  "updated": "2026-05-30T20:11:30.560044+02:00",
   "run_info": {
     "tickers_checked": 18,
     "signals_active": 7,
     "alerts_sent": 0,
-    "elapsed_s": 17.7,
+    "elapsed_s": 18.1,
     "market_phase": "Geschlossen"
   },
   "signals": {
     "ABSI": {
-      "score": 35,
+      "score": 40,
       "confidence": 70,
-      "drivers": "Volumen 2.5× + Spanne 25.0% + UOA Call/Put 48.5×",
+      "drivers": "Volumen 2.5× + Spanne 25.0% + News-KI 5/30: Positive sentiment but no short squeeze indicators present: no mention of high short interest, borrowed shares, or catal + UOA Call/Put 48.5×",
       "price": 6.75,
       "chg_pct": 0.0,
       "rvol_4d": 2.46,
@@ -54,9 +54,9 @@
       "uoa_cp_ratio": 17.92231985940246
     },
     "AMC": {
-      "score": 35,
+      "score": 50,
       "confidence": 70,
-      "drivers": "Volumen 1.9× + Spanne 15.4% + UOA Call/Put 19.5×",
+      "drivers": "Volumen 1.9× + Spanne 15.4% + News: squeeze + UOA Call/Put 19.5×",
       "price": 1.73,
       "chg_pct": 0.0,
       "rvol_4d": 1.95,
@@ -67,7 +67,7 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 0,
+      "active_triggers": 1,
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 19.5×"
@@ -222,9 +222,9 @@
       "uoa_cp_ratio": 0.05536332179930796
     },
     "GEMI": {
-      "score": 35,
+      "score": 20,
       "confidence": 33,
-      "drivers": "Spanne 7.0% + News: takeover + UOA Call/Put 5.7×",
+      "drivers": "Spanne 7.0% + UOA Call/Put 5.7×",
       "price": 5.27,
       "chg_pct": -0.0,
       "rvol_4d": 0.7,
@@ -235,7 +235,7 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 1,
+      "active_triggers": 0,
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 5.7×"

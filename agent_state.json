@@ -1,5 +1,5 @@
 {
-  "last_run": "2026-05-30T19:31:02.007487+02:00",
+  "last_run": "2026-05-30T20:11:32.582238+02:00",
   "cooldowns": {
     "anomaly_score_jump_XRX": "2026-05-03T18:47:15.315486+02:00",
     "anomaly_uoa_extreme_TDOC": "2026-05-04T13:47:00.365949+02:00",
@@ -46,30 +46,6 @@
     "earnings_immediate_KSS_28.05.2026": "2026-05-29T00:08:11.088516+02:00"
   },
   "push_history": [
-    {
-      "ts": "2026-05-21T15:35:01.096888+02:00",
-      "ticker": "CRMD",
-      "kind": "exit_p1",
-      "severity": "default",
-      "trigger": "exit_alert",
-      "body": "CRMD 📉 Exit 65 | -2% | Trailing-Stop −12.8% vom Hoch",
-      "success": true,
-      "suppressed": false,
-      "suppress_reason": null,
-      "conviction_score": null
-    },
-    {
-      "ts": "2026-05-21T19:38:46.648569+02:00",
-      "ticker": "CRMD",
-      "kind": "exit_p1",
-      "severity": "default",
-      "trigger": "exit_alert",
-      "body": "CRMD 📉 Exit 62 | +0% | Trailing-Stop −11.2% vom Hoch",
-      "success": true,
-      "suppressed": false,
-      "suppress_reason": null,
-      "conviction_score": null
-    },
     {
       "ts": "2026-05-22T08:09:56.597506+02:00",
       "ticker": "RR",
@@ -1236,6 +1212,30 @@
     },
     {
       "ts": "2026-05-30T19:30:59.886828+02:00",
+      "ticker": "FDMT",
+      "kind": "anomaly",
+      "severity": "high",
+      "trigger": "monster_backup",
+      "body": "FDMT 🔥 Monster 93 | Setup 93 | KI 50",
+      "success": false,
+      "suppressed": true,
+      "suppress_reason": "conviction_below_threshold",
+      "conviction_score": 70
+    },
+    {
+      "ts": "2026-05-30T20:11:30.559540+02:00",
+      "ticker": "AI",
+      "kind": "anomaly",
+      "severity": "high",
+      "trigger": "monster_backup",
+      "body": "AI 🔥 Monster 99 | Setup 83 | KI 60",
+      "success": false,
+      "suppressed": true,
+      "suppress_reason": "conviction_below_threshold",
+      "conviction_score": 73
+    },
+    {
+      "ts": "2026-05-30T20:11:30.559720+02:00",
       "ticker": "FDMT",
       "kind": "anomaly",
       "severity": "high",
