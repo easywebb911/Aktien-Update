@@ -214,6 +214,34 @@
   rechtfertigbar ohne belegte Edge. Reihenfolge: CTB-Coverage 60-90 Tage →
   CTB-Edge 30.06.+ (Mann-Whitney-U wie Earliness V2) → DANN Utilization-
   Entscheidung mit echtem Cost-Benefit.
+  GRATIS-QUELLEN-FUNDE (Recherche 31.05.) — CTB ist gratis rettbar:
+  (1) DIREKTE IBKR-DATEI (beste Option, deckt sich mit bestehendem
+      fetch_ibkr_borrow_rate): IBKR stellt eine ÖFFENTLICHE Datei mit Borrow-
+      Fee-Raten + Verfügbarkeit für alle US-Aktien bereit, KEIN Login. Format:
+      pipe-getrennt ('|' statt Komma), erste Zeile ist Header (ignorieren).
+      Bekannt als ftp/https-Download (z.B. usa.txt für US-Stocks). DESHALB
+      08.06.-Verdacht präzisieren: euer IBKR-Fetcher ist vermutlich nicht
+      'tot ohne Quelle', sondern Pfad-/Format-Drift (geänderte URL oder
+      Trennzeichen-/Header-Layout). Im Actions-Log NICHT nur 'N Ticker
+      geparsed' prüfen, sondern bei 0: die aktuelle IBKR-Datei-URL + Format
+      gegen den Parser abgleichen. Hohe Chance auf kleinen Fix.
+  (2) iBorrowDesk (gratis Fallback, falls IBKR-Direktdatei zickt): fertige
+      Aufbereitung DERSELBEN IBKR-Daten, ~15-Min-Aktualisierung US-Handelszeit,
+      deckt Large- UND Smallcaps (wichtig für unseren Squeeze-Pool), CSV-
+      Export. Gratis-Plan reicht für Borrow-Fee + Verfügbarkeit. Evtl. robuster
+      zu scrapen als die rohe IBKR-Datei.
+  → KONSEQUENZ fürs Drehbuch: Variante A (IBKR-CTB) ist mit hoher
+    Wahrscheinlichkeit der Weg — GRATIS, kein Fintel-Abo nötig. Fintel
+    (Variante B) rückt zum unwahrscheinlicheren Fallback.
+
+  UTILIZATION bleibt das schwierige Kind (ehrlich): KEINE zuverlässige
+  Gratis-Quelle gefunden. IBKRs Securities Lending Dashboard HAT Utilization
+  (powered by Orbisa), aber NUR im eingeloggten Trader-Workstation-Terminal,
+  NICHT in der öffentlichen usa.txt. ORTEX/Fintel-Pro = kostenpflichtig.
+  Utilization ist strukturell schwer (Aggregation aus fragmentierten Leih-
+  Pools). Bestätigt bestehende Entscheidung: Utilization NICHT jetzt — fließt
+  eh nicht in den Score, erst 30.06.+ über Cost-Benefit entscheiden. CTB
+  allein (gratis) reicht für den Setup-Score-Katalysator-Bonus.
 - **#281 (a04de49) — 30.05.** Option C: Token-Session-Wrap gegen
   tägliches Master-PW-Re-Entry. Nach Master-PW-Unlock wird der Token mit
   random AES-GCM-Key gewrappt + in IndexedDB persistiert (Store
