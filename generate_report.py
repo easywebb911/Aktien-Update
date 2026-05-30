@@ -232,6 +232,8 @@ def _test_extended_schema():
         "rvol_acceleration","uoa_atm_ratio",
         # Entry-Modul-Shadow-Persist (25.05.2026) — additiv, kein Bump.
         "score_delta_t1","anomaly_freshness",
+        # Twin-Roh-Felder (29.05.2026) — ungecappt/un-transformiert, additiv.
+        "score_delta_t1_raw","anomaly_push_age_h",
         "backtest_schema_version",
     }
     assert set(ext.keys()) == expected_keys, set(ext.keys()) ^ expected_keys
