@@ -9640,6 +9640,190 @@ async function _decryptToken(blobJson, password) {{
   return new TextDecoder().decode(pt);
 }}
 
+// ── Session-Wrap (IndexedDB, Time-bounded Re-Encrypt — Option C 30.05.2026) ─
+// Nach Master-PW-Unlock wird ein zufaelliger AES-GCM-Schluessel generiert
+// und der Klartext-Token damit gewrappt + in IndexedDB persistiert.
+// Innerhalb des 7-Tage-Rolling-Windows kein Master-PW noetig.
+//
+// Bis zu 7 Tage haltbar, ITP-/Storage-abhaengig (iOS-WebKit raeumt
+// script-writable Storage nach 7d Inaktivitaet — analog dem bestehenden
+// _tok_keepalive-Workaround auf localStorage). KEIN 30-Tage-Versprechen.
+//
+// Rolling-Window: jeder erfolgreiche Unwrap erzeugt einen FRISCHEN Wrap
+// (neuer random Key + IV) + verlaengert expires_at_ms um weitere 7 Tage.
+// Der Storage-Write resettet zugleich ITPs Inaktivitaets-Timer.
+//
+// Sicherheits-Delta (bewusst akzeptiert): innerhalb des Fensters ist der
+// Klartext-Token auf einem ENTSPERRTEN Geraet ohne Master-PW zugaenglich
+// (Angreifer mit physischem Zugriff + DevTools koennte den Wrap entwickeln —
+// Session-Key liegt in IndexedDB, beides am gleichen Ort, im Web ohne
+// Hardware-Secure-Enclave nicht trennbar). Master-PW schuetzt weiterhin
+// gegen Offline-Blob-Angriff bei gesperrtem/verlorenem Geraet. Game-Over-
+// Voraussetzung war eh schon „entsperrtes Geraet in fremder Hand".
+//
+// Fail-soft (Pflicht): jeder Pfad (IndexedDB-Open-Fail, Quota, privater
+// Modus, Decrypt-Fail, Ablauf) faellt STILL auf Master-PW-Modal zurueck.
+// Kein User-Schock, kein Toast. Erlebnis = „App will Master-PW wie heute,
+// nur seltener".
+//
+// Clock-Skew: expires_at_ms ist Client-Clock-basiert — bei Uhr-Manipulation
+// nur Self-Lock-In, kein Sicherheits-Bypass.
+const _SESSION_WRAP_DB_NAME   = 'squeeze_session';
+const _SESSION_WRAP_STORE     = 'session_wrap';
+const _SESSION_WRAP_KEY       = 'tok';
+const _SESSION_WRAP_WINDOW_MS = 7 * 24 * 60 * 60 * 1000;
+
+function _idbOpen() {{
+  return new Promise(resolve => {{
+    try {{
+      if (typeof indexedDB === 'undefined' || indexedDB === null) {{
+        resolve(null);
+        return;
+      }}
+      const req = indexedDB.open(_SESSION_WRAP_DB_NAME, 1);
+      req.onupgradeneeded = () => {{
+        try {{
+          req.result.createObjectStore(_SESSION_WRAP_STORE);
+        }} catch(_) {{}}
+      }};
+      req.onsuccess = () => resolve(req.result);
+      req.onerror   = () => resolve(null);
+      req.onblocked = () => resolve(null);
+    }} catch(_) {{ resolve(null); }}
+  }});
+}}
+
+function _idbGetRecord() {{
+  return new Promise(resolve => {{
+    _idbOpen().then(db => {{
+      if (!db) {{ resolve(null); return; }}
+      try {{
+        const tx  = db.transaction(_SESSION_WRAP_STORE, 'readonly');
+        const req = tx.objectStore(_SESSION_WRAP_STORE).get(_SESSION_WRAP_KEY);
+        req.onsuccess = () => {{
+          try {{ db.close(); }} catch(_) {{}}
+          resolve(req.result || null);
+        }};
+        req.onerror   = () => {{
+          try {{ db.close(); }} catch(_) {{}}
+          resolve(null);
+        }};
+      }} catch(_) {{
+        try {{ db.close(); }} catch(_) {{}}
+        resolve(null);
+      }}
+    }}).catch(() => resolve(null));
+  }});
+}}
+
+function _idbPutRecord(rec) {{
+  return new Promise(resolve => {{
+    _idbOpen().then(db => {{
+      if (!db) {{ resolve(false); return; }}
+      try {{
+        const tx = db.transaction(_SESSION_WRAP_STORE, 'readwrite');
+        tx.objectStore(_SESSION_WRAP_STORE).put(rec, _SESSION_WRAP_KEY);
+        tx.oncomplete = () => {{
+          try {{ db.close(); }} catch(_) {{}}
+          resolve(true);
+        }};
+        tx.onerror    = () => {{
+          try {{ db.close(); }} catch(_) {{}}
+          resolve(false);
+        }};
+        tx.onabort    = () => {{
+          try {{ db.close(); }} catch(_) {{}}
+          resolve(false);
+        }};
+      }} catch(_) {{
+        try {{ db.close(); }} catch(_) {{}}
+        resolve(false);
+      }}
+    }}).catch(() => resolve(false));
+  }});
+}}
+
+function _idbDeleteRecord() {{
+  return new Promise(resolve => {{
+    _idbOpen().then(db => {{
+      if (!db) {{ resolve(); return; }}
+      try {{
+        const tx = db.transaction(_SESSION_WRAP_STORE, 'readwrite');
+        tx.objectStore(_SESSION_WRAP_STORE).delete(_SESSION_WRAP_KEY);
+        tx.oncomplete = () => {{ try {{ db.close(); }} catch(_) {{}} resolve(); }};
+        tx.onerror    = () => {{ try {{ db.close(); }} catch(_) {{}} resolve(); }};
+        tx.onabort    = () => {{ try {{ db.close(); }} catch(_) {{}} resolve(); }};
+      }} catch(_) {{ try {{ db.close(); }} catch(_) {{}} resolve(); }}
+    }}).catch(() => resolve());
+  }});
+}}
+
+async function _persistSessionWrap(tok) {{
+  // Non-blocking, fail-soft. Aufrufer MUSS catch(_ => null) anhaengen.
+  if (!tok) return;
+  try {{
+    const rawKey = crypto.getRandomValues(new Uint8Array(_TOK_KEY_BITS / 8));
+    const iv     = crypto.getRandomValues(new Uint8Array(_TOK_IV_LEN));
+    const key    = await crypto.subtle.importKey(
+      'raw', rawKey, {{name: 'AES-GCM', length: _TOK_KEY_BITS}},
+      false, ['encrypt', 'decrypt']
+    );
+    const ct = await crypto.subtle.encrypt(
+      {{name: 'AES-GCM', iv: iv}}, key, new TextEncoder().encode(tok)
+    );
+    const rec = {{
+      v:             1,
+      key_b64:       _b64encode(rawKey),
+      iv_b64:        _b64encode(iv),
+      ct_b64:        _b64encode(new Uint8Array(ct)),
+      expires_at_ms: Date.now() + _SESSION_WRAP_WINDOW_MS,
+    }};
+    await _idbPutRecord(rec);
+    _tokLog('_persistSessionWrap done', {{expires_at_ms: rec.expires_at_ms}});
+  }} catch(e) {{
+    _tokLog('_persistSessionWrap fail (soft)', {{err: e && e.message}});
+  }}
+}}
+
+async function _tryUnwrapSessionToken() {{
+  // Liest den Session-Wrap-Record aus IndexedDB und versucht den Token
+  // zu entwickeln. Returnt Klartext-Token oder null. Bei Ablauf oder
+  // Fehler wird der Record entsorgt. Rolling-Refresh bei Erfolg
+  // (frischer Wrap + neue expires_at_ms).
+  try {{
+    const rec = await _idbGetRecord();
+    if (!rec || rec.v !== 1) return null;
+    if (typeof rec.expires_at_ms !== 'number'
+        || Date.now() >= rec.expires_at_ms) {{
+      _idbDeleteRecord().catch(() => null);
+      _tokLog('_tryUnwrapSessionToken expired');
+      return null;
+    }}
+    const rawKey = _b64decode(rec.key_b64);
+    const iv     = _b64decode(rec.iv_b64);
+    const ct     = _b64decode(rec.ct_b64);
+    const key    = await crypto.subtle.importKey(
+      'raw', rawKey, {{name: 'AES-GCM', length: _TOK_KEY_BITS}},
+      false, ['encrypt', 'decrypt']
+    );
+    const pt     = await crypto.subtle.decrypt(
+      {{name: 'AES-GCM', iv: iv}}, key, ct
+    );
+    const tok    = new TextDecoder().decode(pt);
+    if (!tok) return null;
+    // Rolling-Refresh: frischen Wrap schreiben (neuer Key + IV, neue
+    // expires_at_ms). Auch der Storage-Write selbst resettet ITP-Timer.
+    // Fire-and-forget — der return darf nicht warten.
+    _persistSessionWrap(tok).catch(() => null);
+    _tokLog('_tryUnwrapSessionToken hit + refresh');
+    return tok;
+  }} catch(e) {{
+    _tokLog('_tryUnwrapSessionToken fail (soft)', {{err: e && e.message}});
+    _idbDeleteRecord().catch(() => null);
+    return null;
+  }}
+}}
+
 // ── Diagnose-Build: Token-State-Logging ─────────────────────────────────
 // Liefert bei jedem relevanten Schritt einen Snapshot beider Storages +
 // Memory-Slot. User schickt Console-Output nach Reproduktion zur Auswertung.
@@ -9733,6 +9917,14 @@ function _setSessionToken(tok) {{
   if (tok) {{
     try {{ if (typeof window._wlInvalidateCache === 'function') window._wlInvalidateCache(); }} catch(_) {{}}
     try {{ if (typeof window.wlRender === 'function') window.wlRender(); }} catch(_) {{}}
+    // Session-Wrap (Option C, 30.05.2026): fire-and-forget Persist in
+    // IndexedDB. Darf den Haupt-Flow NICHT blockieren, daher kein await.
+    // Fail-soft via catch — bei IndexedDB-Fehler bleibt nur Master-PW-Pfad.
+    try {{
+      if (typeof _persistSessionWrap === 'function') {{
+        _persistSessionWrap(tok).catch(() => null);
+      }}
+    }} catch(_) {{}}
   }}
 }}
 function _clearSessionToken() {{
@@ -9748,6 +9940,14 @@ function _clearAllTokens() {{
   try {{ localStorage.removeItem(TOK_ENC_KEY); }} catch(_) {{}}
   try {{ localStorage.removeItem(TOK_LEGACY_KEY); }} catch(_) {{}}
   _clearSessionToken();
+  // Session-Wrap (Option C, 30.05.2026): IndexedDB-Record loeschen, sonst
+  // Geist-Session nach Reset/Logout (Unwrap wuerde beim naechsten App-Open
+  // den alten Token auferstehen lassen). Fire-and-forget, fail-soft.
+  try {{
+    if (typeof _idbDeleteRecord === 'function') {{
+      _idbDeleteRecord().catch(() => null);
+    }}
+  }} catch(_) {{}}
   _tokLog('_clearAllTokens (nach)');
 }}
 
@@ -9846,8 +10046,30 @@ function _persistTokenAtomic(plaintext, encryptedBlob) {{
 // Unlock (verschlüsselter Blob da), Migrate (Legacy-Klartext erkannt).
 // Aufrufer rufen ``_ensureToken(callback)`` — bekommen Token zurück oder
 // werden durch das passende Modal geführt.
-let _tokPending = null;       // callback nach erfolgreichem Setup/Unlock
-let _tokUnlockFails = 0;      // Fehlversuch-Counter (Reset-Hint nach 3)
+// Callback-QUEUE (FIFO) nach erfolgreichem Setup/Unlock. Vor PR #282 war
+// das ein Single-Slot; PR #281 (Option C — Session-Wrap via IndexedDB)
+// hat einen Async-Window in _ensureToken eingefuehrt (Microtask vor
+// Modal-Open). Parallele _ensureToken-Aufrufe in diesem Window konnten
+// im Single-Slot den zweiten Callback verlieren (Defensive Guard
+// schuetzte nur vor Slot-Overwrite, nicht vor Slot-Verlust). Queue
+// stellt sicher: jeder Aufrufer bekommt seinen Callback ausgefuehrt.
+let _tokPendingQueue = [];
+let _tokUnlockFails  = 0;     // Fehlversuch-Counter (Reset-Hint nach 3)
+
+// Atomic capture-then-clear-then-invoke. Wichtig fuer Race-Sicherheit:
+// ein Callback, der waehrend des Drains erneut _ensureToken aufruft,
+// landet in der NAECHSTEN Drain-Runde (eigene Queue) — nicht in der
+// aktuellen Iteration (die haette einen unendlichen Loop ausloesen
+// koennen). Jeder Callback in try/catch — ein werfender Callback
+// blockiert den Rest nicht.
+function _drainTokPendingQueue(tok) {{
+  const callbacks = _tokPendingQueue;
+  _tokPendingQueue = [];
+  for (const cb of callbacks) {{
+    try {{ if (cb) cb(tok); }}
+    catch(e) {{ _tokLog('_drainTokPendingQueue cb threw', {{err: e && e.message}}); }}
+  }}
+}}
 
 function _hasEncryptedToken() {{
   try {{ return !!localStorage.getItem(TOK_ENC_KEY); }} catch(_) {{ return false; }}
@@ -9887,18 +10109,59 @@ function _closeTokenModals() {{
     const e = document.getElementById(id);
     if (e) {{ e.hidden = true; e.textContent = ''; }}
   }});
-  _tokPending = null;
+  // Defensive Queue-Drop bei Modal-Close (identisch zum Single-Slot-
+  // Status-quo: Esc-Taste oder programmatisches Close droppt wartende
+  // Callbacks). Submit-Handler capturen die Queue VOR _closeTokenModals.
+  _tokPendingQueue = [];
 }}
 
 function _ensureToken(callback) {{
   const tok = getToken();
   _tokLog('_ensureToken ENTER', {{has_session_tok: !!tok, has_enc: _hasEncryptedToken(), has_legacy: !!_getLegacyPlaintextToken()}});
   if (tok) {{ callback(tok); return; }}
-  _tokPending = callback;
-  if (_hasEncryptedToken()) {{ _tokLog('_ensureToken → unlock'); _showModal('tok-modal-unlock'); return; }}
-  if (_getLegacyPlaintextToken()) {{ _tokLog('_ensureToken → migrate'); _showModal('tok-modal-migrate'); return; }}
-  _tokLog('_ensureToken → setup');
-  _showModal('tok-modal-setup');
+  // Queue-Push (FIFO, PR #282): jeder Aufrufer landet in der Queue,
+  // egal ob parallel ein anderer Aufrufer bereits wartet. Der naechste
+  // erfolgreiche Drain (Trampoline-Hit oder Master-PW-Submit) ruft alle
+  // gequeueten Callbacks in Reihenfolge auf.
+  _tokPendingQueue.push(callback);
+  // Option C (30.05.2026, 7-Tage-Rolling-Window):
+  // VOR dem Master-PW-Modal asynchron versuchen, den Token aus dem
+  // Session-Wrap (IndexedDB) zu entwickeln. Async-Trampolin laeuft als
+  // Microtask — Aufrufer-Signatur unveraendert. Bei Erfolg loest der
+  // Pending-Callback synchron auf, bei Misserfolg/Fehler faellt der Pfad
+  // STILL auf das passende Master-PW-Modal zurueck. Kein Toast, kein Crash.
+  let _trampolinePromise = null;
+  try {{
+    if (typeof _tryUnwrapSessionToken === 'function') {{
+      _trampolinePromise = _tryUnwrapSessionToken();
+    }}
+  }} catch(_) {{ _trampolinePromise = null; }}
+  if (!_trampolinePromise) {{
+    // IndexedDB-Layer nicht verfuegbar (sehr unwahrscheinlich, aber
+    // defensive) — direkt Modal-Pfad wie vorher.
+    if (_hasEncryptedToken()) {{ _tokLog('_ensureToken → unlock (no idb)'); _showModal('tok-modal-unlock'); return; }}
+    if (_getLegacyPlaintextToken()) {{ _tokLog('_ensureToken → migrate (no idb)'); _showModal('tok-modal-migrate'); return; }}
+    _tokLog('_ensureToken → setup (no idb)');
+    _showModal('tok-modal-setup');
+    return;
+  }}
+  _trampolinePromise.then(unwrapped => {{
+    if (unwrapped) {{
+      _setSessionToken(unwrapped);
+      _drainTokPendingQueue(unwrapped);
+      _tokLog('_ensureToken → session-wrap unwrap hit');
+      return;
+    }}
+    if (_hasEncryptedToken()) {{ _tokLog('_ensureToken → unlock'); _showModal('tok-modal-unlock'); return; }}
+    if (_getLegacyPlaintextToken()) {{ _tokLog('_ensureToken → migrate'); _showModal('tok-modal-migrate'); return; }}
+    _tokLog('_ensureToken → setup');
+    _showModal('tok-modal-setup');
+  }}).catch(e => {{
+    _tokLog('_ensureToken trampoline fail (soft)', {{err: e && e.message}});
+    if (_hasEncryptedToken()) {{ _showModal('tok-modal-unlock'); return; }}
+    if (_getLegacyPlaintextToken()) {{ _showModal('tok-modal-migrate'); return; }}
+    _showModal('tok-modal-setup');
+  }});
 }}
 
 function _showModalErr(errId, msg) {{
@@ -9926,15 +10189,21 @@ async function _submitTokenSetup() {{
     // Setup-Modal erneut → Endlosschleife.
     _persistTokenAtomic(tok, blob);
     _tokLog('_submitTokenSetup AFTER persist (vor close)');
-    const cb = _tokPending;
+    // Queue VOR _closeTokenModals capturen — close droppt die Queue
+    // defensiv. Anschliessend Drain mit dem frisch persistierten Token.
+    const _queuedCallbacks = _tokPendingQueue;
+    _tokPendingQueue = [];
     _closeTokenModals();
     _tokLog('_submitTokenSetup AFTER close');
     // Settings-Panel-UI-Refresh, falls offen (z.B. Settings-Panel-
     // getriggerter Setup-Pfad via saveGhToken). Single-Source-Helper,
     // no-op wenn Panel unsichtbar.
     _refreshGhSettingsUI();
-    if (cb) cb(tok);
-    _tokLog('_submitTokenSetup AFTER callback');
+    for (const cb of _queuedCallbacks) {{
+      try {{ if (cb) cb(tok); }}
+      catch(e) {{ _tokLog('_submitTokenSetup cb threw', {{err: e && e.message}}); }}
+    }}
+    _tokLog('_submitTokenSetup AFTER callbacks', {{count: _queuedCallbacks.length}});
   }} catch(e) {{
     console.error('Token-Setup fehlgeschlagen:', e);
     _tokLog('_submitTokenSetup CAUGHT', {{err: e && e.message}});
@@ -9955,12 +10224,18 @@ async function _submitTokenUnlock() {{
     // Atomarer Persist-Verify (iOS-Safari-Härtung) — Encrypted-Blob ist
     // schon da, also nur Session-Token.
     _persistTokenAtomic(tok, null);
-    const cb = _tokPending;
+    // Queue VOR _closeTokenModals capturen (siehe _submitTokenSetup).
+    const _queuedCallbacks = _tokPendingQueue;
+    _tokPendingQueue = [];
     _closeTokenModals();
     _tokLog('_submitTokenUnlock AFTER close');
     // Settings-Panel-UI-Refresh, falls offen — siehe _refreshGhSettingsUI.
     _refreshGhSettingsUI();
-    if (cb) cb(tok);
+    for (const cb of _queuedCallbacks) {{
+      try {{ if (cb) cb(tok); }}
+      catch(e) {{ _tokLog('_submitTokenUnlock cb threw', {{err: e && e.message}}); }}
+    }}
+    _tokLog('_submitTokenUnlock AFTER callbacks', {{count: _queuedCallbacks.length}});
   }} catch(e) {{
     _tokLog('_submitTokenUnlock CAUGHT', {{err: e && e.message}});
     _tokUnlockFails++;
@@ -9986,12 +10261,18 @@ async function _submitTokenMigrate() {{
     _tokLog('_submitTokenMigrate encrypted', {{blob_len: blob.length}});
     // Atomarer Persist-Verify-Block (iOS-Safari-Härtung) — siehe Setup.
     _persistTokenAtomic(legacy, blob);
-    const cb = _tokPending;
+    // Queue VOR _closeTokenModals capturen (siehe _submitTokenSetup).
+    const _queuedCallbacks = _tokPendingQueue;
+    _tokPendingQueue = [];
     _closeTokenModals();
     _tokLog('_submitTokenMigrate AFTER close');
     // Settings-Panel-UI-Refresh, falls offen — siehe _refreshGhSettingsUI.
     _refreshGhSettingsUI();
-    if (cb) cb(legacy);
+    for (const cb of _queuedCallbacks) {{
+      try {{ if (cb) cb(legacy); }}
+      catch(e) {{ _tokLog('_submitTokenMigrate cb threw', {{err: e && e.message}}); }}
+    }}
+    _tokLog('_submitTokenMigrate AFTER callbacks', {{count: _queuedCallbacks.length}});
   }} catch(e) {{
     console.error('Token-Migration fehlgeschlagen:', e);
     _tokLog('_submitTokenMigrate CAUGHT', {{err: e && e.message}});
@@ -10004,9 +10285,15 @@ function _skipTokenMigrate() {{
   // Fallback: User arbeitet weiter mit Klartext-Token (legacy-Pfad).
   const legacy = _getLegacyPlaintextToken();
   if (legacy) _setSessionToken(legacy);
-  const cb = _tokPending;
+  // Queue VOR _closeTokenModals capturen (siehe _submitTokenSetup).
+  const _queuedCallbacks = _tokPendingQueue;
+  _tokPendingQueue = [];
   _closeTokenModals();
-  if (cb && legacy) cb(legacy);
+  if (!legacy) return;
+  for (const cb of _queuedCallbacks) {{
+    try {{ if (cb) cb(legacy); }}
+    catch(e) {{ _tokLog('_skipTokenMigrate cb threw', {{err: e && e.message}}); }}
+  }}
 }}
 function _resetTokenForReentry() {{
   if (!confirm('Token + verschlüsselter Blob werden gelöscht. Erneut eingeben?')) return;
@@ -10030,7 +10317,7 @@ function _coldStartTokenMigration() {{
   if (_hasEncryptedToken()) {{ _tokLog('_coldStartTokenMigration → encrypted exists, skip'); return; }}
   if (!_getLegacyPlaintextToken()) {{ _tokLog('_coldStartTokenMigration → no legacy, skip'); return; }}
   _tokLog('_coldStartTokenMigration → showing migrate modal');
-  _tokPending = null;
+  _tokPendingQueue = [];
   _showModal('tok-modal-migrate');
 }}
 document.addEventListener('DOMContentLoaded', _coldStartTokenMigration);
@@ -12912,7 +13199,7 @@ function saveGhToken() {{
     // Häufigster Cold-Start-Fall: Blob da, Session weg, User klickt OK auf
     // leerem Input → Unlock statt Setup, sonst Endlosschleife.
     _tokLog('saveGhToken → routing to UNLOCK (blob exists, no input)');
-    _tokPending = null;
+    _tokPendingQueue = [];
     _showModal('tok-modal-unlock');
     return;
   }}
@@ -12927,7 +13214,7 @@ function saveGhToken() {{
   if (setupInp) setupInp.value = tok;
   if (inp) inp.value = '';
   if (status) {{ status.className = 'anth-status'; status.textContent = ''; }}
-  _tokPending = null;
+  _tokPendingQueue = [];
   _showModal('tok-modal-setup');
 }}
 
