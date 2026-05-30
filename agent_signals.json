@@ -1,10 +1,10 @@
 {
-  "updated": "2026-05-30T21:44:29.629637+02:00",
+  "updated": "2026-05-30T23:15:17.443105+02:00",
   "run_info": {
     "tickers_checked": 18,
     "signals_active": 7,
     "alerts_sent": 0,
-    "elapsed_s": 17.7,
+    "elapsed_s": 11.5,
     "market_phase": "Geschlossen"
   },
   "signals": {
@@ -160,9 +160,9 @@
       "uoa_cp_ratio": 0.22302158273381295
     },
     "CRDF": {
-      "score": 25,
+      "score": 10,
       "confidence": 17,
-      "drivers": "SEC 8-K + UOA Call/Put 108.5×",
+      "drivers": "UOA Call/Put 108.5×",
       "price": 1.9,
       "chg_pct": -0.0,
       "rvol_4d": 0.63,
@@ -173,7 +173,7 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 1,
+      "active_triggers": 0,
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 108.5×"
@@ -184,7 +184,7 @@
     "CRMD": {
       "score": 30,
       "confidence": 17,
-      "drivers": "News: earnings beat, guidance raised",
+      "drivers": "News: guidance raised, earnings beat",
       "price": 8.44,
       "chg_pct": -0.0,
       "rvol_4d": 0.92,
@@ -222,9 +222,9 @@
       "uoa_cp_ratio": 0.05536332179930796
     },
     "GEMI": {
-      "score": 35,
+      "score": 32,
       "confidence": 33,
-      "drivers": "Spanne 7.0% + News: takeover + UOA Call/Put 5.7×",
+      "drivers": "Spanne 7.0% + News-KI 12/30: IPO filings and platform updates lack the critical short squeeze indicators like high short interest, low float, or reta + UOA Call/Put 5.7×",
       "price": 5.27,
       "chg_pct": -0.0,
       "rvol_4d": 0.7,
@@ -244,9 +244,9 @@
       "uoa_cp_ratio": 5.690647482014389
     },
     "INDI": {
-      "score": 60,
+      "score": 45,
       "confidence": 70,
-      "drivers": "Spanne 10.1% + SEC 8-K + News: acquisition + SEC Form 4 + UOA Call/Put 16.3×",
+      "drivers": "Spanne 10.1% + News: acquisition + SEC Form 4 + UOA Call/Put 16.3×",
       "price": 4.99,
       "chg_pct": -0.0,
       "rvol_4d": 0.49,
