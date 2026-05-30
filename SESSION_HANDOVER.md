@@ -97,6 +97,21 @@
   ungecappt gesammelt → Cap-vs-Perzentil-Entscheidung für alle 5 Komponenten
   ist 30.06. auf ECHTEN (nicht zensierten) Verteilungen entscheidbar, nicht
   mehr zirkulär.
+- **#281 (a04de49) — 30.05.** Option C: Token-Session-Wrap gegen
+  tägliches Master-PW-Re-Entry. Nach Master-PW-Unlock wird der Token mit
+  random AES-GCM-Key gewrappt + in IndexedDB persistiert (Store
+  squeeze_session). 7-TAGE-ROLLING-WINDOW (NICHT 30 — iOS-ITP räumt
+  script-writable Storage nach 7d Inaktivität; jeder Open verlängert +
+  resettet ITP-Timer). Beim App-Open wird VOR dem Master-PW-Modal der
+  Session-Unwrap versucht (async-Trampolin in _ensureToken, Signatur
+  synchron unverändert, alle 8 Aufrufer unberührt). Master-PW bleibt
+  Anker. Fail-soft: jeder Fehlerpfad (IDB-Fail/Quota/privater Modus/
+  Decrypt-Fail/Ablauf) fällt STILL auf Master-PW-Modal zurück.
+  Zusätzlich Queue-Refactor: _tokPending Single-Slot → FIFO-Callback-
+  Queue (_tokPendingQueue + _drainTokPendingQueue), 11 Konsumenten
+  umgestellt, schließt async-Fenster-Race bei parallelen _ensureToken-
+  Aufrufen. 22/22 Tests grün. Manueller Merge nach iPhone-Verify.
+  Wirkung: 5-20 Master-PW-Eingaben/Woche → 0 bei regelmäßiger Nutzung.
 - **UOA-Befund (Diagnose 29.05., entscheiden 30.06.):** uoa_atm_ratio
   wird im Code STRUKTURELL ENG berechnet — nur ATM-Band (±10%), nur Calls,
   nur nächste Expiration (ki_agent.py:1146-1158). Die Schwellen (intern
@@ -138,22 +153,11 @@
   Code via Clone ohnehin verteilt. Schützt gegen Account-Sperrung
   (vgl. 26.05.-Lock) UND Hack (Löschung/Manipulation). Terminiert VOR
   10.06.-Entry-Modul, das neue wertvolle Daten produziert.
-- **Nächste frische Session (kein festes Datum) — Token-Re-Entry-Komfort:**
-  iOS-PWA killt die App aggressiv aus dem Speicher → bei jedem Icon-Antippen
-  Master-Passwort neu (Token nur in _inMemoryToken + sessionStorage, beide
-  weg beim Prozess-Tod). KEIN Bug — direkte Folge der Phase-3-Sicherheitswahl
-  (Klartext nie persistent) + iOS-PWA-Standalone-Respawn. Lösung: Option C
-  (Time-bounded Re-Encrypt) — nach Master-PW-Unlock einen Session-Schlüssel
-  (z.B. 30 Tage) in IndexedDB ablegen, Token damit re-wrappen, innerhalb des
-  Fensters kein Re-Entry. Behält Master-PW als Anker; einziger neuer Angriffs-
-  Pfad = physischer Zugriff aufs entsperrte Gerät im Fenster (eh Game Over).
-  ABLAUF: Read-only-Diagnose ZUERST (IndexedDB-Verfügbarkeit im iOS-PWA-
-  Standalone-Mode verlässlich? Fenster-Länge? Re-Encrypt-Mechanik?), erst
-  dann Bau. Token-Schema-Refactor mit Mock-Tests + iPhone-Verify-Pflicht =
-  echte Baustelle, braucht frischen Kopf (Token-Krypto, wo Müdigkeit teuer
-  wird). KEINE Datenabhängigkeit — wartet auf nichts außer Energie/Ruhe.
-  Verworfen: B (PIN, brute-force-anfällig), D (Touch-ID, iOS-Safari zu
-  eingeschränkt), E (Klartext localStorage = Pre-Phase-3-Rückschritt).
+- **Token-Re-Entry-Komfort — ERLEDIGT (30.05., #281):** Option C gebaut
+  + iPhone-verifiziert. 7-Tage-Rolling-Window statt der ursprünglich
+  angedachten 30 Tage (iOS-ITP-Realismus, in der Diagnose 30.05. belegt).
+  Details siehe Sektion 1 / Architektur-Anker. Folge-Layer WebAuthn/
+  Touch-ID bleibt optionale Roadmap-Idee, falls 7-Tage je nicht reicht.
 
 ## 5) STRATEGISCHE ROADMAP
 - Entry-Timing-Modul (★★★, 10.06.) — höchste Priorität.
@@ -225,6 +229,16 @@
   Fremd-Schreibpfad schlägt der Test sofort an, S8 würde sonst zum toten
   Wächter). last_digest_sent (YYYY-MM-DD) bleibt für _already_sent_today
   (Mehrfach-Trigger-Schutz) → Zwei-Felder-Architektur bewusst erhalten.
+- **Token-Session-Wrap (seit #281, 30.05.):** Nach Master-PW-Unlock
+  liegt der Token zusätzlich AES-GCM-gewrappt in IndexedDB (Store
+  squeeze_session, random Key, KEIN PBKDF2 — kein Passwort). 7-Tage-
+  Rolling, fail-soft auf Master-PW-Modal. _ensureToken versucht
+  Session-Unwrap VOR Modal (async-Trampolin, sync Signatur). _tokPending
+  ist eine FIFO-Queue (_tokPendingQueue), KEIN Single-Slot — bei Refactor
+  des Token-Pfads beibehalten, sonst Callback-Verlust bei parallelen
+  _ensureToken-Aufrufen. _clearAllTokens MUSS den IDB-Record mitlöschen
+  (Geist-Session-Schutz). Master-PW-Blob (PBKDF2-600k, localStorage)
+  bleibt unveränderter Anker.
 
 ## 8) LESSONS (28.05.2026)
 - **Card #10 CRIT — unlösbar ohne Artefakt:** Render-Code mehrfach geprüft,
@@ -261,3 +275,12 @@
   stiller Tod durch Skalen-Mismatch, kein Code-Fehler. Bei jedem neuen
   Indikator prüfen: passt die Schwelle zur tatsächlichen Werteskala der
   Berechnung?
+- **iOS-ITP killt 'persistente' Storage-Versprechen:** WebKit räumt
+  script-writable Storage (inkl. IndexedDB) nach 7d Inaktivität — ein
+  30-Tage-Komfort-Fenster ist auf iOS-PWA illusorisch. Lösung: kurzes
+  Fenster + Rolling-Refresh bei jeder Nutzung (verlängert UND resettet
+  den ITP-Timer). Der Komfort kommt vom Rolling, nicht von der initialen
+  Fenster-Länge. Ehrliche Spec im Code zementiert (Test prüft: kein
+  30-Tage-Versprechen). Zweitlehre: async-Fenster in einem vorher
+  synchronen Pfad kann latente Single-Slot-Races real machen — bei
+  async-Umbau alle Callback-Slots auf Queues prüfen.
