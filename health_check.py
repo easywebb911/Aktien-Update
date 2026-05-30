@@ -558,11 +558,36 @@ def evaluate_state_invariants(
             })
         elif (run_phase == "postclose"
                 and backtest_has_today is False):
-            fails.append({
-                "id": "S4", "severity": "warn",
-                "detail": (f"backtest_history ohne Eintrag für "
-                           f"{today_iso or 'heute'} (postclose)"),
-            })
+            # Wochenend-Gate (30.05.2026): postclose-Cron läuft Mo-Fr
+            # (``17 21 * * 1-5``). An Sa/So existiert per Design KEIN
+            # postclose-Append → S4 würde sonst strukturell für jeden
+            # Wochenend-postclose-Run feuern (manueller dispatch, late-
+            # cron-Drift mit Berlin-Mitternacht-Übertritt etc.). Gate
+            # prüft das DATUM, für das der Eintrag fehlt (today_iso,
+            # bewusst NICHT ``datetime.now()`` — sonst greift es bei
+            # Fr-22:24Z-Runs mit today_iso=Sa am falschen Tag).
+            # Catch-Wert Mo-Fr unverändert.
+            # Restkante: US-Feiertage (Memorial Day etc.) bleiben blind —
+            # bewusst keine fragile Feiertags-Liste hier; konsistent zu
+            # ``ki_agent._trading_days_elapsed`` und
+            # ``_last_phase_run_age_workdays`` die ebenfalls nur Mo-Fr
+            # filtern. S12 fängt Mehrtages-Drift werktags-robust.
+            _skip_weekend = False
+            if today_iso:
+                try:
+                    _wd = datetime.strptime(today_iso, "%Y-%m-%d").weekday()
+                    _skip_weekend = _wd >= 5  # 5=Sa, 6=So
+                except (ValueError, TypeError):
+                    # Parse-Fehler → defensive: altes Verhalten beibehalten
+                    # (lieber Wochenend-Lärm in Edge-Case als stilles Skip
+                    # des ganzen Mo-Fr-Catch-Werts).
+                    _skip_weekend = False
+            if not _skip_weekend:
+                fails.append({
+                    "id": "S4", "severity": "warn",
+                    "detail": (f"backtest_history ohne Eintrag für "
+                               f"{today_iso or 'heute'} (postclose)"),
+                })
 
     # === S5 (warn) — score_inflation_log ≥ N Zeilen pro Run ===============
     if not ki_agent_only and n_inflation_lines is not None:

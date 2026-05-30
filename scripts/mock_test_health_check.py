@@ -275,6 +275,114 @@ def test_s4_pass_postclose_with_appends():
     assert "S4" not in _ids(fails)
 
 
+# ── S4 Wochenend-Gate (30.05.2026) ─────────────────────────────────────────
+
+
+def test_s4_pass_postclose_saturday_no_appends():
+    """Sa-postclose-Run ohne backtest-Eintrag schweigt — Wochenend-Gate
+    greift, weil postclose-Cron Mo-Fr ist und Sa per Design kein
+    backtest-Append erwartet."""
+    # 2026-05-30 = Samstag
+    fails = hc.evaluate_state_invariants(
+        top10_tickers=TOP10,
+        setup_scores=_full_setup(TOP10),
+        monster_scores=_full_monster(TOP10),
+        score_history=_full_history(TOP10),
+        today_iso="2026-05-30",
+        n_inflation_lines=10,
+        n_backtest_appended=0,
+        backtest_has_today=False,
+        agent_signal_keys=set(TOP10),
+        run_phase="postclose",
+    )
+    assert "S4" not in _ids(fails), \
+        "S4 sollte am Samstag schweigen (Wochenend-Gate)"
+
+
+def test_s4_pass_postclose_sunday_no_appends():
+    """So-postclose-Run ohne backtest-Eintrag schweigt — Gate greift
+    für beide Wochenend-Tage."""
+    # 2026-05-31 = Sonntag
+    fails = hc.evaluate_state_invariants(
+        top10_tickers=TOP10,
+        setup_scores=_full_setup(TOP10),
+        monster_scores=_full_monster(TOP10),
+        score_history=_full_history(TOP10),
+        today_iso="2026-05-31",
+        n_inflation_lines=10,
+        n_backtest_appended=0,
+        backtest_has_today=False,
+        agent_signal_keys=set(TOP10),
+        run_phase="postclose",
+    )
+    assert "S4" not in _ids(fails), \
+        "S4 sollte am Sonntag schweigen (Wochenend-Gate)"
+
+
+def test_s4_fail_postclose_monday_no_appends():
+    """Mo-postclose-Run ohne backtest-Eintrag flaggt weiter — Mo-Fr-
+    Catch-Wert intakt nach dem Gate."""
+    # 2026-05-25 = Montag
+    fails = hc.evaluate_state_invariants(
+        top10_tickers=TOP10,
+        setup_scores=_full_setup(TOP10),
+        monster_scores=_full_monster(TOP10),
+        score_history=_full_history(TOP10),
+        today_iso="2026-05-25",
+        n_inflation_lines=10,
+        n_backtest_appended=0,
+        backtest_has_today=False,
+        agent_signal_keys=set(TOP10),
+        run_phase="postclose",
+    )
+    assert "S4" in _ids(fails), \
+        "S4 muss Mo-Fr weiter flaggen (Catch-Wert intakt)"
+
+
+def test_s4_pass_postclose_friday_late_with_saturday_today_iso():
+    """Fr-postclose-Run nach Berlin-Mitternacht (z.B. 22:24Z = Sa Berlin):
+    today_iso wird vom Caller als Sa-Datum gesetzt → Gate greift auf
+    today_iso (Sa), nicht auf 'jetzt' (Fr UTC). Genau der 29.05.22:24Z-
+    Fall aus der Diagnose 30.05.2026."""
+    # today_iso = 2026-05-30 (Berlin-Sa) — der Caller hat das schon so
+    # gesetzt, auch wenn der Run-Wallclock UTC noch Fr war.
+    fails = hc.evaluate_state_invariants(
+        top10_tickers=TOP10,
+        setup_scores=_full_setup(TOP10),
+        monster_scores=_full_monster(TOP10),
+        score_history=_full_history(TOP10),
+        today_iso="2026-05-30",  # Sa
+        n_inflation_lines=10,
+        n_backtest_appended=0,
+        backtest_has_today=False,
+        agent_signal_keys=set(TOP10),
+        run_phase="postclose",
+    )
+    assert "S4" not in _ids(fails), \
+        "S4-Gate muss am today_iso (Sa) prüfen, nicht an 'jetzt'"
+
+
+def test_s4_fail_postclose_parse_error_falls_back_to_old_behavior():
+    """today_iso-Parse-Fehler → defensive: kein Crash, kein stiller Skip
+    des ganzen Catch-Werts — S4 verhält sich wie vor dem Gate-Fix
+    (flaggt). Lieber Wochenend-Lärm in einem Edge-Case als blinder
+    Mo-Fr-Verlust."""
+    fails = hc.evaluate_state_invariants(
+        top10_tickers=TOP10,
+        setup_scores=_full_setup(TOP10),
+        monster_scores=_full_monster(TOP10),
+        score_history=_full_history(TOP10),
+        today_iso="garbage-not-a-date",
+        n_inflation_lines=10,
+        n_backtest_appended=0,
+        backtest_has_today=False,
+        agent_signal_keys=set(TOP10),
+        run_phase="postclose",
+    )
+    assert "S4" in _ids(fails), \
+        "Bei Parse-Fehler muss S4 weiter flaggen (defensive)"
+
+
 # ── S5: score_inflation_log ≥ N Zeilen ─────────────────────────────────────
 
 
@@ -614,6 +722,12 @@ def main() -> None:
         ("S4 pass: postclose Re-Trigger (Tages-Basis)",    test_s4_pass_postclose_re_trigger),
         ("S4 pass: premarket ohne appends",                test_s4_pass_premarket_no_appends),
         ("S4 pass: postclose mit appends",                 test_s4_pass_postclose_with_appends),
+        # S4 Wochenend-Gate (30.05.2026)
+        ("S4 pass: Sa-postclose ohne Eintrag (Gate)",      test_s4_pass_postclose_saturday_no_appends),
+        ("S4 pass: So-postclose ohne Eintrag (Gate)",      test_s4_pass_postclose_sunday_no_appends),
+        ("S4 fail: Mo-postclose ohne Eintrag (Catch)",     test_s4_fail_postclose_monday_no_appends),
+        ("S4 pass: Fr-postclose >Berlin-Mitternacht (Sa)", test_s4_pass_postclose_friday_late_with_saturday_today_iso),
+        ("S4 fail: today_iso-Parse-Fehler (defensive)",    test_s4_fail_postclose_parse_error_falls_back_to_old_behavior),
         # S5
         ("S5 fail: zu wenig Inflation-Zeilen",             test_s5_fail_too_few_lines),
         ("S5 pass: ≥ Schwelle",                            test_s5_pass),
