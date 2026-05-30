@@ -1,10 +1,10 @@
 {
-  "updated": "2026-05-30T19:10:32.049232+02:00",
+  "updated": "2026-05-30T19:30:59.887083+02:00",
   "run_info": {
     "tickers_checked": 18,
     "signals_active": 7,
     "alerts_sent": 0,
-    "elapsed_s": 14.2,
+    "elapsed_s": 17.7,
     "market_phase": "Geschlossen"
   },
   "signals": {
@@ -98,9 +98,9 @@
       "uoa_cp_ratio": 11.022619047619047
     },
     "BHVN": {
-      "score": 37,
-      "confidence": 70,
-      "drivers": "Volumen 1.5× + Spanne 13.6% + News-KI 12/30: Positive clinical and fundamental news lacks short squeeze catalysts like high short interest, low float, or forced buyi",
+      "score": 25,
+      "confidence": 33,
+      "drivers": "Volumen 1.5× + Spanne 13.6%",
       "price": 11.01,
       "chg_pct": 0.0,
       "rvol_4d": 1.52,
@@ -111,7 +111,7 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 1,
+      "active_triggers": 0,
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": 0.012245197242997507,
@@ -184,7 +184,7 @@
     "CRMD": {
       "score": 30,
       "confidence": 17,
-      "drivers": "News: guidance raised, earnings beat",
+      "drivers": "News: earnings beat, guidance raised",
       "price": 8.44,
       "chg_pct": -0.0,
       "rvol_4d": 0.92,
@@ -222,9 +222,9 @@
       "uoa_cp_ratio": 0.05536332179930796
     },
     "GEMI": {
-      "score": 20,
+      "score": 35,
       "confidence": 33,
-      "drivers": "Spanne 7.0% + UOA Call/Put 5.7×",
+      "drivers": "Spanne 7.0% + News: takeover + UOA Call/Put 5.7×",
       "price": 5.27,
       "chg_pct": -0.0,
       "rvol_4d": 0.7,
@@ -235,7 +235,7 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 0,
+      "active_triggers": 1,
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 5.7×"
@@ -308,7 +308,7 @@
     "REPL": {
       "score": 100,
       "confidence": 70,
-      "drivers": "Earnings in 2 Tagen (01.06.2026) + Volumen 19.2× + 🚀 Massives Volumen 19.2×+ + Spanne 17.6% + News-KI 8/30: Positive clinical data and stock spike suggest momentum, but healthcare sector weakness and lack of short interest data  + Earnings in 2d + UOA Call/Put 6.5×",
+      "drivers": "Earnings in 2 Tagen (01.06.2026) + Volumen 19.2× + 🚀 Massives Volumen 19.2×+ + Spanne 17.6% + News: fda approval + Earnings in 2d + UOA Call/Put 6.5× + 3/4 Trigger",
       "price": 8.69,
       "chg_pct": -0.0,
       "rvol_4d": 19.17,
@@ -318,8 +318,8 @@
       "upcoming_event": "Earnings in 2 Tagen (01.06.2026)",
       "insider_buy": false,
       "stocktwits": null,
-      "combo_mult": 1.1,
-      "active_triggers": 2,
+      "combo_mult": 1.2,
+      "active_triggers": 3,
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 6.5×"
