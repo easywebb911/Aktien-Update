@@ -1,10 +1,10 @@
 {
-  "updated": "2026-05-31T08:29:58.831347+02:00",
+  "updated": "2026-05-31T10:23:06.695691+02:00",
   "run_info": {
     "tickers_checked": 18,
     "signals_active": 8,
     "alerts_sent": 0,
-    "elapsed_s": 16.4,
+    "elapsed_s": 13.4,
     "market_phase": "Geschlossen"
   },
   "signals": {
@@ -54,9 +54,9 @@
       "uoa_cp_ratio": 17.92231985940246
     },
     "AMC": {
-      "score": 50,
+      "score": 35,
       "confidence": 70,
-      "drivers": "Volumen 1.9× + Spanne 15.4% + News: squeeze + UOA Call/Put 19.5×",
+      "drivers": "Volumen 1.9× + Spanne 15.4% + UOA Call/Put 19.5×",
       "price": 1.73,
       "chg_pct": 0.0,
       "rvol_4d": 1.95,
@@ -67,7 +67,7 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 1,
+      "active_triggers": 0,
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 19.5×"
@@ -184,7 +184,7 @@
     "CRMD": {
       "score": 30,
       "confidence": 17,
-      "drivers": "News: guidance raised, earnings beat",
+      "drivers": "News: earnings beat, guidance raised",
       "price": 8.44,
       "chg_pct": -0.0,
       "rvol_4d": 0.92,
@@ -222,9 +222,9 @@
       "uoa_cp_ratio": 0.05536332179930796
     },
     "GEMI": {
-      "score": 20,
+      "score": 35,
       "confidence": 33,
-      "drivers": "Spanne 7.0% + UOA Call/Put 5.7×",
+      "drivers": "Spanne 7.0% + News: takeover + UOA Call/Put 5.7×",
       "price": 5.27,
       "chg_pct": -0.0,
       "rvol_4d": 0.7,
@@ -235,7 +235,7 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 0,
+      "active_triggers": 1,
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 5.7×"
@@ -308,7 +308,7 @@
     "REPL": {
       "score": 100,
       "confidence": 70,
-      "drivers": "Earnings in 1 Tagen (01.06.2026) + Volumen 19.2× + 🚀 Massives Volumen 19.2×+ + Spanne 17.6% + News-KI 8/30: Positive clinical data supports fundamental value but lacks short squeeze indicators like high short interest, low float + Earnings in 1d + UOA Call/Put 6.5×",
+      "drivers": "Earnings in 1 Tagen (01.06.2026) + Volumen 19.2× + 🚀 Massives Volumen 19.2×+ + Spanne 17.6% + News: fda approval + Earnings in 1d + UOA Call/Put 6.5× + 3/4 Trigger",
       "price": 8.69,
       "chg_pct": -0.0,
       "rvol_4d": 19.17,
@@ -318,8 +318,8 @@
       "upcoming_event": "Earnings in 1 Tagen (01.06.2026)",
       "insider_buy": false,
       "stocktwits": null,
-      "combo_mult": 1.1,
-      "active_triggers": 2,
+      "combo_mult": 1.2,
+      "active_triggers": 3,
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 6.5×"
