@@ -361,6 +361,18 @@ _STOCKANALYSIS_ACCT: dict = {
     "latency_ms": 0, "calls": 0, "failures": 0, "successes": 0,
     "last_error_repr": None,
 }
+# Quellenwechsel 01.06.2026: eigener Akkumulator für die Borrow-
+# Orchestrator-Kette (fetch_borrow_metrics → fetch_stockanalysis_borrow
+# tot, dann fetch_ibkr_borrow_rate = iBorrowDesk). VORHER lief das im
+# _STOCKANALYSIS_ACCT zusammen mit dem SI-Pfad — bei stillem iBorrowDesk-
+# Tod wäre coverage_pct nur auf ~50 % gefallen (Borrow-Hälfte tot, SI-
+# Hälfte lebt), genau die Tier-2-Schwelle, möglicherweise knapp unterm
+# Alarm-Trigger. Eigener Akku → Borrow-Tod = coverage_pct 0 % → sicherer
+# Tier-2-fail im Digest.
+_BORROW_ACCT: dict = {
+    "latency_ms": 0, "calls": 0, "failures": 0, "successes": 0,
+    "last_error_repr": None,
+}
 # Phase 2 PR 3 — Tier-3 edgar_13f (im Daily-Run, per US-Top-10
 # ThreadPool). Andere edgar_*-Pfade leben in ki_agent.py.
 _EDGAR_13F_ACCT: dict = {
@@ -1435,93 +1447,70 @@ def get_options_data(ticker: str) -> dict:
 
 # Sentinel: None = noch nicht versucht; dict = Fetch erfolgreich (u.U. leer);
 # {} = Fetch versucht, aber geblockt/fehlgeschlagen (negatives Caching).
-_IBKR_BORROW_CACHE: dict[str, float] | None = None
+def fetch_ibkr_borrow_rate(ticker: str) -> float | None:
+    """Cost-to-Borrow (%/Jahr) für ``ticker`` oder ``None``.
 
+    Quellenwechsel 01.06.2026: ursprüngliche IBKR-.php-Scrape ist seit
+    ~Mai 2026 HTTP 404 (Daily-Log: ``IBKR Borrow Rate: HTTP 404 — Seite
+    nicht gefunden``). Ersatz: iBorrowDesk-JSON-API
+    (``https://iborrowdesk.com/api/ticker/{ticker}``), pro-Ticker, kein
+    Modul-Cache mehr (kein einmaliger Tabellen-Download). Aufbereitung
+    derselben IBKR-Daten — Live-verifiziert 31.05.2026.
 
-def _ibkr_borrow_load() -> dict[str, float]:
-    """Scraped die öffentliche IBKR Stock-Borrow-Rates-Tabelle genau einmal.
+    Schema (Spec, 31.05. Live-Probe):
+        {country, cusip, daily: [{available, date, fee, high_fee,
+         low_fee, rebate, high_rebate, low_rebate}]}
+    Wir lesen ``daily[-1]["fee"]`` (= aktuellster annualisierter
+    Cost-to-Borrow-Prozentsatz). Beispiel AMC 31.05.: fee=0.5768
+    = 0,58 %/Jahr.
 
-    Fällt bei Cloudflare-Block, Timeout oder leerer Antwort auf ein leeres
-    Dict zurück — der Aufrufer unterscheidet das nicht von „Ticker nicht
-    vorhanden". Wird nur einmal pro Run aufgerufen (Ergebnis wird im
-    Modul-Cache ``_IBKR_BORROW_CACHE`` gehalten).
+    Funktionsname bleibt aus Aufrufer-Stabilität — die 3 Konsumenten
+    (``fetch_borrow_metrics``, Tests) sehen identische Semantik. Cleanup
+    zu ``fetch_iborrowdesk_borrow_rate`` o.ä. in Folge-PR.
+
+    Fail-soft: returnt ``None`` bei deaktiviertem Feature, leerem Ticker,
+    HTTP-Fehler, Non-200, JSON-Parse-Fehler, leerer ``daily``-Liste,
+    fehlendem ``fee``-Feld oder Cast-Fehler. Niemals raise.
     """
-    # timeout als Tupel: (connect, read) — beide hart ≤ IBKR_BORROW_TIMEOUT,
-    # verhindert langsames Trickle-Streaming durch Cloudflare.
-    # stream=False zwingt requests die Response komplett zu lesen bevor
-    # zurückgegeben wird — Verbindung wird sofort beendet statt offen gehalten.
-    _to = (IBKR_BORROW_TIMEOUT, IBKR_BORROW_TIMEOUT)
+    if not IBKR_BORROW_ENABLED or not ticker:
+        return None
+    url = IBORROWDESK_URL_TEMPLATE.format(ticker=ticker.upper())
     try:
         resp = requests.get(
-            IBKR_BORROW_URL,
+            url,
             headers={
+                # Browser-User-Agent: iBorrowDesk blockt nackte Script-UAs.
                 "User-Agent": (
                     "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 "
                     "(KHTML, like Gecko) Chrome/120.0 Safari/537.36"
                 ),
-                "Accept": "text/html,application/xhtml+xml",
-                "Accept-Language": "en-US,en;q=0.9",
+                "Accept": "application/json,*/*",
             },
-            timeout=_to,
-            stream=False,
+            timeout=(IBKR_BORROW_TIMEOUT, IBKR_BORROW_TIMEOUT),
         )
     except requests.RequestException as exc:
-        log.warning("IBKR borrow-rate fetch failed after %ds: %s",
-                    IBKR_BORROW_TIMEOUT, exc)
-        return {}
-    if resp.status_code == 404:
-        print("IBKR Borrow Rate: HTTP 404 — Seite nicht gefunden, Fallback auf None",
-              flush=True)
-        return {}
-    if resp.status_code != 200 or not resp.text:
-        log.warning("IBKR borrow-rate HTTP %d (%d bytes)",
-                    resp.status_code, len(resp.text or ""))
-        return {}
-
-    try:
-        soup = BeautifulSoup(resp.text, "html.parser")
-    except Exception as exc:  # noqa: BLE001
-        log.debug("IBKR borrow-rate parse failed: %s", exc)
-        return {}
-
-    rates: dict[str, float] = {}
-    ticker_re = re.compile(r"^[A-Z]{1,6}$")
-    rate_re   = re.compile(r"^\s*([-+]?\d+(?:[.,]\d+)?)\s*%?\s*$")
-    # Generischer Row-Scan: akzeptiert jedes <tr> mit ≥ 2 Zellen, wo Spalte 0
-    # ein Ticker-Symbol ist und irgendeine spätere Zelle einen numerischen
-    # Wert enthält. Damit sind kleinere HTML-Änderungen verkraftbar.
-    for tr in soup.find_all("tr"):
-        cells = tr.find_all(["td", "th"])
-        if len(cells) < 2:
-            continue
-        tick = cells[0].get_text(strip=True).upper()
-        if not ticker_re.match(tick):
-            continue
-        for c in cells[1:]:
-            m = rate_re.match(c.get_text(strip=True).replace(",", "."))
-            if m:
-                try:
-                    rates[tick] = float(m.group(1))
-                    break
-                except ValueError:
-                    continue
-    log.info("IBKR borrow-rate: %d Ticker geparsed", len(rates))
-    return rates
-
-
-def fetch_ibkr_borrow_rate(ticker: str) -> float | None:
-    """Public Borrow-Rate (%/Jahr) für ``ticker`` oder ``None``.
-
-    Erster Aufruf löst den eigentlichen HTTP-Fetch aus; weitere Aufrufe
-    nutzen den Modul-Cache. Gibt None zurück bei deaktiviertem Feature,
-    fehlgeschlagenem Scraping oder unbekanntem Ticker.
-    """
-    global _IBKR_BORROW_CACHE
-    if not IBKR_BORROW_ENABLED or not ticker:
+        log.debug("iBorrowDesk fetch failed for %s: %s", ticker, exc)
         return None
-    if _IBKR_BORROW_CACHE is None:
-        _IBKR_BORROW_CACHE = _ibkr_borrow_load()
-    return _IBKR_BORROW_CACHE.get(ticker.upper())
+    if resp.status_code != 200:
+        log.debug("iBorrowDesk HTTP %d for %s", resp.status_code, ticker)
+        return None
+    try:
+        payload = resp.json()
+    except (ValueError, json.JSONDecodeError):
+        return None
+    daily = (payload or {}).get("daily") if isinstance(payload, dict) else None
+    if not isinstance(daily, list) or not daily:
+        return None
+    latest = daily[-1]
+    if not isinstance(latest, dict):
+        return None
+    fee = latest.get("fee")
+    if fee is None:
+        return None
+    try:
+        return round(float(fee), 4)
+    except (TypeError, ValueError):
+        return None
 
 
 def get_earnings_date(ticker: str) -> tuple[int | None, str | None]:
@@ -15170,6 +15159,7 @@ def main():
     _finviz_acct_reset()
     _provider_acct_reset(_FINNHUB_ACCT)
     _provider_acct_reset(_STOCKANALYSIS_ACCT)
+    _provider_acct_reset(_BORROW_ACCT)
     _provider_acct_reset(_EDGAR_13F_ACCT)
 
     # --- Step 1: Get candidate pool ---
@@ -15935,8 +15925,20 @@ def main():
             # ist die Latency leicht ueberhoeht. Akzeptable Naeherung, da
             # IBKR-Lookup im statischen Dict erfolgt (sub-ms).
             if STOCKANALYSIS_BORROW_ENABLED:
+                # Stille-Tod-Härtung (01.06.2026): expliziter success_check,
+                # damit ein Dict mit ``cost_to_borrow=None`` als FAIL gilt.
+                # Default-Check würde "dict non-empty = success" liefern und
+                # 16+ Tage-Stille-Tod (Stockanalysis 15.-31.05.) unsichtbar
+                # halten. Utilization bewusst NICHT im Check — würde sonst
+                # dauerhaft fail-flag (keine Gratis-Quelle für Utilization).
+                # Eigener _BORROW_ACCT (NICHT _STOCKANALYSIS_ACCT): trennt
+                # die iBorrowDesk-Borrow-Kette vom SI-Pfad; sonst würde ein
+                # stiller iBorrowDesk-Tod nur 50 % coverage drücken und
+                # knapp unter dem Tier-2-Schwellenwert durchrutschen.
                 _bm = _instrument_provider_call(
-                    _STOCKANALYSIS_ACCT, fetch_borrow_metrics, _s["ticker"])
+                    _BORROW_ACCT, fetch_borrow_metrics, _s["ticker"],
+                    success_check=lambda r: bool(
+                        r and r.get("cost_to_borrow") is not None))
             else:
                 _bm = fetch_borrow_metrics(_s["ticker"])
             _s["cost_to_borrow"] = _bm.get("cost_to_borrow")
@@ -16468,19 +16470,44 @@ def main():
                             or f"{_fh_acct['failures']}/{_fh_acct['calls']} calls failed"),
                 run_phase=run_phase,
             )
-        # Tier 2: stockanalysis — ENABLED-Gating bereits aussen herum;
-        # hier emittieren wir nur wenn mindestens 1 Call attempted wurde.
+        # Tier 2: stockanalysis (SI-Pfad) — ENABLED-Gating bereits aussen
+        # herum; hier emittieren wir nur wenn mindestens 1 Call attempted
+        # wurde. Misst NUR fetch_stockanalysis_si (per US-Top-10).
         _sa_acct = _STOCKANALYSIS_ACCT
         if _sa_acct["calls"] > 0:
+            _sa_cov = round(
+                _sa_acct["successes"] / _sa_acct["calls"] * 100, 1)
             health_check.record_provider_call(
                 provider="stockanalysis",
                 tier=HEALTH_CHECK_PROVIDER_TIER.get("stockanalysis", 2),
                 latency_ms=_sa_acct["latency_ms"],
                 http_status=200 if _sa_acct["successes"] > 0 else None,
                 item_count=_sa_acct["successes"],
+                coverage_pct=_sa_cov,
                 error=None if _sa_acct["failures"] == 0
                       else (_sa_acct.get("last_error_repr")
                             or f"{_sa_acct['failures']}/{_sa_acct['calls']} calls failed"),
+                run_phase=run_phase,
+            )
+        # Tier 2: borrow (Orchestrator-Kette fetch_borrow_metrics, intern
+        # Stockanalysis-Primary [tot] → iBorrowDesk-Fallback). Eigener
+        # Akkumulator + eigene record-Zeile → stiller iBorrowDesk-Tod
+        # erscheint als coverage_pct=0 % (NICHT 50 % wie bei gemischtem
+        # Akku mit SI), Tier-2-Konsekutiv-Aggregation greift sicher.
+        _b_acct = _BORROW_ACCT
+        if _b_acct["calls"] > 0:
+            _b_cov = round(
+                _b_acct["successes"] / _b_acct["calls"] * 100, 1)
+            health_check.record_provider_call(
+                provider="borrow",
+                tier=HEALTH_CHECK_PROVIDER_TIER.get("borrow", 2),
+                latency_ms=_b_acct["latency_ms"],
+                http_status=200 if _b_acct["successes"] > 0 else None,
+                item_count=_b_acct["successes"],
+                coverage_pct=_b_cov,
+                error=None if _b_acct["failures"] == 0
+                      else (_b_acct.get("last_error_repr")
+                            or f"{_b_acct['failures']}/{_b_acct['calls']} calls failed"),
                 run_phase=run_phase,
             )
         # Tier 3: edgar_13f — gegated über SEC_13F_ENABLED (Funktion

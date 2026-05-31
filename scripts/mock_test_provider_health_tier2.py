@@ -123,15 +123,24 @@ def test_stockanalysis_accumulator_present():
 
 def test_stockanalysis_borrow_path_wrapped_under_enabled_gate():
     """fetch_borrow_metrics-Aufruf läuft durch _instrument_provider_call
-    NUR wenn STOCKANALYSIS_BORROW_ENABLED."""
+    NUR wenn STOCKANALYSIS_BORROW_ENABLED.
+
+    Quellenwechsel 01.06.2026: nutzt seither eigenen ``_BORROW_ACCT``
+    (vorher ``_STOCKANALYSIS_ACCT``) — Borrow-Pfad ist getrennt vom
+    SI-Pfad, damit stiller iBorrowDesk-Tod nicht in gemischter
+    coverage_pct ~50 % knapp unter Tier-2-Schwelle durchrutscht.
+    """
     block = SRC_GR[SRC_GR.find("if IBKR_BORROW_ENABLED or STOCKANALYSIS_BORROW_ENABLED:"):]
     block = block[:block.find("\n    top10.sort")]
     assert "if STOCKANALYSIS_BORROW_ENABLED:" in block, (
         "Stockanalysis-Borrow-Pfad hat keinen ENABLED-Gate auf "
         "Instrumentierung")
-    assert "_instrument_provider_call(\n                    _STOCKANALYSIS_ACCT" in block \
-        or "_instrument_provider_call(_STOCKANALYSIS_ACCT, fetch_borrow_metrics" in block, (
-        "fetch_borrow_metrics wird nicht durch _instrument_provider_call gewrappt")
+    # Akku ist seit 01.06.2026 _BORROW_ACCT (eigener Akku, Trennung
+    # vom _STOCKANALYSIS_ACCT-SI-Pfad).
+    assert "_instrument_provider_call(\n                    _BORROW_ACCT" in block \
+        or "_instrument_provider_call(_BORROW_ACCT, fetch_borrow_metrics" in block, (
+        "fetch_borrow_metrics wird nicht durch _instrument_provider_call "
+        "mit _BORROW_ACCT gewrappt")
 
 
 def test_stockanalysis_si_path_wrapped():

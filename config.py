@@ -161,13 +161,19 @@ GAMMA_LIKELY_THRESHOLD   = 2.0     # gamma_pressure ≥ 2.0 → wahrscheinlich
 GAMMA_BONUS_POSSIBLE     = 8       # Katalysator-Bonus bei möglich
 GAMMA_BONUS_LIKELY       = 15      # Katalysator-Bonus bei wahrscheinlich
 
-# ── IBKR Stock Borrow Rates (public Web-Scraping) ────────────────────────────
-# Holt Borrow Rates von https://www.interactivebrokers.com/en/trading/stock-borrow-rates.php
-# Seite wird einmal pro Run gescraped + gecacht. Bei HTTP-Fehler, Timeout,
-# fehlendem Ticker oder Cloudflare-Block → borrow_rate = None (kein Absturz).
+# ── Borrow-Rate-Quelle (Cost-to-Borrow, %/Jahr) ──────────────────────────────
+# Quellenwechsel 01.06.2026: ursprüngliche IBKR-.php-Scrape ist seit ~Mai 2026
+# HTTP 404 (Daily-Log: "IBKR Borrow Rate: HTTP 404 — Seite nicht gefunden").
+# Ersatz: iBorrowDesk-JSON-API (Aufbereitung derselben IBKR-Daten, pro-Ticker,
+# 31.05. Live-verifiziert: HTTP 200, daily-Liste mit fee-Prozentsatz).
+#
+# Konstanten-Naming bleibt "IBKR_*" aus Aufrufer-Stabilität — der Code-Touch
+# beschränkt sich auf den Fetcher-Body. Cleanup (Umbenennung in IBORROWDESK_*)
+# später in eigenem Doku-/Refactor-PR. Score-Schwellen (LOW/HIGH/BONUS_*)
+# bleiben unverändert — quellen-unabhängig.
 IBKR_BORROW_ENABLED      = True
-IBKR_BORROW_URL          = "https://www.interactivebrokers.com/en/trading/stock-borrow-rates.php"
-IBKR_BORROW_TIMEOUT      = 8        # (connect, read) Tupel-Timeout — hart genug gegen Cloudflare-Hänger
+IBORROWDESK_URL_TEMPLATE = "https://iborrowdesk.com/api/ticker/{ticker}"
+IBKR_BORROW_TIMEOUT      = 8        # (connect, read) Tupel-Timeout
 IBKR_BORROW_LOW          = 10.0     # < 10 %/Jahr → grau (günstig)
 IBKR_BORROW_HIGH         = 50.0     # > 50 %/Jahr → rot (sehr teuer für Shorts)
 IBKR_BORROW_BONUS_HOT    = 8        # Katalysator-Bonus bei > 50 %/Jahr
@@ -959,7 +965,12 @@ HEALTH_CHECK_PROVIDER_TIER = {
     "finviz":              2,   # Stufe-3-Fallback (v161+v111+Quote-Page), nicht primär — herabgestuft 19.05.2026
     "finra":               2,   # FINRA Short-Volume Sums (3 File-Downloads)
     "finnhub":             2,   # Earnings Calendar (pro offene Position)
-    "stockanalysis":       2,   # Aggregat aus _si + _borrow
+    "stockanalysis":       2,   # NUR SI-Pfad (Borrow seit 01.06.2026 separat, s.u.)
+    "borrow":              2,   # Borrow-Orchestrator (iBorrowDesk-JSON +
+                                # Stockanalysis-tot-primary). Eigener Akku/
+                                # Provider-Key seit Quellenwechsel 01.06.2026
+                                # — sonst würde Borrow-Tod nur 50 % coverage
+                                # drücken, knapp unter Tier-2-Schwelle.
     "earningswhispers":    2,   # RSS Calendar (1× pro Daily-Run)
     "quote_proxy":         2,   # Cloudflare-Worker → Yahoo v8 chart-Probe
                                 # (Frontend-Live-Quote-Pipeline-Health; 1×
@@ -988,7 +999,8 @@ HEALTH_CHECK_PROVIDER_EXPECTED = {
     # Tier 2
     "finra":               None,   # Universum aller US-Tickers, Subset variabel
     "finnhub":             None,   # 1 Call pro Position; emittiert nur bei calls>0
-    "stockanalysis":       None,   # N pro Top-10 (ENABLED-gated)
+    "stockanalysis":       None,   # N pro Top-10 (ENABLED-gated, NUR SI)
+    "borrow":              None,   # N pro Top-10 (Borrow-Orchestrator)
     "earningswhispers":    None,   # RSS-Feed-Größe schwankt (~30–80)
     "quote_proxy":         1,      # genau 1 Probe-Quote (Bench-Ticker NVDA)
     # Tier 3 — alle Coverage-variabel (per-Top-10-Aufrufe schwanken)
