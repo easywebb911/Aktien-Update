@@ -71,6 +71,39 @@ bzw. für gedroppte ki_agent-Cron-Slots.
 selbst ``agent_signals.json`` schreibt und naturgemäß auf der Top-10
 arbeitet, die er via ``parse_top_tickers()`` aus index.html zieht.
 
+### S13 — Daten-Reife-Gate (30.06.-Auswertungen, 31.05.2026)
+
+Rein lesender Status-Reporter (``evaluate_data_maturity_gate`` in
+``health_check.py``). Meldet „laufend" (``log.info`` aus
+``evaluate_state_invariants``, nur Daily-Run, fail-soft analog S10) die
+Stichproben-Reife der drei 30.06.-Auswertungen — und warnt NUR bei einer
+deklarierten Vorbedingungs-Verletzung.
+
+**Drei Status-Zeilen (immer da, auch ohne Fail):**
+1. **Setup-Edge** (``score >= 70``, ``backtest_schema_version == 4`` via
+   ``_s10_load_v4_entries``): vorhanden / reif_5d / reif_10d + RVOL-Norm
+   Ist vs. Soll ``[OK|DRIFT]``.
+2. **Entry-AUC** (``entry_score`` gesetzt): vorhanden / reif_5d / reif_10d,
+   sonst „Modul ungebaut, n=0" (Modul-Start 10.06.).
+3. **CTB-Edge** (``cost_to_borrow`` gesetzt): mit_CTB / reif_5d / reif_10d,
+   sonst „Persistenz ungebaut, n=0".
+
+**Reife-Definition:** „reif" = Forward-Label ``return_5d`` / ``return_10d``
+nicht ``None``. Beide werden GETRENNT gemeldet, weil die 30.06.-Auswertung
+**noch nicht als Code codifiziert** ist — das Gate nimmt keine der beiden
+Definitionen vorweg. Bei Codifizierung der Auswertung die hier gezählte
+Definition damit abgleichen (gleiche Bucket-Grenze ≥70, gleicher
+schema_v==4-Filter).
+
+**WARN (severity ``warn``, id ``S13``) nur bei Soll-Ist-Drift:**
+``EXPECTED_RVOL_NORMALIZATION != RVOL_NORMALIZATION_ENABLED``. Solange γ-2
+bewusst aus ist (beide ``False``), ist das Gate **still**. Wird die Soll-
+Konstante auf ``True`` gesetzt (γ-2 soll laufen), das Flag aber noch
+``False``, feuert S13. Bewusst **EINZIGER Soll-Haken** (kein Soll-System).
+
+**Kein neues Schema-Feld, kein Score-/Filter-/Auswertungs-Touch.** Liest
+nur bestehende backtest_history-Felder + zwei config-Flags.
+
 ## Provider-Tiers
 
 > **Phase-2-Implementations-Status** (Stand PR „Health-Check Phase 2
