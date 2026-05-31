@@ -1,5 +1,5 @@
 {
-  "updated": "2026-05-31T22:33:46.519341+02:00",
+  "updated": "2026-05-31T22:59:07.699848+02:00",
   "run_info": {
     "tickers_checked": 18,
     "signals_active": 7,
@@ -76,9 +76,9 @@
       "uoa_cp_ratio": 19.544929925803793
     },
     "ASAN": {
-      "score": 52,
+      "score": 55,
       "confidence": 70,
-      "drivers": "Volumen 2.9× + Spanne 12.8% + News-KI 12/30: Positive sentiment but lacks short-squeeze catalysts like high short interest, gamma exposure, or forced buying pressure + UOA Call/Put 11.0×",
+      "drivers": "Volumen 2.9× + Spanne 12.8% + News: acquisition + UOA Call/Put 11.0×",
       "price": 7.7,
       "chg_pct": -0.0,
       "rvol_4d": 2.92,
@@ -98,9 +98,9 @@
       "uoa_cp_ratio": 11.022619047619047
     },
     "BHVN": {
-      "score": 37,
-      "confidence": 70,
-      "drivers": "Volumen 1.5× + Spanne 13.6% + News-KI 12/30: Positive clinical und fundamental catalysts, aber kein Hinweis auf hohe Short-Position oder Squeeze-Setup.",
+      "score": 25,
+      "confidence": 33,
+      "drivers": "Volumen 1.5× + Spanne 13.6%",
       "price": 11.01,
       "chg_pct": 0.0,
       "rvol_4d": 1.52,
@@ -111,7 +111,7 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 1,
+      "active_triggers": 0,
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": 0.012245197242997507,
@@ -182,9 +182,9 @@
       "uoa_cp_ratio": 108.53846153846153
     },
     "CRMD": {
-      "score": 30,
+      "score": 12,
       "confidence": 17,
-      "drivers": "News: earnings beat, guidance raised",
+      "drivers": "News-KI 12/30: Positive earnings and guidance raise are bullish but lack the high short interest, catalyst timing, and forced covering ",
       "price": 8.44,
       "chg_pct": -0.0,
       "rvol_4d": 0.92,
@@ -224,7 +224,7 @@
     "GEMI": {
       "score": 32,
       "confidence": 33,
-      "drivers": "Spanne 7.0% + News-KI 12/30: Positive news around SpaceX integration and IPO activity, but no short interest data, catalyst clarity, or squeeze indic + UOA Call/Put 5.7×",
+      "drivers": "Spanne 7.0% + News-KI 12/30: IPO filings and platform integrations show activity but lack short position catalyst, high short interest data, or clear + UOA Call/Put 5.7×",
       "price": 5.27,
       "chg_pct": -0.0,
       "rvol_4d": 0.7,
@@ -306,9 +306,9 @@
       "uoa_cp_ratio": 0.7973568281938326
     },
     "REPL": {
-      "score": 100,
+      "score": 91,
       "confidence": 70,
-      "drivers": "Earnings in 1 Tagen (01.06.2026) + Volumen 19.2× + 🚀 Massives Volumen 19.2×+ + Spanne 17.6% + News: fda approval + Earnings in 1d + 3/4 Trigger",
+      "drivers": "Earnings in 1 Tagen (01.06.2026) + Volumen 19.2× + 🚀 Massives Volumen 19.2×+ + Spanne 17.6% + News-KI 8/30: Positive clinical trial data presentations lack short-squeeze catalysts; biotech fundamentals matter more than short int + Earnings in 1d",
       "price": 8.69,
       "chg_pct": -0.0,
       "rvol_4d": 19.17,
@@ -318,8 +318,8 @@
       "upcoming_event": "Earnings in 1 Tagen (01.06.2026)",
       "insider_buy": false,
       "stocktwits": null,
-      "combo_mult": 1.2,
-      "active_triggers": 3,
+      "combo_mult": 1.1,
+      "active_triggers": 2,
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": 1.6782222222222223,
@@ -348,9 +348,9 @@
       "uoa_cp_ratio": 3.3926605504587157
     },
     "RXRX": {
-      "score": 38,
+      "score": 30,
       "confidence": 70,
-      "drivers": "Spanne 9.6% + News-KI 8/30: Inducement awards signal insider confidence, but trial failures and 52-week lows indicate fundamental weakness, not shor + SEC Form 4 + UOA Call/Put 19.3×",
+      "drivers": "Spanne 9.6% + SEC Form 4 + UOA Call/Put 19.3×",
       "price": 3.59,
       "chg_pct": -0.0,
       "rvol_4d": 1.23,
