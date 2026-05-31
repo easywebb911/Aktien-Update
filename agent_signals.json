@@ -1,17 +1,17 @@
 {
-  "updated": "2026-05-31T16:56:37.387053+02:00",
+  "updated": "2026-05-31T18:37:16.615796+02:00",
   "run_info": {
     "tickers_checked": 18,
     "signals_active": 8,
     "alerts_sent": 0,
-    "elapsed_s": 16.7,
+    "elapsed_s": 13.9,
     "market_phase": "Geschlossen"
   },
   "signals": {
     "ABSI": {
       "score": 43,
       "confidence": 70,
-      "drivers": "Volumen 2.5× + Spanne 25.0% + News-KI 8/30: Positive fundamental news and insider confidence, but no short squeeze indicators like high short interest, low float, o + UOA Call/Put 48.5×",
+      "drivers": "Volumen 2.5× + Spanne 25.0% + News-KI 8/30: Positive sentiment and insider buying show confidence, but no clear short squeeze catalyst like high short interest, gam + UOA Call/Put 48.5×",
       "price": 6.75,
       "chg_pct": 0.0,
       "rvol_4d": 2.46,
@@ -76,9 +76,9 @@
       "uoa_cp_ratio": 19.544929925803793
     },
     "ASAN": {
-      "score": 43,
+      "score": 55,
       "confidence": 70,
-      "drivers": "Volumen 2.9× + Spanne 12.8% + News-KI 8/30: Positive sentiment and strategic positioning, but no short-squeeze catalysts (low short interest historically, no major  + UOA Call/Put 11.0×",
+      "drivers": "Volumen 2.9× + Spanne 12.8% + News: acquisition + UOA Call/Put 11.0×",
       "price": 7.7,
       "chg_pct": -0.0,
       "rvol_4d": 2.92,
@@ -88,8 +88,8 @@
       "upcoming_event": null,
       "insider_buy": false,
       "stocktwits": null,
-      "combo_mult": 1.0,
-      "active_triggers": 1,
+      "combo_mult": 1.1,
+      "active_triggers": 2,
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 11.0×"
@@ -222,9 +222,9 @@
       "uoa_cp_ratio": 0.05536332179930796
     },
     "GEMI": {
-      "score": 35,
+      "score": 28,
       "confidence": 33,
-      "drivers": "Spanne 7.0% + News: takeover + UOA Call/Put 5.7×",
+      "drivers": "Spanne 7.0% + News-KI 8/30: IPO filings and platform updates lack the short squeeze catalysts of extreme short interest, borrowing costs, or forced  + UOA Call/Put 5.7×",
       "price": 5.27,
       "chg_pct": -0.0,
       "rvol_4d": 0.7,
@@ -235,7 +235,7 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 1,
+      "active_triggers": 0,
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 5.7×"
