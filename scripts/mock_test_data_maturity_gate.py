@@ -129,36 +129,74 @@ def test_ctb_counts_when_present():
     assert "reif_10d=1" in line, line
 
 
-# === 7-8 — Soll-Ist-Drift WARN ==========================================
+# === 7-12 — Konsistenz-Wächter (Projekt C): Soll-Ist-Drift ===============
 
-def test_warn_on_drift():
+_LIVE_EXPECTED = {
+    "RVOL_NORMALIZATION_ENABLED": False,
+    "SCORE_NORMALIZATION_VERSION": 1,
+    "EARLINESS_FORMULA_VERSION": 2,
+}
+
+
+def test_warn_on_rvol_drift():
     path = _write(_std_entries())
     res = hc.evaluate_data_maturity_gate(
-        path, expected_rvol_normalization=True,
-        actual_rvol_normalization=False)
+        path,
+        expected_state={"RVOL_NORMALIZATION_ENABLED": True},
+        actual_state={"RVOL_NORMALIZATION_ENABLED": False})
     assert len(res["fails"]) == 1, res["fails"]
     f = res["fails"][0]
     assert f["id"] == "S13" and f["severity"] == "warn", f
-    assert "Soll-Ist-Drift" in f["detail"], f
-    # Status-Zeile zeigt [DRIFT]
-    assert "[DRIFT]" in res["status_lines"][0], res["status_lines"][0]
+    assert "RVOL_NORMALIZATION_ENABLED" in f["detail"], f
+    # Konsistenz-Zeile ist die 4. status_line.
+    assert "[DRIFT]" in res["status_lines"][3], res["status_lines"][3]
 
 
-def test_silent_when_ist_equals_soll():
+def test_warn_on_score_norm_version_drift():
     path = _write(_std_entries())
     res = hc.evaluate_data_maturity_gate(
-        path, expected_rvol_normalization=False,
-        actual_rvol_normalization=False)
+        path,
+        expected_state={"SCORE_NORMALIZATION_VERSION": 1},
+        actual_state={"SCORE_NORMALIZATION_VERSION": 2})
+    assert len(res["fails"]) == 1, res["fails"]
+    assert "SCORE_NORMALIZATION_VERSION" in res["fails"][0]["detail"], res["fails"]
+
+
+def test_warn_on_earliness_version_drift():
+    path = _write(_std_entries())
+    res = hc.evaluate_data_maturity_gate(
+        path,
+        expected_state={"EARLINESS_FORMULA_VERSION": 2},
+        actual_state={"EARLINESS_FORMULA_VERSION": 1})
+    assert len(res["fails"]) == 1, res["fails"]
+    assert "EARLINESS_FORMULA_VERSION" in res["fails"][0]["detail"], res["fails"]
+
+
+def test_silent_when_all_three_match():
+    path = _write(_std_entries())
+    res = hc.evaluate_data_maturity_gate(
+        path, expected_state=_LIVE_EXPECTED, actual_state=dict(_LIVE_EXPECTED))
     assert res["fails"] == [], res["fails"]
-    assert "[OK]" in res["status_lines"][0], res["status_lines"][0]
+    assert res["status_lines"][3].count("[OK]") == 3, res["status_lines"][3]
+    assert "[DRIFT]" not in res["status_lines"][3], res["status_lines"][3]
 
 
-# === 9 — Robustheit ======================================================
+def test_live_default_silent():
+    # Live config (CONSISTENCY_EXPECTED_STATE vs getattr) — heute alle 3 OK.
+    path = _write(_std_entries())
+    res = hc.evaluate_data_maturity_gate(path)
+    assert res["fails"] == [], f"Live-Drift unerwartet: {res['fails']}"
+    assert "[DRIFT]" not in res["status_lines"][3], res["status_lines"][3]
 
-def test_three_status_lines_on_missing_file():
+
+# === 13 — Robustheit ======================================================
+
+def test_four_status_lines_on_missing_file():
     res = hc.evaluate_data_maturity_gate("/nonexistent/path/bh.json")
-    assert len(res["status_lines"]) == 3, res["status_lines"]
+    assert len(res["status_lines"]) == 4, res["status_lines"]
     assert "vorhanden=0" in res["status_lines"][0], res["status_lines"][0]
+    assert res["status_lines"][3].startswith("Konsistenz-Wächter:"), \
+        res["status_lines"][3]
 
 
 # === 10 — Integration in evaluate_state_invariants =======================
@@ -186,9 +224,12 @@ def main():
         ("Entry-AUC: zählt wenn vorhanden",         test_entry_counts_when_present),
         ("CTB-Edge: Persistenz ungebaut",           test_ctb_ungebaut),
         ("CTB-Edge: zählt wenn vorhanden",          test_ctb_counts_when_present),
-        ("WARN bei Soll-Ist-Drift",                 test_warn_on_drift),
-        ("still bei Ist==Soll",                     test_silent_when_ist_equals_soll),
-        ("3 status_lines bei fehlender Datei",      test_three_status_lines_on_missing_file),
+        ("Konsistenz: WARN bei RVOL-Drift",         test_warn_on_rvol_drift),
+        ("Konsistenz: WARN bei SCORE_NORM_VERSION-Drift", test_warn_on_score_norm_version_drift),
+        ("Konsistenz: WARN bei EARLINESS_VERSION-Drift",  test_warn_on_earliness_version_drift),
+        ("Konsistenz: still wenn alle 3 matchen",   test_silent_when_all_three_match),
+        ("Konsistenz: live default still (3× OK)",  test_live_default_silent),
+        ("4 status_lines bei fehlender Datei",      test_four_status_lines_on_missing_file),
         ("Integration: kein S13-Drift bei Default", test_integration_emits_s13_on_drift),
     ]
     failed = 0

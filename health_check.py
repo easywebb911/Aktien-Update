@@ -28,9 +28,10 @@ import time
 from datetime import date, datetime, timedelta, timezone
 from typing import Any
 
+import config  # für getattr-IST-Read im Konsistenz-Wächter (Projekt C)
 from config import (
+    CONSISTENCY_EXPECTED_STATE,
     DIGEST_CONSECUTIVE_THRESHOLD_OVERRIDES,
-    EXPECTED_RVOL_NORMALIZATION,
     HEALTH_CHECK_CUTOFF_DAYS,
     HEALTH_CHECK_S2_MIN_TICKERS,
     HEALTH_CHECK_S5_MIN_INFLATION_LINES,
@@ -39,7 +40,6 @@ from config import (
     HEALTH_CHECK_S8_MAX_AGE_HOURS,
     HEALTH_CHECK_S11_MAX_WORKDAYS_NO_PREMARKET,
     HEALTH_CHECK_S12_MAX_WORKDAYS_NO_POSTCLOSE,
-    RVOL_NORMALIZATION_ENABLED,
     S10_MUSS_FIELDS,
     S10_LAG_FIELDS,
     S10_OBSERVED_FIELDS,
@@ -480,17 +480,53 @@ def _drg_count_mature(entries: list[dict]) -> tuple[int, int]:
     return r5, r10
 
 
+def _consistency_checks(expected_state: dict,
+                        actual_state: dict | None = None,
+                        ) -> tuple[list[str], list[dict]]:
+    """Konsistenz-Wächter (Projekt C): Soll vs. Ist je deklarierter
+    config-Konstante. Pure.
+
+    ``expected_state``: ``{config_const_name: soll_wert}`` (Single-Source
+    ``CONSISTENCY_EXPECTED_STATE``). ``actual_state`` optional für Tests
+    (Drift simulieren ohne config-Monkeypatch); ``None`` → IST live via
+    ``getattr(config, name)``.
+
+    Returnt ``(status_parts, fails)``: ``status_parts`` = kompakte
+    ``name=ist/soll [OK|DRIFT]``-Strings (immer da), ``fails`` = ein
+    warn-Fail (id ``S13``) PRO driftendem Wert (gleiche Form wie heute).
+
+    Nur STABILE, getattr-lesbare Konstanten gehören in ``expected_state``
+    — keine volatilen Tunables (Conviction-Schwellen), keine Crons/Literale
+    (Sonderlogik, anderweitig abgedeckt durch S11/S12 + Provider-Health).
+    """
+    status_parts: list[str] = []
+    fails: list[dict] = []
+    for name, soll in expected_state.items():
+        ist = (actual_state[name] if actual_state is not None
+               else getattr(config, name, None))
+        ok = (ist == soll)
+        status_parts.append(f"{name}={ist!r}/{soll!r} [{'OK' if ok else 'DRIFT'}]")
+        if not ok:
+            fails.append({
+                "id": "S13", "severity": "warn",
+                "detail": (
+                    f"Soll-Ist-Drift {name}: Soll={soll!r}, Ist={ist!r} — "
+                    f"deklarierter Config-Zustand weicht vom realen ab"),
+            })
+    return status_parts, fails
+
+
 def evaluate_data_maturity_gate(
     bh_path: str = "backtest_history.json",
     *,
-    expected_rvol_normalization: bool = EXPECTED_RVOL_NORMALIZATION,
-    actual_rvol_normalization: bool = RVOL_NORMALIZATION_ENABLED,
+    expected_state: dict | None = None,
+    actual_state: dict | None = None,
 ) -> dict:
-    """Daten-Reife-Gate für die drei 30.06.-Auswertungen (rein lesend).
+    """Daten-Reife-Gate (S13) + Konsistenz-Wächter (Projekt C). Rein lesend.
 
-    Zählt die Stichproben-Reife in ``backtest_history.json`` und prüft EINE
-    deklarierte Vorbedingung (RVOL-Normalisierung Soll vs. Ist). Ändert
-    NICHTS am Score / an Filtern / an der Auswertung.
+    Zählt die Stichproben-Reife in ``backtest_history.json`` (3 Zeilen) UND
+    gleicht deklarierte SOLL-config-Zustände gegen den IST ab (4. Zeile +
+    Drift-Warns). Ändert NICHTS am Score / an Filtern / an der Auswertung.
 
     Reife-Definition (kritisch — exakt wie die geplante Auswertung):
       - V2-only = ``backtest_schema_version == 4`` (S10-Loader-Filter,
@@ -500,23 +536,27 @@ def evaluate_data_maturity_gate(
       Da die 30.06.-Auswertungslogik noch NICHT als Code existiert, werden
       return_5d UND return_10d getrennt gemeldet (keine Vorwegnahme).
 
-    Returnt ``{"status_lines": [str, str, str], "fails": [<warn>...]}``:
-      - ``status_lines`` = 3 immer-vorhandene Report-Zeilen (Counts), die
-        der Aufrufer „laufend" loggt — auch wenn nichts zu warnen ist.
+    Konsistenz-Wächter: ``expected_state`` (Default
+    ``CONSISTENCY_EXPECTED_STATE``) — Soll vs. Ist (live via getattr) je
+    config-Konstante; ein warn-Fail pro Drift. ``actual_state`` nur für
+    Tests (Drift-Injektion ohne config-Monkeypatch).
+
+    Returnt ``{"status_lines": [str, str, str, str], "fails": [<warn>...]}``:
+      - ``status_lines`` = 4 immer-vorhandene Report-Zeilen (3 Reife + 1
+        Konsistenz), die der Aufrufer „laufend" loggt — auch ohne Warnung.
       - ``fails`` = Standard-Fail-Dicts (id ``S13``), nur bei Soll-Ist-Drift.
     """
+    if expected_state is None:
+        expected_state = CONSISTENCY_EXPECTED_STATE
     v4 = _s10_load_v4_entries(bh_path)
 
-    # 1) SETUP-EDGE (≥70-Bucket, schema_v==4)
+    # 1) SETUP-EDGE (≥70-Bucket, schema_v==4) — reine Counts (RVOL-Soll-Check
+    #    ist in den Konsistenz-Wächter überführt, nicht doppeln).
     ge70 = [e for e in v4 if (e.get("score") or 0) >= 70]
     s_r5, s_r10 = _drg_count_mature(ge70)
-    _soll_ok = "OK" if expected_rvol_normalization == actual_rvol_normalization \
-        else "DRIFT"
     setup_line = (
         f"Setup-Edge (≥70, schema_v4): vorhanden={len(ge70)} "
-        f"reif_5d={s_r5} reif_10d={s_r10} · RVOL-Norm Ist="
-        f"{actual_rvol_normalization} Soll={expected_rvol_normalization} "
-        f"[{_soll_ok}]"
+        f"reif_5d={s_r5} reif_10d={s_r10}"
     )
 
     # 2) ENTRY-AUC (entry_score, schema_v==4) — Modul-Start 10.06.
@@ -541,20 +581,12 @@ def evaluate_data_maturity_gate(
     else:
         ctb_line = "CTB-Edge (cost_to_borrow): Persistenz ungebaut, n=0"
 
-    # WARN nur bei Soll-Ist-Drift (Vorbedingung verletzt obwohl gesammelt).
-    fails: list[dict] = []
-    if expected_rvol_normalization != actual_rvol_normalization:
-        fails.append({
-            "id": "S13", "severity": "warn",
-            "detail": (
-                f"Soll-Ist-Drift Normalisierung: Soll="
-                f"{expected_rvol_normalization}, Ist="
-                f"{actual_rvol_normalization} — γ-2-Erwartung weicht vom "
-                f"realen RVOL_NORMALIZATION_ENABLED-Flag ab"),
-        })
+    # 4) KONSISTENZ-WÄCHTER (Projekt C) — Soll vs. Ist je config-Konstante.
+    cons_parts, fails = _consistency_checks(expected_state, actual_state)
+    consistency_line = "Konsistenz-Wächter: " + " · ".join(cons_parts)
 
     return {
-        "status_lines": [setup_line, entry_line, ctb_line],
+        "status_lines": [setup_line, entry_line, ctb_line, consistency_line],
         "fails": fails,
     }
 
@@ -779,11 +811,11 @@ def evaluate_state_invariants(
 
     # === S13 (warn, Status-Reporter) — Daten-Reife-Gate 30.06. =============
     # Meldet „laufend" (log.info) die Reife der drei 30.06.-Stichproben
-    # (Setup-Edge ≥70/schema_v4, Entry-AUC, CTB-Edge) und warnt NUR bei
-    # Soll-Ist-Drift der RVOL-Normalisierung (EXPECTED_RVOL_NORMALIZATION
-    # vs. RVOL_NORMALIZATION_ENABLED). Rein lesend, kein Score-/Filter-
-    # Touch. Status-Zeilen sind IMMER da (auch ohne Fail); der Fail wird
-    # nur bei Drift emittiert. Fail-soft + nur Daily-Run (analog S10).
+    # (Setup-Edge ≥70/schema_v4, Entry-AUC, CTB-Edge) PLUS den Konsistenz-
+    # Wächter (Projekt C): Soll vs. Ist je config-Konstante aus
+    # CONSISTENCY_EXPECTED_STATE. Warnt NUR bei Soll-Ist-Drift (ein warn pro
+    # driftendem Wert). Rein lesend, kein Score-/Filter-Touch. Status-Zeilen
+    # sind IMMER da (auch ohne Fail). Fail-soft + nur Daily-Run (analog S10).
     if not ki_agent_only:
         try:
             _drg = evaluate_data_maturity_gate()
