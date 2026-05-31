@@ -161,13 +161,19 @@ GAMMA_LIKELY_THRESHOLD   = 2.0     # gamma_pressure ≥ 2.0 → wahrscheinlich
 GAMMA_BONUS_POSSIBLE     = 8       # Katalysator-Bonus bei möglich
 GAMMA_BONUS_LIKELY       = 15      # Katalysator-Bonus bei wahrscheinlich
 
-# ── IBKR Stock Borrow Rates (public Web-Scraping) ────────────────────────────
-# Holt Borrow Rates von https://www.interactivebrokers.com/en/trading/stock-borrow-rates.php
-# Seite wird einmal pro Run gescraped + gecacht. Bei HTTP-Fehler, Timeout,
-# fehlendem Ticker oder Cloudflare-Block → borrow_rate = None (kein Absturz).
+# ── Borrow-Rate-Quelle (Cost-to-Borrow, %/Jahr) ──────────────────────────────
+# Quellenwechsel 01.06.2026: ursprüngliche IBKR-.php-Scrape ist seit ~Mai 2026
+# HTTP 404 (Daily-Log: "IBKR Borrow Rate: HTTP 404 — Seite nicht gefunden").
+# Ersatz: iBorrowDesk-JSON-API (Aufbereitung derselben IBKR-Daten, pro-Ticker,
+# 31.05. Live-verifiziert: HTTP 200, daily-Liste mit fee-Prozentsatz).
+#
+# Konstanten-Naming bleibt "IBKR_*" aus Aufrufer-Stabilität — der Code-Touch
+# beschränkt sich auf den Fetcher-Body. Cleanup (Umbenennung in IBORROWDESK_*)
+# später in eigenem Doku-/Refactor-PR. Score-Schwellen (LOW/HIGH/BONUS_*)
+# bleiben unverändert — quellen-unabhängig.
 IBKR_BORROW_ENABLED      = True
-IBKR_BORROW_URL          = "https://www.interactivebrokers.com/en/trading/stock-borrow-rates.php"
-IBKR_BORROW_TIMEOUT      = 8        # (connect, read) Tupel-Timeout — hart genug gegen Cloudflare-Hänger
+IBORROWDESK_URL_TEMPLATE = "https://iborrowdesk.com/api/ticker/{ticker}"
+IBKR_BORROW_TIMEOUT      = 8        # (connect, read) Tupel-Timeout
 IBKR_BORROW_LOW          = 10.0     # < 10 %/Jahr → grau (günstig)
 IBKR_BORROW_HIGH         = 50.0     # > 50 %/Jahr → rot (sehr teuer für Shorts)
 IBKR_BORROW_BONUS_HOT    = 8        # Katalysator-Bonus bei > 50 %/Jahr
