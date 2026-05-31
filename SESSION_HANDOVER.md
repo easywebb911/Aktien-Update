@@ -48,6 +48,19 @@
   NICHT appended — das sieht S12 erst nach 2 Werktagen). Feiertage bewusst
   NICHT abgedeckt (konsistent zu _trading_days_elapsed-Mo-Fr-Logik,
   Restkante im Kommentar). 33/33 Tests grün. Manueller Merge.
+- **PR #292 GEMERGT (96fb6af, Commits 08990f7 + 80c75bc) — 01.06.**
+  Borrow-Quelle repariert. Alte IBKR-.php-Scrape war seit ~Mai HTTP 404
+  (stiller Tod, 16+ Tage, Katalysator-Bonus feuerte nie). Ersatz:
+  iBorrowDesk-JSON-API (iborrowdesk.com/api/ticker/{ticker}), 31.05.
+  live-verifiziert (HTTP 200, fee=PROZENT, AMC 0.5768=0,58%/J),
+  daily[-1]=aktuellster. Browser-UA nötig, fail-soft (6 Pfade→None).
+  fee=0.0-Schutz (is not None statt Truthiness). PLUS Stille-Tod-
+  Härtung: success_check (cost_to_borrow is not None) + coverage_pct
+  am Borrow-emit-site. PLUS Option B: eigener _BORROW_ACCT getrennt
+  von _STOCKANALYSIS_ACCT (SI) — sonst hätte stiller iBorrowDesk-Tod
+  bei lebendem SI nur 50% coverage gedrückt (= Tier-2-Schwelle, knapp
+  unterm Alarm). Jetzt: Borrow-Tod = 0% coverage = sicherer Tier-2-
+  fail. 43 Tests grün.
 
 ## 2) AKTIVE POSITIONEN
 - **AMC** — Halt-Strategie, no_exit_alerts=true. Conv 4, Setup stark gefallen.
@@ -62,6 +75,12 @@
 - Watchlist (6): PDYN, AI, GEMI, CRMD, IONQ, AMC.
 
 ## 3) VERIFIKATION MORGEN
+- **Borrow-Reparatur (#292) live im ersten Daily-Run nach 01.06.:**
+  Actions-Log Zeile `provider="borrow"` prüfen. coverage ~100% =
+  iBorrowDesk lebt vom GitHub-Runner aus (Reparatur bestätigt).
+  coverage 0% = Runner-Block → dann FTP-Fallback erwägen (bewusst
+  aufgeschoben). Zusätzlich: daily[-1].date im Log aktuell? CTB-Werte
+  im Score sichtbar (Katalysator-Bonus feuert wieder)?
 - **S11/S12 erstmals live im Digest** (Slot 47 8 * * *). Erwartung: S11 grün
   (premarket 27.05, ~1 Werktag), S12 grenzwertig grün (2 Werktage). iPhone-
   Verify: Safari killen → Daten löschen → ?bust=N → MASTER-PASSWORT → prüfen.
@@ -75,6 +94,16 @@
   Writes für die 20.05-Kohorte kommen (Fill lebt-Bestätigung).
 
 ## 4) GEPLANTE AUFGABEN + WIEDERVORLAGEN (mit Daten)
+- **FOLGE-PR Borrow-Persistenz** (klein, hohe Prio vor 30.06.):
+  Borrow-Felder additiv ins backtest_history schreiben (v4 behalten,
+  NICHT v5 — S10-Loader filtert ==4), beide Felder in
+  S10_OBSERVED_FIELDS, config+backtest_history atomar in 1 PR. Grund:
+  CTB fließt jetzt in Score, wird aber noch NICHT persistiert → ohne
+  diesen PR keine CTB-Edge-Auswertung am 30.06. Je früher, desto mehr
+  Coverage.
+- **FOLGE-PR Naming-Cleanup** (niedrig): IBKR_* → IBORROWDESK_*,
+  STOCKANALYSIS_BORROW_ENABLED-Flag irreführend (Härtung sitzt hinter
+  diesem Gate; solange True korrekt). Reine Umbenennung, Doku-Klasse.
 - **02.06.** Chart-Indikatoren (TTM Squeeze / VWAP-Distanz / OBV-Divergenz)
   als Entry-Score-Komponenten — NICHT im Setup-Score, nur Entry-Score ab 10.06.
 - **10.06. ★★★ GROSSPROJEKT HÖCHSTE PRIORITÄT:** Entry-Timing-Modul Start.
@@ -376,6 +405,10 @@
   sagt 'display-only — fließen nicht in den Score', aber CTB fließt als
   Catalyst-Bonus in _compute_sub_scores (3699-3706). Redaktioneller Fix,
   Auto-Merge, niedrige Prio.
+- **Borrow-Naming-Cleanup** (niedrig, nach #292): IBKR_* → IBORROWDESK_*
+  (URL/TIMEOUT/ENABLED), STOCKANALYSIS_BORROW_ENABLED ist seit
+  Quellenwechsel irreführend (Gate steht weiter, Code dahinter ist
+  iBorrowDesk). Reine Umbenennung, Doku-Klasse, Auto-Merge.
 
 ## 7) ARCHITEKTUR-ANKER
 - Earliness V2 (DTC, AUC 0.77) | Phase-2 Exit komplett (6 Trigger) |
@@ -418,6 +451,10 @@
   _ensureToken-Aufrufen. _clearAllTokens MUSS den IDB-Record mitlöschen
   (Geist-Session-Schutz). Master-PW-Blob (PBKDF2-600k, localStorage)
   bleibt unveränderter Anker.
+- **Borrow-Quelle = iBorrowDesk-JSON seit 01.06.** (IBKR-.php tot,
+  #292). Eigener _BORROW_ACCT getrennt von _STOCKANALYSIS_ACCT (SI),
+  eigene record_provider_call(provider="borrow")-Zeile. Persistenz
+  noch offen (Folge-PR, Sektion 4).
 
 ## 8) LESSONS (28.05.2026)
 - **Card #10 CRIT — unlösbar ohne Artefakt:** Render-Code mehrfach geprüft,
@@ -483,3 +520,12 @@
   (echte Werte), nicht nur Container-Existenz — aber NUR für Score-relevante
   Provider (sonst Fehlalarm bei legitim-leeren wie uoa/news/anomaly).
   coverage_pct + bestehende Digest-Aggregation reichen, kein neuer Wächter.
+- **Borrow-Quelle gerettet ohne Abo:** stockanalysis+IBKR-.php beide
+  tot/404, aber iBorrowDesk (gratis, gleiche IBKR-Daten) verfügbar.
+  Lehre: bei Quellen-Tod erst systematisch Gratis-Alternativen prüfen
+  (`docs/source_replacement_checklist.md`), nicht gleich Abo annehmen.
+  User-Live-Probe im iPhone-Browser war der Schlüssel (Sandbox kann
+  Quellen nicht erreichen → externe Verifikation nötig).
+- **fee=0.0-Falle:** success_check muss `is not None` prüfen, nicht
+  Truthiness — 0.0 ist ein gültiger Borrow-Wert, würde sonst als Fail
+  durchrutschen.
