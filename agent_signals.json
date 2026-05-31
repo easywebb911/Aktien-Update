@@ -1,10 +1,10 @@
 {
-  "updated": "2026-05-31T01:25:52.702993+02:00",
+  "updated": "2026-05-31T02:17:35.640253+02:00",
   "run_info": {
     "tickers_checked": 18,
     "signals_active": 7,
     "alerts_sent": 0,
-    "elapsed_s": 12.8,
+    "elapsed_s": 15.3,
     "market_phase": "Geschlossen"
   },
   "signals": {
@@ -76,9 +76,9 @@
       "uoa_cp_ratio": 19.544929925803793
     },
     "ASAN": {
-      "score": 52,
+      "score": 43,
       "confidence": 70,
-      "drivers": "Volumen 2.9× + Spanne 12.8% + News-KI 12/30: Positive momentum but no fundamental short-squeeze indicators like high short interest, low float, or forced covering ca + UOA Call/Put 11.0×",
+      "drivers": "Volumen 2.9× + Spanne 12.8% + News-KI 8/30: Positive sentiment and investor engagement, but no fundamental short-squeeze catalysts like high short interest, low flo + UOA Call/Put 11.0×",
       "price": 7.7,
       "chg_pct": -0.0,
       "rvol_4d": 2.92,
@@ -88,8 +88,8 @@
       "upcoming_event": null,
       "insider_buy": false,
       "stocktwits": null,
-      "combo_mult": 1.1,
-      "active_triggers": 2,
+      "combo_mult": 1.0,
+      "active_triggers": 1,
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 11.0×"
@@ -118,9 +118,9 @@
       "uoa_cp_ratio": 0.044740973312401885
     },
     "CCCC": {
-      "score": 55,
+      "score": 63,
       "confidence": 70,
-      "drivers": "Volumen 3.3× + ⚡ Extremes Volumen 3.3×+ + Spanne 25.0% + UOA Call/Put 10.8×",
+      "drivers": "Volumen 3.3× + ⚡ Extremes Volumen 3.3×+ + Spanne 25.0% + News-KI 8/30: Biotech news with development pipeline updates lacks short-squeeze indicators like high short interest, low float, or ca + UOA Call/Put 10.8×",
       "price": 4.37,
       "chg_pct": -0.0,
       "rvol_4d": 3.31,
@@ -202,9 +202,9 @@
       "uoa_cp_ratio": 1.6157407407407407
     },
     "FDMT": {
-      "score": 58,
-      "confidence": 70,
-      "drivers": "Volumen 8.4× + 🚀 Massives Volumen 8.4×+ + Spanne 12.4% + News-KI 8/30: Positive therapeutic and conference developments, but no short-squeeze indicators like high short interest, rapid short ",
+      "score": 50,
+      "confidence": 33,
+      "drivers": "Volumen 8.4× + 🚀 Massives Volumen 8.4×+ + Spanne 12.4%",
       "price": 9.91,
       "chg_pct": -0.0,
       "rvol_4d": 8.41,
@@ -308,7 +308,7 @@
     "REPL": {
       "score": 100,
       "confidence": 70,
-      "drivers": "Earnings in 2 Tagen (01.06.2026) + Volumen 19.2× + 🚀 Massives Volumen 19.2×+ + Spanne 17.6% + News-KI 8/30: Positive clinical trial data supports stock movement but lacks short squeeze indicators like high short interest, low fl + Earnings in 2d + UOA Call/Put 6.5×",
+      "drivers": "Earnings in 2 Tagen (01.06.2026) + Volumen 19.2× + 🚀 Massives Volumen 19.2×+ + Spanne 17.6% + News-KI 8/30: Positive clinical data and FDA news provide bullish sentiment, but strong existing position and healthcare sector weakne + Earnings in 2d + UOA Call/Put 6.5×",
       "price": 8.69,
       "chg_pct": -0.0,
       "rvol_4d": 19.17,
@@ -374,9 +374,9 @@
       "uoa_cp_ratio": 19.32729468599034
     },
     "SPCE": {
-      "score": 65,
+      "score": 91,
       "confidence": 70,
-      "drivers": "Volumen 4.6× + ⚡ Extremes Volumen 4.6×+ + Spanne 47.3% + UOA Call-Vol/OI 3.5× ATM + UOA Call/Put 4.3×",
+      "drivers": "Volumen 4.6× + ⚡ Extremes Volumen 4.6×+ + Spanne 47.3% + News-KI 18/30: Moderate positive momentum with valuation concerns and sector headwinds; short interest data and borrowing costs not men + UOA Call-Vol/OI 3.5× ATM + UOA Call/Put 4.3×",
       "price": 6.18,
       "chg_pct": -0.0,
       "rvol_4d": 4.56,
@@ -386,8 +386,8 @@
       "upcoming_event": null,
       "insider_buy": false,
       "stocktwits": null,
-      "combo_mult": 1.0,
-      "active_triggers": 1,
+      "combo_mult": 1.1,
+      "active_triggers": 2,
       "uoa_score": 20,
       "uoa_drivers": [
         "UOA Call-Vol/OI 3.5× ATM",
