@@ -1,10 +1,10 @@
 {
-  "updated": "2026-06-01T00:14:41.464197+02:00",
+  "updated": "2026-06-01T01:19:54.755946+02:00",
   "run_info": {
     "tickers_checked": 18,
     "signals_active": 7,
     "alerts_sent": 0,
-    "elapsed_s": 14.8,
+    "elapsed_s": 12.9,
     "market_phase": "Geschlossen"
   },
   "signals": {
@@ -76,9 +76,9 @@
       "uoa_cp_ratio": 19.544929925803793
     },
     "ASAN": {
-      "score": 55,
+      "score": 52,
       "confidence": 70,
-      "drivers": "Volumen 2.9× + Spanne 12.8% + News: acquisition + UOA Call/Put 11.0×",
+      "drivers": "Volumen 2.9× + Spanne 12.8% + News-KI 12/30: Positive sentiment but lacking key short-squeeze indicators like high short interest, low float, or forced covering cata + UOA Call/Put 11.0×",
       "price": 7.7,
       "chg_pct": -0.0,
       "rvol_4d": 2.92,
@@ -184,7 +184,7 @@
     "CRMD": {
       "score": 30,
       "confidence": 17,
-      "drivers": "News: guidance raised, earnings beat",
+      "drivers": "News: earnings beat, guidance raised",
       "price": 8.44,
       "chg_pct": -0.0,
       "rvol_4d": 0.92,
@@ -222,9 +222,9 @@
       "uoa_cp_ratio": 0.07958477508650519
     },
     "GEMI": {
-      "score": 35,
+      "score": 28,
       "confidence": 33,
-      "drivers": "Spanne 7.0% + News: takeover + UOA Call/Put 5.7×",
+      "drivers": "Spanne 7.0% + News-KI 8/30: IPO filings and platform updates lack short squeeze indicators like high short interest, catalyst urgency, or retail mom + UOA Call/Put 5.7×",
       "price": 5.27,
       "chg_pct": -0.0,
       "rvol_4d": 0.7,
@@ -235,7 +235,7 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 1,
+      "active_triggers": 0,
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 5.7×"
