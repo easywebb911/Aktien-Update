@@ -965,7 +965,12 @@ HEALTH_CHECK_PROVIDER_TIER = {
     "finviz":              2,   # Stufe-3-Fallback (v161+v111+Quote-Page), nicht primär — herabgestuft 19.05.2026
     "finra":               2,   # FINRA Short-Volume Sums (3 File-Downloads)
     "finnhub":             2,   # Earnings Calendar (pro offene Position)
-    "stockanalysis":       2,   # Aggregat aus _si + _borrow
+    "stockanalysis":       2,   # NUR SI-Pfad (Borrow seit 01.06.2026 separat, s.u.)
+    "borrow":              2,   # Borrow-Orchestrator (iBorrowDesk-JSON +
+                                # Stockanalysis-tot-primary). Eigener Akku/
+                                # Provider-Key seit Quellenwechsel 01.06.2026
+                                # — sonst würde Borrow-Tod nur 50 % coverage
+                                # drücken, knapp unter Tier-2-Schwelle.
     "earningswhispers":    2,   # RSS Calendar (1× pro Daily-Run)
     "quote_proxy":         2,   # Cloudflare-Worker → Yahoo v8 chart-Probe
                                 # (Frontend-Live-Quote-Pipeline-Health; 1×
@@ -994,7 +999,8 @@ HEALTH_CHECK_PROVIDER_EXPECTED = {
     # Tier 2
     "finra":               None,   # Universum aller US-Tickers, Subset variabel
     "finnhub":             None,   # 1 Call pro Position; emittiert nur bei calls>0
-    "stockanalysis":       None,   # N pro Top-10 (ENABLED-gated)
+    "stockanalysis":       None,   # N pro Top-10 (ENABLED-gated, NUR SI)
+    "borrow":              None,   # N pro Top-10 (Borrow-Orchestrator)
     "earningswhispers":    None,   # RSS-Feed-Größe schwankt (~30–80)
     "quote_proxy":         1,      # genau 1 Probe-Quote (Bench-Ticker NVDA)
     # Tier 3 — alle Coverage-variabel (per-Top-10-Aufrufe schwanken)

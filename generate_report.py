@@ -361,6 +361,18 @@ _STOCKANALYSIS_ACCT: dict = {
     "latency_ms": 0, "calls": 0, "failures": 0, "successes": 0,
     "last_error_repr": None,
 }
+# Quellenwechsel 01.06.2026: eigener Akkumulator für die Borrow-
+# Orchestrator-Kette (fetch_borrow_metrics → fetch_stockanalysis_borrow
+# tot, dann fetch_ibkr_borrow_rate = iBorrowDesk). VORHER lief das im
+# _STOCKANALYSIS_ACCT zusammen mit dem SI-Pfad — bei stillem iBorrowDesk-
+# Tod wäre coverage_pct nur auf ~50 % gefallen (Borrow-Hälfte tot, SI-
+# Hälfte lebt), genau die Tier-2-Schwelle, möglicherweise knapp unterm
+# Alarm-Trigger. Eigener Akku → Borrow-Tod = coverage_pct 0 % → sicherer
+# Tier-2-fail im Digest.
+_BORROW_ACCT: dict = {
+    "latency_ms": 0, "calls": 0, "failures": 0, "successes": 0,
+    "last_error_repr": None,
+}
 # Phase 2 PR 3 — Tier-3 edgar_13f (im Daily-Run, per US-Top-10
 # ThreadPool). Andere edgar_*-Pfade leben in ki_agent.py.
 _EDGAR_13F_ACCT: dict = {
@@ -15147,6 +15159,7 @@ def main():
     _finviz_acct_reset()
     _provider_acct_reset(_FINNHUB_ACCT)
     _provider_acct_reset(_STOCKANALYSIS_ACCT)
+    _provider_acct_reset(_BORROW_ACCT)
     _provider_acct_reset(_EDGAR_13F_ACCT)
 
     # --- Step 1: Get candidate pool ---
@@ -15918,8 +15931,12 @@ def main():
                 # 16+ Tage-Stille-Tod (Stockanalysis 15.-31.05.) unsichtbar
                 # halten. Utilization bewusst NICHT im Check — würde sonst
                 # dauerhaft fail-flag (keine Gratis-Quelle für Utilization).
+                # Eigener _BORROW_ACCT (NICHT _STOCKANALYSIS_ACCT): trennt
+                # die iBorrowDesk-Borrow-Kette vom SI-Pfad; sonst würde ein
+                # stiller iBorrowDesk-Tod nur 50 % coverage drücken und
+                # knapp unter dem Tier-2-Schwellenwert durchrutschen.
                 _bm = _instrument_provider_call(
-                    _STOCKANALYSIS_ACCT, fetch_borrow_metrics, _s["ticker"],
+                    _BORROW_ACCT, fetch_borrow_metrics, _s["ticker"],
                     success_check=lambda r: bool(
                         r and r.get("cost_to_borrow") is not None))
             else:
@@ -16453,12 +16470,11 @@ def main():
                             or f"{_fh_acct['failures']}/{_fh_acct['calls']} calls failed"),
                 run_phase=run_phase,
             )
-        # Tier 2: stockanalysis — ENABLED-Gating bereits aussen herum;
-        # hier emittieren wir nur wenn mindestens 1 Call attempted wurde.
+        # Tier 2: stockanalysis (SI-Pfad) — ENABLED-Gating bereits aussen
+        # herum; hier emittieren wir nur wenn mindestens 1 Call attempted
+        # wurde. Misst NUR fetch_stockanalysis_si (per US-Top-10).
         _sa_acct = _STOCKANALYSIS_ACCT
         if _sa_acct["calls"] > 0:
-            # Stille-Tod-Härtung (01.06.2026): coverage_pct + verschärfter
-            # success_check (oben) → Digest-Aggregation greift bei Tier-2.
             _sa_cov = round(
                 _sa_acct["successes"] / _sa_acct["calls"] * 100, 1)
             health_check.record_provider_call(
@@ -16471,6 +16487,27 @@ def main():
                 error=None if _sa_acct["failures"] == 0
                       else (_sa_acct.get("last_error_repr")
                             or f"{_sa_acct['failures']}/{_sa_acct['calls']} calls failed"),
+                run_phase=run_phase,
+            )
+        # Tier 2: borrow (Orchestrator-Kette fetch_borrow_metrics, intern
+        # Stockanalysis-Primary [tot] → iBorrowDesk-Fallback). Eigener
+        # Akkumulator + eigene record-Zeile → stiller iBorrowDesk-Tod
+        # erscheint als coverage_pct=0 % (NICHT 50 % wie bei gemischtem
+        # Akku mit SI), Tier-2-Konsekutiv-Aggregation greift sicher.
+        _b_acct = _BORROW_ACCT
+        if _b_acct["calls"] > 0:
+            _b_cov = round(
+                _b_acct["successes"] / _b_acct["calls"] * 100, 1)
+            health_check.record_provider_call(
+                provider="borrow",
+                tier=HEALTH_CHECK_PROVIDER_TIER.get("borrow", 2),
+                latency_ms=_b_acct["latency_ms"],
+                http_status=200 if _b_acct["successes"] > 0 else None,
+                item_count=_b_acct["successes"],
+                coverage_pct=_b_cov,
+                error=None if _b_acct["failures"] == 0
+                      else (_b_acct.get("last_error_repr")
+                            or f"{_b_acct['failures']}/{_b_acct['calls']} calls failed"),
                 run_phase=run_phase,
             )
         # Tier 3: edgar_13f — gegated über SEC_13F_ENABLED (Funktion
