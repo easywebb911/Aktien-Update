@@ -1,423 +1,223 @@
-# SESSION_HANDOVER.md — Stand 28.05.2026
+# SESSION_HANDOVER.md — Stand 31.05.2026
 
 ## 1) HEUTE IMPLEMENTIERT (mit Hashes)
-- **#269 (b7497684)** — Logging-Fix in generate_report.py. Reine Log-Strings,
-  keine Logik. Z.15957 neu: "index.html geschrieben (frischer Stand, vor
-  S9-Check)" direkt nach fh.write(html). Z.16245 umbenannt: "Report written
-  → index.html" → "Post-Render-Pipeline abgeschlossen (Write erfolgte vor
-  S9-Check)". Grund: das alte Statement feuerte NACH dem S9-Check und hatte
-  einen falschen Reihenfolge-Verdacht ausgelöst. Auto-Merge (Squash).
-- **#270 (Squash-Merge, Hash via git log)** — S11/S12-Sammel-Frequenz-Wächter.
-  Neuer Helper _last_phase_run_age_workdays (health_check.py), 2 neue Konstanten
-  in config.py. S11 (warn): kein echter premarket-Run (run_phase==tsp=='premarket')
-  seit >5 Werktagen. S12 (crit, NUR-REPORTING): kein echter postclose-Run
-  seit >2 Werktagen. Quelle: score_inflation_log.jsonl. Feiertags-robust via
-  absence-of-write-Pattern. S12-Exit-Schutz: S9-Block-Pfad filtert strikt
-  id=="S9" → S12-crit blockiert NICHT (per Test + Kommentar abgesichert).
-  Manueller Merge nach iPhone-Verify.
-- **#271 (b2176200)** — finviz-Schwellen-Override. Neue Konstante
-  DIGEST_CONSECUTIVE_THRESHOLD_OVERRIDES = {"finviz": 100} in config.py,
-  ein Dict-Lookup in aggregate_provider_fails (health_check.py). Entschärft
-  den finviz-Dauerfehlalarm (22 in Folge), ohne andere Provider zu berühren
-  (Default bleibt 3) und ohne den Score-Pfad anzufassen. Auto-Merge (Squash).
-- **#274 (4fd0f00) — 29.05.** S8-Referenzwechsel. _digest_age_hours
-  (health_check.py:125+) misst jetzt last_successful_run (ISO-Timestamp)
-  statt last_digest_sent (YYYY-MM-DD). Behebt täglichen Selbstdefekt-
-  Fehlalarm: last_digest_sent warf Stunden weg + Mitternacht-UTC-Referenz
-  + stabiler Cron-Drift auf ~12:00Z → S8 meldete bei GESUNDEM Digest jeden
-  Vormittag warn (identische Tageswerte = Stempel-Pattern). Vorab-Check:
-  last_successful_run wird EXKLUSIV vom Digest-Workflow geschrieben
-  (kein KI-Tick) → kein toter Wächter, per Source-Inspection-Test
-  abgesichert. Zwei-Felder-Architektur erhalten (_already_sent_today
-  nutzt last_digest_sent weiter). Manueller Merge nach iPhone-Verify.
-- **#279 (eafe053) — 29.05.** Entry-Vorarbeit: zwei ungecappte Twin-Roh-
-  Felder additiv im backtest_history-Persist. score_delta_t1_raw (ungecappt,
-  neben dem ±15-geclampten score_delta_t1) + anomaly_push_age_h (rohes
-  Push-Alter in h, vor der Decay-Transform). Grund: beide Original-Felder
-  sind zensiert + retroaktiv NICHT rekonstruierbar (score_history pruned
-  14d, push_history FIFO-100) → ohne Rohwerte wäre die 30.06.-Cap-vs-
-  Perzentil-Auswertung zirkulär. Sammeln ab nächstem postclose-Run.
-  schema bleibt v4, beide in S10_OBSERVED_FIELDS, atomar. Manueller Merge.
-- **#284 (dd6dd50) — 30.05.** S4-Wochenend-Gate. S4 (backtest_history-
-  ohne-postclose-Eintrag-Check) flaggte stur tagesbasiert ohne Wochentags-
-  Logik → an Sa/So (kein postclose-Cron, 17 21 * * 1-5) struktureller
-  Fehlalarm. Gate ergänzt: kein S4-Flag wenn today_iso ein Sa/So ist
-  (weekday>=5), geprüft auf dem DATUM des fehlenden Eintrags (nicht 'jetzt'
-  — fängt den Fr-postclose-nach-Berlin-Mitternacht-Fall). Mo-Fr-Catch-Wert
-  unverändert (S4 fängt weiter einen Werktags-postclose-Run der läuft aber
-  NICHT appended — das sieht S12 erst nach 2 Werktagen). Feiertage bewusst
-  NICHT abgedeckt (konsistent zu _trading_days_elapsed-Mo-Fr-Logik,
-  Restkante im Kommentar). 33/33 Tests grün. Manueller Merge.
-- **PR #292 GEMERGT (96fb6af, Commits 08990f7 + 80c75bc) — 01.06.**
-  Borrow-Quelle repariert. Alte IBKR-.php-Scrape war seit ~Mai HTTP 404
-  (stiller Tod, 16+ Tage, Katalysator-Bonus feuerte nie). Ersatz:
-  iBorrowDesk-JSON-API (iborrowdesk.com/api/ticker/{ticker}), 31.05.
-  live-verifiziert (HTTP 200, fee=PROZENT, AMC 0.5768=0,58%/J),
-  daily[-1]=aktuellster. Browser-UA nötig, fail-soft (6 Pfade→None).
-  fee=0.0-Schutz (is not None statt Truthiness). PLUS Stille-Tod-
-  Härtung: success_check (cost_to_borrow is not None) + coverage_pct
-  am Borrow-emit-site. PLUS Option B: eigener _BORROW_ACCT getrennt
-  von _STOCKANALYSIS_ACCT (SI) — sonst hätte stiller iBorrowDesk-Tod
-  bei lebendem SI nur 50% coverage gedrückt (= Tier-2-Schwelle, knapp
-  unterm Alarm). Jetzt: Borrow-Tod = 0% coverage = sicherer Tier-2-
-  fail. 43 Tests grün.
+- **#295 (Merge a48dd11, Commit 2efb295) — 31.05.** premarket-Cron
+  8:17 → 6:17 UTC (`17 6 * * 1-5`). Diagnose: premarket-Runs landen real
+  ~11–14 UTC statt 8:17 — GitHub-Actions-Scheduler-Drift, **variabel
+  +1.8 bis +5.76h, 2/10 Werktage ganz gedroppt** (22.05./26.05.). KEIN
+  cron-/Zeitzonen-Bug (#253 nutzte bereits korrekten Ausdruck/Datei,
+  Offset variabel = Actions-Infra). 6:17 UTC absorbiert die Max-Drift
+  5.76h → Ankunft ~12:06 UTC, weiter vor US-Open 13:30 UTC. Einzige
+  Änderung: cron-Zeile + Kommentar. postclose (17 21), Health-Digest
+  (47 8), Resolver unberührt. **Drop-Redundanz bewusst NICHT gelöst**
+  (separates Folge-Thema, ~20% Slot-Drops bleiben). Manueller Merge.
+- **#296 (Merge 361dba4) — 31.05.** Cleanup-Folge zu #295. Zwei seit
+  #253 veraltete Referenzen auf `17 6 * * 1-5` nachgezogen:
+  daily-squeeze-report.yml-Kommentarblock (sagte noch „10:17 UTC …
+  ~3,2h vor US-Open") + `mock_test_postclose_run.py:136/173`
+  (`assert '17 10 …'` → `'17 6 …'`, Zeile 173 in sorted()-Reihenfolge
+  `["17 21 …", "17 6 …"]` — schlafender False-Positive behoben, der bei
+  yfinance-Verfügbarkeit gefailt hätte). NICHT angefasst:
+  resolve_run_phase.py, CLAUDE.md, mock_test_run_phase_resolution.py
+  (value-agnostisch/illustrativ). Auto-Merge (Doku/Test-Hygiene).
+- **#297 (Merge 19be8d0, Commit c8a06cf) — 31.05.** Health-Check **S13
+  Daten-Reife-Gate** für die drei 30.06.-Auswertungen. Rein lesend,
+  kein Score-/Filter-/Schema-Touch. `evaluate_data_maturity_gate()`
+  (pure) zählt Stichproben-Reife: Setup-Edge (`score≥70`, `schema_v==4`
+  via `_s10_load_v4_entries`), Entry-AUC (`entry_score`), CTB-Edge
+  (`cost_to_borrow`) — je vorhanden/reif_5d/reif_10d. Reife =
+  return_5d/return_10d not None, **beide getrennt** (30.06.-Auswertung
+  noch NICHT als Code codifiziert → keine Definition vorweggenommen).
+  Integration in `evaluate_state_invariants` (id S13, nur Daily-Run,
+  fail-soft analog S10): loggt Status-Zeilen „laufend" (log.info), Fail
+  nur bei Drift. config: `EXPECTED_RVOL_NORMALIZATION=False` (Soll-Haken).
+  10 Mock-Tests. Live: Setup-Edge vorhanden=50 reif_5d=26 reif_10d=4.
+  Manueller Merge.
+- **#298 (Merge 2da1a0e, Commit 7800494) — 31.05.** **Konsistenz-Wächter
+  (Projekt C)** — S13 generalisiert vom 1 hartcodierten RVOL-Check auf
+  eine Dict-Schleife über drei stabile config-Konstanten. Dritte
+  Überwachungs-Schicht (Fehlerklasse 3 „Zustands-Drift"). config:
+  `CONSISTENCY_EXPECTED_STATE`-Dict (Single-Source) = {RVOL_NORMALIZATION_
+  ENABLED: EXPECTED_RVOL_NORMALIZATION(False), SCORE_NORMALIZATION_VERSION:
+  1, EARLINESS_FORMULA_VERSION: 2}. `_consistency_checks()` (pure) liest
+  IST live via `getattr(config, name)`, 1 warn-Fail (id S13) pro Drift +
+  4. Status-Zeile `name=Ist/Soll [OK|DRIFT]`. Aufnahme-Regel zementiert:
+  nur stabile getattr-lesbare Konstanten mit Schaden-bei-stillem-Drift —
+  KEINE Tunables/Crons/Literale. 13 Mock-Tests, alle 3 heute [OK].
+  Manueller Merge.
 
 ## 2) AKTIVE POSITIONEN
 - **AMC** — Halt-Strategie, no_exit_alerts=true. Conv 4, Setup stark gefallen.
   Trailing-Stop −10.2% vom Hoch im Exit-Log, score 34. Bewusst gehalten.
 - **IONQ** — Conv 25, score 7, pnl +33.2%. Exit-Mechanik flaggt, aber kein
   Exit-Treiber gesetzt. Schließung = Chart-/Bauchgefühl-Call.
-- HEUTE GESCHLOSSEN (im Journal, aus Watchlist raus):
-  - INDI 22.05→28.05, +23.1% (+20,79€), 6d, Setup max 83, Conv 57.
-  - CRDF 19.05→28.05, +1.7% (+1,29€), 9d, Setup max 89, Score 98, Conv 85
-    → Datenpunkt fürs ≥70-Bucket (hoher Score, dünner Return).
-- RR am 26.05. +11.5% geschlossen (Exit-Signal catalyst crit, im Journal).
 - Watchlist (6): PDYN, AI, GEMI, CRMD, IONQ, AMC.
+- Zuletzt geschlossen (im Journal): INDI +23.1% (22→28.05), CRDF +1.7%
+  (19→28.05, hoher Score/dünner Return = ≥70-Bucket-Datenpunkt), RR +11.5%
+  (26.05., catalyst crit).
 
-## 3) VERIFIKATION MORGEN
-- **Borrow-Reparatur (#292) live im ersten Daily-Run nach 01.06.:**
-  Actions-Log Zeile `provider="borrow"` prüfen. coverage ~100% =
-  iBorrowDesk lebt vom GitHub-Runner aus (Reparatur bestätigt).
-  coverage 0% = Runner-Block → dann FTP-Fallback erwägen (bewusst
-  aufgeschoben). Zusätzlich: daily[-1].date im Log aktuell? CTB-Werte
-  im Score sichtbar (Katalysator-Bonus feuert wieder)?
-- **S11/S12 erstmals live im Digest** (Slot 47 8 * * *). Erwartung: S11 grün
-  (premarket 27.05, ~1 Werktag), S12 grenzwertig grün (2 Werktage). iPhone-
-  Verify: Safari killen → Daten löschen → ?bust=N → MASTER-PASSWORT → prüfen.
-- **finviz NICHT mehr als warn** im Digest (Counter 22 < neue Schwelle 100).
-- **Heute Abend 21:17-postclose:** Droppt er erneut? Falls ja, ist das der
-  ERSTE echte Test des frischen S12-Wächters — und S12 würde dann morgen
-  CRIT melden als ECHTER Befund (kein Fehlalarm).
-- **S10-Quote:** 20.05-Kohorte (n=17) fällig heute-EOD, 21.05-Kohorte morgen-
-  EOD. Sollten planmäßig fallen (Memorial-Day-Überzählung).
-- **Optionaler Write-Commit-Check:** Nach 20:00 UTC sollten neue backtest_history-
-  Writes für die 20.05-Kohorte kommen (Fill lebt-Bestätigung).
+## 3) VERIFIKATION MORGEN (erster Werktags-Daily-Run nach 31.05., frühestens Mo 01.06.)
+- **Borrow-Reparatur (#292) ERSTMALS werktags live:** der heutige manuelle
+  Sonntags-Lauf zeigte KEIN `provider="borrow"` (kein Backtest-/Borrow-Pfad
+  am Wochenende — erwartbar, KEIN Defekt). Erster echter Werktags-Run:
+  Actions-Log auf `provider="borrow"` + coverage + `daily[-1].date` aktuell
+  prüfen. coverage ~100% = iBorrowDesk lebt vom Runner; 0% = Runner-Block
+  → FTP-Fallback erwägen. CTB im Score sichtbar (Katalysator-Bonus feuert)?
+- **S13 erstmals live im Actions-Log:** 4 `[Daten-Reife 30.06.]`-Zeilen
+  erwartet — Setup-Edge ~vorhanden=50/reif_5d=26/reif_10d=4 (steigt mit
+  jedem postclose), Entry/CTB „ungebaut, n=0", Konsistenz-Wächter 3× [OK]
+  (`False/False · 1/1 · 2/2`), keine S13-Drift-Fails.
+- **premarket-Cron 6:17 erstmals werktags:** landet der Run jetzt VOR
+  13:30 UTC (echter premarket statt `open`-Drift)? score_inflation_log
+  prüfen: run_phase==tsp=='premarket'. S11 sollte grün bleiben.
+- **iPhone-Verify (#297/#298 sind reine Backend-Logik, kein Frontend):**
+  kein UI-Verify nötig — nur Actions-Log-Sichtung.
 
 ## 4) GEPLANTE AUFGABEN + WIEDERVORLAGEN (mit Daten)
-- **FOLGE-PR Borrow-Persistenz** (klein, hohe Prio vor 30.06.):
-  Borrow-Felder additiv ins backtest_history schreiben (v4 behalten,
-  NICHT v5 — S10-Loader filtert ==4), beide Felder in
-  S10_OBSERVED_FIELDS, config+backtest_history atomar in 1 PR. Grund:
-  CTB fließt jetzt in Score, wird aber noch NICHT persistiert → ohne
-  diesen PR keine CTB-Edge-Auswertung am 30.06. Je früher, desto mehr
-  Coverage.
+- **★ γ-2 (RVOL-Normalisierung scharfschalten) — BLOCKIERT, eigenes
+  Projekt.** Diagnose 31.05.: γ-2 existiert in KEINEM Commit/Branch
+  (nur γ-1-Marker #248 gemergt, reiner Versions-Marker). Vier
+  Vorbedingungen offen:
+  - (a) **premarket-Datenbasis zu dünn** — nur ~3 echte premarket-
+    Werktage in letzten 10 (+ Drops); n=70 all-time. Re-Kalibrierung
+    nicht belastbar.
+  - (b) **Cron-Drift absorbiert (#295)**, aber verlässliche Sammlung
+    erst über die nächsten Werktage (6:17-Cron muss sich beweisen).
+  - (c) **`rel_volume_raw`-Feld für Late-Runner-F-3 UNGEBAUT** — existiert
+    in keiner .py. Bei Flip liest Late-Runner-Earliness (`EARLINESS_LATE_
+    RUNNER_RVOL_MAX=5`) den normalisierten Wert → stiller Bruch.
+  - (d) **Skalierer ungestützt** — `PREMARKET_RVOL_SCALER=0.10`
+    (Daumenwert), „~0.40 Kipppunkt" nur Handover-Notiz „dünnes n", KEIN
+    Sweep im Repo.
+  Reihenfolge: Daten sammeln → Sweep → `rel_volume_raw` bauen → Schwellen
+  (Late-Runner 5×, Driver/Combo 2.0×, Daily-Anomaly 5.0×) kalibrieren →
+  ERST DANN Flip (ENABLED=True + VERSION=2 gepaart). **Folge für 30.06.:
+  Setup-Edge-Auswertung auf inflations-bereinigten Daten NICHT möglich
+  (n=0 bereinigt); nur unbereinigt (Ranking valide, absolute Edge
+  verzerrt) ODER verschieben.**
+- **★ γ-2-KOPPLUNG (leicht zu vergessen):** bei Aktivierung BEIDE Soll in
+  `CONSISTENCY_EXPECTED_STATE` **gepaart** ziehen — `EXPECTED_RVOL_
+  NORMALIZATION` → True UND `SCORE_NORMALIZATION_VERSION`-Soll → 2 (parallel
+  zu den echten Flags `RVOL_NORMALIZATION_ENABLED` + `SCORE_NORMALIZATION_
+  VERSION`). Sonst meldet S13 zurecht Drift. (Genau der Schutz, den
+  Projekt C liefert.)
+- **B — Borrow-Coverage-Wächter (Health-Check): WARTET auf erste
+  Borrow-Verifikation.** Heutiger Sonntags-Lauf zeigte erwartungsgemäß
+  kein `provider="borrow"`. Wiedervorlage: erster echter Werktags-Daily-
+  Run nach #292 (frühestens Mo 01.06.) — Actions-Log auf `provider=borrow`
+  + coverage + `daily[-1].date` prüfen, DANN B-Schwelle festlegen und
+  bauen (success_check `cost_to_borrow is not None`, eigener _BORROW_ACCT
+  schon getrennt seit #292).
+- **FOLGE-PR Borrow-Persistenz** (klein, hohe Prio vor 30.06.): Borrow-
+  Felder additiv ins backtest_history (v4 behalten, NICHT v5 — S10-Loader
+  filtert ==4), in S10_OBSERVED_FIELDS, config+backtest_history atomar.
+  Grund: CTB fließt seit #292 in Score, wird aber noch NICHT persistiert
+  → ohne diesen PR keine CTB-Edge-Auswertung am 30.06. Sobald entry/CTB
+  persistiert, schaltet S13 die jeweilige Zeile von „ungebaut" auf Counts.
 - **FOLGE-PR Naming-Cleanup** (niedrig): IBKR_* → IBORROWDESK_*,
   STOCKANALYSIS_BORROW_ENABLED-Flag irreführend (Härtung sitzt hinter
-  diesem Gate; solange True korrekt). Reine Umbenennung, Doku-Klasse.
+  diesem Gate). Reine Umbenennung, Doku-Klasse.
+- **Drop-Redundanz (aus #295)** — GitHub droppt ~20% der Cron-Slots;
+  frühere Cron-Zeit (#295) löst NUR die Drift, NICHT die Drops. Echte
+  Lösung: externer Trigger außerhalb GitHub Actions (Cloudflare-Worker
+  analog quote-proxy, der den Daily-Run via workflow_dispatch anstößt,
+  wenn der Cron-Slot ausbleibt). Roadmap, kein Druck. Verwandt mit
+  externem Dead-Man-Switch (Sektion 5).
+- **Doku-Backfill S8–S13** in CLAUDE.md/health_check_spec.md-Tabellen —
+  die State-Invariants-Tabelle listet nur S1–S7 (S8–S13 fehlen, schon
+  VOR heute lückenhaft). S13 hat additive Spec-Sektion, aber keine
+  Tabellen-Zeile. Niedrig, optional, Auto-Merge-Klasse.
 - **02.06.** Chart-Indikatoren (TTM Squeeze / VWAP-Distanz / OBV-Divergenz)
   als Entry-Score-Komponenten — NICHT im Setup-Score, nur Entry-Score ab 10.06.
 - **10.06. ★★★ GROSSPROJEKT HÖCHSTE PRIORITÄT:** Entry-Timing-Modul Start.
   Entry-Score 0–100 pro Top-10-Kandidat, 5 Komponenten je 20%. Shadow-Mode
-  zuerst, kein Push bis Entry-AUC ~30.06. Bau-Ablauf: (1) Persistenz ✅ läuft
-  | (2) 5 Normalisierungen | (3) Aggregation | (4) Entry-Score persistieren
-  | (5) Cockpit-Pillar zuletzt (Frontend+iPhone-Verify).
-  DESIGN-ENTSCHEIDUNGEN (Verteilungs-Diagnose 29.05., empirisch belegt):
-  - NORMALISIERUNG: mit FESTEN Caps starten, NICHT Perzentil — Daten zu dünn
-    für stabile Perzentile (n≥100 nötig, nur si_trend_5d_slope erreicht das
-    mit n=142). Perzentil-Entscheidung an 30.06. koppeln, bis dahin Rohwerte
-    sammeln (#279).
-  - si_trend_5d_slope: Schema PERFEKT bestätigt (Links-Bodung −0.98, langer
-    Rechts-Tail bis p99=374). Asymmetrische Normierung wie geplant.
-  - rvol_acceleration: 'bimodal' ist Mythos — real kontinuierlich Pareto
-    (median 1.47, max 135.7). Cap 3.0 deckt 84% ab, als Start ok.
-  - score_delta_t1: geplante 'symmetrische ±15' war ein CAP-Artefakt, nicht
-    Datenbefund (raw asymmetrisch −57…+30, 54% 0-Spike). Schwächste Komponente
-    (Spec sagt das selbst) → klein gewichten, raw via #279 ab jetzt sammeln.
-  - uoa_atm_ratio: Start-Schwellen ~0.75/1.5/2.5 statt 1.25/3.0/5-10 (reale
-    max 2.46, enge ATM-Berechnung — Details im UOA-Befund-Eintrag). n=43 knapp,
-    final 30.06.
-  - anomaly_freshness: 95% leer (sparser als geplante 80-90%), n=7 nicht-leer.
-    Bringt mit 5% Coverage kaum Information — schwach wie erwartet.
-  BAU-FAHRPLAN (Diagnose 31.05., Reihenfolge gegenüber Ursprung angepasst):
-  Neues Modul entry_score.py (Pattern wie backtest_history.py). Pipeline-
-  Andock in generate_report.py:main() NACH apply_score_smoothing, VOR
-  compute_earliness_pts (alle 5 Rohwerte dann am Stock-Dict; UOA via
-  agent_signals.json-Direktlesen analog backtest_history.py:418).
-  Aggregations-Schablone: compute_conviction_score (gen._report.py:5814+).
-
-  SCHRITT-REIHENFOLGE (Persistenz-Spec VOR Aggregation — vermeidet späten
-  Schema-Refactor):
-   1. Persistenz Roh-Felder ✅ läuft (#259/#260/#279).
-   2. Komponenten-Compute: 5 Normalisierungs-Funktionen (Rohwert→0-100),
-      pure + isoliert testbar. MANUELLER Merge (Score-Logik). Größe: mittel.
-   3. Persistenz-Spec: Feld entry_score (0-100, None bei <N Komponenten) +
-      entry_score_components (5 Sub-Werte, für AUC pro Sub-Signal re-
-      aggregierbar) + entry_score_version. Additiv v4, S10_OBSERVED ergänzen
-      (KEIN v5-Bump). AUTO-Merge (additiv/Doku-Klasse). Größe: klein.
-   4. Aggregation: Schnitt 5×20%. MANUELLER Merge (Score-Logik). Größe: klein.
-   5. Cockpit-Pillar (4. Pillar 'Entry' in _card_cockpit_html:4479+):
-      Frontend+CSS-Layout+iPhone-Verify. MANUELLER Merge. Größe: mittel-groß.
-      RISIKO iPhone: 4 Pillars auf ~320px = eng (~75-80px/Pillar). Layout-
-      Bruch/Wrap möglich — zuletzt bauen, sorgfältig verifizieren.
-
-  MISSING-DEFAULTS (KORRIGIERT 31.05.): ALLE 5 Komponenten fehlend → neutral
-  50 (auch anomaly_freshness). Begründung: anomaly_freshness ist 95% leer →
-  ein 0-Default wäre ein pauschaler ~20-Punkte-Malus auf fast alle Entry-
-  Scores, kein gezieltes Gegenargument. Die '0-als-Gegenargument'-Hypothese
-  wird an 30.06.-Daten geprüft, nicht vorab angenommen. Konstante z.B.
-  ENTRY_COMPONENT_MISSING_DEFAULT-Dict in config.py.
-
-  SHADOW-MODE-GARANTIE: Es existiert KEIN Entry-Push-Pfad → Shadow ist
-  strukturell sicher. Zusätzlich Flag ENTRY_SCORE_PUSH_ENABLED=False ab
-  Schritt 2. PFLICHT: in keinem Schritt einen _send_-Sender hinzufügen.
-
-  PERSISTENZ-COVERAGE-IST (31.05.): si_trend_5d_slope 142/145 (belastbarst) |
-  rvol_acceleration 67 | uoa_atm_ratio 43 (dünn, + uoa-Befund 30.06.) |
-  score_delta_t1 46 (+_raw ab 02.06.) | anomaly_freshness 7 non-null
-  (+_age_h ab 02.06., dünnste Komponente).
-
-  LINT-HINWEIS: Schritte 2/4 in _FORBIDDEN_FUNCS von
-  scripts/lint_score_confidence_isolation.py aufnehmen (Score-Berechnung
-  darf Konfidenz nicht lesen).
-
-  BORROW-FEE/UTILIZATION-HOOK INS ENTRY-MODUL: ABGELEHNT (Diagnose 31.05.).
-  Gründe: (a) konzeptionell falsche Ebene — Borrow-Fee misst Squeeze-
-  WAHRSCHEINLICHKEIT (Setup), Entry-Modul misst TIMING; alle 5 Entry-
-  Komponenten sind Differenz-/Frische-Signale, Borrow-Fee ist absoluter
-  Niveau-Wert. (b) wirkt bereits im Setup-Score (Katalysator-Bonus
-  gen._report.py:3699-3706). (c) Datenlage tot (s. neuer Befund). Entry-Modul
-  bleibt bei 5 Komponenten.
-- **30.06.** Erste belastbare Backtest-Auswertung. V2-only ≥70-Bucket n≈100
-  + 30 Tage Score-Inflation-bereinigt. Re-Visit: Score ≥70 klare Edge in
-  Trefferquote UND Mean-Return? Faktor-Vorzeichen (DTC, short_float) re-prüfen.
-  PLUS: finviz-Rückbau (siehe Backlog), Borrow-Fee-Entscheidung.
-  PLUS: Seit 29.05. (#279) werden score_delta_t1_raw + anomaly_push_age_h
-  ungecappt gesammelt → Cap-vs-Perzentil-Entscheidung für alle 5 Komponenten
-  ist 30.06. auf ECHTEN (nicht zensierten) Verteilungen entscheidbar, nicht
-  mehr zirkulär.
-- **Borrow-Fee/Utilization-Fetcher tot — Quelle verifiziert entfernt
-  (31.05.), Quellenwechsel nötig:** fetch_stockanalysis_borrow liefert
-  systematisch None (0/145 backtest, 0/18 agent_signals). URSACHE
-  GEKLÄRT (iPhone-Live-Check 31.05.): Stockanalysis hat Cost-to-Borrow +
-  Utilization von der öffentlichen Seite entfernt — alte /short-interest/-
-  URL ist 404, neue Statistics-Seite zeigt Short-Interest-Daten ABER KEINE
-  Borrow-Kennzahlen mehr (vermutlich Pro-Tier). KEIN Parser-Fix möglich,
-  Quelle ist tot. Folge: Katalysator-Bonus im Setup-Score (+8/+15,
-  gen._report.py:3699-3706) feuert nie.
-  OFFENER PUNKT (braucht Rechner, ab 08.06.): IBKR-Fallback-Status prüfen —
-  Actions-Log-Zeile 'IBKR borrow-rate: N Ticker geparsed' (gen._report.py:1508).
-  Wenn IBKR die Pool-Ticker deckt, ist Cost-to-Borrow über IBKR RETTBAR
-  (+ Persistenz in backtest_history-v4 additiv ergänzen, analog #279).
-  Utilization hat NUR Stockanalysis als Quelle → verloren, bräuchte
-  kostenpflichtige Alternative (Ortex/S3).
-  NÄCHSTER SCHRITT 08.06.: (1) IBKR-Log prüfen → (2) falls IBKR ok: CTB-
-  Pfad auf IBKR umstellen + persistieren; falls IBKR auch tot: Quellen-
-  Entscheidung (Gratis-eingeschränkt vs. kostenpflichtig). Reparatur
-  vorziehen vor/parallel zum Entry-Modul 10.06., NICHT auf 30.06. schieben
-  (verlorene Sammelzeit nicht aufholbar). Empirische CTB-Edge-Validierung
-  bleibt 30.06.+ (braucht erst Coverage).
-  08.06.-BAU-DREHBUCH (Bauplan-Diagnose 31.05., read-only fertig):
-  IBKR-Fallback-Logik ist NICHT der Bug — fetch_borrow_metrics
-  (gen._report.py:1671-1684) erreicht IBKR automatisch wenn Stockanalysis
-  None liefert. borrow_rate=None liegt also am IBKR-Fetch selbst: entweder
-  (A) Tabelle nicht geladen (Block/Timeout → leeres Cache-Dict), (B) Pool-
-  Smallcaps nicht in IBKR-Tabelle, oder (C) HTML-Struktur geändert. Alle drei
-  = gleiches Symptom, NUR Actions-Log trennt sie.
-  ENTSCHEIDUNGSBAUM 08.06.:
-  (1) 5 Min: Actions-Log letzter Daily-Run nach 'IBKR borrow-rate: N Ticker
-      geparsed' (gen._report.py:1508). Coverage-Zahl + Pool-Ticker-Abdeckung.
-  (2) IBKR ≥70% Pool-Coverage → VARIANTE A (klein, gratis, manueller Merge):
-      fetch_borrow_metrics umbauen — IBKR primär (fetch_ibkr_borrow_rate),
-      STOCKANALYSIS_BORROW_ENABLED=False (config.py:184, Kommentar 'Quelle
-      entfernt 31.05.'), Provider-Health-Eintrag bereinigen, Utilization
-      permanent None markieren (Display Z.4760-4761 defensiv, kein Score-Bruch
-      da Util nirgends im Score). + Persistenz (s.u.) + Stale-Doc-Fix
-      (Docstring 1605-1614) in EINEM PR.
-  (3) IBKR <30% → Fintel-curl-Live-Probe (https://fintel.io/ss/us/{ticker},
-      gleiches Verfahren wie Stockanalysis-Check 31.05.). Statische Borrow-
-      Daten da → VARIANTE B (mittel, ~15$/Mt, manueller Merge): neuer
-      fetch_fintel_borrow (Signatur identisch), FINTEL_BORROW_ENABLED-Flag,
-      eigener Provider-Health-Akkumulator. Fintel JS-only/blockiert → STOP,
-      mit Easy: kostenpflichtig (ORTEX/S3) oder Borrow-Bonus deaktivieren.
-  (4) 30-70% → Hybrid IBKR-primär + Fintel-Fallback, Aufwand mit Easy abstimmen.
-  PERSISTENZ (beide Varianten, ZUSAMMEN mit Quelle bauen, NICHT vorab —
-  sonst 1-3 Tage None-Lärm): cost_to_borrow + utilization + borrow_rate
-  additiv in backtest_history.py:391-436 Return-Dict + config.py
-  S10_OBSERVED_FIELDS (leer-tolerant, schema bleibt v4, analog #279).
-  KRITISCHER ANTI-STILLE-TOD-HINWEIS: _instrument_provider_call-Wrapper
-  braucht expliziten success_check (lambda r: r is not None) statt default-
-  Dict-non-empty — sonst stirbt IBKR/Fintel genauso still wie Stockanalysis
-  (16 Tage unbemerkt). PFLICHT im Bau.
-  UTILIZATION/ORTEX: NICHT jetzt. Util fließt heute nicht in Score (nur
-  Display), Literatur-Wert empirisch unvalidiert, ORTEX 50-200$/Mt nicht
-  rechtfertigbar ohne belegte Edge. Reihenfolge: CTB-Coverage 60-90 Tage →
-  CTB-Edge 30.06.+ (Mann-Whitney-U wie Earliness V2) → DANN Utilization-
-  Entscheidung mit echtem Cost-Benefit.
-  GRATIS-QUELLEN-FUNDE (Recherche 31.05.) — CTB ist gratis rettbar:
-  (1) DIREKTE IBKR-DATEI (beste Option, deckt sich mit bestehendem
-      fetch_ibkr_borrow_rate): IBKR stellt eine ÖFFENTLICHE Datei mit Borrow-
-      Fee-Raten + Verfügbarkeit für alle US-Aktien bereit, KEIN Login. Format:
-      pipe-getrennt ('|' statt Komma), erste Zeile ist Header (ignorieren).
-      Bekannt als ftp/https-Download (z.B. usa.txt für US-Stocks). DESHALB
-      08.06.-Verdacht präzisieren: euer IBKR-Fetcher ist vermutlich nicht
-      'tot ohne Quelle', sondern Pfad-/Format-Drift (geänderte URL oder
-      Trennzeichen-/Header-Layout). Im Actions-Log NICHT nur 'N Ticker
-      geparsed' prüfen, sondern bei 0: die aktuelle IBKR-Datei-URL + Format
-      gegen den Parser abgleichen. Hohe Chance auf kleinen Fix.
-  (2) iBorrowDesk (gratis Fallback, falls IBKR-Direktdatei zickt): fertige
-      Aufbereitung DERSELBEN IBKR-Daten, ~15-Min-Aktualisierung US-Handelszeit,
-      deckt Large- UND Smallcaps (wichtig für unseren Squeeze-Pool), CSV-
-      Export. Gratis-Plan reicht für Borrow-Fee + Verfügbarkeit. Evtl. robuster
-      zu scrapen als die rohe IBKR-Datei.
-  → KONSEQUENZ fürs Drehbuch: Variante A (IBKR-CTB) ist mit hoher
-    Wahrscheinlichkeit der Weg — GRATIS, kein Fintel-Abo nötig. Fintel
-    (Variante B) rückt zum unwahrscheinlicheren Fallback.
-
-  UTILIZATION bleibt das schwierige Kind (ehrlich): KEINE zuverlässige
-  Gratis-Quelle gefunden. IBKRs Securities Lending Dashboard HAT Utilization
-  (powered by Orbisa), aber NUR im eingeloggten Trader-Workstation-Terminal,
-  NICHT in der öffentlichen usa.txt. ORTEX/Fintel-Pro = kostenpflichtig.
-  Utilization ist strukturell schwer (Aggregation aus fragmentierten Leih-
-  Pools). Bestätigt bestehende Entscheidung: Utilization NICHT jetzt — fließt
-  eh nicht in den Score, erst 30.06.+ über Cost-Benefit entscheiden. CTB
-  allein (gratis) reicht für den Setup-Score-Katalysator-Bonus.
-  STILLER-TOD-HÄRTUNG (Diagnose 31.05., am 08.06. MIT Quellen-Umstellung
-  in EINEM PR): Ursache, warum Stockanalysis 16 Tage unbemerkt tot war:
-  _instrument_provider_call Default-success_check (health_check.py:1123-1127)
-  wertet 'Dict nicht leer' als Erfolg — {cost_to_borrow:None, utilization:None}
-  rutscht durch (len=2>0). Stockanalysis-Borrow (gen._report.py:15938) ist
-  die EINZIGE Score-relevante Site mit diesem Default-Bug (Tier-3-Sites haben
-  seit PR#154 strenge Checks). Fix (klein, 1 PR):
-  (a) gen._report.py:15938 success_check schärfen →
-      lambda r: bool(r and r.get('cost_to_borrow') is not None)
-      (utilization bewusst NICHT im Check — wäre sonst dauerhaft fail-flag).
-  (b) coverage_pct an emit-site setzen (gen._report.py:~16475-16485) →
-      successes/calls*100. Dann greift die BESTEHENDE Digest-Aggregation
-      (aggregate_provider_fails, health_check.py:1205-1293, Konsekutiv-Counter
-      3) automatisch → Provider mit 0% echten Werten löst warn-Push aus.
-  (c) Mock-Test (Pattern mock_test_provider_health_tier2.py).
-  KEIN neuer Wächter (S13), KEIN Schema-Bump, KEIN value_coverage_pct-Feld —
-  coverage_pct existiert, nur ungenutzt. Scope eng: NUR Score-relevante
-  Provider (heute stockanalysis-borrow, nach 08.06. ggf. ibkr/fintel).
-  Generischer Wächter wäre FALSCH — news_rss/uoa/edgar/anomaly sind legitim
-  oft leer. Merge: manuell (Score-Pfad), gebündelt mit Quellen-Umstellung.
-- **#281 (a04de49) — 30.05.** Option C: Token-Session-Wrap gegen
-  tägliches Master-PW-Re-Entry. Nach Master-PW-Unlock wird der Token mit
-  random AES-GCM-Key gewrappt + in IndexedDB persistiert (Store
-  squeeze_session). 7-TAGE-ROLLING-WINDOW (NICHT 30 — iOS-ITP räumt
-  script-writable Storage nach 7d Inaktivität; jeder Open verlängert +
-  resettet ITP-Timer). Beim App-Open wird VOR dem Master-PW-Modal der
-  Session-Unwrap versucht (async-Trampolin in _ensureToken, Signatur
-  synchron unverändert, alle 8 Aufrufer unberührt). Master-PW bleibt
-  Anker. Fail-soft: jeder Fehlerpfad (IDB-Fail/Quota/privater Modus/
-  Decrypt-Fail/Ablauf) fällt STILL auf Master-PW-Modal zurück.
-  Zusätzlich Queue-Refactor: _tokPending Single-Slot → FIFO-Callback-
-  Queue (_tokPendingQueue + _drainTokPendingQueue), 11 Konsumenten
-  umgestellt, schließt async-Fenster-Race bei parallelen _ensureToken-
-  Aufrufen. 22/22 Tests grün. Manueller Merge nach iPhone-Verify.
-  Wirkung: 5-20 Master-PW-Eingaben/Woche → 0 bei regelmäßiger Nutzung.
-- **UOA-Befund (Diagnose 29.05., entscheiden 30.06.):** uoa_atm_ratio
-  wird im Code STRUKTURELL ENG berechnet — nur ATM-Band (±10%), nur Calls,
-  nur nächste Expiration (ki_agent.py:1146-1158). Die Schwellen (intern
-  UOA_VOL_OI_WEAK=3.0 / STRONG=5.0 / ANOMALY_UOA_VOL_OI=10.0) stammen aber
-  aus der breiten Industrie-Konvention (Total-Vol/OI über alle Strikes +
-  Expirationen). Folge: reale Werte max 2.46 (n=43) → obere Schwellen
-  strukturell UNERREICHBAR. ZWEI Konsequenzen:
-  (a) Entry-Komponente uoa: vorläufige Start-Schwellen ~0.75/1.5/2.5 für
-      10.06.-Bau (n=43 knapp), finale Kalibrierung 30.06.
-  (b) UOA-Anomaly-Push ist DE FACTO TOT (ANOMALY_UOA_VOL_OI=10.0 nie
-      erreichbar) — feuert nie, ohne Fehler (stiller Tod). Für ein
-      Squeeze-Tool ist UOA ein gewollter Kern-Indikator → soll repariert
-      werden.
-  ENTSCHEIDUNG 30.06. (n≈100): Variante 1 = enge ATM-Berechnung behalten +
-  Schwellen rekalibrieren (klein, misst aber nur Ausschnitt) ODER Variante 2
-  = Berechnung auf Total-Vol/OI umbauen (breite Industrie-Definition,
-  Anomaly-Push lebt automatisch wieder, professioneller). Beide Fragen
-  (Entry-Komponente + Anomaly-Push) hängen an derselben ATM-vs-Total-
-  Entscheidung und werden GEMEINSAM entschieden. Code-Logik vor 10.06.
-  NICHT anfassen — Shadow-Persist + 30.06.-Datenbasis abwarten.
+  zuerst, kein Push bis Entry-AUC ~30.06. Neues Modul entry_score.py
+  (Pattern wie backtest_history.py). Pipeline-Andock in main() NACH
+  apply_score_smoothing, VOR compute_earliness_pts. Schritt-Reihenfolge:
+  (1) Persistenz Roh-Felder ✅ läuft (#259/#260/#279) | (2) 5 Normalisierungs-
+  Funktionen (MANUELLER Merge) | (3) Persistenz-Spec entry_score + components
+  + version (AUTO, additiv v4, KEIN v5) | (4) Aggregation 5×20% (MANUELL) |
+  (5) Cockpit-Pillar (4. Pillar, Frontend+iPhone, MANUELL, RISIKO eng auf
+  ~320px). MISSING-DEFAULTS: alle 5 fehlend → neutral 50. SHADOW-GARANTIE:
+  Flag ENTRY_SCORE_PUSH_ENABLED=False, kein _send_-Sender. Sobald entry_score
+  persistiert, schaltet S13 die Entry-AUC-Zeile automatisch von „ungebaut"
+  auf Counts. NORMALISIERUNG: feste Caps starten, NICHT Perzentil (Daten zu
+  dünn, n≥100 nötig). DESIGN-Diagnose 29.05.: si_trend_5d_slope (n=142,
+  belastbarst) | rvol_acceleration Pareto cap 3.0 | score_delta_t1 schwach,
+  klein gewichten | uoa_atm_ratio Schwellen ~0.75/1.5/2.5 (n=43) |
+  anomaly_freshness 95% leer, schwach.
+- **30.06.** Erste belastbare Backtest-Auswertung. V2-only ≥70-Bucket
+  n≈100 (S13 trackt den Reife-Stand laufend). Re-Visit: Score ≥70 klare
+  Edge in Trefferquote UND Mean-Return? Faktor-Vorzeichen re-prüfen. PLUS:
+  finviz-Rückbau, Borrow-Fee-Entscheidung, UOA ATM-vs-Total-Entscheidung,
+  Cap-vs-Perzentil für alle 5 Entry-Komponenten (auf ECHTEN Verteilungen
+  dank #279-Rohfeldern). **ACHTUNG (neu): falls γ-2 bis dahin NICHT scharf,
+  ist die Setup-Edge nur unbereinigt auswertbar — explizit dokumentieren.**
+- **08.06.2026 (Rechner-Tag — NICHT mit Handy-Nachschauen verwechseln):**
+  - **Backup-/Disaster-Recovery-Konzept** (read-only Diagnose) — was liegt
+    NUR auf GitHub? Lokaler Clone? Daten-Export? Schwerpunkt nicht-
+    aufholbare Daten (backtest_history.json, score_inflation_log.jsonl,
+    score_history.json). Terminiert VOR 10.06.-Entry-Modul.
+  - **Borrow-Persistenz-PR** (s.o.) + **Borrow-Naming-Cleanup** (s.o.).
+- **UOA-Befund (entscheiden 30.06.):** uoa_atm_ratio strukturell eng
+  berechnet (ATM-Band ±10%, nur Calls, nächste Expiration) → reale Werte
+  max 2.46, obere Schwellen (ANOMALY_UOA_VOL_OI=10.0) unerreichbar →
+  UOA-Anomaly-Push de facto tot. Entscheidung 30.06.: enge ATM behalten +
+  rekalibrieren ODER auf Total-Vol/OI umbauen. Code vor 10.06. NICHT
+  anfassen.
 - **Card #10 — MERKREGEL:** Bei manuellem Dispatch → HTML-Sanity-CRIT →
   SOFORT das HTML-Artefakt aus dem Actions-Run ziehen, bevor es weg ist.
-  Das ist die einzige fehlende Evidenz, um das #10-Mysterium zu lösen.
-  Cron-Runs sind sauber, kein prophylaktischer Fix.
-- **AMWD / yfinance-Falsch-Delisting beobachten:** Am 28.05. meldete
-  yfinance für AMWD 'possibly delisted; no price data' — der Ticker war
-  aber NACHWEISLICH weiter handelbar (User bestätigt 30.05.). Also KEIN
-  Delisting, sondern ein irreführender yfinance-Abruf-Aussetzer (bekannte
-  yfinance-Eigenheit: Timeout/Schluckauf wird als 'possibly delisted'
-  gemeldet). AMWD stand trotzdem auf Top-10-Position #5 — aber ohne Preis.
-  BEOBACHTEN (kein prophylaktischer Fix, ein Einzelfall reicht nicht):
-  Tritt es erneut auf (gleicher/anderer handelbarer Ticker mit falschem
-  'delisted')? Falls ja, ist die eigentliche Frage: greift ein Preis-
-  Fallback, oder steht der Top-10-Kandidat dann mit $0.00/leer in der Liste?
-  Trading-Wert: ein Top-10-Kandidat ohne Preis ist im Such-Stream wenig
-  nützlich. Erst bei Muster diagnostizieren.
-- **GitHub-Ticket #4418923 — AUFGEKLÄRT (29.05., geschlossen):** Antwort vom
-  GitHub-Support liegt vor. Der 26.05.-Vorfall war ein GitHub-Actions-INCIDENT
-  (githubstatus.com/incidents/gnftqj9htp0g, resolved), KEIN Account-Lock,
-  KEINE Abuse-Erkennung, KEINE Kompromittierung. Account nicht geflaggt/
-  suspendiert. Login/Repo war die ganze Zeit erreichbar — nur Actions-
-  Pipeline lief nicht. 2FA-Auffälligkeit = bestehende gültige Session,
-  harmlos. Sicherheitsmaßnahmen (2FA neu, Passwort neu, Token-Neuaufbau)
-  waren vorsichtig-richtig, im Nachhinein nicht nötig.
-- **08.06.2026 (Rechner-Tag):**
-  - **Backup-/Disaster-Recovery-Konzept** (read-only Diagnose) — wie
-    ursprünglich geplant, noch offen. Read-only-Bestandsaufnahme zuerst:
-    Was liegt NUR auf GitHub? Existiert lokaler Clone? Gibt es bereits
-    Daten-Export? Schwerpunkt nicht-aufholbare Daten
-    (backtest_history.json, score_inflation_log.jsonl, score_history.json) —
-    Code via Clone ohnehin verteilt. Schützt gegen Account-Sperrung
-    (vgl. 26.05.-Lock) UND Hack (Löschung/Manipulation). Terminiert VOR
-    10.06.-Entry-Modul, das neue wertvolle Daten produziert.
-  - **Borrow-Persistenz-PR** (NEU, hohe Prio): Borrow-Felder additiv
-    ins backtest_history (v4 behalten, S10_OBSERVED, atomar 1 PR) —
-    Konsequenz aus PR #292, CTB fließt in Score aber wird noch nicht
-    persistiert. Vor 30.06. nötig für CTB-Edge-Auswertung.
-  - **Borrow-Naming-Cleanup** (niedrig): IBKR_* → IBORROWDESK_*.
-  - **ERLEDIGT 01.06.** (waren ursprünglich für 08.06. geplant):
-    Borrow-Reparatur + Stiller-Tod-Härtung → PR #292 gemergt.
-- **Token-Re-Entry-Komfort — ERLEDIGT (30.05., #281):** Option C gebaut
-  + iPhone-verifiziert. 7-Tage-Rolling-Window statt der ursprünglich
-  angedachten 30 Tage (iOS-ITP-Realismus, in der Diagnose 30.05. belegt).
-  Details siehe Sektion 1 / Architektur-Anker. Folge-Layer WebAuthn/
-  Touch-ID bleibt optionale Roadmap-Idee, falls 7-Tage je nicht reicht.
+  Einzige fehlende Evidenz fürs #10-Mysterium. Cron-Runs sauber.
+- **AMWD / yfinance-Falsch-Delisting beobachten:** 28.05. meldete yfinance
+  AMWD „possibly delisted" trotz nachweislich handelbar (User bestätigt).
+  Kein Delisting, yfinance-Schluckauf. Bei Muster diagnostizieren (greift
+  Preis-Fallback oder steht Top-10-Kandidat mit $0.00 da?).
+- **GitHub-Ticket #4418923 — AUFGEKLÄRT (29.05.):** 26.05.-Vorfall war ein
+  GitHub-Actions-INCIDENT (resolved), KEIN Account-Lock/Abuse/Kompromittierung.
+  Sicherheitsmaßnahmen waren vorsichtig-richtig, im Nachhinein nicht nötig.
 
 ## 5) STRATEGISCHE ROADMAP
 - Entry-Timing-Modul (★★★, 10.06.) — höchste Priorität.
-- Phasen-abhängige / perzentil-basierte Schwellen statt fester phasen-blinder
-  Absolut-Schwellen (an 30.06. gekoppelt).
+- γ-2 RVOL-Normalisierung (★, blockiert — s. Sektion 4). Vorbedingungs-
+  Kette: Daten → Sweep → rel_volume_raw → Schwellen → Flip.
+- Phasen-abhängige / perzentil-basierte Schwellen statt fester phasen-
+  blinder Absolut-Schwellen (an 30.06. gekoppelt).
 - Borrow-Fee + Utilization in score() (laut Literatur stärkste Squeeze-
-  Prädiktoren, bei mir fehlend/kosmetisch) — Entscheidung 30.06.
-- Externer Dead-Man-Switch außerhalb GitHub Actions (Health-Check teilt
-  Failure-Fate der Pipeline — beim 26.05.-Vorfall schwieg der Wächter mit).
-  Begründung aktualisiert (29.05.): Auslöser war ein Actions-Incident
-  (Ticket #4418923 aufgeklärt), kein Lock — was den Punkt STÄRKER macht:
-  auch ohne Account-Problem kann die gesamte GitHub-Actions-Pipeline (inkl.
-  Health-Check-Wächter) gleichzeitig ausfallen. Ein echter Dead-Man-Switch
-  MUSS extern (außerhalb GitHub Actions) laufen, sonst teilt er das
-  Failure-Fate der Pipeline, die er überwachen soll.
-- γ-2 (Pool-Inflation premarket): erst entscheidbar nach mehreren Werktagen
-  echter premarket-Daten. ENABLED=False. Skalierer ~0.40 Kipppunkt (dünnes n).
-- ~~KI-Agent-Frequenz-Reduktion nur falls zweiter Abuse-Lock.~~
-  **GEGENSTANDSLOS (29.05.):** Kein Abuse-Trigger existierte (Ticket #4418923
-  aufgeklärt = Actions-Incident), Begründung entfällt.
-- Backup/Disaster-Recovery (Wiedervorlage 08.06.): Doppelter Boden gegen
-  GitHub-Account-Verlust. Optionen gestaffelt: (a) lokaler git mirror
-  (sofort/gratis, deckt Code) | (b) Daten-Export außerhalb GitHub
-  (deckt nicht-aufholbare JSON/JSONL) | (c) Spiegel auf anderer Plattform/
-  anderem Account (härtester Schutz gegen Hack — kompromittierter Account
-  kann nicht beide löschen). Verwandt mit Roadmap-Punkt externer
-  Dead-Man-Switch (beim 26.05.-Lock schwieg der Health-Check mit).
+  Prädiktoren) — Entscheidung 30.06.
+- **Externer Trigger / Dead-Man-Switch außerhalb GitHub Actions** — deckt
+  ZWEI Probleme: (1) Cron-Drops (~20%, #295-Diagnose) per Re-Dispatch,
+  (2) Health-Check teilt das Failure-Fate der Pipeline (beim 26.05.-Vorfall
+  schwieg der Wächter mit, weil die ganze Actions-Pipeline ausfiel). MUSS
+  extern laufen (Cloudflare-Worker analog quote-proxy). Roadmap, kein Druck.
+- γ-2-Pool-Inflation premarket: erst nach mehreren Werktagen echter
+  premarket-Daten entscheidbar (ENABLED=False).
+- Backup/Disaster-Recovery (Wiedervorlage 08.06.): (a) lokaler git mirror |
+  (b) Daten-Export außerhalb GitHub | (c) Spiegel auf anderem Account
+  (härtester Hack-Schutz).
+- **Konsistenz-Wächter-Ausbau (Projekt C, Schicht 3):** S13-Dict heute
+  3 Konstanten. Weitere stabile getattr-lesbare Flags additiv aufnehmbar,
+  wenn sie die Aufnahme-Regel erfüllen (stabil + Schaden-bei-Drift).
+  Crons/Literale bewusst draußen (S11/S12 + Provider-Health decken die ab).
 
 ## 6) CODE-HYGIENE-BACKLOG (mit Status)
+- **Doku-Backfill S8–S13** in CLAUDE.md + health_check_spec.md-Tabellen
+  (State-Invariants-Tabelle listet nur S1–S7) → OFFEN, niedrig, Auto-Merge.
 - **finviz Flag-aus (FINVIZ_SCREENER_ENABLED=False) + α (Provider komplett
-  rückbauen)** → OFFEN, an 30.06. gekoppelt. Heute γ (Schwellen-Override)
-  gebaut als Übergang; Flag-aus + α nach Datenkonsolidierung. SF-Quote-Pfad
-  ist ungated → bei α mitentfernen. Plan-C-Netz bis dahin erhalten.
+  rückbauen)** → OFFEN, an 30.06. gekoppelt. γ (Schwellen-Override 100)
+  als Übergang gebaut. SF-Quote-Pfad ungated → bei α mitentfernen.
+- **mock_test_digest.py 2 Fails** (Tier-2: „3-in-Folge nötig" + „coverage
+  <50 counter/reset") → pre-existing auf origin/main, unabhängig von S13.
+  Irgendwann anschauen, niedrig.
 - v1/v2 → Jinja Template-Engine → OFFEN, niedriger Trading-Wert.
 - Cockpit Stage 3 (.sb-Reste) → VERTAGT (.sb-conf-* live reused = #199-Falle,
   .sb-row/-num Rollback-Fallback).
-- S10-Feiertags-Zähler (display-only) → an 30.06.-Decay-Fix koppeln. Bevorzugt:
-  Alters-Zähler an reale yfinance-Bar-Logik koppeln (keine neue Dependency).
+- S10-Feiertags-Zähler (display-only) → an 30.06.-Decay-Fix koppeln.
 - Großer generate_report.py-Split → VERWORFEN (globals-Falle).
 - **Stale-Kommentar fetch_stockanalysis_borrow (gen._report.py:1608):**
-  sagt 'display-only — fließen nicht in den Score', aber CTB fließt als
-  Catalyst-Bonus in _compute_sub_scores (3699-3706). Redaktioneller Fix,
-  Auto-Merge, niedrige Prio.
-- **Borrow-Naming-Cleanup** (niedrig, nach #292): IBKR_* → IBORROWDESK_*
-  (URL/TIMEOUT/ENABLED), STOCKANALYSIS_BORROW_ENABLED ist seit
-  Quellenwechsel irreführend (Gate steht weiter, Code dahinter ist
-  iBorrowDesk). Reine Umbenennung, Doku-Klasse, Auto-Merge.
+  sagt „display-only", aber CTB fließt als Catalyst-Bonus. Redaktionell,
+  Auto-Merge, niedrig.
+- **Borrow-Naming-Cleanup** (niedrig, nach #292): IBKR_* → IBORROWDESK_*,
+  STOCKANALYSIS_BORROW_ENABLED irreführend. Reine Umbenennung.
 
 ## 7) ARCHITEKTUR-ANKER
 - Earliness V2 (DTC, AUC 0.77) | Phase-2 Exit komplett (6 Trigger) |
@@ -426,8 +226,8 @@
 - run_phase steuert: normalize-Short-Circuit, Backtest-Append-Gate (nur
   postclose), anomaly_pushes (nur premarket).
 - **"Echter Phasen-Run" nur via score_inflation_log nachweisbar:
-  run_phase==trading_session_phase. date in backtest_history ist KEIN Beweis
-  (Manual-Frühdispatch möglich).** (Basis für S11/S12.)
+  run_phase==trading_session_phase. date in backtest_history ist KEIN
+  Beweis (Manual-Frühdispatch möglich).** (Basis für S11/S12.)
 - S10-Loader filtert backtest_schema_version==4 (additiv halten!).
 - backtest_history.py eigenes Modul seit #256 (Callable-Injection).
   Idempotenz-Key (ticker, report_date), report_date = heute Berlin (hart).
@@ -440,101 +240,67 @@
 - Provider-Schwellen: Default DIGEST_CONSECUTIVE_THRESHOLD=3, Override-Dict
   DIGEST_CONSECUTIVE_THRESHOLD_OVERRIDES={"finviz":100}.
 - Service-Worker raus seit #188.
-- Cron-Inventar: ki_agent 17 * * * * (24/Tag, NICHT phasen-gated), daily
-  premarket 17 8 * * 1-5, daily postclose 17 21 * * 1-5, health-digest
-  47 8 * * *, watchlist 0 7 * * 0.
+- **Cron-Inventar (KORRIGIERT 31.05.):** ki_agent `17 * * * *` (24/Tag,
+  NICHT phasen-gated), daily premarket **`17 6 * * 1-5`** (war fälschlich
+  noch 17 8 — toter Zwischenstand; 6:17 absorbiert Actions-Drift seit
+  #295), daily postclose `17 21 * * 1-5`, health-digest `47 8 * * *`,
+  watchlist `0 7 * * 0`. GitHub-Actions droppt ~20% der Vormittags-
+  Slots + driftet variabel +1.8–5.76h — frühere Cron-Zeit absorbiert
+  Drift, NICHT Drops (Drop-Redundanz offen, Sektion 4/5).
 - **S8 misst seit #274 last_successful_run (ISO-Timestamp), NICHT mehr
-  last_digest_sent (YYYY-MM-DD).** last_successful_run wird EXKLUSIV von
-  scripts/health_check_digest.py:307 geschrieben (per Source-Inspection-Test
-  in mock_test_s8_last_successful_run.py zementiert — bei künftigem
-  Fremd-Schreibpfad schlägt der Test sofort an, S8 würde sonst zum toten
-  Wächter). last_digest_sent (YYYY-MM-DD) bleibt für _already_sent_today
-  (Mehrfach-Trigger-Schutz) → Zwei-Felder-Architektur bewusst erhalten.
-- **Token-Session-Wrap (seit #281, 30.05.):** Nach Master-PW-Unlock
-  liegt der Token zusätzlich AES-GCM-gewrappt in IndexedDB (Store
-  squeeze_session, random Key, KEIN PBKDF2 — kein Passwort). 7-Tage-
-  Rolling, fail-soft auf Master-PW-Modal. _ensureToken versucht
-  Session-Unwrap VOR Modal (async-Trampolin, sync Signatur). _tokPending
-  ist eine FIFO-Queue (_tokPendingQueue), KEIN Single-Slot — bei Refactor
-  des Token-Pfads beibehalten, sonst Callback-Verlust bei parallelen
-  _ensureToken-Aufrufen. _clearAllTokens MUSS den IDB-Record mitlöschen
-  (Geist-Session-Schutz). Master-PW-Blob (PBKDF2-600k, localStorage)
-  bleibt unveränderter Anker.
-- **Borrow-Quelle = iBorrowDesk-JSON seit 01.06.** (IBKR-.php tot,
-  #292). Eigener _BORROW_ACCT getrennt von _STOCKANALYSIS_ACCT (SI),
-  eigene record_provider_call(provider="borrow")-Zeile. Persistenz
-  noch offen (Folge-PR, Sektion 4).
+  last_digest_sent (YYYY-MM-DD).** Exklusiv von health_check_digest.py:307
+  geschrieben (per Test zementiert). last_digest_sent bleibt für
+  _already_sent_today → Zwei-Felder-Architektur bewusst erhalten.
+- **Health-Check-Schichten (Stand 31.05.):** S1–S7 State-Invariants |
+  S8 Digest-Liveness | S9 HTML-Sanity (einziger CRIT-Block-Pfad) |
+  S10 Daten-Integrität (MUSS/LAG/Auto-Detect v4) | S11/S12 Phasen-Sammel-
+  Frequenz (premarket warn / postclose crit-reporting) | **S13 (neu) =
+  Daten-Reife-Gate (#297, 30.06.-Stichproben laufend) + Konsistenz-Wächter
+  (#298, Projekt C, Soll-Ist-Drift über CONSISTENCY_EXPECTED_STATE).**
+- **Konsistenz-Wächter (Projekt C, seit #298):** CONSISTENCY_EXPECTED_STATE
+  in config.py = Single-Source-Dict {RVOL_NORMALIZATION_ENABLED:
+  EXPECTED_RVOL_NORMALIZATION, SCORE_NORMALIZATION_VERSION: 1,
+  EARLINESS_FORMULA_VERSION: 2}. S13 (`_consistency_checks`, pure) liest
+  IST live via getattr(config, name), warnt pro Drift. AUFNAHME-REGEL:
+  nur stabile getattr-lesbare Konstanten mit Schaden-bei-stillem-Drift —
+  KEINE Tunables (Conviction-Schwellen), Crons (→ S11/S12), Literale
+  (schema_v==4 → AST nötig). γ-2-Kopplung: bei Flip RVOL + SCORE_
+  NORMALIZATION_VERSION-Soll gepaart ziehen.
+- **Borrow-Quelle = iBorrowDesk-JSON seit 01.06.** (IBKR-.php tot, #292).
+  Eigener _BORROW_ACCT getrennt von _STOCKANALYSIS_ACCT (SI), eigene
+  record_provider_call(provider="borrow")-Zeile. fee=0.0-Schutz
+  (is not None). Persistenz noch offen (Folge-PR, Sektion 4).
+- **Token-Session-Wrap (seit #281):** Nach Master-PW-Unlock Token
+  AES-GCM-gewrappt in IndexedDB (Store squeeze_session, random Key,
+  7-Tage-Rolling, fail-soft auf Master-PW-Modal). _tokPending ist FIFO-
+  Queue, KEIN Single-Slot. _clearAllTokens MUSS IDB-Record mitlöschen.
 
-## 8) LESSONS (28.05.2026)
-- **Card #10 CRIT — unlösbar ohne Artefakt:** Render-Code mehrfach geprüft,
-  KEIN deterministischer Leer-Cockpit-Pfad. Tritt nur bei manuellen Dispatches
-  in Intraday-Pool-Volatilität auf, Cron sauber. Der exakte Trigger liegt im
-  ephemeren HTML-Artefakt, das bei CRIT nie committet wird. Ehrlich als
-  unlösbar-ohne-Evidenz eingeordnet statt blind gefixt. → Merkregel (Sektion 4).
-- **Log-Statement-Position kann Diagnose in die Irre führen:** Das "Report
-  written"-Log feuerte NACH dem Check und erzeugte einen falschen Reihenfolge-
-  Verdacht. Präzise Log-Position spart künftige Fehldiagnosen (#269).
-- **postclose-Drop = permanenter Datenverlust:** report_date ist hart auf
-  "heute Berlin", kein Backfill-Pfad. Jeder gedroppte postclose-Cron zerstört
-  irreversibel einen EOD-Snapshot fürs 30.06.-Sample. → Motivation für S12.
-- **Health-Counter agnostisch zur Fallback-Wirkung:** Der Provider-Aggregator
-  zählt jede fehlerhafte Run-Zeile, egal ob der Fallback griff. → Mechanik-
-  Fehlalarm möglich. "Folgenlos für die Daten ≠ folgenlos fürs Monitoring"
-  (finviz: 100/100 SF aus yfinance, aber 22-Runs-Dauerwarn = Alarm-Müdigkeit).
-- **Flag-aus ist nicht null-Risiko:** Counter friert 7d ein (DIGEST_STALE_DAYS),
-  SF-Quote-Pfad ungated → konditionale Stille. γ (Schwellen-Override) ist
-  deterministisch + kleinerer Touch. Provider-spezifische Schwellen als
-  Dict-Pattern (wiederverwendbar) statt Magic-Number-Einzelkonstante.
-- **Datums-Stempel + Mitternacht-Referenz = struktureller Fehlalarm:**
-  S8 maß last_digest_sent als YYYY-MM-DD ab Mitternacht UTC. Bei stabilem
-  Cron-Drift (~12:00Z Push) erzeugt das täglich mehrere Stunden warn bei
-  funktionierendem Digest — NICHT über Schwellen-Tuning reparierbar, nur
-  über Referenz-Wechsel auf echten ISO-Liveness-Timestamp. Falsifizierbare
-  Trennung stale-vs-real: identische Tageswerte = Selbstdefekt, monoton
-  steigend = echter Drop (#274). Vor solchem Referenz-Wechsel IMMER alle
-  Schreib-Stellen des neuen Felds greppen (toter-Wächter-Falle).
-- **Schwellen-Skala muss zur Berechnungs-Definition passen:** Industrie-
-  Standard-Schwellen (UOA Total-Vol/OI 3-10x) wurden 1:1 auf eine enger
-  definierte Code-Metrik (ATM-Band, Call-only, single-expiration)
-  übertragen → strukturell unerreichbar, Alarm feuert nie. Klasse:
-  stiller Tod durch Skalen-Mismatch, kein Code-Fehler. Bei jedem neuen
-  Indikator prüfen: passt die Schwelle zur tatsächlichen Werteskala der
-  Berechnung?
-- **iOS-ITP killt 'persistente' Storage-Versprechen:** WebKit räumt
-  script-writable Storage (inkl. IndexedDB) nach 7d Inaktivität — ein
-  30-Tage-Komfort-Fenster ist auf iOS-PWA illusorisch. Lösung: kurzes
-  Fenster + Rolling-Refresh bei jeder Nutzung (verlängert UND resettet
-  den ITP-Timer). Der Komfort kommt vom Rolling, nicht von der initialen
-  Fenster-Länge. Ehrliche Spec im Code zementiert (Test prüft: kein
-  30-Tage-Versprechen). Zweitlehre: async-Fenster in einem vorher
-  synchronen Pfad kann latente Single-Slot-Races real machen — bei
-  async-Umbau alle Callback-Slots auf Queues prüfen.
-- **Aggregations-Residual nach Deploy = scheinbarer Fix-Fehlschlag:**
-  S8 zeigte am 30.05. trotz #274-Fix nochmal '35.7h'. Ursache war KEIN
-  Defekt, sondern ein Carryover im 24h-Aggregations-Fenster des Digests,
-  das den #274-Deploy-Zeitpunkt (29.05. 13:30) überlappte — der 35.7h-Wert
-  stammte von einem PRE-Deploy-Eintrag (alte Mitternacht-UTC-Mathematik,
-  exakt verifiziert). Self-healing sobald der alte Eintrag aus dem 24h-
-  Fenster ausaltert. Lehre: nach einem Monitoring-Fix einen Aggregations-
-  Zyklus abwarten, bevor man den Fix für gescheitert hält.
-- **Setup-Wahrscheinlichkeit ≠ Entry-Timing — Ebenen-Trennung halten:**
-  Starke Literatur-Faktoren (Borrow-Fee/Utilization) gehören nicht
-  automatisch ins Entry-Modul. Entry misst Veränderungs-/Frische-Signale
-  (Differenz), nicht absolute Niveau-Werte. Vor jedem neuen Komponenten-
-  Vorschlag fragen: misst das Timing (Entry) oder Wahrscheinlichkeit (Setup)?
-- **Stiller Tod durch laschen success_check:** Ein Provider, der HTTP-200
-  liefert + ein Dict voller None zurückgibt, galt als 'gesund' (Default-
-  Check = Dict-nicht-leer). So blieb Stockanalysis-Borrow 16 Tage unbemerkt
-  tot, Score-Bonus feuerte nie. Lehre: success_check muss INHALT prüfen
-  (echte Werte), nicht nur Container-Existenz — aber NUR für Score-relevante
-  Provider (sonst Fehlalarm bei legitim-leeren wie uoa/news/anomaly).
-  coverage_pct + bestehende Digest-Aggregation reichen, kein neuer Wächter.
-- **Borrow-Quelle gerettet ohne Abo:** stockanalysis+IBKR-.php beide
-  tot/404, aber iBorrowDesk (gratis, gleiche IBKR-Daten) verfügbar.
-  Lehre: bei Quellen-Tod erst systematisch Gratis-Alternativen prüfen
-  (`docs/source_replacement_checklist.md`), nicht gleich Abo annehmen.
-  User-Live-Probe im iPhone-Browser war der Schlüssel (Sandbox kann
-  Quellen nicht erreichen → externe Verifikation nötig).
-- **fee=0.0-Falle:** success_check muss `is not None` prüfen, nicht
-  Truthiness — 0.0 ist ein gültiger Borrow-Wert, würde sonst als Fail
-  durchrutschen.
+## 8) LESSONS (31.05.2026)
+- **Run grün + Feld voll ≠ Zustand korrekt (Fehlerklasse 3 „Zustands-
+  Drift"):** Der γ-Fall — Pipeline lief grün, backtest_history-Felder
+  voll, aber die ANNAHME „γ läuft" stimmte nicht (γ-2 nie gemergt,
+  RVOL_NORMALIZATION_ENABLED=False). Kein bestehender Wächter (S1–S12
+  prüfen Ausfälle/Lücken, nicht Erwartungs-Abgleich) hat das gemeldet.
+  Antwort: Konsistenz-Wächter (Projekt C, S13) — deklarierte Soll-
+  Zustände periodisch gegen IST abgleichen. Lehre: für jede stabile
+  Annahme über den Config-Zustand, deren stiller Drift schadet, einen
+  Soll-Haken setzen — getattr-lesbar, kein Soll-System.
+- **Manuell-vs-Rechner-Tag NICHT mit Handy-Nachschauen verwechseln:**
+  Diagnosen, die einen echten Werktags-Daily-Run / Actions-Log brauchen
+  (Borrow-Coverage #292, premarket-Cron-Verlässlichkeit, S13-Live), sind
+  am Wochenende / per Handy NICHT verifizierbar — der Sonntags-Lauf zeigt
+  z.B. KEIN provider=borrow (kein Backtest-Pfad). Solche Verifikationen
+  bewusst auf den ersten Werktags-Run datieren, nicht vorzeitig als
+  „Defekt" werten.
+- **Cron-Tuning absorbiert Drift, nicht Drops:** GitHub-Actions-Scheduler
+  driftet variabel (+1.8–5.76h beobachtet) UND droppt Slots (2/10). Eine
+  frühere Cron-Zeit (#295: 8:17→6:17) verschiebt das Drift-Fenster, aber
+  ~20% Komplett-Drops bleiben — die brauchen einen externen Re-Dispatch-
+  Trigger. „cron-Bug" war eine Fehldiagnose-Falle: der Ausdruck war
+  korrekt, die Infra unzuverlässig (variabler Offset = nicht Zeitzone).
+- **Diagnose-vor-Bau verhindert Phantom-Projekte:** Vor dem γ-2-Bau erst
+  read-only geprüft, WAS überhaupt gemergt ist — Ergebnis: γ-2 existiert
+  in keinem Commit/Branch, nur der γ-1-Marker. Ohne diese Diagnose wäre
+  auf einer falschen Annahme („γ läuft schon") gebaut worden. Gleiches
+  Muster bei Projekt C: erst Kandidaten-Inventar (stabil vs. volatil vs.
+  nicht-lesbar), dann minimaler Erst-Umfang (3 statt „alles").
