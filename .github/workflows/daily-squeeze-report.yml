@@ -4,8 +4,9 @@ on:
   schedule:
     # Zwei-Run-Architektur (seit 12.05.2026):
     #
-    # 10:17 UTC = 12:17 CEST / 11:17 CET — `premarket`-Run, ~3,2h
-    # vor US-Open. Liefert Vorschau mit noch nicht final konsolidierten
+    # 6:17 UTC = 8:17 CEST / 7:17 CET — `premarket`-Run, vor US-Open
+    # (real ~12 UTC nach Actions-Drift, s. cron-Kommentar unten).
+    # Liefert Vorschau mit noch nicht final konsolidierten
     # Tagesdaten (RVOL strukturell unter-skaliert). Anomaly-Pushes laufen
     # in dieser Phase (Aktions-Fenster), Backtest-History wird hier
     # NICHT befüllt.
