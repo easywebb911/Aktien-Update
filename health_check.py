@@ -30,6 +30,7 @@ from typing import Any
 
 from config import (
     DIGEST_CONSECUTIVE_THRESHOLD_OVERRIDES,
+    EXPECTED_RVOL_NORMALIZATION,
     HEALTH_CHECK_CUTOFF_DAYS,
     HEALTH_CHECK_S2_MIN_TICKERS,
     HEALTH_CHECK_S5_MIN_INFLATION_LINES,
@@ -38,6 +39,7 @@ from config import (
     HEALTH_CHECK_S8_MAX_AGE_HOURS,
     HEALTH_CHECK_S11_MAX_WORKDAYS_NO_PREMARKET,
     HEALTH_CHECK_S12_MAX_WORKDAYS_NO_POSTCLOSE,
+    RVOL_NORMALIZATION_ENABLED,
     S10_MUSS_FIELDS,
     S10_LAG_FIELDS,
     S10_OBSERVED_FIELDS,
@@ -461,6 +463,102 @@ def evaluate_s10_data_integrity(bh_path: str = "backtest_history.json",
     return out
 
 
+# ── S13: Daten-Reife-Gate (30.06.-Auswertungen) ─────────────────────────────
+
+
+def _drg_count_mature(entries: list[dict]) -> tuple[int, int]:
+    """Zählt (reif_return_5d, reif_return_10d) in einer Eintragsliste.
+
+    „reif" = das jeweilige Forward-Label ist nicht ``None`` (Outcome
+    gefüllt). Beide Felder werden GETRENNT gezählt — die 30.06.-Auswertung
+    ist noch NICHT als Code codifiziert (kein Modul liest backtest_history
+    für die Edge-Auswertung), darum melden wir return_5d UND return_10d
+    parallel statt eine der beiden Definitionen vorwegzunehmen.
+    """
+    r5 = sum(1 for e in entries if e.get("return_5d") is not None)
+    r10 = sum(1 for e in entries if e.get("return_10d") is not None)
+    return r5, r10
+
+
+def evaluate_data_maturity_gate(
+    bh_path: str = "backtest_history.json",
+    *,
+    expected_rvol_normalization: bool = EXPECTED_RVOL_NORMALIZATION,
+    actual_rvol_normalization: bool = RVOL_NORMALIZATION_ENABLED,
+) -> dict:
+    """Daten-Reife-Gate für die drei 30.06.-Auswertungen (rein lesend).
+
+    Zählt die Stichproben-Reife in ``backtest_history.json`` und prüft EINE
+    deklarierte Vorbedingung (RVOL-Normalisierung Soll vs. Ist). Ändert
+    NICHTS am Score / an Filtern / an der Auswertung.
+
+    Reife-Definition (kritisch — exakt wie die geplante Auswertung):
+      - V2-only = ``backtest_schema_version == 4`` (S10-Loader-Filter,
+        Single-Source ``_s10_load_v4_entries``).
+      - Setup-Edge-Bucket = ``score >= 70``.
+      - „reif" = Forward-Label ``return_5d`` / ``return_10d`` nicht None.
+      Da die 30.06.-Auswertungslogik noch NICHT als Code existiert, werden
+      return_5d UND return_10d getrennt gemeldet (keine Vorwegnahme).
+
+    Returnt ``{"status_lines": [str, str, str], "fails": [<warn>...]}``:
+      - ``status_lines`` = 3 immer-vorhandene Report-Zeilen (Counts), die
+        der Aufrufer „laufend" loggt — auch wenn nichts zu warnen ist.
+      - ``fails`` = Standard-Fail-Dicts (id ``S13``), nur bei Soll-Ist-Drift.
+    """
+    v4 = _s10_load_v4_entries(bh_path)
+
+    # 1) SETUP-EDGE (≥70-Bucket, schema_v==4)
+    ge70 = [e for e in v4 if (e.get("score") or 0) >= 70]
+    s_r5, s_r10 = _drg_count_mature(ge70)
+    _soll_ok = "OK" if expected_rvol_normalization == actual_rvol_normalization \
+        else "DRIFT"
+    setup_line = (
+        f"Setup-Edge (≥70, schema_v4): vorhanden={len(ge70)} "
+        f"reif_5d={s_r5} reif_10d={s_r10} · RVOL-Norm Ist="
+        f"{actual_rvol_normalization} Soll={expected_rvol_normalization} "
+        f"[{_soll_ok}]"
+    )
+
+    # 2) ENTRY-AUC (entry_score, schema_v==4) — Modul-Start 10.06.
+    entry = [e for e in v4 if e.get("entry_score") is not None]
+    if entry:
+        e_r5, e_r10 = _drg_count_mature(entry)
+        entry_line = (
+            f"Entry-AUC (entry_score): vorhanden={len(entry)} "
+            f"reif_5d={e_r5} reif_10d={e_r10}"
+        )
+    else:
+        entry_line = "Entry-AUC (entry_score): Modul ungebaut, n=0"
+
+    # 3) CTB-EDGE (cost_to_borrow, schema_v==4) — Persistenz-PR offen.
+    ctb = [e for e in v4 if e.get("cost_to_borrow") is not None]
+    if ctb:
+        c_r5, c_r10 = _drg_count_mature(ctb)
+        ctb_line = (
+            f"CTB-Edge (cost_to_borrow): mit_CTB={len(ctb)} "
+            f"reif_5d={c_r5} reif_10d={c_r10}"
+        )
+    else:
+        ctb_line = "CTB-Edge (cost_to_borrow): Persistenz ungebaut, n=0"
+
+    # WARN nur bei Soll-Ist-Drift (Vorbedingung verletzt obwohl gesammelt).
+    fails: list[dict] = []
+    if expected_rvol_normalization != actual_rvol_normalization:
+        fails.append({
+            "id": "S13", "severity": "warn",
+            "detail": (
+                f"Soll-Ist-Drift Normalisierung: Soll="
+                f"{expected_rvol_normalization}, Ist="
+                f"{actual_rvol_normalization} — γ-2-Erwartung weicht vom "
+                f"realen RVOL_NORMALIZATION_ENABLED-Flag ab"),
+        })
+
+    return {
+        "status_lines": [setup_line, entry_line, ctb_line],
+        "fails": fails,
+    }
+
+
 # ── State-Invariants ────────────────────────────────────────────────────────
 
 
@@ -677,6 +775,27 @@ def evaluate_state_invariants(
                 "severity": "warn",
                 "detail":   (f"S10-Check selbst fehlgeschlagen: "
                              f"{_s10_exc!r}"),
+            })
+
+    # === S13 (warn, Status-Reporter) — Daten-Reife-Gate 30.06. =============
+    # Meldet „laufend" (log.info) die Reife der drei 30.06.-Stichproben
+    # (Setup-Edge ≥70/schema_v4, Entry-AUC, CTB-Edge) und warnt NUR bei
+    # Soll-Ist-Drift der RVOL-Normalisierung (EXPECTED_RVOL_NORMALIZATION
+    # vs. RVOL_NORMALIZATION_ENABLED). Rein lesend, kein Score-/Filter-
+    # Touch. Status-Zeilen sind IMMER da (auch ohne Fail); der Fail wird
+    # nur bei Drift emittiert. Fail-soft + nur Daily-Run (analog S10).
+    if not ki_agent_only:
+        try:
+            _drg = evaluate_data_maturity_gate()
+            for _line in _drg["status_lines"]:
+                log.info("[Daten-Reife 30.06.] %s", _line)
+            fails.extend(_drg["fails"])
+        except Exception as _s13_exc:
+            fails.append({
+                "id":       "S13",
+                "severity": "warn",
+                "detail":   (f"S13-Gate selbst fehlgeschlagen: "
+                             f"{_s13_exc!r}"),
             })
 
     # === S8 (warn) — Digest-Push-Pipeline frisch ===========================

@@ -368,6 +368,13 @@ INTRADAY_RVOL_MIN_FRAC     = 0.10  # Floor gegen Division-Explosion in ersten Op
 # 2 = post-γ (wird in PR-γ-2 auf 2 gesetzt zusammen mit ENABLED=True)
 SCORE_NORMALIZATION_VERSION = 1
 
+# Soll-Wert für das Daten-Reife-Gate (Health-Check S13). Deklariert den
+# ERWARTETEN Zustand von RVOL_NORMALIZATION_ENABLED. Solange γ-2 bewusst
+# aus ist, Soll == Ist == False → Gate still. Sobald γ-2 laufen SOLL, hier
+# auf True setzen — bleibt das Flag oben dann noch False, meldet S13 eine
+# Soll-Ist-Drift (warn). Bewusst EINZIGER Soll-Haken (kein Soll-System).
+EXPECTED_RVOL_NORMALIZATION = False
+
 # ── FINRA-Trend-Konfiguration ────────────────────────────────────────────────
 # Stabilisiert 2026-04: 12 Handelstage statt 6, 6 Mindest-Datenpunkte
 # statt 3 — deutlich weniger Tagesausreißer, dafür mehr „Keine Daten" bei
