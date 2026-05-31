@@ -1,10 +1,10 @@
 {
-  "updated": "2026-05-31T22:59:07.699848+02:00",
+  "updated": "2026-06-01T00:14:41.464197+02:00",
   "run_info": {
     "tickers_checked": 18,
     "signals_active": 7,
     "alerts_sent": 0,
-    "elapsed_s": 13.9,
+    "elapsed_s": 14.8,
     "market_phase": "Geschlossen"
   },
   "signals": {
@@ -182,9 +182,9 @@
       "uoa_cp_ratio": 108.53846153846153
     },
     "CRMD": {
-      "score": 12,
+      "score": 30,
       "confidence": 17,
-      "drivers": "News-KI 12/30: Positive earnings and guidance raise are bullish but lack the high short interest, catalyst timing, and forced covering ",
+      "drivers": "News: guidance raised, earnings beat",
       "price": 8.44,
       "chg_pct": -0.0,
       "rvol_4d": 0.92,
@@ -222,9 +222,9 @@
       "uoa_cp_ratio": 0.07958477508650519
     },
     "GEMI": {
-      "score": 32,
+      "score": 35,
       "confidence": 33,
-      "drivers": "Spanne 7.0% + News-KI 12/30: IPO filings and platform integrations show activity but lack short position catalyst, high short interest data, or clear + UOA Call/Put 5.7×",
+      "drivers": "Spanne 7.0% + News: takeover + UOA Call/Put 5.7×",
       "price": 5.27,
       "chg_pct": -0.0,
       "rvol_4d": 0.7,
@@ -306,9 +306,9 @@
       "uoa_cp_ratio": 0.7973568281938326
     },
     "REPL": {
-      "score": 91,
+      "score": 100,
       "confidence": 70,
-      "drivers": "Earnings in 1 Tagen (01.06.2026) + Volumen 19.2× + 🚀 Massives Volumen 19.2×+ + Spanne 17.6% + News-KI 8/30: Positive clinical trial data presentations lack short-squeeze catalysts; biotech fundamentals matter more than short int + Earnings in 1d",
+      "drivers": "Earnings in 1 Tagen (01.06.2026) + Volumen 19.2× + 🚀 Massives Volumen 19.2×+ + Spanne 17.6% + News: fda approval + Earnings in 1d + 3/4 Trigger",
       "price": 8.69,
       "chg_pct": -0.0,
       "rvol_4d": 19.17,
@@ -318,8 +318,8 @@
       "upcoming_event": "Earnings in 1 Tagen (01.06.2026)",
       "insider_buy": false,
       "stocktwits": null,
-      "combo_mult": 1.1,
-      "active_triggers": 2,
+      "combo_mult": 1.2,
+      "active_triggers": 3,
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": 1.6782222222222223,
