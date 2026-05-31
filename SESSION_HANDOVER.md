@@ -350,13 +350,22 @@
   Pipeline lief nicht. 2FA-Auffälligkeit = bestehende gültige Session,
   harmlos. Sicherheitsmaßnahmen (2FA neu, Passwort neu, Token-Neuaufbau)
   waren vorsichtig-richtig, im Nachhinein nicht nötig.
-- **08.06.2026:** Backup-/Disaster-Recovery-Konzept. Read-only-
-  Bestandsaufnahme zuerst: Was liegt NUR auf GitHub? Existiert lokaler
-  Clone? Gibt es bereits Daten-Export? Schwerpunkt nicht-aufholbare Daten
-  (backtest_history.json, score_inflation_log.jsonl, score_history.json) —
-  Code via Clone ohnehin verteilt. Schützt gegen Account-Sperrung
-  (vgl. 26.05.-Lock) UND Hack (Löschung/Manipulation). Terminiert VOR
-  10.06.-Entry-Modul, das neue wertvolle Daten produziert.
+- **08.06.2026 (Rechner-Tag):**
+  - **Backup-/Disaster-Recovery-Konzept** (read-only Diagnose) — wie
+    ursprünglich geplant, noch offen. Read-only-Bestandsaufnahme zuerst:
+    Was liegt NUR auf GitHub? Existiert lokaler Clone? Gibt es bereits
+    Daten-Export? Schwerpunkt nicht-aufholbare Daten
+    (backtest_history.json, score_inflation_log.jsonl, score_history.json) —
+    Code via Clone ohnehin verteilt. Schützt gegen Account-Sperrung
+    (vgl. 26.05.-Lock) UND Hack (Löschung/Manipulation). Terminiert VOR
+    10.06.-Entry-Modul, das neue wertvolle Daten produziert.
+  - **Borrow-Persistenz-PR** (NEU, hohe Prio): Borrow-Felder additiv
+    ins backtest_history (v4 behalten, S10_OBSERVED, atomar 1 PR) —
+    Konsequenz aus PR #292, CTB fließt in Score aber wird noch nicht
+    persistiert. Vor 30.06. nötig für CTB-Edge-Auswertung.
+  - **Borrow-Naming-Cleanup** (niedrig): IBKR_* → IBORROWDESK_*.
+  - **ERLEDIGT 01.06.** (waren ursprünglich für 08.06. geplant):
+    Borrow-Reparatur + Stiller-Tod-Härtung → PR #292 gemergt.
 - **Token-Re-Entry-Komfort — ERLEDIGT (30.05., #281):** Option C gebaut
   + iPhone-verifiziert. 7-Tage-Rolling-Window statt der ursprünglich
   angedachten 30 Tage (iOS-ITP-Realismus, in der Diagnose 30.05. belegt).
