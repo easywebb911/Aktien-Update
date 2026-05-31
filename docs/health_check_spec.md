@@ -79,14 +79,15 @@ Rein lesender Status-Reporter (``evaluate_data_maturity_gate`` in
 Stichproben-Reife der drei 30.06.-Auswertungen — und warnt NUR bei einer
 deklarierten Vorbedingungs-Verletzung.
 
-**Drei Status-Zeilen (immer da, auch ohne Fail):**
+**Vier Status-Zeilen (immer da, auch ohne Fail):**
 1. **Setup-Edge** (``score >= 70``, ``backtest_schema_version == 4`` via
-   ``_s10_load_v4_entries``): vorhanden / reif_5d / reif_10d + RVOL-Norm
-   Ist vs. Soll ``[OK|DRIFT]``.
+   ``_s10_load_v4_entries``): vorhanden / reif_5d / reif_10d.
 2. **Entry-AUC** (``entry_score`` gesetzt): vorhanden / reif_5d / reif_10d,
    sonst „Modul ungebaut, n=0" (Modul-Start 10.06.).
 3. **CTB-Edge** (``cost_to_borrow`` gesetzt): mit_CTB / reif_5d / reif_10d,
    sonst „Persistenz ungebaut, n=0".
+4. **Konsistenz-Wächter** (Projekt C): je config-Konstante
+   ``name=Ist/Soll [OK|DRIFT]`` (s. u.).
 
 **Reife-Definition:** „reif" = Forward-Label ``return_5d`` / ``return_10d``
 nicht ``None``. Beide werden GETRENNT gemeldet, weil die 30.06.-Auswertung
@@ -95,11 +96,28 @@ Definitionen vorweg. Bei Codifizierung der Auswertung die hier gezählte
 Definition damit abgleichen (gleiche Bucket-Grenze ≥70, gleicher
 schema_v==4-Filter).
 
-**WARN (severity ``warn``, id ``S13``) nur bei Soll-Ist-Drift:**
-``EXPECTED_RVOL_NORMALIZATION != RVOL_NORMALIZATION_ENABLED``. Solange γ-2
-bewusst aus ist (beide ``False``), ist das Gate **still**. Wird die Soll-
-Konstante auf ``True`` gesetzt (γ-2 soll laufen), das Flag aber noch
-``False``, feuert S13. Bewusst **EINZIGER Soll-Haken** (kein Soll-System).
+**Konsistenz-Wächter (Projekt C) — 4. Status-Zeile + Drift-Warns:** Soll
+vs. Ist je deklarierter config-Konstante aus ``CONSISTENCY_EXPECTED_STATE``
+(Single-Source-Dict in ``config.py``). IST wird live via
+``getattr(config, name)`` gelesen; pro driftendem Wert ein WARN (severity
+``warn``, id ``S13``, ``detail`` nennt Konstante + Soll + Ist). Solange
+Ist==Soll ist das Gate **still**.
+
+Erst-Umfang = drei STABILE, getattr-lesbare Konstanten, deren stiller Drift
+echten Schaden anrichtet:
+
+| Konstante | Soll | Schaden bei Drift |
+|---|---|---|
+| ``RVOL_NORMALIZATION_ENABLED`` | ``EXPECTED_RVOL_NORMALIZATION`` (False) | γ-2-Erwartung ≠ realer Flag-Zustand |
+| ``SCORE_NORMALIZATION_VERSION`` | 1 | pre/post-γ-Confounder in der 30.06.-Auswertung |
+| ``EARLINESS_FORMULA_VERSION`` | 2 | Fall auf 1 = Conviction-Earliness-Bruch |
+
+**Aufnahme-Regel:** NUR stabile, ``getattr``-lesbare Konstanten mit
+Schaden-bei-stillem-Drift. NICHT aufnehmen: volatile Tunables (Conviction-
+Schwellen, Provider-ENABLED-Flags, Override-Dicts), Crons (Drift entsteht
+zur Laufzeit, nicht im YAML-Wert → S11/S12), Code-Literale (``schema_v==4``
+→ AST nötig). Bei γ-2: ``SCORE_NORMALIZATION_VERSION``-Soll gemeinsam mit
+``RVOL`` auf 2/True ziehen (gepaart).
 
 **Kein neues Schema-Feld, kein Score-/Filter-/Auswertungs-Touch.** Liest
 nur bestehende backtest_history-Felder + zwei config-Flags.

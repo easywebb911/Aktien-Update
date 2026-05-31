@@ -375,6 +375,25 @@ SCORE_NORMALIZATION_VERSION = 1
 # Soll-Ist-Drift (warn). Bewusst EINZIGER Soll-Haken (kein Soll-System).
 EXPECTED_RVOL_NORMALIZATION = False
 
+# Konsistenz-Wächter (Projekt C, Health-Check S13) — Single-Source der
+# deklarierten SOLL-config-Zustände. S13 liest den IST live via
+# getattr(config, name) und WARNt pro driftendem Wert. EIN Dict statt
+# mehrerer EXPECTED_*-Paare: generischer Loop, kein Per-Konstante-kwarg-
+# Plumbing, und EXPECTED_RVOL_NORMALIZATION (PR #297) wird wiederverwendet
+# statt dupliziert.
+#
+# AUFNAHME-REGEL: nur STABILE, getattr-lesbare Konstanten, deren STILLER
+# Drift echten Schaden anrichtet. NICHT aufnehmen: volatile Tunables
+# (Conviction-Schwellen, Provider-ENABLED-Flags, Override-Dicts), Crons
+# (Drift entsteht zur Laufzeit, nicht im Wert → S11/S12) oder Code-Literale
+# (schema_v==4 → AST nötig). Bei γ-2: SCORE_NORMALIZATION_VERSION-Soll
+# gemeinsam mit RVOL auf 2/True ziehen (gepaart).
+CONSISTENCY_EXPECTED_STATE = {
+    "RVOL_NORMALIZATION_ENABLED":  EXPECTED_RVOL_NORMALIZATION,  # 1× ever (γ-2)
+    "SCORE_NORMALIZATION_VERSION": 1,   # pre-γ; bei γ-2 gepaart auf 2
+    "EARLINESS_FORMULA_VERSION":   2,   # Fall auf 1 = Conviction-Earliness-Bruch
+}
+
 # ── FINRA-Trend-Konfiguration ────────────────────────────────────────────────
 # Stabilisiert 2026-04: 12 Handelstage statt 6, 6 Mindest-Datenpunkte
 # statt 3 — deutlich weniger Tagesausreißer, dafür mehr „Keine Daten" bei
