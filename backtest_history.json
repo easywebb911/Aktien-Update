@@ -37049,7 +37049,7 @@
     "backtest_schema_version": 4
   },
   {
-    "date": "29.05.2026",
+    "date": "28.05.2026",
     "ticker": "ABSI",
     "score": 56.73,
     "entry_price": 6.08,
@@ -37313,7 +37313,7 @@
     "backtest_schema_version": 4
   },
   {
-    "date": "29.05.2026",
+    "date": "28.05.2026",
     "ticker": "HUMA",
     "score": 58.2,
     "entry_price": 1.28,
@@ -37357,7 +37357,7 @@
     "backtest_schema_version": 4
   },
   {
-    "date": "29.05.2026",
+    "date": "28.05.2026",
     "ticker": "KSS",
     "score": 97.38,
     "entry_price": 15.59,
@@ -37401,7 +37401,7 @@
     "backtest_schema_version": 4
   },
   {
-    "date": "29.05.2026",
+    "date": "28.05.2026",
     "ticker": "LNKS",
     "score": 71.63,
     "entry_price": 1.78,
@@ -37445,7 +37445,7 @@
     "backtest_schema_version": 4
   },
   {
-    "date": "29.05.2026",
+    "date": "28.05.2026",
     "ticker": "NMAX",
     "score": 77.29,
     "entry_price": 8.74,
@@ -37489,7 +37489,7 @@
     "backtest_schema_version": 4
   },
   {
-    "date": "29.05.2026",
+    "date": "28.05.2026",
     "ticker": "OM",
     "score": 71.7,
     "entry_price": 5.01,
@@ -37533,7 +37533,7 @@
     "backtest_schema_version": 4
   },
   {
-    "date": "29.05.2026",
+    "date": "28.05.2026",
     "ticker": "PDYN",
     "score": 66.05,
     "entry_price": 8.8,
@@ -37577,7 +37577,7 @@
     "backtest_schema_version": 4
   },
   {
-    "date": "29.05.2026",
+    "date": "28.05.2026",
     "ticker": "PLCE",
     "score": 71.5,
     "entry_price": 4.35,
@@ -37753,7 +37753,7 @@
     "backtest_schema_version": 4
   },
   {
-    "date": "29.05.2026",
+    "date": "28.05.2026",
     "ticker": "SERV",
     "score": 55.09,
     "entry_price": 9.49,
@@ -37797,7 +37797,7 @@
     "backtest_schema_version": 4
   },
   {
-    "date": "29.05.2026",
+    "date": "28.05.2026",
     "ticker": "SPCE",
     "score": 49.7,
     "entry_price": 4.53,

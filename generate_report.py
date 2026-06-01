@@ -15150,8 +15150,15 @@ def _resolve_run_phase() -> str:
 
 def main():
     t_run_start = time.time()
-    berlin = ZoneInfo("Europe/Berlin")
-    report_date = datetime.now(berlin).strftime("%d.%m.%Y")
+    # report_date an den US-HANDELSTAG (Eastern) koppeln, NICHT an die
+    # Berlin-Wallclock (Diagnose 01.06.2026): ein postclose-Run, der durch
+    # GitHub-Actions-Drift nach Berlin-Mitternacht läuft (z.B. 22-23 UTC =
+    # 00-01 Berlin), bekäme sonst den NÄCHSTEN Berlin-Tag, obwohl er denselben
+    # US-Handelstag (16-17 ET) verarbeitet → Fehl-Datierung + Dedup-Kollision
+    # (28.05.-Kohorte landete als 29.05.). ET-Kopplung heilt das an der Wurzel.
+    # Die Header-Timestamp-Anzeige (Z. ~6254) nutzt weiterhin Berlin-Zeit
+    # (eigene ZoneInfo-Instanz, von dieser Datums-Achse unabhängig).
+    report_date = datetime.now(ZoneInfo("America/New_York")).strftime("%d.%m.%Y")
     run_phase   = _resolve_run_phase()
     log.info("=== Squeeze Report %s (run_phase=%s) ===", report_date, run_phase)
     # Health-Check Phase 2 — Provider-Aggregatoren zurücksetzen, damit
@@ -16376,7 +16383,11 @@ def main():
     # try/except inside) — Daily-Run wird nie wegen Health-Check
     # gecrasht.
     try:
-        _today_iso = datetime.now(berlin).strftime("%Y-%m-%d")
+        # _today_iso MUSS derselben ET-Achse folgen wie report_date (s.o.):
+        # speist S1 (score_history-Vergleich, gestempelt mit report_date) und
+        # das S4-Wochenend-Gate. Bliebe es Berlin während report_date ET ist,
+        # bräche an Drift-Tagen S1 (crit-Fehlalarm) + S4 durch Achsen-Divergenz.
+        _today_iso = datetime.now(ZoneInfo("America/New_York")).strftime("%Y-%m-%d")
         _top10_tickers = [s["ticker"] for s in top10 if s.get("ticker")]
         try:
             with open(SCORE_HISTORY_FILE, "r", encoding="utf-8") as _fh:
