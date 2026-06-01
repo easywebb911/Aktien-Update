@@ -117,23 +117,26 @@ def test_provider_tier1_immediate_fail():
 def test_provider_tier2_needs_three_in_a_row():
     """Tier-2: erst ab 3-in-Folge wird ein Fail emittiert."""
     counters: dict = {}
+    # now_ts nahe den run_ts (15.05.) übergeben, sonst nullt der Stale-
+    # Counter-Reset (> 7 d) den Counter bei wall-clock-now (Vorlage Z.191+).
+    now = datetime(2026, 5, 15, 12, 0, tzinfo=timezone.utc)
     # Lauf 1: fail
     out1 = hc.aggregate_provider_fails(
         [{"run_ts": _ts(2026, 5, 15, 1), "provider": "finra", "tier": 2,
           "http_status": None, "coverage_pct": None, "error": "empty"}],
-        counters, tier_map={"finra": 2})
+        counters, tier_map={"finra": 2}, now_ts=now)
     assert out1 == []   # erst beim 3-Lauf
     # Lauf 2 (kumulativ)
     out2 = hc.aggregate_provider_fails(
         [{"run_ts": _ts(2026, 5, 15, 2), "provider": "finra", "tier": 2,
           "http_status": None, "coverage_pct": None, "error": "empty"}],
-        counters, tier_map={"finra": 2})
+        counters, tier_map={"finra": 2}, now_ts=now)
     assert out2 == []
     # Lauf 3 → Schwelle erreicht
     out3 = hc.aggregate_provider_fails(
         [{"run_ts": _ts(2026, 5, 15, 3), "provider": "finra", "tier": 2,
           "http_status": None, "coverage_pct": None, "error": "empty"}],
-        counters, tier_map={"finra": 2})
+        counters, tier_map={"finra": 2}, now_ts=now)
     assert len(out3) == 1
     assert out3[0]["severity"] == "warn"
     assert out3[0]["consecutive"] == 3
@@ -164,18 +167,21 @@ def test_provider_coverage_threshold_tier1():
 def test_provider_coverage_threshold_tier2_at_50():
     """Tier-2: coverage < 50 % (Spec). 49 → fail, 60 → OK."""
     counters: dict = {}
+    # now_ts nahe den run_ts (15.05.), sonst nullt der Stale-Reset (> 7 d)
+    # den Counter bei wall-clock-now (Vorlage Z.191+).
+    now = datetime(2026, 5, 15, 12, 0, tzinfo=timezone.utc)
     # 49 → fail-Schwelle gerissen
     out_fail = hc.aggregate_provider_fails(
         [{"run_ts": _ts(2026, 5, 15, 1), "provider": "finnhub", "tier": 2,
           "http_status": 200, "coverage_pct": 49.0, "error": None}],
-        counters, tier_map={"finnhub": 2})
+        counters, tier_map={"finnhub": 2}, now_ts=now)
     assert out_fail == []   # nicht 3-in-Folge
     assert counters["consecutive_failures"]["finnhub"] == 1
     # 60 → ok, counter reset
     out_ok = hc.aggregate_provider_fails(
         [{"run_ts": _ts(2026, 5, 15, 2), "provider": "finnhub", "tier": 2,
           "http_status": 200, "coverage_pct": 60.0, "error": None}],
-        counters, tier_map={"finnhub": 2})
+        counters, tier_map={"finnhub": 2}, now_ts=now)
     assert out_ok == []
     assert counters["consecutive_failures"]["finnhub"] == 0
 
