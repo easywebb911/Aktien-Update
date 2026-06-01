@@ -1,11 +1,11 @@
 {
-  "updated": "2026-06-01T07:16:55.325413+02:00",
+  "updated": "2026-06-01T12:33:56.791981+02:00",
   "run_info": {
     "tickers_checked": 18,
     "signals_active": 7,
     "alerts_sent": 0,
-    "elapsed_s": 17.9,
-    "market_phase": "Geschlossen"
+    "elapsed_s": 18.1,
+    "market_phase": "Pre-Market"
   },
   "signals": {
     "ABSI": {
@@ -183,7 +183,7 @@
     "CRMD": {
       "score": 30,
       "confidence": 17,
-      "drivers": "News: guidance raised, earnings beat",
+      "drivers": "News: earnings beat, guidance raised",
       "price": 8.44,
       "chg_pct": -0.0,
       "rvol_4d": 0.92,
