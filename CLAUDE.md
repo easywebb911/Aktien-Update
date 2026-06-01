@@ -3335,7 +3335,7 @@ S2/S3/S6/S8 laufen in BEIDEN Pfaden (Daily-Run + ki_agent-Tick), alle
 | S5 | warn | Daily | ``score_inflation_log`` bekommt ≥ ``HEALTH_CHECK_S5_MIN_INFLATION_LINES`` (10) neue Zeilen |
 | S6 | warn | beide | ``monster_scores`` ≥ ``HEALTH_CHECK_S6_MIN_MONSTER_NONZERO`` (3) Tickers > 0 |
 | S7 | warn | Daily | ``agent_signals`` ∩ Top-10 ≥ ``HEALTH_CHECK_S7_MIN_AGENT_OVERLAP`` (5) |
-| S8 | warn | beide | ``last_digest_sent`` in ``health_check_digest_state.json`` ist ≤ ``HEALTH_CHECK_S8_MAX_AGE_HOURS`` (26) Stunden alt |
+| S8 | warn | beide | ``last_successful_run`` in ``health_check_digest_state.json`` ist ≤ ``HEALTH_CHECK_S8_MAX_AGE_HOURS`` (26) Stunden alt (Referenz-Wechsel #274 — vorher ``last_digest_sent``) |
 | S9 | crit/warn | Daily | HTML-Sanity-Check des gerenderten ``index.html`` (DOM-Klassen-Counts via ``check_html_assertions``). crit wenn HTML-Fail crit, sonst warn; Check-Eigenfehler → warn. **Einziger CRIT-Block-Pfad** (``sys.exit`` bei id=="S9"-crit). |
 | S10 | warn/crit | Daily | Daten-Integrität ``backtest_history`` (schema_v==4): MUSS-Felder dauerhaft null (crit/warn je Schwelle), LAG-Felder ohne Outcome nach Trading-Tag-Lag (warn), Auto-Detect unklassifizierter Felder (warn) |
 | S11 | warn | Daily | kein echter premarket-Run (``run_phase==tsp=='premarket'``) seit > ``HEALTH_CHECK_S11_MAX_WORKDAYS_NO_PREMARKET`` (5) Werktagen — Quelle ``score_inflation_log`` |
