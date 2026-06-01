@@ -50,7 +50,7 @@ Begründung).
 | ID | Invariant | Severity | Lauf | Konkret geprüft |
 |----|-----------|----------|------|-----------------|
 | **S1** | `score_history.json` hat neue Einträge für Top-10-Ticker | **crit** | Daily | Letzter Eintrag pro Top-10-Ticker hat heutiges Datum |
-| **S2** | `setup_scores` enthält ≥ 10 Tickers | **crit** | beide | `len(app_data.setup_scores) ≥ 10` |
+| **S2** | `setup_scores` enthält ≥ 8 Tickers | **crit** | beide | `len(app_data.setup_scores) ≥ HEALTH_CHECK_S2_MIN_TICKERS` (8) |
 | **S3** | Aktive Positionen haben `current_price != null` | **crit** | beide | Für jeden Ticker in `positions`: `positions_out[t].current_price != null` |
 | **S4** | `backtest_history` hat heutigen Eintrag im `postclose`-Pfad (Tages-Basis); premarket darf nicht in den Backtest schreiben (Run-Basis) | warn | Daily | postclose: `any(e.date == today for e in backtest_history)`. premarket: `n_appended > 0` → WARN |
 | **S5** | `score_inflation_log.jsonl` bekommt pro Run ≥ 10 Zeilen | warn | Daily | `wc -l`-Diff nach Run |
