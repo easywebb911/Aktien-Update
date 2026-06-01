@@ -1,5 +1,5 @@
 {
-  "last_run": "2026-06-01T05:07:50.030194+02:00",
+  "last_run": "2026-06-01T06:16:03.412558+02:00",
   "cooldowns": {
     "anomaly_score_jump_XRX": "2026-05-03T18:47:15.315486+02:00",
     "anomaly_uoa_extreme_TDOC": "2026-05-04T13:47:00.365949+02:00",
@@ -1250,7 +1250,7 @@
   "prev_conviction_scores": {
     "FDMT": 70.0,
     "REPL": 69.0,
-    "AI": 61.0,
+    "AI": 75.0,
     "RXRX": 64.0,
     "BHVN": 63.0,
     "CGEM": 56.0,
