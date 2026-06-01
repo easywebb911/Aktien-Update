@@ -37,7 +37,7 @@
     "anomaly_monster_backup_XPOF": "2026-05-20T20:46:08.066894+02:00",
     "anomaly_conviction_high_DMRC": "2026-05-20T17:31:02.518802+02:00",
     "anomaly_conviction_high_LENZ": "2026-05-20T19:11:36.061944+02:00",
-    "exit_CRDF": "2026-06-01T19:22:10.200480+02:00",
+    "exit_CRDF": "2026-06-02T01:13:11.569081+02:00",
     "anomaly_score_jump_MNRO": "2026-05-27T15:51:00.247121+02:00",
     "anomaly_conviction_high_MNRO": "2026-05-27T15:51:00.309703+02:00",
     "anomaly_conviction_high_RXRX": "2026-05-27T21:44:19.507044+02:00",
@@ -47,18 +47,6 @@
     "anomaly_monster_backup_AI": "2026-06-01T14:12:40.687539+02:00"
   },
   "push_history": [
-    {
-      "ts": "2026-05-23T22:36:27.181766+02:00",
-      "ticker": "VITL",
-      "kind": "anomaly",
-      "severity": "medium",
-      "trigger": "score_jump",
-      "body": "VITL 🚀 Setup 53 ↑ (gestern 36) | Spanne 8.5% + SEC Form 4 + UOA Call/Put 2.7×",
-      "success": false,
-      "suppressed": true,
-      "suppress_reason": "conviction_below_threshold",
-      "conviction_score": 56
-    },
     {
       "ts": "2026-05-23T23:08:50.988293+02:00",
       "ticker": "AEVA",
@@ -1242,6 +1230,18 @@
       "severity": "trigger",
       "trigger": "overheated",
       "body": "🔻 Exit-Signal AMC: overheated crit ({'rsi14': 77.39783651684839, 'move_2d_pct': 0.3608, 'move_3d_pct': 0.3608, 'move_3d_available': True})",
+      "success": true,
+      "suppressed": false,
+      "suppress_reason": null,
+      "conviction_score": null
+    },
+    {
+      "ts": "2026-06-02T01:13:11.569051+02:00",
+      "ticker": "CRDF",
+      "kind": "exit_p1",
+      "severity": "default",
+      "trigger": "exit_alert",
+      "body": "CRDF 📉 Exit 83 | -16% | Trailing-Stop −26.0% vom Hoch",
       "success": true,
       "suppressed": false,
       "suppress_reason": null,
