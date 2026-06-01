@@ -1,17 +1,17 @@
 {
-  "updated": "2026-06-01T03:18:33.417524+02:00",
+  "updated": "2026-06-01T05:07:47.473408+02:00",
   "run_info": {
     "tickers_checked": 18,
     "signals_active": 7,
     "alerts_sent": 0,
-    "elapsed_s": 13.5,
+    "elapsed_s": 13.2,
     "market_phase": "Geschlossen"
   },
   "signals": {
     "ABSI": {
-      "score": 35,
+      "score": 43,
       "confidence": 70,
-      "drivers": "Volumen 2.5× + Spanne 25.0% + UOA Call/Put 47.2×",
+      "drivers": "Volumen 2.5× + Spanne 25.0% + News-KI 8/30: Positive sentiment but no short squeeze indicators like high short interest, forced buying pressure, or catalysts for ra + UOA Call/Put 47.2×",
       "price": 6.75,
       "chg_pct": 0.0,
       "rvol_4d": 2.46,
@@ -184,7 +184,7 @@
     "CRMD": {
       "score": 30,
       "confidence": 17,
-      "drivers": "News: guidance raised, earnings beat",
+      "drivers": "News: earnings beat, guidance raised",
       "price": 8.44,
       "chg_pct": -0.0,
       "rvol_4d": 0.92,
@@ -222,9 +222,9 @@
       "uoa_cp_ratio": 0.07958477508650519
     },
     "GEMI": {
-      "score": 35,
+      "score": 20,
       "confidence": 33,
-      "drivers": "Spanne 7.0% + News: takeover + UOA Call/Put 5.7×",
+      "drivers": "Spanne 7.0% + UOA Call/Put 5.7×",
       "price": 5.27,
       "chg_pct": -0.0,
       "rvol_4d": 0.7,
@@ -235,7 +235,7 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 1,
+      "active_triggers": 0,
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 5.7×"
@@ -244,13 +244,13 @@
       "uoa_cp_ratio": 5.712230215827338
     },
     "INDI": {
-      "score": 45,
-      "confidence": 70,
-      "drivers": "Spanne 10.1% + News: acquisition + SEC Form 4 + UOA Call/Put 16.3×",
+      "score": 35,
+      "confidence": 33,
+      "drivers": "News: acquisition + SEC Form 4 + UOA Call/Put 16.3×",
       "price": 4.99,
-      "chg_pct": -0.0,
-      "rvol_4d": 0.49,
-      "rvol_20d": 0.78,
+      "chg_pct": 0.0,
+      "rvol_4d": 0.0,
+      "rvol_20d": null,
       "earnings": "in 67 Tagen (06.08.2026)",
       "fda_date": null,
       "upcoming_event": null,
@@ -306,9 +306,9 @@
       "uoa_cp_ratio": 0.7973568281938326
     },
     "REPL": {
-      "score": 91,
+      "score": 100,
       "confidence": 70,
-      "drivers": "Earnings in 1 Tagen (01.06.2026) + Volumen 19.2× + 🚀 Massives Volumen 19.2×+ + Spanne 17.6% + News-KI 8/30: Positive clinical data presentations are bullish but lack the extreme short interest, technical setup, and catalyst urge + Earnings in 1d",
+      "drivers": "Earnings in 1 Tagen (01.06.2026) + Volumen 19.2× + 🚀 Massives Volumen 19.2×+ + Spanne 17.6% + News: fda approval + Earnings in 1d + 3/4 Trigger",
       "price": 8.69,
       "chg_pct": -0.0,
       "rvol_4d": 19.17,
@@ -318,8 +318,8 @@
       "upcoming_event": "Earnings in 1 Tagen (01.06.2026)",
       "insider_buy": false,
       "stocktwits": null,
-      "combo_mult": 1.1,
-      "active_triggers": 2,
+      "combo_mult": 1.2,
+      "active_triggers": 3,
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": 1.6782222222222223,
