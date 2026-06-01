@@ -382,7 +382,9 @@ def update_backtest_returns() -> None:
 
     Für jeden daily-Eintrag werden bei jedem Aufruf nachgetragen:
       • ``entry_price_t1``             — Close am nächsten Handelstag
-      • ``return_{win}d`` (T+0)        — Close[entry + win] / entry_price
+      • ``return_{win}d`` (T+0)        — Close[entry + win] / Close[entry]
+                                         (beide aus demselben auto_adjust-
+                                         Download → split-konsistent)
       • ``return_{win}d_t1`` (T+1)     — Close[entry + 1 + win] / entry_price_t1
 
     Holt ~90 Handelstage History pro Ticker und liest die benötigten Close-
@@ -464,7 +466,17 @@ def update_backtest_returns() -> None:
                 return float(closes.iloc[pos])
             return None
 
-        entry_price = float(e.get("entry_price") or 0) or (_close_at(0) or 0)
+        # Split-konsistente Return-Basis (Diagnose 01.06.2026): die T+0-
+        # Returns wurden früher gegen den GESPEICHERTEN entry_price gerechnet
+        # (am Entry-Tag persistierter Adjust-Stand). Liegt ein Split zwischen
+        # Entry und T+N, ist dieser Wert in einer ANDEREN Adjust-Epoche als
+        # die jetzt frisch geladenen auto_adjust-Closes → Skalensprung →
+        # extremes Falsch-Return. Fix: Entry-Basis aus DEMSELBEN Download
+        # (_close_at(0) = Close am Entry-Index). ei>=0 ist hier garantiert
+        # (Z. 458 continue), daher ist _close_at(0) nie None. Der gespeicherte
+        # entry_price bleibt als Feld erhalten (Position-/Display-Konsumenten),
+        # wird aber NICHT mehr als Return-Basis genutzt.
+        entry_basis = _close_at(0) or 0.0
         close_t1    = _close_at(1)
 
         if e.get("entry_price_t1") is None and close_t1 is not None:
@@ -473,10 +485,10 @@ def update_backtest_returns() -> None:
 
         for win in BACKTEST_RETURN_WINDOWS:
             k0 = f"return_{win}d"
-            if e.get(k0) is None and entry_price > 0:
+            if e.get(k0) is None and entry_basis > 0:
                 c = _close_at(win)
                 if c is not None:
-                    e[k0] = round((c / entry_price - 1) * 100, 2)
+                    e[k0] = round((c / entry_basis - 1) * 100, 2)
                     n_filled += 1
                     log.info("  %s [%s] T+0 %dd-Return: %+.2f%%",
                              e["ticker"], e.get("date"), win, e[k0])
