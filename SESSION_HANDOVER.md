@@ -72,10 +72,14 @@
   (19→28.05, ≥70-Bucket-Datenpunkt), RR +11.5% (26.05.).
 
 ## 3) VERIFIKATION MORGEN (erster Werktags-Daily-Run, frühestens Mo 01.06. / Di 02.06.)
-- **Borrow-Reparatur (#292) ERSTMALS werktags live:** Actions-Log auf
-  `provider="borrow"` + coverage + `daily[-1].date` aktuell prüfen. ~100% =
-  iBorrowDesk lebt vom Runner; 0% = Runner-Block → FTP-Fallback. CTB im
-  Score sichtbar (Katalysator-Bonus feuert)?
+- **Borrow-Reparatur (#292) — ✅ VERIFIZIERT ERLEDIGT (01.06.):**
+  `provider="borrow"` läuft im Daily-Run grün über **5 Läufe**
+  (31.05. 00+20 UTC, 01.06. 01+04+12 UTC): `coverage_pct=100`,
+  `http_status=200`, `item_count=10`, `error=None`. Echte CTB-Werte in
+  `app_data.json` (z.B. REPL 0.45 %, AI 0.39 %). Beleg: `provider_health.jsonl`
+  (KEINE eigene log.info-Zeile — die provider-health-Zeile IST der Beleg).
+  Borrow läuft NUR im Daily-Run (nicht im ki_agent-Tick), nur für top10 ∩
+  US-Ticker, kein Phasen-Gate. iBorrowDesk lebt vom GitHub-Runner.
 - **report_date→ET (#304) erstmals live:** Actions-Log `=== Squeeze Report
   DD.MM …` muss den US-Handelstag zeigen (an Drift-Tagen ET-Datum, nicht
   Berlin+1). S1/S4 dürfen an Drift-Tagen NICHT mehr fälschlich feuern
@@ -131,15 +135,22 @@ volle Faktoren weg, da app_data/agent_signals überschrieben).
   `CONSISTENCY_EXPECTED_STATE` BEIDE Soll gepaart (EXPECTED_RVOL_NORMALIZATION
   → True UND SCORE_NORMALIZATION_VERSION-Soll → 2), sonst meldet S13 zurecht
   Drift.
-- **B — Borrow-Coverage-Wächter:** WARTET auf ersten echten Werktags-Daily-
-  Run (frühestens 01.06.) — Actions-Log auf `provider=borrow` + coverage
-  prüfen, DANN B-Schwelle festlegen und bauen (success_check
-  `cost_to_borrow is not None`, eigener _BORROW_ACCT seit #292 getrennt).
+- **B — Borrow-Coverage-Wächter:** Verifikations-Vorbedingung ✅ erfüllt
+  (Borrow läuft grün, coverage 100 % über 5 Läufe — s. §3). **Jetzt baubar.**
+  Schwelle auf die bestehende `provider=borrow`-coverage in
+  `aggregate_provider_fails` (Tier-2-Konsekutiv-Logik existiert schon).
+  KRITISCH bei Schwellenwahl: legitime Smallcap-Pool-Ticker, die iBorrowDesk
+  nicht kennt, drücken coverage ECHT → die Schwelle muss „Provider tot" von
+  „Pool-Smallcap-Lücke" trennen (success_check `cost_to_borrow is not None`
+  + eigener _BORROW_ACCT seit #292 getrennt sind die Basis).
 - **FOLGE-PR Borrow-Persistenz** (klein, hohe Prio vor erster CTB-Auswertung):
   Borrow-Felder additiv ins backtest_history (v4 behalten, S10_OBSERVED,
-  atomar). CTB fließt seit #292 in Score, wird noch NICHT persistiert.
-  Sobald persistiert, schaltet S13 die CTB-Edge-Zeile von „ungebaut" auf
-  Counts.
+  atomar). **Status (verifiziert 01.06.):** CTB fließt seit #292 in Score +
+  Live-`app_data.json` (`watchlist_cards[T].cost_to_borrow`), wird aber NOCH
+  NICHT ins backtest_history persistiert — `positions[T].entry_cost_to_borrow`
+  ist überall None, backtest_history hat kein CTB-Feld. Ohne diesen PR keine
+  CTB-Edge-Auswertung. Sobald persistiert, schaltet S13 die CTB-Edge-Zeile
+  von „ungebaut" auf Counts.
 - **MEMORY-HYGIENE (neu):** Memory ist voll (30/30). Konsolidieren —
   #21–#24 (Entry-Modul) zu 1–2 verdichten. Nach Meilensteinen löschbar:
   mock_test_digest-Notiz (nach diesem Handover-Rewrite erledigt),
