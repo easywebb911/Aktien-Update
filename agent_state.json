@@ -37,7 +37,7 @@
     "anomaly_monster_backup_XPOF": "2026-05-20T20:46:08.066894+02:00",
     "anomaly_conviction_high_DMRC": "2026-05-20T17:31:02.518802+02:00",
     "anomaly_conviction_high_LENZ": "2026-05-20T19:11:36.061944+02:00",
-    "exit_CRDF": "2026-05-28T18:10:41.578632+02:00",
+    "exit_CRDF": "2026-06-01T19:22:10.200480+02:00",
     "anomaly_score_jump_MNRO": "2026-05-27T15:51:00.247121+02:00",
     "anomaly_conviction_high_MNRO": "2026-05-27T15:51:00.309703+02:00",
     "anomaly_conviction_high_RXRX": "2026-05-27T21:44:19.507044+02:00",
@@ -47,18 +47,6 @@
     "anomaly_monster_backup_AI": "2026-06-01T14:12:40.687539+02:00"
   },
   "push_history": [
-    {
-      "ts": "2026-05-23T21:38:25.507774+02:00",
-      "ticker": "OXM",
-      "kind": "anomaly",
-      "severity": "medium",
-      "trigger": "score_jump",
-      "body": "OXM 🚀 Setup 56 ↑ (gestern 39) | Spanne 6.6% + Earnings in 18d",
-      "success": false,
-      "suppressed": true,
-      "suppress_reason": "conviction_below_threshold",
-      "conviction_score": 64
-    },
     {
       "ts": "2026-05-23T21:38:25.507875+02:00",
       "ticker": "VITL",
@@ -1246,6 +1234,18 @@
       "suppressed": true,
       "suppress_reason": "conviction_below_threshold",
       "conviction_score": 70
+    },
+    {
+      "ts": "2026-06-01T19:22:10.200450+02:00",
+      "ticker": "CRDF",
+      "kind": "exit_p1",
+      "severity": "default",
+      "trigger": "exit_alert",
+      "body": "CRDF 📉 Exit 83 | -14% | Trailing-Stop −24.8% vom Hoch",
+      "success": true,
+      "suppressed": false,
+      "suppress_reason": null,
+      "conviction_score": null
     }
   ],
   "prev_conviction_scores": {
