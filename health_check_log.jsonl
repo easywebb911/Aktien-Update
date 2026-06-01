@@ -425,3 +425,4 @@
 {"run_ts": "2026-06-01T17:22:10Z", "run_phase": "premarket", "schema_v": 1, "state_fails": [{"id": "S7", "severity": "warn", "detail": "agent_signals ∩ top10: 4 von 10 Top-10-Ticker, Schwelle ≥ 5. Möglicher Daily-Run-/KI-Agent-Drift — neuer Tick fällig"}], "provider_fails": []}
 {"run_ts": "2026-06-01T17:24:04Z", "run_phase": "ki_agent_tick", "schema_v": 1, "state_fails": [], "provider_fails": []}
 {"run_ts": "2026-06-01T19:14:21Z", "run_phase": "premarket", "schema_v": 1, "state_fails": [], "provider_fails": []}
+{"run_ts": "2026-06-01T19:15:58Z", "run_phase": "ki_agent_tick", "schema_v": 1, "state_fails": [], "provider_fails": []}
