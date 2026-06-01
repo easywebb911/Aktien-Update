@@ -82,6 +82,15 @@ jobs:
         # Tiers — siehe scripts/lint_score_confidence_isolation.py.
         run: python scripts/lint_score_confidence_isolation.py
 
+      - name: Lint token-crypto invariants
+        # Prüft die harten Token-Encryption-Sicherheitsregeln (Klartext-Token
+        # nur sessionStorage, kein localStorage-Klartext-Write, localStorage-
+        # Read nur im Legacy-Helper, kein Token-console.log, AES-GCM/PBKDF2
+        # vorhanden). Deterministisch, blockierend — Lint-Fail bricht den
+        # Workflow ab. Hintergrund: Guardian-Diagnose 01.06.2026 — der
+        # automatisierbare Teil des squeeze-guardian-Krypto-Checks.
+        run: python scripts/lint_token_crypto.py
+
       - name: Resolve run phase
         # Single-Source-of-Truth: scripts/resolve_run_phase.py löst den
         # RUN_PHASE-Wert auf. Schedule-Trigger nutzen festen Cron-Mapping
