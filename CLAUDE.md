@@ -3319,21 +3319,29 @@ Sektion ist nur ein CLAUDE.md-Anker auf das Doku-File.
   (nach ``save_state``). Fail-soft via ``run_and_record`` —
   Daily-Run/KI-Agent crashen nie wegen Health-Check.
 
-### 8 State-Invariants (Phase 1 + S8 ab 16.05.2026)
+### 13 State-Invariants (Phase 1 S1–S7 + S8 ab 16.05. + S9–S13)
 
 Voller Detailtext + Schwellen-Tabelle in
-``docs/health_check_spec.md``. Hier nur Kurz-Übersicht:
+``docs/health_check_spec.md``. Hier nur Kurz-Übersicht. **Lauf-Kontext:**
+S2/S3/S6/S8 laufen in BEIDEN Pfaden (Daily-Run + ki_agent-Tick), alle
+übrigen nur im Daily-Run (``if not ki_agent_only``).
 
-| ID | Severity | Was wird geprüft |
-|----|----------|------------------|
-| S1 | crit | ``score_history.json`` hat heutigen Eintrag pro Top-10-Ticker |
-| S2 | crit | ``app_data.setup_scores`` hat ≥ ``HEALTH_CHECK_S2_MIN_TICKERS`` (8) Tickers |
-| S3 | crit | Aktive Positionen haben ``current_price != None`` |
-| S4 | warn | ``backtest_history`` hat heutigen Eintrag im ``postclose``-Pfad (Tages-Invariante). premarket-Pfad bleibt Run-basiert: WARN wenn dieser Run fälschlich appended. |
-| S5 | warn | ``score_inflation_log`` bekommt ≥ ``HEALTH_CHECK_S5_MIN_INFLATION_LINES`` (10) neue Zeilen |
-| S6 | warn | ``monster_scores`` ≥ ``HEALTH_CHECK_S6_MIN_MONSTER_NONZERO`` (3) Tickers > 0 |
-| S7 | warn | ``agent_signals`` ∩ Top-10 ≥ ``HEALTH_CHECK_S7_MIN_AGENT_OVERLAP`` (5) |
-| S8 | warn | ``last_digest_sent`` in ``health_check_digest_state.json`` ist ≤ ``HEALTH_CHECK_S8_MAX_AGE_HOURS`` (26) Stunden alt |
+| ID | Severity | Lauf | Was wird geprüft |
+|----|----------|------|------------------|
+| S1 | crit | Daily | ``score_history.json`` hat heutigen Eintrag pro Top-10-Ticker |
+| S2 | crit | beide | ``app_data.setup_scores`` hat ≥ ``HEALTH_CHECK_S2_MIN_TICKERS`` (8) Tickers |
+| S3 | crit | beide | Aktive Positionen haben ``current_price != None`` |
+| S4 | warn | Daily | ``backtest_history`` hat heutigen Eintrag im ``postclose``-Pfad (Tages-Invariante). premarket-Pfad bleibt Run-basiert: WARN wenn dieser Run fälschlich appended. |
+| S5 | warn | Daily | ``score_inflation_log`` bekommt ≥ ``HEALTH_CHECK_S5_MIN_INFLATION_LINES`` (10) neue Zeilen |
+| S6 | warn | beide | ``monster_scores`` ≥ ``HEALTH_CHECK_S6_MIN_MONSTER_NONZERO`` (3) Tickers > 0 |
+| S7 | warn | Daily | ``agent_signals`` ∩ Top-10 ≥ ``HEALTH_CHECK_S7_MIN_AGENT_OVERLAP`` (5) |
+| S8 | warn | beide | ``last_digest_sent`` in ``health_check_digest_state.json`` ist ≤ ``HEALTH_CHECK_S8_MAX_AGE_HOURS`` (26) Stunden alt |
+| S9 | crit/warn | Daily | HTML-Sanity-Check des gerenderten ``index.html`` (DOM-Klassen-Counts via ``check_html_assertions``). crit wenn HTML-Fail crit, sonst warn; Check-Eigenfehler → warn. **Einziger CRIT-Block-Pfad** (``sys.exit`` bei id=="S9"-crit). |
+| S10 | warn/crit | Daily | Daten-Integrität ``backtest_history`` (schema_v==4): MUSS-Felder dauerhaft null (crit/warn je Schwelle), LAG-Felder ohne Outcome nach Trading-Tag-Lag (warn), Auto-Detect unklassifizierter Felder (warn) |
+| S11 | warn | Daily | kein echter premarket-Run (``run_phase==tsp=='premarket'``) seit > ``HEALTH_CHECK_S11_MAX_WORKDAYS_NO_PREMARKET`` (5) Werktagen — Quelle ``score_inflation_log`` |
+| S12 | crit | Daily | kein echter postclose-Run (``run_phase==tsp=='postclose'``) seit > ``HEALTH_CHECK_S12_MAX_WORKDAYS_NO_POSTCLOSE`` (2) Werktagen. **crit = NUR-REPORTING** (blockiert NICHT — S9-Exit-Pfad filtert strikt id=="S9") |
+| S13 | warn | Daily | **Doppel-Baustein.** (a) **Daten-Reife-Gate** (#297): laufender Status der 3 30.06.-Auswertungen (Setup-Edge ≥70/schema_v4, Entry-AUC, CTB-Edge) je vorhanden/reif_5d/reif_10d — Status-Zeilen via log.info, kein Fail. (b) **Konsistenz-Wächter** (Projekt C, #298): Soll-Ist-Drift je config-Konstante aus ``CONSISTENCY_EXPECTED_STATE`` — ein warn pro Drift |
+
 
 **S8** (16.05.2026) erkennt silent Digest-Push-Fails (gestern 15.05.:
 ntfy-Send fehlgeschlagen, Workflow lief grün durch, keine Push-Email).

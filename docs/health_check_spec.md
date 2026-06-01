@@ -40,17 +40,28 @@ SESSION_HANDOVER „Drei Achsen von Tests/Checks".
   täglich auf Liveness geprüft — wenn dieser Push ausbleibt, weiß
   Easy, dass ntfy oder der Digest-Workflow ausgefallen ist.
 
-## State-Invariants (6)
+## State-Invariants (13)
 
-| ID | Invariant | Severity | Konkret geprüft |
-|----|-----------|----------|-----------------|
-| **S1** | `score_history.json` hat neue Einträge für Top-10-Ticker | **crit** | Letzter Eintrag pro Top-10-Ticker hat heutiges Datum |
-| **S2** | `setup_scores` enthält ≥ 10 Tickers | **crit** | `len(app_data.setup_scores) ≥ 10` |
-| **S3** | Aktive Positionen haben `current_price != null` | **crit** | Für jeden Ticker in `positions`: `positions_out[t].current_price != null` |
-| **S4** | `backtest_history` hat heutigen Eintrag im `postclose`-Pfad (Tages-Basis); premarket darf nicht in den Backtest schreiben (Run-Basis) | warn | postclose: `any(e.date == today for e in backtest_history)`. premarket: `n_appended > 0` → WARN |
-| **S5** | `score_inflation_log.jsonl` bekommt pro Run ≥ 10 Zeilen | warn | `wc -l`-Diff nach Run |
-| **S6** | `monster_scores`: ≥ 3 Tickers > 0 | warn | `sum(1 for s in monster_scores.values() if s > 0) ≥ 3` |
-| **S7** | `agent_signals` ∩ Top-10 ≥ 5 | warn | `len(set(agent_signals.keys()) & set(top10_tickers)) ≥ HEALTH_CHECK_S7_MIN_AGENT_OVERLAP` |
+**Lauf-Kontext:** S2/S3/S6/S8 laufen in BEIDEN Pfaden (Daily-Run +
+ki_agent-Tick), alle übrigen nur im Daily-Run (``if not ki_agent_only``).
+S9–S13 sind nach S1–S8 ergänzt; Detail-Sektionen weiter unten (S7-, S13-
+Begründung).
+
+| ID | Invariant | Severity | Lauf | Konkret geprüft |
+|----|-----------|----------|------|-----------------|
+| **S1** | `score_history.json` hat neue Einträge für Top-10-Ticker | **crit** | Daily | Letzter Eintrag pro Top-10-Ticker hat heutiges Datum |
+| **S2** | `setup_scores` enthält ≥ 10 Tickers | **crit** | beide | `len(app_data.setup_scores) ≥ 10` |
+| **S3** | Aktive Positionen haben `current_price != null` | **crit** | beide | Für jeden Ticker in `positions`: `positions_out[t].current_price != null` |
+| **S4** | `backtest_history` hat heutigen Eintrag im `postclose`-Pfad (Tages-Basis); premarket darf nicht in den Backtest schreiben (Run-Basis) | warn | Daily | postclose: `any(e.date == today for e in backtest_history)`. premarket: `n_appended > 0` → WARN |
+| **S5** | `score_inflation_log.jsonl` bekommt pro Run ≥ 10 Zeilen | warn | Daily | `wc -l`-Diff nach Run |
+| **S6** | `monster_scores`: ≥ 3 Tickers > 0 | warn | beide | `sum(1 for s in monster_scores.values() if s > 0) ≥ 3` |
+| **S7** | `agent_signals` ∩ Top-10 ≥ 5 | warn | Daily | `len(set(agent_signals.keys()) & set(top10_tickers)) ≥ HEALTH_CHECK_S7_MIN_AGENT_OVERLAP` |
+| **S8** | Digest-Push-Pipeline frisch | warn | beide | Digest-Alter ≤ `HEALTH_CHECK_S8_MAX_AGE_HOURS` (26 h). Misst seit #274 `last_successful_run` (ISO-Timestamp), nicht mehr `last_digest_sent`. `None` → kein Fail (Erstaufsetzen) |
+| **S9** | HTML-Sanity des gerenderten `index.html` | **crit**/warn | Daily | DOM-Klassen-Counts via `check_html_assertions`. crit wenn HTML-Fail crit, sonst warn; Check-Eigenfehler → warn. **Einziger CRIT-Block-Pfad** (`sys.exit` filtert strikt id=="S9"-crit) |
+| **S10** | Daten-Integrität `backtest_history` (schema_v==4) | warn/**crit** | Daily | MUSS-Felder dauerhaft null (crit/warn je Schwelle), LAG-Felder ohne Outcome nach Trading-Tag-Lag (warn), Auto-Detect unklassifizierter Felder (warn) |
+| **S11** | premarket-Sammel-Frequenz | warn | Daily | kein echter premarket-Run (`run_phase==tsp=='premarket'`) seit > `HEALTH_CHECK_S11_MAX_WORKDAYS_NO_PREMARKET` (5) Werktagen; Quelle `score_inflation_log` |
+| **S12** | postclose-Sammel-Frequenz | **crit** | Daily | kein echter postclose-Run (`run_phase==tsp=='postclose'`) seit > `HEALTH_CHECK_S12_MAX_WORKDAYS_NO_POSTCLOSE` (2) Werktagen. **crit = NUR-REPORTING** (blockiert NICHT) |
+| **S13** | Daten-Reife-Gate + Konsistenz-Wächter | warn | Daily | **Doppel-Baustein.** (a) Daten-Reife-Gate (#297): Status der 3 30.06.-Auswertungen (Setup-Edge ≥70/schema_v4, Entry-AUC, CTB-Edge) je vorhanden/reif_5d/reif_10d via log.info, kein Fail. (b) Konsistenz-Wächter (Projekt C, #298): Soll-Ist-Drift je config-Konstante aus `CONSISTENCY_EXPECTED_STATE` — ein warn pro Drift |
 
 ### S7 — Begründung (KI-Score-Drift, 14.05.2026)
 
