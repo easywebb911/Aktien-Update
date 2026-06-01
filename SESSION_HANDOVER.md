@@ -1,4 +1,4 @@
-# SESSION_HANDOVER.md — Stand 01.06.2026
+# SESSION_HANDOVER.md — Stand 01.06.2026 (Nachtrag #306)
 
 ## 1) HEUTE IMPLEMENTIERT (mit Hashes)
 - **#295 (Merge a48dd11, Commit 2efb295) — 31.05.** premarket-Cron
@@ -45,6 +45,22 @@
   SPCE) von `date=29.05.` → `28.05.` (waren 28.05.-Kohorte via Commit
   f0ef9077 fälschlich als 29.05. datiert, Returns noch None → vor Schaden
   korrigiert). Nur date-Feld. Manueller Merge.
+- **#306 (Merge d755aa2e) — 01.06.** **squeeze-guardian-Diagnose +
+  Teilautomatisierung.** (A) `scripts/lint_token_crypto.py` —
+  deterministischer, BLOCKIERENDER CI-Lint für 4 Token-Krypto-Invarianten:
+  R1 (localStorage-Klartext-Read nur in `_getLegacyPlaintextToken`/
+  `_tokSnapshot`), R2 (kein Klartext-Token-`setItem` nach localStorage),
+  R3 (kein `console.*`-Logging einer token/tok/pat-Variable — String-Labels
+  kein Verstoß), R4 (AES-GCM/PBKDF2/_TOK_PBKDF2_ITER/_TOK_KEY_BITS vorhanden).
+  Eingehängt ins Workflow-Lint-Gate (nach lint_score_confidence_isolation)
+  + Self-Merge-Lauf. Verifiziert: grün gegen Ist-Code, rot gegen alle 4
+  künstlichen Verstöße. R3 anfangs zu breit (7 String-Label-Fehl-Positive)
+  → präzisiert (Literale strippen, Identifier prüfen), NICHT gelockert.
+  (B) CLAUDE.md-Routine: Architektur-Check bleibt Modell-Urteil (echo-Hook
+  kann Agent NICHT spawnen — strukturell nicht automatisierbar, Diagnose
+  via claude-code-guide). Vor manuell-Merge-pflichtigen PRs Guardian
+  EXPLIZIT aufrufen — ehrliche Disziplin-Regel, keine Pseudo-Automatik.
+  Manueller Merge.
 
 ## 2) AKTIVE POSITIONEN
 - **AMC** — Halt-Strategie, no_exit_alerts=true. Conv 4, Setup stark gefallen.
@@ -249,6 +265,19 @@ volle Faktoren weg, da app_data/agent_signals überschrieben).
 - Cron-Inventar: ki_agent `17 * * * *`, daily premarket `17 6 * * 1-5`,
   postclose `17 21 * * 1-5`, health-digest `47 8 * * *`, watchlist `0 7 * * 0`.
 - Service-Worker raus seit #188.
+- **Workflow-Lint-Gate = 4 Lints (seit #306):** chat_template,
+  jsformat_escape, score_confidence_isolation, **token_crypto** (neu,
+  blockierend). Alle laufen vor Deploy im Daily-Workflow + im Self-Merge-
+  Lauf; Lint-Fail bricht ab.
+- **squeeze-guardian (Diagnose/Stand #306, 01.06.):** der echo-Hook
+  (`.claude/settings.json`, PostToolUse) **spawnt den Agent NICHT** —
+  command-Hooks können das technisch nicht, echter Agent-Spawn ist
+  immer modell-initiiert. Folge: **Krypto-Teil** = deterministischer
+  Lint `scripts/lint_token_crypto.py` (automatisiert, blockierend);
+  **Architektur-Teil** = nicht automatisierbar → bewusste manuelle
+  Modell-Urteil-Routine (Guardian explizit vor manuell-Merge-PRs
+  aufrufen, in CLAUDE.md festgeschrieben). Den Hook NICHT zum
+  prompt/agent-Hook umbauen (verworfen).
 
 ## 8) LESSONS (01.06.2026)
 - **Zufallsfund → systematische Suche:** Der γ-Fall war ein zufälliges
@@ -280,3 +309,13 @@ volle Faktoren weg, da app_data/agent_signals überschrieben).
   getrennten Stellen gelesen (Score VOR dem Persist, Backtest-Persist
   danach). Ein Persist-only-Fix (None statt 0) berührt den Score NICHT —
   die zwei Pfade sauber trennen erlaubt risikolose Daten-Fixes.
+- **Wächter ehrlich machen statt Automatik vortäuschen (#306):** Guardian-
+  Vollautomatik ist in Claude Code strukturell unerreichbar — Hooks sind
+  passive Validatoren (command-Hook = Shell, spawnt keinen Agent; echter
+  Spawn ist immer modell-initiiert). Ehrliche Lösung: den automatisierbaren
+  Teil (Token-Krypto) ECHT automatisieren (deterministischer Gate-Lint),
+  den Rest (Architektur-Semantik) klar als manuelle Modell-Urteil-Routine
+  benennen. Kein Pseudo-Wächter, der „läuft" suggeriert aber nur ein echo
+  ausgibt. Lieber eine ehrliche Disziplin-Regel als eine vorgetäuschte
+  Automatik. Lint-Pattern dabei NIE bis-grün lockern (R3-Fehl-Positive
+  erst verstehen — String-Label vs. Identifier — dann präzisieren).
