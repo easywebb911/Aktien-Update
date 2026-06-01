@@ -1,5 +1,5 @@
 {
-  "last_run": "2026-06-02T01:10:48.913940+02:00",
+  "last_run": "2026-06-02T01:13:51.297754+02:00",
   "cooldowns": {
     "anomaly_score_jump_XRX": "2026-05-03T18:47:15.315486+02:00",
     "anomaly_uoa_extreme_TDOC": "2026-05-04T13:47:00.365949+02:00",
@@ -1249,24 +1249,23 @@
     }
   ],
   "prev_conviction_scores": {
+    "PLCE": 60.0,
+    "AI": 73.0,
     "OPTU": 61.0,
     "CRDF": 64.0,
-    "AI": 69.0,
-    "JACK": 48.0,
-    "REPL": 47.0,
-    "EVGO": 54.0,
-    "SPCE": 46.0,
-    "METC": 45.0,
-    "KPTI": 58.0,
-    "ENVX": 43.0,
-    "AMC": 28.0,
-    "INDI": 45.0,
-    "RR": 30.0,
-    "CRMD": 50.0,
-    "PDYN": 35.0,
-    "GEMI": 24.0,
-    "IONQ": 15.0,
-    "CDRF": 11.0
+    "EVGO": 57.0,
+    "SPCE": 47.0,
+    "ORIC": 61.0,
+    "ENVX": 44.0,
+    "AMC": 29.0,
+    "CXM": 48.0,
+    "REPL": 28.0,
+    "INDI": 46.0,
+    "CRMD": 51.0,
+    "RR": 29.0,
+    "PDYN": 36.0,
+    "GEMI": 25.0,
+    "IONQ": 15.0
   },
   "exit_cooldowns": {
     "exitp2_warning_AMC": "2026-05-18T14:48:43.872687+02:00",
