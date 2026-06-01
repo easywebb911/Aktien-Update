@@ -21,6 +21,34 @@ darauf warten — Tests grün + keine Review-Comments reicht für
 Auto-Merge. Wenn der Subagent doch anspringt und findings hat, diese
 adressieren und neu pushen.
 
+### squeeze-guardian: Architektur-Routine (Disziplin, KEINE Automatik)
+
+**Ehrliche Mechanik-Klarstellung (Diagnose 01.06.2026):** Der
+`squeeze-guardian`-Hook (`.claude/settings.json`, PostToolUse) ist ein
+reiner `echo`-Reminder — er **spawnt den Agent NICHT**. Ein
+command-Hook kann technisch keinen Subagent aufrufen; ein echter
+Agent-Spawn ist in Claude Code **immer modell-initiiert** (Task/Agent-
+Tool). „Architektur-Konformität automatisch nach jedem Edit prüfen"
+ist in dieser Umgebung **strukturell nicht erreichbar** — es bleibt
+bewusst Modell-Urteil. (Den Hook NICHT zum `prompt`/`agent`-Hook
+umbauen: Verfügbarkeit unbestätigt, liefe nach jedem Edit, bliebe
+meldend — verworfen.)
+
+**Routine (verbindlich, manuell ausgelöst):** Vor jedem **manuell-
+Merge-pflichtigen** PR (Score-/Conviction-/Filter-Logik, neue
+Workflows/Schemas/APIs, Krypto/Token-Auth, UI-kritisch — siehe
+Ausnahmen-Liste unten) den **`squeeze-guardian`-Agent EXPLIZIT
+aufrufen** für die Architektur-Zweitmeinung (Konformität gegen
+CLAUDE.md/SESSION_HANDOVER, tote Call-Sites, Krypto-Sanity). Das ist
+eine **Disziplin-Regel**, keine Automatik — sie macht das Modell-
+Verhalten verlässlich, ohne Automatik vorzutäuschen.
+
+**Was deterministisch abgedeckt ist (kein Agent nötig):** Der
+**Token-Krypto-Teil** des Guardian-Checks läuft seit 01.06. als harter
+CI-Lint `scripts/lint_token_crypto.py` (im Workflow-Lint-Gate +
+Self-Merge-Lauf, blockierend). Der Agent-Aufruf ist damit nur noch
+für die **nicht-automatisierbare Architektur-Semantik** nötig.
+
 **Ausnahmen — manueller Easy-Merge mit Code-Review-Pflicht:**
 
 - Neue Workflow-Dateien (`.github/workflows/*.yml` neu angelegt)
