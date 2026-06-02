@@ -1,10 +1,10 @@
 {
-  "updated": "2026-06-02T23:17:02.251938+02:00",
+  "updated": "2026-06-03T01:09:14.971619+02:00",
   "run_info": {
     "tickers_checked": 16,
     "signals_active": 4,
     "alerts_sent": 0,
-    "elapsed_s": 15.8,
+    "elapsed_s": 12.8,
     "market_phase": "After-Hours"
   },
   "signals": {
@@ -31,9 +31,9 @@
       "uoa_cp_ratio": 4.229420186113099
     },
     "AMC": {
-      "score": 35,
+      "score": 20,
       "confidence": 33,
-      "drivers": "Spanne 7.5% + News: catalyst + UOA Call/Put 9.8×",
+      "drivers": "Spanne 7.5% + UOA Call/Put 9.8×",
       "price": 2.07,
       "chg_pct": -0.0,
       "rvol_4d": 0.92,
@@ -44,7 +44,7 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 1,
+      "active_triggers": 0,
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 9.8×"
@@ -55,7 +55,7 @@
     "CRMD": {
       "score": 40,
       "confidence": 17,
-      "drivers": "News: guidance raised, earnings beat + UOA Call/Put 2.4×",
+      "drivers": "News: earnings beat, guidance raised + UOA Call/Put 2.4×",
       "price": 8.17,
       "chg_pct": 0.0,
       "rvol_4d": 0.82,
@@ -75,9 +75,9 @@
       "uoa_cp_ratio": 2.380434782608696
     },
     "CRMT": {
-      "score": 35,
+      "score": 40,
       "confidence": 70,
-      "drivers": "Volumen 1.9× + Spanne 26.9% + SEC Form 4",
+      "drivers": "Volumen 1.9× + Spanne 26.9% + News-KI 5/30: Negative analyst sentiment and inclusion in 'avoid' articles significantly reduces short-squeeze potential; stock appear + SEC Form 4",
       "price": 8.34,
       "chg_pct": 0.0,
       "rvol_4d": 1.85,
@@ -117,9 +117,9 @@
       "uoa_cp_ratio": 7.53476821192053
     },
     "DDD": {
-      "score": 42,
+      "score": 30,
       "confidence": 70,
-      "drivers": "Spanne 13.1% + News-KI 12/30: Moderate positive momentum with analyst interest, but no extreme short metrics, high short interest data, or catalyst in + SEC Form 4 + UOA Call/Put 2.9×",
+      "drivers": "Spanne 13.1% + SEC Form 4 + UOA Call/Put 2.9×",
       "price": 3.88,
       "chg_pct": 0.0,
       "rvol_4d": 1.1,
@@ -130,7 +130,7 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 1,
+      "active_triggers": 0,
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 2.9×"
@@ -159,9 +159,9 @@
       "uoa_cp_ratio": 1.5288461538461537
     },
     "GEMI": {
-      "score": 0,
-      "confidence": 0,
-      "drivers": "",
+      "score": 8,
+      "confidence": 17,
+      "drivers": "News-KI 8/30: IPO filings and platform updates suggest maturation rather than the volatile, heavily-shorted conditions typical of shor",
       "price": 4.95,
       "chg_pct": -0.0,
       "rvol_4d": 0.84,
@@ -201,9 +201,9 @@
       "uoa_cp_ratio": 3.7356926510441575
     },
     "KULR": {
-      "score": 50,
+      "score": 53,
       "confidence": 70,
-      "drivers": "Volumen 1.6× + Spanne 19.3% + News: contract + UOA Call/Put 26.6×",
+      "drivers": "Volumen 1.6× + Spanne 19.3% + News-KI 18/30: Positive contract wins and revenue growth catalyst, but limited short interest data and moderate stock price momentum su + UOA Call/Put 26.6×",
       "price": 5.23,
       "chg_pct": 0.0,
       "rvol_4d": 1.58,
@@ -223,9 +223,9 @@
       "uoa_cp_ratio": 26.646067415730336
     },
     "METC": {
-      "score": 20,
+      "score": 32,
       "confidence": 33,
-      "drivers": "Spanne 14.1% + UOA Call/Put 16.7×",
+      "drivers": "Spanne 14.1% + News-KI 12/30: Positive news on partnerships and CEO media appearances, but lacks indicators of high short interest, significant price  + UOA Call/Put 16.7×",
       "price": 17.52,
       "chg_pct": 0.0,
       "rvol_4d": 1.49,
@@ -236,7 +236,7 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 0,
+      "active_triggers": 1,
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 16.7×"
@@ -329,9 +329,9 @@
       "uoa_cp_ratio": 1.9520833333333334
     },
     "TOPS": {
-      "score": 53,
-      "confidence": 70,
-      "drivers": "Volumen 4.2× + ⚡ Extremes Volumen 4.2×+ + Spanne 22.0% + News-KI 8/30: Cancelation of public offering is moderately bullish for existing shareholders, but no significant short squeeze catalys",
+      "score": 45,
+      "confidence": 33,
+      "drivers": "Volumen 4.2× + ⚡ Extremes Volumen 4.2×+ + Spanne 22.0%",
       "price": 1.11,
       "chg_pct": 0.0,
       "rvol_4d": 4.19,
