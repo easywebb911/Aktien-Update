@@ -36,6 +36,7 @@ import os
 import sys
 import urllib.error
 import urllib.request
+from datetime import datetime, timezone
 from pathlib import Path
 
 
@@ -44,6 +45,16 @@ DATA_FILENAME = "squeeze_data.json"
 
 POS_FILE = Path("positions.json")
 WL_FILE  = Path("watchlist_personal.json")
+# Liveness-Marker (Schritt 1 von 2, 02.06.2026): wird AUSSCHLIESSLICH bei
+# einem erfolgreichen HTTP-Gist-Read aktualisiert (siehe main()). Eigener
+# State-File-Slot (NICHT app_data.json — dessen generated_at verjüngt sich
+# bei jedem Daily-Run, „Self-refresh-Falle"). Ein späterer Health-Check
+# (S14, separater PR) liest last_successful_gist_pull und alarmiert, wenn
+# der Marker altert — d.h. wenn der Gist-Read über Zeit scheitert und der
+# Recovery-Fallback geschlossene Positionen still als offen überbrückt
+# (Vorfall 02.06.: toter GIST_TOKEN, mehrtägig unbemerkt). DIESER PR
+# schreibt NUR den Marker — kein Check, kein Alarm, kein Verhaltens-Drift.
+GIST_PULL_STATE_FILE = Path("gist_pull_state.json")
 
 
 def _http_get_gist(gist_id: str, token: str) -> dict | None:
@@ -95,6 +106,33 @@ def _write_positions(positions: dict) -> None:
 def _write_watchlist(watchlist: list) -> None:
     WL_FILE.write_text(json.dumps(watchlist, ensure_ascii=False, indent=2),
                        encoding="utf-8")
+
+
+def _mark_successful_gist_pull(now_utc: datetime | None = None) -> None:
+    """Schreibt ``last_successful_gist_pull`` (ISO-UTC) in den eigenen
+    State-File. Atomic (tmp + os.replace, analog health_check_digest_state).
+    Fail-soft: Schreibfehler werden geschluckt — der Marker ist Bonus-
+    Telemetrie, der Pull selbst darf nie daran scheitern.
+
+    Wird NUR im HTTP-Gist-Erfolgszweig aufgerufen (main()), nie im Recovery-
+    oder gist-is-None-Zweig — so altert der Marker genau dann, wenn der
+    Gist-Read über Zeit scheitert.
+    """
+    ts = (now_utc or datetime.now(timezone.utc)).strftime("%Y-%m-%dT%H:%M:%SZ")
+    tmp = GIST_PULL_STATE_FILE.with_suffix(".json.tmp")
+    try:
+        tmp.write_text(
+            json.dumps({"last_successful_gist_pull": ts},
+                       ensure_ascii=False, indent=2) + "\n",
+            encoding="utf-8")
+        os.replace(tmp, GIST_PULL_STATE_FILE)
+    except OSError as exc:
+        print(f"[pull_gist_data] Marker-Write fehlgeschlagen (ignoriert): {exc}",
+              file=sys.stderr)
+        try:
+            tmp.unlink()
+        except OSError:
+            pass
 
 
 def _legacy_positions_from_env() -> dict:
@@ -232,6 +270,20 @@ def main() -> int:
         _write_watchlist(watchlist)
     print(f"[pull_gist_data] Gist gelesen: "
           f"{len(positions)} Positions, {len(watchlist)} Watchlist-Ticker")
+    # Liveness-Marker NUR hier (HTTP-Gist-Erfolg: _http_get_gist != None,
+    # echte Gist-Daten geschrieben). Die beiden Recovery-Zweige (kein Gist
+    # konfiguriert / Gist-API-Fehler) und der gist-is-None-Zweig schreiben
+    # ihn bewusst NICHT → der Marker altert genau dann, wenn der Gist-Read
+    # über Zeit scheitert (heutige Token-Tod-Klasse, Vorfall 02.06.).
+    #
+    # RESTKANTE (NICHT in diesem PR abgedeckt — separate Fehlerklasse,
+    # eigener PR): Body-Korruption. Bei HTTP-200 + kaputtem squeeze_data.json
+    # kollabiert _extract_data den Parse-Fehler still auf {"positions": {}}
+    # (ununterscheidbar von „legitim alle geschlossen") — der Marker würde
+    # dann fälschlich als Erfolg aktualisiert. Das ist NICHT der heutige
+    # Token-Tod-Fall (dort ist _http_get_gist bereits None). Bewusst sichtbar
+    # gelassen statt _extract_data anzufassen (Option B, kein Logik-Touch).
+    _mark_successful_gist_pull()
     return 0
 
 
