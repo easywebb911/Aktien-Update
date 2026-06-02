@@ -1160,6 +1160,11 @@ S10_OBSERVED_FIELDS = frozenset({
     # = rohes Push-Alter h VOR der Decay-/0-Floor-Transform. Beide leer-
     # tolerant (None) → nur OBSERVED. Schema bleibt v4.
     "score_delta_t1_raw", "anomaly_push_age_h",
+    # Cost-to-Borrow-Persistenz (01.06.2026): CTB ins backtest_history für
+    # die CTB-Edge-Auswertung ~30.06. LEGITIM-leer (None bei Smallcaps ohne
+    # iBorrowDesk-Eintrag) → nur OBSERVED, KEIN MUSS-/LAG-Check (sonst
+    # Smallcap-None-WARN). Schema bleibt v4 (additiv).
+    "cost_to_borrow",
     # LAG-Felder, später (Phase 2)
     "entry_price_t1",
     "return_10d", "return_10d_t1",
