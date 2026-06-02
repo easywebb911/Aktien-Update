@@ -1,10 +1,10 @@
 {
-  "updated": "2026-06-02T12:57:45.868966+02:00",
+  "updated": "2026-06-02T13:43:31.940766+02:00",
   "run_info": {
     "tickers_checked": 17,
     "signals_active": 6,
-    "alerts_sent": 2,
-    "elapsed_s": 16.2,
+    "alerts_sent": 0,
+    "elapsed_s": 17.2,
     "market_phase": "Pre-Market"
   },
   "signals": {
@@ -27,7 +27,7 @@
       "uoa_drivers": [
         "UOA Call/Put 4.8×"
       ],
-      "uoa_atm_ratio": null,
+      "uoa_atm_ratio": 0.2010349003633161,
       "uoa_cp_ratio": 4.814269319051262,
       "push_silenced": true,
       "silenced_reason": "RSI 77"
@@ -51,7 +51,7 @@
       "uoa_drivers": [
         "UOA Call/Put 9.8×"
       ],
-      "uoa_atm_ratio": null,
+      "uoa_atm_ratio": 0.8305515835589765,
       "uoa_cp_ratio": 9.750923922090895
     },
     "CRDF": {
@@ -73,13 +73,13 @@
       "uoa_drivers": [
         "UOA Call/Put 6.1×"
       ],
-      "uoa_atm_ratio": null,
+      "uoa_atm_ratio": 0.7133550488599348,
       "uoa_cp_ratio": 6.146341463414634
     },
     "CRMD": {
       "score": 30,
       "confidence": 17,
-      "drivers": "News: earnings beat, guidance raised",
+      "drivers": "News: guidance raised, earnings beat",
       "price": 8.45,
       "chg_pct": -0.0,
       "rvol_4d": 1.01,
@@ -93,7 +93,7 @@
       "active_triggers": 1,
       "uoa_score": 0,
       "uoa_drivers": [],
-      "uoa_atm_ratio": null,
+      "uoa_atm_ratio": 0.011926397092230805,
       "uoa_cp_ratio": 1.5070422535211268
     },
     "ENVX": {
@@ -115,13 +115,13 @@
       "uoa_drivers": [
         "UOA Call/Put 2.9×"
       ],
-      "uoa_atm_ratio": null,
+      "uoa_atm_ratio": 0.5595478401291886,
       "uoa_cp_ratio": 2.9029003783102145
     },
     "EVGO": {
-      "score": 43,
+      "score": 40,
       "confidence": 70,
-      "drivers": "Volumen 1.6× + Spanne 11.2% + News-KI 8/30: Massive selling pressure and negative sentiment dominate, contradicting short-squeeze conditions which require bullish c + UOA Call/Put 24.4×",
+      "drivers": "Volumen 1.6× + Spanne 11.2% + News-KI 5/30: Negative price action with no indicators of high short interest, squeeze potential, or bullish catalysts that would trig + UOA Call/Put 24.4×",
       "price": 2.43,
       "chg_pct": 0.0,
       "rvol_4d": 1.59,
@@ -141,9 +141,9 @@
       "uoa_cp_ratio": 24.357142857142858
     },
     "GEMI": {
-      "score": 25,
-      "confidence": 33,
-      "drivers": "Spanne 5.6% + News: takeover",
+      "score": 10,
+      "confidence": 17,
+      "drivers": "Spanne 5.6%",
       "price": 5.16,
       "chg_pct": -0.0,
       "rvol_4d": 0.58,
@@ -154,10 +154,10 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 1,
+      "active_triggers": 0,
       "uoa_score": 0,
       "uoa_drivers": [],
-      "uoa_atm_ratio": null,
+      "uoa_atm_ratio": 0.2441942294159043,
       "uoa_cp_ratio": 0.5867237687366167
     },
     "INDI": {
@@ -179,7 +179,7 @@
       "uoa_drivers": [
         "UOA Call/Put 9.0×"
       ],
-      "uoa_atm_ratio": null,
+      "uoa_atm_ratio": 0.05133563510812284,
       "uoa_cp_ratio": 9.017241379310345
     },
     "IONQ": {
@@ -199,7 +199,7 @@
       "active_triggers": 1,
       "uoa_score": 0,
       "uoa_drivers": [],
-      "uoa_atm_ratio": null,
+      "uoa_atm_ratio": 1.2107197811591726,
       "uoa_cp_ratio": 1.606892436222587
     },
     "LFVN": {
@@ -221,7 +221,7 @@
       "uoa_drivers": [
         "UOA Call/Put 69.3×"
       ],
-      "uoa_atm_ratio": null,
+      "uoa_atm_ratio": 0.5120481927710844,
       "uoa_cp_ratio": 69.30645161290323
     },
     "OPTU": {
@@ -263,13 +263,13 @@
       "uoa_drivers": [
         "UOA Call/Put 2.6×"
       ],
-      "uoa_atm_ratio": null,
+      "uoa_atm_ratio": 0.5,
       "uoa_cp_ratio": 2.625
     },
     "PDYN": {
-      "score": 20,
+      "score": 28,
       "confidence": 33,
-      "drivers": "Spanne 8.4% + UOA Call/Put 8.7×",
+      "drivers": "Spanne 8.4% + News-KI 8/30: Board appointments and equity awards are standard corporate actions with no short-squeeze indicators like high short int + UOA Call/Put 8.7×",
       "price": 8.6,
       "chg_pct": 0.0,
       "rvol_4d": 0.52,
@@ -285,7 +285,7 @@
       "uoa_drivers": [
         "UOA Call/Put 8.7×"
       ],
-      "uoa_atm_ratio": null,
+      "uoa_atm_ratio": 0.16647264260768335,
       "uoa_cp_ratio": 8.654761904761905
     },
     "PLCE": {
@@ -307,7 +307,7 @@
       "uoa_drivers": [
         "UOA Call/Put 7.7×"
       ],
-      "uoa_atm_ratio": null,
+      "uoa_atm_ratio": 0.17943925233644858,
       "uoa_cp_ratio": 7.698979591836735
     },
     "REPL": {
@@ -329,7 +329,7 @@
       "uoa_drivers": [
         "UOA Call/Put 2.5×"
       ],
-      "uoa_atm_ratio": null,
+      "uoa_atm_ratio": 0.9408682634730539,
       "uoa_cp_ratio": 2.489662676822633
     },
     "RR": {
@@ -351,7 +351,7 @@
       "uoa_drivers": [
         "UOA Call/Put 7.4×"
       ],
-      "uoa_atm_ratio": null,
+      "uoa_atm_ratio": 0.3718657033574161,
       "uoa_cp_ratio": 7.389033942558747
     },
     "SPCE": {
