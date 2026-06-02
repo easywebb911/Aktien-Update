@@ -1,11 +1,11 @@
 {
-  "updated": "2026-06-02T08:58:55.260373+02:00",
+  "updated": "2026-06-02T12:57:45.868966+02:00",
   "run_info": {
     "tickers_checked": 17,
-    "signals_active": 5,
-    "alerts_sent": 0,
-    "elapsed_s": 21.2,
-    "market_phase": "Geschlossen"
+    "signals_active": 6,
+    "alerts_sent": 2,
+    "elapsed_s": 16.2,
+    "market_phase": "Pre-Market"
   },
   "signals": {
     "AI": {
@@ -28,7 +28,9 @@
         "UOA Call/Put 4.8×"
       ],
       "uoa_atm_ratio": null,
-      "uoa_cp_ratio": 4.814269319051262
+      "uoa_cp_ratio": 4.814269319051262,
+      "push_silenced": true,
+      "silenced_reason": "RSI 77"
     },
     "AMC": {
       "score": 77,
@@ -77,7 +79,7 @@
     "CRMD": {
       "score": 30,
       "confidence": 17,
-      "drivers": "News: guidance raised, earnings beat",
+      "drivers": "News: earnings beat, guidance raised",
       "price": 8.45,
       "chg_pct": -0.0,
       "rvol_4d": 1.01,
@@ -117,9 +119,9 @@
       "uoa_cp_ratio": 2.9029003783102145
     },
     "EVGO": {
-      "score": 50,
+      "score": 43,
       "confidence": 70,
-      "drivers": "Volumen 1.6× + Spanne 11.2% + News: short interest + UOA Call/Put 24.4×",
+      "drivers": "Volumen 1.6× + Spanne 11.2% + News-KI 8/30: Massive selling pressure and negative sentiment dominate, contradicting short-squeeze conditions which require bullish c + UOA Call/Put 24.4×",
       "price": 2.43,
       "chg_pct": 0.0,
       "rvol_4d": 1.59,
@@ -130,7 +132,7 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 1,
+      "active_triggers": 0,
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 24.4×"
@@ -181,9 +183,9 @@
       "uoa_cp_ratio": 9.017241379310345
     },
     "IONQ": {
-      "score": 18,
+      "score": 25,
       "confidence": 33,
-      "drivers": "Spanne 7.8% + News-KI 8/30: Positive sector news but lacks direct IONQ catalysts, short interest data, or price momentum indicators necessary for a ",
+      "drivers": "Spanne 7.8% + News: catalyst",
       "price": 69.28,
       "chg_pct": -0.0,
       "rvol_4d": 0.94,
@@ -194,7 +196,7 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 0,
+      "active_triggers": 1,
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": null,
