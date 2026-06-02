@@ -1,17 +1,17 @@
 {
-  "updated": "2026-06-02T01:13:49.961813+02:00",
+  "updated": "2026-06-02T03:37:01.733377+02:00",
   "run_info": {
     "tickers_checked": 17,
     "signals_active": 6,
     "alerts_sent": 0,
-    "elapsed_s": 11.4,
-    "market_phase": "After-Hours"
+    "elapsed_s": 12.8,
+    "market_phase": "Geschlossen"
   },
   "signals": {
     "AI": {
-      "score": 68,
+      "score": 60,
       "confidence": 70,
-      "drivers": "Earnings in 2 Tagen (03.06.2026) + Volumen 1.6× + Spanne 8.3% + News-KI 8/30: Moderate price movement and positive earnings, but no evidence of extreme short interest, high debt, or catalyst conditi + Earnings in 2d + UOA Call/Put 4.8×",
+      "drivers": "Earnings in 2 Tagen (03.06.2026) + Volumen 1.6× + Spanne 8.3% + Earnings in 2d + UOA Call/Put 4.8×",
       "price": 11.75,
       "chg_pct": 0.0,
       "rvol_4d": 1.57,
@@ -36,7 +36,7 @@
       "drivers": "Volumen 4.2× + ⚡ Extremes Volumen 4.2×+ + Spanne 24.4% + News: catalyst + UOA Call/Put 9.8×",
       "price": 2.12,
       "chg_pct": -0.0,
-      "rvol_4d": 4.25,
+      "rvol_4d": 4.24,
       "rvol_20d": 4.33,
       "earnings": null,
       "fda_date": null,
@@ -77,7 +77,7 @@
     "CRMD": {
       "score": 30,
       "confidence": 17,
-      "drivers": "News: earnings beat, guidance raised",
+      "drivers": "News: guidance raised, earnings beat",
       "price": 8.45,
       "chg_pct": -0.0,
       "rvol_4d": 0.99,
@@ -100,8 +100,8 @@
       "drivers": "Earnings in 2 Tagen (03.06.2026) + Volumen 2.3× + Spanne 6.0% + Earnings in 2d + UOA Call/Put 5.0×",
       "price": 6.01,
       "chg_pct": 0.0,
-      "rvol_4d": 2.32,
-      "rvol_20d": 1.84,
+      "rvol_4d": 2.29,
+      "rvol_20d": 1.83,
       "earnings": "in 2 Tagen (03.06.2026)",
       "fda_date": null,
       "upcoming_event": "Earnings in 2 Tagen (03.06.2026)",
@@ -139,9 +139,9 @@
       "uoa_cp_ratio": 2.9029003783102145
     },
     "EVGO": {
-      "score": 50,
+      "score": 43,
       "confidence": 70,
-      "drivers": "Volumen 1.6× + Spanne 11.3% + News: short interest + UOA Call/Put 24.4×",
+      "drivers": "Volumen 1.6× + Spanne 11.3% + News-KI 8/30: Negative price action with no short squeeze indicators; leadership hiring announcement suggests operational stability bu + UOA Call/Put 24.4×",
       "price": 2.43,
       "chg_pct": 0.0,
       "rvol_4d": 1.59,
@@ -152,7 +152,7 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 1,
+      "active_triggers": 0,
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 24.4×"
@@ -161,9 +161,9 @@
       "uoa_cp_ratio": 24.357142857142858
     },
     "GEMI": {
-      "score": 25,
-      "confidence": 33,
-      "drivers": "Spanne 5.6% + News: takeover",
+      "score": 10,
+      "confidence": 17,
+      "drivers": "Spanne 5.6%",
       "price": 5.16,
       "chg_pct": -0.0,
       "rvol_4d": 0.57,
@@ -174,7 +174,7 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 1,
+      "active_triggers": 0,
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": 0.30545774647887325,
@@ -292,8 +292,8 @@
       "drivers": "Earnings in 3 Tagen (04.06.2026) + Spanne 12.1% + News: partnership + Earnings in 3d + SEC Form 4 + UOA Call/Put 7.7×",
       "price": 4.43,
       "chg_pct": -0.0,
-      "rvol_4d": 0.48,
-      "rvol_20d": 1.74,
+      "rvol_4d": 0.47,
+      "rvol_20d": 1.73,
       "earnings": "in 3 Tagen (04.06.2026)",
       "fda_date": null,
       "upcoming_event": "Earnings in 3 Tagen (04.06.2026)",
@@ -358,8 +358,8 @@
       "drivers": "Volumen 3.8× + ⚡ Extremes Volumen 3.8×+ + Spanne 36.1%",
       "price": 7.52,
       "chg_pct": -0.0,
-      "rvol_4d": 3.84,
-      "rvol_20d": 11.63,
+      "rvol_4d": 3.82,
+      "rvol_20d": 11.58,
       "earnings": "in 65 Tagen (05.08.2026)",
       "fda_date": null,
       "upcoming_event": null,
