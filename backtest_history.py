@@ -433,6 +433,18 @@ def _build_backtest_extension(s: dict, pool_position: int, pool_size: int,
         # bleiben unverändert.
         "score_delta_t1_raw":     score_delta_t1_raw,
         "anomaly_push_age_h":     anomaly_push_age_h,
+        # Cost-to-Borrow-Persistenz (01.06.2026): CTB fließt seit #292
+        # (iBorrowDesk) in den Setup-Score (Katalysator-Bonus), wurde aber
+        # nicht ins backtest_history geschrieben → CTB-Edge-Auswertung
+        # ~30.06. unmöglich. s["cost_to_borrow"] ist zum Schreibzeitpunkt
+        # gesetzt (Borrow-Loop generate_report.py:15951 läuft vor dem
+        # Append, identische top10-Dict-Objekte). LEGITIM-leer (None bei
+        # Smallcaps ohne iBorrowDesk-Eintrag bzw. nicht-US-Ticker im
+        # <3-Safety-Net-Fallback). Reiner Persist-Read, KEIN Score-Effekt.
+        # Schema-ADDITIV — KEIN v4→v5-Bump (S10-Loader filtert == 4).
+        # utilization bewusst NICHT mitpersistiert (keine Gratis-Quelle,
+        # fließt nicht in den Score — fokussiert auf CTB).
+        "cost_to_borrow":         s.get("cost_to_borrow"),
         "backtest_schema_version": 4,
     }
 
