@@ -74,6 +74,10 @@ jobs:
           # verloren — Digest-Workflow sah dauerhaft 0 Daten.
           git add health_check_log.jsonl 2>/dev/null || true
           git add provider_health.jsonl 2>/dev/null || true
+          # gist_pull_state.json: Liveness-Marker, vom Pull-Step NUR bei
+          # HTTP-Gist-Erfolg geschrieben. Committen, sonst Reset beim
+          # nächsten Checkout → Marker altert fälschlich.
+          git add gist_pull_state.json 2>/dev/null || true
           if git diff --staged --quiet; then
             echo "Keine Aenderungen — kein Commit noetig."
             exit 0

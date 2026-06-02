@@ -152,6 +152,11 @@ jobs:
           # Digest sah dauerhaft 0 Runs).
           git add health_check_log.jsonl 2>/dev/null || true
           git add provider_health.jsonl 2>/dev/null || true
+          # gist_pull_state.json: Liveness-Marker, geschrieben vom Pull-Step
+          # NUR bei HTTP-Gist-Erfolg (last_successful_gist_pull). Muss
+          # committet werden, sonst setzt der nächste Runner-Checkout den
+          # Marker zurück und er altert fälschlich (= Sinn invertiert).
+          git add gist_pull_state.json 2>/dev/null || true
           # watchlist_personal.json wird vom vorigen Step
           # ``Pull squeeze_data from Gist`` (scripts/pull_gist_data.py)
           # aus dem User-Gist materialisiert. Ohne dieses ``git add`` bleibt
