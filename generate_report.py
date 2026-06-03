@@ -9140,8 +9140,17 @@ function _btRender(){{
   if (_dailyKeys.length){{
     const _maxKey = Math.max(..._dailyKeys);
     const _nNeu = _dailyKeys.filter(k => k === _maxKey).length;
+    // Datum aus DEMSELBEN _maxKey, gegen den _nNeu filtert — ein Weg, nicht
+    // zwei → Datum und Menge sind per Konstruktion konsistent. _maxKey ist
+    // YYYYMMDD-Integer (aus _btDateKey); DD.MM. zurückformatieren (deutsches
+    // Kurzformat wie im Report-Header). _nNeu ist hier immer ≥ 1 (Math.max
+    // hat stets ≥ 1 Treffer), daher nie "(undefined)"/leere Klammer; der
+    // Fall "keine neuen" ist _dailyKeys.length === 0 → Suffix bleibt ''.
+    const _newDD = String(_maxKey % 100).padStart(2, '0');
+    const _newMM = String(Math.floor(_maxKey / 100) % 100).padStart(2, '0');
     _dailyNewSuffix = ', davon ' + _nNeu
-      + (_nNeu === 1 ? ' neuer Eintrag' : ' neue Einträge');
+      + (_nNeu === 1 ? ' neuer Eintrag' : ' neue Einträge')
+      + ' (' + _newDD + '.' + _newMM + '.)';
   }}
   const filtered = _btFiltered(data);
   let metaHtml = '<b>' + nTot + ' Datenpunkte</b> — davon <b>' + nBoot
