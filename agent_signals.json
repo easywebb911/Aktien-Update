@@ -1,10 +1,10 @@
 {
-  "updated": "2026-06-04T00:22:32.909821+02:00",
+  "updated": "2026-06-04T01:16:42.569650+02:00",
   "run_info": {
     "tickers_checked": 16,
     "signals_active": 3,
     "alerts_sent": 0,
-    "elapsed_s": 12.0,
+    "elapsed_s": 12.3,
     "market_phase": "After-Hours"
   },
   "signals": {
@@ -73,9 +73,9 @@
       "uoa_cp_ratio": 8.604938271604938
     },
     "BNRG": {
-      "score": 25,
-      "confidence": 33,
-      "drivers": "Volumen 2.4× + Spanne 32.2%",
+      "score": 33,
+      "confidence": 70,
+      "drivers": "Volumen 2.4× + Spanne 32.2% + News-KI 8/30: Positive operational news but lacks short-squeeze catalysts like high short interest, forced covering catalysts, or dram",
       "price": 1.82,
       "chg_pct": 0.0,
       "rvol_4d": 2.4,
@@ -132,10 +132,30 @@
       "uoa_atm_ratio": null,
       "uoa_cp_ratio": null
     },
-    "GEMI": {
-      "score": 18,
+    "FDMT": {
+      "score": 20,
       "confidence": 33,
-      "drivers": "Spanne 7.4% + News-KI 8/30: IPO filings and platform updates lack the short positioning, catalyst intensity, and retail momentum indicators typical ",
+      "drivers": "Spanne 7.4% + SEC Form 4",
+      "price": 9.53,
+      "chg_pct": -0.0,
+      "rvol_4d": 0.67,
+      "rvol_20d": 1.23,
+      "earnings": null,
+      "fda_date": null,
+      "upcoming_event": null,
+      "insider_buy": false,
+      "stocktwits": null,
+      "combo_mult": 1.0,
+      "active_triggers": 0,
+      "uoa_score": 0,
+      "uoa_drivers": [],
+      "uoa_atm_ratio": 0.2,
+      "uoa_cp_ratio": 0.03741496598639456
+    },
+    "GEMI": {
+      "score": 10,
+      "confidence": 17,
+      "drivers": "Spanne 7.4%",
       "price": 4.51,
       "chg_pct": 0.0,
       "rvol_4d": 1.06,
@@ -174,50 +194,6 @@
       "uoa_atm_ratio": 1.5100822154911293,
       "uoa_cp_ratio": 2.3210128650193997
     },
-    "LENZ": {
-      "score": 33,
-      "confidence": 33,
-      "drivers": "News-KI 8/30: Negative analyst sentiment, estimate cuts, and downgrade indicate weak momentum and institutional selling pressure, maki + FINRA Short-Vol 62% + UOA Call/Put 8.1×",
-      "price": 7.01,
-      "chg_pct": 0.0,
-      "rvol_4d": 0.61,
-      "rvol_20d": 0.55,
-      "earnings": "in 56 Tagen (29.07.2026)",
-      "fda_date": null,
-      "upcoming_event": null,
-      "insider_buy": false,
-      "stocktwits": null,
-      "combo_mult": 1.0,
-      "active_triggers": 0,
-      "uoa_score": 10,
-      "uoa_drivers": [
-        "UOA Call/Put 8.1×"
-      ],
-      "uoa_atm_ratio": 0.03076923076923077,
-      "uoa_cp_ratio": 8.125
-    },
-    "LFVN": {
-      "score": 20,
-      "confidence": 33,
-      "drivers": "Spanne 12.3% + UOA Call/Put 7.5×",
-      "price": 8.32,
-      "chg_pct": -0.0,
-      "rvol_4d": 0.71,
-      "rvol_20d": 1.89,
-      "earnings": null,
-      "fda_date": null,
-      "upcoming_event": null,
-      "insider_buy": false,
-      "stocktwits": null,
-      "combo_mult": 1.0,
-      "active_triggers": 0,
-      "uoa_score": 10,
-      "uoa_drivers": [
-        "UOA Call/Put 7.5×"
-      ],
-      "uoa_atm_ratio": 0.05927230046948357,
-      "uoa_cp_ratio": 7.534050179211469
-    },
     "OPTU": {
       "score": 10,
       "confidence": 17,
@@ -239,9 +215,9 @@
       "uoa_cp_ratio": 0.09532949456174024
     },
     "PDYN": {
-      "score": 20,
+      "score": 25,
       "confidence": 33,
-      "drivers": "Spanne 9.0% + UOA Call/Put 3.9×",
+      "drivers": "Spanne 9.0% + News-KI 5/30: Positive corporate developments but no indicators of short squeeze potential such as high short interest, stock scarcity + UOA Call/Put 3.9×",
       "price": 7.81,
       "chg_pct": -0.0,
       "rvol_4d": 0.57,
@@ -319,6 +295,26 @@
       "uoa_drivers": [],
       "uoa_atm_ratio": 0.3057324840764331,
       "uoa_cp_ratio": 0.9503211991434689
+    },
+    "SNBR": {
+      "score": 20,
+      "confidence": 33,
+      "drivers": "Spanne 15.7% + SEC Form 4",
+      "price": 1.07,
+      "chg_pct": -0.47,
+      "rvol_4d": 1.31,
+      "rvol_20d": 2.74,
+      "earnings": "in 56 Tagen (29.07.2026)",
+      "fda_date": null,
+      "upcoming_event": null,
+      "insider_buy": false,
+      "stocktwits": null,
+      "combo_mult": 1.0,
+      "active_triggers": 0,
+      "uoa_score": 0,
+      "uoa_drivers": [],
+      "uoa_atm_ratio": 0.007901234567901235,
+      "uoa_cp_ratio": 0.6975169300225733
     },
     "SVV": {
       "score": 20,
