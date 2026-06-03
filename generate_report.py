@@ -9121,10 +9121,32 @@ function _btRender(){{
   const nTot  = data.length;
   const nBoot = data.filter(e => e.source === 'bootstrap').length;
   const nDay  = nTot - nBoot;
+  // Jüngste daily-Einträge (Variante 1): rein datengetrieben, kein Storage.
+  // Basis IDENTISCH zu nDay (voller daily-Bestand, source !== 'bootstrap').
+  // date-Format "DD.MM.YYYY" → parse-sicher nach YYYYMMDD (kein String-Max).
+  const _btDateKey = ds => {{
+    if (typeof ds !== 'string') return null;
+    const p = ds.split('.');
+    if (p.length !== 3) return null;
+    const dd = parseInt(p[0], 10), mm = parseInt(p[1], 10), yy = parseInt(p[2], 10);
+    if (!Number.isFinite(dd) || !Number.isFinite(mm) || !Number.isFinite(yy)) return null;
+    return yy * 10000 + mm * 100 + dd;
+  }};
+  let _dailyNewSuffix = '';
+  const _dailyKeys = data
+    .filter(e => e.source !== 'bootstrap')
+    .map(e => _btDateKey(e.date))
+    .filter(k => k !== null);
+  if (_dailyKeys.length){{
+    const _maxKey = Math.max(..._dailyKeys);
+    const _nNeu = _dailyKeys.filter(k => k === _maxKey).length;
+    _dailyNewSuffix = ', davon ' + _nNeu
+      + (_nNeu === 1 ? ' neuer Eintrag' : ' neue Einträge');
+  }}
   const filtered = _btFiltered(data);
   let metaHtml = '<b>' + nTot + ' Datenpunkte</b> — davon <b>' + nBoot
     + '</b> bootstrap (historisch geschätzt) + <b>' + nDay
-    + '</b> daily (live gemessen). '
+    + '</b> daily (live gemessen' + _dailyNewSuffix + '). '
     + '<em>Bootstrap-Scores sind vereinfachte Schätzungen aus SF + RVOL + Momentum und '
     + 'daher nicht 1:1 mit Live-Scores vergleichbar.</em>';
   if (_btSrc === 'live' && nBoot > 0){{
