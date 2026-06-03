@@ -1,6 +1,6 @@
 {
   "consecutive_failures": {
-    "finra": 6,
+    "finra": 0,
     "yfinance_singletons": 0,
     "stocktwits": 0,
     "uoa": 0,
@@ -11,30 +11,30 @@
     "yahoo_screener": 0,
     "earningswhispers": 0,
     "yfinance_batch": 0,
-    "finviz": 50,
+    "finviz": 55,
     "finnhub": 0,
-    "stockanalysis": 11,
+    "stockanalysis": 16,
     "quote_proxy": 0,
     "borrow": 0
   },
   "last_seen": {
-    "finra": "2026-06-02T11:43:21Z",
-    "yfinance_singletons": "2026-06-02T11:43:31Z",
+    "finra": "2026-06-03T12:12:31Z",
+    "yfinance_singletons": "2026-06-03T12:12:48Z",
     "stocktwits": "2026-05-18T19:04:11Z",
-    "uoa": "2026-06-02T11:43:40Z",
-    "news_rss": "2026-06-02T11:43:40Z",
-    "edgar_8k": "2026-06-02T11:43:40Z",
-    "edgar_form4": "2026-06-02T11:43:40Z",
-    "edgar_13d_g": "2026-06-02T11:43:40Z",
-    "yahoo_screener": "2026-06-02T10:55:56Z",
+    "uoa": "2026-06-03T12:12:53Z",
+    "news_rss": "2026-06-03T12:12:53Z",
+    "edgar_8k": "2026-06-03T12:12:53Z",
+    "edgar_form4": "2026-06-03T12:12:53Z",
+    "edgar_13d_g": "2026-06-03T12:12:53Z",
+    "yahoo_screener": "2026-06-03T11:24:15Z",
     "earningswhispers": "2026-05-18T18:58:45Z",
-    "yfinance_batch": "2026-06-02T10:56:08Z",
-    "finviz": "2026-06-02T10:56:56Z",
+    "yfinance_batch": "2026-06-03T11:24:24Z",
+    "finviz": "2026-06-03T11:25:07Z",
     "finnhub": "2026-05-16T08:25:06Z",
-    "stockanalysis": "2026-06-02T10:56:56Z",
-    "quote_proxy": "2026-06-02T10:56:56Z",
-    "borrow": "2026-06-02T10:56:56Z"
+    "stockanalysis": "2026-06-03T11:25:07Z",
+    "quote_proxy": "2026-06-03T11:25:07Z",
+    "borrow": "2026-06-03T11:25:07Z"
   },
-  "last_digest_sent": "2026-06-02",
-  "last_successful_run": "2026-06-02T11:43:40Z"
+  "last_digest_sent": "2026-06-03",
+  "last_successful_run": "2026-06-03T12:12:53Z"
 }
