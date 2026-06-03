@@ -959,6 +959,16 @@ HEALTH_CHECK_S7_MIN_AGENT_OVERLAP   = 5    # |agent_signals ∩ top10|
 HEALTH_CHECK_S8_MAX_AGE_HOURS       = 26   # max Alter last_digest_sent
                                             # (>26 h = mindestens ein
                                             #  Daily-Digest-Slot verpasst)
+HEALTH_CHECK_S14_MAX_AGE_HOURS      = 26   # max Alter last_successful_gist_pull
+                                            # (>26 h = Gist-Pull seit über
+                                            #  einem Tag nicht erfolgreich —
+                                            #  Token-Tod ODER mehrtägiger
+                                            #  Workflow-Ausfall, Composite-
+                                            #  Liveness. Eigene Konstante,
+                                            #  nicht S8 teilen — getrennt
+                                            #  justierbar. ki_agent schreibt
+                                            #  den Marker stündlich 7×/Woche,
+                                            #  daher kein Wochenend-Bias.)
 # S11/S12 — Phasen-Sammel-Frequenz-Wächter (additiv zu S1–S10/S8).
 # Erkennen stillen Tod der Sammel-Mechanik: mehrere Werktage ohne
 # echten premarket-/postclose-Run (run_phase == tsp == 'premarket'

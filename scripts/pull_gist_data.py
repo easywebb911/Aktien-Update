@@ -48,12 +48,14 @@ WL_FILE  = Path("watchlist_personal.json")
 # Liveness-Marker (Schritt 1 von 2, 02.06.2026): wird AUSSCHLIESSLICH bei
 # einem erfolgreichen HTTP-Gist-Read aktualisiert (siehe main()). Eigener
 # State-File-Slot (NICHT app_data.json — dessen generated_at verjüngt sich
-# bei jedem Daily-Run, „Self-refresh-Falle"). Ein späterer Health-Check
-# (S14, separater PR) liest last_successful_gist_pull und alarmiert, wenn
-# der Marker altert — d.h. wenn der Gist-Read über Zeit scheitert und der
-# Recovery-Fallback geschlossene Positionen still als offen überbrückt
-# (Vorfall 02.06.: toter GIST_TOKEN, mehrtägig unbemerkt). DIESER PR
-# schreibt NUR den Marker — kein Check, kein Alarm, kein Verhaltens-Drift.
+# bei jedem Daily-Run, „Self-refresh-Falle"). Der Health-Check S14 (Schritt
+# 2/2, gebaut — health_check.py:_gist_pull_age_hours + evaluate_state_
+# invariants) liest last_successful_gist_pull und meldet WARN, wenn der
+# Marker > HEALTH_CHECK_S14_MAX_AGE_HOURS (26 h) altert — d.h. wenn der
+# Gist-Read über Zeit scheitert und der Recovery-Fallback geschlossene
+# Positionen still als offen überbrückt (Vorfall 02.06.: toter GIST_TOKEN,
+# mehrtägig unbemerkt). DIESER Schreibpfad bleibt unverändert: NUR Marker,
+# kein Check/Alarm hier (der Check lebt read-only in health_check.py).
 GIST_PULL_STATE_FILE = Path("gist_pull_state.json")
 
 

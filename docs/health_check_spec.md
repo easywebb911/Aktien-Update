@@ -62,6 +62,34 @@ Begründung).
 | **S11** | premarket-Sammel-Frequenz | warn | Daily | kein echter premarket-Run (`run_phase==tsp=='premarket'`) seit > `HEALTH_CHECK_S11_MAX_WORKDAYS_NO_PREMARKET` (5) Werktagen; Quelle `score_inflation_log` |
 | **S12** | postclose-Sammel-Frequenz | **crit** | Daily | kein echter postclose-Run (`run_phase==tsp=='postclose'`) seit > `HEALTH_CHECK_S12_MAX_WORKDAYS_NO_POSTCLOSE` (2) Werktagen. **crit = NUR-REPORTING** (blockiert NICHT) |
 | **S13** | Daten-Reife-Gate + Konsistenz-Wächter | warn | Daily | **Doppel-Baustein.** (a) Daten-Reife-Gate (#297): Status der 3 30.06.-Auswertungen (Setup-Edge ≥70/schema_v4, Entry-AUC, CTB-Edge) je vorhanden/reif_5d/reif_10d via log.info, kein Fail. (b) Konsistenz-Wächter (Projekt C, #298): Soll-Ist-Drift je config-Konstante aus `CONSISTENCY_EXPECTED_STATE` — ein warn pro Drift |
+| **S14** | Gist-Pull-Liveness (Composite) | warn | beide | Marker-Alter `last_successful_gist_pull` (`gist_pull_state.json`) ≤ `HEALTH_CHECK_S14_MAX_AGE_HOURS` (26 h). Geschrieben NUR im HTTP-Gist-Erfolgszweig von `pull_gist_data.py` (#310). `None` → kein Fail (Erstaufsetzen, analog S8). **COMPOSITE** — Detail sagt „Gist-Pull seit N h nicht erfolgreich", NICHT „Token tot": altert bei totem `GIST_TOKEN` (Stille-Tod 02.06.) UND bei mehrtägigem ki_agent-/daily-Cron-Drop. Beide Pfade: ki_agent-Tick liest alten Working-Tree-Marker bei Pull-Fail → ~1 h Detektionslatenz. **Out-of-Scope** (separater PR): Body-Korruption (HTTP-200 + kaputtes `squeeze_data.json` → Marker fälschlich frisch) |
+
+### S14 — Gist-Pull-Liveness (Stille-Tod-Härtung Schritt 2/2, 03.06.2026)
+
+Fängt den Vorfall 02.06.2026: ein toter `GIST_TOKEN` ließ den Gist-Read über
+Tage scheitern, der Recovery-Fallback in `pull_gist_data.py` überbrückte
+still (geschlossene Positionen RR/CRDF/INDI wurden als offen materialisiert →
+Geister-Exit-Pushes). Der `last_successful_gist_pull`-Marker (#310, Schritt
+1/2) wird NUR im HTTP-Gist-Erfolgszweig geschrieben → altert genau bei
+anhaltendem Gist-Read-Fehler.
+
+**Composite-Charakter (bewusst):** S14 ist kein reiner Token-Monitor. Der
+Marker altert auch, wenn beide Workflows (ki_agent stündlich 7×/Woche, daily
+2×/Werktag) über > 26 h nicht laufen/committen — eine andere Fehlerklasse
+(Cron-Drop), aber ebenfalls alarmwürdig. Der Detail-Text formuliert daher
+neutral „Gist-Pull seit N h nicht erfolgreich". Operatoren disambiguieren
+über die übrigen Provider-Health-Signale.
+
+**Schwelle 26 h:** im Gesund-Zustand schreibt der ki_agent den Marker
+stündlich (Cron `17 * * * *`, jeden Tag inkl. Wochenende) → realer Healthy-
+Max-Gap ~3–6 h (GitHub-Scheduled-Cron-Verzug). 26 h = > 4× Marge → praktisch
+null Fehlalarm, fängt den Token-Tod trotzdem innerhalb ~1 Tag statt
+„mehrtägig". KEIN Wochenend-Bias (ki_agent läuft Sa/So weiter).
+
+**Out-of-Scope (separater PR):** Body-Korruption — HTTP-200 + kaputtes
+`squeeze_data.json` → `_extract_data` kollabiert still auf `{}` → Marker würde
+fälschlich als Erfolg aktualisiert. Andere Fehlerklasse als der Token-Tod
+(dort ist `_http_get_gist` bereits `None`). `_extract_data` bewusst unberührt.
 
 ### S7 — Begründung (KI-Score-Drift, 14.05.2026)
 
