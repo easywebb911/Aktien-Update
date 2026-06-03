@@ -48,12 +48,18 @@ jobs:
           cache: 'pip'
 
       - name: Install dependencies
-        # Voll-requirements statt Minimal-Set: garantiert, dass die CI-Umgebung
-        # exakt der Golden-Generierungs-Umgebung entspricht (jinja2 ist harter
-        # Modul-Level-Dep von generate_report.py; pandas_ta ist optional via
-        # try/except, beeinflusst den Fixture-basierten Golden-Render nicht —
-        # aber requirements.txt eliminiert jede Env-Divergenz-Flaky-Klasse).
-        run: pip install -r requirements.txt
+        # NUR jinja2 (der einzige harte Modul-Level-Dep von generate_report,
+        # zieht markupsafe automatisch). BEWUSST NICHT requirements.txt:
+        # das installiert pandas_ta, dessen Import-Zeit-Introspektion
+        # find_spec("yfinance") auf dem yfinance-STUB des Golden-Tests
+        # (__spec__ is None) einen ValueError wirft (NICHT vom try/except
+        # ImportError in generate_report.py:38 gefangen) → CI-Crash.
+        # Ohne pandas_ta greift dort der ImportError-Pfad (ta=None) — exakt
+        # der Zustand, in dem das Golden generiert wurde → byte-identischer
+        # Render. Die übrigen externen Deps (yfinance/requests/bs4/
+        # deep_translator/watchlist) stubbt der Golden-Test selbst; die 4
+        # Lints brauchen gar keine Deps (reine stdlib).
+        run: pip install "jinja2>=3.1.0"
 
       - name: Lint chat template
         run: python scripts/lint_chat_template.py
