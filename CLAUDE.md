@@ -3362,11 +3362,11 @@ Sektion ist nur ein CLAUDE.md-Anker auf das Doku-File.
   (nach ``save_state``). Fail-soft via ``run_and_record`` —
   Daily-Run/KI-Agent crashen nie wegen Health-Check.
 
-### 13 State-Invariants (Phase 1 S1–S7 + S8 ab 16.05. + S9–S13)
+### 14 State-Invariants (Phase 1 S1–S7 + S8 ab 16.05. + S9–S13 + S14)
 
 Voller Detailtext + Schwellen-Tabelle in
 ``docs/health_check_spec.md``. Hier nur Kurz-Übersicht. **Lauf-Kontext:**
-S2/S3/S6/S8 laufen in BEIDEN Pfaden (Daily-Run + ki_agent-Tick), alle
+S2/S3/S6/S8/S14 laufen in BEIDEN Pfaden (Daily-Run + ki_agent-Tick), alle
 übrigen nur im Daily-Run (``if not ki_agent_only``).
 
 | ID | Severity | Lauf | Was wird geprüft |
@@ -3384,6 +3384,7 @@ S2/S3/S6/S8 laufen in BEIDEN Pfaden (Daily-Run + ki_agent-Tick), alle
 | S11 | warn | Daily | kein echter premarket-Run (``run_phase==tsp=='premarket'``) seit > ``HEALTH_CHECK_S11_MAX_WORKDAYS_NO_PREMARKET`` (5) Werktagen — Quelle ``score_inflation_log`` |
 | S12 | crit | Daily | kein echter postclose-Run (``run_phase==tsp=='postclose'``) seit > ``HEALTH_CHECK_S12_MAX_WORKDAYS_NO_POSTCLOSE`` (2) Werktagen. **crit = NUR-REPORTING** (blockiert NICHT — S9-Exit-Pfad filtert strikt id=="S9") |
 | S13 | warn | Daily | **Doppel-Baustein.** (a) **Daten-Reife-Gate** (#297): laufender Status der 3 30.06.-Auswertungen (Setup-Edge ≥70/schema_v4, Entry-AUC, CTB-Edge) je vorhanden/reif_5d/reif_10d — Status-Zeilen via log.info, kein Fail. (b) **Konsistenz-Wächter** (Projekt C, #298): Soll-Ist-Drift je config-Konstante aus ``CONSISTENCY_EXPECTED_STATE`` — ein warn pro Drift |
+| S14 | warn | beide | ``last_successful_gist_pull`` in ``gist_pull_state.json`` ≤ ``HEALTH_CHECK_S14_MAX_AGE_HOURS`` (26) Stunden alt. **COMPOSITE-Liveness** — Detail-Text sagt „Gist-Pull seit N h nicht erfolgreich", NICHT „Token tot": altert sowohl bei totem ``GIST_TOKEN`` (Gist-Read scheitert über Zeit, Stille-Tod 02.06.) ALS AUCH bei mehrtägigem ki_agent-/daily-Cron-Drop. Marker NUR im HTTP-Gist-Erfolgszweig von ``pull_gist_data.py`` geschrieben (#310). Fehlende Datei / null → SKIP (analog S8). Beide Pfade: im ki_agent-Tick liest der Hook den nicht-aktualisierten alten Working-Tree-Marker → ~1 h Detektionslatenz statt ~1 Tag. **NICHT abgedeckt** (separater PR): Body-Korruption (HTTP-200 + kaputtes ``squeeze_data.json`` → Marker fälschlich frisch). |
 
 
 **S8** (16.05.2026) erkennt silent Digest-Push-Fails (gestern 15.05.:

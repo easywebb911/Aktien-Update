@@ -38,6 +38,7 @@ from config import (
     HEALTH_CHECK_S6_MIN_MONSTER_NONZERO,
     HEALTH_CHECK_S7_MIN_AGENT_OVERLAP,
     HEALTH_CHECK_S8_MAX_AGE_HOURS,
+    HEALTH_CHECK_S14_MAX_AGE_HOURS,
     HEALTH_CHECK_S11_MAX_WORKDAYS_NO_PREMARKET,
     HEALTH_CHECK_S12_MAX_WORKDAYS_NO_POSTCLOSE,
     S10_MUSS_FIELDS,
@@ -58,6 +59,13 @@ DIGEST_STATE_FILE = "health_check_digest_state.json"
 # Datei via ``patch.object(hc, "SCORE_INFLATION_LOG_FILE", ...)`` umlenken
 # können. Lese-only — geschrieben von score_inflation_log.py.
 SCORE_INFLATION_LOG_FILE = "score_inflation_log.jsonl"
+
+# Gist-Pull-State-Datei für S14-Invariant (Gist-Pull-Liveness). Analog
+# DIGEST_STATE_FILE — Modul-Attribut, damit Tests die Datei via
+# ``patch.object(hc, "GIST_PULL_STATE_FILE", ...)`` umlenken können.
+# Lese-only — geschrieben von scripts/pull_gist_data.py (#310), NUR im
+# HTTP-Gist-Erfolgszweig. Schreiblogik NICHT von hier verändern.
+GIST_PULL_STATE_FILE = "gist_pull_state.json"
 
 log = logging.getLogger(__name__)
 
@@ -188,6 +196,62 @@ def _digest_age_hours(now_utc: datetime,
         run_dt = run_dt.replace(tzinfo=timezone.utc)
     delta = now_utc - run_dt
     return delta.total_seconds() / 3600.0
+
+
+def _iso_marker_age_hours(now_utc: datetime, path: str,
+                          field: str) -> float | None:
+    """Alter (h) seit einem ISO-UTC-Liveness-Marker-Feld in einer State-Datei.
+
+    Kanonische, wiederverwendbare Parsing-Logik — algorithmisch identisch zu
+    ``_digest_age_hours`` (S8), aber generisch über ``path`` + ``field``.
+    Genutzt von ``_gist_pull_age_hours`` (S14). ``_digest_age_hours`` (S8)
+    behält bewusst seine eigene Inline-Kopie, weil ``test_12`` in
+    ``mock_test_s8_last_successful_run.py`` die S8-Funktion per Source-
+    Inspektion an ``state.get("last_successful_run")`` im eigenen Body bindet
+    — eine spätere Vereinheitlichung müsste diesen Test mit-generalisieren.
+
+    Returnt ``None`` (= Invariant SKIP, kein Fail) bei: Datei fehlt, JSON
+    kaputt, Feld fehlt/``None``/nicht-str, Timestamp unparsebar. tz-naiver
+    Timestamp → defensive als UTC interpretiert. Reine Funktion ohne
+    Side-Effects; gleicher Input → gleiches Ergebnis (deterministisch).
+    """
+    if not os.path.exists(path):
+        return None
+    try:
+        with open(path, "r", encoding="utf-8") as fh:
+            state = json.load(fh)
+    except (OSError, json.JSONDecodeError):
+        return None
+    raw = state.get(field)
+    if not isinstance(raw, str) or not raw:
+        return None
+    try:
+        # ISO-8601 mit/ohne ``Z``-Suffix (Python 3.11+ akzeptiert ``Z`` nativ;
+        # defensive auf +00:00 normalisieren für ältere Releases).
+        marker_dt = datetime.fromisoformat(raw.replace("Z", "+00:00"))
+    except (ValueError, TypeError):
+        return None
+    if marker_dt.tzinfo is None:
+        marker_dt = marker_dt.replace(tzinfo=timezone.utc)
+    return (now_utc - marker_dt).total_seconds() / 3600.0
+
+
+def _gist_pull_age_hours(now_utc: datetime,
+                         state_path: str | None = None) -> float | None:
+    """Alter (h) seit dem letzten erfolgreichen Gist-Pull (S14-Liveness).
+
+    Liest ``last_successful_gist_pull`` (ISO-UTC) aus
+    ``gist_pull_state.json`` (geschrieben von ``scripts/pull_gist_data.py``
+    NUR im HTTP-Gist-Erfolgszweig, #310). ``None`` → S14 SKIP (Datei fehlt
+    vor dem ersten erfolgreichen Pull / Feld null / unparsebar) — keine
+    false positives beim Erstaufsetzen, exakt analog S8.
+
+    ``state_path`` wird zur Aufruf-Zeit aus dem Modul-Attribut gelesen,
+    damit Tests die Datei via ``patch.object(hc, "GIST_PULL_STATE_FILE",
+    ...)`` oder direktes ``state_path``-Argument umlenken können.
+    """
+    path = state_path if state_path is not None else GIST_PULL_STATE_FILE
+    return _iso_marker_age_hours(now_utc, path, "last_successful_gist_pull")
 
 
 def _last_phase_run_age_workdays(
@@ -616,11 +680,12 @@ def evaluate_state_invariants(
     Jeder Fail-Eintrag: ``{"id": "S<n>", "severity": "crit"|"warn",
     "detail": "<string>"}``.
 
-    ``ki_agent_only=True``: nur S2/S3/S6/S8 werden bewertet (S1/S4/S5/S7
+    ``ki_agent_only=True``: nur S2/S3/S6/S8/S14 werden bewertet (S1/S4/S5/S7
     sind ki_agent-Tick irrelevant — agent_signals.json wird vom Tick
     selbst geschrieben, also wäre S7 ein Tautologie-Pass; S1/S4/S5
-    sind Daily-Run-Outputs). S8 läuft in beiden Pfaden, weil die
-    Digest-Stale-Diagnose nicht von der Phase abhängt.
+    sind Daily-Run-Outputs). S8 und S14 laufen in beiden Pfaden, weil die
+    Digest-Stale- bzw. Gist-Pull-Liveness-Diagnose nicht von der Phase
+    abhängt (S14 sogar mit ~1 h Detektionslatenz im stündlichen Tick).
 
     Spec: ``docs/health_check_spec.md`` Sektion „State-Invariants".
     """
@@ -845,6 +910,33 @@ def evaluate_state_invariants(
                        f"{age_h:.1f} h (Schwelle "
                        f"{HEALTH_CHECK_S8_MAX_AGE_HOURS} h) — "
                        f"silent ntfy-Fail oder Cron-Drop"),
+        })
+
+    # === S14 (warn) — Gist-Pull-Liveness (Composite) =======================
+    # Fängt die Stille-Tod-Klasse vom 02.06.2026: ein toter GIST_TOKEN ließ
+    # den Gist-Read über Tage scheitern, der Recovery-Fallback überbrückte
+    # still (Geister-Positionen → Geister-Exit-Pushes). Der Marker
+    # last_successful_gist_pull (gist_pull_state.json) wird NUR im HTTP-Gist-
+    # Erfolgszweig geschrieben (#310) → er altert genau bei anhaltendem
+    # Gist-Read-Fehler. COMPOSITE-LIVENESS: S14 altert auch bei mehrtägigem
+    # ki_agent-/daily-Cron-Drop (andere Fehlerklasse) — der Detail-Text sagt
+    # daher „Gist-Pull seit N h nicht erfolgreich", NICHT „Token tot".
+    # None = Datei fehlt (vor erstem Pull) / Feld null/unparsebar → SKIP
+    # (kein false-positive beim Erstaufsetzen, exakt analog S8). Läuft in
+    # BEIDEN Pfaden (ungated wie S8): im ki_agent-Tick liest der Hook den
+    # nicht-aktualisierten alten Working-Tree-Marker → ~1 h Detektionslatenz
+    # statt ~1 Tag (daily-only). NICHT abgedeckt (bewusst, separater PR):
+    # Body-Korruption (HTTP-200 + kaputtes squeeze_data.json → Marker
+    # fälschlich frisch) — andere Fehlerklasse, _extract_data unberührt.
+    gist_age_h = _gist_pull_age_hours(now_for_s8)
+    if gist_age_h is not None and gist_age_h > HEALTH_CHECK_S14_MAX_AGE_HOURS:
+        fails.append({
+            "id": "S14", "severity": "warn",
+            "detail": (f"kein erfolgreicher Gist-Pull seit "
+                       f"{gist_age_h:.1f} h (Schwelle "
+                       f"{HEALTH_CHECK_S14_MAX_AGE_HOURS} h) — "
+                       f"Token-Tod oder mehrtägiger Workflow-Ausfall "
+                       f"(Composite-Liveness)"),
         })
 
     # === S11 (warn) — premarket-Sammel-Frequenz ============================
