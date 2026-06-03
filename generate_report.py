@@ -3776,6 +3776,101 @@ def _methodology_rows_html(parts: list[tuple[str, float, str]]) -> str:
     return "\n              ".join(rows)
 
 
+# Statische Fallback-Liste für den Datenquellen-Block — wird gerendert, wenn
+# provider_health.jsonl fehlt/unlesbar ist (Report darf NIE am Datenquellen-
+# Block scheitern). Spiegelt den Soll-Stand der DATASOURCE_LABELS ohne Status.
+_DATASOURCE_FALLBACK_HTML = (
+    '<li>Yahoo Finance · Finviz (Fallback) · FINRA Short Interest · '
+    'yfinance · iBorrowDesk (Cost-to-Borrow)</li>\n'
+    '          <li>KI-Agent: Claude Haiku · News-Sentiment · '
+    'yfinance Options-Chains (UOA) · SEC EDGAR (8-K · Form 4 · 13D/13G) · '
+    'FDA RSS · FINRA Daily SSR · ntfy.sh</li>'
+)
+
+
+def _datasource_rows_html() -> str:
+    """Dynamische Datenquellen-Liste fürs Methodik-Panel (REIN ANZEIGE,
+    kein Score-/Filter-Effekt).
+
+    Iteriert ``config.DATASOURCE_LABELS``, zieht pro Eintrag den Liveness-
+    Status aus ``provider_health.jsonl`` (via ``health_check.provider_liveness``)
+    und rendert eine ``<li>`` pro Quelle:
+      - live      → normaler Text
+      - disabled  → gedimmt + „(aus)"
+      - stale     → gedimmt + „(aktuell keine Daten)"
+
+    Mehrere Provider-Keys ↔ eine Zeile: Status ist der „beste" der Keys
+    (live schlägt stale schlägt disabled) — eine Zeile mit ≥1 lebendem
+    Provider gilt als live (z. B. yfinance_batch live, singletons stale →
+    Zeile live).
+
+    Static-Quellen (leere provider_keys: Claude Haiku, FDA/SSR/Insider, ntfy)
+    sind IMMER live (kein Tot-Signal verfügbar — ehrlich „nicht überwacht").
+
+    FAIL-SOFT: jeder Fehler (kein Log, Import-/Lese-/Parse-Fehler) →
+    ``_DATASOURCE_FALLBACK_HTML`` (statische Liste). Der Report rendert immer.
+    """
+    try:
+        from config import (DATASOURCE_LABELS, HEALTH_CHECK_PROVIDER_TIER,
+                            FINVIZ_SCREENER_ENABLED, STOCKANALYSIS_SI_ENABLED,
+                            IBKR_BORROW_ENABLED, EARNINGSWHISPERS_ENABLED,
+                            STOCKTWITS_ENABLED, UOA_ENABLED,
+                            EDGAR_FILINGS_ENABLED)
+        # config-Flags-Map: Anzeige-Flag-Name → aktueller Bool. Nur die in
+        # DATASOURCE_LABELS referenzierten Flags. Wird pro provider_key
+        # repliziert (ein Eintrag kann mehrere Keys teilen).
+        _flag_values = {
+            "FINVIZ_SCREENER_ENABLED":   FINVIZ_SCREENER_ENABLED,
+            "STOCKANALYSIS_SI_ENABLED":  STOCKANALYSIS_SI_ENABLED,
+            "IBKR_BORROW_ENABLED":       IBKR_BORROW_ENABLED,
+            "EARNINGSWHISPERS_ENABLED":  EARNINGSWHISPERS_ENABLED,
+            "STOCKTWITS_ENABLED":        STOCKTWITS_ENABLED,
+            "UOA_ENABLED":               UOA_ENABLED,
+            "EDGAR_FILINGS_ENABLED":     EDGAR_FILINGS_ENABLED,
+        }
+        # config_flags pro provider_key aufbauen (Liveness erwartet
+        # {provider_key: bool}). Eintrag (text, keys, flag_name): flag gilt
+        # für ALLE keys des Eintrags.
+        config_flags: dict[str, bool] = {}
+        for _text, _keys, _flag in DATASOURCE_LABELS:
+            if _flag is None:
+                continue
+            val = _flag_values.get(_flag)
+            if val is None:
+                continue
+            for k in _keys:
+                config_flags[k] = bool(val)
+
+        entries = health_check.read_all_provider()
+        liveness = health_check.provider_liveness(
+            entries, tier_map=HEALTH_CHECK_PROVIDER_TIER,
+            config_flags=config_flags)
+
+        _RANK = {"live": 0, "stale": 1, "disabled": 2}
+        rows = []
+        for text, keys, _flag in DATASOURCE_LABELS:
+            if not keys:
+                status = "live"   # static-Quelle: kein Tot-Signal
+            else:
+                statuses = [liveness.get(k, "stale") for k in keys]
+                # bester Status gewinnt (live < stale < disabled)
+                status = min(statuses, key=lambda s: _RANK.get(s, 1))
+            if status == "live":
+                rows.append(f'<li>{text}</li>')
+            elif status == "disabled":
+                rows.append(
+                    f'<li style="opacity:.5">{text} '
+                    f'<span class="sb-note">(aus)</span></li>')
+            else:  # stale
+                rows.append(
+                    f'<li style="opacity:.5">{text} '
+                    f'<span class="sb-note">(aktuell keine Daten)</span></li>')
+        return "\n          ".join(rows)
+    except Exception as exc:
+        log.warning("Datenquellen-Anzeige fail-soft (statische Liste): %s", exc)
+        return _DATASOURCE_FALLBACK_HTML
+
+
 def _sub_scores_html(s: dict) -> str:
     """3-teilige Sub-Score-Anzeige unter dem Haupt-Score (oder leer).
 
@@ -6481,6 +6576,10 @@ def generate_html_v1(stocks: list[dict], report_date: str,
          UOA_ATM_STRONG + UOA_CP_BIAS,
          f"bis {_ABBR_UOA_BREAKDOWN} Pkt"),
     ])
+    # Datenquellen-Anzeige: dynamisch aus provider_health.jsonl + ENABLED-
+    # Flags (REIN ANZEIGE, fail-soft → statische Fallback-Liste).
+    datasource_rows = _datasource_rows_html()
+
     methodology_timing_rows = _methodology_rows_html([
         (f"Rel. Volumen ({_ABBR_RVOL})", SUB_RVOL_DISPLAY_PTS_MAX,     f"{SUB_RVOL_DISPLAY_PTS_MAX} Pkt"),
         ("Momentum",                     SUB_MOMENTUM_DISPLAY_PTS_MAX, f"{SUB_MOMENTUM_DISPLAY_PTS_MAX} Pkt"),
@@ -6988,9 +7087,7 @@ def generate_html_v1(stocks: list[dict], report_date: str,
         </summary>
         <div class="method-content">
         <ul class="info-compact">
-          <li>Yahoo Finance (5 US-Screener) · Finviz Screener · FINRA Short Interest ({SI_TREND_PERIODS} Handelstage, 3 CDN-Feeds)</li>
-          <li>yfinance · Stockanalysis.com (wöchentl. SI) · EarningsWhispers RSS · Sektor-ETFs (QQQ/XBI/XLE/XLF/XRT/SPY)</li>
-          <li>KI-Agent: Claude Haiku · News-Sentiment · Insider · FDA RSS · FINRA Daily SSR · StockTwits API · yfinance Options-Chains (UOA) · SEC EDGAR (<abbr title="Pflicht-Meldung an die SEC, wenn ein Investor mehr als 5% einer Firma kauft — oft aktivistisch.">13D</abbr>/13G Filings) · ntfy.sh (Push-Notifications)</li>
+          {datasource_rows}
         </ul>
         </div>
       </details>

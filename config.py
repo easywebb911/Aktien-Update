@@ -1040,6 +1040,53 @@ HEALTH_CHECK_PROVIDER_EXPECTED = {
 }
 
 
+# ── Datenquellen-Anzeige: Label-Map (Methodik-Panel, REIN ANZEIGE) ────────────
+#
+# Mappt Provider-Registry-Keys → menschenlesbare Anzeige-Texte für das
+# „Datenquellen"-Methodik-Panel. Status (live/stale/disabled) kommt dynamisch
+# aus provider_health.jsonl + den ENABLED-Flags (health_check.provider_liveness);
+# die kuratierten Detail-Strings (Screener-Anzahl, Handelstage, „Cost-to-Borrow")
+# bleiben hier handgepflegt. KEIN Score-/Filter-Effekt.
+#
+# DREI Quellen-Klassen:
+#  (a) telemetrie-geprüft: hat einen Provider-Key in HEALTH_CHECK_PROVIDER_TIER
+#      → Status dynamisch (live wenn frische Erfolge, stale bei N-in-Folge-Fail,
+#      disabled wenn config-Flag aus). Mehrere Keys ↔ EINE Zeile möglich
+#      (z.B. yfinance = batch + singletons).
+#  (b) static: aktive Quelle OHNE eigenen Provider-Key (nicht via
+#      record_provider_call instrumentiert) → immer „live" angezeigt, da kein
+#      Tot-Signal verfügbar (Claude Haiku, FDA RSS, ntfy, FINRA Daily SSR,
+#      Insider/Form4-Anzeige). Ehrlich: „nicht überwacht", nicht „garantiert ok".
+#  (c) ENTFERNT: Sektor-ETFs (16.05.2026 komplett raus, RS-vs-SPY ersetzt) —
+#      tauchen GAR NICHT in dieser Map auf (kein Provider, kein Code).
+#
+# Jeder Eintrag: (anzeige_text, provider_keys-Tuple, config_flag-Name|None).
+#  - provider_keys leer () → static (Klasse b).
+#  - config_flag None → kein ENABLED-Gate (Quelle nicht abschaltbar).
+# Reihenfolge = Anzeige-Reihenfolge.
+DATASOURCE_LABELS = [
+    # Pool/Screener + strukturelle Daten
+    ("Yahoo Finance (5 US-Screener)",                ("yahoo_screener",),       None),
+    ("Finviz Screener (Fallback)",                   ("finviz",),               "FINVIZ_SCREENER_ENABLED"),
+    (f"FINRA Short Interest ({SI_TREND_PERIODS} Handelstage, 3 CDN-Feeds)",
+                                                     ("finra",),                None),
+    ("yfinance (Kurse/Indikatoren)",                 ("yfinance_batch",
+                                                      "yfinance_singletons"),   None),
+    ("Stockanalysis.com (wöchentl. SI)",             ("stockanalysis",),        "STOCKANALYSIS_SI_ENABLED"),
+    ("iBorrowDesk (Cost-to-Borrow)",                 ("borrow",),               "IBKR_BORROW_ENABLED"),
+    ("EarningsWhispers RSS",                         ("earningswhispers",),     "EARNINGSWHISPERS_ENABLED"),
+    # KI-Agent-Quellen
+    ("KI-Agent: Claude Haiku",                       (),                        None),
+    ("News-Sentiment (5+ RSS-Feeds)",                ("news_rss",),             None),
+    ("StockTwits API",                               ("stocktwits",),           "STOCKTWITS_ENABLED"),
+    ("yfinance Options-Chains (UOA)",                ("uoa",),                  "UOA_ENABLED"),
+    ("SEC EDGAR (8-K · Form 4 · 13D/13G)",           ("edgar_8k", "edgar_form4",
+                                                      "edgar_13d_g"),           "EDGAR_FILINGS_ENABLED"),
+    ("FDA RSS · FINRA Daily SSR · Insider",          (),                        None),
+    ("ntfy.sh (Push-Notifications)",                 (),                        None),
+]
+
+
 # ── Digest-Konsekutiv-Schwelle: provider-spezifische Overrides ────────────
 #
 # Basis-Konstante ``DIGEST_CONSECUTIVE_THRESHOLD = 3`` lebt aus historischen
