@@ -1463,6 +1463,95 @@ def aggregate_provider_fails(entries: list[dict],
     return sorted(fails, key=lambda f: f["provider"])
 
 
+def _parse_ts(s: str) -> datetime | None:
+    """ISO-UTC-String → aware datetime, oder None bei Parse-Fehler."""
+    if not s:
+        return None
+    try:
+        ts_str = s[:-1] + "+00:00" if s.endswith("Z") else s
+        ts = datetime.fromisoformat(ts_str)
+        return ts if ts.tzinfo else ts.replace(tzinfo=timezone.utc)
+    except (ValueError, TypeError):
+        return None
+
+
+def provider_liveness(entries: list[dict],
+                      tier_map: dict | None = None,
+                      config_flags: dict | None = None,
+                      now_ts: datetime | None = None) -> dict:
+    """Pro Provider-Key: ``"live"`` | ``"stale"`` | ``"disabled"`` — für die
+    dynamische Datenquellen-Anzeige (REIN ANZEIGE, kein Score-Effekt).
+
+    Nutzt dieselbe row_fail-/Konsekutiv-/Stale-Logik wie
+    ``aggregate_provider_fails`` (DIGEST_CONSECUTIVE_THRESHOLD,
+    DIGEST_STALE_DAYS, Coverage-Schwellen) — KEINE neue Diskriminator-Logik:
+
+      - ``disabled``: ``config_flags[key]`` ist explizit ``False`` (ENABLED-
+        Flag aus, z. B. stocktwits/earningswhispers — schreiben keine Zeile,
+        dürfen NICHT als „tot" gelten). Hat Vorrang vor allem anderen.
+      - ``stale``: Provider hat ≥ Schwelle Konsekutiv-Fails (Tier 2/3) bzw.
+        einen Fail (Tier 1) im jüngsten Lauf-Lauf, ODER ist seit
+        > DIGEST_STALE_DAYS gar nicht mehr erschienen (kein Log, aber Flag
+        nicht aus → echtes Verstummen statt bewusst-aus).
+      - ``live``: jüngster Lauf erfolgreich (http 200 + coverage ok).
+
+    Provider ohne Telemetrie-Einträge UND ohne disabled-Flag → ``stale``
+    (verstummt). Anti-Flacker: ein 1-Lauf-Hiccup hebt den Konsekutiv-Counter
+    nicht über die Schwelle → bleibt ``live``.
+
+    ``config_flags``: ``{provider_key: bool}`` (True=an, False=aus). Fehlt ein
+    Key → kein Gate (behandelt wie nicht abschaltbar).
+    """
+    tier_map = tier_map or {}
+    config_flags = config_flags or {}
+    now_ts = now_ts or datetime.now(timezone.utc)
+    cutoff = now_ts - timedelta(days=DIGEST_STALE_DAYS)
+
+    by_provider: dict[str, list[dict]] = {}
+    for e in entries or []:
+        prov = e.get("provider")
+        if not prov:
+            continue
+        by_provider.setdefault(prov, []).append(e)
+
+    out: dict[str, str] = {}
+    # Union aus Telemetrie-Keys + Flag-Keys + Tier-Map-Keys, damit auch
+    # nie-geloggte (disabled) Provider einen Status bekommen.
+    all_keys = set(by_provider) | set(config_flags) | set(tier_map)
+    for prov in all_keys:
+        # 1) disabled hat Vorrang — config-Flag explizit False.
+        if config_flags.get(prov) is False:
+            out[prov] = "disabled"
+            continue
+        rows = by_provider.get(prov)
+        if not rows:
+            # Kein Log + nicht disabled → verstummt.
+            out[prov] = "stale"
+            continue
+        rows.sort(key=lambda r: r.get("run_ts", ""))
+        tier = int(tier_map.get(prov, rows[-1].get("tier", 3)))
+        # Letzter Eintrag zu alt (> Stale-Tage) → verstummt.
+        last_ts = _parse_ts(rows[-1].get("run_ts", ""))
+        if last_ts is not None and last_ts < cutoff:
+            out[prov] = "stale"
+            continue
+        # Konsekutiv-Fail-Zähler (identische row_fail-Definition wie
+        # aggregate_provider_fails) über die jüngsten Läufe.
+        cov_threshold = (DIGEST_COVERAGE_THRESHOLD_TIER1 if tier == 1
+                         else DIGEST_COVERAGE_THRESHOLD_TIER23)
+        n_consec = 0
+        for row in rows:
+            cov = row.get("coverage_pct")
+            cov_fail = (cov is not None) and (cov < cov_threshold)
+            row_fail = (row.get("http_status") != 200) or cov_fail
+            n_consec = n_consec + 1 if row_fail else 0
+        threshold = (1 if tier == 1
+                     else DIGEST_CONSECUTIVE_THRESHOLD_OVERRIDES.get(
+                         prov, DIGEST_CONSECUTIVE_THRESHOLD))
+        out[prov] = "stale" if n_consec >= threshold else "live"
+    return out
+
+
 def format_digest_body(state_fails: list[dict],
                        provider_fails: list[dict],
                        *,

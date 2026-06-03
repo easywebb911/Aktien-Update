@@ -2869,8 +2869,23 @@ Komponente:
 
 - Filter-Schwellen-Box (Filterkriterien)
 - Boni / Malus / Monster-Score-Box (hardcodierte Werte +5 / ±3 / ×1.05 / −3/−5)
-- Datenquellen-Liste
 - ⚡ KI-Agent-Box
+
+**Datenquellen-Liste — seit 02.06.2026 NICHT mehr voll-manuell, sondern
+hybrid (Label-Map manuell, Status dynamisch):** Die Liste wird in
+`_datasource_rows_html` (generate_report.py) **dynamisch** aus
+`config.DATASOURCE_LABELS` (kuratierte Anzeige-Texte) + dem Liveness-Status
+(`health_check.provider_liveness` über `provider_health.jsonl` + ENABLED-
+Flags) generiert. Tote Quellen erscheinen automatisch als „(aus)" (config-
+Flag False) bzw. „(aktuell keine Daten)" (Provider verstummt / N-in-Folge-
+Fail). **Pflege:** bei neuer/entfallener Quelle nur den Eintrag in
+`DATASOURCE_LABELS` ändern (Tuple `(anzeige_text, provider_keys, flag_name)`)
+— der Status pflegt sich selbst. Quellen OHNE Provider-Key (static: Claude
+Haiku, FDA RSS, FINRA Daily SSR, ntfy, Insider) sind immer „live" (kein
+Tot-Signal verfügbar). Vollständig entfernte Quellen (z. B. Sektor-ETFs,
+16.05.2026) gehören GANZ aus der Map, nicht als „stale". Fail-soft:
+fehlendes/unlesbares `provider_health.jsonl` → statische
+`_DATASOURCE_FALLBACK_HTML`. REIN ANZEIGE, kein Score-/Filter-Effekt.
 
 Drift-Schutz für die Sub-Score-Caps ist damit strukturell gesichert,
 solange `score()` und `_compute_sub_scores()` mit den gleichen
