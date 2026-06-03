@@ -1,0 +1,71 @@
+name: PR Checks (advisory)
+
+# ADVISORY-Check — KEIN required-status-check, KEINE Branch-Protection.
+# Diese Datei allein kann sich NICHT „required" machen: required-Checks sind
+# eine Repo-Branch-Protection-EINSTELLUNG (Settings → Branches), nicht im
+# Workflow-YAML setzbar. Solange diese Einstellung nicht angefasst wird
+# (und sie wird es nicht), ist der Check reines Signal: er liefert ein
+# check_run-Event (rot/grün) an den PR, blockiert aber den Merge NICHT.
+# Die Self-Merge-Mechanik (Merge via MCP nach grünen lokalen Tests) bleibt
+# unberührt — bei Rot fixt Claude nach, dann erneut grün.
+#
+# Zweck: schließt die „stilles-Netz"-Lücke (PR #313 riss den Golden-Test
+# still, weil kein automatischer Lauf existierte). Fährt die deterministischen,
+# netzfreien Checks bei jedem PR.
+
+on:
+  pull_request:
+
+# Read-only: der Check kann nichts pushen, mergen oder blockieren.
+permissions:
+  contents: read
+
+# Mehrere schnelle Pushes auf denselben PR → nur den letzten Lauf behalten.
+concurrency:
+  group: pr-checks-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  checks:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      # Erzwingt UTF-8-Modus unabhängig von der Runner-Locale (Quelltext
+      # enthält Umlaute/Emojis; alle Checks lesen zwar mit explizitem
+      # encoding='utf-8', dies ist defensives Gürtel-und-Hosenträger).
+      PYTHONUTF8: "1"
+    steps:
+      - name: Checkout PR
+        # Default-Verhalten bei pull_request: Merge-Commit (PR auf base
+        # gemergt) wird ausgecheckt — genau der Stand, der nach Merge auf
+        # main läge. KEIN ``ref: main`` (das würde main statt des PR testen).
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+          cache: 'pip'
+
+      - name: Install dependencies
+        # Voll-requirements statt Minimal-Set: garantiert, dass die CI-Umgebung
+        # exakt der Golden-Generierungs-Umgebung entspricht (jinja2 ist harter
+        # Modul-Level-Dep von generate_report.py; pandas_ta ist optional via
+        # try/except, beeinflusst den Fixture-basierten Golden-Render nicht —
+        # aber requirements.txt eliminiert jede Env-Divergenz-Flaky-Klasse).
+        run: pip install -r requirements.txt
+
+      - name: Lint chat template
+        run: python scripts/lint_chat_template.py
+
+      - name: Lint JS-format escape
+        run: python scripts/lint_jsformat_escape.py
+
+      - name: Lint score-confidence isolation
+        run: python scripts/lint_score_confidence_isolation.py
+
+      - name: Lint token-crypto invariants
+        run: python scripts/lint_token_crypto.py
+
+      - name: Outer-Page golden test
+        run: python scripts/mock_test_outer_page_golden.py

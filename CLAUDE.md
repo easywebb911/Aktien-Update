@@ -75,10 +75,25 @@ Im Zweifel: lieber Easy-Merge anfragen als Auto-Merge.
 
 ### PR-Status-Meldung nach Push
 
-Das Repo hat **keine GitHub-Actions-CI-Workflows für PR-Validation**.
-PR-Push triggert keinen Workflow → es kommen **keine `check_run`-
-Webhook-Events**, an denen Claude warten könnte. „Warte auf Webhook-
-Events" als Standard-Abschluss ist daher Lärm und unnötig.
+Das Repo hat **genau einen** GitHub-Actions-PR-Check:
+`.github/workflows/pr-checks.yml` (`on: pull_request`, seit 03.06.2026).
+Er fährt 5 deterministische Checks (4 Lints + Outer-Page-Golden-Test) und
+liefert ein **`check_run`-Event** (rot/grün) an den PR.
+
+**Wichtig — der Check ist ADVISORY, nicht required:** er blockiert den
+Merge NICHT (keine Branch-Protection-Einstellung). Die Self-Merge-Mechanik
+bleibt unberührt — Claude merged weiter via MCP nach grünen lokalen Tests.
+Der CI-Check ist ein **zusätzliches Sicherheitsnetz** (fängt still gerissene
+Golden-/Lint-Brüche, siehe PR #313), kein Gatekeeper. Bei Rot: nachfixen,
+neu pushen, dann mergen. **Kein** anderer Workflow triggert auf PR-Push
+(die Cron-Workflows laufen unverändert nur per `schedule`/`dispatch`/`push
+to main`).
+
+**Konsequenz fürs Warten:** Nach PR-Push KANN jetzt ein `check_run`-Event
+kommen (von pr-checks.yml). Das passive Warten darauf bleibt trotzdem
+**kein** Standard-Abschluss — erst die Status-Meldung absetzen (siehe
+Tabelle), dann ggf. auf das Check-Ergebnis reagieren, falls
+`subscribe_pr_activity` aktiv ist.
 
 **Regel nach PR-Push** — direkt eine Status-Meldung absetzen je nach
 PR-Klassifikation:
@@ -91,10 +106,12 @@ PR-Klassifikation:
 
 **Was Claude NICHT mehr melden soll:**
 
-- „Warte auf Webhook-Events" → wird nichts triggern.
-- „CI läuft" → es gibt keine CI-Workflows.
-- Passives Warten auf `check_run`-Events nach Push → kein automatischer
-  Output kommt; Easy müsste explizit fragen.
+- „Warte passiv auf Webhook-Events" als Selbstzweck → die Ready-/Merge-
+  Meldung kommt zuerst. Der advisory `pr-checks.yml`-Lauf liefert zwar ein
+  `check_run`-Event, blockiert aber nichts — kein Grund, den Merge davon
+  abhängig zu machen (lokale Tests sind die kanonische Freigabe).
+- „CI muss erst grün sein bevor ich mergen darf" → falsch, der Check ist
+  advisory. Lokale Tests grün + keine Review-Comments reicht.
 
 **Ausnahme — `subscribe_pr_activity` aktiv:** Wenn Easy explizit „watch
 PR #N" anweist und `subscribe_pr_activity` aufgerufen wurde, dann ist
@@ -106,6 +123,34 @@ Comments warten.
 **Begründung:** Status-Meldung statt Stille macht den PR-Fluss kürzer
 — Easy weiß sofort ob Aktion (Merge-Freigabe) erforderlich ist oder
 nicht. Spart einen Ping-Pong-Cycle pro PR.
+
+### Outer-Page-Golden-Test — Pflicht bei output-ändernden PRs
+
+**Harte Regel (Disziplin-Stopgap, seit 03.06.2026):** Jeder PR, der den
+gerenderten HTML-Output der Outer-Page ändern KANN, muss vor dem Merge den
+Golden-Test laufen lassen und bei gewollter Änderung das Golden mit-committen.
+
+**Trigger-Set** (Änderung an einer dieser Stellen ⇒ Regel greift):
+- `generate_report.py` (insb. der `generate_html_v1`-f-String, JS-Blöcke)
+- `templates/*.jinja` (`head.jinja`, `card.jinja`, …)
+- `config.py`-Konstanten, die in den Render-Pfad fließen (Schwellen-Anzeige,
+  Methodik-Auto-Generation, Datasource-Labels etc.)
+
+**Ablauf:**
+1. `python scripts/mock_test_outer_page_golden.py` lokal laufen.
+2. **Grün** → keine Output-Änderung, nichts zu tun.
+3. **Rot + Änderung GEWOLLT** → `UPDATE_GOLDEN=1 python
+   scripts/mock_test_outer_page_golden.py`, den Golden-Diff prüfen
+   (ausschließlich die beabsichtigte Stelle — NICHT blind übermalen) und
+   `tests/golden/report_outer_page.html` **im selben PR** mit-committen.
+4. **Rot + Änderung UNGEWOLLT** → echter Regressions-Fund, fixen.
+
+**Warum manuell trotz advisory CI:** `pr-checks.yml` fährt den Golden-Test
+zwar automatisch auf jedem PR, ist aber **advisory** (blockiert nicht). Bug-
+Verweis PR #313: der Golden-Test wurde still gerissen (Output geändert,
+Golden nicht aktualisiert), erst bei PR #315 aufgefallen — weil es davor
+keinen automatischen Lauf gab. Die advisory CI fängt das jetzt sichtbar
+(`check_run` rot), die manuelle Disziplin schließt es VOR dem Merge.
 
 ## generate_report.py — Template-Sicherheitsregel
 
