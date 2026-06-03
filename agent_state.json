@@ -1,5 +1,5 @@
 {
-  "last_run": "2026-06-03T03:48:34.999384+02:00",
+  "last_run": "2026-06-03T06:58:18.463001+02:00",
   "cooldowns": {
     "anomaly_score_jump_XRX": "2026-05-03T18:47:15.315486+02:00",
     "anomaly_uoa_extreme_TDOC": "2026-05-04T13:47:00.365949+02:00",
@@ -52,18 +52,6 @@
     "earnings_immediate_CHPT_03.06.2026": "2026-06-02T22:20:18.445128+02:00"
   },
   "push_history": [
-    {
-      "ts": "2026-05-24T02:13:15.774162+02:00",
-      "ticker": "AEVA",
-      "kind": "anomaly",
-      "severity": "medium",
-      "trigger": "score_jump",
-      "body": "AEVA 🚀 Setup 59 ↑ (gestern 39) | Volumen 2.0× + Spanne 15.6% + UOA Call/Put 3.7×",
-      "success": false,
-      "suppressed": true,
-      "suppress_reason": "conviction_below_threshold",
-      "conviction_score": 58
-    },
     {
       "ts": "2026-05-24T02:13:15.774430+02:00",
       "ticker": "OXM",
@@ -1251,25 +1239,37 @@
       "suppressed": false,
       "suppress_reason": null,
       "conviction_score": 75
+    },
+    {
+      "ts": "2026-06-03T06:58:18.642110+02:00",
+      "ticker": "AI",
+      "kind": "exit_p2",
+      "severity": "trigger",
+      "trigger": "catalyst",
+      "body": "🔻 Exit-Signal AI: catalyst crit ({'earnings_date': '2026-06-03', 'trading_days_until': 0, 'window': 2})",
+      "success": true,
+      "suppressed": false,
+      "suppress_reason": null,
+      "conviction_score": null
     }
   ],
   "prev_conviction_scores": {
-    "CRMT": 81.0,
-    "FTK": 71.0,
+    "CRMT": 67.0,
+    "FTK": 58.0,
+    "METC": 51.0,
+    "TOPS": 50.0,
     "AI": 70.0,
-    "METC": 62.0,
-    "QUCY": 47.0,
-    "OXM": 74.0,
-    "CSIQ": 59.0,
-    "DDD": 66.0,
-    "KULR": 58.0,
-    "TOPS": 41.0,
-    "REPL": 37.0,
+    "OXM": 61.0,
+    "CSIQ": 47.0,
+    "QUCY": 33.0,
+    "DDD": 52.0,
+    "KULR": 44.0,
     "PDYN": 36.0,
     "CRMD": 49.0,
     "GEMI": 25.0,
-    "AMC": 31.0,
-    "IONQ": 17.0
+    "AMC": 17.0,
+    "IONQ": 17.0,
+    "RBOHF": 12.0
   },
   "exit_cooldowns": {
     "exitp2_warning_AMC": "2026-05-18T14:48:43.872687+02:00",
@@ -1290,6 +1290,7 @@
     "exitp2_trigger_PDYN_overheated": "2026-05-28T18:12:36.334552+02:00",
     "exitp2_trigger_CRDF_profit_lock": "2026-06-01T19:24:04.144723+02:00",
     "exitp2_trigger_CRDF_trend_break": "2026-06-01T19:24:04.374205+02:00",
-    "exitp2_trigger_AMC_overheated": "2026-06-01T21:15:58.491304+02:00"
+    "exitp2_trigger_AMC_overheated": "2026-06-01T21:15:58.491304+02:00",
+    "exitp2_trigger_AI_catalyst": "2026-06-03T06:58:18.642141+02:00"
   }
 }
