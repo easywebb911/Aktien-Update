@@ -1,10 +1,10 @@
 {
-  "updated": "2026-06-03T13:25:59.476589+02:00",
+  "updated": "2026-06-03T14:12:51.549416+02:00",
   "run_info": {
     "tickers_checked": 16,
     "signals_active": 6,
     "alerts_sent": 0,
-    "elapsed_s": 15.9,
+    "elapsed_s": 24.1,
     "market_phase": "Pre-Market"
   },
   "signals": {
@@ -27,13 +27,13 @@
       "uoa_drivers": [
         "UOA Call/Put 4.2×"
       ],
-      "uoa_atm_ratio": 0.2698706099815157,
+      "uoa_atm_ratio": 0.09924568020349092,
       "uoa_cp_ratio": 4.229420186113099
     },
     "AMC": {
-      "score": 38,
+      "score": 20,
       "confidence": 33,
-      "drivers": "Spanne 7.2% + News-KI 18/30: Positive fundamentals (attendance, EBITDA) reduce short-squeeze likelihood as they indicate genuine business improvement + UOA Call/Put 9.8×",
+      "drivers": "Spanne 7.2% + UOA Call/Put 9.8×",
       "price": 2.07,
       "chg_pct": -0.0,
       "rvol_4d": 0.95,
@@ -44,7 +44,7 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 1,
+      "active_triggers": 0,
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 9.8×"
@@ -71,7 +71,7 @@
       "uoa_drivers": [
         "UOA Call/Put 2.4×"
       ],
-      "uoa_atm_ratio": null,
+      "uoa_atm_ratio": 0.023964395754878465,
       "uoa_cp_ratio": 2.380434782608696
     },
     "CRMT": {
@@ -97,7 +97,7 @@
     "CSIQ": {
       "score": 38,
       "confidence": 70,
-      "drivers": "Spanne 16.4% + News-KI 8/30: Neutral fundamental updates without short squeeze catalysts like high short interest confirmation, earnings surprises, o + SEC Form 4 + UOA Call/Put 7.5×",
+      "drivers": "Spanne 16.4% + News-KI 8/30: Neutral fundamental news mit valuation uncertainty, keine Anzeichen für hohe Short-Interest oder Squeeze-Potential. + SEC Form 4 + UOA Call/Put 7.5×",
       "price": 20.57,
       "chg_pct": -0.0,
       "rvol_4d": 1.49,
@@ -179,9 +179,9 @@
       "uoa_cp_ratio": 0.06954225352112677
     },
     "IONQ": {
-      "score": 45,
+      "score": 35,
       "confidence": 33,
-      "drivers": "Spanne 5.1% + News: catalyst + UOA Call-Vol/OI 4.5× ATM + UOA Call/Put 3.7×",
+      "drivers": "Spanne 5.1% + News: catalyst + UOA Call/Put 3.7×",
       "price": 71.4,
       "chg_pct": 0.0,
       "rvol_4d": 0.93,
@@ -193,18 +193,17 @@
       "stocktwits": null,
       "combo_mult": 1.0,
       "active_triggers": 1,
-      "uoa_score": 20,
+      "uoa_score": 10,
       "uoa_drivers": [
-        "UOA Call-Vol/OI 4.5× ATM",
         "UOA Call/Put 3.7×"
       ],
-      "uoa_atm_ratio": 4.472446730345334,
+      "uoa_atm_ratio": 0.9116369627078029,
       "uoa_cp_ratio": 3.7356926510441575
     },
     "KULR": {
-      "score": 50,
+      "score": 53,
       "confidence": 70,
-      "drivers": "Volumen 1.6× + Spanne 19.8% + News: contract + UOA Call/Put 26.6×",
+      "drivers": "Volumen 1.6× + Spanne 19.8% + News-KI 18/30: Positive business contracts show growth potential, but lack the high short interest, low float, and catalyst urgency typ + UOA Call/Put 26.6×",
       "price": 5.23,
       "chg_pct": 0.0,
       "rvol_4d": 1.59,
@@ -268,9 +267,9 @@
       "uoa_cp_ratio": 2.0714285714285716
     },
     "PDYN": {
-      "score": 25,
+      "score": 28,
       "confidence": 33,
-      "drivers": "Spanne 7.9% + News-KI 5/30: Routine governance and HR announcements with no indicators of short squeeze potential such as high short interest, low f + UOA Call/Put 10.3×",
+      "drivers": "Spanne 7.9% + News-KI 8/30: Board appointments and equity awards are positive but lack immediate catalyst for short squeeze; no evidence of high sho + UOA Call/Put 10.3×",
       "price": 8.6,
       "chg_pct": 0.0,
       "rvol_4d": 0.61,
@@ -290,9 +289,9 @@
       "uoa_cp_ratio": 10.306451612903226
     },
     "QUCY": {
-      "score": 68,
-      "confidence": 70,
-      "drivers": "Volumen 6.5× + 🚀 Massives Volumen 6.5×+ + Spanne 23.8% + News-KI 12/30: Positive operational developments but no indicators of short squeeze potential (no high short interest, borrow costs, or",
+      "score": 50,
+      "confidence": 33,
+      "drivers": "Volumen 6.5× + 🚀 Massives Volumen 6.5×+ + Spanne 23.8%",
       "price": 2.45,
       "chg_pct": 0.0,
       "rvol_4d": 6.46,
@@ -302,17 +301,17 @@
       "upcoming_event": null,
       "insider_buy": false,
       "stocktwits": null,
-      "combo_mult": 1.1,
-      "active_triggers": 2,
+      "combo_mult": 1.0,
+      "active_triggers": 1,
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": null,
       "uoa_cp_ratio": null
     },
     "RBOHF": {
-      "score": 8,
-      "confidence": 17,
-      "drivers": "News-KI 8/30: Advisory board additions and technology validation announcements lack concrete revenue catalysts or significant short in",
+      "score": 0,
+      "confidence": 0,
+      "drivers": "",
       "price": 0.23,
       "chg_pct": 0.43,
       "rvol_4d": 0.87,
@@ -330,9 +329,9 @@
       "uoa_cp_ratio": null
     },
     "TOPS": {
-      "score": 58,
-      "confidence": 70,
-      "drivers": "Volumen 24.0× + 🚀 Massives Volumen 24.0×+ + Spanne 22.0% + News-KI 8/30: Cancelled equity offering reduces dilution risk, but lack of growth catalysts and routine regulatory filings show no imm",
+      "score": 50,
+      "confidence": 33,
+      "drivers": "Volumen 24.0× + 🚀 Massives Volumen 24.0×+ + Spanne 22.0%",
       "price": 1.11,
       "chg_pct": 0.0,
       "rvol_4d": 24.01,
