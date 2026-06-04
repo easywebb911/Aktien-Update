@@ -1,10 +1,10 @@
 {
-  "updated": "2026-06-05T00:50:07.118116+02:00",
+  "updated": "2026-06-05T01:08:20.330928+02:00",
   "run_info": {
     "tickers_checked": 16,
-    "signals_active": 4,
+    "signals_active": 5,
     "alerts_sent": 0,
-    "elapsed_s": 17.1,
+    "elapsed_s": 16.3,
     "market_phase": "After-Hours"
   },
   "signals": {
@@ -53,9 +53,9 @@
       "uoa_cp_ratio": 3.54827156649019
     },
     "AMC": {
-      "score": 35,
+      "score": 38,
       "confidence": 33,
-      "drivers": "Spanne 11.0% + News: short seller + UOA Call/Put 8.5×",
+      "drivers": "Spanne 11.0% + News-KI 18/30: Positive sentiment on attendance and short seller setback, but lacks catalyst intensity; mainstream narrative lacks urge + UOA Call/Put 8.5×",
       "price": 1.96,
       "chg_pct": 0.0,
       "rvol_4d": 0.6,
@@ -122,7 +122,7 @@
     "CRMD": {
       "score": 50,
       "confidence": 33,
-      "drivers": "Spanne 7.3% + News: guidance raised, earnings beat + UOA Call/Put 5.6×",
+      "drivers": "Spanne 7.3% + News: earnings beat, guidance raised + UOA Call/Put 5.6×",
       "price": 8.54,
       "chg_pct": -0.0,
       "rvol_4d": 1.4,
@@ -164,9 +164,9 @@
       "uoa_cp_ratio": 23.375
     },
     "GEMI": {
-      "score": 28,
+      "score": 35,
       "confidence": 33,
-      "drivers": "Spanne 6.4% + News-KI 8/30: IPO filings and platform updates lack short squeeze catalysts; no significant short interest, debt refinancing pressure, + UOA Call/Put 2.9×",
+      "drivers": "Spanne 6.4% + News: short interest + UOA Call/Put 2.9×",
       "price": 4.62,
       "chg_pct": -0.0,
       "rvol_4d": 0.88,
@@ -177,7 +177,7 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 0,
+      "active_triggers": 1,
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 2.9×"
@@ -186,9 +186,9 @@
       "uoa_cp_ratio": 2.883817427385892
     },
     "IONQ": {
-      "score": 20,
+      "score": 28,
       "confidence": 33,
-      "drivers": "Spanne 7.9% + UOA Call/Put 2.2×",
+      "drivers": "Spanne 7.9% + News-KI 8/30: Positive revenue milestone lacks short-squeeze catalysts; competing quantum IPO dilutes sector attention and investor ca + UOA Call/Put 2.2×",
       "price": 65.66,
       "chg_pct": 0.0,
       "rvol_4d": 1.32,
@@ -315,9 +315,9 @@
       "uoa_cp_ratio": 6.319587628865979
     },
     "RBOHF": {
-      "score": 0,
-      "confidence": 0,
-      "drivers": "",
+      "score": 8,
+      "confidence": 17,
+      "drivers": "News-KI 8/30: Positive corporate developments and strategic partnerships, but lacking short squeeze indicators like high short interes",
       "price": 0.23,
       "chg_pct": 0.0,
       "rvol_4d": 0.1,
