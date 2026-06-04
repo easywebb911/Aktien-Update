@@ -1,17 +1,17 @@
 {
-  "updated": "2026-06-04T12:14:36.965086+02:00",
+  "updated": "2026-06-04T14:19:51.686510+02:00",
   "run_info": {
     "tickers_checked": 16,
     "signals_active": 3,
     "alerts_sent": 0,
-    "elapsed_s": 11.6,
+    "elapsed_s": 19.7,
     "market_phase": "Pre-Market"
   },
   "signals": {
     "AI": {
-      "score": 58,
+      "score": 50,
       "confidence": 70,
-      "drivers": "Volumen 1.9× + Spanne 6.6% + SEC 8-K + News-KI 8/30: Positive earnings and guidance provide modest upside momentum, but restructuring/revenue decline concerns and lack of sh + SEC Form 4",
+      "drivers": "Volumen 1.9× + Spanne 6.6% + SEC 8-K + SEC Form 4",
       "price": 10.71,
       "chg_pct": 0.0,
       "rvol_4d": 1.93,
@@ -25,13 +25,13 @@
       "active_triggers": 1,
       "uoa_score": 0,
       "uoa_drivers": [],
-      "uoa_atm_ratio": null,
+      "uoa_atm_ratio": 0.28165677011729606,
       "uoa_cp_ratio": 1.7463945733340933
     },
     "AMC": {
-      "score": 50,
+      "score": 38,
       "confidence": 33,
-      "drivers": "Spanne 10.1% + News: catalyst, short seller + UOA Call/Put 6.5×",
+      "drivers": "Spanne 10.1% + News-KI 18/30: Positive sentiment from theater attendance is offset by fraud concerns and overvaluation warnings, reducing short-squeez + UOA Call/Put 6.5×",
       "price": 1.83,
       "chg_pct": 0.0,
       "rvol_4d": 0.51,
@@ -47,7 +47,7 @@
       "uoa_drivers": [
         "UOA Call/Put 6.5×"
       ],
-      "uoa_atm_ratio": null,
+      "uoa_atm_ratio": 0.20464674633658114,
       "uoa_cp_ratio": 6.491263520741709
     },
     "BNRG": {
@@ -73,7 +73,7 @@
     "CRMD": {
       "score": 30,
       "confidence": 17,
-      "drivers": "News: guidance raised, earnings beat",
+      "drivers": "News: earnings beat, guidance raised",
       "price": 8.23,
       "chg_pct": -0.0,
       "rvol_4d": 0.74,
@@ -87,7 +87,7 @@
       "active_triggers": 1,
       "uoa_score": 0,
       "uoa_drivers": [],
-      "uoa_atm_ratio": null,
+      "uoa_atm_ratio": 0.0072300045187528245,
       "uoa_cp_ratio": 1.0628930817610063
     },
     "FABC": {
@@ -111,9 +111,9 @@
       "uoa_cp_ratio": null
     },
     "GEMI": {
-      "score": 10,
-      "confidence": 17,
-      "drivers": "Spanne 7.4%",
+      "score": 22,
+      "confidence": 33,
+      "drivers": "Spanne 7.4% + News-KI 12/30: IPO filings and platform feature additions lack the short-seller pressure, high short interest, or catalyst combination ",
       "price": 4.51,
       "chg_pct": 0.0,
       "rvol_4d": 1.07,
@@ -124,10 +124,10 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 0,
+      "active_triggers": 1,
       "uoa_score": 0,
       "uoa_drivers": [],
-      "uoa_atm_ratio": null,
+      "uoa_atm_ratio": 0.15384615384615385,
       "uoa_cp_ratio": 0.5940828402366863
     },
     "IONQ": {
@@ -149,7 +149,7 @@
       "uoa_drivers": [
         "UOA Call/Put 2.3×"
       ],
-      "uoa_atm_ratio": null,
+      "uoa_atm_ratio": 1.311166215810039,
       "uoa_cp_ratio": 2.3210128650193997
     },
     "KALV": {
@@ -169,7 +169,7 @@
       "active_triggers": 2,
       "uoa_score": 0,
       "uoa_drivers": [],
-      "uoa_atm_ratio": null,
+      "uoa_atm_ratio": 0.09523809523809523,
       "uoa_cp_ratio": 0.7829457364341085
     },
     "NWL": {
@@ -209,7 +209,7 @@
       "active_triggers": 0,
       "uoa_score": 0,
       "uoa_drivers": [],
-      "uoa_atm_ratio": null,
+      "uoa_atm_ratio": 0.012360939431396786,
       "uoa_cp_ratio": 0.09532949456174024
     },
     "PDYN": {
@@ -231,13 +231,13 @@
       "uoa_drivers": [
         "UOA Call/Put 3.9×"
       ],
-      "uoa_atm_ratio": null,
+      "uoa_atm_ratio": 0.023333333333333334,
       "uoa_cp_ratio": 3.8582089552238807
     },
     "PEB": {
-      "score": 15,
-      "confidence": 17,
-      "drivers": "Volumen 1.5×",
+      "score": 20,
+      "confidence": 33,
+      "drivers": "Volumen 1.5× + News-KI 5/30: Asset sales signal capital needs rather than growth momentum, and questions about late-stage rally suggest weak short-sq",
       "price": 16.08,
       "chg_pct": -0.0,
       "rvol_4d": 1.51,
@@ -251,7 +251,7 @@
       "active_triggers": 0,
       "uoa_score": 0,
       "uoa_drivers": [],
-      "uoa_atm_ratio": null,
+      "uoa_atm_ratio": 0.3125,
       "uoa_cp_ratio": 1.0769230769230769
     },
     "PGEN": {
@@ -271,13 +271,13 @@
       "active_triggers": 0,
       "uoa_score": 0,
       "uoa_drivers": [],
-      "uoa_atm_ratio": null,
+      "uoa_atm_ratio": 0.03636363636363636,
       "uoa_cp_ratio": 0.48
     },
     "PRA": {
-      "score": 23,
+      "score": 30,
       "confidence": 33,
-      "drivers": "Volumen 1.6× + News-KI 8/30: ProAssurance's stable earnings performance lacks the high short interest, catalyst strength, and volatility indicators n",
+      "drivers": "Volumen 1.6× + News: merger",
       "price": 24.42,
       "chg_pct": 0.0,
       "rvol_4d": 1.6,
@@ -288,16 +288,16 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 0,
+      "active_triggers": 1,
       "uoa_score": 0,
       "uoa_drivers": [],
-      "uoa_atm_ratio": null,
+      "uoa_atm_ratio": 0.6666666666666666,
       "uoa_cp_ratio": null
     },
     "RBOHF": {
-      "score": 18,
-      "confidence": 33,
-      "drivers": "Spanne 14.7% + News-KI 8/30: Positive corporate developments and partnerships, but lacking catalyst evidence of high short interest, recent price dec",
+      "score": 10,
+      "confidence": 17,
+      "drivers": "Spanne 14.7%",
       "price": 0.23,
       "chg_pct": 0.95,
       "rvol_4d": 0.82,
@@ -331,7 +331,7 @@
       "active_triggers": 1,
       "uoa_score": 0,
       "uoa_drivers": [],
-      "uoa_atm_ratio": null,
+      "uoa_atm_ratio": 0.007889546351084813,
       "uoa_cp_ratio": 0.6975169300225733
     }
   }
