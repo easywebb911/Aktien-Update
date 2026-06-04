@@ -1,10 +1,10 @@
 {
-  "updated": "2026-06-05T01:12:15.641586+02:00",
+  "updated": "2026-06-05T01:37:55.675755+02:00",
   "run_info": {
     "tickers_checked": 16,
     "signals_active": 5,
     "alerts_sent": 0,
-    "elapsed_s": 12.4,
+    "elapsed_s": 17.3,
     "market_phase": "After-Hours"
   },
   "signals": {
@@ -119,9 +119,9 @@
       "uoa_cp_ratio": 5.58
     },
     "EVGO": {
-      "score": 28,
+      "score": 20,
       "confidence": 33,
-      "drivers": "Spanne 10.8% + News-KI 8/30: Negative sentiment and stock decline indicate selling pressure rather than short squeeze conditions; no evidence of high + UOA Call/Put 23.4×",
+      "drivers": "Spanne 10.8% + UOA Call/Put 23.4×",
       "price": 2.49,
       "chg_pct": 0.0,
       "rvol_4d": 1.39,
@@ -141,9 +141,9 @@
       "uoa_cp_ratio": 23.375
     },
     "GEMI": {
-      "score": 35,
+      "score": 28,
       "confidence": 33,
-      "drivers": "Spanne 6.4% + News: short interest + UOA Call/Put 2.9×",
+      "drivers": "Spanne 6.4% + News-KI 8/30: IPO filings and platform updates lack short-squeeze indicators like high short interest, catalyst squeezes, or retail mo + UOA Call/Put 2.9×",
       "price": 4.62,
       "chg_pct": -0.0,
       "rvol_4d": 0.88,
@@ -154,7 +154,7 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 1,
+      "active_triggers": 0,
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 2.9×"
@@ -163,9 +163,9 @@
       "uoa_cp_ratio": 2.883817427385892
     },
     "HCAT": {
-      "score": 100,
+      "score": 91,
       "confidence": 70,
-      "drivers": "Volumen 63.5× + 🚀 Massives Volumen 63.5×+ + Spanne 20.2% + SEC 8-K + News: earnings beat, catalyst + SEC Form 4",
+      "drivers": "Volumen 63.5× + 🚀 Massives Volumen 63.5×+ + Spanne 20.2% + SEC 8-K + News-KI 8/30: Divestiture signals financial restructuring rather than short-squeeze catalyst; modest deal size and lack of unusual sho + SEC Form 4",
       "price": 1.94,
       "chg_pct": 0.0,
       "rvol_4d": 63.46,
@@ -183,9 +183,9 @@
       "uoa_cp_ratio": null
     },
     "IONQ": {
-      "score": 32,
+      "score": 20,
       "confidence": 33,
-      "drivers": "Spanne 7.9% + News-KI 12/30: Positive revenue milestone lacks short-squeeze catalysts; competitor IPO volatility suggests market saturation rather th + UOA Call/Put 2.2×",
+      "drivers": "Spanne 7.9% + UOA Call/Put 2.2×",
       "price": 65.66,
       "chg_pct": 0.0,
       "rvol_4d": 1.32,
@@ -196,7 +196,7 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 1,
+      "active_triggers": 0,
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 2.2×"

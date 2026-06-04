@@ -1,5 +1,5 @@
 {
-  "last_run": "2026-06-05T01:12:16.692415+02:00",
+  "last_run": "2026-06-05T01:37:57.568482+02:00",
   "cooldowns": {
     "anomaly_score_jump_XRX": "2026-05-03T18:47:15.315486+02:00",
     "anomaly_uoa_extreme_TDOC": "2026-05-04T13:47:00.365949+02:00",
@@ -54,18 +54,6 @@
     "anomaly_score_jump_LFVN": "2026-06-04T23:54:10.962128+02:00"
   },
   "push_history": [
-    {
-      "ts": "2026-05-26T00:19:59.218937+02:00",
-      "ticker": "CRDF",
-      "kind": "exit_p1",
-      "severity": "default",
-      "trigger": "exit_alert",
-      "body": "CRDF 📉 Exit 60 | +1% | Trailing-Stop −10.6% vom Hoch",
-      "success": true,
-      "suppressed": false,
-      "suppress_reason": null,
-      "conviction_score": null
-    },
     {
       "ts": "2026-05-26T05:21:41.656150+02:00",
       "ticker": "CRMD",
@@ -1253,6 +1241,18 @@
       "suppressed": false,
       "suppress_reason": null,
       "conviction_score": 78
+    },
+    {
+      "ts": "2026-06-05T01:37:57.855537+02:00",
+      "ticker": "RBOHF",
+      "kind": "exit_p2",
+      "severity": "trigger",
+      "trigger": "trend_break",
+      "body": "🔻 Exit-Signal RBOHF: trend_break crit ({'ma21': 0.2448, 'price': 0.23, 'drop_pct': 6.06})",
+      "success": true,
+      "suppressed": false,
+      "suppress_reason": null,
+      "conviction_score": null
     }
   ],
   "prev_conviction_scores": {
@@ -1294,6 +1294,6 @@
     "exitp2_trigger_CRDF_trend_break": "2026-06-01T19:24:04.374205+02:00",
     "exitp2_trigger_AMC_overheated": "2026-06-01T21:15:58.491304+02:00",
     "exitp2_trigger_AI_catalyst": "2026-06-03T06:58:18.642141+02:00",
-    "exitp2_trigger_RBOHF_trend_break": "2026-06-04T01:16:43.549147+02:00"
+    "exitp2_trigger_RBOHF_trend_break": "2026-06-05T01:37:57.855569+02:00"
   }
 }
