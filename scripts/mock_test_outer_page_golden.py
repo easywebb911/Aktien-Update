@@ -167,7 +167,7 @@ def _render_outer_page() -> str:
 
     Patcht NUR im Modul-Namespace des Tests (kein Produktionscode-Touch):
     datetime (Fixed-Clock), _load_backtest_history, _load_score_history,
-    _SCORE_CONFIDENCE, _FX_USD_EUR.
+    _SCORE_CONFIDENCE, _FX_USD_EUR, _DAILY_REPORT_COUNTS.
     """
     _orig = {
         "datetime": gr.datetime,
@@ -175,6 +175,7 @@ def _render_outer_page() -> str:
         "_load_score_history": gr._load_score_history,
         "_SCORE_CONFIDENCE": getattr(gr, "_SCORE_CONFIDENCE", {}),
         "_FX_USD_EUR": getattr(gr, "_FX_USD_EUR", 0.92),
+        "_DAILY_REPORT_COUNTS": getattr(gr, "_DAILY_REPORT_COUNTS", {}),
     }
     try:
         gr.datetime = _FixedDateTime
@@ -182,6 +183,10 @@ def _render_outer_page() -> str:
         gr._load_score_history = _fixture_score_history
         gr._SCORE_CONFIDENCE = {}          # leer → computed_at "—" (determ.)
         gr._FX_USD_EUR = 0.92               # fester FX
+        # Daily-Report-Häufigkeit fix (main() füllt das normal aus
+        # backtest_history; der Test umgeht main()) — deckt den
+        # „N× im Daily-Report"-Tag-Render-Pfad ab.
+        gr._DAILY_REPORT_COUNTS = {"AAAA": 7, "BBBB": 3}
         full = gr.generate_html_v1(
             _fixture_stocks(), _FIXED_REPORT_DATE, watchlist_cards=None)
     finally:
@@ -190,6 +195,7 @@ def _render_outer_page() -> str:
         gr._load_score_history = _orig["_load_score_history"]
         gr._SCORE_CONFIDENCE = _orig["_SCORE_CONFIDENCE"]
         gr._FX_USD_EUR = _orig["_FX_USD_EUR"]
+        gr._DAILY_REPORT_COUNTS = _orig["_DAILY_REPORT_COUNTS"]
 
     # Scope-Schnitt: ab <body> (head.jinja/CSS raus). <body> ist genau 1× da.
     idx = full.find("<body>")
