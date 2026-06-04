@@ -62,7 +62,7 @@ Begründung).
 | **S11** | premarket-Sammel-Frequenz | warn | Daily | kein echter premarket-Run (`run_phase==tsp=='premarket'`) seit > `HEALTH_CHECK_S11_MAX_WORKDAYS_NO_PREMARKET` (5) Werktagen; Quelle `score_inflation_log` |
 | **S12** | postclose-Sammel-Frequenz | **crit** | Daily | kein echter postclose-Run (`run_phase==tsp=='postclose'`) seit > `HEALTH_CHECK_S12_MAX_WORKDAYS_NO_POSTCLOSE` (2) Werktagen. **crit = NUR-REPORTING** (blockiert NICHT) |
 | **S13** | Daten-Reife-Gate + Konsistenz-Wächter | warn | Daily | **Doppel-Baustein.** (a) Daten-Reife-Gate (#297): Status der 3 30.06.-Auswertungen (Setup-Edge ≥70/schema_v4, Entry-AUC, CTB-Edge) je vorhanden/reif_5d/reif_10d via log.info, kein Fail. (b) Konsistenz-Wächter (Projekt C, #298): Soll-Ist-Drift je config-Konstante aus `CONSISTENCY_EXPECTED_STATE` — ein warn pro Drift |
-| **S14** | Gist-Pull-Liveness (Composite) | warn | beide | Marker-Alter `last_successful_gist_pull` (`gist_pull_state.json`) ≤ `HEALTH_CHECK_S14_MAX_AGE_HOURS` (26 h). Geschrieben NUR im HTTP-Gist-Erfolgszweig von `pull_gist_data.py` (#310). `None` → kein Fail (Erstaufsetzen, analog S8). **COMPOSITE** — Detail sagt „Gist-Pull seit N h nicht erfolgreich", NICHT „Token tot": altert bei totem `GIST_TOKEN` (Stille-Tod 02.06.) UND bei mehrtägigem ki_agent-/daily-Cron-Drop. Beide Pfade: ki_agent-Tick liest alten Working-Tree-Marker bei Pull-Fail → ~1 h Detektionslatenz. **Out-of-Scope** (separater PR): Body-Korruption (HTTP-200 + kaputtes `squeeze_data.json` → Marker fälschlich frisch) |
+| **S14** | Gist-Pull-Liveness (Composite) | warn | beide | Marker-Alter `last_successful_gist_pull` (`gist_pull_state.json`) ≤ `HEALTH_CHECK_S14_MAX_AGE_HOURS` (26 h). Geschrieben NUR im HTTP-Gist-Erfolgszweig von `pull_gist_data.py` (#310). `None` → kein Fail (Erstaufsetzen, analog S8). **COMPOSITE** — Detail sagt „Gist-Pull seit N h nicht erfolgreich", NICHT „Token tot": altert bei totem `GIST_TOKEN` (Stille-Tod 02.06.) UND bei mehrtägigem ki_agent-/daily-Cron-Drop. Beide Pfade: ki_agent-Tick liest alten Working-Tree-Marker bei Pull-Fail → ~1 h Detektionslatenz. Body-Korruption (HTTP-200 + kaputtes/leeres/truncated `squeeze_data.json`) seit dem `pull_gist_data._extract_data`-Body-Sanity-Gating (`body_ok`, positions-Key-Präsenz) MIT erkannt → Marker NICHT gesetzt → S14 fängt es. (Recovery-Umleitung = eigener Folge-PR) |
 
 ### S14 — Gist-Pull-Liveness (Stille-Tod-Härtung Schritt 2/2, 03.06.2026)
 
@@ -86,10 +86,16 @@ Max-Gap ~3–6 h (GitHub-Scheduled-Cron-Verzug). 26 h = > 4× Marge → praktisc
 null Fehlalarm, fängt den Token-Tod trotzdem innerhalb ~1 Tag statt
 „mehrtägig". KEIN Wochenend-Bias (ki_agent läuft Sa/So weiter).
 
-**Out-of-Scope (separater PR):** Body-Korruption — HTTP-200 + kaputtes
-`squeeze_data.json` → `_extract_data` kollabiert still auf `{}` → Marker würde
-fälschlich als Erfolg aktualisiert. Andere Fehlerklasse als der Token-Tod
-(dort ist `_http_get_gist` bereits `None`). `_extract_data` bewusst unberührt.
+**Body-Korruption (Detektion geschlossen via Marker-Gating):** HTTP-200 +
+kaputtes/leeres/truncated `squeeze_data.json` → `_extract_data` kollabierte
+still auf `{}` → Marker wäre fälschlich frisch. Seit der Body-Sanity in
+`pull_gist_data._extract_data` (Diskriminator: `positions`-Key als dict im
+geparsten Body VOR der `or "{}"`-Maskierung; `truncated`/leer/parse-fail →
+`body_ok=False`) wird der Marker bei korruptem Body NICHT gesetzt → S14
+altert → fängt es ~1 Tag später. **Restkante (eigener Folge-PR, NICHT hier):**
+Recovery-Umleitung bei Korruption (Positionen erhalten = Schadens-Vermeidung
+statt nur Detektion); andere Fehlerklasse als Token-Tod (dort `_http_get_gist`
+bereits `None`).
 
 ### S7 — Begründung (KI-Score-Drift, 14.05.2026)
 
