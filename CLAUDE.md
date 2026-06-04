@@ -34,14 +34,26 @@ bewusst Modell-Urteil. (Den Hook NICHT zum `prompt`/`agent`-Hook
 umbauen: Verfügbarkeit unbestätigt, liefe nach jedem Edit, bliebe
 meldend — verworfen.)
 
-**Routine (verbindlich, manuell ausgelöst):** Vor jedem **manuell-
-Merge-pflichtigen** PR (Score-/Conviction-/Filter-Logik, neue
-Workflows/Schemas/APIs, Krypto/Token-Auth, UI-kritisch — siehe
-Ausnahmen-Liste unten) den **`squeeze-guardian`-Agent EXPLIZIT
-aufrufen** für die Architektur-Zweitmeinung (Konformität gegen
-CLAUDE.md/SESSION_HANDOVER, tote Call-Sites, Krypto-Sanity). Das ist
-eine **Disziplin-Regel**, keine Automatik — sie macht das Modell-
-Verhalten verlässlich, ohne Automatik vorzutäuschen.
+**Routine (EMPFOHLEN, nicht zwingend — manuell ausgelöst):** Vor der
+Ready-Meldung eines **manuell-Merge-pflichtigen** PR (Score-/Conviction-/
+Filter-/Exit-Logik, neue Workflows/Schemas/APIs, Krypto/Token-Auth,
+UI-kritisch — siehe Ausnahmen-Liste unten) den **`squeeze-guardian`-Agent
+EXPLIZIT aufrufen** (Task/Agent-Tool, modell-initiiert in der Session) für
+einen Architektur-Zweitblick (Konformität gegen CLAUDE.md/SESSION_HANDOVER,
+tote Call-Sites, Krypto-Sanity). Fester, **empfohlener** Schritt im
+PR-Status-Flow — aber ausdrücklich **BONUS, kein Gatekeeper**:
+
+- Sein Urteil ist **nicht-deterministisch** (gleicher Diff → ggf. andere
+  Findings) und hat NICHT das Gewicht eines bestandenen Tests.
+- Er **ersetzt NICHT Easys Bedeutungs-Validierung** — er prüft Architektur-
+  *Mechanik*, nicht ob eine Score-/Filter-Änderung *trading-klug* ist. Die
+  Bedeutungs-Freigabe bleibt menschlich (Nordstern: Maschine prüft Mechanik,
+  Mensch validiert Bedeutung).
+- Springt der Aufruf nicht an oder liefert keine Findings → das blockiert
+  **nichts**; lokale Tests grün + keine Review-Comments bleibt die
+  kanonische Freigabe. Bewusste Disziplin-Regel, keine Automatik (Diagnose
+  03.06.2026: Headless-Automatisierung verworfen — Non-Determinismus,
+  Selbst-Review-Blindheit, Alarm-Müdigkeit, Auto-Merge-Linie).
 
 **Was deterministisch abgedeckt ist (kein Agent nötig):** Der
 **Token-Krypto-Teil** des Guardian-Checks läuft seit 01.06. als harter

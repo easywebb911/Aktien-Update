@@ -1,6 +1,6 @@
 ---
 name: squeeze-guardian
-description: Wird AUTOMATISCH nach jeder Code-Änderung im Squeeze-Report-Projekt aufgerufen. Prüft drei Dinge: (1) Architektur-Konformität gegen CLAUDE.md und SESSION_HANDOVER.md, (2) tote Call-Sites und Refactor-Reste, (3) Sicherheit der Token-Encryption-Logik. MUSS proaktiv nach Edit/Write/MultiEdit-Operationen verwendet werden.
+description: Architektur-Zweitblick für das Squeeze-Report-Projekt, EMPFOHLEN (Bonus, nicht zwingend) vor manuell-Merge-pflichtigen PRs (Score/Filter/Exit-Logik, neue Workflows/Schemas/APIs, Krypto/Token-Auth, UI-kritisch). Wird modell-initiiert in der Session via Task/Agent-Tool aufgerufen — NICHT automatisch durch Events/Hooks (der PostToolUse-Hook ist nur ein echo-Reminder und spawnt den Agent nicht). Prüft drei Dinge: (1) Architektur-Konformität gegen CLAUDE.md und SESSION_HANDOVER.md, (2) tote Call-Sites und Refactor-Reste, (3) Sicherheit der Token-Encryption-Logik. BONUS, kein Gatekeeper; nicht-deterministisch; ersetzt NICHT die menschliche Bedeutungs-Validierung.
 tools: Read, Grep, Glob, Bash
 model: sonnet
 ---
