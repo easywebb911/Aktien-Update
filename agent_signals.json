@@ -1,17 +1,17 @@
 {
-  "updated": "2026-06-05T00:11:25.926837+02:00",
+  "updated": "2026-06-05T00:50:07.118116+02:00",
   "run_info": {
     "tickers_checked": 16,
     "signals_active": 4,
     "alerts_sent": 0,
-    "elapsed_s": 11.9,
+    "elapsed_s": 17.1,
     "market_phase": "After-Hours"
   },
   "signals": {
     "ABSI": {
-      "score": 53,
+      "score": 60,
       "confidence": 70,
-      "drivers": "Volumen 1.6× + Spanne 24.5% + News-KI 8/30: Positive sentiment but lacks catalyst strength; insider buying is modest, no significant short interest indicators or ma + SEC Form 4 + UOA Call/Put 14.5×",
+      "drivers": "Volumen 1.6× + Spanne 24.5% + News: catalyst + SEC Form 4 + UOA Call/Put 14.5×",
       "price": 7.34,
       "chg_pct": 0.0,
       "rvol_4d": 1.57,
@@ -22,7 +22,7 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 0,
+      "active_triggers": 1,
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 14.5×"
@@ -53,9 +53,9 @@
       "uoa_cp_ratio": 3.54827156649019
     },
     "AMC": {
-      "score": 38,
+      "score": 35,
       "confidence": 33,
-      "drivers": "Spanne 11.0% + News-KI 18/30: Mixed signals: positive movie attendance and short seller setbacks are offset by defensive tone comparing AMC to competi + UOA Call/Put 8.5×",
+      "drivers": "Spanne 11.0% + News: short seller + UOA Call/Put 8.5×",
       "price": 1.96,
       "chg_pct": 0.0,
       "rvol_4d": 0.6,
@@ -95,6 +95,29 @@
       ],
       "uoa_atm_ratio": 0.08699472759226713,
       "uoa_cp_ratio": 11.270491803278688
+    },
+    "ANVS": {
+      "score": 55,
+      "confidence": 70,
+      "drivers": "Volumen 1.6× + Spanne 10.5% + UOA Call-Vol/OI 15.7× ATM + UOA Call/Put 66.1×",
+      "price": 1.99,
+      "chg_pct": 0.0,
+      "rvol_4d": 1.65,
+      "rvol_20d": 1.61,
+      "earnings": null,
+      "fda_date": null,
+      "upcoming_event": null,
+      "insider_buy": false,
+      "stocktwits": null,
+      "combo_mult": 1.0,
+      "active_triggers": 0,
+      "uoa_score": 30,
+      "uoa_drivers": [
+        "UOA Call-Vol/OI 15.7× ATM",
+        "UOA Call/Put 66.1×"
+      ],
+      "uoa_atm_ratio": 15.689473684210526,
+      "uoa_cp_ratio": 66.08695652173913
     },
     "CRMD": {
       "score": 50,
@@ -141,9 +164,9 @@
       "uoa_cp_ratio": 23.375
     },
     "GEMI": {
-      "score": 35,
+      "score": 28,
       "confidence": 33,
-      "drivers": "Spanne 6.4% + News: short interest + UOA Call/Put 2.9×",
+      "drivers": "Spanne 6.4% + News-KI 8/30: IPO filings and platform updates lack short squeeze catalysts; no significant short interest, debt refinancing pressure, + UOA Call/Put 2.9×",
       "price": 4.62,
       "chg_pct": -0.0,
       "rvol_4d": 0.88,
@@ -154,7 +177,7 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 1,
+      "active_triggers": 0,
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 2.9×"
@@ -162,30 +185,10 @@
       "uoa_atm_ratio": 0.06829268292682927,
       "uoa_cp_ratio": 2.883817427385892
     },
-    "HCAT": {
-      "score": 100,
-      "confidence": 70,
-      "drivers": "Volumen 63.5× + 🚀 Massives Volumen 63.5×+ + Spanne 20.2% + SEC 8-K + News: catalyst, earnings beat + SEC Form 4",
-      "price": 1.94,
-      "chg_pct": 0.0,
-      "rvol_4d": 63.46,
-      "rvol_20d": 52.55,
-      "earnings": "in 63 Tagen (06.08.2026)",
-      "fda_date": null,
-      "upcoming_event": null,
-      "insider_buy": false,
-      "stocktwits": null,
-      "combo_mult": 1.1,
-      "active_triggers": 2,
-      "uoa_score": 0,
-      "uoa_drivers": [],
-      "uoa_atm_ratio": null,
-      "uoa_cp_ratio": null
-    },
     "IONQ": {
-      "score": 28,
+      "score": 20,
       "confidence": 33,
-      "drivers": "Spanne 7.9% + News-KI 8/30: Positive revenue milestone lacks short squeeze indicators; competitor IPO volatility dilutes focus and attention away fr + UOA Call/Put 2.2×",
+      "drivers": "Spanne 7.9% + UOA Call/Put 2.2×",
       "price": 65.66,
       "chg_pct": 0.0,
       "rvol_4d": 1.32,
@@ -312,9 +315,9 @@
       "uoa_cp_ratio": 6.319587628865979
     },
     "RBOHF": {
-      "score": 8,
-      "confidence": 17,
-      "drivers": "News-KI 8/30: Positive corporate developments but lack of short interest catalysts, debt concerns, or unusual trading dynamics typical",
+      "score": 0,
+      "confidence": 0,
+      "drivers": "",
       "price": 0.23,
       "chg_pct": 0.0,
       "rvol_4d": 0.1,
