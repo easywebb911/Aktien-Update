@@ -310,6 +310,12 @@ _FX_USD_EUR_COMPUTED_AT: str = ""
 # leerem Dict rendert der Methodik-Block einen Hinweis statt eine Tabelle.
 _SCORE_CONFIDENCE: dict = {}
 
+# Daily-Report-Häufigkeit pro Ticker {ticker: int} — gesetzt in main() VOR
+# generate_html, gelesen in _card / _build_card_ctx für das „N× im
+# Daily-Report"-Tag. Modul-Global (NICHT Stock-Dict-Feld), damit der Wert
+# NICHT in die WL_TOP10-JSON-Serialisierung durchsickert. Reine Anzeige.
+_DAILY_REPORT_COUNTS: dict = {}
+
 # Health-Check Phase 2 — Finviz-Aggregator. Akkumuliert Latenzen +
 # Item-Counts der drei Finviz-Funktionen (v161, v111, Quote-Page-
 # Fallback) während eines Daily-Runs. main() emittiert nach Step 3
@@ -4565,6 +4571,7 @@ def _card_cockpit_html(
     s: dict,
     *,
     rank_html: str = "",
+    rank_freq_html: str = "",
     market_tag_html: str = "",
     chart_badge_html: str = "",
     sector_tag_html: str = "",
@@ -4687,7 +4694,7 @@ def _card_cockpit_html(
         f'<div class="card-cockpit" id="cockpit-{i}">'
         f'<div class="cockpit-header">'
         f'<div class="cockpit-header-left">'
-        f'{rank_html}'
+        f'<div class="cockpit-rank-col">{rank_html}{rank_freq_html}</div>'
         f'<div class="cockpit-ticker-block">'
         f'<div class="cockpit-ticker-row">'
         f'<span class="ticker">{ticker}</span>'
@@ -5194,6 +5201,16 @@ def _card(i: int, s: dict) -> str:
 
     rank_html = f'<span class="rank">{i}</span>'
 
+    # Daily-Report-Häufigkeit (reine Anzeige) — wie oft der Ticker bereits im
+    # Live-Daily-Pool war, aus _DAILY_REPORT_COUNTS (main()-Counter, Bootstrap
+    # ausgefiltert). Klein UNTER dem Rang-Badge (rank_freq). Nur bei N>0
+    # sichtbar; fehlend/None/0 → leerer String → Wrapper zeigt nur die Badge.
+    _drc = _DAILY_REPORT_COUNTS.get(s["ticker"])
+    rank_freq_html = (
+        f'<span class="rank-freq" title="So oft war {s["ticker"]} bereits im '
+        f'Live-Daily-Report-Pool (ohne Bootstrap-Schätzungen)">{_drc}×</span>'
+        if isinstance(_drc, int) and _drc > 0 else ""
+    )
     # Karten-Header-Auswahl (Stage 2 ab 18.05.2026): bei
     # CARD_COCKPIT_ENABLED=True Bloomberg-Cockpit-Layout via Helper;
     # sonst klassisches card-top + score-block.
@@ -5205,6 +5222,7 @@ def _card(i: int, s: dict) -> str:
         card_header_html = _card_cockpit_html(
             i, s,
             rank_html=rank_html,
+            rank_freq_html=rank_freq_html,
             market_tag_html=_market_tag_html(s["ticker"]),
             chart_badge_html=sa_badge + _wl_add_btn,
             sector_tag_html=(sector_tag_html + earnings_tag_html
@@ -5741,6 +5759,14 @@ def _build_card_ctx(i: int, s: dict) -> dict:
     card_lazy_class   = " card-lazy" if (LAZY_CARDS_ENABLED and i > LAZY_CARDS_EAGER) else ""
 
     # Karten-Header (Stage 2 ab 18.05.2026, analog v1): Cockpit-Layout
+    # Daily-Report-Häufigkeit (reine Anzeige) — identisch zu _card (v1),
+    # damit v1/v2 byte-gleich bleiben. Klein UNTER dem Rang-Badge (rank_freq).
+    _drc = _DAILY_REPORT_COUNTS.get(s["ticker"])
+    rank_freq_html = (
+        f'<span class="rank-freq" title="So oft war {s["ticker"]} bereits im '
+        f'Live-Daily-Report-Pool (ohne Bootstrap-Schätzungen)">{_drc}×</span>'
+        if isinstance(_drc, int) and _drc > 0 else ""
+    )
     # via Helper bei CARD_COCKPIT_ENABLED=True; sonst klassisches
     # card-top + score-block. v1/v2-Byte-Identitaet durch identische
     # Helper-Aufruf-Parameter.
@@ -5752,6 +5778,7 @@ def _build_card_ctx(i: int, s: dict) -> dict:
         card_header_html = _card_cockpit_html(
             i, s,
             rank_html=rank_html,
+            rank_freq_html=rank_freq_html,
             market_tag_html=_market_tag_html(ticker),
             chart_badge_html=sa_badge + _wl_add_btn,
             sector_tag_html=(sector_tag_html + earnings_tag_html
@@ -16359,6 +16386,30 @@ def main():
     except Exception as _exc_conf:
         log.warning("Score-Konfidenz-Snapshot fehlgeschlagen: %s", _exc_conf)
         globals()["_SCORE_CONFIDENCE"] = {}
+
+    # Daily-Report-Häufigkeit pro Ticker (REINE ANZEIGE) — wie oft war der
+    # Ticker bereits im Live-Daily-Pool. Quelle: backtest_history (in main()
+    # ohnehin schon geladen → KEINE neue Persistenz, kein neuer Fetch).
+    # PFLICHT-Filter source != 'bootstrap': Bootstrap-Einträge sind geschätzte
+    # Phantom-Historie und dürfen NICHT mitzählen (sonst z. B. AMC 45 statt 10).
+    # Counter über das stabile `ticker`-Feld; keine Doppel-(ticker,date) in
+    # Live → 1 Eintrag = 1 distinct Tag. ALLE Live-Positionen (inkl. pos 11-13
+    # / pos=None) — daher Label ehrlich „im Daily-Report", NICHT „Top-Ten"
+    # (der gespeicherte Pool reicht bis pos 13). Einträge OHNE source-Feld
+    # sind echte Live-Einträge (Bootstrap trägt source explizit) → korrekt
+    # mitgezählt. LIMITATION: Ticker-Umbenennungen spalten die Zählung (aus
+    # den Daten nicht detektierbar, bewusst hingenommen).
+    try:
+        from collections import Counter as _DrcCounter
+        _drc_counter = _DrcCounter(
+            (e or {}).get("ticker")
+            for e in _load_backtest_history()
+            if (e or {}).get("source") != "bootstrap"
+        )
+        globals()["_DAILY_REPORT_COUNTS"] = dict(_drc_counter)
+    except Exception as _exc_drc:
+        log.warning("Daily-Report-Häufigkeit fehlgeschlagen: %s", _exc_drc)
+        globals()["_DAILY_REPORT_COUNTS"] = {}
 
     _t4 = time.time()
     log.info("Step 4 – Generating HTML report …")
