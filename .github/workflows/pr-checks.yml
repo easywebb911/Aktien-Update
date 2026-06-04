@@ -39,7 +39,7 @@ jobs:
         # Default-Verhalten bei pull_request: Merge-Commit (PR auf base
         # gemergt) wird ausgecheckt — genau der Stand, der nach Merge auf
         # main läge. KEIN ``ref: main`` (das würde main statt des PR testen).
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Set up Python 3.12
         uses: actions/setup-python@v6
