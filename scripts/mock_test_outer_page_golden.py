@@ -95,17 +95,21 @@ import generate_report as gr  # noqa: E402
 
 # ── Fixture: eingefrorener Test-Input ───────────────────────────────────────
 def _fixture_stock(ticker: str, *, score: float, price: float,
-                   change: float) -> dict:
+                   change: float, rsi14: float | None = 61.0) -> dict:
     """Vollständig eingefrorener Stock — alle render-relevanten Felder fix.
     Fehlende Felder fängt _card via .get()-Defaults ab; die hier gesetzten
     decken die sichtbaren Render-Pfade (Score-Block, Detail-Tabelle, Drivers,
-    Sparkline) ab."""
+    Sparkline) ab.
+
+    ``rsi14`` ist parametrierbar, um BEIDE Render-Zweige der RSI-Detail-Zeile
+    abzudecken: ein Wert (61.0) rendert die ``<tr>RSI (14T)…``-Zeile, ``None``
+    lässt sie weg (``_rsi_row = ""``) + leeres ``data-rsi``-Attribut."""
     return {
         "ticker": ticker, "score": score, "score_raw": score + 2.0,
         "price": price, "change": change, "change_5d": 4.2, "change_2d": 3.1,
         "change_3d": 5.0,
         "short_float": 28.0, "short_ratio": 6.5, "rel_volume": 3.4,
-        "rsi14": 61.0, "ma50": price * 0.95, "ma200": price * 0.8,
+        "rsi14": rsi14, "ma50": price * 0.95, "ma200": price * 0.8,
         "market_cap": 1.2e9, "yf_market_cap": 1.2e9,
         "monster_score": score * 1.1, "setup": score, "earliness": 75,
         "agent_boost_score": 5, "agent_boost_pts": 5,
@@ -134,9 +138,13 @@ def _fixture_stock(ticker: str, *, score: float, price: float,
 
 
 def _fixture_stocks() -> list[dict]:
+    # AAAA: rsi14=61.0 → RSI-Detail-Zeile gerendert (Wert-Zweig).
+    # BBBB: rsi14=None → RSI-Zeile weggelassen (None-Zweig) — deckt beide
+    # Render-Pfade in EINEM Golden ab.
     return [
         _fixture_stock("AAAA", score=82.0, price=5.10, change=6.3),
-        _fixture_stock("BBBB", score=71.5, price=12.40, change=-2.1),
+        _fixture_stock("BBBB", score=71.5, price=12.40, change=-2.1,
+                       rsi14=None),
     ]
 
 
