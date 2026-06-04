@@ -555,6 +555,13 @@ abbr[title]{text-decoration:underline dotted var(--txt-dim);
 .rank{display:flex;align-items:center;justify-content:center;width:28px;height:28px;
   border-radius:50%;background:var(--accent);color:#fff;font-size:.75rem;
   font-weight:800;flex-shrink:0;margin-top:3px}
+/* Rang-Spalte: Badge oben, Daily-Report-Häufigkeit klein zentriert darunter.
+   Bei fehlender Häufigkeit (rank_freq leer) enthält der Wrapper nur die
+   Badge → visuell identisch zur nackten Badge. */
+.cockpit-rank-col{display:flex;flex-direction:column;align-items:center;
+  flex-shrink:0;gap:1px}
+.rank-freq{font-size:.55rem;line-height:1;color:var(--txt-dim);
+  white-space:nowrap;margin-top:1px}
 /* Persönliche Watchlist-Karten: dezent dunkelgrüner Hintergrund + grüner Rand,
    im Dark-Mode deutlich sichtbar aber nicht grell */
 .card-manual{background:rgba(20,83,45,0.35);border:1.5px solid rgba(74,222,128,0.6)}
@@ -610,7 +617,6 @@ abbr[title]{text-decoration:underline dotted var(--txt-dim);
   white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
 .sector-tag{display:inline-block;font-size:.67rem;color:var(--txt-dim);margin-top:3px}
 .earnings-tag{display:inline-block;font-size:.67rem;font-weight:600;margin-top:3px;margin-left:2px}
-.daily-report-tag{display:inline-block;font-size:.67rem;color:var(--txt-dim);margin-top:3px;margin-left:2px;opacity:.85}
 /* Push-Silenced-Badge — wird zur Laufzeit von ``renderAgentSignals`` an
    den Ticker-Block angehängt, wenn der KI-Agent eine Anomalie hatte aber
    den Push wegen überhitztem Setup unterdrückt hat (siehe PUSH_RSI_MAX /
