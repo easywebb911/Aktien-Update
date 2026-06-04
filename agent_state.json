@@ -1,5 +1,5 @@
 {
-  "last_run": "2026-06-04T21:32:06.504586+02:00",
+  "last_run": "2026-06-04T23:54:12.551296+02:00",
   "cooldowns": {
     "anomaly_score_jump_XRX": "2026-05-03T18:47:15.315486+02:00",
     "anomaly_uoa_extreme_TDOC": "2026-05-04T13:47:00.365949+02:00",
@@ -51,33 +51,9 @@
     "earnings_immediate_AI_03.06.2026": "2026-06-03T23:31:02.467544+02:00",
     "earnings_immediate_CHPT_03.06.2026": "2026-06-02T22:20:18.445128+02:00",
     "anomaly_conviction_high_LFVN": "2026-06-04T15:56:43.080967+02:00",
-    "anomaly_score_jump_LFVN": "2026-06-04T15:56:42.955903+02:00"
+    "anomaly_score_jump_LFVN": "2026-06-04T23:54:10.962128+02:00"
   },
   "push_history": [
-    {
-      "ts": "2026-05-25T14:00:37.220899+02:00",
-      "ticker": "CRDF",
-      "kind": "exit_p1",
-      "severity": "default",
-      "trigger": "exit_alert",
-      "body": "CRDF 📉 Exit 60 | +1% | Trailing-Stop −10.6% vom Hoch",
-      "success": true,
-      "suppressed": false,
-      "suppress_reason": null,
-      "conviction_score": null
-    },
-    {
-      "ts": "2026-05-26T00:19:59.033584+02:00",
-      "ticker": "CRMD",
-      "kind": "exit_p1",
-      "severity": "default",
-      "trigger": "exit_alert",
-      "body": "CRMD 📉 Exit 62 | +1% | Trailing-Stop −10.7% vom Hoch",
-      "success": true,
-      "suppressed": false,
-      "suppress_reason": null,
-      "conviction_score": null
-    },
     {
       "ts": "2026-05-26T00:19:59.218937+02:00",
       "ticker": "CRDF",
@@ -1253,6 +1229,30 @@
       "suppressed": true,
       "suppress_reason": "conviction_below_threshold",
       "conviction_score": 66
+    },
+    {
+      "ts": "2026-06-04T23:54:10.599641+02:00",
+      "ticker": "GRPN",
+      "kind": "anomaly",
+      "severity": "medium",
+      "trigger": "score_jump",
+      "body": "GRPN 🚀 Setup 61 ↑ (gestern 46) | Spanne 8.5% + News: squeeze + UOA Call/Put 6.9×",
+      "success": false,
+      "suppressed": true,
+      "suppress_reason": "conviction_below_threshold",
+      "conviction_score": 66
+    },
+    {
+      "ts": "2026-06-04T23:54:10.962099+02:00",
+      "ticker": "LFVN",
+      "kind": "anomaly",
+      "severity": "medium",
+      "trigger": "score_jump",
+      "body": "LFVN 🚀 Setup 77 ↑ (gestern 57) | Volumen 1.8× + Spanne 31.0% + UOA Call/Put 12.7×",
+      "success": true,
+      "suppressed": false,
+      "suppress_reason": null,
+      "conviction_score": 78
     }
   ],
   "prev_conviction_scores": {
