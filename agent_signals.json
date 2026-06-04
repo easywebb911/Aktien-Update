@@ -1,11 +1,11 @@
 {
-  "updated": "2026-06-04T01:16:42.569650+02:00",
+  "updated": "2026-06-04T02:02:02.908698+02:00",
   "run_info": {
     "tickers_checked": 16,
     "signals_active": 3,
     "alerts_sent": 0,
-    "elapsed_s": 12.3,
-    "market_phase": "After-Hours"
+    "elapsed_s": 18.6,
+    "market_phase": "Geschlossen"
   },
   "signals": {
     "AI": {
@@ -29,9 +29,9 @@
       "uoa_cp_ratio": 1.7463945733340933
     },
     "AMC": {
-      "score": 35,
+      "score": 50,
       "confidence": 33,
-      "drivers": "Spanne 9.8% + News: short seller + UOA Call/Put 6.5×",
+      "drivers": "Spanne 9.8% + News: catalyst, short seller + UOA Call/Put 6.5×",
       "price": 1.83,
       "chg_pct": 0.0,
       "rvol_4d": 0.49,
@@ -73,9 +73,9 @@
       "uoa_cp_ratio": 8.604938271604938
     },
     "BNRG": {
-      "score": 33,
-      "confidence": 70,
-      "drivers": "Volumen 2.4× + Spanne 32.2% + News-KI 8/30: Positive operational news but lacks short-squeeze catalysts like high short interest, forced covering catalysts, or dram",
+      "score": 25,
+      "confidence": 33,
+      "drivers": "Volumen 2.4× + Spanne 32.2%",
       "price": 1.82,
       "chg_pct": 0.0,
       "rvol_4d": 2.4,
@@ -95,7 +95,7 @@
     "CRMD": {
       "score": 30,
       "confidence": 17,
-      "drivers": "News: earnings beat, guidance raised",
+      "drivers": "News: guidance raised, earnings beat",
       "price": 8.23,
       "chg_pct": -0.0,
       "rvol_4d": 0.66,
@@ -215,9 +215,9 @@
       "uoa_cp_ratio": 0.09532949456174024
     },
     "PDYN": {
-      "score": 25,
+      "score": 20,
       "confidence": 33,
-      "drivers": "Spanne 9.0% + News-KI 5/30: Positive corporate developments but no indicators of short squeeze potential such as high short interest, stock scarcity + UOA Call/Put 3.9×",
+      "drivers": "Spanne 9.0% + UOA Call/Put 3.9×",
       "price": 7.81,
       "chg_pct": -0.0,
       "rvol_4d": 0.57,
@@ -237,9 +237,9 @@
       "uoa_cp_ratio": 3.8582089552238807
     },
     "PRA": {
-      "score": 30,
+      "score": 20,
       "confidence": 33,
-      "drivers": "Volumen 1.5× + News: merger",
+      "drivers": "Volumen 1.5× + News-KI 5/30: ProAssurance shows stable earnings matching estimates with controlled expenses, indicating no significant short-squeeze ",
       "price": 24.42,
       "chg_pct": 0.0,
       "rvol_4d": 1.54,
@@ -250,16 +250,16 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 1,
+      "active_triggers": 0,
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": 2.0,
       "uoa_cp_ratio": null
     },
     "RBOHF": {
-      "score": 0,
-      "confidence": 0,
-      "drivers": "",
+      "score": 8,
+      "confidence": 17,
+      "drivers": "News-KI 8/30: Advisory board additions and technology validations lack catalysts for significant short squeezes; company appears focus",
       "price": 0.23,
       "chg_pct": 0.0,
       "rvol_4d": 0.21,
