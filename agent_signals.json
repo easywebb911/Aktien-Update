@@ -1,10 +1,10 @@
 {
-  "updated": "2026-06-05T03:31:17.874424+02:00",
+  "updated": "2026-06-05T05:00:13.954753+02:00",
   "run_info": {
     "tickers_checked": 16,
     "signals_active": 5,
     "alerts_sent": 0,
-    "elapsed_s": 12.1,
+    "elapsed_s": 11.4,
     "market_phase": "Geschlossen"
   },
   "signals": {
@@ -53,9 +53,9 @@
       "uoa_cp_ratio": 3.54827156649019
     },
     "AMC": {
-      "score": 35,
+      "score": 38,
       "confidence": 33,
-      "drivers": "Spanne 11.0% + News: short seller + UOA Call/Put 8.5×",
+      "drivers": "Spanne 11.0% + News-KI 18/30: Positive momentum from movie attendance and short seller pressure, but headlines lack urgency or catalysts specific to a + UOA Call/Put 8.5×",
       "price": 1.96,
       "chg_pct": 0.0,
       "rvol_4d": 0.6,
@@ -122,7 +122,7 @@
     "CRMD": {
       "score": 50,
       "confidence": 33,
-      "drivers": "Spanne 7.3% + News: guidance raised, earnings beat + UOA Call/Put 5.6×",
+      "drivers": "Spanne 7.3% + News: earnings beat, guidance raised + UOA Call/Put 5.6×",
       "price": 8.54,
       "chg_pct": -0.0,
       "rvol_4d": 1.4,
@@ -144,7 +144,7 @@
     "EVGO": {
       "score": 28,
       "confidence": 33,
-      "drivers": "Spanne 10.8% + News-KI 8/30: Negative sentiment with analyst warnings and share price decline suggests weak momentum and institutional selling, not s + UOA Call/Put 23.4×",
+      "drivers": "Spanne 10.8% + News-KI 8/30: Negative sentiment from analyst warnings and sharp share decline indicate weakness rather than short-squeeze setup; lack + UOA Call/Put 23.4×",
       "price": 2.49,
       "chg_pct": 0.0,
       "rvol_4d": 1.39,
@@ -164,9 +164,9 @@
       "uoa_cp_ratio": 23.375
     },
     "GEMI": {
-      "score": 35,
+      "score": 28,
       "confidence": 33,
-      "drivers": "Spanne 6.4% + News: short interest + UOA Call/Put 2.9×",
+      "drivers": "Spanne 6.4% + News-KI 8/30: IPO filings and platform updates suggest potential dilution ahead, which weakens short-squeeze potential rather than str + UOA Call/Put 2.9×",
       "price": 4.62,
       "chg_pct": -0.0,
       "rvol_4d": 0.88,
@@ -177,7 +177,7 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 1,
+      "active_triggers": 0,
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 2.9×"
