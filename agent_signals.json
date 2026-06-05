@@ -1,10 +1,10 @@
 {
-  "updated": "2026-06-05T10:53:18.241701+02:00",
+  "updated": "2026-06-05T12:18:46.889980+02:00",
   "run_info": {
     "tickers_checked": 16,
-    "signals_active": 5,
+    "signals_active": 7,
     "alerts_sent": 0,
-    "elapsed_s": 16.2,
+    "elapsed_s": 12.9,
     "market_phase": "Pre-Market"
   },
   "signals": {
@@ -53,9 +53,9 @@
       "uoa_cp_ratio": 3.54827156649019
     },
     "AMC": {
-      "score": 66,
+      "score": 82,
       "confidence": 70,
-      "drivers": "Kurs +7.1% + Spanne 10.1% + News: short seller + UOA Call/Put 8.5×",
+      "drivers": "Kurs +7.1% + Spanne 10.1% + News: squeeze, short seller + UOA Call/Put 8.5×",
       "price": 1.96,
       "chg_pct": 7.1,
       "rvol_4d": 0.51,
@@ -96,32 +96,10 @@
       "uoa_atm_ratio": null,
       "uoa_cp_ratio": 11.270491803278688
     },
-    "ANVS": {
-      "score": 35,
-      "confidence": 33,
-      "drivers": "Kurs +7.6% + UOA Call/Put 66.1×",
-      "price": 1.99,
-      "chg_pct": 7.57,
-      "rvol_4d": 0.54,
-      "rvol_20d": 0.54,
-      "earnings": null,
-      "fda_date": null,
-      "upcoming_event": null,
-      "insider_buy": false,
-      "stocktwits": null,
-      "combo_mult": 1.0,
-      "active_triggers": 1,
-      "uoa_score": 10,
-      "uoa_drivers": [
-        "UOA Call/Put 66.1×"
-      ],
-      "uoa_atm_ratio": null,
-      "uoa_cp_ratio": 66.08695652173913
-    },
     "CRMD": {
       "score": 50,
       "confidence": 33,
-      "drivers": "Spanne 7.2% + News: covering, guidance raised + UOA Call/Put 5.6×",
+      "drivers": "Spanne 7.2% + News: earnings beat, guidance raised + UOA Call/Put 5.6×",
       "price": 8.54,
       "chg_pct": -0.0,
       "rvol_4d": 1.43,
@@ -162,10 +140,32 @@
       "uoa_atm_ratio": null,
       "uoa_cp_ratio": 23.375
     },
+    "FTK": {
+      "score": 20,
+      "confidence": 33,
+      "drivers": "Spanne 11.4% + UOA Call/Put 3.3×",
+      "price": 24.82,
+      "chg_pct": -0.0,
+      "rvol_4d": 1.13,
+      "rvol_20d": 1.57,
+      "earnings": "in 60 Tagen (04.08.2026)",
+      "fda_date": null,
+      "upcoming_event": null,
+      "insider_buy": false,
+      "stocktwits": null,
+      "combo_mult": 1.0,
+      "active_triggers": 0,
+      "uoa_score": 10,
+      "uoa_drivers": [
+        "UOA Call/Put 3.3×"
+      ],
+      "uoa_atm_ratio": null,
+      "uoa_cp_ratio": 3.269230769230769
+    },
     "GEMI": {
-      "score": 50,
+      "score": 65,
       "confidence": 70,
-      "drivers": "Kurs +2.4% + Spanne 7.4% + News: short interest + UOA Call/Put 2.9×",
+      "drivers": "Kurs +2.4% + Spanne 7.4% + News: short interest, takeover + UOA Call/Put 2.9×",
       "price": 4.62,
       "chg_pct": 2.44,
       "rvol_4d": 1.08,
@@ -183,6 +183,26 @@
       ],
       "uoa_atm_ratio": null,
       "uoa_cp_ratio": 2.883817427385892
+    },
+    "HCAT": {
+      "score": 75,
+      "confidence": 70,
+      "drivers": "Kurs +45.9% + Spanne 8.2% + SEC 8-K + News-KI 8/30: Divestiture signals financial restructuring rather than bullish momentum; no indication of high short interest, signific + SEC Form 4",
+      "price": 1.94,
+      "chg_pct": 45.86,
+      "rvol_4d": 0.71,
+      "rvol_20d": 0.67,
+      "earnings": "in 62 Tagen (06.08.2026)",
+      "fda_date": null,
+      "upcoming_event": null,
+      "insider_buy": false,
+      "stocktwits": null,
+      "combo_mult": 1.1,
+      "active_triggers": 2,
+      "uoa_score": 0,
+      "uoa_drivers": [],
+      "uoa_atm_ratio": null,
+      "uoa_cp_ratio": null
     },
     "IONQ": {
       "score": 20,
@@ -331,26 +351,6 @@
       "uoa_drivers": [],
       "uoa_atm_ratio": null,
       "uoa_cp_ratio": null
-    },
-    "SDGR": {
-      "score": 44,
-      "confidence": 33,
-      "drivers": "Kurs +6.2% + News: revenue beat",
-      "price": 15.85,
-      "chg_pct": 6.16,
-      "rvol_4d": 0.91,
-      "rvol_20d": 1.11,
-      "earnings": "in 61 Tagen (05.08.2026)",
-      "fda_date": null,
-      "upcoming_event": null,
-      "insider_buy": false,
-      "stocktwits": null,
-      "combo_mult": 1.1,
-      "active_triggers": 2,
-      "uoa_score": 0,
-      "uoa_drivers": [],
-      "uoa_atm_ratio": null,
-      "uoa_cp_ratio": 1.6109725685785536
     }
   }
 }
