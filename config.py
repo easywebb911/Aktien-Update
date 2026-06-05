@@ -423,6 +423,15 @@ SCORE_HISTORY_DAYS = 14    # ältere Einträge werden beim Laden verworfen
 # ── Dynamischer Enrichment-Pool ──────────────────────────────────────────────
 POOL_MIN                   = 20    # min. Kandidaten in Anreicherung
 POOL_MAX                   = 75    # max. Obergrenze (Laufzeit)
+# Roh-Screener-Untergrenze (Monitoring, NICHT Pool-Aufbau): wenn der
+# yahoo_screener-RAW-item_count < FLOOR fällt, meldet provider_health einen
+# Tier-1-Inhalts-Fail (Digest). Schwelle empirisch geerdet (Diagnose
+# 05.06.2026): 3-Wochen-Spanne der Roh-item_counts = 160–239 über 151 Läufe,
+# All-Time-Min 160 (premarket), 0 Total-Ausfälle. 120 = ~25 % Marge unter dem
+# Min → fängt eine Halbierung (≈200→100), feuert NIE bei normaler 160–239-
+# Schwankung oder dem milden premarket-Effekt (min 160). Check MUSS auf den
+# ROH-Count, NICHT pool_size (POOL_MIN-Backfill maskiert dort jede Schrumpfung).
+SCREENER_POOL_MIN_FLOOR    = 120
 POOL_SHORT_FLOAT_THRESHOLD = 10.0  # SF ≥ this % → immer im Pool
 POOL_ENRICH_TIMEOUT        = 90    # s — Abbruch verbleibender Kandidaten
 

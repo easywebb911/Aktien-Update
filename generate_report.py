@@ -15347,15 +15347,28 @@ def main():
         raise
     finally:
         try:
+            # Roh-Pool-Untergrenze-Wächter (Inventur #2, Monitoring): wenn der
+            # RAW-item_count < SCREENER_POOL_MIN_FLOOR (120), coverage_pct=0
+            # → Tier-1-Inhalts-Fail im Digest (aggregate_provider_fails keyt
+            # auf coverage<80, NICHT auf das error-Feld). Binär 100/0 =
+            # Floor-Pass/Fail. REIN MONITORING — ändert NICHT Pool-Aufbau,
+            # Backfill oder Scoring (Block liegt im finally NACH dem Fetch).
+            # MUSS auf den ROH-Count: pool_size ist POOL_MIN-maskiert.
+            # None/leer → _pool_n=0 < Floor → Fail (nicht „ok" durchgewunken).
+            _pool_n   = len(candidates) if candidates else 0
+            _floor_ok = _pool_n >= SCREENER_POOL_MIN_FLOOR
             health_check.record_provider_call(
                 provider="yahoo_screener",
                 tier=HEALTH_CHECK_PROVIDER_TIER.get("yahoo_screener", 1),
                 latency_ms=int((time.perf_counter() - _yh_t0) * 1000),
                 http_status=(_yh_http if _yh_http is not None
                              else (200 if candidates else None)),
-                item_count=len(candidates) if candidates else 0,
+                item_count=_pool_n,
+                coverage_pct=(100.0 if _floor_ok else 0.0),
                 error=_yh_err if _yh_err else (
-                    None if candidates else "empty_result"),
+                    None if _floor_ok else (
+                        "empty_result" if not candidates else
+                        f"pool_below_floor ({_pool_n}<{SCREENER_POOL_MIN_FLOOR})")),
                 run_phase=run_phase,
             )
         except Exception as _hc_exc:
