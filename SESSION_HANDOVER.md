@@ -60,16 +60,13 @@ Verifikation nötig.** 8 offene Positionen:
 | **CRMD** | 14.05. @ 7.93 | 8 | False |
 | **GEMI** | 18.05. @ 5.40 | 18 | False |
 | **PDYN** | 20.01.2025 @ 11.52 | 150 | False |
-| **AI** | 01.06. @ 11.00 | 10 | **False** ⚠ |
+| **AI** | 01.06. @ 11.00 | 10 | **False** (bewusst) |
 | **RBOHF** | 03.06. @ 0.67 | 1300 | False |
 | **LFVN** | 05.06. @ 9.06 | 10 | False |
 
-**⚠ DISKREPANZ (Verifikation nötig):** AI ist als **Hold** gewünscht (Siebel-
-These, keine Exit-Alerts) — aber der Mirror zeigt `no_exit_alerts=False`. Das
-Hold-Flag ist im Gist offenbar **noch nicht gesetzt** → AI bekommt aktuell
-Exit-Push-Trigger. Easy: `no_exit_alerts: true` für AI im Gist setzen
-(Position-Panel) ODER bestätigen, dass Alerts gewollt sind. (Nur AMC trägt das
-Flag heute.)
+**AI: Exit-Pushes bewusst akzeptiert, kein `no_exit_alerts`-Flag.** Easy hat
+entschieden, AI trotz Hold-These (Siebel) die Exit-Trigger laufen zu lassen —
+**kein To-do, nichts anzupassen.** (Nur AMC trägt das Hold-Flag heute.)
 
 ## 3) VERIFIKATION MORGEN/OFFEN
 - **★ Screener-Pool-Floor (#325) erstmals LIVE** beim nächsten Daily-Run:
@@ -80,9 +77,6 @@ Flag heute.)
 - **Transiente Health-Fails von heute früh heilen:** S3 (`current_price` bei
   Positionen) und S7 (`agent_signals`-Drift) sollten nach dem nächsten sauberen
   Run weg sein → im Digest gegenchecken.
-- **★ AI-Hold-Flag (s. §2):** im Gist `no_exit_alerts=true` für AI setzen,
-  beim nächsten Daily-Run prüfen, dass app_data es spiegelt → keine
-  AI-Exit-Pushes mehr.
 - **#326 price_str:** der Render-Output ist unverändert (toter Zweig) — keine
   visuelle Verifikation nötig; relevant nur falls Flag jemals auf False geht.
 
