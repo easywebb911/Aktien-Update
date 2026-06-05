@@ -9,6 +9,7 @@ Exit 0 bei Erfolg, 1 bei AssertionError.
 """
 from __future__ import annotations
 
+import ast
 import json
 import pathlib
 import re
@@ -296,51 +297,89 @@ def test_yfinance_singletons_ki_agent_side():
 # ── Wrapper-Pattern: try/finally + Pass/Fail-Pfad pro Provider ════════════
 
 
-def _block_around(src: str, anchor: str, before: int = 800, after: int = 400) -> str:
-    """Extrahiere Code-Block um anchor herum für Source-Inspektion."""
-    idx = src.find(anchor)
-    assert idx > 0, f"Anchor {anchor!r} nicht gefunden"
-    return src[max(0, idx - before):idx + after]
+def _provider_record_try(src: str, provider: str,
+                         call_name: str = "record_provider_call"):
+    """Distanz-UNABHÄNGIGER Anker (statt Byte-Fenster): parse die Quelle per
+    AST und finde die ``try``-Anweisung, in deren ``finally`` ein
+    ``<call_name>(provider="<provider>", …)`` steht. Immun gegen Kommentar-/
+    Whitespace-Änderungen in der Nähe.
+
+    Lesson #325: das alte ``_block_around``-Byte-Fenster (before=800/600)
+    brach, als ein +600-Zeichen-Kommentarblock im finally die Struktur-
+    Keywords aus dem Fenster schob (finally bei Distanz 812 > 800) —
+    obwohl der Code funktional unverändert war. AST kennt keine Distanz.
+
+    Gibt den ``ast.Try``-Knoten zurück oder ``None``.
+    """
+    def _call_named(call: ast.Call) -> bool:
+        f = call.func
+        return ((isinstance(f, ast.Attribute) and f.attr == call_name)
+                or (isinstance(f, ast.Name) and f.id == call_name))
+
+    def _has_provider(call: ast.Call) -> bool:
+        return any(k.arg == "provider"
+                   and isinstance(k.value, ast.Constant)
+                   and k.value.value == provider
+                   for k in call.keywords)
+
+    match = None
+    for node in ast.walk(ast.parse(src)):
+        if not isinstance(node, ast.Try):
+            continue
+        for fin_stmt in node.finalbody:
+            for sub in ast.walk(fin_stmt):
+                if (isinstance(sub, ast.Call) and _call_named(sub)
+                        and _has_provider(sub)):
+                    match = node
+    return match
+
+
+def _try_has_except_raise(try_node: ast.Try) -> bool:
+    """True wenn mindestens ein ``except``-Handler ein ``raise`` enthält
+    (Exception bubbelt durch, wird nicht geschluckt)."""
+    return any(isinstance(sub, ast.Raise)
+               for handler in try_node.handlers
+               for sub in ast.walk(handler))
 
 
 def test_yahoo_screener_uses_try_finally():
     """Wrapper muss try/finally nutzen, damit Latency auch bei Exception
-    in record_provider_call landet."""
-    block = _block_around(SRC_GR, 'provider="yahoo_screener"')
-    assert "try:" in block and "finally:" in block, (
-        "yahoo_screener-Wrapper hat kein try/finally — Latency-Capture "
-        "bei Exception nicht garantiert")
+    in record_provider_call landet. (Return non-None ⇒ record liegt im
+    finally eines try-Blocks.)"""
+    t = _provider_record_try(SRC_GR, "yahoo_screener")
+    assert t is not None and t.finalbody, (
+        "yahoo_screener-record_provider_call steht nicht im finally eines "
+        "try-Blocks — Latency-Capture bei Exception nicht garantiert")
 
 
 def test_yahoo_screener_exception_bubbles():
-    """Wrapper darf Exceptions NICHT swallowen — Block muss raise enthalten."""
-    block = _block_around(SRC_GR, 'provider="yahoo_screener"', before=600, after=400)
-    # Pattern: except Exception ... raise
-    assert re.search(r"except\s+Exception[^:]*:\s*\n.*?raise\b", block, re.DOTALL), (
+    """Wrapper darf Exceptions NICHT swallowen — except-Handler muss raise enthalten."""
+    t = _provider_record_try(SRC_GR, "yahoo_screener")
+    assert t is not None and _try_has_except_raise(t), (
         "yahoo_screener-Wrapper bubbelt Exceptions nicht durch")
 
 
 def test_yfinance_batch_uses_try_finally():
-    block = _block_around(SRC_GR, 'provider="yfinance_batch"')
-    assert "try:" in block and "finally:" in block, (
+    t = _provider_record_try(SRC_GR, "yfinance_batch")
+    assert t is not None and t.finalbody, (
         "yfinance_batch-Wrapper hat kein try/finally")
 
 
 def test_yfinance_batch_exception_bubbles():
-    block = _block_around(SRC_GR, 'provider="yfinance_batch"', before=900, after=400)
-    assert re.search(r"except\s+Exception[^:]*:\s*\n.*?raise\b", block, re.DOTALL), (
+    t = _provider_record_try(SRC_GR, "yfinance_batch")
+    assert t is not None and _try_has_except_raise(t), (
         "yfinance_batch-Wrapper bubbelt Exceptions nicht durch")
 
 
 def test_yfinance_singletons_ki_uses_try_finally():
-    block = _block_around(SRC_KI, 'provider="yfinance_singletons"')
-    assert "try:" in block and "finally:" in block, (
+    t = _provider_record_try(SRC_KI, "yfinance_singletons")
+    assert t is not None and t.finalbody, (
         "yfinance_singletons (KI-Agent) hat kein try/finally")
 
 
 def test_yfinance_singletons_ki_exception_bubbles():
-    block = _block_around(SRC_KI, 'provider="yfinance_singletons"', before=700, after=400)
-    assert re.search(r"except\s+Exception[^:]*:\s*\n.*?raise\b", block, re.DOTALL), (
+    t = _provider_record_try(SRC_KI, "yfinance_singletons")
+    assert t is not None and _try_has_except_raise(t), (
         "yfinance_singletons (KI-Agent) bubbelt Exceptions nicht durch")
 
 
