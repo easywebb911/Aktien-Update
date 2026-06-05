@@ -1,5 +1,5 @@
 {
-  "last_run": "2026-06-05T15:59:16.117812+02:00",
+  "last_run": "2026-06-05T16:47:26.538163+02:00",
   "cooldowns": {
     "anomaly_score_jump_XRX": "2026-05-03T18:47:15.315486+02:00",
     "anomaly_uoa_extreme_TDOC": "2026-05-04T13:47:00.365949+02:00",
@@ -53,33 +53,11 @@
     "anomaly_conviction_high_LFVN": "2026-06-04T15:56:43.080967+02:00",
     "anomaly_score_jump_LFVN": "2026-06-04T23:54:10.962128+02:00",
     "exit_AI": "2026-06-05T15:35:20.898279+02:00",
-    "anomaly_conviction_high_GIII": "2026-06-05T15:59:15.333514+02:00"
+    "anomaly_conviction_high_GIII": "2026-06-05T15:59:15.333514+02:00",
+    "anomaly_conviction_high_CURV": "2026-06-05T16:47:25.580964+02:00",
+    "anomaly_monster_backup_GIII": "2026-06-05T16:47:25.628878+02:00"
   },
   "push_history": [
-    {
-      "ts": "2026-05-27T13:54:45.677125+02:00",
-      "ticker": "RR",
-      "kind": "anomaly",
-      "severity": "medium",
-      "trigger": "score_jump",
-      "body": "RR 🚀 Setup 96 ↑ (gestern 80) | Earnings in 6 Tagen (02.06.2026) + Volumen 3.9× + ⚡ Extremes…",
-      "success": false,
-      "suppressed": true,
-      "suppress_reason": "conviction_below_threshold",
-      "conviction_score": 70
-    },
-    {
-      "ts": "2026-05-27T13:54:45.677189+02:00",
-      "ticker": "RR",
-      "kind": "anomaly",
-      "severity": "high",
-      "trigger": "monster_backup",
-      "body": "RR 🔥 Monster 100 | Setup 96 | KI 100",
-      "success": false,
-      "suppressed": true,
-      "suppress_reason": "conviction_below_threshold",
-      "conviction_score": 70
-    },
     {
       "ts": "2026-05-27T14:33:17.160403+02:00",
       "ticker": "GRPN",
@@ -1255,24 +1233,48 @@
       "suppressed": false,
       "suppress_reason": null,
       "conviction_score": 87
+    },
+    {
+      "ts": "2026-06-05T16:47:25.580939+02:00",
+      "ticker": "CURV",
+      "kind": "anomaly",
+      "severity": "high",
+      "trigger": "conviction_high",
+      "body": "CURV 🎯 KAUFSIGNAL — Conviction 75/100 (high) (vorher 71) | Conviction hoch — Setup, Earliness und Timing konvergieren. Erwartungswert posit…",
+      "success": true,
+      "suppressed": false,
+      "suppress_reason": null,
+      "conviction_score": 75
+    },
+    {
+      "ts": "2026-06-05T16:47:25.628859+02:00",
+      "ticker": "GIII",
+      "kind": "anomaly",
+      "severity": "high",
+      "trigger": "monster_backup",
+      "body": "GIII 🔥 Monster 91 | Setup 76 | KI 82",
+      "success": true,
+      "suppressed": false,
+      "suppress_reason": null,
+      "conviction_score": 92
     }
   ],
   "prev_conviction_scores": {
+    "GIII": 92.0,
+    "CURV": 75.0,
     "LFVN": 60.0,
-    "GIII": 87.0,
-    "AI": 52.0,
-    "CURV": 71.0,
-    "CBRL": 56.0,
+    "AI": 51.0,
     "PLAY": 56.0,
+    "REPL": 42.0,
     "LENZ": 55.0,
-    "HCAT": 46.0,
-    "GO": 53.0,
-    "LOVE": 66.0,
-    "CRMD": 49.0,
-    "PDYN": 32.0,
+    "HCAT": 48.0,
+    "KPTI": 67.0,
+    "TRIP": 59.0,
+    "CRMD": 50.0,
+    "PDYN": 33.0,
     "GEMI": 22.0,
-    "IONQ": 13.0,
-    "AMC": 12.0,
+    "IONQ": 14.0,
+    "AMC": 13.0,
     "RBOHF": 11.0
   },
   "exit_cooldowns": {
