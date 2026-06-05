@@ -239,7 +239,7 @@ SEC_13F_ENABLED = False
 FINVIZ_SCREENER_ENABLED = True
 FINVIZ_MAX_TICKERS      = 50
 # 2) Stockanalysis.com Wochen-SI: für US-Top-10 überschreiben
-STOCKANALYSIS_SI_ENABLED = True
+STOCKANALYSIS_SI_ENABLED = False  # 05.06.2026 deaktiviert — SI-Scrape strukturell tot seit 15.05. (149/149 Calls fail, http=None, IBKR-Klasse); yfinance trägt short_float faktisch seit 3 Wochen, kein Datenverlust. Borrow-Pfad (STOCKANALYSIS_BORROW_ENABLED/iBorrowDesk) unberührt
 STOCKANALYSIS_SI_MAX_AGE_DAYS = 7
 # 3) EarningsWhispers-RSS für präzisere Earnings-Termine (einmal pro Run)
 EARNINGSWHISPERS_ENABLED = False  # 18.05.2026 deaktiviert — RSS-Feed tot (Probe 4 + 12/13), keine maschinen-lesbare Alternative; yfinance trägt
