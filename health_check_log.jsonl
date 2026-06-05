@@ -496,3 +496,4 @@
 {"run_ts": "2026-06-05T08:53:23Z", "run_phase": "ki_agent_tick", "schema_v": 1, "state_fails": [], "provider_fails": []}
 {"run_ts": "2026-06-05T10:18:04Z", "run_phase": "premarket", "schema_v": 1, "state_fails": [], "provider_fails": []}
 {"run_ts": "2026-06-05T10:18:49Z", "run_phase": "ki_agent_tick", "schema_v": 1, "state_fails": [{"id": "S3", "severity": "crit", "detail": "current_price fehlt bei 5 Position(en): AMC, IONQ, GEMI, PDYN, AI"}], "provider_fails": []}
+{"run_ts": "2026-06-05T12:20:30Z", "run_phase": "ki_agent_tick", "schema_v": 1, "state_fails": [{"id": "S3", "severity": "crit", "detail": "current_price fehlt bei 5 Position(en): AMC, IONQ, GEMI, PDYN, AI"}], "provider_fails": []}
