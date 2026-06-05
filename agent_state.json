@@ -1,5 +1,5 @@
 {
-  "last_run": "2026-06-05T20:35:32.491195+02:00",
+  "last_run": "2026-06-05T22:14:03.481203+02:00",
   "cooldowns": {
     "anomaly_score_jump_XRX": "2026-05-03T18:47:15.315486+02:00",
     "anomaly_uoa_extreme_TDOC": "2026-05-04T13:47:00.365949+02:00",
@@ -56,21 +56,10 @@
     "anomaly_conviction_high_GIII": "2026-06-05T15:59:15.333514+02:00",
     "anomaly_conviction_high_CURV": "2026-06-05T16:47:25.580964+02:00",
     "anomaly_monster_backup_GIII": "2026-06-05T16:47:25.628878+02:00",
-    "anomaly_monster_backup_CURV": "2026-06-05T20:33:55.896159+02:00"
+    "anomaly_monster_backup_CURV": "2026-06-05T20:33:55.896159+02:00",
+    "earnings_immediate_GIII_05.06.2026": "2026-06-05T22:14:02.803592+02:00"
   },
   "push_history": [
-    {
-      "ts": "2026-05-27T15:51:00.309679+02:00",
-      "ticker": "MNRO",
-      "kind": "anomaly",
-      "severity": "high",
-      "trigger": "conviction_high",
-      "body": "MNRO 🎯 KAUFSIGNAL — Conviction 81/100 (high) | Conviction hoch — Setup, Earliness und Timing konvergieren. Erwartungswert posit…",
-      "success": true,
-      "suppressed": false,
-      "suppress_reason": null,
-      "conviction_score": 81
-    },
     {
       "ts": "2026-05-27T21:44:19.406967+02:00",
       "ticker": "MBC",
@@ -1258,6 +1247,18 @@
       "suppressed": false,
       "suppress_reason": null,
       "conviction_score": null
+    },
+    {
+      "ts": "2026-06-05T22:14:02.803566+02:00",
+      "ticker": "GIII",
+      "kind": "earnings_immediate",
+      "severity": "default",
+      "trigger": null,
+      "body": "GIII Earnings-Sofort-Alert (in 0d, KI 100)",
+      "success": true,
+      "suppressed": false,
+      "suppress_reason": null,
+      "conviction_score": 100
     }
   ],
   "prev_conviction_scores": {
