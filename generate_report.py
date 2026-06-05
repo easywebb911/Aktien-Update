@@ -5794,7 +5794,7 @@ def _build_card_ctx(i: int, s: dict) -> dict:
             f'<span class="ticker">{ticker}</span>'
             f'{_market_tag_html(ticker)}'
             f'{sa_badge}'
-            f'<span class="price-tag">${price_str}</span>'
+            f'<span class="price-tag">${s.get("price",0):.2f}</span>'
             f'<button class="wl-add-btn" data-ticker="{ticker}" '
             f'onclick="wlToggle(this)" title="Zur Watchlist hinzufügen">＋</button>'
             f'</div>'
