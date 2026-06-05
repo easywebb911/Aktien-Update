@@ -52,7 +52,7 @@
     "earnings_immediate_CHPT_03.06.2026": "2026-06-02T22:20:18.445128+02:00",
     "anomaly_conviction_high_LFVN": "2026-06-04T15:56:43.080967+02:00",
     "anomaly_score_jump_LFVN": "2026-06-04T23:54:10.962128+02:00",
-    "exit_AI": "2026-06-05T20:32:19.557183+02:00",
+    "exit_AI": "2026-06-06T00:38:45.079854+02:00",
     "anomaly_conviction_high_GIII": "2026-06-05T15:59:15.333514+02:00",
     "anomaly_conviction_high_CURV": "2026-06-05T16:47:25.580964+02:00",
     "anomaly_monster_backup_GIII": "2026-06-05T16:47:25.628878+02:00",
@@ -60,18 +60,6 @@
     "earnings_immediate_GIII_05.06.2026": "2026-06-05T22:14:02.803592+02:00"
   },
   "push_history": [
-    {
-      "ts": "2026-05-27T21:44:19.507018+02:00",
-      "ticker": "RXRX",
-      "kind": "anomaly",
-      "severity": "high",
-      "trigger": "conviction_high",
-      "body": "RXRX 🎯 KAUFSIGNAL — Conviction 77/100 (high) | Conviction hoch — Setup, Earliness und Timing konvergieren. Erwartungswert posit…",
-      "success": true,
-      "suppressed": false,
-      "suppress_reason": null,
-      "conviction_score": 77
-    },
     {
       "ts": "2026-05-28T00:12:22.523642+02:00",
       "ticker": "MBC",
@@ -1255,6 +1243,18 @@
       "severity": "trigger",
       "trigger": "catalyst",
       "body": "🔻 Exit-Signal GIII: catalyst crit ({'earnings_date': '2026-06-05', 'trading_days_until': 0, 'window': 2})",
+      "success": true,
+      "suppressed": false,
+      "suppress_reason": null,
+      "conviction_score": null
+    },
+    {
+      "ts": "2026-06-06T00:38:45.079832+02:00",
+      "ticker": "AI",
+      "kind": "exit_p1",
+      "severity": "default",
+      "trigger": "exit_alert",
+      "body": "AI 📉 Exit 64 | -5% | Trailing-Stop −11.8% vom Hoch",
       "success": true,
       "suppressed": false,
       "suppress_reason": null,
