@@ -80,24 +80,51 @@ def _http_get_gist(gist_id: str, token: str) -> dict | None:
     return None
 
 
-def _extract_data(gist: dict) -> dict:
+def _extract_data(gist: dict) -> tuple[dict, bool]:
     """Liest ``squeeze_data.json`` aus den Gist-Files.
 
-    Bei fehlender Datei oder Parse-Fehler → ``{"watchlist": [], "positions": {}}``.
+    Returnt ``(data, body_ok)``:
+    - ``data``: ``{"watchlist": [...], "positions": {...}}`` — Verhalten
+      UNVERÄNDERT (bei fehlender Datei / Parse-Fehler → leere Defaults).
+    - ``body_ok``: True nur, wenn ein ECHTER squeeze_data-Body kam — für das
+      Marker-Gating (S14-Restkante, Body-Korruption). Reine Telemetrie, KEIN
+      Einfluss auf ``data`` oder den Schreib-/Recovery-Pfad.
+
+    Body-OK-Diskriminator (VOR der ``or "{}"``-Maskierung unten ausgewertet):
+    Entry existiert · NICHT ``truncated`` (GitHub-API trunkiert Files > 1 MB
+    → partieller content) · ``content`` nicht-leer (nicht der maskierte
+    ``"{}"``-Ersatz) · parst zu ``dict`` · dieses dict enthält ``positions``
+    als ``dict`` (Struktur-PRÄSENZ, NICHT Wert-Leere → legit-leer mit
+    ``positions={}`` besteht; ``watchlist`` lenient — ``positions`` ist der
+    exit-kritische und per Schema immer vorhanden). Trennt korrupt/leer/
+    truncated sauber von legit-leer (Diagnose-Diskriminator).
     """
     files = (gist or {}).get("files") or {}
     entry = files.get(DATA_FILENAME) or {}
+
+    # Body-OK-Erkennung — VOR der ``or "{}"``-Maskierung (sonst würde fehlender
+    # content als valides leeres ``{}`` durchrutschen).
+    _content = entry.get("content")
+    body_ok = False
+    if _content and not entry.get("truncated"):
+        try:
+            _parsed = json.loads(_content)
+        except json.JSONDecodeError:
+            _parsed = None
+        if isinstance(_parsed, dict) and isinstance(_parsed.get("positions"), dict):
+            body_ok = True
+
     raw = entry.get("content") or "{}"
     try:
         data = json.loads(raw)
     except json.JSONDecodeError as exc:
         print(f"[pull_gist_data] {DATA_FILENAME} kein JSON: {exc}", file=sys.stderr)
-        return {"watchlist": [], "positions": {}}
+        return {"watchlist": [], "positions": {}}, body_ok
     if not isinstance(data, dict):
-        return {"watchlist": [], "positions": {}}
+        return {"watchlist": [], "positions": {}}, body_ok
     data.setdefault("watchlist", [])
     data.setdefault("positions", {})
-    return data
+    return data, body_ok
 
 
 def _write_positions(positions: dict) -> None:
@@ -255,7 +282,7 @@ def main() -> int:
               f"{src} ({len(positions)} Positions-Einträge)")
         return 0
 
-    data = _extract_data(gist)
+    data, body_ok = _extract_data(gist)
     positions = data.get("positions") or {}
     watchlist = data.get("watchlist") or []
 
@@ -272,20 +299,26 @@ def main() -> int:
         _write_watchlist(watchlist)
     print(f"[pull_gist_data] Gist gelesen: "
           f"{len(positions)} Positions, {len(watchlist)} Watchlist-Ticker")
-    # Liveness-Marker NUR hier (HTTP-Gist-Erfolg: _http_get_gist != None,
-    # echte Gist-Daten geschrieben). Die beiden Recovery-Zweige (kein Gist
-    # konfiguriert / Gist-API-Fehler) und der gist-is-None-Zweig schreiben
-    # ihn bewusst NICHT → der Marker altert genau dann, wenn der Gist-Read
-    # über Zeit scheitert (heutige Token-Tod-Klasse, Vorfall 02.06.).
+    # Liveness-Marker NUR bei HTTP-Gist-Erfolg (_http_get_gist != None) UND
+    # plausiblem Body (body_ok). Die Recovery-Zweige (kein Gist konfiguriert /
+    # Gist-API-Fehler) schreiben ihn bewusst NICHT → der Marker altert bei
+    # Token-Tod (Vorfall 02.06.).
     #
-    # RESTKANTE (NICHT in diesem PR abgedeckt — separate Fehlerklasse,
-    # eigener PR): Body-Korruption. Bei HTTP-200 + kaputtem squeeze_data.json
-    # kollabiert _extract_data den Parse-Fehler still auf {"positions": {}}
-    # (ununterscheidbar von „legitim alle geschlossen") — der Marker würde
-    # dann fälschlich als Erfolg aktualisiert. Das ist NICHT der heutige
-    # Token-Tod-Fall (dort ist _http_get_gist bereits None). Bewusst sichtbar
-    # gelassen statt _extract_data anzufassen (Option B, kein Logik-Touch).
-    _mark_successful_gist_pull()
+    # BODY-KORRUPTIONS-GATING (S14-Restkante geschlossen): bei HTTP-200 +
+    # korruptem/leerem/truncated squeeze_data.json kollabiert _extract_data
+    # still auf {"positions": {}} (ununterscheidbar von „legitim alle
+    # geschlossen"). body_ok=False fängt das (Body-Diskriminator in
+    # _extract_data) → Marker NICHT gesetzt → S14 altert → fängt es ~1 Tag
+    # später. Der Schreib-/Recovery-/Migrations-Pfad bleibt UNVERÄNDERT —
+    # nur das Marker-Gating (Detektion). Recovery-Umleitung bei Korruption
+    # (Positionen erhalten = Schadens-Vermeidung) ist bewusst out-of-scope,
+    # separater Folge-PR.
+    if body_ok:
+        _mark_successful_gist_pull()
+    else:
+        print("[pull_gist_data] WARN: squeeze_data.json-Body unplausibel "
+              "(korrupt/leer/truncated/ohne positions-Key) — Liveness-Marker "
+              "NICHT gesetzt, S14 wird altern", file=sys.stderr)
     return 0
 
 

@@ -925,9 +925,12 @@ def evaluate_state_invariants(
     # (kein false-positive beim Erstaufsetzen, exakt analog S8). Läuft in
     # BEIDEN Pfaden (ungated wie S8): im ki_agent-Tick liest der Hook den
     # nicht-aktualisierten alten Working-Tree-Marker → ~1 h Detektionslatenz
-    # statt ~1 Tag (daily-only). NICHT abgedeckt (bewusst, separater PR):
-    # Body-Korruption (HTTP-200 + kaputtes squeeze_data.json → Marker
-    # fälschlich frisch) — andere Fehlerklasse, _extract_data unberührt.
+    # statt ~1 Tag (daily-only). Body-Korruption (HTTP-200 + kaputtes/leeres/
+    # truncated squeeze_data.json) ist seit dem Body-Sanity-Gating in
+    # pull_gist_data._extract_data MIT abgedeckt: body_ok=False (positions-
+    # Key-Präsenz-Diskriminator) → Marker NICHT gesetzt → S14 altert → fängt
+    # es ~1 Tag später. (Recovery-Umleitung bei Korruption = Schadens-
+    # Vermeidung statt nur Detektion bleibt eigener Folge-PR.)
     gist_age_h = _gist_pull_age_hours(now_for_s8)
     if gist_age_h is not None and gist_age_h > HEALTH_CHECK_S14_MAX_AGE_HOURS:
         fails.append({
