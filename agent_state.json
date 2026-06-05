@@ -51,21 +51,10 @@
     "earnings_immediate_AI_03.06.2026": "2026-06-03T23:31:02.467544+02:00",
     "earnings_immediate_CHPT_03.06.2026": "2026-06-02T22:20:18.445128+02:00",
     "anomaly_conviction_high_LFVN": "2026-06-04T15:56:43.080967+02:00",
-    "anomaly_score_jump_LFVN": "2026-06-04T23:54:10.962128+02:00"
+    "anomaly_score_jump_LFVN": "2026-06-04T23:54:10.962128+02:00",
+    "exit_AI": "2026-06-05T15:35:20.898279+02:00"
   },
   "push_history": [
-    {
-      "ts": "2026-05-27T13:54:45.676907+02:00",
-      "ticker": "GRPN",
-      "kind": "anomaly",
-      "severity": "high",
-      "trigger": "monster_backup",
-      "body": "GRPN 🔥 Monster 100 | Setup 93 | KI 66",
-      "success": false,
-      "suppressed": true,
-      "suppress_reason": "conviction_below_threshold",
-      "conviction_score": 56
-    },
     {
       "ts": "2026-05-27T13:54:45.677011+02:00",
       "ticker": "LUCK",
@@ -1253,6 +1242,18 @@
       "suppressed": true,
       "suppress_reason": "conviction_below_threshold",
       "conviction_score": 72
+    },
+    {
+      "ts": "2026-06-05T15:35:20.898251+02:00",
+      "ticker": "AI",
+      "kind": "exit_p1",
+      "severity": "default",
+      "trigger": "exit_alert",
+      "body": "AI 📉 Exit 65 | -6% | Trailing-Stop −12.5% vom Hoch",
+      "success": true,
+      "suppressed": false,
+      "suppress_reason": null,
+      "conviction_score": null
     }
   ],
   "prev_conviction_scores": {
