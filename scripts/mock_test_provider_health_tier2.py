@@ -16,6 +16,7 @@ Exit 0 bei Erfolg, 1 bei AssertionError.
 """
 from __future__ import annotations
 
+import ast
 import json
 import pathlib
 import re
@@ -43,6 +44,43 @@ def _block_around(src: str, anchor: str, before: int = 800, after: int = 600) ->
     return src[max(0, idx - before):idx + after]
 
 
+def _provider_record_try(src: str, provider: str,
+                         call_name: str = "record_provider_call"):
+    """Distanz-UNABHÄNGIGER Anker (statt Byte-Fenster): parse die Quelle per
+    AST und finde die ``try``-Anweisung, in deren ``finally`` ein
+    ``<call_name>(provider="<provider>", …)`` steht. Immun gegen Kommentar-/
+    Whitespace-Änderungen in der Nähe (Lesson #325). Gibt den ``ast.Try``-
+    Knoten zurück oder ``None``."""
+    def _call_named(call: ast.Call) -> bool:
+        f = call.func
+        return ((isinstance(f, ast.Attribute) and f.attr == call_name)
+                or (isinstance(f, ast.Name) and f.id == call_name))
+
+    def _has_provider(call: ast.Call) -> bool:
+        return any(k.arg == "provider"
+                   and isinstance(k.value, ast.Constant)
+                   and k.value.value == provider
+                   for k in call.keywords)
+
+    match = None
+    for node in ast.walk(ast.parse(src)):
+        if not isinstance(node, ast.Try):
+            continue
+        for fin_stmt in node.finalbody:
+            for sub in ast.walk(fin_stmt):
+                if (isinstance(sub, ast.Call) and _call_named(sub)
+                        and _has_provider(sub)):
+                    match = node
+    return match
+
+
+def _try_has_except_raise(try_node: ast.Try) -> bool:
+    """True wenn mindestens ein ``except``-Handler ein ``raise`` enthält."""
+    return any(isinstance(sub, ast.Raise)
+               for handler in try_node.handlers
+               for sub in ast.walk(handler))
+
+
 # ── Tier-Konstanten ════════════════════════════════════════════════════════
 
 
@@ -68,14 +106,14 @@ def test_finra_instrumented():
 
 
 def test_finra_uses_try_finally():
-    block = _block_around(SRC_KI, 'provider="finra"')
-    assert "try:" in block and "finally:" in block, (
+    t = _provider_record_try(SRC_KI, "finra")
+    assert t is not None and t.finalbody, (
         "finra-Wrapper hat kein try/finally")
 
 
 def test_finra_exception_bubbles():
-    block = _block_around(SRC_KI, 'provider="finra"', before=600, after=500)
-    assert re.search(r"except\s+Exception[^:]*:\s*\n.*?raise\b", block, re.DOTALL), (
+    t = _provider_record_try(SRC_KI, "finra")
+    assert t is not None and _try_has_except_raise(t), (
         "finra-Wrapper bubbelt Exceptions nicht durch")
 
 
@@ -178,14 +216,14 @@ def test_earningswhispers_outer_enabled_gate():
 
 
 def test_earningswhispers_uses_try_finally():
-    block = _block_around(SRC_GR, 'provider="earningswhispers"', before=900, after=400)
-    assert "try:" in block and "finally:" in block, (
+    t = _provider_record_try(SRC_GR, "earningswhispers")
+    assert t is not None and t.finalbody, (
         "earningswhispers-Wrapper hat kein try/finally")
 
 
 def test_earningswhispers_exception_bubbles():
-    block = _block_around(SRC_GR, 'provider="earningswhispers"', before=900, after=400)
-    assert re.search(r"except\s+Exception[^:]*:\s*\n.*?raise\b", block, re.DOTALL), (
+    t = _provider_record_try(SRC_GR, "earningswhispers")
+    assert t is not None and _try_has_except_raise(t), (
         "earningswhispers-Wrapper bubbelt Exceptions nicht durch")
 
 
