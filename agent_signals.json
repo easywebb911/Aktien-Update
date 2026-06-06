@@ -1,10 +1,10 @@
 {
-  "updated": "2026-06-06T06:20:37.021918+02:00",
+  "updated": "2026-06-06T06:25:43.537753+02:00",
   "run_info": {
     "tickers_checked": 16,
     "signals_active": 4,
     "alerts_sent": 0,
-    "elapsed_s": 12.2,
+    "elapsed_s": 10.6,
     "market_phase": "Geschlossen"
   },
   "signals": {
@@ -32,9 +32,9 @@
       "uoa_cp_ratio": 36.5899419729207
     },
     "AMC": {
-      "score": 38,
+      "score": 50,
       "confidence": 33,
-      "drivers": "Spanne 10.4% + News-KI 18/30: Positive sentiment from theater attendance and short seller pressure, but lacks catalysts for dramatic short squeeze; he + UOA Call/Put 6.1×",
+      "drivers": "Spanne 10.4% + News: squeeze, short seller + UOA Call/Put 6.1×",
       "price": 1.79,
       "chg_pct": -0.0,
       "rvol_4d": 0.47,
@@ -98,7 +98,7 @@
     "CURV": {
       "score": 40,
       "confidence": 70,
-      "drivers": "Volumen 1.8× + Spanne 44.2% + News-KI 5/30: Positive earnings news typically reduces short-squeeze potential as it supports the stock price naturally rather than fo + SEC Form 4",
+      "drivers": "Volumen 1.8× + Spanne 44.2% + News-KI 5/30: Positive earnings headlines indicate fundamental improvement, which typically reduces short-squeeze potential as shorts  + SEC Form 4",
       "price": 1.64,
       "chg_pct": -0.0,
       "rvol_4d": 1.78,
@@ -156,9 +156,9 @@
       "uoa_cp_ratio": 0.13748258244310266
     },
     "IONQ": {
-      "score": 18,
-      "confidence": 33,
-      "drivers": "Spanne 12.5% + News-KI 8/30: Negative sentiment and falling stock price indicate weak momentum, not short-squeeze conditions which require high short",
+      "score": 10,
+      "confidence": 17,
+      "drivers": "Spanne 12.5%",
       "price": 56.78,
       "chg_pct": -0.0,
       "rvol_4d": 1.0,
@@ -220,9 +220,9 @@
       "uoa_cp_ratio": 4.478658536585366
     },
     "NTST": {
-      "score": 18,
+      "score": 26,
       "confidence": 33,
-      "drivers": "Earnings in 44d + UOA Call/Put 11.7×",
+      "drivers": "News-KI 8/30: Value-focused headlines with positive analyst ratings but no indicators of elevated short interest, significant buying p + Earnings in 44d + UOA Call/Put 11.7×",
       "price": 19.99,
       "chg_pct": -0.0,
       "rvol_4d": 1.25,
@@ -264,9 +264,9 @@
       "uoa_cp_ratio": 4.09375
     },
     "PDYN": {
-      "score": 25,
+      "score": 20,
       "confidence": 33,
-      "drivers": "Spanne 17.1% + News-KI 5/30: Positive corporate developments but no indicators of short-squeeze potential (no high short interest, borrowed shares da + UOA Call/Put 6.9×",
+      "drivers": "Spanne 17.1% + UOA Call/Put 6.9×",
       "price": 6.87,
       "chg_pct": -0.0,
       "rvol_4d": 1.12,
@@ -306,9 +306,9 @@
       "uoa_cp_ratio": 1.4281200631911533
     },
     "RBOHF": {
-      "score": 18,
-      "confidence": 33,
-      "drivers": "Spanne 26.1% + News-KI 8/30: Positive corporate developments and partnerships, but lacking indicators like high short interest, low float, or institu",
+      "score": 10,
+      "confidence": 17,
+      "drivers": "Spanne 26.1%",
       "price": 0.23,
       "chg_pct": 0.0,
       "rvol_4d": 0.37,
