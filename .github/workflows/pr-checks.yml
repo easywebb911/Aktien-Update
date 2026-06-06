@@ -75,3 +75,19 @@ jobs:
 
       - name: Outer-Page golden test
         run: python scripts/mock_test_outer_page_golden.py
+
+      # Phase-1-Gate-Ausbau: drei deterministische, netz-/datums-freie
+      # Mock-Tests (Inventur belegt: Kategorie A, kein Real-State-/Datums-Read,
+      # laufen auf stdlib+jinja2). EXPLIZITE ALLOWLIST — namentlich, KEIN
+      # *.py-Glob/pytest-discover (würde die yfinance-Importer-Tests
+      # mitziehen → flaky/rot). Fangen die Klassen, die still durchrutschten:
+      # gist's ${var}-Grep = price_str-Klasse (#326); provider_health ×2 =
+      # Wrapper-Regressions-Klasse (#325/#327/#330/#332).
+      - name: Mock-Test gist action token routing
+        run: python scripts/mock_test_gist_action_token_routing.py
+
+      - name: Mock-Test provider-health (Tier 1)
+        run: python scripts/mock_test_provider_health.py
+
+      - name: Mock-Test provider-health (Tier 2)
+        run: python scripts/mock_test_provider_health_tier2.py
