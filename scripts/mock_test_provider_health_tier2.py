@@ -38,10 +38,45 @@ SRC_GR = (ROOT / "generate_report.py").read_text(encoding="utf-8")
 SRC_KI = (ROOT / "ki_agent.py").read_text(encoding="utf-8")
 
 
-def _block_around(src: str, anchor: str, before: int = 800, after: int = 600) -> str:
-    idx = src.find(anchor)
-    assert idx > 0, f"Anchor {anchor!r} nicht gefunden"
-    return src[max(0, idx - before):idx + after]
+def _provider_call_node(src: str, provider: str,
+                        call_name: str = "record_provider_call"):
+    """AST-Anker: finde den Call ``<call_name>(provider="<provider>", …)`` +
+    Parse-Tree. Distanz-/Whitespace-immun (Lesson #325/#327) — ersetzt das
+    fragile Byte-Fenster ``_block_around``."""
+    tree = ast.parse(src)
+    for node in ast.walk(tree):
+        if not isinstance(node, ast.Call):
+            continue
+        f = node.func
+        named = ((isinstance(f, ast.Attribute) and f.attr == call_name)
+                 or (isinstance(f, ast.Name) and f.id == call_name))
+        if named and any(k.arg == "provider"
+                         and isinstance(k.value, ast.Constant)
+                         and k.value.value == provider
+                         for k in node.keywords):
+            return node, tree
+    return None, tree
+
+
+def _call_kwarg(call: ast.Call, name: str):
+    """AST-Wert des Keyword-Arguments ``name`` im Call (oder None)."""
+    for kw in call.keywords:
+        if kw.arg == name:
+            return kw.value
+    return None
+
+
+def _enclosing_if_src(src: str, tree: ast.AST, target: ast.AST):
+    """Source-Segment der NÄCHSTEN umschließenden ``if``-Anweisung um target
+    (innermost). AST-begrenzt statt Byte-Fenster → übersteht Kommentar-/
+    Einrückungs-/Zeilenumbruch-Verschiebungen nahe dem Anker (Lesson #327).
+    Returnt das Segment (str) oder None."""
+    best = None
+    for node in ast.walk(tree):
+        if isinstance(node, ast.If) and any(s is target for s in ast.walk(node)):
+            if best is None or node.lineno > best.lineno:
+                best = node
+    return ast.get_source_segment(src, best) if best else None
 
 
 def _provider_record_try(src: str, provider: str,
@@ -118,9 +153,14 @@ def test_finra_exception_bubbles():
 
 
 def test_finra_run_phase_is_ki_agent_tick():
-    block = _block_around(SRC_KI, 'provider="finra"', before=200, after=600)
-    assert 'run_phase="ki_agent_tick"' in block, (
-        "finra läuft im ki_agent — run_phase muss ki_agent_tick sein")
+    # AST-robust: prüft das run_phase-Keyword AM finra-record_provider_call
+    # selbst (statt String im Byte-Fenster). Semantik identisch: der Call
+    # muss run_phase="ki_agent_tick" setzen.
+    call, _ = _provider_call_node(SRC_KI, "finra")
+    rp = _call_kwarg(call, "run_phase") if call else None
+    assert isinstance(rp, ast.Constant) and rp.value == "ki_agent_tick", (
+        "finra läuft im ki_agent — record_provider_call muss "
+        'run_phase="ki_agent_tick" setzen')
 
 
 # ── Finnhub (call_attempted gated) ═════════════════════════════════════════
@@ -145,8 +185,12 @@ def test_finnhub_instrument_call_at_call_site():
 
 def test_finnhub_emit_gated_by_calls():
     """End-of-main-Emission nur wenn _FINNHUB_ACCT['calls'] > 0."""
-    block = _block_around(SRC_GR, 'provider="finnhub"', before=400, after=600)
-    assert '_fh_acct["calls"] > 0' in block, (
+    # AST-robust: das Gating-Statement ist die umschließende if-Anweisung des
+    # record_provider_call. Prüfe die Gating-Bedingung im AST-begrenzten
+    # if-Segment (statt Byte-Fenster). Semantik identisch.
+    call, tree = _provider_call_node(SRC_GR, "finnhub")
+    if_src = _enclosing_if_src(SRC_GR, tree, call) if call else None
+    assert if_src is not None and '_fh_acct["calls"] > 0' in if_src, (
         "Finnhub-Emission ist nicht durch calls>0 gegated — würde leere "
         "Zeilen schreiben wenn keine Positionen offen")
 
@@ -193,8 +237,10 @@ def test_stockanalysis_si_path_wrapped():
 
 
 def test_stockanalysis_emit_gated_by_calls():
-    block = _block_around(SRC_GR, 'provider="stockanalysis"', before=400, after=600)
-    assert '_sa_acct["calls"] > 0' in block, (
+    # AST-robust (umschließendes if-Segment statt Byte-Fenster), Semantik gleich.
+    call, tree = _provider_call_node(SRC_GR, "stockanalysis")
+    if_src = _enclosing_if_src(SRC_GR, tree, call) if call else None
+    assert if_src is not None and '_sa_acct["calls"] > 0' in if_src, (
         "Stockanalysis-Emission ist nicht durch calls>0 gegated")
 
 
@@ -229,13 +275,21 @@ def test_earningswhispers_exception_bubbles():
 
 def test_earningswhispers_nan_pct_computed():
     """nan_pct = items mit fehlender date / total."""
-    block = _block_around(SRC_GR, 'provider="earningswhispers"', before=600, after=200)
-    assert "_ew_missing_date" in block
-    assert 'not v.get("date")' in block, (
+    # AST-robust: die nan_pct-Berechnung lebt im umschließenden
+    # EARNINGSWHISPERS_ENABLED-if-Block des record_provider_call; der
+    # nan_pct-Wert ist ein Keyword AM Call. Beides AST-begrenzt statt
+    # Byte-Fenster. Semantik identisch.
+    call, tree = _provider_call_node(SRC_GR, "earningswhispers")
+    assert call is not None, "earningswhispers-record_provider_call fehlt"
+    if_src = _enclosing_if_src(SRC_GR, tree, call)
+    assert if_src is not None and "_ew_missing_date" in if_src, (
+        "nan_pct-Berechnung (_ew_missing_date) fehlt im EnableD-Block")
+    assert 'not v.get("date")' in if_src, (
         "nan_pct-Berechnung prüft nicht .get('date')")
-    # nan_pct wird in record-Call durchgereicht
-    full_block = _block_around(SRC_GR, 'provider="earningswhispers"', before=600, after=600)
-    assert "nan_pct=_ew_nan" in full_block
+    # nan_pct wird in record-Call durchgereicht (AST-kwarg, kein String-Pin)
+    nan = _call_kwarg(call, "nan_pct")
+    assert isinstance(nan, ast.Name) and nan.id == "_ew_nan", (
+        "earningswhispers reicht nan_pct=_ew_nan nicht in record_provider_call")
 
 
 # ── _instrument_provider_call-Helper (Pythonische Replikation) ════════════
