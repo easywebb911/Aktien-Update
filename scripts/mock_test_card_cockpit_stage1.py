@@ -53,10 +53,18 @@ def _extract_helper():
     ns["_tri_score_color"] = _tri
 
     # Extract function definition
-    m = re.search(r"^def _card_cockpit_html\(.*?(?=\n\ndef )",
-                  GR_SRC, re.MULTILINE | re.DOTALL)
-    assert m, "_card_cockpit_html nicht gefunden"
-    exec(m.group(0), ns)
+    # Dependency-robust: _card_cockpit_html ruft _cockpit_delta_html (Score-
+    # Delta T-1 im Setup-Pillar, PR #236). Beide aus der Source name-basiert
+    # extrahieren + in dieselbe ns exec'en, sonst NameError beim Aufruf.
+    # _cockpit_delta_html ist pure/self-contained (nur s + builtins, keine
+    # weiteren Helper-Deps) — Reihenfolge: Dependency zuerst, dann Consumer.
+    # Name-basierte Extraktion ist immun gegen Einrueckungs-/Reihenfolge-
+    # Aenderungen (Lesson #327); Prod-Funktionen bleiben unberuehrt.
+    for _dep in ("_cockpit_delta_html", "_card_cockpit_html"):
+        m = re.search(rf"^def {_dep}\(.*?(?=\n\ndef )",
+                      GR_SRC, re.MULTILINE | re.DOTALL)
+        assert m, f"{_dep} nicht gefunden"
+        exec(m.group(0), ns)
     return ns["_card_cockpit_html"]
 
 

@@ -111,14 +111,19 @@ def test_06_edgar_filings_analog() -> None:
 
 # ── Source: fetch_stocktwits_sentiment ───────────────────────────────────────
 
-def test_07_stocktwits_analog() -> None:
+def test_07_stocktwits_disabled_stub() -> None:
+    # stocktwits wurde am 18.05.2026 DEAKTIVIERT (ki_agent.py:1068+,
+    # STOCKTWITS_ENABLED=False, Caller-Gate umgeht den Wrapper). Der
+    # Fetcher ist seither ein bewusster Stub: returnt unconditionally None.
+    # Die success_check-Recalibration (16.05.) ist für ihn obsolet — daher
+    # prüfen wir den deaktivierten Prod-Ist statt der Pre-Disable-Form.
     assert "def fetch_stocktwits_sentiment(ticker: str) -> dict | None:" in KI, \
         "fetch_stocktwits_sentiment Signatur fehlt"
     block = _func_block("def fetch_stocktwits_sentiment(")
-    # 2 Fail-Pfade: HTTP != 200, Exception
-    assert block.count("return None") >= 2
-    # ENABLED=False bzw empty ticker: Default-Dict ohne None
-    assert '"bull_ratio": None, "msg_per_h": 0, "n_total": 0' in block
+    assert "DEAKTIVIERT" in block, \
+        "fetch_stocktwits_sentiment sollte als deaktiviert dokumentiert sein"
+    assert "return None" in block, \
+        "deaktivierter Stub muss return None sein"
 
 
 # ── Source: Caller-Anpassung ─────────────────────────────────────────────────
@@ -215,7 +220,7 @@ def main() -> int:
         ("04 8k legit-leer → Tuple",                  test_04_sec_8k_legit_empty_returns_tuple),
         ("05 form4 analog",                           test_05_sec_form4_analog),
         ("06 edgar_filings analog",                   test_06_edgar_filings_analog),
-        ("07 stocktwits analog",                      test_07_stocktwits_analog),
+        ("07 stocktwits deaktivierter Stub",          test_07_stocktwits_disabled_stub),
         ("08 _unpack_or_default-Helper",              test_08_unpack_helper_exists),
         ("09 Alle Caller: lambda r: r is not None",   test_09_callers_use_new_success_check),
         ("10 Caller _unpack_or_default mit Default",  test_10_callers_use_unpack_default),

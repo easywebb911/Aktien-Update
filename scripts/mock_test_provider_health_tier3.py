@@ -19,6 +19,7 @@ Exit 0 bei Erfolg, 1 bei AssertionError.
 """
 from __future__ import annotations
 
+import ast
 import json
 import pathlib
 import re
@@ -421,10 +422,29 @@ def test_pr1_helper_backward_compat_aliases():
     assert "_instrument_provider_call = health_check.instrument_provider_call" in SRC_GR
 
 
+def _calls_instrument_with_acct(src: str, acct_name: str,
+                                fn_name: str = "_instrument_provider_call") -> bool:
+    """AST-robust (kein Whitespace-/Einrückungs-Pinning, Lesson #327): gibt es
+    einen Call ``<fn_name>(<acct_name>, …)``, dessen erstes positionales
+    Argument der Name ``<acct_name>`` ist? Immun gegen Zeilenumbruch/Indent."""
+    for node in ast.walk(ast.parse(src)):
+        if not isinstance(node, ast.Call):
+            continue
+        f = node.func
+        is_target = ((isinstance(f, ast.Attribute) and f.attr == fn_name)
+                     or (isinstance(f, ast.Name) and f.id == fn_name))
+        if is_target and node.args and isinstance(node.args[0], ast.Name) \
+                and node.args[0].id == acct_name:
+            return True
+    return False
+
+
 def test_pr2_finnhub_path_intact():
-    """Sister-Check: PR 2 Finnhub-Wrapping ist noch intakt."""
-    assert "_instrument_provider_call(\n        _FINNHUB_ACCT" in SRC_GR \
-        or "_instrument_provider_call(_FINNHUB_ACCT," in SRC_GR
+    """Sister-Check: PR 2 Finnhub-Wrapping ist noch intakt. AST-robust statt
+    Whitespace-Pinning (Lesson #327) — prüft den Call
+    ``_instrument_provider_call(_FINNHUB_ACCT, …)`` strukturell."""
+    assert _calls_instrument_with_acct(SRC_GR, "_FINNHUB_ACCT"), (
+        "_instrument_provider_call(_FINNHUB_ACCT, …) fehlt — Finnhub-Wrapping defekt")
 
 
 # ── Runner ═════════════════════════════════════════════════════════════
