@@ -667,18 +667,58 @@ def test_run_and_record_does_not_raise_on_bad_path():
 
 
 def test_run_and_record_returns_fails_on_pass():
-    with tempfile.NamedTemporaryFile(mode="w", suffix=".jsonl", delete=False) as fh:
-        path = fh.name
+    # DATUMS-STABIL (analog #331-Golden-Stub): run_and_record fährt S1-S14.
+    # Die state-/datums-abhängigen Checks lesen sonst REALE Dateien über
+    # Default-Pfade und feuern am Wochenende (gealterte Stände):
+    #   S8  → DIGEST_STATE_FILE       (last_successful_run, age > 26h)
+    #   S14 → GIST_PULL_STATE_FILE    (last_successful_gist_pull, age > 26h)
+    #   S11 → SCORE_INFLATION_LOG_FILE (echter premarket, > N Werktage)
+    #   S12 → SCORE_INFLATION_LOG_FILE (echter postclose,  > N Werktage)
+    #   S13 → evaluate_data_maturity_gate (config-Drift + produktive
+    #          backtest_history — analog dem schon gemockten S10)
+    # → Quellen auf kontrollierte „alles frisch"-Fixtures umlenken +
+    # now_utc fixieren. run_and_record läuft VOLL (S1-S7 echt gegen die
+    # übergebenen Fixtures geprüft) — KEIN Wegmocken von run_and_record.
+    FIXED_NOW = datetime(2026, 5, 14, 21, 0, 0, tzinfo=timezone.utc)
+    iso = FIXED_NOW.isoformat()
+    tmp: list[str] = []
+
+    def _mk(content: str, suffix: str = ".json") -> str:
+        with tempfile.NamedTemporaryFile(mode="w", suffix=suffix,
+                                         delete=False) as fh:
+            fh.write(content)
+            tmp.append(fh.name)
+            return fh.name
+
+    log_path = _mk("", suffix=".jsonl")
+    # S8: frischer Digest-Marker → age ~0 < 26h
+    digest_path = _mk(json.dumps({"last_successful_run": iso}))
+    # S14: frischer Gist-Pull-Marker → age ~0 < 26h
+    gist_path = _mk(json.dumps({"last_successful_gist_pull": iso}))
+    # S11/S12: je ein echter premarket-/postclose-Run am FIXED_NOW-Tag
+    # (run_phase == trading_session_phase) → last_date >= today → 0 Werktage.
+    infl_path = _mk(
+        json.dumps({"run_phase": "premarket",
+                    "trading_session_phase": "premarket", "run_ts": iso})
+        + "\n"
+        + json.dumps({"run_phase": "postclose",
+                      "trading_session_phase": "postclose", "run_ts": iso})
+        + "\n",
+        suffix=".jsonl")
     try:
-        open(path, "w").close()
-        # S10 mocken — der Test soll S1-S7 verifizieren, nicht den
-        # Datenstand der produktiven backtest_history.json (die je nach
-        # aktueller Trend-Feld-Coverage CRITs werfen kann).
+        # S10 + S13 mocken (beide lesen die produktive backtest_history —
+        # der Test soll S1-S7 + die kontrollierten S8/S11/S12/S14 prüfen,
+        # nicht den produktiven Datenstand).
         with mock.patch.object(hc, "evaluate_s10_data_integrity",
-                                return_value=[]):
+                               return_value=[]), \
+             mock.patch.object(hc, "evaluate_data_maturity_gate",
+                               return_value={"status_lines": [], "fails": []}), \
+             mock.patch.object(hc, "DIGEST_STATE_FILE", digest_path), \
+             mock.patch.object(hc, "GIST_PULL_STATE_FILE", gist_path), \
+             mock.patch.object(hc, "SCORE_INFLATION_LOG_FILE", infl_path):
             fails = hc.run_and_record(
                 run_phase="premarket",
-                path=path,
+                path=log_path,
                 top10_tickers=TOP10,
                 setup_scores=_full_setup(TOP10),
                 monster_scores=_full_monster(TOP10),
@@ -687,17 +727,19 @@ def test_run_and_record_returns_fails_on_pass():
                 n_inflation_lines=10,
                 n_backtest_appended=0,
                 agent_signal_keys=set(TOP10),
+                now_utc=FIXED_NOW,
             )
         assert fails == [], f"erwartet keine Fails, got {fails}"
         # Schreib-Smoketest:
-        entries = hc.read_all(path)
+        entries = hc.read_all(log_path)
         assert len(entries) == 1
         assert entries[0]["state_fails"] == []
     finally:
-        try:
-            pathlib.Path(path).unlink()
-        except FileNotFoundError:
-            pass
+        for p in tmp:
+            try:
+                pathlib.Path(p).unlink()
+            except FileNotFoundError:
+                pass
 
 
 # ── Runner ─────────────────────────────────────────────────────────────────
