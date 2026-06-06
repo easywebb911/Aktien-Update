@@ -48,18 +48,19 @@ jobs:
           cache: 'pip'
 
       - name: Install dependencies
-        # NUR jinja2 (der einzige harte Modul-Level-Dep von generate_report,
-        # zieht markupsafe automatisch). BEWUSST NICHT requirements.txt:
-        # das installiert pandas_ta, dessen Import-Zeit-Introspektion
-        # find_spec("yfinance") auf dem yfinance-STUB des Golden-Tests
-        # (__spec__ is None) einen ValueError wirft (NICHT vom try/except
-        # ImportError in generate_report.py:38 gefangen) → CI-Crash.
-        # Ohne pandas_ta greift dort der ImportError-Pfad (ta=None) — exakt
-        # der Zustand, in dem das Golden generiert wurde → byte-identischer
-        # Render. Die übrigen externen Deps (yfinance/requests/bs4/
-        # deep_translator/watchlist) stubbt der Golden-Test selbst; die 4
-        # Lints brauchen gar keine Deps (reine stdlib).
-        run: pip install "jinja2>=3.1.0"
+        # jinja2 (einziger harter Modul-Level-Dep von generate_report, zieht
+        # markupsafe) + pyyaml (für die 3 YAML-Workflow-Validitäts-Tests
+        # digest/health_check_digest_persistence/jekyll_exclude im Allowlist-
+        # Runner). BEWUSST NICHT requirements.txt: das installiert pandas_ta,
+        # dessen Import-Zeit-Introspektion find_spec("yfinance") auf dem
+        # yfinance-STUB des Golden-Tests (__spec__ is None) einen ValueError
+        # wirft (NICHT vom try/except ImportError in generate_report.py:38
+        # gefangen) → CI-Crash. Ohne pandas_ta greift dort der ImportError-
+        # Pfad (ta=None) — exakt der Zustand, in dem das Golden generiert
+        # wurde → byte-identischer Render. Die übrigen externen Deps
+        # (yfinance/requests/bs4/deep_translator/watchlist) stubben die Tests
+        # selbst; die 4 Lints brauchen gar keine Deps (reine stdlib).
+        run: pip install "jinja2>=3.1.0" "pyyaml>=6"
 
       - name: Lint chat template
         run: python scripts/lint_chat_template.py
@@ -73,21 +74,18 @@ jobs:
       - name: Lint token-crypto invariants
         run: python scripts/lint_token_crypto.py
 
-      - name: Outer-Page golden test
-        run: python scripts/mock_test_outer_page_golden.py
-
-      # Phase-1-Gate-Ausbau: drei deterministische, netz-/datums-freie
-      # Mock-Tests (Inventur belegt: Kategorie A, kein Real-State-/Datums-Read,
-      # laufen auf stdlib+jinja2). EXPLIZITE ALLOWLIST — namentlich, KEIN
-      # *.py-Glob/pytest-discover (würde die yfinance-Importer-Tests
-      # mitziehen → flaky/rot). Fangen die Klassen, die still durchrutschten:
-      # gist's ${var}-Grep = price_str-Klasse (#326); provider_health ×2 =
-      # Wrapper-Regressions-Klasse (#325/#327/#330/#332).
-      - name: Mock-Test gist action token routing
-        run: python scripts/mock_test_gist_action_token_routing.py
-
-      - name: Mock-Test provider-health (Tier 1)
-        run: python scripts/mock_test_provider_health.py
-
-      - name: Mock-Test provider-health (Tier 2)
-        run: python scripts/mock_test_provider_health_tier2.py
+      # Phase-2-Gate: gebündelter Allowlist-Runner für die 76 datums-/netz-
+      # stabilen (Kategorie-A) Mock-Tests — inkl. Outer-Page-Golden (#312) und
+      # der 3 Phase-1-Tests (gist ${var}-Grep #326, provider_health ×2
+      # #325/#327/#330/#332), die jetzt ÜBER den Runner laufen (deshalb sind
+      # die bisherigen 4 Einzel-Steps hier entfernt — kein Doppellauf). Die
+      # ALLOWLIST steht statisch im Skript; ein Drift-Guard failt, falls ein
+      # neuer mock_test weder ALLOWLIST noch EXCLUDED ist. Golden-Disziplin
+      # unberührt: der Golden läuft weiter (via Runner), UPDATE_GOLDEN bei
+      # gewolltem Output-Change bleibt Pflicht.
+      # 76, nicht 79: 3 Tests (entry_score_persistence, health_check_ntfy_url_
+      # pattern, ntfy_fail_visibility) brauchen `requests` (im Minimal-Install
+      # nicht da) → TEMP in EXCLUDED bis #336 den requests-Stub ergänzt, dann
+      # zurück in ALLOWLIST (Ziel 79).
+      - name: Mock-Test-Suite (Allowlist-Runner)
+        run: python scripts/run_ci_mock_tests.py
