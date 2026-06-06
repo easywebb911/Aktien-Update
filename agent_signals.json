@@ -1,10 +1,10 @@
 {
-  "updated": "2026-06-06T06:25:43.537753+02:00",
+  "updated": "2026-06-06T10:03:25.204874+02:00",
   "run_info": {
     "tickers_checked": 16,
     "signals_active": 4,
     "alerts_sent": 0,
-    "elapsed_s": 10.6,
+    "elapsed_s": 16.9,
     "market_phase": "Geschlossen"
   },
   "signals": {
@@ -32,9 +32,9 @@
       "uoa_cp_ratio": 36.5899419729207
     },
     "AMC": {
-      "score": 50,
+      "score": 35,
       "confidence": 33,
-      "drivers": "Spanne 10.4% + News: squeeze, short seller + UOA Call/Put 6.1×",
+      "drivers": "Spanne 10.4% + News: short seller + UOA Call/Put 6.1×",
       "price": 1.79,
       "chg_pct": -0.0,
       "rvol_4d": 0.47,
@@ -96,9 +96,9 @@
       "uoa_cp_ratio": 1.7981220657276995
     },
     "CURV": {
-      "score": 40,
+      "score": 43,
       "confidence": 70,
-      "drivers": "Volumen 1.8× + Spanne 44.2% + News-KI 5/30: Positive earnings headlines indicate fundamental improvement, which typically reduces short-squeeze potential as shorts  + SEC Form 4",
+      "drivers": "Volumen 1.8× + Spanne 44.2% + News-KI 8/30: Positive earnings headlines suggest operational strength but lack short-squeeze indicators like high short interest, rec + SEC Form 4",
       "price": 1.64,
       "chg_pct": -0.0,
       "rvol_4d": 1.78,
@@ -198,9 +198,9 @@
       "uoa_cp_ratio": 18.875862068965517
     },
     "METC": {
-      "score": 20,
+      "score": 28,
       "confidence": 33,
-      "drivers": "Spanne 9.8% + UOA Call/Put 4.5×",
+      "drivers": "Spanne 9.8% + News-KI 8/30: Positive operational news and partnerships, but no significant short interest catalysts, high short-squeeze likelihood,  + UOA Call/Put 4.5×",
       "price": 15.65,
       "chg_pct": -0.0,
       "rvol_4d": 1.25,
@@ -220,9 +220,9 @@
       "uoa_cp_ratio": 4.478658536585366
     },
     "NTST": {
-      "score": 26,
+      "score": 18,
       "confidence": 33,
-      "drivers": "News-KI 8/30: Value-focused headlines with positive analyst ratings but no indicators of elevated short interest, significant buying p + Earnings in 44d + UOA Call/Put 11.7×",
+      "drivers": "Earnings in 44d + UOA Call/Put 11.7×",
       "price": 19.99,
       "chg_pct": -0.0,
       "rvol_4d": 1.25,
