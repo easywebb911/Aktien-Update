@@ -1,10 +1,10 @@
 {
-  "updated": "2026-06-06T12:22:46.987150+02:00",
+  "updated": "2026-06-06T14:19:08.951299+02:00",
   "run_info": {
     "tickers_checked": 16,
     "signals_active": 4,
     "alerts_sent": 0,
-    "elapsed_s": 17.0,
+    "elapsed_s": 15.0,
     "market_phase": "Geschlossen"
   },
   "signals": {
@@ -32,9 +32,9 @@
       "uoa_cp_ratio": 36.5899419729207
     },
     "AMC": {
-      "score": 38,
+      "score": 50,
       "confidence": 33,
-      "drivers": "Spanne 10.4% + News-KI 18/30: Positive movie attendance and short-seller losses provide modest squeeze potential, but mixed sentiment and lack of cata + UOA Call/Put 6.1×",
+      "drivers": "Spanne 10.4% + News: squeeze, short interest + UOA Call/Put 6.1×",
       "price": 1.79,
       "chg_pct": -0.0,
       "rvol_4d": 0.47,
@@ -96,9 +96,9 @@
       "uoa_cp_ratio": 1.7981220657276995
     },
     "CURV": {
-      "score": 40,
+      "score": 35,
       "confidence": 70,
-      "drivers": "Volumen 1.8× + Spanne 44.2% + News-KI 5/30: Positive earnings news typically reduces short-squeeze potential as it reduces bearish sentiment and short motivation. + SEC Form 4",
+      "drivers": "Volumen 1.8× + Spanne 44.2% + SEC Form 4",
       "price": 1.64,
       "chg_pct": -0.0,
       "rvol_4d": 1.78,
@@ -116,9 +116,9 @@
       "uoa_cp_ratio": null
     },
     "GEMI": {
-      "score": 25,
+      "score": 22,
       "confidence": 33,
-      "drivers": "Spanne 11.1% + News: short interest",
+      "drivers": "Spanne 11.1% + News-KI 12/30: IPO filings and platform upgrades suggest dilution ahead; no significant short interest catalysts or forced-buy pressure",
       "price": 4.18,
       "chg_pct": 0.12,
       "rvol_4d": 1.11,
@@ -136,9 +136,9 @@
       "uoa_cp_ratio": 0.3202247191011236
     },
     "GIII": {
-      "score": 82,
+      "score": 66,
       "confidence": 70,
-      "drivers": "Volumen 3.5× + ⚡ Extremes Volumen 3.5×+ + Spanne 8.5% + SEC 8-K + News: earnings beat",
+      "drivers": "Volumen 3.5× + ⚡ Extremes Volumen 3.5×+ + Spanne 8.5% + News: earnings beat",
       "price": 33.71,
       "chg_pct": -0.0,
       "rvol_4d": 3.45,
@@ -306,9 +306,9 @@
       "uoa_cp_ratio": 1.4281200631911533
     },
     "RBOHF": {
-      "score": 18,
-      "confidence": 33,
-      "drivers": "Spanne 26.1% + News-KI 8/30: Corporate governance and technology updates lack short-squeeze catalysts; no major ownership changes, debt concerns, or ",
+      "score": 10,
+      "confidence": 17,
+      "drivers": "Spanne 26.1%",
       "price": 0.23,
       "chg_pct": 0.0,
       "rvol_4d": 0.37,
