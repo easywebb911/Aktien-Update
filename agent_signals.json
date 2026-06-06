@@ -1,10 +1,10 @@
 {
-  "updated": "2026-06-06T22:35:53.033011+02:00",
+  "updated": "2026-06-07T00:17:42.949055+02:00",
   "run_info": {
     "tickers_checked": 16,
     "signals_active": 4,
     "alerts_sent": 0,
-    "elapsed_s": 13.8,
+    "elapsed_s": 14.4,
     "market_phase": "Geschlossen"
   },
   "signals": {
@@ -96,9 +96,9 @@
       "uoa_cp_ratio": 1.7981220657276995
     },
     "CURV": {
-      "score": 40,
+      "score": 35,
       "confidence": 70,
-      "drivers": "Volumen 1.8× + Spanne 44.2% + News-KI 5/30: Positive earnings news typically reduces short-squeeze potential as it attracts long investors rather than forcing short + SEC Form 4",
+      "drivers": "Volumen 1.8× + Spanne 44.2% + SEC Form 4",
       "price": 1.64,
       "chg_pct": -0.0,
       "rvol_4d": 1.78,
@@ -136,9 +136,9 @@
       "uoa_cp_ratio": 0.3202247191011236
     },
     "GIII": {
-      "score": 66,
+      "score": 53,
       "confidence": 70,
-      "drivers": "Volumen 3.5× + ⚡ Extremes Volumen 3.5×+ + Spanne 8.5% + News: earnings beat",
+      "drivers": "Volumen 3.5× + ⚡ Extremes Volumen 3.5×+ + Spanne 8.5% + News-KI 8/30: Mixed earnings with revenue beat but Q1 loss reported; no significant short squeeze indicators present, broad market wea",
       "price": 33.71,
       "chg_pct": -0.0,
       "rvol_4d": 3.45,
@@ -148,17 +148,17 @@
       "upcoming_event": null,
       "insider_buy": false,
       "stocktwits": null,
-      "combo_mult": 1.1,
-      "active_triggers": 2,
+      "combo_mult": 1.0,
+      "active_triggers": 1,
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": 0.3,
       "uoa_cp_ratio": 0.13748258244310266
     },
     "IONQ": {
-      "score": 22,
+      "score": 18,
       "confidence": 33,
-      "drivers": "Spanne 12.5% + News-KI 12/30: Negative sentiment with valuation concerns and underperformance of competing quantum IPOs indicates weak momentum and un",
+      "drivers": "Spanne 12.5% + News-KI 8/30: Negative sentiment with valuation concerns and sharp pullback indicate weak momentum; no short squeeze setup despite qua",
       "price": 56.78,
       "chg_pct": -0.0,
       "rvol_4d": 1.0,
@@ -169,7 +169,7 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 1,
+      "active_triggers": 0,
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": 0.5942631058358061,
@@ -264,9 +264,9 @@
       "uoa_cp_ratio": 4.09375
     },
     "PDYN": {
-      "score": 20,
+      "score": 25,
       "confidence": 33,
-      "drivers": "Spanne 17.1% + UOA Call/Put 6.9×",
+      "drivers": "Spanne 17.1% + News-KI 5/30: Positive corporate developments but no indicators of short squeeze setup (no short interest data, debt issues, or cataly + UOA Call/Put 6.9×",
       "price": 6.87,
       "chg_pct": -0.0,
       "rvol_4d": 1.12,
