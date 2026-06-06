@@ -234,6 +234,8 @@ def _test_extended_schema():
         "score_delta_t1","anomaly_freshness",
         # Twin-Roh-Felder (29.05.2026) — ungecappt/un-transformiert, additiv.
         "score_delta_t1_raw","anomaly_push_age_h",
+        # CTB-Persistenz (01.06.2026) — additiv, kein Bump (S10_OBSERVED).
+        "cost_to_borrow",
         "backtest_schema_version",
     }
     assert set(ext.keys()) == expected_keys, set(ext.keys()) ^ expected_keys
