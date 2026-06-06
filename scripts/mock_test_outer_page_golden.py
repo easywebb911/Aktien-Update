@@ -170,12 +170,43 @@ class _FixedDateTime(datetime):
         return _FIXED_NOW.astimezone(tz) if tz else _FIXED_NOW.replace(tzinfo=None)
 
 
+def _stub_provider_liveness(entries, tier_map=None, config_flags=None,
+                            now_ts=None):
+    """Determinismus-Stub für die Datasource-Liveness im Golden.
+
+    Das Golden testet Render-LOGIK, NICHT Provider-Gesundheit. Ohne Stub liest
+    ``_datasource_rows_html`` echte ``provider_health.jsonl``-Daten via
+    ``health_check.read_all_provider()`` → der Liveness-Status leakt live ins
+    Golden (FINRA verstummt am Wochenende → ``stale`` → Golden flippt im
+    Wochenrhythmus rot). Dieser Stub ersetzt ``health_check.provider_liveness``
+    und macht den Status DATA-UNABHÄNGIG.
+
+    Identische Rückgabeform wie das Original (``dict[provider_key] -> status``):
+      - ``config_flags[key] is False`` → ``"disabled"`` (config-getrieben,
+        deterministisch — z. B. ``STOCKANALYSIS_SI_ENABLED=False`` → „(aus)").
+      - sonst → ``"live"`` (NIE ``"stale"`` — der live-daten-getriebene, flaky
+        Anteil ist ausgeschaltet).
+
+    ``entries`` (der Leak) wird komplett ignoriert. Die Status-Map deckt alle
+    Keys aus ``tier_map ∪ config_flags`` ab = Obermenge ALLER
+    DATASOURCE_LABELS-provider-keys (verifiziert) → kein
+    ``.get(k, "stale")``-Default-Leak im Renderer. KEINE Liveness-LOGIK
+    geändert — reiner Test-Harness-Stub, Prod-Code unberührt.
+    """
+    config_flags = config_flags or {}
+    tier_map = tier_map or {}
+    keys = set(config_flags) | set(tier_map)
+    return {k: ("disabled" if config_flags.get(k) is False else "live")
+            for k in keys}
+
+
 def _render_outer_page() -> str:
     """Rendert generate_html_v1 deterministisch und schneidet ab ``<body>``.
 
     Patcht NUR im Modul-Namespace des Tests (kein Produktionscode-Touch):
     datetime (Fixed-Clock), _load_backtest_history, _load_score_history,
-    _SCORE_CONFIDENCE, _FX_USD_EUR, _DAILY_REPORT_COUNTS.
+    _SCORE_CONFIDENCE, _FX_USD_EUR, _DAILY_REPORT_COUNTS,
+    health_check.provider_liveness (Datasource-Liveness data-unabhängig).
     """
     _orig = {
         "datetime": gr.datetime,
@@ -184,6 +215,7 @@ def _render_outer_page() -> str:
         "_SCORE_CONFIDENCE": getattr(gr, "_SCORE_CONFIDENCE", {}),
         "_FX_USD_EUR": getattr(gr, "_FX_USD_EUR", 0.92),
         "_DAILY_REPORT_COUNTS": getattr(gr, "_DAILY_REPORT_COUNTS", {}),
+        "provider_liveness": gr.health_check.provider_liveness,
     }
     try:
         gr.datetime = _FixedDateTime
@@ -195,6 +227,9 @@ def _render_outer_page() -> str:
         # backtest_history; der Test umgeht main()) — deckt den
         # „N× im Daily-Report"-Tag-Render-Pfad ab.
         gr._DAILY_REPORT_COUNTS = {"AAAA": 7, "BBBB": 3}
+        # Datasource-Liveness data-unabhängig stubben — sonst leakt der echte
+        # provider_health.jsonl-Status ins Golden (FINRA-Wochenend-Flip).
+        gr.health_check.provider_liveness = _stub_provider_liveness
         full = gr.generate_html_v1(
             _fixture_stocks(), _FIXED_REPORT_DATE, watchlist_cards=None)
     finally:
@@ -204,6 +239,7 @@ def _render_outer_page() -> str:
         gr._SCORE_CONFIDENCE = _orig["_SCORE_CONFIDENCE"]
         gr._FX_USD_EUR = _orig["_FX_USD_EUR"]
         gr._DAILY_REPORT_COUNTS = _orig["_DAILY_REPORT_COUNTS"]
+        gr.health_check.provider_liveness = _orig["provider_liveness"]
 
     # Scope-Schnitt: ab <body> (head.jinja/CSS raus). <body> ist genau 1× da.
     idx = full.find("<body>")
