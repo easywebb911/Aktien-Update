@@ -1,10 +1,10 @@
 {
-  "updated": "2026-06-06T16:53:52.137560+02:00",
+  "updated": "2026-06-06T18:20:24.233921+02:00",
   "run_info": {
     "tickers_checked": 16,
     "signals_active": 4,
     "alerts_sent": 0,
-    "elapsed_s": 12.4,
+    "elapsed_s": 21.1,
     "market_phase": "Geschlossen"
   },
   "signals": {
@@ -34,7 +34,7 @@
     "AMC": {
       "score": 50,
       "confidence": 33,
-      "drivers": "Spanne 10.4% + News: short seller, squeeze + UOA Call/Put 6.1×",
+      "drivers": "Spanne 10.4% + News: short seller, breakout + UOA Call/Put 6.1×",
       "price": 1.79,
       "chg_pct": -0.0,
       "rvol_4d": 0.47,
@@ -78,7 +78,7 @@
     "CRMD": {
       "score": 30,
       "confidence": 17,
-      "drivers": "News: earnings beat, guidance raised",
+      "drivers": "News: guidance raised, earnings beat",
       "price": 8.36,
       "chg_pct": -0.0,
       "rvol_4d": 0.81,
@@ -96,9 +96,9 @@
       "uoa_cp_ratio": 1.7981220657276995
     },
     "CURV": {
-      "score": 40,
+      "score": 35,
       "confidence": 70,
-      "drivers": "Volumen 1.8× + Spanne 44.2% + News-KI 5/30: Positive earnings news typically reduces short-squeeze potential as it stabilizes stock price and reduces bearish sentim + SEC Form 4",
+      "drivers": "Volumen 1.8× + Spanne 44.2% + SEC Form 4",
       "price": 1.64,
       "chg_pct": -0.0,
       "rvol_4d": 1.78,
@@ -116,9 +116,9 @@
       "uoa_cp_ratio": null
     },
     "GEMI": {
-      "score": 25,
+      "score": 22,
       "confidence": 33,
-      "drivers": "Spanne 11.1% + News: short interest",
+      "drivers": "Spanne 11.1% + News-KI 12/30: IPO filings and product updates show business development but lack the short seller controversy, high short interest, or",
       "price": 4.18,
       "chg_pct": 0.12,
       "rvol_4d": 1.11,
@@ -138,7 +138,7 @@
     "GIII": {
       "score": 53,
       "confidence": 70,
-      "drivers": "Volumen 3.5× + ⚡ Extremes Volumen 3.5×+ + Spanne 8.5% + News-KI 8/30: Q1 loss despite revenue beat shows weak fundamentals; no significant short interest catalyst or bullish momentum indicat",
+      "drivers": "Volumen 3.5× + ⚡ Extremes Volumen 3.5×+ + Spanne 8.5% + News-KI 8/30: Negative earnings with revenue beat shows weakness; no significant short interest data or catalyst for squeeze pressure ",
       "price": 33.71,
       "chg_pct": -0.0,
       "rvol_4d": 3.45,
@@ -264,9 +264,9 @@
       "uoa_cp_ratio": 4.09375
     },
     "PDYN": {
-      "score": 20,
+      "score": 25,
       "confidence": 33,
-      "drivers": "Spanne 17.1% + UOA Call/Put 6.9×",
+      "drivers": "Spanne 17.1% + News-KI 5/30: Positive corporate developments but lack of short squeeze catalysts like high short interest, sudden share restrictions, + UOA Call/Put 6.9×",
       "price": 6.87,
       "chg_pct": -0.0,
       "rvol_4d": 1.12,
