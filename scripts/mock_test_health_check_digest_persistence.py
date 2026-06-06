@@ -79,22 +79,24 @@ def test_ki_agent_jsonl_adds_use_safe_pattern():
 # === 2 — Cron-Offset Digest-Workflow ======================================
 
 
-def test_digest_cron_is_21_8():
-    """Cron 21 8 * * * (Spec-Wortlaut '0 8' → '13 8' → '21 8') —
-    weiter weg vom Stunden-Last-Peak."""
+def test_digest_cron_is_47_8():
+    """Cron 47 8 * * * (Iteration 3, aktiv ab 16.05.2026 — Spec-Wortlaut
+    '0 8' → '13 8' → '21 8' → '47 8'). Prod-Ist laut CLAUDE.md:3659 +
+    health_check_digest.yml; #2 '21 8' wurde am 16.05. verworfen."""
     import yaml
     data = yaml.safe_load(DIGEST_YML.read_text(encoding="utf-8"))
     triggers = data["on" if "on" in data else True]
     cron = triggers["schedule"][0]["cron"]
-    assert cron == "21 8 * * *", (
-        f"Cron sollte '21 8 * * *' sein, ist {cron!r}")
+    assert cron == "47 8 * * *", (
+        f"Cron sollte '47 8 * * *' sein, ist {cron!r}")
 
 
 def test_digest_cron_comment_documents_drift():
-    """Workflow-File dokumentiert die 13→21-Verschiebung mit Datum + Grund."""
+    """Workflow-File dokumentiert die Cron-Migration zur aktiven Iteration 3
+    mit Datum + Grund."""
     text = DIGEST_YML.read_text(encoding="utf-8")
-    assert "15.05.2026" in text, "Datum der Cron-Migration fehlt im Comment"
-    assert "21 8 * * *" in text
+    assert "16.05.2026" in text, "Datum der aktuellen Cron-Migration fehlt im Comment"
+    assert "47 8 * * *" in text
 
 
 # === 3 — Logging-Erweiterung ntfy_send ===================================
@@ -203,8 +205,8 @@ def main() -> None:
         ("ki_agent.yml: || true-geschützt",
          test_ki_agent_jsonl_adds_use_safe_pattern),
         # Cron-Offset
-        ("Digest-Cron auf '21 8 * * *'", test_digest_cron_is_21_8),
-        ("Cron-Migration dokumentiert (15.05.2026)",
+        ("Digest-Cron auf '47 8 * * *'", test_digest_cron_is_47_8),
+        ("Cron-Migration dokumentiert (16.05.2026)",
          test_digest_cron_comment_documents_drift),
         # Logging
         ("ntfy_send loggt HTTP-Status bei Success",

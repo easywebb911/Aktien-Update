@@ -1,9 +1,13 @@
 """Mock-Tests fuer CLAUDE.md PR-Status-Meldungs-Sektion (17.05.2026).
 
-Hintergrund: Aktien-Update-Repo hat keine CI-Workflows fuer PR-
-Validation. Claude hat aber nach jedem PR-Push gemeldet "Warte auf
-Webhook-Events", die nie kommen. Easy musste explizit zum Merge
-auffordern.
+Hintergrund: Claude hat nach jedem PR-Push "Warte auf Webhook-Events"
+gemeldet statt direkt eine Ready/Merge-Klassifikation. Easy musste
+explizit zum Merge auffordern.
+
+Stand-Update (post-#316): das Repo hat seit 03.06. genau EINEN PR-CI-
+Workflow (pr-checks.yml), aber er ist ADVISORY (nicht required). Die
+Regel-Begruendung ist damit "advisory CI gated den Merge nicht" statt
+"keine CI-Workflows". Diese Tests pruefen den aktuellen CLAUDE.md-Stand.
 
 Fix: CLAUDE.md-Regel zementiert "Ready for Merge"-Meldung statt
 Webhook-Warten. Code liest CLAUDE.md beim Session-Start und folgt
@@ -11,7 +15,7 @@ dem Pattern.
 
 Tests:
   1. Sub-Sektion "PR-Status-Meldung nach Push" in CLAUDE.md
-  2. Hinweis dass Repo KEINE CI-Workflows fuer PR-Validation hat
+  2. Hinweis dass die PR-CI ADVISORY ist (Merge nicht CI-gegated)
   3. Regel "Ready for Merge" als Klassifikation dokumentiert
   4. Explizite "Was Claude NICHT mehr melden soll"-Liste
   5. Subscribe-pr-activity-Ausnahme dokumentiert
@@ -31,11 +35,12 @@ def test_01_pr_status_section_exists() -> None:
         "Sub-Sektion 'PR-Status-Meldung nach Push' fehlt in CLAUDE.md"
 
 
-def test_02_no_ci_workflows_hint() -> None:
-    # Klare Begruendung warum Webhook-Warten sinnlos ist
-    assert "keine GitHub-Actions-CI-Workflows" in CMD or \
-           "keine CI-Workflows" in CMD, \
-        "Hinweis auf fehlende CI-Workflows fehlt"
+def test_02_advisory_ci_hint() -> None:
+    # Post-#316: es GIBT eine PR-CI (pr-checks.yml), aber sie ist ADVISORY
+    # (nicht required). Die Begruendung, warum der Merge NICHT von CI-Gruen
+    # abhaengt, ist jetzt "advisory" statt "keine CI-Workflows" (CLAUDE.md:95).
+    assert "advisory" in CMD.lower(), \
+        "Hinweis auf advisory PR-CI fehlt (post-#316)"
 
 
 def test_03_ready_for_merge_rule() -> None:
@@ -44,12 +49,11 @@ def test_03_ready_for_merge_rule() -> None:
 
 
 def test_04_dont_meld_webhook_events() -> None:
-    # Explizite Negativliste
-    assert "Warte auf Webhook-Events" in CMD, \
-        "Negativliste 'Warte auf Webhook-Events' fehlt"
-    assert "CI läuft" in CMD or "Es gibt keine CI" in CMD or \
-           "es gibt keine CI-Workflows" in CMD, \
-        "'CI laeuft' als unzulaessige Meldung nicht aufgefuehrt"
+    # Explizite Negativliste (post-#319 Wortlaut, CLAUDE.md:121/125)
+    assert "Warte passiv auf Webhook-Events" in CMD, \
+        "Negativliste 'Warte passiv auf Webhook-Events' fehlt"
+    assert "CI muss erst grün sein" in CMD, \
+        "'CI muss erst gruen sein' als unzulaessige Meldung nicht aufgefuehrt"
 
 
 def test_05_subscribe_pr_activity_exception() -> None:
@@ -75,7 +79,7 @@ def test_06_section_in_auto_merge_area() -> None:
 def main() -> int:
     tests = [
         ("01 PR-Status-Sektion existiert",         test_01_pr_status_section_exists),
-        ("02 Hinweis 'keine CI-Workflows'",         test_02_no_ci_workflows_hint),
+        ("02 Hinweis 'advisory PR-CI'",             test_02_advisory_ci_hint),
         ("03 'Ready for Merge'-Regel",              test_03_ready_for_merge_rule),
         ("04 Negativliste 'Webhook-Events'",        test_04_dont_meld_webhook_events),
         ("05 subscribe_pr_activity-Ausnahme",       test_05_subscribe_pr_activity_exception),
