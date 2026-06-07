@@ -34,7 +34,7 @@ import sys
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 SCRIPTS = ROOT / "scripts"
 
-# ── ALLOWLIST (76) — abgeleitet zur Bauzeit (ls mock_test_*.py − EXCLUDED),
+# ── ALLOWLIST (77) — abgeleitet zur Bauzeit (ls mock_test_*.py − EXCLUDED),
 #    danach statisch festgeschrieben. Kategorie A: deterministisch, kein
 #    Real-State-/Datums-Read, läuft auf stdlib+jinja2+pyyaml. ───────────────
 ALLOWLIST = [
@@ -42,7 +42,7 @@ ALLOWLIST = [
     "chat_watchlist_ctx", "claude_md_consistency", "claude_md_pr_status", "cockpit_delta",
     "conviction_coverage_extension", "data_maturity_gate", "details_news_padding", "digest",
     "earliness_dtc", "earliness_pm_vol", "earliness_trend_log", "entry_raw_twin_fields",
-    "entry_shadow_persist", "entry_thesis", "finnhub_skip_logging",
+    "entry_score", "entry_shadow_persist", "entry_thesis", "finnhub_skip_logging",
     "gist_action_token_routing", "health_check", "health_check_digest_persistence",
     "html_assertions", "jekyll_exclude", "jsformat_escape", "ki_agent_coverage",
     "ki_agent_rvol_disambiguation", "ki_analyse_padding", "knaller_label", "methodology_display",
@@ -60,7 +60,7 @@ ALLOWLIST = [
     "token_settings_ui_refresh", "token_storage_diagnose", "watchlist_drawer_stale_data",
 ]
 
-# ── EXCLUDED (7) — bewusst NICHT im Gate, je mit Grund. ───────────────────
+# ── EXCLUDED (10) — bewusst NICHT im Gate, je mit Grund. ───────────────────
 EXCLUDED = {
     # B — Ergebnis hängt von echten Repo-Daten ab → datums-/content-flaky:
     "topten_entry_anomaly":             "liest ROOT/backtest_history.json (content-flaky)",

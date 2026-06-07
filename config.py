@@ -1231,6 +1231,14 @@ S10_OBSERVED_FIELDS = frozenset({
     # iBorrowDesk-Eintrag) → nur OBSERVED, KEIN MUSS-/LAG-Check (sonst
     # Smallcap-None-WARN). Schema bleibt v4 (additiv).
     "cost_to_borrow",
+    # Entry-Timing-Score (Shadow-Mode 06.06.2026): finaler 0–100-Score +
+    # Komponenten-Sub-Dict + Anzahl eingehender Komponenten + push_history-
+    # Verfügbarkeits-Flag (Option (c) Daten-Ausfall-Marker). KEIN Push/keine
+    # Anzeige/kein Score-Effekt → nur OBSERVED, kein MUSS-/LAG-Check
+    # (entry_score/-components leer-tolerant bei 0 eingehenden Komponenten).
+    # Schema bleibt v4 (additiv).
+    "entry_score", "entry_components", "entry_n_components",
+    "push_history_available",
     # LAG-Felder, später (Phase 2)
     "entry_price_t1",
     "return_10d", "return_10d_t1",

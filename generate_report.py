@@ -236,10 +236,21 @@ def _test_extended_schema():
         "score_delta_t1_raw","anomaly_push_age_h",
         # CTB-Persistenz (01.06.2026) — additiv, kein Bump (S10_OBSERVED).
         "cost_to_borrow",
+        # Entry-Timing-Score (Shadow-Mode 06.06.2026) — additiv, kein Bump.
+        # Volle Rechen-Logik in scripts/mock_test_entry_score.py (pure).
+        "entry_score", "entry_components", "entry_n_components",
+        "push_history_available",
         "backtest_schema_version",
     }
     assert set(ext.keys()) == expected_keys, set(ext.keys()) ^ expected_keys
     assert ext["backtest_schema_version"] == 4, ext
+    # Entry-Score: full hat keine Entry-Inputs (kein sparkline/hist_5d/uoa,
+    # <5 FINRA-Punkte, latest_push_ts_by_ticker nicht übergeben → Map None) →
+    # 0 eingehende Komponenten → entry_score None, Flag False.
+    assert ext["entry_score"] is None, ext
+    assert ext["entry_n_components"] == 0, ext
+    assert ext["push_history_available"] is False, ext
+    assert all(v is None for v in ext["entry_components"].values()), ext
     assert ext["score_raw"]          == 76.3, ext
     assert ext["combo_bonus"]        == float(COMBO_BONUS), ext  # 4/4 Bedingungen
     assert ext["score_trend_bonus"]  == 3.0, ext
@@ -292,6 +303,10 @@ def _test_extended_schema():
     assert ext2["vol_stability_5d"]    is None, ext2
     assert ext2["coiled_spring_score"] is None, ext2
     assert ext2["backtest_schema_version"] == 4, ext2
+    # Entry-Score: bare hat ebenfalls keine Entry-Inputs → None / 0 / False.
+    assert ext2["entry_score"] is None, ext2
+    assert ext2["entry_n_components"] == 0, ext2
+    assert ext2["push_history_available"] is False, ext2
     print("OK: extended-schema self-test passed")
 
 

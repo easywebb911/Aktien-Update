@@ -33,6 +33,7 @@ from config import (
     EARLINESS_TREND_VOL_STAB_CAP,
     SCORE_NORMALIZATION_VERSION,
 )
+import entry_score as entry_score_module  # Entry-Timing-Score (Shadow, pure)
 
 log = logging.getLogger(__name__)
 
@@ -388,6 +389,22 @@ def _build_backtest_extension(s: dict, pool_position: int, pool_size: int,
     # Twin-Roh-Feld (29.05.2026): rohes Push-Alter h, vor Decay/0-Floor.
     anomaly_push_age_h = _compute_anomaly_push_age_h(_latest_push_ts, _now)
 
+    # Entry-Timing-Score (Shadow-Mode, 06.06.2026) — rechnet + persistiert,
+    # KEIN Push/KEINE Anzeige/KEIN Score-/Filter-Effekt. Logik in entry_score.py
+    # (pure, stdlib). push_history_available = Map gefüllt (Option (c)): bei
+    # leerer Map (agent_state.json fehlt/korrupt → {}) fällt anomaly raus statt
+    # alle Scores fälschlich zu drücken; bei gefüllter Map zählt anomaly=None
+    # als echte 0 ("nie gepusht"). Flag wird mitpersistiert → Ausfall-Tage am
+    # 30.06. filterbar.
+    push_history_available = bool(latest_push_ts_by_ticker)
+    entry_score, entry_components, entry_n_components = (
+        entry_score_module.compute_entry_score(
+            anomaly_freshness, score_delta_t1, sig.get("uoa_atm_ratio"),
+            rvol_buildup, si_slope_5d,
+            push_history_available=push_history_available,
+        )
+    )
+
     return {
         "score_struct":         sub["struct"]   if sub is not None else None,
         "score_catalyst":       sub["catalyst"] if sub is not None else None,
@@ -445,6 +462,19 @@ def _build_backtest_extension(s: dict, pool_position: int, pool_size: int,
         # utilization bewusst NICHT mitpersistiert (keine Gratis-Quelle,
         # fließt nicht in den Score — fokussiert auf CTB).
         "cost_to_borrow":         s.get("cost_to_borrow"),
+        # Entry-Timing-Score (Shadow-Mode 06.06.2026) — rechnet + persistiert,
+        # KEIN Push/KEINE Anzeige/KEIN Score-/Filter-Effekt. Re-Norm-Aggregat
+        # (Option B) der 5 normalisierten Komponenten (entry_score.py).
+        # entry_components ist das Sub-Dict der 5 normalisierten Werte (0–100
+        # oder None); entry_n_components = Anzahl eingehender Komponenten (0–5,
+        # für die 30.06.-Frage „treffen dünne Scores schlechter?").
+        # push_history_available (Option (c)): False = agent_state-leere Map
+        # (Daten-Ausfall, anomaly fiel raus) → Ausfall-Tage 30.06. filterbar.
+        # Schema-ADDITIV — KEIN v4→v5-Bump (S10-Loader filtert == 4).
+        "entry_score":             entry_score,
+        "entry_components":        entry_components,
+        "entry_n_components":      entry_n_components,
+        "push_history_available":  push_history_available,
         "backtest_schema_version": 4,
     }
 
