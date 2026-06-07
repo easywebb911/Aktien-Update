@@ -74,7 +74,7 @@ jobs:
       - name: Lint token-crypto invariants
         run: python scripts/lint_token_crypto.py
 
-      # Phase-2-Gate: gebündelter Allowlist-Runner für die 76 datums-/netz-
+      # Phase-2-Gate: gebündelter Allowlist-Runner für die 77 datums-/netz-
       # stabilen (Kategorie-A) Mock-Tests — inkl. Outer-Page-Golden (#312) und
       # der 3 Phase-1-Tests (gist ${var}-Grep #326, provider_health ×2
       # #325/#327/#330/#332), die jetzt ÜBER den Runner laufen (deshalb sind
@@ -83,7 +83,7 @@ jobs:
       # neuer mock_test weder ALLOWLIST noch EXCLUDED ist. Golden-Disziplin
       # unberührt: der Golden läuft weiter (via Runner), UPDATE_GOLDEN bei
       # gewolltem Output-Change bleibt Pflicht.
-      # 76, nicht 79: 3 Tests (entry_score_persistence, health_check_ntfy_url_
+      # 77, nicht 79: 3 Tests (entry_score_persistence, health_check_ntfy_url_
       # pattern, ntfy_fail_visibility) brauchen `requests` (im Minimal-Install
       # nicht da) → TEMP in EXCLUDED bis #336 den requests-Stub ergänzt, dann
       # zurück in ALLOWLIST (Ziel 79).
