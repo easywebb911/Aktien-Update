@@ -1,5 +1,5 @@
 {
-  "last_run": "2026-06-07T10:30:42.106717+02:00",
+  "last_run": "2026-06-07T13:17:07.261625+02:00",
   "cooldowns": {
     "anomaly_score_jump_XRX": "2026-05-03T18:47:15.315486+02:00",
     "anomaly_uoa_extreme_TDOC": "2026-05-04T13:47:00.365949+02:00",
@@ -60,30 +60,6 @@
     "earnings_immediate_GIII_05.06.2026": "2026-06-05T22:14:02.803592+02:00"
   },
   "push_history": [
-    {
-      "ts": "2026-05-29T13:41:25.656556+02:00",
-      "ticker": "KSS",
-      "kind": "anomaly",
-      "severity": "high",
-      "trigger": "monster_backup",
-      "body": "KSS 🔥 Monster 100 | Setup 97 | KI 25",
-      "success": false,
-      "suppressed": true,
-      "suppress_reason": "conviction_below_threshold",
-      "conviction_score": 71
-    },
-    {
-      "ts": "2026-05-29T13:41:25.656645+02:00",
-      "ticker": "NMAX",
-      "kind": "anomaly",
-      "severity": "medium",
-      "trigger": "score_jump",
-      "body": "NMAX 🚀 Setup 77 ↑ (gestern 60) | Spanne 13.4% + News: squeeze + UOA Call/Put 3.5×",
-      "success": false,
-      "suppressed": true,
-      "suppress_reason": "conviction_below_threshold",
-      "conviction_score": 51
-    },
     {
       "ts": "2026-05-29T14:28:11.928209+02:00",
       "ticker": "KSS",
@@ -1259,6 +1235,30 @@
       "suppressed": false,
       "suppress_reason": null,
       "conviction_score": null
+    },
+    {
+      "ts": "2026-06-07T13:17:08.020208+02:00",
+      "ticker": "IONQ",
+      "kind": "exit_p2",
+      "severity": "trigger",
+      "trigger": "trend_break",
+      "body": "🔻 Exit-Signal IONQ: trend_break crit ({'ma21': 59.8752, 'price': 56.78, 'drop_pct': 5.17})",
+      "success": true,
+      "suppressed": false,
+      "suppress_reason": null,
+      "conviction_score": null
+    },
+    {
+      "ts": "2026-06-07T13:17:08.338610+02:00",
+      "ticker": "PDYN",
+      "kind": "exit_p2",
+      "severity": "trigger",
+      "trigger": "trend_break",
+      "body": "🔻 Exit-Signal PDYN: trend_break crit ({'ma21': 7.2693, 'price': 6.87, 'drop_pct': 5.49})",
+      "success": true,
+      "suppressed": false,
+      "suppress_reason": null,
+      "conviction_score": null
     }
   ],
   "prev_conviction_scores": {
@@ -1292,8 +1292,8 @@
     "exitp2_trigger_KPTI_trend_break": "2026-05-15T18:18:45.093840+02:00",
     "exitp2_trigger_RR_trend_break": "2026-05-20T17:26:03.459661+02:00",
     "exitp2_warning_IONQ": "2026-06-07T06:56:54.412568+02:00",
-    "exitp2_trigger_IONQ_trend_break": "2026-06-06T12:22:48.469509+02:00",
-    "exitp2_trigger_PDYN_trend_break": "2026-06-06T12:22:48.653378+02:00",
+    "exitp2_trigger_IONQ_trend_break": "2026-06-07T13:17:08.020239+02:00",
+    "exitp2_trigger_PDYN_trend_break": "2026-06-07T13:17:08.338645+02:00",
     "exitp2_trigger_GEMI_trend_break": "2026-06-06T20:39:59.384978+02:00",
     "exitp2_trigger_PDYN_overheated": "2026-05-28T18:12:36.334552+02:00",
     "exitp2_trigger_CRDF_profit_lock": "2026-06-01T19:24:04.144723+02:00",
