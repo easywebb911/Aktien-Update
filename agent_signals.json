@@ -1,17 +1,17 @@
 {
-  "updated": "2026-06-07T07:34:26.510425+02:00",
+  "updated": "2026-06-07T08:37:40.425147+02:00",
   "run_info": {
     "tickers_checked": 16,
-    "signals_active": 5,
+    "signals_active": 4,
     "alerts_sent": 0,
-    "elapsed_s": 18.5,
+    "elapsed_s": 16.2,
     "market_phase": "Geschlossen"
   },
   "signals": {
     "AI": {
-      "score": 58,
+      "score": 65,
       "confidence": 70,
-      "drivers": "Spanne 5.9% + News-KI 8/30: Widening losses and reliance on partnerships suggest weak fundamentals that make short-squeeze unlikely despite AI secto + SEC Form 4 + UOA Call-Vol/OI 7.1× ATM + UOA Call/Put 36.6×",
+      "drivers": "Spanne 5.9% + News: partnership + SEC Form 4 + UOA Call-Vol/OI 7.1× ATM + UOA Call/Put 36.6×",
       "price": 10.43,
       "chg_pct": 0.0,
       "rvol_4d": 0.7,
@@ -22,7 +22,7 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 0,
+      "active_triggers": 1,
       "uoa_score": 30,
       "uoa_drivers": [
         "UOA Call-Vol/OI 7.1× ATM",
@@ -96,9 +96,9 @@
       "uoa_cp_ratio": 1.7981220657276995
     },
     "CURV": {
-      "score": 40,
+      "score": 35,
       "confidence": 70,
-      "drivers": "Volumen 1.8× + Spanne 44.2% + News-KI 5/30: Positive earnings headlines indicate fundamental strength, which typically reduces short-squeeze potential as shorts wil + SEC Form 4",
+      "drivers": "Volumen 1.8× + Spanne 44.2% + SEC Form 4",
       "price": 1.64,
       "chg_pct": -0.0,
       "rvol_4d": 1.78,
@@ -158,7 +158,7 @@
     "GIII": {
       "score": 53,
       "confidence": 70,
-      "drivers": "Volumen 3.5× + ⚡ Extremes Volumen 3.5×+ + Spanne 8.5% + News-KI 8/30: Mixed earnings results with revenue beat but net loss, combined with broad market weakness, show weak momentum and low s",
+      "drivers": "Volumen 3.5× + ⚡ Extremes Volumen 3.5×+ + Spanne 8.5% + News-KI 8/30: Weak earnings with loss despite revenue beat, combined with general tech sector weakness, provides little momentum for a",
       "price": 33.71,
       "chg_pct": -0.0,
       "rvol_4d": 3.45,
@@ -176,9 +176,9 @@
       "uoa_cp_ratio": 0.13748258244310266
     },
     "IONQ": {
-      "score": 10,
-      "confidence": 17,
-      "drivers": "Spanne 12.5%",
+      "score": 22,
+      "confidence": 33,
+      "drivers": "Spanne 12.5% + News-KI 12/30: Negative sentiment with valuation concerns and IPO underperformance reduce short-squeeze potential despite quantum compu",
       "price": 56.78,
       "chg_pct": -0.0,
       "rvol_4d": 1.0,
@@ -189,16 +189,16 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 0,
+      "active_triggers": 1,
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": 0.5942631058358061,
       "uoa_cp_ratio": 1.414875283446712
     },
     "LENZ": {
-      "score": 53,
+      "score": 45,
       "confidence": 70,
-      "drivers": "Spanne 6.1% + News-KI 8/30: Negative analyst downgrades, falling estimates, and grim outlook indicators suggest weakening momentum with no short-squ + FINRA Short-Vol 86% + UOA Call/Put 9.6×",
+      "drivers": "Spanne 6.1% + FINRA Short-Vol 86% + UOA Call/Put 9.6×",
       "price": 7.01,
       "chg_pct": 0.0,
       "rvol_4d": 0.8,
@@ -218,13 +218,13 @@
       "uoa_cp_ratio": 9.5625
     },
     "LFVN": {
-      "score": 20,
-      "confidence": 33,
-      "drivers": "SEC Form 4 + UOA Call/Put 18.9×",
+      "score": 30,
+      "confidence": 70,
+      "drivers": "Spanne 13.8% + SEC Form 4 + UOA Call/Put 18.9×",
       "price": 9.97,
       "chg_pct": 0.0,
-      "rvol_4d": 0.0,
-      "rvol_20d": null,
+      "rvol_4d": 0.55,
+      "rvol_20d": 1.61,
       "earnings": null,
       "fda_date": null,
       "upcoming_event": null,
@@ -304,9 +304,9 @@
       "uoa_cp_ratio": 1.4281200631911533
     },
     "RBOHF": {
-      "score": 10,
-      "confidence": 17,
-      "drivers": "Spanne 26.1%",
+      "score": 18,
+      "confidence": 33,
+      "drivers": "Spanne 26.1% + News-KI 8/30: Positive corporate developments and partnerships, but lacking short-squeeze catalysts like massive short interest, sudde",
       "price": 0.23,
       "chg_pct": 0.0,
       "rvol_4d": 0.37,
