@@ -1,10 +1,10 @@
 {
-  "updated": "2026-06-08T13:23:30.176799+02:00",
+  "updated": "2026-06-08T14:09:35.087443+02:00",
   "run_info": {
     "tickers_checked": 16,
     "signals_active": 3,
     "alerts_sent": 0,
-    "elapsed_s": 12.5,
+    "elapsed_s": 17.4,
     "market_phase": "Pre-Market"
   },
   "signals": {
@@ -31,9 +31,9 @@
       "uoa_cp_ratio": 36.554589371980676
     },
     "AMC": {
-      "score": 38,
+      "score": 50,
       "confidence": 33,
-      "drivers": "Spanne 10.4% + News-KI 18/30: Positive sentiment from theater attendance recovery, but lacks evidence of extreme short interest, catalyst urgency, or  + UOA Call/Put 6.1×",
+      "drivers": "Spanne 10.4% + News: short squeeze, squeeze + UOA Call/Put 6.1×",
       "price": 1.79,
       "chg_pct": -0.0,
       "rvol_4d": 0.47,
@@ -91,13 +91,13 @@
       "active_triggers": 1,
       "uoa_score": 0,
       "uoa_drivers": [],
-      "uoa_atm_ratio": null,
+      "uoa_atm_ratio": 0.029616357504215853,
       "uoa_cp_ratio": 1.7981220657276995
     },
     "CURV": {
-      "score": 40,
+      "score": 50,
       "confidence": 70,
-      "drivers": "Volumen 1.8× + Spanne 44.2% + News-KI 5/30: Positive earnings news typically reduces short-squeeze potential as it improves company fundamentals and reduces short s + SEC Form 4",
+      "drivers": "Volumen 1.8× + Spanne 44.2% + News: revenue beat + SEC Form 4",
       "price": 1.64,
       "chg_pct": -0.0,
       "rvol_4d": 1.78,
@@ -108,16 +108,16 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 0,
+      "active_triggers": 1,
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": null,
       "uoa_cp_ratio": null
     },
     "GEMI": {
-      "score": 40,
+      "score": 25,
       "confidence": 33,
-      "drivers": "Spanne 11.1% + News: short interest, buyout",
+      "drivers": "Spanne 11.1% + News: short interest",
       "price": 4.18,
       "chg_pct": 0.12,
       "rvol_4d": 1.11,
@@ -173,13 +173,13 @@
       "uoa_drivers": [
         "UOA Call/Put 3.5×"
       ],
-      "uoa_atm_ratio": null,
+      "uoa_atm_ratio": 0.001893939393939394,
       "uoa_cp_ratio": 3.5125
     },
     "GRPN": {
-      "score": 50,
+      "score": 25,
       "confidence": 33,
-      "drivers": "Spanne 11.8% + News: short interest, squeeze + UOA Call/Put 8.9×",
+      "drivers": "Spanne 11.8% + News-KI 5/30: Negative fundamentals (job cuts, customer shift) and earnings focus indicate weak sentiment that contradicts short-squee + UOA Call/Put 8.9×",
       "price": 16.46,
       "chg_pct": -0.0,
       "rvol_4d": 0.93,
@@ -190,18 +190,18 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 1,
+      "active_triggers": 0,
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 8.9×"
       ],
-      "uoa_atm_ratio": 0.37960074859638177,
+      "uoa_atm_ratio": 0.17683812845103167,
       "uoa_cp_ratio": 8.930656934306569
     },
     "IONQ": {
-      "score": 22,
-      "confidence": 33,
-      "drivers": "Spanne 12.5% + News-KI 12/30: Negative sentiment with valuation concerns and underperformance of competing quantum IPOs suggests weakness rather than ",
+      "score": 10,
+      "confidence": 17,
+      "drivers": "Spanne 12.5%",
       "price": 56.78,
       "chg_pct": -0.0,
       "rvol_4d": 1.0,
@@ -212,10 +212,10 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 1,
+      "active_triggers": 0,
       "uoa_score": 0,
       "uoa_drivers": [],
-      "uoa_atm_ratio": 1.3723161260849703,
+      "uoa_atm_ratio": 0.49726866412845555,
       "uoa_cp_ratio": 1.4125678119349006
     },
     "LFVN": {
@@ -259,7 +259,7 @@
       "uoa_drivers": [
         "UOA Call/Put 12.3×"
       ],
-      "uoa_atm_ratio": null,
+      "uoa_atm_ratio": 1.675,
       "uoa_cp_ratio": 12.333333333333334
     },
     "PDYN": {
@@ -281,7 +281,7 @@
       "uoa_drivers": [
         "UOA Call/Put 6.9×"
       ],
-      "uoa_atm_ratio": null,
+      "uoa_atm_ratio": 0.07080504364694472,
       "uoa_cp_ratio": 6.873493975903615
     },
     "PLAY": {
