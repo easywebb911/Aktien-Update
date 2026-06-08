@@ -1,5 +1,5 @@
 {
-  "last_run": "2026-06-08T06:35:23.789727+02:00",
+  "last_run": "2026-06-08T09:04:20.792779+02:00",
   "cooldowns": {
     "anomaly_score_jump_XRX": "2026-05-03T18:47:15.315486+02:00",
     "anomaly_uoa_extreme_TDOC": "2026-05-04T13:47:00.365949+02:00",
@@ -60,30 +60,6 @@
     "earnings_immediate_GIII_05.06.2026": "2026-06-05T22:14:02.803592+02:00"
   },
   "push_history": [
-    {
-      "ts": "2026-05-30T15:55:07.705503+02:00",
-      "ticker": "FDMT",
-      "kind": "anomaly",
-      "severity": "high",
-      "trigger": "monster_backup",
-      "body": "FDMT 🔥 Monster 93 | Setup 93 | KI 50",
-      "success": false,
-      "suppressed": true,
-      "suppress_reason": "conviction_below_threshold",
-      "conviction_score": 70
-    },
-    {
-      "ts": "2026-05-30T16:03:29.708850+02:00",
-      "ticker": "AI",
-      "kind": "anomaly",
-      "severity": "high",
-      "trigger": "monster_backup",
-      "body": "AI 🔥 Monster 99 | Setup 83 | KI 60",
-      "success": false,
-      "suppressed": true,
-      "suppress_reason": "conviction_below_threshold",
-      "conviction_score": 73
-    },
     {
       "ts": "2026-05-30T16:03:29.709055+02:00",
       "ticker": "FDMT",
@@ -1259,6 +1235,30 @@
       "suppressed": false,
       "suppress_reason": null,
       "conviction_score": null
+    },
+    {
+      "ts": "2026-06-08T09:04:20.848479+02:00",
+      "ticker": "IONQ",
+      "kind": "exit_p2",
+      "severity": "warning",
+      "trigger": null,
+      "body": "⚠️ Exit-Warnung IONQ: pressure 67/100",
+      "success": true,
+      "suppressed": false,
+      "suppress_reason": null,
+      "conviction_score": null
+    },
+    {
+      "ts": "2026-06-08T09:04:20.894794+02:00",
+      "ticker": "RBOHF",
+      "kind": "exit_p2",
+      "severity": "trigger",
+      "trigger": "trend_break",
+      "body": "🔻 Exit-Signal RBOHF: trend_break crit ({'ma21': 0.2432, 'price': 0.23, 'drop_pct': 5.45})",
+      "success": true,
+      "suppressed": false,
+      "suppress_reason": null,
+      "conviction_score": null
     }
   ],
   "prev_conviction_scores": {
@@ -1291,7 +1291,7 @@
     "exitp2_trigger_CRMD_catalyst": "2026-05-14T16:48:50.948217+02:00",
     "exitp2_trigger_KPTI_trend_break": "2026-05-15T18:18:45.093840+02:00",
     "exitp2_trigger_RR_trend_break": "2026-05-20T17:26:03.459661+02:00",
-    "exitp2_warning_IONQ": "2026-06-07T20:20:35.430610+02:00",
+    "exitp2_warning_IONQ": "2026-06-08T09:04:20.848507+02:00",
     "exitp2_trigger_IONQ_trend_break": "2026-06-07T13:17:08.020239+02:00",
     "exitp2_trigger_PDYN_trend_break": "2026-06-07T13:17:08.338645+02:00",
     "exitp2_trigger_GEMI_trend_break": "2026-06-07T22:38:38.875864+02:00",
@@ -1300,7 +1300,7 @@
     "exitp2_trigger_CRDF_trend_break": "2026-06-01T19:24:04.374205+02:00",
     "exitp2_trigger_AMC_overheated": "2026-06-01T21:15:58.491304+02:00",
     "exitp2_trigger_AI_catalyst": "2026-06-03T06:58:18.642141+02:00",
-    "exitp2_trigger_RBOHF_trend_break": "2026-06-07T06:56:54.627103+02:00",
+    "exitp2_trigger_RBOHF_trend_break": "2026-06-08T09:04:20.894815+02:00",
     "exitp2_trigger_AI_trend_break": "2026-06-05T12:18:49.906276+02:00",
     "exitp2_trigger_IONQ_profit_lock": "2026-06-07T22:38:38.812687+02:00",
     "exitp2_trigger_GIII_catalyst": "2026-06-05T23:13:52.175687+02:00"
