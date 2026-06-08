@@ -1,10 +1,10 @@
 {
-  "updated": "2026-06-08T00:18:44.916057+02:00",
+  "updated": "2026-06-08T03:35:01.141028+02:00",
   "run_info": {
     "tickers_checked": 16,
     "signals_active": 4,
     "alerts_sent": 0,
-    "elapsed_s": 17.8,
+    "elapsed_s": 17.2,
     "market_phase": "Geschlossen"
   },
   "signals": {
@@ -32,9 +32,9 @@
       "uoa_cp_ratio": 36.554589371980676
     },
     "AMC": {
-      "score": 35,
+      "score": 38,
       "confidence": 33,
-      "drivers": "Spanne 10.4% + News: short seller + UOA Call/Put 6.1×",
+      "drivers": "Spanne 10.4% + News-KI 18/30: Positive sentiment on attendance and short seller pressure, but lacks fundamental catalysts or extreme short interest in + UOA Call/Put 6.1×",
       "price": 1.79,
       "chg_pct": -0.0,
       "rvol_4d": 0.47,
@@ -78,7 +78,7 @@
     "CRMD": {
       "score": 30,
       "confidence": 17,
-      "drivers": "News: earnings beat, guidance raised",
+      "drivers": "News: guidance raised, earnings beat",
       "price": 8.36,
       "chg_pct": -0.0,
       "rvol_4d": 0.81,
@@ -96,9 +96,9 @@
       "uoa_cp_ratio": 1.7981220657276995
     },
     "CURV": {
-      "score": 40,
+      "score": 35,
       "confidence": 70,
-      "drivers": "Volumen 1.8× + Spanne 44.2% + News-KI 5/30: Positive earnings headlines indicate strong fundamentals, which reduces short-squeeze potential as shorts lack catalyst  + SEC Form 4",
+      "drivers": "Volumen 1.8× + Spanne 44.2% + SEC Form 4",
       "price": 1.64,
       "chg_pct": -0.0,
       "rvol_4d": 1.78,
@@ -138,7 +138,7 @@
     "GEMI": {
       "score": 40,
       "confidence": 33,
-      "drivers": "Spanne 11.1% + News: short interest, buyout",
+      "drivers": "Spanne 11.1% + News: takeover, short interest",
       "price": 4.18,
       "chg_pct": 0.12,
       "rvol_4d": 1.11,
@@ -176,9 +176,9 @@
       "uoa_cp_ratio": 0.13691026827012026
     },
     "IONQ": {
-      "score": 18,
-      "confidence": 33,
-      "drivers": "Spanne 12.5% + News-KI 8/30: Negative sentiment with valuation concerns and sharp pullback suggests weak momentum and low short-squeeze potential des",
+      "score": 10,
+      "confidence": 17,
+      "drivers": "Spanne 12.5%",
       "price": 56.78,
       "chg_pct": -0.0,
       "rvol_4d": 1.0,
@@ -196,9 +196,9 @@
       "uoa_cp_ratio": 1.4125678119349006
     },
     "LENZ": {
-      "score": 53,
+      "score": 45,
       "confidence": 70,
-      "drivers": "Spanne 6.1% + News-KI 8/30: Negative catalysts (analyst downgrades, estimate cuts) combined with conference participation show weak sentiment with m + FINRA Short-Vol 86% + UOA Call/Put 9.6×",
+      "drivers": "Spanne 6.1% + FINRA Short-Vol 86% + UOA Call/Put 9.6×",
       "price": 7.01,
       "chg_pct": 0.0,
       "rvol_4d": 0.8,
@@ -262,9 +262,9 @@
       "uoa_cp_ratio": 12.333333333333334
     },
     "PDYN": {
-      "score": 25,
+      "score": 28,
       "confidence": 33,
-      "drivers": "Spanne 17.1% + News-KI 5/30: Positive corporate news but lacks the specific catalysts (high short interest, massive call options, forced covering eve + UOA Call/Put 6.9×",
+      "drivers": "Spanne 17.1% + News-KI 8/30: Positive corporate developments but lack short-squeeze indicators like high short interest, low float, or unusual volume + UOA Call/Put 6.9×",
       "price": 6.87,
       "chg_pct": -0.0,
       "rvol_4d": 1.12,
