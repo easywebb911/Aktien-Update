@@ -1,10 +1,10 @@
 {
-  "updated": "2026-06-09T00:53:39.141801+02:00",
+  "updated": "2026-06-09T01:37:26.006030+02:00",
   "run_info": {
     "tickers_checked": 14,
     "signals_active": 6,
     "alerts_sent": 0,
-    "elapsed_s": 11.4,
+    "elapsed_s": 10.8,
     "market_phase": "After-Hours"
   },
   "signals": {
@@ -53,9 +53,9 @@
       "uoa_cp_ratio": 7.790372351368031
     },
     "CURV": {
-      "score": 20,
-      "confidence": 33,
-      "drivers": "Spanne 17.6% + SEC Form 4",
+      "score": 28,
+      "confidence": 70,
+      "drivers": "Spanne 17.6% + News-KI 8/30: Neutral earnings coverage with positive operational performance but no short squeeze indicators like high short interest + SEC Form 4",
       "price": 1.74,
       "chg_pct": 0.0,
       "rvol_4d": 0.51,
@@ -241,9 +241,9 @@
       "uoa_cp_ratio": 8.431818181818182
     },
     "PLCE": {
-      "score": 55,
+      "score": 52,
       "confidence": 70,
-      "drivers": "Earnings in 0 Tagen (08.06.2026) + Spanne 9.0% + News: partnership + Earnings in 0d",
+      "drivers": "Earnings in 0 Tagen (08.06.2026) + Spanne 9.0% + News-KI 12/30: Positive strategic news and market expansion, but no catalyst for short squeeze; moderate positive sentiment unlikely to + Earnings in 0d",
       "price": 3.7,
       "chg_pct": 0.0,
       "rvol_4d": 0.4,
