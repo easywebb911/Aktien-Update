@@ -52,7 +52,7 @@
     "earnings_immediate_CHPT_03.06.2026": "2026-06-02T22:20:18.445128+02:00",
     "anomaly_conviction_high_LFVN": "2026-06-04T15:56:43.080967+02:00",
     "anomaly_score_jump_LFVN": "2026-06-04T23:54:10.962128+02:00",
-    "exit_AI": "2026-06-08T06:33:56.551600+02:00",
+    "exit_AI": "2026-06-08T13:22:41.022432+02:00",
     "anomaly_conviction_high_GIII": "2026-06-05T15:59:15.333514+02:00",
     "anomaly_conviction_high_CURV": "2026-06-05T16:47:25.580964+02:00",
     "anomaly_monster_backup_GIII": "2026-06-05T16:47:25.628878+02:00",
@@ -60,18 +60,6 @@
     "earnings_immediate_GIII_05.06.2026": "2026-06-05T22:14:02.803592+02:00"
   },
   "push_history": [
-    {
-      "ts": "2026-05-30T16:03:29.709055+02:00",
-      "ticker": "FDMT",
-      "kind": "anomaly",
-      "severity": "high",
-      "trigger": "monster_backup",
-      "body": "FDMT 🔥 Monster 93 | Setup 93 | KI 50",
-      "success": false,
-      "suppressed": true,
-      "suppress_reason": "conviction_below_threshold",
-      "conviction_score": 70
-    },
     {
       "ts": "2026-05-30T16:08:39.992918+02:00",
       "ticker": "AI",
@@ -1255,6 +1243,18 @@
       "severity": "trigger",
       "trigger": "trend_break",
       "body": "🔻 Exit-Signal RBOHF: trend_break crit ({'ma21': 0.2432, 'price': 0.23, 'drop_pct': 5.45})",
+      "success": true,
+      "suppressed": false,
+      "suppress_reason": null,
+      "conviction_score": null
+    },
+    {
+      "ts": "2026-06-08T13:22:41.022406+02:00",
+      "ticker": "AI",
+      "kind": "exit_p1",
+      "severity": "default",
+      "trigger": "exit_alert",
+      "body": "AI 📉 Exit 64 | -5% | Trailing-Stop −11.8% vom Hoch",
       "success": true,
       "suppressed": false,
       "suppress_reason": null,
