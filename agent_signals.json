@@ -1,17 +1,17 @@
 {
-  "updated": "2026-06-09T23:14:10.935938+02:00",
+  "updated": "2026-06-09T23:37:29.213044+02:00",
   "run_info": {
     "tickers_checked": 15,
     "signals_active": 6,
     "alerts_sent": 0,
-    "elapsed_s": 17.9,
+    "elapsed_s": 19.0,
     "market_phase": "After-Hours"
   },
   "signals": {
     "AI": {
-      "score": 45,
+      "score": 30,
       "confidence": 70,
-      "drivers": "Spanne 9.5% + News: covering + SEC Form 4 + UOA Call/Put 4.7×",
+      "drivers": "Spanne 9.5% + SEC Form 4 + UOA Call/Put 4.7×",
       "price": 10.79,
       "chg_pct": -0.0,
       "rvol_4d": 0.61,
@@ -22,7 +22,7 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 1,
+      "active_triggers": 0,
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 4.7×"
@@ -73,9 +73,9 @@
       "uoa_cp_ratio": 1.3174603174603174
     },
     "CBRL": {
-      "score": 78,
+      "score": 96,
       "confidence": 70,
-      "drivers": "Earnings in 0 Tagen (09.06.2026) + Volumen 2.5× + Spanne 7.7% + SEC 8-K + Earnings in 0d + 3/4 Trigger",
+      "drivers": "Earnings in 0 Tagen (09.06.2026) + Volumen 2.5× + Spanne 7.7% + SEC 8-K + Earnings in 0d + FINRA Short-Vol 60% + 3/4 Trigger",
       "price": 36.3,
       "chg_pct": -0.0,
       "rvol_4d": 2.45,
@@ -93,9 +93,9 @@
       "uoa_cp_ratio": 1.0912698412698412
     },
     "DBI": {
-      "score": 88,
+      "score": 80,
       "confidence": 70,
-      "drivers": "Earnings in 0 Tagen (09.06.2026) + Volumen 1.9× + Spanne 15.3% + SEC 8-K + News: earnings beat + Earnings in 0d",
+      "drivers": "Earnings in 0 Tagen (09.06.2026) + Volumen 1.9× + Spanne 15.3% + SEC 8-K + News-KI 8/30: Negative price action despite earnings beat and weak forward guidance indicate bearish sentiment with limited short-sque + Earnings in 0d",
       "price": 7.02,
       "chg_pct": -0.0,
       "rvol_4d": 1.87,
@@ -153,9 +153,9 @@
       "uoa_cp_ratio": 0.06428571428571428
     },
     "GIII": {
-      "score": 25,
+      "score": 22,
       "confidence": 33,
-      "drivers": "Spanne 6.0% + News: earnings beat",
+      "drivers": "Spanne 6.0% + News-KI 12/30: Positive earnings guidance contradicts skeptical article narrative, but lack of short interest data and mixed sentiment ",
       "price": 34.0,
       "chg_pct": 0.0,
       "rvol_4d": 0.84,
@@ -195,7 +195,7 @@
     "LUCK": {
       "score": 75,
       "confidence": 70,
-      "drivers": "Volumen 1.9× + Spanne 12.2% + News: insider buying + FINRA Short-Vol 90% + UOA Call/Put 3.6×",
+      "drivers": "Volumen 1.9× + Spanne 12.2% + News: insider buying + FINRA Short-Vol 92% + UOA Call/Put 3.6×",
       "price": 7.92,
       "chg_pct": 0.0,
       "rvol_4d": 1.86,
@@ -235,9 +235,9 @@
       "uoa_cp_ratio": 1.75
     },
     "OM": {
-      "score": 45,
+      "score": 30,
       "confidence": 70,
-      "drivers": "Spanne 9.8% + FINRA Short-Vol 53% + SEC Form 4 + UOA Call/Put 4.1×",
+      "drivers": "Spanne 9.8% + SEC Form 4 + UOA Call/Put 4.1×",
       "price": 4.69,
       "chg_pct": 0.0,
       "rvol_4d": 1.07,
@@ -301,7 +301,7 @@
     "WGS": {
       "score": 18,
       "confidence": 33,
-      "drivers": "Spanne 8.9% + News-KI 8/30: Negative earnings miss, guidance cut, and legal scrutiny create downward pressure; no significant short squeeze catalyst",
+      "drivers": "Spanne 8.9% + News-KI 8/30: Earnings miss, guidance cut, and legal scrutiny create negative momentum that weakens short squeeze potential despite co",
       "price": 56.33,
       "chg_pct": 0.0,
       "rvol_4d": 1.18,
