@@ -1,17 +1,17 @@
 {
-  "updated": "2026-06-09T10:42:05.652566+02:00",
+  "updated": "2026-06-09T12:05:35.406568+02:00",
   "run_info": {
     "tickers_checked": 14,
     "signals_active": 6,
-    "alerts_sent": 0,
-    "elapsed_s": 10.8,
+    "alerts_sent": 4,
+    "elapsed_s": 12.9,
     "market_phase": "Pre-Market"
   },
   "signals": {
     "AI": {
-      "score": 45,
+      "score": 30,
       "confidence": 70,
-      "drivers": "Spanne 8.6% + News: partnership + SEC Form 4 + UOA Call/Put 6.1×",
+      "drivers": "Spanne 8.6% + SEC Form 4 + UOA Call/Put 6.1×",
       "price": 10.6,
       "chg_pct": 0.0,
       "rvol_4d": 0.43,
@@ -22,7 +22,7 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 1,
+      "active_triggers": 0,
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 6.1×"
@@ -115,7 +115,7 @@
     "GIII": {
       "score": 40,
       "confidence": 70,
-      "drivers": "Volumen 1.7× + Spanne 7.1% + News: earnings beat",
+      "drivers": "Volumen 1.7× + Spanne 7.1% + News-KI 15/30: Mixed signals: positive earnings guidance offset by skeptical analyst coverage and narrower loss suggests improving fund",
       "price": 34.92,
       "chg_pct": -0.0,
       "rvol_4d": 1.7,
@@ -239,20 +239,20 @@
       "uoa_cp_ratio": 8.431818181818182
     },
     "PLCE": {
-      "score": 25,
-      "confidence": 33,
-      "drivers": "Spanne 8.9% + News: partnership",
+      "score": 55,
+      "confidence": 70,
+      "drivers": "Earnings in 0 Tagen (09.06.2026) + Spanne 8.9% + News: partnership + Earnings in 0d",
       "price": 3.7,
       "chg_pct": 0.0,
       "rvol_4d": 0.4,
       "rvol_20d": 0.32,
-      "earnings": null,
+      "earnings": "in 0 Tagen (09.06.2026)",
       "fda_date": null,
-      "upcoming_event": null,
+      "upcoming_event": "Earnings in 0 Tagen (09.06.2026)",
       "insider_buy": false,
       "stocktwits": null,
-      "combo_mult": 1.0,
-      "active_triggers": 1,
+      "combo_mult": 1.1,
+      "active_triggers": 2,
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": null,
