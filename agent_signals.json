@@ -1,10 +1,10 @@
 {
-  "updated": "2026-06-09T12:05:35.406568+02:00",
+  "updated": "2026-06-09T14:16:02.411811+02:00",
   "run_info": {
     "tickers_checked": 14,
     "signals_active": 6,
-    "alerts_sent": 4,
-    "elapsed_s": 12.9,
+    "alerts_sent": 0,
+    "elapsed_s": 13.2,
     "market_phase": "Pre-Market"
   },
   "signals": {
@@ -27,13 +27,13 @@
       "uoa_drivers": [
         "UOA Call/Put 6.1×"
       ],
-      "uoa_atm_ratio": null,
+      "uoa_atm_ratio": 0.0933220927856121,
       "uoa_cp_ratio": 6.121461187214612
     },
     "AMC": {
-      "score": 35,
+      "score": 28,
       "confidence": 33,
-      "drivers": "Spanne 6.1% + News: short seller + UOA Call/Put 7.8×",
+      "drivers": "Spanne 6.1% + News-KI 8/30: Mixed sentiment with defensive positioning; no indicators of squeeze catalysts like short interest spikes, gamma pressur + UOA Call/Put 7.8×",
       "price": 1.8,
       "chg_pct": -0.0,
       "rvol_4d": 0.46,
@@ -44,7 +44,7 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 1,
+      "active_triggers": 0,
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 7.8×"
@@ -73,9 +73,9 @@
       "uoa_cp_ratio": null
     },
     "DBI": {
-      "score": 50,
+      "score": 72,
       "confidence": 70,
-      "drivers": "Earnings in 0 Tagen (09.06.2026) + Volumen 1.8× + Spanne 8.2% + Earnings in 0d",
+      "drivers": "Earnings in 0 Tagen (09.06.2026) + Volumen 1.8× + Spanne 8.2% + SEC 8-K + Earnings in 0d",
       "price": 8.88,
       "chg_pct": 0.0,
       "rvol_4d": 1.8,
@@ -85,8 +85,8 @@
       "upcoming_event": "Earnings in 0 Tagen (09.06.2026)",
       "insider_buy": false,
       "stocktwits": null,
-      "combo_mult": 1.0,
-      "active_triggers": 1,
+      "combo_mult": 1.1,
+      "active_triggers": 2,
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": null,
@@ -115,7 +115,7 @@
     "GIII": {
       "score": 40,
       "confidence": 70,
-      "drivers": "Volumen 1.7× + Spanne 7.1% + News-KI 15/30: Mixed signals: positive earnings guidance offset by skeptical analyst coverage and narrower loss suggests improving fund",
+      "drivers": "Volumen 1.7× + Spanne 7.1% + News: earnings beat",
       "price": 34.92,
       "chg_pct": -0.0,
       "rvol_4d": 1.7,
@@ -129,7 +129,7 @@
       "active_triggers": 1,
       "uoa_score": 0,
       "uoa_drivers": [],
-      "uoa_atm_ratio": null,
+      "uoa_atm_ratio": 0.08461538461538462,
       "uoa_cp_ratio": 0.042748091603053436
     },
     "INDI": {
@@ -151,7 +151,7 @@
       "uoa_drivers": [
         "UOA Call/Put 4.1×"
       ],
-      "uoa_atm_ratio": null,
+      "uoa_atm_ratio": 0.03574788334901223,
       "uoa_cp_ratio": 4.110091743119266
     },
     "IONQ": {
@@ -171,7 +171,7 @@
       "active_triggers": 0,
       "uoa_score": 0,
       "uoa_drivers": [],
-      "uoa_atm_ratio": null,
+      "uoa_atm_ratio": 1.2372432074221338,
       "uoa_cp_ratio": 1.792297890414838
     },
     "LFVN": {
@@ -193,7 +193,7 @@
       "uoa_drivers": [
         "UOA Call/Put 20.9×"
       ],
-      "uoa_atm_ratio": null,
+      "uoa_atm_ratio": 0.24904368834306423,
       "uoa_cp_ratio": 20.882716049382715
     },
     "LUCK": {
@@ -213,7 +213,7 @@
       "active_triggers": 1,
       "uoa_score": 0,
       "uoa_drivers": [],
-      "uoa_atm_ratio": null,
+      "uoa_atm_ratio": 0.8620689655172413,
       "uoa_cp_ratio": 0.6352941176470588
     },
     "PDYN": {
@@ -235,7 +235,7 @@
       "uoa_drivers": [
         "UOA Call/Put 8.4×"
       ],
-      "uoa_atm_ratio": null,
+      "uoa_atm_ratio": 0.048015678588927,
       "uoa_cp_ratio": 8.431818181818182
     },
     "PLCE": {
@@ -255,7 +255,7 @@
       "active_triggers": 2,
       "uoa_score": 0,
       "uoa_drivers": [],
-      "uoa_atm_ratio": null,
+      "uoa_atm_ratio": 0.04344262295081967,
       "uoa_cp_ratio": 0.05521472392638037
     },
     "RBOHF": {
