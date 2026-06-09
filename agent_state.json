@@ -1,5 +1,5 @@
 {
-  "last_run": "2026-06-09T17:29:50.254689+02:00",
+  "last_run": "2026-06-09T20:21:42.367584+02:00",
   "cooldowns": {
     "anomaly_score_jump_XRX": "2026-05-03T18:47:15.315486+02:00",
     "anomaly_uoa_extreme_TDOC": "2026-05-04T13:47:00.365949+02:00",
@@ -60,60 +60,12 @@
     "earnings_immediate_GIII_05.06.2026": "2026-06-05T22:14:02.803592+02:00",
     "earnings_immediate_PLCE_08.06.2026": "2026-06-09T00:01:51.745142+02:00",
     "earnings_immediate_DBI_09.06.2026": "2026-06-09T00:53:39.141429+02:00",
-    "anomaly_monster_backup_DBI": "2026-06-09T12:05:34.661985+02:00",
-    "anomaly_score_jump_LUCK": "2026-06-09T12:05:34.911712+02:00",
-    "anomaly_monster_backup_LUCK": "2026-06-09T12:05:35.159914+02:00",
+    "anomaly_monster_backup_DBI": "2026-06-09T20:21:42.094477+02:00",
+    "anomaly_score_jump_LUCK": "2026-06-09T20:21:42.140637+02:00",
+    "anomaly_monster_backup_LUCK": "2026-06-09T20:21:42.190270+02:00",
     "anomaly_conviction_high_LUCK": "2026-06-09T12:05:35.406177+02:00"
   },
   "push_history": [
-    {
-      "ts": "2026-05-30T23:15:17.442648+02:00",
-      "ticker": "AI",
-      "kind": "anomaly",
-      "severity": "high",
-      "trigger": "monster_backup",
-      "body": "AI 🔥 Monster 99 | Setup 83 | KI 60",
-      "success": false,
-      "suppressed": true,
-      "suppress_reason": "conviction_below_threshold",
-      "conviction_score": 73
-    },
-    {
-      "ts": "2026-05-30T23:15:17.442847+02:00",
-      "ticker": "FDMT",
-      "kind": "anomaly",
-      "severity": "high",
-      "trigger": "monster_backup",
-      "body": "FDMT 🔥 Monster 93 | Setup 93 | KI 50",
-      "success": false,
-      "suppressed": true,
-      "suppress_reason": "conviction_below_threshold",
-      "conviction_score": 70
-    },
-    {
-      "ts": "2026-05-31T00:15:34.977285+02:00",
-      "ticker": "AI",
-      "kind": "anomaly",
-      "severity": "high",
-      "trigger": "monster_backup",
-      "body": "AI 🔥 Monster 99 | Setup 83 | KI 60",
-      "success": false,
-      "suppressed": true,
-      "suppress_reason": "conviction_below_threshold",
-      "conviction_score": 73
-    },
-    {
-      "ts": "2026-05-31T00:15:34.977464+02:00",
-      "ticker": "FDMT",
-      "kind": "anomaly",
-      "severity": "high",
-      "trigger": "monster_backup",
-      "body": "FDMT 🔥 Monster 93 | Setup 93 | KI 50",
-      "success": false,
-      "suppressed": true,
-      "suppress_reason": "conviction_below_threshold",
-      "conviction_score": 70
-    },
     {
       "ts": "2026-05-31T01:17:05.375560+02:00",
       "ticker": "AI",
@@ -1265,6 +1217,54 @@
       "suppressed": true,
       "suppress_reason": "conviction_below_threshold",
       "conviction_score": 57
+    },
+    {
+      "ts": "2026-06-09T20:21:42.094453+02:00",
+      "ticker": "DBI",
+      "kind": "anomaly",
+      "severity": "high",
+      "trigger": "monster_backup",
+      "body": "DBI 🔥 Monster 100 | Setup 100 | KI 72",
+      "success": true,
+      "suppressed": false,
+      "suppress_reason": null,
+      "conviction_score": 79
+    },
+    {
+      "ts": "2026-06-09T20:21:42.094842+02:00",
+      "ticker": "INDI",
+      "kind": "anomaly",
+      "severity": "high",
+      "trigger": "monster_backup",
+      "body": "INDI 🔥 Monster 92 | Setup 76 | KI 35",
+      "success": false,
+      "suppressed": true,
+      "suppress_reason": "conviction_below_threshold",
+      "conviction_score": 57
+    },
+    {
+      "ts": "2026-06-09T20:21:42.140621+02:00",
+      "ticker": "LUCK",
+      "kind": "anomaly",
+      "severity": "medium",
+      "trigger": "score_jump",
+      "body": "LUCK 🚀 Setup 87 ↑ (gestern 70) | Spanne 12.2% + News-KI 8/30: Positive management news (CFO p…",
+      "success": true,
+      "suppressed": false,
+      "suppress_reason": null,
+      "conviction_score": 82
+    },
+    {
+      "ts": "2026-06-09T20:21:42.190257+02:00",
+      "ticker": "LUCK",
+      "kind": "anomaly",
+      "severity": "high",
+      "trigger": "monster_backup",
+      "body": "LUCK 🔥 Monster 100 | Setup 87 | KI 53",
+      "success": true,
+      "suppressed": false,
+      "suppress_reason": null,
+      "conviction_score": 82
     }
   ],
   "prev_conviction_scores": {
