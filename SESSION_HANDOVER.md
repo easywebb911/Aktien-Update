@@ -83,6 +83,17 @@ Flag) — kein To-do. Nur AMC trägt das Hold-Flag.
 - **30.06. — Backtest-Auswertung (erweitert):**
   - Setup-Score ≥70-Edge (schema_v4) · Earliness-Konfidenz-Re-Test (AUC) ·
     Conviction-Methodik-Diagnose.
+    - **Freitag-Cluster-Kontamination (Diagnose 09.06.):** 37,5 % der ≥70-Einträge
+      tragen Score mit ~1-Tag-Daten-Versatz (Pre-Open-Re-Run friert Vortags-Bar
+      ein; Signatur = `entry_price` exakt == Vortags-`entry_price` desselben
+      Tickers). ~halbe Tage über das ganze v4-Fenster, wiederkehrend. **PFLICHT
+      für 30.06.:** ≥70-Edge im **DOPPEL-LAUF** rechnen — mit UND ohne die
+      detektierbaren Cluster-Einträge. Hält die Edge in beiden → robust, Caveat
+      reicht. Kippt sie → Edge-Schluss **VERTAGEN, NICHT filtern** (40 %
+      Erstauftritte sind uncheckbar = nicht reparierbarer blinder Fleck).
+      `entry_price` selbst ist nur Diagnose-Tabelle (Returns nutzen
+      `_close_at(0)`, geschützt); der **Score** ist das Problem (datumstreue
+      Auswertungs-Eingabe).
   - **NEU: Entry-Shadow-Auswertung** — treffen dünne Scores schlechter (via
     `entry_n_components`)? Ausfall-Tage via `push_history_available=False`
     filtern. anomaly-Cap ggf. re-kalibrieren (n=25 dünn). DANN Push-/Live-
@@ -135,6 +146,16 @@ Flag) — kein To-do. Nur AMC trägt das Hold-Flag.
   `--ours` vs Union-Merge. OFFEN, niedrig.
 - **Recovery-Umleitung bei Gist-Body-Korruption** (Folge-PR zu #322): bei
   `body_ok=False` Positionen erhalten statt `{}`. OFFEN.
+- **Option A — Pre-Open-Re-Run-Guard** (offen, entkoppelt, kein 30.06.-Zeitdruck):
+  Zeit-Gate in `_append_backtest_entries`, das einen postclose-Run VOR Schluss
+  der regulären Session des `report_date` NICHT appenden lässt → verhindert
+  Freitag-Cluster an der Quelle. Wirkt nur VORWÄRTS (rettet das eingebackene
+  30.06.-Sample nicht). Bei 52 % stale-Rate unter recurring Tickern sonst
+  Dauer-Verseuchung jedes künftigen Edge-Samples. Score-/Backtest-nah →
+  manueller Merge + Guardian + Boundary-Mock-Test. **NICHT** Option B
+  (existing_keys-Overwrite) — Clobber-Risiko für ki_agent-gefüllte Forward-Labels
+  `return_3d`/`entry_price_t1`. After-Hours-Capture (b) braucht KEINEN Fix mehr:
+  P&L erledigt (#338), Rest harmlos.
 - **Finnhub-SI-Reserve** (gratis, Key da) als SF-Reserve falls Kette dünn. Niedrig.
 - **or-0-Defaults Persist-Fix** · **finviz Flag-aus + α** · **Borrow-Naming
   (`IBKR_*`→`IBORROWDESK_*`)** · **v1/v2→Jinja** · **Cockpit Stage 3 (.sb-Reste)**
