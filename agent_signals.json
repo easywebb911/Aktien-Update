@@ -1,10 +1,10 @@
 {
-  "updated": "2026-06-09T23:13:23.438974+02:00",
+  "updated": "2026-06-09T23:14:10.935938+02:00",
   "run_info": {
     "tickers_checked": 15,
     "signals_active": 6,
     "alerts_sent": 0,
-    "elapsed_s": 12.3,
+    "elapsed_s": 17.9,
     "market_phase": "After-Hours"
   },
   "signals": {
@@ -31,9 +31,9 @@
       "uoa_cp_ratio": 4.739635157545606
     },
     "AMC": {
-      "score": 50,
+      "score": 35,
       "confidence": 33,
-      "drivers": "Spanne 12.2% + News: short seller, catalyst + UOA Call/Put 13.9×",
+      "drivers": "Spanne 12.2% + News: short seller + UOA Call/Put 13.9×",
       "price": 1.94,
       "chg_pct": 0.0,
       "rvol_4d": 1.42,
@@ -115,7 +115,7 @@
     "ELPW": {
       "score": 88,
       "confidence": 70,
-      "drivers": "Volumen 65.2× + 🚀 Massives Volumen 65.2×+ + Spanne 107.8% + News: breakout, squeeze",
+      "drivers": "Volumen 65.2× + 🚀 Massives Volumen 65.2×+ + Spanne 107.8% + News: squeeze, breakout",
       "price": 1.16,
       "chg_pct": -0.0,
       "rvol_4d": 65.16,
@@ -215,9 +215,9 @@
       "uoa_cp_ratio": 3.6
     },
     "OFRM": {
-      "score": 15,
-      "confidence": 33,
-      "drivers": "Spanne 7.2% + News-KI 5/30: Positive operational news but no significant short squeeze indicators like high short interest, dramatic stock movement,",
+      "score": 10,
+      "confidence": 17,
+      "drivers": "Spanne 7.2%",
       "price": 16.16,
       "chg_pct": -0.0,
       "rvol_4d": 1.05,
@@ -279,9 +279,9 @@
       "uoa_cp_ratio": 2.4974358974358974
     },
     "RBOHF": {
-      "score": 18,
-      "confidence": 33,
-      "drivers": "Spanne 12.7% + News-KI 8/30: Positive corporate developments and partnerships, but lacking concrete revenue catalysts, short interest data, or immedi",
+      "score": 10,
+      "confidence": 17,
+      "drivers": "Spanne 12.7%",
       "price": 0.21,
       "chg_pct": -1.1,
       "rvol_4d": 0.02,
@@ -299,9 +299,9 @@
       "uoa_cp_ratio": null
     },
     "WGS": {
-      "score": 40,
+      "score": 18,
       "confidence": 33,
-      "drivers": "Spanne 8.9% + News: acquisition, activist investor",
+      "drivers": "Spanne 8.9% + News-KI 8/30: Negative earnings miss, guidance cut, and legal scrutiny create downward pressure; no significant short squeeze catalyst",
       "price": 56.33,
       "chg_pct": 0.0,
       "rvol_4d": 1.18,
@@ -312,7 +312,7 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 1,
+      "active_triggers": 0,
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": 0.3442028985507246,
