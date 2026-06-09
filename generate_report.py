@@ -9593,6 +9593,22 @@ function _quotePatchScope(scope, ticker, price, changePct, changeAbs) {{
       el.textContent = '$' + price.toFixed(2);
     }});
   }}
+  // Position-P&L-Zeile live mitziehen (Stale-Fix 09.06.2026): nutzt DENSELBEN
+  // `price`, der oben den Header-Preis patcht — kein zweiter Fetch, keine
+  // fx-Variable (Formel rein ratiometrisch). `ep` (entry_price) kommt aus dem
+  // data-ep-Attribut der gebauten Panel-Zeile (.pos-pnl-live), pro Ticker im
+  // scope eindeutig. REIN ANZEIGE: gespeicherter entry_price / Karten-
+  // data-price / backtest_history bleiben unberührt. Format + Farbe identisch
+  // zum Build-Zeit-Render in buildPositionPanel (pnlStr/pnlCol).
+  if (typeof price === 'number' && isFinite(price)) {{
+    scope.querySelectorAll('.pos-pnl-live').forEach(el => {{
+      const ep = parseFloat(el.getAttribute('data-ep'));
+      if (!isFinite(ep) || ep <= 0) return;
+      const pnl = (price - ep) / ep * 100;
+      el.textContent = (pnl >= 0 ? '+' : '') + pnl.toFixed(1) + '%';
+      el.style.color = pnl >= 0 ? '#22c55e' : '#ef4444';
+    }});
+  }}
   // Cockpit-Header-Tagesaenderung: ".cockpit-change" Text + Klasse.
   // Format wie _card_cockpit_html: "▲ +0.69 (+12.63%)" / "▼ -0.84 (-8.18%)"
   // / "■ 0.00 (0.00%)". Klasse cockpit-change-{{up,down,flat}}.
@@ -12528,7 +12544,7 @@ function _fmtGerman(d) {{
           <div><span class="pos-lbl">Entry-Datum</span><span class="pos-val">${{pos.entry_date || '—'}}</span></div>
           <div><span class="pos-lbl">Einstiegskurs</span><span class="pos-val">${{entryStr}}</span></div>
           <div><span class="pos-lbl">St\xfcckzahl</span><span class="pos-val">${{sharesStr}}</span></div>
-          <div><span class="pos-lbl">P&amp;L</span><span class="pos-val" style="color:${{pnlCol}};font-weight:700">${{pnlStr}}</span></div>
+          <div><span class="pos-lbl">P&amp;L</span><span class="pos-val pos-pnl-live" data-ep="${{ep}}" style="color:${{pnlCol}};font-weight:700">${{pnlStr}}</span></div>
         </div>
         ${{errHtml}}
         <div class="pos-actions">
