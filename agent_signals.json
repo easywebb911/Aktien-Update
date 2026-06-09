@@ -1,10 +1,10 @@
 {
-  "updated": "2026-06-09T23:37:29.213044+02:00",
+  "updated": "2026-06-10T00:51:07.323983+02:00",
   "run_info": {
     "tickers_checked": 15,
     "signals_active": 6,
     "alerts_sent": 0,
-    "elapsed_s": 19.0,
+    "elapsed_s": 11.9,
     "market_phase": "After-Hours"
   },
   "signals": {
@@ -53,9 +53,9 @@
       "uoa_cp_ratio": 13.91523178807947
     },
     "AVO": {
-      "score": 45,
-      "confidence": 33,
-      "drivers": "Volumen 3.1× + ⚡ Extremes Volumen 3.1×+ + Spanne 13.4%",
+      "score": 63,
+      "confidence": 70,
+      "drivers": "Volumen 3.1× + ⚡ Extremes Volumen 3.1×+ + Spanne 13.4% + News-KI 12/30: Mixed signals with earnings miss and price decline contradict the initial positive headline; no clear short squeeze setu",
       "price": 10.87,
       "chg_pct": -0.0,
       "rvol_4d": 3.13,
@@ -65,8 +65,8 @@
       "upcoming_event": null,
       "insider_buy": false,
       "stocktwits": null,
-      "combo_mult": 1.0,
-      "active_triggers": 1,
+      "combo_mult": 1.1,
+      "active_triggers": 2,
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": 0.3602693602693603,
@@ -93,9 +93,9 @@
       "uoa_cp_ratio": 1.0912698412698412
     },
     "DBI": {
-      "score": 80,
+      "score": 88,
       "confidence": 70,
-      "drivers": "Earnings in 0 Tagen (09.06.2026) + Volumen 1.9× + Spanne 15.3% + SEC 8-K + News-KI 8/30: Negative price action despite earnings beat and weak forward guidance indicate bearish sentiment with limited short-sque + Earnings in 0d",
+      "drivers": "Earnings in 0 Tagen (09.06.2026) + Volumen 1.9× + Spanne 15.3% + SEC 8-K + News: earnings beat + Earnings in 0d",
       "price": 7.02,
       "chg_pct": -0.0,
       "rvol_4d": 1.87,
@@ -153,9 +153,9 @@
       "uoa_cp_ratio": 0.06428571428571428
     },
     "GIII": {
-      "score": 22,
+      "score": 25,
       "confidence": 33,
-      "drivers": "Spanne 6.0% + News-KI 12/30: Positive earnings guidance contradicts skeptical article narrative, but lack of short interest data and mixed sentiment ",
+      "drivers": "Spanne 6.0% + News: earnings beat",
       "price": 34.0,
       "chg_pct": 0.0,
       "rvol_4d": 0.84,
@@ -279,9 +279,9 @@
       "uoa_cp_ratio": 2.4974358974358974
     },
     "RBOHF": {
-      "score": 10,
-      "confidence": 17,
-      "drivers": "Spanne 12.7%",
+      "score": 18,
+      "confidence": 33,
+      "drivers": "Spanne 12.7% + News-KI 8/30: Positive corporate developments and partnerships, but no evidence of high short interest, significant squeeze dynamics, ",
       "price": 0.21,
       "chg_pct": -1.1,
       "rvol_4d": 0.02,
@@ -299,9 +299,9 @@
       "uoa_cp_ratio": null
     },
     "WGS": {
-      "score": 18,
+      "score": 40,
       "confidence": 33,
-      "drivers": "Spanne 8.9% + News-KI 8/30: Earnings miss, guidance cut, and legal scrutiny create negative momentum that weakens short squeeze potential despite co",
+      "drivers": "Spanne 8.9% + News: acquisition, activist investor",
       "price": 56.33,
       "chg_pct": 0.0,
       "rvol_4d": 1.18,
@@ -312,7 +312,7 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 0,
+      "active_triggers": 1,
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": 0.3442028985507246,
