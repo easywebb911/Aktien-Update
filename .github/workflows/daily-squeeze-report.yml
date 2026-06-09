@@ -152,6 +152,11 @@ jobs:
           # Digest sah dauerhaft 0 Runs).
           git add health_check_log.jsonl 2>/dev/null || true
           git add provider_health.jsonl 2>/dev/null || true
+          # finra_history_health.jsonl: instrument-only OBSERVED-Log des Daily-
+          # Run-FINRA-History-Fetch (separater Key "finra_history", eigene
+          # Datei — der Digest liest sie NICHT). Ohne ``git add`` ginge das
+          # Sample im ephemeren Runner verloren (analog provider_health.jsonl).
+          git add finra_history_health.jsonl 2>/dev/null || true
           # gist_pull_state.json: Liveness-Marker, geschrieben vom Pull-Step
           # NUR bei HTTP-Gist-Erfolg (last_successful_gist_pull). Muss
           # committet werden, sonst setzt der nächste Runner-Checkout den
