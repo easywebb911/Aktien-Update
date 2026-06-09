@@ -15645,6 +15645,35 @@ def main():
     print(f"FINRA 3M-Trend: {len(_finra_csv_cache)} Datenpunkte je Ticker geladen", flush=True)
     print(f"Step 2a abgeschlossen in {time.time()-_t_finra:.1f}s", flush=True)
 
+    # Health-Check — INSTRUMENT-ONLY-Logging des Daily-Run-FINRA-History-Fetch
+    # (speist si_trend_5d_slope, eine Entry-Shadow-Komponente). Bewusst KEIN
+    # Wächter/keine Schwelle: dafür fehlt das pfad-eigene Ausfall-Sample
+    # (Wächter-Block-Lehre 04.06.). Eigener Provider-Key "finra_history" UND
+    # eigene Datei "finra_history_health.jsonl" — der Digest liest ausschließlich
+    # LOG_FILE_PROVIDER (provider_health.jsonl, health_check_digest.py:256),
+    # daher ist dieser Record STRUKTURELL trigger-frei (kein Fail/WARN/Push,
+    # keine Vermischung mit dem "finra"-SSR-Counter). Zweck: 14–30 d das Sample
+    # sammeln, DANN erst Schwelle bewerten. INHALT-Check: Cache befüllt =
+    # success, leer = empty_result. coverage_pct als Prozent (Feld-Konvention
+    # analog yfinance_batch), NICHT als Bruch. Kein Score-/Filter-/Fetch-Touch.
+    try:
+        _fh_cache_ok = bool(_finra_csv_cache)
+        _fh_cov = (round(len(_finra_csv_cache) / len(finra_dates) * 100.0, 1)
+                   if finra_dates else None)
+        health_check.record_provider_call(
+            provider="finra_history",
+            tier=2,  # FINRA-Quelle = Tier 2 (reine Metadaten; eigene Datei)
+            latency_ms=int((time.time() - _t_finra) * 1000),
+            http_status=(200 if _fh_cache_ok else None),
+            item_count=_total_finra_entries,
+            coverage_pct=_fh_cov,
+            error=(None if _fh_cache_ok else "empty_result"),
+            run_phase=run_phase,
+            path="finra_history_health.jsonl",
+        )
+    except Exception as _hc_exc:
+        log.debug("finra_history provider-record skipped: %s", _hc_exc)
+
     # Opt 1 — yfinance Batch: pre-fetch all history + info for the entire pool
     # in two parallel shots before the filter loop.  No per-ticker sleeps needed.
     _t_batch = time.time()
