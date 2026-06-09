@@ -1,17 +1,17 @@
 {
-  "updated": "2026-06-09T06:54:05.627220+02:00",
+  "updated": "2026-06-09T06:59:06.538206+02:00",
   "run_info": {
     "tickers_checked": 14,
     "signals_active": 6,
     "alerts_sent": 0,
-    "elapsed_s": 10.6,
+    "elapsed_s": 21.1,
     "market_phase": "Geschlossen"
   },
   "signals": {
     "AI": {
-      "score": 38,
+      "score": 45,
       "confidence": 70,
-      "drivers": "Spanne 8.6% + News-KI 8/30: Positive news about government contracts and NYSE presence, but no indicators of extreme short interest, price suppressi + SEC Form 4 + UOA Call/Put 6.1×",
+      "drivers": "Spanne 8.6% + News: partnership + SEC Form 4 + UOA Call/Put 6.1×",
       "price": 10.6,
       "chg_pct": 0.0,
       "rvol_4d": 0.43,
@@ -22,7 +22,7 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 0,
+      "active_triggers": 1,
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 6.1×"
@@ -53,9 +53,9 @@
       "uoa_cp_ratio": 7.790372351368031
     },
     "CURV": {
-      "score": 35,
-      "confidence": 70,
-      "drivers": "Spanne 17.6% + News: revenue beat + SEC Form 4",
+      "score": 20,
+      "confidence": 33,
+      "drivers": "Spanne 17.6% + SEC Form 4",
       "price": 1.74,
       "chg_pct": 0.0,
       "rvol_4d": 0.51,
@@ -66,7 +66,7 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 1,
+      "active_triggers": 0,
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": null,
@@ -261,7 +261,7 @@
     "RBOHF": {
       "score": 33,
       "confidence": 70,
-      "drivers": "Volumen 2.2× + Spanne 24.8% + News-KI 8/30: Positive corporate developments and partnerships, but no catalyst for short squeeze; lacks evidence of high short intere",
+      "drivers": "Volumen 2.2× + Spanne 24.8% + News-KI 8/30: Positive corporate developments but lacking concrete financial metrics, revenue milestones, or short-squeeze indicators ",
       "price": 0.24,
       "chg_pct": -1.83,
       "rvol_4d": 2.19,
@@ -279,9 +279,9 @@
       "uoa_cp_ratio": null
     },
     "SPRY": {
-      "score": 28,
+      "score": 20,
       "confidence": 33,
-      "drivers": "Spanne 6.5% + News-KI 8/30: Positive revenue growth signals but no evidence of high short interest, low float, or catalyst-driven squeeze potential  + UOA Call/Put 2.0×",
+      "drivers": "Spanne 6.5% + UOA Call/Put 2.0×",
       "price": 8.99,
       "chg_pct": -0.0,
       "rvol_4d": 1.48,
