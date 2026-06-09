@@ -1,11 +1,11 @@
 {
-  "updated": "2026-06-09T06:59:06.538206+02:00",
+  "updated": "2026-06-09T10:42:05.652566+02:00",
   "run_info": {
     "tickers_checked": 14,
     "signals_active": 6,
     "alerts_sent": 0,
-    "elapsed_s": 21.1,
-    "market_phase": "Geschlossen"
+    "elapsed_s": 10.8,
+    "market_phase": "Pre-Market"
   },
   "signals": {
     "AI": {
@@ -197,9 +197,9 @@
       "uoa_cp_ratio": 20.882716049382715
     },
     "LUCK": {
-      "score": 50,
+      "score": 80,
       "confidence": 70,
-      "drivers": "Volumen 1.9× + Spanne 10.6% + FINRA Short-Vol 90%",
+      "drivers": "Volumen 1.9× + Spanne 10.6% + News: squeeze, short squeeze + FINRA Short-Vol 90%",
       "price": 8.16,
       "chg_pct": -0.0,
       "rvol_4d": 1.91,
@@ -210,7 +210,7 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 0,
+      "active_triggers": 1,
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": null,
@@ -259,9 +259,9 @@
       "uoa_cp_ratio": 0.05521472392638037
     },
     "RBOHF": {
-      "score": 33,
-      "confidence": 70,
-      "drivers": "Volumen 2.2× + Spanne 24.8% + News-KI 8/30: Positive corporate developments but lacking concrete financial metrics, revenue milestones, or short-squeeze indicators ",
+      "score": 25,
+      "confidence": 33,
+      "drivers": "Volumen 2.2× + Spanne 24.8%",
       "price": 0.24,
       "chg_pct": -1.83,
       "rvol_4d": 2.19,
