@@ -94,6 +94,10 @@ Flag) — kein To-do. Nur AMC trägt das Hold-Flag.
       `entry_price` selbst ist nur Diagnose-Tabelle (Returns nutzen
       `_close_at(0)`, geschützt); der **Score** ist das Problem (datumstreue
       Auswertungs-Eingabe).
+    - **Quellen-Präzisierung (09.06.):** der datumstreue Score-Konsum läuft
+      konkret über `health_check.py:619` (S13-≥70-Edge) + die bt-Panel-Buckets.
+      KEIN Source-Fix rettet das eingebackene 30.06.-Sample — nur der
+      Doppel-Lauf zählt.
   - **NEU: Entry-Shadow-Auswertung** — treffen dünne Scores schlechter (via
     `entry_n_components`)? Ausfall-Tage via `push_history_available=False`
     filtern. anomaly-Cap ggf. re-kalibrieren (n=25 dünn). DANN Push-/Live-
@@ -156,6 +160,15 @@ Flag) — kein To-do. Nur AMC trägt das Hold-Flag.
   (existing_keys-Overwrite) — Clobber-Risiko für ki_agent-gefüllte Forward-Labels
   `return_3d`/`entry_price_t1`. After-Hours-Capture (b) braucht KEINEN Fix mehr:
   P&L erledigt (#338), Rest harmlos.
+  - **Vintage-Guard-Erweiterung (Diagnose 09.06.):** M1 (Pre-Open-Re-Run) UND
+    M2 (After-Hours-Capture, DBI 8.88) haben DIESELBE Wurzel = **Capture-Timing**
+    → EIN wurzel-naher Guard fängt beide als Klasse: Zeit-Gate appendet NICHT,
+    wenn der Run vor Session-Schluss des `report_date` läuft (Pre-Open) ODER der
+    Preis im Extended-Hours-Fenster gegriffen wurde. Deterministisch, niedrig-FP,
+    HÖCHSTER Hygiene-Wert. Optional begleitend **W2 = 14–30 d silent-log** der 3
+    uncapped Rohfelder (`si_trend_5d_slope` max 521.84 / `rvol_buildup_5d` max
+    153.55 / `rvol_acceleration` max 135.72) — NUR falls die 30.06.-Auswertung
+    Rohwerte statt Buckets nutzt (entry-score selbst gecappt).
 - **Finnhub-SI-Reserve** (gratis, Key da) als SF-Reserve falls Kette dünn. Niedrig.
 - **or-0-Defaults Persist-Fix** · **finviz Flag-aus + α** · **Borrow-Naming
   (`IBKR_*`→`IBORROWDESK_*`)** · **v1/v2→Jinja** · **Cockpit Stage 3 (.sb-Reste)**
@@ -230,3 +243,15 @@ Flag) — kein To-do. Nur AMC trägt das Hold-Flag.
   Flag + Mini-Stopp für Easys Entscheidung.
 - **Trading-Wert-Filter auf BLÖCKE:** die CI-Kette war teils Selbstzweck. Vor
   einer ganzen Arbeitskette fragen „Edge oder Hygiene?", nicht nur pro Task.
+- **★ Inhalts-Plausibilität ist eine fehlende Überwachungsschicht (09.06.):**
+  S10/Schema/Golden decken Liveness + Null/Schema, aber NICHT Wert-Plausibilität
+  (Range/Freeze/Vintage) — belegte Lücke (S10 prüft nur `is None`,
+  `health_check.py:404`). Der Freitag-Cluster wurde per ZUFALL gefunden, weil
+  keine Schicht ihn fing. **LINIE** für künftige Integritäts-Funde (gegen
+  Over-Engineering + Wächter-Block-Lehre 04.06.): Wächter NUR wo (1) der Defekt
+  belegt Trading-Entscheidungen/Edge verzerrt UND (2) der Check wurzel-nah +
+  niedrig-Falsch-Positiv ist. Sonst Caveat oder silent-log-first. **FP-Baseline:**
+  Slow-Update-Freeze (SF/dtc 85 %, score_struct 70 %) ist LEGITIM — kein naiver
+  Freeze-Wächter. **Selbst-Begrenzung:** signatur-lose Defekte (plausibel-aber-
+  falscher Einzelwert, Korrelations-Inkonsistenz, externe Quell-Korruption) sind
+  strukturell unsichtbar — kein Wächter darf vorgeben, alles zu fangen.
