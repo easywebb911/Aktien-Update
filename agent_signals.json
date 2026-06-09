@@ -1,17 +1,17 @@
 {
-  "updated": "2026-06-09T06:36:08.578781+02:00",
+  "updated": "2026-06-09T06:54:05.627220+02:00",
   "run_info": {
     "tickers_checked": 14,
     "signals_active": 6,
     "alerts_sent": 0,
-    "elapsed_s": 19.3,
+    "elapsed_s": 10.6,
     "market_phase": "Geschlossen"
   },
   "signals": {
     "AI": {
-      "score": 45,
+      "score": 38,
       "confidence": 70,
-      "drivers": "Spanne 8.6% + News: partnership + SEC Form 4 + UOA Call/Put 6.1×",
+      "drivers": "Spanne 8.6% + News-KI 8/30: Positive news about government contracts and NYSE presence, but no indicators of extreme short interest, price suppressi + SEC Form 4 + UOA Call/Put 6.1×",
       "price": 10.6,
       "chg_pct": 0.0,
       "rvol_4d": 0.43,
@@ -22,12 +22,12 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 1,
+      "active_triggers": 0,
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 6.1×"
       ],
-      "uoa_atm_ratio": 0.09566834276136602,
+      "uoa_atm_ratio": null,
       "uoa_cp_ratio": 6.121461187214612
     },
     "AMC": {
@@ -53,9 +53,9 @@
       "uoa_cp_ratio": 7.790372351368031
     },
     "CURV": {
-      "score": 20,
-      "confidence": 33,
-      "drivers": "Spanne 17.6% + SEC Form 4",
+      "score": 35,
+      "confidence": 70,
+      "drivers": "Spanne 17.6% + News: revenue beat + SEC Form 4",
       "price": 1.74,
       "chg_pct": 0.0,
       "rvol_4d": 0.51,
@@ -66,7 +66,7 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 0,
+      "active_triggers": 1,
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": null,
@@ -129,7 +129,7 @@
       "active_triggers": 1,
       "uoa_score": 0,
       "uoa_drivers": [],
-      "uoa_atm_ratio": 0.08396946564885496,
+      "uoa_atm_ratio": null,
       "uoa_cp_ratio": 0.042748091603053436
     },
     "INDI": {
@@ -151,7 +151,7 @@
       "uoa_drivers": [
         "UOA Call/Put 4.1×"
       ],
-      "uoa_atm_ratio": 0.036053130929791274,
+      "uoa_atm_ratio": null,
       "uoa_cp_ratio": 4.110091743119266
     },
     "IONQ": {
@@ -171,7 +171,7 @@
       "active_triggers": 0,
       "uoa_score": 0,
       "uoa_drivers": [],
-      "uoa_atm_ratio": 2.069080162541559,
+      "uoa_atm_ratio": null,
       "uoa_cp_ratio": 1.792297890414838
     },
     "LFVN": {
@@ -193,13 +193,13 @@
       "uoa_drivers": [
         "UOA Call/Put 20.9×"
       ],
-      "uoa_atm_ratio": 0.24216914643696164,
+      "uoa_atm_ratio": null,
       "uoa_cp_ratio": 20.882716049382715
     },
     "LUCK": {
-      "score": 70,
+      "score": 50,
       "confidence": 70,
-      "drivers": "Volumen 1.9× + Spanne 10.6% + FINRA Short-Vol 90% + UOA Call-Vol/OI 6.2× ATM",
+      "drivers": "Volumen 1.9× + Spanne 10.6% + FINRA Short-Vol 90%",
       "price": 8.16,
       "chg_pct": -0.0,
       "rvol_4d": 1.91,
@@ -211,11 +211,9 @@
       "stocktwits": null,
       "combo_mult": 1.0,
       "active_triggers": 0,
-      "uoa_score": 20,
-      "uoa_drivers": [
-        "UOA Call-Vol/OI 6.2× ATM"
-      ],
-      "uoa_atm_ratio": 6.25,
+      "uoa_score": 0,
+      "uoa_drivers": [],
+      "uoa_atm_ratio": null,
       "uoa_cp_ratio": 0.6352941176470588
     },
     "PDYN": {
@@ -237,7 +235,7 @@
       "uoa_drivers": [
         "UOA Call/Put 8.4×"
       ],
-      "uoa_atm_ratio": 0.0475266731328807,
+      "uoa_atm_ratio": null,
       "uoa_cp_ratio": 8.431818181818182
     },
     "PLCE": {
@@ -257,13 +255,13 @@
       "active_triggers": 1,
       "uoa_score": 0,
       "uoa_drivers": [],
-      "uoa_atm_ratio": 0.04351395730706076,
+      "uoa_atm_ratio": null,
       "uoa_cp_ratio": 0.05521472392638037
     },
     "RBOHF": {
       "score": 33,
       "confidence": 70,
-      "drivers": "Volumen 2.2× + Spanne 24.8% + News-KI 8/30: Positive corporate developments and strategic partnerships, but lack of specific financial catalysts, earnings surprises",
+      "drivers": "Volumen 2.2× + Spanne 24.8% + News-KI 8/30: Positive corporate developments and partnerships, but no catalyst for short squeeze; lacks evidence of high short intere",
       "price": 0.24,
       "chg_pct": -1.83,
       "rvol_4d": 2.19,
@@ -283,7 +281,7 @@
     "SPRY": {
       "score": 28,
       "confidence": 33,
-      "drivers": "Spanne 6.5% + News-KI 8/30: Positive fundamentals (revenue growth, celebrity endorsement) but no indicators of high short interest, low float, or ca + UOA Call/Put 2.0×",
+      "drivers": "Spanne 6.5% + News-KI 8/30: Positive revenue growth signals but no evidence of high short interest, low float, or catalyst-driven squeeze potential  + UOA Call/Put 2.0×",
       "price": 8.99,
       "chg_pct": -0.0,
       "rvol_4d": 1.48,

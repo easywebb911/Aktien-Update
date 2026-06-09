@@ -1,5 +1,5 @@
 {
-  "last_run": "2026-06-09T06:36:12.687754+02:00",
+  "last_run": "2026-06-09T06:54:07.659090+02:00",
   "cooldowns": {
     "anomaly_score_jump_XRX": "2026-05-03T18:47:15.315486+02:00",
     "anomaly_uoa_extreme_TDOC": "2026-05-04T13:47:00.365949+02:00",
@@ -1264,20 +1264,20 @@
     }
   ],
   "prev_conviction_scores": {
-    "DBI": 77.0,
-    "GIII": 68.0,
-    "LUCK": 66.0,
-    "PLCE": 72.0,
+    "DBI": 79.0,
+    "GIII": 67.0,
+    "LUCK": 67.0,
     "LFVN": 65.0,
-    "INDI": 58.0,
+    "INDI": 57.0,
+    "PLCE": 57.0,
     "AI": 54.0,
     "SPRY": 60.0,
-    "CURV": 60.0,
     "FIP": 59.0,
+    "CURV": 58.0,
     "PDYN": 38.0,
     "IONQ": 22.0,
-    "AMC": 14.0,
-    "RBOHF": 11.0
+    "RBOHF": 15.0,
+    "AMC": 14.0
   },
   "exit_cooldowns": {
     "exitp2_warning_AMC": "2026-05-18T14:48:43.872687+02:00",
