@@ -92,6 +92,13 @@ Flag) — kein To-do. Nur AMC trägt das Hold-Flag.
   (speist `si_trend_5d_slope`) ist **UNMONITORED** — `provider_health['finra']`
   überwacht nur den ki_agent-SSR-Fetch. Wächter-PR optional (graceful `None`
   bei FINRA-Tod; kein Blocker).
+  - **FINRA-History-Log (#339, ab 09.06.):** `finra_history_health.jsonl` sammelt
+    das pfad-eigene Sample (separate Datei, digest-frei). Auswertung ab ~23.06.
+    für evidenzbasierte Wächter-Schwelle. **ACHTUNG bei Auswertung:** `coverage_pct`
+    ist in **PROZENT** gespeichert, nicht als 0–1-Bruch (transparent abgewichene
+    Feldform) — nicht um Faktor 100 verrechnen. Offen separat: Stale-Cache-Frische;
+    uncapped si_trend-slope (FIP 08.06. = 521.84, Ausreißer falls roher slope
+    statistisch genutzt).
 - **08.06. (Rechner-Tag):** Backup-/Disaster-Recovery-Diagnose (read-only) —
   nicht-aufholbare Daten (backtest_history/score_inflation_log/score_history).
 
