@@ -54,6 +54,7 @@ PATCHER_SELECTORS: dict[str, list[str]] = {
         ".metric-box",
         ".m-lbl",
         ".m-val",
+        ".pos-pnl-live",
     ],
     "_quoteEnsureLiveDot": [
         ".quote-live-dot",
