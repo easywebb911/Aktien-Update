@@ -1,5 +1,5 @@
 {
-  "last_run": "2026-06-10T21:06:04.261546+02:00",
+  "last_run": "2026-06-10T22:46:14.931729+02:00",
   "cooldowns": {
     "anomaly_score_jump_XRX": "2026-05-03T18:47:15.315486+02:00",
     "anomaly_uoa_extreme_TDOC": "2026-05-04T13:47:00.365949+02:00",
@@ -66,45 +66,10 @@
     "anomaly_conviction_high_LUCK": "2026-06-09T12:05:35.406177+02:00",
     "earnings_immediate_CBRL_09.06.2026": "2026-06-09T23:13:23.438660+02:00",
     "exit_DBI": "2026-06-10T17:32:12.110879+02:00",
-    "anomaly_conviction_high_OXM": "2026-06-10T21:06:04.087139+02:00"
+    "anomaly_conviction_high_OXM": "2026-06-10T21:06:04.087139+02:00",
+    "earnings_immediate_OXM_10.06.2026": "2026-06-10T22:46:14.756820+02:00"
   },
   "push_history": [
-    {
-      "ts": "2026-06-03T23:31:02.467952+02:00",
-      "ticker": "FABC",
-      "kind": "anomaly",
-      "severity": "medium",
-      "trigger": "gap_combo",
-      "body": "FABC 💥 Gap +6.3% Strong Hold + RVOL 3.4× | Setup 53",
-      "success": false,
-      "suppressed": true,
-      "suppress_reason": "conviction_below_threshold",
-      "conviction_score": 42
-    },
-    {
-      "ts": "2026-06-04T01:16:43.549123+02:00",
-      "ticker": "RBOHF",
-      "kind": "exit_p2",
-      "severity": "trigger",
-      "trigger": "trend_break",
-      "body": "🔻 Exit-Signal RBOHF: trend_break crit ({'ma21': 0.2461, 'price': 0.23, 'drop_pct': 6.55})",
-      "success": true,
-      "suppressed": false,
-      "suppress_reason": null,
-      "conviction_score": null
-    },
-    {
-      "ts": "2026-06-04T12:14:36.964857+02:00",
-      "ticker": "FABC",
-      "kind": "anomaly",
-      "severity": "medium",
-      "trigger": "gap_combo",
-      "body": "FABC 💥 Gap +5.5% Strong Hold + RVOL 3.4× | Setup 65",
-      "success": false,
-      "suppressed": true,
-      "suppress_reason": "conviction_below_threshold",
-      "conviction_score": 32
-    },
     {
       "ts": "2026-06-04T14:19:51.686307+02:00",
       "ticker": "FABC",
@@ -1264,6 +1229,42 @@
       "severity": "high",
       "trigger": "conviction_high",
       "body": "OXM 🎯 KAUFSIGNAL — Conviction 80/100 (high) | Conviction hoch — Setup, Earliness und Timing konvergieren. Erwartungswert posit…",
+      "success": true,
+      "suppressed": false,
+      "suppress_reason": null,
+      "conviction_score": 80
+    },
+    {
+      "ts": "2026-06-10T22:46:14.487327+02:00",
+      "ticker": "NRC",
+      "kind": "anomaly",
+      "severity": "high",
+      "trigger": "monster_backup",
+      "body": "NRC 🔥 Monster 100 | Setup 84 | KI 82",
+      "success": false,
+      "suppressed": true,
+      "suppress_reason": "conviction_below_threshold",
+      "conviction_score": 60
+    },
+    {
+      "ts": "2026-06-10T22:46:14.487451+02:00",
+      "ticker": "OFRM",
+      "kind": "anomaly",
+      "severity": "medium",
+      "trigger": "score_jump",
+      "body": "OFRM 🚀 Setup 70 ↑ (gestern 52) | Volumen 2.6× + Spanne 8.8%",
+      "success": false,
+      "suppressed": true,
+      "suppress_reason": "conviction_below_threshold",
+      "conviction_score": 69
+    },
+    {
+      "ts": "2026-06-10T22:46:14.756794+02:00",
+      "ticker": "OXM",
+      "kind": "earnings_immediate",
+      "severity": "default",
+      "trigger": null,
+      "body": "OXM Earnings-Sofort-Alert (in 0d, KI 25)",
       "success": true,
       "suppressed": false,
       "suppress_reason": null,
