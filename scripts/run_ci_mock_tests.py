@@ -57,7 +57,8 @@ ALLOWLIST = [
     "score_inflation_log", "score_inflation_log_v2", "score_multiplier_sync", "score_normalization_version",
     "sector_rs_removal", "selector_consistency", "service_worker_removed", "session_wrap_indexeddb",
     "setup_score_cursor_removed", "split_label_consistency", "tier3_success_check_recalibration", "token_reentry_fix",
-    "token_settings_ui_refresh", "token_storage_diagnose", "watchlist_drawer_stale_data",
+    "token_settings_ui_refresh", "token_storage_diagnose", "vintage_guard",
+    "watchlist_drawer_stale_data",
 ]
 
 # ── EXCLUDED (10) — bewusst NICHT im Gate, je mit Grund. ───────────────────

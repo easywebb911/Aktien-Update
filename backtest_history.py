@@ -18,7 +18,8 @@ from __future__ import annotations
 
 import json
 import logging
-from datetime import date, datetime, timezone
+from datetime import date, datetime, time, timezone
+from zoneinfo import ZoneInfo
 
 import yfinance as yf
 
@@ -479,9 +480,90 @@ def _build_backtest_extension(s: dict, pool_position: int, pool_size: int,
     }
 
 
+# ── Vintage-Guard (M1) — Backtest-Append-Schutz gegen stale Captures ────────
+# Empirie 09.06.2026: 11/11 Cluster-Tage entstanden durch PRE-OPEN-Runs, die
+# vor Session-Schluss des report_date die Vortags-Bar capturen und via
+# existing_keys einfrieren. Gate: appende nur wenn (1) now_et >= report_date@
+# 16:00 ET UND (2) die captured Tagesbar (s["bar_date"]) auf report_date
+# datiert ist. REIN Backtest-Append — score_history/app_data/Pushes unberührt.
+_VINTAGE_GUARD_LOG = "vintage_guard_log.jsonl"
+_VINTAGE_EASTERN   = ZoneInfo("America/New_York")
+_VINTAGE_MKT_OPEN  = time(9, 30)
+_VINTAGE_MKT_CLOSE = time(16, 0)
+
+
+def _vintage_gate_decision(report_date: str, bar_date, now_et: datetime
+                           ) -> tuple[str, str]:
+    """PURE Vintage-Guard-Entscheidung — env-frei, deterministisch.
+
+    Returnt ``(action, reason)`` mit ``action`` ∈ {``"append"``, ``"skip"``}.
+
+    - ``report_date``: ``dd.mm.yyyy``-String (wie persistiert).
+    - ``bar_date``: ISO-String ``yyyy-mm-dd`` der captured Tagesbar, oder None.
+    - ``now_et``: tz-aware ET-Zeitpunkt des Runs.
+
+    Logik (Zeit zuerst, dann Bar-Datum):
+    - ``now_et < report_date@16:00 ET`` → skip (``pre_open`` falls vor
+      Markt-Open bzw. report_date noch nicht erreicht, sonst ``before_close``).
+    - Zeit OK, ``bar_date`` fehlt/unparsbar → **append** (Missing-Regel,
+      konservativ: lieber unsicherer Eintrag als stiller Datenverlust).
+    - Zeit OK, ``bar_date != report_date`` → skip (``holiday_or_prior_bar``).
+    - Sonst → append (``ok``).
+    Garbage-report_date → append (``no_report_date``) — kein Gate ohne Datum.
+    Datumsvergleich strikt auf ``date``-Objekten (kein String-Vergleich).
+    """
+    try:
+        rd = datetime.strptime(report_date, "%d.%m.%Y").date()
+    except (TypeError, ValueError):
+        return "append", "no_report_date"
+    rd_close = datetime(rd.year, rd.month, rd.day,
+                        _VINTAGE_MKT_CLOSE.hour, _VINTAGE_MKT_CLOSE.minute,
+                        tzinfo=_VINTAGE_EASTERN)
+    if now_et < rd_close:
+        if now_et.date() < rd or now_et.timetz().replace(tzinfo=None) < _VINTAGE_MKT_OPEN:
+            return "skip", "pre_open"
+        return "skip", "before_close"
+    if bar_date is None:
+        return "append", "missing_bar"
+    try:
+        bd = datetime.strptime(str(bar_date), "%Y-%m-%d").date()
+    except (TypeError, ValueError):
+        return "append", "missing_bar"
+    if bd != rd:
+        return "skip", "holiday_or_prior_bar"
+    return "append", "ok"
+
+
+def _log_vintage_skip(report_date: str, bar_date, now_et: datetime | None,
+                      reason: str, ticker_count: int) -> None:
+    """Append-only-Beobachtungs-Log nach ``vintage_guard_log.jsonl`` (eigene
+    Datei, vom Digest/health_check NICHT gelesen — reines Sicherheitsnetz).
+    ``now_utc`` MIT geloggt: ein Skip um ~22:xx UTC (Post-Close) mit
+    Vortags-Bar ist VERDÄCHTIG (Bar-Lag-False-Skip eines legitimen Runs) und
+    so im Log unterscheidbar vom harmlosen ~04:xx-UTC-Pre-Open-Skip.
+    Fail-soft: Schreibfehler werden geloggt, nie re-raised."""
+    try:
+        rec = {
+            "ts_utc":       datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
+            "report_date":  report_date,
+            "bar_date":     bar_date,
+            "now_et":       now_et.isoformat() if now_et is not None else None,
+            "now_utc":      (now_et.astimezone(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+                             if now_et is not None else None),
+            "reason":       reason,
+            "ticker_count": ticker_count,
+            "schema_v":     1,
+        }
+        with open(_VINTAGE_GUARD_LOG, "a", encoding="utf-8") as fh:
+            fh.write(json.dumps(rec, ensure_ascii=False) + "\n")
+    except OSError as exc:
+        log.warning("vintage_guard_log Schreibfehler — übersprungen: %s", exc)
+
+
 def _append_backtest_entries(top10: list[dict], report_date: str,
                              pool_size: int = 0, *,
-                             compute_sub_scores_fn, safe_float_fn) -> int:
+                             compute_sub_scores_fn, safe_float_fn,
+                             now_et: datetime | None = None) -> int:
     """Fügt für jeden Top-10-Kandidaten einen neuen Backtest-Eintrag hinzu,
     dedupliziert nach (ticker, date), prunet auf 90 Tage und schreibt die Datei.
     Idempotent: wiederholter Aufruf am gleichen Tag ändert nichts.
@@ -516,8 +598,28 @@ def _append_backtest_entries(top10: list[dict], report_date: str,
                     "Backtest-Pfad.",
                     report_date, _rd.strftime("%A"))
         return 0
+
+    # Vintage-Guard run-level Zeit-Gate (M1): kein Append vor Session-Schluss
+    # (16:00 ET) des report_date. Früher Return VOR _load/_save → existing_keys
+    # bleibt unbelegt → ein späterer korrekter Post-Close-Run appended frisch.
+    # Spart außerdem den SPY/VIX-Fetch bei einem geskippten Pre-Open-Run.
+    if now_et is None:
+        now_et = datetime.now(_VINTAGE_EASTERN)
+    if _rd is not None:
+        _t_act, _t_reason = _vintage_gate_decision(
+            report_date, _rd.isoformat(), now_et)
+        if _t_act == "skip":   # nur Zeit-Gate kann hier greifen (bar==report)
+            _log_vintage_skip(report_date, _rd.isoformat(), now_et,
+                              _t_reason, len(top10))
+            log.info("Vintage-Guard: Append übersprungen (%s, now_et=%s) — %s",
+                     report_date, now_et.isoformat(), _t_reason)
+            return 0
+
     history = _load_backtest_history()
     existing_keys = {(e.get("ticker"), e.get("date")) for e in history}
+    # Vintage-Guard per-entry Bar-Datums-Tally (gesammelt, EIN Log nach Loop).
+    _vg_skip_prior: list[tuple[str, str]] = []
+    _vg_missing: list[str] = []
     # Agent-Signals einmalig laden (pro-Ticker-Lookup für perfect_storm_mult).
     try:
         with open("agent_signals.json", "r", encoding="utf-8") as fh:
@@ -571,6 +673,16 @@ def _append_backtest_entries(top10: list[dict], report_date: str,
         key = (s["ticker"], report_date)
         if key in existing_keys:
             continue
+        # Vintage-Guard per-entry: Zeit ist hier bereits OK (Run-Level-Gate
+        # oben). Bar-Datum prüfen — Vortags-/Feiertags-Bar → skip; fehlend →
+        # append (Missing-Regel).
+        _e_act, _e_reason = _vintage_gate_decision(
+            report_date, s.get("bar_date"), now_et)
+        if _e_act == "skip":
+            _vg_skip_prior.append((s["ticker"], str(s.get("bar_date"))))
+            continue
+        if _e_reason == "missing_bar":
+            _vg_missing.append(s["ticker"])
         fd = s.get("finra_data") or {}
         entry = {
             "date":          report_date,
@@ -662,6 +774,19 @@ def _append_backtest_entries(top10: list[dict], report_date: str,
                 continue
         log.info("Backtest-Schema (Stufe 1): max_drawdown aktualisiert für %d/%d aktive Einträge",
                  n_dd, len(active_dd))
+
+    # Vintage-Guard per-entry Skip-Beobachtung (ein Log je Grund-Klasse).
+    if _vg_skip_prior:
+        _sample_bar = _vg_skip_prior[0][1]
+        _log_vintage_skip(report_date, _sample_bar, now_et,
+                          "holiday_or_prior_bar", len(_vg_skip_prior))
+        log.info("Vintage-Guard: %d Einträge mit Vortags-/Feiertags-Bar "
+                 "übersprungen (%s, bar=%s, now_et=%s)",
+                 len(_vg_skip_prior), report_date, _sample_bar,
+                 now_et.isoformat() if now_et else "?")
+    if _vg_missing:
+        _log_vintage_skip(report_date, None, now_et,
+                          "missing_bar", len(_vg_missing))
 
     history = _prune_backtest_history(history)
     # Stabil sortieren: neueste Einträge zuletzt → Git-Diff zeigt nur den Append
