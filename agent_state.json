@@ -64,21 +64,10 @@
     "anomaly_score_jump_LUCK": "2026-06-09T20:21:42.140637+02:00",
     "anomaly_monster_backup_LUCK": "2026-06-09T20:21:42.190270+02:00",
     "anomaly_conviction_high_LUCK": "2026-06-09T12:05:35.406177+02:00",
-    "earnings_immediate_CBRL_09.06.2026": "2026-06-09T23:13:23.438660+02:00"
+    "earnings_immediate_CBRL_09.06.2026": "2026-06-09T23:13:23.438660+02:00",
+    "exit_DBI": "2026-06-10T17:32:12.110879+02:00"
   },
   "push_history": [
-    {
-      "ts": "2026-06-02T22:20:18.445100+02:00",
-      "ticker": "CHPT",
-      "kind": "earnings_immediate",
-      "severity": "default",
-      "trigger": null,
-      "body": "CHPT Earnings-Sofort-Alert (in 1d, KI 45)",
-      "success": true,
-      "suppressed": false,
-      "suppress_reason": null,
-      "conviction_score": 75
-    },
     {
       "ts": "2026-06-03T06:58:18.642110+02:00",
       "ticker": "AI",
@@ -1266,6 +1255,18 @@
       "suppressed": true,
       "suppress_reason": "conviction_below_threshold",
       "conviction_score": 64
+    },
+    {
+      "ts": "2026-06-10T17:32:12.110849+02:00",
+      "ticker": "DBI",
+      "kind": "exit_p1",
+      "severity": "default",
+      "trigger": "exit_alert",
+      "body": "DBI 📉 Exit 65 | -7% | Trailing-Stop −12.6% vom Hoch",
+      "success": true,
+      "suppressed": false,
+      "suppress_reason": null,
+      "conviction_score": null
     }
   ],
   "prev_conviction_scores": {
