@@ -181,9 +181,13 @@ Flag) — kein To-do. Nur AMC trägt das Hold-Flag.
   health_check-Stub (#334), Entry-Score Shadow (#336).
 - **Security-Backlog (Audit 09.06., alle niedrig/optional):** **M1** CSP-Meta in
   `head.jinja` (Defense-in-depth gegen künftige XSS-Klassen; `connect-src`
-  sorgfältig allowlisten, iPhone-Verify; manuell + Guardian). **M3 = EASY-AKTION
-  am Konto:** PAT auf fine-grained umstellen (nur dieses Repo + Gist) —
-  reduziert Schaden bei künftigem Token-Leak. **M4** Worker-offener-Proxy
+  sorgfältig allowlisten, iPhone-Verify; manuell + Guardian). **M3 ERLEDIGT als
+  bewusste Entscheidung (09.06.):** PAT bleibt **CLASSIC** — fine-grained
+  scheiterte 26.05. mit 403 bei Workflow-Dispatch/Gist (belegte Betriebslehre,
+  **NICHT erneut vorschlagen**). Scopes geprüft: `repo`+`gist`+`workflow` =
+  betriebsnotwendiges Minimum, bewusst belassen (`workflow`-Scope wird für
+  Dispatch gebraucht; Abhaken riskiert Betriebsbruch für hypothetischen Gewinn
+  — Leak-Pfad seit #343 dicht). **M4** Worker-offener-Proxy
   (Quota-DoS, tolerierbar) + **L1** LLM-Error-Sink (trivial): bewusst
   AKZEPTIERT. **CVE-Check** (pip-audit/Dependabot) = Easy extern, Sandbox hat
   kein Netz.
