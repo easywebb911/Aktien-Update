@@ -347,3 +347,14 @@ Flag) — kein To-do. Nur AMC trägt das Hold-Flag.
   ist nicht gleich „explosionsgefährdet" — eine Differenz zweier ≤100-Werte ist
   strukturell ±100-gebunden (harmlos), eine Division-durch-klein (si_trend-slope)
   ist es nicht. Vor „Ausreißer-Risiko" die mathematische Schranke prüfen.
+- **★ S3/S7-Digest-Spike an aktiven Merge-Tagen ERKLÄRT (10.06.):** Viele manuelle
+  Dispatches + „Redeploy index.html on source change" (#194, feuert pro main-Merge)
+  erzeugen an Tagen mit mehreren PRs eine Run-Dichte, die transiente **S3**
+  (current_price-Lücken bei Nicht-Top10-Positionen, yfinance gesund) und **S7**
+  (top10-Drift, stündlicher ki_agent kommt nicht nach) auslöst. **SELBSTHEILEND,
+  kein Provider-Ausfall, kein Loop.** Exit-Logik pausiert sauber bei
+  `current_price=None` (`generate_report.py:14673` → `available=False`, kein
+  Falsch-Signal). Bei ähnlichem Digest an einem Merge-Tag: **erst Actions-Liste
+  prüfen** (manuelle/Redeploy-Runs?), bevor man eine Provider-Diagnose startet.
+  **NICHT** zu verwechseln mit der Pre-Open-Run-Quelle (01:00–06:00 UTC, §6-b) —
+  das bleibt ein separater offener Faden.
