@@ -520,7 +520,7 @@ def _vintage_gate_decision(report_date: str, bar_date, now_et: datetime
                         _VINTAGE_MKT_CLOSE.hour, _VINTAGE_MKT_CLOSE.minute,
                         tzinfo=_VINTAGE_EASTERN)
     if now_et < rd_close:
-        if now_et.date() < rd or now_et.timetz().replace(tzinfo=None) < _VINTAGE_MKT_OPEN:
+        if now_et.date() < rd or now_et.time() < _VINTAGE_MKT_OPEN:
             return "skip", "pre_open"
         return "skip", "before_close"
     if bar_date is None:
