@@ -231,6 +231,15 @@ Flag) — kein To-do. Nur AMC trägt das Hold-Flag.
   nicht die Quelle. Falls die Pre-Open-Runs auch Pushes auslösen → eigener Faden.
   **(c)** si_trend-slope uncapped (FIP 521.84) — der EINE echte uncapped-
   Explosions-Punkt, relevant falls 30.06.-Auswertung rohen slope statt Bucket nutzt.
+- **trend_break-Exit-Trigger auto_adjust-Rest-Kante (theoretisch, kein Bau):**
+  `_exit_p2_trigger_trend_break` (gen:14726) vergleicht roh `cur_price` vs adjusted
+  `ma21` NUR bei **Nicht-top10-Position MIT Corporate Action im EMA21-Fenster
+  (~21 Handelstage)** → könnte `exit_pressure` leicht inflationieren (5%-Gewicht-
+  Komponente). Aktuell **keine** Position betroffen. **Fix-Konflikt:**
+  `current_price` dient zwei Konsumenten mit gegensätzlichem Bedarf (trend_break
+  will adjusted, Exit-PnL will roh) → **NICHT** global `auto_adjust` flippen; falls
+  je nötig, surgisch nur die `ma21`-Quelle im Nicht-top10-Fallback angleichen. Nur
+  bauen, wenn Easy-Verify einen frischen Split einer Nicht-top10-Position zeigt.
 
 ## 7) ARCHITEKTUR-ANKER
 **★ NEU diese Session:**
@@ -358,3 +367,16 @@ Flag) — kein To-do. Nur AMC trägt das Hold-Flag.
   prüfen** (manuelle/Redeploy-Runs?), bevor man eine Provider-Diagnose startet.
   **NICHT** zu verwechseln mit der Pre-Open-Run-Quelle (01:00–06:00 UTC, §6-b) —
   das bleibt ein separater offener Faden.
+- **★ DBI-8.88-Strang vollständig aufgelöst (10.06.) — KEIN Bau, P&L aller 8
+  Positionen korrekt.** Kette: **(1)** M2 After-Hours-Capture = **Phantom** (alle
+  Price-Captures `prepost=False` → `iloc[-1]` ist regulärer Session-Close, kein
+  After-Hours-Print). **(2)** auto_adjust-Mismatch breit = **Phantom**: P&L nutzt
+  Positions-`entry_price` aus Gist/User (roh) gegen Live-Worker-Quote (roh) —
+  beide roh, konsistent; gap_hold intern auto_adjust=True-konsistent; das 8.88
+  ist das **Backtest**-entry_price (adjusted, display-only `_btRenderTable`), ein
+  ANDERES Feld als `positions.entry_price` (7.41 User). **(3)** Split-Accounting:
+  PDYN-Reverse-Split war 07/2023, Entry 01/2025 = danach → keine Divergenz; RBOHF
+  kein auffindbarer Split. Keine offene Position von Corporate Action zwischen
+  Entry und heute betroffen. **LESSON:** „sieht komisch aus" (8.88) ≠ Defekt —
+  Backtest-Feld vs. Positions-Feld nicht verwechseln; P&L ist epochen-konsistent
+  (User-roh + Live-roh), bewusst NICHT am auto_adjust-Capture.
