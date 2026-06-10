@@ -1,10 +1,10 @@
 {
-  "updated": "2026-06-10T12:35:18.922058+02:00",
+  "updated": "2026-06-10T13:04:48.547740+02:00",
   "run_info": {
     "tickers_checked": 14,
     "signals_active": 4,
     "alerts_sent": 0,
-    "elapsed_s": 20.2,
+    "elapsed_s": 17.0,
     "market_phase": "Pre-Market"
   },
   "signals": {
@@ -27,7 +27,7 @@
       "uoa_drivers": [
         "UOA Call/Put 4.7×"
       ],
-      "uoa_atm_ratio": null,
+      "uoa_atm_ratio": 0.9228358793576185,
       "uoa_cp_ratio": 4.739635157545606
     },
     "AMC": {
@@ -53,9 +53,9 @@
       "uoa_cp_ratio": 13.91523178807947
     },
     "CBRL": {
-      "score": 72,
+      "score": 77,
       "confidence": 70,
-      "drivers": "Kurs +6.1% + Spanne 5.8% + SEC 8-K + FINRA Short-Vol 60%",
+      "drivers": "Kurs +6.1% + Spanne 5.8% + SEC 8-K + News-KI 5/30: Neutral operational commentary without indicators of high short interest, forced buyback pressure, or catalyst for rapid + FINRA Short-Vol 60%",
       "price": 36.3,
       "chg_pct": 6.11,
       "rvol_4d": 1.38,
@@ -73,9 +73,9 @@
       "uoa_cp_ratio": 1.0912698412698412
     },
     "DBI": {
-      "score": 61,
+      "score": 44,
       "confidence": 70,
-      "drivers": "Volumen 1.8× + Spanne 8.2% + SEC 8-K + News: earnings beat",
+      "drivers": "Volumen 1.8× + Spanne 8.2% + News: earnings beat",
       "price": 7.02,
       "chg_pct": -20.95,
       "rvol_4d": 1.81,
@@ -89,13 +89,13 @@
       "active_triggers": 2,
       "uoa_score": 0,
       "uoa_drivers": [],
-      "uoa_atm_ratio": null,
+      "uoa_atm_ratio": 0.017757009345794394,
       "uoa_cp_ratio": 0.1700404858299595
     },
     "FDMT": {
-      "score": 25,
-      "confidence": 17,
-      "drivers": "Kurs +6.8%",
+      "score": 33,
+      "confidence": 33,
+      "drivers": "Kurs +6.8% + News-KI 8/30: Positive biotech sentiment, but no short-squeeze indicators like high short interest, borrow difficulty, or price cataly",
       "price": 9.23,
       "chg_pct": 6.83,
       "rvol_4d": 0.64,
@@ -113,9 +113,9 @@
       "uoa_cp_ratio": 0.06428571428571428
     },
     "GIII": {
-      "score": 37,
+      "score": 40,
       "confidence": 70,
-      "drivers": "Volumen 1.7× + Spanne 7.1% + News-KI 12/30: Mixed signals with skepticism headline offsetting positive earnings beat and guidance raise; no short squeeze catalysts ",
+      "drivers": "Volumen 1.7× + Spanne 7.1% + News: earnings beat",
       "price": 34.0,
       "chg_pct": -2.63,
       "rvol_4d": 1.7,
@@ -133,9 +133,9 @@
       "uoa_cp_ratio": 0.17043740573152338
     },
     "IONQ": {
-      "score": 10,
-      "confidence": 17,
-      "drivers": "Spanne 11.7%",
+      "score": 46,
+      "confidence": 33,
+      "drivers": "Spanne 11.7% + News-KI 12/30: Positive R&D expansion news lacking catalyst urgency; analyst price targets are speculative without concrete short inter + UOA Call-Vol/OI 12.4× ATM",
       "price": 56.69,
       "chg_pct": -9.73,
       "rvol_4d": 0.87,
@@ -145,17 +145,19 @@
       "upcoming_event": null,
       "insider_buy": false,
       "stocktwits": null,
-      "combo_mult": 1.0,
-      "active_triggers": 1,
-      "uoa_score": 0,
-      "uoa_drivers": [],
-      "uoa_atm_ratio": null,
+      "combo_mult": 1.1,
+      "active_triggers": 2,
+      "uoa_score": 20,
+      "uoa_drivers": [
+        "UOA Call-Vol/OI 12.4× ATM"
+      ],
+      "uoa_atm_ratio": 12.397683397683398,
       "uoa_cp_ratio": 1.3133862944539312
     },
     "LUCK": {
-      "score": 75,
+      "score": 90,
       "confidence": 70,
-      "drivers": "Volumen 1.9× + Spanne 10.6% + News: insider buying + FINRA Short-Vol 92% + UOA Call/Put 3.6×",
+      "drivers": "Volumen 1.9× + Spanne 10.6% + News: squeeze, short squeeze + FINRA Short-Vol 92% + UOA Call/Put 3.6×",
       "price": 7.92,
       "chg_pct": -2.94,
       "rvol_4d": 1.91,
@@ -175,9 +177,9 @@
       "uoa_cp_ratio": 3.6
     },
     "OFRM": {
-      "score": 25,
-      "confidence": 17,
-      "drivers": "Kurs +6.7%",
+      "score": 30,
+      "confidence": 33,
+      "drivers": "Kurs +6.7% + News-KI 5/30: Positive sentiment but no short-squeeze indicators: no short interest data, institutional buying pressure, or catalysts ",
       "price": 16.16,
       "chg_pct": 6.67,
       "rvol_4d": 1.0,
@@ -191,7 +193,7 @@
       "active_triggers": 1,
       "uoa_score": 0,
       "uoa_drivers": [],
-      "uoa_atm_ratio": null,
+      "uoa_atm_ratio": 0.41025641025641024,
       "uoa_cp_ratio": 1.75
     },
     "OM": {
@@ -217,9 +219,9 @@
       "uoa_cp_ratio": 4.1
     },
     "PDYN": {
-      "score": 38,
+      "score": 35,
       "confidence": 33,
-      "drivers": "Spanne 7.1% + News: partnership + UOA Call/Put 2.5×",
+      "drivers": "Spanne 7.1% + News-KI 12/30: Positive business developments and strategic partnerships, but no indicators of short squeeze potential such as high sho + UOA Call/Put 2.5×",
       "price": 6.41,
       "chg_pct": -10.67,
       "rvol_4d": 1.02,
@@ -239,9 +241,9 @@
       "uoa_cp_ratio": 2.4974358974358974
     },
     "RBOHF": {
-      "score": 10,
-      "confidence": 17,
-      "drivers": "Spanne 15.9%",
+      "score": 18,
+      "confidence": 33,
+      "drivers": "Spanne 15.9% + News-KI 8/30: Positive corporate developments and partnerships, but no indicators of high short interest, low float, or squeeze cataly",
       "price": 0.21,
       "chg_pct": -2.12,
       "rvol_4d": 0.69,
@@ -261,7 +263,7 @@
     "ULCC": {
       "score": 82,
       "confidence": 70,
-      "drivers": "Kurs +6.0% + News: earnings beat, short interest + SEC Form 4 + UOA Call/Put 2.3×",
+      "drivers": "Kurs +6.0% + News: short interest, earnings beat + SEC Form 4 + UOA Call/Put 2.3×",
       "price": 6.35,
       "chg_pct": 6.01,
       "rvol_4d": 0.95,
@@ -281,9 +283,9 @@
       "uoa_cp_ratio": 2.3421052631578947
     },
     "WGS": {
-      "score": 33,
+      "score": 61,
       "confidence": 33,
-      "drivers": "Kurs +8.8% + News-KI 8/30: Negative earnings miss, guidance cut, and legal scrutiny indicate fundamental weakness that overwhelms any short-squeeze",
+      "drivers": "Kurs +8.8% + News: acquisition, activist investor",
       "price": 56.33,
       "chg_pct": 8.75,
       "rvol_4d": 0.64,
@@ -293,11 +295,11 @@
       "upcoming_event": null,
       "insider_buy": false,
       "stocktwits": null,
-      "combo_mult": 1.0,
-      "active_triggers": 1,
+      "combo_mult": 1.1,
+      "active_triggers": 2,
       "uoa_score": 0,
       "uoa_drivers": [],
-      "uoa_atm_ratio": null,
+      "uoa_atm_ratio": 0.4418604651162791,
       "uoa_cp_ratio": 0.8426966292134831
     }
   }
