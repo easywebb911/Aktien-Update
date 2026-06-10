@@ -179,6 +179,14 @@ Flag) — kein To-do. Nur AMC trägt das Hold-Flag.
   Golden-Liveness (#331), tier2-String-Gating-AST (#332, schließt den
   „~6 String-Gating-Checks"-Backlog), CI-Gate Phase 1+2 (#333/#335),
   health_check-Stub (#334), Entry-Score Shadow (#336).
+- **Security-Backlog (Audit 09.06., alle niedrig/optional):** **M1** CSP-Meta in
+  `head.jinja` (Defense-in-depth gegen künftige XSS-Klassen; `connect-src`
+  sorgfältig allowlisten, iPhone-Verify; manuell + Guardian). **M3 = EASY-AKTION
+  am Konto:** PAT auf fine-grained umstellen (nur dieses Repo + Gist) —
+  reduziert Schaden bei künftigem Token-Leak. **M4** Worker-offener-Proxy
+  (Quota-DoS, tolerierbar) + **L1** LLM-Error-Sink (trivial): bewusst
+  AKZEPTIERT. **CVE-Check** (pip-audit/Dependabot) = Easy extern, Sandbox hat
+  kein Netz.
 
 ## 7) ARCHITEKTUR-ANKER
 **★ NEU diese Session:**
@@ -227,6 +235,30 @@ Flag) — kein To-do. Nur AMC trägt das Hold-Flag.
 - Cron-Inventar: ki_agent `17 * * * *`, daily premarket `17 6 * * 1-5`,
   postclose `17 21 * * 1-5`, health-digest `47 8 * * *`, watchlist `0 7 * * 0`,
   pr-checks `on: pull_request`. checkout@v5.
+- **★ Security-Audit 09.06. (read-only, 6 Bereiche) — ERLEDIGT-Teil:** Token-
+  Krypto bestätigt **solide** (PBKDF2 600k, AES-GCM, frische IV+Salt pro
+  Verschlüsselung, Master-PW nie persistiert). **C1+M2 GEFIXT (#343):** Stored-
+  XSS im News-Render + company/sector — `_escH`-Escaping (inkl.
+  Anführungszeichen, Attribut-Kontext) + `n.link`-Whitelist `^https?://`
+  (Escaping allein stoppt `javascript:` NICHT). Damit ist der **einzige Pfad zu
+  echtem Konto-/Token-Schaden** (XSS → sessionStorage-PAT) dicht.
+- **★ Privacy-Akzeptanz (Entscheidung c, 09.06., Easy):** Repo public + Gist-ID
+  im gerenderten `index.html` → der secret Gist (Positionen/Stückzahlen/
+  Watchlist) ist für jeden Page-Besucher **anonym LESBAR** (kein Write, kein
+  Token-Zugriff — reines Lese-/Privacy-Risiko). **BEWUSST AKZEPTIERT**, weil:
+  (1) Repo-privat bricht Pages auf Free-Plan + Actions-Minuten-Limit, und die
+  Pages-Site bliebe ohnehin public (Access-Control erst Enterprise); (2) Strip
+  der committeten Mirror-Files **VERWORFEN** nach Diagnose —
+  `app_data.positions.exit_state` ist das **EINZIGE** Cross-Run-Ratchet-
+  Gedächtnis (peak_score/peak_pnl/prev_exit_pressure, gen `15224/15250`;
+  `pull_gist_data.py:192` übernimmt es nicht) → voller Strip = Peak-Reset jeden
+  Run = falscher Exit-Druck (**HARD-BREAK, Trading-Schaden**);
+  `agent_state.push_history` nicht strippbar (Entry-Score-Input
+  `backtest_history.py:533` + ki_agent-FIFO-Gedächtnis); Rest-Strip hätte ≈0
+  Gewinn, da dieselben Daten im akzeptierten Gist offen liegen. **NICHT erneut
+  vorschlagen ohne neue Lage.** Echte Privatheit nur via Storage-Redesign
+  (Option d): auth-gated Store statt URL-lesbarem Gist — optionaler Roadmap-
+  Punkt, kein Druck.
 
 ## 8) LESSONS (06.–07.06.2026)
 - **★ Sandbox ≠ CI-Env:** der Sandbox HAT `requests` (+ pyyaml etc.), der
