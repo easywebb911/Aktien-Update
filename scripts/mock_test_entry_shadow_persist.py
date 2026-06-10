@@ -291,12 +291,17 @@ def test_20_kind_filter_only_anomaly_sets_freshness():
                 _json.dump([], fh)
 
             top10 = [_baseline_stock([50.0, 57.0])]
+            # Vintage-Guard (M1) gate-aware: bar_date == report_date + now_et
+            # post-close (rd @ 22:00 UTC = 17–18 ET) → deterministischer Append
+            # statt zeit-flaky (Default-now_et = reale Wallclock-Zeit).
+            top10[0]["bar_date"] = rd.strftime("%Y-%m-%d")
             bh._append_backtest_entries(
                 top10, report_date, pool_size=1,
                 compute_sub_scores_fn=lambda s: {"struct": 0, "catalyst": 0,
                                                  "timing": 0},
                 safe_float_fn=lambda v, d=0.0: (float(v)
                                                 if v not in (None, "") else d),
+                now_et=rd.replace(hour=22, minute=0, second=0, microsecond=0),
             )
             written = _json.load(open("backtest_history.json"))
         finally:

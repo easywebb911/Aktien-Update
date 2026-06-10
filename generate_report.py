@@ -916,6 +916,10 @@ def get_yfinance_data(ticker: str) -> dict:
             "cur_open":     cur_open,
             "prev_close":   prev_close,
             "price":        cur_close,
+            # Vintage-Guard (M1): Datum der letzten Tagesbar (ISO-String,
+            # JSON-safe) — vom Backtest-Append gegen report_date geprüft.
+            "bar_date":     (hist.index[-1].date().isoformat()
+                             if hist is not None and not hist.empty else None),
         }
     except Exception as exc:
         log.warning("yfinance error for %s: %s", ticker, exc)
@@ -1156,6 +1160,12 @@ def get_yfinance_batch(tickers: list[str]) -> dict[str, dict]:
             "cur_open":       cur_open,
             "prev_close":     prev_close,
             "price":          cur_close,
+            # Vintage-Guard (M1): Datum der letzten Tagesbar (ISO-String) aus
+            # dem Batch-DF (_df_for). Bei _hist_stats-Singleton-Fallback (df2,
+            # nicht im Batch) → None → Missing-Regel (append). JSON-safe.
+            "bar_date":       ((lambda _bdf: _bdf.index[-1].date().isoformat()
+                                if _bdf is not None and not _bdf.empty else None)
+                               (_df_for(ticker))),
             # Earliness-Trend-Logging — Liste der letzten 5 Tage
             # ({volume,high,low,close}, ältester → neuester). Wird von
             # _build_backtest_extension für die 3 Trend-Sub-Signale
@@ -15897,6 +15907,9 @@ def main():
             "cur_open":            yfd.get("cur_open"),
             "prev_close":          yfd.get("prev_close"),
             "price":               yfd.get("price") or c.get("price"),
+            # Vintage-Guard (M1): Bar-Datum der Capture aufs Stock-Dict
+            # durchreichen (intern, NICHT persistiertes Schema-Feld).
+            "bar_date":            yfd.get("bar_date"),
             "inst_ownership":  yfd.get("inst_ownership"),
             "float_shares":    yfd.get("float_shares", 0),
             "change_5d":       yfd.get("change_5d"),

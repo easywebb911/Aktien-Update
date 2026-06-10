@@ -157,6 +157,11 @@ jobs:
           # Datei — der Digest liest sie NICHT). Ohne ``git add`` ginge das
           # Sample im ephemeren Runner verloren (analog provider_health.jsonl).
           git add finra_history_health.jsonl 2>/dev/null || true
+          # vintage_guard_log.jsonl: Skip-Beobachtungs-Log des Backtest-Append-
+          # Vintage-Guards (M1, eigene Datei, digest-frei). Ohne ``git add`` ginge
+          # die Beobachtung im ephemeren Runner verloren (Skip um ~22:xx UTC =
+          # verdächtiger Bar-Lag-False-Skip muss über Tage sichtbar bleiben).
+          git add vintage_guard_log.jsonl 2>/dev/null || true
           # gist_pull_state.json: Liveness-Marker, geschrieben vom Pull-Step
           # NUR bei HTTP-Gist-Erfolg (last_successful_gist_pull). Muss
           # committet werden, sonst setzt der nächste Runner-Checkout den
