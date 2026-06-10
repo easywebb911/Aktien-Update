@@ -42,6 +42,18 @@ Kern-Meilenstein **Entry-Score Shadow** — 3 Tage vor Plan.)*
   postclose-Backtest-Append berechnet + persistiert. **KEIN Push, keine
   Anzeige, kein Score-/Filter-Effekt.** Guardian ✅. Allowlist 76→**77** (neuer
   `mock_test_entry_score`). Manueller Merge.
+- **#346 (Merge 10.06.) — ★ Vintage-Guard M1 LIVE.** β+-Gate in
+  `_append_backtest_entries` — Backtest-Append NUR wenn `bar_date == report_date`
+  (date-Objekt-Vergleich) UND `now_et >= 16:00 ET`. Skippt Pre-Open-Runs
+  (Bar=Vortag), Feiertage (Bar=Vortag, OHNE Python-Feiertagsliste —
+  datengetrieben), Intraday-only-Tage (now<16:00). Schützt jedes KÜNFTIGE
+  Edge-Sample vor der Freitag-Cluster-Verseuchung (52 % stale-Rate unter
+  recurring Tickern). Skip kehrt VOR existing_keys-Belegung zurück → späterer
+  Post-Close-Run appended frisch. Missing bar_date → APPEND (konservativ, kein
+  stiller Datenverlust). bar_date in-memory (kein Schema-Bump). Plumbing:
+  `hist.index[-1].date()` aus Capture aufs Stock-Dict (gen:874/1032/1048),
+  Capture-Logik unverändert. Guardian ✅, 78/78 Runner, 18/18 Boundary-Mock.
+  Manueller Merge.
 
 ## 2) AKTIVE POSITIONEN
 **Quelle: `app_data.json`-Positions-Mirror (`run_phase=postclose`,
@@ -98,11 +110,28 @@ Flag) — kein To-do. Nur AMC trägt das Hold-Flag.
       konkret über `health_check.py:619` (S13-≥70-Edge) + die bt-Panel-Buckets.
       KEIN Source-Fix rettet das eingebackene 30.06.-Sample — nur der
       Doppel-Lauf zählt.
+    - **score_delta_t1 / Karten-Δ (−40,9 bei CBRL) GEKLÄRT (10.06., Caveat, kein
+      Bug):** Karten-Anzeige = unclamped Differenz zweier RAW-score_history-Werte,
+      beide ∈[0,100] (gen:4425) — echter ~41-Pkt-Tagesschwung, NICHT >100. Der
+      scheinbare 130,4-Widerspruch entsteht nur durch Mischen der SMOOTHED Anzeige
+      (89,5) mit dem RAW-Delta — verschiedene Skalen. **WICHTIG:** score_delta
+      gehört NICHT zur uncapped-Explosions-Klasse des si_trend-slope (FIP 521.84)
+      — jener ist Division-durch-klein (unbegrenzt, Artefakt), score_delta ist
+      strukturell ±100-gebunden (Differenz zweier ≤100-Werte). Entry-INPUT nutzt
+      die geclampte ±15-Variante (`score_delta_t1`, bt:247) → roher Extremwert
+      wird auf 0 saturiert → KEIN 30.06.-Verzerrungsrisiko. Caveat, keine Handlung
+      (optional: Tooltip „Δ auf Roh-Score-Basis", niedrig).
   - **NEU: Entry-Shadow-Auswertung** — treffen dünne Scores schlechter (via
     `entry_n_components`)? Ausfall-Tage via `push_history_available=False`
     filtern. anomaly-Cap ggf. re-kalibrieren (n=25 dünn). DANN Push-/Live-
     Entscheidung.
   - FDA-Move-Muster (Wiedervorlage 08.05.).
+- **Vintage-Guard Verify (ab ~13.06., über `vintage_guard_log.jsonl`, digest-frei):**
+  Skips nur ~04:xx UTC = Pre-Open korrekt. Ein ~22:xx-UTC-Skip = Bar-Lag-False-
+  Skip eines LEGITIMEN Post-Close-Runs (EST-Winter/yfinance-Lag — von der
+  EDT-Empirie NICHT widerlegt, nur beobachtbar gemacht) → nachsteuern. Das
+  Skip-Log ist das Sicherheitsnetz für den einzigen Rest-Fehlermodus
+  (Datenverlust statt Kontamination).
 - **Nach 10.06. — Inventur #3 (niedrig):** der Daily-Run-FINRA-**History**-Fetch
   (speist `si_trend_5d_slope`) ist **UNMONITORED** — `provider_health['finra']`
   überwacht nur den ki_agent-SSR-Fetch. Wächter-PR optional (graceful `None`
@@ -191,6 +220,17 @@ Flag) — kein To-do. Nur AMC trägt das Hold-Flag.
   (Quota-DoS, tolerierbar) + **L1** LLM-Error-Sink (trivial): bewusst
   AKZEPTIERT. **CVE-Check** (pip-audit/Dependabot) = Easy extern, Sandbox hat
   kein Netz.
+- **Aus Vintage-/Audit-Diagnose offen (kein Druck):** **(a)** M2 After-Hours-
+  Preis-Capture — `cur_close=hist[Close].iloc[-1]` (gen:874/1032/14339) kann im
+  Extended-Hours-Fenster last-price statt settled 16:00-Close führen. Vintage-
+  Guard M1 fängt das NICHT (anderer Code-Ort: Capture, nicht Append). Fix wäre
+  settled-Wert am Capture (analog `_close_at(0)`-Re-Fetch `ki_agent.py:479`).
+  Separater PR. **(b)** Pre-Open-Run-QUELLE undiagnostiziert: täglich feuern
+  01:00–06:00-UTC-Runs off-schedule (postclose-Cron ist 21:17 UTC) — manuelle
+  Dispatches? Re-Runs? redeploy? β+ behebt das Symptom (stale-Append geskippt),
+  nicht die Quelle. Falls die Pre-Open-Runs auch Pushes auslösen → eigener Faden.
+  **(c)** si_trend-slope uncapped (FIP 521.84) — der EINE echte uncapped-
+  Explosions-Punkt, relevant falls 30.06.-Auswertung rohen slope statt Bucket nutzt.
 
 ## 7) ARCHITEKTUR-ANKER
 **★ NEU diese Session:**
@@ -263,6 +303,14 @@ Flag) — kein To-do. Nur AMC trägt das Hold-Flag.
   vorschlagen ohne neue Lage.** Echte Privatheit nur via Storage-Redesign
   (Option d): auth-gated Store statt URL-lesbarem Gist — optionaler Roadmap-
   Punkt, kein Druck.
+- **★ Vintage-Guard M1 (#346, 10.06.):** β+-Gate in `_append_backtest_entries` —
+  Backtest-Append nur wenn `bar_date == report_date` (date-Objekt) UND
+  `now_et >= 16:00 ET`; sonst Skip VOR existing_keys-Belegung (→ späterer
+  Post-Close-Run appended frisch). Datengetriebener Feiertags-Schutz OHNE Liste
+  (Bar=Vortag → skip). Missing bar_date → APPEND (konservativ). bar_date
+  in-memory (kein Schema-Bump). Skip-Beobachtung in `vintage_guard_log.jsonl`
+  (eigene Datei, digest-frei). M1 fängt NICHT M2 (After-Hours-Capture — anderer
+  Code-Ort, separater Faden).
 
 ## 8) LESSONS (06.–07.06.2026)
 - **★ Sandbox ≠ CI-Env:** der Sandbox HAT `requests` (+ pyyaml etc.), der
@@ -291,3 +339,11 @@ Flag) — kein To-do. Nur AMC trägt das Hold-Flag.
   Freeze-Wächter. **Selbst-Begrenzung:** signatur-lose Defekte (plausibel-aber-
   falscher Einzelwert, Korrelations-Inkonsistenz, externe Quell-Korruption) sind
   strukturell unsichtbar — kein Wächter darf vorgeben, alles zu fangen.
+- **★ Raw-vs-Smoothed-Skalen nicht mischen (10.06., score_delta-Diagnose):** die
+  Karten-Δ-Anzeige rechnet auf RAW-score_history-Werten, der angezeigte Score ist
+  SMOOTHED — `smoothed + raw_delta` rekonstruiert nichts (der „130,4"-Phantom-
+  Widerspruch). Beim Diagnostizieren scheinbarer Wert-Widersprüche zuerst klären,
+  ob beide Operanden DIESELBE Skala/Verarbeitungsstufe haben. UND: „uncapped"
+  ist nicht gleich „explosionsgefährdet" — eine Differenz zweier ≤100-Werte ist
+  strukturell ±100-gebunden (harmlos), eine Division-durch-klein (si_trend-slope)
+  ist es nicht. Vor „Ausreißer-Risiko" die mathematische Schranke prüfen.
