@@ -1,11 +1,11 @@
 {
-  "updated": "2026-06-10T00:54:50.578426+02:00",
+  "updated": "2026-06-10T03:31:28.933841+02:00",
   "run_info": {
     "tickers_checked": 15,
     "signals_active": 6,
     "alerts_sent": 0,
-    "elapsed_s": 10.4,
-    "market_phase": "After-Hours"
+    "elapsed_s": 12.7,
+    "market_phase": "Geschlossen"
   },
   "signals": {
     "AI": {
@@ -31,9 +31,9 @@
       "uoa_cp_ratio": 4.739635157545606
     },
     "AMC": {
-      "score": 35,
+      "score": 50,
       "confidence": 33,
-      "drivers": "Spanne 12.2% + News: short seller + UOA Call/Put 13.9×",
+      "drivers": "Spanne 12.2% + News: catalyst, short seller + UOA Call/Put 13.9×",
       "price": 1.94,
       "chg_pct": 0.0,
       "rvol_4d": 1.42,
@@ -73,9 +73,9 @@
       "uoa_cp_ratio": 1.3174603174603174
     },
     "CBRL": {
-      "score": 96,
+      "score": 100,
       "confidence": 70,
-      "drivers": "Earnings in 0 Tagen (09.06.2026) + Volumen 2.5× + Spanne 7.7% + SEC 8-K + Earnings in 0d + FINRA Short-Vol 60% + 3/4 Trigger",
+      "drivers": "Earnings in 0 Tagen (09.06.2026) + Volumen 2.5× + Spanne 7.7% + SEC 8-K + News-KI 5/30: Standard earnings reports ohne Hinweise auf hohe Short-Interest, Squeeze-Katalysatoren oder volatile Preisaktionen. + Earnings in 0d + FINRA Short-Vol 60% + 3/4 Trigger",
       "price": 36.3,
       "chg_pct": -0.0,
       "rvol_4d": 2.45,
@@ -93,9 +93,9 @@
       "uoa_cp_ratio": 1.0912698412698412
     },
     "DBI": {
-      "score": 85,
+      "score": 88,
       "confidence": 70,
-      "drivers": "Earnings in 0 Tagen (09.06.2026) + Volumen 1.9× + Spanne 15.3% + SEC 8-K + News-KI 12/30: Mixed earnings beat with negative guidance and significant stock decline reduce short-squeeze potential; institutional s + Earnings in 0d",
+      "drivers": "Earnings in 0 Tagen (09.06.2026) + Volumen 1.9× + Spanne 15.3% + SEC 8-K + News: earnings beat + Earnings in 0d",
       "price": 7.02,
       "chg_pct": -0.0,
       "rvol_4d": 1.87,
@@ -115,7 +115,7 @@
     "ELPW": {
       "score": 88,
       "confidence": 70,
-      "drivers": "Volumen 65.2× + 🚀 Massives Volumen 65.2×+ + Spanne 107.8% + News: breakout, squeeze",
+      "drivers": "Volumen 65.2× + 🚀 Massives Volumen 65.2×+ + Spanne 107.8% + News: squeeze, breakout",
       "price": 1.16,
       "chg_pct": -0.0,
       "rvol_4d": 65.16,
@@ -153,9 +153,9 @@
       "uoa_cp_ratio": 0.06428571428571428
     },
     "GIII": {
-      "score": 18,
+      "score": 25,
       "confidence": 33,
-      "drivers": "Spanne 6.0% + News-KI 8/30: Positive earnings guidance mixed with skeptical media attention and narrow loss results don't indicate strong short-sque",
+      "drivers": "Spanne 6.0% + News: earnings beat",
       "price": 34.0,
       "chg_pct": 0.0,
       "rvol_4d": 0.84,
@@ -166,16 +166,16 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 0,
+      "active_triggers": 1,
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": 0.007692307692307693,
       "uoa_cp_ratio": 0.17043740573152338
     },
     "IONQ": {
-      "score": 10,
-      "confidence": 17,
-      "drivers": "Spanne 17.1%",
+      "score": 18,
+      "confidence": 33,
+      "drivers": "Spanne 17.1% + News-KI 8/30: Positive fundamental developments, aber keine extremen Short-Positionen oder Katalysatoren für einen Short-Squeeze erken",
       "price": 56.69,
       "chg_pct": -0.0,
       "rvol_4d": 1.07,
@@ -215,9 +215,9 @@
       "uoa_cp_ratio": 3.6
     },
     "OFRM": {
-      "score": 10,
-      "confidence": 17,
-      "drivers": "Spanne 7.2%",
+      "score": 15,
+      "confidence": 33,
+      "drivers": "Spanne 7.2% + News-KI 5/30: Positive company developments but no short squeeze indicators: low short interest likely, no major stock movement cataly",
       "price": 16.16,
       "chg_pct": -0.0,
       "rvol_4d": 1.05,
@@ -301,7 +301,7 @@
     "WGS": {
       "score": 40,
       "confidence": 33,
-      "drivers": "Spanne 8.9% + News: activist investor, acquisition",
+      "drivers": "Spanne 8.9% + News: acquisition, activist investor",
       "price": 56.33,
       "chg_pct": 0.0,
       "rvol_4d": 1.18,
