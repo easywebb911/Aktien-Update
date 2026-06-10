@@ -11569,6 +11569,16 @@ function _fmtGerman(d) {{
   }}
 
   function buildWlDetails(ticker, d) {{
+    // Security (XSS-Härtung C1/M2): externe Feld-Inhalte (News-Titel/-Quelle/
+    // -Zeit, company_name, sector) laufen via ``body.innerHTML`` (wlExpand)
+    // ins DOM → vollständiges HTML-Escape inkl. ``"`` (Attribut-Kontext). Der
+    // News-Link wird zusätzlich auf ``http(s)`` whitelisted — Escaping allein
+    // stoppt ``javascript:``/``data:``-URIs NICHT. Reiner Sink-Fix, keine
+    // Render-/Daten-Logik berührt.
+    const _escH = s => String(s == null ? '' : s).replace(/[&<>"]/g,
+      c => ({{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}})[c]);
+    const _safeUrl = u => /^https?:\\/\\//i.test(String(u == null ? '' : u))
+      ? String(u) : '#';
     // Variante A: Server-seitig vorgerendertes TopTen-Karten-HTML
     // (``_wl_full_card_html``). Layout, Sub-Scores, Drivers, Sparkline,
     // Metrics-Tiles, News + KI-Signal-Block sind identisch zur Top-10-
@@ -11604,8 +11614,8 @@ function _fmtGerman(d) {{
       const scCol      = wlScoreColor2(d.score);
       const priceTag   = d.price ? '$' + (+d.price).toFixed(2) : '';
       const flagStr    = d.flag ? `<span style="font-size:.85rem;margin-right:4px">${{d.flag}}</span>` : '';
-      const companyStr = d.company_name || '';
-      const sectorStr  = d.sector ? `<span class="sector-tag">${{d.sector}}</span>` : '';
+      const companyStr = _escH(d.company_name || '');
+      const sectorStr  = d.sector ? `<span class="sector-tag">${{_escH(d.sector)}}</span>` : '';
       const topHdr = `<div class="card-top wl-exp-top">
         <div class="card-left" style="align-items:center">
           <button class="wl-close-btn-inline" onclick="wlExpand('${{ticker}}', document.getElementById('wlb-${{ticker}}'))"
@@ -11677,11 +11687,11 @@ function _fmtGerman(d) {{
         <table class="detail-table">
           <tr><td>Preis</td><td>${{priceStr}}</td></tr>
           <tr><td>Marktkapitalisierung</td><td>${{fmtCap(d.market_cap)}}</td></tr>
-          <tr><td>Sektor</td><td>${{d.sector || '\u2014'}}</td></tr>
+          <tr><td>Sektor</td><td>${{_escH(d.sector) || '\u2014'}}</td></tr>
           <tr><td>52W-Hoch / -Tief</td><td>${{hiStr}} / ${{loStr}}</td></tr>
           <tr><td>\xd8 Volumen 20T</td><td>${{fmtVol(d.avg_vol_20d)}}</td></tr>
           <tr><td>Heutiges Volumen</td><td>${{fmtVol(d.cur_vol)}}</td></tr>
-          <tr><td>SI-Trend (3M)</td><td>${{d.si_trend || '\u2014'}}${{d.si_tpct ? ' ' + fmtPct(d.si_tpct) : ''}}</td></tr>
+          <tr><td>SI-Trend (3M)</td><td>${{_escH(d.si_trend) || '\u2014'}}${{d.si_tpct ? ' ' + fmtPct(d.si_tpct) : ''}}</td></tr>
           <tr><td>SI-Velocity</td><td>${{siVelStr}}</td></tr>
           <tr><td>Short-Vol. T-1 (FINRA)</td><td>${{d.si_t1 || '\u2014'}}</td></tr>
           <tr><td>Short-Vol. T-2</td><td>${{d.si_t2 || '\u2014'}}</td></tr>
@@ -11701,9 +11711,9 @@ function _fmtGerman(d) {{
       let newsHtml = '';
       if (d.news && d.news.length) {{
         const items = d.news.map(n =>
-          `<div class="ni"><a href="${{n.link}}" target="_blank" rel="noopener">${{n.title}}</a>` +
-          (n.source ? ` <span class="ni-src">(${{n.source}})</span>` : '') +
-          `<span class="ni-meta">${{n.time || ''}}</span></div>`
+          `<div class="ni"><a href="${{_escH(_safeUrl(n.link))}}" target="_blank" rel="noopener">${{_escH(n.title)}}</a>` +
+          (n.source ? ` <span class="ni-src">(${{_escH(n.source)}})</span>` : '') +
+          `<span class="ni-meta">${{_escH(n.time) || ''}}</span></div>`
         ).join('');
         newsHtml = `<div class="news-items" style="padding:0 12px 10px">${{items}}</div>`;
       }}
