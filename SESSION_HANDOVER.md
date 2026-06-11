@@ -61,6 +61,20 @@ Shadow/Schutz, KEIN Live-Score-/Push-Effekt.)*
   unparsbar → konservativ S4 feuert. `severity` bleibt `warn`, kein
   Score-/Push-/Render-Touch. `now_utc` war im Evaluator schon vorhanden (keine
   neue Plumbing). Guardian ✅, 40/40 health_check, 79/79 CI-Gate. Manueller Merge.
+- **#357 — 11.06.** **★★ WURZEL-FIX: Redeploy-Auto-Trigger entfernt.**
+  `redeploy-on-source-change.yml` (#194/#196) dispatchte bei **jedem** Code-Merge
+  auf `main` einen **vollen** `daily-squeeze-report.yml`-Run (Fetch+Score+**Pushes**+
+  score_history-Write+ki_agent-Trigger) statt nur `index.html` zu deployen — die
+  **gemeinsame Wurzel** (Easy-Verify Actions-Log) von Pre-Open-Pushes auf nicht-
+  finalen Daten, S3-/S4-Fehlalarmen, Freitag-Cluster-Kontamination und score_history-
+  Churn. **Fix:** `on: push` → `on: workflow_dispatch` (nur manuell), **reversibel**
+  (push-Block auskommentiert, Run-Logik erhalten — nicht gelöscht, falls später
+  Render-Only). Render-Only-Alternative verworfen (kein vollständiger committeter
+  Render-Input; ki_agent-Trigger sitzt workflow-seitig). **Scope strikt:**
+  `daily-squeeze-report.yml` (2 Crons + dispatch) + `ki_agent.yml` UNBERÜHRT (leerer
+  Diff); kein Python-/Render-/Score-/Push-Touch. **Rest-Kante** (kein Defekt):
+  Recalculate-Button dispatcht weiter direkt (gen:9559/10575) — bewusste Einzelaktion,
+  s. §6-b. Guardian ✅, 79/79 CI-Gate, Golden byte-identisch. Manueller Merge.
 - **Doku-Konsolidierungs-PRs (10.–11.06.):** #344 (Security-Strang/Audit 09.06.),
   #345 (M3-Entscheidung PAT classic), #347 (Vintage-Guard + score_delta), #348
   (S3/S7-Merge-Tag-Erklärung), #349 (DBI-8.88 aufgelöst + trend_break-Rest-Kante),
@@ -100,6 +114,14 @@ aufgelöst (§8) — P&L korrekt (User-roh 7.41), kein Defekt.
 *(08.06.-Verifies ERLEDIGT: erster Entry-Score live + FINRA-SSR-Recovery +
 Wochenend-Digest-Selbstheilung bestätigt — entfallen.)*
 
+- **★ Redeploy-Auto-Trigger tot (#357) — beim NÄCHSTEN Code-Merge prüfen:** Nach
+  einem Merge auf `main`, der `generate_report.py`/`config.py`/`templates/**`
+  berührt, in der **Actions-Liste** kontrollieren: es darf **KEIN** automatischer
+  „Daily Squeeze Report"-Run mehr erscheinen (nur noch `pages-build-deployment` +
+  ggf. `pr-checks`). Erwartetes Bild: **kein** off-schedule „Daily Squeeze Report"
+  ohne dass Easy selbst dispatcht hat. Erscheint trotzdem einer → Trigger-Entfernung
+  griff nicht, nachsehen. (Der von Easy dispatchte/Recalculate-Run ist erlaubt —
+  geprüft wird der AUTOMATISCHE Pfad.)
 - **★ Exit-Shadow Datei-Commit (in 1–2 Tagen, WICHTIG):** `exit_shadow_log.jsonl`
   ist **aktuell noch NICHT im Repo** — seit #350-Merge (11.06. 03:45) lief noch
   **kein qualifizierender postclose-Run ≥16:00 ET** (der 07:05Z-Mirror ist pre-
@@ -227,18 +249,25 @@ aus Entry + Exit + KI/monster. Erst sammeln lassen, was läuft.
     dieselbe Wurzel → EIN kombinierter Guard" ist damit **gegenstandslos** — M1
     allein deckt den realen Fehlermodus (Pre-Open-Re-Run). After-Hours-P&L
     ohnehin schon erledigt (#338).
-  - **(b) Pre-Open-Run-QUELLE undiagnostiziert (offen, Scheduling-Frage) —
-    WIEDERKEHRENDE WURZEL:** taucht inzwischen in DREI Symptomen auf: Vintage-
-    Cluster (#346), S3-`current_price`-Churn (§8), S4-Vormittags-Fehlalarm (#355).
-    Off-schedule-Runs um **00:09–05:53 UTC tragen `run_phase=postclose`** (der
-    postclose-Cron ist aber 21:17 UTC). Quelle undiagnostiziert: manuelle
-    Dispatches? Re-Runs? Redeploy-Workflow #194? **Bisher nur SYMPTOME behandelt**
-    (Vintage-Guard skippt den Append, S4 ist jetzt gegated) — die Quelle blieb
-    unberührt. Falls die Runs auch Pushes/andere Wächter triggern → eigener
-    Diagnose-Faden lohnt. Kein akuter Schaden, aber wiederkehrende Wurzel: **bei
-    Gelegenheit die QUELLE prüfen statt weiter Symptome.** **NICHT** zu verwechseln
-    mit dem S3/S7-Merge-Tag-Churn (§8, geklärt+selbstheilend) — andere, harmlose
-    Klasse.
+  - **(b) Pre-Open-Run-QUELLE — WURZEL GEKLÄRT + AUTOMATISCH GESCHLOSSEN (#357,
+    11.06.):** Die Quelle der Off-schedule-`postclose`-Runs ist **belegt** (Easy-
+    Verify Actions-Log): `redeploy-on-source-change.yml` (#194/#196) dispatchte bei
+    **jedem** Code-Merge auf `main` einen **vollen** `daily-squeeze-report.yml`-Run
+    (Fetch+Score+Pushes+score_history+ki_agent) statt nur `index.html` zu deployen;
+    `run_phase` war UTC-abgeleitet (`else → postclose`), bei Pre-Open-Merges im
+    falschen ET-Fenster. **Das war die gemeinsame Wurzel** der drei Symptome
+    (Vintage-Cluster #346, S3-`current_price`-Churn, S4-Vormittags-Fehlalarm #355)
+    UND des §8-S3/S7-Merge-Tag-Churns — **dieselbe Quelle**, nicht zwei Klassen
+    (frühere „andere Klasse"-Trennung damit überholt). **Fix #357:** `on: push`-Auto-
+    Trigger entfernt → `on: workflow_dispatch` (reversibel, push-Block auskommentiert).
+    Ein Code-Merge löst **keinen** automatischen Daily-Run mehr aus.
+    **REST-KANTE (kein Defekt, optional):** der Frontend-**Recalculate-Button**
+    dispatcht den Daily-Run weiterhin **direkt** via GitHub-API (`GH_WORKFLOW=
+    'daily-squeeze-report.yml'`, gen:9559/10575) — **bewusste, seltene Einzelaktion**,
+    nicht der Auto-Pfad. Ein nächtlicher Tap KÖNNTE noch einen Pre-Open-Run auslösen.
+    Optionaler Folge-PR: ein **Zeit-Warn-Gate** im Button (Hinweis bei Pre-Open-
+    Dispatch) — **kein Druck**, kein akuter Schaden (Easys Wahl). „Wurzel zu" heißt
+    präzise: **automatische Wurzel zu, manuelle Einzelaktion bleibt.**
   - **(c) si_trend-slope uncapped (FIP 521.84):** der EINE echte uncapped-
     Explosions-Punkt, relevant nur falls die 30.06.-Auswertung rohen slope statt
     Bucket nutzt. Optional begleitend **W2** = 14–30 d silent-log der 3 uncapped
@@ -330,6 +359,15 @@ aus Entry + Exit + KI/monster. Erst sammeln lassen, was läuft.
   konservativ S4 feuert. `now_utc` war im Evaluator bereits vorhanden (default
   `datetime.now`, keine Plumbing aus generate_report). `severity` bleibt `warn`.
   S12/S3/S7/Vintage-Guard/Produzent unberührt.
+- **★★ Redeploy-Auto-Trigger entfernt (#357):** `redeploy-on-source-change.yml`
+  feuert **nicht mehr** auf `push` zu `main` (`on: push` → `on: workflow_dispatch`,
+  reversibel via auskommentiertem push-Block). **Wurzel-Schließung:** ein Code-Merge
+  erzeugt **keinen** automatischen vollen Daily-Run mehr → keine Off-Schedule-
+  `postclose`-Runs im Pre-Open-ET-Fenster, keine Pre-Open-Pushes/score_history-Churn
+  aus Merges. Die Symptom-Netze **bleiben** (Vintage-Guard #346, S4-Gate #355,
+  postclose-Anomaly-Suppression) — greifen jetzt nur seltener. **Direkter Dispatch-
+  Pfad bleibt:** der Recalculate-Button POSTet weiter an `daily-squeeze-report.yml`
+  (gen:9559/10575) — bewusste Einzelaktion, kein Auto-Pfad (Rest-Kante §6-b).
 
 **Bestehende Anker (unverändert):**
 - **★★ Entry-Score (`entry_score.py`, #336):** PURES stdlib-Modul, bewusst getrennt
@@ -427,15 +465,18 @@ aus Entry + Exit + KI/monster. Erst sammeln lassen, was läuft.
   gebunden (harmlos, score_delta), eine Division-durch-klein (si_trend-slope) ist es
   nicht. Vor „Ausreißer-Risiko" die mathematische Schranke prüfen.
 - **★ S3/S7-Digest-Spike an aktiven Merge-Tagen ERKLÄRT (10.06.):** Viele manuelle
-  Dispatches + „Redeploy index.html on source change" (#194, feuert pro main-Merge)
-  erzeugen an Tagen mit mehreren PRs eine Run-Dichte, die transiente **S3**
-  (current_price-Lücken bei Nicht-Top10-Positionen, yfinance gesund) und **S7**
-  (top10-Drift, stündlicher ki_agent kommt nicht nach) auslöst. **SELBSTHEILEND,
-  kein Provider-Ausfall, kein Loop.** Exit-Logik pausiert sauber bei
-  `current_price=None` (`generate_report.py:14673` → `available=False`). Bei
-  ähnlichem Digest an einem Merge-Tag: **erst Actions-Liste prüfen** (manuelle/
-  Redeploy-Runs?), bevor man eine Provider-Diagnose startet. **NICHT** zu verwechseln
-  mit der Pre-Open-Run-Quelle (01:00–06:00 UTC, §6-b — separater offener Faden).
+  Dispatches + „Redeploy index.html on source change" (#194, **feuerte** pro main-
+  Merge — **Auto-Trigger seit #357/11.06. entfernt**) erzeugten an Tagen mit mehreren
+  PRs eine Run-Dichte, die transiente **S3** (current_price-Lücken bei Nicht-Top10-
+  Positionen, yfinance gesund) und **S7** (top10-Drift, stündlicher ki_agent kommt
+  nicht nach) auslöste. **SELBSTHEILEND, kein Provider-Ausfall, kein Loop.** Exit-
+  Logik pausiert sauber bei `current_price=None` (`generate_report.py:14673` →
+  `available=False`). Bei ähnlichem Digest an einem Merge-Tag: **erst Actions-Liste
+  prüfen** (manuelle Dispatches?), bevor man eine Provider-Diagnose startet.
+  **NACHTRAG (#357):** der Redeploy war **dieselbe** Quelle wie die §6-b-Pre-Open-
+  `postclose`-Runs (nicht „separater Faden", wie früher hier vermutet) — mit dem
+  Auto-Trigger-Aus ist diese Merge-Tag-Run-Dichte für den **automatischen** Pfad
+  geschlossen; nur noch bewusste manuelle Dispatches/Recalculate können sie erzeugen.
 - **★ DBI-8.88-Strang vollständig aufgelöst (10.06.) — KEIN Bau, P&L aller 8
   Positionen korrekt.** Kette: **(1)** M2 After-Hours-Capture = **Phantom** (alle
   Price-Captures `prepost=False` → `iloc[-1]` ist regulärer Session-Close). **(2)**
