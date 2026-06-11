@@ -29,6 +29,7 @@ from config import *   # zentrale Konstanten (Schwellen, Score-Gewichte, Timeout
 from watchlist import WATCHLIST
 import score_inflation_log
 import health_check
+import exit_shadow
 from backtest_history import (
     _load_backtest_history,
     _append_backtest_entries,
@@ -15214,6 +15215,8 @@ def _build_phase2_positions_payload(
     history: dict,
     prev_app_data: dict,
     now_utc: datetime,
+    report_date: str = "",
+    run_phase: str = "",
 ) -> dict:
     """Komponiert ``app_data.json["positions"]`` für den Daily-Run.
 
@@ -15233,6 +15236,9 @@ def _build_phase2_positions_payload(
     by_ticker = {s.get("ticker"): s for s in (top10 or []) if s.get("ticker")}
     prev_positions = (prev_app_data or {}).get("positions") or {}
     out: dict[str, dict] = {}
+    # Exit-Shadow-Sammlung (NUR Logging, kein Live-Effekt) — pro Position ein
+    # Record; geschrieben NACH dem Loop, gated auf settled-postclose.
+    _exit_shadow_recs: list[dict] = []
     for ticker, pos in positions.items():
         try:
             entry_date_obj = datetime.strptime(
@@ -15328,6 +15334,25 @@ def _build_phase2_positions_payload(
             "no_exit_alerts": bool(pos.get("no_exit_alerts", False)),
             "exit_state":   state,
         }
+        # Exit-Shadow-Record sammeln (ohnehin berechnetes ``state``; reines
+        # Anhängen, kein Touch an state/Push/Ratchet). signal_price = der
+        # cur_price, den die Trigger gesehen haben (Referenz; der Forward-
+        # Return-Backfill nutzt ihn NICHT, sondern re-fetcht settled Closes).
+        _exit_shadow_recs.append(
+            exit_shadow.build_exit_shadow_record(
+                ticker, report_date, run_phase, state, cur_price))
+
+    # Settled-postclose-Gate (now_et >= 16:00 ET): nur dann ist der
+    # Trigger-Preis final. now_et aus now_utc abgeleitet (DST-korrekt).
+    try:
+        _now_et = now_utc.astimezone(ZoneInfo("America/New_York"))
+        if (report_date and _exit_shadow_recs
+                and exit_shadow.should_log_exit_shadow(run_phase, _now_et)):
+            _n = exit_shadow.write_exit_shadow_records(_exit_shadow_recs)
+            log.info("Exit-Shadow: %d Records geschrieben (%s, postclose)",
+                     _n, report_date)
+    except Exception as _exc_es:
+        log.debug("Exit-Shadow-Logging übersprungen: %s", _exc_es)
     return out
 
 
@@ -16608,7 +16633,8 @@ def main():
     try:
         _positions_payload = _build_phase2_positions_payload(
             top10, _all_metrics, _load_score_history(),
-            _prev_app_data, datetime.now(ZoneInfo("UTC")))
+            _prev_app_data, datetime.now(ZoneInfo("UTC")),
+            report_date=report_date, run_phase=run_phase)
     except Exception as _exc_p2:
         log.warning("Phase 2 Exit-Pipeline fehlgeschlagen: %s", _exc_p2)
         _positions_payload = {}
