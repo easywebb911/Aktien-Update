@@ -1,10 +1,10 @@
 {
-  "updated": "2026-06-11T23:14:15.785119+02:00",
+  "updated": "2026-06-12T00:16:53.764151+02:00",
   "run_info": {
     "tickers_checked": 16,
     "signals_active": 2,
     "alerts_sent": 0,
-    "elapsed_s": 12.0,
+    "elapsed_s": 13.7,
     "market_phase": "After-Hours"
   },
   "signals": {
@@ -53,9 +53,9 @@
       "uoa_cp_ratio": 9.395926339285714
     },
     "DBI": {
-      "score": 55,
-      "confidence": 70,
-      "drivers": "Spanne 8.1% + SEC 8-K + News: earnings beat + FINRA Short-Vol 54%",
+      "score": 40,
+      "confidence": 33,
+      "drivers": "Spanne 8.1% + SEC 8-K + News: earnings beat",
       "price": 6.56,
       "chg_pct": -0.0,
       "rvol_4d": 0.75,
@@ -235,9 +235,9 @@
       "uoa_cp_ratio": 10.816666666666666
     },
     "PGEN": {
-      "score": 60,
+      "score": 35,
       "confidence": 70,
-      "drivers": "Volumen 2.2× + Spanne 20.1% + FINRA Short-Vol 75% + UOA Call/Put 2.8×",
+      "drivers": "Volumen 2.2× + Spanne 20.1% + UOA Call/Put 2.8×",
       "price": 4.53,
       "chg_pct": 0.0,
       "rvol_4d": 2.22,
@@ -257,9 +257,9 @@
       "uoa_cp_ratio": 2.7913385826771653
     },
     "RBOHF": {
-      "score": 25,
-      "confidence": 33,
-      "drivers": "Volumen 2.5× + Spanne 14.2%",
+      "score": 33,
+      "confidence": 70,
+      "drivers": "Volumen 2.5× + Spanne 14.2% + News-KI 8/30: Positive corporate developments but lack of tangible revenue growth, short interest data, or catalyst urgency needed for",
       "price": 0.21,
       "chg_pct": -0.48,
       "rvol_4d": 2.5,
