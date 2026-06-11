@@ -1,26 +1,48 @@
 name: Redeploy index.html on source change
 
-# GitHub Pages liefert das committed ``index.html`` 1:1 aus — kein
-# Build-Step. ``index.html`` wird nur vom ``daily-squeeze-report.yml``-
-# Workflow erzeugt (Schedule Mo-Fr 10:00 UTC + manueller Dispatch).
-# Bei reinen Code-Änderungen (Phase 3 z. B.) blieb das deployed HTML
-# bisher auf dem alten Stand bis zum nächsten Daily-Run.
+# ⛔ DEAKTIVIERT (11.06.2026) — Auto-Trigger entfernt (Wurzel-Fix).
 #
-# Dieser Workflow triggert ``daily-squeeze-report.yml`` automatisch
-# per Dispatch, sobald ein Code-Push auf ``main`` eine der relevanten
-# Quell-Dateien berührt — Pages bekommt das aktualisierte HTML
-# innerhalb weniger Minuten ohne Wartezeit auf den nächsten Cron.
+# Dieser Workflow dispatchte bei JEDEM Code-Merge auf ``main`` (relevante
+# Quell-Dateien) einen VOLLEN ``daily-squeeze-report.yml``-Run — also
+# Fetch + Score + Pushes + score_history-Write + ki_agent-Trigger, statt
+# nur ``index.html`` neu zu deployen. Belegte gemeinsame Wurzel von:
+#   • S3 (current_price-Lücken) / S4-Fehlalarm / Freitag-Cluster
+#   • Exit-Pushes auf Pre-Open-/Nicht-finalen Daten
+#   • score_history-/app_data-Churn an Merge-Tagen
+# Der Off-Schedule-Run trug ``run_phase=postclose`` (UTC-abgeleitet,
+# ``else → postclose``) und landete bei Pre-Open-Merges im falschen
+# ET-Fenster. Render-Only-Alternative verworfen (kein vollständiger
+# committeter Render-Input; ki_agent-Trigger sitzt workflow-seitig).
+#
+# Fix: der ``on: push``-Auto-Trigger ist entfernt → ein Code-Merge löst
+# KEINEN automatischen Daily-Run mehr aus. Template-/Render-Änderungen
+# werden beim nächsten regulären Cron sichtbar (daily-squeeze-report.yml:
+# ``17 6`` + ``17 21`` Mo-Fr) oder via bewusstem manuellem Dispatch /
+# Recalculate-Button (bewusste, seltene Einzelaktion — kein Auto-Pfad).
+#
+# REVERSIBEL: Workflow-Datei + Run-Logik bleiben erhalten; bei Bedarf
+# (z. B. späterer Render-Only-Bau) den ``on: push``-Block unten
+# wiederherstellen. Bis dahin ist nur noch ``workflow_dispatch``
+# (manuell) aktiv — der Auto-Pfad ist tot.
+#
+# Historischer Kontext (Original-Zweck): GitHub Pages liefert das
+# committed ``index.html`` 1:1 aus; reine Code-Änderungen blieben bis zum
+# nächsten Daily-Run auf altem HTML. Dieser Workflow sollte das verkürzen
+# — der Nebenwirkungs-Preis (voller Pipeline-Lauf) war es aber nicht wert.
 
 on:
-  push:
-    branches:
-      - main
-    paths:
-      - 'generate_report.py'
-      - 'config.py'
-      - 'templates/**'
-      - 'scripts/lint_chat_template.py'
-      - 'requirements.txt'
+  workflow_dispatch:   # nur noch manuell — Auto-Trigger (on: push) entfernt
+  # ── Auto-Trigger DEAKTIVIERT (11.06.2026, Wurzel-Fix). Zum Reaktivieren
+  #    den folgenden Block einkommentieren:
+  # push:
+  #   branches:
+  #     - main
+  #   paths:
+  #     - 'generate_report.py'
+  #     - 'config.py'
+  #     - 'templates/**'
+  #     - 'scripts/lint_chat_template.py'
+  #     - 'requirements.txt'
 
 permissions:
   actions: write
