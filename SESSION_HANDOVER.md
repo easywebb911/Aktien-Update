@@ -49,6 +49,18 @@ Shadow/Schutz, KEIN Live-Score-/Push-Effekt.)*
   `S10_OBSERVED_FIELDS` ergänzt (OBSERVED/optional, KEIN MUSS-/LAG-Check). Zweck:
   30.06.-Auswertung des KI-/Monster-Edge ermöglichen. KEIN Score-/Filter-/Push-/
   Anzeige-Effekt. Golden byte-identisch, 79/79, Guardian ✅. Manueller Merge.
+- **#355 — 11.06.** **★ S4-Zeit-Gate (16:00 ET).** S4 („backtest_history-Eintrag
+  fehlt") feuerte vormittags fälschlich `warn` — alte Annahme „postclose-Run ⇒
+  Eintrag da", seit Vintage-Guard #346 falsch (Append vor 16:00 ET legitim
+  geskippt; ausgelöst von Pre-Open-Runs mit `run_phase=postclose` um 00:09/01:53
+  ET). Fix: S4 erwartet den heutigen Eintrag erst wenn `now_et >= report_date@16:00
+  ET` (zoneinfo, DST-korrekt) — **SYMMETRIE zum Vintage-Guard-Producer-Gate**.
+  **Zähne erhalten:** nach 16:00 ET feuert S4 weiter bei Append-Crash UND
+  Bar-Lag-Skip (liest NICHT `vintage_guard_log` — der Bar-Lag-Skip soll sichtbar
+  bleiben, §3-Verify-Signal). Wochenend-Gate nur ergänzt (OR). `today_iso`
+  unparsbar → konservativ S4 feuert. `severity` bleibt `warn`, kein
+  Score-/Push-/Render-Touch. `now_utc` war im Evaluator schon vorhanden (keine
+  neue Plumbing). Guardian ✅, 40/40 health_check, 79/79 CI-Gate. Manueller Merge.
 - **Doku-Konsolidierungs-PRs (10.–11.06.):** #344 (Security-Strang/Audit 09.06.),
   #345 (M3-Entscheidung PAT classic), #347 (Vintage-Guard + score_delta), #348
   (S3/S7-Merge-Tag-Erklärung), #349 (DBI-8.88 aufgelöst + trend_break-Rest-Kante),
@@ -215,12 +227,18 @@ aus Entry + Exit + KI/monster. Erst sammeln lassen, was läuft.
     dieselbe Wurzel → EIN kombinierter Guard" ist damit **gegenstandslos** — M1
     allein deckt den realen Fehlermodus (Pre-Open-Re-Run). After-Hours-P&L
     ohnehin schon erledigt (#338).
-  - **(b) Pre-Open-Run-QUELLE undiagnostiziert (offen, Scheduling-Frage):** täglich
-    feuern 01:00–06:00-UTC-Runs off-schedule (postclose-Cron ist 21:17 UTC) —
-    manuelle Dispatches? Re-Runs? redeploy? β+ behebt das SYMPTOM (stale-Append
-    geskippt), nicht die Quelle. Falls diese Pre-Open-Runs auch Pushes auslösen →
-    eigener Faden. **NICHT** zu verwechseln mit dem S3/S7-Merge-Tag-Churn (§8,
-    geklärt+selbstheilend) — das ist eine andere, harmlose Klasse.
+  - **(b) Pre-Open-Run-QUELLE undiagnostiziert (offen, Scheduling-Frage) —
+    WIEDERKEHRENDE WURZEL:** taucht inzwischen in DREI Symptomen auf: Vintage-
+    Cluster (#346), S3-`current_price`-Churn (§8), S4-Vormittags-Fehlalarm (#355).
+    Off-schedule-Runs um **00:09–05:53 UTC tragen `run_phase=postclose`** (der
+    postclose-Cron ist aber 21:17 UTC). Quelle undiagnostiziert: manuelle
+    Dispatches? Re-Runs? Redeploy-Workflow #194? **Bisher nur SYMPTOME behandelt**
+    (Vintage-Guard skippt den Append, S4 ist jetzt gegated) — die Quelle blieb
+    unberührt. Falls die Runs auch Pushes/andere Wächter triggern → eigener
+    Diagnose-Faden lohnt. Kein akuter Schaden, aber wiederkehrende Wurzel: **bei
+    Gelegenheit die QUELLE prüfen statt weiter Symptome.** **NICHT** zu verwechseln
+    mit dem S3/S7-Merge-Tag-Churn (§8, geklärt+selbstheilend) — andere, harmlose
+    Klasse.
   - **(c) si_trend-slope uncapped (FIP 521.84):** der EINE echte uncapped-
     Explosions-Punkt, relevant nur falls die 30.06.-Auswertung rohen slope statt
     Bucket nutzt. Optional begleitend **W2** = 14–30 d silent-log der 3 uncapped
@@ -302,6 +320,16 @@ aus Entry + Exit + KI/monster. Erst sammeln lassen, was läuft.
   unverändert** (S10-Loader ==4); `expected_keys` atomar (#329-Tripwire); beide nur
   in `S10_OBSERVED_FIELDS` (kein MUSS-/LAG-Check, da legitim None). Reiner Persist-
   Read, kein Score-/Push-/Render-Pfad liest sie.
+- **★ S4-Zeit-Gate (#355):** S4-postclose-Zweig erwartet den heutigen Eintrag erst
+  ab `now_et >= report_date@16:00 ET` (`health_check.py`, `_S4_EASTERN` +
+  `_S4_MKT_CLOSE_HOUR=16`, zoneinfo/DST-korrekt) — **Symmetrie zum Vintage-Guard-
+  Producer-Gate (#346)**. NUR Zeit, NICHT Bar: nach 16:00 ET feuert S4 weiter bei
+  Append-Crash UND Bar-Lag-Skip; S4 bleibt **guard-unkenntnis** (liest NICHT
+  `vintage_guard_log`, sonst Zahn-Verlust). `_before_close` via OR neben das
+  bestehende `_skip_weekend` (ergänzt, nicht ersetzt). `today_iso` None/unparsbar →
+  konservativ S4 feuert. `now_utc` war im Evaluator bereits vorhanden (default
+  `datetime.now`, keine Plumbing aus generate_report). `severity` bleibt `warn`.
+  S12/S3/S7/Vintage-Guard/Produzent unberührt.
 
 **Bestehende Anker (unverändert):**
 - **★★ Entry-Score (`entry_score.py`, #336):** PURES stdlib-Modul, bewusst getrennt
