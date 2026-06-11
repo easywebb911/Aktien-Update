@@ -1,10 +1,10 @@
 {
-  "updated": "2026-06-11T06:10:55.885674+02:00",
+  "updated": "2026-06-11T07:54:51.910299+02:00",
   "run_info": {
     "tickers_checked": 16,
-    "signals_active": 5,
+    "signals_active": 8,
     "alerts_sent": 0,
-    "elapsed_s": 14.0,
+    "elapsed_s": 13.5,
     "market_phase": "Geschlossen"
   },
   "signals": {
@@ -27,7 +27,7 @@
       "uoa_drivers": [
         "UOA Call/Put 2.4×"
       ],
-      "uoa_atm_ratio": 0.07170143252073385,
+      "uoa_atm_ratio": null,
       "uoa_cp_ratio": 2.382157926461724
     },
     "AMC": {
@@ -49,7 +49,7 @@
       "uoa_drivers": [
         "UOA Call/Put 8.7×"
       ],
-      "uoa_atm_ratio": 0.2592923233519945,
+      "uoa_atm_ratio": null,
       "uoa_cp_ratio": 8.71628896957556
     },
     "CBRL": {
@@ -69,7 +69,7 @@
       "active_triggers": 3,
       "uoa_score": 0,
       "uoa_drivers": [],
-      "uoa_atm_ratio": 1.6776429809358753,
+      "uoa_atm_ratio": null,
       "uoa_cp_ratio": 0.9640566541956174
     },
     "DBI": {
@@ -89,7 +89,7 @@
       "active_triggers": 1,
       "uoa_score": 0,
       "uoa_drivers": [],
-      "uoa_atm_ratio": 0.0009345794392523365,
+      "uoa_atm_ratio": null,
       "uoa_cp_ratio": 0.10204081632653061
     },
     "FRMM": {
@@ -111,7 +111,7 @@
       "uoa_drivers": [
         "UOA Call/Put 5.4×"
       ],
-      "uoa_atm_ratio": 0.008988764044943821,
+      "uoa_atm_ratio": null,
       "uoa_cp_ratio": 5.358974358974359
     },
     "GIII": {
@@ -131,7 +131,7 @@
       "active_triggers": 1,
       "uoa_score": 0,
       "uoa_drivers": [],
-      "uoa_atm_ratio": 0.007692307692307693,
+      "uoa_atm_ratio": null,
       "uoa_cp_ratio": 0.08182476466328747
     },
     "GO": {
@@ -151,7 +151,7 @@
       "active_triggers": 1,
       "uoa_score": 0,
       "uoa_drivers": [],
-      "uoa_atm_ratio": 0.012578616352201259,
+      "uoa_atm_ratio": null,
       "uoa_cp_ratio": 0.46551724137931033
     },
     "IONQ": {
@@ -171,13 +171,13 @@
       "active_triggers": 0,
       "uoa_score": 0,
       "uoa_drivers": [],
-      "uoa_atm_ratio": 0.917632552404439,
+      "uoa_atm_ratio": null,
       "uoa_cp_ratio": 1.3987743488728388
     },
     "LUCK": {
-      "score": 58,
+      "score": 50,
       "confidence": 70,
-      "drivers": "Kurs +11.5% + Volumen 1.9× + Spanne 12.2% + News-KI 8/30: Positive leadership news offset by concerning stock plunge across sector peers; no clear short-squeeze catalyst evident.",
+      "drivers": "Kurs +11.5% + Volumen 1.9× + Spanne 12.2%",
       "price": 8.83,
       "chg_pct": 11.49,
       "rvol_4d": 1.92,
@@ -213,7 +213,7 @@
       "uoa_drivers": [
         "UOA Call/Put 2.9×"
       ],
-      "uoa_atm_ratio": 0.009411764705882352,
+      "uoa_atm_ratio": null,
       "uoa_cp_ratio": 2.8541666666666665
     },
     "OFRM": {
@@ -233,7 +233,7 @@
       "active_triggers": 1,
       "uoa_score": 0,
       "uoa_drivers": [],
-      "uoa_atm_ratio": 0.19148936170212766,
+      "uoa_atm_ratio": null,
       "uoa_cp_ratio": 0.8181818181818182
     },
     "OPTU": {
@@ -275,13 +275,13 @@
       "uoa_drivers": [
         "UOA Call/Put 4.3×"
       ],
-      "uoa_atm_ratio": 0.012422360248447204,
+      "uoa_atm_ratio": null,
       "uoa_cp_ratio": 4.328767123287672
     },
     "PLAY": {
       "score": 75,
       "confidence": 70,
-      "drivers": "Earnings in 4 Tagen (15.06.2026) + Kurs +9.1% + Spanne 8.0% + News-KI 8/30: Mixed signals with Q1 potential offset by expected earnings decline; no mentions of high short interest, catalysts, or s + Earnings in 4d + SEC Form 4",
+      "drivers": "Earnings in 4 Tagen (15.06.2026) + Kurs +9.1% + Spanne 8.0% + News-KI 8/30: Mixed sentiment with analyst estimates for earnings decline and no indication of high short interest, borrowing difficul + Earnings in 4d + SEC Form 4",
       "price": 12.49,
       "chg_pct": 9.08,
       "rvol_4d": 0.69,
@@ -295,13 +295,13 @@
       "active_triggers": 2,
       "uoa_score": 0,
       "uoa_drivers": [],
-      "uoa_atm_ratio": 0.11807580174927114,
+      "uoa_atm_ratio": null,
       "uoa_cp_ratio": 0.4236111111111111
     },
     "RBOHF": {
-      "score": 10,
-      "confidence": 17,
-      "drivers": "Spanne 22.7%",
+      "score": 18,
+      "confidence": 33,
+      "drivers": "Spanne 22.7% + News-KI 8/30: Positive corporate developments and partnerships, but lack of short-specific catalysts like high short interest, squeeze",
       "price": 0.22,
       "chg_pct": -1.82,
       "rvol_4d": 0.4,
