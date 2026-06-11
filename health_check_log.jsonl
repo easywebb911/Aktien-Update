@@ -604,3 +604,4 @@
 {"run_ts": "2026-06-11T01:40:43Z", "run_phase": "ki_agent_tick", "schema_v": 1, "state_fails": [], "provider_fails": []}
 {"run_ts": "2026-06-11T04:09:32Z", "run_phase": "postclose", "schema_v": 1, "state_fails": [{"id": "S4", "severity": "warn", "detail": "backtest_history ohne Eintrag für 2026-06-11 (postclose)"}], "provider_fails": []}
 {"run_ts": "2026-06-11T04:10:58Z", "run_phase": "ki_agent_tick", "schema_v": 1, "state_fails": [{"id": "S3", "severity": "crit", "detail": "current_price fehlt bei 7 Position(en): AMC, IONQ, PDYN, AI, GIII"}], "provider_fails": []}
+{"run_ts": "2026-06-11T05:53:19Z", "run_phase": "postclose", "schema_v": 1, "state_fails": [{"id": "S4", "severity": "warn", "detail": "backtest_history ohne Eintrag für 2026-06-11 (postclose)"}], "provider_fails": []}
