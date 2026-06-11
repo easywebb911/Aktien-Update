@@ -27,6 +27,14 @@ import os
 import time
 from datetime import date, datetime, timedelta, timezone
 from typing import Any
+from zoneinfo import ZoneInfo
+
+# S4-Zeit-Gate (#346-Symmetrie): der Vintage-Guard appended einen postclose-
+# Backtest-Eintrag erst ab report_date@16:00 ET (backtest_history.py:
+# _VINTAGE_EASTERN / _VINTAGE_MKT_CLOSE). S4 spiegelt dieselbe Schwelle, damit
+# er den Eintrag nicht VOR Börsenschluss erwartet (Vormittags-Fehlalarm).
+_S4_EASTERN        = ZoneInfo("America/New_York")
+_S4_MKT_CLOSE_HOUR = 16
 
 import config  # für getattr-IST-Read im Konsistenz-Wächter (Projekt C)
 from config import (
@@ -768,6 +776,17 @@ def evaluate_state_invariants(
             # ``_last_phase_run_age_workdays`` die ebenfalls nur Mo-Fr
             # filtern. S12 fängt Mehrtages-Drift werktags-robust.
             _skip_weekend = False
+            # Zeit-Gate (#346-Symmetrie): vor report_date@16:00 ET ist ein
+            # fehlender postclose-Eintrag NORMAL — der Vintage-Guard appended
+            # erst ab 16:00 ET (backtest_history.py:_VINTAGE_MKT_CLOSE). Ohne
+            # dieses Gate feuerte S4 für jeden Vormittags-postclose-Run (z. B.
+            # off-schedule Pre-Open-Run 04:09 UTC = 00:09 ET) fälschlich warn.
+            # WICHTIG — NUR ZEIT, NICHT Bar: nach 16:00 ET mit fehlendem
+            # Eintrag MUSS S4 weiter feuern, egal ob der Append crashte ODER
+            # der Guard wegen Bar-Lag skippte (letzteres GEWOLLT sichtbar,
+            # §3-Vintage-Verify). S4 bleibt bewusst guard-UNKENNTNIS (liest
+            # NICHT vintage_guard_log) — sonst würde der Bar-Lag-Zahn gemutet.
+            _before_close = False
             if today_iso:
                 try:
                     _wd = datetime.strptime(today_iso, "%Y-%m-%d").weekday()
@@ -777,7 +796,19 @@ def evaluate_state_invariants(
                     # (lieber Wochenend-Lärm in Edge-Case als stilles Skip
                     # des ganzen Mo-Fr-Catch-Werts).
                     _skip_weekend = False
-            if not _skip_weekend:
+                try:
+                    # today_iso ist US-Eastern (report_date, #304). 16:00 ET
+                    # via .replace(tzinfo=...) → zoneinfo löst den Offset
+                    # DST-korrekt aus dem Datum (EDT 20:00Z / EST 21:00Z).
+                    _now_eval = now_utc or datetime.now(timezone.utc)
+                    _rd_close = datetime.strptime(today_iso, "%Y-%m-%d").replace(
+                        hour=_S4_MKT_CLOSE_HOUR, minute=0, second=0,
+                        microsecond=0, tzinfo=_S4_EASTERN)
+                    _before_close = _now_eval.astimezone(_S4_EASTERN) < _rd_close
+                except (ValueError, TypeError):
+                    # Unparsebar → defensive: NICHT suppress (Zahn erhalten).
+                    _before_close = False
+            if not (_skip_weekend or _before_close):
                 fails.append({
                     "id": "S4", "severity": "warn",
                     "detail": (f"backtest_history ohne Eintrag für "

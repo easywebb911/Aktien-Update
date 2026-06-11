@@ -383,6 +383,120 @@ def test_s4_fail_postclose_parse_error_falls_back_to_old_behavior():
         "Bei Parse-Fehler muss S4 weiter flaggen (defensive)"
 
 
+# ── S4 Zeit-Gate (#346-Symmetrie, 16:00 ET) ────────────────────────────────
+# now_utc IMMER explizit injiziert → deterministisch, kein Wallclock-Leak.
+# today_iso = US-Eastern report_date (#304). _S4_BASE = gemeinsamer Kwarg-Satz.
+
+_S4_BASE = dict(
+    top10_tickers=TOP10,
+    setup_scores=_full_setup(TOP10),
+    monster_scores=_full_monster(TOP10),
+    score_history=_full_history(TOP10),
+    n_inflation_lines=10,
+    n_backtest_appended=0,
+    agent_signal_keys=set(TOP10),
+    run_phase="postclose",
+)
+
+
+def test_s4_pass_postclose_before_close_et_no_appends():
+    """Vormittags-postclose (04:09Z = 00:09 ET) ohne Eintrag → KEIN S4.
+    Der reale 11.06.-Fehlalarm: Vintage-Guard skippt legitim vor 16:00 ET,
+    S4 darf den fehlenden Eintrag NICHT als Fehler werten."""
+    # 2026-06-11 = Donnerstag, Werktag — Wochenend-Gate greift NICHT,
+    # nur das Zeit-Gate kann hier supprimieren.
+    fails = hc.evaluate_state_invariants(
+        today_iso="2026-06-11", backtest_has_today=False,
+        now_utc=datetime(2026, 6, 11, 4, 9, tzinfo=timezone.utc), **_S4_BASE)
+    assert "S4" not in _ids(fails), \
+        "S4 muss vor 16:00 ET schweigen (Zeit-Gate, Vormittags-Fehlalarm weg)"
+
+
+def test_s4_fail_postclose_after_close_et_no_appends():
+    """Abend-postclose (21:30Z = 17:30 ET) ohne Eintrag → S4 FEUERT.
+    Zahn-Erhalt: nach 16:00 ET ist ein fehlender Eintrag ein echtes Signal
+    (Append-Crash ODER Bar-Lag-Skip — beides gewollt sichtbar)."""
+    fails = hc.evaluate_state_invariants(
+        today_iso="2026-06-11", backtest_has_today=False,
+        now_utc=datetime(2026, 6, 11, 21, 30, tzinfo=timezone.utc), **_S4_BASE)
+    assert "S4" in _ids(fails), \
+        "S4 muss nach 16:00 ET weiter feuern (Zahn erhalten)"
+
+
+def test_s4_pass_postclose_after_close_et_with_entry():
+    """Abend-postclose nach 16:00 ET, aber Eintrag DA → kein S4 (Normalfall)."""
+    fails = hc.evaluate_state_invariants(
+        today_iso="2026-06-11", backtest_has_today=True,
+        now_utc=datetime(2026, 6, 11, 21, 30, tzinfo=timezone.utc), **_S4_BASE)
+    assert "S4" not in _ids(fails), \
+        "Mit Eintrag darf S4 nie feuern, egal welche Uhrzeit"
+
+
+def test_s4_pass_weekend_overrides_time_gate():
+    """Sa-postclose VOR 16:00 ET ohne Eintrag → kein S4. Belegt, dass das
+    Zeit-Gate das Wochenend-Gate ERGÄNZT (OR), nicht ersetzt — beide greifen."""
+    # 2026-05-30 = Samstag.
+    fails = hc.evaluate_state_invariants(
+        today_iso="2026-05-30", backtest_has_today=False,
+        now_utc=datetime(2026, 5, 30, 21, 30, tzinfo=timezone.utc), **_S4_BASE)
+    assert "S4" not in _ids(fails), \
+        "Wochenend-Gate muss unabhängig vom Zeit-Gate weiter greifen"
+
+
+def test_s4_time_gate_dst_edt_june():
+    """DST EDT (Juni): 16:00 ET = 20:00Z. 19:59Z → vor Schluss (kein S4),
+    20:01Z → nach Schluss (S4). Belegt: Schwelle wandert mit der Zeitzone."""
+    before = hc.evaluate_state_invariants(
+        today_iso="2026-06-11", backtest_has_today=False,
+        now_utc=datetime(2026, 6, 11, 19, 59, tzinfo=timezone.utc), **_S4_BASE)
+    after = hc.evaluate_state_invariants(
+        today_iso="2026-06-11", backtest_has_today=False,
+        now_utc=datetime(2026, 6, 11, 20, 1, tzinfo=timezone.utc), **_S4_BASE)
+    assert "S4" not in _ids(before), "EDT: 19:59Z ist vor 16:00 ET → kein S4"
+    assert "S4" in _ids(after), "EDT: 20:01Z ist nach 16:00 ET → S4"
+
+
+def test_s4_time_gate_dst_est_january():
+    """DST EST (Januar): 16:00 ET = 21:00Z. 20:59Z → vor Schluss (kein S4),
+    21:01Z → nach Schluss (S4). Beweist DST-Korrektheit (kein hartes Offset)."""
+    # 2026-01-15 = Donnerstag.
+    before = hc.evaluate_state_invariants(
+        today_iso="2026-01-15", backtest_has_today=False,
+        now_utc=datetime(2026, 1, 15, 20, 59, tzinfo=timezone.utc), **_S4_BASE)
+    after = hc.evaluate_state_invariants(
+        today_iso="2026-01-15", backtest_has_today=False,
+        now_utc=datetime(2026, 1, 15, 21, 1, tzinfo=timezone.utc), **_S4_BASE)
+    assert "S4" not in _ids(before), "EST: 20:59Z ist vor 16:00 ET → kein S4"
+    assert "S4" in _ids(after), "EST: 21:01Z ist nach 16:00 ET → S4"
+
+
+def test_s4_time_gate_no_collateral_s3_s7():
+    """Kein Kollateral: S3 (current_price fehlt) und S7 (agent-overlap zu
+    niedrig) verhalten sich identisch vor UND nach 16:00 ET — das Zeit-Gate
+    berührt NUR den S4-postclose-Zweig."""
+    common = dict(
+        top10_tickers=TOP10,
+        setup_scores=_full_setup(TOP10),
+        monster_scores=_full_monster(TOP10),
+        score_history=_full_history(TOP10),
+        today_iso="2026-06-11",
+        n_inflation_lines=10,
+        n_backtest_appended=0,
+        backtest_has_today=False,
+        positions={"XYZ": {"current_price": None}},  # → S3 crit
+        agent_signal_keys={"AAA"},                    # overlap 1 < 5 → S7
+        run_phase="postclose",
+    )
+    before = _ids(hc.evaluate_state_invariants(
+        now_utc=datetime(2026, 6, 11, 4, 9, tzinfo=timezone.utc), **common))
+    after = _ids(hc.evaluate_state_invariants(
+        now_utc=datetime(2026, 6, 11, 21, 30, tzinfo=timezone.utc), **common))
+    # S4 unterscheidet sich (Gate wirkt), S3/S7 feuern in BEIDEN (kein Kollateral).
+    assert "S4" not in before and "S4" in after, "Zeit-Gate muss NUR S4 schalten"
+    assert "S3" in before and "S3" in after, "S3 darf nicht vom Zeit-Gate abhängen"
+    assert "S7" in before and "S7" in after, "S7 darf nicht vom Zeit-Gate abhängen"
+
+
 # ── S5: score_inflation_log ≥ N Zeilen ─────────────────────────────────────
 
 
@@ -770,6 +884,14 @@ def main() -> None:
         ("S4 fail: Mo-postclose ohne Eintrag (Catch)",     test_s4_fail_postclose_monday_no_appends),
         ("S4 pass: Fr-postclose >Berlin-Mitternacht (Sa)", test_s4_pass_postclose_friday_late_with_saturday_today_iso),
         ("S4 fail: today_iso-Parse-Fehler (defensive)",    test_s4_fail_postclose_parse_error_falls_back_to_old_behavior),
+        # S4 Zeit-Gate (#346-Symmetrie, 16:00 ET)
+        ("S4 pass: vor 16:00 ET (Vormittags-Fehlalarm weg)", test_s4_pass_postclose_before_close_et_no_appends),
+        ("S4 fail: nach 16:00 ET ohne Eintrag (Zahn)",      test_s4_fail_postclose_after_close_et_no_appends),
+        ("S4 pass: nach 16:00 ET mit Eintrag (Normalfall)", test_s4_pass_postclose_after_close_et_with_entry),
+        ("S4 pass: Wochenende überschreibt Zeit-Gate",      test_s4_pass_weekend_overrides_time_gate),
+        ("S4 DST EDT Juni (16:00 ET=20:00Z)",               test_s4_time_gate_dst_edt_june),
+        ("S4 DST EST Januar (16:00 ET=21:00Z)",             test_s4_time_gate_dst_est_january),
+        ("S4 Zeit-Gate kein Kollateral (S3/S7)",            test_s4_time_gate_no_collateral_s3_s7),
         # S5
         ("S5 fail: zu wenig Inflation-Zeilen",             test_s5_fail_too_few_lines),
         ("S5 pass: ≥ Schwelle",                            test_s5_pass),
