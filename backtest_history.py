@@ -476,6 +476,24 @@ def _build_backtest_extension(s: dict, pool_position: int, pool_size: int,
         "entry_components":        entry_components,
         "entry_n_components":      entry_n_components,
         "push_history_available":  push_history_available,
+        # KI-/Monster-Edge-Persistenz (11.06.2026): zwei additive Felder für
+        # die 30.06.-Auswertung, ob der KI-Pfad eigenständigen Edge trägt.
+        #   monster_score:    KI-×1.20/×0.80-Transform des Setup-Scores
+        #                     (apply_monster_score, gen 3396). Zum Append-Zeit
+        #                     IMMER gesetzt für Top-10, aber auf Alt-Einträgen
+        #                     ABWESEND → leer-tolerant (None) → nur S10_OBSERVED,
+        #                     KEIN MUSS-/LAG-Check.
+        #   ki_signal_score:  roher ki_agent-Score (apply_agent_boost, gen 2937).
+        #                     LEGITIM None, wenn der Ticker keinen agent_signals-
+        #                     Eintrag hat → ebenfalls nur S10_OBSERVED.
+        # Schema-ADDITIV — KEIN v4→v5-Bump (S10-Loader filtert == 4). KEIN
+        # Push/keine Anzeige/kein Score-/Filter-Effekt (reiner Persist-Read).
+        "monster_score":           (round(float(s.get("monster_score")), 2)
+                                     if s.get("monster_score") is not None
+                                     else None),
+        "ki_signal_score":         (round(float(s.get("ki_signal_score")), 2)
+                                     if s.get("ki_signal_score") is not None
+                                     else None),
         "backtest_schema_version": 4,
     }
 
@@ -712,7 +730,7 @@ def _append_backtest_entries(top10: list[dict], report_date: str,
             "score_normalization_version": SCORE_NORMALIZATION_VERSION,
         }
         # Bahn B: Schema-Erweiterung (rückwärtskompatibel — alte Einträge
-        # bleiben mit 16 Feldern unverändert; neue bekommen 14 zusätzliche).
+        # bleiben unverändert; neue bekommen die zusätzlichen Extension-Felder).
         entry.update(_build_backtest_extension(
             s, pool_position=pos, pool_size=pool_size,
             agent_signals=agent_signals,

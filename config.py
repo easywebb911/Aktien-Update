@@ -1239,6 +1239,14 @@ S10_OBSERVED_FIELDS = frozenset({
     # Schema bleibt v4 (additiv).
     "entry_score", "entry_components", "entry_n_components",
     "push_history_available",
+    # KI-/Monster-Edge-Persistenz (11.06.2026): zwei additive Felder für die
+    # 30.06.-Auswertung, ob der KI-Pfad eigenständigen Edge trägt.
+    # monster_score = KI-×1.20/×0.80-Transform des Setup (apply_monster_score);
+    # ki_signal_score = roher ki_agent-Score (apply_agent_boost). Beide LEGITIM-
+    # leer (None): monster_score fehlt auf Alt-Einträgen vor diesem PR,
+    # ki_signal_score ist None ohne agent_signals-Eintrag → nur OBSERVED,
+    # KEIN MUSS-/LAG-Check. Schema bleibt v4 (additiv).
+    "monster_score", "ki_signal_score",
     # LAG-Felder, später (Phase 2)
     "entry_price_t1",
     "return_10d", "return_10d_t1",

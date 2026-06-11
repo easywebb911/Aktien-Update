@@ -194,8 +194,8 @@ def _test_extended_schema():
     'import generate_report as g; g._test_extended_schema()'``.
 
     Baut zwei synthetische Top-10-Stocks (volle Boni vs. keine Boni) und
-    verifiziert dass alle 14 neuen Felder korrekt im Extension-Dict landen,
-    inklusive Default-Werten.
+    verifiziert dass alle Extension-Felder korrekt im Extension-Dict landen
+    (Strict-Key-Set gegen ``expected_keys``), inklusive Default-Werten.
     """
     # Stock 1: alle Boni aktiv
     full = {
@@ -241,6 +241,9 @@ def _test_extended_schema():
         # Volle Rechen-Logik in scripts/mock_test_entry_score.py (pure).
         "entry_score", "entry_components", "entry_n_components",
         "push_history_available",
+        # KI-/Monster-Edge-Persistenz (11.06.2026) — additiv, kein Bump.
+        # Beide leer-tolerant (None möglich) → nur S10_OBSERVED.
+        "monster_score", "ki_signal_score",
         "backtest_schema_version",
     }
     assert set(ext.keys()) == expected_keys, set(ext.keys()) ^ expected_keys
@@ -252,6 +255,10 @@ def _test_extended_schema():
     assert ext["entry_n_components"] == 0, ext
     assert ext["push_history_available"] is False, ext
     assert all(v is None for v in ext["entry_components"].values()), ext
+    # KI-/Monster-Edge-Felder: full setzt weder monster_score noch
+    # ki_signal_score auf dem Stock-Dict → beide leer-tolerant None.
+    assert ext["monster_score"] is None, ext
+    assert ext["ki_signal_score"] is None, ext
     assert ext["score_raw"]          == 76.3, ext
     assert ext["combo_bonus"]        == float(COMBO_BONUS), ext  # 4/4 Bedingungen
     assert ext["score_trend_bonus"]  == 3.0, ext
@@ -308,6 +315,21 @@ def _test_extended_schema():
     assert ext2["entry_score"] is None, ext2
     assert ext2["entry_n_components"] == 0, ext2
     assert ext2["push_history_available"] is False, ext2
+    assert ext2["monster_score"] is None, ext2
+    assert ext2["ki_signal_score"] is None, ext2
+
+    # Non-None-Pfad: Stock mit gesetztem monster_score + ki_signal_score
+    # (wie nach apply_monster_score / apply_agent_boost im Daily-Run) →
+    # gerundeter Passthrough, kein None.
+    primed = dict(bare)
+    primed["monster_score"]   = 50.4001
+    primed["ki_signal_score"] = 72.0
+    ext3 = _build_backtest_extension(primed, pool_position=3, pool_size=42,
+                                     agent_signals={},
+                                     compute_sub_scores_fn=_compute_sub_scores,
+                                     safe_float_fn=_safe_float)
+    assert ext3["monster_score"]   == 50.4, ext3
+    assert ext3["ki_signal_score"] == 72.0, ext3
     print("OK: extended-schema self-test passed")
 
 
