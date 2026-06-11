@@ -54,6 +54,19 @@ Kern-Meilenstein **Entry-Score Shadow** — 3 Tage vor Plan.)*
   `hist.index[-1].date()` aus Capture aufs Stock-Dict (gen:874/1032/1048),
   Capture-Logik unverändert. Guardian ✅, 78/78 Runner, 18/18 Boundary-Mock.
   Manueller Merge.
+- **#350 (Merge 11.06.) — ★ Exit-Shadow-Log LIVE.** `exit_shadow_log.jsonl`
+  sammelt pro Handelstag pro offener Position den `exit_state` (`exit_pressure`
+  + 6 Trigger-Sub-Scores + peaks + `signal_price`) + Forward-Return-Backfill
+  (`forward_3d/5d/10d`). Validierungs-Pendant zum Entry-Shadow (#336) — bisher
+  liefen Exit-Trigger live (Pushes) OHNE Edge-Messung. Hook NUR im Daily-Run
+  `_build_phase2` (gen:15273, exit_state wird dort einmal berechnet; ki_agent
+  liest nur). **GATE:** nur postclose + `now_et>=16:00 ET` (nicht-finale Preise
+  raus). **RE-WRITE by (ticker,date)**, kein Append. **Backfill:** Reuse
+  `_close_at` (settled re-fetch → vintage-/auto_adjust-immun), **ABBRUCH-
+  BEDINGUNG** (`forward_10d` gesetzt → fertig, nie wieder anfassen → skaliert).
+  **KONVENTION: NEGATIVER `forward_Nd` = GUTES Exit-Signal** (Kurs fiel nach
+  Warnung). Null Live-Effekt, eigene Datei, kein Schema/S10/Push/Ratchet-Touch.
+  Guardian ✅, 79/79, 35/35 Boundary. Manueller Merge.
 
 ## 2) AKTIVE POSITIONEN
 **Quelle: `app_data.json`-Positions-Mirror (`run_phase=postclose`,
@@ -132,6 +145,22 @@ Flag) — kein To-do. Nur AMC trägt das Hold-Flag.
   EDT-Empirie NICHT widerlegt, nur beobachtbar gemacht) → nachsteuern. Das
   Skip-Log ist das Sicherheitsnetz für den einzigen Rest-Fehlermodus
   (Datenverlust statt Kontamination).
+- **Exit-Shadow-Auswertung ~Ende Juli (nach 30.06-Entry-Readout):** pro Trigger
+  die `forward_Nd`-Verteilung nach Fires — feuert ein Trigger chronisch falsch
+  (positiver forward = Kurs stieg trotz Verkaufs-Warnung)? **Konkreter Verdacht:
+  trend_break** — 00:57-Massen-Fire 11.06 (IONQ/PDYN/RBOHF/DBI gleichzeitig) +
+  08.06 PDYN+IONQ drehten nach Signal hoch. Auswertung via `GROUP BY
+  (date,trigger)` für die Korrelations-Rausch-Frage. **WICHTIG — SAMPLE-CAVEAT:**
+  nur ~8 offene Positionen → dünn + hoch autokorreliert, ~150 Records bis Ende
+  Juli, LOW-POWER. KEIN robuster AUC (wie Setup n~1200), nur qualitativer
+  Erstblick. Nicht überinterpretieren (Wächter-Block-Lehre 04.06). Falls ein
+  Trigger nachweislich Rauschen → aus Push-Pipeline nehmen (reduziert Easys
+  Exit-Push-Rauschen).
+- **Exit-Shadow Verify:** (1) nach erstem postclose `exit_shadow_log.jsonl`
+  existiert (~8 Records). (2) **WICHTIG in 1-2 Tagen:** Datei wirklich im Repo
+  COMMITTET (.jsonl-Resolver-Lücke `grep -v '\.json$'`) — wenn leer/fehlt =
+  stiller Sammelverlust, nachsteuern. (3) nach ~3 Handelstagen erste
+  `forward_3d`-Werte gefüllt.
 - **Nach 10.06. — Inventur #3 (niedrig):** der Daily-Run-FINRA-**History**-Fetch
   (speist `si_trend_5d_slope`) ist **UNMONITORED** — `provider_health['finra']`
   überwacht nur den ki_agent-SSR-Fetch. Wächter-PR optional (graceful `None`
@@ -320,6 +349,15 @@ Flag) — kein To-do. Nur AMC trägt das Hold-Flag.
   in-memory (kein Schema-Bump). Skip-Beobachtung in `vintage_guard_log.jsonl`
   (eigene Datei, digest-frei). M1 fängt NICHT M2 (After-Hours-Capture — anderer
   Code-Ort, separater Faden).
+- **★ Exit-Shadow-Log (#350, 11.06.):** `exit_shadow_log.jsonl` — pro Handelstag
+  pro offener Position `exit_state` (pressure + 6 Trigger) + Forward-Return-
+  Backfill. Hook NUR im Daily-Run `_build_phase2` (einziger exit_state-Compute;
+  ki_agent liest/backfillt nur). Gate postclose+`now_et>=16:00 ET`; Re-Write-by-
+  (ticker,date); Backfill reuse `_close_at` (settled, vintage-/auto_adjust-immun)
+  mit Abbruchbedingung (forward_10d fertig→skip). **Konvention: negativer
+  forward_Nd = gutes Exit-Signal.** Null Live-Effekt, eigene Datei, digest-frei.
+  Sample inhärent dünn (nur offene Positionen, autokorreliert) → low-power
+  Erstblick, kein AUC.
 
 ## 8) LESSONS (06.–07.06.2026)
 - **★ Sandbox ≠ CI-Env:** der Sandbox HAT `requests` (+ pyyaml etc.), der
