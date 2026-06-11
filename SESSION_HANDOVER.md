@@ -193,6 +193,41 @@ Flag) — kein To-do. Nur AMC trägt das Hold-Flag.
 - Externer Dead-Man-Switch (Cloudflare-Worker) gegen Cron-Drops (~20 %).
 - Borrow-Fee + Utilization in score() (bei reifer CTB-Coverage).
 
+### EDGE-VALIDIERUNGS-PROGRAMM (Stand 11.06.)
+**Leitprinzip:** jedes Signal, das eine Entscheidung beeinflusst, braucht eine
+Edge-Messung, BEVOR ihm vertraut wird. **REIHENFOLGE-DISZIPLIN:** immer erst
+sammeln → auswerten → DANN nächsten Strang öffnen. NICHT parallel starten
+(zersplittert Fokus).
+
+**Abgedeckt/laufend:**
+- **Setup-Score ≥70:** Entry-Backtest, Readout 30.06. (Doppel-Lauf wg. Cluster).
+- **Entry-Score-Komponenten:** Shadow seit #336, Auswertung 30.06.
+- **Exit-Trigger:** Shadow seit #350 (11.06.), Auswertung ~Ende Juli.
+
+**Offene Edge-Kandidaten (ERST NACH 30.06-Entry-Readout — NICHT jetzt starten):**
+1. **Conviction-Score (stärkster Kandidat):** Gewichte 33/28/28/11 unvalidiert,
+   wird bewusst nur per Chart+Instinkt genutzt. Gleiche Lücke wie Exit vor #350
+   — angezeigter Score beeinflusst Wahrnehmung, Edge nie gemessen. Frage: sagt
+   hoher Conviction bessere Forward-Returns voraus als niedriger? Steht als
+   30.06-Methodik-Wiedervorlage; ggf. eigener Shadow-Strang DANACH (analog
+   Exit-Shadow: sammeln → forward-return-paaren → Verteilung je Conviction-Level).
+2. **Push-Auslösung selbst:** ob die Push-SEVERITY-Tiers/Auslöse-Schwellen
+   lohnen — sind gepushte Momente besser als ungepushte? Teilweise vom
+   Entry-Shadow erfasst, aber die Push-Entscheidung selbst ungemessen. Niedriger
+   als Conviction.
+
+(Earliness-Konfidenz n=78/AUC 0.77: kein neuer Faden — bleibt der Re-Test in der
+bestehenden 30.06-Wiedervorlage, hier nur als Querverweis.)
+
+**Bewusst NICHT auf der Liste (Over-Engineering):** einzelne Setup-Sub-Signale
+(gap_hold/rs_spy etc.) isoliert validieren — sie sind Bestandteile des
+Setup-Scores, dessen Gesamt-Edge ohnehin gemessen wird; kein eigener
+Entscheidungs-Bezug.
+
+**Nächster Schritt nach 30.06:** Exit-Shadow ~Ende Juli auswerten, DANN
+entscheiden ob Conviction einen eigenen Shadow verdient — mit den Erkenntnissen
+aus Entry + Exit. Erst sammeln lassen was läuft.
+
 ## 6) CODE-HYGIENE-BACKLOG (Status je Punkt)
 - **requests-Stub-PR** (die 3 TEMP-EXCLUDED `entry_score_persistence`,
   `health_check_ntfy_url_pattern`, `ntfy_fail_visibility` `requests`-stubben →
