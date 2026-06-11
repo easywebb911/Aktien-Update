@@ -74,6 +74,11 @@ jobs:
           # verloren — Digest-Workflow sah dauerhaft 0 Daten.
           git add health_check_log.jsonl 2>/dev/null || true
           git add provider_health.jsonl 2>/dev/null || true
+          # exit_shadow_log.jsonl: der ki_agent füllt die Forward-Returns nach
+          # (update_exit_shadow_forwards). Ohne git add gingen die gefüllten
+          # forward_3d/5d/10d beim nächsten Checkout verloren (analog
+          # backtest_history.json-Return-Backfill).
+          git add exit_shadow_log.jsonl 2>/dev/null || true
           # gist_pull_state.json: Liveness-Marker, vom Pull-Step NUR bei
           # HTTP-Gist-Erfolg geschrieben. Committen, sonst Reset beim
           # nächsten Checkout → Marker altert fälschlich.

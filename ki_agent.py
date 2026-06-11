@@ -239,6 +239,7 @@ def set_cooldown(ticker: str, state: dict) -> None:
 # Änderungen am push_history-Eintrag müssen dort gemacht werden.
 from push_history import _record_push  # noqa: E402
 import health_check  # noqa: E402
+import exit_shadow  # noqa: E402  — Exit-Shadow-Forward-Backfill (Read-only)
 
 
 # Health-Check Phase 2 PR 3 — Tier-3-Provider-Akkumulatoren.
@@ -506,6 +507,90 @@ def update_backtest_returns() -> None:
                         encoding="utf-8")
         print(f"Backtest-Returns aktualisiert: {n_filled} Felder gefüllt",
               flush=True)
+
+
+def update_exit_shadow_forwards() -> None:
+    """Füllt ``forward_3d/5d/10d`` in ``exit_shadow_log.jsonl``, sobald der
+    jeweilige Horizont (Signal-Datum + N Handelstage) erreicht ist. SEPARATE
+    Funktion + SEPARATES File — KEIN gemeinsamer State mit
+    ``update_backtest_returns``. Read-only auf den Markt (eigener
+    ``yf.download``), schreibt NUR das Shadow-Log.
+
+    ★ KONVENTION: ``forward_Nd < 0`` = Kurs FIEL nach dem Exit-Signal = GUTES
+    Signal (siehe exit_shadow.py). Settled re-fetchte Closes (auto_adjust=True,
+    derselbe Download für Signal-Basis UND Forward) → vintage-/split-immun;
+    der geloggte ``signal_price`` wird NICHT als Basis genutzt.
+
+    ⚠ SKALIERUNGS-GARANTIE: nur Records mit unvollständigem ``forward_10d``
+    UND fälligem Horizont werden angefasst (``_needs_es_update``); fertige
+    Records werden NIE wieder geladen-geprüft. Signal älter als das 90d-Fenster
+    ohne gefüllten Horizont → bleibt dauerhaft None (kann nicht mehr gefüllt
+    werden) — akzeptiert (nur bei ki_agent-Ausfall > ~80 Handelstage).
+    """
+    path = Path(exit_shadow.EXIT_SHADOW_LOG)
+    if not path.exists():
+        return
+    records = exit_shadow._load_jsonl(str(path))
+    if not records:
+        return
+    today = datetime.now(timezone.utc).date()
+
+    def _needs_es_update(r: dict) -> bool:
+        if exit_shadow.is_record_complete(r):
+            return False
+        elapsed = _trading_days_elapsed(r.get("date", ""), today)
+        return elapsed >= exit_shadow._FORWARD_HORIZONS[0]
+
+    pending = [r for r in records if _needs_es_update(r)]
+    tickers = sorted({r["ticker"] for r in pending if r.get("ticker")})
+    if not tickers:
+        return
+    log.info("Exit-Shadow-Forwards: %d Records mit fälligem Horizont", len(pending))
+    try:
+        hist = yf.download(tickers, period="90d", auto_adjust=True,
+                           progress=False, threads=True, group_by="ticker")
+    except Exception as exc:
+        log.warning("Exit-Shadow-Forwards yf.download failed: %s", exc)
+        return
+
+    def _closes_for(ticker: str):
+        try:
+            df = hist if len(tickers) == 1 else hist[ticker]
+            return df["Close"].dropna() if "Close" in df else None
+        except (KeyError, ValueError, AttributeError):
+            return None
+
+    n_filled = 0
+    for r in pending:
+        closes = _closes_for(r["ticker"])
+        if closes is None or len(closes) == 0:
+            continue
+        try:
+            sig_dt = datetime.strptime(r.get("date", ""), "%d.%m.%Y").date()
+        except (ValueError, TypeError):
+            continue
+        idx_dates = [ts.date() for ts in closes.index]
+        sig_idx = next((i for i, d in enumerate(idx_dates) if d == sig_dt), -1)
+        to_fill = exit_shadow.forward_fields_to_fill(r, sig_idx, len(closes))
+        if not to_fill:
+            continue
+        sig_close = float(closes.iloc[sig_idx])
+        for field, fwd_idx in to_fill.items():
+            val = exit_shadow.compute_forward_return(
+                sig_close, float(closes.iloc[fwd_idx]))
+            if val is not None:
+                r[field] = val
+                n_filled += 1
+
+    if n_filled > 0:
+        try:
+            with open(path, "w", encoding="utf-8") as fh:
+                for rec in records:
+                    fh.write(json.dumps(rec, ensure_ascii=False) + "\n")
+            print(f"Exit-Shadow-Forwards aktualisiert: {n_filled} Felder gefüllt",
+                  flush=True)
+        except OSError as exc:
+            log.warning("Exit-Shadow-Forwards Schreibfehler: %s", exc)
 
 
 # ── Datenquelle 1: yfinance ───────────────────────────────────────────────────
@@ -3362,6 +3447,13 @@ def main() -> None:
         update_backtest_returns()
     except Exception as exc:
         log.warning("update_backtest_returns Fehler: %s", exc)
+
+    # Exit-Shadow-Forwards nachführen (separate Funktion + separates File,
+    # Read-only). Idempotent; fertige Records werden übersprungen.
+    try:
+        update_exit_shadow_forwards()
+    except Exception as exc:
+        log.warning("update_exit_shadow_forwards Fehler: %s", exc)
 
     state["last_run"] = now_berlin().isoformat()
 
