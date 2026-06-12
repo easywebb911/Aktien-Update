@@ -65,24 +65,12 @@
     "anomaly_monster_backup_LUCK": "2026-06-09T20:21:42.190270+02:00",
     "anomaly_conviction_high_LUCK": "2026-06-09T12:05:35.406177+02:00",
     "earnings_immediate_CBRL_09.06.2026": "2026-06-09T23:13:23.438660+02:00",
-    "exit_DBI": "2026-06-11T23:12:31.172051+02:00",
+    "exit_DBI": "2026-06-12T12:41:32.110722+02:00",
     "anomaly_conviction_high_OXM": "2026-06-10T21:06:04.087139+02:00",
     "earnings_immediate_OXM_10.06.2026": "2026-06-10T22:46:14.756820+02:00",
     "anomaly_score_jump_FRMM": "2026-06-11T21:46:24.146354+02:00"
   },
   "push_history": [
-    {
-      "ts": "2026-06-05T14:20:28.415702+02:00",
-      "ticker": "LFVN",
-      "kind": "anomaly",
-      "severity": "high",
-      "trigger": "monster_backup",
-      "body": "LFVN 🔥 Monster 100 | Setup 100 | KI 35",
-      "success": false,
-      "suppressed": true,
-      "suppress_reason": "conviction_below_threshold",
-      "conviction_score": 72
-    },
     {
       "ts": "2026-06-05T15:35:20.898251+02:00",
       "ticker": "AI",
@@ -1266,6 +1254,18 @@
       "severity": "trigger",
       "trigger": "trend_break",
       "body": "🔻 Exit-Signal DBI: trend_break crit ({'ma21': 7.5509, 'price': 6.56, 'drop_pct': 13.12})",
+      "success": true,
+      "suppressed": false,
+      "suppress_reason": null,
+      "conviction_score": null
+    },
+    {
+      "ts": "2026-06-12T12:41:32.110697+02:00",
+      "ticker": "DBI",
+      "kind": "exit_p1",
+      "severity": "default",
+      "trigger": "exit_alert",
+      "body": "DBI 📉 Exit 61 | -11% | Trailing-Stop −17.1% vom Hoch",
       "success": true,
       "suppressed": false,
       "suppress_reason": null,
