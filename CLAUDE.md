@@ -463,7 +463,7 @@ Datenqualität:
 
 | Cron | Phase | Daten | Push-Pipeline | Backtest-History |
 |---|---|---|---|---|
-| `17 10 * * 1-5` (10:17 UTC) | `premarket` | Vorschau, RVOL strukturell unter-skaliert (US-Open ~3,2 h voraus) | Anomaly-Pushes **aktiv** (Aktions-Fenster für die KI-Agent-Ticks) | **kein** Backtest-Eintrag |
+| `17 6 * * 1-5` (06:17 UTC) | `premarket` | Vorschau, RVOL strukturell unter-skaliert (vor US-Open 13:30 UTC; real ~12 UTC nach Actions-Drift) | Anomaly-Pushes **aktiv** (Aktions-Fenster für die KI-Agent-Ticks) | **kein** Backtest-Eintrag |
 | `17 21 * * 1-5` (21:17 UTC) | `postclose` | EOD-konsolidiert = „Wahrheit" | Anomaly-Pushes **aus** (kein abendliches Rauschen) | Backtest-Eintrag wird angelegt |
 | `workflow_dispatch` (manuell) | per User-Input, **required, kein Default** — Plausibilitäts-Override aktiv (siehe unten) | wie oben | wie oben | wie oben |
 
@@ -482,7 +482,7 @@ Die RUN_PHASE-Resolution lebt jetzt in
 
 | Trigger | Input | Aktuelle UTC-Zeit | Resultat | Override-Reason |
 |---|---|---|---|---|
-| `schedule` `17 10 * * 1-5` | — | — | `premarket` | — (fester Cron-Mapping) |
+| `schedule` `17 6 * * 1-5` | — | — | `premarket` | — (fester Cron-Mapping) |
 | `schedule` `17 21 * * 1-5` | — | — | `postclose` | — (fester Cron-Mapping) |
 | `workflow_dispatch` | `postclose` | 13:30 ≤ UTC < 20:00 (US-Session) | **`premarket`** | `us_session_override` |
 | `workflow_dispatch` | `premarket` | UTC ≥ 20:00 (Post-Close) | **`postclose`** | `post_close_override` |
@@ -565,11 +565,11 @@ Filter bereinigen.
 
 ### Failure-Modes
 
-- 21:00-Run fällt aus → app_data behält letzten Stand (run_phase
-  bleibt was sie war). Nächster 10:00-Run flippt auf premarket, App
+- 21:17-Run fällt aus → app_data behält letzten Stand (run_phase
+  bleibt was sie war). Nächster 06:17-Run flippt auf premarket, App
   zeigt „Pre-Open-Vorschau"-Banner — Easy sieht sofort, dass Daten
   älter sind.
-- 10:00-Run fällt aus → 21:00-Run liefert volle Wahrheit, kein
+- 06:17-Run fällt aus → 21:17-Run liefert volle Wahrheit, kein
   Schaden.
 - Beide Runs nutzen denselben Code-Pfad — Unterschied nur durch
   `RUN_PHASE`-ENV-Flag, kein Code-Duplikat.
@@ -1153,7 +1153,7 @@ Pro offener Position schreibt der Daily-Run via
 |---|---|---|
 | `entry_date`, `entry_price`, `shares`, `entry_fx`, `fx_estimated` | aus Gist | Stammdaten beim Position-Open |
 | `entry_dtc`, `entry_short_float`, `entry_cost_to_borrow`, `entry_snapshot_ts` | aus Gist (optional) | Trigger-4-Setup-Erosion-Snapshot beim Open |
-| **`current_price`** (neu seit 16.05.2026) | float \| None | Aktueller Spot-Preis. Reihenfolge: Top-10-Lookup (`stocks[t].price`) → `_fetch_position_market_data`-yfinance-Singleton-Fallback → `None`. Update-Frequenz: **2× pro Werktag** (premarket 10:17 UTC + postclose 21:17 UTC Daily-Run). KI-Agent-Tick (xx:17) berührt das Feld nicht; `**existing`-Spread in `save_signals` preserviert den letzten Daily-Run-Wert. Stündliche Updates wären separater Folge-PR (KI-Agent-Tick-Erweiterung). |
+| **`current_price`** (neu seit 16.05.2026) | float \| None | Aktueller Spot-Preis. Reihenfolge: Top-10-Lookup (`stocks[t].price`) → `_fetch_position_market_data`-yfinance-Singleton-Fallback → `None`. Update-Frequenz: **2× pro Werktag** (premarket 06:17 UTC + postclose 21:17 UTC Daily-Run). KI-Agent-Tick (xx:17) berührt das Feld nicht; `**existing`-Spread in `save_signals` preserviert den letzten Daily-Run-Wert. Stündliche Updates wären separater Folge-PR (KI-Agent-Tick-Erweiterung). |
 | `exit_state` | dict | siehe Sub-Schema unten |
 
 `current_price` schließt Health-Check S3 für alle Positionen mit
@@ -1900,7 +1900,7 @@ Alle drei nutzen `_normalize_rvol(cur_vol, avg_vol_20)` ohne explizite
 
 - **`PREMARKET_RVOL_SCALER`-Re-Kalibrierung** in PR-γ: aus
   `rvol_20d`-Verteilung in `agent_signals.json` über 14 d ableiten;
-  Median-Faktor zwischen frühen (10:17 UTC) und späten (21:17 UTC)
+  Median-Faktor zwischen frühen (06:17 UTC) und späten (21:17 UTC)
   Ticks pro Ticker als ground truth.
 - **Markt-Phase-Grenzen** (`_US_OPEN_MIN_UTC = 810`,
   `_US_CLOSE_MIN_UTC = 1200`) sind hartkodiert im Helper als „Single
@@ -3412,7 +3412,7 @@ Sektion ist nur ein CLAUDE.md-Anker auf das Doku-File.
   erhalten.
 - **Schema-Marker:** ``schema_v: 1`` pro Eintrag.
 - **Alarm-Modus:** silent Logging — kein Push in Phase 1. Phase 3
-  liest die Datei und sendet Daily-Digest (08:00 UTC, separater
+  liest die Datei und sendet Daily-Digest (08:47 UTC, separater
   Workflow).
 - **Hook-Points:** Ende ``main()`` in ``generate_report.py`` (nach
   ``process_exit_signals``) und Ende ``main()`` in ``ki_agent.py``
@@ -3540,7 +3540,7 @@ in ``provider_health.jsonl`` (Append-Only, 30-Tage-Cutoff analog
   Folge-PR. Tier-2-Trigger-Bedingung „3 in Folge" erfordert
   Counter-State in ``agent_state.json[provider_health_state]``.
 - Tier-3 (StockTwits, UOA, News-RSS, EDGAR-Set) — eigener Folge-PR.
-- Digest-Workflow 08:00 UTC — Phase 3.
+- Digest-Workflow 08:47 UTC — Phase 3.
 
 ### Phase 2 — Provider-Health (PR 2: Tier 2)
 
@@ -3639,7 +3639,7 @@ Digest erkennt das als „3-in-Folge"-Trigger-Kandidat.
 
 **Phase 2 ist mit PR 3 abgeschlossen.** Folgendes bleibt für Phase 3:
 - Konsekutiv-Counter-State in ``agent_state.json["provider_health_state"]``
-- Daily-Digest-Workflow 08:00 UTC mit ntfy-Push
+- Daily-Digest-Workflow 08:47 UTC mit ntfy-Push
 - „3-in-Folge"-Trigger-Logik für Tier 2 + 3 Pushes
 
 ### Phase 3 — Daily-Digest-Workflow
