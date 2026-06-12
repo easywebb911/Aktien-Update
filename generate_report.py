@@ -4784,6 +4784,7 @@ def _card_cockpit_html(
         f'<div class="cockpit-donut-caption">{caption}</div>'
         f'</div>'
         f'</div>'
+        f'<div class="cockpit-entry-shadow" data-es-ticker="{ticker}" hidden></div>'
         f'</div>'
     )
 
@@ -8095,6 +8096,64 @@ const _TJ_KNALLER_FLOOR_CRASH = -10;
 const _TJ_KNALLER_FALLBACK_HIT   = 25;
 const _TJ_KNALLER_FALLBACK_CRASH = -20;
 const _TJ_KNALLER_MIN_N      = 30;
+
+// ── Entry-Shadow-Caption (#336 Cockpit-Rest) — REIN ADDITIV ──────────────
+// Fuellt .cockpit-entry-shadow[data-es-ticker] aus window._BT_DATA
+// (backtest_history.json). Zeigt entry_score + n_components NUR wenn ein
+// echter Wert existiert (None-Konvention: null/undefined → Element entfernt,
+// kein leeres Element/"–"). "latest" = juengstes `date` pro Ticker, chrono-
+// logisch aus dem DD.MM.YYYY-Format geparst (NICHT lexikografisch).
+function _esDmyKey(d){{
+  if (typeof d !== 'string') return 0;
+  const p = d.split('.');
+  if (p.length !== 3) return 0;
+  return (+p[2]) * 10000 + (+p[1]) * 100 + (+p[0]);
+}}
+function _fillEntryShadow(){{
+  const hooks = document.querySelectorAll('.cockpit-entry-shadow[data-es-ticker]');
+  if (!hooks.length) return;
+  const data = (Array.isArray(window._BT_DATA) && window._BT_DATA.length)
+               ? window._BT_DATA : null;
+  if (!data) return;
+  const latest = {{}};
+  for (let i = 0; i < data.length; i++) {{
+    const e = data[i];
+    if (!e || !e.ticker) continue;
+    const es = e.entry_score;
+    if (es === null || es === undefined) continue;   // None-Konvention
+    const k = _esDmyKey(e.date);
+    const cur = latest[e.ticker];
+    if (!cur || k > cur._k) latest[e.ticker] = {{_k: k, score: es, n: e.entry_n_components}};
+  }}
+  hooks.forEach(el => {{
+    const t = el.getAttribute('data-es-ticker');
+    const rec = t ? latest[t] : null;
+    if (rec) {{
+      const n = (rec.n === null || rec.n === undefined) ? '–' : rec.n;
+      el.textContent = 'Entry-Shadow ' + Math.round(rec.score) + ' · ' + n
+                       + '/5 Komp. · unvalidiert bis 30.06.';
+      el.removeAttribute('hidden');
+    }} else {{
+      el.remove();   // kein leeres Element im DOM, wenn kein Wert
+    }}
+  }});
+}}
+// Additiver Preload: schreibt in den BESTEHENDEN window._BT_DATA-Cache-Key,
+// damit ein spaeteres Backtest-Panel-/Knaller-Render NICHT erneut fetcht
+// (dieselbe Reuse-Bedingung wie _tjBucketRef unten).
+async function _preloadBtForEntryShadow(){{
+  if (!(Array.isArray(window._BT_DATA) && window._BT_DATA.length)) {{
+    try {{
+      const resp = await fetch('./backtest_history.json?_=' + Date.now());
+      if (resp.ok) {{
+        const json = await resp.json();
+        window._BT_DATA = Array.isArray(json) ? json : [];
+      }}
+    }} catch (err) {{ /* fail-soft: Caption bleibt aus, kein UI-Bruch */ }}
+  }}
+  _fillEntryShadow();
+}}
+window.addEventListener('DOMContentLoaded', _preloadBtForEntryShadow);
 
 // Cache-Slot fuer Bucket-Referenz-Stats (P90/P10/n_returns pro Bucket).
 // Wird beim ersten renderTradeJournal-Call gefuellt, danach reused.
