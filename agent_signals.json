@@ -1,10 +1,10 @@
 {
-  "updated": "2026-06-12T11:13:50.457717+02:00",
+  "updated": "2026-06-12T12:42:14.784658+02:00",
   "run_info": {
     "tickers_checked": 16,
     "signals_active": 2,
     "alerts_sent": 0,
-    "elapsed_s": 11.3,
+    "elapsed_s": 10.9,
     "market_phase": "Pre-Market"
   },
   "signals": {
@@ -113,9 +113,9 @@
       "uoa_cp_ratio": 0.07892831281679942
     },
     "IONQ": {
-      "score": 22,
-      "confidence": 33,
-      "drivers": "Spanne 8.3% + News-KI 12/30: Mixed signals with controversy concerns outweighing positive earnings performance; no indicators of high short interest,",
+      "score": 10,
+      "confidence": 17,
+      "drivers": "Spanne 8.3%",
       "price": 57.99,
       "chg_pct": 0.0,
       "rvol_4d": 0.84,
@@ -126,7 +126,7 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 1,
+      "active_triggers": 0,
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": null,
@@ -257,9 +257,9 @@
       "uoa_cp_ratio": 2.7913385826771653
     },
     "RBOHF": {
-      "score": 58,
-      "confidence": 70,
-      "drivers": "Volumen 5.2× + 🚀 Massives Volumen 5.2×+ + Spanne 20.5% + News-KI 8/30: Positive corporate developments and strategic partnerships, but lack of significant short interest catalysts or market p",
+      "score": 50,
+      "confidence": 33,
+      "drivers": "Volumen 5.2× + 🚀 Massives Volumen 5.2×+ + Spanne 20.5%",
       "price": 0.22,
       "chg_pct": 0.46,
       "rvol_4d": 5.25,
@@ -277,9 +277,9 @@
       "uoa_cp_ratio": null
     },
     "RNA": {
-      "score": 33,
+      "score": 40,
       "confidence": 70,
-      "drivers": "Volumen 1.9× + Spanne 9.7% + News-KI 8/30: Positive fundamentals (milestone payment, partnership validation) reduce short-squeeze potential as they stabilize the s",
+      "drivers": "Volumen 1.9× + Spanne 9.7% + News: merger",
       "price": 12.43,
       "chg_pct": 0.0,
       "rvol_4d": 1.95,
@@ -290,7 +290,7 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 0,
+      "active_triggers": 1,
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": null,

@@ -1,5 +1,5 @@
 {
-  "last_run": "2026-06-12T11:13:52.984828+02:00",
+  "last_run": "2026-06-12T12:42:16.559074+02:00",
   "cooldowns": {
     "anomaly_score_jump_XRX": "2026-05-03T18:47:15.315486+02:00",
     "anomaly_uoa_extreme_TDOC": "2026-05-04T13:47:00.365949+02:00",
@@ -71,18 +71,6 @@
     "anomaly_score_jump_FRMM": "2026-06-11T21:46:24.146354+02:00"
   },
   "push_history": [
-    {
-      "ts": "2026-06-05T15:35:20.898251+02:00",
-      "ticker": "AI",
-      "kind": "exit_p1",
-      "severity": "default",
-      "trigger": "exit_alert",
-      "body": "AI 📉 Exit 65 | -6% | Trailing-Stop −12.5% vom Hoch",
-      "success": true,
-      "suppressed": false,
-      "suppress_reason": null,
-      "conviction_score": null
-    },
     {
       "ts": "2026-06-05T15:59:15.333458+02:00",
       "ticker": "GIII",
@@ -1270,24 +1258,36 @@
       "suppressed": false,
       "suppress_reason": null,
       "conviction_score": null
+    },
+    {
+      "ts": "2026-06-12T12:42:14.784548+02:00",
+      "ticker": "SFIX",
+      "kind": "anomaly",
+      "severity": "medium",
+      "trigger": "gap_combo",
+      "body": "SFIX 💥 Gap +6.4% Strong Hold + RVOL 3.2× | Setup 84",
+      "success": false,
+      "suppressed": true,
+      "suppress_reason": "conviction_below_threshold",
+      "conviction_score": 60
     }
   ],
   "prev_conviction_scores": {
-    "SFIX": 75.0,
+    "SFIX": 60.0,
     "DBI": 64.0,
-    "MNRO": 61.0,
-    "RNA": 74.0,
-    "PAR": 59.0,
-    "FIP": 73.0,
-    "PGEN": 65.0,
+    "MNRO": 47.0,
+    "PAR": 46.0,
+    "WGS": 31.0,
+    "RNA": 59.0,
     "LUCK": 58.0,
-    "WGS": 44.0,
-    "MNTS": 43.0,
-    "AI": 63.0,
+    "FIP": 58.0,
+    "PGEN": 51.0,
+    "MNTS": 29.0,
+    "AI": 49.0,
     "GIII": 56.0,
     "PDYN": 31.0,
     "AMC": 23.0,
-    "RBOHF": 15.0,
+    "RBOHF": 20.0,
     "IONQ": 15.0
   },
   "exit_cooldowns": {
