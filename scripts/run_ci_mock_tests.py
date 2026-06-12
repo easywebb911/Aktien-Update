@@ -43,7 +43,7 @@ ALLOWLIST = [
     "conviction_coverage_extension", "data_maturity_gate", "details_news_padding", "digest",
     "earliness_dtc", "earliness_pm_vol", "earliness_trend_log", "entry_raw_twin_fields",
     "entry_score", "entry_shadow_persist", "entry_thesis", "exit_shadow",
-    "finnhub_skip_logging",
+    "finnhub_skip_logging", "gitattributes_union_merge",
     "gist_action_token_routing", "health_check", "health_check_digest_persistence",
     "html_assertions", "jekyll_exclude", "jsformat_escape", "ki_agent_coverage",
     "ki_agent_rvol_disambiguation", "ki_analyse_padding", "knaller_label", "methodology_display",
