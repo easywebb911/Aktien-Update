@@ -1,10 +1,10 @@
 {
-  "updated": "2026-06-12T12:42:14.784658+02:00",
+  "updated": "2026-06-12T14:32:56.325926+02:00",
   "run_info": {
     "tickers_checked": 16,
     "signals_active": 2,
     "alerts_sent": 0,
-    "elapsed_s": 10.9,
+    "elapsed_s": 32.6,
     "market_phase": "Pre-Market"
   },
   "signals": {
@@ -27,13 +27,13 @@
       "uoa_drivers": [
         "UOA Call/Put 5.6×"
       ],
-      "uoa_atm_ratio": null,
+      "uoa_atm_ratio": 0.2741709481550677,
       "uoa_cp_ratio": 5.642468239564428
     },
     "AMC": {
-      "score": 50,
+      "score": 35,
       "confidence": 70,
-      "drivers": "Volumen 1.9× + Spanne 12.8% + SEC 8-K + UOA Call/Put 9.4×",
+      "drivers": "Volumen 1.9× + Spanne 12.8% + UOA Call/Put 9.4×",
       "price": 2.28,
       "chg_pct": -0.0,
       "rvol_4d": 1.9,
@@ -44,18 +44,18 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 1,
+      "active_triggers": 0,
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 9.4×"
       ],
-      "uoa_atm_ratio": null,
+      "uoa_atm_ratio": 0.4343477711832302,
       "uoa_cp_ratio": 9.395926339285714
     },
     "DBI": {
-      "score": 40,
+      "score": 25,
       "confidence": 33,
-      "drivers": "Spanne 8.4% + SEC 8-K + News: earnings beat",
+      "drivers": "Spanne 8.4% + News: earnings beat",
       "price": 6.56,
       "chg_pct": -0.0,
       "rvol_4d": 0.75,
@@ -73,9 +73,9 @@
       "uoa_cp_ratio": 0.36764705882352944
     },
     "FIP": {
-      "score": 10,
-      "confidence": 17,
-      "drivers": "Spanne 14.1%",
+      "score": 25,
+      "confidence": 33,
+      "drivers": "Spanne 14.1% + News: insider buying",
       "price": 4.78,
       "chg_pct": 0.0,
       "rvol_4d": 1.04,
@@ -86,10 +86,10 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 0,
+      "active_triggers": 1,
       "uoa_score": 0,
       "uoa_drivers": [],
-      "uoa_atm_ratio": null,
+      "uoa_atm_ratio": 0.05218855218855219,
       "uoa_cp_ratio": 0.453125
     },
     "GIII": {
@@ -109,13 +109,13 @@
       "active_triggers": 1,
       "uoa_score": 0,
       "uoa_drivers": [],
-      "uoa_atm_ratio": null,
+      "uoa_atm_ratio": 0.007633587786259542,
       "uoa_cp_ratio": 0.07892831281679942
     },
     "IONQ": {
-      "score": 10,
-      "confidence": 17,
-      "drivers": "Spanne 8.3%",
+      "score": 25,
+      "confidence": 33,
+      "drivers": "Spanne 8.3% + News: contract",
       "price": 57.99,
       "chg_pct": 0.0,
       "rvol_4d": 0.84,
@@ -126,16 +126,16 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 0,
+      "active_triggers": 1,
       "uoa_score": 0,
       "uoa_drivers": [],
-      "uoa_atm_ratio": null,
+      "uoa_atm_ratio": 0.5536064288514309,
       "uoa_cp_ratio": 1.384758076982532
     },
     "LUCK": {
-      "score": 10,
-      "confidence": 17,
-      "drivers": "Spanne 6.2%",
+      "score": 18,
+      "confidence": 33,
+      "drivers": "Spanne 6.2% + News-KI 8/30: Mixed signals: positive executive promotion overshadowed by significant stock plunge alongside broader market weakness, ",
       "price": 8.81,
       "chg_pct": 0.0,
       "rvol_4d": 0.64,
@@ -169,7 +169,7 @@
       "active_triggers": 0,
       "uoa_score": 0,
       "uoa_drivers": [],
-      "uoa_atm_ratio": null,
+      "uoa_atm_ratio": 0.02956989247311828,
       "uoa_cp_ratio": 0.05656759348034516
     },
     "MNTS": {
@@ -209,7 +209,7 @@
       "active_triggers": 0,
       "uoa_score": 0,
       "uoa_drivers": [],
-      "uoa_atm_ratio": null,
+      "uoa_atm_ratio": 0.013710012463647694,
       "uoa_cp_ratio": 0.8305084745762712
     },
     "PDYN": {
@@ -231,7 +231,7 @@
       "uoa_drivers": [
         "UOA Call/Put 10.8×"
       ],
-      "uoa_atm_ratio": null,
+      "uoa_atm_ratio": 0.16361198033080018,
       "uoa_cp_ratio": 10.816666666666666
     },
     "PGEN": {
@@ -253,7 +253,7 @@
       "uoa_drivers": [
         "UOA Call/Put 2.8×"
       ],
-      "uoa_atm_ratio": null,
+      "uoa_atm_ratio": 0.20482713633398564,
       "uoa_cp_ratio": 2.7913385826771653
     },
     "RBOHF": {
@@ -337,7 +337,7 @@
       "uoa_drivers": [
         "UOA Call/Put 2.4×"
       ],
-      "uoa_atm_ratio": null,
+      "uoa_atm_ratio": 1.388235294117647,
       "uoa_cp_ratio": 2.3923076923076922
     }
   }
