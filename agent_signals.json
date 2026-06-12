@@ -1,10 +1,10 @@
 {
-  "updated": "2026-06-12T22:54:15.021514+02:00",
+  "updated": "2026-06-13T00:01:17.987332+02:00",
   "run_info": {
     "tickers_checked": 15,
     "signals_active": 3,
     "alerts_sent": 0,
-    "elapsed_s": 13.5,
+    "elapsed_s": 10.6,
     "market_phase": "After-Hours"
   },
   "signals": {
@@ -56,8 +56,8 @@
       "drivers": "Spanne 9.8% + UOA Call/Put 9.4×",
       "price": 2.34,
       "chg_pct": -0.0,
-      "rvol_4d": 1.13,
-      "rvol_20d": 1.34,
+      "rvol_4d": 1.15,
+      "rvol_20d": 1.36,
       "earnings": null,
       "fda_date": null,
       "upcoming_event": null,
@@ -93,9 +93,9 @@
       "uoa_cp_ratio": 0.6323529411764706
     },
     "GIII": {
-      "score": 30,
-      "confidence": 17,
-      "drivers": "SEC 8-K + News: earnings beat",
+      "score": 55,
+      "confidence": 33,
+      "drivers": "SEC 8-K + News: earnings beat + FINRA Short-Vol 100%",
       "price": 35.28,
       "chg_pct": -0.0,
       "rvol_4d": 0.5,
@@ -135,13 +135,13 @@
       "uoa_cp_ratio": 2.1990588235294117
     },
     "JACK": {
-      "score": 25,
+      "score": 28,
       "confidence": 33,
-      "drivers": "Spanne 9.4% + News: short seller",
+      "drivers": "Spanne 9.4% + News-KI 18/30: Moderate short interest mentioned but analysts see upside (bearish for squeeze), debt reduction is positive fundamentall",
       "price": 13.37,
       "chg_pct": -0.0,
-      "rvol_4d": 1.45,
-      "rvol_20d": 0.87,
+      "rvol_4d": 1.46,
+      "rvol_20d": 0.88,
       "earnings": "in 54 Tagen (05.08.2026)",
       "fda_date": null,
       "upcoming_event": null,
@@ -155,9 +155,9 @@
       "uoa_cp_ratio": 0.3553921568627451
     },
     "KPTI": {
-      "score": 60,
+      "score": 35,
       "confidence": 70,
-      "drivers": "Volumen 2.1× + Spanne 12.9% + FINRA Short-Vol 97% + UOA Call/Put 2.8×",
+      "drivers": "Volumen 2.1× + Spanne 12.9% + UOA Call/Put 2.8×",
       "price": 9.5,
       "chg_pct": 0.0,
       "rvol_4d": 2.11,
@@ -177,9 +177,9 @@
       "uoa_cp_ratio": 2.75
     },
     "LUCK": {
-      "score": 0,
-      "confidence": 0,
-      "drivers": "",
+      "score": 33,
+      "confidence": 33,
+      "drivers": "News-KI 8/30: Negative sentiment from stock plunge and executive restructuring, but no evidence of high short interest, low float, or  + FINRA Short-Vol 80%",
       "price": 8.76,
       "chg_pct": 0.0,
       "rvol_4d": 0.82,
@@ -219,9 +219,9 @@
       "uoa_cp_ratio": 13.483870967741936
     },
     "PDYN": {
-      "score": 35,
+      "score": 32,
       "confidence": 33,
-      "drivers": "Spanne 9.2% + News: partnership + UOA Call/Put 4.4×",
+      "drivers": "Spanne 9.2% + News-KI 12/30: Positive business developments and partnerships, but no indicators of high short interest, low float, or catalyst for ra + UOA Call/Put 4.4×",
       "price": 6.41,
       "chg_pct": -0.0,
       "rvol_4d": 1.04,
@@ -263,7 +263,7 @@
     "TYRA": {
       "score": 35,
       "confidence": 33,
-      "drivers": "Spanne 10.0% + FINRA Short-Vol 91%",
+      "drivers": "Spanne 10.0% + FINRA Short-Vol 88%",
       "price": 26.99,
       "chg_pct": -0.0,
       "rvol_4d": 0.89,
