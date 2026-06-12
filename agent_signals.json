@@ -1,10 +1,10 @@
 {
-  "updated": "2026-06-13T00:51:14.727638+02:00",
+  "updated": "2026-06-13T01:51:58.929315+02:00",
   "run_info": {
     "tickers_checked": 15,
     "signals_active": 4,
     "alerts_sent": 0,
-    "elapsed_s": 13.6,
+    "elapsed_s": 12.3,
     "market_phase": "After-Hours"
   },
   "signals": {
@@ -93,9 +93,9 @@
       "uoa_cp_ratio": 0.6323529411764706
     },
     "GIII": {
-      "score": 55,
+      "score": 52,
       "confidence": 33,
-      "drivers": "SEC 8-K + News: earnings beat + FINRA Short-Vol 100%",
+      "drivers": "SEC 8-K + News-KI 12/30: Positive industry recognition, but no catalyst for short squeeze; being highlighted among peers suggests stable fundamen + FINRA Short-Vol 100%",
       "price": 35.28,
       "chg_pct": -0.0,
       "rvol_4d": 0.5,
@@ -241,20 +241,20 @@
       "uoa_cp_ratio": 4.434782608695652
     },
     "RBOHF": {
-      "score": 50,
+      "score": 18,
       "confidence": 33,
-      "drivers": "Volumen 5.2× + 🚀 Massives Volumen 5.2×+ + Spanne 20.5%",
-      "price": 0.22,
-      "chg_pct": 0.45,
-      "rvol_4d": 5.25,
-      "rvol_20d": 4.23,
+      "drivers": "Spanne 12.3% + News-KI 8/30: Positive corporate developments and partnerships, but lacking short interest data, catalyst clarity, and revenue milesto",
+      "price": 0.21,
+      "chg_pct": -1.19,
+      "rvol_4d": 0.21,
+      "rvol_20d": 0.32,
       "earnings": null,
       "fda_date": null,
       "upcoming_event": null,
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 1,
+      "active_triggers": 0,
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": null,
