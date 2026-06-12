@@ -1,10 +1,10 @@
 {
-  "updated": "2026-06-13T00:01:17.987332+02:00",
+  "updated": "2026-06-13T00:51:14.727638+02:00",
   "run_info": {
     "tickers_checked": 15,
-    "signals_active": 3,
+    "signals_active": 4,
     "alerts_sent": 0,
-    "elapsed_s": 10.6,
+    "elapsed_s": 13.6,
     "market_phase": "After-Hours"
   },
   "signals": {
@@ -135,9 +135,9 @@
       "uoa_cp_ratio": 2.1990588235294117
     },
     "JACK": {
-      "score": 28,
+      "score": 25,
       "confidence": 33,
-      "drivers": "Spanne 9.4% + News-KI 18/30: Moderate short interest mentioned but analysts see upside (bearish for squeeze), debt reduction is positive fundamentall",
+      "drivers": "Spanne 9.4% + News: short seller",
       "price": 13.37,
       "chg_pct": -0.0,
       "rvol_4d": 1.46,
@@ -177,9 +177,9 @@
       "uoa_cp_ratio": 2.75
     },
     "LUCK": {
-      "score": 33,
-      "confidence": 33,
-      "drivers": "News-KI 8/30: Negative sentiment from stock plunge and executive restructuring, but no evidence of high short interest, low float, or  + FINRA Short-Vol 80%",
+      "score": 25,
+      "confidence": 17,
+      "drivers": "FINRA Short-Vol 80%",
       "price": 8.76,
       "chg_pct": 0.0,
       "rvol_4d": 0.82,
@@ -219,9 +219,9 @@
       "uoa_cp_ratio": 13.483870967741936
     },
     "PDYN": {
-      "score": 32,
+      "score": 35,
       "confidence": 33,
-      "drivers": "Spanne 9.2% + News-KI 12/30: Positive business developments and partnerships, but no indicators of high short interest, low float, or catalyst for ra + UOA Call/Put 4.4×",
+      "drivers": "Spanne 9.2% + News: partnership + UOA Call/Put 4.4×",
       "price": 6.41,
       "chg_pct": -0.0,
       "rvol_4d": 1.04,
