@@ -1,0 +1,35 @@
+# Union-Merge für reine Append-Log-JSONLs (Resolver-Lücke-Fix, 12.06.2026).
+#
+# Hintergrund: Der Commit-/Push-Block in daily-squeeze-report.yml löst
+# Rebase-Konflikte nur für ``*.json`` automatisch auf (``grep '\.json$'`` +
+# ``--ours``). ``*.jsonl`` matcht diese Regex NICHT (endet auf ``l``) → ein
+# Rebase-Konflikt auf einer ``.jsonl``-Datei landet im „Nicht-JSON"-Zweig und
+# bricht den GESAMTEN Daily-Run-Push ab (``git rebase --abort; exit 1`` — inkl.
+# index.html / app_data.json / backtest_history.json). Sichtbarer Hard-Abort,
+# kein stiller Verlust — aber ein transienter Append-Konflikt blockiert dann
+# einen legitimen Report-/Backtest-Push.
+#
+# ``merge=union`` (eingebauter Git-Low-Level-Driver) löst genau diese
+# Append-Konflikte ohne Abort: beide divergierenden Append-Zeilen bleiben
+# erhalten, kein Konflikt-Marker. Empirisch belegt, dass ``git rebase`` (nicht
+# nur ``git merge``) den Driver respektiert — siehe PR-Beweis.
+#
+# NUR für PURE Append-Logs (Schreibmodus ``open(..., "a")``, jede Zeile mit
+# eigenem ``run_ts``/Timestamp → keine identischen Duplikate möglich). Periodi-
+# sches Pruning (tmp+os.replace, Zeilen am ANFANG entfernt) kollidiert nicht mit
+# Appends am ENDE → union-sicher.
+#
+# BEWUSST AUSGENOMMEN: ``exit_shadow_log.jsonl`` — KEIN Append-Log, sondern
+# Full-Rewrite (``open(..., "w")``) mit Re-Write-by-(ticker,date) + Forward-
+# Return-Backfill (ki_agent ändert bestehende Zeilen). Union würde dort beide
+# Versionen derselben (ticker,date) behalten → DUPLIKAT-Keys = Korruption der
+# Auswertung. Empirisch belegt im PR. Exit-Shadow bleibt beim bestehenden
+# Workflow-Verhalten (seltener sichtbarer Konflikt-Abort, selbstheilend über
+# den nächsten Re-Write) — eine korrekte key-aware Merge-Strategie wäre ein
+# separater Folge-PR, NICHT union.
+
+score_inflation_log.jsonl     merge=union
+health_check_log.jsonl        merge=union
+provider_health.jsonl         merge=union
+finra_history_health.jsonl    merge=union
+vintage_guard_log.jsonl       merge=union

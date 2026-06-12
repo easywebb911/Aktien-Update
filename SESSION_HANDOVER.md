@@ -126,9 +126,13 @@ Wochenend-Digest-Selbstheilung bestätigt — entfallen.)*
   ist **aktuell noch NICHT im Repo** — seit #350-Merge (11.06. 03:45) lief noch
   **kein qualifizierender postclose-Run ≥16:00 ET** (der 07:05Z-Mirror ist pre-
   open → Gate skippt korrekt). Nach dem ersten echten 21:17-UTC-Post-Close-Run:
-  (1) Datei existiert (~8 Records), (2) **wirklich COMMITTET** (`.jsonl`-Resolver-
-  Lücke `grep -v '\.json$'` — wenn leer/fehlt = stiller Sammelverlust, nachsteuern),
-  (3) nach **~3 Handelstagen** erste `forward_3d`-Werte gefüllt.
+  (1) Datei existiert (~8 Records), (2) **wirklich COMMITTET** — **ERLEDIGT-Beleg
+  11.06.:** committet vom Post-Close-Run `a9c07ac` (21:12 UTC), 8 Records = alle
+  8 Positionen, `exit_state` gefüllt; (3) nach **~3 Handelstagen** erste
+  `forward_3d`-Werte gefüllt. **Hinweis (12.06.):** die `.jsonl`-Resolver-Lücke ist
+  ein **sichtbarer Hard-Abort** (nicht stiller Verlust, §6) und betrifft exit_shadow
+  nur bei seltenem Konflikt; die 5 Append-Logs sind seit 12.06. via union geschützt,
+  exit_shadow bewusst NICHT (Re-Write/Backfill).
 - **★ Vintage-Guard-Log (ab ~13.06., `vintage_guard_log.jsonl`, existiert 456
   Zeilen, digest-frei):** Skips nur ~04:xx UTC = Pre-Open korrekt. Ein ~22:xx-
   UTC-Skip = Bar-Lag-False-Skip eines LEGITIMEN Post-Close-Runs (EST-Winter/
@@ -295,10 +299,23 @@ aus Entry + Exit + KI/monster. Erst sammeln lassen, was läuft.
   Trading-Wert". TEMP-Kommentar-Nummer verweist auf „#336" — bei Bau korrigieren.
 - **topten_entry_anomaly / watchlist_drawer_live_momentum** (letzte 2 B-Tests,
   lesen echte Repo-Daten) → stubben für gate-tauglich. Niedrig.
-- **JSONL-Resolver-Lücke** (`grep -v '\.json$'` in beiden Workflows erkennt
-  `.jsonl` nicht): selbstheilend, KEIN Datenverlust (nur Append-Logs). Fix `--ours`
-  vs Union-Merge. OFFEN, niedrig — **akut beim Exit-Shadow-Commit-Check beobachten**
-  (§3).
+- **JSONL-Resolver-Lücke — KORRIGIERTER BEFUND + via union GESCHLOSSEN (12.06.):**
+  Der Konflikt-Recovery-Block in `daily-squeeze-report.yml` löst nur `*.json`
+  auto auf (`grep '\.json$'` + `--ours`); `*.jsonl` matcht die Regex NICHT →
+  ein `.jsonl`-**Rebase-Konflikt** landet im „Nicht-JSON"-Zweig und **bricht den
+  GESAMTEN Daily-Run-Push ab** (`rebase --abort; exit 1`, inkl. index.html/app_data/
+  backtest). **Korrektur der alten Notiz:** das ist ein **sichtbarer Hard-Abort,
+  KEIN stiller Sammelverlust** (empirisch belegt, Diagnose 12.06.) — greift nur
+  bei seltenem echtem Konflikt. **Fix:** `.gitattributes merge=union` für die **5
+  PURE Append-Logs** (`score_inflation_log`, `health_check_log`, `provider_health`,
+  `finra_history_health`, `vintage_guard_log` — alle `open(...,"a")`) → Append-
+  Konflikte lösen ohne Abort, beide Zeilen erhalten (`git rebase` respektiert den
+  Driver, empirisch belegt). **`exit_shadow_log.jsonl` BEWUSST AUSGENOMMEN:** Full-
+  Rewrite (`open(...,"w")`) + Re-Write-by-(ticker,date) + Forward-Backfill → union
+  erzeugte Duplikat-Keys (empirisch belegt) → bleibt beim Abort-Verhalten (selten,
+  selbstheilend via nächsten Re-Write). Key-aware Merge für exit_shadow = separater
+  Folge-PR (NICHT union), niedrig. Workflow-Resolver-Block unverändert (union
+  verhindert, dass die 5 Dateien überhaupt als Konflikt ankommen).
 - **Recovery-Umleitung bei Gist-Body-Korruption** (Folge-PR zu #322): bei
   `body_ok=False` Positionen erhalten statt `{}`. OFFEN.
 - **Toter v2-else-Zweig entfernen** (Option b) — OPTIONAL, Easys Architektur-
@@ -489,3 +506,14 @@ aus Entry + Exit + KI/monster. Erst sammeln lassen, was läuft.
   heute betroffen. **LESSON:** „sieht komisch aus" (8.88) ≠ Defekt — Backtest-Feld
   vs. Positions-Feld nicht verwechseln; P&L ist epochen-konsistent (User-roh +
   Live-roh), bewusst NICHT am auto_adjust-Capture.
+- **★ „Sichtbarer Abort ≠ stiller Verlust" + Merge-Strategie folgt der Schreib-
+  Semantik (12.06., .jsonl-Resolver):** Eine ältere Notiz nannte die `.jsonl`-
+  Resolver-Lücke „stillen Sammelverlust" — die Code-Lese zeigte das Gegenteil: der
+  Block bricht **laut** ab (`rebase --abort; exit 1`), kein Silent-Drop. **Vor dem
+  Fix den tatsächlichen Failure-Modus am Code verifizieren, nicht die alte Annahme
+  fortschreiben.** UND: `merge=union` ist NUR korrekt für **echte Append-Logs**
+  (`open(...,"a")`, eindeutige Timestamps); bei **Full-Rewrite/keyed** Dateien
+  (`open(...,"w")`, Re-Write/Backfill — hier exit_shadow) erzeugt union **Duplikat-
+  Keys** = Korruption. **Vor jedem Merge-Driver pro Datei die Schreib-Semantik
+  prüfen** (Append vs. Rewrite), nicht pauschal anwenden. Beides empirisch belegt
+  (Rebase-Konflikt-Szenario nachgestellt), bevor darauf gebaut wurde.
