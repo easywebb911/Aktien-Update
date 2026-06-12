@@ -3,7 +3,7 @@
 Resolution-Logik:
 
 1. ``schedule``-Trigger: fester Mapping pro Cron — `17 21 * * 1-5` → postclose,
-   alles andere (insb. `17 10 * * 1-5`) → premarket. **Plausibilitäts-Override
+   alles andere (insb. `17 6 * * 1-5`) → premarket. **Plausibilitäts-Override
    greift hier nicht**, weil Cron-Trigger zeitlich gepinnt sind. Minute-17-
    Offset gegen GitHub-Actions-Load-Peak-Drops (siehe Workflow-Kommentar).
 

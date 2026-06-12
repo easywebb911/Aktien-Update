@@ -88,14 +88,14 @@ def test_post_close_postclose_stays_postclose():
 
 
 def test_cron_ignores_override_logic_premarket():
-    # 10:17-UTC-Cron ist `premarket` per YAML-Definition. Selbst wenn die
+    # 06:17-UTC-Cron ist `premarket` per YAML-Definition. Selbst wenn die
     # Cron-Zeit theoretisch im US-Pre-Open liegt, gilt der Cron-Mapping.
     # (Minute-17-Offset gegen GitHub-Actions-Drops zur vollen Stunde.)
     phase, reason = resolve_run_phase(
         event_name="schedule",
-        schedule="17 10 * * 1-5",
+        schedule="17 6 * * 1-5",
         user_input=None,
-        now_utc=_at(10, 17),
+        now_utc=_at(6, 17),
     )
     assert phase == "premarket", phase
     assert reason is None, reason
