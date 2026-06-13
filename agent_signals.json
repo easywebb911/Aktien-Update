@@ -1,10 +1,10 @@
 {
-  "updated": "2026-06-13T20:44:52.875787+02:00",
+  "updated": "2026-06-13T22:41:20.540605+02:00",
   "run_info": {
     "tickers_checked": 15,
     "signals_active": 4,
     "alerts_sent": 0,
-    "elapsed_s": 11.6,
+    "elapsed_s": 12.1,
     "market_phase": "Geschlossen"
   },
   "signals": {
@@ -76,7 +76,7 @@
     "DBI": {
       "score": 28,
       "confidence": 70,
-      "drivers": "Spanne 5.2% + News-KI 8/30: Massive stock decline despite earnings beat creates potential contrarian momentum, but lack of short interest data and n + SEC Form 4",
+      "drivers": "Spanne 5.2% + News-KI 8/30: Massive stock decline despite positive earnings creates potential short-squeeze setup, but lack of short interest data a + SEC Form 4",
       "price": 6.88,
       "chg_pct": 0.0,
       "rvol_4d": 0.58,
@@ -94,9 +94,9 @@
       "uoa_cp_ratio": 0.6323529411764706
     },
     "GIII": {
-      "score": 55,
+      "score": 40,
       "confidence": 33,
-      "drivers": "SEC 8-K + News: earnings beat + FINRA Short-Vol 100%",
+      "drivers": "News: earnings beat + FINRA Short-Vol 100%",
       "price": 35.28,
       "chg_pct": -0.0,
       "rvol_4d": 0.5,
@@ -134,9 +134,9 @@
       "uoa_cp_ratio": 1.6955758426966292
     },
     "JACK": {
-      "score": 28,
+      "score": 25,
       "confidence": 33,
-      "drivers": "Spanne 9.5% + News-KI 18/30: Moderate short interest exists, but debt reduction and positive analyst outlook reduce squeeze potential; company appear",
+      "drivers": "Spanne 9.5% + News: short seller",
       "price": 13.37,
       "chg_pct": -0.0,
       "rvol_4d": 1.46,
@@ -242,7 +242,7 @@
     "RBOHF": {
       "score": 18,
       "confidence": 33,
-      "drivers": "Spanne 12.3% + News-KI 8/30: Positive corporate developments and partnerships, but lack clear evidence of high short interest, low float, or imminent",
+      "drivers": "Spanne 12.3% + News-KI 8/30: Positive corporate developments and strategic partnerships, but no indicators of high short interest, low float, or cata",
       "price": 0.21,
       "chg_pct": -1.19,
       "rvol_4d": 0.21,
@@ -280,9 +280,9 @@
       "uoa_cp_ratio": 0.1
     },
     "VYX": {
-      "score": 43,
+      "score": 50,
       "confidence": 70,
-      "drivers": "Volumen 1.9× + Spanne 12.9% + News-KI 8/30: Neutral business news with no indicators of short squeeze potential (low float concerns, institutional shorting, or expl + UOA Call/Put 11.7×",
+      "drivers": "Volumen 1.9× + Spanne 12.9% + News: earnings beat + UOA Call/Put 11.7×",
       "price": 7.85,
       "chg_pct": -0.0,
       "rvol_4d": 1.85,
@@ -293,7 +293,7 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 0,
+      "active_triggers": 1,
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 11.7×"
@@ -302,9 +302,9 @@
       "uoa_cp_ratio": 11.705882352941176
     },
     "ZBIO": {
-      "score": 33,
-      "confidence": 70,
-      "drivers": "Volumen 2.8× + Spanne 13.1% + News-KI 8/30: Positive clinical data and conference presentations are bullish but lack short squeeze indicators like high short intere",
+      "score": 25,
+      "confidence": 33,
+      "drivers": "Volumen 2.8× + Spanne 13.1%",
       "price": 19.8,
       "chg_pct": -0.0,
       "rvol_4d": 2.82,
