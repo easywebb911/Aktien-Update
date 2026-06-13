@@ -1,10 +1,10 @@
 {
-  "updated": "2026-06-13T10:32:28.613497+02:00",
+  "updated": "2026-06-13T13:25:03.674241+02:00",
   "run_info": {
     "tickers_checked": 15,
     "signals_active": 4,
     "alerts_sent": 0,
-    "elapsed_s": 21.4,
+    "elapsed_s": 19.5,
     "market_phase": "Geschlossen"
   },
   "signals": {
@@ -114,9 +114,9 @@
       "uoa_cp_ratio": 0.084070796460177
     },
     "IONQ": {
-      "score": 20,
-      "confidence": 33,
-      "drivers": "Spanne 7.0% + SEC Form 4",
+      "score": 28,
+      "confidence": 70,
+      "drivers": "Spanne 7.0% + News-KI 8/30: Positive sector sentiment but no company-specific catalysts, debt concerns, or short interest indicators that typically  + SEC Form 4",
       "price": 57.85,
       "chg_pct": -0.0,
       "rvol_4d": 0.88,
@@ -240,9 +240,9 @@
       "uoa_cp_ratio": 4.434782608695652
     },
     "RBOHF": {
-      "score": 10,
-      "confidence": 17,
-      "drivers": "Spanne 12.3%",
+      "score": 18,
+      "confidence": 33,
+      "drivers": "Spanne 12.3% + News-KI 8/30: Positive corporate developments and partnerships lack specific catalysts for squeeze potential; no material short intere",
       "price": 0.21,
       "chg_pct": -1.19,
       "rvol_4d": 0.21,
