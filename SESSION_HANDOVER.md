@@ -1,11 +1,12 @@
-# SESSION_HANDOVER.md — Stand 11.06.2026
+# SESSION_HANDOVER.md — Stand 13.06.2026
 
 ## 1) HEUTE IMPLEMENTIERT (mit Hashes)
-*(Session 10.–11.06. Hashes aus `git log` auf main, verifiziert. Roter Faden:
+*(Session 10.–13.06. Hashes aus `git log` auf main, verifiziert. Roter Faden:
 erst die letzte Sicherheits-Lücke schließen (XSS), dann zwei Edge-SAMMEL-
-Pendants scharfschalten (Vintage-Guard schützt das Backtest-Sample, Exit-Shadow
-misst die Exit-Trigger) und die KI-Edge-Felder additiv nachziehen — alles
-Shadow/Schutz, KEIN Live-Score-/Push-Effekt.)*
+Pendants scharfschalten (Vintage-Guard, Exit-Shadow) + KI-Edge-Felder additiv;
+dann die Off-Schedule-WURZEL schließen (#357 Redeploy), die `.jsonl`-Resolver-
+Lücke + Cron-Doku-Drift bereinigen, und das Entry-Modul mit der Cockpit-Caption
+sichtbar abschließen — alles Shadow/Schutz/Hygiene, KEIN Live-Score-/Push-Effekt.)*
 
 - **#343 (feat `db4e720`, Merge `ed6806f`) — 10.06.** **★ XSS-Härtung C1+M2.**
   Stored-XSS im News-Render + `company`/`sector`-Feldern: `_escH`-Escaping (inkl.
@@ -75,6 +76,32 @@ Shadow/Schutz, KEIN Live-Score-/Push-Effekt.)*
   Diff); kein Python-/Render-/Score-/Push-Touch. **Rest-Kante** (kein Defekt):
   Recalculate-Button dispatcht weiter direkt (gen:9559/10575) — bewusste Einzelaktion,
   s. §6-b. Guardian ✅, 79/79 CI-Gate, Golden byte-identisch. Manueller Merge.
+- **#359 (Merge `76e13f5`) — 12.06.** **★ `.jsonl`-Resolver-Lücke geschlossen
+  (union).** `.gitattributes merge=union` für die **5 PURE Append-Logs**
+  (`score_inflation_log`, `health_check_log`, `provider_health`,
+  `finra_history_health`, `vintage_guard_log` — alle `open(...,"a")`) → Rebase-
+  Append-Konflikte lösen ohne Daily-Run-Abort, beide Zeilen erhalten (`git rebase`
+  respektiert den Driver — empirisch belegt). **`exit_shadow_log.jsonl` BEWUSST
+  AUSGENOMMEN** (Full-Rewrite + Re-Write-by-(ticker,date) + Backfill → union
+  erzeugte Duplikat-Keys, empirisch belegt). Guard-Test `mock_test_gitattributes_
+  union_merge` (Kat. A), CI-Gate **79→80**. Self-merge. Details + Korrektur der
+  „stiller-Verlust"-Annahme: §6 + §8.
+- **#362 (feat `4be6aa3`, Merge `49c28d3`) — 12.–13.06.** **★ Cockpit-Entry-
+  Shadow-Caption LIVE** (live-verifiziert iPhone). Dezente Caption unter
+  `cockpit-body`: „Entry-Shadow {score} · {n}/5 Komp. · unvalidiert bis 30.06.".
+  **Ansatz (A) client-side, REIN ADDITIV:** Server rendert nur leeren `hidden`
+  Hook `.cockpit-entry-shadow[data-es-ticker]`; JS füllt aus `window._BT_DATA`
+  (latest Entry/Ticker, DD.MM.YYYY-chronologisch), **nur wenn `entry_score`
+  not-None** (0 IST ein Wert), sonst Element entfernt. Preload schreibt in den
+  BESTEHENDEN `_BT_DATA`-Cache (kein Doppel-Fetch). `backtest_history.py` (#336)
+  unberührt; Drawer-Strip übersteht der Hook (nur `id=`-Strip). Damit ist das
+  Entry-Modul vom Shadow-Daten-Sammeln bis zur (unvalidierten) Anzeige komplett.
+  Guardian ✅, CI 80/80, Golden mit-committet (nur Hook+JS, body-only). Manueller
+  Merge + iPhone-Verify.
+- **Doku-PRs (11.–13.06.):** #358 (`46bf50a`, #357-Wurzel-Fix-Handover), #360
+  (`2b85698`) + #361 (`dbd3ae1`) — **Cron-Doku-Drift `17 10`→`17 6` vollständig
+  bereinigt** (CLAUDE.md + `resolve_run_phase.py`-Docstring + Test-Daten; repo-weit
+  kein `17 10` mehr, verifiziert). Inhalte in §3–§8 eingearbeitet.
 - **Doku-Konsolidierungs-PRs (10.–11.06.):** #344 (Security-Strang/Audit 09.06.),
   #345 (M3-Entscheidung PAT classic), #347 (Vintage-Guard + score_delta), #348
   (S3/S7-Merge-Tag-Erklärung), #349 (DBI-8.88 aufgelöst + trend_break-Rest-Kante),
@@ -86,10 +113,11 @@ Shadow/Schutz, KEIN Live-Score-/Push-Effekt.)*
 
 ## 2) AKTIVE POSITIONEN
 **Quelle: `app_data.json`-Positions-Mirror (`run_phase=postclose`, `generated
-2026-06-11T07:05Z`) — der private Gist (kanonisch) ist im Sandbox NICHT direkt
+2026-06-13T18:44Z`) — der private Gist (kanonisch) ist im Sandbox NICHT direkt
 lesbar (kein `GIST_ID`/`GIST_TOKEN`). Stand = letzte Daily-Run-Materialisierung
-→ bei Abweichung Gist gewinnt.** **8 offene Positionen** (vorher 9; **CRMD/GEMI/
-LFVN nicht mehr im Mirror = geschlossen seit 07.06.**, **LUCK/DBI neu** am 09.06.):
+→ bei Abweichung Gist gewinnt.** **8 offene Positionen** — unverändert seit
+09.06., gegengeprüft gegen `exit_shadow_log.jsonl` 12.06. (identische 8 Ticker).
+(Historie: vorher 9; CRMD/GEMI/LFVN geschlossen seit 07.06., LUCK/DBI neu 09.06.):
 
 | Ticker | Entry | Shares | no_exit_alerts | current_price* |
 |---|---|---:|---|---|
@@ -114,51 +142,66 @@ aufgelöst (§8) — P&L korrekt (User-roh 7.41), kein Defekt.
 *(08.06.-Verifies ERLEDIGT: erster Entry-Score live + FINRA-SSR-Recovery +
 Wochenend-Digest-Selbstheilung bestätigt — entfallen.)*
 
-- **★ Redeploy-Auto-Trigger tot (#357) — beim NÄCHSTEN Code-Merge prüfen:** Nach
-  einem Merge auf `main`, der `generate_report.py`/`config.py`/`templates/**`
-  berührt, in der **Actions-Liste** kontrollieren: es darf **KEIN** automatischer
-  „Daily Squeeze Report"-Run mehr erscheinen (nur noch `pages-build-deployment` +
-  ggf. `pr-checks`). Erwartetes Bild: **kein** off-schedule „Daily Squeeze Report"
-  ohne dass Easy selbst dispatcht hat. Erscheint trotzdem einer → Trigger-Entfernung
-  griff nicht, nachsehen. (Der von Easy dispatchte/Recalculate-Run ist erlaubt —
-  geprüft wird der AUTOMATISCHE Pfad.)
-- **★ Exit-Shadow Datei-Commit (in 1–2 Tagen, WICHTIG):** `exit_shadow_log.jsonl`
-  ist **aktuell noch NICHT im Repo** — seit #350-Merge (11.06. 03:45) lief noch
-  **kein qualifizierender postclose-Run ≥16:00 ET** (der 07:05Z-Mirror ist pre-
-  open → Gate skippt korrekt). Nach dem ersten echten 21:17-UTC-Post-Close-Run:
-  (1) Datei existiert (~8 Records), (2) **wirklich COMMITTET** — **ERLEDIGT-Beleg
-  11.06.:** committet vom Post-Close-Run `a9c07ac` (21:12 UTC), 8 Records = alle
-  8 Positionen, `exit_state` gefüllt; (3) nach **~3 Handelstagen** erste
-  `forward_3d`-Werte gefüllt. **Hinweis (12.06.):** die `.jsonl`-Resolver-Lücke ist
-  ein **sichtbarer Hard-Abort** (nicht stiller Verlust, §6) und betrifft exit_shadow
-  nur bei seltenem Konflikt; die 5 Append-Logs sind seit 12.06. via union geschützt,
-  exit_shadow bewusst NICHT (Re-Write/Backfill).
-- **★ Vintage-Guard-Log (ab ~13.06., `vintage_guard_log.jsonl`, existiert 456
-  Zeilen, digest-frei):** Skips nur ~04:xx UTC = Pre-Open korrekt. Ein ~22:xx-
-  UTC-Skip = Bar-Lag-False-Skip eines LEGITIMEN Post-Close-Runs (EST-Winter/
-  yfinance-Lag — von der EDT-Empirie NICHT widerlegt, nur beobachtbar gemacht)
-  → nachsteuern. Sicherheitsnetz für den einzigen Rest-Fehlermodus (Datenverlust
-  statt Kontamination).
-- **★ FINRA-History-Sample (~23.06., `finra_history_health.jsonl`, existiert 2330
-  Zeilen, digest-frei):** 14–30 d Sample für evidenzbasierte Wächter-Schwelle des
-  Daily-Run-FINRA-History-Fetch (speist `si_trend_5d_slope`, bislang UNMONITORED).
-  **ACHTUNG: `coverage_pct` ist in PROZENT gespeichert**, nicht als 0–1-Bruch —
-  nicht um Faktor 100 verrechnen.
-- **★★ 30.06. — Backtest-Hauptauswertung** (Details §4/§5): Setup-≥70-Edge im
-  **DOPPEL-LAUF** (Cluster) · Entry-Shadow-Komponenten · KI-/monster-Edge (neu via
-  #353) · Conviction-Methodik · Earliness-Konfidenz-Re-Test.
+- **✅ ERLEDIGT — #357 Redeploy-Auto-Trigger BESTANDEN (13.06.):** Beleg = #362
+  (eine `generate_report.py`-Änderung) wurde gemergt und löste **KEINEN**
+  automatischen Daily-Run aus — die deployte `index.html` blieb auf dem letzten
+  Cron-Stand (Diagnose 12.06.: erst der reguläre Post-Close regeneriert sie). Der
+  Auto-Pfad ist tot; nur der manuelle Dispatch/Recalculate triggert noch. Verify
+  geschlossen. (Bewusste Konsequenz: UI-/Template-Änderungen werden erst beim
+  nächsten Cron oder manuellem Dispatch sichtbar — kein Defekt, der #357-Trade-off.)
+- **✅ ERLEDIGT — Exit-Shadow Datei-Commit (Tag 1+2 sauber):** `exit_shadow_log.jsonl`
+  committet vom Post-Close `a9c07ac` (11.06. 21:12Z, 8 Records) UND fortgeschrieben
+  `2956849` (12.06. 22:50Z, +8 Records 12.06.); 11.06-Records via Re-Write-by-
+  (ticker,date) **unverändert** erhalten, `exit_state`+6 Trigger+signal_price gefüllt.
+  **OFFEN (einziger noch nie belegter Pfad) → ~16.06.:** füllt der ki_agent-Backfill
+  die `forward_3d` auf den 11.06-Records? (11.06 + 3 Handelstage ≈ 16.06; Backfill
+  bisher 0× gelaufen). **NEBENBEI ab ~16.06.:** geht der Daily-Run je rot mit
+  „Konflikt in nicht-JSON-Dateien" + `exit_shadow_log.jsonl`? (ab Backfill-Start
+  wird ki_agent 2. exit_shadow-Schreiber = erste reale Konflikt-Chance). Bleibt es
+  ruhig → der Merge-Strang ist endgültig erledigt (s. §6: key-aware-Driver verworfen).
+- **✅ GEPRÜFT 13.06 — Vintage-Guard-Log sauber:** nur **2 Skips, beide `pre_open`**
+  (11.06. 04:09Z/05:53Z = 00:09/01:53 ET) — KEIN ~22:xx-UTC-Bar-Lag-False-Skip. Die
+  12.06-Post-Close-Läufe (20:52/22:50Z, post-16:00 ET) appendeten korrekt
+  (backtest_history 12.06=10). Seit #357 keine NEUEN Skips (Pre-Open-Dispatch-Quelle
+  versiegt). **Nächster Watch:** identisch zum exit_shadow-Konflikt-Watch ab ~16.06.
+- **★ FINRA-History-Sample (~23.06., `finra_history_health.jsonl`, digest-frei):**
+  14–30 d Sample für evidenzbasierte Wächter-Schwelle des Daily-Run-FINRA-History-
+  Fetch (speist `si_trend_5d_slope`, bislang UNMONITORED). **ACHTUNG: `coverage_pct`
+  ist in PROZENT gespeichert**, nicht als 0–1-Bruch — nicht um Faktor 100 verrechnen.
+- **★★ Backtest-Hauptauswertung — AN `return_10d`-REIFE GEKOPPELT, NICHT ans Datum
+  (realistisch eher Anfang Juli als 30.06. punktgenau):** Setup-≥70-Edge im
+  **DOPPEL-LAUF** (Cluster) · Entry-Shadow-Komponenten · KI-/monster-Edge (#353) ·
+  Conviction-Methodik · Earliness-Re-Test. **Cap-Nachschärfung = EDGE-TEST**
+  (Forward-Return am-Cap vs unter-Cap), NICHT nur Verteilung (s. §4). Qualität vor
+  Pünktlichkeit: viele Komponenten-Träger sind erst seit 06.–12.06. → `return_10d`
+  teils noch unreif bis ~Ende Juni.
 
 ## 4) GEPLANTE AUFGABEN + WIEDERVORLAGEN (mit Daten)
-- **Cockpit-Pillar (Entry-Score-Frontend, OFFEN, kein Zeitdruck):** Entry-Score-
-  Anzeige auf der Karte (eigener PR, iPhone-Verify) — erst Daten sammeln (§5),
-  NICHT vor 30.06.-Readout scharfschalten.
+- **✅ Cockpit-Entry-Shadow-Caption ERLEDIGT (#362, 12.–13.06., §1/§7):** die
+  Anzeige (display-only, Label „unvalidiert bis 30.06.") ist live. **Wichtige
+  Abgrenzung:** das ist NUR die *Anzeige* des Shadow-Werts — die **LIVE-
+  Scharfschaltung** des Entry-Scores (als Push-/Trade-Signal) bleibt weiterhin
+  gated bis nach dem 30.06.-Readout. Anzeige ≠ Aktivierung.
 - **30.06. — Backtest-Auswertung (erweitert):**
   - Setup-Score ≥70-Edge (schema_v4) · Earliness-Konfidenz-Re-Test (AUC) ·
     Conviction-Methodik-Diagnose · **NEU: KI-/monster-Edge** (`monster_score` /
     `ki_signal_score` seit #353) · **Entry-Shadow-Auswertung** (treffen dünne
     Scores schlechter via `entry_n_components`? Ausfall-Tage via
-    `push_history_available=False` filtern; anomaly-Cap ggf. re-kalibrieren, n=25
-    dünn) → DANN Push-/Live-Entscheidung.
+    `push_history_available=False` filtern) → DANN Push-/Live-Entscheidung.
+  - **Entry-Cap-Trockenlauf (13.06., read-only, NICHT gebaut — Methode validiert):**
+    Rohverteilung + Cap-/Clamp-Anschlag der 5 echten `compute_entry_score`-Inputs
+    gegen `backtest_history.json` (Twins genutzt: `score_delta_t1_raw`,
+    `anomaly_push_age_h`). Befund: **nur `score_delta` (±15-Clamp) cap-verdächtig**
+    (13–17 % \|raw\|>15, höchste bindende Rate); `uoa` (3 % ≥4.0 — großzügig),
+    `rvol_buildup` (8.5 % ≥6.0 — clippt sinnvoll den 154er-Tail), `si_slope` (Buckets
+    gleichmäßig ~18–23 %) **solide**; `anomaly` (28 % Floor >72h) **n≈39 zu dünn**.
+    **KEY-METHODE für den echten Lauf:** Anschlag-Rate allein sagt NICHT „Cap falsch"
+    → der eigentliche Schritt ist der **EDGE-TEST** (haben am-Cap-Einträge andere
+    `return_10d` als unter-Cap? Mann-Whitney) — braucht `return_10d`-Reife. `si_slope`
+    NIE roh skalieren (max 10 200 → Bucketing zwingend). **Verteilungs-Wächter-Modul
+    VERWORFEN (13.06.):** die Rohdaten + Twins sind bereits persistiert → einmalige
+    read-only-Auswertung statt periodischem Wächter (Daten da, kein Sammel-Bedarf;
+    Nordstern: Mensch validiert Bedeutung einmal). Über-Engineering vermieden.
   - **Freitag-Cluster-Kontamination (Diagnose 09.06.):** 37,5 % der ≥70-Einträge
     tragen Score mit ~1-Tag-Daten-Versatz (Pre-Open-Re-Run friert Vortags-Bar ein;
     Signatur = `entry_price` exakt == Vortags-`entry_price` desselben Tickers).
@@ -208,7 +251,7 @@ Wochenend-Digest-Selbstheilung bestätigt — entfallen.)*
 - Externer Dead-Man-Switch (Cloudflare-Worker) gegen Cron-Drops (~20 %).
 - Borrow-Fee + Utilization in score() (bei reifer CTB-Coverage).
 
-### EDGE-VALIDIERUNGS-PROGRAMM (Stand 11.06.)
+### EDGE-VALIDIERUNGS-PROGRAMM (Stand 13.06.)
 **Leitprinzip:** jedes Signal, das eine Entscheidung beeinflusst, braucht eine
 Edge-Messung, BEVOR ihm vertraut wird. **REIHENFOLGE-DISZIPLIN:** immer erst
 sammeln → auswerten → DANN nächsten Strang öffnen. NICHT parallel starten.
@@ -313,9 +356,17 @@ aus Entry + Exit + KI/monster. Erst sammeln lassen, was läuft.
   Driver, empirisch belegt). **`exit_shadow_log.jsonl` BEWUSST AUSGENOMMEN:** Full-
   Rewrite (`open(...,"w")`) + Re-Write-by-(ticker,date) + Forward-Backfill → union
   erzeugte Duplikat-Keys (empirisch belegt) → bleibt beim Abort-Verhalten (selten,
-  selbstheilend via nächsten Re-Write). Key-aware Merge für exit_shadow = separater
-  Folge-PR (NICHT union), niedrig. Workflow-Resolver-Block unverändert (union
+  selbstheilend via nächsten Re-Write). Workflow-Resolver-Block unverändert (union
   verhindert, dass die 5 Dateien überhaupt als Konflikt ankommen).
+  **Key-aware-Merge-Driver für exit_shadow VERWORFEN (Diagnose 13.06.):** **0 reale
+  Konflikte** seit #350 (4 saubere Commits), und der 2. Schreiber (ki_agent-Backfill)
+  war **nie aktiv** → das Problem existiert strukturell noch nicht. Custom Driver =
+  mittlerer Aufwand + Runner-Config-Fragilität für ein Null-Vorkommen-Problem (Trading-
+  Wert-Filter: durchgefallen — Telemetrie, kein Live-Signal, selbstheilend). **FALLS
+  je real** (Watch ab ~16.06., wenn Backfill anläuft): die richtige Antwort ist die
+  bestehende **`--ours`-Auto-Resolve um exit_shadow erweitern (~1 Zeile)** — union ging
+  wegen Re-Write-Duplikaten nicht, `--ours` hat dieses Problem NICHT (nimmt eine
+  konsistente Vollversion). **KEIN** custom Driver.
 - **Recovery-Umleitung bei Gist-Body-Korruption** (Folge-PR zu #322): bei
   `body_ok=False` Positionen erhalten statt `{}`. OFFEN.
 - **Toter v2-else-Zweig entfernen** (Option b) — OPTIONAL, Easys Architektur-
@@ -333,15 +384,18 @@ aus Entry + Exit + KI/monster. Erst sammeln lassen, was läuft.
   bewusst belassen (Leak-Pfad seit #343 dicht). **M4** Worker-offener-Proxy
   (Quota-DoS) + **L1** LLM-Error-Sink: bewusst AKZEPTIERT. **CVE-Check**
   (pip-audit/Dependabot) = Easy extern (Sandbox hat kein Netz).
-- **ERLEDIGT diese Session (10.–11.06.):** XSS C1+M2 (#343), Vintage-Guard M1
+- **ERLEDIGT diese Session (10.–13.06.):** XSS C1+M2 (#343), Vintage-Guard M1
   (#346, schließt den „Option A / Pre-Open-Guard"-Backlog-Punkt), Exit-Shadow-Log
-  (#350), KI-/monster-Backtest-Felder (#353).
+  (#350), KI-/monster-Backtest-Felder (#353), S4-Zeit-Gate (#355), Redeploy-Wurzel-
+  Fix (#357), `.jsonl`-Resolver-union (#359), Cron-Doku-Drift (#360/#361),
+  Cockpit-Entry-Shadow-Caption (#362). Cron-Inventar via #360/#361 zwischen
+  CLAUDE.md + `resolve_run_phase.py` + Test repo-weit konsistent (`17 6`).
 - **ERLEDIGT Vorsession (06.–07.06.):** Schema-Tripwire (#329), 5 stale Reds (#330),
   Golden-Liveness (#331), tier2-String-Gating-AST (#332), CI-Gate Phase 1+2
   (#333/#335), health_check-Stub (#334), Entry-Score Shadow (#336).
 
 ## 7) ARCHITEKTUR-ANKER
-**★ NEU diese Session (10.–11.06.):**
+**★ NEU diese Session (10.–13.06.):**
 - **★ XSS-Sink-Härtung (#343):** `_escH` (Attribut-Kontext inkl. Quotes) +
   `n.link`-Whitelist `^https?://` an den News-/`company`/`sector`-DOM-Sinks.
   Escaping allein stoppt `javascript:` NICHT → Whitelist zwingend. Schließt den
@@ -385,6 +439,17 @@ aus Entry + Exit + KI/monster. Erst sammeln lassen, was läuft.
   postclose-Anomaly-Suppression) — greifen jetzt nur seltener. **Direkter Dispatch-
   Pfad bleibt:** der Recalculate-Button POSTet weiter an `daily-squeeze-report.yml`
   (gen:9559/10575) — bewusste Einzelaktion, kein Auto-Pfad (Rest-Kante §6-b).
+- **★ `.jsonl`-union-Merge (#359):** `.gitattributes merge=union` für 5 Append-Logs
+  (`open(...,"a")`) → Rebase-Append-Konflikte ohne Daily-Run-Abort. `exit_shadow_log`
+  ausgenommen (Full-Rewrite/Backfill → union dupliziert). `git rebase` respektiert
+  den built-in union-Driver (kein Runner-Config nötig). Guard-Test schützt die
+  Klassifikation; CI 80.
+- **★ Cockpit-Entry-Shadow-Caption (#362):** client-side Anzeige aus `window._BT_DATA`
+  unter `cockpit-body` (`.cockpit-entry-shadow[data-es-ticker]`, server nur leerer
+  `hidden` Hook → JS füllt nur bei `entry_score` not-None, 0=Wert). REIN ADDITIV,
+  `backtest_history.py`/#336 unberührt; Drawer-Strip-immun (nur `id=`-Strip). Preload
+  reused den `_BT_DATA`-Cache. Display-only, Label „unvalidiert bis 30.06." — KEINE
+  Live-Aktivierung (s. §4).
 
 **Bestehende Anker (unverändert):**
 - **★★ Entry-Score (`entry_score.py`, #336):** PURES stdlib-Modul, bewusst getrennt
@@ -428,7 +493,8 @@ aus Entry + Exit + KI/monster. Erst sammeln lassen, was läuft.
 - **Borrow = iBorrowDesk-JSON (#292), Inhalts-success_check.** CTB persistiert (#309).
 - **squeeze-guardian (#306/#319):** echo-Hook spawnt Agent NICHT; Architektur =
   manuelle EMPFOHLENE Routine, Bonus kein Gatekeeper.
-- **Cron-Inventar (verifiziert 11.06.):** ki_agent `17 * * * *`, daily premarket
+- **Cron-Inventar (verifiziert; Doku-Drift `17 10`→`17 6` via #360/#361 bereinigt,
+  repo-weit kein `17 10` mehr):** ki_agent `17 * * * *`, daily premarket
   `17 6 * * 1-5` (real ~12 UTC nach Actions-Drift), postclose `17 21 * * 1-5`,
   health-digest `47 8 * * *`, watchlist `0 7 * * 0`, pr-checks `on: pull_request`.
   checkout@v5.
@@ -517,3 +583,13 @@ aus Entry + Exit + KI/monster. Erst sammeln lassen, was läuft.
   Keys** = Korruption. **Vor jedem Merge-Driver pro Datei die Schreib-Semantik
   prüfen** (Append vs. Rewrite), nicht pauschal anwenden. Beides empirisch belegt
   (Rebase-Konflikt-Szenario nachgestellt), bevor darauf gebaut wurde.
+- **★ „Daten schon da" → einmalige Auswertung statt Wächter; und Anschlag-Rate ≠
+  Cap-Entscheid (13.06., Entry-Cap-Trockenlauf):** Ein periodisches Verteilungs-
+  Wächter-Modul wurde **verworfen**, weil die Rohwerte + Twins längst persistiert
+  sind — eine **einmalige read-only-Auswertung** reicht, ein Dauer-Wächter wäre
+  Über-Engineering (Nordstern: Mensch validiert Bedeutung einmal). UND: eine
+  **Anschlag-Rate** („Cap bindet bei X %") sagt NICHT, ob der Cap *falsch* ist —
+  dafür braucht es den **Edge-Test** (haben am-Cap-Einträge andere Forward-Returns?).
+  Verteilung ist notwendig, nicht hinreichend. Vor „Cap nachschärfen" immer den
+  Return-gepaarten Edge-Test, nicht nur das Histogramm. (Cap-Entscheid daher an
+  `return_10d`-Reife gekoppelt, nicht ans Kalenderdatum — Qualität vor Pünktlichkeit.)
