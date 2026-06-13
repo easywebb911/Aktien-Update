@@ -1,17 +1,17 @@
 {
-  "updated": "2026-06-13T06:52:19.003927+02:00",
+  "updated": "2026-06-13T10:32:28.613497+02:00",
   "run_info": {
     "tickers_checked": 15,
     "signals_active": 4,
     "alerts_sent": 0,
-    "elapsed_s": 10.7,
+    "elapsed_s": 21.4,
     "market_phase": "Geschlossen"
   },
   "signals": {
     "AI": {
-      "score": 28,
+      "score": 20,
       "confidence": 17,
-      "drivers": "News-KI 8/30: Positive sentiment and momentum but no significant short-squeeze indicators like high short interest, low float, or cata + UOA Call-Vol/OI 3.6× ATM + UOA Call/Put 63.2×",
+      "drivers": "UOA Call-Vol/OI 3.6× ATM + UOA Call/Put 63.2×",
       "price": 10.9,
       "chg_pct": -0.0,
       "rvol_4d": 0.96,
@@ -240,9 +240,9 @@
       "uoa_cp_ratio": 4.434782608695652
     },
     "RBOHF": {
-      "score": 18,
-      "confidence": 33,
-      "drivers": "Spanne 12.3% + News-KI 8/30: Positive corporate developments and strategic partnerships, but lacking short squeeze catalyst indicators like high shor",
+      "score": 10,
+      "confidence": 17,
+      "drivers": "Spanne 12.3%",
       "price": 0.21,
       "chg_pct": -1.19,
       "rvol_4d": 0.21,
@@ -280,9 +280,9 @@
       "uoa_cp_ratio": 0.1
     },
     "VYX": {
-      "score": 43,
+      "score": 50,
       "confidence": 70,
-      "drivers": "Volumen 1.9× + Spanne 12.9% + News-KI 8/30: Positive business developments but no indicators of high short interest, limited float, or catalyst for rapid covering - + UOA Call/Put 11.7×",
+      "drivers": "Volumen 1.9× + Spanne 12.9% + News: earnings beat + UOA Call/Put 11.7×",
       "price": 7.85,
       "chg_pct": -0.0,
       "rvol_4d": 1.85,
@@ -293,7 +293,7 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 0,
+      "active_triggers": 1,
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 11.7×"
