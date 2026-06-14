@@ -1,10 +1,10 @@
 {
-  "updated": "2026-06-14T00:19:42.567255+02:00",
+  "updated": "2026-06-14T03:37:39.417251+02:00",
   "run_info": {
     "tickers_checked": 15,
     "signals_active": 4,
     "alerts_sent": 0,
-    "elapsed_s": 16.8,
+    "elapsed_s": 11.7,
     "market_phase": "Geschlossen"
   },
   "signals": {
@@ -94,9 +94,9 @@
       "uoa_cp_ratio": 0.6323529411764706
     },
     "GIII": {
-      "score": 40,
-      "confidence": 33,
-      "drivers": "News: earnings beat + FINRA Short-Vol 100%",
+      "score": 25,
+      "confidence": 17,
+      "drivers": "FINRA Short-Vol 100%",
       "price": 35.28,
       "chg_pct": -0.0,
       "rvol_4d": 0.5,
@@ -107,7 +107,7 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 1,
+      "active_triggers": 0,
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": 0.030534351145038167,
@@ -136,7 +136,7 @@
     "JACK": {
       "score": 28,
       "confidence": 33,
-      "drivers": "Spanne 9.5% + News-KI 18/30: Moderate short interest in restaurant sector, but debt refinancing and analyst optimism suggest company improving fundam",
+      "drivers": "Spanne 9.5% + News-KI 18/30: Moderate short interest in restaurant sector with debt reduction announcement, but no extreme squeeze signals like gamma",
       "price": 13.37,
       "chg_pct": -0.0,
       "rvol_4d": 1.46,
@@ -176,9 +176,9 @@
       "uoa_cp_ratio": 2.75
     },
     "LUCK": {
-      "score": 25,
-      "confidence": 17,
-      "drivers": "FINRA Short-Vol 80%",
+      "score": 33,
+      "confidence": 33,
+      "drivers": "News-KI 8/30: Negative sentiment from stock plunge outweighs operational news; no indicators of high short interest, squeeze potential + FINRA Short-Vol 80%",
       "price": 8.76,
       "chg_pct": 0.0,
       "rvol_4d": 0.85,
@@ -240,9 +240,9 @@
       "uoa_cp_ratio": 4.434782608695652
     },
     "RBOHF": {
-      "score": 10,
-      "confidence": 17,
-      "drivers": "Spanne 12.3%",
+      "score": 18,
+      "confidence": 33,
+      "drivers": "Spanne 12.3% + News-KI 8/30: Positive corporate developments and partnerships, but lacking metrics on short interest, float, or catalysts that typica",
       "price": 0.21,
       "chg_pct": -1.19,
       "rvol_4d": 0.21,
@@ -260,9 +260,9 @@
       "uoa_cp_ratio": null
     },
     "TYRA": {
-      "score": 43,
-      "confidence": 70,
-      "drivers": "Spanne 10.0% + News-KI 8/30: Negative sentiment with clinical trial skepticism, weak investor confidence, and cautious analyst rating indicate poor s + FINRA Short-Vol 88%",
+      "score": 35,
+      "confidence": 33,
+      "drivers": "Spanne 10.0% + FINRA Short-Vol 88%",
       "price": 26.99,
       "chg_pct": -0.0,
       "rvol_4d": 0.89,
