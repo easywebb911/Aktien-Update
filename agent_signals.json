@@ -1,10 +1,10 @@
 {
-  "updated": "2026-06-14T17:18:47.098291+02:00",
+  "updated": "2026-06-14T19:48:32.633320+02:00",
   "run_info": {
     "tickers_checked": 15,
     "signals_active": 4,
     "alerts_sent": 0,
-    "elapsed_s": 12.2,
+    "elapsed_s": 14.2,
     "market_phase": "Geschlossen"
   },
   "signals": {
@@ -114,9 +114,9 @@
       "uoa_cp_ratio": 0.084070796460177
     },
     "IONQ": {
-      "score": 20,
-      "confidence": 33,
-      "drivers": "Spanne 7.0% + SEC Form 4",
+      "score": 28,
+      "confidence": 70,
+      "drivers": "Spanne 7.0% + News-KI 8/30: Positive sentiment on quantum sector growth, but no specific short squeeze indicators like high short interest, gamma ex + SEC Form 4",
       "price": 57.85,
       "chg_pct": -0.0,
       "rvol_4d": 0.88,
@@ -178,7 +178,7 @@
     "LUCK": {
       "score": 33,
       "confidence": 33,
-      "drivers": "News-KI 8/30: Negative price action combined with executive promotion suggests internal restructuring likely due to poor performance,  + FINRA Short-Vol 80%",
+      "drivers": "News-KI 8/30: Positive operational news (championship event, executive promotion) is offset by concerning stock plunge, indicating fun + FINRA Short-Vol 80%",
       "price": 8.76,
       "chg_pct": 0.0,
       "rvol_4d": 0.85,
@@ -218,9 +218,9 @@
       "uoa_cp_ratio": 13.483870967741936
     },
     "PDYN": {
-      "score": 28,
+      "score": 35,
       "confidence": 33,
-      "drivers": "Spanne 9.2% + News-KI 8/30: Positive business developments and advisory board appointments lack short-squeeze catalysts; no significant short intere + UOA Call/Put 4.4×",
+      "drivers": "Spanne 9.2% + News: partnership + UOA Call/Put 4.4×",
       "price": 6.41,
       "chg_pct": -0.0,
       "rvol_4d": 1.04,
@@ -231,7 +231,7 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 0,
+      "active_triggers": 1,
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 4.4×"
@@ -260,9 +260,9 @@
       "uoa_cp_ratio": null
     },
     "TYRA": {
-      "score": 43,
-      "confidence": 70,
-      "drivers": "Spanne 10.0% + News-KI 8/30: Negative sentiment dominates with concerns about pipeline dependency, weak investor sentiment, and neutral-to-negative a + FINRA Short-Vol 88%",
+      "score": 35,
+      "confidence": 33,
+      "drivers": "Spanne 10.0% + FINRA Short-Vol 88%",
       "price": 26.99,
       "chg_pct": -0.0,
       "rvol_4d": 0.89,
