@@ -1,10 +1,10 @@
 {
-  "updated": "2026-06-14T08:57:36.581484+02:00",
+  "updated": "2026-06-14T12:32:47.819894+02:00",
   "run_info": {
     "tickers_checked": 15,
     "signals_active": 4,
     "alerts_sent": 0,
-    "elapsed_s": 10.1,
+    "elapsed_s": 11.0,
     "market_phase": "Geschlossen"
   },
   "signals": {
@@ -32,20 +32,20 @@
       "uoa_cp_ratio": 63.191103789126856
     },
     "AKTS": {
-      "score": 50,
-      "confidence": 33,
-      "drivers": "Volumen 6.2× + 🚀 Massives Volumen 6.2×+ + Spanne 7.7%",
+      "score": 0,
+      "confidence": 0,
+      "drivers": "",
       "price": 21.93,
       "chg_pct": 0.0,
-      "rvol_4d": 6.19,
-      "rvol_20d": 5.52,
+      "rvol_4d": 0.0,
+      "rvol_20d": null,
       "earnings": null,
       "fda_date": null,
       "upcoming_event": null,
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 1,
+      "active_triggers": 0,
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": null,
@@ -90,8 +90,8 @@
       "active_triggers": 1,
       "uoa_score": 0,
       "uoa_drivers": [],
-      "uoa_atm_ratio": 0.017757009345794394,
-      "uoa_cp_ratio": 0.6323529411764706
+      "uoa_atm_ratio": null,
+      "uoa_cp_ratio": null
     },
     "GIII": {
       "score": 25,
@@ -282,7 +282,7 @@
     "VYX": {
       "score": 43,
       "confidence": 70,
-      "drivers": "Volumen 1.9× + Spanne 12.9% + News-KI 8/30: Routine business partnerships and conference presentations lack catalyst strength; no short squeeze indicators like high + UOA Call/Put 11.7×",
+      "drivers": "Volumen 1.9× + Spanne 12.9% + News-KI 8/30: Positive business developments and partnership announcements, but no indicators of short squeeze potential such as high  + UOA Call/Put 11.7×",
       "price": 7.85,
       "chg_pct": -0.0,
       "rvol_4d": 1.85,
