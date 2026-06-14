@@ -1,10 +1,10 @@
 {
-  "updated": "2026-06-14T19:48:32.633320+02:00",
+  "updated": "2026-06-14T21:58:29.840551+02:00",
   "run_info": {
     "tickers_checked": 15,
     "signals_active": 4,
     "alerts_sent": 0,
-    "elapsed_s": 14.2,
+    "elapsed_s": 11.3,
     "market_phase": "Geschlossen"
   },
   "signals": {
@@ -114,9 +114,9 @@
       "uoa_cp_ratio": 0.084070796460177
     },
     "IONQ": {
-      "score": 28,
-      "confidence": 70,
-      "drivers": "Spanne 7.0% + News-KI 8/30: Positive sentiment on quantum sector growth, but no specific short squeeze indicators like high short interest, gamma ex + SEC Form 4",
+      "score": 20,
+      "confidence": 33,
+      "drivers": "Spanne 7.0% + SEC Form 4",
       "price": 57.85,
       "chg_pct": -0.0,
       "rvol_4d": 0.88,
@@ -178,7 +178,7 @@
     "LUCK": {
       "score": 33,
       "confidence": 33,
-      "drivers": "News-KI 8/30: Positive operational news (championship event, executive promotion) is offset by concerning stock plunge, indicating fun + FINRA Short-Vol 80%",
+      "drivers": "News-KI 8/30: Negative sentiment from stock plunge outweighs neutral operational news; insufficient evidence of short squeeze catalyst + FINRA Short-Vol 80%",
       "price": 8.76,
       "chg_pct": 0.0,
       "rvol_4d": 0.85,
