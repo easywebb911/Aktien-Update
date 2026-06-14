@@ -372,6 +372,13 @@ aus Entry + Exit + KI/monster. Erst sammeln lassen, was läuft.
 - **Toter v2-else-Zweig entfernen** (Option b) — OPTIONAL, Easys Architektur-
   Entscheidung. Isoliert halten (Lektion #226), Dict-Key `"price_str"` behalten.
 - **Finnhub-SI-Reserve** (gratis, Key da) als SF-Reserve falls Kette dünn. Niedrig.
+- **FINRA-Provider unmonitored (niedrig):** Der Daily-Run-FINRA-History-Fetch
+  (speist `si_trend`) hat KEINEN `provider_health`-Record. `provider_health['finra']`
+  überwacht nur den ki_agent-SSR-Fetch (anderer Pfad, wochenend-still = normal).
+  Optionaler Wächter-PR, niedrig — Fetch läuft + ist wochenend-robust. Aufgreifen
+  nach Entry-Stabilisierung. (Datierter Schwellen-Schritt nach dem ~23.06.-Sample:
+  s. §4 „FINRA-History-Wächter" — dieser §6-Punkt ist die Backlog-Status-Notiz der
+  Überwachungs-Lücke selbst.)
 - **or-0-Defaults Persist-Fix** · **finviz Flag-aus + α** · **Borrow-Naming
   (`IBKR_*`→`IBORROWDESK_*`)** · **v1/v2→Jinja** · **Cockpit Stage 3 (.sb-Reste)**
   → alle OFFEN, niedrig/vertagt.
