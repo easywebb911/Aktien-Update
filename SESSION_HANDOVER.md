@@ -287,11 +287,44 @@ Scores, dessen Gesamt-Edge ohnehin gemessen wird; kein eigener Entscheidungs-Bez
 entscheiden ob Conviction einen eigenen Shadow verdient — mit den Erkenntnissen
 aus Entry + Exit + KI/monster. Erst sammeln lassen, was läuft.
 
+### Hebel-Hypothesen H1–H6 (Edge-Auswertung 30.06., ZU PRÜFEN, NICHT Erkenntnis)
+**Kanonischer Anker** für die 30.06.-Edge-Auswertung. **Alles Hypothese, kein
+Befund** — nicht als gesichertes Ergebnis lesen. (Namespace-Hinweis: dieses
+„H1–H6" = **Hebel-Hypothesen**; das „H1 Storage-Redesign" in §6 ist der
+**Security-Audit-Namespace** — andere Nummerierung, nicht verwechseln.)
+
+**Ausgangsbefund (roh, vor Bereinigung):** Roher Setup-Score zeigt **KEINE
+Trennschärfe** — Trefferquote sinkt mit Score (28 / 29 / 28 / 25 / 23 % für
+≥40..≥80, „Nur Live"); ≥70-Mediane alle negativ (3T −1,7 / 5T −1,4 / 10T −1,9;
+n=215). Daraus die sechs Hypothesen:
+
+- **H1 — Expectancy statt Trefferquote:** Erwartungswert unter mechanischer
+  Cut-Loss/Let-Run-Regel, **netto nach Kosten** — NICHT Anteil ≥+5 %. Fester
+  Auswertungsbestandteil. Konvexe Lotterie-Auszahlung sichtbar (<50-Bucket Median
+  10T −3,7 % ABER Ø +7,6 %, Range bis +978 %).
+- **H2 — Schwanz-Anomalie (Falsifizierungstest):** Hält der fette rechte Schwanz im
+  <50-Bucket **nach Cluster-Purge UND nach Entfernen des Top-1-Ausreißers**? JA →
+  ernst nehmen (Score rankt Konvexität falsch). NEIN → Artefakt (n=131).
+- **H3 — Exit als eigentliche Edge:** Bei schwachem Entry trägt Exit-Disziplin die
+  Rendite. Verknüpft mit der Exit-Mechanik-Spec (Begutachtung C, ~Ende Juli).
+- **H4 — Score als Universums-Filter, nicht Prädiktor:** SI-Trend stützt (seitwärts
+  36 % schlägt steigend/fallend je 27 %, richtungsblind).
+- **H5 — Katalysator-Overlay:** FDA/Earnings bedingen (vgl. 08.05.-Tell). Verknüpft
+  mit dem Katalysator-Gating-Vorschlag (Begutachtung C).
+- **H6 — Crowded-Trade (Hypothese, NICHT Befund):** inverse Score-Korrelation evtl.
+  crowded trade ODER teils Cluster-Artefakt (37,5 % unbereinigt) — **erst nach
+  Cluster-Purge entscheiden**, NICHT vorab als Alarmsignal behandeln.
+
+**AUFFANGLINIE (wichtigste Zeile):** Falls keine Netto-Edge → das Tool ist ein
+**Risiko-/Monitoring-Instrument, KEIN Alpha-Generator.** Schützt vor Edge-
+Schönrechnen. (Positiv lesbar als „Attention-Router" — s. Begutachtungs-Subsektion B.)
+
 ### Externe Begutachtung 15.06. — zu prüfende Vorschläge (NICHT Erkenntnis)
 **Status:** Vorschläge eines externen Gutachters zum Projektdossier — **dokumentiert,
 nicht validiert.** Alle unterliegen der **Vorleistungs-Logik: erst Edge-Validierung,
-dann Bau.** Die „H#"-Labels sind die **Nummerierung des Gutachters** (kein bestehendes
-Handover-Schema). Kein Punkt ist „umzusetzen", bevor der jeweilige Auslöser greift.
+dann Bau.** Die „H#"-Labels verweisen auf die **Hebel-Hypothesen H1–H6** (Subsektion
+direkt oben — gemeinsame Nummerierung). Kein Punkt ist „umzusetzen", bevor der
+jeweilige Auslöser greift.
 
 **A) Auswertungs-Methode (zur 30.06.-Hauptauswertung, ergänzend zur Methoden-Härtung):**
 - **Bootstrapping (zu 30.06.):** Konfidenzintervalle für den Erwartungswert via
@@ -320,11 +353,11 @@ Handover-Schema). Kein Punkt ist „umzusetzen", bevor der jeweilige Auslöser g
   **BESTÄTIGT + konkretisiert** den bestehenden §5-Backlog-Punkt „Borrow-Fee +
   Utilization in score()" (keine neue Idee, sondern dessen Ausgestaltung). Als neue
   Score-Komponente **edge-validierungspflichtig** (nicht blind einbauen).
-- **Katalysator-Gating (H5, NACH Validierung):** Earnings-/FDA-Kalender via Finnhub
+- **Katalysator-Gating (↗ H5 Hebel-Hypothesen, NACH Validierung):** Earnings-/FDA-Kalender via Finnhub
   (Key vorhanden) oder Benzinga Free. Leitidee: Setup-Score 60 **mit** Katalysator >
   Score 85 im luftleeren Raum. **WICHTIG:** nur das **Kalender-Gating** automatisieren
   — die Katalysator-**Bewertung** bleibt diskretionär/menschlich (Nordstern).
-- **Exit-Mechanik-Spec (H3, Startpunkt ~Ende Juli):** asymmetrische Exit-Logik im
+- **Exit-Mechanik-Spec (↗ H3 Hebel-Hypothesen, Startpunkt ~Ende Juli):** asymmetrische Exit-Logik im
   exit_shadow testen — **Time-Stop** (Exit wenn nach 3 Handelstagen kein Momentum)
   + großzügiger **Trailing-Stop** für Gewinner. Konkreter Startpunkt für die
   Exit-Shadow-Auswertung ~Ende Juli (s. §4 Exit-Shadow-Auswertung).
@@ -332,9 +365,9 @@ Handover-Schema). Kein Punkt ist „umzusetzen", bevor der jeweilige Auslöser g
 **D) Bewusst NICHT aufgenommen (abgelehnt mit Begründung):**
 - **„Rate-of-Change statt Absolutwerte" als neue Idee** — verworfen: **teils bereits
   umgesetzt** (`score_delta_t1`, `rvol_buildup_5d`, `si_trend_5d_slope` SIND
-  Veränderungsraten); der Rest fällt in den bestehenden H4-Test, kein neuer Strang.
+  Veränderungsraten); der Rest fällt in den **↗ H4-Test** (Hebel-Hypothesen), kein neuer Strang.
 - **Inverse Korrelation als gesicherter „Crowded-Trade"-Befund** — verworfen als
-  *Befund*: bleibt **Hypothese (Gutachter-Label H6)**, erst nach Cluster-Purge
+  *Befund*: bleibt **Hypothese (↗ H6 Hebel-Hypothesen)**, erst nach Cluster-Purge
   prüfbar — NICHT als gesichert führen.
 
 ## 6) CODE-HYGIENE-BACKLOG (Status je Punkt)
