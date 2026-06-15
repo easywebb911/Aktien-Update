@@ -1,5 +1,5 @@
 {
-  "last_run": "2026-06-15T01:38:12.692660+02:00",
+  "last_run": "2026-06-15T07:28:31.169991+02:00",
   "cooldowns": {
     "anomaly_score_jump_XRX": "2026-05-03T18:47:15.315486+02:00",
     "anomaly_uoa_extreme_TDOC": "2026-05-04T13:47:00.365949+02:00",
@@ -71,42 +71,6 @@
     "anomaly_score_jump_FRMM": "2026-06-11T21:46:24.146354+02:00"
   },
   "push_history": [
-    {
-      "ts": "2026-06-06T12:22:48.653348+02:00",
-      "ticker": "PDYN",
-      "kind": "exit_p2",
-      "severity": "trigger",
-      "trigger": "trend_break",
-      "body": "🔻 Exit-Signal PDYN: trend_break crit ({'ma21': 7.2693, 'price': 6.87, 'drop_pct': 5.49})",
-      "success": true,
-      "suppressed": false,
-      "suppress_reason": null,
-      "conviction_score": null
-    },
-    {
-      "ts": "2026-06-06T18:20:25.310641+02:00",
-      "ticker": "IONQ",
-      "kind": "exit_p2",
-      "severity": "warning",
-      "trigger": null,
-      "body": "⚠️ Exit-Warnung IONQ: pressure 67/100",
-      "success": true,
-      "suppressed": false,
-      "suppress_reason": null,
-      "conviction_score": null
-    },
-    {
-      "ts": "2026-06-06T20:39:59.334578+02:00",
-      "ticker": "IONQ",
-      "kind": "exit_p2",
-      "severity": "trigger",
-      "trigger": "profit_lock",
-      "body": "🔻 Exit-Signal IONQ: profit_lock crit ({'pnl_pct': 0.1564, 'peak_pnl_pct': 0.4678, 'drawdown_from_peak': 0.3114, 'score_drop_from_peak': None})",
-      "success": true,
-      "suppressed": false,
-      "suppress_reason": null,
-      "conviction_score": null
-    },
     {
       "ts": "2026-06-06T20:39:59.384945+02:00",
       "ticker": "GEMI",
@@ -1270,6 +1234,42 @@
       "suppressed": false,
       "suppress_reason": null,
       "conviction_score": null
+    },
+    {
+      "ts": "2026-06-15T07:28:31.475790+02:00",
+      "ticker": "IONQ",
+      "kind": "exit_p2",
+      "severity": "trigger",
+      "trigger": "profit_lock",
+      "body": "🔻 Exit-Signal IONQ: profit_lock crit ({'pnl_pct': 0.1782, 'peak_pnl_pct': 0.4678, 'drawdown_from_peak': 0.2896, 'score_drop_from_peak': None})",
+      "success": true,
+      "suppressed": false,
+      "suppress_reason": null,
+      "conviction_score": null
+    },
+    {
+      "ts": "2026-06-15T07:28:31.723283+02:00",
+      "ticker": "RBOHF",
+      "kind": "exit_p2",
+      "severity": "trigger",
+      "trigger": "trend_break",
+      "body": "🔻 Exit-Signal RBOHF: trend_break crit ({'ma21': 0.2356, 'price': 0.221, 'drop_pct': 6.2})",
+      "success": true,
+      "suppressed": false,
+      "suppress_reason": null,
+      "conviction_score": null
+    },
+    {
+      "ts": "2026-06-15T07:28:31.969001+02:00",
+      "ticker": "DBI",
+      "kind": "exit_p2",
+      "severity": "trigger",
+      "trigger": "trend_break",
+      "body": "🔻 Exit-Signal DBI: trend_break crit ({'ma21': 7.4899, 'price': 6.88, 'drop_pct': 8.14})",
+      "success": true,
+      "suppressed": false,
+      "suppress_reason": null,
+      "conviction_score": null
     }
   ],
   "prev_conviction_scores": {
@@ -1310,12 +1310,12 @@
     "exitp2_trigger_CRDF_trend_break": "2026-06-01T19:24:04.374205+02:00",
     "exitp2_trigger_AMC_overheated": "2026-06-01T21:15:58.491304+02:00",
     "exitp2_trigger_AI_catalyst": "2026-06-03T06:58:18.642141+02:00",
-    "exitp2_trigger_RBOHF_trend_break": "2026-06-14T03:37:40.014630+02:00",
+    "exitp2_trigger_RBOHF_trend_break": "2026-06-15T07:28:31.723307+02:00",
     "exitp2_trigger_AI_trend_break": "2026-06-10T12:35:24.302392+02:00",
-    "exitp2_trigger_IONQ_profit_lock": "2026-06-14T03:37:39.953471+02:00",
+    "exitp2_trigger_IONQ_profit_lock": "2026-06-15T07:28:31.475837+02:00",
     "exitp2_trigger_GIII_catalyst": "2026-06-05T23:13:52.175687+02:00",
     "exitp2_trigger_DBI_catalyst": "2026-06-09T23:13:25.072861+02:00",
-    "exitp2_trigger_DBI_trend_break": "2026-06-14T03:37:40.074785+02:00",
+    "exitp2_trigger_DBI_trend_break": "2026-06-15T07:28:31.969021+02:00",
     "exitp2_trigger_GIII_trend_break": "2026-06-10T12:35:24.467841+02:00",
     "exitp2_trigger_LUCK_trend_break": "2026-06-10T12:35:24.615216+02:00"
   }
