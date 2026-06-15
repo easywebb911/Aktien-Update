@@ -1,11 +1,11 @@
 {
-  "updated": "2026-06-15T07:28:29.674129+02:00",
+  "updated": "2026-06-15T13:21:49.144275+02:00",
   "run_info": {
     "tickers_checked": 15,
     "signals_active": 4,
     "alerts_sent": 0,
-    "elapsed_s": 11.5,
-    "market_phase": "Geschlossen"
+    "elapsed_s": 14.5,
+    "market_phase": "Pre-Market"
   },
   "signals": {
     "AI": {
@@ -27,7 +27,7 @@
       "uoa_drivers": [
         "UOA Call/Put 63.2×"
       ],
-      "uoa_atm_ratio": null,
+      "uoa_atm_ratio": 1.8497569307581132,
       "uoa_cp_ratio": 63.191103789126856
     },
     "AKTS": {
@@ -51,9 +51,9 @@
       "uoa_cp_ratio": null
     },
     "AMC": {
-      "score": 20,
+      "score": 35,
       "confidence": 33,
-      "drivers": "Spanne 9.8% + UOA Call/Put 9.4×",
+      "drivers": "Spanne 9.8% + News: breakout + UOA Call/Put 9.4×",
       "price": 2.34,
       "chg_pct": -0.0,
       "rvol_4d": 1.15,
@@ -64,7 +64,7 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 0,
+      "active_triggers": 1,
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 9.4×"
@@ -73,9 +73,9 @@
       "uoa_cp_ratio": 9.359831657703998
     },
     "DBI": {
-      "score": 35,
+      "score": 28,
       "confidence": 70,
-      "drivers": "Spanne 5.2% + News: earnings beat + SEC Form 4",
+      "drivers": "Spanne 5.2% + News-KI 8/30: Massive stock decline despite earnings beat suggests panic selling and potential short covering opportunity, but lack of + SEC Form 4",
       "price": 6.88,
       "chg_pct": 0.0,
       "rvol_4d": 0.58,
@@ -86,16 +86,16 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 1,
+      "active_triggers": 0,
       "uoa_score": 0,
       "uoa_drivers": [],
-      "uoa_atm_ratio": null,
+      "uoa_atm_ratio": 0.017592592592592594,
       "uoa_cp_ratio": 0.6323529411764706
     },
     "GIII": {
-      "score": 40,
-      "confidence": 33,
-      "drivers": "News: earnings beat + FINRA Short-Vol 100%",
+      "score": 25,
+      "confidence": 17,
+      "drivers": "FINRA Short-Vol 100%",
       "price": 35.28,
       "chg_pct": -0.0,
       "rvol_4d": 0.5,
@@ -106,16 +106,16 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 1,
+      "active_triggers": 0,
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": null,
       "uoa_cp_ratio": 0.084070796460177
     },
     "IONQ": {
-      "score": 28,
-      "confidence": 70,
-      "drivers": "Spanne 7.0% + News-KI 8/30: Positive sentiment on quantum sector growth, but no indicators of high short interest, squeeze catalysts, or forced cove + SEC Form 4",
+      "score": 20,
+      "confidence": 33,
+      "drivers": "Spanne 7.0% + SEC Form 4",
       "price": 57.85,
       "chg_pct": -0.0,
       "rvol_4d": 0.88,
@@ -129,7 +129,7 @@
       "active_triggers": 0,
       "uoa_score": 0,
       "uoa_drivers": [],
-      "uoa_atm_ratio": null,
+      "uoa_atm_ratio": 0.7725505830758497,
       "uoa_cp_ratio": 1.6955758426966292
     },
     "JACK": {
@@ -171,7 +171,7 @@
       "uoa_drivers": [
         "UOA Call/Put 2.8×"
       ],
-      "uoa_atm_ratio": null,
+      "uoa_atm_ratio": 0.01048951048951049,
       "uoa_cp_ratio": 2.75
     },
     "LUCK": {
@@ -235,7 +235,7 @@
       "uoa_drivers": [
         "UOA Call/Put 4.4×"
       ],
-      "uoa_atm_ratio": null,
+      "uoa_atm_ratio": 0.05215419501133787,
       "uoa_cp_ratio": 4.434782608695652
     },
     "RBOHF": {
@@ -259,9 +259,9 @@
       "uoa_cp_ratio": null
     },
     "TYRA": {
-      "score": 43,
-      "confidence": 70,
-      "drivers": "Spanne 10.0% + News-KI 8/30: Negative sentiment with clinical trial concerns and weak investor outlook make this an unfavorable short-squeeze candida + FINRA Short-Vol 88%",
+      "score": 35,
+      "confidence": 33,
+      "drivers": "Spanne 10.0% + FINRA Short-Vol 88%",
       "price": 26.99,
       "chg_pct": -0.0,
       "rvol_4d": 0.89,
@@ -301,9 +301,9 @@
       "uoa_cp_ratio": 11.705882352941176
     },
     "ZBIO": {
-      "score": 33,
-      "confidence": 70,
-      "drivers": "Volumen 2.8× + Spanne 13.1% + News-KI 8/30: Positive clinical data and publications support fundamentals but lack short squeeze catalysts like high short interest, ",
+      "score": 25,
+      "confidence": 33,
+      "drivers": "Volumen 2.8× + Spanne 13.1%",
       "price": 19.8,
       "chg_pct": -0.0,
       "rvol_4d": 2.82,
@@ -317,7 +317,7 @@
       "active_triggers": 1,
       "uoa_score": 0,
       "uoa_drivers": [],
-      "uoa_atm_ratio": null,
+      "uoa_atm_ratio": 0.01951219512195122,
       "uoa_cp_ratio": 0.25471698113207547
     }
   }
