@@ -1,21 +1,3 @@
-{"run_ts": "2026-05-16T12:59:03Z", "run_phase": "postclose", "schema_v": 1, "state_fails": [{"id": "S4", "severity": "warn", "detail": "backtest_history wuchs in postclose-Run NICHT"}], "provider_fails": []}
-{"run_ts": "2026-05-16T13:00:28Z", "run_phase": "ki_agent_tick", "schema_v": 1, "state_fails": [], "provider_fails": []}
-{"run_ts": "2026-05-16T13:39:06Z", "run_phase": "premarket", "schema_v": 1, "state_fails": [], "provider_fails": []}
-{"run_ts": "2026-05-16T13:40:42Z", "run_phase": "ki_agent_tick", "schema_v": 1, "state_fails": [], "provider_fails": []}
-{"run_ts": "2026-05-16T13:56:53Z", "run_phase": "premarket", "schema_v": 1, "state_fails": [], "provider_fails": []}
-{"run_ts": "2026-05-16T13:58:22Z", "run_phase": "ki_agent_tick", "schema_v": 1, "state_fails": [], "provider_fails": []}
-{"run_ts": "2026-05-16T14:01:05Z", "run_phase": "ki_agent_tick", "schema_v": 1, "state_fails": [], "provider_fails": []}
-{"run_ts": "2026-05-16T15:17:22Z", "run_phase": "ki_agent_tick", "schema_v": 1, "state_fails": [], "provider_fails": []}
-{"run_ts": "2026-05-16T16:06:57Z", "run_phase": "ki_agent_tick", "schema_v": 1, "state_fails": [], "provider_fails": []}
-{"run_ts": "2026-05-16T16:13:45Z", "run_phase": "ki_agent_tick", "schema_v": 1, "state_fails": [], "provider_fails": []}
-{"run_ts": "2026-05-16T16:48:49Z", "run_phase": "premarket", "schema_v": 1, "state_fails": [], "provider_fails": []}
-{"run_ts": "2026-05-16T16:50:19Z", "run_phase": "ki_agent_tick", "schema_v": 1, "state_fails": [], "provider_fails": []}
-{"run_ts": "2026-05-16T17:16:49Z", "run_phase": "ki_agent_tick", "schema_v": 1, "state_fails": [], "provider_fails": []}
-{"run_ts": "2026-05-16T17:21:28Z", "run_phase": "premarket", "schema_v": 1, "state_fails": [], "provider_fails": []}
-{"run_ts": "2026-05-16T17:22:44Z", "run_phase": "ki_agent_tick", "schema_v": 1, "state_fails": [], "provider_fails": []}
-{"run_ts": "2026-05-16T17:23:40Z", "run_phase": "ki_agent_tick", "schema_v": 1, "state_fails": [], "provider_fails": []}
-{"run_ts": "2026-05-16T17:34:34Z", "run_phase": "premarket", "schema_v": 1, "state_fails": [], "provider_fails": []}
-{"run_ts": "2026-05-16T17:36:01Z", "run_phase": "ki_agent_tick", "schema_v": 1, "state_fails": [], "provider_fails": []}
 {"run_ts": "2026-05-16T18:09:49Z", "run_phase": "ki_agent_tick", "schema_v": 1, "state_fails": [], "provider_fails": []}
 {"run_ts": "2026-05-16T19:08:20Z", "run_phase": "premarket", "schema_v": 1, "state_fails": [], "provider_fails": []}
 {"run_ts": "2026-05-16T19:09:46Z", "run_phase": "ki_agent_tick", "schema_v": 1, "state_fails": [], "provider_fails": []}
@@ -619,3 +601,4 @@
 {"run_ts": "2026-06-15T12:43:51Z", "run_phase": "ki_agent_tick", "schema_v": 1, "state_fails": [{"id": "S8", "severity": "warn", "detail": "kein erfolgreicher Digest-Push seit 26.2 h (Schwelle 26 h) — silent ntfy-Fail oder Cron-Drop"}], "provider_fails": []}
 {"run_ts": "2026-06-15T12:45:01Z", "run_phase": "premarket", "schema_v": 1, "state_fails": [{"id": "S8", "severity": "warn", "detail": "kein erfolgreicher Digest-Push seit 26.2 h (Schwelle 26 h) — silent ntfy-Fail oder Cron-Drop"}], "provider_fails": []}
 {"run_ts": "2026-06-15T12:45:51Z", "run_phase": "ki_agent_tick", "schema_v": 1, "state_fails": [{"id": "S8", "severity": "warn", "detail": "kein erfolgreicher Digest-Push seit 26.2 h (Schwelle 26 h) — silent ntfy-Fail oder Cron-Drop"}], "provider_fails": []}
+{"run_ts": "2026-06-15T18:03:17Z", "run_phase": "ki_agent_tick", "schema_v": 1, "state_fails": [], "provider_fails": []}
