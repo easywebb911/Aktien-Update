@@ -245,9 +245,13 @@ Wochenend-Digest-Selbstheilung bestätigt — entfallen.)*
 - **Annahmen-Inventur (Runde 1) abgeschlossen:** #1 Gist-Body (#322) ✅, #2
   Screener-Pool (#325) ✅, #3 FINRA/DTC (Wächter optional, s. §4), #4 RVOL-Phasen
   = γ-2 (blockiert).
-- γ-2 RVOL-Normalisierung (★, BLOCKIERT): premarket-Daten dünn · Cron-Drift #295 ·
-  `rel_volume_raw` ungebaut · Skalierer ungestützt. Bei Aktivierung beide Soll in
-  `CONSISTENCY_EXPECTED_STATE` paaren (sonst S13-Drift).
+- γ-2 RVOL-Normalisierung (★, BLOCKIERT): **4 Vorbedingungen offen** — premarket-
+  Daten dünn · Cron-Drift #295 · `rel_volume_raw` ungebaut · Skalierer ungestützt.
+  **KRITISCH bei Aktivierung (sicherheitskritisch, wortgetreu):** in
+  `CONSISTENCY_EXPECTED_STATE` BEIDE Soll **paaren** — `EXPECTED_RVOL_NORMALIZATION→True`
+  **UND** `SCORE_NORM_VERSION→2`; wird nur EINES geflippt → **S13-Drift**.
+  **Reihenfolge:** Daten → Sweep → `rel_volume_raw` → Schwellen → Flip. #298
+  überwacht `RVOL_NORM_ENABLED` / `SCORE_NORM_VERSION` / `EARLINESS_FORMULA_VERSION`.
 - Externer Dead-Man-Switch (Cloudflare-Worker) gegen Cron-Drops (~20 %).
 - Borrow-Fee + Utilization in score() (bei reifer CTB-Coverage).
 
@@ -462,6 +466,13 @@ jeweilige Auslöser greift.
   nach Entry-Stabilisierung. (Datierter Schwellen-Schritt nach dem ~23.06.-Sample:
   s. §4 „FINRA-History-Wächter" — dieser §6-Punkt ist die Backlog-Status-Notiz der
   Überwachungs-Lücke selbst.)
+- **Wächter-Block GESCHLOSSEN (erledigt) + Rest:** **premarket-Wächter = S11 live**
+  (`run_phase==tsp=='premarket'`, 5-Werktage-Schwelle). **Borrow = Tier-2 registriert**,
+  `aggregate_provider_fails` greift (3-in-Folge < 50 % → Digest), transiente Dips
+  sind false-fire-sicher. **OFFEN/niedrig:** ein expliziter **borrow-Wächter „S15"
+  (vorgeschlagen, S15 noch unbelegt — S1–S14 existieren)** NUR, falls je ein echtes
+  Ausfall-Sample beobachtet wird — sonst wäre die Schwelle geraten (Miss-Risiko bei
+  langsamem Decay 60–70 %). Aufgreifen nur evidenzbasiert, kein Druck.
 - **or-0-Defaults Persist-Fix** · **finviz Flag-aus + α** · **Borrow-Naming
   (`IBKR_*`→`IBORROWDESK_*`)** · **v1/v2→Jinja** · **Cockpit Stage 3 (.sb-Reste)**
   → alle OFFEN, niedrig/vertagt.
@@ -553,11 +564,15 @@ jeweilige Auslöser greift.
   (kein Neutral-50, Gleichgewichtung, 0 Komponenten→None); anomaly-None = **Option
   (c) run-level** (push-Map gefüllt+None→echte 0; Map leer→drop;
   `push_history_available` persistiert). Schema **v4 additiv** (S10 filtert ==4),
-  Tripwire #329 scharf.
-- **★ CI Allowlist-Runner + Drift-Guard (#335):** `run_ci_mock_tests.py` fährt eine
-  STATISCHE Allowlist (**79**), kein Laufzeit-Glob für die Auswahl; Drift-Guard
-  (glob nur dort) failt bei unklassifiziertem Test. Advisory bleibt
-  (`permissions: contents: read`). Minimal-Install **jinja2+pyyaml** (BEWUSST KEIN
+  Tripwire #329 scharf. **Status: Modul komplett** — Berechnung + Persistenz
+  (`entry_score`/`entry_components`/`entry_n_components`/`push_history_available`)
+  + CI-gate-bar + Anzeige (Cockpit-Caption #362, s. oben) — durchgängig
+  **Shadow/unvalidiert** bis 30.06.
+- **★ CI Allowlist-Runner + Drift-Guard (#335, live):** `run_ci_mock_tests.py` fährt
+  eine STATISCHE Allowlist (**80** seit #359), kein Laufzeit-Glob für die Auswahl;
+  **Drift-Guard:** jeder neue `mock_test_*` MUSS in ALLOWLIST ODER EXCLUDED stehen,
+  sonst failt der Runner. Advisory — **`permissions: contents: read` NIE aufweiten**
+  (sonst blockt es den Self-Merge). Minimal-Install **jinja2+pyyaml** (BEWUSST KEIN
   requests/pandas_ta — Sandbox≠CI-Lehre, §8). EXCLUDED=10 (2 B + 5 yfinance-ENV +
   3 requests-TEMP).
 - **★ Screener-Pool-Floor (#325):** `yahoo_screener` Tier-1-Inhalts-Check auf
