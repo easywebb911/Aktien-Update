@@ -1,10 +1,10 @@
 {
-  "updated": "2026-06-15T14:43:49.886403+02:00",
+  "updated": "2026-06-15T14:45:49.287130+02:00",
   "run_info": {
     "tickers_checked": 15,
     "signals_active": 4,
     "alerts_sent": 0,
-    "elapsed_s": 22.1,
+    "elapsed_s": 14.5,
     "market_phase": "Pre-Market"
   },
   "signals": {
@@ -51,13 +51,13 @@
       "uoa_cp_ratio": null
     },
     "AMC": {
-      "score": 20,
-      "confidence": 33,
-      "drivers": "Spanne 9.8% + UOA Call/Put 9.4×",
+      "score": 10,
+      "confidence": 17,
+      "drivers": "UOA Call/Put 9.4×",
       "price": 2.34,
-      "chg_pct": -0.0,
-      "rvol_4d": 1.15,
-      "rvol_20d": 1.37,
+      "chg_pct": 0.0,
+      "rvol_4d": 0.0,
+      "rvol_20d": null,
       "earnings": null,
       "fda_date": null,
       "upcoming_event": null,
@@ -113,9 +113,9 @@
       "uoa_cp_ratio": 0.084070796460177
     },
     "IONQ": {
-      "score": 20,
-      "confidence": 33,
-      "drivers": "Spanne 7.0% + SEC Form 4",
+      "score": 32,
+      "confidence": 70,
+      "drivers": "Spanne 7.0% + News-KI 12/30: Positive sentiment on quantum sector growth, but no short squeeze indicators like high short interest, borrow scarcity,  + SEC Form 4",
       "price": 57.85,
       "chg_pct": -0.0,
       "rvol_4d": 0.88,
@@ -126,7 +126,7 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 0,
+      "active_triggers": 1,
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": 0.35107346679952894,
@@ -153,9 +153,9 @@
       "uoa_cp_ratio": 0.3553921568627451
     },
     "KPTI": {
-      "score": 52,
+      "score": 35,
       "confidence": 70,
-      "drivers": "Volumen 2.1× + Spanne 13.0% + News-KI 12/30: Clinical trial data release is positive for stock fundamentals but lacks short-squeeze catalysts like high short interes + UOA Call/Put 2.8×",
+      "drivers": "Volumen 2.1× + Spanne 13.0% + UOA Call/Put 2.8×",
       "price": 9.5,
       "chg_pct": 0.0,
       "rvol_4d": 2.11,
@@ -165,8 +165,8 @@
       "upcoming_event": null,
       "insider_buy": false,
       "stocktwits": null,
-      "combo_mult": 1.1,
-      "active_triggers": 2,
+      "combo_mult": 1.0,
+      "active_triggers": 1,
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 2.8×"
@@ -177,7 +177,7 @@
     "LUCK": {
       "score": 33,
       "confidence": 33,
-      "drivers": "News-KI 8/30: Negative news (stock plunge) shows weak fundamentals and potential selling pressure, making short squeeze unlikely despi + FINRA Short-Vol 80%",
+      "drivers": "News-KI 8/30: Negative catalyst with executive promotion doesn't indicate short-squeeze potential; plummeting shares suggest weakness  + FINRA Short-Vol 80%",
       "price": 8.76,
       "chg_pct": 0.0,
       "rvol_4d": 0.85,
@@ -217,9 +217,9 @@
       "uoa_cp_ratio": 13.483870967741936
     },
     "PDYN": {
-      "score": 32,
+      "score": 35,
       "confidence": 33,
-      "drivers": "Spanne 9.2% + News-KI 12/30: Positive business developments and strategic partnerships, but lacking short-squeeze catalysts like high short interest, + UOA Call/Put 4.4×",
+      "drivers": "Spanne 9.2% + News: partnership + UOA Call/Put 4.4×",
       "price": 6.41,
       "chg_pct": -0.0,
       "rvol_4d": 1.04,
@@ -279,9 +279,9 @@
       "uoa_cp_ratio": 0.1
     },
     "VYX": {
-      "score": 43,
+      "score": 50,
       "confidence": 70,
-      "drivers": "Volumen 1.9× + Spanne 12.9% + News-KI 8/30: Positive business developments and partnerships, but no indicators of high short interest, low float, or catalysts typic + UOA Call/Put 11.7×",
+      "drivers": "Volumen 1.9× + Spanne 12.9% + News: earnings beat + UOA Call/Put 11.7×",
       "price": 7.85,
       "chg_pct": -0.0,
       "rvol_4d": 1.85,
@@ -292,7 +292,7 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 0,
+      "active_triggers": 1,
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 11.7×"
