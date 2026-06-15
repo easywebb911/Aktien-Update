@@ -306,6 +306,12 @@ n=215). Daraus die sechs Hypothesen:
   Cut-Loss/Let-Run-Regel, **netto nach Kosten** — NICHT Anteil ≥+5 %. Fester
   Auswertungsbestandteil. Konvexe Lotterie-Auszahlung sichtbar (<50-Bucket Median
   10T −3,7 % ABER Ø +7,6 %, Range bis +978 %).
+  **Schärfung (3. Gutachten 15.06.):** zusätzlich zu Expectancy **SPIKE-TARGETS**
+  testen — Anteil mit +20 %/+50 %/+100 % Max-Return je erreicht (ja/nein) +
+  Time-to-Peak. Begründung: bei konvexer Auszahlung misst Stichtags-Return (10T)
+  die Spitze weg; „Wahrscheinlichkeit eines großen Spikes" erfasst die Konvexität
+  direkt. **Unter dieselbe Multiple-Testing-Korrektur stellen wie die übrigen
+  Targets** (mehr Targets = mehr Tests, sonst unterläuft es die Korrektur).
 - **H2 — Schwanz-Anomalie (Falsifizierungstest):** Hält der fette rechte Schwanz im
   <50-Bucket **nach Cluster-Purge UND nach Entfernen des Top-1-Ausreißers**? JA →
   ernst nehmen (Score rankt Konvexität falsch). NEIN → Artefakt (n=131).
