@@ -309,6 +309,9 @@ n=215). Daraus die sechs Hypothesen:
 - **H2 — Schwanz-Anomalie (Falsifizierungstest):** Hält der fette rechte Schwanz im
   <50-Bucket **nach Cluster-Purge UND nach Entfernen des Top-1-Ausreißers**? JA →
   ernst nehmen (Score rankt Konvexität falsch). NEIN → Artefakt (n=131).
+  **Schärfung (2. Gutachten 15.06.):** nicht nur Top-1 entfernen, sondern auch
+  **Top-5** — wenn die Edge nach Entfernen der fünf größten Gewinner verschwindet,
+  existiert praktisch keine robuste Handelbarkeit (Lotterie-Profil bei n≈250–450).
 - **H3 — Exit als eigentliche Edge:** Bei schwachem Entry trägt Exit-Disziplin die
   Rendite. Verknüpft mit der Exit-Mechanik-Spec (Begutachtung C, ~Ende Juli).
 - **H4 — Score als Universums-Filter, nicht Prädiktor:** SI-Trend stützt (seitwärts
