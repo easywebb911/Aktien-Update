@@ -287,6 +287,56 @@ Scores, dessen Gesamt-Edge ohnehin gemessen wird; kein eigener Entscheidungs-Bez
 entscheiden ob Conviction einen eigenen Shadow verdient — mit den Erkenntnissen
 aus Entry + Exit + KI/monster. Erst sammeln lassen, was läuft.
 
+### Externe Begutachtung 15.06. — zu prüfende Vorschläge (NICHT Erkenntnis)
+**Status:** Vorschläge eines externen Gutachters zum Projektdossier — **dokumentiert,
+nicht validiert.** Alle unterliegen der **Vorleistungs-Logik: erst Edge-Validierung,
+dann Bau.** Die „H#"-Labels sind die **Nummerierung des Gutachters** (kein bestehendes
+Handover-Schema). Kein Punkt ist „umzusetzen", bevor der jeweilige Auslöser greift.
+
+**A) Auswertungs-Methode (zur 30.06.-Hauptauswertung, ergänzend zur Methoden-Härtung):**
+- **Bootstrapping (zu 30.06.):** Konfidenzintervalle für den Erwartungswert via
+  Ziehen-mit-Zurücklegen aus den Live-Daten (z. B. 10.000 synthetische Verläufe).
+  Begründung: bei n≈250–450 + asymmetrischer Verteilung ist ein Punkt-Erwartungswert
+  ohne KI wertlos. **Ergänzt** die bestehende Multiple-Testing-/Doppel-Lauf-Härtung
+  (§3/§4), ersetzt sie nicht.
+- **Fraktionales Kelly (NACH positiver Expectancy):** falls Expectancy nach
+  Cluster-/Reife-Bereinigung positiv → Positionsgrößen-Konsequenz gegen Ruin-Risiko
+  bei langen Verlustserien (konvexe Auszahlung = hohe Drawdown-Wahrscheinlichkeit).
+  **Risk-Management-Schicht, KEIN Signal** — greift erst, wenn überhaupt ein Edge
+  belegt ist.
+
+**B) Auffanglinie-Reframe (positiv, deckt sich mit Nordstern):**
+- **„Attention-Router":** Falls die 30.06.-Auswertung **kein** systematisches Alpha
+  zeigt → das System ist trotzdem ein hochpräziser **Scanner**, der täglich die
+  wenigen Kandidaten präsentiert, bei denen der Mensch manuell nach Katalysatoren
+  sucht. Das **IST eine legitime Edge** (Effizienzgewinn), nicht nur Fallback —
+  macht die Auffanglinie positiv statt resignativ (Nordstern: Mensch validiert
+  Bedeutung). Reine Deutungs-/Haltungs-Notiz, kein Bau.
+
+**C) Backlog-Vorschläge (NACH Validierung, je eigene Diagnose, kein Druck):**
+- **Synthetische Utilization (NACH Validierung):** Composite aus iBorrowDesk —
+  Fee-Veränderungsrate (z. B. `Fee_Delta_3d`) × Erschöpfungsrate verfügbarer Aktien
+  (× Kehrwert `Shares_Available`). Näher an echter Utilization als FINRA-Flow.
+  **BESTÄTIGT + konkretisiert** den bestehenden §5-Backlog-Punkt „Borrow-Fee +
+  Utilization in score()" (keine neue Idee, sondern dessen Ausgestaltung). Als neue
+  Score-Komponente **edge-validierungspflichtig** (nicht blind einbauen).
+- **Katalysator-Gating (H5, NACH Validierung):** Earnings-/FDA-Kalender via Finnhub
+  (Key vorhanden) oder Benzinga Free. Leitidee: Setup-Score 60 **mit** Katalysator >
+  Score 85 im luftleeren Raum. **WICHTIG:** nur das **Kalender-Gating** automatisieren
+  — die Katalysator-**Bewertung** bleibt diskretionär/menschlich (Nordstern).
+- **Exit-Mechanik-Spec (H3, Startpunkt ~Ende Juli):** asymmetrische Exit-Logik im
+  exit_shadow testen — **Time-Stop** (Exit wenn nach 3 Handelstagen kein Momentum)
+  + großzügiger **Trailing-Stop** für Gewinner. Konkreter Startpunkt für die
+  Exit-Shadow-Auswertung ~Ende Juli (s. §4 Exit-Shadow-Auswertung).
+
+**D) Bewusst NICHT aufgenommen (abgelehnt mit Begründung):**
+- **„Rate-of-Change statt Absolutwerte" als neue Idee** — verworfen: **teils bereits
+  umgesetzt** (`score_delta_t1`, `rvol_buildup_5d`, `si_trend_5d_slope` SIND
+  Veränderungsraten); der Rest fällt in den bestehenden H4-Test, kein neuer Strang.
+- **Inverse Korrelation als gesicherter „Crowded-Trade"-Befund** — verworfen als
+  *Befund*: bleibt **Hypothese (Gutachter-Label H6)**, erst nach Cluster-Purge
+  prüfbar — NICHT als gesichert führen.
+
 ## 6) CODE-HYGIENE-BACKLOG (Status je Punkt)
 - **★ Vintage-Guard M1 ERLEDIGT (#346, 10.06.) — vormals „Option A / Pre-Open-Re-
   Run-Guard" in diesem Backlog, jetzt LIVE (Anker §7).** Restkanten:
