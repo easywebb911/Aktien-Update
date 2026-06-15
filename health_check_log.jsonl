@@ -617,3 +617,4 @@
 {"run_ts": "2026-06-15T11:20:09Z", "run_phase": "postclose", "schema_v": 1, "state_fails": [], "provider_fails": []}
 {"run_ts": "2026-06-15T11:21:51Z", "run_phase": "ki_agent_tick", "schema_v": 1, "state_fails": [], "provider_fails": []}
 {"run_ts": "2026-06-15T12:43:51Z", "run_phase": "ki_agent_tick", "schema_v": 1, "state_fails": [{"id": "S8", "severity": "warn", "detail": "kein erfolgreicher Digest-Push seit 26.2 h (Schwelle 26 h) — silent ntfy-Fail oder Cron-Drop"}], "provider_fails": []}
+{"run_ts": "2026-06-15T12:45:01Z", "run_phase": "premarket", "schema_v": 1, "state_fails": [{"id": "S8", "severity": "warn", "detail": "kein erfolgreicher Digest-Push seit 26.2 h (Schwelle 26 h) — silent ntfy-Fail oder Cron-Drop"}], "provider_fails": []}
