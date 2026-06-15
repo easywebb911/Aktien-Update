@@ -188,6 +188,12 @@ Wochenend-Digest-Selbstheilung bestätigt — entfallen.)*
     `ki_signal_score` seit #353) · **Entry-Shadow-Auswertung** (treffen dünne
     Scores schlechter via `entry_n_components`? Ausfall-Tage via
     `push_history_available=False` filtern) → DANN Push-/Live-Entscheidung.
+    **Präzisierung Zielgröße (Gutachten 15.06.):** Entry-Score primär gegen
+    **BEWEGUNGS-GESCHWINDIGKEIT** validieren — 1T/2T-Max-Return + Zeit-bis-+10 % —
+    **NICHT** gegen 10-Tage-Return. Begründung: misst der Entry-Score kurzfristige
+    Beschleunigung, würde ein Test gegen 10D-Return ihn systematisch benachteiligen
+    (falsche Falsifizierung). Keine neue Komplexität, nur die korrekte Zielgröße
+    eines ohnehin geplanten Tests (kohärent neben dem `entry_n_components`-Check).
   - **Entry-Cap-Trockenlauf (13.06., read-only, NICHT gebaut — Methode validiert):**
     Rohverteilung + Cap-/Clamp-Anschlag der 5 echten `compute_entry_score`-Inputs
     gegen `backtest_history.json` (Twins genutzt: `score_delta_t1_raw`,
