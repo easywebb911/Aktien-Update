@@ -65,24 +65,12 @@
     "anomaly_monster_backup_LUCK": "2026-06-09T20:21:42.190270+02:00",
     "anomaly_conviction_high_LUCK": "2026-06-09T12:05:35.406177+02:00",
     "earnings_immediate_CBRL_09.06.2026": "2026-06-09T23:13:23.438660+02:00",
-    "exit_DBI": "2026-06-12T12:41:32.110722+02:00",
+    "exit_DBI": "2026-06-15T21:47:22.450772+02:00",
     "anomaly_conviction_high_OXM": "2026-06-10T21:06:04.087139+02:00",
     "earnings_immediate_OXM_10.06.2026": "2026-06-10T22:46:14.756820+02:00",
     "anomaly_score_jump_FRMM": "2026-06-11T21:46:24.146354+02:00"
   },
   "push_history": [
-    {
-      "ts": "2026-06-07T06:56:54.412548+02:00",
-      "ticker": "IONQ",
-      "kind": "exit_p2",
-      "severity": "warning",
-      "trigger": null,
-      "body": "⚠️ Exit-Warnung IONQ: pressure 67/100",
-      "success": true,
-      "suppressed": false,
-      "suppress_reason": null,
-      "conviction_score": null
-    },
     {
       "ts": "2026-06-07T06:56:54.627084+02:00",
       "ticker": "RBOHF",
@@ -1266,6 +1254,18 @@
       "severity": "warning",
       "trigger": null,
       "body": "⚠️ Exit-Warnung IONQ: pressure 62/100",
+      "success": true,
+      "suppressed": false,
+      "suppress_reason": null,
+      "conviction_score": null
+    },
+    {
+      "ts": "2026-06-15T21:47:22.450749+02:00",
+      "ticker": "DBI",
+      "kind": "exit_p1",
+      "severity": "default",
+      "trigger": "exit_alert",
+      "body": "DBI 📉 Exit 65 | -8% | Trailing-Stop −14.2% vom Hoch",
       "success": true,
       "suppressed": false,
       "suppress_reason": null,
