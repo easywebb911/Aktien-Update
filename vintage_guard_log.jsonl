@@ -1,2 +1,3 @@
 {"ts_utc": "2026-06-11T04:09:18Z", "report_date": "11.06.2026", "bar_date": "2026-06-11", "now_et": "2026-06-11T00:09:18.480011-04:00", "now_utc": "2026-06-11T04:09:18Z", "reason": "pre_open", "ticker_count": 10, "schema_v": 1}
 {"ts_utc": "2026-06-11T05:53:08Z", "report_date": "11.06.2026", "bar_date": "2026-06-11", "now_et": "2026-06-11T01:53:08.182248-04:00", "now_utc": "2026-06-11T05:53:08Z", "reason": "pre_open", "ticker_count": 10, "schema_v": 1}
+{"ts_utc": "2026-06-15T11:19:48Z", "report_date": "15.06.2026", "bar_date": "2026-06-15", "now_et": "2026-06-15T07:19:48.391464-04:00", "now_utc": "2026-06-15T11:19:48Z", "reason": "pre_open", "ticker_count": 10, "schema_v": 1}
