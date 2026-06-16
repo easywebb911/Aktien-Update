@@ -1,10 +1,10 @@
 {
-  "updated": "2026-06-16T13:34:57.596339+02:00",
+  "updated": "2026-06-16T13:36:53.921797+02:00",
   "run_info": {
-    "tickers_checked": 17,
+    "tickers_checked": 16,
     "signals_active": 4,
     "alerts_sent": 0,
-    "elapsed_s": 13.5,
+    "elapsed_s": 10.6,
     "market_phase": "Pre-Market"
   },
   "signals": {
@@ -31,9 +31,9 @@
       "uoa_cp_ratio": 5.26563598032326
     },
     "AMC": {
-      "score": 28,
+      "score": 20,
       "confidence": 33,
-      "drivers": "Spanne 8.8% + News-KI 8/30: Massive equity dilution ($150M offering) weakens short-squeeze potential by increasing share count and providing cash ru + UOA Call/Put 8.1×",
+      "drivers": "Spanne 8.8% + UOA Call/Put 8.1×",
       "price": 2.28,
       "chg_pct": -0.0,
       "rvol_4d": 0.85,
@@ -243,7 +243,7 @@
     "PRFX": {
       "score": 88,
       "confidence": 70,
-      "drivers": "Volumen 189.1× + 🚀 Massives Volumen 189.1×+ + Spanne 189.7% + News: breakout, short interest",
+      "drivers": "Volumen 189.1× + 🚀 Massives Volumen 189.1×+ + Spanne 189.7% + News: short interest, breakout",
       "price": 2.49,
       "chg_pct": 0.0,
       "rvol_4d": 189.05,
@@ -261,9 +261,9 @@
       "uoa_cp_ratio": null
     },
     "RBOHF": {
-      "score": 18,
-      "confidence": 33,
-      "drivers": "Spanne 51.0% + News-KI 8/30: Positive corporate developments and partnerships, but no evidence of high short interest, low float, or catalysts typica",
+      "score": 10,
+      "confidence": 17,
+      "drivers": "Spanne 51.0%",
       "price": 0.19,
       "chg_pct": -1.53,
       "rvol_4d": 1.37,
@@ -305,7 +305,7 @@
     "TYRA": {
       "score": 18,
       "confidence": 33,
-      "drivers": "Spanne 7.3% + News-KI 8/30: Negative sentiment with clinical trial concerns, weak investor positioning, and peer perform rating indicate downward pr",
+      "drivers": "Spanne 7.3% + News-KI 8/30: Negative sentiment with clinical trial concerns, weak investor positioning, and neutral analyst rating make this a poor ",
       "price": 28.55,
       "chg_pct": -0.0,
       "rvol_4d": 0.9,
@@ -321,28 +321,6 @@
       "uoa_drivers": [],
       "uoa_atm_ratio": null,
       "uoa_cp_ratio": 0.1
-    },
-    "VIVO": {
-      "score": 52,
-      "confidence": 70,
-      "drivers": "Volumen 2.0× + Spanne 17.5% + News-KI 12/30: Positive business development news but lacks short-squeeze indicators like high short interest, stock borrowing difficul + UOA Call/Put 18.4×",
-      "price": 5.24,
-      "chg_pct": -0.0,
-      "rvol_4d": 2.05,
-      "rvol_20d": 1.26,
-      "earnings": null,
-      "fda_date": null,
-      "upcoming_event": null,
-      "insider_buy": false,
-      "stocktwits": null,
-      "combo_mult": 1.1,
-      "active_triggers": 2,
-      "uoa_score": 10,
-      "uoa_drivers": [
-        "UOA Call/Put 18.4×"
-      ],
-      "uoa_atm_ratio": 0.10588901472253681,
-      "uoa_cp_ratio": 18.446428571428573
     },
     "XPOF": {
       "score": 30,
