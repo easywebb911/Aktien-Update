@@ -1,11 +1,11 @@
 {
-  "updated": "2026-06-16T01:13:46.138492+02:00",
+  "updated": "2026-06-16T02:02:54.110028+02:00",
   "run_info": {
     "tickers_checked": 17,
     "signals_active": 4,
     "alerts_sent": 0,
-    "elapsed_s": 30.7,
-    "market_phase": "After-Hours"
+    "elapsed_s": 16.3,
+    "market_phase": "Geschlossen"
   },
   "signals": {
     "AI": {
@@ -53,9 +53,9 @@
       "uoa_cp_ratio": 8.131169020235841
     },
     "BHVN": {
-      "score": 35,
+      "score": 20,
       "confidence": 33,
-      "drivers": "Spanne 9.5% + News: short interest + UOA Call/Put 2.1×",
+      "drivers": "Spanne 9.5% + UOA Call/Put 2.1×",
       "price": 12.14,
       "chg_pct": 0.0,
       "rvol_4d": 1.15,
@@ -66,7 +66,7 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 1,
+      "active_triggers": 0,
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 2.1×"
@@ -219,9 +219,9 @@
       "uoa_cp_ratio": 7.714285714285714
     },
     "PGEN": {
-      "score": 20,
+      "score": 32,
       "confidence": 33,
-      "drivers": "Spanne 7.8% + UOA Call/Put 4.1×",
+      "drivers": "Spanne 7.8% + News-KI 12/30: Positive FDA approval news is offset by insider selling and valuation concerns, with no significant short interest catal + UOA Call/Put 4.1×",
       "price": 4.8,
       "chg_pct": 0.0,
       "rvol_4d": 1.16,
@@ -232,7 +232,7 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 0,
+      "active_triggers": 1,
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 4.1×"
@@ -243,7 +243,7 @@
     "PRFX": {
       "score": 88,
       "confidence": 70,
-      "drivers": "Volumen 164.9× + 🚀 Massives Volumen 164.9×+ + Spanne 189.7% + News: breakout, short interest",
+      "drivers": "Volumen 164.9× + 🚀 Massives Volumen 164.9×+ + Spanne 189.7% + News: short interest, breakout",
       "price": 2.49,
       "chg_pct": 0.0,
       "rvol_4d": 164.89,
@@ -303,13 +303,13 @@
       "uoa_cp_ratio": 6.277777777777778
     },
     "TYRA": {
-      "score": 0,
-      "confidence": 0,
-      "drivers": "",
+      "score": 10,
+      "confidence": 17,
+      "drivers": "Spanne 7.3%",
       "price": 28.55,
-      "chg_pct": 0.0,
-      "rvol_4d": 0.0,
-      "rvol_20d": null,
+      "chg_pct": -0.0,
+      "rvol_4d": 0.9,
+      "rvol_20d": 1.08,
       "earnings": "in 59 Tagen (13.08.2026)",
       "fda_date": null,
       "upcoming_event": null,
