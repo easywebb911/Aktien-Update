@@ -1,10 +1,10 @@
 {
-  "updated": "2026-06-17T01:00:25.097763+02:00",
+  "updated": "2026-06-17T01:48:59.079088+02:00",
   "run_info": {
     "tickers_checked": 17,
     "signals_active": 3,
     "alerts_sent": 0,
-    "elapsed_s": 18.9,
+    "elapsed_s": 14.3,
     "market_phase": "After-Hours"
   },
   "signals": {
@@ -53,7 +53,7 @@
     "AMC": {
       "score": 35,
       "confidence": 33,
-      "drivers": "Spanne 15.3% + News-KI 15/30: Equity offering dilutes shares and increases float, reducing short squeeze potential despite temporary stock jump. + UOA Call/Put 16.5×",
+      "drivers": "Spanne 15.3% + News-KI 15/30: Massive equity dilution ($150M offering) significantly increases shares outstanding, which is bearish for short squeeze  + UOA Call/Put 16.5×",
       "price": 2.49,
       "chg_pct": 0.0,
       "rvol_4d": 1.01,
@@ -75,7 +75,7 @@
     "CBRL": {
       "score": 40,
       "confidence": 17,
-      "drivers": "News: short interest, squeeze + UOA Call/Put 6.5×",
+      "drivers": "News: squeeze, short squeeze + UOA Call/Put 6.5×",
       "price": 43.75,
       "chg_pct": 0.0,
       "rvol_4d": 0.24,
@@ -137,7 +137,7 @@
     "DDD": {
       "score": 28,
       "confidence": 33,
-      "drivers": "Spanne 9.0% + News-KI 8/30: Negative earnings reaction, dilutive stock offering, and downward price momentum indicate weak fundamentals and rising f + UOA Call/Put 6.0×",
+      "drivers": "Spanne 9.0% + News-KI 8/30: Negative price action combined with dilutive stock offering significantly reduces short-squeeze potential despite weak s + UOA Call/Put 6.0×",
       "price": 3.19,
       "chg_pct": 0.0,
       "rvol_4d": 1.26,
@@ -157,9 +157,9 @@
       "uoa_cp_ratio": 6.0
     },
     "FRMM": {
-      "score": 50,
+      "score": 65,
       "confidence": 70,
-      "drivers": "Volumen 1.5× + Spanne 8.6% + News: short interest + UOA Call/Put 7.6×",
+      "drivers": "Volumen 1.5× + Spanne 8.6% + News: merger, short interest + UOA Call/Put 7.6×",
       "price": 5.31,
       "chg_pct": -0.0,
       "rvol_4d": 1.51,
