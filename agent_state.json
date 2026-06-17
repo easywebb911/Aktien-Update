@@ -65,25 +65,13 @@
     "anomaly_monster_backup_LUCK": "2026-06-09T20:21:42.190270+02:00",
     "anomaly_conviction_high_LUCK": "2026-06-09T12:05:35.406177+02:00",
     "earnings_immediate_CBRL_09.06.2026": "2026-06-09T23:13:23.438660+02:00",
-    "exit_DBI": "2026-06-17T00:59:25.447993+02:00",
+    "exit_DBI": "2026-06-17T13:18:55.088678+02:00",
     "anomaly_conviction_high_OXM": "2026-06-10T21:06:04.087139+02:00",
     "earnings_immediate_OXM_10.06.2026": "2026-06-10T22:46:14.756820+02:00",
     "anomaly_score_jump_FRMM": "2026-06-11T21:46:24.146354+02:00",
     "anomaly_conviction_high_CRMT": "2026-06-15T21:49:25.750293+02:00"
   },
   "push_history": [
-    {
-      "ts": "2026-06-08T13:23:30.176633+02:00",
-      "ticker": "GIII",
-      "kind": "anomaly",
-      "severity": "high",
-      "trigger": "monster_backup",
-      "body": "GIII 🔥 Monster 100 | Setup 95 | KI 66",
-      "success": false,
-      "suppressed": true,
-      "suppress_reason": "conviction_below_threshold",
-      "conviction_score": 70
-    },
     {
       "ts": "2026-06-08T13:23:32.165543+02:00",
       "ticker": "IONQ",
@@ -1267,6 +1255,18 @@
       "severity": "trigger",
       "trigger": "trend_break",
       "body": "🔻 Exit-Signal DBI: trend_break crit ({'ma21': 7.351, 'price': 6.49, 'drop_pct': 11.71})",
+      "success": true,
+      "suppressed": false,
+      "suppress_reason": null,
+      "conviction_score": null
+    },
+    {
+      "ts": "2026-06-17T13:18:55.088659+02:00",
+      "ticker": "DBI",
+      "kind": "exit_p1",
+      "severity": "default",
+      "trigger": "exit_alert",
+      "body": "DBI 📉 Exit 65 | -12% | Trailing-Stop −18.0% vom Hoch",
       "success": true,
       "suppressed": false,
       "suppress_reason": null,
