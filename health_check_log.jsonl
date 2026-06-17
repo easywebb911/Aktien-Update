@@ -1,11 +1,3 @@
-{"run_ts": "2026-05-18T00:11:10Z", "run_phase": "ki_agent_tick", "schema_v": 1, "state_fails": [], "provider_fails": []}
-{"run_ts": "2026-05-18T04:13:37Z", "run_phase": "postclose", "schema_v": 1, "state_fails": [], "provider_fails": []}
-{"run_ts": "2026-05-18T04:15:07Z", "run_phase": "ki_agent_tick", "schema_v": 1, "state_fails": [], "provider_fails": []}
-{"run_ts": "2026-05-18T04:17:58Z", "run_phase": "postclose", "schema_v": 1, "state_fails": [], "provider_fails": []}
-{"run_ts": "2026-05-18T04:19:35Z", "run_phase": "ki_agent_tick", "schema_v": 1, "state_fails": [], "provider_fails": []}
-{"run_ts": "2026-05-18T04:22:45Z", "run_phase": "postclose", "schema_v": 1, "state_fails": [{"id": "S4", "severity": "warn", "detail": "backtest_history wuchs in postclose-Run NICHT"}], "provider_fails": []}
-{"run_ts": "2026-05-18T04:24:20Z", "run_phase": "ki_agent_tick", "schema_v": 1, "state_fails": [], "provider_fails": []}
-{"run_ts": "2026-05-18T04:42:41Z", "run_phase": "ki_agent_tick", "schema_v": 1, "state_fails": [], "provider_fails": []}
 {"run_ts": "2026-05-18T08:27:31Z", "run_phase": "postclose", "schema_v": 1, "state_fails": [{"id": "S4", "severity": "warn", "detail": "backtest_history wuchs in postclose-Run NICHT"}], "provider_fails": []}
 {"run_ts": "2026-05-18T08:29:08Z", "run_phase": "ki_agent_tick", "schema_v": 1, "state_fails": [], "provider_fails": []}
 {"run_ts": "2026-05-18T08:53:55Z", "run_phase": "ki_agent_tick", "schema_v": 1, "state_fails": [], "provider_fails": []}
@@ -571,3 +563,4 @@
 {"run_ts": "2026-06-16T22:59:25Z", "run_phase": "postclose", "schema_v": 1, "state_fails": [{"id": "S7", "severity": "warn", "detail": "agent_signals ∩ top10: 2 von 10 Top-10-Ticker, Schwelle ≥ 5. Möglicher Daily-Run-/KI-Agent-Drift — neuer Tick fällig"}], "provider_fails": []}
 {"run_ts": "2026-06-16T23:00:26Z", "run_phase": "ki_agent_tick", "schema_v": 1, "state_fails": [], "provider_fails": []}
 {"run_ts": "2026-06-16T23:48:59Z", "run_phase": "ki_agent_tick", "schema_v": 1, "state_fails": [], "provider_fails": []}
+{"run_ts": "2026-06-17T05:17:24Z", "run_phase": "ki_agent_tick", "schema_v": 1, "state_fails": [], "provider_fails": []}
