@@ -57,6 +57,7 @@ ALLOWLIST = [
     "score_block_label_scoping", "score_confidence", "score_confidence_watermark", "score_delta_t1",
     "score_inflation_log", "score_inflation_log_v2", "score_multiplier_sync", "score_normalization_version",
     "sector_rs_removal", "selector_consistency", "service_worker_removed", "session_wrap_indexeddb",
+    "short_situation_none_guard",
     "setup_score_cursor_removed", "split_label_consistency", "tier3_success_check_recalibration", "token_reentry_fix",
     "token_settings_ui_refresh", "token_storage_diagnose", "vintage_guard",
     "watchlist_drawer_stale_data",

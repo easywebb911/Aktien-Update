@@ -3447,7 +3447,7 @@ def risk_assessment(stock: dict) -> tuple[str, str, str]:
     pts = 0
     reasons = []
 
-    sf = stock.get("short_float", 0)
+    sf = stock.get("short_float", 0) or 0   # None-Guard (present-but-None)
     if sf > 40:
         pts += 2
         reasons.append(
@@ -3469,7 +3469,7 @@ def risk_assessment(stock: dict) -> tuple[str, str, str]:
             pts += 1
             reasons.append(f"Small-Cap ({fmt_cap(cap)}) mit eingeschränkter Liquidität.")
 
-    rv = stock.get("rel_volume", 0)
+    rv = stock.get("rel_volume", 0) or 0   # None-Guard (present-but-None)
     if rv > 5:
         pts += 1
         reasons.append(
@@ -3485,10 +3485,14 @@ def risk_assessment(stock: dict) -> tuple[str, str, str]:
 
 def short_situation(stock: dict) -> str:
     parts = []
-    sf = stock.get("short_float", 0)
-    sr = stock.get("short_ratio", 0)
-    rv = stock.get("rel_volume", 0)
-    chg = stock.get("change", 0)
+    # None-Guard: yfinance kann ein Feld als present-but-None liefern → `.get(k,0)`
+    # schützt NICHT (Default greift nur bei fehlendem Key). `or 0` fängt None ab.
+    sf = stock.get("short_float", 0) or 0
+    sr = stock.get("short_ratio", 0) or 0
+    rv = stock.get("rel_volume", 0) or 0
+    # chg bleibt nullable: None = UNBEKANNTE Bewegung ≠ 0 % flach → keine
+    # Bewegungs-Aussage statt fälschlich „0 %". Branches unten sind None-geguardet.
+    chg = stock.get("change")
     has_short_data = sf > 0 or sr > 0
 
     if has_short_data:
@@ -3501,9 +3505,9 @@ def short_situation(stock: dict) -> str:
 
     if rv >= 2.0:
         parts.append(f"Volumen bei {rv:.1f}× dem Durchschnitt — erhöhtes Kaufinteresse erkennbar.")
-    if chg > 5:
+    if chg is not None and chg > 5:
         parts.append(f"+{chg:.1f} % heute — mögliche Margin Calls bei Leerverkäufern.")
-    elif chg < -3:
+    elif chg is not None and chg < -3:
         parts.append(f"{chg:.1f} % heute — Short-Interesse könnte kurzfristig steigen.")
 
     if not has_short_data and not parts:
@@ -4975,11 +4979,11 @@ def _card(i: int, s: dict) -> str:
 
     sc      = min(s["score"], 100.0)
     sc_col  = _score_color(sc)
-    sf      = s.get("short_float", 0)
-    sr      = s.get("short_ratio", 0)
-    rv      = s.get("rel_volume", 0)
+    sf      = s.get("short_float", 0) or 0   # None-Guard, analog _build_card_ctx (v2)
+    sr      = s.get("short_ratio", 0) or 0
+    rv      = s.get("rel_volume", 0) or 0
     cap_val = s.get("yf_market_cap") or s.get("market_cap")
-    chg     = s.get("change", 0)
+    chg     = s.get("change", 0) or 0   # Pflicht-Anzeige (Tile) → None→0 (flach), wie Cockpit/v2
     chg_str = f"+{chg:.1f}%" if chg >= 0 else f"{chg:.1f}%"
     chg_col = _metric_color("mom", chg)
     chg_5d_html = (f'<br><span style="font-size:0.75em;color:var(--color-text-secondary)">5T: {s["change_5d"]:+.1f}%</span>'
