@@ -563,3 +563,4 @@
 {"run_ts": "2026-06-17T05:17:24Z", "run_phase": "ki_agent_tick", "schema_v": 1, "state_fails": [], "provider_fails": []}
 {"run_ts": "2026-06-17T10:08:58Z", "run_phase": "ki_agent_tick", "schema_v": 1, "state_fails": [], "provider_fails": []}
 {"run_ts": "2026-06-17T11:18:55Z", "run_phase": "premarket", "schema_v": 1, "state_fails": [], "provider_fails": []}
+{"run_ts": "2026-06-17T11:19:48Z", "run_phase": "ki_agent_tick", "schema_v": 1, "state_fails": [{"id": "S3", "severity": "crit", "detail": "current_price fehlt bei 5 Position(en): AMC, IONQ, PDYN, AI, LUCK"}], "provider_fails": []}
