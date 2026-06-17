@@ -1,10 +1,10 @@
 {
-  "updated": "2026-06-17T22:31:52.877726+02:00",
+  "updated": "2026-06-18T00:53:30.265946+02:00",
   "run_info": {
     "tickers_checked": 17,
     "signals_active": 4,
     "alerts_sent": 0,
-    "elapsed_s": 63.0,
+    "elapsed_s": 14.1,
     "market_phase": "After-Hours"
   },
   "signals": {
@@ -27,8 +27,8 @@
       "uoa_drivers": [
         "UOA Call/Put 9.4×"
       ],
-      "uoa_atm_ratio": 0.23580931726237644,
-      "uoa_cp_ratio": 9.375106564364877
+      "uoa_atm_ratio": 0.23714392959919922,
+      "uoa_cp_ratio": 9.389787234042553
     },
     "AKTS": {
       "score": 10,
@@ -51,13 +51,13 @@
       "uoa_cp_ratio": null
     },
     "AMC": {
-      "score": 28,
+      "score": 20,
       "confidence": 33,
-      "drivers": "Spanne 14.9% + News-KI 8/30: AMC's equity offering dilutes shares and weakens squeeze potential; positive price action is offset by fundamental weakn + UOA Call/Put 9.2×",
+      "drivers": "Spanne 14.9% + UOA Call/Put 9.0×",
       "price": 2.66,
       "chg_pct": 0.0,
-      "rvol_4d": 1.36,
-      "rvol_20d": 1.8,
+      "rvol_4d": 1.4,
+      "rvol_20d": 1.85,
       "earnings": null,
       "fda_date": null,
       "upcoming_event": null,
@@ -67,15 +67,15 @@
       "active_triggers": 0,
       "uoa_score": 10,
       "uoa_drivers": [
-        "UOA Call/Put 9.2×"
+        "UOA Call/Put 9.0×"
       ],
-      "uoa_atm_ratio": 0.6462102262811936,
-      "uoa_cp_ratio": 9.189234349823954
+      "uoa_atm_ratio": 0.6483741492641498,
+      "uoa_cp_ratio": 8.972682983412597
     },
     "CBRL": {
       "score": 40,
       "confidence": 33,
-      "drivers": "Spanne 6.2% + News: short interest, short squeeze",
+      "drivers": "Spanne 6.2% + News: short squeeze, short interest",
       "price": 43.88,
       "chg_pct": 0.0,
       "rvol_4d": 0.53,
@@ -98,8 +98,8 @@
       "drivers": "SEC 8-K",
       "price": 6.03,
       "chg_pct": 0.0,
-      "rvol_4d": 0.83,
-      "rvol_20d": 0.99,
+      "rvol_4d": 0.85,
+      "rvol_20d": 1.02,
       "earnings": "in 50 Tagen (06.08.2026)",
       "fda_date": null,
       "upcoming_event": null,
@@ -135,11 +135,11 @@
     "DDD": {
       "score": 28,
       "confidence": 33,
-      "drivers": "Spanne 11.1% + News-KI 8/30: Negative sentiment with stock dilution from upsized offering makes short-squeeze unlikely; bearish catalysts outweigh sq + UOA Call/Put 9.4×",
+      "drivers": "Spanne 11.1% + News-KI 8/30: Negative earnings performance, dilutive stock offering, and declining stock price indicate weak fundamentals and institu + UOA Call/Put 9.4×",
       "price": 3.45,
       "chg_pct": 0.0,
-      "rvol_4d": 1.17,
-      "rvol_20d": 0.96,
+      "rvol_4d": 1.24,
+      "rvol_20d": 1.02,
       "earnings": "in 54 Tagen (10.08.2026)",
       "fda_date": null,
       "upcoming_event": null,
@@ -157,11 +157,11 @@
     "FRMM": {
       "score": 50,
       "confidence": 33,
-      "drivers": "Spanne 7.0% + News: short interest, merger + UOA Call/Put 6.6×",
+      "drivers": "Spanne 7.0% + News: merger, short interest + UOA Call/Put 6.7×",
       "price": 5.08,
       "chg_pct": -0.0,
-      "rvol_4d": 0.63,
-      "rvol_20d": 0.57,
+      "rvol_4d": 0.64,
+      "rvol_20d": 0.58,
       "earnings": "in 57 Tagen (13.08.2026)",
       "fda_date": null,
       "upcoming_event": null,
@@ -171,15 +171,15 @@
       "active_triggers": 1,
       "uoa_score": 10,
       "uoa_drivers": [
-        "UOA Call/Put 6.6×"
+        "UOA Call/Put 6.7×"
       ],
-      "uoa_atm_ratio": 0.06578947368421052,
-      "uoa_cp_ratio": 6.625
+      "uoa_atm_ratio": 0.06842105263157895,
+      "uoa_cp_ratio": 6.65625
     },
     "GIII": {
-      "score": 25,
+      "score": 35,
       "confidence": 17,
-      "drivers": "FINRA Short-Vol 60% + SEC Form 4",
+      "drivers": "FINRA Short-Vol 78% + SEC Form 4",
       "price": 34.05,
       "chg_pct": -0.0,
       "rvol_4d": 1.11,
@@ -233,13 +233,13 @@
       "active_triggers": 0,
       "uoa_score": 0,
       "uoa_drivers": [],
-      "uoa_atm_ratio": 0.3126293022381042,
-      "uoa_cp_ratio": 1.6466848319709355
+      "uoa_atm_ratio": 0.31347564416024076,
+      "uoa_cp_ratio": 1.6131656804733727
     },
     "LUCK": {
-      "score": 10,
-      "confidence": 17,
-      "drivers": "Spanne 6.1%",
+      "score": 47,
+      "confidence": 70,
+      "drivers": "Spanne 6.1% + News-KI 12/30: Executive promotion and event hosting are neutral developments, but share price plunge indicates fundamental weakness, n + FINRA Short-Vol 100%",
       "price": 8.02,
       "chg_pct": 0.0,
       "rvol_4d": 0.73,
@@ -250,7 +250,7 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 0,
+      "active_triggers": 1,
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": 0.034482758620689655,
@@ -259,7 +259,7 @@
     "PAR": {
       "score": 30,
       "confidence": 70,
-      "drivers": "Spanne 8.8% + SEC Form 4 + UOA Call/Put 4.8×",
+      "drivers": "Spanne 8.8% + SEC Form 4 + UOA Call/Put 4.9×",
       "price": 14.85,
       "chg_pct": 0.0,
       "rvol_4d": 0.75,
@@ -273,15 +273,15 @@
       "active_triggers": 0,
       "uoa_score": 10,
       "uoa_drivers": [
-        "UOA Call/Put 4.8×"
+        "UOA Call/Put 4.9×"
       ],
-      "uoa_atm_ratio": 0.01409910843873108,
-      "uoa_cp_ratio": 4.8
+      "uoa_atm_ratio": 0.01451378809869376,
+      "uoa_cp_ratio": 4.9
     },
     "PDYN": {
-      "score": 99,
+      "score": 68,
       "confidence": 70,
-      "drivers": "Volumen 5.4× + 🚀 Massives Volumen 5.4×+ + Spanne 19.6% + News: partnership, contract + UOA Call/Put 17.0×",
+      "drivers": "Volumen 5.4× + 🚀 Massives Volumen 5.4×+ + Spanne 19.6% + News-KI 8/30: Positive fundamental news with government contracts, but lacks short squeeze indicators like high short interest, low fl + UOA Call/Put 18.0×",
       "price": 6.96,
       "chg_pct": 0.0,
       "rvol_4d": 5.4,
@@ -291,14 +291,14 @@
       "upcoming_event": null,
       "insider_buy": false,
       "stocktwits": null,
-      "combo_mult": 1.1,
-      "active_triggers": 2,
+      "combo_mult": 1.0,
+      "active_triggers": 1,
       "uoa_score": 10,
       "uoa_drivers": [
-        "UOA Call/Put 17.0×"
+        "UOA Call/Put 18.0×"
       ],
-      "uoa_atm_ratio": 0.9383863080684597,
-      "uoa_cp_ratio": 17.03472222222222
+      "uoa_atm_ratio": 0.9657701711491442,
+      "uoa_cp_ratio": 18.041666666666668
     },
     "RBOHF": {
       "score": 10,
@@ -321,13 +321,13 @@
       "uoa_cp_ratio": null
     },
     "TRIP": {
-      "score": 0,
-      "confidence": 0,
-      "drivers": "",
+      "score": 18,
+      "confidence": 17,
+      "drivers": "News-KI 8/30: Positive valuation news and acquisition interest are bullish but lack short squeeze catalysts like high short interest,  + UOA Call/Put 2.1×",
       "price": 12.61,
       "chg_pct": -0.0,
-      "rvol_4d": 0.56,
-      "rvol_20d": 0.88,
+      "rvol_4d": 0.57,
+      "rvol_20d": 0.89,
       "earnings": "in 50 Tagen (06.08.2026)",
       "fda_date": null,
       "upcoming_event": null,
@@ -335,15 +335,17 @@
       "stocktwits": null,
       "combo_mult": 1.0,
       "active_triggers": 0,
-      "uoa_score": 0,
-      "uoa_drivers": [],
-      "uoa_atm_ratio": 0.0401622187336473,
-      "uoa_cp_ratio": 1.7797356828193833
+      "uoa_score": 10,
+      "uoa_drivers": [
+        "UOA Call/Put 2.1×"
+      ],
+      "uoa_atm_ratio": 0.053636839351125065,
+      "uoa_cp_ratio": 2.0806451612903225
     },
     "VIVO": {
-      "score": 20,
+      "score": 25,
       "confidence": 33,
-      "drivers": "Spanne 9.1% + UOA Call/Put 2.2×",
+      "drivers": "Spanne 9.1% + News-KI 5/30: B Corp certification renewal and hiring announcements lack the negative sentiment, short interest catalysts, or technica + UOA Call/Put 2.2×",
       "price": 5.52,
       "chg_pct": -0.0,
       "rvol_4d": 0.8,
@@ -359,8 +361,8 @@
       "uoa_drivers": [
         "UOA Call/Put 2.2×"
       ],
-      "uoa_atm_ratio": 0.06002265005662514,
-      "uoa_cp_ratio": 2.230337078651685
+      "uoa_atm_ratio": 0.061155152887882216,
+      "uoa_cp_ratio": 2.241573033707865
     }
   }
 }

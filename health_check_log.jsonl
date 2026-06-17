@@ -1,7 +1,3 @@
-{"run_ts": "2026-05-18T20:47:08Z", "run_phase": "ki_agent_tick", "schema_v": 1, "state_fails": [], "provider_fails": []}
-{"run_ts": "2026-05-18T22:14:20Z", "run_phase": "ki_agent_tick", "schema_v": 1, "state_fails": [], "provider_fails": []}
-{"run_ts": "2026-05-18T22:16:53Z", "run_phase": "postclose", "schema_v": 1, "state_fails": [], "provider_fails": []}
-{"run_ts": "2026-05-18T22:17:42Z", "run_phase": "ki_agent_tick", "schema_v": 1, "state_fails": [], "provider_fails": []}
 {"run_ts": "2026-05-18T23:20:35Z", "run_phase": "ki_agent_tick", "schema_v": 1, "state_fails": [], "provider_fails": []}
 {"run_ts": "2026-05-19T04:34:42Z", "run_phase": "ki_agent_tick", "schema_v": 1, "state_fails": [{"id": "S8", "severity": "warn", "detail": "kein erfolgreicher Digest-Push seit 28.6 h (Schwelle 26 h) — silent ntfy-Fail oder Cron-Drop"}], "provider_fails": []}
 {"run_ts": "2026-05-19T04:46:31Z", "run_phase": "postclose", "schema_v": 1, "state_fails": [{"id": "S8", "severity": "warn", "detail": "kein erfolgreicher Digest-Push seit 28.8 h (Schwelle 26 h) — silent ntfy-Fail oder Cron-Drop"}], "provider_fails": []}
@@ -543,3 +539,4 @@
 {"run_ts": "2026-06-17T14:01:09Z", "run_phase": "ki_agent_tick", "schema_v": 1, "state_fails": [{"id": "S3", "severity": "crit", "detail": "current_price fehlt bei 5 Position(en): AMC, IONQ, PDYN, AI, LUCK"}], "provider_fails": []}
 {"run_ts": "2026-06-17T17:24:55Z", "run_phase": "ki_agent_tick", "schema_v": 1, "state_fails": [{"id": "S3", "severity": "crit", "detail": "current_price fehlt bei 5 Position(en): AMC, IONQ, PDYN, AI, LUCK"}], "provider_fails": []}
 {"run_ts": "2026-06-17T20:31:53Z", "run_phase": "ki_agent_tick", "schema_v": 1, "state_fails": [{"id": "S3", "severity": "crit", "detail": "current_price fehlt bei 5 Position(en): AMC, IONQ, PDYN, AI, LUCK"}], "provider_fails": []}
+{"run_ts": "2026-06-17T22:53:30Z", "run_phase": "ki_agent_tick", "schema_v": 1, "state_fails": [{"id": "S3", "severity": "crit", "detail": "current_price fehlt bei 5 Position(en): AMC, IONQ, PDYN, AI, LUCK"}], "provider_fails": []}
