@@ -338,6 +338,15 @@ n=215). Daraus die sechs Hypothesen:
 **Risiko-/Monitoring-Instrument, KEIN Alpha-Generator.** Schützt vor Edge-
 Schönrechnen. (Positiv lesbar als „Attention-Router" — s. Begutachtungs-Subsektion B.)
 
+**Auswertungs-Option (16.06.):** H1–H6 können beim 30.06.-Lauf als parallele,
+vorab-spezifizierte Subagent-Tests gerechnet werden (Durchsatz). **ZWINGENDE
+BEDINGUNG:** nur weil jeder Test vorab definiert ist (H1–H6 sind es) — parallel
+RECHNEN ist erlaubt, parallel nach einer Edge SUCHEN wäre Datenfolter. Die
+Multiple-Testing-Korrektur muss **GEMEINSAM über alle parallelen Tests** liegen,
+nicht pro Agent. Disziplin sitzt in der Korrektur, nicht im Verzicht auf
+Parallelität. (Sequenz-Prinzip sonst unberührt: gilt für **Strang-Öffnung**,
+nicht für das Rechnen vorab-fixierter Tests.)
+
 ### Externe Begutachtung 15.06. — zu prüfende Vorschläge (NICHT Erkenntnis)
 **Status:** Vorschläge eines externen Gutachters zum Projektdossier — **dokumentiert,
 nicht validiert.** Alle unterliegen der **Vorleistungs-Logik: erst Edge-Validierung,
