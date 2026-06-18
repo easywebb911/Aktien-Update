@@ -1,10 +1,10 @@
 {
-  "updated": "2026-06-18T12:50:32.142016+02:00",
+  "updated": "2026-06-18T13:17:36.750745+02:00",
   "run_info": {
     "tickers_checked": 15,
     "signals_active": 6,
-    "alerts_sent": 2,
-    "elapsed_s": 12.1,
+    "alerts_sent": 0,
+    "elapsed_s": 12.5,
     "market_phase": "Pre-Market"
   },
   "signals": {
@@ -31,9 +31,9 @@
       "uoa_cp_ratio": 9.389787234042553
     },
     "AMC": {
-      "score": 32,
+      "score": 20,
       "confidence": 33,
-      "drivers": "Spanne 14.9% + News-KI 12/30: AMC completed equity offering diluting shares, reducing short-squeeze potential despite positive price action. + UOA Call/Put 9.0×",
+      "drivers": "Spanne 14.9% + UOA Call/Put 9.0×",
       "price": 2.66,
       "chg_pct": 0.0,
       "rvol_4d": 1.4,
@@ -44,7 +44,7 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 1,
+      "active_triggers": 0,
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 9.0×"
@@ -91,7 +91,7 @@
       "active_triggers": 1,
       "uoa_score": 0,
       "uoa_drivers": [],
-      "uoa_atm_ratio": null,
+      "uoa_atm_ratio": 0.18651362984218078,
       "uoa_cp_ratio": 1.9794238683127572
     },
     "DBI": {
@@ -131,13 +131,13 @@
       "active_triggers": 0,
       "uoa_score": 0,
       "uoa_drivers": [],
-      "uoa_atm_ratio": null,
+      "uoa_atm_ratio": 0.015873015873015872,
       "uoa_cp_ratio": 0.08536585365853659
     },
     "IONQ": {
-      "score": 28,
-      "confidence": 70,
-      "drivers": "Spanne 5.8% + News-KI 8/30: Negative price action combined with sector rotation away from quantum computing reduces short-squeeze potential despite  + SEC Form 4",
+      "score": 20,
+      "confidence": 33,
+      "drivers": "Spanne 5.8% + SEC Form 4",
       "price": 54.69,
       "chg_pct": -0.0,
       "rvol_4d": 0.8,
@@ -151,7 +151,7 @@
       "active_triggers": 0,
       "uoa_score": 0,
       "uoa_drivers": [],
-      "uoa_atm_ratio": null,
+      "uoa_atm_ratio": 0.855072463768116,
       "uoa_cp_ratio": 1.6131656804733727
     },
     "LUCK": {
@@ -171,13 +171,13 @@
       "active_triggers": 0,
       "uoa_score": 0,
       "uoa_drivers": [],
-      "uoa_atm_ratio": null,
+      "uoa_atm_ratio": 0.034482758620689655,
       "uoa_cp_ratio": 0.14285714285714285
     },
     "PDYN": {
-      "score": 99,
+      "score": 79,
       "confidence": 70,
-      "drivers": "Volumen 5.5× + 🚀 Massives Volumen 5.5×+ + Spanne 19.6% + News: partnership, contract + UOA Call/Put 18.0×",
+      "drivers": "Volumen 5.5× + 🚀 Massives Volumen 5.5×+ + Spanne 19.6% + News-KI 12/30: Positive fundamental news (Army contracts) supports stock appreciation but lacks short squeeze catalysts like extreme sh + UOA Call/Put 18.0×",
       "price": 6.96,
       "chg_pct": 0.0,
       "rvol_4d": 5.46,
@@ -193,13 +193,13 @@
       "uoa_drivers": [
         "UOA Call/Put 18.0×"
       ],
-      "uoa_atm_ratio": null,
+      "uoa_atm_ratio": 0.980635551142006,
       "uoa_cp_ratio": 18.041666666666668
     },
     "PZZA": {
-      "score": 72,
+      "score": 40,
       "confidence": 70,
-      "drivers": "Volumen 2.6× + Spanne 11.7% + News: takeover, acquisition + UOA Call/Put 3.7×",
+      "drivers": "Volumen 2.6× + Spanne 11.7% + News-KI 5/30: Positive stock movement undermined by store closures and sector competition; no short squeeze indicators present. + UOA Call/Put 3.6×",
       "price": 36.42,
       "chg_pct": -0.0,
       "rvol_4d": 2.57,
@@ -209,14 +209,14 @@
       "upcoming_event": null,
       "insider_buy": false,
       "stocktwits": null,
-      "combo_mult": 1.1,
-      "active_triggers": 2,
+      "combo_mult": 1.0,
+      "active_triggers": 1,
       "uoa_score": 10,
       "uoa_drivers": [
-        "UOA Call/Put 3.7×"
+        "UOA Call/Put 3.6×"
       ],
       "uoa_atm_ratio": null,
-      "uoa_cp_ratio": 3.6772665764546684
+      "uoa_cp_ratio": 3.6305945223780896
     },
     "RBOHF": {
       "score": 10,
@@ -257,7 +257,7 @@
       "uoa_drivers": [
         "UOA Call/Put 2.7×"
       ],
-      "uoa_atm_ratio": null,
+      "uoa_atm_ratio": 0.7780748663101604,
       "uoa_cp_ratio": 2.700970873786408
     },
     "SANA": {
@@ -303,9 +303,9 @@
       "uoa_cp_ratio": null
     },
     "SRPT": {
-      "score": 35,
+      "score": 55,
       "confidence": 70,
-      "drivers": "Volumen 1.9× + Spanne 10.9% + UOA Call/Put 5.0×",
+      "drivers": "Volumen 1.9× + Spanne 10.9% + UOA Call-Vol/OI 9.6× ATM + UOA Call/Put 5.0×",
       "price": 16.96,
       "chg_pct": -0.0,
       "rvol_4d": 1.89,
@@ -317,12 +317,13 @@
       "stocktwits": null,
       "combo_mult": 1.0,
       "active_triggers": 0,
-      "uoa_score": 10,
+      "uoa_score": 30,
       "uoa_drivers": [
+        "UOA Call-Vol/OI 9.6× ATM",
         "UOA Call/Put 5.0×"
       ],
-      "uoa_atm_ratio": null,
-      "uoa_cp_ratio": 5.041204437400951
+      "uoa_atm_ratio": 9.623376623376624,
+      "uoa_cp_ratio": 4.980982567353407
     }
   }
 }
