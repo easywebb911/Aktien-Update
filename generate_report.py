@@ -10604,7 +10604,15 @@ window.addEventListener('storage', (e) => _tokLog('storage event (cross-tab)', {
 function reloadPage(){{
   const btn = document.getElementById('btn-reload');
   if (btn) {{ btn.disabled = true; btn.textContent = 'Lädt…'; }}
-  window.location.reload();
+  // Cache-bustendes Reload: GitHub-Pages serviert index.html mit
+  // Cache-Control max-age → window.location.reload() respektiert den
+  // HTTP-Cache (iOS-Safari/PWA) und zeigt die alte Seite. Eine neue,
+  // einzigartige URL (?v=<epoch-ms>) erzwingt einen Cache-Miss → frische
+  // Bytes. location.pathname ersetzt die komplette Query (es existiert
+  // KEIN funktionaler URL-Parameter im Tool, nur Cache-Buster), damit sich
+  // ?bust=N/?v=… nie aufstauen. replace() statt assign(): Reload erzeugt
+  // bewusst KEINEN Back-History-Eintrag.
+  window.location.replace(location.pathname + '?v=' + Date.now());
 }}
 function triggerWorkflow(){{
   _ensureToken(token => {{ _pendingDispatch = 'recalc'; dispatchWorkflow(token); }});
