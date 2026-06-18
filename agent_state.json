@@ -1,5 +1,5 @@
 {
-  "last_run": "2026-06-18T16:26:28.044022+02:00",
+  "last_run": "2026-06-18T20:12:09.745252+02:00",
   "cooldowns": {
     "anomaly_score_jump_XRX": "2026-05-03T18:47:15.315486+02:00",
     "anomaly_uoa_extreme_TDOC": "2026-05-04T13:47:00.365949+02:00",
@@ -61,7 +61,7 @@
     "earnings_immediate_PLCE_08.06.2026": "2026-06-09T00:01:51.745142+02:00",
     "earnings_immediate_DBI_09.06.2026": "2026-06-10T00:54:50.578075+02:00",
     "anomaly_monster_backup_DBI": "2026-06-09T20:21:42.094477+02:00",
-    "anomaly_score_jump_LUCK": "2026-06-18T12:50:31.903449+02:00",
+    "anomaly_score_jump_LUCK": "2026-06-18T20:12:09.253065+02:00",
     "anomaly_monster_backup_LUCK": "2026-06-09T20:21:42.190270+02:00",
     "anomaly_conviction_high_LUCK": "2026-06-18T12:50:32.141551+02:00",
     "earnings_immediate_CBRL_09.06.2026": "2026-06-09T23:13:23.438660+02:00",
@@ -72,42 +72,6 @@
     "anomaly_conviction_high_CRMT": "2026-06-15T21:49:25.750293+02:00"
   },
   "push_history": [
-    {
-      "ts": "2026-06-09T23:13:24.128694+02:00",
-      "ticker": "IONQ",
-      "kind": "exit_p2",
-      "severity": "trigger",
-      "trigger": "profit_lock",
-      "body": "🔻 Exit-Signal IONQ: profit_lock crit ({'pnl_pct': 0.1546, 'peak_pnl_pct': 0.4678, 'drawdown_from_peak': 0.3132, 'score_drop_from_peak': None})",
-      "success": true,
-      "suppressed": false,
-      "suppress_reason": null,
-      "conviction_score": null
-    },
-    {
-      "ts": "2026-06-09T23:13:24.365856+02:00",
-      "ticker": "IONQ",
-      "kind": "exit_p2",
-      "severity": "trigger",
-      "trigger": "trend_break",
-      "body": "🔻 Exit-Signal IONQ: trend_break crit ({'ma21': 59.8273, 'price': 56.69, 'drop_pct': 5.24})",
-      "success": true,
-      "suppressed": false,
-      "suppress_reason": null,
-      "conviction_score": null
-    },
-    {
-      "ts": "2026-06-09T23:13:24.601180+02:00",
-      "ticker": "PDYN",
-      "kind": "exit_p2",
-      "severity": "trigger",
-      "trigger": "trend_break",
-      "body": "🔻 Exit-Signal PDYN: trend_break crit ({'ma21': 7.1825, 'price': 6.405, 'drop_pct': 10.83})",
-      "success": true,
-      "suppressed": false,
-      "suppress_reason": null,
-      "conviction_score": null
-    },
     {
       "ts": "2026-06-09T23:13:24.838100+02:00",
       "ticker": "RBOHF",
@@ -1267,6 +1231,42 @@
       "severity": "high",
       "trigger": "monster_backup",
       "body": "PDYN 🔥 Monster 94 | Setup 78 | KI 50",
+      "success": false,
+      "suppressed": true,
+      "suppress_reason": "conviction_below_threshold",
+      "conviction_score": 44
+    },
+    {
+      "ts": "2026-06-18T20:12:09.057555+02:00",
+      "ticker": "CAPR",
+      "kind": "anomaly",
+      "severity": "high",
+      "trigger": "monster_backup",
+      "body": "CAPR 🔥 Monster 95 | Setup 79 | KI 50",
+      "success": false,
+      "suppressed": true,
+      "suppress_reason": "conviction_below_threshold",
+      "conviction_score": 58
+    },
+    {
+      "ts": "2026-06-18T20:12:09.253032+02:00",
+      "ticker": "LUCK",
+      "kind": "anomaly",
+      "severity": "medium",
+      "trigger": "score_jump",
+      "body": "LUCK 🚀 Setup 77 ↑ (gestern 59) | News-KI 8/30: Positive leadership changes and media exposure…",
+      "success": true,
+      "suppressed": false,
+      "suppress_reason": null,
+      "conviction_score": 78
+    },
+    {
+      "ts": "2026-06-18T20:12:09.253432+02:00",
+      "ticker": "PDYN",
+      "kind": "anomaly",
+      "severity": "high",
+      "trigger": "monster_backup",
+      "body": "PDYN 🔥 Monster 94 | Setup 78 | KI 32",
       "success": false,
       "suppressed": true,
       "suppress_reason": "conviction_below_threshold",
