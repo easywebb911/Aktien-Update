@@ -482,6 +482,20 @@ jeweilige Auslöser greift.
   `body_ok=False` Positionen erhalten statt `{}`. OFFEN.
 - **Toter v2-else-Zweig entfernen** (Option b) — OPTIONAL, Easys Architektur-
   Entscheidung. Isoliert halten (Lektion #226), Dict-Key `"price_str"` behalten.
+- **Cache-Bust-Restkanten aus #373 (zwei Folge-PR-Kandidaten, niedrig):**
+  - **(a) PWA-Home-Screen-Erststart-Cache (offen seit #373):** `reloadPage()` ist
+    via `location.replace(location.pathname + '?v=' + Date.now())` cache-bustend
+    (#373), ABER der allerERSTE Start vom iOS-Home-Screen-Icon kann weiterhin einen
+    gecachten Snapshot zeigen, bis Easy einmal Reload tippt. Vollständige Lösung:
+    `manifest.json`-Lifecycle ODER On-Load-Redirect mit Loop-Guard (`if (!location.search)
+    location.replace(pathname+'?v='+Date.now())`). In #373 diagnose-only beauftragt,
+    NICHT mitgefixt. Kein Service-Worker mehr im Spiel (17.05. entfernt).
+  - **(b) Countdown-/Recalculate-Auto-Reload mit eigenem `window.location.reload()`
+    (offen seit #373):** `_startCountdownReload` (~gen:10816) und `_manualReload`
+    (~gen:10821) nutzen `window.location.reload()` statt `reloadPage()` → unterliegen
+    demselben latenten Cache-Bug wie der Reload-Button VOR #373. Fällt selten auf,
+    weil die Countdown-Wartezeit das `max-age`-Fenster meist überbrückt + neuer Deploy.
+    Konsolidierungs-Kandidat: beide Pfade auf den #373-Cache-Buster vereinheitlichen.
 - **Finnhub-SI-Reserve** (gratis, Key da) als SF-Reserve falls Kette dünn. Niedrig.
 - **FINRA-Provider unmonitored (niedrig):** Der Daily-Run-FINRA-History-Fetch
   (speist `si_trend`) hat KEINEN `provider_health`-Record. `provider_health['finra']`
