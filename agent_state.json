@@ -1,5 +1,5 @@
 {
-  "last_run": "2026-06-18T13:17:39.125369+02:00",
+  "last_run": "2026-06-18T16:26:28.044022+02:00",
   "cooldowns": {
     "anomaly_score_jump_XRX": "2026-05-03T18:47:15.315486+02:00",
     "anomaly_uoa_extreme_TDOC": "2026-05-04T13:47:00.365949+02:00",
@@ -72,30 +72,6 @@
     "anomaly_conviction_high_CRMT": "2026-06-15T21:49:25.750293+02:00"
   },
   "push_history": [
-    {
-      "ts": "2026-06-09T23:13:23.438639+02:00",
-      "ticker": "CBRL",
-      "kind": "earnings_immediate",
-      "severity": "default",
-      "trigger": null,
-      "body": "CBRL Earnings-Sofort-Alert (in 0d, KI 78)",
-      "success": true,
-      "suppressed": false,
-      "suppress_reason": null,
-      "conviction_score": 66
-    },
-    {
-      "ts": "2026-06-09T23:13:23.875978+02:00",
-      "ticker": "IONQ",
-      "kind": "exit_p2",
-      "severity": "warning",
-      "trigger": null,
-      "body": "⚠️ Exit-Warnung IONQ: pressure 66/100",
-      "success": true,
-      "suppressed": false,
-      "suppress_reason": null,
-      "conviction_score": null
-    },
     {
       "ts": "2026-06-09T23:13:24.128694+02:00",
       "ticker": "IONQ",
@@ -1271,6 +1247,30 @@
       "suppressed": false,
       "suppress_reason": null,
       "conviction_score": null
+    },
+    {
+      "ts": "2026-06-18T16:26:25.213151+02:00",
+      "ticker": "CAPR",
+      "kind": "anomaly",
+      "severity": "high",
+      "trigger": "monster_backup",
+      "body": "CAPR 🔥 Monster 95 | Setup 79 | KI 43",
+      "success": false,
+      "suppressed": true,
+      "suppress_reason": "conviction_below_threshold",
+      "conviction_score": 58
+    },
+    {
+      "ts": "2026-06-18T16:26:25.213309+02:00",
+      "ticker": "PDYN",
+      "kind": "anomaly",
+      "severity": "high",
+      "trigger": "monster_backup",
+      "body": "PDYN 🔥 Monster 94 | Setup 78 | KI 50",
+      "success": false,
+      "suppressed": true,
+      "suppress_reason": "conviction_below_threshold",
+      "conviction_score": 44
     }
   ],
   "prev_conviction_scores": {
