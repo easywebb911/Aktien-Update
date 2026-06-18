@@ -1,11 +1,11 @@
 {
-  "updated": "2026-06-18T00:56:29.924718+02:00",
+  "updated": "2026-06-18T03:43:33.100504+02:00",
   "run_info": {
     "tickers_checked": 16,
     "signals_active": 2,
     "alerts_sent": 0,
-    "elapsed_s": 14.1,
-    "market_phase": "After-Hours"
+    "elapsed_s": 17.3,
+    "market_phase": "Geschlossen"
   },
   "signals": {
     "AI": {
@@ -31,9 +31,9 @@
       "uoa_cp_ratio": 9.389787234042553
     },
     "AMC": {
-      "score": 20,
+      "score": 28,
       "confidence": 33,
-      "drivers": "Spanne 14.9% + UOA Call/Put 9.0×",
+      "drivers": "Spanne 14.9% + News-KI 8/30: AMC's $150M equity offering increases share count, diluting existing shareholders and reducing short-squeeze potential d + UOA Call/Put 9.0×",
       "price": 2.66,
       "chg_pct": 0.0,
       "rvol_4d": 1.4,
@@ -55,7 +55,7 @@
     "BIRD": {
       "score": 100,
       "confidence": 70,
-      "drivers": "Volumen 164.9× + 🚀 Massives Volumen 164.9×+ + Spanne 79.7% + SEC 8-K + News: partnership, acquisition + SEC Form 4",
+      "drivers": "Volumen 164.9× + 🚀 Massives Volumen 164.9×+ + Spanne 79.7% + SEC 8-K + News: acquisition, partnership + SEC Form 4",
       "price": 5.48,
       "chg_pct": 0.0,
       "rvol_4d": 164.86,
@@ -113,13 +113,13 @@
       "uoa_cp_ratio": 0.5102040816326531
     },
     "FDMT": {
-      "score": 10,
-      "confidence": 17,
-      "drivers": "UOA Call/Put 2.9×",
+      "score": 20,
+      "confidence": 33,
+      "drivers": "Spanne 13.0% + UOA Call/Put 2.9×",
       "price": 9.42,
       "chg_pct": 0.0,
-      "rvol_4d": 0.0,
-      "rvol_20d": null,
+      "rvol_4d": 1.14,
+      "rvol_20d": 1.06,
       "earnings": null,
       "fda_date": null,
       "upcoming_event": null,
@@ -195,9 +195,9 @@
       "uoa_cp_ratio": 0.14285714285714285
     },
     "METC": {
-      "score": 28,
+      "score": 18,
       "confidence": 33,
-      "drivers": "Spanne 8.5% + Earnings in 43d + SEC Form 4",
+      "drivers": "Spanne 8.5% + Earnings in 43d",
       "price": 14.53,
       "chg_pct": -0.0,
       "rvol_4d": 1.45,
@@ -237,9 +237,9 @@
       "uoa_cp_ratio": 18.041666666666668
     },
     "PZZA": {
-      "score": 43,
+      "score": 72,
       "confidence": 70,
-      "drivers": "Volumen 2.6× + Spanne 11.7% + News-KI 8/30: Positive stock movement overshadowed by store closures and industry competition; no short squeeze indicators present. + UOA Call/Put 3.7×",
+      "drivers": "Volumen 2.6× + Spanne 11.7% + News: buyout, takeover + UOA Call/Put 3.6×",
       "price": 36.42,
       "chg_pct": -0.0,
       "rvol_4d": 2.57,
@@ -249,14 +249,14 @@
       "upcoming_event": null,
       "insider_buy": false,
       "stocktwits": null,
-      "combo_mult": 1.0,
-      "active_triggers": 1,
+      "combo_mult": 1.1,
+      "active_triggers": 2,
       "uoa_score": 10,
       "uoa_drivers": [
-        "UOA Call/Put 3.7×"
+        "UOA Call/Put 3.6×"
       ],
       "uoa_atm_ratio": 0.2436884625094673,
-      "uoa_cp_ratio": 3.6772665764546684
+      "uoa_cp_ratio": 3.6305945223780896
     },
     "RBOHF": {
       "score": 10,
@@ -340,7 +340,7 @@
         "UOA Call/Put 5.0×"
       ],
       "uoa_atm_ratio": 0.498989898989899,
-      "uoa_cp_ratio": 5.041204437400951
+      "uoa_cp_ratio": 4.980982567353407
     }
   }
 }
