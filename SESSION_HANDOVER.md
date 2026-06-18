@@ -511,6 +511,18 @@ jeweilige Auslöser greift.
   (vorgeschlagen, S15 noch unbelegt — S1–S14 existieren)** NUR, falls je ein echtes
   Ausfall-Sample beobachtet wird — sonst wäre die Schwelle geraten (Miss-Risiko bei
   langsamem Decay 60–70 %). Aufgreifen nur evidenzbasiert, kein Druck.
+- **score()-None-Konsistenz-Angleich (Diagnose 17.06., THEORETISCH, kein reales
+  Crash-Risiko):** Zwei rohe `rel_volume`-Vergleiche bestehen — gen:2808 (`score()`-
+  Combo-Bedingung `stock.get("rel_volume", 0) >= 2.0`) und gen:16142 (Loop-Filter
+  `c.get("rel_volume", 0) < 1.0`). Strukturell sicher: `_normalize_rvol` liefert
+  immer float (gen:853–858/881), alle Writer non-None, kein Phasen-Pfad mit None.
+  ABER Inkonsistenz zu gen:4096 (`DRIVER_CLASSIFICATIONS`), die schon
+  `_safe_float(s.get("rel_volume", 0))` nutzt. **KEIN eigener PR** — beim nächsten
+  ohnehin anstehenden Score-nahen PR die zwei Zeilen als 1-Zeilen-Konsistenz-
+  Angleich mitnehmen. Hintergrund: #371-Strang None-Guard (`short_situation`/
+  `risk_assessment`/`_card`, #795/#796-Render-Crash), `score()` bewusst NICHT
+  mitgezogen weil Compute-Pfad; Nachfass-Diagnose 17.06. belegt Risiko = theoretisch
+  (`rel_volume` nie roh aus nullable Provider-Feld, anders als #371-Felder).
 - **or-0-Defaults Persist-Fix** · **finviz Flag-aus + α** · **Borrow-Naming
   (`IBKR_*`→`IBORROWDESK_*`)** · **v1/v2→Jinja** · **Cockpit Stage 3 (.sb-Reste)**
   → alle OFFEN, niedrig/vertagt.
