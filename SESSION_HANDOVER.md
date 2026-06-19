@@ -523,6 +523,20 @@ jeweilige Auslöser greift.
   `risk_assessment`/`_card`, #795/#796-Render-Crash), `score()` bewusst NICHT
   mitgezogen weil Compute-Pfad; Nachfass-Diagnose 17.06. belegt Risiko = theoretisch
   (`rel_volume` nie roh aus nullable Provider-Feld, anders als #371-Felder).
+- **US-Holiday-Awareness (Diagnose 19.06., Juneteenth-Anlass):** Tool verhält
+  sich **strukturell korrekt** — Backtest-Append (Vintage-Guard mit explizitem
+  `holiday_or_prior_bar`-Skip, `backtest_history.py:550–551`) und Forward-Return-
+  Backfill (bar-index-basiert via yfinance-Close-Index, `ki_agent.py:458–468` +
+  `572–580`) sind holiday-robust **by construction** (reale Bars, Feiertage per
+  Definition abwesend). **Kein Bau nötig.** RESTPUNKT (≤1-Tag-Ungenauigkeit,
+  marginal): `_trading_days_elapsed` (`ki_agent.py:362`) und `_trading_days_until`
+  (`generate_report.py:14839`) nutzen `weekday()<5` ohne Holiday-Check — nur ein
+  Gate (self-correcting Retry) bzw. catalyst-5%-Sub-Score. Optionale Mitnahme bei
+  nächstem ki_agent-nahen PR: gemeinsames Python-`US_MARKET_HOLIDAYS`-Set,
+  gespiegelt aus der JS-Liste `US_HOLIDAYS` (`generate_report.py:10908–10939`,
+  2025–2027 inkl. Juneteenth 2026). **KEIN eigener PR — null Trading-Wert.**
+  **WARTUNGS-REMINDER:** JS-Liste `US_HOLIDAYS` braucht jährliche manuelle Pflege
+  (nächste Erweiterung: 2028).
 - **or-0-Defaults Persist-Fix** · **finviz Flag-aus + α** · **Borrow-Naming
   (`IBKR_*`→`IBORROWDESK_*`)** · **v1/v2→Jinja** · **Cockpit Stage 3 (.sb-Reste)**
   → alle OFFEN, niedrig/vertagt.
