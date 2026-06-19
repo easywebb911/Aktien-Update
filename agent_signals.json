@@ -1,10 +1,10 @@
 {
-  "updated": "2026-06-19T22:47:22.355252+02:00",
+  "updated": "2026-06-20T00:14:39.498676+02:00",
   "run_info": {
     "tickers_checked": 16,
     "signals_active": 7,
     "alerts_sent": 0,
-    "elapsed_s": 13.3,
+    "elapsed_s": 13.0,
     "market_phase": "After-Hours"
   },
   "signals": {
@@ -93,9 +93,9 @@
       "uoa_cp_ratio": null
     },
     "DBI": {
-      "score": 25,
+      "score": 22,
       "confidence": 33,
-      "drivers": "Spanne 5.5% + News: earnings beat",
+      "drivers": "Spanne 5.5% + News-KI 12/30: Positive earnings beat and margin momentum are offset by significant 21% stock dip, indicating weak short squeeze setup ",
       "price": 6.32,
       "chg_pct": 0.0,
       "rvol_4d": 1.49,
@@ -284,7 +284,7 @@
     "REAL": {
       "score": 53,
       "confidence": 70,
-      "drivers": "Volumen 2.2× + Spanne 7.3% + News-KI 8/30: CFO selling large share quantities is bearish sentiment, no evidence of high short interest, low institutional pressure, + UOA Call-Vol/OI 3.0× ATM + UOA Call/Put 159.2×",
+      "drivers": "Volumen 2.2× + Spanne 7.3% + News-KI 8/30: CFO selling large share amounts is bearish signal; no indicators of high short interest, low float, or explosive catalys + UOA Call-Vol/OI 3.0× ATM + UOA Call/Put 159.2×",
       "price": 12.45,
       "chg_pct": -0.0,
       "rvol_4d": 2.25,
