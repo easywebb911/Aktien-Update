@@ -1,10 +1,10 @@
 {
-  "updated": "2026-06-19T20:59:04.927223+02:00",
+  "updated": "2026-06-19T21:03:07.191835+02:00",
   "run_info": {
-    "tickers_checked": 17,
-    "signals_active": 3,
+    "tickers_checked": 16,
+    "signals_active": 7,
     "alerts_sent": 0,
-    "elapsed_s": 13.6,
+    "elapsed_s": 13.8,
     "market_phase": "Regulär"
   },
   "signals": {
@@ -239,32 +239,10 @@
       "uoa_atm_ratio": null,
       "uoa_cp_ratio": 0.7558139534883721
     },
-    "OM": {
-      "score": 63,
-      "confidence": 70,
-      "drivers": "Volumen 2.8× + Spanne 28.7% + News-KI 12/30: Moderate bullish momentum with price recovery, but no evidence of high short interest, borrowing difficulty, or catalyst + UOA Call-Vol/OI 11.0× ATM",
-      "price": 5.05,
-      "chg_pct": 0.0,
-      "rvol_4d": 2.8,
-      "rvol_20d": 2.88,
-      "earnings": "in 47 Tagen (05.08.2026)",
-      "fda_date": null,
-      "upcoming_event": null,
-      "insider_buy": false,
-      "stocktwits": null,
-      "combo_mult": 1.1,
-      "active_triggers": 2,
-      "uoa_score": 20,
-      "uoa_drivers": [
-        "UOA Call-Vol/OI 11.0× ATM"
-      ],
-      "uoa_atm_ratio": 11.0,
-      "uoa_cp_ratio": null
-    },
     "PDYN": {
       "score": 50,
       "confidence": 33,
-      "drivers": "Spanne 8.1% + News: contract, partnership + UOA Call/Put 6.0×",
+      "drivers": "Spanne 8.1% + News: partnership, contract + UOA Call/Put 6.0×",
       "price": 7.0,
       "chg_pct": 0.0,
       "rvol_4d": 1.23,
