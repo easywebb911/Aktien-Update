@@ -347,6 +347,24 @@ nicht pro Agent. Disziplin sitzt in der Korrektur, nicht im Verzicht auf
 Parallelität. (Sequenz-Prinzip sonst unberührt: gilt für **Strang-Öffnung**,
 nicht für das Rechnen vorab-fixierter Tests.)
 
+**Sample-Varianten beim H1/H2-Lauf (Diagnose 19.06.):** `manual_personal`-Ticker
+(Gist-Watchlist + offene Positionen, **filter-immun** via Pool-Bypass) können
+organisch nicht qualifizierte Ticker in die Top-10 und damit ins Backtest-Sample
+bringen. Setup-/Conviction-/Earliness-Score selbst sind **positions-blind**
+(belegt: `score()`/`compute_conviction_score`/`compute_earliness_pts` lesen keinen
+Position-/Watchlist-Status), aber die **Pool-Komposition** wird beeinflusst.
+Konsequenz: H1/H2-Lauf zusätzlich als **DOPPELLAUF** rechnen — einmal mit allem,
+einmal OHNE `manual_personal`-Einträge. **⚠ KORREKTUR der ursprünglichen Annahme
+(Gegenprüfung 19.06.):** das `manual_personal`-Flag ist **NICHT** im
+`backtest_history`-Eintrag persistiert (kein Key; `pool_member` ist konstant
+`True`, kein Signal). Die Bereinigung ist daher **nicht** nachträglich per Flag
+filterbar — sie muss beim H1/H2-Lauf **rekonstruiert** werden via Cross-Reference
+mit dem **damaligen Gist-Stand** (falls verfügbar; sonst best-effort über bekannte
+Watchlist-/Positions-Ticker des Zeitraums). Methodisch analog zum
+Cluster-Purge-Doppellauf. Effektgröße wird damit empirisch sichtbar statt
+angenommen. (Optionaler Folge-PR, falls die Bereinigung häufiger gebraucht wird:
+`manual_personal` ins Backtest-Schema persistieren — dann ist es ab dann filterbar.)
+
 ### Externe Begutachtung 15.06. — zu prüfende Vorschläge (NICHT Erkenntnis)
 **Status:** Vorschläge eines externen Gutachters zum Projektdossier — **dokumentiert,
 nicht validiert.** Alle unterliegen der **Vorleistungs-Logik: erst Edge-Validierung,
