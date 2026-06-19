@@ -1,17 +1,17 @@
 {
-  "updated": "2026-06-20T00:16:40.149040+02:00",
+  "updated": "2026-06-20T01:16:56.832344+02:00",
   "run_info": {
     "tickers_checked": 16,
     "signals_active": 5,
     "alerts_sent": 0,
-    "elapsed_s": 11.3,
+    "elapsed_s": 10.8,
     "market_phase": "After-Hours"
   },
   "signals": {
     "AI": {
-      "score": 25,
+      "score": 20,
       "confidence": 33,
-      "drivers": "News-KI 5/30: Headlines reflect fundamental business concerns and growth narratives rather than contrarian signals or extreme bearish  + SEC Form 4 + UOA Call/Put 27.7×",
+      "drivers": "SEC Form 4 + UOA Call/Put 27.7×",
       "price": 10.3,
       "chg_pct": 0.0,
       "rvol_4d": 0.95,
@@ -242,9 +242,9 @@
       "uoa_cp_ratio": 0.7558139534883721
     },
     "PDYN": {
-      "score": 32,
+      "score": 50,
       "confidence": 33,
-      "drivers": "Spanne 8.1% + News-KI 12/30: Positive fundamentals (Army contracts, undervaluation thesis) reduce squeeze potential; stock likely rising on merit rat + UOA Call/Put 6.0×",
+      "drivers": "Spanne 8.1% + News: contract, partnership + UOA Call/Put 6.0×",
       "price": 7.0,
       "chg_pct": 0.0,
       "rvol_4d": 1.24,
