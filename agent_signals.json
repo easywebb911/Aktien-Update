@@ -1,11 +1,11 @@
 {
-  "updated": "2026-06-20T01:16:56.832344+02:00",
+  "updated": "2026-06-20T03:33:08.501089+02:00",
   "run_info": {
     "tickers_checked": 16,
     "signals_active": 5,
     "alerts_sent": 0,
-    "elapsed_s": 10.8,
-    "market_phase": "After-Hours"
+    "elapsed_s": 12.5,
+    "market_phase": "Geschlossen"
   },
   "signals": {
     "AI": {
@@ -222,9 +222,9 @@
       "uoa_cp_ratio": 7.666666666666667
     },
     "LUCK": {
-      "score": 25,
-      "confidence": 33,
-      "drivers": "Volumen 2.0× + Spanne 8.2%",
+      "score": 33,
+      "confidence": 70,
+      "drivers": "Volumen 2.0× + Spanne 8.2% + News-KI 8/30: Positive management news offset by significant stock plunge; lack of short interest data and small float confirmation li",
       "price": 7.59,
       "chg_pct": 0.0,
       "rvol_4d": 1.97,
@@ -244,7 +244,7 @@
     "PDYN": {
       "score": 50,
       "confidence": 33,
-      "drivers": "Spanne 8.1% + News: contract, partnership + UOA Call/Put 6.0×",
+      "drivers": "Spanne 8.1% + News: partnership, contract + UOA Call/Put 6.0×",
       "price": 7.0,
       "chg_pct": 0.0,
       "rvol_4d": 1.24,
@@ -326,13 +326,13 @@
       "uoa_cp_ratio": 12.642857142857142
     },
     "ZBIO": {
-      "score": 55,
+      "score": 45,
       "confidence": 70,
-      "drivers": "Volumen 3.0× + ⚡ Extremes Volumen 3.0×+ + Spanne 6.1% + UOA Call/Put 8.5×",
+      "drivers": "Kurs +6.5% + Spanne 5.8% + UOA Call/Put 8.5×",
       "price": 19.78,
-      "chg_pct": 0.0,
-      "rvol_4d": 3.01,
-      "rvol_20d": 3.82,
+      "chg_pct": 6.46,
+      "rvol_4d": 0.85,
+      "rvol_20d": 1.09,
       "earnings": "in 54 Tagen (12.08.2026)",
       "fda_date": null,
       "upcoming_event": null,
