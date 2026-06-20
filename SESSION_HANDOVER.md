@@ -555,6 +555,22 @@ jeweilige Auslöser greift.
   2025–2027 inkl. Juneteenth 2026). **KEIN eigener PR — null Trading-Wert.**
   **WARTUNGS-REMINDER:** JS-Liste `US_HOLIDAYS` braucht jährliche manuelle Pflege
   (nächste Erweiterung: 2028).
+  **Update 20.06. (S4-Klärung, ENTSCHEIDUNG: NICHT bauen):** Der `S4`-Wächter ist
+  der **einzige** Ort mit realem Holiday-Lärm (~9 warn/Jahr, oft sub-Push-Schwelle
+  ≥3 warn). Die Holiday-Blindheit ist dort **EXPLIZIT BEWUSST** gewählt
+  (`health_check.py:773–777` dokumentiert: „bewusst keine fragile Feiertags-Liste
+  hier; konsistent zu `_trading_days_elapsed` und `_last_phase_run_age_workdays`").
+  Begründung: ein **false-negative** (S4 stumm bei echtem Append-Ausfall, weil eine
+  falsch gepflegte Liste den Tag fälschlich als Feiertag maskiert) ist **schlimmer**
+  als das false-positive (Holiday-Warn). Der `vintage_guard_log` kann NICHT zur
+  Holiday-Erkennung herangezogen werden, weil der `holiday_or_prior_bar`-Reason
+  zwischen echtem Feiertag und echtem Bar-Lag **ununterscheidbar** ist
+  (`backtest_history.py:551`) — der Bar-Lag-Zahn (§3-Vintage-Verify) würde mitgemutet.
+  Eine echte Holiday-Liste wäre der **einzige saubere Weg** — wird aber bewusst
+  **nicht** gebaut: ~9 warn/Jahr akzeptieren statt einen zweiten Wartungs-Pfad zu
+  schaffen, der 2028 driften kann (Drift → stiller Real-Fehler maskiert).
+  **Konsistent zum „Kein Bau nötig" oben** — kein Widerspruch, dieselbe konservative
+  Linie. Bei künftigem Bau-Gedanken **zuerst diese Begründung lesen**.
 - **or-0-Defaults Persist-Fix** · **finviz Flag-aus + α** · **Borrow-Naming
   (`IBKR_*`→`IBORROWDESK_*`)** · **v1/v2→Jinja** · **Cockpit Stage 3 (.sb-Reste)**
   → alle OFFEN, niedrig/vertagt.
