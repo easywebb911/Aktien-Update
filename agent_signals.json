@@ -1,10 +1,10 @@
 {
-  "updated": "2026-06-20T08:42:06.746495+02:00",
+  "updated": "2026-06-20T12:14:09.175524+02:00",
   "run_info": {
     "tickers_checked": 16,
     "signals_active": 5,
     "alerts_sent": 0,
-    "elapsed_s": 15.4,
+    "elapsed_s": 12.2,
     "market_phase": "Geschlossen"
   },
   "signals": {
@@ -31,9 +31,9 @@
       "uoa_cp_ratio": 27.681329423264906
     },
     "AMC": {
-      "score": 35,
+      "score": 53,
       "confidence": 70,
-      "drivers": "Volumen 1.6× + Spanne 12.1% + UOA Call/Put 15.1×",
+      "drivers": "Volumen 1.6× + Spanne 12.1% + News-KI 18/30: Positive fundamentals (attendance, equity raise) reduce squeeze potential as they improve underlying valuation; stock al + UOA Call/Put 15.1×",
       "price": 2.83,
       "chg_pct": -0.0,
       "rvol_4d": 1.59,
@@ -44,7 +44,7 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 0,
+      "active_triggers": 1,
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 15.1×"
@@ -244,7 +244,7 @@
     "PDYN": {
       "score": 50,
       "confidence": 33,
-      "drivers": "Spanne 8.1% + News: partnership, contract + UOA Call/Put 6.0×",
+      "drivers": "Spanne 8.1% + News: contract, partnership + UOA Call/Put 6.0×",
       "price": 7.0,
       "chg_pct": 0.0,
       "rvol_4d": 1.24,
@@ -284,9 +284,9 @@
       "uoa_cp_ratio": null
     },
     "SBH": {
-      "score": 61,
+      "score": 43,
       "confidence": 70,
-      "drivers": "Kurs +6.0% + Spanne 5.3% + News-KI 12/30: Moderate price movement but no unusual volume data, short interest metrics, or catalyst indicators suggesting imminent s + Earnings in 45d",
+      "drivers": "Kurs +6.0% + Spanne 5.3% + Earnings in 45d",
       "price": 13.83,
       "chg_pct": 5.98,
       "rvol_4d": 1.01,
@@ -296,8 +296,8 @@
       "upcoming_event": null,
       "insider_buy": false,
       "stocktwits": null,
-      "combo_mult": 1.1,
-      "active_triggers": 2,
+      "combo_mult": 1.0,
+      "active_triggers": 1,
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": 0.23076923076923078,
@@ -326,9 +326,9 @@
       "uoa_cp_ratio": 12.642857142857142
     },
     "ZBIO": {
-      "score": 45,
+      "score": 53,
       "confidence": 70,
-      "drivers": "Kurs +6.5% + Spanne 5.8% + UOA Call/Put 8.5×",
+      "drivers": "Kurs +6.5% + Spanne 5.8% + News-KI 8/30: Routine corporate governance and conference presentation announcements lack catalysts for short-squeeze momentum; no sig + UOA Call/Put 8.5×",
       "price": 19.78,
       "chg_pct": 6.46,
       "rvol_4d": 0.85,
