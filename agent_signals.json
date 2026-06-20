@@ -1,10 +1,10 @@
 {
-  "updated": "2026-06-20T16:30:59.981443+02:00",
+  "updated": "2026-06-20T18:51:34.249742+02:00",
   "run_info": {
     "tickers_checked": 16,
     "signals_active": 5,
     "alerts_sent": 0,
-    "elapsed_s": 13.2,
+    "elapsed_s": 12.1,
     "market_phase": "Geschlossen"
   },
   "signals": {
@@ -33,7 +33,7 @@
     "AMC": {
       "score": 47,
       "confidence": 70,
-      "drivers": "Volumen 1.6× + Spanne 12.1% + News-KI 12/30: Positive fundamentals (attendance, equity raise) reduce short-squeeze potential as they suggest legitimate value recover + UOA Call/Put 15.1×",
+      "drivers": "Volumen 1.6× + Spanne 12.1% + News-KI 12/30: Positive fundamentals (attendance, capital raise) reduce squeeze potential as they address underlying business concerns  + UOA Call/Put 15.1×",
       "price": 2.83,
       "chg_pct": -0.0,
       "rvol_4d": 1.59,
@@ -53,20 +53,20 @@
       "uoa_cp_ratio": 15.062238087847277
     },
     "ATPC": {
-      "score": 72,
-      "confidence": 70,
-      "drivers": "Volumen 75.6× + 🚀 Massives Volumen 75.6×+ + Spanne 96.0% + News: catalyst",
+      "score": 15,
+      "confidence": 17,
+      "drivers": "News: catalyst",
       "price": 3.88,
       "chg_pct": 0.0,
-      "rvol_4d": 75.63,
-      "rvol_20d": 11.67,
+      "rvol_4d": 0.0,
+      "rvol_20d": null,
       "earnings": null,
       "fda_date": null,
       "upcoming_event": null,
       "insider_buy": false,
       "stocktwits": null,
-      "combo_mult": 1.1,
-      "active_triggers": 2,
+      "combo_mult": 1.0,
+      "active_triggers": 1,
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": null,
@@ -222,9 +222,9 @@
       "uoa_cp_ratio": 7.666666666666667
     },
     "LUCK": {
-      "score": 33,
-      "confidence": 70,
-      "drivers": "Volumen 2.0× + Spanne 8.2% + News-KI 8/30: Positive executive promotion and event coverage are overshadowed by plummeting share price, indicating fundamental weakn",
+      "score": 25,
+      "confidence": 33,
+      "drivers": "Volumen 2.0× + Spanne 8.2%",
       "price": 7.59,
       "chg_pct": 0.0,
       "rvol_4d": 1.97,
@@ -244,7 +244,7 @@
     "PDYN": {
       "score": 50,
       "confidence": 33,
-      "drivers": "Spanne 8.1% + News: contract, partnership + UOA Call/Put 6.0×",
+      "drivers": "Spanne 8.1% + News: partnership, contract + UOA Call/Put 6.0×",
       "price": 7.0,
       "chg_pct": 0.0,
       "rvol_4d": 1.24,
@@ -269,7 +269,7 @@
       "drivers": "Spanne 20.6%",
       "price": 0.19,
       "chg_pct": -0.53,
-      "rvol_4d": 0.73,
+      "rvol_4d": 0.72,
       "rvol_20d": 0.71,
       "earnings": null,
       "fda_date": null,
@@ -284,9 +284,9 @@
       "uoa_cp_ratio": null
     },
     "SBH": {
-      "score": 53,
+      "score": 72,
       "confidence": 70,
-      "drivers": "Volumen 3.2× + ⚡ Extremes Volumen 3.2×+ + Spanne 6.2% + Earnings in 45d",
+      "drivers": "Volumen 3.2× + ⚡ Extremes Volumen 3.2×+ + Spanne 6.2% + News-KI 12/30: Moderate positive price action (6%) but no short-specific catalysts mentioned; generic sector momentum without evidence  + Earnings in 45d",
       "price": 13.83,
       "chg_pct": -0.0,
       "rvol_4d": 3.25,
@@ -296,8 +296,8 @@
       "upcoming_event": null,
       "insider_buy": false,
       "stocktwits": null,
-      "combo_mult": 1.0,
-      "active_triggers": 1,
+      "combo_mult": 1.1,
+      "active_triggers": 2,
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": 0.23076923076923078,
