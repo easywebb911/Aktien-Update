@@ -447,6 +447,67 @@ jeweilige Auslöser greift.
     30.06.-Validierungsprogramms. Bewerten erst, wenn Edge-Befund vorliegt UND klar
     ist, dass Social-Velocity gegenüber den anderen post-Edge-Kandidaten zu
     priorisieren ist.
+- **424B-Dilution-Trigger als möglicher Exit-Hebel (Diagnose 20.06., explorativ,
+  NACH Edge-Befund):**
+  - **KONTEXT:** Kapitalerhöhungen via Shelf-Drawdown sind ein bekannter abrupter
+    Squeeze-Killer bei Small-Caps (Pattern: Squeeze läuft → Filing kommt → Kurs
+    kollabiert). Idee ursprünglich als „S-3/Dilution-Erkennung".
+  - **DIAGNOSE-BEFUND (belegt 20.06.):** Das Tool hat **heute KEINE** Dilution-
+    Erkennung — weder direkt (kein S-3/424B/ATM-Fetch — **null grep-Treffer** über
+    alle `*.py`/`*.json`/`*.md`) noch indirekt (`SEC_RELEVANT_KEYWORDS` enthält
+    keinen Dilution-Begriff; Exit-Pressure ist **filing-blind**, alle sechs Trigger
+    `_exit_p2_trigger_*` lesen nur Markt/Borrow/Score/Earnings — `generate_report.py:
+    14726–15185`). EDGAR-Pipeline existiert (`fetch_sec_8k` mit Atom-Feed-Pattern,
+    `ki_agent:806–845`), die Dilution-Filing-Klasse ist die Lücke.
+  - **SCHÄRFUNG GEGENÜBER NAIVER LESART (kritisch):** Die prädiktive Filing-Klasse
+    ist **NICHT S-3 allein**, sondern:
+    - **424B-Prospectus-Supplements** (= konkrete Platzierung wird durchgeführt) —
+      Hauptsignal
+    - **8-K Item 1.01/3.02** mit ATM-Begriffen — Sekundärsignal
+    S-3 wäre nur **Kontext** (Shelf vorhanden → erhöhte Wahrscheinlichkeit für
+    späteres 424B), **NICHT** Solo-Trigger. Microcaps mit Squeeze-Potenzial haben
+    S-3 oft dauerhaft offen — naive S-3-Push würde **Lärm** produzieren statt
+    Information. Diskriminierend ist „**neue 424B-Drawdowns**", nicht
+    „S-3-Existenz".
+  - **FEASIBILITY: mittel.** EDGAR ist gratis, Pipeline-Pattern existiert
+    (`fetch_sec_8k`-Atom-Feed-Mechanik wiederverwendbar mit `type=424B`),
+    Pro-Ticker-Pfad und Cooldown-Pattern vorhanden. Aber: Filing-Klassifikation
+    (welche 8-K-Item-Codes? welche Filer-Heterogenität?) braucht echte Vorab-
+    Recherche, nicht trivial.
+  - **DEFENSIVER CHARAKTER (Erwartung kalibrieren):** Trigger wäre **primär Risiko-
+    Filter** (Position raus bei aktivem Drawdown), **NICHT Frühindikator**. SEC-
+    Filings kommen oft **NACH** dem Kurs-Drop (Markt antizipiert via Order-Flow) →
+    Wert ist **Bestätigung/Exit-Schutz, nicht Vorwarnung**. Realistisch: hilft beim
+    Aussteigen, nicht beim Vermeiden.
+  - **KANDIDAT, NICHT BESCHLUSS — Konkurrenz-Verhältnis:** steht in derselben Reihe
+    wie **Synthetische Utilization** (oben; laut Memory #20 **akademisch stärkerer**
+    Einzel-Squeeze-Prädiktor), **Katalysator-Gating**, **Exit-Mechanik-Spec**,
+    **Reddit-Velocity**. Reihenfolge erst NACH 30.06., abhängig davon, was die Edge-
+    Auswertung als **schwächsten** Punkt zeigt. Konzeptionell ↗ H3 (Exit-Edge) UND
+    ↗ H5 (Katalysator-Overlay) zuzuordnen — aber als **negativer** Katalysator.
+  - **DREI VOR-BAU-BEDINGUNGEN (zwingend):**
+    1. **FILING-KLASSEN-DISKRIMINIERUNG konzeptionell lösen — das ist die ZENTRALE
+       schwere Vor-Bau-Frage, NICHT der Code-Aufwand** (analog der Reddit-Velocity-
+       Doppelzählungs-Frage). Welche EDGAR-Filing-Typen UND welche 8-K-Item-Codes
+       zählen? Mit welchen Cooldowns? Wie wird Routine-Shelf (S-3 ohne 424B-Follow-
+       up) von aktiver Platzierung unterschieden?
+    2. **EINORDNUNGS-FRAGE:** Exit-Trigger #7 (analog den sechs bestehenden
+       `_exit_p2_*`) ODER negative Setup-Komponente (Anti-Squeeze-Substrat,
+       Score-Abzug)? Beide Wege funktionieren, sind aber architektonisch verschieden
+       — VORAB entscheiden.
+    3. **Vorab-spezifizierte Hypothese:** Validierung wie H1–H6 (vorab-definiert,
+       AUC vs. `return_10d` bzw. `forward_3d` bei Exit-Charakter, **gemeinsame**
+       Multiple-Testing-Korrektur). Nicht data-dredgen, nicht Filing-Klassen zur
+       Edge-Optimierung nachträglich tunen.
+  - **NICHT VORZIEHEN (Sequenz-Disziplin):** kein neuer Signal-Strang während des
+    30.06.-Validierungsprogramms. Bewerten erst, wenn Edge-Befund vorliegt UND klar
+    ist, dass 424B-Dilution gegenüber den anderen post-Edge-Kandidaten zu
+    priorisieren ist.
+  - **ABGRENZUNG:** Das ist KEINE Wiederaufnahme der **naiven** „S-3-Dilution-
+    Erkennung" (würde Routine-Shelfs als Squeeze-Killer fehlinterpretieren) — die
+    Schärfung „nicht S-3 sondern 424B" macht den Unterschied klar. Das ist auch
+    KEINE Wiederaufnahme von GEX/Options-Flow (paywall-Klasse, separate Memory-
+    Begründung gegen Aufnahme; nicht im D)-Block geführt, aber bewusst nicht hier).
 
 **D) Bewusst NICHT aufgenommen (abgelehnt mit Begründung):**
 - **„Rate-of-Change statt Absolutwerte" als neue Idee** — verworfen: **teils bereits
