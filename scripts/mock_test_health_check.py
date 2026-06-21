@@ -322,13 +322,15 @@ def test_s4_pass_postclose_sunday_no_appends():
 def test_s4_fail_postclose_monday_no_appends():
     """Mo-postclose-Run ohne backtest-Eintrag flaggt weiter — Mo-Fr-
     Catch-Wert intakt nach dem Gate."""
-    # 2026-05-25 = Montag
+    # 2026-06-15 = Montag, KEIN US-Feiertag. (Früher 2026-05-25 — das ist
+    # aber Memorial Day; seit dem Holiday-Gate Fix B würde S4 dort korrekt
+    # schweigen, daher Datum auf einen echten Handels-Montag umgestellt.)
     fails = hc.evaluate_state_invariants(
         top10_tickers=TOP10,
         setup_scores=_full_setup(TOP10),
         monster_scores=_full_monster(TOP10),
         score_history=_full_history(TOP10),
-        today_iso="2026-05-25",
+        today_iso="2026-06-15",
         n_inflation_lines=10,
         n_backtest_appended=0,
         backtest_has_today=False,
@@ -421,6 +423,29 @@ def test_s4_fail_postclose_after_close_et_no_appends():
         now_utc=datetime(2026, 6, 11, 21, 30, tzinfo=timezone.utc), **_S4_BASE)
     assert "S4" in _ids(fails), \
         "S4 muss nach 16:00 ET weiter feuern (Zahn erhalten)"
+
+
+def test_s4_pass_postclose_us_holiday_no_appends():
+    """US-Feiertag (Juneteenth 19.06.2026, Fr) nach 16:00 ET ohne Eintrag →
+    KEIN S4 (Fix B, 21.06.2026). An Feiertagen skippt der Vintage-Guard den
+    Append by design (holiday_or_prior_bar) → fehlender Eintrag ist KEIN
+    Fehler. Quelle: config.US_MARKET_HOLIDAYS."""
+    fails = hc.evaluate_state_invariants(
+        today_iso="2026-06-19", backtest_has_today=False,
+        now_utc=datetime(2026, 6, 19, 21, 30, tzinfo=timezone.utc), **_S4_BASE)
+    assert "S4" not in _ids(fails), \
+        "S4 muss an US-Feiertagen schweigen (Holiday-Gate, Fix B)"
+
+
+def test_s4_fail_postclose_non_holiday_weekday_control():
+    """Kontrolle: ein Werktag, der KEIN Feiertag ist (18.06.2026, Do), nach
+    16:00 ET ohne Eintrag → S4 FEUERT weiter (Holiday-Gate darf den Zahn an
+    normalen Handelstagen nicht muten)."""
+    fails = hc.evaluate_state_invariants(
+        today_iso="2026-06-18", backtest_has_today=False,
+        now_utc=datetime(2026, 6, 18, 21, 30, tzinfo=timezone.utc), **_S4_BASE)
+    assert "S4" in _ids(fails), \
+        "S4 muss an normalen Handelstagen weiter feuern (kein Über-Muting)"
 
 
 def test_s4_pass_postclose_after_close_et_with_entry():
@@ -887,6 +912,8 @@ def main() -> None:
         # S4 Zeit-Gate (#346-Symmetrie, 16:00 ET)
         ("S4 pass: vor 16:00 ET (Vormittags-Fehlalarm weg)", test_s4_pass_postclose_before_close_et_no_appends),
         ("S4 fail: nach 16:00 ET ohne Eintrag (Zahn)",      test_s4_fail_postclose_after_close_et_no_appends),
+        ("S4 pass: US-Feiertag ohne Eintrag (Holiday-Gate)", test_s4_pass_postclose_us_holiday_no_appends),
+        ("S4 fail: Werktag-Kontrolle (kein Über-Muting)",   test_s4_fail_postclose_non_holiday_weekday_control),
         ("S4 pass: nach 16:00 ET mit Eintrag (Normalfall)", test_s4_pass_postclose_after_close_et_with_entry),
         ("S4 pass: Wochenende überschreibt Zeit-Gate",      test_s4_pass_weekend_overrides_time_gate),
         ("S4 DST EDT Juni (16:00 ET=20:00Z)",               test_s4_time_gate_dst_edt_june),

@@ -1927,7 +1927,8 @@ def _exit_cooldown_set(state: dict, key: str,
     state.setdefault("exit_cooldowns", {})[key] = ts.isoformat()
 
 
-def process_exit_signals(app_data: dict, state: dict) -> None:
+def process_exit_signals(app_data: dict, state: dict,
+                         now: datetime | None = None) -> None:
     """Phase 2 Exit-Push-Pipeline (Stufe 3b-3b — alle Klassen scharf).
 
     Liest ``exit_state`` aus ``app_data["positions"]`` (vom Daily-Run via
@@ -1948,7 +1949,25 @@ def process_exit_signals(app_data: dict, state: dict) -> None:
         24h pro (Ticker × Trigger-Name) — UNVERÄNDERT seit 3b-2.
 
     Severity steuert ntfy-Priority + Tag (siehe ``_send_exit_p2_push``).
+
+    Markt-Gate (Fix B, 21.06.2026): Exit-Pushes feuern NUR an US-Handelstagen.
+    An Wochenenden UND US-Feiertagen (``config.US_MARKET_HOLIDAYS``) wird die
+    GESAMTE Pipeline übersprungen — an einem Nicht-Handelstag ist kein Exit
+    handelbar, jeder Push wäre reiner Lärm (Alarm-Müdigkeit). ``now`` ist für
+    deterministische Tests injizierbar; Default = aktuelle Zeit. Der Cron läuft
+    24/7 (``17 * * * *``) ohne Wochentags-Filter, daher MUSS das Gate hier
+    sitzen. Anomaly-/EDGAR-Pushes laufen über ``detect_anomalies`` (separater
+    Pfad) und sind von diesem Gate NICHT betroffen.
     """
+    _n = now or datetime.now(timezone.utc)
+    if _n.tzinfo is None:
+        _n = _n.replace(tzinfo=timezone.utc)
+    now_et = _n.astimezone(EASTERN)
+    today_iso = now_et.date().isoformat()
+    if now_et.weekday() >= 5 or today_iso in US_MARKET_HOLIDAYS:
+        print(f"[exit_p2] SKIP all: non-trading-day "
+              f"({today_iso}, weekday={now_et.weekday()})")
+        return
     positions = (app_data or {}).get("positions") or {}
     if not positions:
         return
@@ -2032,6 +2051,17 @@ def process_exit_signals(app_data: dict, state: dict) -> None:
                 if not isinstance(t, dict):
                     continue
                 if t.get("crit") is not True:
+                    continue
+                # Validity-Gate (Fix A, 21.06.2026): ein gespeicherter crit ohne
+                # gültige Datenbasis darf NICHT gepusht werden. Aktuelle Trigger-
+                # Success-Branches setzen ``available=True`` EXPLIZIT; alles
+                # andere (Key absent → None, oder False) gilt als nicht
+                # vertrauenswürdig — z.B. stale Altbestand (Juneteenth-Schreiber:
+                # trend_break crit=True, available absent, details.price=None).
+                # Symmetrisch zum Composite-Gate (_compute_exit_state).
+                if t.get("available") is not True:
+                    print(f"[exit_p2] SKIP trigger {ticker} {tname}: "
+                          f"invalid (available={t.get('available')!r})")
                     continue
                 key = f"exitp2_trigger_{ticker}_{tname}"
                 if _exit_cooldown_active(state, key, EXIT_PUSH_TRIGGER_COOLDOWN_HOURS):

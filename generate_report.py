@@ -14753,7 +14753,7 @@ def _exit_p2_trigger_score_decay(entries: list, cur_score: float | None
         warn = warn or wf
         crit = crit or cf
     return {
-        "score": sub, "warn": warn, "crit": crit,
+        "score": sub, "warn": warn, "crit": crit, "available": True,
         "details": {**drops, "sub_scores_all_falling": None,
                     "sub_scores_all_falling_available": False},
     }
@@ -14781,6 +14781,7 @@ def _exit_p2_trigger_profit_lock(pnl_frac: float | None,
         "score": max(s_dd, s_sd),
         "warn":  w_dd or w_sd,
         "crit":  c_dd or c_sd,
+        "available": True,
         "details": {
             "pnl_pct":             round(pnl_frac, 4) if pnl_frac is not None else None,
             "peak_pnl_pct":        round(peak_pnl_frac, 4) if peak_pnl_frac is not None else None,
@@ -14828,6 +14829,7 @@ def _exit_p2_trigger_trend_break(metrics: dict | None,
         "score": score,
         "warn":  warn,
         "crit":  crit,
+        "available": True,
         "details": {
             "ma21":     round(float(ma21), 4),
             "price":    round(float(cur_price), 4),
@@ -15036,6 +15038,7 @@ def _exit_p2_trigger_catalyst(ticker: str,
         "score": score,
         "warn":  warn,
         "crit":  crit,
+        "available": True,
         "details": {
             "earnings_date":     edate.strftime("%Y-%m-%d"),
             "trading_days_until": days_until,
@@ -15161,6 +15164,7 @@ def _exit_p2_trigger_setup_erosion(position: dict,
         "score":  int(score),
         "warn":   bool(warn),
         "crit":   bool(crit),
+        "available": True,
         "details": {
             "entry_dtc":          entry_dtc,
             "entry_short_float":  entry_sf,
@@ -15205,6 +15209,7 @@ def _exit_p2_trigger_overheated(metrics: dict | None) -> dict:
         "score": max(s_r, s_m2, s_m3),
         "warn":  w_r or w_m2 or w_m3,
         "crit":  c_r or c_m2 or c_m3,
+        "available": True,
         "details": {
             "rsi14":             rsi,
             "move_2d_pct":       round(move_2d, 4) if move_2d is not None else None,
