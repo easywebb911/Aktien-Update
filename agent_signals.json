@@ -1,17 +1,17 @@
 {
-  "updated": "2026-06-21T19:52:51.370617+02:00",
+  "updated": "2026-06-21T22:03:20.999882+02:00",
   "run_info": {
     "tickers_checked": 16,
     "signals_active": 5,
     "alerts_sent": 0,
-    "elapsed_s": 12.3,
+    "elapsed_s": 17.0,
     "market_phase": "Geschlossen"
   },
   "signals": {
     "AI": {
-      "score": 28,
+      "score": 20,
       "confidence": 33,
-      "drivers": "News-KI 8/30: CFO insider selling is bearish signal; no evidence of high short interest, significant squeeze mechanics, or bullish cat + SEC Form 4 + UOA Call/Put 27.6×",
+      "drivers": "SEC Form 4 + UOA Call/Put 27.6×",
       "price": 10.3,
       "chg_pct": 0.0,
       "rvol_4d": 0.95,
@@ -31,9 +31,9 @@
       "uoa_cp_ratio": 27.573515092502433
     },
     "AMC": {
-      "score": 50,
+      "score": 35,
       "confidence": 70,
-      "drivers": "Volumen 1.6× + Spanne 12.1% + News: squeeze + UOA Call/Put 15.7×",
+      "drivers": "Volumen 1.6× + Spanne 12.1% + UOA Call/Put 15.7×",
       "price": 2.83,
       "chg_pct": -0.0,
       "rvol_4d": 1.59,
@@ -44,7 +44,7 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 1,
+      "active_triggers": 0,
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 15.7×"
@@ -73,9 +73,9 @@
       "uoa_cp_ratio": null
     },
     "BIRD": {
-      "score": 10,
-      "confidence": 17,
-      "drivers": "Spanne 12.8%",
+      "score": 15,
+      "confidence": 33,
+      "drivers": "Spanne 12.8% + News-KI 5/30: Negative headlines about AI business leadership and lack of team suggest operational challenges, not indicators of a sho",
       "price": 5.97,
       "chg_pct": -0.0,
       "rvol_4d": 1.11,
@@ -325,9 +325,9 @@
       "uoa_cp_ratio": 12.642857142857142
     },
     "ZBIO": {
-      "score": 63,
+      "score": 55,
       "confidence": 70,
-      "drivers": "Volumen 3.0× + ⚡ Extremes Volumen 3.0×+ + Spanne 6.1% + News-KI 8/30: CEO buying shows confidence but no evidence of high short interest, squeeze catalysts, or contrarian momentum needed for + UOA Call/Put 4.2×",
+      "drivers": "Volumen 3.0× + ⚡ Extremes Volumen 3.0×+ + Spanne 6.1% + UOA Call/Put 4.2×",
       "price": 19.78,
       "chg_pct": 0.0,
       "rvol_4d": 3.01,
