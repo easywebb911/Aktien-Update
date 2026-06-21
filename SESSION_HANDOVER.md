@@ -672,6 +672,29 @@ jeweilige Auslöser greift.
   schaffen, der 2028 driften kann (Drift → stiller Real-Fehler maskiert).
   **Konsistent zum „Kein Bau nötig" oben** — kein Widerspruch, dieselbe konservative
   Linie. Bei künftigem Bau-Gedanken **zuerst diese Begründung lesen**.
+  **Update 21.06. (#381 GEBAUT — #378-Entscheidung gekippt):** Die
+  20.06.-Annahme „S4 ist der einzige Holiday-Lärm-Konsument" war mit damaligem
+  Wissensstand **richtig** (S4 als einziger bekannter Konsument, Listen-
+  Wartungsrisiko > ~9 warn/Jahr) — und ist erst durch die **21.06.-Diagnose
+  widerlegt**, nicht durch einen Erkenntnis-Fehler der damaligen Linie. Belegter
+  **zweiter** Holiday-Konsument: `process_exit_signals` (Exit-Push-Pipeline)
+  feuerte **5 Wochenend-Exit-Fehlalarme** (LUCK/PDYN/AI/GIII/IONQ, alle
+  `trend_break crit=True` mit `price=None`). Anlass-verschärfend: **Independence
+  Day fällt Fr 03.07.** genau ins 30.06.-Auswertungs-Fenster. Zwei reale
+  Konsumenten + EIN gemeinsames `config.US_MARKET_HOLIDAYS`-Shared-Set
+  rechtfertigen sich jetzt gegenüber dem Wartungs-Risiko — die **Evidenz hat
+  die Kalkulation gekippt**, nicht die Bewertung von damals. Guardian-Audit
+  (#381) fand zudem einen **dritten** Konsumenten der `available`-Semantik im
+  Frontend (`buildPositionStatus`, `=== false` → tolerant statt strikt) — bewusst
+  so belassen (die Asymmetrie Push-strikt / Pressure-liberal / Frontend-tolerant
+  IST die Sicherheits-Eigenschaft). **Status: GEBAUT** (Writer-side
+  `available:True` in allen 6 Trigger-Success-Branches + ki_agent-Validity-Gate
+  + Wochenend-/Holiday-Skip für `process_exit_signals` + S4 als zweiter
+  Konsument, `config.US_MARKET_HOLIDAYS` als Single-Source-Spiegel der JS-Liste).
+  Der **WARTUNGS-REMINDER oben bleibt der reale Rest-Punkt** und wiegt jetzt
+  schwerer: ein 2028 falsch gepflegter Listeneintrag mutet S4 **und** Exit-Pushes
+  an einem echten Handelstag. CLAUDE.md-Sync mit drin (Phase-2-Push-Sektion +
+  S4-Zeile).
 - **or-0-Defaults Persist-Fix** · **finviz Flag-aus + α** · **Borrow-Naming
   (`IBKR_*`→`IBORROWDESK_*`)** · **v1/v2→Jinja** · **Cockpit Stage 3 (.sb-Reste)**
   → alle OFFEN, niedrig/vertagt.

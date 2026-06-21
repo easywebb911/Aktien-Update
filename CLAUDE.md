@@ -1239,6 +1239,21 @@ eröffnete Position über Threshold sofort feuern). Gilt auch wenn
 `prev_v > 75` (war bereits über Threshold) — kein erneuter Push,
 SKIP-Audit-Log mit `no_cross`-Reason.
 
+**Markt-/Validity-Gates (#381, 21.06.2026):** Vor allen drei Klassen greifen
+zwei Disziplin-Gates. (1) **Markt-Gate** — die gesamte
+`process_exit_signals`-Pipeline skippt an Wochenenden UND US-Feiertagen
+(`config.US_MARKET_HOLIDAYS`, gemeinsames Shared-Set mit health_check S4;
+`now` injizierbar für deterministische Tests; Cron läuft 24/7, daher sitzt das
+Gate im Code). (2) **Validity-Gate** — der Trigger-Push feuert nur bei
+`available is True`; `generate_report` setzt das in allen 6 Trigger-Success-
+Branches explizit, stale Altbestand (Key absent → None, `price=None`) wird
+suppressed. `edgar_filing` ist Anomaly-Pfad (`detect_anomalies`) und von beiden
+Gates **nicht** betroffen. Die `available`-Default-Semantik ist bewusst
+**asymmetrisch** über drei Konsumenten (Push strikt `is not True` · Composite-
+Pressure liberal `.get(...,True)` · Frontend `buildPositionStatus` tolerant
+`=== false`) — Inline-Kommentare an den Lese-Stellen; volle Evidenz-Historie
+im SESSION_HANDOVER §6-Holiday-Eintrag (#378→#381-Kippung).
+
 Audit-Log-Präfixe: `[exit_p2] SENT|SKIP|FAIL <klasse> <ticker>: …`
 in stdout (Workflow-Log). Push-Fail (NTFY-Disabled, POST-Fehler) →
 KEIN Cooldown gesetzt, nächster Tick retried.
@@ -3431,7 +3446,7 @@ S2/S3/S6/S8/S14 laufen in BEIDEN Pfaden (Daily-Run + ki_agent-Tick), alle
 | S1 | crit | Daily | ``score_history.json`` hat heutigen Eintrag pro Top-10-Ticker |
 | S2 | crit | beide | ``app_data.setup_scores`` hat ≥ ``HEALTH_CHECK_S2_MIN_TICKERS`` (8) Tickers |
 | S3 | crit | beide | Aktive Positionen haben ``current_price != None`` |
-| S4 | warn | Daily | ``backtest_history`` hat heutigen Eintrag im ``postclose``-Pfad (Tages-Invariante). premarket-Pfad bleibt Run-basiert: WARN wenn dieser Run fälschlich appended. |
+| S4 | warn | Daily | ``backtest_history`` hat heutigen Eintrag im ``postclose``-Pfad (Tages-Invariante). premarket-Pfad bleibt Run-basiert: WARN wenn dieser Run fälschlich appended. Wochenend- **+ US-Feiertags-Skip** (``config.US_MARKET_HOLIDAYS``, seit #381) — kein Fehlalarm an Nicht-Handelstagen. |
 | S5 | warn | Daily | ``score_inflation_log`` bekommt ≥ ``HEALTH_CHECK_S5_MIN_INFLATION_LINES`` (10) neue Zeilen |
 | S6 | warn | beide | ``monster_scores`` ≥ ``HEALTH_CHECK_S6_MIN_MONSTER_NONZERO`` (3) Tickers > 0 |
 | S7 | warn | Daily | ``agent_signals`` ∩ Top-10 ≥ ``HEALTH_CHECK_S7_MIN_AGENT_OVERLAP`` (5) |
