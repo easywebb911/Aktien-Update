@@ -18,14 +18,14 @@
     "borrow": 0
   },
   "last_seen": {
-    "finra": "2026-06-20T10:14:00Z",
-    "yfinance_singletons": "2026-06-20T10:14:09Z",
+    "finra": "2026-06-21T10:47:13Z",
+    "yfinance_singletons": "2026-06-21T10:47:22Z",
     "stocktwits": "2026-05-18T19:04:11Z",
-    "uoa": "2026-06-20T10:14:11Z",
-    "news_rss": "2026-06-20T10:14:11Z",
-    "edgar_8k": "2026-06-20T10:14:11Z",
-    "edgar_form4": "2026-06-20T10:14:11Z",
-    "edgar_13d_g": "2026-06-20T10:14:11Z",
+    "uoa": "2026-06-21T10:47:24Z",
+    "news_rss": "2026-06-21T10:47:24Z",
+    "edgar_8k": "2026-06-21T10:47:24Z",
+    "edgar_form4": "2026-06-21T10:47:24Z",
+    "edgar_13d_g": "2026-06-21T10:47:24Z",
     "yahoo_screener": "2026-06-19T22:14:58Z",
     "earningswhispers": "2026-05-18T18:58:45Z",
     "yfinance_batch": "2026-06-19T22:15:07Z",
@@ -35,6 +35,6 @@
     "quote_proxy": "2026-06-19T22:16:00Z",
     "borrow": "2026-06-19T22:16:00Z"
   },
-  "last_digest_sent": "2026-06-20",
-  "last_successful_run": "2026-06-20T10:14:11Z"
+  "last_digest_sent": "2026-06-21",
+  "last_successful_run": "2026-06-21T10:47:24Z"
 }
