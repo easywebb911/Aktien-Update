@@ -947,6 +947,27 @@ PWA_URL      = "https://easywebb911.github.io/Aktien-Update/"
 BERLIN  = ZoneInfo("Europe/Berlin")
 EASTERN = ZoneInfo("America/New_York")
 
+# ── US-Börsenfeiertage (Single-Source, Python-Spiegel der JS-Liste) ───────────
+# Gespiegelt aus ``US_HOLIDAYS`` im Frontend-Template (generate_report.py
+# generate_html_v1, ~Z. 10908). Observed-Daten (Mo wenn So, Fr wenn Sa).
+# Konsumenten: (1) health_check S4 (kein backtest-Append an Feiertagen →
+# kein Fehlalarm) und (2) ki_agent.process_exit_signals (kein Exit-Push an
+# Nicht-Handelstagen). WARTUNGS-REMINDER: jährlich erweitern (gemeinsam mit
+# der JS-Liste; nächste Erweiterung 2028). Drift-Risiko: ein FALSCH gelisteter
+# Tag schaltet S4/Exit-Push an einem echten Handelstag stumm — beim Pflegen
+# gegen den offiziellen NYSE-Kalender prüfen.
+US_MARKET_HOLIDAYS = frozenset({
+    # 2025
+    "2025-01-01", "2025-01-20", "2025-02-17", "2025-05-26", "2025-06-19",
+    "2025-07-04", "2025-09-01", "2025-11-27", "2025-12-25",
+    # 2026
+    "2026-01-01", "2026-01-19", "2026-02-16", "2026-05-25", "2026-06-19",
+    "2026-07-03", "2026-09-07", "2026-11-26", "2026-12-25",
+    # 2027
+    "2027-01-01", "2027-01-18", "2027-02-15", "2027-05-31", "2027-06-18",
+    "2027-07-05", "2027-09-06", "2027-11-25", "2027-12-24",
+})
+
 # ── Service-spezifische HTTP-Header ──────────────────────────────────────────
 REDDIT_HEADERS = {"User-Agent": "SqueezeAgent/1.0"}
 SEC_HEADERS    = {"User-Agent": "Easy Webb easywebb@yahoo.de"}

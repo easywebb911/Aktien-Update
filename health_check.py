@@ -770,12 +770,17 @@ def evaluate_state_invariants(
             # bewusst NICHT ``datetime.now()`` — sonst greift es bei
             # Fr-22:24Z-Runs mit today_iso=Sa am falschen Tag).
             # Catch-Wert Mo-Fr unverändert.
-            # Restkante: US-Feiertage (Memorial Day etc.) bleiben blind —
-            # bewusst keine fragile Feiertags-Liste hier; konsistent zu
-            # ``ki_agent._trading_days_elapsed`` und
-            # ``_last_phase_run_age_workdays`` die ebenfalls nur Mo-Fr
-            # filtern. S12 fängt Mehrtages-Drift werktags-robust.
+            # US-Feiertags-Gate (Fix B, 21.06.2026): an US-Börsenfeiertagen
+            # existiert per Design KEIN postclose-Append (Vintage-Guard skippt
+            # mit ``holiday_or_prior_bar``) → S4 würde sonst an jedem Feiertag
+            # fälschlich feuern (z.B. Juneteenth 19.06.2026). Quelle ist die
+            # gemeinsame ``config.US_MARKET_HOLIDAYS`` (zweiter Konsument neben
+            # ``ki_agent.process_exit_signals``; die frühere „bewusst keine
+            # Liste"-Entscheidung von #378 ist mit dem zweiten Konsumenten
+            # gekippt). DRIFT-RISIKO: ein falsch gelisteter Tag schaltet S4 an
+            # einem echten Handelstag stumm — beim Pflegen der Liste prüfen.
             _skip_weekend = False
+            _skip_holiday = today_iso in config.US_MARKET_HOLIDAYS if today_iso else False
             # Zeit-Gate (#346-Symmetrie): vor report_date@16:00 ET ist ein
             # fehlender postclose-Eintrag NORMAL — der Vintage-Guard appended
             # erst ab 16:00 ET (backtest_history.py:_VINTAGE_MKT_CLOSE). Ohne
@@ -808,7 +813,7 @@ def evaluate_state_invariants(
                 except (ValueError, TypeError):
                     # Unparsebar → defensive: NICHT suppress (Zahn erhalten).
                     _before_close = False
-            if not (_skip_weekend or _before_close):
+            if not (_skip_weekend or _before_close or _skip_holiday):
                 fails.append({
                     "id": "S4", "severity": "warn",
                     "detail": (f"backtest_history ohne Eintrag für "

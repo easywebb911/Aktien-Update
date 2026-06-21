@@ -42,7 +42,7 @@ ALLOWLIST = [
     "chat_watchlist_ctx", "claude_md_consistency", "claude_md_pr_status", "cockpit_delta",
     "conviction_coverage_extension", "data_maturity_gate", "details_news_padding", "digest",
     "earliness_dtc", "earliness_pm_vol", "earliness_trend_log", "entry_raw_twin_fields",
-    "entry_score", "entry_shadow_persist", "entry_thesis", "exit_shadow",
+    "entry_score", "entry_shadow_persist", "entry_thesis", "exit_push_discipline", "exit_shadow",
     "finnhub_skip_logging", "gitattributes_union_merge",
     "gist_action_token_routing", "health_check", "health_check_digest_persistence",
     "html_assertions", "jekyll_exclude", "jsformat_escape", "ki_agent_coverage",
