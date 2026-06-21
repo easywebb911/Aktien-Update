@@ -1,17 +1,17 @@
 {
-  "updated": "2026-06-21T22:03:20.999882+02:00",
+  "updated": "2026-06-21T23:42:53.165109+02:00",
   "run_info": {
     "tickers_checked": 16,
     "signals_active": 5,
     "alerts_sent": 0,
-    "elapsed_s": 17.0,
+    "elapsed_s": 13.4,
     "market_phase": "Geschlossen"
   },
   "signals": {
     "AI": {
-      "score": 20,
+      "score": 28,
       "confidence": 33,
-      "drivers": "SEC Form 4 + UOA Call/Put 27.6×",
+      "drivers": "News-KI 8/30: CFO selling shares is bearish signal; no short interest data provided, making squeeze potential assessment impossible wi + SEC Form 4 + UOA Call/Put 27.6×",
       "price": 10.3,
       "chg_pct": 0.0,
       "rvol_4d": 0.95,
@@ -31,9 +31,9 @@
       "uoa_cp_ratio": 27.573515092502433
     },
     "AMC": {
-      "score": 35,
+      "score": 50,
       "confidence": 70,
-      "drivers": "Volumen 1.6× + Spanne 12.1% + UOA Call/Put 15.7×",
+      "drivers": "Volumen 1.6× + Spanne 12.1% + News: squeeze + UOA Call/Put 15.7×",
       "price": 2.83,
       "chg_pct": -0.0,
       "rvol_4d": 1.59,
@@ -44,7 +44,7 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 0,
+      "active_triggers": 1,
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 15.7×"
@@ -73,9 +73,9 @@
       "uoa_cp_ratio": null
     },
     "BIRD": {
-      "score": 15,
-      "confidence": 33,
-      "drivers": "Spanne 12.8% + News-KI 5/30: Negative headlines about AI business leadership and lack of team suggest operational challenges, not indicators of a sho",
+      "score": 10,
+      "confidence": 17,
+      "drivers": "Spanne 12.8%",
       "price": 5.97,
       "chg_pct": -0.0,
       "rvol_4d": 1.11,
@@ -179,9 +179,9 @@
       "uoa_cp_ratio": 2.124463519313305
     },
     "IONQ": {
-      "score": 28,
-      "confidence": 33,
-      "drivers": "Spanne 6.7% + Earnings in 45d + SEC Form 4",
+      "score": 33,
+      "confidence": 70,
+      "drivers": "Spanne 6.7% + News-KI 5/30: Headlines focus on product innovation and investment narrative rather than short-squeeze catalysts like high short inter + Earnings in 45d + SEC Form 4",
       "price": 56.55,
       "chg_pct": -0.0,
       "rvol_4d": 0.89,
@@ -221,9 +221,9 @@
       "uoa_cp_ratio": 7.666666666666667
     },
     "LUCK": {
-      "score": 25,
-      "confidence": 33,
-      "drivers": "Volumen 2.0× + Spanne 8.2%",
+      "score": 33,
+      "confidence": 70,
+      "drivers": "Volumen 2.0× + Spanne 8.2% + News-KI 8/30: Negative price action combined with management promotion suggests operational challenges rather than squeeze potential; ",
       "price": 7.59,
       "chg_pct": 0.0,
       "rvol_4d": 1.97,
@@ -325,9 +325,9 @@
       "uoa_cp_ratio": 12.642857142857142
     },
     "ZBIO": {
-      "score": 55,
+      "score": 63,
       "confidence": 70,
-      "drivers": "Volumen 3.0× + ⚡ Extremes Volumen 3.0×+ + Spanne 6.1% + UOA Call/Put 4.2×",
+      "drivers": "Volumen 3.0× + ⚡ Extremes Volumen 3.0×+ + Spanne 6.1% + News-KI 8/30: CEO buying signals confidence but no short squeeze indicators like high short interest, low float, or catalyst-driven mo + UOA Call/Put 4.2×",
       "price": 19.78,
       "chg_pct": 0.0,
       "rvol_4d": 3.01,
