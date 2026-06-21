@@ -2058,7 +2058,15 @@ def process_exit_signals(app_data: dict, state: dict,
                 # andere (Key absent → None, oder False) gilt als nicht
                 # vertrauenswürdig — z.B. stale Altbestand (Juneteenth-Schreiber:
                 # trend_break crit=True, available absent, details.price=None).
-                # Symmetrisch zum Composite-Gate (_compute_exit_state).
+                # ASYMMETRIE-HINWEIS (bewusst, NICHT angleichen): drei Konsumenten
+                # von ``available`` haben unterschiedliche Absent-Defaults —
+                # (1) dieser Push-Loop STRIKT (absent → suppress, ``is not True``)
+                #     gegen Push-Spam aus Altbestand; (2) Composite-Pressure
+                #     (_compute_exit_state, generate_report.py) LIBERAL
+                #     (``.get(..., True)``, absent → zählt mit) damit alter Druck
+                #     sichtbar bleibt; (3) Frontend buildPositionStatus zeigt
+                #     absent an (``=== false``-Check). Beim Refactor je Rolle
+                #     lassen — die Asymmetrie ist die Sicherheits-Eigenschaft.
                 if t.get("available") is not True:
                     print(f"[exit_p2] SKIP trigger {ticker} {tname}: "
                           f"invalid (available={t.get('available')!r})")

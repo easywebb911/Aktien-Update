@@ -15289,6 +15289,10 @@ def _compute_exit_state(
     }
     total_w, weighted = 0.0, 0.0
     for k, t in triggers.items():
+        # LIBERAL (bewusst, vgl. Push-Loop in ki_agent.process_exit_signals):
+        # Default True → ein Altbestand-Trigger ohne ``available``-Key zählt
+        # weiter zum Druck. Asymmetrie zum strikten Push-Gate ist intendiert
+        # (Push: kein Spam aus Altbestand; Pressure: alter Druck bleibt sichtbar).
         if not t.get("available", True):
             continue
         weighted += float(t.get("score") or 0) * weights[k]
