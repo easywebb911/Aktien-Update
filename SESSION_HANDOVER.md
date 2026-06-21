@@ -407,6 +407,46 @@ jeweilige Auslöser greift.
   exit_shadow testen — **Time-Stop** (Exit wenn nach 3 Handelstagen kein Momentum)
   + großzügiger **Trailing-Stop** für Gewinner. Konkreter Startpunkt für die
   Exit-Shadow-Auswertung ~Ende Juli (s. §4 Exit-Shadow-Auswertung).
+- **Reddit-Velocity als möglicher Daten-Hebel (Diagnose 20.06., explorativ, NACH
+  Edge-Befund):**
+  - **KONTEXT (belegt 20.06.):** Reddit-**LEVEL** läuft live in `ki_agent`
+    (`fetch_reddit_mentions` — count + Keyword-Sentiment auf 3 Subs
+    wallstreetbets/stocks/shortsqueeze, 4h-Lookback, speist KI-Score-Komponente
+    `sig_reddit`, `ki_agent:1512–1525`). News-Sentiment via Claude-Haiku-NLP läuft
+    ebenfalls (`claude_sentiment_score`). **StockTwits seit 18.05. tot**
+    (`STOCKTWITS_ENABLED=False`). X/Twitter nicht im Tool (Paywall-Klasse).
+  - **LÜCKE:** Reddit-**VELOCITY** (Mention-Rate-of-Change, „geht GERADE viral") ist
+    NICHT abgedeckt. Reddit ist heute strikt **Level** (count vs. feste Schwellen),
+    kein Vergleich gegen prev-Tick. *(Abgrenzung zu D) „Rate-of-Change verworfen": das
+    betraf MARKT-Velocity, die teils schon da ist — Social-Mention-Velocity ist eine
+    DISTINKTE, heute unabgedeckte Größe, kein Re-Litigieren von D.)*
+  - **FEASIBILITY: hoch.** Plumbing existiert: RVOL-Velocity-Muster (current vs.
+    `prev_signal`, `ki_agent:1497–1505`) ist implementiert, und Reddit-`{count,
+    sentiment}` wird **bereits in `agent_signals.json` persistiert** (`ki_agent:2878`).
+    Eine Mention-Velocity läse analog `old_sigs[ticker]['reddit']['count']`. `ki_agent`
+    ist der natürliche Einbau-Ort, **kein neues Modul** nötig. Gratis (Reddit-API).
+  - **KANDIDAT, NICHT BESCHLUSS — Konkurrenz-Verhältnis:** steht in einer Reihe
+    möglicher Daten-Ausbauten nach Edge-Befund und konkurriert direkt mit den anderen
+    C)-Kandidaten — insb. **Synthetische Utilization** (oben; laut Memory #20
+    akademisch stärkerer Einzel-Squeeze-Prädiktor), Katalysator-Gating, Exit-Mechanik.
+    Reihenfolge erst NACH 30.06. festlegen, abhängig davon, was die Edge-Auswertung
+    als **schwächsten** Punkt zeigt. Reddit-Velocity ist damit **nicht gesetzt**,
+    sondern nachrangig zu prüfen gegen die Utilization-Quelle.
+  - **DREI VOR-BAU-BEDINGUNGEN (zwingend):**
+    1. **DOPPELZÄHLUNG LEVEL vs. VELOCITY konzeptionell lösen — das ist die ZENTRALE
+       schwere Vor-Bau-Frage, NICHT der Code.** Reddit-Level speist bereits
+       `sig_reddit`; Velocity additiv dazu belohnt dasselbe Social-Signal zweimal.
+       Entscheidung VOR Bau: Velocity **ersetzt** Level / als **Multiplikator** /
+       **disjunkter** Anwendungsbereich. Wer das überspringt, baut einen „kleiner-PR"-
+       Trugschluss.
+    2. **Reddit-403-Robustheit:** Velocity braucht zwei valide Ticks — ein geblockter
+       Tick → Velocity = **N/A** (nicht 0), sonst false-zero-Signal.
+    3. **Vorab-spezifizierte Hypothese:** Validierung wie H1–H6 (AUC vs. `return_10d`,
+       unter **gemeinsamer** Multiple-Testing-Korrektur). Nicht data-dredgen.
+  - **NICHT VORZIEHEN (Sequenz-Disziplin):** kein neuer Signal-Strang während des
+    30.06.-Validierungsprogramms. Bewerten erst, wenn Edge-Befund vorliegt UND klar
+    ist, dass Social-Velocity gegenüber den anderen post-Edge-Kandidaten zu
+    priorisieren ist.
 
 **D) Bewusst NICHT aufgenommen (abgelehnt mit Begründung):**
 - **„Rate-of-Change statt Absolutwerte" als neue Idee** — verworfen: **teils bereits
