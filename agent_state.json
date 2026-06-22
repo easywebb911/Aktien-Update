@@ -1,5 +1,5 @@
 {
-  "last_run": "2026-06-23T00:56:19.458550+02:00",
+  "last_run": "2026-06-23T00:59:36.469218+02:00",
   "cooldowns": {
     "anomaly_score_jump_XRX": "2026-05-03T18:47:15.315486+02:00",
     "anomaly_uoa_extreme_TDOC": "2026-05-04T13:47:00.365949+02:00",
@@ -72,18 +72,6 @@
     "anomaly_conviction_high_CRMT": "2026-06-15T21:49:25.750293+02:00"
   },
   "push_history": [
-    {
-      "ts": "2026-06-19T21:03:07.191766+02:00",
-      "ticker": "ZBIO",
-      "kind": "anomaly",
-      "severity": "high",
-      "trigger": "monster_backup",
-      "body": "ZBIO 🔥 Monster 90 | Setup 90 | KI 55",
-      "success": false,
-      "suppressed": true,
-      "suppress_reason": "conviction_below_threshold",
-      "conviction_score": 69
-    },
     {
       "ts": "2026-06-19T21:03:09.858914+02:00",
       "ticker": "PDYN",
@@ -1271,26 +1259,35 @@
       "suppressed": true,
       "suppress_reason": "conviction_below_threshold",
       "conviction_score": 42
+    },
+    {
+      "ts": "2026-06-23T00:59:36.701041+02:00",
+      "ticker": "IONQ",
+      "kind": "exit_p2",
+      "severity": "trigger",
+      "trigger": "profit_lock",
+      "body": "🔻 Exit-Signal IONQ: profit_lock crit ({'pnl_pct': 0.1878, 'peak_pnl_pct': 0.4678, 'drawdown_from_peak': 0.28, 'score_drop_from_peak': None})",
+      "success": true,
+      "suppressed": false,
+      "suppress_reason": null,
+      "conviction_score": null
     }
   ],
   "prev_conviction_scores": {
-    "CRMT": 65.0,
-    "RGNX": 42.0,
-    "GETY": 54.0,
-    "SPRY": 60.0,
-    "FDMT": 60.0,
-    "GRPN": 45.0,
-    "OXM": 51.0,
-    "OPTU": 51.0,
-    "FORR": 58.0,
-    "PGEN": 51.0,
-    "DBI": 56.0,
-    "LUCK": 54.0,
-    "AI": 46.0,
-    "GIII": 51.0,
-    "PDYN": 26.0,
-    "IONQ": 17.0,
-    "AMC": 15.0,
+    "CRMT": 69.0,
+    "RGNX": 45.0,
+    "FDMT": 65.0,
+    "GETY": 58.0,
+    "SPRY": 62.0,
+    "RIGL": 55.0,
+    "PGEN": 53.0,
+    "CAPR": 52.0,
+    "ABSI": 45.0,
+    "OLMA": 49.0,
+    "AI": 47.0,
+    "PDYN": 28.0,
+    "IONQ": 16.0,
+    "AMC": 16.0,
     "RBOHF": 11.0
   },
   "exit_cooldowns": {
@@ -1316,7 +1313,7 @@
     "exitp2_trigger_AI_catalyst": "2026-06-03T06:58:18.642141+02:00",
     "exitp2_trigger_RBOHF_trend_break": "2026-06-22T19:25:15.743542+02:00",
     "exitp2_trigger_AI_trend_break": "2026-06-22T19:25:15.683198+02:00",
-    "exitp2_trigger_IONQ_profit_lock": "2026-06-19T04:07:01.393627+02:00",
+    "exitp2_trigger_IONQ_profit_lock": "2026-06-23T00:59:36.701071+02:00",
     "exitp2_trigger_GIII_catalyst": "2026-06-05T23:13:52.175687+02:00",
     "exitp2_trigger_DBI_catalyst": "2026-06-09T23:13:25.072861+02:00",
     "exitp2_trigger_DBI_trend_break": "2026-06-22T19:25:15.868062+02:00",
