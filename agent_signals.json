@@ -1,10 +1,10 @@
 {
-  "updated": "2026-06-22T14:26:32.383311+02:00",
+  "updated": "2026-06-22T14:28:38.873415+02:00",
   "run_info": {
     "tickers_checked": 16,
     "signals_active": 5,
     "alerts_sent": 0,
-    "elapsed_s": 13.0,
+    "elapsed_s": 14.8,
     "market_phase": "Pre-Market"
   },
   "signals": {
@@ -241,7 +241,7 @@
     "PDYN": {
       "score": 58,
       "confidence": 70,
-      "drivers": "Spanne 8.1% + News: partnership, contract + Earnings in 44d + UOA Call/Put 6.0×",
+      "drivers": "Spanne 8.1% + News: contract, partnership + Earnings in 44d + UOA Call/Put 6.0×",
       "price": 7.0,
       "chg_pct": 0.0,
       "rvol_4d": 1.24,
@@ -281,9 +281,9 @@
       "uoa_cp_ratio": null
     },
     "SBH": {
-      "score": 72,
+      "score": 53,
       "confidence": 70,
-      "drivers": "Volumen 3.2× + ⚡ Extremes Volumen 3.2×+ + Spanne 6.2% + News-KI 12/30: Moderate price movement with no indicators of high short interest, low trading volume mentions, or catalysts typical of  + Earnings in 43d",
+      "drivers": "Volumen 3.2× + ⚡ Extremes Volumen 3.2×+ + Spanne 6.2% + Earnings in 43d",
       "price": 13.83,
       "chg_pct": -0.0,
       "rvol_4d": 3.25,
@@ -293,8 +293,8 @@
       "upcoming_event": null,
       "insider_buy": false,
       "stocktwits": null,
-      "combo_mult": 1.1,
-      "active_triggers": 2,
+      "combo_mult": 1.0,
+      "active_triggers": 1,
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": 0.23076923076923078,
