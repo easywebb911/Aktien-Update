@@ -615,6 +615,18 @@ jeweilige Auslöser greift.
     demselben latenten Cache-Bug wie der Reload-Button VOR #373. Fällt selten auf,
     weil die Countdown-Wartezeit das `max-age`-Fenster meist überbrückt + neuer Deploy.
     Konsolidierungs-Kandidat: beide Pfade auf den #373-Cache-Buster vereinheitlichen.
+  - **(c) Staleness-Banner GEBAUT (22.06.2026, PR Frontend):** Header-Pill
+    `#hdr-staleness` zeigt das Alter der Daily-Run-Daten (Anker
+    `_DAILY_RUN_TS` = server-eingebrannter Render-Timestamp, NICHT
+    `app_data.generated_at` — letzteres überschreibt ki_agent stündlich).
+    Adressiert das **Cron-Verspätungs**-Problem (Diagnose 22.06.: Premarket
+    Ø ~5 h spät → Mo-Morgen Fr-Daten). Schwellen FRISCH<15h / VERSPÄTET 15-24h
+    / STALE>24h (`config.STALENESS_*`). **Bekannte Grenze zum Cache-Bug (a):**
+    der Banner ist Teil der index.html. Bei stale PWA-Snapshot trägt die alte
+    HTML einen alten `_DAILY_RUN_TS` → der Banner zeigt das (korrekt!) als
+    STALE an — er **flaggt** also einen veralteten Snapshot, kann ihn aber
+    **nicht selbst auffrischen** (das bleibt (a), der Cache-Bust-Folge-PR).
+    Der Banner mildert (a) somit (sichtbare Warnung), löst ihn nicht.
 - **Finnhub-SI-Reserve** (gratis, Key da) als SF-Reserve falls Kette dünn. Niedrig.
 - **FINRA-Provider unmonitored (niedrig):** Der Daily-Run-FINRA-History-Fetch
   (speist `si_trend`) hat KEINEN `provider_health`-Record. `provider_health['finra']`

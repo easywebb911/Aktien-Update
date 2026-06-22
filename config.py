@@ -968,6 +968,20 @@ US_MARKET_HOLIDAYS = frozenset({
     "2027-07-05", "2027-09-06", "2027-11-25", "2027-12-24",
 })
 
+# ── Staleness-Banner (Frontend-Anzeige, Daily-Run-Frische) ───────────────────
+# Dezenter Header-Hinweis, WIE ALT die angezeigten Daily-Run-Daten (Top-10)
+# sind. Anker ist ein server-eingebrannter Render-Timestamp (_DAILY_RUN_TS),
+# NICHT app_data.generated_at (das ki_agent stündlich überschreibt → würde
+# Frische vortäuschen). Kalibriert gegen die belegte Scheduled-Run-Verspätung
+# (Diagnose 22.06.2026): Postclose landet ~22:14–23:11 UTC, nächster Premarket
+# ~10:40–12:43 UTC → normaler Werktags-Deploy-Abstand bis ~13,5 h. Die
+# FRISCH-Schwelle MUSS darüber liegen, sonst Dauer-Alarm jeden Morgen
+# (Alarm-Müdigkeit). 24 h = ein voller Handelstag-Zyklus → Wochenende bzw.
+# übersprungener Run fällt sauber in STALE. REIN ANZEIGE — kein Score-/
+# Conviction-/Backtest-Effekt.
+STALENESS_FRESH_MAX_HOURS = 15   # < 15 h → frisch (kein Hinweis, dezent versteckt)
+STALENESS_STALE_MIN_HOURS = 24   # 15–24 h → verspätet (gelb) · > 24 h → stale (rot)
+
 # ── Service-spezifische HTTP-Header ──────────────────────────────────────────
 REDDIT_HEADERS = {"User-Agent": "SqueezeAgent/1.0"}
 SEC_HEADERS    = {"User-Agent": "Easy Webb easywebb@yahoo.de"}

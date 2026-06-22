@@ -6430,6 +6430,12 @@ def _build_context(stocks: list[dict], report_date: str,
         avg_si_str = "—"
     now_str = datetime.now(ZoneInfo("Europe/Berlin")).strftime("%H:%M Uhr")
     timestamp = f"Stand: {report_date}, {now_str}"
+    # Staleness-Anker: server-eingebrannter Render-Timestamp (UTC-ISO). NUR
+    # der Daily-Run baut die index.html neu → dieser Wert = Daily-Run-Frische
+    # (Top-10-Aktualität), immun gegen ki_agent-Ticks (die app_data.generated_at
+    # stündlich überschreiben). Das Frontend (_renderStaleness) rechnet daraus
+    # das Alter. Siehe CLAUDE.md „Staleness-Banner".
+    daily_run_ts_js = datetime.now(ZoneInfo("UTC")).strftime("%Y-%m-%dT%H:%M:%SZ")
 
     # Watchlist: embed last known score, sparkline history, and full top10 snapshot.
     # Nutzt _load_score_history() statt direktem JSON-Load, damit beide Disk-Formate
@@ -6531,6 +6537,9 @@ def _build_context(stocks: list[dict], report_date: str,
         "wl_top10_json":  wl_top10_json,
         "gist_id_js":     gist_id_js,
         "quote_proxy_url_js": quote_proxy_url_js,
+        "daily_run_ts_js": daily_run_ts_js,
+        "staleness_fresh_h": STALENESS_FRESH_MAX_HOURS,
+        "staleness_stale_h": STALENESS_STALE_MIN_HOURS,
         "chat_ctx_json":  chat_ctx_json,
         "head_html":      head_html,
         "chat_panel_html": chat_panel_html,
@@ -6572,6 +6581,11 @@ def generate_html_v1(stocks: list[dict], report_date: str,
     # ist no-op (siehe Sektion „Live-Quote-Polling" in CLAUDE.md).
     # Fehlt der Key (alter Context ohne Phase-2-Feature) → Default leer.
     quote_proxy_url_js = ctx.get("quote_proxy_url_js", "")
+    # Staleness-Banner: Render-Anker + Schwellen (Defaults defensiv, falls
+    # alter Context ohne die Keys). Reine Anzeige, kein Score-Effekt.
+    daily_run_ts_js   = ctx.get("daily_run_ts_js", "")
+    staleness_fresh_h = ctx.get("staleness_fresh_h", 15)
+    staleness_stale_h = ctx.get("staleness_stale_h", 24)
     chat_ctx_json    = ctx["chat_ctx_json"]
     head_html        = ctx["head_html"]
     chat_panel_html  = ctx["chat_panel_html"]
@@ -6685,7 +6699,7 @@ def generate_html_v1(stocks: list[dict], report_date: str,
 <header class="app-hdr">
   <div class="hdr-main">
     <span class="app-title">Squeeze <span>Report</span></span>
-    <span class="hdr-ts">{timestamp}<span id="hdr-runphase" class="hdr-runphase" hidden></span><span id="hdr-nontrading" class="hdr-nontrading" hidden></span></span>
+    <span class="hdr-ts">{timestamp}<span id="hdr-runphase" class="hdr-runphase" hidden></span><span id="hdr-staleness" class="hdr-staleness" hidden></span><span id="hdr-nontrading" class="hdr-nontrading" hidden></span></span>
     <button class="hamburger-btn" id="hamburger-btn" aria-label="Menü" aria-expanded="false" onclick="toggleMenuDrawer()">
       <i data-lucide="menu" class="hamburger-icon"></i>
     </button>
@@ -8810,6 +8824,56 @@ function _renderRunPhasePill(phase, generatedAt) {{
   }}
 }}
 
+function _renderStaleness(anchorIso) {{
+  // Daily-Run-Frische-Hinweis (dezent, im Header neben der run_phase-Pill).
+  // Anker = ``_DAILY_RUN_TS`` (server-eingebrannt zur Render-Zeit, NUR vom
+  // Daily-Run gesetzt — siehe const-Kommentar oben). MISST Top-10-Frische,
+  // NICHT KI-Agent-Aktivität (deshalb NICHT appData.generated_at, das
+  // ki_agent stündlich überschreibt → würde dauernd „frisch" zeigen).
+  // Drei Zustände, kalibriert gegen die belegte Cron-Verspätung:
+  //   < _STALE_FRESH_MAX_H (15 h)  → FRISCH → versteckt (kein Clutter)
+  //   15–24 h                      → VERSPÄTET (gelb, „neuer Run ausstehend")
+  //   > _STALE_STALE_MIN_H (24 h)  → STALE (rot, Datum + Alter)
+  // Fail-soft: fehlender/ungültiger Anker → versteckt (kein Falsch-Alarm).
+  // REIN ANZEIGE — keine Score-/Conviction-/Backtest-Logik berührt.
+  try {{
+    const el = document.getElementById('hdr-staleness');
+    if (!el) return;
+    const t = anchorIso ? new Date(anchorIso) : null;
+    el.classList.remove('hdr-staleness-delayed', 'hdr-staleness-stale');
+    if (!t || isNaN(t.getTime())) {{ el.hidden = true; el.textContent = ''; return; }}
+    const ageH = (Date.now() - t.getTime()) / 3600000;
+    if (ageH < _STALE_FRESH_MAX_H) {{
+      // FRISCH: dezent versteckt — die run_phase-Pill (Post-Close/Pre-Open)
+      // + der absolute „Stand: …"-Timestamp signalisieren bereits Aktualität.
+      el.hidden = true; el.textContent = '';
+      return;
+    }}
+    // Display in Easys Lokalzeit (Berlin) — wiederverwendet toLocale*-Pattern.
+    const hhmm = t.toLocaleTimeString('de-DE', {{hour: '2-digit', minute: '2-digit'}});
+    if (ageH < _STALE_STALE_MIN_H) {{
+      el.textContent = ' · Daten von ' + hhmm + ' — neuer Run ausstehend';
+      el.classList.add('hdr-staleness-delayed');
+    }} else {{
+      const dat = t.toLocaleString('de-DE',
+        {{day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit'}});
+      const days = Math.floor(ageH / 24);
+      const ageStr = days >= 1 ? days + ' Tag' + (days > 1 ? 'e' : '') : Math.floor(ageH) + ' h';
+      el.textContent = ' · Daten vom ' + dat + ' (' + ageStr + ' alt)';
+      el.classList.add('hdr-staleness-stale');
+    }}
+    el.hidden = false;
+  }} catch (e) {{
+    console.warn('_renderStaleness error:', e);
+  }}
+}}
+
+// Staleness-Pill FETCH-UNABHÄNGIG rendern: der Anker _DAILY_RUN_TS ist
+// server-eingebrannt (kein app_data.json-Fetch nötig) → das Daten-Alter
+// erscheint auch dann, wenn der app_data-Fetch fehlschlägt (offline / stale
+// PWA-Snapshot) — genau der Fall, in dem Easy die Warnung am meisten braucht.
+window.addEventListener('DOMContentLoaded', function() {{ _renderStaleness(_DAILY_RUN_TS); }});
+
 function _applyExitGlows() {{
   try {{
     // Idempotenter Reset: Glow-Klassen, has-exit-banner und vorhandenes
@@ -9643,6 +9707,13 @@ const GIST_FILE   = 'squeeze_data.json';
 // Leerer String → _startQuotePoll ist no-op (eingebrannte Werte bleiben).
 // Setup: cloudflare/quote-proxy/README.md.
 const QUOTE_PROXY_URL = '{quote_proxy_url_js}';
+// Staleness-Banner: _DAILY_RUN_TS ist der server-eingebrannte Render-Zeit-
+// stempel (UTC-ISO) — gesetzt NUR vom Daily-Run (der die index.html neu baut),
+// NICHT von ki_agent (das app_data.generated_at stündlich überschreibt). Misst
+// also Top-10-Frische, nicht KI-Agent-Aktivität. Schwellen aus config.py.
+const _DAILY_RUN_TS      = '{daily_run_ts_js}';
+const _STALE_FRESH_MAX_H = {staleness_fresh_h};
+const _STALE_STALE_MIN_H = {staleness_stale_h};
 // Polling-Intervall in ms. 15 s ist die Spec-Vorgabe; Cloudflare-Worker
 // cached 10 s edge-side, Yahoo-Backend bekommt also max ~6 Req/min pro
 // Symbol-Set über alle aktiven Browser zusammen.
