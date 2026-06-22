@@ -65,25 +65,13 @@
     "anomaly_monster_backup_LUCK": "2026-06-09T20:21:42.190270+02:00",
     "anomaly_conviction_high_LUCK": "2026-06-18T12:50:32.141551+02:00",
     "earnings_immediate_CBRL_09.06.2026": "2026-06-09T23:13:23.438660+02:00",
-    "exit_DBI": "2026-06-19T01:13:18.426292+02:00",
+    "exit_DBI": "2026-06-22T19:22:52.945232+02:00",
     "anomaly_conviction_high_OXM": "2026-06-10T21:06:04.087139+02:00",
     "earnings_immediate_OXM_10.06.2026": "2026-06-10T22:46:14.756820+02:00",
     "anomaly_score_jump_FRMM": "2026-06-11T21:46:24.146354+02:00",
     "anomaly_conviction_high_CRMT": "2026-06-15T21:49:25.750293+02:00"
   },
   "push_history": [
-    {
-      "ts": "2026-06-19T01:14:01.051247+02:00",
-      "ticker": "LUCK",
-      "kind": "exit_p2",
-      "severity": "trigger",
-      "trigger": "trend_break",
-      "body": "🔻 Exit-Signal LUCK: trend_break crit ({'ma21': 8.1804, 'price': 7.59, 'drop_pct': 7.22})",
-      "success": true,
-      "suppressed": false,
-      "suppress_reason": null,
-      "conviction_score": null
-    },
     {
       "ts": "2026-06-19T04:07:01.340515+02:00",
       "ticker": "IONQ",
@@ -1271,6 +1259,18 @@
       "suppressed": true,
       "suppress_reason": "conviction_below_threshold",
       "conviction_score": 69
+    },
+    {
+      "ts": "2026-06-22T19:22:52.945210+02:00",
+      "ticker": "DBI",
+      "kind": "exit_p1",
+      "severity": "default",
+      "trigger": "exit_alert",
+      "body": "DBI 📉 Exit 69 | -15% | Trailing-Stop −20.1% vom Hoch",
+      "success": true,
+      "suppressed": false,
+      "suppress_reason": null,
+      "conviction_score": null
     }
   ],
   "prev_conviction_scores": {
