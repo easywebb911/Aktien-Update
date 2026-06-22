@@ -1,5 +1,5 @@
 {
-  "last_run": "2026-06-22T07:31:39.133434+02:00",
+  "last_run": "2026-06-22T14:26:35.264868+02:00",
   "cooldowns": {
     "anomaly_score_jump_XRX": "2026-05-03T18:47:15.315486+02:00",
     "anomaly_uoa_extreme_TDOC": "2026-05-04T13:47:00.365949+02:00",
@@ -72,42 +72,6 @@
     "anomaly_conviction_high_CRMT": "2026-06-15T21:49:25.750293+02:00"
   },
   "push_history": [
-    {
-      "ts": "2026-06-18T20:12:09.253432+02:00",
-      "ticker": "PDYN",
-      "kind": "anomaly",
-      "severity": "high",
-      "trigger": "monster_backup",
-      "body": "PDYN 🔥 Monster 94 | Setup 78 | KI 32",
-      "success": false,
-      "suppressed": true,
-      "suppress_reason": "conviction_below_threshold",
-      "conviction_score": 44
-    },
-    {
-      "ts": "2026-06-18T22:39:31.305157+02:00",
-      "ticker": "CAPR",
-      "kind": "anomaly",
-      "severity": "high",
-      "trigger": "monster_backup",
-      "body": "CAPR 🔥 Monster 95 | Setup 79 | KI 94",
-      "success": false,
-      "suppressed": true,
-      "suppress_reason": "conviction_below_threshold",
-      "conviction_score": 58
-    },
-    {
-      "ts": "2026-06-18T22:39:31.305260+02:00",
-      "ticker": "PDYN",
-      "kind": "anomaly",
-      "severity": "high",
-      "trigger": "monster_backup",
-      "body": "PDYN 🔥 Monster 94 | Setup 78 | KI 50",
-      "success": false,
-      "suppressed": true,
-      "suppress_reason": "conviction_below_threshold",
-      "conviction_score": 44
-    },
     {
       "ts": "2026-06-19T01:06:06.522649+02:00",
       "ticker": "CAPR",
@@ -1267,6 +1231,42 @@
       "severity": "high",
       "trigger": "monster_backup",
       "body": "ZBIO 🔥 Monster 90 | Setup 90 | KI 63",
+      "success": false,
+      "suppressed": true,
+      "suppress_reason": "conviction_below_threshold",
+      "conviction_score": 69
+    },
+    {
+      "ts": "2026-06-22T14:26:32.382968+02:00",
+      "ticker": "ATPC",
+      "kind": "anomaly",
+      "severity": "high",
+      "trigger": "monster_backup",
+      "body": "ATPC 🔥 Monster 100 | Setup 94 | KI 72",
+      "success": false,
+      "suppressed": true,
+      "suppress_reason": "conviction_below_threshold",
+      "conviction_score": 56
+    },
+    {
+      "ts": "2026-06-22T14:26:32.383134+02:00",
+      "ticker": "INDI",
+      "kind": "anomaly",
+      "severity": "high",
+      "trigger": "monster_backup",
+      "body": "INDI 🔥 Monster 90 | Setup 75 | KI 97",
+      "success": false,
+      "suppressed": true,
+      "suppress_reason": "conviction_below_threshold",
+      "conviction_score": 57
+    },
+    {
+      "ts": "2026-06-22T14:26:32.383260+02:00",
+      "ticker": "ZBIO",
+      "kind": "anomaly",
+      "severity": "high",
+      "trigger": "monster_backup",
+      "body": "ZBIO 🔥 Monster 90 | Setup 90 | KI 55",
       "success": false,
       "suppressed": true,
       "suppress_reason": "conviction_below_threshold",

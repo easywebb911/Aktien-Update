@@ -1,11 +1,11 @@
 {
-  "updated": "2026-06-22T07:31:33.484344+02:00",
+  "updated": "2026-06-22T14:26:32.383311+02:00",
   "run_info": {
     "tickers_checked": 16,
     "signals_active": 5,
     "alerts_sent": 0,
-    "elapsed_s": 19.7,
-    "market_phase": "Geschlossen"
+    "elapsed_s": 13.0,
+    "market_phase": "Pre-Market"
   },
   "signals": {
     "AI": {
@@ -27,7 +27,7 @@
       "uoa_drivers": [
         "UOA Call/Put 27.6×"
       ],
-      "uoa_atm_ratio": null,
+      "uoa_atm_ratio": 0.6188604240282686,
       "uoa_cp_ratio": 27.573515092502433
     },
     "AMC": {
@@ -49,13 +49,13 @@
       "uoa_drivers": [
         "UOA Call/Put 15.7×"
       ],
-      "uoa_atm_ratio": null,
+      "uoa_atm_ratio": 0.6367066454730825,
       "uoa_cp_ratio": 15.71702786377709
     },
     "ATPC": {
-      "score": 50,
-      "confidence": 33,
-      "drivers": "Volumen 75.6× + 🚀 Massives Volumen 75.6×+ + Spanne 96.0%",
+      "score": 72,
+      "confidence": 70,
+      "drivers": "Volumen 75.6× + 🚀 Massives Volumen 75.6×+ + Spanne 96.0% + News: catalyst",
       "price": 3.88,
       "chg_pct": 0.0,
       "rvol_4d": 75.63,
@@ -65,8 +65,8 @@
       "upcoming_event": null,
       "insider_buy": false,
       "stocktwits": null,
-      "combo_mult": 1.0,
-      "active_triggers": 1,
+      "combo_mult": 1.1,
+      "active_triggers": 2,
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": null,
@@ -131,7 +131,7 @@
       "uoa_drivers": [
         "UOA Call/Put 3.4×"
       ],
-      "uoa_atm_ratio": null,
+      "uoa_atm_ratio": 0.12244897959183673,
       "uoa_cp_ratio": 3.413793103448276
     },
     "GIII": {
@@ -151,7 +151,7 @@
       "active_triggers": 0,
       "uoa_score": 0,
       "uoa_drivers": [],
-      "uoa_atm_ratio": null,
+      "uoa_atm_ratio": 0.9032258064516129,
       "uoa_cp_ratio": 0.10238907849829351
     },
     "INDI": {
@@ -173,7 +173,7 @@
       "uoa_drivers": [
         "UOA Call/Put 2.1×"
       ],
-      "uoa_atm_ratio": null,
+      "uoa_atm_ratio": 0.05066079295154185,
       "uoa_cp_ratio": 2.124463519313305
     },
     "IONQ": {
@@ -193,7 +193,7 @@
       "active_triggers": 0,
       "uoa_score": 0,
       "uoa_drivers": [],
-      "uoa_atm_ratio": null,
+      "uoa_atm_ratio": 0.6955960936060439,
       "uoa_cp_ratio": 1.1713121220089404
     },
     "LGIH": {
@@ -215,7 +215,7 @@
       "uoa_drivers": [
         "UOA Call/Put 7.7×"
       ],
-      "uoa_atm_ratio": null,
+      "uoa_atm_ratio": 0.4117647058823529,
       "uoa_cp_ratio": 7.666666666666667
     },
     "LUCK": {
@@ -257,7 +257,7 @@
       "uoa_drivers": [
         "UOA Call/Put 6.0×"
       ],
-      "uoa_atm_ratio": null,
+      "uoa_atm_ratio": 0.1756876663708962,
       "uoa_cp_ratio": 5.953125
     },
     "RBOHF": {
@@ -281,9 +281,9 @@
       "uoa_cp_ratio": null
     },
     "SBH": {
-      "score": 53,
+      "score": 72,
       "confidence": 70,
-      "drivers": "Volumen 3.2× + ⚡ Extremes Volumen 3.2×+ + Spanne 6.2% + Earnings in 43d",
+      "drivers": "Volumen 3.2× + ⚡ Extremes Volumen 3.2×+ + Spanne 6.2% + News-KI 12/30: Moderate price movement with no indicators of high short interest, low trading volume mentions, or catalysts typical of  + Earnings in 43d",
       "price": 13.83,
       "chg_pct": -0.0,
       "rvol_4d": 3.25,
@@ -293,11 +293,11 @@
       "upcoming_event": null,
       "insider_buy": false,
       "stocktwits": null,
-      "combo_mult": 1.0,
-      "active_triggers": 1,
+      "combo_mult": 1.1,
+      "active_triggers": 2,
       "uoa_score": 0,
       "uoa_drivers": [],
-      "uoa_atm_ratio": null,
+      "uoa_atm_ratio": 0.23076923076923078,
       "uoa_cp_ratio": 0.175
     },
     "TDUP": {
@@ -323,9 +323,9 @@
       "uoa_cp_ratio": 12.642857142857142
     },
     "ZBIO": {
-      "score": 63,
+      "score": 55,
       "confidence": 70,
-      "drivers": "Volumen 3.0× + ⚡ Extremes Volumen 3.0×+ + Spanne 6.1% + News-KI 8/30: CEO buying signals confidence but no short squeeze indicators; routine corporate announcements lack catalyst evidence fo + UOA Call/Put 4.2×",
+      "drivers": "Volumen 3.0× + ⚡ Extremes Volumen 3.0×+ + Spanne 6.1% + UOA Call/Put 4.2×",
       "price": 19.78,
       "chg_pct": 0.0,
       "rvol_4d": 3.01,
@@ -341,7 +341,7 @@
       "uoa_drivers": [
         "UOA Call/Put 4.2×"
       ],
-      "uoa_atm_ratio": null,
+      "uoa_atm_ratio": 0.4126984126984127,
       "uoa_cp_ratio": 4.25
     }
   }
