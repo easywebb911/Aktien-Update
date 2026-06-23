@@ -1,17 +1,17 @@
 {
-  "updated": "2026-06-23T00:59:32.305726+02:00",
+  "updated": "2026-06-23T03:23:50.580865+02:00",
   "run_info": {
     "tickers_checked": 15,
     "signals_active": 5,
     "alerts_sent": 0,
-    "elapsed_s": 16.2,
-    "market_phase": "After-Hours"
+    "elapsed_s": 15.6,
+    "market_phase": "Geschlossen"
   },
   "signals": {
     "ABSI": {
-      "score": 30,
-      "confidence": 70,
-      "drivers": "Spanne 14.1% + SEC Form 4 + UOA Call/Put 10.7×",
+      "score": 20,
+      "confidence": 33,
+      "drivers": "Spanne 14.1% + UOA Call/Put 10.7×",
       "price": 8.4,
       "chg_pct": -0.0,
       "rvol_4d": 1.3,
@@ -31,9 +31,9 @@
       "uoa_cp_ratio": 10.74709677419355
     },
     "AI": {
-      "score": 38,
+      "score": 30,
       "confidence": 70,
-      "drivers": "Spanne 8.8% + News-KI 8/30: Insider selling and operational expense concerns outweigh positive governance news; limited short-squeeze catalysts with + SEC Form 4 + UOA Call/Put 3.3×",
+      "drivers": "Spanne 8.8% + SEC Form 4 + UOA Call/Put 3.3×",
       "price": 9.7,
       "chg_pct": -0.0,
       "rvol_4d": 0.78,
@@ -53,9 +53,9 @@
       "uoa_cp_ratio": 3.2909718228867164
     },
     "AMC": {
-      "score": 35,
+      "score": 32,
       "confidence": 33,
-      "drivers": "Spanne 7.9% + News: squeeze + UOA Call/Put 6.8×",
+      "drivers": "Spanne 7.9% + News-KI 12/30: Positive box office news is offset by underperformance versus market and inclusion in risky stock lists, suggesting weak + UOA Call/Put 6.8×",
       "price": 2.76,
       "chg_pct": -0.0,
       "rvol_4d": 0.77,
@@ -141,7 +141,7 @@
     "GETY": {
       "score": 91,
       "confidence": 70,
-      "drivers": "Volumen 69.5× + 🚀 Massives Volumen 69.5×+ + Spanne 32.1% + SEC 8-K + News-KI 8/30: Massive price surge (145-200%) indicates already-executed squeeze momentum with high short covering, leaving limited add + UOA Call/Put 2.3×",
+      "drivers": "Volumen 69.5× + 🚀 Massives Volumen 69.5×+ + Spanne 32.1% + SEC 8-K + News-KI 8/30: Massive price surge driven by fundamental business news (OpenAI deal), not short squeeze mechanics like high short inter + UOA Call/Put 2.3×",
       "price": 1.15,
       "chg_pct": -0.0,
       "rvol_4d": 69.5,
