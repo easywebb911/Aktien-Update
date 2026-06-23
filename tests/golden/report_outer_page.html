@@ -2,7 +2,7 @@
 <header class="app-hdr">
   <div class="hdr-main">
     <span class="app-title">Squeeze <span>Report</span></span>
-    <span class="hdr-ts">Stand: 01.06.2026, 16:30 Uhr<span id="hdr-runphase" class="hdr-runphase" hidden></span><span id="hdr-nontrading" class="hdr-nontrading" hidden></span></span>
+    <span class="hdr-ts">Stand: 01.06.2026, 16:30 Uhr<span id="hdr-runphase" class="hdr-runphase" hidden></span><span id="hdr-staleness" class="hdr-staleness" hidden></span><span id="hdr-nontrading" class="hdr-nontrading" hidden></span></span>
     <button class="hamburger-btn" id="hamburger-btn" aria-label="Menü" aria-expanded="false" onclick="toggleMenuDrawer()">
       <i data-lucide="menu" class="hamburger-icon"></i>
     </button>
@@ -2360,6 +2360,56 @@ function _renderRunPhasePill(phase, generatedAt) {
   }
 }
 
+function _renderStaleness(anchorIso) {
+  // Daily-Run-Frische-Hinweis (dezent, im Header neben der run_phase-Pill).
+  // Anker = ``_DAILY_RUN_TS`` (server-eingebrannt zur Render-Zeit, NUR vom
+  // Daily-Run gesetzt — siehe const-Kommentar oben). MISST Top-10-Frische,
+  // NICHT KI-Agent-Aktivität (deshalb NICHT appData.generated_at, das
+  // ki_agent stündlich überschreibt → würde dauernd „frisch" zeigen).
+  // Drei Zustände, kalibriert gegen die belegte Cron-Verspätung:
+  //   < _STALE_FRESH_MAX_H (15 h)  → FRISCH → versteckt (kein Clutter)
+  //   15–24 h                      → VERSPÄTET (gelb, „neuer Run ausstehend")
+  //   > _STALE_STALE_MIN_H (24 h)  → STALE (rot, Datum + Alter)
+  // Fail-soft: fehlender/ungültiger Anker → versteckt (kein Falsch-Alarm).
+  // REIN ANZEIGE — keine Score-/Conviction-/Backtest-Logik berührt.
+  try {
+    const el = document.getElementById('hdr-staleness');
+    if (!el) return;
+    const t = anchorIso ? new Date(anchorIso) : null;
+    el.classList.remove('hdr-staleness-delayed', 'hdr-staleness-stale');
+    if (!t || isNaN(t.getTime())) { el.hidden = true; el.textContent = ''; return; }
+    const ageH = (Date.now() - t.getTime()) / 3600000;
+    if (ageH < _STALE_FRESH_MAX_H) {
+      // FRISCH: dezent versteckt — die run_phase-Pill (Post-Close/Pre-Open)
+      // + der absolute „Stand: …"-Timestamp signalisieren bereits Aktualität.
+      el.hidden = true; el.textContent = '';
+      return;
+    }
+    // Display in Easys Lokalzeit (Berlin) — wiederverwendet toLocale*-Pattern.
+    const hhmm = t.toLocaleTimeString('de-DE', {hour: '2-digit', minute: '2-digit'});
+    if (ageH < _STALE_STALE_MIN_H) {
+      el.textContent = ' · Daten von ' + hhmm + ' — neuer Run ausstehend';
+      el.classList.add('hdr-staleness-delayed');
+    } else {
+      const dat = t.toLocaleString('de-DE',
+        {day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit'});
+      const days = Math.floor(ageH / 24);
+      const ageStr = days >= 1 ? days + ' Tag' + (days > 1 ? 'e' : '') : Math.floor(ageH) + ' h';
+      el.textContent = ' · Daten vom ' + dat + ' (' + ageStr + ' alt)';
+      el.classList.add('hdr-staleness-stale');
+    }
+    el.hidden = false;
+  } catch (e) {
+    console.warn('_renderStaleness error:', e);
+  }
+}
+
+// Staleness-Pill FETCH-UNABHÄNGIG rendern: der Anker _DAILY_RUN_TS ist
+// server-eingebrannt (kein app_data.json-Fetch nötig) → das Daten-Alter
+// erscheint auch dann, wenn der app_data-Fetch fehlschlägt (offline / stale
+// PWA-Snapshot) — genau der Fall, in dem Easy die Warnung am meisten braucht.
+window.addEventListener('DOMContentLoaded', function() { _renderStaleness(_DAILY_RUN_TS); });
+
 function _applyExitGlows() {
   try {
     // Idempotenter Reset: Glow-Klassen, has-exit-banner und vorhandenes
@@ -3193,6 +3243,13 @@ const GIST_FILE   = 'squeeze_data.json';
 // Leerer String → _startQuotePoll ist no-op (eingebrannte Werte bleiben).
 // Setup: cloudflare/quote-proxy/README.md.
 const QUOTE_PROXY_URL = '';
+// Staleness-Banner: _DAILY_RUN_TS ist der server-eingebrannte Render-Zeit-
+// stempel (UTC-ISO) — gesetzt NUR vom Daily-Run (der die index.html neu baut),
+// NICHT von ki_agent (das app_data.generated_at stündlich überschreibt). Misst
+// also Top-10-Frische, nicht KI-Agent-Aktivität. Schwellen aus config.py.
+const _DAILY_RUN_TS      = '2026-06-01T14:30:00Z';
+const _STALE_FRESH_MAX_H = 15;
+const _STALE_STALE_MIN_H = 24;
 // Polling-Intervall in ms. 15 s ist die Spec-Vorgabe; Cloudflare-Worker
 // cached 10 s edge-side, Yahoo-Backend bekommt also max ~6 Req/min pro
 // Symbol-Set über alle aktiven Browser zusammen.

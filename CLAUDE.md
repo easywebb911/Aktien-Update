@@ -456,6 +456,66 @@ explizit `cache: 'reload'` setzen, sonst zieht er aus dem HTTP-Cache.
 
 ---
 
+## Staleness-Banner (Daily-Run-Frische, seit 22.06.2026)
+
+Dezenter Header-Hinweis (`#hdr-staleness`-Span neben der run_phase-Pill),
+der zeigt, **wie alt die angezeigten Daily-Run-Daten (Top-10) sind**.
+Motivation (Diagnose 22.06.2026): Scheduled-Runs sind systematisch verspätet
+(Premarket-Cron 06:17 UTC landet faktisch ~10:40–12:43 UTC, Ø ~5 h; Postclose
+~1h40m) — GitHub-Plattform, nicht fixbar. Easy sah morgens Vortagsdaten ohne
+zu wissen, ob das frisch oder stale ist. Der Banner macht das Alter explizit.
+
+### Daten-Source-Anker (KRITISCH)
+
+Der Banner liest **`_DAILY_RUN_TS`** — einen server-eingebrannten Render-
+Timestamp (UTC-ISO), gesetzt in `_build_context` (`daily_run_ts_js =
+datetime.now(UTC)`) und als JS-Const in die `index.html` injiziert (analog
+`GIST_ID`). **NUR der Daily-Run baut die HTML neu** → der Wert misst exakt
+Top-10-Frische.
+
+**NICHT `app_data.generated_at` verwenden** — das überschreibt `ki_agent`
+bei **jedem stündlichen Tick** (`ki_agent.py:344`), würde also Frische
+vortäuschen, obwohl die Top-10 von gestern ist. Der CI-Test
+`mock_test_staleness_banner.py` verriegelt diese Quelle (Guard gegen
+`_renderStaleness(appData.generated_at)`).
+
+### Drei Zustände (Schwellen in `config.py`)
+
+| Zustand | Alter | Anzeige |
+|---|---|---|
+| **FRISCH** | < `STALENESS_FRESH_MAX_HOURS` (15 h) | versteckt (kein Clutter) |
+| **VERSPÄTET** | 15–24 h | gelb · „Daten von HH:MM — neuer Run ausstehend" |
+| **STALE** | > `STALENESS_STALE_MIN_HOURS` (24 h) | rot · „Daten vom DD.MM HH:MM (N Tage alt)" |
+
+**Kalibrierung:** FRISCH<15h liegt bewusst **über** dem normalen Werktags-
+Deploy-Abstand (~13,5 h zwischen Postclose und verspätetem nächsten
+Premarket) — sonst feuerte der Banner jeden Morgen (Alarm-Müdigkeit). 24 h =
+ein voller Handelstag-Zyklus → Mo-Morgen-nach-Wochenende (Fr-Daten ~56 h)
+fällt sauber in STALE. Display-Zeit lokal (Berlin) via `toLocaleString('de-DE')`.
+
+### Render-Pfad
+
+`_renderStaleness(anchorIso)` (rein anzeigend, fail-soft) wird über einen
+**fetch-unabhängigen** `DOMContentLoaded`-Listener mit `_DAILY_RUN_TS`
+aufgerufen — zeigt das Alter also auch bei fehlgeschlagenem `app_data.json`-
+Fetch (offline / stale Snapshot). Header lebt nur in `generate_html_v1`
+(v2 delegiert) → ein Render-Punkt, kein v1/v2-Bypass.
+
+### Verhältnis zum PWA-Cache-Bug
+
+Der Banner ist Teil der `index.html`. Bei stale PWA-Snapshot trägt die alte
+HTML einen alten `_DAILY_RUN_TS` → der Banner zeigt das **korrekt** als STALE
+(flaggt den veralteten Snapshot), kann ihn aber nicht selbst auffrischen — das
+bleibt der separate Cache-Bust-Folge-PR (SESSION_HANDOVER §6 (a)).
+
+### Pflege
+
+Schwellen-Anpassung nur in `config.py` (`STALENESS_*`). Score-Methodik-Sync
+**nicht betroffen** — reines Anzeige-Feature, kein Score-/Conviction-/
+Backtest-Effekt (`mock_test_staleness_banner.py` Test #24 verriegelt das).
+
+---
+
 ## Zwei-Run-Architektur (seit 12.05.2026)
 
 Der Daily-Run läuft **zweimal pro Werktag** mit unterschiedlicher
