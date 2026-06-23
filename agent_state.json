@@ -1,5 +1,5 @@
 {
-  "last_run": "2026-06-24T00:42:30.040841+02:00",
+  "last_run": "2026-06-24T01:31:24.116631+02:00",
   "cooldowns": {
     "anomaly_score_jump_XRX": "2026-05-03T18:47:15.315486+02:00",
     "anomaly_uoa_extreme_TDOC": "2026-05-04T13:47:00.365949+02:00",
@@ -73,18 +73,6 @@
     "anomaly_conviction_high_AKTS": "2026-06-23T18:57:08.059975+02:00"
   },
   "push_history": [
-    {
-      "ts": "2026-06-20T03:33:08.500863+02:00",
-      "ticker": "INDI",
-      "kind": "anomaly",
-      "severity": "high",
-      "trigger": "monster_backup",
-      "body": "INDI 🔥 Monster 90 | Setup 75 | KI 88",
-      "success": false,
-      "suppressed": true,
-      "suppress_reason": "conviction_below_threshold",
-      "conviction_score": 57
-    },
     {
       "ts": "2026-06-20T03:33:08.501021+02:00",
       "ticker": "ZBIO",
@@ -1272,6 +1260,18 @@
       "suppressed": false,
       "suppress_reason": null,
       "conviction_score": null
+    },
+    {
+      "ts": "2026-06-24T01:31:24.451299+02:00",
+      "ticker": "IONQ",
+      "kind": "exit_p2",
+      "severity": "trigger",
+      "trigger": "profit_lock",
+      "body": "🔻 Exit-Signal IONQ: profit_lock crit ({'pnl_pct': 0.1782, 'peak_pnl_pct': 0.4678, 'drawdown_from_peak': 0.2896, 'score_drop_from_peak': None})",
+      "success": true,
+      "suppressed": false,
+      "suppress_reason": null,
+      "conviction_score": null
     }
   ],
   "prev_conviction_scores": {
@@ -1314,7 +1314,7 @@
     "exitp2_trigger_AI_catalyst": "2026-06-03T06:58:18.642141+02:00",
     "exitp2_trigger_RBOHF_trend_break": "2026-06-23T21:20:03.658942+02:00",
     "exitp2_trigger_AI_trend_break": "2026-06-23T21:20:03.366680+02:00",
-    "exitp2_trigger_IONQ_profit_lock": "2026-06-23T00:59:36.701071+02:00",
+    "exitp2_trigger_IONQ_profit_lock": "2026-06-24T01:31:24.451329+02:00",
     "exitp2_trigger_GIII_catalyst": "2026-06-05T23:13:52.175687+02:00",
     "exitp2_trigger_DBI_catalyst": "2026-06-09T23:13:25.072861+02:00",
     "exitp2_trigger_DBI_trend_break": "2026-06-22T19:25:15.868062+02:00",
