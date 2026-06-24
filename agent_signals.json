@@ -1,17 +1,17 @@
 {
-  "updated": "2026-06-24T10:33:50.032615+02:00",
+  "updated": "2026-06-24T11:53:26.582532+02:00",
   "run_info": {
     "tickers_checked": 15,
-    "signals_active": 3,
+    "signals_active": 2,
     "alerts_sent": 0,
-    "elapsed_s": 12.1,
+    "elapsed_s": 11.8,
     "market_phase": "Pre-Market"
   },
   "signals": {
     "AI": {
-      "score": 32,
+      "score": 20,
       "confidence": 33,
-      "drivers": "News-KI 12/30: Mixed signals: executive appointment is positive but CFO share sale and SG&A expense concerns are bearish, reducing shor + SEC Form 4 + UOA Call/Put 83.8×",
+      "drivers": "SEC Form 4 + UOA Call/Put 83.8×",
       "price": 9.68,
       "chg_pct": 0.0,
       "rvol_4d": 0.78,
@@ -22,7 +22,7 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 1,
+      "active_triggers": 0,
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 83.8×"
@@ -31,9 +31,9 @@
       "uoa_cp_ratio": 83.84102564102564
     },
     "AKTS": {
-      "score": 10,
-      "confidence": 17,
-      "drivers": "Spanne 12.9%",
+      "score": 25,
+      "confidence": 33,
+      "drivers": "Spanne 12.9% + News: institutional buying",
       "price": 27.01,
       "chg_pct": 0.0,
       "rvol_4d": 0.82,
@@ -44,7 +44,7 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 0,
+      "active_triggers": 1,
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": null,
@@ -53,7 +53,7 @@
     "AMC": {
       "score": 68,
       "confidence": 70,
-      "drivers": "Volumen 1.9× + Spanne 10.4% + SEC 8-K + News-KI 8/30: Massive dilution and share issuance are extremely negative for short-squeeze potential as they increase float and weaken + SEC Form 4 + UOA Call/Put 3.8×",
+      "drivers": "Volumen 1.9× + Spanne 10.4% + SEC 8-K + News-KI 8/30: Massive shareholder dilution and debt concerns significantly weaken short-squeeze potential despite retail optimism. + SEC Form 4 + UOA Call/Put 3.8×",
       "price": 2.08,
       "chg_pct": -0.0,
       "rvol_4d": 1.88,
@@ -157,9 +157,9 @@
       "uoa_cp_ratio": 4.161290322580645
     },
     "IONQ": {
-      "score": 50,
+      "score": 38,
       "confidence": 70,
-      "drivers": "Spanne 9.7% + News-KI 12/30: Positive fundamental catalysts from Trump's quantum orders but no indicators of short squeeze setup (high short interest + Earnings in 42d + SEC Form 4 + UOA Call/Put 4.3×",
+      "drivers": "Spanne 9.7% + Earnings in 42d + SEC Form 4 + UOA Call/Put 4.3×",
       "price": 57.85,
       "chg_pct": -0.0,
       "rvol_4d": 1.19,
@@ -170,7 +170,7 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 1,
+      "active_triggers": 0,
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 4.3×"
@@ -201,9 +201,9 @@
       "uoa_cp_ratio": 3.557142857142857
     },
     "KPTI": {
-      "score": 35,
+      "score": 47,
       "confidence": 70,
-      "drivers": "Volumen 2.0× + Spanne 10.3% + UOA Call/Put 3.9×",
+      "drivers": "Volumen 2.0× + Spanne 10.3% + News-KI 12/30: Positive clinical trial data and investment coverage, but lacks short squeeze catalysts like high short interest, stock  + UOA Call/Put 3.9×",
       "price": 9.65,
       "chg_pct": -0.0,
       "rvol_4d": 1.96,
@@ -214,7 +214,7 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 0,
+      "active_triggers": 1,
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 3.9×"
@@ -223,9 +223,9 @@
       "uoa_cp_ratio": 3.857142857142857
     },
     "OCGN": {
-      "score": 53,
+      "score": 50,
       "confidence": 70,
-      "drivers": "Spanne 11.7% + News: catalyst + Earnings in 36d + SEC Form 4 + UOA Call/Put 25.7×",
+      "drivers": "Spanne 11.7% + News-KI 12/30: Negative price momentum, lack of analyst support, and absence of concrete catalysts suggest weak short-squeeze potential + Earnings in 36d + SEC Form 4 + UOA Call/Put 25.7×",
       "price": 1.38,
       "chg_pct": -0.0,
       "rvol_4d": 0.7,
@@ -307,9 +307,9 @@
       "uoa_cp_ratio": null
     },
     "VITL": {
-      "score": 33,
+      "score": 26,
       "confidence": 70,
-      "drivers": "Spanne 6.3% + News: short interest + Earnings in 43d",
+      "drivers": "Spanne 6.3% + News-KI 8/30: Negative fundamentals with fund exits and competitive pressure do not support short-squeeze potential; no evidence of hi + Earnings in 43d",
       "price": 10.68,
       "chg_pct": 0.0,
       "rvol_4d": 0.53,
@@ -320,7 +320,7 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 1,
+      "active_triggers": 0,
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": null,
