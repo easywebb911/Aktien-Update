@@ -1,4 +1,3 @@
-{"run_ts": "2026-05-25T23:33:14Z", "run_phase": "ki_agent_tick", "schema_v": 1, "state_fails": [], "provider_fails": []}
 {"run_ts": "2026-05-26T03:21:41Z", "run_phase": "postclose", "schema_v": 1, "state_fails": [{"id": "S10", "severity": "warn", "detail": "LAG-Feld 'return_3d': 27/88 gealterte Einträge (≥ 3 Trading-Tage) haben kein Outcome (31%) — Rolling-Update-Pipeline füllt nicht"}, {"id": "S10", "severity": "warn", "detail": "LAG-Feld 'return_5d': 33/61 gealterte Einträge (≥ 5 Trading-Tage) haben kein Outcome (54%) — Rolling-Update-Pipeline füllt nicht"}, {"id": "S8", "severity": "warn", "detail": "kein erfolgreicher Digest-Push seit 27.4 h (Schwelle 26 h) — silent ntfy-Fail oder Cron-Drop"}], "provider_fails": []}
 {"run_ts": "2026-05-26T03:23:06Z", "run_phase": "ki_agent_tick", "schema_v": 1, "state_fails": [{"id": "S8", "severity": "warn", "detail": "kein erfolgreicher Digest-Push seit 27.4 h (Schwelle 26 h) — silent ntfy-Fail oder Cron-Drop"}], "provider_fails": []}
 {"run_ts": "2026-05-26T04:35:21Z", "run_phase": "ki_agent_tick", "schema_v": 1, "state_fails": [{"id": "S8", "severity": "warn", "detail": "kein erfolgreicher Digest-Push seit 28.6 h (Schwelle 26 h) — silent ntfy-Fail oder Cron-Drop"}], "provider_fails": []}
@@ -460,3 +459,4 @@
 {"run_ts": "2026-06-24T21:46:22Z", "run_phase": "ki_agent_tick", "schema_v": 1, "state_fails": [], "provider_fails": []}
 {"run_ts": "2026-06-24T22:43:02Z", "run_phase": "postclose", "schema_v": 1, "state_fails": [], "provider_fails": []}
 {"run_ts": "2026-06-24T22:43:53Z", "run_phase": "ki_agent_tick", "schema_v": 1, "state_fails": [], "provider_fails": []}
+{"run_ts": "2026-06-24T23:34:38Z", "run_phase": "ki_agent_tick", "schema_v": 1, "state_fails": [], "provider_fails": []}

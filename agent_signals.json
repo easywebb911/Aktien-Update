@@ -1,17 +1,17 @@
 {
-  "updated": "2026-06-25T00:43:51.056487+02:00",
+  "updated": "2026-06-25T01:34:36.920778+02:00",
   "run_info": {
     "tickers_checked": 15,
     "signals_active": 6,
     "alerts_sent": 0,
-    "elapsed_s": 15.2,
+    "elapsed_s": 10.9,
     "market_phase": "After-Hours"
   },
   "signals": {
     "ABSI": {
-      "score": 82,
+      "score": 100,
       "confidence": 70,
-      "drivers": "Volumen 5.2× + 🚀 Massives Volumen 5.2×+ + Spanne 24.5% + SEC 8-K + SEC Form 4",
+      "drivers": "Volumen 5.2× + 🚀 Massives Volumen 5.2×+ + Spanne 24.5% + SEC 8-K + News-KI 18/30: Positive clinical data and funding are bullish but lack short-squeeze indicators like high short interest, low float, or + SEC Form 4",
       "price": 10.07,
       "chg_pct": 0.05,
       "rvol_4d": 5.22,
@@ -29,9 +29,9 @@
       "uoa_cp_ratio": 1.0818181818181818
     },
     "AI": {
-      "score": 42,
+      "score": 45,
       "confidence": 70,
-      "drivers": "Spanne 5.2% + News-KI 12/30: Insider selling by CFO is bearish, mixed news on government AI positioning lacks short squeeze catalysts like high short + SEC Form 4 + UOA Call/Put 17.7×",
+      "drivers": "Spanne 5.2% + News: short interest + SEC Form 4 + UOA Call/Put 17.7×",
       "price": 9.32,
       "chg_pct": -0.0,
       "rvol_4d": 0.77,
@@ -113,9 +113,9 @@
       "uoa_cp_ratio": 1.1121495327102804
     },
     "FORR": {
-      "score": 43,
-      "confidence": 33,
-      "drivers": "Spanne 14.2% + Earnings in 36d + FINRA Short-Vol 100%",
+      "score": 48,
+      "confidence": 70,
+      "drivers": "Spanne 14.2% + News-KI 5/30: Neutral industry news about marketing trends and conferences with no short-squeeze catalysts; stock lacks typical squeez + Earnings in 36d + FINRA Short-Vol 100%",
       "price": 7.97,
       "chg_pct": -0.0,
       "rvol_4d": 1.08,
@@ -135,7 +135,7 @@
     "GRPN": {
       "score": 58,
       "confidence": 70,
-      "drivers": "Spanne 10.2% + News: squeeze, short interest + Earnings in 42d + UOA Call/Put 4.9×",
+      "drivers": "Spanne 10.2% + News: short interest, squeeze + Earnings in 42d + UOA Call/Put 4.9×",
       "price": 18.32,
       "chg_pct": -0.0,
       "rvol_4d": 1.41,
@@ -177,7 +177,7 @@
     "JACK": {
       "score": 91,
       "confidence": 70,
-      "drivers": "Volumen 2.8× + Spanne 11.7% + News: covering, short interest + Earnings in 42d + SEC Form 4 + UOA Call/Put 16.5×",
+      "drivers": "Volumen 2.8× + Spanne 11.7% + News: short interest, covering + Earnings in 42d + SEC Form 4 + UOA Call/Put 16.5×",
       "price": 13.35,
       "chg_pct": 0.0,
       "rvol_4d": 2.84,
@@ -265,11 +265,11 @@
     "RBOHF": {
       "score": 25,
       "confidence": 33,
-      "drivers": "Spanne 6.9% + News: partnership",
-      "price": 0.15,
-      "chg_pct": 0.0,
-      "rvol_4d": 0.15,
-      "rvol_20d": 0.13,
+      "drivers": "Spanne 28.9% + News: partnership",
+      "price": 0.14,
+      "chg_pct": 0.71,
+      "rvol_4d": 0.76,
+      "rvol_20d": 0.63,
       "earnings": null,
       "fda_date": null,
       "upcoming_event": null,
@@ -285,7 +285,7 @@
     "WEN": {
       "score": 100,
       "confidence": 70,
-      "drivers": "Volumen 19.3× + 🚀 Massives Volumen 19.3×+ + Spanne 17.7% + News: covering, buyout + Earnings in 44d + UOA Call-Vol/OI 12.4× ATM + UOA Call/Put 3.1×",
+      "drivers": "Volumen 19.3× + 🚀 Massives Volumen 19.3×+ + Spanne 17.7% + News: buyout, halt + Earnings in 44d + UOA Call-Vol/OI 12.4× ATM + UOA Call/Put 3.1×",
       "price": 7.86,
       "chg_pct": 0.0,
       "rvol_4d": 19.29,
@@ -306,9 +306,9 @@
       "uoa_cp_ratio": 3.087476459510358
     },
     "ZBIO": {
-      "score": 20,
+      "score": 28,
       "confidence": 33,
-      "drivers": "Spanne 9.5% + UOA Call/Put 8.2×",
+      "drivers": "Spanne 9.5% + News-KI 8/30: CEO share purchase shows confidence but lacks short interest data, insider buying and grant announcements are positive f + UOA Call/Put 8.2×",
       "price": 21.8,
       "chg_pct": -0.0,
       "rvol_4d": 0.79,
