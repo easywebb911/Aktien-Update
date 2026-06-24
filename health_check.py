@@ -679,6 +679,8 @@ def evaluate_state_invariants(
     n_backtest_appended: int | None = None,
     backtest_has_today: bool | None = None,
     agent_signal_keys: set[str] | list[str] | None = None,
+    agent_signals_updated: str | None = None,
+    prev_daily_run_ts: str | None = None,
     ki_agent_only: bool = False,
     now_utc: datetime | None = None,
     html_path: str | None = None,
@@ -846,13 +848,45 @@ def evaluate_state_invariants(
         ag_keys = set(agent_signal_keys or [])
         overlap = ag_keys & set(tickers)
         if len(overlap) < HEALTH_CHECK_S7_MIN_AGENT_OVERLAP:
-            fails.append({
-                "id": "S7", "severity": "warn",
-                "detail": (f"agent_signals ∩ top10: {len(overlap)} von "
-                           f"{len(tickers)} Top-10-Ticker, Schwelle ≥ "
-                           f"{HEALTH_CHECK_S7_MIN_AGENT_OVERLAP}. Möglicher "
-                           f"Daily-Run-/KI-Agent-Drift — neuer Tick fällig"),
-            })
+            # Race-Gate (23.06.2026): Der Daily-Run wertet S7 aus, BEVOR sein
+            # eigener (async, non-blocking) Auto-Trigger-ki_agent-Tick die
+            # frische Top-10 abdeckt. Niedrige Überlappung ist daher fast immer
+            # die erwartete Top-10-Rotation, kein echter Drift (Diagnose
+            # 23.06.: 22/30d Fälle, ALLE selbstgeheilt, 0 echte Treffer).
+            # SUPPRESS nur bei POSITIVER Bestätigung, dass seit dem vorigen
+            # Daily-Run bereits ein ki_agent-Tick lief (Auto-Trigger-Kette
+            # intakt). Fehlt/unparsebar einer der beiden Timestamps →
+            # KONSERVATIV feuern (14.05.-Bug-Schutz NIE aushebeln). Echter
+            # Drift = Kette gebrochen = kein Tick seit vorigem Run
+            # (agent_signals.updated <= prev_daily_run_ts) → feuern.
+            # Mehrtages-Ausfall zusätzlich von S8 (26h-Backstop) gefangen.
+            _tick_since_prev_run = False
+            if agent_signals_updated and prev_daily_run_ts:
+                try:
+                    _au = datetime.fromisoformat(
+                        agent_signals_updated.replace("Z", "+00:00"))
+                    _pr = datetime.fromisoformat(
+                        prev_daily_run_ts.replace("Z", "+00:00"))
+                    _tick_since_prev_run = _au > _pr
+                except (ValueError, TypeError, AttributeError):
+                    _tick_since_prev_run = False  # unparsebar → konservativ feuern
+            if _tick_since_prev_run:
+                log.info(
+                    "health_check S7 suppress (Rotation-Race): Überlappung "
+                    "%d/%d < %d, aber ki_agent-Tick (%s) lief seit vorigem "
+                    "Daily-Run (%s) → Auto-Trigger-Kette intakt, kein Drift",
+                    len(overlap), len(tickers),
+                    HEALTH_CHECK_S7_MIN_AGENT_OVERLAP,
+                    agent_signals_updated, prev_daily_run_ts)
+            else:
+                fails.append({
+                    "id": "S7", "severity": "warn",
+                    "detail": (f"agent_signals ∩ top10: {len(overlap)} von "
+                               f"{len(tickers)} Top-10-Ticker, Schwelle ≥ "
+                               f"{HEALTH_CHECK_S7_MIN_AGENT_OVERLAP}. Kein "
+                               f"ki_agent-Tick seit vorigem Daily-Run — "
+                               f"Auto-Trigger-Kette prüfen (14.05.-Bug-Klasse)"),
+                })
 
     # === S9 (crit/warn) — HTML-Sanity-Check (Frontend-Awareness Phase 1a) ==
     # Liest den gerenderten ``index.html`` und prüft 4 deterministische

@@ -14312,6 +14312,14 @@ def _write_app_data_json(watchlist_cards: dict | None = None,
         # Persistenz von der Realität abweichen — der nächste Run
         # überschreibt.
         "run_phase":       run_phase,
+        # Anker für S7-Race-Gate (23.06.2026): UTC-ISO-Zeit DIESES Daily-Run-
+        # Writes. NUR der Daily-Run setzt das Feld; ki_agent preserviert es via
+        # ``**existing`` (es steht NICHT in save_signals' expliziten Keys). Der
+        # NÄCHSTE Daily-Run liest den Wert als „voriger Daily-Run" und prüft, ob
+        # seither ein ki_agent-Tick lief (agent_signals.updated >). Ohne Tick
+        # seit dem vorigen Run = gebrochene Auto-Trigger-Kette = echter Drift
+        # (14.05.-Bug-Klasse) → S7 feuert; sonst Rotation-Race → S7 suppress.
+        "last_daily_run_ts": datetime.now(ZoneInfo("UTC")).strftime("%Y-%m-%dT%H:%M:%SZ"),
         # Score-Konfidenz-Stufen (rein anzeigend im Methodik-Panel, KEIN
         # Score-/Conviction-Reader-Pfad — Trennung wird von
         # scripts/lint_score_confidence_isolation.py erzwungen).
@@ -16870,11 +16878,20 @@ def main():
                 _sh_for_check = json.load(_fh) or {}
         except (FileNotFoundError, json.JSONDecodeError):
             _sh_for_check = {}
+        _ag_updated_for_check = None
         try:
             with open("agent_signals.json", "r", encoding="utf-8") as _fh:
-                _ag_for_check = (json.load(_fh) or {}).get("signals") or {}
+                _ag_full_for_check = json.load(_fh) or {}
+            _ag_for_check = _ag_full_for_check.get("signals") or {}
+            # S7-Race-Gate (23.06.2026): Zeitstempel des letzten ki_agent-Ticks.
+            _ag_updated_for_check = _ag_full_for_check.get("updated")
         except (FileNotFoundError, json.JSONDecodeError):
             _ag_for_check = {}
+        # Voriger Daily-Run-Anker aus dem VOR dem Write gelesenen _prev_app_data
+        # (16805, vor _write_app_data_json). Wenn seit diesem Zeitpunkt ein
+        # ki_agent-Tick lief, ist die niedrige Überlappung Rotation-Race → S7
+        # suppress; sonst echter Drift → S7 feuert (siehe health_check S7).
+        _prev_daily_run_ts_for_check = _prev_app_data.get("last_daily_run_ts")
         _hc_fails = health_check.run_and_record(
             run_phase=run_phase,
             ki_agent_only=False,
@@ -16888,6 +16905,8 @@ def main():
             n_backtest_appended=_n_backtest_appended,
             backtest_has_today=_backtest_has_today,
             agent_signal_keys=set(_ag_for_check.keys()),
+            agent_signals_updated=_ag_updated_for_check,
+            prev_daily_run_ts=_prev_daily_run_ts_for_check,
             html_path="index.html",
         )
     except Exception as exc:
