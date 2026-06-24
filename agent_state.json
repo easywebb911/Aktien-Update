@@ -1,5 +1,5 @@
 {
-  "last_run": "2026-06-24T17:41:58.258281+02:00",
+  "last_run": "2026-06-24T19:19:21.746631+02:00",
   "cooldowns": {
     "anomaly_score_jump_XRX": "2026-05-03T18:47:15.315486+02:00",
     "anomaly_uoa_extreme_TDOC": "2026-05-04T13:47:00.365949+02:00",
@@ -75,18 +75,6 @@
     "anomaly_conviction_high_ABSI": "2026-06-24T17:41:55.953275+02:00"
   },
   "push_history": [
-    {
-      "ts": "2026-06-20T08:42:10.646076+02:00",
-      "ticker": "IONQ",
-      "kind": "exit_p2",
-      "severity": "trigger",
-      "trigger": "trend_break",
-      "body": "🔻 Exit-Signal IONQ: trend_break crit ({'ma21': 58.721, 'price': None, 'drop_pct': None})",
-      "success": true,
-      "suppressed": false,
-      "suppress_reason": null,
-      "conviction_score": null
-    },
     {
       "ts": "2026-06-20T12:14:09.175175+02:00",
       "ticker": "ATPC",
@@ -1274,6 +1262,18 @@
       "suppressed": false,
       "suppress_reason": null,
       "conviction_score": null
+    },
+    {
+      "ts": "2026-06-24T19:19:21.976507+02:00",
+      "ticker": "PDYN",
+      "kind": "exit_p2",
+      "severity": "trigger",
+      "trigger": "trend_break",
+      "body": "🔻 Exit-Signal PDYN: trend_break crit ({'ma21': 6.7622, 'price': 5.985, 'drop_pct': 11.49})",
+      "success": true,
+      "suppressed": false,
+      "suppress_reason": null,
+      "conviction_score": null
     }
   ],
   "prev_conviction_scores": {
@@ -1307,7 +1307,7 @@
     "exitp2_trigger_RR_trend_break": "2026-05-20T17:26:03.459661+02:00",
     "exitp2_warning_IONQ": "2026-06-24T10:33:52.109026+02:00",
     "exitp2_trigger_IONQ_trend_break": "2026-06-24T17:41:58.322578+02:00",
-    "exitp2_trigger_PDYN_trend_break": "2026-06-23T18:57:10.534583+02:00",
+    "exitp2_trigger_PDYN_trend_break": "2026-06-24T19:19:21.976537+02:00",
     "exitp2_trigger_GEMI_trend_break": "2026-06-09T00:01:52.717781+02:00",
     "exitp2_trigger_PDYN_overheated": "2026-05-28T18:12:36.334552+02:00",
     "exitp2_trigger_CRDF_profit_lock": "2026-06-01T19:24:04.144723+02:00",
