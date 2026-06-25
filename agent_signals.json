@@ -1,10 +1,10 @@
 {
-  "updated": "2026-06-25T10:31:41.517411+02:00",
+  "updated": "2026-06-25T11:48:09.385886+02:00",
   "run_info": {
     "tickers_checked": 15,
     "signals_active": 6,
     "alerts_sent": 0,
-    "elapsed_s": 12.7,
+    "elapsed_s": 12.5,
     "market_phase": "Pre-Market"
   },
   "signals": {
@@ -112,26 +112,6 @@
       "uoa_atm_ratio": null,
       "uoa_cp_ratio": 1.1121495327102804
     },
-    "FORR": {
-      "score": 43,
-      "confidence": 33,
-      "drivers": "Spanne 14.3% + Earnings in 35d + FINRA Short-Vol 100%",
-      "price": 7.97,
-      "chg_pct": -0.0,
-      "rvol_4d": 1.11,
-      "rvol_20d": 1.93,
-      "earnings": "in 35 Tagen (30.07.2026)",
-      "fda_date": null,
-      "upcoming_event": null,
-      "insider_buy": false,
-      "stocktwits": null,
-      "combo_mult": 1.0,
-      "active_triggers": 0,
-      "uoa_score": 0,
-      "uoa_drivers": [],
-      "uoa_atm_ratio": null,
-      "uoa_cp_ratio": null
-    },
     "GRPN": {
       "score": 58,
       "confidence": 70,
@@ -155,9 +135,9 @@
       "uoa_cp_ratio": 4.888655462184874
     },
     "IONQ": {
-      "score": 40,
+      "score": 36,
       "confidence": 70,
-      "drivers": "Spanne 8.7% + News-KI 12/30: Negative price action combined with competition from broader quantum funds and established alternatives suggests weak mo + Earnings in 41d + SEC Form 4",
+      "drivers": "Spanne 8.7% + News-KI 8/30: Negative momentum with significant stock decline and profit warning make it unattractive for short-squeeze despite poten + Earnings in 41d + SEC Form 4",
       "price": 53.6,
       "chg_pct": -0.0,
       "rvol_4d": 1.06,
@@ -168,7 +148,7 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 1,
+      "active_triggers": 0,
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": null,
@@ -243,7 +223,7 @@
     "PDYN": {
       "score": 58,
       "confidence": 70,
-      "drivers": "Spanne 9.4% + News: contract, partnership + Earnings in 41d + UOA Call/Put 2.2×",
+      "drivers": "Spanne 9.4% + News: partnership, contract + Earnings in 41d + UOA Call/Put 2.2×",
       "price": 5.98,
       "chg_pct": 0.0,
       "rvol_4d": 0.51,
@@ -282,10 +262,30 @@
       "uoa_atm_ratio": null,
       "uoa_cp_ratio": null
     },
+    "SBH": {
+      "score": 18,
+      "confidence": 33,
+      "drivers": "Spanne 7.0% + Earnings in 40d",
+      "price": 14.32,
+      "chg_pct": -0.0,
+      "rvol_4d": 1.11,
+      "rvol_20d": 1.59,
+      "earnings": "in 40 Tagen (04.08.2026)",
+      "fda_date": null,
+      "upcoming_event": null,
+      "insider_buy": false,
+      "stocktwits": null,
+      "combo_mult": 1.0,
+      "active_triggers": 0,
+      "uoa_score": 0,
+      "uoa_drivers": [],
+      "uoa_atm_ratio": null,
+      "uoa_cp_ratio": 0.32
+    },
     "WEN": {
       "score": 100,
       "confidence": 70,
-      "drivers": "Volumen 19.7× + 🚀 Massives Volumen 19.7×+ + Spanne 17.8% + News: short squeeze, buyout + Earnings in 43d + UOA Call/Put 3.1×",
+      "drivers": "Volumen 19.7× + 🚀 Massives Volumen 19.7×+ + Spanne 17.8% + News: covering, squeeze + Earnings in 43d + UOA Call/Put 3.1×",
       "price": 7.86,
       "chg_pct": 0.0,
       "rvol_4d": 19.73,
@@ -302,12 +302,14 @@
         "UOA Call/Put 3.1×"
       ],
       "uoa_atm_ratio": null,
-      "uoa_cp_ratio": 3.087476459510358
+      "uoa_cp_ratio": 3.087476459510358,
+      "push_silenced": true,
+      "silenced_reason": "+27% 2T"
     },
     "ZBIO": {
-      "score": 28,
+      "score": 20,
       "confidence": 33,
-      "drivers": "Spanne 9.5% + News-KI 8/30: CEO share purchase shows confidence but lacks short interest data; announcements are routine corporate activities with n + UOA Call/Put 8.2×",
+      "drivers": "Spanne 9.5% + UOA Call/Put 8.2×",
       "price": 21.8,
       "chg_pct": -0.0,
       "rvol_4d": 0.81,
