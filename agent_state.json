@@ -1,5 +1,5 @@
 {
-  "last_run": "2026-06-26T21:04:26.977374+02:00",
+  "last_run": "2026-06-26T22:59:14.428697+02:00",
   "cooldowns": {
     "anomaly_score_jump_XRX": "2026-05-03T18:47:15.315486+02:00",
     "anomaly_uoa_extreme_TDOC": "2026-05-04T13:47:00.365949+02:00",
@@ -75,30 +75,6 @@
     "anomaly_conviction_high_ABSI": "2026-06-24T17:41:55.953275+02:00"
   },
   "push_history": [
-    {
-      "ts": "2026-06-21T12:47:22.349732+02:00",
-      "ticker": "INDI",
-      "kind": "anomaly",
-      "severity": "high",
-      "trigger": "monster_backup",
-      "body": "INDI 🔥 Monster 90 | Setup 75 | KI 88",
-      "success": false,
-      "suppressed": true,
-      "suppress_reason": "conviction_below_threshold",
-      "conviction_score": 57
-    },
-    {
-      "ts": "2026-06-21T12:47:22.349932+02:00",
-      "ticker": "ZBIO",
-      "kind": "anomaly",
-      "severity": "high",
-      "trigger": "monster_backup",
-      "body": "ZBIO 🔥 Monster 90 | Setup 90 | KI 55",
-      "success": false,
-      "suppressed": true,
-      "suppress_reason": "conviction_below_threshold",
-      "conviction_score": 69
-    },
     {
       "ts": "2026-06-21T15:18:17.725170+02:00",
       "ticker": "ATPC",
@@ -1274,6 +1250,30 @@
       "suppressed": false,
       "suppress_reason": null,
       "conviction_score": null
+    },
+    {
+      "ts": "2026-06-26T22:59:14.695981+02:00",
+      "ticker": "AI",
+      "kind": "exit_p2",
+      "severity": "trigger",
+      "trigger": "trend_break",
+      "body": "🔻 Exit-Signal AI: trend_break crit ({'ma21': 10.062, 'price': 8.75, 'drop_pct': 13.04})",
+      "success": true,
+      "suppressed": false,
+      "suppress_reason": null,
+      "conviction_score": null
+    },
+    {
+      "ts": "2026-06-26T22:59:14.940421+02:00",
+      "ticker": "RBOHF",
+      "kind": "exit_p2",
+      "severity": "trigger",
+      "trigger": "trend_break",
+      "body": "🔻 Exit-Signal RBOHF: trend_break crit ({'ma21': 0.1998, 'price': 0.1577, 'drop_pct': 21.08})",
+      "success": true,
+      "suppressed": false,
+      "suppress_reason": null,
+      "conviction_score": null
     }
   ],
   "prev_conviction_scores": {
@@ -1314,8 +1314,8 @@
     "exitp2_trigger_CRDF_trend_break": "2026-06-01T19:24:04.374205+02:00",
     "exitp2_trigger_AMC_overheated": "2026-06-01T21:15:58.491304+02:00",
     "exitp2_trigger_AI_catalyst": "2026-06-03T06:58:18.642141+02:00",
-    "exitp2_trigger_RBOHF_trend_break": "2026-06-25T22:23:01.325867+02:00",
-    "exitp2_trigger_AI_trend_break": "2026-06-25T22:23:01.075053+02:00",
+    "exitp2_trigger_RBOHF_trend_break": "2026-06-26T22:59:14.940450+02:00",
+    "exitp2_trigger_AI_trend_break": "2026-06-26T22:59:14.696008+02:00",
     "exitp2_trigger_IONQ_profit_lock": "2026-06-26T03:30:44.924195+02:00",
     "exitp2_trigger_GIII_catalyst": "2026-06-05T23:13:52.175687+02:00",
     "exitp2_trigger_DBI_catalyst": "2026-06-09T23:13:25.072861+02:00",
