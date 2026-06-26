@@ -1,10 +1,10 @@
 {
-  "updated": "2026-06-26T12:29:26.100866+02:00",
+  "updated": "2026-06-26T15:21:03.405069+02:00",
   "run_info": {
     "tickers_checked": 15,
     "signals_active": 2,
     "alerts_sent": 0,
-    "elapsed_s": 16.0,
+    "elapsed_s": 17.1,
     "market_phase": "Pre-Market"
   },
   "signals": {
@@ -27,7 +27,7 @@
       "uoa_drivers": [
         "UOA Call/Put 13.0×"
       ],
-      "uoa_atm_ratio": null,
+      "uoa_atm_ratio": 1.1335311572700297,
       "uoa_cp_ratio": 12.969711310932324
     },
     "AKTS": {
@@ -51,9 +51,9 @@
       "uoa_cp_ratio": null
     },
     "AMC": {
-      "score": 75,
+      "score": 60,
       "confidence": 70,
-      "drivers": "Spanne 15.4% + SEC 8-K + News: squeeze, short squeeze + SEC Form 4 + UOA Call/Put 4.0×",
+      "drivers": "Spanne 15.4% + News: squeeze, short squeeze + SEC Form 4 + UOA Call/Put 4.0×",
       "price": 1.89,
       "chg_pct": -0.0,
       "rvol_4d": 0.87,
@@ -69,13 +69,13 @@
       "uoa_drivers": [
         "UOA Call/Put 4.0×"
       ],
-      "uoa_atm_ratio": null,
+      "uoa_atm_ratio": 0.29789305434466723,
       "uoa_cp_ratio": 4.015204749212503
     },
     "FIP": {
-      "score": 48,
+      "score": 58,
       "confidence": 33,
-      "drivers": "News: revenue beat, insider buying + Earnings in 41d + UOA Call/Put 13.7×",
+      "drivers": "News: revenue beat, insider buying + Earnings in 41d + UOA Call-Vol/OI 3.4× ATM + UOA Call/Put 13.7×",
       "price": 4.91,
       "chg_pct": -0.0,
       "rvol_4d": 0.67,
@@ -87,17 +87,18 @@
       "stocktwits": null,
       "combo_mult": 1.0,
       "active_triggers": 1,
-      "uoa_score": 10,
+      "uoa_score": 20,
       "uoa_drivers": [
+        "UOA Call-Vol/OI 3.4× ATM",
         "UOA Call/Put 13.7×"
       ],
-      "uoa_atm_ratio": null,
+      "uoa_atm_ratio": 3.3647375504710633,
       "uoa_cp_ratio": 13.701086956521738
     },
     "GRPN": {
       "score": 80,
       "confidence": 70,
-      "drivers": "Volumen 2.8× + Spanne 23.7% + News: squeeze, short interest + Earnings in 40d + UOA Call/Put 12.0×",
+      "drivers": "Volumen 2.8× + Spanne 23.7% + News: short interest, squeeze + Earnings in 40d + UOA Call/Put 12.0×",
       "price": 22.88,
       "chg_pct": -0.0,
       "rvol_4d": 2.77,
@@ -113,7 +114,7 @@
       "uoa_drivers": [
         "UOA Call/Put 12.0×"
       ],
-      "uoa_atm_ratio": null,
+      "uoa_atm_ratio": 0.6462817623746989,
       "uoa_cp_ratio": 11.962794229309036,
       "push_silenced": true,
       "silenced_reason": "+37% 2T"
@@ -135,7 +136,7 @@
       "active_triggers": 0,
       "uoa_score": 0,
       "uoa_drivers": [],
-      "uoa_atm_ratio": null,
+      "uoa_atm_ratio": 0.9811888638073739,
       "uoa_cp_ratio": 0.4490850507629643
     },
     "KPTI": {
@@ -155,13 +156,13 @@
       "active_triggers": 0,
       "uoa_score": 0,
       "uoa_drivers": [],
-      "uoa_atm_ratio": null,
+      "uoa_atm_ratio": 0.0028328611898017,
       "uoa_cp_ratio": 0.8697068403908795
     },
     "MASK": {
       "score": 58,
       "confidence": 70,
-      "drivers": "Volumen 6.3× + 🚀 Massives Volumen 6.3×+ + Spanne 15.4% + News-KI 8/30: Positive operational expansion news but lacks short squeeze catalysts like high short interest, insider buying, or earni",
+      "drivers": "Volumen 6.3× + 🚀 Massives Volumen 6.3×+ + Spanne 15.4% + News-KI 8/30: Positive expansion news lacks short squeeze catalysts like high short interest, gamma dynamics, or forced covering scena",
       "price": 2.15,
       "chg_pct": 0.0,
       "rvol_4d": 6.3,
@@ -197,7 +198,7 @@
       "uoa_drivers": [
         "UOA Call/Put 46.0×"
       ],
-      "uoa_atm_ratio": null,
+      "uoa_atm_ratio": 0.04676104676104676,
       "uoa_cp_ratio": 46.0
     },
     "PDYN": {
@@ -219,13 +220,13 @@
       "uoa_drivers": [
         "UOA Call/Put 9.5×"
       ],
-      "uoa_atm_ratio": null,
+      "uoa_atm_ratio": 0.0807799442896936,
       "uoa_cp_ratio": 9.512195121951219
     },
     "QDEL": {
-      "score": 26,
-      "confidence": 70,
-      "drivers": "Spanne 10.2% + News-KI 8/30: Negative sentiment with profitability concerns and Russell 2000 inclusion warnings outweigh neutral CFO appointment; low + Earnings in 33d",
+      "score": 18,
+      "confidence": 33,
+      "drivers": "Spanne 10.2% + Earnings in 33d",
       "price": 13.52,
       "chg_pct": 0.0,
       "rvol_4d": 0.94,
@@ -239,7 +240,7 @@
       "active_triggers": 0,
       "uoa_score": 0,
       "uoa_drivers": [],
-      "uoa_atm_ratio": null,
+      "uoa_atm_ratio": 0.02,
       "uoa_cp_ratio": 1.5172413793103448
     },
     "RBOHF": {
@@ -263,9 +264,9 @@
       "uoa_cp_ratio": null
     },
     "SDGR": {
-      "score": 43,
+      "score": 51,
       "confidence": 70,
-      "drivers": "Volumen 1.5× + Spanne 9.0% + Earnings in 40d + SEC Form 4",
+      "drivers": "Volumen 1.5× + Spanne 9.0% + News-KI 8/30: Neutral analyst rating, no significant catalyst, and routine equity grant disclosure indicate minimal short-squeeze pote + Earnings in 40d + SEC Form 4",
       "price": 16.14,
       "chg_pct": -0.0,
       "rvol_4d": 1.52,
@@ -279,13 +280,13 @@
       "active_triggers": 0,
       "uoa_score": 0,
       "uoa_drivers": [],
-      "uoa_atm_ratio": null,
+      "uoa_atm_ratio": 0.029080675422138838,
       "uoa_cp_ratio": 0.40298507462686567
     },
     "ULCC": {
-      "score": 36,
+      "score": 28,
       "confidence": 70,
-      "drivers": "Spanne 10.3% + News-KI 8/30: Airline sector rally driven by falling crude prices is positive but lacks short-squeeze indicators like high short inter + Earnings in 40d + UOA Call/Put 11.9×",
+      "drivers": "Spanne 10.3% + Earnings in 40d + UOA Call/Put 11.9×",
       "price": 8.06,
       "chg_pct": 0.0,
       "rvol_4d": 1.36,
@@ -301,7 +302,7 @@
       "uoa_drivers": [
         "UOA Call/Put 11.9×"
       ],
-      "uoa_atm_ratio": null,
+      "uoa_atm_ratio": 0.32216216216216215,
       "uoa_cp_ratio": 11.912280701754385
     },
     "ZBIO": {
@@ -323,7 +324,7 @@
       "uoa_drivers": [
         "UOA Call/Put 7.5×"
       ],
-      "uoa_atm_ratio": null,
+      "uoa_atm_ratio": 0.010638297872340425,
       "uoa_cp_ratio": 7.545454545454546
     }
   }
