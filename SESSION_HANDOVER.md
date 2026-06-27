@@ -223,6 +223,36 @@ Wochenend-Digest-Selbstheilung bestätigt — entfallen.)*
     VERWORFEN (13.06.):** die Rohdaten + Twins sind bereits persistiert → einmalige
     read-only-Auswertung statt periodischem Wächter (Daten da, kein Sammel-Bedarf;
     Nordstern: Mensch validiert Bedeutung einmal). Über-Engineering vermieden.
+    **❌ GESTRICHEN 27.06.2026 — Prüfpunkt 6 (Entry-Cap-Nachschärfung) fällt aus
+    der 30.06.-Auswertung raus** (Stand origin/main `2457b48`, Bucket Score≥70 ∧
+    schema_v=4 ∧ return_10d=non-null, n=103). Read-only-Diagnose-Belege:
+    `uoa_atm_ratio_raw` und `rvol_buildup_5d_raw` **existieren nicht im
+    schema_v=4** (0 Records); `score_delta_t1_raw` zwar vorhanden (40/103), aber
+    nur **n=8** sind tatsächlich geclippt (|capped|=15 ∧ |raw|>15). Auf normalisierter
+    Skala via `entry_components`-Dict (Coverage 25/103, da Feld erst seit Entry-
+    Shadow #336): at-100 für uoa **3/16**, für rvol_buildup **3/25**, für
+    score_delta **3/20**. Die Caps werden im Live-Pool strukturell fast nie erreicht
+    (capped-`uoa_atm_ratio` 45/50 unter 3.5; capped-`rvol_buildup_5d` 66/79 unter
+    5.5) — kein Sammel-Problem, sondern **Frage-Definition**: das At-Cap-vs-Under-
+    Cap-Sample wäre n≤8 pro Komponente, ohne Trennkraft. Schlussfolgerung
+    (Nordstern „Bedeutungs-Freigabe menschlich"): Cap-Schwellen sind vermutlich
+    **passend gewählt** (schneiden nichts Nicht-Extremes ab), eine Nachschärfung
+    löst kein belegtes Problem. **KEIN Ersatz-Test in den freien Slot**
+    (Multiple-Testing-Schutz — die 30.06.-α-Korrektur gilt gemeinsam über alle
+    Tests; ein Verlegenheits-Test verschärft die Korrektur für die echten Tests).
+    Die abhängigen Subitems im Block (Edge-Test, si_slope-uncapped, ggf.
+    `score_delta_t1`-Schärfung) fallen mit — score_delta_t1 könnte später **als
+    eigener Strang** wieder aufgegriffen werden, wenn n_at-cap auf ≥30 gewachsen
+    ist (heute 8 → vmtl. mehrere Monate Sammel-Zeit). **Velocity-Vermerk
+    (ursprünglich Ziel-Variable „Bewegungs-Geschwindigkeit", s.o. Z. 207):**
+    1T/2T-Max-Return und Zeit-bis-+10 % sind **rückwirkend nicht ableitbar** — die
+    nötigen Felder existieren im Backtest nicht (nur `entry_price`/`entry_price_t1`
+    voll-besetzt, daraus rein technisch ein 1d-Close-Return, aber **kein** intraday-
+    Speed-Maß). Wenn je gewünscht: additives Feld `max_gain_Nd` als Spiegel zu
+    `_compute_max_drawdown` (`backtest_history.py:126`) — kleiner additiver
+    Eingriff, aber Auswertbarkeit **frühestens August** (ab ~30 reife Records).
+    NICHT als offener 30.06.-Punkt führen, **nur** als optionaler eigener PR-Strang
+    falls je gewollt.
   - **Freitag-Cluster-Kontamination (Diagnose 09.06.):** 37,5 % der ≥70-Einträge
     tragen Score mit ~1-Tag-Daten-Versatz (Pre-Open-Re-Run friert Vortags-Bar ein;
     Signatur = `entry_price` exakt == Vortags-`entry_price` desselben Tickers).
