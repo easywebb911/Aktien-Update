@@ -159,6 +159,21 @@ Wochenend-Digest-Selbstheilung bestätigt — entfallen.)*
   „Konflikt in nicht-JSON-Dateien" + `exit_shadow_log.jsonl`? (ab Backfill-Start
   wird ki_agent 2. exit_shadow-Schreiber = erste reale Konflikt-Chance). Bleibt es
   ruhig → der Merge-Strang ist endgültig erledigt (s. §6: key-aware-Driver verworfen).
+  **✅ VERIFIED 27.06.2026 (Sa, Stand origin/main `47f188f`):**
+  forward-Backfill auf 10d-Horizont **sauber durchgelaufen**. Belege (read-only-
+  Stichproben gegen `exit_shadow_log.jsonl` + `backtest_history.json`):
+  - **11.06-Records: 8/8 `forward_10d` gefüllt** (AI −21.16, AMC −11.62,
+    DBI −6.42, GIII −6.37, IONQ −11.55, LUCK −11.80, PDYN −16.59, RBOHF −29.73).
+    Backfill griff am 26.06. postclose (10. Trading-Tag-Bar nach Entry,
+    Juneteenth holiday-robust über bar-index übersprungen).
+  - **Allgemein return_10d-Reife (`schema_v=4`): 280 Records gesamt** mit
+    `return_10d` gefüllt; davon **Score≥70-Bucket n=103**.
+  - **Backfill-Anomalien: 0** (kein einziger `schema_v=4`-Record >16 Kalender-
+    tage alt mit `return_10d=None`). Bar-index-Mechanik (`fwd_idx = sig_idx + n`,
+    `ki_agent.py:574`, holiday-robust by construction über echte yfinance-Closes)
+    ist auch auf dem 10d-Horizont validiert. Daten-Pipeline für die
+    30.06.-Auswertung steht. Sample wächst weiter — Sample-Belege gelten zum
+    genannten Stand und können (additiv) anwachsen.
 - **✅ GEPRÜFT 13.06 — Vintage-Guard-Log sauber:** nur **2 Skips, beide `pre_open`**
   (11.06. 04:09Z/05:53Z = 00:09/01:53 ET) — KEIN ~22:xx-UTC-Bar-Lag-False-Skip. Die
   12.06-Post-Close-Läufe (20:52/22:50Z, post-16:00 ET) appendeten korrekt
