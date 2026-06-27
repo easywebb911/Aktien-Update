@@ -1,21 +1,21 @@
 {
-  "updated": "2026-06-27T22:20:28.179396+02:00",
+  "updated": "2026-06-28T00:16:07.081980+02:00",
   "run_info": {
     "tickers_checked": 15,
     "signals_active": 10,
     "alerts_sent": 0,
-    "elapsed_s": 18.8,
+    "elapsed_s": 12.6,
     "market_phase": "Geschlossen"
   },
   "signals": {
     "AI": {
-      "score": 40,
-      "confidence": 70,
-      "drivers": "Volumen 1.7× + Spanne 6.4% + News: short interest",
+      "score": 25,
+      "confidence": 33,
+      "drivers": "Spanne 8.1% + News: short interest",
       "price": 8.9,
-      "chg_pct": -0.0,
-      "rvol_4d": 1.69,
-      "rvol_20d": 1.23,
+      "chg_pct": 1.71,
+      "rvol_4d": 1.25,
+      "rvol_20d": 0.87,
       "earnings": null,
       "fda_date": null,
       "upcoming_event": null,
@@ -31,7 +31,7 @@
     "AMC": {
       "score": 38,
       "confidence": 70,
-      "drivers": "Spanne 21.0% + News-KI 8/30: Debt financing dilutes shares and weakens squeeze potential; no indicators of short covering pressure or bullish momentu + SEC Form 4 + UOA Call/Put 8.4×",
+      "drivers": "Spanne 21.0% + News-KI 8/30: Negative momentum from stock crash and debt-focused capital raise reduces short-squeeze potential despite fundraising ac + SEC Form 4 + UOA Call/Put 8.4×",
       "price": 2.16,
       "chg_pct": 0.0,
       "rvol_4d": 0.95,
@@ -51,9 +51,9 @@
       "uoa_cp_ratio": 8.424477289113193
     },
     "CERT": {
-      "score": 58,
+      "score": 60,
       "confidence": 70,
-      "drivers": "Volumen 5.7× + 🚀 Massives Volumen 5.7×+ + Spanne 9.3% + Earnings in 40d",
+      "drivers": "Volumen 5.7× + 🚀 Massives Volumen 5.7×+ + Spanne 9.3% + News-KI 2/30: Generic market research articles with no company-specific catalyst, insider activity, or short-squeeze indicators for CE + Earnings in 40d",
       "price": 5.84,
       "chg_pct": 0.0,
       "rvol_4d": 5.72,
@@ -155,9 +155,9 @@
       "uoa_cp_ratio": 3.5866666666666664
     },
     "OCGN": {
-      "score": 91,
+      "score": 88,
       "confidence": 70,
-      "drivers": "Volumen 8.5× + 🚀 Massives Volumen 8.5×+ + Spanne 11.8% + News: catalyst + Earnings in 33d + UOA Call/Put 4.9×",
+      "drivers": "Volumen 8.5× + 🚀 Massives Volumen 8.5×+ + Spanne 11.8% + News-KI 12/30: Negative price action, analyst caution, and lack of bullish catalysts indicate weak momentum unsuitable for short-squeez + Earnings in 33d + UOA Call/Put 4.9×",
       "price": 1.5,
       "chg_pct": 0.0,
       "rvol_4d": 8.53,
@@ -179,7 +179,7 @@
     "PDYN": {
       "score": 48,
       "confidence": 70,
-      "drivers": "Spanne 5.5% + News: partnership, contract + Earnings in 39d",
+      "drivers": "Spanne 5.5% + News: contract, partnership + Earnings in 39d",
       "price": 5.82,
       "chg_pct": 0.0,
       "rvol_4d": 1.14,
