@@ -1,10 +1,10 @@
 {
-  "updated": "2026-06-28T13:16:46.296932+02:00",
+  "updated": "2026-06-28T14:46:10.107863+02:00",
   "run_info": {
     "tickers_checked": 15,
     "signals_active": 10,
     "alerts_sent": 0,
-    "elapsed_s": 11.7,
+    "elapsed_s": 12.0,
     "market_phase": "Geschlossen"
   },
   "signals": {
@@ -31,7 +31,7 @@
     "AMC": {
       "score": 60,
       "confidence": 70,
-      "drivers": "Spanne 21.0% + News: squeeze, short squeeze + SEC Form 4 + UOA Call/Put 8.4×",
+      "drivers": "Spanne 21.0% + News: short squeeze, squeeze + SEC Form 4 + UOA Call/Put 8.4×",
       "price": 2.16,
       "chg_pct": 0.0,
       "rvol_4d": 0.95,
@@ -51,9 +51,9 @@
       "uoa_cp_ratio": 8.424477289113193
     },
     "CERT": {
-      "score": 58,
+      "score": 63,
       "confidence": 70,
-      "drivers": "Volumen 5.7× + 🚀 Massives Volumen 5.7×+ + Spanne 9.3% + Earnings in 39d",
+      "drivers": "Volumen 5.7× + 🚀 Massives Volumen 5.7×+ + Spanne 9.3% + News-KI 5/30: Generic industry analysis and leadership announcements lack short-squeeze catalysts like high short interest, forced liq + Earnings in 39d",
       "price": 5.84,
       "chg_pct": 0.0,
       "rvol_4d": 5.72,
@@ -113,7 +113,7 @@
     "JACK": {
       "score": 73,
       "confidence": 70,
-      "drivers": "Volumen 1.6× + Spanne 10.6% + News: short interest, covering + Earnings in 38d + UOA Call/Put 3.8×",
+      "drivers": "Volumen 1.6× + Spanne 10.6% + News: covering, short interest + Earnings in 38d + UOA Call/Put 3.8×",
       "price": 13.81,
       "chg_pct": 0.0,
       "rvol_4d": 1.63,
@@ -155,9 +155,9 @@
       "uoa_cp_ratio": 3.5866666666666664
     },
     "OCGN": {
-      "score": 91,
+      "score": 88,
       "confidence": 70,
-      "drivers": "Volumen 8.5× + 🚀 Massives Volumen 8.5×+ + Spanne 11.8% + News: catalyst + Earnings in 32d + UOA Call/Put 4.9×",
+      "drivers": "Volumen 8.5× + 🚀 Massives Volumen 8.5×+ + Spanne 11.8% + News-KI 12/30: Negative price action, cautious analyst sentiment, and lack of bullish catalysts indicate weak momentum contrary to shor + Earnings in 32d + UOA Call/Put 4.9×",
       "price": 1.5,
       "chg_pct": 0.0,
       "rvol_4d": 8.53,
@@ -299,9 +299,9 @@
       "uoa_cp_ratio": 0.014610941216445803
     },
     "WEN": {
-      "score": 38,
+      "score": 50,
       "confidence": 70,
-      "drivers": "Spanne 14.2% + Earnings in 40d + SEC Form 4 + UOA Call/Put 2.3×",
+      "drivers": "Spanne 14.2% + News-KI 12/30: Meme-driven retail interest exists but lacks fundamental short-squeeze indicators like high short interest, low float, o + Earnings in 40d + SEC Form 4 + UOA Call/Put 2.3×",
       "price": 7.8,
       "chg_pct": 0.0,
       "rvol_4d": 0.95,
@@ -312,7 +312,7 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 0,
+      "active_triggers": 1,
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 2.3×"
