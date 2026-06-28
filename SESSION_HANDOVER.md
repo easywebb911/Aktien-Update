@@ -209,6 +209,40 @@ Wochenend-Digest-Selbstheilung bestätigt — entfallen.)*
     Beschleunigung, würde ein Test gegen 10D-Return ihn systematisch benachteiligen
     (falsche Falsifizierung). Keine neue Komplexität, nur die korrekte Zielgröße
     eines ohnehin geplanten Tests (kohärent neben dem `entry_n_components`-Check).
+    **⏳ VORWÄRTS-ERHEBUNG 28.06.2026 — Conviction-Edge (Prüfpunkt P3) zum 30.06.
+    nicht auswertbar (datenleer), aber bewusst NICHT GESTRICHEN.** Read-only-
+    Diagnose-Befund (Stand origin/main `0ad5719`, schema_v=4 n=380): es
+    existiert **kein** Conviction-Feld im Backtest (0 Records mit `conviction*`-
+    Key — Bestätigung: nur `vix_level` enthält „level"). Conviction wird heute
+    nur live berechnet + im Frontend angezeigt, jedoch nicht je Entry in
+    `backtest_history.json` persistiert. Unterschied zu Prüfpunkt 6 (Entry-Cap,
+    GESTRICHEN #386): Cap-Frage war strukturell datenleer (Caps werden im Live-
+    Pool fast nie erreicht — kein Erhebungs-Bedarf). Conviction prägt dagegen
+    **aktive Entscheidungen** (Cockpit-Donut, Push-Gating ab ≥75, Anomaly-Push-
+    Mindest-Schwelle) und gehört in die Edge-Validierung — sie darf nicht
+    ungeprüft bleiben. **ENTSCHEIDUNG: Conviction additiv ins Backtest-Schema
+    erheben** (eigener Bau-Strang, Diagnose-first analog zum etablierten
+    `max_drawdown_pct`-Pattern in `backtest_history.py:126`). Auswertbar
+    frühestens **mehrere Wochen** ab Deploy (analog der heute beschriebenen
+    Velocity-Spiegel-Logik); 30.06.-Slot bleibt **bewusst leer**, KEIN
+    Verlegenheits-Test (Multiple-Testing-Schutz, gleiche Linie wie #386).
+    Conviction-Auswertung damit auf eigene Wiedervorlage verschoben — neuer
+    PR-Strang nicht heute, sondern wenn der Bau bewusst angeordnet wird.
+    **🔬 NETTO-RETURN-METHODIK 28.06.2026 fixiert für 30.06.** Diagnose-Befund:
+    `spread`/`bid_ask` existieren **strukturell nicht** im `schema_v=4`-Backtest
+    (0 Felder gegrept); nur `cost_to_borrow` ist (teilweise) gefüllt (217/380).
+    **ENTSCHEIDUNG: Netto = Brutto − Borrow-Fee (Borrow-only), Spread als
+    benannter Caveat** — wörtlich am Auswertungs-Befund: „Spread nicht
+    abgezogen → die reale Netto-Edge liegt unter den gemeldeten Werten, bei
+    illiquiden Small-Caps deutlich". **Bewusst KEINE pauschale Spread-Konstante**
+    (z.B. „0.5 %") — Scheinpräzision über einen heterogenen Bucket
+    (small-Cap-Squeezes haben Spreads im niedrigen einstelligen %-Bereich,
+    teils mehr; eine Pauschale unterschätzt **gerade** die illiquiden Knaller-
+    Kandidaten, also genau den Tail-Bereich, der die Strategie prägt). Folgt
+    der §5-Auffanglinie („Keine Netto-Edge → Tool ist Wissenschafts-Übung"):
+    ehrliche Obergrenze schlägt geschönte Pauschale. Records ohne
+    `cost_to_borrow` (163/380) gehen als „borrow-fee unknown" in den Befund —
+    ggf. separat ausgewiesen, keine Imputation.
   - **Entry-Cap-Trockenlauf (13.06., read-only, NICHT gebaut — Methode validiert):**
     Rohverteilung + Cap-/Clamp-Anschlag der 5 echten `compute_entry_score`-Inputs
     gegen `backtest_history.json` (Twins genutzt: `score_delta_t1_raw`,
