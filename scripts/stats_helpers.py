@@ -19,7 +19,7 @@ from __future__ import annotations
 import math
 from typing import Sequence
 
-__all__ = ["mann_whitney_u_auc"]
+__all__ = ["mann_whitney_u_auc", "multiple_testing_correction"]
 
 
 def _ranks_with_ties(values: list[float]) -> tuple[list[float], list[int]]:
@@ -147,3 +147,112 @@ def mann_whitney_u_auc(group_a: Sequence[float],
 
     return {"n_a": n_a, "n_b": n_b, "u": u_a, "auc": auc,
             "p_two_sided": p_two_sided, "note": note}
+
+
+def multiple_testing_correction(p_values: Sequence[float],
+                                *,
+                                labels: Sequence[str] | None = None,
+                                alpha: float = 0.05) -> dict:
+    """Bonferroni + Holm-Bonferroni für eine Familie von k Tests.
+
+    Vorbau für die 30.06.-Auswertungs-Disziplin: die α-Korrektur gilt
+    GEMEINSAM über ALLE Tests des Auswertungstags (Family-Wise Error
+    Rate Control), NICHT pro Einzeltest. Caller übergibt die p-Liste
+    explizit — kein Lesen aus Live-Dateien.
+
+    Konvention: ``reject H_0 wenn p < α_korrigiert`` (strikt ``<``, analog
+    scipy/Wikipedia; bei ``p == α`` wird NICHT rejected — konservative
+    Seite). Funktion ist rein deterministisch.
+
+    BONFERRONI (klassisch):
+      Jeder Test gegen ``α/k``. Kontrolliert FWER strikt; lehnt aber zu
+      wenig ab bei vielen Tests (uniformly weniger mächtig als Holm).
+
+    HOLM-BONFERRONI (step-down — uniformly mächtiger):
+      1. p-Werte aufsteigend sortieren.
+      2. Den i-ten (1-basiert) sortierten Test gegen ``α/(k-i+1)`` prüfen.
+      3. Beim ERSTEN ``p ≥ Schwelle``: STOPP. Alle weiteren (= höhere p)
+         ebenfalls fail (step-down-Stopp).
+      Garantie: Holm rejects ⊇ Bonferroni rejects (strenge Halbordnung,
+      kein Aufwand-/Risiko-Trade — strikt mächtiger).
+
+    Rückgabe (dict):
+      ``k``                    — Anzahl Tests.
+      ``alpha``                — gewähltes Familien-Signifikanzniveau.
+      ``bonferroni_threshold`` — ``α/k`` (oder ``None`` bei k=0).
+      ``results``              — Liste in ORIGINAL-Reihenfolge (NICHT
+                                 sortiert), pro Eintrag dict mit
+                                 ``{label, p, bonferroni_reject, holm_reject}``.
+      ``n_reject_bonf``, ``n_reject_holm`` — Anzahl rejections.
+
+    Edge-Cases:
+      - ``k == 0``: leere ``results``, beide n_reject 0.
+      - ``k == 1``: Korrektur entartet zu unverändertem α.
+      - Ties in p: ``sorted`` ist stable, Original-Reihenfolge der
+        Tie-Gruppe bleibt erhalten.
+      - ``labels``: optional. Bei Mismatch der Länge → ``ValueError``.
+
+    Args:
+      p_values: Familie von p-Werten (eine pro Test).
+      labels:   Optional, gleiche Länge. Default ``['test_0', ...]``.
+      alpha:    Familien-Signifikanzniveau. Default 0.05.
+    """
+    pvs = list(p_values)
+    k = len(pvs)
+    if labels is None:
+        labs = [f"test_{i}" for i in range(k)]
+    else:
+        labs = list(labels)
+        if len(labs) != k:
+            raise ValueError(
+                f"labels length {len(labs)} mismatcht p_values length {k}"
+            )
+
+    if k == 0:
+        return {
+            "k": 0, "alpha": alpha, "bonferroni_threshold": None,
+            "results": [], "n_reject_bonf": 0, "n_reject_holm": 0,
+        }
+
+    # ── Bonferroni ────────────────────────────────────────────────────
+    bonf_threshold = alpha / k
+    bonf = [p < bonf_threshold for p in pvs]
+
+    # ── Holm-Bonferroni (step-down) ───────────────────────────────────
+    # Sortier-Permutation der ORIGINAL-Indices nach aufsteigender p.
+    # sorted ist stable → Ties behalten Original-Reihenfolge.
+    order = sorted(range(k), key=lambda i: pvs[i])
+    # Step-down: für sorted-Position s (0-basiert): threshold = α/(k-s).
+    # Bei erstem fail (p >= threshold) → STOPP. Alle weiteren auch fail.
+    holm_in_sorted: list[bool] = [False] * k
+    stopped = False
+    for s in range(k):
+        orig_i = order[s]
+        threshold = alpha / (k - s)
+        if not stopped and pvs[orig_i] < threshold:
+            holm_in_sorted[s] = True
+        else:
+            stopped = True
+            holm_in_sorted[s] = False
+    # Zurück in ORIGINAL-Reihenfolge mappen (NICHT sortiert zurück!).
+    holm: list[bool] = [False] * k
+    for s in range(k):
+        holm[order[s]] = holm_in_sorted[s]
+
+    results = [
+        {
+            "label": labs[i],
+            "p": pvs[i],
+            "bonferroni_reject": bonf[i],
+            "holm_reject": holm[i],
+        }
+        for i in range(k)
+    ]
+    return {
+        "k": k,
+        "alpha": alpha,
+        "bonferroni_threshold": bonf_threshold,
+        "results": results,
+        "n_reject_bonf": sum(bonf),
+        "n_reject_holm": sum(holm),
+    }

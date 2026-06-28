@@ -23,7 +23,10 @@ import sys
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT / "scripts"))
 
-from stats_helpers import mann_whitney_u_auc  # noqa: E402
+from stats_helpers import (  # noqa: E402
+    mann_whitney_u_auc,
+    multiple_testing_correction,
+)
 
 
 _fails: list[str] = []
@@ -140,11 +143,168 @@ def main():
            set(r.keys()) == keys,
            f"got keys={set(r.keys())}")
 
+    # ╔══════════════════════════════════════════════════════════════════╗
+    # ║  multiple_testing_correction — Bonferroni + Holm (step-down)     ║
+    # ╚══════════════════════════════════════════════════════════════════╝
+
+    # ── Lehrbuch-Fall, handgerechnet ──────────────────────────────────────
+    # p=[0.01, 0.02, 0.03, 0.04], α=0.05, k=4
+    # Bonferroni-Schwelle = 0.05/4 = 0.0125
+    #   p=0.01 < 0.0125 → reject     (alle anderen p > 0.0125 → fail)
+    # Holm step-down (input bereits aufsteigend):
+    #   i=1: 0.01 vs 0.05/4 = 0.0125 → reject
+    #   i=2: 0.02 vs 0.05/3 ≈ 0.0167 → 0.02 > 0.0167 → STOP, fail
+    #   i=3, i=4: fail (step-down)
+    r = multiple_testing_correction([0.01, 0.02, 0.03, 0.04], alpha=0.05)
+    _check("13 Bonferroni-Schwelle = α/k (handgerechnet 0.05/4)",
+           r["bonferroni_threshold"] == 0.05 / 4,
+           f"got {r['bonferroni_threshold']}")
+    bonf = [x["bonferroni_reject"] for x in r["results"]]
+    _check("14 Bonferroni-Urteile Lehrbuch-Fall = [T,F,F,F]",
+           bonf == [True, False, False, False], f"got {bonf}")
+    holm = [x["holm_reject"] for x in r["results"]]
+    _check("15 Holm-Urteile Lehrbuch-Fall = [T,F,F,F] (step-down nach i=2)",
+           holm == [True, False, False, False], f"got {holm}")
+    _check("15b n_reject_bonf=1, n_reject_holm=1 (für diesen Fall identisch)",
+           r["n_reject_bonf"] == 1 and r["n_reject_holm"] == 1)
+
+    # ── Holm uniformly mächtiger als Bonferroni ──────────────────────────
+    # p=[0.01, 0.04], α=0.05, k=2:
+    #   Bonferroni-Schwelle 0.025 → nur p=0.01 reject.
+    #   Holm: i=1: 0.01 vs 0.025 → reject
+    #         i=2: 0.04 vs 0.05  → reject (kein Stopp, 0.04 < 0.05)
+    # ⇒ Bonferroni 1 reject, Holm 2 rejects — strikt mehr.
+    r = multiple_testing_correction([0.01, 0.04], alpha=0.05)
+    bonf = [x["bonferroni_reject"] for x in r["results"]]
+    holm = [x["holm_reject"] for x in r["results"]]
+    _check("16 Holm > Bonferroni (Mächtigkeitsbeleg): Bonf=[T,F], Holm=[T,T]",
+           bonf == [True, False] and holm == [True, True],
+           f"bonf={bonf}, holm={holm}")
+    _check("16b n_reject: bonf=1, holm=2 (strikte Halbordnung)",
+           r["n_reject_bonf"] == 1 and r["n_reject_holm"] == 2)
+
+    # ── Step-down-Stopp greift gegen isoliert-passenden p ────────────────
+    # p=[0.01, 0.04, 0.045], α=0.05, k=3 (input sortiert):
+    #   i=1: 0.01 vs 0.05/3 ≈ 0.0167 → reject
+    #   i=2: 0.04 vs 0.05/2 = 0.025  → 0.04 > 0.025 → STOP, fail
+    #   i=3: 0.045 vs 0.05/1 = 0.05 — ISOLIERT würde reject (0.045 < 0.05),
+    #        ABER step-down hat gestoppt → fail
+    # ⇒ Holm = [T, F, F]. Eine Bug-Variante OHNE step-down gäbe [T, F, T]
+    #   → dieser Fall fängt das.
+    r = multiple_testing_correction([0.01, 0.04, 0.045], alpha=0.05)
+    holm = [x["holm_reject"] for x in r["results"]]
+    _check("17 Step-down stoppt nachfolgende auch wenn isoliert <α "
+           "(p=0.045 vs threshold 0.05 wird trotz < α NICHT rejected)",
+           holm == [True, False, False],
+           f"erwartet [T,F,F], got {holm}")
+
+    # ── Label-Rückordnung: unsortierter Input ────────────────────────────
+    # p=[0.04, 0.01, 0.06], α=0.05, k=3
+    # Sorted: [(0.01,idx=1), (0.04,idx=0), (0.06,idx=2)]
+    #   i=1: 0.01 vs 0.0167 → reject (orig_idx=1)
+    #   i=2: 0.04 vs 0.025  → STOP, fail (orig_idx=0)
+    #   i=3: fail            (orig_idx=2)
+    # ⇒ Holm in ORIGINAL-Reihenfolge: [fail, reject, fail]
+    # Bug-Variante (sorted-Order zurück) würde [reject, fail, fail] geben
+    #   → falsche Zuordnung zu Original-Indices → dieser Fall fängt das.
+    r = multiple_testing_correction([0.04, 0.01, 0.06], alpha=0.05)
+    holm = [x["holm_reject"] for x in r["results"]]
+    bonf = [x["bonferroni_reject"] for x in r["results"]]
+    _check("18 Label-Rückordnung Holm (unsortiert): [F,T,F] in ORIGINAL-Order",
+           holm == [False, True, False],
+           f"erwartet [F,T,F], got {holm}")
+    _check("18b Bonferroni-Urteile in Original-Reihenfolge (Sanity)",
+           bonf == [False, True, False], f"got {bonf}")
+    # Ps stimmen mit Original-Indices überein (kein Reorder im Output):
+    ps_out = [x["p"] for x in r["results"]]
+    _check("18c Output-Reihenfolge der p-Werte = Input-Reihenfolge",
+           ps_out == [0.04, 0.01, 0.06])
+
+    # ── Labels-Parameter wird mitgeführt + Cross-Lookup ──────────────────
+    r = multiple_testing_correction([0.04, 0.01, 0.06],
+                                    labels=["AUC_setup", "AUC_dtc", "AUC_rvol"],
+                                    alpha=0.05)
+    labs_out = [x["label"] for x in r["results"]]
+    _check("19 Labels in Original-Reihenfolge erhalten",
+           labs_out == ["AUC_setup", "AUC_dtc", "AUC_rvol"])
+    dtc_entry = next(x for x in r["results"] if x["label"] == "AUC_dtc")
+    _check("19b Cross-Lookup AUC_dtc: p=0.01, holm=T, bonf=T (kein Mismatch)",
+           dtc_entry["p"] == 0.01
+           and dtc_entry["holm_reject"] is True
+           and dtc_entry["bonferroni_reject"] is True)
+
+    # ── Edge-Cases ────────────────────────────────────────────────────────
+    r = multiple_testing_correction([0.04], alpha=0.05)
+    _check("20 k=1: Bonferroni-Schwelle = α (Korrektur entartet)",
+           r["bonferroni_threshold"] == 0.05)
+    _check("20b k=1: 0.04 < 0.05 → beide reject",
+           r["results"][0]["bonferroni_reject"] is True
+           and r["results"][0]["holm_reject"] is True)
+
+    r = multiple_testing_correction([], alpha=0.05)
+    _check("21 leere Liste → k=0, results=[], n_reject=0",
+           r["k"] == 0 and r["results"] == []
+           and r["n_reject_bonf"] == 0 and r["n_reject_holm"] == 0)
+
+    # Ties (identische p-Werte): sortiert stable → Original-Reihenfolge.
+    # p=[0.01, 0.01, 0.01], α=0.05, k=3
+    # Bonferroni-Schwelle 0.0167. Alle 0.01 < 0.0167 → alle reject.
+    # Holm: i=1: 0.01 vs 0.0167 → reject; i=2: 0.01 vs 0.025 → reject;
+    #       i=3: 0.01 vs 0.05 → reject. Alle reject.
+    r = multiple_testing_correction([0.01, 0.01, 0.01], alpha=0.05)
+    bonf = [x["bonferroni_reject"] for x in r["results"]]
+    holm = [x["holm_reject"] for x in r["results"]]
+    _check("22 Ties: alle 3 identischen p=0.01 → alle reject (beide Verfahren)",
+           bonf == [True, True, True] and holm == [True, True, True])
+
+    # ── Struktur-Invariante: Holm-Reject-Set ⊇ Bonferroni-Reject-Set ─────
+    # Wenn Bonferroni rejected, muss Holm AUCH rejecten (uniformly mächtiger).
+    # Mehrere Fixtures durchgehen.
+    fixtures = [
+        ([0.001, 0.01, 0.02, 0.03, 0.04, 0.06, 0.08], 0.05),
+        ([0.005, 0.015], 0.05),
+        ([0.001, 0.99], 0.05),
+        ([0.04, 0.01, 0.06, 0.005, 0.5], 0.05),
+    ]
+    invariant_ok = True
+    for pvs, alpha in fixtures:
+        rr = multiple_testing_correction(pvs, alpha=alpha)
+        for entry in rr["results"]:
+            if entry["bonferroni_reject"] and not entry["holm_reject"]:
+                invariant_ok = False
+                break
+    _check("23 Invariante: Holm-Reject ⊇ Bonferroni-Reject über 4 Fixtures",
+           invariant_ok)
+
+    # ── Labels-Mismatch wirft ValueError ─────────────────────────────────
+    try:
+        multiple_testing_correction([0.01, 0.02], labels=["nur_einer"])
+        ve_raised = False
+    except ValueError:
+        ve_raised = True
+    _check("24 labels-Length-Mismatch → ValueError", ve_raised)
+
+    # ── Determinismus ────────────────────────────────────────────────────
+    r1 = multiple_testing_correction([0.04, 0.01, 0.06], alpha=0.05)
+    r2 = multiple_testing_correction([0.04, 0.01, 0.06], alpha=0.05)
+    _check("25 Determinismus: gleicher Input → gleicher Output", r1 == r2)
+
+    # ── Return-Schema-Stabilität ─────────────────────────────────────────
+    r = multiple_testing_correction([0.01, 0.04], alpha=0.05)
+    top_keys = {"k", "alpha", "bonferroni_threshold", "results",
+                "n_reject_bonf", "n_reject_holm"}
+    entry_keys = {"label", "p", "bonferroni_reject", "holm_reject"}
+    _check("26 Top-Level Return-Schema (6 Keys)",
+           set(r.keys()) == top_keys, f"got {set(r.keys())}")
+    _check("26b Pro-Test-Dict-Schema (4 Keys)",
+           set(r["results"][0].keys()) == entry_keys,
+           f"got {set(r['results'][0].keys())}")
+
     print()
     if _fails:
         print(f"{len(_fails)} FAIL: {_fails}")
         sys.exit(1)
-    print(f"{12 + 2} Tests bestanden (inkl. 2× -b-Suffix).")
+    print("Alle Mann-Whitney-/AUC- + Multiple-Testing-Tests bestanden.")
 
 
 if __name__ == "__main__":
