@@ -509,8 +509,14 @@ def _build_backtest_extension(s: dict, pool_position: int, pool_size: int,
         #                          Sub-Objekt mit jeder Komponente einzeln.
         # Schema-ADDITIV — KEIN v4→v5-Bump (S10-Loader filtert == 4). KEIN
         # Push/keine Anzeige/kein Score-/Filter-Effekt (reiner Persist-Read).
-        # KEIN Eintrag in S10_MUSS_FIELDS/_LAG_FIELDS/_OBSERVED_FIELDS, sonst
-        # feuert S10 sofort auf Alt-Einträgen ohne das Feld.
+        # S10-DISZIPLIN (Guardian-Korrektur 28.06.): beide Felder MÜSSEN in
+        # S10_OBSERVED_FIELDS (Whitelist bekannter Felder) — sonst feuert
+        # _s10_check_unknown_fields ab dem ersten Record mit diesen Feldern
+        # ein dauerhaftes WARN. OBSERVED-Eintrag betrifft Alt-Records NICHT
+        # (kein min_n/lag-Check, nur Auto-Detect-Suppression). NICHT in
+        # S10_MUSS_FIELDS/_LAG_FIELDS: dort würde wegen der None-Belegung
+        # auf Alt-Einträgen tatsächlich ein false-positive feuern. Präzedenz:
+        # monster_score/ki_signal_score sind im selben OBSERVED-Block.
         "conviction_score":        (
             round(float(_cv.get("score")), 2)
             if isinstance(_cv := s.get("conviction"), dict)

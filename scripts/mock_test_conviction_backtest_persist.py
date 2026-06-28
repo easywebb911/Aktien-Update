@@ -153,17 +153,27 @@ def test_08_schema_version_stays_4():
         ext.get("backtest_schema_version")
 
 
-def test_09_no_s10_classification_for_new_fields():
-    """conviction_score + conviction_components dürfen NICHT in
-    S10_MUSS_FIELDS / _LAG_FIELDS / _OBSERVED_FIELDS sein —
-    sonst feuert S10 sofort auf Alt-Einträgen ohne das Feld."""
+def test_09_s10_classification_observed_only():
+    """conviction_score + conviction_components MÜSSEN in S10_OBSERVED_FIELDS
+    (Whitelist bekannter Felder) — sonst feuert _s10_check_unknown_fields
+    ab dem ersten neuen Record dauerhaft WARN (Guardian-Befund 28.06.).
+
+    Gleichzeitig dürfen sie NICHT in S10_MUSS_FIELDS / _LAG_FIELDS —
+    dort würde wegen der None-Belegung auf Alt-Einträgen tatsächlich ein
+    false-positive feuern (legitim leere Werte bestünden den Pflicht-Check
+    nicht). Präzedenz: monster_score/ki_signal_score (config.py:1284) sind
+    im selben Muster genau in OBSERVED, nicht MUSS/LAG."""
     for f in ("conviction_score", "conviction_components"):
+        assert f in config.S10_OBSERVED_FIELDS, (
+            f"{f} fehlt in S10_OBSERVED_FIELDS — _s10_check_unknown_fields "
+            "würde WARN feuern, sobald ein neuer Record das Feld trägt. "
+            "Eintragen analog 'monster_score'/'ki_signal_score'.")
         assert f not in config.S10_MUSS_FIELDS, \
-            f"{f} fälschlich in S10_MUSS_FIELDS"
+            f"{f} fälschlich in S10_MUSS_FIELDS (None-Belegung auf Alt-Records "\
+            f"würde false-positive auslösen)"
         assert f not in config.S10_LAG_FIELDS, \
-            f"{f} fälschlich in S10_LAG_FIELDS"
-        assert f not in config.S10_OBSERVED_FIELDS, \
-            f"{f} fälschlich in S10_OBSERVED_FIELDS"
+            f"{f} fälschlich in S10_LAG_FIELDS (kein Lag-Outcome sinnvoll für "\
+            f"Compose-Felder)"
 
 
 def test_10_reorder_apply_conviction_before_append():
@@ -209,7 +219,7 @@ def main():
         test_06_components_with_none_values_tolerated,
         test_07_components_dict_missing_falls_back_to_none,
         test_08_schema_version_stays_4,
-        test_09_no_s10_classification_for_new_fields,
+        test_09_s10_classification_observed_only,
         test_10_reorder_apply_conviction_before_append,
         test_11_extension_dict_has_both_new_keys,
     ]
