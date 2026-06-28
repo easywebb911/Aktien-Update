@@ -1,10 +1,10 @@
 {
-  "updated": "2026-06-28T10:28:53.534680+02:00",
+  "updated": "2026-06-28T13:16:46.296932+02:00",
   "run_info": {
     "tickers_checked": 15,
     "signals_active": 10,
     "alerts_sent": 0,
-    "elapsed_s": 12.0,
+    "elapsed_s": 11.7,
     "market_phase": "Geschlossen"
   },
   "signals": {
@@ -29,9 +29,9 @@
       "uoa_cp_ratio": 1.8892988929889298
     },
     "AMC": {
-      "score": 42,
+      "score": 60,
       "confidence": 70,
-      "drivers": "Spanne 21.0% + News-KI 12/30: Negative price action, debt-focused capital raise, and lack of catalysts for short squeeze momentum indicate weak fundam + SEC Form 4 + UOA Call/Put 8.4×",
+      "drivers": "Spanne 21.0% + News: squeeze, short squeeze + SEC Form 4 + UOA Call/Put 8.4×",
       "price": 2.16,
       "chg_pct": 0.0,
       "rvol_4d": 0.95,
@@ -51,9 +51,9 @@
       "uoa_cp_ratio": 8.424477289113193
     },
     "CERT": {
-      "score": 60,
+      "score": 58,
       "confidence": 70,
-      "drivers": "Volumen 5.7× + 🚀 Massives Volumen 5.7×+ + Spanne 9.3% + News-KI 2/30: Generic industry market reports with no company-specific catalysts, insider activity, or short squeeze indicators presen + Earnings in 39d",
+      "drivers": "Volumen 5.7× + 🚀 Massives Volumen 5.7×+ + Spanne 9.3% + Earnings in 39d",
       "price": 5.84,
       "chg_pct": 0.0,
       "rvol_4d": 5.72,
@@ -179,7 +179,7 @@
     "PDYN": {
       "score": 48,
       "confidence": 70,
-      "drivers": "Spanne 5.5% + News: partnership, contract + Earnings in 38d",
+      "drivers": "Spanne 5.5% + News: contract, partnership + Earnings in 38d",
       "price": 5.82,
       "chg_pct": 0.0,
       "rvol_4d": 1.14,
@@ -299,9 +299,9 @@
       "uoa_cp_ratio": 0.014610941216445803
     },
     "WEN": {
-      "score": 53,
+      "score": 38,
       "confidence": 70,
-      "drivers": "Spanne 14.2% + News: halt + Earnings in 40d + SEC Form 4 + UOA Call/Put 2.3×",
+      "drivers": "Spanne 14.2% + Earnings in 40d + SEC Form 4 + UOA Call/Put 2.3×",
       "price": 7.8,
       "chg_pct": 0.0,
       "rvol_4d": 0.95,
@@ -312,7 +312,7 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 1,
+      "active_triggers": 0,
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 2.3×"
