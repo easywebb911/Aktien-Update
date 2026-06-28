@@ -1282,6 +1282,14 @@ S10_OBSERVED_FIELDS = frozenset({
     # ki_signal_score ist None ohne agent_signals-Eintrag → nur OBSERVED,
     # KEIN MUSS-/LAG-Check. Schema bleibt v4 (additiv).
     "monster_score", "ki_signal_score",
+    # Conviction-Edge-Persistenz (28.06.2026, VORWÄRTS-ERHEBUNG): zwei
+    # additive Felder für die spätere Edge-Validierung der Conviction-Achse
+    # (Cockpit-Donut, ≥75-Push-Gating). conviction_score = Composite 0..100;
+    # conviction_components = {setup, earliness, anomaly, regime}. Beide
+    # LEGITIM-leer (None) auf Alt-Einträgen (Erhebung beginnt mit diesem PR)
+    # → OBSERVED-Whitelist (NICHT MUSS/LAG: kein min_n/lag-Check sinnvoll bei
+    # einem rein neu eingeführten Feld). Schema bleibt v4 (additiv).
+    "conviction_score", "conviction_components",
     # LAG-Felder, später (Phase 2)
     "entry_price_t1",
     "return_10d", "return_10d_t1",

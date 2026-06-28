@@ -494,6 +494,46 @@ def _build_backtest_extension(s: dict, pool_position: int, pool_size: int,
         "ki_signal_score":         (round(float(s.get("ki_signal_score")), 2)
                                      if s.get("ki_signal_score") is not None
                                      else None),
+        # Conviction-Edge-Persistenz (28.06.2026, VORWÄRTS-ERHEBUNG):
+        # additive zwei Felder für die spätere Edge-Validierung der
+        # Conviction-Achse (Cockpit-Donut, ≥75-Push-Gating). Setzt voraus,
+        # dass apply_conviction_scores(top10, ...) VOR dem Append-Aufruf
+        # gelaufen ist (Reihenfolge-Tausch generate_report.py: Conviction-
+        # Block VOR _append_backtest_entries). Bei Alt-Records ohne das
+        # Feld bleibt der Reader-Default None — alle Konsumenten sind
+        # .get(...)-tolerant.
+        #   conviction_score:      0..100, Komposit aus 4 Komponenten
+        #                          (setup 33 / earliness 28 / anomaly 28 /
+        #                          regime 11, siehe compute_conviction_score).
+        #   conviction_components: {setup, earliness, anomaly, regime} —
+        #                          Sub-Objekt mit jeder Komponente einzeln.
+        # Schema-ADDITIV — KEIN v4→v5-Bump (S10-Loader filtert == 4). KEIN
+        # Push/keine Anzeige/kein Score-/Filter-Effekt (reiner Persist-Read).
+        # S10-DISZIPLIN (Guardian-Korrektur 28.06.): beide Felder MÜSSEN in
+        # S10_OBSERVED_FIELDS (Whitelist bekannter Felder) — sonst feuert
+        # _s10_check_unknown_fields ab dem ersten Record mit diesen Feldern
+        # ein dauerhaftes WARN. OBSERVED-Eintrag betrifft Alt-Records NICHT
+        # (kein min_n/lag-Check, nur Auto-Detect-Suppression). NICHT in
+        # S10_MUSS_FIELDS/_LAG_FIELDS: dort würde wegen der None-Belegung
+        # auf Alt-Einträgen tatsächlich ein false-positive feuern. Präzedenz:
+        # monster_score/ki_signal_score sind im selben OBSERVED-Block.
+        "conviction_score":        (
+            round(float(_cv.get("score")), 2)
+            if isinstance(_cv := s.get("conviction"), dict)
+               and _cv.get("score") is not None
+            else None
+        ),
+        "conviction_components":   (
+            {
+                "setup":     _cvc.get("setup"),
+                "earliness": _cvc.get("earliness"),
+                "anomaly":   _cvc.get("anomaly"),
+                "regime":    _cvc.get("regime"),
+            }
+            if isinstance(s.get("conviction"), dict)
+               and isinstance(_cvc := (s.get("conviction") or {}).get("components"), dict)
+            else None
+        ),
         "backtest_schema_version": 4,
     }
 
