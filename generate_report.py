@@ -244,6 +244,10 @@ def _test_extended_schema():
         # KI-/Monster-Edge-Persistenz (11.06.2026) — additiv, kein Bump.
         # Beide leer-tolerant (None möglich) → nur S10_OBSERVED.
         "monster_score", "ki_signal_score",
+        # Conviction-Edge-Persistenz (28.06.2026, VORWÄRTS-ERHEBUNG) — additiv,
+        # kein Bump. Beide leer-tolerant (None möglich falls Conviction noch
+        # nicht berechnet, z.B. Alt-Records). KEIN S10-Eintrag.
+        "conviction_score", "conviction_components",
         "backtest_schema_version",
     }
     assert set(ext.keys()) == expected_keys, set(ext.keys()) ^ expected_keys
@@ -16595,6 +16599,26 @@ def main():
         log.info("Step 3d – SEC 13F übersprungen (SEC_13F_ENABLED=False)")
     print(f"Step 3 abgeschlossen in {time.time() - _t_news:.1f}s", flush=True)
 
+    # Conviction-Score (Schritt A) — VOR dem Backtest-Append + HTML-Render
+    # aufrufen (Reihenfolge-Tausch 28.06.2026, VORWÄRTS-ERHEBUNG): das
+    # zugehörige conviction_score / conviction_components-Feld in
+    # _build_backtest_extension liest s["conviction"] und muss daher VOR
+    # _append_backtest_entries gesetzt sein. _score_block_inner_html liest
+    # dasselbe Feld später — der Tausch zieht den Block nur HOCH, lässt
+    # Reader weiter unten unberührt. Anomalien via _build_chat_synthesis_ctx
+    # (gleiche Quelle wie Chat-Kontext); VIX aus existing app_data.json
+    # (vom letzten ki_agent-Tick gesetzt). Doppelter _read_existing_app_data()-
+    # Aufruf gegenüber Step 4b akzeptiert (pragmatisch).
+    _prev_app_data_for_conv = _read_existing_app_data()
+    try:
+        _anomalies_today = _build_chat_synthesis_ctx(
+            top10, _load_score_history()).get("anomalies_today")
+    except Exception as _exc_anom:
+        log.warning("Conviction-Score: anomalies_today nicht verfügbar (%s)", _exc_anom)
+        _anomalies_today = None
+    _vix_for_conv = _prev_app_data_for_conv.get("vix_current")
+    apply_conviction_scores(top10, _anomalies_today, _vix_for_conv)
+
     # Backtest-History: pro Top-10-Ticker einen Eintrag anlegen (idempotent,
     # dedupliziert nach ticker+date). Returns werden später vom KI-Agent
     # aktualisiert, sobald 3/5/10 Handelstage vergangen sind.
@@ -16627,22 +16651,6 @@ def main():
     except Exception as _exc:
         log.debug("S4-Tagescheck _backtest_has_today fail-soft: %s", _exc)
         _backtest_has_today = None
-
-    # Conviction-Score (Schritt A) — vor dem HTML-Render aufrufen, damit
-    # _score_block_inner_html das s["conviction"]-Feld sieht. Anomalien
-    # via _build_chat_synthesis_ctx (gleiche Quelle wie Chat-Kontext);
-    # VIX aus existing app_data.json (vom letzten ki_agent-Tick gesetzt).
-    # Doppelter _read_existing_app_data()-Aufruf gegenüber Step 4b
-    # akzeptiert (pragmatisch, kein Optimierungs-Refactor jetzt).
-    _prev_app_data_for_conv = _read_existing_app_data()
-    try:
-        _anomalies_today = _build_chat_synthesis_ctx(
-            top10, _load_score_history()).get("anomalies_today")
-    except Exception as _exc_anom:
-        log.warning("Conviction-Score: anomalies_today nicht verfügbar (%s)", _exc_anom)
-        _anomalies_today = None
-    _vix_for_conv = _prev_app_data_for_conv.get("vix_current")
-    apply_conviction_scores(top10, _anomalies_today, _vix_for_conv)
     # Phase 1 Conviction-Coverage (16.05.2026): Watchlist-Outsider-Pool
     # (manual_personal ∖ Top-10) bekommt ebenfalls Conviction-Scores.
     # Vorbereitung für Phase 2 (KI-Agent-Coverage-Erweiterung) — der
