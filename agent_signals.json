@@ -1,17 +1,17 @@
 {
-  "updated": "2026-06-28T06:51:40.914933+02:00",
+  "updated": "2026-06-28T10:28:53.534680+02:00",
   "run_info": {
     "tickers_checked": 15,
     "signals_active": 10,
     "alerts_sent": 0,
-    "elapsed_s": 13.7,
+    "elapsed_s": 12.0,
     "market_phase": "Geschlossen"
   },
   "signals": {
     "AI": {
-      "score": 33,
+      "score": 40,
       "confidence": 70,
-      "drivers": "Volumen 1.7× + Spanne 6.4% + News-KI 8/30: Board member departure signals potential insider concerns; no significant short interest catalyst, negative sentiment, o",
+      "drivers": "Volumen 1.7× + Spanne 6.4% + News: short interest",
       "price": 8.9,
       "chg_pct": -0.0,
       "rvol_4d": 1.69,
@@ -22,16 +22,16 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 0,
+      "active_triggers": 1,
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": 0.019391918571491248,
       "uoa_cp_ratio": 1.8892988929889298
     },
     "AMC": {
-      "score": 38,
+      "score": 42,
       "confidence": 70,
-      "drivers": "Spanne 21.0% + News-KI 8/30: Debt reduction dilutes shares and weakens squeeze potential; stock crash contradicts bullish momentum needed for short s + SEC Form 4 + UOA Call/Put 8.4×",
+      "drivers": "Spanne 21.0% + News-KI 12/30: Negative price action, debt-focused capital raise, and lack of catalysts for short squeeze momentum indicate weak fundam + SEC Form 4 + UOA Call/Put 8.4×",
       "price": 2.16,
       "chg_pct": 0.0,
       "rvol_4d": 0.95,
@@ -42,7 +42,7 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 0,
+      "active_triggers": 1,
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 8.4×"
@@ -51,9 +51,9 @@
       "uoa_cp_ratio": 8.424477289113193
     },
     "CERT": {
-      "score": 58,
+      "score": 60,
       "confidence": 70,
-      "drivers": "Volumen 5.7× + 🚀 Massives Volumen 5.7×+ + Spanne 9.3% + Earnings in 39d",
+      "drivers": "Volumen 5.7× + 🚀 Massives Volumen 5.7×+ + Spanne 9.3% + News-KI 2/30: Generic industry market reports with no company-specific catalysts, insider activity, or short squeeze indicators presen + Earnings in 39d",
       "price": 5.84,
       "chg_pct": 0.0,
       "rvol_4d": 5.72,
@@ -133,9 +133,9 @@
       "uoa_cp_ratio": 3.8468468468468466
     },
     "KPTI": {
-      "score": 76,
+      "score": 68,
       "confidence": 70,
-      "drivers": "Volumen 6.9× + 🚀 Massives Volumen 6.9×+ + Spanne 8.7% + News-KI 8/30: Positive clinical data and analyst interest, but split revisions indicate mixed sentiment and lack of consensus catalyst + Earnings in 44d + UOA Call/Put 3.6×",
+      "drivers": "Volumen 6.9× + 🚀 Massives Volumen 6.9×+ + Spanne 8.7% + Earnings in 44d + UOA Call/Put 3.6×",
       "price": 10.21,
       "chg_pct": 0.0,
       "rvol_4d": 6.92,
@@ -179,7 +179,7 @@
     "PDYN": {
       "score": 48,
       "confidence": 70,
-      "drivers": "Spanne 5.5% + News: contract, partnership + Earnings in 38d",
+      "drivers": "Spanne 5.5% + News: partnership, contract + Earnings in 38d",
       "price": 5.82,
       "chg_pct": 0.0,
       "rvol_4d": 1.14,
