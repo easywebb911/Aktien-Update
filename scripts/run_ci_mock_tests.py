@@ -39,7 +39,7 @@ SCRIPTS = ROOT / "scripts"
 #    Real-State-/Datums-Read, läuft auf stdlib+jinja2+pyyaml. ───────────────
 ALLOWLIST = [
     "backtest_data_integrity", "borrow_iborrowdesk", "card_cockpit_stage1", "card_cockpit_stage2",
-    "chat_watchlist_ctx", "claude_md_consistency", "claude_md_pr_status", "cockpit_delta",
+    "chat_watchlist_ctx", "claude_md_consistency", "claude_md_pr_status", "cluster_purge", "cockpit_delta",
     "conviction_backtest_persist", "conviction_coverage_extension", "data_maturity_gate", "details_news_padding", "digest",
     "earliness_dtc", "earliness_pm_vol", "earliness_trend_log", "entry_raw_twin_fields",
     "entry_score", "entry_shadow_persist", "entry_thesis", "exit_push_discipline", "exit_shadow",
