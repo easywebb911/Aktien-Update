@@ -1,8 +1,19 @@
-yfinance>=0.2.40
+# Dependency-Pins für yfinance-Segfault-Brücke (29.06.2026):
+# Drei Pakete sind exakt auf den letzten nachweislich erfolgreichen
+# Daily-Run-Stand #817 (Fr 26.06.2026 22:38 UTC) festgefroren.
+# Auslöser: pinless-Auto-Update über das Wochenende zog yfinance
+# 1.4.1 → 1.5.1 (Minor-Sprung) + pandas 3.0.3 → 3.0.4 + peewee 4.1.0 → 4.1.1.
+# Erster Lauf danach (#818 Mo 29.06 11:23 UTC) crashte in Step 2b
+# (Batch yfinance fetch) mit SIGSEGV/Exit-139. peewee ist transitive
+# yfinance-Dep — hier explizit aufgenommen, damit der Pin greift.
+# Brücke, kein langfristiger Pin: Caps lockern sobald yfinance >=1.5.x
+# als stabil verifiziert ist.
+yfinance==1.4.1
 requests>=2.31.0
 beautifulsoup4>=4.12.0
 lxml>=5.0.0
-pandas>=2.0.0
+pandas==3.0.3
+peewee==4.1.0
 pandas-ta>=0.4.67b0
 deep-translator>=1.9.0
 jinja2>=3.1.0
