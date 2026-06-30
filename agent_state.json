@@ -1,5 +1,5 @@
 {
-  "last_run": "2026-06-30T17:44:01.597895+02:00",
+  "last_run": "2026-06-30T20:15:47.499266+02:00",
   "cooldowns": {
     "anomaly_score_jump_XRX": "2026-05-03T18:47:15.315486+02:00",
     "anomaly_uoa_extreme_TDOC": "2026-05-04T13:47:00.365949+02:00",
@@ -75,66 +75,6 @@
     "anomaly_conviction_high_ABSI": "2026-06-24T17:41:55.953275+02:00"
   },
   "push_history": [
-    {
-      "ts": "2026-06-21T22:03:20.999488+02:00",
-      "ticker": "ATPC",
-      "kind": "anomaly",
-      "severity": "high",
-      "trigger": "monster_backup",
-      "body": "ATPC 🔥 Monster 100 | Setup 94 | KI 72",
-      "success": false,
-      "suppressed": true,
-      "suppress_reason": "conviction_below_threshold",
-      "conviction_score": 56
-    },
-    {
-      "ts": "2026-06-21T22:03:20.999615+02:00",
-      "ticker": "INDI",
-      "kind": "anomaly",
-      "severity": "high",
-      "trigger": "monster_backup",
-      "body": "INDI 🔥 Monster 90 | Setup 75 | KI 88",
-      "success": false,
-      "suppressed": true,
-      "suppress_reason": "conviction_below_threshold",
-      "conviction_score": 57
-    },
-    {
-      "ts": "2026-06-21T22:03:20.999803+02:00",
-      "ticker": "ZBIO",
-      "kind": "anomaly",
-      "severity": "high",
-      "trigger": "monster_backup",
-      "body": "ZBIO 🔥 Monster 90 | Setup 90 | KI 55",
-      "success": false,
-      "suppressed": true,
-      "suppress_reason": "conviction_below_threshold",
-      "conviction_score": 69
-    },
-    {
-      "ts": "2026-06-21T23:42:53.164703+02:00",
-      "ticker": "ATPC",
-      "kind": "anomaly",
-      "severity": "high",
-      "trigger": "monster_backup",
-      "body": "ATPC 🔥 Monster 100 | Setup 94 | KI 72",
-      "success": false,
-      "suppressed": true,
-      "suppress_reason": "conviction_below_threshold",
-      "conviction_score": 56
-    },
-    {
-      "ts": "2026-06-21T23:42:53.164871+02:00",
-      "ticker": "INDI",
-      "kind": "anomaly",
-      "severity": "high",
-      "trigger": "monster_backup",
-      "body": "INDI 🔥 Monster 90 | Setup 75 | KI 88",
-      "success": false,
-      "suppressed": true,
-      "suppress_reason": "conviction_below_threshold",
-      "conviction_score": 57
-    },
     {
       "ts": "2026-06-21T23:42:53.165041+02:00",
       "ticker": "ZBIO",
@@ -1274,6 +1214,66 @@
       "suppressed": false,
       "suppress_reason": null,
       "conviction_score": null
+    },
+    {
+      "ts": "2026-06-30T20:15:48.215694+02:00",
+      "ticker": "IONQ",
+      "kind": "exit_p2",
+      "severity": "trigger",
+      "trigger": "profit_lock",
+      "body": "🔻 Exit-Signal IONQ: profit_lock crit ({'pnl_pct': 0.0974, 'peak_pnl_pct': 0.4678, 'drawdown_from_peak': 0.3704, 'score_drop_from_peak': None})",
+      "success": true,
+      "suppressed": false,
+      "suppress_reason": null,
+      "conviction_score": null
+    },
+    {
+      "ts": "2026-06-30T20:15:48.452968+02:00",
+      "ticker": "IONQ",
+      "kind": "exit_p2",
+      "severity": "trigger",
+      "trigger": "trend_break",
+      "body": "🔻 Exit-Signal IONQ: trend_break crit ({'ma21': 56.3521, 'price': 53.88, 'drop_pct': 4.39})",
+      "success": true,
+      "suppressed": false,
+      "suppress_reason": null,
+      "conviction_score": null
+    },
+    {
+      "ts": "2026-06-30T20:15:48.698697+02:00",
+      "ticker": "PDYN",
+      "kind": "exit_p2",
+      "severity": "trigger",
+      "trigger": "trend_break",
+      "body": "🔻 Exit-Signal PDYN: trend_break crit ({'ma21': 6.5267, 'price': 5.81, 'drop_pct': 10.98})",
+      "success": true,
+      "suppressed": false,
+      "suppress_reason": null,
+      "conviction_score": null
+    },
+    {
+      "ts": "2026-06-30T20:15:48.947796+02:00",
+      "ticker": "AI",
+      "kind": "exit_p2",
+      "severity": "trigger",
+      "trigger": "trend_break",
+      "body": "🔻 Exit-Signal AI: trend_break crit ({'ma21': 9.8576, 'price': 8.87, 'drop_pct': 10.02})",
+      "success": true,
+      "suppressed": false,
+      "suppress_reason": null,
+      "conviction_score": null
+    },
+    {
+      "ts": "2026-06-30T20:15:49.198354+02:00",
+      "ticker": "RBOHF",
+      "kind": "exit_p2",
+      "severity": "trigger",
+      "trigger": "trend_break",
+      "body": "🔻 Exit-Signal RBOHF: trend_break crit ({'ma21': 0.191, 'price': 0.148, 'drop_pct': 22.52})",
+      "success": true,
+      "suppressed": false,
+      "suppress_reason": null,
+      "conviction_score": null
     }
   ],
   "prev_conviction_scores": {
@@ -1306,17 +1306,17 @@
     "exitp2_trigger_KPTI_trend_break": "2026-05-15T18:18:45.093840+02:00",
     "exitp2_trigger_RR_trend_break": "2026-05-20T17:26:03.459661+02:00",
     "exitp2_warning_IONQ": "2026-06-30T08:33:41.588767+02:00",
-    "exitp2_trigger_IONQ_trend_break": "2026-06-29T19:16:24.587217+02:00",
-    "exitp2_trigger_PDYN_trend_break": "2026-06-29T19:16:24.844266+02:00",
+    "exitp2_trigger_IONQ_trend_break": "2026-06-30T20:15:48.452992+02:00",
+    "exitp2_trigger_PDYN_trend_break": "2026-06-30T20:15:48.698717+02:00",
     "exitp2_trigger_GEMI_trend_break": "2026-06-09T00:01:52.717781+02:00",
     "exitp2_trigger_PDYN_overheated": "2026-05-28T18:12:36.334552+02:00",
     "exitp2_trigger_CRDF_profit_lock": "2026-06-01T19:24:04.144723+02:00",
     "exitp2_trigger_CRDF_trend_break": "2026-06-01T19:24:04.374205+02:00",
     "exitp2_trigger_AMC_overheated": "2026-06-01T21:15:58.491304+02:00",
     "exitp2_trigger_AI_catalyst": "2026-06-03T06:58:18.642141+02:00",
-    "exitp2_trigger_RBOHF_trend_break": "2026-06-29T19:16:25.929413+02:00",
-    "exitp2_trigger_AI_trend_break": "2026-06-29T19:16:25.441009+02:00",
-    "exitp2_trigger_IONQ_profit_lock": "2026-06-29T19:16:24.315485+02:00",
+    "exitp2_trigger_RBOHF_trend_break": "2026-06-30T20:15:49.198375+02:00",
+    "exitp2_trigger_AI_trend_break": "2026-06-30T20:15:48.947818+02:00",
+    "exitp2_trigger_IONQ_profit_lock": "2026-06-30T20:15:48.215720+02:00",
     "exitp2_trigger_GIII_catalyst": "2026-06-05T23:13:52.175687+02:00",
     "exitp2_trigger_DBI_catalyst": "2026-06-09T23:13:25.072861+02:00",
     "exitp2_trigger_DBI_trend_break": "2026-06-22T19:25:15.868062+02:00",
