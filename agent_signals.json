@@ -1,10 +1,10 @@
 {
-  "updated": "2026-07-01T12:16:17.264051+02:00",
+  "updated": "2026-07-01T12:49:16.841267+02:00",
   "run_info": {
     "tickers_checked": 15,
     "signals_active": 3,
     "alerts_sent": 0,
-    "elapsed_s": 17.9,
+    "elapsed_s": 18.8,
     "market_phase": "Pre-Market"
   },
   "signals": {
@@ -137,9 +137,9 @@
       "uoa_cp_ratio": 14.666666666666666
     },
     "CLB": {
-      "score": 36,
+      "score": 40,
       "confidence": 70,
-      "drivers": "Spanne 6.4% + News-KI 8/30: Routine earnings announcement with mixed analyst sentiment; no significant short squeeze catalysts like short squeeze me + Earnings in 28d + UOA Call/Put 3.8×",
+      "drivers": "Spanne 6.4% + News-KI 12/30: Routine earnings announcement and index inclusion news lack short squeeze catalysts like high short interest, forced cov + Earnings in 28d + UOA Call/Put 3.8×",
       "price": 11.65,
       "chg_pct": -0.0,
       "rvol_4d": 0.82,
@@ -150,7 +150,7 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 0,
+      "active_triggers": 1,
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 3.8×"
@@ -161,7 +161,7 @@
     "FIP": {
       "score": 58,
       "confidence": 70,
-      "drivers": "Spanne 10.7% + News: acquisition, insider buying + Earnings in 36d + SEC Form 4",
+      "drivers": "Spanne 10.7% + News: insider buying, acquisition + Earnings in 36d + SEC Form 4",
       "price": 4.64,
       "chg_pct": -0.0,
       "rvol_4d": 0.73,
@@ -203,7 +203,7 @@
     "IONQ": {
       "score": 16,
       "confidence": 33,
-      "drivers": "News-KI 8/30: Negative price action combined with competitive pressure from rival quantum computing companies reduces short-squeeze po + Earnings in 35d",
+      "drivers": "News-KI 8/30: Negative price action combined with competitive headwinds from D-Wave and Rigetti indicate weak momentum and increasing  + Earnings in 35d",
       "price": 53.26,
       "chg_pct": -0.0,
       "rvol_4d": 0.43,
@@ -223,7 +223,7 @@
     "NMAX": {
       "score": 58,
       "confidence": 70,
-      "drivers": "Spanne 10.7% + News: short interest, squeeze + Earnings in 44d + UOA Call/Put 11.7×",
+      "drivers": "Spanne 10.7% + News: squeeze, short interest + Earnings in 44d + UOA Call/Put 11.7×",
       "price": 8.28,
       "chg_pct": -0.0,
       "rvol_4d": 0.84,
