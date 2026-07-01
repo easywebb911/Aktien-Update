@@ -340,6 +340,86 @@ Wochenend-Digest-Selbstheilung bestätigt — entfallen.)*
 - Externer Dead-Man-Switch (Cloudflare-Worker) gegen Cron-Drops (~20 %).
 - Borrow-Fee + Utilization in score() (bei reifer CTB-Coverage).
 
+### 📊 EDGE-AUSWERTUNG 30.06.2026 — ERGEBNIS-BELEG (Baseline-Anker für Re-Tests)
+
+**Stand:** 30.06.2026 origin/main HEAD; **Seed 30062026**, Bootstrap N=2000;
+Erfolgs-Definition (festgeschrieben): Edge BELEGT nur wenn Holm-p signifikant
+UND Bootstrap-CI-Untergrenze > 0.5. Sonst „kein belegter Effekt bei diesem n".
+Punktschätzung allein NIE Beleg.
+
+**KERNBEFUND — kein Prädiktor mit belegter Edge, robust über 3 Zählungen.**
+Holm-Klammer über alle vier Auswertungs-Schritte gemeinsam. Duplikat-bereinigt
+(0-Cluster oder 100 %-CTB-Sample-Kollisionen als 1 Test gezählt): k=15,
+Bonferroni-Schwelle 0.05/15 = **0.00333**. Kleinster gesammelter p-Wert = **0.0284**
+(SET-A.1) → **≈8,5× über der Schwelle**. Holm step-down stoppt beim kleinsten p
+→ **0/15 Holm-Rejects, 0/15 Bonferroni-Rejects**. Robustheits-Check
+(unbereinigt k=20; konservativ k=11): identisch 0/0/0 — die Zählungs-Entscheidung
+ändert nichts.
+
+**Einzelurteile (exakt aus dem Befund):**
+- **Setup-Score-Filter ≥70 vs <70 (SET-A):** AUC 0.39–0.42 (invertiert), CIs
+  überlappen/unter 0.5, roh-p 0.0284/0.0288/0.0445/0.0893. **Kein belegter Effekt
+  in erwarteter Richtung UND KEIN handelbarer Anti-Edge** (4 Confounds: 91 %
+  pre-#346-Sample-Dominanz, Nur-Mai/Juni-Marktphase, in-sample, CI-Untergrenze
+  knapp unter 0.5 — Effektgröße im Anti-Edge-Sinn schwach).
+- **Setup interne Monotonie Tertile (SET-B):** AUC 0.53–0.71 mit breiten CIs, alle
+  n<Floor 40 → **nicht auswertbar** bei diesem n. Punkt-Schätzungen wirken
+  interessant (bis 0.712), aber CIs 0.352–0.939 → keine Aussage möglich.
+- **Earliness-Re-Test (DTC vs return_10d-Outcome):** heute AUC **0.47–0.52** über
+  4 Läufe, CI-Obergrenze max 0.640. **Die 13.05.-eingefrorene 0.77 (n_w=34/n_l=44)
+  ist nirgends im heutigen CI enthalten** → falsifiziert Out-of-Sample. Ehrliche
+  Aussage: der ursprüngliche DTC-Effekt hat sich mit größerem, teil-überlappendem
+  Sample **nicht bestätigt**.
+- **Monster-Score:** Punkt-AUC kollabierte **von 0.762 (n=13) auf 0.505 (n=20)**
+  durch nur +9 Records am 30.06. — direkter Beleg gegen Scheinpräzision unter
+  Floor. p=1.0000, CI [0.222, 0.798]. **Hinweis, nicht belegt** — späterer Re-Test
+  bei n≥40 empfohlen.
+- **ki_signal_score:** n_reif=12, n_w=2 → **nicht auswertbar**. Nur deskriptiv:
+  Verlierer haben höheren KI-Score (median 42.5 vs 26.0) — Sample zu klein für
+  jede Aussage.
+- **Entry-Shadow (entry_score vs return_10d):** AUC 0.48–0.51, CIs überlappen 0.5,
+  roh-p 0.83/0.90. Median-Differenz Gewinner (32.5) vs Verlierer (26.0) in
+  erwarteter Richtung, aber Mean-Differenz ~0. **Kein belegter Effekt.**
+- **Conviction-Edge (P3):** n=10 mit `conviction_score`-Feld (alle 29.06.,
+  return_10d noch nicht reif — 10 Trading-Tage warten). **Vorwärts-Erhebung seit
+  #388-Merge läuft planmäßig.** Auswertbar frühestens Mitte August.
+- **Velocity-Achse:** Feld existiert nicht (Diagnose 27.06. bestätigt). **Vorwärts
+  erheben** — additiver `max_gain_Nd`-Erhebungs-PR analog `max_drawdown_pct`
+  wäre der Bauweg, wenn je gewollt.
+
+**ÜBERGREIFENDER CAVEAT (Sample-Zeitfenster):** Sample zu **86–91 % pre-#346**
+(vor Vintage-Guard 10.06.2026). Marktumfeld dieser 6 Wochen: median-return_10d
+im ≥70-Bucket −4.88 %, Pos-Quote 31 %, zwei Tail-Verlierer −71.9 %/−68.0 %.
+Diese Marktphase war für Setup-≥70-Signale ungünstig. **Der Befund „kein
+belegter Edge" ist kein Beleg für „keine Edge über alle Regime"** — er zeigt,
+dass die getesteten Prädiktoren im gerade beobachteten Marktfenster nicht
+getrennt haben.
+
+**KONSEQUENZ — Auffanglinie eingetreten:** Das Tool ist im aktuell belegbaren
+Zustand ein **Attention-Router und Monitoring-Instrument, kein Alpha-Generator**.
+Score = Suchraum-Verkleinerer, NICHT Buy-Signal. Konkret: Setup-Score als
+**Screener**, nicht Entscheidung; Push-Alerts als **Aufmerksamkeits-Signal**,
+nicht Buy-Signal; Handelsentscheidungen weiter auf **These + Nachrecherche pro
+Ticker** stützen, nicht auf Score-Schwellenwert. Das ist **kein Scheitern** —
+dokumentierter, belegter Zustand mit klarer Trading-Konsequenz (siehe §5
+Auffanglinie-Sektion oben).
+
+**BACKLOG-RE-TESTS (mit Datum):**
+- **Setup-Edge Re-Test** ~Ende September 2026 (n≥250, andere Marktphase abwarten).
+- **ki_signal_score-Edge** ~Mitte August 2026 (n_reif≥40 erreichbar bei aktueller
+  Rate).
+- **Conviction-Edge** ~Ende August 2026 (n≥100 bei planmäßiger Vorwärts-Erhebung).
+- **Velocity-Achse:** nur nach separatem additiven Erhebungs-PR (`max_gain_Nd`);
+  Auswertbar +6 Wochen nach Deploy.
+- **Earliness-Re-Test Out-of-Sample-Only:** separate Sub-Frage — heutiger Re-Test
+  enthält die 13.05.-Sample-Teilmenge. Ein exklusiv-post-13.05.-Lauf würde n auf
+  ~130 senken, wäre aber echter Out-of-Sample. Backlog-Kandidat.
+
+**MECHANIK-VORBAU BEREIT (§7 Anker):** Die vier gemergten Auswertungs-Helfer
+(#389 Mann-Whitney-U+AUC, #390 Bonferroni+Holm, #391 Cluster-Purge holiday-robust,
+#392 Verkettungs-Trockenlauf) sind pure-stdlib, fixture-getestet, kein
+Live-Pfad-Import — für jeden Re-Test wiederverwendbar. Aufruf-Rezept siehe §7.
+
 ### EDGE-VALIDIERUNGS-PROGRAMM (Stand 13.06.)
 **Leitprinzip:** jedes Signal, das eine Entscheidung beeinflusst, braucht eine
 Edge-Messung, BEVOR ihm vertraut wird. **REIHENFOLGE-DISZIPLIN:** immer erst
@@ -865,6 +945,29 @@ jeweilige Auslöser greift.
   reused den `_BT_DATA`-Cache. Display-only, Label „unvalidiert bis 30.06." — KEINE
   Live-Aktivierung (s. §4).
 
+- **★ Edge-Auswertungs-Helfer-Chain (#389/#390/#391/#392, 28.–29.06.):** vier
+  pure-stdlib-Module in `scripts/`, fixture-only-getestet, **kein Import in
+  `generate_report`/`ki_agent`/`health_check`/`backtest_history`** — Reihenfolge-
+  Disziplin (erst sammeln → auswerten) strukturell abgesichert.
+  - `scripts/stats_helpers.py`: `mann_whitney_u_auc(a, b)` mit Tie-Korrektur +
+    Stetigkeitskorrektur (#389); `multiple_testing_correction(p_values, *,
+    labels, alpha)` Bonferroni + Holm-step-down mit Label-Rückordnung (#390).
+  - `scripts/cluster_purge.py`: `previous_trading_day(d)` holiday-robust via
+    `config.US_MARKET_HOLIDAYS`; `classify_cluster_records(records)` mit
+    `is_cluster_followup`-Flag (#391).
+  - `scripts/mock_test_helper_chain_integration.py`: dokumentiert die zwei
+    **Adapter-Rezepte** für Caller (#392): A→B via `(ticker,date)`-Lookup zurück
+    in Original-Records; B→C via None-Filter + Labels-Paar. Adapter sind
+    Test-lokal, keine Live-Library.
+  - **Aufruf-Rezept 30.06.-Auswertung:** classify_cluster_records → per Lookup
+    is_cluster_followup in Records mergen → pro Test-Achse (Score-Bucket,
+    Earliness, Monster/KI, Entry-Shadow) je 4 Mann-Whitney-Läufe (Cluster ×
+    Brutto/Netto) → alle p-Werte GEMEINSAM an multiple_testing_correction (Holm
+    dominiert Bonferroni). Deterministisch mit Seed 30062026, Bootstrap N=2000.
+    Erfolgs-Definition strikt: Holm-p signifikant UND CI-Untergrenze > 0.5.
+  - **Aktivierungs-Status:** in KEINEM Live-Pfad importiert (Grep-verifiziert bei
+    Merge jeder PR). Werden nur von Test-Modul + Ad-hoc-Auswertungen aufgerufen.
+
 **Bestehende Anker (unverändert):**
 - **★★ Entry-Score (`entry_score.py`, #336):** PURES stdlib-Modul, bewusst getrennt
   von `backtest_history.py`/yfinance → CI-gate-bar ohne yfinance. Shadow: nur
@@ -1011,3 +1114,30 @@ jeweilige Auslöser greift.
   Verteilung ist notwendig, nicht hinreichend. Vor „Cap nachschärfen" immer den
   Return-gepaarten Edge-Test, nicht nur das Histogramm. (Cap-Entscheid daher an
   `return_10d`-Reife gekoppelt, nicht ans Kalenderdatum — Qualität vor Pünktlichkeit.)
+- **★ Scheinpräzision unter Floor — Punkt-AUC ist keine Aussage (30.06.,
+  Edge-Auswertung):** Der monster_score-Test lieferte um 30.06.-Vormittag Punkt-
+  AUC **0.762** mit n=13 (n_w=7, n_l=6). Bei +9 neuen r10-reifen Records am
+  Nachmittag fiel derselbe Test auf **0.505** — ein Kollaps von 0.26 AUC-Punkten
+  durch 9 zusätzliche Records. **Bei n<Floor 40 (bzw. n_w oder n_l < 20) ist die
+  Punkt-AUC** nicht „vorsichtig zu interpretieren", sondern **darf nicht
+  interpretiert werden** — sie ist eine Ziehung aus einer breiten Bootstrap-
+  Verteilung, keine Kennzahl. **Regel:** Punkt-Schätzungen ohne CI + Sample-
+  Größe sind wertlos; „interessant aussehende" Punkt-AUCs unter Floor werden
+  konsistent als **„nicht auswertbar"** (nicht „Hinweis") gemeldet, sonst
+  entstehen Erwartungen an einen Effekt, der beim nächsten Sample-Zuwachs
+  verschwindet. Plus: die **Sample-Wachstum-Sensitivität** selbst ist ein
+  Robustheits-Prüfstein — wenn 9 Records den AUC um 0.26 verschieben, ist die
+  Aussagekraft null.
+- **★ Erfolgs-Definition VOR der Zahl festschreiben — nicht nachträglich
+  aufweichen (30.06., Edge-Auswertung):** Die Definition „Edge belegt nur wenn
+  Holm-p signifikant UND CI-Untergrenze > 0.5" wurde VOR jedem Auswertungs-
+  Schritt fixiert. Ohne diese Vorab-Fixierung wären mehrere Verlockungen
+  aufgetreten, sie zu lockern: (a) rohes A.1-Setup p=0.0284 hätte isoliert
+  „signifikant" gewirkt (Holm klemmt es weg); (b) die Punkt-AUC 0.712 für
+  Setup-B.4 mit n=17 hätte als „vielversprechend" durchgegangen wäre — CI-
+  Untergrenze 0.439 hält sie zurück; (c) monster_score 0.762 hätte als
+  „interessanter Hinweis" gelten können, ist es aber nicht (siehe Punkt oben).
+  **Regel:** Erfolgs-Kriterium wird vor dem Rechnen definiert und nicht in
+  Sichtweite der Zahl geändert. Das ist eine Disziplin gegen Confirmation Bias
+  und Post-hoc-Rationalisierung — ehrliche „kein belegter Effekt"-Aussage ist
+  ein vollwertiges Ergebnis, kein Scheitern.
