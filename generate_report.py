@@ -4526,8 +4526,8 @@ def _score_block_inner_html(s: dict, hint_html: str = "") -> str:
     """Erzeugt das komplette Innere des ``<div class="score-block">``.
 
     Vier Zeilen (Conviction/Setup/Monster/KI). Conviction (Schritt B)
-    liegt visuell oben und prominent — Aktions-Frage „jetzt
-    einsteigen?". Setup/Monster/KI bleiben in bisheriger Größe darunter.
+    liegt visuell oben und prominent — Konvergenz-Anzeige aus vier
+    Achsen. Setup/Monster/KI bleiben in bisheriger Größe darunter.
     Reihenfolge & Schriftgröße werden rein über CSS-Klassen
     ``.sort-setup`` / ``.sort-monster`` am Container gesteuert
     (Conviction immer Order 0). Monster/KI/Conviction-Zeilen werden nur
@@ -5977,7 +5977,7 @@ def _build_card_ctx(i: int, s: dict) -> dict:
 
 # ── Conviction-Score (Schritt A: Berechnung, ohne UI-Anbindung) ──────────────
 # Vierte Bewertungs-Achse neben Setup-Score, Monster-Score und KI-Score.
-# Beantwortet die Aktions-Frage („jetzt einsteigen?") via Aggregation aus
+# Bündelt vier Achsen zu einer Konvergenz-Anzeige via Aggregation aus
 # Setup-Qualität, Earliness, aktiven Anomalie-Triggern und Marktphasen-
 # Konformität (VIX-Regime). Komponenten-Gewichte/Schwellen siehe CLAUDE.md.
 
@@ -6043,7 +6043,7 @@ def compute_conviction_score(stock: dict,
     if score >= 75:
         level, action = "high", (
             "Conviction hoch — Setup, Earliness und Timing konvergieren. "
-            "Erwartungswert positiv.")
+            "Aggregations-Anzeige, nicht validiert.")
     elif score >= 50:
         level, action = "medium", (
             "Substrat stark, Timing-Signal fehlt. Auf Volume-Spike oder "
@@ -7066,7 +7066,7 @@ def generate_html_v1(stocks: list[dict], report_date: str,
           <strong>Monster-Score = Setup-Score × KI-Boost</strong> — KI ≥ 60: +20&nbsp;% · KI &lt; 25: −20&nbsp;% · sonst neutral · Cap 100
         </p>
         <p class="score-block-foot"><em>Sub-Scores sind unabhängige Qualitätsindikatoren — nicht die Zerlegung des Gesamt-Scores.</em></p>
-        <p class="score-block-foot"><strong>Top-10-Sortierung</strong> (Hamburger-Menü): vier Optionen — <strong>Setup-Score</strong> (Default, Server-seitige Reihenfolge), <strong>Monster-Score</strong> (absteigend nach Setup×KI-Boost), <strong>KI-Score</strong> (absteigend nach reinem KI-Agent-Score, auf Karten sichtbar als pulsierender Dot) oder <strong>Conviction-Score</strong> (absteigend nach Aktions-Empfehlung — Stocks ohne Conviction-Daten ans Ende). KI-Sortierung wird nach Eingang des stündlichen agent_signals.json-Fetches angewandt.</p>
+        <p class="score-block-foot"><strong>Top-10-Sortierung</strong> (Hamburger-Menü): vier Optionen — <strong>Setup-Score</strong> (Default, Server-seitige Reihenfolge), <strong>Monster-Score</strong> (absteigend nach Setup×KI-Boost), <strong>KI-Score</strong> (absteigend nach reinem KI-Agent-Score, auf Karten sichtbar als pulsierender Dot) oder <strong>Conviction-Score</strong> (absteigend nach Aggregations-Wert — Stocks ohne Conviction-Daten ans Ende). KI-Sortierung wird nach Eingang des stündlichen agent_signals.json-Fetches angewandt.</p>
         </div>
       </details>
       <details class="info-box info-box--full methodology-card">
@@ -7119,13 +7119,13 @@ def generate_html_v1(stocks: list[dict], report_date: str,
       </details>
       <details class="info-box info-box--full methodology-card">
         <summary>
-          <h4>Conviction-Score — Aktions-Empfehlung</h4>
-          <span class="method-lead">4 Komponenten · 0–100 · 3 Aktions-Level (high/medium/low)</span>
+          <h4>Conviction-Score — Aggregations-Ansicht</h4>
+          <span class="method-lead">4 Komponenten · 0–100 · 3 Level (high/medium/low)</span>
           <i class="method-caret" data-lucide="chevron-down"></i>
         </summary>
         <div class="method-content">
         <p class="score-intro-story">
-          <strong>Conviction beantwortet die Aktions-Frage „jetzt einsteigen?"</strong>
+          <strong>Conviction bündelt vier Achsen zu einer Konvergenz-Anzeige</strong>
           obendrauf zu Setup/Monster/KI. Aggregiert vier Komponenten:
           Setup-Qualität, Earliness, aktive Anomalie-Trigger und
           Marktphasen-Konformität (VIX-Regime).
@@ -7150,7 +7150,7 @@ def generate_html_v1(stocks: list[dict], report_date: str,
               <span class="score-block-badge">3 Stufen</span>
             </div>
             <ul class="score-block-list">
-              <li><span class="sb-lbl">≥ 75 — high</span><span class="sb-pts" style="color:#22c55e">Erwartungswert positiv</span></li>
+              <li><span class="sb-lbl">≥ 75 — high</span><span class="sb-pts" style="color:#22c55e">hohe Konvergenz</span></li>
               <li><span class="sb-lbl">50–74 — medium</span><span class="sb-pts" style="color:#f59e0b">Substrat stark, Timing fehlt</span></li>
               <li><span class="sb-lbl">&lt; 50 — low</span><span class="sb-pts" style="color:var(--txt-dim)">Phase oder Marktkontext ungünstig</span></li>
             </ul>
@@ -8153,7 +8153,7 @@ function _fillEntryShadow(){{
     if (rec) {{
       const n = (rec.n === null || rec.n === undefined) ? '–' : rec.n;
       el.textContent = 'Entry-Shadow ' + Math.round(rec.score) + ' · ' + n
-                       + '/5 Komp. · unvalidiert bis 30.06.';
+                       + '/5 Komp. · heuristisch (Erhebung läuft).';
       el.removeAttribute('hidden');
     }} else {{
       el.remove();   // kein leeres Element im DOM, wenn kein Wert
