@@ -420,6 +420,91 @@ Auffanglinie-Sektion oben).
 #392 Verkettungs-Trockenlauf) sind pure-stdlib, fixture-getestet, kein
 Live-Pfad-Import — für jeden Re-Test wiederverwendbar. Aufruf-Rezept siehe §7.
 
+### 📊 EDGE-SUCHE 01.07.2026 — Hypothese B: Exit-Timing (erster echter Hinweis)
+
+**Stand:** 01.07.2026 origin/main HEAD; **Seed 01072026**, Bootstrap N=2000;
+Erfolgs-Definition identisch zu 30.06. (Holm-signifikant UND CI≠0-überlappend).
+Gepaarte Tests (dieselben Records) für B.1, Sign-Test-p als Holm-Input.
+Gemeinsame Holm-Klammer über B.1+B.2, **k=28**, Bonferroni-Schwelle 0.05/28 =
+**0.00179**.
+
+**Sample-Anker:** n_full = 300 Records (return_3d/5d/10d + max_drawdown_pct
+gepaart); Score≥70-Bucket n=110; Confound wie Setup-Edge (Sample **82–87 %
+pre-#346/Mai-Juni-Fenster**, absoluter Return-Level bär-verzerrt, relativer
+Strategie-Vergleich robuster).
+
+**B.1 — Endpunkt-Vergleich (der saubere Kern, gepaart):**
+Roh-Signal deutlich in erwarteter Richtung — im ≥70-Bucket ist „früh raus" um
+3–5pp besser als „halten bis 10d". Konkret (≥70+with-cluster, n=110):
+- Median return_3d = −1.44 %; return_5d = −2.52 %; return_10d = −5.18 %
+- Mean return_3d = −1.56 %; return_5d = −2.42 %; return_10d = −6.23 %
+- Sharpe (Mean/Std) −0.140 / −0.167 / −0.340
+- Pos-Quote 44 % / 44 % / 31 %
+- **Δ(5d−10d) = +3.81pp, CI [+1.00, +6.63], p-roh = 0.0057**
+- **Δ(3d−10d) = +4.67pp, CI [+1.24, +7.84], p-roh = 0.0073**
+- Δ(3d−5d) ≈ 0 → Nutzen sitzt zwischen Tag 5 und Tag 10, nicht zwischen 3 und 5.
+
+**B.1-Urteil nach Erfolgs-Definition:** **HINWEIS, nicht belegt.** Nach Holm-
+Klammer k=28 (Bonferroni-Schwelle 0.00179) liegt kleinstes B.1-p (0.0057) **~3×
+über** der Schwelle → **0 Holm-Rejects in B.1**. Effektgröße (+3.8–4.7pp im
+≥70-Bucket, CI-Untergrenze +1.0/+1.24pp) ist handelsrelevant, falls sie sich mit
+größerem n bestätigt. **Re-Test-Kandidat bei n≥250** (~Ende September 2026),
+plus im Auge behalten, ob der Vorteil regime-abhängig ist.
+
+**B.2 — Drawdown-Stop-Approximation (⚠ approximativ, NICHT Kern-Befund):**
+Grobe Best-Case-Simulation (`max_drawdown_pct ≤ −X` → Return = −X%, sonst
+return_10d). Approximation-Grenze: `max_drawdown_pct` sagt OB, nicht WANN.
+- **Trigger-Häufigkeit extrem:** Stop-10 % triggert bei **87–95 % der Trades**
+  (Gesamt / ≥70+without). Selbst Stop-25 % triggert bei 32–39 %.
+- **Alle 16 Δ negativ:** jede feste Drawdown-Stop-Schwelle **verschlechtert**
+  den Return. Beispiele Gesamt+with: Stop-10 Δ=−4.98pp (p=0.0003), Stop-20
+  Δ=−4.03pp (p=0.0001), Stop-25 Δ=−2.08pp (p=0.0002).
+- **4 Holm-Rejects** (alle B.2, alle Anti-Effekt): Gesamt+with Stop-10/-20/-25 +
+  Gesamt+without Stop-10. Alle mit klar negativem Δ und CI unter 0.
+
+**B.2-Urteil:** In der konservativen Approximation über dieses Sample-Fenster
+**schaden feste Drawdown-Stops dem Return systematisch.** Grund: Small-Caps
+sind zu volatil, ein grober −X %-Stop killt zu viele spätere Erholungen.
+**Handlungs-Aussage:** keine festen Drawdown-Stops im aktuellen Marktkontext.
+Approximation-Grenze bleibt: ein echter Trailing-Stop (mit Bar-Daten) könnte
+anders performen — hier nicht gemessen.
+
+**GESAMT-Klammer über B.1+B.2 (k=28):** Bonferroni-Rejects 4/28, Holm-Rejects
+4/28. Alle 4 Rejects sind aus B.2 mit negativem Δ (Stop schadet). **KEIN
+Holm-Reject mit positivem Δ** — kein Exit-Vorteil formal belegt. B.1 wird von
+der k=28-Klammer geschluckt (kleinstes p 0.0057 vs Schwelle 0.00179).
+
+**Einordnung im Kontext der Edge-Suche:**
+- **Hypothese A (Reversal-Entry):** Feld fehlt (`change_5d`/`perf_5d` = 0
+  Coverage), nicht ableitbar ohne yfinance-Backfill für Pre-Entry-Historie.
+  **n=0, nicht auf Bestandsdaten testbar.** Vorwärts-Erhebungs-PR nötig, Feld
+  `entry_past_return_5d`.
+- **Hypothese C (Peak-Ziel):** `max_gain_Nd` fehlt (0 Coverage). Nur vorwärts
+  erhebbar analog `_compute_max_drawdown` (Spiegel-Funktion). **n=0, nicht auf
+  Bestandsdaten testbar.**
+- **Hypothese B (Exit-Timing, heute):** Erster echter Hinweis der gesamten
+  Edge-Suche 30.06.–01.07. — B.1 zeigt einen handelsrelevanten Punktschätzungs-
+  Vorteil (+3.8–4.7pp im ≥70-Bucket, „5d/3d statt 10d"), der nach Erfolgs-
+  Definition **nicht Holm-belegt** ist, aber als **Re-Test-Kandidat vermerkt**.
+
+**BACKLOG-RE-TESTS + ERHEBUNGSPFAD:**
+- **B.1 Re-Test** ~Ende September 2026 (n≥250 erforderlich). Falls Hinweis
+  hält, ist der 5d-Horizont der potentielle neue Standard.
+- **A (Reversal):** additiver Erhebungs-PR (yfinance-Backfill für Pre-Entry-
+  Historie + Feld `entry_past_return_5d`). Größerer Eingriff, auswertbar
+  +6 Wochen post-Deploy.
+- **C (Peak-Ziel):** kleiner additiver Erhebungs-PR (Spiegel-Funktion
+  `_compute_max_gain_pct` analog `_compute_max_drawdown` in
+  `backtest_history.py:126`, kein Schema-Bump). Bei Bau: parallel B.2 mit
+  echterem Peak-Wissen wiederholbar (Trailing-Stop-artige Simulation mit
+  Peak- + Drawdown-Werten pro Record).
+
+**CAVEAT (übergreifend):** Sample **82–87 % pre-#346/Mai-Juni-Bearish-Fenster**
+(median return_10d im ≥70-Bucket −5.18 %). Der „früh raus"-Hinweis ist mit
+dem bear-tilt konsistent und könnte in einer Bull-Marktphase kippen. Relative
+Exit-Vergleiche sind regime-robuster als absolute Returns, aber selbst diese
+sind nicht regime-immun.
+
 ### EDGE-VALIDIERUNGS-PROGRAMM (Stand 13.06.)
 **Leitprinzip:** jedes Signal, das eine Entscheidung beeinflusst, braucht eine
 Edge-Messung, BEVOR ihm vertraut wird. **REIHENFOLGE-DISZIPLIN:** immer erst
@@ -1141,3 +1226,27 @@ jeweilige Auslöser greift.
   Sichtweite der Zahl geändert. Das ist eine Disziplin gegen Confirmation Bias
   und Post-hoc-Rationalisierung — ehrliche „kein belegter Effekt"-Aussage ist
   ein vollwertiges Ergebnis, kein Scheitern.
+- **★ „Hinweis, nicht belegt" ist eine eigene Kategorie (01.07., Exit-Timing
+  Hypothese B):** B.1 (früh-raus-Vorteil im ≥70-Bucket, Δ +3.81pp / +4.67pp mit
+  CI-Untergrenze +1.00/+1.24pp) zeigte den **ersten echten Punktschätzungs-
+  Vorteil der gesamten Edge-Suche** — handelsrelevant in Größe und Richtung. Vor
+  Holm-Klammer p=0.0057/0.0073, nach Holm k=28 (Schwelle 0.00179) nicht belegt.
+  **Nicht-Beleg heißt hier NICHT „nichts gefunden"** — die Effektgröße ist real
+  handelbar, wenn sie sich mit n≥250 bestätigt. **Regel:** Zwischen „belegter
+  Edge" und „kein Effekt" gehört die Kategorie **„Hinweis, Re-Test-Kandidat"** —
+  Punkt-Δ + CI≠0 + roh-p<0.05 + Holm-p n.s. Alle drei Voraussetzungen müssen
+  erfüllt sein, nicht nur „kleine p". Sonst ist es Fischen. Beim B.1-Fall ist
+  Wiedervorlage-Termin+Effektgröße explizit vermerkt, damit der Hinweis nicht
+  im Backlog vergessen wird.
+- **★ Bar-Daten-Approximation ehrlich labeln (01.07., B.2 Drawdown-Stop):**
+  `max_drawdown_pct` gibt OB, nicht WANN — die Stop-Simulation ist damit **Best-
+  Case** (Stop läuft exakt an der Schwelle aus, keine Slippage). 4/16 Sub-Läufen
+  waren Holm-signifikant mit Anti-Effekt („Stop schadet"), was in der
+  Approximation belastbar ist — aber der Umkehrschluss („realer Trailing-Stop
+  wäre auch schädlich") ist NICHT gerechtfertigt ohne Bar-Daten (Peak- +
+  Drawdown-Zeitpunkte, Intraday-Pfad). **Regel:** wenn ein Feld strukturell nur
+  ein Statik-Endwert ist (`max_drawdown_pct`, `return_10d`), muss die daraus
+  gebaute „Simulation" das Wort **Approximation** im Titel tragen, nicht
+  „Simulation". Konfirmatorischer Kern-Befund ist nur, was direkt mit den
+  vorhandenen Feldern rekonstruierbar ist (B.1 Endpunkt-Vergleich). Alles
+  darüber hinaus ist Zusatz-Kontext.
