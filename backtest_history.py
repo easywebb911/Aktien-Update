@@ -141,6 +141,35 @@ def _compute_max_drawdown(df_window) -> float | None:
         return None
 
 
+def _compute_max_gain_pct(df_window) -> float | None:
+    """Max-Gain vom rolling-Tief (Cummin-Low) zum Tageshoch (High) im Fenster.
+
+    Spiegel zu ``_compute_max_drawdown``: identische Bar-Quelle (dieselbe
+    High/Low-Slice), identisches ≤10-Handelstage-Fenster, identische
+    Rolling-Window-Mechanik. Reine Outcome-Persistenz — kein Score-/Filter-/
+    Push-Konsument (Look-Ahead strukturell ausgeschlossen, wie Drawdown).
+
+    Args:
+        df_window: DataFrame mit Spalten ``High``/``Low`` für die ersten ≤10
+                   Handelstage seit Entry (inklusive Entry-Tag als Index 0).
+    Returns höchsten %-Anstieg vom rolling-Tief zum Tageshoch oder ``0.0``
+    bei zu wenig Daten. ``None`` bei Exception.
+
+    HINWEIS zur ``0.0``-Semantik (analog Drawdown): ``0.0`` bedeutet
+    entweder „wirklich kein Gewinn im Fenster" ODER „noch nicht genug
+    Daten (<2 Bars)". Auswertung MUSS Reifegrad-Filter (Entry ≥10
+    Trading-Days alt) parallel anwenden.
+    """
+    try:
+        if df_window is None or df_window.empty or len(df_window) < 2:
+            return 0.0
+        roll_low = df_window["Low"].cummin()
+        up = (df_window["High"] - roll_low) / roll_low * 100.0
+        return round(float(up.max()), 2)
+    except Exception:
+        return None
+
+
 # ── Earliness-Trend-Logging Helpers (pure, kein Side-Effect) ───────────────
 # Prospektives Logging für die spätere AUC-Validierung der drei Sub-Signale,
 # die aus dem heutigen backtest_history.json nicht rückwirkbar berechenbar
@@ -761,6 +790,10 @@ def _append_backtest_entries(top10: list[dict], report_date: str,
             # Bahn A2 Stufe 1 — Schema-Erweiterung für spätere Auswertung.
             # max_drawdown_pct wird über 10 Handelstage rolling aktualisiert.
             "max_drawdown_pct": 0.0,
+            # Hypothese-C-Vorbau (02.07.2026): additiv, KEIN v4-Bump.
+            # Spiegel zu max_drawdown_pct — identische Slice + Rolling-
+            # Update-Mechanik, reine Outcome-Persistenz (kein Score-Konsument).
+            "max_gain_pct": 0.0,
             "market_regime":    market_regime,
             "vix_level":        vix_level,
             # PR-γ-1 Marker: 1 = pre-γ (raw-RVOL), 2 = post-γ (normalized).
@@ -815,6 +848,7 @@ def _append_backtest_entries(top10: list[dict], report_date: str,
             dd_batch = None
 
         n_dd = 0
+        n_mg = 0
         for e, edate in active_dd:
             try:
                 if dd_batch is None or dd_batch.empty:
@@ -828,10 +862,18 @@ def _append_backtest_entries(top10: list[dict], report_date: str,
                 if dd is not None:
                     e["max_drawdown_pct"] = dd
                     n_dd += 1
+                # Spiegel-Update max_gain_pct (Hypothese-C-Vorbau, 02.07.2026).
+                # Guard „in e" hält Alt-Records ohne das Feld unangetastet
+                # (Backwards-Compat analog Drawdown-Backfill-Semantik).
+                if "max_gain_pct" in e:
+                    mg = _compute_max_gain_pct(df_since)
+                    if mg is not None:
+                        e["max_gain_pct"] = mg
+                        n_mg += 1
             except Exception:
                 continue
-        log.info("Backtest-Schema (Stufe 1): max_drawdown aktualisiert für %d/%d aktive Einträge",
-                 n_dd, len(active_dd))
+        log.info("Backtest-Schema (Stufe 1): max_drawdown aktualisiert für %d/%d, max_gain für %d/%d aktive Einträge",
+                 n_dd, len(active_dd), n_mg, len(active_dd))
 
     # Vintage-Guard per-entry Skip-Beobachtung (ein Log je Grund-Klasse).
     if _vg_skip_prior:
