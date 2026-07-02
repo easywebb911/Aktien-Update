@@ -1,21 +1,21 @@
 {
-  "updated": "2026-07-02T11:34:24.445343+02:00",
+  "updated": "2026-07-02T14:21:52.947157+02:00",
   "run_info": {
     "tickers_checked": 14,
     "signals_active": 6,
-    "alerts_sent": 4,
-    "elapsed_s": 11.4,
+    "alerts_sent": 0,
+    "elapsed_s": 23.6,
     "market_phase": "Pre-Market"
   },
   "signals": {
     "ABX": {
-      "score": 28,
-      "confidence": 70,
-      "drivers": "Spanne 14.3% + Earnings in 35d + UOA Call/Put 16.7×",
+      "score": 18,
+      "confidence": 33,
+      "drivers": "Earnings in 35d + UOA Call/Put 16.7×",
       "price": 11.68,
       "chg_pct": 0.0,
-      "rvol_4d": 0.97,
-      "rvol_20d": 1.71,
+      "rvol_4d": 0.0,
+      "rvol_20d": null,
       "earnings": "in 35 Tagen (06.08.2026)",
       "fda_date": null,
       "upcoming_event": null,
@@ -27,7 +27,7 @@
       "uoa_drivers": [
         "UOA Call/Put 16.7×"
       ],
-      "uoa_atm_ratio": null,
+      "uoa_atm_ratio": 2.7483277591973243,
       "uoa_cp_ratio": 16.65174129353234
     },
     "AI": {
@@ -49,13 +49,13 @@
       "uoa_drivers": [
         "UOA Call/Put 9.0×"
       ],
-      "uoa_atm_ratio": null,
+      "uoa_atm_ratio": 0.17390025491862213,
       "uoa_cp_ratio": 9.036682615629983
     },
     "AMC": {
       "score": 50,
       "confidence": 33,
-      "drivers": "Spanne 7.4% + News: squeeze, short squeeze + UOA Call/Put 12.4×",
+      "drivers": "Spanne 7.4% + News: short squeeze, squeeze + UOA Call/Put 12.4×",
       "price": 1.93,
       "chg_pct": -0.0,
       "rvol_4d": 0.66,
@@ -71,13 +71,13 @@
       "uoa_drivers": [
         "UOA Call/Put 12.4×"
       ],
-      "uoa_atm_ratio": null,
+      "uoa_atm_ratio": 0.16693922941061032,
       "uoa_cp_ratio": 12.409005628517823
     },
     "EROC": {
-      "score": 25,
-      "confidence": 33,
-      "drivers": "Spanne 12.4% + FINRA Short-Vol 58%",
+      "score": 33,
+      "confidence": 70,
+      "drivers": "Spanne 12.4% + News-KI 8/30: Positive corporate governance news but lacks short squeeze catalysts like high short interest, significant short coverin + FINRA Short-Vol 58%",
       "price": 15.36,
       "chg_pct": -0.0,
       "rvol_4d": 1.3,
@@ -113,7 +113,7 @@
       "uoa_drivers": [
         "UOA Call/Put 3.3×"
       ],
-      "uoa_atm_ratio": null,
+      "uoa_atm_ratio": 0.28688524590163933,
       "uoa_cp_ratio": 3.2948717948717947
     },
     "GRPN": {
@@ -135,7 +135,7 @@
       "uoa_drivers": [
         "UOA Call/Put 16.7×"
       ],
-      "uoa_atm_ratio": null,
+      "uoa_atm_ratio": 0.32122762148337597,
       "uoa_cp_ratio": 16.74025974025974
     },
     "IONQ": {
@@ -157,13 +157,13 @@
       "uoa_drivers": [
         "UOA Call/Put 2.2×"
       ],
-      "uoa_atm_ratio": null,
+      "uoa_atm_ratio": 0.740205349905431,
       "uoa_cp_ratio": 2.183081998114986
     },
     "JACK": {
-      "score": 50,
+      "score": 58,
       "confidence": 70,
-      "drivers": "Spanne 17.9% + News-KI 22/30: Moderate short squeeze activity with positive momentum, but limited by company's debt concerns and unclear fundamental c + Earnings in 34d + UOA Call/Put 33.8×",
+      "drivers": "Spanne 17.9% + News: short squeeze, squeeze + Earnings in 34d + UOA Call/Put 33.8×",
       "price": 17.41,
       "chg_pct": -0.0,
       "rvol_4d": 1.23,
@@ -179,13 +179,13 @@
       "uoa_drivers": [
         "UOA Call/Put 33.8×"
       ],
-      "uoa_atm_ratio": null,
+      "uoa_atm_ratio": 0.8101908241981324,
       "uoa_cp_ratio": 33.754929577464786
     },
     "NMAX": {
       "score": 58,
       "confidence": 70,
-      "drivers": "Spanne 11.5% + News: squeeze, short squeeze + Earnings in 43d + UOA Call/Put 3.2×",
+      "drivers": "Spanne 11.5% + News: short squeeze, squeeze + Earnings in 43d + UOA Call/Put 3.2×",
       "price": 9.37,
       "chg_pct": -0.0,
       "rvol_4d": 1.31,
@@ -201,7 +201,7 @@
       "uoa_drivers": [
         "UOA Call/Put 3.2×"
       ],
-      "uoa_atm_ratio": null,
+      "uoa_atm_ratio": 0.29698375870069604,
       "uoa_cp_ratio": 3.2203389830508473
     },
     "OFRM": {
@@ -221,7 +221,7 @@
       "active_triggers": 0,
       "uoa_score": 0,
       "uoa_drivers": [],
-      "uoa_atm_ratio": null,
+      "uoa_atm_ratio": 0.025974025974025976,
       "uoa_cp_ratio": 0.5301204819277109
     },
     "PDYN": {
@@ -243,13 +243,13 @@
       "uoa_drivers": [
         "UOA Call/Put 5.1×"
       ],
-      "uoa_atm_ratio": null,
+      "uoa_atm_ratio": 0.4251101321585903,
       "uoa_cp_ratio": 5.06
     },
     "SOC": {
-      "score": 74,
+      "score": 77,
       "confidence": 70,
-      "drivers": "Volumen 3.3× + ⚡ Extremes Volumen 3.3×+ + Spanne 15.2% + News-KI 12/30: Negative sector sentiment and dilutive equity offering weaken squeeze potential despite reversal from losses. + UOA Call/Put 2.1×",
+      "drivers": "Volumen 3.3× + ⚡ Extremes Volumen 3.3×+ + Spanne 15.2% + News-KI 15/30: Negative sector momentum and dilutive offering weaken short-squeeze potential despite brief reversal. + UOA Call/Put 2.1×",
       "price": 4.4,
       "chg_pct": 0.0,
       "rvol_4d": 3.31,
@@ -265,13 +265,13 @@
       "uoa_drivers": [
         "UOA Call/Put 2.1×"
       ],
-      "uoa_atm_ratio": null,
+      "uoa_atm_ratio": 0.4047388781431335,
       "uoa_cp_ratio": 2.1206715634837354
     },
     "WEN": {
       "score": 68,
       "confidence": 70,
-      "drivers": "Spanne 9.4% + News: squeeze, short squeeze + Earnings in 36d + SEC Form 4 + UOA Call/Put 4.7×",
+      "drivers": "Spanne 9.4% + News: short squeeze, squeeze + Earnings in 36d + SEC Form 4 + UOA Call/Put 4.7×",
       "price": 8.94,
       "chg_pct": -0.0,
       "rvol_4d": 0.48,
@@ -287,13 +287,13 @@
       "uoa_drivers": [
         "UOA Call/Put 4.7×"
       ],
-      "uoa_atm_ratio": null,
+      "uoa_atm_ratio": 1.287191760331638,
       "uoa_cp_ratio": 4.741382649109218
     },
     "ZBIO": {
-      "score": 36,
+      "score": 28,
       "confidence": 70,
-      "drivers": "Spanne 13.8% + News-KI 8/30: CEO buying signals confidence but no short squeeze catalysts visible; inducement grants and conference presentations are + Earnings in 41d + UOA Call/Put 2.6×",
+      "drivers": "Spanne 13.8% + Earnings in 41d + UOA Call/Put 2.6×",
       "price": 28.0,
       "chg_pct": 0.0,
       "rvol_4d": 1.24,
