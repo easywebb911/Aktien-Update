@@ -1,17 +1,17 @@
 {
-  "updated": "2026-07-02T08:10:36.566171+02:00",
+  "updated": "2026-07-02T11:32:21.599988+02:00",
   "run_info": {
     "tickers_checked": 14,
     "signals_active": 4,
     "alerts_sent": 0,
-    "elapsed_s": 19.7,
-    "market_phase": "Geschlossen"
+    "elapsed_s": 13.8,
+    "market_phase": "Pre-Market"
   },
   "signals": {
     "ABX": {
       "score": 40,
       "confidence": 70,
-      "drivers": "Spanne 14.3% + News-KI 12/30: Positive price action and legal victory are bullish, but lack clear short squeeze indicators like high short interest, l + Earnings in 35d + UOA Call/Put 16.7×",
+      "drivers": "Spanne 14.3% + News-KI 12/30: Litigation-driven gains lack the fundamental short-squeeze characteristics of high short interest, low float, and retail + Earnings in 35d + UOA Call/Put 16.7×",
       "price": 11.68,
       "chg_pct": 0.0,
       "rvol_4d": 0.97,
@@ -55,7 +55,7 @@
     "AMC": {
       "score": 50,
       "confidence": 33,
-      "drivers": "Spanne 7.4% + News: short squeeze, squeeze + UOA Call/Put 12.4×",
+      "drivers": "Spanne 7.4% + News: squeeze, short squeeze + UOA Call/Put 12.4×",
       "price": 1.93,
       "chg_pct": -0.0,
       "rvol_4d": 0.66,
@@ -97,9 +97,9 @@
       "uoa_cp_ratio": 3.2948717948717947
     },
     "FORR": {
-      "score": 18,
-      "confidence": 33,
-      "drivers": "Spanne 10.2% + Earnings in 28d",
+      "score": 23,
+      "confidence": 70,
+      "drivers": "Spanne 10.2% + News-KI 5/30: Conference announcements and marketing content show no short-squeeze indicators; stock movement is modest and fundamenta + Earnings in 28d",
       "price": 9.19,
       "chg_pct": -0.0,
       "rvol_4d": 0.27,
@@ -119,7 +119,7 @@
     "GRPN": {
       "score": 58,
       "confidence": 70,
-      "drivers": "Spanne 7.9% + News: short interest, squeeze + Earnings in 34d + UOA Call/Put 16.7×",
+      "drivers": "Spanne 7.9% + News: squeeze, short interest + Earnings in 34d + UOA Call/Put 16.7×",
       "price": 25.68,
       "chg_pct": 0.0,
       "rvol_4d": 0.61,
@@ -163,7 +163,7 @@
     "JACK": {
       "score": 58,
       "confidence": 70,
-      "drivers": "Spanne 17.9% + News: short squeeze, covering + Earnings in 34d + UOA Call/Put 33.8×",
+      "drivers": "Spanne 17.9% + News: covering, squeeze + Earnings in 34d + UOA Call/Put 33.8×",
       "price": 17.41,
       "chg_pct": -0.0,
       "rvol_4d": 1.23,
@@ -185,7 +185,7 @@
     "NMAX": {
       "score": 58,
       "confidence": 70,
-      "drivers": "Spanne 11.5% + News: short squeeze, revenue beat + Earnings in 43d + UOA Call/Put 3.2×",
+      "drivers": "Spanne 11.5% + News: squeeze, short squeeze + Earnings in 43d + UOA Call/Put 3.2×",
       "price": 9.37,
       "chg_pct": -0.0,
       "rvol_4d": 1.31,
@@ -227,7 +227,7 @@
     "PDYN": {
       "score": 58,
       "confidence": 70,
-      "drivers": "Spanne 6.7% + News: partnership, contract + Earnings in 34d + UOA Call/Put 5.1×",
+      "drivers": "Spanne 6.7% + News: contract, partnership + Earnings in 34d + UOA Call/Put 5.1×",
       "price": 6.05,
       "chg_pct": 0.0,
       "rvol_4d": 0.78,
@@ -267,9 +267,9 @@
       "uoa_cp_ratio": null
     },
     "SOC": {
-      "score": 55,
+      "score": 77,
       "confidence": 70,
-      "drivers": "Volumen 3.3× + ⚡ Extremes Volumen 3.3×+ + Spanne 15.2% + UOA Call/Put 2.1×",
+      "drivers": "Volumen 3.3× + ⚡ Extremes Volumen 3.3×+ + Spanne 15.2% + News-KI 15/30: Negative sector momentum and dilutive $300M offering weaken short-squeeze potential despite reversal from losses. + UOA Call/Put 2.1×",
       "price": 4.4,
       "chg_pct": 0.0,
       "rvol_4d": 3.31,
@@ -279,8 +279,8 @@
       "upcoming_event": null,
       "insider_buy": false,
       "stocktwits": null,
-      "combo_mult": 1.0,
-      "active_triggers": 1,
+      "combo_mult": 1.1,
+      "active_triggers": 2,
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 2.1×"
