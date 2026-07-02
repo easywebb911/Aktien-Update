@@ -1295,6 +1295,13 @@ S10_OBSERVED_FIELDS = frozenset({
     "return_10d", "return_10d_t1",
     "return_3d_t1", "return_5d_t1",
     "max_drawdown_pct",
+    # Hypothese-C-Vorbau (02.07.2026): Spiegel zu max_drawdown_pct — reine
+    # Outcome-Persistenz, rolling-Update über dieselbe ≤10-Handelstage-Slice.
+    # Nur OBSERVED (KEIN MUSS/LAG-Check, kein min_n sinnvoll bei
+    # 0.0-Semantik-Overload: 0.0 = wenig Daten ODER echt 0 im Fenster).
+    # Schema bleibt v4 (additiv). Pflicht laut Lehre #388, sonst feuert
+    # _s10_check_unknown_fields am ersten Record ein WARN.
+    "max_gain_pct",
 })
 
 S10_WINDOW_SIZE          = 20    # Letzte N V4-Einträge für MUSS-Check
