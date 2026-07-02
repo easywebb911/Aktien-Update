@@ -2337,14 +2337,15 @@ Komma).
 
 ## Backtest-Schema (Stufe 1 — A2-Validierung)
 
-Drei neue Felder pro `backtest_history.json`-Eintrag, persistiert ab
-01.05.2026 für eine **spätere** Auswertung (Bahn A2 ab Juli 2026,
-≥ 200 Live-Einträge). Aktuell nur Daten-Persistierung — keine
-Frontend-Anzeige, keine Score-Konsequenzen.
+Drei Felder ab 01.05.2026 + ein additiver Spiegel ab 02.07.2026 pro
+`backtest_history.json`-Eintrag, persistiert für eine **spätere**
+Auswertung (Bahn A2 ab Juli 2026, ≥ 200 Live-Einträge). Aktuell nur
+Daten-Persistierung — keine Frontend-Anzeige, keine Score-Konsequenzen.
 
 | Feld | Typ | Bedeutung | Initialwert |
 |---|---|---|---|
 | `max_drawdown_pct` | Float (negativ) | Max. Drawdown vom rolling Cummax-High zur Tagestief über die ersten ≤ 10 Handelstage seit Entry | `0.0` (kein Drawdown) |
+| `max_gain_pct` | Float (positiv) | Spiegel zu `max_drawdown_pct` (Hypothese-C-Vorbau, PR #397, 02.07.2026): Max. Gain vom rolling Cummin-Low zum Tageshoch über dieselbe ≤ 10-Handelstage-Slice. Kein zusätzlicher yf-Call, additiv (kein v4-Bump). | `0.0` (kein Gewinn) |
 | `market_regime` | Str | SPY 50-Trading-Day-Trend zum Entry-Tag: `bull` (>+5 %), `bear` (<−5 %), `neutral` | aus `_market_regime_from_spy()` |
 | `vix_level` | Float \| None | VIX-Schluss zum Entry-Tag (yfinance `^VIX`) | `_vix_close()`, None bei Fehler |
 
@@ -2352,24 +2353,37 @@ Frontend-Anzeige, keine Score-Konsequenzen.
 
 - **Neue Einträge** (heute): `market_regime` + `vix_level` als Snapshot
   zum Entry-Zeitpunkt fest persistiert (immutable). `max_drawdown_pct`
-  startet bei `0.0`.
+  + `max_gain_pct` starten bei `0.0`.
 - **Rolling Update** (< 14 Kalendertage alt, ≈ 10 Handelstage): pro
-  Daily-Run wird `max_drawdown_pct` über `_compute_max_drawdown()` neu
-  berechnet via Batch-yfinance-Download aller aktiven Ticker.
-  Idempotent — Ergebnis ist immer der bisher schlechteste Drawdown im
-  Fenster. Nach 14 Tagen ist der Wert finalisiert (kein Update mehr).
-- **Legacy-Einträge** ohne `max_drawdown_pct`-Feld bleiben unangetastet
-  (Backwards-Compat); nur neue Einträge ab Deploy bekommen das Feld.
+  Daily-Run werden `max_drawdown_pct` UND `max_gain_pct` über
+  `_compute_max_drawdown()` / `_compute_max_gain_pct()` neu berechnet
+  via **gemeinsamem** Batch-yfinance-Download aller aktiven Ticker
+  (dieselbe `df_since`-Slice, kein zusätzlicher Roundtrip).
+  Idempotent — Ergebnisse sind immer der bisher schlechteste Drawdown
+  bzw. beste Gain im Fenster. Nach 14 Tagen finalisiert.
+- **Legacy-Einträge** ohne `max_drawdown_pct`/`max_gain_pct`-Feld
+  bleiben unangetastet (Backwards-Compat, per-Feld-Guard
+  `if "<feld>" in e`); nur neue Einträge ab jeweiligem Deploy bekommen
+  die Felder. Asymmetrie zwischen Records mit nur `max_drawdown_pct`
+  (Alt-Bestand vor 02.07.2026) und Records mit beiden Feldern ist
+  **harmlos und selbstheilend** — Alt-Records fallen nach 14 Tagen
+  aus dem Rolling-Fenster.
+
+**Wichtiger Semantik-Hinweis** (analog Drawdown): `max_gain_pct = 0.0`
+bedeutet **entweder** „wirklich kein Gewinn im Fenster" **oder**
+„noch nicht genug Daten (< 2 Bars)". Auswertung MUSS Reifegrad-Filter
+(Entry ≥ 10 Trading-Days alt) parallel anwenden.
 
 ### Helper
 
 - `_market_regime_from_spy(spy_hist)` — pure, fail-soft → "neutral"
 - `_vix_close()` — None bei Fetch-Fehler
 - `_compute_max_drawdown(df_window)` — pure, akzeptiert max-10-Tage-Slice
+- `_compute_max_gain_pct(df_window)` — pure, Spiegel zu Drawdown-Helper,
+  identische Guards (`len < 2` → `0.0`, Exception → `None`).
 
-Alle drei Helper landen oben in `_append_backtest_entries`-Region in
-`generate_report.py`. SPY wird einmal pro Run gefetcht und an
-`_market_regime_from_spy` durchgereicht.
+Alle vier Helper leben in `backtest_history.py`. SPY wird einmal pro
+Run gefetcht und an `_market_regime_from_spy` durchgereicht.
 
 ---
 
