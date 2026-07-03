@@ -1,10 +1,10 @@
 {
-  "updated": "2026-07-03T06:28:14.008711+02:00",
+  "updated": "2026-07-03T06:32:22.500588+02:00",
   "run_info": {
     "tickers_checked": 14,
-    "signals_active": 2,
+    "signals_active": 3,
     "alerts_sent": 0,
-    "elapsed_s": 12.0,
+    "elapsed_s": 10.4,
     "market_phase": "Geschlossen"
   },
   "signals": {
@@ -31,9 +31,9 @@
       "uoa_cp_ratio": 2.4461538461538463
     },
     "AI": {
-      "score": 65,
+      "score": 58,
       "confidence": 70,
-      "drivers": "Spanne 6.0% + News: short interest + SEC Form 4 + UOA Call-Vol/OI 11.0× ATM + UOA Call/Put 62.6×",
+      "drivers": "Spanne 6.0% + News-KI 8/30: Generic market growth headlines lack short-squeeze catalysts like high short interest, covering pressure, or specific bu + SEC Form 4 + UOA Call-Vol/OI 11.0× ATM + UOA Call/Put 62.6×",
       "price": 9.06,
       "chg_pct": 0.0,
       "rvol_4d": 0.82,
@@ -44,7 +44,7 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 1,
+      "active_triggers": 0,
       "uoa_score": 30,
       "uoa_drivers": [
         "UOA Call-Vol/OI 11.0× ATM",
@@ -78,7 +78,7 @@
     "ARCT": {
       "score": 90,
       "confidence": 70,
-      "drivers": "Volumen 3.4× + ⚡ Extremes Volumen 3.4×+ + Spanne 13.9% + SEC 8-K + News-KI 12/30: Positive pipeline developments and partnerships are bullish but lack short squeeze catalysts like high short interest, g + UOA Call/Put 2.6×",
+      "drivers": "Volumen 3.4× + ⚡ Extremes Volumen 3.4×+ + Spanne 13.9% + SEC 8-K + News-KI 12/30: Positive pipeline and collaboration news suggests legitimate business development rather than squeeze dynamics; no signi + UOA Call/Put 2.6×",
       "price": 7.28,
       "chg_pct": 0.0,
       "rvol_4d": 3.36,
@@ -100,7 +100,7 @@
     "FRMM": {
       "score": 73,
       "confidence": 70,
-      "drivers": "Volumen 1.7× + Spanne 11.0% + News: contract, short interest + Earnings in 41d + UOA Call/Put 16.1×",
+      "drivers": "Volumen 1.7× + Spanne 11.0% + News: short interest, merger + Earnings in 41d + UOA Call/Put 16.1×",
       "price": 6.02,
       "chg_pct": -0.0,
       "rvol_4d": 1.67,
@@ -142,9 +142,9 @@
       "uoa_cp_ratio": 0.5898883452515368
     },
     "IOVA": {
-      "score": 58,
+      "score": 51,
       "confidence": 70,
-      "drivers": "Spanne 10.6% + SEC 8-K + News: breakout + Earnings in 34d + UOA Call/Put 3.6×",
+      "drivers": "Spanne 10.6% + SEC 8-K + News-KI 8/30: Positive regulatory approval and stock momentum, but no indicators of high short interest, low float, or imminent cataly + Earnings in 34d + UOA Call/Put 3.6×",
       "price": 4.31,
       "chg_pct": -0.0,
       "rvol_4d": 1.24,
@@ -164,9 +164,9 @@
       "uoa_cp_ratio": 3.65
     },
     "LOVE": {
-      "score": 10,
-      "confidence": 17,
-      "drivers": "Spanne 8.1%",
+      "score": 25,
+      "confidence": 33,
+      "drivers": "Spanne 8.1% + News-KI 15/30: Positive fundamentals and earnings beat suggest legitimate growth rather than short-squeeze mechanics; lack of short int",
       "price": 17.49,
       "chg_pct": -0.0,
       "rvol_4d": 1.03,
@@ -177,11 +177,33 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 0,
+      "active_triggers": 1,
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": 0.003401360544217687,
       "uoa_cp_ratio": 1.1702127659574468
+    },
+    "ORIC": {
+      "score": 20,
+      "confidence": 33,
+      "drivers": "Spanne 7.8% + UOA Call/Put 2.9×",
+      "price": 11.64,
+      "chg_pct": 0.0,
+      "rvol_4d": 1.06,
+      "rvol_20d": 1.24,
+      "earnings": null,
+      "fda_date": null,
+      "upcoming_event": null,
+      "insider_buy": false,
+      "stocktwits": null,
+      "combo_mult": 1.0,
+      "active_triggers": 0,
+      "uoa_score": 10,
+      "uoa_drivers": [
+        "UOA Call/Put 2.9×"
+      ],
+      "uoa_atm_ratio": 0.8333333333333334,
+      "uoa_cp_ratio": 2.9393939393939394
     },
     "PDYN": {
       "score": 58,
@@ -206,9 +228,9 @@
       "uoa_cp_ratio": 2.3649289099526065
     },
     "SANA": {
-      "score": 28,
+      "score": 33,
       "confidence": 70,
-      "drivers": "Spanne 11.5% + Earnings in 39d + UOA Call/Put 19.5×",
+      "drivers": "Spanne 11.5% + News-KI 5/30: Symposium presentation is routine corporate activity with minimal market catalyst; unrelated bioterrorism article and co + Earnings in 39d + UOA Call/Put 19.5×",
       "price": 4.01,
       "chg_pct": 0.0,
       "rvol_4d": 1.17,
@@ -226,26 +248,6 @@
       ],
       "uoa_atm_ratio": null,
       "uoa_cp_ratio": 19.5
-    },
-    "SEAT": {
-      "score": 43,
-      "confidence": 33,
-      "drivers": "Spanne 9.9% + Earnings in 32d + FINRA Short-Vol 100%",
-      "price": 7.02,
-      "chg_pct": -0.0,
-      "rvol_4d": 0.29,
-      "rvol_20d": 0.61,
-      "earnings": "in 32 Tagen (04.08.2026)",
-      "fda_date": null,
-      "upcoming_event": null,
-      "insider_buy": false,
-      "stocktwits": null,
-      "combo_mult": 1.0,
-      "active_triggers": 0,
-      "uoa_score": 0,
-      "uoa_drivers": [],
-      "uoa_atm_ratio": null,
-      "uoa_cp_ratio": null
     },
     "SKIL": {
       "score": 45,
