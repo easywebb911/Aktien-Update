@@ -1,5 +1,5 @@
 {
-  "updated": "2026-07-03T06:09:34.225273+02:00",
+  "updated": "2026-07-03T06:28:14.008711+02:00",
   "run_info": {
     "tickers_checked": 14,
     "signals_active": 2,
@@ -76,9 +76,9 @@
       "uoa_cp_ratio": 9.801156440732413
     },
     "ARCT": {
-      "score": 77,
+      "score": 90,
       "confidence": 70,
-      "drivers": "Volumen 3.4× + ⚡ Extremes Volumen 3.4×+ + Spanne 13.9% + SEC 8-K + UOA Call/Put 2.6×",
+      "drivers": "Volumen 3.4× + ⚡ Extremes Volumen 3.4×+ + Spanne 13.9% + SEC 8-K + News-KI 12/30: Positive pipeline developments and partnerships are bullish but lack short squeeze catalysts like high short interest, g + UOA Call/Put 2.6×",
       "price": 7.28,
       "chg_pct": 0.0,
       "rvol_4d": 3.36,
@@ -100,7 +100,7 @@
     "FRMM": {
       "score": 73,
       "confidence": 70,
-      "drivers": "Volumen 1.7× + Spanne 11.0% + News: short interest, merger + Earnings in 41d + UOA Call/Put 16.1×",
+      "drivers": "Volumen 1.7× + Spanne 11.0% + News: contract, short interest + Earnings in 41d + UOA Call/Put 16.1×",
       "price": 6.02,
       "chg_pct": -0.0,
       "rvol_4d": 1.67,
@@ -184,9 +184,9 @@
       "uoa_cp_ratio": 1.1702127659574468
     },
     "PDYN": {
-      "score": 40,
+      "score": 58,
       "confidence": 70,
-      "drivers": "Spanne 11.4% + News-KI 12/30: Positive defense contracts and momentum, but no short squeeze indicators like high short interest, low float, or extreme + Earnings in 33d + UOA Call/Put 2.4×",
+      "drivers": "Spanne 11.4% + News: contract, partnership + Earnings in 33d + UOA Call/Put 2.4×",
       "price": 5.84,
       "chg_pct": 0.0,
       "rvol_4d": 0.82,
@@ -268,9 +268,9 @@
       "uoa_cp_ratio": null
     },
     "SPRY": {
-      "score": 26,
-      "confidence": 70,
-      "drivers": "Spanne 7.5% + News-KI 8/30: Negative catalysts (index removal, CVS delay) and recent weakness reduce short squeeze potential despite possible overso + Earnings in 41d",
+      "score": 18,
+      "confidence": 33,
+      "drivers": "Spanne 7.5% + Earnings in 41d",
       "price": 8.56,
       "chg_pct": 0.0,
       "rvol_4d": 0.81,
@@ -288,9 +288,9 @@
       "uoa_cp_ratio": 0.43424317617866004
     },
     "VSTM": {
-      "score": 18,
-      "confidence": 33,
-      "drivers": "Spanne 12.2% + Earnings in 34d",
+      "score": 33,
+      "confidence": 70,
+      "drivers": "Spanne 12.2% + News: breakout + Earnings in 34d",
       "price": 4.5,
       "chg_pct": 0.0,
       "rvol_4d": 0.73,
@@ -301,7 +301,7 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 0,
+      "active_triggers": 1,
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": null,
