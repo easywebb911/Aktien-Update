@@ -277,6 +277,58 @@ def main():
         _check("F4 keine tmp-Datei im Dry-Run", not tmp.exists())
 
     # ═══════════════════════════════════════════════════════════════════════
+    # (H) classify_outcome — Guardian-Finding-1: thin-slice vs echter Null-Gain
+    # ═══════════════════════════════════════════════════════════════════════
+    print("── (H) classify_outcome (Guardian-Finding 1) ──────────────────")
+
+    # 4 Klassen: none / thin_slice / filled_zero / filled
+    _check(
+        "H1 mg=None → OUTCOME_NONE (unabhängig df_len)",
+        bmg.classify_outcome(0, None) == bmg.OUTCOME_NONE
+        and bmg.classify_outcome(10, None) == bmg.OUTCOME_NONE,
+    )
+
+    _check(
+        "H2 mg=0.0 + df_len=0 → OUTCOME_THIN_SLICE (leerer Slice)",
+        bmg.classify_outcome(0, 0.0) == bmg.OUTCOME_THIN_SLICE,
+    )
+    _check(
+        "H3 mg=0.0 + df_len=1 → OUTCOME_THIN_SLICE (nur Entry-Tag-Bar)",
+        bmg.classify_outcome(1, 0.0) == bmg.OUTCOME_THIN_SLICE,
+    )
+    _check(
+        "H4 mg=0.0 + df_len=2 → OUTCOME_FILLED_ZERO (echter Null-Gain, min-Bars)",
+        bmg.classify_outcome(2, 0.0) == bmg.OUTCOME_FILLED_ZERO,
+    )
+    _check(
+        "H5 mg=0.0 + df_len=10 → OUTCOME_FILLED_ZERO (echter Null-Gain, volles Fenster)",
+        bmg.classify_outcome(10, 0.0) == bmg.OUTCOME_FILLED_ZERO,
+    )
+    _check(
+        "H6 mg=25.5 + df_len=5 → OUTCOME_FILLED (echter Gewinn)",
+        bmg.classify_outcome(5, 25.5) == bmg.OUTCOME_FILLED,
+    )
+    _check(
+        "H7 mg=0.01 + df_len=1 → OUTCOME_FILLED (≠0.0, Klassifikation unabh. von len)",
+        bmg.classify_outcome(1, 0.01) == bmg.OUTCOME_FILLED,
+    )
+    # Konstanten sind verschieden (kein Alias-Fehler)
+    outcomes = {bmg.OUTCOME_NONE, bmg.OUTCOME_THIN_SLICE,
+                bmg.OUTCOME_FILLED_ZERO, bmg.OUTCOME_FILLED}
+    _check("H8 4 distinkte OUTCOME_*-Konstanten", len(outcomes) == 4)
+
+    # Source-Grep: compute_and_apply_backfill trägt den Zähler
+    src = (ROOT / "scripts" / "backfill_max_gain_pct.py").read_text(encoding="utf-8")
+    _check(
+        "H9 compute_and_apply_backfill returnt 3-Tupel (n_filled, n_skipped, n_thin_slice)",
+        "n_thin_slice: int = 0" in src or "n_thin_slice = 0" in src,
+    )
+    _check(
+        "H10 Live-Log-Zeile für thin-slice vorhanden (log.warning bei > 0)",
+        "n_thin_slice > 0" in src and "log.warning" in src,
+    )
+
+    # ═══════════════════════════════════════════════════════════════════════
     # (G) Import-Isolation — _compute_max_gain_pct wird IMPORTIERT nicht dupliziert
     # ═══════════════════════════════════════════════════════════════════════
     print("── (G) Import-Isolation — Drift-Schutz ───────────────────────")
