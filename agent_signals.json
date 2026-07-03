@@ -1,11 +1,11 @@
 {
-  "updated": "2026-07-03T09:37:16.895832+02:00",
+  "updated": "2026-07-03T11:36:38.474247+02:00",
   "run_info": {
     "tickers_checked": 14,
     "signals_active": 3,
     "alerts_sent": 0,
-    "elapsed_s": 11.5,
-    "market_phase": "Geschlossen"
+    "elapsed_s": 11.0,
+    "market_phase": "Pre-Market"
   },
   "signals": {
     "ABEO": {
@@ -31,9 +31,9 @@
       "uoa_cp_ratio": 2.4461538461538463
     },
     "AI": {
-      "score": 58,
+      "score": 65,
       "confidence": 70,
-      "drivers": "Spanne 6.0% + News-KI 8/30: Generic market growth headlines lack the specific catalysts (high short interest, low float, recent insider buying) need + SEC Form 4 + UOA Call-Vol/OI 11.0× ATM + UOA Call/Put 62.6×",
+      "drivers": "Spanne 6.0% + News: short interest + SEC Form 4 + UOA Call-Vol/OI 11.0× ATM + UOA Call/Put 62.6×",
       "price": 9.06,
       "chg_pct": 0.0,
       "rvol_4d": 0.82,
@@ -44,7 +44,7 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 0,
+      "active_triggers": 1,
       "uoa_score": 30,
       "uoa_drivers": [
         "UOA Call-Vol/OI 11.0× ATM",
@@ -76,9 +76,9 @@
       "uoa_cp_ratio": 9.801156440732413
     },
     "ARCT": {
-      "score": 90,
+      "score": 77,
       "confidence": 70,
-      "drivers": "Volumen 3.4× + ⚡ Extremes Volumen 3.4×+ + Spanne 13.9% + SEC 8-K + News-KI 12/30: Positive pipeline and partnership news supports fundamentals but lacks the high short interest, catalyst urgency, and fo + UOA Call/Put 2.6×",
+      "drivers": "Volumen 3.4× + ⚡ Extremes Volumen 3.4×+ + Spanne 13.9% + SEC 8-K + UOA Call/Put 2.6×",
       "price": 7.28,
       "chg_pct": 0.0,
       "rvol_4d": 3.36,
@@ -100,7 +100,7 @@
     "FRMM": {
       "score": 51,
       "confidence": 70,
-      "drivers": "Volumen 1.7× + Spanne 11.0% + News-KI 8/30: Positive analyst sentiment on tokenization strategy lacks the short float data, borrowing difficulty, and retail momentu + Earnings in 41d + UOA Call/Put 16.1×",
+      "drivers": "Volumen 1.7× + Spanne 11.0% + News-KI 8/30: Positive analyst sentiment and insider ownership interest present, but lacks key short-squeeze indicators like high shor + Earnings in 41d + UOA Call/Put 16.1×",
       "price": 6.02,
       "chg_pct": -0.0,
       "rvol_4d": 1.67,
@@ -206,9 +206,9 @@
       "uoa_cp_ratio": 2.9393939393939394
     },
     "PDYN": {
-      "score": 36,
+      "score": 58,
       "confidence": 70,
-      "drivers": "Spanne 11.4% + News-KI 8/30: Positive defense contract news shows business growth, but lacks the extreme short interest, low float, or catalyst urgen + Earnings in 33d + UOA Call/Put 2.4×",
+      "drivers": "Spanne 11.4% + News: partnership, contract + Earnings in 33d + UOA Call/Put 2.4×",
       "price": 5.84,
       "chg_pct": 0.0,
       "rvol_4d": 0.82,
@@ -219,7 +219,7 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 0,
+      "active_triggers": 1,
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 2.4×"
@@ -270,9 +270,9 @@
       "uoa_cp_ratio": null
     },
     "SPRY": {
-      "score": 18,
-      "confidence": 33,
-      "drivers": "Spanne 7.5% + Earnings in 41d",
+      "score": 26,
+      "confidence": 70,
+      "drivers": "Spanne 7.5% + News-KI 8/30: Negative price action and index removal reduce short-squeeze potential; stock is falling on fundamentals rather than sho + Earnings in 41d",
       "price": 8.56,
       "chg_pct": 0.0,
       "rvol_4d": 0.81,
