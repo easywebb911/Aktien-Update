@@ -1,10 +1,10 @@
 {
-  "updated": "2026-07-03T11:36:38.474247+02:00",
+  "updated": "2026-07-03T12:50:27.873344+02:00",
   "run_info": {
     "tickers_checked": 14,
     "signals_active": 3,
     "alerts_sent": 0,
-    "elapsed_s": 11.0,
+    "elapsed_s": 15.8,
     "market_phase": "Pre-Market"
   },
   "signals": {
@@ -56,7 +56,7 @@
     "AMC": {
       "score": 50,
       "confidence": 33,
-      "drivers": "Spanne 5.7% + News: short squeeze, squeeze + UOA Call/Put 9.8×",
+      "drivers": "Spanne 5.7% + News: squeeze, short squeeze + UOA Call/Put 9.8×",
       "price": 1.89,
       "chg_pct": -0.0,
       "rvol_4d": 1.25,
@@ -98,9 +98,9 @@
       "uoa_cp_ratio": 2.587378640776699
     },
     "FRMM": {
-      "score": 51,
+      "score": 73,
       "confidence": 70,
-      "drivers": "Volumen 1.7× + Spanne 11.0% + News-KI 8/30: Positive analyst sentiment and insider ownership interest present, but lacks key short-squeeze indicators like high shor + Earnings in 41d + UOA Call/Put 16.1×",
+      "drivers": "Volumen 1.7× + Spanne 11.0% + News: short interest, merger + Earnings in 41d + UOA Call/Put 16.1×",
       "price": 6.02,
       "chg_pct": -0.0,
       "rvol_4d": 1.67,
@@ -111,7 +111,7 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 0,
+      "active_triggers": 1,
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 16.1×"
@@ -208,7 +208,7 @@
     "PDYN": {
       "score": 58,
       "confidence": 70,
-      "drivers": "Spanne 11.4% + News: partnership, contract + Earnings in 33d + UOA Call/Put 2.4×",
+      "drivers": "Spanne 11.4% + News: contract, partnership + Earnings in 33d + UOA Call/Put 2.4×",
       "price": 5.84,
       "chg_pct": 0.0,
       "rvol_4d": 0.82,
@@ -270,9 +270,9 @@
       "uoa_cp_ratio": null
     },
     "SPRY": {
-      "score": 26,
-      "confidence": 70,
-      "drivers": "Spanne 7.5% + News-KI 8/30: Negative price action and index removal reduce short-squeeze potential; stock is falling on fundamentals rather than sho + Earnings in 41d",
+      "score": 18,
+      "confidence": 33,
+      "drivers": "Spanne 7.5% + Earnings in 41d",
       "price": 8.56,
       "chg_pct": 0.0,
       "rvol_4d": 0.81,
