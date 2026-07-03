@@ -1,10 +1,10 @@
 {
-  "updated": "2026-07-03T12:50:27.873344+02:00",
+  "updated": "2026-07-03T15:12:39.546538+02:00",
   "run_info": {
     "tickers_checked": 14,
     "signals_active": 3,
     "alerts_sent": 0,
-    "elapsed_s": 15.8,
+    "elapsed_s": 18.4,
     "market_phase": "Pre-Market"
   },
   "signals": {
@@ -76,9 +76,9 @@
       "uoa_cp_ratio": 9.801156440732413
     },
     "ARCT": {
-      "score": 77,
+      "score": 55,
       "confidence": 70,
-      "drivers": "Volumen 3.4× + ⚡ Extremes Volumen 3.4×+ + Spanne 13.9% + SEC 8-K + UOA Call/Put 2.6×",
+      "drivers": "Volumen 3.4× + ⚡ Extremes Volumen 3.4×+ + Spanne 13.9% + UOA Call/Put 2.6×",
       "price": 7.28,
       "chg_pct": 0.0,
       "rvol_4d": 3.36,
@@ -88,8 +88,8 @@
       "upcoming_event": null,
       "insider_buy": false,
       "stocktwits": null,
-      "combo_mult": 1.1,
-      "active_triggers": 2,
+      "combo_mult": 1.0,
+      "active_triggers": 1,
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 2.6×"
@@ -98,9 +98,9 @@
       "uoa_cp_ratio": 2.587378640776699
     },
     "FRMM": {
-      "score": 73,
+      "score": 58,
       "confidence": 70,
-      "drivers": "Volumen 1.7× + Spanne 11.0% + News: short interest, merger + Earnings in 41d + UOA Call/Put 16.1×",
+      "drivers": "Volumen 1.7× + Spanne 11.0% + News: short interest + Earnings in 41d + UOA Call/Put 16.1×",
       "price": 6.02,
       "chg_pct": -0.0,
       "rvol_4d": 1.67,
