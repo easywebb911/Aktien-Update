@@ -1,11 +1,11 @@
 {
-  "updated": "2026-07-03T15:12:39.546538+02:00",
+  "updated": "2026-07-03T17:26:00.930016+02:00",
   "run_info": {
     "tickers_checked": 14,
     "signals_active": 3,
     "alerts_sent": 0,
-    "elapsed_s": 18.4,
-    "market_phase": "Pre-Market"
+    "elapsed_s": 21.4,
+    "market_phase": "Regulär"
   },
   "signals": {
     "ABEO": {
@@ -31,9 +31,9 @@
       "uoa_cp_ratio": 2.4461538461538463
     },
     "AI": {
-      "score": 65,
+      "score": 58,
       "confidence": 70,
-      "drivers": "Spanne 6.0% + News: short interest + SEC Form 4 + UOA Call-Vol/OI 11.0× ATM + UOA Call/Put 62.6×",
+      "drivers": "Spanne 6.0% + News-KI 8/30: Generic market growth headlines lacking specific short interest data, catalyst confirmation, or evidence of forced cover + SEC Form 4 + UOA Call-Vol/OI 11.0× ATM + UOA Call/Put 62.6×",
       "price": 9.06,
       "chg_pct": 0.0,
       "rvol_4d": 0.82,
@@ -44,7 +44,7 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 1,
+      "active_triggers": 0,
       "uoa_score": 30,
       "uoa_drivers": [
         "UOA Call-Vol/OI 11.0× ATM",
