@@ -169,6 +169,50 @@ def apply_backfill_result(entry: dict, mg: float | None) -> bool:
     return True
 
 
+# Klassifikations-Konstanten für ``classify_outcome`` (Guardian-Finding-1-Fix,
+# 02.07.2026): trennt stille Datenlücken (thin-slice) von echten Null-Gains.
+OUTCOME_NONE = "none"                 # mg is None → skip, kein Write
+OUTCOME_THIN_SLICE = "thin_slice"     # mg == 0.0 UND df_len < 2 → mögliche Lücke
+OUTCOME_FILLED_ZERO = "filled_zero"   # mg == 0.0 UND df_len ≥ 2 → echter Null-Gain
+OUTCOME_FILLED = "filled"             # mg != 0.0 (positiv erwartet, negativ formal möglich)
+
+
+def classify_outcome(df_len: int, mg: float | None) -> str:
+    """Klassifiziert das Backfill-Ergebnis pro Target (pure, kein Side-Effect).
+
+    Trennt die vier Zustände am Ausgang von ``_compute_max_gain_pct``:
+
+    | mg is None | mg == 0.0 & df_len<2 | mg == 0.0 & df_len≥2 | mg != 0.0 |
+    |------------|----------------------|----------------------|-----------|
+    | none       | thin_slice           | filled_zero          | filled    |
+
+    ``thin_slice`` ist die diagnostisch relevante Klasse: bei einem
+    reifen Target (≥10 Trading-Days seit Entry) sollte die Bulk-Fetch-
+    Slice ≥ 2 Bars liefern — passiert das nicht, ist ``mg == 0.0`` **kein
+    echter Null-Gain**, sondern eine stille Datenlücke (Delisting,
+    Ticker-Wechsel, yfinance-Ausfall im Fenster).
+
+    **Kein Verhaltens-Effekt.** Die Klassifikation wird NUR zum Zählen
+    genutzt — der Füll-Vorgang bleibt identisch (auch thin-slice-Records
+    werden mit ``0.0`` persistiert, analog zum Rolling-Update-Live-Pfad).
+    Der Zähler `n_thin_slice` ermöglicht dem Auswerter, diese Records im
+    Post-Backfill-Filter zu erkennen und ggf. auszuklammern.
+
+    Args:
+        df_len: Anzahl Bars in der df_since-Slice (0 wenn None/leer).
+        mg: Rückgabe von ``_compute_max_gain_pct(df_since)``.
+
+    Returns: eine der vier ``OUTCOME_*``-Konstanten.
+    """
+    if mg is None:
+        return OUTCOME_NONE
+    if mg == 0.0 and df_len < 2:
+        return OUTCOME_THIN_SLICE
+    if mg == 0.0:
+        return OUTCOME_FILLED_ZERO
+    return OUTCOME_FILLED
+
+
 def in_cron_block_window(
     now_utc: datetime | None = None,
     *,
@@ -285,19 +329,26 @@ def build_df_since(df: Any, edate: date, n_bars: int = 11) -> Any:
 def compute_and_apply_backfill(
     targets: list[tuple[int, dict, date]],
     bulk: dict[str, Any],
-) -> tuple[int, int]:
+) -> tuple[int, int, int]:
     """Iteriert Targets, holt Slice, ruft _compute_max_gain_pct, wendet an.
 
     Nutzt den **importierten** Helper aus ``backtest_history`` — KEINE
     Duplizierung (Drift-Schutz per Test A5 in mock_test_max_gain_pct.py).
 
-    Returnt ``(n_filled, n_skipped)``. `n_skipped` zählt Fälle mit
-    fehlendem Bulk-Slot / leerem df_since / `mg is None`.
+    Returnt ``(n_filled, n_skipped, n_thin_slice)``:
+      - `n_filled` = Records mit `max_gain_pct` gesetzt (inkl. thin-slice-Fälle
+        — diese werden analog zum Live-Rolling-Update-Verhalten mit 0.0
+        persistiert, KEIN separater Skip).
+      - `n_skipped` = Fälle mit fehlendem Bulk-Slot / leerem df / `mg is None`.
+      - `n_thin_slice` = Untermenge von `n_filled`: mögliche Datenlücken
+        (`mg == 0.0` bei `len(df_since) < 2`; Guardian-Finding-1-Zähler
+        02.07.2026). **Kein Verhaltens-Effekt** — nur Zählung.
     """
     from backtest_history import _compute_max_gain_pct
 
     n_filled = 0
     n_skipped = 0
+    n_thin_slice = 0
     for i, entry, edate in targets:
         tkr = entry.get("ticker")
         df = bulk.get(tkr) if tkr else None
@@ -311,12 +362,20 @@ def compute_and_apply_backfill(
             n_skipped += 1
             log.warning("skip idx=%d ticker=%s: slice fail %s", i, tkr, exc)
             continue
+        df_len = len(df_since)
         mg = _compute_max_gain_pct(df_since)
+        outcome = classify_outcome(df_len, mg)
         if apply_backfill_result(entry, mg):
             n_filled += 1
+            if outcome == OUTCOME_THIN_SLICE:
+                n_thin_slice += 1
+                log.debug(
+                    "thin-slice idx=%d ticker=%s: mg=0.0 bei df_len=%d "
+                    "(mögliche Datenlücke)", i, tkr, df_len,
+                )
         else:
             n_skipped += 1
-    return n_filled, n_skipped
+    return n_filled, n_skipped, n_thin_slice
 
 
 def preview_targets(
@@ -348,12 +407,15 @@ def preview_targets(
     for i, e, edate in targets[:n]:
         tkr = e.get("ticker")
         df = bulk.get(tkr) if tkr else None
+        outcome: str = OUTCOME_NONE
         if df is None or df.empty:
             mg: Any = None
         else:
             try:
                 df_since = build_df_since(df, edate)
                 mg = _compute_max_gain_pct(df_since)
+                if isinstance(mg, (int, float)):
+                    outcome = classify_outcome(len(df_since), mg)
             except Exception as exc:
                 mg = f"(err: {exc})"
         preview.append(
@@ -363,6 +425,7 @@ def preview_targets(
                 "date": e.get("date"),
                 "entry_date": edate.isoformat(),
                 "mg": mg,
+                "outcome": outcome,  # Guardian-Finding-1-Klassifikation
             }
         )
     return preview
@@ -450,10 +513,18 @@ def main(argv: list[str] | None = None) -> int:
         preview = preview_targets(targets, bulk, n=5)
         log.info("─" * 60)
         log.info("DRY-RUN Preview (erste 5 Targets):")
+        n_preview_thin = 0
         for row in preview:
+            outcome_tag = ""
+            if row.get("outcome") == OUTCOME_THIN_SLICE:
+                outcome_tag = "  ⚠ thin-slice (mögliche Datenlücke)"
+                n_preview_thin += 1
+            elif row.get("outcome") == OUTCOME_FILLED_ZERO:
+                outcome_tag = "  · echter Null-Gain"
             log.info(
-                "  idx=%d ticker=%s date=%s edate=%s → mg=%s",
-                row["idx"], row["ticker"], row["date"], row["entry_date"], row["mg"],
+                "  idx=%d ticker=%s date=%s edate=%s → mg=%s%s",
+                row["idx"], row["ticker"], row["date"], row["entry_date"],
+                row["mg"], outcome_tag,
             )
         log.info("─" * 60)
         log.info(
@@ -461,6 +532,12 @@ def main(argv: list[str] | None = None) -> int:
             "Fenster %s..%s. Keine Schreibvorgänge durchgeführt.",
             len(targets), len(unique_tickers), earliest, latest,
         )
+        if args.fetch_in_dry_run:
+            log.info(
+                "Preview thin-slice-Anteil: %d/%d (mögliche Datenlücken; "
+                "Aggregat für alle %d Targets erst im Live-Lauf).",
+                n_preview_thin, len(preview), len(targets),
+            )
         log.info(
             "Für Live-Lauf: python scripts/backfill_max_gain_pct.py --live "
             "(nur außerhalb ±30min um 06:17/21:17 UTC).",
@@ -504,12 +581,23 @@ def main(argv: list[str] | None = None) -> int:
 
         # ── Bulk-Fetch + Compute ─────────────────────────────────────────────
         bulk = bulk_fetch_ohlc(unique_tickers, fetch_start, fetch_end)
-        n_filled, n_skipped = compute_and_apply_backfill(targets, bulk)
+        n_filled, n_skipped, n_thin_slice = compute_and_apply_backfill(
+            targets, bulk
+        )
         log.info(
             "Backfill: %d/%d Records mit max_gain_pct gefüllt (%d skipped: "
-            "no-data / delisted / len<2)",
+            "no-data / delisted / mg=None)",
             n_filled, len(targets), n_skipped,
         )
+        if n_thin_slice > 0:
+            log.warning(
+                "davon %d thin-slice (mg=0.0 bei len(df_since)<2 — "
+                "mögliche Datenlücke, nicht echter Null-Gain). Auswertung "
+                "sollte diese Records im Post-Filter separat behandeln.",
+                n_thin_slice,
+            )
+        else:
+            log.info("thin-slice-Zähler: 0 (keine Datenlücken erkannt).")
 
         if n_filled == 0:
             log.warning("Keine Records gefüllt — Skip Write.")
