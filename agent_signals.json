@@ -1,10 +1,10 @@
 {
-  "updated": "2026-07-03T23:32:05.390744+02:00",
+  "updated": "2026-07-04T00:19:35.005642+02:00",
   "run_info": {
     "tickers_checked": 14,
     "signals_active": 3,
     "alerts_sent": 0,
-    "elapsed_s": 16.6,
+    "elapsed_s": 15.2,
     "market_phase": "After-Hours"
   },
   "signals": {
@@ -33,7 +33,7 @@
     "AI": {
       "score": 58,
       "confidence": 70,
-      "drivers": "Spanne 6.0% + News-KI 8/30: Generic market growth headlines without specific short interest metrics, catalyst announcements, or volume/price momentu + SEC Form 4 + UOA Call-Vol/OI 11.0× ATM + UOA Call/Put 62.6×",
+      "drivers": "Spanne 6.0% + News-KI 8/30: Generic market growth headlines lack specific short squeeze indicators such as high short interest, low float, or major  + SEC Form 4 + UOA Call-Vol/OI 11.0× ATM + UOA Call/Put 62.6×",
       "price": 9.06,
       "chg_pct": 0.0,
       "rvol_4d": 0.82,
@@ -56,7 +56,7 @@
     "AMC": {
       "score": 50,
       "confidence": 33,
-      "drivers": "Spanne 5.7% + News: squeeze, short squeeze + UOA Call/Put 9.8×",
+      "drivers": "Spanne 5.7% + News: short squeeze, breakout + UOA Call/Put 9.8×",
       "price": 1.89,
       "chg_pct": -0.0,
       "rvol_4d": 1.25,
@@ -164,9 +164,9 @@
       "uoa_cp_ratio": 3.65
     },
     "LOVE": {
-      "score": 22,
-      "confidence": 33,
-      "drivers": "Spanne 8.1% + News-KI 12/30: Positive operational progress and earnings beat, but lacks key short-squeeze indicators like high short interest, low fl",
+      "score": 10,
+      "confidence": 17,
+      "drivers": "Spanne 8.1%",
       "price": 17.49,
       "chg_pct": -0.0,
       "rvol_4d": 1.03,
@@ -177,7 +177,7 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 1,
+      "active_triggers": 0,
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": 0.003401360544217687,
@@ -270,9 +270,9 @@
       "uoa_cp_ratio": null
     },
     "SPRY": {
-      "score": 36,
-      "confidence": 70,
-      "drivers": "Spanne 7.5% + News-KI 18/30: SPRY shows weakness with index exclusion and delayed CVS decision, reducing institutional demand and likelihood of short + Earnings in 41d",
+      "score": 18,
+      "confidence": 33,
+      "drivers": "Spanne 7.5% + Earnings in 41d",
       "price": 8.56,
       "chg_pct": 0.0,
       "rvol_4d": 0.81,
@@ -283,7 +283,7 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 1,
+      "active_triggers": 0,
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": null,
