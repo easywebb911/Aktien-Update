@@ -1,10 +1,10 @@
 {
-  "updated": "2026-07-04T13:46:17.502687+02:00",
+  "updated": "2026-07-04T15:58:33.600763+02:00",
   "run_info": {
     "tickers_checked": 14,
     "signals_active": 3,
     "alerts_sent": 0,
-    "elapsed_s": 10.7,
+    "elapsed_s": 10.8,
     "market_phase": "Geschlossen"
   },
   "signals": {
@@ -56,7 +56,7 @@
     "AMC": {
       "score": 50,
       "confidence": 33,
-      "drivers": "Spanne 5.7% + News: short squeeze, squeeze + UOA Call/Put 9.8×",
+      "drivers": "Spanne 5.7% + News: squeeze, short squeeze + UOA Call/Put 9.8×",
       "price": 1.89,
       "chg_pct": -0.0,
       "rvol_4d": 1.25,
@@ -78,7 +78,7 @@
     "ARCT": {
       "score": 74,
       "confidence": 70,
-      "drivers": "Volumen 3.4× + ⚡ Extremes Volumen 3.4×+ + Spanne 13.9% + News-KI 12/30: Positive pipeline developments and partnerships are bullish but lack short squeeze indicators like high short interest,  + UOA Call/Put 2.6×",
+      "drivers": "Volumen 3.4× + ⚡ Extremes Volumen 3.4×+ + Spanne 13.9% + News-KI 12/30: Positive news on pipeline and partnerships is bullish but lacks short squeeze indicators like high short interest, low f + UOA Call/Put 2.6×",
       "price": 7.28,
       "chg_pct": 0.0,
       "rvol_4d": 3.36,
@@ -208,7 +208,7 @@
     "PDYN": {
       "score": 58,
       "confidence": 70,
-      "drivers": "Spanne 11.4% + News: partnership, contract + Earnings in 32d + UOA Call/Put 2.4×",
+      "drivers": "Spanne 11.4% + News: contract, partnership + Earnings in 32d + UOA Call/Put 2.4×",
       "price": 5.84,
       "chg_pct": 0.0,
       "rvol_4d": 0.82,
@@ -270,9 +270,9 @@
       "uoa_cp_ratio": null
     },
     "SPRY": {
-      "score": 18,
-      "confidence": 33,
-      "drivers": "Spanne 7.5% + Earnings in 40d",
+      "score": 36,
+      "confidence": 70,
+      "drivers": "Spanne 7.5% + News-KI 18/30: Negative catalyst (index removal, CVS delay) suggests weak technicals and poor sentiment, reducing short-squeeze likelih + Earnings in 40d",
       "price": 8.56,
       "chg_pct": 0.0,
       "rvol_4d": 0.81,
@@ -283,7 +283,7 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 0,
+      "active_triggers": 1,
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": null,
