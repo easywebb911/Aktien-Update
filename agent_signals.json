@@ -1,10 +1,10 @@
 {
-  "updated": "2026-07-04T23:14:09.467484+02:00",
+  "updated": "2026-07-05T00:12:41.934974+02:00",
   "run_info": {
     "tickers_checked": 14,
     "signals_active": 3,
     "alerts_sent": 0,
-    "elapsed_s": 16.1,
+    "elapsed_s": 15.2,
     "market_phase": "Geschlossen"
   },
   "signals": {
@@ -31,9 +31,9 @@
       "uoa_cp_ratio": 2.4461538461538463
     },
     "AI": {
-      "score": 62,
+      "score": 65,
       "confidence": 70,
-      "drivers": "Spanne 6.0% + News-KI 12/30: Generic market growth headlines lack specific short-squeeze catalysts like high short interest, borrow scarcity, or inst + SEC Form 4 + UOA Call-Vol/OI 11.0× ATM + UOA Call/Put 62.6×",
+      "drivers": "Spanne 6.0% + News: short interest + SEC Form 4 + UOA Call-Vol/OI 11.0× ATM + UOA Call/Put 62.6×",
       "price": 9.06,
       "chg_pct": 0.0,
       "rvol_4d": 0.82,
@@ -120,9 +120,9 @@
       "uoa_cp_ratio": 16.083333333333332
     },
     "IONQ": {
-      "score": 28,
+      "score": 36,
       "confidence": 70,
-      "drivers": "Spanne 12.2% + Earnings in 32d + UOA Call-Vol/OI 3.1× ATM",
+      "drivers": "Spanne 12.2% + News-KI 8/30: Negative price action, competitive pressure, and market dilution from new listings indicate weak short-squeeze potential + Earnings in 32d + UOA Call-Vol/OI 3.1× ATM",
       "price": 49.12,
       "chg_pct": -0.0,
       "rvol_4d": 0.57,
@@ -142,9 +142,9 @@
       "uoa_cp_ratio": 0.5898883452515368
     },
     "IOVA": {
-      "score": 28,
+      "score": 40,
       "confidence": 70,
-      "drivers": "Spanne 10.6% + Earnings in 33d + UOA Call/Put 3.6×",
+      "drivers": "Spanne 10.6% + News-KI 12/30: Positive regulatory news drives modest momentum, but fundamentals-focused comparison articles and lack of short interest + Earnings in 33d + UOA Call/Put 3.6×",
       "price": 4.31,
       "chg_pct": -0.0,
       "rvol_4d": 1.24,
@@ -155,7 +155,7 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 0,
+      "active_triggers": 1,
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 3.6×"
@@ -228,9 +228,9 @@
       "uoa_cp_ratio": 2.3649289099526065
     },
     "SANA": {
-      "score": 33,
+      "score": 28,
       "confidence": 70,
-      "drivers": "Spanne 11.5% + News-KI 5/30: Conference presentation announcement with no material news; unrelated bioterrorism article; other company appointment -  + Earnings in 38d + UOA Call/Put 19.5×",
+      "drivers": "Spanne 11.5% + Earnings in 38d + UOA Call/Put 19.5×",
       "price": 4.01,
       "chg_pct": 0.0,
       "rvol_4d": 1.17,
@@ -272,7 +272,7 @@
     "SPRY": {
       "score": 26,
       "confidence": 70,
-      "drivers": "Spanne 7.5% + News-KI 8/30: Negative price action and index removal could create forced selling, but lack of high short interest data and fundamenta + Earnings in 40d",
+      "drivers": "Spanne 7.5% + News-KI 8/30: Negative news with declining stock and index exclusion reduces short-squeeze potential; no indicators of heavy short int + Earnings in 40d",
       "price": 8.56,
       "chg_pct": 0.0,
       "rvol_4d": 0.81,
