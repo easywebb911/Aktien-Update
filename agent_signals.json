@@ -1,10 +1,10 @@
 {
-  "updated": "2026-07-04T19:19:32.824778+02:00",
+  "updated": "2026-07-04T21:37:26.276661+02:00",
   "run_info": {
     "tickers_checked": 14,
     "signals_active": 3,
     "alerts_sent": 0,
-    "elapsed_s": 11.6,
+    "elapsed_s": 12.6,
     "market_phase": "Geschlossen"
   },
   "signals": {
@@ -31,9 +31,9 @@
       "uoa_cp_ratio": 2.4461538461538463
     },
     "AI": {
-      "score": 58,
+      "score": 65,
       "confidence": 70,
-      "drivers": "Spanne 6.0% + News-KI 8/30: Generic market growth headlines lack catalyst specificity, short interest data, or fundamental squeeze indicators needed + SEC Form 4 + UOA Call-Vol/OI 11.0× ATM + UOA Call/Put 62.6×",
+      "drivers": "Spanne 6.0% + News: short interest + SEC Form 4 + UOA Call-Vol/OI 11.0× ATM + UOA Call/Put 62.6×",
       "price": 9.06,
       "chg_pct": 0.0,
       "rvol_4d": 0.82,
@@ -44,7 +44,7 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 0,
+      "active_triggers": 1,
       "uoa_score": 30,
       "uoa_drivers": [
         "UOA Call-Vol/OI 11.0× ATM",
@@ -56,7 +56,7 @@
     "AMC": {
       "score": 32,
       "confidence": 33,
-      "drivers": "Spanne 5.7% + News-KI 12/30: Moderate debt/capital allocation concern but no strong short-squeeze catalysts; company appears operationally challenged + UOA Call/Put 9.8×",
+      "drivers": "Spanne 5.7% + News-KI 12/30: Capital allocation news is neutral; inclusion in 'think twice' and 'fine line' articles suggests caution rather than squ + UOA Call/Put 9.8×",
       "price": 1.89,
       "chg_pct": -0.0,
       "rvol_4d": 1.25,
@@ -76,9 +76,9 @@
       "uoa_cp_ratio": 9.801156440732413
     },
     "ARCT": {
-      "score": 74,
+      "score": 55,
       "confidence": 70,
-      "drivers": "Volumen 3.4× + ⚡ Extremes Volumen 3.4×+ + Spanne 13.9% + News-KI 12/30: Positive news and partnerships support fundamentals but lack the extreme short interest, catalyst urgency, and retail mo + UOA Call/Put 2.6×",
+      "drivers": "Volumen 3.4× + ⚡ Extremes Volumen 3.4×+ + Spanne 13.9% + UOA Call/Put 2.6×",
       "price": 7.28,
       "chg_pct": 0.0,
       "rvol_4d": 3.36,
@@ -88,8 +88,8 @@
       "upcoming_event": null,
       "insider_buy": false,
       "stocktwits": null,
-      "combo_mult": 1.1,
-      "active_triggers": 2,
+      "combo_mult": 1.0,
+      "active_triggers": 1,
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 2.6×"
@@ -98,9 +98,9 @@
       "uoa_cp_ratio": 2.587378640776699
     },
     "FRMM": {
-      "score": 51,
+      "score": 73,
       "confidence": 70,
-      "drivers": "Volumen 1.7× + Spanne 11.0% + News-KI 8/30: Positive analyst sentiment on tokenization strategy lacks short interest data, high volume spikes, or extreme valuation  + Earnings in 40d + UOA Call/Put 16.1×",
+      "drivers": "Volumen 1.7× + Spanne 11.0% + News: short interest, merger + Earnings in 40d + UOA Call/Put 16.1×",
       "price": 6.02,
       "chg_pct": -0.0,
       "rvol_4d": 1.67,
@@ -111,7 +111,7 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 0,
+      "active_triggers": 1,
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 16.1×"
@@ -142,9 +142,9 @@
       "uoa_cp_ratio": 0.5898883452515368
     },
     "IOVA": {
-      "score": 43,
+      "score": 28,
       "confidence": 70,
-      "drivers": "Spanne 10.6% + News: breakout + Earnings in 33d + UOA Call/Put 3.6×",
+      "drivers": "Spanne 10.6% + Earnings in 33d + UOA Call/Put 3.6×",
       "price": 4.31,
       "chg_pct": -0.0,
       "rvol_4d": 1.24,
@@ -155,7 +155,7 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 1,
+      "active_triggers": 0,
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 3.6×"
@@ -164,9 +164,9 @@
       "uoa_cp_ratio": 3.65
     },
     "LOVE": {
-      "score": 22,
-      "confidence": 33,
-      "drivers": "Spanne 8.1% + News-KI 12/30: Positive operational news and earnings beat lack the critical short squeeze catalyst elements like extreme short interes",
+      "score": 10,
+      "confidence": 17,
+      "drivers": "Spanne 8.1%",
       "price": 17.49,
       "chg_pct": -0.0,
       "rvol_4d": 1.03,
@@ -177,7 +177,7 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 1,
+      "active_triggers": 0,
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": 0.003401360544217687,
@@ -208,7 +208,7 @@
     "PDYN": {
       "score": 58,
       "confidence": 70,
-      "drivers": "Spanne 11.4% + News: partnership, contract + Earnings in 32d + UOA Call/Put 2.4×",
+      "drivers": "Spanne 11.4% + News: contract, partnership + Earnings in 32d + UOA Call/Put 2.4×",
       "price": 5.84,
       "chg_pct": 0.0,
       "rvol_4d": 0.82,
@@ -228,9 +228,9 @@
       "uoa_cp_ratio": 2.3649289099526065
     },
     "SANA": {
-      "score": 28,
+      "score": 33,
       "confidence": 70,
-      "drivers": "Spanne 11.5% + Earnings in 38d + UOA Call/Put 19.5×",
+      "drivers": "Spanne 11.5% + News-KI 5/30: Routine conference presentation and unrelated news show no short-squeeze catalysts; no significant catalyst for forced b + Earnings in 38d + UOA Call/Put 19.5×",
       "price": 4.01,
       "chg_pct": 0.0,
       "rvol_4d": 1.17,
@@ -270,9 +270,9 @@
       "uoa_cp_ratio": null
     },
     "SPRY": {
-      "score": 36,
-      "confidence": 70,
-      "drivers": "Spanne 7.5% + News-KI 18/30: Negative catalysts (index removal, CVS delay) and stock collapse indicate weak sentiment and limited short squeeze poten + Earnings in 40d",
+      "score": 18,
+      "confidence": 33,
+      "drivers": "Spanne 7.5% + Earnings in 40d",
       "price": 8.56,
       "chg_pct": 0.0,
       "rvol_4d": 0.81,
@@ -283,7 +283,7 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 1,
+      "active_triggers": 0,
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": null,
