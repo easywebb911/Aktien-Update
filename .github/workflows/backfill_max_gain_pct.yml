@@ -1,0 +1,168 @@
+name: Backfill max_gain_pct (einmalig, manual)
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Einmaliger Backfill-Workflow für die Hypothese-C-Vorwärts-Erhebung.
+#
+# Führt scripts/backfill_max_gain_pct.py --live im Runner aus (yfinance ist
+# via requirements.txt gepinnt und im Runner-Env verfügbar). Commitet UND
+# pusht backtest_history.json nur, wenn die Datei sich änderte.
+#
+# STRENG MANUAL:
+#   - trigger:      NUR workflow_dispatch (kein schedule, kein push)
+#   - permissions:  contents: write (für Commit + Push)
+#   - concurrency:  group backfill-max-gain-pct + cancel-in-progress: false
+#                   → nie zwei Läufe parallel; ein laufender Backfill kann
+#                     NICHT durch einen zweiten Dispatch abgeschossen werden
+#                     (verhindert unsauberen Abbruch mitten im Write).
+#
+# DOPPELTER RACE-SCHUTZ:
+#   1. Skript-intern: fcntl.flock (exclusive, non-blocking) + Cron-Fenster-
+#      Guard (±30 min um 06:17/21:17 UTC).
+#   2. Workflow-Ebene: concurrency-group (kein 2. Lauf parallel).
+#
+# IDEMPOTENZ:
+#   - Skript-Guard `if "max_gain_pct" in e: continue` überspringt bereits
+#     gefüllte Records.
+#   - Workflow-Guard: `git diff --staged --quiet && exit 0` — kein Leer-
+#     Commit, wenn Datei sich nicht änderte.
+#   - Zweiter Dispatch nach erfolgreichem ersten Lauf: 0 Targets, 0 Änderungen,
+#     kein Commit.
+#
+# COMMIT-SICHERHEIT:
+#   - `git add backtest_history.json` — GENAU EINE Datei. Kein `git add -A`,
+#     kein Wildcard, kein anderer Repo-Waise-File-Commit.
+#
+# FEHLER-BEHANDLUNG:
+#   - Kein Retry-Loop bei Push-Fehler. Wenn Push failed → Workflow-Run wird
+#     rot, Easy sieht es im Actions-UI und triggert erneut (nach flock-
+#     Release + Cron-Guard-Neuprüfung sauber).
+# ─────────────────────────────────────────────────────────────────────────────
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: backfill-max-gain-pct
+  # Ein laufender Backfill darf NICHT durch einen zweiten Dispatch
+  # abgeschossen werden (Mitten-im-Write-Abbruch → tmp-Datei bleibt liegen,
+  # atomic-write hat aber schon gestartet? — sauberer: den 2. Dispatch
+  # abweisen statt den 1. zu killen).
+  cancel-in-progress: false
+
+jobs:
+  backfill:
+    name: max_gain_pct Backfill (Live)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout main (full history)
+        uses: actions/checkout@v5
+        with:
+          # Full history nicht nötig — nur für den commit relevant; shallow
+          # (default depth 1) reicht, weil wir NUR ein Commit auf HEAD machen.
+          fetch-depth: 1
+
+      - name: Setup Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: 'pip'
+
+      - name: Install pinned dependencies (yfinance 1.4.1 via #393)
+        run: pip install -r requirements.txt
+
+      - name: Show pre-Backfill status (Diagnose)
+        run: |
+          echo "── UTC-Zeit vor Lauf ──"
+          date -u
+          echo "── backtest_history.json Byte-Größe vor Lauf ──"
+          wc -c backtest_history.json || true
+
+      - name: Run backfill (--live)
+        id: backfill
+        run: |
+          set -euo pipefail
+          LOG=/tmp/backfill.log
+          # Skript-interner Cron-Guard fängt ±30 min um 06:17/21:17 UTC ab
+          # (auch wenn Workflow zu ungünstiger Zeit gestartet wurde).
+          python scripts/backfill_max_gain_pct.py --live 2>&1 | tee "$LOG"
+
+          # Zähler aus dem Log extrahieren für die Commit-Message.
+          # Format aus dem Skript-Log-Muster (siehe scripts/backfill_max_gain_pct.py):
+          #   "Backfill: N/M Records mit max_gain_pct gefüllt (K skipped: …)"
+          #   "davon T thin-slice (mg=0.0 bei len(df_since)<2 …)"
+          FILLED=$(grep -oE 'Backfill: [0-9]+' "$LOG" | head -1 | grep -oE '[0-9]+' || echo "0")
+          TOTAL=$(grep -oE 'Backfill: [0-9]+/[0-9]+' "$LOG" | head -1 | grep -oE '/[0-9]+' | tr -d '/' || echo "0")
+          THIN=$(grep -oE 'davon [0-9]+ thin-slice' "$LOG" | head -1 | grep -oE '[0-9]+' || echo "0")
+          echo "filled=$FILLED"     >> "$GITHUB_OUTPUT"
+          echo "total=$TOTAL"       >> "$GITHUB_OUTPUT"
+          echo "thin=$THIN"         >> "$GITHUB_OUTPUT"
+          echo "── extrahiert: filled=$FILLED, total=$TOTAL, thin_slice=$THIN ──"
+
+      - name: Show post-Backfill status (Diagnose)
+        run: |
+          echo "── backtest_history.json Byte-Größe nach Lauf ──"
+          wc -c backtest_history.json || true
+          echo "── git diff --stat (was hat sich geändert?) ──"
+          git diff --stat backtest_history.json || true
+
+      - name: Commit + push only backtest_history.json (idempotent)
+        env:
+          FILLED: ${{ steps.backfill.outputs.filled }}
+          TOTAL:  ${{ steps.backfill.outputs.total }}
+          THIN:   ${{ steps.backfill.outputs.thin }}
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          # GENAU EINE Datei stagen — kein `git add -A`, kein Wildcard.
+          # Falls das Skript wider Erwarten andere Dateien angerührt hat,
+          # bleiben sie ungestaged und werden NICHT committet.
+          git add backtest_history.json
+
+          # Idempotenz-Guard: nichts staged → kein Commit, kein Push, exit 0.
+          # Zweiter Dispatch nach erfolgreichem ersten Lauf landet hier
+          # (Skript-Guard hat 0 Records gefüllt → keine Änderung an der Datei).
+          if git diff --staged --quiet; then
+            echo "── Keine Änderungen an backtest_history.json → kein Commit. ──"
+            exit 0
+          fi
+
+          # Commit-Message führt filled/total mit; thin-slice als Detail.
+          # Wenn die Log-Parse fehlschlug (fallback "0"), bleibt der Text
+          # trotzdem lesbar.
+          MSG="chore: max_gain_pct backfill (einmalig, ${FILLED}/${TOTAL} Records gefüllt, ${THIN} thin-slice)
+
+          Guardian-Finding-1-Zähler unterscheidet echte Null-Gains von
+          möglichen Datenlücken (thin-slice: mg=0.0 bei len(df_since)<2).
+
+          Auto-committed by workflow_dispatch: backfill_max_gain_pct.yml"
+
+          git commit -m "$MSG"
+
+          # Kein Retry-Loop bei Fehler. Zwei realistische Fehlerklassen:
+          #   (a) `git pull --rebase origin main` scheitert bei einem echten
+          #       Rebase-Konflikt auf backtest_history.json — passiert, wenn
+          #       ein paralleler Daily-Run-Rolling-Update dieselben Records
+          #       gemergte hat (unwahrscheinlich dank Skript-flock + Cron-
+          #       Fenster-Guard, aber möglich bei ki_agent-hourly xx:17 Ticks,
+          #       die update_backtest_returns aufrufen). `set -euo pipefail`
+          #       beendet den Step bei Rebase-Abort sofort → `git push` wird
+          #       gar nicht erreicht → sauberer Fail, kein Teil-Push.
+          #   (b) `git push` scheitert (Netzwerk / Remote-Auth) — dito Fail.
+          # Anders als `daily-squeeze-report.yml` gibt es hier BEWUSST keinen
+          # `--ours`-Auto-Resolve-Fallback für JSON-Konflikte: der Backfill
+          # überschreibt keine Live-Werte (Skript-Guard `if "max_gain_pct" in
+          # e: continue`), aber ein Auto-`--ours` würde einen parallelen
+          # Rolling-Update-Write des Daily-Runs zurückrollen. Sauberer:
+          # sichtbarer Fail → Easy sieht rot im Actions-UI → dispatcht erneut
+          # (State ist idempotent, Skript-Guard verhindert Doppelung).
+          # Pull-with-Rebase vor Push fängt die häufigen KI-Agent-/Daily-Run-
+          # Waisen-Commits ab (kein Konflikt-Risiko, da Waisen andere Dateien
+          # touchen als backtest_history.json).
+          git pull --rebase origin main
+          git push
