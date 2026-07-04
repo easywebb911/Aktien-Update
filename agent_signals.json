@@ -1,10 +1,10 @@
 {
-  "updated": "2026-07-04T06:02:26.721366+02:00",
+  "updated": "2026-07-04T09:15:08.573081+02:00",
   "run_info": {
     "tickers_checked": 14,
     "signals_active": 3,
     "alerts_sent": 0,
-    "elapsed_s": 13.2,
+    "elapsed_s": 13.7,
     "market_phase": "Geschlossen"
   },
   "signals": {
@@ -31,9 +31,9 @@
       "uoa_cp_ratio": 2.4461538461538463
     },
     "AI": {
-      "score": 65,
+      "score": 58,
       "confidence": 70,
-      "drivers": "Spanne 6.0% + News: short interest + SEC Form 4 + UOA Call-Vol/OI 11.0× ATM + UOA Call/Put 62.6×",
+      "drivers": "Spanne 6.0% + News-KI 8/30: Low squeeze potential: generic market growth news lacks short interest indicators, specific catalyst details, or abnorma + SEC Form 4 + UOA Call-Vol/OI 11.0× ATM + UOA Call/Put 62.6×",
       "price": 9.06,
       "chg_pct": 0.0,
       "rvol_4d": 0.82,
@@ -44,7 +44,7 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 1,
+      "active_triggers": 0,
       "uoa_score": 30,
       "uoa_drivers": [
         "UOA Call-Vol/OI 11.0× ATM",
@@ -164,9 +164,9 @@
       "uoa_cp_ratio": 3.65
     },
     "LOVE": {
-      "score": 10,
-      "confidence": 17,
-      "drivers": "Spanne 8.1%",
+      "score": 22,
+      "confidence": 33,
+      "drivers": "Spanne 8.1% + News-KI 12/30: Positive fundamental momentum from earnings beat and strategic initiatives, but lacking the extreme short interest and v",
       "price": 17.49,
       "chg_pct": -0.0,
       "rvol_4d": 1.03,
@@ -177,16 +177,16 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 0,
+      "active_triggers": 1,
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": 0.003401360544217687,
       "uoa_cp_ratio": 1.1702127659574468
     },
     "ORIC": {
-      "score": 20,
+      "score": 25,
       "confidence": 33,
-      "drivers": "Spanne 7.8% + UOA Call/Put 2.9×",
+      "drivers": "Spanne 7.8% + News-KI 5/30: Routine corporate events (equity grants, investor conferences, generic growth commentary) with no major catalysts, insid + UOA Call/Put 2.9×",
       "price": 11.64,
       "chg_pct": 0.0,
       "rvol_4d": 1.06,
@@ -208,7 +208,7 @@
     "PDYN": {
       "score": 58,
       "confidence": 70,
-      "drivers": "Spanne 11.4% + News: partnership, contract + Earnings in 32d + UOA Call/Put 2.4×",
+      "drivers": "Spanne 11.4% + News: contract, partnership + Earnings in 32d + UOA Call/Put 2.4×",
       "price": 5.84,
       "chg_pct": 0.0,
       "rvol_4d": 0.82,
@@ -228,9 +228,9 @@
       "uoa_cp_ratio": 2.3649289099526065
     },
     "SANA": {
-      "score": 33,
+      "score": 28,
       "confidence": 70,
-      "drivers": "Spanne 11.5% + News-KI 5/30: Routine conference presentation announcement with no material business catalysts; unrelated bioterrorism article and com + Earnings in 38d + UOA Call/Put 19.5×",
+      "drivers": "Spanne 11.5% + Earnings in 38d + UOA Call/Put 19.5×",
       "price": 4.01,
       "chg_pct": 0.0,
       "rvol_4d": 1.17,
@@ -270,9 +270,9 @@
       "uoa_cp_ratio": null
     },
     "SPRY": {
-      "score": 18,
-      "confidence": 33,
-      "drivers": "Spanne 7.5% + Earnings in 40d",
+      "score": 36,
+      "confidence": 70,
+      "drivers": "Spanne 7.5% + News-KI 18/30: Negative catalysts (index removal, CVS decision delay) and declining stock price reduce squeeze potential despite possib + Earnings in 40d",
       "price": 8.56,
       "chg_pct": 0.0,
       "rvol_4d": 0.81,
@@ -283,7 +283,7 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 0,
+      "active_triggers": 1,
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": null,
