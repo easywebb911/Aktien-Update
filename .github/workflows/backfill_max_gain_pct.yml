@@ -144,11 +144,25 @@ jobs:
 
           git commit -m "$MSG"
 
-          # Kein Retry-Loop bei Push-Fehler. Wenn Push failed (z. B.
-          # concurrent Daily-Run-Commit), wird der Workflow-Run rot und Easy
-          # sieht es im Actions-UI. Sauberer als silent-retry — der State
-          # ist idempotent, ein zweiter Dispatch fährt sauber neu.
-          # Pull-with-Rebase vor Push für die häufigen KI-Agent-/Daily-Run-
-          # Waisen-Commits.
+          # Kein Retry-Loop bei Fehler. Zwei realistische Fehlerklassen:
+          #   (a) `git pull --rebase origin main` scheitert bei einem echten
+          #       Rebase-Konflikt auf backtest_history.json — passiert, wenn
+          #       ein paralleler Daily-Run-Rolling-Update dieselben Records
+          #       gemergte hat (unwahrscheinlich dank Skript-flock + Cron-
+          #       Fenster-Guard, aber möglich bei ki_agent-hourly xx:17 Ticks,
+          #       die update_backtest_returns aufrufen). `set -euo pipefail`
+          #       beendet den Step bei Rebase-Abort sofort → `git push` wird
+          #       gar nicht erreicht → sauberer Fail, kein Teil-Push.
+          #   (b) `git push` scheitert (Netzwerk / Remote-Auth) — dito Fail.
+          # Anders als `daily-squeeze-report.yml` gibt es hier BEWUSST keinen
+          # `--ours`-Auto-Resolve-Fallback für JSON-Konflikte: der Backfill
+          # überschreibt keine Live-Werte (Skript-Guard `if "max_gain_pct" in
+          # e: continue`), aber ein Auto-`--ours` würde einen parallelen
+          # Rolling-Update-Write des Daily-Runs zurückrollen. Sauberer:
+          # sichtbarer Fail → Easy sieht rot im Actions-UI → dispatcht erneut
+          # (State ist idempotent, Skript-Guard verhindert Doppelung).
+          # Pull-with-Rebase vor Push fängt die häufigen KI-Agent-/Daily-Run-
+          # Waisen-Commits ab (kein Konflikt-Risiko, da Waisen andere Dateien
+          # touchen als backtest_history.json).
           git pull --rebase origin main
           git push
