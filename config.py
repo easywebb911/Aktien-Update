@@ -1317,6 +1317,23 @@ S10_OBSERVED_FIELDS = frozenset({
     # Backtest-Field (sonst Trainings-/Test-Overlap bei Backfilled Records).
     # Schema bleibt v4 (additiv). Backfill ist separater Stufe-B-PR.
     "entry_past_return_5d",
+    # Katalysator-Vorbau (05.07.2026, Stufe A — Hypothese H5): Kalendertage
+    # bis zum nächsten AM Report-Tag bekannten Earnings-Termin. Snapshot aus
+    # dem Live-Enrichment-Dict s["earnings_days"] (gesetzt in Step 3c von
+    # generate_report.py:16502-16540, EarningsWhispers-Cache + yfinance-
+    # Fallback). Rohwert = Kalendertage (`(edate - _today_et).days`),
+    # konsistent zum Live-Score-Konsumenten _compute_sub_scores:3746-3749
+    # (Bucket-Schwellen ≤7 / ≤14).
+    # Point-in-time-sauber: Fetch AM Report-Tag → keine später-angekündigten
+    # Termine leaken (belegt in Diagnose 05.07.2026).
+    # LEGITIM leer (None) bei fehlendem Earnings-Kalender (Micro-Caps ohne
+    # öffentliche Termine, ETFs, Non-US) → nur OBSERVED, KEIN MUSS/LAG-Check.
+    # Look-Ahead-Konvention EINFROREN (analog entry_past_return_5d): dieses
+    # Feld darf NIEMALS als Score-Feature gelesen werden. Live-Score liest
+    # bereits stock["earnings_days"] aus dem Enrichment — dieser Pfad bleibt
+    # der KANONISCHE Score-Read. Backfill STRUKTURELL NICHT MÖGLICH (heutiger
+    # Fetch ≠ damaliger). Nur Vorwärts-Erhebung. Schema bleibt v4 (additiv).
+    "days_to_earnings",
 })
 
 S10_WINDOW_SIZE          = 20    # Letzte N V4-Einträge für MUSS-Check
