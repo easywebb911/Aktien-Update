@@ -1,9 +1,3 @@
-{"run_ts": "2026-06-05T13:35:20Z", "run_phase": "premarket", "schema_v": 1, "state_fails": [{"id": "S7", "severity": "warn", "detail": "agent_signals ∩ top10: 2 von 10 Top-10-Ticker, Schwelle ≥ 5. Möglicher Daily-Run-/KI-Agent-Drift — neuer Tick fällig"}], "provider_fails": []}
-{"run_ts": "2026-06-05T13:36:58Z", "run_phase": "ki_agent_tick", "schema_v": 1, "state_fails": [], "provider_fails": []}
-{"run_ts": "2026-06-05T13:57:48Z", "run_phase": "premarket", "schema_v": 1, "state_fails": [{"id": "S7", "severity": "warn", "detail": "agent_signals ∩ top10: 4 von 10 Top-10-Ticker, Schwelle ≥ 5. Möglicher Daily-Run-/KI-Agent-Drift — neuer Tick fällig"}], "provider_fails": []}
-{"run_ts": "2026-06-05T13:59:16Z", "run_phase": "ki_agent_tick", "schema_v": 1, "state_fails": [], "provider_fails": []}
-{"run_ts": "2026-06-05T14:45:43Z", "run_phase": "premarket", "schema_v": 1, "state_fails": [], "provider_fails": []}
-{"run_ts": "2026-06-05T14:47:26Z", "run_phase": "ki_agent_tick", "schema_v": 1, "state_fails": [], "provider_fails": []}
 {"run_ts": "2026-06-05T15:07:06Z", "run_phase": "premarket", "schema_v": 1, "state_fails": [], "provider_fails": []}
 {"run_ts": "2026-06-05T15:08:47Z", "run_phase": "ki_agent_tick", "schema_v": 1, "state_fails": [], "provider_fails": []}
 {"run_ts": "2026-06-05T16:09:51Z", "run_phase": "ki_agent_tick", "schema_v": 1, "state_fails": [], "provider_fails": []}
@@ -385,3 +379,4 @@
 {"run_ts": "2026-07-05T08:17:59Z", "run_phase": "ki_agent_tick", "schema_v": 1, "state_fails": [], "provider_fails": []}
 {"run_ts": "2026-07-05T11:13:30Z", "run_phase": "ki_agent_tick", "schema_v": 1, "state_fails": [], "provider_fails": []}
 {"run_ts": "2026-07-05T12:42:21Z", "run_phase": "ki_agent_tick", "schema_v": 1, "state_fails": [], "provider_fails": []}
+{"run_ts": "2026-07-05T14:53:08Z", "run_phase": "ki_agent_tick", "schema_v": 1, "state_fails": [], "provider_fails": []}
