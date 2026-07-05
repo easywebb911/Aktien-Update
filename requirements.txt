@@ -1,19 +1,26 @@
-# Dependency-Pins für yfinance-Segfault-Brücke (29.06.2026):
-# Drei Pakete sind exakt auf den letzten nachweislich erfolgreichen
-# Daily-Run-Stand #817 (Fr 26.06.2026 22:38 UTC) festgefroren.
-# Auslöser: pinless-Auto-Update über das Wochenende zog yfinance
-# 1.4.1 → 1.5.1 (Minor-Sprung) + pandas 3.0.3 → 3.0.4 + peewee 4.1.0 → 4.1.1.
-# Erster Lauf danach (#818 Mo 29.06 11:23 UTC) crashte in Step 2b
-# (Batch yfinance fetch) mit SIGSEGV/Exit-139. peewee ist transitive
-# yfinance-Dep — hier explizit aufgenommen, damit der Pin greift.
-# Brücke, kein langfristiger Pin: Caps lockern sobald yfinance >=1.5.x
-# als stabil verifiziert ist.
-yfinance==1.4.1
+# Dependency-Caps für yfinance-Segfault-Brücke (Ursprung 29.06.2026, gelockert 05.07.2026):
+# Drei Pakete sind unter Minor-Cap gehalten, damit das pinless-Auto-Update
+# vom Wochenende 27.–28.06. (yfinance 1.4.1 → 1.5.1 + pandas 3.0.3 → 3.0.4
+# + peewee 4.1.0 → 4.1.1) nicht erneut passieren kann. Auslöser damals:
+# Batch yfinance fetch crashte in #818 (Mo 29.06 11:23 UTC) mit
+# SIGSEGV/Exit-139. peewee ist transitive yfinance-Dep — hier explizit,
+# damit der Cap greift.
+#
+# Lockerung 05.07.2026 (== → Cap, PR-Folge zu #393): der harte ==-Pin
+# sperrte auch Security-Patches innerhalb der 1.4.x-Reihe (yfinance-
+# 1.4.x-Bugfixes wären nicht mehr installierbar gewesen). Cap
+# `>=1.4.1,<1.5` blockt den Minor-Sprung, der den Crash brachte,
+# erlaubt aber Patches innerhalb der 1.4.x-Familie.
+#
+# Cap komplett aufweichen (>= ohne Obergrenze oder <1.6): sobald
+# yfinance 1.5.x auf einem parallelen Test-Env oder in der Community
+# als stabil verifiziert ist. Separate Anordnung.
+yfinance>=1.4.1,<1.5
 requests>=2.31.0
 beautifulsoup4>=4.12.0
 lxml>=5.0.0
-pandas==3.0.3
-peewee==4.1.0
+pandas>=3.0.3,<3.1
+peewee>=4.1.0,<4.2
 pandas-ta>=0.4.67b0
 deep-translator>=1.9.0
 jinja2>=3.1.0
