@@ -1,10 +1,10 @@
 {
-  "updated": "2026-07-05T23:19:54.824974+02:00",
+  "updated": "2026-07-06T00:18:04.993408+02:00",
   "run_info": {
     "tickers_checked": 14,
     "signals_active": 3,
     "alerts_sent": 0,
-    "elapsed_s": 16.1,
+    "elapsed_s": 10.5,
     "market_phase": "Geschlossen"
   },
   "signals": {
@@ -31,9 +31,9 @@
       "uoa_cp_ratio": 2.4461538461538463
     },
     "AI": {
-      "score": 58,
+      "score": 62,
       "confidence": 70,
-      "drivers": "Spanne 6.0% + News-KI 8/30: Market growth headlines lack short-squeeze indicators (no short interest data, no unexpected catalyst, no squeeze-specif + SEC Form 4 + UOA Call-Vol/OI 11.0× ATM + UOA Call/Put 62.6×",
+      "drivers": "Spanne 6.0% + News-KI 12/30: Generic market growth headlines lack catalyst specificity, short interest data, or squeeze-triggering technical factors  + SEC Form 4 + UOA Call-Vol/OI 11.0× ATM + UOA Call/Put 62.6×",
       "price": 9.06,
       "chg_pct": 0.0,
       "rvol_4d": 0.82,
@@ -44,7 +44,7 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 0,
+      "active_triggers": 1,
       "uoa_score": 30,
       "uoa_drivers": [
         "UOA Call-Vol/OI 11.0× ATM",
@@ -56,7 +56,7 @@
     "AMC": {
       "score": 50,
       "confidence": 33,
-      "drivers": "Spanne 5.7% + News: short squeeze, squeeze + UOA Call/Put 9.8×",
+      "drivers": "Spanne 5.7% + News: squeeze, short squeeze + UOA Call/Put 9.8×",
       "price": 1.89,
       "chg_pct": -0.0,
       "rvol_4d": 1.25,
@@ -208,7 +208,7 @@
     "PDYN": {
       "score": 58,
       "confidence": 70,
-      "drivers": "Spanne 11.4% + News: partnership, contract + Earnings in 31d + UOA Call/Put 2.4×",
+      "drivers": "Spanne 11.4% + News: contract, partnership + Earnings in 31d + UOA Call/Put 2.4×",
       "price": 5.84,
       "chg_pct": 0.0,
       "rvol_4d": 0.82,
@@ -250,9 +250,9 @@
       "uoa_cp_ratio": 19.5
     },
     "SKIL": {
-      "score": 45,
-      "confidence": 33,
-      "drivers": "Spanne 9.0% + FINRA Short-Vol 11000% + SEC Form 4",
+      "score": 53,
+      "confidence": 70,
+      "drivers": "Spanne 9.0% + News-KI 8/30: Routine corporate announcements about training programs and employee grants show no signs of high short interest catalys + FINRA Short-Vol 11000% + SEC Form 4",
       "price": 7.06,
       "chg_pct": -0.0,
       "rvol_4d": 0.72,
