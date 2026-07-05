@@ -642,6 +642,46 @@ def _build_backtest_extension(s: dict, pool_position: int, pool_size: int,
             s.get("price"),
             s.get("close_5td_before_entry"),
         ),
+        # Katalysator-Vorbau (05.07.2026, Stufe A — Hypothese H5): Kalendertage
+        # bis zum nächsten AM Report-Tag bekannten Earnings-Termin. Snapshot
+        # aus dem Live-Enrichment (``s["earnings_days"]``, gesetzt in Step 3c
+        # von ``generate_report.py:16502-16540`` via EarningsWhispers-Override
+        # bzw. yfinance-Fallback zu ``get_earnings_date``). Rohwert = Anzahl
+        # KALENDERTAGE (`(edate - _today_et).days` in Zeile 16514) — konsistent
+        # zum Live-Score-Konsumenten ``_compute_sub_scores`` (Z. 3746-3749,
+        # Bucket-Schwellen ≤7 / ≤14). Handelstage würden Divergenz zum Live-
+        # Score-Feld erzeugen und wären inkonsistent — daher Kalender.
+        #
+        # Point-in-time-Sauberkeit (Look-Ahead ausgeschlossen): Der Fetch läuft
+        # AM Report-Tag; die Quelle (EarningsWhispers-Cache / yfinance.calendar)
+        # kann keinen später-angekündigten Termin liefern, den es zum Fetch-
+        # Zeitpunkt noch nicht gab. Der Wert ist der AM Entry-Tag bekannte
+        # nächste Termin. Bei späterer Revision (Firma verschiebt Datum) bleibt
+        # der Backtest-Snapshot AM Report-Tag → korrekt für die Frage „hat der
+        # Score die AM Entry-Tag erwartete Earnings-Nähe berücksichtigt?".
+        #
+        # None-Semantik: legitim None bei fehlendem Earnings-Kalender (kein
+        # Coverage bei EarningsWhispers UND yfinance leer; z. B. Micro-Caps
+        # ohne öffentliche Earnings-Termine, ETFs). Auswertung filtert None.
+        #
+        # Look-Ahead-Konvention EINFROREN (analog entry_past_return_5d
+        # aus PR #402): reine Analyse-/Outcome-Persistenz. NIEMALS als Score-
+        # Feature/Filter-Kriterium in score()/_compute_sub_scores/score_bonus/
+        # Push-Gating lesen. Live-Score liest bereits ``s["earnings_days"]``
+        # aus dem Enrichment-Dict — dieser Pfad bleibt der KANONISCHE Score-
+        # Read. Bei künftigem Score-Bau: aus Live-Enrichment, NIE aus dem
+        # Backtest-Field days_to_earnings (sonst Trainings-/Test-Overlap).
+        # Backfill der Alt-Records **STRUKTURELL NICHT MÖGLICH** — heutiger
+        # Fetch liefert aktuelle Termine, nicht die vom damaligen Report-Tag.
+        # Nur Vorwärts-Erhebung.
+        #
+        # S10-Klassifikation: MUSS in S10_OBSERVED_FIELDS (Lehre #388), NICHT
+        # in MUSS/LAG (None legitim). Schema bleibt v4 (additiv, KEIN Bump).
+        "days_to_earnings":        (
+            int(s.get("earnings_days"))
+            if s.get("earnings_days") is not None
+            else None
+        ),
         "backtest_schema_version": 4,
     }
 
