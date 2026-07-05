@@ -141,6 +141,65 @@ def _compute_max_drawdown(df_window) -> float | None:
         return None
 
 
+def _compute_entry_past_return_5d(
+    close_at_entry: float | None,
+    close_5td_before: float | None,
+) -> float | None:
+    """5-Trading-Day-Past-Return VOR Entry (Hypothese-A-Vorbau, 05.07.2026).
+
+    Formel: ``(close_at_entry / close_5td_before − 1) × 100`` (in %).
+
+    **Split-Konsistenz-Pflicht:** BEIDE Eingaben MÜSSEN Adj-Close aus DERSELBEN
+    yfinance-Fetch mit ``auto_adjust=True`` sein (analog zur ``_hist_stats``-
+    yf.download-Fetch in ``generate_report.py:980-982``). Der Backtest-Record
+    trägt zwar ein ``entry_price`` (roher Live-Snapshot zum Report-Zeitpunkt),
+    aber das darf hier NICHT als Zähler verwendet werden — sonst mischt der
+    Zähler eine andere Adjust-Epoche als der Nenner, und ein Reverse-Split
+    zwischen ``entry_date - 5td`` und ``entry_date`` erzeugt einen künstlichen
+    Return-Sprung. Reverse-Splits sind bei Squeeze-Small-Caps häufig — daher
+    zwingend Adj-Close beidseitig.
+
+    **Look-Ahead-Konvention (KRITISCH, Docstring einfriert):**
+    Dieses Feld ist REINE Analyse-/Outcome-Persistenz für die Hypothese-A-
+    Auswertung („trennt schwacher Past-Return bessere Forward-Returns?"). Es
+    darf NIEMALS als Score-Feature oder Filter-Kriterium in ``score()`` /
+    ``_compute_sub_scores`` / ``score_bonus`` / Push-Gating gelesen werden.
+    Falls je live-scharfgeschaltet: der Score-Input MUSS aus dem Live-Enrichment-
+    Dict (``stock["close_5td_before_entry"]``, live in ``_process_ticker``
+    gesetzt) gelesen werden, NICHT aus dem Backtest-``entry_past_return_5d``.
+    Sonst entsteht Trainings-/Test-Overlap bei rückwärts backgefüllten Alt-
+    Records (Overfitting auf das Backfill-Sample).
+
+    Args:
+        close_at_entry: Adj-Close am Entry-Tag (aus yfinance auto_adjust=True).
+        close_5td_before: Adj-Close 5 Trading-Days vor Entry (dito).
+
+    Returns:
+        Prozent-Return, gerundet auf 2 Dezimalen. ``None`` bei:
+          - fehlendem/nicht-positivem ``close_5td_before`` (IPO wenige Tage
+            vor Entry → keine 5-Bar-Historie verfügbar)
+          - fehlendem ``close_at_entry`` (Delisting am Entry-Tag; sehr rar)
+
+    **`None`-Semantik (keine 0.0-Overload wie bei max_gain):** ``None`` heißt
+    hier IMMER „Datenlücke" (nicht „echter 0-Return"), weil eine echte
+    Null-Bewegung numerisch ``0.0`` liefert (Zähler = Nenner). ``None`` ist
+    also strikt „nicht ableitbar" — Auswertung filtert.
+    """
+    if close_at_entry is None or close_5td_before is None:
+        return None
+    try:
+        num = float(close_at_entry)
+        den = float(close_5td_before)
+    except (TypeError, ValueError):
+        return None
+    if den <= 0:
+        return None
+    try:
+        return round((num / den - 1.0) * 100.0, 2)
+    except (ZeroDivisionError, ValueError):
+        return None
+
+
 def _compute_max_gain_pct(df_window) -> float | None:
     """Max-Gain vom rolling-Tief (Cummin-Low) zum Tageshoch (High) im Fenster.
 
@@ -562,6 +621,26 @@ def _build_backtest_extension(s: dict, pool_position: int, pool_size: int,
             if isinstance(s.get("conviction"), dict)
                and isinstance(_cvc := (s.get("conviction") or {}).get("components"), dict)
             else None
+        ),
+        # Hypothese-A-Vorbau (05.07.2026, VORWÄRTS-ERHEBUNG, Stufe A):
+        # 5-Trading-Day-Past-Return VOR Entry, aus Adj-Close beidseitig
+        # (Split-Konsistenz). Zähler cur_close und Nenner
+        # close_5td_before_entry stammen aus derselben yfinance
+        # auto_adjust=True-Fetch (_hist_stats in generate_report.py:980).
+        # Reine Analyse-/Outcome-Persistenz für die Reversal-Entry-
+        # Auswertung „führt schwacher Past-Return zu stärkerem Forward-
+        # Return?" — KEIN Score-/Filter-/Push-/Anzeige-Effekt.
+        # Look-Ahead-Konvention (KRITISCH, siehe _compute_entry_past_return_5d-
+        # Docstring): falls je live-scharfgeschaltet, MUSS der Score-Input
+        # aus dem Live-Enrichment-Dict s["close_5td_before_entry"] gelesen
+        # werden — NIE aus diesem Backfill-Field. Sonst Trainings-/Test-
+        # Overlap bei rückwärts backgefüllten Alt-Records.
+        # Schema-ADDITIV — KEIN v4→v5-Bump (S10-Loader filtert == 4). S10-
+        # Disziplin: MUSS in S10_OBSERVED_FIELDS, NICHT in MUSS/LAG (None
+        # legitim bei IPO < 6 Bars vor Entry).
+        "entry_past_return_5d":    _compute_entry_past_return_5d(
+            s.get("price"),
+            s.get("close_5td_before_entry"),
         ),
         "backtest_schema_version": 4,
     }
