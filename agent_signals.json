@@ -1,10 +1,10 @@
 {
-  "updated": "2026-07-05T18:18:48.204352+02:00",
+  "updated": "2026-07-05T20:16:23.060051+02:00",
   "run_info": {
     "tickers_checked": 14,
     "signals_active": 3,
     "alerts_sent": 0,
-    "elapsed_s": 12.7,
+    "elapsed_s": 11.3,
     "market_phase": "Geschlossen"
   },
   "signals": {
@@ -76,9 +76,9 @@
       "uoa_cp_ratio": 9.801156440732413
     },
     "ARCT": {
-      "score": 55,
+      "score": 74,
       "confidence": 70,
-      "drivers": "Volumen 3.4× + ⚡ Extremes Volumen 3.4×+ + Spanne 13.9% + UOA Call/Put 2.6×",
+      "drivers": "Volumen 3.4× + ⚡ Extremes Volumen 3.4×+ + Spanne 13.9% + News-KI 12/30: Positive clinical news and partnerships are bullish but lack the high short interest, technical setup, and momentum indi + UOA Call/Put 2.6×",
       "price": 7.28,
       "chg_pct": 0.0,
       "rvol_4d": 3.36,
@@ -88,8 +88,8 @@
       "upcoming_event": null,
       "insider_buy": false,
       "stocktwits": null,
-      "combo_mult": 1.0,
-      "active_triggers": 1,
+      "combo_mult": 1.1,
+      "active_triggers": 2,
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 2.6×"
@@ -122,7 +122,7 @@
     "IONQ": {
       "score": 28,
       "confidence": 70,
-      "drivers": "Spanne 12.2% + Earnings in 31d + UOA Call-Vol/OI 3.1× ATM",
+      "drivers": "Spanne 12.2% + Earnings in 31d + UOA Call-Vol/OI 3.0× ATM",
       "price": 49.12,
       "chg_pct": -0.0,
       "rvol_4d": 0.57,
@@ -136,15 +136,15 @@
       "active_triggers": 0,
       "uoa_score": 10,
       "uoa_drivers": [
-        "UOA Call-Vol/OI 3.1× ATM"
+        "UOA Call-Vol/OI 3.0× ATM"
       ],
-      "uoa_atm_ratio": 3.0618458610846813,
-      "uoa_cp_ratio": 0.5898883452515368
+      "uoa_atm_ratio": 3.0460093896713616,
+      "uoa_cp_ratio": 0.5909176323207015
     },
     "IOVA": {
-      "score": 36,
+      "score": 28,
       "confidence": 70,
-      "drivers": "Spanne 10.6% + News-KI 8/30: Positive regulatory approval provides fundamental support but lacks the high short interest, low float, or institutional + Earnings in 32d + UOA Call/Put 3.6×",
+      "drivers": "Spanne 10.6% + Earnings in 32d + UOA Call/Put 3.6×",
       "price": 4.31,
       "chg_pct": -0.0,
       "rvol_4d": 1.24,
@@ -208,7 +208,7 @@
     "PDYN": {
       "score": 58,
       "confidence": 70,
-      "drivers": "Spanne 11.4% + News: partnership, contract + Earnings in 31d + UOA Call/Put 2.4×",
+      "drivers": "Spanne 11.4% + News: contract, partnership + Earnings in 31d + UOA Call/Put 2.4×",
       "price": 5.84,
       "chg_pct": 0.0,
       "rvol_4d": 0.82,
@@ -250,9 +250,9 @@
       "uoa_cp_ratio": 19.5
     },
     "SKIL": {
-      "score": 50,
-      "confidence": 70,
-      "drivers": "Spanne 9.0% + News-KI 5/30: Routine corporate announcements about training programs and employee grants show no signs of high short interest catalys + FINRA Short-Vol 11000% + SEC Form 4",
+      "score": 45,
+      "confidence": 33,
+      "drivers": "Spanne 9.0% + FINRA Short-Vol 11000% + SEC Form 4",
       "price": 7.06,
       "chg_pct": -0.0,
       "rvol_4d": 0.72,
@@ -270,9 +270,9 @@
       "uoa_cp_ratio": null
     },
     "SPRY": {
-      "score": 36,
-      "confidence": 70,
-      "drivers": "Spanne 7.5% + News-KI 18/30: Negative catalysts (index removal, CVS delay) and stock collapse indicate weak momentum, making a short squeeze unlikely + Earnings in 39d",
+      "score": 18,
+      "confidence": 33,
+      "drivers": "Spanne 7.5% + Earnings in 39d",
       "price": 8.56,
       "chg_pct": 0.0,
       "rvol_4d": 0.81,
@@ -283,7 +283,7 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 1,
+      "active_triggers": 0,
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": null,
@@ -307,7 +307,7 @@
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": null,
-      "uoa_cp_ratio": 0.3333333333333333
+      "uoa_cp_ratio": 0.4270833333333333
     }
   }
 }
