@@ -1040,11 +1040,18 @@ def get_yfinance_batch(tickers: list[str]) -> dict[str, dict]:
     def _hist_stats(ticker: str) -> tuple:
         """Extract (avg_vol_20, cur_vol, vol_ratio, hi52, lo52, rsi14,
         ma21, ma50, ma200, perf_20d, cur_open, prev_close, cur_close,
-        hist_5d) from batch or fallback.
+        hist_5d, close_5td_before_entry) from batch or fallback.
 
-        ``hist_5d`` (am Tupel-Ende, neu seit Earliness-Trend-Logging):
-        Liste von 5 Dicts mit Volume/High/Low/Close pro Trading-Tag,
-        ältester → neuester. Leere Liste bei < 5 Zeilen oder Fehler.
+        ``hist_5d`` (Trend-Logging-Feld): Liste von 5 Dicts mit Volume/High/
+        Low/Close pro Trading-Tag, ältester → neuester. Leere Liste bei
+        < 5 Zeilen oder Fehler.
+
+        ``close_5td_before_entry`` (Hypothese-A-Vorbau, 05.07.2026, am Tupel-
+        Ende): Adj-Close 6. letzter Bar = 5 Trading-Days VOR dem Entry-Tag.
+        ``None`` bei < 6 Bars. Zusammen mit ``cur_close`` (Adj-Close am Entry-
+        Tag) füttert es ``_compute_entry_past_return_5d`` in
+        ``_build_backtest_extension``. Beide aus derselben ``auto_adjust=True``-
+        Fetch → Split-Konsistenz (siehe Helper-Docstring).
         """
         try:
             if hist_batch is not None and not hist_batch.empty:
@@ -1062,7 +1069,8 @@ def get_yfinance_batch(tickers: list[str]) -> dict[str, dict]:
                     prev_close = float(df["Close"].iloc[-2]) if len(df) >= 2 else None
                     cur_close  = float(df["Close"].iloc[-1]) if "Close" in df.columns and len(df) >= 1 else None
                     hist_5d    = _extract_hist_5d(df)
-                    return avg_vol, cur_vol, vol_r, hi52, lo52, rsi14, ma21, ma50, ma200, perf_20d, cur_open, prev_close, cur_close, hist_5d
+                    close_5td_before_entry = float(df["Close"].iloc[-6]) if len(df) >= 6 else None
+                    return avg_vol, cur_vol, vol_r, hi52, lo52, rsi14, ma21, ma50, ma200, perf_20d, cur_open, prev_close, cur_close, hist_5d, close_5td_before_entry
         except Exception:
             pass
         # Fallback: individual history call for this ticker
@@ -1078,10 +1086,11 @@ def get_yfinance_batch(tickers: list[str]) -> dict[str, dict]:
                 prev_close = float(df2["Close"].iloc[-2]) if len(df2) >= 2 else None
                 cur_close  = float(df2["Close"].iloc[-1]) if "Close" in df2.columns and len(df2) >= 1 else None
                 hist_5d    = _extract_hist_5d(df2)
-                return avg_vol, cur_vol, vol_r, float(df2["High"].max()), float(df2["Low"].min()), rsi14, ma21, ma50, ma200, perf_20d, cur_open, prev_close, cur_close, hist_5d
+                close_5td_before_entry = float(df2["Close"].iloc[-6]) if len(df2) >= 6 else None
+                return avg_vol, cur_vol, vol_r, float(df2["High"].max()), float(df2["Low"].min()), rsi14, ma21, ma50, ma200, perf_20d, cur_open, prev_close, cur_close, hist_5d, close_5td_before_entry
         except Exception as exc2:
             log.debug("Fallback history failed for %s: %s", ticker, exc2)
-        return 0.0, 0.0, 0.0, None, None, None, None, None, None, None, None, None, None, []
+        return 0.0, 0.0, 0.0, None, None, None, None, None, None, None, None, None, None, [], None
 
     # ── Phase B: Parallel .info fetches (metadata not in download payload) ──
     def _fetch_info(ticker: str) -> tuple[str, dict]:
@@ -1154,7 +1163,7 @@ def get_yfinance_batch(tickers: list[str]) -> dict[str, dict]:
 
     # ── Combine history + info; fallback to individual call if both are empty ──
     for ticker in tickers:
-        avg_vol_20, cur_vol, vol_ratio, hi52, lo52, rsi14, ma21, ma50, ma200, perf_20d, cur_open, prev_close, cur_close, hist_5d = _hist_stats(ticker)
+        avg_vol_20, cur_vol, vol_ratio, hi52, lo52, rsi14, ma21, ma50, ma200, perf_20d, cur_open, prev_close, cur_close, hist_5d, close_5td_before_entry = _hist_stats(ticker)
         info = info_map.get(ticker, {})
 
         # If the batch produced nothing useful for this ticker, fall back entirely
@@ -1199,6 +1208,15 @@ def get_yfinance_batch(tickers: list[str]) -> dict[str, dict]:
             # (rvol_buildup_5d, vol_stability_5d, coiled_spring_score)
             # konsumiert. Leere Liste bei < 5 Tagen Historie.
             "hist_5d":        hist_5d,
+            # Hypothese-A-Vorbau (05.07.2026): Adj-Close 5 Trading-Days VOR
+            # Entry aus derselben yfinance auto_adjust=True-Fetch wie
+            # cur_close/price. Zusammen mit price konsumiert von
+            # _build_backtest_extension über _compute_entry_past_return_5d.
+            # None bei <6 Bars. Split-Konsistenz-Pflicht: beide Werte MÜSSEN
+            # aus derselben Adj-Epoche kommen (hier gewährleistet via
+            # hist_batch auto_adjust=True). Kein Score-Konsum — reine
+            # Outcome-Persistenz für die Reversal-Entry-Auswertung.
+            "close_5td_before_entry": close_5td_before_entry,
         }
 
         # change_5d und change_2d aus Batch-History.

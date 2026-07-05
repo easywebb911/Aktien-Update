@@ -292,18 +292,26 @@ def test_build_backtest_extension_writes_trend_fields():
     assert '"backtest_schema_version": 4' in src
 
 
-def test_hist_stats_returns_14_elements():
-    """_hist_stats returnt jetzt 14-Tupel (hist_5d am Ende). Caller
-    muss entsprechend auspacken."""
-    # Default-Return: 13 None/0.0 + leere Liste
-    assert "0.0, 0.0, 0.0, None, None, None, None, None, None, None, None, None, None, []" in src_gr, (
-        "_hist_stats default-return wurde nicht um leere hist_5d-Liste am Ende erweitert")
-    # Caller-Auspack-Stelle muss hist_5d-Variable enthalten
-    assert "cur_close, hist_5d = _hist_stats(ticker)" in src_gr, (
-        "_hist_stats-Caller wurde nicht um hist_5d erweitert")
-    # Stock-Dict bekommt s["hist_5d"]
+def test_hist_stats_returns_15_elements():
+    """_hist_stats returnt jetzt 15-Tupel (hist_5d + close_5td_before_entry
+    am Ende). Caller muss entsprechend auspacken.
+
+    Erweiterung 05.07.2026 (Hypothese-A-Vorbau Stufe A): tail-Element
+    close_5td_before_entry für _compute_entry_past_return_5d in
+    _build_backtest_extension.
+    """
+    # Default-Return: 13 None/0.0 + leere Liste + None (close_5td_before_entry)
+    assert "0.0, 0.0, 0.0, None, None, None, None, None, None, None, None, None, None, [], None" in src_gr, (
+        "_hist_stats default-return wurde nicht um close_5td_before_entry "
+        "am Ende erweitert")
+    # Caller-Auspack-Stelle muss hist_5d UND close_5td_before_entry enthalten
+    assert "cur_close, hist_5d, close_5td_before_entry = _hist_stats(ticker)" in src_gr, (
+        "_hist_stats-Caller wurde nicht um close_5td_before_entry erweitert")
+    # Stock-Dict bekommt s["hist_5d"] UND s["close_5td_before_entry"]
     assert '"hist_5d":        hist_5d,' in src_gr, (
         "Stock-Dict bekommt kein hist_5d-Feld vom Caller")
+    assert '"close_5td_before_entry": close_5td_before_entry,' in src_gr, (
+        "Stock-Dict bekommt kein close_5td_before_entry-Feld vom Caller")
 
 
 # === Runner =================================================================
@@ -341,7 +349,7 @@ def main() -> None:
         # Integration
         ("Selbsttest expected_keys enthält Trend-Felder",  test_extended_schema_includes_trend_fields),
         ("_build_backtest_extension ruft Helper auf",      test_build_backtest_extension_writes_trend_fields),
-        ("_hist_stats returnt 14-Tupel + Caller updated",  test_hist_stats_returns_14_elements),
+        ("_hist_stats returnt 15-Tupel + Caller updated",  test_hist_stats_returns_15_elements),
     ]
     failed = 0
     for name, fn in tests:

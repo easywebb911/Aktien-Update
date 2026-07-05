@@ -1302,6 +1302,21 @@ S10_OBSERVED_FIELDS = frozenset({
     # Schema bleibt v4 (additiv). Pflicht laut Lehre #388, sonst feuert
     # _s10_check_unknown_fields am ersten Record ein WARN.
     "max_gain_pct",
+    # Hypothese-A-Vorbau (05.07.2026, Stufe A — Live-Vorwärts-Erhebung):
+    # 5-Trading-Day-Past-Return VOR Entry, aus yfinance-Adj-Close beidseitig
+    # (Split-Konsistenz, Reverse-Splits bei Squeeze-Small-Caps häufig).
+    # Reine Analyse-/Outcome-Persistenz für die Reversal-Entry-Auswertung
+    # („trennt schwacher Past-Return bessere Forward-Returns?"). LEGITIM leer
+    # (None) bei IPO < 6 Bars vor Entry oder Delisting → nur OBSERVED, KEIN
+    # MUSS/LAG-Check.
+    # Look-Ahead-Konvention EINGEFRIEREN (siehe
+    # backtest_history._compute_entry_past_return_5d-Docstring): dieses Feld
+    # darf NIEMALS als Score-Feature gelesen werden. Falls je live-
+    # scharfgeschaltet, MUSS der Score-Input aus dem Live-Enrichment-Dict
+    # stock["close_5td_before_entry"] gelesen werden, NICHT aus diesem
+    # Backtest-Field (sonst Trainings-/Test-Overlap bei Backfilled Records).
+    # Schema bleibt v4 (additiv). Backfill ist separater Stufe-B-PR.
+    "entry_past_return_5d",
 })
 
 S10_WINDOW_SIZE          = 20    # Letzte N V4-Einträge für MUSS-Check
