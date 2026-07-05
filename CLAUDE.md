@@ -2382,6 +2382,78 @@ bedeutet **entweder** „wirklich kein Gewinn im Fenster" **oder**
 - `_compute_max_gain_pct(df_window)` — pure, Spiegel zu Drawdown-Helper,
   identische Guards (`len < 2` → `0.0`, Exception → `None`).
 
+---
+
+## Backtest-Schema (Stufe A — Hypothese-A-Vorbau, entry_past_return_5d)
+
+Ein additives Feld pro `backtest_history.json`-Eintrag ab 05.07.2026 (PR
+#402), für die spätere **Reversal-Entry**-Auswertung: „trennt schwacher
+Past-Return bessere Forward-Returns?".
+
+| Feld | Typ | Bedeutung | Initialwert |
+|---|---|---|---|
+| `entry_past_return_5d` | Float \| None | 5-Trading-Day-Past-Return VOR Entry: `(close_at_entry / close_5td_before_entry − 1) × 100` in %. Adj-Close beidseitig aus derselben `_hist_stats`-yfinance-Fetch (`auto_adjust=True`) → **Split-Konsistenz-safe** (Reverse-Splits bei Squeeze-Small-Caps häufig). | aus `_compute_entry_past_return_5d(s["price"], s["close_5td_before_entry"])`, `None` bei < 6 Bars vor Entry (IPO) oder Delisting. |
+
+### Persistenz-Logik
+
+- **Neue Einträge (ab Deploy):** `entry_past_return_5d` wird beim Append
+  einmalig gesetzt und **zum Entry gefroren**. Kein Rolling-Update-Loop
+  (im Gegensatz zu `max_gain_pct` / `max_drawdown_pct` — dort rollend
+  über 10 Trading-Days; hier ist der Past-Return zum Entry-Zeitpunkt
+  fix).
+- **Live-Vorwärts-Pfad:** nutzt bereits vorhandene 1-Jahr-yfinance-
+  Historie aus `_hist_stats` (`generate_report.py:980-982`), **kein
+  zusätzlicher yf-Fetch**. `close_5td_before_entry` = `df["Close"].
+  iloc[-6]` bei `len(df) >= 6`, sonst `None`. Batch UND Singleton-
+  Fallback beide angepasst.
+- **Legacy-Einträge** ohne das Feld bleiben unangetastet (Backwards-
+  Compat). Backfill der ~420 v4-Alt-Records = separater **Stufe-B-PR**
+  bei Bedarf (analog `backfill_max_gain_pct.py`-Muster, aber
+  `fetch_start = earliest_edate − 14 Kalendertage`).
+
+### None-Semantik STRIKT (Unterschied zu max_gain/max_drawdown)
+
+`entry_past_return_5d = None` bedeutet **immer** „nicht ableitbar"
+(IPO < 6 Bars vor Entry, Delisting am Entry-Tag, Bar-Fetch fehlgeschlagen).
+**Keine 0.0-Overload** wie bei `max_gain_pct` / `max_drawdown_pct`: eine
+echte Null-Bewegung liefert `0.0` numerisch. Auswertung filtert `None`-
+Records; `0.0`-Records sind belastbar.
+
+### Look-Ahead-Konvention (KRITISCH, einfroren)
+
+Dieses Feld ist **REINE Analyse-/Outcome-Persistenz** für die spätere
+Hypothese-A-Auswertung. Es darf **NIEMALS als Score-Feature / Filter-
+Kriterium** in `score()` / `_compute_sub_scores` / `score_bonus` /
+Push-Gating gelesen werden.
+
+**Falls je live-scharfgeschaltet** (Reversal-Bonus im Score): der Score-
+Input MUSS aus dem **Live-Enrichment-Dict** `stock["close_5td_before_
+entry"]` gelesen werden, **NIEMALS** aus dem Backtest-Field
+`entry_past_return_5d`. Sonst entsteht **Trainings-/Test-Overlap** bei
+rückwärts backgefüllten Alt-Records (Overfitting auf das Backfill-
+Sample = kein echter Out-of-Sample-Nachweis mehr).
+
+**Verankert per Test** (`scripts/mock_test_entry_past_return_5d.py`
+E1-E6): Grep über `generate_report.py` / `ki_agent.py` / `health_check.py`
+muss `_compute_entry_past_return_5d(` UND Dict-Reads von
+`entry_past_return_5d` leer bleiben. Auch bei künftigem Refactor mit
+generischem `**entry`-Spread aus Backtest-Records erneut prüfen (Test
+deckt heute nur Literal-Reads ab).
+
+### Helper
+
+- `_compute_entry_past_return_5d(close_at_entry, close_5td_before)` in
+  `backtest_history.py` — pure, split-safe (beide Args müssen Adj-
+  Close aus derselben `auto_adjust=True`-Fetch sein). None-strikt
+  (`None` bei fehlendem/≤0-Nenner, KEINE 0.0-Overload).
+
+### S10-Klassifikation
+
+`entry_past_return_5d` ist **nur** in `S10_OBSERVED_FIELDS` (config.py),
+NICHT in MUSS/LAG — `None` ist legitim bei IPO/Delisting, kein MUSS-
+Enforcement möglich. Kein Reifegrad-Filter, weil Past ist Past (im
+Gegensatz zu max_gain: 10 Trading-Days-Fenster).
+
 Alle vier Helper leben in `backtest_history.py`. SPY wird einmal pro
 Run gefetcht und an `_market_regime_from_spy` durchgereicht.
 

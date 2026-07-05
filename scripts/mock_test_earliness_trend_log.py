@@ -292,7 +292,7 @@ def test_build_backtest_extension_writes_trend_fields():
     assert '"backtest_schema_version": 4' in src
 
 
-def test_hist_stats_returns_14_elements():
+def test_hist_stats_returns_15_elements():
     """_hist_stats returnt jetzt 15-Tupel (hist_5d + close_5td_before_entry
     am Ende). Caller muss entsprechend auspacken.
 
@@ -349,7 +349,7 @@ def main() -> None:
         # Integration
         ("Selbsttest expected_keys enthält Trend-Felder",  test_extended_schema_includes_trend_fields),
         ("_build_backtest_extension ruft Helper auf",      test_build_backtest_extension_writes_trend_fields),
-        ("_hist_stats returnt 14-Tupel + Caller updated",  test_hist_stats_returns_14_elements),
+        ("_hist_stats returnt 15-Tupel + Caller updated",  test_hist_stats_returns_15_elements),
     ]
     failed = 0
     for name, fn in tests:
