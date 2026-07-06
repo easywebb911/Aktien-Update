@@ -1,10 +1,10 @@
 {
-  "updated": "2026-07-06T13:05:15.929043+02:00",
+  "updated": "2026-07-06T14:59:02.330731+02:00",
   "run_info": {
     "tickers_checked": 14,
     "signals_active": 3,
     "alerts_sent": 0,
-    "elapsed_s": 15.3,
+    "elapsed_s": 17.7,
     "market_phase": "Pre-Market"
   },
   "signals": {
@@ -27,7 +27,7 @@
       "uoa_drivers": [
         "UOA Call/Put 2.4×"
       ],
-      "uoa_atm_ratio": 0.5179856115107914,
+      "uoa_atm_ratio": 0.21364985163204747,
       "uoa_cp_ratio": 2.4461538461538463
     },
     "AI": {
@@ -49,7 +49,7 @@
       "uoa_drivers": [
         "UOA Call/Put 62.6×"
       ],
-      "uoa_atm_ratio": 1.957484592081897,
+      "uoa_atm_ratio": 0.9626528305763896,
       "uoa_cp_ratio": 62.6205533596838
     },
     "AMC": {
@@ -71,7 +71,7 @@
       "uoa_drivers": [
         "UOA Call/Put 9.8×"
       ],
-      "uoa_atm_ratio": null,
+      "uoa_atm_ratio": 0.1877034535085787,
       "uoa_cp_ratio": 9.801156440732413
     },
     "ARCT": {
@@ -93,13 +93,13 @@
       "uoa_drivers": [
         "UOA Call/Put 2.6×"
       ],
-      "uoa_atm_ratio": null,
+      "uoa_atm_ratio": 0.5573770491803278,
       "uoa_cp_ratio": 2.587378640776699
     },
     "FRMM": {
       "score": 73,
       "confidence": 70,
-      "drivers": "Volumen 1.7× + Spanne 11.0% + News: short interest, merger + Earnings in 38d + UOA Call/Put 16.1×",
+      "drivers": "Volumen 1.7× + Spanne 11.0% + News: merger, short interest + Earnings in 38d + UOA Call/Put 16.1×",
       "price": 6.02,
       "chg_pct": -0.0,
       "rvol_4d": 1.67,
@@ -119,9 +119,9 @@
       "uoa_cp_ratio": 16.083333333333332
     },
     "IONQ": {
-      "score": 46,
+      "score": 26,
       "confidence": 70,
-      "drivers": "Spanne 12.2% + News-KI 8/30: Negative price action (-26.1%), analyst scrutiny, and competitive comparisons suggest weak short-squeeze potential with  + Earnings in 30d + UOA Call-Vol/OI 360.4× ATM",
+      "drivers": "Spanne 12.2% + News-KI 8/30: Negative price action, analyst scrutiny, and competitive comparisons suggest weak momentum rather than squeeze potential + Earnings in 30d",
       "price": 49.12,
       "chg_pct": -0.0,
       "rvol_4d": 0.57,
@@ -133,11 +133,9 @@
       "stocktwits": null,
       "combo_mult": 1.0,
       "active_triggers": 0,
-      "uoa_score": 20,
-      "uoa_drivers": [
-        "UOA Call-Vol/OI 360.4× ATM"
-      ],
-      "uoa_atm_ratio": 360.44444444444446,
+      "uoa_score": 0,
+      "uoa_drivers": [],
+      "uoa_atm_ratio": 1.5588659298414225,
       "uoa_cp_ratio": 0.5909176323207015
     },
     "IOVA": {
@@ -159,7 +157,7 @@
       "uoa_drivers": [
         "UOA Call/Put 3.6×"
       ],
-      "uoa_atm_ratio": null,
+      "uoa_atm_ratio": 0.637901861252115,
       "uoa_cp_ratio": 3.65
     },
     "LOVE": {
@@ -201,7 +199,7 @@
       "uoa_drivers": [
         "UOA Call/Put 2.9×"
       ],
-      "uoa_atm_ratio": 0.625,
+      "uoa_atm_ratio": 0.5,
       "uoa_cp_ratio": 2.9393939393939394
     },
     "PDYN": {
@@ -269,9 +267,9 @@
       "uoa_cp_ratio": null
     },
     "SPRY": {
-      "score": 26,
-      "confidence": 70,
-      "drivers": "Spanne 7.5% + News-KI 8/30: Negative catalyst (index removal, CVS decision delay) indicates weak momentum and unlikely squeeze setup, despite potent + Earnings in 38d",
+      "score": 18,
+      "confidence": 33,
+      "drivers": "Spanne 7.5% + Earnings in 38d",
       "price": 8.56,
       "chg_pct": 0.0,
       "rvol_4d": 0.81,
