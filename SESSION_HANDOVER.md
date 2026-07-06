@@ -1,6 +1,86 @@
-# SESSION_HANDOVER.md — Stand 02.07.2026
+# SESSION_HANDOVER.md — Stand 04.07.2026
 
 ## 1) HEUTE IMPLEMENTIERT (mit Hashes)
+
+### Fenster 02.–04.07.2026 (Nachtrag seit letztem Voll-Handover #398)
+
+*(Roter Faden: Backfill-Kette max_gain_pct scharfgeschaltet (#399/#400/#401 →
+Live-Run mit 330/330 Records gefüllt) → Hypothese-C-Auswertung durchgezogen
+(Kernbefund: kein belegter Effekt, 0/6 Holm über 3 Schwellen) → additive
+Vorwärts-Erhebungen für Hypothese A + H5 (#402 entry_past_return_5d, #404
+days_to_earnings) → Pin-Sanierung (#403 yfinance-Cap statt Hard-==).)*
+
+- **#399 (`dc1d03b`) — 02.07.** **★ BACKFILL max_gain_pct Stufe 1** — Skript
+  `scripts/backfill_max_gain_pct.py` (~440 Zeilen) + Dry-Run-Default + fixture-
+  only Test (44/44). Filter: schema_v==4 UND `max_gain_pct` NOT in e UND ≥10
+  Trading-Days reif. Bulk-Fetch analog Live-Rolling-Update, `_compute_max_gain_pct`
+  IMPORTIERT (kein Duplikat, Drift-Schutz). Ein-Feld-Invariante per Test C3
+  verriegelt. Atomic-Write (tmp + os.replace). fcntl.flock + Cron-Fenster-Guard.
+  Guardian ✅ (1 informatives Finding zu 0.0-vs-None-Ambiguität → in #400 gefixt).
+  Dry-Run auf echten Daten: 330 Targets, 129 unique Tickers, Fenster 14.05.–18.06.
+- **#400 (`a936886`) — 02.07.** **★ Backfill thin-slice-Zähler (Guardian-Nachbesserung).**
+  Neue pure Helper `classify_outcome(df_len, mg)` mit 4 Klassen (none / thin_slice /
+  filled_zero / filled). `compute_and_apply_backfill` Return-Tupel erweitert um
+  `n_thin_slice`. Live-Warn wenn > 0. Trennt stille Datenlücken (`mg=0.0` bei
+  `df_len<2`) von echten Null-Gains. 54/54 Tests grün. **Kein Verhaltens-Effekt
+  am Füll-Vorgang** — nur zusätzliche Klassifikation.
+- **#401 (`5cb0b22` + Guardian-Nachbesserung `7056cb2`) — 02.–03.07.** **★ BACKFILL-
+  WORKFLOW workflow_dispatch.** Neuer `.github/workflows/backfill_max_gain_pct.yml`
+  — manual-only, `concurrency.cancel-in-progress: false`, `git add
+  backtest_history.json` (GENAU EINE Datei), `git diff --staged --quiet && exit 0`
+  Idempotenz-Guard. Guardian ✅ (Finding 4 Kommentar-Präzisierung im
+  `7056cb2`-Nachtrag). **Manueller Merge**, danach:
+- **`85cbbe9` — 03.07.** **★★ MAX_GAIN_PCT BACKFILL-LIVE-LAUF DURCH.**
+  Commit-Message: „chore: max_gain_pct backfill (einmalig, 330/330 Records gefüllt,
+  0 thin-slice)". **Alle 330 reifen Alt-Records** in `backtest_history.json`
+  tragen jetzt `max_gain_pct`. Kein thin-slice → keine stillen Datenlücken bei
+  den 129 unique Tickers. Hypothese-C-Sample sofort auswertbar.
+- **04.07.** **★★ HYPOTHESE-C-AUSWERTUNG (3 Schwellen, +10 % / +30 % / +50 %):**
+  Seed 04072026, Bootstrap N=2000, k=6 gemeinsame Holm-Klammer über 3 Schwellen ×
+  2 Cluster-Läufe. **Kernbefund: 0/6 Holm-Rejects.** Alle AUC-CIs enthalten 0.5.
+  Baseline-Peak-Raten: 95.8 % (C-10) / 35.5 % (C-30) / 15.2 % (C-50) — der
+  Setup-Score trennt weder häufige noch mittlere noch seltene Peak-Squeezes.
+  C-50 Δ +5.44 pp / +5.76 pp mit AUC 0.562/0.561 zeigt richtungs-plausible
+  Punktschätzung, aber roh-p 0.164/0.213 → NICHT „Hinweis"-Kategorie. Regime-Robust
+  (pre/post-#346-Split zeigt konsistente Peak-Raten). **Konsequenz: Auffanglinie
+  über drei Auswertungstage bestätigt** (30.06. Endpunkt + 01.07. Exit-Timing B.1
+  + 04.07. Peak) — Setup-Score bleibt Attention-Router / Screener. **Kein PR aus
+  dieser Auswertung** — Ergebnis ist selbst der Befund. Detailanker in §4/§5.
+- **#402 (`0da83af` + Guardian-Nachbesserung `498aeaf`) — 02.07.** **★
+  entry_past_return_5d Stufe A** (Hypothese-A-Vorbau, Reversal-Entry). Additive
+  Live-Vorwärts-Erhebung, `_compute_entry_past_return_5d(close_at_entry,
+  close_5td_before)` mit Adj-Close BEIDSEITIG (Split-Konsistenz-Pflicht,
+  Reverse-Splits bei Squeeze-Small-Caps häufig). `_hist_stats`-Tupel um 15.
+  Element `close_5td_before_entry` erweitert; Batch + Singleton-Fallback beide
+  angepasst. **Kein neuer yf-Fetch** — nutzt bestehende hist_batch. **None-
+  Semantik STRIKT** (nicht 0.0-Overload wie max_gain): `None` = nicht ableitbar,
+  echte Null-Bewegung liefert `0.0`. Look-Ahead-Konvention einfroren im Docstring
+  + S10-Kommentar + Test E1-E6. Schema v4 unverändert. 24 fixture-only Tests
+  grün. Guardian ✅ (4 informative Findings, F1+F2 in Nachbesserung `498aeaf`
+  behoben: Testname-Rename + CLAUDE.md-Anker). Manueller Merge.
+- **#403 (`2446477`) — 03.07.** **★ REQUIREMENTS-CAP-SEMANTIK.** `yfinance==1.4.1
+  → yfinance>=1.4.1,<1.5`; analog pandas (`>=3.0.3,<3.1`), peewee (`>=4.1.0,<4.2`).
+  Löst den `#393`-Segfault-Bridge-Trade-off („`==`-Pin sperrt auch 1.4.x-Bugfixes")
+  ohne den Minor-Sprung wieder zuzulassen, der den SIGSEGV verursachte.
+  Cap-Kontrolle: kein `>=` ohne Obergrenze bei den 3 Ziel-Paketen. Kein Konflikt
+  mit `pr-checks.yml` (installiert bewusst separat). Manueller Merge, Live-Verify
+  im nächsten Actions-Lauf (Install zieht identisch: `1.4.1 / 3.0.3 / 4.1.0`).
+- **#404 (`1594f20`) — 04.07.** **★ days_to_earnings Stufe A** (Hypothese-H5-Vorbau,
+  Katalysator × Score). Additive Live-Vorwärts-Erhebung, Snapshot des AM Report-
+  Tag bekannten nächsten Earnings-Termins in **Kalendertagen** (konsistent zum
+  Live-Score-Konsumenten `_compute_sub_scores:3746-3749`, Bucket-Schwellen ≤7/≤14).
+  Wert 1:1 aus `s["earnings_days"]` (Live-Enrichment, gesetzt in
+  `generate_report.py:16502-16540` via EarningsWhispers-Cache + yfinance-Fallback).
+  Point-in-time-sauber: Fetch AM Report-Tag → keine später-angekündigten Termine
+  leaken. **Backfill STRUKTURELL NICHT MÖGLICH** — heutiger Fetch ≠ damaliger
+  Termin; nur Vorwärts-Erhebung, Alt-Records bleiben null. Look-Ahead-Konvention
+  einfroren (analog #402): darf NIEMALS als Score-Feature aus dem Backtest-Field
+  gelesen werden; Score-Read bleibt `s["earnings_days"]` (Enrichment).
+  Ein-Feld-Invariante, `int()`-Cast defensiv, None-Semantik klar
+  (`0 = Earnings HEUTE ≠ None`). 15 fixture-only Tests grün. Guardian ✅ **ohne
+  Findings**. Manueller Merge.
+
+---
 
 ### Fenster 13.06.–02.07.2026 (chronologisch, Feature-/Doku-Commits; KI-Agent-Updates/Daily-Runs weggelassen)
 
@@ -359,24 +439,34 @@ bestätigt, entfallen.)*
 
 ## 4) GEPLANTE AUFGABEN + WIEDERVORLAGEN (mit Daten)
 
-### STAND 02.07.2026 (nach 30.06.-Auswertung + Frontend-Sprach-Fix + max_gain_pct-Bau)
+### STAND 04.07.2026 (nach Hypothese-C-Auswertung + Vorwärts-Erhebungen A + H5)
 
-**Meta-Status nach 30.06./01.07.-Auswertung:** Keine belegte Edge → Nordstern
-bestätigt (Attention-Router, kein Alpha-Generator). Fokus verschiebt sich von
-„welchen Score / Prädiktor scharfschalten?" auf „Vorwärts-Erhebung für Re-Tests
-+ neue Kandidaten (Hypothese A/B/C, Reddit-Velocity, 424B-Dilution)". Keine
-Push-/Score-/Live-Scharfschaltung geplant, bis Re-Test-Datum + belegter Edge.
+**Meta-Status nach 04.07.-Auswertung (Hypothese C, Peak-Ziel):** **Kein belegter
+Effekt über alle drei getesteten Schwellen (+10 / +30 / +50 %), 0/6 Holm-Rejects.**
+Damit ist die Auffanglinie über **drei aufeinanderfolgende Auswertungstage**
+bestätigt: 30.06. (Endpunkt-Return, 7 Prädiktoren, 0/15 Rejects) + 01.07.
+(Exit-Timing B.1: erster Hinweis, aber nicht Holm-belegt) + 04.07. (Peak-Ziel,
+0/6 Rejects). Nordstern bestätigt: **Setup-Score = Attention-Router / Screener,
+kein Alpha-Generator**. Fokus jetzt: **Vorwärts-Erhebung für die Re-Tests +
+Interaktions-Hypothesen (H5 Score × Katalysator × Reversal).**
 
-**Re-Test-Kalender (aus §5 zusammengefasst, kanonische Termine):**
+**Re-Test-Kalender (kanonische Termine — Stand 04.07.):**
 - **~Mitte August 2026** — ki_signal_score-Edge (n_reif≥40 erreichbar bei aktueller Rate).
 - **~Ende August 2026** — Conviction-Edge (n≥100 planmäßig via Vorwärts-Erhebung #388).
-- **~Ende September 2026** — **zwei zusammengefasste Re-Tests**:
+- **~Ende September 2026** — **zwei Re-Tests + neue Kombi-Auswertung**:
   1. Setup-Edge-Re-Test (n≥250 erforderlich, andere Marktphase abwarten).
   2. Exit-Timing B.1-Hinweis-Re-Test (n≥250, +3.81/+4.67pp muss sich bestätigen).
-- **~2–3 Wochen nach Postclose-Runs mit max_gain_pct (nicht vor Ende Juli):**
-  Erste Verteilungs-Sicht auf Hypothese C („Peak-Ziel") — pro Bucket Median-
-  max_gain vs. Median return_10d. Vollständige C-Auswertung frühestens Ende
-  August (Sample-Aufbau).
+  3. **NEU 04.07. — Hypothese H5 (Kombi Score × Katalysator × Reversal):**
+     Out-of-Sample-Auswertung über die drei Vorwärts-Erhebungen (`max_gain_pct`
+     #397, `entry_past_return_5d` #402, `days_to_earnings` #404) — gepaart mit
+     Score-Buckets. n≥40 für jede Feld-Kombination erforderlich → Herbst 2026.
+     **Vorab-Registrierung der Interaktion in §5** (nicht nachträglich
+     Klammer-schmälern).
+- ~~**~2–3 Wochen nach Postclose-Runs mit max_gain_pct:** Hypothese C~~
+  **ERLEDIGT 04.07.2026 — Hypothese C GETESTET.** Kernbefund: keine Trennkraft
+  über alle drei Peak-Schwellen (0/6 Holm-Rejects, Baseline 95.8 / 35.5 / 15.2 %).
+  Detail-Ergebnis in §5. **Streichen aus dem Backlog; Wiedervorlage frühestens
+  Herbst 2026 gemeinsam mit Setup-Re-Test.**
 
 **Bau-Kandidaten NACH Edge-Befund (kein Druck, kein Termin, konkurrieren):**
 Reihenfolge erst festlegen, wenn Re-Tests belegte / nicht belegte Edges liefern
@@ -723,6 +813,94 @@ der k=28-Klammer geschluckt (kleinstes p 0.0057 vs Schwelle 0.00179).
 dem bear-tilt konsistent und könnte in einer Bull-Marktphase kippen. Relative
 Exit-Vergleiche sind regime-robuster als absolute Returns, aber selbst diese
 sind nicht regime-immun.
+
+### 📊 EDGE-SUCHE 04.07.2026 — Hypothese C: Peak-Ziel (3 Schwellen, kein belegter Effekt)
+
+**Stand:** 04.07.2026 origin/main HEAD (nach `max_gain_pct`-Backfill-Live-Run
+`85cbbe9` — 330/330 reife Alt-Records gefüllt, 0 thin-slice); **Seed 04072026**,
+Bootstrap N=2000; Erfolgs-Definition identisch (Holm-signifikant UND
+CI-Untergrenze > 0.5).
+
+**Sample:** n = 330 reife v4-Records (`schema_v == 4`, `max_gain_pct` gefüllt,
+≥10 Trading-Days seit Entry). Cluster-Followup 81/330 = 24.5 %.
+
+**Gemeinsame Holm-Klammer k=6** (drei Schwellen × zwei Cluster-Läufe, konservativ
+gemeinsam korrigiert — Klammer-Schmälerung wäre Datenfischerei). Bonferroni-Schwelle
+0.05/6 = **0.00833**.
+
+**Ergebnistabelle:**
+
+| Schwelle | Lauf | Baseline | Δ (High−Low) | AUC | 95%-CI | p_roh |
+|---|---|---:|---:|---:|---:|---:|
+| **C-10** | with cluster | 95.8 % | +0.01 pp | 0.547 | [0.352, 0.725] | 0.5544 |
+| **C-10** | without cluster | 96.4 % | −0.07 pp | 0.513 | [0.311, 0.735] | 0.8987 |
+| **C-30** | with cluster | 35.5 % | +0.22 pp | 0.504 | [0.439, 0.568] | 0.9093 |
+| **C-30** | without cluster | 39.0 % | +1.92 pp | 0.501 | [0.424, 0.577] | 0.9777 |
+| **C-50** | with cluster | 15.2 % | +5.44 pp | 0.562 | [0.475, 0.650] | 0.1639 |
+| **C-50** | without cluster | 16.9 % | +5.76 pp | 0.561 | [0.464, 0.658] | 0.2126 |
+
+**Kernbefund: 0/6 Holm-Rejects, alle CIs enthalten 0.5.** Auch die interessanteste
+Zelle (C-50 with cluster, richtungs-plausibler Δ +5.44 pp und AUC 0.562) hat
+roh-p 0.164 (~20× über der Bonferroni-Schwelle) und CI-Untergrenze 0.475 < 0.5.
+Kein Test unter n_peak-Floor 40 (kleinster n_peak = 42).
+
+**Interpretation:**
+- Die gestrige Vermutung „C-10-Baseline 95.8 % lässt keinen Trennraum" ist **falsi­fi­ziert**
+  durch C-30 (Baseline 35.5 %, viel Trennraum) und C-50 (15.2 %, sehr viel Trennraum).
+  Der Setup-Score trennt auch bei niedrigen Grundraten nicht → Nicht-Trennung ist
+  Eigenschaft des Scores, nicht der Schwelle.
+- **Regime-Robust:** pre-#346 (78.8 %) vs post-#346 zeigt konsistente Peak-Raten
+  (96.2 vs 94.3 % C-10; 33.8 vs 41.4 % C-30; 13.1 vs 22.9 % C-50). Kein Regime-
+  Shift als Erklärung.
+- **Auffanglinie bestätigt:** über drei Auswertungstage konsistent (30.06.
+  Endpunkt + 01.07. Exit-Timing + 04.07. Peak). Setup-Score bleibt Attention-
+  Router / Screener, kein Alpha-Generator.
+
+**Konsequenz:**
+- **Kein PR aus dieser Auswertung** — Ergebnis ist selbst der Befund. Read-only,
+  keine Feld-/Score-/Push-Änderung.
+- **Wiedervorlage frühestens Herbst 2026** gemeinsam mit Setup-Re-Test (~Ende
+  September, n≥250, andere Marktphase).
+- **Kein Kandidat für „Hinweis, nicht belegt"** — die Kategorie verlangt roh-p<0.05,
+  hier auch das nicht gegeben.
+
+### 🔮 EDGE-KANDIDAT H5 (vorab-registriert 04.07.2026): Kombi Score × Katalysator × Reversal
+
+**Motivation:** Nachdem Score einzeln über drei Achsen (Endpunkt / Exit-Timing /
+Peak) keine Trennkraft zeigte, ist die nächste plausible Erklärungshypothese
+eine **Interaktion**: Score könnte in einem bestimmten Kontext trennen —
+z. B. wenn ein Katalysator nahesteht (`days_to_earnings ≤ 14`) UND das Setup
+technisch überverkauft wurde (`entry_past_return_5d < 0`, Reversal-Signatur).
+
+**Vorwärts-Erhebung läuft** seit den PRs dieser Woche:
+- `max_gain_pct` (#397, gefüllt 330/330 alt + Live-Vorwärts) — **auswertungsreif jetzt**.
+- `entry_past_return_5d` (#402) — sammelt ab Merge Vorwärts, **keine Alt-Records**
+  (Backfill aus derselben yfinance-Fetch-Fenster **möglich in Stufe B**, siehe §6).
+- `days_to_earnings` (#404) — sammelt ab Merge Vorwärts, **kein Backfill möglich**
+  (point-in-time-Schutz, siehe §8).
+
+**Vorab-Registrierung (Pflicht gegen Datenfischerei):**
+- **Test-Achse H5:** stratifiziertes `return_10d` in 2×2×2-Interaktion
+  (Score ≥70 / <70 · Reversal `epr5d < 0` / ≥0 · Katalysator `dte ≤ 14` / >14).
+- **Erfolgs-Definition (identisch zu Slot 29):** Holm-p signifikant UND
+  Bootstrap-CI-Untergrenze > 0.5.
+- **Holm-Klammer:** k = 8 (drei Stratifikations-Achsen × je 1 AUC-Test in der
+  Interaktions-Zelle). Konservativ.
+- **Sample-Voraussetzung:** n≥40 pro Interaktions-Zelle → für 8 Zellen ~320 Neu-
+  Records mit vollständigen 3 Feldern → **frühestens Ende September 2026**
+  gemeinsam mit Setup-Re-Test (~10-11 Wochen Vorwärts-Erhebung ab jetzt).
+- **Auffanglinie:** falls H5 ebenfalls Null-Befund → Tool bleibt Attention-Router,
+  keine Score-Feature-Erweiterung ohne belegte Trennung.
+
+**Warum drei Felder gleichzeitig?** Nicht als Multi-Test-Fischerei (das wäre
+verboten), sondern weil die drei Achsen **konzeptionell verschiedene Fragen**
+adressieren:
+- `max_gain_pct` — misst „Peak-Häufigkeit" (Aufwärts-Potenzial)
+- `entry_past_return_5d` — misst „Reversal-Signatur" (Substrat-Qualität)
+- `days_to_earnings` — misst „Katalysator-Nähe" (Timing)
+
+Setup-Score allein → keine Trennung. Kombination der drei → potenziell doch,
+falls das Signal in der Interaktion sitzt. Ehrliches Fischen mit vorab-Klammer.
 
 ### EDGE-VALIDIERUNGS-PROGRAMM (Stand 13.06.)
 **Leitprinzip:** jedes Signal, das eine Entscheidung beeinflusst, braucht eine
@@ -1173,31 +1351,45 @@ jeweilige Auslöser greift.
 - **or-0-Defaults Persist-Fix** · **finviz Flag-aus + α** · **Borrow-Naming
   (`IBKR_*`→`IBORROWDESK_*`)** · **v1/v2→Jinja** · **Cockpit Stage 3 (.sb-Reste)**
   → alle OFFEN, niedrig/vertagt.
-- **★ NEU 02.07.2026 — Hypothese-C-Vorwärts-Erhebung Backfill (STUFE-3, optional):**
-  Post-#397 werden nur Records ab Deploy mit `max_gain_pct` befüllt. Die 300
-  v4-Alt-Records (`backtest_history.json`, `schema_v == 4`) haben das Feld nicht;
-  ohne Backfill ist Hypothese C erst Ende August aussagekräftig. Optionaler
-  Einmal-Skript-PR analog `validate_backfill.py`-Muster: gemeinsame yfinance-
-  Slice pro Ticker ×10 Trading-Days ab Entry-Datum → `_compute_max_gain_pct(df_since)`
-  → in-place-Update pro Alt-Record. Selbst-Guard: `if "max_gain_pct" in e: continue`
-  im Skript (Idempotenz). Aufgreifen nur, wenn C-Auswertung explizit vor Ende
-  August gewünscht ist. **KEIN Termin gesetzt.**
-- **★ NEU 02.07.2026 — yfinance-Pin-Cap zurück-nehmen (mittel, wartet auf 1.5.x-
-  Stabilitäts-Beleg):** `requirements.txt` pinnt seit #393 exakt `yfinance==1.4.1`
-  / `pandas==3.0.3` / `peewee==4.1.0` gegen den Mo-29.06.-Segfault (Exit-139,
-  SIGSEGV im Batch-Fetch). Cap zurück auf `>=1.4.1,<1.6` sobald 1.5.x als stabil
-  gilt (parallele Test-Env oder Community-Konsens). Zwischenlösung ist sauber
-  (kein Trading-Wert-Verlust), aber lock-in gegen Security-Fixes künftiger yfinance-
-  Releases — langfristig Cap-Aufweichung erwünscht.
-- **★ NEU 02.07.2026 — Hypothese-A-Erhebungs-PR (Reversal, groß, kein Termin):**
-  Feld `entry_past_return_5d` für Hypothese A (Reversal-Entry). Erfordert
-  yfinance-Backfill für Pre-Entry-Historie (5 Trading-Days vor Entry-Datum) UND
-  neuen Schema-Slot. Größerer Eingriff als max_gain_pct — nicht rekonstruierbar
-  aus dem Bestand (kein historisches Feld), Backfill nur für Neu-Records ab
-  Deploy. Auswertbar frühestens +6 Wochen post-Deploy. Aufgreifen nur nach
-  expliziter Anordnung + wenn die Re-Test-Kalender-Achse belegt keine belegte
-  Edge liefert (H1 Setup / B.1 Exit-Timing → wenn beide n.s., dann A/Reddit/424B
-  in Konkurrenz).
+- ~~**★ NEU 02.07.2026 — Hypothese-C-Vorwärts-Erhebung Backfill (STUFE-3, optional):**~~
+  **✅ ERLEDIGT 03.07.2026** — Backfill-Live-Lauf via #401-Workflow gelaufen
+  (`85cbbe9`, 330/330 Records gefüllt, 0 thin-slice). Hypothese C **04.07.
+  getestet** (§5-Ergebnis-Block: 0/6 Holm-Rejects). Streichen.
+- ~~**★ NEU 02.07.2026 — yfinance-Pin-Cap zurück-nehmen**~~ **✅ ERLEDIGT 03.07.2026
+  via #403.** `yfinance==1.4.1 → yfinance>=1.4.1,<1.5` (analog pandas `<3.1`,
+  peewee `<4.2`). Minor-Sprung bleibt blockiert, 1.4.x-Bugfixes erlaubt. **NEUER
+  Rest-Punkt:** Cap komplett aufheben (`>=` ohne Obergrenze oder `<1.6`) sobald
+  yfinance 1.5.x als stabil verifiziert (parallele Test-Env oder Community-Konsens).
+  Kein Termin, kein Druck.
+- ~~**★ NEU 02.07.2026 — Hypothese-A-Erhebungs-PR (Reversal, groß, kein Termin):**~~
+  **✅ ERLEDIGT 02.07.2026 via #402 Stufe A.** `entry_past_return_5d`-Feld additiv
+  in `_build_backtest_extension`, Adj-Close beidseitig (Split-safe), None-Semantik
+  STRIKT. Vorwärts-Erhebung läuft ab Merge. **Rest-Optionen (offen, kein Druck):**
+  - **Stufe B — Backfill für ~420 v4-Alt-Records:** ist **möglich** (Adj-Close
+    Pre-Entry ist deterministisch aus yfinance-Historie rekonstruierbar, im
+    Gegensatz zu `days_to_earnings`). Muster analog `backfill_max_gain_pct.py`,
+    aber `fetch_start = earliest_edate − 14 Kalendertage`. Aufgreifen nur wenn
+    H5-Auswertung explizit vor der ~10-Wochen-Vorwärts-Erhebung gewünscht.
+  - **Stufe C — Workflow-Dispatch für Stufe-B-Live-Lauf** analog #401. Nur
+    nach Stufe-B-Merge.
+- **★ NEU 04.07.2026 — News/FDA-Katalysator-Erhebung (Look-Ahead-Quelle
+  ungeklärt, NICHT jetzt):** Die Diagnose 05.07. zu `days_to_earnings` hat
+  gezeigt: Earnings-Datum ist **point-in-time-sauber** (vorab-Kalender), aber
+  News (RSS-Fetch) und FDA (RSS) tragen **Look-Ahead-Risiko** bei Rekonstruktion.
+  Live-Snapshot AM Report-Tag wäre sauber, nachträgliche Re-Fetches nicht.
+  **Kandidat für additive Erhebung nur falls H5-Auswertung Signal zeigt und die
+  Katalysator-Detail-Trennung (Earnings vs News vs FDA) nötig wird.** Bau-
+  Voraussetzung: klare Konvention „NEWS-Snapshot AM Report-Tag persistieren,
+  NIE nachträglich re-fetchen" (analog `days_to_earnings`-Muster). Kein Bau
+  jetzt, kein Termin, kein Trading-Wert-Filter-Fund (H5 nicht mal gestartet).
+- **★ NEU 04.07.2026 — Katalysator-Detail-Fields (bewusst NICHT gebaut,
+  Alternative zu obigem Punkt):** Statt neuer News/FDA-Erhebung könnte man
+  `score_catalyst > 0` (bereits persistiert, 163/420 = 38.8 % Coverage) als
+  binäre Katalysator-Flag für H5 nutzen — kein neuer PR nötig. **Nachteil:**
+  `score_catalyst` mixt 7 Komponenten (Earnings, Insider, News-KW, Short-
+  Pressure, Gamma, Borrow, PC-Ratio), nicht rein „Event". **Empfehlung
+  (Diagnose 05.07.):** erst H5-Diagnose mit `score_catalyst > 0` und
+  `days_to_earnings ≤ 14`, dann entscheiden ob feinere Trennung nötig ist.
 - **Volle 86-Suite in CI** (über die 79 hinaus): inkrementell nach Hermetik-Triage
   (die 2 B + 5 ENV + 3 requests-TEMP bleiben außen bzw. brauchen Stubs).
 - **Security-Backlog (Audit 09.06., alle niedrig/optional):** **M3 ERLEDIGT als
@@ -1207,6 +1399,12 @@ jeweilige Auslöser greift.
   bewusst belassen (Leak-Pfad seit #343 dicht). **M4** Worker-offener-Proxy
   (Quota-DoS) + **L1** LLM-Error-Sink: bewusst AKZEPTIERT. **CVE-Check**
   (pip-audit/Dependabot) = Easy extern (Sandbox hat kein Netz).
+- **ERLEDIGT 02.–04.07.2026 (in §1 chronologisch aufgelistet):** Backfill-
+  Skript-Kette max_gain_pct (#399 Skript+Dry-Run · #400 thin-slice-Zähler ·
+  #401 workflow_dispatch); max_gain_pct-Backfill-Live-Lauf 330/330 (`85cbbe9`);
+  Hypothese-C-Auswertung 04.07. (kein PR, Ergebnis-Anker in §5); Vorwärts-
+  Erhebungen entry_past_return_5d (#402) + days_to_earnings (#404);
+  requirements.txt Pin → Cap (#403). **Voll-Handover-Nachtrag 04.07.** (dieser PR).
 - **ERLEDIGT 13.06.–02.07.2026 (in §1 chronologisch aufgelistet):** Cache-Bustendes
   Reload (#373); None-Guard-Render-Fix (#371); Exit-Push-Disziplin A+B (#381,
   Holiday+Validity-Gate); Staleness-Banner (#383); S7-Race-Gate (#384);
@@ -1222,6 +1420,59 @@ jeweilige Auslöser greift.
   (#333/#335), health_check-Stub (#334), Entry-Score Shadow (#336).
 
 ## 7) ARCHITEKTUR-ANKER
+
+**★ NEU 02.–04.07.2026 (drei Analyse-Persistenz-Felder + Backfill-Pipeline):**
+- **★ Backfill-Pipeline max_gain_pct (#399/#400/#401 + Live-Run `85cbbe9`):**
+  Dreistufige Kette (Skript → Zähler-Nachbesserung → Workflow) analog etabliertem
+  Muster `validate_backfill.py`. Live-Lauf am 03.07. füllte **330/330 reife
+  Alt-Records** (0 thin-slice, 129 unique Tickers, Fenster 14.05.–18.06.2026).
+  Doppelter Race-Schutz: fcntl.flock (exklusiv, non-blocking) + Cron-Fenster-
+  Guard (±30 min um 06:17/21:17 UTC). Atomic-Write (tmp+os.replace) am Ende.
+  Ein-Feld-Invariante per Test verriegelt. Idempotent (Skript-Guard `if
+  "max_gain_pct" in e: continue`; Workflow-Guard `git diff --staged --quiet
+  && exit 0`). Muster-Ablage für künftige additive Backfill-PRs.
+- **★ entry_past_return_5d (#402, Hypothese-A-Vorbau Stufe A):** additive
+  Live-Vorwärts-Erhebung. Pure Helper `_compute_entry_past_return_5d(
+  close_at_entry, close_5td_before)` — Formel `(close_at_entry /
+  close_5td_before − 1) × 100`. **Split-Konsistenz-Pflicht**: beide Werte
+  aus derselben `_hist_stats`-`auto_adjust=True`-Fetch (Reverse-Splits bei
+  Squeeze-Small-Caps häufig). `_hist_stats`-Tupel um 15. Element
+  `close_5td_before_entry` erweitert; Batch + Singleton-Fallback beide
+  angepasst; **kein neuer yf-Fetch**. **None-Semantik STRIKT** (nicht
+  0.0-Overload): `None` = nicht ableitbar (IPO < 6 Bars, Delisting), echte
+  Null-Bewegung liefert `0.0` numerisch. **Look-Ahead-Konvention einfroren**
+  im Helper-Docstring + S10-Kommentar (`config.py`) + Test E1-E6: Feld darf
+  NIEMALS als Score-Feature aus dem Backtest gelesen werden; Live-Score liest
+  aus `stock["close_5td_before_entry"]` (Enrichment). Backfill für Alt-Records
+  möglich (Adj-Close deterministisch rekonstruierbar) — separate Anordnung.
+- **★ days_to_earnings (#404, Hypothese-H5-Vorbau Stufe A):** additive Live-
+  Vorwärts-Erhebung. Snapshot des AM Report-Tag bekannten nächsten Earnings-
+  Termins in **Kalendertagen**, konsistent zum Live-Score-Konsumenten
+  `_compute_sub_scores:3746-3749` (Bucket ≤7/≤14). Wert 1:1 aus
+  `s["earnings_days"]` (Live-Enrichment, gesetzt in `generate_report.py:
+  16502-16540` via EarningsWhispers-Cache + yfinance-Fallback). **Point-in-
+  time-sauber**: Fetch AM Report-Tag → keine später-angekündigten Termine
+  leaken. **Backfill STRUKTURELL NICHT MÖGLICH** — heutiger Fetch ≠ damaliger
+  Termin; anders als max_gain (deterministisch aus Bar-Historie) oder
+  entry_past_return_5d (deterministisch aus Adj-Close vor Entry). Nur
+  Vorwärts-Erhebung; Alt-Records tragen `null`. Look-Ahead-Konvention
+  einfroren analog #402: Score-Read bleibt `s["earnings_days"]`, NIE
+  `record["days_to_earnings"]`. **Namens-Trennung bewusst asymmetrisch**
+  (Live-Feld ≠ Backtest-Feld) als struktureller Guard gegen Look-Ahead-Drift.
+  Kein Guardian-Finding.
+- **★ Muster „Look-Ahead-Konvention einfrieren" (verankert 02.–04.07.):**
+  Drei Elemente pro additivem Analyse-Persistenz-Feld (max_gain_pct #397 +
+  entry_past_return_5d #402 + days_to_earnings #404):
+  1. **Docstring** im Helper (oder Compute-Site) einfriert: „NIEMALS als
+     Score-Feature aus dem Backtest lesen. Live-Score liest aus [Enrichment-Feld]."
+  2. **S10-Kommentar** (`config.py`) wiederholt die Konvention beim Whitelist-
+     Eintrag (Look-Ahead-Anker).
+  3. **Test-Verankerung** greppt Konsumenten-Dateien (`generate_report.py`,
+     `ki_agent.py`, `health_check.py`) auf `.get("<feld>")` und `["<feld>"]`
+     — 0 Treffer Pflicht. Guardian-Grep-Zusatz für indirekte Reads via
+     `**entry`/`**record`-Spread (bisher heute im Repo nicht vorhanden).
+  Damit ist die Trennung Live-Enrichment ↔ Backtest-Persistenz strukturell
+  gesichert, nicht nur textuell.
 
 **★ NEU 13.06.–02.07.2026:**
 - **★ Exit-Push-Disziplin (#381, 21.06.):** zwei parallele Gates in der Exit-Push-
@@ -1620,3 +1871,47 @@ UND CI-Untergrenze > 0.5. **Rezept unverändert für alle künftigen Re-Tests**
   der Auswerter den Reifegrad-Filter (Deploy-Datum + Fenster) parallel
   anwendet. Bei früherem Bedarf: Stufe-3-Backfill-Skript separat (nicht mit
   in denselben PR ziehen — Reihenfolge-Disziplin).
+- **★ Katalysator-Look-Ahead: Datum vs Text-Feed (05.07., Diagnose zu
+  Hypothese H5):** Katalysator-Quellen zerfallen in **zwei Klassen mit
+  fundamentaler Look-Ahead-Asymmetrie**, die den Bau-Weg vorgeben:
+  - **Datum-basiert (Earnings-Kalender, EDGAR-Filing-Timestamp)** →
+    **point-in-time-sauber.** Der Termin ist vorab bekannt / im Filing selbst
+    enthalten. Fetch AM Report-Tag liefert per Definition den zu dem Zeitpunkt
+    bekannten Wert. Rekonstruktion aus dem heutigen Fetch bleibt sauber, weil
+    das Datum selbst nicht revidiert wird (bei Revision: Backtest hält den AM
+    Report-Tag bekannten Wert, was für die Frage „hat der Score die erwartete
+    Nähe berücksichtigt?" die richtige Größe ist).
+  - **Text-Feed-basiert (News-RSS, FDA-RSS, Reddit-Mentions)** →
+    **leak-gefährdet bei Rekonstruktion.** Live-Snapshot AM Report-Tag wäre
+    sauber, aber ein nachträglicher Re-Fetch heute liefert **aktuelle**
+    Headlines/Mentions, nicht die vom damaligen Report-Tag. Selbst mit
+    Timestamp-Cut ist die Datenquelle nicht deterministisch reproduzierbar
+    (Feeds ändern sich, Items werden gelöscht, Aggregatoren rotieren).
+  - **Regel:** Datum-basierte Katalysatoren SIND additiv erhebbar (vorwärts
+    UND rückwärts, letzteres via yfinance/Finnhub-Kalender-Fetch). Text-Feed-
+    Katalysatoren sind **NUR vorwärts erhebbar mit deterministischer
+    Persistenz-Konvention** (Snapshot AM Report-Tag mit `ts` persistieren,
+    NIE nachträglich re-fetchen). Wer das mischt, baut Look-Ahead ein, ohne
+    es zu bemerken.
+  - **Konkrete Konsequenz für H5 (Kombi Score × Katalysator × Reversal):**
+    `days_to_earnings` #404 ist der saubere Katalysator-Slot (Datum-basiert,
+    point-in-time-sauber). Für News/FDA-Detail-Trennung wäre eine separate,
+    strikt Vorwärts-Erhebung nötig — kein Backfill, nie. Bis dahin: H5-
+    Diagnose mit vorhandenem `score_catalyst > 0` (163/420 = 38.8 % Coverage
+    im Bestand) als Proxy für „irgendein Katalysator aktiv"; nicht optimal
+    (mixt 7 Komponenten), aber sofort testbar.
+- **★ Nordstern über drei Auswertungstage bestätigt (04.07., Hypothese C):**
+  Setup-Score wurde am 30.06. (Endpunkt-Return, 7 Prädiktoren), am 01.07.
+  (Exit-Timing B.1 — nicht Score-Achse, aber Klammer-Kontext) und am 04.07.
+  (Peak-Ziel, 3 Schwellen) systematisch geprüft. Alle drei Auswertungen zeigen
+  **keine belegte Trennkraft** über die pre-registrierten Erfolgs-Definitionen.
+  **Das ist keine Wiederholung des gleichen Ergebnisses**, sondern eine
+  **Triangulation über konzeptionell verschiedene Auswertungs-Achsen**
+  (Endpunkt / Trajektorie / Extremwert) — und trotz der Achsen-Verschiedenheit
+  bleibt der Score gleichmäßig nicht-diskriminativ. **Regel:** wenn drei
+  konzeptionell orthogonale Auswertungs-Achsen mit ausreichendem Sample
+  (n=280–330) und strenger Erfolgs-Definition alle Null-Befunde liefern, ist
+  die Auffanglinie **nicht mehr Hypothese, sondern belegter Zustand**. Das
+  Tool bleibt Attention-Router / Screener, kein Alpha-Generator. Score-Feature-
+  Erweiterung nur nach belegtem Trennungs-Nachweis in einer neuen Frage-
+  Definition (Kombi-Interaktion wie H5, oder Regime-Wechsel wie Herbst-Re-Test).
