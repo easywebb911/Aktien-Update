@@ -1,17 +1,17 @@
 {
-  "updated": "2026-07-06T23:01:44.954215+02:00",
+  "updated": "2026-07-07T00:39:06.429885+02:00",
   "run_info": {
     "tickers_checked": 13,
     "signals_active": 1,
     "alerts_sent": 0,
-    "elapsed_s": 15.2,
+    "elapsed_s": 14.8,
     "market_phase": "After-Hours"
   },
   "signals": {
     "AI": {
-      "score": 60,
+      "score": 38,
       "confidence": 70,
-      "drivers": "Spanne 8.4% + News: partnership, short interest + SEC Form 4 + UOA Call/Put 10.8×",
+      "drivers": "Spanne 8.4% + News-KI 8/30: Positive business developments and market growth signals, but no evidence of high short interest, low float, or signific + SEC Form 4 + UOA Call/Put 10.8×",
       "price": 9.28,
       "chg_pct": -0.0,
       "rvol_4d": 0.92,
@@ -22,7 +22,7 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 1,
+      "active_triggers": 0,
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 10.8×"
@@ -99,7 +99,7 @@
     "FRMM": {
       "score": 100,
       "confidence": 70,
-      "drivers": "Volumen 3.8× + ⚡ Extremes Volumen 3.8×+ + Spanne 22.4% + News: short interest, merger + Earnings in 38d + UOA Call/Put 398.2×",
+      "drivers": "Volumen 3.8× + ⚡ Extremes Volumen 3.8×+ + Spanne 22.4% + News: merger, short interest + Earnings in 38d + UOA Call/Put 398.2×",
       "price": 6.81,
       "chg_pct": -0.0,
       "rvol_4d": 3.8,
@@ -121,9 +121,9 @@
       "silenced_reason": "+26% 2T"
     },
     "INDI": {
-      "score": 43,
+      "score": 53,
       "confidence": 70,
-      "drivers": "Spanne 11.3% + News: acquisition + Earnings in 31d + UOA Call/Put 10.3×",
+      "drivers": "Spanne 11.3% + News: acquisition + Earnings in 31d + SEC Form 4 + UOA Call/Put 10.3×",
       "price": 4.63,
       "chg_pct": 0.0,
       "rvol_4d": 0.75,
@@ -186,9 +186,9 @@
       "uoa_cp_ratio": 0.25517241379310346
     },
     "OMER": {
-      "score": 33,
+      "score": 41,
       "confidence": 70,
-      "drivers": "Spanne 13.5% + SEC 8-K + Earnings in 38d",
+      "drivers": "Spanne 13.5% + SEC 8-K + News-KI 8/30: Regulatory update and stock decline indicate fundamental issues rather than short squeeze potential; no significant shor + Earnings in 38d",
       "price": 10.34,
       "chg_pct": 0.0,
       "rvol_4d": 0.93,
@@ -206,9 +206,9 @@
       "uoa_cp_ratio": 0.3417085427135678
     },
     "PDYN": {
-      "score": 30,
+      "score": 48,
       "confidence": 70,
-      "drivers": "Spanne 5.7% + News-KI 12/30: Positive defense contracts and momentum, but no short squeeze indicators present (no squeeze setup, low float concerns,  + Earnings in 30d",
+      "drivers": "Spanne 5.8% + News: partnership, contract + Earnings in 30d",
       "price": 5.71,
       "chg_pct": 0.0,
       "rvol_4d": 0.87,
@@ -226,9 +226,9 @@
       "uoa_cp_ratio": 0.39194139194139194
     },
     "PLCE": {
-      "score": 50,
-      "confidence": 70,
-      "drivers": "Spanne 12.0% + News: partnership + FINRA Short-Vol 64% + UOA Call/Put 18.5×",
+      "score": 35,
+      "confidence": 33,
+      "drivers": "Spanne 12.0% + News: partnership + UOA Call/Put 18.5×",
       "price": 3.2,
       "chg_pct": 0.0,
       "rvol_4d": 0.89,
@@ -270,9 +270,9 @@
       "uoa_cp_ratio": 2.710843373493976
     },
     "YYGH": {
-      "score": 25,
-      "confidence": 33,
-      "drivers": "Volumen 2.4× + Spanne 32.0%",
+      "score": 33,
+      "confidence": 70,
+      "drivers": "Volumen 2.4× + Spanne 32.0% + News-KI 8/30: Reverse split combined with ATM offering signals dilution and desperation, typically bearish for short-squeeze potential",
       "price": 1.57,
       "chg_pct": 0.0,
       "rvol_4d": 2.44,
