@@ -6064,14 +6064,16 @@ def compute_conviction_score(stock: dict,
             "Aggregations-Anzeige, nicht validiert.")
     elif score >= 50:
         level, action = "medium", (
-            "Substrat stark, Timing-Signal fehlt. Auf Volume-Spike oder "
-            "Anomalie-Trigger warten.")
+            "Komponenten uneinheitlich — Setup vorhanden, Timing-/Anomalie-"
+            "Signal fehlt. Aggregations-Anzeige, nicht validiert.")
     elif score >= 30:
         level, action = "low", (
-            "Setup gut, aber Phase oder Marktkontext ungünstig. "
-            "Genau hinschauen.")
+            "Setup vorhanden, andere Komponenten (Earliness/Anomalie/Regime) "
+            "schwach. Aggregations-Anzeige, nicht validiert.")
     else:
-        level, action = "low", "Aktuell kein klares Aktions-Signal."
+        level, action = "low", (
+            "Komponenten überwiegend schwach. "
+            "Aggregations-Anzeige, nicht validiert.")
 
     if anomalies_missing:
         action = action + " (Anomalie-Daten nicht verfügbar)"
@@ -7169,8 +7171,8 @@ def generate_html_v1(stocks: list[dict], report_date: str,
             </div>
             <ul class="score-block-list">
               <li><span class="sb-lbl">≥ 75 — high</span><span class="sb-pts" style="color:#22c55e">hohe Konvergenz</span></li>
-              <li><span class="sb-lbl">50–74 — medium</span><span class="sb-pts" style="color:#f59e0b">Substrat stark, Timing fehlt</span></li>
-              <li><span class="sb-lbl">&lt; 50 — low</span><span class="sb-pts" style="color:var(--txt-dim)">Phase oder Marktkontext ungünstig</span></li>
+              <li><span class="sb-lbl">50–74 — medium</span><span class="sb-pts" style="color:#f59e0b">Komponenten uneinheitlich</span></li>
+              <li><span class="sb-lbl">&lt; 50 — low</span><span class="sb-pts" style="color:var(--txt-dim)">Komponenten überwiegend schwach</span></li>
             </ul>
             <p class="score-block-foot">Component-Aufschlüsselung in der Detail-Ansicht pro Stock</p>
           </div>

@@ -657,10 +657,10 @@ im Frontend kommt in Schritt B nach Plausibilitäts-Verifikation.
 
 | Score | Level | Text |
 |---:|---|---|
-| ≥ 75 | high   | „Conviction hoch — Setup, Earliness und Timing konvergieren. Erwartungswert positiv." |
-| 50–74 | medium | „Substrat stark, Timing-Signal fehlt. Auf Volume-Spike oder Anomalie-Trigger warten." |
-| 30–49 | low    | „Setup gut, aber Phase oder Marktkontext ungünstig. Genau hinschauen." |
-| < 30 | low    | „Aktuell kein klares Aktions-Signal." |
+| ≥ 75 | high   | „Conviction hoch — Setup, Earliness und Timing konvergieren. Aggregations-Anzeige, nicht validiert." |
+| 50–74 | medium | „Komponenten uneinheitlich — Setup vorhanden, Timing-/Anomalie-Signal fehlt. Aggregations-Anzeige, nicht validiert." |
+| 30–49 | low    | „Setup vorhanden, andere Komponenten (Earliness/Anomalie/Regime) schwach. Aggregations-Anzeige, nicht validiert." |
+| < 30 | low    | „Komponenten überwiegend schwach. Aggregations-Anzeige, nicht validiert." |
 
 Bei fehlenden Anomalie-Daten (`anomalies_today=None`) wird der Text um
 `(Anomalie-Daten nicht verfügbar)` ergänzt — kein Crash, nur Hinweis
