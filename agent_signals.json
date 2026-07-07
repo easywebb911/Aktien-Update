@@ -1,11 +1,11 @@
 {
-  "updated": "2026-07-07T00:41:53.461373+02:00",
+  "updated": "2026-07-07T02:20:40.631818+02:00",
   "run_info": {
     "tickers_checked": 14,
     "signals_active": 2,
     "alerts_sent": 0,
-    "elapsed_s": 11.3,
-    "market_phase": "After-Hours"
+    "elapsed_s": 13.8,
+    "market_phase": "Geschlossen"
   },
   "signals": {
     "AI": {
@@ -31,9 +31,9 @@
       "uoa_cp_ratio": 10.76138147566719
     },
     "AMC": {
-      "score": 35,
+      "score": 43,
       "confidence": 70,
-      "drivers": "Volumen 1.7× + Spanne 8.6% + UOA Call/Put 6.5×",
+      "drivers": "Volumen 1.7× + Spanne 8.6% + News-KI 8/30: Massive share dilution from offerings directly undermines squeeze potential by increasing float; negative sentiment outw + UOA Call/Put 6.5×",
       "price": 1.74,
       "chg_pct": 0.0,
       "rvol_4d": 1.71,
@@ -97,20 +97,20 @@
       "uoa_cp_ratio": 2.8421052631578947
     },
     "FRMM": {
-      "score": 100,
-      "confidence": 70,
-      "drivers": "Volumen 3.8× + ⚡ Extremes Volumen 3.8×+ + Spanne 22.4% + News: short interest, merger + Earnings in 38d + UOA Call/Put 398.2×",
+      "score": 48,
+      "confidence": 33,
+      "drivers": "News: merger, short interest + Earnings in 38d + UOA Call/Put 398.2×",
       "price": 6.81,
-      "chg_pct": -0.0,
-      "rvol_4d": 3.8,
-      "rvol_20d": 3.69,
+      "chg_pct": 0.0,
+      "rvol_4d": 0.0,
+      "rvol_20d": null,
       "earnings": "in 38 Tagen (13.08.2026)",
       "fda_date": null,
       "upcoming_event": null,
       "insider_buy": false,
       "stocktwits": null,
-      "combo_mult": 1.1,
-      "active_triggers": 2,
+      "combo_mult": 1.0,
+      "active_triggers": 1,
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 398.2×"
@@ -246,9 +246,9 @@
       "uoa_cp_ratio": 18.5
     },
     "RGNX": {
-      "score": 53,
+      "score": 38,
       "confidence": 70,
-      "drivers": "Spanne 13.1% + News: acquisition + Earnings in 31d + SEC Form 4 + UOA Call/Put 2.7×",
+      "drivers": "Spanne 13.1% + Earnings in 31d + SEC Form 4 + UOA Call/Put 2.7×",
       "price": 14.83,
       "chg_pct": -0.0,
       "rvol_4d": 1.05,
@@ -259,7 +259,7 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 1,
+      "active_triggers": 0,
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 2.7×"
@@ -288,9 +288,9 @@
       "uoa_cp_ratio": null
     },
     "YYGH": {
-      "score": 25,
-      "confidence": 33,
-      "drivers": "Volumen 2.4× + Spanne 32.0%",
+      "score": 33,
+      "confidence": 70,
+      "drivers": "Volumen 2.4× + Spanne 32.0% + News-KI 8/30: Reverse split combined with equity offering creates massive dilution and downward pressure, eliminating short-squeeze po",
       "price": 1.57,
       "chg_pct": 0.0,
       "rvol_4d": 2.44,
