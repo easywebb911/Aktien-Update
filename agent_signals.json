@@ -1,10 +1,10 @@
 {
-  "updated": "2026-07-08T00:34:35.117115+02:00",
+  "updated": "2026-07-08T01:15:05.018468+02:00",
   "run_info": {
     "tickers_checked": 15,
     "signals_active": 5,
     "alerts_sent": 0,
-    "elapsed_s": 15.1,
+    "elapsed_s": 12.5,
     "market_phase": "After-Hours"
   },
   "signals": {
@@ -51,9 +51,9 @@
       "uoa_cp_ratio": 6.938432835820896
     },
     "AMC": {
-      "score": 20,
+      "score": 35,
       "confidence": 33,
-      "drivers": "Spanne 5.3% + UOA Call/Put 11.4×",
+      "drivers": "Spanne 5.3% + News: breakout + UOA Call/Put 11.4×",
       "price": 1.72,
       "chg_pct": 0.0,
       "rvol_4d": 1.14,
@@ -64,7 +64,7 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 0,
+      "active_triggers": 1,
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 11.4×"
@@ -117,9 +117,9 @@
       "uoa_cp_ratio": 7.428571428571429
     },
     "EVMN": {
-      "score": 43,
+      "score": 38,
       "confidence": 70,
-      "drivers": "Spanne 11.5% + News-KI 5/30: Negative clinical trial results führen zu Kursverfall und Kapitulation, nicht zu Short-Squeeze-Bedingungen. + Earnings in 30d + UOA Call-Vol/OI 17.0× ATM",
+      "drivers": "Spanne 11.5% + Earnings in 30d + UOA Call-Vol/OI 17.0× ATM",
       "price": 13.34,
       "chg_pct": 0.0,
       "rvol_4d": 1.35,
@@ -141,7 +141,7 @@
     "FRMM": {
       "score": 58,
       "confidence": 70,
-      "drivers": "Spanne 17.8% + News: merger, short interest + Earnings in 37d + UOA Call/Put 44.3×",
+      "drivers": "Spanne 17.8% + News: short interest, merger + Earnings in 37d + UOA Call/Put 44.3×",
       "price": 5.7,
       "chg_pct": -0.0,
       "rvol_4d": 0.75,
@@ -305,9 +305,9 @@
       "uoa_cp_ratio": 1.2205882352941178
     },
     "TYRA": {
-      "score": 53,
+      "score": 61,
       "confidence": 70,
-      "drivers": "Spanne 8.0% + Earnings in 37d + FINRA Short-Vol 100% + UOA Call/Put 61.0×",
+      "drivers": "Spanne 8.0% + News-KI 8/30: Biotech stock dependent on single trial outcome with mixed sentiment; low short-squeeze potential due to fundamental unc + Earnings in 37d + FINRA Short-Vol 100% + UOA Call/Put 61.0×",
       "price": 31.94,
       "chg_pct": 0.0,
       "rvol_4d": 1.09,
