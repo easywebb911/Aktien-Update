@@ -1,17 +1,17 @@
 {
-  "updated": "2026-07-07T10:43:34.671801+02:00",
+  "updated": "2026-07-07T12:02:22.038261+02:00",
   "run_info": {
     "tickers_checked": 14,
     "signals_active": 2,
     "alerts_sent": 0,
-    "elapsed_s": 11.1,
+    "elapsed_s": 11.7,
     "market_phase": "Pre-Market"
   },
   "signals": {
     "AI": {
-      "score": 60,
+      "score": 38,
       "confidence": 70,
-      "drivers": "Spanne 8.4% + News: partnership, short interest + SEC Form 4 + UOA Call/Put 10.8×",
+      "drivers": "Spanne 8.4% + News-KI 8/30: Positive business developments and market growth, but no indicators of high short interest, low float, or squeeze cataly + SEC Form 4 + UOA Call/Put 10.8×",
       "price": 9.28,
       "chg_pct": -0.0,
       "rvol_4d": 1.01,
@@ -22,7 +22,7 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 1,
+      "active_triggers": 0,
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 10.8×"
@@ -31,9 +31,9 @@
       "uoa_cp_ratio": 10.76138147566719
     },
     "AMC": {
-      "score": 43,
+      "score": 47,
       "confidence": 70,
-      "drivers": "Volumen 1.7× + Spanne 8.6% + News-KI 8/30: Negative sentiment from share dilution and underperformance during market uptick significantly reduces squeeze potential + UOA Call/Put 6.5×",
+      "drivers": "Volumen 1.7× + Spanne 8.6% + News-KI 12/30: Negative share dilution news and stock decline reduce squeeze potential; no short squeeze catalysts present. + UOA Call/Put 6.5×",
       "price": 1.74,
       "chg_pct": 0.0,
       "rvol_4d": 1.72,
@@ -44,7 +44,7 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 0,
+      "active_triggers": 1,
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 6.5×"
@@ -116,7 +116,9 @@
         "UOA Call/Put 398.2×"
       ],
       "uoa_atm_ratio": null,
-      "uoa_cp_ratio": 398.2173913043478
+      "uoa_cp_ratio": 398.2173913043478,
+      "push_silenced": true,
+      "silenced_reason": "+22% 2T"
     },
     "INDI": {
       "score": 53,
@@ -267,9 +269,9 @@
       "uoa_cp_ratio": 2.710843373493976
     },
     "SKIL": {
-      "score": 25,
-      "confidence": 70,
-      "drivers": "Spanne 13.0% + News-KI 5/30: Positive business developments but no evidence of short squeeze setup: low float, high short interest, or catalyst for f + SEC Form 4",
+      "score": 20,
+      "confidence": 33,
+      "drivers": "Spanne 13.0% + SEC Form 4",
       "price": 7.51,
       "chg_pct": 0.0,
       "rvol_4d": 0.56,
@@ -289,7 +291,7 @@
     "YYGH": {
       "score": 33,
       "confidence": 70,
-      "drivers": "Volumen 2.6× + Spanne 32.0% + News-KI 8/30: Reverse split combined with equity dilution strongly negative for short-squeeze potential; typically signals weakness ra",
+      "drivers": "Volumen 2.6× + Spanne 32.0% + News-KI 8/30: Reverse split and equity dilution are bearish signals that typically suppress stock price and reduce squeeze potential.",
       "price": 1.57,
       "chg_pct": 0.0,
       "rvol_4d": 2.57,
