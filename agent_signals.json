@@ -1,11 +1,11 @@
 {
-  "updated": "2026-07-07T07:07:36.943735+02:00",
+  "updated": "2026-07-07T10:43:34.671801+02:00",
   "run_info": {
     "tickers_checked": 14,
     "signals_active": 2,
     "alerts_sent": 0,
-    "elapsed_s": 25.9,
-    "market_phase": "Geschlossen"
+    "elapsed_s": 11.1,
+    "market_phase": "Pre-Market"
   },
   "signals": {
     "AI": {
@@ -33,7 +33,7 @@
     "AMC": {
       "score": 43,
       "confidence": 70,
-      "drivers": "Volumen 1.7× + Spanne 8.6% + News-KI 8/30: Negative sentiment from share dilution concerns and underperformance during market gains reduces squeeze potential; no s + UOA Call/Put 6.5×",
+      "drivers": "Volumen 1.7× + Spanne 8.6% + News-KI 8/30: Negative sentiment from share dilution and underperformance during market uptick significantly reduces squeeze potential + UOA Call/Put 6.5×",
       "price": 1.74,
       "chg_pct": 0.0,
       "rvol_4d": 1.72,
@@ -97,9 +97,9 @@
       "uoa_cp_ratio": 2.8421052631578947
     },
     "FRMM": {
-      "score": 86,
+      "score": 100,
       "confidence": 70,
-      "drivers": "Volumen 3.8× + ⚡ Extremes Volumen 3.8×+ + Spanne 22.4% + News: short interest + Earnings in 37d + UOA Call/Put 398.2×",
+      "drivers": "Volumen 3.8× + ⚡ Extremes Volumen 3.8×+ + Spanne 22.4% + News: merger, short interest + Earnings in 37d + UOA Call/Put 398.2×",
       "price": 6.81,
       "chg_pct": -0.0,
       "rvol_4d": 3.81,
@@ -245,9 +245,9 @@
       "uoa_cp_ratio": 18.5
     },
     "RGNX": {
-      "score": 38,
+      "score": 53,
       "confidence": 70,
-      "drivers": "Spanne 13.1% + Earnings in 30d + SEC Form 4 + UOA Call/Put 2.7×",
+      "drivers": "Spanne 13.1% + News: acquisition + Earnings in 30d + SEC Form 4 + UOA Call/Put 2.7×",
       "price": 14.83,
       "chg_pct": -0.0,
       "rvol_4d": 1.05,
@@ -258,7 +258,7 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 0,
+      "active_triggers": 1,
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 2.7×"
@@ -267,9 +267,9 @@
       "uoa_cp_ratio": 2.710843373493976
     },
     "SKIL": {
-      "score": 20,
-      "confidence": 33,
-      "drivers": "Spanne 13.0% + SEC Form 4",
+      "score": 25,
+      "confidence": 70,
+      "drivers": "Spanne 13.0% + News-KI 5/30: Positive business developments but no evidence of short squeeze setup: low float, high short interest, or catalyst for f + SEC Form 4",
       "price": 7.51,
       "chg_pct": 0.0,
       "rvol_4d": 0.56,
@@ -289,7 +289,7 @@
     "YYGH": {
       "score": 33,
       "confidence": 70,
-      "drivers": "Volumen 2.6× + Spanne 32.0% + News-KI 8/30: Reverse split combined with equity offering typically dilutes shareholders and suppresses short-squeeze potential, despi",
+      "drivers": "Volumen 2.6× + Spanne 32.0% + News-KI 8/30: Reverse split combined with equity dilution strongly negative for short-squeeze potential; typically signals weakness ra",
       "price": 1.57,
       "chg_pct": 0.0,
       "rvol_4d": 2.57,
