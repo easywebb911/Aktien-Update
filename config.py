@@ -951,12 +951,61 @@ EASTERN = ZoneInfo("America/New_York")
 # Gespiegelt aus ``US_HOLIDAYS`` im Frontend-Template (generate_report.py
 # generate_html_v1, ~Z. 10908). Observed-Daten (Mo wenn So, Fr wenn Sa).
 # Konsumenten: (1) health_check S4 (kein backtest-Append an Feiertagen →
-# kein Fehlalarm) und (2) ki_agent.process_exit_signals (kein Exit-Push an
-# Nicht-Handelstagen). WARTUNGS-REMINDER: jährlich erweitern (gemeinsam mit
-# der JS-Liste; nächste Erweiterung 2028). Drift-Risiko: ein FALSCH gelisteter
-# Tag schaltet S4/Exit-Push an einem echten Handelstag stumm — beim Pflegen
-# gegen den offiziellen NYSE-Kalender prüfen.
+# kein Fehlalarm), (2) ki_agent.process_exit_signals (kein Exit-Push an
+# Nicht-Handelstagen), (3) cluster_purge.previous_trading_day (Handelstag-
+# Rückwärts-Arithmetik).
+# WARTUNGS-REMINDER: die vier beweglichen Feiertage (MLK, Presidents,
+# Memorial, Labor, Thanksgiving) sind je Jahr 2025–2027 hartcodiert und
+# müssen manuell für 2028+ ergänzt werden. Good Friday wird seit PR
+# 05.07.2026 algorithmisch ergänzt (Meeus-Osterformel unten, Range
+# 2020–2050) — automatisch 2028+ abgedeckt. Drift-Risiko: ein FALSCH
+# gelisteter Tag schaltet S4/Exit-Push an einem echten Handelstag stumm —
+# beim Pflegen gegen den offiziellen NYSE-Kalender prüfen.
+from datetime import date as _date, timedelta as _timedelta
+
+
+def _easter_sunday(year: int) -> _date:
+    """Ostersonntag im Gregorianischen Kalender (Meeus/Jones/Butcher).
+
+    Etablierte Standardformel für den Gregorianischen Osterkalender,
+    bit-exakt ab 1583. Deterministisch, pure stdlib. Reine Datums-Arithmetik,
+    kein I/O.
+
+    Gute Nachweise (öffentlich einsehbar auf NYSE-Feiertagsseiten für den
+    Freitag davor = Good Friday): 2020 → 12.04.; 2025 → 20.04.; 2026 →
+    05.04.; 2027 → 28.03.; 2030 → 21.04.
+
+    Args:
+        year: 4-stelliges Kalenderjahr im Gregorianischen Kalender (≥ 1583).
+
+    Returns:
+        ``datetime.date`` des Ostersonntags dieses Jahres.
+    """
+    a = year % 19
+    b = year // 100
+    c = year % 100
+    d = b // 4
+    e = b % 4
+    f = (b + 8) // 25
+    g = (b - f + 1) // 3
+    h = (19 * a + b - d - g + 15) % 30
+    i = c // 4
+    k = c % 4
+    l = (32 + 2 * e + 2 * i - h - k) % 7
+    m = (a + 11 * h + 22 * l) // 451
+    month = (h + l - 7 * m + 114) // 31
+    day = ((h + l - 7 * m + 114) % 31) + 1
+    return _date(year, month, day)
+
 US_MARKET_HOLIDAYS = frozenset({
+    # ── Statisch gepflegte NYSE-Feiertage (10 pro Jahr minus Good Friday) ──
+    # Vier bewegliche Feiertage (MLK, Presidents, Memorial, Labor,
+    # Thanksgiving) sind je Jahr hartcodiert und laufen 2027 aus. Wartungs-
+    # Reminder (analog JS-`US_HOLIDAYS`): nächste manuelle Ergänzung 2028.
+    # Good Friday wird SEIT PR (05.07.2026) algorithmisch ergänzt — siehe
+    # Union weiter unten. Alle drei Jahre 2025–2027 haben je 9 statische
+    # Einträge; die 10. Zeile ist Good Friday, kommt aus _GOOD_FRIDAYS.
+    #
     # 2025
     "2025-01-01", "2025-01-20", "2025-02-17", "2025-05-26", "2025-06-19",
     "2025-07-04", "2025-09-01", "2025-11-27", "2025-12-25",
@@ -966,7 +1015,24 @@ US_MARKET_HOLIDAYS = frozenset({
     # 2027
     "2027-01-01", "2027-01-18", "2027-02-15", "2027-05-31", "2027-06-18",
     "2027-07-05", "2027-09-06", "2027-11-25", "2027-12-24",
-})
+} | frozenset(
+    # ── Good Friday algorithmisch (Meeus/Jones/Butcher-Osterformel) ──────
+    # Karfreitag ist NYSE-geschlossen seit 1908. Der Feiertag folgt dem
+    # beweglichen Osterdatum → nicht mit-hartcodierbar wie MLK/Labor/etc.
+    # Der Meeus/Jones/Butcher-Algorithmus (unten `_easter_sunday`) ist die
+    # etablierte Standardformel für den Gregorianischen Kalender (bit-exakt
+    # ab 1583, deterministisch, pure-stdlib). Karfreitag = Ostersonntag − 2.
+    # Range 2020–2050 deckt vergangene 5 Jahre + zukünftige 25 Jahre — für
+    # die Set-Membership-Checks der Konsumenten (previous_trading_day, S4,
+    # Exit-Push-Pipeline) reichlich; Set bleibt < 60 Einträge.
+    #
+    # HISTORISCHER FIX: Karfreitag fehlte 05.07.2026 im Set (Diagnose:
+    # `US_MARKET_HOLIDAYS` hatte je 9 statt 10 Einträge pro Jahr). Der Fix
+    # ist algorithmisch damit auch 2028+ automatisch abgedeckt, sobald die
+    # anderen beweglichen Feiertage manuell ergänzt werden.
+    (_easter_sunday(_y) - _timedelta(days=2)).isoformat()
+    for _y in range(2020, 2051)
+))
 
 # ── Staleness-Banner (Frontend-Anzeige, Daily-Run-Frische) ───────────────────
 # Dezenter Header-Hinweis, WIE ALT die angezeigten Daily-Run-Daten (Top-10)
