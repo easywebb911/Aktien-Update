@@ -204,6 +204,76 @@ def _test_determinism():
            isinstance(config.US_MARKET_HOLIDAYS, frozenset))
 
 
+def _test_js_python_symmetry():
+    """(G) Frontend-Spiegel: JS `US_HOLIDAYS`-Array enthält jeden Karfreitag,
+    den auch das Python-Set enthält.
+
+    Source-Inspektion (kein Node-Runner-Zwang im CI-Slot-A): der JS-Block
+    trägt eine algorithmische Ergänzung (`_goodFriday`-Funktion +
+    `_GOOD_FRIDAYS`-IIFE) mit identischer Meeus-Formel-Signatur wie das
+    Python-Pendant. Damit ist die Python↔JS-Spiegelung strukturell
+    garantiert.
+    """
+    print("── (G) Frontend-Spiegel Python↔JS (Meeus-Formel-Symmetrie) ──")
+    gr_src = (ROOT / "generate_report.py").read_text(encoding="utf-8")
+
+    # G1 — JS-Helper `_goodFriday(year)` präsent
+    _check(
+        "G1 JS-Funktion _goodFriday(year) definiert",
+        "function _goodFriday(year)" in gr_src,
+        "JS-Meeus-Portierung fehlt im Frontend-Template",
+    )
+    # G2 — Meeus-Kern-Formel-Zeilen (Python-Original: `(19*a + b - d - g + 15) % 30`).
+    # JS-Version nutzt Umbenennung `d0` statt `d` (JS `d`-Kollision mit Datums-Var).
+    _check(
+        "G2 Meeus-Kern-Formel in JS präsent (h-Zeile, Bit-identisch zu Python)",
+        "(19 * a + b - d0 - g + 15) % 30" in gr_src,
+    )
+    # G3 — IIFE erzeugt Karfreitags-Array für Range 2020-2050 (spiegel-symmetrisch)
+    _check(
+        "G3 _GOOD_FRIDAYS-IIFE über Range 2020..2050",
+        "for (let y = 2020; y <= 2050; y++) arr.push(_goodFriday(y))" in gr_src,
+    )
+    # G4 — Array wird via Spread in US_HOLIDAYS eingehängt (additiv)
+    _check(
+        "G4 _GOOD_FRIDAYS via Spread in US_HOLIDAYS eingehängt",
+        "..._GOOD_FRIDAYS," in gr_src,
+        "Spread-Insertion in US_HOLIDAYS-Array fehlt → JS würde Karfreitag nicht sehen",
+    )
+    # G5 — Spiegel-Vertrag im Kommentar dokumentiert
+    _check(
+        "G5 SPIEGEL-VERTRAG-Kommentar präsent (Wartungs-Anker)",
+        "SPIEGEL-VERTRAG" in gr_src or "Spiegel-Vertrag" in gr_src.lower(),
+    )
+    # G6 — 5 ausstehende bewegliche Feiertage als Wartungs-Reminder markiert
+    _check(
+        "G6 Wartungs-Reminder für 5 ausstehende bewegliche Feiertage",
+        "AUSSTEHENDE BEWEGLICHE FEIERTAGE" in gr_src
+        and "Presidents Day" in gr_src
+        and "Thanksgiving" in gr_src,
+    )
+    # G7 — die 27 statischen Feiertage-Zeilen unverändert (Regression, Kontroll-Sample)
+    for iso in (
+        '"2025-01-01"', '"2026-06-19"', '"2027-12-24"',
+        '"2026-11-26"', '"2025-05-26"',
+    ):
+        _check(
+            f"G7 statisches JS-Feiertag {iso} unverändert im Array",
+            iso in gr_src,
+        )
+    # G8 — NICHT hartcodierte Karfreitag-Datumswerte (die kommen aus IIFE, nicht
+    # als Literale, damit auslauf-frei). Assertion: die drei bekannten
+    # Karfreitage 2025/2026/2027 sind NICHT als eigene Literal-Zeilen dupliziert
+    # (sonst würde man sie zweimal sehen — algorithmisch UND hardcoded).
+    for iso in ("2025-04-18", "2026-04-03", "2027-03-26"):
+        _check(
+            f"G8 Karfreitag {iso} NICHT als Literal-Zeile dupliziert "
+            f"(kommt algorithmisch aus _GOOD_FRIDAYS)",
+            gr_src.count(f'"{iso}"') == 0,
+            f"gefunden als Literal → doppelte Quelle statt spiegel-symmetrisch",
+        )
+
+
 def main():
     _test_easter_formula()
     _test_set_membership()
@@ -211,6 +281,7 @@ def main():
     _test_consumer_behavior()
     _test_future_auto_coverage()
     _test_determinism()
+    _test_js_python_symmetry()
 
     print()
     if _fails:
