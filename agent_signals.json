@@ -1,10 +1,10 @@
 {
-  "updated": "2026-07-08T10:45:42.659373+02:00",
+  "updated": "2026-07-08T11:37:32.663468+02:00",
   "run_info": {
     "tickers_checked": 15,
     "signals_active": 4,
     "alerts_sent": 0,
-    "elapsed_s": 12.3,
+    "elapsed_s": 12.4,
     "market_phase": "Pre-Market"
   },
   "signals": {
@@ -26,12 +26,12 @@
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": null,
-      "uoa_cp_ratio": 0.5294117647058824
+      "uoa_cp_ratio": 0.5373134328358209
     },
     "AI": {
-      "score": 60,
+      "score": 42,
       "confidence": 70,
-      "drivers": "Spanne 6.5% + News: partnership, short interest + SEC Form 4 + UOA Call/Put 6.9×",
+      "drivers": "Spanne 6.5% + News-KI 12/30: Positive business news and growth metrics, but no significant short interest indicators, unusual volume, or catalyst eve + SEC Form 4 + UOA Call/Put 6.9×",
       "price": 8.93,
       "chg_pct": 0.0,
       "rvol_4d": 0.91,
@@ -48,7 +48,7 @@
         "UOA Call/Put 6.9×"
       ],
       "uoa_atm_ratio": null,
-      "uoa_cp_ratio": 6.938432835820896
+      "uoa_cp_ratio": 6.9309701492537314
     },
     "AMC": {
       "score": 20,
@@ -117,7 +117,7 @@
     "FRMM": {
       "score": 58,
       "confidence": 70,
-      "drivers": "Spanne 17.8% + News: short interest, merger + Earnings in 36d + UOA Call/Put 44.3×",
+      "drivers": "Spanne 17.8% + News: merger, short interest + Earnings in 36d + UOA Call/Put 97.6×",
       "price": 5.7,
       "chg_pct": -0.0,
       "rvol_4d": 0.75,
@@ -131,10 +131,10 @@
       "active_triggers": 1,
       "uoa_score": 10,
       "uoa_drivers": [
-        "UOA Call/Put 44.3×"
+        "UOA Call/Put 97.6×"
       ],
       "uoa_atm_ratio": null,
-      "uoa_cp_ratio": 44.3
+      "uoa_cp_ratio": 97.55555555555556
     },
     "IMCR": {
       "score": 48,
@@ -194,12 +194,12 @@
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": null,
-      "uoa_cp_ratio": 0.8400644832852537
+      "uoa_cp_ratio": 0.8035305100568616
     },
     "LENZ": {
-      "score": 26,
+      "score": 33,
       "confidence": 70,
-      "drivers": "Spanne 10.2% + News-KI 8/30: Positive business developments and market expansion, but no evidence of high short interest, low float, or catalyst for  + Earnings in 21d",
+      "drivers": "Spanne 10.2% + News: short interest + Earnings in 21d",
       "price": 5.9,
       "chg_pct": 0.0,
       "rvol_4d": 1.32,
@@ -210,16 +210,16 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 0,
+      "active_triggers": 1,
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": null,
       "uoa_cp_ratio": 1.0833333333333333
     },
     "LOVE": {
-      "score": 43,
+      "score": 50,
       "confidence": 70,
-      "drivers": "Volumen 1.6× + Spanne 6.2% + News-KI 8/30: Positive operational news lacks short-squeeze catalysts; stock movement appears driven by fundamentals rather than short + UOA Call/Put 2.2×",
+      "drivers": "Volumen 1.6× + Spanne 6.2% + News: contract + UOA Call/Put 2.2×",
       "price": 18.43,
       "chg_pct": 0.0,
       "rvol_4d": 1.6,
@@ -230,13 +230,13 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 0,
+      "active_triggers": 1,
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 2.2×"
       ],
       "uoa_atm_ratio": null,
-      "uoa_cp_ratio": 2.1954022988505746
+      "uoa_cp_ratio": 2.1839080459770117
     },
     "OFRM": {
       "score": 58,
@@ -259,9 +259,9 @@
       "uoa_cp_ratio": 0.1504424778761062
     },
     "PDYN": {
-      "score": 55,
+      "score": 73,
       "confidence": 70,
-      "drivers": "Volumen 1.9× + Spanne 11.3% + News-KI 12/30: Positive contract news provides fundamentals but lacks indicators of high short interest, recent massive losses, or reta + Earnings in 28d + UOA Call/Put 10.8×",
+      "drivers": "Volumen 1.9× + Spanne 11.3% + News: partnership, contract + Earnings in 28d + UOA Call/Put 10.8×",
       "price": 5.37,
       "chg_pct": -0.0,
       "rvol_4d": 1.93,
