@@ -1,10 +1,10 @@
 {
-  "updated": "2026-07-09T00:20:10.256593+02:00",
+  "updated": "2026-07-09T01:33:49.933118+02:00",
   "run_info": {
     "tickers_checked": 14,
     "signals_active": 2,
     "alerts_sent": 0,
-    "elapsed_s": 10.9,
+    "elapsed_s": 11.3,
     "market_phase": "After-Hours"
   },
   "signals": {
@@ -26,12 +26,12 @@
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": 0.0035587188612099642,
-      "uoa_cp_ratio": 0.5147058823529411
+      "uoa_cp_ratio": 0.5223880597014925
     },
     "AI": {
-      "score": 28,
+      "score": 50,
       "confidence": 33,
-      "drivers": "News-KI 8/30: Positive business developments but no short squeeze indicators present; lacking high short interest, recent price pressu + SEC Form 4 + UOA Call/Put 18.3×",
+      "drivers": "News: partnership, short interest + SEC Form 4 + UOA Call/Put 18.3×",
       "price": 8.86,
       "chg_pct": -0.0,
       "rvol_4d": 0.72,
@@ -42,7 +42,7 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 0,
+      "active_triggers": 1,
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 18.3×"
@@ -199,9 +199,9 @@
       "uoa_cp_ratio": 1.0833333333333333
     },
     "OPTU": {
-      "score": 28,
+      "score": 36,
       "confidence": 70,
-      "drivers": "Spanne 35.9% + Earnings in 29d + UOA Call/Put 35.2×",
+      "drivers": "Spanne 35.9% + News-KI 8/30: Positive business expansion news lacks short squeeze catalysts like high short interest, squeeze mechanics, or sudden bu + Earnings in 29d + UOA Call/Put 35.2×",
       "price": 1.35,
       "chg_pct": 0.0,
       "rvol_4d": 1.1,
