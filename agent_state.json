@@ -77,21 +77,10 @@
     "anomaly_score_jump_SOC": "2026-07-02T20:02:41.161780+02:00",
     "anomaly_gap_combo_SOC": "2026-07-02T11:34:24.300811+02:00",
     "anomaly_monster_backup_SOC": "2026-07-02T20:02:41.415261+02:00",
-    "anomaly_conviction_high_SOC": "2026-07-02T11:34:24.445058+02:00"
+    "anomaly_conviction_high_SOC": "2026-07-02T11:34:24.445058+02:00",
+    "exit_FRMM": "2026-07-08T19:20:40.837321+02:00"
   },
   "push_history": [
-    {
-      "ts": "2026-06-26T21:04:27.329408+02:00",
-      "ticker": "PDYN",
-      "kind": "exit_p2",
-      "severity": "trigger",
-      "trigger": "trend_break",
-      "body": "🔻 Exit-Signal PDYN: trend_break crit ({'ma21': 6.6763, 'price': 5.83, 'drop_pct': 12.68})",
-      "success": true,
-      "suppressed": false,
-      "suppress_reason": null,
-      "conviction_score": null
-    },
     {
       "ts": "2026-06-26T22:59:14.695981+02:00",
       "ticker": "AI",
@@ -1279,6 +1268,18 @@
       "suppressed": true,
       "suppress_reason": "conviction_below_threshold",
       "conviction_score": 69
+    },
+    {
+      "ts": "2026-07-08T19:20:40.837291+02:00",
+      "ticker": "FRMM",
+      "kind": "exit_p1",
+      "severity": "default",
+      "trigger": "exit_alert",
+      "body": "FRMM 📉 Exit 65 | -17% | Trailing-Stop −18.8% vom Hoch",
+      "success": true,
+      "suppressed": false,
+      "suppress_reason": null,
+      "conviction_score": null
     }
   ],
   "prev_conviction_scores": {
