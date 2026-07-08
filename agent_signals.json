@@ -1,11 +1,11 @@
 {
-  "updated": "2026-07-08T08:39:13.627030+02:00",
+  "updated": "2026-07-08T10:45:42.659373+02:00",
   "run_info": {
     "tickers_checked": 15,
     "signals_active": 4,
     "alerts_sent": 0,
-    "elapsed_s": 11.5,
-    "market_phase": "Geschlossen"
+    "elapsed_s": 12.3,
+    "market_phase": "Pre-Market"
   },
   "signals": {
     "ABEO": {
@@ -94,28 +94,6 @@
       "uoa_atm_ratio": null,
       "uoa_cp_ratio": 11.666666666666666
     },
-    "ARCT": {
-      "score": 20,
-      "confidence": 33,
-      "drivers": "Spanne 5.0% + UOA Call/Put 7.4×",
-      "price": 7.6,
-      "chg_pct": -0.0,
-      "rvol_4d": 0.5,
-      "rvol_20d": 0.85,
-      "earnings": null,
-      "fda_date": null,
-      "upcoming_event": null,
-      "insider_buy": false,
-      "stocktwits": null,
-      "combo_mult": 1.0,
-      "active_triggers": 0,
-      "uoa_score": 10,
-      "uoa_drivers": [
-        "UOA Call/Put 7.4×"
-      ],
-      "uoa_atm_ratio": null,
-      "uoa_cp_ratio": 7.428571428571429
-    },
     "EVMN": {
       "score": 18,
       "confidence": 33,
@@ -139,7 +117,7 @@
     "FRMM": {
       "score": 58,
       "confidence": 70,
-      "drivers": "Spanne 17.8% + News: merger, short interest + Earnings in 36d + UOA Call/Put 44.3×",
+      "drivers": "Spanne 17.8% + News: short interest, merger + Earnings in 36d + UOA Call/Put 44.3×",
       "price": 5.7,
       "chg_pct": -0.0,
       "rvol_4d": 0.75,
@@ -179,9 +157,9 @@
       "uoa_cp_ratio": 0.00709891150023663
     },
     "INBX": {
-      "score": 26,
-      "confidence": 70,
-      "drivers": "Spanne 10.4% + News-KI 8/30: Positive clinical/regulatory news supports stock fundamentals but lacks short squeeze catalysts like high short interest + Earnings in 35d",
+      "score": 18,
+      "confidence": 33,
+      "drivers": "Spanne 10.4% + Earnings in 35d",
       "price": 100.75,
       "chg_pct": 0.0,
       "rvol_4d": 1.46,
@@ -219,9 +197,9 @@
       "uoa_cp_ratio": 0.8400644832852537
     },
     "LENZ": {
-      "score": 33,
+      "score": 26,
       "confidence": 70,
-      "drivers": "Spanne 10.2% + News: short interest + Earnings in 21d",
+      "drivers": "Spanne 10.2% + News-KI 8/30: Positive business developments and market expansion, but no evidence of high short interest, low float, or catalyst for  + Earnings in 21d",
       "price": 5.9,
       "chg_pct": 0.0,
       "rvol_4d": 1.32,
@@ -232,7 +210,7 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 1,
+      "active_triggers": 0,
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": null,
@@ -241,7 +219,7 @@
     "LOVE": {
       "score": 43,
       "confidence": 70,
-      "drivers": "Volumen 1.6× + Spanne 6.2% + News-KI 8/30: Positive operational news but no significant short squeeze indicators like high short interest, rapid covering, or force + UOA Call/Put 2.2×",
+      "drivers": "Volumen 1.6× + Spanne 6.2% + News-KI 8/30: Positive operational news lacks short-squeeze catalysts; stock movement appears driven by fundamentals rather than short + UOA Call/Put 2.2×",
       "price": 18.43,
       "chg_pct": 0.0,
       "rvol_4d": 1.6,
@@ -281,9 +259,9 @@
       "uoa_cp_ratio": 0.1504424778761062
     },
     "PDYN": {
-      "score": 73,
+      "score": 55,
       "confidence": 70,
-      "drivers": "Volumen 1.9× + Spanne 11.3% + News: partnership, contract + Earnings in 28d + UOA Call/Put 10.8×",
+      "drivers": "Volumen 1.9× + Spanne 11.3% + News-KI 12/30: Positive contract news provides fundamentals but lacks indicators of high short interest, recent massive losses, or reta + Earnings in 28d + UOA Call/Put 10.8×",
       "price": 5.37,
       "chg_pct": -0.0,
       "rvol_4d": 1.93,
@@ -321,6 +299,28 @@
       "uoa_drivers": [],
       "uoa_atm_ratio": null,
       "uoa_cp_ratio": 1.2205882352941178
+    },
+    "TYRA": {
+      "score": 53,
+      "confidence": 70,
+      "drivers": "Spanne 8.0% + Earnings in 36d + FINRA Short-Vol 100% + UOA Call/Put 61.0×",
+      "price": 31.94,
+      "chg_pct": 0.0,
+      "rvol_4d": 1.09,
+      "rvol_20d": 0.66,
+      "earnings": "in 36 Tagen (13.08.2026)",
+      "fda_date": null,
+      "upcoming_event": null,
+      "insider_buy": false,
+      "stocktwits": null,
+      "combo_mult": 1.0,
+      "active_triggers": 0,
+      "uoa_score": 10,
+      "uoa_drivers": [
+        "UOA Call/Put 61.0×"
+      ],
+      "uoa_atm_ratio": null,
+      "uoa_cp_ratio": 61.0
     }
   }
 }
