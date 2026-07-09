@@ -1,5 +1,5 @@
 {
-  "last_run": "2026-07-09T01:33:51.447519+02:00",
+  "last_run": "2026-07-09T06:14:09.709863+02:00",
   "cooldowns": {
     "anomaly_score_jump_XRX": "2026-05-03T18:47:15.315486+02:00",
     "anomaly_uoa_extreme_TDOC": "2026-05-04T13:47:00.365949+02:00",
@@ -81,30 +81,6 @@
     "exit_FRMM": "2026-07-09T00:19:31.216443+02:00"
   },
   "push_history": [
-    {
-      "ts": "2026-06-29T19:16:24.059584+02:00",
-      "ticker": "IONQ",
-      "kind": "exit_p2",
-      "severity": "warning",
-      "trigger": null,
-      "body": "⚠️ Exit-Warnung IONQ: pressure 66/100",
-      "success": true,
-      "suppressed": false,
-      "suppress_reason": null,
-      "conviction_score": null
-    },
-    {
-      "ts": "2026-06-29T19:16:24.315458+02:00",
-      "ticker": "IONQ",
-      "kind": "exit_p2",
-      "severity": "trigger",
-      "trigger": "profit_lock",
-      "body": "🔻 Exit-Signal IONQ: profit_lock crit ({'pnl_pct': 0.0953, 'peak_pnl_pct': 0.4678, 'drawdown_from_peak': 0.3725, 'score_drop_from_peak': None})",
-      "success": true,
-      "suppressed": false,
-      "suppress_reason": null,
-      "conviction_score": null
-    },
     {
       "ts": "2026-06-29T19:16:24.587193+02:00",
       "ticker": "IONQ",
@@ -1280,6 +1256,30 @@
       "suppressed": false,
       "suppress_reason": null,
       "conviction_score": null
+    },
+    {
+      "ts": "2026-07-09T06:14:09.866173+02:00",
+      "ticker": "IONQ",
+      "kind": "exit_p2",
+      "severity": "warning",
+      "trigger": null,
+      "body": "⚠️ Exit-Warnung IONQ: pressure 63/100",
+      "success": true,
+      "suppressed": false,
+      "suppress_reason": null,
+      "conviction_score": null
+    },
+    {
+      "ts": "2026-07-09T06:14:09.923185+02:00",
+      "ticker": "AI",
+      "kind": "exit_p2",
+      "severity": "warning",
+      "trigger": null,
+      "body": "⚠️ Exit-Warnung AI: pressure 65/100",
+      "success": true,
+      "suppressed": false,
+      "suppress_reason": null,
+      "conviction_score": null
     }
   ],
   "prev_conviction_scores": {
@@ -1310,7 +1310,7 @@
     "exitp2_trigger_CRMD_catalyst": "2026-05-14T16:48:50.948217+02:00",
     "exitp2_trigger_KPTI_trend_break": "2026-05-15T18:18:45.093840+02:00",
     "exitp2_trigger_RR_trend_break": "2026-05-20T17:26:03.459661+02:00",
-    "exitp2_warning_IONQ": "2026-07-08T13:58:04.866930+02:00",
+    "exitp2_warning_IONQ": "2026-07-09T06:14:09.866203+02:00",
     "exitp2_trigger_IONQ_trend_break": "2026-07-08T08:39:15.862406+02:00",
     "exitp2_trigger_PDYN_trend_break": "2026-07-08T08:39:15.920650+02:00",
     "exitp2_trigger_GEMI_trend_break": "2026-06-09T00:01:52.717781+02:00",
@@ -1327,7 +1327,7 @@
     "exitp2_trigger_DBI_trend_break": "2026-06-22T19:25:15.868062+02:00",
     "exitp2_trigger_GIII_trend_break": "2026-06-20T22:42:06.833464+02:00",
     "exitp2_trigger_LUCK_trend_break": "2026-06-22T19:25:15.805548+02:00",
-    "exitp2_warning_AI": "2026-07-08T13:58:05.094645+02:00",
+    "exitp2_warning_AI": "2026-07-09T06:14:09.923214+02:00",
     "exitp2_trigger_RBOHF_overheated": "2026-07-01T22:55:00.455123+02:00",
     "exitp2_trigger_LENZ_trend_break": "2026-07-08T00:34:38.518309+02:00"
   }
