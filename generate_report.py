@@ -2239,6 +2239,14 @@ def get_finra_short_interest(ticker: str,
     # (bleiben aber im history-Array für T-1/T-2/T-3-Anzeige).
     _TREND_MIN_VOL  = 500      # min short-vol for a meaningful trend data point
 
+    # ── pub_date-Import (holiday-robust, Basis für si_velocity Look-Ahead) ──
+    # ``finra_publication_date`` liegt in ``scripts/business_days`` (eigen-
+    # ständiges Modul; kein Cross-Import in cluster_purge — Reihenfolge-
+    # Disziplin dort). Lazy im Loop importiert, um Modul-Load-Zeit-Kosten
+    # nur bei realem FINRA-Fetch zu tragen (Tests mit Mock-Datum überspringen
+    # die history-Loop).
+    from scripts.business_days import finra_publication_date  # noqa: E402
+
     history: list[dict] = []
     for date_str in dates:
         data   = _get_finra_csv_for_date(date_str)
@@ -2250,10 +2258,22 @@ def get_finra_short_interest(ticker: str,
               f"{'Treffer' if hit else 'Kein Treffer'}: {si_val:,}", flush=True)
         if si_val >= _FINRA_MIN_VOL:
             sd = f"{date_str[:4]}-{date_str[4:6]}-{date_str[6:]}"
+            # Publikations-Datum pro History-Entry (Basis für si_velocity
+            # Look-Ahead-Filter, PR-3). Ableitung via FINRA Rule 4560
+            # (7 Handelstage nach Settlement); holiday-robust dank #407.
+            # Look-Ahead-Konvention: si_velocity darf einen Report NUR
+            # nutzen wenn ``pub_date <= entry_date``. Siehe
+            # ``scripts/business_days.finra_publication_date``-Docstring.
+            try:
+                _sd_obj = datetime.strptime(sd, "%Y-%m-%d").date()
+                pub_date_iso = finra_publication_date(_sd_obj).isoformat()
+            except (ValueError, TypeError):
+                pub_date_iso = None
             history.append({
                 "short_interest":   si_val,
                 "total_volume":     tv_val,
                 "settlement_date":  sd,
+                "pub_date":         pub_date_iso,
             })
 
     if not history:
