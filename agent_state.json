@@ -78,21 +78,9 @@
     "anomaly_gap_combo_SOC": "2026-07-02T11:34:24.300811+02:00",
     "anomaly_monster_backup_SOC": "2026-07-02T20:02:41.415261+02:00",
     "anomaly_conviction_high_SOC": "2026-07-02T11:34:24.445058+02:00",
-    "exit_FRMM": "2026-07-09T00:19:31.216443+02:00"
+    "exit_FRMM": "2026-07-09T12:03:26.608299+02:00"
   },
   "push_history": [
-    {
-      "ts": "2026-06-29T19:16:25.929387+02:00",
-      "ticker": "RBOHF",
-      "kind": "exit_p2",
-      "severity": "trigger",
-      "trigger": "trend_break",
-      "body": "🔻 Exit-Signal RBOHF: trend_break crit ({'ma21': 0.1926, 'price': 0.1653, 'drop_pct': 14.17})",
-      "success": true,
-      "suppressed": false,
-      "suppress_reason": null,
-      "conviction_score": null
-    },
     {
       "ts": "2026-06-30T08:33:41.588744+02:00",
       "ticker": "IONQ",
@@ -1276,6 +1264,18 @@
       "severity": "trigger",
       "trigger": "trend_break",
       "body": "🔻 Exit-Signal AI: trend_break crit ({'ma21': 9.5225, 'price': 8.86, 'drop_pct': 6.96})",
+      "success": true,
+      "suppressed": false,
+      "suppress_reason": null,
+      "conviction_score": null
+    },
+    {
+      "ts": "2026-07-09T12:03:26.608279+02:00",
+      "ticker": "FRMM",
+      "kind": "exit_p1",
+      "severity": "default",
+      "trigger": "exit_alert",
+      "body": "FRMM 📉 Exit 65 | -14% | Trailing-Stop −16.6% vom Hoch",
       "success": true,
       "suppressed": false,
       "suppress_reason": null,
