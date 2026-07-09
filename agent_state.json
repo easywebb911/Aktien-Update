@@ -78,22 +78,10 @@
     "anomaly_gap_combo_SOC": "2026-07-02T11:34:24.300811+02:00",
     "anomaly_monster_backup_SOC": "2026-07-02T20:02:41.415261+02:00",
     "anomaly_conviction_high_SOC": "2026-07-02T11:34:24.445058+02:00",
-    "exit_FRMM": "2026-07-09T17:43:56.220610+02:00",
+    "exit_FRMM": "2026-07-10T00:45:34.887742+02:00",
     "anomaly_conviction_high_NGNE": "2026-07-09T12:04:16.015071+02:00"
   },
   "push_history": [
-    {
-      "ts": "2026-06-30T20:15:48.947796+02:00",
-      "ticker": "AI",
-      "kind": "exit_p2",
-      "severity": "trigger",
-      "trigger": "trend_break",
-      "body": "🔻 Exit-Signal AI: trend_break crit ({'ma21': 9.8576, 'price': 8.87, 'drop_pct': 10.02})",
-      "success": true,
-      "suppressed": false,
-      "suppress_reason": null,
-      "conviction_score": null
-    },
     {
       "ts": "2026-06-30T20:15:49.198354+02:00",
       "ticker": "RBOHF",
@@ -1277,6 +1265,18 @@
       "severity": "warning",
       "trigger": null,
       "body": "⚠️ Exit-Warnung AI: pressure 65/100",
+      "success": true,
+      "suppressed": false,
+      "suppress_reason": null,
+      "conviction_score": null
+    },
+    {
+      "ts": "2026-07-10T00:45:34.887716+02:00",
+      "ticker": "FRMM",
+      "kind": "exit_p1",
+      "severity": "default",
+      "trigger": "exit_alert",
+      "body": "FRMM 📉 Exit 65 | -15% | Trailing-Stop −17.4% vom Hoch",
       "success": true,
       "suppressed": false,
       "suppress_reason": null,
