@@ -78,22 +78,10 @@
     "anomaly_gap_combo_SOC": "2026-07-02T11:34:24.300811+02:00",
     "anomaly_monster_backup_SOC": "2026-07-02T20:02:41.415261+02:00",
     "anomaly_conviction_high_SOC": "2026-07-02T11:34:24.445058+02:00",
-    "exit_FRMM": "2026-07-09T12:03:26.608299+02:00",
+    "exit_FRMM": "2026-07-09T17:43:56.220610+02:00",
     "anomaly_conviction_high_NGNE": "2026-07-09T12:04:16.015071+02:00"
   },
   "push_history": [
-    {
-      "ts": "2026-06-30T08:33:41.712953+02:00",
-      "ticker": "AI",
-      "kind": "exit_p2",
-      "severity": "warning",
-      "trigger": null,
-      "body": "⚠️ Exit-Warnung AI: pressure 64/100",
-      "success": true,
-      "suppressed": false,
-      "suppress_reason": null,
-      "conviction_score": null
-    },
     {
       "ts": "2026-06-30T20:15:48.215694+02:00",
       "ticker": "IONQ",
@@ -1281,6 +1269,18 @@
       "suppressed": false,
       "suppress_reason": null,
       "conviction_score": 75
+    },
+    {
+      "ts": "2026-07-09T17:43:56.220589+02:00",
+      "ticker": "FRMM",
+      "kind": "exit_p1",
+      "severity": "default",
+      "trigger": "exit_alert",
+      "body": "FRMM 📉 Exit 65 | -12% | Trailing-Stop −14.8% vom Hoch",
+      "success": true,
+      "suppressed": false,
+      "suppress_reason": null,
+      "conviction_score": null
     }
   ],
   "prev_conviction_scores": {
