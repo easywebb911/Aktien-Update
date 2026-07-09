@@ -1,10 +1,10 @@
 {
-  "updated": "2026-07-09T22:48:46.870823+02:00",
+  "updated": "2026-07-09T23:45:28.283706+02:00",
   "run_info": {
     "tickers_checked": 15,
     "signals_active": 3,
     "alerts_sent": 0,
-    "elapsed_s": 16.5,
+    "elapsed_s": 16.1,
     "market_phase": "After-Hours"
   },
   "signals": {
@@ -31,9 +31,9 @@
       "uoa_cp_ratio": 3.5294117647058822
     },
     "AI": {
-      "score": 28,
-      "confidence": 33,
-      "drivers": "News-KI 8/30: Positive AI sector news but lacking short interest data, specific squeeze catalysts, or evidence of high short positions + SEC Form 4 + UOA Call/Put 37.4×",
+      "score": 18,
+      "confidence": 17,
+      "drivers": "News-KI 8/30: Positive business partnerships and growth metrics lack the extreme short interest, retail squeeze catalysts, and stock p + UOA Call/Put 37.4×",
       "price": 9.01,
       "chg_pct": 0.0,
       "rvol_4d": 0.59,
@@ -75,9 +75,9 @@
       "uoa_cp_ratio": 11.014018691588785
     },
     "EROC": {
-      "score": 10,
-      "confidence": 17,
-      "drivers": "Spanne 9.0%",
+      "score": 25,
+      "confidence": 33,
+      "drivers": "Spanne 9.0% + FINRA Short-Vol 51%",
       "price": 13.76,
       "chg_pct": 0.0,
       "rvol_4d": 0.93,
@@ -95,9 +95,9 @@
       "uoa_cp_ratio": null
     },
     "FRMM": {
-      "score": 58,
+      "score": 43,
       "confidence": 70,
-      "drivers": "Spanne 12.9% + News: merger, short interest + Earnings in 35d + UOA Call/Put 17.2×",
+      "drivers": "Spanne 12.9% + News: short interest + Earnings in 35d + UOA Call/Put 17.2×",
       "price": 5.9,
       "chg_pct": 0.0,
       "rvol_4d": 0.41,
@@ -117,9 +117,9 @@
       "uoa_cp_ratio": 17.162790697674417
     },
     "FXHO": {
-      "score": 10,
-      "confidence": 17,
-      "drivers": "Spanne 42.2%",
+      "score": 35,
+      "confidence": 33,
+      "drivers": "Spanne 42.2% + FINRA Short-Vol 100%",
       "price": 18.7,
       "chg_pct": 0.0,
       "rvol_4d": 0.08,
@@ -157,9 +157,9 @@
       "uoa_cp_ratio": 1.22
     },
     "INDI": {
-      "score": 46,
+      "score": 53,
       "confidence": 70,
-      "drivers": "Spanne 7.0% + News-KI 8/30: Routine earnings announcement und Produktlaunch ohne extreme Volatilität oder Short-Interesse-Indikatoren erkennbar. + Earnings in 28d + SEC Form 4 + UOA Call/Put 6.6×",
+      "drivers": "Spanne 7.0% + News: acquisition + Earnings in 28d + SEC Form 4 + UOA Call/Put 6.6×",
       "price": 4.71,
       "chg_pct": 0.0,
       "rvol_4d": 0.79,
@@ -170,7 +170,7 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 0,
+      "active_triggers": 1,
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 6.6×"
@@ -184,8 +184,8 @@
       "drivers": "Earnings in 27d",
       "price": 44.77,
       "chg_pct": 0.0,
-      "rvol_4d": 0.72,
-      "rvol_20d": 0.49,
+      "rvol_4d": 0.82,
+      "rvol_20d": 0.55,
       "earnings": "in 27 Tagen (05.08.2026)",
       "fda_date": null,
       "upcoming_event": null,
@@ -201,7 +201,7 @@
     "JACK": {
       "score": 58,
       "confidence": 70,
-      "drivers": "Spanne 8.4% + News: breakout, short squeeze + Earnings in 27d + UOA Call/Put 21.8×",
+      "drivers": "Spanne 8.4% + News: covering, short interest + Earnings in 27d + UOA Call/Put 21.8×",
       "price": 15.17,
       "chg_pct": 0.0,
       "rvol_4d": 0.58,
@@ -223,11 +223,11 @@
     "LENZ": {
       "score": 58,
       "confidence": 70,
-      "drivers": "Spanne 8.0% + News: short interest + Earnings in 20d + FINRA Short-Vol 89%",
+      "drivers": "Spanne 8.0% + News: short interest + Earnings in 20d + FINRA Short-Vol 75%",
       "price": 5.79,
       "chg_pct": -0.0,
-      "rvol_4d": 0.62,
-      "rvol_20d": 0.83,
+      "rvol_4d": 0.66,
+      "rvol_20d": 0.88,
       "earnings": "in 20 Tagen (29.07.2026)",
       "fda_date": null,
       "upcoming_event": null,
@@ -283,9 +283,9 @@
       "uoa_cp_ratio": 298.0769230769231
     },
     "PDYN": {
-      "score": 58,
+      "score": 36,
       "confidence": 70,
-      "drivers": "Spanne 5.2% + News: partnership, contract + Earnings in 27d + UOA Call/Put 2.8×",
+      "drivers": "Spanne 5.2% + News-KI 8/30: Positive revenue and contract news provide fundamental support but lack the extreme short interest, low float, or cataly + Earnings in 27d + UOA Call/Put 2.8×",
       "price": 5.46,
       "chg_pct": 0.0,
       "rvol_4d": 0.66,
@@ -296,7 +296,7 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 1,
+      "active_triggers": 0,
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 2.8×"
