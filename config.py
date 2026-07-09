@@ -403,6 +403,25 @@ SI_TREND_MIN_DATAPOINTS = 6     # Min. signifikante Datenpunkte für Trend
 SI_TREND_UP_THRESHOLD   =  0.10 # ≥+10 % → steigend
 SI_TREND_DOWN_THRESHOLD = -0.10 # ≤-10 % → fallend
 
+# ── FINRA-Publikations-Kalender (Basis für si_velocity Look-Ahead-Filter) ────
+# FINRA Rule 4560: Short Interest Reports werden ~7 Handelstage NACH dem
+# Settlement-Stichtag öffentlich (Dissemination-Delay). Diese Konstante
+# kapselt den Offset, damit spätere Regel-Anpassungen (SR-FINRA-2026-012
+# plant höhere Frequenz, evtl. wöchentlich → möglicherweise kürzerer Delay)
+# an EINEM Ort geschehen können.
+#
+# Konsument: ``scripts/business_days.finra_publication_date``. Nutzt
+# ``US_MARKET_HOLIDAYS`` für die Handelstag-Vorwärts-Suche — seit PR #407
+# ist Karfreitag darin algorithmisch enthalten (Meeus-Osterformel), sonst
+# hätte ``settlement + 7 Business-Days`` an Karfreitags-Nähe 1 Business-Day
+# zu früh berechnet → Look-Ahead in die falsche Richtung.
+#
+# LOOK-AHEAD-KONVENTION: pub_date = ab wann der SI-Wert öffentlich war.
+# Ein SI-Report darf einem Backtest-Record mit ``entry_date`` nur zugeordnet
+# werden, wenn ``pub_date <= entry_date``. Konservativ: lieber zu spät
+# zuordnen als zu früh.
+FINRA_PUB_OFFSET_BUSINESS_DAYS = 7
+
 # ── Float-Größen-Faktor ──────────────────────────────────────────────────────
 FLOAT_WEIGHT          = 8           # max. Bonus bei kleinem Float
 FLOAT_SATURATION_LOW  = 30_000_000  # ≤ 30 M Aktien → voll (8 Pkt)
