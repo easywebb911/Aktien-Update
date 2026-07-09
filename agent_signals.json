@@ -1,10 +1,10 @@
 {
-  "updated": "2026-07-09T06:14:07.738080+02:00",
+  "updated": "2026-07-09T09:59:03.302691+02:00",
   "run_info": {
     "tickers_checked": 14,
     "signals_active": 2,
     "alerts_sent": 0,
-    "elapsed_s": 11.5,
+    "elapsed_s": 10.6,
     "market_phase": "Geschlossen"
   },
   "signals": {
@@ -25,13 +25,13 @@
       "active_triggers": 0,
       "uoa_score": 0,
       "uoa_drivers": [],
-      "uoa_atm_ratio": 0.0035587188612099642,
+      "uoa_atm_ratio": null,
       "uoa_cp_ratio": 0.5223880597014925
     },
     "AI": {
-      "score": 28,
+      "score": 50,
       "confidence": 33,
-      "drivers": "News-KI 8/30: Positive AI sector news with growth metrics, but lacks short squeeze catalysts like high short interest, low float, or i + SEC Form 4 + UOA Call/Put 18.3×",
+      "drivers": "News: partnership, short interest + SEC Form 4 + UOA Call/Put 18.3×",
       "price": 8.86,
       "chg_pct": -0.0,
       "rvol_4d": 0.83,
@@ -42,12 +42,12 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 0,
+      "active_triggers": 1,
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 18.3×"
       ],
-      "uoa_atm_ratio": 0.06717888100866824,
+      "uoa_atm_ratio": null,
       "uoa_cp_ratio": 18.301184433164128
     },
     "AMC": {
@@ -69,7 +69,7 @@
       "uoa_drivers": [
         "UOA Call/Put 6.4×"
       ],
-      "uoa_atm_ratio": 0.3446223701466877,
+      "uoa_atm_ratio": null,
       "uoa_cp_ratio": 6.363411619283066
     },
     "DMRC": {
@@ -133,7 +133,7 @@
       "uoa_drivers": [
         "UOA Call/Put 6.9×"
       ],
-      "uoa_atm_ratio": 0.06761363636363636,
+      "uoa_atm_ratio": null,
       "uoa_cp_ratio": 6.913043478260869
     },
     "IONQ": {
@@ -153,7 +153,7 @@
       "active_triggers": 0,
       "uoa_score": 0,
       "uoa_drivers": [],
-      "uoa_atm_ratio": 0.9821843532145623,
+      "uoa_atm_ratio": null,
       "uoa_cp_ratio": 0.5962347496844762
     },
     "KPTI": {
@@ -175,7 +175,7 @@
       "uoa_drivers": [
         "UOA Call/Put 48.0×"
       ],
-      "uoa_atm_ratio": 0.8840579710144928,
+      "uoa_atm_ratio": null,
       "uoa_cp_ratio": 48.0
     },
     "LENZ": {
@@ -239,7 +239,7 @@
       "uoa_drivers": [
         "UOA Call/Put 5.2×"
       ],
-      "uoa_atm_ratio": 0.25076452599388377,
+      "uoa_atm_ratio": null,
       "uoa_cp_ratio": 5.241176470588235
     },
     "TYRA": {
@@ -261,17 +261,17 @@
       "uoa_drivers": [
         "UOA Call/Put 61.0×"
       ],
-      "uoa_atm_ratio": 0.568503937007874,
+      "uoa_atm_ratio": null,
       "uoa_cp_ratio": 61.0
     },
     "VSTM": {
-      "score": 33,
-      "confidence": 70,
-      "drivers": "Volumen 1.8× + Spanne 10.0% + Earnings in 28d",
+      "score": 8,
+      "confidence": 17,
+      "drivers": "Earnings in 28d",
       "price": 5.08,
-      "chg_pct": -0.0,
-      "rvol_4d": 1.77,
-      "rvol_20d": 1.48,
+      "chg_pct": 0.0,
+      "rvol_4d": 0.0,
+      "rvol_20d": null,
       "earnings": "in 28 Tagen (06.08.2026)",
       "fda_date": null,
       "upcoming_event": null,
@@ -281,13 +281,13 @@
       "active_triggers": 0,
       "uoa_score": 0,
       "uoa_drivers": [],
-      "uoa_atm_ratio": 0.02798134576948701,
+      "uoa_atm_ratio": null,
       "uoa_cp_ratio": 0.12433392539964476
     },
     "ZBIO": {
-      "score": 36,
+      "score": 28,
       "confidence": 70,
-      "drivers": "Spanne 8.4% + News-KI 8/30: CEO buying shows confidence but minimal insider activity, no significant short interest indicators, and routine conferen + Earnings in 34d + UOA Call/Put 2.5×",
+      "drivers": "Spanne 8.4% + Earnings in 34d + UOA Call/Put 2.5×",
       "price": 28.76,
       "chg_pct": 0.02,
       "rvol_4d": 0.6,
@@ -303,7 +303,7 @@
       "uoa_drivers": [
         "UOA Call/Put 2.5×"
       ],
-      "uoa_atm_ratio": 0.5,
+      "uoa_atm_ratio": null,
       "uoa_cp_ratio": 2.5384615384615383
     }
   }
