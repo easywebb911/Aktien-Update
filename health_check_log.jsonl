@@ -1,5 +1,3 @@
-{"run_ts": "2026-06-09T12:16:04Z", "run_phase": "ki_agent_tick", "schema_v": 1, "state_fails": [], "provider_fails": []}
-{"run_ts": "2026-06-09T15:29:50Z", "run_phase": "ki_agent_tick", "schema_v": 1, "state_fails": [], "provider_fails": []}
 {"run_ts": "2026-06-09T18:21:42Z", "run_phase": "ki_agent_tick", "schema_v": 1, "state_fails": [], "provider_fails": []}
 {"run_ts": "2026-06-09T21:11:55Z", "run_phase": "postclose", "schema_v": 1, "state_fails": [{"id": "S7", "severity": "warn", "detail": "agent_signals ∩ top10: 3 von 10 Top-10-Ticker, Schwelle ≥ 5. Möglicher Daily-Run-/KI-Agent-Drift — neuer Tick fällig"}], "provider_fails": []}
 {"run_ts": "2026-06-09T21:13:25Z", "run_phase": "ki_agent_tick", "schema_v": 1, "state_fails": [], "provider_fails": []}
@@ -371,3 +369,4 @@
 {"run_ts": "2026-07-09T10:03:26Z", "run_phase": "premarket", "schema_v": 1, "state_fails": [], "provider_fails": []}
 {"run_ts": "2026-07-09T10:04:18Z", "run_phase": "ki_agent_tick", "schema_v": 1, "state_fails": [], "provider_fails": []}
 {"run_ts": "2026-07-09T11:19:29Z", "run_phase": "ki_agent_tick", "schema_v": 1, "state_fails": [], "provider_fails": []}
+{"run_ts": "2026-07-09T15:34:13Z", "run_phase": "ki_agent_tick", "schema_v": 1, "state_fails": [], "provider_fails": []}
