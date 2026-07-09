@@ -1,5 +1,5 @@
 {
-  "last_run": "2026-07-09T09:59:04.945539+02:00",
+  "last_run": "2026-07-09T12:04:18.531946+02:00",
   "cooldowns": {
     "anomaly_score_jump_XRX": "2026-05-03T18:47:15.315486+02:00",
     "anomaly_uoa_extreme_TDOC": "2026-05-04T13:47:00.365949+02:00",
@@ -78,21 +78,10 @@
     "anomaly_gap_combo_SOC": "2026-07-02T11:34:24.300811+02:00",
     "anomaly_monster_backup_SOC": "2026-07-02T20:02:41.415261+02:00",
     "anomaly_conviction_high_SOC": "2026-07-02T11:34:24.445058+02:00",
-    "exit_FRMM": "2026-07-09T12:03:26.608299+02:00"
+    "exit_FRMM": "2026-07-09T12:03:26.608299+02:00",
+    "anomaly_conviction_high_NGNE": "2026-07-09T12:04:16.015071+02:00"
   },
   "push_history": [
-    {
-      "ts": "2026-06-30T08:33:41.588744+02:00",
-      "ticker": "IONQ",
-      "kind": "exit_p2",
-      "severity": "warning",
-      "trigger": null,
-      "body": "⚠️ Exit-Warnung IONQ: pressure 66/100",
-      "success": true,
-      "suppressed": false,
-      "suppress_reason": null,
-      "conviction_score": null
-    },
     {
       "ts": "2026-06-30T08:33:41.712953+02:00",
       "ticker": "AI",
@@ -1280,19 +1269,31 @@
       "suppressed": false,
       "suppress_reason": null,
       "conviction_score": null
+    },
+    {
+      "ts": "2026-07-09T12:04:16.015042+02:00",
+      "ticker": "NGNE",
+      "kind": "anomaly",
+      "severity": "high",
+      "trigger": "conviction_high",
+      "body": "NGNE 🎯 KAUFSIGNAL — Conviction 75/100 (high) | Conviction hoch — Setup, Earliness und Timing konvergieren. Aggregations-Anzeige…",
+      "success": true,
+      "suppressed": false,
+      "suppress_reason": null,
+      "conviction_score": 75
     }
   ],
   "prev_conviction_scores": {
     "LENZ": 68.0,
-    "KPTI": 78.0,
-    "INDI": 68.0,
-    "ABEO": 61.0,
-    "FRMM": 68.0,
-    "OPTU": 46.0,
-    "TYRA": 53.0,
-    "ZBIO": 73.0,
-    "DMRC": 58.0,
-    "VSTM": 65.0,
+    "KPTI": 64.0,
+    "NGNE": 75.0,
+    "INDI": 54.0,
+    "FRMM": 53.0,
+    "ZBIO": 60.0,
+    "ABEO": 60.0,
+    "OPTU": 31.0,
+    "DMRC": 44.0,
+    "VSTM": 51.0,
     "PDYN": 30.0,
     "AI": 35.0,
     "AMC": 21.0,
