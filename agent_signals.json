@@ -1,17 +1,17 @@
 {
-  "updated": "2026-07-10T00:46:18.417118+02:00",
+  "updated": "2026-07-10T01:36:51.551531+02:00",
   "run_info": {
     "tickers_checked": 16,
     "signals_active": 3,
     "alerts_sent": 0,
-    "elapsed_s": 11.3,
+    "elapsed_s": 13.0,
     "market_phase": "After-Hours"
   },
   "signals": {
     "ABEO": {
-      "score": 43,
+      "score": 53,
       "confidence": 70,
-      "drivers": "Volumen 1.7× + Spanne 6.0% + Earnings in 35d + UOA Call/Put 3.5×",
+      "drivers": "Volumen 1.7× + Spanne 6.0% + Earnings in 35d + SEC Form 4 + UOA Call/Put 3.5×",
       "price": 7.12,
       "chg_pct": -0.0,
       "rvol_4d": 1.66,
@@ -117,9 +117,9 @@
       "uoa_cp_ratio": null
     },
     "HTZ": {
-      "score": 63,
+      "score": 45,
       "confidence": 70,
-      "drivers": "Volumen 1.6× + Spanne 11.5% + News: short seller, partnership + Earnings in 28d",
+      "drivers": "Volumen 1.6× + Spanne 11.5% + News-KI 12/30: Negative guidance cuts and significant stock declines indicate fundamental weakness rather than short-squeeze setup; no  + Earnings in 28d",
       "price": 2.17,
       "chg_pct": 0.0,
       "rvol_4d": 1.58,
@@ -201,7 +201,7 @@
     "JACK": {
       "score": 58,
       "confidence": 70,
-      "drivers": "Spanne 8.4% + News: breakout, squeeze + Earnings in 27d + UOA Call/Put 21.8×",
+      "drivers": "Spanne 8.4% + News: short interest, short squeeze + Earnings in 27d + UOA Call/Put 21.8×",
       "price": 15.17,
       "chg_pct": 0.0,
       "rvol_4d": 0.58,
