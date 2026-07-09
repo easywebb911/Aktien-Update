@@ -4512,6 +4512,57 @@ function showMsg(type,text){
 // ── Gemeinsame Handelstag-Hilfsfunktionen (wird von Banner + KI-Agent genutzt) ──
 // US federal holidays — update this array each year (format: "YYYY-MM-DD").
 // Observed dates (Monday if Sunday, Friday if Saturday) should be listed.
+//
+// SPIEGEL-VERTRAG (siehe config.US_MARKET_HOLIDAYS-Kommentar): dieses Array
+// muss die exakt gleiche Datum-Menge wie das Python-Set liefern, sonst
+// driftet Frontend-Banner (`_isNonTradingDay`, `_nextTradingDay`) vom
+// Backend-Verhalten (Exit-Push-Pipeline, S4-Health-Check, cluster_purge)
+// weg — an einem Karfreitag würde das Frontend fälschlich Handelstag-
+// Anzeige liefern, während Backend korrekt skippt.
+//
+// Good Friday wird SEIT PR (Datum) algorithmisch via JS-Meeus/Jones/Butcher-
+// Osterformel ergänzt (Range 2020–2050, spiegel-symmetrisch zum Python-Fix).
+// Damit ist die eine bewegliche Feiertagsklasse, die auslaufen würde, hier
+// wie im Backend automatisch abgedeckt.
+//
+// AUSSTEHENDE BEWEGLICHE FEIERTAGE (WARTUNGS-REMINDER 2028+): MLK Day,
+// Presidents Day, Memorial Day, Labor Day, Thanksgiving sind je Jahr
+// 2025–2027 hartcodiert (Python-Set + JS-Array symmetrisch) und laufen
+// gemeinsam 2028 aus. Separater Wartungs-PR nötig (algorithmisch via
+// "N-ter Wochentag im Monat"-Regel — analog Meeus-Muster).
+function _toIso(d) {
+  const y = d.getFullYear();
+  const m = String(d.getMonth()+1).padStart(2,'0');
+  const day = String(d.getDate()).padStart(2,'0');
+  return `${y}-${m}-${day}`;
+}
+function _goodFriday(year) {
+  // Meeus/Jones/Butcher-Osterformel, JS-Spiegel von config._easter_sunday.
+  // Bit-exakt gegen echten NYSE-Kalender für 2020-2030 verifiziert (Test A).
+  // Karfreitag = Ostersonntag − 2 Tage.
+  const a = year % 19;
+  const b = Math.floor(year / 100);
+  const c = year % 100;
+  const d0 = Math.floor(b / 4);
+  const e = b % 4;
+  const f = Math.floor((b + 8) / 25);
+  const g = Math.floor((b - f + 1) / 3);
+  const h = (19 * a + b - d0 - g + 15) % 30;
+  const i = Math.floor(c / 4);
+  const k = c % 4;
+  const l = (32 + 2 * e + 2 * i - h - k) % 7;
+  const m = Math.floor((a + 11 * h + 22 * l) / 451);
+  const month = Math.floor((h + l - 7 * m + 114) / 31);
+  const day = ((h + l - 7 * m + 114) % 31) + 1;
+  const easter = new Date(year, month - 1, day);
+  easter.setDate(easter.getDate() - 2);
+  return _toIso(easter);
+}
+const _GOOD_FRIDAYS = (function() {
+  const arr = [];
+  for (let y = 2020; y <= 2050; y++) arr.push(_goodFriday(y));
+  return arr;
+})();
 const US_HOLIDAYS = [
   // 2025
   "2025-01-01", // New Year's Day
@@ -4543,13 +4594,10 @@ const US_HOLIDAYS = [
   "2027-09-06", // Labor Day
   "2027-11-25", // Thanksgiving
   "2027-12-24", // Christmas (observed, 25th = Saturday)
+  // Good Friday (algorithmisch, Range 2020–2050) — spiegel-symmetrisch zu
+  // config._easter_sunday.
+  ..._GOOD_FRIDAYS,
 ];
-function _toIso(d) {
-  const y = d.getFullYear();
-  const m = String(d.getMonth()+1).padStart(2,'0');
-  const day = String(d.getDate()).padStart(2,'0');
-  return `${y}-${m}-${day}`;
-}
 function _isHoliday(d)        { return US_HOLIDAYS.includes(_toIso(d)); }
 function _isNonTradingDay(d)  { const dow = d.getDay(); return dow === 0 || dow === 6 || _isHoliday(d); }
 function _nextTradingDay(d) {
