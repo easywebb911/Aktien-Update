@@ -1,10 +1,10 @@
 {
-  "updated": "2026-07-11T00:16:26.207557+02:00",
+  "updated": "2026-07-11T00:28:35.592165+02:00",
   "run_info": {
     "tickers_checked": 15,
-    "signals_active": 0,
+    "signals_active": 1,
     "alerts_sent": 0,
-    "elapsed_s": 15.0,
+    "elapsed_s": 11.2,
     "market_phase": "After-Hours"
   },
   "signals": {
@@ -160,9 +160,9 @@
       "uoa_cp_ratio": 1.0
     },
     "LENZ": {
-      "score": 26,
+      "score": 33,
       "confidence": 70,
-      "drivers": "Spanne 8.9% + News-KI 8/30: Positive business developments but no short squeeze indicators like high short interest, stock decline, or technical tri + Earnings in 19d",
+      "drivers": "Spanne 8.9% + News: short interest + Earnings in 19d",
       "price": 5.59,
       "chg_pct": 0.0,
       "rvol_4d": 1.07,
@@ -173,7 +173,7 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 0,
+      "active_triggers": 1,
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": null,
@@ -262,9 +262,9 @@
       "uoa_cp_ratio": 5.1115702479338845
     },
     "VIVO": {
-      "score": 35,
+      "score": 52,
       "confidence": 70,
-      "drivers": "Volumen 2.5× + Spanne 16.1% + UOA Call/Put 75.9×",
+      "drivers": "Volumen 2.5× + Spanne 16.1% + News-KI 12/30: Positive operational news on battery storage revenue, but lacks urgency, short interest data, and stock momentum indicat + UOA Call/Put 75.9×",
       "price": 5.23,
       "chg_pct": 0.0,
       "rvol_4d": 2.45,
@@ -274,8 +274,8 @@
       "upcoming_event": null,
       "insider_buy": false,
       "stocktwits": null,
-      "combo_mult": 1.0,
-      "active_triggers": 1,
+      "combo_mult": 1.1,
+      "active_triggers": 2,
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 75.9×"
