@@ -438,10 +438,6 @@ FINRA_PUB_OFFSET_BUSINESS_DAYS = 7
 #   neueste → älteste. Formel: ``(si[0] - si[N-1]) / si[N-1]`` (relativ,
 #   dimensionslos). None bei < N eligible Reports oder ``si[N-1] <= 0``.
 #
-#   N = 3 publizierte Reports (mit ``pub_date <= entry_date``), sortiert
-#   neueste → älteste. Formel: ``(si[0] - si[N-1]) / si[N-1]`` (relativ,
-#   dimensionslos). None bei < N eligible Reports oder ``si[N-1] <= 0``.
-#
 # Begründung N=3:
 #   • FINRA-Bimonats-Frequenz (Rule 4560): ~2 Reports/Monat, ~15 Tage Abstand.
 #     3 Reports ≈ ~30–45 Tage Fenster — ein Monat SI-Dynamik.
