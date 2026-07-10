@@ -1,1917 +1,669 @@
-# SESSION_HANDOVER.md — Stand 04.07.2026
+# SESSION_HANDOVER.md — Stand 11.07.2026
 
-## 1) HEUTE IMPLEMENTIERT (mit Hashes)
+**Zweck:** vollständige Übergabe an eine **neue Code-Session ohne Kontext der
+alten**. Dieses Dokument + `CLAUDE.md` müssen zusammen ausreichen, um am
+Projektstand direkt weiterzuarbeiten. Reine Doku, kein Logik-Touch.
 
-### Fenster 02.–04.07.2026 (Nachtrag seit letztem Voll-Handover #398)
-
-*(Roter Faden: Backfill-Kette max_gain_pct scharfgeschaltet (#399/#400/#401 →
-Live-Run mit 330/330 Records gefüllt) → Hypothese-C-Auswertung durchgezogen
-(Kernbefund: kein belegter Effekt, 0/6 Holm über 3 Schwellen) → additive
-Vorwärts-Erhebungen für Hypothese A + H5 (#402 entry_past_return_5d, #404
-days_to_earnings) → Pin-Sanierung (#403 yfinance-Cap statt Hard-==).)*
-
-- **#399 (`dc1d03b`) — 02.07.** **★ BACKFILL max_gain_pct Stufe 1** — Skript
-  `scripts/backfill_max_gain_pct.py` (~440 Zeilen) + Dry-Run-Default + fixture-
-  only Test (44/44). Filter: schema_v==4 UND `max_gain_pct` NOT in e UND ≥10
-  Trading-Days reif. Bulk-Fetch analog Live-Rolling-Update, `_compute_max_gain_pct`
-  IMPORTIERT (kein Duplikat, Drift-Schutz). Ein-Feld-Invariante per Test C3
-  verriegelt. Atomic-Write (tmp + os.replace). fcntl.flock + Cron-Fenster-Guard.
-  Guardian ✅ (1 informatives Finding zu 0.0-vs-None-Ambiguität → in #400 gefixt).
-  Dry-Run auf echten Daten: 330 Targets, 129 unique Tickers, Fenster 14.05.–18.06.
-- **#400 (`a936886`) — 02.07.** **★ Backfill thin-slice-Zähler (Guardian-Nachbesserung).**
-  Neue pure Helper `classify_outcome(df_len, mg)` mit 4 Klassen (none / thin_slice /
-  filled_zero / filled). `compute_and_apply_backfill` Return-Tupel erweitert um
-  `n_thin_slice`. Live-Warn wenn > 0. Trennt stille Datenlücken (`mg=0.0` bei
-  `df_len<2`) von echten Null-Gains. 54/54 Tests grün. **Kein Verhaltens-Effekt
-  am Füll-Vorgang** — nur zusätzliche Klassifikation.
-- **#401 (`5cb0b22` + Guardian-Nachbesserung `7056cb2`) — 02.–03.07.** **★ BACKFILL-
-  WORKFLOW workflow_dispatch.** Neuer `.github/workflows/backfill_max_gain_pct.yml`
-  — manual-only, `concurrency.cancel-in-progress: false`, `git add
-  backtest_history.json` (GENAU EINE Datei), `git diff --staged --quiet && exit 0`
-  Idempotenz-Guard. Guardian ✅ (Finding 4 Kommentar-Präzisierung im
-  `7056cb2`-Nachtrag). **Manueller Merge**, danach:
-- **`85cbbe9` — 03.07.** **★★ MAX_GAIN_PCT BACKFILL-LIVE-LAUF DURCH.**
-  Commit-Message: „chore: max_gain_pct backfill (einmalig, 330/330 Records gefüllt,
-  0 thin-slice)". **Alle 330 reifen Alt-Records** in `backtest_history.json`
-  tragen jetzt `max_gain_pct`. Kein thin-slice → keine stillen Datenlücken bei
-  den 129 unique Tickers. Hypothese-C-Sample sofort auswertbar.
-- **04.07.** **★★ HYPOTHESE-C-AUSWERTUNG (3 Schwellen, +10 % / +30 % / +50 %):**
-  Seed 04072026, Bootstrap N=2000, k=6 gemeinsame Holm-Klammer über 3 Schwellen ×
-  2 Cluster-Läufe. **Kernbefund: 0/6 Holm-Rejects.** Alle AUC-CIs enthalten 0.5.
-  Baseline-Peak-Raten: 95.8 % (C-10) / 35.5 % (C-30) / 15.2 % (C-50) — der
-  Setup-Score trennt weder häufige noch mittlere noch seltene Peak-Squeezes.
-  C-50 Δ +5.44 pp / +5.76 pp mit AUC 0.562/0.561 zeigt richtungs-plausible
-  Punktschätzung, aber roh-p 0.164/0.213 → NICHT „Hinweis"-Kategorie. Regime-Robust
-  (pre/post-#346-Split zeigt konsistente Peak-Raten). **Konsequenz: Auffanglinie
-  über drei Auswertungstage bestätigt** (30.06. Endpunkt + 01.07. Exit-Timing B.1
-  + 04.07. Peak) — Setup-Score bleibt Attention-Router / Screener. **Kein PR aus
-  dieser Auswertung** — Ergebnis ist selbst der Befund. Detailanker in §4/§5.
-- **#402 (`0da83af` + Guardian-Nachbesserung `498aeaf`) — 02.07.** **★
-  entry_past_return_5d Stufe A** (Hypothese-A-Vorbau, Reversal-Entry). Additive
-  Live-Vorwärts-Erhebung, `_compute_entry_past_return_5d(close_at_entry,
-  close_5td_before)` mit Adj-Close BEIDSEITIG (Split-Konsistenz-Pflicht,
-  Reverse-Splits bei Squeeze-Small-Caps häufig). `_hist_stats`-Tupel um 15.
-  Element `close_5td_before_entry` erweitert; Batch + Singleton-Fallback beide
-  angepasst. **Kein neuer yf-Fetch** — nutzt bestehende hist_batch. **None-
-  Semantik STRIKT** (nicht 0.0-Overload wie max_gain): `None` = nicht ableitbar,
-  echte Null-Bewegung liefert `0.0`. Look-Ahead-Konvention einfroren im Docstring
-  + S10-Kommentar + Test E1-E6. Schema v4 unverändert. 24 fixture-only Tests
-  grün. Guardian ✅ (4 informative Findings, F1+F2 in Nachbesserung `498aeaf`
-  behoben: Testname-Rename + CLAUDE.md-Anker). Manueller Merge.
-- **#403 (`2446477`) — 03.07.** **★ REQUIREMENTS-CAP-SEMANTIK.** `yfinance==1.4.1
-  → yfinance>=1.4.1,<1.5`; analog pandas (`>=3.0.3,<3.1`), peewee (`>=4.1.0,<4.2`).
-  Löst den `#393`-Segfault-Bridge-Trade-off („`==`-Pin sperrt auch 1.4.x-Bugfixes")
-  ohne den Minor-Sprung wieder zuzulassen, der den SIGSEGV verursachte.
-  Cap-Kontrolle: kein `>=` ohne Obergrenze bei den 3 Ziel-Paketen. Kein Konflikt
-  mit `pr-checks.yml` (installiert bewusst separat). Manueller Merge, Live-Verify
-  im nächsten Actions-Lauf (Install zieht identisch: `1.4.1 / 3.0.3 / 4.1.0`).
-- **#404 (`1594f20`) — 04.07.** **★ days_to_earnings Stufe A** (Hypothese-H5-Vorbau,
-  Katalysator × Score). Additive Live-Vorwärts-Erhebung, Snapshot des AM Report-
-  Tag bekannten nächsten Earnings-Termins in **Kalendertagen** (konsistent zum
-  Live-Score-Konsumenten `_compute_sub_scores:3746-3749`, Bucket-Schwellen ≤7/≤14).
-  Wert 1:1 aus `s["earnings_days"]` (Live-Enrichment, gesetzt in
-  `generate_report.py:16502-16540` via EarningsWhispers-Cache + yfinance-Fallback).
-  Point-in-time-sauber: Fetch AM Report-Tag → keine später-angekündigten Termine
-  leaken. **Backfill STRUKTURELL NICHT MÖGLICH** — heutiger Fetch ≠ damaliger
-  Termin; nur Vorwärts-Erhebung, Alt-Records bleiben null. Look-Ahead-Konvention
-  einfroren (analog #402): darf NIEMALS als Score-Feature aus dem Backtest-Field
-  gelesen werden; Score-Read bleibt `s["earnings_days"]` (Enrichment).
-  Ein-Feld-Invariante, `int()`-Cast defensiv, None-Semantik klar
-  (`0 = Earnings HEUTE ≠ None`). 15 fixture-only Tests grün. Guardian ✅ **ohne
-  Findings**. Manueller Merge.
+Struktur (9 Blöcke): (1) Heute implementiert · (2) Aktive Positionen ·
+(3) Verifikation · (4) Wiedervorlagen · (5) Strategische Roadmap ·
+(6) Hygiene-Backlog · (7) Architektur-Anker · (8) Lessons · (9) Arbeitsweise-
+Anker.
 
 ---
 
-### Fenster 13.06.–02.07.2026 (chronologisch, Feature-/Doku-Commits; KI-Agent-Updates/Daily-Runs weggelassen)
+## 1) HEUTE IMPLEMENTIERT (chronologisch, mit Hashes)
 
-*(Roter Faden: Kanonisierung der Handover-Anker (H1–H6, externe Begutachtung),
-Cache-Bust-Reload (#373), None-Guard (#371), Holiday-Awareness-Kette
-(Diagnose → #381-Exit-Push-Disziplin → Doku-Sync), Staleness-Banner (#383) +
-S7-Race-Gate (#384) als Frühwarnsysteme, dann Vorbau für die 30.06.-Edge-
-Auswertung (Conviction-Persist #388, Auswertungs-Helfer #389/#390/#391/#392),
-Segfault-Brücke (#393 Pinning) und die drei Doc-Commits #394/#395 mit dem
-Auswertungs-Beleg. Session 02.07.: Frontend-Sprach-Fix (#396) an belegten
-Zustand + max_gain_pct als Spiegel-Vorbau (#397, Hypothese C).*
+*(Roter Faden 03.07.–10.07.2026: Backfill-Kette `max_gain_pct` scharfgeschaltet
+(#400 thin-slice-Zähler, #401 Workflow, `85cbbe9` Live-Lauf 330/330) →
+Hypothese-C-Auswertung durchgezogen und dokumentiert (0/6 Holm über drei
+Peak-Schwellen) → drei additive Vorwärts-Erhebungen fürs Kombi-Ziel scharf
+(#402 Reversal, #404 Katalysator, #409 SI-Velocity Look-Ahead-frei) →
+Pin-Sanierung yfinance (#403 Cap statt Hard-`==`) → Doku-Aktualisierung
+(#405, #406) → Karfreitag-Fundament algorithmisch (#407 Meeus, Python + JS)
+→ FINRA-Publikations-Datum als Look-Ahead-Grenze (#408) → si_velocity_pub
+auf pub_date-Basis (#409).)*
 
-- **#365/#366 (`7495b28`/`4af3d09`) — 15.06.** **Externe Begutachtung + Hebel-Hypothesen H1–H6.**
-  Handover §5-Anker gesetzt: sechs vorab-fixierte Hebel-Hypothesen als
-  kanonischer Ausgangspunkt für die 30.06.-Auswertung; externe Gutachten
-  (Bootstrapping, Attention-Router, Backlog-Vorschläge) als „zu prüfen".
-- **#367 (`137f7ea`) — 15.06.** 5 Memory-Zustände kanonisch ins Repo konsolidiert.
-- **#368/#369/#370 (`fbd7f0c`/`242b00c`/`f10cc72`) — 15.06.** H1/H2/Entry-Shadow-
-  Schärfung nach 2./3. externem Gutachten (Top-5-Ausreißer, Spike-Targets,
-  Bewegungs-Geschwindigkeit als Zielgröße).
-- **#371 (`5f97bc6`) — 16.06.** **None-Guard-Render-Fix** (`_card`): defensive
-  `_safe_float`-Wrap für `change`/`short_float`/`rel_volume` gegen present-but-None-
-  Provider-Ausfälle (#795/#796-Render-Crashes). `score()`/Compute-Pfad bewusst
-  NICHT mitgezogen → separate Nachfass-Diagnose 17.06. (§6, theoretisch, kein Bau).
-- **#372/#374/#375/#376/#377/#379/#380 — 16.–20.06.** Handover-Diagnosen:
-  H1–H6 parallel-Subagent-Option (16.06.); Cache-Bust-Folge-PR-Kandidaten (17.06.);
-  score()-None-Konsistenz (17.06.); US-Holiday-Awareness-Befund (19.06., Juneteenth-
-  Anlass); Sample-Varianten-Notiz `manual_personal` (19.06.); Reddit-Velocity +
-  424B-Dilution als post-30.06.-Kandidaten (20.06.).
-- **#373 (`8e4a2be`) — 17.06.** **Cache-Bustendes `reloadPage()`** (`location.replace`
-  + Query-Param) statt `window.location.reload()` — schützt vor GitHub-Pages-CDN-
-  `max-age=600` bei manuellen Reloads. Zwei Restkanten (PWA-Home-Icon-Erststart,
-  Countdown-Auto-Reload) als Folge-PR-Kandidaten dokumentiert.
-- **#378 (`e252bd5`) — 20.06.** S4-Holiday-Klärung: **ENTSCHEIDUNG: nicht bauen**
-  (Wartungs-Risiko > ~9 warn/Jahr; nur ein Konsument bekannt). → **21.06. gekippt
-  durch #381** (belegter zweiter Konsument).
-- **#381 (`acc4931` + Guardian-Folge `7e3fe41`) — 21.06.** **★★ EXIT-PUSH-DISZIPLIN
-  (A+B).** Fix A: Validity-Gate — `_send_exit_p2_push` skippt Records mit
-  `available != True`; `generate_report` setzt `available: True` in allen 6
-  Trigger-Success-Branches. Fix B: Markt-/Holiday-Gate — `process_exit_signals`
-  skippt an Wochenenden + US-Feiertagen (`config.US_MARKET_HOLIDAYS`, gemeinsames
-  Shared-Set mit S4-Health-Check). Anlass: 5 Wochenend-Exit-Fehlalarme (LUCK/PDYN/
-  AI/GIII/IONQ, alle `trend_break crit=True` mit `price=None`) + Independence Day
-  Fr 03.07. voraus. Asymmetrie der `available`-Defaults (Push strikt / Pressure
-  liberal / Frontend tolerant) bewusst belassen, Guardian-Findings-Doku-PR.
-  **Manueller Merge + squeeze-guardian ✓.**
-- **#382 (`a83312a`) — 21.06.** Holiday-Doku-Sync (CLAUDE.md + §6-Anker-Kippung
-  von #378 nach Bau-#381).
-- **#383 (`fffd464`) — 22.06.** **★ STALENESS-BANNER.** Header-Pill
-  `#hdr-staleness` — visualisiert Alter der Daily-Run-Daten. Anker `_DAILY_RUN_TS`
-  (server-eingebrannt in `_build_context`), NICHT `app_data.generated_at`
-  (überschreibt ki_agent stündlich). Schwellen `STALENESS_FRESH_MAX_HOURS=15` /
-  `_STALE_MIN_HOURS=24` (Ø 13,5 h zwischen Postclose→verspätetem Premarket → 15 h
-  vermeidet Alarm-Müdigkeit). Adressiert Cron-Verspätungs-Problem (Premarket
-  Ø ~5 h spät). Grenze zum PWA-Cache-Bug (§6-a) bekannt: bei stalem Snapshot
-  flaggt der Banner den veralteten Zustand, kann ihn aber nicht selbst auffrischen.
-  Guardian ✓, manueller Merge (neuer JS-Anker).
-- **#384 (`e69116a`) — 23.06.** **★ S7-RACE-GATE.** S7 (`agent_signals ∩ Top-10 ≥ 5`)
-  suppressed WARN bei niedriger Überlappung, wenn seit vorigem Daily-Run schon
-  ein ki_agent-Tick lief (`agent_signals.updated > app_data.last_daily_run_ts`) —
-  das ist erwartete Top-10-Rotation, kein Drift. FEUERT nur wenn kein Tick seit
-  vorigem Run (Auto-Trigger-Kette gebrochen, 14.05.-Bug-Klasse) ODER Timestamp
-  fehlt/unparsebar. Mehrtages-Ausfall zusätzlich von S8 gefangen.
-  `last_daily_run_ts` in `app_data.json`; ki_agent preserviert es via
-  `**existing`. Guardian ✓.
-- **#385/#386/#387 (`2457b48`/`2fdc70d`/`635176c`) — 27.–28.06.** **★ 30.06.-
-  ENTSCHEIDUNGEN dokumentiert.** #385: forward_10d-Verify (280 Records reif, 103
-  im Score≥70-Bucket, Backfill-Mechanik validiert). #386: **Prüfpunkt 6 (Entry-
-  Cap-Nachschärfung) GESTRICHEN** (At-Cap-vs-Under-Cap-Sample n≤8, keine
-  Trennkraft; kein Ersatz-Test — Multiple-Testing-Schutz). #387: Conviction-Edge
-  VORWÄRTS-ERHEBUNG entschieden (Prüfpunkt P3 zum 30.06. datenleer; gehört
-  gebaut, nicht gestrichen) + **Netto-Methodik fixiert** (Netto = Brutto −
-  Borrow-Fee-only; Spread als benannter Caveat, keine Pauschale).
-- **#388 (`eed37a6` + Guardian-Blocker-Fix `c0f53f7`) — 28.–29.06.** **★
-  CONVICTION-BACKTEST-PERSIST.** `conviction_score` + `conviction_components`
-  additiv in `_build_backtest_extension` (schema v4 unverändert, additiv). Beide
-  leer-tolerant (None auf Alt-Records), aus `app_data["conviction_scores"]`
-  gelesen. `expected_keys` in `_test_extended_schema` atomar; **Guardian-BLOCKER
-  gefunden**: `S10_OBSERVED_FIELDS` MUSS die neuen Felder tragen (Whitelist,
-  nicht MUSS-Liste) — sonst feuert `_s10_check_unknown_fields` am 1. Record
-  WARN. Fix in demselben Branch (Comment invertiert, test_09-Assertion
-  invertiert). Manueller Merge.
-- **#389 (`c60d209`) — 28.06.** **★ `stats_helpers.mann_whitney_u_auc`** —
-  pure stdlib, mit Tie-Korrektur + Stetigkeitskorrektur (Yates ±0.5). Fixture-
-  only-Test, kein Live-Pfad-Import. Werkzeug für die 30.06.-Auswertung.
-- **#390 (`b32a1c2`) — 28.06.** **★ `stats_helpers.multiple_testing_correction`** —
-  Bonferroni + Holm-step-down mit Label-Rückordnung. Additiv zu #389, fixture-
-  only. Werkzeug für die 30.06.-Auswertung.
-- **#391 (`f12188e`) — 29.06.** **★ `cluster_purge`-Helper** — `previous_trading_day`
-  holiday-robust via `config.US_MARKET_HOLIDAYS`; `classify_cluster_records` mit
-  `is_cluster_followup`-Flag (Doppel-Lauf-Disziplin für Setup-Score-≥70-Cluster-
-  Bereinigung). Fixture-only, kein Live-Pfad-Import.
-- **#392 (`a3820dc`) — 29.06.** Verkettungs-Test der drei Helfer (A→B→C):
-  dokumentiert 2 Adapter-Rezepte (A→B `(ticker,date)`-Lookup; B→C None-Filter +
-  parallele Labels). Trockenlauf-Test, kein Live-Effekt.
-- **#393 (`4fbc4aa`) — 29.06.** **★ YFINANCE-SEGFAULT-BRÜCKE.** `yfinance==1.4.1`
-  + `pandas==3.0.3` + `peewee==4.1.0` in `requirements.txt` gepinnt nach
-  SIGSEGV Exit-139 im Batch-Fetch Run #818 (Pip-Log-Diff #817→#818 zeigte
-  yfinance 1.4.1→1.5.1 minor jump; peewee war transitive Dep, muss explizit
-  gepinnt sein für Pin-Wirkung). Restoriert #817-Kombination. Runner-Image-Update
-  parallel sekundär möglich, aber H1 dominant. **Cap zurück nehmen** sobald
-  yfinance ≥ 1.5.x als stabil verifiziert (§6 Restkante).
-- **#394 (`e6e4079`) — 30.06.** **★★ EDGE-AUSWERTUNG 30.06. — DOKUMENTIERT.**
-  Kernbefund: **kein Prädiktor mit belegter Edge** über Setup / Earliness /
-  Monster / ki_signal / Entry-Shadow / Conviction / Velocity — 0/15 Holm-Rejects
-  bei k=15, Bonferroni-Schwelle 0.00333. Vier Confounds beim ≥70-Setup-Test
-  (pre-#346-Sample 91 %, Mai-Juni-Marktphase, in-sample, CI-Untergrenze knapp
-  unter 0.5). Earliness-Re-Test (n=78, AUC 0.77 aus 13.05.) fällt Out-of-Sample
-  auf 0.47–0.52. **Auffanglinie eingetreten:** Tool = **Attention-Router**, kein
-  Alpha-Generator. Baseline-Anker für Re-Tests (Setup ~Ende Sept., ki_signal
-  ~Mitte Aug., Conviction ~Ende Aug.) + Doku der Erfolgs-Definition-Disziplin.
-- **#395 (`72afe30`) — 01.07.** **★ EXIT-TIMING-BEFUND (Hypothese B) DOKUMENTIERT.**
-  Seed 01072026, k=28, Bonferroni-Schwelle 0.00179. **B.1** (Endpunkt-Vergleich
-  ≥70-Bucket, n=110): Δ(5d−10d)=+3.81pp CI [+1.00,+6.63] p-roh 0.0057;
-  Δ(3d−10d)=+4.67pp CI [+1.24,+7.84] p-roh 0.0073 — **erster echter Punkt-
-  schätzungs-Vorteil der gesamten Edge-Suche**, aber nicht Holm-belegt (kleinstes
-  p ~3× über Schwelle) → Kategorie **„Hinweis, nicht belegt"** (§8 Lesson-Ergänzung),
-  Re-Test-Kandidat n≥250 ~Ende September. **B.2** (Drawdown-Stop-Approximation):
-  alle 16 Δ negativ, 4 Holm-Rejects — feste Stops schaden systematisch (Trigger-
-  Häufigkeit 87–95 %). **Approximations-Charakter** dokumentiert (§8 Lesson).
-- **#396 (`96e3e70`) — 02.07.** **★ FRONTEND-SPRACH-FIX** an belegten Zustand.
-  8 Text-Änderungen an `generate_report.py` (Conviction-Level-Text „Erwartungs-
-  wert positiv" → „Aggregations-Anzeige, nicht validiert"; Panel-H4 „Aktions-
-  Empfehlung" → „Aggregations-Ansicht"; Pill ≥75 → „hohe Konvergenz"; Entry-
-  Shadow-Label „unvalidiert bis 30.06." → „heuristisch (Erhebung läuft)" —
-  Datum vergangen ohne Edge-Beleg). Golden-Snapshot bewusst aktualisiert
-  (byte-identisch grün nach `UPDATE_GOLDEN=1`). Konsumenten-Grep: 0 Selektor-
-  /JS-Key-Treffer außerhalb Golden/Runtime. Auto-Merge (Doku-only Effekt).
-- **#397 (`a773ae5` + Guardian-Nachbesserung `006ed8d`) — 02.07.** **★ MAX_GAIN_PCT
-  (Hypothese-C-Vorbau).** Additive Outcome-Persistenz als Spiegel zu
-  `max_drawdown_pct`. Helper `_compute_max_gain_pct(df_window)` in
-  `backtest_history.py` — Formel `roll_low=Low.cummin() → (High-roll_low)/roll_low
-  × 100 → max, round 2`; Guards byte-identisch zu Drawdown. Init `"max_gain_pct":
-  0.0` neben `"max_drawdown_pct"` (Z. 763); Rolling-Update in derselben
-  `df_since`-Slice mit demselben `dd_batch`-Download (kein zusätzlicher yf-Call),
-  Guard `if "max_gain_pct" in e` schützt Alt-Records. Schema bleibt v4 (Guardian
-  bestätigt). `S10_OBSERVED_FIELDS` erweitert (Lehre #388). Zweistufiger fixture-
-  only Test (Slot A stdlib-only + Slot B pandas-abhängig, im CI übersprungen).
-  Guardian-Empfehlung → CLAUDE.md `§Backtest-Schema (Stufe 1)`-Tabelle mit-
-  aktualisiert. Backfill auf 300 Alt-Records **nicht** in diesem PR (Stufe-3
-  bei Bedarf). Manueller Merge (Backtest-Schema-Touch).
+### PR #400 — 03.07. — `a936886` (squash-merged)
+**★ Backfill thin-slice-Zähler** (Guardian-Nachbesserung aus #399).
+Neuer pure Helper `classify_outcome(df_len, mg) → str` mit vier Klassen
+(`none` / `thin_slice` / `filled_zero` / `filled`).
+`compute_and_apply_backfill`-Return-Tupel um `n_thin_slice` erweitert.
+Live-`log.warning` wenn > 0. Trennt stille Datenlücken (`mg=0.0` bei
+`df_len<2`) von echten Null-Gains. 54/54 fixture-Tests grün. Kein
+Verhaltens-Effekt am Füll-Vorgang — nur Diagnose. **Manueller Merge.**
+
+### PR #401 — 03./04.07. — Merge `55be1dd` (Guardian-Nachbesserung `7056cb2`)
+**★ Backfill-Workflow `workflow_dispatch`.**
+Neuer `.github/workflows/backfill_max_gain_pct.yml` — manual-only,
+`concurrency.cancel-in-progress: false`, `git add backtest_history.json`
+(genau eine Datei), `git diff --staged --quiet && exit 0`-Idempotenz-Guard.
+Guardian ✓ (Finding 4 Kommentar-Präzisierung im `7056cb2`-Nachtrag).
+**Manueller Merge.** Anschließend:
+
+### `85cbbe9` — 04.07. — Live-Lauf
+**★★ MAX_GAIN_PCT-Backfill DURCH — 330/330 Records gefüllt, 0 thin-slice.**
+Commit „chore: max_gain_pct backfill (einmalig, 330/330 Records gefüllt,
+0 thin-slice)". Alle 330 reifen Alt-Records in `backtest_history.json`
+tragen jetzt `max_gain_pct` (129 unique Tickers). Kein thin-slice →
+keine stillen Datenlücken. Hypothese-C-Sample sofort auswertbar.
+
+### 04.07. — Hypothese-C-Auswertung (kein PR, dokumentiert in #405)
+**★★ 3 Schwellen +10 % / +30 % / +50 %:** Seed 04072026, Bootstrap
+N=2000, k=6 gemeinsame Holm-Klammer über 3 Schwellen × 2 Cluster-Läufe.
+**Kernbefund: 0/6 Holm-Rejects.** Alle AUC-CIs enthalten 0.5.
+Baseline-Peak-Raten 95.8 % (C-10) / 35.5 % (C-30) / 15.2 % (C-50). C-50
+Δ +5.44 pp / +5.76 pp mit AUC 0.562/0.561 zeigt richtungs-plausible
+Punktschätzung, aber roh-p 0.164/0.213 → NICHT „Hinweis"-Kategorie.
+Regime-Robust (pre/post-#346-Split konsistent). **Auffanglinie über
+drei Auswertungstage bestätigt** (30.06. Endpunkt + 01.07. Exit-Timing
+B.1 + 04.07. Peak). **Setup-Score bleibt Attention-Router / Screener.**
+
+### PR #402 — 02.07. — `0da83af` (Guardian-Nachbesserung `498aeaf`)
+**★ `entry_past_return_5d` Stufe A** (Hypothese-A-Vorbau, Reversal-Entry).
+Additive Live-Vorwärts-Erhebung: `_compute_entry_past_return_5d(close_at_
+entry, close_5td_before)` mit Adj-Close BEIDSEITIG (Split-Konsistenz-
+Pflicht, Reverse-Splits bei Squeeze-Small-Caps häufig). `_hist_stats`-
+Tupel um Element `close_5td_before_entry` erweitert; Batch + Singleton-
+Fallback beide angepasst. **Kein neuer yf-Fetch** — nutzt bestehende
+`hist_batch`. **None-Semantik STRIKT** (nicht 0.0-Overload wie
+`max_gain_pct`): `None` = nicht ableitbar, echte Null-Bewegung liefert
+`0.0`. Look-Ahead-Konvention EINFROREN im Docstring + S10-Kommentar +
+Test E1-E6. Schema v4 unverändert. 24 fixture-only Tests grün.
+Guardian ✓ (4 informative Findings, F1+F2 in `498aeaf` behoben:
+Testname-Rename + CLAUDE.md-Anker). **Manueller Merge.**
+
+### PR #403 — 03.07. — Merge `b4d6b1d`
+**★ Requirements-Cap-Semantik.** `yfinance==1.4.1 → yfinance>=1.4.1,<1.5`
+(analog `pandas>=3.0.3,<3.1`, `peewee>=4.1.0,<4.2`). Löst
+`#393`-Segfault-Bridge-Trade-off („`==`-Pin sperrt auch 1.4.x-Bugfixes")
+ohne den Minor-Sprung wieder zuzulassen, der den SIGSEGV verursachte.
+Cap-Kontrolle: kein `>=` ohne Obergrenze bei den drei Ziel-Paketen.
+Kein Konflikt mit `pr-checks.yml` (installiert bewusst separat).
+**Manueller Merge.** Live-Verify: nächster Actions-Lauf soll
+`1.4.1 / 3.0.3 / 4.1.0` ziehen (§3).
+
+### PR #404 — 04.07. — `1594f20`
+**★ `days_to_earnings` Stufe A** (Hypothese-H5-Vorbau, Katalysator ×
+Score). Additive Live-Vorwärts-Erhebung, Snapshot des AM Report-Tag
+bekannten nächsten Earnings-Termins in **Kalendertagen** (konsistent zum
+Live-Score-Konsumenten `_compute_sub_scores:3746-3749`, Bucket-Schwellen
+≤7 / ≤14). Wert 1:1 aus `s["earnings_days"]` (Live-Enrichment via
+EarningsWhispers-Cache + yfinance-Fallback in `generate_report.py:16502-
+16540`). Point-in-time-sauber: Fetch AM Report-Tag → keine später-
+angekündigten Termine leaken. **Backfill STRUKTURELL NICHT MÖGLICH** —
+heutiger Fetch ≠ damaliger Termin; nur Vorwärts-Erhebung. Look-Ahead-
+Konvention EINFROREN (analog #402). Ein-Feld-Invariante, `int()`-Cast
+defensiv, None-Semantik klar (`0 = Earnings HEUTE ≠ None`). 15
+fixture-only Tests grün. Guardian ✓ ohne Findings. **Manueller Merge.**
+
+### PR #405 — 04.07. — `805c9df`
+**Doku:** SESSION_HANDOVER.md komplett auf 04.07.2026 aktualisiert
+(alle 8 damaligen Sektionen). Reine Doku, Auto-Merge.
+
+### PR #406 — 08.07. — Merge `7e4bde0`
+**★ Conviction-Level-Texte neutralisiert.** Frontend-Sprach-Fix an
+belegten Zustand: aus Handlungs-Suggestion („Erwartungswert positiv") →
+neutrale Aggregations-Beschreibung („Aggregations-Anzeige, nicht
+validiert"). Panel-H4 „Aktions-Empfehlung" → „Aggregations-Ansicht",
+Pill ≥75 → „hohe Konvergenz". Kein Score-/Filter-Effekt. Golden-Snapshot
+mit-aktualisiert (byte-identisch nach `UPDATE_GOLDEN=1`). Konsumenten-
+Grep: 0 Selektor-/JS-Key-Treffer außerhalb Golden/Runtime. **Auto-Merge.**
+
+### PR #407 — 09.07. — Merge `f7513a9`, JS-Spiegel `b87474a`
+**★ Good Friday algorithmisch in `US_MARKET_HOLIDAYS`** (Meeus-/Butcher-
+Oster-Formel, pure stdlib). Karfreitag = Ostersonntag − 2 Tage, bit-exact
+für den Gregorianischen Kalender ab 1583. Python-Set (`config.US_MARKET_
+HOLIDAYS`) UND JS-Spiegel (`generate_report.py`-embedded `US_HOLIDAYS`)
+**bit-identisch** synchronisiert (Test `mock_test_good_friday` erzwingt
+Symmetrie). Range 2020–2050 abgedeckt. Ersetzt frühere Hardcode-Liste,
+die 2028 auslaufen wäre. **Manueller Merge (Schema/Kalender-Touch).**
+Guardian ✓ (ROT-Blocker JS-Spiegel gefunden und in `b87474a` gefixt).
+
+### PR #408 — 09.07. — `57d8f18`
+**★ `finra_publication_date`-Helper (settlement + 7 Business-Days).**
+Basis für Look-Ahead-freie SI-Analysen. Neues Modul
+`scripts/business_days.py` (~130 Zeilen, pure stdlib) mit
+`next_trading_day(d)` und `finra_publication_date(settlement_date,
+offset=None)`. Konstante `FINRA_PUB_OFFSET_BUSINESS_DAYS = 7` in
+`config.py` (kapselt FINRA-Rule-4560-Dissemination-Delay; SR-FINRA-2026-012
+plant höhere Frequenz → Offset zentral anpassbar). Live-Enrichment in
+`generate_report.get_finra_short_interest`: jeder `history`-Entry bekommt
+zusätzlich `pub_date` (ISO-String). Holiday-robust dank #407. Modul-
+Isolation: kein Cross-Import in `cluster_purge` (Reihenfolge-Disziplin).
+34 fixture-only Test-Assertions (A–I) inkl. manueller Karfreitag-Rechnung
+Do 26.03. → Di 07.04.2026 (nicht Mo 06.04. — belegt PR-#407-Kern-Nutzen).
+Guardian ✓ ohne Blocker. **Manueller Merge.**
+
+### PR #409 — 10.07. — `a52ef48` (Kosmetik-Nachbesserung `83ac7da`)
+**★ `si_velocity_pub` — Look-Ahead-freier SI-Rate über N=3 publizierte
+Reports.** PR-3 der 3-PR-Kette (#407 → #408 → #409). Neuer pure Helper
+`_compute_si_velocity_pub(finra_history, entry_date, n_reports=None)` in
+`backtest_history.py`. Formel `(si[0] − si[N-1]) / si[N-1]` (relativ,
+gerundet 4) über die letzten `SI_VELOCITY_PUB_N_REPORTS=3` PUBLIZIERTEN
+Reports mit `pub_date ≤ entry_date`. Neues Backtest-Feld
+`si_velocity_pub` in `_build_backtest_extension` (entry_date-Kwarg neu,
+`_append_backtest_entries` reicht das aus dem Wochenend-Guard bereits
+existierende `_rd` durch). **Naming-Isolation:** der `_pub`-Suffix
+grenzt bewusst gegen das ältere Displayfeld `finra_data.si_velocity`
+in `generate_report.py` ab (absolute Shares/Tag über volle Historie,
+kein pub_date-Filter, KI-Boost-Konsument — bleibt unangetastet).
+Beide Größen koexistieren mit verschiedenen Zwecken. 34 fixture-only
+Test-Assertions (A–G), inkl. LOOK-AHEAD-KERNBEWEIS B1–B4 (Report mit
+`settlement ≤ entry_date` ABER `pub_date > entry_date` MUSS
+ausgeschlossen werden). Look-Ahead-Konvention EINFROREN im Docstring.
+S10_OBSERVED_FIELDS-Whitelist. Schema bleibt v4. Guardian ✓ ohne
+Blocker (kosmetischer Doppel-Kommentar in `83ac7da` gefixt).
+**Manueller Merge.**
 
 ---
-
-### Fenster 10.–13.06.2026 (Voll-Handover-Stand aus PR #363, historisch)
-*(Roter Faden: erst die letzte Sicherheits-Lücke schließen (XSS), dann zwei
-Edge-SAMMEL-Pendants scharfschalten (Vintage-Guard, Exit-Shadow) + KI-Edge-
-Felder additiv; dann die Off-Schedule-WURZEL schließen (#357 Redeploy), die
-`.jsonl`-Resolver-Lücke + Cron-Doku-Drift bereinigen, und das Entry-Modul mit
-der Cockpit-Caption sichtbar abschließen — alles Shadow/Schutz/Hygiene, KEIN
-Live-Score-/Push-Effekt.)*
-
-- **#343 (feat `db4e720`, Merge `ed6806f`) — 10.06.** **★ XSS-Härtung C1+M2.**
-  Stored-XSS im News-Render + `company`/`sector`-Feldern: `_escH`-Escaping (inkl.
-  Anführungszeichen, Attribut-Kontext) + `n.link`-Whitelist `^https?://`
-  (Escaping allein stoppt `javascript:` NICHT). Damit ist der **einzige Pfad zu
-  echtem Konto-/Token-Schaden** (XSS → sessionStorage-PAT) dicht. Frontend-
-  Security, manueller Merge + Guardian.
-- **#346 (feat `c0d0874` + refactor `0683567`, Merge `422be31`) — 10.06.**
-  **★ Vintage-Guard M1 LIVE.** β+-Gate in `_append_backtest_entries` — Backtest-
-  Append NUR wenn `bar_date == report_date` (date-Objekt-Vergleich) UND
-  `now_et >= 16:00 ET`. Skippt Pre-Open-Runs (Bar=Vortag), Feiertage (Bar=Vortag,
-  OHNE Python-Feiertagsliste — datengetrieben), Intraday-only-Tage (now<16:00).
-  Schützt jedes KÜNFTIGE Edge-Sample vor der Freitag-Cluster-Verseuchung (52 %
-  stale-Rate unter recurring Tickern). Skip kehrt VOR existing_keys-Belegung
-  zurück → späterer Post-Close-Run appended frisch. Missing bar_date → APPEND
-  (konservativ, kein stiller Datenverlust). bar_date in-memory (kein Schema-Bump).
-  Skip-Beobachtung in `vintage_guard_log.jsonl` (eigene Datei, digest-frei).
-  Guardian ✅, 78/78 Runner, 18/18 Boundary-Mock. Manueller Merge.
-- **#350 (feat `e7a3ed1`, Merge `0066277`) — 11.06.** **★ Exit-Shadow-Log LIVE.**
-  `exit_shadow_log.jsonl` sammelt pro Handelstag pro offener Position den
-  `exit_state` (`exit_pressure` + 6 Trigger-Sub-Scores + peaks + `signal_price`)
-  + Forward-Return-Backfill (`forward_3d/5d/10d`). Validierungs-Pendant zum
-  Entry-Shadow (#336) — bisher liefen Exit-Trigger live (Pushes) OHNE Edge-Messung.
-  Hook NUR im Daily-Run `_build_phase2` (gen:15273, exit_state wird dort einmal
-  berechnet; ki_agent liest nur). **GATE:** nur postclose + `now_et>=16:00 ET`
-  (nicht-finale Preise raus). **RE-WRITE by (ticker,date)**, kein Append.
-  **Backfill:** Reuse `_close_at` (settled re-fetch → vintage-/auto_adjust-immun),
-  **ABBRUCH-BEDINGUNG** (`forward_10d` gesetzt → fertig, nie wieder anfassen →
-  skaliert). **KONVENTION: NEGATIVER `forward_Nd` = GUTES Exit-Signal** (Kurs
-  fiel nach Warnung). Null Live-Effekt, eigene Datei, kein Schema/S10/Push/
-  Ratchet-Touch. Guardian ✅, 79/79, 35/35 Boundary. Manueller Merge.
-- **#353 (feat `e62b118`, Merge `1e41d78`) — 11.06.** **★ Backtest-Felder
-  monster_score + ki_signal_score (additiv, v4).** Zwei additive Felder im
-  Return-Dict von `_build_backtest_extension` (`backtest_history.py`), aus
-  `s.get(...)` gelesen, **leer-tolerant** (None): `monster_score` (KI-×1.20/×0.80-
-  Transform des Setup, `apply_monster_score`) fehlt auf Alt-Einträgen vor diesem
-  PR; `ki_signal_score` (roher ki_agent-Score, `apply_agent_boost`) ist None ohne
-  agent_signals-Eintrag. **`backtest_schema_version` BLEIBT 4** (S10-Loader
-  filtert hart ==4 — kein Bump). `expected_keys` in `_test_extended_schema`
-  **atomar** mitgepflegt (#329-Tripwire) + None-Asserts + Non-None-Passthrough.
-  `S10_OBSERVED_FIELDS` ergänzt (OBSERVED/optional, KEIN MUSS-/LAG-Check). Zweck:
-  30.06.-Auswertung des KI-/Monster-Edge ermöglichen. KEIN Score-/Filter-/Push-/
-  Anzeige-Effekt. Golden byte-identisch, 79/79, Guardian ✅. Manueller Merge.
-- **#355 — 11.06.** **★ S4-Zeit-Gate (16:00 ET).** S4 („backtest_history-Eintrag
-  fehlt") feuerte vormittags fälschlich `warn` — alte Annahme „postclose-Run ⇒
-  Eintrag da", seit Vintage-Guard #346 falsch (Append vor 16:00 ET legitim
-  geskippt; ausgelöst von Pre-Open-Runs mit `run_phase=postclose` um 00:09/01:53
-  ET). Fix: S4 erwartet den heutigen Eintrag erst wenn `now_et >= report_date@16:00
-  ET` (zoneinfo, DST-korrekt) — **SYMMETRIE zum Vintage-Guard-Producer-Gate**.
-  **Zähne erhalten:** nach 16:00 ET feuert S4 weiter bei Append-Crash UND
-  Bar-Lag-Skip (liest NICHT `vintage_guard_log` — der Bar-Lag-Skip soll sichtbar
-  bleiben, §3-Verify-Signal). Wochenend-Gate nur ergänzt (OR). `today_iso`
-  unparsbar → konservativ S4 feuert. `severity` bleibt `warn`, kein
-  Score-/Push-/Render-Touch. `now_utc` war im Evaluator schon vorhanden (keine
-  neue Plumbing). Guardian ✅, 40/40 health_check, 79/79 CI-Gate. Manueller Merge.
-- **#357 — 11.06.** **★★ WURZEL-FIX: Redeploy-Auto-Trigger entfernt.**
-  `redeploy-on-source-change.yml` (#194/#196) dispatchte bei **jedem** Code-Merge
-  auf `main` einen **vollen** `daily-squeeze-report.yml`-Run (Fetch+Score+**Pushes**+
-  score_history-Write+ki_agent-Trigger) statt nur `index.html` zu deployen — die
-  **gemeinsame Wurzel** (Easy-Verify Actions-Log) von Pre-Open-Pushes auf nicht-
-  finalen Daten, S3-/S4-Fehlalarmen, Freitag-Cluster-Kontamination und score_history-
-  Churn. **Fix:** `on: push` → `on: workflow_dispatch` (nur manuell), **reversibel**
-  (push-Block auskommentiert, Run-Logik erhalten — nicht gelöscht, falls später
-  Render-Only). Render-Only-Alternative verworfen (kein vollständiger committeter
-  Render-Input; ki_agent-Trigger sitzt workflow-seitig). **Scope strikt:**
-  `daily-squeeze-report.yml` (2 Crons + dispatch) + `ki_agent.yml` UNBERÜHRT (leerer
-  Diff); kein Python-/Render-/Score-/Push-Touch. **Rest-Kante** (kein Defekt):
-  Recalculate-Button dispatcht weiter direkt (gen:9559/10575) — bewusste Einzelaktion,
-  s. §6-b. Guardian ✅, 79/79 CI-Gate, Golden byte-identisch. Manueller Merge.
-- **#359 (Merge `76e13f5`) — 12.06.** **★ `.jsonl`-Resolver-Lücke geschlossen
-  (union).** `.gitattributes merge=union` für die **5 PURE Append-Logs**
-  (`score_inflation_log`, `health_check_log`, `provider_health`,
-  `finra_history_health`, `vintage_guard_log` — alle `open(...,"a")`) → Rebase-
-  Append-Konflikte lösen ohne Daily-Run-Abort, beide Zeilen erhalten (`git rebase`
-  respektiert den Driver — empirisch belegt). **`exit_shadow_log.jsonl` BEWUSST
-  AUSGENOMMEN** (Full-Rewrite + Re-Write-by-(ticker,date) + Backfill → union
-  erzeugte Duplikat-Keys, empirisch belegt). Guard-Test `mock_test_gitattributes_
-  union_merge` (Kat. A), CI-Gate **79→80**. Self-merge. Details + Korrektur der
-  „stiller-Verlust"-Annahme: §6 + §8.
-- **#362 (feat `4be6aa3`, Merge `49c28d3`) — 12.–13.06.** **★ Cockpit-Entry-
-  Shadow-Caption LIVE** (live-verifiziert iPhone). Dezente Caption unter
-  `cockpit-body`: „Entry-Shadow {score} · {n}/5 Komp. · unvalidiert bis 30.06.".
-  **Ansatz (A) client-side, REIN ADDITIV:** Server rendert nur leeren `hidden`
-  Hook `.cockpit-entry-shadow[data-es-ticker]`; JS füllt aus `window._BT_DATA`
-  (latest Entry/Ticker, DD.MM.YYYY-chronologisch), **nur wenn `entry_score`
-  not-None** (0 IST ein Wert), sonst Element entfernt. Preload schreibt in den
-  BESTEHENDEN `_BT_DATA`-Cache (kein Doppel-Fetch). `backtest_history.py` (#336)
-  unberührt; Drawer-Strip übersteht der Hook (nur `id=`-Strip). Damit ist das
-  Entry-Modul vom Shadow-Daten-Sammeln bis zur (unvalidierten) Anzeige komplett.
-  Guardian ✅, CI 80/80, Golden mit-committet (nur Hook+JS, body-only). Manueller
-  Merge + iPhone-Verify.
-- **Doku-PRs (11.–13.06.):** #358 (`46bf50a`, #357-Wurzel-Fix-Handover), #360
-  (`2b85698`) + #361 (`dbd3ae1`) — **Cron-Doku-Drift `17 10`→`17 6` vollständig
-  bereinigt** (CLAUDE.md + `resolve_run_phase.py`-Docstring + Test-Daten; repo-weit
-  kein `17 10` mehr, verifiziert). Inhalte in §3–§8 eingearbeitet.
-- **Doku-Konsolidierungs-PRs (10.–11.06.):** #344 (Security-Strang/Audit 09.06.),
-  #345 (M3-Entscheidung PAT classic), #347 (Vintage-Guard + score_delta), #348
-  (S3/S7-Merge-Tag-Erklärung), #349 (DBI-8.88 aufgelöst + trend_break-Rest-Kante),
-  #351 (Exit-Shadow-Notizen), #352 (Edge-Programm-Roadmap). **Inhalte sind in
-  §3–§8 eingearbeitet** — keine separate Aufzählung mehr nötig.
-- **Vorherige Session (06.–07.06., NICHT erneut gelistet):** CI-Gate #329–#335
-  (Schema-Tripwire, stale-Reds, Golden-Liveness-Stub, tier2-AST, Allowlist-Runner)
-  + Kern-Meilenstein **Entry-Score Shadow #336**. Durable Anker leben in §6/§7.
 
 ## 2) AKTIVE POSITIONEN
-**Quelle: privater Gist (kanonisch, im Sandbox nicht direkt lesbar) →
-`app_data.json`-Positions-Mirror ist der letzte Daily-Run-Snapshot; bei
-Abweichung gewinnt Gist.** Letzter verifizierter Handover-Stichtag: **13.06.2026
-mit 8 offenen Positionen** (AMC, IONQ, PDYN, AI, RBOHF, GIII, LUCK, DBI). Zum
-02.07. sind seit dem 30.06.-Auswertungs-Fenster **keine Positions-Öffnungen /
-Schließungen im Session-Kontext bekannt** — die 8 Positionen liefen strategisch
-durch die 30.06.-Datenauswertung („kein belegter Edge, Attention-Router").
-Für die genauen aktuellen Ticker / Stückzahlen / current_price → Frontend
-(Cockpit + Position-Panel) oder Gist konsultieren. Der `app_data.positions[t].
-current_price` wird 2× pro Werktag (Premarket + Postclose Daily-Run) aktualisiert;
-zwischen den Runs kann er stale sein (S3-Merge-Tag-Muster, §8 — kein Ausfall-
-Indiz).
 
-**Hold-Flag-Regel unverändert:** `AMC` trug in der 13.06.-Erhebung als einzige
-Position `no_exit_alerts=True` (bewusster Buy-and-Hold-Skip aller Exit-Pushes).
-Andere Positionen bekommen weiter Exit-Pushes; **wichtige neue Schutzschicht:**
-seit **#381 (21.06.)** feuert die Exit-Push-Pipeline **nicht mehr an Wochenenden
-oder US-Feiertagen** (`config.US_MARKET_HOLIDAYS`, gemeinsames Shared-Set mit
-S4-Health-Check) UND nur bei `available=True` — 5 Wochenend-Fehlalarme (LUCK/
-PDYN/AI/GIII/IONQ) waren der belegte Anlass. **Independence Day Fr 03.07.**
-fällt bewusst ins Auswertungs-Fenster; das Gate ist genau dafür da.
+**Kanonische Quelle: privater Gist** (`squeeze_data.json`, `positions`-Sub-
+Objekt). Aus der Sandbox nicht direkt lesbar — `app_data.json`-Mirror ist
+der letzte Daily-Run-Snapshot; bei Abweichung gewinnt der Gist. Zwischen
+Runs kann `current_price` stale sein (S3-Merge-Tag-Muster, §8 — kein
+Ausfall-Indiz).
 
-**DBI-8.88-Strang:** unverändert aufgelöst (§8), keine offene Position ist
-seither von einer Corporate Action zwischen Entry und heute betroffen.
+**Stand `app_data.json` — letzter erfolgreicher Daily-Run `last_daily_run_
+ts = 2026-07-10T09:54:06Z` (premarket, 10.07.):** **7 offene Positionen.**
 
-## 3) VERIFIKATION (nächster Handelstag + dated Termine)
-*(08.06.-/13.06.-/27.06.-Verifies ERLEDIGT: Entry-Score, FINRA-SSR, Wochenend-
-Digest, Redeploy-Trigger-Aus, Exit-Shadow-Backfill forward_10d — alle
-bestätigt, entfallen.)*
+| Ticker | entry_date | entry_price | current_price | shares | Hold-Flag |
+|---|---|---|---|---|---|
+| AMC   | 2026-05-01 | $1.50   | $1.90   | 500 | ✓ `no_exit_alerts=True` |
+| IONQ  | 2026-05-11 | $49.10  | $44.77  | 40  | — |
+| PDYN  | 2025-01-20 | $11.52  | $5.46   | 150 | — |
+| AI    | 2026-06-01 | $11.00  | $9.01   | 10  | — |
+| WOLF  | 2026-07-03 | $50.97  | $37.25  | 7   | — |
+| FRMM  | 2026-07-06 | $6.95   | $5.90   | 15  | — |
+| LENZ  | 2026-07-07 | $6.00   | $5.79   | 15  | — |
 
-### AKUT (nächste Handelstage, konkrete Beobachtungspunkte)
+**Änderungen seit letztem Voll-Handover (04.07.):** aus dem 13.06.-Stand
+(AMC, IONQ, PDYN, AI, RBOHF, GIII, LUCK, DBI) sind RBOHF/GIII/LUCK/DBI
+nicht mehr im Mirror; drei neue Positionen (WOLF 03.07., FRMM 06.07.,
+LENZ 07.07.). Details (P&L, These, Lessons) sind ausschließlich im
+Gist / Trade-Journal belegt — nicht Session-Kontext.
 
-- **★ Fr 03.07.2026 Independence Day (Markt geschlossen):** **erste Live-
-  Verifikation** des Holiday-Skip aus PR #381. Erwartung: `process_exit_signals`
-  skippt vollständig (kein Push, kein Compute); Vintage-Guard-Log ohne neue
-  Skips; Daily-Run-Cron `17 6 * * 1-5` läuft ohnehin nicht am Freitag (nur
-  Mo–Fr, hier Feiertag). Watch: kein Exit-Fehlalarm gegen Vortags-Bar.
-- **★ ab ~04.07.2026 (Mo nach Feiertag):** **erste Records mit `max_gain_pct
-  ≠ 0.0`** in `backtest_history.json` (PR #397). Zwei Trading-Days seit
-  Postclose-Deploy sollten reichen (High > cummin-Low erreicht). Watch:
-  Log-Zeile `max_gain für M/N aktive Einträge` in Actions-Log; keine `None`-
-  Persistierung.
-- **★ ab ~16.07.2026:** erste vollständigen 10-Trading-Day-Fenster für
-  post-#397-Records → erste Verteilungs-Sicht auf `max_gain_pct` (Median, IQR,
-  Reifegrad-Filter). Auswertung nicht vor Ende Juli sinnvoll.
-- **★ yfinance-Pin Aufhebe-Kandidat:** sobald yfinance ≥ 1.5.x auf einem
-  parallelen Test-Env oder in der Community als stabil gilt, `requirements.txt`-
-  Cap `==` lockern (auf `<1.6` oder wieder `>=`). §6 Restkante.
+**Hold-Flag-Regel unverändert:** `AMC` trägt weiterhin `no_exit_alerts=
+True` (bewusster Buy-and-Hold-Skip aller Exit-Pushes). Andere Positionen
+bekommen Exit-Pushes; **Schutzschicht seit PR #381** (21.06.): Exit-Push-
+Pipeline feuert **nicht mehr an Wochenenden oder US-Feiertagen**
+(`config.US_MARKET_HOLIDAYS`, gemeinsames Shared-Set mit S4-Health-Check)
+UND nur bei `available=True`.
 
-### HISTORISCHE VERIFY-BELEGE (abgeschlossen, hier als Fußnote erhalten)
+---
 
-- **✅ ERLEDIGT — #357 Redeploy-Auto-Trigger BESTANDEN (13.06.):** Beleg = #362
-  (eine `generate_report.py`-Änderung) wurde gemergt und löste **KEINEN**
-  automatischen Daily-Run aus — die deployte `index.html` blieb auf dem letzten
-  Cron-Stand (Diagnose 12.06.: erst der reguläre Post-Close regeneriert sie). Der
-  Auto-Pfad ist tot; nur der manuelle Dispatch/Recalculate triggert noch. Verify
-  geschlossen. (Bewusste Konsequenz: UI-/Template-Änderungen werden erst beim
-  nächsten Cron oder manuellem Dispatch sichtbar — kein Defekt, der #357-Trade-off.)
-- **✅ ERLEDIGT — Exit-Shadow Datei-Commit (Tag 1+2 sauber):** `exit_shadow_log.jsonl`
-  committet vom Post-Close `a9c07ac` (11.06. 21:12Z, 8 Records) UND fortgeschrieben
-  `2956849` (12.06. 22:50Z, +8 Records 12.06.); 11.06-Records via Re-Write-by-
-  (ticker,date) **unverändert** erhalten, `exit_state`+6 Trigger+signal_price gefüllt.
-  **OFFEN (einziger noch nie belegter Pfad) → ~16.06.:** füllt der ki_agent-Backfill
-  die `forward_3d` auf den 11.06-Records? (11.06 + 3 Handelstage ≈ 16.06; Backfill
-  bisher 0× gelaufen). **NEBENBEI ab ~16.06.:** geht der Daily-Run je rot mit
-  „Konflikt in nicht-JSON-Dateien" + `exit_shadow_log.jsonl`? (ab Backfill-Start
-  wird ki_agent 2. exit_shadow-Schreiber = erste reale Konflikt-Chance). Bleibt es
-  ruhig → der Merge-Strang ist endgültig erledigt (s. §6: key-aware-Driver verworfen).
-  **✅ VERIFIED 27.06.2026 (Sa, Stand origin/main `47f188f`):**
-  forward-Backfill auf 10d-Horizont **sauber durchgelaufen**. Belege (read-only-
-  Stichproben gegen `exit_shadow_log.jsonl` + `backtest_history.json`):
-  - **11.06-Records: 8/8 `forward_10d` gefüllt** (AI −21.16, AMC −11.62,
-    DBI −6.42, GIII −6.37, IONQ −11.55, LUCK −11.80, PDYN −16.59, RBOHF −29.73).
-    Backfill griff am 26.06. postclose (10. Trading-Tag-Bar nach Entry,
-    Juneteenth holiday-robust über bar-index übersprungen).
-  - **Allgemein return_10d-Reife (`schema_v=4`): 280 Records gesamt** mit
-    `return_10d` gefüllt; davon **Score≥70-Bucket n=103**.
-  - **Backfill-Anomalien: 0** (kein einziger `schema_v=4`-Record >16 Kalender-
-    tage alt mit `return_10d=None`). Bar-index-Mechanik (`fwd_idx = sig_idx + n`,
-    `ki_agent.py:574`, holiday-robust by construction über echte yfinance-Closes)
-    ist auch auf dem 10d-Horizont validiert. Daten-Pipeline für die
-    30.06.-Auswertung steht. Sample wächst weiter — Sample-Belege gelten zum
-    genannten Stand und können (additiv) anwachsen.
-- **✅ GEPRÜFT 13.06 — Vintage-Guard-Log sauber:** nur **2 Skips, beide `pre_open`**
-  (11.06. 04:09Z/05:53Z = 00:09/01:53 ET) — KEIN ~22:xx-UTC-Bar-Lag-False-Skip. Die
-  12.06-Post-Close-Läufe (20:52/22:50Z, post-16:00 ET) appendeten korrekt
-  (backtest_history 12.06=10). Seit #357 keine NEUEN Skips (Pre-Open-Dispatch-Quelle
-  versiegt). **Nächster Watch:** identisch zum exit_shadow-Konflikt-Watch ab ~16.06.
-- **★ FINRA-History-Sample (~23.06., `finra_history_health.jsonl`, digest-frei):**
-  14–30 d Sample für evidenzbasierte Wächter-Schwelle des Daily-Run-FINRA-History-
-  Fetch (speist `si_trend_5d_slope`, bislang UNMONITORED). **ACHTUNG: `coverage_pct`
-  ist in PROZENT gespeichert**, nicht als 0–1-Bruch — nicht um Faktor 100 verrechnen.
-- **★★ Backtest-Hauptauswertung — AN `return_10d`-REIFE GEKOPPELT, NICHT ans Datum
-  (realistisch eher Anfang Juli als 30.06. punktgenau):** Setup-≥70-Edge im
-  **DOPPEL-LAUF** (Cluster) · Entry-Shadow-Komponenten · KI-/monster-Edge (#353) ·
-  Conviction-Methodik · Earliness-Re-Test. **Cap-Nachschärfung = EDGE-TEST**
-  (Forward-Return am-Cap vs unter-Cap), NICHT nur Verteilung (s. §4). Qualität vor
-  Pünktlichkeit: viele Komponenten-Träger sind erst seit 06.–12.06. → `return_10d`
-  teils noch unreif bis ~Ende Juni.
+## 3) VERIFIKATION (nächste Handelstage, konkrete Beobachtungspunkte)
+
+### AKUT (11.–15.07.2026)
+
+- **★ yfinance-Cap Live-Verify (PR #403):** nächster Actions-Lauf soll
+  weiter `yfinance 1.4.1 / pandas 3.0.3 / peewee 4.1.0` installieren
+  (Cap-Semantik: `>=1.4.1,<1.5`). Watch: pip-Log im Daily-Run-Actions-
+  Job; kein `1.5.x`-Sprung, kein Segfault Exit-139.
+
+- **★ `si_velocity_pub` — erste Records (PR #409):** stand
+  `backtest_history.json` 11.07.: **0 Records mit `si_velocity_pub`-
+  Feld** (letzter Append 09.07.2026 lag VOR dem Merge am 10.07.). Der
+  nächste **postclose**-Run (Mo 13.07. ~21:17 UTC) sollte Records mit
+  dem neuen Feld anlegen. Erwartung pro Ticker: `None` in den ersten
+  Tagen (weniger als 3 eligible publizierte Reports vor Entry) → nach
+  ~6–8 Wochen (drei Bimonats-Zyklen) für die meisten Tickers ein
+  Zahlenwert. Watch: Feld-Präsenz im Return-Dict, nicht Zahlenwerte.
+
+- **★ `entry_past_return_5d` (#402) + `days_to_earnings` (#404) —
+  Reifung:** stand 11.07.: **40 Records mit `entry_past_return_5d`-
+  Feld** (deploy 02.07., ~1.5 Wochen alt); **40 Records mit
+  `days_to_earnings`-Feld** (deploy 04.07., ~1 Woche alt). Wachsen jeden
+  postclose-Werktag um ~10 Top-10-Einträge. Auswertung erst nach n≥40
+  reif (~Ende Aug für first-look, §4).
+
+- **★ `max_gain_pct` — Verteilung wächst:** stand 11.07.: **380 Records
+  mit `max_gain_pct`-Feld** (330 Backfill vom 04.07. + ~50 Vorwärts seit
+  Deploy 02.07.). Watch: Log-Zeile `max_gain für M/N aktive Einträge`
+  im postclose-Actions-Log; keine `None`-Persistierung bei reifen
+  Records (≥10 Trading-Days).
+
+- **★ Karfreitag algorithmisch (#407) — nächste Verifikation Fr
+  02.04.2027:** Set-Check `US_MARKET_HOLIDAYS`-Enthaltensein +
+  JS-Spiegel `US_HOLIDAYS.includes("2027-04-02")`. Bis dahin keine
+  Live-Verify nötig (2026er-Karfreitag Fr 03.04.2026 lag vor dem Fix
+  — kein Zurück-Verify auf gebufferten State).
+
+### KEINE VERIFIKATION MEHR NÖTIG (abgeschlossen)
+
+- Independence Day Fr 03.07.2026 (Holiday-Skip PR #381 live-verified,
+  kein Fehlalarm — bestätigt).
+- Redeploy-Auto-Trigger aus (PR #357 seit 13.06. verifiziert).
+- Exit-Shadow-Backfill `forward_10d` (verifiziert 27.06.).
+- Hypothese-C-Auswertung (durchgeführt 04.07., §4).
+
+---
 
 ## 4) GEPLANTE AUFGABEN + WIEDERVORLAGEN (mit Daten)
 
-### STAND 04.07.2026 (nach Hypothese-C-Auswertung + Vorwärts-Erhebungen A + H5)
+### RE-TEST-KALENDER (kanonisch, Stand 11.07.)
 
-**Meta-Status nach 04.07.-Auswertung (Hypothese C, Peak-Ziel):** **Kein belegter
-Effekt über alle drei getesteten Schwellen (+10 / +30 / +50 %), 0/6 Holm-Rejects.**
-Damit ist die Auffanglinie über **drei aufeinanderfolgende Auswertungstage**
-bestätigt: 30.06. (Endpunkt-Return, 7 Prädiktoren, 0/15 Rejects) + 01.07.
-(Exit-Timing B.1: erster Hinweis, aber nicht Holm-belegt) + 04.07. (Peak-Ziel,
-0/6 Rejects). Nordstern bestätigt: **Setup-Score = Attention-Router / Screener,
-kein Alpha-Generator**. Fokus jetzt: **Vorwärts-Erhebung für die Re-Tests +
-Interaktions-Hypothesen (H5 Score × Katalysator × Reversal).**
+| Datum | Was | n-Ziel | Notiz |
+|---|---|---|---|
+| **~Mitte Aug 2026** | ki_signal_score-Edge-Re-Test | n_reif ≥ 40 | LOOK-AHEAD SAUBER — LLM-basiert `temperature=0`, Score zum Erhebungszeitpunkt eingefroren, deterministisch reproduzierbar über gespeicherten Wert. Eigenständiges Signal = Kombi-Kandidat. |
+| **~Ende Aug 2026** | Conviction-Edge (Prüfpunkt P3 aus 30.06.) | n ≥ 100 | Vorwärts-Erhebung seit PR #388 (28.06.). Composite aus Setup/Earliness/Anomaly/Regime — Aggregations-Anzeige, deren Edge selbst noch nicht belegt ist. |
+| **~Ende Sept 2026** | Setup-Edge-Re-Test | n ≥ 250 | Andere Marktphase zwingend (30.06.-Sample war Mai–Juni-lastig, 91 % pre-#346). |
+| **~Ende Sept 2026** | Exit-Timing B.1-Hinweis-Re-Test | n ≥ 250 | 01.07. Punktschätzung Δ ~+4 pp (5d/3d vs 10d in Score≥70-Bucket), Holm-negativ — Re-Test zur Bestätigung. |
+| **Herbst 2026 (OoS)** | **Hypothese H5 (Kombi Score × Katalysator × Reversal × SI-Velocity)** | n ≥ 40 pro Feld-Kombi | **Vorab-registriert** (§5). Out-of-Sample-Auswertung über die vier Look-Ahead-freien Sammel-Felder (`max_gain_pct` #397, `entry_past_return_5d` #402, `days_to_earnings` #404, `si_velocity_pub` #409). Feste Klammer, keine nachträgliche Schmälerung. |
 
-**Re-Test-Kalender (kanonische Termine — Stand 04.07.):**
-- **~Mitte August 2026** — ki_signal_score-Edge (n_reif≥40 erreichbar bei aktueller Rate).
-- **~Ende August 2026** — Conviction-Edge (n≥100 planmäßig via Vorwärts-Erhebung #388).
-- **~Ende September 2026** — **zwei Re-Tests + neue Kombi-Auswertung**:
-  1. Setup-Edge-Re-Test (n≥250 erforderlich, andere Marktphase abwarten).
-  2. Exit-Timing B.1-Hinweis-Re-Test (n≥250, +3.81/+4.67pp muss sich bestätigen).
-  3. **NEU 04.07. — Hypothese H5 (Kombi Score × Katalysator × Reversal):**
-     Out-of-Sample-Auswertung über die drei Vorwärts-Erhebungen (`max_gain_pct`
-     #397, `entry_past_return_5d` #402, `days_to_earnings` #404) — gepaart mit
-     Score-Buckets. n≥40 für jede Feld-Kombination erforderlich → Herbst 2026.
-     **Vorab-Registrierung der Interaktion in §5** (nicht nachträglich
-     Klammer-schmälern).
-- ~~**~2–3 Wochen nach Postclose-Runs mit max_gain_pct:** Hypothese C~~
-  **ERLEDIGT 04.07.2026 — Hypothese C GETESTET.** Kernbefund: keine Trennkraft
-  über alle drei Peak-Schwellen (0/6 Holm-Rejects, Baseline 95.8 / 35.5 / 15.2 %).
-  Detail-Ergebnis in §5. **Streichen aus dem Backlog; Wiedervorlage frühestens
-  Herbst 2026 gemeinsam mit Setup-Re-Test.**
+### Erledigt (nicht mehr im Backlog)
 
-**Bau-Kandidaten NACH Edge-Befund (kein Druck, kein Termin, konkurrieren):**
-Reihenfolge erst festlegen, wenn Re-Tests belegte / nicht belegte Edges liefern
-und der schwächste Punkt sichtbar wird. Die Liste in §5 gilt (Synthetische
-Utilization / Katalysator-Gating / Exit-Mechanik-Spec / Reddit-Velocity / 424B).
+- **Hypothese C (Peak-Ziel, 3 Schwellen +10/+30/+50 %) — ERLEDIGT
+  04.07.2026.** Null belegt (0/6 Holm-Rejects). Nicht als offen führen.
+  Wiedervorlage frühestens Herbst 2026 gemeinsam mit Setup-Re-Test.
 
-**Additive Erhebungs-PRs (nicht Bau-Priorität, Warteschlange):**
-- **Hypothese A (Reversal-Entry):** Feld `entry_past_return_5d` — additiver PR,
-  yfinance-Backfill für Pre-Entry-Historie. Größerer Eingriff als max_gain_pct
-  (nicht rekonstruierbar aus dem Bestand; Backfill nur für neue Records ab Deploy).
-  Auswertbar +6 Wochen post-Deploy. **KEIN Termin gesetzt**, wartet auf explizite
-  Anordnung.
-- **Hypothese C Stufe-3-Backfill:** Einmalskript für die 300 v4-Alt-Records
-  (analog `validate_backfill.py`-Muster). Optional — beschleunigt C-Auswertung
-  von „Ende August" auf „~Mitte Juli", wenn gewollt. Separate Anordnung.
+### Bau-Kandidaten (nicht Bau-Priorität — konkurrieren nach Re-Test-Befunden)
 
-### AKTUELLE STÄNDIGE PUNKTE
+Reihenfolge erst festlegen, wenn Re-Tests belegte / nicht belegte Edges
+liefern. Kandidaten-Pool: Synthetische Utilization, Katalysator-Gating,
+Exit-Mechanik-Spec, Reddit-Velocity, 424B-Dilution (§5).
 
-- **✅ Cockpit-Entry-Shadow-Caption ERLEDIGT (#362, 12.–13.06., §1/§7):** die
-  Anzeige (display-only) ist live. **Label per #396 aktualisiert** (2.07.) auf
-  „heuristisch (Erhebung läuft)" (vorher „unvalidiert bis 30.06." — Datum vergangen
-  ohne Edge-Beleg). **Wichtige Abgrenzung:** das ist NUR die *Anzeige* des Shadow-
-  Werts — die **LIVE-Scharfschaltung** des Entry-Scores (als Push-/Trade-Signal)
-  bleibt weiterhin gated. Anzeige ≠ Aktivierung.
-- **✅ 30.06.–01.07. — Backtest-Auswertung + Exit-Timing DURCHGEFÜHRT (§5 Baseline-
-  Anker). Kernbefund: keine belegte Edge über alle 7 Prädiktor-Achsen (Setup /
-  Earliness / Monster / ki_signal / Entry-Shadow / Conviction-datenleer / Velocity-
-  strukturell nicht ableitbar).** B.1-Hinweis (Exit-Timing 5d/3d statt 10d)
-  dokumentiert als „Hinweis, nicht belegt" (Re-Test-Kandidat n≥250). Aufführung
-  des ursprünglichen Aufgaben-Blocks bleibt als historischer Kontext:
-- **~~30.06. — Backtest-Auswertung (erweitert):~~ ERLEDIGT via #394/#395:**
-  - Setup-Score ≥70-Edge (schema_v4) · Earliness-Konfidenz-Re-Test (AUC) ·
-    Conviction-Methodik-Diagnose · **NEU: KI-/monster-Edge** (`monster_score` /
-    `ki_signal_score` seit #353) · **Entry-Shadow-Auswertung** (treffen dünne
-    Scores schlechter via `entry_n_components`? Ausfall-Tage via
-    `push_history_available=False` filtern) → DANN Push-/Live-Entscheidung.
-    **Präzisierung Zielgröße (Gutachten 15.06.):** Entry-Score primär gegen
-    **BEWEGUNGS-GESCHWINDIGKEIT** validieren — 1T/2T-Max-Return + Zeit-bis-+10 % —
-    **NICHT** gegen 10-Tage-Return. Begründung: misst der Entry-Score kurzfristige
-    Beschleunigung, würde ein Test gegen 10D-Return ihn systematisch benachteiligen
-    (falsche Falsifizierung). Keine neue Komplexität, nur die korrekte Zielgröße
-    eines ohnehin geplanten Tests (kohärent neben dem `entry_n_components`-Check).
-    **⏳ VORWÄRTS-ERHEBUNG 28.06.2026 — Conviction-Edge (Prüfpunkt P3) zum 30.06.
-    nicht auswertbar (datenleer), aber bewusst NICHT GESTRICHEN.** Read-only-
-    Diagnose-Befund (Stand origin/main `0ad5719`, schema_v=4 n=380): es
-    existiert **kein** Conviction-Feld im Backtest (0 Records mit `conviction*`-
-    Key — Bestätigung: nur `vix_level` enthält „level"). Conviction wird heute
-    nur live berechnet + im Frontend angezeigt, jedoch nicht je Entry in
-    `backtest_history.json` persistiert. Unterschied zu Prüfpunkt 6 (Entry-Cap,
-    GESTRICHEN #386): Cap-Frage war strukturell datenleer (Caps werden im Live-
-    Pool fast nie erreicht — kein Erhebungs-Bedarf). Conviction prägt dagegen
-    **aktive Entscheidungen** (Cockpit-Donut, Push-Gating ab ≥75, Anomaly-Push-
-    Mindest-Schwelle) und gehört in die Edge-Validierung — sie darf nicht
-    ungeprüft bleiben. **ENTSCHEIDUNG: Conviction additiv ins Backtest-Schema
-    erheben** (eigener Bau-Strang, Diagnose-first analog zum etablierten
-    `max_drawdown_pct`-Pattern in `backtest_history.py:126`). Auswertbar
-    frühestens **mehrere Wochen** ab Deploy (analog der heute beschriebenen
-    Velocity-Spiegel-Logik); 30.06.-Slot bleibt **bewusst leer**, KEIN
-    Verlegenheits-Test (Multiple-Testing-Schutz, gleiche Linie wie #386).
-    Conviction-Auswertung damit auf eigene Wiedervorlage verschoben — neuer
-    PR-Strang nicht heute, sondern wenn der Bau bewusst angeordnet wird.
-    **🔬 NETTO-RETURN-METHODIK 28.06.2026 fixiert für 30.06.** Diagnose-Befund:
-    `spread`/`bid_ask` existieren **strukturell nicht** im `schema_v=4`-Backtest
-    (0 Felder gegrept); nur `cost_to_borrow` ist (teilweise) gefüllt (217/380).
-    **ENTSCHEIDUNG: Netto = Brutto − Borrow-Fee (Borrow-only), Spread als
-    benannter Caveat** — wörtlich am Auswertungs-Befund: „Spread nicht
-    abgezogen → die reale Netto-Edge liegt unter den gemeldeten Werten, bei
-    illiquiden Small-Caps deutlich". **Bewusst KEINE pauschale Spread-Konstante**
-    (z.B. „0.5 %") — Scheinpräzision über einen heterogenen Bucket
-    (small-Cap-Squeezes haben Spreads im niedrigen einstelligen %-Bereich,
-    teils mehr; eine Pauschale unterschätzt **gerade** die illiquiden Knaller-
-    Kandidaten, also genau den Tail-Bereich, der die Strategie prägt). Folgt
-    der §5-Auffanglinie („Keine Netto-Edge → Tool ist Wissenschafts-Übung"):
-    ehrliche Obergrenze schlägt geschönte Pauschale. Records ohne
-    `cost_to_borrow` (163/380) gehen als „borrow-fee unknown" in den Befund —
-    ggf. separat ausgewiesen, keine Imputation.
-  - **Entry-Cap-Trockenlauf (13.06., read-only, NICHT gebaut — Methode validiert):**
-    Rohverteilung + Cap-/Clamp-Anschlag der 5 echten `compute_entry_score`-Inputs
-    gegen `backtest_history.json` (Twins genutzt: `score_delta_t1_raw`,
-    `anomaly_push_age_h`). Befund: **nur `score_delta` (±15-Clamp) cap-verdächtig**
-    (13–17 % \|raw\|>15, höchste bindende Rate); `uoa` (3 % ≥4.0 — großzügig),
-    `rvol_buildup` (8.5 % ≥6.0 — clippt sinnvoll den 154er-Tail), `si_slope` (Buckets
-    gleichmäßig ~18–23 %) **solide**; `anomaly` (28 % Floor >72h) **n≈39 zu dünn**.
-    **KEY-METHODE für den echten Lauf:** Anschlag-Rate allein sagt NICHT „Cap falsch"
-    → der eigentliche Schritt ist der **EDGE-TEST** (haben am-Cap-Einträge andere
-    `return_10d` als unter-Cap? Mann-Whitney) — braucht `return_10d`-Reife. `si_slope`
-    NIE roh skalieren (max 10 200 → Bucketing zwingend). **Verteilungs-Wächter-Modul
-    VERWORFEN (13.06.):** die Rohdaten + Twins sind bereits persistiert → einmalige
-    read-only-Auswertung statt periodischem Wächter (Daten da, kein Sammel-Bedarf;
-    Nordstern: Mensch validiert Bedeutung einmal). Über-Engineering vermieden.
-    **❌ GESTRICHEN 27.06.2026 — Prüfpunkt 6 (Entry-Cap-Nachschärfung) fällt aus
-    der 30.06.-Auswertung raus** (Stand origin/main `2457b48`, Bucket Score≥70 ∧
-    schema_v=4 ∧ return_10d=non-null, n=103). Read-only-Diagnose-Belege:
-    `uoa_atm_ratio_raw` und `rvol_buildup_5d_raw` **existieren nicht im
-    schema_v=4** (0 Records); `score_delta_t1_raw` zwar vorhanden (40/103), aber
-    nur **n=8** sind tatsächlich geclippt (|capped|=15 ∧ |raw|>15). Auf normalisierter
-    Skala via `entry_components`-Dict (Coverage 25/103, da Feld erst seit Entry-
-    Shadow #336): at-100 für uoa **3/16**, für rvol_buildup **3/25**, für
-    score_delta **3/20**. Die Caps werden im Live-Pool strukturell fast nie erreicht
-    (capped-`uoa_atm_ratio` 45/50 unter 3.5; capped-`rvol_buildup_5d` 66/79 unter
-    5.5) — kein Sammel-Problem, sondern **Frage-Definition**: das At-Cap-vs-Under-
-    Cap-Sample wäre n≤8 pro Komponente, ohne Trennkraft. Schlussfolgerung
-    (Nordstern „Bedeutungs-Freigabe menschlich"): Cap-Schwellen sind vermutlich
-    **passend gewählt** (schneiden nichts Nicht-Extremes ab), eine Nachschärfung
-    löst kein belegtes Problem. **KEIN Ersatz-Test in den freien Slot**
-    (Multiple-Testing-Schutz — die 30.06.-α-Korrektur gilt gemeinsam über alle
-    Tests; ein Verlegenheits-Test verschärft die Korrektur für die echten Tests).
-    Die abhängigen Subitems im Block (Edge-Test, si_slope-uncapped, ggf.
-    `score_delta_t1`-Schärfung) fallen mit — score_delta_t1 könnte später **als
-    eigener Strang** wieder aufgegriffen werden, wenn n_at-cap auf ≥30 gewachsen
-    ist (heute 8 → vmtl. mehrere Monate Sammel-Zeit). **Velocity-Vermerk
-    (ursprünglich Ziel-Variable „Bewegungs-Geschwindigkeit", s.o. Z. 207):**
-    1T/2T-Max-Return und Zeit-bis-+10 % sind **rückwirkend nicht ableitbar** — die
-    nötigen Felder existieren im Backtest nicht (nur `entry_price`/`entry_price_t1`
-    voll-besetzt, daraus rein technisch ein 1d-Close-Return, aber **kein** intraday-
-    Speed-Maß). Wenn je gewünscht: additives Feld `max_gain_Nd` als Spiegel zu
-    `_compute_max_drawdown` (`backtest_history.py:126`) — kleiner additiver
-    Eingriff, aber Auswertbarkeit **frühestens August** (ab ~30 reife Records).
-    NICHT als offener 30.06.-Punkt führen, **nur** als optionaler eigener PR-Strang
-    falls je gewollt.
-  - **Freitag-Cluster-Kontamination (Diagnose 09.06.):** 37,5 % der ≥70-Einträge
-    tragen Score mit ~1-Tag-Daten-Versatz (Pre-Open-Re-Run friert Vortags-Bar ein;
-    Signatur = `entry_price` exakt == Vortags-`entry_price` desselben Tickers).
-    **PFLICHT für 30.06.:** ≥70-Edge im **DOPPEL-LAUF** rechnen — mit UND ohne die
-    detektierbaren Cluster-Einträge. Hält die Edge in beiden → robust, Caveat
-    reicht. Kippt sie → Edge-Schluss **VERTAGEN, NICHT filtern** (40 % Erstauftritte
-    sind uncheckbar = nicht reparierbarer blinder Fleck). `entry_price` selbst ist
-    nur Diagnose-Tabelle (Returns nutzen `_close_at(0)`, geschützt); der **Score**
-    ist das Problem (datumstreue Auswertungs-Eingabe). Vintage-Guard M1 (#346)
-    schützt nur KÜNFTIGE Samples, NICHT das eingebackene 30.06.-Sample.
-  - **Quellen-Präzisierung (09.06.):** datumstreuer Score-Konsum läuft über
-    `health_check.py:619` (S13-≥70-Edge) + bt-Panel-Buckets. KEIN Source-Fix
-    rettet das eingebackene Sample — nur der Doppel-Lauf zählt.
-  - **si_trend-slope uncapped (FIP 08.06. = 521.84):** falls die 30.06.-Auswertung
-    rohen slope statt Bucket nutzt → Ausreißer-Risiko (Division-durch-klein,
-    unbegrenzt). Entry-INPUT selbst ist gecappt (Bucket-Edges) → kein
-    Verzerrungsrisiko im entry_score. score_delta_t1 ist NICHT betroffen
-    (strukturell ±100-gebunden, Caveat geklärt 10.06., s. §8).
-  - FDA-Move-Muster (Wiedervorlage 08.05.).
-- **Exit-Shadow-Auswertung ~Ende Juli (nach 30.06.-Entry-Readout):** pro Trigger
-  die `forward_Nd`-Verteilung nach Fires — feuert ein Trigger chronisch falsch
-  (positiver forward = Kurs stieg trotz Verkaufs-Warnung)? **Konkreter Verdacht:
-  trend_break** — 00:57-Massen-Fire 11.06. (IONQ/PDYN/RBOHF/DBI gleichzeitig) +
-  08.06. PDYN+IONQ drehten nach Signal hoch. Auswertung via `GROUP BY
-  (date,trigger)`. **SAMPLE-CAVEAT:** nur ~8 offene Positionen → dünn + hoch
-  autokorreliert, ~150 Records bis Ende Juli, LOW-POWER. KEIN robuster AUC (wie
-  Setup n~1200), nur qualitativer Erstblick (Wächter-Block-Lehre 04.06.). Falls
-  ein Trigger nachweislich Rauschen → aus Push-Pipeline nehmen.
-- **FINRA-History-Wächter (nach ~23.06.-Sample):** evidenzbasierte Schwelle für
-  `finra_history_health.jsonl` setzen (graceful `None` bei FINRA-Tod; kein Blocker).
-  Offen separat: Stale-Cache-Frische.
+---
 
-## 5) STRATEGISCHE ROADMAP
-- **Nordstern unverändert:** Maschine prüft Mechanik, Mensch validiert Bedeutung.
-- **Trading-Wert-Disziplin auf BLÖCKE, nicht nur Tasks:** vor jedem Arbeitsblock
-  fragen „berührt das Trading/Edge?". Die CI-Gate-Kette (#329–#335) war teils
-  Verzettelung (Engineering-Selbstzweck) — wertvoll fürs Suite-Vertrauen, aber
-  kein direkter Edge. Filter auf ganze Ketten anwenden.
-- **Entry-/Exit-/KI-Module jetzt im Shadow → Daten sammeln, DANN erst Push-/Live-
-  Entscheidung.** Kein vorzeitiges Scharfschalten.
-- **Annahmen-Inventur (Runde 1) abgeschlossen:** #1 Gist-Body (#322) ✅, #2
-  Screener-Pool (#325) ✅, #3 FINRA/DTC (Wächter optional, s. §4), #4 RVOL-Phasen
-  = γ-2 (blockiert).
-- γ-2 RVOL-Normalisierung (★, BLOCKIERT): **4 Vorbedingungen offen** — premarket-
-  Daten dünn · Cron-Drift #295 · `rel_volume_raw` ungebaut · Skalierer ungestützt.
-  **KRITISCH bei Aktivierung (sicherheitskritisch, wortgetreu):** in
-  `CONSISTENCY_EXPECTED_STATE` BEIDE Soll **paaren** — `EXPECTED_RVOL_NORMALIZATION→True`
-  **UND** `SCORE_NORM_VERSION→2`; wird nur EINES geflippt → **S13-Drift**.
-  **Reihenfolge:** Daten → Sweep → `rel_volume_raw` → Schwellen → Flip. #298
-  überwacht `RVOL_NORM_ENABLED` / `SCORE_NORM_VERSION` / `EARLINESS_FORMULA_VERSION`.
-- Externer Dead-Man-Switch (Cloudflare-Worker) gegen Cron-Drops (~20 %).
-- Borrow-Fee + Utilization in score() (bei reifer CTB-Coverage).
+## 5) STRATEGISCHE ROADMAP — Edge-Suche
 
-### 📊 EDGE-AUSWERTUNG 30.06.2026 — ERGEBNIS-BELEG (Baseline-Anker für Re-Tests)
+### EDGE-BEFUND (Stand 11.07.2026): AUFFANGLINIE EINGETRETEN
 
-**Stand:** 30.06.2026 origin/main HEAD; **Seed 30062026**, Bootstrap N=2000;
-Erfolgs-Definition (festgeschrieben): Edge BELEGT nur wenn Holm-p signifikant
-UND Bootstrap-CI-Untergrenze > 0.5. Sonst „kein belegter Effekt bei diesem n".
-Punktschätzung allein NIE Beleg.
+**Kernbotschaft:** Über **drei** aufeinanderfolgende Auswertungstage
+(30.06. Endpunkt-Return · 01.07. Exit-Timing · 04.07. Peak-Ziel) hat
+**kein Prädiktor** eine belegte Edge nach Erfolgs-Definition (Holm-
+signifikant UND Bootstrap-CI-Untergrenze > 0.5) gezeigt. Das Tool ist
+**Attention-Router / Screener**, **kein Alpha-Generator**.
 
-**KERNBEFUND — kein Prädiktor mit belegter Edge, robust über 3 Zählungen.**
-Holm-Klammer über alle vier Auswertungs-Schritte gemeinsam. Duplikat-bereinigt
-(0-Cluster oder 100 %-CTB-Sample-Kollisionen als 1 Test gezählt): k=15,
-Bonferroni-Schwelle 0.05/15 = **0.00333**. Kleinster gesammelter p-Wert = **0.0284**
-(SET-A.1) → **≈8,5× über der Schwelle**. Holm step-down stoppt beim kleinsten p
-→ **0/15 Holm-Rejects, 0/15 Bonferroni-Rejects**. Robustheits-Check
-(unbereinigt k=20; konservativ k=11): identisch 0/0/0 — die Zählungs-Entscheidung
-ändert nichts.
+**Erfolgs-Definition (einmal fixiert, nicht aufweichen):** Ein Prädiktor
+gilt als „belegte Edge" nur wenn (a) Holm-signifikant über der pre-
+registrierten Klammer, **UND** (b) Bootstrap-CI-Untergrenze der AUC
+> 0.5, **UND** (c) plausibel im Regime-Split reproduzierbar. Alles
+darunter ist „kein belegter Effekt". Punktschätzung ist nie Beleg.
 
-**Einzelurteile (exakt aus dem Befund):**
-- **Setup-Score-Filter ≥70 vs <70 (SET-A):** AUC 0.39–0.42 (invertiert), CIs
-  überlappen/unter 0.5, roh-p 0.0284/0.0288/0.0445/0.0893. **Kein belegter Effekt
-  in erwarteter Richtung UND KEIN handelbarer Anti-Edge** (4 Confounds: 91 %
-  pre-#346-Sample-Dominanz, Nur-Mai/Juni-Marktphase, in-sample, CI-Untergrenze
-  knapp unter 0.5 — Effektgröße im Anti-Edge-Sinn schwach).
-- **Setup interne Monotonie Tertile (SET-B):** AUC 0.53–0.71 mit breiten CIs, alle
-  n<Floor 40 → **nicht auswertbar** bei diesem n. Punkt-Schätzungen wirken
-  interessant (bis 0.712), aber CIs 0.352–0.939 → keine Aussage möglich.
-- **Earliness-Re-Test (DTC vs return_10d-Outcome):** heute AUC **0.47–0.52** über
-  4 Läufe, CI-Obergrenze max 0.640. **Die 13.05.-eingefrorene 0.77 (n_w=34/n_l=44)
-  ist nirgends im heutigen CI enthalten** → falsifiziert Out-of-Sample. Ehrliche
-  Aussage: der ursprüngliche DTC-Effekt hat sich mit größerem, teil-überlappendem
-  Sample **nicht bestätigt**.
-- **Monster-Score:** Punkt-AUC kollabierte **von 0.762 (n=13) auf 0.505 (n=20)**
-  durch nur +9 Records am 30.06. — direkter Beleg gegen Scheinpräzision unter
-  Floor. p=1.0000, CI [0.222, 0.798]. **Hinweis, nicht belegt** — späterer Re-Test
-  bei n≥40 empfohlen.
-- **ki_signal_score:** n_reif=12, n_w=2 → **nicht auswertbar**. Nur deskriptiv:
-  Verlierer haben höheren KI-Score (median 42.5 vs 26.0) — Sample zu klein für
-  jede Aussage.
-- **Entry-Shadow (entry_score vs return_10d):** AUC 0.48–0.51, CIs überlappen 0.5,
-  roh-p 0.83/0.90. Median-Differenz Gewinner (32.5) vs Verlierer (26.0) in
-  erwarteter Richtung, aber Mean-Differenz ~0. **Kein belegter Effekt.**
-- **Conviction-Edge (P3):** n=10 mit `conviction_score`-Feld (alle 29.06.,
-  return_10d noch nicht reif — 10 Trading-Tage warten). **Vorwärts-Erhebung seit
-  #388-Merge läuft planmäßig.** Auswertbar frühestens Mitte August.
-- **Velocity-Achse:** Feld existiert nicht (Diagnose 27.06. bestätigt). **Vorwärts
-  erheben** — additiver `max_gain_Nd`-Erhebungs-PR analog `max_drawdown_pct`
-  wäre der Bauweg, wenn je gewollt.
+### 30.06.2026 — Endpunkt-Return (PR #394)
 
-**ÜBERGREIFENDER CAVEAT (Sample-Zeitfenster):** Sample zu **86–91 % pre-#346**
-(vor Vintage-Guard 10.06.2026). Marktumfeld dieser 6 Wochen: median-return_10d
-im ≥70-Bucket −4.88 %, Pos-Quote 31 %, zwei Tail-Verlierer −71.9 %/−68.0 %.
-Diese Marktphase war für Setup-≥70-Signale ungünstig. **Der Befund „kein
-belegter Edge" ist kein Beleg für „keine Edge über alle Regime"** — er zeigt,
-dass die getesteten Prädiktoren im gerade beobachteten Marktfenster nicht
-getrennt haben.
+Setup / Earliness / Monster / ki_signal / Entry-Shadow / Conviction
+(datenleer) / Velocity: **0/15 Holm-Rejects** bei k=15, Bonferroni-
+Schwelle 0.00333. Vier Confounds beim ≥70-Setup-Test (pre-#346-Sample
+91 %, Mai-Juni-Marktphase, in-sample, CI-Untergrenze knapp unter 0.5).
+Earliness-Re-Test (n=78, AUC 0.77 aus 13.05.) fällt Out-of-Sample auf
+0.47–0.52.
 
-**KONSEQUENZ — Auffanglinie eingetreten:** Das Tool ist im aktuell belegbaren
-Zustand ein **Attention-Router und Monitoring-Instrument, kein Alpha-Generator**.
-Score = Suchraum-Verkleinerer, NICHT Buy-Signal. Konkret: Setup-Score als
-**Screener**, nicht Entscheidung; Push-Alerts als **Aufmerksamkeits-Signal**,
-nicht Buy-Signal; Handelsentscheidungen weiter auf **These + Nachrecherche pro
-Ticker** stützen, nicht auf Score-Schwellenwert. Das ist **kein Scheitern** —
-dokumentierter, belegter Zustand mit klarer Trading-Konsequenz (siehe §5
-Auffanglinie-Sektion oben).
+### 01.07.2026 — Exit-Timing Hypothese B (PR #395)
 
-**BACKLOG-RE-TESTS (mit Datum):**
-- **Setup-Edge Re-Test** ~Ende September 2026 (n≥250, andere Marktphase abwarten).
-- **ki_signal_score-Edge** ~Mitte August 2026 (n_reif≥40 erreichbar bei aktueller
-  Rate).
-- **Conviction-Edge** ~Ende August 2026 (n≥100 bei planmäßiger Vorwärts-Erhebung).
-- **Velocity-Achse:** nur nach separatem additiven Erhebungs-PR (`max_gain_Nd`);
-  Auswertbar +6 Wochen nach Deploy.
-- **Earliness-Re-Test Out-of-Sample-Only:** separate Sub-Frage — heutiger Re-Test
-  enthält die 13.05.-Sample-Teilmenge. Ein exklusiv-post-13.05.-Lauf würde n auf
-  ~130 senken, wäre aber echter Out-of-Sample. Backlog-Kandidat.
+**B.1** (Endpunkt-Vergleich Score≥70-Bucket, n=110):
+Δ(5d−10d) = +3.81 pp CI [+1.00, +6.63] roh-p 0.0057;
+Δ(3d−10d) = +4.67 pp CI [+1.24, +7.84] roh-p 0.0073.
+**Erster echter Punktschätzungs-Vorteil der gesamten Edge-Suche**, aber
+nicht Holm-belegt (kleinstes p ~3× über Bonferroni-Schwelle 0.00179) →
+Kategorie **„Hinweis, nicht belegt"**. Re-Test-Kandidat n ≥ 250,
+~Ende September 2026.
 
-**MECHANIK-VORBAU BEREIT (§7 Anker):** Die vier gemergten Auswertungs-Helfer
-(#389 Mann-Whitney-U+AUC, #390 Bonferroni+Holm, #391 Cluster-Purge holiday-robust,
-#392 Verkettungs-Trockenlauf) sind pure-stdlib, fixture-getestet, kein
-Live-Pfad-Import — für jeden Re-Test wiederverwendbar. Aufruf-Rezept siehe §7.
+**B.2** (Drawdown-Stop-Approximation): alle 16 Δ negativ, 4 Holm-
+Rejects — feste Stops schaden systematisch (Trigger-Häufigkeit 87–95 %).
+Approximations-Charakter dokumentiert.
 
-### 📊 EDGE-SUCHE 01.07.2026 — Hypothese B: Exit-Timing (erster echter Hinweis)
+### 04.07.2026 — Hypothese C: Peak-Ziel (0/6 Holm)
 
-**Stand:** 01.07.2026 origin/main HEAD; **Seed 01072026**, Bootstrap N=2000;
-Erfolgs-Definition identisch zu 30.06. (Holm-signifikant UND CI≠0-überlappend).
-Gepaarte Tests (dieselben Records) für B.1, Sign-Test-p als Holm-Input.
-Gemeinsame Holm-Klammer über B.1+B.2, **k=28**, Bonferroni-Schwelle 0.05/28 =
-**0.00179**.
+Details in §1. Drei Schwellen (+10 / +30 / +50 %) parallel getestet über
+zwei Cluster-Läufe, k=6 gemeinsame Holm-Klammer. Kein Trennkraft-Nachweis
+über alle drei Peak-Amplituden. **ERLEDIGT.**
 
-**Sample-Anker:** n_full = 300 Records (return_3d/5d/10d + max_drawdown_pct
-gepaart); Score≥70-Bucket n=110; Confound wie Setup-Edge (Sample **82–87 %
-pre-#346/Mai-Juni-Fenster**, absoluter Return-Level bär-verzerrt, relativer
-Strategie-Vergleich robuster).
+### KOMBI-ZIEL H5 (aktiv verfolgt, vorab-registriert)
 
-**B.1 — Endpunkt-Vergleich (der saubere Kern, gepaart):**
-Roh-Signal deutlich in erwarteter Richtung — im ≥70-Bucket ist „früh raus" um
-3–5pp besser als „halten bis 10d". Konkret (≥70+with-cluster, n=110):
-- Median return_3d = −1.44 %; return_5d = −2.52 %; return_10d = −5.18 %
-- Mean return_3d = −1.56 %; return_5d = −2.42 %; return_10d = −6.23 %
-- Sharpe (Mean/Std) −0.140 / −0.167 / −0.340
-- Pos-Quote 44 % / 44 % / 31 %
-- **Δ(5d−10d) = +3.81pp, CI [+1.00, +6.63], p-roh = 0.0057**
-- **Δ(3d−10d) = +4.67pp, CI [+1.24, +7.84], p-roh = 0.0073**
-- Δ(3d−5d) ≈ 0 → Nutzen sitzt zwischen Tag 5 und Tag 10, nicht zwischen 3 und 5.
+**Score × Katalysator × Reversal × SI-Velocity** als Interaktion — das
+Wette-Ziel, für das das Tool ab jetzt Daten sammelt. **Vier Look-Ahead-
+freie Sammel-Felder sind live:**
 
-**B.1-Urteil nach Erfolgs-Definition:** **HINWEIS, nicht belegt.** Nach Holm-
-Klammer k=28 (Bonferroni-Schwelle 0.00179) liegt kleinstes B.1-p (0.0057) **~3×
-über** der Schwelle → **0 Holm-Rejects in B.1**. Effektgröße (+3.8–4.7pp im
-≥70-Bucket, CI-Untergrenze +1.0/+1.24pp) ist handelsrelevant, falls sie sich mit
-größerem n bestätigt. **Re-Test-Kandidat bei n≥250** (~Ende September 2026),
-plus im Auge behalten, ob der Vorteil regime-abhängig ist.
+| Feld | Deploy | Sammel-Zweck |
+|---|---|---|
+| `max_gain_pct` (#397) | 02.07. | Peak-Amplitude im ≤10-Trading-Day-Fenster |
+| `entry_past_return_5d` (#402) | 02.07. | Reversal-Substrat vor Entry |
+| `days_to_earnings` (#404) | 04.07. | Katalysator-Nähe (point-in-time) |
+| `si_velocity_pub` (#409) | 10.07. | SI-Änderungsrate über 3 publizierte Reports (Look-Ahead-frei via pub_date) |
 
-**B.2 — Drawdown-Stop-Approximation (⚠ approximativ, NICHT Kern-Befund):**
-Grobe Best-Case-Simulation (`max_drawdown_pct ≤ −X` → Return = −X%, sonst
-return_10d). Approximation-Grenze: `max_drawdown_pct` sagt OB, nicht WANN.
-- **Trigger-Häufigkeit extrem:** Stop-10 % triggert bei **87–95 % der Trades**
-  (Gesamt / ≥70+without). Selbst Stop-25 % triggert bei 32–39 %.
-- **Alle 16 Δ negativ:** jede feste Drawdown-Stop-Schwelle **verschlechtert**
-  den Return. Beispiele Gesamt+with: Stop-10 Δ=−4.98pp (p=0.0003), Stop-20
-  Δ=−4.03pp (p=0.0001), Stop-25 Δ=−2.08pp (p=0.0002).
-- **4 Holm-Rejects** (alle B.2, alle Anti-Effekt): Gesamt+with Stop-10/-20/-25 +
-  Gesamt+without Stop-10. Alle mit klar negativem Δ und CI unter 0.
+**Auswertungs-Plan:** Out-of-Sample im Herbst 2026 bei ausreichend n
+(≥ 40 pro Feld-Kombination), gepaart mit Score-Buckets. Feste Klammer
+vor der Auswertung fixieren — keine nachträgliche Schmälerung.
 
-**B.2-Urteil:** In der konservativen Approximation über dieses Sample-Fenster
-**schaden feste Drawdown-Stops dem Return systematisch.** Grund: Small-Caps
-sind zu volatil, ein grober −X %-Stop killt zu viele spätere Erholungen.
-**Handlungs-Aussage:** keine festen Drawdown-Stops im aktuellen Marktkontext.
-Approximation-Grenze bleibt: ein echter Trailing-Stop (mit Bar-Daten) könnte
-anders performen — hier nicht gemessen.
+**MASTER-SCORE-VORBEHALT:** Ein Master-Score (gewichtete Kombination
+der vier Felder) wird **NUR NACH** belegter Kombi-Edge gebaut. Gewichte
+werden **NICHT** frei aus Testdaten optimiert — das wäre die
+`monster_score`-Falle (Overfitting auf kleines n, Zerfall bei
+Out-of-Sample: 0.76 n=13 → 0.51 n=20 dokumentiert). **Out-of-Sample-
+Pflicht.**
 
-**GESAMT-Klammer über B.1+B.2 (k=28):** Bonferroni-Rejects 4/28, Holm-Rejects
-4/28. Alle 4 Rejects sind aus B.2 mit negativem Δ (Stop schadet). **KEIN
-Holm-Reject mit positivem Δ** — kein Exit-Vorteil formal belegt. B.1 wird von
-der k=28-Klammer geschluckt (kleinstes p 0.0057 vs Schwelle 0.00179).
+### LITERATUR-KONSENS (S&P Global / State Street / diverse 2026)
 
-**Einordnung im Kontext der Edge-Suche:**
-- **Hypothese A (Reversal-Entry):** Feld fehlt (`change_5d`/`perf_5d` = 0
-  Coverage), nicht ableitbar ohne yfinance-Backfill für Pre-Entry-Historie.
-  **n=0, nicht auf Bestandsdaten testbar.** Vorwärts-Erhebungs-PR nötig, Feld
-  `entry_past_return_5d`.
-- **Hypothese C (Peak-Ziel):** `max_gain_pct` fehlte am 01.07. (0 Coverage). Nur
-  vorwärts erhebbar analog `_compute_max_drawdown` (Spiegel-Funktion). Am
-  01.07.: **n=0, nicht auf Bestandsdaten testbar. UPDATE 02.07. (#397 gemergt):**
-  Vorwärts-Erhebung LÄUFT — additiver Helper `_compute_max_gain_pct` + Init +
-  Rolling-Update (schema v4 unverändert, kein Konsument in Score/Filter/Push).
-  Auswertbar frühestens Ende Juli (10-Trading-Days-Fenster für heutige Records
-  reif), vollständige C-Auswertung Ende August. Optionaler Stufe-3-Backfill für
-  die 300 Alt-Records würde die Auswertung auf Mitte Juli vorziehen (separater PR).
-- **Hypothese B (Exit-Timing, heute):** Erster echter Hinweis der gesamten
-  Edge-Suche 30.06.–01.07. — B.1 zeigt einen handelsrelevanten Punktschätzungs-
-  Vorteil (+3.8–4.7pp im ≥70-Bucket, „5d/3d statt 10d"), der nach Erfolgs-
-  Definition **nicht Holm-belegt** ist, aber als **Re-Test-Kandidat vermerkt**.
+Der Kombi-Ansatz **Constraint × Katalysator × Peak-Ziel gleichzeitig**
+ist exakt der Kurs, den Profi-Häuser fahren. Einziger dokumentierter
+Profi-Vorsprung ist **bezahlte Lending-Daten** (Utilization,
+Cost-to-Borrow-Tick — Zugang $10–50k/Jahr). Gratis-Zugang gibt es nicht.
+Synthetische Utilization (Substitute aus `si_short_ratio` × `avg_volume`)
+ist im Bau-Kandidaten-Pool.
 
-**BACKLOG-RE-TESTS + ERHEBUNGSPFAD:**
-- **B.1 Re-Test** ~Ende September 2026 (n≥250 erforderlich). Falls Hinweis
-  hält, ist der 5d-Horizont der potentielle neue Standard.
-- **A (Reversal):** additiver Erhebungs-PR (yfinance-Backfill für Pre-Entry-
-  Historie + Feld `entry_past_return_5d`). Größerer Eingriff, auswertbar
-  +6 Wochen post-Deploy.
-- **C (Peak-Ziel):** ✅ **kleiner additiver Erhebungs-PR GEBAUT (#397, 02.07.).**
-  Spiegel-Funktion `_compute_max_gain_pct` analog `_compute_max_drawdown` in
-  `backtest_history.py`, additiv (kein Schema-Bump), fixture-only-getestet, kein
-  Live-Konsument (Look-Ahead strukturell ausgeschlossen). Erste ausreichende
-  Sample-Größe erwartet **Ende Juli/Anfang August 2026** (nach ~2 Wochen Vorwärts-
-  Erhebung + Reifegrad-Filter). B.2-Wiederholung mit echterem Peak-Wissen
-  (Trailing-Stop-artige Approximation mit Peak+Drawdown pro Record) wird damit
-  planbar. Optionaler Stufe-3-Backfill der 300 Alt-Records würde das
-  vorziehen — separate Anordnung nötig.
+### BAU-KANDIDATEN (nach Re-Test-Befund, kein Termin, keine Priorität)
 
-**CAVEAT (übergreifend):** Sample **82–87 % pre-#346/Mai-Juni-Bearish-Fenster**
-(median return_10d im ≥70-Bucket −5.18 %). Der „früh raus"-Hinweis ist mit
-dem bear-tilt konsistent und könnte in einer Bull-Marktphase kippen. Relative
-Exit-Vergleiche sind regime-robuster als absolute Returns, aber selbst diese
-sind nicht regime-immun.
+- Synthetische Utilization (Substitute für bezahltes Lending-Feed)
+- Katalysator-Gating (nur trade wenn Katalysator im 7-Tage-Fenster)
+- Exit-Mechanik-Spec (Trailing statt Fest-Stop, B.2-Konsequenz)
+- Reddit-Velocity (post-30.06.-Kandidat, Attention-Signal)
+- 424B-Dilution-Filter (Regel-Screen, nicht Score-Feature)
 
-### 📊 EDGE-SUCHE 04.07.2026 — Hypothese C: Peak-Ziel (3 Schwellen, kein belegter Effekt)
+---
 
-**Stand:** 04.07.2026 origin/main HEAD (nach `max_gain_pct`-Backfill-Live-Run
-`85cbbe9` — 330/330 reife Alt-Records gefüllt, 0 thin-slice); **Seed 04072026**,
-Bootstrap N=2000; Erfolgs-Definition identisch (Holm-signifikant UND
-CI-Untergrenze > 0.5).
+## 6) CODE-HYGIENE-BACKLOG (Status je Punkt — alle OFFEN, kein Termin)
 
-**Sample:** n = 330 reife v4-Records (`schema_v == 4`, `max_gain_pct` gefüllt,
-≥10 Trading-Days seit Entry). Cluster-Followup 81/330 = 24.5 %.
+### 6a. Alt-`finra_data.si_velocity` → `si_shares_per_day` umbenennen
+**Status: OFFEN.** Nach PR #409 hat das Displayfeld einen irreführenden
+Namen: `(newest_SI − oldest_SI) / len(history)` ist **Shares/Tag
+absolut** (~90-Tage-FINRA-History), nicht „Velocity" im Sinne einer
+Änderungsrate. Rename zu `si_shares_per_day`, eigener PR. Touch-Fläche
+gemäß grep 09.07.: 7 aktive Reads (`generate_report.py:2308-2350,
+2504-2505, 3346-3348, 5067-5080, 5603-5617, 5993, 11948-11949`);
+CLAUDE.md-Sync; KI-Boost-Konsument. Kein Alt-Backtest-Feld betroffen
+(Feld wurde nie ins Backtest-Schema geschrieben). Blast-Radius mittel.
 
-**Gemeinsame Holm-Klammer k=6** (drei Schwellen × zwei Cluster-Läufe, konservativ
-gemeinsam korrigiert — Klammer-Schmälerung wäre Datenfischerei). Bonferroni-Schwelle
-0.05/6 = **0.00833**.
+### 6b. 5 andere bewegliche US-Feiertage algorithmisch berechnen
+**Status: OFFEN.** Nach PR #407 ist nur **Karfreitag** algorithmisch
+im Set (Meeus-Osterformel). Fünf weitere bewegliche Feiertage
+(**MLK Day**, **Presidents Day**, **Memorial Day**, **Labor Day**,
+**Thanksgiving**) sind weiterhin **hartkodiert** bis 2027 einschließlich.
+Laufen 2028 aus → derselbe Wartungs-Bombe-Effekt wie Karfreitag vor #407.
+Kandidat für Wartungs-PR: analog #407 mit den etablierten „Nth-Weekday-
+of-Month"-Formeln. Range 2020–2050. Kein Trading-Wert, aber
+Vorbeugungs-Hygiene.
 
-**Ergebnistabelle:**
+### 6c. News-/FDA-Katalysator (Look-Ahead-Quelle ungeklärt)
+**Status: OFFEN.** Nicht implementiert. Voraussetzung für Aktivierung
+ist eine belegbar **point-in-time** verfügbare News-/FDA-Announcement-
+Quelle (heutige News-Feeds sind revisionsanfällig; FDA-RSS ist zwar
+zeitgestempelt, aber Kalender-Vorschauen nicht point-in-time-sauber).
+Nur zulässig, wenn die Quelle beweisbar zum Report-Zeitpunkt existierte.
+Vor dem Bau: Diagnose-Auftrag „welche Quelle ist point-in-time?".
 
-| Schwelle | Lauf | Baseline | Δ (High−Low) | AUC | 95%-CI | p_roh |
-|---|---|---:|---:|---:|---:|---:|
-| **C-10** | with cluster | 95.8 % | +0.01 pp | 0.547 | [0.352, 0.725] | 0.5544 |
-| **C-10** | without cluster | 96.4 % | −0.07 pp | 0.513 | [0.311, 0.735] | 0.8987 |
-| **C-30** | with cluster | 35.5 % | +0.22 pp | 0.504 | [0.439, 0.568] | 0.9093 |
-| **C-30** | without cluster | 39.0 % | +1.92 pp | 0.501 | [0.424, 0.577] | 0.9777 |
-| **C-50** | with cluster | 15.2 % | +5.44 pp | 0.562 | [0.475, 0.650] | 0.1639 |
-| **C-50** | without cluster | 16.9 % | +5.76 pp | 0.561 | [0.464, 0.658] | 0.2126 |
+### 6d. Reversal-Backfill Stufe B/C für Hypothese A
+**Status: OFFEN.** PR #402 ist Stufe A (Live-Vorwärts). Stufe B
+(einmaliger yfinance-Backfill für die ~420 v4-Alt-Records) wäre analog
+zum `backfill_max_gain_pct.py`-Muster möglich, aber `fetch_start =
+earliest_edate − 14 Kalendertage`. Nur bauen wenn Hypothese A explizit
+angeordnet ist zu testen. Beschleunigt die Auswertung von „~Ende Aug"
+auf „~Mitte Juli", wenn gewollt.
 
-**Kernbefund: 0/6 Holm-Rejects, alle CIs enthalten 0.5.** Auch die interessanteste
-Zelle (C-50 with cluster, richtungs-plausibler Δ +5.44 pp und AUC 0.562) hat
-roh-p 0.164 (~20× über der Bonferroni-Schwelle) und CI-Untergrenze 0.475 < 0.5.
-Kein Test unter n_peak-Floor 40 (kleinster n_peak = 42).
+### 6e. yfinance-Cap-Aufhebung nach 1.5.x-Stabilisierung
+**Status: OFFEN.** PR #403 hat `yfinance>=1.4.1,<1.5` gecappt. Sobald
+1.5.x in einem Test-Env oder Community-Consensus als stabil belegt ist,
+Cap auf `<1.6` lockern (schrittweise) oder komplett auf `>=1.5` öffnen.
+Kein Termin — wartet auf externes Signal.
 
-**Interpretation:**
-- Die gestrige Vermutung „C-10-Baseline 95.8 % lässt keinen Trennraum" ist **falsi­fi­ziert**
-  durch C-30 (Baseline 35.5 %, viel Trennraum) und C-50 (15.2 %, sehr viel Trennraum).
-  Der Setup-Score trennt auch bei niedrigen Grundraten nicht → Nicht-Trennung ist
-  Eigenschaft des Scores, nicht der Schwelle.
-- **Regime-Robust:** pre-#346 (78.8 %) vs post-#346 zeigt konsistente Peak-Raten
-  (96.2 vs 94.3 % C-10; 33.8 vs 41.4 % C-30; 13.1 vs 22.9 % C-50). Kein Regime-
-  Shift als Erklärung.
-- **Auffanglinie bestätigt:** über drei Auswertungstage konsistent (30.06.
-  Endpunkt + 01.07. Exit-Timing + 04.07. Peak). Setup-Score bleibt Attention-
-  Router / Screener, kein Alpha-Generator.
+### 6f. v1/v2-Render-Pfad → reines Jinja
+**Status: OFFEN (niedrig).** `generate_html_v2()` delegiert am Ende an
+`generate_html_v1()`; v1-Löschung erfordert `templates/page.jinja` +
+`_wl_full_card_html`-Umbau. Details im Architektur-Anker unten und in
+`CLAUDE.md`. Kein Trading-Wert, reine Aufräum-Hygiene.
 
-**Konsequenz:**
-- **Kein PR aus dieser Auswertung** — Ergebnis ist selbst der Befund. Read-only,
-  keine Feld-/Score-/Push-Änderung.
-- **Wiedervorlage frühestens Herbst 2026** gemeinsam mit Setup-Re-Test (~Ende
-  September, n≥250, andere Marktphase).
-- **Kein Kandidat für „Hinweis, nicht belegt"** — die Kategorie verlangt roh-p<0.05,
-  hier auch das nicht gegeben.
-
-### 🔮 EDGE-KANDIDAT H5 (vorab-registriert 04.07.2026): Kombi Score × Katalysator × Reversal
-
-**Motivation:** Nachdem Score einzeln über drei Achsen (Endpunkt / Exit-Timing /
-Peak) keine Trennkraft zeigte, ist die nächste plausible Erklärungshypothese
-eine **Interaktion**: Score könnte in einem bestimmten Kontext trennen —
-z. B. wenn ein Katalysator nahesteht (`days_to_earnings ≤ 14`) UND das Setup
-technisch überverkauft wurde (`entry_past_return_5d < 0`, Reversal-Signatur).
-
-**Vorwärts-Erhebung läuft** seit den PRs dieser Woche:
-- `max_gain_pct` (#397, gefüllt 330/330 alt + Live-Vorwärts) — **auswertungsreif jetzt**.
-- `entry_past_return_5d` (#402) — sammelt ab Merge Vorwärts, **keine Alt-Records**
-  (Backfill aus derselben yfinance-Fetch-Fenster **möglich in Stufe B**, siehe §6).
-- `days_to_earnings` (#404) — sammelt ab Merge Vorwärts, **kein Backfill möglich**
-  (point-in-time-Schutz, siehe §8).
-
-**Vorab-Registrierung (Pflicht gegen Datenfischerei):**
-- **Test-Achse H5:** stratifiziertes `return_10d` in 2×2×2-Interaktion
-  (Score ≥70 / <70 · Reversal `epr5d < 0` / ≥0 · Katalysator `dte ≤ 14` / >14).
-- **Erfolgs-Definition (identisch zu Slot 29):** Holm-p signifikant UND
-  Bootstrap-CI-Untergrenze > 0.5.
-- **Holm-Klammer:** k = 8 (drei Stratifikations-Achsen × je 1 AUC-Test in der
-  Interaktions-Zelle). Konservativ.
-- **Sample-Voraussetzung:** n≥40 pro Interaktions-Zelle → für 8 Zellen ~320 Neu-
-  Records mit vollständigen 3 Feldern → **frühestens Ende September 2026**
-  gemeinsam mit Setup-Re-Test (~10-11 Wochen Vorwärts-Erhebung ab jetzt).
-- **Auffanglinie:** falls H5 ebenfalls Null-Befund → Tool bleibt Attention-Router,
-  keine Score-Feature-Erweiterung ohne belegte Trennung.
-
-**Warum drei Felder gleichzeitig?** Nicht als Multi-Test-Fischerei (das wäre
-verboten), sondern weil die drei Achsen **konzeptionell verschiedene Fragen**
-adressieren:
-- `max_gain_pct` — misst „Peak-Häufigkeit" (Aufwärts-Potenzial)
-- `entry_past_return_5d` — misst „Reversal-Signatur" (Substrat-Qualität)
-- `days_to_earnings` — misst „Katalysator-Nähe" (Timing)
-
-Setup-Score allein → keine Trennung. Kombination der drei → potenziell doch,
-falls das Signal in der Interaktion sitzt. Ehrliches Fischen mit vorab-Klammer.
-
-### EDGE-VALIDIERUNGS-PROGRAMM (Stand 13.06.)
-**Leitprinzip:** jedes Signal, das eine Entscheidung beeinflusst, braucht eine
-Edge-Messung, BEVOR ihm vertraut wird. **REIHENFOLGE-DISZIPLIN:** immer erst
-sammeln → auswerten → DANN nächsten Strang öffnen. NICHT parallel starten.
-
-**Abgedeckt/laufend:**
-- **Setup-Score ≥70:** Entry-Backtest, Readout 30.06. (Doppel-Lauf wg. Cluster).
-- **Entry-Score-Komponenten:** Shadow seit #336 (07.06.), Auswertung 30.06.
-- **Exit-Trigger:** Shadow seit #350 (11.06.), Auswertung ~Ende Juli.
-- **KI-/Monster-Edge:** Backtest-Felder seit #353 (11.06.) — `monster_score`
-  (KI-Transform) + `ki_signal_score` (roh). **Im 30.06.-Haupt-Run mitprüfbar**
-  (kein eigener Strang nötig, die Felder hängen am bestehenden Backtest-Sample).
-  Frage: trägt der KI-Pfad eigenständigen Edge über den Setup-Score hinaus?
-
-**Offene Edge-Kandidaten (ERST NACH 30.06.-Entry-Readout — NICHT jetzt starten):**
-1. **Conviction-Score (stärkster Kandidat):** Gewichte 33/28/28/11 unvalidiert,
-   wird bewusst nur per Chart+Instinkt genutzt. Gleiche Lücke wie Exit vor #350 —
-   angezeigter Score beeinflusst Wahrnehmung, Edge nie gemessen. Frage: sagt hoher
-   Conviction bessere Forward-Returns voraus? Steht als 30.06.-Methodik-
-   Wiedervorlage; ggf. eigener Shadow-Strang DANACH (analog Exit-Shadow: sammeln →
-   forward-return-paaren → Verteilung je Conviction-Level).
-2. **Push-Auslösung selbst:** ob die Push-SEVERITY-Tiers/Auslöse-Schwellen lohnen —
-   sind gepushte Momente besser als ungepushte? Teilweise vom Entry-Shadow erfasst,
-   aber die Push-Entscheidung selbst ungemessen. Niedriger als Conviction.
-
-(Earliness-Konfidenz n=78/AUC 0.77: kein neuer Faden — bleibt der Re-Test in der
-bestehenden 30.06.-Wiedervorlage, hier nur Querverweis.)
-
-**Bewusst NICHT auf der Liste (Over-Engineering):** einzelne Setup-Sub-Signale
-(gap_hold/rs_spy etc.) isoliert validieren — sie sind Bestandteile des Setup-
-Scores, dessen Gesamt-Edge ohnehin gemessen wird; kein eigener Entscheidungs-Bezug.
-
-**Nächster Schritt nach 30.06.:** Exit-Shadow ~Ende Juli auswerten, DANN
-entscheiden ob Conviction einen eigenen Shadow verdient — mit den Erkenntnissen
-aus Entry + Exit + KI/monster. Erst sammeln lassen, was läuft.
-
-### Hebel-Hypothesen H1–H6 (Edge-Auswertung 30.06., ZU PRÜFEN, NICHT Erkenntnis)
-**Kanonischer Anker** für die 30.06.-Edge-Auswertung. **Alles Hypothese, kein
-Befund** — nicht als gesichertes Ergebnis lesen. (Namespace-Hinweis: dieses
-„H1–H6" = **Hebel-Hypothesen**; das „H1 Storage-Redesign" in §6 ist der
-**Security-Audit-Namespace** — andere Nummerierung, nicht verwechseln.)
-
-**Ausgangsbefund (roh, vor Bereinigung):** Roher Setup-Score zeigt **KEINE
-Trennschärfe** — Trefferquote sinkt mit Score (28 / 29 / 28 / 25 / 23 % für
-≥40..≥80, „Nur Live"); ≥70-Mediane alle negativ (3T −1,7 / 5T −1,4 / 10T −1,9;
-n=215). Daraus die sechs Hypothesen:
-
-- **H1 — Expectancy statt Trefferquote:** Erwartungswert unter mechanischer
-  Cut-Loss/Let-Run-Regel, **netto nach Kosten** — NICHT Anteil ≥+5 %. Fester
-  Auswertungsbestandteil. Konvexe Lotterie-Auszahlung sichtbar (<50-Bucket Median
-  10T −3,7 % ABER Ø +7,6 %, Range bis +978 %).
-  **Schärfung (3. Gutachten 15.06.):** zusätzlich zu Expectancy **SPIKE-TARGETS**
-  testen — Anteil mit +20 %/+50 %/+100 % Max-Return je erreicht (ja/nein) +
-  Time-to-Peak. Begründung: bei konvexer Auszahlung misst Stichtags-Return (10T)
-  die Spitze weg; „Wahrscheinlichkeit eines großen Spikes" erfasst die Konvexität
-  direkt. **Unter dieselbe Multiple-Testing-Korrektur stellen wie die übrigen
-  Targets** (mehr Targets = mehr Tests, sonst unterläuft es die Korrektur).
-- **H2 — Schwanz-Anomalie (Falsifizierungstest):** Hält der fette rechte Schwanz im
-  <50-Bucket **nach Cluster-Purge UND nach Entfernen des Top-1-Ausreißers**? JA →
-  ernst nehmen (Score rankt Konvexität falsch). NEIN → Artefakt (n=131).
-  **Schärfung (2. Gutachten 15.06.):** nicht nur Top-1 entfernen, sondern auch
-  **Top-5** — wenn die Edge nach Entfernen der fünf größten Gewinner verschwindet,
-  existiert praktisch keine robuste Handelbarkeit (Lotterie-Profil bei n≈250–450).
-- **H3 — Exit als eigentliche Edge:** Bei schwachem Entry trägt Exit-Disziplin die
-  Rendite. Verknüpft mit der Exit-Mechanik-Spec (Begutachtung C, ~Ende Juli).
-- **H4 — Score als Universums-Filter, nicht Prädiktor:** SI-Trend stützt (seitwärts
-  36 % schlägt steigend/fallend je 27 %, richtungsblind).
-- **H5 — Katalysator-Overlay:** FDA/Earnings bedingen (vgl. 08.05.-Tell). Verknüpft
-  mit dem Katalysator-Gating-Vorschlag (Begutachtung C).
-- **H6 — Crowded-Trade (Hypothese, NICHT Befund):** inverse Score-Korrelation evtl.
-  crowded trade ODER teils Cluster-Artefakt (37,5 % unbereinigt) — **erst nach
-  Cluster-Purge entscheiden**, NICHT vorab als Alarmsignal behandeln.
-
-**AUFFANGLINIE (wichtigste Zeile):** Falls keine Netto-Edge → das Tool ist ein
-**Risiko-/Monitoring-Instrument, KEIN Alpha-Generator.** Schützt vor Edge-
-Schönrechnen. (Positiv lesbar als „Attention-Router" — s. Begutachtungs-Subsektion B.)
-
-**Auswertungs-Option (16.06.):** H1–H6 können beim 30.06.-Lauf als parallele,
-vorab-spezifizierte Subagent-Tests gerechnet werden (Durchsatz). **ZWINGENDE
-BEDINGUNG:** nur weil jeder Test vorab definiert ist (H1–H6 sind es) — parallel
-RECHNEN ist erlaubt, parallel nach einer Edge SUCHEN wäre Datenfolter. Die
-Multiple-Testing-Korrektur muss **GEMEINSAM über alle parallelen Tests** liegen,
-nicht pro Agent. Disziplin sitzt in der Korrektur, nicht im Verzicht auf
-Parallelität. (Sequenz-Prinzip sonst unberührt: gilt für **Strang-Öffnung**,
-nicht für das Rechnen vorab-fixierter Tests.)
-
-**Sample-Varianten beim H1/H2-Lauf (Diagnose 19.06.):** `manual_personal`-Ticker
-(Gist-Watchlist + offene Positionen, **filter-immun** via Pool-Bypass) können
-organisch nicht qualifizierte Ticker in die Top-10 und damit ins Backtest-Sample
-bringen. Setup-/Conviction-/Earliness-Score selbst sind **positions-blind**
-(belegt: `score()`/`compute_conviction_score`/`compute_earliness_pts` lesen keinen
-Position-/Watchlist-Status), aber die **Pool-Komposition** wird beeinflusst.
-Konsequenz: H1/H2-Lauf zusätzlich als **DOPPELLAUF** rechnen — einmal mit allem,
-einmal OHNE `manual_personal`-Einträge. **⚠ KORREKTUR der ursprünglichen Annahme
-(Gegenprüfung 19.06.):** das `manual_personal`-Flag ist **NICHT** im
-`backtest_history`-Eintrag persistiert (kein Key; `pool_member` ist konstant
-`True`, kein Signal). Die Bereinigung ist daher **nicht** nachträglich per Flag
-filterbar — sie muss beim H1/H2-Lauf **rekonstruiert** werden via Cross-Reference
-mit dem **damaligen Gist-Stand** (falls verfügbar; sonst best-effort über bekannte
-Watchlist-/Positions-Ticker des Zeitraums). Methodisch analog zum
-Cluster-Purge-Doppellauf. Effektgröße wird damit empirisch sichtbar statt
-angenommen. (Optionaler Folge-PR, falls die Bereinigung häufiger gebraucht wird:
-`manual_personal` ins Backtest-Schema persistieren — dann ist es ab dann filterbar.)
-
-### Externe Begutachtung 15.06. — zu prüfende Vorschläge (NICHT Erkenntnis)
-**Status:** Vorschläge eines externen Gutachters zum Projektdossier — **dokumentiert,
-nicht validiert.** Alle unterliegen der **Vorleistungs-Logik: erst Edge-Validierung,
-dann Bau.** Die „H#"-Labels verweisen auf die **Hebel-Hypothesen H1–H6** (Subsektion
-direkt oben — gemeinsame Nummerierung). Kein Punkt ist „umzusetzen", bevor der
-jeweilige Auslöser greift.
-
-**A) Auswertungs-Methode (zur 30.06.-Hauptauswertung, ergänzend zur Methoden-Härtung):**
-- **Bootstrapping (zu 30.06.):** Konfidenzintervalle für den Erwartungswert via
-  Ziehen-mit-Zurücklegen aus den Live-Daten (z. B. 10.000 synthetische Verläufe).
-  Begründung: bei n≈250–450 + asymmetrischer Verteilung ist ein Punkt-Erwartungswert
-  ohne KI wertlos. **Ergänzt** die bestehende Multiple-Testing-/Doppel-Lauf-Härtung
-  (§3/§4), ersetzt sie nicht.
-- **Fraktionales Kelly (NACH positiver Expectancy):** falls Expectancy nach
-  Cluster-/Reife-Bereinigung positiv → Positionsgrößen-Konsequenz gegen Ruin-Risiko
-  bei langen Verlustserien (konvexe Auszahlung = hohe Drawdown-Wahrscheinlichkeit).
-  **Risk-Management-Schicht, KEIN Signal** — greift erst, wenn überhaupt ein Edge
-  belegt ist.
-
-**B) Auffanglinie-Reframe (positiv, deckt sich mit Nordstern):**
-- **„Attention-Router":** Falls die 30.06.-Auswertung **kein** systematisches Alpha
-  zeigt → das System ist trotzdem ein hochpräziser **Scanner**, der täglich die
-  wenigen Kandidaten präsentiert, bei denen der Mensch manuell nach Katalysatoren
-  sucht. Das **IST eine legitime Edge** (Effizienzgewinn), nicht nur Fallback —
-  macht die Auffanglinie positiv statt resignativ (Nordstern: Mensch validiert
-  Bedeutung). Reine Deutungs-/Haltungs-Notiz, kein Bau.
-
-**C) Backlog-Vorschläge (NACH Validierung, je eigene Diagnose, kein Druck):**
-- **Synthetische Utilization (NACH Validierung):** Composite aus iBorrowDesk —
-  Fee-Veränderungsrate (z. B. `Fee_Delta_3d`) × Erschöpfungsrate verfügbarer Aktien
-  (× Kehrwert `Shares_Available`). Näher an echter Utilization als FINRA-Flow.
-  **BESTÄTIGT + konkretisiert** den bestehenden §5-Backlog-Punkt „Borrow-Fee +
-  Utilization in score()" (keine neue Idee, sondern dessen Ausgestaltung). Als neue
-  Score-Komponente **edge-validierungspflichtig** (nicht blind einbauen).
-- **Katalysator-Gating (↗ H5 Hebel-Hypothesen, NACH Validierung):** Earnings-/FDA-Kalender via Finnhub
-  (Key vorhanden) oder Benzinga Free. Leitidee: Setup-Score 60 **mit** Katalysator >
-  Score 85 im luftleeren Raum. **WICHTIG:** nur das **Kalender-Gating** automatisieren
-  — die Katalysator-**Bewertung** bleibt diskretionär/menschlich (Nordstern).
-- **Exit-Mechanik-Spec (↗ H3 Hebel-Hypothesen, Startpunkt ~Ende Juli):** asymmetrische Exit-Logik im
-  exit_shadow testen — **Time-Stop** (Exit wenn nach 3 Handelstagen kein Momentum)
-  + großzügiger **Trailing-Stop** für Gewinner. Konkreter Startpunkt für die
-  Exit-Shadow-Auswertung ~Ende Juli (s. §4 Exit-Shadow-Auswertung).
-- **Reddit-Velocity als möglicher Daten-Hebel (Diagnose 20.06., explorativ, NACH
-  Edge-Befund):**
-  - **KONTEXT (belegt 20.06.):** Reddit-**LEVEL** läuft live in `ki_agent`
-    (`fetch_reddit_mentions` — count + Keyword-Sentiment auf 3 Subs
-    wallstreetbets/stocks/shortsqueeze, 4h-Lookback, speist KI-Score-Komponente
-    `sig_reddit`, `ki_agent:1512–1525`). News-Sentiment via Claude-Haiku-NLP läuft
-    ebenfalls (`claude_sentiment_score`). **StockTwits seit 18.05. tot**
-    (`STOCKTWITS_ENABLED=False`). X/Twitter nicht im Tool (Paywall-Klasse).
-  - **LÜCKE:** Reddit-**VELOCITY** (Mention-Rate-of-Change, „geht GERADE viral") ist
-    NICHT abgedeckt. Reddit ist heute strikt **Level** (count vs. feste Schwellen),
-    kein Vergleich gegen prev-Tick. *(Abgrenzung zu D) „Rate-of-Change verworfen": das
-    betraf MARKT-Velocity, die teils schon da ist — Social-Mention-Velocity ist eine
-    DISTINKTE, heute unabgedeckte Größe, kein Re-Litigieren von D.)*
-  - **FEASIBILITY: hoch.** Plumbing existiert: RVOL-Velocity-Muster (current vs.
-    `prev_signal`, `ki_agent:1497–1505`) ist implementiert, und Reddit-`{count,
-    sentiment}` wird **bereits in `agent_signals.json` persistiert** (`ki_agent:2878`).
-    Eine Mention-Velocity läse analog `old_sigs[ticker]['reddit']['count']`. `ki_agent`
-    ist der natürliche Einbau-Ort, **kein neues Modul** nötig. Gratis (Reddit-API).
-  - **KANDIDAT, NICHT BESCHLUSS — Konkurrenz-Verhältnis:** steht in einer Reihe
-    möglicher Daten-Ausbauten nach Edge-Befund und konkurriert direkt mit den anderen
-    C)-Kandidaten — insb. **Synthetische Utilization** (oben; laut Memory #20
-    akademisch stärkerer Einzel-Squeeze-Prädiktor), Katalysator-Gating, Exit-Mechanik.
-    Reihenfolge erst NACH 30.06. festlegen, abhängig davon, was die Edge-Auswertung
-    als **schwächsten** Punkt zeigt. Reddit-Velocity ist damit **nicht gesetzt**,
-    sondern nachrangig zu prüfen gegen die Utilization-Quelle.
-  - **DREI VOR-BAU-BEDINGUNGEN (zwingend):**
-    1. **DOPPELZÄHLUNG LEVEL vs. VELOCITY konzeptionell lösen — das ist die ZENTRALE
-       schwere Vor-Bau-Frage, NICHT der Code.** Reddit-Level speist bereits
-       `sig_reddit`; Velocity additiv dazu belohnt dasselbe Social-Signal zweimal.
-       Entscheidung VOR Bau: Velocity **ersetzt** Level / als **Multiplikator** /
-       **disjunkter** Anwendungsbereich. Wer das überspringt, baut einen „kleiner-PR"-
-       Trugschluss.
-    2. **Reddit-403-Robustheit:** Velocity braucht zwei valide Ticks — ein geblockter
-       Tick → Velocity = **N/A** (nicht 0), sonst false-zero-Signal.
-    3. **Vorab-spezifizierte Hypothese:** Validierung wie H1–H6 (AUC vs. `return_10d`,
-       unter **gemeinsamer** Multiple-Testing-Korrektur). Nicht data-dredgen.
-  - **NICHT VORZIEHEN (Sequenz-Disziplin):** kein neuer Signal-Strang während des
-    30.06.-Validierungsprogramms. Bewerten erst, wenn Edge-Befund vorliegt UND klar
-    ist, dass Social-Velocity gegenüber den anderen post-Edge-Kandidaten zu
-    priorisieren ist.
-- **424B-Dilution-Trigger als möglicher Exit-Hebel (Diagnose 20.06., explorativ,
-  NACH Edge-Befund):**
-  - **KONTEXT:** Kapitalerhöhungen via Shelf-Drawdown sind ein bekannter abrupter
-    Squeeze-Killer bei Small-Caps (Pattern: Squeeze läuft → Filing kommt → Kurs
-    kollabiert). Idee ursprünglich als „S-3/Dilution-Erkennung".
-  - **DIAGNOSE-BEFUND (belegt 20.06.):** Das Tool hat **heute KEINE** Dilution-
-    Erkennung — weder direkt (kein S-3/424B/ATM-Fetch — **null grep-Treffer** über
-    alle `*.py`/`*.json`/`*.md`) noch indirekt (`SEC_RELEVANT_KEYWORDS` enthält
-    keinen Dilution-Begriff; Exit-Pressure ist **filing-blind**, alle sechs Trigger
-    `_exit_p2_trigger_*` lesen nur Markt/Borrow/Score/Earnings — `generate_report.py:
-    14726–15185`). EDGAR-Pipeline existiert (`fetch_sec_8k` mit Atom-Feed-Pattern,
-    `ki_agent:806–845`), die Dilution-Filing-Klasse ist die Lücke.
-  - **SCHÄRFUNG GEGENÜBER NAIVER LESART (kritisch):** Die prädiktive Filing-Klasse
-    ist **NICHT S-3 allein**, sondern:
-    - **424B-Prospectus-Supplements** (= konkrete Platzierung wird durchgeführt) —
-      Hauptsignal
-    - **8-K Item 1.01/3.02** mit ATM-Begriffen — Sekundärsignal
-    S-3 wäre nur **Kontext** (Shelf vorhanden → erhöhte Wahrscheinlichkeit für
-    späteres 424B), **NICHT** Solo-Trigger. Microcaps mit Squeeze-Potenzial haben
-    S-3 oft dauerhaft offen — naive S-3-Push würde **Lärm** produzieren statt
-    Information. Diskriminierend ist „**neue 424B-Drawdowns**", nicht
-    „S-3-Existenz".
-  - **FEASIBILITY: mittel.** EDGAR ist gratis, Pipeline-Pattern existiert
-    (`fetch_sec_8k`-Atom-Feed-Mechanik wiederverwendbar mit `type=424B`),
-    Pro-Ticker-Pfad und Cooldown-Pattern vorhanden. Aber: Filing-Klassifikation
-    (welche 8-K-Item-Codes? welche Filer-Heterogenität?) braucht echte Vorab-
-    Recherche, nicht trivial.
-  - **DEFENSIVER CHARAKTER (Erwartung kalibrieren):** Trigger wäre **primär Risiko-
-    Filter** (Position raus bei aktivem Drawdown), **NICHT Frühindikator**. SEC-
-    Filings kommen oft **NACH** dem Kurs-Drop (Markt antizipiert via Order-Flow) →
-    Wert ist **Bestätigung/Exit-Schutz, nicht Vorwarnung**. Realistisch: hilft beim
-    Aussteigen, nicht beim Vermeiden.
-  - **KANDIDAT, NICHT BESCHLUSS — Konkurrenz-Verhältnis:** steht in derselben Reihe
-    wie **Synthetische Utilization** (oben; laut Memory #20 **akademisch stärkerer**
-    Einzel-Squeeze-Prädiktor), **Katalysator-Gating**, **Exit-Mechanik-Spec**,
-    **Reddit-Velocity**. Reihenfolge erst NACH 30.06., abhängig davon, was die Edge-
-    Auswertung als **schwächsten** Punkt zeigt. Konzeptionell ↗ H3 (Exit-Edge) UND
-    ↗ H5 (Katalysator-Overlay) zuzuordnen — aber als **negativer** Katalysator.
-  - **DREI VOR-BAU-BEDINGUNGEN (zwingend):**
-    1. **FILING-KLASSEN-DISKRIMINIERUNG konzeptionell lösen — das ist die ZENTRALE
-       schwere Vor-Bau-Frage, NICHT der Code-Aufwand** (analog der Reddit-Velocity-
-       Doppelzählungs-Frage). Welche EDGAR-Filing-Typen UND welche 8-K-Item-Codes
-       zählen? Mit welchen Cooldowns? Wie wird Routine-Shelf (S-3 ohne 424B-Follow-
-       up) von aktiver Platzierung unterschieden?
-    2. **EINORDNUNGS-FRAGE:** Exit-Trigger #7 (analog den sechs bestehenden
-       `_exit_p2_*`) ODER negative Setup-Komponente (Anti-Squeeze-Substrat,
-       Score-Abzug)? Beide Wege funktionieren, sind aber architektonisch verschieden
-       — VORAB entscheiden.
-    3. **Vorab-spezifizierte Hypothese:** Validierung wie H1–H6 (vorab-definiert,
-       AUC vs. `return_10d` bzw. `forward_3d` bei Exit-Charakter, **gemeinsame**
-       Multiple-Testing-Korrektur). Nicht data-dredgen, nicht Filing-Klassen zur
-       Edge-Optimierung nachträglich tunen.
-  - **NICHT VORZIEHEN (Sequenz-Disziplin):** kein neuer Signal-Strang während des
-    30.06.-Validierungsprogramms. Bewerten erst, wenn Edge-Befund vorliegt UND klar
-    ist, dass 424B-Dilution gegenüber den anderen post-Edge-Kandidaten zu
-    priorisieren ist.
-  - **ABGRENZUNG:** Das ist KEINE Wiederaufnahme der **naiven** „S-3-Dilution-
-    Erkennung" (würde Routine-Shelfs als Squeeze-Killer fehlinterpretieren) — die
-    Schärfung „nicht S-3 sondern 424B" macht den Unterschied klar. Das ist auch
-    KEINE Wiederaufnahme von GEX/Options-Flow (paywall-Klasse, separate Memory-
-    Begründung gegen Aufnahme; nicht im D)-Block geführt, aber bewusst nicht hier).
-
-**D) Bewusst NICHT aufgenommen (abgelehnt mit Begründung):**
-- **„Rate-of-Change statt Absolutwerte" als neue Idee** — verworfen: **teils bereits
-  umgesetzt** (`score_delta_t1`, `rvol_buildup_5d`, `si_trend_5d_slope` SIND
-  Veränderungsraten); der Rest fällt in den **↗ H4-Test** (Hebel-Hypothesen), kein neuer Strang.
-- **Inverse Korrelation als gesicherter „Crowded-Trade"-Befund** — verworfen als
-  *Befund*: bleibt **Hypothese (↗ H6 Hebel-Hypothesen)**, erst nach Cluster-Purge
-  prüfbar — NICHT als gesichert führen.
-
-## 6) CODE-HYGIENE-BACKLOG (Status je Punkt)
-- **★ Vintage-Guard M1 ERLEDIGT (#346, 10.06.) — vormals „Option A / Pre-Open-Re-
-  Run-Guard" in diesem Backlog, jetzt LIVE (Anker §7).** Restkanten:
-  - **(a) M2 After-Hours-Capture = PHANTOM (aufgelöst 10.06., §8):** alle Price-
-    Captures laufen `prepost=False` → `iloc[-1]` ist regulärer Session-Close, kein
-    After-Hours-Print. **KEIN Fix nötig.** Die frühere 09.06.-Diagnose „M1 + M2
-    dieselbe Wurzel → EIN kombinierter Guard" ist damit **gegenstandslos** — M1
-    allein deckt den realen Fehlermodus (Pre-Open-Re-Run). After-Hours-P&L
-    ohnehin schon erledigt (#338).
-  - **(b) Pre-Open-Run-QUELLE — WURZEL GEKLÄRT + AUTOMATISCH GESCHLOSSEN (#357,
-    11.06.):** Die Quelle der Off-schedule-`postclose`-Runs ist **belegt** (Easy-
-    Verify Actions-Log): `redeploy-on-source-change.yml` (#194/#196) dispatchte bei
-    **jedem** Code-Merge auf `main` einen **vollen** `daily-squeeze-report.yml`-Run
-    (Fetch+Score+Pushes+score_history+ki_agent) statt nur `index.html` zu deployen;
-    `run_phase` war UTC-abgeleitet (`else → postclose`), bei Pre-Open-Merges im
-    falschen ET-Fenster. **Das war die gemeinsame Wurzel** der drei Symptome
-    (Vintage-Cluster #346, S3-`current_price`-Churn, S4-Vormittags-Fehlalarm #355)
-    UND des §8-S3/S7-Merge-Tag-Churns — **dieselbe Quelle**, nicht zwei Klassen
-    (frühere „andere Klasse"-Trennung damit überholt). **Fix #357:** `on: push`-Auto-
-    Trigger entfernt → `on: workflow_dispatch` (reversibel, push-Block auskommentiert).
-    Ein Code-Merge löst **keinen** automatischen Daily-Run mehr aus.
-    **REST-KANTE (kein Defekt, optional):** der Frontend-**Recalculate-Button**
-    dispatcht den Daily-Run weiterhin **direkt** via GitHub-API (`GH_WORKFLOW=
-    'daily-squeeze-report.yml'`, gen:9559/10575) — **bewusste, seltene Einzelaktion**,
-    nicht der Auto-Pfad. Ein nächtlicher Tap KÖNNTE noch einen Pre-Open-Run auslösen.
-    Optionaler Folge-PR: ein **Zeit-Warn-Gate** im Button (Hinweis bei Pre-Open-
-    Dispatch) — **kein Druck**, kein akuter Schaden (Easys Wahl). „Wurzel zu" heißt
-    präzise: **automatische Wurzel zu, manuelle Einzelaktion bleibt.**
-  - **(c) si_trend-slope uncapped (FIP 521.84):** der EINE echte uncapped-
-    Explosions-Punkt, relevant nur falls die 30.06.-Auswertung rohen slope statt
-    Bucket nutzt. Optional begleitend **W2** = 14–30 d silent-log der 3 uncapped
-    Rohfelder (`si_trend_5d_slope` max 521.84 / `rvol_buildup_5d` max 153.55 /
-    `rvol_acceleration` max 135.72).
-- **trend_break-Exit-Trigger auto_adjust-Rest-Kante (theoretisch, kein Bau):**
-  `_exit_p2_trigger_trend_break` (gen:14726) vergleicht roh `cur_price` vs adjusted
-  `ma21` NUR bei **Nicht-top10-Position MIT Corporate Action im EMA21-Fenster
-  (~21 Handelstage)** → könnte `exit_pressure` leicht inflationieren (5%-Gewicht).
-  Aktuell **keine** Position betroffen (DBI-Strang §8 bestätigt: keine offene
-  Position mit Corp-Action zwischen Entry und heute). **Fix-Konflikt:**
-  `current_price` dient zwei Konsumenten mit gegensätzlichem Bedarf (trend_break
-  will adjusted, Exit-PnL will roh) → **NICHT** global `auto_adjust` flippen; falls
-  je nötig, surgisch nur die `ma21`-Quelle im Nicht-top10-Fallback angleichen. Nur
-  bauen, wenn Easy-Verify einen frischen Split einer Nicht-top10-Position zeigt.
-- **H1 Storage-Redesign (Option d, OFFEN, kein Druck):** echte Privatheit der
-  Gist-Daten nur via auth-gated Store statt URL-lesbarem Gist (Privacy-Akzeptanz
-  c bewusst getroffen, §7) — optionaler Roadmap-Punkt.
-- **M1 CSP-Meta in `head.jinja` (Security, OPTIONAL):** Defense-in-depth gegen
-  künftige XSS-Klassen; `connect-src` sorgfältig allowlisten, iPhone-Verify;
-  manuell + Guardian. Niedrig — der reale XSS-Pfad ist seit #343 dicht.
-- **requests-Stub-PR** (die 3 TEMP-EXCLUDED `entry_score_persistence`,
-  `health_check_ntfy_url_pattern`, `ntfy_fail_visibility` `requests`-stubben →
-  zurück in ALLOWLIST, Gate **79→82**): **OPTIONAL**, Easy: „nicht dringend, kein
-  Trading-Wert". TEMP-Kommentar-Nummer verweist auf „#336" — bei Bau korrigieren.
-- **topten_entry_anomaly / watchlist_drawer_live_momentum** (letzte 2 B-Tests,
-  lesen echte Repo-Daten) → stubben für gate-tauglich. Niedrig.
-- **JSONL-Resolver-Lücke — KORRIGIERTER BEFUND + via union GESCHLOSSEN (12.06.):**
-  Der Konflikt-Recovery-Block in `daily-squeeze-report.yml` löst nur `*.json`
-  auto auf (`grep '\.json$'` + `--ours`); `*.jsonl` matcht die Regex NICHT →
-  ein `.jsonl`-**Rebase-Konflikt** landet im „Nicht-JSON"-Zweig und **bricht den
-  GESAMTEN Daily-Run-Push ab** (`rebase --abort; exit 1`, inkl. index.html/app_data/
-  backtest). **Korrektur der alten Notiz:** das ist ein **sichtbarer Hard-Abort,
-  KEIN stiller Sammelverlust** (empirisch belegt, Diagnose 12.06.) — greift nur
-  bei seltenem echtem Konflikt. **Fix:** `.gitattributes merge=union` für die **5
-  PURE Append-Logs** (`score_inflation_log`, `health_check_log`, `provider_health`,
-  `finra_history_health`, `vintage_guard_log` — alle `open(...,"a")`) → Append-
-  Konflikte lösen ohne Abort, beide Zeilen erhalten (`git rebase` respektiert den
-  Driver, empirisch belegt). **`exit_shadow_log.jsonl` BEWUSST AUSGENOMMEN:** Full-
-  Rewrite (`open(...,"w")`) + Re-Write-by-(ticker,date) + Forward-Backfill → union
-  erzeugte Duplikat-Keys (empirisch belegt) → bleibt beim Abort-Verhalten (selten,
-  selbstheilend via nächsten Re-Write). Workflow-Resolver-Block unverändert (union
-  verhindert, dass die 5 Dateien überhaupt als Konflikt ankommen).
-  **Key-aware-Merge-Driver für exit_shadow VERWORFEN (Diagnose 13.06.):** **0 reale
-  Konflikte** seit #350 (4 saubere Commits), und der 2. Schreiber (ki_agent-Backfill)
-  war **nie aktiv** → das Problem existiert strukturell noch nicht. Custom Driver =
-  mittlerer Aufwand + Runner-Config-Fragilität für ein Null-Vorkommen-Problem (Trading-
-  Wert-Filter: durchgefallen — Telemetrie, kein Live-Signal, selbstheilend). **FALLS
-  je real** (Watch ab ~16.06., wenn Backfill anläuft): die richtige Antwort ist die
-  bestehende **`--ours`-Auto-Resolve um exit_shadow erweitern (~1 Zeile)** — union ging
-  wegen Re-Write-Duplikaten nicht, `--ours` hat dieses Problem NICHT (nimmt eine
-  konsistente Vollversion). **KEIN** custom Driver.
-- **Recovery-Umleitung bei Gist-Body-Korruption** (Folge-PR zu #322): bei
-  `body_ok=False` Positionen erhalten statt `{}`. OFFEN.
-- **Toter v2-else-Zweig entfernen** (Option b) — OPTIONAL, Easys Architektur-
-  Entscheidung. Isoliert halten (Lektion #226), Dict-Key `"price_str"` behalten.
-- **Cache-Bust-Restkanten aus #373 (zwei Folge-PR-Kandidaten, niedrig):**
-  - **(a) PWA-Home-Screen-Erststart-Cache (offen seit #373):** `reloadPage()` ist
-    via `location.replace(location.pathname + '?v=' + Date.now())` cache-bustend
-    (#373), ABER der allerERSTE Start vom iOS-Home-Screen-Icon kann weiterhin einen
-    gecachten Snapshot zeigen, bis Easy einmal Reload tippt. Vollständige Lösung:
-    `manifest.json`-Lifecycle ODER On-Load-Redirect mit Loop-Guard (`if (!location.search)
-    location.replace(pathname+'?v='+Date.now())`). In #373 diagnose-only beauftragt,
-    NICHT mitgefixt. Kein Service-Worker mehr im Spiel (17.05. entfernt).
-  - **(b) Countdown-/Recalculate-Auto-Reload mit eigenem `window.location.reload()`
-    (offen seit #373):** `_startCountdownReload` (~gen:10816) und `_manualReload`
-    (~gen:10821) nutzen `window.location.reload()` statt `reloadPage()` → unterliegen
-    demselben latenten Cache-Bug wie der Reload-Button VOR #373. Fällt selten auf,
-    weil die Countdown-Wartezeit das `max-age`-Fenster meist überbrückt + neuer Deploy.
-    Konsolidierungs-Kandidat: beide Pfade auf den #373-Cache-Buster vereinheitlichen.
-  - **(c) Staleness-Banner GEBAUT (22.06.2026, PR Frontend):** Header-Pill
-    `#hdr-staleness` zeigt das Alter der Daily-Run-Daten (Anker
-    `_DAILY_RUN_TS` = server-eingebrannter Render-Timestamp, NICHT
-    `app_data.generated_at` — letzteres überschreibt ki_agent stündlich).
-    Adressiert das **Cron-Verspätungs**-Problem (Diagnose 22.06.: Premarket
-    Ø ~5 h spät → Mo-Morgen Fr-Daten). Schwellen FRISCH<15h / VERSPÄTET 15-24h
-    / STALE>24h (`config.STALENESS_*`). **Bekannte Grenze zum Cache-Bug (a):**
-    der Banner ist Teil der index.html. Bei stale PWA-Snapshot trägt die alte
-    HTML einen alten `_DAILY_RUN_TS` → der Banner zeigt das (korrekt!) als
-    STALE an — er **flaggt** also einen veralteten Snapshot, kann ihn aber
-    **nicht selbst auffrischen** (das bleibt (a), der Cache-Bust-Folge-PR).
-    Der Banner mildert (a) somit (sichtbare Warnung), löst ihn nicht.
-- **Finnhub-SI-Reserve** (gratis, Key da) als SF-Reserve falls Kette dünn. Niedrig.
-- **FINRA-Provider unmonitored (niedrig):** Der Daily-Run-FINRA-History-Fetch
-  (speist `si_trend`) hat KEINEN `provider_health`-Record. `provider_health['finra']`
-  überwacht nur den ki_agent-SSR-Fetch (anderer Pfad, wochenend-still = normal).
-  Optionaler Wächter-PR, niedrig — Fetch läuft + ist wochenend-robust. Aufgreifen
-  nach Entry-Stabilisierung. (Datierter Schwellen-Schritt nach dem ~23.06.-Sample:
-  s. §4 „FINRA-History-Wächter" — dieser §6-Punkt ist die Backlog-Status-Notiz der
-  Überwachungs-Lücke selbst.)
-- **Wächter-Block GESCHLOSSEN (erledigt) + Rest:** **premarket-Wächter = S11 live**
-  (`run_phase==tsp=='premarket'`, 5-Werktage-Schwelle). **Borrow = Tier-2 registriert**,
-  `aggregate_provider_fails` greift (3-in-Folge < 50 % → Digest), transiente Dips
-  sind false-fire-sicher. **OFFEN/niedrig:** ein expliziter **borrow-Wächter „S15"
-  (vorgeschlagen, S15 noch unbelegt — S1–S14 existieren)** NUR, falls je ein echtes
-  Ausfall-Sample beobachtet wird — sonst wäre die Schwelle geraten (Miss-Risiko bei
-  langsamem Decay 60–70 %). Aufgreifen nur evidenzbasiert, kein Druck.
-- **score()-None-Konsistenz-Angleich (Diagnose 17.06., THEORETISCH, kein reales
-  Crash-Risiko):** Zwei rohe `rel_volume`-Vergleiche bestehen — gen:2808 (`score()`-
-  Combo-Bedingung `stock.get("rel_volume", 0) >= 2.0`) und gen:16142 (Loop-Filter
-  `c.get("rel_volume", 0) < 1.0`). Strukturell sicher: `_normalize_rvol` liefert
-  immer float (gen:853–858/881), alle Writer non-None, kein Phasen-Pfad mit None.
-  ABER Inkonsistenz zu gen:4096 (`DRIVER_CLASSIFICATIONS`), die schon
-  `_safe_float(s.get("rel_volume", 0))` nutzt. **KEIN eigener PR** — beim nächsten
-  ohnehin anstehenden Score-nahen PR die zwei Zeilen als 1-Zeilen-Konsistenz-
-  Angleich mitnehmen. Hintergrund: #371-Strang None-Guard (`short_situation`/
-  `risk_assessment`/`_card`, #795/#796-Render-Crash), `score()` bewusst NICHT
-  mitgezogen weil Compute-Pfad; Nachfass-Diagnose 17.06. belegt Risiko = theoretisch
-  (`rel_volume` nie roh aus nullable Provider-Feld, anders als #371-Felder).
-- **US-Holiday-Awareness (Diagnose 19.06., Juneteenth-Anlass):** Tool verhält
-  sich **strukturell korrekt** — Backtest-Append (Vintage-Guard mit explizitem
-  `holiday_or_prior_bar`-Skip, `backtest_history.py:550–551`) und Forward-Return-
-  Backfill (bar-index-basiert via yfinance-Close-Index, `ki_agent.py:458–468` +
-  `572–580`) sind holiday-robust **by construction** (reale Bars, Feiertage per
-  Definition abwesend). **Kein Bau nötig.** RESTPUNKT (≤1-Tag-Ungenauigkeit,
-  marginal): `_trading_days_elapsed` (`ki_agent.py:362`) und `_trading_days_until`
-  (`generate_report.py:14839`) nutzen `weekday()<5` ohne Holiday-Check — nur ein
-  Gate (self-correcting Retry) bzw. catalyst-5%-Sub-Score. Optionale Mitnahme bei
-  nächstem ki_agent-nahen PR: gemeinsames Python-`US_MARKET_HOLIDAYS`-Set,
-  gespiegelt aus der JS-Liste `US_HOLIDAYS` (`generate_report.py:10908–10939`,
-  2025–2027 inkl. Juneteenth 2026). **KEIN eigener PR — null Trading-Wert.**
-  **WARTUNGS-REMINDER:** JS-Liste `US_HOLIDAYS` braucht jährliche manuelle Pflege
-  (nächste Erweiterung: 2028).
-  **Update 20.06. (S4-Klärung, ENTSCHEIDUNG: NICHT bauen):** Der `S4`-Wächter ist
-  der **einzige** Ort mit realem Holiday-Lärm (~9 warn/Jahr, oft sub-Push-Schwelle
-  ≥3 warn). Die Holiday-Blindheit ist dort **EXPLIZIT BEWUSST** gewählt
-  (`health_check.py:773–777` dokumentiert: „bewusst keine fragile Feiertags-Liste
-  hier; konsistent zu `_trading_days_elapsed` und `_last_phase_run_age_workdays`").
-  Begründung: ein **false-negative** (S4 stumm bei echtem Append-Ausfall, weil eine
-  falsch gepflegte Liste den Tag fälschlich als Feiertag maskiert) ist **schlimmer**
-  als das false-positive (Holiday-Warn). Der `vintage_guard_log` kann NICHT zur
-  Holiday-Erkennung herangezogen werden, weil der `holiday_or_prior_bar`-Reason
-  zwischen echtem Feiertag und echtem Bar-Lag **ununterscheidbar** ist
-  (`backtest_history.py:551`) — der Bar-Lag-Zahn (§3-Vintage-Verify) würde mitgemutet.
-  Eine echte Holiday-Liste wäre der **einzige saubere Weg** — wird aber bewusst
-  **nicht** gebaut: ~9 warn/Jahr akzeptieren statt einen zweiten Wartungs-Pfad zu
-  schaffen, der 2028 driften kann (Drift → stiller Real-Fehler maskiert).
-  **Konsistent zum „Kein Bau nötig" oben** — kein Widerspruch, dieselbe konservative
-  Linie. Bei künftigem Bau-Gedanken **zuerst diese Begründung lesen**.
-  **Update 21.06. (#381 GEBAUT — #378-Entscheidung gekippt):** Die
-  20.06.-Annahme „S4 ist der einzige Holiday-Lärm-Konsument" war mit damaligem
-  Wissensstand **richtig** (S4 als einziger bekannter Konsument, Listen-
-  Wartungsrisiko > ~9 warn/Jahr) — und ist erst durch die **21.06.-Diagnose
-  widerlegt**, nicht durch einen Erkenntnis-Fehler der damaligen Linie. Belegter
-  **zweiter** Holiday-Konsument: `process_exit_signals` (Exit-Push-Pipeline)
-  feuerte **5 Wochenend-Exit-Fehlalarme** (LUCK/PDYN/AI/GIII/IONQ, alle
-  `trend_break crit=True` mit `price=None`). Anlass-verschärfend: **Independence
-  Day fällt Fr 03.07.** genau ins 30.06.-Auswertungs-Fenster. Zwei reale
-  Konsumenten + EIN gemeinsames `config.US_MARKET_HOLIDAYS`-Shared-Set
-  rechtfertigen sich jetzt gegenüber dem Wartungs-Risiko — die **Evidenz hat
-  die Kalkulation gekippt**, nicht die Bewertung von damals. Guardian-Audit
-  (#381) fand zudem einen **dritten** Konsumenten der `available`-Semantik im
-  Frontend (`buildPositionStatus`, `=== false` → tolerant statt strikt) — bewusst
-  so belassen (die Asymmetrie Push-strikt / Pressure-liberal / Frontend-tolerant
-  IST die Sicherheits-Eigenschaft). **Status: GEBAUT** (Writer-side
-  `available:True` in allen 6 Trigger-Success-Branches + ki_agent-Validity-Gate
-  + Wochenend-/Holiday-Skip für `process_exit_signals` + S4 als zweiter
-  Konsument, `config.US_MARKET_HOLIDAYS` als Single-Source-Spiegel der JS-Liste).
-  Der **WARTUNGS-REMINDER oben bleibt der reale Rest-Punkt** und wiegt jetzt
-  schwerer: ein 2028 falsch gepflegter Listeneintrag mutet S4 **und** Exit-Pushes
-  an einem echten Handelstag. CLAUDE.md-Sync mit drin (Phase-2-Push-Sektion +
-  S4-Zeile).
-- **or-0-Defaults Persist-Fix** · **finviz Flag-aus + α** · **Borrow-Naming
-  (`IBKR_*`→`IBORROWDESK_*`)** · **v1/v2→Jinja** · **Cockpit Stage 3 (.sb-Reste)**
-  → alle OFFEN, niedrig/vertagt.
-- ~~**★ NEU 02.07.2026 — Hypothese-C-Vorwärts-Erhebung Backfill (STUFE-3, optional):**~~
-  **✅ ERLEDIGT 03.07.2026** — Backfill-Live-Lauf via #401-Workflow gelaufen
-  (`85cbbe9`, 330/330 Records gefüllt, 0 thin-slice). Hypothese C **04.07.
-  getestet** (§5-Ergebnis-Block: 0/6 Holm-Rejects). Streichen.
-- ~~**★ NEU 02.07.2026 — yfinance-Pin-Cap zurück-nehmen**~~ **✅ ERLEDIGT 03.07.2026
-  via #403.** `yfinance==1.4.1 → yfinance>=1.4.1,<1.5` (analog pandas `<3.1`,
-  peewee `<4.2`). Minor-Sprung bleibt blockiert, 1.4.x-Bugfixes erlaubt. **NEUER
-  Rest-Punkt:** Cap komplett aufheben (`>=` ohne Obergrenze oder `<1.6`) sobald
-  yfinance 1.5.x als stabil verifiziert (parallele Test-Env oder Community-Konsens).
-  Kein Termin, kein Druck.
-- ~~**★ NEU 02.07.2026 — Hypothese-A-Erhebungs-PR (Reversal, groß, kein Termin):**~~
-  **✅ ERLEDIGT 02.07.2026 via #402 Stufe A.** `entry_past_return_5d`-Feld additiv
-  in `_build_backtest_extension`, Adj-Close beidseitig (Split-safe), None-Semantik
-  STRIKT. Vorwärts-Erhebung läuft ab Merge. **Rest-Optionen (offen, kein Druck):**
-  - **Stufe B — Backfill für ~420 v4-Alt-Records:** ist **möglich** (Adj-Close
-    Pre-Entry ist deterministisch aus yfinance-Historie rekonstruierbar, im
-    Gegensatz zu `days_to_earnings`). Muster analog `backfill_max_gain_pct.py`,
-    aber `fetch_start = earliest_edate − 14 Kalendertage`. Aufgreifen nur wenn
-    H5-Auswertung explizit vor der ~10-Wochen-Vorwärts-Erhebung gewünscht.
-  - **Stufe C — Workflow-Dispatch für Stufe-B-Live-Lauf** analog #401. Nur
-    nach Stufe-B-Merge.
-- **★ NEU 04.07.2026 — News/FDA-Katalysator-Erhebung (Look-Ahead-Quelle
-  ungeklärt, NICHT jetzt):** Die Diagnose 05.07. zu `days_to_earnings` hat
-  gezeigt: Earnings-Datum ist **point-in-time-sauber** (vorab-Kalender), aber
-  News (RSS-Fetch) und FDA (RSS) tragen **Look-Ahead-Risiko** bei Rekonstruktion.
-  Live-Snapshot AM Report-Tag wäre sauber, nachträgliche Re-Fetches nicht.
-  **Kandidat für additive Erhebung nur falls H5-Auswertung Signal zeigt und die
-  Katalysator-Detail-Trennung (Earnings vs News vs FDA) nötig wird.** Bau-
-  Voraussetzung: klare Konvention „NEWS-Snapshot AM Report-Tag persistieren,
-  NIE nachträglich re-fetchen" (analog `days_to_earnings`-Muster). Kein Bau
-  jetzt, kein Termin, kein Trading-Wert-Filter-Fund (H5 nicht mal gestartet).
-- **★ NEU 04.07.2026 — Katalysator-Detail-Fields (bewusst NICHT gebaut,
-  Alternative zu obigem Punkt):** Statt neuer News/FDA-Erhebung könnte man
-  `score_catalyst > 0` (bereits persistiert, 163/420 = 38.8 % Coverage) als
-  binäre Katalysator-Flag für H5 nutzen — kein neuer PR nötig. **Nachteil:**
-  `score_catalyst` mixt 7 Komponenten (Earnings, Insider, News-KW, Short-
-  Pressure, Gamma, Borrow, PC-Ratio), nicht rein „Event". **Empfehlung
-  (Diagnose 05.07.):** erst H5-Diagnose mit `score_catalyst > 0` und
-  `days_to_earnings ≤ 14`, dann entscheiden ob feinere Trennung nötig ist.
-- **Volle 86-Suite in CI** (über die 79 hinaus): inkrementell nach Hermetik-Triage
-  (die 2 B + 5 ENV + 3 requests-TEMP bleiben außen bzw. brauchen Stubs).
-- **Security-Backlog (Audit 09.06., alle niedrig/optional):** **M3 ERLEDIGT als
-  bewusste Entscheidung (09.06.):** PAT bleibt **CLASSIC** — fine-grained scheiterte
-  26.05. mit 403 bei Workflow-Dispatch/Gist (belegte Betriebslehre, **NICHT erneut
-  vorschlagen**). Scopes `repo`+`gist`+`workflow` = betriebsnotwendiges Minimum,
-  bewusst belassen (Leak-Pfad seit #343 dicht). **M4** Worker-offener-Proxy
-  (Quota-DoS) + **L1** LLM-Error-Sink: bewusst AKZEPTIERT. **CVE-Check**
-  (pip-audit/Dependabot) = Easy extern (Sandbox hat kein Netz).
-- **ERLEDIGT 02.–04.07.2026 (in §1 chronologisch aufgelistet):** Backfill-
-  Skript-Kette max_gain_pct (#399 Skript+Dry-Run · #400 thin-slice-Zähler ·
-  #401 workflow_dispatch); max_gain_pct-Backfill-Live-Lauf 330/330 (`85cbbe9`);
-  Hypothese-C-Auswertung 04.07. (kein PR, Ergebnis-Anker in §5); Vorwärts-
-  Erhebungen entry_past_return_5d (#402) + days_to_earnings (#404);
-  requirements.txt Pin → Cap (#403). **Voll-Handover-Nachtrag 04.07.** (dieser PR).
-- **ERLEDIGT 13.06.–02.07.2026 (in §1 chronologisch aufgelistet):** Cache-Bustendes
-  Reload (#373); None-Guard-Render-Fix (#371); Exit-Push-Disziplin A+B (#381,
-  Holiday+Validity-Gate); Staleness-Banner (#383); S7-Race-Gate (#384);
-  Conviction-backtest-Persist (#388); Auswertungs-Helfer-Chain (#389/#390/#391/#392);
-  yfinance-Segfault-Brücke (#393); Frontend-Sprach-Fix (#396); max_gain_pct-Vorbau
-  (#397). Plus Doku-Anker #385/#386/#387/#394/#395 (30.06./01.07.-Auswertung dokumentiert).
-- **ERLEDIGT Session 10.–13.06.:** XSS C1+M2 (#343), Vintage-Guard M1 (#346),
-  Exit-Shadow-Log (#350), KI-/monster-Backtest-Felder (#353), S4-Zeit-Gate (#355),
-  Redeploy-Wurzel-Fix (#357), `.jsonl`-Resolver-union (#359), Cron-Doku-Drift
-  (#360/#361), Cockpit-Entry-Shadow-Caption (#362), Voll-Handover (#363).
-- **ERLEDIGT Vorsession (06.–07.06.):** Schema-Tripwire (#329), 5 stale Reds (#330),
-  Golden-Liveness (#331), tier2-String-Gating-AST (#332), CI-Gate Phase 1+2
-  (#333/#335), health_check-Stub (#334), Entry-Score Shadow (#336).
+---
 
 ## 7) ARCHITEKTUR-ANKER
 
-**★ NEU 02.–04.07.2026 (drei Analyse-Persistenz-Felder + Backfill-Pipeline):**
-- **★ Backfill-Pipeline max_gain_pct (#399/#400/#401 + Live-Run `85cbbe9`):**
-  Dreistufige Kette (Skript → Zähler-Nachbesserung → Workflow) analog etabliertem
-  Muster `validate_backfill.py`. Live-Lauf am 03.07. füllte **330/330 reife
-  Alt-Records** (0 thin-slice, 129 unique Tickers, Fenster 14.05.–18.06.2026).
-  Doppelter Race-Schutz: fcntl.flock (exklusiv, non-blocking) + Cron-Fenster-
-  Guard (±30 min um 06:17/21:17 UTC). Atomic-Write (tmp+os.replace) am Ende.
-  Ein-Feld-Invariante per Test verriegelt. Idempotent (Skript-Guard `if
-  "max_gain_pct" in e: continue`; Workflow-Guard `git diff --staged --quiet
-  && exit 0`). Muster-Ablage für künftige additive Backfill-PRs.
-- **★ entry_past_return_5d (#402, Hypothese-A-Vorbau Stufe A):** additive
-  Live-Vorwärts-Erhebung. Pure Helper `_compute_entry_past_return_5d(
-  close_at_entry, close_5td_before)` — Formel `(close_at_entry /
-  close_5td_before − 1) × 100`. **Split-Konsistenz-Pflicht**: beide Werte
-  aus derselben `_hist_stats`-`auto_adjust=True`-Fetch (Reverse-Splits bei
-  Squeeze-Small-Caps häufig). `_hist_stats`-Tupel um 15. Element
-  `close_5td_before_entry` erweitert; Batch + Singleton-Fallback beide
-  angepasst; **kein neuer yf-Fetch**. **None-Semantik STRIKT** (nicht
-  0.0-Overload): `None` = nicht ableitbar (IPO < 6 Bars, Delisting), echte
-  Null-Bewegung liefert `0.0` numerisch. **Look-Ahead-Konvention einfroren**
-  im Helper-Docstring + S10-Kommentar (`config.py`) + Test E1-E6: Feld darf
-  NIEMALS als Score-Feature aus dem Backtest gelesen werden; Live-Score liest
-  aus `stock["close_5td_before_entry"]` (Enrichment). Backfill für Alt-Records
-  möglich (Adj-Close deterministisch rekonstruierbar) — separate Anordnung.
-- **★ days_to_earnings (#404, Hypothese-H5-Vorbau Stufe A):** additive Live-
-  Vorwärts-Erhebung. Snapshot des AM Report-Tag bekannten nächsten Earnings-
-  Termins in **Kalendertagen**, konsistent zum Live-Score-Konsumenten
-  `_compute_sub_scores:3746-3749` (Bucket ≤7/≤14). Wert 1:1 aus
-  `s["earnings_days"]` (Live-Enrichment, gesetzt in `generate_report.py:
-  16502-16540` via EarningsWhispers-Cache + yfinance-Fallback). **Point-in-
-  time-sauber**: Fetch AM Report-Tag → keine später-angekündigten Termine
-  leaken. **Backfill STRUKTURELL NICHT MÖGLICH** — heutiger Fetch ≠ damaliger
-  Termin; anders als max_gain (deterministisch aus Bar-Historie) oder
-  entry_past_return_5d (deterministisch aus Adj-Close vor Entry). Nur
-  Vorwärts-Erhebung; Alt-Records tragen `null`. Look-Ahead-Konvention
-  einfroren analog #402: Score-Read bleibt `s["earnings_days"]`, NIE
-  `record["days_to_earnings"]`. **Namens-Trennung bewusst asymmetrisch**
-  (Live-Feld ≠ Backtest-Feld) als struktureller Guard gegen Look-Ahead-Drift.
-  Kein Guardian-Finding.
-- **★ Muster „Look-Ahead-Konvention einfrieren" (verankert 02.–04.07.):**
-  Drei Elemente pro additivem Analyse-Persistenz-Feld (max_gain_pct #397 +
-  entry_past_return_5d #402 + days_to_earnings #404):
-  1. **Docstring** im Helper (oder Compute-Site) einfriert: „NIEMALS als
-     Score-Feature aus dem Backtest lesen. Live-Score liest aus [Enrichment-Feld]."
-  2. **S10-Kommentar** (`config.py`) wiederholt die Konvention beim Whitelist-
-     Eintrag (Look-Ahead-Anker).
-  3. **Test-Verankerung** greppt Konsumenten-Dateien (`generate_report.py`,
-     `ki_agent.py`, `health_check.py`) auf `.get("<feld>")` und `["<feld>"]`
-     — 0 Treffer Pflicht. Guardian-Grep-Zusatz für indirekte Reads via
-     `**entry`/`**record`-Spread (bisher heute im Repo nicht vorhanden).
-  Damit ist die Trennung Live-Enrichment ↔ Backtest-Persistenz strukturell
-  gesichert, nicht nur textuell.
+### 7a. Analyse-Persistenz-Felder — Look-Ahead-Konvention
 
-**★ NEU 13.06.–02.07.2026:**
-- **★ Exit-Push-Disziplin (#381, 21.06.):** zwei parallele Gates in der Exit-Push-
-  Pipeline (`ki_agent.process_exit_signals` + `_send_exit_p2_push`). **(A) Validity-
-  Gate:** `_send_exit_p2_push` skippt Records mit `available != True`; `generate_
-  report` schreibt `available: True` in allen 6 Trigger-Success-Branches. **(B)
-  Markt-/Holiday-Gate:** `process_exit_signals` skippt Wochenenden + US-Feiertage
-  über `config.US_MARKET_HOLIDAYS` (gemeinsames Shared-Set mit S4-Health-Check).
-  Asymmetrie der `available`-Defaults (Push strikt `is not True` · Pressure
-  liberal `.get(...,True)` · Frontend tolerant `=== false`) ist bewusst — Sicher-
-  heits-Eigenschaft, inline dokumentiert. `edgar_filing`-Anomaly-Pfad ist von
-  beiden Gates ausgenommen (Time-Critical, muss in jeder Marktphase durchkommen).
-- **★ Staleness-Banner (#383, 22.06.):** Header-Pill `#hdr-staleness` visualisiert
-  Alter der Top-10-Daten. **Anker `_DAILY_RUN_TS`** — server-eingebrannter Render-
-  Timestamp aus `_build_context` (`datetime.now(UTC)`), als JS-Const in `index.html`
-  injiziert. **BEWUSST NICHT `app_data.generated_at`** (überschreibt ki_agent
-  stündlich → Frische-Lüge). Schwellen `STALENESS_FRESH_MAX_HOURS=15` / `_STALE_
-  MIN_HOURS=24` in `config.py`. Render fetch-unabhängig via `DOMContentLoaded` →
-  zeigt Alter auch bei fehlgeschlagenem `app_data.json`-Fetch. Bekannte Grenze
-  zum PWA-Cache-Bug §6-a: bei stalem Snapshot flaggt Banner korrekt STALE, kann
-  aber nicht selbst auffrischen (Cache-Bust-Folge-PR).
-- **★ S7-Race-Gate (#384, 23.06.):** S7 SUPPRESS bei niedriger `agent_signals ∩ Top-10`-
-  Überlappung, WENN seit vorigem Daily-Run ein ki_agent-Tick lief (`agent_signals.
-  updated > app_data.last_daily_run_ts`) — erwartete Top-10-Rotation. FEUERT nur
-  bei fehlendem Tick (Auto-Trigger-Kette gebrochen, 14.05.-Bug-Klasse) ODER
-  fehlendem/unparsebarem Timestamp. Mehrtages-Ausfall zusätzlich von S8 (26 h)
-  gefangen. `last_daily_run_ts` schreibt Daily-Run in `app_data.json`; ki_agent
-  preserviert via `**existing`-Spread.
-- **★ Conviction-Backtest-Persist (#388, 29.06.):** `conviction_score` + `conviction_
-  components` additiv in `_build_backtest_extension` (`backtest_history.py`), aus
-  `app_data["conviction_scores"]` gelesen. **Schema v4 unverändert** (S10-Loader
-  filtert ==4; kein Bump). Beide **LEGITIM leer (None)** auf Alt-Records + auf
-  Records ohne Live-Conviction-Berechnung → **nur `S10_OBSERVED_FIELDS`**, KEIN
-  MUSS-/LAG-Check (Guardian-Blocker in demselben Branch gefixt — Whitelist-Semantik
-  klargestellt). Reine Persist-Erhebung für die Conviction-Edge-Auswertung
-  (~Ende August 2026).
-- **★ Edge-Auswertungs-Helfer-Chain (#389/#390/#391/#392, 28.–29.06.):** vier
-  pure-stdlib-Module in `scripts/`, fixture-only-getestet, **kein Import in
-  `generate_report`/`ki_agent`/`health_check`/`backtest_history`** — Reihenfolge-
-  Disziplin (erst sammeln → auswerten) strukturell abgesichert.
-  - `scripts/stats_helpers.py`: `mann_whitney_u_auc(a, b)` mit Tie-Korrektur +
-    Stetigkeitskorrektur (#389); `multiple_testing_correction(p_values, *,
-    labels, alpha)` Bonferroni + Holm-step-down mit Label-Rückordnung (#390).
-  - `scripts/cluster_purge.py`: `previous_trading_day(d)` holiday-robust via
-    `config.US_MARKET_HOLIDAYS`; `classify_cluster_records(records)` mit
-    `is_cluster_followup`-Flag (#391).
-  - `scripts/mock_test_helper_chain_integration.py`: dokumentiert die zwei
-    **Adapter-Rezepte** für Caller (#392): A→B via `(ticker,date)`-Lookup zurück
-    in Original-Records; B→C via None-Filter + Labels-Paar. Adapter sind
-    Test-lokal, keine Live-Library. **Aktivierungs-Status:** in KEINEM Live-
-    Pfad importiert (Grep-verifiziert). Werden nur von Test-Modul + Ad-hoc-
-    Auswertungen aufgerufen.
-- **★ yfinance-Segfault-Brücke (#393, 29.06.):** `requirements.txt` pinnt exakt
-  `yfinance==1.4.1` + `pandas==3.0.3` + `peewee==4.1.0` (Restore-#817). Wichtige
-  Lektion: peewee war transitive Dep — muss explizit im requirements.txt gepinnt
-  sein für Pin-Wirkung. yfinance 1.4.1→1.5.1 minor jump im Zeitfenster verursachte
-  SIGSEGV (Exit-139) im Batch-Fetch (kein Python-Stack-Trace, C-Extension-Crash).
-  Cap-Rücknahme möglich sobald 1.5.x als stabil verifiziert (§6 Restkante).
-- **★ Frontend-Sprach-Konsistenz zum belegten Zustand (#396, 02.07.):** Nach
-  30.06.-Auswertung (Attention-Router, kein Alpha-Generator) sind zwei Frontend-
-  Sprach-Drifts entfernt. Conviction-Level-Text (`compute_conviction_score`) +
-  Methodik-Panel-Titel + Pill „≥ 75" zeigen keine Alpha-Behauptung mehr
-  („Erwartungswert positiv" → „Aggregations-Anzeige, nicht validiert" / „hohe
-  Konvergenz"). Entry-Shadow-Label ersetzt vergangenes Datum „unvalidiert bis
-  30.06." durch datenbelegten Zustand „heuristisch (Erhebung läuft)". Reine
-  String-Änderungen — kein Score/Filter/CSS/Klasse-Touch. Golden-Snapshot bewusst
-  aktualisiert (byte-identisch nach `UPDATE_GOLDEN=1`). Prinzip: **UI-Sprache
-  darf niemals eine Edge behaupten, die die Auswertung nicht stützt.**
-- **★ max_gain_pct Outcome-Persistenz (#397, 02.07.):** additiver Spiegel zu
-  `max_drawdown_pct` (Hypothese-C-Vorbau) in `backtest_history.py`. Helper
-  `_compute_max_gain_pct(df_window)` — Formel `roll_low=Low.cummin() → (High-
-  roll_low)/roll_low × 100 → max, round 2`; Guards byte-identisch zu Drawdown
-  (`None`/`empty`/`len<2` → `0.0`; Exception → `None`). Init im neuen Record
-  `"max_gain_pct": 0.0` neben `"max_drawdown_pct"`; Rolling-Update in derselben
-  `df_since`-Slice, demselben `dd_batch`-Download (**kein zusätzlicher yf-Call**).
-  Guard `if "max_gain_pct" in e` schützt Alt-Records vor Auto-Backfill (Backwards-
-  Compat, harmlose Asymmetrie selbstheilt nach 14 d Rolling-Fenster). **Schema
-  bleibt v4** (additiv, kein Bump; via Source-Inspektions-Test A5 verriegelt).
-  `S10_OBSERVED_FIELDS` erweitert (Lehre #388). **0 Score-/Filter-/Push-/
-  Conviction-Konsumenten** (Grep-verifiziert). Look-Ahead strukturell
-  ausgeschlossen. 0.0-Semantik-Overload dreifach dokumentiert (Helper-Docstring,
-  Init-Kommentar, S10-Whitelist-Kommentar, CLAUDE.md §Backtest-Schema Stufe 1).
+Vier Felder im `backtest_history.json` sind **reine Analyse-/Outcome-
+Persistenz**, **NIEMALS Score-Feature aus dem Backfield lesen**
+(Look-Ahead-Konvention, ursprünglich in PR #402 einfriert):
 
-**★ NEU Session 10.–13.06.:**
-- **★ XSS-Sink-Härtung (#343):** `_escH` (Attribut-Kontext inkl. Quotes) +
-  `n.link`-Whitelist `^https?://` an den News-/`company`/`sector`-DOM-Sinks.
-  Escaping allein stoppt `javascript:` NICHT → Whitelist zwingend. Schließt den
-  einzigen Pfad XSS → sessionStorage-PAT.
-- **★ Vintage-Guard M1 (#346):** β+-Gate in `_append_backtest_entries` — Backtest-
-  Append nur wenn `bar_date == report_date` (date-Objekt) UND `now_et >= 16:00 ET`;
-  sonst Skip VOR existing_keys-Belegung (→ späterer Post-Close-Run appended frisch).
-  Datengetriebener Feiertags-Schutz OHNE Liste (Bar=Vortag → skip). Missing
-  bar_date → APPEND (konservativ). bar_date in-memory (kein Schema-Bump). Skip-
-  Beobachtung in `vintage_guard_log.jsonl` (eigene Datei, digest-frei). **M1 fängt
-  NICHT M2** — M2 ist Phantom (§8), kein zweiter Guard nötig.
-- **★ Exit-Shadow-Log (#350):** `exit_shadow_log.jsonl` — pro Handelstag pro
-  offener Position `exit_state` (pressure + 6 Trigger) + Forward-Return-Backfill.
-  Hook NUR im Daily-Run `_build_phase2` (einziger exit_state-Compute; ki_agent
-  liest/backfillt nur). Gate postclose+`now_et>=16:00 ET`; Re-Write-by-(ticker,date);
-  Backfill reuse `_close_at` (settled, vintage-/auto_adjust-immun) mit
-  Abbruchbedingung (forward_10d fertig→skip). **Konvention: negativer forward_Nd =
-  gutes Exit-Signal.** Null Live-Effekt, eigene Datei, digest-frei. Sample inhärent
-  dünn (nur offene Positionen, autokorreliert) → low-power Erstblick, kein AUC.
-- **★ KI-/Monster-Backtest-Felder (#353):** `monster_score` + `ki_signal_score`
-  additiv im `_build_backtest_extension`-Return, leer-tolerant (None). **Schema v4
-  unverändert** (S10-Loader ==4); `expected_keys` atomar (#329-Tripwire); beide nur
-  in `S10_OBSERVED_FIELDS` (kein MUSS-/LAG-Check, da legitim None). Reiner Persist-
-  Read, kein Score-/Push-/Render-Pfad liest sie.
-- **★ S4-Zeit-Gate (#355):** S4-postclose-Zweig erwartet den heutigen Eintrag erst
-  ab `now_et >= report_date@16:00 ET` (`health_check.py`, `_S4_EASTERN` +
-  `_S4_MKT_CLOSE_HOUR=16`, zoneinfo/DST-korrekt) — **Symmetrie zum Vintage-Guard-
-  Producer-Gate (#346)**. NUR Zeit, NICHT Bar: nach 16:00 ET feuert S4 weiter bei
-  Append-Crash UND Bar-Lag-Skip; S4 bleibt **guard-unkenntnis** (liest NICHT
-  `vintage_guard_log`, sonst Zahn-Verlust). `_before_close` via OR neben das
-  bestehende `_skip_weekend` (ergänzt, nicht ersetzt). `today_iso` None/unparsbar →
-  konservativ S4 feuert. `now_utc` war im Evaluator bereits vorhanden (default
-  `datetime.now`, keine Plumbing aus generate_report). `severity` bleibt `warn`.
-  S12/S3/S7/Vintage-Guard/Produzent unberührt.
-- **★★ Redeploy-Auto-Trigger entfernt (#357):** `redeploy-on-source-change.yml`
-  feuert **nicht mehr** auf `push` zu `main` (`on: push` → `on: workflow_dispatch`,
-  reversibel via auskommentiertem push-Block). **Wurzel-Schließung:** ein Code-Merge
-  erzeugt **keinen** automatischen vollen Daily-Run mehr → keine Off-Schedule-
-  `postclose`-Runs im Pre-Open-ET-Fenster, keine Pre-Open-Pushes/score_history-Churn
-  aus Merges. Die Symptom-Netze **bleiben** (Vintage-Guard #346, S4-Gate #355,
-  postclose-Anomaly-Suppression) — greifen jetzt nur seltener. **Direkter Dispatch-
-  Pfad bleibt:** der Recalculate-Button POSTet weiter an `daily-squeeze-report.yml`
-  (gen:9559/10575) — bewusste Einzelaktion, kein Auto-Pfad (Rest-Kante §6-b).
-- **★ `.jsonl`-union-Merge (#359):** `.gitattributes merge=union` für 5 Append-Logs
-  (`open(...,"a")`) → Rebase-Append-Konflikte ohne Daily-Run-Abort. `exit_shadow_log`
-  ausgenommen (Full-Rewrite/Backfill → union dupliziert). `git rebase` respektiert
-  den built-in union-Driver (kein Runner-Config nötig). Guard-Test schützt die
-  Klassifikation; CI 80.
-- **★ Cockpit-Entry-Shadow-Caption (#362):** client-side Anzeige aus `window._BT_DATA`
-  unter `cockpit-body` (`.cockpit-entry-shadow[data-es-ticker]`, server nur leerer
-  `hidden` Hook → JS füllt nur bei `entry_score` not-None, 0=Wert). REIN ADDITIV,
-  `backtest_history.py`/#336 unberührt; Drawer-Strip-immun (nur `id=`-Strip). Preload
-  reused den `_BT_DATA`-Cache. Display-only, Label „unvalidiert bis 30.06." — KEINE
-  Live-Aktivierung (s. §4).
+| Feld | PR | Zweck | Live-Score-Read (falls je nötig) |
+|---|---|---|---|
+| `max_gain_pct` | #397 | Peak im ≤10-TD-Fenster | Rolling-Update-Slice, nicht Backfill-Feld |
+| `entry_past_return_5d` | #402 | Reversal-Substrat | `s["close_5td_before_entry"]` (Enrichment) |
+| `days_to_earnings` | #404 | Katalysator-Nähe | `s["earnings_days"]` (Enrichment) |
+| `si_velocity_pub` | #409 | SI-Rate über 3 Publikations-Reports | `s["finra_data"]["history"]` mit eigenem `_compute_si_velocity_pub`-Aufruf |
 
-**Aufruf-Rezept 30.06.-Auswertung (Helfer-Chain, historisch — bereits ausgeführt):**
-classify_cluster_records → per Lookup `is_cluster_followup` in Records mergen →
-pro Test-Achse (Score-Bucket, Earliness, Monster/KI, Entry-Shadow) je 4 Mann-
-Whitney-Läufe (Cluster × Brutto/Netto) → alle p-Werte GEMEINSAM an
-`multiple_testing_correction` (Holm dominiert Bonferroni). Deterministisch mit
-Seed 30062026, Bootstrap N=2000. Erfolgs-Definition strikt: Holm-p signifikant
-UND CI-Untergrenze > 0.5. **Rezept unverändert für alle künftigen Re-Tests**
-(Setup ~Ende Sept., ki_signal ~Mitte Aug., Conviction ~Ende Aug., Exit-B.1
-~Ende Sept.).
+**Grund:** Backgefüllte Alt-Records würden Trainings-/Test-Overlap
+erzeugen, sobald ein Score sie liest → Overfitting auf das Backfill-
+Sample, kein echter Out-of-Sample-Nachweis mehr. Verankert per Test in
+allen vier Mock-Tests (Konsumenten-Isolations-Klasse; grep über
+`generate_report.py`/`ki_agent.py`/`health_check.py` muss leer bleiben).
 
-**Bestehende Anker (unverändert):**
-- **★★ Entry-Score (`entry_score.py`, #336):** PURES stdlib-Modul, bewusst getrennt
-  von `backtest_history.py`/yfinance → CI-gate-bar ohne yfinance. Shadow: nur
-  `backtest_history` schreibt + `_test_extended_schema` prüft die 4 Felder; KEIN
-  Render-/Push-/Score-Pfad liest sie. Berechnung nur **postclose**
-  (`generate_report.py if run_phase=="postclose"`). **Entry-Entscheidungen
-  (gemergt, exakt):** `ENTRY_UOA_CAP=4.0`, `ENTRY_RVOL_BUILDUP_CAP=6.0` (n=227),
-  `ENTRY_SI_TREND_EDGES=(-0.8,-0.2,1.0,5.0)` ≤-Konvention → 0/25/50/75/100,
-  score_delta `(x+15)/30×100`, anomaly `×100`; Aggregation = **Re-Norm Option B**
-  (kein Neutral-50, Gleichgewichtung, 0 Komponenten→None); anomaly-None = **Option
-  (c) run-level** (push-Map gefüllt+None→echte 0; Map leer→drop;
-  `push_history_available` persistiert). Schema **v4 additiv** (S10 filtert ==4),
-  Tripwire #329 scharf. **Status: Modul komplett** — Berechnung + Persistenz
-  (`entry_score`/`entry_components`/`entry_n_components`/`push_history_available`)
-  + CI-gate-bar + Anzeige (Cockpit-Caption #362, s. oben) — durchgängig
-  **Shadow/unvalidiert** bis 30.06.
-- **★ CI Allowlist-Runner + Drift-Guard (#335, live):** `run_ci_mock_tests.py` fährt
-  eine STATISCHE Allowlist (**80** seit #359), kein Laufzeit-Glob für die Auswahl;
-  **Drift-Guard:** jeder neue `mock_test_*` MUSS in ALLOWLIST ODER EXCLUDED stehen,
-  sonst failt der Runner. Advisory — **`permissions: contents: read` NIE aufweiten**
-  (sonst blockt es den Self-Merge). Minimal-Install **jinja2+pyyaml** (BEWUSST KEIN
-  requests/pandas_ta — Sandbox≠CI-Lehre, §8). EXCLUDED=10 (2 B + 5 yfinance-ENV +
-  3 requests-TEMP).
-- **★ Screener-Pool-Floor (#325):** `yahoo_screener` Tier-1-Inhalts-Check auf
-  ROH-item_count (FLOOR=120), NICHT pool_size (POOL_MIN-Backfill maskiert).
-- **★ AST-robuste provider_health-Test-Anker (#327/#332):** Struktur- UND String-
-  Gating-Tests ankern per AST (record-call→Try / kwarg / enclosing-if), NICHT per
-  Byte-Distanz.
-- **Advisory PR-CI (#316):** `pr-checks.yml`, `on: pull_request`, NICHT required,
-  `check_run`-Signal, blockiert Self-Merge nicht.
-- **S14 + Gist-Body-Sanity (#314 + #322):** `last_successful_gist_pull` nur bei
-  `body_ok`; S14 WARN@26h; fängt Token-Tod UND Body-Korruption.
-- **Outer-Page-Golden (#312):** Render-LOGIK-Netz, fixe Fixtures, pandas_ta-
-  invariant; seit #331 auch Liveness-gestubbt (data-unabhängig). Output-Change →
-  `UPDATE_GOLDEN` + Golden mit-committen (Pflicht). Backtest-/main()-Code ändert
-  das Golden NICHT (nur der HTML-f-String) — bestätigt bei #346/#350/#353.
-- **`_DAILY_REPORT_COUNTS`-Modul-Global (#320)** (kein WL_TOP10-Leak).
-- **report_date + _today_iso = US-Eastern (#304).** backtest-T+0 = `_close_at(0)`
-  (#303). „Echter Phasen-Run" = run_phase==tsp (S11/S12).
-- **S9-CRIT-Exit-Pfad filtert STRIKT id=="S9".**
-- **Health-Check-Schichten:** S1–S7 State | S8 Digest-Liveness | S9 HTML-Sanity
-  (einziger CRIT-Block) | S10 Daten-Integrität v4 | S11/S12 Phasen-Frequenz | S13
-  Daten-Reife + Konsistenz | S14 Gist-Pull-Liveness.
-- **Borrow = iBorrowDesk-JSON (#292), Inhalts-success_check.** CTB persistiert (#309).
-- **squeeze-guardian (#306/#319):** echo-Hook spawnt Agent NICHT; Architektur =
-  manuelle EMPFOHLENE Routine, Bonus kein Gatekeeper.
-- **Cron-Inventar (verifiziert; Doku-Drift `17 10`→`17 6` via #360/#361 bereinigt,
-  repo-weit kein `17 10` mehr):** ki_agent `17 * * * *`, daily premarket
-  `17 6 * * 1-5` (real ~12 UTC nach Actions-Drift), postclose `17 21 * * 1-5`,
-  health-digest `47 8 * * *`, watchlist `0 7 * * 0`, pr-checks `on: pull_request`.
-  checkout@v5.
-- **★ Security-Audit 09.06. (read-only, 6 Bereiche):** Token-Krypto bestätigt
-  **solide** (PBKDF2 600k, AES-GCM, frische IV+Salt pro Verschlüsselung, Master-PW
-  nie persistiert). **C1+M2 GEFIXT (#343)** — XSS-Sinks dicht (s. oben).
-- **★ Privacy-Akzeptanz (Entscheidung c, 09.06., Easy):** Repo public + Gist-ID im
-  gerenderten `index.html` → der secret Gist (Positionen/Stückzahlen/Watchlist) ist
-  für jeden Page-Besucher **anonym LESBAR** (kein Write, kein Token-Zugriff — reines
-  Lese-/Privacy-Risiko). **BEWUSST AKZEPTIERT**, weil: (1) Repo-privat bricht Pages
-  auf Free-Plan + Actions-Minuten-Limit; (2) Strip der committeten Mirror-Files
-  **VERWORFEN** — `app_data.positions.exit_state` ist das **EINZIGE** Cross-Run-
-  Ratchet-Gedächtnis (peak_score/peak_pnl/prev_exit_pressure, gen `15224/15250`;
-  `pull_gist_data.py:192` übernimmt es nicht) → voller Strip = Peak-Reset jeden Run
-  = falscher Exit-Druck (**HARD-BREAK, Trading-Schaden**); `agent_state.push_history`
-  nicht strippbar (Entry-Score-Input + ki_agent-FIFO). Rest-Strip ≈0 Gewinn (dieselben
-  Daten liegen im akzeptierten Gist offen). **NICHT erneut vorschlagen ohne neue
-  Lage.** Echte Privatheit nur via Storage-Redesign (Option d, §6).
+### 7b. `scripts/business_days.py` — Handelstags-Arithmetik
+
+Pure-stdlib-Modul mit `next_trading_day(d)` und
+`finra_publication_date(settlement_date, offset=None)`. Nutzt
+`config.US_MARKET_HOLIDAYS` als **Single-Source-of-Truth**. Trivial-
+symmetrisch zu `scripts/cluster_purge.py:previous_trading_day` (bewusst
+kein Cross-Import — `cluster_purge` hat strikte Reihenfolge-Disziplin:
+„kein Import in `generate_report`/`ki_agent`/`health_check`/
+`backtest_history`" für die 30.06.-Auswertung).
+
+### 7c. `finra_publication_date` = settlement + 7 US-Handelstage
+
+FINRA Rule 4560 (SI-Reports werden 7 Handelstage nach Settlement
+öffentlich). Konstante `FINRA_PUB_OFFSET_BUSINESS_DAYS = 7` in `config.
+py` — zentral anpassbar (SR-FINRA-2026-012 plant höhere Frequenz und
+möglicherweise kürzeren Delay).
+
+### 7d. Good Friday algorithmisch (Meeus) — Doppel-Spiegel
+
+`config.US_MARKET_HOLIDAYS` (Python) UND `US_HOLIDAYS`-Array in
+`generate_report.py` (JS, embedded als IIFE mit `_goodFriday(year)` +
+`_GOOD_FRIDAYS`) müssen **bit-identisch** bleiben. Verankert im Test
+`mock_test_good_friday`. Alle sonstigen Kalender-Änderungen an
+US-Feiertagen: beide Spiegel synchron pflegen.
+
+### 7e. Auswertungs-Chain (Stats-Helpers + cluster_purge)
+
+- `stats_helpers.py` (PR #389 AUC / Mann-Whitney-U mit Tie-Korrektur +
+  Yates-Stetigkeitskorrektur; PR #390 Bonferroni + Holm-step-down mit
+  Label-Rückordnung) — pure stdlib, fixture-only-Test.
+- `cluster_purge.py` (PR #391 `previous_trading_day` holiday-robust +
+  `classify_cluster_records` mit `is_cluster_followup`-Flag für
+  Doppel-Lauf-Disziplin) — fixture-only, Reihenfolge-Disziplin-Docstring
+  (kein Import in `generate_report`/`ki_agent`/`health_check`/
+  `backtest_history` — der Grund, warum `business_days.py` eigenständig
+  ist).
+
+### 7f. Schema v4 strikt additiv — kein Bump
+
+`backtest_schema_version` bleibt **4**. Neue Felder gehen **immer** in
+`S10_OBSERVED_FIELDS` (Whitelist bekannter Felder, keine MUSS-/LAG-
+Checks). Sonst feuert `_s10_check_unknown_fields` am ersten Record mit
+neuem Feld ein dauerhaftes WARN (Lehre #388). Für rein optional-leere
+Felder (`None` legitim, z. B. junge Ticker ohne SI-Coverage): NICHT in
+MUSS/LAG, sondern nur OBSERVED.
+
+### 7g. Render-Pfad v1/v2 (unverändert seit CLAUDE.md-Doku)
+
+`generate_html_v2()` **delegiert** am Ende an `generate_html_v1()` —
+rendert nur Karten-Snippets, Outer-Page (Header, Watchlist, Backtesting,
+Chat-Glue, JS, Footer) kommt weiter aus v1. **Wer v1 löscht, killt v2
+mit.** Vollständige Migration braucht `templates/page.jinja` + Umbau
+von `_wl_full_card_html()`. Details in `CLAUDE.md` → §v1/v2 Render-Pfad.
+
+---
 
 ## 8) LESSONS
-- **★ Sandbox ≠ CI-Env (06.06.):** der Sandbox HAT `requests` (+ pyyaml etc.), der
-  Minimal-CI-Install (jinja2+pyyaml) NICHT → „grün geboren" ist NUR gegen einen Env
-  beweisbar, in dem ALLE CI-fehlenden Deps blockiert sind, **nie** gegen die Sandbox.
-  Fix: CI-Sim mit Dep-Blocker vor jedem „grün"-Claim.
-- **Diff-Anzeige ≠ finaler Stand:** ein Diff zeigt entfernte Zeilen (`-`), die wie
-  noch-aktive Steps aussehen → den FINALEN Datei-Stand greppen, nicht den Diff
-  interpretieren (Doppellauf-Fehlalarm bei #335).
-- **None ist nicht gleich None:** „keine Daten" (Pipeline-Ausfall) vs „echtes
-  Nichts" (legit kein Wert) muss am SCHREIBPFAD unterschieden werden, nicht am Feld
-  (Entry-anomaly Option-(c); analog jetzt die leer-toleranten KI-Felder #353). Per-
-  Feld nicht trennbar → Run-Level-Flag + Mini-Stopp für Easys Entscheidung.
-- **Trading-Wert-Filter auf BLÖCKE:** die CI-Kette war teils Selbstzweck. Vor einer
-  ganzen Arbeitskette fragen „Edge oder Hygiene?", nicht nur pro Task.
-- **★ Inhalts-Plausibilität ist eine fehlende Überwachungsschicht (09.06.):**
-  S10/Schema/Golden decken Liveness + Null/Schema, aber NICHT Wert-Plausibilität
-  (Range/Freeze/Vintage) — belegte Lücke (S10 prüft nur `is None`,
-  `health_check.py:404`). Der Freitag-Cluster wurde per ZUFALL gefunden. **LINIE**
-  (gegen Over-Engineering + Wächter-Block-Lehre 04.06.): Wächter NUR wo (1) der
-  Defekt belegt Trading-Entscheidungen/Edge verzerrt UND (2) der Check wurzel-nah +
-  niedrig-Falsch-Positiv ist. Sonst Caveat oder silent-log-first. **FP-Baseline:**
-  Slow-Update-Freeze (SF/dtc 85 %, score_struct 70 %) ist LEGITIM. **Selbst-
-  Begrenzung:** signatur-lose Defekte sind strukturell unsichtbar — kein Wächter
-  darf vorgeben, alles zu fangen.
-- **★ Raw-vs-Smoothed-Skalen nicht mischen (10.06., score_delta-Diagnose):** die
-  Karten-Δ-Anzeige rechnet auf RAW-score_history-Werten, der angezeigte Score ist
-  SMOOTHED — `smoothed + raw_delta` rekonstruiert nichts (der „130,4"-Phantom-
-  Widerspruch; CBRL −40,9 ist ein echter ~41-Pkt-Tagesschwung, beide Operanden
-  ∈[0,100]). Beim Diagnostizieren scheinbarer Wert-Widersprüche zuerst klären, ob
-  beide Operanden DIESELBE Skala/Verarbeitungsstufe haben. UND: „uncapped" ≠
-  „explosionsgefährdet" — eine Differenz zweier ≤100-Werte ist strukturell ±100-
-  gebunden (harmlos, score_delta), eine Division-durch-klein (si_trend-slope) ist es
-  nicht. Vor „Ausreißer-Risiko" die mathematische Schranke prüfen.
-- **★ S3/S7-Digest-Spike an aktiven Merge-Tagen ERKLÄRT (10.06.):** Viele manuelle
-  Dispatches + „Redeploy index.html on source change" (#194, **feuerte** pro main-
-  Merge — **Auto-Trigger seit #357/11.06. entfernt**) erzeugten an Tagen mit mehreren
-  PRs eine Run-Dichte, die transiente **S3** (current_price-Lücken bei Nicht-Top10-
-  Positionen, yfinance gesund) und **S7** (top10-Drift, stündlicher ki_agent kommt
-  nicht nach) auslöste. **SELBSTHEILEND, kein Provider-Ausfall, kein Loop.** Exit-
-  Logik pausiert sauber bei `current_price=None` (`generate_report.py:14673` →
-  `available=False`). Bei ähnlichem Digest an einem Merge-Tag: **erst Actions-Liste
-  prüfen** (manuelle Dispatches?), bevor man eine Provider-Diagnose startet.
-  **NACHTRAG (#357):** der Redeploy war **dieselbe** Quelle wie die §6-b-Pre-Open-
-  `postclose`-Runs (nicht „separater Faden", wie früher hier vermutet) — mit dem
-  Auto-Trigger-Aus ist diese Merge-Tag-Run-Dichte für den **automatischen** Pfad
-  geschlossen; nur noch bewusste manuelle Dispatches/Recalculate können sie erzeugen.
-- **★ DBI-8.88-Strang vollständig aufgelöst (10.06.) — KEIN Bau, P&L aller 8
-  Positionen korrekt.** Kette: **(1)** M2 After-Hours-Capture = **Phantom** (alle
-  Price-Captures `prepost=False` → `iloc[-1]` ist regulärer Session-Close). **(2)**
-  auto_adjust-Mismatch breit = **Phantom**: P&L nutzt Positions-`entry_price` aus
-  Gist/User (roh) gegen Live-Worker-Quote (roh) — beide roh, konsistent; das 8.88
-  ist das **Backtest**-entry_price (adjusted, display-only `_btRenderTable`), ein
-  ANDERES Feld als `positions.entry_price` (7.41 User). **(3)** Split-Accounting:
-  PDYN-Reverse-Split 07/2023, Entry 01/2025 = danach → keine Divergenz; RBOHF kein
-  auffindbarer Split. Keine offene Position von Corporate Action zwischen Entry und
-  heute betroffen. **LESSON:** „sieht komisch aus" (8.88) ≠ Defekt — Backtest-Feld
-  vs. Positions-Feld nicht verwechseln; P&L ist epochen-konsistent (User-roh +
-  Live-roh), bewusst NICHT am auto_adjust-Capture.
-- **★ „Sichtbarer Abort ≠ stiller Verlust" + Merge-Strategie folgt der Schreib-
-  Semantik (12.06., .jsonl-Resolver):** Eine ältere Notiz nannte die `.jsonl`-
-  Resolver-Lücke „stillen Sammelverlust" — die Code-Lese zeigte das Gegenteil: der
-  Block bricht **laut** ab (`rebase --abort; exit 1`), kein Silent-Drop. **Vor dem
-  Fix den tatsächlichen Failure-Modus am Code verifizieren, nicht die alte Annahme
-  fortschreiben.** UND: `merge=union` ist NUR korrekt für **echte Append-Logs**
-  (`open(...,"a")`, eindeutige Timestamps); bei **Full-Rewrite/keyed** Dateien
-  (`open(...,"w")`, Re-Write/Backfill — hier exit_shadow) erzeugt union **Duplikat-
-  Keys** = Korruption. **Vor jedem Merge-Driver pro Datei die Schreib-Semantik
-  prüfen** (Append vs. Rewrite), nicht pauschal anwenden. Beides empirisch belegt
-  (Rebase-Konflikt-Szenario nachgestellt), bevor darauf gebaut wurde.
-- **★ „Daten schon da" → einmalige Auswertung statt Wächter; und Anschlag-Rate ≠
-  Cap-Entscheid (13.06., Entry-Cap-Trockenlauf):** Ein periodisches Verteilungs-
-  Wächter-Modul wurde **verworfen**, weil die Rohwerte + Twins längst persistiert
-  sind — eine **einmalige read-only-Auswertung** reicht, ein Dauer-Wächter wäre
-  Über-Engineering (Nordstern: Mensch validiert Bedeutung einmal). UND: eine
-  **Anschlag-Rate** („Cap bindet bei X %") sagt NICHT, ob der Cap *falsch* ist —
-  dafür braucht es den **Edge-Test** (haben am-Cap-Einträge andere Forward-Returns?).
-  Verteilung ist notwendig, nicht hinreichend. Vor „Cap nachschärfen" immer den
-  Return-gepaarten Edge-Test, nicht nur das Histogramm. (Cap-Entscheid daher an
-  `return_10d`-Reife gekoppelt, nicht ans Kalenderdatum — Qualität vor Pünktlichkeit.)
-- **★ Scheinpräzision unter Floor — Punkt-AUC ist keine Aussage (30.06.,
-  Edge-Auswertung):** Der monster_score-Test lieferte um 30.06.-Vormittag Punkt-
-  AUC **0.762** mit n=13 (n_w=7, n_l=6). Bei +9 neuen r10-reifen Records am
-  Nachmittag fiel derselbe Test auf **0.505** — ein Kollaps von 0.26 AUC-Punkten
-  durch 9 zusätzliche Records. **Bei n<Floor 40 (bzw. n_w oder n_l < 20) ist die
-  Punkt-AUC** nicht „vorsichtig zu interpretieren", sondern **darf nicht
-  interpretiert werden** — sie ist eine Ziehung aus einer breiten Bootstrap-
-  Verteilung, keine Kennzahl. **Regel:** Punkt-Schätzungen ohne CI + Sample-
-  Größe sind wertlos; „interessant aussehende" Punkt-AUCs unter Floor werden
-  konsistent als **„nicht auswertbar"** (nicht „Hinweis") gemeldet, sonst
-  entstehen Erwartungen an einen Effekt, der beim nächsten Sample-Zuwachs
-  verschwindet. Plus: die **Sample-Wachstum-Sensitivität** selbst ist ein
-  Robustheits-Prüfstein — wenn 9 Records den AUC um 0.26 verschieben, ist die
-  Aussagekraft null.
-- **★ Erfolgs-Definition VOR der Zahl festschreiben — nicht nachträglich
-  aufweichen (30.06., Edge-Auswertung):** Die Definition „Edge belegt nur wenn
-  Holm-p signifikant UND CI-Untergrenze > 0.5" wurde VOR jedem Auswertungs-
-  Schritt fixiert. Ohne diese Vorab-Fixierung wären mehrere Verlockungen
-  aufgetreten, sie zu lockern: (a) rohes A.1-Setup p=0.0284 hätte isoliert
-  „signifikant" gewirkt (Holm klemmt es weg); (b) die Punkt-AUC 0.712 für
-  Setup-B.4 mit n=17 hätte als „vielversprechend" durchgegangen wäre — CI-
-  Untergrenze 0.439 hält sie zurück; (c) monster_score 0.762 hätte als
-  „interessanter Hinweis" gelten können, ist es aber nicht (siehe Punkt oben).
-  **Regel:** Erfolgs-Kriterium wird vor dem Rechnen definiert und nicht in
-  Sichtweite der Zahl geändert. Das ist eine Disziplin gegen Confirmation Bias
-  und Post-hoc-Rationalisierung — ehrliche „kein belegter Effekt"-Aussage ist
-  ein vollwertiges Ergebnis, kein Scheitern.
-- **★ „Hinweis, nicht belegt" ist eine eigene Kategorie (01.07., Exit-Timing
-  Hypothese B):** B.1 (früh-raus-Vorteil im ≥70-Bucket, Δ +3.81pp / +4.67pp mit
-  CI-Untergrenze +1.00/+1.24pp) zeigte den **ersten echten Punktschätzungs-
-  Vorteil der gesamten Edge-Suche** — handelsrelevant in Größe und Richtung. Vor
-  Holm-Klammer p=0.0057/0.0073, nach Holm k=28 (Schwelle 0.00179) nicht belegt.
-  **Nicht-Beleg heißt hier NICHT „nichts gefunden"** — die Effektgröße ist real
-  handelbar, wenn sie sich mit n≥250 bestätigt. **Regel:** Zwischen „belegter
-  Edge" und „kein Effekt" gehört die Kategorie **„Hinweis, Re-Test-Kandidat"** —
-  Punkt-Δ + CI≠0 + roh-p<0.05 + Holm-p n.s. Alle drei Voraussetzungen müssen
-  erfüllt sein, nicht nur „kleine p". Sonst ist es Fischen. Beim B.1-Fall ist
-  Wiedervorlage-Termin+Effektgröße explizit vermerkt, damit der Hinweis nicht
-  im Backlog vergessen wird.
-- **★ Bar-Daten-Approximation ehrlich labeln (01.07., B.2 Drawdown-Stop):**
-  `max_drawdown_pct` gibt OB, nicht WANN — die Stop-Simulation ist damit **Best-
-  Case** (Stop läuft exakt an der Schwelle aus, keine Slippage). 4/16 Sub-Läufen
-  waren Holm-signifikant mit Anti-Effekt („Stop schadet"), was in der
-  Approximation belastbar ist — aber der Umkehrschluss („realer Trailing-Stop
-  wäre auch schädlich") ist NICHT gerechtfertigt ohne Bar-Daten (Peak- +
-  Drawdown-Zeitpunkte, Intraday-Pfad). **Regel:** wenn ein Feld strukturell nur
-  ein Statik-Endwert ist (`max_drawdown_pct`, `return_10d`), muss die daraus
-  gebaute „Simulation" das Wort **Approximation** im Titel tragen, nicht
-  „Simulation". Konfirmatorischer Kern-Befund ist nur, was direkt mit den
-  vorhandenen Feldern rekonstruierbar ist (B.1 Endpunkt-Vergleich). Alles
-  darüber hinaus ist Zusatz-Kontext.
-- **★ S10_OBSERVED_FIELDS ist WHITELIST, nicht MUSS-Liste (28.–29.06., Guardian-
-  Blocker #388):** Beim additiven Erweitern von `backtest_history.json`-Records
-  MUSS jedes neue Feld in `S10_OBSERVED_FIELDS` eingetragen werden — sonst
-  feuert `_s10_check_unknown_fields` beim 1. neuen Record ein WARN „unbekanntes
-  Feld aufgetaucht". Die Whitelist ist eine **Kenntnis-Aufzeichnung**, keine
-  Pflicht-Liste. `S10_MUSS_FIELDS` / `_LAG_FIELDS` dagegen sind Pflicht-Muss
-  (nicht-`None`-Erwartung). Beim Erweitern von Outcome-Feldern (leer-tolerant,
-  legitim None) also nur OBSERVED, nicht MUSS/LAG. **Verriegelt** in
-  `mock_test_*_backtest_persist.py`-Tests und in #397 zusätzlich per Source-
-  Inspektion (Test A5). Diese Klasse ist ein Ein-Zeilen-Fehler mit stiller
-  Konsequenz — beim Guardian-Review immer explizit fragen: „steht das neue
-  Feld in der OBSERVED-Whitelist?".
-- **★ yfinance-Pinless-Bombe (29.06., #393 Segfault-Brücke):** yfinance-1.4.1 →
-  1.5.1 (minor jump) verursachte SIGSEGV Exit-139 im Batch-Fetch — **kein
-  Python-Stack-Trace**, C-Extension-Crash. Der Pip-Log-Diff zeigte drei minor-
-  Bumps gleichzeitig: `yfinance`, `pandas` und **`peewee`** (transitive Dep).
-  Nur `yfinance` pinnen hätte den Fix NICHT gebracht — peewee muss explizit
-  gepinnt sein, damit `pip` es nicht mit-aktualisiert. **Regel:** bei transitive-
-  Dep-Involved-Segfault das Pip-Log vollständig lesen und **jede** verdächtige
-  Version-Änderung explizit pinnen, nicht nur die offensichtliche. Zweite
-  Regel: `requirements.txt` OHNE Versions-Cap ist eine Zeitbombe — jeder
-  yfinance-Release kann C-Level-Regressionen bringen, die vor dem echten
-  Daily-Run nicht sichtbar sind (kein pytest-Netz auf C-Segfaults).
-- **★ UI-Sprache darf keine Edge behaupten, die die Auswertung nicht stützt
-  (02.07., #396 Frontend-Sprach-Fix):** Das Cockpit-Donut-Level-Text („Erwartungs-
-  wert positiv" ab Conviction ≥ 75) UND der Methodik-Panel-Titel („Aktions-
-  Empfehlung") widersprachen dem 30.06.-Befund (Attention-Router, kein Alpha-
-  Generator, Conviction-Konfidenz `heuristisch`). Der Widerspruch entstand
-  nicht durch Böswilligkeit, sondern durch **Sprach-Trägheit**: die Texte
-  stammten aus einer früheren Design-Phase, in der Conviction als validiertes
-  Signal geplant war; die Validierung fiel weg, die Sprache blieb. **Regel:**
-  nach jeder Edge-Auswertung, die eine Erwartung nicht stützt, muss die UI-
-  Sprache **aktiv** an den belegten Zustand angeglichen werden (grep nach
-  „Aktions-", „Empfehlung", „Erwartungswert", „belegter Edge" in Frontend-
-  Strings). Sonst driftet die UI-Bedeutung von der Datenlage weg. Reine
-  String-Änderung, aber trading-relevanter Effekt (Widerspruch zwischen
-  angezeigter „hoher Konfidenz" und tatsächlicher Konfidenz-Tier).
-- **★ Additiv-Persistenz erzeugt selbstheilende Asymmetrie (02.07., #397
-  max_gain_pct + Guardian-Bericht):** Ein additives Outcome-Feld (`max_gain_pct`)
-  wird nur für neue Records ab Deploy geschrieben, nicht rückwirkend. Die 300
-  Alt-Records tragen es nicht → Asymmetrie mit `max_drawdown_pct` (das sie
-  haben). **Der Guardian hat das explizit geprüft und als „harmlos +
-  selbstheilend" bewertet:** Alt-Records fallen nach 14 Kalendertagen (~ 10
-  Trading-Days) aus dem Rolling-Update-Fenster raus, die Asymmetrie tritt
-  nur ~2 Wochen sichtbar auf. Guard `if "max_gain_pct" in e: continue` schützt
-  strukturell davor, dass ein `None`/`0.0` für Alt-Records fälschlich in die
-  Auswertung geht. **Regel:** additive Erhebung + Rolling-Update-Fenster ist
-  eine legitime, schema-schonende Erweiterungs-Strategie — solange das neue
-  Feld nur in Outcome-Persistenz (kein Score-/Filter-Konsument) landet UND
-  der Auswerter den Reifegrad-Filter (Deploy-Datum + Fenster) parallel
-  anwendet. Bei früherem Bedarf: Stufe-3-Backfill-Skript separat (nicht mit
-  in denselben PR ziehen — Reihenfolge-Disziplin).
-- **★ Katalysator-Look-Ahead: Datum vs Text-Feed (05.07., Diagnose zu
-  Hypothese H5):** Katalysator-Quellen zerfallen in **zwei Klassen mit
-  fundamentaler Look-Ahead-Asymmetrie**, die den Bau-Weg vorgeben:
-  - **Datum-basiert (Earnings-Kalender, EDGAR-Filing-Timestamp)** →
-    **point-in-time-sauber.** Der Termin ist vorab bekannt / im Filing selbst
-    enthalten. Fetch AM Report-Tag liefert per Definition den zu dem Zeitpunkt
-    bekannten Wert. Rekonstruktion aus dem heutigen Fetch bleibt sauber, weil
-    das Datum selbst nicht revidiert wird (bei Revision: Backtest hält den AM
-    Report-Tag bekannten Wert, was für die Frage „hat der Score die erwartete
-    Nähe berücksichtigt?" die richtige Größe ist).
-  - **Text-Feed-basiert (News-RSS, FDA-RSS, Reddit-Mentions)** →
-    **leak-gefährdet bei Rekonstruktion.** Live-Snapshot AM Report-Tag wäre
-    sauber, aber ein nachträglicher Re-Fetch heute liefert **aktuelle**
-    Headlines/Mentions, nicht die vom damaligen Report-Tag. Selbst mit
-    Timestamp-Cut ist die Datenquelle nicht deterministisch reproduzierbar
-    (Feeds ändern sich, Items werden gelöscht, Aggregatoren rotieren).
-  - **Regel:** Datum-basierte Katalysatoren SIND additiv erhebbar (vorwärts
-    UND rückwärts, letzteres via yfinance/Finnhub-Kalender-Fetch). Text-Feed-
-    Katalysatoren sind **NUR vorwärts erhebbar mit deterministischer
-    Persistenz-Konvention** (Snapshot AM Report-Tag mit `ts` persistieren,
-    NIE nachträglich re-fetchen). Wer das mischt, baut Look-Ahead ein, ohne
-    es zu bemerken.
-  - **Konkrete Konsequenz für H5 (Kombi Score × Katalysator × Reversal):**
-    `days_to_earnings` #404 ist der saubere Katalysator-Slot (Datum-basiert,
-    point-in-time-sauber). Für News/FDA-Detail-Trennung wäre eine separate,
-    strikt Vorwärts-Erhebung nötig — kein Backfill, nie. Bis dahin: H5-
-    Diagnose mit vorhandenem `score_catalyst > 0` (163/420 = 38.8 % Coverage
-    im Bestand) als Proxy für „irgendein Katalysator aktiv"; nicht optimal
-    (mixt 7 Komponenten), aber sofort testbar.
-- **★ Nordstern über drei Auswertungstage bestätigt (04.07., Hypothese C):**
-  Setup-Score wurde am 30.06. (Endpunkt-Return, 7 Prädiktoren), am 01.07.
-  (Exit-Timing B.1 — nicht Score-Achse, aber Klammer-Kontext) und am 04.07.
-  (Peak-Ziel, 3 Schwellen) systematisch geprüft. Alle drei Auswertungen zeigen
-  **keine belegte Trennkraft** über die pre-registrierten Erfolgs-Definitionen.
-  **Das ist keine Wiederholung des gleichen Ergebnisses**, sondern eine
-  **Triangulation über konzeptionell verschiedene Auswertungs-Achsen**
-  (Endpunkt / Trajektorie / Extremwert) — und trotz der Achsen-Verschiedenheit
-  bleibt der Score gleichmäßig nicht-diskriminativ. **Regel:** wenn drei
-  konzeptionell orthogonale Auswertungs-Achsen mit ausreichendem Sample
-  (n=280–330) und strenger Erfolgs-Definition alle Null-Befunde liefern, ist
-  die Auffanglinie **nicht mehr Hypothese, sondern belegter Zustand**. Das
-  Tool bleibt Attention-Router / Screener, kein Alpha-Generator. Score-Feature-
-  Erweiterung nur nach belegtem Trennungs-Nachweis in einer neuen Frage-
-  Definition (Kombi-Interaktion wie H5, oder Regime-Wechsel wie Herbst-Re-Test).
+
+### 8a. S10_OBSERVED_FIELDS = Whitelist bekannter Felder (Lehre #388)
+
+Additive neue Felder in `backtest_history.py` MÜSSEN in
+`config.S10_OBSERVED_FIELDS`, sonst feuert `_s10_check_unknown_fields`
+am ersten geschriebenen Record dauerhaft WARN. Guardian-Blocker-Fix in
+`c0f53f7` hat das etabliert. Bei jedem neuen Feld: OBSERVED-Whitelist
+ergänzen (nicht MUSS/LAG, wenn None legitim).
+
+### 8b. Pinless Deps = latente Wochenend-Bombe (PR #393 → #403)
+
+`yfinance==1.4.1 → 1.5.1` Minor-Sprung im Runner-Image führte zu
+SIGSEGV Exit-139 im Batch-Fetch (Run #818). Fix in #393 (Hard-`==`),
+Verfeinerung in #403 (Cap `>=1.4.1,<1.5` — erlaubt Bugfix-Nachfluss,
+sperrt Minor-Sprung). Grundregel: **transitive Deps mit expliziten
+Caps pinnen**, sonst gehen Wochenenden mit fremden Auto-Updates verloren.
+
+### 8c. Erfolgs-Definition VOR der ersten Zahl (30.06.-Fenster)
+
+Vor der Auswertung fixieren: Holm-signifikant UND CI-Untergrenze > 0.5.
+Sonst „kein belegter Effekt", Punktschätzung nie Beleg. Kein
+Schönrechnen. Verankert im 30.06./01.07./04.07.-Befund (§5).
+
+### 8d. Edge-Schönrechnen-Schutz BIDIREKTIONAL
+
+Ein invertierter Befund (AUC < 0.5 in eine Richtung) ist **nicht**
+automatisch handelbare Short-Edge. Gleiche Erfolgs-Definition gilt
+beidseitig. Sonst schmuggelt man sich Short-Edge über die Hintertür in
+eine Long-Edge-Analyse.
+
+### 8e. Kleine-n-Zerfall (`monster_score`-Falle)
+
+`monster_score`-AUC ging von 0.76 (n=13) auf 0.51 (n=20) — Scheinpräzision
+bei kleinem n. Konsequenz: Master-Score-Gewichte NIE frei aus Testdaten
+optimieren. Out-of-Sample-Pflicht (§5).
+
+### 8f. Refactor-Konsumenten-Falle: IMMER greppen VOR Namens-/Struktur-Änderung
+
+- PR #407: JS-Spiegel `US_HOLIDAYS` wäre bei „nur Python fixen" gerissen
+  worden — Guardian ROT-Blocker gefunden, JS-Meeus in `b87474a` gefixt.
+- PR #409: STOPP-Meldung wegen Naming-Kollision `si_velocity` (alt,
+  Display) vs. neu (Backtest, Look-Ahead-Filter). Weg A gewählt →
+  `si_velocity_pub` als klarer Suffix.
+
+**Regel:** bei Namens-/Struktur-Änderung ZUERST grep über alle
+Konsumenten (Python + JS + Frontend + Backtest + Doku); dann
+STOPP-Meldung mit sauberen Weg-A/B-Optionen wenn Kollision.
+
+### 8g. Look-Ahead-Disziplin bei Katalysator / SI
+
+- **Katalysator** (`days_to_earnings` #404): point-in-time-Fetch AM
+  Report-Tag zwingend. Kein Backfill möglich (heutiger Fetch ≠
+  damaliger Termin).
+- **SI-Velocity** (`si_velocity_pub` #409): `pub_date`-Filter
+  Pflicht — nur Reports mit `pub_date ≤ entry_date`. `pub_date`-
+  Fundament in PR #408 (settlement + 7 Handelstage, holiday-robust).
+- **Trainings-/Test-Overlap-Verbot:** kein Analyse-Feld darf im
+  Live-Score-Read auftauchen. Verankert per Konsumenten-Isolations-
+  Test in allen vier Mock-Tests.
+
+---
+
+## 9) ARBEITSWEISE-ANKER (KRITISCH für neue Session)
+
+**CLAUDE.md** führt einen `Arbeits-Regeln für Claude Code`-Abschnitt
+mit vier Prinzipien (Vorsichts-Prinzip, Trading-Wert-Filter, Zeit-
+Schätzungs-Regel, Uhrzeit-Regel). Zusätzlich stehen dort:
+- **Auto-Merge-Regel + Ausnahmen** (`§Auto-Merge-Regel`) — Liste der
+  manuell-merge-pflichtigen PR-Klassen.
+- **squeeze-guardian-Routine** (`§squeeze-guardian`) — Bonus vor manuellem
+  Merge, kein Gatekeeper.
+- **PR-Status-Meldung** (`§PR-Status-Meldung nach Push`) — kanonische
+  Klassifikations-Tabelle.
+- **v1/v2-Render-Pfad** (`§v1/v2 Render-Pfad`).
+- **Score-Methodik-Sync-Regel** (`§Score-Methodik-Sync-Regel`).
+
+Die folgenden Regeln müssen zusätzlich explizit hier stehen, weil sie
+in CLAUDE.md nicht oder nicht vollständig geführt werden — sie prägen
+den Session-Modus so stark, dass eine neue Session sie ab Prompt 1
+anwenden muss:
+
+### 9a. Diagnose-first bei allem mit Schema-/Score-/Daten-Impact
+
+Vor jeder nicht-trivialen Änderung (mehr als 1–2 Zeilen Refactor,
+Schema-Erweiterung, Logik-Touch): **read-only Diagnose zuerst.** Der
+User löst dies häufig mit „DIAGNOSE-AUFTRAG (READ-ONLY) — Nichts ändern,
+nur lesen/greppen, mit Pfad/Zeile belegen" aus. Bei diesem Trigger:
+**null Code-Change**, nur Belege liefern. Erst danach — auf explizite
+Anordnung — kleiner Bau-Schritt mit Verifikation zwischen den Schritten.
+
+**Vor jeder Namens-/Struktur-Änderung: alle Konsumenten greppen** (§8f).
+Bei Kollisions-Verdacht STOPP-Meldung mit sauberen Weg-A/B-Optionen —
+NIEMALS silent umbenennen.
+
+### 9b. „absolute Vorsicht, kein Risiko" — Prompt-Signatur des Users
+
+Jeder Auftrag des Users trägt „absolute Vorsicht, kein Risiko" als
+Signatur. Das ist die verbindliche Priorität: bei Zweifel → STOPP + kurze
+Rückfrage, NICHT auf Annahmen aufbauen. Silent-Umbauen ohne Belegung
+ist verboten.
+
+### 9c. Exzellenz-Selbstprüfung vor „Ready"-Meldung (Build-PRs)
+
+Der User verlangt vor jeder Ready-Meldung eine **Exzellenz-Selbstprüfung**
+mit belegbaren Punkten (nicht Behauptungen):
+
+1. **Widersprüche** — Diff-Beleg dass nur der beabsichtigte Scope
+   getroffen wird (bei Doc-only: kein Logik-Touch; bei additiv:
+   ein Feld / eine Signatur).
+2. **Nachweise** — Kern-Verhalten mit **Testausgabe** belegen, nicht
+   behaupten (LOOK-AHEAD-Filter greift → tatsächlichen `filter-value`
+   vs. hypothetischen `leak-value` ausgeben).
+3. **Fragile Annahmen** — None-Semantik, Edge-Cases, Division-Guards,
+   Timezone-Semantik explizit durchgehen.
+4. **Determinismus** — Tests grün, mehrere Läufe identisch, CI-Runner
+   grün, AST-Compile grün.
+
+Auftrags-Vokabel „Anspruch: exzellent" heißt genau das.
+
+### 9d. Manueller Merge vs. Auto-Merge — Klassifikations-Sicht
+
+Detaillierte Liste in `CLAUDE.md` (`§Auto-Merge-Regel`). Kurzform:
+- **Manuell**: neue Workflows, neue JSON-Schemas, neue API-Integrationen,
+  Score/Conviction/Filter/Exit-Logik-Änderungen, Backtest-Schema-Touch
+  (auch additiv).
+- **Auto**: Doku (CLAUDE.md, SESSION_HANDOVER), Frontend-Text-Tweaks,
+  CSS, Helper-Refactor, Bugfixes ohne Schwellen-Änderung, State-Logging,
+  Mock-Test-Erweiterungen, backward-compat-Aliase.
+
+**Im Zweifel: manuell.** Kein automatisches Verschieben eines
+manuell-merge-pflichtigen PR-Typs in die Auto-Kategorie „weil klein".
+
+### 9e. squeeze-guardian-Zweitblick
+
+Vor manuellem Merge **empfohlen** (Bonus, kein Gatekeeper). Claude
+initiiert den Aufruf explizit via Task/Agent-Tool — der PostToolUse-Hook
+ist ein `echo`-Reminder, kein Auto-Spawn. Mensch entscheidet nach
+Guardian-Befund. Nicht-deterministisch (gleicher Diff → ggf. andere
+Findings). Ersetzt NICHT Easy's Bedeutungs-Validierung.
+
+### 9f. Rate-Limit / API-Fehler beim Merge
+
+Kein Retry-Loop bei GitHub-Rate-Limits im Merge-Pfad. Meldung an User;
+Mensch merged per iPhone / anderer Session. Retry-Loop nur bei
+Netzwerk-Push-Fehlern (2s/4s/8s/16s Exponential-Backoff, max 4).
+
+### 9g. Reihenfolge-Disziplin Edge-Auswertung
+
+**Erst sammeln, dann auswerten.** Keine Edge-Zahl vorziehen bevor n
+das vor-registrierte Ziel erreicht (§4). Erfolgs-Definition steht **vor**
+der Zahl. Multiple-Testing-Klammer (Bonferroni oder Holm) VOR der
+Auswertung fixieren, nicht nachträglich schmälern.
+
+### 9h. Rollen + Uhrzeit
+
+- **Claude:** Diagnose + Prompt-Formulierung + Einordnung. **Mensch:**
+  Entscheidung + Merge.
+- **Zeit:** Claude hat nur Datum („Today's date is …"), kein
+  Uhrzeit-Zugriff. Vor zeitabhängigen Aussagen (Cron-Slot-Wartezeit,
+  „läuft der Workflow heute schon?") **immer den User fragen** oder
+  `date -u` im Bash prüfen. Nie raten.
+
+### 9i. Session-Handover-Regel
+
+Bei „Gute Nacht" / „Feierabend" / „Bis morgen" (oder Varianten): Claude
+aktualisiert `SESSION_HANDOVER.md` automatisch. Struktur:
+- Chronologische Commit-Liste
+- Aktive Position (aus Gist / app_data)
+- Verifikation ausstehend
+- Geplante Aufgaben
+- Optional / niedrig priorisiert
+- Architektur-Anker (nur wenn diese Session welche eingeführt hat)
+
+Direkt auf `main` committen mit Message `docs: handover update after
+session JJJJ-MM-TT`. Bei größeren Session-Übergängen (User-Auftrag):
+**alle 9 Blöcke** komplett neu, aus Repo/Logs belegt, nichts erfunden.
+
+---
+
+**Ziel dieses Dokuments:** neue Session arbeitet ab Prompt 1 im selben
+Modus, ohne Wieder-Etablierung. Widersprüche zwischen SESSION_HANDOVER
+und CLAUDE.md → CLAUDE.md gewinnt (dort steht die Codebase-Wahrheit;
+hier steht der Projektstand).
