@@ -1,10 +1,10 @@
 {
-  "updated": "2026-07-11T00:28:35.592165+02:00",
+  "updated": "2026-07-11T01:15:36.146567+02:00",
   "run_info": {
     "tickers_checked": 15,
     "signals_active": 1,
     "alerts_sent": 0,
-    "elapsed_s": 11.2,
+    "elapsed_s": 14.9,
     "market_phase": "After-Hours"
   },
   "signals": {
@@ -120,9 +120,9 @@
       "uoa_cp_ratio": 52.375
     },
     "IONQ": {
-      "score": 18,
-      "confidence": 33,
-      "drivers": "Spanne 6.7% + Earnings in 26d",
+      "score": 26,
+      "confidence": 70,
+      "drivers": "Spanne 6.7% + News-KI 8/30: Negative price action against market, but no extreme short interest indicators, high short squeeze potential, or forced  + Earnings in 26d",
       "price": 42.86,
       "chg_pct": 0.0,
       "rvol_4d": 0.97,
@@ -202,7 +202,7 @@
     "PDYN": {
       "score": 48,
       "confidence": 70,
-      "drivers": "Spanne 6.0% + News: partnership, contract + Earnings in 26d",
+      "drivers": "Spanne 6.0% + News: contract, partnership + Earnings in 26d",
       "price": 5.28,
       "chg_pct": 0.0,
       "rvol_4d": 0.86,
@@ -220,9 +220,9 @@
       "uoa_cp_ratio": 0.3493150684931507
     },
     "SPRY": {
-      "score": 18,
-      "confidence": 33,
-      "drivers": "Spanne 5.1% + Earnings in 34d",
+      "score": 33,
+      "confidence": 70,
+      "drivers": "Spanne 5.1% + News-KI 15/30: Negative index removal and CEO transition create selling pressure rather than squeeze conditions; no evidence of high sh + Earnings in 34d",
       "price": 7.94,
       "chg_pct": 0.0,
       "rvol_4d": 1.01,
@@ -233,16 +233,16 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 0,
+      "active_triggers": 1,
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": 0.15151515151515152,
       "uoa_cp_ratio": 0.16898148148148148
     },
     "TRIP": {
-      "score": 28,
+      "score": 36,
       "confidence": 70,
-      "drivers": "Spanne 5.6% + Earnings in 27d + UOA Call/Put 5.1×",
+      "drivers": "Spanne 5.6% + News-KI 8/30: Positive news (asset sale, stock price increase) but no indicators of high short interest, low float, or catalyst-driven + Earnings in 27d + UOA Call/Put 5.1×",
       "price": 13.98,
       "chg_pct": -0.0,
       "rvol_4d": 0.97,
@@ -264,7 +264,7 @@
     "VIVO": {
       "score": 52,
       "confidence": 70,
-      "drivers": "Volumen 2.5× + Spanne 16.1% + News-KI 12/30: Positive operational news on battery storage revenue, but lacks urgency, short interest data, and stock momentum indicat + UOA Call/Put 75.9×",
+      "drivers": "Volumen 2.5× + Spanne 16.1% + News-KI 12/30: Positive fundamentals for earnings growth, but no short-squeeze indicators like high short interest, unusual volume, or  + UOA Call/Put 75.9×",
       "price": 5.23,
       "chg_pct": 0.0,
       "rvol_4d": 2.45,
@@ -304,9 +304,9 @@
       "uoa_cp_ratio": 0.6765650080256822
     },
     "YYGH": {
-      "score": 25,
-      "confidence": 33,
-      "drivers": "Volumen 2.0× + Spanne 17.2%",
+      "score": 33,
+      "confidence": 70,
+      "drivers": "Volumen 2.0× + Spanne 17.2% + News-KI 8/30: Reverse split combined with ATM offering dilutes shares and typically pressures price downward, making short squeeze unl",
       "price": 1.43,
       "chg_pct": -0.0,
       "rvol_4d": 2.03,
