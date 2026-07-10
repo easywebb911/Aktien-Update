@@ -1,5 +1,5 @@
 {
-  "last_run": "2026-07-10T20:45:50.260886+02:00",
+  "last_run": "2026-07-10T21:10:55.927359+02:00",
   "cooldowns": {
     "anomaly_score_jump_XRX": "2026-05-03T18:47:15.315486+02:00",
     "anomaly_uoa_extreme_TDOC": "2026-05-04T13:47:00.365949+02:00",
@@ -82,18 +82,6 @@
     "anomaly_conviction_high_NGNE": "2026-07-09T12:04:16.015071+02:00"
   },
   "push_history": [
-    {
-      "ts": "2026-07-02T11:34:24.247757+02:00",
-      "ticker": "SOC",
-      "kind": "anomaly",
-      "severity": "medium",
-      "trigger": "score_jump",
-      "body": "SOC 🚀 Setup 94 ↑ (gestern 72) | Volumen 3.3× + ⚡ Extremes Volumen 3.3×+ + Spanne 15.2% + New…",
-      "success": true,
-      "suppressed": false,
-      "suppress_reason": null,
-      "conviction_score": 77
-    },
     {
       "ts": "2026-07-02T11:34:24.300798+02:00",
       "ticker": "SOC",
@@ -1281,25 +1269,36 @@
       "suppressed": false,
       "suppress_reason": null,
       "conviction_score": null
+    },
+    {
+      "ts": "2026-07-10T21:10:54.408724+02:00",
+      "ticker": "BBW",
+      "kind": "anomaly",
+      "severity": "medium",
+      "trigger": "uoa_extreme",
+      "body": "BBW 🎯 UOA Vol/OI 21.8× ATM | Setup 54",
+      "success": false,
+      "suppressed": true,
+      "suppress_reason": "conviction_below_threshold",
+      "conviction_score": 57
     }
   ],
   "prev_conviction_scores": {
-    "INBX": 59.0,
-    "INDI": 59.0,
-    "JACK": 71.0,
-    "LENZ": 64.0,
-    "HTZ": 55.0,
-    "VSTM": 54.0,
-    "NGNE": 60.0,
-    "ABEO": 60.0,
-    "FTK": 57.0,
-    "FXHO": 28.0,
-    "WOLF": 26.0,
-    "FRMM": 46.0,
-    "AI": 34.0,
+    "LENZ": 61.0,
+    "KPTI": 72.0,
+    "OFRM": 65.0,
+    "YYGH": 43.0,
+    "FRMM": 64.0,
+    "BBW": 57.0,
+    "VIVO": 42.0,
+    "TRIP": 56.0,
+    "CBRL": 49.0,
+    "SPRY": 69.0,
+    "WOLF": 23.0,
+    "AI": 33.0,
     "PDYN": 24.0,
-    "AMC": 12.0,
-    "IONQ": 11.0
+    "IONQ": 11.0,
+    "AMC": 11.0
   },
   "exit_cooldowns": {
     "exitp2_warning_AMC": "2026-05-18T14:48:43.872687+02:00",
