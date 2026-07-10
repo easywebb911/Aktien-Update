@@ -33,6 +33,7 @@ from config import (
     EARLINESS_TREND_SI_SLOPE_CAP,
     EARLINESS_TREND_VOL_STAB_CAP,
     SCORE_NORMALIZATION_VERSION,
+    SI_VELOCITY_PUB_N_REPORTS,
 )
 import entry_score as entry_score_module  # Entry-Timing-Score (Shadow, pure)
 
@@ -253,6 +254,77 @@ def _compute_si_slope_5d(finra_history: list | None) -> float | None:
     return round((si_new - si_old) / si_old, 4)
 
 
+def _compute_si_velocity_pub(finra_history: list | None,
+                             entry_date: "date | None",
+                             n_reports: int | None = None) -> float | None:
+    """Look-Ahead-freie SI-Änderungsrate über die letzten N PUBLIZIERTEN Reports.
+
+    Namensgebung: der ``_pub``-Suffix grenzt bewusst gegen das ältere
+    Displayfeld ``finra_data.si_velocity`` in ``generate_report.py`` ab
+    (dort: absolute Shares/Tag über die volle FINRA-History, kein pub_date-
+    Filter, rein Anzeige + KI-Boost). Beide Größen koexistieren; verschiedene
+    Zwecke, verschiedene Formel, verschiedene Look-Ahead-Eigenschaften.
+
+    Look-Ahead-KERNFILTER (Pflicht): berücksichtigt AUSSCHLIESSLICH Reports mit
+    ``pub_date <= entry_date``. Ein Report, dessen ``pub_date`` NACH
+    ``entry_date`` liegt, wird verworfen — auch wenn sein ``settlement_date``
+    davor lag. Das ist der Zweck des ``finra_publication_date``-Fundaments
+    (#408): FINRA-Reports werden ~7 Handelstage NACH Settlement öffentlich
+    (Rule 4560), ein Backtest zum Entry-Datum darf nur nutzen, was zu
+    diesem Zeitpunkt PUBLIZIERT war.
+
+    ``finra_history`` ist sortiert neueste → älteste (siehe
+    ``generate_report.get_finra_short_interest``). Jeder Eintrag trägt
+    ``pub_date`` (ISO-String) neben ``settlement_date``. Alt-Einträge ohne
+    ``pub_date``-Feld werden als NICHT eligible gewertet (konservativ, keine
+    Guess-Rekonstruktion).
+
+    Formel: relative Änderung ``(si_newest - si_oldest) / si_oldest`` über
+    das N-Report-Fenster (default ``SI_VELOCITY_PUB_N_REPORTS`` aus config.py).
+    Gerundet auf 4 Nachkommastellen (analog ``_compute_si_slope_5d``).
+
+    None-Semantik STRIKT (keine 0.0-Overload — im Gegensatz zu
+    ``max_gain_pct``/``max_drawdown_pct``):
+      • ``finra_history`` fehlt/leer                           → None
+      • ``entry_date`` ist None                                 → None
+      • ``n_reports < 2`` (kein Rate berechenbar)               → None
+      • < ``n_reports`` Einträge mit ``pub_date <= entry_date`` → None
+      • ``si_oldest <= 0`` (Division-Guard)                     → None
+
+    LOOK-AHEAD-KONVENTION EINFROREN (analog ``entry_past_return_5d`` #402,
+    ``days_to_earnings`` #404): dieses Feld ist REINE Analyse-/Outcome-
+    Persistenz für die spätere si_velocity-Edge-Auswertung. Es darf
+    NIEMALS als Score-Feature/Filter-Kriterium aus dem Backtest-Field
+    gelesen werden. Falls je live-scharfgeschaltet, MUSS der Score-Input
+    aus dem Live-Enrichment-Dict ``s["finra_data"]["history"]`` berechnet
+    werden — sonst Trainings-/Test-Overlap bei backgefüllten Alt-Records.
+    """
+    if n_reports is None:
+        n_reports = SI_VELOCITY_PUB_N_REPORTS
+    if entry_date is None or not finra_history or n_reports < 2:
+        return None
+    eligible: list[dict] = []
+    for entry in finra_history:
+        pub_iso = entry.get("pub_date")
+        if not pub_iso:
+            continue
+        try:
+            pub_d = datetime.strptime(pub_iso, "%Y-%m-%d").date()
+        except (TypeError, ValueError):
+            continue
+        if pub_d <= entry_date:
+            eligible.append(entry)
+        if len(eligible) >= n_reports:
+            break
+    if len(eligible) < n_reports:
+        return None
+    si_new = eligible[0].get("short_interest") or 0
+    si_old = eligible[n_reports - 1].get("short_interest") or 0
+    if si_old <= 0:
+        return None
+    return round((si_new - si_old) / si_old, 4)
+
+
 def _compute_rvol_buildup_5d(volumes_5d: list, avg_vol_20d: float | None) -> float | None:
     """Verhältnis Mittelwert-RVOL letzte 3 Tage / Mittelwert-RVOL erste 2 Tage.
 
@@ -401,7 +473,8 @@ def _build_backtest_extension(s: dict, pool_position: int, pool_size: int,
                               agent_signals: dict, *,
                               compute_sub_scores_fn, safe_float_fn,
                               latest_push_ts_by_ticker: dict | None = None,
-                              now_dt=None) -> dict:
+                              now_dt=None,
+                              entry_date: "date | None" = None) -> dict:
     """Liefert das Schema-Erweiterungs-Dict (Bahn B) für einen Top-10-Eintrag.
 
     Felder, die retroaktiv NICHT rekonstruierbar sind:
@@ -682,6 +755,38 @@ def _build_backtest_extension(s: dict, pool_position: int, pool_size: int,
             if s.get("earnings_days") is not None
             else None
         ),
+        # si_velocity_pub (PR-3, 09.07.2026 — VORWÄRTS-ERHEBUNG, Look-Ahead-frei):
+        # Relative Änderungsrate des Short Interest über die letzten
+        # SI_VELOCITY_PUB_N_REPORTS (=3) PUBLIZIERTEN Reports vor entry_date.
+        # Der ``_pub``-Suffix grenzt bewusst gegen das ältere Displayfeld
+        # ``finra_data.si_velocity`` in generate_report.py ab (dort: absolute
+        # Shares/Tag über die volle FINRA-History, KEIN pub_date-Filter —
+        # bleibt unverändert). Beide Größen koexistieren.
+        #
+        # Look-Ahead-Filter (Kern-Zweck): NUR Reports mit ``pub_date <=
+        # entry_date`` — Reports, deren pub_date nach entry_date liegt,
+        # werden ausgeschlossen, auch wenn ihr Settlement davor lag.
+        # ``pub_date`` stammt aus der FINRA-history (PR #408, live via
+        # ``scripts.business_days`` in generate_report — hier reiner Read,
+        # kein Import: settlement + 7 Handelstage, holiday-robust dank #407
+        # Karfreitag).
+        #
+        # Formel: ``(si[0] - si[N-1]) / si[N-1]`` (dimensionslos, gerundet
+        # 4 Stellen). None bei < N eligible Reports, fehlendem entry_date,
+        # oder si_oldest <= 0.
+        #
+        # LEGITIM leer (None) bei jungen Tickern mit < 3 SI-Reports oder
+        # Tickern ohne FINRA-Coverage → nur OBSERVED, KEIN MUSS/LAG-Check.
+        #
+        # Look-Ahead-Konvention EINFROREN (analog entry_past_return_5d
+        # #402, days_to_earnings #404): dieses Feld darf NIEMALS als
+        # Score-Feature aus dem Backtest-Field gelesen werden — Live-
+        # Score-Reads MÜSSEN aus ``s["finra_data"]["history"]`` neu
+        # berechnen. Schema bleibt v4 (additiv, KEIN Bump).
+        "si_velocity_pub":         _compute_si_velocity_pub(
+            (s.get("finra_data") or {}).get("history"),
+            entry_date,
+        ),
         "backtest_schema_version": 4,
     }
 
@@ -930,6 +1035,12 @@ def _append_backtest_entries(top10: list[dict], report_date: str,
             safe_float_fn=safe_float_fn,
             latest_push_ts_by_ticker=latest_push_ts_by_ticker,
             now_dt=_now_dt,
+            # entry_date für si_velocity Look-Ahead-Filter (PR-3).
+            # ``_rd`` ist bereits am Funktions-Anfang (Wochenend-Schreib-
+            # schutz Z. 889) aus ``report_date`` (dd.mm.yyyy) geparst; bei
+            # unparsbarem Wert ist ``_rd = None`` → Helper returnt sauber
+            # None (keine Guess-Rekonstruktion).
+            entry_date=_rd,
         ))
         history.append(entry)
         n_added += 1

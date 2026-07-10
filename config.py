@@ -403,7 +403,7 @@ SI_TREND_MIN_DATAPOINTS = 6     # Min. signifikante Datenpunkte für Trend
 SI_TREND_UP_THRESHOLD   =  0.10 # ≥+10 % → steigend
 SI_TREND_DOWN_THRESHOLD = -0.10 # ≤-10 % → fallend
 
-# ── FINRA-Publikations-Kalender (Basis für si_velocity Look-Ahead-Filter) ────
+# ── FINRA-Publikations-Kalender (Basis für si_velocity_pub Look-Ahead-Filter) ─
 # FINRA Rule 4560: Short Interest Reports werden ~7 Handelstage NACH dem
 # Settlement-Stichtag öffentlich (Dissemination-Delay). Diese Konstante
 # kapselt den Offset, damit spätere Regel-Anpassungen (SR-FINRA-2026-012
@@ -421,6 +421,48 @@ SI_TREND_DOWN_THRESHOLD = -0.10 # ≤-10 % → fallend
 # werden, wenn ``pub_date <= entry_date``. Konservativ: lieber zu spät
 # zuordnen als zu früh.
 FINRA_PUB_OFFSET_BUSINESS_DAYS = 7
+
+# ── si_velocity_pub — Fenstergröße (Anzahl publizierter SI-Reports) ─────────
+# ``si_velocity_pub`` (backtest_history._compute_si_velocity_pub) misst die
+# relative Änderung des Short Interest über die letzten N PUBLIZIERTEN Reports
+# vor dem Entry-Datum. Der ``_pub``-Suffix grenzt bewusst gegen den bereits
+# existierenden Display-Rohwert ``finra_data.si_velocity`` in
+# ``generate_report.py`` ab (dort: (newest_SI − oldest_SI) / len(history),
+# absolute Shares/Tag über die ~90-Tage-FINRA-History, KEIN pub_date-Filter,
+# rein Anzeige + KI-Boost). Beide Größen koexistieren; verschiedene Zwecke,
+# verschiedene Formel, verschiedene Look-Ahead-Eigenschaften.
+#
+# Fenster-Definition (``si_velocity_pub``):
+#
+#   N = 3 publizierte Reports (mit ``pub_date <= entry_date``), sortiert
+#   neueste → älteste. Formel: ``(si[0] - si[N-1]) / si[N-1]`` (relativ,
+#   dimensionslos). None bei < N eligible Reports oder ``si[N-1] <= 0``.
+#
+# Begründung N=3:
+#   • FINRA-Bimonats-Frequenz (Rule 4560): ~2 Reports/Monat, ~15 Tage Abstand.
+#     3 Reports ≈ ~30–45 Tage Fenster — ein Monat SI-Dynamik.
+#   • Robuster als N=2 (Einzel-Report-Rauschen aus 5 %-CSV-Coverage abfedern).
+#   • Distinkt zu ``si_trend_5d_slope`` (N=5, kein pub_date-Filter, Slope über
+#     ~10 Wochen). si_velocity_pub: kürzeres Fenster + Look-Ahead-sauber.
+#   • SR-FINRA-2026-012 (höhere Frequenz geplant) verkürzt automatisch das
+#     Fenster proportional — N zentral anpassbar.
+#
+# Begründung Formel (relativ statt absolut):
+#   • Absolute Deltas sind zwischen Tickern nicht vergleichbar (Small-Cap
+#     500k Shares Short vs. Large-Cap 50M Shares Short).
+#   • Relative Änderung ist direkt vergleichbar und mirrort das Muster von
+#     ``si_trend_5d_slope`` (rundung 4 Stellen).
+#   • Bewusster Kontrast zum älteren ``finra_data.si_velocity``-Displayfeld:
+#     dort absolute Shares/Tag über die volle ~90-Tage-History; hier
+#     relativer Rate über 3 publizierte Reports — komplementär, nicht Ersatz.
+#
+# LOOK-AHEAD-KONVENTION: ``si_velocity_pub`` ist REINE Analyse-/Outcome-
+# Persistenz. Darf NIEMALS als Score-Feature aus dem Backtest-Field gelesen
+# werden (analog ``entry_past_return_5d`` #402, ``days_to_earnings`` #404).
+# Bei je live-Scharfschaltung MUSS der Score-Input aus dem Live-Enrichment
+# ``s["finra_data"]["history"]`` berechnet werden, NIE aus dem Backtest-Field
+# — sonst Trainings-/Test-Overlap bei backgefüllten Alt-Records.
+SI_VELOCITY_PUB_N_REPORTS = 3
 
 # ── Float-Größen-Faktor ──────────────────────────────────────────────────────
 FLOAT_WEIGHT          = 8           # max. Bonus bei kleinem Float
@@ -1419,6 +1461,24 @@ S10_OBSERVED_FIELDS = frozenset({
     # der KANONISCHE Score-Read. Backfill STRUKTURELL NICHT MÖGLICH (heutiger
     # Fetch ≠ damaliger). Nur Vorwärts-Erhebung. Schema bleibt v4 (additiv).
     "days_to_earnings",
+    # si_velocity_pub (09.07.2026, PR-3 — VORWÄRTS-ERHEBUNG, Look-Ahead-frei):
+    # Relative SI-Änderungsrate über die letzten SI_VELOCITY_PUB_N_REPORTS (=3)
+    # PUBLIZIERTEN Reports vor entry_date (Filter ``pub_date <= entry_date``,
+    # basiert auf finra_publication_date-Fundament #408). Der ``_pub``-Suffix
+    # grenzt bewusst gegen das ältere Displayfeld ``finra_data.si_velocity`` in
+    # generate_report.py ab (dort: absolute Shares/Tag über die volle FINRA-
+    # History, KEIN pub_date-Filter — bleibt unverändert). Reine Analyse-/
+    # Outcome-Persistenz für die si_velocity_pub-Edge-Auswertung. LEGITIM leer
+    # (None) bei jungen Tickern mit < 3 SI-Reports oder Tickern ohne FINRA-
+    # Coverage → nur OBSERVED, KEIN MUSS/LAG-Check.
+    # Look-Ahead-Konvention EINFROREN (analog entry_past_return_5d #402,
+    # days_to_earnings #404): dieses Feld darf NIEMALS als Score-Feature
+    # aus dem Backtest-Field gelesen werden. Bei je live-Scharfschaltung
+    # MUSS der Score-Input aus dem Live-Enrichment
+    # ``s["finra_data"]["history"]`` neu berechnet werden — sonst
+    # Trainings-/Test-Overlap bei backgefüllten Alt-Records.
+    # Schema bleibt v4 (additiv).
+    "si_velocity_pub",
 })
 
 S10_WINDOW_SIZE          = 20    # Letzte N V4-Einträge für MUSS-Check
