@@ -1,10 +1,10 @@
 {
-  "updated": "2026-07-11T02:12:11.386658+02:00",
+  "updated": "2026-07-11T05:43:14.159369+02:00",
   "run_info": {
     "tickers_checked": 15,
     "signals_active": 1,
     "alerts_sent": 0,
-    "elapsed_s": 15.0,
+    "elapsed_s": 10.8,
     "market_phase": "Geschlossen"
   },
   "signals": {
@@ -53,9 +53,9 @@
       "uoa_cp_ratio": 9.062117647058823
     },
     "BBW": {
-      "score": 48,
+      "score": 40,
       "confidence": 33,
-      "drivers": "Spanne 9.4% + News-KI 8/30: Routine operational news (CEO succession, dividend) lacks catalysts for short squeeze; positive but insufficient to driv + UOA Call-Vol/OI 18.8× ATM + UOA Call/Put 213.5×",
+      "drivers": "Spanne 9.4% + UOA Call-Vol/OI 18.8× ATM + UOA Call/Put 213.5×",
       "price": 34.42,
       "chg_pct": -0.0,
       "rvol_4d": 1.46,
@@ -160,9 +160,9 @@
       "uoa_cp_ratio": 1.0
     },
     "LENZ": {
-      "score": 33,
+      "score": 26,
       "confidence": 70,
-      "drivers": "Spanne 8.9% + News: short interest + Earnings in 19d",
+      "drivers": "Spanne 8.9% + News-KI 8/30: Positive business developments and expansion news, but no indicators of short squeeze potential such as high short inter + Earnings in 19d",
       "price": 5.59,
       "chg_pct": 0.0,
       "rvol_4d": 1.07,
@@ -173,7 +173,7 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 1,
+      "active_triggers": 0,
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": null,
@@ -200,9 +200,9 @@
       "uoa_cp_ratio": 0.39
     },
     "PDYN": {
-      "score": 48,
+      "score": 30,
       "confidence": 70,
-      "drivers": "Spanne 6.0% + News: contract, partnership + Earnings in 26d",
+      "drivers": "Spanne 6.0% + News-KI 12/30: Positive revenue and contract news supports fundamentals but lacks short-squeeze catalysts like high short interest, low + Earnings in 26d",
       "price": 5.28,
       "chg_pct": 0.0,
       "rvol_4d": 0.86,
@@ -304,9 +304,9 @@
       "uoa_cp_ratio": 0.17042910447761195
     },
     "YYGH": {
-      "score": 25,
-      "confidence": 33,
-      "drivers": "Volumen 2.0× + Spanne 17.2%",
+      "score": 33,
+      "confidence": 70,
+      "drivers": "Volumen 2.0× + Spanne 17.2% + News-KI 8/30: Reverse split combined with equity dilution typically pressures stock and reduces short-squeeze potential despite possib",
       "price": 1.43,
       "chg_pct": -0.0,
       "rvol_4d": 2.03,
