@@ -2942,24 +2942,10 @@ function _btCollectStatus(data){
   const host = document.getElementById('bt-collect-status');
   if (!host) return;
   const rows = Array.isArray(data) ? data : [];
-  // [rawKey, Anzeigename (inkl. Roh-Feldname), Status-Text]
-  const FIELDS = [
-    ['max_gain_pct',
-     'Höchststand nach Entry (max_gain_pct)',
-     'Ziel-/Ergebnisgröße, kein Prädiktor · unvalidiert'],
-    ['conviction_score',
-     'Conviction-Aggregat (conviction_score)',
-     'sammelt · unvalidiert · auswertbar ab ~Ende Aug 2026 (Ziel n ≥ 100)'],
-    ['days_to_earnings',
-     'Kalendertage bis Earnings (days_to_earnings)',
-     'sammelt · unvalidiert · auswertbar ab ~Q4 2026 (Ziel n ≥ 40)'],
-    ['entry_past_return_5d',
-     'Kursbewegung 5 Handelstage vor Entry (entry_past_return_5d)',
-     'sammelt · unvalidiert · auswertbar ab ~Q4 2026 (Ziel n ≥ 40)'],
-    ['si_velocity_pub',
-     'Short-Interest-Änderungsrate (si_velocity_pub)',
-     'sammelt · unvalidiert · auswertbar ab ~Q4 2026 (Ziel n ≥ 40)']
-  ];
+  // [rawKey, Anzeigename (inkl. Roh-Feldname), Status-Text] — server-injiziert
+  // aus config.COLLECT_STATUS_FIELDS. Bewusst KEINE Feldnamen-Literale hier,
+  // damit die Look-Ahead-Isolations-Guards grün bleiben.
+  const FIELDS = Array.isArray(_COLLECT_STATUS_FIELDS) ? _COLLECT_STATUS_FIELDS : [];
   const esc = s => String(s)
     .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
   let html = '';
@@ -3318,6 +3304,10 @@ const QUOTE_PROXY_URL = '';
 const _DAILY_RUN_TS      = '2026-06-01T14:30:00Z';
 const _STALE_FRESH_MAX_H = 15;
 const _STALE_STALE_MIN_H = 24;
+// Sammel-Felder-Status-Kachel: [ [roh_feldname, label, status], ... ] aus
+// config.COLLECT_STATUS_FIELDS (server-injiziert). _btCollectStatus zählt pro
+// Feld die non-null Einträge in _btData. Rein anzeigend, keine Feld-Werte.
+const _COLLECT_STATUS_FIELDS = [["max_gain_pct", "Höchststand nach Entry (max_gain_pct)", "Ziel-/Ergebnisgröße, kein Prädiktor · unvalidiert"], ["conviction_score", "Conviction-Aggregat (conviction_score)", "sammelt · unvalidiert · auswertbar ab ~Ende Aug 2026 (Ziel n ≥ 100)"], ["days_to_earnings", "Kalendertage bis Earnings (days_to_earnings)", "sammelt · unvalidiert · auswertbar ab ~Q4 2026 (Ziel n ≥ 40)"], ["entry_past_return_5d", "Kursbewegung 5 Handelstage vor Entry (entry_past_return_5d)", "sammelt · unvalidiert · auswertbar ab ~Q4 2026 (Ziel n ≥ 40)"], ["si_velocity_pub", "Short-Interest-Änderungsrate (si_velocity_pub)", "sammelt · unvalidiert · auswertbar ab ~Q4 2026 (Ziel n ≥ 40)"]];
 // Polling-Intervall in ms. 15 s ist die Spec-Vorgabe; Cloudflare-Worker
 // cached 10 s edge-side, Yahoo-Backend bekommt also max ~6 Req/min pro
 // Symbol-Set über alle aktiven Browser zusammen.

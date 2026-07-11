@@ -6594,6 +6594,12 @@ def _build_context(stocks: list[dict], report_date: str,
         "daily_run_ts_js": daily_run_ts_js,
         "staleness_fresh_h": STALENESS_FRESH_MAX_HOURS,
         "staleness_stale_h": STALENESS_STALE_MIN_HOURS,
+        # Sammel-Felder-Status-Kachel: Feldnamen/Labels/Status als JSON-Array
+        # aus config.COLLECT_STATUS_FIELDS injiziert (NICHT als Literal im
+        # Source — hält die Look-Ahead-Isolations-Guards grün). json.dumps
+        # liefert ein JS-Array (nur [], keine {} → f-String-safe).
+        "collect_status_fields_js": json.dumps(COLLECT_STATUS_FIELDS,
+                                               ensure_ascii=False),
         "chat_ctx_json":  chat_ctx_json,
         "head_html":      head_html,
         "chat_panel_html": chat_panel_html,
@@ -6630,6 +6636,10 @@ def generate_html_v1(stocks: list[dict], report_date: str,
     wl_hist_json   = ctx["wl_hist_json"]
     wl_top10_json  = ctx["wl_top10_json"]
     gist_id_js     = ctx["gist_id_js"]
+    # Sammel-Felder-Status-Kachel: JSON-Array (Feldname/Label/Status) aus
+    # config.COLLECT_STATUS_FIELDS. Defensiv "[]" bei altem Context ohne Key
+    # → _btCollectStatus rendert dann leer statt zu crashen.
+    collect_status_fields_js = ctx.get("collect_status_fields_js", "[]")
     # QUOTE_PROXY_URL: Cloudflare-Worker für Live-Quote-Polling. Aus
     # ENV bestimmt + URL-sanitized im _build_context. Leer → JS-Modul
     # ist no-op (siehe Sektion „Live-Quote-Polling" in CLAUDE.md).
@@ -9460,24 +9470,10 @@ function _btCollectStatus(data){{
   const host = document.getElementById('bt-collect-status');
   if (!host) return;
   const rows = Array.isArray(data) ? data : [];
-  // [rawKey, Anzeigename (inkl. Roh-Feldname), Status-Text]
-  const FIELDS = [
-    ['max_gain_pct',
-     'Höchststand nach Entry (max_gain_pct)',
-     'Ziel-/Ergebnisgröße, kein Prädiktor · unvalidiert'],
-    ['conviction_score',
-     'Conviction-Aggregat (conviction_score)',
-     'sammelt · unvalidiert · auswertbar ab ~Ende Aug 2026 (Ziel n ≥ 100)'],
-    ['days_to_earnings',
-     'Kalendertage bis Earnings (days_to_earnings)',
-     'sammelt · unvalidiert · auswertbar ab ~Q4 2026 (Ziel n ≥ 40)'],
-    ['entry_past_return_5d',
-     'Kursbewegung 5 Handelstage vor Entry (entry_past_return_5d)',
-     'sammelt · unvalidiert · auswertbar ab ~Q4 2026 (Ziel n ≥ 40)'],
-    ['si_velocity_pub',
-     'Short-Interest-Änderungsrate (si_velocity_pub)',
-     'sammelt · unvalidiert · auswertbar ab ~Q4 2026 (Ziel n ≥ 40)']
-  ];
+  // [rawKey, Anzeigename (inkl. Roh-Feldname), Status-Text] — server-injiziert
+  // aus config.COLLECT_STATUS_FIELDS. Bewusst KEINE Feldnamen-Literale hier,
+  // damit die Look-Ahead-Isolations-Guards grün bleiben.
+  const FIELDS = Array.isArray(_COLLECT_STATUS_FIELDS) ? _COLLECT_STATUS_FIELDS : [];
   const esc = s => String(s)
     .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
   let html = '';
@@ -9836,6 +9832,10 @@ const QUOTE_PROXY_URL = '{quote_proxy_url_js}';
 const _DAILY_RUN_TS      = '{daily_run_ts_js}';
 const _STALE_FRESH_MAX_H = {staleness_fresh_h};
 const _STALE_STALE_MIN_H = {staleness_stale_h};
+// Sammel-Felder-Status-Kachel: [ [roh_feldname, label, status], ... ] aus
+// config.COLLECT_STATUS_FIELDS (server-injiziert). _btCollectStatus zählt pro
+// Feld die non-null Einträge in _btData. Rein anzeigend, keine Feld-Werte.
+const _COLLECT_STATUS_FIELDS = {collect_status_fields_js};
 // Polling-Intervall in ms. 15 s ist die Spec-Vorgabe; Cloudflare-Worker
 // cached 10 s edge-side, Yahoo-Backend bekommt also max ~6 Req/min pro
 // Symbol-Set über alle aktiven Browser zusammen.

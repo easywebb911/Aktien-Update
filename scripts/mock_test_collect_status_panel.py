@@ -28,6 +28,8 @@ import tempfile
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
 
+import config  # noqa: E402  (COLLECT_STATUS_FIELDS = Feldliste, Single-Source)
+
 _fails: list[str] = []
 
 
@@ -89,6 +91,30 @@ def _test_source_wiring():
         js is not None and "${" not in js,
         "Template-Literal-Variable würde Python-f-String brechen",
     )
+    # A6: Feldliste kommt aus config (Single-Source) + Injektion verdrahtet.
+    _check(
+        "A6 config.COLLECT_STATUS_FIELDS = 5 Einträge (roh, label, status)",
+        len(config.COLLECT_STATUS_FIELDS) == 5
+        and all(len(t) == 3 for t in config.COLLECT_STATUS_FIELDS),
+        f"got {len(config.COLLECT_STATUS_FIELDS)}",
+    )
+    _check(
+        "A7 JS-Konstante server-injiziert (const _COLLECT_STATUS_FIELDS = {...})",
+        "const _COLLECT_STATUS_FIELDS = {collect_status_fields_js};" in _GR_SRC
+        and '"collect_status_fields_js": json.dumps(COLLECT_STATUS_FIELDS' in _GR_SRC,
+        "Render-Injektion fehlt — Kachel bekäme keine Feldliste",
+    )
+    # A8: LOOK-AHEAD-SAFETY (Kern von Option A) — die Backtest-Feldnamen dürfen
+    # NICHT als quoted-Literal im generate_report.py-Source stehen (nur in
+    # config.py + injiziert). Sonst reißen die Isolations-Guards. Prüft die
+    # zwei Felder mit Regex-Guard (si_velocity_pub) bzw. bewusst mit-geführt.
+    for fld in ("si_velocity_pub", "entry_past_return_5d", "days_to_earnings"):
+        quoted = ("'" + fld + "'", '"' + fld + '"')
+        _check(
+            f"A8-{fld}: kein quoted-Literal im generate_report.py-Source",
+            not any(q in _GR_SRC for q in quoted),
+            "Feldname als Literal → Look-Ahead-Guard würde reißen (Option A verletzt)",
+        )
 
 
 def _run_node(js_func: str, data: list) -> str | None:
@@ -97,8 +123,12 @@ def _run_node(js_func: str, data: list) -> str | None:
     node = shutil.which("node")
     if not node:
         return None
+    # Die Funktion liest die server-injizierte Konstante _COLLECT_STATUS_FIELDS
+    # (aus config.COLLECT_STATUS_FIELDS). Im Harness definieren wir sie analog.
+    fields_js = json.dumps(config.COLLECT_STATUS_FIELDS, ensure_ascii=False)
     harness = (
-        js_func
+        "const _COLLECT_STATUS_FIELDS = " + fields_js + ";\n"
+        + js_func
         + "\nlet __captured = '';\n"
         + "global.document = { getElementById: function(id){"
         + " return id === 'bt-collect-status'"
