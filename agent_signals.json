@@ -1,17 +1,17 @@
 {
-  "updated": "2026-07-12T00:08:51.433464+02:00",
+  "updated": "2026-07-12T00:32:16.671466+02:00",
   "run_info": {
     "tickers_checked": 15,
-    "signals_active": 1,
+    "signals_active": 0,
     "alerts_sent": 0,
-    "elapsed_s": 15.9,
+    "elapsed_s": 12.5,
     "market_phase": "Geschlossen"
   },
   "signals": {
     "AI": {
       "score": 18,
       "confidence": 17,
-      "drivers": "News-KI 8/30: Negative fundamentals (revenue drop, overvaluation concerns) and leadership instability indicate weak short-squeeze pote + UOA Call/Put 15.5×",
+      "drivers": "News-KI 8/30: Negative sentiment with revenue decline and valuation concerns indicates weak fundamentals and limited short-squeeze pot + UOA Call/Put 15.5×",
       "price": 8.95,
       "chg_pct": -0.0,
       "rvol_4d": 1.24,
@@ -31,9 +31,9 @@
       "uoa_cp_ratio": 15.513343799058084
     },
     "AMC": {
-      "score": 25,
+      "score": 40,
       "confidence": 17,
-      "drivers": "News: breakout + UOA Call/Put 9.1×",
+      "drivers": "News: squeeze, short squeeze + UOA Call/Put 9.1×",
       "price": 1.89,
       "chg_pct": -0.0,
       "rvol_4d": 0.41,
@@ -53,9 +53,9 @@
       "uoa_cp_ratio": 9.062117647058823
     },
     "BBW": {
-      "score": 48,
+      "score": 40,
       "confidence": 33,
-      "drivers": "Spanne 9.4% + News-KI 8/30: Routine corporate announcements (CEO succession, dividend) and marketing campaigns lack the catalyst intensity and senti + UOA Call-Vol/OI 18.8× ATM + UOA Call/Put 213.5×",
+      "drivers": "Spanne 9.4% + UOA Call-Vol/OI 18.8× ATM + UOA Call/Put 213.5×",
       "price": 34.42,
       "chg_pct": -0.0,
       "rvol_4d": 1.46,
@@ -78,7 +78,7 @@
     "CBRL": {
       "score": 50,
       "confidence": 33,
-      "drivers": "Spanne 7.5% + News: earnings beat, squeeze + UOA Call/Put 13.9×",
+      "drivers": "Spanne 7.5% + News: squeeze, short squeeze + UOA Call/Put 13.9×",
       "price": 50.42,
       "chg_pct": -0.0,
       "rvol_4d": 1.26,
@@ -282,9 +282,9 @@
       "uoa_cp_ratio": 19.025210084033613
     },
     "VSTM": {
-      "score": 28,
+      "score": 40,
       "confidence": 70,
-      "drivers": "Spanne 9.4% + Earnings in 26d + UOA Call/Put 2.2×",
+      "drivers": "Spanne 9.4% + News-KI 12/30: Moderate price movement (+6.3%) with analyst coverage, but inducement grants dilute shares, reducing short-squeeze poten + Earnings in 26d + UOA Call/Put 2.2×",
       "price": 5.53,
       "chg_pct": 0.0,
       "rvol_4d": 0.84,
@@ -295,7 +295,7 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 0,
+      "active_triggers": 1,
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 2.2×"
