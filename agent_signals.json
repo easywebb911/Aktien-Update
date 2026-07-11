@@ -1,17 +1,17 @@
 {
-  "updated": "2026-07-11T19:16:19.426835+02:00",
+  "updated": "2026-07-11T20:10:32.305475+02:00",
   "run_info": {
     "tickers_checked": 15,
     "signals_active": 1,
     "alerts_sent": 0,
-    "elapsed_s": 12.9,
+    "elapsed_s": 16.2,
     "market_phase": "Geschlossen"
   },
   "signals": {
     "AI": {
-      "score": 18,
+      "score": 40,
       "confidence": 17,
-      "drivers": "News-KI 8/30: Negative fundamentals (revenue drop, overvaluation concerns) and leadership issues reduce short-squeeze potential despit + UOA Call/Put 15.5×",
+      "drivers": "News: short interest, partnership + UOA Call/Put 15.5×",
       "price": 8.95,
       "chg_pct": -0.0,
       "rvol_4d": 1.24,
@@ -22,7 +22,7 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 0,
+      "active_triggers": 1,
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 15.5×"
@@ -222,7 +222,7 @@
     "PDYN": {
       "score": 48,
       "confidence": 70,
-      "drivers": "Spanne 6.0% + News: partnership, contract + Earnings in 25d",
+      "drivers": "Spanne 6.0% + News: contract, partnership + Earnings in 25d",
       "price": 5.28,
       "chg_pct": 0.0,
       "rvol_4d": 0.87,
@@ -240,9 +240,9 @@
       "uoa_cp_ratio": 0.3493150684931507
     },
     "SPRY": {
-      "score": 18,
-      "confidence": 33,
-      "drivers": "Spanne 5.1% + Earnings in 33d",
+      "score": 30,
+      "confidence": 70,
+      "drivers": "Spanne 5.1% + News-KI 12/30: Negative catalyst (index removal) and weak momentum despite unrelated pharma strength elsewhere suggest poor short-squee + Earnings in 33d",
       "price": 7.94,
       "chg_pct": 0.0,
       "rvol_4d": 1.01,
@@ -253,16 +253,16 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 0,
+      "active_triggers": 1,
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": 0.15151515151515152,
       "uoa_cp_ratio": 0.16898148148148148
     },
     "TRIP": {
-      "score": 36,
+      "score": 28,
       "confidence": 70,
-      "drivers": "Spanne 5.6% + News-KI 8/30: Positive cash-generating news from asset sale, but limited short-squeeze catalyst; no significant short interest catalys + Earnings in 26d + UOA Call/Put 19.0×",
+      "drivers": "Spanne 5.6% + Earnings in 26d + UOA Call/Put 19.0×",
       "price": 13.98,
       "chg_pct": -0.0,
       "rvol_4d": 0.97,
