@@ -899,6 +899,12 @@ def get_yfinance_data(ticker: str) -> dict:
         cur_open   = float(hist["Open"].iloc[-1])  if "Open"  in hist.columns and len(hist) >= 1 else None
         prev_close = float(hist["Close"].iloc[-2]) if len(hist) >= 2 else None
         cur_close  = float(hist["Close"].iloc[-1]) if "Close" in hist.columns and len(hist) >= 1 else None
+        # Hypothese-A-Vorbau (#402): Adj-Close 5 Trading-Days VOR Entry (6.-letzte
+        # Bar). Analog zum Batch-Pfad in _hist_stats (:1072/1089). Zähler
+        # (cur_close, iloc[-1]) und Nenner (iloc[-6]) aus DERSELBEN 1y-history-
+        # Fetch → split-konsistent. None bei < 6 Bars (IPO). Rein pre-entry, kein
+        # Look-Ahead. Ohne diesen Return-Eintrag blieb das Feld im Fallback None.
+        close_5td_before_entry = float(hist["Close"].iloc[-6]) if len(hist) >= 6 else None
 
         rsi14, ma21, ma50, ma200, perf_20d = None, None, None, None, None
         if not hist.empty:
@@ -943,6 +949,10 @@ def get_yfinance_data(ticker: str) -> dict:
             "cur_open":     cur_open,
             "prev_close":   prev_close,
             "price":        cur_close,
+            # Hypothese-A-Vorbau (#402): siehe Berechnung oben. Muss hier
+            # zurückgegeben werden, damit der c.update-Merge (:16240) den Nenner
+            # auch im Fallback-Pfad ans Stock-Dict durchreichen kann.
+            "close_5td_before_entry": close_5td_before_entry,
             # Vintage-Guard (M1): Datum der letzten Tagesbar (ISO-String,
             # JSON-safe) — vom Backtest-Append gegen report_date geprüft.
             "bar_date":     (hist.index[-1].date().isoformat()
@@ -16238,6 +16248,14 @@ def main():
             # si_trend_5d_slope ist nicht betroffen (anderer Pfad via FINRA-
             # finra_data.history).
             "hist_5d":         yfd.get("hist_5d") or [],
+            # Hypothese-A-Vorbau (#402): Adj-Close 5 Trading-Days VOR Entry.
+            # DIESELBE Merge-Klasse wie hist_5d oben — ohne diese Durchreichung
+            # blieb s.get("close_5td_before_entry") None, der Backtest-Nenner
+            # fehlte und _compute_entry_past_return_5d lieferte 50/50 None
+            # (Diagnose 11.07.2026). Reine Durchreichung eines bereits pre-entry
+            # in _hist_stats/get_yfinance_data berechneten Werts — KEINE Logik,
+            # kein Look-Ahead (Close 5 Handelstage VOR dem Entry-Tag).
+            "close_5td_before_entry": yfd.get("close_5td_before_entry"),
         })
         if i < 3:
             print(f"{t} float_shares={c.get('float_shares')} change_5d={c.get('change_5d')}", flush=True)

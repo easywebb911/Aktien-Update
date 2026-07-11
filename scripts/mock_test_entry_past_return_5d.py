@@ -255,10 +255,102 @@ def _test_hist_stats_wiring():
     )
 
 
+def _test_merge_wiring():
+    """(G) — Merge-Durchreichung: der c.update-Enrichment-Merge UND der
+    get_yfinance_data-Fallback müssen ``close_5td_before_entry`` liefern.
+
+    Regression-Guard für den 11.07.2026-Bug: _hist_stats berechnete den Wert
+    korrekt (F1-F4), aber der c.update-Merge (:16190-16241) hatte den Key NICHT
+    in seiner Whitelist → s.get("close_5td_before_entry") war beim Backtest-
+    Append None → 50/50 entry_past_return_5d None. Exakt die hist_5d-Bug-Klasse.
+    """
+    print("── (G) Merge-Durchreichung close_5td_before_entry ────────────")
+
+    gr_src = (ROOT / "generate_report.py").read_text(encoding="utf-8")
+    _check(
+        "G1 c.update-Merge reicht close_5td_before_entry durch (PRIMÄR-FIX)",
+        '"close_5td_before_entry": yfd.get("close_5td_before_entry"),' in gr_src,
+        "ohne diesen Merge-Eintrag bleibt der Backtest-Nenner None (0/50-Bug)",
+    )
+    # get_yfinance_data (Fallback-Pfad) muss den Key ebenfalls im Return-Dict
+    # haben, sonst bleibt es im Fallback None. Berechnung + Return getrennt
+    # geprüft (Existenz beider Bausteine).
+    _check(
+        "G2 get_yfinance_data berechnet close_5td_before_entry (SEKUNDÄR-FIX)",
+        'close_5td_before_entry = float(hist["Close"].iloc[-6]) if len(hist) >= 6 else None' in gr_src,
+        "Fallback-Pfad ohne Nenner-Berechnung → wieder None bei Batch-Miss",
+    )
+    _check(
+        "G3 get_yfinance_data returnt close_5td_before_entry im Dict",
+        '"close_5td_before_entry": close_5td_before_entry,' in gr_src,
+        "Berechnung ohne Return-Eintrag bleibt wirkungslos",
+    )
+    # df.iloc[-6] jetzt mindestens 3× (Batch + _hist_stats-Singleton +
+    # get_yfinance_data-Fallback) — vorher deckte F4 nur die ersten zwei ab.
+    n_iloc6 = gr_src.count("iloc[-6]")
+    _check(
+        "G4 iloc[-6]-Extraktion ≥ 3× (Batch + Singleton + Fallback-Pfad)",
+        n_iloc6 >= 3,
+        f"got {n_iloc6} — get_yfinance_data-Fallback-Berechnung fehlt evtl.",
+    )
+
+
+def _test_nonnull_end_to_end():
+    """(H) — KERNBEWEIS: mit vorhandenem close_5td_before_entry liefert
+    _build_backtest_extension einen NON-NULL entry_past_return_5d; ohne Nenner
+    sauber None (kein Crash). End-to-end über die echte Extension-Funktion,
+    nicht nur den Helper isoliert."""
+    import types
+
+    if "yfinance" not in sys.modules:
+        sys.modules["yfinance"] = types.ModuleType("yfinance")
+    try:
+        from backtest_history import _build_backtest_extension
+    except ImportError as exc:
+        print(f"── (H) End-to-End ÜBERSPRUNGEN — Import-Fail: {exc}")
+        return
+
+    print("── (H) NON-NULL-Kernbeweis (end-to-end) ──────────────────────")
+
+    def _sf(x):
+        try:
+            return float(x)
+        except (TypeError, ValueError):
+            return 0.0
+
+    # short_float=None → sub-scores übersprungen (backtest_history.py:491),
+    # compute_sub_scores_fn wird nie gerufen. Minimaler Fixture-Stock.
+    s = {"ticker": "TEST", "price": 60.0,
+         "close_5td_before_entry": 100.0, "short_float": None}
+    ext = _build_backtest_extension(
+        s, pool_position=1, pool_size=10, agent_signals={},
+        compute_sub_scores_fn=lambda x: None, safe_float_fn=_sf,
+    )
+    val = ext.get("entry_past_return_5d")
+    _check(
+        "H1 non-null nach Fix (60/100 → −40.0, Nenner vorhanden)",
+        val == -40.0,
+        f"got {val} — Bug NICHT behoben, wenn None",
+    )
+
+    # Gegenprobe: Nenner fehlt (Bestandsposition / IPO) → sauber None, kein Crash
+    s2 = {"ticker": "TEST2", "price": 60.0, "short_float": None}
+    ext2 = _build_backtest_extension(
+        s2, pool_position=1, pool_size=10, agent_signals={},
+        compute_sub_scores_fn=lambda x: None, safe_float_fn=_sf,
+    )
+    _check(
+        "H2 Nenner fehlt → sauber None (kein Crash, keine 0.0-Overload)",
+        ext2.get("entry_past_return_5d") is None,
+    )
+
+
 def main():
     _test_s10_and_schema()
     _test_look_ahead_isolation()
     _test_hist_stats_wiring()
+    _test_merge_wiring()
+    _test_nonnull_end_to_end()
     _test_formula_and_guards()
 
     print()
@@ -267,7 +359,8 @@ def main():
         return 1
     print(
         "✓ Alle Tests bestanden (entry_past_return_5d: Formel + Split-Konsistenz + "
-        "None-Semantik + S10 + Look-Ahead-Isolation + Live-Wiring)."
+        "None-Semantik + S10 + Look-Ahead-Isolation + Live-Wiring + Merge-"
+        "Durchreichung + NON-NULL-Kernbeweis end-to-end)."
     )
     return 0
 
