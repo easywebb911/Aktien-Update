@@ -78,22 +78,10 @@
     "anomaly_gap_combo_SOC": "2026-07-02T11:34:24.300811+02:00",
     "anomaly_monster_backup_SOC": "2026-07-02T20:02:41.415261+02:00",
     "anomaly_conviction_high_SOC": "2026-07-02T11:34:24.445058+02:00",
-    "exit_FRMM": "2026-07-10T21:09:22.486585+02:00",
+    "exit_FRMM": "2026-07-11T19:05:38.688517+02:00",
     "anomaly_conviction_high_NGNE": "2026-07-09T12:04:16.015071+02:00"
   },
   "push_history": [
-    {
-      "ts": "2026-07-02T17:31:03.344140+02:00",
-      "ticker": "JACK",
-      "kind": "anomaly",
-      "severity": "high",
-      "trigger": "monster_backup",
-      "body": "JACK 🔥 Monster 100 | Setup 100 | KI 58",
-      "success": false,
-      "suppressed": true,
-      "suppress_reason": "conviction_below_threshold",
-      "conviction_score": 65
-    },
     {
       "ts": "2026-07-02T20:02:40.892524+02:00",
       "ticker": "JACK",
@@ -1277,6 +1265,18 @@
       "severity": "trigger",
       "trigger": "trend_break",
       "body": "🔻 Exit-Signal WOLF: trend_break crit ({'ma21': 44.0354, 'price': 35.29, 'drop_pct': 19.86})",
+      "success": true,
+      "suppressed": false,
+      "suppress_reason": null,
+      "conviction_score": null
+    },
+    {
+      "ts": "2026-07-11T19:05:38.688493+02:00",
+      "ticker": "FRMM",
+      "kind": "exit_p1",
+      "severity": "default",
+      "trigger": "exit_alert",
+      "body": "FRMM 📉 Exit 65 | -14% | Trailing-Stop −16.6% vom Hoch",
       "success": true,
       "suppressed": false,
       "suppress_reason": null,
