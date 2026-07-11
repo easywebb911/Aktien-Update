@@ -1,10 +1,10 @@
 {
-  "updated": "2026-07-11T20:10:32.305475+02:00",
+  "updated": "2026-07-11T21:32:13.768021+02:00",
   "run_info": {
     "tickers_checked": 15,
     "signals_active": 1,
     "alerts_sent": 0,
-    "elapsed_s": 16.2,
+    "elapsed_s": 10.8,
     "market_phase": "Geschlossen"
   },
   "signals": {
@@ -28,12 +28,12 @@
         "UOA Call/Put 15.5×"
       ],
       "uoa_atm_ratio": 0.6462661057060216,
-      "uoa_cp_ratio": 15.521193092621663
+      "uoa_cp_ratio": 15.513343799058084
     },
     "AMC": {
-      "score": 10,
+      "score": 40,
       "confidence": 17,
-      "drivers": "UOA Call/Put 9.1×",
+      "drivers": "News: squeeze, short squeeze + UOA Call/Put 9.1×",
       "price": 1.89,
       "chg_pct": -0.0,
       "rvol_4d": 0.41,
@@ -44,7 +44,7 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 0,
+      "active_triggers": 1,
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 9.1×"
@@ -78,7 +78,7 @@
     "CBRL": {
       "score": 50,
       "confidence": 33,
-      "drivers": "Spanne 7.5% + News: earnings beat, squeeze + UOA Call/Put 13.8×",
+      "drivers": "Spanne 7.5% + News: squeeze, earnings beat + UOA Call/Put 13.9×",
       "price": 50.42,
       "chg_pct": -0.0,
       "rvol_4d": 1.26,
@@ -92,10 +92,10 @@
       "active_triggers": 1,
       "uoa_score": 10,
       "uoa_drivers": [
-        "UOA Call/Put 13.8×"
+        "UOA Call/Put 13.9×"
       ],
       "uoa_atm_ratio": 1.0415959252971136,
-      "uoa_cp_ratio": 13.82122905027933
+      "uoa_cp_ratio": 13.898876404494382
     },
     "FRMM": {
       "score": 43,
@@ -217,12 +217,12 @@
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": 0.006679389312977099,
-      "uoa_cp_ratio": 0.5755102040816327
+      "uoa_cp_ratio": 0.5673469387755102
     },
     "PDYN": {
       "score": 48,
       "confidence": 70,
-      "drivers": "Spanne 6.0% + News: contract, partnership + Earnings in 25d",
+      "drivers": "Spanne 6.0% + News: partnership, contract + Earnings in 25d",
       "price": 5.28,
       "chg_pct": 0.0,
       "rvol_4d": 0.87,
@@ -240,9 +240,9 @@
       "uoa_cp_ratio": 0.3493150684931507
     },
     "SPRY": {
-      "score": 30,
-      "confidence": 70,
-      "drivers": "Spanne 5.1% + News-KI 12/30: Negative catalyst (index removal) and weak momentum despite unrelated pharma strength elsewhere suggest poor short-squee + Earnings in 33d",
+      "score": 18,
+      "confidence": 33,
+      "drivers": "Spanne 5.1% + Earnings in 33d",
       "price": 7.94,
       "chg_pct": 0.0,
       "rvol_4d": 1.01,
@@ -253,7 +253,7 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 1,
+      "active_triggers": 0,
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": 0.15151515151515152,
