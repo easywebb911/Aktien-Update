@@ -1,5 +1,5 @@
 {
-  "last_run": "2026-07-11T18:12:16.308686+02:00",
+  "last_run": "2026-07-11T19:07:10.155868+02:00",
   "cooldowns": {
     "anomaly_score_jump_XRX": "2026-05-03T18:47:15.315486+02:00",
     "anomaly_uoa_extreme_TDOC": "2026-05-04T13:47:00.365949+02:00",
@@ -82,30 +82,6 @@
     "anomaly_conviction_high_NGNE": "2026-07-09T12:04:16.015071+02:00"
   },
   "push_history": [
-    {
-      "ts": "2026-07-02T20:02:40.892524+02:00",
-      "ticker": "JACK",
-      "kind": "anomaly",
-      "severity": "high",
-      "trigger": "monster_backup",
-      "body": "JACK 🔥 Monster 100 | Setup 100 | KI 58",
-      "success": false,
-      "suppressed": true,
-      "suppress_reason": "conviction_below_threshold",
-      "conviction_score": 65
-    },
-    {
-      "ts": "2026-07-02T20:02:41.161755+02:00",
-      "ticker": "SOC",
-      "kind": "anomaly",
-      "severity": "medium",
-      "trigger": "score_jump",
-      "body": "SOC 🚀 Setup 94 ↑ (gestern 72) | Spanne 13.5% + News-KI 12/30: Negative sector headwinds and …",
-      "success": true,
-      "suppressed": false,
-      "suppress_reason": null,
-      "conviction_score": 77
-    },
     {
       "ts": "2026-07-02T20:02:41.415237+02:00",
       "ticker": "SOC",
@@ -1281,23 +1257,47 @@
       "suppressed": false,
       "suppress_reason": null,
       "conviction_score": null
+    },
+    {
+      "ts": "2026-07-11T19:07:08.432378+02:00",
+      "ticker": "BBW",
+      "kind": "anomaly",
+      "severity": "medium",
+      "trigger": "uoa_extreme",
+      "body": "BBW 🎯 UOA Vol/OI 18.8× ATM | Setup 61",
+      "success": false,
+      "suppressed": true,
+      "suppress_reason": "conviction_below_threshold",
+      "conviction_score": 45
+    },
+    {
+      "ts": "2026-07-11T19:07:08.432520+02:00",
+      "ticker": "FRMM",
+      "kind": "anomaly",
+      "severity": "medium",
+      "trigger": "score_jump",
+      "body": "FRMM 🚀 Setup 65 ↑ (gestern 49) | Spanne 10.3% + News: short interest + Earnings in 33d + UOA …",
+      "success": false,
+      "suppressed": true,
+      "suppress_reason": "conviction_below_threshold",
+      "conviction_score": 67
     }
   ],
   "prev_conviction_scores": {
-    "LENZ": 64.0,
-    "VIVO": 47.0,
-    "KPTI": 75.0,
-    "BBW": 60.0,
-    "YYGH": 45.0,
-    "OFRM": 66.0,
-    "FRMM": 65.0,
-    "SPRY": 71.0,
-    "CBRL": 49.0,
-    "TRIP": 55.0,
-    "WOLF": 23.0,
+    "LENZ": 65.0,
+    "FRMM": 67.0,
+    "BBW": 45.0,
+    "KPTI": 59.0,
+    "OFRM": 52.0,
+    "TRIP": 44.0,
+    "CBRL": 36.0,
+    "SPRY": 49.0,
+    "VSTM": 62.0,
+    "PAR": 52.0,
+    "WOLF": 31.0,
     "AI": 34.0,
     "PDYN": 25.0,
-    "IONQ": 12.0,
+    "IONQ": 11.0,
     "AMC": 11.0
   },
   "exit_cooldowns": {

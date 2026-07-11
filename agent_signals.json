@@ -1,10 +1,10 @@
 {
-  "updated": "2026-07-11T18:12:14.744289+02:00",
+  "updated": "2026-07-11T19:07:08.432722+02:00",
   "run_info": {
     "tickers_checked": 15,
     "signals_active": 1,
     "alerts_sent": 0,
-    "elapsed_s": 13.9,
+    "elapsed_s": 14.9,
     "market_phase": "Geschlossen"
   },
   "signals": {
@@ -78,7 +78,7 @@
     "CBRL": {
       "score": 50,
       "confidence": 33,
-      "drivers": "Spanne 7.5% + News: short squeeze, squeeze + UOA Call/Put 13.8×",
+      "drivers": "Spanne 7.5% + News: squeeze, short squeeze + UOA Call/Put 13.8×",
       "price": 50.42,
       "chg_pct": -0.0,
       "rvol_4d": 1.26,
@@ -199,10 +199,30 @@
       "uoa_atm_ratio": 0.008032128514056224,
       "uoa_cp_ratio": 0.39
     },
+    "PAR": {
+      "score": 23,
+      "confidence": 33,
+      "drivers": "News: partnership + Earnings in 27d",
+      "price": 16.88,
+      "chg_pct": -0.0,
+      "rvol_4d": 0.39,
+      "rvol_20d": 0.32,
+      "earnings": "in 27 Tagen (07.08.2026)",
+      "fda_date": null,
+      "upcoming_event": null,
+      "insider_buy": false,
+      "stocktwits": null,
+      "combo_mult": 1.0,
+      "active_triggers": 1,
+      "uoa_score": 0,
+      "uoa_drivers": [],
+      "uoa_atm_ratio": 0.006679389312977099,
+      "uoa_cp_ratio": 0.5755102040816327
+    },
     "PDYN": {
-      "score": 48,
+      "score": 30,
       "confidence": 70,
-      "drivers": "Spanne 6.0% + News: partnership, contract + Earnings in 25d",
+      "drivers": "Spanne 6.0% + News-KI 12/30: Positive revenue and contract news support stock price but lack the extreme short interest, catalyst intensity, and tech + Earnings in 25d",
       "price": 5.28,
       "chg_pct": 0.0,
       "rvol_4d": 0.87,
@@ -220,9 +240,9 @@
       "uoa_cp_ratio": 0.3493150684931507
     },
     "SPRY": {
-      "score": 18,
-      "confidence": 33,
-      "drivers": "Spanne 5.1% + Earnings in 33d",
+      "score": 30,
+      "confidence": 70,
+      "drivers": "Spanne 5.1% + News-KI 12/30: Negative catalyst (index removal, CEO succession uncertainty) and significant share price decline reduce squeeze potenti + Earnings in 33d",
       "price": 7.94,
       "chg_pct": 0.0,
       "rvol_4d": 1.01,
@@ -233,7 +253,7 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 0,
+      "active_triggers": 1,
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": 0.15151515151515152,
@@ -261,27 +281,27 @@
       "uoa_atm_ratio": 0.25958140799130197,
       "uoa_cp_ratio": 19.025210084033613
     },
-    "VIVO": {
-      "score": 35,
+    "VSTM": {
+      "score": 28,
       "confidence": 70,
-      "drivers": "Volumen 2.5× + Spanne 16.1% + UOA Call/Put 75.9×",
-      "price": 5.23,
+      "drivers": "Spanne 9.4% + Earnings in 26d + UOA Call/Put 2.2×",
+      "price": 5.53,
       "chg_pct": 0.0,
-      "rvol_4d": 2.49,
-      "rvol_20d": 1.45,
-      "earnings": null,
+      "rvol_4d": 0.84,
+      "rvol_20d": 0.95,
+      "earnings": "in 26 Tagen (06.08.2026)",
       "fda_date": null,
       "upcoming_event": null,
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 1,
+      "active_triggers": 0,
       "uoa_score": 10,
       "uoa_drivers": [
-        "UOA Call/Put 75.9×"
+        "UOA Call/Put 2.2×"
       ],
-      "uoa_atm_ratio": 0.4182852658426525,
-      "uoa_cp_ratio": 75.85106382978724
+      "uoa_atm_ratio": 0.028739386022207707,
+      "uoa_cp_ratio": 2.2264150943396226
     },
     "WOLF": {
       "score": 10,
@@ -302,26 +322,6 @@
       "uoa_drivers": [],
       "uoa_atm_ratio": 2.2523809523809524,
       "uoa_cp_ratio": 0.17042910447761195
-    },
-    "YYGH": {
-      "score": 33,
-      "confidence": 70,
-      "drivers": "Volumen 2.1× + Spanne 17.2% + News-KI 8/30: Reverse split and ATM offering are bearish signals that typically suppress stock price and reduce short-squeeze potentia",
-      "price": 1.43,
-      "chg_pct": -0.0,
-      "rvol_4d": 2.07,
-      "rvol_20d": 2.25,
-      "earnings": null,
-      "fda_date": null,
-      "upcoming_event": null,
-      "insider_buy": false,
-      "stocktwits": null,
-      "combo_mult": 1.0,
-      "active_triggers": 1,
-      "uoa_score": 0,
-      "uoa_drivers": [],
-      "uoa_atm_ratio": null,
-      "uoa_cp_ratio": null
     }
   }
 }
