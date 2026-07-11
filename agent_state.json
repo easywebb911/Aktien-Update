@@ -1,5 +1,5 @@
 {
-  "last_run": "2026-07-11T21:32:15.177266+02:00",
+  "last_run": "2026-07-11T23:07:18.405607+02:00",
   "cooldowns": {
     "anomaly_score_jump_XRX": "2026-05-03T18:47:15.315486+02:00",
     "anomaly_uoa_extreme_TDOC": "2026-05-04T13:47:00.365949+02:00",
@@ -82,30 +82,6 @@
     "anomaly_conviction_high_NGNE": "2026-07-09T12:04:16.015071+02:00"
   },
   "push_history": [
-    {
-      "ts": "2026-07-02T23:32:44.163130+02:00",
-      "ticker": "JACK",
-      "kind": "anomaly",
-      "severity": "high",
-      "trigger": "monster_backup",
-      "body": "JACK 🔥 Monster 100 | Setup 100 | KI 58",
-      "success": false,
-      "suppressed": true,
-      "suppress_reason": "conviction_below_threshold",
-      "conviction_score": 65
-    },
-    {
-      "ts": "2026-07-03T00:31:54.161353+02:00",
-      "ticker": "AI",
-      "kind": "exit_p2",
-      "severity": "warning",
-      "trigger": null,
-      "body": "⚠️ Exit-Warnung AI: pressure 61/100",
-      "success": true,
-      "suppressed": false,
-      "suppress_reason": null,
-      "conviction_score": null
-    },
     {
       "ts": "2026-07-03T11:36:38.473923+02:00",
       "ticker": "AI",
@@ -1272,6 +1248,30 @@
     },
     {
       "ts": "2026-07-11T21:32:13.767826+02:00",
+      "ticker": "FRMM",
+      "kind": "anomaly",
+      "severity": "medium",
+      "trigger": "score_jump",
+      "body": "FRMM 🚀 Setup 65 ↑ (gestern 49) | Spanne 10.3% + News: short interest + Earnings in 33d + UOA …",
+      "success": false,
+      "suppressed": true,
+      "suppress_reason": "conviction_below_threshold",
+      "conviction_score": 67
+    },
+    {
+      "ts": "2026-07-11T23:07:16.102721+02:00",
+      "ticker": "BBW",
+      "kind": "anomaly",
+      "severity": "medium",
+      "trigger": "uoa_extreme",
+      "body": "BBW 🎯 UOA Vol/OI 18.8× ATM | Setup 61",
+      "success": false,
+      "suppressed": true,
+      "suppress_reason": "conviction_below_threshold",
+      "conviction_score": 45
+    },
+    {
+      "ts": "2026-07-11T23:07:16.102833+02:00",
       "ticker": "FRMM",
       "kind": "anomaly",
       "severity": "medium",
