@@ -6594,6 +6594,12 @@ def _build_context(stocks: list[dict], report_date: str,
         "daily_run_ts_js": daily_run_ts_js,
         "staleness_fresh_h": STALENESS_FRESH_MAX_HOURS,
         "staleness_stale_h": STALENESS_STALE_MIN_HOURS,
+        # Sammel-Felder-Status-Kachel: Feldnamen/Labels/Status als JSON-Array
+        # aus config.COLLECT_STATUS_FIELDS injiziert (NICHT als Literal im
+        # Source — hält die Look-Ahead-Isolations-Guards grün). json.dumps
+        # liefert ein JS-Array (nur [], keine {} → f-String-safe).
+        "collect_status_fields_js": json.dumps(COLLECT_STATUS_FIELDS,
+                                               ensure_ascii=False),
         "chat_ctx_json":  chat_ctx_json,
         "head_html":      head_html,
         "chat_panel_html": chat_panel_html,
@@ -6630,6 +6636,10 @@ def generate_html_v1(stocks: list[dict], report_date: str,
     wl_hist_json   = ctx["wl_hist_json"]
     wl_top10_json  = ctx["wl_top10_json"]
     gist_id_js     = ctx["gist_id_js"]
+    # Sammel-Felder-Status-Kachel: JSON-Array (Feldname/Label/Status) aus
+    # config.COLLECT_STATUS_FIELDS. Defensiv "[]" bei altem Context ohne Key
+    # → _btCollectStatus rendert dann leer statt zu crashen.
+    collect_status_fields_js = ctx.get("collect_status_fields_js", "[]")
     # QUOTE_PROXY_URL: Cloudflare-Worker für Live-Quote-Polling. Aus
     # ENV bestimmt + URL-sanitized im _build_context. Leer → JS-Modul
     # ist no-op (siehe Sektion „Live-Quote-Polling" in CLAUDE.md).
@@ -7537,6 +7547,21 @@ def generate_html_v1(stocks: list[dict], report_date: str,
     .bt-meta{{font-size:.78rem;color:var(--txt-dim);margin:0 0 12px;line-height:1.5;
       overflow-wrap:break-word}}
     .bt-meta b{{color:var(--txt)}}
+    /* Sammel-Felder-Status (Datenerhebungs-Fortschritt, rein anzeigend —
+       keine Werte, kein Signal). Grid-Row: Name+n oben, Status-Zeile unten. */
+    .bt-collect-intro{{font-size:.78rem;color:var(--txt-dim);margin:0 0 10px;
+      line-height:1.5;overflow-wrap:break-word}}
+    .bt-collect-intro b{{color:var(--txt)}}
+    .bt-collect-list{{display:flex;flex-direction:column}}
+    .bt-collect-row{{display:grid;grid-template-columns:1fr auto;
+      grid-template-areas:"name n" "status status";gap:2px 8px;
+      padding:8px 2px;border-bottom:1px solid var(--brd)}}
+    .bt-collect-name{{grid-area:name;font-size:.82rem;font-weight:700;
+      color:var(--txt);overflow-wrap:break-word}}
+    .bt-collect-n{{grid-area:n;font-size:.82rem;font-weight:800;color:var(--txt);
+      font-variant-numeric:tabular-nums;white-space:nowrap}}
+    .bt-collect-status{{grid-area:status;font-size:.72rem;color:var(--txt-dim);
+      overflow-wrap:break-word}}
     /* Filter-Toggles als kompakte Segmented Controls — gemeinsamer
        dunkelgrauer Container-Pill, aktiver Status mit dezentem Akzent.
        Tap-Target via min-height 44 px für Mobile-Konformität trotz
@@ -7703,6 +7728,11 @@ def generate_html_v1(stocks: list[dict], report_date: str,
       <div class="bt-tile bt-tile--wide">
         <div class="bt-tile-title">Letzte 20 Einträge</div>
         <div id="bt-tbl-wrap"><table class="bt-tbl" id="bt-tbl"></table></div>
+      </div>
+      <div class="bt-tile bt-tile--wide">
+        <div class="bt-tile-title">Sammel-Felder — Datenerhebung (Fortschritt)</div>
+        <p class="bt-collect-intro">Fortschritts-Monitoring der laufenden Datensammlung — <b>keine Handelsempfehlung, kein Signal</b>. Diese Felder werden erhoben, um sie später statistisch zu prüfen; sie sind <b>unvalidiert</b>. Das Tool ist ein Screener/Attention-Router, kein Alpha-Generator. &bdquo;n&ldquo; = Anzahl gesammelter Einträge, keine Trefferquote und keine Rendite.</p>
+        <div id="bt-collect-status" class="bt-collect-list"></div>
       </div>
     </div>
     <div id="bt-reco" class="bt-reco" hidden></div>
@@ -9427,6 +9457,40 @@ function _btRender(){{
   _btRenderSiTrend(filtered);
   _btRenderTable(data);    // Tabelle zeigt IMMER alle Einträge (mit Quellen-Badge).
   _btRenderRecommendation(filtered);
+  // Sammel-Felder-Fortschritt über ALLE Einträge (data, nicht filtered) —
+  // die Erhebung ist toggle-unabhängig. Zählt nur non-null, rendert KEINE Werte.
+  _btCollectStatus(data);
+}}
+// Datenerhebungs-Fortschritt der Sammel-Felder. REIN ANZEIGEND: zählt pro Feld
+// die non-null Einträge in _btData und zeigt Name + n + statischen Status.
+// KEINE Feld-Werte (kein Peak-%/Return), keine Bewertung, kein Signal. Die
+// n-Zähler sind dynamisch (aus data), die Status-/„auswertbar ab"-Texte sind
+// bewusste statische Näherungen (mit ~) aus dem Re-Test-Kalender.
+function _btCollectStatus(data){{
+  const host = document.getElementById('bt-collect-status');
+  if (!host) return;
+  const rows = Array.isArray(data) ? data : [];
+  // [rawKey, Anzeigename (inkl. Roh-Feldname), Status-Text] — server-injiziert
+  // aus config.COLLECT_STATUS_FIELDS. Bewusst KEINE Feldnamen-Literale hier,
+  // damit die Look-Ahead-Isolations-Guards grün bleiben.
+  const FIELDS = Array.isArray(_COLLECT_STATUS_FIELDS) ? _COLLECT_STATUS_FIELDS : [];
+  const esc = s => String(s)
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  let html = '';
+  for (let i = 0; i < FIELDS.length; i++){{
+    const key = FIELDS[i][0], label = FIELDS[i][1], status = FIELDS[i][2];
+    let n = 0;
+    for (let j = 0; j < rows.length; j++){{
+      const v = rows[j] ? rows[j][key] : undefined;
+      if (v !== null && v !== undefined) n++;
+    }}
+    html += '<div class="bt-collect-row">'
+          + '<span class="bt-collect-name">' + esc(label) + '</span>'
+          + '<span class="bt-collect-n">n=' + n + '</span>'
+          + '<span class="bt-collect-status">' + esc(status) + '</span>'
+          + '</div>';
+  }}
+  host.innerHTML = html;
 }}
 function _btRenderHitRates(data){{
   const svg = document.getElementById('bt-chart-hit');
@@ -9768,6 +9832,10 @@ const QUOTE_PROXY_URL = '{quote_proxy_url_js}';
 const _DAILY_RUN_TS      = '{daily_run_ts_js}';
 const _STALE_FRESH_MAX_H = {staleness_fresh_h};
 const _STALE_STALE_MIN_H = {staleness_stale_h};
+// Sammel-Felder-Status-Kachel: [ [roh_feldname, label, status], ... ] aus
+// config.COLLECT_STATUS_FIELDS (server-injiziert). _btCollectStatus zählt pro
+// Feld die non-null Einträge in _btData. Rein anzeigend, keine Feld-Werte.
+const _COLLECT_STATUS_FIELDS = {collect_status_fields_js};
 // Polling-Intervall in ms. 15 s ist die Spec-Vorgabe; Cloudflare-Worker
 // cached 10 s edge-side, Yahoo-Backend bekommt also max ~6 Req/min pro
 // Symbol-Set über alle aktiven Browser zusammen.

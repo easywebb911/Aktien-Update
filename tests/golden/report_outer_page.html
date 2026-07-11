@@ -836,6 +836,21 @@
     .bt-meta{font-size:.78rem;color:var(--txt-dim);margin:0 0 12px;line-height:1.5;
       overflow-wrap:break-word}
     .bt-meta b{color:var(--txt)}
+    /* Sammel-Felder-Status (Datenerhebungs-Fortschritt, rein anzeigend —
+       keine Werte, kein Signal). Grid-Row: Name+n oben, Status-Zeile unten. */
+    .bt-collect-intro{font-size:.78rem;color:var(--txt-dim);margin:0 0 10px;
+      line-height:1.5;overflow-wrap:break-word}
+    .bt-collect-intro b{color:var(--txt)}
+    .bt-collect-list{display:flex;flex-direction:column}
+    .bt-collect-row{display:grid;grid-template-columns:1fr auto;
+      grid-template-areas:"name n" "status status";gap:2px 8px;
+      padding:8px 2px;border-bottom:1px solid var(--brd)}
+    .bt-collect-name{grid-area:name;font-size:.82rem;font-weight:700;
+      color:var(--txt);overflow-wrap:break-word}
+    .bt-collect-n{grid-area:n;font-size:.82rem;font-weight:800;color:var(--txt);
+      font-variant-numeric:tabular-nums;white-space:nowrap}
+    .bt-collect-status{grid-area:status;font-size:.72rem;color:var(--txt-dim);
+      overflow-wrap:break-word}
     /* Filter-Toggles als kompakte Segmented Controls — gemeinsamer
        dunkelgrauer Container-Pill, aktiver Status mit dezentem Akzent.
        Tap-Target via min-height 44 px für Mobile-Konformität trotz
@@ -1002,6 +1017,11 @@
       <div class="bt-tile bt-tile--wide">
         <div class="bt-tile-title">Letzte 20 Einträge</div>
         <div id="bt-tbl-wrap"><table class="bt-tbl" id="bt-tbl"></table></div>
+      </div>
+      <div class="bt-tile bt-tile--wide">
+        <div class="bt-tile-title">Sammel-Felder — Datenerhebung (Fortschritt)</div>
+        <p class="bt-collect-intro">Fortschritts-Monitoring der laufenden Datensammlung — <b>keine Handelsempfehlung, kein Signal</b>. Diese Felder werden erhoben, um sie später statistisch zu prüfen; sie sind <b>unvalidiert</b>. Das Tool ist ein Screener/Attention-Router, kein Alpha-Generator. &bdquo;n&ldquo; = Anzahl gesammelter Einträge, keine Trefferquote und keine Rendite.</p>
+        <div id="bt-collect-status" class="bt-collect-list"></div>
       </div>
     </div>
     <div id="bt-reco" class="bt-reco" hidden></div>
@@ -2909,6 +2929,40 @@ function _btRender(){
   _btRenderSiTrend(filtered);
   _btRenderTable(data);    // Tabelle zeigt IMMER alle Einträge (mit Quellen-Badge).
   _btRenderRecommendation(filtered);
+  // Sammel-Felder-Fortschritt über ALLE Einträge (data, nicht filtered) —
+  // die Erhebung ist toggle-unabhängig. Zählt nur non-null, rendert KEINE Werte.
+  _btCollectStatus(data);
+}
+// Datenerhebungs-Fortschritt der Sammel-Felder. REIN ANZEIGEND: zählt pro Feld
+// die non-null Einträge in _btData und zeigt Name + n + statischen Status.
+// KEINE Feld-Werte (kein Peak-%/Return), keine Bewertung, kein Signal. Die
+// n-Zähler sind dynamisch (aus data), die Status-/„auswertbar ab"-Texte sind
+// bewusste statische Näherungen (mit ~) aus dem Re-Test-Kalender.
+function _btCollectStatus(data){
+  const host = document.getElementById('bt-collect-status');
+  if (!host) return;
+  const rows = Array.isArray(data) ? data : [];
+  // [rawKey, Anzeigename (inkl. Roh-Feldname), Status-Text] — server-injiziert
+  // aus config.COLLECT_STATUS_FIELDS. Bewusst KEINE Feldnamen-Literale hier,
+  // damit die Look-Ahead-Isolations-Guards grün bleiben.
+  const FIELDS = Array.isArray(_COLLECT_STATUS_FIELDS) ? _COLLECT_STATUS_FIELDS : [];
+  const esc = s => String(s)
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  let html = '';
+  for (let i = 0; i < FIELDS.length; i++){
+    const key = FIELDS[i][0], label = FIELDS[i][1], status = FIELDS[i][2];
+    let n = 0;
+    for (let j = 0; j < rows.length; j++){
+      const v = rows[j] ? rows[j][key] : undefined;
+      if (v !== null && v !== undefined) n++;
+    }
+    html += '<div class="bt-collect-row">'
+          + '<span class="bt-collect-name">' + esc(label) + '</span>'
+          + '<span class="bt-collect-n">n=' + n + '</span>'
+          + '<span class="bt-collect-status">' + esc(status) + '</span>'
+          + '</div>';
+  }
+  host.innerHTML = html;
 }
 function _btRenderHitRates(data){
   const svg = document.getElementById('bt-chart-hit');
@@ -3250,6 +3304,10 @@ const QUOTE_PROXY_URL = '';
 const _DAILY_RUN_TS      = '2026-06-01T14:30:00Z';
 const _STALE_FRESH_MAX_H = 15;
 const _STALE_STALE_MIN_H = 24;
+// Sammel-Felder-Status-Kachel: [ [roh_feldname, label, status], ... ] aus
+// config.COLLECT_STATUS_FIELDS (server-injiziert). _btCollectStatus zählt pro
+// Feld die non-null Einträge in _btData. Rein anzeigend, keine Feld-Werte.
+const _COLLECT_STATUS_FIELDS = [["max_gain_pct", "Höchststand nach Entry (max_gain_pct)", "Ziel-/Ergebnisgröße, kein Prädiktor · unvalidiert"], ["conviction_score", "Conviction-Aggregat (conviction_score)", "sammelt · unvalidiert · auswertbar ab ~Ende Aug 2026 (Ziel n ≥ 100)"], ["days_to_earnings", "Kalendertage bis Earnings (days_to_earnings)", "sammelt · unvalidiert · auswertbar ab ~Q4 2026 (Ziel n ≥ 40)"], ["entry_past_return_5d", "Kursbewegung 5 Handelstage vor Entry (entry_past_return_5d)", "sammelt · unvalidiert · auswertbar ab ~Q4 2026 (Ziel n ≥ 40)"], ["si_velocity_pub", "Short-Interest-Änderungsrate (si_velocity_pub)", "sammelt · unvalidiert · auswertbar ab ~Q4 2026 (Ziel n ≥ 40)"]];
 // Polling-Intervall in ms. 15 s ist die Spec-Vorgabe; Cloudflare-Worker
 // cached 10 s edge-side, Yahoo-Backend bekommt also max ~6 Req/min pro
 // Symbol-Set über alle aktiven Browser zusammen.

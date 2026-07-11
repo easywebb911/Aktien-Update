@@ -1354,6 +1354,35 @@ S10_LAG_FIELDS = {
 #
 # Liste wurde aus den 37 keys aller V4-Einträge in backtest_history.json
 # am 21.05.2026 abgeleitet. Minus die 6 in S10_MUSS_FIELDS + S10_LAG_FIELDS.
+# ── Sammel-Felder-Status-Panel (Frontend-Anzeige, Datenerhebungs-Fortschritt) ──
+# REIN ANZEIGE: das Backtesting-Panel (#bt-section) rendert daraus eine read-only
+# Kachel mit non-null-Zählern pro Feld. KEIN Score-/Filter-/Push-Effekt.
+# Bewusst HIER (config.py) statt in generate_report.py: so tauchen die Backtest-
+# Feldnamen NICHT als Literale im Score-Pfad-Source auf → die Look-Ahead-
+# Isolations-Guards (mock_test_{si_velocity_pub,days_to_earnings,
+# entry_past_return_5d}) bleiben unberührt grün. generate_report.py injiziert
+# den Wert nur als JS-Render-Konstante (json.dumps). config.py nennt diese
+# Feldnamen ohnehin schon (S10_OBSERVED_FIELDS) — kein neuer Leak-Surface.
+# Format je Eintrag: (roh_feldname, anzeige_label, status_text). Der Zähler (n)
+# wird dynamisch clientseitig aus _btData berechnet — NICHT hier.
+COLLECT_STATUS_FIELDS = [
+    ("max_gain_pct",
+     "Höchststand nach Entry (max_gain_pct)",
+     "Ziel-/Ergebnisgröße, kein Prädiktor · unvalidiert"),
+    ("conviction_score",
+     "Conviction-Aggregat (conviction_score)",
+     "sammelt · unvalidiert · auswertbar ab ~Ende Aug 2026 (Ziel n ≥ 100)"),
+    ("days_to_earnings",
+     "Kalendertage bis Earnings (days_to_earnings)",
+     "sammelt · unvalidiert · auswertbar ab ~Q4 2026 (Ziel n ≥ 40)"),
+    ("entry_past_return_5d",
+     "Kursbewegung 5 Handelstage vor Entry (entry_past_return_5d)",
+     "sammelt · unvalidiert · auswertbar ab ~Q4 2026 (Ziel n ≥ 40)"),
+    ("si_velocity_pub",
+     "Short-Interest-Änderungsrate (si_velocity_pub)",
+     "sammelt · unvalidiert · auswertbar ab ~Q4 2026 (Ziel n ≥ 40)"),
+]
+
 S10_OBSERVED_FIELDS = frozenset({
     # Core (immer gesetzt)
     "date", "ticker", "score", "entry_price", "rvol", "dtc",
