@@ -1,17 +1,17 @@
 {
-  "updated": "2026-07-11T15:54:48.714637+02:00",
+  "updated": "2026-07-11T17:15:48.640275+02:00",
   "run_info": {
     "tickers_checked": 15,
     "signals_active": 1,
     "alerts_sent": 0,
-    "elapsed_s": 12.9,
+    "elapsed_s": 11.9,
     "market_phase": "Geschlossen"
   },
   "signals": {
     "AI": {
       "score": 18,
       "confidence": 17,
-      "drivers": "News-KI 8/30: Negative fundamentals (revenue drop, overvaluation concerns) and leadership uncertainty reduce short-squeeze potential d + UOA Call/Put 15.5×",
+      "drivers": "News-KI 8/30: Negative fundamentals (revenue drop, overvaluation concerns) and leadership changes reduce short-squeeze potential despi + UOA Call/Put 15.5×",
       "price": 8.95,
       "chg_pct": -0.0,
       "rvol_4d": 1.24,
@@ -78,7 +78,7 @@
     "CBRL": {
       "score": 50,
       "confidence": 33,
-      "drivers": "Spanne 7.5% + News: earnings beat, squeeze + UOA Call/Put 13.8×",
+      "drivers": "Spanne 7.5% + News: short squeeze, earnings beat + UOA Call/Put 13.8×",
       "price": 50.42,
       "chg_pct": -0.0,
       "rvol_4d": 1.26,
@@ -220,9 +220,9 @@
       "uoa_cp_ratio": 0.3493150684931507
     },
     "SPRY": {
-      "score": 30,
-      "confidence": 70,
-      "drivers": "Spanne 5.1% + News-KI 12/30: Negative momentum from Russell 2000 removal and CEO succession uncertainty outweigh any positive technical signals; limi + Earnings in 33d",
+      "score": 18,
+      "confidence": 33,
+      "drivers": "Spanne 5.1% + Earnings in 33d",
       "price": 7.94,
       "chg_pct": 0.0,
       "rvol_4d": 1.01,
@@ -233,7 +233,7 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 1,
+      "active_triggers": 0,
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": 0.15151515151515152,
@@ -304,9 +304,9 @@
       "uoa_cp_ratio": 0.17042910447761195
     },
     "YYGH": {
-      "score": 33,
-      "confidence": 70,
-      "drivers": "Volumen 2.1× + Spanne 17.2% + News-KI 8/30: Reverse stock split combined with equity offering typically dilutes shares and weakens short squeeze potential, despite ",
+      "score": 25,
+      "confidence": 33,
+      "drivers": "Volumen 2.1× + Spanne 17.2%",
       "price": 1.43,
       "chg_pct": -0.0,
       "rvol_4d": 2.07,
