@@ -1,17 +1,17 @@
 {
-  "updated": "2026-07-12T23:07:20.804354+02:00",
+  "updated": "2026-07-13T00:08:00.551718+02:00",
   "run_info": {
     "tickers_checked": 15,
     "signals_active": 1,
     "alerts_sent": 0,
-    "elapsed_s": 20.1,
+    "elapsed_s": 11.9,
     "market_phase": "Geschlossen"
   },
   "signals": {
     "AI": {
-      "score": 40,
+      "score": 18,
       "confidence": 17,
-      "drivers": "News: partnership, short interest + UOA Call/Put 15.5×",
+      "drivers": "News-KI 8/30: Negative fundamentals (revenue drop, overvaluation concerns) and leadership uncertainty reduce short-squeeze potential s + UOA Call/Put 15.5×",
       "price": 8.95,
       "chg_pct": -0.0,
       "rvol_4d": 1.24,
@@ -22,7 +22,7 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 1,
+      "active_triggers": 0,
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 15.5×"
@@ -200,9 +200,9 @@
       "uoa_cp_ratio": 0.39
     },
     "PAR": {
-      "score": 16,
+      "score": 23,
       "confidence": 33,
-      "drivers": "News-KI 8/30: Negative sentiment dominates with sell signals and stock plunges, significantly outweighing one partnership expansion, i + Earnings in 26d",
+      "drivers": "News: partnership + Earnings in 26d",
       "price": 16.88,
       "chg_pct": -0.0,
       "rvol_4d": 0.39,
@@ -213,7 +213,7 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 0,
+      "active_triggers": 1,
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": 0.006679389312977099,
@@ -222,7 +222,7 @@
     "PDYN": {
       "score": 48,
       "confidence": 70,
-      "drivers": "Spanne 6.0% + News: partnership, contract + Earnings in 24d",
+      "drivers": "Spanne 6.0% + News: contract, partnership + Earnings in 24d",
       "price": 5.28,
       "chg_pct": 0.0,
       "rvol_4d": 0.87,
@@ -240,9 +240,9 @@
       "uoa_cp_ratio": 0.3493150684931507
     },
     "SPRY": {
-      "score": 30,
-      "confidence": 70,
-      "drivers": "Spanne 5.1% + News-KI 12/30: Negative momentum from index exclusion and CEO transition uncertainty outweigh positive sector signals; insufficient sho + Earnings in 32d",
+      "score": 18,
+      "confidence": 33,
+      "drivers": "Spanne 5.1% + Earnings in 32d",
       "price": 7.94,
       "chg_pct": 0.0,
       "rvol_4d": 1.01,
@@ -253,7 +253,7 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 1,
+      "active_triggers": 0,
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": 0.15151515151515152,
@@ -306,7 +306,7 @@
     "WOLF": {
       "score": 22,
       "confidence": 33,
-      "drivers": "Spanne 9.9% + News-KI 12/30: Negative patent lawsuit headlines outweigh positive electrification trend; limited short-squeeze catalyst without signif",
+      "drivers": "Spanne 9.9% + News-KI 12/30: Negative lawsuit headlines outweigh positive industry tailwinds; lacks short squeeze catalysts like high short interest ",
       "price": 35.29,
       "chg_pct": 0.0,
       "rvol_4d": 0.66,
