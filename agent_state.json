@@ -1,5 +1,5 @@
 {
-  "last_run": "2026-07-12T19:27:19.441620+02:00",
+  "last_run": "2026-07-12T21:01:47.676865+02:00",
   "cooldowns": {
     "anomaly_score_jump_XRX": "2026-05-03T18:47:15.315486+02:00",
     "anomaly_uoa_extreme_TDOC": "2026-05-04T13:47:00.365949+02:00",
@@ -82,18 +82,6 @@
     "anomaly_conviction_high_NGNE": "2026-07-09T12:04:16.015071+02:00"
   },
   "push_history": [
-    {
-      "ts": "2026-07-03T15:12:39.546217+02:00",
-      "ticker": "AI",
-      "kind": "anomaly",
-      "severity": "medium",
-      "trigger": "uoa_extreme",
-      "body": "AI 🎯 UOA Vol/OI 11.0× ATM | Setup —",
-      "success": false,
-      "suppressed": true,
-      "suppress_reason": "conviction_below_threshold",
-      "conviction_score": 35
-    },
     {
       "ts": "2026-07-03T15:12:39.546333+02:00",
       "ticker": "ARCT",
@@ -1281,21 +1269,33 @@
       "suppressed": false,
       "suppress_reason": null,
       "conviction_score": null
+    },
+    {
+      "ts": "2026-07-12T21:01:46.222891+02:00",
+      "ticker": "BBW",
+      "kind": "anomaly",
+      "severity": "medium",
+      "trigger": "uoa_extreme",
+      "body": "BBW 🎯 UOA Vol/OI 18.8× ATM | Setup 61",
+      "success": false,
+      "suppressed": true,
+      "suppress_reason": "conviction_below_threshold",
+      "conviction_score": 45
     }
   ],
   "prev_conviction_scores": {
-    "FRMM": 67.0,
+    "LENZ": 66.0,
+    "FRMM": 54.0,
     "BBW": 45.0,
-    "KPTI": 59.0,
-    "OFRM": 52.0,
+    "KPTI": 58.0,
     "TRIP": 44.0,
+    "OFRM": 50.0,
     "CBRL": 36.0,
     "SPRY": 49.0,
-    "VSTM": 63.0,
-    "PAR": 52.0,
-    "WOLF": 45.0,
+    "VSTM": 48.0,
+    "PAR": 38.0,
+    "WOLF": 31.0,
     "AI": 34.0,
-    "LENZ": 33.0,
     "PDYN": 25.0,
     "IONQ": 11.0,
     "AMC": 11.0
