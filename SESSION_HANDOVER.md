@@ -1,14 +1,8 @@
-# SESSION_HANDOVER.md — Stand 11.07.2026 (Paper-Verwertungsplan-Addendum 15.07.2026)
+# SESSION_HANDOVER.md — Stand 15.07.2026
 
 **Zweck:** vollständige Übergabe an eine **neue Code-Session ohne Kontext der
 alten**. Dieses Dokument + `CLAUDE.md` müssen zusammen ausreichen, um am
 Projektstand direkt weiterzuarbeiten. Reine Doku, kein Logik-Touch.
-
-**Addendum 15.07.2026:** §4/§5/§6/§8 um die Befunde des Svoboda/Kapounek/
-Albrecht-Papers + den 3-Schritt-Verwertungsplan ergänzt (reine Doku). §1
-(Heute implementiert) + der `Stand`-Basis-Datum bleiben auf 11.07. — die
-zwischenzeitlich gemergten Frontend-/Doku-PRs sind hier bewusst nicht
-nachgetragen (separater Voll-Refresh bei nächstem „gute Nacht").
 
 Struktur (9 Blöcke): (1) Heute implementiert · (2) Aktive Positionen ·
 (3) Verifikation · (4) Wiedervorlagen · (5) Strategische Roadmap ·
@@ -19,15 +13,75 @@ Anker.
 
 ## 1) HEUTE IMPLEMENTIERT (chronologisch, mit Hashes)
 
-*(Roter Faden 03.07.–10.07.2026: Backfill-Kette `max_gain_pct` scharfgeschaltet
-(#400 thin-slice-Zähler, #401 Workflow, `85cbbe9` Live-Lauf 330/330) →
-Hypothese-C-Auswertung durchgezogen und dokumentiert (0/6 Holm über drei
-Peak-Schwellen) → drei additive Vorwärts-Erhebungen fürs Kombi-Ziel scharf
-(#402 Reversal, #404 Katalysator, #409 SI-Velocity Look-Ahead-frei) →
-Pin-Sanierung yfinance (#403 Cap statt Hard-`==`) → Doku-Aktualisierung
-(#405, #406) → Karfreitag-Fundament algorithmisch (#407 Meeus, Python + JS)
-→ FINRA-Publikations-Datum als Look-Ahead-Grenze (#408) → si_velocity_pub
-auf pub_date-Basis (#409).)*
+*(Roter Faden 11.07.–15.07.2026: ein entry_past_return_5d-Bugfix (#411, Nenner
+im Merge gedroppt) → dann konsequente Auffanglinien-Umsetzung im Frontend
+(#412 neutrales Sammel-Felder-Status-Panel, #414 Entfernung des als Trade-Signal
+lesbaren „Erste Erkenntnisse"-Empfehlungsblocks — analog #406) → wöchentlicher
+Lit-Check-Reminder standalone (#413) → Paper-Verwertung: Svoboda-Befunde +
+3-Schritt-Plan (#415), Ausblick-Schritt D (#416), Schritt-A-Blocker verankert
+(#417). Davor 03.07.–10.07.: Backfill-Kette `max_gain_pct` (#400/#401/`85cbbe9`
+330/330) → Hypothese-C-Null (0/6 Holm) → Kombi-Sammel-Felder (#402/#404/#409) →
+yfinance-Cap (#403) → Doku (#405/#406) → Karfreitag/pub_date-Kette (#407/#408/
+#409).)*
+
+### PR #411 — 11.07. — Merge `902671a` (feat `dd31fdb`)
+**★ Bugfix `entry_past_return_5d` — gedroppter Pre-Entry-Nenner.** Der Nenner
+`close_5td_before_entry` wurde in `_hist_stats` korrekt berechnet, aber im
+`c.update`-Enrichment-Merge (`generate_report.py` `def main()`) **nicht in die
+Key-Whitelist aufgenommen** → fiel weg → `_compute_entry_past_return_5d(price,
+None)` = None (50/50 Records None). **KEIN** Namens-Mismatch. Fix rein additiv:
+(a) Merge reicht `close_5td_before_entry` aus `yfd` durch; (b) `get_yfinance_data`
+(Fallback-Pfad) berechnet+returnt den Wert aus der 1y-history; (c) Mock-Test um
+**Merge-Assertion** + End-to-End-Non-Null-Kernbeweis (node) erweitert. Wirkt
+**vorwärts** — die 50 Alt-None-Records bleiben None (kein Backfill). Golden
+byte-identisch (Change nicht im Render-f-String). Guardian ✓. **Manueller Merge.**
+
+### PR #412 — 11.07. — Merge `84c4e7f` (feat `7823757` + `0b8f161`)
+**★ Sammel-Felder-Status-Panel** (neutral, Datenerhebungs-Fortschritt). Neue
+read-only `.bt-tile--wide` in `#bt-section` + `_btCollectStatus(data)`: zeigt pro
+Sammel-Feld (max_gain_pct, conviction_score, days_to_earnings, entry_past_return_
+5d, si_velocity_pub) einen **dynamischen non-null-Zähler** aus `_btData` + Status
+(„sammelt/unvalidiert/auswertbar ab ~Datum") — **KEINE Feld-Werte, kein Signal**
+(Auffanglinie, analog #406). **Look-Ahead-Guard-Fix (`0b8f161`):** Feldnamen
+leben in `config.COLLECT_STATUS_FIELDS`, als JS-Render-Konstante injiziert → keine
+Backtest-Feldnamen-Literale im `generate_report.py`-Source → alle 3 Look-Ahead-
+Isolations-Guards bleiben unverändert grün. Golden mit-aktualisiert. Guardian ✓.
+**Manueller Merge.**
+
+### PR #413 — 11.07. — Merge `5756926` (feat `ae1c825`)
+**★ Wöchentlicher Lit-Check-Reminder** (standalone). Neuer Workflow
+`lit_reminder.yml` (Cron `33 16 * * 5` = Fr 18:33 Berlin) + `scripts/lit_
+reminder.py`: **ein** fixer ntfy-Push „📚 Wöchentlicher Reminder: Squeeze-
+Forschung Web-Check fällig". **Null Trade-Pipeline-Touch** — kein Cooldown/
+Silence/push_history/agent_state, `permissions: contents: read` (schreibt nichts
+ins Repo). Eigene Kategorie (Priority `default`, Tag `books`). Muster: health_
+check_digest (URL-Pattern, ASCII-Title-Strip). Guardian ✓. **Manueller Merge.**
+
+### PR #414 — 11.07. — Merge `f15ca9b` (refactor `4eb2c73`)
+**★ „Erste Erkenntnisse"-Empfehlungsblock ENTFERNT.** `_btRenderRecommendation`
+rankte Score-Buckets nach Median-Rendite und gab eine wörtliche „Empfehlung:
+Score X + max. Haltedauer YT." mit farbigen Rendite-Zahlen aus — ein als
+Trade-Signal lesbarer Edge-Claim, im Widerspruch zur Auffanglinie + 30.06.-Null.
+Sauber entfernt (Funktion + Aufruf + `#bt-reco`-Div + `.bt-reco*`-CSS);
+**`_btBucketStats` BLEIBT** (weiter von der Median-Kachel + Knaller-Label-Sync
+konsumiert). Gerenderter JS besteht `node --check` (kein Dangling-Ref). Golden
+rein entfernend (0 add / 67 del). **Manueller Merge.**
+
+### PR #415 — 15.07. — `fb25b4c` (squash)
+**Doku:** Paper-Verwertungsplan — Svoboda/Kapounek/Albrecht-Befunde (§5) +
+3-Schritt-Plan (§4) + Backlog (§6g/§6h) + Lessons (§8h/§8i). Reine Doku,
+**Auto-Merge**.
+
+### PR #416 — 15.07. — `22f976f` (squash)
+**Doku:** Schritt D (Ausblick) — `squeeze_probability`-Score nach Paper-Modell,
+mit kritischer Deklaration (Wahrscheinlichkeit ≠ Rendite) + vier Bau-Bedingungen.
+Reine Doku, **Auto-Merge**.
+
+### PR #417 — 15.07. — `ef78b40` (squash)
+**Doku:** Schritt-A-Blocker — Coverage-Check negativ (SI-Zeitreihe fehlt);
+§4-Zeile ⛔ BLOCKIERT + §6i voller Befund. Reine Doku, **Auto-Merge**.
+
+---
 
 ### PR #400 — 03.07. — `a936886` (squash-merged)
 **★ Backfill thin-slice-Zähler** (Guardian-Nachbesserung aus #399).
@@ -172,23 +226,22 @@ Runs kann `current_price` stale sein (S3-Merge-Tag-Muster, §8 — kein
 Ausfall-Indiz).
 
 **Stand `app_data.json` — letzter erfolgreicher Daily-Run `last_daily_run_
-ts = 2026-07-10T09:54:06Z` (premarket, 10.07.):** **7 offene Positionen.**
+ts = 2026-07-11T22:30:56Z` (postclose, 11.07.):** **7 offene Positionen.**
 
 | Ticker | entry_date | entry_price | current_price | shares | Hold-Flag |
 |---|---|---|---|---|---|
-| AMC   | 2026-05-01 | $1.50   | $1.90   | 500 | ✓ `no_exit_alerts=True` |
-| IONQ  | 2026-05-11 | $49.10  | $44.77  | 40  | — |
-| PDYN  | 2025-01-20 | $11.52  | $5.46   | 150 | — |
-| AI    | 2026-06-01 | $11.00  | $9.01   | 10  | — |
-| WOLF  | 2026-07-03 | $50.97  | $37.25  | 7   | — |
-| FRMM  | 2026-07-06 | $6.95   | $5.90   | 15  | — |
-| LENZ  | 2026-07-07 | $6.00   | $5.79   | 15  | — |
+| AMC   | 2026-05-01 | $1.50   | $1.89   | 500 | ✓ `no_exit_alerts=True` |
+| IONQ  | 2026-05-11 | $49.10  | $42.86  | 40  | — |
+| PDYN  | 2025-01-20 | $11.52  | $5.28   | 150 | — |
+| AI    | 2026-06-01 | $11.00  | $8.95   | 10  | — |
+| WOLF  | 2026-07-03 | $50.97  | $35.29  | 7   | — |
+| FRMM  | 2026-07-06 | $6.95   | $5.96   | 15  | — |
+| LENZ  | 2026-07-07 | $6.00   | $5.59   | 15  | — |
 
-**Änderungen seit letztem Voll-Handover (04.07.):** aus dem 13.06.-Stand
-(AMC, IONQ, PDYN, AI, RBOHF, GIII, LUCK, DBI) sind RBOHF/GIII/LUCK/DBI
-nicht mehr im Mirror; drei neue Positionen (WOLF 03.07., FRMM 06.07.,
-LENZ 07.07.). Details (P&L, These, Lessons) sind ausschließlich im
-Gist / Trade-Journal belegt — nicht Session-Kontext.
+**Änderungen seit 11.07.-Handover:** Positions-Set unverändert (dieselben 7).
+`current_price`-Werte sind der 11.07.-postclose-Snapshot — zwischen Runs stale
+(kein Ausfall-Indiz, §8). Details (P&L, These, Lessons) ausschließlich im
+Gist / Trade-Journal, nicht Session-Kontext.
 
 **Hold-Flag-Regel unverändert:** `AMC` trägt weiterhin `no_exit_alerts=
 True` (bewusster Buy-and-Hold-Skip aller Exit-Pushes). Andere Positionen
@@ -201,54 +254,60 @@ UND nur bei `available=True`.
 
 ## 3) VERIFIKATION (nächste Handelstage, konkrete Beobachtungspunkte)
 
-### AKUT (11.–15.07.2026)
+### AKUT (ab 15.07.2026)
 
-- **★ yfinance-Cap Live-Verify (PR #403):** nächster Actions-Lauf soll
-  weiter `yfinance 1.4.1 / pandas 3.0.3 / peewee 4.1.0` installieren
-  (Cap-Semantik: `>=1.4.1,<1.5`). Watch: pip-Log im Daily-Run-Actions-
-  Job; kein `1.5.x`-Sprung, kein Segfault Exit-139.
+- **★★ `entry_past_return_5d` — Bugfix-Live-Verify (PR #411):** der
+  Merge-Durchreich-Fix wirkt **vorwärts**. Stand 15.07.:
+  **50 present / 0 non-null** (Alt-Records vor dem Fix bleiben None). Der
+  **nächste postclose-Run nach dem #411-Merge** sollte erstmals Records mit
+  **non-null** `entry_past_return_5d` anlegen (etablierte Ticker mit ≥6 Bars
+  vor Entry). Watch: `non-null`-Zähler > 0 in `backtest_history.json` bzw.
+  in der neuen Status-Kachel (#412). Das ist der Kern-Beleg, dass der Fix
+  greift.
 
-- **★ `si_velocity_pub` — erste Records (PR #409):** stand
-  `backtest_history.json` 11.07.: **0 Records mit `si_velocity_pub`-
-  Feld** (letzter Append 09.07.2026 lag VOR dem Merge am 10.07.). Der
-  nächste **postclose**-Run (Mo 13.07. ~21:17 UTC) sollte Records mit
-  dem neuen Feld anlegen. Erwartung pro Ticker: `None` in den ersten
-  Tagen (weniger als 3 eligible publizierte Reports vor Entry) → nach
-  ~6–8 Wochen (drei Bimonats-Zyklen) für die meisten Tickers ein
-  Zahlenwert. Watch: Feld-Präsenz im Return-Dict, nicht Zahlenwerte.
+- **★ Lit-Check-Reminder — erster Push (PR #413):** erster planmäßiger
+  ntfy-Push **kommenden Freitag ~18:33 Berlin** (Cron `33 16 * * 5`). Watch:
+  Push kommt an, Titel „Lit-Check-Reminder", Tag `books`. Bleibt er aus →
+  `NTFY_TOPIC`-Secret prüfen (Workflow ist fail-visible: exit 1 bei
+  Send-Fehler trotz gesetztem Topic).
 
-- **★ `entry_past_return_5d` (#402) + `days_to_earnings` (#404) —
-  Reifung:** stand 11.07.: **40 Records mit `entry_past_return_5d`-
-  Feld** (deploy 02.07., ~1.5 Wochen alt); **40 Records mit
-  `days_to_earnings`-Feld** (deploy 04.07., ~1 Woche alt). Wachsen jeden
-  postclose-Werktag um ~10 Top-10-Einträge. Auswertung erst nach n≥40
-  reif (~Ende Aug für first-look, §4).
+- **★ Sammel-Felder-Status-Panel — Zähler wachsen (PR #412):** die Kachel
+  in `#bt-section` zählt dynamisch aus `_btData`. Stand 15.07.:
+  `max_gain_pct` 390 · `conviction_score` 90 · `days_to_earnings` 42 ·
+  `entry_past_return_5d` 0 · `si_velocity_pub` 10 (non-null). Watch: Zähler
+  steigen automatisch pro postclose-Run; keine Feld-Werte im Output (nur
+  Zähler + Status).
 
-- **★ `max_gain_pct` — Verteilung wächst:** stand 11.07.: **380 Records
-  mit `max_gain_pct`-Feld** (330 Backfill vom 04.07. + ~50 Vorwärts seit
-  Deploy 02.07.). Watch: Log-Zeile `max_gain für M/N aktive Einträge`
-  im postclose-Actions-Log; keine `None`-Persistierung bei reifen
-  Records (≥10 Trading-Days).
+- **★ `si_velocity_pub` / `days_to_earnings` — Reifung (§4):** wachsen jeden
+  postclose-Werktag. Auswertung erst bei n≥40 reif (§4-Kalender). `si_
+  velocity_pub` erwartet `None` in den ersten Wochen (< 3 eligible publizierte
+  Reports vor Entry), Zahlenwert nach ~6–8 Wochen.
+
+- **★ `max_gain_pct` — Verteilung wächst:** Stand 15.07. **390 present /
+  390 non-null** (330 Backfill 04.07. + Vorwärts). Watch: Log-Zeile
+  `max_gain für M/N aktive Einträge` im postclose-Log; keine `None`-
+  Persistierung bei reifen Records (≥10 Trading-Days).
 
 - **★ Karfreitag algorithmisch (#407) — nächste Verifikation Fr
-  02.04.2027:** Set-Check `US_MARKET_HOLIDAYS`-Enthaltensein +
-  JS-Spiegel `US_HOLIDAYS.includes("2027-04-02")`. Bis dahin keine
-  Live-Verify nötig (2026er-Karfreitag Fr 03.04.2026 lag vor dem Fix
-  — kein Zurück-Verify auf gebufferten State).
+  02.04.2027:** `US_MARKET_HOLIDAYS`-Enthaltensein + JS-Spiegel
+  `US_HOLIDAYS.includes("2027-04-02")`. Bis dahin keine Live-Verify nötig.
 
 ### KEINE VERIFIKATION MEHR NÖTIG (abgeschlossen)
 
-- Independence Day Fr 03.07.2026 (Holiday-Skip PR #381 live-verified,
-  kein Fehlalarm — bestätigt).
+- yfinance-Cap `>=1.4.1,<1.5` (#403) — Actions-Läufe seit 04.07. stabil
+  ohne Segfault; Dauer-Watch entfällt (nur bei Cap-Aufhebung §6, wieder
+  relevant).
+- „Erste Erkenntnisse"-Empfehlungsblock (#414) — entfernt, `node --check`
+  grün, Golden rein entfernend; nichts nachzubeobachten.
+- Independence Day Fr 03.07.2026 (Holiday-Skip PR #381 verifiziert).
 - Redeploy-Auto-Trigger aus (PR #357 seit 13.06. verifiziert).
-- Exit-Shadow-Backfill `forward_10d` (verifiziert 27.06.).
-- Hypothese-C-Auswertung (durchgeführt 04.07., §4).
+- Hypothese-C-Auswertung (durchgeführt 04.07., §4 erledigt-null).
 
 ---
 
 ## 4) GEPLANTE AUFGABEN + WIEDERVORLAGEN (mit Daten)
 
-### RE-TEST-KALENDER (kanonisch, Stand 11.07.)
+### RE-TEST-KALENDER (kanonisch, Stand 15.07.)
 
 | Datum | Was | n-Ziel | Notiz |
 |---|---|---|---|
@@ -267,7 +326,7 @@ Tag. Volle Paper-Befunde in §5. Auswertung bleibt Out-of-Sample im Herbst.
 | Schritt | Was | Vorbedingung / Disziplin |
 |---|---|---|
 | **A** ⛔ **BLOCKIERT** | Binäre Zielvariable `squeeze_event` (Peak ≥ +30 % in 1 Handelswoche **UND** SI-Rückgang ≥ 20 %) **neben** `return_10d`. Adressiert den Paper-Kern „Häufigkeit ≠ Rendite-Edge" (§8). | **Coverage-Check 15.07. NEGATIV:** SI-Rückgang mit Gratis-Daten **nicht** messbar → **ZURÜCKGESTELLT**. Kein Feld-Bau, sondern Datenquellen-Projekt. Voller Befund in **§6i**. B/C brauchen A NICHT als Vorbedingung. |
-| **B** | `si_velocity_pub` in die **3 Literatur-Buckets** (7–17 % / 17–25 % / > 25 % SI-Zuwachs) klassifizieren statt linear — nur diese drei waren im Paper signifikant. | Buckets sind Literatur-fix, NICHT aus unseren Daten kalibriert. Additive Auswertungs-Spalte, kein Score-Effekt. |
+| **B** ➡ **NÄCHSTER SCHRITT** | `si_velocity_pub` in die **3 Literatur-Buckets** (7–17 % / 17–25 % / > 25 % SI-Zuwachs) klassifizieren statt linear — nur diese drei waren im Paper signifikant. **Auswertbar OHNE A** (A ist blockiert, §6i — B braucht A nicht). | Buckets sind Literatur-fix, NICHT aus unseren Daten kalibriert. Additive Auswertungs-Spalte, kein Score-Effekt. |
 | **C** | **Momentum als Haupthypothese** (`entry_past_return_5d` **positiv** = vorheriger Aufwärtstrend verstärkt), Reversal nur noch **kurzfristige Nebenhypothese**. Korrigiert die frühere „Reversal-Substrat"-Framing (§5). | Richtung vor der Auswertung fixiert (Paper: Momentum > Reversal). Kein nachträgliches Umdrehen. |
 | **D** *(Ausblick, bedingt)* | `squeeze_probability`-Score nach Paper-Modell: die **validierten** Einzelfaktoren (SI-Buckets, Momentum, ggf. Ownership) zu einem Squeeze-**Wahrscheinlichkeits**-Score zusammenführen (rare-event-logit-artig, wie Svoboda et al.). Details + Deklaration unten. | **NUR falls A–C einzeln out-of-sample tragen.** Kein automatischer Folge-Schritt — eigene Anordnung nach belegten A–C-Befunden. |
 
@@ -563,6 +622,20 @@ Sample, kein echter Out-of-Sample-Nachweis mehr. Verankert per Test in
 allen vier Mock-Tests (Konsumenten-Isolations-Klasse; grep über
 `generate_report.py`/`ki_agent.py`/`health_check.py` muss leer bleiben).
 
+### 7a-bis. `config.COLLECT_STATUS_FIELDS` — Display-Reads von Backtest-Feldnamen (Weg-A-Muster, #412)
+
+Das Sammel-Felder-Status-Panel (#412) muss die Backtest-Feldnamen (`si_velocity_
+pub` etc.) **anzeigen** — aber die Look-Ahead-Isolations-Guards (§7a) verbieten
+per Regex-/Literal-Grep, dass diese Namen als Dict-Key-Literale in
+`generate_report.py` auftauchen. **Lösung (Weg A, von Easy gewählt statt Guard-
+Lockerung):** Feldnamen + Labels + Status leben in `config.COLLECT_STATUS_FIELDS`
+und werden zur Render-Zeit als JS-Konstante `_COLLECT_STATUS_FIELDS` injiziert
+(`json.dumps`) → **kein** Feldnamen-Literal im Score-Pfad-Source, Guards bleiben
+unverändert grün. **Muster für JEDEN künftigen Display-Read von Backtest-
+Feldnamen:** Namen nach `config.py` (config ist nicht guard-überwacht und nennt
+die Felder ohnehin in `S10_OBSERVED_FIELDS`), von dort injizieren — Guards NICHT
+lockern. Verankert per Test-Assertion A8 in `mock_test_collect_status_panel.py`.
+
 ### 7b. `scripts/business_days.py` — Handelstags-Arithmetik
 
 Pure-stdlib-Modul mit `next_trading_day(d)` und
@@ -620,6 +693,48 @@ von `_wl_full_card_html()`. Details in `CLAUDE.md` → §v1/v2 Render-Pfad.
 ---
 
 ## 8) LESSONS
+
+*(Neueste zuerst: 8j–8m vom 11.–15.07. stehen als eigener Block oben; die
+etablierten 8a–8i darunter — inkl. 8h/8i Paper-Lehren vom 15.07.)*
+
+### 8j. Merge-Whitelist-Bug-Klasse (Lehre #411, 11.07.)
+
+Ein Feld kann in `_hist_stats` **korrekt berechnet** und im Append **korrekt
+gelesen** werden — und trotzdem dauerhaft `None` sein, wenn der dazwischenliegende
+`c.update`-Enrichment-Merge (`generate_report.py` `def main()`) den Key **nicht in
+seiner expliziten Key-Whitelist** führt und ihn fallenlässt. `entry_past_return_
+5d` war so 50/50 None. **Regel:** bei jedem neuen enrichment-getragenen Feld auch
+den `c.update`-Merge prüfen — und der **Test muss den MERGE assertieren**, nicht
+nur Compute + Append (die alten F2/F3-Tests prüften nur `_hist_stats`/Stock-Dict
+und ließen den Bug durch). **Präzedenz:** identische Klasse wie der historische
+`hist_5d`-Merge-Gap (Kommentar direkt daneben im Merge, Diagnose 21.05.).
+
+### 8k. Look-Ahead-Guards vs. legitime Display-Reads (Lehre #412, 11.07.)
+
+Wenn ein **Anzeige**-Feature Backtest-Feldnamen referenzieren muss, aber die
+Look-Ahead-Isolations-Guards jedes Namens-Literal im Score-Pfad-Source verbieten:
+**Feldnamen nach `config.py` auslagern und als Render-Konstante injizieren**
+(Weg A, §7a-bis) — **NICHT** die Guards lockern. Guard-Sinn bleibt scharf, Display
+funktioniert. Der Guard konnte Display- vs. Score-Read nicht unterscheiden; die
+Config-Injektion umgeht das sauber, statt den Schutz aufzuweichen.
+
+### 8l. Peak-only ≠ Squeeze — die Covering-Komponente ist der Kern (Lehre #417, 15.07.)
+
+Der Paper-`squeeze_event` ist Peak ≥30 % **UND** SI-Rückgang ≥20 %. Lässt man die
+SI-Rückgang-(Covering-)Komponente weg (weil die SI-Zeitreihe fehlt, §6i),
+**kollabiert `squeeze_event` in ein reines Peak-≥30 %-Binär = die bereits
+widerlegte Hypothese C** (0/6 Holm). Also: **nicht abspecken** — ohne die
+Covering-Komponente misst man nichts Neues. Der SI-Rückgang IST das
+Unterscheidungsmerkmal echter Squeezes vom bloßen Kursspike.
+
+### 8m. „short_interest" intern = Daily Short VOLUME, nicht Position (Nomenklatur-Falle, 15.07.)
+
+Was im Code `finra_data.history` / „short_interest" heißt, ist FINRA **Reg SHO
+Daily Short VOLUME** (`CNMSshvol`-Dateien) — das Short-Sale-Volumen des Tages,
+**NICHT** die ausstehende Short-Position. Ein Rückgang des Tages-Volumens ≠ Shorts
+covern. Bei jeder SI-Analyse zuerst klären, **welche** Größe eine Quelle liefert
+(Volumen vs. ausstehende Position vs. % of float). Die echte ausstehende SI liegt
+nur als bimonatlicher yfinance-Snapshot vor (keine Zeitreihe, §6i).
 
 ### 8a. S10_OBSERVED_FIELDS = Whitelist bekannter Felder (Lehre #388)
 
