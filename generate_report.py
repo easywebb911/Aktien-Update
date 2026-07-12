@@ -7678,15 +7678,6 @@ def generate_html_v1(stocks: list[dict], report_date: str,
     .bt-hint{{display:block;margin-top:4px;font-size:.74rem;color:#f59e0b;font-style:italic}}
     .btn-bt{{background:#1e293b;color:#94a3b8;border:1px solid #334155}}
     .btn-bt:hover{{background:#334155;color:#e2e8f0}}
-    .bt-reco{{margin-top:14px;padding:12px 14px;background:var(--bg-met);
-      border:1px solid var(--brd);border-left:3px solid #6366f1;border-radius:6px;
-      font-size:.84rem;line-height:1.55;color:var(--txt)}}
-    .bt-reco-ttl{{font-weight:800;margin-bottom:4px;font-size:.9rem}}
-    .bt-reco-strong{{font-weight:800}}
-    .bt-reco-pos{{color:#22c55e;font-weight:800}}
-    .bt-reco-neg{{color:#ef4444;font-weight:800}}
-    .bt-reco-rec{{margin-top:6px;padding-top:6px;border-top:1px solid var(--brd);
-      font-weight:700}}
   </style>
   <section class="bt-section" id="bt-section" hidden>
     <div class="bt-hdr">
@@ -7735,7 +7726,6 @@ def generate_html_v1(stocks: list[dict], report_date: str,
         <div id="bt-collect-status" class="bt-collect-list"></div>
       </div>
     </div>
-    <div id="bt-reco" class="bt-reco" hidden></div>
   </section>
 
   <section class="wl-section" id="wl-section">
@@ -9456,7 +9446,6 @@ function _btRender(){{
   _btRenderMedian(filtered);
   _btRenderSiTrend(filtered);
   _btRenderTable(data);    // Tabelle zeigt IMMER alle Einträge (mit Quellen-Badge).
-  _btRenderRecommendation(filtered);
   // Sammel-Felder-Fortschritt über ALLE Einträge (data, nicht filtered) —
   // die Erhebung ist toggle-unabhängig. Zählt nur non-null, rendert KEINE Werte.
   _btCollectStatus(data);
@@ -9676,62 +9665,6 @@ function _btRenderMedian(data){{
     html += '</div>';
   }});
   container.innerHTML = html;
-}}
-function _btRenderRecommendation(data){{
-  const box = document.getElementById('bt-reco');
-  if (!box) return;
-  const stats = _btBucketStats(data);
-  // Globaler Sieger: (bucket, horizon) mit höchster Median-Rendite, n ≥ 5
-  let best = null;
-  stats.forEach(s => {{
-    s.meds.forEach(m => {{
-      if (m.med !== null && m.n >= 5 && (!best || m.med > best.med)){{
-        best = {{bucket: s.key, lbl: m.lbl, med: m.med, n: m.n,
-                 bucketMeds: s.meds}};
-      }}
-    }});
-  }});
-  if (!best || best.med <= 0){{
-    box.hidden = false;
-    box.innerHTML = '<div class="bt-reco-ttl">Erste Erkenntnisse</div>'
-      + '<p>Noch zu wenige Datenpunkte mit positiver Median-Rendite für '
-      + 'eine belastbare Handlungsempfehlung (Mindest-n=5 pro Score-Bucket).</p>';
-    return;
-  }}
-  // Vergleich: 10T-Median im selben Bucket
-  const tenT = best.bucketMeds.find(m => m.lbl === '10T');
-  const fmtPct = v => (v >= 0 ? '+' : '') + v.toFixed(1) + '%';
-  const posCls = v => v >= 0 ? 'bt-reco-pos' : 'bt-reco-neg';
-
-  let comparison = '';
-  if (tenT && tenT.med !== null && best.lbl !== '10T'){{
-    if (tenT.med < best.med - 1){{
-      comparison = ' Längere Haltedauer (10T) liegt bei '
-                 + '<span class="' + posCls(tenT.med) + '">' + fmtPct(tenT.med)
-                 + '</span> — Squeezes erschöpfen sich schnell.';
-    }} else if (tenT.med > best.med){{
-      comparison = ' Längere Haltedauer (10T) erhöht die Rendite weiter auf '
-                 + '<span class="' + posCls(tenT.med) + '">' + fmtPct(tenT.med)
-                 + '</span>.';
-    }} else {{
-      comparison = ' Längere Haltedauer (10T) bringt kaum Unterschied ('
-                 + '<span class="' + posCls(tenT.med) + '">' + fmtPct(tenT.med)
-                 + '</span>).';
-    }}
-  }}
-
-  const rec = 'Empfehlung: Score ' + best.bucket
-            + ' + maximale Haltedauer ' + best.lbl + '.';
-
-  box.hidden = false;
-  box.innerHTML =
-    '<div class="bt-reco-ttl">Erste Erkenntnisse</div>'
-    + '<p>Bei <span class="bt-reco-strong">Score ' + best.bucket
-    + '</span> erzielte die <span class="bt-reco-strong">' + best.lbl
-    + '-Haltestrategie</span> eine Median-Rendite von '
-    + '<span class="' + posCls(best.med) + '">' + fmtPct(best.med) + '</span> '
-    + '(n=' + best.n + ').' + comparison + '</p>'
-    + '<p class="bt-reco-rec">' + rec + '</p>';
 }}
 function _btRenderSiTrend(data){{
   const trends = [['up','↑ steigend'], ['sideways','→ seitwärts'], ['down','↓ fallend']];
