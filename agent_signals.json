@@ -1,17 +1,17 @@
 {
-  "updated": "2026-07-12T15:56:30.610290+02:00",
+  "updated": "2026-07-12T17:16:36.881368+02:00",
   "run_info": {
     "tickers_checked": 15,
     "signals_active": 0,
     "alerts_sent": 0,
-    "elapsed_s": 11.6,
+    "elapsed_s": 20.7,
     "market_phase": "Geschlossen"
   },
   "signals": {
     "AI": {
-      "score": 40,
+      "score": 18,
       "confidence": 17,
-      "drivers": "News: short interest, partnership + UOA Call/Put 15.5×",
+      "drivers": "News-KI 8/30: Negative fundamentals (revenue drop, overvaluation concerns) and leadership issues reduce short-squeeze potential despit + UOA Call/Put 15.5×",
       "price": 8.95,
       "chg_pct": -0.0,
       "rvol_4d": 1.24,
@@ -22,7 +22,7 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 1,
+      "active_triggers": 0,
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 15.5×"
@@ -78,7 +78,7 @@
     "CBRL": {
       "score": 50,
       "confidence": 33,
-      "drivers": "Spanne 7.5% + News: short squeeze, earnings beat + UOA Call/Put 13.9×",
+      "drivers": "Spanne 7.5% + News: short squeeze, squeeze + UOA Call/Put 13.9×",
       "price": 50.42,
       "chg_pct": -0.0,
       "rvol_4d": 1.26,
@@ -217,12 +217,12 @@
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": 0.006679389312977099,
-      "uoa_cp_ratio": 0.5673469387755102
+      "uoa_cp_ratio": 0.5551020408163265
     },
     "PDYN": {
       "score": 48,
       "confidence": 70,
-      "drivers": "Spanne 6.0% + News: partnership, contract + Earnings in 24d",
+      "drivers": "Spanne 6.0% + News: contract, partnership + Earnings in 24d",
       "price": 5.28,
       "chg_pct": 0.0,
       "rvol_4d": 0.87,
@@ -282,9 +282,9 @@
       "uoa_cp_ratio": 19.025210084033613
     },
     "VSTM": {
-      "score": 28,
+      "score": 40,
       "confidence": 70,
-      "drivers": "Spanne 9.4% + Earnings in 25d + UOA Call/Put 2.2×",
+      "drivers": "Spanne 9.4% + News-KI 12/30: Modest price movement (6.3%) with no significant short interest catalyst; inducement grants and analyst coverage are rou + Earnings in 25d + UOA Call/Put 2.2×",
       "price": 5.53,
       "chg_pct": 0.0,
       "rvol_4d": 0.84,
@@ -295,7 +295,7 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 0,
+      "active_triggers": 1,
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 2.2×"
