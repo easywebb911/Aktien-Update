@@ -1,17 +1,17 @@
 {
-  "updated": "2026-07-13T00:08:00.551718+02:00",
+  "updated": "2026-07-13T01:09:45.344237+02:00",
   "run_info": {
     "tickers_checked": 15,
     "signals_active": 1,
     "alerts_sent": 0,
-    "elapsed_s": 11.9,
+    "elapsed_s": 13.2,
     "market_phase": "Geschlossen"
   },
   "signals": {
     "AI": {
-      "score": 18,
+      "score": 15,
       "confidence": 17,
-      "drivers": "News-KI 8/30: Negative fundamentals (revenue drop, overvaluation concerns) and leadership uncertainty reduce short-squeeze potential s + UOA Call/Put 15.5×",
+      "drivers": "News-KI 5/30: Negative fundamentals (revenue drop, overvaluation concerns) with no indication of high short interest, retail momentum, + UOA Call/Put 15.5×",
       "price": 8.95,
       "chg_pct": -0.0,
       "rvol_4d": 1.24,
@@ -78,7 +78,7 @@
     "CBRL": {
       "score": 50,
       "confidence": 33,
-      "drivers": "Spanne 7.5% + News: short squeeze, squeeze + UOA Call/Put 13.9×",
+      "drivers": "Spanne 7.5% + News: squeeze, earnings beat + UOA Call/Put 13.9×",
       "price": 50.42,
       "chg_pct": -0.0,
       "rvol_4d": 1.26,
@@ -217,7 +217,7 @@
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": 0.006679389312977099,
-      "uoa_cp_ratio": 0.5673469387755102
+      "uoa_cp_ratio": 0.5551020408163265
     },
     "PDYN": {
       "score": 48,
@@ -240,9 +240,9 @@
       "uoa_cp_ratio": 0.3493150684931507
     },
     "SPRY": {
-      "score": 18,
-      "confidence": 33,
-      "drivers": "Spanne 5.1% + Earnings in 32d",
+      "score": 30,
+      "confidence": 70,
+      "drivers": "Spanne 5.1% + News-KI 12/30: Negative momentum from index exclusion and CEO uncertainty outweigh any potential squeeze, with weak short-squeeze funda + Earnings in 32d",
       "price": 7.94,
       "chg_pct": 0.0,
       "rvol_4d": 1.01,
@@ -253,7 +253,7 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 0,
+      "active_triggers": 1,
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": 0.15151515151515152,
@@ -306,7 +306,7 @@
     "WOLF": {
       "score": 22,
       "confidence": 33,
-      "drivers": "Spanne 9.9% + News-KI 12/30: Negative lawsuit headlines outweigh positive industry tailwinds; lacks short squeeze catalysts like high short interest ",
+      "drivers": "Spanne 9.9% + News-KI 12/30: Negative lawsuit news dominates sentiment, but company operates in growing electrification sector; limited short-squeeze",
       "price": 35.29,
       "chg_pct": 0.0,
       "rvol_4d": 0.66,
