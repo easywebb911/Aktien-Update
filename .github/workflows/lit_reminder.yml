@@ -1,0 +1,48 @@
+name: Lit-Check Weekly Reminder
+
+# Wöchentlicher Reminder-Push (Freitag), der Easy erinnert, nach neuer
+# Squeeze-Forschung zu schauen. FIXER Text, KEIN Trade-Bezug.
+#
+# Standalone — läuft komplett AUSSERHALB der Trade-Push-Pipeline (kein
+# Cooldown/Silence/push_history/agent_state). Muster: health_check_digest.yml,
+# aber OHNE State/Commit (fixer Wochen-Ping braucht keine Persistenz/Dedup) →
+# der Workflow schreibt NICHTS ins Repo (permissions: contents: read).
+#
+# Cron-Slot bewusst kollisionsfrei zu allen Trade-/Job-Crons:
+#   Minute 33 (≠ ki_agent :17, ≠ digest :47, ≠ watchlist :00)
+#   Stunde 16 (≠ daily-run 06/21, ≠ digest 08, ≠ watchlist 07)
+#   Tag 5 = Freitag. 16:33 UTC = 18:33 Berlin (Wochen-Ausklang).
+
+on:
+  schedule:
+    - cron: '33 16 * * 5'
+  workflow_dispatch:   # Manueller Trigger jederzeit (fixer Text, keine Dedup).
+
+permissions:
+  contents: read       # reiner Push-Sender, schreibt nichts ins Repo
+
+jobs:
+  reminder:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+
+    steps:
+      - name: Checkout main branch
+        uses: actions/checkout@v5
+        with:
+          ref: main
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+          cache: 'pip'
+
+      - name: Install runtime dependencies
+        run: pip install requests
+
+      - name: Send Lit-Check Reminder
+        env:
+          NTFY_TOPIC: ${{ secrets.NTFY_TOPIC }}
+        run: python scripts/lit_reminder.py

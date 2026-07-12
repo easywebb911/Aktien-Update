@@ -1119,6 +1119,20 @@ SEC_HEADERS    = {"User-Agent": "Easy Webb easywebb@yahoo.de"}
 NTFY_TOPIC   = os.environ.get("NTFY_TOPIC", "")
 NTFY_ENABLED = True
 
+# ── Lit-Check-Reminder (wöchentlicher Freitags-Ping, KEIN Trade-Bezug) ────────
+# Eigenständiger standalone-Push (scripts/lit_reminder.py + lit_reminder.yml),
+# der komplett AUSSERHALB der Trade-Push-Pipeline läuft: kein Cooldown, kein
+# Silence-Filter, keine push_history, kein agent_state — reiner zeitgesteuerter
+# Fixtext-Reminder. Eigene Kategorie/Severity, klar als Reminder markiert, damit
+# er NICHT wie ein Trade-Alert aussieht. Priority bewusst niedrig (default), Tag
+# `books` (📚) als visuelle Abgrenzung zu Trade-Tags (rotating_light/warning).
+LIT_REMINDER_ENABLED  = True
+LIT_REMINDER_KIND     = "lit_reminder"   # eigene Kategorie, disjunkt zu Trade-kinds
+LIT_REMINDER_TITLE    = "📚 Lit-Check-Reminder"
+LIT_REMINDER_BODY     = "📚 Wöchentlicher Reminder: Squeeze-Forschung Web-Check fällig."
+LIT_REMINDER_PRIORITY = "default"        # NICHT high/urgent — kein Aktions-Signal
+LIT_REMINDER_TAGS     = "books"
+
 # ── Health-Check (Phase 1 — State-Invariants) ────────────────────────────────
 # Frühwarnsystem für stille Datenausfälle (Pipeline grün, Artefakt kaputt).
 # Spec: docs/health_check_spec.md. Persistenz: health_check_log.jsonl im
