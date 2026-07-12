@@ -78,22 +78,10 @@
     "anomaly_gap_combo_SOC": "2026-07-02T11:34:24.300811+02:00",
     "anomaly_monster_backup_SOC": "2026-07-02T20:02:41.415261+02:00",
     "anomaly_conviction_high_SOC": "2026-07-02T11:34:24.445058+02:00",
-    "exit_FRMM": "2026-07-12T00:30:56.392595+02:00",
+    "exit_FRMM": "2026-07-12T21:00:22.131087+02:00",
     "anomaly_conviction_high_NGNE": "2026-07-09T12:04:16.015071+02:00"
   },
   "push_history": [
-    {
-      "ts": "2026-07-03T12:50:27.873151+02:00",
-      "ticker": "ARCT",
-      "kind": "anomaly",
-      "severity": "high",
-      "trigger": "monster_backup",
-      "body": "ARCT 🔥 Monster 100 | Setup 98 | KI 77",
-      "success": false,
-      "suppressed": true,
-      "suppress_reason": "conviction_below_threshold",
-      "conviction_score": 71
-    },
     {
       "ts": "2026-07-03T15:12:39.546217+02:00",
       "ticker": "AI",
@@ -1272,6 +1260,18 @@
     },
     {
       "ts": "2026-07-12T00:30:56.392567+02:00",
+      "ticker": "FRMM",
+      "kind": "exit_p1",
+      "severity": "default",
+      "trigger": "exit_alert",
+      "body": "FRMM 📉 Exit 65 | -14% | Trailing-Stop −16.6% vom Hoch",
+      "success": true,
+      "suppressed": false,
+      "suppress_reason": null,
+      "conviction_score": null
+    },
+    {
+      "ts": "2026-07-12T21:00:22.131057+02:00",
       "ticker": "FRMM",
       "kind": "exit_p1",
       "severity": "default",
