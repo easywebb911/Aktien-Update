@@ -1,8 +1,14 @@
-# SESSION_HANDOVER.md — Stand 11.07.2026
+# SESSION_HANDOVER.md — Stand 11.07.2026 (Paper-Verwertungsplan-Addendum 15.07.2026)
 
 **Zweck:** vollständige Übergabe an eine **neue Code-Session ohne Kontext der
 alten**. Dieses Dokument + `CLAUDE.md` müssen zusammen ausreichen, um am
 Projektstand direkt weiterzuarbeiten. Reine Doku, kein Logik-Touch.
+
+**Addendum 15.07.2026:** §4/§5/§6/§8 um die Befunde des Svoboda/Kapounek/
+Albrecht-Papers + den 3-Schritt-Verwertungsplan ergänzt (reine Doku). §1
+(Heute implementiert) + der `Stand`-Basis-Datum bleiben auf 11.07. — die
+zwischenzeitlich gemergten Frontend-/Doku-PRs sind hier bewusst nicht
+nachgetragen (separater Voll-Refresh bei nächstem „gute Nacht").
 
 Struktur (9 Blöcke): (1) Heute implementiert · (2) Aktive Positionen ·
 (3) Verifikation · (4) Wiedervorlagen · (5) Strategische Roadmap ·
@@ -252,6 +258,21 @@ UND nur bei `available=True`.
 | **~Ende Sept 2026** | Exit-Timing B.1-Hinweis-Re-Test | n ≥ 250 | 01.07. Punktschätzung Δ ~+4 pp (5d/3d vs 10d in Score≥70-Bucket), Holm-negativ — Re-Test zur Bestätigung. |
 | **Herbst 2026 (OoS)** | **Hypothese H5 (Kombi Score × Katalysator × Reversal × SI-Velocity)** | n ≥ 40 pro Feld-Kombi | **Vorab-registriert** (§5). Out-of-Sample-Auswertung über die vier Look-Ahead-freien Sammel-Felder (`max_gain_pct` #397, `entry_past_return_5d` #402, `days_to_earnings` #404, `si_velocity_pub` #409). Feste Klammer, keine nachträgliche Schmälerung. |
 
+### PAPER-VERWERTUNGSPLAN (Svoboda et al. 2026, ausgewertet 15.07.) — 3 Schritte, je 1/Tag
+
+Vorregistriert, **Schwellen aus FREMDEM Datensatz** (= Overfitting-Schutz:
+nichts frei aus unseren Daten optimiert). Kein Zeitdruck — je ein Schritt pro
+Tag. Volle Paper-Befunde in §5. Auswertung bleibt Out-of-Sample im Herbst.
+
+| Schritt | Was | Vorbedingung / Disziplin |
+|---|---|---|
+| **A** | Binäre Zielvariable `squeeze_event` (Peak ≥ +30 % in 1 Handelswoche **UND** SI-Rückgang ≥ 20 %) **neben** `return_10d` persistieren. Adressiert den Paper-Kern „Häufigkeit ≠ Rendite-Edge" (§8). | **VORAB read-only klären**, ob der SI-Rückgang ≥ 20 % mit vorhandenen Daten (`finra_data.history` / `si_velocity_pub`-Reports) überhaupt messbar ist. Erst danach Bau. |
+| **B** | `si_velocity_pub` in die **3 Literatur-Buckets** (7–17 % / 17–25 % / > 25 % SI-Zuwachs) klassifizieren statt linear — nur diese drei waren im Paper signifikant. | Buckets sind Literatur-fix, NICHT aus unseren Daten kalibriert. Additive Auswertungs-Spalte, kein Score-Effekt. |
+| **C** | **Momentum als Haupthypothese** (`entry_past_return_5d` **positiv** = vorheriger Aufwärtstrend verstärkt), Reversal nur noch **kurzfristige Nebenhypothese**. Korrigiert die frühere „Reversal-Substrat"-Framing (§5). | Richtung vor der Auswertung fixiert (Paper: Momentum > Reversal). Kein nachträgliches Umdrehen. |
+
+**Backlog aus dem Paper** (§6): Institutional-Ownership-Faktor (dämpfend),
+Crash-Filter (Marktrückgang > 3 % → Modell blind).
+
 ### Erledigt (nicht mehr im Backlog)
 
 - **Hypothese C (Peak-Ziel, 3 Schwellen +10/+30/+50 %) — ERLEDIGT
@@ -326,7 +347,10 @@ freie Sammel-Felder sind live:**
 
 **Auswertungs-Plan:** Out-of-Sample im Herbst 2026 bei ausreichend n
 (≥ 40 pro Feld-Kombination), gepaart mit Score-Buckets. Feste Klammer
-vor der Auswertung fixieren — keine nachträgliche Schmälerung.
+vor der Auswertung fixieren — keine nachträgliche Schmälerung. **Schwellen
+literatur-abgeleitet** (Svoboda et al., PAPER-BEFUND unten: SI-Buckets
+7–17/17–25/> 25 %, Momentum positiv), **NICHT** frei aus unseren Daten
+optimiert.
 
 **MASTER-SCORE-VORBEHALT:** Ein Master-Score (gewichtete Kombination
 der vier Felder) wird **NUR NACH** belegter Kombi-Edge gebaut. Gewichte
@@ -334,6 +358,41 @@ werden **NICHT** frei aus Testdaten optimiert — das wäre die
 `monster_score`-Falle (Overfitting auf kleines n, Zerfall bei
 Out-of-Sample: 0.76 n=13 → 0.51 n=20 dokumentiert). **Out-of-Sample-
 Pflicht.**
+
+### PAPER-BEFUND (Svoboda/Kapounek/Albrecht 2026, ausgewertet 15.07.)
+
+**Quelle:** Svoboda/Kapounek/Albrecht, *North American Journal of Economics
+and Finance* 2026, DOI `10.1016/j.najef.2026.102637`; frei als Working Paper
+mendelu 104/2025. Untersucht **genau unser Setup**: 70 NASDAQ-Small-Caps
+2018–2021, rare-event-Logit. Volltext ausgewertet 15.07.
+
+**Kern-Erkenntnisse:**
+
+- **ZIEL-DEFINITION:** Squeeze = Peak **> +30 % in 1 Handelswoche** UND
+  **SI-Rückgang ≥ 20 %** UND Attention-Spike. Das Paper misst die
+  **WAHRSCHEINLICHKEIT** (binär), **NICHT** den Return — das erklärt unsere
+  bisherigen Nullbefunde direkt: **Häufigkeit ≠ Rendite-Edge** (§8). → Schritt A.
+- **SI-SCHWELLEN-BUCKETS (stärkster Fund, nur diese 3 signifikant):**
+  SI-Zuwachs **7–17 % → +78 %**, **17–25 % → +210 %**, **> 25 % → +10 %
+  zusätzlich** (Squeeze-Wahrscheinlichkeit). → Schritt B (Buckets statt linear).
+- **VORLAUF:** SI **+1 % einen Monat voraus → +3,9 %**; stärkster Effekt bei
+  1 Monat, signifikant bis 6 Monate. Stützt den prospektiven `si_velocity_pub`-
+  Pfad (Look-Ahead-frei via `pub_date`).
+- **MOMENTUM > REVERSAL:** Effekt **stärker bei vorherigem AUFWÄRTStrend**;
+  Reversal nur kurzfristig. → `entry_past_return_5d` **Haupthypothese POSITIV**
+  (Momentum), Reversal nur Nebenhypothese. Korrigiert die frühere „Reversal-
+  Substrat"-Framing im KOMBI-ZIEL oben. → Schritt C.
+- **DÄMPFER / GRENZEN:** Institutional Ownership dämpft (**−6 % je +1 %**);
+  **Marktkapitalisierung und Markttrend NICHT signifikant**; bei
+  **Marktrückgang > 3 % ist das Modell blind** (systemische Krise). → §6-Backlog
+  (Ownership-Faktor + Crash-Filter).
+
+**Konsistenz zur Auffanglinie:** Das Paper belegt eine Edge auf **fremden
+Daten** für ein **binäres Wahrscheinlichkeits-Ziel** — es hebt unsere
+Return-Auffanglinie NICHT auf. Die Verwertung ist strikt **Out-of-Sample auf
+unseren Daten mit literatur-abgeleiteten (NICHT frei optimierten) Schwellen**
+— das ist genau der `monster_score`-Overfitting-Schutz (§8e). Erst ein
+Out-of-Sample-Beleg nach unserer Erfolgs-Definition zählt.
 
 ### LITERATUR-KONSENS (S&P Global / State Street / diverse 2026)
 
@@ -403,6 +462,23 @@ Kein Termin — wartet auf externes Signal.
 `generate_html_v1()`; v1-Löschung erfordert `templates/page.jinja` +
 `_wl_full_card_html`-Umbau. Details im Architektur-Anker unten und in
 `CLAUDE.md`. Kein Trading-Wert, reine Aufräum-Hygiene.
+
+### 6g. Institutional-Ownership-Faktor (Paper-Dämpfer)
+**Status: OFFEN (Paper-abgeleitet 15.07.).** Svoboda et al. finden: hoher
+Institutional-Ownership **dämpft** die Squeeze-Wahrscheinlichkeit (**−6 % je
++1 %**). Kandidat als zusätzlicher Auswertungs-Faktor. Datenquelle yfinance
+`heldPercentInstitutions` — **Vorbehalt: potenziell stale** (nicht point-in-
+time, quartalsweise 13F-Latenz). Vor Nutzung read-only klären, ob der Wert
+überhaupt zeitnah genug ist; sonst nur als grober Dämpfer-Kontext, nicht als
+scharfer Score-Faktor. Kein Score-Effekt ohne Out-of-Sample-Beleg.
+
+### 6h. Crash-Filter / Markt-Blind-Zone (Paper-Grenze)
+**Status: OFFEN (Paper-abgeleitet 15.07.).** Paper: bei **Marktrückgang > 3 %**
+ist das Squeeze-Modell **blind** (systemische Krise überlagert idiosynkratische
+Squeezes). Kandidat: Tage mit Markt-Tagesrückgang > 3 % (z. B. `^GSPC`) aus der
+Auswertung **ausschließen** (Regel-Screen, kein Score-Feature). Marktkap +
+Markttrend waren im Paper **nicht** signifikant — also kein Regime-Score, nur
+der harte Crash-Ausschluss.
 
 ---
 
@@ -543,6 +619,27 @@ STOPP-Meldung mit sauberen Weg-A/B-Optionen wenn Kollision.
 - **Trainings-/Test-Overlap-Verbot:** kein Analyse-Feld darf im
   Live-Score-Read auftauchen. Verankert per Konsumenten-Isolations-
   Test in allen vier Mock-Tests.
+
+### 8h. Häufigkeit ≠ Rendite-Edge (Paper-Lehre 15.07.)
+
+Svoboda et al. (2026) misst **Squeeze-WAHRSCHEINLICHKEIT** (binär: Peak
+> +30 % in 1 Woche + SI-Rückgang ≥ 20 %), **nicht** den Return — und findet
+dort signifikante SI-Bucket-Effekte (7–17 % → +78 %, 17–25 % → +210 %,
+> 25 % → +10 %). Unsere gesamte 30.06./01.07./04.07.-Edge-Suche testete
+dagegen **Return** (`return_10d` / Peak-Amplitude) und fand 0 belegte Edges.
+**Lehre:** ein Prädiktor kann die **Ereignis-Häufigkeit** trennen, ohne die
+**Rendite** zu trennen — das sind zwei verschiedene Ziele. Deshalb Schritt A
+(binäres `squeeze_event` neben `return_10d`). **Aber:** ein binärer Beleg auf
+fremden Daten ist KEINE handelbare Rendite-Edge — die Return-Auffanglinie
+bleibt bis zum Out-of-Sample-Beleg bestehen.
+
+### 8i. Crash-Blind-Zone + Ownership-Dämpfer (Paper-Grenzen 15.07.)
+
+Paper: bei **Marktrückgang > 3 % ist das Modell blind** (systemische Krise);
+**Institutional Ownership dämpft** (−6 % je +1 %); **Marktkap + Markttrend
+nicht signifikant**. Konsequenz für jede künftige Squeeze-Auswertung:
+Crash-Tage ausschließen (§6h), Ownership als Dämpfer-Kontext (§6g, Daten-
+Staleness-Vorbehalt), keinen Marktkap-/Trend-Score bauen (im Paper wertlos).
 
 ---
 
