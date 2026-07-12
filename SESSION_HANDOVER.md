@@ -258,7 +258,7 @@ UND nur bei `available=True`.
 | **~Ende Sept 2026** | Exit-Timing B.1-Hinweis-Re-Test | n ≥ 250 | 01.07. Punktschätzung Δ ~+4 pp (5d/3d vs 10d in Score≥70-Bucket), Holm-negativ — Re-Test zur Bestätigung. |
 | **Herbst 2026 (OoS)** | **Hypothese H5 (Kombi Score × Katalysator × Reversal × SI-Velocity)** | n ≥ 40 pro Feld-Kombi | **Vorab-registriert** (§5). Out-of-Sample-Auswertung über die vier Look-Ahead-freien Sammel-Felder (`max_gain_pct` #397, `entry_past_return_5d` #402, `days_to_earnings` #404, `si_velocity_pub` #409). Feste Klammer, keine nachträgliche Schmälerung. |
 
-### PAPER-VERWERTUNGSPLAN (Svoboda et al. 2026, ausgewertet 15.07.) — 3 Schritte, je 1/Tag
+### PAPER-VERWERTUNGSPLAN (Svoboda et al. 2026, ausgewertet 15.07.) — 4 Schritte (A–C + Ausblick D), je 1/Tag
 
 Vorregistriert, **Schwellen aus FREMDEM Datensatz** (= Overfitting-Schutz:
 nichts frei aus unseren Daten optimiert). Kein Zeitdruck — je ein Schritt pro
@@ -269,9 +269,35 @@ Tag. Volle Paper-Befunde in §5. Auswertung bleibt Out-of-Sample im Herbst.
 | **A** | Binäre Zielvariable `squeeze_event` (Peak ≥ +30 % in 1 Handelswoche **UND** SI-Rückgang ≥ 20 %) **neben** `return_10d` persistieren. Adressiert den Paper-Kern „Häufigkeit ≠ Rendite-Edge" (§8). | **VORAB read-only klären**, ob der SI-Rückgang ≥ 20 % mit vorhandenen Daten (`finra_data.history` / `si_velocity_pub`-Reports) überhaupt messbar ist. Erst danach Bau. |
 | **B** | `si_velocity_pub` in die **3 Literatur-Buckets** (7–17 % / 17–25 % / > 25 % SI-Zuwachs) klassifizieren statt linear — nur diese drei waren im Paper signifikant. | Buckets sind Literatur-fix, NICHT aus unseren Daten kalibriert. Additive Auswertungs-Spalte, kein Score-Effekt. |
 | **C** | **Momentum als Haupthypothese** (`entry_past_return_5d` **positiv** = vorheriger Aufwärtstrend verstärkt), Reversal nur noch **kurzfristige Nebenhypothese**. Korrigiert die frühere „Reversal-Substrat"-Framing (§5). | Richtung vor der Auswertung fixiert (Paper: Momentum > Reversal). Kein nachträgliches Umdrehen. |
+| **D** *(Ausblick, bedingt)* | `squeeze_probability`-Score nach Paper-Modell: die **validierten** Einzelfaktoren (SI-Buckets, Momentum, ggf. Ownership) zu einem Squeeze-**Wahrscheinlichkeits**-Score zusammenführen (rare-event-logit-artig, wie Svoboda et al.). Details + Deklaration unten. | **NUR falls A–C einzeln out-of-sample tragen.** Kein automatischer Folge-Schritt — eigene Anordnung nach belegten A–C-Befunden. |
 
 **Backlog aus dem Paper** (§6): Institutional-Ownership-Faktor (dämpfend),
 Crash-Filter (Marktrückgang > 3 % → Modell blind).
+
+#### Schritt D — Deklaration + Bedingungen (KRITISCH, vor jedem Bau lesen)
+
+**Was der Score IST und NICHT ist:** `squeeze_probability` misst die
+**WAHRSCHEINLICHKEIT eines Squeeze-Ereignisses**, **NICHT die erwartete
+Rendite**. Er ist ein **Attention-/Monitoring-Signal, KEIN Kaufsignal**
+(Auffanglinie: **Häufigkeit ≠ Rendite-Edge** — man kann die Lottery-Chance
+überzahlen; ein häufiges Ereignis mit schlechtem Auszahlungsprofil ist kein
+Trade). Diese Trennung ist die Existenzbedingung des Scores, nicht eine
+Fußnote.
+
+**Bau-Bedingungen (alle vier zwingend):**
+
+- **(a)** Nur bauen **NACHDEM** A, B, C **einzeln** out-of-sample getragen
+  haben (nach unserer Erfolgs-Definition §5 — Holm-signifikant + CI-Untergrenze
+  > 0.5 + Regime-robust). Kein Bau auf Punktschätzungen.
+- **(b)** Gewichte aus den **VALIDIERTEN** Faktoren ableiten (Paper-Modell-
+  Struktur), **NICHT** frei aus unseren Testdaten optimieren — das wäre die
+  `monster_score`-Falle (§8e: 0.76 n=13 → 0.51 n=20).
+- **(c)** **Separate, eigenständige Achse** neben dem bestehenden Setup-Score
+  — kein Merge in `score()`, keine gegenseitige Rückkopplung (analog der
+  Score-Konfidenz-Isolation, CLAUDE.md-Lint).
+- **(d)** Im Frontend **klar als „Wahrscheinlichkeit, nicht Empfehlung"
+  deklariert** — gleiche neutrale Sprache/Optik wie das Sammel-Felder-Status-
+  Panel (#412), niemals als Kauf-/Rendite-Signal gerahmt.
 
 ### Erledigt (nicht mehr im Backlog)
 
@@ -357,7 +383,10 @@ der vier Felder) wird **NUR NACH** belegter Kombi-Edge gebaut. Gewichte
 werden **NICHT** frei aus Testdaten optimiert — das wäre die
 `monster_score`-Falle (Overfitting auf kleines n, Zerfall bei
 Out-of-Sample: 0.76 n=13 → 0.51 n=20 dokumentiert). **Out-of-Sample-
-Pflicht.**
+Pflicht.** Die Paper-Modell-Variante dieses Master-Scores ist **Schritt D**
+des Verwertungsplans (§4) — ein `squeeze_probability`-Score, der bewusst
+**Wahrscheinlichkeit statt Rendite** misst und erst nach belegten A–C-Befunden
+gebaut wird.
 
 ### PAPER-BEFUND (Svoboda/Kapounek/Albrecht 2026, ausgewertet 15.07.)
 
