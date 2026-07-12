@@ -266,7 +266,7 @@ Tag. Volle Paper-Befunde in §5. Auswertung bleibt Out-of-Sample im Herbst.
 
 | Schritt | Was | Vorbedingung / Disziplin |
 |---|---|---|
-| **A** | Binäre Zielvariable `squeeze_event` (Peak ≥ +30 % in 1 Handelswoche **UND** SI-Rückgang ≥ 20 %) **neben** `return_10d` persistieren. Adressiert den Paper-Kern „Häufigkeit ≠ Rendite-Edge" (§8). | **VORAB read-only klären**, ob der SI-Rückgang ≥ 20 % mit vorhandenen Daten (`finra_data.history` / `si_velocity_pub`-Reports) überhaupt messbar ist. Erst danach Bau. |
+| **A** ⛔ **BLOCKIERT** | Binäre Zielvariable `squeeze_event` (Peak ≥ +30 % in 1 Handelswoche **UND** SI-Rückgang ≥ 20 %) **neben** `return_10d`. Adressiert den Paper-Kern „Häufigkeit ≠ Rendite-Edge" (§8). | **Coverage-Check 15.07. NEGATIV:** SI-Rückgang mit Gratis-Daten **nicht** messbar → **ZURÜCKGESTELLT**. Kein Feld-Bau, sondern Datenquellen-Projekt. Voller Befund in **§6i**. B/C brauchen A NICHT als Vorbedingung. |
 | **B** | `si_velocity_pub` in die **3 Literatur-Buckets** (7–17 % / 17–25 % / > 25 % SI-Zuwachs) klassifizieren statt linear — nur diese drei waren im Paper signifikant. | Buckets sind Literatur-fix, NICHT aus unseren Daten kalibriert. Additive Auswertungs-Spalte, kein Score-Effekt. |
 | **C** | **Momentum als Haupthypothese** (`entry_past_return_5d` **positiv** = vorheriger Aufwärtstrend verstärkt), Reversal nur noch **kurzfristige Nebenhypothese**. Korrigiert die frühere „Reversal-Substrat"-Framing (§5). | Richtung vor der Auswertung fixiert (Paper: Momentum > Reversal). Kein nachträgliches Umdrehen. |
 | **D** *(Ausblick, bedingt)* | `squeeze_probability`-Score nach Paper-Modell: die **validierten** Einzelfaktoren (SI-Buckets, Momentum, ggf. Ownership) zu einem Squeeze-**Wahrscheinlichkeits**-Score zusammenführen (rare-event-logit-artig, wie Svoboda et al.). Details + Deklaration unten. | **NUR falls A–C einzeln out-of-sample tragen.** Kein automatischer Folge-Schritt — eigene Anordnung nach belegten A–C-Befunden. |
@@ -508,6 +508,37 @@ Squeezes). Kandidat: Tage mit Markt-Tagesrückgang > 3 % (z. B. `^GSPC`) aus der
 Auswertung **ausschließen** (Regel-Screen, kein Score-Feature). Marktkap +
 Markttrend waren im Paper **nicht** signifikant — also kein Regime-Score, nur
 der harte Crash-Ausschluss.
+
+### 6i. Paper-Schritt A (`squeeze_event`) — BLOCKIERT durch fehlende SI-Zeitreihe
+**Status: ZURÜCKGESTELLT (Coverage-Check 15.07. negativ).** Schritt A des
+Verwertungsplans (§4) ist mit den vorhandenen Gratis-Daten **nicht baubar**:
+
+- **Keine ausstehende-SI-Zeitreihe.** Es existieren nur **Entry-Snapshots**
+  (`short_float` via yfinance `shortPercentOfFloat`, Einzelwert/Record). yfinance
+  UND stockanalysis liefern nur den **aktuellen** Wert — **nicht** settlement-
+  datierte Historie, also **nicht rekonstruierbar** für „~2–6 Wochen nach Entry".
+- **Namens-Falle:** was intern `finra_data.history` / „short_interest" heißt, ist
+  FINRA **Reg SHO Daily Short VOLUME** (`CNMSshvol`-Dateien), **NICHT** die
+  ausstehende Short-Position. Volumen-Rückgang ≠ Shorts covern.
+- **Coverage heute = 0**, Backfill der 470 v4-Records **unmöglich** (keine
+  time-queryable Quelle). Damit ist der **SI-Rückgang ≥ 20 %** (Kern der Paper-
+  Definition) **nicht messbar**.
+- **Peak-only nicht abspecken:** ein reines Peak-≥30 %-Binär = **widerlegte
+  Hypothese C** (04.07., 0/6 Holm). Ohne SI-Rückgang kollabiert `squeeze_event`
+  in das bereits falsifizierte Peak-Ziel → null neue Information.
+
+**Konsequenz:** Schritt A ist **kein Feld-Bau, sondern ein DATENQUELLEN-PROJEKT**
+— die offizielle **FINRA-bimonatliche Short-Interest-Datei** (settlement-datiert)
+integrieren + SI-by-settlement persistieren + **forward-only** sammeln; n ≥ 40
+erst **~2–3 Monate nach Bau**. Die `pub_date`-Mechanik (#408, settlement + 7
+Handelstage) wäre das richtige Look-Ahead-Werkzeug, ist aber **gegenstandslos
+ohne SI-Serie**. Alternativ: bezahltes tägliches SI-/Utilization-Feed (der in §5
+dokumentierte Profi-Vorsprung, $10–50k/Jahr). **Bau erst bei bewusster
+Anordnung.** Die Peak-Seite (längeres Fenster) wäre via yfinance machbar — sie
+ist NICHT der Blocker; der Blocker ist ausschließlich die SI-Serie.
+
+**Schritte B (SI-Buckets aus `si_velocity_pub`) + C (Momentum-Framing) sind
+UNBERÜHRT** und laufen ohne A weiter (§4).
 
 ---
 
