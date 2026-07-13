@@ -1,0 +1,123 @@
+name: Diagnose FINRA Short-Interest Probe (read-only)
+
+# Read-only curl-Probe gegen die FINRA EquityShortInterest-API, um EMPIRISCH
+# (aus Actions, das FINRA erreicht — die Sandbox ist egress-geblockt) drei
+# Fragen zu klären, BEVOR eine Integration erwogen wird:
+#   1. Liefert die API die ausstehende Short-POSITION (currentShortShareNumber),
+#      nicht nur das Daily Short Volume?
+#   2. Sind NASDAQ-Ticker (AMC/IONQ) ENTHALTEN — oder kommt leer/OTC-only? (K.o.)
+#   3. Ist settlementDate das Datumsfeld (Basis für #408 pub_date = settlement+7)?
+#
+# KEINE Code-Pfade aus dem Tool. KEINE Secrets. KEINE Repo-Writes. Reines curl.
+# Output komplett im Run-Log + als Artefakt. Trigger: workflow_dispatch only.
+#
+# Falls die API Auth verlangt (401/403): wird im Log ausgewiesen, NICHT umgangen
+# → dann wissen wir, dass ein (kostenloser) FINRA-API-Console-Account nötig ist.
+
+on:
+  workflow_dispatch:
+    inputs:
+      settlement_date:
+        description: "FINRA settlementDate (YYYY-MM-DD, ~15./Monatsende)"
+        required: true
+        default: "2026-06-30"
+
+permissions:
+  contents: read
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    env:
+      API: "https://api.finra.org/data/group/otcMarket/name/EquityShortInterest"
+      OUT_DIR: ${{ github.workspace }}/finra-probe-out
+      SD: ${{ github.event.inputs.settlement_date }}
+
+    steps:
+      - name: Prepare output dir
+        run: mkdir -p "$OUT_DIR"
+
+      - name: Runner egress info (IP + DNS zu api.finra.org)
+        run: |
+          echo "## Runner public IP"
+          curl -sS --max-time 5 https://api.ipify.org || true
+          echo; echo
+          echo "## DNS resolution api.finra.org"
+          getent hosts api.finra.org || echo "  (kein Eintrag)"
+          echo "settlementDate-Input: $SD"
+
+      - name: Probe A — anonymer POST, limit 3, KEIN Filter (Schema + Auth-Status)
+        run: |
+          set +e
+          # Zweck: rohe Feldnamen der Records sehen (currentShortShareNumber?
+          # settlementDate?) + Auth-Verhalten (200 vs 401/403) OHNE Filter.
+          printf '%s' '{"limit":3}' > "$OUT_DIR/reqA.json"
+          echo "URL: $API"
+          echo "BODY: $(cat "$OUT_DIR/reqA.json")"
+          echo "----- verbose -----"
+          curl -v --max-time 30 -X POST "$API" \
+            -H "Content-Type: application/json" \
+            -H "Accept: application/json" \
+            --data @"$OUT_DIR/reqA.json" \
+            -o "$OUT_DIR/A_body.json" \
+            -D "$OUT_DIR/A_headers.txt" \
+            -w "\n----- summary -----\nHTTP_STATUS=%{http_code}\nSIZE=%{size_download}\nREMOTE_IP=%{remote_ip}\nCONTENT_TYPE=%{content_type}\n" \
+            2>&1 || true
+          echo; echo "----- response headers -----"; cat "$OUT_DIR/A_headers.txt" || true
+          echo "----- body (erste 4000 Zeichen, ungekürzt genug für Feldnamen) -----"
+          head -c 4000 "$OUT_DIR/A_body.json" || true
+          echo; echo "----- Feld-Check -----"
+          grep -o 'currentShortShareNumber' "$OUT_DIR/A_body.json" | head -1 \
+            && echo "→ POSITION-Feld currentShortShareNumber PRESENT" \
+            || echo "→ currentShortShareNumber NICHT gefunden (prüfe Body oben)"
+          grep -o 'settlementDate' "$OUT_DIR/A_body.json" | head -1 \
+            && echo "→ settlementDate PRESENT" || echo "→ settlementDate NICHT gefunden"
+
+      - name: Probe B — Ticker-Filter (AMC / IONQ / FRMM) auf settlementDate
+        run: |
+          set +e
+          # Für jeden Ticker: zwei Feldnamen-Varianten testen (symbolCode und
+          # issueSymbolIdentifier), weil der exakte Ticker-Feldname aus der
+          # Sandbox nicht verifizierbar war. Mind. eine Variante sollte greifen.
+          for T in AMC IONQ FRMM; do
+            for FIELD in symbolCode issueSymbolIdentifier; do
+              REQ="$OUT_DIR/reqB_${T}_${FIELD}.json"
+              printf '{"limit":5,"compareFilters":[{"fieldName":"%s","compareType":"EQUAL","fieldValue":"%s"},{"fieldName":"settlementDate","compareType":"EQUAL","fieldValue":"%s"}]}' "$FIELD" "$T" "$SD" > "$REQ"
+              echo "==================================================="
+              echo "TICKER=$T  FELD=$FIELD  settlementDate=$SD"
+              echo "BODY: $(tr -d '\n' < "$REQ")"
+              curl -sS --max-time 25 -X POST "$API" \
+                -H "Content-Type: application/json" \
+                -H "Accept: application/json" \
+                --data @"$REQ" \
+                -o "$OUT_DIR/B_${T}_${FIELD}.json" \
+                -w "HTTP_STATUS=%{http_code} SIZE=%{size_download}\n" 2>&1 || true
+              echo "----- body (erste 2500 Zeichen) -----"
+              head -c 2500 "$OUT_DIR/B_${T}_${FIELD}.json" || true
+              echo
+              echo "----- Enthalten? -----"
+              grep -o "$T" "$OUT_DIR/B_${T}_${FIELD}.json" | head -1 \
+                && echo "→ $T im Response ($FIELD-Filter) — ENTHALTEN" \
+                || echo "→ $T NICHT im Response ($FIELD-Filter)"
+            done
+          done
+
+      - name: Auswertungs-Hinweis (im Log)
+        run: |
+          echo "===== ABLESEN (3 Fragen) ====="
+          echo "1) POSITION: steht currentShortShareNumber in Probe A? (nicht Volumen)"
+          echo "2) COVERAGE (K.o.): kommt für AMC/IONQ (NASDAQ) in Probe B ein Record"
+          echo "   mit Zahlen zurück, oder leer/nur OTC? Leer für NASDAQ = wertlos."
+          echo "3) DATUM: ist settlementDate das Feld (nicht ein Publikations-Datum)?"
+          echo "Falls Probe A HTTP 401/403 → Auth nötig (kostenloser FINRA-API-"
+          echo "Console-Account); NICHT umgangen, hier ausgewiesen."
+
+      - name: Upload raw responses als Artefakt
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: finra-si-probe-raw
+          path: ${{ github.workspace }}/finra-probe-out
+          retention-days: 7
