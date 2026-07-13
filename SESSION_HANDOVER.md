@@ -325,8 +325,8 @@ Tag. Volle Paper-Befunde in §5. Auswertung bleibt Out-of-Sample im Herbst.
 
 | Schritt | Was | Vorbedingung / Disziplin |
 |---|---|---|
-| **A** ⛔ **BLOCKIERT** | Binäre Zielvariable `squeeze_event` (Peak ≥ +30 % in 1 Handelswoche **UND** SI-Rückgang ≥ 20 %) **neben** `return_10d`. Adressiert den Paper-Kern „Häufigkeit ≠ Rendite-Edge" (§8). | **Coverage-Check 15.07. NEGATIV:** SI-Rückgang mit Gratis-Daten **nicht** messbar → **ZURÜCKGESTELLT**. Kein Feld-Bau, sondern Datenquellen-Projekt. Voller Befund in **§6i**. B/C brauchen A NICHT als Vorbedingung. |
-| **B** ➡ **NÄCHSTER SCHRITT** | `si_velocity_pub` in die **3 Literatur-Buckets** (7–17 % / 17–25 % / > 25 % SI-Zuwachs) klassifizieren statt linear — nur diese drei waren im Paper signifikant. **Auswertbar OHNE A** (A ist blockiert, §6i — B braucht A nicht). | Buckets sind Literatur-fix, NICHT aus unseren Daten kalibriert. Additive Auswertungs-Spalte, kein Score-Effekt. |
+| **A** ⛔ **BLOCKIERT** | Binäre Zielvariable `squeeze_event` (Peak ≥ +30 % in 1 Handelswoche **UND** SI-Rückgang ≥ 20 %) **neben** `return_10d`. Adressiert den Paper-Kern „Häufigkeit ≠ Rendite-Edge" (§8). | **Coverage-Check 15.07. NEGATIV:** SI-Rückgang mit Gratis-Daten **nicht** messbar → **ZURÜCKGESTELLT**. Kein Feld-Bau, sondern Datenquellen-Projekt. Voller Befund in **§6i**. **C** bleibt ohne A gangbar; **B teilt A's Daten-Blocker** (§6i). |
+| **B** ⛔ **TEILT DEN A-BLOCKER** | `si_velocity_pub` in die 3 Literatur-Buckets (7–17/17–25/> 25 % SI-Zuwachs) — **paper-treu NICHT machbar** (Diagnose 13.07.): `si_velocity_pub` misst 3-Tage-Änderung des Tages-Short-**VOLUMENS** (Fluss), das Paper den 1-Monats-Zuwachs der ausstehenden **POSITION** (Bestand) → doppelter Mismatch (Größe + Fenster). Belegt: 10 Ist-Werte −98 % … +72 828 %, **0** in den Paper-Bändern. | **Braucht dieselbe FINRA-bimonatliche SI-Positions-Zeitreihe wie A** (§6i) → **ZURÜCKGESTELLT**. Paper-Schwellen draufzulegen = Nomenklatur-Falle (§8m). |
 | **C** | **Momentum als Haupthypothese** (`entry_past_return_5d` **positiv** = vorheriger Aufwärtstrend verstärkt), Reversal nur noch **kurzfristige Nebenhypothese**. Korrigiert die frühere „Reversal-Substrat"-Framing (§5). | Richtung vor der Auswertung fixiert (Paper: Momentum > Reversal). Kein nachträgliches Umdrehen. |
 | **D** *(Ausblick, bedingt)* | `squeeze_probability`-Score nach Paper-Modell: die **validierten** Einzelfaktoren (SI-Buckets, Momentum, ggf. Ownership) zu einem Squeeze-**Wahrscheinlichkeits**-Score zusammenführen (rare-event-logit-artig, wie Svoboda et al.). Details + Deklaration unten. | **NUR falls A–C einzeln out-of-sample tragen.** Kein automatischer Folge-Schritt — eigene Anordnung nach belegten A–C-Befunden. |
 
@@ -568,8 +568,10 @@ Auswertung **ausschließen** (Regel-Screen, kein Score-Feature). Marktkap +
 Markttrend waren im Paper **nicht** signifikant — also kein Regime-Score, nur
 der harte Crash-Ausschluss.
 
-### 6i. Paper-Schritt A (`squeeze_event`) — BLOCKIERT durch fehlende SI-Zeitreihe
-**Status: ZURÜCKGESTELLT (Coverage-Check 15.07. negativ).** Schritt A des
+### 6i. Paper-Schritte A **UND B** — BLOCKIERT durch fehlende SI-Positions-Zeitreihe
+**Status: ZURÜCKGESTELLT (Coverage-Check 15.07. + Schritt-B-Diagnose 13.07.).**
+**A und B teilen denselben Daten-Blocker** — beide brauchen die ausstehende
+SI-**Positions**-Zeitreihe, die es gratis nicht gibt. Schritt A des
 Verwertungsplans (§4) ist mit den vorhandenen Gratis-Daten **nicht baubar**:
 
 - **Keine ausstehende-SI-Zeitreihe.** Es existieren nur **Entry-Snapshots**
@@ -596,8 +598,25 @@ dokumentierte Profi-Vorsprung, $10–50k/Jahr). **Bau erst bei bewusster
 Anordnung.** Die Peak-Seite (längeres Fenster) wäre via yfinance machbar — sie
 ist NICHT der Blocker; der Blocker ist ausschließlich die SI-Serie.
 
-**Schritte B (SI-Buckets aus `si_velocity_pub`) + C (Momentum-Framing) sind
-UNBERÜHRT** und laufen ohne A weiter (§4).
+**Schritt B (SI-Buckets) ist NICHT unabhängig — teilt den A-Blocker (Diagnose
+13.07.):** `si_velocity_pub` misst die 3-Tage-Änderung des Tages-Short-**VOLUMENS**
+(Fluss), das Paper den 1-Monats-Zuwachs der ausstehenden Short-**POSITION**
+(Bestand) — doppelter Mismatch (Größe + Fenster). Empirischer Beleg: die 10
+Ist-Werte liegen bei **−98 % … +72 828 %**, **kein** Wert in den Paper-Bändern
+7–17 %/17–25 % (4 negativ, 4 > +100 %). Die Paper-Schwellen 7/17/25 % sind daher
+**nicht anwendbar** (wäre die Nomenklatur-Falle §8m). B **paper-treu** braucht
+dieselbe FINRA-bimonatliche SI-**Positions**-Zeitreihe wie A → **gemeinsamer
+Vorbau**, gemeinsam zurückgestellt.
+
+**Optionale Alternative für B (NICHT jetzt empfohlen):** `si_velocity_pub`
+**eigenständig** als Tages-**Volumen-Momentum**-Signal auswerten — mit
+daten-abgeleiteten Quantil-Buckets (NICHT den Paper-Schwellen), **klar NICHT als
+Paper-SI-Zuwachs etikettiert**, Out-of-Sample-Pflicht. Das ist eine **eigene
+Hypothese, kein Paper-Ersatz** — erst bei größerem n sinnvoll.
+
+**Konsequenz für die Paper-Kette:** kurzfristig ist nur noch **Schritt C
+(Momentum-Framing `entry_past_return_5d`)** ohne neue Datenquelle gangbar; **A + B
+zurückgestellt** (SI-Positions-Quelle), **D** bleibt bedingt (nach belegten A–C).
 
 ---
 
