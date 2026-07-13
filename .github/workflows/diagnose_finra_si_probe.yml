@@ -106,6 +106,72 @@ jobs:
             done
           done
 
+      # ═══════════════ FINRA COVERAGE-KLÄRUNG (TEST 1-4, jq-basiert) ═══════════════
+      - name: TEST 1-4 — FINRA marketCategoryCode-Verteilung (OTC-only ja/nein?)
+        run: |
+          set +e
+          TODAY="$(date -u +%Y-%m-%d)"
+          echo "jq: $(jq --version 2>/dev/null || echo FEHLT)"
+          echo
+
+          # ── TEST 1+2 — jüngste Settlement-Daten + marketCategoryCode-Verteilung ──
+          # Primär dateRangeFilters (FINRA-Datums-Mechanik); Fallback compareFilters
+          # GREATER. Wir nehmen die Antwort, die echte Records liefert.
+          printf '{"limit":50,"dateRangeFilters":[{"fieldName":"settlementDate","startDate":"2026-04-01","endDate":"%s"}]}' "$TODAY" > "$OUT_DIR/reqRangeA.json"
+          printf '{"limit":50,"compareFilters":[{"fieldName":"settlementDate","compareType":"GREATER","fieldValue":"2026-04-01"}]}' > "$OUT_DIR/reqRangeB.json"
+          for V in A B; do
+            echo "=== TEST 1 Range-Variante $V ==="
+            REQ="$OUT_DIR/reqRange${V}.json"; RESP="$OUT_DIR/Range${V}.json"
+            echo "BODY: $(cat "$REQ")"
+            curl -sS --max-time 25 -X POST "$API" -H "Content-Type: application/json" -H "Accept: application/json" \
+              --data @"$REQ" -o "$RESP" \
+              -w "HTTP_STATUS=%{http_code} SIZE=%{size_download}\n" 2>&1 || true
+            N="$(jq 'if type=="array" then length else 0 end' "$RESP" 2>/dev/null || echo 0)"
+            echo "→ Records: ${N:-0}"
+            head -c 300 "$RESP"; echo
+          done
+          # Nimm die Variante mit den meisten Records für die Auswertung.
+          NA="$(jq 'if type=="array" then length else 0 end' "$OUT_DIR/RangeA.json" 2>/dev/null || echo 0)"
+          NB="$(jq 'if type=="array" then length else 0 end' "$OUT_DIR/RangeB.json" 2>/dev/null || echo 0)"
+          if [ "${NB:-0}" -gt "${NA:-0}" ]; then RESP="$OUT_DIR/RangeB.json"; else RESP="$OUT_DIR/RangeA.json"; fi
+          echo
+          echo "=== TEST 1 — vorhandene settlementDate-Werte im gewählten Range-Response (unique) ==="
+          jq -r 'if type=="array" then .[].settlementDate else empty end' "$RESP" 2>/dev/null | sort -u
+          NEWEST="$(jq -r 'if type=="array" then .[].settlementDate else empty end' "$RESP" 2>/dev/null | sort -u | tail -1)"
+          echo "→ NEWEST settlementDate (aus echten Daten) = ${NEWEST:-<keins>}"
+          echo
+          echo "=== TEST 2 (K.O.-KERNBEWEIS) — marketCategoryDescription-Verteilung ==="
+          jq -r 'if type=="array" then .[].marketCategoryDescription else empty end' "$RESP" 2>/dev/null | sort | uniq -c
+          echo "----- marketCategoryCode-Verteilung -----"
+          jq -r 'if type=="array" then .[].marketCategoryCode else empty end' "$RESP" 2>/dev/null | sort | uniq -c
+          echo "----- 3 Beispiel-Records (echter Inhalt, kein String-Grep) -----"
+          jq -c 'if type=="array" then .[0,1,2] else . end | {sym:.issueSymbolIdentifier,name:.issueName,mkt:.marketCategoryDescription,code:.marketCategoryCode,short:.currentShortShareNumber,sd:.settlementDate}' "$RESP" 2>/dev/null
+          echo
+          echo "=== TEST 3 — AMC @ NEWEST=$NEWEST (echter Record oder 204?) ==="
+          if [ -n "$NEWEST" ] && [ "$NEWEST" != "null" ]; then
+            printf '{"limit":5,"compareFilters":[{"fieldName":"issueSymbolIdentifier","compareType":"EQUAL","fieldValue":"AMC"},{"fieldName":"settlementDate","compareType":"EQUAL","fieldValue":"%s"}]}' "$NEWEST" > "$OUT_DIR/reqT3.json"
+            curl -sS --max-time 25 -X POST "$API" -H "Content-Type: application/json" -H "Accept: application/json" \
+              --data @"$OUT_DIR/reqT3.json" -o "$OUT_DIR/T3.json" \
+              -w "HTTP_STATUS=%{http_code} SIZE=%{size_download}\n" 2>&1 || true
+            echo "AMC-Records: $(jq 'if type=="array" then length else 0 end' "$OUT_DIR/T3.json" 2>/dev/null || echo 0)"
+            head -c 900 "$OUT_DIR/T3.json"; echo
+          else
+            echo "(kein NEWEST ableitbar — TEST 3 übersprungen)"
+          fi
+          echo
+          echo "=== TEST 4 — AMC OHNE Datum (existiert AMC ÜBERHAUPT im Dataset?) ==="
+          printf '{"limit":5,"compareFilters":[{"fieldName":"issueSymbolIdentifier","compareType":"EQUAL","fieldValue":"AMC"}]}' > "$OUT_DIR/reqT4.json"
+          curl -sS --max-time 25 -X POST "$API" -H "Content-Type: application/json" -H "Accept: application/json" \
+            --data @"$OUT_DIR/reqT4.json" -o "$OUT_DIR/T4.json" \
+            -w "HTTP_STATUS=%{http_code} SIZE=%{size_download}\n" 2>&1 || true
+          echo "AMC-Records (irgendein Datum): $(jq 'if type=="array" then length else 0 end' "$OUT_DIR/T4.json" 2>/dev/null || echo 0)"
+          jq -c 'if type=="array" then .[]? else . end | {sym:.issueSymbolIdentifier,mkt:.marketCategoryDescription,code:.marketCategoryCode,short:.currentShortShareNumber,sd:.settlementDate}' "$OUT_DIR/T4.json" 2>/dev/null
+          echo
+          echo "===== ABLESEN ====="
+          echo "TEST 2: NUR marketCategoryCode='u'(Other OTC)? → FINRA-Dataset = OTC-only → wertlos."
+          echo "        Auch 'Q'(NASDAQ)/'N'(NYSE)/'A'(NYSE American)? → deckt listed → tauglich."
+          echo "TEST 3/4: kommt AMC mit currentShortShareNumber-WERT? → listed enthalten."
+
       # ═══════════════ QUELLE 2: NASDAQ (api.nasdaq.com) ═══════════════
       - name: Probe C — Nasdaq short-interest (AMC / IONQ) — Position, bimonatlich
         run: |
