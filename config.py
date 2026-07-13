@@ -481,6 +481,17 @@ USE_RELATIVE_MOMENTUM = True   # Momentum vs. S&P 500 berechnen
 SCORE_HISTORY_FILE = "score_history.json"
 SCORE_HISTORY_DAYS = 14    # ältere Einträge werden beim Laden verworfen
 
+# ── SI-Positions-Zeitreihe (forward-only Sammlung, Paper-Schritt A+B) ─────────
+# Persistiert die ausstehende Short-POSITION (nicht Volumen) settlement-datiert
+# aus yfinance .info (sharesShort/shortPercentOfFloat + dateShortInterest).
+# Retention BEWUSST viel länger als score_history (~2 Punkte/Monat/Ticker) —
+# KEIN 14d-Prune (der würde die Serie sofort leeren). Defense-in-depth:
+# Tages-Cutoff UND Punkt-Cap pro Ticker (analog score_history Load+Save-Prune).
+# REINE Analyse-/Outcome-Persistenz — NIEMALS Score-/Filter-/Push-Feature.
+SI_POSITION_HISTORY_FILE = "si_position_history.json"
+SI_POSITION_HISTORY_DAYS = 400   # ~ ein Jahr; Prune auf settlement_date
+SI_POSITION_HISTORY_MAX_POINTS = 24   # Punkt-Cap/Ticker (≈ 1 Jahr bei 2/Monat)
+
 # ── Dynamischer Enrichment-Pool ──────────────────────────────────────────────
 POOL_MIN                   = 20    # min. Kandidaten in Anreicherung
 POOL_MAX                   = 75    # max. Obergrenze (Laufzeit)

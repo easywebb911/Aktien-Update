@@ -933,6 +933,13 @@ def get_yfinance_data(ticker: str) -> dict:
             "market_cap":   info.get("marketCap"),
             "short_ratio":  info.get("shortRatio") or 0.0,
             "short_float_yf": (info.get("shortPercentOfFloat") or 0.0) * 100,
+            # SI-Positions-Zeitreihe (Singleton-Fallback-Spiegel zu :1191 im
+            # Batch-Pfad). Dasselbe info-Dict → kein zusätzlicher .info-Call.
+            # Rein additiv, KEIN Score-/Filter-/Push-Feature.
+            "yf_shares_short":          info.get("sharesShort"),
+            "yf_shares_short_prior":    info.get("sharesShortPriorMonth"),
+            "yf_si_settlement_ts":      info.get("dateShortInterest"),
+            "yf_si_prev_settlement_ts": info.get("sharesShortPreviousMonthDate"),
             "52w_high":     info.get("fiftyTwoWeekHigh"),
             "52w_low":      info.get("fiftyTwoWeekLow"),
             "avg_vol_20d":  avg_vol_20,
@@ -1189,6 +1196,17 @@ def get_yfinance_batch(tickers: list[str]) -> dict[str, dict]:
             "market_cap":     info.get("marketCap"),
             "short_ratio":    info.get("shortRatio") or 0.0,
             "short_float_yf": (info.get("shortPercentOfFloat") or 0.0) * 100,
+            # SI-Positions-Zeitreihe (forward-only Sammlung): dieselben
+            # yfinance-.info-Felder wie short_float_yf oben — KEIN zusätzlicher
+            # .info-Call. dateShortInterest/sharesShortPreviousMonthDate sind
+            # epoch-Timestamps (Settlement-Daten). Rein additiv, KEIN Score-/
+            # Filter-/Push-Feature (Look-Ahead-Konvention, siehe
+            # _persist_si_position_history-Docstring). yf_-Prefix analog
+            # short_float_yf. Werte dürfen None sein → fail-soft downstream.
+            "yf_shares_short":          info.get("sharesShort"),
+            "yf_shares_short_prior":    info.get("sharesShortPriorMonth"),
+            "yf_si_settlement_ts":      info.get("dateShortInterest"),
+            "yf_si_prev_settlement_ts": info.get("sharesShortPreviousMonthDate"),
             # Prefer info 52w values; use batch hi/lo as fallback
             "52w_high":       info.get("fiftyTwoWeekHigh") or hi52,
             "52w_low":        info.get("fiftyTwoWeekLow")  or lo52,
@@ -3006,6 +3024,165 @@ def _save_score_history(history: dict, _dirty: bool = True) -> None:
             compact[ticker] = rows
     with open(SCORE_HISTORY_FILE, "w", encoding="utf-8") as fh:
         json.dump(compact, fh, indent=2)
+
+
+# ── SI-Positions-Zeitreihe (forward-only Sammlung, Paper-Schritt A+B) ─────────
+#
+# LOOK-AHEAD-KONVENTION (EINGEFROREN — PFLICHT):
+#   ``si_position_history.json`` ist REINE Analyse-/Outcome-Persistenz. Die
+#   Felder (settlement_date, shares_short, short_pct_float, pub_date) dürfen
+#   NIEMALS als Score-Feature / Filter-Kriterium / Push-Gating gelesen werden
+#   (weder in ``score()`` / ``_compute_sub_scores`` / ``score_bonus`` noch in
+#   ``ki_agent`` / ``health_check``). Analog ``entry_past_return_5d`` und der
+#   FINRA-``pub_date``-Mechanik (#408). Die spätere Auswertung darf einen
+#   Serienpunkt nur nutzen, wenn ``pub_date <= entry_date`` (der SI-Wert war
+#   vor ``pub_date`` nicht öffentlich). Ein Grep-Guard-Test verriegelt das.
+#
+# yfinance liefert ZWEI Settlement-Stände gleichzeitig (aktuell + Vormonat) im
+# selben .info-Dict → beim Erststart pro Ticker werden beide geseedet, damit ein
+# 1-Monats-Delta ab Tag 1 messbar ist. Danach forward-only: neuer Punkt nur bei
+# geändertem Settlement-Datum (yfinance gibt denselben Stand ~2 Wochen zurück).
+
+def _load_si_position_history() -> dict:
+    """Lädt ``si_position_history.json`` (fail-soft → leeres Dict)."""
+    try:
+        with open(SI_POSITION_HISTORY_FILE, "r", encoding="utf-8") as fh:
+            data = json.load(fh)
+        return data if isinstance(data, dict) else {}
+    except (FileNotFoundError, json.JSONDecodeError, OSError):
+        return {}
+
+
+def _save_si_position_history(hist: dict) -> None:
+    """Atomarer Write mit Retention (KEIN 14d-Prune — bewusst).
+
+    Defense-in-depth analog score_history: Tages-Cutoff
+    (``SI_POSITION_HISTORY_DAYS`` = 400 auf ``settlement_date``) UND
+    Punkt-Cap (``SI_POSITION_HISTORY_MAX_POINTS`` = 24/Ticker). Punkte je
+    Ticker settlement-aufsteigend sortiert; bei Cap fallen die ältesten raus.
+    """
+    cutoff = date.today() - timedelta(days=SI_POSITION_HISTORY_DAYS)
+    compact: dict[str, list] = {}
+    for ticker, points in hist.items():
+        if not isinstance(points, list):
+            continue
+        kept = []
+        for p in points:
+            sd = p.get("settlement_date") if isinstance(p, dict) else None
+            try:
+                sd_obj = datetime.strptime(sd, "%Y-%m-%d").date() if sd else None
+            except (ValueError, TypeError):
+                sd_obj = None
+            if sd_obj is not None and sd_obj >= cutoff:
+                kept.append(p)
+        # settlement-aufsteigend, dann Cap auf die jüngsten N.
+        kept.sort(key=lambda p: p.get("settlement_date") or "")
+        if len(kept) > SI_POSITION_HISTORY_MAX_POINTS:
+            kept = kept[-SI_POSITION_HISTORY_MAX_POINTS:]
+        if kept:
+            compact[ticker] = kept
+    tmp = f"{SI_POSITION_HISTORY_FILE}.tmp"
+    with open(tmp, "w", encoding="utf-8") as fh:
+        json.dump(compact, fh, indent=2)
+    os.replace(tmp, SI_POSITION_HISTORY_FILE)
+
+
+def _si_settlement_from_ts(ts) -> str | None:
+    """epoch-Timestamp → ISO-Settlement-Datum (UTC, tz-sauber). None fail-soft."""
+    if ts in (None, "", 0):
+        return None
+    try:
+        return datetime.fromtimestamp(int(ts), tz=timezone.utc).date().isoformat()
+    except (ValueError, TypeError, OSError, OverflowError):
+        return None
+
+
+def _si_pub_date(settlement_iso: str | None) -> str | None:
+    """Settlement-ISO → FINRA-pub_date (settlement + 7 Handelstage, #408).
+
+    Muster identisch zu generate_report:2277-2287 (FINRA-history-pub_date).
+    Fail-soft → None. Look-Ahead-Grenze für die spätere Auswertung.
+    """
+    if not settlement_iso:
+        return None
+    try:
+        from scripts.business_days import finra_publication_date  # noqa: E402
+        sd_obj = datetime.strptime(settlement_iso, "%Y-%m-%d").date()
+        return finra_publication_date(sd_obj).isoformat()
+    except (ValueError, TypeError, ImportError):
+        return None
+
+
+def _make_si_point(settlement_iso: str, shares_short, short_pct_float,
+                   *, seeded: bool = False) -> dict:
+    """Baut einen Serienpunkt inkl. abgeleitetem pub_date."""
+    point = {
+        "settlement_date": settlement_iso,
+        "shares_short":    shares_short,
+        "short_pct_float": short_pct_float,
+        "pub_date":        _si_pub_date(settlement_iso),
+    }
+    if seeded:
+        point["seeded"] = True
+    return point
+
+
+def _persist_si_position_history(enriched: list[dict]) -> int:
+    """Sammelt die ausstehende SI-Position pro US-Ticker (forward-only).
+
+    Voller enriched US-Pool (non-US übersprungen — yfinance-SI ist US-FINRA).
+    Erststart pro Ticker → SEED von zwei Punkten (Vormonat aus
+    ``yf_shares_short_prior`` + ``yf_si_prev_settlement_ts`` mit
+    ``short_pct_float=None`` (yfinance liefert für den Vormonat kein % Float —
+    ehrlich None statt Schätzung), plus aktueller Punkt). Danach forward-only:
+    neuer Punkt nur wenn ``settlement_date`` sich vom letzten persistierten
+    unterscheidet (Dedup). Idempotent bei Doppelläufen. Fail-soft: fehlendes
+    ``yf_si_settlement_ts`` → kein Punkt, kein Crash.
+
+    Returns: Anzahl neu hinzugefügter Punkte (für Logging / Health-Check).
+    """
+    hist = _load_si_position_history()
+    added = 0
+    for s in enriched:
+        try:
+            if s.get("market", "US") != "US":
+                continue
+            ticker = s.get("ticker")
+            if not ticker:
+                continue
+            cur_sd = _si_settlement_from_ts(s.get("yf_si_settlement_ts"))
+            if cur_sd is None:
+                continue   # ohne aktuelles Settlement-Datum kein sauberer Punkt
+            series = hist.setdefault(ticker, [])
+            existing_sds = {p.get("settlement_date") for p in series
+                            if isinstance(p, dict)}
+            if not series:
+                # SEED-2-PUNKTE beim Erststart: Vormonat zuerst (falls vorhanden
+                # UND != aktuellem Settlement), dann aktueller Punkt.
+                prev_sd = _si_settlement_from_ts(s.get("yf_si_prev_settlement_ts"))
+                prev_shares = s.get("yf_shares_short_prior")
+                if prev_sd and prev_sd != cur_sd and prev_shares is not None:
+                    series.append(_make_si_point(prev_sd, prev_shares, None,
+                                                 seeded=True))
+                    existing_sds.add(prev_sd)
+                    added += 1
+                series.append(_make_si_point(
+                    cur_sd, s.get("yf_shares_short"), s.get("short_float")))
+                added += 1
+            elif cur_sd not in existing_sds:
+                # Forward-only: neuer Settlement-Stand → ein Punkt.
+                series.append(_make_si_point(
+                    cur_sd, s.get("yf_shares_short"), s.get("short_float")))
+                added += 1
+            # else: settlement_date unverändert → Dedup, kein Punkt.
+        except Exception as exc:   # pragma: no cover  (nie den Daily-Run brechen)
+            log.debug("SI-Position-Persist %s: %s", s.get("ticker"), exc)
+            continue
+    if added:
+        _save_si_position_history(hist)
+        log.info("SI-Positions-Zeitreihe: %d neue Punkte persistiert (%d Ticker)",
+                 added, len(hist))
+    return added
 
 
 def apply_agent_boost(stocks: list[dict]) -> None:
@@ -16257,6 +16434,17 @@ def main():
             # in _hist_stats/get_yfinance_data berechneten Werts — KEINE Logik,
             # kein Look-Ahead (Close 5 Handelstage VOR dem Entry-Tag).
             "close_5td_before_entry": yfd.get("close_5td_before_entry"),
+            # SI-Positions-Zeitreihe (forward-only): DIESELBE Merge-Klasse wie
+            # close_5td_before_entry oben. Ohne diese Durchreichung blieben die
+            # vier yf_*-Felder auf dem Stock-Dict None (identische #411-Bug-
+            # Klasse: _hist_stats/get_yfinance_data-Read allein genügt NICHT,
+            # die c.update-Whitelist ist der eigentliche Fix). Konsumiert von
+            # _persist_si_position_history. Reine Durchreichung, KEINE Logik,
+            # KEIN Look-Ahead, KEIN Score-Effekt.
+            "yf_shares_short":          yfd.get("yf_shares_short"),
+            "yf_shares_short_prior":    yfd.get("yf_shares_short_prior"),
+            "yf_si_settlement_ts":      yfd.get("yf_si_settlement_ts"),
+            "yf_si_prev_settlement_ts": yfd.get("yf_si_prev_settlement_ts"),
         })
         if i < 3:
             print(f"{t} float_shares={c.get('float_shares')} change_5d={c.get('change_5d')}", flush=True)
@@ -16433,6 +16621,16 @@ def main():
 
     # --- Step 3a: Score smoothing (70 % today + 30 % avg last 3 runs) ---
     apply_score_smoothing(top10, report_date)
+
+    # SI-Positions-Zeitreihe (forward-only Sammlung, Paper-Schritt A+B):
+    # persistiert die ausstehende Short-POSITION settlement-datiert über den
+    # VOLLEN enriched US-Pool (nicht nur Top-10 — mehr Ticker = schneller n≥40).
+    # Rein additive Logging-Persistenz, KEIN Score-/Filter-/Push-Effekt,
+    # fail-soft. Erststart pro Ticker seedet Vormonat + aktuell (Delta ab Tag 1).
+    try:
+        _persist_si_position_history(enriched)
+    except Exception as _si_exc:   # pragma: no cover  (nie den Daily-Run brechen)
+        log.warning("SI-Positions-Zeitreihe übersprungen: %s", _si_exc)
 
     # Late-Runner-Penalty: überhitzte Setups (RSI > Threshold ODER 2T-Move >
     # Threshold) bekommen Score × LATE_RUNNER_PENALTY. Adressiert
