@@ -38,19 +38,41 @@ ROOT = pathlib.Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
 
 
-# Drittlib-Stubs für die Test-Sandbox (CI-Install = jinja2 + pyyaml; die
-# generate_report-Importer stubben yfinance/bs4/deep_translator/lxml/pandas
-# selbst — identisches Muster wie mock_test_entry_score_persistence.py).
-for _mod_name in ("yfinance", "bs4", "deep_translator", "lxml", "pandas"):
-    if _mod_name not in sys.modules:
-        sys.modules[_mod_name] = types.ModuleType(_mod_name)
-sys.modules["yfinance"].download = lambda *a, **kw: None
-sys.modules["yfinance"].Ticker = lambda *a, **kw: None
-sys.modules["bs4"].BeautifulSoup = lambda *a, **kw: None
-sys.modules["deep_translator"].GoogleTranslator = lambda *a, **kw: type(
-    "T", (), {"translate": staticmethod(lambda s: s)}
-)()
+# Drittlib-Stubs für die Test-Sandbox (CI-Install = NUR jinja2 + pyyaml;
+# requests/yfinance/bs4/deep_translator/watchlist sind NICHT da → müssen VOR
+# dem generate_report-Import gestubbt werden. Kanonisches Muster analog
+# mock_test_short_situation_none_guard.py:_install_stubs — inkl. requests
+# (Session/get/exceptions), das der ursprüngliche Stub-Satz vergaß und
+# deshalb im CI-ALLOWLIST-Runner rot lief).
+def _install_stubs() -> None:
+    if "yfinance" not in sys.modules:
+        yf = types.ModuleType("yfinance")
+        yf.download = lambda *a, **k: None
+        yf.Ticker = lambda *a, **k: None
+        sys.modules["yfinance"] = yf
+    if "requests" not in sys.modules:
+        rq = types.ModuleType("requests")
+        rq.Session = lambda *a, **k: types.SimpleNamespace(
+            headers=types.SimpleNamespace(update=lambda *a, **k: None))
+        rq.get = lambda *a, **k: None
+        rq.exceptions = types.SimpleNamespace(RequestException=Exception)
+        sys.modules["requests"] = rq
+    if "bs4" not in sys.modules:
+        bs4 = types.ModuleType("bs4")
+        bs4.BeautifulSoup = lambda *a, **k: None
+        sys.modules["bs4"] = bs4
+    if "deep_translator" not in sys.modules:
+        dt = types.ModuleType("deep_translator")
+        dt.GoogleTranslator = lambda *a, **k: types.SimpleNamespace(
+            translate=lambda s: s)
+        sys.modules["deep_translator"] = dt
+    if "watchlist" not in sys.modules:
+        wl = types.ModuleType("watchlist")
+        wl.WATCHLIST = []
+        sys.modules["watchlist"] = wl
 
+
+_install_stubs()
 import generate_report as gr  # noqa: E402
 import config  # noqa: E402
 
