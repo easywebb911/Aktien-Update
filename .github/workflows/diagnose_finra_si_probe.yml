@@ -1,4 +1,4 @@
-name: Diagnose FINRA Short-Interest Probe (read-only)
+name: Diagnose Short-Interest-Position Probe — FINRA + Nasdaq + Finnhub (read-only)
 
 # Read-only curl-Probe gegen die FINRA EquityShortInterest-API, um EMPIRISCH
 # (aus Actions, das FINRA erreicht — die Sandbox ist egress-geblockt) drei
@@ -39,13 +39,15 @@ jobs:
       - name: Prepare output dir
         run: mkdir -p "$OUT_DIR"
 
-      - name: Runner egress info (IP + DNS zu api.finra.org)
+      - name: Runner egress info (IP + DNS zu den 3 Quellen)
         run: |
           echo "## Runner public IP"
           curl -sS --max-time 5 https://api.ipify.org || true
           echo; echo
-          echo "## DNS resolution api.finra.org"
-          getent hosts api.finra.org || echo "  (kein Eintrag)"
+          echo "## DNS resolution"
+          for h in api.finra.org api.nasdaq.com finnhub.io; do
+            echo "- $h"; getent hosts "$h" || echo "  (kein Eintrag)"
+          done
           echo "settlementDate-Input: $SD"
 
       - name: Probe A — anonymer POST, limit 3, KEIN Filter (Schema + Auth-Status)
@@ -104,15 +106,91 @@ jobs:
             done
           done
 
-      - name: Auswertungs-Hinweis (im Log)
+      # ═══════════════ QUELLE 2: NASDAQ (api.nasdaq.com) ═══════════════
+      - name: Probe C — Nasdaq short-interest (AMC / IONQ) — Position, bimonatlich
         run: |
-          echo "===== ABLESEN (3 Fragen) ====="
-          echo "1) POSITION: steht currentShortShareNumber in Probe A? (nicht Volumen)"
-          echo "2) COVERAGE (K.o.): kommt für AMC/IONQ (NASDAQ) in Probe B ein Record"
-          echo "   mit Zahlen zurück, oder leer/nur OTC? Leer für NASDAQ = wertlos."
-          echo "3) DATUM: ist settlementDate das Feld (nicht ein Publikations-Datum)?"
-          echo "Falls Probe A HTTP 401/403 → Auth nötig (kostenloser FINRA-API-"
-          echo "Console-Account); NICHT umgangen, hier ausgewiesen."
+          set +e
+          # api.nasdaq.com/api/quote/{T}/short-interest — dieselbe Quelle, die
+          # Nasdaq.com im Browser nutzt. Verlangt Browser-User-Agent (sonst 403).
+          # Erwartete Felder: interest (=Short-POSITION-Shares), settlementDate,
+          # avgDailyShareVolume, daysToCover, percentChange — mit Historie (Rows).
+          UA="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+          for T in AMC IONQ; do
+            URL="https://api.nasdaq.com/api/quote/$T/short-interest?assetclass=stocks"
+            echo "==================================================="
+            echo "NASDAQ  TICKER=$T"
+            echo "URL: $URL"
+            curl -sS --max-time 25 "$URL" \
+              -H "User-Agent: $UA" \
+              -H "Accept: application/json" \
+              -o "$OUT_DIR/C_nasdaq_$T.json" \
+              -w "HTTP_STATUS=%{http_code} SIZE=%{size_download} REMOTE_IP=%{remote_ip}\n" 2>&1 || true
+            echo "----- body (erste 3000 Zeichen) -----"
+            head -c 3000 "$OUT_DIR/C_nasdaq_$T.json" || true
+            echo
+            echo "----- Feld-Checks (3 Fragen) -----"
+            grep -o '"interest"' "$OUT_DIR/C_nasdaq_$T.json" | head -1 \
+              && echo "→ 1) POSITION 'interest' (Short-Shares) present" \
+              || echo "→ 1) 'interest' NICHT gefunden"
+            grep -o 'settlementDate' "$OUT_DIR/C_nasdaq_$T.json" | head -1 \
+              && echo "→ 3) settlementDate present" || echo "→ 3) settlementDate NICHT gefunden"
+            grep -o "$T" "$OUT_DIR/C_nasdaq_$T.json" | head -1 \
+              && echo "→ 2) $T ENTHALTEN" || echo "→ 2) $T NICHT enthalten (leer?)"
+            echo "----- Historie-Tiefe (settlementDate-Vorkommen = Anzahl Reports) -----"
+            grep -o 'settlementDate' "$OUT_DIR/C_nasdaq_$T.json" | wc -l || true
+          done
+
+      # ═══════════════ QUELLE 3: FINNHUB (nur mit GH-Secret-Key) ═══════════════
+      - name: Probe D — Finnhub Short-Interest (AMC / IONQ) — nur falls Key vorhanden
+        env:
+          FINNHUB_API_KEY: ${{ secrets.FINNHUB_API_KEY }}
+        run: |
+          set +e
+          if [ -z "$FINNHUB_API_KEY" ]; then
+            echo "→ FINNHUB_API_KEY nicht als GH-Secret gesetzt — Probe D ÜBERSPRUNGEN."
+            echo "  (Kein Key committet/hartcodiert. Finnhub-SI ist Premium; ohne"
+            echo "   Key kein Call. Sauberer Skip, KEIN Fehler.)"
+            exit 0
+          fi
+          echo "→ FINNHUB_API_KEY vorhanden (Länge ${#FINNHUB_API_KEY}) — Call OHNE Key-Ausgabe."
+          for T in AMC IONQ; do
+            # Finnhub SI-Endpoint. Token NUR in der echten URL, im Log maskiert.
+            # curl -sS (NICHT -v) → URL mit Token wird nicht geloggt.
+            URL="https://finnhub.io/api/v1/stock/short-interest?symbol=$T&token=$FINNHUB_API_KEY"
+            echo "==================================================="
+            echo "FINNHUB  TICKER=$T"
+            echo "URL: https://finnhub.io/api/v1/stock/short-interest?symbol=$T&token=***"
+            curl -sS --max-time 25 "$URL" \
+              -H "Accept: application/json" \
+              -o "$OUT_DIR/D_finnhub_$T.json" \
+              -w "HTTP_STATUS=%{http_code} SIZE=%{size_download}\n" 2>&1 || true
+            echo "----- body (erste 3000 Zeichen) -----"
+            head -c 3000 "$OUT_DIR/D_finnhub_$T.json" || true
+            echo
+            echo "----- Feld-Checks (3 Fragen) -----"
+            grep -oE '"shortInterest"|short_interest' "$OUT_DIR/D_finnhub_$T.json" | head -1 \
+              && echo "→ 1) POSITION Short-Interest-Feld present" \
+              || echo "→ 1) Short-Interest-Feld NICHT gefunden (evtl. falscher Pfad/Premium)"
+            grep -oE 'settlementDate|"date"' "$OUT_DIR/D_finnhub_$T.json" | head -1 \
+              && echo "→ 3) Datums-Feld present" || echo "→ 3) Datums-Feld NICHT gefunden"
+            grep -o "$T" "$OUT_DIR/D_finnhub_$T.json" | head -1 \
+              && echo "→ 2) $T ENTHALTEN" || echo "→ 2) $T NICHT enthalten"
+          done
+
+      - name: Auswertungs-Hinweis (im Log) — 3 Quellen, gleiche 3 Fragen
+        run: |
+          echo "===== ABLESEN — pro Quelle dieselben 3 Fragen ====="
+          echo "1) POSITION (Bestand, nicht Volumen)?"
+          echo "   FINRA: currentShortShareNumber | Nasdaq: interest | Finnhub: shortInterest"
+          echo "2) COVERAGE (K.o.): AMC/IONQ (NASDAQ) enthalten mit Zahlen — oder leer?"
+          echo "   Leer/OTC-only für NASDAQ = Quelle wertlos fürs Universum."
+          echo "3) settlement-datiert (Basis für #408 pub_date = settlement+7)?"
+          echo "   + Historie-Tiefe (Anzahl settlementDate-Reports pro Ticker)."
+          echo
+          echo "AUTH-Ausweis (nicht umgangen):"
+          echo "  FINRA  Probe A HTTP 401/403 → kostenloser API-Console-Account nötig."
+          echo "  Nasdaq Probe C HTTP 403     → Bot-/UA-Block (evtl. Header-Feintuning)."
+          echo "  Finnhub Probe D übersprungen → kein GH-Secret-Key gesetzt."
 
       - name: Upload raw responses als Artefakt
         if: always()
