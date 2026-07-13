@@ -139,6 +139,11 @@ jobs:
           git add watchlist_failures.json 2>/dev/null || true
           git add app_data.json 2>/dev/null || true
           git add backtest_history.json 2>/dev/null || true
+          # si_position_history.json: forward-only SI-Positions-Zeitreihe
+          # (settlement-datiert, Paper-Schritt A+B). Persistenz über Commit
+          # zwingend — sonst startet die Serie bei jedem Workflow-Checkout neu
+          # und n≥40 wird nie erreicht.
+          git add si_position_history.json 2>/dev/null || true
           # score_inflation_log.jsonl: append-only Diagnose-Log für die
           # Intra-Day-Score-Inflations-Untersuchung. Pro Daily-Run werden
           # 10 Zeilen angehängt; prune entfernt Einträge > 30 Tage. Persistenz
