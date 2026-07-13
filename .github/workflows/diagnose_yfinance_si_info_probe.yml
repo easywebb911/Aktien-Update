@@ -1,0 +1,159 @@
+name: Diagnose yfinance SI .info Probe — dateShortInterest befüllt? (read-only)
+
+# Read-only yfinance-.info-Probe, um EMPIRISCH (aus Actions — die Sandbox ist
+# egress-geblockt) DIE EINE offene Frage zu klären, bevor eine forward-only
+# SI-Positions-Zeitreihe gebaut wird:
+#
+#   1. Ist dateShortInterest (FINRA-Settlement-Datum) pro Ticker BEFÜLLT
+#      (echter Timestamp) oder None/fehlend?  ← K.o. für saubere Settlement-
+#      Datierung der Serie (Basis für #408 pub_date = settlement + 7 Handelstage).
+#   2. Sind sharesShort + sharesShortPriorMonth befüllt (der SI-Zuwachs direkt)?
+#   3. Sind die Werte plausibel (Position-Größenordnung, NICHT Volumen)?
+#
+# KEINE Persistenz. KEINE Secrets. KEINE Repo-Writes. Reiner .info-Call via
+# yfinance. Output komplett im Run-Log + als Artefakt. Trigger: workflow_dispatch
+# only. Falls yfinance im Runner rate-limited/leer ist → wird im Log AUSGEWIESEN,
+# nicht gefaked.
+
+on:
+  workflow_dispatch:
+    inputs:
+      tickers:
+        description: "Komma-getrennte Ticker (echte Namen)"
+        required: true
+        default: "AMC,IONQ,FRMM,GME"
+
+permissions:
+  contents: read
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+
+    env:
+      OUT_DIR: ${{ github.workspace }}/yf-si-probe-out
+      TICKERS: ${{ github.event.inputs.tickers }}
+
+    steps:
+      - name: Prepare output dir
+        run: mkdir -p "$OUT_DIR"
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install yfinance
+        run: |
+          python -m pip install --upgrade pip
+          pip install yfinance
+          echo "yfinance-Version:"
+          python -c "import yfinance, sys; print(yfinance.__version__)"
+
+      - name: Probe — yfinance .info SI-Felder (roh, mit Typ)
+        run: |
+          python - <<'PY'
+          import json, os, datetime, sys
+          try:
+              import yfinance as yf
+          except Exception as exc:
+              print(f"FATAL: yfinance-Import fehlgeschlagen: {exc}")
+              sys.exit(0)
+
+          out_dir = os.environ["OUT_DIR"]
+          tickers = [t.strip().upper() for t in os.environ["TICKERS"].split(",") if t.strip()]
+
+          # Genau die fünf Felder aus dem Auftrag — roh.
+          FIELDS = [
+              "shortPercentOfFloat",
+              "sharesShort",
+              "sharesShortPriorMonth",
+              "dateShortInterest",             # die kritische Frage
+              "sharesShortPreviousMonthDate",
+          ]
+
+          def _fmt_ts(v):
+              """Unix-Timestamp -> lesbares UTC-Datum (nur zur Plausibilität)."""
+              try:
+                  return datetime.datetime.utcfromtimestamp(int(v)).strftime("%Y-%m-%d")
+              except Exception:
+                  return "<nicht-als-timestamp-lesbar>"
+
+          collected = {}
+          for t in tickers:
+              print("=" * 60)
+              print(f"### {t}")
+              info = None
+              err = None
+              for attempt in (1, 2):
+                  try:
+                      info = yf.Ticker(t).info or {}
+                      break
+                  except Exception as exc:
+                      err = str(exc)
+                      info = None
+              if info is None:
+                  print(f"  .info-Call FEHLGESCHLAGEN (rate-limit/leer?): {err}")
+                  collected[t] = {"_error": err}
+                  print()
+                  continue
+              if not info:
+                  print("  .info LEER ({}) — yfinance lieferte kein Dict (rate-limit?).")
+                  collected[t] = {"_empty": True}
+                  print()
+                  continue
+
+              rec = {}
+              for f in FIELDS:
+                  present = f in info
+                  val = info.get(f)
+                  typ = type(val).__name__
+                  extra = ""
+                  if f in ("dateShortInterest", "sharesShortPreviousMonthDate") and val:
+                      extra = f"  → als UTC-Datum: {_fmt_ts(val)}"
+                  flag = "" if present else "   [KEY FEHLT]"
+                  print(f"  {f:32s} = {val!r:>18}  (Typ {typ}){flag}{extra}")
+                  rec[f] = {"present": present, "value": val, "type": typ}
+              collected[t] = rec
+              # Plausibilitäts-Kontext (Volumen-Abgrenzung): Float + Volumen daneben.
+              fs = info.get("floatShares")
+              av = info.get("averageVolume")
+              print(f"  (Kontext: floatShares={fs!r}, averageVolume={av!r})")
+              print()
+
+          # Artefakt-Dump (roh, JSON).
+          with open(os.path.join(out_dir, "yf_si_info.json"), "w") as fh:
+              json.dump(collected, fh, indent=2, default=str)
+
+          # ── Auswertungs-Zusammenfassung (die 3 Fragen) ──
+          print("=" * 60)
+          print("===== ABLESEN — die 3 Fragen =====")
+          n = len(tickers)
+
+          def _count(field):
+              return sum(
+                  1 for t in tickers
+                  if isinstance(collected.get(t), dict)
+                  and collected[t].get(field, {}).get("value") not in (None, "")
+              )
+
+          dsi = _count("dateShortInterest")
+          ss = _count("sharesShort")
+          ssp = _count("sharesShortPriorMonth")
+          print(f"FRAGE 1 — dateShortInterest befüllt: {dsi}/{n} Ticker")
+          print("          >0  → Settlement-Datierung MÖGLICH (Serie sauber baubar).")
+          print("          =0  → NICHT befüllt → Serie nur Fetch-Tag-datiert (unsauber).")
+          print(f"FRAGE 2 — sharesShort befüllt: {ss}/{n} · sharesShortPriorMonth: {ssp}/{n}")
+          print("          beide >0 → absolute Position + Vormonat direkt vorhanden.")
+          print("FRAGE 3 — Plausibilität: sharesShort sollte << floatShares liegen")
+          print("          (Position, KEIN Tagesvolumen). Werte oben pro Ticker prüfen.")
+          PY
+
+      - name: Upload raw responses als Artefakt
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: yf-si-info-probe
+          path: ${{ env.OUT_DIR }}
+          if-no-files-found: warn
