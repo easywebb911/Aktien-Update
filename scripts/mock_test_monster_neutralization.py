@@ -174,10 +174,71 @@ def _test_untouched():
            'data-sort="monster"' in gr_src)
 
 
+# ── TEIL A2 — Neutral-Grau statt Ampel (Feinschliff, beide Pfade) ─────────────
+def _test_neutral_color():
+    print("── TEIL A2 — Monster neutral-grau (kein Ampel-Grün) ──────────")
+    gr_src = (ROOT / "generate_report.py").read_text(encoding="utf-8")
+    _check("A4 Neutral-Konstante _MONSTER_NEUTRAL_COLOR definiert",
+           '_MONSTER_NEUTRAL_COLOR = "#94a3b8"' in gr_src)
+    _check("A5 Score-Row: Monster nutzt _MONSTER_NEUTRAL_COLOR (nicht Ampel)",
+           "m_col = _MONSTER_NEUTRAL_COLOR" in gr_src
+           and "m_col = _tri_score_color(ms)" not in gr_src)
+    _check("A6 Cockpit-Pillar: monster-Zweig auf _MONSTER_NEUTRAL_COLOR",
+           'elif conf_key == "monster":' in gr_src
+           and gr_src.count("col = _MONSTER_NEUTRAL_COLOR") >= 1)
+    # Funktional: der neutrale Farbwert ist NICHT das Ampel-Grün.
+    _check("A7 Neutral-Farbe ist grau, nicht grün (#22c55e)",
+           gr._MONSTER_NEUTRAL_COLOR == "#94a3b8"
+           and gr._MONSTER_NEUTRAL_COLOR != "#22c55e")
+
+
+# ── TEIL B (Earnings-Alert) — kein "🔥 Monster"-Aufmacher ─────────────────────
+def _test_earnings_body_neutral():
+    print("── TEIL B (Earnings) — Body ohne 🔥-Monster-Aufmacher ────────")
+    captured = {}
+
+    def _fake_post(url, *a, **k):
+        captured["url"] = url
+        captured["data"] = k.get("data")
+        return types.SimpleNamespace(status_code=200, text="ok")
+
+    # NTFY erzwingen + requests.post abfangen (kein Netz).
+    _orig_post = ka.requests.post
+    _orig_en, _orig_topic = ka.NTFY_ENABLED, ka.NTFY_TOPIC
+    try:
+        ka.requests.post = _fake_post
+        ka.NTFY_ENABLED = True
+        ka.NTFY_TOPIC = "test_topic"
+        ka.send_ntfy_alert("TSLA", 80, ["driver1"],
+                           production_score=72.0, monster_score=95.0)
+    finally:
+        ka.requests.post = _orig_post
+        ka.NTFY_ENABLED, ka.NTFY_TOPIC = _orig_en, _orig_topic
+
+    body = (captured.get("data") or b"").decode("utf-8") if isinstance(
+        captured.get("data"), (bytes, bytearray)) else str(captured.get("data"))
+    _check("B-earn body gebaut (Push abgefangen)", bool(body) and "TSLA" in body,
+           f"got {body!r}")
+    _check("B-earn KEIN '🔥 Monster'-Aufmacher mehr", "🔥 Monster" not in body,
+           f"got {body!r}")
+    _check("B-earn Setup steht VOR Monster (Setup zuerst)",
+           "Setup" in body and body.find("Setup") < body.find("Monster"),
+           f"got {body!r}")
+    _check("B-earn Monster nachrangig in Klammer",
+           "(Monster 95)" in body, f"got {body!r}")
+    # Grep: '🔥 Monster' nirgends mehr als Push-Headline im Code.
+    ki_src = (ROOT / "ki_agent.py").read_text(encoding="utf-8")
+    gr_src = (ROOT / "generate_report.py").read_text(encoding="utf-8")
+    _check("B-grep kein '🔥 Monster' als Body-Headline im Code",
+           '🔥 Monster' not in ki_src and '🔥 Monster' not in gr_src)
+
+
 def main() -> int:
     _test_display()
+    _test_neutral_color()
     _test_push_removed()
     _test_signal_counter()
+    _test_earnings_body_neutral()
     _test_untouched()
     print()
     if _fails:

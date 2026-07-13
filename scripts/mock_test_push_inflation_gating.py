@@ -2,10 +2,13 @@
 
 Drei Eingriffe in einem Test-File gebündelt:
 
-  1. Conviction-Gating: monster_backup bei Conviction < 75 wird suppressed,
-     bei ≥ 75 wird gepusht. Bestätigt die bewusste Architektur-Entscheidung,
-     monster_backup ist KEIN Sicherheitsnetz mehr für Setups mit
-     mittlerer Conviction.
+  1. Conviction-Gating: ein Anomaly-Trigger (hier generisch perfect_storm)
+     bei Conviction < 75 wird suppressed, bei ≥ 75 wird gepusht. Bestätigt
+     die bewusste Architektur-Entscheidung, dass Anomaly-Pushes ohne
+     ausreichende Conviction unterdrückt werden. (Der frühere monster_backup-
+     Trigger, an dem das ursprünglich getestet wurde, ist seit 13.07.2026
+     entfernt — monster_score unvalidiert; das Gating-Verhalten bleibt für
+     die verbliebenen Trigger identisch.)
 
   2. Earnings-Sofort-Alert Per-Event-Dedup: drei Calls innerhalb 24h für
      dasselbe (Ticker, Earnings-Date) → nur erster sendet, andere
@@ -42,7 +45,7 @@ from config import (  # noqa: E402
 
 def test_record_push_persists_conviction():
     state = {}
-    _record_push(state, "FOO", "anomaly", "high", "monster_backup",
+    _record_push(state, "FOO", "anomaly", "high", "perfect_storm",
                  "body text", success=True, conviction_score=78)
     entries = state["push_history"]
     assert len(entries) == 1, entries
@@ -64,7 +67,7 @@ def test_record_push_no_conviction_arg_is_none():
 
 def test_record_push_suppressed_still_carries_conviction():
     state = {}
-    _record_push(state, "BAZ", "anomaly", "high", "monster_backup",
+    _record_push(state, "BAZ", "anomaly", "high", "perfect_storm",
                  "body", success=False, suppressed=True,
                  suppress_reason="conviction_below_threshold",
                  conviction_score=42)
@@ -114,19 +117,19 @@ def _gate_anomaly(conv, trigger):
     return False
 
 
-def test_monster_backup_low_conviction_suppressed():
+def test_perfect_storm_low_conviction_suppressed():
     """NVAX-Szenario: Monster 100 + Conviction 45 → suppressed."""
-    assert _gate_anomaly(conv=45, trigger="monster_backup") is True
+    assert _gate_anomaly(conv=45, trigger="perfect_storm") is True
 
 
-def test_monster_backup_high_conviction_passes():
+def test_perfect_storm_high_conviction_passes():
     """Echtes Aktions-Setup: Monster 100 + Conviction 80 → push."""
-    assert _gate_anomaly(conv=80, trigger="monster_backup") is False
+    assert _gate_anomaly(conv=80, trigger="perfect_storm") is False
 
 
-def test_monster_backup_exactly_threshold_passes():
+def test_perfect_storm_exactly_threshold_passes():
     """Conviction == 75 (= MIN_THRESHOLD): geht durch (≥ Vergleich)."""
-    assert _gate_anomaly(conv=75, trigger="monster_backup") is False
+    assert _gate_anomaly(conv=75, trigger="perfect_storm") is False
 
 
 def test_conviction_high_never_gated():
@@ -143,7 +146,7 @@ def test_score_jump_low_conviction_suppressed():
 def test_ticker_without_conviction_passes():
     """None-Conviction (Ticker nicht in heutigen conviction_scores) →
     push konservativ ungefiltert."""
-    assert _gate_anomaly(conv=None, trigger="monster_backup") is False
+    assert _gate_anomaly(conv=None, trigger="perfect_storm") is False
 
 
 # === Earnings-Sofort-Alert Per-Event-Dedup =================================
@@ -209,9 +212,9 @@ def main():
         ("push_history: float conviction rundet zu int",      test_record_push_float_conviction_rounds_to_int),
         ("push_history: kaputter conviction → None",          test_record_push_garbage_conviction_becomes_none),
         ("Konstante MIN_THRESHOLD == 75",                     test_conviction_min_threshold_is_75),
-        ("Gating: monster_backup conv<75 suppressed",         test_monster_backup_low_conviction_suppressed),
-        ("Gating: monster_backup conv≥75 push",               test_monster_backup_high_conviction_passes),
-        ("Gating: conv == MIN_THRESHOLD push",                test_monster_backup_exactly_threshold_passes),
+        ("Gating: perfect_storm conv<75 suppressed",         test_perfect_storm_low_conviction_suppressed),
+        ("Gating: perfect_storm conv≥75 push",               test_perfect_storm_high_conviction_passes),
+        ("Gating: conv == MIN_THRESHOLD push",                test_perfect_storm_exactly_threshold_passes),
         ("Gating: conviction_high niemals gegated",           test_conviction_high_never_gated),
         ("Gating: score_jump auch gegated",                   test_score_jump_low_conviction_suppressed),
         ("Gating: None-Conviction konservativ push",          test_ticker_without_conviction_passes),

@@ -1815,7 +1815,8 @@ def send_ntfy_alert(ticker: str, ki_score: int, drivers,
     ``monster_score`` ist die kombinierte Bewertung (siehe ``_monster_score``).
 
     Body-Format:
-      • Monster + Setup vorhanden → ``🔥 Monster N | Setup N | KI N – drivers``
+      • Monster + Setup vorhanden → ``🚀 Setup N | KI N (Monster N) – drivers``
+        (Monster nachrangig in Klammer — unvalidiert, kein Aufmacher)
       • nur Setup vorhanden       → ``🚀 Score N | KI-Signal N – drivers``
       • beide fehlend             → ``🚀 KI-Signal N – drivers``
 
@@ -1828,8 +1829,11 @@ def send_ntfy_alert(ticker: str, ki_score: int, drivers,
     else:
         drivers_str = str(drivers) if drivers else "—"
     if monster_score is not None and production_score is not None:
-        body = (f"{ticker} 🔥 Monster {monster_score:.0f} | "
-                f"Setup {production_score:.0f} | KI {ki_score} – {drivers_str}")
+        # Setup zuerst (validierte Achse), Monster nachrangig in Klammer —
+        # kein Feuer-Emoji-Monster-Aufmacher mehr (monster_score unvalidiert,
+        # 30.06. AUC 0.76→0.51 kollabiert; Neutralisierung 13.07.2026).
+        body = (f"{ticker} 🚀 Setup {production_score:.0f} | KI {ki_score} "
+                f"(Monster {monster_score:.0f}) – {drivers_str}")
     elif production_score is not None:
         body = f"{ticker} 🚀 Score {production_score:.1f} | KI-Signal {ki_score} – {drivers_str}"
     else:
