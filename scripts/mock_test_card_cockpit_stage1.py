@@ -51,6 +51,9 @@ def _extract_helper():
         if sc >= 30: return "#f59e0b"
         return "#ef4444"
     ns["_tri_score_color"] = _tri
+    # Monster-Neutral-Farbe (13.07.2026): _card_cockpit_html referenziert die
+    # Modul-Konstante direkt → im isolierten Namespace mitinjizieren.
+    ns["_MONSTER_NEUTRAL_COLOR"] = "#94a3b8"
 
     # Extract function definition
     # Dependency-robust: _card_cockpit_html ruft _cockpit_delta_html (Score-

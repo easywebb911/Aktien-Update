@@ -4582,10 +4582,19 @@ def _score_hint_html(score: float) -> str:
     return ""
 
 
-def _tri_score_color(sc) -> str:
-    """Einheitliche Farblogik für Setup-, Monster- und KI-Score.
+# Neutrale Slate-Farbe für den Monster-Score (13.07.2026): monster_score ist
+# unvalidiert (30.06. AUC 0.76→0.51 kollabiert) und darf KEINEN Ampel-Bezug
+# (grün=gut) mehr tragen. Bewusst identisch zur None/„keine-Daten"-Farbe in
+# _tri_score_color → monster liest sich als neutral/„kein Signal", nicht als
+# Aktions-Grün. Erklärung lebt im Tooltip (title/aria via _conf_class).
+_MONSTER_NEUTRAL_COLOR = "#94a3b8"
 
-    ≥60 grün · 30–59 orange · <30 rot · None grau.
+
+def _tri_score_color(sc) -> str:
+    """Einheitliche Farblogik für Setup- und KI-Score (NICHT Monster).
+
+    ≥60 grün · 30–59 orange · <30 rot · None grau. Monster nutzt bewusst
+    NICHT diese Ampel, sondern ``_MONSTER_NEUTRAL_COLOR`` (siehe oben).
     """
     if sc is None:
         return "#94a3b8"
@@ -4817,7 +4826,8 @@ def _score_block_inner_html(s: dict, hint_html: str = "") -> str:
     ms = s.get("monster_score")
     if ms is not None:
         m_pct = max(0.0, min(100.0, float(ms)))
-        m_col = _tri_score_color(ms)
+        # Neutral-Grau statt Ampel: monster_score unvalidiert (kein grün=gut).
+        m_col = _MONSTER_NEUTRAL_COLOR
         m_css, m_title, m_aria = _conf_class("monster")
         m_attrs = f' title="{m_title}" aria-label="{m_aria}"' if m_title else ""
         rows.append(
@@ -4942,6 +4952,10 @@ def _card_cockpit_html(
         if val is None:
             col = "#94a3b8"
             pct = 0.0
+        elif conf_key == "monster":
+            # Neutral-Grau statt Ampel: monster_score unvalidiert (kein grün=gut).
+            col = _MONSTER_NEUTRAL_COLOR
+            pct = max(0.0, min(100.0, float(val)))
         else:
             col = _tri_score_color(val)
             pct = max(0.0, min(100.0, float(val)))
