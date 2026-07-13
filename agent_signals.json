@@ -1,17 +1,17 @@
 {
-  "updated": "2026-07-13T01:09:45.344237+02:00",
+  "updated": "2026-07-13T02:11:35.913226+02:00",
   "run_info": {
     "tickers_checked": 15,
     "signals_active": 1,
     "alerts_sent": 0,
-    "elapsed_s": 13.2,
+    "elapsed_s": 17.4,
     "market_phase": "Geschlossen"
   },
   "signals": {
     "AI": {
-      "score": 15,
+      "score": 40,
       "confidence": 17,
-      "drivers": "News-KI 5/30: Negative fundamentals (revenue drop, overvaluation concerns) with no indication of high short interest, retail momentum, + UOA Call/Put 15.5×",
+      "drivers": "News: short interest, partnership + UOA Call/Put 15.5×",
       "price": 8.95,
       "chg_pct": -0.0,
       "rvol_4d": 1.24,
@@ -22,7 +22,7 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 0,
+      "active_triggers": 1,
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 15.5×"
@@ -31,9 +31,9 @@
       "uoa_cp_ratio": 15.513343799058084
     },
     "AMC": {
-      "score": 10,
+      "score": 22,
       "confidence": 17,
-      "drivers": "UOA Call/Put 9.1×",
+      "drivers": "News-KI 12/30: Massive dilution from 95.25M share offering undermines short-squeeze potential despite recent price strength and billion + UOA Call/Put 9.1×",
       "price": 1.89,
       "chg_pct": -0.0,
       "rvol_4d": 0.41,
@@ -44,7 +44,7 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 0,
+      "active_triggers": 1,
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 9.1×"
@@ -217,7 +217,7 @@
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": 0.006679389312977099,
-      "uoa_cp_ratio": 0.5551020408163265
+      "uoa_cp_ratio": 0.5673469387755102
     },
     "PDYN": {
       "score": 48,
@@ -240,9 +240,9 @@
       "uoa_cp_ratio": 0.3493150684931507
     },
     "SPRY": {
-      "score": 30,
-      "confidence": 70,
-      "drivers": "Spanne 5.1% + News-KI 12/30: Negative momentum from index exclusion and CEO uncertainty outweigh any potential squeeze, with weak short-squeeze funda + Earnings in 32d",
+      "score": 18,
+      "confidence": 33,
+      "drivers": "Spanne 5.1% + Earnings in 32d",
       "price": 7.94,
       "chg_pct": 0.0,
       "rvol_4d": 1.01,
@@ -253,16 +253,16 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 1,
+      "active_triggers": 0,
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": 0.15151515151515152,
       "uoa_cp_ratio": 0.16898148148148148
     },
     "TRIP": {
-      "score": 28,
+      "score": 36,
       "confidence": 70,
-      "drivers": "Spanne 5.6% + Earnings in 25d + UOA Call/Put 19.0×",
+      "drivers": "Spanne 5.6% + News-KI 8/30: Positive cash event and stock momentum, but no significant short squeeze indicators such as high short interest, low flo + Earnings in 25d + UOA Call/Put 19.0×",
       "price": 13.98,
       "chg_pct": -0.0,
       "rvol_4d": 0.97,
@@ -304,9 +304,9 @@
       "uoa_cp_ratio": 2.2264150943396226
     },
     "WOLF": {
-      "score": 22,
-      "confidence": 33,
-      "drivers": "Spanne 9.9% + News-KI 12/30: Negative lawsuit news dominates sentiment, but company operates in growing electrification sector; limited short-squeeze",
+      "score": 10,
+      "confidence": 17,
+      "drivers": "Spanne 9.9%",
       "price": 35.29,
       "chg_pct": 0.0,
       "rvol_4d": 0.66,
@@ -317,7 +317,7 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 1,
+      "active_triggers": 0,
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": 2.2523809523809524,

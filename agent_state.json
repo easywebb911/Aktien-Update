@@ -1,5 +1,5 @@
 {
-  "last_run": "2026-07-13T01:09:46.767446+02:00",
+  "last_run": "2026-07-13T02:11:40.795960+02:00",
   "cooldowns": {
     "anomaly_score_jump_XRX": "2026-05-03T18:47:15.315486+02:00",
     "anomaly_uoa_extreme_TDOC": "2026-05-04T13:47:00.365949+02:00",
@@ -82,18 +82,6 @@
     "anomaly_conviction_high_NGNE": "2026-07-09T12:04:16.015071+02:00"
   },
   "push_history": [
-    {
-      "ts": "2026-07-03T19:48:11.656362+02:00",
-      "ticker": "ARCT",
-      "kind": "anomaly",
-      "severity": "high",
-      "trigger": "monster_backup",
-      "body": "ARCT 🔥 Monster 100 | Setup 98 | KI 55",
-      "success": false,
-      "suppressed": true,
-      "suppress_reason": "conviction_below_threshold",
-      "conviction_score": 71
-    },
     {
       "ts": "2026-07-03T21:49:43.939287+02:00",
       "ticker": "AI",
@@ -1272,6 +1260,18 @@
     },
     {
       "ts": "2026-07-13T01:09:45.343987+02:00",
+      "ticker": "BBW",
+      "kind": "anomaly",
+      "severity": "medium",
+      "trigger": "uoa_extreme",
+      "body": "BBW 🎯 UOA Vol/OI 18.8× ATM | Setup 61",
+      "success": false,
+      "suppressed": true,
+      "suppress_reason": "conviction_below_threshold",
+      "conviction_score": 45
+    },
+    {
+      "ts": "2026-07-13T02:11:35.912971+02:00",
       "ticker": "BBW",
       "kind": "anomaly",
       "severity": "medium",
