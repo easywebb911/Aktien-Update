@@ -128,12 +128,19 @@ def test_earliness_always_mittel():
 
 # === 3 — Monster erbt Setup ================================================
 
-def test_monster_inherits_setup_tier():
-    for n, expected in [(600, "robust"), (100, "mittel"),
-                        (10, "provisorisch"), (0, "heuristisch")]:
+def test_monster_always_heuristisch():
+    """Seit 13.07.2026: Monster erbt NICHT mehr Setups Stufe — er ist
+    unvalidiert (30.06. AUC 0.76→0.51 kollabiert) und immer heuristisch,
+    unabhängig von der Backtest-Datenmenge. Differenzierung zu Setup
+    (das bei n≥500 robust wird) ist der Kern der Neutralisierung."""
+    for n, setup_expected in [(600, "robust"), (100, "mittel"),
+                              (10, "provisorisch"), (0, "heuristisch")]:
         res = compute_score_confidence(_bh(n))
-        assert res["monster"]["tier"] == res["setup"]["tier"] == expected, (
-            f"n={n}: monster {res['monster']['tier']} vs setup {res['setup']['tier']}")
+        assert res["monster"]["tier"] == "heuristisch", (
+            f"n={n}: monster {res['monster']['tier']} sollte heuristisch sein")
+        assert res["setup"]["tier"] == setup_expected, (
+            f"n={n}: setup {res['setup']['tier']} != {setup_expected}")
+        assert res["monster"]["n"] == 0
 
 
 # === 4 — KI / Conviction / Exit_pressure immer heuristisch =================
@@ -263,7 +270,7 @@ def main() -> None:
         ("Setup: 1 ≤ n < 50 → provisorisch",            test_setup_provisorisch_1_to_49),
         ("Setup: 0 Datenpunkte → heuristisch",          test_setup_heuristisch_when_empty),
         ("Earliness immer 'mittel' (n=78, AUC 0.77)",   test_earliness_always_mittel),
-        ("Monster erbt Setup-Stufe",                    test_monster_inherits_setup_tier),
+        ("Monster immer heuristisch (unvalidiert)",     test_monster_always_heuristisch),
         ("KI / Conviction / Exit immer heuristisch",    test_ki_conviction_exit_always_heuristisch),
         ("None-backtest_history graceful",              test_none_backtest_history),
         ("Einträge ohne return_10d zählen nicht",        test_entries_without_return_10d),

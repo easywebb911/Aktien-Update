@@ -570,7 +570,10 @@ ANOMALY_GAP_RVOL                  = 3.0
 # Perfect Storm: gleichzeitig aktive Trigger im KI-Combo-Multiplikator
 ANOMALY_PERFECT_STORM_TRIGGERS    = 4
 
-# Monster-Backup: nur extreme Werte (frühere Schwelle 70 → jetzt 90)
+# Monster-Backup: DEPRECATED seit 13.07.2026 — der monster_backup-Push-
+# Trigger ist entfernt (monster_score unvalidiert, 30.06. AUC 0.76→0.51
+# kollabiert). Konstante bleibt nur als Backward-Compat-Anker (analog
+# ALERT_THRESHOLD_STRONG); kein Push-Konsument mehr.
 ANOMALY_MONSTER_BACKUP            = 90
 
 # Conviction-Hochstufung: Aktions-Signal wenn conviction_score (aus
