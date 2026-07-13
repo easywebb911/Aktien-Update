@@ -80,6 +80,8 @@ Reine Doku, **Auto-Merge**.
 ### PR #417 — 15.07. — `ef78b40` (squash)
 **Doku:** Schritt-A-Blocker — Coverage-Check negativ (SI-Zeitreihe fehlt);
 §4-Zeile ⛔ BLOCKIERT + §6i voller Befund. Reine Doku, **Auto-Merge**.
+*(Nachtrag 13.07.: Blocker seit PR #423 **REVIDIERT + ENTBLOCKT** via yfinance —
+aktueller Stand in §4-Zeilen A/B + §6i.)*
 
 ---
 
@@ -325,8 +327,8 @@ Tag. Volle Paper-Befunde in §5. Auswertung bleibt Out-of-Sample im Herbst.
 
 | Schritt | Was | Vorbedingung / Disziplin |
 |---|---|---|
-| **A** ⛔ **BLOCKIERT** | Binäre Zielvariable `squeeze_event` (Peak ≥ +30 % in 1 Handelswoche **UND** SI-Rückgang ≥ 20 %) **neben** `return_10d`. Adressiert den Paper-Kern „Häufigkeit ≠ Rendite-Edge" (§8). | **Coverage-Check 15.07. NEGATIV:** SI-Rückgang mit Gratis-Daten **nicht** messbar → **ZURÜCKGESTELLT**. Kein Feld-Bau, sondern Datenquellen-Projekt. Voller Befund in **§6i**. **C** bleibt ohne A gangbar; **B teilt A's Daten-Blocker** (§6i). |
-| **B** ⛔ **TEILT DEN A-BLOCKER** | `si_velocity_pub` in die 3 Literatur-Buckets (7–17/17–25/> 25 % SI-Zuwachs) — **paper-treu NICHT machbar** (Diagnose 13.07.): `si_velocity_pub` misst 3-Tage-Änderung des Tages-Short-**VOLUMENS** (Fluss), das Paper den 1-Monats-Zuwachs der ausstehenden **POSITION** (Bestand) → doppelter Mismatch (Größe + Fenster). Belegt: 10 Ist-Werte −98 % … +72 828 %, **0** in den Paper-Bändern. | **Braucht dieselbe FINRA-bimonatliche SI-Positions-Zeitreihe wie A** (§6i) → **ZURÜCKGESTELLT**. Paper-Schwellen draufzulegen = Nomenklatur-Falle (§8m). |
+| **A** ✅ **ENTBLOCKT (Daten-seitig, 13.07.)** | Binäre Zielvariable `squeeze_event` (Peak ≥ +30 % in 1 Handelswoche **UND** SI-Rückgang ≥ 20 %) **neben** `return_10d`. Adressiert den Paper-Kern „Häufigkeit ≠ Rendite-Edge" (§8). | **SI-Positions-Quelle gefunden (yfinance, gratis) + gebaut (PR #423):** `si_position_history.json` sammelt die ausstehende SI-**Position** settlement-datiert **forward-only**. SI-Rückgang ≥ 20 % ist damit messbar. **Vorbedingung jetzt = Sammelzeit** (mehrere Settlement-Zyklen; Seed-2-Punkte gibt Startpunkte sofort), **kein** Daten-Blocker mehr. Voller Befund in **§6i**. Peak-Seite via yfinance ohnehin machbar. |
+| **B** ✅ **ENTBLOCKT (Daten-seitig, 13.07.)** | SI-Zuwachs in die 3 Literatur-Buckets (7–17/17–25/> 25 % SI-Zuwachs). Der frühere `si_velocity_pub`-Ansatz war paper-untreu (Diagnose 13.07.): er misst 3-Tage-Änderung des Tages-Short-**VOLUMENS** (Fluss), das Paper den 1-Monats-Zuwachs der ausstehenden **POSITION** (Bestand) → doppelter Mismatch (Größe + Fenster; 10 Ist-Werte −98 % … +72 828 %, **0** in den Paper-Bändern). | **Jetzt paper-treu machbar über dieselbe SI-Positions-Zeitreihe wie A** (`si_position_history.json`, PR #423 — 1-Monats-Positions-Delta via `sharesShort` vs. `sharesShortPriorMonth`, exakt das Paper-Maß). **Vorbedingung = Sammelzeit** (§6i). Auf `si_velocity_pub` (Volumen) werden die Paper-Schwellen weiter **nicht** gelegt (Nomenklatur-Falle §8m). |
 | **C** | **Momentum als Haupthypothese** (`entry_past_return_5d` **positiv** = vorheriger Aufwärtstrend verstärkt), Reversal nur noch **kurzfristige Nebenhypothese**. Korrigiert die frühere „Reversal-Substrat"-Framing (§5). | Richtung vor der Auswertung fixiert (Paper: Momentum > Reversal). Kein nachträgliches Umdrehen. |
 | **D** *(Ausblick, bedingt)* | `squeeze_probability`-Score nach Paper-Modell: die **validierten** Einzelfaktoren (SI-Buckets, Momentum, ggf. Ownership) zu einem Squeeze-**Wahrscheinlichkeits**-Score zusammenführen (rare-event-logit-artig, wie Svoboda et al.). Details + Deklaration unten. | **NUR falls A–C einzeln out-of-sample tragen.** Kein automatischer Folge-Schritt — eigene Anordnung nach belegten A–C-Befunden. |
 
@@ -568,55 +570,79 @@ Auswertung **ausschließen** (Regel-Screen, kein Score-Feature). Marktkap +
 Markttrend waren im Paper **nicht** signifikant — also kein Regime-Score, nur
 der harte Crash-Ausschluss.
 
-### 6i. Paper-Schritte A **UND B** — BLOCKIERT durch fehlende SI-Positions-Zeitreihe
-**Status: ZURÜCKGESTELLT (Coverage-Check 15.07. + Schritt-B-Diagnose 13.07.).**
-**A und B teilen denselben Daten-Blocker** — beide brauchen die ausstehende
-SI-**Positions**-Zeitreihe, die es gratis nicht gibt. Schritt A des
-Verwertungsplans (§4) ist mit den vorhandenen Gratis-Daten **nicht baubar**:
+### 6i. Paper-Schritte A **UND B** — ✅ ENTBLOCKT (SI-Positions-Zeitreihe via yfinance, 13.07.)
+**Status: BLOCKER REVIDIERT + GEBAUT (PR #423, 13.07.).** Der frühere
+gemeinsame Daten-Blocker (A und B brauchen die ausstehende SI-**Positions**-
+Zeitreihe) ist aufgelöst — nicht über die kostenpflichtigen Profi-Feeds, sondern
+über eine **gratis** yfinance-Quelle im eigenen Werkzeug.
 
-- **Keine ausstehende-SI-Zeitreihe.** Es existieren nur **Entry-Snapshots**
-  (`short_float` via yfinance `shortPercentOfFloat`, Einzelwert/Record). yfinance
-  UND stockanalysis liefern nur den **aktuellen** Wert — **nicht** settlement-
-  datierte Historie, also **nicht rekonstruierbar** für „~2–6 Wochen nach Entry".
-- **Namens-Falle:** was intern `finra_data.history` / „short_interest" heißt, ist
-  FINRA **Reg SHO Daily Short VOLUME** (`CNMSshvol`-Dateien), **NICHT** die
-  ausstehende Short-Position. Volumen-Rückgang ≠ Shorts covern.
-- **Coverage heute = 0**, Backfill der 470 v4-Records **unmöglich** (keine
-  time-queryable Quelle). Damit ist der **SI-Rückgang ≥ 20 %** (Kern der Paper-
-  Definition) **nicht messbar**.
-- **Peak-only nicht abspecken:** ein reines Peak-≥30 %-Binär = **widerlegte
-  Hypothese C** (04.07., 0/6 Holm). Ohne SI-Rückgang kollabiert `squeeze_event`
-  in das bereits falsifizierte Peak-Ziel → null neue Information.
+**War-Blocker (historisch, Coverage-Check 15.07.):** Die ausstehende SI-Position
+schien gratis nicht settlement-datiert erreichbar. Web-Check inkl. Asien/
+international **erschöpft**, alle direkten Quellen Paid oder unpassend:
+- **FINRA EquityShortInterest-API** (Probe #420/#421): anonym erreichbar, liefert
+  `currentShortShareNumber` + `settlementDate` — aber **OTC-only**, gelistete
+  Ticker (NASDAQ/NYSE) fehlen → für unsere Namen wertlos.
+- **Nasdaq** (Probe #420): nur Nasdaq-gelistete, NYSE-Namen `null`; volle Historie
+  Paid (Data Link).
+- **Finnhub**: Short-Interest nur Premium.
+- **Namens-Falle** (bleibt gültig): internes `finra_data.history` = FINRA **Reg
+  SHO Daily Short VOLUME** (`CNMSshvol`), **NICHT** die ausstehende Position.
+  Volumen-Rückgang ≠ Shorts covern.
 
-**Konsequenz:** Schritt A ist **kein Feld-Bau, sondern ein DATENQUELLEN-PROJEKT**
-— die offizielle **FINRA-bimonatliche Short-Interest-Datei** (settlement-datiert)
-integrieren + SI-by-settlement persistieren + **forward-only** sammeln; n ≥ 40
-erst **~2–3 Monate nach Bau**. Die `pub_date`-Mechanik (#408, settlement + 7
-Handelstage) wäre das richtige Look-Ahead-Werkzeug, ist aber **gegenstandslos
-ohne SI-Serie**. Alternativ: bezahltes tägliches SI-/Utilization-Feed (der in §5
-dokumentierte Profi-Vorsprung, $10–50k/Jahr). **Bau erst bei bewusster
-Anordnung.** Die Peak-Seite (längeres Fenster) wäre via yfinance machbar — sie
-ist NICHT der Blocker; der Blocker ist ausschließlich die SI-Serie.
+**Auflösung (Durchbruch 13.07.):** **yfinance `.info` liefert die POSITION
+gratis** — `sharesShort` + `sharesShortPriorMonth` + `dateShortInterest` +
+`sharesShortPreviousMonthDate`. **Probe #422 (read-only, aus GitHub-Actions):
+4/4 Ticker befüllt**, echte Settlement-Daten (30.06. + 29.05.), plausible
+Positions-Größen (`sharesShort` ≪ `floatShares` → Bestand, nicht Volumen →
+umgeht die Namens-Falle). Alle vier Felder liegen im **selben `.info`-Dict**,
+das der Batch-Lauf ohnehin holt → **kein Extra-Call**.
 
-**Schritt B (SI-Buckets) ist NICHT unabhängig — teilt den A-Blocker (Diagnose
-13.07.):** `si_velocity_pub` misst die 3-Tage-Änderung des Tages-Short-**VOLUMENS**
-(Fluss), das Paper den 1-Monats-Zuwachs der ausstehenden Short-**POSITION**
-(Bestand) — doppelter Mismatch (Größe + Fenster). Empirischer Beleg: die 10
-Ist-Werte liegen bei **−98 % … +72 828 %**, **kein** Wert in den Paper-Bändern
-7–17 %/17–25 % (4 negativ, 4 > +100 %). Die Paper-Schwellen 7/17/25 % sind daher
-**nicht anwendbar** (wäre die Nomenklatur-Falle §8m). B **paper-treu** braucht
-dieselbe FINRA-bimonatliche SI-**Positions**-Zeitreihe wie A → **gemeinsamer
-Vorbau**, gemeinsam zurückgestellt.
+**Gebaut (PR #423, Merge nach Guardian ✅ + 98 CI-Tests grün):**
+`si_position_history.json` — Schema `{ticker:[{settlement_date, shares_short,
+short_pct_float, pub_date, seeded?}]}`. Eigenschaften:
+- **4 `yf_*`-Felder** aus `_hist_stats` (Batch) + `get_yfinance_data`
+  (Singleton-Fallback), durch die `c.update`-Merge-Whitelist gereicht
+  (**#411-Lehre**; Merge-Assertion mutations-belegt scharf).
+- **Seed-2-Punkte** beim Erststart pro Ticker (Vormonat aus `PriorMonth` +
+  `PrevMonthDate`, `short_pct_float=None` ehrlich, `seeded=true`; + aktuell) →
+  **1-Monats-Positions-Delta ab Tag 1** messbar (= exakt das Paper-Maß).
+- **Dedup** auf `settlement_date` (neuer Punkt nur bei Änderung; None → kein Punkt).
+- **Retention** 400d + Cap 24/Ticker (**kein** 14d-`SCORE_HISTORY_DAYS`-Leak),
+  atomarer Write, Workflow-`git add` für Cross-Run-Persistenz.
+- **pub_date** via `finra_publication_date` (#408, settlement + 7 Handelstage) —
+  das Look-Ahead-Werkzeug ist jetzt **gegenständlich** (SI-Serie existiert).
+- **Look-Ahead-Isolation**: reine Analyse-/Outcome-Persistenz, **NIEMALS**
+  Score-/Filter-/Conviction-/Push-Feature (Grep-Guard-Test analog
+  `entry_past_return_5d`; Guardian bestätigt, kein Read in `ki_agent`/
+  `health_check`/Score-Funktionen).
+- **Voller enriched US-Pool** (non-US übersprungen — yfinance-SI ist US-FINRA).
 
-**Optionale Alternative für B (NICHT jetzt empfohlen):** `si_velocity_pub`
-**eigenständig** als Tages-**Volumen-Momentum**-Signal auswerten — mit
-daten-abgeleiteten Quantil-Buckets (NICHT den Paper-Schwellen), **klar NICHT als
-Paper-SI-Zuwachs etikettiert**, Out-of-Sample-Pflicht. Das ist eine **eigene
-Hypothese, kein Paper-Ersatz** — erst bei größerem n sinnvoll.
+**Konsequenz für §4:** **Schritt A** (`squeeze_event` mit echtem SI-Rückgang
+≥ 20 %) **und Schritt B** (SI-Zuwachs in Paper-Buckets, 1-Monats-Positions-
+Delta) sind **daten-seitig möglich** — beide messen die Position (Bestand),
+nicht das Volumen. **Kein Backfill der 470 v4-Alt-Records** (keine time-queryable
+Gratis-Historie — die Serie ist forward-only). **Vorbedingung ist jetzt reine
+Sammelzeit**: n ≥ 40 paper-treue Squeeze-Events mit messbarem SI-Rückgang
+**~2–3 Monate** (mehrere Settlement-Zyklen pro Ticker); der Seed liefert
+Startpunkte sofort. **Nächster Schritt nach Sammelzeit: A/B-Auswertung gegen
+`si_position_history.json`** (Out-of-Sample, Erfolgs-Definition §5).
 
-**Konsequenz für die Paper-Kette:** kurzfristig ist nur noch **Schritt C
-(Momentum-Framing `entry_past_return_5d`)** ohne neue Datenquelle gangbar; **A + B
-zurückgestellt** (SI-Positions-Quelle), **D** bleibt bedingt (nach belegten A–C).
+**`si_velocity_pub` bleibt getrennt:** das ist ein Tages-**Volumen**-Momentum-
+Signal — die Paper-Schwellen 7/17/25 % werden weiterhin **nicht** daraufgelegt
+(Nomenklatur-Falle §8m). Es kann eigenständig als Volumen-Hypothese laufen
+(H5-Kombi §5), ist aber **nicht** der Paper-SI-Zuwachs (den liefert jetzt
+`si_position_history.json`).
+
+**Restkante (Beobachtungspunkt, kein Blocker):** falls yfinance
+`dateShortInterest` künftig als `Timestamp`-Objekt statt epoch-int liefert, wird
+der Punkt fail-soft übersprungen (kein Crash, aber stiller Datenverlust ohne
+Log) — für die Wiedervorlage vermerkt.
+
+**Lesson:** Die Lösung lag im **eigenen Werkzeug** (yfinance spiegelt die
+FINRA-SI-Position gratis) — gefunden erst **nach** erschöpfendem externem
+Quellen-Check und **Verifikations-Probe (#422) statt Blind-Bau**. Proaktiver
+Web-Check + read-only Actions-Probe haben den Blocker gekippt, den drei
+Diagnose-Runden zuvor als „nur Paid" eingestuft hatten (§8-Kandidat).
 
 ---
 
