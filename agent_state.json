@@ -1,5 +1,5 @@
 {
-  "last_run": "2026-07-13T11:50:43.686391+02:00",
+  "last_run": "2026-07-13T13:29:08.695993+02:00",
   "cooldowns": {
     "anomaly_score_jump_XRX": "2026-05-03T18:47:15.315486+02:00",
     "anomaly_uoa_extreme_TDOC": "2026-05-04T13:47:00.365949+02:00",
@@ -82,30 +82,6 @@
     "anomaly_conviction_high_NGNE": "2026-07-09T12:04:16.015071+02:00"
   },
   "push_history": [
-    {
-      "ts": "2026-07-06T13:05:15.928734+02:00",
-      "ticker": "ARCT",
-      "kind": "anomaly",
-      "severity": "high",
-      "trigger": "monster_backup",
-      "body": "ARCT 🔥 Monster 100 | Setup 94 | KI 55",
-      "success": false,
-      "suppressed": true,
-      "suppress_reason": "conviction_below_threshold",
-      "conviction_score": 70
-    },
-    {
-      "ts": "2026-07-06T13:05:15.928852+02:00",
-      "ticker": "IONQ",
-      "kind": "anomaly",
-      "severity": "medium",
-      "trigger": "uoa_extreme",
-      "body": "IONQ 🎯 UOA Vol/OI 360.4× ATM | Setup —",
-      "success": false,
-      "suppressed": true,
-      "suppress_reason": "conviction_below_threshold",
-      "conviction_score": 12
-    },
     {
       "ts": "2026-07-06T14:59:02.330535+02:00",
       "ticker": "ARCT",
@@ -1281,6 +1257,30 @@
       "suppressed": false,
       "suppress_reason": null,
       "conviction_score": null
+    },
+    {
+      "ts": "2026-07-13T13:29:05.319456+02:00",
+      "ticker": "BBW",
+      "kind": "anomaly",
+      "severity": "medium",
+      "trigger": "uoa_extreme",
+      "body": "BBW 🎯 UOA Vol/OI 88.8× ATM | Setup 61",
+      "success": false,
+      "suppressed": true,
+      "suppress_reason": "conviction_below_threshold",
+      "conviction_score": 45
+    },
+    {
+      "ts": "2026-07-13T13:29:05.319668+02:00",
+      "ticker": "TRIP",
+      "kind": "anomaly",
+      "severity": "medium",
+      "trigger": "uoa_extreme",
+      "body": "TRIP 🎯 UOA Vol/OI 955.0× ATM | Setup 57",
+      "success": false,
+      "suppressed": true,
+      "suppress_reason": "conviction_below_threshold",
+      "conviction_score": 44
     }
   ],
   "prev_conviction_scores": {
