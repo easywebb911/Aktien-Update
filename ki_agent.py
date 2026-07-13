@@ -2358,7 +2358,7 @@ def detect_anomalies(ticker: str, signal: dict, prev_signal: dict | None,
         return out
 
     setup_today  = (app_data.get("setup_scores")   or {}).get(ticker)
-    monster      = (app_data.get("monster_scores") or {}).get(ticker)
+    # monster_score-Read entfernt (13.07.2026): kein monster_backup-Push mehr.
     gap_meta     = (app_data.get("gap_states")     or {}).get(ticker) or {}
     ki_score     = signal.get("score") or 0
     drivers_str  = signal.get("drivers") or ""
@@ -2447,15 +2447,11 @@ def detect_anomalies(ticker: str, signal: dict, prev_signal: dict | None,
                          f"{setup_str}"),
         })
 
-    # f) Monster-Backup (nur Extremfälle, ehemalige 70-Schwelle jetzt 90)
-    if isinstance(monster, (int, float)) and monster >= ANOMALY_MONSTER_BACKUP:
-        msetup = setup_str if "—" not in setup_str else "Setup —"
-        out.append({
-            "trigger":  "monster_backup",
-            "severity": "high",
-            "message":  (f"{ticker} 🔥 Monster {monster:.0f} | {msetup} | "
-                         f"KI {ki_score}"),
-        })
+    # f) Monster-Backup ENTFERNT (13.07.2026): monster_score ist unvalidiert
+    # (30.06. AUC 0.76→0.51 kollabiert, kein belegter Prädiktor) — er darf kein
+    # Aktions-Push mehr auslösen. Berechnung/Persistenz/Anzeige (neutral als
+    # heuristisch markiert) bleiben; nur der Push ist raus. Kein Cooldown-/
+    # push_history-Konsument betroffen (generischer anomaly_<trigger>-Key).
 
     # g) Conviction-Hochstufung — Threshold-Crossing
     # Aktions-Signal: conviction_score erreicht ANOMALY_CONVICTION_HIGH_THRESHOLD
@@ -3215,8 +3211,12 @@ def main() -> None:
     edgar_filings_cache = _unpack_or_default(_r, [])
 
     # Counter und new_signals aus den Worker-Ergebnissen aggregieren.
-    # Alert-Schwelle: monster_score >= 70 (ersetzt phasenabhängige
-    # Setup-Schwellen 20/25/35).
+    # Signal-Zähl-Schwelle: ki_signal_score >= 70 (seit 13.07.2026 — vorher
+    # monster_score >= 70). monster_score ist unvalidiert (30.06. AUC
+    # 0.76→0.51 kollabiert) und zählt nicht mehr als „aktives Signal".
+    # ki_signal_score >= 70 ist konsistent zum grünen Dot (sc>=70) in der
+    # KI-Agent-Statusleiste; n_signals bleibt load-bearing für den
+    # .slice(0, nSignals)-Ticker-Cut im Frontend intakt.
     for t in tickers:
         r = results.get(t)
         if not r:
@@ -3232,8 +3232,8 @@ def main() -> None:
         if flags["insider_hit"]:      n_insider   += 1
         if flags["finra_ssr_hit"]:    n_finra_ssr += 1
         if flags["form4_hit"]:        n_form4     += 1
-        monster = monster_scores.get(t)
-        if monster is not None and monster >= 70:
+        _ki_sig = (r.get("signal") or {}).get("score")
+        if isinstance(_ki_sig, (int, float)) and _ki_sig >= 70:
             n_signals += 1
 
     # Top-10-Set für defensives Conviction-Gating bei Watchlist-Outsidern
@@ -3415,16 +3415,12 @@ def main() -> None:
                     # ``suppressed=True`` für UI-Transparenz.
                     #
                     # Coverage (Stand 12.05.2026): Gating greift auf
-                    # ALLE Anomaly-Trigger inkl. monster_backup —
-                    # einzige Ausnahme ist ``conviction_high`` selbst,
-                    # weil das DER Aktions-Push ist. monster_backup
-                    # wurde mit Anhebung der Schwelle auf 75 (vorher
-                    # 50) bewusst mit gegated: bei Conviction < 75 ist
-                    # ein Setup per Definition kein „extremer Fall",
-                    # auch wenn der Monster-Score hoch ist. Vorher
-                    # konnte ein 100-Monster-Setup mit Conviction 45
-                    # alle 6h pushen — das ist der „Push-Inflation"-
-                    # Effekt, den dieser Refactor adressiert.
+                    # ALLE Anomaly-Trigger — einzige Ausnahme ist
+                    # ``conviction_high`` selbst, weil das DER Aktions-
+                    # Push ist. (Der frühere ``monster_backup``-Trigger,
+                    # der hier ebenfalls gegated wurde, ist seit
+                    # 13.07.2026 komplett entfernt — monster_score ist
+                    # unvalidiert und löst keinen Push mehr aus.)
                     _suppress = False
                     if anom.get("trigger") != "conviction_high":
                         if isinstance(_conv_today, (int, float)) \

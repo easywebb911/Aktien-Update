@@ -7461,7 +7461,6 @@ def generate_html_v1(stocks: list[dict], report_date: str,
                 <li><span class="pro-lbl">Score-Sprung</span><span class="pro-val">≥{ANOMALY_SCORE_JUMP} Pkt vs. Vortag</span></li>
                 <li><span class="pro-lbl">Gap+Hold-Combo</span><span class="pro-val">Gap ≥{ANOMALY_GAP_PCT:.0f}&nbsp;%, Strong Hold, RVOL ≥{ANOMALY_GAP_RVOL:.0f}×</span></li>
                 <li><span class="pro-lbl">Perfect Storm</span><span class="pro-val">{ANOMALY_PERFECT_STORM_TRIGGERS}/4 Trigger</span></li>
-                <li><span class="pro-lbl">Monster ≥{ANOMALY_MONSTER_BACKUP} (Backup)</span><span class="pro-val">—</span></li>
                 <li><span class="pro-lbl">SEC 13D/13G Filings (Top-10)</span><span class="pro-val">13D immer · 13G nur Aktivisten · {EDGAR_COOLDOWN_HOURS} h Cooldown</span></li>
               </ul>
             </div>
@@ -14467,9 +14466,11 @@ def compute_score_confidence(backtest_history: list | None = None) -> dict:
                       "(Trend-Logging-Felder, PR #142)."),
         },
         "monster": {
-            "tier": setup_tier,
-            "n":    n_returns,
-            "note": "Komposition Setup × KI-Boost — erbt Setup-Konfidenz.",
+            "tier": "heuristisch",
+            "n":    0,
+            "note": ("unvalidiert — 30.06. AUC 0.76→0.51 kollabiert, kein "
+                     "belegter Prädiktor; Aggregations-Anzeige (Setup × "
+                     "KI-Boost), nicht validiert."),
         },
         "ki": {
             "tier": "heuristisch",

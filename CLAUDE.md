@@ -2060,7 +2060,6 @@ würden. Jeder Trigger-Typ hat einen eigenen Cooldown via Key-Prefix
 | `score_jump`      | Setup heute − gestern (raw aus `score_history`) ≥ `ANOMALY_SCORE_JUMP` (15) | medium |
 | `gap_combo`       | gap_pct ≥ `ANOMALY_GAP_PCT` (5 %) **und** state==`strong_hold` **und** RVOL ≥ `ANOMALY_GAP_RVOL` (3.0) | medium |
 | `perfect_storm`   | active_triggers ≥ `ANOMALY_PERFECT_STORM_TRIGGERS` (4/4) | high |
-| `monster_backup`  | monster_score ≥ `ANOMALY_MONSTER_BACKUP` (90) — Sicherheitsnetz für extreme Fälle | high |
 | `conviction_high` | `conviction_score ≥ ANOMALY_CONVICTION_HIGH_THRESHOLD` (75) **und** prev-Tick < Schwelle (Threshold-Crossing — Sustained-High feuert NICHT). prev wird in `agent_state["prev_conviction_scores"]` persistiert | high |
 | `edgar_filing`    | SC 13D (immer) oder SC 13G (nur `EDGAR_ACTIVIST_FILERS`) in den letzten `EDGAR_LOOKBACK_HOURS` (6 h) | medium |
 
@@ -2068,7 +2067,7 @@ würden. Jeder Trigger-Typ hat einen eigenen Cooldown via Key-Prefix
 
 | Severity | Bedeutung | Trigger |
 |---|---|---|
-| **high** | **Aktions-Signal** — direkter Hinweis, jetzt einsteigen oder hingucken. ntfy-Priority maximal, prominenter Ton. | `conviction_high`, `perfect_storm`, `monster_backup` |
+| **high** | **Aktions-Signal** — direkter Hinweis, jetzt einsteigen oder hingucken. ntfy-Priority maximal, prominenter Ton. | `conviction_high`, `perfect_storm` |
 | **medium** | **Beobachtungs-Signal** — etwas bewegt sich, aber noch keine klare Aktions-Empfehlung. ntfy-Priority normal, dezentere Anzeige. | `rvol_explosion`, `uoa_extreme`, `score_jump`, `gap_combo`, `edgar_filing` |
 
 Die Severity wird vom `_send_anomaly_ntfy`-Sender unverändert
@@ -2092,13 +2091,15 @@ Scores ohne Earliness/Regime-Rückendeckung. `conviction_high` (≥ 75)
 selbst ist ungefiltert (Aktions-Push).
 
 **Coverage (12.05.2026):** Gating greift auf **ALLE** Anomaly-Trigger
-inklusive `monster_backup` — einzige Ausnahme ist `conviction_high`,
-das selbst der Aktions-Push ist. monster_backup war früher als
-„Sicherheitsnetz für extreme Fälle" ungated gedacht, ist aber in der
-Praxis die lauteste Klasse (51 % aller Pushes laut Bestandsaufnahme
-12.05., dominiert von NVAX/GRPN). Bewusste Architektur-Entscheidung:
-bei Conviction < 75 ist ein Setup per Definition kein „extremer Fall",
-auch wenn der Monster-Score hoch ist.
+— einzige Ausnahme ist `conviction_high`, das selbst der Aktions-Push
+ist.
+
+**`monster_backup` ENTFERNT (13.07.2026):** Der Trigger war früher die
+lauteste Push-Klasse (51 % aller Pushes, dominiert von NVAX/GRPN), wurde
+12.05. mit-gegated und ist seit 13.07. **komplett entfernt** —
+`monster_score` ist unvalidiert (30.06. AUC 0.76→0.51 kollabiert) und
+darf kein Aktions-Push mehr sein. Berechnung/Persistenz/Anzeige
+(neutral als heuristisch markiert) bleiben; nur der Push ist raus.
 
 **Beziehung zur `ANOMALY_CONVICTION_HIGH_THRESHOLD`-Konstante** (auch
 75): Beide bleiben semantisch getrennt:
@@ -2106,7 +2107,7 @@ auch wenn der Monster-Score hoch ist.
 - `HIGH_THRESHOLD = 75` triggert den `conviction_high`-Aktions-Push
   selbst beim Threshold-Crossing (Setup von < 75 auf ≥ 75).
 - `MIN_THRESHOLD = 75` ist das Gating für **alle anderen** Anomaly-
-  Trigger (monster_backup, score_jump, rvol_explosion, …).
+  Trigger (score_jump, rvol_explosion, …).
 
 Bei künftigen Re-Kalibrierungen können beide unabhängig angepasst
 werden. Numerisch deckungsgleich aktuell, aber konzeptionell zwei
@@ -2229,6 +2230,9 @@ Implementierung in `ki_agent.py`:
 - `ALERT_THRESHOLD_STRONG = 70` ist **kein** Push-Trigger mehr. Konstante
   bleibt für E-Mail-Subject-Logik (`⚡⚡` vs `⚡`-Prefix) erhalten.
 - Frühere „Monster ≥ 70 → Push"-Logik in `ki_agent.main()` ist entfernt.
+- `ANOMALY_MONSTER_BACKUP = 90` ist seit 13.07.2026 **kein** Push-Trigger
+  mehr (`monster_backup` komplett entfernt — monster_score unvalidiert).
+  Konstante bleibt als Backward-Compat-Anker.
 
 ---
 
@@ -3051,7 +3055,7 @@ explizit darum bittet**.
 - **Boni / Malus**: `COMBO_BONUS`, `SCORE_TREND_BONUS/MALUS`, `AGENT_BOOST_*`, `SQUEEZE_HIST_MALUS_*`, `FLOAT_TURNOVER_PTS_*`, `GAP_PTS_*`, `RS_SPY_PTS_MAX`
 - **Monster-Score-Logik**: `apply_monster_score()` Faktoren (×1.20 / ×0.80 / neutral), Cap 100
 - **KI-Agent-Boni**: StockTwits-Skala, RVOL High/Velocity, UOA Vol/OI + Call/Put, Gamma Squeeze, Perfect-Storm-Multiplikator, News-Decay-Gewichte, Insider-Punkte, FINRA-SSR
-- **Push-Trigger**: `ANOMALY_*`-Schwellen (RVOL, UOA, Score-Sprung, Gap+Hold-Combo, Perfect Storm, Monster-Backup), `EARNINGS_IMMEDIATE_*`, `EXIT_*`-Trigger
+- **Push-Trigger**: `ANOMALY_*`-Schwellen (RVOL, UOA, Score-Sprung, Gap+Hold-Combo, Perfect Storm), `EARNINGS_IMMEDIATE_*`, `EXIT_*`-Trigger
 - **Datenquellen**: neue API, entfallene Quelle, Provider-Wechsel (Yahoo, Finviz, FINRA, yfinance, Stockanalysis, EarningsWhispers, Sektor-ETFs, StockTwits, ntfy.sh, OpenInsider, SEC, FDA RSS, Anthropic Claude)
 
 ### Automatik-Workflow
@@ -3203,7 +3207,7 @@ Bewusste Wahl gegen prozentuale Anzeige — verhindert das
 |---|---|---:|---|
 | Setup-Score | 🟢 robust | ~1200 | Backtest-Bucket-Auswertung gegen `return_10d` |
 | Earliness V2 | 🟡 mittel | 78 | Mann-Whitney-U 13.05.2026 (AUC 0.77); Re-Test in 14–30 d via Trend-Logging (PR #142) |
-| Monster-Score | 🟢 robust | ~1200 | erbt Setup-Konfidenz (Komposition) |
+| Monster-Score | 🔴 heuristisch | 0 | unvalidiert — 30.06. AUC 0.76→0.51 kollabiert, kein belegter Prädiktor (Aggregations-Anzeige Setup × KI-Boost) |
 | KI-Score | 🔴 heuristisch | 0 | Wirkt nur als Boost-Multiplikator ×1.05–1.15 |
 | Conviction | 🔴 heuristisch | 0 | Keine Backtest-Persistenz; Komponenten-Konfidenz (Stufe 2) erst nach Schema-Erweiterung |
 | Exit-Druck | 🔴 heuristisch | 0 | Closed-Trades-Snapshot-Schema offen |
