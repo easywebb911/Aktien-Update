@@ -409,6 +409,52 @@ Existenzbedingung des Scores.
 - **(d)** Im Frontend **klar als „Wahrscheinlichkeit, nicht Empfehlung"
   deklariert** — gleiche neutrale Sprache/Optik wie das Status-Panel (#412).
 
+### STATUS-PANEL — 6. Eintrag für `si_position_history` (VORBEREITET 13.07., Bau morgen NACH erstem Seed)
+
+**Read-only-Diagnose 13.07. abgeschlossen** — der Bau ist vorbereitet, aber
+bewusst **nach** dem ersten Postclose-Seed terminiert (gegen die dann reale
+Datei bauen, nicht gegen eine geratene Struktur).
+
+- **Reihenfolge (zwingend):** (1) **Postclose-Verify** — `si_position_history.
+  json` existiert + seedet 2 Punkte/Ticker sauber (§3-Verifikationspunkt),
+  **DANN** (2) Panel-Eintrag gegen die reale Datei bauen.
+- **STRUKTUR (belegt aus `_persist_si_position_history` / `_make_si_point`,
+  `generate_report.py:3116-3185`):** `{ticker: [{settlement_date, shares_short,
+  short_pct_float, pub_date, seeded}]}` — **Dict-of-Lists** (nicht die flache
+  Record-Liste, die das bestehende Panel zählt). Seed-Punkt trägt
+  `short_pct_float=null` + `seeded=true`.
+- **EINBAU:** separate Datei → **zweiter clientseitiger Fetch**
+  `./si_position_history.json` (analog `_btData`-Load `generate_report.py:9536`,
+  mit Fehler-Toleranz), eigene kleine Render-Funktion, hängt **eine weitere
+  `.bt-collect-row`** an denselben Host `#bt-collect-status` (`7916`) nach
+  `_btCollectStatus(9641)`. **Kein** Umbau von `COLLECT_STATUS_FIELDS` (dessen
+  Weg-A-Trick betrifft nur Backtest-**Feldnamen**-Literale; `si_position_history`
+  ist ein Dateiname und darf in `generate_report.py` frei stehen — der Persist-
+  Helper lebt ohnehin dort). Label/Status als neue Config-Konstante (Kuratierung
+  konsistent zu `COLLECT_STATUS_FIELDS`).
+- **GRACEFUL-EMPTY (PFLICHT):** vor dem ersten Postclose fehlt die Datei →
+  404 → `.then(r => r.ok ? r.json() : {})` + `.catch(() => renderSiRow({}))` →
+  `n=0`/„sammelt", **KEIN** JS-Error. **Nicht** das Backtest-`.catch`
+  (`9546-9548`) wiederverwenden (schreibt Fehlermeldung in `#bt-meta`) — eigener
+  Soft-Handler.
+- **ZÄHL-LOGIK:** primär **„Ticker mit ≥2 Punkten"** (= auswertbares
+  1-Monats-Delta, das Paper-Maß) via `Object.values(d).filter(a =>
+  Array.isArray(a) && a.length >= 2).length` — braucht **kein** Feld-Literal,
+  look-ahead-neutral. Gesamt-Ticker (`Object.keys(d).length`) als Kontext.
+- **STATUS-TEXT** neutral wie die anderen 5 Einträge („sammelt · unvalidiert ·
+  auswertbar ab ~Q4 2026 (mehrere Settlement-Zyklen)"), **KEINE Werte**
+  (kein `shares_short`, kein Delta) — nur Zähler + Status (Auffanglinie).
+- **LOOK-AHEAD:** unberührt — der Grep-Guard
+  (`mock_test_si_position_history.py:288-347`) verbietet die Serien-Felder nur
+  in `ki_agent.py`/`health_check.py` + fordert genau 1× Persist-Aufruf in
+  `generate_report.py`; ein Display-Fetch berührt keine dieser Regeln.
+- **GOLDEN betroffen** (Panel-JS + injizierter Bereich sind Outer-Page,
+  10 Treffer in `tests/golden/report_outer_page.html`) → beim Bau
+  `UPDATE_GOLDEN=1 python scripts/mock_test_outer_page_golden.py`, Diff prüfen
+  (nur die SI-Ergänzung). **Klassifikation: manueller Merge** (Frontend + neue
+  Datei-Konsumption). Test-Assertion (Graceful-Empty `{}`→n=0 + ≥2-Zähl-Logik)
+  mit-bauen.
+
 ### Erledigt (nicht mehr im Backlog)
 
 - **Hypothese C (Peak-Ziel, +10/+30/+50 %) — ERLEDIGT 04.07.2026.** Null belegt
