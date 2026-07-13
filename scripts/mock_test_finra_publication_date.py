@@ -264,17 +264,32 @@ def _test_consumer_isolation():
                 f"{tag} — Look-Ahead-Bruch: pub_date wird in Score-Pfad gelesen",
             )
 
-    # generate_report.py DARF importieren (nur für Live-Enrichment
-    # von history-Entries, nicht für Score-Read). Wir prüfen: der Helper
-    # wird NUR in get_finra_short_interest genutzt (Live-Fetch), nicht
-    # in score()/_compute_sub_scores/apply_*.
+    # generate_report.py DARF finra_publication_date aufrufen — aber NUR in
+    # Persistenz-/Live-Enrichment-Pfaden, NIEMALS in Score-/Filter-/Push-Logik.
+    # Zwei erlaubte Call-Sites (beide Look-Ahead-safe, reine Datierung):
+    #   1. get_finra_short_interest (Live-Enrichment der FINRA-history-Entries)
+    #   2. _si_pub_date (SI-Positions-Zeitreihe si_position_history.json,
+    #      forward-only Persistenz — kein Score-Read; separat verriegelt durch
+    #      mock_test_si_position_history.py Look-Ahead-Grep).
     gr_src = (ROOT / "generate_report.py").read_text(encoding="utf-8")
     n_uses = gr_src.count("finra_publication_date(")
     _check(
-        f"I-gr n_uses == 1 (nur Live-Enrichment in get_finra_short_interest)",
-        n_uses == 1,
-        f"got {n_uses} — mehr als 1 Aufruf könnte Score-Read enthalten",
+        "I-gr n_uses == 2 (get_finra_short_interest + _si_pub_date, beide Persistenz)",
+        n_uses == 2,
+        f"got {n_uses} — neue Call-Site? Prüfen ob Persistenz (ok) oder Score-Read (Bruch)",
     )
+    # Positiv-Absicherung: beide erlaubten Call-Sites müssen im Score-freien
+    # Kontext liegen — kein Aufruf innerhalb score()/_compute_sub_scores/score_bonus.
+    for score_fn in ("def score(", "def _compute_sub_scores(", "def score_bonus("):
+        idx = gr_src.find(score_fn)
+        if idx < 0:
+            continue
+        body = gr_src[idx: idx + 8000]
+        _check(
+            f"I-gr: {score_fn.strip()} ruft finra_publication_date NICHT auf",
+            "finra_publication_date(" not in body,
+            "Look-Ahead-Bruch: Score-Funktion datiert SI/pub_date selbst",
+        )
 
 
 def main():
