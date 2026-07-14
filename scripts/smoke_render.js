@@ -27,13 +27,18 @@ try {
   process.exit(1);
 }
 
+// Bootstrap-Shell-Vorbau (Phase 0): app.html ist der kanonische Content-Pfad;
+// index.html-Fallback für die erste Zyklus-Runde. Beide sind in Phase 0
+// byte-identisch (volle Seite).
+const APP_HTML_PATH   = path.resolve(__dirname, '..', 'app.html');
 const INDEX_HTML_PATH = path.resolve(__dirname, '..', 'index.html');
 
 let HTML_SOURCE;
 try {
-  HTML_SOURCE = fs.readFileSync(INDEX_HTML_PATH, 'utf8');
+  const _src = fs.existsSync(APP_HTML_PATH) ? APP_HTML_PATH : INDEX_HTML_PATH;
+  HTML_SOURCE = fs.readFileSync(_src, 'utf8');
 } catch (e) {
-  console.error(`FEHLER: index.html nicht gefunden unter ${INDEX_HTML_PATH}`);
+  console.error(`FEHLER: weder app.html noch index.html gefunden (${APP_HTML_PATH} / ${INDEX_HTML_PATH})`);
   console.error(e && e.stack ? e.stack : e);
   process.exit(1);
 }

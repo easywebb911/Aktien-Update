@@ -87,15 +87,20 @@ def get_alert_threshold(phase: str) -> int:
 # ── index.html parsen → Top-10-Ticker ─────────────────────────────────────────
 
 def parse_top_tickers() -> list[str]:
-    """Extrahiert Ticker aus dem aktuellen index.html.
+    """Extrahiert Ticker aus dem gerenderten Content (Bootstrap-Shell-Vorbau:
+    app.html ist der kanonische Content-Pfad, Fallback index.html).
 
     Filtert Phantom-Einträge („TICKER", Platzhalter, Flag-Emoji-Reste) und
     akzeptiert nur valide Symbole: 1–6 Zeichen, nur Buchstaben/Zahlen.
     """
-    if not INDEX_HTML.exists():
-        log.error("index.html nicht gefunden.")
+    # Phase 0: app.html bevorzugt (kanonisch); index.html-Fallback deckt die
+    # erste Zyklus-Runde ab, bevor der erste Daily-Run app.html committed hat
+    # → nie leere Top-10 durch fehlende app.html (Zero-Downtime-Repoint).
+    _src = APP_HTML if APP_HTML.exists() else INDEX_HTML
+    if not _src.exists():
+        log.error("Weder app.html noch index.html gefunden.")
         return []
-    html = INDEX_HTML.read_text(encoding="utf-8")
+    html = _src.read_text(encoding="utf-8")
     tickers = re.findall(r'<span class="ticker">([^<]+)</span>', html)
     clean: list[str] = []
     for raw in tickers:

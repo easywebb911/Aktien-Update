@@ -1015,7 +1015,14 @@ SCORE_FORM4_PURCHASE = 20   # Form-4 mit Kauf ("Purchase"/"Acquisition")
 # ── Dateipfade + URL ─────────────────────────────────────────────────────────
 STATE_FILE   = Path("agent_state.json")
 SIGNALS_FILE = Path("agent_signals.json")
-INDEX_HTML   = Path("index.html")
+INDEX_HTML   = Path("index.html")   # die AUSGELIEFERTE Seite (wird in Phase 1 zur Bootstrap-Shell)
+# Bootstrap-Shell-Vorbau (Phase 0): app.html ist der KANONISCHE Content-/
+# Parse-Pfad. Der Daily-Run schreibt die volle Seite nach BEIDE (index.html +
+# app.html, byte-identisch); ki_agent/alert/S9 lesen app.html (mit Fallback auf
+# index.html für die erste Zyklus-Runde). Phase 1 ersetzt index.html durch die
+# Weiche auf app.html?v=. NICHT INDEX_HTML umgewidmet — die Trennung „Seite vs.
+# Content-Parse-Pfad" ist forward-kompatibel zum Shell-Flip.
+APP_HTML     = Path("app.html")
 PWA_URL      = "https://easywebb911.github.io/Aktien-Update/"
 
 # ── Zeitzonen ────────────────────────────────────────────────────────────────

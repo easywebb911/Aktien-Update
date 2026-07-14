@@ -134,6 +134,7 @@ jobs:
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git config user.name "github-actions[bot]"
           git add index.html
+          git add app.html 2>/dev/null || true
           git add score_history.json 2>/dev/null || true
           git add watchlist_inactive.json 2>/dev/null || true
           git add watchlist_failures.json 2>/dev/null || true
