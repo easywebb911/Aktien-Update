@@ -206,15 +206,162 @@ def _test_functional_counts():
         )
 
 
+def _extract_si_js() -> str | None:
+    """Extrahiere den SI-Block (_btSiCount + _btSiRenderRow + _btSiCollectStatus)
+    aus dem f-String und un-escape die verdoppelten Braces. Grenze: bis
+    `function _btRenderHitRates`."""
+    start = _GR_SRC.find("function _btSiCount(obj){{")
+    if start == -1:
+        return None
+    end = _GR_SRC.find("function _btRenderHitRates(data){{", start)
+    if end == -1:
+        return None
+    return _GR_SRC[start:end].replace("{{", "{").replace("}}", "}")
+
+
+def _test_si_source_wiring():
+    print("── (D) SI-Eintrag Source-Wiring ──────────────────────────────")
+    _check(
+        "D1 SI-Host-Div (id=bt-collect-si-status) vorhanden",
+        'id="bt-collect-si-status"' in _GR_SRC,
+        "SI-Container-Div fehlt im Panel",
+    )
+    _check(
+        "D2 _btSiCollectStatus wird in _btRender aufgerufen",
+        "_btSiCollectStatus();" in _GR_SRC,
+        "SI-Render-Aufruf fehlt",
+    )
+    _check(
+        "D3 config.SI_POSITION_STATUS_ROW = 3-Tupel (label, status, datei)",
+        isinstance(config.SI_POSITION_STATUS_ROW, tuple)
+        and len(config.SI_POSITION_STATUS_ROW) == 3,
+        f"got {config.SI_POSITION_STATUS_ROW!r}",
+    )
+    _check(
+        "D4 JS-Konstante server-injiziert (const _SI_POSITION_STATUS = {...})",
+        "const _SI_POSITION_STATUS = {si_position_status_row_js};" in _GR_SRC
+        and '"si_position_status_row_js": json.dumps(SI_POSITION_STATUS_ROW' in _GR_SRC,
+        "SI-Injektion fehlt — Eintrag bekäme kein Label/Status",
+    )
+    # D5 Weg-A: das Label darf NICHT als Frontend-Literal im Source stehen (nur
+    # in config.py + injiziert) — analog A8. Der Dateiname (si_position_history)
+    # lebt legitim in der Persist-Kette; darauf zielt der Guard NICHT.
+    _check(
+        "D5 SI-Label kein quoted-Literal im generate_report.py-Source (Weg-A)",
+        config.SI_POSITION_STATUS_ROW[0] not in _GR_SRC,
+        "Label als Frontend-Literal → Weg-A verletzt",
+    )
+    js = _extract_si_js()
+    _check(
+        "D6 kein unescaptes ${...} im SI-Block (f-String-safe)",
+        js is not None and "${" not in js,
+        "Template-Literal-Variable würde Python-f-String brechen",
+    )
+
+
+def _run_si_node(js_block: str, data) -> dict | None:
+    """Führe _btSiCount(data) + _btSiRenderRow gegen einen Mock-Host in node aus.
+    Returnt {count: {ge2,total}, html: <gerendert>}. None wenn node fehlt."""
+    node = shutil.which("node")
+    if not node:
+        return None
+    status_js = json.dumps(list(config.SI_POSITION_STATUS_ROW), ensure_ascii=False)
+    harness = (
+        "const _SI_POSITION_STATUS = " + status_js + ";\n"
+        + js_block
+        + "\nconst __data = " + json.dumps(data) + ";\n"
+        + "const __c = _btSiCount(__data);\n"
+        + "let __html = '';\n"
+        + "const __host = { set innerHTML(v){ __html = v; } };\n"
+        + "_btSiRenderRow(__host, __c.ge2, __c.total);\n"
+        + "console.log(JSON.stringify({ count: __c, html: __html }));\n"
+    )
+    with tempfile.NamedTemporaryFile("w", suffix=".js", delete=False,
+                                     encoding="utf-8") as fh:
+        fh.write(harness)
+        path = fh.name
+    try:
+        out = subprocess.run([node, path], capture_output=True, text=True, timeout=20)
+        if out.returncode != 0:
+            print(f"    node stderr: {out.stderr[:300]}")
+            return None
+        return json.loads(out.stdout.strip())
+    finally:
+        pathlib.Path(path).unlink(missing_ok=True)
+
+
+def _test_si_functional():
+    print("── (E) SI Zähl-Logik + Graceful-Empty + KEINE Werte (node) ───")
+    js = _extract_si_js()
+    if js is None:
+        _check("E0 SI-JS-Block extrahierbar", False, "_btSiCount nicht gefunden")
+        return
+
+    # Fixture mit bekannten Serienlängen. shares_short bewusst distinktiv
+    # (7777777) — darf NICHT im Output erscheinen (nur Zähler/Status).
+    p = lambda: {"settlement_date": "2026-06-30", "shares_short": 7777777,
+                 "short_pct_float": 50.0, "pub_date": "2026-07-10"}
+    data = {
+        "AAA": [p(), p()],        # 2 Punkte → ≥2
+        "BBB": [p()],             # 1 Punkt  → nur total
+        "CCC": [p(), p(), p()],   # 3 Punkte → ≥2
+        "DDD": "kaputt",          # kein Array → ignoriert
+        "EEE": [],                # leeres Array → total, nicht ≥2
+    }
+    res = _run_si_node(js, data)
+    if res is None:
+        print("    ⊘ node nicht verfügbar — SI-Funktionaltest übersprungen "
+              "(Source-Gate D bleibt hart).")
+        return
+
+    _check(
+        "E1 ge2 (Ticker mit ≥2 Punkten) == 2 (AAA, CCC)",
+        res["count"]["ge2"] == 2, f"got {res['count']['ge2']}",
+    )
+    _check(
+        "E2 total (Ticker mit Array-Serie) == 4 (AAA,BBB,CCC,EEE; DDD kein Array)",
+        res["count"]["total"] == 4, f"got {res['count']['total']}",
+    )
+    _check(
+        "E3 gerenderte Zeile zeigt n=2 (4 Ticker)",
+        "n=2 (4 Ticker)" in res["html"], f"html={res['html'][:160]}",
+    )
+    # Graceful-Empty: leeres Objekt → n=0 (0 Ticker), kein Error.
+    res0 = _run_si_node(js, {})
+    if res0 is not None:
+        _check(
+            "E4 Graceful-Empty: {} → n=0 (0 Ticker)",
+            res0["count"] == {"ge2": 0, "total": 0}
+            and "n=0 (0 Ticker)" in res0["html"],
+            f"got {res0['count']}",
+        )
+    # KEINE Serien-Werte im Output — distinktiver shares_short darf nicht auftauchen.
+    _check(
+        "E5 kein Serien-Wert '7777777' im Output (nur Zähler/Status)",
+        "7777777" not in res["html"],
+        "shares_short wird gerendert — das wäre als SI-Position lesbar!",
+    )
+    # Status-Text ist der neutrale config-Text, KEINE Delta-/Signal-Sprache.
+    _check(
+        "E6 neutraler Status-Text (config), kein Signal",
+        config.SI_POSITION_STATUS_ROW[1] in res["html"]
+        and "sammelt" in res["html"] and "unvalidiert" in res["html"],
+        "neutraler Auffanglinie-Status fehlt im Output",
+    )
+
+
 def main():
     _test_source_wiring()
     _test_functional_counts()
+    _test_si_source_wiring()
+    _test_si_functional()
     print()
     if _fails:
         print(f"✗ {len(_fails)} Test(s) fehlgeschlagen: {_fails}")
         return 1
     print("✓ Alle Tests bestanden (Sammel-Felder-Status: Wiring + dynamische "
-          "non-null-Zähler + KEINE Feld-Werte).")
+          "non-null-Zähler + KEINE Feld-Werte + SI-Positions-Eintrag: "
+          "≥2-Punkte-Zähler + Graceful-Empty + KEINE Serien-Werte).")
     return 0
 
 

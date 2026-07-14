@@ -1411,6 +1411,20 @@ COLLECT_STATUS_FIELDS = [
      "sammelt · unvalidiert · auswertbar ab ~Q4 2026 (Ziel n ≥ 40)"),
 ]
 
+# Sechster Sammel-Status-Eintrag: SI-Positions-Zeitreihe. SEPARATE Datei
+# (si_position_history.json, dict-of-lists {ticker:[punkte]}), NICHT im
+# backtest_history-Record — daher eigener clientseitiger Fetch + eigene
+# Zähl-Logik (Ticker mit ≥ 2 Serienpunkten = auswertbares 1-Monats-Delta;
+# Gesamt-Ticker als Kontext). Label/Status/Dateiname zentral hier (Weg-A-
+# Muster analog COLLECT_STATUS_FIELDS) → KEIN Feldname-/Dateiname-Literal im
+# generate_report-Frontend-Source, Look-Ahead-Isolations-Guards bleiben grün.
+# Format: (anzeige_label, status_text, dateiname). REIN ANZEIGE, kein Signal.
+SI_POSITION_STATUS_ROW = (
+    "Short-Interest-Position (si_position_history)",
+    "sammelt · unvalidiert · auswertbar ab ~Q4 2026 (mehrere Settlement-Zyklen)",
+    SI_POSITION_HISTORY_FILE,
+)
+
 S10_OBSERVED_FIELDS = frozenset({
     # Core (immer gesetzt)
     "date", "ticker", "score", "entry_price", "rvol", "dtc",
