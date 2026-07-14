@@ -1,17 +1,17 @@
 {
-  "updated": "2026-07-14T11:17:43.139868+02:00",
+  "updated": "2026-07-14T12:58:25.072877+02:00",
   "run_info": {
     "tickers_checked": 15,
     "signals_active": 0,
     "alerts_sent": 0,
-    "elapsed_s": 15.8,
+    "elapsed_s": 18.1,
     "market_phase": "Pre-Market"
   },
   "signals": {
     "AI": {
       "score": 40,
       "confidence": 17,
-      "drivers": "News: partnership, short interest + UOA Call/Put 5.6×",
+      "drivers": "News: short interest, partnership + UOA Call/Put 5.6×",
       "price": 9.16,
       "chg_pct": -0.0,
       "rvol_4d": 1.0,
@@ -55,7 +55,7 @@
     "CBRL": {
       "score": 40,
       "confidence": 17,
-      "drivers": "News: earnings beat, short interest + UOA Call/Put 3.5×",
+      "drivers": "News: short interest, earnings beat + UOA Call/Put 3.5×",
       "price": 52.35,
       "chg_pct": -0.0,
       "rvol_4d": 0.78,
@@ -99,7 +99,7 @@
     "FUBO": {
       "score": 65,
       "confidence": 70,
-      "drivers": "Volumen 1.7× + Spanne 11.7% + News-KI 12/30: CEO appointment is positive news but lacks short-squeeze catalysts like high short interest, failed options barriers, or + Earnings in 23d + SEC Form 4 + UOA Call/Put 9.4×",
+      "drivers": "Volumen 1.7× + Spanne 11.7% + News-KI 12/30: CEO change provides modest positive catalyst but lacks indicators of short squeeze potential (no mention of short intere + Earnings in 23d + SEC Form 4 + UOA Call/Put 9.4×",
       "price": 9.83,
       "chg_pct": -0.0,
       "rvol_4d": 1.67,
@@ -141,7 +141,7 @@
     "JACK": {
       "score": 48,
       "confidence": 33,
-      "drivers": "News: covering, breakout + Earnings in 22d + UOA Call/Put 14.7×",
+      "drivers": "News: short interest, short squeeze + Earnings in 22d + UOA Call/Put 14.7×",
       "price": 15.12,
       "chg_pct": -0.0,
       "rvol_4d": 0.55,
@@ -201,9 +201,9 @@
       "uoa_cp_ratio": 1.6521739130434783
     },
     "METC": {
-      "score": 13,
+      "score": 23,
       "confidence": 33,
-      "drivers": "News-KI 5/30: Negative analyst downgrades and falling fair value indicate weak momentum; no short squeeze indicators present. + Earnings in 16d",
+      "drivers": "News: short interest + Earnings in 16d",
       "price": 12.63,
       "chg_pct": 0.0,
       "rvol_4d": 0.87,
@@ -214,16 +214,16 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 0,
+      "active_triggers": 1,
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": null,
       "uoa_cp_ratio": 1.5611702127659575
     },
     "PDYN": {
-      "score": 20,
+      "score": 38,
       "confidence": 33,
-      "drivers": "News-KI 12/30: Positive fundamentals (revenue growth, defense contracts, analyst upgrades) reduce short squeeze potential as they attra + Earnings in 22d",
+      "drivers": "News: partnership, contract + Earnings in 22d",
       "price": 5.15,
       "chg_pct": 0.0,
       "rvol_4d": 0.49,
@@ -303,9 +303,9 @@
       "uoa_cp_ratio": 0.72
     },
     "WOLF": {
-      "score": 18,
+      "score": 22,
       "confidence": 33,
-      "drivers": "Spanne 8.5% + News-KI 8/30: Negative patent lawsuit news reduces short-squeeze potential, while positive electrification theme provides minimal coun",
+      "drivers": "Spanne 8.5% + News-KI 12/30: Negative lawsuit headlines dominate sentiment, reducing short-squeeze potential despite sector tailwinds from electrific",
       "price": 33.65,
       "chg_pct": 0.0,
       "rvol_4d": 0.71,
@@ -316,7 +316,7 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 0,
+      "active_triggers": 1,
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": 1.1917808219178083,
