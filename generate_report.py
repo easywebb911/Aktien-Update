@@ -6791,6 +6791,12 @@ def _build_context(stocks: list[dict], report_date: str,
         # liefert ein JS-Array (nur [], keine {} → f-String-safe).
         "collect_status_fields_js": json.dumps(COLLECT_STATUS_FIELDS,
                                                ensure_ascii=False),
+        # Sechster Sammel-Status-Eintrag (SI-Positions-Zeitreihe, SEPARATE
+        # Datei). Label/Status/Dateiname aus config.SI_POSITION_STATUS_ROW
+        # injiziert (NICHT als Literal im Source — hält die Look-Ahead-Guards
+        # grün). json.dumps eines Tuples → JS-Array (nur [], f-String-safe).
+        "si_position_status_row_js": json.dumps(SI_POSITION_STATUS_ROW,
+                                                ensure_ascii=False),
         "chat_ctx_json":  chat_ctx_json,
         "head_html":      head_html,
         "chat_panel_html": chat_panel_html,
@@ -6831,6 +6837,10 @@ def generate_html_v1(stocks: list[dict], report_date: str,
     # config.COLLECT_STATUS_FIELDS. Defensiv "[]" bei altem Context ohne Key
     # → _btCollectStatus rendert dann leer statt zu crashen.
     collect_status_fields_js = ctx.get("collect_status_fields_js", "[]")
+    # Sechster Sammel-Status-Eintrag (SI-Positions-Zeitreihe): [label, status,
+    # dateiname] aus config.SI_POSITION_STATUS_ROW. Defensiv "[]" bei altem
+    # Context ohne Key → _btSiCollectStatus rendert dann nichts statt zu crashen.
+    si_position_status_row_js = ctx.get("si_position_status_row_js", "[]")
     # QUOTE_PROXY_URL: Cloudflare-Worker für Live-Quote-Polling. Aus
     # ENV bestimmt + URL-sanitized im _build_context. Leer → JS-Modul
     # ist no-op (siehe Sektion „Live-Quote-Polling" in CLAUDE.md).
@@ -7914,6 +7924,7 @@ def generate_html_v1(stocks: list[dict], report_date: str,
         <div class="bt-tile-title">Sammel-Felder — Datenerhebung (Fortschritt)</div>
         <p class="bt-collect-intro">Fortschritts-Monitoring der laufenden Datensammlung — <b>keine Handelsempfehlung, kein Signal</b>. Diese Felder werden erhoben, um sie später statistisch zu prüfen; sie sind <b>unvalidiert</b>. Das Tool ist ein Screener/Attention-Router, kein Alpha-Generator. &bdquo;n&ldquo; = Anzahl gesammelter Einträge, keine Trefferquote und keine Rendite.</p>
         <div id="bt-collect-status" class="bt-collect-list"></div>
+        <div id="bt-collect-si-status" class="bt-collect-list"></div>
       </div>
     </div>
   </section>
@@ -9639,6 +9650,9 @@ function _btRender(){{
   // Sammel-Felder-Fortschritt über ALLE Einträge (data, nicht filtered) —
   // die Erhebung ist toggle-unabhängig. Zählt nur non-null, rendert KEINE Werte.
   _btCollectStatus(data);
+  // Sechster Eintrag (SI-Positions-Zeitreihe): separate Datei, eigener Fetch —
+  // toggle-unabhängig, graceful-empty (fehlende Datei → n=0).
+  _btSiCollectStatus();
 }}
 // Datenerhebungs-Fortschritt der Sammel-Felder. REIN ANZEIGEND: zählt pro Feld
 // die non-null Einträge in _btData und zeigt Name + n + statischen Status.
@@ -9670,6 +9684,45 @@ function _btCollectStatus(data){{
           + '</div>';
   }}
   host.innerHTML = html;
+}}
+// ── Sechster Sammel-Status-Eintrag: SI-Positions-Zeitreihe ──────────────────
+// SEPARATE Datei (si_position_history.json, {{ticker:[punkte]}}) → eigener
+// clientseitiger Fetch. REIN ANZEIGEND: zählt Ticker mit ≥ 2 Serienpunkten
+// (= auswertbares 1-Monats-Delta), Gesamt-Ticker als Kontext. KEINE Serien-
+// Werte (kein shares_short, kein Delta) — nur Zähler + Status (Auffanglinie).
+// _btSiCount ist pur (node-testbar). GRACEFUL-EMPTY: fehlende/leere/kaputte
+// Datei → n=0, kein JS-Error.
+function _btSiCount(obj){{
+  let ge2 = 0, total = 0;
+  if (obj && typeof obj === 'object' && !Array.isArray(obj)){{
+    for (const k in obj){{
+      if (!Object.prototype.hasOwnProperty.call(obj, k)) continue;
+      const arr = obj[k];
+      if (Array.isArray(arr)){{ total++; if (arr.length >= 2) ge2++; }}
+    }}
+  }}
+  return {{ge2: ge2, total: total}};
+}}
+function _btSiRenderRow(host, ge2, total){{
+  const row = Array.isArray(_SI_POSITION_STATUS) ? _SI_POSITION_STATUS : [];
+  const label = row[0] || '', status = row[1] || '';
+  const esc = s => String(s)
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  host.innerHTML = '<div class="bt-collect-row">'
+    + '<span class="bt-collect-name">' + esc(label) + '</span>'
+    + '<span class="bt-collect-n">n=' + ge2 + ' (' + total + ' Ticker)</span>'
+    + '<span class="bt-collect-status">' + esc(status) + '</span>'
+    + '</div>';
+}}
+function _btSiCollectStatus(){{
+  const host = document.getElementById('bt-collect-si-status');
+  if (!host) return;
+  const file = (Array.isArray(_SI_POSITION_STATUS) ? _SI_POSITION_STATUS[2] : '') || '';
+  if (!file){{ _btSiRenderRow(host, 0, 0); return; }}
+  fetch('./' + file + '?_=' + Date.now())
+    .then(r => r.ok ? r.json() : {{}})
+    .then(d => {{ const c = _btSiCount(d); _btSiRenderRow(host, c.ge2, c.total); }})
+    .catch(() => _btSiRenderRow(host, 0, 0));
 }}
 function _btRenderHitRates(data){{
   const svg = document.getElementById('bt-chart-hit');
@@ -9959,6 +10012,10 @@ const _STALE_STALE_MIN_H = {staleness_stale_h};
 // config.COLLECT_STATUS_FIELDS (server-injiziert). _btCollectStatus zählt pro
 // Feld die non-null Einträge in _btData. Rein anzeigend, keine Feld-Werte.
 const _COLLECT_STATUS_FIELDS = {collect_status_fields_js};
+// Sechster Sammel-Status-Eintrag (SI-Positions-Zeitreihe): [label, status,
+// dateiname] aus config.SI_POSITION_STATUS_ROW. Separate Datei → eigener
+// Fetch in _btSiCollectStatus. Rein anzeigend, keine Serien-Werte.
+const _SI_POSITION_STATUS = {si_position_status_row_js};
 // Polling-Intervall in ms. 15 s ist die Spec-Vorgabe; Cloudflare-Worker
 // cached 10 s edge-side, Yahoo-Backend bekommt also max ~6 Req/min pro
 // Symbol-Set über alle aktiven Browser zusammen.
