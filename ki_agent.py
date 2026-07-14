@@ -116,7 +116,7 @@ def parse_top_tickers() -> list[str]:
             continue
         if t not in clean:
             clean.append(t)
-    log.info("Top-Ticker aus index.html: %s", clean)
+    log.info("Top-Ticker aus %s: %s", _src.name, clean)
     return clean
 
 

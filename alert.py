@@ -146,7 +146,7 @@ def parse_index_html() -> list[dict]:
             "rel_volume": 0.0,  # wird beim Baseline-Aufbau per yfinance befüllt
         })
 
-    log.info("index.html: %d Kandidaten geparst.", len(result))
+    log.info("%s: %d Kandidaten geparst.", _src.name, len(result))
     return result
 
 
