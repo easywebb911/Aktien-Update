@@ -1,4 +1,3 @@
-{"run_ts": "2026-06-14T06:57:36Z", "run_phase": "ki_agent_tick", "schema_v": 1, "state_fails": [], "provider_fails": []}
 {"run_ts": "2026-06-14T10:32:48Z", "run_phase": "ki_agent_tick", "schema_v": 1, "state_fails": [{"id": "S8", "severity": "warn", "detail": "kein erfolgreicher Digest-Push seit 26.0 h (Schwelle 26 h) — silent ntfy-Fail oder Cron-Drop"}], "provider_fails": []}
 {"run_ts": "2026-06-14T13:04:24Z", "run_phase": "ki_agent_tick", "schema_v": 1, "state_fails": [], "provider_fails": []}
 {"run_ts": "2026-06-14T15:18:47Z", "run_phase": "ki_agent_tick", "schema_v": 1, "state_fails": [], "provider_fails": []}
@@ -379,3 +378,4 @@
 {"run_ts": "2026-07-14T00:08:38Z", "run_phase": "ki_agent_tick", "schema_v": 1, "state_fails": [], "provider_fails": []}
 {"run_ts": "2026-07-14T03:34:26Z", "run_phase": "ki_agent_tick", "schema_v": 1, "state_fails": [], "provider_fails": []}
 {"run_ts": "2026-07-14T06:25:31Z", "run_phase": "ki_agent_tick", "schema_v": 1, "state_fails": [], "provider_fails": []}
+{"run_ts": "2026-07-14T08:21:22Z", "run_phase": "postclose", "schema_v": 1, "state_fails": [], "provider_fails": []}

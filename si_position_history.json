@@ -418,5 +418,80 @@
       "short_pct_float": 5.96,
       "pub_date": "2026-07-10"
     }
+  ],
+  "TTEC": [
+    {
+      "settlement_date": "2026-05-29",
+      "shares_short": 6472994,
+      "short_pct_float": null,
+      "pub_date": "2026-06-09",
+      "seeded": true
+    },
+    {
+      "settlement_date": "2026-06-30",
+      "shares_short": 5809025,
+      "short_pct_float": 29.03,
+      "pub_date": "2026-07-10"
+    }
+  ],
+  "SEAT": [
+    {
+      "settlement_date": "2026-05-29",
+      "shares_short": 942401,
+      "short_pct_float": null,
+      "pub_date": "2026-06-09",
+      "seeded": true
+    },
+    {
+      "settlement_date": "2026-06-30",
+      "shares_short": 1053034,
+      "short_pct_float": 26.09,
+      "pub_date": "2026-07-10"
+    }
+  ],
+  "BH-A": [
+    {
+      "settlement_date": "2026-05-29",
+      "shares_short": 4690,
+      "short_pct_float": null,
+      "pub_date": "2026-06-09",
+      "seeded": true
+    },
+    {
+      "settlement_date": "2026-06-30",
+      "shares_short": 8429,
+      "short_pct_float": 15.09,
+      "pub_date": "2026-07-10"
+    }
+  ],
+  "SOC": [
+    {
+      "settlement_date": "2026-05-29",
+      "shares_short": 24764085,
+      "short_pct_float": null,
+      "pub_date": "2026-06-09",
+      "seeded": true
+    },
+    {
+      "settlement_date": "2026-06-30",
+      "shares_short": 29257402,
+      "short_pct_float": 25.97,
+      "pub_date": "2026-07-10"
+    }
+  ],
+  "PDYN": [
+    {
+      "settlement_date": "2026-05-29",
+      "shares_short": 6804876,
+      "short_pct_float": null,
+      "pub_date": "2026-06-09",
+      "seeded": true
+    },
+    {
+      "settlement_date": "2026-06-30",
+      "shares_short": 8332776,
+      "short_pct_float": 19.97,
+      "pub_date": "2026-07-10"
+    }
   ]
 }
