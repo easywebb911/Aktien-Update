@@ -1,39 +1,17 @@
 {
-  "updated": "2026-07-14T08:25:25.091796+02:00",
+  "updated": "2026-07-14T10:22:43.167831+02:00",
   "run_info": {
     "tickers_checked": 15,
     "signals_active": 0,
     "alerts_sent": 0,
-    "elapsed_s": 17.4,
-    "market_phase": "Geschlossen"
+    "elapsed_s": 12.0,
+    "market_phase": "Pre-Market"
   },
   "signals": {
-    "ABEO": {
-      "score": 38,
-      "confidence": 70,
-      "drivers": "Spanne 6.2% + Earnings in 30d + SEC Form 4 + UOA Call/Put 3.5×",
-      "price": 7.01,
-      "chg_pct": 0.0,
-      "rvol_4d": 0.75,
-      "rvol_20d": 0.89,
-      "earnings": "in 30 Tagen (13.08.2026)",
-      "fda_date": null,
-      "upcoming_event": null,
-      "insider_buy": false,
-      "stocktwits": null,
-      "combo_mult": 1.0,
-      "active_triggers": 0,
-      "uoa_score": 10,
-      "uoa_drivers": [
-        "UOA Call/Put 3.5×"
-      ],
-      "uoa_atm_ratio": 0.7573221757322176,
-      "uoa_cp_ratio": 3.5294117647058822
-    },
     "AI": {
-      "score": 40,
+      "score": 22,
       "confidence": 17,
-      "drivers": "News: partnership, short interest + UOA Call/Put 5.6×",
+      "drivers": "News-KI 12/30: Moderate interest in AI stocks but lacking specific short-squeeze indicators like high short interest, low float, or ret + UOA Call/Put 5.6×",
       "price": 9.16,
       "chg_pct": -0.0,
       "rvol_4d": 1.0,
@@ -157,13 +135,13 @@
       "active_triggers": 0,
       "uoa_score": 0,
       "uoa_drivers": [],
-      "uoa_atm_ratio": null,
-      "uoa_cp_ratio": null
+      "uoa_atm_ratio": 0.2164369576314446,
+      "uoa_cp_ratio": 0.9490169739894981
     },
     "JACK": {
       "score": 48,
       "confidence": 33,
-      "drivers": "News: breakout, short interest + Earnings in 22d + UOA Call/Put 14.7×",
+      "drivers": "News: short squeeze, squeeze + Earnings in 22d + UOA Call/Put 14.7×",
       "price": 15.12,
       "chg_pct": -0.0,
       "rvol_4d": 0.55,
@@ -179,7 +157,7 @@
       "uoa_drivers": [
         "UOA Call/Put 14.7×"
       ],
-      "uoa_atm_ratio": 0.06697965571205008,
+      "uoa_atm_ratio": null,
       "uoa_cp_ratio": 14.724137931034482
     },
     "LENZ": {
@@ -199,7 +177,7 @@
       "active_triggers": 1,
       "uoa_score": 0,
       "uoa_drivers": [],
-      "uoa_atm_ratio": 0.004329004329004329,
+      "uoa_atm_ratio": null,
       "uoa_cp_ratio": 0.6869158878504673
     },
     "LOVE": {
@@ -219,17 +197,17 @@
       "active_triggers": 1,
       "uoa_score": 0,
       "uoa_drivers": [],
-      "uoa_atm_ratio": 0.11594202898550725,
+      "uoa_atm_ratio": null,
       "uoa_cp_ratio": 1.6521739130434783
     },
     "METC": {
       "score": 13,
       "confidence": 33,
-      "drivers": "News-KI 5/30: Negative analyst coverage and falling valuations indicate weak momentum; no short squeeze indicators present. + Earnings in 16d",
+      "drivers": "News-KI 5/30: Negative analyst revisions und kein Hinweis auf hohe Short-Quote oder Squeeze-Potenzial erkennbar. + Earnings in 16d",
       "price": 12.63,
       "chg_pct": 0.0,
-      "rvol_4d": 0.87,
-      "rvol_20d": 0.86,
+      "rvol_4d": 0.0,
+      "rvol_20d": null,
       "earnings": "in 16 Tagen (30.07.2026)",
       "fda_date": null,
       "upcoming_event": null,
@@ -239,33 +217,13 @@
       "active_triggers": 0,
       "uoa_score": 0,
       "uoa_drivers": [],
-      "uoa_atm_ratio": 0.0007107709130672498,
+      "uoa_atm_ratio": null,
       "uoa_cp_ratio": 1.5611702127659575
-    },
-    "PAR": {
-      "score": 23,
-      "confidence": 33,
-      "drivers": "News: partnership + Earnings in 24d",
-      "price": 17.19,
-      "chg_pct": 0.0,
-      "rvol_4d": 0.77,
-      "rvol_20d": 0.48,
-      "earnings": "in 24 Tagen (07.08.2026)",
-      "fda_date": null,
-      "upcoming_event": null,
-      "insider_buy": false,
-      "stocktwits": null,
-      "combo_mult": 1.0,
-      "active_triggers": 1,
-      "uoa_score": 0,
-      "uoa_drivers": [],
-      "uoa_atm_ratio": 0.00352,
-      "uoa_cp_ratio": 0.48936170212765956
     },
     "PDYN": {
       "score": 38,
       "confidence": 33,
-      "drivers": "News: partnership, contract + Earnings in 22d",
+      "drivers": "News: contract, partnership + Earnings in 22d",
       "price": 5.15,
       "chg_pct": 0.0,
       "rvol_4d": 0.49,
@@ -281,6 +239,26 @@
       "uoa_drivers": [],
       "uoa_atm_ratio": 0.056338028169014086,
       "uoa_cp_ratio": 1.62
+    },
+    "SEAT": {
+      "score": 33,
+      "confidence": 70,
+      "drivers": "Volumen 1.7× + Spanne 23.6% + Earnings in 21d",
+      "price": 8.02,
+      "chg_pct": 0.0,
+      "rvol_4d": 1.7,
+      "rvol_20d": 0.91,
+      "earnings": "in 21 Tagen (04.08.2026)",
+      "fda_date": null,
+      "upcoming_event": null,
+      "insider_buy": false,
+      "stocktwits": null,
+      "combo_mult": 1.0,
+      "active_triggers": 0,
+      "uoa_score": 0,
+      "uoa_drivers": [],
+      "uoa_atm_ratio": null,
+      "uoa_cp_ratio": null
     },
     "TRIP": {
       "score": 28,
@@ -304,10 +282,30 @@
       "uoa_atm_ratio": 0.25960775422287724,
       "uoa_cp_ratio": 15.743589743589743
     },
+    "TTEC": {
+      "score": 58,
+      "confidence": 70,
+      "drivers": "Volumen 1.9× + Spanne 12.9% + Earnings in 23d + FINRA Short-Vol 98%",
+      "price": 2.35,
+      "chg_pct": -0.0,
+      "rvol_4d": 1.86,
+      "rvol_20d": 0.93,
+      "earnings": "in 23 Tagen (06.08.2026)",
+      "fda_date": null,
+      "upcoming_event": null,
+      "insider_buy": false,
+      "stocktwits": null,
+      "combo_mult": 1.0,
+      "active_triggers": 0,
+      "uoa_score": 0,
+      "uoa_drivers": [],
+      "uoa_atm_ratio": 0.012903225806451613,
+      "uoa_cp_ratio": 0.72
+    },
     "WOLF": {
-      "score": 18,
+      "score": 25,
       "confidence": 33,
-      "drivers": "Spanne 8.5% + News-KI 8/30: Negative lawsuit headlines outweigh positive industry trend; no short squeeze indicators like high short interest, low f",
+      "drivers": "Spanne 8.5% + News: short interest",
       "price": 33.65,
       "chg_pct": 0.0,
       "rvol_4d": 0.71,
@@ -318,7 +316,7 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 0,
+      "active_triggers": 1,
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": 1.1917808219178083,
