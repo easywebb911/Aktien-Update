@@ -111,14 +111,37 @@ def _write(p: pathlib.Path, s: str) -> None:
     p.write_text(s, encoding="utf-8")
 
 
+_KI = (ROOT / "ki_agent.py").read_text(encoding="utf-8")
+_AL = (ROOT / "alert.py").read_text(encoding="utf-8")
+
+# Kanonisches Repoint-Muster (Source-Grep, CI-minimal-safe — kein Import).
+_REPOINT = "_src = APP_HTML if APP_HTML.exists() else INDEX_HTML"
+
+
 def test_d_ki_agent_parse() -> None:
     print("── (D) ki_agent.parse_top_tickers → app.html (Top-10-Quelle) ─")
+    # (D-Source, immer): der Repoint + Fallback steht im Code. CI-minimal-safe —
+    # ki_agent importiert pandas/yfinance (nicht im CI-Install), daher KEIN
+    # Modul-Import im harten Gate (Lehre §8n Sandbox-CI-Divergenz; analog
+    # mock_test_ki_agent_coverage, das ebenfalls nur Source liest).
+    _check("D-src1 parse_top_tickers: app.html bevorzugt, Fallback index.html",
+           _REPOINT in _KI, "Repoint-Muster fehlt in ki_agent.parse_top_tickers")
+    _check("D-src2 liest über _src.read_text (nicht mehr INDEX_HTML.read_text)",
+           "_src.read_text(encoding=\"utf-8\")" in _KI
+           and "INDEX_HTML.read_text" not in _KI,
+           "ki_agent liest noch direkt INDEX_HTML")
+    # (D-Live, best-effort): echter Funktions-Lauf, wenn die Deps da sind (Dev-
+    # Env). In CI-minimal übersprungen → Source-Gate oben bleibt hart.
     _install_stubs()
-    import ki_agent
+    try:
+        import ki_agent
+    except Exception as exc:
+        print(f"    ⊘ ki_agent-Import übersprungen (CI-minimal: {type(exc).__name__}) "
+              "— D-Source bleibt hart.")
+        return
     tmp = pathlib.Path(tempfile.mkdtemp())
     app, idx = tmp / "app.html", tmp / "index.html"
     ki_agent.APP_HTML, ki_agent.INDEX_HTML = app, idx
-    # app.html bevorzugt: unterschiedliche Ticker in app vs index beweisen die Quelle.
     _write(app, '<span class="ticker">FOO</span><span class="ticker">BAR</span>')
     _write(idx, '<span class="ticker">WRONG</span>')
     _check("D1 liest app.html (FOO,BAR — nicht index/WRONG)",
@@ -135,8 +158,18 @@ def test_d_ki_agent_parse() -> None:
 
 def test_e_alert_parse() -> None:
     print("── (E) alert.parse_index_html → app.html ────────────────────")
+    _check("E-src1 parse_index_html: app.html bevorzugt, Fallback index.html",
+           _REPOINT in _AL, "Repoint-Muster fehlt in alert.parse_index_html")
+    _check("E-src2 alert hat eigenes APP_HTML = Path('app.html')",
+           'APP_HTML        = Path("app.html")' in _AL,
+           "alert.APP_HTML fehlt")
     _install_stubs()
-    import alert
+    try:
+        import alert
+    except Exception as exc:
+        print(f"    ⊘ alert-Import übersprungen (CI-minimal: {type(exc).__name__}) "
+              "— E-Source bleibt hart.")
+        return
     tmp = pathlib.Path(tempfile.mkdtemp())
     app, idx = tmp / "app.html", tmp / "index.html"
     alert.APP_HTML, alert.INDEX_HTML = app, idx
