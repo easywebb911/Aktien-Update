@@ -1,4 +1,4 @@
-# SESSION_HANDOVER.md — Stand 14.07.2026 (Vormittag)
+# SESSION_HANDOVER.md — Stand 14.07.2026 (Nachmittag)
 
 **Zweck:** vollständige Übergabe an eine **neue Code-Session ohne Kontext der
 alten**. Dieses Dokument + `CLAUDE.md` müssen zusammen ausreichen, um am
@@ -23,6 +23,62 @@ Anker.
 ---
 
 ## 1) HEUTE IMPLEMENTIERT (chronologisch, mit Hashes)
+
+### 14.07.2026 (Nachmittag) — KI-Anzeige-Fixes + PWA-Cache-Strukturfix Phase 0
+
+### PR #432 — 14.07. — Merge `67dd86e` (feat `98748ff`)
+**★ KI-Pillar-Zahl live nachziehen (`renderAgentSignals`).** Frontend-Fix zur
+Diagnose 14.07.: der frische ki-Score liegt im Client vor (`app_data.agent_
+signals`, deckt alle 10 Top-10 ab) und wird schon für Dot/`dataset.kiScore`
+genutzt — aber die server-gerenderte **KI-Pillar-Zahl** blieb bei „—" (Neu-
+Einsteiger nach Top-10-Rotation: Daily-Run rendert VOR dem Tick) oder stale.
+`renderAgentSignals` patcht jetzt in der bestehenden Karten-Schleife **Zahl +
+Farbe + Balken** aus `signals[ticker].score` (Farb-Schwellen identisch zu
+server `_tri_score_color`: ≥60 grün / ≥30 orange / <30 rot). **Live-Effekt (reale
+Daten):** 6 Karten füllten sich (GRPN/INDI/FXHO/NTLA/FDMT/VSTM), 2 stale-
+Korrekturen (FRMM 43→28, WOLF 18→10). **Konfidenz-Wasserzeichen (#425/#426)
+UNBERÜHRT** — nur `textContent`+`style`, **kein** `classList`-Touch (Test B6).
+Neuer `mock_test_ki_pillar_live_patch` (node: Zahl/Farbe/Balken/Stale/Graceful-
+Empty/Wasserzeichen). Golden mit-aktualisiert. **Frontend + Golden → manueller
+Merge (Easy-Freigabe).**
+
+### PR #433 — 14.07. — `3167981` (squash)
+**★ Recalculate-Reload cache-bustend (#373-Inkonsistenz behoben).** Der
+Recalculate-Abschluss-Reload (Countdown-Auto + `_manualReload`) nutzte plain
+`window.location.reload()` → respektiert den GitHub-Pages `max-age=600`. Beide
+Stellen auf das **bestehende** `?v=`-Muster von `reloadPage` angeglichen
+(`window.location.replace(location.pathname + '?v=' + Date.now())`). Kein neues
+Muster (bewusst nicht `reloadPage()` aufgerufen — btn-Side-Effect vermieden).
+`mock_test_service_worker_removed` um 4 Assertions erweitert (bustendes Muster +
+kein plain reload() mehr). Golden mit-aktualisiert. **Frontend-Tweak (proven
+Pattern) → Auto-Merge.** *(Wichtig: behebt nur den In-App-Reload — das PWA-
+Launcher-Cache-Problem bleibt, s. #434/§4.)*
+
+### PR #434 — 14.07. — Merge `268d955` (feat `8ed7505` + test `0f38c7f` + chore `263d656`)
+**★★ Bootstrap-Shell PHASE 0 — `app.html` Content-Pfad + Parser-Repoint (KEIN
+Flip).** Vorbereitung des strukturellen iOS-PWA-Launcher-Cache-Fixes.
+**`index.html` bleibt die volle Seite** (Golden **byte-identisch** → kein
+Content-/Score-/Pipeline-Touch bewiesen); `app.html` wird zusätzlich byte-
+identisch geschrieben, und **alle Content-Parser** lesen jetzt `app.html` mit
+**Fallback `index.html`** (Zero-Downtime für die erste Zyklus-Runde):
+- `config.APP_HTML = Path("app.html")` (INDEX_HTML bleibt = Seite).
+- `ki_agent.parse_top_tickers` (**die Top-10-Quelle**), `alert.parse_index_html`
+  (eigenes `APP_HTML`), **S9** `html_path="app.html"` + crit-Re-Read,
+  `smoke_render.js` — alle → `_src = app.html|index.html`.
+- Doppel-Write (Content + Error-Page) nach beide Dateien; Workflow `git add
+  app.html`; Jekyll-Test um `app.html` erweitert.
+- **S9-Sicherheit:** einziger `sys.exit`-Pfad — fail-soft, fehlende `app.html`
+  → **WARN, nie crit** (`health_check.py:917`); `app.html` wird **vor** S9
+  geschrieben.
+**Guardian ✅** (Konsumenten vollständig repointed, kein übersehener Parser, S9
+sicher; zwei kosmetische Log-Strings `_src.name` nachgezogen — `263d656`).
+`0f38c7f`: Test CI-minimal-safe gemacht (§8n — ki_agent zieht pandas, nicht im
+CI-Install → D/E Source-Grep hart + Live-Lauf best-effort). Neuer
+`mock_test_bootstrap_shell_phase0` (18 Checks). **Deploy-Pfad + Health-Check +
+Parser → manueller Merge (Easy-Freigabe).** **Phase 1 (Flip) erst nach Zyklus-
+Verify (§3/§4).**
+
+---
 
 ### 14.07.2026 (Vormittag) — Absicherung + Panel-Vollzug
 
@@ -358,6 +414,23 @@ nur bei `available=True`.
 
 ### AKUT (weiterhin offen)
 
+- **★★ PHASE-0-ZYKLUS-VERIFY — KRITISCHE Vorbedingung für Phase 1 (#434).**
+  Nach dem **nächsten Daily-Run** (heute ~21:17 UTC postclose) read-only prüfen,
+  ob der `app.html`-Content-Pfad sauber trägt — **alle drei** müssen stimmen,
+  sonst **Phase 1 (Shell-Flip) NICHT freigeben:**
+  - **(a)** `app.html` existiert im Repo (Daily-Run schrieb + committete es via
+    `git add app.html`).
+  - **(b)** **S9 grün** im Health-Log (kein WARN/crit; `state_fails` ohne S9) —
+    S9 prüft seit #434 `app.html`.
+  - **(c)** `ki_agent`-Tick zieht die Top-10 aus `app.html` (Log „Top-Ticker aus
+    app.html: …") → **KI-Scores kommen weiter** auf den Karten.
+  **Erst wenn (a)+(b)+(c) sauber → Phase 1 freigeben (§4). NICHT vorziehen.**
+
+- **★ KI-Karten nach Deploy (#432):** nach dem nächsten Deploy zeigen **alle 10**
+  Top-10-Karten einen KI-Score (die 6 vormals „—" gefüllt, Farben konsistent).
+  **Cache-Bust nötig** (iOS/Browser) — der Launcher-Cache bleibt das separate
+  Phase-1-Thema.
+
 - **★ Monster-Kachel neutral-grau — iPhone-Blick (#425/#426):** Monster-Zahl +
   Progress-Bar müssen **grau** (`#94a3b8`) statt Ampel-Grün erscheinen, in
   **beiden** Karten-Pfaden (Top-10 + Watchlist-Drawer). Live-Verify am iPhone
@@ -468,6 +541,36 @@ Seed, gegen die reale Datei. Umgesetzt exakt nach Plan: separater client-Fetch
 in `config.SI_POSITION_STATUS_ROW` (Weg-A, kein Frontend-Literal), rein anzeigend
 (keine Serien-Werte), Golden + Panel-Tests (D/E) grün. Live: **n=28**. Details in
 §1 (PR #430). Live-Sicht-Check nach Deploy in §3 (AKUT).
+### BOOTSTRAP-SHELL PHASE 1 (Flip) — NACH Phase-0-Zyklus-Verify (§3)
+
+**Vorbedingung: der Phase-0-Zyklus-Verify (§3) muss sauber sein** (app.html
+existiert, S9 grün, ki_agent zieht Top-10 aus app.html). **Nicht vorziehen.**
+
+**Bau:** `index.html`-Content durch eine **winzige Shell** ersetzen:
+- `<script>location.replace('app.html?v=' + Date.now())</script>` (eindeutige
+  URL → Cache-Miss auf dem Content).
+- **Apple-Meta zwingend** (`apple-mobile-web-app-capable` / `-status-bar-style`
+  / `-title`) — sonst verliert der Launch **Standalone/Icon/Titel**.
+- `<noscript><meta http-equiv="refresh" content="0; url=app.html"></noscript>`
+  + sichtbarer Fallback-`<a href="app.html">`-Link.
+- Viewport-Meta.
+
+**Übergang (einmalige User-Adoption):** iOS hat die alte volle `index.html` im
+Standalone-Cache → der Launcher zeigt sie weiter, bis adoptiert. Robustester Weg:
+**Home-Icon löschen + neu „Zum Home-Bildschirm hinzufügen"** (re-captured die
+start_url frisch). Alternativen: in-App „Aktualisieren" (`?v=`) oder `?bust=999`
++ Safari-App komplett beenden.
+
+**Rollback:** Revert-PR macht `index.html` wieder zur vollen Seite — **unschädlich**,
+weil die Parser seit Phase 0 `app.html` (mit index-Fallback) lesen.
+
+**Restrisiko:** Deploy-Race (Shell live, bevor `app.html` deployed ist) → weiße
+Seite ~5 Min. **Mitigiert** durch (a) `app.html`-first-Deploy (Phase 0 schreibt
+es bereits), (b) `<noscript>`-Refresh + sichtbarer Fallback-Link in der Shell.
+
+**Klassifikation:** Frontend + Golden + neue Datei-Struktur → **manueller Merge**;
+Golden-Update (Shell-Content ≠ volle Seite — bewusste, große Golden-Änderung).
+
 ### Erledigt (nicht mehr im Backlog)
 
 - **Hypothese C (Peak-Ziel, +10/+30/+50 %) — ERLEDIGT 04.07.2026.** Null belegt
@@ -812,8 +915,44 @@ löschen; bei Änderung erst Konsument (Statusleiste), dann Definition (§8p).
 
 ## 8) LESSONS
 
-*(Neueste zuerst: 8q–8r vom 14.07.; 8n–8p vom 13.07.; 8j–8m vom 11.–12.07.;
-etablierte 8a–8i darunter.)*
+*(Neueste zuerst: 8s–8u vom 14.07.-Nachmittag; 8q–8r vom 14.07.-Vormittag;
+8n–8p vom 13.07.; 8j–8m vom 11.–12.07.; etablierte 8a–8i darunter.)*
+
+### 8s. `index.html` ist DATENQUELLE, nicht nur die Seite (14.07.)
+
+Was wie „die ausgelieferte Seite" aussieht, ist zugleich der **Content-Parse-
+Pfad**: `ki_agent.parse_top_tickers` (**die Top-10-Quelle**), `alert.parse_
+index_html` (Morgen-Baseline) und der **S9-Health-Check** lesen `index.html` als
+**Daten**. Ein Umbenennen/Verschieben dort ist ein **Content-Parser-Refactor mit
+Fan-out über ~8 Dateien** (config, ki_agent, alert, generate_report-Write+S9,
+smoke_render.js, Workflow-`git add`, Jekyll-Test), **kein Frontend-Tweak**. Ein
+übersehener Parser = **stiller Bruch** (KI-Agent scort nichts / Alarm leer / S9-
+crit → kein Deploy). **Regel:** vor jeder Änderung an `index.html`-Struktur ALLE
+Reader greppen (`*.py`/`*.js`/`*.yml`), Repoint mit Fallback, Guardian-Zweitblick
+auf Konsumenten-Vollständigkeit (Präzedenz #434 Phase 0).
+
+### 8t. iOS-PWA-Launcher öffnet die parameterlose start_url — `?v=` greift dort NIE (14.07.)
+
+Der `?v=`-Cache-Bust (#373) wirkt **nur** bei In-App-Refresh + JSON-Fetches — der
+**Home-Icon-Launcher** öffnet die **parameterlose start_url** aus dem iOS-
+Standalone-Webapp-Cache, wo kein `?v=` anhängt. GitHub Pages liefert HTML mit
+`Cache-Control: max-age=600`, das **nicht änderbar** ist (github.io erlaubt keine
+eigenen HTTP-Header, kein `_headers`). Der **einzige strukturelle Fix** ist eine
+**Bootstrap-Shell** (Phase 0 #434 → Phase 1 §4): die gecachte start_url wird zur
+winzigen Weiche auf `app.html?v=`. Auch der #433-Recalc-Reload-Fix erreicht den
+Launcher nicht.
+
+### 8u. §8n-Erweiterung — Tests, die ki_agent importieren, ziehen pandas → rot in CI-minimal (14.07.)
+
+`import ki_agent` (oder `generate_report`) zieht **pandas/yfinance**, die im CI-
+Minimal-Install (`stdlib+jinja2+pyyaml`) **fehlen** → der Test ist lokal grün,
+in der advisory CI rot (`bootstrap_shell_phase0`, Run #29361033915). **Muster
+(CI-safe):** die Invariante per **Source-Inspektion** hart verankern (Präzedenz
+`mock_test_ki_agent_coverage`, das ki_agent NIE importiert, nur `read_text`);
+den echten Funktions-Lauf nur **best-effort** (`try: import … except: skip`),
+sodass er in Dev-Envs läuft, in CI sauber übersprungen wird. Verifikation:
+**immer auch die CI-minimal-Bedingung lokal simulieren** (Import-Block auf
+pandas/numpy), nicht nur im vollen Env testen.
 
 ### 8q. Verify-Zählung muss Alt-Records ausklammern (14.07.-Fehlalarm)
 
