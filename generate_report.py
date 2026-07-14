@@ -11186,12 +11186,16 @@ function _startSuccessCountdown(){{
     const barEl  = document.getElementById('cd-bar');
     if (secsEl) secsEl.textContent = n;
     if (barEl)  barEl.style.width  = (n / CD_SECS * 100) + '%';
-    if (n <= 0){{ clearInterval(_cdInterval); _cdInterval = null; window.location.reload(); }}
+    // Cache-bustendes Reload (identisch zu reloadPage, #373): plain reload()
+    // respektiert den GitHub-Pages max-age → alte Bytes. Eindeutige ?v=-URL
+    // erzwingt Cache-Miss. replace() → kein Back-History-Eintrag.
+    if (n <= 0){{ clearInterval(_cdInterval); _cdInterval = null; window.location.replace(location.pathname + '?v=' + Date.now()); }}
   }}, 1000);
 }}
 function _manualReload(){{
   if (_cdInterval){{ clearInterval(_cdInterval); _cdInterval = null; }}
-  window.location.reload();
+  // Cache-bustendes Reload wie reloadPage (#373) — nicht plain reload().
+  window.location.replace(location.pathname + '?v=' + Date.now());
 }}
 window.addEventListener('beforeunload', ()=>{{
   if (_cdInterval){{ clearInterval(_cdInterval); _cdInterval = null; }}

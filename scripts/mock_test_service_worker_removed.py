@@ -94,6 +94,45 @@ def test_09_apple_meta_tags_preserved() -> None:
         "apple-mobile-web-app-title Meta-Tag entfernt"
 
 
+# ── Cache-Bust-Konsistenz im Recalculate-Reload (Fix 14.07.) ────────────────
+# reloadPage (Menü) nutzt das bustende ?v=-Muster; die Recalculate-Abschluss-
+# Reloads (Countdown-Auto + _manualReload) nutzten plain reload() → respektierten
+# den GitHub-Pages max-age. Angeglichen an dasselbe #373-Muster.
+
+_BUST = "window.location.replace(location.pathname + '?v=' + Date.now())"
+
+
+def _manual_reload_body() -> str:
+    start = GR.find("function _manualReload(){{")
+    assert start != -1, "_manualReload-Funktion nicht gefunden"
+    end = GR.find("window.addEventListener('beforeunload'", start)
+    return GR[start:end]
+
+
+def test_10_reloadpage_pattern_present() -> None:
+    # Referenz-Muster (Menü-Refresh) unveraendert vorhanden.
+    assert _BUST in GR, "reloadPage-?v=-Bust-Muster fehlt (Referenz)"
+
+
+def test_11_recalc_countdown_reload_busts() -> None:
+    # Countdown-Auto-Reload (n<=0) nutzt das bustende ?v=-Muster.
+    assert f"_cdInterval = null; {_BUST}" in GR, \
+        "Recalculate-Countdown-Reload nutzt nicht das bustende ?v=-Muster"
+
+
+def test_12_manual_reload_busts() -> None:
+    body = _manual_reload_body()
+    assert _BUST in body, "_manualReload nutzt nicht das bustende ?v=-Muster"
+    assert "window.location.reload()" not in body, \
+        "_manualReload hat noch plain reload() (respektiert HTTP-Cache)"
+
+
+def test_13_no_plain_reload_in_recalc_countdown() -> None:
+    # Kein plain reload() mehr im Countdown-Auto-Pfad.
+    assert "_cdInterval = null; window.location.reload()" not in GR, \
+        "Plain reload() im Recalculate-Countdown-Pfad verblieben"
+
+
 # ── Runner ───────────────────────────────────────────────────────────────────
 
 def main() -> int:
@@ -107,6 +146,10 @@ def main() -> int:
         ("07 Workflow: kein git add service_worker", test_07_workflow_no_sw_git_add),
         ("08 _config.yml: kein SW-Hinweis",          test_08_jekyll_config_no_sw_mention),
         ("09 Apple-Meta-Tags erhalten",              test_09_apple_meta_tags_preserved),
+        ("10 reloadPage-?v=-Muster vorhanden",       test_10_reloadpage_pattern_present),
+        ("11 Recalc-Countdown-Reload bustet",        test_11_recalc_countdown_reload_busts),
+        ("12 _manualReload bustet (kein plain)",     test_12_manual_reload_busts),
+        ("13 kein plain reload() im Countdown",      test_13_no_plain_reload_in_recalc_countdown),
     ]
     failed = 0
     for name, fn in tests:
