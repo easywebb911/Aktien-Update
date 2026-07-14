@@ -1,16 +1,15 @@
-# SESSION_HANDOVER.md — Stand 13.07.2026
+# SESSION_HANDOVER.md — Stand 14.07.2026 (Vormittag)
 
 **Zweck:** vollständige Übergabe an eine **neue Code-Session ohne Kontext der
 alten**. Dieses Dokument + `CLAUDE.md` müssen zusammen ausreichen, um am
 Projektstand direkt weiterzuarbeiten. Reine Doku, kein Logik-Touch.
 
 **Datums-Basis (belegt, nicht Erinnerung):** `date -u` in der Sandbox liefert
-**Mo 13.07.2026 ~21:36 UTC**; letzter erfolgreicher Daily-Run
-`app_data.last_daily_run_ts = 2026-07-13T09:48:58Z` (premarket). Alle heute
-gemergten PRs (#419–#426) tragen Commit-Datum **2026-07-13** (git belegt). Der
-**postclose-Run 13.07.** (~21:17 UTC Cron) war zum Handover-Zeitpunkt noch
-nicht in `app_data.json` sichtbar (`run_phase` steht auf `premarket`) — die
-erste postclose-Verifikation (§3) fällt auf diesen Lauf.
+**Di 14.07.2026 ~06:56 UTC**. Der **postclose-Run 13.07.** ist durch (`e9fd8cc
+"Daily squeeze report 2026-07-13"`, Health-Log `2026-07-13T22:13:24Z
+[postclose]`) — damit sind die gestrigen Verifikationspunkte auflösbar (§3).
+PRs #429/#430 tragen Commit-Datum **2026-07-14** (git belegt: #429 `3ed4cfd`,
+#430 feat `930633d` / Merge `57c6b10`). Die #419–#426-Kette lief am **13.07.**
 
 *(Hinweis für die nächste Session: der vorige Handover war fälschlich „Stand
 15.07.2026" tituliert, obwohl die damals beschriebenen PRs #415–#418 laut git
@@ -24,6 +23,48 @@ Anker.
 ---
 
 ## 1) HEUTE IMPLEMENTIERT (chronologisch, mit Hashes)
+
+### 14.07.2026 (Vormittag) — Absicherung + Panel-Vollzug
+
+### PR #429 — 14.07. — `3ed4cfd` (squash)
+**★ Station-1-Regressions-Netz `entry_past_return_5d` (KEIN Bug-Fix).** Reines
+Absicherungs-Netz (Test I in `mock_test_entry_past_return_5d.py`) — **ehrlich
+als „grün bei korrektem Code" deklariert, KEIN Mutations-Beweis eines Bugs.**
+Live-Call (echter Aufruf, kein Source-Grep): `get_yfinance_data` +
+`get_yfinance_batch` (treibt das **nested** `_hist_stats`, Closure → nicht
+isoliert aufrufbar) mit Fixture-Bar-History → `close_5td_before_entry ==
+iloc[-6]` (non-null); Edge `< 6 Bars` → sauber `None`. **pandas-gated** (CI-
+Minimal = `stdlib+jinja2+pyyaml`; ohne pandas sauberer Skip, analog H-
+ImportError-Skip). **Non-vacuous verifiziert** (interne Diligence): lokale
+Mutation `iloc[-6]→iloc[-1]` färbt I1/I2 rot, danach `git checkout` revertiert.
+Bestehende #411-Merge-Assertion (G1–G3) unangetastet, **kein** Logik-Touch an
+`generate_report.py`. **Test-only → Auto-Merge.** *(Kontext: der historische
+#411-Bug lag im `c.update`-Merge, nicht in Station 1 — Station war nie kaputt;
+das Netz verriegelt sie gegen künftige Regression.)*
+
+### PR #430 — 14.07. — Merge `57c6b10` (feat `930633d`)
+**★ Status-Panel 6. Eintrag `si_position_history`.** Sechster Sammel-Status-
+Eintrag im `#bt-section`-Panel (#412), **gegen die REALE `si_position_history.
+json` gebaut** (28 Ticker / 56 Punkte, je 2 — Struktur bestätigt, nicht
+angenommen). Gerenderter Eintrag: `Short-Interest-Position (si_position_history)
+· n=28 (28 Ticker) · sammelt · unvalidiert · auswertbar ab ~Q4 2026 (mehrere
+Settlement-Zyklen)`. Eigenschaften:
+- **Separate Datei → eigener clientseitiger Fetch** (`_btSiCollectStatus`), mit
+  Fehler-Toleranz. **Graceful-Empty:** fehlende/leere/kaputte Datei → `n=0`,
+  kein JS-Error (Guard bleibt, auch wenn die Datei existiert).
+- **Zähl-Logik dynamisch:** primär Ticker mit ≥2 Serienpunkten (auswertbares
+  1-Monats-Delta), Gesamt-Ticker als Kontext. Pure `_btSiCount` (node-testbar).
+- **Weg-A:** Label/Status/Dateiname zentral in `config.SI_POSITION_STATUS_ROW`,
+  server-injiziert → **kein** Frontend-Literal, Look-Ahead-Guards bleiben grün.
+- **Rein anzeigend:** keine Serien-Werte (kein `shares_short`, kein Delta).
+Golden mit-aktualisiert (nur der neue Eintrag, 47 Insertions, keine
+Kontamination der 5). Tests: `mock_test_collect_status_panel` um D (Source-
+Wiring) + E (node: Zähl-Logik/Graceful-Empty/KEINE Werte). **Frontend + Golden +
+Auffanglinie-Wortwahl → manueller Merge (Easy-Freigabe erteilt).**
+
+---
+
+### 13.07.2026 — SI-Quellen-Durchbruch + Monster-Neutralisierung
 
 *(Roter Faden 13.07.2026: eine **SI-Quellen-Suche als Probe-vor-Bau-Kette** →
 Durchbruch → Bau → Doku, dann ein **Monster-Score-Neutralisierungs-Doppel**.
@@ -291,53 +332,62 @@ nur bei `available=True`.
 
 ## 3) VERIFIKATION (nächste Handelstage, konkrete Beobachtungspunkte)
 
-### AKUT (ab 13.07.2026 — vier offene Punkte)
+### ✅ AUFGELÖST (14.07.-Vormittag, aus dem 13.07.-Postclose belegt)
 
-- **★★ `entry_past_return_5d` — erster Postclose nach #411-Fix (non-null
-  erwartet):** der Merge-Durchreich-Fix (§1, `generate_report.py:16451`) wirkt
-  **vorwärts**. Stand 13.07.: **50 present / 0 non-null** (Alt-Records vor dem
-  Fix bleiben None). Der **erste postclose-Run** (Mo 13.07. ~21:17 UTC bzw.
-  nächster postclose) sollte erstmals Records mit **non-null** `entry_past_
-  return_5d` anlegen (etablierte Ticker mit ≥6 Bars vor Entry). Watch:
-  non-null-Zähler > 0 in `backtest_history.json` bzw. in der Status-Kachel
-  (#412). **Bleibt er bei 0 → neu diagnostizieren** (der Fix ist im Code, also
-  wäre 0 nach Postclose ein echter Fund, kein erwartetes Bild).
+- **★★ `entry_past_return_5d` — VERIFIZIERT (non-null greift).** Der 13.07.-
+  Postclose schrieb **10/10 non-null** Records (Beispiel ABEO **11.09**,
+  Werte-Spektrum `[-7.28 … +11.09]`, plausibel als 5-Tage-Return). Present 60 /
+  non-null 10 — die 50 present-None sind **pre-fix Alt-Bestand** (06.–10.07.,
+  forward-only, kein Backfill). **Der #411-Merge-Fix war korrekt**; das Feld
+  sammelt. Der 14.07.-Vormittag-„0 non-null"-Alarm war ein **Zähl-Artefakt**
+  (Gesamt-present zählte die 50 Alt-None mit) → §8-Lesson. Compute an **allen 3
+  Pfaden** (`get_yfinance_data:907`, `_hist_stats`-Batch `:1089`, Fallback
+  `:1106`) defined-before-use + pre-entry-sauber — **kein** UnboundLocalError
+  (die „:1222 aus `c`"-Fehldiagnose ist widerlegt: `:1222` ist ein Dict-Key
+  `ma200`, es gibt in `get_yfinance_data` keine Variable `c`). Ab #429 zusätzlich
+  durch das Station-1-Regressions-Netz verriegelt.
 
-- **★★ `si_position_history.json` — erster Postclose seedet 2 Punkte/US-Ticker
-  (#423):** die Datei existiert **noch nicht** (`ls` negativ, forward-only,
-  wird erst zur Laufzeit angelegt). Der **erste postclose-Run** legt sie an und
-  seedet pro enriched US-Ticker **2 Punkte** (Vormonat aus `sharesShortPrior
-  Month`/`sharesShortPreviousMonthDate` + aktuell). Watch: **Datei-Existenz** +
-  **Seed-Struktur** (`{ticker:[{settlement_date, shares_short, short_pct_float,
-  pub_date, seeded}]}`, 2 Einträge/Ticker, ein `seeded=true`). **Restkante
-  (kein Blocker):** falls yfinance `dateShortInterest` künftig als `Timestamp`
-  statt epoch-int liefert, wird der Punkt fail-soft **still** übersprungen (kein
-  Crash, aber Datenverlust ohne Log) — bei der Prüfung mitdenken.
+- **★★ `si_position_history.json` — VERIFIZIERT (Seed greift).** Datei existiert,
+  **28 Ticker · 56 Punkte · je 2** (Vormonat `seeded:true` + aktuell). Struktur
+  exakt wie §4-Plan (`{ticker:[{settlement_date, shares_short, short_pct_float,
+  pub_date, seeded}]}`). `pub_date` holiday-robust bestätigt (`2026-05-29 →
+  06-09`, `2026-06-30 → 07-10` — überspringt Fr 03.07. Independence Day). Seit
+  #430 im Status-Panel sichtbar (n=28). **Restkante bleibt vermerkt** (Beobachtung,
+  kein Blocker): falls yfinance `dateShortInterest` künftig als `Timestamp` statt
+  epoch-int liefert, wird der Punkt fail-soft **still** übersprungen.
+
+### AKUT (weiterhin offen)
 
 - **★ Monster-Kachel neutral-grau — iPhone-Blick (#425/#426):** Monster-Zahl +
   Progress-Bar müssen **grau** (`#94a3b8`) statt Ampel-Grün erscheinen, in
   **beiden** Karten-Pfaden (Top-10 + Watchlist-Drawer). Live-Verify am iPhone
-  nach dem nächsten Deploy (kein Golden-Ersatz für visuelle Korrektheit, §8
-  „Source grün ≠ Browser korrekt"). Earnings-Push-Body (falls einer feuert):
-  **ohne 🔥-Monster-Aufmacher**.
+  **noch ausstehend** (kein Golden-Ersatz für visuelle Korrektheit, §8 „Source
+  grün ≠ Browser korrekt"). Earnings-Push-Body (falls einer feuert): **ohne
+  🔥-Monster-Aufmacher**. → abhaken, sobald per iPhone bestätigt.
 
 - **★ Lit-Check-Reminder — erster Push (#413):** erster planmäßiger ntfy-Push
   **kommenden Freitag ~18:33 Berlin** (Cron `33 16 * * 5`). Watch: Push kommt
   an, Tag `books`. Bleibt er aus → `NTFY_TOPIC`-Secret prüfen (Workflow ist
   fail-visible: exit 1 bei Send-Fehler trotz gesetztem Topic).
 
+- **★ Status-Panel 6. Eintrag (#430) — live sichtbar:** nach nächstem Deploy im
+  `#bt-section` prüfen: Zeile „Short-Interest-Position (si_position_history) ·
+  n=28 (28 Ticker) · sammelt …" erscheint, **keine** Serien-Werte. Graceful-
+  Empty ist per Test gesichert.
+
 ### LAUFEND (kein Einzeltermin — wachsen pro postclose-Werktag)
 
 - **★ Sammel-Felder-Status-Panel — Zähler (#412):** die Kachel zählt dynamisch
-  non-null aus `_btData`. Stand 13.07. (aus `backtest_history.json`, 1948
-  Records): `max_gain_pct` **390** · `conviction_score` **90** ·
-  `days_to_earnings` **42** (50 present) · `entry_past_return_5d` **0**
-  (50 present) · `si_velocity_pub` **10**. Watch: Zähler steigen automatisch;
-  keine Feld-Werte im Output (nur Zähler + Status).
+  non-null aus `_btData`. Stand 14.07. (aus `backtest_history.json`, 1958
+  Records): `max_gain_pct` **400** · `conviction_score` **100** ·
+  `days_to_earnings` **51** (60 present) · `entry_past_return_5d` **10**
+  (60 present) · `si_velocity_pub` **20**. **Sechster Eintrag (#430):**
+  `si_position_history` **n=28** (Ticker mit ≥2 Punkten, aus separater Datei).
+  Watch: Zähler steigen automatisch; keine Feld-Werte im Output.
 - **★ `si_velocity_pub` / `days_to_earnings` — Reifung (§4):** Auswertung erst
   bei n≥40. `si_velocity_pub` erwartet `None` in den ersten Wochen (< 3
   eligible publizierte Reports vor Entry), Zahlenwert nach ~6–8 Wochen.
-- **★ `max_gain_pct` — Verteilung:** Stand 13.07. **390 present / 390 non-null**
+- **★ `max_gain_pct` — Verteilung:** Stand 14.07. **400 present / 400 non-null**
   (330 Backfill 04.07. + Vorwärts). Watch: keine `None`-Persistierung bei reifen
   Records (≥10 Trading-Days).
 
@@ -409,52 +459,15 @@ Existenzbedingung des Scores.
 - **(d)** Im Frontend **klar als „Wahrscheinlichkeit, nicht Empfehlung"
   deklariert** — gleiche neutrale Sprache/Optik wie das Status-Panel (#412).
 
-### STATUS-PANEL — 6. Eintrag für `si_position_history` (VORBEREITET 13.07., Bau morgen NACH erstem Seed)
+### ✅ STATUS-PANEL — 6. Eintrag `si_position_history` — ERLEDIGT (PR #430, 14.07.)
 
-**Read-only-Diagnose 13.07. abgeschlossen** — der Bau ist vorbereitet, aber
-bewusst **nach** dem ersten Postclose-Seed terminiert (gegen die dann reale
-Datei bauen, nicht gegen eine geratene Struktur).
-
-- **Reihenfolge (zwingend):** (1) **Postclose-Verify** — `si_position_history.
-  json` existiert + seedet 2 Punkte/Ticker sauber (§3-Verifikationspunkt),
-  **DANN** (2) Panel-Eintrag gegen die reale Datei bauen.
-- **STRUKTUR (belegt aus `_persist_si_position_history` / `_make_si_point`,
-  `generate_report.py:3116-3185`):** `{ticker: [{settlement_date, shares_short,
-  short_pct_float, pub_date, seeded}]}` — **Dict-of-Lists** (nicht die flache
-  Record-Liste, die das bestehende Panel zählt). Seed-Punkt trägt
-  `short_pct_float=null` + `seeded=true`.
-- **EINBAU:** separate Datei → **zweiter clientseitiger Fetch**
-  `./si_position_history.json` (analog `_btData`-Load `generate_report.py:9536`,
-  mit Fehler-Toleranz), eigene kleine Render-Funktion, hängt **eine weitere
-  `.bt-collect-row`** an denselben Host `#bt-collect-status` (`7916`) nach
-  `_btCollectStatus(9641)`. **Kein** Umbau von `COLLECT_STATUS_FIELDS` (dessen
-  Weg-A-Trick betrifft nur Backtest-**Feldnamen**-Literale; `si_position_history`
-  ist ein Dateiname und darf in `generate_report.py` frei stehen — der Persist-
-  Helper lebt ohnehin dort). Label/Status als neue Config-Konstante (Kuratierung
-  konsistent zu `COLLECT_STATUS_FIELDS`).
-- **GRACEFUL-EMPTY (PFLICHT):** vor dem ersten Postclose fehlt die Datei →
-  404 → `.then(r => r.ok ? r.json() : {})` + `.catch(() => renderSiRow({}))` →
-  `n=0`/„sammelt", **KEIN** JS-Error. **Nicht** das Backtest-`.catch`
-  (`9546-9548`) wiederverwenden (schreibt Fehlermeldung in `#bt-meta`) — eigener
-  Soft-Handler.
-- **ZÄHL-LOGIK:** primär **„Ticker mit ≥2 Punkten"** (= auswertbares
-  1-Monats-Delta, das Paper-Maß) via `Object.values(d).filter(a =>
-  Array.isArray(a) && a.length >= 2).length` — braucht **kein** Feld-Literal,
-  look-ahead-neutral. Gesamt-Ticker (`Object.keys(d).length`) als Kontext.
-- **STATUS-TEXT** neutral wie die anderen 5 Einträge („sammelt · unvalidiert ·
-  auswertbar ab ~Q4 2026 (mehrere Settlement-Zyklen)"), **KEINE Werte**
-  (kein `shares_short`, kein Delta) — nur Zähler + Status (Auffanglinie).
-- **LOOK-AHEAD:** unberührt — der Grep-Guard
-  (`mock_test_si_position_history.py:288-347`) verbietet die Serien-Felder nur
-  in `ki_agent.py`/`health_check.py` + fordert genau 1× Persist-Aufruf in
-  `generate_report.py`; ein Display-Fetch berührt keine dieser Regeln.
-- **GOLDEN betroffen** (Panel-JS + injizierter Bereich sind Outer-Page,
-  10 Treffer in `tests/golden/report_outer_page.html`) → beim Bau
-  `UPDATE_GOLDEN=1 python scripts/mock_test_outer_page_golden.py`, Diff prüfen
-  (nur die SI-Ergänzung). **Klassifikation: manueller Merge** (Frontend + neue
-  Datei-Konsumption). Test-Assertion (Graceful-Empty `{}`→n=0 + ≥2-Zähl-Logik)
-  mit-bauen.
-
+Vorarbeit 13.07. (Read-only-Diagnose) → Bau 14.07. **nach** dem ersten Postclose-
+Seed, gegen die reale Datei. Umgesetzt exakt nach Plan: separater client-Fetch
+(`_btSiCollectStatus`) mit Graceful-Empty (fehlende Datei → `n=0`), Zähl-Logik
+„Ticker mit ≥2 Punkten" (dynamisch, `_btSiCount`), Label/Status/Dateiname zentral
+in `config.SI_POSITION_STATUS_ROW` (Weg-A, kein Frontend-Literal), rein anzeigend
+(keine Serien-Werte), Golden + Panel-Tests (D/E) grün. Live: **n=28**. Details in
+§1 (PR #430). Live-Sicht-Check nach Deploy in §3 (AKUT).
 ### Erledigt (nicht mehr im Backlog)
 
 - **Hypothese C (Peak-Ziel, +10/+30/+50 %) — ERLEDIGT 04.07.2026.** Null belegt
@@ -799,8 +812,32 @@ löschen; bei Änderung erst Konsument (Statusleiste), dann Definition (§8p).
 
 ## 8) LESSONS
 
-*(Neueste zuerst: 8n–8p vom 13.07.; 8j–8m vom 11.–12.07.; etablierte 8a–8i
-darunter.)*
+*(Neueste zuerst: 8q–8r vom 14.07.; 8n–8p vom 13.07.; 8j–8m vom 11.–12.07.;
+etablierte 8a–8i darunter.)*
+
+### 8q. Verify-Zählung muss Alt-Records ausklammern (14.07.-Fehlalarm)
+
+Ein Gesamt-Zähler über **present-vs-non-null** kann einen **funktionierenden**
+Fix als „greift nicht" fehldeuten. Am 14.07.-Vormittag las `entry_past_return_5d`
+scheinbar „0 non-null" — tatsächlich war der 13.07.-Postclose **10/10 non-null**;
+die vermeintliche Null kam daher, dass die **50 pre-fix Alt-None-Records**
+(06.–10.07., forward-only, kein Backfill) im present-Gesamtzähler mitliefen und
+den Blick verstellten. **Regel:** bei Feld-Verify nach einem Vorwärts-Fix **nur
+Records SEIT dem Fix-Merge zählen** (bzw. nach `date`/`schema`-Marker filtern) —
+nie den rohen present-vs-non-null-Gesamtquotienten als „Fix greift"-Kriterium.
+
+### 8r. Messen schlägt Lesen — instrumentierter Lauf statt Code-Lese-Theorie (14.07.)
+
+Statisches Code-Lesen verortete die `entry_past_return_5d`-Ursache **zweimal
+falsch** (erst „Namens-Mismatch", dann „:1222 aus Variable `c` → UnboundLocal
+Error"). Beide Theorien waren durch die **Daten** widerlegt (13.07.-Postclose
+non-null) UND durch den Code (`:1222` ist ein Dict-Key `ma200`; es gibt keine
+Variable `c` in `get_yfinance_data`; Compute an allen 3 Pfaden defined-before-use).
+**Regel:** bei widersprüchlicher Diagnose **erst die Ist-Daten messen** (und den
+echten Datenfluss instrumentieren/prüfen), bevor eine Code-Lese-Theorie zum
+Fix erhoben wird — messen schlägt lesen. Das Station-1-Regressions-Netz (#429)
+verriegelt den Compute jetzt als Netz (ehrlich: grün bei korrektem Code, kein
+Bug-Beweis).
 
 ### 8n. Externe Gratis-Quellen für SI-Position existieren NICHT — aber yfinance spiegelt sie (13.07.)
 
