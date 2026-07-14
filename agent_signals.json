@@ -1,10 +1,10 @@
 {
-  "updated": "2026-07-14T23:15:33.567994+02:00",
+  "updated": "2026-07-15T00:15:34.419741+02:00",
   "run_info": {
     "tickers_checked": 15,
     "signals_active": 1,
     "alerts_sent": 0,
-    "elapsed_s": 13.5,
+    "elapsed_s": 18.6,
     "market_phase": "After-Hours"
   },
   "signals": {
@@ -53,9 +53,9 @@
       "uoa_cp_ratio": 19.99860982391103
     },
     "BJDX": {
-      "score": 77,
+      "score": 63,
       "confidence": 70,
-      "drivers": "Volumen 3.6× + ⚡ Extremes Volumen 3.6×+ + Spanne 24.0% + News: partnership + SEC Form 4",
+      "drivers": "Volumen 3.6× + ⚡ Extremes Volumen 3.6×+ + Spanne 24.0% + News-KI 8/30: Dilutive equity offerings ($23.7M) reduce short-squeeze potential significantly despite strategic partnership announceme + SEC Form 4",
       "price": 1.25,
       "chg_pct": 0.0,
       "rvol_4d": 3.6,
@@ -65,8 +65,8 @@
       "upcoming_event": null,
       "insider_buy": false,
       "stocktwits": null,
-      "combo_mult": 1.1,
-      "active_triggers": 2,
+      "combo_mult": 1.0,
+      "active_triggers": 1,
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": null,
@@ -117,9 +117,9 @@
       "uoa_cp_ratio": 204.53333333333333
     },
     "FTK": {
-      "score": 43,
+      "score": 38,
       "confidence": 70,
-      "drivers": "Spanne 5.8% + News-KI 5/30: Routine corporate announcements (conference participation, earnings schedule, networking events) with no fundamental cat + Earnings in 21d + SEC Form 4 + UOA Call/Put 5.5×",
+      "drivers": "Spanne 5.8% + Earnings in 21d + SEC Form 4 + UOA Call/Put 5.5×",
       "price": 26.77,
       "chg_pct": 0.0,
       "rvol_4d": 0.87,
@@ -161,7 +161,7 @@
     "GRPN": {
       "score": 58,
       "confidence": 70,
-      "drivers": "Spanne 8.9% + News: short interest, short squeeze + Earnings in 22d + UOA Call/Put 4.4×",
+      "drivers": "Spanne 8.9% + News: squeeze, short squeeze + Earnings in 22d + UOA Call/Put 4.4×",
       "price": 25.6,
       "chg_pct": 0.0,
       "rvol_4d": 0.75,
@@ -203,7 +203,7 @@
     "LENZ": {
       "score": 58,
       "confidence": 70,
-      "drivers": "Spanne 6.7% + News: short interest + Earnings in 15d + FINRA Short-Vol 93%",
+      "drivers": "Spanne 6.7% + News: short interest + Earnings in 15d + FINRA Short-Vol 97%",
       "price": 4.93,
       "chg_pct": -0.0,
       "rvol_4d": 1.42,
@@ -221,9 +221,9 @@
       "uoa_cp_ratio": 0.6090534979423868
     },
     "METC": {
-      "score": 33,
+      "score": 58,
       "confidence": 33,
-      "drivers": "News: short interest + Earnings in 16d + UOA Call/Put 5.9×",
+      "drivers": "News: short interest + Earnings in 16d + FINRA Short-Vol 74% + UOA Call/Put 5.9×",
       "price": 12.99,
       "chg_pct": -0.0,
       "rvol_4d": 1.02,
@@ -263,9 +263,9 @@
       "uoa_cp_ratio": 0.8484848484848485
     },
     "SHPH": {
-      "score": 60,
+      "score": 82,
       "confidence": 70,
-      "drivers": "Volumen 9.5× + 🚀 Massives Volumen 9.5×+ + Spanne 28.9% + SEC Form 4",
+      "drivers": "Volumen 9.5× + 🚀 Massives Volumen 9.5×+ + Spanne 28.9% + News: insider buying + SEC Form 4",
       "price": 4.16,
       "chg_pct": -0.0,
       "rvol_4d": 9.51,
@@ -275,17 +275,17 @@
       "upcoming_event": null,
       "insider_buy": false,
       "stocktwits": null,
-      "combo_mult": 1.0,
-      "active_triggers": 1,
+      "combo_mult": 1.1,
+      "active_triggers": 2,
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": null,
       "uoa_cp_ratio": null
     },
     "WOLF": {
-      "score": 10,
-      "confidence": 17,
-      "drivers": "Spanne 6.4%",
+      "score": 18,
+      "confidence": 33,
+      "drivers": "Spanne 6.4% + News-KI 8/30: Patent lawsuit is negative for stock momentum and sentiment, reducing short-squeeze potential despite industry tailwinds",
       "price": 34.31,
       "chg_pct": 0.0,
       "rvol_4d": 0.76,
