@@ -345,6 +345,133 @@ def _test_nonnull_end_to_end():
     )
 
 
+def _test_station1_regression_net():
+    """(I) — STATION-1-ABSICHERUNGS-NETZ (Live-Call, pandas-gated).
+
+    ABSICHERUNGS-NETZ — GRÜN bei korrektem Code; fängt eine KÜNFTIGE Regression
+    der pre-entry-Nenner-Berechnung ``close_5td_before_entry`` (Close 5
+    Handelstage VOR Entry = ``iloc[-6]``). Dies ist AUSDRÜCKLICH KEIN
+    Mutations-Beweis eines bestehenden Bugs: der historische #411-Bug lag im
+    ``c.update``-Enrichment-Merge (der Nenner wurde korrekt berechnet, aber
+    beim Merge gedroppt) — separat abgedeckt durch die Merge-Assertion G1-G3
+    (``_test_merge_wiring``). Station 1 (die Berechnung selbst) war nie kaputt;
+    dieser Test verriegelt sie trotzdem als Netz.
+
+    Was gemessen wird (echter Call, kein Source-Grep): beide Fetch-Pfade liefern
+    aus einer Fixture-Bar-History (real pandas DataFrame) den Nenner non-null =
+    ``iloc[-6]``:
+      * ``get_yfinance_data``  — Singleton-Fallback-Pfad (isoliert aufrufbar).
+      * ``get_yfinance_batch`` — Produktions-Batch-Pfad; treibt das NESTED
+        ``_hist_stats`` (Closure in ``get_yfinance_batch`` → nicht isoliert
+        aufrufbar, daher über die öffentliche Batch-Funktion getestet).
+    Edge: < 6 Bars → sauber ``None`` (kein Crash), beide Pfade.
+
+    pandas-GATED: der CI-Minimal-Vertrag ist ``stdlib + jinja2 + pyyaml``
+    (``entry_past_return_5d`` steht in der ALLOWLIST). Fehlt pandas → sauberer
+    Skip (grün), analog zum H-ImportError-Skip. Die Assertion läuft real in
+    Dev-/pandas-Umgebungen. `generate_report` wird deshalb erst NACH dem
+    pandas-Gate importiert (Modul-Top bleibt stdlib-only, CI-safe).
+    """
+    try:
+        import pandas as pd
+    except ImportError:
+        print("── (I) Station-1-Netz ÜBERSPRUNGEN — pandas fehlt (CI-minimal, erwartet)")
+        return
+
+    import types
+
+    # Drittlib-Stubs VOR dem generate_report-Import (kanonisches Muster; yfinance
+    # wird als Fake-Modul gestubbt und dann mit Fixture-Fetches überschrieben).
+    for _name in ("yfinance", "requests", "bs4", "deep_translator", "watchlist"):
+        if _name in sys.modules:
+            continue
+        _m = types.ModuleType(_name)
+        if _name == "yfinance":
+            _m.download = lambda *a, **k: None
+            _m.Ticker = lambda *a, **k: None
+        elif _name == "requests":
+            _m.Session = lambda *a, **k: types.SimpleNamespace(
+                headers=types.SimpleNamespace(update=lambda *a, **k: None))
+            _m.get = lambda *a, **k: None
+            _m.exceptions = types.SimpleNamespace(RequestException=Exception)
+        elif _name == "bs4":
+            _m.BeautifulSoup = lambda *a, **k: None
+        elif _name == "deep_translator":
+            _m.GoogleTranslator = lambda *a, **k: types.SimpleNamespace(
+                translate=lambda s: s)
+        elif _name == "watchlist":
+            _m.WATCHLIST = []
+        sys.modules[_name] = _m
+
+    try:
+        import generate_report as gr
+    except ImportError as exc:
+        print(f"── (I) Station-1-Netz ÜBERSPRUNGEN — generate_report-Import-Fail: {exc}")
+        return
+
+    print("── (I) Station-1-Absicherungs-Netz (Live-Call, pandas) ───────")
+
+    # Fixture: 8 Tages-Bars, aufsteigend. iloc[-1]=Close am Entry-Tag=170,
+    # iloc[-6]=Close 5 Handelstage davor=120 → Nenner MUSS 120.0 sein.
+    closes = [100.0, 110.0, 120.0, 130.0, 140.0, 150.0, 160.0, 170.0]
+    expected = closes[-6]  # 120.0 — 5 Handelstage vor der letzten Bar
+
+    def _mkdf(rows):
+        idx = pd.date_range("2026-06-01", periods=len(rows), freq="D")
+        return pd.DataFrame(
+            {"Open": rows, "High": [r + 1 for r in rows],
+             "Low": [r - 1 for r in rows], "Close": rows,
+             "Volume": [1_000_000] * len(rows)},
+            index=idx,
+        )
+
+    df8 = _mkdf(closes)
+    df5 = _mkdf(closes[:5])  # < 6 Bars → Nenner nicht ableitbar
+    # Defensiv: ein früher gesetzter Bare-Stub (H-Test) hat evtl. weder
+    # ``Ticker`` noch ``download`` → getattr mit Default, wir setzen die
+    # Fixtures ohnehin explizit.
+    _orig_ticker = getattr(gr.yf, "Ticker", None)
+    _orig_download = getattr(gr.yf, "download", None)
+    try:
+        # ── Pfad 1: get_yfinance_data (Singleton-Fallback, isoliert aufrufbar) ──
+        gr.yf.Ticker = lambda *a, **k: types.SimpleNamespace(
+            info={}, history=lambda **k: df8)
+        d = gr.get_yfinance_data("TEST")
+        _check(
+            "I1 get_yfinance_data: close_5td_before_entry == iloc[-6] (non-null)",
+            d.get("close_5td_before_entry") == expected,
+            f"got {d.get('close_5td_before_entry')}, erwartet {expected}",
+        )
+
+        # ── Pfad 2: _hist_stats via get_yfinance_batch (Produktions-Batch-Pfad) ──
+        gr.yf.download = lambda *a, **k: df8  # single-ticker → flat DataFrame
+        b = gr.get_yfinance_batch(["TEST"])
+        _check(
+            "I2 _hist_stats (via get_yfinance_batch): close_5td_before_entry == iloc[-6]",
+            b.get("TEST", {}).get("close_5td_before_entry") == expected,
+            f"got {b.get('TEST', {}).get('close_5td_before_entry')}, erwartet {expected}",
+        )
+
+        # ── Edge < 6 Bars → sauber None (kein Crash), beide Pfade ──
+        gr.yf.Ticker = lambda *a, **k: types.SimpleNamespace(
+            info={}, history=lambda **k: df5)
+        gr.yf.download = lambda *a, **k: df5
+        d_short = gr.get_yfinance_data("TEST")
+        b_short = gr.get_yfinance_batch(["TEST"])
+        _check(
+            "I3 < 6 Bars → get_yfinance_data close_5td_before_entry None",
+            d_short.get("close_5td_before_entry") is None,
+            f"got {d_short.get('close_5td_before_entry')}",
+        )
+        _check(
+            "I4 < 6 Bars → get_yfinance_batch close_5td_before_entry None",
+            b_short.get("TEST", {}).get("close_5td_before_entry") is None,
+            f"got {b_short.get('TEST', {}).get('close_5td_before_entry')}",
+        )
+    finally:
+        gr.yf.Ticker, gr.yf.download = _orig_ticker, _orig_download
+
+
 def main():
     _test_s10_and_schema()
     _test_look_ahead_isolation()
@@ -352,6 +479,7 @@ def main():
     _test_merge_wiring()
     _test_nonnull_end_to_end()
     _test_formula_and_guards()
+    _test_station1_regression_net()
 
     print()
     if _fails:
@@ -360,7 +488,7 @@ def main():
     print(
         "✓ Alle Tests bestanden (entry_past_return_5d: Formel + Split-Konsistenz + "
         "None-Semantik + S10 + Look-Ahead-Isolation + Live-Wiring + Merge-"
-        "Durchreichung + NON-NULL-Kernbeweis end-to-end)."
+        "Durchreichung + NON-NULL-Kernbeweis end-to-end + Station-1-Netz)."
     )
     return 0
 
