@@ -79,21 +79,10 @@
     "anomaly_monster_backup_SOC": "2026-07-02T20:02:41.415261+02:00",
     "anomaly_conviction_high_SOC": "2026-07-02T11:34:24.445058+02:00",
     "exit_FRMM": "2026-07-13T11:48:58.801812+02:00",
-    "anomaly_conviction_high_NGNE": "2026-07-09T12:04:16.015071+02:00"
+    "anomaly_conviction_high_NGNE": "2026-07-09T12:04:16.015071+02:00",
+    "exit_LENZ": "2026-07-14T18:41:33.692611+02:00"
   },
   "push_history": [
-    {
-      "ts": "2026-07-07T07:07:39.557129+02:00",
-      "ticker": "AI",
-      "kind": "exit_p2",
-      "severity": "trigger",
-      "trigger": "trend_break",
-      "body": "🔻 Exit-Signal AI: trend_break crit ({'ma21': 9.6546, 'price': 9.28, 'drop_pct': 3.88})",
-      "success": true,
-      "suppressed": false,
-      "suppress_reason": null,
-      "conviction_score": null
-    },
     {
       "ts": "2026-07-07T10:43:37.030455+02:00",
       "ticker": "IONQ",
@@ -1277,6 +1266,18 @@
       "severity": "trigger",
       "trigger": "trend_break",
       "body": "🔻 Exit-Signal WOLF: trend_break crit ({'ma21': 43.0913, 'price': 33.65, 'drop_pct': 21.91})",
+      "success": true,
+      "suppressed": false,
+      "suppress_reason": null,
+      "conviction_score": null
+    },
+    {
+      "ts": "2026-07-14T18:41:33.692579+02:00",
+      "ticker": "LENZ",
+      "kind": "exit_p1",
+      "severity": "default",
+      "trigger": "exit_alert",
+      "body": "LENZ 📉 Exit 65 | -16% | Trailing-Stop −18.7% vom Hoch",
       "success": true,
       "suppressed": false,
       "suppress_reason": null,
