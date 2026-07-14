@@ -50,6 +50,10 @@ ALERT_COOLDOWN_MINUTES = 60
 BASELINE_FILE   = Path("baseline.json")
 LAST_ALERT_FILE = Path("last_alert.json")
 INDEX_HTML      = Path("index.html")
+# Bootstrap-Shell-Vorbau (Phase 0): app.html ist der kanonische Content-/
+# Parse-Pfad; index.html-Fallback für die erste Zyklus-Runde. Eigene Konstante
+# (alert.py importiert config nur für NTFY_*).
+APP_HTML        = Path("app.html")
 PWA_URL         = "https://easywebb911.github.io/Aktien-update/"
 
 BERLIN  = ZoneInfo("Europe/Berlin")
@@ -109,12 +113,14 @@ def compute_score(sf: float, sr: float, rel_vol: float, chg_pct: float) -> float
 # ---------------------------------------------------------------------------
 
 def parse_index_html() -> list[dict]:
-    """Extrahiert Top-10-Ticker + Score + Preis aus dem aktuellen index.html."""
-    if not INDEX_HTML.exists():
-        log.error("index.html nicht gefunden — Baseline kann nicht erstellt werden.")
+    """Extrahiert Top-10-Ticker + Score + Preis aus dem gerenderten Content
+    (Phase 0: app.html kanonisch, Fallback index.html)."""
+    _src = APP_HTML if APP_HTML.exists() else INDEX_HTML
+    if not _src.exists():
+        log.error("Weder app.html noch index.html gefunden — Baseline kann nicht erstellt werden.")
         return []
 
-    html = INDEX_HTML.read_text(encoding="utf-8")
+    html = _src.read_text(encoding="utf-8")
     cards = re.findall(
         r'<article class="card"[^>]*id="c(\d+)"[^>]*>(.*?)</article>',
         html, re.DOTALL,
@@ -140,7 +146,7 @@ def parse_index_html() -> list[dict]:
             "rel_volume": 0.0,  # wird beim Baseline-Aufbau per yfinance befüllt
         })
 
-    log.info("index.html: %d Kandidaten geparst.", len(result))
+    log.info("%s: %d Kandidaten geparst.", _src.name, len(result))
     return result
 
 

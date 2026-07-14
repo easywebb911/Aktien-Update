@@ -889,7 +889,8 @@ def evaluate_state_invariants(
                 })
 
     # === S9 (crit/warn) — HTML-Sanity-Check (Frontend-Awareness Phase 1a) ==
-    # Liest den gerenderten ``index.html`` und prüft 4 deterministische
+    # Liest den gerenderten Content über ``html_path`` (Bootstrap-Shell-Vorbau
+    # Phase 0: ``app.html``, byte-identisch zu index.html) und prüft 4 determ.
     # Klassen-Counts (article, card-cockpit, cockpit-price, cockpit-pillar).
     # Fängt stille DOM-Degradation durch Selektor-Mismatch (PR #199/226/235-
     # Bugklasse). Phase 1a: nur Top-Counts; Pro-Card-Assertions kommen in

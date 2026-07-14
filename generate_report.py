@@ -14746,7 +14746,12 @@ p{{color:#8899bb;font-size:.88rem;line-height:1.65}}
 </div></body></html>"""
     with open("index.html", "w", encoding="utf-8") as fh:
         fh.write(html)
-    log.info("Error page written to index.html")
+    # Phase 0: Error-Page ebenfalls nach app.html (kanonischer Content-Pfad) —
+    # damit die spätere Shell auch im Fehlerfall auf eine existierende Seite
+    # weiterleitet. Byte-identisch zu index.html.
+    with open("app.html", "w", encoding="utf-8") as fh:
+        fh.write(html)
+    log.info("Error page written to index.html + app.html")
 
 
 # ═══════════════════════════════════════════════════════════════════════════
@@ -17151,7 +17156,14 @@ def main():
 
     with open("index.html", "w", encoding="utf-8") as fh:
         fh.write(html)
-    log.info("index.html geschrieben (frischer Stand, vor S9-Check)")
+    # Bootstrap-Shell-Vorbau (Phase 0): app.html ist der KANONISCHE Content-/
+    # Parse-Pfad (ki_agent/alert/S9 lesen app.html). index.html bleibt in
+    # Phase 0 die volle Seite — byte-identisch, KEIN Flip. Beide werden vom
+    # Workflow committed; Phase 1 ersetzt index.html durch die Weiche auf
+    # app.html?v=. app.html wird VOR dem S9-Check geschrieben → S9 prüft es.
+    with open("app.html", "w", encoding="utf-8") as fh:
+        fh.write(html)
+    log.info("index.html + app.html geschrieben (frischer Stand, vor S9-Check)")
 
     # Kombinierte app_data.json (PWA-Single-Fetch). ``_wl_card_data``
     # wurde oben (vor generate_html) gebaut und an den Chat-Synthese-
@@ -17323,7 +17335,7 @@ def main():
             agent_signal_keys=set(_ag_for_check.keys()),
             agent_signals_updated=_ag_updated_for_check,
             prev_daily_run_ts=_prev_daily_run_ts_for_check,
-            html_path="index.html",
+            html_path="app.html",   # Phase 0: S9 prüft den kanonischen Content-Pfad
         )
     except Exception as exc:
         log.warning("health_check (Daily-Run) fehlgeschlagen: %s", exc)
@@ -17346,7 +17358,7 @@ def main():
     if _s9_crit_exit_required:
         try:
             from scripts.check_html_assertions import evaluate_html_assertions
-            with open("index.html", "r", encoding="utf-8") as _fh:
+            with open("app.html", "r", encoding="utf-8") as _fh:
                 _html_for_alert = _fh.read()
             _sub_fails = evaluate_html_assertions(_html_for_alert)
         except Exception as _alert_exc:

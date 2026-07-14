@@ -92,8 +92,10 @@ def test_pages_landing_assets_not_excluded():
     cfg = _load_config()
     excluded = set(cfg["exclude"])
     # README.md ist optionale Landing-Page wenn kein index.html da wäre.
-    # index.html ist die Haupt-App — auf gar keinen Fall excludieren.
-    for keep in ("README.md", "index.html"):
+    # index.html ist die Haupt-App (Phase 1: Bootstrap-Shell).
+    # app.html ist der kanonische Content-Pfad (Bootstrap-Shell-Vorbau,
+    # Phase 0) — die Shell leitet dorthin weiter; darf NIE excluded sein.
+    for keep in ("README.md", "index.html", "app.html"):
         assert keep not in excluded, (
             f"{keep} darf NICHT excluded sein — Pages-Landing/App")
 
