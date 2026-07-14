@@ -5020,6 +5020,33 @@ function _fmtGerman(d) {
       card.dataset.kiScore = String(score);
       if (sig && sig.drivers)       card.dataset.kiDrivers = String(sig.drivers);
       if (sig && sig.confidence != null) card.dataset.kiConf = String(sig.confidence);
+
+      // KI-Pillar-ZAHL live nachziehen (Fix 14.07.). Der frische ki-Score liegt
+      // hier vor (signals[ticker].score) und wird bereits für den Dot genutzt —
+      // die server-gerenderte KI-Zahl kann aber "—" sein (Neu-Einsteiger nach
+      // Top-10-Rotation: Daily-Run rendert VOR dem Tick, der die neue Top-10
+      // scort) oder stale (Wert eines früheren Ticks). Zahl + Farbe + Balken
+      // konsistent nachziehen — Farb-/Schwellen-Logik identisch zu server-
+      // _tri_score_color (≥60 grün · ≥30 orange · <30 rot). Konfidenz-Wasser-
+      // zeichen (sb-conf-*-Klasse + title/aria, Neutralisierung #425/#426)
+      // bleibt UNBERÜHRT: nur textContent + style.color/width, KEIN classList-
+      // Touch. Kein Score → "—" bleibt (kein Overwrite). Element fehlt → no-op.
+      if (sig && sig.score != null) {
+        const _kiCol = score >= 60 ? '#22c55e' : score >= 30 ? '#f97316' : '#ef4444';
+        const _kiPct = Math.max(0, Math.min(100, score));
+        const _kiTxt = String(Math.round(score));
+        // Aktiver Cockpit-Pfad (CARD_COCKPIT_ENABLED). Value hat KEIN Delta-Child
+        // (Delta nur Setup) → textContent-Ersatz sicher.
+        const _kv = card.querySelector('.cockpit-pillar[data-sb="ki"] .cockpit-pillar-value');
+        if (_kv) { _kv.textContent = _kiTxt; _kv.style.color = _kiCol; }
+        const _kb = card.querySelector('.cockpit-pillar[data-sb="ki"] .cockpit-pillar-bar-fill');
+        if (_kb) { _kb.style.width = _kiPct + '%'; _kb.style.background = _kiCol; }
+        // v1-Score-Row (falls ohne Cockpit gerendert) — analog, guarded no-op.
+        const _v1n = card.querySelector('.sb-row[data-sb="ki"] .sb-num');
+        if (_v1n) { _v1n.textContent = _kiTxt; _v1n.style.color = _kiCol; }
+        const _v1f = card.querySelector('.sb-row[data-sb="ki"] .sb-fill');
+        if (_v1f) { _v1f.style.width = _kiPct + '%'; _v1f.style.background = _kiCol; }
+      }
       const tickerSpan = card.querySelector('.ticker');
       if (!tickerSpan) return;
 
