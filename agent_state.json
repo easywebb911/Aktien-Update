@@ -1,5 +1,5 @@
 {
-  "last_run": "2026-07-14T10:22:45.397620+02:00",
+  "last_run": "2026-07-14T10:29:43.919824+02:00",
   "cooldowns": {
     "anomaly_score_jump_XRX": "2026-05-03T18:47:15.315486+02:00",
     "anomaly_uoa_extreme_TDOC": "2026-05-04T13:47:00.365949+02:00",
@@ -1286,12 +1286,12 @@
   "prev_conviction_scores": {
     "FRMM": 65.0,
     "LENZ": 67.0,
+    "TTEC": 60.0,
     "TRIP": 45.0,
     "LOVE": 58.0,
-    "TTEC": 58.0,
+    "SEAT": 65.0,
     "METC": 44.0,
     "JACK": 44.0,
-    "SEAT": 64.0,
     "CBRL": 36.0,
     "FUBO": 36.0,
     "WOLF": 31.0,
