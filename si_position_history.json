@@ -1048,5 +1048,20 @@
       "short_pct_float": 38.12,
       "pub_date": "2026-07-10"
     }
+  ],
+  "IMCR": [
+    {
+      "settlement_date": "2026-05-29",
+      "shares_short": 8749260,
+      "short_pct_float": null,
+      "pub_date": "2026-06-09",
+      "seeded": true
+    },
+    {
+      "settlement_date": "2026-06-30",
+      "shares_short": 8992351,
+      "short_pct_float": 19.67,
+      "pub_date": "2026-07-10"
+    }
   ]
 }
