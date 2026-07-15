@@ -6,7 +6,7 @@ inkl. Good-Friday-Übersprung (der Kern-Nutzen von PR #407).
 
 HINTERGRUND:
 - FINRA Rule 4560: SI-Reports sind ~7 Handelstage nach Settlement öffentlich.
-- Basis für ``si_velocity``-Look-Ahead-Filter (PR-3): Report darf einem
+- Basis für ``si_velocity_pub``-Look-Ahead-Filter (PR-3): Report darf einem
   Backtest-Record nur zugeordnet werden wenn ``pub_date <= entry_date``.
 - Karfreitag muss im ``US_MARKET_HOLIDAYS``-Set sein — sonst rechnet der
   Zähler an Karfreitags-Nähe 1 Business-Day zu früh (Look-Ahead in die

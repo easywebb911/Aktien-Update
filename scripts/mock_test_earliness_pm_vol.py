@@ -1,7 +1,7 @@
 """Mock-Tests für Earliness V1 — PM-Vol-Komponente (Rollback-Pfad).
 
 Seit PR „Earliness DTC-Niveau" ist V2 (DTC-Basis) der scharfe Default.
-V1 (si_accel + si_velocity + premarket_volume) bleibt im Code als
+V1 (si_accel + si_shares_per_day + premarket_volume) bleibt im Code als
 Notfall-Rollback erhalten — dieser Test forciert
 ``EARLINESS_FORMULA_VERSION = 1`` und prüft die alte PM-Vol-Logik
 weiter durch, damit der Rollback-Pfad nicht unbemerkt verrottet.
@@ -93,7 +93,7 @@ def _base_stock(**overrides) -> dict:
     s = {
         "ticker":            "TEST",
         "si_accel":          False,            # accel_match=False
-        "si_velocity":       0,                # velocity_match=False
+        "si_shares_per_day": 0,                # velocity_match=False
         "change_5d":         2.0,              # < 5 (Filter passierbar)
         "rsi14":             45.0,
         "premarket_volume":  0.0,
@@ -195,7 +195,7 @@ def test_cap_at_max():
     # Alle drei Komponenten max → 3 + 2 + 2 = 7 == EARLINESS_PTS_MAX
     s = _base_stock(
         si_accel=True,
-        si_velocity=200,           # ≥ 100
+        si_shares_per_day=200,     # ≥ 100
         rsi14=50,                  # < 60
         change_5d=2.0,             # < 5
         premarket_volume=100_000,  # 10 % vom avg → HIGH

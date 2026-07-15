@@ -1221,7 +1221,7 @@ function assert(cond, msg) {
 
     // Builder 9: FINRA-Trend-Beschleunigung
     items = win._kiInsightItems({
-      watchlist_cards: { NUVB: { si_accel: true, si_tpct: 80, si_velocity: 312 } },
+      watchlist_cards: { NUVB: { si_accel: true, si_tpct: 80, si_shares_per_day: 312 } },
     });
     assert(items.some(s => s.includes('NUVB') && s.includes('Short-Interest +80%') && s.includes('beschleunigt')),
       `Builder 9: erwartet "NUVB Short-Interest +80% beschleunigt ..." in ${JSON.stringify(items)}`);

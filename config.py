@@ -426,10 +426,10 @@ FINRA_PUB_OFFSET_BUSINESS_DAYS = 7
 # ``si_velocity_pub`` (backtest_history._compute_si_velocity_pub) misst die
 # relative Änderung des Short Interest über die letzten N PUBLIZIERTEN Reports
 # vor dem Entry-Datum. Der ``_pub``-Suffix grenzt bewusst gegen den bereits
-# existierenden Display-Rohwert ``finra_data.si_velocity`` in
+# existierenden Display-Rohwert ``finra_data.si_shares_per_day`` in
 # ``generate_report.py`` ab (dort: (newest_SI − oldest_SI) / len(history),
 # absolute Shares/Tag über die ~90-Tage-FINRA-History, KEIN pub_date-Filter,
-# rein Anzeige + KI-Boost). Beide Größen koexistieren; verschiedene Zwecke,
+# rein Anzeige + dormanter V1-Rollback). Beide Größen koexistieren; verschiedene Zwecke,
 # verschiedene Formel, verschiedene Look-Ahead-Eigenschaften.
 #
 # Fenster-Definition (``si_velocity_pub``):
@@ -452,7 +452,7 @@ FINRA_PUB_OFFSET_BUSINESS_DAYS = 7
 #     500k Shares Short vs. Large-Cap 50M Shares Short).
 #   • Relative Änderung ist direkt vergleichbar und mirrort das Muster von
 #     ``si_trend_5d_slope`` (rundung 4 Stellen).
-#   • Bewusster Kontrast zum älteren ``finra_data.si_velocity``-Displayfeld:
+#   • Bewusster Kontrast zum älteren ``finra_data.si_shares_per_day``-Displayfeld:
 #     dort absolute Shares/Tag über die volle ~90-Tage-History; hier
 #     relativer Rate über 3 publizierte Reports — komplementär, nicht Ersatz.
 #
@@ -685,7 +685,7 @@ EARLINESS_LATE_RUNNER_FACTOR      = 0.5    # ×0.5
 # Neue Code-Pfade sollen NICHT auf diese Konstanten zugreifen — V2 ersetzt
 # die Sub-Signale komplett.
 EARLINESS_ACCEL_PTS               = 3      # V1-only: si_accel + niedriger 5T-Move
-EARLINESS_VELOCITY_PTS            = 2      # V1-only: si_velocity + niedriger RSI
+EARLINESS_VELOCITY_PTS            = 2      # V1-only: si_shares_per_day + niedriger RSI
 EARLINESS_VELOCITY_THRESHOLD      = 100    # V1-only: tägliche FINRA-Velocity-Schwelle
 EARLINESS_MAX_CHANGE_5D_PCT       = 5.0    # V1-only: Move noch nicht groß
 EARLINESS_MAX_RSI                 = 60     # V1-only: RSI noch im normalen Bereich
@@ -1543,7 +1543,7 @@ S10_OBSERVED_FIELDS = frozenset({
     # Relative SI-Änderungsrate über die letzten SI_VELOCITY_PUB_N_REPORTS (=3)
     # PUBLIZIERTEN Reports vor entry_date (Filter ``pub_date <= entry_date``,
     # basiert auf finra_publication_date-Fundament #408). Der ``_pub``-Suffix
-    # grenzt bewusst gegen das ältere Displayfeld ``finra_data.si_velocity`` in
+    # grenzt bewusst gegen das ältere Displayfeld ``finra_data.si_shares_per_day`` in
     # generate_report.py ab (dort: absolute Shares/Tag über die volle FINRA-
     # History, KEIN pub_date-Filter — bleibt unverändert). Reine Analyse-/
     # Outcome-Persistenz für die si_velocity_pub-Edge-Auswertung. LEGITIM leer

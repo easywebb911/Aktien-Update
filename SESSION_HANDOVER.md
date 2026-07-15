@@ -701,13 +701,24 @@ Synthetische Utilization ist im Bau-Kandidaten-Pool.
 
 ## 6) CODE-HYGIENE-BACKLOG (Status je Punkt)
 
-### 6a. Alt-`finra_data.si_velocity` → `si_shares_per_day` umbenennen
-**Status: OFFEN.** Displayfeld hat irreführenden Namen: `(newest_SI −
-oldest_SI) / len(history)` ist **Shares/Tag absolut** (~90-Tage-FINRA-History),
-nicht „Velocity". Rename zu `si_shares_per_day`, eigener PR. Touch-Fläche gemäß
-grep 09.07.: 7 aktive Reads; CLAUDE.md-Sync; KI-Boost-Konsument. Kein Alt-
-Backtest-Feld betroffen. Blast-Radius mittel. **Vor Rename: alle Konsumenten
-greppen** (§8f).
+### 6a. Alt-`finra_data.si_velocity` → `si_shares_per_day` umbenannt
+**Status: ✅ ERLEDIGT (15.07.).** Displayfeld hatte irreführenden Namen:
+`(newest_SI − oldest_SI) / len(history)` ist **Shares/Tag absolut**
+(~90-Tage-FINRA-History), keine „Velocity" im Änderungsraten-Sinn
+(Nomenklatur-Falle §8m). Umbenannt zu `si_shares_per_day`; Label
+„SI Velocity (tägl. Ø)" → **„SI-Volumen Δ (tägl. Ø)"**. Ein PR, keine
+Staffelung (Diagnose 15.07.).
+**Korrektur der früheren Touch-Flächen-Angabe (war falsch, grep 09.07.):**
+nicht 7 Reads, sondern **5** (`_wl_card_payload`-Payload, `_earliness_pts_v1`
+dormant, v1-Display-Row, v2-Display-Row, Frontend-JS) + Write + 3 Test-Fixtures;
+**KEIN KI-Boost-Konsument** (die frühere Angabe war unzutreffend — der einzige
+Nicht-Display-Read ist der dormante V1-Rollback-Pfad bei
+`EARLINESS_FORMULA_VERSION==1`). `si_velocity_pub` (Backtest, relativ,
+pub_date-gefiltert) **unangetastet** — dessen Look-Ahead-Guard nutzt strikte
+`_pub`-Muster, keine Überlappung. Kein Alt-Backtest-Feld betroffen
+(`si_velocity` nie in `backtest_history.json`); app_data.json wird pro Lauf
+komplett neu geschrieben → keine Migrations-Lesart nötig. Golden mit-aktualisiert
+(2 Zeilen, rename-only).
 
 ### 6b. 5 andere bewegliche US-Feiertage algorithmisch berechnen
 **Status: OFFEN.** Nach #407 ist nur **Karfreitag** algorithmisch. Fünf weitere

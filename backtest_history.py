@@ -260,7 +260,7 @@ def _compute_si_velocity_pub(finra_history: list | None,
     """Look-Ahead-freie SI-Änderungsrate über die letzten N PUBLIZIERTEN Reports.
 
     Namensgebung: der ``_pub``-Suffix grenzt bewusst gegen das ältere
-    Displayfeld ``finra_data.si_velocity`` in ``generate_report.py`` ab
+    Displayfeld ``finra_data.si_shares_per_day`` in ``generate_report.py`` ab
     (dort: absolute Shares/Tag über die volle FINRA-History, kein pub_date-
     Filter, rein Anzeige + KI-Boost). Beide Größen koexistieren; verschiedene
     Zwecke, verschiedene Formel, verschiedene Look-Ahead-Eigenschaften.
@@ -293,7 +293,7 @@ def _compute_si_velocity_pub(finra_history: list | None,
 
     LOOK-AHEAD-KONVENTION EINFROREN (analog ``entry_past_return_5d`` #402,
     ``days_to_earnings`` #404): dieses Feld ist REINE Analyse-/Outcome-
-    Persistenz für die spätere si_velocity-Edge-Auswertung. Es darf
+    Persistenz für die spätere si_velocity_pub-Edge-Auswertung. Es darf
     NIEMALS als Score-Feature/Filter-Kriterium aus dem Backtest-Field
     gelesen werden. Falls je live-scharfgeschaltet, MUSS der Score-Input
     aus dem Live-Enrichment-Dict ``s["finra_data"]["history"]`` berechnet
@@ -759,7 +759,7 @@ def _build_backtest_extension(s: dict, pool_position: int, pool_size: int,
         # Relative Änderungsrate des Short Interest über die letzten
         # SI_VELOCITY_PUB_N_REPORTS (=3) PUBLIZIERTEN Reports vor entry_date.
         # Der ``_pub``-Suffix grenzt bewusst gegen das ältere Displayfeld
-        # ``finra_data.si_velocity`` in generate_report.py ab (dort: absolute
+        # ``finra_data.si_shares_per_day`` in generate_report.py ab (dort: absolute
         # Shares/Tag über die volle FINRA-History, KEIN pub_date-Filter —
         # bleibt unverändert). Beide Größen koexistieren.
         #
@@ -1035,7 +1035,7 @@ def _append_backtest_entries(top10: list[dict], report_date: str,
             safe_float_fn=safe_float_fn,
             latest_push_ts_by_ticker=latest_push_ts_by_ticker,
             now_dt=_now_dt,
-            # entry_date für si_velocity Look-Ahead-Filter (PR-3).
+            # entry_date für si_velocity_pub Look-Ahead-Filter (PR-3).
             # ``_rd`` ist bereits am Funktions-Anfang (Wochenend-Schreib-
             # schutz Z. 889) aus ``report_date`` (dd.mm.yyyy) geparst; bei
             # unparsbarem Wert ist ``_rd = None`` → Helper returnt sauber

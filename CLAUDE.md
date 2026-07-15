@@ -2753,7 +2753,7 @@ bereits aufgebaut = mehr potentieller Squeeze-Brennstoff.
 **Datenbeleg (Diagnose 13.05.2026):** Mann-Whitney-U über 14
 Trading-Tage, Gewinner (return_10d ≥ +10 %, n=34) vs. Verlierer
 (return_10d ≤ −5 %, n=44): DTC liefert **AUC 0.77** (Median 10.05 vs
-5.40). Die ursprünglichen V1-Sub-Signale (si_accel, si_velocity,
+5.40). Die ursprünglichen V1-Sub-Signale (si_accel, si_shares_per_day,
 PM-Volume) sind aus `backtest_history.json` nicht rückwirkbar
 berechenbar — werden nicht weiter geführt.
 
@@ -2799,7 +2799,7 @@ Stock soll deutlich tiefer in der Top-10 landen.
 
 `EARLINESS_FORMULA_VERSION` in `config.py` (= 2 Default). Bei `= 1`
 fällt `compute_earliness_pts` auf den alten V1-Pfad zurück (siehe
-`_earliness_pts_v1` — `si_accel` + `si_velocity` + PM-Vol-Komponente).
+`_earliness_pts_v1` — `si_accel` + `si_shares_per_day` + PM-Vol-Komponente).
 V1-Konstanten bleiben im config als `# V1-only` markiert, neue Pfade
 sollen nicht darauf zugreifen.
 

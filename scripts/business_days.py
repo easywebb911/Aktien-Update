@@ -1,6 +1,6 @@
 """US-Handelstag-Vorwärts-Arithmetik + FINRA-Publikations-Kalender.
 
-ZWECK: Deterministische Basis für den ``si_velocity``-Look-Ahead-Filter
+ZWECK: Deterministische Basis für den ``si_velocity_pub``-Look-Ahead-Filter
 (PR-3). Ein SI-Report darf einem Backtest-Record nur zugeordnet werden,
 wenn sein Publikations-Datum (``pub_date``) ≤ ``entry_date`` — sonst
 Look-Ahead. Diese Modul liefert die pure-stdlib-Berechnung des
@@ -109,7 +109,7 @@ def finra_publication_date(settlement_date: date,
           +5 Fr 22.05 → (Mo 25.05 = Memorial Day, skip) → +6 Di 26.05 →
           +7 Mi 27.05 → **pub_date = 2026-05-27**
 
-    LOOK-AHEAD-KONVENTION (Docstring einfriert, PFLICHT für si_velocity):
+    LOOK-AHEAD-KONVENTION (Docstring einfriert, PFLICHT für si_velocity_pub):
         Das zurückgelieferte Datum ist die GRENZE, ab der der SI-Wert
         öffentlich war. Ein SI-Report R mit ``settlement_date = S`` darf
         einem Backtest-Record mit ``entry_date = E`` NUR zugeordnet werden,
