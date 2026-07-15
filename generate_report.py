@@ -2267,7 +2267,7 @@ def get_finra_short_interest(ticker: str,
     # (bleiben aber im history-Array für T-1/T-2/T-3-Anzeige).
     _TREND_MIN_VOL  = 500      # min short-vol for a meaningful trend data point
 
-    # ── pub_date-Import (holiday-robust, Basis für si_velocity Look-Ahead) ──
+    # ── pub_date-Import (holiday-robust, Basis für si_velocity_pub Look-Ahead) ──
     # ``finra_publication_date`` liegt in ``scripts/business_days`` (eigen-
     # ständiges Modul; kein Cross-Import in cluster_purge — Reihenfolge-
     # Disziplin dort). Lazy im Loop importiert, um Modul-Load-Zeit-Kosten
@@ -2286,10 +2286,10 @@ def get_finra_short_interest(ticker: str,
               f"{'Treffer' if hit else 'Kein Treffer'}: {si_val:,}", flush=True)
         if si_val >= _FINRA_MIN_VOL:
             sd = f"{date_str[:4]}-{date_str[4:6]}-{date_str[6:]}"
-            # Publikations-Datum pro History-Entry (Basis für si_velocity
+            # Publikations-Datum pro History-Entry (Basis für si_velocity_pub
             # Look-Ahead-Filter, PR-3). Ableitung via FINRA Rule 4560
             # (7 Handelstage nach Settlement); holiday-robust dank #407.
-            # Look-Ahead-Konvention: si_velocity darf einen Report NUR
+            # Look-Ahead-Konvention: si_velocity_pub darf einen Report NUR
             # nutzen wenn ``pub_date <= entry_date``. Siehe
             # ``scripts/business_days.finra_publication_date``-Docstring.
             try:
@@ -2332,13 +2332,15 @@ def get_finra_short_interest(ticker: str,
                   f"avg_old={avg_old:,.0f}, avg_new={avg_new:,.0f}, "
                   f"trend_pct={trend_pct*100:.1f}%, trend={trend}", flush=True)
 
-    # SI Velocity: average daily share change (newest − oldest) / n data points
-    si_velocity   = 0.0
+    # SI shares/day: average daily change of the daily short VOLUME
+    # (newest − oldest) / n data points — absolute Shares/Tag, KEINE
+    # Änderungsraten-„Velocity" (Nomenklatur-Falle §8m, Rename 15.07.2026).
+    si_shares_per_day = 0.0
     si_accelerating = False
     if len(history) >= 2:
         newest_v = history[0]["short_interest"]
         oldest_v = history[-1]["short_interest"]
-        si_velocity = (newest_v - oldest_v) / len(history)
+        si_shares_per_day = (newest_v - oldest_v) / len(history)
 
     # Acceleration: each of the last 3 steps larger than the previous
     if len(history) >= 3:
@@ -2365,8 +2367,8 @@ def get_finra_short_interest(ticker: str,
                   flush=True)
 
     _finra_stats["ok"] += 1
-    log.info("%s FINRA history=%d Punkte, trend=%s, velocity=%.0f/day, accel=%s, ssr=%s",
-             sym, len(history), trend, si_velocity, si_accelerating,
+    log.info("%s FINRA history=%d Punkte, trend=%s, shares_per_day=%.0f/day, accel=%s, ssr=%s",
+             sym, len(history), trend, si_shares_per_day, si_accelerating,
              f"{ssr_today*100:.1f}%" if ssr_today is not None else "—")
     return {
         "short_interest":      history[0]["short_interest"],
@@ -2375,7 +2377,7 @@ def get_finra_short_interest(ticker: str,
         "history":             history,
         "trend":               trend,
         "trend_pct":           round(trend_pct * 100, 1),
-        "si_velocity":         round(si_velocity, 0),
+        "si_shares_per_day":   round(si_shares_per_day, 0),
         "si_accelerating":     si_accelerating,
         "ssr_today":           ssr_today,
     }
@@ -2530,7 +2532,7 @@ def _wl_card_payload(_s: dict) -> dict:
         "si_trend":          _fd.get("trend", "no_data"),
         "si_trend_source":   _fd.get("si_trend_source", "finra"),
         "si_tpct":       _fd.get("trend_pct", 0.0),
-        "si_velocity":   _fd.get("si_velocity", 0.0),
+        "si_shares_per_day": _fd.get("si_shares_per_day", 0.0),
         "si_accel":      _fd.get("si_accelerating", False),
         "si_t1":         _fmt_si_record(_hist[0]) if len(_hist) >= 1 else "—",
         "si_t2":         _fmt_si_record(_hist[1]) if len(_hist) >= 2 else "—",
@@ -3523,16 +3525,16 @@ def _earliness_pts_v1(s: dict) -> tuple[int, dict]:
     Kombiniert FINRA-Acceleration, FINRA-Velocity und Pre-Market-Volume.
     Wird nur noch aufgerufen, wenn ``EARLINESS_FORMULA_VERSION == 1``.
     """
-    # FINRA-Felder können entweder top-level (si_accel/si_velocity)
-    # oder verschachtelt (finra_data.si_accelerating/si_velocity)
+    # FINRA-Felder können entweder top-level (si_accel/si_shares_per_day)
+    # oder verschachtelt (finra_data.si_accelerating/si_shares_per_day)
     # vorliegen — beide Quellen graceful zusammenziehen.
     finra        = s.get("finra_data") or {}
     accel_raw    = s.get("si_accel")
     if accel_raw is None:
         accel_raw = finra.get("si_accelerating")
-    velocity_raw = s.get("si_velocity")
+    velocity_raw = s.get("si_shares_per_day")
     if velocity_raw is None:
-        velocity_raw = finra.get("si_velocity")
+        velocity_raw = finra.get("si_shares_per_day")
 
     try:
         velocity = float(velocity_raw) if velocity_raw is not None else 0.0
@@ -3615,7 +3617,7 @@ def compute_earliness_pts(stocks: list[dict]) -> None:
 
     Aktive Formel via ``EARLINESS_FORMULA_VERSION``-Schalter:
       • V2 (Default): DTC-Niveau-Basis (datenbelegt 13.05.2026, AUC 0.77)
-      • V1 (Rollback): si_accel + si_velocity + premarket_volume
+      • V1 (Rollback): si_accel + si_shares_per_day + premarket_volume
     """
     use_v2 = EARLINESS_FORMULA_VERSION != 1
     for s in stocks:
@@ -5265,20 +5267,20 @@ def _card(i: int, s: dict) -> str:
     si_trend      = finra_d.get("trend", "no_data")
     si_tpct       = finra_d.get("trend_pct", 0.0)
     si_hist       = finra_d.get("history", [])
-    si_velocity   = finra_d.get("si_velocity", 0.0)
+    si_shares_per_day = finra_d.get("si_shares_per_day", 0.0)
     si_accel      = finra_d.get("si_accelerating", False)
 
-    if si_velocity != 0.0:
-        _vel_sign = "+" if si_velocity > 0 else ""
-        _vel_col  = "#22c55e" if si_velocity > 0 else "#ef4444"
+    if si_shares_per_day != 0.0:
+        _vel_sign = "+" if si_shares_per_day > 0 else ""
+        _vel_col  = "#22c55e" if si_shares_per_day > 0 else "#ef4444"
         _accel_note = " ⚡ Beschleunigung" if si_accel else ""
-        _vel_str  = f"{_vel_sign}{si_velocity:,.0f}".replace(",", ".")
-        si_velocity_row = (
-            f'<tr><td>SI Velocity (tägl. Ø)</td>'
+        _vel_str  = f"{_vel_sign}{si_shares_per_day:,.0f}".replace(",", ".")
+        si_shares_per_day_row = (
+            f'<tr><td>SI-Volumen Δ (tägl. Ø)</td>'
             f'<td><span style="color:{_vel_col}">{_vel_str} Aktien/Tag{_accel_note}</span></td></tr>'
         )
     else:
-        si_velocity_row = ""
+        si_shares_per_day_row = ""
 
     if si_trend == "up":
         trend_html      = f'<span style="color:#22c55e">↑ Steigend +{abs(si_tpct):.1f} %</span>'
@@ -5602,7 +5604,7 @@ def _card(i: int, s: dict) -> str:
         <tr class="detail-group-header"><td colspan="2">Short-Daten</td></tr>
         {edgar_row}
         <tr><td>SI-Trend (3M)</td><td>{trend_html}</td></tr>
-        {si_velocity_row}
+        {si_shares_per_day_row}
         <tr><td>Short-Vol. T-1 (FINRA)</td><td>{si_t1_disp}</td></tr>
         <tr><td>Short-Vol. T-2</td><td>{si_t2_disp}</td></tr>
         <tr><td>Short-Vol. T-3</td><td>{si_t3_disp}</td></tr>
@@ -5802,20 +5804,20 @@ def _build_card_ctx(i: int, s: dict) -> dict:
     si_trend    = finra_d.get("trend", "no_data")
     si_tpct     = finra_d.get("trend_pct", 0.0)
     si_hist     = finra_d.get("history", [])
-    si_velocity = finra_d.get("si_velocity", 0.0)
+    si_shares_per_day = finra_d.get("si_shares_per_day", 0.0)
     si_accel    = finra_d.get("si_accelerating", False)
 
-    if si_velocity != 0.0:
-        _vel_sign = "+" if si_velocity > 0 else ""
-        _vel_col  = "#22c55e" if si_velocity > 0 else "#ef4444"
+    if si_shares_per_day != 0.0:
+        _vel_sign = "+" if si_shares_per_day > 0 else ""
+        _vel_col  = "#22c55e" if si_shares_per_day > 0 else "#ef4444"
         _accel_note = " ⚡ Beschleunigung" if si_accel else ""
-        _vel_str  = f"{_vel_sign}{si_velocity:,.0f}".replace(",", ".")
-        si_velocity_row = (
-            f'<tr><td>SI Velocity (tägl. Ø)</td>'
+        _vel_str  = f"{_vel_sign}{si_shares_per_day:,.0f}".replace(",", ".")
+        si_shares_per_day_row = (
+            f'<tr><td>SI-Volumen Δ (tägl. Ø)</td>'
             f'<td><span style="color:{_vel_col}">{_vel_str} Aktien/Tag{_accel_note}</span></td></tr>'
         )
     else:
-        si_velocity_row = ""
+        si_shares_per_day_row = ""
 
     if si_trend == "up":
         trend_html  = f'<span style="color:#22c55e">↑ Steigend +{abs(si_tpct):.1f} %</span>'
@@ -6191,7 +6193,7 @@ def _build_card_ctx(i: int, s: dict) -> dict:
         "monster_data_attr":    monster_data_attr,
         "conviction_data_attr": conviction_data_attr,
         "setup_rank":           i,
-        "si_velocity_row":      si_velocity_row,
+        "si_shares_per_day_row": si_shares_per_day_row,
         "trend_html":           trend_html,
         "momentum_rows":        momentum_rows,
         "float_turnover_row":   float_turnover_row,
@@ -12235,7 +12237,7 @@ function _fmtGerman(d) {{
       const priceStr = d.price ? '$' + (+d.price).toFixed(2) : '\u2014';
       const hiStr    = d['52w_high'] ? '$' + (+d['52w_high']).toFixed(2) : '\u2014';
       const loStr    = d['52w_low']  ? '$' + (+d['52w_low']).toFixed(2)  : '\u2014';
-      const siVelStr = d.si_velocity != null ? fmt(d.si_velocity, 2) + '%' + (d.si_accel ? ' \u2b06' : '') : '\u2014';
+      const siVelStr = d.si_shares_per_day != null ? fmt(d.si_shares_per_day, 2) + '%' + (d.si_accel ? ' \u2b06' : '') : '\u2014';
       const earStr   = d.earnings_days != null
         ? 'T+' + d.earnings_days + 'd (' + (d.earnings_date_str || '?') + ')'
         : '\u2014';

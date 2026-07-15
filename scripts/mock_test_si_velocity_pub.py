@@ -7,9 +7,10 @@ verworfen werden — sonst leakt der Report in die Zukunft (Rule 4560:
 Publikation ~7 Handelstage NACH Settlement).
 
 Namens-Disambiguation: ``si_velocity_pub`` (dieser PR) unterscheidet sich
-absichtlich vom älteren ``si_velocity``-Displayfeld in
+absichtlich vom älteren ``si_shares_per_day``-Displayfeld in
 ``generate_report.py`` (dort: absolute Shares/Tag über die volle FINRA-
-History, kein pub_date-Filter, rein Anzeige + KI-Boost). Beide koexistieren.
+History, kein pub_date-Filter, rein Anzeige + dormanter V1-Rollback; früher
+``si_velocity`` genannt, umbenannt 15.07.2026). Beide koexistieren.
 
 Fixture-only, stdlib-only (Source-Extraktion analog
 ``mock_test_earliness_trend_log`` — vermeidet yfinance-Import aus
@@ -266,10 +267,11 @@ def test_consumer_isolation() -> None:
     print("\n(E) Konsumenten-Isolation — si_velocity_pub nirgends in "
           "Score/Filter/Push")
 
-    # Namens-Disambiguation: das ältere Display-Feld ``si_velocity`` (ohne
-    # ``_pub``-Suffix) existiert bewusst in ``generate_report.py`` (~90-Tage-
-    # FINRA-History, absolute Shares/Tag, kein pub_date-Filter). Es bleibt
-    # unangetastet. Die Konsumenten-Isolation für PR-3 prüft ausschließlich,
+    # Namens-Disambiguation: das ältere Display-Feld ``si_shares_per_day``
+    # (früher ``si_velocity``, umbenannt 15.07.2026) existiert bewusst in
+    # ``generate_report.py`` (~90-Tage-FINRA-History, absolute Shares/Tag,
+    # kein pub_date-Filter). Es bleibt vom ``_pub``-Analyse-Feld getrennt.
+    # Die Konsumenten-Isolation für PR-3 prüft ausschließlich,
     # dass ``si_velocity_pub`` (Wort-Grenzen strikt) und ``_compute_si_
     # velocity_pub`` NIRGENDS außerhalb des Backtest-Persist-Pfads gelesen
     # werden — sonst wäre der Look-Ahead-freie Analyse-Wert versehentlich

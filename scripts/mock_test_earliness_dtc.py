@@ -196,7 +196,7 @@ def test_version_switch_flips_to_v1():
         "short_ratio":      15.0,   # würde V2-Bucket 4 = 100 ergeben
         "rel_volume":       1.0,
         "si_accel":         True,
-        "si_velocity":      150.0,
+        "si_shares_per_day": 150.0,
         "change_5d":        2.0,
         "rsi14":            50.0,
         "premarket_volume": 0.0,
