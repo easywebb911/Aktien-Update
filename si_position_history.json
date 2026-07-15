@@ -1348,5 +1348,50 @@
       "short_pct_float": 29.56,
       "pub_date": "2026-07-10"
     }
+  ],
+  "WGS": [
+    {
+      "settlement_date": "2026-05-29",
+      "shares_short": 4571456,
+      "short_pct_float": null,
+      "pub_date": "2026-06-09",
+      "seeded": true
+    },
+    {
+      "settlement_date": "2026-06-30",
+      "shares_short": 5940039,
+      "short_pct_float": 38.46,
+      "pub_date": "2026-07-10"
+    }
+  ],
+  "EBS": [
+    {
+      "settlement_date": "2026-05-29",
+      "shares_short": 9760594,
+      "short_pct_float": null,
+      "pub_date": "2026-06-09",
+      "seeded": true
+    },
+    {
+      "settlement_date": "2026-06-30",
+      "shares_short": 10265965,
+      "short_pct_float": 20.21,
+      "pub_date": "2026-07-10"
+    }
+  ],
+  "BMBL": [
+    {
+      "settlement_date": "2026-05-29",
+      "shares_short": 10446800,
+      "short_pct_float": null,
+      "pub_date": "2026-06-09",
+      "seeded": true
+    },
+    {
+      "settlement_date": "2026-06-30",
+      "shares_short": 13549624,
+      "short_pct_float": 15.34,
+      "pub_date": "2026-07-10"
+    }
   ]
 }
