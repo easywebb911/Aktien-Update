@@ -12237,7 +12237,7 @@ function _fmtGerman(d) {{
       const priceStr = d.price ? '$' + (+d.price).toFixed(2) : '\u2014';
       const hiStr    = d['52w_high'] ? '$' + (+d['52w_high']).toFixed(2) : '\u2014';
       const loStr    = d['52w_low']  ? '$' + (+d['52w_low']).toFixed(2)  : '\u2014';
-      const siVelStr = d.si_shares_per_day != null ? fmt(d.si_shares_per_day, 2) + '%' + (d.si_accel ? ' \u2b06' : '') : '\u2014';
+      const siVelStr = d.si_shares_per_day ? ((+d.si_shares_per_day > 0 ? '+' : '') + Math.round(+d.si_shares_per_day).toLocaleString('de-DE') + ' Aktien/Tag' + (d.si_accel ? ' \u26a1 Beschleunigung' : '')) : '\u2014';
       const earStr   = d.earnings_days != null
         ? 'T+' + d.earnings_days + 'd (' + (d.earnings_date_str || '?') + ')'
         : '\u2014';
@@ -12250,7 +12250,7 @@ function _fmtGerman(d) {{
           <tr><td>\xd8 Volumen 20T</td><td>${{fmtVol(d.avg_vol_20d)}}</td></tr>
           <tr><td>Heutiges Volumen</td><td>${{fmtVol(d.cur_vol)}}</td></tr>
           <tr><td>SI-Trend (3M)</td><td>${{_escH(d.si_trend) || '\u2014'}}${{d.si_tpct ? ' ' + fmtPct(d.si_tpct) : ''}}</td></tr>
-          <tr><td>SI-Velocity</td><td>${{siVelStr}}</td></tr>
+          <tr><td>SI-Volumen Δ (tägl. Ø)</td><td>${{siVelStr}}</td></tr>
           <tr><td>Short-Vol. T-1 (FINRA)</td><td>${{d.si_t1 || '\u2014'}}</td></tr>
           <tr><td>Short-Vol. T-2</td><td>${{d.si_t2 || '\u2014'}}</td></tr>
           <tr><td>Short-Vol. T-3</td><td>${{d.si_t3 || '\u2014'}}</td></tr>
