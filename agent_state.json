@@ -1,5 +1,5 @@
 {
-  "last_run": "2026-07-15T05:35:02.677033+02:00",
+  "last_run": "2026-07-15T08:28:32.754090+02:00",
   "cooldowns": {
     "anomaly_score_jump_XRX": "2026-05-03T18:47:15.315486+02:00",
     "anomaly_uoa_extreme_TDOC": "2026-05-04T13:47:00.365949+02:00",
@@ -83,66 +83,6 @@
     "exit_LENZ": "2026-07-14T18:41:33.692611+02:00"
   },
   "push_history": [
-    {
-      "ts": "2026-07-07T18:21:00.265218+02:00",
-      "ticker": "EVMN",
-      "kind": "anomaly",
-      "severity": "medium",
-      "trigger": "uoa_extreme",
-      "body": "EVMN 🎯 UOA Vol/OI 17.0× ATM | Setup 56",
-      "success": false,
-      "suppressed": true,
-      "suppress_reason": "conviction_below_threshold",
-      "conviction_score": 65
-    },
-    {
-      "ts": "2026-07-07T18:21:00.423719+02:00",
-      "ticker": "LENZ",
-      "kind": "anomaly",
-      "severity": "high",
-      "trigger": "conviction_high",
-      "body": "LENZ 🎯 KAUFSIGNAL — Conviction 78/100 (high) | Conviction hoch — Setup, Earliness und Timing konvergieren. Aggregations-Anzeige…",
-      "success": true,
-      "suppressed": false,
-      "suppress_reason": null,
-      "conviction_score": 78
-    },
-    {
-      "ts": "2026-07-07T19:27:30.408742+02:00",
-      "ticker": "EVMN",
-      "kind": "anomaly",
-      "severity": "medium",
-      "trigger": "uoa_extreme",
-      "body": "EVMN 🎯 UOA Vol/OI 17.0× ATM | Setup 56",
-      "success": false,
-      "suppressed": true,
-      "suppress_reason": "conviction_below_threshold",
-      "conviction_score": 65
-    },
-    {
-      "ts": "2026-07-07T22:15:18.353429+02:00",
-      "ticker": "EVMN",
-      "kind": "anomaly",
-      "severity": "medium",
-      "trigger": "uoa_extreme",
-      "body": "EVMN 🎯 UOA Vol/OI 17.0× ATM | Setup 56",
-      "success": false,
-      "suppressed": true,
-      "suppress_reason": "conviction_below_threshold",
-      "conviction_score": 65
-    },
-    {
-      "ts": "2026-07-07T23:43:16.238804+02:00",
-      "ticker": "EVMN",
-      "kind": "anomaly",
-      "severity": "medium",
-      "trigger": "uoa_extreme",
-      "body": "EVMN 🎯 UOA Vol/OI 17.0× ATM | Setup 56",
-      "success": false,
-      "suppressed": true,
-      "suppress_reason": "conviction_below_threshold",
-      "conviction_score": 65
-    },
     {
       "ts": "2026-07-07T23:43:19.644380+02:00",
       "ticker": "IONQ",
@@ -1282,6 +1222,66 @@
       "suppressed": false,
       "suppress_reason": null,
       "conviction_score": null
+    },
+    {
+      "ts": "2026-07-15T08:28:32.911192+02:00",
+      "ticker": "IONQ",
+      "kind": "exit_p2",
+      "severity": "trigger",
+      "trigger": "profit_lock",
+      "body": "🔻 Exit-Signal IONQ: profit_lock crit ({'pnl_pct': -0.1998, 'peak_pnl_pct': 0.4678, 'drawdown_from_peak': 0.6676, 'score_drop_from_peak': None})",
+      "success": true,
+      "suppressed": false,
+      "suppress_reason": null,
+      "conviction_score": null
+    },
+    {
+      "ts": "2026-07-15T08:28:32.977538+02:00",
+      "ticker": "IONQ",
+      "kind": "exit_p2",
+      "severity": "trigger",
+      "trigger": "trend_break",
+      "body": "🔻 Exit-Signal IONQ: trend_break crit ({'ma21': 49.1813, 'price': 39.29, 'drop_pct': 20.11})",
+      "success": true,
+      "suppressed": false,
+      "suppress_reason": null,
+      "conviction_score": null
+    },
+    {
+      "ts": "2026-07-15T08:28:33.033473+02:00",
+      "ticker": "PDYN",
+      "kind": "exit_p2",
+      "severity": "trigger",
+      "trigger": "trend_break",
+      "body": "🔻 Exit-Signal PDYN: trend_break crit ({'ma21': 5.9087, 'price': 5.34, 'drop_pct': 9.62})",
+      "success": true,
+      "suppressed": false,
+      "suppress_reason": null,
+      "conviction_score": null
+    },
+    {
+      "ts": "2026-07-15T08:28:33.092091+02:00",
+      "ticker": "LENZ",
+      "kind": "exit_p2",
+      "severity": "trigger",
+      "trigger": "trend_break",
+      "body": "🔻 Exit-Signal LENZ: trend_break crit ({'ma21': 5.9285, 'price': 4.93, 'drop_pct': 16.84})",
+      "success": true,
+      "suppressed": false,
+      "suppress_reason": null,
+      "conviction_score": null
+    },
+    {
+      "ts": "2026-07-15T08:28:33.148214+02:00",
+      "ticker": "WOLF",
+      "kind": "exit_p2",
+      "severity": "trigger",
+      "trigger": "trend_break",
+      "body": "🔻 Exit-Signal WOLF: trend_break crit ({'ma21': 42.293, 'price': 34.31, 'drop_pct': 18.88})",
+      "success": true,
+      "suppressed": false,
+      "suppress_reason": null,
+      "conviction_score": null
     }
   ],
   "prev_conviction_scores": {
@@ -1314,8 +1314,8 @@
     "exitp2_trigger_KPTI_trend_break": "2026-05-15T18:18:45.093840+02:00",
     "exitp2_trigger_RR_trend_break": "2026-05-20T17:26:03.459661+02:00",
     "exitp2_warning_IONQ": "2026-07-14T21:47:38.202579+02:00",
-    "exitp2_trigger_IONQ_trend_break": "2026-07-14T08:25:30.629081+02:00",
-    "exitp2_trigger_PDYN_trend_break": "2026-07-14T08:25:30.834701+02:00",
+    "exitp2_trigger_IONQ_trend_break": "2026-07-15T08:28:32.977563+02:00",
+    "exitp2_trigger_PDYN_trend_break": "2026-07-15T08:28:33.033498+02:00",
     "exitp2_trigger_GEMI_trend_break": "2026-06-09T00:01:52.717781+02:00",
     "exitp2_trigger_PDYN_overheated": "2026-05-28T18:12:36.334552+02:00",
     "exitp2_trigger_CRDF_profit_lock": "2026-06-01T19:24:04.144723+02:00",
@@ -1324,7 +1324,7 @@
     "exitp2_trigger_AI_catalyst": "2026-06-03T06:58:18.642141+02:00",
     "exitp2_trigger_RBOHF_trend_break": "2026-06-30T20:15:49.198375+02:00",
     "exitp2_trigger_AI_trend_break": "2026-07-13T06:01:10.913988+02:00",
-    "exitp2_trigger_IONQ_profit_lock": "2026-07-14T08:25:30.426304+02:00",
+    "exitp2_trigger_IONQ_profit_lock": "2026-07-15T08:28:32.911221+02:00",
     "exitp2_trigger_GIII_catalyst": "2026-06-05T23:13:52.175687+02:00",
     "exitp2_trigger_DBI_catalyst": "2026-06-09T23:13:25.072861+02:00",
     "exitp2_trigger_DBI_trend_break": "2026-06-22T19:25:15.868062+02:00",
@@ -1332,7 +1332,7 @@
     "exitp2_trigger_LUCK_trend_break": "2026-06-22T19:25:15.805548+02:00",
     "exitp2_warning_AI": "2026-07-14T22:25:18.369631+02:00",
     "exitp2_trigger_RBOHF_overheated": "2026-07-01T22:55:00.455123+02:00",
-    "exitp2_trigger_LENZ_trend_break": "2026-07-14T08:25:31.043613+02:00",
-    "exitp2_trigger_WOLF_trend_break": "2026-07-14T08:25:31.233059+02:00"
+    "exitp2_trigger_LENZ_trend_break": "2026-07-15T08:28:33.092115+02:00",
+    "exitp2_trigger_WOLF_trend_break": "2026-07-15T08:28:33.148240+02:00"
   }
 }
