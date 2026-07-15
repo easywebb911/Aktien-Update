@@ -14726,6 +14726,33 @@ def _write_app_data_json(watchlist_cards: dict | None = None,
           flush=True)
 
 
+# Bootstrap-Shell (Phase 1, Flip): index.html ist ab jetzt eine WINZIGE Weiche
+# auf app.html?v=<ts>. Behebt das iOS-PWA-Launcher-Cache-Problem: iOS öffnet die
+# parameterlose start_url (index.html) aus dem Standalone-Cache — die gecachte
+# Shell leitet aber IMMER auf eine eindeutige app.html?v=-URL weiter (Cache-Miss
+# → frische Bytes). app.html trägt den vollen Content (Phase-0-Doppel-Write).
+# KEIN Score/Content in der Shell. Apple-Meta ZWINGEND (sonst verliert der Launch
+# Standalone/Icon/Titel). Plain-String (KEIN f-String) → kein Escaping nötig;
+# Date.now() ist client-JS. Fallback-Kette: <noscript>-Refresh + sichtbarer Link.
+_SHELL_HTML = """<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Squeeze Report">
+<title>Squeeze Report</title>
+<script>location.replace('app.html?v=' + Date.now());</script>
+<noscript><meta http-equiv="refresh" content="0; url=app.html"></noscript>
+</head>
+<body style="font-family:system-ui,-apple-system,sans-serif;background:#0b1120;color:#8899bb;text-align:center;padding:3rem 1rem">
+<p>Lädt… <a href="app.html" style="color:#22c55e">weiter zur App</a></p>
+</body>
+</html>
+"""
+
+
 def _write_error_page(report_date: str, message: str) -> None:
     """Write a minimal error page when no data could be retrieved."""
     html = f"""<!DOCTYPE html><html lang="de">
@@ -14744,14 +14771,17 @@ p{{color:#8899bb;font-size:.88rem;line-height:1.65}}
 <div class="err">&#9888; Datenabruf fehlgeschlagen</div>
 <p>{message}<br><br>Datum: {report_date}</p>
 </div></body></html>"""
-    with open("index.html", "w", encoding="utf-8") as fh:
-        fh.write(html)
-    # Phase 0: Error-Page ebenfalls nach app.html (kanonischer Content-Pfad) —
-    # damit die spätere Shell auch im Fehlerfall auf eine existierende Seite
-    # weiterleitet. Byte-identisch zu index.html.
+    # Phase 1 (Flip): Error-Page nach app.html (Content-Pfad); index.html bleibt
+    # die Shell → leitet auf app.html = Fehlerseite weiter. Warum NICHT die
+    # Error-Page direkt in index.html: index.html ist ab Phase 1 IMMER die
+    # konstante Weiche (einheitlich, kein Sonderfall) — der Nutzer landet über
+    # die Shell stets auf app.htmls aktuellem Stand (volle Seite ODER Fehler).
+    # app.html-first (kein Race: Shell zeigt nie auf fehlende app.html).
     with open("app.html", "w", encoding="utf-8") as fh:
         fh.write(html)
-    log.info("Error page written to index.html + app.html")
+    with open("index.html", "w", encoding="utf-8") as fh:
+        fh.write(_SHELL_HTML)
+    log.info("Error page → app.html (Content); index.html = Shell")
 
 
 # ═══════════════════════════════════════════════════════════════════════════
@@ -17154,16 +17184,16 @@ def main():
                     html[max(0, pos - 100):pos + 100])
         html = strip_surrogates(html)
 
-    with open("index.html", "w", encoding="utf-8") as fh:
-        fh.write(html)
-    # Bootstrap-Shell-Vorbau (Phase 0): app.html ist der KANONISCHE Content-/
-    # Parse-Pfad (ki_agent/alert/S9 lesen app.html). index.html bleibt in
-    # Phase 0 die volle Seite — byte-identisch, KEIN Flip. Beide werden vom
-    # Workflow committed; Phase 1 ersetzt index.html durch die Weiche auf
-    # app.html?v=. app.html wird VOR dem S9-Check geschrieben → S9 prüft es.
+    # Bootstrap-Shell (Phase 1, Flip): app.html trägt den VOLLEN Content, index.html
+    # ist die winzige Weiche (_SHELL_HTML → app.html?v=). app.html-FIRST geschrieben:
+    # (1) Deploy-Race-Mitigation — die Shell zeigt nie auf eine fehlende app.html;
+    # (2) app.html existiert VOR dem S9-Check (S9 liest app.html, #434). Alle
+    # Content-Parser (ki_agent/alert/S9/smoke_render) lesen seit Phase 0 app.html.
     with open("app.html", "w", encoding="utf-8") as fh:
         fh.write(html)
-    log.info("index.html + app.html geschrieben (frischer Stand, vor S9-Check)")
+    with open("index.html", "w", encoding="utf-8") as fh:
+        fh.write(_SHELL_HTML)
+    log.info("app.html (Content) + index.html (Shell) geschrieben (vor S9-Check)")
 
     # Kombinierte app_data.json (PWA-Single-Fetch). ``_wl_card_data``
     # wurde oben (vor generate_html) gebaut und an den Chat-Synthese-

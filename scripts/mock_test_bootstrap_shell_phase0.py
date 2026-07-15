@@ -8,7 +8,9 @@ neben ``index.html`` an und stellt ALLE Content-Parser darauf um — während
 
 Verifiziert:
 
-- (A) Doppel-Write: generate_report schreibt die volle Seite nach index.html UND
+- (A) Flip-Write (seit Phase 1): app.html = voller Content, index.html = Shell
+      (_SHELL_HTML). Details der Shell selbst in mock_test_bootstrap_shell_phase1.
+- (A-alt, Phase 0, historisch): Doppel-Write index.html UND
       app.html (byte-identisch, gleiche ``html``-Variable) — Content-Write UND
       Error-Page. index.html-Write bleibt erhalten (kein Flip).
 - (B) S9-Repoint: html_path="app.html" + crit-Re-Read open("app.html")
@@ -73,19 +75,21 @@ def _install_stubs() -> None:
 _GR = (ROOT / "generate_report.py").read_text(encoding="utf-8")
 
 
-def test_a_double_write() -> None:
-    print("── (A) Doppel-Write index.html + app.html (byte-identisch) ───")
-    # Content-Write: beide open(...) mit fh.write(html) vorhanden.
-    _check("A1 Content-Write index.html erhalten (kein Flip)",
-           'with open("index.html", "w", encoding="utf-8") as fh:' in _GR)
-    _check("A2 Content-Write app.html ergänzt",
-           'with open("app.html", "w", encoding="utf-8") as fh:' in _GR)
-    _check("A3 Content-Write beide schreiben dieselbe html-Variable",
+def test_a_flip_write() -> None:
+    # (A) — seit Phase 1 (Flip): app.html trägt den vollen Content, index.html
+    # ist die Shell (_SHELL_HTML). Vorher Phase 0: beide byte-identisch.
+    print("── (A) Flip-Write: app.html=Content, index.html=Shell (Phase 1) ──")
+    _check("A1 Content-Write app.html = voller html",
            _GR.count('with open("app.html", "w", encoding="utf-8") as fh:\n        fh.write(html)') >= 1,
-           "app.html-Write nutzt nicht fh.write(html) → nicht byte-identisch")
-    # Error-Page: index.html + app.html.
-    _check("A4 Error-Page nach index.html + app.html",
-           'log.info("Error page written to index.html + app.html")' in _GR)
+           "app.html-Content-Write fehlt")
+    _check("A2 index.html = _SHELL_HTML (Flip)",
+           'with open("index.html", "w", encoding="utf-8") as fh:\n        fh.write(_SHELL_HTML)' in _GR,
+           "index.html schreibt nicht die Shell → kein Flip")
+    _check("A3 kein voller Content mehr nach index.html",
+           'with open("index.html", "w", encoding="utf-8") as fh:\n        fh.write(html)' not in _GR,
+           "index.html schreibt noch die volle Seite (html)")
+    _check("A4 Error-Page → app.html; index.html = Shell",
+           'log.info("Error page → app.html (Content); index.html = Shell")' in _GR)
 
 
 def test_b_s9_repoint() -> None:
@@ -204,7 +208,7 @@ def test_g_deploy_and_jekyll() -> None:
 
 
 def main() -> int:
-    for fn in (test_a_double_write, test_b_s9_repoint, test_c_config,
+    for fn in (test_a_flip_write, test_b_s9_repoint, test_c_config,
                test_d_ki_agent_parse, test_e_alert_parse,
                test_f_golden_path_agnostic, test_g_deploy_and_jekyll):
         fn()
