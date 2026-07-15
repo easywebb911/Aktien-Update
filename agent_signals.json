@@ -1,10 +1,10 @@
 {
-  "updated": "2026-07-15T10:37:27.341337+02:00",
+  "updated": "2026-07-15T11:22:24.667498+02:00",
   "run_info": {
     "tickers_checked": 15,
     "signals_active": 2,
     "alerts_sent": 0,
-    "elapsed_s": 16.1,
+    "elapsed_s": 15.6,
     "market_phase": "Pre-Market"
   },
   "signals": {
@@ -53,9 +53,9 @@
       "uoa_cp_ratio": 19.99860982391103
     },
     "CRMT": {
-      "score": 68,
+      "score": 55,
       "confidence": 70,
-      "drivers": "Kurs +41.7% + Spanne 19.3% + SEC 8-K + News-KI 12/30: Mixed signals with earnings miss offset by stock gains; no clear short squeeze catalysts like high short interest or for",
+      "drivers": "Kurs +41.7% + Spanne 19.3% + SEC 8-K",
       "price": 4.28,
       "chg_pct": 41.72,
       "rvol_4d": 1.46,
@@ -95,9 +95,9 @@
       "uoa_cp_ratio": 3.8117647058823527
     },
     "FRMM": {
-      "score": 43,
+      "score": 36,
       "confidence": 70,
-      "drivers": "Spanne 11.0% + News: short interest + Earnings in 29d + UOA Call/Put 204.5×",
+      "drivers": "Spanne 11.0% + News-KI 8/30: Positive analyst sentiment on tokenization strategy lacks short interest data, insider buying signals, or volume catalys + Earnings in 29d + UOA Call/Put 204.5×",
       "price": 6.8,
       "chg_pct": 0.0,
       "rvol_4d": 1.4,
@@ -108,7 +108,7 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 1,
+      "active_triggers": 0,
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 204.5×"
@@ -159,9 +159,9 @@
       "uoa_cp_ratio": null
     },
     "GRPN": {
-      "score": 76,
+      "score": 100,
       "confidence": 83,
-      "drivers": "Kurs +8.8% + Volumen 1.9× + Spanne 15.5% + News-KI 8/30: Moderate investor attention with mixed price action, but no clear short squeeze indicators like high short interest, low + Earnings in 21d + UOA Call/Put 4.4×",
+      "drivers": "Kurs +8.8% + Volumen 1.9× + Spanne 15.5% + News: short squeeze, short interest + Earnings in 21d + UOA Call/Put 4.4×",
       "price": 25.6,
       "chg_pct": 8.75,
       "rvol_4d": 1.95,
@@ -171,8 +171,8 @@
       "upcoming_event": null,
       "insider_buy": false,
       "stocktwits": null,
-      "combo_mult": 1.0,
-      "active_triggers": 1,
+      "combo_mult": 1.1,
+      "active_triggers": 2,
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 4.4×"
@@ -201,9 +201,9 @@
       "uoa_cp_ratio": 0.006625650733554188
     },
     "IONQ": {
-      "score": 8,
-      "confidence": 17,
-      "drivers": "Earnings in 21d",
+      "score": 20,
+      "confidence": 33,
+      "drivers": "News-KI 12/30: Moderate price decline suggests weak momentum, but no evidence of high short interest, forced covering, or significant b + Earnings in 21d",
       "price": 39.29,
       "chg_pct": 0.0,
       "rvol_4d": 1.03,
@@ -214,7 +214,7 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 0,
+      "active_triggers": 1,
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": null,
@@ -245,9 +245,9 @@
       "confidence": 33,
       "drivers": "News: short interest + Earnings in 15d + FINRA Short-Vol 74% + UOA Call/Put 5.9×",
       "price": 12.99,
-      "chg_pct": 0.0,
-      "rvol_4d": 0.0,
-      "rvol_20d": null,
+      "chg_pct": -0.0,
+      "rvol_4d": 1.05,
+      "rvol_20d": 0.8,
       "earnings": "in 15 Tagen (30.07.2026)",
       "fda_date": null,
       "upcoming_event": null,
@@ -283,9 +283,9 @@
       "uoa_cp_ratio": 0.8484848484848485
     },
     "WOLF": {
-      "score": 18,
-      "confidence": 33,
-      "drivers": "Spanne 6.6% + News-KI 8/30: Negative patent lawsuit headlines outweigh positive industry trends; no short squeeze indicators present.",
+      "score": 10,
+      "confidence": 17,
+      "drivers": "Spanne 6.6%",
       "price": 34.31,
       "chg_pct": 0.0,
       "rvol_4d": 0.76,
