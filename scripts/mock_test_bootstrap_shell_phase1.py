@@ -127,9 +127,42 @@ def test_d_no_content_consumer_on_index() -> None:
            "direkter index.html-Content-Read verblieben → Bruch nach Flip")
 
 
+def test_e_ziel_mechanik() -> None:
+    # (E) — DER SINN DES UMBAUS: auch eine GECACHTE Shell (max-age=600 gilt auch
+    # für sie) erzeugt bei JEDEM Launch via Date.now() eine FRISCHE ?v=-URL für
+    # app.html → der Content wird nie aus einer alten URL bedient. Der Launcher-
+    # Cache trifft nur die Weiche, nie den Inhalt. Deshalb MUSS der Primärpfad ein
+    # DYNAMISCHER Redirect sein (location.replace mit Date.now()) — KEIN statischer
+    # Redirect, KEIN top-level Meta-Refresh als Primärpfad (letzterer würde auf
+    # eine cachebare app.html-URL ohne Bust zeigen).
+    print("── (E) Ziel-Mechanik: dynamischer ?v=-Bust pro Launch ────────")
+    sh = _shell()
+    # Primär = JS-Redirect mit Date.now() → pro Launch neue URL.
+    _check("E1 Primär: location.replace('app.html?v=' + Date.now()) (dynamisch)",
+           "location.replace('app.html?v=' + Date.now())" in sh,
+           "Primär-Redirect nutzt keinen dynamischen Date.now()-Bust")
+    _check("E2 Bust-Token ist Date.now() (nicht statisch/leer)",
+           "?v=' + Date.now()" in sh and "?v=1" not in sh and "?v=static" not in sh,
+           "?v= ist nicht dynamisch aus Date.now() gebildet")
+    # KEIN statischer Primär-Redirect (location.href = '…') — der würde die
+    # gecachte URL nicht busten.
+    _check("E3 kein statischer location.href-Primär-Redirect",
+           "location.href" not in sh,
+           "statischer location.href-Redirect → gecachte URL würde nicht gebustet")
+    # Meta-Refresh existiert NUR als noscript-Fallback, NICHT top-level als Primär.
+    refresh_in_noscript = bool(re.search(
+        r"<noscript>\s*<meta http-equiv=\"refresh\"[^>]*url=app\.html", sh))
+    # top-level (außerhalb noscript) darf es KEINEN http-equiv=refresh geben:
+    top_level_refresh = sh.count('http-equiv="refresh"') > (1 if refresh_in_noscript else 0)
+    _check("E4 Meta-Refresh NUR als noscript-Fallback (nicht Primär)",
+           refresh_in_noscript and not top_level_refresh,
+           "Meta-Refresh steht als Primärpfad → zeigt auf cachebare URL ohne Bust")
+
+
 def main() -> int:
     for fn in (test_a_shell_pwa_complete, test_b_shell_small_no_content,
-               test_c_flip_ordering, test_d_no_content_consumer_on_index):
+               test_c_flip_ordering, test_d_no_content_consumer_on_index,
+               test_e_ziel_mechanik):
         fn()
     print()
     if _fails:
