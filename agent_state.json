@@ -1,5 +1,5 @@
 {
-  "last_run": "2026-07-15T17:50:33.833098+02:00",
+  "last_run": "2026-07-15T19:39:55.864096+02:00",
   "cooldowns": {
     "anomaly_score_jump_XRX": "2026-05-03T18:47:15.315486+02:00",
     "anomaly_uoa_extreme_TDOC": "2026-05-04T13:47:00.365949+02:00",
@@ -83,18 +83,6 @@
     "exit_LENZ": "2026-07-14T18:41:33.692611+02:00"
   },
   "push_history": [
-    {
-      "ts": "2026-07-08T10:45:42.659242+02:00",
-      "ticker": "LENZ",
-      "kind": "anomaly",
-      "severity": "high",
-      "trigger": "monster_backup",
-      "body": "LENZ 🔥 Monster 92 | Setup 92 | KI 26",
-      "success": false,
-      "suppressed": true,
-      "suppress_reason": "conviction_below_threshold",
-      "conviction_score": 69
-    },
     {
       "ts": "2026-07-08T11:37:32.663320+02:00",
       "ticker": "LENZ",
@@ -1278,6 +1266,18 @@
       "severity": "medium",
       "trigger": "score_jump",
       "body": "FTK 🚀 Setup 64 ↑ (gestern 49) | Earnings in 20d + SEC Form 4 + UOA Call/Put 3.9×",
+      "success": false,
+      "suppressed": true,
+      "suppress_reason": "conviction_below_threshold",
+      "conviction_score": 60
+    },
+    {
+      "ts": "2026-07-15T19:39:53.226618+02:00",
+      "ticker": "FTK",
+      "kind": "anomaly",
+      "severity": "medium",
+      "trigger": "score_jump",
+      "body": "FTK 🚀 Setup 64 ↑ (gestern 49) | Spanne 7.2% + Earnings in 20d + SEC Form 4 + UOA Call/Put 3.…",
       "success": false,
       "suppressed": true,
       "suppress_reason": "conviction_below_threshold",
