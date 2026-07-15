@@ -1,10 +1,10 @@
 {
-  "updated": "2026-07-15T02:05:51.876815+02:00",
+  "updated": "2026-07-15T05:35:00.595037+02:00",
   "run_info": {
     "tickers_checked": 15,
     "signals_active": 0,
     "alerts_sent": 0,
-    "elapsed_s": 11.0,
+    "elapsed_s": 10.2,
     "market_phase": "Geschlossen"
   },
   "signals": {
@@ -97,9 +97,9 @@
       "uoa_cp_ratio": 204.53333333333333
     },
     "FTK": {
-      "score": 38,
+      "score": 43,
       "confidence": 70,
-      "drivers": "Spanne 5.8% + Earnings in 21d + SEC Form 4 + UOA Call/Put 5.5×",
+      "drivers": "Spanne 5.8% + News-KI 5/30: Routine corporate announcements about conference participation and earnings schedule lack concrete catalysts, insider bu + Earnings in 21d + SEC Form 4 + UOA Call/Put 5.5×",
       "price": 26.77,
       "chg_pct": 0.0,
       "rvol_4d": 1.04,
@@ -161,7 +161,7 @@
     "GRPN": {
       "score": 58,
       "confidence": 70,
-      "drivers": "Spanne 8.9% + News: short interest, squeeze + Earnings in 22d + UOA Call/Put 4.4×",
+      "drivers": "Spanne 8.9% + News: short squeeze, short interest + Earnings in 22d + UOA Call/Put 4.4×",
       "price": 25.6,
       "chg_pct": 0.0,
       "rvol_4d": 0.75,
@@ -221,9 +221,9 @@
       "uoa_cp_ratio": 0.6090534979423868
     },
     "LOVE": {
-      "score": 15,
+      "score": 12,
       "confidence": 17,
-      "drivers": "News: contract",
+      "drivers": "News-KI 12/30: Positive operational news lacks catalyst for short squeeze; stock movement appears fundamentals-driven rather than drive",
       "price": 17.54,
       "chg_pct": 0.0,
       "rvol_4d": 1.1,
@@ -285,7 +285,7 @@
     "WOLF": {
       "score": 18,
       "confidence": 33,
-      "drivers": "Spanne 6.4% + News-KI 8/30: Negative patent lawsuit news and partnership issues create pressure, but stock is already likely depressed; limited shor",
+      "drivers": "Spanne 6.4% + News-KI 8/30: Negative patent litigation and Nvidia partnership issues create downward pressure, making a short squeeze unlikely despi",
       "price": 34.31,
       "chg_pct": 0.0,
       "rvol_4d": 0.77,
@@ -303,13 +303,13 @@
       "uoa_cp_ratio": 0.5245383463649975
     },
     "ZBIO": {
-      "score": 18,
-      "confidence": 33,
-      "drivers": "Spanne 5.5% + Earnings in 29d",
+      "score": 8,
+      "confidence": 17,
+      "drivers": "Earnings in 29d",
       "price": 28.78,
       "chg_pct": 0.0,
-      "rvol_4d": 0.84,
-      "rvol_20d": 0.6,
+      "rvol_4d": 0.0,
+      "rvol_20d": null,
       "earnings": "in 29 Tagen (12.08.2026)",
       "fda_date": null,
       "upcoming_event": null,
