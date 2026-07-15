@@ -1,19 +1,20 @@
-# SESSION_HANDOVER.md — Stand 14.07.2026 (Nachmittag)
+# SESSION_HANDOVER.md — Stand 15.07.2026 (Tagesabschluss)
 
 **Zweck:** vollständige Übergabe an eine **neue Code-Session ohne Kontext der
 alten**. Dieses Dokument + `CLAUDE.md` müssen zusammen ausreichen, um am
 Projektstand direkt weiterzuarbeiten. Reine Doku, kein Logik-Touch.
 
 **Datums-Basis (belegt, nicht Erinnerung):** `date -u` in der Sandbox liefert
-**Di 14.07.2026 ~06:56 UTC**. Der **postclose-Run 13.07.** ist durch (`e9fd8cc
-"Daily squeeze report 2026-07-13"`, Health-Log `2026-07-13T22:13:24Z
-[postclose]`) — damit sind die gestrigen Verifikationspunkte auflösbar (§3).
-PRs #429/#430 tragen Commit-Datum **2026-07-14** (git belegt: #429 `3ed4cfd`,
-#430 feat `930633d` / Merge `57c6b10`). Die #419–#426-Kette lief am **13.07.**
+**Mi 15.07.2026 ~19:54 UTC**. Der **postclose-Run 15.07.** ist durch (`edd4715
+"Daily squeeze report 2026-07-15"`, 19:11 UTC — Actions-Drift vor dem 21:17-Cron)
+→ Phase-0-Zyklus-Verify auflösbar (§3). Heute gemergt: **#436** (Bootstrap-Shell
+Phase 1, Merge `4270cce` / feat `77b42d6`), **#437** (si_velocity-Rename, Merge
+`5788485` / refactor `a8c5c7f`), **#438** (Einheiten-Fix Frontend, squash
+`ae45803`) — alle git-belegt.
 
-*(Hinweis für die nächste Session: der vorige Handover war fälschlich „Stand
-15.07.2026" tituliert, obwohl die damals beschriebenen PRs #415–#418 laut git
-am **12.07.** gemergt wurden. Datum hier aus Repo korrigiert.)*
+*(Hinweis für die nächste Session: Datums-Titel hier aus Repo verifiziert
+[`git log --date`], nicht aus Erinnerung — Präzedenz-Fehler früherer Handover
+[„Stand 15.07." bei 12.07.-PRs] so vermieden.)*
 
 Struktur (9 Blöcke): (1) Heute implementiert · (2) Aktive Positionen ·
 (3) Verifikation · (4) Wiedervorlagen · (5) Strategische Roadmap ·
@@ -23,6 +24,48 @@ Anker.
 ---
 
 ## 1) HEUTE IMPLEMENTIERT (chronologisch, mit Hashes)
+
+### 15.07.2026 — PWA-Cache-Strukturfix Phase 1 (Flip) + si_velocity-Rename
+
+### PR #436 — 15.07. — Merge `4270cce` (feat `77b42d6`)
+**★★ Bootstrap-Shell PHASE 1 (Flip) — `index.html` wird zur Weiche.** Der
+strukturelle iOS-PWA-Launcher-Cache-Fix ist scharf: `index.html` = **winzige
+754-B-Shell** (Apple-Meta ×3 [`capable`/`status-bar-style`/`title`],
+`location.replace('app.html?v=' + Date.now())`, `<noscript>`-Refresh + sichtbarer
+Fallback-`<a href="app.html">`); `app.html` = voller Content (**787 KB**). Beide
+Write-Sites app.html-**first** (Deploy-Race-Mitigation), Error-Page schreibt
+**nur** `app.html` + Shell (begründet: eine Fehlerseite braucht keinen zweiten
+Content-Write). **Ziel-Mechanik-Test T7** (`mock_test_bootstrap_shell_phase1`,
+Test E): gecachte Shell → bei JEDEM Launch via `Date.now()` eine **frische
+`?v=`-URL** für `app.html` → Launcher-Cache trifft nur die Weiche, nie den Inhalt.
+**Rollback = Ein-Zeilen-Revert** (Shell-Konstante zurück auf vollen Write; Parser
+lesen seit Phase 0 `app.html` mit index-Fallback → unschädlich). **Guardian ✅**
+(Parser-Fan-out vollständig, S9 sicher). **Deploy-Pfad + Golden → manueller
+Merge.**
+
+### PR #437 — 15.07. — Merge `5788485` (refactor `a8c5c7f`)
+**★ Rename `finra_data.si_velocity` → `si_shares_per_day` + Label.** Irreführender
+Name (misst absolute Shares/Tag des täglichen Short-VOLUMENS, keine
+Änderungsraten-„Velocity", Nomenklatur-Falle §8m). Label „SI Velocity (tägl. Ø)"
+→ **„SI-Volumen Δ (tägl. Ø)"**. 5 Reads + Write + Payload (`app_data.json`) + v1/v2-
+Display-Row + `card.jinja`-ctx-Key + Frontend-JS konsistent umbenannt; 3 Test-
+Fixtures + Golden (2 Zeilen, rename-only). **`si_velocity_pub` unangetastet** —
+strikte `_pub`-Guard-Muster, keine Regex-Überlappung. **Korrektur der alten
+§6a-Angabe:** waren **5 Reads (nicht 7)**, **KEIN KI-Boost-Konsument** (einziger
+Nicht-Display-Read = dormanter V1-Rollback). v1==v2 byte-identisch verifiziert.
+Guardian ✅. **Golden + persistiertes Feld → manueller Merge.**
+
+### PR #438 — 15.07. — squash `ae45803`
+**★ Einheiten-Fix Frontend (Folge #437).** Der Watchlist-Drawer-JS zeigte
+`si_shares_per_day` als **Prozent** (`fmt(v,2)+'%'` → `259.00%`) mit Alt-Label
+**„SI-Velocity"** — beides falsch (Feld = Shares/Tag; „Velocity" = der von #437
+entfernte Begriff). Angeglichen an die kanonische Python-Row: Vorzeichen +
+0 Dezimalstellen + deutsche `.`-Tausender (`toLocaleString('de-DE')`) +
+„Aktien/Tag" + optional „⚡ Beschleunigung"; `0`/`null` → „—". Label → **„SI-Volumen
+Δ (tägl. Ø)"**. **JS==Python byte-identisch über 14 Fälle** (Node vs. Python
+gegenübergestellt: Vorzeichen, `.`-Tausender ≥1000, Beschleunigung, 0→„—",
+Negative). Golden 2 Zeilen (Wert + Label). **Frontend-Tweak (Display-Format +
+Label) → Auto-Merge** (kein Datenpfad/Score/Schema).
 
 ### 14.07.2026 (Nachmittag) — KI-Anzeige-Fixes + PWA-Cache-Strukturfix Phase 0
 
@@ -412,19 +455,44 @@ nur bei `available=True`.
   kein Blocker): falls yfinance `dateShortInterest` künftig als `Timestamp` statt
   epoch-int liefert, wird der Punkt fail-soft **still** übersprungen.
 
+### ✅ AUFGELÖST (15.07. — Bootstrap-Shell Phase 0 + Phase 1)
+
+- **★★ PHASE-0-ZYKLUS-VERIFY — ✅ ERLEDIGT (alle drei grün).** Über **2 Postclose-
+  Läufe** verifiziert: **(a)** `app.html` byte-identisch zum Content (md5-Vergleich),
+  **(b)** **S9 grün** im Health-Log (kein WARN/crit; S9 prüft seit #434 `app.html`),
+  **(c)** `ki_agent` zog die Top-10 aus `app.html` **10/10 inkl. Neu-Einsteiger**.
+  → Freigabe-Bedingung für Phase 1 war damit sauber erfüllt.
+
+- **★★ BOOTSTRAP-SHELL PHASE 1 — ✅ LIVE + iOS-Adoption durchgeführt (#436).** Der
+  Flip ist scharf (`index.html` = 754-B-Shell, `app.html` = Content), die einmalige
+  iOS-Home-Icon-Neuanlage ist erfolgt. **Der PWA-Launcher-Cache ist damit
+  strukturell gelöst** — jeder Launch bounct über eine frische `?v=`-URL auf frische
+  Bytes.
+
+- **★★ GERÄTE-VORFALL 15.07. abends — korrupter lokaler Safari-Zustand (NICHT
+  Pipeline/Shell).** Nach der Adoption zeigte **ein** Safari trotz nachweislich
+  frischem Server eine alte Seite („Seite kann nicht geöffnet werden" bei direkter
+  `app.html`-URL), während der **PC korrekt lud**. **Ursache:** korrupter lokaler
+  Safari-Website-Daten-Zustand für die github.io-Domain — **nicht** die Pipeline,
+  **nicht** die Shell (die Server-Antwort war belegbar frisch). **Fix:** Safari-
+  Website-Daten für github.io gelöscht → sofort frisch. **Nebenwirkung:**
+  `localStorage` weg → Watchlist + Token neu anlegen (Präzedenz #234). → Lesson §8x
+  („Server frisch ≠ Gerät frisch").
+
 ### AKUT (weiterhin offen)
 
-- **★★ PHASE-0-ZYKLUS-VERIFY — KRITISCHE Vorbedingung für Phase 1 (#434).**
-  Nach dem **nächsten Daily-Run** (heute ~21:17 UTC postclose) read-only prüfen,
-  ob der `app.html`-Content-Pfad sauber trägt — **alle drei** müssen stimmen,
-  sonst **Phase 1 (Shell-Flip) NICHT freigeben:**
-  - **(a)** `app.html` existiert im Repo (Daily-Run schrieb + committete es via
-    `git add app.html`).
-  - **(b)** **S9 grün** im Health-Log (kein WARN/crit; `state_fails` ohne S9) —
-    S9 prüft seit #434 `app.html`.
-  - **(c)** `ki_agent`-Tick zieht die Top-10 aus `app.html` (Log „Top-Ticker aus
-    app.html: …") → **KI-Scores kommen weiter** auf den Karten.
-  **Erst wenn (a)+(b)+(c) sauber → Phase 1 freigeben (§4). NICHT vorziehen.**
+- **★ FINALER LANGZEIT-BEWEIS der Shell (morgen früh, PASSIV).** Nach dem nächsten
+  **Postclose** einmal das Home-Icon tippen: zeigt die **„Stand: HH:MM"-Zeile** den
+  **neuen Marktdaten-Stand** (nicht die gestrige eingefrorene Seite)? Das ist der
+  finale Beweis, dass der Launcher dauerhaft frische Bytes zieht. Kein Bau — reine
+  Beobachtung.
+
+- **★ KLARSTELLUNG Stand-Zeile (Zwei-Run-Architektur, kein Bug):** **„Stand: HH:MM"
+  = MARKTDATEN-Zeit** (nur volle Daily-Runs schreiben die Seite, 2×/Werktag) ·
+  **„KI: HH:MM" = Agent-Tick** (stündlich, patcht nur `agent_signals.json` live).
+  Beide dürfen **auseinanderliegen** — die HTML-Hülle ist legitim so alt wie der
+  letzte Daily-Run, während die KI-Zeile frisch ist. **Kein Einfrieren, kein
+  Defekt** (Diagnose 15.07.: Symptom „Seite 10:36, KI 17:50" war reines Timing).
 
 - **★ KI-Karten nach Deploy (#432):** nach dem nächsten Deploy zeigen **alle 10**
   Top-10-Karten einen KI-Score (die 6 vormals „—" gefüllt, Farben konsistent).
@@ -541,35 +609,15 @@ Seed, gegen die reale Datei. Umgesetzt exakt nach Plan: separater client-Fetch
 in `config.SI_POSITION_STATUS_ROW` (Weg-A, kein Frontend-Literal), rein anzeigend
 (keine Serien-Werte), Golden + Panel-Tests (D/E) grün. Live: **n=28**. Details in
 §1 (PR #430). Live-Sicht-Check nach Deploy in §3 (AKUT).
-### BOOTSTRAP-SHELL PHASE 1 (Flip) — NACH Phase-0-Zyklus-Verify (§3)
+### ✅ BOOTSTRAP-SHELL PHASE 0 + 1 — ERLEDIGT (#434 + #436, 14.–15.07.)
 
-**Vorbedingung: der Phase-0-Zyklus-Verify (§3) muss sauber sein** (app.html
-existiert, S9 grün, ki_agent zieht Top-10 aus app.html). **Nicht vorziehen.**
-
-**Bau:** `index.html`-Content durch eine **winzige Shell** ersetzen:
-- `<script>location.replace('app.html?v=' + Date.now())</script>` (eindeutige
-  URL → Cache-Miss auf dem Content).
-- **Apple-Meta zwingend** (`apple-mobile-web-app-capable` / `-status-bar-style`
-  / `-title`) — sonst verliert der Launch **Standalone/Icon/Titel**.
-- `<noscript><meta http-equiv="refresh" content="0; url=app.html"></noscript>`
-  + sichtbarer Fallback-`<a href="app.html">`-Link.
-- Viewport-Meta.
-
-**Übergang (einmalige User-Adoption):** iOS hat die alte volle `index.html` im
-Standalone-Cache → der Launcher zeigt sie weiter, bis adoptiert. Robustester Weg:
-**Home-Icon löschen + neu „Zum Home-Bildschirm hinzufügen"** (re-captured die
-start_url frisch). Alternativen: in-App „Aktualisieren" (`?v=`) oder `?bust=999`
-+ Safari-App komplett beenden.
-
-**Rollback:** Revert-PR macht `index.html` wieder zur vollen Seite — **unschädlich**,
-weil die Parser seit Phase 0 `app.html` (mit index-Fallback) lesen.
-
-**Restrisiko:** Deploy-Race (Shell live, bevor `app.html` deployed ist) → weiße
-Seite ~5 Min. **Mitigiert** durch (a) `app.html`-first-Deploy (Phase 0 schreibt
-es bereits), (b) `<noscript>`-Refresh + sichtbarer Fallback-Link in der Shell.
-
-**Klassifikation:** Frontend + Golden + neue Datei-Struktur → **manueller Merge**;
-Golden-Update (Shell-Content ≠ volle Seite — bewusste, große Golden-Änderung).
+Beide Phasen live. **Phase 0** (#434): `app.html` = kanonischer Content-Pfad, alle
+Parser repointed (Fallback `index.html`), S9 auf `app.html`. **Phase 1** (#436): der
+Flip — `index.html` = 754-B-Shell mit `location.replace('app.html?v=' + Date.now())`.
+Phase-0-Zyklus-Verify grün über 2 Postclose-Läufe, iOS-Adoption durchgeführt (§3).
+**Rollback bleibt Ein-Zeilen-Revert** der Shell-Konstante (Parser lesen seit Phase 0
+`app.html` mit index-Fallback → unschädlich). **Finaler Langzeit-Beweis (Icon-Tap
+nach Postclose zeigt frischen Marktdaten-Stand) passiv offen — §3.**
 
 ### Erledigt (nicht mehr im Backlog)
 
@@ -802,6 +850,22 @@ Crash, aber Datenverlust ohne Log) — für die Wiedervorlage vermerkt (§3).
 FINRA-SI-Position gratis) — gefunden erst **nach** erschöpfendem externem
 Quellen-Check und **Verifikations-Probe (#422) statt Blind-Bau**.
 
+### 6j. `apple-touch-icon` fehlt (Shell zeigt ggf. Blank-Screenshot beim Re-Add)
+**Status: OFFEN (klein, kosmetisch).** Das Repo hat nur `favicon.svg`, **kein**
+`apple-touch-icon`-PNG. Beim „Zum Home-Bildschirm hinzufügen" nimmt iOS mangels
+Icon einen **Seiten-Screenshot** — nach dem Phase-1-Flip ist das die (fast leere)
+„Lädt…"-Shell. Kandidat: `apple-touch-icon.png` (180×180) ins Repo + Link-Tag in
+Shell **und** voller Seite. Rein kosmetisch (Home-Icon-Optik), kein Funktions-Bug.
+Guardian-Hinweis aus #436.
+
+### 6k. Stand-Zeile könnte beide Zeiten zeigen (Verwirrung „eingefroren?")
+**Status: OFFEN (Kosmetik/UX).** Die Header-Zeile zeigt nur die Marktdaten-Zeit
+(„Stand: HH:MM"). Weil die KI-Zeile stündlich vorläuft, wirkt die Seite morgens
+scheinbar „eingefroren", obwohl die Zwei-Run-Architektur genau so gedacht ist
+(§3-Klarstellung). Kandidat: die Zeile explizit **zweiteilig** rendern —
+z. B. „Marktdaten 10:36 · KI 19:39" — dann ist die Divergenz selbsterklärend statt
+verdächtig. Reine Anzeige, kein Datenpfad.
+
 ---
 
 ## 7) ARCHITEKTUR-ANKER
@@ -926,8 +990,54 @@ löschen; bei Änderung erst Konsument (Statusleiste), dann Definition (§8p).
 
 ## 8) LESSONS
 
-*(Neueste zuerst: 8s–8u vom 14.07.-Nachmittag; 8q–8r vom 14.07.-Vormittag;
-8n–8p vom 13.07.; 8j–8m vom 11.–12.07.; etablierte 8a–8i darunter.)*
+*(Neueste zuerst: 8v–8y vom 15.07.; 8s–8u vom 14.07.-Nachmittag; 8q–8r vom
+14.07.-Vormittag; 8n–8p vom 13.07.; 8j–8m vom 11.–12.07.; etablierte 8a–8i
+darunter.)*
+
+### 8v. Ziel-Mechanik zuerst belegen — „nichts bricht" ≠ „Ziel erreicht" (15.07.)
+
+Der **erste** Phase-1-Prompt hatte kein Ziel-Mechanik-Kriterium: alle Tests wären
+grün gewesen (Shell klein, Apple-Meta da, Parser lesen app.html), **ohne** dass der
+eigentliche **SINN** des Umbaus gesichert war — dass eine **gecachte** Shell bei
+jedem Launch via `Date.now()` eine **frische `?v=`-URL** erzeugt. Erst die
+nachgeschobene Selbstprüfung erzwang **Test E** (`mock_test_bootstrap_shell_phase1`:
+gecachte Shell → 2 Launches → 2 verschiedene URLs). **Regel:** ein Bau muss belegen,
+dass er **sein Ziel erreicht**, nicht nur dass nichts bricht — sonst ist die
+Kern-Mechanik ungetestet, obwohl die Suite grün ist. → §9e Kriterium 5.
+
+### 8w. Handover-Angaben sind selbst fehlbar — messen schlägt lesen, auch bei eigener Doku (15.07.)
+
+§6a nannte für den `si_velocity`-Rename **„7 Reads + KI-Boost-Konsument"**.
+Gemessen (grep im Code) waren es **5 Reads** und **KEIN** KI-Boost-Konsument (der
+einzige Nicht-Display-Read ist der dormante V1-Rollback-Pfad). Auf die
+Handover-Zahl blind gebaut hätte man einen nicht-existenten Konsumenten „gefixt"
+und die echte Touch-Fläche unterschätzt. **Regel:** vor jedem Bau die
+Handover-/Doku-Angabe **gegen den Code messen** — auch die eigene Doku ist eine
+Behauptung, kein Beleg (verwandt mit §8r). Falschangabe im selben PR korrigiert.
+
+### 8x. Server frisch ≠ Gerät frisch — bei Cache-Symptomen erst die Ebenen trennen (15.07.)
+
+Nach der iOS-Adoption zeigte **ein** Safari eine alte Seite, während der **PC
+korrekt** lud und die Server-Antwort nachweislich frisch war. Ursache war ein
+**korrupter lokaler Safari-Website-Daten-Zustand** für die Domain — **nicht** die
+Pipeline, **nicht** die Shell. Hätte man nur die Pipeline diagnostiziert, hätte man
+stundenlang am falschen Ende gesucht. **Regel:** bei Cache-Symptomen **zuerst
+Server-Antwort vs. Geräte-Zustand trennen** — ein Kontroll-Gerät (PC / anderes
+Handy) isoliert sofort, ob das Problem serverseitig oder lokal ist. Fix lokal:
+Website-Daten löschen (Nebenwirkung: `localStorage` weg → Watchlist/Token neu,
+Präzedenz #234).
+
+### 8y. Draft-PRs verstecken die grüne Merge-Box; Legacy-Status „pending/0" ist kein Fehler (15.07.)
+
+Bei #437 wirkte „der grüne Haken fehlt", obwohl der **advisory `pr-checks.yml`-
+Check grün war** (`conclusion: success`). Zwei Fallen: **(1)** Ein **Draft**-PR
+blendet die zusammengefasste „Ready to merge"-Box + den Merge-Button aus — der
+Check kann grün sein, es sieht aber aus wie „Haken fehlt"; **Fix:** auf „Ready for
+review" stellen. **(2)** Die **kombinierte Commit-Status-API** meldet
+`pending / total_count: 0` — das ist **kein** Fehlschlag, sondern die **Abwesenheit**
+der Legacy-Status-Kontexte (kein Workflow postet einen `status`, nur einen modernen
+`check_run`). **Regel:** Check-Zustand über `get_check_runs` (nicht die Legacy-
+`get_status`-API) lesen; bei „Haken fehlt" zuerst Draft-State prüfen.
 
 ### 8s. `index.html` ist DATENQUELLE, nicht nur die Seite (14.07.)
 
@@ -1160,17 +1270,29 @@ nichts ins Repo, `workflow_dispatch`). Erst der 4/4-Real-Record-Befund (#422)
 rechtfertigte den Bau (#423). Grep-Treffer in Fehlermeldungen sind kein Beleg —
 `jq`-Inhalt prüfen (§8o).
 
-### 9e. Exzellenz-Selbstprüfung vor „Ready"-Meldung (Build-PRs)
+### 9e. Exzellenz-Selbstprüfung vor „Ready"-Meldung (Build-PRs) — SIEBEN Kriterien
 
-Vor jeder Ready-Meldung, mit belegbaren Punkten (nicht Behauptungen):
+**Erweitert 15.07. von 4 auf 7 Kriterien** (Ziel-Mechanik, Annahmen-Klären,
+Rückweg — nach der Phase-1-Lesson §8v). Gilt für **JEDEN** Bau-Prompt, mit
+belegbaren Punkten (nicht Behauptungen):
+
 1. **Widersprüche** — Diff-Beleg dass nur der beabsichtigte Scope getroffen wird
    (Doc-only: kein Logik-Touch).
 2. **Nachweise** — Kern-Verhalten mit **Testausgabe / Repo-Beleg**, nicht
    behaupten (Hashes/Feldnamen/Zahlen aus Repo, Datums-Basis aus Repo).
 3. **Fragile Annahmen** — None-Semantik, Edge-Cases, Timezone explizit.
 4. **Determinismus** — Tests grün, CI-Runner grün, AST-Compile grün.
+5. **ZIEL-MECHANIK ZUERST** — belegen, dass der Bau **sein Ziel erreicht**, nicht
+   nur dass nichts bricht. Die Kern-Mechanik braucht einen eigenen Test/Beweis
+   (§8v: die Suite kann grün sein, während der Sinn ungesichert ist).
+6. **ANNAHMEN KLÄREN, NICHT ANNEHMEN** — Golden-Gegenstand, Konsumenten,
+   Umgebungen (CI-minimal vs. Dev), Doku-Zahlen **messen** statt lesen (§8w). Bei
+   Unklarheit prüfen, nicht raten.
+7. **RÜCKWEG BELEGT** — bei Deploy-/Struktur-Eingriffen ist der **Rollback-Weg
+   Pflicht** und wird im PR-Text genannt (z. B. „Revert = Ein-Zeilen-Shell-
+   Rückbau; Parser lesen app.html mit Fallback → unschädlich").
 
-„Anspruch: exzellent" heißt genau das.
+„Anspruch: exzellent" heißt genau diese sieben.
 
 ### 9f. Manueller Merge vs. Auto-Merge — Klassifikations-Sicht
 
