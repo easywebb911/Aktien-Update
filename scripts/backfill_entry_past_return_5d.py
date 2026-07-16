@@ -405,9 +405,16 @@ def gate_passed(rows: list[dict]) -> tuple[bool, str]:
     Magnitude (mean-Inlier), mehrere Ausreißer, ein großer Ausreißer, zu wenige
     verifizierte Records. Was es bewusst DURCHLÄSST: EIN einzelnes (<0.5 pp)
     Revisions-Artefakt bei ansonsten flacher (median~0, mean-Inlier~0) Verteilung.
-    Ehrliche Restlücke: ein winziger uniformer Drift (deutlich < 0.003 mean) über
-    eine kleine Minderheit bleibt untersichtbar — Magnitude aber vernachlässigbar
-    und für dieses explorative S10_OBSERVED-Feld akzeptiert.
+    Ehrliche Restlücke (nicht schöngeredet): ein uniformer Sub-tol-Drift über eine
+    Minderheit < 50 % rutscht durch, SOLANGE mean-Inlier < 0.003 bleibt. Das ist
+    KEIN nur „winziger" Fall — im ungünstigsten Zuschnitt reicht der PRO-RECORD-
+    Diff bis nahe an die volle Ausreißer-Toleranz (0.0099 ≈ 99 % von 0.01) für
+    ~28–47 % der Records, während der mean-Inlier bis knapp unter die Schwelle
+    (~0.00295) kriecht (belegt per Boundary-Test I10). Solch ein Grenzfall sieht
+    fast systematisch aus und passiert dennoch. Bewusst akzeptiert, weil (a) die
+    aggregierte Magnitude klein bleibt und (b) dies ein exploratives
+    S10_OBSERVED-Feld ist (kein Score-/Filter-Input). Wer die Lücke enger will,
+    senkt GATE_MEAN_MAX — auf Kosten mehr Fehlalarme durch legitime Bar-Revisionen.
     """
     diffs = sorted(r["diff"] for r in rows if r.get("diff") is not None)
     n_ver = len(diffs)

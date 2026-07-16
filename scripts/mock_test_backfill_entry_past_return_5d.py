@@ -227,6 +227,15 @@ def main():
     #      Richtungen — vernachlässigbare Magnitude bleibt durchlässig).
     _check("I9 Rest-Drift unter mean-Schwelle (4×0.005, mean-Inlier <0.003) → PASS",
            bpr.gate_passed(_rows([0.0] * 28 + [0.005] * 4))[0] is True)
+    # I10 — BOUNDARY (Guardian-Runde 3): der ungünstigste Restlücken-Zuschnitt
+    #      direkt an der mean-Schwelle. 9×0.0099 (28 %, median 0) → mean-Inlier
+    #      ≈ 0.002784 < 0.003 → PASS (knapp durch); 10×0.0099 (31 %) → mean-Inlier
+    #      ≈ 0.003094 ≥ 0.003 → FAIL. Verankert testseitig, WIE nah die akzeptierte
+    #      Restlücke an die Schwelle heranreicht (pro-Record 0.0099 ≈ 99 % von tol).
+    _check("I10a Boundary knapp-PASS (9×0.0099, mean-Inlier ≈0.00278 <0.003) → PASS",
+           bpr.gate_passed(_rows([0.0] * 23 + [0.0099] * 9))[0] is True)
+    _check("I10b Boundary knapp-FAIL (10×0.0099, mean-Inlier ≈0.00309 ≥0.003) → FAIL",
+           bpr.gate_passed(_rows([0.0] * 22 + [0.0099] * 10))[0] is False)
 
     print("── (J) Idempotenz ────────────────────────────────────────────")
     hist2 = [_make_entry(date="01.06.2026", ticker="AAA")]
