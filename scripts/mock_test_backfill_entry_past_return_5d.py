@@ -210,6 +210,23 @@ def main():
     # I6 — 32 Records aber alle diff=None (Fetch-Miss) → 0 verifiziert → FAIL
     _check("I6 alle diff=None → FAIL (0 verifiziert)",
            bpr.gate_passed([{"diff": None}] * 32)[0] is False)
+    # I7 — MINDERHEITS-Drift (Guardian-Gap 16.07.): 17 exakt + 15×0.0099 →
+    #      median bleibt 0 (< 50 % verschoben, median-Wächter BLIND), aber
+    #      mean-Inlier ≈ 0.00464 ≥ 0.003 → mean-Wächter FÄNGT es → FAIL.
+    #      Beleg, dass die 0.008-Systematik NICHT nur via median gefangen wird.
+    _check("I7 Minderheits-Drift (17 exakt + 15×0.0099, median 0) → FAIL via mean",
+           bpr.gate_passed(_rows([0.0] * 17 + [0.0099] * 15))[0] is False)
+    # I8 — EIN größerer Ausreißer 0.09 (sub-hard-cap): der Ausreißer ist per
+    #      Definition KEIN Inlier → verzerrt den mean-Inlier NICHT (bleibt 0) →
+    #      der neue mean-Wächter feuert NICHT fälschlich → PASS (Einzel-Artefakt).
+    _check("I8 einzelner 0.09-Ausreißer (mean-Inlier 0, median 0) → PASS",
+           bpr.gate_passed(_rows([0.0] * 31 + [0.09]))[0] is True)
+    # I9 — winziger uniformer Drift UNTER der mean-Schwelle (ehrliche Restlücke):
+    #      4×0.005 + 28 exakt → median 0, mean-Inlier ≈ 0.000625 < 0.003 → PASS.
+    #      Dokumentiert, dass das Gate NICHT paranoid ist (kein Gummi in beide
+    #      Richtungen — vernachlässigbare Magnitude bleibt durchlässig).
+    _check("I9 Rest-Drift unter mean-Schwelle (4×0.005, mean-Inlier <0.003) → PASS",
+           bpr.gate_passed(_rows([0.0] * 28 + [0.005] * 4))[0] is True)
 
     print("── (J) Idempotenz ────────────────────────────────────────────")
     hist2 = [_make_entry(date="01.06.2026", ticker="AAA")]
@@ -292,9 +309,11 @@ def main():
            "def run_consistency_gate" not in src)
     _check("M6 gate_diff_distribution ist EINE Recompute-Quelle in beiden Pfaden",
            src.count("gate_diff_distribution(history, bulk)") == 2)
-    _check("M7 kalibrierter Verteilungs-Verdikt (median-Wächter + hard cap)",
+    _check("M7 kalibrierter Verteilungs-Verdikt (median + mean-Inlier + hard cap)",
            "GATE_MEDIAN_MAX" in src and "GATE_OUTLIER_HARD_CAP" in src
+           and "GATE_MEAN_MAX" in src
            and "median >= GATE_MEDIAN_MAX" in src
+           and "mean_inlier >= GATE_MEAN_MAX" in src
            and "def gate_passed(rows:" in src)
     _check("M8 Bar-Details (Zähler/Nenner Datum+Close) im Log — Revisions-Hypothese prüfbar",
            "GATE-DIFF-VERTEILUNG" in src

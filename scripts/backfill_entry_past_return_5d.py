@@ -113,7 +113,11 @@ GATE_TOLERANCE = 0.01                # |recompute − stored| > 0.01 = „Ausrei
 GATE_MIN_VERIFY = 20                 # min. verifizierte non-null Records für Pass.
 # Verteilungs-Kalibrierung (Messung 16.07.: 31 exakt / 1 Ausreißer AMCX 0.05,
 # median 0.0 → Daten-Artefakt, kein systematischer Fehler). Siehe gate_passed.
-GATE_MEDIAN_MAX = 0.001              # median-|diff| darunter = kein Systematik-Drift.
+GATE_MEDIAN_MAX = 0.001              # median-|diff| darunter = kein MEHRHEITS-Drift.
+GATE_MEAN_MAX = 0.003               # mean-|diff| der Inlier (≤ tol) darunter = kein
+                                     # MINDERHEITS-Drift (Guardian-Finding 16.07.:
+                                     # median fängt nur > 50 %; mean fängt auch
+                                     # < 50 % uniforme Sub-0.01-Verschiebungen).
 GATE_MAX_OUTLIERS = 1                # max. so viele Records > GATE_TOLERANCE.
 GATE_OUTLIER_HARD_CAP = 0.5          # ein Ausreißer ≥ 0.5 pp = echter Bruch, nie ok.
 
@@ -379,23 +383,31 @@ def gate_passed(rows: list[dict]) -> tuple[bool, str]:
     starres ±0.01 würde solche legitimen Einzel-Revisions-Artefakte als Fehler
     werten. Deshalb kalibriert — aber KEIN Gummi-Gate:
 
-    PASS ⇔ ALLE vier:
+    PASS ⇔ ALLE fünf:
       (1) ≥ ``GATE_MIN_VERIFY`` (20) Records recompute-verifiziert (sonst
           inkonklusiv — „kann nicht bestätigen → nicht schreiben").
-      (2) **median-|diff| < ``GATE_MEDIAN_MAX`` (0.001)** — der SYSTEMATIK-
-          WÄCHTER: eine echte systematische Verschiebung hebt VIELE Diffs → der
-          median steigt → FAIL, selbst wenn jeder Einzel-Diff noch unter 0.01
-          läge (genau der „AMCX ist nur die Spitze"-Fall wird so gefangen).
-      (3) ≤ ``GATE_MAX_OUTLIERS`` (1) Records mit |diff| > ``GATE_TOLERANCE``
-          (0.01) — ein einzelnes Bar-Revisions-Artefakt ist ok, zwei+ nicht.
-      (4) KEIN Ausreißer ≥ ``GATE_OUTLIER_HARD_CAP`` (0.5 pp) — ein großer
-          Sprung ist echter Bruch (Split/Ticker-Verwechslung/Fehlberechnung),
-          kein Revisions-Rauschen, und blockt IMMER.
+      (2) **median-|diff| < ``GATE_MEDIAN_MAX`` (0.001)** — MEHRHEITS-Wächter:
+          eine Verschiebung, die > 50 % der Records betrifft, hebt den median →
+          FAIL, selbst wenn jeder Einzel-Diff < 0.01 läge („AMCX ist nur die
+          Spitze"-Fall).
+      (3) **mean-|diff| der INLIER (Diffs ≤ tol) < ``GATE_MEAN_MAX`` (0.003)** —
+          MINDERHEITS-Wächter (Guardian-Finding 16.07.): der median ist blind für
+          eine uniforme Sub-0.01-Verschiebung, die < 50 % der Records betrifft
+          (median bleibt dann im Null-Block). Der Mittelwert der Inlier fängt
+          genau das — ohne vom einen erlaubten Ausreißer verzerrt zu werden (der
+          ist per Definition kein Inlier).
+      (4) ≤ ``GATE_MAX_OUTLIERS`` (1) Records mit |diff| > ``GATE_TOLERANCE``
+          (0.01) — ein einzelnes Bar-Revisions-Artefakt ok, zwei+ nicht.
+      (5) KEIN Ausreißer ≥ ``GATE_OUTLIER_HARD_CAP`` (0.5 pp) — großer Sprung =
+          echter Bruch (Split/Verwechslung/Fehlberechnung), blockt IMMER.
 
-    Was das Gate WEITER fängt: systematische Verschiebung (median), mehrere
-    Ausreißer, ein großer Ausreißer, zu wenige verifizierte Records. Was es
-    bewusst DURCHLÄSST: ein einzelnes kleines (<0.5 pp) Revisions-Artefakt bei
-    ansonsten median-0-Verteilung.
+    Was das Gate fängt: MEHRHEITS-Drift (median), MINDERHEITS-Drift kleiner
+    Magnitude (mean-Inlier), mehrere Ausreißer, ein großer Ausreißer, zu wenige
+    verifizierte Records. Was es bewusst DURCHLÄSST: EIN einzelnes (<0.5 pp)
+    Revisions-Artefakt bei ansonsten flacher (median~0, mean-Inlier~0) Verteilung.
+    Ehrliche Restlücke: ein winziger uniformer Drift (deutlich < 0.003 mean) über
+    eine kleine Minderheit bleibt untersichtbar — Magnitude aber vernachlässigbar
+    und für dieses explorative S10_OBSERVED-Feld akzeptiert.
     """
     diffs = sorted(r["diff"] for r in rows if r.get("diff") is not None)
     n_ver = len(diffs)
@@ -405,9 +417,14 @@ def gate_passed(rows: list[dict]) -> tuple[bool, str]:
                        f"Floor; {n_none} ohne Recompute) — inkonklusiv, kein Write.")
     median = diffs[n_ver // 2]
     outliers = [d for d in diffs if d > GATE_TOLERANCE]
+    inliers = [d for d in diffs if d <= GATE_TOLERANCE]
+    mean_inlier = round(sum(inliers) / len(inliers), 6) if inliers else 0.0
     if median >= GATE_MEDIAN_MAX:
-        return False, (f"median-|diff|={median} ≥ {GATE_MEDIAN_MAX} → "
-                       f"SYSTEMATISCHE Verschiebung (kein Einzel-Artefakt) → STOPP.")
+        return False, (f"median-|diff|={median} ≥ {GATE_MEDIAN_MAX} → MEHRHEITS-"
+                       f"Verschiebung (kein Einzel-Artefakt) → STOPP.")
+    if mean_inlier >= GATE_MEAN_MAX:
+        return False, (f"mean-|diff|(Inlier)={mean_inlier} ≥ {GATE_MEAN_MAX} → "
+                       f"MINDERHEITS-Verschiebung (uniformer Sub-tol-Drift) → STOPP.")
     if len(outliers) > GATE_MAX_OUTLIERS:
         return False, (f"{len(outliers)} Ausreißer > {GATE_TOLERANCE} "
                        f"(max {GATE_MAX_OUTLIERS} erlaubt) → nicht Einzel-Artefakt.")
@@ -415,8 +432,8 @@ def gate_passed(rows: list[dict]) -> tuple[bool, str]:
     if big:
         return False, (f"Ausreißer {max(big)} ≥ {GATE_OUTLIER_HARD_CAP} pp → "
                        f"echter Bruch (Split/Verwechslung), kein Revisions-Rauschen.")
-    return True, (f"{n_ver} verifiziert · median-|diff|={median} · "
-                  f"{len(outliers)} Einzel-Artefakt(e) ≤ {GATE_OUTLIER_HARD_CAP} pp "
+    return True, (f"{n_ver} verifiziert · median={median} · mean-Inlier={mean_inlier} "
+                  f"· {len(outliers)} Einzel-Artefakt(e) ≤ {GATE_OUTLIER_HARD_CAP} pp "
                   f"→ Daten-Artefakt (frische Bar-Revision), kein systematischer Fehler.")
 
 
