@@ -414,6 +414,66 @@ def gate_passed(n_checked: int, n_match: int, n_mismatch: int) -> tuple[bool, st
     return True, f"{n_match}/{n_checked} Referenz-Records exakt konsistent (±{GATE_TOLERANCE})."
 
 
+def gate_diff_distribution(
+    history: list[dict], bulk: dict[str, Any],
+) -> list[dict]:
+    """DIAGNOSE (NUR Logging, KEINE Gate-Logik/Toleranz-Berührung): volle
+    Diff-Verteilung ALLER Referenz-Records — pro Record ``ticker/date/stored/
+    recomputed/diff`` PLUS beide Bar-Details (Zähler ``iloc[-1]`` + Nenner
+    ``iloc[-6]`` je Datum+Adj-Close), damit „Einzelfall/Daten-Artefakt vs.
+    systematische Verschiebung" MESSBAR wird (statt nur Mismatches zu sehen) und
+    die Daten-Revisions-Hypothese am konkreten Bar prüfbar ist. Ändert NICHTS am
+    Gate-Urteil — wird ausschließlich im dry-run-fetch-Pfad aufgerufen.
+    """
+    from backtest_history import _compute_entry_past_return_5d
+    rows: list[dict] = []
+    for _i, e, edate in collect_nonnull_records(history):
+        tkr = e.get("ticker")
+        stored = e.get(FIELD)
+        row = {"ticker": tkr, "date": e.get("date"), "stored": stored,
+               "recomputed": None, "diff": None,
+               "num_date": None, "num_close": None,
+               "den_date": None, "den_close": None}
+        df = bulk.get(tkr) if tkr else None
+        if df is not None and not df.empty:
+            up = build_df_upto(df, edate)
+            cae, c5, last_bar = extract_entry_closes(up)
+            rec = _compute_entry_past_return_5d(cae, c5)
+            row["recomputed"] = rec
+            row["diff"] = None if (rec is None or stored is None) \
+                else round(abs(rec - stored), 4)
+            if last_bar is not None:
+                row["num_date"] = last_bar.isoformat()
+            if cae is not None:
+                row["num_close"] = round(cae, 4)
+            if len(up) >= N_BARS_NEEDED:
+                row["den_date"] = up.index[-N_BARS_NEEDED].date().isoformat()
+            if c5 is not None:
+                row["den_close"] = round(c5, 4)
+        rows.append(row)
+    return rows
+
+
+def summarize_diffs(rows: list[dict]) -> dict:
+    """Pure Verteilungs-Summary über die ``diff``-Werte (None ausgeschlossen):
+    Buckets exakt (< 0.001) / klein (0.001..GATE_TOLERANCE) / über-Toleranz, plus
+    min/median/max und Anzahl ohne Recompute. Deterministisch, kein I/O."""
+    diffs = sorted(r["diff"] for r in rows if r.get("diff") is not None)
+    n = len(diffs)
+    no_rec = sum(1 for r in rows if r.get("diff") is None)
+    if n == 0:
+        return {"n": 0, "exact": 0, "small": 0, "over_tol": 0,
+                "min": None, "median": None, "max": None, "no_recompute": no_rec}
+    return {
+        "n": n,
+        "exact": sum(1 for d in diffs if d < 0.001),
+        "small": sum(1 for d in diffs if 0.001 <= d <= GATE_TOLERANCE),
+        "over_tol": sum(1 for d in diffs if d > GATE_TOLERANCE),
+        "min": diffs[0], "median": diffs[n // 2], "max": diffs[-1],
+        "no_recompute": no_rec,
+    }
+
+
 def preview_targets(
     targets: list[tuple[int, dict, date]],
     bulk: dict[str, Any] | None,
@@ -608,6 +668,28 @@ def main(argv: list[str] | None = None) -> int:
             log.info("Alignment: %d/%d Targets mit Entry-Tag OHNE Bar "
                      "(letzter Bar ≠ edate; Live-Pfad ankert dort identisch → "
                      "kein Divergenz-Risiko, nur Diagnose).", n_mis, len(targets))
+            # ── DIAGNOSE: volle Gate-Diff-Verteilung (NUR Logging, kein Gate-
+            #    Logik-/Toleranz-Touch) — beantwortet „Einzelfall vs. systematisch".
+            rows = gate_diff_distribution(history, bulk)
+            summ = summarize_diffs(rows)
+            log.info("─" * 60)
+            log.info("GATE-DIFF-VERTEILUNG (alle %d Referenz-Records · Diagnose · "
+                     "|diff| absteigend):", len(rows))
+            for r in sorted(rows, key=lambda x: (x["diff"] is None,
+                                                 -(x["diff"] or 0.0))):
+                log.info("  %-7s %-12s stored=%-8s recomp=%-8s |diff|=%-7s "
+                         "[Zähler %s=%s / Nenner %s=%s]",
+                         r["ticker"], r["date"], r["stored"], r["recomputed"],
+                         r["diff"], r["num_date"], r["num_close"],
+                         r["den_date"], r["den_close"])
+            log.info("SUMMARY: n=%d · exakt(<0.001)=%d · 0.001–%.2f=%d · >%.2f=%d "
+                     "· min=%s median=%s max=%s · ohne-recompute=%d",
+                     summ["n"], summ["exact"], GATE_TOLERANCE, summ["small"],
+                     GATE_TOLERANCE, summ["over_tol"], summ["min"],
+                     summ["median"], summ["max"], summ["no_recompute"])
+            log.info("DEUTUNG: exakt≈n + nur Einzel-Ausreißer >tol → Daten-"
+                     "Artefakt (Bar-Revision) · viele knapp unter tol → "
+                     "systematische Verschiebung (dann STOPP + fixen).")
         log.info("─" * 60)
         log.info("DRY-RUN: %d Targets, %d unique Tickers, Fenster %s..%s. "
                  "KEINE Schreibvorgänge.", len(targets), len(tickers),
