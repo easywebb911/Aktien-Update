@@ -47,7 +47,7 @@ ALLOWLIST = [
     "finnhub_skip_logging", "finra_publication_date", "gitattributes_union_merge", "good_friday",
     "gist_action_token_routing", "health_check", "health_check_digest_persistence", "helper_chain_integration",
     "html_assertions", "jekyll_exclude", "jsformat_escape", "ki_agent_coverage", "max_gain_pct",
-    "ki_agent_rvol_disambiguation", "ki_analyse_padding", "ki_pillar_live_patch", "knaller_label", "lit_reminder", "methodology_display",
+    "ki_agent_rvol_disambiguation", "ki_analyse_padding", "ki_pillar_live_patch", "ki_sentiment_source", "knaller_label", "lit_reminder", "methodology_display",
     "methodology_panel_redesign", "monster_neutralization", "news_coverage_extension", "outer_page_golden",
     "position_panel_locked", "positions_current_price", "probe_quote_proxy", "provider_consecutive_threshold_override",
     "provider_health", "provider_health_tier2", "provider_health_tier3", "provider_liveness",
