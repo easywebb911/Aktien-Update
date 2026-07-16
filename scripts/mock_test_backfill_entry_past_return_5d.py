@@ -4,7 +4,7 @@ FIXTURE-ONLY — kein Kontakt mit ``backtest_history.json``, kein echter yfinanc
 Call. Deckt die pure-Python-Slice ab (Filter/Idempotenz/atomic-write/Ein-Feld-
 Invariante/Cron-Guard/CLI-Dry-Run/Gate-Urteil). Die yfinance-abhängigen
 Funktionen (``bulk_fetch_ohlc``, ``build_df_upto``, ``extract_entry_closes``,
-``compute_and_apply_backfill``, ``run_consistency_gate``, ``_do_undo``) sind
+``compute_and_apply_backfill``, ``gate_diff_distribution``, ``_do_undo``) sind
 pandas-abhängig → Source-Inspektion statt Live-Lauf (§8u).
 
 Verifiziert:
@@ -19,7 +19,7 @@ Verifiziert:
 - (G) Import-Isolation: _compute_entry_past_return_5d IMPORTIERT nicht dupliziert;
       NUR entry_past_return_5d gesetzt; NIE entry_price als Zähler
 - (H) classify_outcome: filled/no_data/few_bars (strikte None-Semantik)
-- (I) gate_passed: PASS nur bei 0 Mismatch UND ≥ Floor verifiziert
+- (I) gate_passed(rows): kalibriert — Daten-Artefakt PASS, Systematik/Bruch FAIL
 - (J) Idempotenz: 2. select_targets nach Fill → 0
 - (K) Konsistenz-Gate + Rückweg + Look-Ahead source-verankert
 """
@@ -186,15 +186,30 @@ def main():
     _check("H5 3 distinkte Konstanten",
            len({bpr.OUTCOME_FILLED, bpr.OUTCOME_NO_DATA, bpr.OUTCOME_FEW_BARS}) == 3)
 
-    print("── (I) gate_passed: PASS nur bei 0 Mismatch UND ≥ Floor ──────")
-    _check("I1 0 Mismatch + genug verifiziert → PASS",
-           bpr.gate_passed(30, 30, 0)[0] is True)
-    _check("I2 1 Mismatch → FAIL",
-           bpr.gate_passed(30, 29, 1)[0] is False)
-    _check("I3 zu wenige verifiziert (< Floor) → FAIL (inkonklusiv)",
-           bpr.gate_passed(10, 10, 0)[0] is False)
-    _check("I4 exakt Floor → PASS",
-           bpr.gate_passed(bpr.GATE_MIN_VERIFY, bpr.GATE_MIN_VERIFY, 0)[0] is True)
+    print("── (I) gate_passed: kalibriert (Artefakt PASS, Systematik FAIL) ──")
+    def _rows(diffs):   # gate_passed liest nur r["diff"]
+        return [{"diff": d} for d in diffs]
+    # I1 — der gemessene Fall (16.07.): 31 exakt + 1 Ausreißer 0.05, median 0 → PASS
+    _check("I1 Daten-Artefakt (31 exakt + 1×0.05, median 0) → PASS",
+           bpr.gate_passed(_rows([0.0] * 31 + [0.05]))[0] is True)
+    # I2 — SYSTEMATIK (der 'AMCX ist nur die Spitze'-Fall): 32×0.008 → FAIL via median
+    _check("I2 systematisch (32×0.008, median hoch) → FAIL",
+           bpr.gate_passed(_rows([0.008] * 32))[0] is False)
+    # I2b — viele knapp UNTER 0.01 (0.009): kein Ausreißer, aber median-Wächter greift
+    _check("I2b viele 0.009 (<0.01 tol, aber median hoch) → FAIL",
+           bpr.gate_passed(_rows([0.009] * 32))[0] is False)
+    # I3 — zwei Ausreißer trotz median 0 → FAIL
+    _check("I3 zwei Ausreißer (0.05, 0.06 + rest exakt) → FAIL",
+           bpr.gate_passed(_rows([0.0] * 30 + [0.05, 0.06]))[0] is False)
+    # I4 — ein GROSSER Ausreißer ≥0.5 pp → FAIL (echter Bruch, hard cap)
+    _check("I4 großer Ausreißer 0.6 (rest exakt) → FAIL (Bruch)",
+           bpr.gate_passed(_rows([0.0] * 31 + [0.6]))[0] is False)
+    # I5 — zu wenige verifiziert → FAIL (inkonklusiv)
+    _check("I5 nur 10 verifiziert (< Floor 20) → FAIL",
+           bpr.gate_passed(_rows([0.0] * 10))[0] is False)
+    # I6 — 32 Records aber alle diff=None (Fetch-Miss) → 0 verifiziert → FAIL
+    _check("I6 alle diff=None → FAIL (0 verifiziert)",
+           bpr.gate_passed([{"diff": None}] * 32)[0] is False)
 
     print("── (J) Idempotenz ────────────────────────────────────────────")
     hist2 = [_make_entry(date="01.06.2026", ticker="AAA")]
@@ -206,7 +221,7 @@ def main():
 
     print("── (K) Gate/Rückweg/Look-Ahead source-verankert ──────────────")
     _check("K1 Konsistenz-Gate als harte Live-Vorbedingung (Abort bei FAIL)",
-           "GATE FAILED" in src and "run_consistency_gate" in src)
+           "GATE FAILED" in src and "ok, msg = gate_passed(rows)" in src)
     _check("K2 --undo-Rückweg vorhanden (chirurgisch)",
            '"--undo"' in src and "_do_undo" in src)
     _check("K3 Rückwärts-Slice (index.date <= edate), nicht vorwärts",
@@ -272,19 +287,23 @@ def main():
     _check("M3 None-diff aus n ausgeschlossen, no_recompute gezählt",
            s3["n"] == 1 and s3["no_recompute"] == 1)
     _check("M4 leer → n=0", bpr.summarize_diffs([])["n"] == 0)
-    # source: nur Logging, kein Gate-Logik-/Toleranz-Touch
-    _check("M5 run_consistency_gate-Signatur unverändert (4-Tupel return)",
-           "return len(recs), n_match, n_mismatch, mismatches" in src)
-    _check("M6 gate_diff_distribution NUR im dry-run (1 Call-Site)",
-           src.count("gate_diff_distribution(history, bulk)") == 1)
-    _check("M7 gate_passed-Logik unverändert (Toleranz nicht berührt)",
-           "GATE_TOLERANCE = 0.01" in src and "if n_mismatch > 0:" in src)
+    # source: Gate konsolidiert auf gate_diff_distribution + gate_passed(rows)
+    _check("M5 run_consistency_gate entfernt (konsolidiert)",
+           "def run_consistency_gate" not in src)
+    _check("M6 gate_diff_distribution ist EINE Recompute-Quelle in beiden Pfaden",
+           src.count("gate_diff_distribution(history, bulk)") == 2)
+    _check("M7 kalibrierter Verteilungs-Verdikt (median-Wächter + hard cap)",
+           "GATE_MEDIAN_MAX" in src and "GATE_OUTLIER_HARD_CAP" in src
+           and "median >= GATE_MEDIAN_MAX" in src
+           and "def gate_passed(rows:" in src)
     _check("M8 Bar-Details (Zähler/Nenner Datum+Close) im Log — Revisions-Hypothese prüfbar",
            "GATE-DIFF-VERTEILUNG" in src
            and "Zähler %s=%s / Nenner %s=%s" in src
            and '"num_date"' in src and '"den_close"' in src)
-    _check("M9 Diagnose NICHT im Live-Fill-Block (kein gate_diff_distribution nach HARTE VORBEDINGUNG)",
-           "gate_diff_distribution" not in
+    # Das VERTEILUNGS-LOGGING bleibt dry-run-only; der Live-Pfad nutzt
+    # gate_diff_distribution nur fürs Verdikt (kein GATE-DIFF-VERTEILUNG-Log).
+    _check("M9 Verteilungs-LOG nur im dry-run (nicht im Live-Fill-Block)",
+           "GATE-DIFF-VERTEILUNG" not in
            src.split("KONSISTENZ-GATE (HARTE VORBEDINGUNG)")[1])
 
     print()
