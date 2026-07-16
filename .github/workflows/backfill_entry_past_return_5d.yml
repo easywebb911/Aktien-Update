@@ -119,7 +119,9 @@ jobs:
           set -euo pipefail
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add backtest_history.json
+          # backtest_history.json + das Provenienz-Manifest (Rückweg-Quelle für
+          # --undo) — genau diese zwei Dateien, kein `git add -A`.
+          git add backtest_history.json backfill_entry_past_return_5d_manifest.json
           if git diff --staged --quiet; then
             echo "── Keine Änderungen an backtest_history.json → kein Commit. ──"
             exit 0

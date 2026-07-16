@@ -214,6 +214,48 @@ def main():
     _check("K4 EXPLORATIV/IN-SAMPLE-Framing im Docstring (kein Overselling)",
            "IN-SAMPLE" in src and "NICHT" in src and "OoS" in src)
 
+    print("── (L) --undo Manifest-basiert: OoS-Record SURVIVES (Guardian-Fix) ──")
+    # KERN: _do_undo darf NUR Manifest-Records nullen, NIE einen vorwärts
+    # gesammelten Live-Record — auch wenn dessen Wert identisch aussieht.
+    hist_undo = [
+        # backfill-gefüllt (im Manifest) → muss genullt werden
+        _make_entry(date="14.05.2026", ticker="OLD1", entry_past_return_5d=8.8),
+        _make_entry(date="20.05.2026", ticker="OLD2", entry_past_return_5d=-3.1),
+        # VORWÄRTS gesammelt (NICHT im Manifest), gleicher Wert wie OLD1 →
+        # Recompute-Ansatz hätte das mit-genullt; Manifest-Ansatz NICHT.
+        _make_entry(date="14.07.2026", ticker="FWD", entry_past_return_5d=8.8),
+    ]
+    manifest = [{"ticker": "OLD1", "date": "14.05.2026"},
+                {"ticker": "OLD2", "date": "20.05.2026"}]
+    n_undone = bpr._do_undo(hist_undo, manifest)
+    _check("L1 exakt 2 Manifest-Records genullt", n_undone == 2, f"got {n_undone}")
+    _check("L2 OLD1 → None", hist_undo[0]["entry_past_return_5d"] is None)
+    _check("L3 OLD2 → None", hist_undo[1]["entry_past_return_5d"] is None)
+    _check("L4 FWD (vorwärts, NICHT im Manifest) BLEIBT 8.8 (OoS geschützt!)",
+           hist_undo[2]["entry_past_return_5d"] == 8.8)
+    # leeres Manifest → nichts genullt (kein Raten)
+    hist2 = [_make_entry(ticker="X", entry_past_return_5d=5.0)]
+    _check("L5 leeres Manifest → 0 genullt", bpr._do_undo(hist2, []) == 0)
+    _check("L6 X unangetastet bei leerem Manifest",
+           hist2[0]["entry_past_return_5d"] == 5.0)
+    # merge_manifest: Union + Dedup
+    merged = bpr.merge_manifest(
+        [{"ticker": "A", "date": "01.01.2026"}],
+        [{"ticker": "A", "date": "01.01.2026"}, {"ticker": "B", "date": "02.01.2026"}])
+    _check("L7 merge_manifest dedupliziert (A einmal, B neu)",
+           len(merged) == 2
+           and {(m["ticker"], m["date"]) for m in merged}
+               == {("A", "01.01.2026"), ("B", "02.01.2026")})
+    # load_manifest: fehlende Datei → []
+    _check("L8 load_manifest(nicht-existent) → []",
+           bpr.load_manifest(pathlib.Path("/nonexistent/xyz.json")) == [])
+    # source: --undo verweigert ohne Manifest; kein Recompute im undo
+    _check("L9 --undo verweigert ohne Manifest (kein Raten)",
+           "Kein Manifest" in src)
+    _check("L10 _do_undo nutzt KEINEN Recompute (rein Manifest/Dict)",
+           "_compute_entry_past_return_5d" not in
+           src.split("def _do_undo")[1].split("\ndef ")[0])
+
     print()
     if _fails:
         print(f"✗ {len(_fails)} Test(s) fehlgeschlagen: {_fails}")

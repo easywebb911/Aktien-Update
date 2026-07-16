@@ -51,13 +51,18 @@ RACE-SCHUTZ (Live, doppelt, 1:1 von #401):
        Daily-Runs). ki_agent-hourly (xx:17) → nur flock.
 
 RÜCKWEG (dokumentiert, kein „wir schauen dann"): der Live-Lauf setzt GENAU EIN
-    Feld auf ~400 Records. Rückweg = **``--undo``-Flag**: setzt
-    ``entry_past_return_5d`` für alle vom Backfill gefüllten Records auf ``None``
-    zurück (idempotent; nur Records, deren Wert exakt dem Backfill-Recompute
-    entspricht — vorwärts gesammelte Live-Werte werden NIE angetastet, weil sie
-    nicht in der v4-is-None-Zielmenge lagen). git-revert des Daten-Commits ist
-    NICHT der Weg (würfe parallele ki_agent-/Daily-Run-Writes desselben Commits
-    mit weg). ``--undo`` ist der chirurgische Rückweg.
+    Feld auf ~400 Records UND schreibt ein **MANIFEST**
+    (``backfill_entry_past_return_5d_manifest.json``) mit den (ticker, date) der
+    tatsächlich befüllten Records. Rückweg = **``--undo``-Flag**: setzt
+    ``entry_past_return_5d`` **ausschließlich für die Manifest-Records** auf
+    ``None`` zurück (kein Recompute-Vergleich!). WARUM Manifest statt Recompute
+    (Guardian-Finding 16.07.): vorwärts gesammelte Live-Records entstehen über
+    DIESELBE Formel/Preisquelle → ein Recompute-Match wäre für sie der Normalfall
+    → ``--undo`` hätte die konfirmatorisch (seit 13.07.) gesammelten OoS-Records
+    MIT-genullt. Das Manifest ist die einzige verlässliche Provenienz; ohne
+    Manifest verweigert ``--undo`` (kein Raten). Beide Files werden co-committet.
+    git-revert des Daten-Commits ist NICHT der Weg (würfe parallele ki_agent-/
+    Daily-Run-Writes desselben Commits mit weg).
 
 DRY-RUN (Default):
     ``python scripts/backfill_entry_past_return_5d.py``            → dry-run
@@ -93,6 +98,7 @@ logging.basicConfig(
 )
 
 BACKTEST_FILE = ROOT / "backtest_history.json"
+MANIFEST_FILE = ROOT / "backfill_entry_past_return_5d_manifest.json"
 
 FIELD = "entry_past_return_5d"
 N_BARS_NEEDED = 6                    # iloc[-1] (Entry) + iloc[-6] (5 TD davor).
@@ -306,20 +312,26 @@ def extract_entry_closes(df_upto: Any) -> tuple[float | None, float | None, date
 def compute_and_apply_backfill(
     targets: list[tuple[int, dict, date]],
     bulk: dict[str, Any],
-) -> tuple[int, int, int, int]:
+) -> tuple[int, int, int, int, list[dict]]:
     """Iteriert Targets, holt Rückwärts-Slice, ruft den IMPORTIERTEN
     ``_compute_entry_past_return_5d``, wendet an.
 
-    Returnt ``(n_filled, n_skipped, n_few_bars, n_misaligned)``:
+    Returnt ``(n_filled, n_skipped, n_few_bars, n_misaligned, filled_keys)``:
       - n_filled     = Records mit entry_past_return_5d gesetzt.
       - n_skipped    = kein Bulk-Slot / leerer df / val None (IPO/Delisting).
       - n_few_bars   = Untermenge skipped: df da, aber < 6 Bars vor Entry.
       - n_misaligned = df da, aber letzter Bar-Tag ≠ edate (Entry-Tag ohne Bar;
         diagnostisch — Live-Pfad ankert dort identisch, kein Divergenz-Risiko).
+      - filled_keys  = ``[{"ticker", "date"}, ...]`` der TATSÄCHLICH befüllten
+        Records — das Manifest für den chirurgischen ``--undo``. NUR diese
+        Identitäten dürfen zurückgesetzt werden; ein Wert-Recompute-Vergleich
+        wäre FALSCH (vorwärts gesammelte Live-Records matchen dieselbe Formel
+        und würden mit-genullt → Guardian-Finding 16.07.).
     """
     from backtest_history import _compute_entry_past_return_5d
 
     n_filled = n_skipped = n_few_bars = n_misaligned = 0
+    filled_keys: list[dict] = []
     for i, entry, edate in targets:
         tkr = entry.get("ticker")
         df = bulk.get(tkr) if tkr else None
@@ -338,11 +350,12 @@ def compute_and_apply_backfill(
         val = _compute_entry_past_return_5d(cae, c5)
         if apply_backfill_result(entry, val):
             n_filled += 1
+            filled_keys.append({"ticker": tkr, "date": entry.get("date")})
         else:
             n_skipped += 1
             if len(df_upto) < N_BARS_NEEDED:
                 n_few_bars += 1
-    return n_filled, n_skipped, n_few_bars, n_misaligned
+    return n_filled, n_skipped, n_few_bars, n_misaligned, filled_keys
 
 
 def run_consistency_gate(
@@ -458,31 +471,56 @@ def _union_fetch_window(
 # ─────────────────────────────────────────────────────────────────────────────
 
 
-def _do_undo(history: list[dict], bulk: dict[str, Any]) -> int:
-    """--undo: setzt entry_past_return_5d auf None zurück — NUR bei v4-Records,
-    deren aktueller Wert exakt dem Backfill-Recompute entspricht (chirurgisch;
-    vorwärts gesammelte Live-Werte, die schon vor dem Backfill non-null waren,
-    lassen sich so nicht sicher unterscheiden — daher NUR Records zurücksetzen,
-    die der Backfill nachweislich erzeugt hätte). Returnt Anzahl zurückgesetzt."""
-    from backtest_history import _compute_entry_past_return_5d
+def _do_undo(history: list[dict], manifest: list[dict]) -> int:
+    """--undo: setzt entry_past_return_5d **ausschließlich** bei den Records
+    zurück, die der ``--live``-Lauf laut MANIFEST tatsächlich befüllt hat
+    (Match über ``ticker`` + ``date``).
+
+    KRITISCH (Guardian-Finding 16.07.): ein Wert-Recompute-Vergleich wäre FALSCH
+    — vorwärts gesammelte Live-Records entstehen über DIESELBE Formel/Preisquelle
+    und würden den Recompute ebenso matchen → ``--undo`` hätte die konfirmatorisch
+    (seit 13.07.) gesammelten OoS-Records mit-genullt. Das Manifest ist die
+    einzige verlässliche Provenienz-Quelle; ohne Manifest wird NICHT geraten.
+
+    Reine Dict-Operation (kein yfinance/Recompute) → voll unit-testbar. Returnt
+    Anzahl zurückgesetzt.
+    """
+    keys = {(m.get("ticker"), m.get("date")) for m in manifest if isinstance(m, dict)}
+    if not keys:
+        return 0
     n = 0
-    for i, e in enumerate(history):
-        if not isinstance(e, dict) or e.get("backtest_schema_version") != 4:
+    for e in history:
+        if not isinstance(e, dict):
             continue
-        stored = e.get(FIELD)
-        if stored is None:
-            continue
-        edate = parse_entry_date(e.get("date", ""))
-        tkr = e.get("ticker")
-        df = bulk.get(tkr) if tkr else None
-        if edate is None or df is None or df.empty:
-            continue
-        cae, c5, _ = extract_entry_closes(build_df_upto(df, edate))
-        recomputed = _compute_entry_past_return_5d(cae, c5)
-        if recomputed is not None and abs(recomputed - stored) <= GATE_TOLERANCE:
+        if (e.get("ticker"), e.get("date")) in keys and e.get(FIELD) is not None:
             e[FIELD] = None
             n += 1
     return n
+
+
+def load_manifest(path: pathlib.Path) -> list[dict]:
+    """Backfill-Manifest (Liste ``{ticker, date}``). Fehlende Datei → []."""
+    if not path.exists():
+        return []
+    try:
+        data = json.loads(path.read_text(encoding="utf-8"))
+        return data if isinstance(data, list) else []
+    except Exception as exc:
+        log.warning("Manifest-Load fail (%s) → leer.", exc)
+        return []
+
+
+def merge_manifest(existing: list[dict], new_keys: list[dict]) -> list[dict]:
+    """Union der Manifest-Einträge über (ticker, date) — akkumuliert über
+    mehrere ``--live``-Läufe, dedupliziert. Pure."""
+    seen = {(m.get("ticker"), m.get("date")) for m in existing if isinstance(m, dict)}
+    out = list(existing)
+    for k in new_keys:
+        key = (k.get("ticker"), k.get("date"))
+        if key not in seen:
+            seen.add(key)
+            out.append({"ticker": k.get("ticker"), "date": k.get("date")})
+    return out
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -600,22 +638,31 @@ def main(argv: list[str] | None = None) -> int:
             log.error("Re-Load unter flock fail: %s", exc)
             return 1
 
-        # Fetch (union) unter flock — Gate + Fill/Undo aus derselben Epoche.
-        bulk = bulk_fetch_ohlc(tickers, fetch_start, fetch_end)
-
+        # ── UNDO (KEIN Fetch nötig — Manifest-basiert, kein Recompute) ───────
         if args.undo:
-            n_undone = _do_undo(history, bulk)
-            log.info("UNDO: %d Records auf None zurückgesetzt.", n_undone)
+            manifest = load_manifest(MANIFEST_FILE)
+            if not manifest:
+                log.error("Kein Manifest (%s) — nichts sicher rückgängig zu "
+                          "machen. Ein Recompute-basierter Undo würde auch "
+                          "vorwärts gesammelte OoS-Records treffen (Guardian-"
+                          "Finding). Kein Write.", MANIFEST_FILE.name)
+                return 1
+            n_undone = _do_undo(history, manifest)
+            log.info("UNDO: %d Manifest-Records auf None zurückgesetzt.", n_undone)
             if n_undone == 0:
-                log.info("Nichts zurückzusetzen. Kein Write.")
+                log.info("Manifest-Records tragen bereits None. Kein Write.")
                 return 0
             try:
                 atomic_write_json(path, history)
+                atomic_write_json(MANIFEST_FILE, [])   # Manifest leeren
             except Exception as exc:
                 log.error("Atomic-Write fail: %s", exc)
                 return 1
-            log.info("Atomic Write (UNDO) erfolgreich: %s", path)
+            log.info("Atomic Write (UNDO) erfolgreich: %s + Manifest geleert.", path)
             return 0
+
+        # Fetch (union) unter flock — Gate + Fill aus derselben Epoche.
+        bulk = bulk_fetch_ohlc(tickers, fetch_start, fetch_end)
 
         # ── KONSISTENZ-GATE (HARTE VORBEDINGUNG) ─────────────────────────────
         n_chk, n_ok, n_bad, mism = run_consistency_gate(history, bulk)
@@ -632,7 +679,8 @@ def main(argv: list[str] | None = None) -> int:
 
         # ── Fill ─────────────────────────────────────────────────────────────
         targets = select_targets(history)
-        n_filled, n_skipped, n_few, n_mis = compute_and_apply_backfill(targets, bulk)
+        n_filled, n_skipped, n_few, n_mis, filled_keys = \
+            compute_and_apply_backfill(targets, bulk)
         log.info("Backfill: %d/%d Records mit %s gefüllt (%d skipped: "
                  "no-data/delisted/IPO<6bars; davon %d few-bars). "
                  "Alignment: %d Entry-Tage ohne Bar.",
@@ -640,12 +688,17 @@ def main(argv: list[str] | None = None) -> int:
         if n_filled == 0:
             log.warning("Keine Records gefüllt — Skip Write.")
             return 0
+        # Manifest (Provenienz für --undo): akkumulierte Union der befüllten
+        # (ticker, date) — die EINZIGE verlässliche Rückweg-Quelle.
+        manifest = merge_manifest(load_manifest(MANIFEST_FILE), filled_keys)
         try:
             atomic_write_json(path, history)
+            atomic_write_json(MANIFEST_FILE, manifest)
         except Exception as exc:
             log.error("Atomic-Write fail: %s", exc)
             return 1
-        log.info("Atomic Write erfolgreich: %s", path)
+        log.info("Atomic Write erfolgreich: %s (+ Manifest %d Einträge).",
+                 path, len(manifest))
         return 0
     finally:
         try:
