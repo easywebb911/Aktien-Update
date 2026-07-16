@@ -78,23 +78,11 @@
     "anomaly_gap_combo_SOC": "2026-07-02T11:34:24.300811+02:00",
     "anomaly_monster_backup_SOC": "2026-07-02T20:02:41.415261+02:00",
     "anomaly_conviction_high_SOC": "2026-07-02T11:34:24.445058+02:00",
-    "exit_FRMM": "2026-07-15T21:11:26.860293+02:00",
+    "exit_FRMM": "2026-07-16T10:35:46.475716+02:00",
     "anomaly_conviction_high_NGNE": "2026-07-09T12:04:16.015071+02:00",
     "exit_LENZ": "2026-07-15T21:11:27.245805+02:00"
   },
   "push_history": [
-    {
-      "ts": "2026-07-09T00:19:31.216412+02:00",
-      "ticker": "FRMM",
-      "kind": "exit_p1",
-      "severity": "default",
-      "trigger": "exit_alert",
-      "body": "FRMM 📉 Exit 65 | -14% | Trailing-Stop −16.6% vom Hoch",
-      "success": true,
-      "suppressed": false,
-      "suppress_reason": null,
-      "conviction_score": null
-    },
     {
       "ts": "2026-07-09T06:14:09.866173+02:00",
       "ticker": "IONQ",
@@ -1278,6 +1266,18 @@
       "severity": "trigger",
       "trigger": "trend_break",
       "body": "🔻 Exit-Signal WOLF: trend_break crit ({'ma21': 41.5755, 'price': 34.44, 'drop_pct': 17.16})",
+      "success": true,
+      "suppressed": false,
+      "suppress_reason": null,
+      "conviction_score": null
+    },
+    {
+      "ts": "2026-07-16T10:35:46.475682+02:00",
+      "ticker": "FRMM",
+      "kind": "exit_p1",
+      "severity": "default",
+      "trigger": "exit_alert",
+      "body": "FRMM 📉 Exit 65 | -14% | Trailing-Stop −16.3% vom Hoch",
       "success": true,
       "suppressed": false,
       "suppress_reason": null,
