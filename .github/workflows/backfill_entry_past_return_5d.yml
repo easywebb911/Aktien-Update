@@ -1,0 +1,141 @@
+name: Backfill entry_past_return_5d (einmalig, manual)
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Einmaliger Backfill-Workflow für die Paper-C-Exploration (Hypothese-A Stufe B).
+#
+# ZWECK (ehrlich): EXPLORATIVER Beschleuniger — backgefüllte Alt-Records sind
+# retrospektiv/IN-SAMPLE, ersetzen NICHT den vorregistrierten Vorwärts-OoS.
+# Siehe Skript-Docstring + SESSION_HANDOVER §8z1.
+#
+# STRENG MANUAL:
+#   - trigger:      NUR workflow_dispatch (kein schedule, kein push)
+#   - permissions:  contents: write (nur beim mode=live/undo relevant)
+#   - concurrency:  group backfill-entry-past-return-5d, cancel-in-progress: false
+#
+# MODE-INPUT (Default = dry-run-fetch):
+#   - dry-run-fetch : Dry-Run MIT Fetch → zeigt Preview + KONSISTENZ-GATE +
+#                     Alignment. SCHREIBT NICHTS. (Der empfohlene erste Lauf.)
+#   - live          : echter Backfill. Das Skript-interne Gate ist HARTE
+#                     Vorbedingung — bei Gate-FAIL bricht das Skript ab (exit 1),
+#                     KEIN Write. Commit/Push nur bei Datei-Änderung.
+#   - undo          : chirurgischer Rückweg (gefüllte Werte → None).
+#
+# DOPPELTER RACE-SCHUTZ (analog #401):
+#   1. Skript-intern: fcntl.flock + Cron-Fenster-Guard (±30 min um 06:17/21:17).
+#   2. Workflow: concurrency-group (kein 2. Lauf parallel).
+#
+# COMMIT-SICHERHEIT: `git add backtest_history.json` — GENAU EINE Datei.
+# IDEMPOTENZ: Skript-Filter (is-None) + `git diff --staged --quiet && exit 0`.
+# KEIN Retry-Loop bei Push-Fehler → Run wird rot, Easy dispatcht erneut.
+# ─────────────────────────────────────────────────────────────────────────────
+
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: 'dry-run-fetch (default, schreibt nichts) | live | undo'
+        required: true
+        default: 'dry-run-fetch'
+        type: choice
+        options:
+          - dry-run-fetch
+          - live
+          - undo
+
+permissions:
+  contents: write
+
+concurrency:
+  group: backfill-entry-past-return-5d
+  cancel-in-progress: false
+
+jobs:
+  backfill:
+    name: entry_past_return_5d Backfill (${{ inputs.mode }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout main
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 1
+
+      - name: Setup Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: 'pip'
+
+      - name: Install pinned dependencies
+        run: pip install -r requirements.txt
+
+      - name: Show pre-Backfill status
+        run: |
+          echo "── UTC-Zeit vor Lauf ──"
+          date -u
+          echo "── backtest_history.json Byte-Größe vor Lauf ──"
+          wc -c backtest_history.json || true
+
+      - name: Run backfill (mode=${{ inputs.mode }})
+        id: backfill
+        run: |
+          set -euo pipefail
+          LOG=/tmp/backfill_epr.log
+          case "${{ inputs.mode }}" in
+            dry-run-fetch)
+              python scripts/backfill_entry_past_return_5d.py --fetch-in-dry-run 2>&1 | tee "$LOG" ;;
+            live)
+              python scripts/backfill_entry_past_return_5d.py --live 2>&1 | tee "$LOG" ;;
+            undo)
+              python scripts/backfill_entry_past_return_5d.py --undo 2>&1 | tee "$LOG" ;;
+            *)
+              echo "Unbekannter mode: ${{ inputs.mode }}"; exit 1 ;;
+          esac
+          # Zähler aus dem Log extrahieren (Format aus dem Skript-Log-Muster):
+          #   "Backfill: N/M Records mit entry_past_return_5d gefüllt (…)"
+          FILLED=$(grep -oE 'Backfill: [0-9]+' "$LOG" | head -1 | grep -oE '[0-9]+' || echo "0")
+          TOTAL=$(grep -oE 'Backfill: [0-9]+/[0-9]+' "$LOG" | head -1 | grep -oE '/[0-9]+' | tr -d '/' || echo "0")
+          UNDONE=$(grep -oE 'UNDO: [0-9]+' "$LOG" | head -1 | grep -oE '[0-9]+' || echo "0")
+          echo "filled=$FILLED" >> "$GITHUB_OUTPUT"
+          echo "total=$TOTAL"   >> "$GITHUB_OUTPUT"
+          echo "undone=$UNDONE" >> "$GITHUB_OUTPUT"
+          echo "── extrahiert: filled=$FILLED, total=$TOTAL, undone=$UNDONE ──"
+
+      - name: Show post-Backfill status
+        run: |
+          echo "── backtest_history.json Byte-Größe nach Lauf ──"
+          wc -c backtest_history.json || true
+          echo "── git diff --stat ──"
+          git diff --stat backtest_history.json || true
+
+      - name: Commit + push only backtest_history.json (idempotent, nur live/undo)
+        if: ${{ inputs.mode == 'live' || inputs.mode == 'undo' }}
+        env:
+          FILLED: ${{ steps.backfill.outputs.filled }}
+          TOTAL:  ${{ steps.backfill.outputs.total }}
+          UNDONE: ${{ steps.backfill.outputs.undone }}
+          MODE:   ${{ inputs.mode }}
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add backtest_history.json
+          if git diff --staged --quiet; then
+            echo "── Keine Änderungen an backtest_history.json → kein Commit. ──"
+            exit 0
+          fi
+          if [ "$MODE" = "undo" ]; then
+            MSG="chore: entry_past_return_5d backfill UNDO (${UNDONE} Records → None)
+
+          Chirurgischer Rückweg: nur Backfill-erzeugte Werte zurückgesetzt.
+          Auto-committed by workflow_dispatch: backfill_entry_past_return_5d.yml"
+          else
+            MSG="chore: entry_past_return_5d Stufe-B backfill (${FILLED}/${TOTAL} Records gefüllt)
+
+          EXPLORATIV/IN-SAMPLE (Paper C) — NICHT mit dem vorwärts gesammelten
+          OoS poolen. Konsistenz-Gate bestanden (Live-vs-Backfill-Numerik).
+          Auto-committed by workflow_dispatch: backfill_entry_past_return_5d.yml"
+          fi
+          git commit -m "$MSG"
+          git pull --rebase origin main
+          git push
