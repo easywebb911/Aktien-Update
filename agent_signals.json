@@ -1,17 +1,17 @@
 {
-  "updated": "2026-07-16T10:36:40.533254+02:00",
+  "updated": "2026-07-16T11:28:17.829669+02:00",
   "run_info": {
     "tickers_checked": 15,
     "signals_active": 1,
     "alerts_sent": 0,
-    "elapsed_s": 18.6,
+    "elapsed_s": 17.0,
     "market_phase": "Pre-Market"
   },
   "signals": {
     "AI": {
       "score": 50,
       "confidence": 33,
-      "drivers": "Spanne 5.4% + News: partnership, short interest + UOA Call/Put 2.9×",
+      "drivers": "Spanne 5.4% + News: short interest, partnership + UOA Call/Put 2.9×",
       "price": 9.14,
       "chg_pct": 0.0,
       "rvol_4d": 1.17,
@@ -32,9 +32,9 @@
       "uoa_cp_ratio": 2.8949858088930935
     },
     "AMC": {
-      "score": 35,
+      "score": 52,
       "confidence": 70,
-      "drivers": "Earnings in 4 Tagen (20.07.2026) + Spanne 6.8% + Earnings in 4d + UOA Call/Put 3.0×",
+      "drivers": "Earnings in 4 Tagen (20.07.2026) + Spanne 6.8% + News-KI 12/30: AMC headlines focus on debt restructuring and routine analyst coverage with no mention of short interest, borrowing diff + Earnings in 4d + UOA Call/Put 3.0×",
       "price": 2.07,
       "chg_pct": -0.0,
       "rvol_4d": 1.42,
@@ -44,9 +44,9 @@
       "upcoming_event": "Earnings in 4 Tagen (20.07.2026)",
       "insider_buy": false,
       "stocktwits": null,
-      "combo_mult": 1.0,
-      "active_triggers": 1,
-      "ki_sentiment_source": "keyword",
+      "combo_mult": 1.1,
+      "active_triggers": 2,
+      "ki_sentiment_source": "llm",
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 3.0×"
@@ -120,9 +120,9 @@
       "uoa_cp_ratio": 4.694444444444445
     },
     "FRMM": {
-      "score": 36,
+      "score": 43,
       "confidence": 70,
-      "drivers": "Spanne 15.4% + News-KI 8/30: Positive analyst sentiment on tokenization strategy, but no short-squeeze indicators like high short interest, low float + Earnings in 28d + UOA Call/Put 46.0×",
+      "drivers": "Spanne 15.4% + News: short interest + Earnings in 28d + UOA Call/Put 46.0×",
       "price": 5.98,
       "chg_pct": 0.0,
       "rvol_4d": 0.52,
@@ -133,8 +133,8 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 0,
-      "ki_sentiment_source": "llm",
+      "active_triggers": 1,
+      "ki_sentiment_source": "keyword",
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 46.0×"
@@ -248,9 +248,9 @@
       "uoa_cp_ratio": 0.3350253807106599
     },
     "PLAY": {
-      "score": 35,
-      "confidence": 33,
-      "drivers": "Spanne 10.8% + FINRA Short-Vol 85%",
+      "score": 43,
+      "confidence": 70,
+      "drivers": "Spanne 10.8% + News-KI 8/30: Negative sentiment with declining stock price and sell recommendations indicate weak momentum and institutional selling  + FINRA Short-Vol 85%",
       "price": 10.29,
       "chg_pct": -0.0,
       "rvol_4d": 1.26,
@@ -262,7 +262,7 @@
       "stocktwits": null,
       "combo_mult": 1.0,
       "active_triggers": 0,
-      "ki_sentiment_source": "keyword",
+      "ki_sentiment_source": "llm",
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": null,

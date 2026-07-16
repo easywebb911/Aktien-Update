@@ -1,5 +1,5 @@
 {
-  "last_run": "2026-07-16T10:36:45.979769+02:00",
+  "last_run": "2026-07-16T11:28:22.295609+02:00",
   "cooldowns": {
     "anomaly_score_jump_XRX": "2026-05-03T18:47:15.315486+02:00",
     "anomaly_uoa_extreme_TDOC": "2026-05-04T13:47:00.365949+02:00",
@@ -83,18 +83,6 @@
     "exit_LENZ": "2026-07-15T21:11:27.245805+02:00"
   },
   "push_history": [
-    {
-      "ts": "2026-07-09T06:14:09.923185+02:00",
-      "ticker": "AI",
-      "kind": "exit_p2",
-      "severity": "warning",
-      "trigger": null,
-      "body": "⚠️ Exit-Warnung AI: pressure 65/100",
-      "success": true,
-      "suppressed": false,
-      "suppress_reason": null,
-      "conviction_score": null
-    },
     {
       "ts": "2026-07-09T09:59:05.247939+02:00",
       "ticker": "IONQ",
@@ -1282,6 +1270,18 @@
       "suppressed": false,
       "suppress_reason": null,
       "conviction_score": null
+    },
+    {
+      "ts": "2026-07-16T11:28:22.539240+02:00",
+      "ticker": "IONQ",
+      "kind": "exit_p2",
+      "severity": "warning",
+      "trigger": null,
+      "body": "⚠️ Exit-Warnung IONQ: pressure 61/100",
+      "success": true,
+      "suppressed": false,
+      "suppress_reason": null,
+      "conviction_score": null
     }
   ],
   "prev_conviction_scores": {
@@ -1313,7 +1313,7 @@
     "exitp2_trigger_CRMD_catalyst": "2026-05-14T16:48:50.948217+02:00",
     "exitp2_trigger_KPTI_trend_break": "2026-05-15T18:18:45.093840+02:00",
     "exitp2_trigger_RR_trend_break": "2026-05-20T17:26:03.459661+02:00",
-    "exitp2_warning_IONQ": "2026-07-15T23:15:24.761019+02:00",
+    "exitp2_warning_IONQ": "2026-07-16T11:28:22.539264+02:00",
     "exitp2_trigger_IONQ_trend_break": "2026-07-16T08:31:47.521883+02:00",
     "exitp2_trigger_PDYN_trend_break": "2026-07-16T08:31:47.722405+02:00",
     "exitp2_trigger_GEMI_trend_break": "2026-06-09T00:01:52.717781+02:00",
