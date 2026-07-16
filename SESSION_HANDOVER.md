@@ -1,16 +1,17 @@
-# SESSION_HANDOVER.md — Stand 15.07.2026 (Tagesabschluss)
+# SESSION_HANDOVER.md — Stand 16.07.2026 (ki_signal-Re-Test-Befund + Fallback-Flag)
 
 **Zweck:** vollständige Übergabe an eine **neue Code-Session ohne Kontext der
 alten**. Dieses Dokument + `CLAUDE.md` müssen zusammen ausreichen, um am
 Projektstand direkt weiterzuarbeiten. Reine Doku, kein Logik-Touch.
 
 **Datums-Basis (belegt, nicht Erinnerung):** `date -u` in der Sandbox liefert
-**Mi 15.07.2026 ~19:54 UTC**. Der **postclose-Run 15.07.** ist durch (`edd4715
-"Daily squeeze report 2026-07-15"`, 19:11 UTC — Actions-Drift vor dem 21:17-Cron)
-→ Phase-0-Zyklus-Verify auflösbar (§3). Heute gemergt: **#436** (Bootstrap-Shell
-Phase 1, Merge `4270cce` / feat `77b42d6`), **#437** (si_velocity-Rename, Merge
-`5788485` / refactor `a8c5c7f`), **#438** (Einheiten-Fix Frontend, squash
-`ae45803`) — alle git-belegt.
+**Do 16.07.2026 ~04:54 UTC**. Session-Bogen 15.–16.07.: am **15.07.** der
+**vorgezogene ki_signal-Edge-Re-Test** (n=55 gereift ≥ 40-Floor; Ergebnis §4/§5)
++ die Sammel-Raten-Diagnose; am **16.07.** früh **#440** gemergt (Merge `53b72d1`
+/ feat `e90fd5f` — `ki_sentiment_source`-Fallback-Flag). Davor 15.07.: **#436**
+(Bootstrap-Shell Phase 1, `4270cce`/`77b42d6`), **#437** (si_velocity-Rename,
+`5788485`/`a8c5c7f`), **#438** (Einheiten-Fix Frontend, squash `ae45803`) — alle
+git-belegt.
 
 *(Hinweis für die nächste Session: Datums-Titel hier aus Repo verifiziert
 [`git log --date`], nicht aus Erinnerung — Präzedenz-Fehler früherer Handover
@@ -24,6 +25,24 @@ Anker.
 ---
 
 ## 1) HEUTE IMPLEMENTIERT (chronologisch, mit Hashes)
+
+### 16.07.2026 — ki_signal-Re-Test-Confound-Flag
+
+### PR #440 — 16.07. — Merge `53b72d1` (feat `e90fd5f`)
+**★ `ki_sentiment_source`-Flag (LLM vs. Keyword-Fallback).** Additives Backtest-
+Feld ∈ {`"llm"`,`"keyword"`,`"none"`} (None auf Alt-Records, **forward-only**,
+rückwirkend nicht rekonstruierbar). Markiert pro Record, ob der ki_signal-News-
+Anteil vom Claude-Haiku-Call oder vom Keyword-Fallback stammt — schließt genau
+den Confound-Anker #2, der beim ki_signal-Re-Test 15.07. **nicht bestimmbar** war
+(kein Per-Record-Flag existierte). Klassifikation in `ki_agent.compute_signal` am
+`claude_sentiment_score`-Call (`"llm"`=Score gesetzt · `"keyword"`=None+Headlines
+da · `"none"`=keine Headlines) → `meta` → signal-Dict (`agent_signals.json`) →
+`apply_agent_boost` setzt `s[...]` → `_build_backtest_extension` → **`entry.update`
+(die #411-Durchreichung)**. S10_OBSERVED (kein MUSS/LAG), Schema **v4** (additiv).
+**Look-Ahead-frei** (reine Persistenz, kein Score-Read — Test F verriegelt). Test
+`mock_test_ki_sentiment_source` (26 Checks): 3 Zustände + **#411-Merge-Assertion**
+(alle 3 kommen im Record an, ausgeführt) + Alt-Record-None-Toleranz. CI 103/103,
+Golden unverändert. Guardian ✅. **Schema/Append-Pfad → manueller Merge.**
 
 ### 15.07.2026 — PWA-Cache-Strukturfix Phase 1 (Flip) + si_velocity-Rename
 
@@ -551,10 +570,16 @@ nur bei `available=True`.
 
 | Datum | Was | n-Ziel | Notiz |
 |---|---|---|---|
-| **~Mitte Aug 2026** | ki_signal_score-Edge-Re-Test | n_reif ≥ 40 | LOOK-AHEAD SAUBER — LLM-basiert `temperature=0`, Score zum Erhebungszeitpunkt eingefroren, deterministisch reproduzierbar. Eigenständiges Signal = Kombi-Kandidat. |
-| **~Ende Aug 2026** | Conviction-Edge (Prüfpunkt P3 aus 30.06.) | n ≥ 100 | Vorwärts-Erhebung seit PR #388 (28.06.). Composite aus Setup/Earliness/Anomaly/Regime — Aggregations-Anzeige, deren Edge selbst noch nicht belegt ist. |
-| **~Ende Sept 2026** | Setup-Edge-Re-Test | n ≥ 250 | Andere Marktphase zwingend (30.06.-Sample Mai–Juni-lastig, 91 % pre-#346). |
-| **~Ende Sept 2026** | Exit-Timing B.1-Hinweis-Re-Test | n ≥ 250 | 01.07. Punktschätzung Δ ~+4 pp (5d/3d vs 10d in Score≥70-Bucket), Holm-negativ — Re-Test zur Bestätigung. |
+| ✅ **DURCHGEFÜHRT 15.07.** | ki_signal_score-Edge-Re-Test | n=55 gereift | **KEIN belegter Effekt** (Details §5). Re-Test-Bedingung neu **datengetrieben, nicht kalendarisch:** **WIN-Bucket ≥ 20** (aktuell nur 13!) **UND zweites Marktregime** im Sample. Nicht „~Mitte Aug" — die Kalender-Angabe war irreführend, es zählt der WIN-Bucket + Regime-Diversität. |
+| **~Ende Juli / Anfang Aug** (korrigiert) | Conviction-Edge (Prüfpunkt P3 aus 30.06.) | n ≥ 100 gereift | **Termin vorgezogen** (Sammel-Raten-Diagnose 15.07.): 112 gesammelt / 20 gereift → n≥100 gereift bereits ~Ende Juli/Anfang Aug (das frühere „~Ende Aug" war Puffer). Composite aus Setup/Earliness/Anomaly/Regime — Aggregations-Anzeige, Edge selbst unbelegt. |
+| **~Mitte/Ende Sept 2026** (bestätigt) | Setup-Edge-Re-Test | n ≥ 250 gereift | Andere Marktphase zwingend (30.06.-Sample Mai–Juni-lastig, 91 % pre-#346). **Engpass gemessen:** Score≥70-Anteil nur **36 %** (~2,7 gereifte Score≥70-Records/Handelstag) → das bindet n≥250, nicht die Roh-Rate. |
+| **~Mitte/Ende Sept 2026** (bestätigt) | Exit-Timing B.1-Hinweis-Re-Test | n ≥ 250 | 01.07. Punktschätzung Δ ~+4 pp (5d/3d vs 10d in Score≥70-Bucket), Holm-negativ — Re-Test zur Bestätigung. |
+
+**Sammel-Rate (gemessen 15.07., Hard-Facts):** **10 Records/Handelstag** (nur
+postclose, nur Top-10) = das Maximum ohne Populations-Wechsel. **Hard-Stop:
+`return_10d`-Reifung = 10 Handelstage** (immutabel — jeder Record braucht ~2
+Kalenderwochen, bevor er zählt). Warten ist hier **kein** Engpass, sondern der
+eingebaute Out-of-Sample-Schutz (§8).
 | **Herbst 2026 / Q4 (OoS)** | **Hypothese H5 (Kombi Score × Katalysator × Momentum × SI)** | n ≥ 40 pro Feld-Kombi | **Vorab-registriert** (§5). Out-of-Sample über die **fünf** Look-Ahead-freien Sammel-Bausteine (§5). Feste Klammer, keine nachträgliche Schmälerung. |
 
 ### PAPER-PLAN-STATUS (Svoboda et al. 2026 — 4 Schritte A–C + Ausblick D, je 1/Tag)
@@ -744,6 +769,30 @@ Synthetische Utilization ist im Bau-Kandidaten-Pool.
   belegt". Re-Test n≥250 ~Ende Sept. B.2 (Fest-Stops): 4 Holm-Rejects — feste
   Stops schaden systematisch.
 - **04.07. Hypothese C (Peak-Ziel):** 0/6 Holm. **ERLEDIGT.**
+- **15.07. ki_signal-Edge-Re-Test (n=55 gereift, Fenster 11.–30.06.):** **KEIN
+  belegter Effekt** (Slot-29-Erfolgsdefinition auf beiden Seiten verfehlt).
+  Registriert: Primär (ki_signal als Ranker für `return_10d`, AUC via
+  `mann_whitney_u_auc`) + Sekundär (OLS-Setup-bereinigtes Residual) × Cluster
+  with/without → Holm **k=4**.
+  - **Primär:** AUC **0.606**, Bootstrap-CI **[0.434, 0.768]**, roh-p **0.28**.
+  - **Residual (Setup-bereinigt):** AUC **0.582**, CI **[0.399, 0.760]**, roh-p **0.40**.
+  - **Holm k=4 → 0/4 Rejects** (auch Bonferroni 0). CI-Untergrenze beide < 0.5.
+  - **Deutung (wichtig, kein toter Faden):** beide Punktschätzungen lehnen
+    **POSITIV** (roh + Setup-bereinigt) — ki_signal rankt Gewinner leicht über
+    Verlierer. Richtung stimmt, nur bei diesem n nicht belegt → **Re-Test-
+    Kandidat**, nicht verworfen.
+  - **Die drei Engpässe (wichtiger als der Nullbefund):** (1) **WIN-Bucket nur
+    n=13** (nicht die 55!) — DER Präzisions-Killer, macht die CIs breit. (2)
+    **r=0.691 Redundanz zu Setup** (frisch gemessen) → Nullbefund ist ehrlich
+    „mit Setup redundant", **nicht** „KI wertlos". (3) **Ein-Regime-Fenster**
+    (Low-VIX-Bull, 3 Wochen, Kandidaten-Returns netto negativ, Median −6,3 %) →
+    selbst ein signifikanter Befund wäre schwach generalisierbar.
+  - **Methodik-Notiz:** `cluster_followups = 0` (post-#346 keine Preis-Einfrier-
+    Cluster mehr) → der #391-Doppellauf **kollabiert**, with/without identisch.
+    **k=4 bewusst behalten** (konservativ, keine nachträgliche Schmälerung).
+  - **Re-Test-Bedingung (datengetrieben, ersetzt „~Mitte Aug"): WIN-Bucket ≥ 20
+    UND zweites Marktregime im Sample.** Confound-Anker #2 (LLM-Fallback-Mix) ist
+    ab #440 messbar (`ki_sentiment_source`).
 
 ---
 
@@ -780,11 +829,18 @@ of-Month"-Formeln, Range 2020–2050. Kein Trading-Wert, Vorbeugungs-Hygiene.
 News-/FDA-Announcement-Quelle. Vor dem Bau: Diagnose-Auftrag „welche Quelle ist
 point-in-time?".
 
-### 6d. Reversal-Backfill Stufe B/C für Hypothese A
-**Status: OFFEN.** #402 ist Stufe A (Live-Vorwärts). Stufe B (einmaliger
-yfinance-Backfill der ~420 v4-Alt-Records) analog `backfill_max_gain_pct.py`,
-aber `fetch_start = earliest_edate − 14 Kalendertage`. Nur bauen wenn Hypothese
-A explizit angeordnet ist. Beschleunigt Auswertung.
+### 6d. `entry_past_return_5d` Stufe-B-Backfill (Paper C) — der EINE legitime Sammel-Beschleuniger
+**Status: OFFEN (optional, nicht dringend).** #402 ist Stufe A (Live-Vorwärts).
+Stufe B = einmaliger yfinance-Backfill von `entry_past_return_5d` über die ~420
+v4-Alt-Records, analog `backfill_max_gain_pct.py`, `fetch_start = earliest_edate
+− 14 Kalendertage`. **Warum legitim (Sammel-Raten-Diagnose 15.07.):** der Past-
+Return ist aus **historischen Adj-Close-Preisen** rekonstruierbar → **reine
+Preis-Größe, kein Modell-State, kein Look-Ahead** (split-safe). Das ist der
+**einzige** echte Seed-Analog zum SI-2-Punkte-Trick — er füllt ~420 Alt-Records
+für **Paper C (Momentum)** sofort, ohne Populations-Wechsel. **Abgrenzung:**
+`conviction_score`/`ki_signal_score` dürfen NICHT backgefüllt werden (Modell-
+Zustand zum Entry = Look-Ahead). Nur bauen wenn Paper C/Hypothese A angeordnet —
+beschleunigt genau die Auswertung, keine andere.
 
 ### 6e. yfinance-Cap-Aufhebung nach 1.5.x-Stabilisierung
 **Status: OFFEN.** #403 hat `>=1.4.1,<1.5` gecappt. Sobald 1.5.x als stabil
@@ -990,9 +1046,45 @@ löschen; bei Änderung erst Konsument (Statusleiste), dann Definition (§8p).
 
 ## 8) LESSONS
 
-*(Neueste zuerst: 8v–8y vom 15.07.; 8s–8u vom 14.07.-Nachmittag; 8q–8r vom
-14.07.-Vormittag; 8n–8p vom 13.07.; 8j–8m vom 11.–12.07.; etablierte 8a–8i
-darunter.)*
+*(Neueste zuerst: 8z1–8z3 vom 15.07.-Abend; 8v–8y vom 15.07.; 8s–8u vom
+14.07.-Nachmittag; 8q–8r vom 14.07.-Vormittag; 8n–8p vom 13.07.; 8j–8m vom
+11.–12.07.; etablierte 8a–8i darunter.)*
+
+### 8z1. Universums-Verbreiterung ist ein SCHEIN-Beschleuniger (15.07.)
+
+Bei der Sammel-Raten-Diagnose war der verlockendste „Hebel", Rang 11–40 des
+enrichten Pools (statt nur Top-10) in `backtest_history` zu schreiben —
+**technisch trivial, null Fetch-Kosten** (die Ränge sind schon enricht, sonst
+gäbe es keine Top-10-Sortierung). ABER: das **wechselt die Population** (score-
+gerankte Top-10 ≠ „alle Small-Caps mit SI>X"), **zerstört die Vergleichbarkeit
+zur 30.06.-Baseline** (Alt-/Neu-Records dürfen nicht gepoolt werden, andere DGP)
+und **schmälert die Vorregistrierung nachträglich** (die Kombi-Hypothese lebt von
+einer konsistenten Selektionsregel = `monster_score`-Overfitting-Falle §8e).
+**Regel:** „billig zu bauen" ist kein Argument für einen Sammel-Hebel — der
+teuerste Fehler ist gerade der, der so billig aussieht. **NICHT tun.**
+
+### 8z2. Wartezeit ist kein Engpass, sondern der Out-of-Sample-Schutz (15.07.)
+
+Die Sammlung läuft bereits an ihrer legitimen **Maximal-Rate** (10 Top-10-Records/
+Handelstag), gebunden an die immutabele `return_10d`-Reifung (10 Handelstage) und
+für Setup an die **neue-Marktphase-Auflage** (Kalender). Diese Auflage ist **by
+design**: der Setup-Re-Test „~Ende Sept" ist absichtlich so terminiert, dass er in
+einem **anderen Regime** läuft (OoS-Beweiswert). „Beschleunigen" hieße, entweder
+die Population zu wechseln (§8z1) oder die Reifungsuhr zu schlagen (unmöglich) —
+in jedem Fall **Beweiswert wegoptimieren**. Der einzige risikofreie Zeitgewinn:
+den ki_signal-Read vorziehen, wenn n reif ist (getan 15.07.), + der price-basierte
+`entry_past_return_5d`-Backfill (§6d). Warten ist der wissenschaftlich richtige Weg.
+
+### 8z3. Confound-Anker brauchen persistierte Daten — VOR dem Re-Test prüfen (15.07.)
+
+Beim ki_signal-Re-Test war der Confound „LLM-Fallback-Mix" **nicht bestimmbar**,
+weil das persistierte Record kein Flag trug, ob der News-Anteil LLM- oder Keyword-
+gescort war. Der Confound konnte weder bestätigt noch ausgeschlossen werden → Flag
+nachgerüstet (#440, `ki_sentiment_source`) — aber **forward-only**, für die
+Alt-Records bleibt er blind. **Regel:** vor jedem Re-Test prüfen, ob die
+**Confound-Fragen aus den vorhandenen Daten überhaupt beantwortbar** sind — fehlt
+ein Provenienz-/Kontext-Feld, ist der Nullbefund unvollständig interpretierbar.
+Confound-Flags sind Vorlauf-Arbeit (Sammelbeginn), nicht Nachrüstung.
 
 ### 8v. Ziel-Mechanik zuerst belegen — „nichts bricht" ≠ „Ziel erreicht" (15.07.)
 
