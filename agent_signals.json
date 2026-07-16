@@ -1,17 +1,17 @@
 {
-  "updated": "2026-07-16T01:14:45.394775+02:00",
+  "updated": "2026-07-16T02:11:32.368520+02:00",
   "run_info": {
     "tickers_checked": 15,
     "signals_active": 1,
     "alerts_sent": 0,
-    "elapsed_s": 19.7,
-    "market_phase": "After-Hours"
+    "elapsed_s": 16.0,
+    "market_phase": "Geschlossen"
   },
   "signals": {
     "AI": {
       "score": 50,
       "confidence": 33,
-      "drivers": "Spanne 5.3% + News: short interest, partnership + UOA Call/Put 2.9×",
+      "drivers": "Spanne 5.3% + News: partnership, short interest + UOA Call/Put 2.9×",
       "price": 9.14,
       "chg_pct": 0.0,
       "rvol_4d": 1.07,
@@ -93,9 +93,9 @@
       "uoa_cp_ratio": 1.868421052631579
     },
     "BJDX": {
-      "score": 28,
+      "score": 35,
       "confidence": 70,
-      "drivers": "Spanne 10.2% + News-KI 8/30: Capital dilution from large private placement significantly reduces short-squeeze potential despite the partnership anno + SEC Form 4",
+      "drivers": "Spanne 10.2% + News: partnership + SEC Form 4",
       "price": 1.35,
       "chg_pct": 0.0,
       "rvol_4d": 0.51,
@@ -106,7 +106,7 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 0,
+      "active_triggers": 1,
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": null,
@@ -157,7 +157,7 @@
     "KUST": {
       "score": 58,
       "confidence": 70,
-      "drivers": "Volumen 48.9× + 🚀 Massives Volumen 48.9×+ + Spanne 25.3% + News-KI 8/30: Positive business developments (asset acquisition, attendance records) lack short-squeeze catalysts like high short inte",
+      "drivers": "Volumen 48.9× + 🚀 Massives Volumen 48.9×+ + Spanne 25.3% + News-KI 8/30: Asset sale reduces company value; no short squeeze signals present despite positive event attendance.",
       "price": 1.31,
       "chg_pct": -0.0,
       "rvol_4d": 48.94,
@@ -195,9 +195,9 @@
       "uoa_cp_ratio": 0.6277056277056277
     },
     "ORIC": {
-      "score": 33,
-      "confidence": 70,
-      "drivers": "Volumen 1.8× + Spanne 7.8% + News-KI 8/30: Positive clinical and partnership developments, but no short-squeeze catalysts present; standard biotech news with low s",
+      "score": 25,
+      "confidence": 33,
+      "drivers": "Volumen 1.8× + Spanne 7.8%",
       "price": 11.14,
       "chg_pct": 0.0,
       "rvol_4d": 1.82,
@@ -235,9 +235,9 @@
       "uoa_cp_ratio": 0.3350253807106599
     },
     "PLAY": {
-      "score": 43,
-      "confidence": 70,
-      "drivers": "Spanne 10.8% + News-KI 8/30: Negative sentiment with declining stock price, high short interest potential but weak fundamentals and sell recommendati + FINRA Short-Vol 85%",
+      "score": 35,
+      "confidence": 33,
+      "drivers": "Spanne 10.8% + FINRA Short-Vol 85%",
       "price": 10.29,
       "chg_pct": -0.0,
       "rvol_4d": 1.25,
@@ -279,7 +279,7 @@
     "WGS": {
       "score": 30,
       "confidence": 70,
-      "drivers": "Spanne 6.7% + News-KI 12/30: Insider selling signals weakness despite revenue growth; leadership change and hedge fund accumulation show mixed sentim + Earnings in 13d",
+      "drivers": "Spanne 6.7% + News-KI 12/30: Insider selling combined with positive fundamentals and hedge fund buying shows mixed signals; lacks high short interest + Earnings in 13d",
       "price": 66.14,
       "chg_pct": -0.0,
       "rvol_4d": 1.13,
@@ -297,9 +297,9 @@
       "uoa_cp_ratio": 0.07050572166851236
     },
     "WOLF": {
-      "score": 22,
+      "score": 18,
       "confidence": 33,
-      "drivers": "Spanne 12.1% + News-KI 12/30: Negative patent lawsuit news outweighs positive sector tailwinds; litigation risk typically suppresses stock and short i",
+      "drivers": "Spanne 12.1% + News-KI 8/30: Negative patent lawsuit and supplier concerns outweigh positive electrification trend; limited short-squeeze catalyst de",
       "price": 35.1,
       "chg_pct": -0.0,
       "rvol_4d": 1.3,
@@ -310,7 +310,7 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 1,
+      "active_triggers": 0,
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": 0.7495238095238095,
