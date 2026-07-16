@@ -1,17 +1,17 @@
 {
-  "updated": "2026-07-16T23:16:52.737890+02:00",
+  "updated": "2026-07-17T00:17:51.650214+02:00",
   "run_info": {
     "tickers_checked": 15,
-    "signals_active": 1,
+    "signals_active": 0,
     "alerts_sent": 0,
-    "elapsed_s": 22.0,
+    "elapsed_s": 11.5,
     "market_phase": "After-Hours"
   },
   "signals": {
     "AI": {
       "score": 35,
       "confidence": 33,
-      "drivers": "News: short interest + SEC Form 4 + UOA Call/Put 40.9×",
+      "drivers": "News: short interest + SEC Form 4 + UOA Call/Put 31.7×",
       "price": 8.91,
       "chg_pct": -0.0,
       "rvol_4d": 0.57,
@@ -26,15 +26,15 @@
       "ki_sentiment_source": "keyword",
       "uoa_score": 10,
       "uoa_drivers": [
-        "UOA Call/Put 40.9×"
+        "UOA Call/Put 31.7×"
       ],
       "uoa_atm_ratio": 0.1974417086006223,
-      "uoa_cp_ratio": 40.88235294117647
+      "uoa_cp_ratio": 31.692307692307693
     },
     "AMC": {
-      "score": 43,
+      "score": 52,
       "confidence": 70,
-      "drivers": "Earnings in 4 Tagen (20.07.2026) + Spanne 7.8% + News-KI 8/30: Neutral earnings coverage and debt discussion lack squeeze catalysts; no short-covering triggers or sentiment shifts evi + Earnings in 4d + UOA Call/Put 5.0×",
+      "drivers": "Earnings in 4 Tagen (20.07.2026) + Spanne 7.8% + News-KI 12/30: Headlines focus on earnings and debt restructuring rather than short squeeze catalysts like high short interest, failed- + Earnings in 4d + UOA Call/Put 5.0×",
       "price": 2.07,
       "chg_pct": -0.0,
       "rvol_4d": 1.11,
@@ -44,20 +44,20 @@
       "upcoming_event": "Earnings in 4 Tagen (20.07.2026)",
       "insider_buy": false,
       "stocktwits": null,
-      "combo_mult": 1.0,
-      "active_triggers": 1,
+      "combo_mult": 1.1,
+      "active_triggers": 2,
       "ki_sentiment_source": "llm",
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 5.0×"
       ],
       "uoa_atm_ratio": 0.1409770840506523,
-      "uoa_cp_ratio": 5.004050405040504
+      "uoa_cp_ratio": 5.018422826331162
     },
     "AMCX": {
-      "score": 66,
-      "confidence": 70,
-      "drivers": "Volumen 2.3× + News-KI 12/30: Earnings announcement and options activity show some interest, but bearish sentiment from sell recommendations and no cl + Earnings in 14d + FINRA Short-Vol 96%",
+      "score": 23,
+      "confidence": 33,
+      "drivers": "Volumen 2.3× + Earnings in 14d",
       "price": 10.9,
       "chg_pct": -0.0,
       "rvol_4d": 2.27,
@@ -67,18 +67,18 @@
       "upcoming_event": null,
       "insider_buy": false,
       "stocktwits": null,
-      "combo_mult": 1.1,
-      "active_triggers": 2,
-      "ki_sentiment_source": "llm",
+      "combo_mult": 1.0,
+      "active_triggers": 1,
+      "ki_sentiment_source": "keyword",
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": 0.0375,
       "uoa_cp_ratio": 0.20588235294117646
     },
     "ANNX": {
-      "score": 75,
+      "score": 50,
       "confidence": 70,
-      "drivers": "Volumen 1.5× + Spanne 12.4% + News: catalyst + FINRA Short-Vol 94% + UOA Call/Put 2.9×",
+      "drivers": "Volumen 1.5× + Spanne 12.4% + News: catalyst + UOA Call/Put 2.9×",
       "price": 5.89,
       "chg_pct": -0.0,
       "rvol_4d": 1.53,
@@ -122,9 +122,9 @@
       "uoa_cp_ratio": 14.523809523809524
     },
     "FRMM": {
-      "score": 58,
+      "score": 40,
       "confidence": 70,
-      "drivers": "Spanne 11.4% + News: acquisition, short interest + Earnings in 28d + UOA Call/Put 32.5×",
+      "drivers": "Spanne 11.4% + News-KI 12/30: Positive analyst sentiment on tokenization strategy lacks short interest data, insider buying signals, or momentum indic + Earnings in 28d + UOA Call/Put 32.5×",
       "price": 5.84,
       "chg_pct": 0.09,
       "rvol_4d": 0.36,
@@ -136,7 +136,7 @@
       "stocktwits": null,
       "combo_mult": 1.0,
       "active_triggers": 1,
-      "ki_sentiment_source": "keyword",
+      "ki_sentiment_source": "llm",
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 32.5×"
@@ -147,7 +147,7 @@
     "FUBO": {
       "score": 38,
       "confidence": 70,
-      "drivers": "Spanne 6.0% + Earnings in 21d + SEC Form 4 + UOA Call/Put 11.6×",
+      "drivers": "Spanne 6.0% + Earnings in 21d + SEC Form 4 + UOA Call/Put 11.5×",
       "price": 10.26,
       "chg_pct": 0.0,
       "rvol_4d": 0.69,
@@ -162,10 +162,10 @@
       "ki_sentiment_source": "keyword",
       "uoa_score": 10,
       "uoa_drivers": [
-        "UOA Call/Put 11.6×"
+        "UOA Call/Put 11.5×"
       ],
       "uoa_atm_ratio": 0.3184534270650264,
-      "uoa_cp_ratio": 11.6328125
+      "uoa_cp_ratio": 11.542635658914728
     },
     "IONQ": {
       "score": 18,
@@ -206,13 +206,13 @@
       "ki_sentiment_source": "keyword",
       "uoa_score": 0,
       "uoa_drivers": [],
-      "uoa_atm_ratio": 0.008583690987124463,
-      "uoa_cp_ratio": 0.9539473684210527
+      "uoa_atm_ratio": 0.004291845493562232,
+      "uoa_cp_ratio": 0.9473684210526315
     },
     "ORIC": {
-      "score": 10,
-      "confidence": 17,
-      "drivers": "Spanne 7.0%",
+      "score": 18,
+      "confidence": 33,
+      "drivers": "Spanne 7.0% + News-KI 8/30: Positive clinical trial news lacks the dramatic catalyst, massive short interest, or stock price pressure needed for a s",
       "price": 10.73,
       "chg_pct": -0.0,
       "rvol_4d": 1.07,
@@ -224,7 +224,7 @@
       "stocktwits": null,
       "combo_mult": 1.0,
       "active_triggers": 0,
-      "ki_sentiment_source": "keyword",
+      "ki_sentiment_source": "llm",
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": 0.35294117647058826,
@@ -252,9 +252,9 @@
       "uoa_cp_ratio": 0.25961538461538464
     },
     "PLAY": {
-      "score": 40,
-      "confidence": 33,
-      "drivers": "News: partnership + FINRA Short-Vol 85%",
+      "score": 15,
+      "confidence": 17,
+      "drivers": "FINRA Short-Vol 65%",
       "price": 10.54,
       "chg_pct": -0.0,
       "rvol_4d": 0.9,
@@ -265,7 +265,7 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 1,
+      "active_triggers": 0,
       "ki_sentiment_source": "keyword",
       "uoa_score": 0,
       "uoa_drivers": [],
@@ -273,9 +273,9 @@
       "uoa_cp_ratio": 0.18865979381443299
     },
     "TRIP": {
-      "score": 28,
+      "score": 61,
       "confidence": 70,
-      "drivers": "Spanne 5.6% + Earnings in 21d + UOA Call/Put 19.9×",
+      "drivers": "Spanne 5.6% + News-KI 8/30: Routine earnings announcement and asset sale news lack the high short interest, catalyst urgency, and forced covering dy + Earnings in 21d + FINRA Short-Vol 72% + UOA Call/Put 17.3×",
       "price": 14.89,
       "chg_pct": 0.0,
       "rvol_4d": 1.28,
@@ -287,23 +287,23 @@
       "stocktwits": null,
       "combo_mult": 1.0,
       "active_triggers": 0,
-      "ki_sentiment_source": "keyword",
+      "ki_sentiment_source": "llm",
       "uoa_score": 10,
       "uoa_drivers": [
-        "UOA Call/Put 19.9×"
+        "UOA Call/Put 17.3×"
       ],
       "uoa_atm_ratio": 0.16473237484843237,
-      "uoa_cp_ratio": 19.893617021276597
+      "uoa_cp_ratio": 17.314814814814813
     },
     "WGS": {
-      "score": 23,
+      "score": 26,
       "confidence": 70,
-      "drivers": "Spanne 9.8% + News-KI 5/30: Insider selling during revenue growth and leadership appointment suggests confidence but reduces squeeze potential; no s + Earnings in 12d",
+      "drivers": "Spanne 9.8% + News-KI 8/30: Insider selling and leadership changes are neutral to slightly bearish signals that don't support short-squeeze momentum + Earnings in 18d",
       "price": 61.69,
       "chg_pct": -0.0,
       "rvol_4d": 1.28,
       "rvol_20d": 1.05,
-      "earnings": "in 12 Tagen (28.07.2026)",
+      "earnings": "in 18 Tagen (03.08.2026)",
       "fda_date": null,
       "upcoming_event": null,
       "insider_buy": false,
@@ -335,7 +335,7 @@
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": 2.106382978723404,
-      "uoa_cp_ratio": 1.1156812339331619
+      "uoa_cp_ratio": 1.2476875642343268
     }
   }
 }
