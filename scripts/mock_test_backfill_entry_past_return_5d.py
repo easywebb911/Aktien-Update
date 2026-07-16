@@ -256,6 +256,37 @@ def main():
            "_compute_entry_past_return_5d" not in
            src.split("def _do_undo")[1].split("\ndef ")[0])
 
+    print("── (M) Diagnose: Gate-Diff-Verteilung (nur Logging) ──────────")
+    # summarize_diffs — Bucket-Verteilung (pure).
+    art = [{"ticker": "A", "diff": 0.0}, {"ticker": "B", "diff": 0.0004},
+           {"ticker": "AMCX", "diff": 0.05}]           # Daten-Artefakt-Muster
+    s = bpr.summarize_diffs(art)
+    _check("M1 Artefakt-Muster: exakt=2, over_tol=1, max=0.05",
+           s["exact"] == 2 and s["over_tol"] == 1 and s["max"] == 0.05
+           and s["small"] == 0, f"got {s}")
+    sysrows = [{"diff": 0.008}, {"diff": 0.009}, {"diff": 0.007}]  # systematisch
+    s2 = bpr.summarize_diffs(sysrows)
+    _check("M2 systematisch-Muster: small=3, exakt=0, over_tol=0",
+           s2["small"] == 3 and s2["exact"] == 0 and s2["over_tol"] == 0)
+    s3 = bpr.summarize_diffs([{"diff": None}, {"diff": 0.0}])
+    _check("M3 None-diff aus n ausgeschlossen, no_recompute gezählt",
+           s3["n"] == 1 and s3["no_recompute"] == 1)
+    _check("M4 leer → n=0", bpr.summarize_diffs([])["n"] == 0)
+    # source: nur Logging, kein Gate-Logik-/Toleranz-Touch
+    _check("M5 run_consistency_gate-Signatur unverändert (4-Tupel return)",
+           "return len(recs), n_match, n_mismatch, mismatches" in src)
+    _check("M6 gate_diff_distribution NUR im dry-run (1 Call-Site)",
+           src.count("gate_diff_distribution(history, bulk)") == 1)
+    _check("M7 gate_passed-Logik unverändert (Toleranz nicht berührt)",
+           "GATE_TOLERANCE = 0.01" in src and "if n_mismatch > 0:" in src)
+    _check("M8 Bar-Details (Zähler/Nenner Datum+Close) im Log — Revisions-Hypothese prüfbar",
+           "GATE-DIFF-VERTEILUNG" in src
+           and "Zähler %s=%s / Nenner %s=%s" in src
+           and '"num_date"' in src and '"den_close"' in src)
+    _check("M9 Diagnose NICHT im Live-Fill-Block (kein gate_diff_distribution nach HARTE VORBEDINGUNG)",
+           "gate_diff_distribution" not in
+           src.split("KONSISTENZ-GATE (HARTE VORBEDINGUNG)")[1])
+
     print()
     if _fails:
         print(f"✗ {len(_fails)} Test(s) fehlgeschlagen: {_fails}")
