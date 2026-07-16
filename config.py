@@ -1487,6 +1487,12 @@ S10_OBSERVED_FIELDS = frozenset({
     # ki_signal_score ist None ohne agent_signals-Eintrag → nur OBSERVED,
     # KEIN MUSS-/LAG-Check. Schema bleibt v4 (additiv).
     "monster_score", "ki_signal_score",
+    # LLM-Fallback-Provenienz (16.07.2026): "llm"/"keyword"/"none" — Confound-
+    # Flag für den ki_signal-Re-Test (LLM- vs. Keyword-gescorte News, 15.07.
+    # nicht bestimmbar). LEGITIM None auf Alt-Records (forward-only, rückwirkend
+    # NICHT rekonstruierbar) → nur OBSERVED, KEIN MUSS/LAG. Schema bleibt v4
+    # (additiv). Look-Ahead-frei (reine Analyse-Persistenz, kein Score-Read).
+    "ki_sentiment_source",
     # Conviction-Edge-Persistenz (28.06.2026, VORWÄRTS-ERHEBUNG): zwei
     # additive Felder für die spätere Edge-Validierung der Conviction-Achse
     # (Cockpit-Donut, ≥75-Push-Gating). conviction_score = Composite 0..100;

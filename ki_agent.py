@@ -1542,6 +1542,18 @@ def compute_signal(
 
     # Bevorzugt: KI-Sentiment via Claude Haiku; Fallback Keyword-Zählung.
     _ai_score, _ai_reason = claude_sentiment_score(ticker, news)
+    # LLM-Fallback-Provenienz (16.07.2026) — Confound-Flag für den ki_signal-
+    # Re-Test (Sample-Heterogenität LLM- vs. Keyword-gescorte News, 15.07.):
+    #   "llm"     → Claude-Haiku-Call lieferte einen Score (_ai_score not None).
+    #   "keyword" → Haiku None (Key fehlt/Timeout/Parse), aber Headlines da →
+    #               der Keyword-Zweig unten ist der operative Scorer.
+    #   "none"    → keine Headlines → weder LLM noch Keyword hatten Input.
+    # Reine Analyse-Persistenz, KEIN Score-Read dieses Flags (Look-Ahead-frei).
+    _ki_sentiment_source = (
+        "llm" if _ai_score is not None
+        else "keyword" if any(h for h in (news or []))
+        else "none"
+    )
     if _ai_score is not None:
         _ai_capped = min(_ai_score, KI_SENTIMENT_MAX_SCORE)
         score    += _ai_capped
@@ -1716,7 +1728,8 @@ def compute_signal(
 
     # meta exposes Komponenten/Multiplikatoren für persistente Logging-
     # Zwecke (backtest_history.json Schema-Erweiterung, Bahn B).
-    meta = {"combo_mult": combo_mult, "active_triggers": active_triggers}
+    meta = {"combo_mult": combo_mult, "active_triggers": active_triggers,
+            "ki_sentiment_source": _ki_sentiment_source}
     return total, drivers, confidence, meta
 
 
@@ -2892,6 +2905,10 @@ def _process_ticker(ticker: str, shared: dict) -> dict:
         "stocktwits":     _st_payload,
         "combo_mult":     _meta.get("combo_mult", 1.0),
         "active_triggers": _meta.get("active_triggers", 0),
+        # LLM-Fallback-Provenienz (16.07.2026): "llm"/"keyword"/"none". None nur
+        # falls meta es nicht trägt (synthetische Test-Doubles) — reale Signale
+        # setzen es immer. Von apply_agent_boost ins Stock-Dict + Backtest gezogen.
+        "ki_sentiment_source": _meta.get("ki_sentiment_source"),
         "uoa_score":      uoa_score,
         "uoa_drivers":    uoa_drivers,
         "uoa_atm_ratio":  uoa_meta.get("atm_ratio"),

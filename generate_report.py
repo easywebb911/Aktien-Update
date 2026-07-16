@@ -3226,6 +3226,14 @@ def apply_agent_boost(stocks: list[dict]) -> None:
             s["ki_signal_drivers"] = _drv.strip()
         elif isinstance(_drv, (list, tuple)) and _drv:
             s["ki_signal_drivers"] = " + ".join(str(d) for d in _drv)
+        # LLM-Fallback-Provenienz (16.07.2026): "llm"/"keyword"/"none" für den
+        # ki_signal-Re-Test-Confound. Nur setzen wenn der Tick das Feld trägt
+        # (Alt-Ticks vor diesem PR → Feld bleibt ungesetzt → Backtest-Record
+        # bekommt None via s.get(), forward-only). Analyse-Persistenz, KEIN
+        # Score-/Filter-Read (Look-Ahead-Konvention).
+        _kss = sig.get("ki_sentiment_source")
+        if _kss is not None:
+            s["ki_sentiment_source"] = _kss
 
     updated = data.get("updated")
     if not updated:

@@ -655,6 +655,17 @@ def _build_backtest_extension(s: dict, pool_position: int, pool_size: int,
         "ki_signal_score":         (round(float(s.get("ki_signal_score")), 2)
                                      if s.get("ki_signal_score") is not None
                                      else None),
+        # LLM-Fallback-Provenienz (16.07.2026): "llm" | "keyword" | "none" —
+        # markiert, ob der ki_signal-News-Anteil vom Claude-Haiku-Call oder vom
+        # Keyword-Fallback stammt (ANTHROPIC_API_KEY fehlt / Timeout / Parse).
+        # Adressiert den ki_signal-Re-Test-Confound (Sample-Heterogenität, 15.07.:
+        # LLM- vs. Keyword-gescorte News nicht unterscheidbar). Von
+        # apply_agent_boost aufs Stock-Dict gesetzt (gen ~3226); hier read-through
+        # in den Record (der entry.update-Merge Z. 1031 = die #411-Durchreichung).
+        # LEGITIM None auf Alt-Records (forward-only, rückwirkend NICHT
+        # rekonstruierbar) → nur S10_OBSERVED, KEIN MUSS/LAG. String, kein Round.
+        # KEIN Push/keine Anzeige/kein Score-/Filter-Effekt (reiner Persist-Read).
+        "ki_sentiment_source":     s.get("ki_sentiment_source"),
         # Conviction-Edge-Persistenz (28.06.2026, VORWÄRTS-ERHEBUNG):
         # additive zwei Felder für die spätere Edge-Validierung der
         # Conviction-Achse (Cockpit-Donut, ≥75-Push-Gating). Setzt voraus,
