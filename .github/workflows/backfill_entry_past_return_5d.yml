@@ -24,7 +24,10 @@ name: Backfill entry_past_return_5d (einmalig, manual)
 #   1. Skript-intern: fcntl.flock + Cron-Fenster-Guard (±30 min um 06:17/21:17).
 #   2. Workflow: concurrency-group (kein 2. Lauf parallel).
 #
-# COMMIT-SICHERHEIT: `git add backtest_history.json` — GENAU EINE Datei.
+# COMMIT-SICHERHEIT: `git add backtest_history.json <manifest>` — GENAU ZWEI
+# Dateien (Daten + Provenienz-Manifest), kein `git add -A`. Das Manifest wird
+# defensiv addiert (nur falls existent — bei einem No-Op-Lauf mit n_filled=0
+# entsteht es nicht, dann kein Add-Fehler).
 # IDEMPOTENZ: Skript-Filter (is-None) + `git diff --staged --quiet && exit 0`.
 # KEIN Retry-Loop bei Push-Fehler → Run wird rot, Easy dispatcht erneut.
 # ─────────────────────────────────────────────────────────────────────────────
@@ -120,8 +123,13 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           # backtest_history.json + das Provenienz-Manifest (Rückweg-Quelle für
-          # --undo) — genau diese zwei Dateien, kein `git add -A`.
-          git add backtest_history.json backfill_entry_past_return_5d_manifest.json
+          # --undo) — genau diese zwei Dateien, kein `git add -A`. Das Manifest
+          # nur addieren wenn es existiert: ein No-Op-Lauf (n_filled=0) erzeugt
+          # es nicht → sonst würde `git add <fehlend>` unter `set -e` den Step
+          # rot färben (Falsch-Negativ bei sauberem No-Op). Guardian-Finding 2.
+          git add backtest_history.json
+          [ -f backfill_entry_past_return_5d_manifest.json ] && \
+            git add backfill_entry_past_return_5d_manifest.json || true
           if git diff --staged --quiet; then
             echo "── Keine Änderungen an backtest_history.json → kein Commit. ──"
             exit 0
