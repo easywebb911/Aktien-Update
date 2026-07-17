@@ -1,4 +1,3 @@
-{"run_ts": "2026-06-17T17:24:55Z", "run_phase": "ki_agent_tick", "schema_v": 1, "state_fails": [{"id": "S3", "severity": "crit", "detail": "current_price fehlt bei 5 Position(en): AMC, IONQ, PDYN, AI, LUCK"}], "provider_fails": []}
 {"run_ts": "2026-06-17T20:31:53Z", "run_phase": "ki_agent_tick", "schema_v": 1, "state_fails": [{"id": "S3", "severity": "crit", "detail": "current_price fehlt bei 5 Position(en): AMC, IONQ, PDYN, AI, LUCK"}], "provider_fails": []}
 {"run_ts": "2026-06-17T22:53:30Z", "run_phase": "ki_agent_tick", "schema_v": 1, "state_fails": [{"id": "S3", "severity": "crit", "detail": "current_price fehlt bei 5 Position(en): AMC, IONQ, PDYN, AI, LUCK"}], "provider_fails": []}
 {"run_ts": "2026-06-17T22:55:34Z", "run_phase": "postclose", "schema_v": 1, "state_fails": [{"id": "S7", "severity": "warn", "detail": "agent_signals ∩ top10: 2 von 10 Top-10-Ticker, Schwelle ≥ 5. Möglicher Daily-Run-/KI-Agent-Drift — neuer Tick fällig"}], "provider_fails": []}
@@ -407,3 +406,4 @@
 {"run_ts": "2026-07-17T11:41:19Z", "run_phase": "ki_agent_tick", "schema_v": 1, "state_fails": [], "provider_fails": []}
 {"run_ts": "2026-07-17T14:04:05Z", "run_phase": "ki_agent_tick", "schema_v": 1, "state_fails": [], "provider_fails": []}
 {"run_ts": "2026-07-17T15:41:12Z", "run_phase": "ki_agent_tick", "schema_v": 1, "state_fails": [], "provider_fails": []}
+{"run_ts": "2026-07-17T17:31:42Z", "run_phase": "ki_agent_tick", "schema_v": 1, "state_fails": [], "provider_fails": []}
