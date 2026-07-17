@@ -78,23 +78,11 @@
     "anomaly_gap_combo_SOC": "2026-07-02T11:34:24.300811+02:00",
     "anomaly_monster_backup_SOC": "2026-07-02T20:02:41.415261+02:00",
     "anomaly_conviction_high_SOC": "2026-07-02T11:34:24.445058+02:00",
-    "exit_FRMM": "2026-07-17T10:30:00.876398+02:00",
+    "exit_FRMM": "2026-07-18T00:09:53.910761+02:00",
     "anomaly_conviction_high_NGNE": "2026-07-09T12:04:16.015071+02:00",
     "exit_LENZ": "2026-07-17T10:30:01.289214+02:00"
   },
   "push_history": [
-    {
-      "ts": "2026-07-10T09:53:38.883781+02:00",
-      "ticker": "AI",
-      "kind": "exit_p2",
-      "severity": "warning",
-      "trigger": null,
-      "body": "⚠️ Exit-Warnung AI: pressure 62/100",
-      "success": true,
-      "suppressed": false,
-      "suppress_reason": null,
-      "conviction_score": null
-    },
     {
       "ts": "2026-07-10T11:54:06.860201+02:00",
       "ticker": "FRMM",
@@ -1278,6 +1266,18 @@
       "severity": "warning",
       "trigger": null,
       "body": "⚠️ Exit-Warnung AI: pressure 64/100",
+      "success": true,
+      "suppressed": false,
+      "suppress_reason": null,
+      "conviction_score": null
+    },
+    {
+      "ts": "2026-07-18T00:09:53.910727+02:00",
+      "ticker": "FRMM",
+      "kind": "exit_p1",
+      "severity": "default",
+      "trigger": "exit_alert",
+      "body": "FRMM 📉 Exit 65 | -18% | Trailing-Stop −20.5% vom Hoch",
       "success": true,
       "suppressed": false,
       "suppress_reason": null,
