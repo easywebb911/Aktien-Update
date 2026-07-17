@@ -1,17 +1,17 @@
 {
-  "updated": "2026-07-18T00:10:42.508570+02:00",
+  "updated": "2026-07-18T01:08:39.005793+02:00",
   "run_info": {
     "tickers_checked": 15,
     "signals_active": 0,
     "alerts_sent": 0,
-    "elapsed_s": 18.5,
+    "elapsed_s": 12.5,
     "market_phase": "After-Hours"
   },
   "signals": {
     "AI": {
       "score": 53,
       "confidence": 70,
-      "drivers": "Spanne 5.6% + SEC 8-K + News-KI 8/30: Negative sentiment with decline indicators and regulatory concerns suggest weakness, not short-squeeze potential which r + SEC Form 4 + UOA Call/Put 44.7×",
+      "drivers": "Spanne 5.6% + SEC 8-K + News-KI 8/30: Negative price movement, generic headlines without squeeze indicators like short interest spikes or borrow restrictions. + SEC Form 4 + UOA Call/Put 44.7×",
       "price": 8.82,
       "chg_pct": -0.0,
       "rvol_4d": 1.1,
@@ -32,9 +32,9 @@
       "uoa_cp_ratio": 44.70023696682465
     },
     "AMC": {
-      "score": 66,
+      "score": 69,
       "confidence": 70,
-      "drivers": "Earnings in 3 Tagen (20.07.2026) + Spanne 7.8% + News: earnings beat + Earnings in 3d + UOA Call/Put 4.6×",
+      "drivers": "Earnings in 3 Tagen (20.07.2026) + Spanne 7.8% + News-KI 18/30: Positive debt refinancing news provides modest support, but Netflix earnings miss and theater industry uncertainty limit + Earnings in 3d + UOA Call/Put 4.6×",
       "price": 1.94,
       "chg_pct": 0.0,
       "rvol_4d": 1.24,
@@ -46,7 +46,7 @@
       "stocktwits": null,
       "combo_mult": 1.1,
       "active_triggers": 2,
-      "ki_sentiment_source": "keyword",
+      "ki_sentiment_source": "llm",
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 4.6×"
@@ -78,9 +78,9 @@
       "uoa_cp_ratio": 4.235294117647059
     },
     "CADL": {
-      "score": 48,
+      "score": 56,
       "confidence": 70,
-      "drivers": "Volumen 1.8× + Spanne 13.2% + Earnings in 27d + FINRA Short-Vol 63%",
+      "drivers": "Volumen 1.8× + Spanne 13.2% + News-KI 8/30: Inducement grants are routine corporate announcements with no short-squeeze catalyst; retail enthusiasm in third headlin + Earnings in 27d + FINRA Short-Vol 63%",
       "price": 10.18,
       "chg_pct": 0.0,
       "rvol_4d": 1.81,
@@ -92,7 +92,7 @@
       "stocktwits": null,
       "combo_mult": 1.0,
       "active_triggers": 0,
-      "ki_sentiment_source": "keyword",
+      "ki_sentiment_source": "llm",
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": 0.07826982492276004,
@@ -101,7 +101,7 @@
     "CBRL": {
       "score": 50,
       "confidence": 33,
-      "drivers": "Spanne 5.6% + News: short interest, acquisition + UOA Call/Put 17.7×",
+      "drivers": "Spanne 5.6% + News: acquisition, short interest + UOA Call/Put 17.7×",
       "price": 53.61,
       "chg_pct": 0.0,
       "rvol_4d": 0.92,
@@ -124,7 +124,7 @@
     "FRMM": {
       "score": 58,
       "confidence": 70,
-      "drivers": "Spanne 5.8% + News: short interest, acquisition + Earnings in 27d + UOA Call/Put 14.3×",
+      "drivers": "Spanne 5.8% + News: acquisition, short interest + Earnings in 27d + UOA Call/Put 14.3×",
       "price": 5.68,
       "chg_pct": -0.0,
       "rvol_4d": 0.22,
@@ -210,9 +210,9 @@
       "uoa_cp_ratio": 0.8862275449101796
     },
     "PDYN": {
-      "score": 33,
+      "score": 48,
       "confidence": 70,
-      "drivers": "Spanne 8.7% + News-KI 15/30: Positive revenue and contract news support stock, but no significant short interest indicators, unusual options activity + Earnings in 19d",
+      "drivers": "Spanne 8.7% + News: partnership, contract + Earnings in 19d",
       "price": 4.88,
       "chg_pct": 0.0,
       "rvol_4d": 0.82,
@@ -224,7 +224,7 @@
       "stocktwits": null,
       "combo_mult": 1.0,
       "active_triggers": 1,
-      "ki_sentiment_source": "llm",
+      "ki_sentiment_source": "keyword",
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": 0.03873239436619718,
@@ -273,9 +273,9 @@
       "uoa_cp_ratio": 1.1949081803005008
     },
     "TNXP": {
-      "score": 26,
+      "score": 33,
       "confidence": 70,
-      "drivers": "Spanne 10.8% + News-KI 8/30: Positive pipeline and coverage news, but no unusual short interest catalysts or squeeze indicators visible; improvements + Earnings in 24d",
+      "drivers": "Spanne 10.8% + News: catalyst + Earnings in 24d",
       "price": 12.43,
       "chg_pct": 0.0,
       "rvol_4d": 1.13,
@@ -286,8 +286,8 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 0,
-      "ki_sentiment_source": "llm",
+      "active_triggers": 1,
+      "ki_sentiment_source": "keyword",
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": 0.20414673046251994,
@@ -315,14 +315,14 @@
       "uoa_cp_ratio": 0.8071661237785016
     },
     "ZBIO": {
-      "score": 18,
-      "confidence": 33,
-      "drivers": "Spanne 9.1% + Earnings in 26d",
+      "score": 10,
+      "confidence": 17,
+      "drivers": "Spanne 9.1%",
       "price": 29.53,
       "chg_pct": 0.0,
       "rvol_4d": 0.94,
       "rvol_20d": 0.61,
-      "earnings": "in 26 Tagen (12.08.2026)",
+      "earnings": null,
       "fda_date": null,
       "upcoming_event": null,
       "insider_buy": false,
