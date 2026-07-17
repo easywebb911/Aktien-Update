@@ -876,9 +876,12 @@ EXIT_CTB_DROP_CRIT_PCT       = 0.50   # DEPRECATED → SETUP_EROSION_CRIT_THRESH
 #    Earnings-Veröffentlichung innerhalb CATALYST_DAYS_WINDOW Handels-
 #    tage liegt (Earnings-Datum heute → crit, 1..N Tage entfernt → warn).
 #    Forward-looking: hohes binäres Risiko, Position vor Earnings
-#    schließen oder bewusst halten. Datenquelle Primär = Finnhub
-#    Earnings Calendar (FINNHUB_API_KEY in env), Fallback yfinance
-#    `Ticker.calendar`.
+#    schließen oder bewusst halten. Datenquelle: Finnhub Earnings
+#    Calendar ist ein OPTIONALER Pfad (nur wenn FINNHUB_API_KEY in env)
+#    — in Produktion mangels Key DORMANT (daily-squeeze-report.yml /
+#    ki_agent.yml mappen den Key NICHT), faktische Quelle ist yfinance
+#    `Ticker.calendar`. Der Key liegt nur im Diagnose-Workflow
+#    (diagnose_finra_si_probe.yml). Verdrahten-oder-Entfernen bleibt offen.
 CATALYST_DAYS_WINDOW         = 2
 # 6) Trend-Bruch (5 %) — Kurs vs. EMA21. Sub-Score-Stufung:
 #    drop_pct = (ma21 − price) / ma21 × 100
