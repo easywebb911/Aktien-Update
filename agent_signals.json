@@ -1,17 +1,17 @@
 {
-  "updated": "2026-07-17T23:08:20.684743+02:00",
+  "updated": "2026-07-18T00:06:50.220872+02:00",
   "run_info": {
     "tickers_checked": 15,
     "signals_active": 0,
     "alerts_sent": 0,
-    "elapsed_s": 16.6,
+    "elapsed_s": 21.2,
     "market_phase": "After-Hours"
   },
   "signals": {
     "AI": {
-      "score": 60,
+      "score": 53,
       "confidence": 70,
-      "drivers": "Spanne 5.6% + SEC 8-K + News: short interest + SEC Form 4 + UOA Call/Put 44.7×",
+      "drivers": "Spanne 5.6% + SEC 8-K + News-KI 8/30: Negative sentiment with declining stock performance and regulatory concerns make this a poor short-squeeze candidate des + SEC Form 4 + UOA Call/Put 44.7×",
       "price": 8.82,
       "chg_pct": -0.0,
       "rvol_4d": 1.1,
@@ -23,7 +23,7 @@
       "stocktwits": null,
       "combo_mult": 1.0,
       "active_triggers": 1,
-      "ki_sentiment_source": "keyword",
+      "ki_sentiment_source": "llm",
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 44.7×"
@@ -55,9 +55,9 @@
       "uoa_cp_ratio": 4.600507062658457
     },
     "DBI": {
-      "score": 45,
+      "score": 50,
       "confidence": 70,
-      "drivers": "Spanne 7.9% + FINRA Short-Vol 99% + UOA Call/Put 3.1×",
+      "drivers": "Spanne 7.9% + News-KI 5/30: Positive business strategy updates lack short-squeeze catalysts like high short interest, low float, or bullish technica + FINRA Short-Vol 73% + UOA Call/Put 3.1×",
       "price": 5.72,
       "chg_pct": -0.0,
       "rvol_4d": 0.57,
@@ -69,7 +69,7 @@
       "stocktwits": null,
       "combo_mult": 1.0,
       "active_triggers": 0,
-      "ki_sentiment_source": "keyword",
+      "ki_sentiment_source": "llm",
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 3.1×"
@@ -78,9 +78,9 @@
       "uoa_cp_ratio": 3.0714285714285716
     },
     "FRMM": {
-      "score": 58,
+      "score": 43,
       "confidence": 70,
-      "drivers": "Spanne 5.8% + News: short interest, acquisition + Earnings in 27d + UOA Call/Put 14.3×",
+      "drivers": "Spanne 5.8% + News: short interest + Earnings in 27d + UOA Call/Put 14.3×",
       "price": 5.68,
       "chg_pct": -0.0,
       "rvol_4d": 0.22,
@@ -103,7 +103,7 @@
     "GRPN": {
       "score": 58,
       "confidence": 70,
-      "drivers": "Spanne 5.8% + News: short interest, short squeeze + Earnings in 19d + UOA Call/Put 12.0×",
+      "drivers": "Spanne 5.8% + News: short squeeze, squeeze + Earnings in 19d + UOA Call/Put 12.0×",
       "price": 27.83,
       "chg_pct": -0.0,
       "rvol_4d": 0.97,
@@ -126,7 +126,7 @@
     "IONQ": {
       "score": 30,
       "confidence": 70,
-      "drivers": "Spanne 7.5% + News-KI 12/30: Negative price action, overvaluation concerns, and no significant short interest catalysts evident from headlines. + Earnings in 19d",
+      "drivers": "Spanne 7.5% + News-KI 12/30: Moderate headwinds from valuation concerns and sector competition, but positive sentiment around quantum computing growt + Earnings in 19d",
       "price": 34.78,
       "chg_pct": -0.0,
       "rvol_4d": 1.11,
@@ -147,7 +147,7 @@
     "JACK": {
       "score": 58,
       "confidence": 70,
-      "drivers": "Spanne 10.1% + News: breakout, short interest + Earnings in 26d + UOA Call/Put 2.7×",
+      "drivers": "Spanne 10.1% + News: covering, short interest + Earnings in 26d + UOA Call/Put 2.7×",
       "price": 14.98,
       "chg_pct": -0.0,
       "rvol_4d": 1.42,
@@ -189,9 +189,9 @@
       "uoa_cp_ratio": 0.8862275449101796
     },
     "LOVE": {
-      "score": 25,
+      "score": 22,
       "confidence": 33,
-      "drivers": "News: contract + SEC Form 4",
+      "drivers": "News-KI 12/30: Positive operational news and stock momentum, but no significant short interest indicators or catalyst suggesting immine + SEC Form 4",
       "price": 18.2,
       "chg_pct": 0.03,
       "rvol_4d": 0.73,
@@ -203,16 +203,16 @@
       "stocktwits": null,
       "combo_mult": 1.0,
       "active_triggers": 1,
-      "ki_sentiment_source": "keyword",
+      "ki_sentiment_source": "llm",
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": 0.010703363914373088,
       "uoa_cp_ratio": 0.32608695652173914
     },
     "PAR": {
-      "score": 58,
+      "score": 43,
       "confidence": 70,
-      "drivers": "Spanne 6.4% + News: partnership + Earnings in 21d + FINRA Short-Vol 69% + UOA Call/Put 27.3×",
+      "drivers": "Spanne 6.4% + News: partnership + Earnings in 21d + UOA Call/Put 27.3×",
       "price": 16.35,
       "chg_pct": 0.0,
       "rvol_4d": 0.78,
@@ -230,7 +230,7 @@
         "UOA Call/Put 27.3×"
       ],
       "uoa_atm_ratio": 0.8187919463087249,
-      "uoa_cp_ratio": 27.275641025641026
+      "uoa_cp_ratio": 27.294871794871796
     },
     "PDYN": {
       "score": 48,
@@ -254,9 +254,9 @@
       "uoa_cp_ratio": 0.4686192468619247
     },
     "ROOT": {
-      "score": 23,
-      "confidence": 33,
-      "drivers": "News: partnership + Earnings in 19d",
+      "score": 8,
+      "confidence": 17,
+      "drivers": "Earnings in 19d",
       "price": 59.63,
       "chg_pct": 0.0,
       "rvol_4d": 0.61,
@@ -267,7 +267,7 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 1,
+      "active_triggers": 0,
       "ki_sentiment_source": "keyword",
       "uoa_score": 0,
       "uoa_drivers": [],
@@ -296,9 +296,9 @@
       "uoa_cp_ratio": 1.9215686274509804
     },
     "SDHC": {
-      "score": 18,
-      "confidence": 33,
-      "drivers": "Spanne 5.1% + Earnings in 12d",
+      "score": 55,
+      "confidence": 70,
+      "drivers": "Spanne 5.1% + News-KI 12/30: Neutral analyst initiations and mixed sentiment show no short squeeze catalyst; moderate stock movements lack the convic + Earnings in 12d + FINRA Short-Vol 1672%",
       "price": 15.44,
       "chg_pct": -0.0,
       "rvol_4d": 0.65,
@@ -309,8 +309,8 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 0,
-      "ki_sentiment_source": "keyword",
+      "active_triggers": 1,
+      "ki_sentiment_source": "llm",
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": null,
