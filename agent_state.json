@@ -78,35 +78,11 @@
     "anomaly_gap_combo_SOC": "2026-07-02T11:34:24.300811+02:00",
     "anomaly_monster_backup_SOC": "2026-07-02T20:02:41.415261+02:00",
     "anomaly_conviction_high_SOC": "2026-07-02T11:34:24.445058+02:00",
-    "exit_FRMM": "2026-07-16T10:35:46.475716+02:00",
+    "exit_FRMM": "2026-07-17T10:30:00.876398+02:00",
     "anomaly_conviction_high_NGNE": "2026-07-09T12:04:16.015071+02:00",
-    "exit_LENZ": "2026-07-15T21:11:27.245805+02:00"
+    "exit_LENZ": "2026-07-17T10:30:01.289214+02:00"
   },
   "push_history": [
-    {
-      "ts": "2026-07-09T09:59:05.768828+02:00",
-      "ticker": "PDYN",
-      "kind": "exit_p2",
-      "severity": "trigger",
-      "trigger": "trend_break",
-      "body": "🔻 Exit-Signal PDYN: trend_break crit ({'ma21': 6.1902, 'price': 5.67, 'drop_pct': 8.4})",
-      "success": true,
-      "suppressed": false,
-      "suppress_reason": null,
-      "conviction_score": null
-    },
-    {
-      "ts": "2026-07-09T09:59:06.023820+02:00",
-      "ticker": "AI",
-      "kind": "exit_p2",
-      "severity": "trigger",
-      "trigger": "trend_break",
-      "body": "🔻 Exit-Signal AI: trend_break crit ({'ma21': 9.5225, 'price': 8.86, 'drop_pct': 6.96})",
-      "success": true,
-      "suppressed": false,
-      "suppress_reason": null,
-      "conviction_score": null
-    },
     {
       "ts": "2026-07-09T12:03:26.608279+02:00",
       "ticker": "FRMM",
@@ -1278,6 +1254,30 @@
       "severity": "warning",
       "trigger": null,
       "body": "⚠️ Exit-Warnung IONQ: pressure 61/100",
+      "success": true,
+      "suppressed": false,
+      "suppress_reason": null,
+      "conviction_score": null
+    },
+    {
+      "ts": "2026-07-17T10:30:00.876368+02:00",
+      "ticker": "FRMM",
+      "kind": "exit_p1",
+      "severity": "default",
+      "trigger": "exit_alert",
+      "body": "FRMM 📉 Exit 65 | -16% | Trailing-Stop −18.2% vom Hoch",
+      "success": true,
+      "suppressed": false,
+      "suppress_reason": null,
+      "conviction_score": null
+    },
+    {
+      "ts": "2026-07-17T10:30:01.289186+02:00",
+      "ticker": "LENZ",
+      "kind": "exit_p1",
+      "severity": "default",
+      "trigger": "exit_alert",
+      "body": "LENZ 📉 Exit 64 | -19% | Trailing-Stop −21.4% vom Hoch",
       "success": true,
       "suppressed": false,
       "suppress_reason": null,
