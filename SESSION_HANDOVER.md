@@ -1,4 +1,4 @@
-# SESSION_HANDOVER.md — Stand 17.07.2026 (entry_past_return_5d Stufe-B-Backfill DURCH + Gate-Kalibrierung)
+# SESSION_HANDOVER.md — Stand 17.07.2026 (entry_past_return_5d Backfill DURCH + Gate-Kalibrierung + Paper-C-Read)
 
 **Zweck:** vollständige Übergabe an eine **neue Code-Session ohne Kontext der
 alten**. Dieses Dokument + `CLAUDE.md` müssen zusammen ausreichen, um am
@@ -694,10 +694,15 @@ Nach dem 17.07.-Backfill koexistieren **zwei Populationen** von
   Out-of-Sample-Nachweis.
 
 **Regel:** jede Paper-C-Auswertung muss explorativ (backfilled) und konfirmatorisch
-(forward) **getrennt ausweisen**. **Nächster Schritt:** ein **explorativer** Paper-C-
-Read ist jetzt möglich — braucht aber eine **vorab registrierte Hypothese** (Slot 29:
-Richtung + Buckets + Erfolgs-Definition **VOR** der Zahl). **Rückweg** falls nötig:
-Workflow `mode=undo` (Manifest-basiert, nullt nur die 465, OoS-Records unberührt).
+(forward) **getrennt ausweisen**. **Explorativer Read DURCHGEFÜHRT 17.07.** (Slot-29
+registriert, Details §5 „PAPER-C-READ"): **KEIN belegter Effekt** — konfirmatorische
+Klammer leer (OoS `return_10d` 0 gereift, `max_gain` n_win=3 < Floor); In-Sample nur
+explorativ (Peak-spezifischer Momentum-Hinweis auf `max_gain_pct`, AUC ~0.61 Holm-
+signifikant, aber **kein** Endpunkt-Effekt auf `return_10d`, r=+0.07 zu Setup).
+**Nächster Schritt (datengetrieben):** **konfirmatorischer** OoS-Test sobald (a)
+Forward-`return_10d` gereift (~ab 27.07.) UND (b) n_win an beiden Zielen ≥ Floor 40 —
+mit Regime-Vorbehalt (§5 Confound 1). **Rückweg** falls nötig: Workflow `mode=undo`
+(Manifest-basiert, nullt nur die 465, OoS-Records unberührt).
 | **D** *(Ausblick, bedingt)* | `squeeze_probability`-Score nach Paper-Modell aus den **validierten** Einzelfaktoren. Deklaration + Bedingungen unten. | **NUR falls A–C einzeln out-of-sample tragen.** Kein automatischer Folge-Schritt. |
 
 **Backlog aus dem Paper** (§6g/§6h): Institutional-Ownership-Faktor (dämpfend),
@@ -759,8 +764,8 @@ Utilization, Katalysator-Gating, Exit-Mechanik-Spec, Reddit-Velocity,
 
 ### EDGE-BEFUND (Stand 13.07.2026): AUFFANGLINIE UNVERÄNDERT
 
-**Kernbotschaft:** Über **drei** aufeinanderfolgende Auswertungstage (30.06.
-Endpunkt-Return · 01.07. Exit-Timing · 04.07. Peak-Ziel) hat **kein Prädiktor**
+**Kernbotschaft:** Über **vier** Auswertungen (30.06. Endpunkt-Return · 01.07.
+Exit-Timing · 04.07. Peak-Ziel · **17.07. Paper-C-Momentum**) hat **kein Prädiktor**
 eine belegte Edge nach Erfolgs-Definition gezeigt. Das Tool ist **Attention-
 Router / Screener**, **kein Alpha-Generator**. Nichts an dieser Linie hat sich
 seit 30.06. verschoben.
@@ -769,6 +774,60 @@ seit 30.06. verschoben.
 wenn (a) Holm-signifikant über der pre-registrierten Klammer, **UND** (b)
 Bootstrap-CI-Untergrenze der AUC > 0.5, **UND** (c) plausibel im Regime-Split
 reproduzierbar. Punktschätzung ist nie Beleg.
+
+### PAPER-C-READ (Momentum) — 17.07., EXPLORATIV: KEIN belegter Effekt
+
+Erster Paper-C-Read nach dem Backfill (465 In-Sample + 42 OoS-Records; read-only,
+Seed 17072026, N=2000, `mann_whitney_u_auc` + Holm + Cluster-Doppellauf). Prädiktor
+`entry_past_return_5d` kontinuierlich, Haupthypothese Momentum-positiv (AUC > 0.5),
+zwei Ziele. **Verdikt: KEIN belegter Effekt — die konfirmatorische Klammer ist LEER.**
+
+**(B) KONFIRMATORISCH / OoS — nicht auswertbar (registrierte Floor-Regel):**
+- `return_10d`: **0 gereift** (alle 42 OoS-Records 13.–16.07. → reift erst ~27.07.).
+- `max_gain_pct`: n=42, aber **n_win=3** → unter Floor 40; die Roh-AUC 1.0 wäre ein
+  3-Punkte-Artefakt → **nicht gerechnet** (nicht als Beleg dargestellt).
+
+**(A) EXPLORATIV / IN-SAMPLE — de-risking, KEIN Beleg per Konstruktion.** Die zwei
+Ziele **WIDERSPRECHEN** sich:
+
+| Ziel | AUC (with/without) | CI-lo | roh-p | Holm-Reject (k=4) |
+|---|---|---|---|---|
+| `max_gain_pct ≥ 30 %` | **0.604 / 0.616** | 0.540 / 0.547 | 0.0009 | **JA** |
+| `return_10d` (WIN≥+10/LOSS≤−5) | 0.476 / 0.464 | 0.405 / 0.379 | 0.52 / 0.37 | nein |
+
+**Lesart (registriert, NICHT umgedeutet):** falls da was ist, ist es **PEAK-
+SPEZIFISCH** — Momentum-Aktien spiken höher, geben es bis Tag 10 zurück. Konsistent
+zu Exit-Hinweis B.1 (früh raus) und zum Paper (misst Wahrscheinlichkeit, nicht
+Rendite). Das `return_10d`-AUC < 0.5 wird bei p=0.37–0.52 **NICHT als „Reversal
+bestätigt"** gelesen — es ist schlicht kein Effekt auf den Endpunkt.
+
+**Bemerkenswert (erstmals):** der **erste** Prädiktor mit Holm-signifikanter
+In-Sample-Trennung, der **NICHT mit Setup redundant** ist — `corr(EPR, score)`
+**r=+0.074** (vs. ki_signal r=0.69). Ein etwaiger Effekt wäre **inkrementell** zum
+Setup-Score.
+
+**Confounds (dämpfen, vorab ausgewiesen):**
+1. **REGIME-VORBEHALT (der Killer):** In-Sample **96 % bull** (445/20, VIX 17.0,
+   EPR-Median 10.48) vs. OoS-Fenster **52/48 bull/neutral** (VIX 16.5, EPR-Median
+   **1.50**) — **verschiedenes Regime UND Kandidaten-Profil**. **Konsequenz:** der
+   spätere OoS-Test ist **KEIN sauberer Nachfolger** — ein künftiges „in-sample ja,
+   OoS nein" darf **NICHT automatisch als Falsifikation** gelesen werden (kann
+   Regime-Differenz sein); umgekehrt kann der bull-lastige Peak-Effekt ein
+   **Bull-Volatilitäts-Artefakt** sein (Pre-Move + Peak in Bull beide aufgebläht).
+2. **Cluster-Doppellauf (#391):** 79/465 In-Sample-Followups, Ergebnis **stabil**
+   (0.604→0.616, beide Reject); OoS 0 Followups (with==without kollabiert).
+3. **Selektions-Unabhängigkeit BELEGT (#402):** `entry_past_return_5d` floss **NIE**
+   in Score/Top-10-Selektion (grep: nur Write-Path + S10-Label + Kommentare) — die
+   backgefüllten Records selektierte ein Score, der den Prädiktor nicht kannte.
+4. **Holm k=4** (nur In-Sample-Zellen mit gültigem p; OoS liefert strukturell keinen
+   p → nicht in k). Robust: auch bei Design-Maximum k=8 bliebe p=0.0009 < 0.00625.
+
+**Nächster Schritt (datengetrieben, NICHT kalendarisch):** konfirmatorischer OoS-Test
+sobald **(a)** `return_10d` der Forward-Records gereift (~ab **27.07.** erster
+Schwung) **UND (b)** n_win an **beiden** Zielen über Floor 40 — mit dem Regime-
+Vorbehalt (Confound 1) im Blick. Registrierung bleibt wie am 17.07. fixiert
+(Momentum positiv, kontinuierlich, beide Ziele, Slot-29-Erfolgsdefinition). **Die
+465 In-Sample-Zahlen dürfen im OoS-Test NIE als Beleg auftreten.**
 
 ### FRONTEND-KONSISTENZ ERREICHT (Stand 13.07.)
 
@@ -1145,9 +1204,23 @@ löschen; bei Änderung erst Konsument (Statusleiste), dann Definition (§8p).
 
 ## 8) LESSONS
 
-*(Neueste zuerst: 8z4–8z6 vom 16.–17.07.; 8z1–8z3 vom 15.07.-Abend; 8v–8y vom
+*(Neueste zuerst: 8z7 vom 17.07.; 8z4–8z6 vom 16.–17.07.; 8z1–8z3 vom 15.07.-Abend; 8v–8y vom
 15.07.; 8s–8u vom 14.07.-Nachmittag; 8q–8r vom 14.07.-Vormittag; 8n–8p vom 13.07.;
 8j–8m vom 11.–12.07.; etablierte 8a–8i darunter.)*
+
+### 8z7. Zwei Ziele können sich widersprechen — und genau das ist informativ (17.07.)
+
+Der Paper-C-Read trennte `entry_past_return_5d` **peak**-seitig (`max_gain_pct ≥ 30 %`,
+In-Sample-AUC ~0.61, Holm-signifikant), aber **NICHT** endpunkt-seitig (`return_10d`,
+AUC ~0.47, p~0.5). Ein naiver Ein-Ziel-Read hätte je nach Ziel-Wahl „Signal!" **oder**
+„nichts" gemeldet — beides irreführend. Die **Kombination** ist die eigentliche
+Information: **Peak-Trennung ohne Endpunkt-Trennung ist die Signatur „spikt und fällt
+zurück"**, nicht „kein Signal" und nicht „durables Edge". Das deckt sich mit dem
+Exit-B.1-Hinweis (früh raus) und der Paper-Kern-Aussage (Squeeze-Wahrscheinlichkeit ≠
+Rendite-Edge). **Regel:** bei Prädiktoren mit plausibel unterschiedlicher Wirkung auf
+Peak vs. Haltedauer **beide Ziele vorab registrieren** — der Widerspruch ist ein
+Befund, kein Rauschen. (Voraussetzung: die Ziel-Trennung VOR den Zahlen festlegen,
+sonst wird sie zum nachträglichen Freiheitsgrad — hier via Slot-29 sauber vorab.)
 
 ### 8z4. Rückweg-Falle: Provenienz protokollieren, nicht rekonstruieren (16.07.)
 
