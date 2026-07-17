@@ -663,13 +663,16 @@ eingebaute Out-of-Sample-Schutz (§8).
 
 ### PAPER-PLAN-STATUS (Svoboda et al. 2026 — 4 Schritte A–C + Ausblick D, je 1/Tag)
 
-**Kurz-Status 13.07.:** **A + B daten-seitig ENTBLOCKT** (13.07., yfinance-
+**Kurz-Status 17.07.:** **A + B daten-seitig ENTBLOCKT** (13.07., yfinance-
 SI-Position via #423) — **auswertbar nach ~2–3 Settlement-Zyklen** (der Seed
 gibt ein 1-Monats-Delta ab Tag 1, echte OoS-Statistik erst mit n≥40 paper-
-treuen Squeeze-Events, ~2–3 Monate). **C sammelt** (`entry_past_return_5d` ab
-erstem Postclose non-null). **D bedingt** (nur nach belegten A–C). **Nächster
-aktiver Schritt: A/B-AUSWERTUNG sobald Settlement-Zyklen da — bis dahin
-SAMMELN, kein Bau nötig.**
+treuen Squeeze-Events, ~2–3 Monate). **C:** explorativer Read **durchgeführt
+17.07.** — **KEIN belegter Effekt** (konfirmatorische Klammer leer; Details §5
+„PAPER-C-READ" + Abgrenzungsblock unten). Nächster C-Schritt = **konfirmatorischer
+OoS-Test, datengetrieben ~ab 27.07.** (Forward-`return_10d` gereift + n_win beide
+Ziele ≥ Floor 40). **D bedingt** (nur nach belegten A–C). **Nächster aktiver
+Schritt: A/B-AUSWERTUNG sobald Settlement-Zyklen da; C wartet auf OoS-Reifung —
+bis dahin SAMMELN, kein Bau nötig.**
 
 Vorregistriert, **Schwellen aus FREMDEM Datensatz** (Overfitting-Schutz). Kein
 Zeitdruck. Volle Paper-Befunde in §5.
@@ -1049,7 +1052,9 @@ Extra-Call**.
 (`squeeze_event` mit echtem SI-Rückgang ≥ 20 %) **und** Schritt B (SI-Zuwachs in
 Paper-Buckets, 1-Monats-Positions-Delta) sind **daten-seitig möglich** — beide
 messen die Position (Bestand). **Kein Backfill der ~470 v4-Alt-Records** (keine
-time-queryable Gratis-Historie — die Serie ist forward-only). **Vorbedingung =
+time-queryable Gratis-Historie — die Serie ist forward-only; **betrifft die
+SI-Positions-Serie, NICHT `entry_past_return_5d` aus §6d** — jenes ist eine
+rekonstruierbare Preis-Größe und wurde deshalb backgefüllt). **Vorbedingung =
 reine Sammelzeit**: n≥40 paper-treue Squeeze-Events mit messbarem SI-Rückgang
 **~2–3 Monate**; der Seed liefert Startpunkte sofort. **Nächster Schritt nach
 Sammelzeit: A/B-Auswertung gegen `si_position_history.json`** (OoS, §5).
@@ -1079,6 +1084,36 @@ scheinbar „eingefroren", obwohl die Zwei-Run-Architektur genau so gedacht ist
 (§3-Klarstellung). Kandidat: die Zeile explizit **zweiteilig** rendern —
 z. B. „Marktdaten 10:36 · KI 19:39" — dann ist die Divergenz selbsterklärend statt
 verdächtig. Reine Anzeige, kein Datenpfad.
+
+### 6l. Cockpit Stage 3 — obsolete `.sb-`-Reste im Karten-Bereich (Doku-Lücke geschlossen)
+**Status: OFFEN. Keine Priorität, kein Termin, KEIN Beschluss, das zu bauen.**
+Backlog-Anker für den Stage-3-Cleanup des Karten-Cockpit-Redesigns. **Quelle des
+3-Stage-Plans bleibt `CLAUDE.md` (Sektion „Karten-Cockpit-Redesign", Stage-Tabelle,
+Stage 3 = „offen") — hier KEINE Kopie der Tabelle** (zwei Volltexte driften
+auseinander; genau deshalb fehlte dieser Anker bisher). Dieser Eintrag trägt nur
+Backlog-Status + Scope-Warnung.
+
+**Auslöser (BEFUND, kein Auftrag):** `CARD_COCKPIT_ENABLED = True` (`config.py:70`,
+Stage 2 scharf) macht den Cleanup **erst aktivierbar** — vorher wäre `.sb-` im
+Karten-Bereich der lebende Pfad gewesen.
+
+**Ist-Zustand (per grep gegen `main` verifiziert; Zeilennummern können durch
+spätere Commits verschieben):** `_score_block_inner_html` noch definiert
+(`generate_report.py:4769`) mit **2 Call-Sites** (`:5260`, `:5798`); `.sb-`-Klassen
+(`sb-row`/`sb-num`/`sb-conf`/`sb-lbl`/`sb-fill`/`sb-delta`) in `generate_report.py`
+**und** `templates/head.jinja` vielfach vorhanden.
+
+**Scope-Warnung (ZWINGEND vor jedem Entfernen — blind greppen = Bug):**
+- **Karten-Scope vs. Methodik-Panel-Scope MUSS getract werden.** Die Methodik-Panel-
+  Nutzung (`.score-block-list .sb-lbl` u. ä.) bleibt **LEBEND** — eigener Konsument,
+  eigenes CSS-Scope.
+- **`.sb-conf-*`** (`-robust`/`-mittel`/`-prov`/`-heur`, aus **PR #171**) werden im
+  Cockpit **wiederverwendet** (auf `.cockpit-pillar-value` / `.cockpit-donut-number`,
+  siehe CLAUDE.md-Sektion „Konfidenz-Wasserzeichen") → **nicht** entfernen.
+- **`.sb-row` / `.sb-num`** sind bewusster **Rollback-Fallback** (Flag-OFF-Pfad).
+- **OFFEN / NICHT getract:** ob die Karten-`.sb-`-Vorkommen tatsächlich toter Code
+  sind, ist **nicht** verifiziert — das ist Teil der Stage-3-Diagnose, keine hier
+  behauptete Tatsache.
 
 ---
 
