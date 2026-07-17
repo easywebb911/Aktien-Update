@@ -1,21 +1,23 @@
-# SESSION_HANDOVER.md — Stand 16.07.2026 (ki_signal-Re-Test-Befund + Fallback-Flag)
+# SESSION_HANDOVER.md — Stand 17.07.2026 (entry_past_return_5d Stufe-B-Backfill DURCH + Gate-Kalibrierung)
 
 **Zweck:** vollständige Übergabe an eine **neue Code-Session ohne Kontext der
 alten**. Dieses Dokument + `CLAUDE.md` müssen zusammen ausreichen, um am
 Projektstand direkt weiterzuarbeiten. Reine Doku, kein Logik-Touch.
 
-**Datums-Basis (belegt, nicht Erinnerung):** `date -u` in der Sandbox liefert
-**Do 16.07.2026 ~04:54 UTC**. Session-Bogen 15.–16.07.: am **15.07.** der
-**vorgezogene ki_signal-Edge-Re-Test** (n=55 gereift ≥ 40-Floor; Ergebnis §4/§5)
-+ die Sammel-Raten-Diagnose; am **16.07.** früh **#440** gemergt (Merge `53b72d1`
-/ feat `e90fd5f` — `ki_sentiment_source`-Fallback-Flag). Davor 15.07.: **#436**
+**Datums-Basis (belegt, nicht Erinnerung):** Repo-Stand **17.07.2026**. Session-
+Bogen 16.–17.07.: am **16.07.** die **entry_past_return_5d Stufe-B-Backfill-Kette**
+— **#442** (Backfill-Skript + Workflow, Merge `cd6947a`), **#443** (Gate-Diff-
+Verteilungs-Logging, Merge `344e23d`), **#444** (Gate begründet kalibriert, Merge
+`610349c`); am **17.07.** der **LIVE-LAUF DURCH** (`5d8e78d` — **465/470 Records
+gefüllt**, Gate PASS, Manifest mit 465 Einträgen). Davor 16.07.: **#440** (Merge
+`53b72d1` / feat `e90fd5f` — `ki_sentiment_source`-Fallback-Flag); 15.07.: **#436**
 (Bootstrap-Shell Phase 1, `4270cce`/`77b42d6`), **#437** (si_velocity-Rename,
 `5788485`/`a8c5c7f`), **#438** (Einheiten-Fix Frontend, squash `ae45803`) — alle
 git-belegt.
 
-*(Hinweis für die nächste Session: Datums-Titel hier aus Repo verifiziert
-[`git log --date`], nicht aus Erinnerung — Präzedenz-Fehler früherer Handover
-[„Stand 15.07." bei 12.07.-PRs] so vermieden.)*
+*(Hinweis für die nächste Session: alle Hashes/Zahlen hier aus dem Repo verifiziert
+[`git log`, `git show --stat 5d8e78d`, Manifest-Länge 465], nicht aus Erinnerung —
+Präzedenz-Fehler früherer Handover [„Stand 15.07." bei 12.07.-PRs] so vermieden.)*
 
 Struktur (9 Blöcke): (1) Heute implementiert · (2) Aktive Positionen ·
 (3) Verifikation · (4) Wiedervorlagen · (5) Strategische Roadmap ·
@@ -25,6 +27,68 @@ Anker.
 ---
 
 ## 1) HEUTE IMPLEMENTIERT (chronologisch, mit Hashes)
+
+### 17.07.2026 — entry_past_return_5d Stufe-B-Backfill (Paper C) DURCH + Gate-Kalibrierung
+
+### `5d8e78d` — 17.07. — LIVE-LAUF DURCH
+**★★ entry_past_return_5d Stufe-B-Backfill LIVE — 465/470 Records gefüllt.** Der
+`mode=live`-Dispatch von `backfill_entry_past_return_5d.yml` lief sauber durch.
+**Gate PASS** (aus dem Live-Log): **42 verifiziert · 41 exakt bei 0.000 · median
+= 0.0 · mean-Inlier = 0.0 · 1 Einzel-Artefakt AMCX 0.05** (Yahoo-Bar-Revision auf
+frischem Referenz-Bar, kein systematischer Fehler). **Ergebnis:** **465/470**
+v4-Alt-Records mit `entry_past_return_5d` gefüllt, **5 skipped** (delisted / IPO
+< 6 Bars, davon **4 few-bars**), **Alignment 0** Entry-Tage ohne Bar, `flock` ok,
+Atomic Write ok. Der Commit `5d8e78d` trägt **zwei** Dateien: `backtest_history.
+json` (465 None → Werte) + **`backfill_entry_past_return_5d_manifest.json` mit 465
+(ticker,date)-Einträgen** (Provenienz für den chirurgischen `--undo`). git-belegt:
+`git show --stat 5d8e78d` = 465 Deletions in backtest_history + 1862 Insertions
+Manifest; Manifest-Länge = 465. **Rückweg falls nötig:** Workflow `mode=undo`
+(Manifest-basiert, nullt **nur** die 465 — die vorwärts gesammelten OoS-Records
+bleiben unberührt).
+
+### PR #444 — 16.07. — Merge `610349c`
+**★ Konsistenz-Gate begründet kalibriert (Verteilungs-Urteil statt starrem
+±0.01/Record).** Der frühere Gate-Check verwarf jeden Record mit `|recompute −
+stored| > 0.01` — der 16.07.-Dry-Run zeigte aber `n=32 · exakt=31 · 1 Ausreißer
+(AMCX 5.11→5.16) · median 0.0` = **Daten-Artefakt** (Yahoo revidiert frische
+Referenz-Bars), kein Rechenfehler. Kalibriert auf ein **Verteilungs-Urteil** mit
+5 Wächtern (PASS ⇔ alle): ≥ 20 verifiziert · **median-|diff| < 0.001** (Mehrheits-
+Drift > 50 %) · **mean-|diff| der Inlier < 0.003** (Minderheits-Drift < 50 %) · ≤ 1
+Ausreißer > 0.01 · **kein** Ausreißer ≥ 0.5 pp (hard cap). **Guardian-Runde 2**
+fand den **median-Blindfleck** (fängt nur > 50 %-Verschiebungen) → **mean-of-Inlier-
+Wächter `GATE_MEAN_MAX=0.003`** ergänzt (der eine erlaubte Ausreißer ist kein
+Inlier → verzerrt den mean nicht). **Guardian-Runde 3** fand einen Docstring-
+Overclaim („winzig … deutlich < 0.003") → präzisiert + **Boundary-Test I10**
+(9×0.0099 mean-Inlier ≈0.00278 PASS ↔ 10×0.0099 ≈0.00309 FAIL) verankert die
+Schwelle. Nur Gate-Schwelle + Doku + Tests — **kein** Compute-/Write-/Undo-Pfad-
+Drift. CI 104 grün, Guardian ✅. **Gate-Schwellen-Logik → manueller Merge.**
+
+### PR #443 — 16.07. — Merge `344e23d`
+**★ Gate-Diff-Verteilung im dry-run-fetch loggen (Diagnose).** Rein Logging, keine
+Gate-/Toleranz-/Write-Pfad-Berührung. `gate_diff_distribution` + `summarize_diffs`
+loggen die **volle** Diff-Verteilung aller Referenz-Records (pro Record ticker/
+date/stored/recomputed/|diff| **plus beide Bar-Details** Zähler `iloc[-1]` + Nenner
+`iloc[-6]` je Datum+Adj-Close → Revisions-Hypothese am konkreten Bar prüfbar).
+Diese Messung trennte belegbar **Daten-Artefakt** (31 exakt bei 0.000 / 1 Ausreißer /
+median 0) von **systematischem Fehler** — die empirische Grundlage für die #444-
+Kalibrierung. **Diagnose-Erweiterung → manueller Merge.**
+
+### PR #442 — 16.07. — Merge `cd6947a`
+**★★ entry_past_return_5d Stufe-B-Backfill-Skript + Workflow (Stufe 1, kein Live-
+Lauf).** `scripts/backfill_entry_past_return_5d.py` (Load → Filter v4-only/is-None →
+**Konsistenz-Gate** → Bulk-Fetch → Compute `_compute_entry_past_return_5d` importiert
+→ Atomic Write) + `backfill_entry_past_return_5d.yml` (`workflow_dispatch`-only,
+Modi **dry-run-fetch / live / undo**). **Doppelter Race-Schutz** (`fcntl.flock` +
+Cron-Fenster-Guard ±30 min um 06:17/21:17). **Gate als HARTE Live-Vorbedingung**
+(bei FAIL exit 1, KEIN Write). **KRITISCHER Guardian-Fund im `--undo`-Pfad (als
+Lesson §8z6):** der erste Entwurf identifizierte die zurückzusetzenden Records per
+**Recompute-Match** — aber die **vorwärts gesammelten OoS-Records matchen dieselbe
+Formel/Preisquelle** → `--undo` hätte die **konfirmatorische Evidenz zerstört**.
+**Fix:** ein **Manifest** (`backfill_entry_past_return_5d_manifest.json`) protokolliert
+die tatsächlich gefüllten `(ticker,date)`; `--undo` nullt **nur** diese (reine
+Dict-Op, kein Recompute), verweigert ohne Manifest (kein Raten). **Mutationstest L4
+belegt:** ein vorwärts gesammelter Record mit identischem Wert **überlebt** `--undo`.
+CI grün, Guardian ✅ (2 Läufe). **Neues Skript + Workflow → manueller Merge.**
 
 ### 16.07.2026 — ki_signal-Re-Test-Confound-Flag
 
@@ -450,6 +514,21 @@ nur bei `available=True`.
 
 ## 3) VERIFIKATION (nächste Handelstage, konkrete Beobachtungspunkte)
 
+### ✅ AUFGELÖST (17.07. — entry_past_return_5d Stufe-B-Backfill durch)
+
+- **★★ BACKFILL LIVE DURCH — Gate PASS, 465/470 gefüllt.** Der `mode=live`-Lauf
+  (`5d8e78d`) schrieb `entry_past_return_5d` auf **465** der 470 v4-Alt-Records
+  (5 skipped: delisted/IPO < 6 Bars). **Gate PASS** belegt (42 verifiziert / 41
+  exakt 0.000 / median 0.0 / mean-Inlier 0.0 / 1 AMCX-Artefakt 0.05). Manifest mit
+  **465 Einträgen** git-belegt. **Nächster Handelstag — passiv:** der Sammel-Panel-
+  Zähler `entry_past_return_5d` (§3 LAUFEND, war 10) springt beim nächsten Deploy
+  auf **~475** (465 Backfill + weiter gesammelte Vorwärts-Records). Kein Bau —
+  reine Beobachtung. **Rückweg jederzeit:** `mode=undo` (nullt nur die 465).
+- **★ Trennung explorativ vs. konfirmatorisch bleibt Pflicht (§4/§5):** die 465
+  backgefüllten Records sind **RETROSPEKTIV/IN-SAMPLE**, die ab 13.07. vorwärts
+  gesammelten (aktuell 42, +10/Handelstag) die **konfirmatorische** Evidenz — in
+  jeder Paper-C-Auswertung **getrennt ausweisen, NICHT poolen** (§8z1-Klasse).
+
 ### ✅ AUFGELÖST (14.07.-Vormittag, aus dem 13.07.-Postclose belegt)
 
 - **★★ `entry_past_return_5d` — VERIFIZIERT (non-null greift).** Der 13.07.-
@@ -599,7 +678,26 @@ Zeitdruck. Volle Paper-Befunde in §5.
 |---|---|---|
 | **A** ✅ **ENTBLOCKT (daten-seitig, 13.07.)** | Binäre Zielvariable `squeeze_event` (Peak ≥ +30 % in 1 Handelswoche **UND** SI-Rückgang ≥ 20 %) **neben** `return_10d`. Adressiert „Häufigkeit ≠ Rendite-Edge" (§8h). | **SI-Positions-Quelle gefunden (yfinance, gratis) + gebaut (#423):** `si_position_history.json` sammelt die ausstehende SI-**Position** settlement-datiert **forward-only**. SI-Rückgang ≥ 20 % messbar. **Vorbedingung jetzt = Sammelzeit** (Seed gibt Startpunkte sofort), **kein** Daten-Blocker mehr. Peak-Seite via yfinance ohnehin machbar. Voller Befund §6i. **Nicht abspecken** (§8l: ohne Covering-Komponente kollabiert `squeeze_event` in die widerlegte Hypothese C). |
 | **B** ✅ **ENTBLOCKT (daten-seitig, 13.07.)** | SI-Zuwachs in die 3 Literatur-Buckets (7–17 / 17–25 / > 25 % SI-Zuwachs). B **teilt A's Datenblocker** (Korrektur #419: nicht „ohne A"). | **Paper-treu machbar über dieselbe SI-Positions-Zeitreihe wie A** (`si_position_history.json` — 1-Monats-Positions-Delta via `sharesShort` vs. `sharesShortPriorMonth`). Auf `si_velocity_pub` (Volumen) werden die Paper-Schwellen weiter **nicht** gelegt (Nomenklatur-Falle §8m). |
-| **C** *(sammelt)* | **Momentum als Haupthypothese** (`entry_past_return_5d` **positiv** = vorheriger Aufwärtstrend verstärkt), Reversal nur kurzfristige Nebenhypothese. Korrigiert die frühere „Reversal-Substrat"-Framing (§5). | Richtung vor der Auswertung fixiert (Paper: Momentum > Reversal). `entry_past_return_5d` non-null ab erstem Postclose (§3). Kein nachträgliches Umdrehen. |
+| **C** *(explorativ backgefüllt 17.07. + sammelt vorwärts)* | **Momentum als Haupthypothese** (`entry_past_return_5d` **positiv** = vorheriger Aufwärtstrend verstärkt), Reversal nur kurzfristige Nebenhypothese. Korrigiert die frühere „Reversal-Substrat"-Framing (§5). | Richtung vor der Auswertung fixiert (Paper: Momentum > Reversal). **Stufe-B-Backfill durch (465 Records, `5d8e78d`)** — diese sind **RETROSPEKTIV/IN-SAMPLE** (de-risken die Hypothese explorativ), die ab 13.07. **vorwärts** gesammelten (42, +10/HT) sind **konfirmatorisch**. **NICHT poolen** (§4-Abgrenzung unten). Kein nachträgliches Umdrehen. |
+
+#### ⚠️ Paper-C-Auswertung — IN-SAMPLE vs. OoS-Abgrenzung (KRITISCH, vor jedem Read lesen)
+
+Nach dem 17.07.-Backfill koexistieren **zwei Populationen** von
+`entry_past_return_5d`-Records, die **niemals gepoolt** werden dürfen:
+
+- **EXPLORATIV / IN-SAMPLE** — die **465 backgefüllten** Alt-Records (`5d8e78d`).
+  Sie sind look-ahead-**sicher** (nur Pre-Entry-Adj-Close), aber ihr Beweiswert ist
+  **exploratorisch**: „ist die Momentum-Beziehung überhaupt da?". Sie **ersetzen
+  NICHT** den vorregistrierten Vorwärts-Test (In-Sample-Falle, §8z1-Klasse).
+- **KONFIRMATORISCH / OoS** — die ab **13.07. vorwärts** gesammelten Records
+  (aktuell **42**, wachsend **10/Handelstag**). Nur diese tragen den registrierten
+  Out-of-Sample-Nachweis.
+
+**Regel:** jede Paper-C-Auswertung muss explorativ (backfilled) und konfirmatorisch
+(forward) **getrennt ausweisen**. **Nächster Schritt:** ein **explorativer** Paper-C-
+Read ist jetzt möglich — braucht aber eine **vorab registrierte Hypothese** (Slot 29:
+Richtung + Buckets + Erfolgs-Definition **VOR** der Zahl). **Rückweg** falls nötig:
+Workflow `mode=undo` (Manifest-basiert, nullt nur die 465, OoS-Records unberührt).
 | **D** *(Ausblick, bedingt)* | `squeeze_probability`-Score nach Paper-Modell aus den **validierten** Einzelfaktoren. Deklaration + Bedingungen unten. | **NUR falls A–C einzeln out-of-sample tragen.** Kein automatischer Folge-Schritt. |
 
 **Backlog aus dem Paper** (§6g/§6h): Institutional-Ownership-Faktor (dämpfend),
@@ -829,18 +927,19 @@ of-Month"-Formeln, Range 2020–2050. Kein Trading-Wert, Vorbeugungs-Hygiene.
 News-/FDA-Announcement-Quelle. Vor dem Bau: Diagnose-Auftrag „welche Quelle ist
 point-in-time?".
 
-### 6d. `entry_past_return_5d` Stufe-B-Backfill (Paper C) — der EINE legitime Sammel-Beschleuniger
-**Status: OFFEN (optional, nicht dringend).** #402 ist Stufe A (Live-Vorwärts).
-Stufe B = einmaliger yfinance-Backfill von `entry_past_return_5d` über die ~420
-v4-Alt-Records, analog `backfill_max_gain_pct.py`, `fetch_start = earliest_edate
-− 14 Kalendertage`. **Warum legitim (Sammel-Raten-Diagnose 15.07.):** der Past-
-Return ist aus **historischen Adj-Close-Preisen** rekonstruierbar → **reine
-Preis-Größe, kein Modell-State, kein Look-Ahead** (split-safe). Das ist der
-**einzige** echte Seed-Analog zum SI-2-Punkte-Trick — er füllt ~420 Alt-Records
-für **Paper C (Momentum)** sofort, ohne Populations-Wechsel. **Abgrenzung:**
-`conviction_score`/`ki_signal_score` dürfen NICHT backgefüllt werden (Modell-
-Zustand zum Entry = Look-Ahead). Nur bauen wenn Paper C/Hypothese A angeordnet —
-beschleunigt genau die Auswertung, keine andere.
+### 6d. `entry_past_return_5d` Stufe-B-Backfill (Paper C) — ✅ ERLEDIGT (#442/#443/#444 + Live-Lauf 17.07.)
+**Status: ERLEDIGT.** #402 war Stufe A (Live-Vorwärts). Stufe B — der einmalige
+yfinance-Backfill von `entry_past_return_5d` über die v4-Alt-Records — ist gebaut
+(#442, Skript + Workflow), diagnostiziert (#443, Gate-Diff-Logging), kalibriert
+(#444, Verteilungs-Gate) und **LIVE DURCH** (`5d8e78d`, **465/470 gefüllt**, Gate
+PASS). **Warum legitim war (Sammel-Raten-Diagnose 15.07.):** der Past-Return ist
+aus **historischen Adj-Close-Preisen** rekonstruierbar → **reine Preis-Größe, kein
+Modell-State, kein Look-Ahead** (split-safe) — der **einzige** echte Seed-Analog
+zum SI-2-Punkte-Trick, ohne Populations-Wechsel. **Abgrenzung blieb strikt:**
+`conviction_score`/`ki_signal_score` **NICHT** backgefüllt (Modell-Zustand zum
+Entry = Look-Ahead). **Beweiswert-Grenze (§4/§8z1):** die 465 Records sind
+**explorativ/IN-SAMPLE**, ersetzen NICHT den vorwärts gesammelten OoS. **Rückweg:**
+`mode=undo` (Manifest-basiert, nullt nur die 465).
 
 ### 6e. yfinance-Cap-Aufhebung nach 1.5.x-Stabilisierung
 **Status: OFFEN.** #403 hat `>=1.4.1,<1.5` gecappt. Sobald 1.5.x als stabil
@@ -1046,9 +1145,46 @@ löschen; bei Änderung erst Konsument (Statusleiste), dann Definition (§8p).
 
 ## 8) LESSONS
 
-*(Neueste zuerst: 8z1–8z3 vom 15.07.-Abend; 8v–8y vom 15.07.; 8s–8u vom
-14.07.-Nachmittag; 8q–8r vom 14.07.-Vormittag; 8n–8p vom 13.07.; 8j–8m vom
-11.–12.07.; etablierte 8a–8i darunter.)*
+*(Neueste zuerst: 8z4–8z6 vom 16.–17.07.; 8z1–8z3 vom 15.07.-Abend; 8v–8y vom
+15.07.; 8s–8u vom 14.07.-Nachmittag; 8q–8r vom 14.07.-Vormittag; 8n–8p vom 13.07.;
+8j–8m vom 11.–12.07.; etablierte 8a–8i darunter.)*
+
+### 8z4. Rückweg-Falle: Provenienz protokollieren, nicht rekonstruieren (16.07.)
+
+**Der wichtigste Fund der Backfill-Kette.** Der erste `--undo`-Entwurf identifizierte
+die zurückzusetzenden Records per **Recompute-Match** (Wert nachrechnen, bei Treffer
+nullen). Das ist falsch: zwei Pfade — der Backfill **und** die vorwärts gesammelte
+Live-Pipeline — erzeugen über **dieselbe Formel/Preisquelle denselben Wert**. Der
+Wert identifiziert also **nicht den Urheber**. Ein Recompute-`--undo` hätte die
+konfirmatorisch (seit 13.07.) gesammelten **OoS-Records mit-genullt** — die Evidenz
+zerstört, die der Backfill gerade nicht anfassen darf. **Regel:** wer etwas rückgängig
+machen können muss, **protokolliert die Provenienz** (Manifest der tatsächlich
+gefüllten `(ticker,date)`), statt sie aus dem Ergebnis zu **rekonstruieren**. Der
+Guardian fing das via EXZELLENZ-Kriterium 5 (Rückweg belegt); Mutationstest L4
+verriegelt es (Forward-Record mit gleichem Wert überlebt `--undo`).
+
+### 8z5. Gate-Kalibrierung: ein FAIL ist kein Grund zum Lockern — erst messen WARUM (16.07.)
+
+Das Konsistenz-Gate schlug an (AMCX `|Δ|`=0.05 > 0.01). Der falsche Reflex wäre,
+die Toleranz hochzudrehen („Gummi-Gate"). Richtig: **erst die Diff-VERTEILUNG
+messen** (#443-Logging) — `41 exakt bei 0.000 / 1 Ausreißer / median 0.0` trennte
+belegbar **Daten-Artefakt** (Yahoo revidiert **frische** Referenz-Bars) von
+**systematischem Fehler** (der hätte viele Records verschoben). Gelockert wurde erst
+**mit Beleg** und **mit weiterhin scharfen Wächtern**: der **median** fängt
+Mehrheits-Drift (> 50 %), der **mean-of-Inlier** fängt Minderheits-Drift (< 50 %,
+Guardian-Runde-2-Fund), der **hard cap** fängt jeden großen Sprung. Test I2/I7/I10
+belegen: Systematik FAILt weiter, das Einzel-Artefakt PASSt. **Regel:** Schwellen
+kalibriert man an gemessenen Verteilungen, nicht an dem einen Record, der stört.
+
+### 8z6. Referenz-Records sind die JÜNGSTEN (revisions-anfällig), Targets die ÄLTESTEN (settled) (16.07.)
+
+Das Gate rechnet die bereits-non-null Records (13.–15.07., die **jüngsten** Bars)
+nach — genau die, die Yahoo **noch nachträglich revidiert** (Split-/Adjustierungs-
+Settle). Die Backfill-**Targets** dagegen sind die **älteren** Records (14.05.–
+10.07., **settled**). Ein Gate auf frischen Bars stresst also den **Worst Case**:
+wenn selbst die revisions-anfälligen Referenz-Records flach recompilieren (median 0),
+sind die settled Targets erst recht stabil. Das AMCX-Artefakt ist genau dieser
+Effekt — kein Alarm, sondern die erwartete Bar-Revision am jüngsten Rand.
 
 ### 8z1. Universums-Verbreiterung ist ein SCHEIN-Beschleuniger (15.07.)
 
