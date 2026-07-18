@@ -1,17 +1,17 @@
 {
-  "updated": "2026-07-18T12:41:31.526867+02:00",
+  "updated": "2026-07-18T14:05:27.594493+02:00",
   "run_info": {
     "tickers_checked": 15,
-    "signals_active": 0,
+    "signals_active": 2,
     "alerts_sent": 0,
-    "elapsed_s": 18.5,
+    "elapsed_s": 10.8,
     "market_phase": "Geschlossen"
   },
   "signals": {
     "AI": {
-      "score": 63,
+      "score": 70,
       "confidence": 70,
-      "drivers": "Spanne 5.6% + SEC 8-K + News-KI 8/30: Negative price action and lack of any short-squeeze indicators like high short interest mentions or bullish momentum sig + SEC Form 4 + UOA Call-Vol/OI 3.9× ATM + UOA Call/Put 57.0×",
+      "drivers": "Spanne 5.6% + SEC 8-K + News: short interest + SEC Form 4 + UOA Call-Vol/OI 3.9× ATM + UOA Call/Put 57.0×",
       "price": 8.82,
       "chg_pct": -0.0,
       "rvol_4d": 1.18,
@@ -23,7 +23,7 @@
       "stocktwits": null,
       "combo_mult": 1.0,
       "active_triggers": 1,
-      "ki_sentiment_source": "llm",
+      "ki_sentiment_source": "keyword",
       "uoa_score": 20,
       "uoa_drivers": [
         "UOA Call-Vol/OI 3.9× ATM",
@@ -33,9 +33,9 @@
       "uoa_cp_ratio": 57.02896725440806
     },
     "AMC": {
-      "score": 55,
+      "score": 72,
       "confidence": 70,
-      "drivers": "Earnings in 2 Tagen (20.07.2026) + Spanne 7.5% + News: earnings beat + Earnings in 2d",
+      "drivers": "Earnings in 2 Tagen (20.07.2026) + Spanne 7.5% + News: breakout, earnings beat + Earnings in 2d",
       "price": 1.94,
       "chg_pct": 0.0,
       "rvol_4d": 1.3,
@@ -75,9 +75,9 @@
       "uoa_cp_ratio": null
     },
     "CADL": {
-      "score": 63,
+      "score": 48,
       "confidence": 70,
-      "drivers": "Volumen 1.8× + Spanne 13.2% + News-KI 15/30: Inducement grants suggest weak employee retention and potential dilution; retail enthusiasm alone insufficient without h + Earnings in 26d + FINRA Short-Vol 63%",
+      "drivers": "Volumen 1.8× + Spanne 13.2% + Earnings in 26d + FINRA Short-Vol 63%",
       "price": 10.18,
       "chg_pct": 0.0,
       "rvol_4d": 1.83,
@@ -88,8 +88,8 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 1,
-      "ki_sentiment_source": "llm",
+      "active_triggers": 0,
+      "ki_sentiment_source": "keyword",
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": null,
@@ -119,7 +119,7 @@
     "FRMM": {
       "score": 48,
       "confidence": 70,
-      "drivers": "Spanne 5.8% + News: short interest, acquisition + Earnings in 26d",
+      "drivers": "Spanne 5.8% + News: acquisition, short interest + Earnings in 26d",
       "price": 5.68,
       "chg_pct": -0.0,
       "rvol_4d": 0.22,
@@ -287,9 +287,9 @@
       "uoa_cp_ratio": null
     },
     "WOLF": {
-      "score": 60,
+      "score": 55,
       "confidence": 70,
-      "drivers": "Volumen 1.5× + Spanne 8.8% + News-KI 5/30: Headlines lack direct connection to WOLF ticker; no indicators of high short interest, recent price drops, or catalyst e + SEC Form 4 + UOA Call-Vol/OI 10.8× ATM",
+      "drivers": "Volumen 1.5× + Spanne 8.8% + SEC Form 4 + UOA Call-Vol/OI 10.8× ATM",
       "price": 29.89,
       "chg_pct": -0.0,
       "rvol_4d": 1.52,
@@ -301,7 +301,7 @@
       "stocktwits": null,
       "combo_mult": 1.0,
       "active_triggers": 0,
-      "ki_sentiment_source": "llm",
+      "ki_sentiment_source": "keyword",
       "uoa_score": 20,
       "uoa_drivers": [
         "UOA Call-Vol/OI 10.8× ATM"
