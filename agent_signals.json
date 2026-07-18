@@ -1,17 +1,17 @@
 {
-  "updated": "2026-07-18T15:49:38.864683+02:00",
+  "updated": "2026-07-18T17:15:30.646016+02:00",
   "run_info": {
     "tickers_checked": 15,
-    "signals_active": 1,
+    "signals_active": 0,
     "alerts_sent": 0,
-    "elapsed_s": 13.7,
+    "elapsed_s": 18.7,
     "market_phase": "Geschlossen"
   },
   "signals": {
     "AI": {
-      "score": 70,
+      "score": 60,
       "confidence": 70,
-      "drivers": "Spanne 5.6% + SEC 8-K + News: short interest + SEC Form 4 + UOA Call-Vol/OI 3.9× ATM + UOA Call/Put 57.0×",
+      "drivers": "Spanne 5.6% + SEC 8-K + News-KI 5/30: Negative price action with no indication of high short interest, heavy shorting pressure, or catalyst for forced coverin + SEC Form 4 + UOA Call-Vol/OI 3.9× ATM + UOA Call/Put 57.0×",
       "price": 8.82,
       "chg_pct": -0.0,
       "rvol_4d": 1.18,
@@ -23,7 +23,7 @@
       "stocktwits": null,
       "combo_mult": 1.0,
       "active_triggers": 1,
-      "ki_sentiment_source": "keyword",
+      "ki_sentiment_source": "llm",
       "uoa_score": 20,
       "uoa_drivers": [
         "UOA Call-Vol/OI 3.9× ATM",
@@ -33,9 +33,9 @@
       "uoa_cp_ratio": 57.02896725440806
     },
     "AMC": {
-      "score": 40,
+      "score": 25,
       "confidence": 33,
-      "drivers": "Spanne 7.5% + News: breakout, earnings beat",
+      "drivers": "Spanne 7.5% + News-KI 15/30: Positive debt refinancing news provides some support, but broader theater industry faces structural headwinds from strea",
       "price": 1.94,
       "chg_pct": 0.0,
       "rvol_4d": 1.3,
@@ -47,7 +47,7 @@
       "stocktwits": null,
       "combo_mult": 1.0,
       "active_triggers": 1,
-      "ki_sentiment_source": "keyword",
+      "ki_sentiment_source": "llm",
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": null,
@@ -159,9 +159,9 @@
       "uoa_cp_ratio": null
     },
     "IONQ": {
-      "score": 18,
-      "confidence": 33,
-      "drivers": "Spanne 7.5% + Earnings in 18d",
+      "score": 30,
+      "confidence": 70,
+      "drivers": "Spanne 7.5% + News-KI 12/30: Negative momentum with valuation concerns and sector headwinds from competitor weakness limit short-squeeze potential de + Earnings in 18d",
       "price": 34.78,
       "chg_pct": -0.0,
       "rvol_4d": 1.11,
@@ -172,8 +172,8 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 0,
-      "ki_sentiment_source": "keyword",
+      "active_triggers": 1,
+      "ki_sentiment_source": "llm",
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": 2.0432136335970785,
@@ -310,14 +310,14 @@
       "uoa_cp_ratio": 1.9340836012861737
     },
     "ZBIO": {
-      "score": 10,
-      "confidence": 17,
-      "drivers": "Spanne 9.1%",
+      "score": 18,
+      "confidence": 33,
+      "drivers": "Spanne 9.1% + Earnings in 25d",
       "price": 29.53,
       "chg_pct": 0.0,
       "rvol_4d": 1.01,
       "rvol_20d": 0.65,
-      "earnings": null,
+      "earnings": "in 25 Tagen (12.08.2026)",
       "fda_date": null,
       "upcoming_event": null,
       "insider_buy": false,
