@@ -1,10 +1,10 @@
 {
-  "updated": "2026-07-19T18:13:01.885556+02:00",
+  "updated": "2026-07-19T19:16:31.604364+02:00",
   "run_info": {
     "tickers_checked": 15,
     "signals_active": 0,
     "alerts_sent": 0,
-    "elapsed_s": 11.4,
+    "elapsed_s": 16.1,
     "market_phase": "Geschlossen"
   },
   "signals": {
@@ -33,9 +33,9 @@
       "uoa_cp_ratio": 57.02896725440806
     },
     "AMC": {
-      "score": 52,
+      "score": 55,
       "confidence": 70,
-      "drivers": "Earnings in 1 Tagen (20.07.2026) + Spanne 7.5% + News-KI 12/30: Moderates short-squeeze potential: positive earnings coverage and movie industry tailwinds offset by lack of dramatic sh + Earnings in 1d",
+      "drivers": "Earnings in 1 Tagen (20.07.2026) + Spanne 7.5% + News: earnings beat + Earnings in 1d",
       "price": 1.94,
       "chg_pct": 0.0,
       "rvol_4d": 1.3,
@@ -47,16 +47,16 @@
       "stocktwits": null,
       "combo_mult": 1.1,
       "active_triggers": 2,
-      "ki_sentiment_source": "llm",
+      "ki_sentiment_source": "keyword",
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": null,
       "uoa_cp_ratio": null
     },
     "ANAB": {
-      "score": 33,
+      "score": 26,
       "confidence": 70,
-      "drivers": "Spanne 10.2% + News: contract + Earnings in 17d",
+      "drivers": "Spanne 10.2% + News-KI 8/30: Positive analyst sentiment, but no indicators of high short interest, unusual volume, or catalyst for squeeze. + Earnings in 17d",
       "price": 58.0,
       "chg_pct": 0.0,
       "rvol_4d": 0.76,
@@ -67,17 +67,17 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 1,
-      "ki_sentiment_source": "keyword",
+      "active_triggers": 0,
+      "ki_sentiment_source": "llm",
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": null,
       "uoa_cp_ratio": null
     },
     "CADL": {
-      "score": 48,
+      "score": 60,
       "confidence": 70,
-      "drivers": "Volumen 1.8× + Spanne 13.2% + Earnings in 25d + FINRA Short-Vol 63%",
+      "drivers": "Volumen 1.8× + Spanne 13.2% + News-KI 12/30: Inducement grants indicate potential dilution and insider confidence issues; modest retail enthusiasm lacks short intere + Earnings in 25d + FINRA Short-Vol 63%",
       "price": 10.18,
       "chg_pct": 0.0,
       "rvol_4d": 1.83,
@@ -88,8 +88,8 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 0,
-      "ki_sentiment_source": "keyword",
+      "active_triggers": 1,
+      "ki_sentiment_source": "llm",
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": null,
@@ -119,7 +119,7 @@
     "FRMM": {
       "score": 48,
       "confidence": 70,
-      "drivers": "Spanne 5.8% + News: short interest, acquisition + Earnings in 25d",
+      "drivers": "Spanne 5.8% + News: acquisition, short interest + Earnings in 25d",
       "price": 5.68,
       "chg_pct": -0.0,
       "rvol_4d": 0.22,
@@ -203,7 +203,7 @@
     "PDYN": {
       "score": 48,
       "confidence": 70,
-      "drivers": "Spanne 8.7% + News: contract, partnership + Earnings in 17d",
+      "drivers": "Spanne 8.7% + News: partnership, contract + Earnings in 17d",
       "price": 4.88,
       "chg_pct": 0.0,
       "rvol_4d": 0.82,
@@ -266,9 +266,9 @@
       "uoa_cp_ratio": 1.9463087248322148
     },
     "TNXP": {
-      "score": 33,
+      "score": 26,
       "confidence": 70,
-      "drivers": "Spanne 10.8% + News: catalyst + Earnings in 22d",
+      "drivers": "Spanne 10.8% + News-KI 8/30: Positive clinical and commercial developments, but small-cap biotech with limited short interest indicators and no immed + Earnings in 22d",
       "price": 12.43,
       "chg_pct": 0.0,
       "rvol_4d": 1.14,
@@ -279,8 +279,8 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 1,
-      "ki_sentiment_source": "keyword",
+      "active_triggers": 0,
+      "ki_sentiment_source": "llm",
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": null,
