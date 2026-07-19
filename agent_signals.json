@@ -1,10 +1,10 @@
 {
-  "updated": "2026-07-20T00:07:28.175981+02:00",
+  "updated": "2026-07-20T00:09:35.861458+02:00",
   "run_info": {
     "tickers_checked": 15,
     "signals_active": 0,
     "alerts_sent": 0,
-    "elapsed_s": 14.9,
+    "elapsed_s": 12.1,
     "market_phase": "Geschlossen"
   },
   "signals": {
@@ -33,9 +33,9 @@
       "uoa_cp_ratio": 57.02896725440806
     },
     "AMC": {
-      "score": 55,
+      "score": 43,
       "confidence": 70,
-      "drivers": "Earnings in 1 Tagen (20.07.2026) + Spanne 7.5% + News: earnings beat + Earnings in 1d",
+      "drivers": "Earnings in 1 Tagen (20.07.2026) + Spanne 7.5% + News-KI 8/30: Positive movie performance helps AMC's theater business but neutral earnings context and Netflix weakness provide limite + Earnings in 1d",
       "price": 1.94,
       "chg_pct": 0.0,
       "rvol_4d": 1.3,
@@ -45,9 +45,9 @@
       "upcoming_event": "Earnings in 1 Tagen (20.07.2026)",
       "insider_buy": false,
       "stocktwits": null,
-      "combo_mult": 1.1,
-      "active_triggers": 2,
-      "ki_sentiment_source": "keyword",
+      "combo_mult": 1.0,
+      "active_triggers": 1,
+      "ki_sentiment_source": "llm",
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": null,
@@ -138,9 +138,9 @@
       "uoa_cp_ratio": null
     },
     "GPRE": {
-      "score": 45,
-      "confidence": 33,
-      "drivers": "Volumen 4.7× + ⚡ Extremes Volumen 4.7×+ + Spanne 12.7%",
+      "score": 63,
+      "confidence": 70,
+      "drivers": "Volumen 4.7× + ⚡ Extremes Volumen 4.7×+ + Spanne 12.7% + News-KI 12/30: Moderate price movement mentioned, but no indicators of high short interest, low float, or other classic short-squeeze c",
       "price": 19.23,
       "chg_pct": -0.0,
       "rvol_4d": 4.67,
@@ -150,9 +150,9 @@
       "upcoming_event": null,
       "insider_buy": false,
       "stocktwits": null,
-      "combo_mult": 1.0,
-      "active_triggers": 1,
-      "ki_sentiment_source": "keyword",
+      "combo_mult": 1.1,
+      "active_triggers": 2,
+      "ki_sentiment_source": "llm",
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": null,
@@ -266,9 +266,9 @@
       "uoa_cp_ratio": 1.9463087248322148
     },
     "TNXP": {
-      "score": 33,
+      "score": 30,
       "confidence": 70,
-      "drivers": "Spanne 10.8% + News: catalyst + Earnings in 22d",
+      "drivers": "Spanne 10.8% + News-KI 12/30: Positive clinical and commercial developments, but no short-squeeze catalysts like high short interest, major short cove + Earnings in 22d",
       "price": 12.43,
       "chg_pct": 0.0,
       "rvol_4d": 1.14,
@@ -280,7 +280,7 @@
       "stocktwits": null,
       "combo_mult": 1.0,
       "active_triggers": 1,
-      "ki_sentiment_source": "keyword",
+      "ki_sentiment_source": "llm",
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": null,
