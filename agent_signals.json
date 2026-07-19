@@ -1,10 +1,10 @@
 {
-  "updated": "2026-07-19T15:53:55.542254+02:00",
+  "updated": "2026-07-19T17:15:23.814020+02:00",
   "run_info": {
     "tickers_checked": 15,
     "signals_active": 0,
     "alerts_sent": 0,
-    "elapsed_s": 16.0,
+    "elapsed_s": 16.4,
     "market_phase": "Geschlossen"
   },
   "signals": {
@@ -138,9 +138,9 @@
       "uoa_cp_ratio": null
     },
     "GPRE": {
-      "score": 66,
-      "confidence": 70,
-      "drivers": "Volumen 4.7× + ⚡ Extremes Volumen 4.7×+ + Spanne 12.7% + News-KI 15/30: Moderate price volatility reported but no indicators of high short interest, significant short covering, or classic sque",
+      "score": 45,
+      "confidence": 33,
+      "drivers": "Volumen 4.7× + ⚡ Extremes Volumen 4.7×+ + Spanne 12.7%",
       "price": 19.23,
       "chg_pct": -0.0,
       "rvol_4d": 4.67,
@@ -150,9 +150,9 @@
       "upcoming_event": null,
       "insider_buy": false,
       "stocktwits": null,
-      "combo_mult": 1.1,
-      "active_triggers": 2,
-      "ki_sentiment_source": "llm",
+      "combo_mult": 1.0,
+      "active_triggers": 1,
+      "ki_sentiment_source": "keyword",
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": null,
@@ -266,9 +266,9 @@
       "uoa_cp_ratio": 1.9463087248322148
     },
     "TNXP": {
-      "score": 33,
+      "score": 30,
       "confidence": 70,
-      "drivers": "Spanne 10.8% + News: catalyst + Earnings in 22d",
+      "drivers": "Spanne 10.8% + News-KI 12/30: Positive clinical/commercial developments but lack short squeeze indicators like high short interest, low float, or cata + Earnings in 22d",
       "price": 12.43,
       "chg_pct": 0.0,
       "rvol_4d": 1.14,
@@ -280,7 +280,7 @@
       "stocktwits": null,
       "combo_mult": 1.0,
       "active_triggers": 1,
-      "ki_sentiment_source": "keyword",
+      "ki_sentiment_source": "llm",
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": null,
