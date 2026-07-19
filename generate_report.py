@@ -7770,6 +7770,10 @@ def generate_html_v1(stocks: list[dict], report_date: str,
       color:var(--txt);overflow-wrap:break-word}}
     .bt-collect-n{{grid-area:n;font-size:.82rem;font-weight:800;color:var(--txt);
       font-variant-numeric:tabular-nums;white-space:nowrap}}
+    /* Zweiter Zähler „gereift" (Records mit vorliegendem Forward-Outcome
+       return_10d) — gedimmt abgesetzt vom Roh-Sammelzähler, damit „gesammelt"
+       und das reife-basierte „Ziel n≥X gereift" dieselbe Population meinen. */
+    .bt-collect-mat{{font-weight:600;color:var(--txt-dim)}}
     .bt-collect-status{{grid-area:status;font-size:.72rem;color:var(--txt-dim);
       overflow-wrap:break-word}}
     /* Filter-Toggles als kompakte Segmented Controls — gemeinsamer
@@ -7932,7 +7936,7 @@ def generate_html_v1(stocks: list[dict], report_date: str,
       </div>
       <div class="bt-tile bt-tile--wide">
         <div class="bt-tile-title">Sammel-Felder — Datenerhebung (Fortschritt)</div>
-        <p class="bt-collect-intro">Fortschritts-Monitoring der laufenden Datensammlung — <b>keine Handelsempfehlung, kein Signal</b>. Diese Felder werden erhoben, um sie später statistisch zu prüfen; sie sind <b>unvalidiert</b>. Das Tool ist ein Screener/Attention-Router, kein Alpha-Generator. &bdquo;n&ldquo; = Anzahl gesammelter Einträge, keine Trefferquote und keine Rendite.</p>
+        <p class="bt-collect-intro">Fortschritts-Monitoring der laufenden Datensammlung — <b>keine Handelsempfehlung, kein Signal</b>. Diese Felder werden erhoben, um sie später statistisch zu prüfen; sie sind <b>unvalidiert</b>. Das Tool ist ein Screener/Attention-Router, kein Alpha-Generator. <b>&bdquo;gesammelt&ldquo;</b> = Anzahl erhobener Einträge; <b>&bdquo;gereift&ldquo;</b> = davon mit vorliegendem Forward-Outcome (return_10d) — erst diese sind auswertbar (auf sie bezieht sich das &bdquo;Ziel n≥X gereift&ldquo;). Keine Trefferquote und keine Rendite.</p>
         <div id="bt-collect-status" class="bt-collect-list"></div>
         <div id="bt-collect-si-status" class="bt-collect-list"></div>
       </div>
@@ -9682,14 +9686,25 @@ function _btCollectStatus(data){{
   let html = '';
   for (let i = 0; i < FIELDS.length; i++){{
     const key = FIELDS[i][0], label = FIELDS[i][1], status = FIELDS[i][2];
-    let n = 0;
+    let n = 0, nMat = 0;
     for (let j = 0; j < rows.length; j++){{
       const v = rows[j] ? rows[j][key] : undefined;
-      if (v !== null && v !== undefined) n++;
+      if (v !== null && v !== undefined){{
+        n++;
+        // „gereift" = derselbe Record trägt ein Forward-Outcome (return_10d
+        // non-null). return_10d ist das OUTCOME-Label (KEIN Score-Feature,
+        // kein Look-Ahead-Guard-Literal — bereits frontend-weit verwendet) →
+        // Reife-Definition IDENTISCH zu health_check._drg_count_mature (S13-
+        // Datenreife-Gate). Damit ist das „gereift"-n exakt die Auswertungs-
+        // Population, kein paralleler Alters-Proxy.
+        const r10 = rows[j].return_10d;
+        if (r10 !== null && r10 !== undefined) nMat++;
+      }}
     }}
     html += '<div class="bt-collect-row">'
           + '<span class="bt-collect-name">' + esc(label) + '</span>'
-          + '<span class="bt-collect-n">n=' + n + '</span>'
+          + '<span class="bt-collect-n">' + n + ' gesammelt'
+          + '<span class="bt-collect-mat"> · ' + nMat + ' gereift</span></span>'
           + '<span class="bt-collect-status">' + esc(status) + '</span>'
           + '</div>';
   }}
