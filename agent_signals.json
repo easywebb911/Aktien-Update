@@ -1,10 +1,10 @@
 {
-  "updated": "2026-07-19T14:06:41.173107+02:00",
+  "updated": "2026-07-19T15:53:55.542254+02:00",
   "run_info": {
     "tickers_checked": 15,
     "signals_active": 0,
     "alerts_sent": 0,
-    "elapsed_s": 12.5,
+    "elapsed_s": 16.0,
     "market_phase": "Geschlossen"
   },
   "signals": {
@@ -33,9 +33,9 @@
       "uoa_cp_ratio": 57.02896725440806
     },
     "AMC": {
-      "score": 52,
+      "score": 55,
       "confidence": 70,
-      "drivers": "Earnings in 1 Tagen (20.07.2026) + Spanne 7.5% + News-KI 12/30: Moderate positive catalyst (earnings, movie demand) but no short squeeze indicators like extreme short interest, borrowi + Earnings in 1d",
+      "drivers": "Earnings in 1 Tagen (20.07.2026) + Spanne 7.5% + News: earnings beat + Earnings in 1d",
       "price": 1.94,
       "chg_pct": 0.0,
       "rvol_4d": 1.3,
@@ -47,7 +47,7 @@
       "stocktwits": null,
       "combo_mult": 1.1,
       "active_triggers": 2,
-      "ki_sentiment_source": "llm",
+      "ki_sentiment_source": "keyword",
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": null,
@@ -119,7 +119,7 @@
     "FRMM": {
       "score": 48,
       "confidence": 70,
-      "drivers": "Spanne 5.8% + News: acquisition, short interest + Earnings in 25d",
+      "drivers": "Spanne 5.8% + News: short interest, acquisition + Earnings in 25d",
       "price": 5.68,
       "chg_pct": -0.0,
       "rvol_4d": 0.22,
@@ -138,9 +138,9 @@
       "uoa_cp_ratio": null
     },
     "GPRE": {
-      "score": 45,
-      "confidence": 33,
-      "drivers": "Volumen 4.7× + ⚡ Extremes Volumen 4.7×+ + Spanne 12.7%",
+      "score": 66,
+      "confidence": 70,
+      "drivers": "Volumen 4.7× + ⚡ Extremes Volumen 4.7×+ + Spanne 12.7% + News-KI 15/30: Moderate price volatility reported but no indicators of high short interest, significant short covering, or classic sque",
       "price": 19.23,
       "chg_pct": -0.0,
       "rvol_4d": 4.67,
@@ -150,9 +150,9 @@
       "upcoming_event": null,
       "insider_buy": false,
       "stocktwits": null,
-      "combo_mult": 1.0,
-      "active_triggers": 1,
-      "ki_sentiment_source": "keyword",
+      "combo_mult": 1.1,
+      "active_triggers": 2,
+      "ki_sentiment_source": "llm",
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": null,
