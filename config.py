@@ -1453,16 +1453,16 @@ COLLECT_STATUS_FIELDS = [
      "Ziel-/Ergebnisgröße, kein Prädiktor · unvalidiert"),
     ("conviction_score",
      "Conviction-Aggregat (conviction_score)",
-     "sammelt · unvalidiert · auswertbar ab ~Ende Aug 2026 (Ziel n ≥ 100)"),
+     "sammelt · unvalidiert · auswertbar ab ~Ende Juli/Anfang Aug 2026 (Ziel n ≥ 100 gereift)"),
     ("days_to_earnings",
      "Kalendertage bis Earnings (days_to_earnings)",
-     "sammelt · unvalidiert · auswertbar ab ~Q4 2026 (Ziel n ≥ 40)"),
+     "sammelt · unvalidiert · auswertbar ab ~Q4 2026 (Ziel n ≥ 40 gereift)"),
     ("entry_past_return_5d",
      "Kursbewegung 5 Handelstage vor Entry (entry_past_return_5d)",
-     "sammelt · unvalidiert · auswertbar ab ~Q4 2026 (Ziel n ≥ 40)"),
+     "sammelt · unvalidiert · auswertbar ab ~Q4 2026 (Ziel n ≥ 40 gereift, nur OoS-vorwärts — Backfill nicht gepoolt)"),
     ("si_velocity_pub",
      "Short-Interest-Änderungsrate (si_velocity_pub)",
-     "sammelt · unvalidiert · auswertbar ab ~Q4 2026 (Ziel n ≥ 40)"),
+     "sammelt · unvalidiert · auswertbar ab ~Q4 2026 (Ziel n ≥ 40 gereift)"),
 ]
 
 # Sechster Sammel-Status-Eintrag: SI-Positions-Zeitreihe. SEPARATE Datei

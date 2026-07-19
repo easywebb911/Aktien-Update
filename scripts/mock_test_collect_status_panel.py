@@ -159,22 +159,28 @@ def _test_functional_counts():
         _check("B0 JS-Funktion extrahierbar", False, "_btCollectStatus nicht gefunden")
         return
 
-    # Fixture mit BEKANNTEN non-null-Zählern. 0.0 zählt als non-null (Wert),
-    # null/undefined NICHT.
+    # Fixture mit BEKANNTEN Zählern für BEIDE Zähler: „gesammelt" (non-null,
+    # 0.0 zählt) UND „gereift" (non-null UND return_10d non-null). Bewusst so
+    # gebaut, dass für max_gain_pct + conviction_score gereift < gesammelt ist
+    # (Reife-Filter muss NACHWEISLICH wirken — nicht bloß beide Zähler gleich).
     data = [
+        # Row0: alle Felder non-null UND return_10d gereift.
         {"max_gain_pct": 12.3, "conviction_score": 50, "days_to_earnings": 5,
-         "entry_past_return_5d": -4.0, "si_velocity_pub": 1.2},
-        {"max_gain_pct": 0.0, "conviction_score": None},   # max_gain 0.0 = non-null
-        {"max_gain_pct": None},                             # alles null/absent
-        {"conviction_score": 30, "si_velocity_pub": None},
+         "entry_past_return_5d": -4.0, "si_velocity_pub": 1.2, "return_10d": 8.0},
+        # Row1: max_gain 0.0 (non-null) aber return_10d NULL → gesammelt, NICHT gereift.
+        {"max_gain_pct": 0.0, "conviction_score": None, "return_10d": None},
+        # Row2: alles null/absent (return_10d gesetzt, aber keine Felder da).
+        {"max_gain_pct": None, "return_10d": 3.0},
+        # Row3: conviction non-null aber return_10d NULL → gesammelt, NICHT gereift.
+        {"conviction_score": 30, "si_velocity_pub": None, "return_10d": None},
     ]
-    # Erwartete non-null-Zähler:
+    # (gesammelt, gereift) je Feld:
     expected = {
-        "max_gain_pct": 2,          # 12.3, 0.0
-        "conviction_score": 2,      # 50, 30
-        "days_to_earnings": 1,      # 5
-        "entry_past_return_5d": 1,  # -4.0
-        "si_velocity_pub": 1,       # 1.2
+        "max_gain_pct":         (2, 1),   # 12.3+0.0 gesammelt; nur 12.3 gereift
+        "conviction_score":     (2, 1),   # 50+30 gesammelt; nur 50 gereift
+        "days_to_earnings":     (1, 1),   # 5 (row0, gereift)
+        "entry_past_return_5d": (1, 1),   # -4.0 (row0, gereift)
+        "si_velocity_pub":      (1, 1),   # 1.2 (row0, gereift)
     }
 
     html = _run_node(js, data)
@@ -183,18 +189,33 @@ def _test_functional_counts():
               "(Source-Gate A bleibt hart).")
         return
 
-    # Pro Feld: die Zeile enthält den Roh-Feldnamen (in Klammer) + 'n=<zahl>'.
-    # Wir prüfen, dass die richtige n-Zahl im Output steht.
-    for key, exp_n in expected.items():
-        # Suche die Zeile mit dem Roh-Feldnamen, extrahiere das folgende n=.
-        # Reihenfolge im HTML: name(...key...) ... n=X ... status
-        m = re.search(re.escape(key) + r"\).*?n=(\d+)", html, re.DOTALL)
-        got = int(m.group(1)) if m else None
+    # Pro Feld: „<gesammelt> gesammelt" im .bt-collect-n-Span, „<gereift>
+    # gereift" im .bt-collect-mat-Span. Regex auf die KLASSEN gescoped, damit
+    # das „gereift" im Status-Text (z.B. „Ziel n ≥ 100 gereift") NICHT
+    # fälschlich als Zähler gematcht wird.
+    diff_seen = False
+    for key, (exp_coll, exp_mat) in expected.items():
+        mc = re.search(re.escape(key) + r'\).*?bt-collect-n">(\d+) gesammelt',
+                       html, re.DOTALL)
+        mm = re.search(re.escape(key) + r'\).*?bt-collect-mat">[^0-9]*(\d+) gereift',
+                       html, re.DOTALL)
+        got_c = int(mc.group(1)) if mc else None
+        got_m = int(mm.group(1)) if mm else None
         _check(
-            f"B-{key}: n={exp_n} korrekt gezählt (non-null)",
-            got == exp_n,
-            f"got n={got}",
+            f"B-{key}: gesammelt={exp_coll} korrekt (non-null)",
+            got_c == exp_coll, f"got {got_c}",
         )
+        _check(
+            f"B-{key}: gereift={exp_mat} korrekt (non-null UND return_10d)",
+            got_m == exp_mat, f"got {got_m}",
+        )
+        if exp_mat < exp_coll and got_m == exp_mat and got_c == exp_coll:
+            diff_seen = True
+    _check(
+        "B-Reife-Filter WIRKSAM (mind. 1 Feld mit gereift < gesammelt)",
+        diff_seen,
+        "beide Zähler überall gleich → Reife-Filter greift nicht",
+    )
 
     # (C) KEINE Feld-WERTE im Output — distinktive Fixture-Floats dürfen nicht
     # auftauchen (nur Zähler + Status werden gerendert).
