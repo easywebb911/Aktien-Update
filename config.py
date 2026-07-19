@@ -782,6 +782,47 @@ EDGAR_ACTIVIST_FILERS  = [
     "Vanguard",    # ebenfalls
 ]
 
+# ── Materielle-8-K-Sammelfeld (§6c, S10_OBSERVED, forward-only) ───────────────
+# Point-in-time-sauberes, look-ahead-freies Backtest-Feld: sammelt pro
+# postclose-Top-10-Record die materiellen 8-K aus SEC-EDGAR (keyless) über
+# CIK — REINE Outcome-/Analyse-Persistenz, KEIN Score-/Filter-/Push-/Anzeige-
+# Effekt. FDA-Teilmenge wird via ``matched_terms`` (CORE-Terme unten)
+# annotiert, ist aber KEIN Sammel-Filter — die Rohdaten (accession,
+# item_codes, acceptance_datetime) erlauben spätere Re-Ableitung. Belegt via
+# EDGAR-Machbarkeitsprobe (§6c A1/A2a) + A2b-Re-Probe (CORE-Liste trennt
+# sauber) + B0-3-Probe (TNXP-Fenster-Dichte max 4/2-KalTage, 5/4-Tage → Cap
+# mit Puffer). Look-Ahead-Konvention EINGEFROREN (analog entry_past_return_5d
+# #402): dieses Feld darf NIEMALS als Score-Feature gelesen werden.
+MATERIAL_8K_ENABLED          = True
+# Qualifizierende (sammel-filternde) item_codes — belegt durch B0-3-Probe:
+# 7.01/8.01 = substanzielle FDA-Items; 1.01/2.02/5.02 = weitere materielle
+# Katalysatoren. 9.01 (Exhibit-Träger, near-ubiquitär) bewusst KEIN Standalone-
+# Qualifier, wird aber im per-Event item_codes[] mitgespeichert wenn co-präsent.
+MATERIAL_8K_QUALIFYING_ITEMS = ("1.01", "2.02", "5.02", "7.01", "8.01")
+# CORE-Terme für matched_terms-Annotation (Variante (a), A2b-belegt: trennt
+# ANAB≈1 bei erhaltener Sensitivität REPL/TNXP/LENZ). NICHT als Sammel-Filter.
+MATERIAL_8K_CORE_TERMS       = (
+    "Complete Response Letter",
+    "PDUFA",
+    "received FDA approval",
+)
+# Sammel-Fenster in Kalendertagen VOR dem Report-Zeitpunkt (deckt ~1–2
+# Handelstage inkl. Wochenende). Fenster ist bewusst großzügig — die exakte
+# 1-/2-Handelstage-Slice ist AUSWERTUNGS-Sache (acceptance_datetime roh
+# gespeichert), nicht Sammel-Sache.
+MATERIAL_8K_LOOKBACK_DAYS    = 5
+# Harte Obergrenze pro Ticker/Lauf (B0-3-belegt: realer Worst-Case TNXP = 5
+# in 4 Tagen über ALLE 8-K; qualifizierende Teilmenge ≤ das). Überschreitung
+# → erste N nach acceptance_datetime + truncated=True + Log. Kein unbegrenztes
+# Speichern; feuert real praktisch nie (reines Bloat-Schutz-Ventil).
+MATERIAL_8K_CAP_N            = 8
+# Zeitbudget/Timeouts (hart, nicht „grob"). Bei Budget-Überschreitung:
+# Skip-mit-Log (matched_terms-Scan wird übersprungen, Rohdaten bleiben).
+MATERIAL_8K_RUN_BUDGET_S     = 45.0
+MATERIAL_8K_HTTP_TIMEOUT     = 10
+MATERIAL_8K_MAX_DOCS_PER_FILING = 3   # primaryDocument + bis zu 2 EX-99*-Exhibits
+MATERIAL_8K_SLEEP_S          = 0.3    # höfliches Pacing zwischen EDGAR-Calls
+
 # ── KI-Score-Dot-Schwellen (Frontend-Pulsieren neben Ticker) ─────────────────
 # Steuert die Farbe des pulsierenden .agent-dot auf der Top-10- und Watchlist-
 # Kachel. Schwellen sind an die apply_monster_score-Semantik gekoppelt:
@@ -1566,6 +1607,18 @@ S10_OBSERVED_FIELDS = frozenset({
     # Trainings-/Test-Overlap bei backgefüllten Alt-Records.
     # Schema bleibt v4 (additiv).
     "si_velocity_pub",
+    # Materielle-8-K-Sammelfeld (§6c, 19.07.2026, VORWÄRTS-ERHEBUNG,
+    # forward-only): Wrapper-Dict {collected, reason, cik, truncated, events[]}
+    # mit den point-in-time-sauber gesammelten materiellen 8-K aus SEC-EDGAR
+    # (acceptance_datetime <= Report-Zeit, qualifizierende item_codes, matched_
+    # terms = FDA-CORE-Annotation). REINE Analyse-/Outcome-Persistenz, KEIN
+    # Score-/Filter-/Push-/Anzeige-Effekt → nur OBSERVED, KEIN MUSS/LAG-Check
+    # (LEGITIM leer: collected=false bei EDGAR-Ausfall, events=[] bei „keine
+    # materiellen 8-K im Fenster"). Look-Ahead-Konvention EINGEFROREN: darf
+    # NIEMALS als Score-Feature gelesen werden. Schema bleibt v4 (additiv).
+    # Isolierter Rückweg: scripts/purge_material_8k_events.py poppt exakt
+    # diesen einen Key (kein Manifest nötig — benannter Key ist eindeutig).
+    "material_8k_events",
 })
 
 S10_WINDOW_SIZE          = 20    # Letzte N V4-Einträge für MUSS-Check

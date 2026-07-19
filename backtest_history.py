@@ -32,10 +32,12 @@ from config import (
     EARLINESS_TREND_MIN_FINRA_POINTS,
     EARLINESS_TREND_SI_SLOPE_CAP,
     EARLINESS_TREND_VOL_STAB_CAP,
+    MATERIAL_8K_ENABLED,
     SCORE_NORMALIZATION_VERSION,
     SI_VELOCITY_PUB_N_REPORTS,
 )
 import entry_score as entry_score_module  # Entry-Timing-Score (Shadow, pure)
+import material_8k as material_8k_module   # §6c FDA-/materielle-8-K-Sammlung
 
 log = logging.getLogger(__name__)
 
@@ -474,6 +476,7 @@ def _build_backtest_extension(s: dict, pool_position: int, pool_size: int,
                               compute_sub_scores_fn, safe_float_fn,
                               latest_push_ts_by_ticker: dict | None = None,
                               now_dt=None,
+                              material_8k: dict | None = None,
                               entry_date: "date | None" = None) -> dict:
     """Liefert das Schema-Erweiterungs-Dict (Bahn B) für einen Top-10-Eintrag.
 
@@ -798,6 +801,18 @@ def _build_backtest_extension(s: dict, pool_position: int, pool_size: int,
             (s.get("finra_data") or {}).get("history"),
             entry_date,
         ),
+        # Materielle-8-K-Sammelfeld (§6c, 19.07.2026, VORWÄRTS-ERHEBUNG,
+        # forward-only): pro-Ticker vorab gesammeltes Wrapper-Dict
+        # {collected, reason, cik, truncated, events[]} mit den point-in-time-
+        # sauber gesammelten materiellen 8-K aus SEC-EDGAR. In DEMSELBEN
+        # Record wie score (co-existent → corr(feature,score) auswertbar).
+        # ``material_8k`` ist None wenn MATERIAL_8K_ENABLED=False ODER der
+        # Ticker nicht in der Sammel-Liste war (Re-Run-Dedup) → Feld=None
+        # (reader-tolerant). REINE Analyse-/Outcome-Persistenz, KEIN Score-/
+        # Filter-/Push-/Anzeige-Effekt → nur S10_OBSERVED, KEIN MUSS/LAG.
+        # Look-Ahead-Konvention EINGEFROREN (analog entry_past_return_5d):
+        # NIEMALS als Score-Feature lesen. Schema bleibt v4 (additiv).
+        "material_8k_events":      material_8k,
         "backtest_schema_version": 4,
     }
 
@@ -976,6 +991,24 @@ def _append_backtest_entries(top10: list[dict], report_date: str,
         latest_push_ts_by_ticker = {}
     _now_dt = datetime.now(timezone.utc)
 
+    # Materielle-8-K-Sammelfeld (§6c, forward-only, KEIN Score-Effekt). EINMAL
+    # pro Run für die tatsächlich anzuhängenden Ticker (idempotent: bei Re-Run
+    # ohne neue Ticker KEIN EDGAR-Call). now_utc = _now_dt = Report-Zeitpunkt
+    # → Point-in-time-Obergrenze (acceptance_datetime <= _now_dt). Fail-soft:
+    # bei Ausfall bleibt der Wrapper leer (collected=False), kein Crash.
+    material_8k_by_ticker: dict[str, dict] = {}
+    if MATERIAL_8K_ENABLED:
+        _m8k_tickers = [s["ticker"] for s in top10
+                        if (s["ticker"], report_date) not in existing_keys]
+        if _m8k_tickers:
+            try:
+                material_8k_by_ticker = material_8k_module.\
+                    collect_material_8k_events(_m8k_tickers, now_utc=_now_dt)
+            except Exception as _exc_m8k:
+                log.warning("material_8k: Sammlung fehlgeschlagen "
+                            "(fail-soft): %s", _exc_m8k)
+                material_8k_by_ticker = {}
+
     # Bahn-A2-Stufe-1: Markt-Regime + VIX einmal pro Run abrufen. Werden auf
     # NEUE Einträge persistiert; die rolling Drawdown-Aktualisierung läuft
     # weiter unten für Einträge < 14 Kalendertage alt.
@@ -1046,6 +1079,9 @@ def _append_backtest_entries(top10: list[dict], report_date: str,
             safe_float_fn=safe_float_fn,
             latest_push_ts_by_ticker=latest_push_ts_by_ticker,
             now_dt=_now_dt,
+            # §6c: pro-Ticker vorab gesammeltes materielle-8-K-Wrapper-Dict
+            # (None wenn disabled / Ticker nicht in der Sammel-Liste).
+            material_8k=material_8k_by_ticker.get(s["ticker"]),
             # entry_date für si_velocity_pub Look-Ahead-Filter (PR-3).
             # ``_rd`` ist bereits am Funktions-Anfang (Wochenend-Schreib-
             # schutz Z. 889) aus ``report_date`` (dd.mm.yyyy) geparst; bei
