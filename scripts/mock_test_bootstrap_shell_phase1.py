@@ -71,6 +71,12 @@ def test_a_shell_pwa_complete() -> None:
                "Apple-Meta fehlt → PWA verliert Standalone/Icon/Titel")
     _check("A viewport-Meta", 'name="viewport"' in sh)
     _check("A charset", "charset" in sh)
+    # §6j: apple-touch-icon → iOS-Homescreen zeigt das SR-Icon statt Generik.
+    # Relativer Pfad (kein führender Slash) = Pflicht bei GitHub-Pages-Projekt-
+    # Site (Basis /Aktien-Update/); absoluter Pfad zeigt ins Domain-Root-Leere.
+    _check("A apple-touch-icon (relativer Pfad)",
+           'rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png"' in sh,
+           "apple-touch-icon-Link fehlt/absolut → Homescreen-Icon fehlt (§6j)")
     _check("A <title>", "<title>Squeeze Report</title>" in sh)
     _check("A location.replace('app.html?v=' + Date.now())",
            "location.replace('app.html?v=' + Date.now())" in sh,
