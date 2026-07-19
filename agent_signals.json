@@ -1,10 +1,10 @@
 {
-  "updated": "2026-07-19T19:16:31.604364+02:00",
+  "updated": "2026-07-19T20:11:21.432993+02:00",
   "run_info": {
     "tickers_checked": 15,
     "signals_active": 0,
     "alerts_sent": 0,
-    "elapsed_s": 16.1,
+    "elapsed_s": 17.8,
     "market_phase": "Geschlossen"
   },
   "signals": {
@@ -54,9 +54,9 @@
       "uoa_cp_ratio": null
     },
     "ANAB": {
-      "score": 26,
+      "score": 33,
       "confidence": 70,
-      "drivers": "Spanne 10.2% + News-KI 8/30: Positive analyst sentiment, but no indicators of high short interest, unusual volume, or catalyst for squeeze. + Earnings in 17d",
+      "drivers": "Spanne 10.2% + News: contract + Earnings in 17d",
       "price": 58.0,
       "chg_pct": 0.0,
       "rvol_4d": 0.76,
@@ -67,17 +67,17 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 0,
-      "ki_sentiment_source": "llm",
+      "active_triggers": 1,
+      "ki_sentiment_source": "keyword",
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": null,
       "uoa_cp_ratio": null
     },
     "CADL": {
-      "score": 60,
+      "score": 48,
       "confidence": 70,
-      "drivers": "Volumen 1.8× + Spanne 13.2% + News-KI 12/30: Inducement grants indicate potential dilution and insider confidence issues; modest retail enthusiasm lacks short intere + Earnings in 25d + FINRA Short-Vol 63%",
+      "drivers": "Volumen 1.8× + Spanne 13.2% + Earnings in 25d + FINRA Short-Vol 63%",
       "price": 10.18,
       "chg_pct": 0.0,
       "rvol_4d": 1.83,
@@ -88,8 +88,8 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 1,
-      "ki_sentiment_source": "llm",
+      "active_triggers": 0,
+      "ki_sentiment_source": "keyword",
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": null,
@@ -119,7 +119,7 @@
     "FRMM": {
       "score": 48,
       "confidence": 70,
-      "drivers": "Spanne 5.8% + News: acquisition, short interest + Earnings in 25d",
+      "drivers": "Spanne 5.8% + News: short interest, acquisition + Earnings in 25d",
       "price": 5.68,
       "chg_pct": -0.0,
       "rvol_4d": 0.22,
@@ -159,9 +159,9 @@
       "uoa_cp_ratio": null
     },
     "IONQ": {
-      "score": 18,
-      "confidence": 33,
-      "drivers": "Spanne 7.5% + Earnings in 17d",
+      "score": 30,
+      "confidence": 70,
+      "drivers": "Spanne 7.5% + News-KI 12/30: Positive quantum computing sector sentiment, but no specific IONQ catalyst, insider activity, or short squeeze indicator + Earnings in 17d",
       "price": 34.78,
       "chg_pct": -0.0,
       "rvol_4d": 1.11,
@@ -172,12 +172,12 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 0,
-      "ki_sentiment_source": "keyword",
+      "active_triggers": 1,
+      "ki_sentiment_source": "llm",
       "uoa_score": 0,
       "uoa_drivers": [],
-      "uoa_atm_ratio": 2.0432136335970785,
-      "uoa_cp_ratio": 1.8411330049261083
+      "uoa_atm_ratio": 2.1380778588807785,
+      "uoa_cp_ratio": 0.8423607280750138
     },
     "LENZ": {
       "score": 33,
@@ -224,7 +224,7 @@
     "REPL": {
       "score": 43,
       "confidence": 70,
-      "drivers": "Spanne 10.7% + News: catalyst + Earnings in 18d + UOA Call/Put 4.1×",
+      "drivers": "Spanne 10.7% + News: catalyst + Earnings in 18d + UOA Call/Put 3.5×",
       "price": 10.23,
       "chg_pct": -0.0,
       "rvol_4d": 1.32,
@@ -239,10 +239,10 @@
       "ki_sentiment_source": "keyword",
       "uoa_score": 10,
       "uoa_drivers": [
-        "UOA Call/Put 4.1×"
+        "UOA Call/Put 3.5×"
       ],
       "uoa_atm_ratio": 2.3333333333333335,
-      "uoa_cp_ratio": 4.148148148148148
+      "uoa_cp_ratio": 3.5
     },
     "SG": {
       "score": 33,
@@ -266,9 +266,9 @@
       "uoa_cp_ratio": 1.9463087248322148
     },
     "TNXP": {
-      "score": 26,
+      "score": 33,
       "confidence": 70,
-      "drivers": "Spanne 10.8% + News-KI 8/30: Positive clinical and commercial developments, but small-cap biotech with limited short interest indicators and no immed + Earnings in 22d",
+      "drivers": "Spanne 10.8% + News: catalyst + Earnings in 22d",
       "price": 12.43,
       "chg_pct": 0.0,
       "rvol_4d": 1.14,
@@ -279,8 +279,8 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 0,
-      "ki_sentiment_source": "llm",
+      "active_triggers": 1,
+      "ki_sentiment_source": "keyword",
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": null,
@@ -289,7 +289,7 @@
     "WOLF": {
       "score": 55,
       "confidence": 70,
-      "drivers": "Volumen 1.5× + Spanne 8.8% + SEC Form 4 + UOA Call-Vol/OI 10.8× ATM",
+      "drivers": "Volumen 1.5× + Spanne 8.8% + SEC Form 4 + UOA Call-Vol/OI 3.6× ATM + UOA Call/Put 2.1×",
       "price": 29.89,
       "chg_pct": -0.0,
       "rvol_4d": 1.52,
@@ -304,10 +304,11 @@
       "ki_sentiment_source": "keyword",
       "uoa_score": 20,
       "uoa_drivers": [
-        "UOA Call-Vol/OI 10.8× ATM"
+        "UOA Call-Vol/OI 3.6× ATM",
+        "UOA Call/Put 2.1×"
       ],
-      "uoa_atm_ratio": 10.75,
-      "uoa_cp_ratio": 1.9340836012861737
+      "uoa_atm_ratio": 3.5869565217391304,
+      "uoa_cp_ratio": 2.082317073170732
     },
     "ZBIO": {
       "score": 18,
