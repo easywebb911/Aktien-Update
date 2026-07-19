@@ -1,0 +1,189 @@
+name: WEGWERF Ownership-6g Diagnose-Probe (read-only)
+
+# ─────────────────────────────────────────────────────────────────────────
+# TEMPORÄRER WEGWERF-WORKFLOW — nach dem Lauf sofort wieder entfernen.
+#
+# Zweck (Handover §6g Institutional-Ownership-Dämpfer, VOR-Bau-Diagnose):
+#   FRAGE 1 — wie hoch/aktuell ist Institutional Ownership bei ECHTEN
+#     Squeeze-Kandidaten? (yfinance institutionHeldPercentOutstanding = LEVEL,
+#     institutional_holders 'Date Reported' = STALENESS in Tagen). +Size-
+#     Kontext (marketCap/sharesOutstanding) für die Redundanz-Frage.
+#   FRAGE 2 — liefern FRISCHE EDGAR-Quellen genug, um 45-Tage-13F-Latenz zu
+#     umgehen? Form-4-Rate (90 d) + SC 13D/13G-Präsenz & acceptance-Frische.
+#
+#   NICHT gemessen (ehrlich): quartals-Δ-Sprunghaftigkeit der Ownership —
+#   braucht schwere Roh-13F-Aggregation (alle Manager pro CUSIP pro Quartal),
+#   nicht lightweight-probe-tauglich. Diese Probe liefert LEVEL+STALENESS+
+#   FRISCHE als entscheidungsrelevante Proxys.
+#
+# READ-ONLY: nur GET gegen yfinance (Yahoo) + SEC EDGAR keyless. KEIN Repo-
+# Write, KEINE Tool-Score-Pfade, permissions: contents: read, dispatch-only.
+# ─────────────────────────────────────────────────────────────────────────
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        shell: bash --noprofile --norc {0}
+
+    env:
+      EDGAR_UA: ${{ secrets.EDGAR_USER_AGENT }}
+
+    steps:
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install deps
+        run: pip install --quiet yfinance requests pandas
+
+      - name: Write analyzer
+        run: |
+          cat > /tmp/own.py <<'PY'
+          import os, re, sys, json, time, statistics
+          import xml.etree.ElementTree as ET
+          from datetime import datetime, timezone
+
+          import requests
+          import yfinance as yf
+
+          UA = os.environ.get("EDGAR_UA") or "Squeeze Report contact@example.com"
+          NOW = datetime.now(timezone.utc)
+          TICKERS = sys.argv[1:]
+
+          def edgar_dates(ticker, form):
+              """browse-edgar Atom → Liste der <updated>-datetimes (aware)."""
+              url = ("https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany"
+                     f"&CIK={ticker}&type={form}&dateb=&owner=include&count=40&output=atom")
+              try:
+                  r = requests.get(url, headers={"User-Agent": UA}, timeout=15)
+                  if r.status_code != 200:
+                      return None
+                  text = re.sub(r' xmlns="[^\"]+"', "", r.text, count=1)
+                  root = ET.fromstring(text)
+              except Exception:
+                  return None
+              out = []
+              for e in root.findall("entry"):
+                  u = (e.findtext("updated") or "").strip()
+                  try:
+                      dt = datetime.fromisoformat(u.replace("Z", "+00:00"))
+                      if dt.tzinfo is None:
+                          dt = dt.replace(tzinfo=timezone.utc)
+                      out.append(dt)
+                  except Exception:
+                      pass
+              return out
+
+          def days_ago(dt):
+              return round((NOW - dt).total_seconds() / 86400.0, 1)
+
+          rows = []
+          for t in TICKERS:
+              row = {"ticker": t}
+              # ── yfinance ──
+              try:
+                  tk = yf.Ticker(t)
+                  info = tk.get_info() or {}
+                  row["inst_pct_out"] = info.get("institutionHeldPercentOutstanding")
+                  row["float_shares"] = info.get("floatShares")
+                  row["shares_out"] = info.get("sharesOutstanding")
+                  row["market_cap"] = info.get("marketCap")
+                  row["short_pct_float"] = info.get("shortPercentOfFloat")
+              except Exception as exc:
+                  row["yf_info_error"] = str(exc)[:120]
+              try:
+                  ih = tk.institutional_holders
+                  if ih is not None and not ih.empty:
+                      row["n_institutions_reported"] = int(len(ih))
+                      dcol = next((c for c in ih.columns if "Date" in str(c)), None)
+                      if dcol:
+                          import pandas as pd
+                          ds = pd.to_datetime(ih[dcol], errors="coerce").dropna()
+                          if len(ds):
+                              newest = ds.max().to_pydatetime()
+                              oldest = ds.min().to_pydatetime()
+                              if newest.tzinfo is None:
+                                  newest = newest.replace(tzinfo=timezone.utc)
+                              if oldest.tzinfo is None:
+                                  oldest = oldest.replace(tzinfo=timezone.utc)
+                              row["inst_report_newest"] = newest.date().isoformat()
+                              row["inst_report_staleness_days"] = days_ago(newest)
+                              row["inst_report_oldest"] = oldest.date().isoformat()
+                      pcol = next((c for c in ih.columns if "Out" in str(c) or "pct" in str(c).lower()), None)
+                      if pcol:
+                          try:
+                              row["top_holders_pct_sum"] = round(float(ih[pcol].sum()), 4)
+                          except Exception:
+                              pass
+                  else:
+                      row["n_institutions_reported"] = 0
+              except Exception as exc:
+                  row["inst_holders_error"] = str(exc)[:120]
+              # ── EDGAR Form 4 (Frist ~2 Tage) ──
+              f4 = edgar_dates(t, "4")
+              if f4 is None:
+                  row["form4_status"] = "fetch_failed"
+              else:
+                  in90 = [d for d in f4 if days_ago(d) <= 90]
+                  row["form4_count_90d"] = len(in90)
+                  row["form4_newest_days_ago"] = min((days_ago(d) for d in f4), default=None)
+              time.sleep(0.4)
+              # ── EDGAR SC 13D ──
+              d13 = edgar_dates(t, "SC 13D")
+              row["sc13d_count"] = (None if d13 is None else len(d13))
+              row["sc13d_newest_days_ago"] = (None if not d13 else min(days_ago(d) for d in d13))
+              time.sleep(0.4)
+              # ── EDGAR SC 13G ──
+              g13 = edgar_dates(t, "SC 13G")
+              row["sc13g_count"] = (None if g13 is None else len(g13))
+              row["sc13g_newest_days_ago"] = (None if not g13 else min(days_ago(d) for d in g13))
+              time.sleep(0.4)
+              rows.append(row)
+              print(json.dumps(row, ensure_ascii=False))
+
+          # ── Aggregate ──
+          def dist(vals):
+              vals = [v for v in vals if isinstance(v, (int, float))]
+              if not vals:
+                  return None
+              vals.sort()
+              return {"n": len(vals), "min": round(min(vals), 3),
+                      "median": round(statistics.median(vals), 3),
+                      "max": round(max(vals), 3)}
+
+          print("\n================ AGGREGAT ================")
+          inst = [r.get("inst_pct_out") for r in rows]
+          inst_f = [v for v in inst if isinstance(v, (int, float))]
+          print("Institutional-%-Out Verteilung:", dist(inst))
+          if inst_f:
+              print("  < 0.10 (10%):", sum(1 for v in inst_f if v < 0.10), "/", len(inst_f))
+              print("  < 0.30 (30%):", sum(1 for v in inst_f if v < 0.30), "/", len(inst_f))
+              print("  >= 0.50 (50%):", sum(1 for v in inst_f if v >= 0.50), "/", len(inst_f))
+          print("Staleness-Tage (institutional_holders newest):",
+                dist([r.get("inst_report_staleness_days") for r in rows]))
+          print("Form-4 count 90d:", dist([r.get("form4_count_90d") for r in rows]))
+          print("Form-4 newest days-ago:", dist([r.get("form4_newest_days_ago") for r in rows]))
+          print("SC 13D count:", dist([r.get("sc13d_count") for r in rows]))
+          print("SC 13G count:", dist([r.get("sc13g_count") for r in rows]))
+          print("market_cap Verteilung (USD):", dist([r.get("market_cap") for r in rows]))
+          n_with_13dg = sum(1 for r in rows
+                            if (r.get("sc13d_count") or 0) + (r.get("sc13g_count") or 0) > 0)
+          print(f"Kandidaten mit >=1 SC 13D/G: {n_with_13dg}/{len(rows)}")
+          PY
+          python3 -c "import ast; ast.parse(open('/tmp/own.py').read()); print('analyzer OK')"
+
+      - name: Run probe (real squeeze candidates from backtest_history)
+        run: |
+          python3 /tmp/own.py \
+            ABEO BMEA CCCC OCGN RXRX CRVS FDMT CGEM BHVN INDI \
+            HUMA UPXI CRDF QCLS NMAX
