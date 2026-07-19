@@ -228,6 +228,23 @@ def test_end_to_end():
     _check("F8 leere Ticker-Liste → leeres Dict",
            m.collect_material_8k_events([], now_utc=NOW) == {})
 
+    # F9: HARTER Gesamt-Cap am Ticker-Loop-Kopf (Guardian-Fix). Deterministisch
+    # via injizierter monotonic-Uhr: erster Call (deadline-Berechnung) = 0,
+    # danach 100 → Budget (1 s) sofort überschritten → alle Ticker budget_skip,
+    # KEIN collect_for_ticker gestartet.
+    seq = iter([0.0] + [100.0] * 50)
+    orig_mono = m.time.monotonic
+    m.time.monotonic = lambda: next(seq)
+    try:
+        res_b = m.collect_material_8k_events(
+            ["LENZ", "AAPL"], now_utc=NOW, get_json=gj, get_text=gt,
+            run_budget_s=1.0, sleep_s=0, core_terms=CORE)
+    finally:
+        m.time.monotonic = orig_mono
+    _check("F9 Gesamt-Budget erschöpft → alle Ticker budget_skip (kein Stau)",
+           all(res_b[t]["reason"] == "budget_skip" and res_b[t]["events"] == []
+               for t in ("LENZ", "AAPL")), res_b)
+
 
 # ── (G) Wrapper-Schema + S10-Disziplin ───────────────────────────────────────
 def test_s10_and_schema():

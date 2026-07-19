@@ -816,8 +816,11 @@ MATERIAL_8K_LOOKBACK_DAYS    = 5
 # → erste N nach acceptance_datetime + truncated=True + Log. Kein unbegrenztes
 # Speichern; feuert real praktisch nie (reines Bloat-Schutz-Ventil).
 MATERIAL_8K_CAP_N            = 8
-# Zeitbudget/Timeouts (hart, nicht „grob"). Bei Budget-Überschreitung:
-# Skip-mit-Log (matched_terms-Scan wird übersprungen, Rohdaten bleiben).
+# Zeitbudget/Timeouts (hart, nicht „grob"). Bei Budget-Überschreitung
+# zweistufig Skip-mit-Log: (1) am Ticker-Loop-Kopf → restliche Ticker gar
+# nicht erst gestartet (budget_skip, leer) → Gesamt-Wall-Clock ~run_budget_s
+# + EIN in-flight Ticker; (2) im matched_terms-Doc-Scan → Scan übersprungen,
+# Rohdaten (accession/item_codes/acceptance) bleiben erhalten.
 MATERIAL_8K_RUN_BUDGET_S     = 45.0
 MATERIAL_8K_HTTP_TIMEOUT     = 10
 MATERIAL_8K_MAX_DOCS_PER_FILING = 3   # primaryDocument + bis zu 2 EX-99*-Exhibits

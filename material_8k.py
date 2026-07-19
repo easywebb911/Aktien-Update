@@ -376,6 +376,17 @@ def collect_material_8k_events(tickers, *, now_utc=None, ua=None,
 
     deadline = (time.monotonic() + run_budget_s) if run_budget_s else None
     for t in tickers:
+        # HARTER Gesamt-Cap (Guardian-Fix): vor JEDEM neuen Ticker prüfen, ob
+        # das Run-Budget schon erschöpft ist → restliche Ticker werden gar
+        # nicht erst gestartet (budget_skip, leer). Damit ist der Gesamt-Wall-
+        # Clock auf ~run_budget_s + EIN in-flight collect_for_ticker begrenzt
+        # (statt N_tickers × HTTP_TIMEOUT bei EDGAR-Slowdown). Skip-mit-Log,
+        # kein Stau.
+        if deadline is not None and time.monotonic() > deadline:
+            log.warning("material_8k: Gesamt-Zeitbudget erschöpft — Ticker %s "
+                        "(und ggf. weitere) übersprungen (budget_skip)", t)
+            result[t] = _empty_wrapper(reason="budget_skip")
+            continue
         try:
             result[t] = collect_for_ticker(
                 t, now_utc=now_utc, cik_index=cik_index, ua=ua,

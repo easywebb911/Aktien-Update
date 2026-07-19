@@ -992,10 +992,15 @@ def _append_backtest_entries(top10: list[dict], report_date: str,
     _now_dt = datetime.now(timezone.utc)
 
     # Materielle-8-K-Sammelfeld (§6c, forward-only, KEIN Score-Effekt). EINMAL
-    # pro Run für die tatsächlich anzuhängenden Ticker (idempotent: bei Re-Run
-    # ohne neue Ticker KEIN EDGAR-Call). now_utc = _now_dt = Report-Zeitpunkt
-    # → Point-in-time-Obergrenze (acceptance_datetime <= _now_dt). Fail-soft:
-    # bei Ausfall bleibt der Wrapper leer (collected=False), kein Crash.
+    # pro Run nur für Ticker OHNE bereits persistiertes (ticker, report_date).
+    # Idempotenz-Präzisierung (Guardian): der Filter greift auf denselben
+    # existing_keys-Schlüssel wie der Append-Loop → bereits persistierte Paare
+    # lösen KEINEN EDGAR-Call aus. Ein Ticker, der am per-entry Vintage-Gate
+    # hängt (noch NICHT persistiert), wird pro Run erneut gesammelt — bounded
+    # und fail-soft, und im postclose-Pfad (einziger Aufrufer) praktisch selten
+    # (Run-Level-Gate now_et>=16:00 ET ist erfüllt, bar_date=report_date). now_utc
+    # = _now_dt = Report-Zeitpunkt → Point-in-time-Obergrenze (acceptance <=
+    # _now_dt). Fail-soft: bei Ausfall bleibt der Wrapper leer (collected=False).
     material_8k_by_ticker: dict[str, dict] = {}
     if MATERIAL_8K_ENABLED:
         _m8k_tickers = [s["ticker"] for s in top10
