@@ -14752,6 +14752,7 @@ _SHELL_HTML = """<!doctype html>
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Squeeze Report">
+<link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
 <title>Squeeze Report</title>
 <script>location.replace('app.html?v=' + Date.now());</script>
 <noscript><meta http-equiv="refresh" content="0; url=app.html"></noscript>
