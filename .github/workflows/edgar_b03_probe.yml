@@ -1,0 +1,154 @@
+name: WEGWERF EDGAR B0-3 Probe (8-K window density, read-only)
+
+# ─────────────────────────────────────────────────────────────────────────
+# TEMPORÄRER WEGWERF-WORKFLOW — nach dem Lauf sofort wieder entfernen.
+#
+# Zweck (Schritt-B0-3, §6c FDA-/materielle-8-K-Sammelfeld):
+#   Belegt EMPIRISCH — nicht geraten — wie dicht 8-K-Filings eines
+#   Vielschreibers (TNXP, 517 8-K in recent) in ein enges Fenster fallen,
+#   damit die harte Obergrenze pro Ticker/Lauf (Skip-mit-Log) datenbelegt
+#   festgelegt werden kann.
+#
+#   Zusätzlich (Schritt-B0-2-Stütze): Item-Code-Häufigkeitsverteilung über
+#   TNXP + die realen FDA-Tickers (REPL/LENZ/ZBIO/ANAB), damit die
+#   qualifizierende Item-Liste belegt statt geraten ist.
+#
+# READ-ONLY: nur GET gegen SEC EDGAR keyless (data.sec.gov + company_tickers).
+# KEINE Repo-Writes, KEINE Tool-Code-Pfade, permissions: contents: read.
+# Trigger ausschließlich workflow_dispatch (manuell / API).
+# ─────────────────────────────────────────────────────────────────────────
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    defaults:
+      run:
+        shell: bash --noprofile --norc {0}
+
+    env:
+      EDGAR_UA: ${{ secrets.EDGAR_USER_AGENT }}
+
+    steps:
+      - name: UA + egress sanity
+        run: |
+          UA="${EDGAR_UA:-Squeeze Report contact@example.com}"
+          echo "EDGAR_UA gesetzt? $([ -n "$EDGAR_UA" ] && echo JA || echo 'NEIN (Fallback)')"
+          echo "Runner IP: $(curl -sS --max-time 5 https://api.ipify.org || echo '?')"
+          echo "python3: $(python3 --version 2>&1)"
+
+      - name: Fetch company_tickers.json (ticker -> CIK)
+        run: |
+          UA="${EDGAR_UA:-Squeeze Report contact@example.com}"
+          curl -sS --max-time 30 -H "User-Agent: $UA" \
+            https://www.sec.gov/files/company_tickers.json -o /tmp/ct.json
+          echo "company_tickers.json bytes: $(wc -c < /tmp/ct.json)"
+          echo "erste 200 chars:"; head -c 200 /tmp/ct.json; echo
+
+      - name: Write analyzer
+        run: |
+          cat > /tmp/analyze.py <<'PY'
+          import json, sys
+          from datetime import datetime
+          from collections import Counter
+
+          ticker, path = sys.argv[1], sys.argv[2]
+          d = json.load(open(path))
+          rec = d.get("filings", {}).get("recent", {})
+          forms = rec.get("form", [])
+          items = rec.get("items", [])
+          accs  = rec.get("acceptanceDateTime", [])
+          n = len(forms)
+
+          idx8k = [i for i in range(n) if str(forms[i]).startswith("8-K")]
+          print(f"  recent-Filings total: {n} | davon 8-K: {len(idx8k)}")
+
+          def parse(s):
+              if not s:
+                  return None
+              try:
+                  return datetime.fromisoformat(str(s).replace("Z", "+00:00"))
+              except Exception:
+                  return None
+
+          dts = [(parse(accs[i]), i) for i in idx8k if i < len(accs)]
+          dts = [(t, i) for (t, i) in dts if t is not None]
+          dts.sort(key=lambda x: x[0])
+          if dts:
+              print(f"  8-K acceptance-Spanne: {dts[0][0].date()} .. {dts[-1][0].date()}")
+
+          itemct = Counter()
+          for i in idx8k:
+              raw = str(items[i]) if i < len(items) else ""
+              for code in [c.strip() for c in raw.split(",") if c.strip()]:
+                  itemct[code] += 1
+          print("  Item-Code-Haeufigkeit (8-K, top 15):")
+          for code, c in sorted(itemct.items(), key=lambda x: (-x[1], x[0]))[:15]:
+              print(f"      {code:8s} : {c}")
+
+          epochs = [t.timestamp() for (t, i) in dts]
+
+          def max_in_window(win_days):
+              W = win_days * 86400.0
+              best, best_lo, best_hi = 0, None, None
+              lo = 0
+              for hi in range(len(epochs)):
+                  while epochs[hi] - epochs[lo] > W:
+                      lo += 1
+                  cnt = hi - lo + 1
+                  if cnt > best:
+                      best, best_lo, best_hi = cnt, lo, hi
+              lbl = ""
+              if best_lo is not None:
+                  a = dts[best_lo][0].date(); b = dts[best_hi][0].date()
+                  lbl = f"  (dichtestes Fenster {a} .. {b})"
+              return best, lbl
+
+          print("  MAX 8-K in rollierendem Fenster (Vielschreiber-Obergrenze-Beleg):")
+          for w in (2, 3, 4):
+              m, lbl = max_in_window(w)
+              print(f"      {w} Kalendertage: {m}{lbl}")
+
+          byday = Counter(t.date().isoformat() for (t, i) in dts)
+          multi = {k: v for k, v in byday.items() if v >= 2}
+          print(f"  Kalendertage mit >=2 8-K: {len(multi)} von {len(byday)} Tagen mit 8-K")
+          if multi:
+              tops = sorted(multi.items(), key=lambda x: -x[1])[:5]
+              print("      dichteste Einzeltage:", ", ".join(f"{k}={v}" for k, v in tops))
+          PY
+          echo "analyzer bytes: $(wc -c < /tmp/analyze.py)"
+          python3 -c "import ast; ast.parse(open('/tmp/analyze.py').read()); print('analyze.py compiliert OK')"
+
+      - name: Probe — 8-K window density + item distribution
+        run: |
+          UA="${EDGAR_UA:-Squeeze Report contact@example.com}"
+          mkdir -p /tmp/sub
+          for T in TNXP REPL LENZ ZBIO ANAB; do
+            echo "════════════════════════════════════════════════════════════"
+            echo "TICKER $T"
+            CIK=$(jq -r --arg t "$T" '[.[] | select(.ticker==$t)][0].cik_str // empty' /tmp/ct.json)
+            if [ -z "$CIK" ]; then
+              echo "  ⚠ keine CIK in company_tickers.json — SKIP (fail-soft-Beleg)"
+              continue
+            fi
+            CIK10=$(printf 'CIK%010d' "$CIK")
+            echo "  CIK=$CIK -> $CIK10"
+            HTTP=$(curl -sS --max-time 30 -H "User-Agent: $UA" \
+              -o "/tmp/sub/$T.json" -w "%{http_code}" \
+              "https://data.sec.gov/submissions/${CIK10}.json")
+            echo "  submissions HTTP=$HTTP  bytes=$(wc -c < /tmp/sub/$T.json 2>/dev/null || echo 0)"
+            if [ "$HTTP" != "200" ]; then
+              echo "  ⚠ non-200 — SKIP"
+              continue
+            fi
+            python3 /tmp/analyze.py "$T" "/tmp/sub/$T.json"
+            sleep 0.8
+          done
+          echo "════════════════════════════════════════════════════════════"
+          echo "FERTIG."
