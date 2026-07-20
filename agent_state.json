@@ -78,35 +78,11 @@
     "anomaly_gap_combo_SOC": "2026-07-02T11:34:24.300811+02:00",
     "anomaly_monster_backup_SOC": "2026-07-02T20:02:41.415261+02:00",
     "anomaly_conviction_high_SOC": "2026-07-02T11:34:24.445058+02:00",
-    "exit_FRMM": "2026-07-20T11:34:39.291859+02:00",
+    "exit_FRMM": "2026-07-20T19:04:18.314702+02:00",
     "anomaly_conviction_high_NGNE": "2026-07-09T12:04:16.015071+02:00",
-    "exit_LENZ": "2026-07-20T11:34:39.425547+02:00"
+    "exit_LENZ": "2026-07-20T19:04:18.796166+02:00"
   },
   "push_history": [
-    {
-      "ts": "2026-07-10T22:43:24.385245+02:00",
-      "ticker": "IONQ",
-      "kind": "exit_p2",
-      "severity": "warning",
-      "trigger": null,
-      "body": "⚠️ Exit-Warnung IONQ: pressure 63/100",
-      "success": true,
-      "suppressed": false,
-      "suppress_reason": null,
-      "conviction_score": null
-    },
-    {
-      "ts": "2026-07-10T22:43:24.436618+02:00",
-      "ticker": "AI",
-      "kind": "exit_p2",
-      "severity": "warning",
-      "trigger": null,
-      "body": "⚠️ Exit-Warnung AI: pressure 63/100",
-      "success": true,
-      "suppressed": false,
-      "suppress_reason": null,
-      "conviction_score": null
-    },
     {
       "ts": "2026-07-11T00:16:26.207320+02:00",
       "ticker": "BBW",
@@ -1282,6 +1258,30 @@
       "suppressed": true,
       "suppress_reason": "conviction_below_threshold",
       "conviction_score": 35
+    },
+    {
+      "ts": "2026-07-20T19:04:18.314670+02:00",
+      "ticker": "FRMM",
+      "kind": "exit_p1",
+      "severity": "default",
+      "trigger": "exit_alert",
+      "body": "FRMM 📉 Exit 65 | -10% | Trailing-Stop −12.8% vom Hoch",
+      "success": true,
+      "suppressed": false,
+      "suppress_reason": null,
+      "conviction_score": null
+    },
+    {
+      "ts": "2026-07-20T19:04:18.796133+02:00",
+      "ticker": "LENZ",
+      "kind": "exit_p1",
+      "severity": "default",
+      "trigger": "exit_alert",
+      "body": "LENZ 📉 Exit 70 | -17% | Trailing-Stop −19.9% vom Hoch",
+      "success": true,
+      "suppressed": false,
+      "suppress_reason": null,
+      "conviction_score": null
     }
   ],
   "prev_conviction_scores": {
