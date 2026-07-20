@@ -1,10 +1,10 @@
 {
-  "updated": "2026-07-20T22:41:11.045424+02:00",
+  "updated": "2026-07-21T00:13:49.530268+02:00",
   "run_info": {
     "tickers_checked": 15,
     "signals_active": 1,
     "alerts_sent": 0,
-    "elapsed_s": 28.6,
+    "elapsed_s": 15.1,
     "market_phase": "After-Hours"
   },
   "signals": {
@@ -34,7 +34,7 @@
     "AMC": {
       "score": 100,
       "confidence": 70,
-      "drivers": "Earnings in 0 Tagen (20.07.2026) + Volumen 5.0× + 🚀 Massives Volumen 5.0×+ + Spanne 17.3% + SEC 8-K + Earnings in 0d + 3/4 Trigger",
+      "drivers": "Earnings in 0 Tagen (20.07.2026) + Volumen 5.0× + 🚀 Massives Volumen 5.0×+ + Spanne 17.3% + SEC 8-K + News: earnings beat + Earnings in 0d + 3/4 Trigger",
       "price": 2.46,
       "chg_pct": 0.0,
       "rvol_4d": 5.03,
@@ -54,12 +54,12 @@
     },
     "CBRL": {
       "score": 30,
-      "confidence": 17,
-      "drivers": "SEC 8-K + News: acquisition",
+      "confidence": 33,
+      "drivers": "Volumen 1.5× + SEC 8-K",
       "price": 53.41,
       "chg_pct": -0.0,
-      "rvol_4d": 1.39,
-      "rvol_20d": 1.08,
+      "rvol_4d": 1.5,
+      "rvol_20d": 1.17,
       "earnings": null,
       "fda_date": null,
       "upcoming_event": null,
@@ -116,9 +116,9 @@
       "uoa_cp_ratio": null
     },
     "GRPN": {
-      "score": 20,
+      "score": 23,
       "confidence": 33,
-      "drivers": "News-KI 12/30: Mixed signals with positive analyst sentiment on cost cuts offset by underperformance relative to market; no significant + Earnings in 16d",
+      "drivers": "News: short interest + Earnings in 16d",
       "price": 27.95,
       "chg_pct": 0.0,
       "rvol_4d": 0.82,
@@ -130,7 +130,7 @@
       "stocktwits": null,
       "combo_mult": 1.0,
       "active_triggers": 1,
-      "ki_sentiment_source": "llm",
+      "ki_sentiment_source": "keyword",
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": null,
@@ -142,8 +142,8 @@
       "drivers": "Spanne 6.0% + Earnings in 16d",
       "price": 34.24,
       "chg_pct": 0.0,
-      "rvol_4d": 0.69,
-      "rvol_20d": 0.67,
+      "rvol_4d": 0.76,
+      "rvol_20d": 0.74,
       "earnings": "in 16 Tagen (05.08.2026)",
       "fda_date": null,
       "upcoming_event": null,
@@ -158,9 +158,9 @@
       "uoa_cp_ratio": 0.9676884838442419
     },
     "KUST": {
-      "score": 25,
+      "score": 18,
       "confidence": 33,
-      "drivers": "Spanne 24.1% + News: contract",
+      "drivers": "Spanne 24.1% + News-KI 8/30: Positive business developments (asset acquisition, attendance records) lack short-squeeze indicators like high short int",
       "price": 1.27,
       "chg_pct": -0.0,
       "rvol_4d": 0.04,
@@ -171,17 +171,17 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 1,
-      "ki_sentiment_source": "keyword",
+      "active_triggers": 0,
+      "ki_sentiment_source": "llm",
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": null,
       "uoa_cp_ratio": null
     },
     "LENZ": {
-      "score": 33,
+      "score": 48,
       "confidence": 70,
-      "drivers": "Spanne 6.0% + News: short interest + Earnings in 9d",
+      "drivers": "Spanne 6.0% + News: short interest + Earnings in 9d + FINRA Short-Vol 68%",
       "price": 4.96,
       "chg_pct": 0.0,
       "rvol_4d": 0.88,
@@ -205,8 +205,8 @@
       "drivers": "Spanne 5.6% + News: partnership + Earnings in 18d",
       "price": 16.38,
       "chg_pct": -0.0,
-      "rvol_4d": 0.65,
-      "rvol_20d": 0.37,
+      "rvol_4d": 0.83,
+      "rvol_20d": 0.47,
       "earnings": "in 18 Tagen (07.08.2026)",
       "fda_date": null,
       "upcoming_event": null,
@@ -223,7 +223,7 @@
     "PDYN": {
       "score": 38,
       "confidence": 33,
-      "drivers": "News: contract, revenue beat + Earnings in 16d",
+      "drivers": "News: partnership, revenue beat + Earnings in 16d",
       "price": 5.01,
       "chg_pct": 0.0,
       "rvol_4d": 0.71,
@@ -263,9 +263,9 @@
       "uoa_cp_ratio": 1.7816901408450705
     },
     "TTGT": {
-      "score": 33,
+      "score": 58,
       "confidence": 70,
-      "drivers": "Volumen 1.6× + Spanne 12.4% + Earnings in 17d",
+      "drivers": "Volumen 1.6× + Spanne 12.4% + Earnings in 17d + FINRA Short-Vol 100%",
       "price": 3.91,
       "chg_pct": 0.0,
       "rvol_4d": 1.64,
@@ -305,9 +305,9 @@
       "uoa_cp_ratio": 0.790414878397711
     },
     "ZBIO": {
-      "score": 18,
+      "score": 43,
       "confidence": 33,
-      "drivers": "Spanne 8.8% + Earnings in 23d",
+      "drivers": "Spanne 8.8% + Earnings in 23d + FINRA Short-Vol 74%",
       "price": 30.7,
       "chg_pct": 0.0,
       "rvol_4d": 1.19,
