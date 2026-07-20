@@ -1,5 +1,5 @@
 {
-  "last_run": "2026-07-20T02:12:33.353562+02:00",
+  "last_run": "2026-07-20T06:05:01.329493+02:00",
   "cooldowns": {
     "anomaly_score_jump_XRX": "2026-05-03T18:47:15.315486+02:00",
     "anomaly_uoa_extreme_TDOC": "2026-05-04T13:47:00.365949+02:00",
@@ -83,102 +83,6 @@
     "exit_LENZ": "2026-07-20T00:04:39.590387+02:00"
   },
   "push_history": [
-    {
-      "ts": "2026-07-10T11:54:57.380676+02:00",
-      "ticker": "IONQ",
-      "kind": "exit_p2",
-      "severity": "trigger",
-      "trigger": "trend_break",
-      "body": "🔻 Exit-Signal IONQ: trend_break crit ({'ma21': 52.1434, 'price': 44.77, 'drop_pct': 14.14})",
-      "success": true,
-      "suppressed": false,
-      "suppress_reason": null,
-      "conviction_score": null
-    },
-    {
-      "ts": "2026-07-10T11:54:57.630625+02:00",
-      "ticker": "PDYN",
-      "kind": "exit_p2",
-      "severity": "trigger",
-      "trigger": "trend_break",
-      "body": "🔻 Exit-Signal PDYN: trend_break crit ({'ma21': 6.1238, 'price': 5.46, 'drop_pct': 10.84})",
-      "success": true,
-      "suppressed": false,
-      "suppress_reason": null,
-      "conviction_score": null
-    },
-    {
-      "ts": "2026-07-10T11:54:57.885029+02:00",
-      "ticker": "AI",
-      "kind": "exit_p2",
-      "severity": "trigger",
-      "trigger": "trend_break",
-      "body": "🔻 Exit-Signal AI: trend_break crit ({'ma21': 9.4759, 'price': 9.01, 'drop_pct': 4.92})",
-      "success": true,
-      "suppressed": false,
-      "suppress_reason": null,
-      "conviction_score": null
-    },
-    {
-      "ts": "2026-07-10T13:19:40.131080+02:00",
-      "ticker": "JACK",
-      "kind": "anomaly",
-      "severity": "medium",
-      "trigger": "score_jump",
-      "body": "JACK 🚀 Setup 76 ↑ (gestern 58) | Spanne 8.5% + News: short squeeze, covering + Earnings in 26…",
-      "success": false,
-      "suppressed": true,
-      "suppress_reason": "conviction_below_threshold",
-      "conviction_score": 71
-    },
-    {
-      "ts": "2026-07-10T17:01:47.360790+02:00",
-      "ticker": "JACK",
-      "kind": "anomaly",
-      "severity": "medium",
-      "trigger": "score_jump",
-      "body": "JACK 🚀 Setup 76 ↑ (gestern 58) | Spanne 7.6% + News: short squeeze, squeeze + Earnings in 26d…",
-      "success": false,
-      "suppressed": true,
-      "suppress_reason": "conviction_below_threshold",
-      "conviction_score": 71
-    },
-    {
-      "ts": "2026-07-10T19:08:28.030375+02:00",
-      "ticker": "JACK",
-      "kind": "anomaly",
-      "severity": "medium",
-      "trigger": "score_jump",
-      "body": "JACK 🚀 Setup 76 ↑ (gestern 58) | Spanne 7.6% + News: breakout, short squeeze + Earnings in 26…",
-      "success": false,
-      "suppressed": true,
-      "suppress_reason": "conviction_below_threshold",
-      "conviction_score": 71
-    },
-    {
-      "ts": "2026-07-10T19:08:29.917194+02:00",
-      "ticker": "LENZ",
-      "kind": "exit_p2",
-      "severity": "trigger",
-      "trigger": "trend_break",
-      "body": "🔻 Exit-Signal LENZ: trend_break crit ({'ma21': 6.16, 'price': 5.79, 'drop_pct': 6.01})",
-      "success": true,
-      "suppressed": false,
-      "suppress_reason": null,
-      "conviction_score": null
-    },
-    {
-      "ts": "2026-07-10T20:45:48.921000+02:00",
-      "ticker": "JACK",
-      "kind": "anomaly",
-      "severity": "medium",
-      "trigger": "score_jump",
-      "body": "JACK 🚀 Setup 76 ↑ (gestern 58) | Spanne 7.6% + News: covering, short interest + Earnings in 2…",
-      "success": false,
-      "suppressed": true,
-      "suppress_reason": "conviction_below_threshold",
-      "conviction_score": 71
-    },
     {
       "ts": "2026-07-10T21:09:22.486553+02:00",
       "ticker": "FRMM",
@@ -1282,6 +1186,102 @@
       "suppressed": false,
       "suppress_reason": null,
       "conviction_score": null
+    },
+    {
+      "ts": "2026-07-20T06:05:01.777145+02:00",
+      "ticker": "IONQ",
+      "kind": "exit_p2",
+      "severity": "warning",
+      "trigger": null,
+      "body": "⚠️ Exit-Warnung IONQ: pressure 61/100",
+      "success": true,
+      "suppressed": false,
+      "suppress_reason": null,
+      "conviction_score": null
+    },
+    {
+      "ts": "2026-07-20T06:05:02.194364+02:00",
+      "ticker": "IONQ",
+      "kind": "exit_p2",
+      "severity": "trigger",
+      "trigger": "profit_lock",
+      "body": "🔻 Exit-Signal IONQ: profit_lock crit ({'pnl_pct': -0.2916, 'peak_pnl_pct': 0.4678, 'drawdown_from_peak': 0.7594, 'score_drop_from_peak': None})",
+      "success": true,
+      "suppressed": false,
+      "suppress_reason": null,
+      "conviction_score": null
+    },
+    {
+      "ts": "2026-07-20T06:05:03.497510+02:00",
+      "ticker": "IONQ",
+      "kind": "exit_p2",
+      "severity": "trigger",
+      "trigger": "trend_break",
+      "body": "🔻 Exit-Signal IONQ: trend_break crit ({'ma21': 45.8315, 'price': 34.78, 'drop_pct': 24.11})",
+      "success": true,
+      "suppressed": false,
+      "suppress_reason": null,
+      "conviction_score": null
+    },
+    {
+      "ts": "2026-07-20T06:05:03.829238+02:00",
+      "ticker": "PDYN",
+      "kind": "exit_p2",
+      "severity": "trigger",
+      "trigger": "trend_break",
+      "body": "🔻 Exit-Signal PDYN: trend_break crit ({'ma21': 5.6797, 'price': 4.88, 'drop_pct': 14.08})",
+      "success": true,
+      "suppressed": false,
+      "suppress_reason": null,
+      "conviction_score": null
+    },
+    {
+      "ts": "2026-07-20T06:05:04.155863+02:00",
+      "ticker": "AI",
+      "kind": "exit_p2",
+      "severity": "warning",
+      "trigger": null,
+      "body": "⚠️ Exit-Warnung AI: pressure 66/100",
+      "success": true,
+      "suppressed": false,
+      "suppress_reason": null,
+      "conviction_score": null
+    },
+    {
+      "ts": "2026-07-20T06:05:04.338466+02:00",
+      "ticker": "AI",
+      "kind": "exit_p2",
+      "severity": "trigger",
+      "trigger": "trend_break",
+      "body": "🔻 Exit-Signal AI: trend_break crit ({'ma21': 9.2727, 'price': 8.82, 'drop_pct': 4.88})",
+      "success": true,
+      "suppressed": false,
+      "suppress_reason": null,
+      "conviction_score": null
+    },
+    {
+      "ts": "2026-07-20T06:05:04.702647+02:00",
+      "ticker": "LENZ",
+      "kind": "exit_p2",
+      "severity": "trigger",
+      "trigger": "trend_break",
+      "body": "🔻 Exit-Signal LENZ: trend_break crit ({'ma21': 5.7033, 'price': 5.18, 'drop_pct': 9.18})",
+      "success": true,
+      "suppressed": false,
+      "suppress_reason": null,
+      "conviction_score": null
+    },
+    {
+      "ts": "2026-07-20T06:05:04.880388+02:00",
+      "ticker": "WOLF",
+      "kind": "exit_p2",
+      "severity": "trigger",
+      "trigger": "trend_break",
+      "body": "🔻 Exit-Signal WOLF: trend_break crit ({'ma21': 39.7066, 'price': 29.89, 'drop_pct': 24.72})",
+      "success": true,
+      "suppressed": false,
+      "suppress_reason": null,
+      "conviction_score": null
     }
   ],
   "prev_conviction_scores": {
@@ -1313,9 +1313,9 @@
     "exitp2_trigger_CRMD_catalyst": "2026-05-14T16:48:50.948217+02:00",
     "exitp2_trigger_KPTI_trend_break": "2026-05-15T18:18:45.093840+02:00",
     "exitp2_trigger_RR_trend_break": "2026-05-20T17:26:03.459661+02:00",
-    "exitp2_warning_IONQ": "2026-07-18T02:10:16.978831+02:00",
-    "exitp2_trigger_IONQ_trend_break": "2026-07-17T10:31:01.869377+02:00",
-    "exitp2_trigger_PDYN_trend_break": "2026-07-17T10:31:02.095031+02:00",
+    "exitp2_warning_IONQ": "2026-07-20T06:05:01.777177+02:00",
+    "exitp2_trigger_IONQ_trend_break": "2026-07-20T06:05:03.497540+02:00",
+    "exitp2_trigger_PDYN_trend_break": "2026-07-20T06:05:03.829266+02:00",
     "exitp2_trigger_GEMI_trend_break": "2026-06-09T00:01:52.717781+02:00",
     "exitp2_trigger_PDYN_overheated": "2026-05-28T18:12:36.334552+02:00",
     "exitp2_trigger_CRDF_profit_lock": "2026-06-01T19:24:04.144723+02:00",
@@ -1323,16 +1323,16 @@
     "exitp2_trigger_AMC_overheated": "2026-06-01T21:15:58.491304+02:00",
     "exitp2_trigger_AI_catalyst": "2026-06-03T06:58:18.642141+02:00",
     "exitp2_trigger_RBOHF_trend_break": "2026-06-30T20:15:49.198375+02:00",
-    "exitp2_trigger_AI_trend_break": "2026-07-17T10:31:02.297418+02:00",
-    "exitp2_trigger_IONQ_profit_lock": "2026-07-17T10:31:01.663575+02:00",
+    "exitp2_trigger_AI_trend_break": "2026-07-20T06:05:04.338496+02:00",
+    "exitp2_trigger_IONQ_profit_lock": "2026-07-20T06:05:02.194395+02:00",
     "exitp2_trigger_GIII_catalyst": "2026-06-05T23:13:52.175687+02:00",
     "exitp2_trigger_DBI_catalyst": "2026-06-09T23:13:25.072861+02:00",
     "exitp2_trigger_DBI_trend_break": "2026-06-22T19:25:15.868062+02:00",
     "exitp2_trigger_GIII_trend_break": "2026-06-20T22:42:06.833464+02:00",
     "exitp2_trigger_LUCK_trend_break": "2026-06-22T19:25:15.805548+02:00",
-    "exitp2_warning_AI": "2026-07-18T00:06:51.297332+02:00",
+    "exitp2_warning_AI": "2026-07-20T06:05:04.155894+02:00",
     "exitp2_trigger_RBOHF_overheated": "2026-07-01T22:55:00.455123+02:00",
-    "exitp2_trigger_LENZ_trend_break": "2026-07-17T10:31:02.517824+02:00",
-    "exitp2_trigger_WOLF_trend_break": "2026-07-17T10:31:02.758769+02:00"
+    "exitp2_trigger_LENZ_trend_break": "2026-07-20T06:05:04.702678+02:00",
+    "exitp2_trigger_WOLF_trend_break": "2026-07-20T06:05:04.880416+02:00"
   }
 }
