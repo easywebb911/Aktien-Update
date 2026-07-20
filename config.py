@@ -1479,6 +1479,23 @@ SI_POSITION_STATUS_ROW = (
     SI_POSITION_HISTORY_FILE,
 )
 
+# Siebter Sammel-Status-Eintrag: materielle-8-K-Sammelfeld (§6c). Das Feld
+# ``material_8k_events`` liegt IM backtest_history-Record (wie die 5 Felder
+# oben), ist aber ein WRAPPER-Dict ({collected, reason, cik, truncated,
+# events[]}) statt eines Skalars → eigene Zähl-Semantik (kein non-null/
+# return_10d-Reife-Zähler): „N gesammelt" = Records mit collected===true
+# (Collector lief erfolgreich; fail-soft collected=false zählt NICHT),
+# „M mit Event" = davon mit ≥1 gesammeltem 8-K. Format (feldname, label,
+# status) analog COLLECT_STATUS_FIELDS → KEIN Feldname-Literal im generate_
+# report-Frontend-Source (Look-Ahead-Isolations-Guard material_8k H1 bleibt
+# grün, Feldname wird injiziert). REIN ANZEIGE, kein Signal, keine Bewertung.
+MATERIAL_8K_STATUS_ROW = (
+    "material_8k_events",
+    "Materielle 8-K (material_8k_events)",
+    "sammelt forward seit 18.07. · unvalidiert · kein Signal · FDA-Teilmenge "
+    "dünn (Auswertung ~2027), breite Katalysator-Auswertung früher",
+)
+
 S10_OBSERVED_FIELDS = frozenset({
     # Core (immer gesetzt)
     "date", "ticker", "score", "entry_price", "rvol", "dtc",

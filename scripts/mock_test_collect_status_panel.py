@@ -371,11 +371,146 @@ def _test_si_functional():
     )
 
 
+def _extract_mat8k_js() -> str | None:
+    """Extrahiere _btMat8kCollectStatus aus dem f-String, un-escape die Braces.
+    Grenze: bis `function _btRenderHitRates`."""
+    start = _GR_SRC.find("function _btMat8kCollectStatus(data){{")
+    if start == -1:
+        return None
+    end = _GR_SRC.find("function _btRenderHitRates(data){{", start)
+    if end == -1:
+        return None
+    return _GR_SRC[start:end].replace("{{", "{").replace("}}", "}")
+
+
+def _test_mat8k_source_wiring():
+    print("── (F) Materielle-8-K-Eintrag Source-Wiring ──────────────────")
+    _check(
+        "F1 mat8k-Host-Div (id=bt-collect-mat8k-status) vorhanden",
+        'id="bt-collect-mat8k-status"' in _GR_SRC,
+        "mat8k-Container-Div fehlt im Panel",
+    )
+    _check(
+        "F2 _btMat8kCollectStatus wird in _btRender aufgerufen",
+        "_btMat8kCollectStatus(data);" in _GR_SRC,
+        "mat8k-Render-Aufruf fehlt",
+    )
+    _check(
+        "F3 config.MATERIAL_8K_STATUS_ROW = 3-Tupel (feldname, label, status)",
+        isinstance(config.MATERIAL_8K_STATUS_ROW, tuple)
+        and len(config.MATERIAL_8K_STATUS_ROW) == 3,
+        f"got {config.MATERIAL_8K_STATUS_ROW!r}",
+    )
+    _check(
+        "F4 JS-Konstante server-injiziert (const _MATERIAL_8K_STATUS = {...})",
+        "const _MATERIAL_8K_STATUS = {material_8k_status_row_js};" in _GR_SRC
+        and '"material_8k_status_row_js": json.dumps(MATERIAL_8K_STATUS_ROW' in _GR_SRC,
+        "mat8k-Injektion fehlt — Eintrag bekäme kein Label/Status",
+    )
+    # F5 Look-Ahead-Isolation (material_8k H1): der Feldname darf NICHT als
+    # Literal im generate_report.py-Source stehen (nur config.py + injiziert).
+    _check(
+        "F5 Feldname 'material_8k_events' kein Literal im generate_report.py-Source",
+        config.MATERIAL_8K_STATUS_ROW[0] not in _GR_SRC,
+        "Feldname als Frontend-Literal → material_8k-H1-Guard würde reißen",
+    )
+    js = _extract_mat8k_js()
+    _check(
+        "F6 kein unescaptes ${...} im mat8k-Block (f-String-safe)",
+        js is not None and "${" not in js,
+        "Template-Literal-Variable würde Python-f-String brechen",
+    )
+
+
+def _run_mat8k_node(js_func: str, data: list) -> str | None:
+    """Führe _btMat8kCollectStatus(data) gegen einen Mock-Host in node aus,
+    gib das gerenderte innerHTML zurück. None wenn node fehlt."""
+    node = shutil.which("node")
+    if not node:
+        return None
+    status_js = json.dumps(list(config.MATERIAL_8K_STATUS_ROW), ensure_ascii=False)
+    harness = (
+        "const _MATERIAL_8K_STATUS = " + status_js + ";\n"
+        + js_func
+        + "\nlet __html = '';\n"
+        + "global.document = { getElementById: function(id){"
+        + " return id === 'bt-collect-mat8k-status'"
+        + " ? { set innerHTML(v){ __html = v; } } : null; } };\n"
+        + "_btMat8kCollectStatus(" + json.dumps(data) + ");\n"
+        + "console.log(JSON.stringify({ html: __html }));\n"
+    )
+    with tempfile.NamedTemporaryFile("w", suffix=".js", delete=False,
+                                     encoding="utf-8") as fh:
+        fh.write(harness)
+        path = fh.name
+    try:
+        out = subprocess.run([node, path], capture_output=True, text=True, timeout=20)
+        if out.returncode != 0:
+            print(f"    node stderr: {out.stderr[:300]}")
+            return None
+        return json.loads(out.stdout.strip())["html"]
+    finally:
+        pathlib.Path(path).unlink(missing_ok=True)
+
+
+def _test_mat8k_functional():
+    print("── (G) Materielle-8-K Zähl-Logik (collected/events) + KEINE Werte ──")
+    js = _extract_mat8k_js()
+    if js is None:
+        _check("G0 mat8k-JS extrahierbar", False, "_btMat8kCollectStatus nicht gefunden")
+        return
+    KEY = config.MATERIAL_8K_STATUS_ROW[0]
+    # Fixture: collected true+event, collected true+leer, FAIL-SOFT (collected
+    # false), null, absent. accession distinktiv (ZZACC) — darf NICHT rendern.
+    data = [
+        {KEY: {"collected": True, "reason": None,
+               "events": [{"accession": "ZZACC", "item_codes": ["8.01"]}]}},
+        {KEY: {"collected": True, "reason": None, "events": []}},
+        {KEY: {"collected": False, "reason": "no_cik", "events": []}},   # fail-soft
+        {KEY: None},
+        {},
+    ]
+    html = _run_mat8k_node(js, data)
+    if html is None:
+        print("    ⊘ node nicht verfügbar — mat8k-Funktionaltest übersprungen "
+              "(Source-Gate F bleibt hart).")
+        return
+    mc = re.search(r'bt-collect-n">(\d+) gesammelt', html)
+    mm = re.search(r'bt-collect-mat">[^0-9]*(\d+) mit Event', html)
+    got_c = int(mc.group(1)) if mc else None
+    got_m = int(mm.group(1)) if mm else None
+    _check(
+        "G1 gesammelt=2 (nur collected===true; fail-soft NICHT gezählt)",
+        got_c == 2, f"got {got_c}",
+    )
+    _check(
+        "G2 mit Event=1 (nur Record mit >=1 Event)",
+        got_m == 1, f"got {got_m}",
+    )
+    _check(
+        "G3 fail-soft (collected=false) fließt NICHT in 'gesammelt' (2, nicht 3)",
+        got_c == 2, f"got {got_c}",
+    )
+    _check(
+        "G4 kein Event-Wert 'ZZACC' im Output (nur Zähler/Status, keine Bewertung)",
+        "ZZACC" not in html,
+        "accession wird gerendert — das wäre eine bewertende Event-Anzeige!",
+    )
+    _check(
+        "G5 neutraler config-Status-Text, kein Signal",
+        config.MATERIAL_8K_STATUS_ROW[1] in html
+        and "unvalidiert" in html and "kein Signal" in html,
+        "neutraler Status fehlt im Output",
+    )
+
+
 def main():
     _test_source_wiring()
     _test_functional_counts()
     _test_si_source_wiring()
     _test_si_functional()
+    _test_mat8k_source_wiring()
+    _test_mat8k_functional()
     print()
     if _fails:
         print(f"✗ {len(_fails)} Test(s) fehlgeschlagen: {_fails}")
