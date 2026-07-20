@@ -4193,8 +4193,8 @@ def _sub_scores_html(s: dict) -> str:
     timing_pct   = _pct(sub["timing"],   sub["timing_max"])
     return (
         f'<div class="sub-scores-wrap">'
-        f'<div class="sub-scores-header">SETUP-ANALYSE</div>'
-        f'<div class="sub-scores-hint">unabhängige Qualitätsindikatoren</div>'
+        f'<div class="sub-scores-header">QUALITÄTS-INDIKATOREN (unabhängig)</div>'
+        f'<div class="sub-scores-hint">eigene Skalen — ergeben NICHT den Setup-Score</div>'
         f'<div class="sub-scores">'
         f'<span class="sub-score" title="{_tt}">'
         f'<span class="sub-score-lbl">Struktur</span>'
@@ -5592,7 +5592,7 @@ def _card(i: int, s: dict) -> str:
     </div>
     <div class="metric-box" style="--mc:{si_tile_col}">
       <span class="m-val">{si_tile_val}</span>
-      <span class="m-lbl">SI-Trend</span>
+      <span class="m-lbl" title="Trend der Short-Aktivität (FINRA Reg-SHO Short-Volumen; Fallback: Short-Interest-Delta) — siehe Karten-Legende">Short-Trend</span>
     </div>
   </div>
   <button class="details-btn" onclick="toggleDetails({i})" id="db{i}" aria-expanded="false">
@@ -6684,7 +6684,13 @@ def _build_context(stocks: list[dict], report_date: str,
     else:
         avg_si_str = "—"
     now_str = datetime.now(ZoneInfo("Europe/Berlin")).strftime("%H:%M Uhr")
-    timestamp = f"Stand: {report_date}, {now_str}"
+    # A1 (Karten-Klarheit): "Stand:" verschmolz Marktdaten-Zeit und Report-Typ.
+    # Der Zeitstempel misst NUR die Marktdaten-Frische (Daily-Run-Generierungs-
+    # zeit — nur der Daily-Run baut die Seite neu). Die KI-Agent-Zeit ist separat
+    # und wird client-seitig via _renderKiTime() aus _AGENT_SIGNALS.updated ergänzt
+    # ("· KI HH:MM"). Der Run-Phasen-Typ (Pre-Open/Post-Close) bleibt in der
+    # hdr-runphase-Pill. Siehe SESSION_HANDOVER §6k.
+    timestamp = f"Marktdaten: {report_date}, {now_str}"
     # Staleness-Anker: server-eingebrannter Render-Timestamp (UTC-ISO). NUR
     # der Daily-Run baut die index.html neu → dieser Wert = Daily-Run-Frische
     # (Top-10-Aktualität), immun gegen ki_agent-Ticks (die app_data.generated_at
@@ -6984,7 +6990,7 @@ def generate_html_v1(stocks: list[dict], report_date: str,
 <header class="app-hdr">
   <div class="hdr-main">
     <span class="app-title">Squeeze <span>Report</span></span>
-    <span class="hdr-ts">{timestamp}<span id="hdr-runphase" class="hdr-runphase" hidden></span><span id="hdr-staleness" class="hdr-staleness" hidden></span><span id="hdr-nontrading" class="hdr-nontrading" hidden></span></span>
+    <span class="hdr-ts">{timestamp}<span id="hdr-kitime" class="hdr-kitime" hidden></span><span id="hdr-runphase" class="hdr-runphase" hidden></span><span id="hdr-staleness" class="hdr-staleness" hidden></span><span id="hdr-nontrading" class="hdr-nontrading" hidden></span></span>
     <button class="hamburger-btn" id="hamburger-btn" aria-label="Menü" aria-expanded="false" onclick="toggleMenuDrawer()">
       <i data-lucide="menu" class="hamburger-icon"></i>
     </button>
@@ -7241,6 +7247,42 @@ def generate_html_v1(stocks: list[dict], report_date: str,
     </div>
     <div class="info-inner">
       <p class="methodology-intro">Tap eine Sektion zum Aufklappen.</p>
+      <details class="info-box info-box--full methodology-card">
+        <summary>
+          <h4>Karten-Legende — Symbole &amp; Kacheln</h4>
+          <span class="method-lead">Was die kleinen Zeichen auf jeder Karte bedeuten</span>
+          <i class="method-caret" data-lucide="chevron-down"></i>
+        </summary>
+        <div class="method-content">
+        <ul class="info-compact">
+          <li><strong>„N×" unter dem Rang-Badge</strong> — wie oft der Ticker
+            bisher in einem Live-Daily-Report auftauchte (Report-Häufigkeit,
+            nicht Volumen). Höher = länger auf dem Radar. Bootstrap-Läufe zählen
+            nicht mit.</li>
+          <li><strong>Farbiger Punkt neben dem Ticker</strong> — KI-Agent-Status
+            (stündlich aktualisiert). 🟢 grün ab {KI_DOT_STRONG} · 🟠 orange ab
+            {KI_DOT_MODERATE} · 🔴 rot ab {KI_DOT_WEAK} · ⚪ grau darunter.
+            Höher = stärkeres KI-Signal. (Nicht verwechseln mit dem grünen
+            Live-Punkt <em>über</em> dem Setup-Score — das ist der
+            Kurs-Polling-Status beim Aufklappen.)</li>
+          <li><strong>„Entry-Shadow N · M/5 Komp."</strong> — ein rein
+            diagnostischer Schatten-Score (0–100, heuristisch, Erhebung läuft):
+            ungewichteter Schnitt der vorhandenen Entry-Komponenten. „M/5 Komp."
+            = wie viele der 5 Komponenten Daten hatten. Zählt <em>nicht</em> in
+            den Setup-Score.</li>
+          <li><strong>Momentum-Kachel „+X,X% / 5T: ±Y,Y%"</strong> — die erste
+            Zahl ist die heutige Tagesveränderung (1 Tag, ggü. Vortagsschluss),
+            die zweite („5T:") die 5-Tage-Veränderung (nur Anzeige). Die
+            <em>Rahmenfarbe folgt allein der 1-Tages-Zahl</em>: ≥ +{MOM_GREEN:.0f}% grün
+            · −{abs(MOM_ORANGE):.0f}…+{MOM_GREEN:.0f}% orange · &lt; −{abs(MOM_ORANGE):.0f}% rot.</li>
+          <li><strong>Short-Trend-Kachel (▲/▼/●)</strong> — Trend der
+            Short-<em>Aktivität</em>, primär aus dem FINRA-Reg-SHO-Tages-Short-
+            <em>Volumen</em> (3-vs-3-Tage-Schnitt), Fallback aus dem monatlichen
+            Short-Interest-Delta (yfinance). <em>Nicht</em> der 2-monatliche
+            Short-Interest-Bestand — das ist die Detail-Zeile „SI-Trend (3M)".</li>
+        </ul>
+        </div>
+      </details>
       <details class="info-box methodology-card">
         <summary>
           <h4>Filterkriterien</h4>
@@ -11761,6 +11803,24 @@ function _fmtGerman(d) {{
     const signals  = data.signals || {{}};
     const info     = data.run_info || {{}};
 
+    // A1 (Karten-Klarheit): zweiter Teil der Header-Zeit-Zeile — "· KI HH:MM".
+    // Die Marktdaten-Zeit ("Marktdaten: DD.MM.JJJJ, HH:MM Uhr") kommt server-
+    // eingebrannt aus dem Daily-Run; die KI-Agent-Tick-Zeit ist separat und
+    // client-seitig aus _AGENT_SIGNALS.updated. Trennt die zwei Frische-Achsen,
+    // die sich vorher in einem "Stand:"-Wert verschmolzen. Fail-soft.
+    try {{
+      const kiEl = document.getElementById('hdr-kitime');
+      if (kiEl) {{
+        if (updated) {{
+          const kiStr = updated.toLocaleTimeString('de-DE', {{hour:'2-digit', minute:'2-digit'}});
+          kiEl.textContent = ' · KI ' + kiStr;
+          kiEl.hidden = false;
+        }} else {{
+          kiEl.hidden = true;
+        }}
+      }}
+    }} catch (e) {{}}
+
     // Status-Bar — 24/7, vereinfacht
     if (!updated) {{
       if (statusEl) statusEl.textContent = '\u26a1 KI-Agent: Kein aktueller Scan verfügbar.';
@@ -12291,7 +12351,7 @@ function _fmtGerman(d) {{
         </div>
         <div class="metric-box" style="--mc:${{siCol}}">
           <span class="m-val">${{siArr}}</span>
-          <span class="m-lbl">SI-Trend</span>
+          <span class="m-lbl" title="Trend der Short-Aktivität (FINRA Reg-SHO Short-Volumen; Fallback: Short-Interest-Delta) — siehe Karten-Legende">Short-Trend</span>
         </div>
       </div>`;
 
@@ -12411,7 +12471,7 @@ function _fmtGerman(d) {{
         <div class="metric-box" style="--mc:#94a3b8">${{ph}}<span class="m-lbl">Volumen</span></div>
         <div class="metric-box" style="--mc:#94a3b8">${{ph}}<span class="m-lbl">Momentum</span></div>
         <div class="metric-box" style="--mc:#94a3b8">${{ph}}<span class="m-lbl">Float</span></div>
-        <div class="metric-box" style="--mc:#94a3b8">${{ph}}<span class="m-lbl">SI-Trend</span></div>
+        <div class="metric-box" style="--mc:#94a3b8">${{ph}}<span class="m-lbl" title="Trend der Short-Aktivität (FINRA Reg-SHO Short-Volumen; Fallback: Short-Interest-Delta) — siehe Karten-Legende">Short-Trend</span></div>
       </div>`;
 
       // Sparkline nur wenn mindestens 2 History-Punkte vorhanden

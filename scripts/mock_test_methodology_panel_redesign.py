@@ -1,16 +1,16 @@
 """Mock-Tests fuer Methodik-Panel Accordion-Refactor (16.05.2026).
 
 Hintergrund: Methodik-Panel war ~3500 px lang auf Mobile. Refactor:
-11 info-box-Sektionen werden zu <details class="info-box methodology-
-card">-Elementen. Konfidenz default-open, Rest closed mit Lead-
-Kernaussage und Caret-Icon.
+12 info-box-Sektionen (11 Original + Karten-Legende A2) werden zu
+<details class="info-box methodology-card">-Elementen. Konfidenz
+default-open, Rest closed mit Lead-Kernaussage und Caret-Icon.
 
 Tests:
-  1. Source: 11 <details class="info-box ... methodology-card">-Tags
+  1. Source: 12 <details class="info-box ... methodology-card">-Tags
      im Methodik-Panel
   2. Source: Konfidenz hat open-Attribut
-  3. Source: alle anderen 10 haben kein open-Attribut
-  4. Source: Lead-Spans vorhanden fuer alle 11 Sektionen
+  3. Source: alle anderen 11 haben kein open-Attribut
+  4. Source: Lead-Spans vorhanden fuer alle 12 Sektionen
   5. Source: jede Sektion hat <summary>, <h4> in summary,
      <method-caret>, <method-content>
   6. Source: bestehende Score-Inhalte (Filterkriterien, Score-Formel,
@@ -48,10 +48,10 @@ def _methodology_block() -> str:
 
 def test_01_eleven_details_present() -> None:
     block = _methodology_block()
-    # 11 details-Tags mit methodology-card
+    # 12 details-Tags mit methodology-card (11 Original + Karten-Legende A2)
     matches = re.findall(r'<details class="info-box[^"]*methodology-card', block)
-    assert len(matches) == 11, \
-        f"Erwarte 11 details-Tags, gefunden {len(matches)}"
+    assert len(matches) == 12, \
+        f"Erwarte 12 details-Tags, gefunden {len(matches)}"
 
 
 def test_02_konfidenz_default_open() -> None:
@@ -74,31 +74,31 @@ def test_02_konfidenz_default_open() -> None:
 
 
 def test_03_others_not_open() -> None:
-    # Inverse: 10 details ohne open + 1 mit open
+    # Inverse: 11 details ohne open + 1 mit open (Karten-Legende A2 default-closed)
     block = _methodology_block()
     closed = re.findall(r'<details class="info-box[^"]*methodology-card">', block)
-    assert len(closed) == 10, \
-        f"Erwarte 10 default-closed, gefunden {len(closed)}"
+    assert len(closed) == 11, \
+        f"Erwarte 11 default-closed, gefunden {len(closed)}"
 
 
 def test_04_lead_spans_present() -> None:
     block = _methodology_block()
     leads = re.findall(r'<span class="method-lead">', block)
-    assert len(leads) == 11, \
-        f"Erwarte 11 method-lead-Spans, gefunden {len(leads)}"
+    assert len(leads) == 12, \
+        f"Erwarte 12 method-lead-Spans, gefunden {len(leads)}"
 
 
 def test_05_summary_structure() -> None:
     block = _methodology_block()
-    # 11 outer methodology-card-summary + 1 verschachteltes ki-pro-details-
-    # summary (Sektion 8) = 12 total
-    assert block.count("<summary>") == 12, \
-        f"Erwarte 12 summary-Tags (11 outer + 1 ki-pro-details), gefunden {block.count('<summary>')}"
-    assert block.count("</summary>") == 12
-    # 11 outer caret-Icons (ki-pro-details hat keine method-caret)
-    assert block.count('class="method-caret"') == 11
-    # 11 method-content divs
-    assert block.count('class="method-content"') == 11
+    # 12 outer methodology-card-summary + 1 verschachteltes ki-pro-details-
+    # summary (Sektion 8) = 13 total
+    assert block.count("<summary>") == 13, \
+        f"Erwarte 13 summary-Tags (12 outer + 1 ki-pro-details), gefunden {block.count('<summary>')}"
+    assert block.count("</summary>") == 13
+    # 12 outer caret-Icons (ki-pro-details hat keine method-caret)
+    assert block.count('class="method-caret"') == 12
+    # 12 method-content divs
+    assert block.count('class="method-content"') == 12
 
 
 def test_06_existing_score_content_preserved() -> None:
@@ -179,10 +179,10 @@ def test_13_claude_md_redesign_note() -> None:
 
 def main() -> int:
     tests = [
-        ("01 11 details mit methodology-card",          test_01_eleven_details_present),
+        ("01 12 details mit methodology-card",          test_01_eleven_details_present),
         ("02 Konfidenz default-open",                   test_02_konfidenz_default_open),
-        ("03 Andere 10 default-closed",                 test_03_others_not_open),
-        ("04 Lead-Spans alle 11",                       test_04_lead_spans_present),
+        ("03 Andere 11 default-closed",                 test_03_others_not_open),
+        ("04 Lead-Spans alle 12",                       test_04_lead_spans_present),
         ("05 Summary-Struktur",                         test_05_summary_structure),
         ("06 Existing Score-Inhalte erhalten",          test_06_existing_score_content_preserved),
         ("07 CSS-Klassen in head.jinja",                test_07_css_classes_in_head_jinja),
