@@ -1,17 +1,17 @@
 {
-  "updated": "2026-07-20T11:35:23.193351+02:00",
+  "updated": "2026-07-20T13:13:34.632642+02:00",
   "run_info": {
     "tickers_checked": 15,
-    "signals_active": 0,
+    "signals_active": 1,
     "alerts_sent": 0,
-    "elapsed_s": 12.5,
+    "elapsed_s": 16.4,
     "market_phase": "Pre-Market"
   },
   "signals": {
     "AI": {
-      "score": 45,
+      "score": 65,
       "confidence": 70,
-      "drivers": "Spanne 5.6% + News: short interest + SEC Form 4 + UOA Call/Put 57.0×",
+      "drivers": "Spanne 5.6% + News: short interest + SEC Form 4 + UOA Call-Vol/OI 392.0× ATM + UOA Call/Put 57.0×",
       "price": 8.82,
       "chg_pct": -0.0,
       "rvol_4d": 1.18,
@@ -24,28 +24,29 @@
       "combo_mult": 1.0,
       "active_triggers": 1,
       "ki_sentiment_source": "keyword",
-      "uoa_score": 10,
+      "uoa_score": 30,
       "uoa_drivers": [
+        "UOA Call-Vol/OI 392.0× ATM",
         "UOA Call/Put 57.0×"
       ],
-      "uoa_atm_ratio": null,
+      "uoa_atm_ratio": 392.0,
       "uoa_cp_ratio": 57.02896725440806
     },
     "AMC": {
-      "score": 25,
-      "confidence": 33,
-      "drivers": "Spanne 7.5% + News: earnings beat",
+      "score": 72,
+      "confidence": 70,
+      "drivers": "Earnings in 0 Tagen (20.07.2026) + Spanne 7.5% + SEC 8-K + News: earnings beat + Earnings in 0d",
       "price": 1.94,
       "chg_pct": 0.0,
       "rvol_4d": 1.3,
       "rvol_20d": 0.81,
-      "earnings": null,
+      "earnings": "in 0 Tagen (20.07.2026)",
       "fda_date": null,
-      "upcoming_event": null,
+      "upcoming_event": "Earnings in 0 Tagen (20.07.2026)",
       "insider_buy": false,
       "stocktwits": null,
-      "combo_mult": 1.0,
-      "active_triggers": 1,
+      "combo_mult": 1.1,
+      "active_triggers": 2,
       "ki_sentiment_source": "keyword",
       "uoa_score": 0,
       "uoa_drivers": [],
@@ -175,7 +176,7 @@
       "ki_sentiment_source": "keyword",
       "uoa_score": 0,
       "uoa_drivers": [],
-      "uoa_atm_ratio": null,
+      "uoa_atm_ratio": 1.0885723134097243,
       "uoa_cp_ratio": 0.8423607280750138
     },
     "LENZ": {
@@ -202,7 +203,7 @@
     "PDYN": {
       "score": 48,
       "confidence": 70,
-      "drivers": "Spanne 8.7% + News: contract, partnership + Earnings in 16d",
+      "drivers": "Spanne 8.7% + News: partnership, contract + Earnings in 16d",
       "price": 4.88,
       "chg_pct": 0.0,
       "rvol_4d": 0.82,
@@ -240,7 +241,7 @@
       "uoa_drivers": [
         "UOA Call/Put 3.5×"
       ],
-      "uoa_atm_ratio": null,
+      "uoa_atm_ratio": 0.8901734104046243,
       "uoa_cp_ratio": 3.5
     },
     "SG": {
@@ -261,13 +262,13 @@
       "ki_sentiment_source": "keyword",
       "uoa_score": 0,
       "uoa_drivers": [],
-      "uoa_atm_ratio": null,
+      "uoa_atm_ratio": 0.7292340884573895,
       "uoa_cp_ratio": 1.9463087248322148
     },
     "TNXP": {
-      "score": 33,
+      "score": 26,
       "confidence": 70,
-      "drivers": "Spanne 10.8% + News: catalyst + Earnings in 21d",
+      "drivers": "Spanne 10.8% + News-KI 8/30: Positive pipeline and coverage news lacks short-squeeze catalysts; biotech with clinical validation but no major short i + Earnings in 21d",
       "price": 12.43,
       "chg_pct": 0.0,
       "rvol_4d": 1.14,
@@ -278,8 +279,8 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 1,
-      "ki_sentiment_source": "keyword",
+      "active_triggers": 0,
+      "ki_sentiment_source": "llm",
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": null,
@@ -305,18 +306,18 @@
       "uoa_drivers": [
         "UOA Call/Put 2.1×"
       ],
-      "uoa_atm_ratio": null,
+      "uoa_atm_ratio": 1.0784313725490196,
       "uoa_cp_ratio": 2.082317073170732
     },
     "ZBIO": {
-      "score": 10,
-      "confidence": 17,
-      "drivers": "Spanne 9.1%",
+      "score": 18,
+      "confidence": 33,
+      "drivers": "Spanne 9.1% + Earnings in 23d",
       "price": 29.53,
       "chg_pct": 0.0,
       "rvol_4d": 1.01,
       "rvol_20d": 0.65,
-      "earnings": null,
+      "earnings": "in 23 Tagen (12.08.2026)",
       "fda_date": null,
       "upcoming_event": null,
       "insider_buy": false,
