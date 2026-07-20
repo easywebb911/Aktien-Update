@@ -1,5 +1,5 @@
 {
-  "last_run": "2026-07-20T18:02:04.456040+02:00",
+  "last_run": "2026-07-20T19:06:04.537704+02:00",
   "cooldowns": {
     "anomaly_score_jump_XRX": "2026-05-03T18:47:15.315486+02:00",
     "anomaly_uoa_extreme_TDOC": "2026-05-04T13:47:00.365949+02:00",
@@ -83,42 +83,6 @@
     "exit_LENZ": "2026-07-20T19:04:18.796166+02:00"
   },
   "push_history": [
-    {
-      "ts": "2026-07-11T00:16:26.207320+02:00",
-      "ticker": "BBW",
-      "kind": "anomaly",
-      "severity": "medium",
-      "trigger": "uoa_extreme",
-      "body": "BBW 🎯 UOA Vol/OI 18.8× ATM | Setup 54",
-      "success": false,
-      "suppressed": true,
-      "suppress_reason": "conviction_below_threshold",
-      "conviction_score": 57
-    },
-    {
-      "ts": "2026-07-11T01:15:38.190757+02:00",
-      "ticker": "WOLF",
-      "kind": "exit_p2",
-      "severity": "trigger",
-      "trigger": "trend_break",
-      "body": "🔻 Exit-Signal WOLF: trend_break crit ({'ma21': 44.0354, 'price': 35.29, 'drop_pct': 19.86})",
-      "success": true,
-      "suppressed": false,
-      "suppress_reason": null,
-      "conviction_score": null
-    },
-    {
-      "ts": "2026-07-11T19:05:38.688493+02:00",
-      "ticker": "FRMM",
-      "kind": "exit_p1",
-      "severity": "default",
-      "trigger": "exit_alert",
-      "body": "FRMM 📉 Exit 65 | -14% | Trailing-Stop −16.6% vom Hoch",
-      "success": true,
-      "suppressed": false,
-      "suppress_reason": null,
-      "conviction_score": null
-    },
     {
       "ts": "2026-07-11T19:07:08.432378+02:00",
       "ticker": "BBW",
@@ -1282,24 +1246,60 @@
       "suppressed": false,
       "suppress_reason": null,
       "conviction_score": null
+    },
+    {
+      "ts": "2026-07-20T19:06:04.811670+02:00",
+      "ticker": "IONQ",
+      "kind": "exit_p2",
+      "severity": "warning",
+      "trigger": null,
+      "body": "⚠️ Exit-Warnung IONQ: pressure 61/100",
+      "success": true,
+      "suppressed": false,
+      "suppress_reason": null,
+      "conviction_score": null
+    },
+    {
+      "ts": "2026-07-20T19:06:05.075838+02:00",
+      "ticker": "AI",
+      "kind": "exit_p2",
+      "severity": "warning",
+      "trigger": null,
+      "body": "⚠️ Exit-Warnung AI: pressure 70/100",
+      "success": true,
+      "suppressed": false,
+      "suppress_reason": null,
+      "conviction_score": null
+    },
+    {
+      "ts": "2026-07-20T19:06:05.404611+02:00",
+      "ticker": "AI",
+      "kind": "exit_p2",
+      "severity": "trigger",
+      "trigger": "profit_lock",
+      "body": "🔻 Exit-Signal AI: profit_lock crit ({'pnl_pct': -0.2177, 'peak_pnl_pct': 0.0332, 'drawdown_from_peak': 0.2509, 'score_drop_from_peak': None})",
+      "success": true,
+      "suppressed": false,
+      "suppress_reason": null,
+      "conviction_score": null
     }
   ],
   "prev_conviction_scores": {
-    "ANAB": 60.0,
-    "LENZ": 64.0,
-    "SG": 41.0,
-    "GPRE": 55.0,
-    "REPL": 46.0,
-    "CBRL": 39.0,
-    "ZBIO": 59.0,
-    "FRMM": 51.0,
-    "CADL": 44.0,
-    "TNXP": 43.0,
-    "WOLF": 33.0,
-    "AI": 35.0,
-    "PDYN": 25.0,
-    "IONQ": 13.0,
-    "AMC": 11.0
+    "FRMM": 55.0,
+    "GRPN": 47.0,
+    "LENZ": 59.0,
+    "ZBIO": 58.0,
+    "REPL": 44.0,
+    "FDMT": 49.0,
+    "CBRL": 35.0,
+    "TTGT": 48.0,
+    "PAR": 40.0,
+    "KUST": 25.0,
+    "WOLF": 30.0,
+    "AMC": 23.0,
+    "AI": 33.0,
+    "PDYN": 24.0,
+    "IONQ": 11.0
   },
   "exit_cooldowns": {
     "exitp2_warning_AMC": "2026-05-18T14:48:43.872687+02:00",
@@ -1313,7 +1313,7 @@
     "exitp2_trigger_CRMD_catalyst": "2026-05-14T16:48:50.948217+02:00",
     "exitp2_trigger_KPTI_trend_break": "2026-05-15T18:18:45.093840+02:00",
     "exitp2_trigger_RR_trend_break": "2026-05-20T17:26:03.459661+02:00",
-    "exitp2_warning_IONQ": "2026-07-20T06:05:01.777177+02:00",
+    "exitp2_warning_IONQ": "2026-07-20T19:06:04.811700+02:00",
     "exitp2_trigger_IONQ_trend_break": "2026-07-20T06:05:03.497540+02:00",
     "exitp2_trigger_PDYN_trend_break": "2026-07-20T06:05:03.829266+02:00",
     "exitp2_trigger_GEMI_trend_break": "2026-06-09T00:01:52.717781+02:00",
@@ -1330,9 +1330,10 @@
     "exitp2_trigger_DBI_trend_break": "2026-06-22T19:25:15.868062+02:00",
     "exitp2_trigger_GIII_trend_break": "2026-06-20T22:42:06.833464+02:00",
     "exitp2_trigger_LUCK_trend_break": "2026-06-22T19:25:15.805548+02:00",
-    "exitp2_warning_AI": "2026-07-20T06:05:04.155894+02:00",
+    "exitp2_warning_AI": "2026-07-20T19:06:05.075867+02:00",
     "exitp2_trigger_RBOHF_overheated": "2026-07-01T22:55:00.455123+02:00",
     "exitp2_trigger_LENZ_trend_break": "2026-07-20T06:05:04.702678+02:00",
-    "exitp2_trigger_WOLF_trend_break": "2026-07-20T06:05:04.880416+02:00"
+    "exitp2_trigger_WOLF_trend_break": "2026-07-20T06:05:04.880416+02:00",
+    "exitp2_trigger_AI_profit_lock": "2026-07-20T19:06:05.404638+02:00"
   }
 }
