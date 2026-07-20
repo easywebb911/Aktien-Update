@@ -6807,6 +6807,12 @@ def _build_context(stocks: list[dict], report_date: str,
         # grün). json.dumps eines Tuples → JS-Array (nur [], f-String-safe).
         "si_position_status_row_js": json.dumps(SI_POSITION_STATUS_ROW,
                                                 ensure_ascii=False),
+        # Siebter Sammel-Status-Eintrag (materielle 8-K, §6c): (feldname, label,
+        # status) aus config.MATERIAL_8K_STATUS_ROW injiziert (NICHT als Literal
+        # im Source — hält den material_8k-H1-Isolations-Guard grün). json.dumps
+        # eines Tuples → JS-Array (nur [], f-String-safe).
+        "material_8k_status_row_js": json.dumps(MATERIAL_8K_STATUS_ROW,
+                                                ensure_ascii=False),
         "chat_ctx_json":  chat_ctx_json,
         "head_html":      head_html,
         "chat_panel_html": chat_panel_html,
@@ -6851,6 +6857,10 @@ def generate_html_v1(stocks: list[dict], report_date: str,
     # dateiname] aus config.SI_POSITION_STATUS_ROW. Defensiv "[]" bei altem
     # Context ohne Key → _btSiCollectStatus rendert dann nichts statt zu crashen.
     si_position_status_row_js = ctx.get("si_position_status_row_js", "[]")
+    # Siebter Sammel-Status-Eintrag (materielle 8-K, §6c): (feldname, label,
+    # status) aus config.MATERIAL_8K_STATUS_ROW. Defensiv "[]" bei altem
+    # Context ohne Key → _btMat8kCollectStatus rendert dann nichts statt zu crashen.
+    material_8k_status_row_js = ctx.get("material_8k_status_row_js", "[]")
     # QUOTE_PROXY_URL: Cloudflare-Worker für Live-Quote-Polling. Aus
     # ENV bestimmt + URL-sanitized im _build_context. Leer → JS-Modul
     # ist no-op (siehe Sektion „Live-Quote-Polling" in CLAUDE.md).
@@ -7938,6 +7948,7 @@ def generate_html_v1(stocks: list[dict], report_date: str,
         <div class="bt-tile-title">Sammel-Felder — Datenerhebung (Fortschritt)</div>
         <p class="bt-collect-intro">Fortschritts-Monitoring der laufenden Datensammlung — <b>keine Handelsempfehlung, kein Signal</b>. Diese Felder werden erhoben, um sie später statistisch zu prüfen; sie sind <b>unvalidiert</b>. Das Tool ist ein Screener/Attention-Router, kein Alpha-Generator. <b>&bdquo;gesammelt&ldquo;</b> = Anzahl erhobener Einträge; <b>&bdquo;gereift&ldquo;</b> = davon mit vorliegendem Forward-Outcome (return_10d) — erst diese sind auswertbar (auf sie bezieht sich das &bdquo;Ziel n≥X gereift&ldquo;). Keine Trefferquote und keine Rendite.</p>
         <div id="bt-collect-status" class="bt-collect-list"></div>
+        <div id="bt-collect-mat8k-status" class="bt-collect-list"></div>
         <div id="bt-collect-si-status" class="bt-collect-list"></div>
       </div>
     </div>
@@ -9664,6 +9675,7 @@ function _btRender(){{
   // Sammel-Felder-Fortschritt über ALLE Einträge (data, nicht filtered) —
   // die Erhebung ist toggle-unabhängig. Zählt nur non-null, rendert KEINE Werte.
   _btCollectStatus(data);
+  _btMat8kCollectStatus(data);
   // Sechster Eintrag (SI-Positions-Zeitreihe): separate Datei, eigener Fetch —
   // toggle-unabhängig, graceful-empty (fehlende Datei → n=0).
   _btSiCollectStatus();
@@ -9748,6 +9760,40 @@ function _btSiCollectStatus(){{
     .then(r => r.ok ? r.json() : {{}})
     .then(d => {{ const c = _btSiCount(d); _btSiRenderRow(host, c.ge2, c.total); }})
     .catch(() => _btSiRenderRow(host, 0, 0));
+}}
+// ── Siebter Sammel-Status-Eintrag: materielle 8-K (§6c) ─────────────────────
+// Feld liegt IN _btData (backtest_history), ist aber ein WRAPPER-Dict
+// ({{collected, reason, cik, truncated, events[]}}) → eigene Zähl-Semantik statt
+// des uniformen non-null/return_10d-Zählers. REIN ANZEIGEND, keine Event-Werte
+// (kein accession/matched_terms), keine Bewertung. Feldname aus Injektion
+// (_MATERIAL_8K_STATUS[0]) — KEIN Literal → material_8k-H1-Guard bleibt grün.
+function _btMat8kCollectStatus(data){{
+  const host = document.getElementById('bt-collect-mat8k-status');
+  if (!host) return;
+  const row = Array.isArray(_MATERIAL_8K_STATUS) ? _MATERIAL_8K_STATUS : [];
+  const key = row[0] || '', label = row[1] || '', status = row[2] || '';
+  if (!key){{ host.innerHTML = ''; return; }}
+  const rows = Array.isArray(data) ? data : [];
+  let n = 0, nEv = 0;
+  for (let j = 0; j < rows.length; j++){{
+    const w = rows[j] ? rows[j][key] : undefined;
+    // „gesammelt" = Collector lief erfolgreich (collected===true). Fail-soft-
+    // Records (collected=false: no_cik/fetch_failed/budget_skip) zählen NICHT.
+    if (w && typeof w === 'object' && w.collected === true){{
+      n++;
+      // „mit Event" = mind. ein materielles 8-K im Point-in-time-Fenster.
+      const ev = w.events;
+      if (Array.isArray(ev) && ev.length >= 1) nEv++;
+    }}
+  }}
+  const esc = s => String(s)
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  host.innerHTML = '<div class="bt-collect-row">'
+    + '<span class="bt-collect-name">' + esc(label) + '</span>'
+    + '<span class="bt-collect-n">' + n + ' gesammelt'
+    + '<span class="bt-collect-mat"> · ' + nEv + ' mit Event</span></span>'
+    + '<span class="bt-collect-status">' + esc(status) + '</span>'
+    + '</div>';
 }}
 function _btRenderHitRates(data){{
   const svg = document.getElementById('bt-chart-hit');
@@ -10041,6 +10087,11 @@ const _COLLECT_STATUS_FIELDS = {collect_status_fields_js};
 // dateiname] aus config.SI_POSITION_STATUS_ROW. Separate Datei → eigener
 // Fetch in _btSiCollectStatus. Rein anzeigend, keine Serien-Werte.
 const _SI_POSITION_STATUS = {si_position_status_row_js};
+// Siebter Sammel-Status-Eintrag (materielle 8-K, §6c): [feldname, label, status]
+// aus config.MATERIAL_8K_STATUS_ROW (server-injiziert). Feld liegt IN _btData
+// (backtest_history), ist aber ein Wrapper-Dict → eigene Zähl-Semantik in
+// _btMat8kCollectStatus (collected===true / events≥1). Rein anzeigend.
+const _MATERIAL_8K_STATUS = {material_8k_status_row_js};
 // Polling-Intervall in ms. 15 s ist die Spec-Vorgabe; Cloudflare-Worker
 // cached 10 s edge-side, Yahoo-Backend bekommt also max ~6 Req/min pro
 // Symbol-Set über alle aktiven Browser zusammen.
