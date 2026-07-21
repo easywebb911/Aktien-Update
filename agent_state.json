@@ -80,22 +80,10 @@
     "anomaly_conviction_high_SOC": "2026-07-02T11:34:24.445058+02:00",
     "exit_FRMM": "2026-07-21T00:17:04.093351+02:00",
     "anomaly_conviction_high_NGNE": "2026-07-09T12:04:16.015071+02:00",
-    "exit_LENZ": "2026-07-21T00:17:04.231219+02:00",
+    "exit_LENZ": "2026-07-21T08:33:25.795137+02:00",
     "earnings_immediate_AMC_20.07.2026": "2026-07-20T22:41:11.044953+02:00"
   },
   "push_history": [
-    {
-      "ts": "2026-07-11T19:16:19.426630+02:00",
-      "ticker": "FRMM",
-      "kind": "anomaly",
-      "severity": "medium",
-      "trigger": "score_jump",
-      "body": "FRMM 🚀 Setup 65 ↑ (gestern 49) | Spanne 10.3% + News: short interest + Earnings in 33d + UOA …",
-      "success": false,
-      "suppressed": true,
-      "suppress_reason": "conviction_below_threshold",
-      "conviction_score": 67
-    },
     {
       "ts": "2026-07-11T20:10:32.305148+02:00",
       "ticker": "BBW",
@@ -1279,6 +1267,18 @@
       "severity": "default",
       "trigger": "exit_alert",
       "body": "LENZ 📉 Exit 70 | -17% | Trailing-Stop −20.1% vom Hoch",
+      "success": true,
+      "suppressed": false,
+      "suppress_reason": null,
+      "conviction_score": null
+    },
+    {
+      "ts": "2026-07-21T08:33:25.795112+02:00",
+      "ticker": "LENZ",
+      "kind": "exit_p1",
+      "severity": "default",
+      "trigger": "exit_alert",
+      "body": "LENZ 📉 Exit 71 | -17% | Trailing-Stop −20.1% vom Hoch",
       "success": true,
       "suppressed": false,
       "suppress_reason": null,
