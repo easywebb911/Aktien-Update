@@ -4622,7 +4622,7 @@ def _score_status_badge_html(conf_key: str) -> str:
     Leerer String bei unbekanntem Key oder fehlendem Text (defensiv, kein
     Crash, kein Platzhalter-Geraffel).
     """
-    txt = SCORE_STATUS_LABELS.get(conf_key)
+    txt = (SCORE_STATUS_LABELS.get(conf_key) or {}).get("status")
     if not txt:
         return ""
     name = _SCORE_STATUS_DISPLAY_NAME.get(conf_key, conf_key)
@@ -4648,54 +4648,51 @@ def _tri_score_color(sc) -> str:
     return "#ef4444"
 
 
-_CONF_TIER_CLASS = {
-    "robust":       "sb-conf-robust",
-    "mittel":       "sb-conf-mittel",
-    "provisorisch": "sb-conf-prov",
-    "heuristisch":  "sb-conf-heur",
-}
-_CONF_TIER_LABEL = {
-    "robust":       "robust",
-    "mittel":       "mittel",
-    "provisorisch": "provisorisch",
-    "heuristisch":  "heuristisch",
+# Anzeige-Label der DATEN-Dimension (Panel „Datenbasis: …"). Rein Datenmenge,
+# KEINE Validierung — das Wort „robust" ist bewusst weg (war als Validierungs-
+# Urteil verbrannt).
+_DATA_TIER_LABEL = {
+    "groß":   "groß",
+    "mittel": "mittel",
+    "klein":  "klein",
+    "keine":  "keine eigene Backtest-Persistenz",
 }
 
 
 def _conf_class(score_class: str) -> tuple[str, str, str]:
-    """Liefert (css_class, title, aria_label) für ein Score-Wasserzeichen.
+    """Liefert (css_class, title, aria_label) für das Karten-Wasserzeichen.
 
-    ``score_class`` ist einer der Keys aus ``compute_score_confidence``
-    (``setup`` / ``monster`` / ``ki`` / ``conviction`` / ``earliness`` /
-    ``exit_pressure``). Liest die Stufe aus dem Modul-State
-    ``_SCORE_CONFIDENCE`` (in ``main()`` gesetzt). Bei fehlenden oder
-    leeren Konfidenz-Daten Fallback auf ``heuristisch`` — konservativ,
-    weil die Markierung dann zumindest „nicht-validiert" signalisiert
-    statt fälschlich Vertrauen zu erzeugen.
+    **Single-Source-Umbau (Konsequenz aus der Panel-Diagnose):** Das
+    Wasserzeichen spiegelt jetzt den VALIDIERUNGS-Status aus
+    ``config.SCORE_STATUS_LABELS`` — DIESELBE Quelle wie die Karten-Badges und
+    die Panel-Status-Zeile — NICHT mehr die Daten-Menge. Vorher entfernte die
+    daten-getriebene Stufe „robust" bei Setup jedes Dimming, sodass der Setup-
+    Score trotz „unvalidiert"-Badge vertrauenswürdig aussah. Bewusste
+    Entscheidung (im PR dokumentiert): solange ein Score NICHT explizit als
+    ``validated: True`` markiert ist, wird er gedimmt + gepunktet unterstrichen
+    (``sb-conf-heur``). Heute ist KEIN Score validiert → alle vier Karten-Scores
+    tragen konsistent das Wasserzeichen, passend zum jeweiligen Badge.
 
-    Liefert leere Strings für CSS/Title/Aria bei tier=robust, damit kein
-    nutzloses Attribut-Geraffel im HTML steht — robust ist der visuelle
-    Default (keine Linie, keine Dimmung).
+    ``score_class`` ∈ setup/monster/ki/conviction (Karten) bzw. earliness/
+    exit_pressure (nur Panel, ohne Karten-Aufruf). Unbekannt/leer → konservativ
+    gedimmt (signalisiert „nicht validiert" statt fälschlich Vertrauen).
 
-    Verhältnis zum CI-Lint: ``_score_block_inner_html`` (Display-Pfad)
-    ist nicht in ``_FORBIDDEN_FUNCS`` von
-    ``scripts/lint_score_confidence_isolation.py`` — Konfidenz-Read aus
-    dem Render-Pfad ist erlaubt, nur Berechnungs-Funktionen (score(),
-    compute_conviction_score, …) dürfen NICHT lesen.
+    CI-Lint: Render-Read ist erlaubt; nur Score-Berechnungs-Funktionen dürfen
+    ``SCORE_STATUS_LABELS`` / Konfidenz NICHT lesen.
     """
-    conf = globals().get("_SCORE_CONFIDENCE") or {}
-    entry = conf.get(score_class) or {}
-    tier = entry.get("tier") or "heuristisch"
-    css = _CONF_TIER_CLASS.get(tier, "sb-conf-heur")
-    if tier == "robust":
+    entry = (SCORE_STATUS_LABELS.get(score_class) or {})
+    if entry.get("validated") is True:
+        # Zukunfts-Pfad: ein validierter Score bekommt KEIN Dimming.
         return "sb-conf-robust", "", ""
-    label = _CONF_TIER_LABEL.get(tier, tier)
-    note = (entry.get("note") or "").replace('"', "'")
-    n = entry.get("n")
-    n_str = f" (n={n})" if isinstance(n, int) and n > 0 else ""
-    title = f"Konfidenz: {label}{n_str} — {note}" if note else f"Konfidenz: {label}{n_str}"
-    aria = f"Konfidenz {label}"
-    return css, title, aria
+    status = entry.get("status")
+    if not status:
+        return "sb-conf-heur", "Status: unvalidiert", "Status unvalidiert"
+    safe = status.replace('"', "'")
+    sdate = entry.get("status_date")
+    date_str = f" (Befund {sdate})" if sdate else ""
+    title = f"Status: {safe}{date_str} — Validierung, nicht Datenmenge"
+    aria = f"Status {safe}"
+    return "sb-conf-heur", title, aria
 
 
 def _score_delta_html(s: dict) -> str:
@@ -6640,12 +6637,28 @@ def _build_chat_synthesis_ctx(stocks: list[dict], score_history: dict,
     }
 
 
-def _score_confidence_rows_html(confidence: dict) -> tuple[str, str]:
-    """Rendert das Konfidenz-Panel: pro Score eine Zeile mit Stufe + Note.
+def _iso_to_de(iso: str) -> str:
+    """``2026-06-30`` → ``30.06.2026`` (defensiv: gibt Eingabe zurück bei
+    unerwartetem Format)."""
+    try:
+        y, m, d = iso.split("-")
+        return f"{d}.{m}.{y}"
+    except (AttributeError, ValueError):
+        return iso or ""
 
-    Liefert ``(rows_html, computed_at_str)``. Bei leerem ``confidence``-Dict:
-    Hinweis-Zeile, kein Crash. Stufen werden mit Emoji-Pill als visuelles
-    Anker dargestellt (🟢 robust / 🟡 mittel / 🟠 prov. / 🔴 heuristisch).
+
+def _score_confidence_rows_html(confidence: dict) -> tuple[str, str]:
+    """Rendert das Konfidenz-Panel — ZWEI getrennte Dimensionen pro Score.
+
+    Single-Source-Umbau: die **Validierungs-Aussage** (Headline + Befund-Datum
+    + Re-Test) kommt aus ``config.SCORE_STATUS_LABELS`` (dieselbe Quelle wie die
+    Karten-Badges); die **Daten-Dimension** (n gereift + data_tier) aus dem
+    ``confidence``-Dict (``compute_score_confidence``). Beide sind sichtbar
+    getrennt, damit „viel Daten" nicht mehr als „validiert" missverstanden wird.
+
+    Liefert ``(rows_html, computed_at_str)``. ``computed_at`` stempelt NUR die
+    berechnete Daten-Dimension; jede Status-Headline trägt ihr EIGENES
+    Befund-Datum. Bei leerem ``confidence``-Dict: Hinweis-Zeile, kein Crash.
     """
     if not confidence:
         return (
@@ -6653,12 +6666,6 @@ def _score_confidence_rows_html(confidence: dict) -> tuple[str, str]:
             'wird beim nächsten Daily-Run berechnet.</li>',
             "—",
         )
-    _tier_icon = {
-        "robust":       "🟢 robust",
-        "mittel":       "🟡 mittel",
-        "provisorisch": "🟠 provisorisch",
-        "heuristisch":  "🔴 heuristisch",
-    }
     _labels = {
         "setup":          "Setup-Score",
         "earliness":      "Earliness V2",
@@ -6670,16 +6677,37 @@ def _score_confidence_rows_html(confidence: dict) -> tuple[str, str]:
     rows = []
     for key in ("setup", "earliness", "monster", "ki", "conviction",
                 "exit_pressure"):
-        entry = (confidence.get(key) or {})
-        tier = entry.get("tier") or "heuristisch"
-        icon = _tier_icon.get(tier, f"⚪ {tier}")
-        note = (entry.get("note") or "")
-        n    = entry.get("n")
-        n_str = f" (n={n})" if isinstance(n, int) and n > 0 else ""
+        data = (confidence.get(key) or {})
+        n    = data.get("n")
+        dtier = _DATA_TIER_LABEL.get(data.get("data_tier"), "keine")
+        if isinstance(n, int) and n > 0:
+            daten = f"Datenbasis: n={n} gereift ({dtier})"
+        else:
+            daten = f"Datenbasis: {dtier}"
+
+        # Validierungs-Status aus der Single-Source (SCORE_STATUS_LABELS).
+        st = (SCORE_STATUS_LABELS.get(key) or {})
+        status = st.get("status") or "unvalidiert"
+        icon = "🟢" if st.get("validated") is True else "🔴"
+        sdate = st.get("status_date")
+        note_parts = [daten]
+        if sdate:
+            note_parts.append(f"Befund {_iso_to_de(sdate)}")
+        if st.get("review_by"):
+            note_parts.append(f"Re-Test bis {_iso_to_de(st['review_by'])}")
+        elif st.get("review_cond"):
+            note_parts.append(st["review_cond"])
+        daten_note = " · ".join(note_parts)
+        safe_status = status.replace("<", "&lt;").replace(">", "&gt;")
+
+        # Layout mobile-sicher: der 🔴-Icon ist der kompakte Anker in der
+        # max-content-Spalte (schrumpft nicht → kein pathologisches Label-
+        # Wrapping wie beim „Surobust"-Bug); der LANGE Status-Text lebt fett
+        # in der VOLLBREITEN Note-Zeile und wrapt sauber.
         rows.append(
             f'<li><span class="sb-lbl">{_labels.get(key, key)}</span>'
-            f'<span class="sb-pts">{icon}{n_str}</span>'
-            f'<span class="sb-note">{note}</span></li>'
+            f'<span class="sb-pts">{icon}</span>'
+            f'<span class="sb-note"><strong>{safe_status}</strong> · {daten_note}</span></li>'
         )
     computed_at = confidence.get("computed_at") or "—"
     return ("\n".join(rows), computed_at)
@@ -7529,21 +7557,24 @@ def generate_html_v1(stocks: list[dict], report_date: str,
       <details class="info-box info-box--full methodology-card" open>
         <summary>
           <h4>Konfidenz der Scores</h4>
-          <span class="method-lead">4 qualitative Stufen pro Score-Klasse · aktuell sichtbar</span>
+          <span class="method-lead">Validierungs-Status getrennt von Datenbasis · eine Quelle</span>
           <i class="method-caret" data-lucide="chevron-down"></i>
         </summary>
         <div class="method-content">
         <p class="score-intro-story">
-          Wie belastbar sind die Scores statistisch?
-          Vier qualitative Stufen statt prozentual — verhindert
-          das „85-%-Garantie"-Missverständnis. <strong>Reine
-          Anzeige</strong> — beeinflusst die Score-Berechnung
-          NICHT (Trennung durch CI-Lint erzwungen).
+          Zwei getrennte Dinge pro Score: <strong>Status</strong> (ist ein
+          Edge belegt? 🔴 = nein/unvalidiert) und <strong>Datenbasis</strong>
+          (wie viel gereiftes Backtest-Material liegt vor). Viel Datenbasis
+          heißt <em>nicht</em> validiert — beides steht bewusst getrennt.
+          Der Status kommt aus <strong>einer</strong> gepflegten Quelle
+          (dieselbe wie die Karten-Badges) und trägt sein eigenes
+          Befund-Datum. <strong>Reine Anzeige</strong> — beeinflusst die
+          Score-Berechnung NICHT (CI-Lint erzwingt die Trennung).
         </p>
         <ul class="score-block-list">
           {score_confidence_rows_html}
         </ul>
-        <p class="score-block-foot">Stand: {score_confidence_computed_at}</p>
+        <p class="score-block-foot">Datenbasis berechnet: {score_confidence_computed_at} · die Status-Befunde tragen ihr eigenes Datum (je Zeile), kein Render-Zeitstempel darüber.</p>
         </div>
       </details>
       <details class="info-box methodology-card">
@@ -14701,77 +14732,59 @@ def _sanitize_for_json(obj):
     return obj
 
 
+def _data_tier(n) -> str:
+    """DATEN-Dimension (nur Stichprobengröße, KEINE Validierung).
+
+    Bewusst NICHT „robust" — das Wort war als Validierungs-Urteil verbrannt
+    (Panel „robust" ⇄ Karte „unvalidiert"). Diese Stufe misst ausschließlich,
+    wie viel gereiftes Backtest-Material vorliegt; der VALIDIERUNGS-Status
+    kommt getrennt aus ``config.SCORE_STATUS_LABELS``.
+    """
+    if not isinstance(n, int) or n <= 0:
+        return "keine"
+    if n >= SCORE_CONFIDENCE_N_ROBUST:
+        return "groß"
+    if n >= SCORE_CONFIDENCE_N_MITTEL:
+        return "mittel"
+    return "klein"
+
+
 def compute_score_confidence(backtest_history: list | None = None) -> dict:
-    """Konfidenz-Stufen für die 6 Score-Klassen (rein anzeigend, KEIN
-    Score-/Conviction-Effekt — CI-Lint
-    ``scripts/lint_score_confidence_isolation.py`` erzwingt die Trennung).
+    """DATEN-Dimension der Score-Konfidenz (rein anzeigend, KEIN Score-/
+    Conviction-Effekt — CI-Lint ``scripts/lint_score_confidence_isolation.py``
+    erzwingt die Trennung).
 
-    Berechnung:
-      - ``n_returns`` = Anzahl Backtest-Einträge mit ``return_10d`` befüllt.
-        Das ist die Stichprobe für die Bucket-Auswertung Setup-Score gegen
-        return_10d (also robust ab ``SCORE_CONFIDENCE_N_ROBUST`` Datenpunkten).
-      - Earliness V2: feste Stufe ``mittel`` (n=78 in 14-Tage-Diagnose 13.05.2026,
-        AUC 0.77). Wird nach 14-30 Tagen Live-Daten via Trend-Logging-Auswertung
-        manuell hochgestuft.
-      - Monster: erbt Setup-Stufe (Komposition).
-      - KI / Conviction / Exit-Druck: heuristisch (keine Backtest-Persistenz).
+    **Single-Source-Umbau:** Diese Funktion liefert AUSSCHLIESSLICH die
+    Datenmenge (``n`` gereift + ``data_tier`` groß/mittel/klein/keine). Der
+    VALIDIERUNGS-Status (unvalidiert / OoS-kollabiert / …) sowie das Befund-
+    Datum leben EINZIG in ``config.SCORE_STATUS_LABELS`` — dieselbe Quelle wie
+    die Karten-Badges. Damit können Panel-Status und Karten-Badge nicht mehr
+    auseinanderdriften. Die frühere hartcodierte AUC-Validitäts-Annahme (die
+    Setup fälschlich als validiert einstufte, obwohl der 30.06.-Befund AUC
+    ~0.40 fand) ist ELIMINIERT.
 
-    Liefert ein Dict ``{<score_name>: {tier, n, note, ...}, computed_at}``.
+    ``n_returns`` = Anzahl Backtest-Einträge mit ``return_10d`` befüllt — die
+    einzige Größe, für die ein eigener gereifter Backtest-Bestand existiert
+    (Setup-Score vs. return_10d). Die übrigen fünf Klassen haben keine eigene
+    Backtest-Persistenz → ``n=None``, ``data_tier="keine"``.
+
+    Liefert ``{<score_name>: {n, data_tier}, computed_at}``. ``computed_at``
+    stempelt EHRLICH nur die berechnete Daten-Dimension — NICHT die Status-
+    Texte (die tragen ihr eigenes ``status_date`` aus der config).
     """
     bh = backtest_history if backtest_history is not None else []
     n_returns = sum(1 for e in bh if e.get("return_10d") is not None)
 
-    def _tier(n: int, has_auc: bool) -> str:
-        if n >= SCORE_CONFIDENCE_N_ROBUST and has_auc:
-            return "robust"
-        if n >= SCORE_CONFIDENCE_N_MITTEL and has_auc:
-            return "mittel"
-        if n >= SCORE_CONFIDENCE_N_MITTEL:
-            return "mittel"   # viele Daten, AUC-Test ausstehend
-        if n >= SCORE_CONFIDENCE_N_PROVISORISCH:
-            return "provisorisch"
-        return "heuristisch"
+    def _row(n):
+        return {"n": n, "data_tier": _data_tier(n)}
 
-    setup_tier = _tier(n_returns, has_auc=True)
     return {
-        "setup": {
-            "tier": setup_tier,
-            "n":    n_returns,
-            "note": "Backtest-Bucket-Auswertung gegen return_10d (≥, mid, <)",
-        },
-        "earliness": {
-            "tier":  "mittel",
-            "n":     78,
-            "auc":   0.77,
-            "note":  ("Mann-Whitney-U 13.05.2026, 14-Tage-Stichprobe (n_w=34, "
-                      "n_l=44). AUC-Re-Test nach 14-30d Live-Daten geplant "
-                      "(Trend-Logging-Felder, PR #142)."),
-        },
-        "monster": {
-            "tier": "heuristisch",
-            "n":    0,
-            "note": ("unvalidiert — 30.06. AUC 0.76→0.51 kollabiert, kein "
-                     "belegter Prädiktor; Aggregations-Anzeige (Setup × "
-                     "KI-Boost), nicht validiert."),
-        },
-        "ki": {
-            "tier": "heuristisch",
-            "n":    0,
-            "note": ("Wirkt nur als Multiplikator ×1.05–1.15. Kein "
-                     "eigenständiger Backtest-Pfad."),
-        },
-        "conviction": {
-            "tier": "heuristisch",
-            "n":    0,
-            "note": ("Keine Backtest-Persistenz. Komponenten-Konfidenz "
-                     "(Stufe 2) geplant nach Schema-Erweiterung."),
-        },
-        "exit_pressure": {
-            "tier": "heuristisch",
-            "n":    0,
-            "note": ("Closed-Trades-Snapshot-Schema offen — Validierungs-Pfad "
-                     "wartet auf Trade-Journal-Erweiterung."),
-        },
+        "setup":         _row(n_returns),
+        "earliness":     _row(None),
+        "monster":       _row(None),
+        "ki":            _row(None),
+        "conviction":    _row(None),
+        "exit_pressure": _row(None),
         "computed_at": datetime.now(ZoneInfo("UTC")).strftime("%Y-%m-%dT%H:%M:%SZ"),
     }
 
@@ -17551,6 +17564,21 @@ def main():
     except Exception as exc:
         log.warning("health_check (Daily-Run) fehlgeschlagen: %s", exc)
         _hc_fails = []
+
+    # Status-Drift-Wecker (Teil 2, täglicher Codepfad): erinnert an fällige
+    # Score-Validierungs-Re-Tests (config.SCORE_STATUS_LABELS.review_by). Reine
+    # ntfy-Erinnerung — ändert NICHTS (kein Score, kein State, kein Repo-Write).
+    # Gedrosselt deterministisch via Wochentag-+postclose-Gate (max. 1×/Woche/
+    # Score). Fail-soft: darf den Daily-Run NIE crashen.
+    try:
+        import status_review_reminder
+        _n_wecker = status_review_reminder.run(
+            datetime.now(ZoneInfo("Europe/Berlin")), run_phase)
+        if _n_wecker:
+            log.info("Status-Drift-Wecker: %d Review-Erinnerung(en) gepusht.",
+                     _n_wecker)
+    except Exception as exc:
+        log.warning("Status-Drift-Wecker fehlgeschlagen: %s", exc)
 
     # Frontend-Awareness Phase 1a: bei HTML-Sanity-CRIT (Health-Check S9)
     # senden wir einen Sofort-Push und beenden mit Exit-Code 1. Der

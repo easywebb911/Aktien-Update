@@ -1,27 +1,30 @@
-"""Mock-Tests für Score-Konfidenz-Stufen (Stufe 1).
+"""Mock-Tests für Score-Konfidenz — Single-Source-Umbau.
 
-Reine Anzeige-Funktion (`compute_score_confidence`), kein Score-/Conviction-
-Effekt. Trennung wird vom CI-Lint `scripts/lint_score_confidence_isolation.py`
-erzwungen.
+``compute_score_confidence`` liefert seit dem Umbau NUR die DATEN-Dimension
+(n gereift + data_tier groß/mittel/klein/keine) — KEINE Validierungs-Stufe
+(kein has_auc, kein „robust"). Der Validierungs-STATUS kommt getrennt aus
+``config.SCORE_STATUS_LABELS`` (dieselbe Quelle wie die Karten-Badges); das
+Panel rendert beide Dimensionen sichtbar getrennt.
+
+Reine Anzeige — CI-Lint ``lint_score_confidence_isolation.py`` erzwingt die
+Trennung von der Score-Berechnung.
 
 Tests:
-  1. Alle 4 Stufen werden erreicht (robust / mittel / provisorisch / heuristisch)
-     je nach Stichprobengröße
-  2. Earliness-Stufe ist hartkodiert "mittel" (datenbelegt 13.05.2026, AUC 0.77)
-  3. Monster erbt Setup-Stufe
-  4. KI / Conviction / Exit-Druck immer "heuristisch"
-  5. Edge: leeres backtest_history → setup landet in heuristisch
-  6. computed_at ist ISO-UTC-String
-  7. Persistenz-Schema: app_data.json["score_confidence"] enthält die
-     Top-Level-Keys (setup/earliness/monster/ki/conviction/exit_pressure/computed_at)
-  8. CI-Lint: aktueller Repo-State hat keine Konfidenz-Reader in
-     Score-Berechnungs-Funktionen
-  9. Source-Inspektion: Methodik-Panel-Block enthält {score_confidence_rows_html}-
-     Placeholder
+  1. Setup-data_tier je Stichprobengröße (groß/mittel/klein/keine).
+  2. Übrige 5 Klassen: n=None, data_tier="keine" (keine eigene Persistenz).
+  3. Edge: leeres/None-backtest_history → setup data_tier "keine".
+  4. computed_at ISO-UTC.
+  5. Top-Level-Keys vollständig (6 Scores + computed_at).
+  6. Entry-Felder: {n, data_tier} (KEIN tier/note mehr).
+  7. HTML-Render: Validierungs-Status (aus config) + Datenbasis getrennt.
+  8. HTML-Render: leeres Dict → Hinweis-Zeile.
+  9. HTML-Render: alle 6 Labels.
+ 10. Isolation-Lint grün.
+ 11. Methodik-Panel-Placeholder + Foot ehrlich (kein „Stand" über Status).
+ 12. Workflow integriert Isolation-Lint.
 """
 from __future__ import annotations
 
-import json
 import pathlib
 import re
 import subprocess
@@ -30,27 +33,21 @@ import sys
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
 
-
-# === Source-Extraktion =====================================================
-# generate_report.py importiert yfinance beim Modul-Load. Wir extrahieren
-# nur compute_score_confidence + _score_confidence_rows_html per
-# Source-Slice.
-
 src = (ROOT / "generate_report.py").read_text(encoding="utf-8")
 
 
 def _extract(func_def: str) -> str:
-    pat = rf"^def {re.escape(func_def)}\([\s\S]+?(?=^def\s|^class\s|^# ====)"
+    pat = rf"^def {re.escape(func_def)}\([\s\S]+?(?=^def\s|^class\s|^# ====|^_[A-Z])"
     m = re.search(pat, src, re.MULTILINE)
     assert m, f"{func_def} nicht in generate_report.py gefunden"
     return m.group(0)
 
 
-helpers_src = (
-    _extract("compute_score_confidence")
-    + "\n"
-    + _extract("_score_confidence_rows_html")
-)
+def _extract_assign(name: str) -> str:
+    pat = rf"^{re.escape(name)} = \{{[\s\S]+?\n\}}"
+    m = re.search(pat, src, re.MULTILINE)
+    assert m, f"{name} (dict) nicht gefunden"
+    return m.group(0)
 
 
 class _Log:
@@ -62,14 +59,18 @@ class _Log:
 ns: dict = {"log": _Log()}
 exec(
     "from config import (\n"
+    "    SCORE_STATUS_LABELS,\n"
     "    SCORE_CONFIDENCE_N_ROBUST,\n"
     "    SCORE_CONFIDENCE_N_MITTEL,\n"
     "    SCORE_CONFIDENCE_N_PROVISORISCH,\n"
-    "    SCORE_CONFIDENCE_MAX_AGE_DAYS,\n"
     ")\n"
     "from datetime import datetime\n"
     "from zoneinfo import ZoneInfo\n"
-    + helpers_src,
+    + _extract("_data_tier") + "\n"
+    + _extract("compute_score_confidence") + "\n"
+    + _extract_assign("_DATA_TIER_LABEL") + "\n"
+    + _extract("_iso_to_de") + "\n"
+    + _extract("_score_confidence_rows_html"),
     ns,
 )
 compute_score_confidence    = ns["compute_score_confidence"]
@@ -77,7 +78,6 @@ _score_confidence_rows_html = ns["_score_confidence_rows_html"]
 
 
 def _bh(n_with_returns: int) -> list[dict]:
-    """Synthetisches backtest_history mit gegebener Anzahl gefüllter return_10d."""
     return [
         {"ticker": f"T{i}", "date": "01.01.2026",
          "return_10d": 5.0 if i < n_with_returns else None}
@@ -85,98 +85,64 @@ def _bh(n_with_returns: int) -> list[dict]:
     ]
 
 
-# === 1 — Stufen-Mapping pro Stichprobengröße ===============================
+# === 1 — Setup data_tier je Stichprobengröße ==============================
 
-def test_setup_robust_when_large_sample():
-    """≥ 500 + AUC-Test → robust (Setup-Score hat has_auc=True)."""
+def test_setup_data_tier_gross():
     res = compute_score_confidence(_bh(600))
-    assert res["setup"]["tier"] == "robust", res["setup"]
+    assert res["setup"]["data_tier"] == "groß", res["setup"]
     assert res["setup"]["n"] == 600
 
 
-def test_setup_mittel_50_to_500():
-    """50 ≤ n < 500 + AUC → mittel."""
+def test_setup_data_tier_mittel():
     res = compute_score_confidence(_bh(100))
-    assert res["setup"]["tier"] == "mittel", res["setup"]
+    assert res["setup"]["data_tier"] == "mittel", res["setup"]
 
 
-def test_setup_provisorisch_1_to_49():
-    """1 ≤ n < 50 + AUC → provisorisch."""
+def test_setup_data_tier_klein():
     res = compute_score_confidence(_bh(10))
-    assert res["setup"]["tier"] == "provisorisch", res["setup"]
+    assert res["setup"]["data_tier"] == "klein", res["setup"]
 
 
-def test_setup_heuristisch_when_empty():
-    """0 Datenpunkte → heuristisch."""
+def test_setup_data_tier_keine_when_empty():
     res = compute_score_confidence([])
-    assert res["setup"]["tier"] == "heuristisch", res["setup"]
+    assert res["setup"]["data_tier"] == "keine", res["setup"]
     assert res["setup"]["n"] == 0
 
 
-# === 2 — Earliness ist hartkodiert "mittel" ================================
+# === 2 — Übrige 5 Klassen: keine eigene Persistenz ========================
 
-def test_earliness_always_mittel():
-    """Earliness V2 Stufe ist heute hartkodiert auf 'mittel' mit n=78
-    (Mann-Whitney-U 13.05.2026, AUC 0.77)."""
-    res_full   = compute_score_confidence(_bh(2000))
-    res_empty  = compute_score_confidence([])
-    for r in (res_full, res_empty):
-        assert r["earliness"]["tier"] == "mittel", r["earliness"]
-        assert r["earliness"]["n"] == 78
-        assert r["earliness"].get("auc") == 0.77
-
-
-# === 3 — Monster erbt Setup ================================================
-
-def test_monster_always_heuristisch():
-    """Seit 13.07.2026: Monster erbt NICHT mehr Setups Stufe — er ist
-    unvalidiert (30.06. AUC 0.76→0.51 kollabiert) und immer heuristisch,
-    unabhängig von der Backtest-Datenmenge. Differenzierung zu Setup
-    (das bei n≥500 robust wird) ist der Kern der Neutralisierung."""
-    for n, setup_expected in [(600, "robust"), (100, "mittel"),
-                              (10, "provisorisch"), (0, "heuristisch")]:
-        res = compute_score_confidence(_bh(n))
-        assert res["monster"]["tier"] == "heuristisch", (
-            f"n={n}: monster {res['monster']['tier']} sollte heuristisch sein")
-        assert res["setup"]["tier"] == setup_expected, (
-            f"n={n}: setup {res['setup']['tier']} != {setup_expected}")
-        assert res["monster"]["n"] == 0
-
-
-# === 4 — KI / Conviction / Exit_pressure immer heuristisch =================
-
-def test_ki_conviction_exit_always_heuristisch():
+def test_other_scores_no_persistence():
     for bh in (_bh(5000), _bh(0)):
         res = compute_score_confidence(bh)
-        for key in ("ki", "conviction", "exit_pressure"):
-            assert res[key]["tier"] == "heuristisch", (
-                f"{key} sollte heuristisch sein, got {res[key]['tier']}")
-            assert res[key]["n"] == 0
+        for key in ("earliness", "monster", "ki", "conviction", "exit_pressure"):
+            assert res[key]["n"] is None, f"{key} n sollte None sein"
+            assert res[key]["data_tier"] == "keine", f"{key} data_tier"
 
 
-# === 5 — Edge-Cases ========================================================
+# === 3 — Edge-Cases ========================================================
 
 def test_none_backtest_history():
     res = compute_score_confidence(None)
-    assert res["setup"]["tier"] == "heuristisch"
+    assert res["setup"]["data_tier"] == "keine"
     assert res["setup"]["n"] == 0
 
 
 def test_entries_without_return_10d():
     bh = [{"ticker": "T", "date": "01.01.2026", "return_10d": None}] * 1000
     res = compute_score_confidence(bh)
-    assert res["setup"]["tier"] == "heuristisch", "0 mit Returns → heuristisch"
+    assert res["setup"]["data_tier"] == "keine", "0 mit Returns → keine"
 
+
+# === 4 — computed_at =======================================================
 
 def test_computed_at_iso_utc():
     res = compute_score_confidence([])
     ts = res.get("computed_at")
     assert ts is not None
-    # ISO-UTC-Format: YYYY-MM-DDTHH:MM:SSZ
     assert re.match(r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$", ts), ts
 
 
-# === 6 — Persistenz-Schema =================================================
+# === 5 — Persistenz-Schema =================================================
 
 def test_top_level_keys_complete():
     res = compute_score_confidence(_bh(100))
@@ -185,27 +151,29 @@ def test_top_level_keys_complete():
     assert set(res.keys()) == expected, set(res.keys()) ^ expected
 
 
-def test_entry_fields_have_note():
+def test_entry_fields_data_dimension_only():
     res = compute_score_confidence(_bh(100))
     for key in ("setup", "earliness", "monster", "ki", "conviction",
                 "exit_pressure"):
-        assert "tier" in res[key], key
-        assert "n" in res[key], key
-        assert "note" in res[key] and res[key]["note"], (
-            f"{key} hat keine 'note'")
+        assert set(res[key].keys()) == {"n", "data_tier"}, res[key]
+        assert "tier" not in res[key] and "note" not in res[key], (
+            f"{key} trägt noch Validierungs-Felder")
 
 
-# === 7 — HTML-Render-Helper ================================================
+# === 6 — HTML-Render: zwei Dimensionen getrennt ============================
 
-def test_html_rows_render_all_tiers():
-    """4 Stufen-Emoji sollten in einem realistischen Render auftauchen."""
-    res = compute_score_confidence(_bh(600))  # Setup→robust, Earliness→mittel,
-                                                # KI/Conv/Exit→heuristisch
+def test_html_two_dimensions_separated():
+    res = compute_score_confidence(_bh(600))
     rows_html, computed_at = _score_confidence_rows_html(res)
-    assert "🟢 robust" in rows_html, rows_html
-    assert "🟡 mittel" in rows_html, rows_html
-    assert "🔴 heuristisch" in rows_html, rows_html
-    # computed_at-Datum aus dem Dict übernommen
+    # Validierungs-Status aus config (Single-Source) — Setup = unvalidiert.
+    # Icon (kompakt) + Status (fett, vollbreit) in getrennten Spans.
+    assert "🔴" in rows_html and "<strong>unvalidiert</strong>" in rows_html, rows_html
+    # Daten-Dimension getrennt, mit n + tier.
+    assert "Datenbasis: n=600 gereift (groß)" in rows_html, rows_html
+    # Befund-Datum aus config (DE-formatiert) — nicht Render-Zeit.
+    assert "Befund 30.06.2026" in rows_html, rows_html
+    # Panel darf das alte „robust"-Wort NICHT mehr zeigen.
+    assert "robust" not in rows_html, "verbranntes Wort 'robust' im Panel"
     assert computed_at == res["computed_at"]
 
 
@@ -223,7 +191,7 @@ def test_html_labels_present():
         assert label in rows_html, f"{label!r} fehlt im HTML"
 
 
-# === 8 — CI-Lint: keine Konfidenz-Reader in Berechnungs-Pfaden =============
+# === 7 — CI-Lint ===========================================================
 
 def test_isolation_lint_passes():
     proc = subprocess.run(
@@ -231,57 +199,46 @@ def test_isolation_lint_passes():
         capture_output=True, text=True,
     )
     assert proc.returncode == 0, (
-        f"Isolation-Lint scheitert (Score-Konfidenz wird in einer "
-        f"verbotenen Berechnungs-Funktion gelesen):\n"
-        f"stdout: {proc.stdout}\nstderr: {proc.stderr}")
+        f"Isolation-Lint scheitert:\nstdout: {proc.stdout}\nstderr: {proc.stderr}")
 
 
-# === 9 — Methodik-Panel-Block-Source-Inspektion ============================
+# === 8 — Methodik-Panel ====================================================
 
-def test_methodology_panel_has_placeholder():
-    """Der HTML-Block im Methodik-Panel referenziert den Placeholder."""
-    assert "{score_confidence_rows_html}" in src, (
-        "Placeholder {score_confidence_rows_html} fehlt im Methodik-Panel-HTML")
-    assert "{score_confidence_computed_at}" in src, (
-        "Placeholder {score_confidence_computed_at} fehlt")
-    # Box-Header
+def test_methodology_panel_honest_foot():
+    assert "{score_confidence_rows_html}" in src, "Placeholder fehlt"
+    assert "{score_confidence_computed_at}" in src, "computed_at-Placeholder fehlt"
     assert "Konfidenz der Scores" in src
+    # Foot ehrlich: kein blankes „Stand: <Render-Zeit>" mehr über den Texten.
+    assert "Datenbasis berechnet:" in src, \
+        "Panel-Foot benennt den Timestamp nicht ehrlich als Daten-Dimension"
 
 
 def test_workflow_includes_isolation_lint_step():
-    """daily-squeeze-report.yml ruft den Isolation-Lint vor generate auf."""
     yml = (ROOT / ".github" / "workflows" / "daily-squeeze-report.yml"
            ).read_text(encoding="utf-8")
-    assert "lint_score_confidence_isolation.py" in yml, (
-        "Workflow ruft den Isolation-Lint nicht auf")
-    # Reihenfolge: Lint vor Generate
+    assert "lint_score_confidence_isolation.py" in yml
     idx_lint     = yml.find("lint_score_confidence_isolation.py")
     idx_generate = yml.find("Generate squeeze report")
-    assert idx_lint < idx_generate, (
-        "Isolation-Lint muss VOR dem Generate-Step laufen")
+    assert idx_lint < idx_generate, "Isolation-Lint muss VOR Generate laufen"
 
-
-# === Runner =================================================================
 
 def main() -> None:
     tests = [
-        ("Setup: ≥ 500 + AUC → robust",                test_setup_robust_when_large_sample),
-        ("Setup: 50 ≤ n < 500 → mittel",                test_setup_mittel_50_to_500),
-        ("Setup: 1 ≤ n < 50 → provisorisch",            test_setup_provisorisch_1_to_49),
-        ("Setup: 0 Datenpunkte → heuristisch",          test_setup_heuristisch_when_empty),
-        ("Earliness immer 'mittel' (n=78, AUC 0.77)",   test_earliness_always_mittel),
-        ("Monster immer heuristisch (unvalidiert)",     test_monster_always_heuristisch),
-        ("KI / Conviction / Exit immer heuristisch",    test_ki_conviction_exit_always_heuristisch),
-        ("None-backtest_history graceful",              test_none_backtest_history),
-        ("Einträge ohne return_10d zählen nicht",        test_entries_without_return_10d),
-        ("computed_at ISO-UTC-Format",                  test_computed_at_iso_utc),
-        ("Top-Level-Keys vollständig",                  test_top_level_keys_complete),
-        ("Entry-Felder: tier/n/note vorhanden",          test_entry_fields_have_note),
-        ("HTML-Render: alle 4 Stufen-Emojis",            test_html_rows_render_all_tiers),
-        ("HTML-Render: leeres Dict → Hinweis-Zeile",     test_html_empty_confidence_returns_hint),
-        ("HTML-Render: 6 Score-Labels vorhanden",        test_html_labels_present),
-        ("Isolation-Lint: keine Konfidenz-Reader",       test_isolation_lint_passes),
-        ("Methodik-Panel hat Placeholder",               test_methodology_panel_has_placeholder),
+        ("Setup data_tier ≥500 → groß",                 test_setup_data_tier_gross),
+        ("Setup data_tier 50–499 → mittel",              test_setup_data_tier_mittel),
+        ("Setup data_tier 1–49 → klein",                 test_setup_data_tier_klein),
+        ("Setup data_tier 0 → keine",                    test_setup_data_tier_keine_when_empty),
+        ("Übrige 5: n=None, keine Persistenz",           test_other_scores_no_persistence),
+        ("None-backtest_history graceful",               test_none_backtest_history),
+        ("Einträge ohne return_10d zählen nicht",         test_entries_without_return_10d),
+        ("computed_at ISO-UTC",                          test_computed_at_iso_utc),
+        ("Top-Level-Keys vollständig",                   test_top_level_keys_complete),
+        ("Entry-Felder nur {n, data_tier}",              test_entry_fields_data_dimension_only),
+        ("HTML: Status + Datenbasis getrennt",           test_html_two_dimensions_separated),
+        ("HTML: leeres Dict → Hinweis",                  test_html_empty_confidence_returns_hint),
+        ("HTML: 6 Labels vorhanden",                     test_html_labels_present),
+        ("Isolation-Lint grün",                          test_isolation_lint_passes),
+        ("Methodik-Panel Foot ehrlich",                  test_methodology_panel_honest_foot),
         ("Workflow integriert Isolation-Lint",           test_workflow_includes_isolation_lint_step),
     ]
     failed = 0

@@ -36,6 +36,7 @@ import re
 import sys
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
+sys.path.insert(0, str(ROOT))
 GR = (ROOT / "generate_report.py").read_text(encoding="utf-8")
 HJ = (ROOT / "templates" / "head.jinja").read_text(encoding="utf-8")
 CMD = (ROOT / "CLAUDE.md").read_text(encoding="utf-8")
@@ -49,85 +50,79 @@ def _func_block(func_def: str) -> str:
     return GR[start:end]
 
 
-# ── _conf_class-Replik (1:1 mit echter Funktion) ────────────────────────────
+# ── ECHTE _conf_class (Single-Source-Umbau) ─────────────────────────────────
+# Statt einer Replik wird die ECHTE Funktion aus generate_report.py extrahiert
+# und mit einem KONTROLLIERTEN SCORE_STATUS_LABELS ausgeführt (kein Replik-
+# Drift). Das Wasserzeichen kommt jetzt aus dem VALIDIERUNGS-Status
+# (SCORE_STATUS_LABELS), NICHT mehr aus einer daten-getriebenen Stufe.
 
-_CONF_TIER_CLASS = {
-    "robust":       "sb-conf-robust",
-    "mittel":       "sb-conf-mittel",
-    "provisorisch": "sb-conf-prov",
-    "heuristisch":  "sb-conf-heur",
-}
-
-
-def _replicate_conf_class(score_class: str, confidence: dict) -> tuple[str, str, str]:
-    conf = confidence or {}
-    entry = conf.get(score_class) or {}
-    tier = entry.get("tier") or "heuristisch"
-    css = _CONF_TIER_CLASS.get(tier, "sb-conf-heur")
-    if tier == "robust":
-        return "sb-conf-robust", "", ""
-    label = tier
-    note = (entry.get("note") or "").replace('"', "'")
-    n = entry.get("n")
-    n_str = f" (n={n})" if isinstance(n, int) and n > 0 else ""
-    title = f"Konfidenz: {label}{n_str} — {note}" if note else f"Konfidenz: {label}{n_str}"
-    aria = f"Konfidenz {label}"
-    return css, title, aria
+def _conf_class_with(labels: dict):
+    ns = {"SCORE_STATUS_LABELS": labels}
+    exec(_func_block("def _conf_class("), ns)
+    return ns["_conf_class"]
 
 
 # ── Funktional ───────────────────────────────────────────────────────────────
 
-def test_01_robust_empty_attrs() -> None:
-    conf = {"setup": {"tier": "robust", "n": 1263, "note": "Backtest"}}
-    css, title, aria = _replicate_conf_class("setup", conf)
+def test_01_validated_empty_attrs() -> None:
+    # Zukunfts-Pfad: ein explizit validierter Score bekommt KEIN Dimming.
+    cc = _conf_class_with({"setup": {"validated": True, "status": "validiert"}})
+    css, title, aria = cc("setup")
     assert css == "sb-conf-robust"
-    assert title == "", "robust hat leeren title (keine extra Attribute im HTML)"
-    assert aria == ""
+    assert title == "" and aria == "", "validiert → keine Extra-Attribute"
 
 
-def test_02_heuristisch_full_attrs() -> None:
-    conf = {"conviction": {"tier": "heuristisch", "n": 0,
-                            "note": "Aggregat, keine Backtest-Persistenz"}}
-    css, title, aria = _replicate_conf_class("conviction", conf)
+def test_02_unvalidated_full_attrs() -> None:
+    cc = _conf_class_with({"conviction": {
+        "status": "Aggregat · unvalidiert", "status_date": "2026-06-30"}})
+    css, title, aria = cc("conviction")
     assert css == "sb-conf-heur"
-    assert "heuristisch" in title
-    assert "Aggregat" in title
-    assert aria == "Konfidenz heuristisch"
+    assert "Status:" in title and "Aggregat" in title
+    # Karten-Tooltip trägt das ISO-Befund-Datum (das Panel formatiert DE).
+    assert "Befund 2026-06-30" in title, f"Befund-Datum fehlt: {title!r}"
+    assert aria == "Status Aggregat · unvalidiert"
 
 
-def test_03_fallback_empty_confidence() -> None:
-    css, title, aria = _replicate_conf_class("setup", {})
-    assert css == "sb-conf-heur", "Fallback bei leerem Confidence -> heuristisch"
-    assert "heuristisch" in title
+def test_03_fallback_unknown_key() -> None:
+    cc = _conf_class_with({})
+    css, title, aria = cc("setup")
+    assert css == "sb-conf-heur", "Unbekannt → konservativ gedimmt"
+    assert "unvalidiert" in title
 
 
-def test_04_unknown_tier_falls_back() -> None:
-    conf = {"ki": {"tier": "experimental"}}   # nicht im Mapping
-    css, title, aria = _replicate_conf_class("ki", conf)
-    assert css == "sb-conf-heur", \
-        "Unbekannte Stufe → konservativer heuristisch-Fallback"
-
-
-def test_05_title_contains_n_when_present() -> None:
-    conf = {"earliness": {"tier": "mittel", "n": 78, "note": "MWU-Test"}}
-    css, title, _ = _replicate_conf_class("earliness", conf)
-    assert "(n=78)" in title
-    assert "mittel" in title
-
-
-def test_06_title_no_double_quotes() -> None:
-    """Note darf keine doppelten Anfuehrungszeichen enthalten — sonst
-    bricht das title="..." HTML-Attribut."""
-    conf = {"x": {"tier": "heuristisch", "note": 'mit "evil" Quote'}}
-    css, title, _ = _replicate_conf_class("x", conf)
+def test_04_title_no_double_quotes() -> None:
+    """Status darf keine doppelten Anführungszeichen ins title=\"…\" bringen."""
+    cc = _conf_class_with({"x": {"status": 'mit "evil" Quote',
+                                 "status_date": "2026-01-01"}})
+    _, title, _ = cc("x")
     assert '"' not in title, f"Title enthaelt noch Quote: {title!r}"
     assert "'evil'" in title, "Quote-Escape via single-Quote-Replace"
 
 
+def test_05_reflects_validation_not_data() -> None:
+    # Kernbeleg des Single-Source-Umbaus: mit dem ECHTEN config-Setup
+    # (unvalidiert) ist Setup NICHT mehr un-gedimmt „robust".
+    from config import SCORE_STATUS_LABELS as REAL
+    cc = _conf_class_with(REAL)
+    css, title, _ = cc("setup")
+    assert css == "sb-conf-heur", \
+        "Setup muss unter der echten config gedimmt sein (unvalidiert)"
+    assert "unvalidiert" in title
+
+
+def test_06_single_source_not_score_confidence() -> None:
+    # Die echte Funktion darf NICHT mehr am alten _SCORE_CONFIDENCE-Tier hängen.
+    block = _func_block("def _conf_class(")
+    assert "SCORE_STATUS_LABELS.get(score_class)" in block
+    assert "_SCORE_CONFIDENCE" not in block, \
+        "_conf_class hängt noch am alten Konfidenz-Tier (Drift-Quelle)"
+
+
 def test_07_aria_label_set() -> None:
-    conf = {"ki": {"tier": "heuristisch", "n": 0}}
-    _, _, aria = _replicate_conf_class("ki", conf)
-    assert aria == "Konfidenz heuristisch"
+    cc = _conf_class_with({"ki": {"status": "heuristisch",
+                                  "status_date": "2026-07-15"}})
+    _, _, aria = cc("ki")
+    assert aria == "Status heuristisch"
 
 
 # ── Source-Inspektion ────────────────────────────────────────────────────────
@@ -194,12 +189,12 @@ def test_13_claude_md_phase2_doc() -> None:
 
 def main() -> int:
     tests = [
-        ("01 robust → leere Attribute",                test_01_robust_empty_attrs),
-        ("02 heuristisch → CSS + title + aria",        test_02_heuristisch_full_attrs),
-        ("03 Fallback bei leerem _SCORE_CONFIDENCE",   test_03_fallback_empty_confidence),
-        ("04 Unbekannte Stufe → heur-Fallback",        test_04_unknown_tier_falls_back),
-        ("05 title enthaelt n bei n>0",                test_05_title_contains_n_when_present),
-        ("06 Note-Quote-Escape (keine \" im title)",   test_06_title_no_double_quotes),
+        ("01 validiert → leere Attribute",             test_01_validated_empty_attrs),
+        ("02 unvalidiert → CSS + Status + Befund",     test_02_unvalidated_full_attrs),
+        ("03 Fallback unbekannter Key → gedimmt",      test_03_fallback_unknown_key),
+        ("04 Status-Quote-Escape (keine \" im title)", test_04_title_no_double_quotes),
+        ("05 spiegelt Validierung, nicht Daten",       test_05_reflects_validation_not_data),
+        ("06 Single-Source (kein _SCORE_CONFIDENCE)",  test_06_single_source_not_score_confidence),
         ("07 aria-label gesetzt",                      test_07_aria_label_set),
         ("08 alle 4 Rows mit conf-Klasse",             test_08_all_rows_have_conf_class),
         ("09 title-Attribut injiziert",                test_09_title_attribute_injected),

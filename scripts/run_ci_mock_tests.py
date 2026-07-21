@@ -61,7 +61,7 @@ ALLOWLIST = [
     "score_inflation_log", "score_inflation_log_v2", "score_multiplier_sync", "score_normalization_version",
     "sector_rs_removal", "selector_consistency", "service_worker_removed", "session_wrap_indexeddb",
     "si_position_history", "si_velocity_pub",
-    "staleness_banner", "stats_helpers",
+    "staleness_banner", "stats_helpers", "status_review_reminder",
     "short_situation_none_guard",
     "setup_score_cursor_removed", "split_label_consistency", "tier3_success_check_recalibration", "token_reentry_fix",
     "token_settings_ui_refresh", "token_storage_diagnose", "vintage_guard",
