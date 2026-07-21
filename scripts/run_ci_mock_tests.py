@@ -57,6 +57,7 @@ ALLOWLIST = [
     "material_8k", "purge_material_8k_events",
     "s11_s12_phase_frequency", "s14_gist_pull_liveness", "s7_race_gate", "s8_last_successful_run", "score_block_grid_layout",
     "score_block_label_scoping", "score_confidence", "score_confidence_watermark", "score_delta_t1",
+    "score_status_badges",
     "score_inflation_log", "score_inflation_log_v2", "score_multiplier_sync", "score_normalization_version",
     "sector_rs_removal", "selector_consistency", "service_worker_removed", "session_wrap_indexeddb",
     "si_position_history", "si_velocity_pub",

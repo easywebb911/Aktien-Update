@@ -54,16 +54,26 @@ def _extract_helper():
     # Monster-Neutral-Farbe (13.07.2026): _card_cockpit_html referenziert die
     # Modul-Konstante direkt → im isolierten Namespace mitinjizieren.
     ns["_MONSTER_NEUTRAL_COLOR"] = "#94a3b8"
+    # PR B: _card_cockpit_html ruft _score_status_badge_html, das seinerseits
+    # config.SCORE_STATUS_LABELS + _SCORE_STATUS_DISPLAY_NAME liest. Fixture-
+    # Stubs (Struktur-Test prüft keine Badge-Texte; der Wortlaut-/Single-Source-
+    # Check lebt in mock_test_score_status_badges.py).
+    ns["SCORE_STATUS_LABELS"] = {
+        "setup": "unvalidiert", "monster": "OoS-kollabiert",
+        "ki": "heuristisch", "conviction": "Aggregat · unvalidiert"}
+    ns["_SCORE_STATUS_DISPLAY_NAME"] = {
+        "setup": "Setup", "monster": "Monster", "ki": "KI",
+        "conviction": "Conviction"}
 
     # Extract function definition
     # Dependency-robust: _card_cockpit_html ruft _cockpit_delta_html (Score-
-    # Delta T-1 im Setup-Pillar, PR #236). Beide aus der Source name-basiert
-    # extrahieren + in dieselbe ns exec'en, sonst NameError beim Aufruf.
-    # _cockpit_delta_html ist pure/self-contained (nur s + builtins, keine
-    # weiteren Helper-Deps) — Reihenfolge: Dependency zuerst, dann Consumer.
+    # Delta T-1 im Setup-Pillar, PR #236) + _score_status_badge_html (PR B).
+    # Alle name-basiert extrahieren + in dieselbe ns exec'en, sonst NameError
+    # beim Aufruf. Reihenfolge: Dependencies zuerst, dann Consumer.
     # Name-basierte Extraktion ist immun gegen Einrueckungs-/Reihenfolge-
     # Aenderungen (Lesson #327); Prod-Funktionen bleiben unberuehrt.
-    for _dep in ("_cockpit_delta_html", "_card_cockpit_html"):
+    for _dep in ("_cockpit_delta_html", "_score_status_badge_html",
+                 "_card_cockpit_html"):
         m = re.search(rf"^def {_dep}\(.*?(?=\n\ndef )",
                       GR_SRC, re.MULTILINE | re.DOTALL)
         assert m, f"{_dep} nicht gefunden"
@@ -173,7 +183,8 @@ def test_10_css_classes_in_head_jinja() -> None:
         ".cockpit-donut-svg",
         ".cockpit-donut-number",
         ".cockpit-donut-scale",
-        ".cockpit-donut-caption",
+        ".cockpit-rank-context",
+        ".cockpit-status-badge",
         ".cockpit-price",
         ".cockpit-change-up",
         ".cockpit-change-down",
