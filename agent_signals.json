@@ -1,10 +1,10 @@
 {
-  "updated": "2026-07-21T08:34:50.351444+02:00",
+  "updated": "2026-07-21T08:41:43.522746+02:00",
   "run_info": {
     "tickers_checked": 14,
     "signals_active": 1,
     "alerts_sent": 0,
-    "elapsed_s": 12.8,
+    "elapsed_s": 10.8,
     "market_phase": "Geschlossen"
   },
   "signals": {
@@ -32,9 +32,9 @@
       "uoa_cp_ratio": 4.602766798418973
     },
     "AMC": {
-      "score": 91,
+      "score": 88,
       "confidence": 70,
-      "drivers": "Volumen 5.1× + 🚀 Massives Volumen 5.1×+ + Spanne 17.3% + SEC 8-K + News-KI 18/30: Positive fundamentals (earnings beat, record revenue) reduce short-squeeze likelihood as they justify price movement thr",
+      "drivers": "Volumen 5.1× + 🚀 Massives Volumen 5.1×+ + Spanne 17.3% + SEC 8-K + News: earnings beat",
       "price": 2.46,
       "chg_pct": 0.0,
       "rvol_4d": 5.11,
@@ -46,7 +46,7 @@
       "stocktwits": null,
       "combo_mult": 1.1,
       "active_triggers": 2,
-      "ki_sentiment_source": "llm",
+      "ki_sentiment_source": "keyword",
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": null,
@@ -95,9 +95,9 @@
       "uoa_cp_ratio": null
     },
     "FRMM": {
-      "score": 48,
+      "score": 33,
       "confidence": 70,
-      "drivers": "Spanne 13.8% + News: acquisition, short interest + Earnings in 23d",
+      "drivers": "Spanne 13.8% + News: short interest + Earnings in 23d",
       "price": 6.06,
       "chg_pct": -0.0,
       "rvol_4d": 1.44,
@@ -200,9 +200,9 @@
       "uoa_cp_ratio": null
     },
     "PDYN": {
-      "score": 16,
+      "score": 26,
       "confidence": 33,
-      "drivers": "News-KI 8/30: Positive fundamentals from Air Force contract and revenue growth, but no extreme short interest indicators, insider buyi + Earnings in 15d",
+      "drivers": "News-KI 18/30: Positive fundamentals (revenue growth, contracts) reduce squeeze potential, but low float and defense sector volatility  + Earnings in 15d",
       "price": 5.01,
       "chg_pct": 0.0,
       "rvol_4d": 0.72,
@@ -213,7 +213,7 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 0,
+      "active_triggers": 1,
       "ki_sentiment_source": "llm",
       "uoa_score": 0,
       "uoa_drivers": [],
@@ -242,9 +242,9 @@
       "uoa_cp_ratio": 1.7816901408450705
     },
     "TTGT": {
-      "score": 66,
+      "score": 58,
       "confidence": 70,
-      "drivers": "Volumen 1.6× + Spanne 12.4% + News-KI 8/30: Routine earnings announcement and partnership news lack catalysts for short squeeze; no exceptional short interest data, + Earnings in 16d + FINRA Short-Vol 100%",
+      "drivers": "Volumen 1.6× + Spanne 12.4% + Earnings in 16d + FINRA Short-Vol 100%",
       "price": 3.91,
       "chg_pct": 0.0,
       "rvol_4d": 1.65,
@@ -256,7 +256,7 @@
       "stocktwits": null,
       "combo_mult": 1.0,
       "active_triggers": 0,
-      "ki_sentiment_source": "llm",
+      "ki_sentiment_source": "keyword",
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": null,
