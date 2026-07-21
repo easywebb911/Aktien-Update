@@ -1,11 +1,11 @@
 {
-  "updated": "2026-07-21T08:41:43.522746+02:00",
+  "updated": "2026-07-21T10:46:52.408340+02:00",
   "run_info": {
     "tickers_checked": 14,
     "signals_active": 1,
     "alerts_sent": 0,
-    "elapsed_s": 10.8,
-    "market_phase": "Geschlossen"
+    "elapsed_s": 12.3,
+    "market_phase": "Pre-Market"
   },
   "signals": {
     "AI": {
@@ -116,9 +116,9 @@
       "uoa_cp_ratio": null
     },
     "GRPN": {
-      "score": 23,
+      "score": 20,
       "confidence": 33,
-      "drivers": "News: short interest + Earnings in 15d",
+      "drivers": "News-KI 12/30: Mixed sentiment with no short squeeze indicators: positive analyst moves offset by underperformance, lacking high short  + Earnings in 15d",
       "price": 27.95,
       "chg_pct": 0.0,
       "rvol_4d": 0.85,
@@ -130,7 +130,7 @@
       "stocktwits": null,
       "combo_mult": 1.0,
       "active_triggers": 1,
-      "ki_sentiment_source": "keyword",
+      "ki_sentiment_source": "llm",
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": null,
@@ -157,27 +157,6 @@
       "uoa_atm_ratio": null,
       "uoa_cp_ratio": 0.9676884838442419
     },
-    "KUST": {
-      "score": 25,
-      "confidence": 33,
-      "drivers": "Spanne 23.7% + News: contract",
-      "price": 1.27,
-      "chg_pct": -0.0,
-      "rvol_4d": 0.04,
-      "rvol_20d": 0.07,
-      "earnings": null,
-      "fda_date": null,
-      "upcoming_event": null,
-      "insider_buy": false,
-      "stocktwits": null,
-      "combo_mult": 1.0,
-      "active_triggers": 1,
-      "ki_sentiment_source": "keyword",
-      "uoa_score": 0,
-      "uoa_drivers": [],
-      "uoa_atm_ratio": null,
-      "uoa_cp_ratio": null
-    },
     "LENZ": {
       "score": 48,
       "confidence": 70,
@@ -199,10 +178,31 @@
       "uoa_atm_ratio": null,
       "uoa_cp_ratio": null
     },
+    "PAR": {
+      "score": 33,
+      "confidence": 70,
+      "drivers": "Spanne 5.6% + News: partnership + Earnings in 17d",
+      "price": 16.38,
+      "chg_pct": -0.0,
+      "rvol_4d": 0.83,
+      "rvol_20d": 0.47,
+      "earnings": "in 17 Tagen (07.08.2026)",
+      "fda_date": null,
+      "upcoming_event": null,
+      "insider_buy": false,
+      "stocktwits": null,
+      "combo_mult": 1.0,
+      "active_triggers": 1,
+      "ki_sentiment_source": "keyword",
+      "uoa_score": 0,
+      "uoa_drivers": [],
+      "uoa_atm_ratio": null,
+      "uoa_cp_ratio": null
+    },
     "PDYN": {
-      "score": 26,
+      "score": 38,
       "confidence": 33,
-      "drivers": "News-KI 18/30: Positive fundamentals (revenue growth, contracts) reduce squeeze potential, but low float and defense sector volatility  + Earnings in 15d",
+      "drivers": "News: partnership, contract + Earnings in 15d",
       "price": 5.01,
       "chg_pct": 0.0,
       "rvol_4d": 0.72,
@@ -214,7 +214,7 @@
       "stocktwits": null,
       "combo_mult": 1.0,
       "active_triggers": 1,
-      "ki_sentiment_source": "llm",
+      "ki_sentiment_source": "keyword",
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": null,
@@ -284,14 +284,14 @@
       "uoa_cp_ratio": 0.790414878397711
     },
     "ZBIO": {
-      "score": 43,
+      "score": 35,
       "confidence": 33,
-      "drivers": "Spanne 8.8% + Earnings in 22d + FINRA Short-Vol 74%",
+      "drivers": "Spanne 8.8% + FINRA Short-Vol 74%",
       "price": 30.7,
       "chg_pct": 0.0,
       "rvol_4d": 1.2,
       "rvol_20d": 0.79,
-      "earnings": "in 22 Tagen (12.08.2026)",
+      "earnings": null,
       "fda_date": null,
       "upcoming_event": null,
       "insider_buy": false,
