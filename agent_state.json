@@ -1,5 +1,5 @@
 {
-  "last_run": "2026-07-21T18:42:18.860897+02:00",
+  "last_run": "2026-07-21T20:40:54.615688+02:00",
   "cooldowns": {
     "anomaly_score_jump_XRX": "2026-05-03T18:47:15.315486+02:00",
     "anomaly_uoa_extreme_TDOC": "2026-05-04T13:47:00.365949+02:00",
@@ -84,42 +84,6 @@
     "earnings_immediate_AMC_20.07.2026": "2026-07-20T22:41:11.044953+02:00"
   },
   "push_history": [
-    {
-      "ts": "2026-07-12T21:32:00.790782+02:00",
-      "ticker": "BBW",
-      "kind": "anomaly",
-      "severity": "medium",
-      "trigger": "uoa_extreme",
-      "body": "BBW 🎯 UOA Vol/OI 18.8× ATM | Setup 61",
-      "success": false,
-      "suppressed": true,
-      "suppress_reason": "conviction_below_threshold",
-      "conviction_score": 45
-    },
-    {
-      "ts": "2026-07-12T23:07:20.804084+02:00",
-      "ticker": "BBW",
-      "kind": "anomaly",
-      "severity": "medium",
-      "trigger": "uoa_extreme",
-      "body": "BBW 🎯 UOA Vol/OI 18.8× ATM | Setup 61",
-      "success": false,
-      "suppressed": true,
-      "suppress_reason": "conviction_below_threshold",
-      "conviction_score": 45
-    },
-    {
-      "ts": "2026-07-13T00:08:00.551482+02:00",
-      "ticker": "BBW",
-      "kind": "anomaly",
-      "severity": "medium",
-      "trigger": "uoa_extreme",
-      "body": "BBW 🎯 UOA Vol/OI 18.8× ATM | Setup 61",
-      "success": false,
-      "suppressed": true,
-      "suppress_reason": "conviction_below_threshold",
-      "conviction_score": 45
-    },
     {
       "ts": "2026-07-13T01:09:45.343987+02:00",
       "ticker": "BBW",
@@ -1283,6 +1247,42 @@
       "suppressed": true,
       "suppress_reason": "conviction_below_threshold",
       "conviction_score": 31
+    },
+    {
+      "ts": "2026-07-21T20:40:54.893819+02:00",
+      "ticker": "IONQ",
+      "kind": "exit_p2",
+      "severity": "warning",
+      "trigger": null,
+      "body": "⚠️ Exit-Warnung IONQ: pressure 61/100",
+      "success": true,
+      "suppressed": false,
+      "suppress_reason": null,
+      "conviction_score": null
+    },
+    {
+      "ts": "2026-07-21T20:40:55.134975+02:00",
+      "ticker": "AI",
+      "kind": "exit_p2",
+      "severity": "warning",
+      "trigger": null,
+      "body": "⚠️ Exit-Warnung AI: pressure 70/100",
+      "success": true,
+      "suppressed": false,
+      "suppress_reason": null,
+      "conviction_score": null
+    },
+    {
+      "ts": "2026-07-21T20:40:55.391516+02:00",
+      "ticker": "AI",
+      "kind": "exit_p2",
+      "severity": "trigger",
+      "trigger": "profit_lock",
+      "body": "🔻 Exit-Signal AI: profit_lock crit ({'pnl_pct': -0.2173, 'peak_pnl_pct': 0.0332, 'drawdown_from_peak': 0.2505, 'score_drop_from_peak': None})",
+      "success": true,
+      "suppressed": false,
+      "suppress_reason": null,
+      "conviction_score": null
     }
   ],
   "prev_conviction_scores": {
@@ -1313,7 +1313,7 @@
     "exitp2_trigger_CRMD_catalyst": "2026-05-14T16:48:50.948217+02:00",
     "exitp2_trigger_KPTI_trend_break": "2026-05-15T18:18:45.093840+02:00",
     "exitp2_trigger_RR_trend_break": "2026-05-20T17:26:03.459661+02:00",
-    "exitp2_warning_IONQ": "2026-07-21T08:34:52.375532+02:00",
+    "exitp2_warning_IONQ": "2026-07-21T20:40:54.893847+02:00",
     "exitp2_trigger_IONQ_trend_break": "2026-07-21T08:34:52.502037+02:00",
     "exitp2_trigger_PDYN_trend_break": "2026-07-21T08:34:52.561141+02:00",
     "exitp2_trigger_GEMI_trend_break": "2026-06-09T00:01:52.717781+02:00",
@@ -1330,10 +1330,10 @@
     "exitp2_trigger_DBI_trend_break": "2026-06-22T19:25:15.868062+02:00",
     "exitp2_trigger_GIII_trend_break": "2026-06-20T22:42:06.833464+02:00",
     "exitp2_trigger_LUCK_trend_break": "2026-06-22T19:25:15.805548+02:00",
-    "exitp2_warning_AI": "2026-07-21T08:34:52.626381+02:00",
+    "exitp2_warning_AI": "2026-07-21T20:40:55.135002+02:00",
     "exitp2_trigger_RBOHF_overheated": "2026-07-01T22:55:00.455123+02:00",
     "exitp2_trigger_LENZ_trend_break": "2026-07-21T08:34:52.763571+02:00",
     "exitp2_trigger_WOLF_trend_break": "2026-07-21T08:34:52.823719+02:00",
-    "exitp2_trigger_AI_profit_lock": "2026-07-20T19:06:05.404638+02:00"
+    "exitp2_trigger_AI_profit_lock": "2026-07-21T20:40:55.391541+02:00"
   }
 }
