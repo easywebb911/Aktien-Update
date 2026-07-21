@@ -1170,8 +1170,22 @@ abbr[title]{text-decoration:underline dotted var(--txt-dim);
   font-variant-numeric:tabular-nums;line-height:1}
 .cockpit-donut-scale{font-size:9px;color:#64748b;
   font-variant-numeric:tabular-nums;margin-top:4px}
-.cockpit-donut-caption{font-size:11px;color:#94a3b8;line-height:1.5;
-  text-align:center;max-width:100%}
+/* PR B — Score-Status-Badge: kleiner, gedimmter, NEUTRALER Tag unter jedem
+   Score (Pillar + Conviction). Bewusst KEINE Ampelfarbe — beschreibt den
+   epistemischen Stand des SCORES (unvalidiert / OoS-kollabiert / …), nicht
+   eine Bewertung der Aktie. Grau + Uppercase liest sich als Methodik-Hinweis. */
+.cockpit-status-badge{display:inline-block;margin-top:3px;align-self:flex-start;
+  font-size:8.5px;font-weight:600;line-height:1.25;letter-spacing:.2px;
+  text-transform:uppercase;color:#94a3b8;background:rgba(148,163,184,0.12);
+  border:1px solid rgba(148,163,184,0.22);border-radius:4px;padding:1px 5px;
+  white-space:normal;max-width:100%}
+.cockpit-donut-wrap .cockpit-status-badge{align-self:center;text-align:center}
+/* PR B2 — Rang-Kontext: der vorhandene Conviction-Erklärtext, prominent unter
+   dem Header (statt versteckt unter dem Donut). Linke Akzent-Leiste + gedimmt
+   → liest sich als Einordnung, nicht als „jetzt kaufen"-Signal. */
+.cockpit-rank-context{font-size:11px;color:#94a3b8;line-height:1.45;
+  margin:6px 0 2px;padding:5px 9px;background:rgba(148,163,184,0.07);
+  border-left:3px solid rgba(148,163,184,0.35);border-radius:0 4px 4px 0}
 /* Entry-Shadow-Caption (#336 Cockpit-Rest) — client-gefuellt aus _BT_DATA.
    Dezent, gedimmt, volle Breite, unter cockpit-body. `hidden` bis JS einen
    echten entry_score findet → display:none reserviert keinen Platz, kein

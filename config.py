@@ -1496,6 +1496,31 @@ MATERIAL_8K_STATUS_ROW = (
     "dünn (Auswertung ~2027), breite Katalysator-Auswertung früher",
 )
 
+# ── Score-Status-Kennzeichnung (PR B "Karten-Status-Ehrlichkeit") ──────────
+# Kleines Status-Badge pro Karten-Score, das den EPISTEMISCHEN Stand des
+# jeweiligen SCORES ehrlich zeigt (NICHT eine Bewertung des Tickers). Rein
+# anzeigend — KEIN Score-/Ranking-/Filter-Effekt. Der Text lebt AUSSCHLIESSLICH
+# hier (Single-Source, analog COLLECT_STATUS_FIELDS) — NIE als Literal im
+# generate_report-Template. `_score_status_badge_html` liest daraus.
+#
+# PFLEGE-PFLICHT: Diese Texte VERALTEN planmäßig — bei JEDEM Re-Test-Befund
+# den Status hier anpassen (eine Zeile), damit die Anzeige dem letzten
+# registrierten Befund entspricht:
+#   - Conviction  → Re-Test ~27.07.2026 (Panel n ≥ 100 gereift)
+#   - Setup/Exit  → Re-Test ~Sept 2026 (echte OoS-Validierung)
+#   - ki_signal   → datengetrieben (sobald eigener Backtest-Pfad existiert)
+# Registrierte Befunde (Stand 21.07.2026, Quelle compute_score_confidence /
+# SESSION_HANDOVER): Setup noch ohne OoS-Beweis; Monster 30.06./04.07. AUC
+# 0.76→0.51 OoS-kollabiert; KI reiner Boost-Multiplikator; Conviction
+# unvalidiertes Aggregat.
+# Keys = conf_key aus compute_score_confidence (setup/monster/ki/conviction).
+SCORE_STATUS_LABELS = {
+    "setup":      "unvalidiert",
+    "monster":    "OoS-kollabiert",
+    "ki":         "heuristisch",
+    "conviction": "Aggregat · unvalidiert",
+}
+
 S10_OBSERVED_FIELDS = frozenset({
     # Core (immer gesetzt)
     "date", "ticker", "score", "entry_price", "rvol", "dtc",

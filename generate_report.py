@@ -4599,6 +4599,39 @@ def _score_hint_html(score: float) -> str:
 # Aktions-Grün. Erklärung lebt im Tooltip (title/aria via _conf_class).
 _MONSTER_NEUTRAL_COLOR = "#94a3b8"
 
+# Anzeige-Labels der vier Score-Klassen (nur für den Badge-Tooltip — der
+# reine Score-NAME, nicht der Status-Text). Der Status-Text lebt einzig in
+# config.SCORE_STATUS_LABELS.
+_SCORE_STATUS_DISPLAY_NAME = {
+    "setup":      "Setup",
+    "monster":    "Monster",
+    "ki":         "KI",
+    "conviction": "Conviction",
+}
+
+
+def _score_status_badge_html(conf_key: str) -> str:
+    """Kleines Status-Badge für einen Karten-Score (PR B).
+
+    Zeigt den epistemischen Stand des SCORES — beschreibt die METHODIK, NICHT
+    die Aktie. Der Text kommt AUSSCHLIESSLICH aus
+    ``config.SCORE_STATUS_LABELS`` (Single-Source, hand-gepflegt bei jedem
+    Re-Test-Befund) — NIE hardcoded hier. Rein anzeigend, kein
+    Score-/Ranking-Effekt.
+
+    Leerer String bei unbekanntem Key oder fehlendem Text (defensiv, kein
+    Crash, kein Platzhalter-Geraffel).
+    """
+    txt = SCORE_STATUS_LABELS.get(conf_key)
+    if not txt:
+        return ""
+    name = _SCORE_STATUS_DISPLAY_NAME.get(conf_key, conf_key)
+    safe = txt.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
+    title = (f"Methodischer Status des {name}-Scores — beschreibt den Score, "
+             f"nicht die Aktie.").replace('"', "'")
+    return (f'<span class="cockpit-status-badge" title="{title}" '
+            f'aria-label="{name}-Score-Status: {safe}">{safe}</span>')
+
 
 def _tri_score_color(sc) -> str:
     """Einheitliche Farblogik für Setup- und KI-Score (NICHT Monster).
@@ -4972,6 +5005,9 @@ def _card_cockpit_html(
         css, title, aria = _conf_class(conf_key)
         attrs = f' title="{title}" aria-label="{aria}"' if title else ""
         delta_html = setup_delta_html if conf_key == "setup" else ""
+        # PR B: Score-Status-Badge (epistemischer Stand des Scores, aus
+        # config.SCORE_STATUS_LABELS — beschreibt Methodik, nicht die Aktie).
+        status_badge = _score_status_badge_html(conf_key)
         pillars.append(
             f'<div class="cockpit-pillar" data-sb="{conf_key}">'
             f'<div class="cockpit-pillar-label">'
@@ -4984,17 +5020,24 @@ def _card_cockpit_html(
             f'<div class="cockpit-pillar-bar-fill" '
             f'style="width:{pct:.0f}%;background:{col}"></div>'
             f'</div>'
+            f'{status_badge}'
             f'</div>'
         )
 
+    # PR B2 — Rang-Kontext: der bereits generierte Conviction-Erklärtext wird
+    # prominent in den Kopfbereich verschoben (statt versteckt unter dem Donut),
+    # damit der Rang sich selbst einordnet statt „jetzt kaufen" zu suggerieren.
+    # NUR Umplatzierung des vorhandenen Textes — keine neue Klassifikation,
+    # keine Schwellen. Einheitlich auf ALLEN Karten (conv_action ist auf jeder
+    # Top-10-Karte via compute_conviction_score gesetzt). Fehlt er (Edge-Case
+    # ohne Conviction) → Strip entfällt.
     if conv_action:
-        idx = conv_action.find(". ")
-        if 0 < idx < len(conv_action) - 2:
-            caption = f"{conv_action[:idx + 1]}<br>{conv_action[idx + 2:]}"
-        else:
-            caption = conv_action
+        rank_context_html = (
+            f'<div class="cockpit-rank-context">{conv_action}</div>'
+        )
     else:
-        caption = "&nbsp;"
+        rank_context_html = ""
+    conv_status_badge = _score_status_badge_html("conviction")
 
     half = donut_size // 2
     return (
@@ -5017,6 +5060,7 @@ def _card_cockpit_html(
         f'<span class="cockpit-change {chg_cls}">{chg_str}</span>'
         f'</div>'
         f'</div>'
+        f'{rank_context_html}'
         f'<div class="cockpit-body">'
         f'<div class="cockpit-pillars">{"".join(pillars)}</div>'
         f'<div class="cockpit-donut-wrap">'
@@ -5038,7 +5082,7 @@ def _card_cockpit_html(
         f'<span class="cockpit-donut-scale">/ 100</span>'
         f'</div>'
         f'</div>'
-        f'<div class="cockpit-donut-caption">{caption}</div>'
+        f'{conv_status_badge}'
         f'</div>'
         f'</div>'
         f'<div class="cockpit-entry-shadow" data-es-ticker="{ticker}" hidden></div>'
