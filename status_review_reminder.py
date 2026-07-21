@@ -11,10 +11,13 @@ laufenden Codepfad liegen. ``generate_report.main()`` (Daily-Run, 2×/Werktag)
 ruft ``run(now, run_phase)`` — kein neuer Workflow, Workflows unangetastet.
 
 DROSSELUNG (deterministisch, KEIN State-File): der Wecker feuert nur am
-``STATUS_REVIEW_WECKER_WEEKDAY`` (Montag) UND nur im ``postclose``-Lauf →
-genau 1×/Woche/Score. Kein Daueralarm. (Edge: fällt der Montag-postclose-Run
-aus — US-Feiertag —, rutscht die Erinnerung eine Woche; für Monats-Termine
-irrelevant.)
+``STATUS_REVIEW_WECKER_WEEKDAY`` (Montag) UND nur im ``postclose``-Lauf → in
+der Regel 1×/Woche/Score. Bewusst OHNE State-Dedup: ein zweiter postclose-Lauf
+am selben Montag (z. B. manueller ``workflow_dispatch`` mit ``postclose``)
+würde erneut erinnern — akzeptiert, weil reine Erinnerung ohne Trading-/Daten-
+Effekt. Kein Daueralarm im Regelbetrieb (Cron feuert postclose 1×/Tag). (Edge:
+fällt der Montag-postclose-Run aus — US-Feiertag —, rutscht die Erinnerung eine
+Woche; für Monats-Termine irrelevant.)
 
 ntfy-Mechanik: identisches URL-Pattern wie ``scripts/lit_reminder.py`` /
 alle funktionierenden Sender (``POST https://ntfy.sh/{topic}`` + ``data=``-Body
@@ -78,7 +81,9 @@ def find_due_reviews(labels: dict, now: _dt.datetime) -> list[dict]:
 
 
 def gate_open(now: _dt.datetime, run_phase: str) -> bool:
-    """Deterministisches Wochentag-+Phasen-Gate → max. 1×/Woche/Score."""
+    """Deterministisches Wochentag-+Phasen-Gate (Montag + postclose). Im
+    Cron-Regelbetrieb 1×/Woche; ohne State-Dedup könnte ein zweiter
+    postclose-Lauf am selben Montag erneut feuern (akzeptiert)."""
     return (run_phase == "postclose"
             and now.weekday() == STATUS_REVIEW_WECKER_WEEKDAY)
 

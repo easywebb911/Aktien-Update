@@ -1570,8 +1570,10 @@ SCORE_STATUS_LABELS = {
 # Status-Drift-Wecker (Teil 2): der TÄGLICHE Daily-Run (generate_report.main)
 # ruft status_review_reminder.run() → erinnert per ntfy an fällige Re-Tests.
 # Reine Erinnerung, ändert NICHTS. GEDROSSELT deterministisch via Wochentag-Gate
-# (kein State-File): feuert nur am WECKER-Wochentag im POSTCLOSE-Lauf → max.
-# 1×/Woche/Score. ntfy-Mechanik-Muster analog scripts/lit_reminder.py.
+# (kein State-File): feuert nur am WECKER-Wochentag im POSTCLOSE-Lauf → im
+# Cron-Regelbetrieb 1×/Woche/Score (ein zweiter postclose-Lauf am selben Tag,
+# z. B. manueller Dispatch, würde erneut erinnern — akzeptiert, reine
+# Erinnerung). ntfy-Mechanik-Muster analog scripts/lit_reminder.py.
 STATUS_REVIEW_WECKER_ENABLED  = True
 STATUS_REVIEW_WECKER_WEEKDAY  = 0            # 0 = Montag (datetime.weekday())
 STATUS_REVIEW_WECKER_TITLE    = "⏰ Status-Review fällig"
