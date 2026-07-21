@@ -1,11 +1,11 @@
 {
-  "updated": "2026-07-21T01:15:40.955628+02:00",
+  "updated": "2026-07-21T02:12:57.028718+02:00",
   "run_info": {
     "tickers_checked": 14,
     "signals_active": 1,
     "alerts_sent": 0,
-    "elapsed_s": 17.7,
-    "market_phase": "After-Hours"
+    "elapsed_s": 17.6,
+    "market_phase": "Geschlossen"
   },
   "signals": {
     "AI": {
@@ -34,7 +34,7 @@
     "AMC": {
       "score": 100,
       "confidence": 70,
-      "drivers": "Earnings in 0 Tagen (20.07.2026) + Volumen 5.0× + 🚀 Massives Volumen 5.0×+ + Spanne 17.3% + SEC 8-K + News: earnings beat + Earnings in 0d + 3/4 Trigger",
+      "drivers": "Earnings in 0 Tagen (20.07.2026) + Volumen 5.0× + 🚀 Massives Volumen 5.0×+ + Spanne 17.3% + SEC 8-K + News-KI 12/30: Positive earnings and revenue news typically reduce short squeeze potential as it legitimizes the stock fundamentally an + Earnings in 0d + 3/4 Trigger",
       "price": 2.46,
       "chg_pct": 0.0,
       "rvol_4d": 5.03,
@@ -46,7 +46,7 @@
       "stocktwits": null,
       "combo_mult": 1.2,
       "active_triggers": 3,
-      "ki_sentiment_source": "keyword",
+      "ki_sentiment_source": "llm",
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": null,
@@ -116,9 +116,9 @@
       "uoa_cp_ratio": null
     },
     "FRMM": {
-      "score": 48,
+      "score": 33,
       "confidence": 70,
-      "drivers": "Spanne 13.8% + News: acquisition, short interest + Earnings in 24d",
+      "drivers": "Spanne 13.8% + News: short interest + Earnings in 24d",
       "price": 6.06,
       "chg_pct": -0.0,
       "rvol_4d": 1.44,
@@ -202,7 +202,7 @@
     "PDYN": {
       "score": 38,
       "confidence": 33,
-      "drivers": "News: partnership, revenue beat + Earnings in 16d",
+      "drivers": "News: contract, revenue beat + Earnings in 16d",
       "price": 5.01,
       "chg_pct": 0.0,
       "rvol_4d": 0.71,
