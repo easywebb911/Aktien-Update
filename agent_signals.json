@@ -1,10 +1,10 @@
 {
-  "updated": "2026-07-22T00:15:29.337800+02:00",
+  "updated": "2026-07-22T01:12:04.756552+02:00",
   "run_info": {
     "tickers_checked": 14,
     "signals_active": 0,
     "alerts_sent": 0,
-    "elapsed_s": 25.4,
+    "elapsed_s": 16.0,
     "market_phase": "After-Hours"
   },
   "signals": {
@@ -137,9 +137,9 @@
       "uoa_cp_ratio": null
     },
     "IONQ": {
-      "score": 8,
-      "confidence": 17,
-      "drivers": "Earnings in 15d",
+      "score": 16,
+      "confidence": 33,
+      "drivers": "News-KI 8/30: Negative price action combined with vague positive headlines suggests weak momentum and low conviction from investors, i + Earnings in 15d",
       "price": 35.51,
       "chg_pct": -0.0,
       "rvol_4d": 0.8,
@@ -151,7 +151,7 @@
       "stocktwits": null,
       "combo_mult": 1.0,
       "active_triggers": 0,
-      "ki_sentiment_source": "keyword",
+      "ki_sentiment_source": "llm",
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": 1.1429846483398787,
