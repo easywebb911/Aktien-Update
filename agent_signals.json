@@ -1,10 +1,10 @@
 {
-  "updated": "2026-07-21T10:46:52.408340+02:00",
+  "updated": "2026-07-21T11:40:22.412858+02:00",
   "run_info": {
     "tickers_checked": 14,
     "signals_active": 1,
     "alerts_sent": 0,
-    "elapsed_s": 12.3,
+    "elapsed_s": 15.6,
     "market_phase": "Pre-Market"
   },
   "signals": {
@@ -116,9 +116,9 @@
       "uoa_cp_ratio": null
     },
     "GRPN": {
-      "score": 20,
+      "score": 23,
       "confidence": 33,
-      "drivers": "News-KI 12/30: Mixed sentiment with no short squeeze indicators: positive analyst moves offset by underperformance, lacking high short  + Earnings in 15d",
+      "drivers": "News: short interest + Earnings in 15d",
       "price": 27.95,
       "chg_pct": 0.0,
       "rvol_4d": 0.85,
@@ -130,7 +130,7 @@
       "stocktwits": null,
       "combo_mult": 1.0,
       "active_triggers": 1,
-      "ki_sentiment_source": "llm",
+      "ki_sentiment_source": "keyword",
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": null,
