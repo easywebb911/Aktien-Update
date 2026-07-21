@@ -1,10 +1,10 @@
 {
-  "updated": "2026-07-21T02:12:57.028718+02:00",
+  "updated": "2026-07-21T05:45:55.175656+02:00",
   "run_info": {
     "tickers_checked": 14,
     "signals_active": 1,
     "alerts_sent": 0,
-    "elapsed_s": 17.6,
+    "elapsed_s": 19.9,
     "market_phase": "Geschlossen"
   },
   "signals": {
@@ -34,11 +34,11 @@
     "AMC": {
       "score": 100,
       "confidence": 70,
-      "drivers": "Earnings in 0 Tagen (20.07.2026) + Volumen 5.0× + 🚀 Massives Volumen 5.0×+ + Spanne 17.3% + SEC 8-K + News-KI 12/30: Positive earnings and revenue news typically reduce short squeeze potential as it legitimizes the stock fundamentally an + Earnings in 0d + 3/4 Trigger",
+      "drivers": "Earnings in 0 Tagen (20.07.2026) + Volumen 5.0× + 🚀 Massives Volumen 5.0×+ + Spanne 17.3% + SEC 8-K + News: earnings beat + Earnings in 0d + 3/4 Trigger",
       "price": 2.46,
       "chg_pct": 0.0,
-      "rvol_4d": 5.03,
-      "rvol_20d": 3.7,
+      "rvol_4d": 5.0,
+      "rvol_20d": 3.69,
       "earnings": "in 0 Tagen (20.07.2026)",
       "fda_date": null,
       "upcoming_event": "Earnings in 0 Tagen (20.07.2026)",
@@ -46,7 +46,7 @@
       "stocktwits": null,
       "combo_mult": 1.2,
       "active_triggers": 3,
-      "ki_sentiment_source": "llm",
+      "ki_sentiment_source": "keyword",
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": null,
@@ -116,9 +116,9 @@
       "uoa_cp_ratio": null
     },
     "FRMM": {
-      "score": 33,
+      "score": 48,
       "confidence": 70,
-      "drivers": "Spanne 13.8% + News: short interest + Earnings in 24d",
+      "drivers": "Spanne 13.8% + News: acquisition, short interest + Earnings in 24d",
       "price": 6.06,
       "chg_pct": -0.0,
       "rvol_4d": 1.44,
@@ -137,9 +137,9 @@
       "uoa_cp_ratio": null
     },
     "GRPN": {
-      "score": 23,
+      "score": 20,
       "confidence": 33,
-      "drivers": "News: short interest + Earnings in 16d",
+      "drivers": "News-KI 12/30: Mixed sentiment with operational improvements offset by underperformance; no short squeeze indicators like high short in + Earnings in 16d",
       "price": 27.95,
       "chg_pct": 0.0,
       "rvol_4d": 0.82,
@@ -151,7 +151,7 @@
       "stocktwits": null,
       "combo_mult": 1.0,
       "active_triggers": 1,
-      "ki_sentiment_source": "keyword",
+      "ki_sentiment_source": "llm",
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": null,
@@ -202,7 +202,7 @@
     "PDYN": {
       "score": 38,
       "confidence": 33,
-      "drivers": "News: contract, revenue beat + Earnings in 16d",
+      "drivers": "News: partnership, contract + Earnings in 16d",
       "price": 5.01,
       "chg_pct": 0.0,
       "rvol_4d": 0.71,
