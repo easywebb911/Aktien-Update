@@ -1,5 +1,5 @@
 {
-  "last_run": "2026-07-22T00:12:47.035380+02:00",
+  "last_run": "2026-07-22T00:15:30.391848+02:00",
   "cooldowns": {
     "anomaly_score_jump_XRX": "2026-05-03T18:47:15.315486+02:00",
     "anomaly_uoa_extreme_TDOC": "2026-05-04T13:47:00.365949+02:00",
@@ -1287,15 +1287,15 @@
   ],
   "prev_conviction_scores": {
     "FRMM": 58.0,
-    "ANAB": 57.0,
+    "ANAB": 58.0,
     "LENZ": 61.0,
-    "WOLF": 51.0,
-    "SVRA": 71.0,
-    "PCT": 56.0,
+    "SVRA": 72.0,
+    "PCT": 58.0,
+    "WOLF": 50.0,
+    "PGEN": 56.0,
+    "CADL": 56.0,
     "FTK": 56.0,
-    "PGEN": 55.0,
     "TROX": 62.0,
-    "CADL": 55.0,
     "AI": 34.0,
     "PDYN": 26.0,
     "IONQ": 14.0,

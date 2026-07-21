@@ -1,10 +1,10 @@
 {
-  "updated": "2026-07-22T00:12:45.805500+02:00",
+  "updated": "2026-07-22T00:15:29.337800+02:00",
   "run_info": {
     "tickers_checked": 14,
     "signals_active": 0,
     "alerts_sent": 0,
-    "elapsed_s": 19.0,
+    "elapsed_s": 25.4,
     "market_phase": "After-Hours"
   },
   "signals": {
@@ -116,14 +116,14 @@
       "uoa_cp_ratio": null
     },
     "FTK": {
-      "score": 18,
-      "confidence": 33,
-      "drivers": "Spanne 6.3% + Earnings in 14d",
+      "score": 10,
+      "confidence": 17,
+      "drivers": "Spanne 6.3%",
       "price": 27.28,
       "chg_pct": 0.0,
       "rvol_4d": 0.66,
       "rvol_20d": 0.78,
-      "earnings": "in 14 Tagen (04.08.2026)",
+      "earnings": null,
       "fda_date": null,
       "upcoming_event": null,
       "insider_buy": false,
@@ -181,7 +181,7 @@
     "PCT": {
       "score": 58,
       "confidence": 70,
-      "drivers": "Spanne 5.1% + News: short interest, partnership + Earnings in 16d + UOA Call/Put 9.9×",
+      "drivers": "Spanne 5.1% + News: partnership, short interest + Earnings in 16d + UOA Call/Put 9.9×",
       "price": 6.46,
       "chg_pct": 0.0,
       "rvol_4d": 0.6,
@@ -204,7 +204,7 @@
     "PDYN": {
       "score": 38,
       "confidence": 33,
-      "drivers": "News: revenue beat, contract + Earnings in 15d",
+      "drivers": "News: partnership, contract + Earnings in 15d",
       "price": 5.25,
       "chg_pct": 0.0,
       "rvol_4d": 0.75,
@@ -223,9 +223,9 @@
       "uoa_cp_ratio": null
     },
     "PGEN": {
-      "score": 30,
+      "score": 33,
       "confidence": 70,
-      "drivers": "Spanne 9.4% + News-KI 12/30: Modest positive momentum from FDA approval news, but CFO share selling signals insider doubt and upcoming earnings annou + Earnings in 14d",
+      "drivers": "Spanne 9.4% + News: fda approval + Earnings in 14d",
       "price": 5.49,
       "chg_pct": -0.0,
       "rvol_4d": 1.42,
@@ -237,7 +237,7 @@
       "stocktwits": null,
       "combo_mult": 1.0,
       "active_triggers": 1,
-      "ki_sentiment_source": "llm",
+      "ki_sentiment_source": "keyword",
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": null,
