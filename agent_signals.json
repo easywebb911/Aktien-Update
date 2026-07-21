@@ -1,10 +1,10 @@
 {
-  "updated": "2026-07-21T11:40:22.412858+02:00",
+  "updated": "2026-07-21T14:00:34.074778+02:00",
   "run_info": {
     "tickers_checked": 14,
     "signals_active": 1,
     "alerts_sent": 0,
-    "elapsed_s": 15.6,
+    "elapsed_s": 13.8,
     "market_phase": "Pre-Market"
   },
   "signals": {
@@ -28,13 +28,13 @@
       "uoa_drivers": [
         "UOA Call/Put 4.6×"
       ],
-      "uoa_atm_ratio": null,
+      "uoa_atm_ratio": 0.03519965277777778,
       "uoa_cp_ratio": 4.602766798418973
     },
     "AMC": {
-      "score": 88,
+      "score": 72,
       "confidence": 70,
-      "drivers": "Volumen 5.1× + 🚀 Massives Volumen 5.1×+ + Spanne 17.3% + SEC 8-K + News: earnings beat",
+      "drivers": "Volumen 5.1× + 🚀 Massives Volumen 5.1×+ + Spanne 17.3% + News: earnings beat",
       "price": 2.46,
       "chg_pct": 0.0,
       "rvol_4d": 5.11,
@@ -70,7 +70,7 @@
       "ki_sentiment_source": "keyword",
       "uoa_score": 0,
       "uoa_drivers": [],
-      "uoa_atm_ratio": null,
+      "uoa_atm_ratio": 0.9341864716636198,
       "uoa_cp_ratio": 1.8624641833810889
     },
     "FDMT": {
@@ -154,7 +154,7 @@
       "ki_sentiment_source": "keyword",
       "uoa_score": 0,
       "uoa_drivers": [],
-      "uoa_atm_ratio": null,
+      "uoa_atm_ratio": 1.4657496561210455,
       "uoa_cp_ratio": 0.9676884838442419
     },
     "LENZ": {
@@ -202,7 +202,7 @@
     "PDYN": {
       "score": 38,
       "confidence": 33,
-      "drivers": "News: partnership, contract + Earnings in 15d",
+      "drivers": "News: revenue beat, contract + Earnings in 15d",
       "price": 5.01,
       "chg_pct": 0.0,
       "rvol_4d": 0.72,
@@ -238,7 +238,7 @@
       "ki_sentiment_source": "keyword",
       "uoa_score": 0,
       "uoa_drivers": [],
-      "uoa_atm_ratio": null,
+      "uoa_atm_ratio": 0.6446808510638298,
       "uoa_cp_ratio": 1.7816901408450705
     },
     "TTGT": {
@@ -280,7 +280,7 @@
       "ki_sentiment_source": "keyword",
       "uoa_score": 0,
       "uoa_drivers": [],
-      "uoa_atm_ratio": null,
+      "uoa_atm_ratio": 0.8522483940042827,
       "uoa_cp_ratio": 0.790414878397711
     },
     "ZBIO": {
