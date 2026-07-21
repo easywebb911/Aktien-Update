@@ -91,30 +91,40 @@ def _check(name, cond, detail=""):
 
 # ── TEIL A — Anzeige (funktional) ─────────────────────────────────────────────
 def _test_display():
-    print("── TEIL A — Konfidenz-Wasserzeichen ──────────────────────────")
-    # Backtest-Fixture mit genug return_10d-Einträgen → setup=robust.
+    print("── TEIL A — Konfidenz-Wasserzeichen (Single-Source) ──────────")
     bh = [{"return_10d": 5.0} for _ in range(config.SCORE_CONFIDENCE_N_ROBUST + 10)]
     conf = gr.compute_score_confidence(bh)
 
-    _check("A1 monster-tier == 'heuristisch' (nicht setup-vererbt)",
-           conf["monster"]["tier"] == "heuristisch",
-           f"got {conf['monster']['tier']}")
-    _check("A2 setup-tier == 'robust' (unberührt, Differenzierung belegt)",
-           conf["setup"]["tier"] == "robust",
-           f"got {conf['setup']['tier']}")
-    _check("A2b monster-note nennt die Kollaps-Empirik (ehrlich)",
-           "0.76" in conf["monster"]["note"] and "kollabiert" in conf["monster"]["note"])
+    # A1: Monster-Validierungs-Status kommt aus SCORE_STATUS_LABELS (Single-
+    # Source), eigenständig — NICHT von Setup vererbt.
+    _check("A1 monster-Status == 'OoS-kollabiert' (eigenständig, nicht vererbt)",
+           config.SCORE_STATUS_LABELS["monster"]["status"] == "OoS-kollabiert",
+           f"got {config.SCORE_STATUS_LABELS['monster']['status']!r}")
+    # A2: compute liefert für Monster NUR die Daten-Dimension (keine Validierung).
+    _check("A2 compute[monster] nur {n, data_tier} (keine Validierungs-Stufe)",
+           set(conf["monster"]) == {"n", "data_tier"} and conf["monster"]["n"] is None,
+           f"got {conf['monster']}")
+    # A2b: die Kollaps-Empirik ist ehrlich im config-Kommentar dokumentiert.
+    cfg_src = (ROOT / "config.py").read_text(encoding="utf-8")
+    _anchor = cfg_src.find("SCORE_STATUS_LABELS = {")
+    _cmt = cfg_src[max(0, _anchor - 2200):_anchor]
+    _check("A2b Kollaps-Empirik dokumentiert (0.76 + kollabiert)",
+           "0.76" in _cmt and "kollabiert" in _cmt)
 
-    # _conf_class liest den Modul-State → setzen und prüfen.
-    gr._SCORE_CONFIDENCE = conf
-    m_css, m_title, m_aria = gr._conf_class("monster")
-    s_css, s_title, s_aria = gr._conf_class("setup")
-    _check("A3 _conf_class('monster') → sb-conf-heur (Wasserzeichen)",
-           m_css == "sb-conf-heur" and "heuristisch" in m_title,
+    # _conf_class liest jetzt SCORE_STATUS_LABELS (Modul-Global via config-*).
+    m_css, m_title, _ = gr._conf_class("monster")
+    s_css, s_title, _ = gr._conf_class("setup")
+    _check("A3 _conf_class('monster') → sb-conf-heur + 'OoS-kollabiert'",
+           m_css == "sb-conf-heur" and "OoS-kollabiert" in m_title,
            f"got css={m_css!r} title={m_title!r}")
-    _check("A3b _conf_class('setup') bleibt robust (kein Wasserzeichen)",
-           s_css == "sb-conf-robust" and s_title == "",
+    # A3b: Setup ist unter Single-Source EBENFALLS gedimmt (kein Schein-„robust"
+    # mehr); Monster bleibt via Status-Text + Neutral-Farbe differenziert.
+    _check("A3b _conf_class('setup') gedimmt (unvalidiert, kein Schein-robust)",
+           s_css == "sb-conf-heur" and "unvalidiert" in s_title,
            f"got css={s_css!r} title={s_title!r}")
+    _check("A3c Monster-Status ≠ Setup-Status (eigenständige Neutralisierung)",
+           config.SCORE_STATUS_LABELS["monster"]["status"]
+           != config.SCORE_STATUS_LABELS["setup"]["status"])
 
 
 # ── TEIL B1 — Push raus (funktional + source) ─────────────────────────────────

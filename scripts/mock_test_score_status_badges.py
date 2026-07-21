@@ -1,26 +1,31 @@
-"""Mock-Tests für Score-Status-Kennzeichnung (PR B "Karten-Status-Ehrlichkeit").
+"""Mock-Tests für Score-Status-Kennzeichnung + Single-Source (PR B + Konfidenz-
+Single-Source-Umbau).
 
-Hintergrund: Jeder der vier Karten-Scores (Setup/Monster/KI/Conviction) trägt
-ein kleines Status-Badge, das den EPISTEMISCHEN Stand des SCORES ehrlich zeigt
-(unvalidiert / OoS-kollabiert / heuristisch / Aggregat · unvalidiert). Zusätzlich
-wird der bereits vorhandene Conviction-Erklärtext prominent in den Kopfbereich
-verschoben (Rang-Kontext), damit der Rang sich selbst einordnet.
+Hintergrund: Die vier Karten-Scores (Setup/Monster/KI/Conviction) tragen ein
+Status-Badge; das Methodik-Panel zeigt denselben Validierungs-Status. BEIDE
+lesen aus EINER Quelle — ``config.SCORE_STATUS_LABELS`` — damit sie nicht mehr
+auseinanderdriften (früher: Panel „robust" vs. Karte „unvalidiert"). Die
+Daten-Dimension (n gereift) kommt getrennt aus ``compute_score_confidence``,
+das KEINE Validierungs-Aussage (kein ``has_auc``, kein „robust") mehr trägt.
 
-ANTI-DRIFT-KERN (Wurzel des Panel-„Ende-Aug"-Fehlers nicht wiederholen): die
-Badge-Texte kommen aus EINER zentralen config-Struktur (config.SCORE_STATUS_LABELS),
-NIE hardcoded im Template. Dieser Test verriegelt genau das.
+ANTI-DRIFT-KERN: Status-Text lebt NUR in der config-Struktur, jeder Eintrag
+trägt ein ``status_date`` (kein undatierter Status), und ``compute_score_
+confidence`` enthält keine Validierungs-Literale mehr.
 
-Tests (reine Source-Inspektion — kein yfinance-Import):
-  1. config.SCORE_STATUS_LABELS existiert, genau 4 Keys, alle non-empty str.
-  2. Pflege-Pflicht-Kommentar an der Struktur (VERALTEN + Re-Test-Termine).
-  3. _score_status_badge_html liest SCORE_STATUS_LABELS (Single-Source).
-  4. KEIN Badge-Status-VALUE als Literal im generate_report-Template.
-  5. _card_cockpit_html verdrahtet Badges für Pillars + Conviction.
+Tests (Source-Inspektion + config-Import — kein yfinance-Import):
+  1. SCORE_STATUS_LABELS: 6 Keys, jeder mit non-empty ``status`` (str).
+  2. Pflege-Pflicht-Kommentar (PFLEGE-PFLICHT + Re-Test-Termine).
+  3. _score_status_badge_html liest den Status aus der config.
+  4. KEIN Status-VALUE als Literal im Badge-/Card-Render-Pfad.
+  5. Badges im Cockpit verdrahtet.
   6. CSS .cockpit-status-badge + .cockpit-rank-context in head.jinja.
-  7. Badge-Styling NEUTRAL (keine Ampelfarbe grün/rot im Badge-Rule).
-  8. B2: Rang-Kontext nutzt vorhandenen conv_action, donut-caption entfernt.
-  9. Monster bleibt optisch zurückgenommen (_MONSTER_NEUTRAL_COLOR).
- 10. Badge-Wortlaut beschreibt den SCORE-Status, nicht die Aktie (Tooltip).
+  7. Badge-Styling NEUTRAL (keine Ampelfarbe).
+  8. B2 Rang-Kontext nutzt vorhandenen conv_action.
+  9. Monster weiterhin neutral.
+ 10. Badge beschreibt Score, nicht Aktie.
+ 11. JEDER Eintrag trägt status_date (kein undatierter Status).
+ 12. Single-Source: compute_score_confidence OHNE has_auc / Validierungs-Tier.
+ 13. _conf_class liest den Validierungs-Status aus SCORE_STATUS_LABELS.
 """
 from __future__ import annotations
 
@@ -38,33 +43,10 @@ _spec = importlib.util.spec_from_file_location("config", ROOT / "config.py")
 config = importlib.util.module_from_spec(_spec)
 _spec.loader.exec_module(config)
 
-_EXPECTED_KEYS = {"setup", "monster", "ki", "conviction"}
-
-
-def test_01_config_struct_present() -> None:
-    labels = getattr(config, "SCORE_STATUS_LABELS", None)
-    assert isinstance(labels, dict), "config.SCORE_STATUS_LABELS fehlt/kein dict"
-    assert set(labels) == _EXPECTED_KEYS, \
-        f"Keys erwartet {_EXPECTED_KEYS}, gefunden {set(labels)}"
-    for k, v in labels.items():
-        assert isinstance(v, str) and v.strip(), f"{k}: leerer/kein Status-Text"
-
-
-def test_02_maintenance_comment() -> None:
-    # Kommentar-Block direkt vor der Struktur muss die Pflege-Pflicht + die
-    # Re-Test-Termine benennen (damit der planmäßige Verfall trivial pflegbar
-    # bleibt — Wurzel des „Ende-Aug"-Fehlers).
-    cfg = (ROOT / "config.py").read_text(encoding="utf-8")
-    anchor = cfg.find("SCORE_STATUS_LABELS")
-    head = cfg[max(0, anchor - 1400):anchor]
-    for needle in ("PFLEGE-PFLICHT", "VERALTEN", "27.07", "Sept"):
-        assert needle in head, f"Pflege-Kommentar ohne '{needle}'"
-
-
-def test_03_helper_reads_config() -> None:
-    assert "SCORE_STATUS_LABELS.get(conf_key)" in GR_SRC, \
-        "_score_status_badge_html liest nicht aus config.SCORE_STATUS_LABELS"
-    assert "def _score_status_badge_html" in GR_SRC, "Helper fehlt"
+# 4 Karten-Scores + 2 Panel-only (earliness, exit_pressure) = 6 (eine Pflegeliste).
+_EXPECTED_KEYS = {"setup", "monster", "ki", "conviction", "earliness", "exit_pressure"}
+_CARD_KEYS = {"setup", "monster", "ki", "conviction"}
+_ISO_RE = re.compile(r"^\d{4}-\d{2}-\d{2}$")
 
 
 def _fn_body(name: str) -> str:
@@ -74,26 +56,47 @@ def _fn_body(name: str) -> str:
     return m.group(0)
 
 
-def test_04_no_hardcoded_badge_value_in_template() -> None:
-    # Die Status-VALUES dürfen NUR in config.py leben. In den beiden
-    # relevanten Render-Funktionen (_score_status_badge_html-Helper +
-    # _card_cockpit_html-Template) dürfen sie NICHT als Literal stehen —
-    # sonst driftet die Anzeige von der Single-Source weg.
-    # (Generische Wörter wie „unvalidiert" kommen anderswo legitim vor —
-    # daher scope auf genau die zwei Funktionen statt globalem Grep.)
+def test_01_config_struct_present() -> None:
+    labels = getattr(config, "SCORE_STATUS_LABELS", None)
+    assert isinstance(labels, dict), "config.SCORE_STATUS_LABELS fehlt/kein dict"
+    assert set(labels) == _EXPECTED_KEYS, \
+        f"Keys erwartet {_EXPECTED_KEYS}, gefunden {set(labels)}"
+    for k, v in labels.items():
+        assert isinstance(v, dict), f"{k}: Eintrag kein dict"
+        status = v.get("status")
+        assert isinstance(status, str) and status.strip(), \
+            f"{k}: leerer/kein Status-Text"
+
+
+def test_02_maintenance_comment() -> None:
+    cfg = (ROOT / "config.py").read_text(encoding="utf-8")
+    anchor = cfg.find("SCORE_STATUS_LABELS = {")
+    head = cfg[max(0, anchor - 2200):anchor]
+    for needle in ("PFLEGE-PFLICHT", "review_by", "27.07", "Sept"):
+        assert needle in head, f"Pflege-Kommentar ohne '{needle}'"
+
+
+def test_03_helper_reads_config() -> None:
+    assert "def _score_status_badge_html" in GR_SRC, "Helper fehlt"
+    body = _fn_body("_score_status_badge_html")
+    assert "SCORE_STATUS_LABELS.get(conf_key)" in body and '.get("status")' in body, \
+        "_score_status_badge_html liest den Status nicht aus der config-Struktur"
+
+
+def test_04_no_hardcoded_status_value_in_template() -> None:
+    # Die Status-VALUES dürfen NUR in config.py leben. In den Render-Funktionen
+    # (_score_status_badge_html + _card_cockpit_html) dürfen sie NICHT als
+    # Literal stehen. Voll-Kommentar-Zeilen ausgenommen (dort erklärend erlaubt).
     raw = _fn_body("_score_status_badge_html") + "\n" + _fn_body("_card_cockpit_html")
-    # Voll-Kommentar-Zeilen entfernen (dort darf ein Wort wie „unvalidiert" in
-    # der Erklärung stehen, z. B. Monster-Neutral-Kommentar) — geprüft wird nur
-    # echter Render-Code / String-Literale.
     scope = "\n".join(ln for ln in raw.splitlines()
                       if not ln.lstrip().startswith("#"))
-    for v in config.SCORE_STATUS_LABELS.values():
+    for entry in config.SCORE_STATUS_LABELS.values():
+        v = entry["status"]
         assert v not in scope, \
-            f"Badge-Value {v!r} hardcoded im Render-Pfad — Single-Source verletzt"
+            f"Status-Value {v!r} hardcoded im Render-Pfad — Single-Source verletzt"
 
 
 def test_05_wired_into_cockpit() -> None:
-    # Pillar-Loop + Conviction rufen den Helper.
     assert "status_badge = _score_status_badge_html(conf_key)" in GR_SRC, \
         "Pillar-Badge nicht verdrahtet"
     assert '_score_status_badge_html("conviction")' in GR_SRC, \
@@ -108,8 +111,6 @@ def test_06_css_classes_present() -> None:
 
 
 def test_07_badge_style_neutral() -> None:
-    # Das Badge-Rule darf KEINE Ampelfarbe tragen (kein grün=gut / rot=schlecht)
-    # — es beschreibt Methodik-Status, nicht Bewertung.
     m = re.search(r"\.cockpit-status-badge\{([^}]*)\}", HJ_SRC)
     assert m, ".cockpit-status-badge-Rule nicht gefunden"
     body = m.group(1)
@@ -119,41 +120,78 @@ def test_07_badge_style_neutral() -> None:
 
 
 def test_08_rank_context_reuses_existing_text() -> None:
-    # B2: NUR Umplatzierung des vorhandenen conv_action — keine neue Klasse.
     assert 'class="cockpit-rank-context">{conv_action}' in GR_SRC, \
         "Rang-Kontext nutzt nicht den vorhandenen conv_action-Text"
-    # Alte Donut-Caption ist relocated (nicht mehr im Render-Pfad).
     assert "cockpit-donut-caption" not in GR_SRC, \
         "cockpit-donut-caption noch im Render-Pfad (sollte relocated sein)"
 
 
 def test_09_monster_still_neutral() -> None:
     assert "_MONSTER_NEUTRAL_COLOR" in GR_SRC, "Monster-Neutral-Farbe entfernt?"
-    # Der Pillar-Loop muss Monster weiterhin auf Neutral-Grau setzen.
     assert 'conf_key == "monster"' in GR_SRC and \
         "col = _MONSTER_NEUTRAL_COLOR" in GR_SRC, \
         "Monster-Pillar nicht mehr neutral gefärbt"
 
 
 def test_10_badge_describes_score_not_stock() -> None:
-    # Tooltip-Wortlaut muss klarstellen: Score-Status, NICHT Aktien-Bewertung.
-    # (Der f-String bricht die Phrase auf zwei Zeilen um → getrennt prüfen.)
     assert "beschreibt den Score, " in GR_SRC and "nicht die Aktie." in GR_SRC, \
         "Badge-Tooltip stellt Score-vs-Aktie nicht klar"
 
 
+def test_11_every_entry_has_status_date() -> None:
+    # Task-Punkt 9: kein undatierter Status. Jeder Eintrag MUSS ein
+    # ISO-status_date tragen (Befund-Datum, nicht Render-Zeit).
+    for k, v in config.SCORE_STATUS_LABELS.items():
+        sd = v.get("status_date")
+        assert isinstance(sd, str) and _ISO_RE.match(sd), \
+            f"{k}: status_date fehlt/kein ISO-Datum ({sd!r})"
+        # review_by ist entweder None oder ISO.
+        rb = v.get("review_by")
+        assert rb is None or (isinstance(rb, str) and _ISO_RE.match(rb)), \
+            f"{k}: review_by weder None noch ISO ({rb!r})"
+        # review_by None → review_cond muss die Bedingung dokumentieren.
+        if rb is None:
+            assert (v.get("review_cond") or "").strip(), \
+                f"{k}: review_by None ohne review_cond-Begründung"
+
+
+def test_12_single_source_no_validation_in_compute() -> None:
+    # EXZELLENZ 1: has_auc darf NIRGENDS still weiterleben; compute liefert nur
+    # die Daten-Dimension, KEINE Validierungs-Stufe mehr.
+    assert "has_auc" not in GR_SRC, "has_auc lebt noch (Validierungs-Annahme!)"
+    body = _fn_body("compute_score_confidence")
+    for forbidden in ('"tier"', "'tier'", "robust"):
+        assert forbidden not in body, \
+            f"compute_score_confidence trägt noch Validierungs-Literal {forbidden!r}"
+    # Positiv: liefert die Daten-Dimension.
+    assert "data_tier" in body and "n_returns" in body, \
+        "compute_score_confidence liefert keine Daten-Dimension mehr"
+
+
+def test_13_conf_class_reads_single_source() -> None:
+    # Karten-Wasserzeichen kommt aus derselben Quelle wie Badge + Panel.
+    body = _fn_body("_conf_class")
+    assert "SCORE_STATUS_LABELS.get(score_class)" in body, \
+        "_conf_class liest den Validierungs-Status nicht aus SCORE_STATUS_LABELS"
+    assert "_SCORE_CONFIDENCE" not in body, \
+        "_conf_class hängt noch am alten _SCORE_CONFIDENCE-Tier (Drift-Quelle)"
+
+
 def main() -> None:
     tests = [
-        ("01 config.SCORE_STATUS_LABELS 4 Keys",        test_01_config_struct_present),
+        ("01 SCORE_STATUS_LABELS 6 Keys + status",      test_01_config_struct_present),
         ("02 Pflege-Pflicht-Kommentar",                 test_02_maintenance_comment),
-        ("03 Helper liest config (Single-Source)",      test_03_helper_reads_config),
-        ("04 kein Badge-Value hardcoded im Template",   test_04_no_hardcoded_badge_value_in_template),
+        ("03 Helper liest config-Status",               test_03_helper_reads_config),
+        ("04 kein Status-Value hardcoded",              test_04_no_hardcoded_status_value_in_template),
         ("05 Badges im Cockpit verdrahtet",             test_05_wired_into_cockpit),
         ("06 CSS-Klassen vorhanden",                    test_06_css_classes_present),
         ("07 Badge-Styling neutral (keine Ampel)",      test_07_badge_style_neutral),
         ("08 Rang-Kontext = vorhandener Text",          test_08_rank_context_reuses_existing_text),
         ("09 Monster weiterhin neutral",                test_09_monster_still_neutral),
         ("10 Badge beschreibt Score, nicht Aktie",      test_10_badge_describes_score_not_stock),
+        ("11 jeder Eintrag mit status_date",            test_11_every_entry_has_status_date),
+        ("12 Single-Source: kein has_auc/tier in compute", test_12_single_source_no_validation_in_compute),
+        ("13 _conf_class liest SCORE_STATUS_LABELS",    test_13_conf_class_reads_single_source),
     ]
     failed = 0
     for name, fn in tests:

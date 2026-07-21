@@ -1496,30 +1496,87 @@ MATERIAL_8K_STATUS_ROW = (
     "dünn (Auswertung ~2027), breite Katalysator-Auswertung früher",
 )
 
-# ── Score-Status-Kennzeichnung (PR B "Karten-Status-Ehrlichkeit") ──────────
-# Kleines Status-Badge pro Karten-Score, das den EPISTEMISCHEN Stand des
-# jeweiligen SCORES ehrlich zeigt (NICHT eine Bewertung des Tickers). Rein
-# anzeigend — KEIN Score-/Ranking-/Filter-Effekt. Der Text lebt AUSSCHLIESSLICH
-# hier (Single-Source, analog COLLECT_STATUS_FIELDS) — NIE als Literal im
-# generate_report-Template. `_score_status_badge_html` liest daraus.
+# ── Score-Status-Kennzeichnung + Status-Drift-Wecker (Single-Source) ────────
+# EINZIGE Validierungs-Wahrheit für Panel UND Karten-Badges. Vorher gab es zwei
+# Quellen (compute_score_confidence-Stufen + diese Labels), die driften konnten
+# (Setup „robust" im Panel vs. „unvalidiert" auf der Karte). Jetzt: der
+# VALIDIERUNGS-Status kommt NUR von hier; compute_score_confidence liefert nur
+# noch die DATEN-Dimension (n gereift). Rein anzeigend/erinnernd — KEIN Score-/
+# Ranking-/Filter-Effekt. Der Text lebt AUSSCHLIESSLICH hier (Single-Source,
+# analog COLLECT_STATUS_FIELDS) — NIE als Literal im generate_report-Template.
 #
-# PFLEGE-PFLICHT: Diese Texte VERALTEN planmäßig — bei JEDEM Re-Test-Befund
-# den Status hier anpassen (eine Zeile), damit die Anzeige dem letzten
-# registrierten Befund entspricht:
-#   - Conviction  → Re-Test ~27.07.2026 (Panel n ≥ 100 gereift)
-#   - Setup/Exit  → Re-Test ~Sept 2026 (echte OoS-Validierung)
-#   - ki_signal   → datengetrieben (sobald eigener Backtest-Pfad existiert)
-# Registrierte Befunde (Stand 21.07.2026, Quelle compute_score_confidence /
-# SESSION_HANDOVER): Setup noch ohne OoS-Beweis; Monster 30.06./04.07. AUC
-# 0.76→0.51 OoS-kollabiert; KI reiner Boost-Multiplikator; Conviction
-# unvalidiertes Aggregat.
-# Keys = conf_key aus compute_score_confidence (setup/monster/ki/conviction).
+# Felder je Eintrag:
+#   status      : epistemischer Stand des SCORES (beschreibt Methodik, nicht die
+#                 Aktie). Karten-Badge (setup/monster/ki/conviction) UND Panel-
+#                 Status-Zeile (alle 6) lesen daraus.
+#   status_date : Datum des REGISTRIERTEN Befunds (ISO) — trägt seine EIGENE
+#                 Aktualität, NICHT der Render-Zeitstempel.
+#   review_by   : nächste Re-Test-Fälligkeit (ISO) oder None. Der tägliche
+#                 Daily-Run-Wecker pusht, sobald heute > review_by. None = kein
+#                 Kalender-Re-Test (falsifiziert oder datengetrieben) → kein Push.
+#   review_cond : optionaler Klartext, wenn review_by None (Bedingung/Grund).
+#
+# PFLEGE-PFLICHT (EINE Liste, ersetzt die alte selektive Pflege): bei JEDEM
+# Re-Test-Befund status + status_date + review_by hier anpassen. Der Wecker
+# erinnert automatisch an fällige Reviews — kein manuelles Nachhalten mehr.
+# Registrierte Befunde (Quelle SESSION_HANDOVER, Stand 21.07.2026):
+#   setup      30.06.: AUC ~0.40 invertiert, kein Edge → Re-Test ~Sept (n≥250)
+#   earliness  30.06. (#394): AUC 0.77 (13.05.) fällt OoS auf 0.47–0.52 → falsif.
+#   monster    30.06./04.07.: AUC 0.76→0.51 kollabiert
+#   ki         15.07.: kein belegter Effekt (AUC 0.61/0.58, CI<0.5); Re-Test
+#              datengetrieben (WIN-Bucket≥20 + 2. Marktregime), kein Kalender
+#   conviction 30.06. (Prüfpunkt P3): Aggregat, Edge unbelegt → Re-Test ~27.07.
+#   exit       01.07. Exit-Timing B.1: Δ~+4pp Hinweis, Holm-negativ. Der
+#              exit_pressure-SCORE selbst hat KEINEN Validierungs-Pfad (Closed-
+#              Trades-Schema offen) — review_by ans Exit-Timing-Sept-Fenster
+#              gehängt (Erinnerung), Wortlaut hält Score≠Timing auseinander.
+# Keys = conf_key aus compute_score_confidence.
 SCORE_STATUS_LABELS = {
-    "setup":      "unvalidiert",
-    "monster":    "OoS-kollabiert",
-    "ki":         "heuristisch",
-    "conviction": "Aggregat · unvalidiert",
+    "setup": {
+        "status":      "unvalidiert",
+        "status_date": "2026-06-30",
+        "review_by":   "2026-09-30",
+    },
+    "monster": {
+        "status":      "OoS-kollabiert",
+        "status_date": "2026-06-30",
+        "review_by":   None,
+        "review_cond": "falsifiziert (AUC-Kollaps 0.76→0.51) — kein Re-Test geplant",
+    },
+    "ki": {
+        "status":      "heuristisch",
+        "status_date": "2026-07-15",
+        "review_by":   None,
+        "review_cond": "datengetrieben: Re-Test erst bei WIN-Bucket ≥ 20 UND zweitem Marktregime",
+    },
+    "conviction": {
+        "status":      "Aggregat · unvalidiert",
+        "status_date": "2026-06-30",
+        "review_by":   "2026-07-27",
+    },
+    "earliness": {
+        "status":      "OoS falsifiziert (AUC 0.77 → 0.47–0.52)",
+        "status_date": "2026-06-30",
+        "review_by":   None,
+        "review_cond": "falsifiziert 30.06. — kein Re-Test im Kalender",
+    },
+    "exit_pressure": {
+        "status":      "unvalidiert · Score-Edge unbelegt (nur Exit-Timing-Hinweis 01.07.)",
+        "status_date": "2026-07-01",
+        "review_by":   "2026-09-30",
+    },
 }
+
+# Status-Drift-Wecker (Teil 2): der TÄGLICHE Daily-Run (generate_report.main)
+# ruft status_review_reminder.run() → erinnert per ntfy an fällige Re-Tests.
+# Reine Erinnerung, ändert NICHTS. GEDROSSELT deterministisch via Wochentag-Gate
+# (kein State-File): feuert nur am WECKER-Wochentag im POSTCLOSE-Lauf → max.
+# 1×/Woche/Score. ntfy-Mechanik-Muster analog scripts/lit_reminder.py.
+STATUS_REVIEW_WECKER_ENABLED  = True
+STATUS_REVIEW_WECKER_WEEKDAY  = 0            # 0 = Montag (datetime.weekday())
+STATUS_REVIEW_WECKER_TITLE    = "⏰ Status-Review fällig"
+STATUS_REVIEW_WECKER_TAGS     = "alarm_clock"
+STATUS_REVIEW_WECKER_PRIORITY = "default"    # Erinnerung, kein Aktions-Signal
 
 S10_OBSERVED_FIELDS = frozenset({
     # Core (immer gesetzt)

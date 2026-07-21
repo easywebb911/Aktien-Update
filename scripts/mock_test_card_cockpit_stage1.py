@@ -59,8 +59,10 @@ def _extract_helper():
     # Stubs (Struktur-Test prüft keine Badge-Texte; der Wortlaut-/Single-Source-
     # Check lebt in mock_test_score_status_badges.py).
     ns["SCORE_STATUS_LABELS"] = {
-        "setup": "unvalidiert", "monster": "OoS-kollabiert",
-        "ki": "heuristisch", "conviction": "Aggregat · unvalidiert"}
+        "setup":      {"status": "unvalidiert"},
+        "monster":    {"status": "OoS-kollabiert"},
+        "ki":         {"status": "heuristisch"},
+        "conviction": {"status": "Aggregat · unvalidiert"}}
     ns["_SCORE_STATUS_DISPLAY_NAME"] = {
         "setup": "Setup", "monster": "Monster", "ki": "KI",
         "conviction": "Conviction"}

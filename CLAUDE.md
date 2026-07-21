@@ -3182,6 +3182,35 @@ Im Zweifel: lieber Sync mit kurzem Hinweis im Commit-Body als Drift-Risiko.
 
 ## Score-Konfidenz-Stufen (Stufe 1, rein anzeigend)
 
+> **⚠ ÜBERHOLT durch den Single-Source-Umbau (21.07.2026).** Die unten
+> beschriebene Ein-Stufen-Logik (`robust`/`mittel`/`provisorisch`/
+> `heuristisch` aus `compute_score_confidence`) hatte zwei Wahrheitsquellen
+> für „Score-Vertrauen" (Panel-Stufe **+** die Karten-Badges aus
+> `SCORE_STATUS_LABELS`), die drifteten — Setup zeigte im Panel „🟢 robust",
+> auf der Karte aber „unvalidiert" (das Panel-`robust` maß in Wahrheit nur
+> Datenmenge + eine hartcodierte `has_auc=True`-Annahme, die dem 30.06.-
+> Befund AUC ~0.40 widersprach). **Jetzt gilt:**
+> - **Eine** Validierungs-Wahrheit: `config.SCORE_STATUS_LABELS`
+>   (`status` + `status_date` + `review_by`) — dieselbe Quelle für Panel,
+>   Karten-Badges (PR B) und Karten-Wasserzeichen (`_conf_class`).
+> - `compute_score_confidence` liefert **nur noch die Daten-Dimension**
+>   (`n` gereift + `data_tier` groß/mittel/klein/keine) — KEINE Validierungs-
+>   Stufe, kein `has_auc`, kein `robust` (Wort als Validierungs-Urteil
+>   retired). Das Panel zeigt beide Dimensionen sichtbar getrennt
+>   („🔴 unvalidiert" · „Datenbasis: n=… (…)").
+> - Der Panel-Timestamp stempelt ehrlich nur die Daten-Dimension; jede
+>   Status-Zeile trägt ihr eigenes `status_date`.
+> - Karten-Wasserzeichen (`_conf_class`) spiegelt jetzt den VALIDIERUNGS-
+>   Status: solange kein Score `validated: True` trägt, wird er gedimmt —
+>   heute also alle vier (Setup nicht mehr scheinbar-vertrauenswürdig).
+> - **Status-Drift-Wecker** (`status_review_reminder.py`, im täglichen
+>   Daily-Run): erinnert per ntfy an fällige `review_by`-Termine
+>   (gedrosselt via Montag-+postclose-Gate). Ändert nichts, erinnert nur.
+> - **Pflege = EINE Liste**: bei jedem Re-Test-Befund `SCORE_STATUS_LABELS`
+>   anpassen (status + status_date + review_by). Der Wecker meldet Fälliges.
+>
+> Der historische Abschnitt darunter bleibt als Kontext stehen.
+
 Externe Methodik-Bewertung: solange Live-Datenmenge klein ist (heutige
 Validierungs-Diagnose 13.05.2026: n=78 für Earliness V2), soll das
 Tool transparent kommunizieren, **wie belastbar** die Scores
