@@ -242,6 +242,21 @@ def test_14_none_values_graceful() -> None:
     s = _sample_stock(monster_score=None, ki_signal_score=None)
     out = _card_cockpit_html(1, s)
     assert "—" in out, "None-Werte sollten als — gerendert werden"
+    # A1: KI=None → dezenter Kontext-Zusatz statt NUR nacktem Strich, mit Tooltip.
+    assert "cockpit-pillar-hint" in out, "KI-None ohne Kontext-Hint gerendert"
+    assert "kein aktuelles KI-Signal" in out, "Kontext-Wortlaut fehlt"
+    assert 'title="Der stündliche KI-Scan' in out, "Kontext-Tooltip fehlt"
+
+
+def test_15b_ki_hint_only_for_ki_when_none() -> None:
+    # Der Kontext-Hint ist auf KI beschränkt: bei vorhandenem KI-Wert kein Hint,
+    # und Monster=None (das auch "—" rendert) bekommt KEINEN KI-Hint.
+    out_full = _card_cockpit_html(1, _sample_stock())   # ki=65 gesetzt
+    assert "cockpit-pillar-hint" not in out_full, \
+        "Bei vorhandenem KI-Wert darf kein Hint erscheinen"
+    out_monster_none = _card_cockpit_html(1, _sample_stock(monster_score=None))
+    assert out_monster_none.count("cockpit-pillar-hint") == 0, \
+        "Monster=None darf keinen KI-Hint auslösen"
 
 
 def test_16_cockpit_padding_matches_surrounding_containers() -> None:
@@ -284,7 +299,8 @@ def main() -> int:
         ("11 CSS font-sizes (28/26/50)",             test_11_css_font_sizes_match_spec),
         ("12 _score_block_inner_html unchanged",     test_12_score_block_inner_unchanged),
         ("13 Helper definiert + callable",            test_13_helper_callable_and_defined),
-        ("14 None-Werte graceful (—)",                test_14_none_values_graceful),
+        ("14 None-Werte graceful (—) + KI-Kontext",   test_14_none_values_graceful),
+        ("15b KI-Hint nur bei KI=None",               test_15b_ki_hint_only_for_ki_when_none),
         ("15 Saeulen-Reihenfolge im HTML strict",    test_15_pillar_order_strict_in_html),
         ("16 Cockpit-Padding 14px (analog Sub-Sc.)", test_16_cockpit_padding_matches_surrounding_containers),
     ]
