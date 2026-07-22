@@ -1,11 +1,11 @@
 {
-  "updated": "2026-07-22T08:42:37.122934+02:00",
+  "updated": "2026-07-22T10:46:59.299808+02:00",
   "run_info": {
     "tickers_checked": 14,
     "signals_active": 0,
     "alerts_sent": 0,
-    "elapsed_s": 13.6,
-    "market_phase": "Geschlossen"
+    "elapsed_s": 27.7,
+    "market_phase": "Pre-Market"
   },
   "signals": {
     "AI": {
@@ -75,7 +75,7 @@
         "UOA Call/Put 2.2×"
       ],
       "uoa_atm_ratio": null,
-      "uoa_cp_ratio": 2.216494845360825
+      "uoa_cp_ratio": 2.247422680412371
     },
     "CADL": {
       "score": 33,
@@ -122,14 +122,14 @@
       "uoa_cp_ratio": 40.44827586206897
     },
     "FTK": {
-      "score": 20,
-      "confidence": 33,
-      "drivers": "Spanne 6.3% + UOA Call/Put 2.1×",
+      "score": 28,
+      "confidence": 70,
+      "drivers": "Spanne 6.3% + Earnings in 13d + UOA Call/Put 2.1×",
       "price": 27.28,
       "chg_pct": 0.0,
       "rvol_4d": 0.75,
       "rvol_20d": 0.89,
-      "earnings": null,
+      "earnings": "in 13 Tagen (04.08.2026)",
       "fda_date": null,
       "upcoming_event": null,
       "insider_buy": false,
@@ -166,9 +166,9 @@
       "uoa_cp_ratio": 1.1159809183064997
     },
     "LENZ": {
-      "score": 61,
+      "score": 57,
       "confidence": 70,
-      "drivers": "Earnings in 7 Tagen (29.07.2026) + Spanne 5.5% + News: short interest + Earnings in 7d + FINRA Short-Vol 52%",
+      "drivers": "Earnings in 7 Tagen (29.07.2026) + Spanne 5.5% + News-KI 12/30: Negative analyst reset and lower fair value outlook outweigh positive product launch and partnership developments; limit + Earnings in 7d + FINRA Short-Vol 52%",
       "price": 5.16,
       "chg_pct": -0.0,
       "rvol_4d": 0.55,
@@ -180,7 +180,7 @@
       "stocktwits": null,
       "combo_mult": 1.1,
       "active_triggers": 2,
-      "ki_sentiment_source": "keyword",
+      "ki_sentiment_source": "llm",
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": null,
@@ -232,15 +232,15 @@
       "uoa_atm_ratio": null,
       "uoa_cp_ratio": 19.575757575757574
     },
-    "PGEN": {
-      "score": 43,
+    "RXRX": {
+      "score": 58,
       "confidence": 70,
-      "drivers": "Spanne 9.4% + News: fda approval + Earnings in 13d + UOA Call/Put 112.1×",
-      "price": 5.49,
+      "drivers": "Spanne 6.2% + News: squeeze, short interest + Earnings in 14d + UOA Call/Put 8.1×",
+      "price": 3.08,
       "chg_pct": -0.0,
-      "rvol_4d": 1.42,
-      "rvol_20d": 0.88,
-      "earnings": "in 13 Tagen (04.08.2026)",
+      "rvol_4d": 0.59,
+      "rvol_20d": 0.6,
+      "earnings": "in 14 Tagen (05.08.2026)",
       "fda_date": null,
       "upcoming_event": null,
       "insider_buy": false,
@@ -250,10 +250,10 @@
       "ki_sentiment_source": "keyword",
       "uoa_score": 10,
       "uoa_drivers": [
-        "UOA Call/Put 112.1×"
+        "UOA Call/Put 8.1×"
       ],
       "uoa_atm_ratio": null,
-      "uoa_cp_ratio": 112.1219512195122
+      "uoa_cp_ratio": 8.097872340425532
     },
     "SVRA": {
       "score": 25,
@@ -277,9 +277,9 @@
       "uoa_cp_ratio": 0.231680236861584
     },
     "TROX": {
-      "score": 28,
+      "score": 40,
       "confidence": 70,
-      "drivers": "Spanne 11.9% + Earnings in 14d + UOA Call/Put 3.2×",
+      "drivers": "Spanne 11.9% + News-KI 12/30: Positive earnings and operational progress are bullish but lack the short interest, technical compression, and catalyst  + Earnings in 14d + UOA Call/Put 3.2×",
       "price": 6.49,
       "chg_pct": -0.0,
       "rvol_4d": 1.27,
@@ -290,8 +290,8 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 0,
-      "ki_sentiment_source": "keyword",
+      "active_triggers": 1,
+      "ki_sentiment_source": "llm",
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 3.2×"
