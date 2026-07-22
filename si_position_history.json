@@ -2203,5 +2203,20 @@
       "short_pct_float": 26.13,
       "pub_date": "2026-07-10"
     }
+  ],
+  "GO": [
+    {
+      "settlement_date": "2026-05-29",
+      "shares_short": 26190151,
+      "short_pct_float": null,
+      "pub_date": "2026-06-09",
+      "seeded": true
+    },
+    {
+      "settlement_date": "2026-06-30",
+      "shares_short": 22333587,
+      "short_pct_float": 34.93,
+      "pub_date": "2026-07-10"
+    }
   ]
 }
