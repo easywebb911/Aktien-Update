@@ -1,10 +1,10 @@
 {
-  "updated": "2026-07-23T00:20:40.089776+02:00",
+  "updated": "2026-07-23T01:17:43.071580+02:00",
   "run_info": {
     "tickers_checked": 15,
     "signals_active": 1,
     "alerts_sent": 0,
-    "elapsed_s": 19.7,
+    "elapsed_s": 11.5,
     "market_phase": "After-Hours"
   },
   "signals": {
@@ -99,9 +99,9 @@
       "uoa_cp_ratio": 4.840686274509804
     },
     "FIP": {
-      "score": 8,
-      "confidence": 17,
-      "drivers": "Earnings in 14d",
+      "score": 13,
+      "confidence": 33,
+      "drivers": "News-KI 5/30: Routine earnings announcement and analyst coverage updates with no indicators of short squeeze potential such as high sh + Earnings in 14d",
       "price": 4.5,
       "chg_pct": 0.0,
       "rvol_4d": 0.83,
@@ -113,16 +113,16 @@
       "stocktwits": null,
       "combo_mult": 1.0,
       "active_triggers": 0,
-      "ki_sentiment_source": "keyword",
+      "ki_sentiment_source": "llm",
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": null,
       "uoa_cp_ratio": 0.008733624454148471
     },
     "FRMM": {
-      "score": 58,
+      "score": 43,
       "confidence": 70,
-      "drivers": "Spanne 10.4% + News: short interest, acquisition + Earnings in 22d + UOA Call/Put 5.3×",
+      "drivers": "Spanne 10.4% + News: short interest + Earnings in 22d + UOA Call/Put 5.3×",
       "price": 5.7,
       "chg_pct": -0.0,
       "rvol_4d": 0.32,
@@ -143,9 +143,9 @@
       "uoa_cp_ratio": 5.285714285714286
     },
     "GRPN": {
-      "score": 43,
+      "score": 36,
       "confidence": 70,
-      "drivers": "Spanne 11.2% + News: short interest + Earnings in 14d + UOA Call/Put 67.7×",
+      "drivers": "Spanne 11.2% + News-KI 8/30: Moderate analyst optimism on cost cuts and management changes, but no significant short squeeze catalysts evident in hea + Earnings in 14d + UOA Call/Put 67.7×",
       "price": 27.92,
       "chg_pct": 0.0,
       "rvol_4d": 0.72,
@@ -156,8 +156,8 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 1,
-      "ki_sentiment_source": "keyword",
+      "active_triggers": 0,
+      "ki_sentiment_source": "llm",
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 67.7×"
@@ -166,14 +166,14 @@
       "uoa_cp_ratio": 67.67333333333333
     },
     "HTZ": {
-      "score": 43,
-      "confidence": 70,
-      "drivers": "Spanne 10.8% + News: short interest + Earnings in 15d + UOA Call/Put 9.2×",
+      "score": 35,
+      "confidence": 33,
+      "drivers": "Spanne 10.8% + News: short interest + UOA Call/Put 9.2×",
       "price": 1.93,
       "chg_pct": -0.0,
       "rvol_4d": 1.2,
       "rvol_20d": 0.56,
-      "earnings": "in 15 Tagen (06.08.2026)",
+      "earnings": null,
       "fda_date": null,
       "upcoming_event": null,
       "insider_buy": false,
@@ -210,9 +210,9 @@
       "uoa_cp_ratio": 1.3653470867019795
     },
     "LENZ": {
-      "score": 41,
+      "score": 44,
       "confidence": 70,
-      "drivers": "Earnings in 7 Tagen (29.07.2026) + Spanne 7.0% + News-KI 12/30: Negative earnings outlook and lowered analyst expectations create poor sentiment for short-squeeze momentum, despite pos + Earnings in 7d",
+      "drivers": "Earnings in 7 Tagen (29.07.2026) + Spanne 7.0% + News: short interest + Earnings in 7d",
       "price": 5.34,
       "chg_pct": 0.0,
       "rvol_4d": 0.54,
@@ -224,7 +224,7 @@
       "stocktwits": null,
       "combo_mult": 1.1,
       "active_triggers": 2,
-      "ki_sentiment_source": "llm",
+      "ki_sentiment_source": "keyword",
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": 0.3333333333333333,
@@ -254,9 +254,9 @@
       "uoa_cp_ratio": 15.876190476190477
     },
     "PDYN": {
-      "score": 26,
+      "score": 48,
       "confidence": 70,
-      "drivers": "Spanne 5.4% + News-KI 8/30: Strong fundamentals (revenue growth, large backlog, Air Force contracts) work against short squeeze dynamics, as institu + Earnings in 14d",
+      "drivers": "Spanne 5.4% + News: revenue beat, contract + Earnings in 14d",
       "price": 5.33,
       "chg_pct": -0.0,
       "rvol_4d": 0.86,
@@ -267,8 +267,8 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 0,
-      "ki_sentiment_source": "llm",
+      "active_triggers": 1,
+      "ki_sentiment_source": "keyword",
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": 0.13636363636363635,
