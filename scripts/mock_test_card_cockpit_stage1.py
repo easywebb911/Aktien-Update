@@ -59,13 +59,17 @@ def _extract_helper():
     # Stubs (Struktur-Test prüft keine Badge-Texte; der Wortlaut-/Single-Source-
     # Check lebt in mock_test_score_status_badges.py).
     ns["SCORE_STATUS_LABELS"] = {
-        "setup":      {"status": "unvalidiert"},
-        "monster":    {"status": "OoS-kollabiert"},
-        "ki":         {"status": "heuristisch"},
-        "conviction": {"status": "Aggregat · unvalidiert"}}
+        "setup":      {"status": "unvalidiert", "status_kind": "pending"},
+        "monster":    {"status": "OoS-kollabiert", "status_kind": "falsified"},
+        "ki":         {"status": "heuristisch", "status_kind": "heuristic"},
+        "conviction": {"status": "Aggregat · unvalidiert", "status_kind": "pending"}}
     ns["_SCORE_STATUS_DISPLAY_NAME"] = {
         "setup": "Setup", "monster": "Monster", "ki": "KI",
         "conviction": "Conviction"}
+    # Status-Farbsemantik: _score_status_badge_html ruft _status_kind_of, das
+    # SCORE_STATUS_KINDS + _STATUS_KIND_FALLBACK liest → in die ns injizieren.
+    ns["SCORE_STATUS_KINDS"] = ("falsified", "pending", "heuristic", "validated")
+    ns["_STATUS_KIND_FALLBACK"] = "heuristic"
 
     # Extract function definition
     # Dependency-robust: _card_cockpit_html ruft _cockpit_delta_html (Score-
@@ -74,8 +78,8 @@ def _extract_helper():
     # beim Aufruf. Reihenfolge: Dependencies zuerst, dann Consumer.
     # Name-basierte Extraktion ist immun gegen Einrueckungs-/Reihenfolge-
     # Aenderungen (Lesson #327); Prod-Funktionen bleiben unberuehrt.
-    for _dep in ("_cockpit_delta_html", "_score_status_badge_html",
-                 "_card_cockpit_html"):
+    for _dep in ("_cockpit_delta_html", "_status_kind_of",
+                 "_score_status_badge_html", "_card_cockpit_html"):
         m = re.search(rf"^def {_dep}\(.*?(?=\n\ndef )",
                       GR_SRC, re.MULTILINE | re.DOTALL)
         assert m, f"{_dep} nicht gefunden"

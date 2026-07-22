@@ -1180,6 +1180,22 @@ abbr[title]{text-decoration:underline dotted var(--txt-dim);
   border:1px solid rgba(148,163,184,0.22);border-radius:4px;padding:1px 5px;
   white-space:normal;max-width:100%}
 .cockpit-donut-wrap .cockpit-status-badge{align-self:center;text-align:center}
+/* Status-Farbsemantik (Folge-PR zu #468): status_kind → Farbe. Die EINZIGE
+   Farb-Wahrheit (Panel-Punkt + Badge-Tönung lesen `--kind-col`). Text bleibt
+   Erstkanal, Farbe ist Zweitkanal (Accessibility). GRÜN ist definiert, aber
+   heute von keinem Score getragen. Blau = Info-Blau (--accent), KEIN Warnrot. */
+.conf-kind-falsified{--kind-col:#ef4444}   /* rot  — geprüft & durchgefallen */
+.conf-kind-pending{--kind-col:#3b82f6}     /* blau — Prüfung terminiert */
+.conf-kind-heuristic{--kind-col:#94a3b8}   /* grau — Heuristik, kein Edge-Anspruch */
+.conf-kind-validated{--kind-col:#22c55e}   /* grün — Holm + Bootstrap-CI belegt */
+.conf-status-dot{display:inline-block;width:9px;height:9px;border-radius:50%;
+  background:var(--kind-col,#94a3b8);vertical-align:middle}
+/* Karten-Badge: DEZENTE Tönung — nur der Rand nimmt die Kind-Farbe (gedämpft);
+   Hintergrund + Text bleiben neutral-grau (non-signal styling, nicht aufgedreht).
+   heuristic behält bewusst den Basis-Rand (optisch unverändert). */
+.cockpit-status-badge.conf-kind-falsified{border-color:rgba(239,68,68,0.50)}
+.cockpit-status-badge.conf-kind-pending{border-color:rgba(59,130,246,0.50)}
+.cockpit-status-badge.conf-kind-validated{border-color:rgba(34,197,94,0.50)}
 /* PR B2 — Rang-Kontext: der vorhandene Conviction-Erklärtext, prominent unter
    dem Header (statt versteckt unter dem Donut). Linke Akzent-Leiste + gedimmt
    → liest sich als Einordnung, nicht als „jetzt kaufen"-Signal. */

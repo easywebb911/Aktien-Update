@@ -60,13 +60,16 @@ ns: dict = {"log": _Log()}
 exec(
     "from config import (\n"
     "    SCORE_STATUS_LABELS,\n"
+    "    SCORE_STATUS_KINDS,\n"
     "    SCORE_CONFIDENCE_N_ROBUST,\n"
     "    SCORE_CONFIDENCE_N_MITTEL,\n"
     "    SCORE_CONFIDENCE_N_PROVISORISCH,\n"
     ")\n"
     "from datetime import datetime\n"
     "from zoneinfo import ZoneInfo\n"
+    "_STATUS_KIND_FALLBACK = 'heuristic'\n"
     + _extract("_data_tier") + "\n"
+    + _extract("_status_kind_of") + "\n"
     + _extract("compute_score_confidence") + "\n"
     + _extract_assign("_DATA_TIER_LABEL") + "\n"
     + _extract("_iso_to_de") + "\n"
@@ -166,8 +169,11 @@ def test_html_two_dimensions_separated():
     res = compute_score_confidence(_bh(600))
     rows_html, computed_at = _score_confidence_rows_html(res)
     # Validierungs-Status aus config (Single-Source) — Setup = unvalidiert.
-    # Icon (kompakt) + Status (fett, vollbreit) in getrennten Spans.
-    assert "🔴" in rows_html and "<strong>unvalidiert</strong>" in rows_html, rows_html
+    # Farbpunkt (aus status_kind, CSS-Klasse — Setup=pending=blau) + Status
+    # (fett, vollbreit) in getrennten Spans. KEIN Emoji mehr.
+    assert "conf-status-dot conf-kind-pending" in rows_html, rows_html
+    assert "<strong>unvalidiert</strong>" in rows_html, rows_html
+    assert "🔴" not in rows_html and "🟢" not in rows_html, "Emoji-Punkt sollte weg sein"
     # Daten-Dimension getrennt, mit n + tier.
     assert "Datenbasis: n=600 gereift (groß)" in rows_html, rows_html
     # Befund-Datum aus config (DE-formatiert) — nicht Render-Zeit.

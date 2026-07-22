@@ -4609,6 +4609,24 @@ _SCORE_STATUS_DISPLAY_NAME = {
     "conviction": "Conviction",
 }
 
+# Fallback, falls ein Eintrag (noch) kein status_kind trägt — konservativ
+# „heuristic" (grau, beansprucht keinen Edge), nie versehentlich grün.
+_STATUS_KIND_FALLBACK = "heuristic"
+
+
+def _status_kind_of(conf_key: str) -> str:
+    """Semantischer Zustand eines Score-Status (Single-Source für die FARBE).
+
+    Liest ``status_kind`` aus ``config.SCORE_STATUS_LABELS`` — genau vier
+    erlaubte Werte (falsified/pending/heuristic/validated). Der konkrete
+    Farbwert lebt NICHT hier, sondern in den ``.conf-kind-*``-CSS-Klassen
+    (head.jinja) — dieser Helper liefert nur den Klassen-Schlüssel, damit die
+    Färbung AUSSCHLIESSLICH aus ``status_kind`` abgeleitet ist. Unbekannt/
+    fehlend → ``heuristic`` (grau, konservativ).
+    """
+    kind = (SCORE_STATUS_LABELS.get(conf_key) or {}).get("status_kind")
+    return kind if kind in SCORE_STATUS_KINDS else _STATUS_KIND_FALLBACK
+
 
 def _score_status_badge_html(conf_key: str) -> str:
     """Kleines Status-Badge für einen Karten-Score (PR B).
@@ -4629,7 +4647,11 @@ def _score_status_badge_html(conf_key: str) -> str:
     safe = txt.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
     title = (f"Methodischer Status des {name}-Scores — beschreibt den Score, "
              f"nicht die Aktie.").replace('"', "'")
-    return (f'<span class="cockpit-status-badge" title="{title}" '
+    # PR Status-Farbsemantik: dezente Tönung aus status_kind (Farbe = Zweit-
+    # kanal; der Status-TEXT bleibt Erstkanal). Klasse `conf-kind-*` → CSS
+    # tönt nur den Badge-Rand dezent, Hintergrund/Text bleiben neutral.
+    kind = _status_kind_of(conf_key)
+    return (f'<span class="cockpit-status-badge conf-kind-{kind}" title="{title}" '
             f'aria-label="{name}-Score-Status: {safe}">{safe}</span>')
 
 
@@ -4681,8 +4703,10 @@ def _conf_class(score_class: str) -> tuple[str, str, str]:
     ``SCORE_STATUS_LABELS`` / Konfidenz NICHT lesen.
     """
     entry = (SCORE_STATUS_LABELS.get(score_class) or {})
-    if entry.get("validated") is True:
-        # Zukunfts-Pfad: ein validierter Score bekommt KEIN Dimming.
+    if entry.get("status_kind") == "validated":
+        # Zukunfts-Pfad: ein validierter Score (status_kind==validated) bekommt
+        # KEIN Dimming. Single-Source: dieselbe Wahrheit wie Panel-Punkt/Badge —
+        # KEINE zweite Farb-/Validierungs-Logik.
         return "sb-conf-robust", "", ""
     status = entry.get("status")
     if not status:
@@ -6688,7 +6712,14 @@ def _score_confidence_rows_html(confidence: dict) -> tuple[str, str]:
         # Validierungs-Status aus der Single-Source (SCORE_STATUS_LABELS).
         st = (SCORE_STATUS_LABELS.get(key) or {})
         status = st.get("status") or "unvalidiert"
-        icon = "🟢" if st.get("validated") is True else "🔴"
+        # Status-Farbsemantik: farbcodierter Punkt aus status_kind (Farbwert in
+        # CSS `.conf-kind-*`). aria-hidden — die Farbe ist Zweitkanal, der fette
+        # Status-TEXT direkt daneben trägt die Bedeutung (Accessibility). Der
+        # Punkt sitzt bewusst UNMITTELBAR vor dem Status-Wort (nicht in der
+        # rechten Spalte), damit Farbe und Wort räumlich zusammengehören.
+        kind = _status_kind_of(key)
+        dot = (f'<span class="conf-status-dot conf-kind-{kind}" '
+               f'aria-hidden="true"></span> ')
         sdate = st.get("status_date")
         note_parts = [daten]
         if sdate:
@@ -6706,8 +6737,8 @@ def _score_confidence_rows_html(confidence: dict) -> tuple[str, str]:
         # in der VOLLBREITEN Note-Zeile und wrapt sauber.
         rows.append(
             f'<li><span class="sb-lbl">{_labels.get(key, key)}</span>'
-            f'<span class="sb-pts">{icon}</span>'
-            f'<span class="sb-note"><strong>{safe_status}</strong> · {daten_note}</span></li>'
+            f'<span class="sb-pts"></span>'
+            f'<span class="sb-note">{dot}<strong>{safe_status}</strong> · {daten_note}</span></li>'
         )
     computed_at = confidence.get("computed_at") or "—"
     return ("\n".join(rows), computed_at)
@@ -7352,6 +7383,24 @@ def generate_html_v1(stocks: list[dict], report_date: str,
             <em>Volumen</em> (3-vs-3-Tage-Schnitt), Fallback aus dem monatlichen
             Short-Interest-Delta (yfinance). <em>Nicht</em> der 2-monatliche
             Short-Interest-Bestand — das ist die Detail-Zeile „SI-Trend (3M)".</li>
+          <li><strong>Status-Farbe (Konfidenz-Panel-Punkt &amp; Badge-Rand)</strong>
+            — der Farbpunkt vor jedem Score im Konfidenz-Panel (und die dezente
+            Rand-Tönung des Score-Badges) zeigt den <em>Validierungs-Zustand des
+            SCORES</em>, nicht die Aktie. Vier Stufen — der fette Status-Text
+            daneben bleibt die Hauptaussage, die Farbe ist nur zusätzlicher
+            Anker:
+            <span class="conf-status-dot conf-kind-falsified"></span> <strong>rot</strong>
+            = geprüft und durchgefallen (falsifiziert / OoS-kollabiert);
+            <span class="conf-status-dot conf-kind-pending"></span> <strong>blau</strong>
+            = noch ungeprüft, aber Re-Test terminiert oder bedingt — <em>keine
+            Warnung, nur „Prüfung steht an"</em>;
+            <span class="conf-status-dot conf-kind-heuristic"></span> <strong>grau</strong>
+            = Heuristik, beansprucht gar keinen Edge;
+            <span class="conf-status-dot conf-kind-validated"></span> <strong>grün</strong>
+            = per Holm + Bootstrap-CI belegt (Erfolgs-Definition) — <em>definiert,
+            aber heute bewusst unvergeben: kein Score hat die Erfolgs-Definition
+            bisher erfüllt</em>.
+            (Nicht zu verwechseln mit dem KI-Agent-Punkt neben dem Ticker oben.)</li>
         </ul>
         </div>
       </details>
@@ -7563,13 +7612,22 @@ def generate_html_v1(stocks: list[dict], report_date: str,
         <div class="method-content">
         <p class="score-intro-story">
           Zwei getrennte Dinge pro Score: <strong>Status</strong> (ist ein
-          Edge belegt? 🔴 = nein/unvalidiert) und <strong>Datenbasis</strong>
-          (wie viel gereiftes Backtest-Material liegt vor). Viel Datenbasis
-          heißt <em>nicht</em> validiert — beides steht bewusst getrennt.
-          Der Status kommt aus <strong>einer</strong> gepflegten Quelle
-          (dieselbe wie die Karten-Badges) und trägt sein eigenes
-          Befund-Datum. <strong>Reine Anzeige</strong> — beeinflusst die
-          Score-Berechnung NICHT (CI-Lint erzwingt die Trennung).
+          Edge belegt?) und <strong>Datenbasis</strong> (wie viel gereiftes
+          Backtest-Material liegt vor). Viel Datenbasis heißt <em>nicht</em>
+          validiert — beides steht bewusst getrennt. Der Farbpunkt vor dem
+          Status codiert den Zustand:
+          <span class="conf-status-dot conf-kind-falsified"></span> rot
+          durchgefallen ·
+          <span class="conf-status-dot conf-kind-pending"></span> blau Prüfung
+          terminiert ·
+          <span class="conf-status-dot conf-kind-heuristic"></span> grau
+          Heuristik ·
+          <span class="conf-status-dot conf-kind-validated"></span> grün belegt
+          (heute unvergeben) — Details in der Karten-Legende. Der Status kommt
+          aus <strong>einer</strong> gepflegten Quelle (dieselbe wie die
+          Karten-Badges) und trägt sein eigenes Befund-Datum. <strong>Reine
+          Anzeige</strong> — beeinflusst die Score-Berechnung NICHT (CI-Lint
+          erzwingt die Trennung).
         </p>
         <ul class="score-block-list">
           {score_confidence_rows_html}
