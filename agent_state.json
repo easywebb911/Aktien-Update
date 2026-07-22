@@ -1,5 +1,5 @@
 {
-  "last_run": "2026-07-22T17:37:25.458097+02:00",
+  "last_run": "2026-07-22T18:46:37.425164+02:00",
   "cooldowns": {
     "anomaly_score_jump_XRX": "2026-05-03T18:47:15.315486+02:00",
     "anomaly_uoa_extreme_TDOC": "2026-05-04T13:47:00.365949+02:00",
@@ -84,30 +84,6 @@
     "earnings_immediate_AMC_20.07.2026": "2026-07-20T22:41:11.044953+02:00"
   },
   "push_history": [
-    {
-      "ts": "2026-07-13T13:29:05.319668+02:00",
-      "ticker": "TRIP",
-      "kind": "anomaly",
-      "severity": "medium",
-      "trigger": "uoa_extreme",
-      "body": "TRIP 🎯 UOA Vol/OI 955.0× ATM | Setup 57",
-      "success": false,
-      "suppressed": true,
-      "suppress_reason": "conviction_below_threshold",
-      "conviction_score": 44
-    },
-    {
-      "ts": "2026-07-13T19:23:26.651169+02:00",
-      "ticker": "IONQ",
-      "kind": "exit_p2",
-      "severity": "warning",
-      "trigger": null,
-      "body": "⚠️ Exit-Warnung IONQ: pressure 63/100",
-      "success": true,
-      "suppressed": false,
-      "suppress_reason": null,
-      "conviction_score": null
-    },
     {
       "ts": "2026-07-13T19:23:26.887955+02:00",
       "ticker": "AI",
@@ -1279,6 +1255,30 @@
       "severity": "medium",
       "trigger": "gap_combo",
       "body": "KUST 💥 Gap +21.9% Strong Hold + RVOL 21.1× | Setup 78",
+      "success": false,
+      "suppressed": true,
+      "suppress_reason": "conviction_below_threshold",
+      "conviction_score": 65
+    },
+    {
+      "ts": "2026-07-22T18:46:36.445072+02:00",
+      "ticker": "KUST",
+      "kind": "anomaly",
+      "severity": "medium",
+      "trigger": "score_jump",
+      "body": "KUST 🚀 Setup 78 ↑ (gestern 46) | Volumen 22.0× + 🚀 Massives Volumen 22.0×+ + Spanne 64.1% + N…",
+      "success": false,
+      "suppressed": true,
+      "suppress_reason": "conviction_below_threshold",
+      "conviction_score": 65
+    },
+    {
+      "ts": "2026-07-22T18:46:36.445161+02:00",
+      "ticker": "KUST",
+      "kind": "anomaly",
+      "severity": "medium",
+      "trigger": "gap_combo",
+      "body": "KUST 💥 Gap +21.9% Strong Hold + RVOL 22.0× | Setup 78",
       "success": false,
       "suppressed": true,
       "suppress_reason": "conviction_below_threshold",
