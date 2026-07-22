@@ -97,6 +97,12 @@ def _test_source_wiring():
         js is not None and "${" not in js,
         "Template-Literal würde Python-f-String brechen",
     )
+    _check(
+        "A6 Live-Patch ENTFERNT den KI-Kontext-Hint bei echtem Wert (A1)",
+        'data-sb="ki"] .cockpit-pillar-hint' in _GR_SRC
+        and "_khint.remove()" in _GR_SRC,
+        "Kontext-Hint würde neben dem Wert stehen bleiben",
+    )
 
 
 def _run_node(block: str, sig, score) -> dict | None:
@@ -106,12 +112,15 @@ def _run_node(block: str, sig, score) -> dict | None:
     harness = (
         "function mkEl(txt, cls, title){\n"
         "  return { textContent: txt, className: cls, title: title,\n"
-        "           style: {}, _touchedClass: false };\n"
+        "           style: {}, _touchedClass: false, _removed: false,\n"
+        "           remove: function(){ this._removed = true; } };\n"
         "}\n"
         "const _val = mkEl('\\u2014', 'cockpit-pillar-value sb-conf-heur',\n"
         "                  'Konfidenz: heuristisch');\n"
         "const _bar = mkEl('', 'cockpit-pillar-bar-fill', '');\n"
+        "const _hint = mkEl('kein aktuelles KI-Signal', 'cockpit-pillar-hint', '');\n"
         "const card = { querySelector: function(sel){\n"
+        "  if (sel.indexOf('cockpit-pillar-hint') >= 0) return _hint;\n"
         "  if (sel.indexOf('cockpit-pillar-value') >= 0) return _val;\n"
         "  if (sel.indexOf('cockpit-pillar-bar-fill') >= 0) return _bar;\n"
         "  return null;  // v1 sb-num/sb-fill nicht im DOM (Cockpit aktiv)\n"
@@ -122,7 +131,8 @@ def _run_node(block: str, sig, score) -> dict | None:
         + "\nconsole.log(JSON.stringify({\n"
         "  valTxt: _val.textContent, valCol: _val.style.color || null,\n"
         "  valClass: _val.className, valTitle: _val.title,\n"
-        "  barW: _bar.style.width || null, barBg: _bar.style.background || null\n"
+        "  barW: _bar.style.width || null, barBg: _bar.style.background || null,\n"
+        "  hintRemoved: _hint._removed\n"
         "}));\n"
     )
     with tempfile.NamedTemporaryFile("w", suffix=".js", delete=False,
@@ -155,6 +165,9 @@ def _test_functional():
     _check("B1 Null-Fill: — + 58 → Zahl '58'", r["valTxt"] == "58", f"got {r['valTxt']}")
     _check("B1 Farbe orange (#f97316, 30≤58<60)", r["valCol"] == "#f97316", f"got {r['valCol']}")
     _check("B1 Balken 58 %", r["barW"] == "58%" and r["barBg"] == "#f97316", f"got {r['barW']}/{r['barBg']}")
+    # A1 (b): echter Wert kommt → Kontext-Hint wird ENTFERNT (nicht daneben).
+    _check("B1 KI-Kontext-Hint entfernt bei echtem Wert (A1 clean replace)",
+           r["hintRemoved"] is True, f"got hintRemoved={r['hintRemoved']}")
 
     # B2 Stale-Korrektur: 28 → rot
     r2 = _run_node(block, {"score": 28}, 28)
@@ -171,6 +184,9 @@ def _test_functional():
     _check("B4 kein Score → '—' bleibt (kein Overwrite, kein Crash)",
            r4 is not None and r4["valTxt"] == "—" and r4["valCol"] is None,
            f"got {r4}")
+    # A1 (b): ohne Wert bleibt der Kontext-Hint stehen (nicht fälschlich entfernt).
+    _check("B4 KI-Kontext-Hint BLEIBT ohne Wert (Guard schützt)",
+           r4["hintRemoved"] is False, f"got hintRemoved={r4['hintRemoved']}")
 
     # B6 Wasserzeichen (Klasse + title) UNBERÜHRT nach Patch (aus B1)
     _check("B6 sb-conf-heur-Klasse nach Patch erhalten (Neutralisierung #425/#426)",

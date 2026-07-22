@@ -1196,6 +1196,11 @@ abbr[title]{text-decoration:underline dotted var(--txt-dim);
 .cockpit-status-badge.conf-kind-falsified{border-color:rgba(239,68,68,0.50)}
 .cockpit-status-badge.conf-kind-pending{border-color:rgba(59,130,246,0.50)}
 .cockpit-status-badge.conf-kind-validated{border-color:rgba(34,197,94,0.50)}
+/* A1 — KI-Feld-Kontext: dezente, gedimmte Zeile statt nacktem „—", wenn der
+   KI-Score (noch) fehlt. Klein + kursiv, wrapt innerhalb der 100-px-Säule;
+   der Live-Patch entfernt sie, sobald ein Wert kommt. */
+.cockpit-pillar-hint{margin-top:3px;font-size:8px;line-height:1.25;
+  font-style:italic;color:#64748b;white-space:normal;max-width:100%;cursor:help}
 /* PR B2 — Rang-Kontext: der vorhandene Conviction-Erklärtext, prominent unter
    dem Header (statt versteckt unter dem Donut). Linke Akzent-Leiste + gedimmt
    → liest sich als Einordnung, nicht als „jetzt kaufen"-Signal. */

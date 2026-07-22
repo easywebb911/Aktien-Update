@@ -5029,6 +5029,17 @@ def _card_cockpit_html(
         # PR B: Score-Status-Badge (epistemischer Stand des Scores, aus
         # config.SCORE_STATUS_LABELS — beschreibt Methodik, nicht die Aktie).
         status_badge = _score_status_badge_html(conf_key)
+        # A1: dezenter Kontext statt nacktem „—", wenn der KI-Score fehlt.
+        # Neutral formuliert (deckt ALLE Leer-Ursachen ab, auch Agent-Ausfall —
+        # verspricht nichts, was der nächste Tick evtl. nicht hält). Der Live-
+        # Patch (renderAgentSignals) ENTFERNT diese Zeile, sobald ein Wert kommt.
+        ki_hint = ""
+        if conf_key == "ki" and val is None:
+            _kh_title = ("Der stündliche KI-Scan hat diesen Ticker noch nicht "
+                         "erfasst (z. B. neu in der Top-10). Das Feld füllt sich "
+                         "automatisch beim nächsten Scan.").replace('"', "'")
+            ki_hint = (f'<div class="cockpit-pillar-hint" title="{_kh_title}">'
+                       f'kein aktuelles KI-Signal</div>')
         pillars.append(
             f'<div class="cockpit-pillar" data-sb="{conf_key}">'
             f'<div class="cockpit-pillar-label">'
@@ -5042,6 +5053,7 @@ def _card_cockpit_html(
             f'style="width:{pct:.0f}%;background:{col}"></div>'
             f'</div>'
             f'{status_badge}'
+            f'{ki_hint}'
             f'</div>'
         )
 
@@ -5258,8 +5270,8 @@ def _card(i: int, s: dict) -> str:
             f'data-today="{_spark["today"]}">'
             f'<div class="spark-header">'
             f'<div class="spark-title-wrap">'
-            f'<span class="spark-title">\u26a1 KI-Signalverlauf</span>'
-            f'<span class="spark-subtitle">(KI-Agent Score der letzten 7 Tage)</span>'
+            f'<span class="spark-title">\U0001F4C8 Score-Verlauf</span>'
+            f'<span class="spark-subtitle">(Setup-Score, 7 Tage \u00b7 KI-Treiber im Punkt-Tooltip)</span>'
             f'</div>'
             f'<span class="spark-trend" style="color:{_spark["col"]}">{_spark["trend"]}</span>'
             f'</div>'
@@ -5800,8 +5812,8 @@ def _build_card_ctx(i: int, s: dict) -> dict:
             f'data-today="{_spark["today"]}">'
             f'<div class="spark-header">'
             f'<div class="spark-title-wrap">'
-            f'<span class="spark-title">\u26a1 KI-Signalverlauf</span>'
-            f'<span class="spark-subtitle">(KI-Agent Score der letzten 7 Tage)</span>'
+            f'<span class="spark-title">\U0001F4C8 Score-Verlauf</span>'
+            f'<span class="spark-subtitle">(Setup-Score, 7 Tage \u00b7 KI-Treiber im Punkt-Tooltip)</span>'
             f'</div>'
             f'<span class="spark-trend" style="color:{_spark["col"]}">{_spark["trend"]}</span>'
             f'</div>'
@@ -7401,6 +7413,17 @@ def generate_html_v1(stocks: list[dict], report_date: str,
             aber heute bewusst unvergeben: kein Score hat die Erfolgs-Definition
             bisher erfüllt</em>.
             (Nicht zu verwechseln mit dem KI-Agent-Punkt neben dem Ticker oben.)</li>
+          <li><strong>📈 Score-Verlauf (Setup-Score, 7 Tage)</strong> — die kleine
+            Kurve auf jeder Karte zeigt den <em>Setup-Score</em>-Verlauf der
+            letzten 7 Tage, <em>nicht</em> den KI-Score. Die KI-Treiber des
+            jeweiligen Tages stehen im Tooltip jedes Punkts (antippen/hovern).
+            (Früher als „KI-Signalverlauf" bezeichnet — die Linie war aber schon
+            immer der Setup-Score.)</li>
+          <li><strong>„kein aktuelles KI-Signal" im KI-Säulen-Feld</strong> —
+            der stündliche KI-Scan hat diesen Ticker noch nicht erfasst (z. B.
+            neu in der Top-10, da der Report vor dem nächsten Scan gebaut wird).
+            Das Feld füllt sich automatisch, sobald der nächste Scan durch ist —
+            der Strich ist kein Fehler.</li>
         </ul>
         </div>
       </details>
@@ -12043,6 +12066,10 @@ function _fmtGerman(d) {{
         if (_kv) {{ _kv.textContent = _kiTxt; _kv.style.color = _kiCol; }}
         const _kb = card.querySelector('.cockpit-pillar[data-sb="ki"] .cockpit-pillar-bar-fill');
         if (_kb) {{ _kb.style.width = _kiPct + '%'; _kb.style.background = _kiCol; }}
+        // A1: der „kein aktuelles KI-Signal"-Kontext wird ERSETZT (entfernt),
+        // sobald ein echter Wert vorliegt — nicht daneben stehen lassen.
+        const _khint = card.querySelector('.cockpit-pillar[data-sb="ki"] .cockpit-pillar-hint');
+        if (_khint) _khint.remove();
         // v1-Score-Row (falls ohne Cockpit gerendert) — analog, guarded no-op.
         const _v1n = card.querySelector('.sb-row[data-sb="ki"] .sb-num');
         if (_v1n) {{ _v1n.textContent = _kiTxt; _v1n.style.color = _kiCol; }}
@@ -12616,8 +12643,8 @@ function _fmtGerman(d) {{
           data-scores="${{scoresE}}" data-dates="${{datesE}}"
           data-col="${{h.col}}" data-today="">
           <div class="spark-header"><div class="spark-title-wrap">
-            <span class="spark-title">\u26a1 KI-Signalverlauf</span>
-            <span class="spark-subtitle">(Score der letzten Tage)</span>
+            <span class="spark-title">\U0001F4C8 Score-Verlauf</span>
+            <span class="spark-subtitle">(Setup-Score \u00b7 KI-Treiber im Punkt-Tooltip)</span>
           </div></div>
           <div class="spark-svg-wrap" style="height:56px"></div>
           <div class="spark-days"></div>
