@@ -1531,41 +1531,66 @@ MATERIAL_8K_STATUS_ROW = (
 #              Trades-Schema offen) — review_by ans Exit-Timing-Sept-Fenster
 #              gehängt (Erinnerung), Wortlaut hält Score≠Timing auseinander.
 # Keys = conf_key aus compute_score_confidence.
+# ── Status-Farbsemantik (Folge-PR zu #468) ─────────────────────────────────
+# `status_kind` gibt dem Status-Text einen SEMANTISCHEN Zustand (Zweitkanal
+# Farbe; der Text bleibt Erstkanal). GENAU vier erlaubte Werte, jeder mit
+# EINER Farbe (Farbwert lebt einzig in head.jinja `.conf-kind-*` — hier nur
+# der Schlüssel, keine Hex-Codes):
+#   falsified → ROT   — geprüft und durchgefallen (OoS-kollabiert/falsifiziert)
+#   pending   → BLAU  — noch ungeprüft, Re-Test terminiert/bedingt (Info-Blau
+#                        aus der Panel-Palette, KEINE Warnung)
+#   heuristic → GRAU  — Heuristik, beansprucht keinen Edge
+#   validated → GRÜN  — Holm + Bootstrap-CI belegt (Erfolgs-Definition).
+#                        DEFINIERT, aber HEUTE von KEINEM Eintrag getragen —
+#                        das ist korrekt so; kein Score hat die Erfolgs-
+#                        Definition bisher erfüllt (Wächter im Mock-Test).
+# PFLEGE-PFLICHT (unverändert Single-Source): ein Status-Wechsel (z. B.
+# Conviction ~27.07.) ändert Text UND status_kind UND status_date UND
+# review_by in DEMSELBEN Eintrag — nie nur eins davon.
 SCORE_STATUS_LABELS = {
     "setup": {
         "status":      "unvalidiert",
+        "status_kind": "pending",
         "status_date": "2026-06-30",
         "review_by":   "2026-09-30",
     },
     "monster": {
         "status":      "OoS-kollabiert",
+        "status_kind": "falsified",
         "status_date": "2026-06-30",
         "review_by":   None,
         "review_cond": "falsifiziert (AUC-Kollaps 0.76→0.51) — kein Re-Test geplant",
     },
     "ki": {
         "status":      "heuristisch",
+        "status_kind": "heuristic",
         "status_date": "2026-07-15",
         "review_by":   None,
         "review_cond": "datengetrieben: Re-Test erst bei WIN-Bucket ≥ 20 UND zweitem Marktregime",
     },
     "conviction": {
         "status":      "Aggregat · unvalidiert",
+        "status_kind": "pending",
         "status_date": "2026-06-30",
         "review_by":   "2026-07-27",
     },
     "earliness": {
         "status":      "OoS falsifiziert (AUC 0.77 → 0.47–0.52)",
+        "status_kind": "falsified",
         "status_date": "2026-06-30",
         "review_by":   None,
         "review_cond": "falsifiziert 30.06. — kein Re-Test im Kalender",
     },
     "exit_pressure": {
         "status":      "unvalidiert · Score-Edge unbelegt (nur Exit-Timing-Hinweis 01.07.)",
+        "status_kind": "pending",
         "status_date": "2026-07-01",
         "review_by":   "2026-09-30",
     },
 }
+
+# Erlaubte status_kind-Werte (Single-Source für Anzeige + Mock-Test-Wächter).
+SCORE_STATUS_KINDS = ("falsified", "pending", "heuristic", "validated")
 
 # Status-Drift-Wecker (Teil 2): der TÄGLICHE Daily-Run (generate_report.main)
 # ruft status_review_reminder.run() → erinnert per ntfy an fällige Re-Tests.

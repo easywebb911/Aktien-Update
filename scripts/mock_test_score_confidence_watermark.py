@@ -65,8 +65,8 @@ def _conf_class_with(labels: dict):
 # ── Funktional ───────────────────────────────────────────────────────────────
 
 def test_01_validated_empty_attrs() -> None:
-    # Zukunfts-Pfad: ein explizit validierter Score bekommt KEIN Dimming.
-    cc = _conf_class_with({"setup": {"validated": True, "status": "validiert"}})
+    # Zukunfts-Pfad: ein Score mit status_kind=="validated" bekommt KEIN Dimming.
+    cc = _conf_class_with({"setup": {"status_kind": "validated", "status": "validiert"}})
     css, title, aria = cc("setup")
     assert css == "sb-conf-robust"
     assert title == "" and aria == "", "validiert → keine Extra-Attribute"

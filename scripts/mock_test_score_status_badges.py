@@ -177,6 +177,57 @@ def test_13_conf_class_reads_single_source() -> None:
         "_conf_class hängt noch am alten _SCORE_CONFIDENCE-Tier (Drift-Quelle)"
 
 
+_EXPECTED_KIND = {
+    "setup": "pending", "earliness": "falsified", "monster": "falsified",
+    "ki": "heuristic", "conviction": "pending", "exit_pressure": "pending",
+}
+
+
+def test_14_status_kind_mandatory_and_valid() -> None:
+    # Task-Punkt 6: status_kind ist Pflichtfeld, nur die vier erlaubten Werte.
+    allowed = set(getattr(config, "SCORE_STATUS_KINDS", ()))
+    assert allowed == {"falsified", "pending", "heuristic", "validated"}, \
+        f"SCORE_STATUS_KINDS falsch: {allowed}"
+    for k, v in config.SCORE_STATUS_LABELS.items():
+        kind = v.get("status_kind")
+        assert kind in allowed, f"{k}: status_kind fehlt/ungültig ({kind!r})"
+        assert _EXPECTED_KIND[k] == kind, \
+            f"{k}: status_kind {kind!r} != erwartet {_EXPECTED_KIND[k]!r}"
+
+
+def test_15_no_entry_validated_today() -> None:
+    # WÄCHTER gegen versehentliches Selbst-Grün: heute darf KEIN Score
+    # status_kind=="validated" tragen (kein Score hat die Holm+CI-Erfolgs-
+    # Definition erfüllt). BEIM ERSTEN echten validated-Befund wird DIESE
+    # Assertion bewusst angepasst (Ausnahme für den belegten Score) —
+    # NICHT gelöscht, damit der Wächter für die übrigen scharf bleibt.
+    validated = [k for k, v in config.SCORE_STATUS_LABELS.items()
+                 if v.get("status_kind") == "validated"]
+    assert validated == [], \
+        f"Kein Score darf heute validated sein (Selbst-Grün-Wächter): {validated}"
+
+
+def test_16_color_only_from_status_kind() -> None:
+    # EXZELLENZ 1: Färbung AUSSCHLIESSLICH aus status_kind abgeleitet.
+    # Panel-Dot + Badge emittieren die conf-kind-*-Klasse aus _status_kind_of;
+    # der Farbwert lebt nur in head.jinja (.conf-kind-*), nicht im Render-Pfad.
+    assert "def _status_kind_of" in GR_SRC, "_status_kind_of-Helper fehlt"
+    kind_body = _fn_body("_status_kind_of")
+    assert 'SCORE_STATUS_LABELS.get(conf_key) or {}).get("status_kind")' in kind_body, \
+        "_status_kind_of liest status_kind nicht aus der config"
+    # Panel-Dot + Badge nutzen die Klasse aus dem Helper.
+    assert 'conf-status-dot conf-kind-{kind}' in GR_SRC, "Panel-Dot ohne kind-Klasse"
+    assert 'cockpit-status-badge conf-kind-{kind}' in GR_SRC, "Badge ohne kind-Klasse"
+    # _conf_class (Wasserzeichen) leitet no-dim aus status_kind ab (Single-Source).
+    assert 'status_kind") == "validated"' in _fn_body("_conf_class"), \
+        "_conf_class no-dim nicht aus status_kind abgeleitet"
+    # CSS: die vier Farb-Klassen existieren, Blau = Info-Blau (--accent #3b82f6).
+    for cls in (".conf-kind-falsified", ".conf-kind-pending",
+                ".conf-kind-heuristic", ".conf-kind-validated"):
+        assert cls in HJ_SRC, f"CSS-Farb-Klasse {cls} fehlt"
+    assert "#3b82f6" in HJ_SRC, "Info-Blau (#3b82f6) nicht in der Palette"
+
+
 def main() -> None:
     tests = [
         ("01 SCORE_STATUS_LABELS 6 Keys + status",      test_01_config_struct_present),
@@ -192,6 +243,9 @@ def main() -> None:
         ("11 jeder Eintrag mit status_date",            test_11_every_entry_has_status_date),
         ("12 Single-Source: kein has_auc/tier in compute", test_12_single_source_no_validation_in_compute),
         ("13 _conf_class liest SCORE_STATUS_LABELS",    test_13_conf_class_reads_single_source),
+        ("14 status_kind Pflichtfeld + 4 Werte",        test_14_status_kind_mandatory_and_valid),
+        ("15 kein Eintrag heute validated (Wächter)",   test_15_no_entry_validated_today),
+        ("16 Färbung nur aus status_kind",              test_16_color_only_from_status_kind),
     ]
     failed = 0
     for name, fn in tests:
