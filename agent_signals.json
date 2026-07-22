@@ -1,5 +1,5 @@
 {
-  "updated": "2026-07-22T02:07:33.931511+02:00",
+  "updated": "2026-07-22T05:46:44.621773+02:00",
   "run_info": {
     "tickers_checked": 14,
     "signals_active": 0,
@@ -212,7 +212,7 @@
     "PDYN": {
       "score": 48,
       "confidence": 33,
-      "drivers": "News: partnership, contract + Earnings in 15d + UOA Call/Put 19.6×",
+      "drivers": "News: revenue beat, contract + Earnings in 15d + UOA Call/Put 19.6×",
       "price": 5.25,
       "chg_pct": 0.0,
       "rvol_4d": 0.75,
