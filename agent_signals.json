@@ -1,10 +1,10 @@
 {
-  "updated": "2026-07-23T10:45:56.074878+02:00",
+  "updated": "2026-07-23T11:36:44.237749+02:00",
   "run_info": {
     "tickers_checked": 15,
     "signals_active": 1,
     "alerts_sent": 0,
-    "elapsed_s": 20.1,
+    "elapsed_s": 11.7,
     "market_phase": "Pre-Market"
   },
   "signals": {
@@ -254,7 +254,7 @@
     "PDYN": {
       "score": 48,
       "confidence": 70,
-      "drivers": "Spanne 5.5% + News: partnership, contract + Earnings in 13d",
+      "drivers": "Spanne 5.5% + News: revenue beat, partnership + Earnings in 13d",
       "price": 5.33,
       "chg_pct": -0.0,
       "rvol_4d": 0.86,
@@ -273,9 +273,9 @@
       "uoa_cp_ratio": 1.0753968253968254
     },
     "WGS": {
-      "score": 8,
-      "confidence": 17,
-      "drivers": "Earnings in 11d",
+      "score": 23,
+      "confidence": 33,
+      "drivers": "News: acquisition + Earnings in 11d",
       "price": 62.6,
       "chg_pct": -0.0,
       "rvol_4d": 1.08,
@@ -286,7 +286,7 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 0,
+      "active_triggers": 1,
       "ki_sentiment_source": "keyword",
       "uoa_score": 0,
       "uoa_drivers": [],
