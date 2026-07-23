@@ -1279,27 +1279,66 @@ ma21 × 100`. EMA21 wird in `_compute_indicators` via
 `close.ewm(span=21, adjust=False)` berechnet und im
 `results[ticker]`-Dict / merge bei Z. ~12700 als `ma21` mitgeführt.
 
-### Phase-2-Push-Pipeline-Status (Stufe 3b-3b)
+### Phase-2-Push-Pipeline: Flanken-/Tages-Cap-Dedupe (23.07.2026)
 
-Alle drei Klassen in `process_exit_signals` (ki_agent.py) sind
-**scharfgeschaltet** — jede mit eigener Drossel-Strategie und
-klassen-spezifischer ntfy-Severity. Single Push-Helper
-`_send_exit_p2_push(ticker, body, severity="trigger")` verteilt
-Priority + Tag inline pro Severity.
+`process_exit_signals` (ki_agent.py) bündelt + dedupliziert die Exit-Pushes.
+Single Push-Helper `_send_exit_p2_push(ticker, body, severity=...)` verteilt
+Priority + Tag pro Severity (`escalation`→urgent, `trigger`/`warning`→high).
 
-| Klasse | Bedingung | Drossel | ntfy-Priority | Tag | Body-Format | Cooldown-Key |
-|---|---|---|---|---|---|---|
-| **Eskalation** | `prev_exit_pressure ≤ 75 < pressure_v` (once-per-cross) | KEIN Zeit-Cooldown — Cross ist selbst-limitierend | `urgent` | `rotating_light` | `🚨 Exit-Eskalation {T}: pressure {prev}→{now}/100` | — (kein Set) |
-| **Warnung** | `55 ≤ pressure_v ≤ 75` | `EXIT_PUSH_WARNING_COOLDOWN_HOURS = 12` h pro Ticker | `high` | `warning` | `⚠️ Exit-Warnung {T}: pressure {now}/100` | `exitp2_warning_{T}` |
-| **Trigger** | einzelner `crit=True` (unabhängig von pressure) | `EXIT_PUSH_TRIGGER_COOLDOWN_HOURS = 24` h pro (Ticker × Trigger-Name) | `high` | `rotating_light` | `🔻 Exit-Signal {T}: {name} crit ({details})` | `exitp2_trigger_{T}_{name}` |
+**Motivation (Easy 23.07.):** Der frühere Zustand feuerte Warnung alle 12h und
+jeden Crit-Trigger alle 24h **einzeln** — derselbe anhaltende Trigger
+produzierte täglich neue Pushes (Messung: 62 exit_p2-Pushes in 8 Tagen,
+AI/IONQ 4×/Tag, LENZ/PDYN/WOLF derselbe `trend_break` 6 Tage in Folge). Easys
+Regel: **„EINMAL pro Ticker gewarnt ist genug gewarnt."** Der Befund war
+**fehlendes Dedupe** (die Zeit-Cooldowns liefen exakt wie konfiguriert — 12h/24h
+— kein Gate-Defekt); die alte Mechanik re-alarmierte bei **anhaltendem** Zustand
+und **unbebündelt**.
 
-Eskalations-Pflichtinvariante: `prev_exit_pressure` ist `None` bei
-Erstanlage/unparsbar → **KEIN** Push (sonst würde jede frisch
-eröffnete Position über Threshold sofort feuern). Gilt auch wenn
-`prev_v > 75` (war bereits über Threshold) — kein erneuter Push,
-SKIP-Audit-Log mit `no_cross`-Reason.
+**Zwei Kanäle, zwei Drosseln:**
 
-**Markt-/Validity-Gates (#381, 21.06.2026):** Vor allen drei Klassen greifen
+| Kanal | Bedingung | Drossel | ntfy | Body |
+|---|---|---|---|---|
+| **Bundle** (Warnung 55..75 + Crit-Trigger < 75) | ≥ 1 aktive Komponente (crit=True AND available=True, bzw. Pressure in 55..75) | **Flanke inaktiv→aktiv UND max 1×/Ticker/US-Handelstag** | `trigger` (crit vorhanden) sonst `warning` | `🔻 Exit-Signale {T}: {t1, t2} crit · Warnung pressure {p}/100` bzw. `⚠️ Exit-Warnung {T}: pressure {p}/100` |
+| **Eskalation** (pressure > 75) | Cross `prev_exit_pressure ≤ 75 < pressure` **UND** `esc_alerted`-Flanke offen (seit letztem Esc-Push nicht < 75 gefallen) | once-per-band-episode, **durchbricht den Tages-Cap** | `escalation` (urgent) | `🚨 Exit-Eskalation {T}: pressure {prev}→{now}/100 · Trigger: {…}` |
+
+**Regeln (Bundle-Kanal):** mehrere gleichzeitig aktive Trigger → **EIN**
+gebündelter Push, der alle nennt. Weiterer Trigger-Typ am selben Tag → **kein**
+neuer Push (Tages-Cap; der Zustand steht im Report). **Anhaltender** Zustand
+(gleiche Komponenten über Tage, keine neue Flanke) → **kein** Push. Neuer
+Handelstag + frische Flanke → wieder scharf. Handelstag = ET-ISO-Datum
+(`now_et.date()`, geteilt mit dem Markt-Gate), NICHT UTC-Mitternacht.
+
+**Eskalations-Durchbruch (Easy-Entscheid 23.07.):** Eine echte Eskalation
+(Pressure kreuzt 75) darf den Tages-Cap durchbrechen — sie ist selten (0× in
+der 8-Tage-Messung), selbst-limitiert (nur beim Cross + `esc_alerted`-Flanke)
+und das dringendste Signal; sie darf nicht von einer milderen Warnung am selben
+Tag geschluckt werden. Die `esc_alerted`-Flanke (per Tick persistiert)
+verhindert den früher latenten Per-Tick-Repeat zwischen Daily-Runs (der
+`prev_exit_pressure`-Vergleich allein blieb zwischen Daily-Runs konstant).
+
+**State** `state["exit_push_dedupe"][ticker]` (Sub-Dict in `agent_state.json`,
+analog `state["exit_cooldowns"]` — gleicher load/save-Pfad, gleiche
+Last-Write-Wins-Race-Semantik wie push_history):
+`{last_active: [sortierte Komponenten inkl. "__warning__"], last_push_date:
+"YYYY-MM-DD" (ET), esc_alerted: bool, updated: Berlin-ISO}`. Helper
+`_exit_dedupe_get/_set/_prune`. Pruning nach `EXIT_PUSH_DEDUPE_PRUNE_DAYS` (30)
+ohne Update → geschlossene Positionen (Ticker fällt aus `positions`) altern raus.
+
+**FAIL-SAFE (nicht verhandelbar):** State fehlt/korrupt (kein Dict, kaputter
+Eintrag) → `_exit_dedupe_get` liefert `{}` → `prev_active` leer → jede aktive
+Komponente = frische Flanke → **PUSH** (lieber doppelt als verschluckt). Send-
+Fehler → `last_push_date` NICHT gesetzt + Flanke offen gehalten → nächster Tick
+retried. `_exit_dedupe_set` coerct ein korruptes Container-Objekt zu frischem
+Dict statt zu crashen.
+
+**Deprecated:** `EXIT_PUSH_WARNING_COOLDOWN_HOURS` (12) /
+`EXIT_PUSH_TRIGGER_COOLDOWN_HOURS` (24) + die `_exit_cooldown_*`-Helper +
+`exitp2_warning_{T}` / `exitp2_trigger_{T}_{name}`-Keys werden von der neuen
+Logik **nicht mehr gelesen** — bleiben als Rollback-Anker. Eskalations-
+Invariante unverändert: `prev_exit_pressure` None/über-Schwelle → kein Cross →
+kein Push (Guard gegen Eskalation auf frisch eröffneter Über-Schwelle-Position).
+
+**Markt-/Validity-Gates (#381, 21.06.2026):** Vor beiden Kanälen greifen
 zwei Disziplin-Gates. (1) **Markt-Gate** — die gesamte
 `process_exit_signals`-Pipeline skippt an Wochenenden UND US-Feiertagen
 (`config.US_MARKET_HOLIDAYS`, gemeinsames Shared-Set mit health_check S4;

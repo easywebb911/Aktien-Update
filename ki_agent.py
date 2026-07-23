@@ -1949,28 +1949,116 @@ def _exit_cooldown_set(state: dict, key: str,
     state.setdefault("exit_cooldowns", {})[key] = ts.isoformat()
 
 
+# ── Exit-Push-Dedupe (Flanke + Tages-Cap, 23.07.2026) ────────────────────────
+# ERSETZT die zeitbasierten _exit_cooldown_*-Drosseln für Warnung/Trigger. Ziel
+# (Easy): „EINMAL pro Ticker gewarnt ist genug gewarnt." Persistiert in
+# state["exit_push_dedupe"][ticker] (Sub-Dict in agent_state.json, analog
+# state["exit_cooldowns"] — gleicher load_state/save_state-Pfad, gleiche
+# Last-Write-Wins-Race-Semantik wie push_history/exit_cooldowns).
+#
+# Pro-Ticker-Schema:
+#   {"last_active":    [sortierte aktive Komponenten: crit-Trigger-Namen
+#                       + "__warning__" wenn 55..75],   # Flanken-Vergleich
+#    "last_push_date": "YYYY-MM-DD" (ET-ISO Handelstag des letzten Pushes),
+#    "esc_alerted":    bool (Eskalation gefeuert, seither nicht < 75 gefallen),
+#    "updated":        Berlin-ISO-Timestamp (fürs Pruning)}
+#
+# FAIL-SAFE (nicht verhandelbar): fehlt/korrupt der State → _exit_dedupe_get
+# liefert {} → prev_active leer → jede aktive Komponente ist „frische Flanke" →
+# PUSH. Lieber doppelt als verschluckt.
+
+def _exit_dedupe_get(state: dict, ticker: str) -> dict:
+    """Pro-Ticker-Dedupe-State, fail-soft. Jede Anomalie (kein Dict, kaputter
+    Eintrag) → leeres Dict = „keine Vorgeschichte" → alles ist frische Flanke."""
+    try:
+        d = state.get("exit_push_dedupe") or {}
+        e = d.get(ticker)
+        return e if isinstance(e, dict) else {}
+    except Exception:
+        return {}
+
+
+def _exit_dedupe_set(state: dict, ticker: str, *, last_active,
+                     last_push_date, esc_alerted,
+                     ts: datetime | None = None) -> None:
+    """Schreibt den Pro-Ticker-Dedupe-State. ``state["exit_push_dedupe"]`` wird
+    via setdefault lazy initialisiert (keine load_state-Migration nötig)."""
+    if ts is None:
+        ts = now_berlin()
+    # Container-Coercion: ist state["exit_push_dedupe"] korrupt (kein Dict), neu
+    # aufbauen statt zu crashen — der einzelne verlorene Alt-State ist harmlos
+    # (nächste Flanke pusht ohnehin), ein Crash würde die ganze Pipeline reißen.
+    d = state.get("exit_push_dedupe")
+    if not isinstance(d, dict):
+        d = {}
+        state["exit_push_dedupe"] = d
+    d[ticker] = {
+        "last_active":    sorted(last_active),
+        "last_push_date": last_push_date,
+        "esc_alerted":    bool(esc_alerted),
+        "updated":        ts.isoformat(),
+    }
+
+
+def _exit_dedupe_prune(state: dict, max_days: int = EXIT_PUSH_DEDUPE_PRUNE_DAYS,
+                       now: datetime | None = None) -> None:
+    """Entfernt Dedupe-Einträge, die seit > ``max_days`` nicht aktualisiert
+    wurden — deckt geschlossene Positionen ab (Ticker verschwindet aus
+    app_data["positions"], wird nicht mehr getouched → altert raus). Fail-soft:
+    unparsebarer/fehlender ``updated`` → Eintrag wird gedroppt (konservativ:
+    lieber State neu aufbauen = frische Flanke = Push, als stale hüten)."""
+    d = state.get("exit_push_dedupe")
+    if not isinstance(d, dict):
+        return
+    cutoff = (now or now_berlin()) - timedelta(days=max_days)
+    for tk in list(d.keys()):
+        e = d.get(tk)
+        u = e.get("updated") if isinstance(e, dict) else None
+        try:
+            if not u or datetime.fromisoformat(u) < cutoff:
+                del d[tk]
+        except (TypeError, ValueError):
+            del d[tk]
+
+
 def process_exit_signals(app_data: dict, state: dict,
                          now: datetime | None = None) -> None:
-    """Phase 2 Exit-Push-Pipeline (Stufe 3b-3b — alle Klassen scharf).
+    """Phase 2 Exit-Push-Pipeline mit Flanken-/Tages-Cap-Dedupe (23.07.2026).
 
     Liest ``exit_state`` aus ``app_data["positions"]`` (vom Daily-Run via
-    generate_report._build_phase2_positions_payload geschrieben) und
-    sendet — pro Ticker, klassen-priorisiert — echte ntfy-Pushes via
+    generate_report._build_phase2_positions_payload geschrieben) und sendet —
+    pro Ticker, **gebündelt und dedupliziert** — ntfy-Pushes via
     ``_send_exit_p2_push``. Audit-Spur als ``print()`` auf stdout
     (Workflow-Log): ``[exit_p2] SENT|SKIP|FAIL <klasse> <ticker>: …``.
 
-    Stufe-3b-3b-Status (08.05.2026): alle drei Push-Klassen sind
-    scharfgeschaltet, jede mit eigener Drossel-Strategie:
-      - **Eskalation** (pressure > 75): once-per-cross — feuert nur,
-        wenn ``prev_exit_pressure <= 75 < pressure_v``. Kein Zeit-
-        Cooldown — der Cross ist selbst-limitierend (re-Eskalation
-        erst nach Wieder-Unterschreiten + erneutem Cross).
-      - **Warnung** (55..75): zeitbasierter Cooldown
-        (``EXIT_PUSH_WARNING_COOLDOWN_HOURS = 12``) pro Ticker.
-      - **Trigger** (einzelner Crit, unabhängig von pressure):
-        24h pro (Ticker × Trigger-Name) — UNVERÄNDERT seit 3b-2.
+    **Dedupe (Easy 23.07.2026, „EINMAL gewarnt ist genug"):** Der frühere
+    Zustand feuerte Warnung alle 12h und jeden Crit-Trigger alle 24h einzeln —
+    derselbe anhaltende Trigger produzierte täglich neue Pushes (Flut). Jetzt:
 
-    Severity steuert ntfy-Priority + Tag (siehe ``_send_exit_p2_push``).
+      - **Zwei Kanäle, zwei Drosseln:**
+        * **Bundle-Kanal** (Warnung 55..75 + alle Crit-Trigger < 75): max **1
+          gebündelter Push pro Ticker pro US-Handelstag**, und nur beim
+          **Flanken-Übergang inaktiv→aktiv** (nicht bei anhaltendem Zustand).
+          Mehrere gleichzeitig aktive Trigger → EIN Push, der alle nennt. Ein
+          weiterer Trigger-Typ am selben Tag → kein neuer Push (Tages-Cap; der
+          Zustand steht im Report). Neuer Handelstag + frische Flanke → wieder
+          scharf.
+        * **Eskalations-Kanal** (pressure > 75): once-per-band-episode. Feuert
+          beim Cross ``prev_exit_pressure <= 75 < pressure`` **und** solange die
+          Position seit dem letzten Eskalations-Push nicht wieder < 75 gefallen
+          ist (``esc_alerted``-Flanke, per Tick persistiert — verhindert den
+          Per-Tick-Repeat zwischen Daily-Runs). **Durchbricht bewusst den
+          Tages-Cap** (Easy-Entscheid 23.07.): eine echte Eskalation ist selten,
+          selbst-limitiert und das dringendste Signal — darf nicht von einer
+          milderen Warnung am selben Tag geschluckt werden.
+
+      - **State:** ``state["exit_push_dedupe"][ticker]`` (siehe Helper oben).
+        Fail-safe: fehlt/korrupt → jede aktive Komponente = frische Flanke =
+        Push. Pruning geschlossener Positionen nach
+        ``EXIT_PUSH_DEDUPE_PRUNE_DAYS``.
+
+    Severity steuert ntfy-Priority + Tag (siehe ``_send_exit_p2_push``):
+    escalation > trigger > warning.
 
     Markt-Gate (Fix B, 21.06.2026): Exit-Pushes feuern NUR an US-Handelstagen.
     An Wochenenden UND US-Feiertagen (``config.US_MARKET_HOLIDAYS``) wird die
@@ -1979,7 +2067,8 @@ def process_exit_signals(app_data: dict, state: dict,
     deterministische Tests injizierbar; Default = aktuelle Zeit. Der Cron läuft
     24/7 (``17 * * * *``) ohne Wochentags-Filter, daher MUSS das Gate hier
     sitzen. Anomaly-/EDGAR-Pushes laufen über ``detect_anomalies`` (separater
-    Pfad) und sind von diesem Gate NICHT betroffen.
+    Pfad) und sind von diesem Gate NICHT betroffen. Der Validity-Gate (Fix A):
+    nur ``crit=True AND available=True``-Trigger zählen als aktiv.
     """
     _n = now or datetime.now(timezone.utc)
     if _n.tzinfo is None:
@@ -1993,6 +2082,8 @@ def process_exit_signals(app_data: dict, state: dict,
     positions = (app_data or {}).get("positions") or {}
     if not positions:
         return
+    # Stale-Prune (geschlossene Positionen altern raus, siehe _exit_dedupe_prune).
+    _exit_dedupe_prune(state, now=now_berlin())
     for ticker, p in positions.items():
         if not isinstance(p, dict):
             continue
@@ -2015,100 +2106,139 @@ def process_exit_signals(app_data: dict, state: dict,
             pressure_v = None
         triggers = exit_state.get("triggers") or {}
 
-        # Composite-Push: Eskalation und Warnung schließen sich aus.
-        if pressure_v is not None and pressure_v > EXIT_PUSH_ESCALATION_THRESHOLD:
-            # Once-per-cross: nur feuern, wenn der Vortags-Wert klar
-            # UNTER bzw. AUF dem Threshold lag. ``prev_exit_pressure``
-            # wird vom Daily-Run in _compute_exit_state geschrieben
-            # (Stufe 3b-3a). None = Erstanlage / unparsbar → KEIN Push,
-            # sonst würde jede frisch eröffnete Position über Threshold
-            # sofort einen Eskalations-Push triggern.
+        # ── aktive Komponenten ablesen ──────────────────────────────────────
+        # Validity-Gate (Fix A, 21.06.2026): nur crit=True AND available=True
+        # zählt als aktiver Trigger. ASYMMETRIE-HINWEIS (bewusst, NICHT
+        # angleichen): drei Konsumenten von ``available`` haben unterschiedliche
+        # Absent-Defaults — (1) dieser Push-Pfad STRIKT (absent → suppress,
+        # ``is not True``) gegen Push-Spam aus Altbestand (Juneteenth-Schreiber:
+        # trend_break crit=True, available absent, details.price=None);
+        # (2) Composite-Pressure (_compute_exit_state, generate_report.py)
+        # LIBERAL (``.get(..., True)``); (3) Frontend buildPositionStatus
+        # (``=== false``). Beim Refactor je Rolle lassen.
+        crit_triggers = sorted(
+            tname for tname, t in triggers.items()
+            if isinstance(t, dict) and t.get("crit") is True
+            and t.get("available") is True
+        )
+        in_warning = (pressure_v is not None
+                      and EXIT_PUSH_WARNING_THRESHOLD_LOW <= pressure_v
+                      <= EXIT_PUSH_WARNING_THRESHOLD_HIGH)
+        in_esc_band = (pressure_v is not None
+                       and pressure_v > EXIT_PUSH_ESCALATION_THRESHOLD)
+
+        # ── Dedupe-State lesen (fail-safe: leer → alles frische Flanke) ──────
+        d = _exit_dedupe_get(state, ticker)
+        prev_active = set(d.get("last_active") or [])
+        last_push_date = d.get("last_push_date")
+        esc_alerted_prev = bool(d.get("esc_alerted", False))
+
+        # Bundle-Komponenten (Warnung + Crit-Trigger); "__warning__" ist ein
+        # Pseudo-Marker, damit der Flanken-Vergleich Warnung wie einen Trigger
+        # behandelt. Bei >75 ist in_warning=False → dort trägt der Eskalations-
+        # Kanal; Crit-Trigger < 75 bleiben Bundle-Sache.
+        current_active = set(crit_triggers)
+        if in_warning:
+            current_active.add("__warning__")
+
+        new_last_push_date = last_push_date
+        new_esc_alerted = esc_alerted_prev
+
+        # ── Kanal 1: Eskalation (uncapped, once-per-band-episode) ───────────
+        # Cross ``prev_exit_pressure <= 75 < pressure`` (prev vom Daily-Run) UND
+        # noch nicht in dieser Band-Episode alarmiert (esc_alerted-Flanke, per
+        # Tick persistiert → kein Per-Tick-Repeat zwischen Daily-Runs). prev
+        # None/über Schwelle → kein Cross (Guard gegen Eskalation auf frisch
+        # eröffneter Über-Schwelle-Position). Durchbricht den Tages-Cap.
+        esc_fired = False
+        if in_esc_band:
             prev_raw = exit_state.get("prev_exit_pressure")
             try:
                 prev_v = float(prev_raw) if prev_raw is not None else None
             except (TypeError, ValueError):
                 prev_v = None
-            if prev_v is None or prev_v > EXIT_PUSH_ESCALATION_THRESHOLD:
-                print(f"[exit_p2] SKIP escalation {ticker}: no_cross "
-                      f"(prev={prev_raw}, now={pressure_v:.0f})")
-            else:
+            esc_cross = (prev_v is not None
+                         and prev_v <= EXIT_PUSH_ESCALATION_THRESHOLD)
+            if esc_cross and not esc_alerted_prev:
                 body = (f"🚨 Exit-Eskalation {ticker}: pressure "
                         f"{prev_v:.0f}→{pressure_v:.0f}/100")
+                if crit_triggers:
+                    body += f" · Trigger: {', '.join(crit_triggers)}"
                 _ok = _send_exit_p2_push(ticker, body, severity="escalation")
                 _record_push(state, ticker, kind="exit_p2",
-                             severity="escalation", trigger=None,
+                             severity="escalation",
+                             trigger=(",".join(crit_triggers) or None),
                              body=body, success=_ok)
                 if _ok:
-                    # KEIN Cooldown — der Cross ist die Bremse.
+                    esc_fired = True
+                    new_esc_alerted = True
+                    new_last_push_date = today_iso
                     print(f"[exit_p2] SENT escalation {ticker}: "
-                          f"pressure {prev_v:.0f}→{pressure_v:.0f}")
+                          f"pressure {prev_v:.0f}→{pressure_v:.0f} "
+                          f"triggers={crit_triggers}")
                 else:
+                    # Fail-soft: kein esc_alerted → nächster Tick retried.
                     print(f"[exit_p2] FAIL escalation {ticker}: send_failed")
-        elif (pressure_v is not None
-              and EXIT_PUSH_WARNING_THRESHOLD_LOW <= pressure_v <= EXIT_PUSH_WARNING_THRESHOLD_HIGH):
-            key = f"exitp2_warning_{ticker}"
-            if _exit_cooldown_active(state, key, EXIT_PUSH_WARNING_COOLDOWN_HOURS):
-                print(f"[exit_p2] SKIP warning {ticker}: cooldown_active")
+            elif esc_cross:
+                print(f"[exit_p2] SKIP escalation {ticker}: already_alerted "
+                      f"(band-episode, pressure={pressure_v:.0f})")
             else:
-                body = f"⚠️ Exit-Warnung {ticker}: pressure {pressure_v:.0f}/100"
-                _ok = _send_exit_p2_push(ticker, body, severity="warning")
-                _record_push(state, ticker, kind="exit_p2",
-                             severity="warning", trigger=None,
-                             body=body, success=_ok)
-                if _ok:
-                    _exit_cooldown_set(state, key)
-                    print(f"[exit_p2] SENT warning {ticker}: pressure={pressure_v:.0f}")
-                else:
-                    # Fail-soft: kein Cooldown gesetzt → nächster Tick retried.
-                    print(f"[exit_p2] FAIL warning {ticker}: send_failed")
+                print(f"[exit_p2] SKIP escalation {ticker}: no_cross "
+                      f"(prev={exit_state.get('prev_exit_pressure')}, "
+                      f"now={pressure_v:.0f})")
+        else:
+            # Unter 75 → Band verlassen → esc_alerted-Flanke zurücksetzen,
+            # damit ein späterer erneuter Cross wieder feuern darf.
+            new_esc_alerted = False
 
-        # Trigger-Pushes pro Crit-Trigger — UNABHÄNGIG von pressure-Range,
-        # weil ein einzelner Crit-Trigger auch bei Composite < 55 sinnvoll
-        # alarmieren kann (z.B. profit_lock crit ohne andere aktive Trigger).
-        # SCHARFGESCHALTET in Stufe 3b-2: echter ntfy-Push, dann Cooldown
-        # 24h pro (Ticker × Trigger-Name). Push-Fail → KEIN Cooldown
-        # (nächster Tick versucht erneut, kein silent verloren).
-        if isinstance(triggers, dict):
-            for tname, t in triggers.items():
-                if not isinstance(t, dict):
-                    continue
-                if t.get("crit") is not True:
-                    continue
-                # Validity-Gate (Fix A, 21.06.2026): ein gespeicherter crit ohne
-                # gültige Datenbasis darf NICHT gepusht werden. Aktuelle Trigger-
-                # Success-Branches setzen ``available=True`` EXPLIZIT; alles
-                # andere (Key absent → None, oder False) gilt als nicht
-                # vertrauenswürdig — z.B. stale Altbestand (Juneteenth-Schreiber:
-                # trend_break crit=True, available absent, details.price=None).
-                # ASYMMETRIE-HINWEIS (bewusst, NICHT angleichen): drei Konsumenten
-                # von ``available`` haben unterschiedliche Absent-Defaults —
-                # (1) dieser Push-Loop STRIKT (absent → suppress, ``is not True``)
-                #     gegen Push-Spam aus Altbestand; (2) Composite-Pressure
-                #     (_compute_exit_state, generate_report.py) LIBERAL
-                #     (``.get(..., True)``, absent → zählt mit) damit alter Druck
-                #     sichtbar bleibt; (3) Frontend buildPositionStatus zeigt
-                #     absent an (``=== false``-Check). Beim Refactor je Rolle
-                #     lassen — die Asymmetrie ist die Sicherheits-Eigenschaft.
-                if t.get("available") is not True:
-                    print(f"[exit_p2] SKIP trigger {ticker} {tname}: "
-                          f"invalid (available={t.get('available')!r})")
-                    continue
-                key = f"exitp2_trigger_{ticker}_{tname}"
-                if _exit_cooldown_active(state, key, EXIT_PUSH_TRIGGER_COOLDOWN_HOURS):
-                    print(f"[exit_p2] SKIP trigger {ticker} {tname}: cooldown_active")
-                    continue
-                details = t.get("details") or {}
-                body = f"🔻 Exit-Signal {ticker}: {tname} crit ({details})"
-                _ok = _send_exit_p2_push(ticker, body)
+        # ── Kanal 2: Bundle (Warnung + Crit-Trigger, Tages-Cap + Flanke) ────
+        # Läuft NICHT, wenn die Eskalation diesen Tick bereits alarmiert hat
+        # (sie deckt den Ticker ab). Sonst: 1 gebündelter Push pro Ticker pro
+        # Handelstag, nur beim Flanken-Übergang inaktiv→aktiv.
+        if not esc_fired and current_active:
+            fresh_edge = bool(current_active - prev_active)
+            pushed_today = (last_push_date == today_iso)
+            if pushed_today:
+                print(f"[exit_p2] SKIP bundle {ticker}: day_cap "
+                      f"(active={sorted(current_active)})")
+            elif not fresh_edge:
+                print(f"[exit_p2] SKIP bundle {ticker}: sustained "
+                      f"(active={sorted(current_active)}, no new edge)")
+            else:
+                # Severity: Crit-Trigger → "trigger" (höhere ntfy-Prio) vor
+                # reiner Warnung. Body bündelt alle aktiven Komponenten.
+                if crit_triggers:
+                    parts = [f"{', '.join(crit_triggers)} crit"]
+                    if in_warning:
+                        parts.append(f"Warnung pressure {pressure_v:.0f}/100")
+                    body = f"🔻 Exit-Signale {ticker}: " + " · ".join(parts)
+                    severity = "trigger"
+                    trig_field = ",".join(crit_triggers)
+                else:
+                    body = f"⚠️ Exit-Warnung {ticker}: pressure {pressure_v:.0f}/100"
+                    severity = "warning"
+                    trig_field = None
+                _ok = _send_exit_p2_push(ticker, body, severity=severity)
                 _record_push(state, ticker, kind="exit_p2",
-                             severity="trigger", trigger=tname,
+                             severity=severity, trigger=trig_field,
                              body=body, success=_ok)
                 if _ok:
-                    _exit_cooldown_set(state, key)
-                    print(f"[exit_p2] SENT trigger {ticker} {tname}: {details}")
+                    new_last_push_date = today_iso
+                    print(f"[exit_p2] SENT bundle {ticker}: {severity} "
+                          f"active={sorted(current_active)}")
                 else:
-                    # Fail-soft: kein Cooldown gesetzt → nächster Tick retried.
-                    print(f"[exit_p2] FAIL trigger {ticker} {tname}: send_failed")
+                    # Fail-soft: last_push_date NICHT gesetzt → nächster Tick
+                    # sieht dieselbe frische Flanke → Retry. last_active wird
+                    # unten trotzdem NICHT auf current_active gehoben (siehe).
+                    print(f"[exit_p2] FAIL bundle {ticker}: send_failed")
+                    # Bei Send-Fehler die Flanke offen halten: prev_active
+                    # unverändert lassen, damit fresh_edge nächsten Tick greift.
+                    current_active = prev_active
+
+        # ── State persistieren (immer, für konsistente Flanken-Verfolgung) ──
+        _exit_dedupe_set(state, ticker, last_active=current_active,
+                         last_push_date=new_last_push_date,
+                         esc_alerted=new_esc_alerted)
 
 
 def _send_anomaly_ntfy(ticker: str, body: str) -> bool:
