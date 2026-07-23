@@ -1,11 +1,11 @@
 {
-  "updated": "2026-07-23T01:17:43.071580+02:00",
+  "updated": "2026-07-23T05:45:09.144842+02:00",
   "run_info": {
     "tickers_checked": 15,
     "signals_active": 1,
     "alerts_sent": 0,
-    "elapsed_s": 11.5,
-    "market_phase": "After-Hours"
+    "elapsed_s": 16.7,
+    "market_phase": "Geschlossen"
   },
   "signals": {
     "AI": {
@@ -78,7 +78,7 @@
     "CRSR": {
       "score": 73,
       "confidence": 70,
-      "drivers": "Volumen 1.8× + Spanne 6.5% + News: analyst upgrade, partnership + Earnings in 15d + UOA Call/Put 4.8×",
+      "drivers": "Volumen 1.8× + Spanne 6.5% + News: partnership, analyst upgrade + Earnings in 15d + UOA Call/Put 4.8×",
       "price": 10.6,
       "chg_pct": 0.0,
       "rvol_4d": 1.77,
@@ -99,21 +99,21 @@
       "uoa_cp_ratio": 4.840686274509804
     },
     "FIP": {
-      "score": 13,
-      "confidence": 33,
-      "drivers": "News-KI 5/30: Routine earnings announcement and analyst coverage updates with no indicators of short squeeze potential such as high sh + Earnings in 14d",
+      "score": 0,
+      "confidence": 0,
+      "drivers": "",
       "price": 4.5,
       "chg_pct": 0.0,
       "rvol_4d": 0.83,
       "rvol_20d": 0.79,
-      "earnings": "in 14 Tagen (05.08.2026)",
+      "earnings": null,
       "fda_date": null,
       "upcoming_event": null,
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
       "active_triggers": 0,
-      "ki_sentiment_source": "llm",
+      "ki_sentiment_source": "keyword",
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": null,
@@ -143,9 +143,9 @@
       "uoa_cp_ratio": 5.285714285714286
     },
     "GRPN": {
-      "score": 36,
+      "score": 43,
       "confidence": 70,
-      "drivers": "Spanne 11.2% + News-KI 8/30: Moderate analyst optimism on cost cuts and management changes, but no significant short squeeze catalysts evident in hea + Earnings in 14d + UOA Call/Put 67.7×",
+      "drivers": "Spanne 11.2% + News: short interest + Earnings in 14d + UOA Call/Put 67.7×",
       "price": 27.92,
       "chg_pct": 0.0,
       "rvol_4d": 0.72,
@@ -156,8 +156,8 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 0,
-      "ki_sentiment_source": "llm",
+      "active_triggers": 1,
+      "ki_sentiment_source": "keyword",
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 67.7×"
@@ -256,7 +256,7 @@
     "PDYN": {
       "score": 48,
       "confidence": 70,
-      "drivers": "Spanne 5.4% + News: revenue beat, contract + Earnings in 14d",
+      "drivers": "Spanne 5.4% + News: partnership, contract + Earnings in 14d",
       "price": 5.33,
       "chg_pct": -0.0,
       "rvol_4d": 0.86,
@@ -319,9 +319,9 @@
       "uoa_cp_ratio": 2.535211267605634
     },
     "ZCMD": {
-      "score": 50,
-      "confidence": 33,
-      "drivers": "Volumen 1395.8× + 🚀 Massives Volumen 1395.8×+ + Spanne 435.0%",
+      "score": 60,
+      "confidence": 70,
+      "drivers": "Volumen 1395.8× + 🚀 Massives Volumen 1395.8×+ + Spanne 435.0% + SEC Form 4",
       "price": 4.29,
       "chg_pct": -0.0,
       "rvol_4d": 1395.85,
