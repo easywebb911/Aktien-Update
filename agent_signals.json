@@ -1,10 +1,10 @@
 {
-  "updated": "2026-07-23T11:36:44.237749+02:00",
+  "updated": "2026-07-23T14:02:54.484584+02:00",
   "run_info": {
     "tickers_checked": 15,
-    "signals_active": 1,
+    "signals_active": 0,
     "alerts_sent": 0,
-    "elapsed_s": 11.7,
+    "elapsed_s": 15.2,
     "market_phase": "Pre-Market"
   },
   "signals": {
@@ -28,7 +28,7 @@
       "uoa_drivers": [
         "UOA Call/Put 18.1×"
       ],
-      "uoa_atm_ratio": null,
+      "uoa_atm_ratio": 0.04797423292083404,
       "uoa_cp_ratio": 18.1046277665996
     },
     "AMC": {
@@ -72,13 +72,13 @@
       "ki_sentiment_source": "keyword",
       "uoa_score": 0,
       "uoa_drivers": [],
-      "uoa_atm_ratio": null,
+      "uoa_atm_ratio": 0.125,
       "uoa_cp_ratio": 0.45454545454545453
     },
     "CRSR": {
-      "score": 73,
+      "score": 51,
       "confidence": 70,
-      "drivers": "Volumen 1.8× + Spanne 6.5% + News: partnership, analyst upgrade + Earnings in 14d + UOA Call/Put 4.8×",
+      "drivers": "Volumen 1.8× + Spanne 6.5% + News-KI 8/30: Earnings announcement and AI tailwind are positive, but recent downgrade and fair value concerns indicate limited squeez + Earnings in 14d + UOA Call/Put 4.8×",
       "price": 10.6,
       "chg_pct": 0.0,
       "rvol_4d": 1.79,
@@ -89,19 +89,19 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 1,
-      "ki_sentiment_source": "keyword",
+      "active_triggers": 0,
+      "ki_sentiment_source": "llm",
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 4.8×"
       ],
-      "uoa_atm_ratio": null,
+      "uoa_atm_ratio": 0.0884107371112058,
       "uoa_cp_ratio": 4.840686274509804
     },
     "FIP": {
-      "score": 8,
-      "confidence": 17,
-      "drivers": "Earnings in 13d",
+      "score": 13,
+      "confidence": 33,
+      "drivers": "News-KI 5/30: Routine earnings announcement and analyst coverage updates lack indicators of short-squeeze potential such as high short + Earnings in 13d",
       "price": 4.5,
       "chg_pct": 0.0,
       "rvol_4d": 0.91,
@@ -113,7 +113,7 @@
       "stocktwits": null,
       "combo_mult": 1.0,
       "active_triggers": 0,
-      "ki_sentiment_source": "keyword",
+      "ki_sentiment_source": "llm",
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": null,
@@ -162,7 +162,7 @@
       "uoa_drivers": [
         "UOA Call/Put 67.7×"
       ],
-      "uoa_atm_ratio": null,
+      "uoa_atm_ratio": 0.03751076128397491,
       "uoa_cp_ratio": 67.67333333333333
     },
     "IMCR": {
@@ -204,13 +204,13 @@
       "ki_sentiment_source": "keyword",
       "uoa_score": 0,
       "uoa_drivers": [],
-      "uoa_atm_ratio": null,
+      "uoa_atm_ratio": 1.159845215061765,
       "uoa_cp_ratio": 1.3653470867019795
     },
     "LENZ": {
-      "score": 44,
+      "score": 33,
       "confidence": 70,
-      "drivers": "Earnings in 6 Tagen (29.07.2026) + Spanne 7.2% + News: short interest + Earnings in 6d",
+      "drivers": "Earnings in 6 Tagen (29.07.2026) + Spanne 7.2% + News-KI 8/30: Negative earnings outlook and analyst downgrades weigh heavily against short-squeeze potential, with only modest support + Earnings in 6d",
       "price": 5.34,
       "chg_pct": 0.0,
       "rvol_4d": 0.54,
@@ -220,12 +220,12 @@
       "upcoming_event": "Earnings in 6 Tagen (29.07.2026)",
       "insider_buy": false,
       "stocktwits": null,
-      "combo_mult": 1.1,
-      "active_triggers": 2,
-      "ki_sentiment_source": "keyword",
+      "combo_mult": 1.0,
+      "active_triggers": 1,
+      "ki_sentiment_source": "llm",
       "uoa_score": 0,
       "uoa_drivers": [],
-      "uoa_atm_ratio": null,
+      "uoa_atm_ratio": 0.25,
       "uoa_cp_ratio": 0.07488986784140969
     },
     "METC": {
@@ -248,13 +248,13 @@
       "uoa_drivers": [
         "UOA Call/Put 15.9×"
       ],
-      "uoa_atm_ratio": null,
+      "uoa_atm_ratio": 0.014062232860318003,
       "uoa_cp_ratio": 15.876190476190477
     },
     "PDYN": {
       "score": 48,
       "confidence": 70,
-      "drivers": "Spanne 5.5% + News: revenue beat, partnership + Earnings in 13d",
+      "drivers": "Spanne 5.5% + News: contract, revenue beat + Earnings in 13d",
       "price": 5.33,
       "chg_pct": -0.0,
       "rvol_4d": 0.86,
@@ -269,7 +269,7 @@
       "ki_sentiment_source": "keyword",
       "uoa_score": 0,
       "uoa_drivers": [],
-      "uoa_atm_ratio": null,
+      "uoa_atm_ratio": 0.13636363636363635,
       "uoa_cp_ratio": 1.0753968253968254
     },
     "WGS": {
@@ -290,7 +290,7 @@
       "ki_sentiment_source": "keyword",
       "uoa_score": 0,
       "uoa_drivers": [],
-      "uoa_atm_ratio": null,
+      "uoa_atm_ratio": 0.21804511278195488,
       "uoa_cp_ratio": 1.0344827586206897
     },
     "WOLF": {
@@ -313,7 +313,7 @@
       "uoa_drivers": [
         "UOA Call/Put 2.5×"
       ],
-      "uoa_atm_ratio": null,
+      "uoa_atm_ratio": 0.6680851063829787,
       "uoa_cp_ratio": 2.535211267605634
     },
     "ZCMD": {
