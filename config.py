@@ -949,8 +949,19 @@ EXIT_PHASE2_W_TREND_BREAK    = 0.05
 EXIT_PUSH_ESCALATION_THRESHOLD     = 75   # exit_pressure > 75 → Eskalation
 EXIT_PUSH_WARNING_THRESHOLD_LOW    = 55   # 55 ≤ exit_pressure ≤ 75 → Warnung
 EXIT_PUSH_WARNING_THRESHOLD_HIGH   = 75
-EXIT_PUSH_WARNING_COOLDOWN_HOURS   = 12   # pro Ticker
-EXIT_PUSH_TRIGGER_COOLDOWN_HOURS   = 24   # pro (Ticker × Trigger-Name)
+# DEPRECATED (23.07.2026, Exit-Push-Dedupe): die zeitbasierten Cooldowns unten
+# wurden durch die Flanken-/Tages-Cap-Dedupe (state["exit_push_dedupe"],
+# process_exit_signals) ERSETZT. Warnung/Trigger feuern nicht mehr alle 12h/24h,
+# sondern max. 1× gebündelt pro Ticker pro US-Handelstag beim Flanken-Übergang
+# inaktiv→aktiv. Konstanten bleiben als Rollback-Anker + für die alten
+# _exit_cooldown_*-Helper stehen; die neue Logik liest sie NICHT mehr.
+EXIT_PUSH_WARNING_COOLDOWN_HOURS   = 12   # DEPRECATED (siehe oben)
+EXIT_PUSH_TRIGGER_COOLDOWN_HOURS   = 24   # DEPRECATED (siehe oben)
+# Exit-Push-Dedupe-State (state["exit_push_dedupe"][ticker]) wird nach so vielen
+# Tagen ohne Update gepruned — deckt geschlossene Positionen ab (deren Ticker
+# nicht mehr in app_data["positions"] auftaucht und daher nicht mehr aktualisiert
+# wird). ~30 Tage = großzügiger Puffer gegen kurzfristige Positions-Pausen.
+EXIT_PUSH_DEDUPE_PRUNE_DAYS        = 30
 
 # ── Phase 2 Stufe 3c-1 Push-History-Persistenz ───────────────────────────────
 # Ringpuffer in agent_state.json["push_history"]. FIFO-Cap entkoppelt
