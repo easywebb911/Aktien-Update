@@ -7102,6 +7102,15 @@ def generate_html_v1(stocks: list[dict], report_date: str,
 
     return f"""{head_html}
 <body>
+<!-- Reload-Bestätigungs-Toast: zentrierte Erfolgs-Pille, erscheint auf der
+     frisch geladenen Seite NACH einem Klick auf den Reload-Button (Flag in
+     sessionStorage überlebt die Cache-Bust-Navigation). Schlägt der Reload
+     fehl (offline), lädt die Seite nicht → dieser Code läuft nie → kein
+     grüner Toast (gewollt). pointer-events:none → blockiert keine Taps. -->
+<div id="reload-toast" class="reload-toast" role="status" aria-live="polite" aria-hidden="true">
+  <div class="rt-title">Aktualisiert</div>
+  <div class="rt-sub" id="reload-toast-sub"></div>
+</div>
 <header class="app-hdr">
   <div class="hdr-main">
     <span class="app-title">Squeeze <span>Report</span></span>
@@ -11259,7 +11268,54 @@ function reloadPage(){{
   // KEIN funktionaler URL-Parameter im Tool, nur Cache-Buster), damit sich
   // ?bust=N/?v=… nie aufstauen. replace() statt assign(): Reload erzeugt
   // bewusst KEINEN Back-History-Eintrag.
+  // Reload-Toast: Flag setzen, das die Cache-Bust-Navigation überlebt (gleiche
+  // Tab-Session, gleicher Origin). Die frisch geladene Seite liest es beim
+  // DOMContentLoaded und zeigt „Aktualisiert · Stand …". Schlägt der Reload
+  // fehl (offline), lädt die Seite nicht → Code läuft nie → kein Toast. Nur
+  // DIESER Button setzt das Flag (ein manueller Browser-Refresh nicht) → der
+  // Toast hängt am Erfolgs-Ende des Button-Reloads.
+  try {{ sessionStorage.setItem('_reloadToast', '1'); }} catch (e) {{}}
   window.location.replace(location.pathname + '?v=' + Date.now());
+}}
+// Reload-Bestätigungs-Toast: zeigt den MARKTDATEN-Stand des frisch geladenen
+// Reports (dieselbe Quelle wie die Header-Zeile „Marktdaten: …", gleiches
+// deutsches Format) — NICHT die Klick-Zeit. Bringt der Reload keinen neueren
+// Stand, zeigt der Toast eben denselben — das IST die ehrliche Information.
+function _showReloadToast(){{
+  var el = document.getElementById('reload-toast');
+  if (!el) return;
+  var sub = document.getElementById('reload-toast-sub');
+  if (sub) {{
+    // Stand aus dem Header-Text ablesen (das exakt Angezeigte). Die
+    // verschachtelten hdr-* Spans sind beim DOMContentLoaded noch leer, daher
+    // ist der erste Textknoten „Marktdaten: DD.MM.YYYY, HH:MM Uhr".
+    var ts = document.querySelector('.hdr-ts');
+    var raw = '';
+    if (ts) {{ raw = ((ts.firstChild && ts.firstChild.textContent) || ts.textContent || '').trim(); }}
+    var pre = 'Marktdaten:';
+    var stand = (raw.indexOf(pre) === 0) ? raw.slice(pre.length).trim() : raw;
+    sub.textContent = stand ? ('Stand ' + stand) : '';
+  }}
+  el.classList.add('visible');
+  el.setAttribute('aria-hidden', 'false');
+  clearTimeout(el._hideT);
+  el._hideT = setTimeout(function(){{
+    el.classList.remove('visible');
+    el.setAttribute('aria-hidden', 'true');
+  }}, 2500);
+}}
+function _reloadToastCheck(){{
+  try {{
+    if (sessionStorage.getItem('_reloadToast')) {{
+      sessionStorage.removeItem('_reloadToast');
+      _showReloadToast();
+    }}
+  }} catch (e) {{}}
+}}
+if (document.readyState === 'loading') {{
+  document.addEventListener('DOMContentLoaded', _reloadToastCheck);
+}} else {{
+  _reloadToastCheck();
 }}
 function triggerWorkflow(){{
   _ensureToken(token => {{ _pendingDispatch = 'recalc'; dispatchWorkflow(token); }});

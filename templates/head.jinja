@@ -950,6 +950,20 @@ abbr[title]{text-decoration:underline dotted var(--txt-dim);
 .wl-sync-warn{font-size:.72rem;color:#f59e0b;background:#f59e0b18;border:1px solid #f59e0b44;
   border-radius:6px;padding:4px 8px;margin-bottom:6px;display:none}
 .wl-sync-warn.visible{display:block}
+/* Reload-Bestätigungs-Toast: zentrierte Erfolgs-Pille nach dem Reload-Button.
+   Mechanik (.visible-Toggle + JS-Auto-Hide) analog .wl-sync-warn (#234), aber
+   position:fixed + zentriert statt Inline-Banner, Erfolgs-Grün statt Amber.
+   True-Center (translate -50%,-50%) → Safe-Area-Insets irrelevant (Pille sitzt
+   mittig, nicht an den Rändern). pointer-events:none → blockiert keine Taps. */
+.reload-toast{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);
+  z-index:1200;pointer-events:none;background:rgba(15,23,42,0.96);
+  border:1px solid #22c55e;border-radius:14px;padding:12px 22px;text-align:center;
+  box-shadow:0 8px 28px rgba(0,0,0,0.45);opacity:0;visibility:hidden;
+  transition:opacity .22s ease;max-width:80vw}
+.reload-toast.visible{opacity:1;visibility:visible}
+.reload-toast .rt-title{font-size:.92rem;font-weight:700;color:#4ade80;line-height:1.3}
+.reload-toast .rt-sub{font-size:.78rem;color:#cbd5e1;line-height:1.3;margin-top:2px}
+.reload-toast .rt-sub:empty{display:none}
 /* ── KI-Insight-Stream (Variante D) — endlos laufender Crawl-Banner mit
    lila Akzent-Linie. Server-seitiger Slot ist hidden; JS füllt nach
    app_data.json-Fetch (siehe _populateKiInsightStream). overflow:hidden
