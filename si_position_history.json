@@ -2338,5 +2338,50 @@
       "short_pct_float": 17.9,
       "pub_date": "2026-07-10"
     }
+  ],
+  "HZO": [
+    {
+      "settlement_date": "2026-05-29",
+      "shares_short": 3137779,
+      "short_pct_float": null,
+      "pub_date": "2026-06-09",
+      "seeded": true
+    },
+    {
+      "settlement_date": "2026-06-30",
+      "shares_short": 2446838,
+      "short_pct_float": 15.32,
+      "pub_date": "2026-07-10"
+    }
+  ],
+  "WKC": [
+    {
+      "settlement_date": "2026-05-29",
+      "shares_short": 6440387,
+      "short_pct_float": null,
+      "pub_date": "2026-06-09",
+      "seeded": true
+    },
+    {
+      "settlement_date": "2026-06-30",
+      "shares_short": 6747097,
+      "short_pct_float": 19.58,
+      "pub_date": "2026-07-10"
+    }
+  ],
+  "CLVT": [
+    {
+      "settlement_date": "2026-05-29",
+      "shares_short": 52860305,
+      "short_pct_float": null,
+      "pub_date": "2026-06-09",
+      "seeded": true
+    },
+    {
+      "settlement_date": "2026-06-30",
+      "shares_short": 61739432,
+      "short_pct_float": 17.53,
+      "pub_date": "2026-07-10"
+    }
   ]
 }
