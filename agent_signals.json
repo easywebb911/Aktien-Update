@@ -1,10 +1,10 @@
 {
-  "updated": "2026-07-24T02:11:55.349861+02:00",
+  "updated": "2026-07-24T05:44:38.415341+02:00",
   "run_info": {
     "tickers_checked": 14,
-    "signals_active": 0,
+    "signals_active": 1,
     "alerts_sent": 0,
-    "elapsed_s": 14.8,
+    "elapsed_s": 15.7,
     "market_phase": "Geschlossen"
   },
   "signals": {
@@ -139,13 +139,13 @@
       "ki_sentiment_source": "keyword",
       "uoa_score": 0,
       "uoa_drivers": [],
-      "uoa_atm_ratio": 1.8438739302859528,
-      "uoa_cp_ratio": 1.4571968674048068
+      "uoa_atm_ratio": 1.8438607462997707,
+      "uoa_cp_ratio": 1.4824656056110062
     },
     "JEM": {
-      "score": 58,
+      "score": 72,
       "confidence": 70,
-      "drivers": "Volumen 216.7× + 🚀 Massives Volumen 216.7×+ + Spanne 30.8% + News-KI 8/30: Share consolidation typically indicates financial distress rather than short-squeeze potential, and AI/blockchain news l",
+      "drivers": "Volumen 216.7× + 🚀 Massives Volumen 216.7×+ + Spanne 30.8% + News: breakout",
       "price": 4.74,
       "chg_pct": -0.0,
       "rvol_4d": 216.67,
@@ -155,9 +155,9 @@
       "upcoming_event": null,
       "insider_buy": false,
       "stocktwits": null,
-      "combo_mult": 1.0,
-      "active_triggers": 1,
-      "ki_sentiment_source": "llm",
+      "combo_mult": 1.1,
+      "active_triggers": 2,
+      "ki_sentiment_source": "keyword",
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": null,
@@ -166,7 +166,7 @@
     "LENZ": {
       "score": 58,
       "confidence": 70,
-      "drivers": "Earnings in 6 Tagen (29.07.2026) + Spanne 7.8% + News-KI 8/30: Negative earnings expectations, declining fair value assessments, and analyst downgrades indicate weak momentum with min + Earnings in 6d + FINRA Short-Vol 78%",
+      "drivers": "Earnings in 6 Tagen (29.07.2026) + Spanne 7.8% + News-KI 8/30: Negative earnings expectations and analyst downgrades signal weak fundamentals, making a short squeeze unlikely without  + Earnings in 6d + FINRA Short-Vol 78%",
       "price": 5.05,
       "chg_pct": 0.0,
       "rvol_4d": 0.64,
@@ -210,7 +210,7 @@
     "PDYN": {
       "score": 58,
       "confidence": 70,
-      "drivers": "Spanne 6.4% + News: partnership, contract + Earnings in 14d + UOA Call/Put 3.4×",
+      "drivers": "Spanne 6.4% + News: contract, partnership + Earnings in 14d + UOA Call/Put 3.4×",
       "price": 5.23,
       "chg_pct": 0.0,
       "rvol_4d": 0.94,
@@ -233,7 +233,7 @@
     "RXRX": {
       "score": 38,
       "confidence": 33,
-      "drivers": "News: squeeze, short interest + Earnings in 13d",
+      "drivers": "News: short interest, squeeze + Earnings in 13d",
       "price": 3.01,
       "chg_pct": -0.0,
       "rvol_4d": 1.07,
@@ -296,9 +296,9 @@
       "uoa_cp_ratio": 1.2033898305084745
     },
     "WOLF": {
-      "score": 58,
+      "score": 53,
       "confidence": 70,
-      "drivers": "Volumen 2.0× + Spanne 11.5% + News-KI 5/30: Headlines focus on fundamental AI trends and revenue comparisons with no mention of short interest, institutional positi + Earnings in 35d + UOA Call-Vol/OI 7.9× ATM",
+      "drivers": "Volumen 2.0× + Spanne 11.5% + Earnings in 35d + UOA Call-Vol/OI 7.9× ATM",
       "price": 25.96,
       "chg_pct": -0.0,
       "rvol_4d": 2.01,
@@ -310,7 +310,7 @@
       "stocktwits": null,
       "combo_mult": 1.0,
       "active_triggers": 1,
-      "ki_sentiment_source": "llm",
+      "ki_sentiment_source": "keyword",
       "uoa_score": 20,
       "uoa_drivers": [
         "UOA Call-Vol/OI 7.9× ATM"
