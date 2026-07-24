@@ -1,9 +1,9 @@
 {
-  "last_run": "2026-07-24T17:44:33.561612+02:00",
+  "last_run": "2026-07-24T18:17:11.963451+02:00",
   "cooldowns": {
     "anomaly_score_jump_XRX": "2026-05-03T18:47:15.315486+02:00",
     "anomaly_uoa_extreme_TDOC": "2026-05-04T13:47:00.365949+02:00",
-    "anomaly_score_jump_LENZ": "2026-05-06T23:55:17.218333+02:00",
+    "anomaly_score_jump_LENZ": "2026-07-24T18:17:10.902631+02:00",
     "anomaly_monster_backup_GRPN": "2026-05-11T15:47:25.884739+02:00",
     "anomaly_score_jump_SPRY": "2026-05-04T21:34:05.480403+02:00",
     "anomaly_score_jump_IIPR": "2026-05-06T13:05:33.421454+02:00",
@@ -36,7 +36,7 @@
     "anomaly_score_jump_XPOF": "2026-05-20T20:46:08.006968+02:00",
     "anomaly_monster_backup_XPOF": "2026-05-20T20:46:08.066894+02:00",
     "anomaly_conviction_high_DMRC": "2026-05-20T17:31:02.518802+02:00",
-    "anomaly_conviction_high_LENZ": "2026-07-07T18:21:00.423748+02:00",
+    "anomaly_conviction_high_LENZ": "2026-07-24T18:17:11.123010+02:00",
     "exit_CRDF": "2026-06-02T12:56:55.945035+02:00",
     "anomaly_score_jump_MNRO": "2026-05-27T15:51:00.247121+02:00",
     "anomaly_conviction_high_MNRO": "2026-05-27T15:51:00.309703+02:00",
@@ -84,54 +84,6 @@
     "earnings_immediate_AMC_20.07.2026": "2026-07-20T22:41:11.044953+02:00"
   },
   "push_history": [
-    {
-      "ts": "2026-07-15T19:39:53.226618+02:00",
-      "ticker": "FTK",
-      "kind": "anomaly",
-      "severity": "medium",
-      "trigger": "score_jump",
-      "body": "FTK 🚀 Setup 64 ↑ (gestern 49) | Spanne 7.2% + Earnings in 20d + SEC Form 4 + UOA Call/Put 3.…",
-      "success": false,
-      "suppressed": true,
-      "suppress_reason": "conviction_below_threshold",
-      "conviction_score": 60
-    },
-    {
-      "ts": "2026-07-15T21:11:26.860263+02:00",
-      "ticker": "FRMM",
-      "kind": "exit_p1",
-      "severity": "default",
-      "trigger": "exit_alert",
-      "body": "FRMM 📉 Exit 65 | -13% | Trailing-Stop −14.9% vom Hoch",
-      "success": true,
-      "suppressed": false,
-      "suppress_reason": null,
-      "conviction_score": null
-    },
-    {
-      "ts": "2026-07-15T21:11:27.245774+02:00",
-      "ticker": "LENZ",
-      "kind": "exit_p1",
-      "severity": "default",
-      "trigger": "exit_alert",
-      "body": "LENZ 📉 Exit 65 | -18% | Trailing-Stop −20.7% vom Hoch",
-      "success": true,
-      "suppressed": false,
-      "suppress_reason": null,
-      "conviction_score": null
-    },
-    {
-      "ts": "2026-07-15T23:15:24.760990+02:00",
-      "ticker": "IONQ",
-      "kind": "exit_p2",
-      "severity": "warning",
-      "trigger": null,
-      "body": "⚠️ Exit-Warnung IONQ: pressure 61/100",
-      "success": true,
-      "suppressed": false,
-      "suppress_reason": null,
-      "conviction_score": null
-    },
     {
       "ts": "2026-07-16T08:31:47.332269+02:00",
       "ticker": "IONQ",
@@ -1283,23 +1235,67 @@
       "suppressed": false,
       "suppress_reason": null,
       "conviction_score": null
+    },
+    {
+      "ts": "2026-07-24T18:17:10.902606+02:00",
+      "ticker": "LENZ",
+      "kind": "anomaly",
+      "severity": "medium",
+      "trigger": "score_jump",
+      "body": "LENZ 🚀 Setup 71 ↑ (gestern 55) | Earnings in 5 Tagen (29.07.2026) + Spanne 9.1% + News-KI 12/…",
+      "success": true,
+      "suppressed": false,
+      "suppress_reason": null,
+      "conviction_score": 76
+    },
+    {
+      "ts": "2026-07-24T18:17:11.122985+02:00",
+      "ticker": "LENZ",
+      "kind": "anomaly",
+      "severity": "high",
+      "trigger": "conviction_high",
+      "body": "LENZ 🎯 KAUFSIGNAL — Conviction 76/100 (high) (vorher 59) | Conviction hoch — Setup, Earliness und Timing konvergieren. Aggregations-Anzeige…",
+      "success": true,
+      "suppressed": false,
+      "suppress_reason": null,
+      "conviction_score": 76
+    },
+    {
+      "ts": "2026-07-24T18:17:12.181453+02:00",
+      "ticker": "IONQ",
+      "kind": "exit_p2",
+      "severity": "escalation",
+      "trigger": "profit_lock",
+      "body": "🚨 Exit-Eskalation IONQ: pressure 61→83/100 · Trigger: profit_lock",
+      "success": true,
+      "suppressed": false,
+      "suppress_reason": null,
+      "conviction_score": null
+    },
+    {
+      "ts": "2026-07-24T18:17:12.396696+02:00",
+      "ticker": "AI",
+      "kind": "exit_p2",
+      "severity": "escalation",
+      "trigger": "profit_lock",
+      "body": "🚨 Exit-Eskalation AI: pressure 62→83/100 · Trigger: profit_lock",
+      "success": true,
+      "suppressed": false,
+      "suppress_reason": null,
+      "conviction_score": null
     }
   ],
   "prev_conviction_scores": {
-    "JEM": 53.0,
-    "GRPN": 48.0,
-    "LENZ": 59.0,
-    "FRMM": 52.0,
-    "CAPR": 51.0,
-    "PAR": 44.0,
-    "WOLF": 36.0,
-    "RXRX": 42.0,
-    "VSTM": 49.0,
-    "CERT": 53.0,
-    "AI": 37.0,
-    "PDYN": 24.0,
-    "AMC": 15.0,
-    "IONQ": 12.0
+    "JEM": 37.0,
+    "WRLD": 72.0,
+    "LENZ": 76.0,
+    "JACK": 59.0,
+    "DFH": 65.0,
+    "CTNT": 42.0,
+    "CBRL": 47.0,
+    "ORIC": 38.0,
+    "ABX": 58.0,
+    "CERT": 50.0
   },
   "exit_cooldowns": {
     "exitp2_warning_AMC": "2026-05-18T14:48:43.872687+02:00",
@@ -1339,53 +1335,43 @@
   "exit_push_dedupe": {
     "IONQ": {
       "last_active": [
-        "__warning__",
-        "profit_lock",
-        "trend_break"
+        "profit_lock"
       ],
-      "last_push_date": "2026-07-23",
-      "esc_alerted": false,
-      "updated": "2026-07-24T17:44:33.561693+02:00"
+      "last_push_date": "2026-07-24",
+      "esc_alerted": true,
+      "updated": "2026-07-24T18:17:12.181490+02:00"
     },
     "PDYN": {
-      "last_active": [
-        "trend_break"
-      ],
+      "last_active": [],
       "last_push_date": "2026-07-23",
       "esc_alerted": false,
-      "updated": "2026-07-24T17:44:33.561710+02:00"
+      "updated": "2026-07-24T18:17:12.181516+02:00"
     },
     "AI": {
       "last_active": [
-        "__warning__",
-        "profit_lock",
-        "trend_break"
+        "profit_lock"
       ],
-      "last_push_date": "2026-07-23",
-      "esc_alerted": false,
-      "updated": "2026-07-24T17:44:33.561723+02:00"
+      "last_push_date": "2026-07-24",
+      "esc_alerted": true,
+      "updated": "2026-07-24T18:17:12.396729+02:00"
     },
     "FRMM": {
       "last_active": [],
       "last_push_date": null,
       "esc_alerted": false,
-      "updated": "2026-07-24T17:44:33.561732+02:00"
+      "updated": "2026-07-24T18:17:12.396750+02:00"
     },
     "LENZ": {
-      "last_active": [
-        "trend_break"
-      ],
+      "last_active": [],
       "last_push_date": "2026-07-23",
       "esc_alerted": false,
-      "updated": "2026-07-24T17:44:33.561742+02:00"
+      "updated": "2026-07-24T18:17:12.396763+02:00"
     },
     "WOLF": {
-      "last_active": [
-        "trend_break"
-      ],
+      "last_active": [],
       "last_push_date": "2026-07-23",
       "esc_alerted": false,
-      "updated": "2026-07-24T17:44:33.561751+02:00"
+      "updated": "2026-07-24T18:17:12.396773+02:00"
     }
   }
 }
