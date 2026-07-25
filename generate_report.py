@@ -7336,7 +7336,6 @@ def generate_html_v1(stocks: list[dict], report_date: str,
 </header>
 
 <main class="wrap">
-  <div class="disc">⚠ <strong>Disclaimer:</strong> Dieser Report dient ausschließlich Informationszwecken und stellt keine Anlageberatung dar. Keine Kauf- oder Verkaufsempfehlung.</div>
   <div class="agent-status-bar" id="agent-status">⚡ KI-Agent: Wird geladen …</div>
   <div class="topten-section-header">
     <div class="topten-section-label">
