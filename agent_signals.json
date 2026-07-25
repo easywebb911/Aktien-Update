@@ -1,17 +1,17 @@
 {
-  "updated": "2026-07-25T06:28:18.720787+02:00",
+  "updated": "2026-07-25T09:28:39.604131+02:00",
   "run_info": {
     "tickers_checked": 15,
     "signals_active": 0,
     "alerts_sent": 0,
-    "elapsed_s": 11.4,
+    "elapsed_s": 13.3,
     "market_phase": "Geschlossen"
   },
   "signals": {
     "AI": {
-      "score": 22,
+      "score": 25,
       "confidence": 17,
-      "drivers": "News-KI 12/30: Moderate investor attention on AI stocks but no specific indicators of high short interest, extreme volatility, or catal + UOA Call/Put 2.0×",
+      "drivers": "News: short interest + UOA Call/Put 2.0×",
       "price": 8.15,
       "chg_pct": -0.0,
       "rvol_4d": 0.59,
@@ -23,7 +23,7 @@
       "stocktwits": null,
       "combo_mult": 1.0,
       "active_triggers": 1,
-      "ki_sentiment_source": "llm",
+      "ki_sentiment_source": "keyword",
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 2.0×"
@@ -120,9 +120,9 @@
       "uoa_cp_ratio": 5.171597633136095
     },
     "HZO": {
-      "score": 41,
-      "confidence": 70,
-      "drivers": "Volumen 2.5× + Spanne 12.7% + News-KI 12/30: Generic positive price movement without short interest data, high short volume indicators, or significant squeeze cataly",
+      "score": 25,
+      "confidence": 33,
+      "drivers": "Volumen 2.5× + Spanne 12.7%",
       "price": 36.33,
       "chg_pct": 0.0,
       "rvol_4d": 2.48,
@@ -132,9 +132,9 @@
       "upcoming_event": null,
       "insider_buy": false,
       "stocktwits": null,
-      "combo_mult": 1.1,
-      "active_triggers": 2,
-      "ki_sentiment_source": "llm",
+      "combo_mult": 1.0,
+      "active_triggers": 1,
+      "ki_sentiment_source": "keyword",
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": 1.2658227848101267,
@@ -162,9 +162,9 @@
       "uoa_cp_ratio": 0.6737823211064341
     },
     "JACK": {
-      "score": 68,
+      "score": 43,
       "confidence": 70,
-      "drivers": "Spanne 7.9% + News: squeeze, breakout + Earnings in 18d + SEC Form 4 + UOA Call/Put 4.1×",
+      "drivers": "Spanne 7.9% + News-KI 5/30: Negative sentiment with avoidance recommendation and competitive positioning against Del Taco shows weak momentum indica + Earnings in 18d + SEC Form 4 + UOA Call/Put 4.1×",
       "price": 14.55,
       "chg_pct": 0.0,
       "rvol_4d": 1.08,
@@ -175,8 +175,8 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 1,
-      "ki_sentiment_source": "keyword",
+      "active_triggers": 0,
+      "ki_sentiment_source": "llm",
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 4.1×"
@@ -185,9 +185,9 @@
       "uoa_cp_ratio": 4.11578947368421
     },
     "JEM": {
-      "score": 44,
+      "score": 30,
       "confidence": 70,
-      "drivers": "Volumen 2.3× + Spanne 32.7% + News: breakout",
+      "drivers": "Volumen 2.3× + Spanne 32.7% + News-KI 5/30: Share consolidation signals financial distress rather than squeeze potential; AI/blockchain narrative lacks credibility ",
       "price": 6.35,
       "chg_pct": -0.0,
       "rvol_4d": 2.27,
@@ -197,18 +197,18 @@
       "upcoming_event": null,
       "insider_buy": false,
       "stocktwits": null,
-      "combo_mult": 1.1,
-      "active_triggers": 2,
-      "ki_sentiment_source": "keyword",
+      "combo_mult": 1.0,
+      "active_triggers": 1,
+      "ki_sentiment_source": "llm",
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": null,
       "uoa_cp_ratio": null
     },
     "LENZ": {
-      "score": 48,
+      "score": 61,
       "confidence": 70,
-      "drivers": "Earnings in 4 Tagen (29.07.2026) + Volumen 1.7× + Spanne 9.3% + News-KI 8/30: Negative earnings outlook, declining fair value estimates, and analyst downgrades indicate weakness rather than short-sq + Earnings in 4d",
+      "drivers": "Earnings in 4 Tagen (29.07.2026) + Volumen 1.7× + Spanne 9.3% + News: short interest + Earnings in 4d",
       "price": 5.48,
       "chg_pct": 0.0,
       "rvol_4d": 1.72,
@@ -218,9 +218,9 @@
       "upcoming_event": "Earnings in 4 Tagen (29.07.2026)",
       "insider_buy": false,
       "stocktwits": null,
-      "combo_mult": 1.0,
-      "active_triggers": 1,
-      "ki_sentiment_source": "llm",
+      "combo_mult": 1.1,
+      "active_triggers": 2,
+      "ki_sentiment_source": "keyword",
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": 0.25,
@@ -250,7 +250,7 @@
     "PDYN": {
       "score": 48,
       "confidence": 70,
-      "drivers": "Spanne 6.2% + News: partnership, contract + Earnings in 12d",
+      "drivers": "Spanne 6.2% + News: contract, partnership + Earnings in 12d",
       "price": 4.94,
       "chg_pct": 0.0,
       "rvol_4d": 1.04,
