@@ -1,17 +1,17 @@
 {
-  "updated": "2026-07-25T19:15:56.133276+02:00",
+  "updated": "2026-07-25T20:10:36.496892+02:00",
   "run_info": {
     "tickers_checked": 15,
-    "signals_active": 2,
+    "signals_active": 1,
     "alerts_sent": 0,
-    "elapsed_s": 12.4,
+    "elapsed_s": 15.2,
     "market_phase": "Geschlossen"
   },
   "signals": {
     "AI": {
-      "score": 18,
+      "score": 25,
       "confidence": 17,
-      "drivers": "News-KI 8/30: Negative valuation concerns and overvaluation warnings dominate headlines, reducing squeeze potential despite some inves + UOA Call/Put 2.0×",
+      "drivers": "News: short interest + UOA Call/Put 2.0×",
       "price": 8.15,
       "chg_pct": 0.0,
       "rvol_4d": 0.93,
@@ -22,8 +22,8 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 0,
-      "ki_sentiment_source": "llm",
+      "active_triggers": 1,
+      "ki_sentiment_source": "keyword",
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 2.0×"
@@ -55,9 +55,9 @@
       "uoa_cp_ratio": 6.498473023413641
     },
     "CBRL": {
-      "score": 25,
+      "score": 41,
       "confidence": 33,
-      "drivers": "Kurs +3.6% + UOA Call/Put 4.3×",
+      "drivers": "Kurs +3.6% + News-KI 12/30: Negative business developments (brand sale, store closures) indicate weakening fundamentals and likely institutional sel + UOA Call/Put 4.3×",
       "price": 53.71,
       "chg_pct": 3.65,
       "rvol_4d": 0.61,
@@ -67,9 +67,9 @@
       "upcoming_event": null,
       "insider_buy": false,
       "stocktwits": null,
-      "combo_mult": 1.0,
-      "active_triggers": 1,
-      "ki_sentiment_source": "keyword",
+      "combo_mult": 1.1,
+      "active_triggers": 2,
+      "ki_sentiment_source": "llm",
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 4.3×"
@@ -122,9 +122,9 @@
       "uoa_cp_ratio": 5.171597633136095
     },
     "HZO": {
-      "score": 52,
-      "confidence": 70,
-      "drivers": "Kurs +8.2% + Spanne 9.7% + News-KI 12/30: Moderate positive momentum but lacks key short-squeeze indicators like high short interest, squeeze potential, or forced",
+      "score": 35,
+      "confidence": 33,
+      "drivers": "Kurs +8.2% + Spanne 9.7%",
       "price": 36.33,
       "chg_pct": 8.22,
       "rvol_4d": 1.06,
@@ -134,9 +134,9 @@
       "upcoming_event": null,
       "insider_buy": false,
       "stocktwits": null,
-      "combo_mult": 1.1,
-      "active_triggers": 2,
-      "ki_sentiment_source": "llm",
+      "combo_mult": 1.0,
+      "active_triggers": 1,
+      "ki_sentiment_source": "keyword",
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": 1.2658227848101267,
@@ -164,9 +164,9 @@
       "uoa_cp_ratio": 0.6737823211064341
     },
     "JACK": {
-      "score": 100,
+      "score": 68,
       "confidence": 70,
-      "drivers": "Kurs +5.7% + Spanne 5.8% + News: covering, short interest + Earnings in 18d + SEC Form 4 + UOA Call/Put 4.1×",
+      "drivers": "Kurs +5.7% + Spanne 5.8% + News-KI 5/30: Negative sentiment with avoidance recommendations, no indicators of high short interest, squeeze catalysts, or bullish m + Earnings in 18d + SEC Form 4 + UOA Call/Put 4.1×",
       "price": 14.55,
       "chg_pct": 5.66,
       "rvol_4d": 0.99,
@@ -176,9 +176,9 @@
       "upcoming_event": null,
       "insider_buy": false,
       "stocktwits": null,
-      "combo_mult": 1.1,
-      "active_triggers": 2,
-      "ki_sentiment_source": "keyword",
+      "combo_mult": 1.0,
+      "active_triggers": 1,
+      "ki_sentiment_source": "llm",
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 4.1×"
@@ -187,9 +187,9 @@
       "uoa_cp_ratio": 4.11578947368421
     },
     "KPTI": {
-      "score": 50,
+      "score": 53,
       "confidence": 70,
-      "drivers": "Kurs +4.5% + Spanne 6.2% + News-KI 12/30: Moderate positive momentum with mixed analyst sentiment, but no high short interest indicators, significant catalyst, or + Earnings in 17d",
+      "drivers": "Kurs +4.5% + Spanne 6.2% + News: catalyst + Earnings in 17d",
       "price": 7.41,
       "chg_pct": 4.51,
       "rvol_4d": 0.65,
@@ -201,7 +201,7 @@
       "stocktwits": null,
       "combo_mult": 1.1,
       "active_triggers": 2,
-      "ki_sentiment_source": "llm",
+      "ki_sentiment_source": "keyword",
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": 0.005818389927508585,
@@ -210,7 +210,7 @@
     "LENZ": {
       "score": 64,
       "confidence": 70,
-      "drivers": "Earnings in 4 Tagen (29.07.2026) + Kurs +8.5% + Spanne 7.8% + News-KI 8/30: Negative earnings expectations, declining fair value, and analyst downgrades indicate weak momentum and low short-squeez + Earnings in 4d",
+      "drivers": "Earnings in 4 Tagen (29.07.2026) + Kurs +8.5% + Spanne 7.8% + News-KI 8/30: Negative earnings expectations, declining fair value assessments, and analyst downgrades signal weak momentum with minim + Earnings in 4d",
       "price": 5.48,
       "chg_pct": 8.51,
       "rvol_4d": 0.64,
@@ -317,9 +317,9 @@
       "uoa_cp_ratio": 1.0993288590604027
     },
     "WRLD": {
-      "score": 44,
+      "score": 33,
       "confidence": 33,
-      "drivers": "Kurs +13.0% + News: earnings beat",
+      "drivers": "Kurs +13.0% + News-KI 8/30: Positive earnings headlines suggest fundamental strength but lack short squeeze indicators like high short interest, sud",
       "price": 204.67,
       "chg_pct": 13.03,
       "rvol_4d": 0.88,
@@ -329,9 +329,9 @@
       "upcoming_event": null,
       "insider_buy": false,
       "stocktwits": null,
-      "combo_mult": 1.1,
-      "active_triggers": 2,
-      "ki_sentiment_source": "keyword",
+      "combo_mult": 1.0,
+      "active_triggers": 1,
+      "ki_sentiment_source": "llm",
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": null,
