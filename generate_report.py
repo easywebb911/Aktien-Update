@@ -6934,6 +6934,12 @@ def _build_context(stocks: list[dict], report_date: str,
         # eines Tuples → JS-Array (nur [], f-String-safe).
         "material_8k_status_row_js": json.dumps(MATERIAL_8K_STATUS_ROW,
                                                 ensure_ascii=False),
+        # attention_wiki-Sammel-Status: (feldname, label, status) aus
+        # config.WIKI_ATTENTION_STATUS_ROW injiziert (NICHT als Literal — hält
+        # den Look-Ahead-Isolations-Guard grün). Wrapper-Dict → eigene
+        # Zähl-Semantik in _btWikiCollectStatus (substrate==='en').
+        "wiki_attention_status_row_js": json.dumps(WIKI_ATTENTION_STATUS_ROW,
+                                                   ensure_ascii=False),
         "chat_ctx_json":  chat_ctx_json,
         "head_html":      head_html,
         "chat_panel_html": chat_panel_html,
@@ -6982,6 +6988,7 @@ def generate_html_v1(stocks: list[dict], report_date: str,
     # status) aus config.MATERIAL_8K_STATUS_ROW. Defensiv "[]" bei altem
     # Context ohne Key → _btMat8kCollectStatus rendert dann nichts statt zu crashen.
     material_8k_status_row_js = ctx.get("material_8k_status_row_js", "[]")
+    wiki_attention_status_row_js = ctx.get("wiki_attention_status_row_js", "[]")
     # QUOTE_PROXY_URL: Cloudflare-Worker für Live-Quote-Polling. Aus
     # ENV bestimmt + URL-sanitized im _build_context. Leer → JS-Modul
     # ist no-op (siehe Sektion „Live-Quote-Polling" in CLAUDE.md).
@@ -8155,6 +8162,7 @@ def generate_html_v1(stocks: list[dict], report_date: str,
         <p class="bt-collect-intro">Fortschritts-Monitoring der laufenden Datensammlung — <b>keine Handelsempfehlung, kein Signal</b>. Diese Felder werden erhoben, um sie später statistisch zu prüfen; sie sind <b>unvalidiert</b>. Das Tool ist ein Screener/Attention-Router, kein Alpha-Generator. <b>&bdquo;gesammelt&ldquo;</b> = Anzahl erhobener Einträge; <b>&bdquo;gereift&ldquo;</b> = davon mit vorliegendem Forward-Outcome (return_10d) — erst diese sind auswertbar (auf sie bezieht sich das &bdquo;Ziel n≥X gereift&ldquo;). Keine Trefferquote und keine Rendite.</p>
         <div id="bt-collect-status" class="bt-collect-list"></div>
         <div id="bt-collect-mat8k-status" class="bt-collect-list"></div>
+        <div id="bt-collect-wiki-status" class="bt-collect-list"></div>
         <div id="bt-collect-si-status" class="bt-collect-list"></div>
       </div>
     </div>
@@ -9882,6 +9890,7 @@ function _btRender(){{
   // die Erhebung ist toggle-unabhängig. Zählt nur non-null, rendert KEINE Werte.
   _btCollectStatus(data);
   _btMat8kCollectStatus(data);
+  _btWikiCollectStatus(data);
   // Sechster Eintrag (SI-Positions-Zeitreihe): separate Datei, eigener Fetch —
   // toggle-unabhängig, graceful-empty (fehlende Datei → n=0).
   _btSiCollectStatus();
@@ -9998,6 +10007,35 @@ function _btMat8kCollectStatus(data){{
     + '<span class="bt-collect-name">' + esc(label) + '</span>'
     + '<span class="bt-collect-n">' + n + ' gesammelt'
     + '<span class="bt-collect-mat"> · ' + nEv + ' mit Event</span></span>'
+    + '<span class="bt-collect-status">' + esc(status) + '</span>'
+    + '</div>';
+}}
+// attention_wiki-Sammel-Status: Feldname kommt aus _WIKI_ATTENTION_STATUS[0]
+// (server-injiziert, KEIN Literal → Look-Ahead-Isolations-Guard bleibt grün).
+// Wrapper-Dict → eigene Zähl-Semantik: „N gesammelt" = Records mit
+// attention_wiki-Wrapper, „M mit Artikel" = davon substrate==='en'. Rein
+// anzeigend, kein Signal.
+function _btWikiCollectStatus(data){{
+  const host = document.getElementById('bt-collect-wiki-status');
+  if (!host) return;
+  const row = Array.isArray(_WIKI_ATTENTION_STATUS) ? _WIKI_ATTENTION_STATUS : [];
+  const key = row[0] || '', label = row[1] || '', status = row[2] || '';
+  if (!key){{ host.innerHTML = ''; return; }}
+  const rows = Array.isArray(data) ? data : [];
+  let n = 0, nArt = 0;
+  for (let j = 0; j < rows.length; j++){{
+    const w = rows[j] ? rows[j][key] : undefined;
+    if (w && typeof w === 'object'){{
+      n++;
+      if (w.substrate === 'en') nArt++;   // „mit Artikel" = gemappt (nutzbar)
+    }}
+  }}
+  const esc = s => String(s)
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  host.innerHTML = '<div class="bt-collect-row">'
+    + '<span class="bt-collect-name">' + esc(label) + '</span>'
+    + '<span class="bt-collect-n">' + n + ' gesammelt'
+    + '<span class="bt-collect-mat"> · ' + nArt + ' mit Artikel</span></span>'
     + '<span class="bt-collect-status">' + esc(status) + '</span>'
     + '</div>';
 }}
@@ -10298,6 +10336,10 @@ const _SI_POSITION_STATUS = {si_position_status_row_js};
 // (backtest_history), ist aber ein Wrapper-Dict → eigene Zähl-Semantik in
 // _btMat8kCollectStatus (collected===true / events≥1). Rein anzeigend.
 const _MATERIAL_8K_STATUS = {material_8k_status_row_js};
+// attention_wiki-Sammel-Status aus config.WIKI_ATTENTION_STATUS_ROW (server-
+// injiziert). Wrapper-Dict IN _btData → eigene Zähl-Semantik in
+// _btWikiCollectStatus (substrate==='en'). Rein anzeigend.
+const _WIKI_ATTENTION_STATUS = {wiki_attention_status_row_js};
 // Polling-Intervall in ms. 15 s ist die Spec-Vorgabe; Cloudflare-Worker
 // cached 10 s edge-side, Yahoo-Backend bekommt also max ~6 Req/min pro
 // Symbol-Set über alle aktiven Browser zusammen.

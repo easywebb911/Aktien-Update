@@ -1102,6 +1102,7 @@
         <p class="bt-collect-intro">Fortschritts-Monitoring der laufenden Datensammlung — <b>keine Handelsempfehlung, kein Signal</b>. Diese Felder werden erhoben, um sie später statistisch zu prüfen; sie sind <b>unvalidiert</b>. Das Tool ist ein Screener/Attention-Router, kein Alpha-Generator. <b>&bdquo;gesammelt&ldquo;</b> = Anzahl erhobener Einträge; <b>&bdquo;gereift&ldquo;</b> = davon mit vorliegendem Forward-Outcome (return_10d) — erst diese sind auswertbar (auf sie bezieht sich das &bdquo;Ziel n≥X gereift&ldquo;). Keine Trefferquote und keine Rendite.</p>
         <div id="bt-collect-status" class="bt-collect-list"></div>
         <div id="bt-collect-mat8k-status" class="bt-collect-list"></div>
+        <div id="bt-collect-wiki-status" class="bt-collect-list"></div>
         <div id="bt-collect-si-status" class="bt-collect-list"></div>
       </div>
     </div>
@@ -3012,6 +3013,7 @@ function _btRender(){
   // die Erhebung ist toggle-unabhängig. Zählt nur non-null, rendert KEINE Werte.
   _btCollectStatus(data);
   _btMat8kCollectStatus(data);
+  _btWikiCollectStatus(data);
   // Sechster Eintrag (SI-Positions-Zeitreihe): separate Datei, eigener Fetch —
   // toggle-unabhängig, graceful-empty (fehlende Datei → n=0).
   _btSiCollectStatus();
@@ -3128,6 +3130,35 @@ function _btMat8kCollectStatus(data){
     + '<span class="bt-collect-name">' + esc(label) + '</span>'
     + '<span class="bt-collect-n">' + n + ' gesammelt'
     + '<span class="bt-collect-mat"> · ' + nEv + ' mit Event</span></span>'
+    + '<span class="bt-collect-status">' + esc(status) + '</span>'
+    + '</div>';
+}
+// attention_wiki-Sammel-Status: Feldname kommt aus _WIKI_ATTENTION_STATUS[0]
+// (server-injiziert, KEIN Literal → Look-Ahead-Isolations-Guard bleibt grün).
+// Wrapper-Dict → eigene Zähl-Semantik: „N gesammelt" = Records mit
+// attention_wiki-Wrapper, „M mit Artikel" = davon substrate==='en'. Rein
+// anzeigend, kein Signal.
+function _btWikiCollectStatus(data){
+  const host = document.getElementById('bt-collect-wiki-status');
+  if (!host) return;
+  const row = Array.isArray(_WIKI_ATTENTION_STATUS) ? _WIKI_ATTENTION_STATUS : [];
+  const key = row[0] || '', label = row[1] || '', status = row[2] || '';
+  if (!key){ host.innerHTML = ''; return; }
+  const rows = Array.isArray(data) ? data : [];
+  let n = 0, nArt = 0;
+  for (let j = 0; j < rows.length; j++){
+    const w = rows[j] ? rows[j][key] : undefined;
+    if (w && typeof w === 'object'){
+      n++;
+      if (w.substrate === 'en') nArt++;   // „mit Artikel" = gemappt (nutzbar)
+    }
+  }
+  const esc = s => String(s)
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  host.innerHTML = '<div class="bt-collect-row">'
+    + '<span class="bt-collect-name">' + esc(label) + '</span>'
+    + '<span class="bt-collect-n">' + n + ' gesammelt'
+    + '<span class="bt-collect-mat"> · ' + nArt + ' mit Artikel</span></span>'
     + '<span class="bt-collect-status">' + esc(status) + '</span>'
     + '</div>';
 }
@@ -3428,6 +3459,10 @@ const _SI_POSITION_STATUS = ["Short-Interest-Position (si_position_history)", "s
 // (backtest_history), ist aber ein Wrapper-Dict → eigene Zähl-Semantik in
 // _btMat8kCollectStatus (collected===true / events≥1). Rein anzeigend.
 const _MATERIAL_8K_STATUS = ["material_8k_events", "Materielle 8-K (material_8k_events)", "sammelt forward seit 18.07. · unvalidiert · kein Signal · FDA-Teilmenge dünn (Auswertung ~2027), breite Katalysator-Auswertung früher"];
+// attention_wiki-Sammel-Status aus config.WIKI_ATTENTION_STATUS_ROW (server-
+// injiziert). Wrapper-Dict IN _btData → eigene Zähl-Semantik in
+// _btWikiCollectStatus (substrate==='en'). Rein anzeigend.
+const _WIKI_ATTENTION_STATUS = ["attention_wiki", "Wikipedia-Attention (attention_wiki)", "sammelt forward · unvalidiert · kein Signal · Abdeckung ~½ (tiefe Micro-Caps ohne Artikel = substrate none, ehrlicher Normalfall)"];
 // Polling-Intervall in ms. 15 s ist die Spec-Vorgabe; Cloudflare-Worker
 // cached 10 s edge-side, Yahoo-Backend bekommt also max ~6 Req/min pro
 // Symbol-Set über alle aktiven Browser zusammen.

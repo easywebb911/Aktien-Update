@@ -1507,6 +1507,30 @@ MATERIAL_8K_STATUS_ROW = (
     "dünn (Auswertung ~2027), breite Katalysator-Auswertung früher",
 )
 
+# ── attention_wiki: Wikipedia-Pageviews Attention-Feed (Spec: docs/) ─────────
+# Forward-only S10_OBSERVED-Sammlung (Svoboda SI × Attention). Kein Score/
+# Filter/Push. Wrapper-Dict pro Record ({substrate, article_qid, article_title,
+# views_t_minus_1, views_t, ..., baseline_30d_median, delta_ratio}) — eigene
+# Zähl-Semantik (kein Skalar): „N gesammelt" = Records mit attention_wiki-
+# Wrapper, „M mit Artikel" = davon substrate==='en'. Format (feldname, label,
+# status) analog MATERIAL_8K_STATUS_ROW → KEIN Feldname-Literal im generate_
+# report-Frontend-Source (Look-Ahead-Isolations-Guard bleibt grün, Feldname
+# wird injiziert). REIN ANZEIGE, kein Signal.
+WIKI_ATTENTION_ENABLED         = True    # Master-Switch (Sammlung im postclose)
+WIKI_ATTENTION_HTTP_TIMEOUT    = 20      # Sekunden pro HTTP-Call
+WIKI_ATTENTION_SLEEP_S         = 0.3     # Delay zwischen Calls (Rate-Limit-Schutz)
+WIKI_ATTENTION_RUN_BUDGET_S    = 60.0    # Wall-Clock-Budget der Sammlung (fail-soft)
+WIKI_ATTENTION_BASELINE_DAYS   = 30      # Baseline-Fenster (Kalendertage, bis T-2)
+WIKI_ATTENTION_BASELINE_MIN_N  = 10      # Baseline null, wenn weniger Tage Daten
+WIKI_ATTENTION_BACKFILL_WINDOW_DAYS = 3  # T+1-Nachtrag-Fenster (Retry-Toleranz)
+WIKI_ATTENTION_MAP_FILE        = "wiki_ticker_map.json"  # eingefrorene Auflösung
+WIKI_ATTENTION_STATUS_ROW = (
+    "attention_wiki",
+    "Wikipedia-Attention (attention_wiki)",
+    "sammelt forward · unvalidiert · kein Signal · Abdeckung ~½ (tiefe Micro-"
+    "Caps ohne Artikel = substrate none, ehrlicher Normalfall)",
+)
+
 # ── Score-Status-Kennzeichnung + Status-Drift-Wecker (Single-Source) ────────
 # EINZIGE Validierungs-Wahrheit für Panel UND Karten-Badges. Vorher gab es zwei
 # Quellen (compute_score_confidence-Stufen + diese Labels), die driften konnten
@@ -1759,6 +1783,18 @@ S10_OBSERVED_FIELDS = frozenset({
     # Isolierter Rückweg: scripts/purge_material_8k_events.py poppt exakt
     # diesen einen Key (kein Manifest nötig — benannter Key ist eindeutig).
     "material_8k_events",
+    # attention_wiki (24.07.2026, VORWÄRTS-ERHEBUNG, forward-only): Wrapper-Dict
+    # {substrate, article_qid, article_title, views_t_minus_1, views_t,
+    # views_t_backfilled_at, baseline_30d_median, baseline_30d_n, delta_ratio}
+    # — Wikipedia-Pageviews als point-in-time Attention-Proxy (Svoboda SI ×
+    # Attention). Spec: docs/attention_wiki_spec.md. REINE Analyse-/Outcome-
+    # Persistenz, KEIN Score-/Filter-/Push-Effekt → nur OBSERVED, KEIN MUSS/LAG
+    # (LEGITIM leer: substrate=none bei Micro-Caps ohne Artikel = null überall;
+    # `null` ≠ `0`, hart). Look-Ahead-Konvention EINGEFROREN: darf NIEMALS als
+    # Score-Feature gelesen werden (Grep-Test mock_test_attention_wiki).
+    # Isolierter Rückweg: scripts/purge_attention_wiki.py poppt diesen Key +
+    # löscht wiki_ticker_map.json (beide Artefakte). Schema bleibt v4 (additiv).
+    "attention_wiki",
 })
 
 S10_WINDOW_SIZE          = 20    # Letzte N V4-Einträge für MUSS-Check
