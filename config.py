@@ -246,6 +246,32 @@ EARNINGSWHISPERS_ENABLED = False  # 18.05.2026 deaktiviert — RSS-Feed tot (Pro
 # 4) Zusätzliche Yahoo-US-Screener (erweitert den Pool)
 EXTRA_SCREENERS = ["undervalued_growth_stocks", "day_gainers"]
 
+# ── source_pools — Kandidaten-Herkunfts-Vokabular (additiv, DESKRIPTIV) ───────
+# Granulare Pool-Identifikatoren, die pro postclose-Top-10-Record im
+# ``source_pools``-LISTEN-Feld erfasst werden. Multi-Membership ist real (ein
+# Ticker kann aus day_gainers UND most_shorted stammen) — der Overlap IST
+# Information, deshalb LISTE statt Einzelwert und beim Dedupe MERGEN statt
+# first-win. REINE Entry-Zeit-Provenienz — von KEINEM Score-/Filter-/Ranking-
+# Pfad gelesen (Grep-verankert in mock_test_source_pool.py). Der grobe
+# ``source``-String (ranking-relevant in generate_report.py Tier-2:
+# ``source == "yahoo_most_shorted"``) bleibt UNBERÜHRT; source_pools ist ein
+# paralleles, granulares Feld.
+SOURCE_POOL_YAHOO_PREFIX = "yahoo_"        # + screener_id (granular, nicht kollabiert)
+SOURCE_POOL_FINVIZ_V141  = "finviz_v141"   # v141-Fallback (nur wenn Yahoo=0)
+SOURCE_POOL_FINVIZ_V111  = "finviz_v111"   # v111-Parallel-Supplement
+SOURCE_POOL_MANUAL       = "manual"        # persönliche Watchlist / offene Position
+
+# Geschlossenes Vokabular (fest, wie andere Feld-Enums). Yahoo-Einträge sind
+# ``yahoo_<screener_id>`` für jeden screener_id in _YF_SCREENERS (Basis-Liste +
+# EXTRA_SCREENERS). Bei neuem Screener/neuer Quelle: hier ergänzen.
+SOURCE_POOL_VOCABULARY = frozenset(
+    {SOURCE_POOL_FINVIZ_V141, SOURCE_POOL_FINVIZ_V111, SOURCE_POOL_MANUAL}
+    | {SOURCE_POOL_YAHOO_PREFIX + _sid for _sid in (
+        "most_shorted_stocks", "small_cap_gainers", "aggressive_small_caps",
+    )}
+    | {SOURCE_POOL_YAHOO_PREFIX + _sid for _sid in EXTRA_SCREENERS}
+)
+
 # ── Farbschwellen der Kennzahlenkacheln ──────────────────────────────────────
 SF_GREEN   = 30.0   # % Short Float ≥ 30 → grün
 SF_ORANGE  = 15.0   # % Short Float 15-29 → orange, <15 → rot
@@ -1795,6 +1821,22 @@ S10_OBSERVED_FIELDS = frozenset({
     # Isolierter Rückweg: scripts/purge_attention_wiki.py poppt diesen Key +
     # löscht wiki_ticker_map.json (beide Artefakte). Schema bleibt v4 (additiv).
     "attention_wiki",
+    # source_pools (25.07.2026, VORWÄRTS-ERHEBUNG, forward-only): sortierte LISTE
+    # der granularen Kandidaten-Herkunfts-Pools (Vokabular SOURCE_POOL_*), aus
+    # denen der Ticker beim postclose-Sammeln stammte — inkl. Multi-Membership
+    # (day_gainers ∩ most_shorted etc.; beim Dedupe wird MERGED, nicht first-win).
+    # Motiv (Exzellenz-Review): der day_gainers-Screener konditioniert Kandidaten
+    # auf bereits erfolgte Bewegung (Universe-Bias); ohne Herkunfts-Feld kann
+    # keine Auswertung Pool-Effekte je trennen. REINE DESKRIPTIVE Entry-Zeit-
+    # Provenienz, KEIN Score-/Filter-/Ranking-/Push-/Anzeige-Effekt → nur
+    # OBSERVED, KEIN MUSS/LAG-Check (LEGITIM leer [] falls ein Ticker ohne
+    # getaggten Collector einläuft; Alt-Records vor diesem PR haben den Key gar
+    # nicht → reader-tolerant). Look-Ahead unkritisch (Entry-Zeit-Fakt, kein
+    # Outcome) — Konvention dennoch EINGEFROREN: von KEINEM Score-/Filter-Pfad
+    # gelesen (Grep-Test mock_test_source_pool.py). Sortiert = deterministisch
+    # (stabile Golden/Diffs). Isolierter Rückweg: scripts/purge_source_pool.py.
+    # Schema bleibt v4 (additiv).
+    "source_pools",
 })
 
 S10_WINDOW_SIZE          = 20    # Letzte N V4-Einträge für MUSS-Check
