@@ -35,9 +35,13 @@ from config import (
     MATERIAL_8K_ENABLED,
     SCORE_NORMALIZATION_VERSION,
     SI_VELOCITY_PUB_N_REPORTS,
+    WIKI_ATTENTION_BACKFILL_WINDOW_DAYS,
+    WIKI_ATTENTION_ENABLED,
+    WIKI_ATTENTION_MAP_FILE,
 )
 import entry_score as entry_score_module  # Entry-Timing-Score (Shadow, pure)
 import material_8k as material_8k_module   # §6c FDA-/materielle-8-K-Sammlung
+import wiki_attention as wiki_attention_module  # Wikipedia-Attention-Feed
 
 log = logging.getLogger(__name__)
 
@@ -58,6 +62,28 @@ def _save_backtest_history(entries: list[dict]) -> None:
     beim Aufruf — hier nur Serialisierung."""
     with open(BACKTEST_FILE, "w", encoding="utf-8") as fh:
         json.dump(entries, fh, indent=2, ensure_ascii=False)
+
+
+def _load_wiki_ticker_map() -> dict:
+    """Lädt die eingefrorene Ticker→QID-Auflösungs-Map. Silently {} bei
+    fehlend/corrupt (fail-soft: dann werden die Ticker neu aufgelöst)."""
+    try:
+        with open(WIKI_ATTENTION_MAP_FILE, "r", encoding="utf-8") as fh:
+            raw = json.load(fh)
+        return raw if isinstance(raw, dict) else {}
+    except (FileNotFoundError, json.JSONDecodeError):
+        return {}
+
+
+def _save_wiki_ticker_map(tmap: dict) -> None:
+    """Schreibt die Auflösungs-Map atomar (tmp + os.replace, analog
+    si_position_history), Keys sortiert für deterministische Git-Diffs."""
+    import os
+    ordered = {k: tmap[k] for k in sorted(tmap)}
+    tmp = f"{WIKI_ATTENTION_MAP_FILE}.tmp"
+    with open(tmp, "w", encoding="utf-8") as fh:
+        json.dump(ordered, fh, indent=2, ensure_ascii=False)
+    os.replace(tmp, WIKI_ATTENTION_MAP_FILE)
 
 
 def _prune_backtest_history(entries: list[dict], max_days: int = None) -> list[dict]:
@@ -477,6 +503,7 @@ def _build_backtest_extension(s: dict, pool_position: int, pool_size: int,
                               latest_push_ts_by_ticker: dict | None = None,
                               now_dt=None,
                               material_8k: dict | None = None,
+                              attention_wiki: dict | None = None,
                               entry_date: "date | None" = None) -> dict:
     """Liefert das Schema-Erweiterungs-Dict (Bahn B) für einen Top-10-Eintrag.
 
@@ -813,6 +840,13 @@ def _build_backtest_extension(s: dict, pool_position: int, pool_size: int,
         # Look-Ahead-Konvention EINGEFROREN (analog entry_past_return_5d):
         # NIEMALS als Score-Feature lesen. Schema bleibt v4 (additiv).
         "material_8k_events":      material_8k,
+        # attention_wiki (24.07.2026): Wikipedia-Pageviews Attention-Wrapper.
+        # None wenn WIKI_ATTENTION_ENABLED=False ODER Ticker nicht in der
+        # Sammel-Liste (Re-Run-Dedup) → Feld=None (reader-tolerant). REINE
+        # Analyse-/Outcome-Persistenz, KEIN Score-/Filter-/Push-Effekt → nur
+        # S10_OBSERVED. `null` ≠ `0` (substrate=none → alle views null).
+        # Look-Ahead-Konvention EINGEFROREN: NIEMALS als Score-Feature lesen.
+        "attention_wiki":          attention_wiki,
         "backtest_schema_version": 4,
     }
 
@@ -1014,6 +1048,30 @@ def _append_backtest_entries(top10: list[dict], report_date: str,
                             "(fail-soft): %s", _exc_m8k)
                 material_8k_by_ticker = {}
 
+    # attention_wiki (24.07.2026): Wikipedia-Pageviews-Attention. Auflösung
+    # EINMALIG + eingefroren in wiki_ticker_map.json (nie täglich neu, Spec §7).
+    # Nur Ticker ohne bereits persistiertes (ticker, report_date)-Paar (Re-Run-
+    # Dedup, analog material_8k). company_name kommt aus dem enriched Stock-Dict
+    # (vor dem Append verfügbar, EXZELLENZ #4). Fail-soft: bei Ausfall leere Map.
+    attention_wiki_by_ticker: dict[str, dict] = {}
+    if WIKI_ATTENTION_ENABLED:
+        _wiki_tickers = [s["ticker"] for s in top10
+                         if (s["ticker"], report_date) not in existing_keys]
+        if _wiki_tickers:
+            try:
+                _wiki_map = _load_wiki_ticker_map()
+                _wiki_names = {s["ticker"]: (s.get("company_name") or s["ticker"])
+                               for s in top10}
+                attention_wiki_by_ticker, _wiki_map = \
+                    wiki_attention_module.collect_attention_wiki(
+                        _wiki_tickers, _wiki_names, now_utc=_now_dt,
+                        ticker_map=_wiki_map)
+                _save_wiki_ticker_map(_wiki_map)
+            except Exception as _exc_wiki:
+                log.warning("attention_wiki: Sammlung fehlgeschlagen "
+                            "(fail-soft): %s", _exc_wiki)
+                attention_wiki_by_ticker = {}
+
     # Bahn-A2-Stufe-1: Markt-Regime + VIX einmal pro Run abrufen. Werden auf
     # NEUE Einträge persistiert; die rolling Drawdown-Aktualisierung läuft
     # weiter unten für Einträge < 14 Kalendertage alt.
@@ -1087,6 +1145,9 @@ def _append_backtest_entries(top10: list[dict], report_date: str,
             # §6c: pro-Ticker vorab gesammeltes materielle-8-K-Wrapper-Dict
             # (None wenn disabled / Ticker nicht in der Sammel-Liste).
             material_8k=material_8k_by_ticker.get(s["ticker"]),
+            # attention_wiki: pro-Ticker T-1-Pageviews-Wrapper (None wenn
+            # disabled / Ticker nicht in der Sammel-Liste).
+            attention_wiki=attention_wiki_by_ticker.get(s["ticker"]),
             # entry_date für si_velocity_pub Look-Ahead-Filter (PR-3).
             # ``_rd`` ist bereits am Funktions-Anfang (Wochenend-Schreib-
             # schutz Z. 889) aus ``report_date`` (dd.mm.yyyy) geparst; bei
@@ -1156,6 +1217,36 @@ def _append_backtest_entries(top10: list[dict], report_date: str,
                 continue
         log.info("Backtest-Schema (Stufe 1): max_drawdown aktualisiert für %d/%d, max_gain für %d/%d aktive Einträge",
                  n_dd, len(active_dd), n_mg, len(active_dd))
+
+    # attention_wiki T+1-Nachtrag: views_t (Pageviews des Entry-Tags T) auf
+    # Records nachtragen, deren Entry-Tag jetzt final ist (Probe: Tag-T am T+1
+    # final). IDEMPOTENT (backfill_views_t no-op, wenn views_t bereits gesetzt);
+    # kleines Retry-Fenster [1, WIKI_ATTENTION_BACKFILL_WINDOW_DAYS] gegen
+    # Einzel-Fetch-Ausfälle. Mutiert in-place → vom _save_backtest_history
+    # unten persistiert. substrate=none/en+null-Records: unberührt.
+    if WIKI_ATTENTION_ENABLED:
+        _wiki_bf = 0
+        for e in history:
+            aw = e.get("attention_wiki")
+            if not isinstance(aw, dict) or aw.get("substrate") != "en":
+                continue
+            if aw.get("views_t") is not None:
+                continue  # bereits nachgetragen (idempotent)
+            try:
+                _edate = datetime.strptime(e.get("date", ""), "%d.%m.%Y").date()
+            except (TypeError, ValueError):
+                continue
+            _days_old = (today_d - _edate).days
+            if _days_old < 1 or _days_old > WIKI_ATTENTION_BACKFILL_WINDOW_DAYS:
+                continue
+            try:
+                if wiki_attention_module.backfill_views_t(aw, _edate, now_utc=_now_dt):
+                    _wiki_bf += 1
+            except Exception as _exc_bf:  # noqa: BLE001
+                log.warning("attention_wiki backfill %s fail-soft: %s",
+                            e.get("ticker"), _exc_bf)
+        if _wiki_bf:
+            log.info("[attention_wiki] %d views_t nachgetragen (T+1)", _wiki_bf)
 
     # Vintage-Guard per-entry Skip-Beobachtung (ein Log je Grund-Klasse).
     if _vg_skip_prior:
