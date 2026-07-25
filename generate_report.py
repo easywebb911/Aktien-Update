@@ -583,12 +583,25 @@ def get_yahoo_screener_candidates() -> list[dict]:
     """
     result: list[dict] = []
     seen:   set[str]   = set()
+    by_ticker: dict[str, dict] = {}   # source_pools-Merge bei Multi-Membership
 
     def _add_quotes(quotes: list, region: str, screener_id: str) -> None:
-        src_tag = "yahoo_most_shorted" if screener_id == "most_shorted_stocks" else "yahoo_screener"
+        src_tag  = "yahoo_most_shorted" if screener_id == "most_shorted_stocks" else "yahoo_screener"
+        # source_pools bleibt GRANULAR (nicht kollabiert wie src_tag) — jeder
+        # Screener trägt seine eigene Herkunft.
+        pool_tag = SOURCE_POOL_YAHOO_PREFIX + screener_id
         for q in quotes:
             t = q.get("symbol", "").strip().upper()
-            if not t or not re.match(r'^[A-Z0-9][A-Z0-9.\-]{0,14}$', t) or t in seen:
+            if not t or not re.match(r'^[A-Z0-9][A-Z0-9.\-]{0,14}$', t):
+                continue
+            if t in seen:
+                # Multi-Membership: Ticker stammt schon aus einem anderen
+                # Screener — Herkunfts-Pool MERGEN (nicht die erste Quelle
+                # gewinnen lassen). `source` (ranking-relevant) bleibt der
+                # first-win-Wert; nur source_pools sammelt granular alle Pools.
+                _existing = by_ticker.get(t)
+                if _existing is not None and pool_tag not in _existing["source_pools"]:
+                    _existing["source_pools"].append(pool_tag)
                 continue
             price   = float(q.get("regularMarketPrice") or 0)
             mkt_cap = q.get("marketCap") or q.get("intradayMarketCap")
@@ -598,7 +611,7 @@ def get_yahoo_screener_candidates() -> list[dict]:
                 continue
             seen.add(t)
             sf_raw = float(q.get("shortPercentOfFloat") or 0)
-            result.append({
+            _cand = {
                 "ticker":       t,
                 "market":       region,
                 "market_cap":   float(mkt_cap) if mkt_cap else None,
@@ -612,7 +625,10 @@ def get_yahoo_screener_candidates() -> list[dict]:
                 "company_name": strip_surrogates(q.get("shortName") or q.get("longName") or t),
                 "sector":       strip_surrogates(q.get("sector") or ""),
                 "source":       src_tag,
-            })
+                "source_pools": [pool_tag],
+            }
+            result.append(_cand)
+            by_ticker[t] = _cand
 
     tasks = [(region, sid)
              for region, sids in _YF_SCREENERS.items()
@@ -738,6 +754,7 @@ def get_finviz_candidates(max_pages: int = 6) -> list[dict]:
                 "price":        price,
                 "change":       change,
                 "change_5d":    None,
+                "source_pools": [SOURCE_POOL_FINVIZ_V141],
             })
             page_added += 1
 
@@ -798,6 +815,7 @@ def get_finviz_screener_v111(max_tickers: int | None = None) -> list[dict]:
         "ticker":       t,
         "market":       "US",
         "source":       "finviz_screener_v111",
+        "source_pools": [SOURCE_POOL_FINVIZ_V111],
         "short_float":  0.0,
         "short_ratio":  0.0,
         "rel_volume":   0.0,
@@ -16452,12 +16470,23 @@ def main():
             v111=len(fv_extra),
         )
         seen_ids = {c["ticker"] for c in candidates}
+        _by_tkr  = {c["ticker"]: c for c in candidates}   # source_pools-Merge
         n_new = 0
         for fv in fv_extra:
             if fv["ticker"] not in seen_ids:
                 candidates.append(fv)
                 seen_ids.add(fv["ticker"])
+                _by_tkr[fv["ticker"]] = fv
                 n_new += 1
+            else:
+                # Multi-Membership: v111-Ticker steckt schon im Yahoo-/v141-Pool
+                # — Herkunft MERGEN statt first-win droppen. `source` unberührt.
+                _ex = _by_tkr.get(fv["ticker"])
+                if _ex is not None:
+                    _ex.setdefault("source_pools", [])
+                    for _p in fv.get("source_pools", []):
+                        if _p not in _ex["source_pools"]:
+                            _ex["source_pools"].append(_p)
         if fv_extra:
             log.info("Finviz v=111 supplement: %d Ticker gesamt, %d neu im Pool",
                      len(fv_extra), n_new)
@@ -16558,6 +16587,12 @@ def main():
         for c in candidates:
             if c["ticker"] == pt:
                 c["manual_personal"] = True
+                # Herkunft MERGEN: der Ticker steht ohnehin schon per Screener
+                # im Pool — "manual" additiv anhängen (Multi-Membership), nicht
+                # den Screener-Ursprung überschreiben.
+                c.setdefault("source_pools", [])
+                if SOURCE_POOL_MANUAL not in c["source_pools"]:
+                    c["source_pools"].append(SOURCE_POOL_MANUAL)
                 matched = True
                 n_personal_marked += 1
         if not matched:
@@ -16565,6 +16600,7 @@ def main():
                 "ticker":         pt,
                 "company_name":   pt,
                 "source":         "personal_watchlist",
+                "source_pools":   [SOURCE_POOL_MANUAL],
                 "manual_personal": True,
                 # "market" aus Suffix ableiten — damit Intl-Ticker (z.B. SAP.DE)
                 # den is_us=False-Pfad treffen: kein Short-Float-Filter, Score

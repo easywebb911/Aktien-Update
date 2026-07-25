@@ -847,6 +847,16 @@ def _build_backtest_extension(s: dict, pool_position: int, pool_size: int,
         # S10_OBSERVED. `null` ≠ `0` (substrate=none → alle views null).
         # Look-Ahead-Konvention EINGEFROREN: NIEMALS als Score-Feature lesen.
         "attention_wiki":          attention_wiki,
+        # source_pools (25.07.2026, VORWÄRTS-ERHEBUNG): sortierte, deduplizierte
+        # LISTE der granularen Kandidaten-Herkunfts-Pools (Vokabular SOURCE_POOL_*
+        # in config.py), aus denen der Ticker beim Sammeln stammte. Direkt vom
+        # Stock-Dict gelesen (die Candidate-Identität überlebt candidates→pool→
+        # enriched→top10 in-place via c.update()). ``sorted(set(...))`` =
+        # deterministisch (stabile Golden/Diffs) + Merge-Dedup-Sicherung. Leere/
+        # fehlende Herkunft → [] (reader-tolerant; Alt-Records vor diesem PR
+        # tragen den Key gar nicht). REINE DESKRIPTIVE Entry-Zeit-Provenienz,
+        # KEIN Score-/Filter-/Ranking-Effekt → nur S10_OBSERVED. Schema v4.
+        "source_pools":            sorted(set(s.get("source_pools") or [])),
         "backtest_schema_version": 4,
     }
 
