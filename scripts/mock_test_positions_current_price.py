@@ -1,4 +1,11 @@
-"""Mock-Tests fuer positions.current_price-Persistenz (S3-Fix, 16.05.2026).
+"""Mock-Tests fuer positions.current_price-Persistenz (S3-Fix, 16.05.2026)
++ Preserve-on-None/price_asof-Resilienz (26.07.2026, Tests 11-18).
+
+Resilienz-Hintergrund (Diagnose 26.07.2026): ein transienter yfinance-
+Singleton-Fehler klobberte den guten Freitag-Kurs mit None → S3-crit 14
+ki_agent-Ticks lang. Fix: bei cur_price is None den letzten guten Wert aus
+prev_pos preserven (analog entry_fx) + price_asof-Stempel macht Stale sichtbar.
+NUR das Anzeige-/S3-Feld; der Trigger-Pfad (_compute_exit_state) bleibt frisch.
 
 Hintergrund (Diagnose 16.05.2026):
 Health-Check S3 (crit) feuerte 19/19 Runs mit "current_price fehlt bei
@@ -44,8 +51,10 @@ def _func_block(func_def: str) -> str:
 
 def test_01_field_in_out_dict() -> None:
     block = _func_block("def _build_phase2_positions_payload(")
-    assert re.search(r'"current_price":\s*cur_price\s*,', block), \
-        "current_price-Feld fehlt oder ist nicht cur_price (Variable)"
+    # Seit der Preserve-on-None-Resilienz (26.07.2026) schreibt das out-Dict
+    # `resolved_price` (frisch ODER preserved), nicht mehr direkt `cur_price`.
+    assert re.search(r'"current_price":\s*resolved_price\s*,', block), \
+        "current_price-Feld fehlt oder ist nicht resolved_price (Resilienz-Variable)"
 
 
 def test_02_field_position_in_dict() -> None:
@@ -163,11 +172,96 @@ def test_10_s3_health_check_simulation() -> None:
     assert missing == [], f"S3-Check faengt heute keine Positionen, gefunden: {missing}"
 
 
+# ── Preserve-on-None + price_asof-Resilienz (26.07.2026) ─────────────────────
+
+def test_11_price_asof_field_present() -> None:
+    block = _func_block("def _build_phase2_positions_payload(")
+    assert re.search(r'"price_asof":\s*price_asof\s*,', block), \
+        "price_asof-Feld fehlt im out-Dict"
+
+
+def test_12_preserve_block_present() -> None:
+    """Der Resilienz-Block muss bei cur_price is None den prev-Wert preserven
+    und den alten price_asof behalten."""
+    block = _func_block("def _build_phase2_positions_payload(")
+    assert 'prev_pos.get("current_price")' in block, \
+        "Preserve liest prev_pos.current_price nicht"
+    assert 'prev_pos.get("price_asof")' in block, \
+        "Preserve behält den alten price_asof nicht"
+    assert re.search(r'price_asof\s*=\s*now_utc\.strftime', block), \
+        "frischer Fetch stempelt price_asof nicht mit now_utc"
+
+
+def _replicate_resolve_with_preserve(cur_price, prev_pos, now_iso):
+    """1:1-Replikat des Resilienz-Blocks → (resolved_price, price_asof)."""
+    if cur_price is not None:
+        return cur_price, now_iso
+    prev_price = prev_pos.get("current_price")
+    if isinstance(prev_price, (int, float)) and not isinstance(prev_price, bool):
+        return float(prev_price), prev_pos.get("price_asof")
+    return None, None
+
+
+_NOW = "2026-07-27T06:20:00Z"
+_OLD = "2026-07-24T22:30:00Z"
+
+
+def test_13_fresh_fetch_stamps_now() -> None:
+    rp, asof = _replicate_resolve_with_preserve(4.20, {}, _NOW)
+    assert rp == 4.20 and asof == _NOW, (rp, asof)
+
+
+def test_14_saturday_clobber_now_preserves() -> None:
+    """DER 25.07.-KLOBBER-FALL: guter Freitag-Wert + Fetch-None →
+    frueher wurde None geschrieben, JETZT bleibt der Wert erhalten, asof alt."""
+    prev = {"current_price": 3.45, "price_asof": _OLD}
+    rp, asof = _replicate_resolve_with_preserve(None, prev, _NOW)
+    assert rp == 3.45, f"Wert nicht preserved (Klobber!): {rp}"
+    assert asof == _OLD, f"alter asof nicht behalten (Stale unsichtbar): {asof}"
+    # Nachweis der Verhaltens-Aenderung: das alte Verhalten (unbedingtes cur_price)
+    # haette None geschrieben.
+    old_behavior = None
+    assert rp != old_behavior, "Verhalten identisch zum alten Klobber — Fix wirkt nicht"
+
+
+def test_15_first_time_no_price_stays_none() -> None:
+    """Erstaufnahme ohne Preis: nie einen Preis erfinden → None/None."""
+    rp, asof = _replicate_resolve_with_preserve(None, {}, _NOW)
+    assert rp is None and asof is None, (rp, asof)
+
+
+def test_16_alt_state_without_price_asof_null_tolerant() -> None:
+    """Alt-State: prev hat current_price aber KEIN price_asof-Feld →
+    preserve den Preis, asof = None (null-tolerant, kein KeyError)."""
+    prev = {"current_price": 7.55}   # kein price_asof
+    rp, asof = _replicate_resolve_with_preserve(None, prev, _NOW)
+    assert rp == 7.55 and asof is None, (rp, asof)
+
+
+def test_17_prev_price_none_not_preserved() -> None:
+    """prev hatte selbst keinen Preis (None) → nichts zu preserven → None/None."""
+    prev = {"current_price": None, "price_asof": None}
+    rp, asof = _replicate_resolve_with_preserve(None, prev, _NOW)
+    assert rp is None and asof is None, (rp, asof)
+
+
+def test_18_s3_clears_after_preserve() -> None:
+    """S3-Replik: nach Preserve ist current_price != None → S3 fängt die
+    Position NICHT mehr (der 14-Tick-crit wäre so nie entstanden)."""
+    prev = {"AMC": {"current_price": 3.45, "price_asof": _OLD}}
+    payload = {}
+    for t in ["AMC"]:
+        rp, asof = _replicate_resolve_with_preserve(None, prev[t], _NOW)
+        payload[t] = {"current_price": rp, "price_asof": asof}
+    missing = [t for t, p in payload.items() if p.get("current_price") is None]
+    assert missing == [], f"S3 faengt trotz Preserve: {missing}"
+
+
 # ── Runner ───────────────────────────────────────────────────────────────────
 
 def main() -> int:
     tests = [
-        ("01 Feld 'current_price': cur_price im out-Dict",         test_01_field_in_out_dict),
+        ("01 Feld 'current_price': resolved_price im out-Dict",    test_01_field_in_out_dict),
         ("02 Feld an Position fx_estimated → entry_dtc",           test_02_field_position_in_dict),
         ("03 Kommentar dokumentiert S3-Fix",                       test_03_comment_documents_s3_fix),
         ("04 _compute_exit_state-Aufruf unveraendert",             test_04_compute_exit_state_unchanged),
@@ -177,6 +271,14 @@ def main() -> int:
         ("08 Top10-Price=None → Fallback greift",                  test_08_top10_price_none_falls_through),
         ("09 shares=None orthogonal zu current_price",             test_09_shares_none_orthogonal),
         ("10 S3-Simulation: 4 Positionen, kein missing",           test_10_s3_health_check_simulation),
+        ("11 price_asof-Feld im out-Dict",                         test_11_price_asof_field_present),
+        ("12 Preserve-Block liest prev + stempelt now",            test_12_preserve_block_present),
+        ("13 frischer Fetch stempelt now",                         test_13_fresh_fetch_stamps_now),
+        ("14 Sa-Klobber-Fall: preserved + asof alt",               test_14_saturday_clobber_now_preserves),
+        ("15 Erstaufnahme ohne Preis → None/None",                 test_15_first_time_no_price_stays_none),
+        ("16 Alt-State ohne price_asof → null-tolerant",           test_16_alt_state_without_price_asof_null_tolerant),
+        ("17 prev-Preis None → nicht preserved",                   test_17_prev_price_none_not_preserved),
+        ("18 S3 clears nach Preserve",                             test_18_s3_clears_after_preserve),
     ]
     failed = 0
     for name, fn in tests:
