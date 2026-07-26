@@ -411,7 +411,8 @@ def test_tier1_keys_still_tier_1():
 
 
 def test_tier2_keys_still_tier_2():
-    for k in ("finra", "finnhub", "stockanalysis", "earningswhispers"):
+    # finnhub wurde in der Aufräum-Welle entfernt (dormant, Key nie gemappt).
+    for k in ("finra", "stockanalysis", "earningswhispers"):
         assert HEALTH_CHECK_PROVIDER_TIER.get(k) == 2
 
 
@@ -439,12 +440,14 @@ def _calls_instrument_with_acct(src: str, acct_name: str,
     return False
 
 
-def test_pr2_finnhub_path_intact():
-    """Sister-Check: PR 2 Finnhub-Wrapping ist noch intakt. AST-robust statt
-    Whitespace-Pinning (Lesson #327) — prüft den Call
-    ``_instrument_provider_call(_FINNHUB_ACCT, …)`` strukturell."""
-    assert _calls_instrument_with_acct(SRC_GR, "_FINNHUB_ACCT"), (
-        "_instrument_provider_call(_FINNHUB_ACCT, …) fehlt — Finnhub-Wrapping defekt")
+def test_pr2_borrow_path_intact():
+    """Sister-Check: der Helper wird weiter an einem DIREKTEN Call-Site mit
+    Akkumulator genutzt (ersetzt den früheren Finnhub-Sister-Check — Finnhub
+    wurde entfernt). AST-robust (Lesson #327) — prüft den direkten Call
+    ``_instrument_provider_call(_BORROW_ACCT, …)`` (Borrow-Pfad; der SI-Pfad
+    läuft via ``_ex.submit`` und ist daher kein direkter Call-Node)."""
+    assert _calls_instrument_with_acct(SRC_GR, "_BORROW_ACCT"), (
+        "_instrument_provider_call(_BORROW_ACCT, …) fehlt — Helper-Nutzung defekt")
 
 
 # ── Runner ═════════════════════════════════════════════════════════════
@@ -489,7 +492,7 @@ def main() -> None:
         ("PR-1 Tier-1-Keys unverändert",                   test_tier1_keys_still_tier_1),
         ("PR-2 Tier-2-Keys unverändert",                   test_tier2_keys_still_tier_2),
         ("PR-2 Backward-compat-Alias (Helper-Move)",       test_pr1_helper_backward_compat_aliases),
-        ("PR-2 Finnhub-Wrapping intakt",                   test_pr2_finnhub_path_intact),
+        ("PR-2 Helper-Nutzung (Borrow) intakt",            test_pr2_borrow_path_intact),
     ]
     failed = 0
     for name, fn in tests:

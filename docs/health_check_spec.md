@@ -195,7 +195,7 @@ nur bestehende backtest_history-Felder + zwei config-Flags.
 ### Tier-2 (warn, erst bei wiederholtem Fail)
 
 - **FINRA Short-Volume Sums** — Provider-Key `finra`
-- **Finnhub Earnings Calendar** — Provider-Key `finnhub`
+- ~~**Finnhub Earnings Calendar** — Provider-Key `finnhub`~~ (entfernt, Aufräum-Welle — Key nie gemappt, dormant; yfinance trägt den Earnings-Termin)
 - **Stockanalysis-Konsolidierung** — Provider-Key `stockanalysis`
 - **EarningsWhispers** — Provider-Key `earningswhispers`
 
@@ -303,7 +303,7 @@ State-Fails:
 
 Provider-Fails:
   • Yahoo Screener (Tier 1): HTTP 503 sofort
-  • Finnhub (Tier 2): 3× Coverage 0%
+  • FINRA (Tier 2): 3× Coverage 0%
 
 Letzter erfolgreicher Run: <ISO-Timestamp>
 ```

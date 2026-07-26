@@ -2,7 +2,7 @@
 (Hypothese-H5-Vorbau, Stufe A — Katalysator-Vorwärts-Erhebung).
 
 FIXTURE-ONLY — kein Kontakt mit ``backtest_history.json`` oder anderen Live-
-Dateien. Kein echter yfinance-/Finnhub-Call. Deckt die pure-Python-Slice der
+Dateien. Kein echter yfinance-Call. Deckt die pure-Python-Slice der
 Persistenz ab (Feld-Wiring, S10-Whitelist, Look-Ahead-Isolation).
 
 Verifiziert:

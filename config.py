@@ -946,12 +946,12 @@ EXIT_CTB_DROP_CRIT_PCT       = 0.50   # DEPRECATED → SETUP_EROSION_CRIT_THRESH
 #    Earnings-Veröffentlichung innerhalb CATALYST_DAYS_WINDOW Handels-
 #    tage liegt (Earnings-Datum heute → crit, 1..N Tage entfernt → warn).
 #    Forward-looking: hohes binäres Risiko, Position vor Earnings
-#    schließen oder bewusst halten. Datenquelle: Finnhub Earnings
-#    Calendar ist ein OPTIONALER Pfad (nur wenn FINNHUB_API_KEY in env)
-#    — in Produktion mangels Key DORMANT (daily-squeeze-report.yml /
-#    ki_agent.yml mappen den Key NICHT), faktische Quelle ist yfinance
-#    `Ticker.calendar`. Der Key liegt nur im Diagnose-Workflow
-#    (diagnose_finra_si_probe.yml). Verdrahten-oder-Entfernen bleibt offen.
+#    schließen oder bewusst halten. Datenquelle: yfinance
+#    `Ticker.calendar` (`_fetch_next_earnings_date` → `_fetch_yfinance_
+#    next_earnings`). Der frühere optionale Finnhub-Earnings-Fallback
+#    wurde entfernt (Aufräum-Welle) — der `FINNHUB_API_KEY` war in keinem
+#    Prod-Workflow gemappt, faktisch dormant; yfinance trug den Trigger
+#    durchgehend.
 CATALYST_DAYS_WINDOW         = 2
 # 6) Trend-Bruch (5 %) — Kurs vs. EMA21. Sub-Score-Stufung:
 #    drop_pct = (ma21 − price) / ma21 × 100
@@ -1290,7 +1290,6 @@ HEALTH_CHECK_PROVIDER_TIER = {
     # Tier 2 (warn, 3-in-Folge-Trigger — Konsekutiv-Persistenz in Phase 3)
     "finviz":              2,   # Stufe-3-Fallback (v161+v111+Quote-Page), nicht primär — herabgestuft 19.05.2026
     "finra":               2,   # FINRA Short-Volume Sums (3 File-Downloads)
-    "finnhub":             2,   # Earnings Calendar (pro offene Position)
     "stockanalysis":       2,   # NUR SI-Pfad (Borrow seit 01.06.2026 separat, s.u.)
     "borrow":              2,   # Borrow-Orchestrator (iBorrowDesk-JSON +
                                 # Stockanalysis-tot-primary). Eigener Akku/
@@ -1324,7 +1323,6 @@ HEALTH_CHECK_PROVIDER_EXPECTED = {
     "yfinance_singletons": 3,      # ^VIX + ^GSPC + EURUSD=X
     # Tier 2
     "finra":               None,   # Universum aller US-Tickers, Subset variabel
-    "finnhub":             None,   # 1 Call pro Position; emittiert nur bei calls>0
     "stockanalysis":       None,   # N pro Top-10 (ENABLED-gated, NUR SI)
     "borrow":              None,   # N pro Top-10 (Borrow-Orchestrator)
     "earningswhispers":    None,   # RSS-Feed-Größe schwankt (~30–80)

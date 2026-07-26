@@ -1,16 +1,20 @@
 """Mock-Tests für Phase 2 Trigger 5 (catalyst).
 
-Testet die Trigger-Funktion + Helper aus generate_report.py mit
-gemockten Fetchern und gemockten requests/yfinance — keine echten
-Netzwerk-Calls.
+Testet die Trigger-Funktion + yfinance-Earnings-Helper aus generate_report.py
+mit gemockten Fetchern und gemocktem yfinance — keine echten Netzwerk-Calls.
 
-Sechs Szenarien:
-  1. Finnhub-Hit (Earnings in 1 Tag) → score 50, warn=True
-  2. Finnhub-Miss + yfinance-Hit (Earnings in 2 Tagen, Rand) → score 50, warn=True
-  3. Beide Quellen leer → available=False
+(Der frühere optionale Finnhub-Earnings-Fallback wurde entfernt — der
+FINNHUB_API_KEY war in keinem Prod-Workflow gemappt, faktisch dormant;
+yfinance `Ticker.calendar` trägt den Trigger seit Inception.)
+
+Szenarien:
+  1. Earnings in 1 Tag → score 50, warn=True
+  2. Earnings in 2 Tagen (Window-Rand) → score 50, warn=True
+  3. Quelle leer → available=False
   4. Ticker ohne Earnings (Fetcher returnt None) → available=False
   5. Earnings heute (days_until=0) → score 100, crit=True
   6. Earnings in 3 Tagen (außerhalb Window) → score 0, kein Trigger
+  + Wochenend-Skip + yfinance-Helper mit gemocktem Calendar.
 
 Ausführung: ``python scripts/mock_test_catalyst.py``.
 Exit 0 bei Erfolg, 1 bei AssertionError.
@@ -45,7 +49,7 @@ def _stub_fetcher(date_val: date | None):
     return fn
 
 
-def test_finnhub_hit_in_window():
+def test_hit_in_window():
     """Case 1: Earnings in 1 Tag → warn (score 50)."""
     today = _today_east()
     earn = today + timedelta(days=1)  # Dienstag = Trading-Tag
@@ -59,7 +63,7 @@ def test_finnhub_hit_in_window():
     assert result["details"]["trading_days_until"] == 1, result
 
 
-def test_finnhub_miss_yfinance_hit_rand():
+def test_hit_at_window_edge():
     """Case 2: Earnings in 2 Tagen (Window-Rand) → warn (score 50)."""
     today = _today_east()
     # +2 Trading-Days = Mittwoch von Montag aus
@@ -72,13 +76,13 @@ def test_finnhub_miss_yfinance_hit_rand():
     assert result["details"]["trading_days_until"] == CATALYST_DAYS_WINDOW, result
 
 
-def test_both_sources_empty():
-    """Case 3: Beide Quellen leer (Fetcher returnt None) → available=False."""
+def test_source_empty():
+    """Case 3: Quelle leer (Fetcher returnt None) → available=False."""
     result = gr._exit_p2_trigger_catalyst(
         "TEST", _now_utc(), fetcher=_stub_fetcher(None))
     assert result["available"] is False, result
     assert result["score"] == 0, result
-    assert "Finnhub/yfinance" in result.get("reason", "") \
+    assert "yfinance" in result.get("reason", "") \
            or "Earnings" in result.get("reason", ""), result
 
 
@@ -128,36 +132,8 @@ def test_weekend_skipped():
     assert result["score"] == 50, result
 
 
-def test_finnhub_real_path_no_key(monkeypatch=None):
-    """Finnhub-Helper ohne API-Key → None ohne Netzwerk-Call."""
-    today = _today_east()
-    with patch.dict("os.environ", {}, clear=False):
-        # FINNHUB_API_KEY explizit entfernen
-        import os as _os
-        _os.environ.pop("FINNHUB_API_KEY", None)
-        edate = gr._fetch_finnhub_next_earnings("AAPL", today)
-    assert edate is None, edate
-
-
-def test_finnhub_real_path_mocked_response():
-    """Finnhub-Helper mit gemocktem requests-Response."""
-    today = _today_east()
-    mock_resp = MagicMock()
-    mock_resp.raise_for_status = MagicMock(return_value=None)
-    mock_resp.json = MagicMock(return_value={
-        "earningsCalendar": [
-            {"date": (today + timedelta(days=5)).strftime("%Y-%m-%d"), "symbol": "AAPL"},
-            {"date": (today + timedelta(days=1)).strftime("%Y-%m-%d"), "symbol": "AAPL"},
-        ]
-    })
-    with patch.object(gr.requests, "get", return_value=mock_resp):
-        edate = gr._fetch_finnhub_next_earnings("AAPL", today, api_key="dummy")
-    # Soll den NÄCHSTEN (=kleinsten ≥ today) zurückliefern
-    assert edate == today + timedelta(days=1), edate
-
-
 def test_yfinance_real_path_mocked():
-    """yfinance-Fallback mit gemocktem Calendar-Dict."""
+    """yfinance-Fallback mit gemocktem Calendar-Dict (jetzt einzige Quelle)."""
     today = _today_east()
     fake_ticker = MagicMock()
     fake_ticker.calendar = {
@@ -168,18 +144,31 @@ def test_yfinance_real_path_mocked():
     assert edate == today + timedelta(days=4), edate
 
 
+def test_next_earnings_date_uses_yfinance_only():
+    """_fetch_next_earnings_date delegiert direkt an yfinance (kein Finnhub mehr)."""
+    today = _today_east()
+    fake_ticker = MagicMock()
+    fake_ticker.calendar = {"Earnings Date": [today + timedelta(days=3)]}
+    with patch.object(gr.yf, "Ticker", return_value=fake_ticker):
+        edate = gr._fetch_next_earnings_date("AAPL", today)
+    assert edate == today + timedelta(days=3), edate
+    # Der frühere Finnhub-Helper existiert nicht mehr.
+    assert not hasattr(gr, "_fetch_finnhub_next_earnings"), \
+        "Finnhub-Helper sollte entfernt sein"
+
+
 def main():
     tests = [
-        ("Case 1: Finnhub-Hit in window (days=1)",   test_finnhub_hit_in_window),
-        ("Case 2: Yfinance-Hit am Window-Rand (days=2)", test_finnhub_miss_yfinance_hit_rand),
-        ("Case 3: Beide Quellen leer",                test_both_sources_empty),
-        ("Case 4: Position ohne Earnings",            test_position_ohne_earnings),
-        ("Case 5: Earnings heute (crit)",             test_earnings_today_crit),
-        ("Case 6: Außerhalb Window (days=3)",         test_outside_window_3_trading_days),
-        ("Bonus: Wochenend-Skip Fr→Mo",               test_weekend_skipped),
-        ("Bonus: Finnhub ohne API-Key",               test_finnhub_real_path_no_key),
-        ("Bonus: Finnhub-Helper mit gemocktem Response", test_finnhub_real_path_mocked_response),
+        ("Case 1: Hit in window (days=1)",             test_hit_in_window),
+        ("Case 2: Hit am Window-Rand (days=2)",        test_hit_at_window_edge),
+        ("Case 3: Quelle leer",                        test_source_empty),
+        ("Case 4: Position ohne Earnings",             test_position_ohne_earnings),
+        ("Case 5: Earnings heute (crit)",              test_earnings_today_crit),
+        ("Case 6: Außerhalb Window (days=3)",          test_outside_window_3_trading_days),
+        ("Bonus: Wochenend-Skip Fr→Mo",                test_weekend_skipped),
         ("Bonus: yfinance-Fallback mit gemocktem Cal", test_yfinance_real_path_mocked),
+        ("Bonus: _fetch_next_earnings_date = yfinance-only",
+         test_next_earnings_date_uses_yfinance_only),
     ]
     failed = 0
     for name, fn in tests:

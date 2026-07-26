@@ -56,7 +56,7 @@ def _make_success_run(provider, run_ts, tier=2):
     return _row(provider, run_ts, http_status=200, tier=tier)
 
 
-_TIER_MAP_DEFAULT = {"finviz": 2, "finnhub": 2, "stockanalysis": 2}
+_TIER_MAP_DEFAULT = {"finviz": 2, "finra": 2, "stockanalysis": 2}
 _NOW = datetime(2026, 5, 28, 22, 0, tzinfo=timezone.utc)
 
 
@@ -136,28 +136,28 @@ def test_05_finviz_at_101_still_warn():
 
 
 def test_06_other_tier2_provider_unaffected_at_3():
-    """finnhub (Tier 2, KEIN Override) → bei 3 in Folge SOFORT warn.
+    """finra (Tier 2, KEIN Override) → bei 3 in Folge SOFORT warn.
     Beweist: Override gilt provider-spezifisch, kein globaler Effekt."""
-    rows = [_make_failing_run("finnhub", f"2026-05-{i:02d}T20:00:00Z")
+    rows = [_make_failing_run("finra", f"2026-05-{i:02d}T20:00:00Z")
             for i in range(26, 29)]  # 3 Einträge
     fails = hc.aggregate_provider_fails(
         rows, counters={"consecutive_failures": {}, "last_seen": {}},
         tier_map=_TIER_MAP_DEFAULT, now_ts=_NOW,
     )
-    fh_fails = [f for f in fails if f.get("provider") == "finnhub"]
+    fh_fails = [f for f in fails if f.get("provider") == "finra"]
     assert len(fh_fails) == 1 and fh_fails[0]["severity"] == "warn"
     assert fh_fails[0]["consecutive"] == 3
 
 
 def test_07_other_tier2_provider_at_2_no_warn():
-    """finnhub bei 2 → KEIN warn (Default 3 noch nicht erreicht)."""
-    rows = [_make_failing_run("finnhub", f"2026-05-{i:02d}T20:00:00Z")
+    """finra bei 2 → KEIN warn (Default 3 noch nicht erreicht)."""
+    rows = [_make_failing_run("finra", f"2026-05-{i:02d}T20:00:00Z")
             for i in range(27, 29)]   # 2 Einträge
     fails = hc.aggregate_provider_fails(
         rows, counters={"consecutive_failures": {}, "last_seen": {}},
         tier_map=_TIER_MAP_DEFAULT, now_ts=_NOW,
     )
-    fh_fails = [f for f in fails if f.get("provider") == "finnhub"]
+    fh_fails = [f for f in fails if f.get("provider") == "finra"]
     assert not fh_fails
 
 

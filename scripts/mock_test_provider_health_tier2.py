@@ -4,7 +4,6 @@ Pro Tier-2-Provider:
   - Source-Inspektion: Wrapper sitzt am richtigen Call-Site
   - Source-Inspektion: try/finally-Pattern + Exception bubbelt
   - Pass-Pfad + Fail-Pfad via record-Schema
-  - Special: finnhub "call_attempted=True"-Gating (calls > 0)
   - Special: stockanalysis ENABLED-Gating (kein Wrapper bei Flag=False)
   - Special: earningswhispers nan_pct-Berechnung
 
@@ -120,7 +119,7 @@ def _try_has_except_raise(try_node: ast.Try) -> bool:
 
 
 def test_tier2_keys_in_config():
-    for key in ("finra", "finnhub", "stockanalysis", "earningswhispers"):
+    for key in ("finra", "stockanalysis", "earningswhispers"):
         assert key in HEALTH_CHECK_PROVIDER_TIER, (
             f"Tier-2-Provider {key!r} fehlt in HEALTH_CHECK_PROVIDER_TIER")
         assert HEALTH_CHECK_PROVIDER_TIER[key] == 2
@@ -163,36 +162,20 @@ def test_finra_run_phase_is_ki_agent_tick():
         'run_phase="ki_agent_tick" setzen')
 
 
-# ── Finnhub (call_attempted gated) ═════════════════════════════════════════
+# ── Finnhub — ENTFERNT (Aufräum-Welle): Regression-Guard ═══════════════════
 
 
-def test_finnhub_accumulator_present():
-    assert "_FINNHUB_ACCT" in SRC_GR, "Finnhub-Akkumulator fehlt"
-    assert "_provider_acct_reset(_FINNHUB_ACCT)" in SRC_GR, (
-        "Finnhub-Akkumulator wird in main() nicht zurückgesetzt")
-
-
-def test_finnhub_instrument_call_at_call_site():
-    """Helper _instrument_provider_call(_FINNHUB_ACCT, _fetch_finnhub_next_earnings, …)
-    ersetzt den direkten Aufruf in _fetch_next_earnings_date."""
-    pat = re.compile(
-        r"_instrument_provider_call\(\s*_FINNHUB_ACCT\s*,\s*"
-        r"_fetch_finnhub_next_earnings", re.DOTALL,
-    )
-    assert pat.search(SRC_GR), (
-        "_fetch_finnhub_next_earnings wird nicht durch _instrument_provider_call gewrappt")
-
-
-def test_finnhub_emit_gated_by_calls():
-    """End-of-main-Emission nur wenn _FINNHUB_ACCT['calls'] > 0."""
-    # AST-robust: das Gating-Statement ist die umschließende if-Anweisung des
-    # record_provider_call. Prüfe die Gating-Bedingung im AST-begrenzten
-    # if-Segment (statt Byte-Fenster). Semantik identisch.
-    call, tree = _provider_call_node(SRC_GR, "finnhub")
-    if_src = _enclosing_if_src(SRC_GR, tree, call) if call else None
-    assert if_src is not None and '_fh_acct["calls"] > 0' in if_src, (
-        "Finnhub-Emission ist nicht durch calls>0 gegated — würde leere "
-        "Zeilen schreiben wenn keine Positionen offen")
+def test_finnhub_removed():
+    """Finnhub-Earnings-Fallback wurde entfernt (dormant, Key nie gemappt).
+    Weder Akkumulator noch Helper noch Provider-Emission dürfen zurückbleiben."""
+    assert "_FINNHUB_ACCT" not in SRC_GR, "Finnhub-Akkumulator-Rest gefunden"
+    assert "_fetch_finnhub_next_earnings" not in SRC_GR, (
+        "Finnhub-Fetcher-Rest gefunden")
+    assert 'provider="finnhub"' not in SRC_GR, "Finnhub-Provider-Emission-Rest"
+    assert "finnhub" not in HEALTH_CHECK_PROVIDER_TIER, (
+        "finnhub noch in HEALTH_CHECK_PROVIDER_TIER")
+    assert "finnhub" not in HEALTH_CHECK_PROVIDER_EXPECTED, (
+        "finnhub noch in HEALTH_CHECK_PROVIDER_EXPECTED")
 
 
 # ── Stockanalysis (ENABLED-gated aggregate) ════════════════════════════════
@@ -403,14 +386,14 @@ def test_tier2_pass_path_writes_status_200():
         path = fh.name
     try:
         open(path, "w").close()
-        for prov in ("finra", "finnhub", "stockanalysis", "earningswhispers"):
+        for prov in ("finra", "stockanalysis", "earningswhispers"):
             hc.record_provider_call(
                 provider=prov, tier=2, latency_ms=1500,
                 http_status=200, item_count=10,
                 run_phase="premarket", path=path,
             )
         entries = hc.read_all_provider(path)
-        assert len(entries) == 4
+        assert len(entries) == 3
         for e in entries:
             assert e["tier"] == 2
             assert e["http_status"] == 200
@@ -429,7 +412,6 @@ def test_tier2_fail_path_writes_error_string():
     try:
         open(path, "w").close()
         for prov, err in [("finra", "empty_result"),
-                           ("finnhub", "2/3 calls failed"),
                            ("stockanalysis", "1/5 calls failed"),
                            ("earningswhispers", "empty_result")]:
             hc.record_provider_call(
@@ -503,10 +485,8 @@ def main() -> None:
         ("finra-Wrapper try/finally",                       test_finra_uses_try_finally),
         ("finra-Wrapper Exception bubbelt",                 test_finra_exception_bubbles),
         ("finra run_phase=ki_agent_tick",                   test_finra_run_phase_is_ki_agent_tick),
-        # Finnhub
-        ("Finnhub-Akkumulator + Reset vorhanden",           test_finnhub_accumulator_present),
-        ("Finnhub-Call durch _instrument_provider_call",    test_finnhub_instrument_call_at_call_site),
-        ("Finnhub-Emission durch calls>0 gegated",          test_finnhub_emit_gated_by_calls),
+        # Finnhub — entfernt: Regression-Guard
+        ("Finnhub restlos entfernt (Guard)",                test_finnhub_removed),
         # Stockanalysis
         ("Stockanalysis-Akkumulator + Reset vorhanden",     test_stockanalysis_accumulator_present),
         ("Stockanalysis-Borrow-Pfad unter ENABLED-Gate",    test_stockanalysis_borrow_path_wrapped_under_enabled_gate),

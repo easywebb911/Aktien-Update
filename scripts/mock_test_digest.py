@@ -172,18 +172,18 @@ def test_provider_coverage_threshold_tier2_at_50():
     now = datetime(2026, 5, 15, 12, 0, tzinfo=timezone.utc)
     # 49 → fail-Schwelle gerissen
     out_fail = hc.aggregate_provider_fails(
-        [{"run_ts": _ts(2026, 5, 15, 1), "provider": "finnhub", "tier": 2,
+        [{"run_ts": _ts(2026, 5, 15, 1), "provider": "finra", "tier": 2,
           "http_status": 200, "coverage_pct": 49.0, "error": None}],
-        counters, tier_map={"finnhub": 2}, now_ts=now)
+        counters, tier_map={"finra": 2}, now_ts=now)
     assert out_fail == []   # nicht 3-in-Folge
-    assert counters["consecutive_failures"]["finnhub"] == 1
+    assert counters["consecutive_failures"]["finra"] == 1
     # 60 → ok, counter reset
     out_ok = hc.aggregate_provider_fails(
-        [{"run_ts": _ts(2026, 5, 15, 2), "provider": "finnhub", "tier": 2,
+        [{"run_ts": _ts(2026, 5, 15, 2), "provider": "finra", "tier": 2,
           "http_status": 200, "coverage_pct": 60.0, "error": None}],
-        counters, tier_map={"finnhub": 2}, now_ts=now)
+        counters, tier_map={"finra": 2}, now_ts=now)
     assert out_ok == []
-    assert counters["consecutive_failures"]["finnhub"] == 0
+    assert counters["consecutive_failures"]["finra"] == 0
 
 
 def test_provider_stale_counter_drift_reset():
@@ -277,7 +277,7 @@ def test_format_body_mixed_crit_warn():
         state_fails=[{"id": "S3", "severity": "crit",
                       "detail": "AMC missing price", "count": 5}],
         provider_fails=[
-            {"provider": "finnhub", "tier": 2, "severity": "warn",
+            {"provider": "finra", "tier": 2, "severity": "warn",
              "reason": "coverage 0%", "consecutive": 3},
             {"provider": "edgar_13d_g", "tier": 3, "severity": "warn",
              "reason": "HTTP 403", "consecutive": 3},
@@ -288,7 +288,7 @@ def test_format_body_mixed_crit_warn():
     assert title == "⚠️ Health-Check-Digest"
     assert "S3: AMC missing price" in body
     assert "5 Runs in Folge" in body
-    assert "finnhub (Tier 2): coverage 0% (3 Runs in Folge)" in body
+    assert "finra (Tier 2): coverage 0% (3 Runs in Folge)" in body
     assert "edgar_13d_g (Tier 3)" in body
 
 

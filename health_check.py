@@ -1362,7 +1362,7 @@ def read_all_provider(path: str = LOG_FILE_PROVIDER) -> list[dict]:
 # ── Per-Call-Akkumulator-Pattern (extrahiert aus PR 2, generalisiert PR 3) ─
 #
 # Wird von Tier-2/3-Providern genutzt, die N-mal pro Run aufgerufen werden
-# (Finnhub, Stockanalysis, StockTwits, UOA, News-RSS, EDGAR-pro-Ticker).
+# (Stockanalysis, StockTwits, UOA, News-RSS, EDGAR-pro-Ticker).
 # main() emittiert am Ende eine konsolidierte Zeile pro Provider, sofern
 # der Akkumulator ``calls > 0`` zeigt (call_attempted-Gating).
 

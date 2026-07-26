@@ -403,10 +403,6 @@ def _finviz_acct_record(latency_ms: int, success: bool,
 # Symmetrisch zu _FINVIZ_ACCT: pro-Call-Akkumulation + Single-Row-
 # Emission am Ende von main(). Reset bei main()-Start damit Tests
 # wiederholt ausführbar sind.
-_FINNHUB_ACCT: dict = {
-    "latency_ms": 0, "calls": 0, "failures": 0, "successes": 0,
-    "last_error_repr": None,
-}
 _STOCKANALYSIS_ACCT: dict = {
     "latency_ms": 0, "calls": 0, "failures": 0, "successes": 0,
     "last_error_repr": None,
@@ -15749,51 +15745,6 @@ def _trading_days_until(target_date: date, today: date) -> int | None:
     return days
 
 
-def _fetch_finnhub_next_earnings(ticker: str, today: date,
-                                  *, lookahead_days: int = 90,
-                                  api_key: str | None = None,
-                                  ) -> date | None:
-    """Holt das nächste Earnings-Datum aus dem Finnhub Earnings Calendar.
-
-    Returnt ``date`` oder ``None`` bei fehlendem API-Key, Netzwerk-/Parse-
-    Fehlern oder leerer Antwort. Pure ``requests`` mit Timeout — kein
-    Caching (Earnings-Datum wird pro Daily-Run für 1–3 offene Positionen
-    geholt, vernachlässigbarer API-Traffic).
-    """
-    key = api_key if api_key is not None else os.environ.get("FINNHUB_API_KEY")
-    if not key:
-        return None
-    try:
-        from_s = today.strftime("%Y-%m-%d")
-        to_s   = (today + timedelta(days=lookahead_days)).strftime("%Y-%m-%d")
-        url    = "https://finnhub.io/api/v1/calendar/earnings"
-        resp   = requests.get(
-            url,
-            params={"from": from_s, "to": to_s, "symbol": ticker, "token": key},
-            headers=HTTP_HEADERS,
-            timeout=8,
-        )
-        resp.raise_for_status()
-        data = resp.json() or {}
-        rows = data.get("earningsCalendar") or []
-        candidates: list[date] = []
-        for row in rows:
-            raw = row.get("date") if isinstance(row, dict) else None
-            if not raw:
-                continue
-            try:
-                cand = datetime.strptime(str(raw), "%Y-%m-%d").date()
-            except ValueError:
-                continue
-            if cand >= today:
-                candidates.append(cand)
-        if candidates:
-            return min(candidates)
-    except (requests.RequestException, ValueError, KeyError) as exc:
-        log.debug("Finnhub earnings %s: %s", ticker, exc)
-    return None
-
-
 def _fetch_yfinance_next_earnings(ticker: str, today: date) -> date | None:
     """Fallback: nächste Earnings via ``yf.Ticker(t).calendar``.
 
@@ -15845,39 +15796,18 @@ def _fetch_next_earnings_date(ticker: str, today: date | None = None
                                ) -> date | None:
     """Single-Source-of-Truth für Trigger 5 (catalyst).
 
-    Reihenfolge: Finnhub (wenn FINNHUB_API_KEY gesetzt) → yfinance.
-    Returnt ``date`` (Earnings-Tag in US-Eastern-Zeitzone) oder
-    ``None``. Bei beiden Quellen leer wird der Aufrufer
-    ``available=False`` setzen.
+    Quelle: yfinance ``Ticker.calendar`` — seit Inception der reale Pfad.
+    Returnt ``date`` (Earnings-Tag in US-Eastern-Zeitzone) oder ``None``.
+    Bei leerer Quelle setzt der Aufrufer ``available=False``.
 
-    Finnhub ist eine Premium-Source-Fallback. Wenn ``FINNHUB_API_KEY``
-    nicht im Env gesetzt ist, läuft yfinance als Primärquelle — das ist
-    okay und seit Inception der reale Pfad. Provider-Health-Log soll
-    diesen Pfad nicht als „Fail" zählen (Hard-Skip vor HTTP-Call =
-    kein echter Outage). Spätere Aufräum-Welle wird Finnhub komplett
-    entfernen (Diagnose-Memo 16.05.2026).
+    (Der frühere optionale Finnhub-Earnings-Fallback wurde entfernt — der
+    ``FINNHUB_API_KEY`` war in keinem Prod-Workflow gemappt, faktisch
+    dormant; yfinance trug den Trigger durchgehend. Aufräum-Welle gemäß
+    Diagnose-Memo 16.05.2026.)
     """
     if today is None:
         today = datetime.now(EASTERN).date()
-    # Health-Check Phase 2 PR 2 — Tier-2 Finnhub. Akkumulator-Pattern:
-    # Per-Call-Latency + Success in _FINNHUB_ACCT; main() emittiert eine
-    # Zeile am Ende falls _FINNHUB_ACCT["calls"] > 0 (call_attempted-
-    # Gating).
-    #
-    # Skip-Logging-Fix (16.05.2026): Wenn FINNHUB_API_KEY nicht
-    # konfiguriert ist, würde der Wrapper-Pfad pro Aufruf eine 0-ms-
-    # Fail-Zeile produzieren (N/N calls failed, kein echter Provider-
-    # Outage). Wir prüfen den Key vorweg und gehen direkt zum
-    # yfinance-Fallback, ohne den Provider-Health-Counter zu
-    # inkrementieren.
-    if os.environ.get("FINNHUB_API_KEY"):
-        edate = _instrument_provider_call(
-            _FINNHUB_ACCT, _fetch_finnhub_next_earnings, ticker, today)
-    else:
-        edate = None
-    if edate is None:
-        edate = _fetch_yfinance_next_earnings(ticker, today)
-    return edate
+    return _fetch_yfinance_next_earnings(ticker, today)
 
 
 def _exit_p2_trigger_catalyst(ticker: str,
@@ -15908,13 +15838,13 @@ def _exit_p2_trigger_catalyst(ticker: str,
         edate = fetch(ticker, today_east)
     except (TypeError, ValueError) as exc:
         # Fetcher liefert defekte Daten / falsche Signatur — die
-        # eigentlichen Netzwerk-/Parse-Fehler werden bereits in den
-        # Helpern (Finnhub/yfinance) gefangen.
+        # eigentlichen Netzwerk-/Parse-Fehler werden bereits im
+        # yfinance-Helper gefangen.
         log.debug("catalyst fetcher %s: %s", ticker, exc)
         edate = None
     if edate is None:
         return {"score": 0, "warn": False, "crit": False, "available": False,
-                "reason": "kein Earnings-Datum aus Finnhub/yfinance"}
+                "reason": "kein Earnings-Datum aus yfinance"}
     days_until = _trading_days_until(edate, today_east)
     if days_until is None:
         return {"score": 0, "warn": False, "crit": False, "available": False,
@@ -16390,7 +16320,6 @@ def main():
     # Health-Check Phase 2 — Provider-Aggregatoren zurücksetzen, damit
     # wiederholte main()-Aufrufe (Tests) sauber starten.
     _finviz_acct_reset()
-    _provider_acct_reset(_FINNHUB_ACCT)
     _provider_acct_reset(_STOCKANALYSIS_ACCT)
     _provider_acct_reset(_BORROW_ACCT)
     _provider_acct_reset(_EDGAR_13F_ACCT)
@@ -17806,7 +17735,7 @@ def main():
     # Variante-B-Architektur, fest entschieden.
     #
     # Sofortiger ntfy-Push, aber Exit erst am Ende von main() — damit
-    # die Provider-Aggregator-Records (FINVIZ/FINNHUB/…) noch lokal
+    # die Provider-Aggregator-Records (FINVIZ/Stockanalysis/…) noch lokal
     # logged werden (Diagnose-Wert auch wenn nicht committed).
     _s9_crit_exit_required = any(
         f.get("id") == "S9" and f.get("severity") == "crit"
@@ -17831,7 +17760,7 @@ def main():
     # emittieren ihre konsolidierten Zeilen. Inline-Provider (yahoo_
     # screener, yfinance_batch, yfinance_singletons, earningswhispers)
     # schreiben am Call-Site; per-Call-akkumulierte Provider (finviz,
-    # finnhub, stockanalysis) emittieren erst hier am Ende.
+    # stockanalysis) emittieren erst hier am Ende.
     try:
         _fv_acct = _FINVIZ_ACCT
         if _fv_acct["calls"] > 0:
@@ -17845,20 +17774,6 @@ def main():
                 error=None if _fv_acct["failures"] == 0
                       else (_fv_acct.get("last_error_repr")
                             or f"{_fv_acct['failures']}/{_fv_acct['calls']} calls failed"),
-                run_phase=run_phase,
-            )
-        # Tier 2: finnhub — call_attempted-Gating via calls > 0.
-        _fh_acct = _FINNHUB_ACCT
-        if _fh_acct["calls"] > 0:
-            health_check.record_provider_call(
-                provider="finnhub",
-                tier=HEALTH_CHECK_PROVIDER_TIER.get("finnhub", 2),
-                latency_ms=_fh_acct["latency_ms"],
-                http_status=200 if _fh_acct["successes"] > 0 else None,
-                item_count=_fh_acct["successes"],
-                error=None if _fh_acct["failures"] == 0
-                      else (_fh_acct.get("last_error_repr")
-                            or f"{_fh_acct['failures']}/{_fh_acct['calls']} calls failed"),
                 run_phase=run_phase,
             )
         # Tier 2: stockanalysis (SI-Pfad) — ENABLED-Gating bereits aussen
