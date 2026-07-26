@@ -55,6 +55,9 @@ PATCHER_SELECTORS: dict[str, list[str]] = {
         ".m-lbl",
         ".m-val",
         ".pos-pnl-live",
+        # Stale-Preis-Marker (Anzeige-Folge #483): frischer Live-Quote entfernt
+        # den Build-Zeit-Stale-Marker (un-dim + Caption weg) — reine Anzeige.
+        ".pos-stale-note",
     ],
     "_quoteEnsureLiveDot": [
         ".quote-live-dot",
