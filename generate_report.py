@@ -16230,19 +16230,46 @@ def _build_phase2_positions_payload(
                 else:
                     entry_fx = None
                     fx_estimated = False
+        # current_price-Resilienz (Preserve-on-None + price_asof, 26.07.2026):
+        # Ein transienter yfinance-Singleton-Fehler (Batch OK, aber die späten
+        # Per-Ticker-`.history()`-Calls throttelten) hat am 25.07. den guten
+        # Freitag-Kurs mit None geklobbert → S3-crit 14 ki_agent-Ticks lang.
+        # Analog zum entry_fx-Write-once-Muster oben:
+        #   • frischer Fetch (cur_price is not None) → schreiben, price_asof=jetzt
+        #   • Fehlschlag (None) + prev hatte einen Preis → PRESERVE den letzten
+        #     guten Wert UND behalte dessen alten price_asof (Stale wird SICHTBAR
+        #     statt versteckt — entschärft die Delisting-Maskierung)
+        #   • nie ein Preis da (Erstaufnahme/Alt-State) → None / None (kein
+        #     Preis erfunden)
+        # GRENZE: betrifft NUR das persistierte Anzeige-/S3-Feld. Der Trigger-
+        # Pfad (_compute_exit_state oben) bekommt weiterhin den FRISCHEN
+        # cur_price (None bei Fehler) → Validity-Gate-Semantik unverändert, keine
+        # Trigger-Logik-Änderung. exit_state.current_price bleibt die Trigger-
+        # Wahrheit; dieses Top-Level-Feld ist der Anzeige-/S3-Kanal.
+        if cur_price is not None:
+            resolved_price = cur_price
+            price_asof = now_utc.strftime("%Y-%m-%dT%H:%M:%SZ")
+        else:
+            prev_price = prev_pos.get("current_price")
+            if isinstance(prev_price, (int, float)) and not isinstance(prev_price, bool):
+                resolved_price = float(prev_price)
+                # Alten Stempel behalten (kann None sein bei Alt-State ohne Feld).
+                price_asof = prev_pos.get("price_asof")
+            else:
+                resolved_price = None
+                price_asof = None
         out[ticker] = {
             "entry_date":   pos.get("entry_date"),
             "entry_price":  pos.get("entry_price"),
             "shares":       pos.get("shares"),
             "entry_fx":     entry_fx,
             "fx_estimated": fx_estimated,
-            # current_price wird oben (Z. 14334-14348) aus Top-10-Lookup
-            # oder _fetch_position_market_data-Singleton-Fallback berechnet.
-            # Hier persistiert für Live-PnL-Anzeige im Frontend und für
-            # Health-Check S3 (16.05.2026 — schließt die crit-Meldung
-            # „current_price fehlt bei N Position(en)" für jede Position
-            # mit yfinance-Verfügbarkeit). None bei echtem Fetch-Fehler.
-            "current_price": cur_price,
+            # current_price: frisch aus Top-10-Lookup / _fetch_position_market_
+            # data-Singleton — bei Fehler PRESERVED aus prev (Resilienz-Block
+            # oben). Für Live-PnL-Anzeige im Frontend + Health-Check S3. None nur
+            # wenn NIE ein Preis vorlag. price_asof stempelt die Frische.
+            "current_price": resolved_price,
+            "price_asof":    price_asof,
             # Trigger-4-Snapshot (Setup-Erosion) im app_data spiegeln,
             # damit ein Gist-Hiccup über _recover_positions_from_app_data
             # die Snapshot-Werte ebenfalls erhält. Felder dürfen None sein

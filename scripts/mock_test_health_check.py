@@ -186,6 +186,50 @@ def test_s3_pass_no_positions():
     assert "S3" not in _ids(fails)
 
 
+def test_s3_detail_truncation_shows_extra_count():
+    """Digest-Kosmetik (26.07.2026): bei > 5 fehlenden Positionen zeigt das
+    Detail 'A, B, C, D, E +N weitere' statt still zu kappen (Count == Liste-
+    Konsistenz — vorher '6 Position(en): 5-Namen' ohne Hinweis)."""
+    seven = {t: {"current_price": None}
+             for t in ["AA", "BB", "CC", "DD", "EE", "FF", "GG"]}
+    fails = hc.evaluate_state_invariants(
+        top10_tickers=TOP10,
+        setup_scores=_full_setup(TOP10),
+        monster_scores=_full_monster(TOP10),
+        positions=seven,
+        score_history=_full_history(TOP10),
+        today_iso=TODAY,
+        n_inflation_lines=10,
+        n_backtest_appended=0,
+        agent_signal_keys=set(TOP10),
+        run_phase="premarket",
+    )
+    s3 = [f for f in fails if f.get("id") == "S3"]
+    assert s3, "S3 sollte feuern"
+    det = s3[0]["detail"]
+    assert "bei 7 Position(en)" in det, det
+    assert "+2 weitere" in det, f"Truncation-Hinweis fehlt: {det}"
+
+
+def test_s3_detail_no_extra_when_five_or_fewer():
+    """Genau 5 (oder weniger) fehlende → KEIN '+N weitere'-Suffix."""
+    five = {t: {"current_price": None} for t in ["AA", "BB", "CC", "DD", "EE"]}
+    fails = hc.evaluate_state_invariants(
+        top10_tickers=TOP10,
+        setup_scores=_full_setup(TOP10),
+        monster_scores=_full_monster(TOP10),
+        positions=five,
+        score_history=_full_history(TOP10),
+        today_iso=TODAY,
+        n_inflation_lines=10,
+        n_backtest_appended=0,
+        agent_signal_keys=set(TOP10),
+        run_phase="premarket",
+    )
+    s3 = [f for f in fails if f.get("id") == "S3"]
+    assert s3 and "weitere" not in s3[0]["detail"], s3
+
+
 # ── S4: backtest-Disziplin Premarket/Postclose ─────────────────────────────
 
 
@@ -897,6 +941,8 @@ def main() -> None:
         ("S3 fail: fehlender current_price",               test_s3_fail_missing_price),
         ("S3 pass: alle Positionen haben Kurs",            test_s3_pass_all_have_price),
         ("S3 pass: keine Positionen",                      test_s3_pass_no_positions),
+        ("S3 detail: >5 fehlend → '+N weitere'",           test_s3_detail_truncation_shows_extra_count),
+        ("S3 detail: ≤5 fehlend → kein Suffix",            test_s3_detail_no_extra_when_five_or_fewer),
         # S4
         ("S4 fail: premarket mit appends",                 test_s4_fail_premarket_with_appends),
         ("S4 fail: postclose ohne heutigen Eintrag",       test_s4_fail_postclose_no_appends),

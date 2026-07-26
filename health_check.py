@@ -740,10 +740,14 @@ def evaluate_state_invariants(
             if cp is None:
                 missing_price.append(ticker)
         if missing_price:
+            _shown = ", ".join(missing_price[:5])
+            _extra = len(missing_price) - 5
+            if _extra > 0:
+                _shown += f" +{_extra} weitere"
             fails.append({
                 "id": "S3", "severity": "crit",
                 "detail": (f"current_price fehlt bei {len(missing_price)} "
-                           f"Position(en): {', '.join(missing_price[:5])}"),
+                           f"Position(en): {_shown}"),
             })
 
     # === S4 (warn) — backtest_history-Disziplin (Tages-Invariante) =========
