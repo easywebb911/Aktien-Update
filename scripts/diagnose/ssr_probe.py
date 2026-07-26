@@ -1,21 +1,19 @@
 #!/usr/bin/env python3
-"""Read-only Machbarkeits-Probe: SSR-Flag (Short-Sale-Restriction, Reg-SHO Rule 201).
+"""Read-only Machbarkeits-Probe: SSR-Flag (Reg-SHO Rule 201) — v2 Discovery-Follower.
 
-Läuft AUSSCHLIESSLICH auf dem GitHub-Actions-Runner (unrestricted egress) —
-die interaktive Sandbox ist egress-deny-all (403 auf alle externen Hosts).
-Keyless. KEINE Repo-Writes, KEINE Secrets. Höfliche Timeouts + UA. Misst die
-fünf Fragen; Output komplett ins Run-Log + Artefakt.
+Runde 1 (v1) hat gezeigt: das bequeme NasdaqTrader-`nasdaqth<date>.txt` ist die
+Rule-203-THRESHOLD/FTD-Liste (Header „Reg SHO Threshold Flag", 0 Overlap mit
+unserem Squeeze-Universum) — NICHT der Rule-201-SSR-CIRCUIT-BREAKER (−10%-Trigger).
+ABER: die NasdaqTrader-RegSHO-Seite enthält einen Anchor-Text „short sale circuit
+breakers" (ein .aspx-Nav-Link, den die v1-Regex — nur .csv/.txt/.json/.xls —
+verpasst hat). v2 FOLGT diesem Lead.
 
-WICHTIGE BEGRIFFS-TRENNUNG (muss der Befund klarstellen):
-  • Rule 201 SSR  = Short-Sale-CIRCUIT-BREAKER: triggert bei −10% Intraday,
-    gilt Rest des Tages + Folgetag. DAS wollen wir.
-  • Rule 203 Reg-SHO THRESHOLD = persistente Fails-to-Deliver-Liste. Das ist
-    die bekannte NasdaqTrader-„regsho/nasdaqth<date>.txt"-Datei — ein ANDERES
-    Konstrukt. Die Probe misst beide und markiert die Trennung explizit.
+Läuft AUSSCHLIESSLICH auf dem GitHub-Actions-Runner (unrestricted egress) — die
+interaktive Sandbox ist egress-deny-all. Keyless, KEINE Secrets, KEINE Repo-Writes.
 
-Discovery-first (ablesen, nicht raten): Phase A holt Landing-Pages und liest
-Download-Links per Regex ab; Phase B testet bekannte keyless Flat-Files
-datumsfest über die letzten Handelstage; Phase C probiert SSR-Kandidaten.
+Kern-Härtung ggü. v1: NasdaqTrader liefert HTTP 200 + HTML-App-Shell für JEDE
+nicht-existente URL/Datum → „200" ist KEIN Existenz-Beweis. `_is_flat_file`
+verlangt echtes Delimiter-Textfile (kein <!DOCTYPE/<html>).
 """
 import json
 import re
@@ -26,203 +24,187 @@ import urllib.parse
 import urllib.request
 import urllib.error
 
-UA = ("SqueezeReportSSRProbe/1.0 "
+UA = ("SqueezeReportSSRProbe/2.0 "
       "(https://github.com/easywebb911/Aktien-Update; easywebb@yahoo.de)")
 
-# ── Kandidaten-Landing-Pages (Discovery: Download-Links ablesen) ─────────────
-LANDING_PAGES = [
-    ("cboe_ssr_page",
-     "https://www.cboe.com/us/equities/market_statistics/short_sale_circuit_breaker/"),
-    ("nasdaqtrader_regsho_index",
-     "https://www.nasdaqtrader.com/Trader.aspx?id=RegSHOThreshold"),
-    ("nyse_shortsales",
-     "https://www.nyse.com/regulation/short-sales"),
-    ("cboe_ssr_bzx_api",
-     "https://www.cboe.com/us/equities/market_statistics/short_sale_circuit_breaker/BZX/"),
+# Einstiegs-Seiten, deren Anchors nach „short sale circuit breaker" durchsucht
+# und dann VERFOLGT werden (Discovery-Follow statt URL-Raten).
+ENTRY_PAGES = [
+    ("nasdaqtrader_regsho",      "https://www.nasdaqtrader.com/Trader.aspx?id=RegSHOThreshold"),
+    ("nasdaqtrader_ssrcb_guess", "https://www.nasdaqtrader.com/Trader.aspx?id=ShortSaleCircuitBreaker"),
+    ("nasdaqtrader_dp_index",    "https://www.nasdaqtrader.com/Trader.aspx?id=DataProducts"),
+    ("cboe_mktstats",            "https://www.cboe.com/us/equities/market_statistics/"),
+    ("cboe_reg",                 "https://www.cboe.com/us/equities/regulation/"),
+    ("nyse_regulation",          "https://www.nyse.com/regulation"),
+    ("nyse_trade_info",          "https://www.nyse.com/markets/nyse/trading-info"),
 ]
 
-# ── Bekannte keyless Flat-Files: Reg-SHO THRESHOLD (Rule 203) — Format/Access-
-#    Baseline + datumsfeste Adressierung (Q7). NICHT Rule 201, wird als solches
-#    markiert. Templates mit {d}=YYYYMMDD. ─────────────────────────────────────
-THRESHOLD_TEMPLATES = [
-    ("nasdaq_threshold",   "https://www.nasdaqtrader.com/dynamic/symdir/regsho/nasdaqth{d}.txt"),
-    ("nasdaqbx_threshold", "https://www.nasdaqtrader.com/dynamic/symdir/regsho/nasdaqbxth{d}.txt"),
-    ("nasdaqpsx_threshold","https://www.nasdaqtrader.com/dynamic/symdir/regsho/nasdaqpsxth{d}.txt"),
-    ("nyse_threshold",     "https://www.nasdaqtrader.com/dynamic/symdir/regsho/nyseth{d}.txt"),
-    ("nysemkt_threshold",  "https://www.nasdaqtrader.com/dynamic/symdir/regsho/nysemktth{d}.txt"),
-    ("nysearca_threshold", "https://www.nasdaqtrader.com/dynamic/symdir/regsho/nysearcath{d}.txt"),
+# Zusätzliche direkte SSR-Flat-File-Kandidaten (falls Discovery leer bleibt).
+DIRECT_SSR = [
+    ("nasdaq_ssrcb_txt",  "https://www.nasdaqtrader.com/dynamic/symdir/shortsalecircuitbreaker/ShortSaleCircuitBreaker{d}.txt"),
+    ("nasdaq_ssrcb_txt2", "https://www.nasdaqtrader.com/dynamic/symdir/ShortSaleCircuitBreaker/ssrcb{d}.txt"),
+    ("cboe_ssr_bzx",      "https://www.cboe.com/us/equities/market_statistics/circuit_breaker/BZX/csv/"),
+    ("cboe_ssr_daily",    "https://www.cboe.com/us/equities/market_statistics/circuit_breaker/"),
 ]
 
-# ── Rule-201-SSR-KANDIDATEN (das eigentliche Ziel). Mehrere Shapes/Hosts —
-#    der Runner meldet, welche 200 keyless liefern. {d}=YYYYMMDD, {dash}=YYYY-MM-DD.
-SSR_TEMPLATES = [
-    # Cboe Short Sale Circuit Breaker (stärkster Kandidat, je Venue BZX/BYX/EDGX/EDGA)
-    ("cboe_bzx_ssr_csv",  "https://www.cboe.com/us/equities/market_statistics/short_sale_circuit_breaker/csv/?mkt=bzx&dt={dash}"),
-    ("cboe_bzx_ssr_json", "https://www.cboe.com/us/equities/market_statistics/short_sale_circuit_breaker/json/?mkt=bzx&dt={dash}"),
-    ("cboe_bzx_ssr_dated","https://www.cboe.com/us/equities/market_statistics/short_sale_circuit_breaker/BZX/{dash}/"),
-    # NasdaqTrader — evtl. eigener SSR/Circuit-Breaker-Flat-File
-    ("nasdaq_ssr_cb",     "https://www.nasdaqtrader.com/dynamic/symdir/shortsalecircuitbreaker/ssrcb{d}.txt"),
-    ("nasdaq_ssr_alt",    "https://www.nasdaqtrader.com/dynamic/symdir/regsho/ssr{d}.txt"),
-    # NYSE — API-Guess
-    ("nyse_ssr_api",      "https://www.nyse.com/api/regulatory/short-sale-restrictions/download?selectedDate={dash}"),
-]
-
-_LINK_RE = re.compile(r'''href=["']([^"']+?\.(?:csv|txt|json|xlsx?))["']''', re.I)
-_TICKER_RE = re.compile(r'\b[A-Z][A-Z0-9.\-]{0,5}\b')
+_SSR_KW = ("circuit breaker", "short sale", "shortsale", "short-sale", "ssr", "rule 201")
+_A_RE = re.compile(r'<a\b[^>]*?href=["\']([^"\']+)["\'][^>]*>(.*?)</a>', re.I | re.S)
+_LINK_DATA_RE = re.compile(r'''["']([^"']+?\.(?:csv|txt|json))(?:\?[^"']*)?["']''', re.I)
+_TICKER_RE = re.compile(r'[A-Z][A-Z0-9.\-]{0,5}')
 
 
 def _get(url, timeout=25):
-    """Return (status:int|str, headers:dict, body:bytes, secs:float). Never raises."""
     req = urllib.request.Request(url, headers={"User-Agent": UA})
     t0 = time.time()
     try:
         with urllib.request.urlopen(req, timeout=timeout) as r:
-            body = r.read(600_000)  # cap
-            return r.status, dict(r.headers), body, time.time() - t0
+            return r.status, dict(r.headers), r.read(800_000), time.time() - t0
     except urllib.error.HTTPError as e:
-        return e.code, dict(getattr(e, "headers", {}) or {}), (e.read(4000) if hasattr(e, "read") else b""), time.time() - t0
+        return e.code, dict(getattr(e, "headers", {}) or {}), b"", time.time() - t0
     except Exception as e:
         return f"ERR:{type(e).__name__}:{str(e)[:80]}", {}, b"", time.time() - t0
 
 
-def _recent_dates(n=12):
-    """Letzte n Kalendertage (heute rückwärts) als (YYYYMMDD, YYYY-MM-DD).
-    Wochenenden bewusst mitgeführt — der Runner meldet, welche Datei existiert
-    (Handelstage). now() ist Runner-Wallclock (UTC)."""
-    today = dt.datetime.now(dt.timezone.utc).date()
-    out = []
-    for i in range(n):
-        d = today - dt.timedelta(days=i)
-        out.append((d.strftime("%Y%m%d"), d.strftime("%Y-%m-%d")))
-    return out
-
-
-def _looks_texty(headers, body):
-    ct = (headers.get("Content-Type") or headers.get("content-type") or "").lower()
-    return ("text" in ct or "csv" in ct or "json" in ct
-            or body[:1].isalpha() if body else False)
-
-
-def _first_lines(body, n=6):
+def _txt(body):
     try:
-        txt = body.decode("utf-8", "replace")
+        return body.decode("utf-8", "replace")
     except Exception:
-        return "<binary>"
-    return "\n".join(txt.splitlines()[:n])
+        return ""
+
+
+def _is_flat_file(headers, body):
+    """Echtes Daten-Flat-File (kein HTML-App-Shell). v1-Falle: NasdaqTrader gibt
+    200+HTML für jede tote URL."""
+    if not body or len(body) < 15:
+        return False
+    head = body[:400].lstrip().lower()
+    if head.startswith(b"<!doctype") or b"<html" in head or b"<head" in head:
+        return False
+    ct = (headers.get("Content-Type") or headers.get("content-type") or "").lower()
+    sample = _txt(body[:400])
+    return ("text/plain" in ct or "csv" in ct or "json" in ct
+            or "|" in sample or ("," in sample and "\n" in sample))
+
+
+def _first_lines(body, n=8):
+    return "\n".join(_txt(body).splitlines()[:n])
 
 
 def _extract_tickers(body):
-    """Grobe Ticker-Extraktion aus einem TXT/CSV-Body (Symbol-Spalte heuristisch)."""
-    try:
-        txt = body.decode("utf-8", "replace")
-    except Exception:
-        return set()
+    txt = _txt(body)
     toks = set()
-    for line in txt.splitlines()[1:]:  # skip header
+    for line in txt.splitlines()[1:]:
         parts = re.split(r'[|,;\t]', line.strip())
         if parts and parts[0]:
-            cand = parts[0].strip().upper()
-            if _TICKER_RE.fullmatch(cand):
-                toks.add(cand)
+            c = parts[0].strip().upper()
+            if _TICKER_RE.fullmatch(c):
+                toks.add(c)
     return toks
 
 
-def phase_a_discovery():
-    print("\n═══ PHASE A — Landing-Page-Discovery (Download-Links ablesen) ═══")
-    found_links = {}
-    for name, url in LANDING_PAGES:
+def _ssr_anchors(html):
+    out = []
+    for href, text in _A_RE.findall(html):
+        t = re.sub(r'<[^>]+>', '', text).strip()
+        low = (t + " " + href).lower()
+        if any(k in low for k in _SSR_KW):
+            out.append((href, t))
+    # dedup, Reihenfolge stabil
+    seen, uniq = set(), []
+    for h, t in out:
+        if h not in seen:
+            seen.add(h); uniq.append((h, t))
+    return uniq
+
+
+def _abs(base, href):
+    return href if href.startswith("http") else urllib.parse.urljoin(base, href)
+
+
+def _report_flatfile(tag, url, headers, body, universe):
+    tks = _extract_tickers(body)
+    ov = sorted(set(tks) & set(universe))
+    ct = headers.get("Content-Type", "?")
+    print(f"    ✔ FLAT-FILE {tag}: {url}")
+    print(f"      ct={ct} bytes={len(body)} tickers~{len(tks)} "
+          f"overlap={len(ov)}/{len(universe)} {ov[:12]}")
+    print("      Kopf:\n        " + _first_lines(body, 8).replace("\n", "\n        "))
+    # Q5: Spalten auf Trigger-/Effective-Datum prüfen
+    header0 = (_txt(body).splitlines() or [""])[0].lower()
+    has_date_col = any(k in header0 for k in ("date", "trigger", "effective", "day"))
+    print(f"      Q5-Format: Header-Spalten enthalten Datum/Trigger-Marker? "
+          f"{'JA' if has_date_col else 'NEIN'}  → '{header0[:120]}'")
+    return len(ov), len(tks)
+
+
+def follow_entry_pages(universe):
+    print("\n═══ PHASE A2 — Anchor-Follow: 'short sale circuit breaker' verfolgen ═══")
+    real_ssr_files = []
+    for name, url in ENTRY_PAGES:
         st, hd, body, took = _get(url)
-        ct = hd.get("Content-Type", hd.get("content-type", "?"))
-        print(f"\n[{name}] {url}")
-        print(f"  → status={st}  ct={ct}  bytes={len(body)}  {took:.2f}s")
-        if isinstance(st, int) and st == 200 and body:
-            links = sorted(set(_LINK_RE.findall(body.decode('utf-8', 'replace'))))
-            print(f"  → {len(links)} Daten-Link(s) im HTML:")
-            for lk in links[:15]:
-                print(f"      {lk}")
-            found_links[name] = links
-            # Snippet, das 'short sale'/'circuit'/'SSR' erwähnt
-            txt = body.decode('utf-8', 'replace').lower()
-            for kw in ("short sale circuit", "rule 201", "ssr", "restricted"):
-                idx = txt.find(kw)
-                if idx >= 0:
-                    print(f"  → kw '{kw}' @{idx}: …{txt[idx:idx+90].strip()}…")
-                    break
-        time.sleep(0.6)
-    return found_links
-
-
-def phase_b_threshold(universe):
-    print("\n═══ PHASE B — Reg-SHO THRESHOLD (Rule 203, NICHT SSR) — Baseline/Access/Q7 ═══")
-    print("  (bekanntes keyless Flat-File-Format; misst Access + datumsfeste Adressierung)")
-    dates = _recent_dates(12)
-    per_venue_hits = {}
-    for name, tmpl in THRESHOLD_TEMPLATES:
-        print(f"\n[{name}] {tmpl}")
-        resolved = 0
-        for d, dash in dates:
-            url = tmpl.format(d=d)
-            st, hd, body, took = _get(url, timeout=20)
-            if isinstance(st, int) and st == 200 and body and len(body) > 20:
-                tks = _extract_tickers(body)
-                ov = sorted(set(tks) & set(universe))
-                if resolved == 0:
-                    print(f"  ✓ {dash}: 200 ct={hd.get('Content-Type','?')} bytes={len(body)} "
-                          f"lines={len(body.splitlines())} tickers~{len(tks)} overlap={len(ov)} {ov[:8]}")
-                    print("    Kopf:\n      " + _first_lines(body, 4).replace("\n", "\n      "))
-                resolved += 1
-                per_venue_hits.setdefault(name, []).append((dash, len(tks), len(ov)))
-            time.sleep(0.25)
-        print(f"  → {resolved}/{len(dates)} Datumsdateien aufgelöst")
-    return per_venue_hits
-
-
-def phase_c_ssr(universe, discovered):
-    print("\n═══ PHASE C — Rule-201-SSR-KANDIDATEN (das eigentliche Ziel) ═══")
-    dates = _recent_dates(8)
-    any_hit = False
-    # C1: hardcodierte Template-Kandidaten
-    for name, tmpl in SSR_TEMPLATES:
-        print(f"\n[{name}] {tmpl}")
-        shown = 0
-        for d, dash in dates:
-            url = tmpl.format(d=d, dash=dash)
-            st, hd, body, took = _get(url, timeout=20)
-            ok = isinstance(st, int) and st == 200 and body and len(body) > 20
-            if ok and shown < 2:
-                ct = hd.get("Content-Type", "?")
-                tks = _extract_tickers(body)
-                ov = sorted(set(tks) & set(universe))
-                print(f"  ✓ {dash}: 200 ct={ct} bytes={len(body)} tickers~{len(tks)} "
-                      f"overlap={len(ov)} {ov[:10]}")
-                print("    Kopf:\n      " + _first_lines(body, 6).replace("\n", "\n      "))
-                any_hit = True
-                shown += 1
-            elif shown == 0 and dash == dates[0][1]:
-                print(f"  · {dash}: status={st} ct={hd.get('Content-Type','?')} bytes={len(body)}")
-            time.sleep(0.25)
-    # C2: aus Phase A entdeckte Links direkt testen
-    print("\n[C2] Aus Phase-A-Discovery entdeckte Links testen:")
-    tested = set()
-    for src, links in (discovered or {}).items():
-        for lk in links:
-            full = lk if lk.startswith("http") else urllib.parse.urljoin(
-                "https://www.cboe.com/", lk)
-            if full in tested:
+        ct = hd.get("Content-Type", "?")
+        print(f"\n[{name}] {url}\n  → status={st} ct={ct} bytes={len(body)} {took:.2f}s")
+        if not (isinstance(st, int) and st == 200 and body):
+            continue
+        html = _txt(body)
+        anchors = _ssr_anchors(html)
+        print(f"  → {len(anchors)} SSR-relevante Anchor(s):")
+        for href, text in anchors[:12]:
+            print(f"      '{text[:48]}' → {href}")
+        # jeden Anchor verfolgen
+        for href, text in anchors[:8]:
+            follow_url = _abs(url, href)
+            st2, hd2, body2, _ = _get(follow_url)
+            print(f"    ↪ follow '{text[:32]}' → {follow_url}  [status={st2} "
+                  f"ct={hd2.get('Content-Type','?')} bytes={len(body2)}]")
+            if not (isinstance(st2, int) and st2 == 200 and body2):
                 continue
-            tested.add(full)
-            st, hd, body, took = _get(full, timeout=20)
-            tks = _extract_tickers(body) if (isinstance(st, int) and st == 200) else set()
-            ov = sorted(set(tks) & set(universe))
-            print(f"  [{src}] {full}\n     → status={st} ct={hd.get('Content-Type','?')} "
-                  f"bytes={len(body)} tickers~{len(tks)} overlap={len(ov)} {ov[:8]}")
-            if isinstance(st, int) and st == 200 and body:
-                print("     Kopf:\n       " + _first_lines(body, 5).replace("\n", "\n       "))
-                any_hit = True
-            time.sleep(0.4)
-            if len(tested) >= 20:
+            if _is_flat_file(hd2, body2):
+                real_ssr_files.append(follow_url)
+                _report_flatfile(name, follow_url, hd2, body2, universe)
+            else:
+                # Folge-Seite ist HTML → deren Daten-Links extrahieren + testen
+                sub = sorted(set(_LINK_DATA_RE.findall(_txt(body2))))
+                sub_ssr = [s for s in sub if any(k in s.lower() for k in
+                           ("ssr", "circuit", "shortsale", "short_sale", "short-sale"))]
+                cand = sub_ssr or sub[:6]
+                if cand:
+                    print(f"       → {len(sub)} Daten-Link(s), teste {len(cand)}:")
+                for s in cand[:6]:
+                    su = _abs(follow_url, s)
+                    st3, hd3, body3, _ = _get(su)
+                    flat = isinstance(st3, int) and st3 == 200 and _is_flat_file(hd3, body3)
+                    print(f"         · {su} [status={st3} flat={flat}]")
+                    if flat:
+                        real_ssr_files.append(su)
+                        _report_flatfile(name + "/sub", su, hd3, body3, universe)
+                    time.sleep(0.3)
+            time.sleep(0.3)
+        time.sleep(0.4)
+    return real_ssr_files
+
+
+def try_direct(universe):
+    print("\n═══ PHASE B2 — Direkte SSR-Flat-File-Kandidaten (Fallback) ═══")
+    today = dt.datetime.now(dt.timezone.utc).date()
+    dates = [(today - dt.timedelta(days=i)) for i in range(6)]
+    hits = []
+    for name, tmpl in DIRECT_SSR:
+        print(f"\n[{name}] {tmpl}")
+        for d in dates:
+            url = tmpl.format(d=d.strftime("%Y%m%d"))
+            st, hd, body, _ = _get(url, timeout=20)
+            flat = isinstance(st, int) and st == 200 and _is_flat_file(hd, body)
+            if flat:
+                hits.append(url)
+                _report_flatfile(name, url, hd, body, universe)
                 break
-    return any_hit
+            elif d == dates[0]:
+                print(f"  · {d.isoformat()}: status={st} "
+                      f"ct={hd.get('Content-Type','?')} bytes={len(body)} "
+                      f"flat={isinstance(st,int) and st==200 and _is_flat_file(hd,body)}")
+            time.sleep(0.25)
+    return hits
 
 
 def main(argv):
@@ -231,28 +213,26 @@ def main(argv):
     universe = uni_doc.get("universe") or uni_doc
     now = dt.datetime.now(dt.timezone.utc)
     print("╔══════════════════════════════════════════════════════════════════╗")
-    print("║  SSR-Flag Machbarkeits-Probe (read-only, Runner-egress)            ║")
+    print("║  SSR-Flag Machbarkeits-Probe v2 (Discovery-Follower, read-only)   ║")
     print("╚══════════════════════════════════════════════════════════════════╝")
     print(f"Runner-UTC now: {now.isoformat()}  (Wochentag {now.strftime('%a')})")
-    print(f"Universum: n={len(universe)}  (Top-10 + Watchlist + Recent-Sample)")
+    print(f"Universum: n={len(universe)}")
     print(f"  {universe}")
-    print("\nERINNERUNG: Rule 201 SSR (−10% Circuit-Breaker) ≠ Rule 203 Threshold "
-          "(FTD-Liste). Phase B misst Threshold (Access-Baseline), Phase C sucht "
-          "das echte SSR-Konstrukt.")
+    print("Ziel: die ECHTE Rule-201-SSR-Liste (Circuit-Breaker) via Anchor-Follow "
+          "finden. Härtung: _is_flat_file verwirft HTML-App-Shells (v1-200-Falle).")
 
-    discovered = phase_a_discovery()
-    thr = phase_b_threshold(universe)
-    ssr_hit = phase_c_ssr(universe, discovered)
+    ssr_files = follow_entry_pages(universe)
+    if not ssr_files:
+        ssr_files += try_direct(universe)
 
-    print("\n═══ VERDIKT-ROHDATEN (Auswertung erfolgt im Chat) ═══")
-    print(f"Q1 Quellen: Threshold-Venues aufgelöst = {sorted(thr.keys())}")
-    print(f"Q1 SSR-Kandidat lieferte verwertbare Liste: {ssr_hit}")
-    print("Q2 Timing: siehe Phase-B/C-Datums-Auflösung relativ zu Runner-UTC oben "
-          "(heutiges Datum vorhanden? Zeilenzahl vs. Vortag).")
-    print("Q3 Venue-Abdeckung: overlap-Zahlen je Venue oben.")
-    print("Q4 Häufigkeit: overlap-Counts über die Datumsreihe (Phase B) / SSR (Phase C).")
-    print("Q5 Feld-Format: Kopf-Zeilen je Liste oben — Spalten auf 'Trigger-Datum' "
-          "vs. 'carry-over' prüfen.")
+    print("\n═══ VERDIKT-ROHDATEN ═══")
+    print(f"Echte SSR-Flat-Files gefunden: {len(ssr_files)}")
+    for u in ssr_files:
+        print(f"  • {u}")
+    if not ssr_files:
+        print("  (keine — Anchor-Follow + direkte Kandidaten lieferten kein "
+              "echtes Rule-201-Flat-File. Konsequenz: keyless SSR nicht verfügbar "
+              "über die getesteten Venue-Pfade.)")
     print("\nFERTIG.")
     return 0
 
