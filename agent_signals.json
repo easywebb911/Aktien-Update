@@ -1,10 +1,10 @@
 {
-  "updated": "2026-07-26T21:36:03.377028+02:00",
+  "updated": "2026-07-26T23:11:42.736666+02:00",
   "run_info": {
     "tickers_checked": 15,
     "signals_active": 0,
     "alerts_sent": 0,
-    "elapsed_s": 14.2,
+    "elapsed_s": 12.2,
     "market_phase": "Geschlossen"
   },
   "signals": {
@@ -55,9 +55,9 @@
       "uoa_cp_ratio": 6.498473023413641
     },
     "CBRL": {
-      "score": 20,
+      "score": 28,
       "confidence": 33,
-      "drivers": "Spanne 5.9% + UOA Call/Put 4.3×",
+      "drivers": "Spanne 5.9% + News-KI 8/30: Asset sales and store closures indicate financial distress rather than short-squeeze potential; negative catalysts typic + UOA Call/Put 4.3×",
       "price": 53.71,
       "chg_pct": -0.0,
       "rvol_4d": 0.84,
@@ -69,7 +69,7 @@
       "stocktwits": null,
       "combo_mult": 1.0,
       "active_triggers": 0,
-      "ki_sentiment_source": "keyword",
+      "ki_sentiment_source": "llm",
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 4.3×"
@@ -122,9 +122,9 @@
       "uoa_cp_ratio": 5.171597633136095
     },
     "HZO": {
-      "score": 33,
-      "confidence": 70,
-      "drivers": "Volumen 2.5× + Spanne 12.7% + News-KI 8/30: General positive price movement and earnings coverage lack the extreme shorts data, unusual volume spikes, or technical ",
+      "score": 25,
+      "confidence": 33,
+      "drivers": "Volumen 2.5× + Spanne 12.7%",
       "price": 36.33,
       "chg_pct": 0.0,
       "rvol_4d": 2.48,
@@ -136,7 +136,7 @@
       "stocktwits": null,
       "combo_mult": 1.0,
       "active_triggers": 1,
-      "ki_sentiment_source": "llm",
+      "ki_sentiment_source": "keyword",
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": 1.2658227848101267,
@@ -164,9 +164,9 @@
       "uoa_cp_ratio": 0.6737823211064341
     },
     "JACK": {
-      "score": 68,
+      "score": 43,
       "confidence": 70,
-      "drivers": "Spanne 7.9% + News: short squeeze, covering + Earnings in 17d + SEC Form 4 + UOA Call/Put 4.1×",
+      "drivers": "Spanne 7.9% + News-KI 5/30: Negative sentiment with avoidance recommendation and competitive pressure from Del Taco, plus no short interest indicato + Earnings in 17d + SEC Form 4 + UOA Call/Put 4.1×",
       "price": 14.55,
       "chg_pct": 0.0,
       "rvol_4d": 1.08,
@@ -177,8 +177,8 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 1,
-      "ki_sentiment_source": "keyword",
+      "active_triggers": 0,
+      "ki_sentiment_source": "llm",
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 4.1×"
@@ -210,7 +210,7 @@
     "LENZ": {
       "score": 58,
       "confidence": 70,
-      "drivers": "Earnings in 3 Tagen (29.07.2026) + Volumen 1.7× + Spanne 9.3% + News-KI 8/30: Negative earnings expectations, declining fair value, and analyst downgrades create bearish sentiment that is unfavorabl + Earnings in 3d",
+      "drivers": "Earnings in 3 Tagen (29.07.2026) + Volumen 1.7× + Spanne 9.3% + News-KI 8/30: Negative earnings expectations, declining fair value, and analyst downgrades indicate weak momentum with minimal short-s + Earnings in 3d",
       "price": 5.48,
       "chg_pct": 0.0,
       "rvol_4d": 1.72,
