@@ -1249,7 +1249,7 @@ reines Snapshot-Spiegelfeld (kein Ratchet).
 | `profit_lock`   | 25 % | **live** | `peak_pnl_pct_since_entry` + `current_pnl_pct` |
 | `overheated`    | 20 % | **live** | `rsi14` / `change_2d` / `change_3d` in `top10_metrics` |
 | `setup_erosion` | 15 % | **live** | Entry-Snapshot (`entry_dtc` / `entry_short_float` / `entry_cost_to_borrow` / `entry_snapshot_ts`) im Gist + aktuelle Werte aus `s_top` (Top-10-enriched). Drei relative Drops gegen `SETUP_EROSION_WARN_THRESHOLD` (0.30) / `SETUP_EROSION_CRIT_THRESHOLD` (0.50); Combo-Bonus bei ≥ `SETUP_EROSION_COMBO_DRIVERS_MIN` (2) Drivers gleichzeitig in warn. Bestandsposition ohne Snapshot → `available=False` (reason `no_entry_snapshot`). |
-| `catalyst`      |  5 % | **live** | Nächstes Earnings-Datum via Finnhub (FINNHUB_API_KEY) → yfinance-Fallback; Trading-Tage bis Earnings ≤ `CATALYST_DAYS_WINDOW` |
+| `catalyst`      |  5 % | **live** | Nächstes Earnings-Datum via yfinance `Ticker.calendar`; Trading-Tage bis Earnings ≤ `CATALYST_DAYS_WINDOW` |
 | `trend_break`   |  5 % | **live** | `ma21` (EMA21) in `top10_metrics` + `cur_price` aus `_fetch_position_market_data` |
 
 **Spec-Divergenz Trigger 5:** Frühere Stub-Note („Historischer
@@ -1268,9 +1268,12 @@ CATALYST_DAYS_WINDOW`, 100 (crit) wenn `days_until == 0`
 Feiertage werden nicht abgezogen.
 
 Datenfluss: `_fetch_next_earnings_date(ticker, today)` ist
-Single-Source-of-Truth — Reihenfolge Finnhub → yfinance. Beide
-Quellen leer → `available=False`. Fetcher wird per kwarg in den
-Trigger injiziert (Tests mocken ohne Netzwerk).
+Single-Source-of-Truth — Quelle yfinance `Ticker.calendar`
+(`_fetch_yfinance_next_earnings`). Quelle leer → `available=False`.
+Fetcher wird per kwarg in den Trigger injiziert (Tests mocken ohne
+Netzwerk). Der frühere optionale Finnhub-Earnings-Fallback wurde
+entfernt (Aufräum-Welle) — `FINNHUB_API_KEY` war in keinem
+Prod-Workflow gemappt, faktisch dormant.
 
 `trend_break`-Schwellen (`config.py`): Sub-Score = 0 wenn
 `price ≥ ma21`, 50 (warn) wenn `0 < drop_pct ≤ EXIT_TREND_BREAK_CRIT_PCT`
@@ -3784,14 +3787,14 @@ erst in Phase 3 im Digest-Workflow — PR 2 sammelt nur die Rohdaten).
 | Provider-Key | Quelle | Special |
 |---|---|---|
 | ``finra`` | ``fetch_finra_ssr(tickers)`` — KI-Agent-Tick (ki_agent.py:2805), 3 parallele File-Downloads T/T-1/T-2 als Fallback | run_phase=``ki_agent_tick`` (eigene Zeile pro KI-Agent-Tick) |
-| ``finnhub`` | ``_fetch_finnhub_next_earnings(ticker, today)`` — Phase-2-Exit pro offene Position. Wrapper via ``_instrument_provider_call(_FINNHUB_ACCT, …)``. main() emittiert Zeile nur wenn ``_FINNHUB_ACCT["calls"] > 0`` (**call_attempted-Gating**). **Skip-Logging-Fix (16.05.2026):** Wenn ``FINNHUB_API_KEY`` nicht im Env steht, prüft ``_fetch_next_earnings_date`` das vorab und überspringt den Wrapper komplett → ``calls`` bleibt 0 → keine Provider-Zeile. Finnhub ist optionale Premium-Quelle; yfinance-Fallback ist Primärpfad seit Inception. Wiedervorlage: Option B aus Diagnose-Memo 16.05.2026 (Finnhub-Code komplett entfernen) bei nächster Aufräum-Welle. | call_attempted-Gating + Env-Key-Gating |
+| ``finnhub`` | **ENTFERNT (Aufräum-Welle):** der frühere optionale Finnhub-Earnings-Fallback (``_fetch_finnhub_next_earnings`` + ``_FINNHUB_ACCT`` + Provider-Emit) ist gestrichen. ``FINNHUB_API_KEY`` war in **keinem** Prod-Workflow gemappt (nur im Diagnose-Workflow ``diagnose_finra_si_probe.yml``), faktisch dormant; yfinance ``Ticker.calendar`` trug den Katalysator-Trigger durchgehend. ``finnhub`` ist aus ``HEALTH_CHECK_PROVIDER_TIER``/``_EXPECTED`` entfernt. (Historie: PR #153 führte ihn ein, Skip-Logging-Fix 16.05.2026; Option B aus dem Diagnose-Memo hier umgesetzt.) | — (entfernt) |
 | ``stockanalysis`` | Aggregat aus ``fetch_borrow_metrics`` (SI-Borrow per Top-10) + ``fetch_stockanalysis_si`` (Short-Int per US-Top-10, ThreadPoolExecutor). Wrapper via ``_instrument_provider_call(_STOCKANALYSIS_ACCT, …)``. main() emittiert Zeile nur wenn ``calls > 0``. Latency-Note: Borrow-Pfad misst ``fetch_borrow_metrics`` inkl. IBKR-Fallback (sub-ms-Lookup, akzeptable Näherung). | ENABLED-Gating (``STOCKANALYSIS_BORROW_ENABLED`` + ``STOCKANALYSIS_SI_ENABLED``) |
 | ``earningswhispers`` | ``fetch_earningswhispers_rss()`` — **DEAKTIVIERT 18.05.2026** (``EARNINGSWHISPERS_ENABLED=False``). RSS-Endpoint seit Mai 2026 tot (HTTP 302 → 404), keine maschinen-lesbare Alternative-API gefunden (Probes 12/13). Fetcher returnt unconditionally ``{}``, Caller-Gate in ``main()`` umgeht den ``record_provider_call``-Block → keine ``provider_health.jsonl``-Zeile mehr. yfinance-Fallback im Consumer trägt Earnings-Date-Use-Case. | ENABLED-Gating (``EARNINGSWHISPERS_ENABLED``); ``nan_pct``-Persistenz |
 
 **Wrapper-Helper ``_instrument_provider_call(acct, fn, *args, **kw)``**
 in ``generate_report.py`` ist Wiederverwendung-Bausstein für alle
-per-Call-aggregierten Provider (heute Finnhub + Stockanalysis, in
-PR 3 voraussichtlich UOA + StockTwits + News-RSS). Pattern:
+per-Call-aggregierten Provider (heute Stockanalysis + Borrow; Finnhub
+war früher ein Konsument, in der Aufräum-Welle entfernt). Pattern:
 ``try: result = fn(...); return result; except Exception: raised=True; raise;
 finally: record(latency, success)``.
 
