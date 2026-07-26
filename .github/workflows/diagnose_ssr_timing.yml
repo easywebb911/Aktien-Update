@@ -1,0 +1,42 @@
+name: Diagnose SSR Timing Probe (read-only, self-firing)
+
+# Read-only Timing-Probe für die offene Q2-Frage der SSR-Machbarkeit: liegt das
+# Nasdaq-Tagesfile shorthalts<T>.txt zum Werktags-postclose (21:17 UTC) schon
+# vollständig vor, oder wächst es intraday und ist erst T+1 stabil?
+#
+# Feuert per `schedule` über den nächsten US-Handelstag zu mehreren Zeitpunkten
+# (GitHub-Scheduled-Runs driften oft — jeder Lauf stempelt seine ECHTE UTC-Zeit,
+# die Zeitreihe bleibt aussagekräftig). KEINE Secrets, KEINE Repo-Writes,
+# contents:read. Throwaway — nach der Messung wieder entfernen.
+
+on:
+  workflow_dispatch:
+  schedule:
+    # Alle Zeiten UTC. Mo–Fr Handelstag = 1–5, T+1 = Di–Sa = 2–6.
+    - cron: "17 21 * * 1-5"   # ~postclose-Slot (Ziel-Messpunkt)
+    - cron: "30 23 * * 1-5"   # ~2h nach Close (wächst es noch?)
+    - cron: "30 3  * * 2-6"   # T+1 früh (über Nacht stabil?)
+    - cron: "0 13  * * 2-6"   # T+1 Mittag (endgültige Referenz)
+
+permissions:
+  contents: read
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Runner UTC
+        run: date -u
+      - name: Run SSR timing probe
+        run: python scripts/diagnose/ssr_timing_probe.py | tee ssr_timing_out.txt
+      - name: Upload probe log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ssr-timing-probe-log-${{ github.run_id }}
+          path: ssr_timing_out.txt
