@@ -3523,7 +3523,11 @@ function _quotePatchScope(scope, ticker, price, changePct, changeAbs) {
       const pnl = (price - ep) / ep * 100;
       el.textContent = (pnl >= 0 ? '+' : '') + pnl.toFixed(1) + '%';
       el.style.color = pnl >= 0 ? '#22c55e' : '#ef4444';
+      // Frischer Live-Quote → etwaigen Build-Zeit-Stale-Marker entfernen:
+      // der gezeigte Preis ist jetzt live, „Kurs vom …" gilt nicht mehr.
+      el.classList.remove('pos-pnl-stale');
     });
+    scope.querySelectorAll('.pos-stale-note').forEach(el => el.remove());
   }
   // Cockpit-Header-Tagesaenderung: ".cockpit-change" Text + Klasse.
   // Format wie _card_cockpit_html: "▲ +0.69 (+12.63%)" / "▼ -0.84 (-8.18%)"
@@ -6483,6 +6487,36 @@ function _fmtGerman(d) {
     }
   };
 
+  // Stale-Preis-Marker (Anzeige-Folge zu #483): der persistierte Daily-Run-
+  // current_price einer Position wird bei einem Fetch-Fehler PRESERVED (sein
+  // price_asof bleibt alt statt mit dem aktuellen Run mitzuwandern). Hier NUR
+  // Anzeige — erkennen, ob der GEZEIGTE Preis dieser preservte Wert ist, und
+  // dann gedimmt + „Kurs vom <Datum>" markieren. Liest price_asof, schreibt
+  // NIE. Vergleich in UTC (beide Stempel sind …Z), Anzeige in Berlin.
+  const _POS_PRICE_STALE_TOL_MS = 2 * 3600 * 1000;  // 2h: >> Same-Run-Jitter (~Sek), << Daily-Run-Abstand (~9h)
+  function _positionStaleAsof(ticker, shownPrice) {
+    try {
+      const ph2   = (window._POSITIONS_DATA || {})[ticker];
+      const runTs = (window._APP_DATA || {}).last_daily_run_ts;
+      if (!ph2 || !ph2.price_asof || !runTs) return null;          // null-tolerant (Alt-State)
+      const asofMs = Date.parse(ph2.price_asof), runMs = Date.parse(runTs);
+      if (!isFinite(asofMs) || !isFinite(runMs)) return null;
+      if (runMs - asofMs <= _POS_PRICE_STALE_TOL_MS) return null;  // frisch (gleicher Run) → kein Marker
+      // Live-Quote-Guard: nur markieren, wenn der GEZEIGTE Preis der preservte
+      // Wert ist (kein frischer Live-Overlay). shownPrice null → Marker erlaubt.
+      const stored = (typeof ph2.current_price === 'number') ? ph2.current_price : null;
+      if (stored != null && shownPrice != null && Math.abs(+shownPrice - stored) > 0.005) return null;
+      return ph2.price_asof;
+    } catch (e) { return null; }
+  }
+  function _fmtStaleDate(iso) {
+    try {
+      return new Date(iso).toLocaleString('de-DE',
+        {day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit',
+          timeZone: 'Europe/Berlin'});
+    } catch (e) { return ''; }
+  }
+
   // ── Position-Panel (in expandierter Watchlist-Karte) ─────────────────────
   // Pure Render-Funktion — wird aus ``buildWlDetails`` an den card_html-
   // Block angehängt und vor jedem State-Wechsel (open/close/edit) neu
@@ -6620,14 +6654,23 @@ function _fmtGerman(d) {
       // EUR-Stufe 2: Einstiegskurs zeigt USD primary + EUR-Suffix wenn
       // entry_fx aus Gist oder app_data verfügbar ist (siehe Helper).
       const entryStr = _formatPositionEntry(ticker, pos);
+      // Stale-Preis-Marker: nur wenn der gezeigte cp der preservte Daily-Run-
+      // Wert ist (siehe _positionStaleAsof). Frisch/null → beide Strings leer
+      // → Render byte-identisch zu vorher (kein optischer Unterschied).
+      const _staleAsof   = _positionStaleAsof(ticker, cp);
+      const _pnlStaleCls = _staleAsof ? ' pos-pnl-stale' : '';
+      const _staleNote   = _staleAsof
+        ? `<div class="pos-stale-note">⏱ Kurs vom ${_fmtStaleDate(_staleAsof)} — Fetch ausständig</div>`
+        : '';
       return `<div class="position-panel position-panel-active">
         <div class="pos-header">📍 Offene Position</div>
         <div class="pos-grid">
           <div><span class="pos-lbl">Entry-Datum</span><span class="pos-val">${pos.entry_date || '—'}</span></div>
           <div><span class="pos-lbl">Einstiegskurs</span><span class="pos-val">${entryStr}</span></div>
           <div><span class="pos-lbl">Stückzahl</span><span class="pos-val">${sharesStr}</span></div>
-          <div><span class="pos-lbl">P&amp;L</span><span class="pos-val pos-pnl-live" data-ep="${ep}" style="color:${pnlCol};font-weight:700">${pnlStr}</span></div>
+          <div><span class="pos-lbl">P&amp;L</span><span class="pos-val pos-pnl-live${_pnlStaleCls}" data-ep="${ep}" style="color:${pnlCol};font-weight:700">${pnlStr}</span></div>
         </div>
+        ${_staleNote}
         ${errHtml}
         <div class="pos-actions">
           <button class="pos-btn pos-btn-close" onclick="wlShowCloseForm('${ticker}')">Position schließen</button>

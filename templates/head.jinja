@@ -809,6 +809,11 @@ abbr[title]{text-decoration:underline dotted var(--txt-dim);
 .pos-lbl{font-size:.66rem;text-transform:uppercase;letter-spacing:.4px;
   color:var(--txt-dim);font-weight:600}
 .pos-val{font-size:.92rem;color:var(--txt);font-weight:600}
+/* Stale-Preis-Marker (Anzeige-Folge zu #483): preservter Daily-Run-Preis →
+   P&L gedimmt + gepunktete Unterstreichung (kein neues Farbsignal, nur
+   Dimmen+Form, analog Konfidenz-Wasserzeichen). Caption „Kurs vom …". */
+.pos-pnl-stale{opacity:.55;text-decoration:underline dotted;text-underline-offset:3px}
+.pos-stale-note{font-size:.72rem;color:var(--txt-dim);margin-top:4px;opacity:.9}
 .pos-form{display:flex;flex-direction:column;gap:8px;
   margin-bottom:10px;padding:10px;background:var(--bg-card);
   border-radius:8px;border:1px solid var(--brd)}
