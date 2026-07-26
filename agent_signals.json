@@ -1,10 +1,10 @@
 {
-  "updated": "2026-07-26T23:11:42.736666+02:00",
+  "updated": "2026-07-27T00:13:26.427354+02:00",
   "run_info": {
     "tickers_checked": 15,
     "signals_active": 0,
     "alerts_sent": 0,
-    "elapsed_s": 12.2,
+    "elapsed_s": 17.8,
     "market_phase": "Geschlossen"
   },
   "signals": {
@@ -57,7 +57,7 @@
     "CBRL": {
       "score": 28,
       "confidence": 33,
-      "drivers": "Spanne 5.9% + News-KI 8/30: Asset sales and store closures indicate financial distress rather than short-squeeze potential; negative catalysts typic + UOA Call/Put 4.3×",
+      "drivers": "Spanne 5.9% + News-KI 8/30: Asset sales and brand divestitures suggest financial distress rather than short-squeeze setup; negative news typically r + UOA Call/Put 4.3×",
       "price": 53.71,
       "chg_pct": -0.0,
       "rvol_4d": 0.84,
@@ -166,7 +166,7 @@
     "JACK": {
       "score": 43,
       "confidence": 70,
-      "drivers": "Spanne 7.9% + News-KI 5/30: Negative sentiment with avoidance recommendation and competitive pressure from Del Taco, plus no short interest indicato + Earnings in 17d + SEC Form 4 + UOA Call/Put 4.1×",
+      "drivers": "Spanne 7.9% + News-KI 5/30: Negative sentiment with avoidance recommendations and competitive pressure from Del Taco awards indicate weak momentum u + Earnings in 17d + SEC Form 4 + UOA Call/Put 4.1×",
       "price": 14.55,
       "chg_pct": 0.0,
       "rvol_4d": 1.08,
@@ -210,7 +210,7 @@
     "LENZ": {
       "score": 58,
       "confidence": 70,
-      "drivers": "Earnings in 3 Tagen (29.07.2026) + Volumen 1.7× + Spanne 9.3% + News-KI 8/30: Negative earnings expectations, declining fair value, and analyst downgrades indicate weak momentum with minimal short-s + Earnings in 3d",
+      "drivers": "Earnings in 3 Tagen (29.07.2026) + Volumen 1.7× + Spanne 9.3% + News-KI 8/30: Negative earnings outlook, declining fair value estimates, and analyst downgrades indicate weak sentiment with no short  + Earnings in 3d",
       "price": 5.48,
       "chg_pct": 0.0,
       "rvol_4d": 1.72,
