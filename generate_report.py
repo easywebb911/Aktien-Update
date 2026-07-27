@@ -2637,6 +2637,60 @@ def _safe_float(v, default: float = 0.0) -> float:
         return default
 
 
+def _finite(v) -> bool:
+    """PRÄDIKAT: ist ``v`` eine echte, endliche Zahl (kein None/NaN/Inf/bool)?
+
+    Abgrenzung zu ``_safe_float`` (Koerzierung mit Default): dieses Prädikat
+    ENTSCHEIDET, ob ein Wert überhaupt benutzbar ist — es erfindet keinen
+    Ersatzwert. Für Preis-Guards ist genau das nötig.
+
+    Hintergrund (NaN-Dichtigkeit, 27.07.2026): NaN verliert JEDEN Vergleich.
+    Ein Guard der *negierten* Form ``if not isinstance(x, float) or x <= 0:``
+    lässt NaN deshalb **durch** (``nan <= 0`` ist False), während die
+    *positiven* Form ``if x > 0:`` ihn korrekt ablehnt. Diese Asymmetrie ließ
+    am 25.07. einen NaN-Close bis in ``trend_break`` laufen → ``drop_pct=nan``
+    → beide Schwellen-Vergleiche False → else-Zweig → **falscher crit** auf
+    allen 6 Positionen. ``_finite`` macht die Guard-Form irrelevant.
+
+    ``bool`` wird ausgeschlossen (``isinstance(True, int)`` ist True, ein
+    Flag ist aber nie ein Kurs).
+    """
+    if isinstance(v, bool) or not isinstance(v, (int, float)):
+        return False
+    return math.isfinite(v)
+
+
+# NaN-Dichtigkeit/Sichtbarkeit (27.07.2026): Zähler für die Positions-Singleton-
+# Fetches (``_fetch_position_market_data``). Sie fließen in den bestehenden
+# ``yfinance_singletons``-Provider-Record ein — vorher deckte der NUR ^GSPC/
+# EURUSD=X/^VIX ab und war für einen NaN-Close der Positionen komplett blind.
+_POS_SINGLETON_OK = 0
+_POS_SINGLETON_FAIL = 0
+
+# Ab wann sind Positions-Fehlschläge SYSTEMISCH (= dürfen die harte
+# ``coverage_pct`` drücken)? Tier 1 feuert ohne Consecutive-Fenster —
+# ``n_consec >= 1`` reicht für crit (health_check.py) —, deshalb muss ein
+# einzelner delisteter oder kurz hängender Ticker folgenlos bleiben. Erst
+# BEIDE Bedingungen zusammen gelten als Systemausfall; darunter steht der
+# Fehlschlag nur im ``error``-Text (sichtbar, aber nicht alarmierend).
+# Ohne die absolute Untergrenze würde ein 1-Positions-Portfolio bei EINEM
+# Fehlschlag sofort crit melden ((1+1+0)/(2+1) = 66.7 % < 80 %).
+POS_FAIL_SYSTEMIC_MIN_COUNT = 2     # 1 toter Ticker ist NIE ein Provider-Alarm
+POS_FAIL_SYSTEMIC_MIN_RATIO = 0.5   # … und mind. die Hälfte muss betroffen sein
+
+
+def _pos_fails_are_systemic(fail: int, total: int) -> bool:
+    """Zählen die Positions-Fehlschläge in die harte ``coverage_pct``?
+
+    Rein rechnerisch, ohne Seiteneffekt (direkt testbar). ``total`` = alle
+    versuchten Positions-Fetches, ``fail`` davon die gescheiterten.
+    """
+    if total <= 0 or fail <= 0:
+        return False
+    return (fail >= POS_FAIL_SYSTEMIC_MIN_COUNT
+            and (fail / total) >= POS_FAIL_SYSTEMIC_MIN_RATIO)
+
+
 def _news_age_weight(news_item: dict, now_ts: float | None = None) -> float:
     """Liefert das Alters-Gewicht für ein News-Item via NEWS_DECAY_WEIGHTS.
 
@@ -15357,11 +15411,32 @@ def _fetch_position_market_data(ticker: str, entry_date: date) -> dict | None:
 
     Wird benötigt für high_since_entry, RVOL (heute vs. Ø 20T) und
     Tagesperformance. Gibt None zurück bei jedem yfinance-Fehler.
+
+    NaN-Dichtigkeit (27.07.2026): yfinance liefert je nach Tageszeit/Ticker
+    eine LETZTE Zeile mit ``Close = NaN`` (kein Print). ``float(nan)`` wirft
+    nicht — der NaN lief bis in ``trend_break`` (falscher crit) und stempelte
+    ``price_asof`` frisch auf einen leeren Preis. Fix: ``dropna(subset=
+    ["Close"])`` VOR jedem Zugriff — exakt wie der gesunde Batch-Pfad
+    (``_compute_indicators``: ``df["Close"].dropna()``). Bleibt nichts übrig
+    → ``None`` → der bestehende None-Pfad + #483-Preserve greifen wieder.
+
+    Sichtbarkeit: Erfolg/Fehlschlag werden gezählt und fließen in den
+    ``yfinance_singletons``-Provider-Record (vorher deckte der NUR
+    ^GSPC/EURUSD=X/^VIX ab und war für diesen Modus blind).
     """
+    global _POS_SINGLETON_OK, _POS_SINGLETON_FAIL
     try:
         start = (entry_date - timedelta(days=40)).strftime("%Y-%m-%d")
         hist = yf.Ticker(ticker).history(start=start, period=None, auto_adjust=False)
         if hist is None or hist.empty:
+            _POS_SINGLETON_FAIL += 1
+            return None
+        # NaN-Zeilen (Close) raus, BEVOR irgendetwas gelesen wird.
+        hist = hist.dropna(subset=["Close"])
+        if hist.empty:
+            log.warning("yfinance Position-Fetch %s: nur NaN-Closes — als "
+                        "Fehlschlag gewertet (kein Preis erfunden)", ticker)
+            _POS_SINGLETON_FAIL += 1
             return None
         # Filter ab Entry-Datum für high_since_entry
         try:
@@ -15371,11 +15446,21 @@ def _fetch_position_market_data(ticker: str, entry_date: date) -> dict | None:
         if since_entry.empty:
             since_entry = hist.tail(1)
         cur_close = float(hist["Close"].iloc[-1])
+        if not _finite(cur_close) or cur_close <= 0:
+            # Doppelt genäht: dropna sollte das abfangen, aber ein 0/Inf-Close
+            # ist ebenso unbrauchbar wie NaN.
+            log.warning("yfinance Position-Fetch %s: unbrauchbarer Close %r",
+                        ticker, cur_close)
+            _POS_SINGLETON_FAIL += 1
+            return None
         prev_close = float(hist["Close"].iloc[-2]) if len(hist) >= 2 else cur_close
+        if not _finite(prev_close) or prev_close <= 0:
+            prev_close = cur_close
         chg_pct = ((cur_close - prev_close) / prev_close * 100.0) if prev_close > 0 else 0.0
-        avg_vol_20d = float(hist["Volume"].tail(20).mean() or 0.0)
-        cur_vol = float(hist["Volume"].iloc[-1] or 0.0)
+        avg_vol_20d = _safe_float(hist["Volume"].tail(20).mean(), 0.0)
+        cur_vol = _safe_float(hist["Volume"].iloc[-1], 0.0)
         rvol = (cur_vol / avg_vol_20d) if avg_vol_20d > 0 else 0.0
+        _POS_SINGLETON_OK += 1
         return {
             "price":             cur_close,
             "rvol":              rvol,
@@ -15384,6 +15469,7 @@ def _fetch_position_market_data(ticker: str, entry_date: date) -> dict | None:
         }
     except Exception as exc:
         log.warning("yfinance Position-Fetch %s: %s", ticker, exc)
+        _POS_SINGLETON_FAIL += 1
         return None
 
 
@@ -15619,8 +15705,13 @@ def _exit_p2_scale(value: float | None, warn: float, crit: float
     None/negativ → 0/False/False. ``0..warn`` → 0..50 linear. ``warn..crit``
     → 50..100 linear. ``≥ crit`` → 100. Returnt ``(sub_score, warn_flag,
     crit_flag)``. Sub-Score ist immer ein Int 0..100.
+
+    NaN-Dichtigkeit (27.07.2026): ``_finite`` statt ``is None``-Prüfung. NaN
+    rutschte durch (``nan <= 0`` ist False) und lief in den linearen Zweig;
+    das Ergebnis war zwar zufällig harmlos (``max(0.0, nan)`` → 0.0), aber
+    unbeabsichtigt. Für endliche Werte ist die Prüfung identisch.
     """
-    if value is None or value <= 0:
+    if not _finite(value) or value <= 0:
         return 0, False, False
     if value >= crit:
         return 100, True, True
@@ -15660,8 +15751,12 @@ def _exit_p2_trigger_score_decay(entries: list, cur_score: float | None
     Sub-Score = Maximum der drei Drop-Skalen. ``sub_scores_all_falling``
     bleibt available:false (sub_scores werden nicht in score_history
     persistiert).
+
+    NaN-Dichtigkeit (27.07.2026): ein NaN-Score hätte ``available: true`` mit
+    ``drop_*: null`` erzeugt — genau die Signatur des Live-Bugs. Jetzt gilt
+    NaN als „kein Wert". Für endliche Scores unverändert.
     """
-    if cur_score is None or len(entries) < 4:
+    if not _finite(cur_score) or len(entries) < 4:
         return {"score": 0, "warn": False, "crit": False, "available": False,
                 "reason": "score_history zu kurz"}
     drops: dict[str, float | None] = {}
@@ -15672,7 +15767,7 @@ def _exit_p2_trigger_score_decay(entries: list, cur_score: float | None
         (7, EXIT_SCORE_DROP_7D_WARN, EXIT_SCORE_DROP_7D_CRIT),
     ):
         ref = _exit_p2_score_at(entries, n)
-        if ref is None:
+        if not _finite(ref):
             drops[f"drop_{n}d"] = None
             continue
         drop = ref - cur_score   # positiv = Score gefallen
@@ -15693,15 +15788,21 @@ def _exit_p2_trigger_profit_lock(pnl_frac: float | None,
                                   peak_pnl_frac: float | None,
                                   cur_score: float | None,
                                   peak_score: float | None) -> dict:
-    """Trigger 2: Profit-Lock — Drawdown von Peak-PnL und Peak-Score."""
-    if pnl_frac is None:
+    """Trigger 2: Profit-Lock — Drawdown von Peak-PnL und Peak-Score.
+
+    NaN-Dichtigkeit (27.07.2026): ``_finite`` statt ``is None``. Ein
+    NaN-``pnl_frac`` (aus einem NaN-Preis) hätte ``available: true`` mit
+    ``pnl_pct: null`` gemeldet — dieselbe Signatur wie der trend_break-
+    Fehlalarm. Für endliche Werte identisch.
+    """
+    if not _finite(pnl_frac):
         return {"score": 0, "warn": False, "crit": False, "available": False,
                 "reason": "kein aktueller Preis"}
     drawdown = None
     score_drop_peak = None
-    if peak_pnl_frac is not None and peak_pnl_frac > 0:
+    if _finite(peak_pnl_frac) and peak_pnl_frac > 0:
         drawdown = max(0.0, peak_pnl_frac - pnl_frac)
-    if peak_score is not None and cur_score is not None:
+    if _finite(peak_score) and _finite(cur_score):
         score_drop_peak = max(0.0, peak_score - cur_score)
     s_dd, w_dd, c_dd = _exit_p2_scale(
         drawdown, EXIT_PROFIT_LOCK_WARN_PCT, EXIT_PROFIT_LOCK_CRIT_PCT)
@@ -15741,11 +15842,15 @@ def _exit_p2_trigger_trend_break(metrics: dict | None,
     if not metrics:
         return {"score": 0, "warn": False, "crit": False, "available": False,
                 "reason": "Position außerhalb top10_metrics"}
+    # NaN-Dichtigkeit (27.07.2026): ``_finite`` statt der negierten
+    # isinstance/<=0-Form — die ließ NaN durch (nan <= 0 ist False) und
+    # erzeugte über drop_pct=nan einen falschen crit. Schwellen/Stufung
+    # unverändert, nur der Eingangs-Guard.
     ma21 = metrics.get("ma21")
-    if not isinstance(ma21, (int, float)) or ma21 <= 0:
+    if not _finite(ma21) or ma21 <= 0:
         return {"score": 0, "warn": False, "crit": False, "available": False,
                 "reason": "EMA21 nicht verfügbar (< 21 Handelstage History)"}
-    if not isinstance(cur_price, (int, float)) or cur_price <= 0:
+    if not _finite(cur_price) or cur_price <= 0:
         return {"score": 0, "warn": False, "crit": False, "available": False,
                 "reason": "cur_price fehlt"}
     drop_pct = (float(ma21) - float(cur_price)) / float(ma21) * 100.0
@@ -15954,11 +16059,15 @@ def _exit_p2_trigger_setup_erosion(position: dict,
     cur = cur_setup or {}
 
     def _to_f(v):
+        # NaN-Dichtigkeit (27.07.2026): NaN gilt wie „kein Wert". Sonst
+        # passierte NaN den Guard in ``_drop_and_stage`` (``nan <= 0`` ist
+        # False) und erzeugte available:true mit drop 0 — eine stille Lüge
+        # über die Datenlage. Kann nur Alarm ENTFERNEN, nie erzeugen.
         try:
             f = float(v) if v is not None else None
         except (TypeError, ValueError):
             return None
-        return f
+        return f if _finite(f) else None
 
     entry_dtc = _to_f(position.get("entry_dtc"))
     entry_sf  = _to_f(position.get("entry_short_float"))
@@ -15973,7 +16082,7 @@ def _exit_p2_trigger_setup_erosion(position: dict,
 
     def _drop_and_stage(entry_v, cur_v):
         """Returnt (drop_clamped, stage 0/50/100, available_bool)."""
-        if entry_v is None or entry_v <= 0 or cur_v is None:
+        if not _finite(entry_v) or entry_v <= 0 or not _finite(cur_v):
             return None, 0, False
         raw = (entry_v - cur_v) / entry_v
         drop = max(0.0, raw)   # negative Drops auf 0 clampen
@@ -16064,8 +16173,11 @@ def _exit_p2_trigger_overheated(metrics: dict | None) -> dict:
     rsi = metrics.get("rsi14")
     chg2d_pct = metrics.get("change_2d")   # Prozent (z.B. 12.5)
     chg3d_pct = metrics.get("change_3d")   # Prozent (z.B. 30.0)
-    move_2d = (chg2d_pct / 100.0) if isinstance(chg2d_pct, (int, float)) else None
-    move_3d = (chg3d_pct / 100.0) if isinstance(chg3d_pct, (int, float)) else None
+    # NaN-Dichtigkeit (27.07.2026): ``_finite`` statt blankem ``isinstance``.
+    # NaN wäre als Zahl akzeptiert worden → ``move_3d_available: true`` bei
+    # ``move_3d_pct: null``. Für endliche Werte identisch.
+    move_2d = (chg2d_pct / 100.0) if _finite(chg2d_pct) else None
+    move_3d = (chg3d_pct / 100.0) if _finite(chg3d_pct) else None
     s_r,  w_r,  c_r  = _exit_p2_scale(rsi,     EXIT_RSI_WARN,    EXIT_RSI_CRIT)
     s_m2, w_m2, c_m2 = _exit_p2_scale(move_2d, EXIT_MOVE_2D_WARN, EXIT_MOVE_2D_CRIT)
     s_m3, w_m3, c_m3 = _exit_p2_scale(move_3d, EXIT_MOVE_3D_WARN, EXIT_MOVE_3D_CRIT)
@@ -16105,7 +16217,11 @@ def _compute_exit_state(
     except (TypeError, ValueError):
         entry_price = None
     pnl_frac: float | None = None
-    if entry_price and entry_price > 0 and cur_price and cur_price > 0:
+    # NaN-Dichtigkeit (27.07.2026): explizit statt truthy. Die alte Form war
+    # bereits NaN-dicht (``nan > 0`` ist False) — die neue macht sichtbar,
+    # WARUM. Für endliche Werte identisch (0.0 fällt in beiden Formen raus).
+    if (_finite(entry_price) and entry_price > 0
+            and _finite(cur_price) and cur_price > 0):
         pnl_frac = (cur_price - entry_price) / entry_price
 
     entries = (history or {}).get(ticker) or []
@@ -16213,17 +16329,18 @@ def _build_phase2_positions_payload(
             log.warning("Phase 2 Exit %s: ungültiges entry_date %r — überspringe",
                         ticker, pos.get("entry_date"))
             continue
+        # NaN-Dichtigkeit (27.07.2026): BEIDE Preis-Quellen über ``_finite``
+        # filtern. Vorher ließ ``is not None`` (Top-10-Lookup) bzw. die
+        # Truthiness von ``market.get("price")`` (Singleton) einen NaN durch —
+        # cur_price war dann "nicht None" und der Fallback wurde übersprungen.
         cur_price: float | None = None
         s_top = by_ticker.get(ticker)
-        if s_top and s_top.get("price") is not None:
-            try:
-                cur_price = float(s_top["price"])
-            except (TypeError, ValueError):
-                cur_price = None
+        if s_top and _finite(s_top.get("price")):
+            cur_price = float(s_top["price"])
         if cur_price is None:
             try:
                 market = _fetch_position_market_data(ticker, entry_date_obj)
-                if market and market.get("price"):
+                if market and _finite(market.get("price")) and market["price"] > 0:
                     cur_price = float(market["price"])
             except Exception as exc:
                 log.warning("Phase 2 Exit %s: _fetch_position_market_data: %s",
@@ -16289,12 +16406,16 @@ def _build_phase2_positions_payload(
         # cur_price (None bei Fehler) → Validity-Gate-Semantik unverändert, keine
         # Trigger-Logik-Änderung. exit_state.current_price bleibt die Trigger-
         # Wahrheit; dieses Top-Level-Feld ist der Anzeige-/S3-Kanal.
-        if cur_price is not None:
+        # NaN-Dichtigkeit (27.07.2026): ``_finite`` statt ``is not None`` — ein
+        # NaN stempelte hier sonst price_asof FRISCH auf einen leeren Preis
+        # (NaN→null erst beim Serialisieren) und hebelte damit sowohl den
+        # Preserve-Zweig als auch die Stale-Anzeige (#484) aus.
+        if _finite(cur_price):
             resolved_price = cur_price
             price_asof = now_utc.strftime("%Y-%m-%dT%H:%M:%SZ")
         else:
             prev_price = prev_pos.get("current_price")
-            if isinstance(prev_price, (int, float)) and not isinstance(prev_price, bool):
+            if _finite(prev_price):
                 resolved_price = float(prev_price)
                 # Alten Stempel behalten (kann None sein bei Alt-State ohne Feld).
                 price_asof = prev_pos.get("price_asof")
@@ -16393,6 +16514,12 @@ def main():
     _provider_acct_reset(_STOCKANALYSIS_ACCT)
     _provider_acct_reset(_BORROW_ACCT)
     _provider_acct_reset(_EDGAR_13F_ACCT)
+    # dito für die Positions-Singleton-Zähler (27.07.2026) — sonst schleppte
+    # ein zweiter main()-Aufruf im selben Prozess die Zählung des ersten mit
+    # und verfälschte coverage_pct.
+    global _POS_SINGLETON_OK, _POS_SINGLETON_FAIL
+    _POS_SINGLETON_OK = 0
+    _POS_SINGLETON_FAIL = 0
 
     # --- Step 1: Get candidate pool ---
     # Primary: Yahoo Finance Screener (reliable from GitHub Actions runners)
@@ -16850,20 +16977,51 @@ def main():
     # SPY/FX-Blöcke (beide haben eigene try/except, aber defensive
     # Vorsicht).
     try:
+        # NaN-Sichtbarkeit (27.07.2026): die Positions-Singletons
+        # (_fetch_position_market_data) zählen jetzt MIT. Vorher deckte diese
+        # Zeile nur ^GSPC/EURUSD=X ab — ein NaN-Close aller 6 Positionen war
+        # für den Digest komplett unsichtbar (consecutive_failures blieb 0,
+        # obwohl S3 crit feuerte).
+        #
+        # Coverage-Regel (Guardian-Nit 27.07.): Positions-Fehlschläge drücken
+        # die HARTE coverage_pct erst, wenn sie SYSTEMISCH sind
+        # (_pos_fails_are_systemic). Reine Proportionalität reichte NICHT —
+        # Tier 1 feuert ohne Consecutive-Fenster, und bei 1–2 offenen
+        # Positionen hätte ein einzelner Fehlschlag die 80 %-Schwelle sofort
+        # gerissen ((1+1+0)/(2+1) = 66.7 %). Genau die Fehlalarm-Klasse, die
+        # dieser PR beseitigt. Unterhalb der Systemik-Schwelle bleibt der
+        # Fehlschlag im error-Text sichtbar, alarmiert aber nicht.
+        _yfs_pos_total = _POS_SINGLETON_OK + _POS_SINGLETON_FAIL
+        _yfs_pos_systemic = _pos_fails_are_systemic(_POS_SINGLETON_FAIL,
+                                                    _yfs_pos_total)
         _yfs_items = int(_yfs_spy_ok) + int(_yfs_fx_ok)
-        _yfs_cov   = (_yfs_items / 2.0) * 100.0
-        _yfs_err   = None
+        _yfs_denom = 2.0
+        if _yfs_pos_systemic:
+            _yfs_items += _POS_SINGLETON_OK
+            _yfs_denom += _yfs_pos_total
+        _yfs_cov   = (_yfs_items / _yfs_denom) * 100.0 if _yfs_denom > 0 else 0.0
+        # HART (steuert http_status): nur SPY/FX — unverändert zu vorher.
+        _yfs_hard_err = None
         if not _yfs_spy_ok and not _yfs_fx_ok:
-            _yfs_err = "spy_and_fx_failed"
+            _yfs_hard_err = "spy_and_fx_failed"
         elif not _yfs_spy_ok:
-            _yfs_err = "spy_failed"
+            _yfs_hard_err = "spy_failed"
         elif not _yfs_fx_ok:
-            _yfs_err = "fx_failed"
+            _yfs_hard_err = "fx_failed"
+        # DIAGNOSTISCH: Positions-Fehlschläge stehen IMMER im error-Text (auch
+        # unterhalb der Systemik-Schwelle — Sichtbarkeit ist der Zweck dieses
+        # Fixes). Ein error-Text allein ist KEIN Fail: der Digest wertet nur
+        # ``http_status != 200`` oder ``coverage_pct < Schwelle``
+        # (health_check.py). http_status bleibt allein SPY/FX-gesteuert.
+        _yfs_err = _yfs_hard_err
+        if _POS_SINGLETON_FAIL:
+            _pos_err = f"position_close_unusable:{_POS_SINGLETON_FAIL}"
+            _yfs_err = _pos_err if _yfs_err is None else f"{_yfs_err};{_pos_err}"
         health_check.record_provider_call(
             provider="yfinance_singletons",
             tier=HEALTH_CHECK_PROVIDER_TIER.get("yfinance_singletons", 1),
             latency_ms=int((time.perf_counter() - _yfs_t0) * 1000),
-            http_status=200 if _yfs_err is None else None,
+            http_status=200 if _yfs_hard_err is None else None,
             item_count=_yfs_items,
             coverage_pct=round(_yfs_cov, 1),
             error=_yfs_err,

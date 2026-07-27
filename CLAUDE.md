@@ -1282,6 +1282,53 @@ ma21 × 100`. EMA21 wird in `_compute_indicators` via
 `close.ewm(span=21, adjust=False)` berechnet und im
 `results[ticker]`-Dict / merge bei Z. ~12700 als `ma21` mitgeführt.
 
+### NaN-Dichtigkeit im Preis-/Exit-Pfad (27.07.2026) — `_finite` ist Pflicht
+
+**Befund (Live-Bug 25.–27.07.):** `_fetch_position_market_data` las
+`float(hist["Close"].iloc[-1])` **ohne `dropna`**. Eine letzte yfinance-Zeile
+mit `Close = NaN` liefert dann `price = NaN` — **ohne Exception**. NaN verliert
+**jeden** Vergleich, deshalb ist die Guard-Form entscheidend:
+
+| Form | NaN-Verhalten |
+|---|---|
+| `if x > 0:` (positiv) | NaN wird **abgewiesen** (zufällig dicht) |
+| `if not isinstance(x, float) or x <= 0:` (negiert) | NaN **rutscht durch** |
+| `if x is None:` | NaN **rutscht durch** |
+
+Folge: `trend_break` bekam `drop_pct = NaN`, beide Schwellen-Vergleiche waren
+False, der else-Zweig setzte **`crit=True` bei `price=null`** → Fehlalarm-Push
+auf allen 6 Positionen, der sich als `last_active: ["trend_break"]` in den
+Dedupe-State schrieb (ein **echter** Trendbruch hätte danach keine frische
+Flanke mehr erzeugt). Parallel bekam `price_asof` einen **frischen** Stempel
+auf einen leeren Preis — #483-Preserve und die Stale-Anzeige (#484) waren
+ausgehebelt. Sichtbar war nichts: `_sanitize_for_json` macht aus NaN ein `null`.
+
+**Regel:** Im Preis-/Exit-Pfad wird auf Zahlen **ausschließlich** mit
+`_finite(x)` geprüft (`generate_report.py`, direkt nach `_safe_float`) — nie
+mit `is None`, nie mit blankem `isinstance`. `_finite` schließt `None`, `NaN`,
+`±Inf` und `bool` aus. Neue Trigger/Guards folgen dem; der Regressionsschutz
+steht in `scripts/mock_test_nan_price_tightness.py` (je gehärtetem Guard ein
+expliziter NaN-Fall **plus** Gegenprobe, dass die Stufung für endliche Werte
+unverändert bleibt).
+
+**Quelle statt Symptom:** `_fetch_position_market_data` macht
+`dropna(subset=["Close"])` vor jedem Close-Zugriff; bleibt nichts übrig →
+`return None` (**kein Preis wird erfunden**), der Fehlschlag wird gezählt.
+
+**Sichtbarkeit:** Der `yfinance_singletons`-Provider-Record deckte bis dahin
+nur `^GSPC`/`EURUSD=X` ab — die Positions-Singletons waren blind, deshalb blieb
+`consecutive_failures` bei 0, während S3 tagelang crit meldete. Positions-Fetches
+zählen jetzt mit, aber **nur bei systemischem Ausfall** in die harte
+`coverage_pct`: `_pos_fails_are_systemic(fail, total)` verlangt
+`fail ≥ 2` **und** `fail/total ≥ 0.5`. Grund: **Tier 1 feuert ohne
+Consecutive-Fenster** (`n_consec ≥ 1` → crit, `health_check.py`), und eine rein
+proportionale Coverage `(spy+fx+pos_ok)/(2+pos_total)` hätte bei 1–2 offenen
+Positionen einen einzelnen — womöglich transienten — Fehlschlag sofort unter
+80 % gedrückt (`(1+1+0)/(2+1) = 66.7 %`). Unterhalb der Systemik-Schwelle steht
+der Fehlschlag **trotzdem** im `error`-Text (`position_close_unusable:N`) — ein
+error-Text allein ist kein Fail, der Digest wertet nur `http_status != 200`
+oder `coverage_pct < Schwelle`. `http_status` hängt weiterhin **nur** an SPY/FX.
+
 ### Phase-2-Push-Pipeline: Flanken-/Tages-Cap-Dedupe (23.07.2026)
 
 `process_exit_signals` (ki_agent.py) bündelt + dedupliziert die Exit-Pushes.
