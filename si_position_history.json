@@ -354,6 +354,12 @@
       "shares_short": 44257301,
       "short_pct_float": 19.05,
       "pub_date": "2026-07-10"
+    },
+    {
+      "settlement_date": "2026-07-15",
+      "shares_short": 41501898,
+      "short_pct_float": 17.86,
+      "pub_date": "2026-07-24"
     }
   ],
   "CERT": [
@@ -2567,6 +2573,21 @@
       "settlement_date": "2026-07-15",
       "shares_short": 55379101,
       "short_pct_float": 15.72,
+      "pub_date": "2026-07-24"
+    }
+  ],
+  "NXTC": [
+    {
+      "settlement_date": "2026-06-15",
+      "shares_short": 225545,
+      "short_pct_float": null,
+      "pub_date": "2026-06-25",
+      "seeded": true
+    },
+    {
+      "settlement_date": "2026-07-15",
+      "shares_short": 1323834,
+      "short_pct_float": 32.54,
       "pub_date": "2026-07-24"
     }
   ]
