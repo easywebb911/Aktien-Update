@@ -1,5 +1,5 @@
 {
-  "last_run": "2026-07-28T00:18:59.801586+02:00",
+  "last_run": "2026-07-28T00:31:13.356471+02:00",
   "cooldowns": {
     "anomaly_score_jump_XRX": "2026-05-03T18:47:15.315486+02:00",
     "anomaly_uoa_extreme_TDOC": "2026-05-04T13:47:00.365949+02:00",
@@ -1287,20 +1287,20 @@
     }
   ],
   "prev_conviction_scores": {
-    "GRPN": 53.0,
-    "LENZ": 70.0,
-    "JACK": 48.0,
-    "ASAN": 46.0,
-    "UPWK": 51.0,
-    "AI": 44.0,
+    "GRPN": 69.0,
+    "ASAN": 53.0,
+    "LENZ": 71.0,
+    "JACK": 49.0,
+    "EVGO": 56.0,
+    "AI": 47.0,
+    "VEEE": 32.0,
+    "ALT": 52.0,
+    "ENVX": 51.0,
     "VYX": 51.0,
-    "VEEE": 29.0,
-    "PAR": 50.0,
-    "DBI": 42.0,
-    "WOLF": 32.0,
-    "PDYN": 25.0,
-    "IONQ": 14.0,
-    "AMC": 12.0
+    "WOLF": 35.0,
+    "IONQ": 22.0,
+    "PDYN": 26.0,
+    "AMC": 18.0
   },
   "exit_cooldowns": {
     "exitp2_warning_AMC": "2026-05-18T14:48:43.872687+02:00",
@@ -1346,7 +1346,7 @@
       ],
       "last_push_date": "2026-07-27",
       "esc_alerted": false,
-      "updated": "2026-07-28T00:18:59.801671+02:00"
+      "updated": "2026-07-28T00:31:13.356568+02:00"
     },
     "PDYN": {
       "last_active": [
@@ -1354,13 +1354,13 @@
       ],
       "last_push_date": "2026-07-24",
       "esc_alerted": false,
-      "updated": "2026-07-28T00:18:59.801690+02:00"
+      "updated": "2026-07-28T00:31:13.356588+02:00"
     },
     "AI": {
       "last_active": [],
       "last_push_date": "2026-07-24",
       "esc_alerted": false,
-      "updated": "2026-07-28T00:18:59.801701+02:00"
+      "updated": "2026-07-28T00:31:13.356598+02:00"
     },
     "FRMM": {
       "last_active": [],
@@ -1372,7 +1372,7 @@
       "last_active": [],
       "last_push_date": "2026-07-27",
       "esc_alerted": false,
-      "updated": "2026-07-28T00:18:59.801710+02:00"
+      "updated": "2026-07-28T00:31:13.356607+02:00"
     },
     "WOLF": {
       "last_active": [
@@ -1380,7 +1380,7 @@
       ],
       "last_push_date": "2026-07-24",
       "esc_alerted": false,
-      "updated": "2026-07-28T00:18:59.801720+02:00"
+      "updated": "2026-07-28T00:31:13.356618+02:00"
     }
   }
 }
