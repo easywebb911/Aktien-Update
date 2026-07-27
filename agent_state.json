@@ -1,5 +1,5 @@
 {
-  "last_run": "2026-07-27T02:12:48.644077+02:00",
+  "last_run": "2026-07-27T06:02:34.914610+02:00",
   "cooldowns": {
     "anomaly_score_jump_XRX": "2026-05-03T18:47:15.315486+02:00",
     "anomaly_uoa_extreme_TDOC": "2026-05-04T13:47:00.365949+02:00",
@@ -85,18 +85,6 @@
     "earnings_immediate_WRLD_24.07.2026": "2026-07-24T23:28:51.171428+02:00"
   },
   "push_history": [
-    {
-      "ts": "2026-07-16T08:31:47.918283+02:00",
-      "ticker": "LENZ",
-      "kind": "exit_p2",
-      "severity": "trigger",
-      "trigger": "trend_break",
-      "body": "🔻 Exit-Signal LENZ: trend_break crit ({'ma21': 5.8377, 'price': 4.93, 'drop_pct': 15.55})",
-      "success": true,
-      "suppressed": false,
-      "suppress_reason": null,
-      "conviction_score": null
-    },
     {
       "ts": "2026-07-16T08:31:48.125402+02:00",
       "ticker": "WOLF",
@@ -1284,6 +1272,18 @@
       "suppressed": false,
       "suppress_reason": null,
       "conviction_score": null
+    },
+    {
+      "ts": "2026-07-27T06:02:35.169953+02:00",
+      "ticker": "LENZ",
+      "kind": "exit_p2",
+      "severity": "trigger",
+      "trigger": "trend_break",
+      "body": "🔻 Exit-Signale LENZ: trend_break crit",
+      "success": true,
+      "suppressed": false,
+      "suppress_reason": null,
+      "conviction_score": null
     }
   ],
   "prev_conviction_scores": {
@@ -1341,13 +1341,11 @@
   "exit_push_dedupe": {
     "IONQ": {
       "last_active": [
-        "__warning__",
-        "profit_lock",
         "trend_break"
       ],
       "last_push_date": "2026-07-24",
       "esc_alerted": false,
-      "updated": "2026-07-25T02:17:46.555162+02:00"
+      "updated": "2026-07-27T06:02:34.914695+02:00"
     },
     "PDYN": {
       "last_active": [
@@ -1355,17 +1353,15 @@
       ],
       "last_push_date": "2026-07-24",
       "esc_alerted": false,
-      "updated": "2026-07-25T02:17:46.555181+02:00"
+      "updated": "2026-07-27T06:02:34.914713+02:00"
     },
     "AI": {
       "last_active": [
-        "__warning__",
-        "profit_lock",
         "trend_break"
       ],
       "last_push_date": "2026-07-24",
       "esc_alerted": false,
-      "updated": "2026-07-25T02:17:46.555196+02:00"
+      "updated": "2026-07-27T06:02:34.914726+02:00"
     },
     "FRMM": {
       "last_active": [],
@@ -1374,10 +1370,12 @@
       "updated": "2026-07-24T23:28:51.957113+02:00"
     },
     "LENZ": {
-      "last_active": [],
-      "last_push_date": "2026-07-23",
+      "last_active": [
+        "trend_break"
+      ],
+      "last_push_date": "2026-07-27",
       "esc_alerted": false,
-      "updated": "2026-07-25T02:17:46.555206+02:00"
+      "updated": "2026-07-27T06:02:35.169985+02:00"
     },
     "WOLF": {
       "last_active": [
@@ -1385,7 +1383,7 @@
       ],
       "last_push_date": "2026-07-24",
       "esc_alerted": false,
-      "updated": "2026-07-25T02:17:46.555217+02:00"
+      "updated": "2026-07-27T06:02:35.170010+02:00"
     }
   }
 }
