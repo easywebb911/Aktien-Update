@@ -1,0 +1,92 @@
+{
+  "AI": {
+    "qid": "Q104081972",
+    "title": "C3_AI",
+    "resolved_at": "2026-07-27T22:29:48Z",
+    "issuer_verified": true,
+    "company_name_at_resolve": "C3.ai, Inc.",
+    "substrate": "en",
+    "reason": null
+  },
+  "ALT": {
+    "qid": "Q30283539",
+    "title": null,
+    "resolved_at": "2026-07-27T22:29:48Z",
+    "issuer_verified": false,
+    "company_name_at_resolve": "Altimmune, Inc.",
+    "substrate": "none",
+    "reason": "no_article"
+  },
+  "ASAN": {
+    "qid": "Q111411592",
+    "title": "Asana,_Inc.",
+    "resolved_at": "2026-07-27T22:29:48Z",
+    "issuer_verified": true,
+    "company_name_at_resolve": "Asana, Inc.",
+    "substrate": "en",
+    "reason": null
+  },
+  "ENVX": {
+    "qid": "Q124624329",
+    "title": null,
+    "resolved_at": "2026-07-27T22:29:48Z",
+    "issuer_verified": false,
+    "company_name_at_resolve": "Enovix Corporation",
+    "substrate": "none",
+    "reason": "no_article"
+  },
+  "EVGO": {
+    "qid": null,
+    "title": null,
+    "resolved_at": "2026-07-27T22:29:48Z",
+    "issuer_verified": false,
+    "company_name_at_resolve": "EVgo, Inc.",
+    "substrate": "none",
+    "reason": "no_p249"
+  },
+  "GRPN": {
+    "qid": "Q852787",
+    "title": "Groupon",
+    "resolved_at": "2026-07-27T22:29:48Z",
+    "issuer_verified": true,
+    "company_name_at_resolve": "Groupon, Inc.",
+    "substrate": "en",
+    "reason": null
+  },
+  "JACK": {
+    "qid": "Q1538507",
+    "title": "Jack_in_the_Box",
+    "resolved_at": "2026-07-27T22:29:48Z",
+    "issuer_verified": true,
+    "company_name_at_resolve": "Jack in the Box Inc.",
+    "substrate": "en",
+    "reason": null
+  },
+  "LENZ": {
+    "qid": null,
+    "title": null,
+    "resolved_at": "2026-07-27T22:29:48Z",
+    "issuer_verified": false,
+    "company_name_at_resolve": "LENZ Therapeutics, Inc.",
+    "substrate": "none",
+    "reason": "no_p249"
+  },
+  "VEEE": {
+    "qid": null,
+    "title": null,
+    "resolved_at": "2026-07-27T22:29:48Z",
+    "issuer_verified": false,
+    "company_name_at_resolve": "Twin Vee Powercats Co.",
+    "substrate": "none",
+    "reason": "no_p249"
+  },
+  "VYX": {
+    "qid": "Q524989",
+    "title": "NCR_Voyix",
+    "resolved_at": "2026-07-27T22:29:48Z",
+    "issuer_verified": true,
+    "company_name_at_resolve": "NCR Voyix Corporation",
+    "substrate": "en",
+    "reason": null
+  }
+}
