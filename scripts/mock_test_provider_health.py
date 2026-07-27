@@ -269,16 +269,32 @@ def test_yfinance_batch_coverage_pct_computed():
 
 
 def test_yfinance_singletons_daily_run_side():
-    """Daily-Run emittiert yfinance_singletons-Zeile (SPY + FX, max 2)."""
+    """Daily-Run emittiert yfinance_singletons-Zeile.
+
+    ERWEITERT 27.07.2026 (NaN-Sichtbarkeit): Der Record deckte bis dahin NUR
+    SPY + FX ab (max 2 items) — die Positions-Singletons aus
+    ``_fetch_position_market_data`` waren für den Provider-Health komplett
+    unsichtbar. Genau deshalb blieb ``consecutive_failures`` bei 0, während S3
+    tagelang crit meldete. Ab jetzt zählen die Positionen MIT; die
+    SPY/FX-Flags bleiben unverändert die einzigen, die ``http_status``
+    steuern (proportionale Coverage statt Dauer-Alarm bei 1 totem Ticker).
+    """
     assert SRC_GR.count('provider="yfinance_singletons"') >= 1, (
         "yfinance_singletons-Emission im Daily-Run fehlt")
     assert "_yfs_spy_ok" in SRC_GR
     assert "_yfs_fx_ok" in SRC_GR
     # Beide Boolean-Flags werden in der Emission-Logik konsumiert
     block_idx = SRC_GR.find('provider="yfinance_singletons"')
-    pre = SRC_GR[max(0, block_idx - 600):block_idx]
+    pre = SRC_GR[max(0, block_idx - 1600):block_idx]
     assert "_yfs_items = int(_yfs_spy_ok) + int(_yfs_fx_ok)" in pre, (
         "Daily-Run-Emission rechnet items nicht aus SPY+FX-Flags")
+    # NEU: Positions-Singletons zählen mit (Sichtbarkeits-Fix)
+    assert "_POS_SINGLETON_OK" in pre and "_POS_SINGLETON_FAIL" in pre, (
+        "Positions-Singletons fehlen im yfinance_singletons-Record")
+    # http_status hängt weiterhin NUR an SPY/FX — eine tote Position darf
+    # keinen Tier-1-Hard-Fail erzeugen.
+    assert "http_status=200 if _yfs_hard_err is None else None" in SRC_GR, (
+        "http_status wird nicht mehr allein aus SPY/FX abgeleitet")
 
 
 def test_yfinance_singletons_ki_agent_side():
