@@ -1,5 +1,5 @@
 {
-  "last_run": "2026-07-29T00:17:06.440585+02:00",
+  "last_run": "2026-07-29T00:20:52.250527+02:00",
   "cooldowns": {
     "anomaly_score_jump_XRX": "2026-05-03T18:47:15.315486+02:00",
     "anomaly_uoa_extreme_TDOC": "2026-05-04T13:47:00.365949+02:00",
@@ -86,18 +86,6 @@
     "earnings_immediate_LENZ_29.07.2026": "2026-07-28T22:35:12.214479+02:00"
   },
   "push_history": [
-    {
-      "ts": "2026-07-16T11:28:22.539240+02:00",
-      "ticker": "IONQ",
-      "kind": "exit_p2",
-      "severity": "warning",
-      "trigger": null,
-      "body": "⚠️ Exit-Warnung IONQ: pressure 61/100",
-      "success": true,
-      "suppressed": false,
-      "suppress_reason": null,
-      "conviction_score": null
-    },
     {
       "ts": "2026-07-16T23:16:56.132649+02:00",
       "ticker": "AI",
@@ -1285,23 +1273,36 @@
       "suppressed": false,
       "suppress_reason": null,
       "conviction_score": 70
+    },
+    {
+      "ts": "2026-07-29T00:20:52.479546+02:00",
+      "ticker": "AI",
+      "kind": "exit_p2",
+      "severity": "warning",
+      "trigger": null,
+      "body": "⚠️ Exit-Warnung AI: pressure 56/100",
+      "success": true,
+      "suppressed": false,
+      "suppress_reason": null,
+      "conviction_score": null
     }
   ],
   "prev_conviction_scores": {
-    "GRPN": 55.0,
-    "EVGO": 58.0,
-    "ASAN": 51.0,
-    "JACK": 50.0,
-    "LENZ": 70.0,
-    "ALT": 54.0,
-    "VEEE": 32.0,
-    "AI": 45.0,
-    "VYX": 52.0,
-    "TTGT": 65.0,
+    "TBCH": 80.0,
+    "MPLT": 65.0,
+    "INLF": 65.0,
+    "LENZ": 71.0,
+    "FIRY": 74.0,
+    "ASAN": 47.0,
+    "PLCE": 68.0,
+    "DBI": 60.0,
+    "TTGT": 66.0,
+    "TTEC": 59.0,
     "WOLF": 35.0,
-    "IONQ": 22.0,
-    "PDYN": 28.0,
-    "AMC": 18.0
+    "AI": 52.0,
+    "PDYN": 26.0,
+    "AMC": 18.0,
+    "IONQ": 14.0
   },
   "exit_cooldowns": {
     "exitp2_warning_AMC": "2026-05-18T14:48:43.872687+02:00",
@@ -1347,7 +1348,7 @@
       ],
       "last_push_date": "2026-07-27",
       "esc_alerted": false,
-      "updated": "2026-07-29T00:17:06.440672+02:00"
+      "updated": "2026-07-29T00:20:52.250615+02:00"
     },
     "PDYN": {
       "last_active": [
@@ -1355,13 +1356,15 @@
       ],
       "last_push_date": "2026-07-24",
       "esc_alerted": false,
-      "updated": "2026-07-29T00:17:06.440691+02:00"
+      "updated": "2026-07-29T00:20:52.250635+02:00"
     },
     "AI": {
-      "last_active": [],
-      "last_push_date": "2026-07-24",
+      "last_active": [
+        "__warning__"
+      ],
+      "last_push_date": "2026-07-28",
       "esc_alerted": false,
-      "updated": "2026-07-29T00:17:06.440701+02:00"
+      "updated": "2026-07-29T00:20:52.479584+02:00"
     },
     "FRMM": {
       "last_active": [],
@@ -1373,7 +1376,7 @@
       "last_active": [],
       "last_push_date": "2026-07-27",
       "esc_alerted": false,
-      "updated": "2026-07-29T00:17:06.440709+02:00"
+      "updated": "2026-07-29T00:20:52.479604+02:00"
     },
     "WOLF": {
       "last_active": [
@@ -1381,7 +1384,7 @@
       ],
       "last_push_date": "2026-07-24",
       "esc_alerted": false,
-      "updated": "2026-07-29T00:17:06.440719+02:00"
+      "updated": "2026-07-29T00:20:52.479622+02:00"
     }
   }
 }
