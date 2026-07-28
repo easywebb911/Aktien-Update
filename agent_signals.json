@@ -1,10 +1,10 @@
 {
-  "updated": "2026-07-28T22:35:12.214839+02:00",
+  "updated": "2026-07-29T00:17:05.809892+02:00",
   "run_info": {
     "tickers_checked": 14,
     "signals_active": 1,
     "alerts_sent": 0,
-    "elapsed_s": 28.7,
+    "elapsed_s": 11.1,
     "market_phase": "After-Hours"
   },
   "signals": {
@@ -32,7 +32,7 @@
     "ALT": {
       "score": 100,
       "confidence": 70,
-      "drivers": "Volumen 6.9× + 🚀 Massives Volumen 6.9×+ + Spanne 15.7% + SEC 8-K + News: catalyst + Earnings in 14d + UOA Call/Put 9.2×",
+      "drivers": "Volumen 6.9× + 🚀 Massives Volumen 6.9×+ + Spanne 15.7% + SEC 8-K + News-KI 12/30: Positive clinical trial results typically attract institutional buyers rather than squeeze dynamics; low short-squeeze p + Earnings in 14d + UOA Call/Put 9.2×",
       "price": 2.99,
       "chg_pct": 0.0,
       "rvol_4d": 6.88,
@@ -44,7 +44,7 @@
       "stocktwits": null,
       "combo_mult": 1.1,
       "active_triggers": 2,
-      "ki_sentiment_source": "keyword",
+      "ki_sentiment_source": "llm",
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 9.2×"
@@ -76,13 +76,13 @@
       "uoa_cp_ratio": 3.2057280192269175
     },
     "ASAN": {
-      "score": 28,
+      "score": 43,
       "confidence": 70,
-      "drivers": "Spanne 8.7% + Earnings in 37d + UOA Call/Put 12.9×",
+      "drivers": "Volumen 1.6× + Spanne 8.7% + Earnings in 37d + UOA Call/Put 12.9×",
       "price": 8.19,
       "chg_pct": -0.0,
-      "rvol_4d": 1.45,
-      "rvol_20d": 1.62,
+      "rvol_4d": 1.57,
+      "rvol_20d": 1.75,
       "earnings": "in 37 Tagen (03.09.2026)",
       "fda_date": null,
       "upcoming_event": null,
@@ -120,9 +120,9 @@
       "uoa_cp_ratio": 1.6790123456790123
     },
     "GRPN": {
-      "score": 26,
+      "score": 33,
       "confidence": 70,
-      "drivers": "Spanne 7.5% + News-KI 8/30: Neutral earnings announcement and underperformance relative to market show weak momentum; no short-squeeze indicators pr + Earnings in 9d",
+      "drivers": "Spanne 7.5% + News: short interest + Earnings in 9d",
       "price": 28.1,
       "chg_pct": 0.0,
       "rvol_4d": 0.98,
@@ -133,21 +133,21 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 0,
-      "ki_sentiment_source": "llm",
+      "active_triggers": 1,
+      "ki_sentiment_source": "keyword",
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": 0.12787300350603817,
       "uoa_cp_ratio": 0.4049965619986248
     },
     "IONQ": {
-      "score": 43,
+      "score": 58,
       "confidence": 70,
-      "drivers": "Spanne 7.4% + News: acquisition + Earnings in 8d + UOA Call/Put 2.2×",
+      "drivers": "Spanne 7.4% + SEC 8-K + News: acquisition + Earnings in 8d + UOA Call/Put 2.2×",
       "price": 33.88,
       "chg_pct": 0.0,
-      "rvol_4d": 0.95,
-      "rvol_20d": 0.99,
+      "rvol_4d": 1.04,
+      "rvol_20d": 1.08,
       "earnings": "in 8 Tagen (05.08.2026)",
       "fda_date": null,
       "upcoming_event": null,
@@ -166,7 +166,7 @@
     "JACK": {
       "score": 58,
       "confidence": 33,
-      "drivers": "News: short squeeze, short interest + Earnings in 15d + SEC Form 4 + UOA Call/Put 14.0×",
+      "drivers": "News: covering, short squeeze + Earnings in 15d + SEC Form 4 + UOA Call/Put 14.0×",
       "price": 16.16,
       "chg_pct": -0.0,
       "rvol_4d": 0.95,
@@ -192,8 +192,8 @@
       "drivers": "Earnings in 1 Tagen (29.07.2026) + Spanne 8.9% + News: short interest + Earnings in 1d",
       "price": 5.88,
       "chg_pct": 0.0,
-      "rvol_4d": 0.79,
-      "rvol_20d": 0.58,
+      "rvol_4d": 0.65,
+      "rvol_20d": 0.57,
       "earnings": "in 1 Tagen (29.07.2026)",
       "fda_date": null,
       "upcoming_event": "Earnings in 1 Tagen (29.07.2026)",
@@ -231,13 +231,13 @@
       "uoa_cp_ratio": 3.597560975609756
     },
     "TTGT": {
-      "score": 33,
+      "score": 38,
       "confidence": 70,
-      "drivers": "Volumen 1.8× + Spanne 19.7% + Earnings in 9d",
+      "drivers": "Volumen 1.6× + Spanne 19.7% + News-KI 5/30: Positive business news but no short-squeeze signals: no extreme short interest, debt issues, or catalyst for forced cove + Earnings in 9d",
       "price": 4.47,
       "chg_pct": -0.0,
-      "rvol_4d": 1.76,
-      "rvol_20d": 2.37,
+      "rvol_4d": 1.58,
+      "rvol_20d": 2.29,
       "earnings": "in 9 Tagen (06.08.2026)",
       "fda_date": null,
       "upcoming_event": null,
@@ -245,7 +245,7 @@
       "stocktwits": null,
       "combo_mult": 1.0,
       "active_triggers": 0,
-      "ki_sentiment_source": "keyword",
+      "ki_sentiment_source": "llm",
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": null,
@@ -278,8 +278,8 @@
       "drivers": "Earnings in 8d + UOA Call/Put 11.5×",
       "price": 8.6,
       "chg_pct": 0.0,
-      "rvol_4d": 0.83,
-      "rvol_20d": 0.68,
+      "rvol_4d": 0.86,
+      "rvol_20d": 0.69,
       "earnings": "in 8 Tagen (05.08.2026)",
       "fda_date": null,
       "upcoming_event": null,
@@ -317,7 +317,7 @@
         "UOA Call/Put 4.9×"
       ],
       "uoa_atm_ratio": 7.083067092651757,
-      "uoa_cp_ratio": 4.899598393574297
+      "uoa_cp_ratio": 4.898259705488621
     }
   }
 }
