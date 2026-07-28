@@ -1628,10 +1628,11 @@ SCORE_STATUS_LABELS = {
         "review_cond": "datengetrieben: Re-Test erst bei WIN-Bucket ≥ 20 UND zweitem Marktregime",
     },
     "conviction": {
-        "status":      "Aggregat · unvalidiert",
+        "status":      "Aggregat · unvalidiert (Re-Test 28.07. nicht belegt)",
         "status_kind": "pending",
-        "status_date": "2026-06-30",
-        "review_by":   "2026-07-27",
+        "status_date": "2026-07-28",
+        "review_by":   None,
+        "review_cond": "datengetrieben: Re-Test erst bei ≥1 bear-Regime UND WIN-Bucket ≥ 20 (heute n_win=9, bull 90/neutral 10/bear 0)",
     },
     "earliness": {
         "status":      "OoS falsifiziert (AUC 0.77 → 0.47–0.52)",
