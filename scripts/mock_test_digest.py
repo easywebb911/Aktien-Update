@@ -96,6 +96,108 @@ def test_state_fails_stable_order():
     assert [f["id"] for f in out] == ["S1", "S3", "S5"]
 
 
+# --- Recency-Gating (28.07.2026): erholt vs. akut ------------------------
+# Ein behobener Vorfall darf nicht bis zu 24 h als crit weiter-alarmieren.
+# „Erholt" = nach dem JÜNGSTEN Fail folgte ein sauberer Daily-Run (Superset)
+# ohne diesen Invariant. Fail-safe: im Zweifel bleibt es crit (lauter).
+
+
+def _s3_fail_entry(ts):
+    return {"run_ts": ts, "run_phase": "ki_agent_tick",
+            "state_fails": [{"id": "S3", "severity": "crit",
+                             "detail": "current_price fehlt bei 6"}]}
+
+
+def _clean_entry(ts, phase):
+    return {"run_ts": ts, "run_phase": phase, "state_fails": []}
+
+
+def _s3_fail_entry_daily(ts, phase):
+    return {"run_ts": ts, "run_phase": phase,
+            "state_fails": [{"id": "S3", "severity": "crit",
+                             "detail": "current_price fehlt bei 6"}]}
+
+
+def test_recency_a_incident_still_running_stays_crit():
+    """(a) Vorfall läuft noch → recovered=False, akut (unverändert crit)."""
+    entries = [
+        _clean_entry(_ts(2026, 7, 27, 6, 17), "premarket"),   # sauber VOR dem Vorfall
+        _s3_fail_entry(_ts(2026, 7, 27, 10)),                 # Tick failt
+        _s3_fail_entry_daily(_ts(2026, 7, 27, 21, 17), "postclose"),  # Daily failt AUCH
+        _s3_fail_entry(_ts(2026, 7, 28, 2)),                  # jüngstes Fail, danach nichts sauberes
+    ]
+    # Kein sauberer Daily-Run NACH dem jüngsten Fail → bleibt akut.
+    out = hc.aggregate_state_fails(entries)
+    s3 = [f for f in out if f["id"] == "S3"][0]
+    assert s3["recovered"] is False, "laufender Vorfall darf nicht erholt heißen"
+    body, title, prio, _ = hc.format_digest_body(
+        out, [], n_runs=4, last_run_iso=_ts(2026, 7, 28, 6, 17),
+        digest_date="2026-07-28")
+    assert title == "⚠️ Health-Check-Digest" and "1 crit" in body
+
+
+def test_recency_b_recovered_tail_no_crit_TODAY_FIXTURE():
+    """(b) Der ECHTE Fall 28.07.: Fail 27.07 15:14Z, Repair 16:01Z, dann clean.
+
+    Die 2 Fail-Vorkommnisse liegen noch im 24-h-Fenster, aber ein sauberer
+    Daily-Run folgte → erholt, KEIN crit. Zeitstempel aus der Diagnose.
+    """
+    entries = [
+        _s3_fail_entry(_ts(2026, 7, 27, 11, 39)),         # Fail (pre-Repair)
+        _s3_fail_entry(_ts(2026, 7, 27, 15, 14)),         # jüngstes Fail
+        _clean_entry(_ts(2026, 7, 27, 22, 29), "postclose"),  # sauberer Daily NACH Repair
+        _clean_entry(_ts(2026, 7, 28, 9, 5), "premarket"),
+    ]
+    out = hc.aggregate_state_fails(entries)
+    s3 = [f for f in out if f["id"] == "S3"][0]
+    assert s3["recovered"] is True
+    assert s3["recovered_since"] == _ts(2026, 7, 27, 22, 29)  # erster sauberer Daily
+    assert s3["count"] == 2
+    body, title, prio, tags = hc.format_digest_body(
+        out, [], n_runs=4, last_run_iso=_ts(2026, 7, 28, 9, 5),
+        digest_date="2026-07-28")
+    # Der heutige Digest hätte mit dem Fix NICHT crit gemeldet:
+    assert title == "✅ Health-Check OK", "erholter Nachhall darf nicht crit sein"
+    assert prio == "default"
+    assert "erholt seit" in body and "kein alarm" in body.lower()
+
+
+def test_recency_c_rebound_after_recovery_is_crit_again():
+    """(c) Behoben, dann NEU aufgetreten → wieder crit (nicht verschluckt)."""
+    entries = [
+        _s3_fail_entry(_ts(2026, 7, 27, 10)),             # Fail
+        _clean_entry(_ts(2026, 7, 27, 21, 17), "postclose"),  # erholt zwischendurch
+        _s3_fail_entry(_ts(2026, 7, 28, 6, 17)),          # RÜCKFALL (jüngstes Fail)
+        _clean_entry(_ts(2026, 7, 28, 7), "ki_agent_tick"),   # nur Tick clean, kein Daily
+    ]
+    out = hc.aggregate_state_fails(entries)
+    s3 = [f for f in out if f["id"] == "S3"][0]
+    assert s3["recovered"] is False, "Rückfall darf nicht durch Gating verschluckt werden"
+    body, title, _, _ = hc.format_digest_body(
+        out, [], n_runs=4, last_run_iso=_ts(2026, 7, 28, 7),
+        digest_date="2026-07-28")
+    assert title == "⚠️ Health-Check-Digest"
+
+
+def test_recency_d_no_clean_daily_run_failsafe_crit():
+    """(d) Kein sauberer Daily-Run im Fenster → fail-safe crit (nicht still).
+
+    Nur ki_agent-Ticks (auch saubere) belegen für Daily-only-Checks nichts;
+    fehlende/unparsebare Stempel ebenfalls nicht. Beide → bleibt crit.
+    """
+    # d1: nur Ticks, ein sauberer Tick nach dem Fail — reicht NICHT.
+    entries = [
+        _s3_fail_entry(_ts(2026, 7, 28, 5)),
+        _clean_entry(_ts(2026, 7, 28, 6), "ki_agent_tick"),
+    ]
+    s3 = [f for f in hc.aggregate_state_fails(entries) if f["id"] == "S3"][0]
+    assert s3["recovered"] is False, "sauberer Tick allein ist kein Erholungs-Beleg"
+    # d2: gar kein run_ts (Alt-Fixture) → nicht als erholt beweisbar.
+    entries2 = [{"state_fails": [{"id": "S3", "severity": "crit", "detail": "x"}]}]
+    s3b = [f for f in hc.aggregate_state_fails(entries2) if f["id"] == "S3"][0]
+    assert s3b["recovered"] is False and s3b["youngest_ts"] is None
+
+
 # === 2. aggregate_provider_fails + Konsekutiv-Counter =====================
 
 
@@ -287,7 +389,11 @@ def test_format_body_mixed_crit_warn():
     )
     assert title == "⚠️ Health-Check-Digest"
     assert "S3: AMC missing price" in body
-    assert "5 Runs in Folge" in body
+    # State-Fail-Wortlaut: Occurrence-Count im Fenster (nicht mehr „Runs in
+    # Folge" — Fehlname, siehe Recency-Gating 28.07.). Provider-Fails behalten
+    # ihren echten Konsekutiv-Counter → dort bleibt „Runs in Folge" korrekt.
+    assert "5× im 24h-Fenster" in body
+    assert "Runs in Folge" not in body.split("Provider-Fails:")[0]  # nicht in State-Sektion
     assert "finra (Tier 2): coverage 0% (3 Runs in Folge)" in body
     assert "edgar_13d_g (Tier 3)" in body
 
@@ -555,6 +661,11 @@ def main() -> None:
         ("aggregate_state_fails: count über mehrere Runs",  test_state_fails_count_increments_across_runs),
         ("aggregate_state_fails: crit überschreibt warn",   test_state_fails_crit_overrides_warn),
         ("aggregate_state_fails: stabile Reihenfolge",      test_state_fails_stable_order),
+        # Recency-Gating (28.07.2026)
+        ("recency (a): laufender Vorfall bleibt crit",       test_recency_a_incident_still_running_stays_crit),
+        ("recency (b): erholter Nachhall (heute) → kein crit", test_recency_b_recovered_tail_no_crit_TODAY_FIXTURE),
+        ("recency (c): Rückfall wieder crit",                test_recency_c_rebound_after_recovery_is_crit_again),
+        ("recency (d): kein sauberer Daily → fail-safe crit", test_recency_d_no_clean_daily_run_failsafe_crit),
         # Provider-Fails
         ("Tier 1: ein Fail → sofort crit",                  test_provider_tier1_immediate_fail),
         ("Tier 2: 3-in-Folge nötig für warn",               test_provider_tier2_needs_three_in_a_row),

@@ -299,7 +299,7 @@ ntfy-Priority `high`, Titel `⚠️ Health-Check-Digest`. Body-Format
 
 State-Fails:
   • S1: score_history stagniert (Top-10 ohne heutiges Datum)
-  • S3: AMC ohne current_price (5 Runs in Folge)
+  • S3: AMC ohne current_price (5× im 24h-Fenster)
 
 Provider-Fails:
   • Yahoo Screener (Tier 1): HTTP 503 sofort
