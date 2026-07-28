@@ -1501,7 +1501,11 @@ COLLECT_STATUS_FIELDS = [
      "Ziel-/Ergebnisgröße, kein Prädiktor · unvalidiert"),
     ("conviction_score",
      "Conviction-Aggregat (conviction_score)",
-     "sammelt · unvalidiert · auswertbar ab ~Ende Juli/Anfang Aug 2026 (Ziel n ≥ 100 gereift)"),
+     # Anti-Drift (#488-Muster): KEIN hartkodiertes Datum mehr. Die aktuelle
+     # Zahl steht live als „N gereift" in derselben Zeile (aus _btData) — hier
+     # nur die Schwelle + Alltagserklärung, was „fertig/gereift" heißt.
+     "sammelt · noch nicht als Signal bestätigt · auswertbar erst ab 100 "
+     "fertigen Einträgen — ein Eintrag wird erst rund 2 Wochen später fertig"),
     ("days_to_earnings",
      "Kalendertage bis Earnings (days_to_earnings)",
      "sammelt · unvalidiert · auswertbar ab ~Q4 2026 (Ziel n ≥ 40 gereift)"),
