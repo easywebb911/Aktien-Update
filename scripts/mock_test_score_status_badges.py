@@ -69,11 +69,17 @@ def test_01_config_struct_present() -> None:
 
 
 def test_02_maintenance_comment() -> None:
+    # DATUMSFREI (Fund #488): verankert wird, DASS die Pflegepflicht + die
+    # Mechanik-Felder dokumentiert sind — NICHT wann ein Re-Test fällig war.
+    # Ein Datums-Literal im Test (früher "27.07"/"Sept") zwang zur Mitpflege bei
+    # JEDEM Re-Test und war selbst die Drift-Quelle: konkrete Termine leben in
+    # den dict-Einträgen (status_date/review_by/review_cond), nicht im Kommentar.
+    # Diese Anker sind mechanisch und überleben jeden künftigen Re-Test.
     cfg = (ROOT / "config.py").read_text(encoding="utf-8")
     anchor = cfg.find("SCORE_STATUS_LABELS = {")
     head = cfg[max(0, anchor - 2200):anchor]
-    for needle in ("PFLEGE-PFLICHT", "review_by", "27.07", "Sept"):
-        assert needle in head, f"Pflege-Kommentar ohne '{needle}'"
+    for needle in ("PFLEGE-PFLICHT", "status_kind", "status_date", "review_by"):
+        assert needle in head, f"Pflege-Kommentar ohne Mechanik-Anker '{needle}'"
 
 
 def test_03_helper_reads_config() -> None:
