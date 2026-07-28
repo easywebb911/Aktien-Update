@@ -1584,7 +1584,8 @@ WIKI_ATTENTION_STATUS_ROW = (
 #   monster    30.06./04.07.: AUC 0.76→0.51 kollabiert
 #   ki         15.07.: kein belegter Effekt (AUC 0.61/0.58, CI<0.5); Re-Test
 #              datengetrieben (WIN-Bucket≥20 + 2. Marktregime), kein Kalender
-#   conviction 30.06. (Prüfpunkt P3): Aggregat, Edge unbelegt → Re-Test ~27.07.
+#   conviction 30.06. (Prüfpunkt P3): Aggregat, Edge unbelegt — Re-Test-Stand
+#              + Fälligkeit leben im dict-Eintrag (status_date/review_by/review_cond)
 #   exit       01.07. Exit-Timing B.1: Δ~+4pp Hinweis, Holm-negativ. Der
 #              exit_pressure-SCORE selbst hat KEINEN Validierungs-Pfad (Closed-
 #              Trades-Schema offen) — review_by ans Exit-Timing-Sept-Fenster
@@ -1603,9 +1604,10 @@ WIKI_ATTENTION_STATUS_ROW = (
 #                        DEFINIERT, aber HEUTE von KEINEM Eintrag getragen —
 #                        das ist korrekt so; kein Score hat die Erfolgs-
 #                        Definition bisher erfüllt (Wächter im Mock-Test).
-# PFLEGE-PFLICHT (unverändert Single-Source): ein Status-Wechsel (z. B.
-# Conviction ~27.07.) ändert Text UND status_kind UND status_date UND
-# review_by in DEMSELBEN Eintrag — nie nur eins davon.
+# PFLEGE-PFLICHT (unverändert Single-Source): ein Status-Wechsel nach einem
+# Re-Test ändert Text UND status_kind UND status_date UND review_by (bzw.
+# review_cond) in DEMSELBEN Eintrag — nie nur eins davon. Konkrete Termine
+# leben NUR im Eintrag, nicht als Datums-Literal in diesem Kommentar (Drift-Falle).
 SCORE_STATUS_LABELS = {
     "setup": {
         "status":      "unvalidiert",
