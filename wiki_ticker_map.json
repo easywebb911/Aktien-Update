@@ -26,6 +26,15 @@
     "substrate": "en",
     "reason": null
   },
+  "DBI": {
+    "qid": null,
+    "title": null,
+    "resolved_at": "2026-07-28T22:19:35Z",
+    "issuer_verified": false,
+    "company_name_at_resolve": "Designer Brands Inc.",
+    "substrate": "none",
+    "reason": "no_p249"
+  },
   "ENVX": {
     "qid": "Q124624329",
     "title": null,
@@ -44,6 +53,15 @@
     "substrate": "none",
     "reason": "no_p249"
   },
+  "FIRY": {
+    "qid": null,
+    "title": null,
+    "resolved_at": "2026-07-28T22:19:35Z",
+    "issuer_verified": false,
+    "company_name_at_resolve": "Firy Inc.",
+    "substrate": "none",
+    "reason": "no_p249"
+  },
   "GRPN": {
     "qid": "Q852787",
     "title": "Groupon",
@@ -52,6 +70,15 @@
     "company_name_at_resolve": "Groupon, Inc.",
     "substrate": "en",
     "reason": null
+  },
+  "INLF": {
+    "qid": null,
+    "title": null,
+    "resolved_at": "2026-07-28T22:19:35Z",
+    "issuer_verified": false,
+    "company_name_at_resolve": "INLIF Limited",
+    "substrate": "none",
+    "reason": "no_p249"
   },
   "JACK": {
     "qid": "Q1538507",
@@ -70,6 +97,51 @@
     "company_name_at_resolve": "LENZ Therapeutics, Inc.",
     "substrate": "none",
     "reason": "no_p249"
+  },
+  "MPLT": {
+    "qid": null,
+    "title": null,
+    "resolved_at": "2026-07-28T22:19:35Z",
+    "issuer_verified": false,
+    "company_name_at_resolve": "MapLight Therapeutics, Inc.",
+    "substrate": "none",
+    "reason": "no_p249"
+  },
+  "PLCE": {
+    "qid": "Q3520257",
+    "title": "The_Children's_Place",
+    "resolved_at": "2026-07-28T22:19:35Z",
+    "issuer_verified": true,
+    "company_name_at_resolve": "The Children's Place, Inc.",
+    "substrate": "en",
+    "reason": null
+  },
+  "TBCH": {
+    "qid": null,
+    "title": null,
+    "resolved_at": "2026-07-28T22:19:35Z",
+    "issuer_verified": false,
+    "company_name_at_resolve": "Turtle Beach Corporation",
+    "substrate": "none",
+    "reason": "no_p249"
+  },
+  "TTEC": {
+    "qid": "Q7695737",
+    "title": "TTEC",
+    "resolved_at": "2026-07-28T22:19:35Z",
+    "issuer_verified": true,
+    "company_name_at_resolve": "TTEC Holdings, Inc.",
+    "substrate": "en",
+    "reason": null
+  },
+  "TTGT": {
+    "qid": "Q7692144",
+    "title": "Informa_TechTarget",
+    "resolved_at": "2026-07-28T22:19:35Z",
+    "issuer_verified": true,
+    "company_name_at_resolve": "TechTarget, Inc.",
+    "substrate": "en",
+    "reason": null
   },
   "VEEE": {
     "qid": null,
