@@ -6824,6 +6824,33 @@ def _score_confidence_rows_html(confidence: dict) -> tuple[str, str]:
     return ("\n".join(rows), computed_at)
 
 
+def _marktdaten_timestamp(report_date: str, berlin_now: datetime) -> str:
+    """Baut die ``Marktdaten: …``-Header-Zeile MONOTON.
+
+    Datum UND Uhrzeit stammen aus DEMSELBEN Berlin-Wallclock (``berlin_now``),
+    damit aufeinanderfolgende Läufe nie scheinbar rückwärts laufen. Vorher
+    mischte die Zeile den ET-Handelstag (``report_date`` = ``%d.%m.%Y`` in
+    America/New_York) mit der Berlin-Render-Uhrzeit OHNE Datum — ein Postclose,
+    der nach Berlin-Mitternacht rendert (z. B. 22:28 UTC = 00:30 Berlin), trug
+    so den Vortags-Handelstag UND eine 00:30-Uhrzeit → las sich ÄLTER als der
+    frühere Premarket (18:01), obwohl chronologisch SPÄTER (Fehldiagnose 28.07.:
+    „Postclose lief nicht").
+
+    - Berlin-Render-Datum == ET-Handelstag (Regelfall) → knappe Form,
+      **byte-identisch** zur bisherigen Zeile.
+    - Weicht der Handelstag ab (Postclose nach Mitternacht) → Berlin-Datum+Zeit
+      als primäre, monotone Angabe, Handelstag explizit als „(Handelstag …)".
+
+    Rein anzeigend. ``report_date`` wird nur GELESEN. Staleness-Banner (eigener
+    UTC-Anker) + Phasen-Pill sind hiervon unberührt.
+    """
+    now_str = berlin_now.strftime("%H:%M Uhr")
+    render_date = berlin_now.strftime("%d.%m.%Y")   # gleiches Format wie report_date
+    if render_date == report_date:
+        return f"Marktdaten: {report_date}, {now_str}"
+    return f"Marktdaten: {render_date}, {now_str} (Handelstag {report_date})"
+
+
 def _build_context(stocks: list[dict], report_date: str,
                     watchlist_cards: dict | None = None) -> dict:
     """Zentrale Context-Erstellung für Template-Rendering.
@@ -6866,14 +6893,17 @@ def _build_context(stocks: list[dict], report_date: str,
         avg_si_str = f"{_avg_si:+.1f} %".replace(".", ",")
     else:
         avg_si_str = "—"
-    now_str = datetime.now(ZoneInfo("Europe/Berlin")).strftime("%H:%M Uhr")
     # A1 (Karten-Klarheit): "Stand:" verschmolz Marktdaten-Zeit und Report-Typ.
     # Der Zeitstempel misst NUR die Marktdaten-Frische (Daily-Run-Generierungs-
     # zeit — nur der Daily-Run baut die Seite neu). Die KI-Agent-Zeit ist separat
     # und wird client-seitig via _renderKiTime() aus _AGENT_SIGNALS.updated ergänzt
     # ("· KI HH:MM"). Der Run-Phasen-Typ (Pre-Open/Post-Close) bleibt in der
     # hdr-runphase-Pill. Siehe SESSION_HANDOVER §6k.
-    timestamp = f"Marktdaten: {report_date}, {now_str}"
+    #
+    # Monotonie-Fix (28.07.2026): siehe _marktdaten_timestamp — Datum UND Uhrzeit
+    # aus DEMSELBEN Berlin-Wallclock, ET-Handelstag nur explizit bei Abweichung.
+    timestamp = _marktdaten_timestamp(
+        report_date, datetime.now(ZoneInfo("Europe/Berlin")))
     # Staleness-Anker: server-eingebrannter Render-Timestamp (UTC-ISO). NUR
     # der Daily-Run baut die index.html neu → dieser Wert = Daily-Run-Frische
     # (Top-10-Aktualität), immun gegen ki_agent-Ticks (die app_data.generated_at
