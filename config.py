@@ -852,6 +852,19 @@ MATERIAL_8K_HTTP_TIMEOUT     = 10
 MATERIAL_8K_MAX_DOCS_PER_FILING = 3   # primaryDocument + bis zu 2 EX-99*-Exhibits
 MATERIAL_8K_SLEEP_S          = 0.3    # höfliches Pacing zwischen EDGAR-Calls
 
+# ── SSR-Sammelfeld (Rule-201 Short-Sale-Restriction, 28.07.2026) ─────────────
+# Erhebt pro postclose-Top-10-Record den SSR-Status am Entry-Tag T aus dem
+# Cboe-Jahres-Kumulativ (BatsCircuitBreakers<year>.csv). Anker Cboe (nicht der
+# Nasdaq-per-Tag-File): explizite End/Rescinded-Spalten + alle Börsen, EINE
+# stabile Jahres-URL, in der Timing-Probe (#481) ebenso postclose-final. Reine
+# Analyse-/Outcome-Persistenz (``ssr_restriction`` in ``backtest_history.py``). KEIN Score-/
+# Filter-/Push-/Anzeige-Effekt → nur S10_OBSERVED, KEIN MUSS/LAG. Look-Ahead-
+# Konvention EINGEFROREN (analog entry_past_return_5d #402, material_8k §6c):
+# NIEMALS als Score-Feature lesen. Einmal zum Entry-Tag eingefroren, kein
+# Rolling-Update (rescinded_date nur wenn im T-Stand vermerkt). Schema v4.
+SSR_RESTRICTION_ENABLED                  = True
+SSR_RESTRICTION_HTTP_TIMEOUT             = 15     # Sekunden für den Cboe-CSV-Fetch
+
 # ── KI-Score-Dot-Schwellen (Frontend-Pulsieren neben Ticker) ─────────────────
 # Steuert die Farbe des pulsierenden .agent-dot auf der Top-10- und Watchlist-
 # Kachel. Schwellen sind an die apply_monster_score-Semantik gekoppelt:
@@ -1838,6 +1851,20 @@ S10_OBSERVED_FIELDS = frozenset({
     # (stabile Golden/Diffs). Isolierter Rückweg: scripts/purge_source_pool.py.
     # Schema bleibt v4 (additiv).
     "source_pools",
+    # ssr (28.07.2026, VORWÄRTS-ERHEBUNG, forward-only): Rule-201-Short-Sale-
+    # Restriction-Status am Entry-Tag T aus dem Cboe-Jahres-Kumulativ, EINMAL
+    # zum Entry eingefroren. Wrapper {collected, reason, source, restricted_t,
+    # triggered_today, carry_over, trigger_date, trigger_time_et, end_date,
+    # rescinded_date, fetched_at, source_latest_trigger}. None wenn
+    # SSR_RESTRICTION_ENABLED=False ODER Ticker nicht in der Sammel-Liste (Re-Run-Dedup) →
+    # reader-tolerant; Zustandsfelder None bei Fetch-Fail (= unbekannt, ≠ False).
+    # REINE Analyse-/Outcome-Persistenz, KEIN Score-/Filter-/Ranking-/Push-/
+    # Anzeige-Effekt → nur OBSERVED, KEIN MUSS/LAG (LEGITIM leer: die meisten
+    # Ticker sind nie short-restricted). Look-Ahead-Konvention EINGEFROREN
+    # (analog material_8k / entry_past_return_5d #402): von KEINEM Score-/
+    # Filter-Pfad gelesen (Grep-Test mock_test_ssr.py). Isolierter Rückweg:
+    # scripts/purge_ssr_restriction.py. Schema bleibt v4 (additiv).
+    "ssr_restriction",
 })
 
 S10_WINDOW_SIZE          = 20    # Letzte N V4-Einträge für MUSS-Check

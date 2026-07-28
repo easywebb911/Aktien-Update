@@ -35,12 +35,14 @@ from config import (
     MATERIAL_8K_ENABLED,
     SCORE_NORMALIZATION_VERSION,
     SI_VELOCITY_PUB_N_REPORTS,
+    SSR_RESTRICTION_ENABLED,
     WIKI_ATTENTION_BACKFILL_WINDOW_DAYS,
     WIKI_ATTENTION_ENABLED,
     WIKI_ATTENTION_MAP_FILE,
 )
 import entry_score as entry_score_module  # Entry-Timing-Score (Shadow, pure)
 import material_8k as material_8k_module   # §6c FDA-/materielle-8-K-Sammlung
+import ssr_restriction as ssr_restriction_module                   # Rule-201 SSR-Status (forward-only)
 import wiki_attention as wiki_attention_module  # Wikipedia-Attention-Feed
 
 log = logging.getLogger(__name__)
@@ -504,6 +506,7 @@ def _build_backtest_extension(s: dict, pool_position: int, pool_size: int,
                               now_dt=None,
                               material_8k: dict | None = None,
                               attention_wiki: dict | None = None,
+                              ssr_restriction: dict | None = None,
                               entry_date: "date | None" = None) -> dict:
     """Liefert das Schema-Erweiterungs-Dict (Bahn B) für einen Top-10-Eintrag.
 
@@ -847,6 +850,19 @@ def _build_backtest_extension(s: dict, pool_position: int, pool_size: int,
         # S10_OBSERVED. `null` ≠ `0` (substrate=none → alle views null).
         # Look-Ahead-Konvention EINGEFROREN: NIEMALS als Score-Feature lesen.
         "attention_wiki":          attention_wiki,
+        # ssr (28.07.2026, VORWÄRTS-ERHEBUNG, forward-only): Rule-201-Short-
+        # Sale-Restriction-Wrapper {collected, reason, source, restricted_t,
+        # triggered_today, carry_over, trigger_date, trigger_time_et, end_date,
+        # rescinded_date, fetched_at, source_latest_trigger}, EINMAL zum Entry-
+        # Tag T aus dem postclose-finalen Cboe-Stand eingefroren (kein Rolling).
+        # None wenn SSR_RESTRICTION_ENABLED=False ODER Ticker nicht in der Sammel-Liste
+        # (Re-Run-Dedup) → reader-tolerant; Zustandsfelder None bei Fetch-Fail
+        # (unbekannt ≠ False). carry_over (Trigger==voriger Handelstag) vs.
+        # triggered_today (Trigger==T) explizit getrennt (Rule 201 spannt
+        # T-1→T). REINE Analyse-/Outcome-Persistenz, KEIN Score-/Filter-/Push-/
+        # Anzeige-Effekt → nur S10_OBSERVED. Look-Ahead-Konvention EINGEFROREN:
+        # NIEMALS als Score-Feature lesen. Schema bleibt v4 (additiv).
+        "ssr_restriction":     ssr_restriction,
         # source_pools (25.07.2026, VORWÄRTS-ERHEBUNG): sortierte, deduplizierte
         # LISTE der granularen Kandidaten-Herkunfts-Pools (Vokabular SOURCE_POOL_*
         # in config.py), aus denen der Ticker beim Sammeln stammte. Direkt vom
@@ -1082,6 +1098,25 @@ def _append_backtest_entries(top10: list[dict], report_date: str,
                             "(fail-soft): %s", _exc_wiki)
                 attention_wiki_by_ticker = {}
 
+    # ssr (28.07.2026): Rule-201-Short-Sale-Restriction-Status am Entry-Tag T
+    # aus dem Cboe-Jahres-Kumulativ (EIN Fetch für ALLE Ticker). Nur Ticker
+    # ohne bereits persistiertes (ticker, report_date)-Paar (Re-Run-Dedup,
+    # analog material_8k). report_date=`_rd` (ET-Handelstag T), now_utc=`_now_dt`
+    # (Abruf-Beleg). Fail-soft: bei Ausfall bleibt die Map leer → Feld=None
+    # (reader-tolerant). REINE Analyse-Persistenz, kein Score-/Filter-Effekt.
+    ssr_restriction_by_ticker: dict[str, dict] = {}
+    if SSR_RESTRICTION_ENABLED:
+        _ssrr_tickers = [s["ticker"] for s in top10
+                        if (s["ticker"], report_date) not in existing_keys]
+        if _ssrr_tickers and _rd is not None:
+            try:
+                ssr_restriction_by_ticker = ssr_restriction_module.collect_ssr_restriction_flags(
+                    _ssrr_tickers, report_date=_rd, now_utc=_now_dt)
+            except Exception as _exc_ssrr:
+                log.warning("ssr_restriction: Sammlung fehlgeschlagen (fail-soft): %s",
+                            _exc_ssrr)
+                ssr_restriction_by_ticker = {}
+
     # Bahn-A2-Stufe-1: Markt-Regime + VIX einmal pro Run abrufen. Werden auf
     # NEUE Einträge persistiert; die rolling Drawdown-Aktualisierung läuft
     # weiter unten für Einträge < 14 Kalendertage alt.
@@ -1158,6 +1193,9 @@ def _append_backtest_entries(top10: list[dict], report_date: str,
             # attention_wiki: pro-Ticker T-1-Pageviews-Wrapper (None wenn
             # disabled / Ticker nicht in der Sammel-Liste).
             attention_wiki=attention_wiki_by_ticker.get(s["ticker"]),
+            # ssr: pro-Ticker Rule-201-SSR-Wrapper (None wenn disabled /
+            # Ticker nicht in der Sammel-Liste).
+            ssr_restriction=ssr_restriction_by_ticker.get(s["ticker"]),
             # entry_date für si_velocity_pub Look-Ahead-Filter (PR-3).
             # ``_rd`` ist bereits am Funktions-Anfang (Wochenend-Schreib-
             # schutz Z. 889) aus ``report_date`` (dd.mm.yyyy) geparst; bei
