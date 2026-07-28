@@ -57,6 +57,7 @@ ALLOWLIST = [
     "recalc_dispatch_run_phase", "redeploy_workflow_run_phase", "report_date_et", "rs_spy_merged_row",
     "attention_wiki", "purge_attention_wiki", "source_pool", "purge_source_pool", "reload_toast", "run_phase_resolution", "runphase_pill", "rvol_normalization", "s10_data_integrity",
     "material_8k", "purge_material_8k_events",
+    "ssr_restriction", "purge_ssr_restriction",
     "s11_s12_phase_frequency", "s14_gist_pull_liveness", "s7_race_gate", "s8_last_successful_run", "score_block_grid_layout",
     "score_block_label_scoping", "score_confidence", "score_confidence_watermark", "score_delta_t1",
     "score_status_badges",
