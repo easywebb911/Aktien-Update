@@ -1488,18 +1488,63 @@ DIGEST_CONSECUTIVE_THRESHOLD = 3         # 3-in-Folge für Tier 2/3
 DIGEST_STALE_DAYS = 7                    # Counter-Reset nach 7 d Inaktivität
 
 
+# Run-TYPEN (nicht Check-Logik): welcher Workflow den health_check_log-Eintrag
+# schrieb. Ein Daily-Run wertet ALLE State-Checks aus, ein ki_agent-Tick nur die
+# Teilmenge (S2/S3/S6/S8/S14). Für das Recency-Gating unten zählt darum NUR ein
+# sauberer DAILY-Run als beweiskräftige Erholung — für JEDEN Check (Superset).
+# Rein aus dem ``run_phase``-Feld der Einträge abgeleitet, kein Check-Bezug.
+_DIGEST_DAILY_RUN_PHASES = ("premarket", "postclose")
+
+
+def _parse_iso_utc(raw) -> datetime | None:
+    """ISO-UTC (``…Z``) → aware datetime; fail-safe ``None``.
+
+    Fehlender/kaputter Stempel → ``None``. Das Recency-Gating behandelt
+    ``None`` bewusst als „nicht als erholt beweisbar" (Fail-safe: lauter).
+    """
+    if not isinstance(raw, str) or not raw:
+        return None
+    try:
+        return datetime.fromisoformat(raw.replace("Z", "+00:00"))
+    except (ValueError, TypeError):
+        return None
+
+
 def aggregate_state_fails(entries: list[dict]) -> list[dict]:
     """Aggregiert State-Fails über ein Zeitfenster von Einträgen.
 
     Pro State-Invariant (S1–S7) wird die Maximal-Severity gemeldet,
-    plus die Anzahl Vorkommnisse im Fenster. Bei mehrfachen Treffern
-    desselben Invariants wird der jüngste detail-String genutzt
-    (Spec: „X Runs in Folge" sichtbar via count).
+    plus die Anzahl Vorkommnisse im Fenster (``count``) und das jüngste
+    Fail-Vorkommen (``youngest_ts``). Bei mehrfachen Treffern desselben
+    Invariants wird der jüngste detail-String genutzt.
+
+    RECENCY-GATING (28.07.2026): ``count`` ist ein OCCURRENCE-Count im
+    24-h-Fenster, NICHT „konsekutiv bis jetzt" — ein behobener Vorfall
+    schleppte seine Fenster-Vorkommnisse sonst bis zu 24 h als crit weiter
+    (Diagnose 28.07.: S3+S8 als Nachhall des 26./27.07.-Vorfalls, obwohl
+    seit 27.07. 16:01Z repariert). Darum wird pro Invariant geprüft, ob nach
+    dem JÜNGSTEN Fail-Vorkommen ein sauberer **Daily-Run** (Superset aller
+    Checks) folgte, in dem der Invariant NICHT fehlschlug:
+
+      - ja  → ``recovered=True`` + ``recovered_since`` (erster sauberer
+              Daily-Run nach dem letzten Fail). Der Digest wertet das als
+              „war kaputt, ist erholt" → KEIN crit-Alarm, nur Hinweis.
+      - nein (oder kein sauberer Daily-Run im Fenster, oder Stempel
+              unparsebar) → ``recovered=False`` → der Fail bleibt AKUT
+              (Fail-safe: im Zweifel lauter, nie stiller).
+
+    Wichtig: nur ein sauberer **Daily-Run** zählt als Erholung — ein
+    ki_agent-Tick wertet nur die Teilmenge, ein „sauber" dort belegt für
+    Daily-only-Checks (S1/S4/S5/S7) nichts. Für S3/S8 wäre ein sauberer
+    Tick zwar auch Beleg, aber die Daily-only-Regel ist die konservative
+    (= lautere) Wahl und gilt einheitlich für ALLE Invarianten.
 
     Returnt Liste von Fail-Dicts in stabiler Reihenfolge (S1 → S7).
     """
+    entries = list(entries or [])
     by_id: dict[str, dict] = {}
-    for e in entries or []:
+    for e in entries:
+        e_dt = _parse_iso_utc(e.get("run_ts"))
         for f in (e.get("state_fails") or []):
             fid = f.get("id")
             if not fid:
@@ -1512,6 +1557,7 @@ def aggregate_state_fails(entries: list[dict]) -> list[dict]:
                     "severity": sev,
                     "detail":   f.get("detail", ""),
                     "count":    1,
+                    "_young":   e_dt,
                 }
             else:
                 # crit überschreibt warn
@@ -1519,6 +1565,32 @@ def aggregate_state_fails(entries: list[dict]) -> list[dict]:
                     cur["severity"] = "crit"
                 cur["detail"] = f.get("detail", cur["detail"])  # jüngster
                 cur["count"]  += 1
+                # jüngstes Fail-Vorkommen mitführen (max run_ts)
+                if e_dt is not None and (cur["_young"] is None
+                                         or e_dt > cur["_young"]):
+                    cur["_young"] = e_dt
+    # Recency-Gating: sauberer Daily-Run NACH dem jüngsten Fail → erholt.
+    for fid, rec in by_id.items():
+        young = rec.pop("_young")
+        recovered_since = None
+        if young is not None:
+            for e in entries:
+                if e.get("run_phase") not in _DIGEST_DAILY_RUN_PHASES:
+                    continue
+                e_dt = _parse_iso_utc(e.get("run_ts"))
+                if e_dt is None or e_dt <= young:
+                    continue
+                # Fehlt fid in diesem sauberen Daily-Run?
+                if not any(sf.get("id") == fid
+                           for sf in (e.get("state_fails") or [])):
+                    if recovered_since is None or e_dt < recovered_since:
+                        recovered_since = e_dt
+        rec["youngest_ts"] = (young.strftime("%Y-%m-%dT%H:%M:%SZ")
+                              if young is not None else None)
+        rec["recovered"] = recovered_since is not None
+        rec["recovered_since"] = (
+            recovered_since.strftime("%Y-%m-%dT%H:%M:%SZ")
+            if recovered_since is not None else None)
     # Stabile Reihenfolge S1 → S7
     return sorted(by_id.values(), key=lambda f: f["id"])
 
@@ -1746,20 +1818,36 @@ def format_digest_body(state_fails: list[dict],
         )
         return body, "📭 Health-Check ohne Daten", "high", "warning"
 
-    n_crit = sum(1 for f in state_fails if f["severity"] == "crit")
+    # Recency-Gating (28.07.2026): erholte State-Fails („war kaputt, ist
+    # erholt", via aggregate_state_fails) zählen NICHT als akuter Alarm —
+    # nur als Hinweis. Ein LAUFENDER Vorfall (recovered=False) bleibt
+    # unverändert crit/warn. Provider-Fails haben ihren eigenen Konsekutiv-
+    # Counter und sind vom Gating nicht betroffen.
+    active_state    = [f for f in state_fails if not f.get("recovered")]
+    recovered_state = [f for f in state_fails if f.get("recovered")]
+
+    n_crit = sum(1 for f in active_state if f["severity"] == "crit")
     n_crit += sum(1 for f in provider_fails if f["severity"] == "crit")
-    n_warn = sum(1 for f in state_fails if f["severity"] == "warn")
+    n_warn = sum(1 for f in active_state if f["severity"] == "warn")
     n_warn += sum(1 for f in provider_fails if f["severity"] == "warn")
 
     fails_present = (n_crit >= 1) or (n_warn >= 3)
 
     if not fails_present:
-        body = (
-            f"✅ Health-Check OK {digest_date}\n"
-            f"24h ohne Fails. {n_runs} Runs geprüft (Daily-Run + ki_agent).\n"
-            f"Letzter Run: {last_run_iso or '—'}"
-        )
-        return body, "✅ Health-Check OK", "default", None
+        # Kein akuter Fail → OK-Klasse. Erholte Fails werden dezent als
+        # Hinweis genannt (kein Alarm), damit der behobene Vorfall sichtbar
+        # bleibt ohne crit zu triggern.
+        head = ("24h ohne akute Fails" if recovered_state else "24h ohne Fails")
+        body_lines = [
+            f"✅ Health-Check OK {digest_date}",
+            f"{head}. {n_runs} Runs geprüft (Daily-Run + ki_agent).",
+        ]
+        for f in recovered_state:
+            body_lines.append(
+                f"↩︎ {f['id']} erholt seit {f.get('recovered_since') or '—'} "
+                f"(kein Alarm, {f.get('count', 1)}× im 24h-Fenster)")
+        body_lines.append(f"Letzter Run: {last_run_iso or '—'}")
+        return "\n".join(body_lines), "✅ Health-Check OK", "default", None
 
     n_ok = max(0, n_runs - n_crit - n_warn)
     lines = [
@@ -1767,12 +1855,22 @@ def format_digest_body(state_fails: list[dict],
         f"🔴 {n_crit} crit · 🟡 {n_warn} warn · ✅ {n_ok} ok",
         "",
     ]
-    if state_fails:
+    if active_state:
         lines.append("State-Fails:")
-        for f in state_fails:
-            tail = (f" ({f['count']} Runs in Folge)"
+        for f in active_state:
+            # OCCURRENCE-Count im Fenster (NICHT „konsekutiv bis jetzt" —
+            # der alte Wortlaut „X Runs in Folge" war ein Fehlname).
+            tail = (f" ({f['count']}× im 24h-Fenster)"
                     if f.get("count", 1) > 1 else "")
             lines.append(f"  • {f['id']}: {f.get('detail','')}{tail}")
+        lines.append("")
+    if recovered_state:
+        lines.append("Erholt (kein Alarm):")
+        for f in recovered_state:
+            lines.append(
+                f"  • {f['id']}: erholt seit {f.get('recovered_since') or '—'} "
+                f"({f.get('count', 1)}× im Fenster, zuletzt "
+                f"{f.get('youngest_ts') or '—'})")
         lines.append("")
     if provider_fails:
         lines.append("Provider-Fails:")
