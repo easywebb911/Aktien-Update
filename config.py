@@ -1501,11 +1501,14 @@ COLLECT_STATUS_FIELDS = [
      "Ziel-/Ergebnisgröße, kein Prädiktor · unvalidiert"),
     ("conviction_score",
      "Conviction-Aggregat (conviction_score)",
-     # Anti-Drift (#488-Muster): KEIN hartkodiertes Datum mehr. Die aktuelle
-     # Zahl steht live als „N gereift" in derselben Zeile (aus _btData) — hier
-     # nur die Schwelle + Alltagserklärung, was „fertig/gereift" heißt.
-     "sammelt · noch nicht als Signal bestätigt · auswertbar erst ab 100 "
-     "fertigen Einträgen — ein Eintrag wird erst rund 2 Wochen später fertig"),
+     # #468-Single-Source: die Auswertbarkeits-/Validierungs-Aussage lebt NUR in
+     # SCORE_STATUS_LABELS["conviction"] (seit #487 korrekt). Diese Sammel-Zeile
+     # behauptet KEINE Reife-Schwelle/Bereitschaft mehr — die live „N gereift"
+     # (aus _btData) überschritt die alte 100er-Schwelle und las sich fälschlich
+     # als „bereit", während die Status-Zeile „unvalidiert" sagt. Sie zählt nur.
+     # Anti-Drift (#488): kein hartkodiertes Datum.
+     "zählt nur, wie viel gesammelt und wie viel davon fertig ist — ein "
+     "Eintrag wird erst rund 2 Wochen nach dem Kauftag fertig"),
     ("days_to_earnings",
      "Kalendertage bis Earnings (days_to_earnings)",
      "sammelt · unvalidiert · auswertbar ab ~Q4 2026 (Ziel n ≥ 40 gereift)"),
