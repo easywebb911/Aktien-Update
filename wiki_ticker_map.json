@@ -1,4 +1,13 @@
 {
+  "ABEO": {
+    "qid": null,
+    "title": null,
+    "resolved_at": "2026-07-29T22:16:00Z",
+    "issuer_verified": false,
+    "company_name_at_resolve": "Abeona Therapeutics Inc.",
+    "substrate": "none",
+    "reason": "no_p249"
+  },
   "AI": {
     "qid": "Q104081972",
     "title": "C3_AI",
@@ -26,6 +35,33 @@
     "substrate": "en",
     "reason": null
   },
+  "BATL": {
+    "qid": null,
+    "title": null,
+    "resolved_at": "2026-07-29T22:16:00Z",
+    "issuer_verified": false,
+    "company_name_at_resolve": "Battalion Oil Corporation",
+    "substrate": "none",
+    "reason": "no_p249"
+  },
+  "BLKB": {
+    "qid": "Q4922539",
+    "title": "Blackbaud",
+    "resolved_at": "2026-07-29T22:16:00Z",
+    "issuer_verified": true,
+    "company_name_at_resolve": "Blackbaud, Inc.",
+    "substrate": "en",
+    "reason": null
+  },
+  "CBRL": {
+    "qid": "Q4492609",
+    "title": "Cracker_Barrel",
+    "resolved_at": "2026-07-29T22:16:00Z",
+    "issuer_verified": true,
+    "company_name_at_resolve": "Cracker Barrel Old Country Store, Inc.",
+    "substrate": "en",
+    "reason": null
+  },
   "DBI": {
     "qid": null,
     "title": null,
@@ -34,6 +70,15 @@
     "company_name_at_resolve": "Designer Brands Inc.",
     "substrate": "none",
     "reason": "no_p249"
+  },
+  "DXC": {
+    "qid": "Q28782856",
+    "title": "DXC_Technology",
+    "resolved_at": "2026-07-29T22:16:00Z",
+    "issuer_verified": true,
+    "company_name_at_resolve": "DXC Technology Company",
+    "substrate": "en",
+    "reason": null
   },
   "ENVX": {
     "qid": "Q124624329",
@@ -89,6 +134,15 @@
     "substrate": "en",
     "reason": null
   },
+  "KUST": {
+    "qid": null,
+    "title": null,
+    "resolved_at": "2026-07-29T22:16:00Z",
+    "issuer_verified": false,
+    "company_name_at_resolve": "Kustom Entertainment, Inc.",
+    "substrate": "none",
+    "reason": "no_p249"
+  },
   "LENZ": {
     "qid": null,
     "title": null,
@@ -115,6 +169,24 @@
     "company_name_at_resolve": "The Children's Place, Inc.",
     "substrate": "en",
     "reason": null
+  },
+  "REPL": {
+    "qid": null,
+    "title": null,
+    "resolved_at": "2026-07-29T22:16:00Z",
+    "issuer_verified": false,
+    "company_name_at_resolve": "Replimune Group, Inc.",
+    "substrate": "none",
+    "reason": "no_p249"
+  },
+  "SPRY": {
+    "qid": null,
+    "title": null,
+    "resolved_at": "2026-07-29T22:16:00Z",
+    "issuer_verified": false,
+    "company_name_at_resolve": "ARS Pharmaceuticals, Inc.",
+    "substrate": "none",
+    "reason": "no_p249"
   },
   "TBCH": {
     "qid": null,
