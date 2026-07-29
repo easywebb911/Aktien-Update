@@ -38,7 +38,8 @@ def _load_helper():
     Trick: extrahiere die zwei Funktionen direkt aus dem Source-Text und
     fuehre sie in einem isolierten namespace aus.
     """
-    ns = {}
+    import math
+    ns = {"math": math}
     # Minimal-Konstante fuer _rs_spy_pts
     ns["RS_SPY_THRESHOLD_PCT"] = 5.0
     ns["RS_SPY_PTS_MAX"] = 3
@@ -49,7 +50,9 @@ def _load_helper():
         assert m, f"{name} nicht gefunden"
         return m.group(0)
 
-    code = _extract("_rs_spy_pts") + "\n" + _extract("_rs_spy_row_html")
+    # _rs_spy_pts nutzt seit der NaN-Härtung (29.07.) `_finite` → mit-einziehen.
+    code = (_extract("_finite") + "\n"
+            + _extract("_rs_spy_pts") + "\n" + _extract("_rs_spy_row_html"))
     exec(code, ns)
     return ns["_rs_spy_row_html"]
 
