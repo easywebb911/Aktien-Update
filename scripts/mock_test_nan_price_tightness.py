@@ -454,6 +454,107 @@ def test_19_pnl_source_guard_is_finite():
     assert bool(_finite(2.0) and 2.0 > 0 and _finite(3.0) and 3.0 > 0) is True
 
 
+# ── 20-23) Score-Pfad-Härtung: _gap_hold_pts + _rs_spy_pts (29.07.2026) ────
+sys.path.insert(0, str(ROOT))  # config.py liegt im Repo-Root
+import config  # noqa: E402  (nur Konstanten, kein yfinance)
+
+
+def _gap_replica(cur_open, prev_close, price, *, hardened):
+    """Replik von _gap_hold_pts. ``hardened=True`` = HEAD (_finite-Guard),
+    ``hardened=False`` = alter is-None-Guard (Durchschlag-Gegenprobe)."""
+    if hardened:
+        if (not _finite(cur_open) or not _finite(prev_close)
+                or not _finite(price) or prev_close <= 0):
+            return None, "unknown", 0.0
+    else:
+        if cur_open is None or prev_close is None or price is None or prev_close <= 0:
+            return None, "unknown", 0.0
+    cur_open = float(cur_open); prev_close = float(prev_close); price = float(price)
+    gap_size = cur_open - prev_close
+    gap_pct = gap_size / prev_close * 100.0
+    if gap_pct < config.GAP_THRESHOLD_PCT:
+        return gap_pct, "no_gap", 0.0
+    hold = cur_open + config.GAP_HOLD_FACTOR * gap_size
+    if price > hold:
+        return gap_pct, "strong_hold", float(config.GAP_PTS_STRONG_HOLD)
+    if price < prev_close:
+        return gap_pct, "fail", float(config.GAP_PTS_FAIL)
+    return gap_pct, "weak_hold", float(config.GAP_PTS_WEAK_HOLD)
+
+
+def _rs_replica(rs, *, hardened):
+    """Replik von _rs_spy_pts."""
+    if hardened:
+        if not _finite(rs):
+            return None, 0.0
+    else:
+        if rs is None:
+            return None, 0.0
+    rs = float(rs)
+    T = config.RS_SPY_THRESHOLD_PCT
+    clamped = max(-T, min(T, rs))
+    return rs, float(round(clamped / T * config.RS_SPY_PTS_MAX))
+
+
+def test_20_gap_hold_nan_is_unknown_zero():
+    nan = float("nan")
+    # NaN muss JETZT den unknown/0-Ausgang nehmen (nicht +2/−3):
+    assert _gap_replica(nan, nan, 10.0, hardened=True) == (None, "unknown", 0.0)
+    assert _gap_replica(nan, 100.0, 95.0, hardened=True) == (None, "unknown", 0.0)
+    assert _gap_replica(50.0, nan, 55.0, hardened=True) == (None, "unknown", 0.0)
+    # DURCHSCHLAG-Gegenprobe: der alte Guard erzeugte still weak_hold/fail —
+    # der Fixture läuft nachweisbar ANDERS als vorher.
+    assert _gap_replica(nan, nan, 10.0, hardened=False)[1] == "weak_hold"
+    assert _gap_replica(nan, 100.0, 95.0, hardened=False)[1] == "fail"
+    assert _gap_replica(nan, nan, 10.0, hardened=True)[1] != \
+        _gap_replica(nan, nan, 10.0, hardened=False)[1]
+
+
+def test_21_gap_hold_finite_grading_unchanged():
+    # Gegenprobe endlich: jede Stufe unverändert (open 100, prev 90 → gap 11.1%).
+    assert _gap_replica(100.0, 90.0, 200.0, hardened=True)[1] == "strong_hold"
+    assert _gap_replica(100.0, 90.0, 95.0, hardened=True)[1] == "weak_hold"
+    assert _gap_replica(100.0, 90.0, 80.0, hardened=True)[1] == "fail"
+    # kleiner Gap (< Schwelle) → no_gap
+    assert _gap_replica(100.0, 99.0, 101.0, hardened=True)[1] == "no_gap"
+    # endliche Werte: hardened == unhardened (byte-gleich)
+    for co, pc, pr in [(100.0, 90.0, 200.0), (100.0, 90.0, 80.0), (100.0, 99.0, 101.0)]:
+        assert _gap_replica(co, pc, pr, hardened=True) == \
+               _gap_replica(co, pc, pr, hardened=False)
+
+
+def test_22_rs_spy_nan_is_none_zero():
+    nan = float("nan")
+    # NaN muss (None, 0) liefern — NICHT den +RS_SPY_PTS_MAX-Bonus:
+    assert _rs_replica(nan, hardened=True) == (None, 0.0)
+    # DURCHSCHLAG: der alte Guard klammerte NaN auf +max → falscher Bonus.
+    assert _rs_replica(nan, hardened=False) == (nan, float(config.RS_SPY_PTS_MAX)) \
+        or math.isnan(_rs_replica(nan, hardened=False)[0])
+    assert _rs_replica(nan, hardened=False)[1] == float(config.RS_SPY_PTS_MAX)
+    # Gegenprobe endlich: Stufung unverändert (± clamp), hardened == unhardened.
+    for v in (10.0, -10.0, 2.5, 0.0):
+        assert _rs_replica(v, hardened=True) == _rs_replica(v, hardened=False)
+    assert _rs_replica(10.0, hardened=True)[1] == float(config.RS_SPY_PTS_MAX)
+    assert _rs_replica(-10.0, hardened=True)[1] == float(-config.RS_SPY_PTS_MAX)
+
+
+def test_23_source_uses_finite_at_gap_and_rs_and_source():
+    # Quelle: _finite_cell an cur_open/prev_close (3 Fetch-Pfade × 2 Werte).
+    assert '_finite_cell(hist["Open"], -1)' in GR
+    assert '_finite_cell(hist["Close"], -2)' in GR
+    assert '_finite_cell(df["Open"], -1)' in GR
+    assert '_finite_cell(df2["Open"], -1)' in GR
+    assert GR.count("_finite_cell(") >= 6, "erwartet ≥6 _finite_cell-Aufrufe"
+    # Guard _gap_hold_pts: _finite statt is None.
+    gap = re.search(r"def _gap_hold_pts\(.*?\n(.*?)\n\ndef ", GR, re.S).group(1)
+    assert "not _finite(cur_open)" in gap and "not _finite(prev_close)" in gap
+    assert "cur_open is None or prev_close is None" not in gap, "alter None-Guard noch da"
+    # Guard _rs_spy_pts: _finite statt is None.
+    rs = re.search(r"def _rs_spy_pts\(.*?\n(.*?)\n\ndef ", GR, re.S).group(1)
+    assert "not _finite(rs)" in rs
+    assert "if rs is None:" not in rs, "alter None-Guard in _rs_spy_pts noch da"
+
+
 def main() -> int:
     tests = [
         ("01 _finite-Prädikat",                                  test_01_finite_predicate),
@@ -480,6 +581,10 @@ def main() -> int:
         ("17 overheated: NaN-Move → nicht available",            test_17_overheated_nan_move_is_not_available),
         ("18 setup_erosion: NaN-Driver = fehlend",               test_18_setup_erosion_nan_driver_counts_as_missing),
         ("19 pnl_frac-Quelle explizit NaN-dicht",                test_19_pnl_source_guard_is_finite),
+        ("20 _gap_hold_pts: NaN → unknown/0 (Durchschlag)",      test_20_gap_hold_nan_is_unknown_zero),
+        ("21 _gap_hold_pts: endliche Stufung unverändert",       test_21_gap_hold_finite_grading_unchanged),
+        ("22 _rs_spy_pts: NaN → (None,0), +bonus weg",           test_22_rs_spy_nan_is_none_zero),
+        ("23 Quelle+Guard: _finite_cell/_finite verdrahtet",     test_23_source_uses_finite_at_gap_and_rs_and_source),
     ]
     failed = 0
     for name, fn in tests:

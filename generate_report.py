@@ -910,8 +910,8 @@ def get_yfinance_data(ticker: str) -> dict:
         avg_vol_20 = float(hist["Volume"].tail(20).mean()) if len(hist) >= 5 else 0.0
         cur_vol    = float(hist["Volume"].iloc[-1])         if len(hist) >= 1 else 0.0
         vol_ratio  = _normalize_rvol(cur_vol, avg_vol_20)
-        cur_open   = float(hist["Open"].iloc[-1])  if "Open"  in hist.columns and len(hist) >= 1 else None
-        prev_close = float(hist["Close"].iloc[-2]) if len(hist) >= 2 else None
+        cur_open   = _finite_cell(hist["Open"], -1)  if "Open"  in hist.columns and len(hist) >= 1 else None
+        prev_close = _finite_cell(hist["Close"], -2) if len(hist) >= 2 else None
         cur_close  = float(hist["Close"].iloc[-1]) if "Close" in hist.columns and len(hist) >= 1 else None
         # Hypothese-A-Vorbau (#402): Adj-Close 5 Trading-Days VOR Entry (6.-letzte
         # Bar). Analog zum Batch-Pfad in _hist_stats (:1072/1089). Zähler
@@ -1096,8 +1096,8 @@ def get_yfinance_batch(tickers: list[str]) -> dict[str, dict]:
                     hi52    = float(df["High"].max())
                     lo52    = float(df["Low"].min())
                     rsi14, ma21, ma50, ma200, perf_20d = _compute_indicators(df)
-                    cur_open   = float(df["Open"].iloc[-1])  if "Open"  in df.columns and len(df) >= 1 else None
-                    prev_close = float(df["Close"].iloc[-2]) if len(df) >= 2 else None
+                    cur_open   = _finite_cell(df["Open"], -1)  if "Open"  in df.columns and len(df) >= 1 else None
+                    prev_close = _finite_cell(df["Close"], -2) if len(df) >= 2 else None
                     cur_close  = float(df["Close"].iloc[-1]) if "Close" in df.columns and len(df) >= 1 else None
                     hist_5d    = _extract_hist_5d(df)
                     close_5td_before_entry = float(df["Close"].iloc[-6]) if len(df) >= 6 else None
@@ -1113,8 +1113,8 @@ def get_yfinance_batch(tickers: list[str]) -> dict[str, dict]:
                 cur_vol = float(df2["Volume"].iloc[-1])
                 vol_r   = _normalize_rvol(cur_vol, avg_vol)
                 rsi14, ma21, ma50, ma200, perf_20d = _compute_indicators(df2)
-                cur_open   = float(df2["Open"].iloc[-1])  if "Open"  in df2.columns and len(df2) >= 1 else None
-                prev_close = float(df2["Close"].iloc[-2]) if len(df2) >= 2 else None
+                cur_open   = _finite_cell(df2["Open"], -1)  if "Open"  in df2.columns and len(df2) >= 1 else None
+                prev_close = _finite_cell(df2["Close"], -2) if len(df2) >= 2 else None
                 cur_close  = float(df2["Close"].iloc[-1]) if "Close" in df2.columns and len(df2) >= 1 else None
                 hist_5d    = _extract_hist_5d(df2)
                 close_5td_before_entry = float(df2["Close"].iloc[-6]) if len(df2) >= 6 else None
@@ -2660,6 +2660,29 @@ def _finite(v) -> bool:
     return math.isfinite(v)
 
 
+def _finite_cell(series, idx):
+    """``float(series.iloc[idx])`` wenn endlich, sonst ``None``.
+
+    NaN-Härtung am QUELL-Rand (Belt, 29.07.2026): yfinance liefert bei
+    Degradation/partiellen Bars eine letzte Zeile mit ``Open``/``Close`` = NaN.
+    ``float(NaN)`` wirft NICHT — der Rohwert lief bisher als NaN bis in
+    ``_gap_hold_pts`` (→ ``NaN < Schwelle`` ist False → falscher weak_hold/
+    fail statt unknown) und ``_rs_spy_pts`` (→ Clamp auf +3). Dieser Helper
+    gibt bei NaN/Inf ``None`` zurück → die ``_finite``-Guards der Konsumenten
+    (Suspender) nehmen dann sauber den ``unknown``/0-Ausgang.
+
+    BEWUSST ``None`` statt „letzte NaN-freie Bar" (dropna-Rückfall): ein
+    stale-aber-endlicher Open erzeugte einen *endlichen, aber falschen* Gap,
+    den der ``_finite``-Guard NICHT fängt — genau den Silent-Shift, den die
+    Härtung beseitigen soll. Fehlen echter Tages-Daten ⇒ ``unknown``/0.
+    """
+    try:
+        v = float(series.iloc[idx])
+    except (IndexError, KeyError, TypeError, ValueError):
+        return None
+    return v if _finite(v) else None
+
+
 # NaN-Dichtigkeit/Sichtbarkeit (27.07.2026): Zähler für die Positions-Singleton-
 # Fetches (``_fetch_position_market_data``). Sie fließen in den bestehenden
 # ``yfinance_singletons``-Provider-Record ein — vorher deckte der NUR ^GSPC/
@@ -2764,7 +2787,15 @@ def _gap_hold_pts(stock: dict) -> tuple[float | None, str, float]:
     cur_open   = stock.get("cur_open")
     prev_close = stock.get("prev_close")
     price      = stock.get("price")
-    if cur_open is None or prev_close is None or price is None or prev_close <= 0:
+    # NaN-Härtung (29.07.2026): ``_finite`` statt ``is None``. Ein NaN
+    # (cur_open/prev_close aus einer degradierten yfinance-Bar) rutschte durch
+    # den None-Guard → ``gap_pct=NaN`` → ``NaN < GAP_THRESHOLD_PCT`` ist False →
+    # der ``no_gap``-Ausgang wird übersprungen → falscher weak_hold (+2) / fail
+    # (−3) statt ``unknown``/0. ``not _finite`` fängt None UND NaN; die
+    # ``prev_close <= 0``-Prüfung steht bewusst NACH dem _finite-Gate (kein
+    # NaN-Vergleich). Suspender zum Quell-Belt (``_finite_cell`` in _hist_stats).
+    if (not _finite(cur_open) or not _finite(prev_close)
+            or not _finite(price) or prev_close <= 0):
         return None, "unknown", 0.0
     try:
         cur_open   = float(cur_open)
@@ -2796,7 +2827,11 @@ def _rs_spy_pts(stock: dict) -> tuple[float | None, float]:
     Returns ``(rs_pct, pts)``. Bei fehlendem Wert → ``(None, 0)``.
     """
     rs = stock.get("rel_strength_20d")
-    if rs is None:
+    # NaN-Härtung (29.07.2026): ``_finite`` statt ``is None``. Ein NaN
+    # ``rel_strength_20d`` rutschte durch → ``max(-T, min(T, NaN))`` klammert
+    # (Python-min/max geben bei NaN den Nicht-NaN-Operanden) auf +T → falscher
+    # +RS_SPY_PTS_MAX-Bonus, endlich → vom score()-isfinite-Guard NICHT gefangen.
+    if not _finite(rs):
         return None, 0.0
     try:
         rs = float(rs)
