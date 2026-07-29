@@ -654,6 +654,67 @@ nur bei `available=True`.
 | **~Mitte/Ende Sept 2026** (bestätigt) | Setup-Edge-Re-Test | n ≥ 250 gereift | Andere Marktphase zwingend (30.06.-Sample Mai–Juni-lastig, 91 % pre-#346). **Engpass gemessen:** Score≥70-Anteil nur **36 %** (~2,7 gereifte Score≥70-Records/Handelstag) → das bindet n≥250, nicht die Roh-Rate. |
 | **~Mitte/Ende Sept 2026** (bestätigt) | Exit-Timing B.1-Hinweis-Re-Test | n ≥ 250 | 01.07. Punktschätzung Δ ~+4 pp (5d/3d vs 10d in Score≥70-Bucket), Holm-negativ — Re-Test zur Bestätigung. |
 
+#### ⚠ Datenherkunft der beiden Sept-Re-Tests — gap-NaN-Erkennbarkeitsgrenze (Stand 29.07.2026)
+
+**Gilt für die zwei Sept-Zeilen oben (Setup-Edge n≥250 · Exit-Timing B.1 — beide
+Score≥70-Bucket): bei der Vorabregistrierung mitlesen.** (Bewusst hier verankert
+statt in einem Code-Kommentar: die Re-Test-Vorabregistrierung wird an genau dieser
+Kalender-Stelle gelesen, ein `# `-Kommentar in `generate_report.py`/`backtest_history.py`
+nicht.)
+
+**Herkunft:** #493 (`ce2e690`) hat `_gap_hold_pts`/`_rs_spy_pts` gegen NaN
+gehärtet — eine degradierte yfinance-Bar ohne `dropna` lieferte `gap_pct=NaN`, das
+an der `is None`-Guard vorbeirutschte und einen falschen `weak_hold`/`fail`-Beitrag
+in den Timing-Score schrieb. „Schritt B" (Rück-Scan der Alt-Records) ist bewusst
+als **Doku** umgesetzt, **nicht** als Flag/Schema-Feld — Begründung in (3).
+
+**1) DIE GRENZE (Datumsbedingung, keine eingefrorene Stückzahl).** Die gap-NaN-
+**Erkennbarkeit** reicht nur bis **11.07.2026** zurück — dem Beginn der
+`app_data.json`-Git-Historie. Das einzige Nachweissignal ist `gap_states`
+(`state ∈ {weak_hold, fail, strong_hold}` **und** `pct = null`); ältere app_data-
+Stände existieren nicht mehr. **Für Backtest-Records mit Datum ≤ 10.07.2026 gibt es
+kein Signal — sie sind UNBEKANNT, ausdrücklich NICHT „sauber".** Die 11.07.-Grenze
+ist ein historischer Fakt (Datum), keine Fälligkeit/Projektion (Anti-Drift #488).
+Die absolute Zahl der Unbekannten wächst nicht, aber ihr **Anteil sinkt** mit jedem
+neuen Record — die Zahlen unten deshalb nur als **datierte Momentaufnahme** lesen.
+
+**2) DIE DREI ZONEN (Stand 29.07.2026, Zahlen als Momentaufnahme, `git`-belegt):**
+- **betroffen: 0** — im gesamten beobachtbaren Fenster kein einziger kontaminierter
+  Backtest-Record.
+- **geprüft & sauber: 122** (Handelstage 13.–28.07.2026) — jeder der 12 postclose-
+  Append-Läufe hatte für seine angehängten Ticker nicht-NaN-`gap_states`.
+- **unbekannt: 1792** (Datum ≤ 10.07.2026, zurück bis 22.04.2025) — kein Signal.
+  **Unbekannt ≠ geprüft-sauber.** Ein fehlendes Signal darf nie als „sauber"
+  gelesen werden.
+
+**3) DIE MECHANIK (warum der Nullbefund — und warum KEIN Flag).** Der Backtest-
+Append läuft **nur postclose** (`_append_backtest_entries` nur bei
+`run_phase=="postclose"`, Werktag-Abend ~21 UTC, konsolidierte Bars) **und ist
+idempotent** (`if (ticker,date) in existing_keys: continue` — der **erste** Append
+friert die Score-Felder ein, spätere Re-Renders überschreiben sie **nie**). Die
+realen NaN-Ereignisse trafen (a) **premarket-Läufe**, die grundsätzlich **nicht**
+appenden, und (b) **Wochenend-/Post-Append-Re-Renders** mit degradierten Bars, die
+idempotent übersprungen werden. Beides wirkt auf **Live-Anzeige + Ranking**, **nie
+auf einen eingefrorenen Backtest-Score**. Ein Flag würde deshalb nur „Datum ≤
+10.07.2026" bedeuten — ein **Datums-Schnitt, kein Befund**; dafür lohnt kein neues
+Schema-Feld auf den Auswertungsdaten. Der Wert liegt darin, dass **Grenze +
+Mechanik dort stehen, wo sie bei der Sept-Vorabregistrierung gelesen werden.**
+
+**4) KORREKTUR.** Die frühere Arbeitshypothese „15.07. und 27.07. sind
+kontaminiert" (aus dem 2-Tage-Fund der Schritt-A-Diagnose) steht **nirgends
+schriftlich** — nicht im Handover, nicht in `CLAUDE.md`, nicht in einem Code-
+Kommentar (`grep` über `#493`/gap-NaN-Kontamination leer). **Nichts zu
+korrigieren.** Beleg für die Auflösung: an beiden Tagen lag der NaN nur im
+**premarket**-Lauf (Live-Anzeige), die Backtest-Records kamen vom sauberen
+postclose-Lauf — z. B. **15.07. KUST** `score=80.52` und **27.07. GRPN**
+`score=89.46` (Erst-Append-Commit `6e005607e`, `gap_states NaN=[]`).
+
+**5) HINWEIS FÜR SEPTEMBER.** Beide Sept-Re-Tests laufen auf dem Score≥70-Bucket,
+dessen gereiftes Material **überwiegend aus der unbekannten Zone** (≤ 10.07.2026)
+stammt. Das ist bei der Vorabregistrierung **anzusprechen**. **WIE** damit
+umgegangen wird (einschließen · ausschließen · Sensitivitäts-Gegenprobe) wird
+**dort** entschieden — nicht hier, nicht nachträglich, kein Ausschluss-Automatismus.
+
 **Sammel-Rate (gemessen 15.07., Hard-Facts):** **10 Records/Handelstag** (nur
 postclose, nur Top-10) = das Maximum ohne Populations-Wechsel. **Hard-Stop:
 `return_10d`-Reifung = 10 Handelstage** (immutabel — jeder Record braucht ~2
