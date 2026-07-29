@@ -1,10 +1,10 @@
 {
-  "updated": "2026-07-30T00:17:27.086318+02:00",
+  "updated": "2026-07-30T01:15:23.408630+02:00",
   "run_info": {
     "tickers_checked": 15,
     "signals_active": 2,
     "alerts_sent": 0,
-    "elapsed_s": 12.5,
+    "elapsed_s": 13.4,
     "market_phase": "After-Hours"
   },
   "signals": {
@@ -30,9 +30,9 @@
       "uoa_cp_ratio": 0.9518072289156626
     },
     "AI": {
-      "score": 26,
+      "score": 33,
       "confidence": 33,
-      "drivers": "News-KI 8/30: Mixed headlines with bearish sentiment (overvaluation concerns), no evidence of high short interest, low institutional p + Earnings in 42d + UOA Call/Put 2.8×",
+      "drivers": "News: short interest + Earnings in 42d + UOA Call/Put 2.8×",
       "price": 8.85,
       "chg_pct": 0.0,
       "rvol_4d": 0.54,
@@ -43,8 +43,8 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 0,
-      "ki_sentiment_source": "llm",
+      "active_triggers": 1,
+      "ki_sentiment_source": "keyword",
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 2.8×"
@@ -189,7 +189,7 @@
     "JACK": {
       "score": 58,
       "confidence": 70,
-      "drivers": "Spanne 5.9% + News: short interest, breakout + Earnings in 14d + UOA Call/Put 52.1×",
+      "drivers": "Spanne 5.9% + News: squeeze, covering + Earnings in 14d + UOA Call/Put 52.1×",
       "price": 16.47,
       "chg_pct": -0.0,
       "rvol_4d": 1.23,
@@ -252,9 +252,9 @@
       "uoa_cp_ratio": 0.13011152416356878
     },
     "PDYN": {
-      "score": 48,
+      "score": 36,
       "confidence": 70,
-      "drivers": "Spanne 6.1% + News: contract, partnership + Earnings in 8d",
+      "drivers": "Spanne 6.1% + News-KI 18/30: Moderate positive catalysts with government contract growth, but lacks short interest data, high short float, or forced  + Earnings in 8d",
       "price": 4.83,
       "chg_pct": -0.0,
       "rvol_4d": 1.38,
@@ -266,16 +266,16 @@
       "stocktwits": null,
       "combo_mult": 1.0,
       "active_triggers": 1,
-      "ki_sentiment_source": "keyword",
+      "ki_sentiment_source": "llm",
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": 0.31020408163265306,
       "uoa_cp_ratio": 0.7679558011049724
     },
     "REPL": {
-      "score": 23,
-      "confidence": 70,
-      "drivers": "Spanne 15.3% + News-KI 5/30: Negative FDA regulatory news and drug efficacy doubts create downward pressure, making this a poor short-squeeze candida + Earnings in 8d",
+      "score": 18,
+      "confidence": 33,
+      "drivers": "Spanne 15.3% + Earnings in 8d",
       "price": 5.41,
       "chg_pct": -0.0,
       "rvol_4d": 1.44,
@@ -287,7 +287,7 @@
       "stocktwits": null,
       "combo_mult": 1.0,
       "active_triggers": 0,
-      "ki_sentiment_source": "llm",
+      "ki_sentiment_source": "keyword",
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": 1.5833333333333333,
