@@ -1,10 +1,10 @@
 {
-  "updated": "2026-07-30T02:13:02.814367+02:00",
+  "updated": "2026-07-30T05:29:53.679414+02:00",
   "run_info": {
     "tickers_checked": 15,
     "signals_active": 2,
     "alerts_sent": 0,
-    "elapsed_s": 13.4,
+    "elapsed_s": 23.6,
     "market_phase": "Geschlossen"
   },
   "signals": {
@@ -76,9 +76,9 @@
       "uoa_cp_ratio": 4.430847490162203
     },
     "BATL": {
-      "score": 25,
-      "confidence": 33,
-      "drivers": "Spanne 11.0% + News: breakout",
+      "score": 10,
+      "confidence": 17,
+      "drivers": "Spanne 11.0%",
       "price": 1.52,
       "chg_pct": -0.0,
       "rvol_4d": 0.91,
@@ -89,7 +89,7 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 1,
+      "active_triggers": 0,
       "ki_sentiment_source": "keyword",
       "uoa_score": 0,
       "uoa_drivers": [],
@@ -97,9 +97,9 @@
       "uoa_cp_ratio": null
     },
     "BLKB": {
-      "score": 90,
+      "score": 100,
       "confidence": 70,
-      "drivers": "Earnings in 0 Tagen (29.07.2026) + Volumen 2.1× + Spanne 20.2% + SEC 8-K + Earnings in 0d + UOA Call/Put 4.7× + 3/4 Trigger",
+      "drivers": "Earnings in 0 Tagen (29.07.2026) + Volumen 2.1× + Spanne 20.2% + SEC 8-K + News-KI 12/30: Positive earnings and AI news indicate fundamental strength, but lack specific short squeeze catalysts like high short i + Earnings in 0d + UOA Call/Put 4.7× + 3/4 Trigger",
       "price": 42.18,
       "chg_pct": 0.0,
       "rvol_4d": 2.15,
@@ -111,7 +111,7 @@
       "stocktwits": null,
       "combo_mult": 1.2,
       "active_triggers": 3,
-      "ki_sentiment_source": "keyword",
+      "ki_sentiment_source": "llm",
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 4.7×"
@@ -120,9 +120,9 @@
       "uoa_cp_ratio": 4.666666666666667
     },
     "CBRL": {
-      "score": 43,
+      "score": 35,
       "confidence": 70,
-      "drivers": "Spanne 5.3% + News-KI 8/30: CEO departure and severance costs suggest internal instability; 104% rally already priced in with limited short interest + FINRA Short-Vol 69% + UOA Call/Put 6.2×",
+      "drivers": "Spanne 5.3% + FINRA Short-Vol 69% + UOA Call/Put 6.2×",
       "price": 56.55,
       "chg_pct": -0.0,
       "rvol_4d": 1.17,
@@ -134,7 +134,7 @@
       "stocktwits": null,
       "combo_mult": 1.0,
       "active_triggers": 0,
-      "ki_sentiment_source": "llm",
+      "ki_sentiment_source": "keyword",
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 6.2×"
@@ -145,7 +145,7 @@
     "DXC": {
       "score": 99,
       "confidence": 70,
-      "drivers": "Earnings in 1 Tagen (30.07.2026) + Volumen 1.6× + Spanne 9.8% + News: partnership, earnings beat + Earnings in 1d + UOA Call/Put 4.1×",
+      "drivers": "Earnings in 1 Tagen (30.07.2026) + Volumen 1.6× + Spanne 9.8% + News: earnings beat, partnership + Earnings in 1d + UOA Call/Put 4.1×",
       "price": 11.77,
       "chg_pct": 0.0,
       "rvol_4d": 1.6,
@@ -189,7 +189,7 @@
     "JACK": {
       "score": 58,
       "confidence": 70,
-      "drivers": "Spanne 5.9% + News: breakout, covering + Earnings in 14d + UOA Call/Put 52.1×",
+      "drivers": "Spanne 5.9% + News: short interest, covering + Earnings in 14d + UOA Call/Put 52.1×",
       "price": 16.47,
       "chg_pct": -0.0,
       "rvol_4d": 1.23,
@@ -231,9 +231,9 @@
       "uoa_cp_ratio": null
     },
     "MPLT": {
-      "score": 18,
-      "confidence": 33,
-      "drivers": "Spanne 27.8% + Earnings in 15d",
+      "score": 20,
+      "confidence": 70,
+      "drivers": "Spanne 27.8% + News-KI 2/30: Massive stock crash with failed clinical trial data indicates fundamental weakness, not short-squeeze setup. + Earnings in 15d",
       "price": 15.02,
       "chg_pct": 0.0,
       "rvol_4d": 0.84,
@@ -245,7 +245,7 @@
       "stocktwits": null,
       "combo_mult": 1.0,
       "active_triggers": 0,
-      "ki_sentiment_source": "keyword",
+      "ki_sentiment_source": "llm",
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": null,
@@ -254,7 +254,7 @@
     "PDYN": {
       "score": 48,
       "confidence": 70,
-      "drivers": "Spanne 6.1% + News: partnership, contract + Earnings in 8d",
+      "drivers": "Spanne 6.1% + News: contract, partnership + Earnings in 8d",
       "price": 4.83,
       "chg_pct": -0.0,
       "rvol_4d": 1.38,
@@ -273,9 +273,9 @@
       "uoa_cp_ratio": 0.7679558011049724
     },
     "REPL": {
-      "score": 23,
-      "confidence": 70,
-      "drivers": "Spanne 15.3% + News-KI 5/30: Negative FDA regulatory news and falling share price indicate weak momentum, making this a poor short-squeeze candidate  + Earnings in 8d",
+      "score": 18,
+      "confidence": 33,
+      "drivers": "Spanne 15.3% + Earnings in 8d",
       "price": 5.41,
       "chg_pct": -0.0,
       "rvol_4d": 1.44,
@@ -287,7 +287,7 @@
       "stocktwits": null,
       "combo_mult": 1.0,
       "active_triggers": 0,
-      "ki_sentiment_source": "llm",
+      "ki_sentiment_source": "keyword",
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": 1.5833333333333333,
