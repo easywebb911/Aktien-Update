@@ -1,5 +1,5 @@
 {
-  "updated": "2026-07-30T10:51:43.864883+02:00",
+  "updated": "2026-07-30T11:42:17.540736+02:00",
   "run_info": {
     "tickers_checked": 15,
     "signals_active": 0,
@@ -161,12 +161,12 @@
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": null,
-      "uoa_cp_ratio": 1.454993429697766
+      "uoa_cp_ratio": 1.455232462625267
     },
     "JACK": {
       "score": 58,
       "confidence": 70,
-      "drivers": "Spanne 5.9% + News: covering, short interest + Earnings in 13d + UOA Call/Put 52.1×",
+      "drivers": "Spanne 5.9% + News: squeeze, short squeeze + Earnings in 13d + UOA Call/Put 52.1×",
       "price": 16.47,
       "chg_pct": -0.0,
       "rvol_4d": 1.23,
@@ -252,7 +252,7 @@
     "REPL": {
       "score": 30,
       "confidence": 70,
-      "drivers": "Earnings in 7 Tagen (06.08.2026) + Spanne 15.3% + News-KI 5/30: Negative regulatory news and stock decline indicate weak momentum and unlikely short squeeze candidate; bad news typical + Earnings in 7d",
+      "drivers": "Earnings in 7 Tagen (06.08.2026) + Spanne 15.3% + News-KI 5/30: Negative FDA regulatory news and efficacy concerns create selling pressure rather than short squeeze conditions; stock m + Earnings in 7d",
       "price": 5.41,
       "chg_pct": -0.0,
       "rvol_4d": 1.45,
