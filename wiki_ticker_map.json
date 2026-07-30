@@ -62,6 +62,24 @@
     "substrate": "en",
     "reason": null
   },
+  "CMCO": {
+    "qid": null,
+    "title": null,
+    "resolved_at": "2026-07-30T22:29:34Z",
+    "issuer_verified": false,
+    "company_name_at_resolve": "Columbus McKinnon Corporation",
+    "substrate": "none",
+    "reason": "no_p249"
+  },
+  "CSIQ": {
+    "qid": "Q1032353",
+    "title": "Canadian_Solar",
+    "resolved_at": "2026-07-30T22:29:34Z",
+    "issuer_verified": true,
+    "company_name_at_resolve": "Canadian Solar Inc.",
+    "substrate": "en",
+    "reason": null
+  },
   "DBI": {
     "qid": null,
     "title": null,
@@ -106,6 +124,15 @@
     "company_name_at_resolve": "Firy Inc.",
     "substrate": "none",
     "reason": "no_p249"
+  },
+  "FMC": {
+    "qid": "Q899183",
+    "title": "FMC_Corporation",
+    "resolved_at": "2026-07-30T22:29:34Z",
+    "issuer_verified": true,
+    "company_name_at_resolve": "FMC Corporation",
+    "substrate": "en",
+    "reason": null
   },
   "GRPN": {
     "qid": "Q852787",
@@ -158,6 +185,24 @@
     "resolved_at": "2026-07-28T22:19:35Z",
     "issuer_verified": false,
     "company_name_at_resolve": "MapLight Therapeutics, Inc.",
+    "substrate": "none",
+    "reason": "no_p249"
+  },
+  "NUWE": {
+    "qid": null,
+    "title": null,
+    "resolved_at": "2026-07-30T22:29:34Z",
+    "issuer_verified": false,
+    "company_name_at_resolve": "Nuwellis, Inc.",
+    "substrate": "none",
+    "reason": "no_p249"
+  },
+  "PCT": {
+    "qid": null,
+    "title": null,
+    "resolved_at": "2026-07-30T22:29:34Z",
+    "issuer_verified": false,
+    "company_name_at_resolve": "PureCycle Technologies, Inc.",
     "substrate": "none",
     "reason": "no_p249"
   },
@@ -215,6 +260,15 @@
     "substrate": "en",
     "reason": null
   },
+  "ULCC": {
+    "qid": "Q1139541",
+    "title": "Frontier_Airlines",
+    "resolved_at": "2026-07-30T22:29:34Z",
+    "issuer_verified": true,
+    "company_name_at_resolve": "Frontier Group Holdings, Inc.",
+    "substrate": "en",
+    "reason": null
+  },
   "VEEE": {
     "qid": null,
     "title": null,
@@ -230,6 +284,24 @@
     "resolved_at": "2026-07-27T22:29:48Z",
     "issuer_verified": true,
     "company_name_at_resolve": "NCR Voyix Corporation",
+    "substrate": "en",
+    "reason": null
+  },
+  "WOLF": {
+    "qid": "Q5183828",
+    "title": "Wolfspeed",
+    "resolved_at": "2026-07-30T22:29:34Z",
+    "issuer_verified": true,
+    "company_name_at_resolve": "Wolfspeed, Inc.",
+    "substrate": "en",
+    "reason": null
+  },
+  "XRX": {
+    "qid": "Q152433",
+    "title": "Xerox",
+    "resolved_at": "2026-07-30T22:29:34Z",
+    "issuer_verified": true,
+    "company_name_at_resolve": "Xerox Holdings Corporation",
     "substrate": "en",
     "reason": null
   }
