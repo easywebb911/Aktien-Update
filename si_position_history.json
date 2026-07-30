@@ -1614,6 +1614,12 @@
       "shares_short": 5940039,
       "short_pct_float": 38.46,
       "pub_date": "2026-07-10"
+    },
+    {
+      "settlement_date": "2026-07-15",
+      "shares_short": 5830669,
+      "short_pct_float": 37.75,
+      "pub_date": "2026-07-24"
     }
   ],
   "EBS": [
