@@ -1,10 +1,10 @@
 {
-  "updated": "2026-07-31T02:16:13.228103+02:00",
+  "updated": "2026-07-31T05:53:45.027828+02:00",
   "run_info": {
     "tickers_checked": 14,
     "signals_active": 4,
     "alerts_sent": 0,
-    "elapsed_s": 21.6,
+    "elapsed_s": 10.8,
     "market_phase": "Geschlossen"
   },
   "signals": {
@@ -79,9 +79,9 @@
       "uoa_cp_ratio": 3.8932038834951457
     },
     "CSIQ": {
-      "score": 8,
-      "confidence": 17,
-      "drivers": "Earnings in 28d",
+      "score": 16,
+      "confidence": 33,
+      "drivers": "News-KI 8/30: Positive operational news (FM approvals) but no short-squeeze indicators like short interest spike, unusual volume, or f + Earnings in 28d",
       "price": 14.76,
       "chg_pct": 0.0,
       "rvol_4d": 0.92,
@@ -93,7 +93,7 @@
       "stocktwits": null,
       "combo_mult": 1.0,
       "active_triggers": 0,
-      "ki_sentiment_source": "keyword",
+      "ki_sentiment_source": "llm",
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": 0.28378378378378377,
@@ -146,9 +146,9 @@
       "uoa_cp_ratio": 10.608695652173912
     },
     "FMC": {
-      "score": 33,
+      "score": 44,
       "confidence": 70,
-      "drivers": "Volumen 2.5× + Spanne 12.9% + News-KI 8/30: Mixed earnings results with revenue miss despite cost benefits lack the sustained negative sentiment and short interest ",
+      "drivers": "Volumen 2.5× + Spanne 12.9% + News: earnings beat",
       "price": 11.83,
       "chg_pct": -0.0,
       "rvol_4d": 2.45,
@@ -158,9 +158,9 @@
       "upcoming_event": null,
       "insider_buy": false,
       "stocktwits": null,
-      "combo_mult": 1.0,
-      "active_triggers": 1,
-      "ki_sentiment_source": "llm",
+      "combo_mult": 1.1,
+      "active_triggers": 2,
+      "ki_sentiment_source": "keyword",
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": 0.1689608636977058,
@@ -213,7 +213,7 @@
     "PCT": {
       "score": 61,
       "confidence": 70,
-      "drivers": "Earnings in 7 Tagen (06.08.2026) + Spanne 6.9% + News: short interest, partnership + Earnings in 7d",
+      "drivers": "Earnings in 7 Tagen (06.08.2026) + Spanne 6.9% + News: partnership, short interest + Earnings in 7d",
       "price": 6.35,
       "chg_pct": -0.0,
       "rvol_4d": 1.09,
@@ -234,7 +234,7 @@
     "PDYN": {
       "score": 72,
       "confidence": 70,
-      "drivers": "Earnings in 7 Tagen (06.08.2026) + Spanne 6.2% + News: contract, partnership + Earnings in 7d + UOA Call/Put 5.2×",
+      "drivers": "Earnings in 7 Tagen (06.08.2026) + Spanne 6.2% + News: partnership, contract + Earnings in 7d + UOA Call/Put 5.2×",
       "price": 5.18,
       "chg_pct": -0.0,
       "rvol_4d": 0.92,

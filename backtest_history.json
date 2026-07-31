@@ -62708,7 +62708,7 @@
     "ticker": "REPL",
     "score": 77.2,
     "entry_price": 5.41,
-    "entry_price_t1": null,
+    "entry_price_t1": 5.41,
     "short_float": 49.86,
     "dtc": 7.62,
     "rvol": 2.951,
