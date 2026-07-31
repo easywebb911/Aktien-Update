@@ -906,6 +906,12 @@
       "shares_short": 4170272,
       "short_pct_float": 15.44,
       "pub_date": "2026-07-10"
+    },
+    {
+      "settlement_date": "2026-07-15",
+      "shares_short": 4215391,
+      "short_pct_float": 15.61,
+      "pub_date": "2026-07-24"
     }
   ],
   "TROX": [
@@ -987,6 +993,12 @@
       "shares_short": 6099175,
       "short_pct_float": 27.92,
       "pub_date": "2026-07-10"
+    },
+    {
+      "settlement_date": "2026-07-15",
+      "shares_short": 6621420,
+      "short_pct_float": 30.31,
+      "pub_date": "2026-07-24"
     }
   ],
   "CHPT": [
