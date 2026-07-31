@@ -26,6 +26,15 @@
     "substrate": "none",
     "reason": "no_article"
   },
+  "AMCX": {
+    "qid": "Q4652575",
+    "title": "AMC_Global_Media",
+    "resolved_at": "2026-07-31T22:17:42Z",
+    "issuer_verified": true,
+    "company_name_at_resolve": "AMC Global Media Inc.",
+    "substrate": "en",
+    "reason": null
+  },
   "ASAN": {
     "qid": "Q111411592",
     "title": "Asana,_Inc.",
@@ -143,12 +152,30 @@
     "substrate": "en",
     "reason": null
   },
+  "INDI": {
+    "qid": null,
+    "title": null,
+    "resolved_at": "2026-07-31T22:17:42Z",
+    "issuer_verified": false,
+    "company_name_at_resolve": "indie Semiconductor, Inc.",
+    "substrate": "none",
+    "reason": "no_p249"
+  },
   "INLF": {
     "qid": null,
     "title": null,
     "resolved_at": "2026-07-28T22:19:35Z",
     "issuer_verified": false,
     "company_name_at_resolve": "INLIF Limited",
+    "substrate": "none",
+    "reason": "no_p249"
+  },
+  "INR": {
+    "qid": null,
+    "title": null,
+    "resolved_at": "2026-07-31T22:17:42Z",
+    "issuer_verified": false,
+    "company_name_at_resolve": "Infinity Natural Resources, Inc.",
     "substrate": "none",
     "reason": "no_p249"
   },
@@ -197,6 +224,15 @@
     "substrate": "none",
     "reason": "no_p249"
   },
+  "PAR": {
+    "qid": null,
+    "title": null,
+    "resolved_at": "2026-07-31T22:17:42Z",
+    "issuer_verified": false,
+    "company_name_at_resolve": "PAR Technology Corporation",
+    "substrate": "none",
+    "reason": "no_p249"
+  },
   "PCT": {
     "qid": null,
     "title": null,
@@ -221,6 +257,24 @@
     "resolved_at": "2026-07-29T22:16:00Z",
     "issuer_verified": false,
     "company_name_at_resolve": "Replimune Group, Inc.",
+    "substrate": "none",
+    "reason": "no_p249"
+  },
+  "SHPH": {
+    "qid": null,
+    "title": null,
+    "resolved_at": "2026-07-31T22:17:42Z",
+    "issuer_verified": false,
+    "company_name_at_resolve": "Shuttle Pharmaceuticals Holdings, Inc.",
+    "substrate": "none",
+    "reason": "no_p249"
+  },
+  "SOC": {
+    "qid": null,
+    "title": null,
+    "resolved_at": "2026-07-31T22:17:42Z",
+    "issuer_verified": false,
+    "company_name_at_resolve": "Sable Offshore Corp.",
     "substrate": "none",
     "reason": "no_p249"
   },
