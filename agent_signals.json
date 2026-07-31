@@ -1,10 +1,10 @@
 {
-  "updated": "2026-08-01T00:19:25.465399+02:00",
+  "updated": "2026-08-01T01:17:38.687946+02:00",
   "run_info": {
     "tickers_checked": 15,
     "signals_active": 2,
     "alerts_sent": 0,
-    "elapsed_s": 17.4,
+    "elapsed_s": 14.4,
     "market_phase": "After-Hours"
   },
   "signals": {
@@ -55,9 +55,9 @@
       "uoa_cp_ratio": 5.418153716453562
     },
     "AMCX": {
-      "score": 74,
+      "score": 55,
       "confidence": 70,
-      "drivers": "Volumen 4.7× + ⚡ Extremes Volumen 4.7×+ + Spanne 17.4% + News-KI 12/30: Positive licensing deal and earnings beat provide fundamental support, but lack of short interest data, debt concerns, a + UOA Call/Put 12.6×",
+      "drivers": "Volumen 4.7× + ⚡ Extremes Volumen 4.7×+ + Spanne 17.4% + UOA Call/Put 12.6×",
       "price": 11.2,
       "chg_pct": -0.0,
       "rvol_4d": 4.67,
@@ -67,9 +67,9 @@
       "upcoming_event": null,
       "insider_buy": false,
       "stocktwits": null,
-      "combo_mult": 1.1,
-      "active_triggers": 2,
-      "ki_sentiment_source": "llm",
+      "combo_mult": 1.0,
+      "active_triggers": 1,
+      "ki_sentiment_source": "keyword",
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 12.6×"
@@ -120,9 +120,9 @@
       "uoa_cp_ratio": 0.9116719242902208
     },
     "INDI": {
-      "score": 66,
+      "score": 82,
       "confidence": 70,
-      "drivers": "Earnings in 6 Tagen (06.08.2026) + Spanne 9.2% + News: acquisition + Earnings in 6d + SEC Form 4 + UOA Call/Put 2.1×",
+      "drivers": "Earnings in 6 Tagen (06.08.2026) + Spanne 9.2% + News: short interest, acquisition + Earnings in 6d + SEC Form 4 + UOA Call/Put 2.1×",
       "price": 3.23,
       "chg_pct": 0.0,
       "rvol_4d": 1.44,
@@ -168,7 +168,7 @@
     "IONQ": {
       "score": 68,
       "confidence": 70,
-      "drivers": "Earnings in 5 Tagen (05.08.2026) + Spanne 5.7% + SEC 8-K + News-KI 12/30: Positive acquisition approval provides fundamental support but lacks the extreme short interest, technical setup, and ca + Earnings in 5d + UOA Call/Put 4.9×",
+      "drivers": "Earnings in 5 Tagen (05.08.2026) + Spanne 5.7% + SEC 8-K + News-KI 12/30: Moderate negative sentiment with broad market weakness, but no signs of extreme short positioning, high short interest d + Earnings in 5d + UOA Call/Put 4.9×",
       "price": 36.44,
       "chg_pct": -0.0,
       "rvol_4d": 0.77,
@@ -235,7 +235,7 @@
     "PDYN": {
       "score": 61,
       "confidence": 70,
-      "drivers": "Earnings in 6 Tagen (06.08.2026) + Spanne 6.1% + News: partnership, contract + Earnings in 6d",
+      "drivers": "Earnings in 6 Tagen (06.08.2026) + Spanne 6.1% + News: contract, partnership + Earnings in 6d",
       "price": 5.23,
       "chg_pct": 0.0,
       "rvol_4d": 0.64,
