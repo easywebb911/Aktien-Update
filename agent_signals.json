@@ -1,10 +1,10 @@
 {
-  "updated": "2026-08-01T17:19:45.207056+02:00",
+  "updated": "2026-08-01T19:15:22.496766+02:00",
   "run_info": {
     "tickers_checked": 15,
-    "signals_active": 2,
+    "signals_active": 1,
     "alerts_sent": 0,
-    "elapsed_s": 17.1,
+    "elapsed_s": 18.2,
     "market_phase": "Geschlossen"
   },
   "signals": {
@@ -56,20 +56,20 @@
       "uoa_cp_ratio": 5.418153716453562
     },
     "AMCX": {
-      "score": 55,
-      "confidence": 70,
-      "drivers": "Volumen 4.7× + ⚡ Extremes Volumen 4.7×+ + Spanne 17.4% + UOA Call/Put 12.6×",
+      "score": 10,
+      "confidence": 17,
+      "drivers": "UOA Call/Put 12.6×",
       "price": 11.2,
-      "chg_pct": -0.0,
-      "rvol_4d": 4.67,
-      "rvol_20d": 6.03,
+      "chg_pct": 0.0,
+      "rvol_4d": 0.0,
+      "rvol_20d": null,
       "earnings": null,
       "fda_date": null,
       "upcoming_event": null,
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 1,
+      "active_triggers": 0,
       "ki_sentiment_source": "keyword",
       "uoa_score": 10,
       "uoa_drivers": [
@@ -123,7 +123,7 @@
     "INDI": {
       "score": 53,
       "confidence": 70,
-      "drivers": "Earnings in 5 Tagen (06.08.2026) + Spanne 9.2% + News-KI 8/30: Neutral earnings/operational news with no mention of short position, high short interest, or catalyst-driven squeeze mec + Earnings in 5d + SEC Form 4 + UOA Call/Put 2.1×",
+      "drivers": "Earnings in 5 Tagen (06.08.2026) + Spanne 9.2% + News-KI 8/30: Neutral earnings/operational news without evidence of short interest, catalyst pressure, or supply constraints typical o + Earnings in 5d + SEC Form 4 + UOA Call/Put 2.1×",
       "price": 3.23,
       "chg_pct": 0.0,
       "rvol_4d": 1.45,
@@ -144,9 +144,9 @@
       "uoa_cp_ratio": 2.072100313479624
     },
     "INR": {
-      "score": 33,
+      "score": 43,
       "confidence": 70,
-      "drivers": "Spanne 7.2% + News-KI 5/30: Routine earnings announcements without negative catalysts, high short interest data, or technical setup indicators typic + Earnings in 9d + UOA Call/Put 208.0×",
+      "drivers": "Spanne 7.2% + News: contract + Earnings in 9d + UOA Call/Put 208.0×",
       "price": 13.16,
       "chg_pct": -0.0,
       "rvol_4d": 0.9,
@@ -157,8 +157,8 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 0,
-      "ki_sentiment_source": "llm",
+      "active_triggers": 1,
+      "ki_sentiment_source": "keyword",
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 208.0×"
@@ -169,7 +169,7 @@
     "IONQ": {
       "score": 44,
       "confidence": 70,
-      "drivers": "Earnings in 4 Tagen (05.08.2026) + Spanne 5.7% + News-KI 15/30: Positive acquisition approval is offset by severe recent selloff (-30%) and broader sector weakness, limiting near-term  + Earnings in 4d",
+      "drivers": "Earnings in 4 Tagen (05.08.2026) + Spanne 5.7% + News: acquisition + Earnings in 4d",
       "price": 36.44,
       "chg_pct": -0.0,
       "rvol_4d": 0.77,
@@ -181,16 +181,16 @@
       "stocktwits": null,
       "combo_mult": 1.1,
       "active_triggers": 2,
-      "ki_sentiment_source": "llm",
+      "ki_sentiment_source": "keyword",
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": 0.8500481231953801,
       "uoa_cp_ratio": 1.381765899864682
     },
     "KUST": {
-      "score": 72,
+      "score": 58,
       "confidence": 70,
-      "drivers": "Volumen 10.0× + 🚀 Massives Volumen 10.0×+ + Spanne 45.5% + News: contract",
+      "drivers": "Volumen 10.0× + 🚀 Massives Volumen 10.0×+ + Spanne 45.5% + News-KI 8/30: Positive business developments and revenue injection, but no short squeeze indicators present - low float/institutional ",
       "price": 1.24,
       "chg_pct": 0.0,
       "rvol_4d": 9.97,
@@ -200,9 +200,9 @@
       "upcoming_event": null,
       "insider_buy": false,
       "stocktwits": null,
-      "combo_mult": 1.1,
-      "active_triggers": 2,
-      "ki_sentiment_source": "keyword",
+      "combo_mult": 1.0,
+      "active_triggers": 1,
+      "ki_sentiment_source": "llm",
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": null,
@@ -295,9 +295,9 @@
       "uoa_cp_ratio": null
     },
     "SOC": {
-      "score": 67,
+      "score": 43,
       "confidence": 70,
-      "drivers": "Volumen 2.7× + Spanne 17.4% + News-KI 18/30: Negative price action (42.3% decline), dilutive financing, and reduced analyst target undermine squeeze potential despit + Earnings in 9d + UOA Call/Put 18.2×",
+      "drivers": "Volumen 2.7× + Spanne 17.4% + Earnings in 9d + UOA Call/Put 18.2×",
       "price": 5.29,
       "chg_pct": -0.0,
       "rvol_4d": 2.71,
@@ -307,9 +307,9 @@
       "upcoming_event": null,
       "insider_buy": false,
       "stocktwits": null,
-      "combo_mult": 1.1,
-      "active_triggers": 2,
-      "ki_sentiment_source": "llm",
+      "combo_mult": 1.0,
+      "active_triggers": 1,
+      "ki_sentiment_source": "keyword",
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 18.2×"
