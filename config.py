@@ -171,7 +171,18 @@ GAMMA_BONUS_LIKELY       = 15      # Katalysator-Bonus bei wahrscheinlich
 # beschränkt sich auf den Fetcher-Body. Cleanup (Umbenennung in IBORROWDESK_*)
 # später in eigenem Doku-/Refactor-PR. Score-Schwellen (LOW/HIGH/BONUS_*)
 # bleiben unverändert — quellen-unabhängig.
-IBKR_BORROW_ENABLED      = True
+#
+# DORMANT seit 01.08.2026 (Muster earningswhispers/stocktwits): iBorrowDesk ist
+# seit 23.07.2026 tot (9 Tage 10/10-Fail, keine Recovery). Wegwerf-Probe 01.08.
+# fand KEINE kostenlose, Actions-erreichbare Cost-to-Borrow-Quelle: IBKR-Public-
+# usa.txt ist aus dem Runner unerreichbar (4× 30s-Timeout, öffentliches File
+# eingestellt), stockanalysis-CTB ist paywalled/404. Ein Bonus, der nie mehr
+# anspringen kann, plus eine ewig leere Anzeige wäre "Halbtotes" — deshalb aus.
+# Schwellen/Boni UNVERÄNDERT (Bonus war seit 23.07. faktisch 0). Orchestrator
+# fetch_borrow_metrics bleibt als Einhängepunkt und ist per Flag wieder
+# aktivierbar, falls eine freie Quelle auftaucht (z.B. SEC Rule 10c-1a Loan-
+# Dissemination, sobald öffentlich maschinen-lesbar) — kein Fälligkeitsdatum.
+IBKR_BORROW_ENABLED      = False
 IBORROWDESK_URL_TEMPLATE = "https://iborrowdesk.com/api/ticker/{ticker}"
 IBKR_BORROW_TIMEOUT      = 8        # (connect, read) Tupel-Timeout
 IBKR_BORROW_LOW          = 10.0     # < 10 %/Jahr → grau (günstig)
@@ -187,7 +198,15 @@ IBKR_BORROW_BONUS_EXTREME = 15      # Katalysator-Bonus bei > 100 %/Jahr
 # (für spätere Auswertung). Fallback bei CTB: IBKR-Borrow-Rate-Tabelle
 # (gleiche Daten in $/Jahr-Form, IBKR_BORROW_URL). Bei Stockanalysis-
 # 403/Parse-Fehler: silently None.
-STOCKANALYSIS_BORROW_ENABLED = True
+#
+# DORMANT seit 01.08.2026 (zusammen mit IBKR_BORROW_ENABLED): die stockanalysis-
+# CTB-Route liefert nichts mehr (Probe 01.08.: /short-interest/ HTTP 404 für
+# ALLE Ticker inkl. AAPL/MSFT, Haupt-Seite paywalled → CTB=None). Zusammen mit
+# dem toten iBorrowDesk-Fallback ist die gesamte Borrow-Kette ohne freie Quelle.
+# BEIDE Flags aus → der Orchestrator-Loop (generate_report) wird komplett
+# übersprungen: kein Fetch, kein provider_health-"borrow"-Record (kein Dauer-
+# 10/10-Fail-Warn mehr), cost_to_borrow/borrow_rate bleiben None.
+STOCKANALYSIS_BORROW_ENABLED = False
 STOCKANALYSIS_BORROW_TIMEOUT = 8
 
 # ── Put/Call-Ratio in Katalysator-Sub-Score ─────────────────────────────────

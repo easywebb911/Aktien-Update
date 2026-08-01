@@ -5311,8 +5311,17 @@ def _agent_boost_row_html(s: dict) -> str:
     )
 
 
+def _borrow_dormant() -> bool:
+    """True, wenn KEINE Borrow-Quelle aktiv ist (beide Flags aus). Dann gibt es
+    dauerhaft keine Cost-to-Borrow-Daten — die Quelle ist eingestellt (config,
+    DORMANT seit 01.08.2026). Single-Source für die Dormant-Anzeige."""
+    return not (IBKR_BORROW_ENABLED or STOCKANALYSIS_BORROW_ENABLED)
+
+
 def _borrow_rate_row_html(s: dict) -> str:
-    """IBKR-Borrow-Rate-Zeile für die Detail-Tabelle. Leer wenn keine Daten."""
+    """IBKR-Borrow-Rate-Zeile für die Detail-Tabelle. Leer wenn keine Daten
+    (bei dormanter Quelle trägt _ctb_util_rows_html den 'Quelle eingestellt'-
+    Hinweis — hier keine Doppelung)."""
     rate = s.get("borrow_rate")
     if rate is None:
         return ""
@@ -5332,10 +5341,17 @@ def _borrow_rate_row_html(s: dict) -> str:
 def _ctb_util_rows_html(s: dict) -> str:
     """Cost-to-Borrow + Utilization als Display-Only-Detail-Zeilen.
 
-    Beide werden auch dann gerendert, wenn der Wert ``None`` ist —
-    Anzeige als „—" statt Zeile zu verbergen. Quelle: Stockanalysis
-    (primär) → IBKR (Fallback nur für CTB).
+    Bei dormanter Borrow-Quelle (beide Flags aus, DORMANT seit 01.08.2026) EINE
+    ehrliche Hinweis-Zeile „keine Daten — Quelle eingestellt" statt zweier leerer
+    „—"-Zeilen — damit der Zustand als dauerhaft (nicht zufällig leer) lesbar ist.
+    Sonst: der Wert oder „—". Quelle: Stockanalysis (primär) → IBKR (Fallback).
     """
+    if _borrow_dormant():
+        return (
+            '<tr><td>Leihkosten (Borrow)</td>'
+            '<td><span style="color:#94a3b8">keine Daten &mdash; Quelle '
+            'eingestellt</span></td></tr>'
+        )
     ctb = s.get("cost_to_borrow")
     util = s.get("utilization")
     ctb_disp  = (f"{ctb:.1f} %/Jahr" if isinstance(ctb, (int, float))
@@ -7207,8 +7223,11 @@ def generate_html_v1(stocks: list[dict], report_date: str,
         # Short-Druck-Indikator).
         ("Borrow-Rate p.a. (Leihgebühr für Shorts)",
          IBKR_BORROW_BONUS_EXTREME,
-         f"+{IBKR_BORROW_BONUS_HOT} (&gt;{int(IBKR_BORROW_HIGH)}&nbsp;%) / "
-         f"+{IBKR_BORROW_BONUS_EXTREME} (&gt;100&nbsp;%) Pkt"),
+         (f"+{IBKR_BORROW_BONUS_HOT} (&gt;{int(IBKR_BORROW_HIGH)}&nbsp;%) / "
+          f"+{IBKR_BORROW_BONUS_EXTREME} (&gt;100&nbsp;%) Pkt"
+          if not _borrow_dormant()
+          else "inaktiv &mdash; Leihkosten-Quelle eingestellt (keine freie "
+               "Datenquelle)")),
         (f"Insider ({_ABBR_13F})",
          SUB_INSIDER_PTS,
          f"{SUB_INSIDER_PTS} Pkt"),
