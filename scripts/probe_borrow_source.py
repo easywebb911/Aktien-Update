@@ -21,6 +21,7 @@ import re
 import socket
 import sys
 import time
+import urllib.parse
 import urllib.request
 import urllib.error
 
@@ -94,29 +95,49 @@ DISCOVERY_PAGES = [
     "https://www.interactivebrokers.com/en/index.php?f=46301",
 ]
 
+def _extract_links(base_url, body):
+    """href/src-Links + ftp3/.txt-Mentions, RELATIV → ABSOLUT aufgelöst."""
+    out = set()
+    raw = re.findall(r'(?:href|src)=["\']([^"\']+)["\']', body, re.IGNORECASE)
+    for l in raw:
+        if re.search(r'(short|borrow|avail|usa\.txt|\.txt|ftp3|download)', l, re.IGNORECASE):
+            out.add(urllib.parse.urljoin(base_url, l))   # relativ → absolut
+    for m in re.findall(r'(ftp3?\.interactivebrokers\.com[^\s"\'<>]*|https?://[^\s"\'<>]*usa\.txt)',
+                        body, re.IGNORECASE):
+        out.add(m if m.startswith(("http", "ftp")) else "ftp://" + m)
+    return out
+
+
 def discovery():
     _log("=" * 70)
-    _log("KANDIDAT 1 — IBKR DISCOVERY-FIRST (Landing-Pages nach Download-Link)")
+    _log("KANDIDAT 1 — IBKR DISCOVERY-FIRST (Landing-Pages → echter Download-Link)")
     _log("=" * 70)
     found = set()
+    to_follow = []   # eine Ebene tiefer folgen (die echte Availability-Seite)
     for url in DISCOVERY_PAGES:
         st, hd, body, err, dt, sz = _get(url, timeout=25)
         _log(f"\n[discovery] {url}\n  status={st} bytes={sz} {dt}ms err={err}")
         if not body:
             continue
-        # Links, die nach Short-Availability-Datei aussehen
-        links = re.findall(r'href=["\']([^"\']+)["\']', body, re.IGNORECASE)
-        cand = [l for l in links if re.search(
-            r'(short|borrow|avail|usa\.txt|\.txt|ftp3|download)', l, re.IGNORECASE)]
-        for l in cand:
-            found.add(l)
-        for l in sorted(set(cand))[:25]:
+        links = _extract_links(url, body)
+        found |= links
+        for l in sorted(links)[:25]:
             _log(f"    link: {l}")
-        # Direkte Erwähnung von ftp3/usa.txt im Klartext
-        for m in re.findall(r'(ftp3\.interactivebrokers\.com[^\s"\'<>]*|usa\.txt)', body, re.IGNORECASE):
-            found.add(m)
-            _log(f"    mention: {m}")
-    _log(f"\n[discovery] gesamt {len(found)} Kandidaten-Links/Mentions gesammelt.")
+        # Availability-/Short-Seiten eine Ebene tiefer verfolgen
+        for l in links:
+            if re.search(r'(availab|short-securities|short-sale)', l, re.IGNORECASE) \
+                    and l.startswith("http") and l not in DISCOVERY_PAGES:
+                to_follow.append(l)
+    # zweite Ebene: die gefundenen Availability-Seiten öffnen und IHRE Links ernten
+    for url in sorted(set(to_follow))[:5]:
+        st, hd, body, err, dt, sz = _get(url, timeout=25)
+        _log(f"\n[discovery/follow] {url}\n  status={st} bytes={sz} {dt}ms err={err}")
+        if body:
+            deeper = _extract_links(url, body)
+            found |= deeper
+            for l in sorted(deeper)[:25]:
+                _log(f"    link: {l}")
+    _log(f"\n[discovery] gesamt {len(found)} Kandidaten-Links/Mentions (absolut) gesammelt.")
     return found
 
 
@@ -187,27 +208,46 @@ def probe_ibkr_files(discovered):
         _log(f"[file] {len(disc_abs)} Discovery-URLs gefunden — gekappt auf "
              f"{MAX_DISCOVERED_FILE_CANDIDATES} (Rest im Discovery-Log sichtbar).")
     urls.extend(disc_abs[:MAX_DISCOVERED_FILE_CANDIDATES])
+    def _looks_like_html(b: str) -> bool:
+        head = b.lstrip()[:400].lower()
+        return head.startswith(("<!doctype", "<html", "<?xml")) or "<head" in head or "<body" in head
+
     best = None
+    # KEIN early-break auf schwachem Match — ALLE Kandidaten messen und den mit
+    # der besten Ticker-Abdeckung wählen. Garbage (HTML, wenige Zeilen) verwerfen.
+    MIN_PLAUSIBLE_ROWS = 50   # echtes US-Shortable-File hat Tausende Symbole
     for url in urls:
-        want_ftp = url.startswith("ftp")
-        st, hd, body, err, dt, sz = _get(url, timeout=40, want_bytes=False)
+        st, hd, body, err, dt, sz = _get(url, timeout=30, want_bytes=False)
         lm = hd.get("Last-Modified") or hd.get("last-modified")
         date_h = hd.get("Date") or hd.get("date")
-        _log(f"\n[file] {url}\n  status={st} bytes={sz} {dt}ms err={err}")
+        ct = hd.get("Content-Type") or hd.get("content-type")
+        _log(f"\n[file] {url}\n  status={st} bytes={sz} {dt}ms err={err} content-type={ct}")
         _log(f"  Last-Modified={lm}  Date={date_h}")
-        if body and sz > 200 and "|" in body[:2000]:
-            with open(os.path.join(OUT_DIR, "ibkr_sample.txt"), "w") as f:
-                f.write(body[:5000])
-            hts, idx, table = parse_ibkr_file(body)
-            _log(f"  HEADER/erste Zeile: {hts!r}")
-            _log(f"  Spalten-Idx: {idx}  · geparste Symbole: {len(table)}")
-            if table:
-                best = (url, hts, lm, date_h, table)
-                # erste 3 Zeilen roh zeigen (Format-Beleg)
-                for l in body.splitlines()[:4]:
-                    _log(f"    raw: {l[:160]}")
-                break
-    return best
+        if not body or sz < 200:
+            continue
+        if _looks_like_html(body):
+            _log("  → HTML-Seite (kein Daten-File) → verworfen")
+            continue
+        if "|" not in body[:4000]:
+            _log("  → nicht pipe-delimited im Kopf → verworfen")
+            continue
+        hts, idx, table = parse_ibkr_file(body)
+        _log(f"  HEADER/erste Zeile: {hts[:160]!r}")
+        _log(f"  Spalten-Idx: {idx}  · geparste Symbole: {len(table)}")
+        if len(table) < MIN_PLAUSIBLE_ROWS:
+            _log(f"  → nur {len(table)} Zeilen (< {MIN_PLAUSIBLE_ROWS}) → unplausibel als "
+                 f"US-Shortable-File, verworfen")
+            continue
+        for l in body.splitlines()[:4]:
+            _log(f"    raw: {l[:160]}")
+        cov = sum(1 for t in UNIVERSE if table.get(t.upper()))
+        _log(f"  → PLAUSIBLE Datei · Universum-Treffer {cov}/{len(UNIVERSE)}")
+        with open(os.path.join(OUT_DIR, "ibkr_sample.txt"), "w") as f:
+            f.write(body[:8000])
+        if best is None or cov > best[5]:
+            best = (url, hts, lm, date_h, table, cov)
+    # Rückgabe kompatibel zu coverage_report (ohne cov-Zähler)
+    return None if best is None else (best[0], best[1], best[2], best[3], best[4])
 
 
 def coverage_report(best):
@@ -244,22 +284,39 @@ def stockanalysis_recheck():
         r'"costToBorrow"\s*:\s*([\d.]+)',
         r'"borrowFee"\s*:\s*([\d.]+)',
     ]
+    # Zwei URL-Formen messen: die integrierte /short-interest/-Route UND die
+    # Haupt-Seite — trennt „Route tot/umgezogen" von „Smallcap nicht indexiert".
+    # Large-Cap-Kontrolle (AAPL/MSFT) mit: sind die auch 404, ist die Route tot.
+    url_forms = [
+        ("short-interest", "https://stockanalysis.com/stocks/{t}/short-interest/"),
+        ("main",           "https://stockanalysis.com/stocks/{t}/"),
+    ]
     hits = 0
-    for t in TOP10 + HARD:   # Large Caps hier egal
-        url = f"https://stockanalysis.com/stocks/{t.lower()}/short-interest/"
-        st, hd, body, err, dt, sz = _get(url, timeout=12)
-        ctb = None
-        if body:
-            for p in patterns:
-                m = re.search(p, body, re.IGNORECASE)
-                if m:
-                    ctb = m.group(1)
-                    break
-        paywall = bool(body) and bool(re.search(r'(subscribe|upgrade to|Pro members|premium)', body, re.IGNORECASE))
-        if ctb is not None:
+    checked = TOP10 + HARD + CTRL
+    for t in checked:
+        line = f"  {t:6}"
+        got_ctb = False
+        for form_name, tmpl in url_forms:
+            url = tmpl.format(t=t.lower())
+            st, hd, body, err, dt, sz = _get(url, timeout=12)
+            ctb = None
+            if body:
+                for p in patterns:
+                    m = re.search(p, body, re.IGNORECASE)
+                    if m:
+                        ctb = m.group(1)
+                        break
+            paywall = bool(body) and bool(re.search(
+                r'(subscribe|upgrade to|Pro members|premium)', body, re.IGNORECASE))
+            line += f"  [{form_name}] http={st} bytes={sz} CTB={ctb} paywall={paywall}"
+            if ctb is not None:
+                got_ctb = True
+        if got_ctb:
             hits += 1
-        _log(f"  {t:6} status={st} bytes={sz} CTB={ctb} paywall_marker={paywall} err={err}")
-    _log(f"\nstockanalysis CTB-Treffer: {hits}/{len(TOP10)+len(HARD)}")
+        _log(line)
+    _log(f"\nstockanalysis CTB-Treffer (irgendeine URL-Form): {hits}/{len(checked)}")
+    _log("Deutung: alle 404 inkl. AAPL/MSFT → Route tot. Nur Smallcaps 404, "
+         "Large Caps 200 → Smallcaps nicht indexiert. 200 aber CTB=None → Feld weg/Paywall.")
 
 
 def main():
