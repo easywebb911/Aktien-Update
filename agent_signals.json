@@ -1,10 +1,10 @@
 {
-  "updated": "2026-08-02T00:11:31.330302+02:00",
+  "updated": "2026-08-02T01:12:43.494099+02:00",
   "run_info": {
     "tickers_checked": 15,
-    "signals_active": 3,
+    "signals_active": 4,
     "alerts_sent": 0,
-    "elapsed_s": 11.6,
+    "elapsed_s": 17.8,
     "market_phase": "Geschlossen"
   },
   "signals": {
@@ -33,9 +33,9 @@
       "uoa_cp_ratio": 54.80975609756098
     },
     "AMC": {
-      "score": 20,
+      "score": 28,
       "confidence": 33,
-      "drivers": "Spanne 6.2% + UOA Call/Put 5.4×",
+      "drivers": "Spanne 6.2% + News-KI 8/30: Positive sentiment for cinema industry but lacks short squeeze indicators like high short interest, unusual trading volu + UOA Call/Put 5.4×",
       "price": 2.82,
       "chg_pct": -0.0,
       "rvol_4d": 0.86,
@@ -47,7 +47,7 @@
       "stocktwits": null,
       "combo_mult": 1.0,
       "active_triggers": 0,
-      "ki_sentiment_source": "keyword",
+      "ki_sentiment_source": "llm",
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 5.4×"
@@ -56,9 +56,9 @@
       "uoa_cp_ratio": 5.418153716453562
     },
     "AMCX": {
-      "score": 55,
+      "score": 74,
       "confidence": 70,
-      "drivers": "Volumen 4.7× + ⚡ Extremes Volumen 4.7×+ + Spanne 17.4% + UOA Call/Put 12.6×",
+      "drivers": "Volumen 4.7× + ⚡ Extremes Volumen 4.7×+ + Spanne 17.4% + News-KI 12/30: Positive fundamentals (Netflix deal, revenue growth) reduce squeeze potential; stock already at 52-week highs indicates  + UOA Call/Put 12.6×",
       "price": 11.2,
       "chg_pct": -0.0,
       "rvol_4d": 4.67,
@@ -68,9 +68,9 @@
       "upcoming_event": null,
       "insider_buy": false,
       "stocktwits": null,
-      "combo_mult": 1.0,
-      "active_triggers": 1,
-      "ki_sentiment_source": "keyword",
+      "combo_mult": 1.1,
+      "active_triggers": 2,
+      "ki_sentiment_source": "llm",
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 12.6×"
@@ -123,7 +123,7 @@
     "INDI": {
       "score": 82,
       "confidence": 70,
-      "drivers": "Earnings in 5 Tagen (06.08.2026) + Spanne 9.2% + News: acquisition, short interest + Earnings in 5d + SEC Form 4 + UOA Call/Put 2.1×",
+      "drivers": "Earnings in 5 Tagen (06.08.2026) + Spanne 9.2% + News: short interest, acquisition + Earnings in 5d + SEC Form 4 + UOA Call/Put 2.1×",
       "price": 3.23,
       "chg_pct": 0.0,
       "rvol_4d": 1.45,
@@ -234,7 +234,7 @@
     "PDYN": {
       "score": 61,
       "confidence": 70,
-      "drivers": "Earnings in 5 Tagen (06.08.2026) + Spanne 6.0% + News: partnership, contract + Earnings in 5d",
+      "drivers": "Earnings in 5 Tagen (06.08.2026) + Spanne 6.0% + News: contract, partnership + Earnings in 5d",
       "price": 5.23,
       "chg_pct": 0.0,
       "rvol_4d": 0.65,
@@ -295,9 +295,9 @@
       "uoa_cp_ratio": null
     },
     "SOC": {
-      "score": 67,
+      "score": 43,
       "confidence": 70,
-      "drivers": "Volumen 2.7× + Spanne 17.4% + News-KI 18/30: Massive dilution from convertible notes and equity sale significantly weakens squeeze potential despite positive analyst + Earnings in 9d + UOA Call/Put 18.2×",
+      "drivers": "Volumen 2.7× + Spanne 17.4% + Earnings in 9d + UOA Call/Put 18.2×",
       "price": 5.29,
       "chg_pct": -0.0,
       "rvol_4d": 2.71,
@@ -307,9 +307,9 @@
       "upcoming_event": null,
       "insider_buy": false,
       "stocktwits": null,
-      "combo_mult": 1.1,
-      "active_triggers": 2,
-      "ki_sentiment_source": "llm",
+      "combo_mult": 1.0,
+      "active_triggers": 1,
+      "ki_sentiment_source": "keyword",
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 18.2×"
