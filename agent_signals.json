@@ -1,10 +1,10 @@
 {
-  "updated": "2026-08-02T02:13:00.024884+02:00",
+  "updated": "2026-08-02T05:53:31.950675+02:00",
   "run_info": {
     "tickers_checked": 15,
-    "signals_active": 3,
+    "signals_active": 2,
     "alerts_sent": 0,
-    "elapsed_s": 12.2,
+    "elapsed_s": 14.5,
     "market_phase": "Geschlossen"
   },
   "signals": {
@@ -144,9 +144,9 @@
       "uoa_cp_ratio": 2.072100313479624
     },
     "INR": {
-      "score": 33,
+      "score": 43,
       "confidence": 70,
-      "drivers": "Spanne 7.2% + News-KI 5/30: Routine earnings announcements without indicators of high short interest, low float, or catalytic events typical of shor + Earnings in 9d + UOA Call/Put 208.0×",
+      "drivers": "Spanne 7.2% + News: contract + Earnings in 9d + UOA Call/Put 208.0×",
       "price": 13.16,
       "chg_pct": -0.0,
       "rvol_4d": 0.9,
@@ -157,8 +157,8 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 0,
-      "ki_sentiment_source": "llm",
+      "active_triggers": 1,
+      "ki_sentiment_source": "keyword",
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 208.0×"
@@ -167,9 +167,9 @@
       "uoa_cp_ratio": 208.0
     },
     "IONQ": {
-      "score": 41,
+      "score": 44,
       "confidence": 70,
-      "drivers": "Earnings in 4 Tagen (05.08.2026) + Spanne 5.7% + News-KI 12/30: Positive news on acquisition and earnings growth, but no significant short interest indicators or squeeze catalysts ment + Earnings in 4d",
+      "drivers": "Earnings in 4 Tagen (05.08.2026) + Spanne 5.7% + News: acquisition + Earnings in 4d",
       "price": 36.44,
       "chg_pct": -0.0,
       "rvol_4d": 0.77,
@@ -181,7 +181,7 @@
       "stocktwits": null,
       "combo_mult": 1.1,
       "active_triggers": 2,
-      "ki_sentiment_source": "llm",
+      "ki_sentiment_source": "keyword",
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": 0.8500481231953801,
@@ -209,9 +209,9 @@
       "uoa_cp_ratio": null
     },
     "PAR": {
-      "score": 78,
+      "score": 64,
       "confidence": 70,
-      "drivers": "Earnings in 5 Tagen (06.08.2026) + Volumen 2.4× + Spanne 5.2% + News: partnership + Earnings in 5d + UOA Call/Put 103.0× + 3/4 Trigger",
+      "drivers": "Earnings in 5 Tagen (06.08.2026) + Volumen 2.4× + Spanne 5.2% + News-KI 8/30: Routine earnings announcement and customer expansion lack short-squeeze catalysts; no mention of high short interest, pr + Earnings in 5d + UOA Call/Put 103.0×",
       "price": 16.95,
       "chg_pct": 0.0,
       "rvol_4d": 2.36,
@@ -221,9 +221,9 @@
       "upcoming_event": "Earnings in 5 Tagen (06.08.2026)",
       "insider_buy": false,
       "stocktwits": null,
-      "combo_mult": 1.2,
-      "active_triggers": 3,
-      "ki_sentiment_source": "keyword",
+      "combo_mult": 1.1,
+      "active_triggers": 2,
+      "ki_sentiment_source": "llm",
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 103.0×"
