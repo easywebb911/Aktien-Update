@@ -1,10 +1,10 @@
 {
-  "updated": "2026-08-02T20:13:43.874514+02:00",
+  "updated": "2026-08-02T21:36:13.730699+02:00",
   "run_info": {
     "tickers_checked": 15,
     "signals_active": 2,
     "alerts_sent": 0,
-    "elapsed_s": 17.2,
+    "elapsed_s": 15.2,
     "market_phase": "Geschlossen"
   },
   "signals": {
@@ -209,9 +209,9 @@
       "uoa_cp_ratio": null
     },
     "PAR": {
-      "score": 61,
+      "score": 64,
       "confidence": 70,
-      "drivers": "Earnings in 4 Tagen (06.08.2026) + Volumen 2.4× + Spanne 5.2% + News-KI 5/30: Routine earnings announcement and customer expansion news lack catalysts for short squeeze; no indication of high short  + Earnings in 4d + UOA Call/Put 103.0×",
+      "drivers": "Earnings in 4 Tagen (06.08.2026) + Volumen 2.4× + Spanne 5.2% + News-KI 8/30: Routine earnings announcement and customer expansion lack the short squeeze catalysts of extreme short interest, low flo + Earnings in 4d + UOA Call/Put 103.0×",
       "price": 16.95,
       "chg_pct": 0.0,
       "rvol_4d": 2.36,
@@ -234,7 +234,7 @@
     "PDYN": {
       "score": 61,
       "confidence": 70,
-      "drivers": "Earnings in 4 Tagen (06.08.2026) + Spanne 6.0% + News: partnership, contract + Earnings in 4d",
+      "drivers": "Earnings in 4 Tagen (06.08.2026) + Spanne 6.0% + News: revenue beat, partnership + Earnings in 4d",
       "price": 5.23,
       "chg_pct": 0.0,
       "rvol_4d": 0.65,
