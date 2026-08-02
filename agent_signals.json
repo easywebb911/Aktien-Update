@@ -1,10 +1,10 @@
 {
-  "updated": "2026-08-02T01:12:43.494099+02:00",
+  "updated": "2026-08-02T02:13:00.024884+02:00",
   "run_info": {
     "tickers_checked": 15,
-    "signals_active": 4,
+    "signals_active": 3,
     "alerts_sent": 0,
-    "elapsed_s": 17.8,
+    "elapsed_s": 12.2,
     "market_phase": "Geschlossen"
   },
   "signals": {
@@ -33,9 +33,9 @@
       "uoa_cp_ratio": 54.80975609756098
     },
     "AMC": {
-      "score": 28,
+      "score": 20,
       "confidence": 33,
-      "drivers": "Spanne 6.2% + News-KI 8/30: Positive sentiment for cinema industry but lacks short squeeze indicators like high short interest, unusual trading volu + UOA Call/Put 5.4×",
+      "drivers": "Spanne 6.2% + UOA Call/Put 5.4×",
       "price": 2.82,
       "chg_pct": -0.0,
       "rvol_4d": 0.86,
@@ -47,7 +47,7 @@
       "stocktwits": null,
       "combo_mult": 1.0,
       "active_triggers": 0,
-      "ki_sentiment_source": "llm",
+      "ki_sentiment_source": "keyword",
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 5.4×"
@@ -56,9 +56,9 @@
       "uoa_cp_ratio": 5.418153716453562
     },
     "AMCX": {
-      "score": 74,
+      "score": 55,
       "confidence": 70,
-      "drivers": "Volumen 4.7× + ⚡ Extremes Volumen 4.7×+ + Spanne 17.4% + News-KI 12/30: Positive fundamentals (Netflix deal, revenue growth) reduce squeeze potential; stock already at 52-week highs indicates  + UOA Call/Put 12.6×",
+      "drivers": "Volumen 4.7× + ⚡ Extremes Volumen 4.7×+ + Spanne 17.4% + UOA Call/Put 12.6×",
       "price": 11.2,
       "chg_pct": -0.0,
       "rvol_4d": 4.67,
@@ -68,9 +68,9 @@
       "upcoming_event": null,
       "insider_buy": false,
       "stocktwits": null,
-      "combo_mult": 1.1,
-      "active_triggers": 2,
-      "ki_sentiment_source": "llm",
+      "combo_mult": 1.0,
+      "active_triggers": 1,
+      "ki_sentiment_source": "keyword",
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 12.6×"
@@ -123,7 +123,7 @@
     "INDI": {
       "score": 82,
       "confidence": 70,
-      "drivers": "Earnings in 5 Tagen (06.08.2026) + Spanne 9.2% + News: short interest, acquisition + Earnings in 5d + SEC Form 4 + UOA Call/Put 2.1×",
+      "drivers": "Earnings in 5 Tagen (06.08.2026) + Spanne 9.2% + News: acquisition, short interest + Earnings in 5d + SEC Form 4 + UOA Call/Put 2.1×",
       "price": 3.23,
       "chg_pct": 0.0,
       "rvol_4d": 1.45,
@@ -144,9 +144,9 @@
       "uoa_cp_ratio": 2.072100313479624
     },
     "INR": {
-      "score": 43,
+      "score": 33,
       "confidence": 70,
-      "drivers": "Spanne 7.2% + News: contract + Earnings in 9d + UOA Call/Put 208.0×",
+      "drivers": "Spanne 7.2% + News-KI 5/30: Routine earnings announcements without indicators of high short interest, low float, or catalytic events typical of shor + Earnings in 9d + UOA Call/Put 208.0×",
       "price": 13.16,
       "chg_pct": -0.0,
       "rvol_4d": 0.9,
@@ -157,8 +157,8 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 1,
-      "ki_sentiment_source": "keyword",
+      "active_triggers": 0,
+      "ki_sentiment_source": "llm",
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 208.0×"
@@ -167,9 +167,9 @@
       "uoa_cp_ratio": 208.0
     },
     "IONQ": {
-      "score": 44,
+      "score": 41,
       "confidence": 70,
-      "drivers": "Earnings in 4 Tagen (05.08.2026) + Spanne 5.7% + News: acquisition + Earnings in 4d",
+      "drivers": "Earnings in 4 Tagen (05.08.2026) + Spanne 5.7% + News-KI 12/30: Positive news on acquisition and earnings growth, but no significant short interest indicators or squeeze catalysts ment + Earnings in 4d",
       "price": 36.44,
       "chg_pct": -0.0,
       "rvol_4d": 0.77,
@@ -181,7 +181,7 @@
       "stocktwits": null,
       "combo_mult": 1.1,
       "active_triggers": 2,
-      "ki_sentiment_source": "keyword",
+      "ki_sentiment_source": "llm",
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": 0.8500481231953801,
@@ -234,7 +234,7 @@
     "PDYN": {
       "score": 61,
       "confidence": 70,
-      "drivers": "Earnings in 5 Tagen (06.08.2026) + Spanne 6.0% + News: contract, partnership + Earnings in 5d",
+      "drivers": "Earnings in 5 Tagen (06.08.2026) + Spanne 6.0% + News: partnership, contract + Earnings in 5d",
       "price": 5.23,
       "chg_pct": 0.0,
       "rvol_4d": 0.65,
