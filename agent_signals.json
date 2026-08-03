@@ -1,10 +1,10 @@
 {
-  "updated": "2026-08-04T00:29:47.067664+02:00",
+  "updated": "2026-08-04T01:19:44.212737+02:00",
   "run_info": {
     "tickers_checked": 14,
     "signals_active": 4,
     "alerts_sent": 0,
-    "elapsed_s": 24.1,
+    "elapsed_s": 24.6,
     "market_phase": "After-Hours"
   },
   "signals": {
@@ -78,9 +78,9 @@
       "uoa_cp_ratio": 12.461538461538462
     },
     "DDD": {
-      "score": 60,
+      "score": 82,
       "confidence": 70,
-      "drivers": "Earnings in 0 Tagen (03.08.2026) + Volumen 1.8× + Spanne 8.5% + Earnings in 0d + UOA Call/Put 12.7×",
+      "drivers": "Earnings in 0 Tagen (03.08.2026) + Volumen 1.8× + Spanne 8.5% + SEC 8-K + Earnings in 0d + UOA Call/Put 12.7×",
       "price": 2.83,
       "chg_pct": -0.0,
       "rvol_4d": 1.79,
@@ -90,8 +90,8 @@
       "upcoming_event": "Earnings in 0 Tagen (03.08.2026)",
       "insider_buy": false,
       "stocktwits": null,
-      "combo_mult": 1.0,
-      "active_triggers": 1,
+      "combo_mult": 1.1,
+      "active_triggers": 2,
       "ki_sentiment_source": "keyword",
       "uoa_score": 10,
       "uoa_drivers": [
@@ -168,7 +168,7 @@
     "PCT": {
       "score": 99,
       "confidence": 70,
-      "drivers": "Earnings in 3 Tagen (06.08.2026) + Volumen 1.6× + Spanne 10.7% + News: partnership, short interest + Earnings in 3d + UOA Call/Put 3.4×",
+      "drivers": "Earnings in 3 Tagen (06.08.2026) + Volumen 1.6× + Spanne 10.7% + News: short interest, partnership + Earnings in 3d + UOA Call/Put 3.4×",
       "price": 7.01,
       "chg_pct": 0.0,
       "rvol_4d": 1.63,
@@ -189,9 +189,9 @@
       "uoa_cp_ratio": 3.4050632911392404
     },
     "PDYN": {
-      "score": 82,
+      "score": 63,
       "confidence": 70,
-      "drivers": "Earnings in 3 Tagen (06.08.2026) + Spanne 8.8% + News: partnership, contract + Earnings in 3d + UOA Call/Put 8.3×",
+      "drivers": "Earnings in 3 Tagen (06.08.2026) + Spanne 8.8% + News-KI 12/30: Moderate positive catalysts with government contract expansion, but lack of short interest data, fundamental weakness in + Earnings in 3d + UOA Call/Put 8.3×",
       "price": 5.62,
       "chg_pct": -0.0,
       "rvol_4d": 0.92,
@@ -203,7 +203,7 @@
       "stocktwits": null,
       "combo_mult": 1.1,
       "active_triggers": 2,
-      "ki_sentiment_source": "keyword",
+      "ki_sentiment_source": "llm",
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 8.3×"
@@ -237,7 +237,7 @@
     "SBH": {
       "score": 100,
       "confidence": 70,
-      "drivers": "Earnings in 0 Tagen (03.08.2026) + Volumen 2.0× + Spanne 14.7% + SEC 8-K + News: earnings beat + Earnings in 0d + UOA Call/Put 3.5× + 3/4 Trigger",
+      "drivers": "Earnings in 0 Tagen (03.08.2026) + Volumen 2.0× + Spanne 14.7% + SEC 8-K + News-KI 8/30: Positive earnings (EPS +8%) typically reduce short-squeeze potential as it validates the stock and reduces short thesis  + Earnings in 0d + UOA Call/Put 3.5× + 3/4 Trigger",
       "price": 16.13,
       "chg_pct": -0.0,
       "rvol_4d": 2.05,
@@ -249,7 +249,7 @@
       "stocktwits": null,
       "combo_mult": 1.2,
       "active_triggers": 3,
-      "ki_sentiment_source": "keyword",
+      "ki_sentiment_source": "llm",
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 3.5×"
