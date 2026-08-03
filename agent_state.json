@@ -1,5 +1,5 @@
 {
-  "last_run": "2026-08-03T17:17:12.610134+02:00",
+  "last_run": "2026-08-03T19:21:21.501229+02:00",
   "cooldowns": {
     "anomaly_score_jump_XRX": "2026-05-03T18:47:15.315486+02:00",
     "anomaly_uoa_extreme_TDOC": "2026-05-04T13:47:00.365949+02:00",
@@ -90,30 +90,6 @@
     "earnings_immediate_XRX_30.07.2026": "2026-07-31T00:31:05.050984+02:00"
   },
   "push_history": [
-    {
-      "ts": "2026-07-18T02:10:16.978804+02:00",
-      "ticker": "IONQ",
-      "kind": "exit_p2",
-      "severity": "warning",
-      "trigger": null,
-      "body": "⚠️ Exit-Warnung IONQ: pressure 61/100",
-      "success": true,
-      "suppressed": false,
-      "suppress_reason": null,
-      "conviction_score": null
-    },
-    {
-      "ts": "2026-07-20T00:04:38.794496+02:00",
-      "ticker": "FRMM",
-      "kind": "exit_p1",
-      "severity": "default",
-      "trigger": "exit_alert",
-      "body": "FRMM 📉 Exit 65 | -18% | Trailing-Stop −20.5% vom Hoch",
-      "success": true,
-      "suppressed": false,
-      "suppress_reason": null,
-      "conviction_score": null
-    },
     {
       "ts": "2026-07-20T00:04:39.590352+02:00",
       "ticker": "LENZ",
@@ -1289,6 +1265,30 @@
       "suppressed": true,
       "suppress_reason": "conviction_below_threshold",
       "conviction_score": 70
+    },
+    {
+      "ts": "2026-08-03T19:21:20.922808+02:00",
+      "ticker": "INDI",
+      "kind": "anomaly",
+      "severity": "medium",
+      "trigger": "score_jump",
+      "body": "INDI 🚀 Setup 74 ↑ (gestern 52) | Earnings in 3 Tagen (06.08.2026) + Spanne 8.9% + News: acqui…",
+      "success": false,
+      "suppressed": true,
+      "suppress_reason": "conviction_below_threshold",
+      "conviction_score": 70
+    },
+    {
+      "ts": "2026-08-03T19:21:20.922937+02:00",
+      "ticker": "PAR",
+      "kind": "anomaly",
+      "severity": "medium",
+      "trigger": "score_jump",
+      "body": "PAR 🚀 Setup 73 ↑ (gestern 52) | Earnings in 3 Tagen (06.08.2026) + News-KI 5/30: Routine ear…",
+      "success": false,
+      "suppressed": true,
+      "suppress_reason": "conviction_below_threshold",
+      "conviction_score": 70
     }
   ],
   "prev_conviction_scores": {
@@ -1351,19 +1351,19 @@
       ],
       "last_push_date": "2026-07-27",
       "esc_alerted": false,
-      "updated": "2026-08-03T17:17:12.610225+02:00"
+      "updated": "2026-08-03T19:21:21.501308+02:00"
     },
     "PDYN": {
       "last_active": [],
       "last_push_date": "2026-07-24",
       "esc_alerted": false,
-      "updated": "2026-08-03T17:17:12.610240+02:00"
+      "updated": "2026-08-03T19:21:21.501324+02:00"
     },
     "AI": {
       "last_active": [],
       "last_push_date": "2026-07-28",
       "esc_alerted": false,
-      "updated": "2026-08-03T17:17:12.610251+02:00"
+      "updated": "2026-08-03T19:21:21.501335+02:00"
     },
     "FRMM": {
       "last_active": [],
@@ -1385,7 +1385,7 @@
       ],
       "last_push_date": "2026-07-24",
       "esc_alerted": false,
-      "updated": "2026-08-03T17:17:12.610263+02:00"
+      "updated": "2026-08-03T19:21:21.501347+02:00"
     }
   }
 }
