@@ -44,6 +44,15 @@
     "substrate": "en",
     "reason": null
   },
+  "AVXL": {
+    "qid": null,
+    "title": null,
+    "resolved_at": "2026-08-03T22:28:29Z",
+    "issuer_verified": false,
+    "company_name_at_resolve": "Anavex Life Sciences Corp.",
+    "substrate": "none",
+    "reason": "no_p249"
+  },
   "BATL": {
     "qid": null,
     "title": null,

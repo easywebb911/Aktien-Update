@@ -63286,6 +63286,133 @@
   },
   {
     "date": "03.08.2026",
+    "ticker": "AVXL",
+    "score": 50.54,
+    "entry_price": 2.95,
+    "entry_price_t1": null,
+    "short_float": 15.88,
+    "dtc": 9.59,
+    "rvol": 1.451,
+    "si_trend": "down",
+    "return_3d": null,
+    "return_5d": null,
+    "return_10d": null,
+    "return_3d_t1": null,
+    "return_5d_t1": null,
+    "return_10d_t1": null,
+    "max_drawdown_pct": 0.0,
+    "max_gain_pct": 0.0,
+    "market_regime": "neutral",
+    "vix_level": 15.86,
+    "score_normalization_version": 1,
+    "score_struct": 19.0,
+    "score_catalyst": 15.0,
+    "score_timing": 13.4,
+    "score_raw": 50.54,
+    "combo_bonus": 0.0,
+    "score_trend_bonus": 0.0,
+    "agent_boost_factor": 1.0,
+    "perfect_storm_mult": 1.0,
+    "finra_bonus": 0.0,
+    "pool_member": true,
+    "pool_position": 10,
+    "pool_size": 40,
+    "short_float_source": "yfinance",
+    "si_trend_source": "yfinance",
+    "si_trend_5d_slope": null,
+    "rvol_buildup_5d": 1.383,
+    "vol_stability_5d": 0.0587,
+    "coiled_spring_score": null,
+    "rvol_acceleration": 1.154,
+    "uoa_atm_ratio": null,
+    "score_delta_t1": null,
+    "anomaly_freshness": null,
+    "score_delta_t1_raw": null,
+    "anomaly_push_age_h": null,
+    "cost_to_borrow": null,
+    "entry_score": 11.53,
+    "entry_components": {
+      "anomaly_freshness": 0.0,
+      "score_delta_t1": null,
+      "uoa_atm_ratio": null,
+      "rvol_buildup_5d": 23.05,
+      "si_trend_5d": null
+    },
+    "entry_n_components": 2,
+    "push_history_available": true,
+    "monster_score": 50.54,
+    "ki_signal_score": null,
+    "ki_sentiment_source": null,
+    "conviction_score": 63.0,
+    "conviction_components": {
+      "setup": 17,
+      "earliness": 21,
+      "anomaly": 14,
+      "regime": 11
+    },
+    "entry_past_return_5d": 18.0,
+    "days_to_earnings": 7,
+    "si_velocity_pub": null,
+    "material_8k_events": {
+      "collected": true,
+      "reason": null,
+      "cik": "0001314052",
+      "truncated": false,
+      "events": [
+        {
+          "acceptance_datetime": "2026-07-30T12:15:52.000Z",
+          "accession": "0001731122-26-000988",
+          "cik": "0001314052",
+          "item_codes": [
+            "2.02",
+            "9.01"
+          ],
+          "matched_terms": []
+        },
+        {
+          "acceptance_datetime": "2026-08-03T08:26:23.000Z",
+          "accession": "0001731122-26-001000",
+          "cik": "0001314052",
+          "item_codes": [
+            "7.01",
+            "9.01"
+          ],
+          "matched_terms": []
+        }
+      ]
+    },
+    "attention_wiki": {
+      "substrate": "none",
+      "article_qid": null,
+      "article_title": null,
+      "views_t_minus_1": null,
+      "views_t": null,
+      "views_t_backfilled_at": null,
+      "baseline_30d_median": null,
+      "baseline_30d_n": null,
+      "delta_ratio": null
+    },
+    "ssr_restriction": {
+      "collected": true,
+      "reason": null,
+      "source": "cboe_cumulative",
+      "restricted_t": false,
+      "triggered_today": false,
+      "carry_over": false,
+      "trigger_date": null,
+      "trigger_time_et": null,
+      "end_date": null,
+      "rescinded_date": null,
+      "fetched_at": "2026-08-03T22:28:29Z",
+      "source_latest_trigger": "2026-08-03 9:59:58"
+    },
+    "source_pools": [
+      "yahoo_small_cap_gainers"
+    ],
+    "backtest_schema_version": 4
+  },
+  {
+    "date": "03.08.2026",
     "ticker": "DDD",
     "score": 61.46,
     "entry_price": 2.83,
