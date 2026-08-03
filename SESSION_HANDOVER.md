@@ -654,6 +654,20 @@ nur bei `available=True`.
 | **~Mitte/Ende Sept 2026** (bestätigt) | Setup-Edge-Re-Test | n ≥ 250 gereift | Andere Marktphase zwingend (30.06.-Sample Mai–Juni-lastig, 91 % pre-#346). **Engpass gemessen:** Score≥70-Anteil nur **36 %** (~2,7 gereifte Score≥70-Records/Handelstag) → das bindet n≥250, nicht die Roh-Rate. |
 | **~Mitte/Ende Sept 2026** (bestätigt) | Exit-Timing B.1-Hinweis-Re-Test | n ≥ 250 | 01.07. Punktschätzung Δ ~+4 pp (5d/3d vs 10d in Score≥70-Bucket), Holm-negativ — Re-Test zur Bestätigung. |
 
+**⚠ Prune-Deckel auf der Zielpopulation (Momentaufnahme 03.08.2026).** Die zwei
+Sept-Zeilen oben zählen score≥70-**gereifte** daily-Records aus `backtest_history.json`
+— die Datei unterliegt dem **90-Tage-Prune** (`BACKTEST_MAX_DAYS=90`,
+`_prune_backtest_history`, nur postclose; bootstrap prune-immun). Der score≥70-
+gereifte Pool im Live-File ist damit ein **rollendes Fenster**: am Takt vom 03.08.
+(**2,69 gereifte score≥70-Records/Handelstag**) deckelt er bei **~145** → **n≥250 aus
+dem gepruneten File nicht erreichbar** (heute 248 im File, davon **234 datiert < 13.07.**
+→ prunen bis September weg, nur **14** ≥ 13.07.). Die erste Forward-Charge (13.07.)
+prunet ~**11.10.2026**. **Konsequenz für die Vorabregistrierung: die Datenquelle
+festlegen** — gepruneter Live-Snapshot vs. akkumulierender Export der gereiften
+Records. **Datenhaltungs-Entscheidung offen** — die Termine/n-Ziele oben bleiben
+dadurch **unverändert** (hier NICHT vorweggenommen). Alle Zahlen = datierte
+Momentaufnahme 03.08.2026 (Quelle: Prune-Diagnose 03.08., `git`-belegt).
+
 #### ⚠ Datenherkunft der beiden Sept-Re-Tests — gap-NaN-Erkennbarkeitsgrenze (Stand 29.07.2026)
 
 **Gilt für die zwei Sept-Zeilen oben (Setup-Edge n≥250 · Exit-Timing B.1 — beide
@@ -686,6 +700,13 @@ neuen Record — die Zahlen unten deshalb nur als **datierte Momentaufnahme** le
 - **unbekannt: 1792** (Datum ≤ 10.07.2026, zurück bis 22.04.2025) — kein Signal.
   **Unbekannt ≠ geprüft-sauber.** Ein fehlendes Signal darf nie als „sauber"
   gelesen werden.
+  **Nachtrag 03.08.2026:** Diese Absolutzahl ist eine datierte Momentaufnahme und
+  **schrumpft** durch den 90-Tage-Prune (`BACKTEST_MAX_DAYS`) — die 120 April/Mai-
+  Records, die inzwischen über die 90-Tage-Kante gerollt sind, lagen genau in dieser
+  Zone; „unbekannt" steht am 03.08. bei **~1672** (nicht mehr 1792). Die Zonen-Zahlen
+  **nehmen ab**, nicht nur anteilig verschieben — die „Anteil sinkt"-Notiz unter (1)
+  meinte die Proportion, nicht die Absolutzahl. (Auch „geprüft-sauber: 122" beginnt zu
+  prunen, sobald die 13.07.-Records 90 Tage alt sind, ~ab Mitte Oktober.)
 
 **3) DIE MECHANIK (warum der Nullbefund — und warum KEIN Flag).** Der Backtest-
 Append läuft **nur postclose** (`_append_backtest_entries` nur bei
