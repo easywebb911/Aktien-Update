@@ -98,6 +98,15 @@
     "substrate": "none",
     "reason": "no_p249"
   },
+  "DDD": {
+    "qid": "Q4636301",
+    "title": "3D_Systems",
+    "resolved_at": "2026-08-03T21:02:56Z",
+    "issuer_verified": true,
+    "company_name_at_resolve": "3D Systems Corporation",
+    "substrate": "en",
+    "reason": null
+  },
   "DXC": {
     "qid": "Q28782856",
     "title": "DXC_Technology",
@@ -133,6 +142,15 @@
     "company_name_at_resolve": "Firy Inc.",
     "substrate": "none",
     "reason": "no_p249"
+  },
+  "FLWS": {
+    "qid": "Q4545752",
+    "title": "1-800-Flowers.com,_Inc.",
+    "resolved_at": "2026-08-03T21:02:56Z",
+    "issuer_verified": true,
+    "company_name_at_resolve": "1-800-FLOWERS.COM, Inc.",
+    "substrate": "en",
+    "reason": null
   },
   "FMC": {
     "qid": "Q899183",
@@ -215,6 +233,15 @@
     "substrate": "none",
     "reason": "no_p249"
   },
+  "NNE": {
+    "qid": null,
+    "title": null,
+    "resolved_at": "2026-08-03T21:02:56Z",
+    "issuer_verified": false,
+    "company_name_at_resolve": "NANO Nuclear Energy Inc.",
+    "substrate": "none",
+    "reason": "no_p249"
+  },
   "NUWE": {
     "qid": null,
     "title": null,
@@ -242,6 +269,15 @@
     "substrate": "none",
     "reason": "no_p249"
   },
+  "PLAY": {
+    "qid": "Q5228205",
+    "title": "Dave_&_Buster's",
+    "resolved_at": "2026-08-03T21:02:56Z",
+    "issuer_verified": true,
+    "company_name_at_resolve": "Dave & Buster's Entertainment, Inc.",
+    "substrate": "en",
+    "reason": null
+  },
   "PLCE": {
     "qid": "Q3520257",
     "title": "The_Children's_Place",
@@ -259,6 +295,24 @@
     "company_name_at_resolve": "Replimune Group, Inc.",
     "substrate": "none",
     "reason": "no_p249"
+  },
+  "SBH": {
+    "qid": "Q7405065",
+    "title": "Sally_Beauty_Holdings",
+    "resolved_at": "2026-08-03T21:02:56Z",
+    "issuer_verified": true,
+    "company_name_at_resolve": "Sally Beauty Holdings, Inc.",
+    "substrate": "en",
+    "reason": null
+  },
+  "SERV": {
+    "qid": "Q112583437",
+    "title": "Serve_Robotics",
+    "resolved_at": "2026-08-03T21:02:56Z",
+    "issuer_verified": true,
+    "company_name_at_resolve": "Serve Robotics Inc.",
+    "substrate": "en",
+    "reason": null
   },
   "SHPH": {
     "qid": null,
