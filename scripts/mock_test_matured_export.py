@@ -3,6 +3,9 @@
 Deckt die harten Abnahmekriterien ab:
   1  Umfang: gereifte daily-Records exportiert; unmatured/bootstrap raus; KEIN
      score-Filter.
+  1b REIFE-GATE #2 (days_old > 14): gereift heißt return_10d gefüllt UND > 14
+     Kalendertage alt (sonst evtl. nicht-finale Rolling-Felder max_gain/-drawdown).
+     Grenz-Tests bei exakt 14 (raus) vs. 15 (rein) + Reife-Übergang.
   2  IDEMPOTENZ: Doppel-Lauf → Zeilenzahl konstant (der geforderte Test).
   3  APPEND-ONLY: bestehende Zeilen bleiben byte-verbatim, wenn neue dazukommen.
   4  LOOK-AHEAD-SAFE: ein zum Export fehlendes Feld wird NIE nachgetragen; ein
@@ -218,6 +221,54 @@ def test_10_workflow_git_add_present() -> None:
         "Workflow-git-add für die Export-Datei fehlt (sonst nicht persistiert)"
 
 
+# ── 1b. Reife-Gate #2: days_old > 14 (Rolling-Felder final) ──────────────────
+
+def test_11_matured_but_young_not_exported() -> None:
+    # return_10d gefüllt, aber erst 10 Kalendertage alt → max_gain/max_drawdown
+    # evtl. noch rollend → NICHT exportieren (sonst nicht-finaler Peak eingefroren)
+    p = _tmp()
+    hist = [{"ticker": "YNG", "date": "25.07.2026", "return_10d": 5.0}]   # 10 Tage
+    n = M.export_matured_records(hist, export_path=p, now=NOW)
+    assert n == 0, "gereifter aber junger Record (<=14 Tage) darf NICHT exportiert werden"
+    assert not os.path.exists(p), "kein Export → keine Datei angelegt"
+
+
+def test_12_boundary_day14_out_day15_in() -> None:
+    # exakte Grenze: 14 Tage raus (<=14 → continue), 15 Tage rein (>14)
+    p = _tmp()
+    hist = [
+        {"ticker": "D14", "date": "21.07.2026", "return_10d": 1.0},   # exakt 14 Tage alt
+        {"ticker": "D15", "date": "20.07.2026", "return_10d": 1.0},   # exakt 15 Tage alt
+    ]
+    n = M.export_matured_records(hist, export_path=p, now=NOW)
+    tk = sorted(r["ticker"] for r in _rows(p))
+    assert tk == ["D15"], f"Grenze verletzt — nur >14 (ab Tag 15) darf rein: {tk}"
+    assert n == 1, f"erwartet genau 1 exportiert, war {n}"
+
+
+def test_13_young_record_matures_and_exports_later() -> None:
+    # derselbe Record: heute jung (<=14) → nicht exportiert; später (>14) → genau
+    # einmal exportiert. Beweist: die zweite Schranke verzögert nur, verliert kein n.
+    p = _tmp()
+    rec = {"ticker": "TRN", "date": "25.07.2026", "return_10d": 5.0}
+    n_young = M.export_matured_records([rec], export_path=p,
+                                       now=datetime(2026, 8, 4, tzinfo=timezone.utc))   # 10 Tage
+    n_old = M.export_matured_records([rec], export_path=p,
+                                     now=datetime(2026, 8, 10, tzinfo=timezone.utc))    # 16 Tage
+    assert n_young == 0, "jung (<=14) → noch nicht exportiert"
+    assert n_old == 1, "nach Reife (>14) → genau einmal exportiert"
+    assert len(_rows(p)) == 1, "kein Duplikat über den Reife-Übergang"
+
+
+def test_14_unparsable_date_conservative_skip() -> None:
+    # unparsebares Datum → _calendar_days_old None → konservativ übersprungen, kein Crash
+    p = _tmp()
+    n = M.export_matured_records(
+        [{"ticker": "BAD", "date": "not-a-date", "return_10d": 5.0}],
+        export_path=p, now=NOW)
+    assert n == 0, "unparsebares Datum → konservativ übersprungen"
+
+
 def main() -> int:
     tests = [
         ("01 Umfang: matured-only, kein score-Filter", test_01_scope_matured_only_no_score_filter),
@@ -233,6 +284,10 @@ def main() -> int:
         ("08 Flag + fail-soft-Caller postclose",       test_08_flag_and_failsoft_caller_in_postclose),
         ("09 Kein Frontend/Golden-Konsument",          test_09_no_frontend_consumer_not_in_golden),
         ("10 Workflow-git-add vorhanden",              test_10_workflow_git_add_present),
+        ("11 Reife-Gate: matured aber jung → raus",    test_11_matured_but_young_not_exported),
+        ("12 Grenze: Tag 14 raus, Tag 15 rein",        test_12_boundary_day14_out_day15_in),
+        ("13 Reife-Übergang: jung→alt, genau 1×",      test_13_young_record_matures_and_exports_later),
+        ("14 Unparsebares Datum → konservativ raus",   test_14_unparsable_date_conservative_skip),
     ]
     failed = 0
     for name, fn in tests:

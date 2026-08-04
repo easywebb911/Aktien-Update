@@ -10,10 +10,13 @@ Backfill-Manifest (eigene Datei überlebt den Prune).
 
 Harte Invarianten:
 - **LOOK-AHEAD-SAFE:** ein Record wird EINMALIG exportiert, sobald er gereift ist
-  (``return_10d`` gefüllt), und danach NIE wieder angefasst — kein Nachberechnen,
-  kein Überschreiben, kein Nachtragen späterer Felder. Fehlt ein Feld zum
-  Exportzeitpunkt, bleibt es fehlend (ehrliche Information). Bestehende Zeilen
-  werden byte-verbatim übernommen; nur neue Zeilen kommen hinzu.
+  (Reife = ``return_10d`` gefüllt UND ``days_old > 14`` Kalendertage — die
+  zweite Schranke garantiert, dass die ROLLING-Felder ``max_gain_pct`` /
+  ``max_drawdown_pct`` final sind, siehe Kommentar am Gate), und danach NIE
+  wieder angefasst — kein Nachberechnen, kein Überschreiben, kein Nachtragen
+  späterer Felder. Fehlt ein Feld zum Exportzeitpunkt, bleibt es fehlend
+  (ehrliche Information). Bestehende Zeilen werden byte-verbatim übernommen;
+  nur neue Zeilen kommen hinzu.
 - **IDEMPOTENZ:** Schlüssel ``(ticker, date)`` — ein Record landet nie zweimal.
 - **UMFANG:** ALLE gereiften echten daily-Records (``source != "bootstrap"``),
   KEIN score-Filter (Filterung gehört in die Auswertung, nicht die Persistenz).
@@ -57,6 +60,21 @@ def _keyf(ds: str):
         return (int(y), int(m), int(d))
     except (ValueError, AttributeError):
         return (0, 0, 0)
+
+
+def _calendar_days_old(ds: str, now: datetime):
+    """Kalendertage seit Entry-Datum ``DD.MM.YYYY`` bis ``now`` (UTC-Datum).
+
+    Returnt ``(now.date() - entry).days`` (int) oder ``None`` bei unparsebarem
+    Datum — dann wird der Record konservativ NICHT exportiert (fail-safe: lieber
+    einen gültigen Record eine Runde später als einen kaputten dauerhaft
+    einfrieren)."""
+    try:
+        d, m, y = ds.split(".")
+        entry = datetime(int(y), int(m), int(d)).date()
+        return (now.date() - entry).days
+    except (ValueError, AttributeError, TypeError):
+        return None
 
 
 def _load_existing(export_path: str):
@@ -109,8 +127,9 @@ def export_matured_records(history: list | None = None, *,
                            now: datetime | None = None) -> int:
     """Exportiert neu-gereifte echte daily-Records append-only nach ``export_path``.
 
-    Kriterien pro Record: ``source != "bootstrap"``, ``return_10d`` gefüllt (=
-    gereift), ``(ticker, date)`` noch nicht exportiert. KEIN score-Filter.
+    Kriterien pro Record: ``source != "bootstrap"``, gereift (``return_10d``
+    gefüllt UND ``days_old > 14`` Kalendertage → auch Rolling-Felder final),
+    ``(ticker, date)`` noch nicht exportiert. KEIN score-Filter.
 
     Returnt die Anzahl NEU exportierter Zeilen. Bestehende Zeilen bleiben
     byte-verbatim (kein exportierter Record wird je verändert). Raise-frei genug;
@@ -133,10 +152,25 @@ def export_matured_records(history: list | None = None, *,
             continue
         if e.get("source") == "bootstrap":      # Bootstrap NICHT exportieren
             continue
-        if e.get("return_10d") is None:          # noch nicht gereift
+        if e.get("return_10d") is None:          # noch nicht gereift (Outcome-Feld)
             continue
         t, d = e.get("ticker"), e.get("date")
         if not t or not d:
+            continue
+        # REIFE-GATE #2 (days_old > 14): return_10d allein reicht NICHT. Grund —
+        # ``max_gain_pct`` UND ``max_drawdown_pct`` sind ROLLING über die ersten
+        # ≤ 10 Handelstage (backtest_history.py: dieselbe ``df_since[:11]``-Slice,
+        # dieselbe ``days_old <= 14``-Schranke, EIN Loop → kein Fenster-Divergenz,
+        # ``> 14`` deckt beide ab). ``return_10d`` füllt aber schon bei ≥ 10
+        # gezählten Mo–Fr (``_trading_days_elapsed``, feiertags-blind) — teils
+        # 1–3 Kalendertage BEVOR das max_gain-/max_drawdown-Fenster final ist.
+        # Ohne diese zweite Schranke fröre der append-only-Export nicht-finale
+        # Peak-Werte DAUERHAFT ein (gemessen 04.08.2026: 23/452 Records drifteten
+        # nach return_10d-Fill noch, bis 133 pp, gerichtet auf die Top-Mover —
+        # genau die Zielgruppe der Auswertung). Erst ab Kalendertag 15 ist beides
+        # ausgereizt und der Snapshot endgültig.
+        _days_old = _calendar_days_old(d, now)
+        if _days_old is None or _days_old <= 14:
             continue
         if (t, d) in seen:                       # idempotent (Datei + Batch)
             continue
