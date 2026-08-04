@@ -1,11 +1,11 @@
 {
-  "updated": "2026-08-04T01:19:44.212737+02:00",
+  "updated": "2026-08-04T05:37:25.551906+02:00",
   "run_info": {
     "tickers_checked": 14,
     "signals_active": 4,
     "alerts_sent": 0,
-    "elapsed_s": 24.6,
-    "market_phase": "After-Hours"
+    "elapsed_s": 16.1,
+    "market_phase": "Geschlossen"
   },
   "signals": {
     "AI": {
@@ -101,9 +101,9 @@
       "uoa_cp_ratio": 12.729559748427674
     },
     "IONQ": {
-      "score": 72,
+      "score": 55,
       "confidence": 70,
-      "drivers": "Earnings in 2 Tagen (05.08.2026) + Spanne 13.2% + News: acquisition, buyout + Earnings in 2d",
+      "drivers": "Earnings in 2 Tagen (05.08.2026) + Spanne 13.2% + News: acquisition + Earnings in 2d",
       "price": 38.85,
       "chg_pct": -0.0,
       "rvol_4d": 1.1,
@@ -145,7 +145,7 @@
     "NNE": {
       "score": 58,
       "confidence": 70,
-      "drivers": "Spanne 12.4% + News: covering, contract + Earnings in 9d + UOA Call/Put 2.5×",
+      "drivers": "Spanne 12.4% + News: contract, acquisition + Earnings in 9d + UOA Call/Put 2.5×",
       "price": 17.58,
       "chg_pct": -0.0,
       "rvol_4d": 1.2,
@@ -168,7 +168,7 @@
     "PCT": {
       "score": 99,
       "confidence": 70,
-      "drivers": "Earnings in 3 Tagen (06.08.2026) + Volumen 1.6× + Spanne 10.7% + News: short interest, partnership + Earnings in 3d + UOA Call/Put 3.4×",
+      "drivers": "Earnings in 3 Tagen (06.08.2026) + Volumen 1.6× + Spanne 10.7% + News: partnership, short interest + Earnings in 3d + UOA Call/Put 3.4×",
       "price": 7.01,
       "chg_pct": 0.0,
       "rvol_4d": 1.63,
@@ -189,9 +189,9 @@
       "uoa_cp_ratio": 3.4050632911392404
     },
     "PDYN": {
-      "score": 63,
+      "score": 82,
       "confidence": 70,
-      "drivers": "Earnings in 3 Tagen (06.08.2026) + Spanne 8.8% + News-KI 12/30: Moderate positive catalysts with government contract expansion, but lack of short interest data, fundamental weakness in + Earnings in 3d + UOA Call/Put 8.3×",
+      "drivers": "Earnings in 3 Tagen (06.08.2026) + Spanne 8.8% + News: contract, partnership + Earnings in 3d + UOA Call/Put 8.3×",
       "price": 5.62,
       "chg_pct": -0.0,
       "rvol_4d": 0.92,
@@ -203,7 +203,7 @@
       "stocktwits": null,
       "combo_mult": 1.1,
       "active_triggers": 2,
-      "ki_sentiment_source": "llm",
+      "ki_sentiment_source": "keyword",
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 8.3×"
@@ -212,20 +212,20 @@
       "uoa_cp_ratio": 8.326086956521738
     },
     "PLAY": {
-      "score": 64,
-      "confidence": 70,
-      "drivers": "Volumen 2.2× + Spanne 7.0% + News: short interest + Earnings in 42d + UOA Call/Put 2.3×",
+      "score": 33,
+      "confidence": 33,
+      "drivers": "News: short interest + Earnings in 42d + UOA Call/Put 2.3×",
       "price": 11.57,
-      "chg_pct": -0.0,
-      "rvol_4d": 2.21,
-      "rvol_20d": 1.58,
+      "chg_pct": 0.0,
+      "rvol_4d": 0.0,
+      "rvol_20d": null,
       "earnings": "in 42 Tagen (14.09.2026)",
       "fda_date": null,
       "upcoming_event": null,
       "insider_buy": false,
       "stocktwits": null,
-      "combo_mult": 1.1,
-      "active_triggers": 2,
+      "combo_mult": 1.0,
+      "active_triggers": 1,
       "ki_sentiment_source": "keyword",
       "uoa_score": 10,
       "uoa_drivers": [
@@ -237,7 +237,7 @@
     "SBH": {
       "score": 100,
       "confidence": 70,
-      "drivers": "Earnings in 0 Tagen (03.08.2026) + Volumen 2.0× + Spanne 14.7% + SEC 8-K + News-KI 8/30: Positive earnings (EPS +8%) typically reduce short-squeeze potential as it validates the stock and reduces short thesis  + Earnings in 0d + UOA Call/Put 3.5× + 3/4 Trigger",
+      "drivers": "Earnings in 0 Tagen (03.08.2026) + Volumen 2.0× + Spanne 14.7% + SEC 8-K + News: earnings beat + Earnings in 0d + UOA Call/Put 3.5× + 3/4 Trigger",
       "price": 16.13,
       "chg_pct": -0.0,
       "rvol_4d": 2.05,
@@ -249,7 +249,7 @@
       "stocktwits": null,
       "combo_mult": 1.2,
       "active_triggers": 3,
-      "ki_sentiment_source": "llm",
+      "ki_sentiment_source": "keyword",
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 3.5×"
@@ -302,9 +302,9 @@
       "uoa_cp_ratio": 0.2804878048780488
     },
     "WOLF": {
-      "score": 28,
+      "score": 36,
       "confidence": 70,
-      "drivers": "Spanne 12.4% + Earnings in 24d + UOA Call/Put 2.1×",
+      "drivers": "Spanne 12.4% + News-KI 8/30: Board appointment and fair value discussions show internal company changes but lack the high short interest, negative se + Earnings in 24d + UOA Call/Put 2.1×",
       "price": 24.35,
       "chg_pct": 0.0,
       "rvol_4d": 1.07,
@@ -316,7 +316,7 @@
       "stocktwits": null,
       "combo_mult": 1.0,
       "active_triggers": 0,
-      "ki_sentiment_source": "keyword",
+      "ki_sentiment_source": "llm",
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 2.1×"
