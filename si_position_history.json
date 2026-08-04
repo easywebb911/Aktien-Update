@@ -48,6 +48,12 @@
       "shares_short": 12850581,
       "short_pct_float": 56.84,
       "pub_date": "2026-07-10"
+    },
+    {
+      "settlement_date": "2026-07-15",
+      "shares_short": 12658994,
+      "short_pct_float": 56.0,
+      "pub_date": "2026-07-24"
     }
   ],
   "TRIP": [
@@ -2313,6 +2319,12 @@
       "shares_short": 4694748,
       "short_pct_float": 21.35,
       "pub_date": "2026-07-10"
+    },
+    {
+      "settlement_date": "2026-07-15",
+      "shares_short": 4344629,
+      "short_pct_float": 19.76,
+      "pub_date": "2026-07-24"
     }
   ],
   "PGEN": [
@@ -3587,6 +3599,81 @@
       "settlement_date": "2026-07-15",
       "shares_short": 16942027,
       "short_pct_float": 15.93,
+      "pub_date": "2026-07-24"
+    }
+  ],
+  "IBTA": [
+    {
+      "settlement_date": "2026-06-15",
+      "shares_short": 2947095,
+      "short_pct_float": null,
+      "pub_date": "2026-06-25",
+      "seeded": true
+    },
+    {
+      "settlement_date": "2026-07-15",
+      "shares_short": 3056684,
+      "short_pct_float": 28.85,
+      "pub_date": "2026-07-24"
+    }
+  ],
+  "LGIH": [
+    {
+      "settlement_date": "2026-06-15",
+      "shares_short": 3159289,
+      "short_pct_float": null,
+      "pub_date": "2026-06-25",
+      "seeded": true
+    },
+    {
+      "settlement_date": "2026-07-15",
+      "shares_short": 2974359,
+      "short_pct_float": 20.35,
+      "pub_date": "2026-07-24"
+    }
+  ],
+  "SANA": [
+    {
+      "settlement_date": "2026-06-15",
+      "shares_short": 40674591,
+      "short_pct_float": null,
+      "pub_date": "2026-06-25",
+      "seeded": true
+    },
+    {
+      "settlement_date": "2026-07-15",
+      "shares_short": 39736380,
+      "short_pct_float": 25.43,
+      "pub_date": "2026-07-24"
+    }
+  ],
+  "TSHA": [
+    {
+      "settlement_date": "2026-06-15",
+      "shares_short": 38727385,
+      "short_pct_float": null,
+      "pub_date": "2026-06-25",
+      "seeded": true
+    },
+    {
+      "settlement_date": "2026-07-15",
+      "shares_short": 45292910,
+      "short_pct_float": 16.05,
+      "pub_date": "2026-07-24"
+    }
+  ],
+  "SLDB": [
+    {
+      "settlement_date": "2026-06-15",
+      "shares_short": 11612697,
+      "short_pct_float": null,
+      "pub_date": "2026-06-25",
+      "seeded": true
+    },
+    {
+      "settlement_date": "2026-07-15",
+      "shares_short": 17667300,
+      "short_pct_float": 20.65,
       "pub_date": "2026-07-24"
     }
   ]

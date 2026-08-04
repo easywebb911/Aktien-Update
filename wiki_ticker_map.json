@@ -35,6 +35,15 @@
     "substrate": "en",
     "reason": null
   },
+  "AMRC": {
+    "qid": "Q124723674",
+    "title": null,
+    "resolved_at": "2026-08-04T22:31:18Z",
+    "issuer_verified": false,
+    "company_name_at_resolve": "Ameresco, Inc.",
+    "substrate": "none",
+    "reason": "no_article"
+  },
   "ASAN": {
     "qid": "Q111411592",
     "title": "Asana,_Inc.",
@@ -116,6 +125,15 @@
     "substrate": "en",
     "reason": null
   },
+  "DFH": {
+    "qid": null,
+    "title": null,
+    "resolved_at": "2026-08-04T22:31:18Z",
+    "issuer_verified": false,
+    "company_name_at_resolve": "Dream Finders Homes, Inc.",
+    "substrate": "none",
+    "reason": "no_p249"
+  },
   "DXC": {
     "qid": "Q28782856",
     "title": "DXC_Technology",
@@ -179,6 +197,15 @@
     "substrate": "en",
     "reason": null
   },
+  "IBTA": {
+    "qid": null,
+    "title": null,
+    "resolved_at": "2026-08-04T22:31:18Z",
+    "issuer_verified": false,
+    "company_name_at_resolve": "Ibotta, Inc.",
+    "substrate": "none",
+    "reason": "sparql_fetch_failed"
+  },
   "INDI": {
     "qid": null,
     "title": null,
@@ -233,6 +260,24 @@
     "substrate": "none",
     "reason": "no_p249"
   },
+  "LGIH": {
+    "qid": "Q6458324",
+    "title": "LGI_Homes",
+    "resolved_at": "2026-08-04T22:31:18Z",
+    "issuer_verified": true,
+    "company_name_at_resolve": "LGI Homes, Inc.",
+    "substrate": "en",
+    "reason": null
+  },
+  "METC": {
+    "qid": null,
+    "title": null,
+    "resolved_at": "2026-08-04T22:31:18Z",
+    "issuer_verified": false,
+    "company_name_at_resolve": "Ramaco Resources, Inc.",
+    "substrate": "none",
+    "reason": "no_p249"
+  },
   "MPLT": {
     "qid": null,
     "title": null,
@@ -257,6 +302,15 @@
     "resolved_at": "2026-07-30T22:29:34Z",
     "issuer_verified": false,
     "company_name_at_resolve": "Nuwellis, Inc.",
+    "substrate": "none",
+    "reason": "no_p249"
+  },
+  "ORIC": {
+    "qid": null,
+    "title": null,
+    "resolved_at": "2026-08-04T22:31:18Z",
+    "issuer_verified": false,
+    "company_name_at_resolve": "ORIC Pharmaceuticals, Inc.",
     "substrate": "none",
     "reason": "no_p249"
   },
@@ -392,6 +446,15 @@
     "resolved_at": "2026-07-27T22:29:48Z",
     "issuer_verified": false,
     "company_name_at_resolve": "Twin Vee Powercats Co.",
+    "substrate": "none",
+    "reason": "no_p249"
+  },
+  "VOYG": {
+    "qid": null,
+    "title": null,
+    "resolved_at": "2026-08-04T22:31:18Z",
+    "issuer_verified": false,
+    "company_name_at_resolve": "Voyager Technologies, Inc.",
     "substrate": "none",
     "reason": "no_p249"
   },
