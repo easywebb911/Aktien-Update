@@ -1,5 +1,5 @@
 {
-  "last_run": "2026-08-04T23:36:29.672674+02:00",
+  "last_run": "2026-08-05T00:33:00.952722+02:00",
   "cooldowns": {
     "anomaly_score_jump_XRX": "2026-05-03T18:47:15.315486+02:00",
     "anomaly_uoa_extreme_TDOC": "2026-05-04T13:47:00.365949+02:00",
@@ -90,33 +90,11 @@
     "earnings_immediate_XRX_30.07.2026": "2026-07-31T00:31:05.050984+02:00",
     "earnings_immediate_DDD_03.08.2026": "2026-08-03T23:05:20.785739+02:00",
     "earnings_immediate_SBH_03.08.2026": "2026-08-03T23:05:20.836032+02:00",
-    "earnings_immediate_IONQ_05.08.2026": "2026-08-04T23:36:28.999749+02:00"
+    "earnings_immediate_IONQ_05.08.2026": "2026-08-04T23:36:28.999749+02:00",
+    "earnings_immediate_LGIH_04.08.2026": "2026-08-05T00:33:00.169122+02:00",
+    "earnings_immediate_METC_04.08.2026": "2026-08-05T00:33:00.416216+02:00"
   },
   "push_history": [
-    {
-      "ts": "2026-07-20T06:05:04.338466+02:00",
-      "ticker": "AI",
-      "kind": "exit_p2",
-      "severity": "trigger",
-      "trigger": "trend_break",
-      "body": "🔻 Exit-Signal AI: trend_break crit ({'ma21': 9.2727, 'price': 8.82, 'drop_pct': 4.88})",
-      "success": true,
-      "suppressed": false,
-      "suppress_reason": null,
-      "conviction_score": null
-    },
-    {
-      "ts": "2026-07-20T06:05:04.702647+02:00",
-      "ticker": "LENZ",
-      "kind": "exit_p2",
-      "severity": "trigger",
-      "trigger": "trend_break",
-      "body": "🔻 Exit-Signal LENZ: trend_break crit ({'ma21': 5.7033, 'price': 5.18, 'drop_pct': 9.18})",
-      "success": true,
-      "suppressed": false,
-      "suppress_reason": null,
-      "conviction_score": null
-    },
     {
       "ts": "2026-07-20T06:05:04.880388+02:00",
       "ticker": "WOLF",
@@ -1292,23 +1270,47 @@
       "suppressed": false,
       "suppress_reason": null,
       "conviction_score": 14
+    },
+    {
+      "ts": "2026-08-05T00:33:00.169094+02:00",
+      "ticker": "LGIH",
+      "kind": "earnings_immediate",
+      "severity": "default",
+      "trigger": null,
+      "body": "LGIH Earnings-Sofort-Alert (in 0d, KI 58)",
+      "success": true,
+      "suppressed": false,
+      "suppress_reason": null,
+      "conviction_score": 78
+    },
+    {
+      "ts": "2026-08-05T00:33:00.416189+02:00",
+      "ticker": "METC",
+      "kind": "earnings_immediate",
+      "severity": "default",
+      "trigger": null,
+      "body": "METC Earnings-Sofort-Alert (in 0d, KI 72)",
+      "success": true,
+      "suppressed": false,
+      "suppress_reason": null,
+      "conviction_score": 86
     }
   ],
   "prev_conviction_scores": {
-    "PLAY": 52.0,
-    "SBH": 65.0,
-    "FLWS": 63.0,
-    "PCT": 70.0,
-    "KUST": 35.0,
-    "NNE": 47.0,
-    "WOLF": 40.0,
-    "ULCC": 47.0,
-    "DDD": 60.0,
-    "SERV": 59.0,
-    "AI": 42.0,
-    "PDYN": 26.0,
-    "AMC": 15.0,
-    "IONQ": 14.0
+    "DDD": 81.0,
+    "IBTA": 79.0,
+    "WOLF": 58.0,
+    "METC": 86.0,
+    "LGIH": 78.0,
+    "AMRC": 63.0,
+    "NUWE": 49.0,
+    "DFH": 70.0,
+    "ORIC": 75.0,
+    "VOYG": 51.0,
+    "PDYN": 33.0,
+    "AI": 40.0,
+    "IONQ": 17.0,
+    "AMC": 13.0
   },
   "exit_cooldowns": {
     "exitp2_warning_AMC": "2026-05-18T14:48:43.872687+02:00",
@@ -1349,24 +1351,23 @@
     "IONQ": {
       "last_active": [
         "__warning__",
-        "profit_lock",
-        "trend_break"
+        "profit_lock"
       ],
       "last_push_date": "2026-08-04",
       "esc_alerted": false,
-      "updated": "2026-08-04T23:36:29.672759+02:00"
+      "updated": "2026-08-05T00:33:00.952823+02:00"
     },
     "PDYN": {
       "last_active": [],
       "last_push_date": "2026-07-24",
       "esc_alerted": false,
-      "updated": "2026-08-04T23:36:29.672775+02:00"
+      "updated": "2026-08-05T00:33:00.952839+02:00"
     },
     "AI": {
       "last_active": [],
       "last_push_date": "2026-07-28",
       "esc_alerted": false,
-      "updated": "2026-08-04T23:36:29.672785+02:00"
+      "updated": "2026-08-05T00:33:00.952850+02:00"
     },
     "FRMM": {
       "last_active": [],
@@ -1388,7 +1389,7 @@
       ],
       "last_push_date": "2026-07-24",
       "esc_alerted": false,
-      "updated": "2026-08-04T23:36:29.672798+02:00"
+      "updated": "2026-08-05T00:33:00.952862+02:00"
     }
   }
 }
