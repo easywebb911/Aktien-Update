@@ -1,5 +1,5 @@
 {
-  "last_run": "2026-08-04T11:51:06.331833+02:00",
+  "last_run": "2026-08-04T14:19:23.376739+02:00",
   "cooldowns": {
     "anomaly_score_jump_XRX": "2026-05-03T18:47:15.315486+02:00",
     "anomaly_uoa_extreme_TDOC": "2026-05-04T13:47:00.365949+02:00",
@@ -1353,19 +1353,19 @@
       ],
       "last_push_date": "2026-08-04",
       "esc_alerted": false,
-      "updated": "2026-08-04T11:51:06.331919+02:00"
+      "updated": "2026-08-04T14:19:23.376826+02:00"
     },
     "PDYN": {
       "last_active": [],
       "last_push_date": "2026-07-24",
       "esc_alerted": false,
-      "updated": "2026-08-04T11:51:06.331934+02:00"
+      "updated": "2026-08-04T14:19:23.376842+02:00"
     },
     "AI": {
       "last_active": [],
       "last_push_date": "2026-07-28",
       "esc_alerted": false,
-      "updated": "2026-08-04T11:51:06.331945+02:00"
+      "updated": "2026-08-04T14:19:23.376875+02:00"
     },
     "FRMM": {
       "last_active": [],
@@ -1387,7 +1387,7 @@
       ],
       "last_push_date": "2026-07-24",
       "esc_alerted": false,
-      "updated": "2026-08-04T11:51:06.331957+02:00"
+      "updated": "2026-08-04T14:19:23.376889+02:00"
     }
   }
 }
