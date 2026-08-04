@@ -14,12 +14,16 @@
 Claude Code mergt PRs **selbst** sobald Tests grün sind, Branch danach
 löschen.
 
-**Wichtig (Verfeinerung 16.05.2026):** Subagent (`squeeze-guardian`)
-ist **Bonus, kein Gatekeeper**. Bei vielen PR-Typen springt der Hook
-nicht zuverlässig an (Doku, Helper-Refactor, CSS-Tweaks). Nicht
-darauf warten — Tests grün + keine Review-Comments reicht für
-Auto-Merge. Wenn der Subagent doch anspringt und findings hat, diese
-adressieren und neu pushen.
+**Wichtig (Verfeinerung 16.05.2026, angeglichen 04.08.2026):** Subagent
+(`squeeze-guardian`) ist im **Urteil Bonus, kein Gatekeeper** — sein Ergebnis
+blockiert den Merge nicht. Der **Lauf selbst** ist aber seit der Stehenden
+Regel (04.08.2026, Abschnitt „squeeze-guardian" unten) vor **jedem**
+Self-Merge Pflicht, auch bei den Auto-Merge-Klassen (Doku, Helper-Refactor,
+CSS-Tweaks). Der PostToolUse-`echo`-Hook springt nicht zuverlässig an und
+spawnt den Agent ohnehin nicht — deshalb wird der Guardian **modell-initiiert**
+(Task/Agent-Tool) aufgerufen, statt auf den Hook zu warten. Nach dem
+durchgeführten Lauf (mit Bericht) reicht für Auto-Merge: Tests grün + keine
+Review-Comments. Hat er Findings, diese zuerst adressieren und neu pushen.
 
 ### squeeze-guardian: Architektur-Routine (Disziplin, KEINE Automatik)
 
@@ -42,20 +46,21 @@ Der Lauf bleibt **modell-initiiert** (Task/Agent-Tool in der Session) — **kein
 GitHub-Actions-Automatisierung** dafür (Headless verworfen 03.06.2026; die
 Automatisierbarkeit ist eine separate, ungeprüfte Machbarkeitsfrage).
 
-**Verhältnis zur früheren Formulierung (bewusst gemeldet, nicht still
-geglättet):** Diese Regel **verschärft** drei ältere Stellen — (a) „Routine
-**EMPFOHLEN, nicht zwingend**" samt Beschränkung auf **manuell-Merge-pflichtige**
-PRs (unten in diesem Abschnitt), (b) die Auto-Merge-Notiz „**Nicht darauf
-warten**" für Doku/Helper/CSS (Abschnitt Auto-Merge-Regel oben) und (c) „der
-Agent-Aufruf ist nur noch für die nicht-automatisierbare Architektur-Semantik
-nötig" (unten). Ab jetzt ist der Guardian-**Lauf** bei **jedem** PR Pflicht,
-inkl. der Auto-Merge-Klassen. **Unverändert** bleiben die **Merge-Klassen selbst**
-(welche PRs auto- vs. manuell-Merge sind — die Listen unten/oben) und der
-advisory Charakter des Urteils; hinzu kommt allein der vorgeschaltete
-Pflicht-Lauf mit Pflicht-Bericht. Die drei genannten Alt-Stellen sind damit im
-Punkt „muss der Guardian laufen?" durch diese Regel überschrieben — die restliche
-Aussage dort (Non-Determinismus, kein Gatekeeper, Mensch validiert Bedeutung)
-gilt weiter.
+**Verhältnis zur früheren Formulierung (04.08.2026 direkt angeglichen, nicht
+still geglättet):** Diese Regel **verschärfte** drei ältere Stellen — (a) die
+Routine-Formulierung „EMPFOHLEN, nicht zwingend" samt Beschränkung auf
+manuell-Merge-pflichtige PRs (unten in diesem Abschnitt), (b) die
+Auto-Merge-Notiz „Nicht darauf warten" für Doku/Helper/CSS (Abschnitt
+Auto-Merge-Regel oben) und (c) „der Agent-Aufruf ist nur noch für die
+nicht-automatisierbare Architektur-Semantik nötig" (unten). Diese drei Stellen
+sind mit dem Folge-Doku-PR (04.08.2026) **selbst an die Stehende Regel
+angeglichen** — sie tragen jetzt inline die „Lauf bei jedem PR Pflicht"-Aussage,
+kein Querverweis-Notbehelf und kein stehengelassener Widerspruch mehr.
+**Unverändert** bleiben die **Merge-Klassen selbst** (welche PRs auto- vs.
+manuell-Merge sind — die Listen unten/oben), die **Validierungs-Kriterien** und
+der **advisory Charakter des Urteils** (Non-Determinismus, kein Gatekeeper,
+Mensch validiert Bedeutung); hinzu kommt allein der vorgeschaltete Pflicht-Lauf
+mit Pflicht-Bericht bei **jedem** PR, inkl. der Auto-Merge-Klassen.
 
 **Ehrliche Mechanik-Klarstellung (Diagnose 01.06.2026):** Der
 `squeeze-guardian`-Hook (`.claude/settings.json`, PostToolUse) ist ein
@@ -68,14 +73,17 @@ bewusst Modell-Urteil. (Den Hook NICHT zum `prompt`/`agent`-Hook
 umbauen: Verfügbarkeit unbestätigt, liefe nach jedem Edit, bliebe
 meldend — verworfen.)
 
-**Routine (EMPFOHLEN, nicht zwingend — manuell ausgelöst):** Vor der
-Ready-Meldung eines **manuell-Merge-pflichtigen** PR (Score-/Conviction-/
-Filter-/Exit-Logik, neue Workflows/Schemas/APIs, Krypto/Token-Auth,
-UI-kritisch — siehe Ausnahmen-Liste unten) den **`squeeze-guardian`-Agent
-EXPLIZIT aufrufen** (Task/Agent-Tool, modell-initiiert in der Session) für
-einen Architektur-Zweitblick (Konformität gegen CLAUDE.md/SESSION_HANDOVER,
-tote Call-Sites, Krypto-Sanity). Fester, **empfohlener** Schritt im
-PR-Status-Flow — aber ausdrücklich **BONUS, kein Gatekeeper**:
+**Routine (Pflicht-Lauf, advisory-Urteil — modell-initiiert):** Vor der
+Ready-Meldung **jedes** PR — beide Merge-Klassen, ohne Ausnahme (Stehende
+Regel oben) — den **`squeeze-guardian`-Agent EXPLIZIT aufrufen**
+(Task/Agent-Tool, modell-initiiert in der Session) für einen
+Architektur-Zweitblick (Konformität gegen CLAUDE.md/SESSION_HANDOVER, tote
+Call-Sites, Krypto-Sanity). Am gewichtigsten ist dieser Zweitblick bei
+**manuell-Merge-pflichtigen** PRs (Score-/Conviction-/Filter-/Exit-Logik, neue
+Workflows/Schemas/APIs, Krypto/Token-Auth, UI-kritisch — siehe Ausnahmen-Liste
+unten); der **Lauf** ist aber bei **jedem** PR Pflicht, auch bei den
+Auto-Merge-Klassen. Fester, **verpflichtender** Schritt im PR-Status-Flow —
+sein **Urteil** bleibt aber ausdrücklich **BONUS, kein Gatekeeper**:
 
 - Sein Urteil ist **nicht-deterministisch** (gleicher Diff → ggf. andere
   Findings) und hat NICHT das Gewicht eines bestandenen Tests.
@@ -83,17 +91,22 @@ PR-Status-Flow — aber ausdrücklich **BONUS, kein Gatekeeper**:
   *Mechanik*, nicht ob eine Score-/Filter-Änderung *trading-klug* ist. Die
   Bedeutungs-Freigabe bleibt menschlich (Nordstern: Maschine prüft Mechanik,
   Mensch validiert Bedeutung).
-- Springt der Aufruf nicht an oder liefert keine Findings → das blockiert
-  **nichts**; lokale Tests grün + keine Review-Comments bleibt die
-  kanonische Freigabe. Bewusste Disziplin-Regel, keine Automatik (Diagnose
-  03.06.2026: Headless-Automatisierung verworfen — Non-Determinismus,
-  Selbst-Review-Blindheit, Alarm-Müdigkeit, Auto-Merge-Linie).
+- Liefert der (immer durchgeführte) Lauf keine Findings → das blockiert
+  **nichts**; lokale Tests grün + keine Review-Comments — nach dem
+  Guardian-Lauf mit Bericht — bleibt die kanonische Freigabe. Der **Lauf**
+  ist Pflicht, aber bewusst **keine GitHub-Actions-Automatik**, sondern
+  modell-initiierte Disziplin (Diagnose 03.06.2026: Headless-Automatisierung
+  verworfen — Non-Determinismus, Selbst-Review-Blindheit, Alarm-Müdigkeit,
+  Auto-Merge-Linie).
 
-**Was deterministisch abgedeckt ist (kein Agent nötig):** Der
-**Token-Krypto-Teil** des Guardian-Checks läuft seit 01.06. als harter
-CI-Lint `scripts/lint_token_crypto.py` (im Workflow-Lint-Gate +
-Self-Merge-Lauf, blockierend). Der Agent-Aufruf ist damit nur noch
-für die **nicht-automatisierbare Architektur-Semantik** nötig.
+**Was deterministisch mit-abgedeckt ist:** Der **Token-Krypto-Teil** des
+Guardian-Checks läuft seit 01.06. als harter CI-Lint
+`scripts/lint_token_crypto.py` (im Workflow-Lint-Gate + Self-Merge-Lauf,
+blockierend). Der **eigenständige Mehrwert** des Agent-Laufs liegt damit in
+der **nicht-automatisierbaren Architektur-Semantik** — der Krypto-Teil ist
+redundant über den Lint deterministisch abgesichert. Am **Pflicht-Lauf**
+ändert das nichts: der Guardian läuft trotzdem vor **jedem** PR (Stehende
+Regel oben); der Lint deckt nur eine Teil-Dimension zusätzlich hart ab.
 
 **Ausnahmen — manueller Easy-Merge mit Code-Review-Pflicht:**
 
