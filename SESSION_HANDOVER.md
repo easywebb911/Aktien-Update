@@ -1197,6 +1197,27 @@ spätere Commits verschieben):** `_score_block_inner_html` noch definiert
   sind, ist **nicht** verifiziert — das ist Teil der Stage-3-Diagnose, keine hier
   behauptete Tatsache.
 
+### 6m. `_trading_days_elapsed` feiertags-blind → `return_10d` füllt 1–3 Tage zu früh
+**Status: OFFEN. Kein Auftrag, kein Termin — Backlog-Befund (04.08.2026).**
+`_trading_days_elapsed` (`ki_agent.py:367`) zählt Handelstage seit Entry als
+**Mo–Fr strikt**, ohne US-Feiertage abzuziehen. Folge: bei einem Feiertag im
+Fenster meldet die Funktion 10 „Handelstage" schon nach 1–3 Kalendertagen zu
+früh → `update_backtest_returns` schreibt `return_10d`, obwohl real erst 9 echte
+Handelstage vergangen sind. Betrifft **nur** das Reife-Signal `return_10d`, nicht
+das Rolling-Fenster von `max_gain_pct`/`max_drawdown_pct` (die laufen kalender-
+basiert über `days_old <= 14`).
+
+**Warum jetzt nur Backlog, nicht Fix:** Der Matured-Export (§7 / PR dieser
+Session) umgeht das Symptom bereits — sein Reife-Gate #2 verlangt zusätzlich zu
+`return_10d` ein `days_old > 14` **Kalendertage**, wodurch das zu frühe
+`return_10d`-Füllen für den Export folgenlos bleibt (Rolling-Felder sind bei
+Kalendertag 15 garantiert final). Ein echter Fix (Feiertagsliste in der
+Trading-Day-Zählung berücksichtigen, analog #407/§6b) würde `return_10d` selbst
+korrekt spät füllen — betrifft dann auch das Backtest-Panel und die
+return_10d-basierten Auswertungen. Vor dem Bau: prüfen, ob die
+`config.US_MARKET_HOLIDAYS`-Menge (heute nur bis 2027 hartkodiert, §6b) den
+Zähl-Zeitraum abdeckt. Kein Trading-Wert, Genauigkeits-Hygiene.
+
 ---
 
 ## 7) ARCHITEKTUR-ANKER
