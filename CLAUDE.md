@@ -23,6 +23,40 @@ adressieren und neu pushen.
 
 ### squeeze-guardian: Architektur-Routine (Disziplin, KEINE Automatik)
 
+**Stehende Regel (ab 04.08.2026) — Guardian-Lauf vor JEDER Ready-Meldung und
+JEDEM Self-Merge, ungefragt, ohne Ausnahme.** Vor jeder Ready-Meldung und vor
+jedem Self-Merge läuft der `squeeze-guardian` über den PR — **ungefragt** (Easy
+muss nicht daran erinnern) und **ohne Ausnahme**, auch bei kleinen oder reinen
+Doku-PRs. Sein Ergebnis gehört **immer** in den Bericht: wenn er nichts findet
+ebenso wie — besonders — wenn er etwas findet. Findings werden **zuerst**
+bewertet und behoben oder begründet zurückgewiesen; **erst danach** Ready melden
+bzw. mergen.
+
+Er bleibt **Zweitblick, KEIN Gatekeeper:** sein Schweigen ist **kein** Nachweis
+von Korrektheit und ersetzt die eigene Prüfung nicht. Er darf nie zum Häkchen
+werden, das die Sorgfalt ersetzt. (Kein Widerspruch zum „Bonus, kein
+Gatekeeper" unten: das **Urteil** bleibt advisory — verpflichtend ist nur, dass
+der Lauf **stattfindet** und **berichtet** wird.)
+
+Der Lauf bleibt **modell-initiiert** (Task/Agent-Tool in der Session) — **keine
+GitHub-Actions-Automatisierung** dafür (Headless verworfen 03.06.2026; die
+Automatisierbarkeit ist eine separate, ungeprüfte Machbarkeitsfrage).
+
+**Verhältnis zur früheren Formulierung (bewusst gemeldet, nicht still
+geglättet):** Diese Regel **verschärft** drei ältere Stellen — (a) „Routine
+**EMPFOHLEN, nicht zwingend**" samt Beschränkung auf **manuell-Merge-pflichtige**
+PRs (unten in diesem Abschnitt), (b) die Auto-Merge-Notiz „**Nicht darauf
+warten**" für Doku/Helper/CSS (Abschnitt Auto-Merge-Regel oben) und (c) „der
+Agent-Aufruf ist nur noch für die nicht-automatisierbare Architektur-Semantik
+nötig" (unten). Ab jetzt ist der Guardian-**Lauf** bei **jedem** PR Pflicht,
+inkl. der Auto-Merge-Klassen. **Unverändert** bleiben die **Merge-Klassen selbst**
+(welche PRs auto- vs. manuell-Merge sind — die Listen unten/oben) und der
+advisory Charakter des Urteils; hinzu kommt allein der vorgeschaltete
+Pflicht-Lauf mit Pflicht-Bericht. Die drei genannten Alt-Stellen sind damit im
+Punkt „muss der Guardian laufen?" durch diese Regel überschrieben — die restliche
+Aussage dort (Non-Determinismus, kein Gatekeeper, Mensch validiert Bedeutung)
+gilt weiter.
+
 **Ehrliche Mechanik-Klarstellung (Diagnose 01.06.2026):** Der
 `squeeze-guardian`-Hook (`.claude/settings.json`, PostToolUse) ist ein
 reiner `echo`-Reminder — er **spawnt den Agent NICHT**. Ein
