@@ -150,6 +150,14 @@ PR-Klassifikation:
 | **Manuell-Merge-Pflicht** (Score-Logik, neue Schemas, neue Workflows) | dito | „PR #N **ready for merge** — wartet auf Easy-Freigabe (Klassifikation: \<grund\>)" |
 | **Lokale Tests rot** | irgendein Check fehlgeschlagen | „PR #N **gepusht aber blockiert** — \<konkrete Fehlermeldung\>" |
 
+**Quer zur Tabelle (seit 04.08.2026):** Für **beide** Merge-Klassen gilt
+zusätzlich die **Stehende Regel** aus dem `squeeze-guardian`-Abschnitt oben — der
+Guardian-**Lauf + Bericht** ist **vor** jeder dieser Melde-/Merge-Aktionen
+Pflicht (auch bei Auto-Merge, auch bei Doku). Klassifikation und lokale
+Validierungs-Kriterien in der Tabelle bleiben unverändert; der Guardian-Lauf
+kommt als **vorgeschalteter** Pflicht-Schritt hinzu (Urteil advisory, kein
+Gatekeeper).
+
 **Was Claude NICHT mehr melden soll:**
 
 - „Warte passiv auf Webhook-Events" als Selbstzweck → die Ready-/Merge-
