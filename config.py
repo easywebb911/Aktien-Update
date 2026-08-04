@@ -84,6 +84,21 @@ BACKTEST_FILE             = "backtest_history.json"
 BACKTEST_MAX_DAYS         = 90
 BACKTEST_RETURN_WINDOWS   = [3, 5, 10]   # Handelstage → return_3d / _5d / _10d
 
+# ── Matured-Backtest-Export (Analyse-only, prune-immun) ──────────────────────
+# TRENNT Anzeige von Analyse: backtest_history.json unterliegt dem 90-Tage-Prune
+# (BACKTEST_MAX_DAYS — Zweck real: client-seitiger Fetch beim Panel-Öffnen +
+# Repo-Wachstum). Gereifte Forward-Records verfallen damit ab ~90 Tagen — zu
+# wenig für die Sept-Re-Tests (n≥250) und spätere Hypothesen. Diese Datei ist
+# prune-immun und wächst dauerhaft (Haus-Muster si_position_history.json /
+# Backfill-Manifest: eigene Datei überlebt den Prune).
+# LOOK-AHEAD-SAFE: ein Record wird EINMALIG bei Reife (return_10d gefüllt)
+# exportiert und NIE wieder angefasst (kein Nachberechnen/Überschreiben/
+# Nachtragen). ANALYSE-ONLY: KEIN Frontend-Fetch, NICHT im HTML/Golden, kein
+# Score-/Push-Effekt. Fail-soft (bricht den Daily-Run nie ab). Löschbar ohne
+# Nebenwirkung (niemand liest sie im Tool). Reaktivierbar/abschaltbar per Flag.
+MATURED_EXPORT_ENABLED    = True
+MATURED_EXPORT_FILE       = "matured_backtest_export.jsonl"
+
 # ── Sub-Scores (Struktur / Katalysator / Timing) ────────────────────────────
 # Informative Aufspaltung des Gesamt-Scores in drei Themen-Komponenten.
 # Der Gesamt-Score bleibt unverändert (score()-Funktion nicht angepasst);

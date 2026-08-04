@@ -30,6 +30,7 @@ from watchlist import WATCHLIST
 import score_inflation_log
 import health_check
 import exit_shadow
+import matured_export
 from backtest_history import (
     _load_backtest_history,
     _append_backtest_entries,
@@ -17729,6 +17730,20 @@ def main():
             top10, report_date, pool_size=len(enriched),
             compute_sub_scores_fn=_compute_sub_scores,
             safe_float_fn=_safe_float)
+        # Append-only-Export gereifter Records (Analyse-only, prune-immun) —
+        # trennt Anzeige (geprunetes backtest_history.json) von Analyse. EIN
+        # additiver, FAIL-SOFT Aufruf: ein Export-Fehler darf den postclose-Lauf
+        # NIE abbrechen (der Daily-Run ist wichtiger als der Export). Liest die
+        # frisch geschriebene (geprunete) History — Reife (Tag ~10) liegt weit
+        # vor dem Prune (Tag 90), also geht kein gereifter Record verloren.
+        if MATURED_EXPORT_ENABLED:
+            try:
+                _n_matured = matured_export.export_matured_records(
+                    _load_backtest_history())
+                log.info("matured_export: +%d neue gereifte Records exportiert",
+                         _n_matured)
+            except Exception as _exc_me:
+                log.warning("matured_export fehlgeschlagen (fail-soft): %s", _exc_me)
     else:
         log.info("Backtest-Schema: skip in premarket-Phase (run_phase=%s)",
                  run_phase)
