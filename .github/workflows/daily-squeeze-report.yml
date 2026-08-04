@@ -156,6 +156,12 @@ jobs:
           # über Commit nötig, sonst geht die Empirik bei jedem Workflow-Lauf
           # verloren.
           git add score_inflation_log.jsonl 2>/dev/null || true
+          # matured_backtest_export.jsonl: append-only-Export gereifter Records
+          # (Analyse-only, prune-immun). Vom postclose-Lauf im Runner geschrieben
+          # — OHNE ``git add`` würde die Datei bei jedem Workflow-Lauf verworfen
+          # und der Export könnte nie akkumulieren (Grundlage der Sept-Re-Test-
+          # Auswertung). KEIN Frontend-Fetch, nicht im HTML/Golden.
+          git add matured_backtest_export.jsonl 2>/dev/null || true
           # Health-Check-Persistenz (Phase 1/2): die JSONL-Files werden vom
           # health_check.py-Hook lokal im Runner geschrieben — ohne ``git add``
           # gehen sie beim nächsten Workflow-Checkout verloren und der
