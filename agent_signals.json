@@ -1,17 +1,17 @@
 {
-  "updated": "2026-08-04T11:09:45.351692+02:00",
+  "updated": "2026-08-04T11:51:02.146676+02:00",
   "run_info": {
     "tickers_checked": 14,
     "signals_active": 8,
     "alerts_sent": 0,
-    "elapsed_s": 19.1,
+    "elapsed_s": 24.4,
     "market_phase": "Pre-Market"
   },
   "signals": {
     "AI": {
       "score": 97,
       "confidence": 70,
-      "drivers": "Kurs +6.0% + Volumen 1.6× + News: short interest, earnings beat + Earnings in 36d + UOA Call/Put 34.0×",
+      "drivers": "Kurs +6.0% + Volumen 1.6× + News: earnings beat, short interest + Earnings in 36d + UOA Call/Put 34.0×",
       "price": 9.73,
       "chg_pct": 5.99,
       "rvol_4d": 1.58,
@@ -78,9 +78,9 @@
       "uoa_cp_ratio": 12.729559748427674
     },
     "FLWS": {
-      "score": 48,
+      "score": 43,
       "confidence": 70,
-      "drivers": "Kurs +7.7% + Spanne 6.3% + News-KI 5/30: Mixed sentiment with value narrative dominates; no evidence of high short interest, significant bearish pressure, or cat + Earnings in 30d",
+      "drivers": "Kurs +7.7% + Spanne 6.3% + Earnings in 30d",
       "price": 4.2,
       "chg_pct": 7.69,
       "rvol_4d": 0.7,
@@ -92,7 +92,7 @@
       "stocktwits": null,
       "combo_mult": 1.0,
       "active_triggers": 1,
-      "ki_sentiment_source": "llm",
+      "ki_sentiment_source": "keyword",
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": null,
@@ -143,7 +143,7 @@
     "NNE": {
       "score": 91,
       "confidence": 70,
-      "drivers": "Kurs +10.5% + Spanne 8.6% + News: takeover, covering + Earnings in 8d + UOA Call/Put 2.5×",
+      "drivers": "Kurs +10.5% + Spanne 8.6% + News: covering, contract + Earnings in 8d + UOA Call/Put 2.5×",
       "price": 17.58,
       "chg_pct": 10.5,
       "rvol_4d": 0.95,
@@ -256,9 +256,9 @@
       "uoa_cp_ratio": 3.5
     },
     "SERV": {
-      "score": 86,
+      "score": 77,
       "confidence": 70,
-      "drivers": "Earnings in 2 Tagen (06.08.2026) + Kurs +18.2% + Spanne 6.7% + News-KI 8/30: Moderate price momentum (13% gain) but no indicators of high short interest, catalyst-driven moves, or squeeze condition + Earnings in 2d + UOA Call/Put 3.9×",
+      "drivers": "Earnings in 2 Tagen (06.08.2026) + Kurs +18.2% + Spanne 6.7% + Earnings in 2d + UOA Call/Put 3.9×",
       "price": 5.65,
       "chg_pct": 18.2,
       "rvol_4d": 0.61,
@@ -270,7 +270,7 @@
       "stocktwits": null,
       "combo_mult": 1.1,
       "active_triggers": 2,
-      "ki_sentiment_source": "llm",
+      "ki_sentiment_source": "keyword",
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 3.9×"
@@ -279,9 +279,9 @@
       "uoa_cp_ratio": 3.9368635437881876
     },
     "ULCC": {
-      "score": 35,
-      "confidence": 33,
-      "drivers": "Kurs +13.9% + Spanne 7.9%",
+      "score": 43,
+      "confidence": 70,
+      "drivers": "Kurs +13.9% + Spanne 7.9% + News-KI 8/30: Earnings-focused headlines with no indication of short interest, squeeze dynamics, or significant stock movement catalys",
       "price": 7.69,
       "chg_pct": 13.93,
       "rvol_4d": 0.71,
@@ -293,7 +293,7 @@
       "stocktwits": null,
       "combo_mult": 1.0,
       "active_triggers": 1,
-      "ki_sentiment_source": "keyword",
+      "ki_sentiment_source": "llm",
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": null,
