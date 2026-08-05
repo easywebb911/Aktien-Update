@@ -90,6 +90,12 @@
       "shares_short": 3324158,
       "short_pct_float": 23.81,
       "pub_date": "2026-07-10"
+    },
+    {
+      "settlement_date": "2026-07-15",
+      "shares_short": 3242845,
+      "short_pct_float": 23.22,
+      "pub_date": "2026-07-24"
     }
   ],
   "CBRL": [
@@ -2055,6 +2061,12 @@
       "shares_short": 10597500,
       "short_pct_float": 24.47,
       "pub_date": "2026-07-10"
+    },
+    {
+      "settlement_date": "2026-07-15",
+      "shares_short": 10285963,
+      "short_pct_float": 23.75,
+      "pub_date": "2026-07-24"
     }
   ],
   "AVTX": [
@@ -2520,6 +2532,12 @@
       "shares_short": 4779126,
       "short_pct_float": 19.71,
       "pub_date": "2026-07-10"
+    },
+    {
+      "settlement_date": "2026-07-15",
+      "shares_short": 4017562,
+      "short_pct_float": 16.57,
+      "pub_date": "2026-07-24"
     }
   ],
   "AMPX": [
