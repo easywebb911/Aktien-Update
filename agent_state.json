@@ -1,5 +1,5 @@
 {
-  "last_run": "2026-08-05T08:42:21.891808+02:00",
+  "last_run": "2026-08-05T11:07:35.832339+02:00",
   "cooldowns": {
     "anomaly_score_jump_XRX": "2026-05-03T18:47:15.315486+02:00",
     "anomaly_uoa_extreme_TDOC": "2026-05-04T13:47:00.365949+02:00",
@@ -95,18 +95,6 @@
     "earnings_immediate_METC_04.08.2026": "2026-08-05T00:33:00.416216+02:00"
   },
   "push_history": [
-    {
-      "ts": "2026-07-20T06:05:04.880388+02:00",
-      "ticker": "WOLF",
-      "kind": "exit_p2",
-      "severity": "trigger",
-      "trigger": "trend_break",
-      "body": "🔻 Exit-Signal WOLF: trend_break crit ({'ma21': 39.7066, 'price': 29.89, 'drop_pct': 24.72})",
-      "success": true,
-      "suppressed": false,
-      "suppress_reason": null,
-      "conviction_score": null
-    },
     {
       "ts": "2026-07-20T11:34:39.291831+02:00",
       "ticker": "FRMM",
@@ -1294,22 +1282,34 @@
       "suppressed": false,
       "suppress_reason": null,
       "conviction_score": 86
+    },
+    {
+      "ts": "2026-08-05T11:07:36.091071+02:00",
+      "ticker": "IONQ",
+      "kind": "exit_p2",
+      "severity": "trigger",
+      "trigger": "catalyst,profit_lock",
+      "body": "🔻 Exit-Signale IONQ: catalyst, profit_lock crit · Warnung pressure 68/100",
+      "success": true,
+      "suppressed": false,
+      "suppress_reason": null,
+      "conviction_score": null
     }
   ],
   "prev_conviction_scores": {
-    "DDD": 81.0,
-    "IBTA": 79.0,
-    "WOLF": 58.0,
-    "METC": 86.0,
-    "LGIH": 78.0,
-    "AMRC": 63.0,
-    "NUWE": 49.0,
-    "DFH": 70.0,
-    "ORIC": 75.0,
-    "VOYG": 51.0,
+    "IBTA": 69.0,
+    "LGIH": 55.0,
+    "METC": 59.0,
+    "DDD": 66.0,
+    "AMRC": 52.0,
+    "WOLF": 44.0,
+    "DFH": 58.0,
+    "NUWE": 36.0,
+    "ORIC": 62.0,
+    "INSP": 51.0,
     "PDYN": 33.0,
     "AI": 40.0,
-    "IONQ": 17.0,
+    "IONQ": 18.0,
     "AMC": 13.0
   },
   "exit_cooldowns": {
@@ -1351,23 +1351,24 @@
     "IONQ": {
       "last_active": [
         "__warning__",
+        "catalyst",
         "profit_lock"
       ],
-      "last_push_date": "2026-08-04",
+      "last_push_date": "2026-08-05",
       "esc_alerted": false,
-      "updated": "2026-08-05T08:42:21.891902+02:00"
+      "updated": "2026-08-05T11:07:36.091115+02:00"
     },
     "PDYN": {
       "last_active": [],
       "last_push_date": "2026-07-24",
       "esc_alerted": false,
-      "updated": "2026-08-05T08:42:21.891918+02:00"
+      "updated": "2026-08-05T11:07:36.091142+02:00"
     },
     "AI": {
       "last_active": [],
       "last_push_date": "2026-07-28",
       "esc_alerted": false,
-      "updated": "2026-08-05T08:42:21.891929+02:00"
+      "updated": "2026-08-05T11:07:36.091154+02:00"
     },
     "FRMM": {
       "last_active": [],
@@ -1389,7 +1390,7 @@
       ],
       "last_push_date": "2026-07-24",
       "esc_alerted": false,
-      "updated": "2026-08-05T08:42:21.891942+02:00"
+      "updated": "2026-08-05T11:07:36.091170+02:00"
     }
   }
 }
