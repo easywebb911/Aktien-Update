@@ -1,17 +1,17 @@
 {
-  "updated": "2026-08-05T14:16:58.316797+02:00",
+  "updated": "2026-08-05T15:18:25.430841+02:00",
   "run_info": {
     "tickers_checked": 14,
     "signals_active": 4,
     "alerts_sent": 0,
-    "elapsed_s": 22.4,
+    "elapsed_s": 37.6,
     "market_phase": "Pre-Market"
   },
   "signals": {
     "AI": {
-      "score": 43,
+      "score": 30,
       "confidence": 33,
-      "drivers": "News: short interest + Earnings in 35d + SEC Form 4 + UOA Call/Put 9.6×",
+      "drivers": "News-KI 12/30: C3 AI shows weak momentum (sitting out rallies) and employee grants suggest dilution concerns; no significant short sque + Earnings in 35d + UOA Call/Put 9.6×",
       "price": 10.05,
       "chg_pct": 0.0,
       "rvol_4d": 0.76,
@@ -23,7 +23,7 @@
       "stocktwits": null,
       "combo_mult": 1.0,
       "active_triggers": 1,
-      "ki_sentiment_source": "keyword",
+      "ki_sentiment_source": "llm",
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 9.6×"
@@ -96,14 +96,12 @@
         "UOA Call/Put 5.1×"
       ],
       "uoa_atm_ratio": 0.4010416666666667,
-      "uoa_cp_ratio": 5.101182654402103,
-      "push_silenced": true,
-      "silenced_reason": "+35% 2T"
+      "uoa_cp_ratio": 5.101182654402103
     },
     "DFH": {
-      "score": 40,
+      "score": 25,
       "confidence": 33,
-      "drivers": "Spanne 8.4% + News: squeeze, takeover",
+      "drivers": "Spanne 8.4% + News: squeeze",
       "price": 14.29,
       "chg_pct": -0.0,
       "rvol_4d": 1.41,
@@ -140,14 +138,12 @@
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": 0.5847457627118644,
-      "uoa_cp_ratio": 0.847926267281106,
-      "push_silenced": true,
-      "silenced_reason": "+56% 2T"
+      "uoa_cp_ratio": 0.847926267281106
     },
     "INSP": {
-      "score": 43,
+      "score": 55,
       "confidence": 70,
-      "drivers": "Volumen 2.7× + Spanne 10.4% + News-KI 8/30: Positive earnings and raised guidance suggest strong fundamentals but indicate institutional confidence, reducing likeli + SEC Form 4",
+      "drivers": "Volumen 2.7× + Spanne 10.4% + News: earnings beat + SEC Form 4",
       "price": 64.14,
       "chg_pct": -0.0,
       "rvol_4d": 2.74,
@@ -157,9 +153,9 @@
       "upcoming_event": null,
       "insider_buy": false,
       "stocktwits": null,
-      "combo_mult": 1.0,
-      "active_triggers": 1,
-      "ki_sentiment_source": "llm",
+      "combo_mult": 1.1,
+      "active_triggers": 2,
+      "ki_sentiment_source": "keyword",
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": 0.15772870662460567,
@@ -187,9 +183,9 @@
       "uoa_cp_ratio": 1.2605386917486106
     },
     "LGIH": {
-      "score": 40,
-      "confidence": 70,
-      "drivers": "Volumen 2.0× + Spanne 9.7% + SEC 8-K",
+      "score": 25,
+      "confidence": 33,
+      "drivers": "Volumen 2.0× + Spanne 9.7%",
       "price": 61.46,
       "chg_pct": -0.0,
       "rvol_4d": 1.97,
@@ -200,7 +196,7 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 1,
+      "active_triggers": 0,
       "ki_sentiment_source": "keyword",
       "uoa_score": 0,
       "uoa_drivers": [],
@@ -208,9 +204,9 @@
       "uoa_cp_ratio": 1.8620689655172413
     },
     "METC": {
-      "score": 25,
+      "score": 40,
       "confidence": 33,
-      "drivers": "Spanne 7.0% + News: short interest",
+      "drivers": "Spanne 7.0% + SEC 8-K + News: short interest",
       "price": 9.64,
       "chg_pct": 0.0,
       "rvol_4d": 1.29,
@@ -229,9 +225,9 @@
       "uoa_cp_ratio": 1.7399605003291638
     },
     "NUWE": {
-      "score": 36,
+      "score": 43,
       "confidence": 70,
-      "drivers": "Spanne 31.9% + News-KI 8/30: Positive product development and clinical validation news, but small offering dilution and lack of major short interest  + Earnings in 8d + SEC Form 4",
+      "drivers": "Spanne 31.9% + News: short interest + Earnings in 8d + SEC Form 4",
       "price": 1.88,
       "chg_pct": -0.0,
       "rvol_4d": 1.03,
@@ -242,17 +238,17 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 0,
-      "ki_sentiment_source": "llm",
+      "active_triggers": 1,
+      "ki_sentiment_source": "keyword",
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": null,
       "uoa_cp_ratio": null
     },
     "ORIC": {
-      "score": 25,
-      "confidence": 33,
-      "drivers": "Volumen 2.7× + Spanne 29.0%",
+      "score": 33,
+      "confidence": 70,
+      "drivers": "Volumen 2.7× + Spanne 29.0% + News-KI 8/30: Routine clinical and financial updates lack short squeeze catalysts like high short interest, forced buying triggers, or",
       "price": 13.47,
       "chg_pct": 0.0,
       "rvol_4d": 2.71,
@@ -264,7 +260,7 @@
       "stocktwits": null,
       "combo_mult": 1.0,
       "active_triggers": 1,
-      "ki_sentiment_source": "keyword",
+      "ki_sentiment_source": "llm",
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": 0.7368421052631579,
@@ -273,7 +269,7 @@
     "PDYN": {
       "score": 99,
       "confidence": 70,
-      "drivers": "Earnings in 1 Tagen (06.08.2026) + Volumen 1.6× + Spanne 6.7% + News: contract, partnership + Earnings in 1d + UOA Call/Put 4.9×",
+      "drivers": "Earnings in 1 Tagen (06.08.2026) + Volumen 1.6× + Spanne 6.7% + News: partnership, contract + Earnings in 1d + UOA Call/Put 4.9×",
       "price": 6.0,
       "chg_pct": 0.0,
       "rvol_4d": 1.62,
@@ -294,9 +290,9 @@
       "uoa_cp_ratio": 4.911764705882353
     },
     "WOLF": {
-      "score": 40,
+      "score": 28,
       "confidence": 70,
-      "drivers": "Spanne 6.8% + News-KI 12/30: Board appointment is positive but doesn't indicate short squeeze potential; no mention of short interest, unusual volume + Earnings in 22d + UOA Call/Put 4.7×",
+      "drivers": "Spanne 6.8% + Earnings in 22d + UOA Call/Put 4.7×",
       "price": 27.06,
       "chg_pct": -0.0,
       "rvol_4d": 1.41,
@@ -307,8 +303,8 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 1,
-      "ki_sentiment_source": "llm",
+      "active_triggers": 0,
+      "ki_sentiment_source": "keyword",
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 4.7×"
