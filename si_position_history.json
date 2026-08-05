@@ -1050,6 +1050,12 @@
       "shares_short": 4390135,
       "short_pct_float": 17.23,
       "pub_date": "2026-07-10"
+    },
+    {
+      "settlement_date": "2026-07-15",
+      "shares_short": 4596035,
+      "short_pct_float": 18.04,
+      "pub_date": "2026-07-24"
     }
   ],
   "VOR": [
