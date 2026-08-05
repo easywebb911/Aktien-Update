@@ -231,11 +231,15 @@ def _test_earnings_body_neutral():
            f"got {body!r}")
     _check("B-earn KEIN '🔥 Monster'-Aufmacher mehr", "🔥 Monster" not in body,
            f"got {body!r}")
-    _check("B-earn Setup steht VOR Monster (Setup zuerst)",
-           "Setup" in body and body.find("Setup") < body.find("Monster"),
+    # Seit 06.08.2026 (Option A, Earnings-Alert-Umbenennung): der Earnings-Sofort-
+    # Push rendert GAR KEINE Score-Zahlen mehr (kein Setup/KI/Monster) — stärkste
+    # Monster-Neutralisierung: der Wert taucht im Body überhaupt nicht auf.
+    _check("B-earn KEINE Score-Zahlen im Body (Setup/KI/Monster nicht gerendert)",
+           "Monster" not in body and "95" not in body
+           and "72" not in body and "80" not in body,
            f"got {body!r}")
-    _check("B-earn Monster nachrangig in Klammer",
-           "(Monster 95)" in body, f"got {body!r}")
+    _check("B-earn Ereignis-Framing statt Signal ('kein Squeeze-Signal')",
+           "kein Squeeze-Signal" in body, f"got {body!r}")
     # Grep: '🔥 Monster' nirgends mehr als Push-Headline im Code.
     ki_src = (ROOT / "ki_agent.py").read_text(encoding="utf-8")
     gr_src = (ROOT / "generate_report.py").read_text(encoding="utf-8")

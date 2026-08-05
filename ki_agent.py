@@ -1832,11 +1832,12 @@ def send_ntfy_alert(ticker: str, ki_score: int, drivers,
     ``production_score`` ist der Setup-Score aus ``score_history.json``.
     ``monster_score`` ist die kombinierte Bewertung (siehe ``_monster_score``).
 
-    Body-Format:
-      • Monster + Setup vorhanden → ``🚀 Setup N | KI N (Monster N) – drivers``
-        (Monster nachrangig in Klammer — unvalidiert, kein Aufmacher)
-      • nur Setup vorhanden       → ``🚀 Score N | KI-Signal N – drivers``
-      • beide fehlend             → ``🚀 KI-Signal N – drivers``
+    Body-Format (reine EREIGNIS-Anzeige, ab 06.08.2026):
+      ``{ticker} — anstehendes Earnings-Ereignis, kein Squeeze-Signal · drivers``
+    Die Score-Argumente (``ki_score`` / ``production_score`` / ``monster_score``)
+    werden **nicht mehr gerendert** — sie haben keine Push-Schwelle (der Auslöser
+    ist rein Earnings-Nähe, siehe Aufrufstelle) und wurden als Kaufsignal-Stärke
+    fehlgelesen. Signatur bleibt für Aufrufer-Kompatibilität erhalten.
 
     Topic leer oder ``NTFY_ENABLED=False`` → no-op (graceful skip).
     """
@@ -1846,24 +1847,20 @@ def send_ntfy_alert(ticker: str, ki_score: int, drivers,
         drivers_str = " + ".join(drivers) if drivers else "—"
     else:
         drivers_str = str(drivers) if drivers else "—"
-    if monster_score is not None and production_score is not None:
-        # Setup zuerst (validierte Achse), Monster nachrangig in Klammer —
-        # kein Feuer-Emoji-Monster-Aufmacher mehr (monster_score unvalidiert,
-        # 30.06. AUC 0.76→0.51 kollabiert; Neutralisierung 13.07.2026).
-        body = (f"{ticker} 🚀 Setup {production_score:.0f} | KI {ki_score} "
-                f"(Monster {monster_score:.0f}) – {drivers_str}")
-    elif production_score is not None:
-        body = f"{ticker} 🚀 Score {production_score:.1f} | KI-Signal {ki_score} – {drivers_str}"
-    else:
-        body = f"{ticker} 🚀 KI-Signal {ki_score} – {drivers_str}"
+    # Reine EREIGNIS-Anzeige: dieser Push meldet ein anstehendes Earnings-Ereignis,
+    # KEIN Squeeze-Kaufsignal. Score-Argumente werden bewusst nicht mehr gerendert
+    # (keine Push-Schwelle; sie wurden nachts als Signal-Stärke fehlgelesen —
+    # IONQ 06.08.2026). Kein Raketen-Emoji (las sich als Kaufsignal).
+    body = (f"{ticker} — anstehendes Earnings-Ereignis, kein Squeeze-Signal · "
+            f"{drivers_str}")
     try:
         requests.post(
             f"https://ntfy.sh/{NTFY_TOPIC}",
             data=body.encode("utf-8"),
             headers={
-                "Title": f"Squeeze Alert: {ticker}",
+                "Title": f"Earnings-Alert: {ticker}",
                 "Priority": "high",
-                "Tags": "chart_with_upwards_trend",
+                "Tags": "calendar",
             },
             timeout=5,
         )
@@ -3467,6 +3464,13 @@ def main() -> None:
                     earnings_immediate = True
                     log.info("  %s Earnings-Sofort-Alert (Earnings in %dd, 8K-frisch: %s, News: %s)",
                              ticker, earnings_days, is_8k_fresh, has_earnings_news)
+                    # EARNINGS-SOFORT-PFAD — einzige Aufrufstelle von
+                    # send_ntfy_alert. Der Push heißt seit 06.08.2026
+                    # "Earnings-Alert" (nicht "Squeeze Alert"): der alte Titel war
+                    # ein Refactor-Rest des entfernten allgemeinen KI-Score-Pushes
+                    # und las sich als Kaufsignal. Dies ist ein reiner Ereignis-
+                    # Hinweis (Earnings 0–1d + frisches 8-K/News), KEIN Squeeze-
+                    # Signal — Auslöse-Bedingung oben unverändert.
                     send_ntfy_alert(ticker, ki_sc, drivers,
                                     production_score=setup_sc, monster_score=monster)
                     # send_ntfy_alert returnt None — Success-Proxy aus
