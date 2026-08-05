@@ -645,33 +645,84 @@ nur bei `available=True`.
 
 ## 4) GEPLANTE AUFGABEN + WIEDERVORLAGEN (mit Daten)
 
-### RE-TEST-KALENDER (kanonisch, Stand 13.07.)
+### RE-TEST-KALENDER (kanonisch, Stand 05.08.2026)
 
 | Datum | Was | n-Ziel | Notiz |
 |---|---|---|---|
 | ✅ **DURCHGEFÜHRT 15.07.** | ki_signal_score-Edge-Re-Test | n=55 gereift | **KEIN belegter Effekt** (Details §5). Re-Test-Bedingung neu **datengetrieben, nicht kalendarisch:** **WIN-Bucket ≥ 20** (aktuell nur 13!) **UND zweites Marktregime** im Sample. Nicht „~Mitte Aug" — die Kalender-Angabe war irreführend, es zählt der WIN-Bucket + Regime-Diversität. |
 | **~Ende Juli / Anfang Aug** (korrigiert) | Conviction-Edge (Prüfpunkt P3 aus 30.06.) | n ≥ 100 gereift | **Termin vorgezogen** (Sammel-Raten-Diagnose 15.07.): 112 gesammelt / 20 gereift → n≥100 gereift bereits ~Ende Juli/Anfang Aug (das frühere „~Ende Aug" war Puffer). Composite aus Setup/Earliness/Anomaly/Regime — Aggregations-Anzeige, Edge selbst unbelegt. |
-| **~Mitte/Ende Sept 2026** (bestätigt) | Setup-Edge-Re-Test | n ≥ 250 gereift | Andere Marktphase zwingend (30.06.-Sample Mai–Juni-lastig, 91 % pre-#346). **Engpass gemessen:** Score≥70-Anteil nur **36 %** (~2,7 gereifte Score≥70-Records/Handelstag) → das bindet n≥250, nicht die Roh-Rate. |
-| **~Mitte/Ende Sept 2026** (bestätigt) | Exit-Timing B.1-Hinweis-Re-Test | n ≥ 250 | 01.07. Punktschätzung Δ ~+4 pp (5d/3d vs 10d in Score≥70-Bucket), Holm-negativ — Re-Test zur Bestätigung. |
+| **datumsfrei · Auslöser n≥250** | **Exit-B.1-Re-Test** — **vorabregistriert (eingefroren 05.08.2026)** | n ≥ 250 · `score≥70` ∧ `provenance=forward` | Volle Registrierung im Block direkt unter der Tabelle. Quelle `matured_backtest_export.jsonl` (append-only, prune-immun). **Heute n=0.** Projektion ~Mitte Nov. 2026 (unsicher, **kein Termin**). |
+| **entfällt** | ~~Setup-Edge-Re-Test~~ — **NICHT vorabregistriert** (Herausnahme 05.08.2026) | — | Zielgröße/Schwelle/Erfolgskriterium wurden **nie festgelegt** (Ursprung #394 = 15 gesammelte Hypothesen, 0/15 Holm — welche geprüft werden soll, wurde nie bestimmt). Neu-Registrierung mit **eigenem Freeze-Datum** bei Bedarf; **bis dahin existiert kein Setup-Edge-Re-Test.** Details im Block unten. |
 
-**⚠ Prune-Deckel auf der Zielpopulation (Momentaufnahme 03.08.2026).** Die zwei
-Sept-Zeilen oben zählen score≥70-**gereifte** daily-Records aus `backtest_history.json`
-— die Datei unterliegt dem **90-Tage-Prune** (`BACKTEST_MAX_DAYS=90`,
-`_prune_backtest_history`, nur postclose; bootstrap prune-immun). Der score≥70-
-gereifte Pool im Live-File ist damit ein **rollendes Fenster**: am Takt vom 03.08.
-(**2,69 gereifte score≥70-Records/Handelstag**) deckelt er bei **~145** → **n≥250 aus
-dem gepruneten File nicht erreichbar** (heute 248 im File, davon **234 datiert < 13.07.**
-→ prunen bis September weg, nur **14** ≥ 13.07.). Die erste Forward-Charge (13.07.)
-prunet ~**11.10.2026**. **Konsequenz für die Vorabregistrierung: die Datenquelle
-festlegen** — gepruneter Live-Snapshot vs. akkumulierender Export der gereiften
-Records. **Datenhaltungs-Entscheidung offen** — die Termine/n-Ziele oben bleiben
-dadurch **unverändert** (hier NICHT vorweggenommen). Alle Zahlen = datierte
-Momentaufnahme 03.08.2026 (Quelle: Prune-Diagnose 03.08., `git`-belegt).
+### VORABREGISTRIERUNG — eingefroren 05.08.2026
 
-#### ⚠ Datenherkunft der beiden Sept-Re-Tests — gap-NaN-Erkennbarkeitsgrenze (Stand 29.07.2026)
+**(Ersetzt den früheren September-Termin und den #500-Prune-Deckel ~145 — eine
+Wahrheit, keine Parallel-Angabe.)**
 
-**Gilt für die zwei Sept-Zeilen oben (Setup-Edge n≥250 · Exit-Timing B.1 — beide
-Score≥70-Bucket): bei der Vorabregistrierung mitlesen.** (Bewusst hier verankert
+**Datenquelle & n-Definition (Definition A).** Gezählt wird **ausschließlich aus
+`matured_backtest_export.jsonl`** (append-only, **prune-immun**) — **NICHT** aus
+`backtest_history.json` (das unterliegt dem 90-Tage-Prune `BACKTEST_MAX_DAYS=90`).
+Damit ist der frühere **~145-Deckel aus #500 aufgehoben**: der gereifte Pool verfällt
+nicht mehr. **n = Records mit `score ≥ 70` UND `provenance == "forward"`** (Outcome
+erst nach Export-Existenz gereift = sauberes Out-of-Sample). **Heute n = 0.**
+
+- **In-Sample zählt NIE:** die **242** `score≥70`-Records im heutigen Export tragen
+  alle `provenance=backfill` — ihr Outcome war beim 04.08.-Import bereits bekannt.
+  Sie sind **kein** OoS und zählen **nie** zum n. (**242 ist die Gesamtzahl** — die
+  14 unten sind eine **Teilmenge davon**, NICHT additiv: 242, nicht 256.)
+- **Davon 14** `score≥70`-Records mit entry ≥ 13.07. (alle ebenfalls
+  `provenance=backfill`, da `provenance=forward` heute 0): zählen **ebenfalls nicht**
+  zum primären n, werden aber **separat als Sensitivitäts-Gegenprobe** ausgewiesen
+  („**OoS nach Datum, Outcome bei Import bekannt**") — nie ins primäre n gemischt. Die
+  übrigen **228** sind In-Sample nach **Datum UND Herkunft**.
+
+**Auslöser (datumsfrei):** Der Test läuft, **sobald n ≥ 250** erreicht ist — **kein
+Kalendertermin**. **Projektion** bei Takt ~**3,6** `score≥70`-Forward-Records/
+Handelstag: **~Mitte November 2026** — ausdrücklich eine **unsichere Schätzung, kein
+Termin** (der Takt schwankt mit Marktphase / Top-10-Rotation).
+
+**Vorabregistrierter Test — Exit-B.1 (Exit-Timing-Hinweis).**
+- **Zielgröße:** Return-Differenz **Δ(5d−10d)** und **Δ(3d−10d)** im **`score≥70`-
+  Bucket** (Früh-raus-Vorteil gegenüber dem 10-Tage-Halten).
+- **Erfolgskriterium** (globale Erfolgs-Definition §5, an die Δ-pp-Metrik gebunden) —
+  belegte Edge **nur wenn**: **(a)** Holm-signifikant über die **zwei** vorab
+  benannten Größen Δ(5d−10d) und Δ(3d−10d) (**k = 2**); **(b)** das **Bootstrap-CI
+  der Δ schließt 0 aus** (untere Grenze > 0 in der erwarteten Richtung — ersetzt für
+  diese pp-Metrik die AUC-CI-Formulierung); **(c)** plausibel im Regime-Split
+  reproduzierbar. **Punktschätzung ist nie Beleg.**
+- **Auswertungsverfahren (verbatim wie bisher):** `mann_whitney_u_auc` + Holm +
+  Cluster-Doppellauf, Bootstrap-CI, **N = 2000**, fester Seed.
+- **Altzahlen sind REFERENZ, NICHT die Schwelle:** die In-Sample-Punktschätzung vom
+  01.07. (Δ(5d−10d) **+3,81 pp**, Δ(3d−10d) **+4,67 pp**, n=110) dient **nur zur
+  Einordnung der Richtung** — sie ist **ausdrücklich keine Zielmarke**. Die Schwelle
+  ist allein das Kriterium (a)/(b)/(c) oben.
+
+**Setup-Edge-Re-Test — NICHT (mehr) vorabregistriert (Herausnahme 05.08.2026).**
+Zielgröße/Schwelle/Erfolgskriterium wurden **nie festgelegt** (Ursprung #394 = **15
+gesammelte Hypothesen, 0/15 Holm** — welche davon geprüft werden soll, wurde nie
+bestimmt). Deshalb aus dem registrierten Kalender **herausgenommen**. Wird bei Bedarf
+als **neue** Registrierung mit **eigenem Freeze-Datum** aufgesetzt; **bis dahin
+existiert kein Setup-Edge-Re-Test.** (Keine der 15 Hypothesen wird hier
+vorausgewählt.)
+
+**Freeze-Status 05.08.2026 — warum Definition A (nicht B).** „Forward" ist an
+**`provenance=forward`** gebunden (**A**), **nicht** an entry-Datum ≥ 13.07. (**B**).
+Grund, git-belegt: ein sauberer, unangetasteter Freeze **strikt vor** dem 13.07.
+liegt **nicht** vor — die Outcomes wurden **nach** dem 13.07. angesehen (**explorativer
+Paper-C-Read `f3f09ae`, 17.07.**) und die Population wurde **nach** dem 13.07.
+nachjustiert (**#494 `d2b1d5b`, 29.07.**). Records, deren Outcome beim 04.08.-Backfill-
+Import bereits bekannt war, können daher **kein** OoS sein — nur `provenance=forward`
+ist kontaminationsfrei (deckt sich mit der Datei-Eigen-Semantik `backfill →
+In-Sample-Vorsicht`).
+
+**Änderungs-Protokoll (bindend ab 05.08.2026):** **Keine Änderung an diesem §4-
+Registrierungsblock ohne datierten Protokolleintrag**, der die Änderung **und ihren
+Grund** festhält — jede spätere Anpassung muss so als Bruch sichtbar bleiben.
+
+#### ⚠ Datenherkunft des vorabregistrierten Exit-B.1-Re-Tests — gap-NaN-Erkennbarkeitsgrenze (Stand 29.07.2026)
+
+**Gilt für den vorabregistrierten Exit-B.1-Re-Test oben (Score≥70-Bucket): bei der
+Vorabregistrierung mitlesen.** (Bewusst hier verankert
 statt in einem Code-Kommentar: die Re-Test-Vorabregistrierung wird an genau dieser
 Kalender-Stelle gelesen, ein `# `-Kommentar in `generate_report.py`/`backtest_history.py`
 nicht.)
@@ -730,11 +781,15 @@ korrigieren.** Beleg für die Auflösung: an beiden Tagen lag der NaN nur im
 postclose-Lauf — z. B. **15.07. KUST** `score=80.52` und **27.07. GRPN**
 `score=89.46` (Erst-Append-Commit `6e005607e`, `gap_states NaN=[]`).
 
-**5) HINWEIS FÜR SEPTEMBER.** Beide Sept-Re-Tests laufen auf dem Score≥70-Bucket,
-dessen gereiftes Material **überwiegend aus der unbekannten Zone** (≤ 10.07.2026)
-stammt. Das ist bei der Vorabregistrierung **anzusprechen**. **WIE** damit
-umgegangen wird (einschließen · ausschließen · Sensitivitäts-Gegenprobe) wird
-**dort** entschieden — nicht hier, nicht nachträglich, kein Ausschluss-Automatismus.
+**5) HINWEIS FÜR DIE VORABREGISTRIERUNG.** Der Exit-B.1-Re-Test läuft auf dem
+Score≥70-Bucket. **Unter n-Definition A (`provenance=forward`)** stammt das gezählte
+Material ausschließlich aus entry ≥ ~20.07.2026 — also **innerhalb** des gap-NaN-
+beobachtbaren Fensters (≥ 11.07.), **nicht** aus der unbekannten Zone (≤ 10.07.). Der
+frühere Hinweis „überwiegend unbekannte Zone" galt für das Zählen aus dem gepruneten
+`backtest_history.json` und ist mit Definition A **hinfällig**; die 242 In-Sample-
+Records (teils in der unbekannten Zone) zählen ohnehin nie zum n. Eine etwaige
+Sensitivitäts-Gegenprobe (die 14 date-Forward-backfill-Records) wird **dort**
+bewertet — nicht hier, kein Ausschluss-Automatismus.
 
 **Sammel-Rate (gemessen 15.07., Hard-Facts):** **10 Records/Handelstag** (nur
 postclose, nur Top-10) = das Maximum ohne Populations-Wechsel. **Hard-Stop:
@@ -835,7 +890,8 @@ nach Postclose zeigt frischen Marktdaten-Stand) passiv offen — §3.**
 ### Erledigt (nicht mehr im Backlog)
 
 - **Hypothese C (Peak-Ziel, +10/+30/+50 %) — ERLEDIGT 04.07.2026.** Null belegt
-  (0/6 Holm). Wiedervorlage frühestens Herbst 2026 mit Setup-Re-Test.
+  (0/6 Holm). Wiedervorlage frühestens Herbst 2026 (falls je ein Setup-Re-Test **neu**
+  registriert wird — heute **nicht** vorabregistriert, siehe RE-TEST-KALENDER).
 
 ### Bau-Kandidaten (nicht Bau-Priorität — konkurrieren nach Re-Test-Befunden)
 
