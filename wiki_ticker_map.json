@@ -35,6 +35,15 @@
     "substrate": "en",
     "reason": null
   },
+  "AMPX": {
+    "qid": null,
+    "title": null,
+    "resolved_at": "2026-08-05T22:29:43Z",
+    "issuer_verified": false,
+    "company_name_at_resolve": "Amprius Technologies, Inc.",
+    "substrate": "none",
+    "reason": "no_p249"
+  },
   "AMRC": {
     "qid": "Q124723674",
     "title": null,
@@ -62,12 +71,30 @@
     "substrate": "none",
     "reason": "no_p249"
   },
+  "AZTA": {
+    "qid": "Q117169721",
+    "title": "Azenta",
+    "resolved_at": "2026-08-05T22:29:43Z",
+    "issuer_verified": true,
+    "company_name_at_resolve": "Azenta, Inc.",
+    "substrate": "en",
+    "reason": null
+  },
   "BATL": {
     "qid": null,
     "title": null,
     "resolved_at": "2026-07-29T22:16:00Z",
     "issuer_verified": false,
     "company_name_at_resolve": "Battalion Oil Corporation",
+    "substrate": "none",
+    "reason": "no_p249"
+  },
+  "BJDX": {
+    "qid": null,
+    "title": null,
+    "resolved_at": "2026-08-05T22:29:43Z",
+    "issuer_verified": false,
+    "company_name_at_resolve": "Bluejay Diagnostics, Inc.",
     "substrate": "none",
     "reason": "no_p249"
   },
@@ -188,6 +215,24 @@
     "substrate": "en",
     "reason": null
   },
+  "FTK": {
+    "qid": null,
+    "title": null,
+    "resolved_at": "2026-08-05T22:29:43Z",
+    "issuer_verified": false,
+    "company_name_at_resolve": "Flotek Industries, Inc.",
+    "substrate": "none",
+    "reason": "no_p249"
+  },
+  "FUBO": {
+    "qid": "Q28408034",
+    "title": "FuboTV",
+    "resolved_at": "2026-08-05T22:29:43Z",
+    "issuer_verified": true,
+    "company_name_at_resolve": "FuboTV Inc.",
+    "substrate": "en",
+    "reason": null
+  },
   "GRPN": {
     "qid": "Q852787",
     "title": "Groupon",
@@ -239,6 +284,15 @@
     "resolved_at": "2026-07-27T22:29:48Z",
     "issuer_verified": true,
     "company_name_at_resolve": "Jack in the Box Inc.",
+    "substrate": "en",
+    "reason": null
+  },
+  "JJSF": {
+    "qid": "Q6109309",
+    "title": "J&J_Snack_Foods",
+    "resolved_at": "2026-08-05T22:29:43Z",
+    "issuer_verified": true,
+    "company_name_at_resolve": "J&J Snack Foods Corp.",
     "substrate": "en",
     "reason": null
   },
@@ -350,6 +404,15 @@
     "substrate": "en",
     "reason": null
   },
+  "PRGO": {
+    "qid": "Q2916497",
+    "title": "Perrigo",
+    "resolved_at": "2026-08-05T22:29:43Z",
+    "issuer_verified": true,
+    "company_name_at_resolve": "Perrigo Company plc",
+    "substrate": "en",
+    "reason": null
+  },
   "REPL": {
     "qid": null,
     "title": null,
@@ -383,6 +446,15 @@
     "resolved_at": "2026-07-31T22:17:42Z",
     "issuer_verified": false,
     "company_name_at_resolve": "Shuttle Pharmaceuticals Holdings, Inc.",
+    "substrate": "none",
+    "reason": "no_p249"
+  },
+  "SNDX": {
+    "qid": null,
+    "title": null,
+    "resolved_at": "2026-08-05T22:29:43Z",
+    "issuer_verified": false,
+    "company_name_at_resolve": "Syndax Pharmaceuticals, Inc.",
     "substrate": "none",
     "reason": "no_p249"
   },
