@@ -833,8 +833,16 @@ Nach dem 17.07.-Backfill koexistieren **zwei Populationen** von
   (aktuell **42**, wachsend **10/Handelstag**). Nur diese tragen den registrierten
   Out-of-Sample-Nachweis.
 
+**⚠ Begriffs-Disambiguierung „forward" (nicht verwechseln):** Hier — im Paper-C-
+Momentum-Test (`entry_past_return_5d`) — ist „forward"/„vorwärts" **datums-basiert**
+gemeint: die **ab 13.07.2026 gesammelten** Records (Quelle: `backtest_history.json`-
+Backfill/Manifest). Das ist **NICHT** dasselbe „forward" wie in der **§4-Exit-B.1-
+Vorabregistrierung**, wo `provenance=forward` gemeint ist (**Definition A**,
+Herkunftsfeld aus `matured_backtest_export.jsonl`). **Zwei verschiedene Tests, zwei
+verschiedene Datenquellen, zwei verschiedene „forward"-Begriffe** — nie gleichsetzen.
+
 **Regel:** jede Paper-C-Auswertung muss explorativ (backfilled) und konfirmatorisch
-(forward) **getrennt ausweisen**. **Explorativer Read DURCHGEFÜHRT 17.07.** (Slot-29
+(forward, hier datums-basiert — siehe Disambiguierung oben) **getrennt ausweisen**. **Explorativer Read DURCHGEFÜHRT 17.07.** (Slot-29
 registriert, Details §5 „PAPER-C-READ"): **KEIN belegter Effekt** — konfirmatorische
 Klammer leer (OoS `return_10d` 0 gereift, `max_gain` n_win=3 < Floor); In-Sample nur
 explorativ (Peak-spezifischer Momentum-Hinweis auf `max_gain_pct`, AUC ~0.61 Holm-
@@ -1469,10 +1477,12 @@ teuerste Fehler ist gerade der, der so billig aussieht. **NICHT tun.**
 ### 8z2. Wartezeit ist kein Engpass, sondern der Out-of-Sample-Schutz (15.07.)
 
 Die Sammlung läuft bereits an ihrer legitimen **Maximal-Rate** (10 Top-10-Records/
-Handelstag), gebunden an die immutabele `return_10d`-Reifung (10 Handelstage) und
-für Setup an die **neue-Marktphase-Auflage** (Kalender). Diese Auflage ist **by
-design**: der Setup-Re-Test „~Ende Sept" ist absichtlich so terminiert, dass er in
-einem **anderen Regime** läuft (OoS-Beweiswert). „Beschleunigen" hieße, entweder
+Handelstag), gebunden an die immutabele `return_10d`-Reifung (10 Handelstage). Das
+**Neue-Marktphase-Prinzip** — ein Re-Test soll in einem **anderen Regime** laufen
+(OoS-Beweiswert) — bleibt als generelle Disziplin gültig, ist aber **an keinen
+bestimmten Test und keinen Termin gebunden**: der frühere „Setup-Re-Test ~Ende Sept"
+ist seit **05.08.2026 nicht mehr vorabregistriert** und hat **keinen Termin**
+(§4-Herausnahme, keine Ersatz-Spezifikation). „Beschleunigen" hieße, entweder
 die Population zu wechseln (§8z1) oder die Reifungsuhr zu schlagen (unmöglich) —
 in jedem Fall **Beweiswert wegoptimieren**. Der einzige risikofreie Zeitgewinn:
 den ki_signal-Read vorziehen, wenn n reif ist (getan 15.07.), + der price-basierte
