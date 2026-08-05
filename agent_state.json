@@ -1,5 +1,5 @@
 {
-  "last_run": "2026-08-05T20:53:12.589450+02:00",
+  "last_run": "2026-08-05T22:40:07.862422+02:00",
   "cooldowns": {
     "anomaly_score_jump_XRX": "2026-05-03T18:47:15.315486+02:00",
     "anomaly_uoa_extreme_TDOC": "2026-05-04T13:47:00.365949+02:00",
@@ -92,21 +92,10 @@
     "earnings_immediate_SBH_03.08.2026": "2026-08-03T23:05:20.836032+02:00",
     "earnings_immediate_IONQ_05.08.2026": "2026-08-04T23:36:28.999749+02:00",
     "earnings_immediate_LGIH_04.08.2026": "2026-08-05T00:33:00.169122+02:00",
-    "earnings_immediate_METC_04.08.2026": "2026-08-05T00:33:00.416216+02:00"
+    "earnings_immediate_METC_04.08.2026": "2026-08-05T00:33:00.416216+02:00",
+    "earnings_immediate_PDYN_06.08.2026": "2026-08-05T22:40:07.230945+02:00"
   },
   "push_history": [
-    {
-      "ts": "2026-07-20T11:34:39.291831+02:00",
-      "ticker": "FRMM",
-      "kind": "exit_p1",
-      "severity": "default",
-      "trigger": "exit_alert",
-      "body": "FRMM 📉 Exit 65 | -18% | Trailing-Stop −20.5% vom Hoch",
-      "success": true,
-      "suppressed": false,
-      "suppress_reason": null,
-      "conviction_score": null
-    },
     {
       "ts": "2026-07-20T11:34:39.425522+02:00",
       "ticker": "LENZ",
@@ -1294,6 +1283,18 @@
       "suppressed": false,
       "suppress_reason": null,
       "conviction_score": null
+    },
+    {
+      "ts": "2026-08-05T22:40:07.230916+02:00",
+      "ticker": "PDYN",
+      "kind": "earnings_immediate",
+      "severity": "default",
+      "trigger": null,
+      "body": "PDYN Earnings-Sofort-Alert (in 1d, KI 72)",
+      "success": true,
+      "suppressed": false,
+      "suppress_reason": null,
+      "conviction_score": 33
     }
   ],
   "prev_conviction_scores": {
@@ -1356,19 +1357,19 @@
       ],
       "last_push_date": "2026-08-05",
       "esc_alerted": false,
-      "updated": "2026-08-05T20:53:12.589572+02:00"
+      "updated": "2026-08-05T22:40:07.862509+02:00"
     },
     "PDYN": {
       "last_active": [],
       "last_push_date": "2026-07-24",
       "esc_alerted": false,
-      "updated": "2026-08-05T20:53:12.589588+02:00"
+      "updated": "2026-08-05T22:40:07.862526+02:00"
     },
     "AI": {
       "last_active": [],
       "last_push_date": "2026-07-28",
       "esc_alerted": false,
-      "updated": "2026-08-05T20:53:12.589599+02:00"
+      "updated": "2026-08-05T22:40:07.862538+02:00"
     },
     "FRMM": {
       "last_active": [],
@@ -1390,7 +1391,7 @@
       ],
       "last_push_date": "2026-07-24",
       "esc_alerted": false,
-      "updated": "2026-08-05T20:53:12.589611+02:00"
+      "updated": "2026-08-05T22:40:07.862552+02:00"
     }
   }
 }
