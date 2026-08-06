@@ -2997,6 +2997,9 @@ function _btRender(){
   let metaHtml = '<b>' + nTot + ' Datenpunkte</b> — davon <b>' + nBoot
     + '</b> bootstrap (historisch geschätzt) + <b>' + nDay
     + '</b> daily (live gemessen' + _dailyNewSuffix + '). '
+    + '<span style="display:block;margin-top:3px;font-size:.72rem;color:#94a3b8">'
+    + '90-Tage-Rollfenster — die Zahl kann sinken, ohne dass Daten verloren gehen; '
+    + 'gereifte Records bleiben dauerhaft prune-immun gesichert (seit 04.08.).</span>'
     + '<em>Bootstrap-Scores sind vereinfachte Schätzungen aus SF + RVOL + Momentum und '
     + 'daher nicht 1:1 mit Live-Scores vergleichbar.</em>';
   if (_btSrc === 'live' && nBoot > 0){
