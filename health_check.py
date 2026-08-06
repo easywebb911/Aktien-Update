@@ -1794,12 +1794,75 @@ def provider_liveness(entries: list[dict],
     return out
 
 
+# ── §4-Re-Test-Zähler für den Digest-Push (fail-soft, BACKEND-only) ─────────
+# Macht den Fortschritt der Exit-B.1-Vorabregistrierung (SESSION_HANDOVER §4)
+# im täglichen Health-Check-Push sichtbar. Quelle: matured_backtest_export.jsonl
+# (append-only, prune-immun). REIN LESEND — KEIN Frontend-/Golden-/Render-Pfad:
+# die #501-Guard verbietet den Export nur im Frontend/Golden, ein Backend-Digest-
+# Leser ist davon nicht betroffen. „Löschbar ohne Nebenwirkung" bleibt erhalten:
+# fehlt/kaputt die Datei → „nicht ermittelbar", der Digest läuft unverändert.
+MATURED_EXPORT_FILE = config.MATURED_EXPORT_FILE
+_RETEST_SCORE_MIN = 70    # §4: score≥70-Bucket (Zielpopulation)
+_RETEST_N_TARGET  = 250   # §4: Auslöser n≥250
+
+
+def _count_matured_retest(export_path) -> tuple[int, int] | None:
+    """``(n_forward_ge70, total_zeilen)`` aus dem Matured-Export, oder ``None``
+    bei fehlender/unlesbarer Datei.
+
+    §4-Menge = ``provenance == "forward"`` UND ``score >= 70`` — **beide**
+    Bedingungen (weder forward allein noch score≥70 allein). Raise-frei: jede
+    Exception → ``None``. Leere-aber-lesbare Datei → ``(0, 0)``; unparsebare Zeile
+    zählt in ``total`` (ist eine Datei-Zeile), aber nicht in ``n`` (§4-Kriterien
+    nicht prüfbar); ``score`` fehlend/None/bool → nicht in ``n``."""
+    try:
+        n = 0
+        total = 0
+        with open(export_path, "r", encoding="utf-8") as fh:
+            for line in fh:
+                s = line.strip()
+                if not s:
+                    continue
+                total += 1
+                try:
+                    obj = json.loads(s)
+                except (json.JSONDecodeError, ValueError, TypeError):
+                    continue
+                if not isinstance(obj, dict):
+                    continue
+                sc = obj.get("score")
+                if (obj.get("provenance") == "forward"
+                        and isinstance(sc, (int, float))
+                        and not isinstance(sc, bool)
+                        and sc >= _RETEST_SCORE_MIN):
+                    n += 1
+        return n, total
+    except FileNotFoundError:
+        return None
+    except Exception:  # pragma: no cover — jede weitere I/O-/Encoding-Panne
+        return None
+
+
+def retest_counter_line(export_path=None) -> str:
+    """Eine Zeile für den Digest-Push — fail-soft (nie Exception, nie leer).
+    Datei fehlt/unlesbar → „nicht ermittelbar"."""
+    path = export_path if export_path is not None else MATURED_EXPORT_FILE
+    counts = _count_matured_retest(path)
+    if counts is None:
+        return "📊 Re-Test-Zähler (§4): nicht ermittelbar"
+    n, total = counts
+    return (f"📊 Re-Test-Zähler (§4): n = {n}/{_RETEST_N_TARGET} "
+            f"· Export {total} Zeilen")
+
+
 def format_digest_body(state_fails: list[dict],
                        provider_fails: list[dict],
                        *,
                        n_runs: int,
                        last_run_iso: str | None,
-                       digest_date: str) -> tuple[str, str, str, str | None]:
+                       digest_date: str,
+                       retest_line: str | None = None,
+                       ) -> tuple[str, str, str, str | None]:
     """Komponiert den ntfy-Body laut Spec Z. 175–211.
 
     Returnt ``(body, title, priority, tags)``.
@@ -1816,6 +1879,8 @@ def format_digest_body(state_fails: list[dict],
             f"0 Runs in den letzten 24h gefunden. Daily-Run oder "
             f"ki_agent liefen nicht — JSONL-Files leer."
         )
+        if retest_line:
+            body += f"\n{retest_line}"
         return body, "📭 Health-Check ohne Daten", "high", "warning"
 
     # Recency-Gating (28.07.2026): erholte State-Fails („war kaputt, ist
@@ -1846,6 +1911,8 @@ def format_digest_body(state_fails: list[dict],
             body_lines.append(
                 f"↩︎ {f['id']} erholt seit {f.get('recovered_since') or '—'} "
                 f"(kein Alarm, {f.get('count', 1)}× im 24h-Fenster)")
+        if retest_line:
+            body_lines.append(retest_line)
         body_lines.append(f"Letzter Run: {last_run_iso or '—'}")
         return "\n".join(body_lines), "✅ Health-Check OK", "default", None
 
@@ -1880,6 +1947,8 @@ def format_digest_body(state_fails: list[dict],
             lines.append(f"  • {f['provider']} (Tier {f['tier']}): "
                          f"{f.get('reason','')}{tail}")
         lines.append("")
+    if retest_line:
+        lines.append(retest_line)
     lines.append(f"Letzter erfolgreicher Run: {last_run_iso or '—'}")
     body = "\n".join(lines).rstrip() + "\n"
     return body, "⚠️ Health-Check-Digest", "high", "warning"

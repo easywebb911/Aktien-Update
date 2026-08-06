@@ -55,7 +55,7 @@ ALLOWLIST = [
     "position_panel_locked", "positions_current_price", "probe_quote_proxy", "provider_consecutive_threshold_override",
     "provider_health", "provider_health_tier2", "provider_health_tier3", "provider_liveness",
     "push_history", "push_inflation_gating", "quote_polling", "quote_proxy_url_injection",
-    "recalc_dispatch_run_phase", "redeploy_workflow_run_phase", "report_date_et", "rs_spy_merged_row",
+    "recalc_dispatch_run_phase", "redeploy_workflow_run_phase", "report_date_et", "retest_counter", "rs_spy_merged_row",
     "attention_wiki", "purge_attention_wiki", "source_pool", "purge_source_pool", "reload_toast", "run_phase_resolution", "runphase_pill", "rvol_normalization", "s10_data_integrity",
     "material_8k", "purge_material_8k_events",
     "ssr_restriction", "purge_ssr_restriction",

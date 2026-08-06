@@ -265,11 +265,22 @@ def main(*, now_ts: datetime | None = None,
     n_runs = len(state_entries)
     last_run_iso = _latest_run_ts(state_entries) or _latest_run_ts(prov_entries)
 
+    # §4-Re-Test-Zähler (fail-soft, backend-only): eine Zeile im Push-Body.
+    # retest_counter_line ist bereits raise-frei; der try/except ist reine
+    # Absicherung, damit der Digest durch diese Zeile unter KEINEN Umständen
+    # scheitert (fällt sonst auf „keine Zeile" zurück).
+    try:
+        retest_line = hc.retest_counter_line(ROOT / hc.MATURED_EXPORT_FILE)
+    except Exception as _rc_exc:  # pragma: no cover — Helper ist raise-frei
+        log.warning("retest_counter_line unerwartet: %r", _rc_exc)
+        retest_line = None
+
     body, title, priority, tags = hc.format_digest_body(
         state_fails, prov_fails,
         n_runs=n_runs,
         last_run_iso=last_run_iso,
         digest_date=today_iso,
+        retest_line=retest_line,
     )
 
     log.info("Digest %s — %d state-fails, %d provider-fails, %d runs",
