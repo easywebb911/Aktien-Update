@@ -1,10 +1,10 @@
 {
-  "updated": "2026-08-06T11:08:20.158265+02:00",
+  "updated": "2026-08-06T11:58:44.480928+02:00",
   "run_info": {
     "tickers_checked": 15,
     "signals_active": 1,
     "alerts_sent": 0,
-    "elapsed_s": 21.7,
+    "elapsed_s": 19.3,
     "market_phase": "Pre-Market"
   },
   "signals": {
@@ -124,7 +124,7 @@
     "BJDX": {
       "score": 58,
       "confidence": 70,
-      "drivers": "Volumen 14.9× + 🚀 Massives Volumen 14.9×+ + Spanne 31.1% + News-KI 8/30: Positive clinical progress is offset by significant equity dilution from multiple at-the-market offerings, which typical",
+      "drivers": "Volumen 14.9× + 🚀 Massives Volumen 14.9×+ + Spanne 31.1% + News-KI 8/30: Positive clinical trial news is offset by massive dilutive at-the-market offerings that suppress short-squeeze potential",
       "price": 1.24,
       "chg_pct": 0.0,
       "rvol_4d": 14.94,
@@ -187,9 +187,9 @@
       "uoa_cp_ratio": 2.6955128205128207
     },
     "IONQ": {
-      "score": 37,
+      "score": 55,
       "confidence": 33,
-      "drivers": "Spanne 5.4% + SEC 8-K + News-KI 12/30: Positive fundamentals (record revenue, strategic contracts) typically reduce short-squeeze potential as they support sto",
+      "drivers": "Spanne 5.4% + SEC 8-K + News: acquisition, contract",
       "price": 39.93,
       "chg_pct": 0.0,
       "rvol_4d": 1.07,
@@ -201,7 +201,7 @@
       "stocktwits": null,
       "combo_mult": 1.0,
       "active_triggers": 1,
-      "ki_sentiment_source": "llm",
+      "ki_sentiment_source": "keyword",
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": null,
@@ -254,9 +254,9 @@
       "uoa_cp_ratio": 2.8979591836734695
     },
     "PRGO": {
-      "score": 55,
+      "score": 64,
       "confidence": 70,
-      "drivers": "Volumen 2.8× + Spanne 8.3% + SEC 8-K + UOA Call/Put 3.0×",
+      "drivers": "Volumen 2.8× + Spanne 8.3% + SEC 8-K + News-KI 8/30: Mixed earnings signals with market share gains but overall sales decline suggest weak momentum; no short squeeze indicat + UOA Call/Put 3.0×",
       "price": 13.27,
       "chg_pct": 0.0,
       "rvol_4d": 2.79,
@@ -268,7 +268,7 @@
       "stocktwits": null,
       "combo_mult": 1.1,
       "active_triggers": 2,
-      "ki_sentiment_source": "keyword",
+      "ki_sentiment_source": "llm",
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 3.0×"
@@ -323,9 +323,9 @@
       "uoa_cp_ratio": 38.833333333333336
     },
     "WOLF": {
-      "score": 36,
+      "score": 28,
       "confidence": 70,
-      "drivers": "Spanne 6.3% + News-KI 8/30: Routine earnings announcement and fair value discussion lack squeeze catalysts; no short interest spike, gamma positioni + Earnings in 13d + UOA Call/Put 2.9×",
+      "drivers": "Spanne 6.3% + Earnings in 13d + UOA Call/Put 2.9×",
       "price": 25.19,
       "chg_pct": 0.0,
       "rvol_4d": 0.56,
@@ -337,7 +337,7 @@
       "stocktwits": null,
       "combo_mult": 1.0,
       "active_triggers": 0,
-      "ki_sentiment_source": "llm",
+      "ki_sentiment_source": "keyword",
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 2.9×"
