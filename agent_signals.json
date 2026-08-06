@@ -1,17 +1,17 @@
 {
-  "updated": "2026-08-06T00:31:38.772957+02:00",
+  "updated": "2026-08-06T02:10:41.477163+02:00",
   "run_info": {
     "tickers_checked": 15,
     "signals_active": 4,
     "alerts_sent": 0,
-    "elapsed_s": 32.8,
-    "market_phase": "After-Hours"
+    "elapsed_s": 29.2,
+    "market_phase": "Geschlossen"
   },
   "signals": {
     "AI": {
-      "score": 43,
+      "score": 40,
       "confidence": 33,
-      "drivers": "News: short interest + Earnings in 35d + SEC Form 4 + UOA Call/Put 10.9×",
+      "drivers": "News-KI 12/30: Underperformance versus peers and market, employee grants suggest dilution, no significant short-related catalysts or sq + Earnings in 35d + SEC Form 4 + UOA Call/Put 10.9×",
       "price": 9.91,
       "chg_pct": -0.0,
       "rvol_4d": 0.53,
@@ -23,7 +23,7 @@
       "stocktwits": null,
       "combo_mult": 1.0,
       "active_triggers": 1,
-      "ki_sentiment_source": "keyword",
+      "ki_sentiment_source": "llm",
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 10.9×"
@@ -101,9 +101,9 @@
       "uoa_cp_ratio": 4.355623100303951
     },
     "AZTA": {
-      "score": 30,
-      "confidence": 33,
-      "drivers": "Spanne 9.4% + UOA Call-Vol/OI 37.5× ATM",
+      "score": 40,
+      "confidence": 70,
+      "drivers": "Spanne 9.4% + SEC Form 4 + UOA Call-Vol/OI 37.5× ATM",
       "price": 31.82,
       "chg_pct": -0.0,
       "rvol_4d": 1.41,
@@ -126,7 +126,7 @@
     "BJDX": {
       "score": 58,
       "confidence": 70,
-      "drivers": "Volumen 14.9× + 🚀 Massives Volumen 14.9×+ + Spanne 31.0% + News-KI 8/30: Positive clinical progress offset by significant dilution from multiple large at-the-market offerings, reducing short-sq",
+      "drivers": "Volumen 14.9× + 🚀 Massives Volumen 14.9×+ + Spanne 31.0% + News-KI 8/30: Positive clinical progress but multiple dilutive private placements significantly weaken short-squeeze potential as they",
       "price": 1.24,
       "chg_pct": 0.0,
       "rvol_4d": 14.89,
@@ -166,9 +166,9 @@
       "uoa_cp_ratio": 0.8823529411764706
     },
     "FUBO": {
-      "score": 100,
+      "score": 90,
       "confidence": 70,
-      "drivers": "Earnings in 0 Tagen (05.08.2026) + Volumen 2.4× + Spanne 27.2% + SEC 8-K + Earnings in 0d + SEC Form 4 + UOA Call/Put 2.7× + 3/4 Trigger",
+      "drivers": "Earnings in 0 Tagen (05.08.2026) + Volumen 2.4× + Spanne 27.2% + SEC 8-K + Earnings in 0d + UOA Call/Put 2.7× + 3/4 Trigger",
       "price": 10.66,
       "chg_pct": -0.0,
       "rvol_4d": 2.39,
@@ -189,9 +189,9 @@
       "uoa_cp_ratio": 2.6955128205128207
     },
     "IONQ": {
-      "score": 68,
+      "score": 55,
       "confidence": 70,
-      "drivers": "Earnings in 0 Tagen (05.08.2026) + Spanne 5.3% + SEC 8-K + News-KI 12/30: Positive earnings news typically reduces short squeeze potential as strong fundamentals discourage short positions rathe + Earnings in 0d",
+      "drivers": "Earnings in 0 Tagen (05.08.2026) + Spanne 5.3% + SEC 8-K + Earnings in 0d",
       "price": 39.93,
       "chg_pct": 0.0,
       "rvol_4d": 0.88,
@@ -203,7 +203,7 @@
       "stocktwits": null,
       "combo_mult": 1.1,
       "active_triggers": 2,
-      "ki_sentiment_source": "llm",
+      "ki_sentiment_source": "keyword",
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": 0.9564825253664037,
