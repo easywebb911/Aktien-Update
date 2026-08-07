@@ -1,10 +1,10 @@
 {
-  "updated": "2026-08-08T00:00:01.207489+02:00",
+  "updated": "2026-08-08T00:56:07.609285+02:00",
   "run_info": {
     "tickers_checked": 14,
-    "signals_active": 2,
+    "signals_active": 1,
     "alerts_sent": 0,
-    "elapsed_s": 32.7,
+    "elapsed_s": 29.0,
     "market_phase": "After-Hours"
   },
   "signals": {
@@ -125,9 +125,9 @@
       "uoa_cp_ratio": 6.176470588235294
     },
     "EVGO": {
-      "score": 20,
+      "score": 25,
       "confidence": 33,
-      "drivers": "Spanne 12.3% + UOA Call/Put 17.4×",
+      "drivers": "Spanne 12.3% + News-KI 5/30: Routine earnings announcements lack the negative catalysts, short interest spikes, or bullish surprises typically needed + UOA Call/Put 17.4×",
       "price": 1.62,
       "chg_pct": 0.0,
       "rvol_4d": 1.09,
@@ -139,7 +139,7 @@
       "stocktwits": null,
       "combo_mult": 1.0,
       "active_triggers": 0,
-      "ki_sentiment_source": "keyword",
+      "ki_sentiment_source": "llm",
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 17.4×"
@@ -148,9 +148,9 @@
       "uoa_cp_ratio": 17.375
     },
     "HTZ": {
-      "score": 94,
+      "score": 85,
       "confidence": 70,
-      "drivers": "Volumen 3.6× + ⚡ Extremes Volumen 3.6×+ + Spanne 14.7% + News: short interest, squeeze + UOA Call/Put 4.1×",
+      "drivers": "Volumen 3.6× + ⚡ Extremes Volumen 3.6×+ + Spanne 14.7% + News-KI 22/30: Positive earnings beat and existing short squeeze momentum are present, but Hertz' weak balance sheet and bankruptcy his + UOA Call/Put 4.1×",
       "price": 2.27,
       "chg_pct": -0.0,
       "rvol_4d": 3.58,
@@ -162,7 +162,7 @@
       "stocktwits": null,
       "combo_mult": 1.1,
       "active_triggers": 2,
-      "ki_sentiment_source": "keyword",
+      "ki_sentiment_source": "llm",
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 4.1×"
@@ -173,7 +173,7 @@
     "IBTA": {
       "score": 50,
       "confidence": 33,
-      "drivers": "Spanne 10.3% + News: partnership, earnings beat + UOA Call/Put 4.2×",
+      "drivers": "Spanne 10.3% + News: earnings beat, partnership + UOA Call/Put 4.2×",
       "price": 38.42,
       "chg_pct": -0.0,
       "rvol_4d": 0.58,
@@ -196,7 +196,7 @@
     "INDI": {
       "score": 43,
       "confidence": 33,
-      "drivers": "Spanne 8.6% + SEC 8-K + News-KI 8/30: Positive earnings beat on revenue but reported net loss; no significant short squeeze indicators present in these neutra + UOA Call/Put 12.1×",
+      "drivers": "Spanne 8.6% + SEC 8-K + News-KI 8/30: Negative earnings (loss) despite beating revenue estimates indicates fundamental weakness that typically pressures short + UOA Call/Put 12.1×",
       "price": 4.04,
       "chg_pct": -0.0,
       "rvol_4d": 1.27,
@@ -217,9 +217,9 @@
       "uoa_cp_ratio": 12.092592592592593
     },
     "IONQ": {
-      "score": 75,
+      "score": 60,
       "confidence": 70,
-      "drivers": "Spanne 11.4% + SEC 8-K + News: contract, acquisition + SEC Form 4 + UOA Call/Put 4.1×",
+      "drivers": "Spanne 11.4% + SEC 8-K + News: acquisition + SEC Form 4 + UOA Call/Put 4.1×",
       "price": 44.43,
       "chg_pct": 0.0,
       "rvol_4d": 1.13,
@@ -307,9 +307,9 @@
       "uoa_cp_ratio": 25.666666666666668
     },
     "WOLF": {
-      "score": 40,
+      "score": 36,
       "confidence": 70,
-      "drivers": "Spanne 17.6% + News-KI 12/30: Partnership announcement shows business fundamentals but lacks short squeeze catalysts; no mention of short interest, in + Earnings in 12d + UOA Call/Put 3.7×",
+      "drivers": "Spanne 17.6% + News-KI 8/30: Partnership announcement shows business momentum but lacks short squeeze catalysts like extreme short interest, technica + Earnings in 12d + UOA Call/Put 3.7×",
       "price": 32.87,
       "chg_pct": -0.0,
       "rvol_4d": 1.25,
@@ -320,7 +320,7 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 1,
+      "active_triggers": 0,
       "ki_sentiment_source": "llm",
       "uoa_score": 10,
       "uoa_drivers": [
