@@ -1,17 +1,17 @@
 {
-  "updated": "2026-08-07T23:56:13.879299+02:00",
+  "updated": "2026-08-08T00:00:01.207489+02:00",
   "run_info": {
     "tickers_checked": 14,
-    "signals_active": 1,
+    "signals_active": 2,
     "alerts_sent": 0,
-    "elapsed_s": 27.4,
+    "elapsed_s": 32.7,
     "market_phase": "After-Hours"
   },
   "signals": {
     "AI": {
-      "score": 33,
+      "score": 43,
       "confidence": 33,
-      "drivers": "News: short interest + Earnings in 33d + UOA Call/Put 317.6×",
+      "drivers": "News: short interest + Earnings in 33d + SEC Form 4 + UOA Call/Put 317.6×",
       "price": 10.22,
       "chg_pct": 0.0,
       "rvol_4d": 0.84,
@@ -54,15 +54,39 @@
       "uoa_atm_ratio": 0.11201785589732859,
       "uoa_cp_ratio": 6.649238369699464
     },
-    "BKSY": {
-      "score": 35,
-      "confidence": 33,
-      "drivers": "Spanne 6.8% + News: revenue beat + UOA Call/Put 2.4×",
-      "price": 29.16,
+    "ARCT": {
+      "score": 65,
+      "confidence": 70,
+      "drivers": "Volumen 3.5× + ⚡ Extremes Volumen 3.5×+ + Spanne 16.7% + UOA Call-Vol/OI 4.1× ATM + UOA Call/Put 226.0×",
+      "price": 7.41,
       "chg_pct": -0.0,
-      "rvol_4d": 1.0,
-      "rvol_20d": 0.94,
-      "earnings": "in 90 Tagen (05.11.2026)",
+      "rvol_4d": 3.53,
+      "rvol_20d": 3.13,
+      "earnings": null,
+      "fda_date": null,
+      "upcoming_event": null,
+      "insider_buy": false,
+      "stocktwits": null,
+      "combo_mult": 1.0,
+      "active_triggers": 1,
+      "ki_sentiment_source": "keyword",
+      "uoa_score": 20,
+      "uoa_drivers": [
+        "UOA Call-Vol/OI 4.1× ATM",
+        "UOA Call/Put 226.0×"
+      ],
+      "uoa_atm_ratio": 4.12,
+      "uoa_cp_ratio": 226.0
+    },
+    "CRSR": {
+      "score": 55,
+      "confidence": 70,
+      "drivers": "Volumen 4.4× + ⚡ Extremes Volumen 4.4×+ + Spanne 21.6% + UOA Call/Put 3.9×",
+      "price": 14.35,
+      "chg_pct": 0.0,
+      "rvol_4d": 4.41,
+      "rvol_20d": 6.19,
+      "earnings": "in 88 Tagen (03.11.2026)",
       "fda_date": null,
       "upcoming_event": null,
       "insider_buy": false,
@@ -72,20 +96,43 @@
       "ki_sentiment_source": "keyword",
       "uoa_score": 10,
       "uoa_drivers": [
-        "UOA Call/Put 2.4×"
+        "UOA Call/Put 3.9×"
       ],
-      "uoa_atm_ratio": 0.04402302742973248,
-      "uoa_cp_ratio": 2.372093023255814
+      "uoa_atm_ratio": 0.4328762755102041,
+      "uoa_cp_ratio": 3.920754716981132
     },
-    "FIP": {
-      "score": 10,
-      "confidence": 17,
-      "drivers": "Spanne 8.5%",
-      "price": 4.27,
+    "DFH": {
+      "score": 65,
+      "confidence": 33,
+      "drivers": "Spanne 8.3% + SEC 8-K + News: squeeze, acquisition + UOA Call/Put 6.2×",
+      "price": 15.03,
       "chg_pct": -0.0,
-      "rvol_4d": 0.44,
-      "rvol_20d": 1.16,
+      "rvol_4d": 1.1,
+      "rvol_20d": 1.42,
       "earnings": "in 83 Tagen (29.10.2026)",
+      "fda_date": null,
+      "upcoming_event": null,
+      "insider_buy": false,
+      "stocktwits": null,
+      "combo_mult": 1.0,
+      "active_triggers": 1,
+      "ki_sentiment_source": "keyword",
+      "uoa_score": 10,
+      "uoa_drivers": [
+        "UOA Call/Put 6.2×"
+      ],
+      "uoa_atm_ratio": 1.0481927710843373,
+      "uoa_cp_ratio": 6.176470588235294
+    },
+    "EVGO": {
+      "score": 20,
+      "confidence": 33,
+      "drivers": "Spanne 12.3% + UOA Call/Put 17.4×",
+      "price": 1.62,
+      "chg_pct": 0.0,
+      "rvol_4d": 1.09,
+      "rvol_20d": 1.56,
+      "earnings": null,
       "fda_date": null,
       "upcoming_event": null,
       "insider_buy": false,
@@ -93,38 +140,17 @@
       "combo_mult": 1.0,
       "active_triggers": 0,
       "ki_sentiment_source": "keyword",
-      "uoa_score": 0,
-      "uoa_drivers": [],
-      "uoa_atm_ratio": 0.17349397590361446,
-      "uoa_cp_ratio": 0.4195121951219512
-    },
-    "GTM": {
-      "score": 35,
-      "confidence": 33,
-      "drivers": "Spanne 6.5% + News: revenue beat + UOA Call/Put 173.5×",
-      "price": 4.18,
-      "chg_pct": -0.0,
-      "rvol_4d": 1.12,
-      "rvol_20d": 1.44,
-      "earnings": "in 87 Tagen (02.11.2026)",
-      "fda_date": null,
-      "upcoming_event": null,
-      "insider_buy": false,
-      "stocktwits": null,
-      "combo_mult": 1.0,
-      "active_triggers": 1,
-      "ki_sentiment_source": "keyword",
       "uoa_score": 10,
       "uoa_drivers": [
-        "UOA Call/Put 173.5×"
+        "UOA Call/Put 17.4×"
       ],
-      "uoa_atm_ratio": 0.6971929824561404,
-      "uoa_cp_ratio": 173.4857142857143
+      "uoa_atm_ratio": 0.007096242792878413,
+      "uoa_cp_ratio": 17.375
     },
     "HTZ": {
-      "score": 85,
+      "score": 94,
       "confidence": 70,
-      "drivers": "Volumen 3.6× + ⚡ Extremes Volumen 3.6×+ + Spanne 14.7% + News-KI 22/30: Positive earnings and short covering activity present, but Hertz's ongoing securities litigation and structural challeng + UOA Call/Put 4.1×",
+      "drivers": "Volumen 3.6× + ⚡ Extremes Volumen 3.6×+ + Spanne 14.7% + News: short interest, squeeze + UOA Call/Put 4.1×",
       "price": 2.27,
       "chg_pct": -0.0,
       "rvol_4d": 3.58,
@@ -136,7 +162,7 @@
       "stocktwits": null,
       "combo_mult": 1.1,
       "active_triggers": 2,
-      "ki_sentiment_source": "llm",
+      "ki_sentiment_source": "keyword",
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 4.1×"
@@ -144,10 +170,56 @@
       "uoa_atm_ratio": null,
       "uoa_cp_ratio": 4.08063671392765
     },
+    "IBTA": {
+      "score": 50,
+      "confidence": 33,
+      "drivers": "Spanne 10.3% + News: partnership, earnings beat + UOA Call/Put 4.2×",
+      "price": 38.42,
+      "chg_pct": -0.0,
+      "rvol_4d": 0.58,
+      "rvol_20d": 1.55,
+      "earnings": null,
+      "fda_date": null,
+      "upcoming_event": null,
+      "insider_buy": false,
+      "stocktwits": null,
+      "combo_mult": 1.0,
+      "active_triggers": 1,
+      "ki_sentiment_source": "keyword",
+      "uoa_score": 10,
+      "uoa_drivers": [
+        "UOA Call/Put 4.2×"
+      ],
+      "uoa_atm_ratio": 0.15517241379310345,
+      "uoa_cp_ratio": 4.186813186813187
+    },
+    "INDI": {
+      "score": 43,
+      "confidence": 33,
+      "drivers": "Spanne 8.6% + SEC 8-K + News-KI 8/30: Positive earnings beat on revenue but reported net loss; no significant short squeeze indicators present in these neutra + UOA Call/Put 12.1×",
+      "price": 4.04,
+      "chg_pct": -0.0,
+      "rvol_4d": 1.27,
+      "rvol_20d": 1.88,
+      "earnings": "in 90 Tagen (05.11.2026)",
+      "fda_date": null,
+      "upcoming_event": null,
+      "insider_buy": false,
+      "stocktwits": null,
+      "combo_mult": 1.0,
+      "active_triggers": 1,
+      "ki_sentiment_source": "llm",
+      "uoa_score": 10,
+      "uoa_drivers": [
+        "UOA Call/Put 12.1×"
+      ],
+      "uoa_atm_ratio": 0.7784507491233663,
+      "uoa_cp_ratio": 12.092592592592593
+    },
     "IONQ": {
-      "score": 60,
+      "score": 75,
       "confidence": 70,
-      "drivers": "Spanne 11.4% + SEC 8-K + News: acquisition + SEC Form 4 + UOA Call/Put 4.1×",
+      "drivers": "Spanne 11.4% + SEC 8-K + News: contract, acquisition + SEC Form 4 + UOA Call/Put 4.1×",
       "price": 44.43,
       "chg_pct": 0.0,
       "rvol_4d": 1.13,
@@ -167,28 +239,26 @@
       "uoa_atm_ratio": 1.1511906877554647,
       "uoa_cp_ratio": 4.129944330501026
     },
-    "JJSF": {
-      "score": 10,
-      "confidence": 17,
-      "drivers": "UOA Call/Put 6.3×",
-      "price": 91.91,
-      "chg_pct": 0.0,
-      "rvol_4d": 0.81,
-      "rvol_20d": 1.33,
-      "earnings": null,
+    "METC": {
+      "score": 25,
+      "confidence": 33,
+      "drivers": "Spanne 8.7% + News: short interest",
+      "price": 10.24,
+      "chg_pct": -0.0,
+      "rvol_4d": 0.73,
+      "rvol_20d": 1.31,
+      "earnings": "in 80 Tagen (26.10.2026)",
       "fda_date": null,
       "upcoming_event": null,
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 0,
+      "active_triggers": 1,
       "ki_sentiment_source": "keyword",
-      "uoa_score": 10,
-      "uoa_drivers": [
-        "UOA Call/Put 6.3×"
-      ],
-      "uoa_atm_ratio": 0.21301775147928995,
-      "uoa_cp_ratio": 6.333333333333333
+      "uoa_score": 0,
+      "uoa_drivers": [],
+      "uoa_atm_ratio": 0.025646035855600605,
+      "uoa_cp_ratio": 0.5
     },
     "PDYN": {
       "score": 35,
@@ -213,59 +283,15 @@
       "uoa_atm_ratio": 0.06965648854961833,
       "uoa_cp_ratio": 2.0428571428571427
     },
-    "REPL": {
-      "score": 53,
+    "SVV": {
+      "score": 45,
       "confidence": 70,
-      "drivers": "Earnings in 4 Tagen (11.08.2026) + Spanne 15.2% + SEC 8-K + News-KI 8/30: Positive FDA approval news is bullish but immediate sharp after-hours selloff indicates profit-taking, weak short squeez + Earnings in 4d",
-      "price": 12.06,
+      "drivers": "Volumen 2.0× + Spanne 14.8% + SEC Form 4 + UOA Call/Put 25.7×",
+      "price": 12.22,
       "chg_pct": 0.0,
-      "rvol_4d": 1.26,
-      "rvol_20d": 1.31,
-      "earnings": "in 4 Tagen (11.08.2026)",
-      "fda_date": null,
-      "upcoming_event": "Earnings in 4 Tagen (11.08.2026)",
-      "insider_buy": false,
-      "stocktwits": null,
-      "combo_mult": 1.1,
-      "active_triggers": 2,
-      "ki_sentiment_source": "llm",
-      "uoa_score": 0,
-      "uoa_drivers": [],
-      "uoa_atm_ratio": 0.46021769124635903,
-      "uoa_cp_ratio": 1.495023958717287
-    },
-    "SBGI": {
-      "score": 35,
-      "confidence": 70,
-      "drivers": "Volumen 1.7× + Spanne 5.7% + UOA Call/Put 87.1×",
-      "price": 14.2,
-      "chg_pct": -0.0,
-      "rvol_4d": 1.7,
-      "rvol_20d": 2.25,
-      "earnings": "in 89 Tagen (04.11.2026)",
-      "fda_date": null,
-      "upcoming_event": null,
-      "insider_buy": false,
-      "stocktwits": null,
-      "combo_mult": 1.0,
-      "active_triggers": 0,
-      "ki_sentiment_source": "keyword",
-      "uoa_score": 10,
-      "uoa_drivers": [
-        "UOA Call/Put 87.1×"
-      ],
-      "uoa_atm_ratio": 1.5673400673400673,
-      "uoa_cp_ratio": 87.0909090909091
-    },
-    "SDGR": {
-      "score": 35,
-      "confidence": 33,
-      "drivers": "Spanne 7.5% + News: partnership + UOA Call/Put 2.5×",
-      "price": 18.16,
-      "chg_pct": -0.0,
-      "rvol_4d": 0.84,
-      "rvol_20d": 1.34,
-      "earnings": "in 89 Tagen (04.11.2026)",
+      "rvol_4d": 2.01,
+      "rvol_20d": 3.17,
+      "earnings": "in 90 Tagen (05.11.2026)",
       "fda_date": null,
       "upcoming_event": null,
       "insider_buy": false,
@@ -275,38 +301,15 @@
       "ki_sentiment_source": "keyword",
       "uoa_score": 10,
       "uoa_drivers": [
-        "UOA Call/Put 2.5×"
+        "UOA Call/Put 25.7×"
       ],
-      "uoa_atm_ratio": 0.007462686567164179,
-      "uoa_cp_ratio": 2.4833333333333334
-    },
-    "TROX": {
-      "score": 35,
-      "confidence": 33,
-      "drivers": "Spanne 6.0% + News: revenue beat + UOA Call/Put 4.3×",
-      "price": 6.51,
-      "chg_pct": 0.0,
-      "rvol_4d": 0.88,
-      "rvol_20d": 1.44,
-      "earnings": "in 89 Tagen (04.11.2026)",
-      "fda_date": null,
-      "upcoming_event": null,
-      "insider_buy": false,
-      "stocktwits": null,
-      "combo_mult": 1.0,
-      "active_triggers": 1,
-      "ki_sentiment_source": "keyword",
-      "uoa_score": 10,
-      "uoa_drivers": [
-        "UOA Call/Put 4.3×"
-      ],
-      "uoa_atm_ratio": 0.0391566265060241,
-      "uoa_cp_ratio": 4.270833333333333
+      "uoa_atm_ratio": 1.0289855072463767,
+      "uoa_cp_ratio": 25.666666666666668
     },
     "WOLF": {
       "score": 40,
       "confidence": 70,
-      "drivers": "Spanne 17.6% + News-KI 12/30: Partnership announcement is positive for fundamentals but lacks short-squeeze catalysts like low float, high short inter + Earnings in 12d + UOA Call/Put 3.7×",
+      "drivers": "Spanne 17.6% + News-KI 12/30: Partnership announcement shows business fundamentals but lacks short squeeze catalysts; no mention of short interest, in + Earnings in 12d + UOA Call/Put 3.7×",
       "price": 32.87,
       "chg_pct": -0.0,
       "rvol_4d": 1.25,
