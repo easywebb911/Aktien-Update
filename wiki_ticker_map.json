@@ -53,6 +53,15 @@
     "substrate": "none",
     "reason": "no_article"
   },
+  "ARCT": {
+    "qid": "Q98713358",
+    "title": "Arcturus_Therapeutics",
+    "resolved_at": "2026-08-07T21:58:05Z",
+    "issuer_verified": true,
+    "company_name_at_resolve": "Arcturus Therapeutics Holdings Inc.",
+    "substrate": "en",
+    "reason": null
+  },
   "ASAN": {
     "qid": "Q111411592",
     "title": "Asana,_Inc.",
@@ -131,6 +140,15 @@
     "resolved_at": "2026-07-30T22:29:34Z",
     "issuer_verified": false,
     "company_name_at_resolve": "Columbus McKinnon Corporation",
+    "substrate": "none",
+    "reason": "no_p249"
+  },
+  "CRSR": {
+    "qid": null,
+    "title": null,
+    "resolved_at": "2026-08-07T21:58:05Z",
+    "issuer_verified": false,
+    "company_name_at_resolve": "Corsair Gaming, Inc.",
     "substrate": "none",
     "reason": "no_p249"
   },
@@ -527,6 +545,15 @@
     "resolved_at": "2026-07-29T22:16:00Z",
     "issuer_verified": false,
     "company_name_at_resolve": "ARS Pharmaceuticals, Inc.",
+    "substrate": "none",
+    "reason": "no_p249"
+  },
+  "SVV": {
+    "qid": null,
+    "title": null,
+    "resolved_at": "2026-08-07T21:58:05Z",
+    "issuer_verified": false,
+    "company_name_at_resolve": "Savers Value Village, Inc.",
     "substrate": "none",
     "reason": "no_p249"
   },

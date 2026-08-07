@@ -690,6 +690,12 @@
       "shares_short": 49218272,
       "short_pct_float": 44.41,
       "pub_date": "2026-07-10"
+    },
+    {
+      "settlement_date": "2026-07-15",
+      "shares_short": 45776294,
+      "short_pct_float": 41.3,
+      "pub_date": "2026-07-24"
     }
   ],
   "FXHO": [
@@ -762,6 +768,12 @@
       "shares_short": 24142937,
       "short_pct_float": 27.64,
       "pub_date": "2026-07-10"
+    },
+    {
+      "settlement_date": "2026-07-15",
+      "shares_short": 20103345,
+      "short_pct_float": 23.02,
+      "pub_date": "2026-07-24"
     }
   ],
   "EVGO": [
@@ -1566,6 +1578,12 @@
       "shares_short": 27420966,
       "short_pct_float": 15.26,
       "pub_date": "2026-07-10"
+    },
+    {
+      "settlement_date": "2026-07-15",
+      "shares_short": 28060519,
+      "short_pct_float": 15.52,
+      "pub_date": "2026-07-24"
     }
   ],
   "STOK": [
@@ -3815,6 +3833,21 @@
       "settlement_date": "2026-07-15",
       "shares_short": 45110268,
       "short_pct_float": 19.14,
+      "pub_date": "2026-07-24"
+    }
+  ],
+  "CMPX": [
+    {
+      "settlement_date": "2026-06-15",
+      "shares_short": 32497225,
+      "short_pct_float": null,
+      "pub_date": "2026-06-25",
+      "seeded": true
+    },
+    {
+      "settlement_date": "2026-07-15",
+      "shares_short": 39298468,
+      "short_pct_float": 26.09,
       "pub_date": "2026-07-24"
     }
   ]
