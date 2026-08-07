@@ -961,8 +961,11 @@ def get_yfinance_data(ticker: str) -> dict:
             "cur_vol":      cur_vol,
             "vol_ratio":    vol_ratio,
             "float_shares":       info.get("floatShares") or 0,
-            "inst_ownership":     info.get("institutionHeldPercentOutstanding")
-                                  or info.get("institutionsPercentHeld"),
+            # yfinance-Standard-Key (Bruch, z.B. 0.659 = 65,9 %). Die früher
+            # verdrahteten institutionHeldPercentOutstanding/institutionsPercentHeld
+            # existieren im .info-Dict NICHT (Probe-Run 07.08. #510: <KEY-FEHLT>
+            # bei 33/33 Tickern) → als toter Fallback entfernt.
+            "inst_ownership":     info.get("heldPercentInstitutions"),
             "rsi14":        rsi14,
             "ma21":         ma21,
             "ma50":         ma50,
@@ -1229,8 +1232,9 @@ def get_yfinance_batch(tickers: list[str]) -> dict[str, dict]:
             "cur_vol":        cur_vol,
             "vol_ratio":      vol_ratio,
             "float_shares":   info.get("floatShares") or 0,
-            "inst_ownership": info.get("institutionHeldPercentOutstanding")
-                              or info.get("institutionsPercentHeld"),
+            # yfinance-Standard-Key (Bruch); die alten Keys existieren nicht
+            # im .info-Dict (Probe #510) → toter Fallback entfernt.
+            "inst_ownership": info.get("heldPercentInstitutions"),
             "rsi14":          rsi14,
             "ma21":           ma21,
             "ma50":           ma50,
@@ -12810,7 +12814,7 @@ function _fmtGerman(d) {{
           <tr><td>MA 200</td><td>${{d.ma200 != null ? '$' + (+d.ma200).toFixed(2) : '\u2014'}}</td></tr>
           <tr><td>Put/Call-Ratio</td><td>${{fmt(d.pc_ratio, 2)}}</td></tr>
           <tr><td>ATM IV</td><td>${{d.atm_iv != null ? fmtPct(d.atm_iv * 100) : '\u2014'}}</td></tr>
-          <tr><td>Inst. Beteiligung</td><td>${{fmtPct(d.inst_ownership)}}</td></tr>
+          <tr><td>Inst. Beteiligung</td><td>${{d.inst_ownership != null ? fmtPct(d.inst_ownership * 100) : '—'}}</td></tr>
           <tr><td>Rel. St\xe4rke 20T</td><td>${{fmt(d.rel_strength_20d, 2)}}</td></tr>
           <tr><td>Performance 20T</td><td>${{d.perf_20d != null ? (d.perf_20d>=0?'+':'')+fmtPct(d.perf_20d) : '\u2014'}}</td></tr>
           <tr><td>N\xe4chste Earnings</td><td>${{earStr}}</td></tr>

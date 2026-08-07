@@ -5780,7 +5780,7 @@ function _fmtGerman(d) {
           <tr><td>MA 200</td><td>${d.ma200 != null ? '$' + (+d.ma200).toFixed(2) : '—'}</td></tr>
           <tr><td>Put/Call-Ratio</td><td>${fmt(d.pc_ratio, 2)}</td></tr>
           <tr><td>ATM IV</td><td>${d.atm_iv != null ? fmtPct(d.atm_iv * 100) : '—'}</td></tr>
-          <tr><td>Inst. Beteiligung</td><td>${fmtPct(d.inst_ownership)}</td></tr>
+          <tr><td>Inst. Beteiligung</td><td>${d.inst_ownership != null ? fmtPct(d.inst_ownership * 100) : '—'}</td></tr>
           <tr><td>Rel. Stärke 20T</td><td>${fmt(d.rel_strength_20d, 2)}</td></tr>
           <tr><td>Performance 20T</td><td>${d.perf_20d != null ? (d.perf_20d>=0?'+':'')+fmtPct(d.perf_20d) : '—'}</td></tr>
           <tr><td>Nächste Earnings</td><td>${earStr}</td></tr>
