@@ -1,10 +1,10 @@
 {
-  "updated": "2026-08-07T11:15:53.039304+02:00",
+  "updated": "2026-08-07T12:13:25.681773+02:00",
   "run_info": {
     "tickers_checked": 14,
-    "signals_active": 1,
+    "signals_active": 2,
     "alerts_sent": 0,
-    "elapsed_s": 19.7,
+    "elapsed_s": 19.8,
     "market_phase": "Pre-Market"
   },
   "signals": {
@@ -62,7 +62,7 @@
       "chg_pct": 0.0,
       "rvol_4d": 1.8,
       "rvol_20d": 1.43,
-      "earnings": null,
+      "earnings": "in 90 Tagen (05.11.2026)",
       "fda_date": null,
       "upcoming_event": null,
       "insider_buy": false,
@@ -78,9 +78,9 @@
       "uoa_cp_ratio": 2.3783783783783785
     },
     "FIP": {
-      "score": 10,
-      "confidence": 17,
-      "drivers": "Spanne 32.6%",
+      "score": 25,
+      "confidence": 33,
+      "drivers": "Spanne 32.6% + News: acquisition",
       "price": 4.05,
       "chg_pct": 0.12,
       "rvol_4d": 0.9,
@@ -91,7 +91,7 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 0,
+      "active_triggers": 1,
       "ki_sentiment_source": "keyword",
       "uoa_score": 0,
       "uoa_drivers": [],
@@ -122,14 +122,14 @@
       "uoa_cp_ratio": 4.682242990654205
     },
     "HTZ": {
-      "score": 94,
+      "score": 100,
       "confidence": 70,
-      "drivers": "Volumen 4.9× + ⚡ Extremes Volumen 4.9×+ + Spanne 30.8% + SEC 8-K + News: short seller + UOA Call/Put 8.6×",
+      "drivers": "Volumen 4.9× + ⚡ Extremes Volumen 4.9×+ + Spanne 30.8% + SEC 8-K + News: short seller, short interest + UOA Call/Put 8.6×",
       "price": 2.02,
       "chg_pct": -0.0,
       "rvol_4d": 4.86,
       "rvol_20d": 6.83,
-      "earnings": null,
+      "earnings": "in 88 Tagen (03.11.2026)",
       "fda_date": null,
       "upcoming_event": null,
       "insider_buy": false,
@@ -145,9 +145,9 @@
       "uoa_cp_ratio": 8.62013301926008
     },
     "IONQ": {
-      "score": 32,
-      "confidence": 33,
-      "drivers": "Spanne 5.4% + News-KI 12/30: DARPA contract is positive but insufficient for short squeeze; stock faces sector headwinds as competitors struggle, ind + UOA Call/Put 3.0×",
+      "score": 75,
+      "confidence": 70,
+      "drivers": "Spanne 5.4% + SEC 8-K + News: catalyst, acquisition + SEC Form 4 + UOA Call/Put 3.0×",
       "price": 39.72,
       "chg_pct": 0.0,
       "rvol_4d": 1.15,
@@ -159,7 +159,7 @@
       "stocktwits": null,
       "combo_mult": 1.0,
       "active_triggers": 1,
-      "ki_sentiment_source": "llm",
+      "ki_sentiment_source": "keyword",
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 3.0×"
@@ -214,9 +214,9 @@
       "uoa_cp_ratio": 3.2564102564102564
     },
     "REPL": {
-      "score": 25,
-      "confidence": 33,
-      "drivers": "Earnings in 4 Tagen (11.08.2026) + Spanne 19.7% + Earnings in 4d",
+      "score": 44,
+      "confidence": 70,
+      "drivers": "Earnings in 4 Tagen (11.08.2026) + Spanne 19.7% + SEC 8-K + Earnings in 4d",
       "price": 12.86,
       "chg_pct": -0.0,
       "rvol_4d": 0.52,
@@ -226,8 +226,8 @@
       "upcoming_event": "Earnings in 4 Tagen (11.08.2026)",
       "insider_buy": false,
       "stocktwits": null,
-      "combo_mult": 1.0,
-      "active_triggers": 1,
+      "combo_mult": 1.1,
+      "active_triggers": 2,
       "ki_sentiment_source": "keyword",
       "uoa_score": 0,
       "uoa_drivers": [],
@@ -302,9 +302,9 @@
       "uoa_cp_ratio": 0.05284319356691557
     },
     "WOLF": {
-      "score": 28,
+      "score": 40,
       "confidence": 70,
-      "drivers": "Spanne 16.0% + Earnings in 12d + UOA Call/Put 3.5×",
+      "drivers": "Spanne 16.0% + News-KI 12/30: Partnership news is positive for business fundamentals but lacks short-squeeze catalysts like extreme short interest, lo + Earnings in 12d + UOA Call/Put 3.5×",
       "price": 27.59,
       "chg_pct": 0.0,
       "rvol_4d": 1.0,
@@ -315,8 +315,8 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 0,
-      "ki_sentiment_source": "keyword",
+      "active_triggers": 1,
+      "ki_sentiment_source": "llm",
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 3.5×"
