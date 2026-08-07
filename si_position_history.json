@@ -969,6 +969,12 @@
       "shares_short": 25741646,
       "short_pct_float": 21.64,
       "pub_date": "2026-07-10"
+    },
+    {
+      "settlement_date": "2026-07-15",
+      "shares_short": 25680809,
+      "short_pct_float": 21.59,
+      "pub_date": "2026-07-24"
     }
   ],
   "KURA": [
@@ -2718,6 +2724,12 @@
       "shares_short": 18246890,
       "short_pct_float": 25.35,
       "pub_date": "2026-07-10"
+    },
+    {
+      "settlement_date": "2026-07-15",
+      "shares_short": 18424942,
+      "short_pct_float": 25.6,
+      "pub_date": "2026-07-24"
     }
   ],
   "NVAX": [
@@ -3758,6 +3770,51 @@
       "settlement_date": "2026-07-15",
       "shares_short": 1064695,
       "short_pct_float": 15.37,
+      "pub_date": "2026-07-24"
+    }
+  ],
+  "SDGR": [
+    {
+      "settlement_date": "2026-06-15",
+      "shares_short": 10016914,
+      "short_pct_float": null,
+      "pub_date": "2026-06-25",
+      "seeded": true
+    },
+    {
+      "settlement_date": "2026-07-15",
+      "shares_short": 10582154,
+      "short_pct_float": 25.27,
+      "pub_date": "2026-07-24"
+    }
+  ],
+  "SBGI": [
+    {
+      "settlement_date": "2026-06-15",
+      "shares_short": 3655599,
+      "short_pct_float": null,
+      "pub_date": "2026-06-25",
+      "seeded": true
+    },
+    {
+      "settlement_date": "2026-07-15",
+      "shares_short": 4159817,
+      "short_pct_float": 31.0,
+      "pub_date": "2026-07-24"
+    }
+  ],
+  "ABCL": [
+    {
+      "settlement_date": "2026-06-15",
+      "shares_short": 44909557,
+      "short_pct_float": null,
+      "pub_date": "2026-06-25",
+      "seeded": true
+    },
+    {
+      "settlement_date": "2026-07-15",
+      "shares_short": 45110268,
+      "short_pct_float": 19.14,
       "pub_date": "2026-07-24"
     }
   ]

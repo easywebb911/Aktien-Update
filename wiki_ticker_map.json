@@ -98,6 +98,15 @@
     "substrate": "none",
     "reason": "no_p249"
   },
+  "BKSY": {
+    "qid": "Q56314218",
+    "title": null,
+    "resolved_at": "2026-08-07T01:02:56Z",
+    "issuer_verified": false,
+    "company_name_at_resolve": "BlackSky Technology Inc.",
+    "substrate": "none",
+    "reason": "no_article"
+  },
   "BLKB": {
     "qid": "Q4922539",
     "title": "Blackbaud",
@@ -188,6 +197,15 @@
     "substrate": "none",
     "reason": "no_p249"
   },
+  "FIP": {
+    "qid": null,
+    "title": null,
+    "resolved_at": "2026-08-07T01:02:56Z",
+    "issuer_verified": false,
+    "company_name_at_resolve": "FTAI Infrastructure Inc.",
+    "substrate": "none",
+    "reason": "no_p249"
+  },
   "FIRY": {
     "qid": null,
     "title": null,
@@ -239,6 +257,24 @@
     "resolved_at": "2026-07-27T22:29:48Z",
     "issuer_verified": true,
     "company_name_at_resolve": "Groupon, Inc.",
+    "substrate": "en",
+    "reason": null
+  },
+  "GTM": {
+    "qid": "Q8074134",
+    "title": "ZoomInfo",
+    "resolved_at": "2026-08-07T01:02:56Z",
+    "issuer_verified": true,
+    "company_name_at_resolve": "ZoomInfo Technologies Inc.",
+    "substrate": "en",
+    "reason": null
+  },
+  "HTZ": {
+    "qid": "Q1543874",
+    "title": "Hertz_Global_Holdings",
+    "resolved_at": "2026-08-07T01:02:56Z",
+    "issuer_verified": true,
+    "company_name_at_resolve": "Hertz Global Holdings, Inc.",
     "substrate": "en",
     "reason": null
   },
@@ -422,12 +458,30 @@
     "substrate": "none",
     "reason": "no_p249"
   },
+  "SBGI": {
+    "qid": "Q2288792",
+    "title": "Sinclair_Broadcast_Group",
+    "resolved_at": "2026-08-07T01:02:56Z",
+    "issuer_verified": true,
+    "company_name_at_resolve": "Sinclair, Inc.",
+    "substrate": "en",
+    "reason": null
+  },
   "SBH": {
     "qid": "Q7405065",
     "title": "Sally_Beauty_Holdings",
     "resolved_at": "2026-08-03T21:02:56Z",
     "issuer_verified": true,
     "company_name_at_resolve": "Sally Beauty Holdings, Inc.",
+    "substrate": "en",
+    "reason": null
+  },
+  "SDGR": {
+    "qid": "Q7432923",
+    "title": "Schrödinger,_Inc.",
+    "resolved_at": "2026-08-07T01:02:56Z",
+    "issuer_verified": true,
+    "company_name_at_resolve": "Schrödinger, Inc.",
     "substrate": "en",
     "reason": null
   },
@@ -484,6 +538,15 @@
     "company_name_at_resolve": "Turtle Beach Corporation",
     "substrate": "none",
     "reason": "no_p249"
+  },
+  "TROX": {
+    "qid": "Q3999691",
+    "title": "Tronox",
+    "resolved_at": "2026-08-07T01:02:56Z",
+    "issuer_verified": true,
+    "company_name_at_resolve": "Tronox Holdings plc",
+    "substrate": "en",
+    "reason": null
   },
   "TTEC": {
     "qid": "Q7695737",
