@@ -1,17 +1,17 @@
 {
-  "updated": "2026-08-07T09:41:55.159010+02:00",
+  "updated": "2026-08-07T09:43:09.149316+02:00",
   "run_info": {
     "tickers_checked": 14,
     "signals_active": 1,
     "alerts_sent": 0,
-    "elapsed_s": 15.8,
+    "elapsed_s": 13.7,
     "market_phase": "Geschlossen"
   },
   "signals": {
     "AI": {
       "score": 58,
       "confidence": 33,
-      "drivers": "News: short squeeze, short interest + Earnings in 33d + SEC Form 4 + UOA Call/Put 6.5×",
+      "drivers": "News: short interest, short squeeze + Earnings in 33d + SEC Form 4 + UOA Call/Put 6.5×",
       "price": 9.86,
       "chg_pct": -0.0,
       "rvol_4d": 0.51,
@@ -57,7 +57,7 @@
     "BKSY": {
       "score": 65,
       "confidence": 70,
-      "drivers": "Volumen 1.8× + Spanne 15.0% + SEC 8-K + News: revenue beat + UOA Call/Put 2.4×",
+      "drivers": "Volumen 1.8× + Spanne 15.0% + SEC 8-K + News-KI 15/30: Positive revenue growth and earnings beat are bullish but no indicators of high short interest, squeeze potential, or ca + UOA Call/Put 2.4×",
       "price": 27.79,
       "chg_pct": 0.0,
       "rvol_4d": 1.8,
@@ -69,7 +69,7 @@
       "stocktwits": null,
       "combo_mult": 1.0,
       "active_triggers": 1,
-      "ki_sentiment_source": "keyword",
+      "ki_sentiment_source": "llm",
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 2.4×"
@@ -214,9 +214,9 @@
       "uoa_cp_ratio": 3.2564102564102564
     },
     "REPL": {
-      "score": 41,
-      "confidence": 70,
-      "drivers": "Earnings in 4 Tagen (11.08.2026) + Spanne 19.7% + News-KI 12/30: Positive FDA approval news is overshadowed by significant after-hours selloff, indicating weak conviction and limited sh + Earnings in 4d",
+      "score": 25,
+      "confidence": 33,
+      "drivers": "Earnings in 4 Tagen (11.08.2026) + Spanne 19.7% + Earnings in 4d",
       "price": 12.86,
       "chg_pct": -0.0,
       "rvol_4d": 0.52,
@@ -226,18 +226,18 @@
       "upcoming_event": "Earnings in 4 Tagen (11.08.2026)",
       "insider_buy": false,
       "stocktwits": null,
-      "combo_mult": 1.1,
-      "active_triggers": 2,
-      "ki_sentiment_source": "llm",
+      "combo_mult": 1.0,
+      "active_triggers": 1,
+      "ki_sentiment_source": "keyword",
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": null,
       "uoa_cp_ratio": 0.2510545227308233
     },
     "SBGI": {
-      "score": 55,
+      "score": 63,
       "confidence": 70,
-      "drivers": "Volumen 3.5× + ⚡ Extremes Volumen 3.5×+ + Spanne 14.4% + UOA Call/Put 22.1×",
+      "drivers": "Volumen 3.5× + ⚡ Extremes Volumen 3.5×+ + Spanne 14.4% + News-KI 8/30: Neutral earnings, dividend declaration, and fair value discussion show stability but lack catalyst strength or short squ + UOA Call/Put 22.1×",
       "price": 14.76,
       "chg_pct": 0.0,
       "rvol_4d": 3.54,
@@ -249,7 +249,7 @@
       "stocktwits": null,
       "combo_mult": 1.0,
       "active_triggers": 1,
-      "ki_sentiment_source": "keyword",
+      "ki_sentiment_source": "llm",
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 22.1×"
@@ -281,9 +281,9 @@
       "uoa_cp_ratio": 3.7058823529411766
     },
     "TROX": {
-      "score": 35,
+      "score": 43,
       "confidence": 70,
-      "drivers": "Spanne 17.1% + SEC 8-K + SEC Form 4",
+      "drivers": "Spanne 17.1% + SEC 8-K + News-KI 8/30: Negative earnings with revenue beat shows weakness; no significant short interest or volatility catalysts evident to sup + SEC Form 4",
       "price": 6.95,
       "chg_pct": -0.0,
       "rvol_4d": 1.37,
@@ -295,7 +295,7 @@
       "stocktwits": null,
       "combo_mult": 1.0,
       "active_triggers": 1,
-      "ki_sentiment_source": "keyword",
+      "ki_sentiment_source": "llm",
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": null,
