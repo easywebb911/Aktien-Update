@@ -1,10 +1,10 @@
 {
-  "updated": "2026-08-08T17:46:38.040313+02:00",
+  "updated": "2026-08-08T18:51:49.961193+02:00",
   "run_info": {
     "tickers_checked": 14,
     "signals_active": 2,
     "alerts_sent": 0,
-    "elapsed_s": 13.0,
+    "elapsed_s": 11.2,
     "market_phase": "Geschlossen"
   },
   "signals": {
@@ -33,9 +33,9 @@
       "uoa_cp_ratio": 28.1487204249155
     },
     "AMC": {
-      "score": 50,
+      "score": 20,
       "confidence": 33,
-      "drivers": "Spanne 5.8% + News: squeeze, short squeeze + UOA Call/Put 6.6×",
+      "drivers": "Spanne 5.8% + UOA Call/Put 6.6×",
       "price": 2.59,
       "chg_pct": -0.0,
       "rvol_4d": 0.43,
@@ -46,7 +46,7 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 1,
+      "active_triggers": 0,
       "ki_sentiment_source": "keyword",
       "uoa_score": 10,
       "uoa_drivers": [
@@ -105,7 +105,7 @@
     "DFH": {
       "score": 50,
       "confidence": 33,
-      "drivers": "Spanne 8.3% + News: squeeze, acquisition + UOA Call/Put 6.2×",
+      "drivers": "Spanne 8.3% + News: acquisition, squeeze + UOA Call/Put 6.2×",
       "price": 15.03,
       "chg_pct": -0.0,
       "rvol_4d": 1.25,
@@ -151,7 +151,7 @@
     "HTZ": {
       "score": 94,
       "confidence": 70,
-      "drivers": "Volumen 3.6× + ⚡ Extremes Volumen 3.6×+ + Spanne 14.8% + News: short interest, squeeze + UOA Call/Put 7.7×",
+      "drivers": "Volumen 3.6× + ⚡ Extremes Volumen 3.6×+ + Spanne 14.8% + News: short squeeze, short interest + UOA Call/Put 7.7×",
       "price": 2.27,
       "chg_pct": -0.0,
       "rvol_4d": 3.63,
@@ -220,7 +220,7 @@
     "IONQ": {
       "score": 60,
       "confidence": 70,
-      "drivers": "Spanne 11.4% + News: catalyst, acquisition + SEC Form 4 + UOA Call/Put 2.7×",
+      "drivers": "Spanne 11.4% + News: acquisition, catalyst + SEC Form 4 + UOA Call/Put 2.7×",
       "price": 44.43,
       "chg_pct": 0.0,
       "rvol_4d": 1.38,
@@ -308,9 +308,9 @@
       "uoa_cp_ratio": 25.666666666666668
     },
     "WOLF": {
-      "score": 36,
+      "score": 40,
       "confidence": 70,
-      "drivers": "Spanne 17.7% + News-KI 8/30: Routine earnings announcement and board appointment lack short-squeeze catalysts like high short interest, debt concerns + Earnings in 11d + UOA Call/Put 2.1×",
+      "drivers": "Spanne 17.7% + News-KI 12/30: Partnership announcement is positive but lacks short-squeeze catalysts; no significant short interest data, volatile mar + Earnings in 11d + UOA Call/Put 2.1×",
       "price": 32.87,
       "chg_pct": -0.0,
       "rvol_4d": 1.31,
@@ -321,7 +321,7 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 0,
+      "active_triggers": 1,
       "ki_sentiment_source": "llm",
       "uoa_score": 10,
       "uoa_drivers": [
