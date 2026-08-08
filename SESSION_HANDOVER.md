@@ -1,11 +1,21 @@
-# SESSION_HANDOVER.md — Stand 17.07.2026 (entry_past_return_5d Backfill DURCH + Gate-Kalibrierung + Paper-C-Read)
+# SESSION_HANDOVER.md — Stand 08.08.2026 (Woche 03.–08.08.: Matured-Export + §4-Vorabregistrierung eingefroren + Guardian-Pflichtregel + Earnings-Alert-Rename + Panel-Ehrlichkeit + inst_ownership-Key-Fix)
 
 **Zweck:** vollständige Übergabe an eine **neue Code-Session ohne Kontext der
 alten**. Dieses Dokument + `CLAUDE.md` müssen zusammen ausreichen, um am
 Projektstand direkt weiterzuarbeiten. Reine Doku, kein Logik-Touch.
 
-**Datums-Basis (belegt, nicht Erinnerung):** Repo-Stand **17.07.2026**. Session-
-Bogen 16.–17.07.: am **16.07.** die **entry_past_return_5d Stufe-B-Backfill-Kette**
+**Datums-Basis (belegt, nicht Erinnerung):** Repo-Stand **08.08.2026**.
+**Woche 03.–08.08.** (PRs #500–#512, alle git-belegt gemergt): Prune-Konsequenz-
+Doku (`40565b4` #500) · **Matured-Export** append-only/prune-immun (`a01acb2`
+#501) + Reife-Gate #2 `days_old>14` (`6bdf517` #503) · **Guardian-Pflichtregel**
+in `CLAUDE.md` (`b19c3f2` #502) + Alt-Stellen angeglichen (`3e96391` #504) ·
+**§4-Exit-B.1-Vorabregistrierung EINGEFROREN 05.08.** (`a4fcbcd` #505) + forward-
+Disambiguierung (`bdf84f2` #506) · **Earnings-Sofort-Push „Earnings-Alert"** statt
+„Squeeze Alert" (`fdf885f` #507) · **Panel 90-Tage-Rollfenster-Ehrlichkeit**
+(`e9a4245` #508) · **§4-Re-Test-Zähler** im Health-Check-Push (`d6c51b0` #509) ·
+**inst_ownership-Key-Fix** `heldPercentInstitutions` nach Wegwerf-Probe (`bcf350d`
+#510-Probe → `2ad9d9e` #511-Cleanup → `5c67fca` #512-Fix). **Vorheriger
+Bogen 16.–17.07.:** am **16.07.** die **entry_past_return_5d Stufe-B-Backfill-Kette**
 — **#442** (Backfill-Skript + Workflow, Merge `cd6947a`), **#443** (Gate-Diff-
 Verteilungs-Logging, Merge `344e23d`), **#444** (Gate begründet kalibriert, Merge
 `610349c`); am **17.07.** der **LIVE-LAUF DURCH** (`5d8e78d` — **465/470 Records
@@ -27,6 +37,45 @@ Anker.
 ---
 
 ## 1) HEUTE IMPLEMENTIERT (chronologisch, mit Hashes)
+
+### Woche 03.–08.08.2026 — Matured-Export · §4-Vorabregistrierung · Guardian-Pflicht · Anzeige-Ehrlichkeit
+
+- **`40565b4` — #500 — docs:** Prune-Konsequenz für die Sept-Re-Tests + Drei-Zonen-
+  Schrumpf (Momentaufnahme 03.08.).
+- **`a01acb2` — #501 + `6bdf517` — #503 — feat:** **Matured-Export** `matured_backtest_export.jsonl`
+  (append-only, **prune-immun**, Analyse-only, KEIN Frontend-Konsument). #501 baut
+  Export + Provenance (`backfill`/`forward`); #503 verschärft das Reife-Gate auf
+  `return_10d` gefüllt **UND** `days_old > 14` Kalendertage (Rolling-Felder
+  `max_gain_pct`/`max_drawdown_pct` erst ab Kalendertag 15 final). Aufruf im
+  postclose-Pfad, fail-soft, Flag `MATURED_EXPORT_ENABLED`.
+- **`b19c3f2` — #502 + `3e96391` — #504 — docs:** **Guardian-Pflichtregel** (`CLAUDE.md`):
+  `squeeze-guardian`-**Lauf** vor JEDER Ready-Meldung / JEDEM Self-Merge, ungefragt,
+  ohne Ausnahme (auch Doku); **Urteil bleibt advisory/kein Gatekeeper**. #504 gleicht
+  die drei Alt-Stellen an (eine Wahrheit).
+- **`a4fcbcd` — #505 + `bdf84f2` — #506 — docs:** **§4-Vorabregistrierung EINGEFROREN
+  05.08.** (Exit-B.1, Def A: `provenance=forward` ∧ `score≥70`, Quelle Matured-Export;
+  Setup-Edge herausgenommen; Änderungs-Protokoll-Regel). #506 disambiguiert „forward"
+  (Paper-C datums-basiert vs. §4 provenance-basiert). **§4-Block ist ab hier
+  änderungs-protokoll-geschützt.**
+- **`fdf885f` — #507 — fix:** **Earnings-Sofort-Push umbenannt** „Squeeze Alert" →
+  **„Earnings-Alert"** (`ki_agent.py:send_ntfy_alert`, einzige Aufrufstelle =
+  Earnings-Pfad; alter Titel war Refactor-Rest). Raketen-Emoji raus, Score-Zahlen
+  raus (hatten nie eine Push-Schwelle), Tag `calendar`, Body „anstehendes Earnings-
+  Ereignis, kein Squeeze-Signal". Trigger unverändert.
+- **`e9a4245` — #508 — fix(display):** **Backtesting-Panel** — Datenpunkt-Zahl als
+  **90-Tage-Rollfenster** ehrlich gemacht (graue Zeile „kann sinken, ohne Datenverlust;
+  gereifte Records dauerhaft prune-immun gesichert").
+- **`d6c51b0` — #509 — feat(health-check):** **§4-Re-Test-Zähler** im täglichen
+  Digest-Push (`📊 Re-Test-Zähler (§4): n = X/250 · Export N Zeilen`), fail-soft,
+  backend-only. Export-Zeilenzahl macht stillen Export-Ausfall täglich sichtbar.
+- **`bcf350d` #510 → `2ad9d9e` #511 → `5c67fca` #512 — inst_ownership-Key-Fix:**
+  Wegwerf-Probe (#510) belegte: die verdrahteten `.info`-Keys
+  (`institutionHeldPercentOutstanding`/`institutionsPercentHeld`) existieren NICHT
+  (`<KEY-FEHLT>` 33/33); Standard-Key **`heldPercentInstitutions`** trägt (Coverage
+  30/30, Streuung voll, >100 % bei stark geshorteten Titeln real). #511 Probe-Cleanup,
+  #512 **Key-Fix** (beide Lese-Stellen + JS-Drawer-Skala ×100 + null-Guard). Karten-
+  Zeile „Institutioneller Anteil" war seit jeher stumm, zeigt jetzt echte Werte.
+  **KEIN Score-Touch, KEIN Sammelfeld** (offen, §6g).
 
 ### 17.07.2026 — entry_past_return_5d Stufe-B-Backfill (Paper C) DURCH + Gate-Kalibrierung
 
@@ -514,6 +563,26 @@ nur bei `available=True`.
 
 ## 3) VERIFIKATION (nächste Handelstage, konkrete Beobachtungspunkte)
 
+### Woche 03.–08.08. — Verifikation ausstehend (nächster Deploy / Digest)
+
+- **★★ inst_ownership-Zeile erscheint (#512).** Nach dem nächsten Daily-Deploy zeigt
+  die Karten-Zeile „Institutioneller Anteil" **echte %-Werte** (war seit jeher stumm,
+  0 % Coverage durch tote Keys). Server-Render war schon korrekt (×100), JS-Drawer
+  jetzt auch. **Passiv beobachten.**
+- **★★ Earnings-Alert-Name live (#507).** Der nächste After-Hours-Earnings-Push (nur
+  bei `earnings_days 0–1` + frisches 8-K/News) heißt **„Earnings-Alert: {ticker}"**,
+  📅 statt 🚀, ohne Score-Zahl, Body „anstehendes Earnings-Ereignis, kein Squeeze-Signal".
+- **★ Panel-Rollfenster-Zeile live (#508).** Backtesting-Panel zeigt unter der
+  Datenpunkt-Zahl die graue Rollfenster-Zeile nach nächstem Deploy.
+- **★★ §4-Re-Test-Zähler im Digest (#509).** Der tägliche Health-Check-Push (Cron
+  08:47 UTC) trägt `📊 Re-Test-Zähler (§4): n = X/250 · Export N Zeilen`. **Beobachten:**
+  n wächst forward; Export-Zeilenzahl steigt bei jedem postclose (stiller Ausfall
+  sonst sichtbar). Stand 05.08.-postclose: **n=2** (FRMM, ANAB), Export 705 Zeilen —
+  bereits verifiziert (erster Forward-Batch, 10 vom 21.07. korrekt nachgezogen).
+- **★ Matured-Export forward wächst (#501/#503).** `matured_backtest_export.jsonl`
+  bleibt append-only/prune-immun; 0 Doppel-Keys, 0 Records mit `days_old ≤ 14` bei
+  Export — Kriterien im Echtbetrieb bestätigt.
+
 ### ✅ AUFGELÖST (17.07. — entry_past_return_5d Stufe-B-Backfill durch)
 
 - **★★ BACKFILL LIVE DURCH — Gate PASS, 465/470 gefüllt.** Der `mode=live`-Lauf
@@ -718,6 +787,35 @@ In-Sample-Vorsicht`).
 **Änderungs-Protokoll (bindend ab 05.08.2026):** **Keine Änderung an diesem §4-
 Registrierungsblock ohne datierten Protokolleintrag**, der die Änderung **und ihren
 Grund** festhält — jede spätere Anpassung muss so als Bruch sichtbar bleiben.
+
+### WIEDERVORLAGEN — dated (Stand 08.08.2026, NICHT Teil des §4-Freeze)
+
+- **14.08.2026 — SEC-Entscheid `SR-FINRA-2026-012` (SI-Meldepflicht).** Erwartet:
+  **wöchentliches** SI-Reporting (statt bimonatlich) + **„arranged financing" zählt
+  künftig als SI**. **Risiko für den laufenden §4-Exit-B.1-Test:** ein struktureller
+  **SI-Sprung** durch die neue Definition wäre ein **Zeitreihen-Bruch** in der
+  Datenbasis → dann greift die **Änderungs-Protokoll-Regel** (datierter Eintrag +
+  Grund, bevor §4 angepasst wird). Am 14.08. den Entscheid lesen und die Konsequenz
+  für `finra`-Pfad / `FINRA_PUB_OFFSET_BUSINESS_DAYS` (§7c) einordnen.
+- **~Mitte Aug 2026 — Paper-C konfirmatorischer OoS-Test.** Läuft, sobald (a)
+  Forward-`return_10d` der ab 13.07. gesammelten Records gereift ist UND (b) `n_win`
+  an **beiden** Zielen ≥ Floor 40 — mit Regime-Vorbehalt (§5 Confound 1). Datengetrieben,
+  nicht kalendarisch (Datum nur Schätzung).
+- **vor ~12.10.2026 — Herkunft/Vollständigkeit im Matured-Export sichern.** Die
+  erste Forward-Charge (Entry 13.07.) rollt ~**11.–12.10.** über die 90-Tage-Kante
+  aus `backtest_history.json`. Der Matured-Export ist **prune-immun** und hat sie
+  (mit `provenance=forward`) bereits; vor dem Prune-Datum trotzdem **verifizieren**,
+  dass alle gereiften 13.07.-Records im Export stehen (der §4-Zähler #509 macht das
+  täglich sichtbar — Export-Zeilenzahl darf nicht schrumpfen).
+- **`ssr_restriction`-Belegwerte-Verify — Status offen?** Feature + `purge_ssr_restriction`
+  existieren (CI-Allowlist), die Live-Belegwerte-Prüfung ist im Handover **nicht
+  auffindbar**. **Easy: bitte bestätigen** ob dieser Verify noch aussteht (dann hier
+  datiert führen) oder erledigt ist (dann streichen) — im Bericht als Frage gemeldet,
+  hier NICHT erfunden.
+- **10c-1a-Vormerkung (SEC Short-Position-Reporting) — präzise Termine.** **Form SHO:
+  Q1/2028 (02/2028)** · **erste Meldung: 28.09.2028** · **öffentliche Dissemination:
+  29.03.2029**. Reine Vormerkung (fern), kein Bau — beim SR-FINRA-2026-012-Entscheid
+  (oben) mitdenken, ob sich die SI-Datenlandschaft davor schon verschiebt.
 
 #### ⚠ Datenherkunft des vorabregistrierten Exit-B.1-Re-Tests — gap-NaN-Erkennbarkeitsgrenze (Stand 29.07.2026)
 
@@ -1158,11 +1256,26 @@ belegt: Cap schrittweise lockern. Kein Termin — wartet auf externes Signal.
 erfordert `templates/page.jinja` + `_wl_full_card_html`-Umbau (§7g). Kein
 Trading-Wert.
 
-### 6g. Institutional-Ownership-Faktor (Paper-Dämpfer)
-**Status: OFFEN (Paper-abgeleitet 12.07.).** Svoboda et al.: hoher Institutional-
-Ownership **dämpft** (**−6 % je +1 %**). Datenquelle yfinance
-`heldPercentInstitutions` — **Vorbehalt: potenziell stale** (quartalsweise
-13F-Latenz). Vor Nutzung read-only klären. Kein Score-Effekt ohne OoS-Beleg.
+### 6g. Institutional-Ownership-Faktor (Paper-Dämpfer) — Anzeige-Key-Fix DURCH, Sammelfeld offen
+**Status: Anzeige-Key-Fix ERLEDIGT (#510–#512, 07.08.); Sammelfeld OFFEN (Kandidat
+der Hypothesen-Runde NACH Paper C).** Svoboda et al.: hoher Institutional-Ownership
+**dämpft** (**−6 % je +1 %**) — der erste Faktor, der GEGEN einen Squeeze spräche.
+Datenquelle yfinance **`heldPercentInstitutions`** (ein BRUCH); die früher
+verdrahteten Keys (`institutionHeldPercentOutstanding`/`institutionsPercentHeld`)
+existierten im `.info`-Dict NICHT (Wegwerf-Probe #510: `<KEY-FEHLT>` 33/33) → #512
+gefixt, Coverage **30/30** am Universum, Streuung voll, quartalsweise 13F-Latenz
+bleibt (forward-only unproblematisch). Kein Score-Effekt ohne OoS-Beleg — Sammelfeld
+`inst_ownership_history` (**forward-only, S10_OBSERVED-additiv**, `none=unbeobachtbar`,
+**NIE 0**) bleibt Kandidat.
+
+**Zwei Registrierungs-Caveats (VOR jedem Sammelfeld-/Score-Schritt entscheiden):**
+1. **Werte > 100 % roh einfrieren** — bei stark geshorteten Titeln real (HTZ 118,7 %;
+   Shorts erzeugen synthetische Bestände), NICHT deckeln.
+2. **Farb-Semantik hoch = grün kollidiert mit der Dämpfer-These** — die Karte färbt
+   aktuell **hohe** Inst-Beteiligung **grün** („gut"), Svoboda sagt aber hoch =
+   Dämpfer (für einen Squeeze schlecht). **Bewusst NICHT geändert** (Fundstelle
+   `generate_report.py` ~5602/6139, Schwellen 60/30) — erst nach der Hypothesen-Runde
+   entscheiden.
 
 ### 6h. Crash-Filter / Markt-Blind-Zone (Paper-Grenze)
 **Status: OFFEN (Paper-abgeleitet 12.07.).** Paper: bei **Marktrückgang > 3 %**
@@ -1735,6 +1848,18 @@ Paper: bei **Marktrückgang > 3 % blind**; **Institutional Ownership dämpft**
 (−6 % je +1 %); **Marktkap + Markttrend nicht signifikant**. Konsequenz:
 Crash-Tage ausschließen (§6h), Ownership als Dämpfer-Kontext (§6g,
 Staleness-Vorbehalt), keinen Marktkap-/Trend-Score bauen.
+
+### 8j. Prompt-Prämissen sind Prüfaufträge, keine Tatsachen (08/2026)
+
+Eine im Auftrag mitgelieferte Prämisse **immer erst am Repo/an den Daten
+verifizieren**, bevor darauf gebaut wird — und bei Abweichung **melden statt
+still angleichen**. Zwei belegte Vorfälle 08/2026: (a) „~19 gereifte Records/HT"
+war eine unfiltrierte Zahl, der §4-Zähler meint aber score≥70-forward (~3,6/HT) —
+Skala-Verwechslung; (b) „der Health-Check liest den Export bereits (S10/S13)" war
+falsch (S10 liest `backtest_history.json`, kein Modul las den Matured-Export) →
+der darauf gebaute „kein neuer Leser"-Constraint war hinfällig. Beide Male hat die
+Read-only-Verifikation den Fehlbau verhindert. **Regel:** Prämisse ≠ Fakt; grep
+zuerst.
 
 ---
 
