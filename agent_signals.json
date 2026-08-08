@@ -1,17 +1,17 @@
 {
-  "updated": "2026-08-09T00:47:34.304853+02:00",
+  "updated": "2026-08-09T01:45:07.253739+02:00",
   "run_info": {
     "tickers_checked": 14,
     "signals_active": 2,
     "alerts_sent": 0,
-    "elapsed_s": 14.3,
+    "elapsed_s": 13.8,
     "market_phase": "Geschlossen"
   },
   "signals": {
     "AI": {
       "score": 63,
       "confidence": 33,
-      "drivers": "News: short interest + Earnings in 32d + SEC Form 4 + UOA Call-Vol/OI 5.6× ATM + UOA Call/Put 34.9×",
+      "drivers": "News: short interest + Earnings in 32d + SEC Form 4 + UOA Call-Vol/OI 5.6× ATM + UOA Call/Put 28.1×",
       "price": 10.22,
       "chg_pct": 0.0,
       "rvol_4d": 0.98,
@@ -27,15 +27,15 @@
       "uoa_score": 30,
       "uoa_drivers": [
         "UOA Call-Vol/OI 5.6× ATM",
-        "UOA Call/Put 34.9×"
+        "UOA Call/Put 28.1×"
       ],
       "uoa_atm_ratio": 5.565995137200416,
-      "uoa_cp_ratio": 34.94964028776978
+      "uoa_cp_ratio": 28.1487204249155
     },
     "AMC": {
-      "score": 50,
+      "score": 20,
       "confidence": 33,
-      "drivers": "Spanne 5.8% + News: short squeeze, squeeze + UOA Call/Put 6.6×",
+      "drivers": "Spanne 5.8% + UOA Call/Put 6.6×",
       "price": 2.59,
       "chg_pct": -0.0,
       "rvol_4d": 0.43,
@@ -46,7 +46,7 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 1,
+      "active_triggers": 0,
       "ki_sentiment_source": "keyword",
       "uoa_score": 10,
       "uoa_drivers": [
@@ -103,9 +103,9 @@
       "uoa_cp_ratio": 3.920754716981132
     },
     "DFH": {
-      "score": 25,
+      "score": 50,
       "confidence": 33,
-      "drivers": "Spanne 8.3% + News-KI 5/30: Acquisition announcements typically don't create short-squeeze conditions as they increase company debt/dilution and pro + UOA Call/Put 6.2×",
+      "drivers": "Spanne 8.3% + News: acquisition, squeeze + UOA Call/Put 6.2×",
       "price": 15.03,
       "chg_pct": -0.0,
       "rvol_4d": 1.25,
@@ -116,8 +116,8 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 0,
-      "ki_sentiment_source": "llm",
+      "active_triggers": 1,
+      "ki_sentiment_source": "keyword",
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 6.2×"
@@ -126,9 +126,9 @@
       "uoa_cp_ratio": 6.176470588235294
     },
     "EVGO": {
-      "score": 35,
+      "score": 28,
       "confidence": 33,
-      "drivers": "Spanne 12.3% + News: partnership + UOA Call/Put 17.4×",
+      "drivers": "Spanne 12.3% + News-KI 8/30: Routine earnings announcements lack short-squeeze catalysts like short interest spikes, supply constraints, or insider b + UOA Call/Put 17.4×",
       "price": 1.62,
       "chg_pct": 0.0,
       "rvol_4d": 1.1,
@@ -139,8 +139,8 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 1,
-      "ki_sentiment_source": "keyword",
+      "active_triggers": 0,
+      "ki_sentiment_source": "llm",
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 17.4×"
@@ -174,7 +174,7 @@
     "IBTA": {
       "score": 50,
       "confidence": 33,
-      "drivers": "Spanne 10.3% + News: earnings beat, partnership + UOA Call/Put 4.2×",
+      "drivers": "Spanne 10.3% + News: partnership, earnings beat + UOA Call/Put 4.2×",
       "price": 38.42,
       "chg_pct": -0.0,
       "rvol_4d": 0.65,
@@ -220,7 +220,7 @@
     "IONQ": {
       "score": 60,
       "confidence": 70,
-      "drivers": "Spanne 11.4% + News: contract, acquisition + SEC Form 4 + UOA Call/Put 2.7×",
+      "drivers": "Spanne 11.4% + News: acquisition, contract + SEC Form 4 + UOA Call/Put 2.7×",
       "price": 44.43,
       "chg_pct": 0.0,
       "rvol_4d": 1.38,
@@ -308,9 +308,9 @@
       "uoa_cp_ratio": 25.666666666666668
     },
     "WOLF": {
-      "score": 36,
+      "score": 28,
       "confidence": 70,
-      "drivers": "Spanne 17.7% + News-KI 8/30: Partnership announcement shows business growth but lacks short-squeeze indicators like high short interest, low float, o + Earnings in 11d + UOA Call/Put 2.1×",
+      "drivers": "Spanne 17.7% + Earnings in 11d + UOA Call/Put 2.1×",
       "price": 32.87,
       "chg_pct": -0.0,
       "rvol_4d": 1.31,
@@ -322,7 +322,7 @@
       "stocktwits": null,
       "combo_mult": 1.0,
       "active_triggers": 0,
-      "ki_sentiment_source": "llm",
+      "ki_sentiment_source": "keyword",
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 2.1×"
