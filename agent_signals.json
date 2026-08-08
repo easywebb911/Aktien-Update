@@ -1,17 +1,17 @@
 {
-  "updated": "2026-08-08T01:48:43.328385+02:00",
+  "updated": "2026-08-08T04:22:01.543406+02:00",
   "run_info": {
     "tickers_checked": 14,
     "signals_active": 1,
     "alerts_sent": 0,
-    "elapsed_s": 19.8,
-    "market_phase": "After-Hours"
+    "elapsed_s": 13.2,
+    "market_phase": "Geschlossen"
   },
   "signals": {
     "AI": {
-      "score": 43,
+      "score": 63,
       "confidence": 33,
-      "drivers": "News: short interest + Earnings in 33d + SEC Form 4 + UOA Call/Put 317.6×",
+      "drivers": "News: short interest + Earnings in 33d + SEC Form 4 + UOA Call-Vol/OI 5.6× ATM + UOA Call/Put 34.9×",
       "price": 10.22,
       "chg_pct": 0.0,
       "rvol_4d": 0.84,
@@ -24,12 +24,13 @@
       "combo_mult": 1.0,
       "active_triggers": 1,
       "ki_sentiment_source": "keyword",
-      "uoa_score": 10,
+      "uoa_score": 30,
       "uoa_drivers": [
-        "UOA Call/Put 317.6×"
+        "UOA Call-Vol/OI 5.6× ATM",
+        "UOA Call/Put 34.9×"
       ],
-      "uoa_atm_ratio": 0.9240347301711382,
-      "uoa_cp_ratio": 317.5904761904762
+      "uoa_atm_ratio": 5.565995137200416,
+      "uoa_cp_ratio": 34.94964028776978
     },
     "AMC": {
       "score": 50,
@@ -125,9 +126,9 @@
       "uoa_cp_ratio": 6.176470588235294
     },
     "EVGO": {
-      "score": 28,
+      "score": 20,
       "confidence": 33,
-      "drivers": "Spanne 12.3% + News-KI 8/30: Routine earnings announcements lack short squeeze catalysts like short interest spikes, forced buybacks, or gamma trigge + UOA Call/Put 17.4×",
+      "drivers": "Spanne 12.3% + UOA Call/Put 17.4×",
       "price": 1.62,
       "chg_pct": 0.0,
       "rvol_4d": 1.09,
@@ -139,7 +140,7 @@
       "stocktwits": null,
       "combo_mult": 1.0,
       "active_triggers": 0,
-      "ki_sentiment_source": "llm",
+      "ki_sentiment_source": "keyword",
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 17.4×"
@@ -150,7 +151,7 @@
     "HTZ": {
       "score": 94,
       "confidence": 70,
-      "drivers": "Volumen 3.6× + ⚡ Extremes Volumen 3.6×+ + Spanne 14.7% + News: short interest, short squeeze + UOA Call/Put 4.1×",
+      "drivers": "Volumen 3.6× + ⚡ Extremes Volumen 3.6×+ + Spanne 14.7% + News: short squeeze, revenue beat + UOA Call/Put 7.7×",
       "price": 2.27,
       "chg_pct": -0.0,
       "rvol_4d": 3.58,
@@ -165,15 +166,15 @@
       "ki_sentiment_source": "keyword",
       "uoa_score": 10,
       "uoa_drivers": [
-        "UOA Call/Put 4.1×"
+        "UOA Call/Put 7.7×"
       ],
       "uoa_atm_ratio": null,
-      "uoa_cp_ratio": 4.08063671392765
+      "uoa_cp_ratio": 7.665095821551995
     },
     "IBTA": {
-      "score": 50,
+      "score": 28,
       "confidence": 33,
-      "drivers": "Spanne 10.3% + News: partnership, earnings beat + UOA Call/Put 4.2×",
+      "drivers": "Spanne 10.3% + News-KI 8/30: Positive business fundamentals and revenue growth are bullish but lack short squeeze catalysts like high short interest, + UOA Call/Put 4.2×",
       "price": 38.42,
       "chg_pct": -0.0,
       "rvol_4d": 0.58,
@@ -184,8 +185,8 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 1,
-      "ki_sentiment_source": "keyword",
+      "active_triggers": 0,
+      "ki_sentiment_source": "llm",
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 4.2×"
@@ -194,9 +195,9 @@
       "uoa_cp_ratio": 4.186813186813187
     },
     "INDI": {
-      "score": 35,
+      "score": 43,
       "confidence": 33,
-      "drivers": "Spanne 8.6% + SEC 8-K + UOA Call/Put 12.1×",
+      "drivers": "Spanne 8.6% + SEC 8-K + News-KI 8/30: Positive revenue beat is overshadowed by reported losses, showing weak fundamentals that typically don't support short-s + UOA Call/Put 12.1×",
       "price": 4.04,
       "chg_pct": -0.0,
       "rvol_4d": 1.27,
@@ -208,7 +209,7 @@
       "stocktwits": null,
       "combo_mult": 1.0,
       "active_triggers": 1,
-      "ki_sentiment_source": "keyword",
+      "ki_sentiment_source": "llm",
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 12.1×"
@@ -219,7 +220,7 @@
     "IONQ": {
       "score": 60,
       "confidence": 70,
-      "drivers": "Spanne 11.4% + SEC 8-K + News: acquisition + SEC Form 4 + UOA Call/Put 4.1×",
+      "drivers": "Spanne 11.4% + SEC 8-K + News: acquisition + SEC Form 4 + UOA Call/Put 2.7×",
       "price": 44.43,
       "chg_pct": 0.0,
       "rvol_4d": 1.13,
@@ -234,10 +235,10 @@
       "ki_sentiment_source": "keyword",
       "uoa_score": 10,
       "uoa_drivers": [
-        "UOA Call/Put 4.1×"
+        "UOA Call/Put 2.7×"
       ],
-      "uoa_atm_ratio": 1.1511906877554647,
-      "uoa_cp_ratio": 4.129944330501026
+      "uoa_atm_ratio": 1.1747488527843235,
+      "uoa_cp_ratio": 2.651669941060904
     },
     "METC": {
       "score": 25,
@@ -261,9 +262,9 @@
       "uoa_cp_ratio": 0.5
     },
     "PDYN": {
-      "score": 35,
+      "score": 50,
       "confidence": 33,
-      "drivers": "Spanne 5.1% + News: contract + UOA Call/Put 2.0×",
+      "drivers": "Spanne 5.1% + News: partnership, contract + UOA Call/Put 2.0×",
       "price": 5.99,
       "chg_pct": -0.0,
       "rvol_4d": 0.65,
@@ -309,7 +310,7 @@
     "WOLF": {
       "score": 36,
       "confidence": 70,
-      "drivers": "Spanne 17.6% + News-KI 8/30: Partnership announcement shows business development but lacks short-squeeze catalysts; no mention of high short interest + Earnings in 12d + UOA Call/Put 3.7×",
+      "drivers": "Spanne 17.6% + News-KI 8/30: Partnership announcement is positive but lacks short squeeze catalysts like extreme short interest, low float, or moment + Earnings in 12d + UOA Call/Put 2.1×",
       "price": 32.87,
       "chg_pct": -0.0,
       "rvol_4d": 1.25,
@@ -324,10 +325,10 @@
       "ki_sentiment_source": "llm",
       "uoa_score": 10,
       "uoa_drivers": [
-        "UOA Call/Put 3.7×"
+        "UOA Call/Put 2.1×"
       ],
-      "uoa_atm_ratio": 1.3391977480647432,
-      "uoa_cp_ratio": 3.712484237074401
+      "uoa_atm_ratio": 0.844731977818854,
+      "uoa_cp_ratio": 2.116883116883117
     }
   }
 }
