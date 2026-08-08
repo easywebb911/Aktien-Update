@@ -11,7 +11,7 @@
 <header class="app-hdr">
   <div class="hdr-main">
     <span class="app-title">Squeeze <span>Report</span></span>
-    <span class="hdr-ts">Marktdaten: 01.06.2026, 16:30 Uhr<span id="hdr-kitime" class="hdr-kitime" hidden></span><span id="hdr-runphase" class="hdr-runphase" hidden></span><span id="hdr-staleness" class="hdr-staleness" hidden></span><span id="hdr-nontrading" class="hdr-nontrading" hidden></span></span>
+    <span class="hdr-ts">Marktdaten: 01.06.2026, 16:30 Uhr<span id="hdr-kitime" class="hdr-kitime" hidden></span><span id="hdr-runphase" class="hdr-runphase" hidden></span><span id="hdr-staleness" class="hdr-staleness" hidden></span><span id="hdr-market-stress" class="hdr-market-stress" hidden></span><span id="hdr-nontrading" class="hdr-nontrading" hidden></span></span>
     <button class="hamburger-btn" id="hamburger-btn" aria-label="Menü" aria-expanded="false" onclick="toggleMenuDrawer()">
       <i data-lucide="menu" class="hamburger-icon"></i>
     </button>
@@ -2511,6 +2511,52 @@ function _renderStaleness(anchorIso) {
 // PWA-Snapshot) — genau der Fall, in dem Easy die Warnung am meisten braucht.
 window.addEventListener('DOMContentLoaded', function() { _renderStaleness(_DAILY_RUN_TS); });
 
+function _renderMarketStress(spxPerf) {
+  // Markt-Stress-Banner (§6h, 08.08.2026): dezenter Header-Hinweis neben der
+  // Staleness-/Run-Phase-Pill, wenn der heutige S&P-500-Tagesmove schwach
+  // oder panisch ist. Anker = ``_SPX_DAILY_PERF`` (server-eingebrannter
+  // ^GSPC-Tagesmove, aus der bereits gefetchten SPY-Historie abgeleitet —
+  // KEIN neuer Fetch). REIN ANZEIGE: KEIN Filter, KEIN Push-Gate, KEINE
+  // Score-/Conviction-/Backtest-Berührung. Ein Panik-Tag ist der Moment zum
+  // Hinsehen, NICHT zum Auto-Unterdrücken (Diagnose §6h 08.08.2026 — der
+  // harte Filter wurde bewusst verworfen, um echte Panik-Squeezes nicht zu
+  // töten). Zwei Stufen:
+  //   ≤ _MKT_STRESS_STRONG (−3 %) → rot, „besonderer Vorsicht"
+  //   ≤ _MKT_STRESS_MILD   (−2 %) → gelb, „vorsichtig"
+  //   sonst / null / nicht-endlich → versteckt (fail-soft, kein Falsch-Alarm)
+  try {
+    const el = document.getElementById('hdr-market-stress');
+    if (!el) return;
+    el.classList.remove('hdr-market-stress-mild', 'hdr-market-stress-strong');
+    const v = (typeof spxPerf === 'number' && isFinite(spxPerf)) ? spxPerf : null;
+    if (v === null || v > _MKT_STRESS_MILD) {
+      el.hidden = true; el.textContent = '';
+      return;
+    }
+    // Anzeige in Easys Lokalformat (deutsches Komma), 1 Nachkommastelle. Der
+    // negative Wert trägt sein Vorzeichen selbst → „(SPY −X,X%)".
+    const pctStr = v.toLocaleString('de-DE',
+      {minimumFractionDigits: 1, maximumFractionDigits: 1});
+    if (v <= _MKT_STRESS_STRONG) {
+      el.textContent = ' · ⚠ Markt-Stress (SPY ' + pctStr
+        + '%): Signale heute mit besonderer Vorsicht lesen';
+      el.classList.add('hdr-market-stress-strong');
+    } else {
+      el.textContent = ' · ⚠ Markt schwach (SPY ' + pctStr
+        + '%): Signale heute vorsichtig lesen';
+      el.classList.add('hdr-market-stress-mild');
+    }
+    el.hidden = false;
+  } catch (e) {
+    console.warn('_renderMarketStress error:', e);
+  }
+}
+
+// Markt-Stress FETCH-UNABHÄNGIG rendern (analog Staleness): der Anker
+// _SPX_DAILY_PERF ist server-eingebrannt → der Hinweis erscheint auch bei
+// fehlgeschlagenem app_data.json-Fetch (offline / stale PWA-Snapshot).
+window.addEventListener('DOMContentLoaded', function() { _renderMarketStress(_SPX_DAILY_PERF); });
+
 function _applyExitGlows() {
   try {
     // Idempotenter Reset: Glow-Klassen, has-exit-banner und vorhandenes
@@ -3449,6 +3495,13 @@ const QUOTE_PROXY_URL = '';
 const _DAILY_RUN_TS      = '2026-06-01T14:30:00Z';
 const _STALE_FRESH_MAX_H = 15;
 const _STALE_STALE_MIN_H = 24;
+// Markt-Stress-Banner (§6h, 08.08.2026): heutiger ^GSPC-Tagesmove (server-
+// eingebrannt aus dem bereits gefetchten spx_daily_perf — kein neuer Fetch),
+// float ODER null (nicht-endlich/fehlend → kein Banner). Schwellen aus config.
+// REIN ANZEIGE: kein Filter, kein Push-Gate, keine Score-/Conviction-Logik.
+const _SPX_DAILY_PERF    = null;
+const _MKT_STRESS_STRONG = -3.0;
+const _MKT_STRESS_MILD   = -2.0;
 // Sammel-Felder-Status-Kachel: [ [roh_feldname, label, status], ... ] aus
 // config.COLLECT_STATUS_FIELDS (server-injiziert). _btCollectStatus zählt pro
 // Feld die non-null Einträge in _btData. Rein anzeigend, keine Feld-Werte.

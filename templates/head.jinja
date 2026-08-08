@@ -139,6 +139,14 @@ a{color:var(--accent);text-decoration:none}
 .hdr-staleness-delayed{color:#f59e0b}
 .hdr-staleness-stale{color:#ef4444}
 .hdr-staleness[hidden]{display:none}
+/* Markt-Stress-Banner (§6h, 08.08.2026) — selbe Pill-Optik wie hdr-staleness.
+   Leitet den heutigen SPY-Tagesmove aus der bereits gefetchten ^GSPC-Historie
+   ab; flaggt schwache (gelb, ≤ −2 %) und panische (rot, ≤ −3 %) Tage. Im
+   Normalfall (> −2 %) im JS versteckt. REIN ANZEIGE — kein Filter/Push/Score. */
+.hdr-market-stress{display:inline;font-weight:600;letter-spacing:.01em;margin-left:2px}
+.hdr-market-stress-mild{color:#f59e0b}
+.hdr-market-stress-strong{color:#ef4444}
+.hdr-market-stress[hidden]{display:none}
 .btn{display:inline-flex;align-items:center;justify-content:center;
   gap:6px;min-height:44px;padding:0 16px;border:1px solid transparent;border-radius:6px;
   font-size:.9rem;font-weight:700;cursor:pointer;flex:1;

@@ -952,7 +952,8 @@ mit Regime-Vorbehalt (§5 Confound 1). **Rückweg** falls nötig: Workflow `mode
 | **D** *(Ausblick, bedingt)* | `squeeze_probability`-Score nach Paper-Modell aus den **validierten** Einzelfaktoren. Deklaration + Bedingungen unten. | **NUR falls A–C einzeln out-of-sample tragen.** Kein automatischer Folge-Schritt. |
 
 **Backlog aus dem Paper** (§6g/§6h): Institutional-Ownership-Faktor (dämpfend),
-Crash-Filter (Marktrückgang > 3 % → Modell blind).
+Crash-Blind-Zone (Marktrückgang > 3 % → Modell blind). **§6h erledigt 08.08. als
+ANZEIGE-Banner** (kein harter Filter — Begründung in §6h).
 
 #### Schritt D — Deklaration + Bedingungen (KRITISCH, vor jedem Bau lesen)
 
@@ -1278,10 +1279,31 @@ bleibt (forward-only unproblematisch). Kein Score-Effekt ohne OoS-Beleg — Samm
    entscheiden.
 
 ### 6h. Crash-Filter / Markt-Blind-Zone (Paper-Grenze)
-**Status: OFFEN (Paper-abgeleitet 12.07.).** Paper: bei **Marktrückgang > 3 %**
-ist das Modell **blind**. Kandidat: Tage mit Markt-Tagesrückgang > 3 % (`^GSPC`)
-aus der Auswertung **ausschließen** (Regel-Screen). Marktkap + Markttrend im
-Paper **nicht** signifikant → kein Regime-Score, nur harter Crash-Ausschluss.
+**Status: ✅ ERLEDIGT mit ANZEIGE-BANNER (08.08.2026), harter Filter BEWUSST
+VERWORFEN.** Paper: bei **Marktrückgang > 3 %** ist das Modell **blind**.
+Diagnose 08.08. (read-only, §6h): Screener/Score/Exits reagieren **gar nicht**
+auf die Marktlage; Conviction-Regime + Pushes reagieren **nur via VIX** (WARN 25
+/ PAUSE 35), nie auf den reinen Tages-SPY-Move. Im beobachtbaren Fenster
+(13.07.–07.08.) blieb VIX 14,9–20,7 (immer < 25) → der Blind-Fleck wurde **nie
+ausgelöst**, kein Live-Beweis für Rausch-Verhalten.
+
+**Entscheidung (Easy):** **reines Anzeige-Banner, KEIN harter Filter, KEIN
+Push-Gate, KEINE Score-Änderung.** Begründung: ein Panik-Tag ist der Moment zum
+**Hinsehen**, nicht zum **Auto-Unterdrücken** — ein harter Crash-Ausschluss
+würde echte, gerade in Panik zündende Squeezes (Short-Covering in stark
+geshorteten Namen) **töten**. Der ursprüngliche Paper-Kandidat (Regel-Screen)
+ist damit **verworfen**, nicht nur verschoben.
+
+**Gebaut:** dezenter Header-Banner (`#hdr-market-stress`, Muster Staleness-Pill,
+anzeige-only, fail-soft) leitet den heutigen `^GSPC`-Tagesmove aus dem **bereits
+gefetchten** `spx_daily_perf` ab (KEINE neue Datenquelle, kein neuer Fetch) und
+flaggt zwei Stufen: **≤ −3 %** rot „Markt-Stress … besonderer Vorsicht", **−3 %
+< move ≤ −2 %** gelb „Markt schwach … vorsichtig", sonst versteckt. Fail-soft:
+SPY nicht ermittelbar / None / NaN → `null` → **kein Banner, kein Fehler, Lauf
+unverändert**. Schwellen `MARKET_STRESS_STRONG_PCT` / `MARKET_STRESS_MILD_PCT`
+in `config.py`. **Kein** Score-/Push-/Filter-/Export-Touch (per Test + git diff
+verriegelt). Test `scripts/mock_test_market_stress_banner.py` (31 Cases:
+Ziel-Mechanik durch den Render-Pfad, Fail-soft, Klassifikation, Isolation).
 
 ### 6i. Paper-Schritte A **UND B** — ✅ ENTBLOCKT (FINAL REVIDIERT, 13.07.)
 **Status: BLOCKER REVIDIERT + GEBAUT (#423, 13.07.).** Der frühere gemeinsame
@@ -1846,8 +1868,10 @@ OoS-Beleg.
 
 Paper: bei **Marktrückgang > 3 % blind**; **Institutional Ownership dämpft**
 (−6 % je +1 %); **Marktkap + Markttrend nicht signifikant**. Konsequenz:
-Crash-Tage ausschließen (§6h), Ownership als Dämpfer-Kontext (§6g,
-Staleness-Vorbehalt), keinen Marktkap-/Trend-Score bauen.
+Crash-Tage ~~ausschließen~~ → **als Anzeige-Banner geflaggt statt gefiltert**
+(§6h, Entscheid 08.08.: harter Ausschluss verworfen, um Panik-Squeezes nicht zu
+töten), Ownership als Dämpfer-Kontext (§6g, Staleness-Vorbehalt), keinen
+Marktkap-/Trend-Score bauen.
 
 ### 8j. Prompt-Prämissen sind Prüfaufträge, keine Tatsachen (08/2026)
 
