@@ -6967,6 +6967,22 @@ def _build_context(stocks: list[dict], report_date: str,
     # das Alter. Siehe CLAUDE.md „Staleness-Banner".
     daily_run_ts_js = datetime.now(ZoneInfo("UTC")).strftime("%Y-%m-%dT%H:%M:%SZ")
 
+    # Markt-Stress-Banner (§6h, 08.08.2026): heutiger ^GSPC-Tagesmove, aus dem
+    # BEREITS gefetchten spx_daily_perf abgeleitet (kein neuer Fetch). Alle
+    # Top-10-Dicts tragen denselben Wert (main() Z. ~17215); ersten endlichen
+    # nehmen. Fail-soft: kein endlicher Wert (fehlt / NaN / ±Inf) → ``None`` →
+    # JS-Const ``null`` → Banner bleibt versteckt (kein Falsch-Alarm). Der
+    # Fetch-Fehler-Fall (spx_daily_perf-Default 0.0) liefert 0.0 → ebenfalls
+    # kein Banner (0.0 > −2 %). REIN ANZEIGE — kein Score-/Push-/Filter-Effekt.
+    market_stress_spx = None
+    for _s in stocks:
+        _v = _s.get("spx_daily_perf")
+        if isinstance(_v, (int, float)) and not isinstance(_v, bool) and math.isfinite(_v):
+            market_stress_spx = float(_v)
+            break
+    market_stress_spx_js = "null" if market_stress_spx is None \
+        else repr(round(market_stress_spx, 2))
+
     # Watchlist: embed last known score, sparkline history, and full top10 snapshot.
     # Nutzt _load_score_history() statt direktem JSON-Load, damit beide Disk-Formate
     # (alt dict-per-entry, neu Tuple-per-entry) transparent normalisiert werden.
@@ -7070,6 +7086,12 @@ def _build_context(stocks: list[dict], report_date: str,
         "daily_run_ts_js": daily_run_ts_js,
         "staleness_fresh_h": STALENESS_FRESH_MAX_HOURS,
         "staleness_stale_h": STALENESS_STALE_MIN_HOURS,
+        # Markt-Stress-Banner (§6h, 08.08.2026): heutiger SPY-Tagesmove (float
+        # oder JS-``null`` bei nicht-endlichem/fehlendem Wert) + zwei Schwellen
+        # aus config. Reine Anzeige, kein Score-/Push-/Filter-Effekt.
+        "market_stress_spx_js": market_stress_spx_js,
+        "market_stress_strong_pct": MARKET_STRESS_STRONG_PCT,
+        "market_stress_mild_pct": MARKET_STRESS_MILD_PCT,
         # Sammel-Felder-Status-Kachel: Feldnamen/Labels/Status als JSON-Array
         # aus config.COLLECT_STATUS_FIELDS injiziert (NICHT als Literal im
         # Source — hält die Look-Ahead-Isolations-Guards grün). json.dumps
@@ -7153,6 +7175,11 @@ def generate_html_v1(stocks: list[dict], report_date: str,
     daily_run_ts_js   = ctx.get("daily_run_ts_js", "")
     staleness_fresh_h = ctx.get("staleness_fresh_h", 15)
     staleness_stale_h = ctx.get("staleness_stale_h", 24)
+    # Markt-Stress-Banner (§6h, 08.08.2026): Defaults defensiv (alter Context
+    # ohne Keys → ``null``/Schwellen → Banner bleibt versteckt). Reine Anzeige.
+    market_stress_spx_js      = ctx.get("market_stress_spx_js", "null")
+    market_stress_strong_pct  = ctx.get("market_stress_strong_pct", -3.0)
+    market_stress_mild_pct    = ctx.get("market_stress_mild_pct", -2.0)
     chat_ctx_json    = ctx["chat_ctx_json"]
     head_html        = ctx["head_html"]
     chat_panel_html  = ctx["chat_panel_html"]
@@ -7278,7 +7305,7 @@ def generate_html_v1(stocks: list[dict], report_date: str,
 <header class="app-hdr">
   <div class="hdr-main">
     <span class="app-title">Squeeze <span>Report</span></span>
-    <span class="hdr-ts">{timestamp}<span id="hdr-kitime" class="hdr-kitime" hidden></span><span id="hdr-runphase" class="hdr-runphase" hidden></span><span id="hdr-staleness" class="hdr-staleness" hidden></span><span id="hdr-nontrading" class="hdr-nontrading" hidden></span></span>
+    <span class="hdr-ts">{timestamp}<span id="hdr-kitime" class="hdr-kitime" hidden></span><span id="hdr-runphase" class="hdr-runphase" hidden></span><span id="hdr-staleness" class="hdr-staleness" hidden></span><span id="hdr-market-stress" class="hdr-market-stress" hidden></span><span id="hdr-nontrading" class="hdr-nontrading" hidden></span></span>
     <button class="hamburger-btn" id="hamburger-btn" aria-label="Menü" aria-expanded="false" onclick="toggleMenuDrawer()">
       <i data-lucide="menu" class="hamburger-icon"></i>
     </button>
@@ -9545,6 +9572,52 @@ function _renderStaleness(anchorIso) {{
 // PWA-Snapshot) — genau der Fall, in dem Easy die Warnung am meisten braucht.
 window.addEventListener('DOMContentLoaded', function() {{ _renderStaleness(_DAILY_RUN_TS); }});
 
+function _renderMarketStress(spxPerf) {{
+  // Markt-Stress-Banner (§6h, 08.08.2026): dezenter Header-Hinweis neben der
+  // Staleness-/Run-Phase-Pill, wenn der heutige S&P-500-Tagesmove schwach
+  // oder panisch ist. Anker = ``_SPX_DAILY_PERF`` (server-eingebrannter
+  // ^GSPC-Tagesmove, aus der bereits gefetchten SPY-Historie abgeleitet —
+  // KEIN neuer Fetch). REIN ANZEIGE: KEIN Filter, KEIN Push-Gate, KEINE
+  // Score-/Conviction-/Backtest-Berührung. Ein Panik-Tag ist der Moment zum
+  // Hinsehen, NICHT zum Auto-Unterdrücken (Diagnose §6h 08.08.2026 — der
+  // harte Filter wurde bewusst verworfen, um echte Panik-Squeezes nicht zu
+  // töten). Zwei Stufen:
+  //   ≤ _MKT_STRESS_STRONG (−3 %) → rot, „besonderer Vorsicht"
+  //   ≤ _MKT_STRESS_MILD   (−2 %) → gelb, „vorsichtig"
+  //   sonst / null / nicht-endlich → versteckt (fail-soft, kein Falsch-Alarm)
+  try {{
+    const el = document.getElementById('hdr-market-stress');
+    if (!el) return;
+    el.classList.remove('hdr-market-stress-mild', 'hdr-market-stress-strong');
+    const v = (typeof spxPerf === 'number' && isFinite(spxPerf)) ? spxPerf : null;
+    if (v === null || v > _MKT_STRESS_MILD) {{
+      el.hidden = true; el.textContent = '';
+      return;
+    }}
+    // Anzeige in Easys Lokalformat (deutsches Komma), 1 Nachkommastelle. Der
+    // negative Wert trägt sein Vorzeichen selbst → „(SPY −X,X%)".
+    const pctStr = v.toLocaleString('de-DE',
+      {{minimumFractionDigits: 1, maximumFractionDigits: 1}});
+    if (v <= _MKT_STRESS_STRONG) {{
+      el.textContent = ' · ⚠ Markt-Stress (SPY ' + pctStr
+        + '%): Signale heute mit besonderer Vorsicht lesen';
+      el.classList.add('hdr-market-stress-strong');
+    }} else {{
+      el.textContent = ' · ⚠ Markt schwach (SPY ' + pctStr
+        + '%): Signale heute vorsichtig lesen';
+      el.classList.add('hdr-market-stress-mild');
+    }}
+    el.hidden = false;
+  }} catch (e) {{
+    console.warn('_renderMarketStress error:', e);
+  }}
+}}
+
+// Markt-Stress FETCH-UNABHÄNGIG rendern (analog Staleness): der Anker
+// _SPX_DAILY_PERF ist server-eingebrannt → der Hinweis erscheint auch bei
+// fehlgeschlagenem app_data.json-Fetch (offline / stale PWA-Snapshot).
+window.addEventListener('DOMContentLoaded', function() {{ _renderMarketStress(_SPX_DAILY_PERF); }});
+
 function _applyExitGlows() {{
   try {{
     // Idempotenter Reset: Glow-Klassen, has-exit-banner und vorhandenes
@@ -10483,6 +10556,13 @@ const QUOTE_PROXY_URL = '{quote_proxy_url_js}';
 const _DAILY_RUN_TS      = '{daily_run_ts_js}';
 const _STALE_FRESH_MAX_H = {staleness_fresh_h};
 const _STALE_STALE_MIN_H = {staleness_stale_h};
+// Markt-Stress-Banner (§6h, 08.08.2026): heutiger ^GSPC-Tagesmove (server-
+// eingebrannt aus dem bereits gefetchten spx_daily_perf — kein neuer Fetch),
+// float ODER null (nicht-endlich/fehlend → kein Banner). Schwellen aus config.
+// REIN ANZEIGE: kein Filter, kein Push-Gate, keine Score-/Conviction-Logik.
+const _SPX_DAILY_PERF    = {market_stress_spx_js};
+const _MKT_STRESS_STRONG = {market_stress_strong_pct};
+const _MKT_STRESS_MILD   = {market_stress_mild_pct};
 // Sammel-Felder-Status-Kachel: [ [roh_feldname, label, status], ... ] aus
 // config.COLLECT_STATUS_FIELDS (server-injiziert). _btCollectStatus zählt pro
 // Feld die non-null Einträge in _btData. Rein anzeigend, keine Feld-Werte.

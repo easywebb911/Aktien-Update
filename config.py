@@ -1261,6 +1261,18 @@ US_MARKET_HOLIDAYS = frozenset({
 STALENESS_FRESH_MAX_HOURS = 15   # < 15 h → frisch (kein Hinweis, dezent versteckt)
 STALENESS_STALE_MIN_HOURS = 24   # 15–24 h → verspätet (gelb) · > 24 h → stale (rot)
 
+# ── Markt-Stress-Banner (§6h, Anzeige-only, 08.08.2026) ──────────────────────
+# Dezenter Header-Hinweis, wenn der heutige S&P-500-Tagesmove schwach/panisch
+# ist. Quelle ist der BEREITS gefetchte ^GSPC-Tagesmove (spx_daily_perf, aus
+# der 20T-Relativstärke-Historie abgeleitet — KEINE neue Datenquelle, kein
+# neuer Fetch). REIN ANZEIGE: KEIN Filter, KEIN Push-Gate, KEINE Score-/
+# Conviction-/Backtest-Berührung. Begründung (Diagnose §6h 08.08.2026): ein
+# Panik-Tag ist der Moment zum Hinsehen, NICHT zum Auto-Unterdrücken — ein
+# harter Filter würde echte, gerade in Panik zündende Squeezes töten. Zwei
+# Stufen analog Staleness/Run-Phase-Pill (mild=gelb, stark=rot).
+MARKET_STRESS_STRONG_PCT = -3.0  # SPY-Tagesmove ≤ −3 % → starke Warnung (rot)
+MARKET_STRESS_MILD_PCT   = -2.0  # −3 % < move ≤ −2 % → milde Warnung (gelb)
+
 # ── Service-spezifische HTTP-Header ──────────────────────────────────────────
 REDDIT_HEADERS = {"User-Agent": "SqueezeAgent/1.0"}
 SEC_HEADERS    = {"User-Agent": "Easy Webb easywebb@yahoo.de"}
