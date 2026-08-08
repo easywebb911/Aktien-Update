@@ -1,10 +1,10 @@
 {
-  "updated": "2026-08-08T16:50:02.201810+02:00",
+  "updated": "2026-08-08T17:46:38.040313+02:00",
   "run_info": {
     "tickers_checked": 14,
     "signals_active": 2,
     "alerts_sent": 0,
-    "elapsed_s": 18.4,
+    "elapsed_s": 13.0,
     "market_phase": "Geschlossen"
   },
   "signals": {
@@ -126,9 +126,9 @@
       "uoa_cp_ratio": 6.176470588235294
     },
     "EVGO": {
-      "score": 35,
+      "score": 20,
       "confidence": 33,
-      "drivers": "Spanne 12.3% + News: partnership + UOA Call/Put 17.4×",
+      "drivers": "Spanne 12.3% + UOA Call/Put 17.4×",
       "price": 1.62,
       "chg_pct": 0.0,
       "rvol_4d": 1.1,
@@ -139,7 +139,7 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 1,
+      "active_triggers": 0,
       "ki_sentiment_source": "keyword",
       "uoa_score": 10,
       "uoa_drivers": [
@@ -174,7 +174,7 @@
     "IBTA": {
       "score": 50,
       "confidence": 33,
-      "drivers": "Spanne 10.3% + News: earnings beat, partnership + UOA Call/Put 4.2×",
+      "drivers": "Spanne 10.3% + News: partnership, earnings beat + UOA Call/Put 4.2×",
       "price": 38.42,
       "chg_pct": -0.0,
       "rvol_4d": 0.65,
@@ -310,7 +310,7 @@
     "WOLF": {
       "score": 36,
       "confidence": 70,
-      "drivers": "Spanne 17.7% + News-KI 8/30: Partnership announcement shows business growth but lacks short-squeeze catalysts like extreme short interest, massive in + Earnings in 11d + UOA Call/Put 2.1×",
+      "drivers": "Spanne 17.7% + News-KI 8/30: Routine earnings announcement and board appointment lack short-squeeze catalysts like high short interest, debt concerns + Earnings in 11d + UOA Call/Put 2.1×",
       "price": 32.87,
       "chg_pct": -0.0,
       "rvol_4d": 1.31,
