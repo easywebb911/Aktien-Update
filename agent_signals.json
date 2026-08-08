@@ -1,17 +1,17 @@
 {
-  "updated": "2026-08-08T23:46:22.752990+02:00",
+  "updated": "2026-08-09T00:47:34.304853+02:00",
   "run_info": {
     "tickers_checked": 14,
     "signals_active": 2,
     "alerts_sent": 0,
-    "elapsed_s": 14.9,
+    "elapsed_s": 14.3,
     "market_phase": "Geschlossen"
   },
   "signals": {
     "AI": {
-      "score": 60,
+      "score": 63,
       "confidence": 33,
-      "drivers": "News-KI 12/30: Negative sentiment with overvaluation concerns and underperformance indicators suggest weak squeeze potential despite AI + Earnings in 32d + SEC Form 4 + UOA Call-Vol/OI 5.6× ATM + UOA Call/Put 34.9×",
+      "drivers": "News: short interest + Earnings in 32d + SEC Form 4 + UOA Call-Vol/OI 5.6× ATM + UOA Call/Put 34.9×",
       "price": 10.22,
       "chg_pct": 0.0,
       "rvol_4d": 0.98,
@@ -23,7 +23,7 @@
       "stocktwits": null,
       "combo_mult": 1.0,
       "active_triggers": 1,
-      "ki_sentiment_source": "llm",
+      "ki_sentiment_source": "keyword",
       "uoa_score": 30,
       "uoa_drivers": [
         "UOA Call-Vol/OI 5.6× ATM",
@@ -33,9 +33,9 @@
       "uoa_cp_ratio": 34.94964028776978
     },
     "AMC": {
-      "score": 20,
+      "score": 50,
       "confidence": 33,
-      "drivers": "Spanne 5.8% + UOA Call/Put 6.6×",
+      "drivers": "Spanne 5.8% + News: short squeeze, squeeze + UOA Call/Put 6.6×",
       "price": 2.59,
       "chg_pct": -0.0,
       "rvol_4d": 0.43,
@@ -46,7 +46,7 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 0,
+      "active_triggers": 1,
       "ki_sentiment_source": "keyword",
       "uoa_score": 10,
       "uoa_drivers": [
@@ -105,7 +105,7 @@
     "DFH": {
       "score": 25,
       "confidence": 33,
-      "drivers": "Spanne 8.3% + News-KI 5/30: Acquisition announcement is generally bearish for acquirer stock due to dilution concerns and integration risks, providi + UOA Call/Put 6.2×",
+      "drivers": "Spanne 8.3% + News-KI 5/30: Acquisition announcements typically don't create short-squeeze conditions as they increase company debt/dilution and pro + UOA Call/Put 6.2×",
       "price": 15.03,
       "chg_pct": -0.0,
       "rvol_4d": 1.25,
@@ -126,9 +126,9 @@
       "uoa_cp_ratio": 6.176470588235294
     },
     "EVGO": {
-      "score": 20,
+      "score": 35,
       "confidence": 33,
-      "drivers": "Spanne 12.3% + UOA Call/Put 17.4×",
+      "drivers": "Spanne 12.3% + News: partnership + UOA Call/Put 17.4×",
       "price": 1.62,
       "chg_pct": 0.0,
       "rvol_4d": 1.1,
@@ -139,7 +139,7 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 0,
+      "active_triggers": 1,
       "ki_sentiment_source": "keyword",
       "uoa_score": 10,
       "uoa_drivers": [
@@ -220,7 +220,7 @@
     "IONQ": {
       "score": 60,
       "confidence": 70,
-      "drivers": "Spanne 11.4% + News: acquisition, contract + SEC Form 4 + UOA Call/Put 2.7×",
+      "drivers": "Spanne 11.4% + News: contract, acquisition + SEC Form 4 + UOA Call/Put 2.7×",
       "price": 44.43,
       "chg_pct": 0.0,
       "rvol_4d": 1.38,
@@ -285,9 +285,9 @@
       "uoa_cp_ratio": 2.0428571428571427
     },
     "SVV": {
-      "score": 53,
+      "score": 45,
       "confidence": 70,
-      "drivers": "Volumen 2.2× + Spanne 16.0% + News-KI 8/30: Insider selling at multiple levels (CFO, CEO) and profitable options exits indicate weak conviction and reduce short-squ + SEC Form 4 + UOA Call/Put 25.7×",
+      "drivers": "Volumen 2.2× + Spanne 16.0% + SEC Form 4 + UOA Call/Put 25.7×",
       "price": 12.22,
       "chg_pct": 0.0,
       "rvol_4d": 2.19,
@@ -299,7 +299,7 @@
       "stocktwits": null,
       "combo_mult": 1.0,
       "active_triggers": 1,
-      "ki_sentiment_source": "llm",
+      "ki_sentiment_source": "keyword",
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 25.7×"
@@ -308,9 +308,9 @@
       "uoa_cp_ratio": 25.666666666666668
     },
     "WOLF": {
-      "score": 40,
+      "score": 36,
       "confidence": 70,
-      "drivers": "Spanne 17.7% + News-KI 12/30: Partnership announcement is positive but lacks squeeze catalysts; no unusual short interest, volume spikes, or technical + Earnings in 11d + UOA Call/Put 2.1×",
+      "drivers": "Spanne 17.7% + News-KI 8/30: Partnership announcement shows business growth but lacks short-squeeze indicators like high short interest, low float, o + Earnings in 11d + UOA Call/Put 2.1×",
       "price": 32.87,
       "chg_pct": -0.0,
       "rvol_4d": 1.31,
@@ -321,7 +321,7 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 1,
+      "active_triggers": 0,
       "ki_sentiment_source": "llm",
       "uoa_score": 10,
       "uoa_drivers": [
