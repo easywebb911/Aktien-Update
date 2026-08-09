@@ -1,17 +1,17 @@
 {
-  "updated": "2026-08-09T06:37:10.239314+02:00",
+  "updated": "2026-08-09T07:58:00.210816+02:00",
   "run_info": {
     "tickers_checked": 14,
-    "signals_active": 2,
+    "signals_active": 1,
     "alerts_sent": 0,
-    "elapsed_s": 18.4,
+    "elapsed_s": 15.6,
     "market_phase": "Geschlossen"
   },
   "signals": {
     "AI": {
       "score": 63,
       "confidence": 33,
-      "drivers": "News: short interest + Earnings in 31d + SEC Form 4 + UOA Call-Vol/OI 5.6× ATM + UOA Call/Put 28.1×",
+      "drivers": "News: short interest + Earnings in 31d + SEC Form 4 + UOA Call-Vol/OI 5.6× ATM + UOA Call/Put 34.9×",
       "price": 10.22,
       "chg_pct": 0.0,
       "rvol_4d": 0.98,
@@ -27,15 +27,15 @@
       "uoa_score": 30,
       "uoa_drivers": [
         "UOA Call-Vol/OI 5.6× ATM",
-        "UOA Call/Put 28.1×"
+        "UOA Call/Put 34.9×"
       ],
       "uoa_atm_ratio": 5.565995137200416,
-      "uoa_cp_ratio": 28.1487204249155
+      "uoa_cp_ratio": 34.94964028776978
     },
     "AMC": {
       "score": 50,
       "confidence": 33,
-      "drivers": "Spanne 5.8% + News: squeeze, short squeeze + UOA Call/Put 6.6×",
+      "drivers": "Spanne 5.8% + News: short squeeze, squeeze + UOA Call/Put 6.6×",
       "price": 2.59,
       "chg_pct": -0.0,
       "rvol_4d": 0.43,
@@ -80,9 +80,9 @@
       "uoa_cp_ratio": 226.0
     },
     "CRSR": {
-      "score": 77,
+      "score": 55,
       "confidence": 70,
-      "drivers": "Volumen 4.4× + ⚡ Extremes Volumen 4.4×+ + Spanne 22.1% + News: partnership + UOA Call/Put 3.9×",
+      "drivers": "Volumen 4.4× + ⚡ Extremes Volumen 4.4×+ + Spanne 22.1% + UOA Call/Put 3.9×",
       "price": 14.35,
       "chg_pct": 0.0,
       "rvol_4d": 4.41,
@@ -92,8 +92,8 @@
       "upcoming_event": null,
       "insider_buy": false,
       "stocktwits": null,
-      "combo_mult": 1.1,
-      "active_triggers": 2,
+      "combo_mult": 1.0,
+      "active_triggers": 1,
       "ki_sentiment_source": "keyword",
       "uoa_score": 10,
       "uoa_drivers": [
@@ -105,7 +105,7 @@
     "DFH": {
       "score": 25,
       "confidence": 33,
-      "drivers": "Spanne 8.3% + News-KI 5/30: M&A activity is dilutive to shareholders and typically triggers capital raises, creating negative pressure that eliminat + UOA Call/Put 6.2×",
+      "drivers": "Spanne 8.3% + News-KI 5/30: Acquisition announcement is neutral to slightly negative for short-squeeze potential; typically increases share count an + UOA Call/Put 6.2×",
       "price": 15.03,
       "chg_pct": -0.0,
       "rvol_4d": 1.25,
@@ -151,7 +151,7 @@
     "HTZ": {
       "score": 94,
       "confidence": 70,
-      "drivers": "Volumen 3.6× + ⚡ Extremes Volumen 3.6×+ + Spanne 14.8% + News: squeeze, short squeeze + UOA Call/Put 7.7×",
+      "drivers": "Volumen 3.6× + ⚡ Extremes Volumen 3.6×+ + Spanne 14.8% + News: short squeeze, squeeze + UOA Call/Put 7.7×",
       "price": 2.27,
       "chg_pct": -0.0,
       "rvol_4d": 3.63,
@@ -197,7 +197,7 @@
     "INDI": {
       "score": 28,
       "confidence": 33,
-      "drivers": "Spanne 8.8% + News-KI 8/30: Positive revenue beat is modest positive, but Q2 loss and lack of dramatic short interest catalyst make this weak short- + UOA Call/Put 12.1×",
+      "drivers": "Spanne 8.8% + News-KI 8/30: Positive earnings beat on revenue but Q2 loss reported; limited short squeeze catalyst without significant short interes + UOA Call/Put 12.1×",
       "price": 4.04,
       "chg_pct": -0.0,
       "rvol_4d": 1.28,
@@ -220,7 +220,7 @@
     "IONQ": {
       "score": 60,
       "confidence": 70,
-      "drivers": "Spanne 11.4% + News: contract, catalyst + SEC Form 4 + UOA Call/Put 2.7×",
+      "drivers": "Spanne 11.4% + News: contract, acquisition + SEC Form 4 + UOA Call/Put 2.7×",
       "price": 44.43,
       "chg_pct": 0.0,
       "rvol_4d": 1.38,
@@ -262,9 +262,9 @@
       "uoa_cp_ratio": 0.5
     },
     "PDYN": {
-      "score": 50,
+      "score": 35,
       "confidence": 33,
-      "drivers": "Spanne 5.3% + News: contract, partnership + UOA Call/Put 2.0×",
+      "drivers": "Spanne 5.3% + News: contract + UOA Call/Put 2.0×",
       "price": 5.99,
       "chg_pct": -0.0,
       "rvol_4d": 0.65,
