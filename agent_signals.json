@@ -1,10 +1,10 @@
 {
-  "updated": "2026-08-09T19:48:02.267326+02:00",
+  "updated": "2026-08-09T21:01:38.909556+02:00",
   "run_info": {
     "tickers_checked": 13,
     "signals_active": 2,
     "alerts_sent": 0,
-    "elapsed_s": 32.1,
+    "elapsed_s": 37.8,
     "market_phase": "Geschlossen"
   },
   "signals": {
@@ -149,9 +149,9 @@
       "uoa_cp_ratio": 7.863768457430098
     },
     "IBTA": {
-      "score": 40,
+      "score": 18,
       "confidence": 33,
-      "drivers": "Spanne 10.3% + News: earnings beat, partnership",
+      "drivers": "Spanne 10.3% + News-KI 8/30: Positive business development and earnings momentum, but lacks short squeeze catalysts like high short interest, low flo",
       "price": 38.42,
       "chg_pct": -0.0,
       "rvol_4d": 0.65,
@@ -162,8 +162,8 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 1,
-      "ki_sentiment_source": "keyword",
+      "active_triggers": 0,
+      "ki_sentiment_source": "llm",
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": 0.15517241379310345,
@@ -195,7 +195,7 @@
     "IONQ": {
       "score": 60,
       "confidence": 70,
-      "drivers": "Spanne 11.4% + News: acquisition, catalyst + SEC Form 4 + UOA Call/Put 2.2×",
+      "drivers": "Spanne 11.4% + News: catalyst, acquisition + SEC Form 4 + UOA Call/Put 2.2×",
       "price": 44.43,
       "chg_pct": 0.0,
       "rvol_4d": 1.38,
@@ -216,9 +216,9 @@
       "uoa_cp_ratio": 2.192376149510531
     },
     "METC": {
-      "score": 18,
+      "score": 25,
       "confidence": 33,
-      "drivers": "Spanne 8.8% + News-KI 8/30: Q2 loss and mixed earnings results provide no squeeze catalyst; news is standard quarterly reporting without short-cover",
+      "drivers": "Spanne 8.8% + News: short interest",
       "price": 10.24,
       "chg_pct": -0.0,
       "rvol_4d": 0.73,
@@ -229,17 +229,17 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 0,
-      "ki_sentiment_source": "llm",
+      "active_triggers": 1,
+      "ki_sentiment_source": "keyword",
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": 0.025646035855600605,
       "uoa_cp_ratio": 0.5
     },
     "PDYN": {
-      "score": 28,
+      "score": 35,
       "confidence": 33,
-      "drivers": "Spanne 5.3% + News-KI 8/30: Positive earnings headlines lack short-squeeze indicators like high short interest, debt concerns, or catalyst-driven vo + UOA Call/Put 2.0×",
+      "drivers": "Spanne 5.3% + News: contract + UOA Call/Put 2.0×",
       "price": 5.99,
       "chg_pct": -0.0,
       "rvol_4d": 0.65,
@@ -250,8 +250,8 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 0,
-      "ki_sentiment_source": "llm",
+      "active_triggers": 1,
+      "ki_sentiment_source": "keyword",
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 2.0×"
@@ -260,9 +260,9 @@
       "uoa_cp_ratio": 2.0428571428571427
     },
     "SVV": {
-      "score": 63,
+      "score": 45,
       "confidence": 70,
-      "drivers": "Volumen 2.2× + Spanne 16.0% + News-KI 12/30: Positive AI-driven earnings miss short-squeeze signals due to insider selling and modest float characteristics, reducing + SEC Form 4 + UOA Call/Put 15.3×",
+      "drivers": "Volumen 2.2× + Spanne 16.0% + SEC Form 4 + UOA Call/Put 15.3×",
       "price": 12.22,
       "chg_pct": 0.0,
       "rvol_4d": 2.19,
@@ -272,9 +272,9 @@
       "upcoming_event": null,
       "insider_buy": false,
       "stocktwits": null,
-      "combo_mult": 1.1,
-      "active_triggers": 2,
-      "ki_sentiment_source": "llm",
+      "combo_mult": 1.0,
+      "active_triggers": 1,
+      "ki_sentiment_source": "keyword",
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 15.3×"
