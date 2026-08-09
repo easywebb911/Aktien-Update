@@ -1487,6 +1487,87 @@ DIGEST_COVERAGE_THRESHOLD_TIER23 = 50.0  # < 50 % → fail (+ consecutive für T
 DIGEST_CONSECUTIVE_THRESHOLD = 3         # 3-in-Folge für Tier 2/3
 DIGEST_STALE_DAYS = 7                    # Counter-Reset nach 7 d Inaktivität
 
+# ── Diagnose-Prompt im crit-Push (09.08.2026) ────────────────────────────────
+# Bei crit hängt der Digest EINEN fertigen, kopierbaren READ-ONLY-Diagnose-
+# Prompt an den Push-Body (Easy tippt ihn in die Claude-Code-Instanz). Der
+# Prompt ist NIEMALS ein Bau-Prompt — die harte Linie dieser Stufe. Auslöser
+# NUR crit (warn bleibt promptlos). Fail-soft: scheitert die Erzeugung ODER
+# würde der Body das ntfy-Limit sprengen → der crit-Push geht UNVERÄNDERT raus
+# (ein crit ohne Prompt ist okay, ein verschluckter crit nicht).
+#
+# ntfy.sh Server-Default message-size-limit = 4096 Bytes (darüber HTTP 413 →
+# Push NICHT zugestellt). _ntfy_send kürzt NICHT selbst → der Body MUSS unter
+# dem Limit bleiben. Konservativer Deckel mit Sicherheitsabstand:
+DIGEST_BODY_SAFE_BYTES = 3800            # crit-Body + Prompt nur bis hierher
+_DIAGNOSE_PROMPT_SEP = "--- Diagnose-Prompt zum Kopieren: ---"
+_DIAGNOSE_PROMPT_HEADER = (
+    "PROJEKT: Squeeze Report — Repo easywebb911/Aktien-Update. Falls du NICHT "
+    "in diesem Repo arbeitest: STOPP — nur melden \"falscher Chat\".\n"
+    "Absolute Vorsicht, kein Risiko. READ-ONLY DIAGNOSE, nichts bauen, kein PR."
+)
+_DIAGNOSE_PROMPT_FOOTER = (
+    "Nichts ändern, melden statt fixen. Easy entscheidet nach dem Bericht."
+)
+# Signal-spezifische Kontext-/Frage-Blöcke (READ-ONLY — kein Bau-Verb). ``{d}``
+# = der konkrete detail-/reason-Text des Laufs. Pro crit-fähigem Signal genau
+# die Fragen, die ein guter Diagnose-Prompt für DIESES Signal stellen würde.
+_DIAGNOSE_SIGNAL_BLOCKS = {
+    "S1": (
+        "[S1] score_history-Persistenz: {d}\n"
+        "→ Prüfe: Lief der Daily-Run heute (app_data.last_daily_run_ts / "
+        "run_phase)? Schreibt apply_score_smoothing → _save_score_history die "
+        "heutigen Einträge? Ist score_history.json lesbar und nicht fälschlich "
+        "gepruned? Welche Top-10-Ticker fehlen seit wann?"
+    ),
+    "S2": (
+        "[S2] setup_scores-Coverage: {d}\n"
+        "→ Prüfe: Warum stehen zu wenige Tickers in app_data.setup_scores? Lief "
+        "der Daily-Run-Enrichment-Pfad durch? Screener-Pool leer / Filter zu "
+        "streng? Ist app_data.json frisch (generated_at, last_daily_run_ts)?"
+    ),
+    "S3": (
+        "[S3] Positions-Preis fehlt: {d}\n"
+        "→ Prüfe: _fetch_position_market_data — yfinance-Singleton-Fetch je "
+        "Position; NaN-Close trotz _finite/dropna-Guard? Ticker delisted/"
+        "umbenannt? Lief der Daily-Run (setzt current_price 2×/Werktag)? Ist der "
+        "yfinance_singletons-Provider-Record grün?"
+    ),
+    "S9": (
+        "[S9] HTML/DOM-Sanity: {d}\n"
+        "→ Prüfe: Welche DOM-Klasse ist gebrochen (article / card-cockpit / "
+        "cockpit-price / cockpit-pillar)? Selektor-Mismatch nach Template-"
+        "Änderung? Ist der Outer-Page-Golden-Test grün? Welcher Commit hat "
+        "generate_html_v1 / templates zuletzt berührt?"
+    ),
+    "S10": (
+        "[S10] Backtest-Daten-Integrität: {d}\n"
+        "→ Prüfe: Welches MUSS-Feld füllt nicht, welcher Fetch/Helper speist es, "
+        "seit wann null (letzter grüner V4-Eintrag in backtest_history.json)? "
+        "Provider tot / Schema-Drift? Betrifft es neue oder alle Einträge?"
+    ),
+    "S12": (
+        "[S12] postclose-Run-Frequenz: {d}\n"
+        "→ Prüfe: Lief der 21:17-UTC-postclose-Cron (GitHub-Actions-Drop/-Drift)? "
+        "RUN_PHASE-Resolution korrekt (resolve_run_phase)? Wie viele Werktage "
+        "ohne echten postclose — welcher Backtest-EOD-Snapshot ist "
+        "unwiederbringlich verloren?"
+    ),
+}
+_DIAGNOSE_PROVIDER_BLOCK = (
+    "[Provider] {prov} (Tier {tier}) crit: {d}\n"
+    "→ Prüfe: Ist die Datenquelle erreichbar (HTTP-Status / Rate-Limit / "
+    "Endpoint-Change)? Coverage-Einbruch — welche Ticker fehlen? Seit wie vielen "
+    "Läufen in Folge? Greift die Fallback-Kette (provider_health.jsonl / "
+    "_instrument_provider_call)?"
+)
+# Fallback-Block für ein crit-Signal ohne eigenes Template (z. B. eine später
+# ergänzte crit-fähige ID) — nennt Signal + Werte generisch, bleibt READ-ONLY.
+_DIAGNOSE_GENERIC_BLOCK = (
+    "[{id}] crit: {d}\n"
+    "→ Prüfe: Welcher Code-Pfad/Fetch speist dieses Signal, seit wann bricht es, "
+    "was war der letzte grüne Stand? Ursache am Code/an den Daten belegen."
+)
+
 
 # Run-TYPEN (nicht Check-Logik): welcher Workflow den health_check_log-Eintrag
 # schrieb. Ein Daily-Run wertet ALLE State-Checks aus, ein ki_agent-Tick nur die
@@ -1855,6 +1936,65 @@ def retest_counter_line(export_path=None) -> str:
             f"· Export {total} Zeilen")
 
 
+def _diagnose_block_for(fail: dict) -> str | None:
+    """Signal-spezifischer READ-ONLY-Kontextblock für EIN crit-Fail-Dict.
+
+    State-Fail: ``{"id": "S<n>", "detail": ...}``.
+    Provider-Fail: ``{"provider": ..., "tier": ..., "reason": ...}``.
+    Unbekannte State-ID → generischer Block (nennt Signal + Werte, bleibt
+    READ-ONLY). Rückgabe ``None`` nur bei unbrauchbarem Input. Pure, fail-soft.
+    """
+    if not isinstance(fail, dict):
+        return None
+    # Provider-Fail (kein "id", aber "provider").
+    if "provider" in fail and "id" not in fail:
+        return _DIAGNOSE_PROVIDER_BLOCK.format(
+            prov=fail.get("provider", "?"),
+            tier=fail.get("tier", "?"),
+            d=(fail.get("reason") or "—"),
+        )
+    sig = fail.get("id")
+    if not sig:
+        return None
+    tmpl = _DIAGNOSE_SIGNAL_BLOCKS.get(sig)
+    detail = fail.get("detail") or "—"
+    if tmpl is not None:
+        return tmpl.format(d=detail)
+    return _DIAGNOSE_GENERIC_BLOCK.format(id=sig, d=detail)
+
+
+def build_diagnose_prompt(crit_fails: list[dict], *, digest_date: str) -> str | None:
+    """Baut EINEN kombinierten, kopierbaren READ-ONLY-Diagnose-Prompt für die
+    crit-Signale eines Laufs (mehrere crits → ein Prompt, der alle nennt).
+
+    Gemeinsames Skelett (Projekt-Kennzeile + Vorsicht/READ-ONLY-Kopf, Fuß
+    „melden statt fixen") + je Signal ein spezifischer Kontext-/Frage-Block mit
+    den KONKRETEN Lauf-Werten. NIEMALS ein Bau-Prompt.
+
+    Pure, fail-soft: keine crit / kein brauchbarer Block → ``None`` (Caller
+    hängt dann nichts an, der crit-Push geht unverändert raus).
+    """
+    if not crit_fails:
+        return None
+    blocks = []
+    for f in crit_fails:
+        try:
+            b = _diagnose_block_for(f)
+        except Exception:
+            b = None
+        if b:
+            blocks.append(b)
+    if not blocks:
+        return None
+    n = len(blocks)
+    head = (
+        f"{_DIAGNOSE_PROMPT_HEADER}\n\n"
+        f"Der Health-Check-Digest {digest_date} meldet {n} crit-Signal(e). "
+        f"Diagnostiziere die Ursache je Signal:"
+    )
+    return "\n\n".join([head, *blocks, _DIAGNOSE_PROMPT_FOOTER])
+
+
 def format_digest_body(state_fails: list[dict],
                        provider_fails: list[dict],
                        *,
@@ -1951,4 +2091,22 @@ def format_digest_body(state_fails: list[dict],
         lines.append(retest_line)
     lines.append(f"Letzter erfolgreicher Run: {last_run_iso or '—'}")
     body = "\n".join(lines).rstrip() + "\n"
+
+    # ── Diagnose-Prompt anhängen (09.08.2026, NUR crit) ──────────────────────
+    # Die bisherige crit-Zeile bleibt UNVERÄNDERT — der Prompt wird abgesetzt
+    # angehängt. Fail-soft (nicht verhandelbar): Prompt-Crash ODER Body-über-
+    # Limit → base-Body bleibt unverändert (crit-Push geht raus wie heute). Ein
+    # crit ohne Prompt ist okay, ein verschluckter/abgewiesener crit nicht.
+    try:
+        crit_fails = ([f for f in active_state if f.get("severity") == "crit"]
+                      + [f for f in provider_fails if f.get("severity") == "crit"])
+        prompt = build_diagnose_prompt(crit_fails, digest_date=digest_date)
+        if prompt:
+            candidate = f"{body}\n{_DIAGNOSE_PROMPT_SEP}\n{prompt}\n"
+            if len(candidate.encode("utf-8")) <= DIGEST_BODY_SAFE_BYTES:
+                body = candidate
+            # sonst: Prompt weglassen — base-crit-Push bleibt vollständig.
+    except Exception:  # noqa: BLE001 — Alarm-Kette NIE wegen Prompt schwächen
+        pass
+
     return body, "⚠️ Health-Check-Digest", "high", "warning"
