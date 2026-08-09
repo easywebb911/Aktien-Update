@@ -1,17 +1,17 @@
 {
-  "updated": "2026-08-09T21:48:46.966694+02:00",
+  "updated": "2026-08-09T22:51:53.204290+02:00",
   "run_info": {
     "tickers_checked": 13,
-    "signals_active": 2,
+    "signals_active": 1,
     "alerts_sent": 0,
-    "elapsed_s": 16.5,
+    "elapsed_s": 16.9,
     "market_phase": "Geschlossen"
   },
   "signals": {
     "AMC": {
-      "score": 70,
+      "score": 40,
       "confidence": 33,
-      "drivers": "Spanne 5.8% + News: short squeeze, squeeze + UOA Call-Vol/OI 5.7× ATM + UOA Call/Put 2.4×",
+      "drivers": "Spanne 5.8% + UOA Call-Vol/OI 5.7× ATM + UOA Call/Put 2.4×",
       "price": 2.59,
       "chg_pct": -0.0,
       "rvol_4d": 0.43,
@@ -22,7 +22,7 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 1,
+      "active_triggers": 0,
       "ki_sentiment_source": "keyword",
       "uoa_score": 30,
       "uoa_drivers": [
@@ -82,7 +82,7 @@
     "DFH": {
       "score": 50,
       "confidence": 33,
-      "drivers": "Spanne 8.3% + News: squeeze, acquisition + UOA Call/Put 6.3×",
+      "drivers": "Spanne 8.3% + News: acquisition, squeeze + UOA Call/Put 6.3×",
       "price": 15.03,
       "chg_pct": -0.0,
       "rvol_4d": 1.25,
@@ -103,9 +103,9 @@
       "uoa_cp_ratio": 6.294117647058823
     },
     "EVGO": {
-      "score": 20,
+      "score": 35,
       "confidence": 33,
-      "drivers": "Spanne 12.3% + UOA Call/Put 17.4×",
+      "drivers": "Spanne 12.3% + News: partnership + UOA Call/Put 17.4×",
       "price": 1.62,
       "chg_pct": 0.0,
       "rvol_4d": 1.1,
@@ -116,7 +116,7 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 0,
+      "active_triggers": 1,
       "ki_sentiment_source": "keyword",
       "uoa_score": 10,
       "uoa_drivers": [
@@ -149,9 +149,9 @@
       "uoa_cp_ratio": 7.863768457430098
     },
     "IBTA": {
-      "score": 18,
+      "score": 40,
       "confidence": 33,
-      "drivers": "Spanne 10.3% + News-KI 8/30: Positive business expansion and revenue growth indicators, but lacks short-squeeze catalysts like high short interest, l",
+      "drivers": "Spanne 10.3% + News: earnings beat, partnership",
       "price": 38.42,
       "chg_pct": -0.0,
       "rvol_4d": 0.65,
@@ -162,8 +162,8 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 0,
-      "ki_sentiment_source": "llm",
+      "active_triggers": 1,
+      "ki_sentiment_source": "keyword",
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": 0.15517241379310345,
@@ -216,9 +216,9 @@
       "uoa_cp_ratio": 2.192376149510531
     },
     "METC": {
-      "score": 25,
+      "score": 15,
       "confidence": 33,
-      "drivers": "Spanne 8.8% + News: short interest",
+      "drivers": "Spanne 8.8% + News-KI 5/30: Earnings-focused headlines with no indicators of short squeeze potential (high short interest, stock manipulation signal",
       "price": 10.24,
       "chg_pct": -0.0,
       "rvol_4d": 0.73,
@@ -229,8 +229,8 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 1,
-      "ki_sentiment_source": "keyword",
+      "active_triggers": 0,
+      "ki_sentiment_source": "llm",
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": 0.025646035855600605,
@@ -285,7 +285,7 @@
     "WOLF": {
       "score": 26,
       "confidence": 70,
-      "drivers": "Spanne 17.7% + News-KI 8/30: Partnership announcement shows business traction but lacks short squeeze catalysts like extreme short interest, share bu + Earnings in 10d",
+      "drivers": "Spanne 17.7% + News-KI 8/30: Partnership announcement shows business growth but lacks short-squeeze catalysts like extreme short interest, insider bu + Earnings in 10d",
       "price": 32.87,
       "chg_pct": -0.0,
       "rvol_4d": 1.31,
