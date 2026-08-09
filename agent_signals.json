@@ -1,17 +1,17 @@
 {
-  "updated": "2026-08-09T23:48:27.483121+02:00",
+  "updated": "2026-08-10T00:50:08.856632+02:00",
   "run_info": {
     "tickers_checked": 13,
-    "signals_active": 1,
+    "signals_active": 2,
     "alerts_sent": 0,
-    "elapsed_s": 17.9,
+    "elapsed_s": 16.5,
     "market_phase": "Geschlossen"
   },
   "signals": {
     "AMC": {
-      "score": 58,
+      "score": 70,
       "confidence": 33,
-      "drivers": "Spanne 5.8% + News-KI 18/30: Mixed signals: valuation concerns and cash flow improvements don't create strong squeeze conditions; moderate momentum m + UOA Call-Vol/OI 5.7× ATM + UOA Call/Put 2.4×",
+      "drivers": "Spanne 5.8% + News: squeeze, short squeeze + UOA Call-Vol/OI 5.7× ATM + UOA Call/Put 2.4×",
       "price": 2.59,
       "chg_pct": -0.0,
       "rvol_4d": 0.43,
@@ -23,7 +23,7 @@
       "stocktwits": null,
       "combo_mult": 1.0,
       "active_triggers": 1,
-      "ki_sentiment_source": "llm",
+      "ki_sentiment_source": "keyword",
       "uoa_score": 30,
       "uoa_drivers": [
         "UOA Call-Vol/OI 5.7× ATM",
@@ -82,7 +82,7 @@
     "DFH": {
       "score": 50,
       "confidence": 33,
-      "drivers": "Spanne 8.3% + News: squeeze, acquisition + UOA Call/Put 6.3×",
+      "drivers": "Spanne 8.3% + News: acquisition, squeeze + UOA Call/Put 6.3×",
       "price": 15.03,
       "chg_pct": -0.0,
       "rvol_4d": 1.25,
@@ -128,7 +128,7 @@
     "HTZ": {
       "score": 94,
       "confidence": 70,
-      "drivers": "Volumen 3.6× + ⚡ Extremes Volumen 3.6×+ + Spanne 14.8% + News: partnership, short seller + UOA Call/Put 7.9×",
+      "drivers": "Volumen 3.6× + ⚡ Extremes Volumen 3.6×+ + Spanne 14.8% + News: squeeze, short squeeze + UOA Call/Put 7.9×",
       "price": 2.27,
       "chg_pct": -0.0,
       "rvol_4d": 3.63,
@@ -193,9 +193,9 @@
       "uoa_cp_ratio": 12.092592592592593
     },
     "IONQ": {
-      "score": 60,
+      "score": 45,
       "confidence": 70,
-      "drivers": "Spanne 11.4% + News: catalyst, acquisition + SEC Form 4 + UOA Call/Put 2.2×",
+      "drivers": "Spanne 11.4% + News: acquisition + SEC Form 4 + UOA Call/Put 2.2×",
       "price": 44.43,
       "chg_pct": 0.0,
       "rvol_4d": 1.38,
@@ -237,9 +237,9 @@
       "uoa_cp_ratio": 0.5
     },
     "PDYN": {
-      "score": 35,
+      "score": 50,
       "confidence": 33,
-      "drivers": "Spanne 5.3% + News: contract + UOA Call/Put 2.0×",
+      "drivers": "Spanne 5.3% + News: partnership, contract + UOA Call/Put 2.0×",
       "price": 5.99,
       "chg_pct": -0.0,
       "rvol_4d": 0.65,
@@ -283,9 +283,9 @@
       "uoa_cp_ratio": 15.333333333333334
     },
     "WOLF": {
-      "score": 18,
-      "confidence": 33,
-      "drivers": "Spanne 17.7% + Earnings in 10d",
+      "score": 26,
+      "confidence": 70,
+      "drivers": "Spanne 17.7% + News-KI 8/30: Partnership announcement shows business strength but lacks short squeeze catalysts; no significant short interest data,  + Earnings in 10d",
       "price": 32.87,
       "chg_pct": -0.0,
       "rvol_4d": 1.31,
@@ -297,7 +297,7 @@
       "stocktwits": null,
       "combo_mult": 1.0,
       "active_triggers": 0,
-      "ki_sentiment_source": "keyword",
+      "ki_sentiment_source": "llm",
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": 0.9515151515151515,
