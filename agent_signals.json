@@ -1,17 +1,17 @@
 {
-  "updated": "2026-08-09T17:48:06.711296+02:00",
+  "updated": "2026-08-09T18:55:12.908901+02:00",
   "run_info": {
     "tickers_checked": 13,
     "signals_active": 1,
     "alerts_sent": 0,
-    "elapsed_s": 75.7,
+    "elapsed_s": 32.2,
     "market_phase": "Geschlossen"
   },
   "signals": {
     "AMC": {
-      "score": 20,
+      "score": 50,
       "confidence": 33,
-      "drivers": "Spanne 5.8% + UOA Call/Put 6.6×",
+      "drivers": "Spanne 5.8% + News: short squeeze, squeeze + UOA Call/Put 6.6×",
       "price": 2.59,
       "chg_pct": -0.0,
       "rvol_4d": 0.43,
@@ -22,7 +22,7 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 0,
+      "active_triggers": 1,
       "ki_sentiment_source": "keyword",
       "uoa_score": 10,
       "uoa_drivers": [
@@ -32,20 +32,20 @@
       "uoa_cp_ratio": 6.649238369699464
     },
     "ARCT": {
-      "score": 65,
-      "confidence": 70,
-      "drivers": "Volumen 3.5× + ⚡ Extremes Volumen 3.5×+ + Spanne 17.2% + UOA Call-Vol/OI 4.1× ATM + UOA Call/Put 226.0×",
+      "score": 20,
+      "confidence": 17,
+      "drivers": "UOA Call-Vol/OI 4.1× ATM + UOA Call/Put 226.0×",
       "price": 7.41,
-      "chg_pct": -0.0,
-      "rvol_4d": 3.54,
-      "rvol_20d": 3.13,
+      "chg_pct": 0.0,
+      "rvol_4d": 0.0,
+      "rvol_20d": null,
       "earnings": null,
       "fda_date": null,
       "upcoming_event": null,
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 1,
+      "active_triggers": 0,
       "ki_sentiment_source": "keyword",
       "uoa_score": 20,
       "uoa_drivers": [
@@ -102,9 +102,9 @@
       "uoa_cp_ratio": 6.176470588235294
     },
     "EVGO": {
-      "score": 35,
+      "score": 28,
       "confidence": 33,
-      "drivers": "Spanne 12.3% + News: partnership + UOA Call/Put 17.4×",
+      "drivers": "Spanne 12.3% + News-KI 8/30: Routine earnings announcements with no indicators of high short interest, low float, or catalyst-driven volatility typic + UOA Call/Put 17.4×",
       "price": 1.62,
       "chg_pct": 0.0,
       "rvol_4d": 1.1,
@@ -115,8 +115,8 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 1,
-      "ki_sentiment_source": "keyword",
+      "active_triggers": 0,
+      "ki_sentiment_source": "llm",
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 17.4×"
@@ -127,7 +127,7 @@
     "HTZ": {
       "score": 94,
       "confidence": 70,
-      "drivers": "Volumen 3.6× + ⚡ Extremes Volumen 3.6×+ + Spanne 14.8% + News: short seller, revenue beat + UOA Call/Put 7.7×",
+      "drivers": "Volumen 3.6× + ⚡ Extremes Volumen 3.6×+ + Spanne 14.8% + News: short squeeze, squeeze + UOA Call/Put 7.7×",
       "price": 2.27,
       "chg_pct": -0.0,
       "rvol_4d": 3.63,
@@ -194,9 +194,9 @@
       "uoa_cp_ratio": 12.092592592592593
     },
     "IONQ": {
-      "score": 50,
-      "confidence": 33,
-      "drivers": "Spanne 11.4% + News: acquisition, catalyst + UOA Call/Put 2.7×",
+      "score": 60,
+      "confidence": 70,
+      "drivers": "Spanne 11.4% + News: acquisition, catalyst + SEC Form 4 + UOA Call/Put 2.7×",
       "price": 44.43,
       "chg_pct": 0.0,
       "rvol_4d": 1.38,
@@ -284,9 +284,9 @@
       "uoa_cp_ratio": 25.666666666666668
     },
     "WOLF": {
-      "score": 28,
+      "score": 40,
       "confidence": 70,
-      "drivers": "Spanne 17.7% + Earnings in 10d + UOA Call/Put 2.1×",
+      "drivers": "Spanne 17.7% + News-KI 12/30: Partnership announcement shows business development but lacks short squeeze catalysts like short interest data, gamma ex + Earnings in 10d + UOA Call/Put 2.1×",
       "price": 32.87,
       "chg_pct": -0.0,
       "rvol_4d": 1.31,
@@ -297,8 +297,8 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 0,
-      "ki_sentiment_source": "keyword",
+      "active_triggers": 1,
+      "ki_sentiment_source": "llm",
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 2.1×"
