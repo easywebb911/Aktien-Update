@@ -296,6 +296,15 @@
     "substrate": "en",
     "reason": null
   },
+  "HZO": {
+    "qid": null,
+    "title": null,
+    "resolved_at": "2026-08-10T20:08:55Z",
+    "issuer_verified": false,
+    "company_name_at_resolve": "MarineMax, Inc.",
+    "substrate": "none",
+    "reason": "no_p249"
+  },
   "IBTA": {
     "qid": null,
     "title": null,
@@ -305,12 +314,30 @@
     "substrate": "none",
     "reason": "sparql_fetch_failed"
   },
+  "INBX": {
+    "qid": null,
+    "title": null,
+    "resolved_at": "2026-08-10T20:08:55Z",
+    "issuer_verified": false,
+    "company_name_at_resolve": "Inhibrx Biosciences, Inc.",
+    "substrate": "none",
+    "reason": "no_p249"
+  },
   "INDI": {
     "qid": null,
     "title": null,
     "resolved_at": "2026-07-31T22:17:42Z",
     "issuer_verified": false,
     "company_name_at_resolve": "indie Semiconductor, Inc.",
+    "substrate": "none",
+    "reason": "no_p249"
+  },
+  "INHD": {
+    "qid": null,
+    "title": null,
+    "resolved_at": "2026-08-10T20:08:55Z",
+    "issuer_verified": false,
+    "company_name_at_resolve": "Inno Holdings Inc.",
     "substrate": "none",
     "reason": "no_p249"
   },
@@ -467,6 +494,15 @@
     "substrate": "en",
     "reason": null
   },
+  "QDEL": {
+    "qid": "Q15917582",
+    "title": "QuidelOrtho",
+    "resolved_at": "2026-08-10T20:08:55Z",
+    "issuer_verified": true,
+    "company_name_at_resolve": "QuidelOrtho Corporation",
+    "substrate": "en",
+    "reason": null
+  },
   "REPL": {
     "qid": null,
     "title": null,
@@ -539,6 +575,15 @@
     "substrate": "none",
     "reason": "no_p249"
   },
+  "SOHU": {
+    "qid": "Q965133",
+    "title": "Sohu",
+    "resolved_at": "2026-08-10T20:08:55Z",
+    "issuer_verified": true,
+    "company_name_at_resolve": "Sohu.com Limited",
+    "substrate": "en",
+    "reason": null
+  },
   "SPRY": {
     "qid": null,
     "title": null,
@@ -565,6 +610,15 @@
     "company_name_at_resolve": "Turtle Beach Corporation",
     "substrate": "none",
     "reason": "no_p249"
+  },
+  "TNXP": {
+    "qid": "Q39052499",
+    "title": "Tonix_Pharmaceuticals",
+    "resolved_at": "2026-08-10T20:08:55Z",
+    "issuer_verified": true,
+    "company_name_at_resolve": "Tonix Pharmaceuticals Holding Corp.",
+    "substrate": "en",
+    "reason": null
   },
   "TROX": {
     "qid": "Q3999691",
@@ -628,6 +682,15 @@
     "company_name_at_resolve": "NCR Voyix Corporation",
     "substrate": "en",
     "reason": null
+  },
+  "WBTN": {
+    "qid": null,
+    "title": null,
+    "resolved_at": "2026-08-10T20:08:55Z",
+    "issuer_verified": false,
+    "company_name_at_resolve": "WEBTOON Entertainment Inc.",
+    "substrate": "none",
+    "reason": "no_p249"
   },
   "WOLF": {
     "qid": "Q5183828",
