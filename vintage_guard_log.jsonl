@@ -11,3 +11,4 @@
 {"ts_utc": "2026-07-21T06:33:16Z", "report_date": "21.07.2026", "bar_date": "2026-07-21", "now_et": "2026-07-21T02:33:16.366366-04:00", "now_utc": "2026-07-21T06:33:16Z", "reason": "pre_open", "ticker_count": 10, "schema_v": 1}
 {"ts_utc": "2026-07-31T11:20:20Z", "report_date": "31.07.2026", "bar_date": "2026-07-31", "now_et": "2026-07-31T07:20:20.525788-04:00", "now_utc": "2026-07-31T11:20:20Z", "reason": "pre_open", "ticker_count": 10, "schema_v": 1}
 {"ts_utc": "2026-08-05T13:16:03Z", "report_date": "05.08.2026", "bar_date": "2026-08-05", "now_et": "2026-08-05T09:16:03.868866-04:00", "now_utc": "2026-08-05T13:16:03Z", "reason": "pre_open", "ticker_count": 10, "schema_v": 1}
+{"ts_utc": "2026-08-10T09:12:39Z", "report_date": "10.08.2026", "bar_date": "2026-08-10", "now_et": "2026-08-10T05:12:39.543472-04:00", "now_utc": "2026-08-10T09:12:39Z", "reason": "pre_open", "ticker_count": 10, "schema_v": 1}
