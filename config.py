@@ -552,6 +552,23 @@ SI_POSITION_HISTORY_FILE = "si_position_history.json"
 SI_POSITION_HISTORY_DAYS = 400   # ~ ein Jahr; Prune auf settlement_date
 SI_POSITION_HISTORY_MAX_POINTS = 24   # Punkt-Cap/Ticker (≈ 1 Jahr bei 2/Monat)
 
+# ── inst_ownership_history (13F-Institutional + Insider, forward-only, 10.08.2026) ──
+# Sammelt den AKTUELLEN 13F-Institutional-Ownership (yfinance
+# heldPercentInstitutions) + Insider-Ownership (heldPercentInsiders) pro US-Ticker
+# als forward-only Zeitreihe in einer SEPARATEN Datei — analog si_position_history.
+# yfinance liefert NUR den Momentanstand; jeder Tag ohne Sammlung ist ein Datenpunkt,
+# der nie wiederkommt (Easy-Entscheid 10.08.: JETZT sammeln, Auswertung wartet auf
+# Paper C + Vorabregistrierung). REINE Sammlung — KEIN Score/Filter/Push/Anzeige/
+# Auswertung, kein Konsument, löschbar ohne Nebenwirkung. Werte ROH (nicht deckeln/
+# normalisieren/runden; >100 % real bei stark geshorteten Titeln). none = unbeobachtbar
+# → JSON null, NIEMALS 0 (ein 0 hieße später fälschlich „keine Institutionen → hohes
+# Squeeze-Potenzial" — das Gegenteil des Dämpfers). Forward-only: kein Backfill.
+# Beide Achsen stammen aus DEMSELBEN .info-Dict wie inst_ownership → KEIN Extra-Fetch.
+INST_OWNERSHIP_HISTORY_ENABLED = True
+INST_OWNERSHIP_HISTORY_FILE = "inst_ownership_history.json"
+INST_OWNERSHIP_HISTORY_DAYS = 400    # Tages-Cutoff auf obs-date, ~ ein Jahr (analog SI)
+INST_OWNERSHIP_HISTORY_MAX_POINTS = 32  # Punkt-Cap/Ticker (change-based → quartalsweise dünn)
+
 # ── Dynamischer Enrichment-Pool ──────────────────────────────────────────────
 POOL_MIN                   = 20    # min. Kandidaten in Anreicherung
 POOL_MAX                   = 75    # max. Obergrenze (Laufzeit)
