@@ -1,17 +1,17 @@
 {
-  "updated": "2026-08-10T23:02:41.231527+02:00",
+  "updated": "2026-08-10T23:58:46.622910+02:00",
   "run_info": {
     "tickers_checked": 14,
-    "signals_active": 5,
+    "signals_active": 6,
     "alerts_sent": 0,
-    "elapsed_s": 21.6,
+    "elapsed_s": 34.5,
     "market_phase": "After-Hours"
   },
   "signals": {
     "AMC": {
-      "score": 40,
+      "score": 70,
       "confidence": 33,
-      "drivers": "Spanne 7.4% + UOA Call-Vol/OI 5.5× ATM + UOA Call/Put 3.6×",
+      "drivers": "Spanne 7.4% + News: squeeze, short squeeze + UOA Call-Vol/OI 5.5× ATM + UOA Call/Put 3.6×",
       "price": 2.42,
       "chg_pct": 0.0,
       "rvol_4d": 0.65,
@@ -22,7 +22,7 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 0,
+      "active_triggers": 1,
       "ki_sentiment_source": "keyword",
       "uoa_score": 30,
       "uoa_drivers": [
@@ -33,9 +33,9 @@
       "uoa_cp_ratio": 3.569782330345711
     },
     "ARCT": {
-      "score": 20,
+      "score": 28,
       "confidence": 33,
-      "drivers": "Spanne 9.7% + UOA Call/Put 19.5×",
+      "drivers": "Spanne 9.7% + News-KI 8/30: Biotech company with operational losses and no significant short squeeze indicators present in these earnings-focused he + UOA Call/Put 19.5×",
       "price": 7.05,
       "chg_pct": 0.0,
       "rvol_4d": 1.17,
@@ -47,7 +47,7 @@
       "stocktwits": null,
       "combo_mult": 1.0,
       "active_triggers": 0,
-      "ki_sentiment_source": "keyword",
+      "ki_sentiment_source": "llm",
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 19.5×"
@@ -58,7 +58,7 @@
     "HZO": {
       "score": 100,
       "confidence": 33,
-      "drivers": "Volumen 24.3× + 🚀 Massives Volumen 24.3×+ + SEC 8-K + News: buyout, takeover + UOA Call/Put 2.5×",
+      "drivers": "Volumen 24.3× + 🚀 Massives Volumen 24.3×+ + SEC 8-K + News: takeover, buyout + UOA Call/Put 2.5×",
       "price": 52.12,
       "chg_pct": -0.0,
       "rvol_4d": 24.32,
@@ -79,9 +79,9 @@
       "uoa_cp_ratio": 2.4642857142857144
     },
     "INBX": {
-      "score": 60,
+      "score": 85,
       "confidence": 70,
-      "drivers": "Earnings in 2 Tagen (12.08.2026) + Volumen 1.6× + Spanne 6.8% + Earnings in 2d + UOA Call/Put 6.2×",
+      "drivers": "Earnings in 2 Tagen (12.08.2026) + Volumen 1.6× + Spanne 6.8% + Earnings in 2d + FINRA Short-Vol 15133% + UOA Call/Put 6.2×",
       "price": 93.11,
       "chg_pct": 0.0,
       "rvol_4d": 1.57,
@@ -104,7 +104,7 @@
     "INHD": {
       "score": 55,
       "confidence": 70,
-      "drivers": "Volumen 1.9× + Spanne 20.7% + News: partnership, short interest",
+      "drivers": "Volumen 1.9× + Spanne 20.7% + News: short interest, partnership",
       "price": 6.63,
       "chg_pct": 0.0,
       "rvol_4d": 1.85,
@@ -123,9 +123,9 @@
       "uoa_cp_ratio": null
     },
     "INR": {
-      "score": 70,
+      "score": 53,
       "confidence": 70,
-      "drivers": "Earnings in 0 Tagen (10.08.2026) + Spanne 6.7% + Earnings in 0d + FINRA Short-Vol 94% + UOA Call/Put 168.0×",
+      "drivers": "Earnings in 0 Tagen (10.08.2026) + Spanne 6.7% + News-KI 8/30: Routine earnings announcements and executive appointments lack indicators of high short interest, volatility catalysts,  + Earnings in 0d + UOA Call/Put 168.0×",
       "price": 13.95,
       "chg_pct": -0.0,
       "rvol_4d": 1.49,
@@ -137,7 +137,7 @@
       "stocktwits": null,
       "combo_mult": 1.0,
       "active_triggers": 1,
-      "ki_sentiment_source": "keyword",
+      "ki_sentiment_source": "llm",
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 168.0×"
@@ -167,9 +167,9 @@
       "uoa_cp_ratio": 1.737913486005089
     },
     "PDYN": {
-      "score": 25,
+      "score": 40,
       "confidence": 33,
-      "drivers": "Spanne 5.9% + News: contract",
+      "drivers": "Spanne 5.9% + News: contract, partnership",
       "price": 6.19,
       "chg_pct": 0.0,
       "rvol_4d": 0.87,
@@ -232,7 +232,7 @@
     "SOHU": {
       "score": 100,
       "confidence": 70,
-      "drivers": "Earnings in 0 Tagen (10.08.2026) + Volumen 3.1× + ⚡ Extremes Volumen 3.1×+ + Spanne 10.5% + News: partnership + Earnings in 0d + 3/4 Trigger",
+      "drivers": "Earnings in 0 Tagen (10.08.2026) + Volumen 3.1× + ⚡ Extremes Volumen 3.1×+ + Spanne 10.8% + News: partnership + Earnings in 0d + FINRA Short-Vol 77% + 3/4 Trigger",
       "price": 14.43,
       "chg_pct": 0.0,
       "rvol_4d": 3.14,
@@ -253,7 +253,7 @@
     "TNXP": {
       "score": 100,
       "confidence": 70,
-      "drivers": "Earnings in 0 Tagen (10.08.2026) + Volumen 4.8× + ⚡ Extremes Volumen 4.8×+ + Spanne 24.7% + SEC 8-K + Earnings in 0d + FINRA Short-Vol 100% + 3/4 Trigger",
+      "drivers": "Earnings in 0 Tagen (10.08.2026) + Volumen 4.8× + ⚡ Extremes Volumen 4.8×+ + Spanne 24.7% + SEC 8-K + Earnings in 0d + 3/4 Trigger",
       "price": 12.59,
       "chg_pct": 0.0,
       "rvol_4d": 4.85,
@@ -274,7 +274,7 @@
     "WBTN": {
       "score": 85,
       "confidence": 70,
-      "drivers": "Earnings in 0 Tagen (10.08.2026) + Volumen 1.5× + Spanne 7.6% + Earnings in 0d + FINRA Short-Vol 82% + UOA Call/Put 8.3×",
+      "drivers": "Earnings in 0 Tagen (10.08.2026) + Volumen 1.5× + Spanne 7.6% + Earnings in 0d + FINRA Short-Vol 99% + UOA Call/Put 8.3×",
       "price": 9.45,
       "chg_pct": -0.0,
       "rvol_4d": 1.53,
@@ -295,9 +295,9 @@
       "uoa_cp_ratio": 8.259927797833935
     },
     "WOLF": {
-      "score": 26,
-      "confidence": 70,
-      "drivers": "Spanne 11.4% + News-KI 8/30: Partnership announcement shows operational progress but lacks short-squeeze catalysts like earnings beats, insider buyin + Earnings in 9d",
+      "score": 18,
+      "confidence": 33,
+      "drivers": "Spanne 11.4% + Earnings in 9d",
       "price": 29.3,
       "chg_pct": -0.0,
       "rvol_4d": 0.86,
@@ -309,7 +309,7 @@
       "stocktwits": null,
       "combo_mult": 1.0,
       "active_triggers": 0,
-      "ki_sentiment_source": "llm",
+      "ki_sentiment_source": "keyword",
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": 0.3097314265783048,
