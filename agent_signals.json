@@ -1,17 +1,17 @@
 {
-  "updated": "2026-08-11T00:56:51.027737+02:00",
+  "updated": "2026-08-11T01:51:42.668736+02:00",
   "run_info": {
     "tickers_checked": 14,
-    "signals_active": 6,
+    "signals_active": 7,
     "alerts_sent": 0,
-    "elapsed_s": 23.8,
+    "elapsed_s": 31.9,
     "market_phase": "After-Hours"
   },
   "signals": {
     "AMC": {
       "score": 70,
       "confidence": 33,
-      "drivers": "Spanne 7.4% + News: squeeze, short squeeze + UOA Call-Vol/OI 5.5× ATM + UOA Call/Put 3.6×",
+      "drivers": "Spanne 7.4% + News: short squeeze, squeeze + UOA Call-Vol/OI 5.5× ATM + UOA Call/Put 3.6×",
       "price": 2.42,
       "chg_pct": 0.0,
       "rvol_4d": 0.65,
@@ -58,7 +58,7 @@
     "HZO": {
       "score": 100,
       "confidence": 33,
-      "drivers": "Volumen 24.3× + 🚀 Massives Volumen 24.3×+ + SEC 8-K + News: takeover, buyout + UOA Call/Put 2.5×",
+      "drivers": "Volumen 24.3× + 🚀 Massives Volumen 24.3×+ + SEC 8-K + News: buyout, takeover + UOA Call/Put 2.5×",
       "price": 52.12,
       "chg_pct": -0.0,
       "rvol_4d": 24.32,
@@ -123,9 +123,9 @@
       "uoa_cp_ratio": null
     },
     "INR": {
-      "score": 53,
+      "score": 50,
       "confidence": 70,
-      "drivers": "Earnings in 0 Tagen (10.08.2026) + Spanne 6.7% + News-KI 8/30: Routine earnings announcement and executive appointments with no indicators of high short interest, low float, or cataly + Earnings in 0d + UOA Call/Put 168.0×",
+      "drivers": "Earnings in 0 Tagen (10.08.2026) + Spanne 6.7% + News-KI 5/30: Routine corporate appointments and financial reporting lack the catalyst characteristics (high short interest, significa + Earnings in 0d + UOA Call/Put 168.0×",
       "price": 13.95,
       "chg_pct": -0.0,
       "rvol_4d": 1.49,
@@ -146,9 +146,9 @@
       "uoa_cp_ratio": 168.0
     },
     "IONQ": {
-      "score": 18,
-      "confidence": 33,
-      "drivers": "News-KI 8/30: Positive sentiment on fundamentals and analyst views, but no short squeeze indicators like high short interest, low floa + SEC Form 4",
+      "score": 30,
+      "confidence": 17,
+      "drivers": "News: acquisition, contract",
       "price": 42.53,
       "chg_pct": -0.0,
       "rvol_4d": 0.61,
@@ -159,17 +159,17 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 0,
-      "ki_sentiment_source": "llm",
+      "active_triggers": 1,
+      "ki_sentiment_source": "keyword",
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": 0.3933672471140677,
       "uoa_cp_ratio": 1.737913486005089
     },
     "PDYN": {
-      "score": 40,
+      "score": 25,
       "confidence": 33,
-      "drivers": "Spanne 5.9% + News: partnership, contract",
+      "drivers": "Spanne 5.9% + News: contract",
       "price": 6.19,
       "chg_pct": 0.0,
       "rvol_4d": 0.87,
@@ -209,9 +209,9 @@
       "uoa_cp_ratio": 0.6309523809523809
     },
     "REPL": {
-      "score": 66,
+      "score": 79,
       "confidence": 70,
-      "drivers": "Earnings in 1 Tagen (11.08.2026) + Spanne 14.6% + SEC 8-K + Earnings in 1d + SEC Form 4",
+      "drivers": "Earnings in 1 Tagen (11.08.2026) + Spanne 14.6% + SEC 8-K + News-KI 12/30: Large equity offering dilutes shares while stock rises on positive biotech news, but significant cash cliff concerns and + Earnings in 1d + SEC Form 4",
       "price": 13.67,
       "chg_pct": 0.0,
       "rvol_4d": 1.41,
@@ -223,7 +223,7 @@
       "stocktwits": null,
       "combo_mult": 1.1,
       "active_triggers": 2,
-      "ki_sentiment_source": "keyword",
+      "ki_sentiment_source": "llm",
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": 1.1244573082489147,
