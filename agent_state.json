@@ -1,5 +1,5 @@
 {
-  "last_run": "2026-08-10T23:58:47.205390+02:00",
+  "last_run": "2026-08-11T00:02:40.664524+02:00",
   "cooldowns": {
     "anomaly_score_jump_XRX": "2026-05-03T18:47:15.315486+02:00",
     "anomaly_uoa_extreme_TDOC": "2026-05-04T13:47:00.365949+02:00",
@@ -1307,16 +1307,16 @@
     }
   ],
   "prev_conviction_scores": {
-    "SOHU": 75.0,
-    "INHD": 51.0,
-    "REPL": 78.0,
-    "TNXP": 77.0,
-    "HZO": 73.0,
-    "INBX": 81.0,
-    "ARCT": 58.0,
-    "WBTN": 86.0,
+    "SOHU": 79.0,
+    "INHD": 53.0,
+    "TNXP": 80.0,
+    "REPL": 80.0,
+    "HZO": 77.0,
+    "INBX": 84.0,
+    "WBTN": 89.0,
+    "ARCT": 59.0,
+    "INR": 73.0,
     "QDEL": 57.0,
-    "INR": 71.0,
     "WOLF": 48.0,
     "PDYN": 31.0,
     "IONQ": 14.0,
@@ -1365,13 +1365,13 @@
       ],
       "last_push_date": "2026-08-05",
       "esc_alerted": false,
-      "updated": "2026-08-10T23:58:47.205487+02:00"
+      "updated": "2026-08-11T00:02:40.664635+02:00"
     },
     "PDYN": {
       "last_active": [],
       "last_push_date": "2026-08-06",
       "esc_alerted": false,
-      "updated": "2026-08-10T23:58:47.205503+02:00"
+      "updated": "2026-08-11T00:02:40.664652+02:00"
     },
     "AI": {
       "last_active": [],
@@ -1397,7 +1397,13 @@
       "last_active": [],
       "last_push_date": "2026-08-07",
       "esc_alerted": false,
-      "updated": "2026-08-10T23:58:47.205514+02:00"
+      "updated": "2026-08-11T00:02:40.664664+02:00"
+    },
+    "ARCT": {
+      "last_active": [],
+      "last_push_date": null,
+      "esc_alerted": false,
+      "updated": "2026-08-11T00:02:40.664673+02:00"
     }
   }
 }
