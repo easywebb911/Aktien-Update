@@ -1,17 +1,17 @@
 {
-  "updated": "2026-08-10T10:51:09.353408+02:00",
+  "updated": "2026-08-10T11:14:33.332230+02:00",
   "run_info": {
     "tickers_checked": 13,
-    "signals_active": 2,
+    "signals_active": 3,
     "alerts_sent": 0,
-    "elapsed_s": 19.5,
+    "elapsed_s": 19.9,
     "market_phase": "Pre-Market"
   },
   "signals": {
     "AMC": {
-      "score": 50,
+      "score": 20,
       "confidence": 33,
-      "drivers": "Spanne 5.8% + News: short squeeze, squeeze + UOA Call/Put 2.4×",
+      "drivers": "Spanne 5.8% + UOA Call/Put 2.4×",
       "price": 2.59,
       "chg_pct": -0.0,
       "rvol_4d": 0.43,
@@ -22,7 +22,7 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 1,
+      "active_triggers": 0,
       "ki_sentiment_source": "keyword",
       "uoa_score": 10,
       "uoa_drivers": [
@@ -55,9 +55,9 @@
       "uoa_cp_ratio": 226.0
     },
     "CRSR": {
-      "score": 55,
+      "score": 74,
       "confidence": 70,
-      "drivers": "Volumen 4.4× + ⚡ Extremes Volumen 4.4×+ + Spanne 22.1% + UOA Call/Put 3.9×",
+      "drivers": "Volumen 4.4× + ⚡ Extremes Volumen 4.4×+ + Spanne 22.1% + News-KI 12/30: Earnings-driven rally lacks short squeeze indicators; no mention of short interest, volume spikes, or technical catalyst + UOA Call/Put 3.9×",
       "price": 14.35,
       "chg_pct": 0.0,
       "rvol_4d": 4.41,
@@ -67,22 +67,20 @@
       "upcoming_event": null,
       "insider_buy": false,
       "stocktwits": null,
-      "combo_mult": 1.0,
-      "active_triggers": 1,
-      "ki_sentiment_source": "keyword",
+      "combo_mult": 1.1,
+      "active_triggers": 2,
+      "ki_sentiment_source": "llm",
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 3.9×"
       ],
       "uoa_atm_ratio": null,
-      "uoa_cp_ratio": 3.904384133611691,
-      "push_silenced": true,
-      "silenced_reason": "RSI 76 · +28% 2T"
+      "uoa_cp_ratio": 3.904384133611691
     },
     "DFH": {
-      "score": 28,
+      "score": 25,
       "confidence": 33,
-      "drivers": "Spanne 8.3% + News-KI 8/30: Acquisition news creates positive momentum but lacks the high short interest, low float, and retail catalyst typically n + UOA Call/Put 6.3×",
+      "drivers": "Spanne 8.3% + News-KI 5/30: M&A activity typically reduces short-squeeze potential as it signals stability and strategic direction rather than finan + UOA Call/Put 6.3×",
       "price": 15.03,
       "chg_pct": -0.0,
       "rvol_4d": 1.25,
@@ -105,7 +103,7 @@
     "HTZ": {
       "score": 94,
       "confidence": 70,
-      "drivers": "Volumen 3.6× + ⚡ Extremes Volumen 3.6×+ + Spanne 14.8% + News: short squeeze, partnership + UOA Call/Put 7.9×",
+      "drivers": "Volumen 3.6× + ⚡ Extremes Volumen 3.6×+ + Spanne 14.8% + News: squeeze, short squeeze + UOA Call/Put 7.9×",
       "price": 2.27,
       "chg_pct": -0.0,
       "rvol_4d": 3.63,
@@ -126,9 +124,9 @@
       "uoa_cp_ratio": 7.863768457430098
     },
     "IBTA": {
-      "score": 40,
+      "score": 22,
       "confidence": 33,
-      "drivers": "Spanne 10.3% + News: earnings beat, partnership",
+      "drivers": "Spanne 10.3% + News-KI 12/30: Positive business development but lacks short-squeeze catalysts like high short interest, low float, or significant insi",
       "price": 38.42,
       "chg_pct": -0.0,
       "rvol_4d": 0.65,
@@ -140,7 +138,7 @@
       "stocktwits": null,
       "combo_mult": 1.0,
       "active_triggers": 1,
-      "ki_sentiment_source": "keyword",
+      "ki_sentiment_source": "llm",
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": null,
@@ -172,7 +170,7 @@
     "IONQ": {
       "score": 60,
       "confidence": 70,
-      "drivers": "Spanne 11.4% + News: acquisition, catalyst + SEC Form 4 + UOA Call/Put 2.2×",
+      "drivers": "Spanne 11.4% + News: contract, acquisition + SEC Form 4 + UOA Call/Put 2.2×",
       "price": 44.43,
       "chg_pct": 0.0,
       "rvol_4d": 1.38,
@@ -195,7 +193,7 @@
     "NRGV": {
       "score": 100,
       "confidence": 70,
-      "drivers": "Earnings in 1 Tagen (11.08.2026) + Volumen 5.0× + 🚀 Massives Volumen 5.0×+ + Spanne 23.3% + News-KI 8/30: Positive contract announcement for NRGV is overshadowed by sector-wide energy decline and lack of short interest indicat + Earnings in 1d + SEC Form 4",
+      "drivers": "Earnings in 1 Tagen (11.08.2026) + Volumen 5.0× + 🚀 Massives Volumen 5.0×+ + Spanne 23.3% + News-KI 12/30: Positive business development news is offset by weak sector momentum and lack of short interest catalyst indicators in t + Earnings in 1d + SEC Form 4 + 3/4 Trigger",
       "price": 3.49,
       "chg_pct": 0.0,
       "rvol_4d": 5.05,
@@ -205,8 +203,8 @@
       "upcoming_event": "Earnings in 1 Tagen (11.08.2026)",
       "insider_buy": false,
       "stocktwits": null,
-      "combo_mult": 1.1,
-      "active_triggers": 2,
+      "combo_mult": 1.2,
+      "active_triggers": 3,
       "ki_sentiment_source": "llm",
       "uoa_score": 0,
       "uoa_drivers": [],
@@ -214,9 +212,9 @@
       "uoa_cp_ratio": 1.0528290993071594
     },
     "PDYN": {
-      "score": 50,
+      "score": 35,
       "confidence": 33,
-      "drivers": "Spanne 5.3% + News: contract, partnership + UOA Call/Put 2.0×",
+      "drivers": "Spanne 5.3% + News: contract + UOA Call/Put 2.0×",
       "price": 5.99,
       "chg_pct": -0.0,
       "rvol_4d": 0.65,
