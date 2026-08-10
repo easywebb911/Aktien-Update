@@ -1,10 +1,10 @@
 {
-  "updated": "2026-08-10T10:05:54.615645+02:00",
+  "updated": "2026-08-10T10:51:09.353408+02:00",
   "run_info": {
     "tickers_checked": 13,
     "signals_active": 2,
     "alerts_sent": 0,
-    "elapsed_s": 15.4,
+    "elapsed_s": 19.5,
     "market_phase": "Pre-Market"
   },
   "signals": {
@@ -80,9 +80,9 @@
       "silenced_reason": "RSI 76 · +28% 2T"
     },
     "DFH": {
-      "score": 25,
+      "score": 28,
       "confidence": 33,
-      "drivers": "Spanne 8.3% + News-KI 5/30: M&A announcement is typically bearish for acquirer stock due to dilution and integration risks, not a short-squeeze cata + UOA Call/Put 6.3×",
+      "drivers": "Spanne 8.3% + News-KI 8/30: Acquisition news creates positive momentum but lacks the high short interest, low float, and retail catalyst typically n + UOA Call/Put 6.3×",
       "price": 15.03,
       "chg_pct": -0.0,
       "rvol_4d": 1.25,
@@ -172,7 +172,7 @@
     "IONQ": {
       "score": 60,
       "confidence": 70,
-      "drivers": "Spanne 11.4% + News: contract, acquisition + SEC Form 4 + UOA Call/Put 2.2×",
+      "drivers": "Spanne 11.4% + News: acquisition, catalyst + SEC Form 4 + UOA Call/Put 2.2×",
       "price": 44.43,
       "chg_pct": 0.0,
       "rvol_4d": 1.38,
@@ -195,7 +195,7 @@
     "NRGV": {
       "score": 100,
       "confidence": 70,
-      "drivers": "Earnings in 1 Tagen (11.08.2026) + Volumen 5.0× + 🚀 Massives Volumen 5.0×+ + Spanne 23.3% + News: contract, catalyst + Earnings in 1d + SEC Form 4 + 3/4 Trigger",
+      "drivers": "Earnings in 1 Tagen (11.08.2026) + Volumen 5.0× + 🚀 Massives Volumen 5.0×+ + Spanne 23.3% + News-KI 8/30: Positive contract announcement for NRGV is overshadowed by sector-wide energy decline and lack of short interest indicat + Earnings in 1d + SEC Form 4",
       "price": 3.49,
       "chg_pct": 0.0,
       "rvol_4d": 5.05,
@@ -205,18 +205,18 @@
       "upcoming_event": "Earnings in 1 Tagen (11.08.2026)",
       "insider_buy": false,
       "stocktwits": null,
-      "combo_mult": 1.2,
-      "active_triggers": 3,
-      "ki_sentiment_source": "keyword",
+      "combo_mult": 1.1,
+      "active_triggers": 2,
+      "ki_sentiment_source": "llm",
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": null,
       "uoa_cp_ratio": 1.0528290993071594
     },
     "PDYN": {
-      "score": 28,
+      "score": 50,
       "confidence": 33,
-      "drivers": "Spanne 5.3% + News-KI 8/30: Positive earnings headlines indicate company strength, which typically reduces short-squeeze potential; strong fundament + UOA Call/Put 2.0×",
+      "drivers": "Spanne 5.3% + News: contract, partnership + UOA Call/Put 2.0×",
       "price": 5.99,
       "chg_pct": -0.0,
       "rvol_4d": 0.65,
@@ -227,8 +227,8 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 0,
-      "ki_sentiment_source": "llm",
+      "active_triggers": 1,
+      "ki_sentiment_source": "keyword",
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 2.0×"
