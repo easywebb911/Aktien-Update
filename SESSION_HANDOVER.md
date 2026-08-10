@@ -807,11 +807,11 @@ Grund** festhält — jede spätere Anpassung muss so als Bruch sichtbar bleiben
   (mit `provenance=forward`) bereits; vor dem Prune-Datum trotzdem **verifizieren**,
   dass alle gereiften 13.07.-Records im Export stehen (der §4-Zähler #509 macht das
   täglich sichtbar — Export-Zeilenzahl darf nicht schrumpfen).
-- **`ssr_restriction`-Belegwerte-Verify — Status offen?** Feature + `purge_ssr_restriction`
-  existieren (CI-Allowlist), die Live-Belegwerte-Prüfung ist im Handover **nicht
-  auffindbar**. **Easy: bitte bestätigen** ob dieser Verify noch aussteht (dann hier
-  datiert führen) oder erledigt ist (dann streichen) — im Bericht als Frage gemeldet,
-  hier NICHT erfunden.
+- **`ssr_restriction`-Verify (#491-Wiedervorlage) — ✅ GESCHLOSSEN 10.08.2026.**
+  Wegwerf-Probe #515 (Muster #510, read-only, dispatch-only) bewies den Positiv-Pfad
+  live: erstes/mittleres/letztes heute-restringiertes Cboe-Symbol → `restricted_t=True`,
+  Aggregat-Kreuzcheck Modul-Sicht == Roh-Ground-Truth **53 = 53 identisch** → Symbol-
+  Konvention sauber, keine stille Zuordnungs-Lücke. Probe-Datei per Cleanup entfernt.
 - **10c-1a-Vormerkung (SEC Short-Position-Reporting) — präzise Termine.** **Form SHO:
   Q1/2028 (02/2028)** · **erste Meldung: 28.09.2028** · **öffentliche Dissemination:
   29.03.2029**. Reine Vormerkung (fern), kein Bau — beim SR-FINRA-2026-012-Entscheid
