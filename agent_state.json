@@ -1,5 +1,5 @@
 {
-  "last_run": "2026-08-10T21:17:41.886720+02:00",
+  "last_run": "2026-08-10T22:05:02.145805+02:00",
   "cooldowns": {
     "anomaly_score_jump_XRX": "2026-05-03T18:47:15.315486+02:00",
     "anomaly_uoa_extreme_TDOC": "2026-05-04T13:47:00.365949+02:00",
@@ -97,21 +97,10 @@
     "earnings_immediate_FUBO_05.08.2026": "2026-08-06T00:31:38.630146+02:00",
     "earnings_immediate_JJSF_05.08.2026": "2026-08-06T00:31:38.677732+02:00",
     "earnings_immediate_PRGO_05.08.2026": "2026-08-06T00:31:38.723884+02:00",
-    "earnings_immediate_VYX_05.08.2026": "2026-08-06T00:31:38.772736+02:00"
+    "earnings_immediate_VYX_05.08.2026": "2026-08-06T00:31:38.772736+02:00",
+    "earnings_immediate_NRGV_11.08.2026": "2026-08-10T22:05:01.493224+02:00"
   },
   "push_history": [
-    {
-      "ts": "2026-07-21T00:17:04.231199+02:00",
-      "ticker": "LENZ",
-      "kind": "exit_p1",
-      "severity": "default",
-      "trigger": "exit_alert",
-      "body": "LENZ 📉 Exit 70 | -17% | Trailing-Stop −20.1% vom Hoch",
-      "success": true,
-      "suppressed": false,
-      "suppress_reason": null,
-      "conviction_score": null
-    },
     {
       "ts": "2026-07-21T08:33:25.795112+02:00",
       "ticker": "LENZ",
@@ -1299,6 +1288,18 @@
       "suppressed": true,
       "suppress_reason": "conviction_below_threshold",
       "conviction_score": 72
+    },
+    {
+      "ts": "2026-08-10T22:05:01.493195+02:00",
+      "ticker": "NRGV",
+      "kind": "earnings_immediate",
+      "severity": "default",
+      "trigger": null,
+      "body": "NRGV Earnings-Sofort-Alert (in 1d, KI 82)",
+      "success": true,
+      "suppressed": false,
+      "suppress_reason": null,
+      "conviction_score": 72
     }
   ],
   "prev_conviction_scores": {
@@ -1359,13 +1360,13 @@
       ],
       "last_push_date": "2026-08-05",
       "esc_alerted": false,
-      "updated": "2026-08-10T21:17:41.886814+02:00"
+      "updated": "2026-08-10T22:05:02.145894+02:00"
     },
     "PDYN": {
       "last_active": [],
       "last_push_date": "2026-08-06",
       "esc_alerted": false,
-      "updated": "2026-08-10T21:17:41.886830+02:00"
+      "updated": "2026-08-10T22:05:02.145911+02:00"
     },
     "AI": {
       "last_active": [],
@@ -1393,7 +1394,7 @@
       ],
       "last_push_date": "2026-08-07",
       "esc_alerted": false,
-      "updated": "2026-08-10T21:17:41.886845+02:00"
+      "updated": "2026-08-10T22:05:02.145926+02:00"
     }
   }
 }
