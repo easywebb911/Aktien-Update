@@ -1,5 +1,5 @@
 {
-  "last_run": "2026-08-10T22:05:02.145805+02:00",
+  "last_run": "2026-08-10T22:11:31.290727+02:00",
   "cooldowns": {
     "anomaly_score_jump_XRX": "2026-05-03T18:47:15.315486+02:00",
     "anomaly_uoa_extreme_TDOC": "2026-05-04T13:47:00.365949+02:00",
@@ -98,57 +98,13 @@
     "earnings_immediate_JJSF_05.08.2026": "2026-08-06T00:31:38.677732+02:00",
     "earnings_immediate_PRGO_05.08.2026": "2026-08-06T00:31:38.723884+02:00",
     "earnings_immediate_VYX_05.08.2026": "2026-08-06T00:31:38.772736+02:00",
-    "earnings_immediate_NRGV_11.08.2026": "2026-08-10T22:05:01.493224+02:00"
+    "earnings_immediate_NRGV_11.08.2026": "2026-08-10T22:05:01.493224+02:00",
+    "earnings_immediate_INR_10.08.2026": "2026-08-10T22:11:30.477942+02:00",
+    "earnings_immediate_SOHU_10.08.2026": "2026-08-10T22:11:30.526783+02:00",
+    "earnings_immediate_TNXP_10.08.2026": "2026-08-10T22:11:30.576743+02:00",
+    "earnings_immediate_WBTN_10.08.2026": "2026-08-10T22:11:30.626466+02:00"
   },
   "push_history": [
-    {
-      "ts": "2026-07-21T08:33:25.795112+02:00",
-      "ticker": "LENZ",
-      "kind": "exit_p1",
-      "severity": "default",
-      "trigger": "exit_alert",
-      "body": "LENZ 📉 Exit 71 | -17% | Trailing-Stop −20.1% vom Hoch",
-      "success": true,
-      "suppressed": false,
-      "suppress_reason": null,
-      "conviction_score": null
-    },
-    {
-      "ts": "2026-07-21T08:34:52.375502+02:00",
-      "ticker": "IONQ",
-      "kind": "exit_p2",
-      "severity": "warning",
-      "trigger": null,
-      "body": "⚠️ Exit-Warnung IONQ: pressure 61/100",
-      "success": true,
-      "suppressed": false,
-      "suppress_reason": null,
-      "conviction_score": null
-    },
-    {
-      "ts": "2026-07-21T08:34:52.437452+02:00",
-      "ticker": "IONQ",
-      "kind": "exit_p2",
-      "severity": "trigger",
-      "trigger": "profit_lock",
-      "body": "🔻 Exit-Signal IONQ: profit_lock crit ({'pnl_pct': -0.3026, 'peak_pnl_pct': 0.4678, 'drawdown_from_peak': 0.7704, 'score_drop_from_peak': None})",
-      "success": true,
-      "suppressed": false,
-      "suppress_reason": null,
-      "conviction_score": null
-    },
-    {
-      "ts": "2026-07-21T08:34:52.502014+02:00",
-      "ticker": "IONQ",
-      "kind": "exit_p2",
-      "severity": "trigger",
-      "trigger": "trend_break",
-      "body": "🔻 Exit-Signal IONQ: trend_break crit ({'ma21': 44.7777, 'price': 34.24, 'drop_pct': 23.53})",
-      "success": true,
-      "suppressed": false,
-      "suppress_reason": null,
-      "conviction_score": null
-    },
     {
       "ts": "2026-07-21T08:34:52.561113+02:00",
       "ticker": "PDYN",
@@ -1300,21 +1256,70 @@
       "suppressed": false,
       "suppress_reason": null,
       "conviction_score": 72
+    },
+    {
+      "ts": "2026-08-10T22:11:30.477911+02:00",
+      "ticker": "INR",
+      "kind": "earnings_immediate",
+      "severity": "default",
+      "trigger": null,
+      "body": "INR Earnings-Sofort-Alert (in 0d, KI 70)",
+      "success": true,
+      "suppressed": false,
+      "suppress_reason": null,
+      "conviction_score": 71
+    },
+    {
+      "ts": "2026-08-10T22:11:30.526758+02:00",
+      "ticker": "SOHU",
+      "kind": "earnings_immediate",
+      "severity": "default",
+      "trigger": null,
+      "body": "SOHU Earnings-Sofort-Alert (in 0d, KI 100)",
+      "success": true,
+      "suppressed": false,
+      "suppress_reason": null,
+      "conviction_score": 75
+    },
+    {
+      "ts": "2026-08-10T22:11:30.576719+02:00",
+      "ticker": "TNXP",
+      "kind": "earnings_immediate",
+      "severity": "default",
+      "trigger": null,
+      "body": "TNXP Earnings-Sofort-Alert (in 0d, KI 100)",
+      "success": true,
+      "suppressed": false,
+      "suppress_reason": null,
+      "conviction_score": 77
+    },
+    {
+      "ts": "2026-08-10T22:11:30.626443+02:00",
+      "ticker": "WBTN",
+      "kind": "earnings_immediate",
+      "severity": "default",
+      "trigger": null,
+      "body": "WBTN Earnings-Sofort-Alert (in 0d, KI 85)",
+      "success": true,
+      "suppressed": false,
+      "suppress_reason": null,
+      "conviction_score": 86
     }
   ],
   "prev_conviction_scores": {
-    "ARCT": 72.0,
-    "HTZ": 60.0,
-    "NRGV": 72.0,
-    "IBTA": 64.0,
-    "CRSR": 50.0,
-    "SVV": 56.0,
-    "DFH": 56.0,
-    "INDI": 56.0,
-    "WOLF": 39.0,
-    "VSTM": 59.0,
-    "PDYN": 29.0,
-    "IONQ": 21.0,
+    "SOHU": 75.0,
+    "INHD": 51.0,
+    "REPL": 78.0,
+    "TNXP": 77.0,
+    "HZO": 73.0,
+    "INBX": 81.0,
+    "ARCT": 58.0,
+    "WBTN": 86.0,
+    "QDEL": 57.0,
+    "INR": 71.0,
+    "WOLF": 48.0,
+    "PDYN": 31.0,
+    "IONQ": 14.0,
     "AMC": 11.0
   },
   "exit_cooldowns": {
@@ -1360,13 +1365,13 @@
       ],
       "last_push_date": "2026-08-05",
       "esc_alerted": false,
-      "updated": "2026-08-10T22:05:02.145894+02:00"
+      "updated": "2026-08-10T22:11:31.290809+02:00"
     },
     "PDYN": {
       "last_active": [],
       "last_push_date": "2026-08-06",
       "esc_alerted": false,
-      "updated": "2026-08-10T22:05:02.145911+02:00"
+      "updated": "2026-08-10T22:11:31.290825+02:00"
     },
     "AI": {
       "last_active": [],
@@ -1389,12 +1394,10 @@
       "updated": "2026-07-30T00:13:32.872082+02:00"
     },
     "WOLF": {
-      "last_active": [
-        "overheated"
-      ],
+      "last_active": [],
       "last_push_date": "2026-08-07",
       "esc_alerted": false,
-      "updated": "2026-08-10T22:05:02.145926+02:00"
+      "updated": "2026-08-10T22:11:31.290836+02:00"
     }
   }
 }
