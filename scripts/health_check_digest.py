@@ -285,7 +285,15 @@ def main(*, now_ts: datetime | None = None,
     # raise-frei; try/except ist reine Absicherung, damit der Digest durch diese
     # Zeile NIE scheitert.
     try:
-        _daily_run_iso = hc.latest_daily_run_ts(state_entries)
+        # DEDIZIERTES weiteres Fenster: der 24h-``state_entries``-Cutoff könnte
+        # den letzten Daily-Run (Wochenende/Montag-Morgen ≈ 82 h) NICHT sehen →
+        # latest_daily_run_ts wäre dann None → Fehlalarm jeden Sonntag/Montag.
+        # Deshalb den Daily-Run-Liveness-Anker gegen ein 96h-Fenster laden (>
+        # der 90h-Schwelle, damit der Freitag-postclose am Montag noch sichtbar).
+        _liveness_entries = _load_jsonl_window(
+            ROOT / hc.LOG_FILE,
+            now_ts - timedelta(hours=hc._INST_OWN_LOOKBACK_HOURS))
+        _daily_run_iso = hc.latest_daily_run_ts(_liveness_entries)
         inst_own_line = hc.inst_ownership_liveness_line(
             ROOT / hc.INST_OWNERSHIP_HISTORY_FILE,
             last_run_iso=_daily_run_iso, now_ts=now_ts)

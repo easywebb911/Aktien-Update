@@ -45,7 +45,7 @@ def _check(name, cond):
 
 NOW = datetime(2026, 8, 12, 8, 47, tzinfo=timezone.utc)
 FRESH = "2026-08-12T06:17:00Z"   # heute premarket → ~2.5 h → frisch
-STALE = "2026-08-08T21:17:00Z"   # 4 Tage alt → Lauf ausständig
+STALE = "2026-08-07T20:47:00Z"   # 4 Tage alt → Lauf ausständig
 
 # #518-Schema exakt: {ticker: [{date, inst_ownership, insider_ownership}, …]}
 SCHEMA = {
@@ -139,13 +139,13 @@ def main() -> int:
     # toter Daily-Run zeigte fälschlich „läuft".
     print("\n=== Guardian-Fix: ki_agent_tick maskiert keinen toten Sammler ===")
     mixed_dead = [
-        {"run_ts": "2026-08-08T21:17:00Z", "run_phase": "postclose"},       # 4 Tage alt
+        {"run_ts": "2026-08-07T20:47:00Z", "run_phase": "postclose"},       # 4 Tage alt
         {"run_ts": "2026-08-12T07:47:00Z", "run_phase": "ki_agent_tick"},   # 1 h alt
         {"run_ts": "2026-08-12T06:47:00Z", "run_phase": "ki_agent_tick"},
     ]
     daily_iso = hc.latest_daily_run_ts(mixed_dead)
     _check("latest_daily_run_ts ignoriert ki_agent_tick → nimmt den alten postclose",
-           daily_iso == "2026-08-08T21:17:00Z")
+           daily_iso == "2026-08-07T20:47:00Z")
     masked = hc.inst_ownership_liveness_line(_synth(SCHEMA), last_run_iso=daily_iso, now_ts=NOW)
     _check("toter Daily-Run trotz frischem ki_agent → 'ausständig' (NICHT maskiert)",
            "ausständig" in masked)
@@ -161,12 +161,59 @@ def main() -> int:
     _check("latest_daily_run_ts fail-soft (leer/Müll) → None",
            hc.latest_daily_run_ts([]) is None
            and hc.latest_daily_run_ts(["x", None, {"foo": 1}]) is None)
-    # Wochenend-Toleranz: 59 h (Fr-postclose → So-Digest) ist noch frisch (≤ 60 h)
-    weekend = hc.inst_ownership_liveness_line(
-        _synth(SCHEMA), last_run_iso="2026-08-10T21:17:00Z",  # ~59.5 h vor NOW
-        now_ts=NOW)
-    _check("Wochenend-Lücke ~59 h → noch 'läuft' (kein Wochenend-Fehlalarm)",
-           "läuft" in weekend)
+    # ── Reachability-Invariante + REALE _load_jsonl_window-Pipeline ───────────
+    # Guardian-Fund #2: der 24h-Standard-Cutoff schnitte den Fr-postclose (Mo ≈
+    # 82 h) weg → latest_daily_run_ts=None → Fehlalarm jeden Sonntag/Montag. Fix:
+    # dedizierter _INST_OWN_LOOKBACK_HOURS-Load (96 h) > 90h-Schwelle. Hier gegen
+    # die ECHTE _load_jsonl_window-Pipeline geprüft, nicht nur die reine Funktion.
+    _check("Reachability-Invariante: Lookback (96h) > Freshness-Schwelle (90h)",
+           hc._INST_OWN_LOOKBACK_HOURS > hc._INST_OWN_FRESH_HOURS)
+
+    import importlib.util
+    _spec = importlib.util.spec_from_file_location(
+        "_dgst_io", ROOT / "scripts" / "health_check_digest.py")
+    _dg = importlib.util.module_from_spec(_spec)
+    _spec.loader.exec_module(_dg)
+
+    from datetime import timedelta
+
+    def _pipeline_line(log_lines, now):
+        """Echte Digest-Pipeline: temp-JSONL → _load_jsonl_window(96h) →
+        latest_daily_run_ts → inst_ownership_liveness_line."""
+        import pathlib as _pl
+        d = tempfile.mkdtemp()
+        logp = os.path.join(d, "health_check_log.jsonl")
+        with open(logp, "w", encoding="utf-8") as fh:
+            fh.write("\n".join(json.dumps(x) for x in log_lines) + "\n")
+        entries = _dg._load_jsonl_window(
+            _pl.Path(logp), now - timedelta(hours=hc._INST_OWN_LOOKBACK_HOURS))
+        anchor = hc.latest_daily_run_ts(entries)
+        return hc.inst_ownership_liveness_line(_synth(SCHEMA),
+                                               last_run_iso=anchor, now_ts=now)
+
+    # Montag-Morgen-Worst-Case: letzter Daily-Run = Fr-postclose ≈ 82 h alt,
+    # dazwischen nur stündliche ki_agent-Ticks. Der 96h-Load MUSS den Fr-postclose
+    # noch sehen → 82 h < 90 h → 'läuft' (KEIN Wochenend-/Montag-Fehlalarm).
+    fri_postclose = (NOW - timedelta(hours=82)).strftime("%Y-%m-%dT%H:%M:%SZ")
+    weekend_log = [
+        {"run_ts": fri_postclose, "run_phase": "postclose"},
+        {"run_ts": (NOW - timedelta(hours=1)).strftime("%Y-%m-%dT%H:%M:%SZ"),
+         "run_phase": "ki_agent_tick"},
+    ]
+    _check("REALE Pipeline: Mo-Morgen (Fr-postclose ~82h) → 'läuft' (kein Fehlalarm)",
+           "läuft" in _pipeline_line(weekend_log, NOW))
+
+    # Echt toter Daily-Run: letzter premarket/postclose > Lookback (96h). Der
+    # 96h-Load schneidet ihn weg → latest_daily_run_ts=None → 'ausständig' —
+    # obwohl der stündliche ki_agent frisch weiterläuft.
+    dead_log = [
+        {"run_ts": (NOW - timedelta(hours=107)).strftime("%Y-%m-%dT%H:%M:%SZ"),
+         "run_phase": "postclose"},                                    # > 96 h → raus
+        {"run_ts": (NOW - timedelta(hours=1)).strftime("%Y-%m-%dT%H:%M:%SZ"),
+         "run_phase": "ki_agent_tick"},                                # frisch, aber egal
+    ]
+    _check("REALE Pipeline: echt toter Daily-Run (>96h) → 'ausständig' (ki_agent egal)",
+           "ausständig" in _pipeline_line(dead_log, NOW))
 
     # ── Digest-Verdrahtung: Zeile in allen 3 Klassen; weggelassen bei None ────
     print("\n=== format_digest_body-Verdrahtung ===")
