@@ -801,12 +801,18 @@ Grund** festhält — jede spätere Anpassung muss so als Bruch sichtbar bleiben
   Forward-`return_10d` der ab 13.07. gesammelten Records gereift ist UND (b) `n_win`
   an **beiden** Zielen ≥ Floor 40 — mit Regime-Vorbehalt (§5 Confound 1). Datengetrieben,
   nicht kalendarisch (Datum nur Schätzung).
-- **vor ~12.10.2026 — Herkunft/Vollständigkeit im Matured-Export sichern.** Die
-  erste Forward-Charge (Entry 13.07.) rollt ~**11.–12.10.** über die 90-Tage-Kante
-  aus `backtest_history.json`. Der Matured-Export ist **prune-immun** und hat sie
-  (mit `provenance=forward`) bereits; vor dem Prune-Datum trotzdem **verifizieren**,
-  dass alle gereiften 13.07.-Records im Export stehen (der §4-Zähler #509 macht das
-  täglich sichtbar — Export-Zeilenzahl darf nicht schrumpfen).
+- **Herkunft/Vollständigkeit im Matured-Export — ✅ GESCHLOSSEN 11.08.2026 (Easy:
+  kein Zusatzfeld).** Die Paper-C-Forward-Charge (Entry ≥ 13.07.) rollt ~**11.–12.10.**
+  über die 90-Tage-Kante aus `backtest_history.json`. Der Matured-Export ist
+  **prune-immun** und hat die gereiften 13.07.-Records seit dem **04.08.-Backfill-Batch**
+  bereits drin — **mit `provenance=backfill`** (NICHT `forward`: `provenance` markiert den
+  Export-Lauf, nicht die Datumsgrenze — `forward` beginnt erst bei entry ≥ 21.07.,
+  #506-Disambiguierung). **Entscheid Easy 11.08.: kein zweites, forward-artiges Feld.**
+  Grund: die In-Sample/OoS-Trennung (Datumsgrenze 13.07.) ist über das `date`-Feld auf
+  jeder prune-immunen Export-Zeile ablesbar; ein Zusatzfeld würde die #506-Disambiguierung
+  (§4-provenance vs. Paper-C-Datum) wieder verwässern UND das eingefrorene §4-Artefakt
+  berühren (Änderungs-Protokoll). Vollständigkeit überwacht der §4-Zähler #509 ohnehin
+  täglich (Export-Zeilenzahl darf nicht schrumpfen).
 - **`ssr_restriction`-Verify (#491-Wiedervorlage) — ✅ GESCHLOSSEN 10.08.2026.**
   Wegwerf-Probe #515 (Muster #510, read-only, dispatch-only) bewies den Positiv-Pfad
   live: erstes/mittleres/letztes heute-restringiertes Cboe-Symbol → `restricted_t=True`,
