@@ -187,5 +187,131 @@
       "inst_ownership": 0.31745002,
       "insider_ownership": 0.00585
     }
+  ],
+  "HTZ": [
+    {
+      "date": "2026-08-11",
+      "inst_ownership": 1.05153,
+      "insider_ownership": 0.01127
+    }
+  ],
+  "FABC": [
+    {
+      "date": "2026-08-11",
+      "inst_ownership": 0.056550004,
+      "insider_ownership": 0.08693
+    }
+  ],
+  "PCT": [
+    {
+      "date": "2026-08-11",
+      "inst_ownership": 0.79047996,
+      "insider_ownership": 0.026889998
+    }
+  ],
+  "IMRX": [
+    {
+      "date": "2026-08-11",
+      "inst_ownership": 0.56735003,
+      "insider_ownership": 0.13824001
+    }
+  ],
+  "CGEM": [
+    {
+      "date": "2026-08-11",
+      "inst_ownership": 1.0611,
+      "insider_ownership": 0.00425
+    }
+  ],
+  "KPTI": [
+    {
+      "date": "2026-08-11",
+      "inst_ownership": 0.91741997,
+      "insider_ownership": 0.04677
+    }
+  ],
+  "KUST": [
+    {
+      "date": "2026-08-11",
+      "inst_ownership": 0.09725001,
+      "insider_ownership": 0.00127
+    }
+  ],
+  "NRGV": [
+    {
+      "date": "2026-08-11",
+      "inst_ownership": 0.52761,
+      "insider_ownership": 0.15194
+    }
+  ],
+  "AMPG": [
+    {
+      "date": "2026-08-11",
+      "inst_ownership": 0.2712,
+      "insider_ownership": 0.12677
+    }
+  ],
+  "SRPT": [
+    {
+      "date": "2026-08-11",
+      "inst_ownership": 1.07539,
+      "insider_ownership": 0.049289998
+    }
+  ],
+  "CCCC": [
+    {
+      "date": "2026-08-11",
+      "inst_ownership": 0.95321,
+      "insider_ownership": 0.00929
+    }
+  ],
+  "BJDX": [
+    {
+      "date": "2026-08-11",
+      "inst_ownership": 0.25707,
+      "insider_ownership": 0.06067
+    }
+  ],
+  "SHPH": [
+    {
+      "date": "2026-08-11",
+      "inst_ownership": 0.12888,
+      "insider_ownership": 0.06295
+    }
+  ],
+  "SIDU": [
+    {
+      "date": "2026-08-11",
+      "inst_ownership": 0.26593,
+      "insider_ownership": 0.00037
+    }
+  ],
+  "CCOI": [
+    {
+      "date": "2026-08-11",
+      "inst_ownership": 1.0160199,
+      "insider_ownership": 0.0414
+    }
+  ],
+  "LESL": [
+    {
+      "date": "2026-08-11",
+      "inst_ownership": 0.55337,
+      "insider_ownership": 0.060760003
+    }
+  ],
+  "EMPD": [
+    {
+      "date": "2026-08-11",
+      "inst_ownership": 0.74817,
+      "insider_ownership": 0.32796
+    }
+  ],
+  "SLNH": [
+    {
+      "date": "2026-08-11",
+      "inst_ownership": 0.18864,
+      "insider_ownership": 0.35751998
+    }
   ]
 }

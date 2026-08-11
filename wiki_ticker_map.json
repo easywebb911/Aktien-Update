@@ -134,6 +134,15 @@
     "substrate": "en",
     "reason": null
   },
+  "CGEM": {
+    "qid": "Q124031426",
+    "title": null,
+    "resolved_at": "2026-08-11T22:07:42Z",
+    "issuer_verified": false,
+    "company_name_at_resolve": "Cullinan Therapeutics, Inc.",
+    "substrate": "none",
+    "reason": "no_article"
+  },
   "CMCO": {
     "qid": null,
     "title": null,
@@ -212,6 +221,15 @@
     "resolved_at": "2026-07-27T22:29:48Z",
     "issuer_verified": false,
     "company_name_at_resolve": "EVgo, Inc.",
+    "substrate": "none",
+    "reason": "no_p249"
+  },
+  "FABC": {
+    "qid": null,
+    "title": null,
+    "resolved_at": "2026-08-11T22:07:42Z",
+    "issuer_verified": false,
+    "company_name_at_resolve": "Fabric.AI, Inc.",
     "substrate": "none",
     "reason": "no_p249"
   },
@@ -314,6 +332,15 @@
     "substrate": "none",
     "reason": "sparql_fetch_failed"
   },
+  "IMRX": {
+    "qid": null,
+    "title": null,
+    "resolved_at": "2026-08-11T22:07:42Z",
+    "issuer_verified": false,
+    "company_name_at_resolve": "Immuneering Corporation",
+    "substrate": "none",
+    "reason": "no_p249"
+  },
   "INBX": {
     "qid": null,
     "title": null,
@@ -376,6 +403,15 @@
     "company_name_at_resolve": "J&J Snack Foods Corp.",
     "substrate": "en",
     "reason": null
+  },
+  "KPTI": {
+    "qid": null,
+    "title": null,
+    "resolved_at": "2026-08-11T22:07:42Z",
+    "issuer_verified": false,
+    "company_name_at_resolve": "Karyopharm Therapeutics Inc.",
+    "substrate": "none",
+    "reason": "no_p249"
   },
   "KUST": {
     "qid": null,

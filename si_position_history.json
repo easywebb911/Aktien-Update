@@ -237,6 +237,12 @@
       "shares_short": 15027581,
       "short_pct_float": 30.61,
       "pub_date": "2026-07-10"
+    },
+    {
+      "settlement_date": "2026-07-15",
+      "shares_short": 15208579,
+      "short_pct_float": 30.98,
+      "pub_date": "2026-07-24"
     }
   ],
   "CADL": [
@@ -2250,6 +2256,12 @@
       "shares_short": 24997175,
       "short_pct_float": 22.76,
       "pub_date": "2026-07-10"
+    },
+    {
+      "settlement_date": "2026-07-15",
+      "shares_short": 23815010,
+      "short_pct_float": 21.68,
+      "pub_date": "2026-07-24"
     }
   ],
   "TTGT": [
@@ -3929,6 +3941,21 @@
       "settlement_date": "2026-07-15",
       "shares_short": 17136271,
       "short_pct_float": 16.4,
+      "pub_date": "2026-07-24"
+    }
+  ],
+  "EMPD": [
+    {
+      "settlement_date": "2026-06-15",
+      "shares_short": 1436515,
+      "short_pct_float": null,
+      "pub_date": "2026-06-25",
+      "seeded": true
+    },
+    {
+      "settlement_date": "2026-07-15",
+      "shares_short": 2045443,
+      "short_pct_float": 16.89,
       "pub_date": "2026-07-24"
     }
   ]
