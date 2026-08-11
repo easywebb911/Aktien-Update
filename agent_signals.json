@@ -1,17 +1,17 @@
 {
-  "updated": "2026-08-11T23:04:47.903095+02:00",
+  "updated": "2026-08-12T00:05:10.674881+02:00",
   "run_info": {
     "tickers_checked": 14,
-    "signals_active": 0,
+    "signals_active": 1,
     "alerts_sent": 0,
-    "elapsed_s": 32.8,
+    "elapsed_s": 20.7,
     "market_phase": "After-Hours"
   },
   "signals": {
     "AMC": {
-      "score": 40,
+      "score": 10,
       "confidence": 17,
-      "drivers": "News: short squeeze, squeeze + UOA Call/Put 6.1×",
+      "drivers": "UOA Call/Put 6.1×",
       "price": 2.4,
       "chg_pct": 0.0,
       "rvol_4d": 0.72,
@@ -22,7 +22,7 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 1,
+      "active_triggers": 0,
       "ki_sentiment_source": "keyword",
       "uoa_score": 10,
       "uoa_drivers": [
@@ -55,9 +55,9 @@
       "uoa_cp_ratio": 19.56578947368421
     },
     "HZO": {
-      "score": 40,
+      "score": 10,
       "confidence": 17,
-      "drivers": "News: buyout, takeover + UOA Call/Put 2.7×",
+      "drivers": "UOA Call/Put 2.7×",
       "price": 52.46,
       "chg_pct": -0.0,
       "rvol_4d": 0.93,
@@ -68,7 +68,7 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 1,
+      "active_triggers": 0,
       "ki_sentiment_source": "keyword",
       "uoa_score": 10,
       "uoa_drivers": [
@@ -78,9 +78,9 @@
       "uoa_cp_ratio": 2.6538461538461537
     },
     "INBX": {
-      "score": 60,
+      "score": 35,
       "confidence": 33,
-      "drivers": "Earnings in 1 Tagen (12.08.2026) + Earnings in 1d + FINRA Short-Vol 15133% + UOA Call/Put 5.2×",
+      "drivers": "Earnings in 1 Tagen (12.08.2026) + Earnings in 1d + UOA Call/Put 5.2×",
       "price": 92.38,
       "chg_pct": -0.0,
       "rvol_4d": 1.07,
@@ -103,7 +103,7 @@
     "INHD": {
       "score": 40,
       "confidence": 33,
-      "drivers": "Spanne 11.9% + News: short interest, partnership",
+      "drivers": "Spanne 11.9% + News: partnership, short interest",
       "price": 6.47,
       "chg_pct": -0.0,
       "rvol_4d": 0.21,
@@ -145,9 +145,9 @@
       "uoa_cp_ratio": 121.0
     },
     "IONQ": {
-      "score": 40,
+      "score": 25,
       "confidence": 33,
-      "drivers": "News: acquisition, contract + SEC Form 4",
+      "drivers": "News: acquisition + SEC Form 4",
       "price": 43.44,
       "chg_pct": -0.0,
       "rvol_4d": 0.47,
@@ -166,9 +166,9 @@
       "uoa_cp_ratio": 1.7945992530881931
     },
     "PDYN": {
-      "score": 35,
+      "score": 28,
       "confidence": 33,
-      "drivers": "Spanne 5.4% + News: contract + UOA Call/Put 9.3×",
+      "drivers": "Spanne 5.4% + News-KI 8/30: Board appointment and earnings reports lack indicators of high short interest, regulatory pressure, or catalyst-driven s + UOA Call/Put 9.3×",
       "price": 6.33,
       "chg_pct": -0.0,
       "rvol_4d": 1.05,
@@ -179,8 +179,8 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 1,
-      "ki_sentiment_source": "keyword",
+      "active_triggers": 0,
+      "ki_sentiment_source": "llm",
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 9.3×"
@@ -189,9 +189,9 @@
       "uoa_cp_ratio": 9.301587301587302
     },
     "QDEL": {
-      "score": 22,
-      "confidence": 33,
-      "drivers": "Spanne 7.0% + News-KI 12/30: Negative earnings guidance combined with stock decline indicates forced selling rather than short squeeze potential; del",
+      "score": 10,
+      "confidence": 17,
+      "drivers": "Spanne 7.0%",
       "price": 13.99,
       "chg_pct": -0.0,
       "rvol_4d": 0.51,
@@ -202,17 +202,17 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 1,
-      "ki_sentiment_source": "llm",
+      "active_triggers": 0,
+      "ki_sentiment_source": "keyword",
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": 0.04878048780487805,
       "uoa_cp_ratio": 0.6279761904761905
     },
     "REPL": {
-      "score": 66,
+      "score": 82,
       "confidence": 70,
-      "drivers": "Earnings in 3 Tagen (14.08.2026) + Spanne 6.8% + SEC 8-K + Earnings in 3d + SEC Form 4",
+      "drivers": "Earnings in 3 Tagen (14.08.2026) + Spanne 6.8% + SEC 8-K + News: fda approval + Earnings in 3d + SEC Form 4",
       "price": 13.65,
       "chg_pct": -0.0,
       "rvol_4d": 0.68,
@@ -231,9 +231,9 @@
       "uoa_cp_ratio": 0.6355742991813446
     },
     "SOHU": {
-      "score": 40,
-      "confidence": 33,
-      "drivers": "News: partnership + FINRA Short-Vol 77%",
+      "score": 15,
+      "confidence": 17,
+      "drivers": "News: partnership",
       "price": 14.24,
       "chg_pct": -0.0,
       "rvol_4d": 1.02,
@@ -273,9 +273,9 @@
       "uoa_cp_ratio": 0.30131004366812225
     },
     "WBTN": {
-      "score": 45,
-      "confidence": 70,
-      "drivers": "Spanne 14.8% + FINRA Short-Vol 99% + UOA Call/Put 7.4×",
+      "score": 20,
+      "confidence": 33,
+      "drivers": "Spanne 14.8% + UOA Call/Put 7.4×",
       "price": 8.81,
       "chg_pct": -0.06,
       "rvol_4d": 1.4,
@@ -296,9 +296,9 @@
       "uoa_cp_ratio": 7.375451263537906
     },
     "WOLF": {
-      "score": 26,
+      "score": 33,
       "confidence": 70,
-      "drivers": "Spanne 6.7% + News-KI 8/30: Partnership announcement is positive but lacks short squeeze indicators like high short interest, low float, or extreme  + Earnings in 8d",
+      "drivers": "Spanne 6.7% + News: short interest + Earnings in 8d",
       "price": 30.14,
       "chg_pct": -0.0,
       "rvol_4d": 0.83,
@@ -309,8 +309,8 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 0,
-      "ki_sentiment_source": "llm",
+      "active_triggers": 1,
+      "ki_sentiment_source": "keyword",
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": 0.18181818181818182,
