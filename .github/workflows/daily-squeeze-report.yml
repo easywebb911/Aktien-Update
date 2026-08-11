@@ -173,6 +173,13 @@ jobs:
           # trennen.
           git add ftd_history.json 2>/dev/null || true
           git add ftd_history_state.json 2>/dev/null || true
+          # reg_sho_history.json + reg_sho_history_state.json: forward-only Reg-SHO-
+          # Threshold-Status je Universums-Ticker, TÄGLICH postclose (11.08.2026).
+          # Persistenz über Commit ZWINGEND (Lehre #501) — Momentanstand, Archiv
+          # ungeprüft, jeder verlorene Tag ist weg. Der State-Sidecar trägt den
+          # Heartbeat + Quell-Health (nasdaq/nyse), den die Digest-Liveness braucht.
+          git add reg_sho_history.json 2>/dev/null || true
+          git add reg_sho_history_state.json 2>/dev/null || true
           # score_inflation_log.jsonl: append-only Diagnose-Log für die
           # Intra-Day-Score-Inflations-Untersuchung. Pro Daily-Run werden
           # 10 Zeilen angehängt; prune entfernt Einträge > 30 Tage. Persistenz

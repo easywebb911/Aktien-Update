@@ -630,6 +630,30 @@ FTD_HISTORY_STATE_FILE = "ftd_history_state.json"   # Heartbeat (last_run/last_r
 FTD_HTTP_TIMEOUT = 20                                # Sek. je SEC-Request
 FTD_TIME_BUDGET_S = 30.0                             # harte Wall-Clock-Schranke
 
+# ── reg_sho_history (Reg-SHO-Threshold, TÄGLICH, forward-only, prune-immun, 11.08.2026) ──
+# Sammelt pro postclose je Universums-Ticker, ob er auf der Reg-SHO-Threshold-Liste
+# seiner BÖRSE steht — eigene Datei, analog ftd_history. REINE Sammlung: KEIN
+# Score/Filter/Push/Anzeige/Auswertung.
+#
+# ⚠ BÖRSEN-LÜCKE (Kernpunkt, Easy 11.08.): Die Liste ist PRO BÖRSE (Nasdaq/NYSE/…).
+# Ein NYSE-Ticker gegen die Nasdaq-Liste geprüft wäre ein stilles FALSCH-NEGATIV.
+# Deshalb: je Ticker wird die BÖRSE (yfinance .info exchange, kein Extra-Fetch) auf
+# die zuständige Quelle gemappt. NUR wenn die richtige Liste erfolgreich geladen
+# wurde, gibt es true/false. Sonst restricted=null MIT Grund (exchange_not_covered
+# / exchange_unknown / fetch_failed / source_empty) — NIEMALS false. false und
+# „nicht geprüft" sehen im Datensatz NIE gleich aus (härtestes Abnahmekriterium,
+# test-verriegelt).
+#
+# TÄGLICH (Momentanstand): Archiv-Verfügbarkeit NICHT bewiesen → jeder Tag zählt.
+# Wie FTD zwei Daten: date (wann WIR lasen) + source_date (Datum in der Liste).
+# KEIN Prune/Cap (Lehre #519, test-verriegelt). Idempotent (ticker, date). Fetch-
+# Fail ≠ Leerbefund im State. Atomarer Write, Zeitbudget vor jedem Netz-Schritt.
+REG_SHO_HISTORY_ENABLED = True
+REG_SHO_HISTORY_FILE = "reg_sho_history.json"
+REG_SHO_HISTORY_STATE_FILE = "reg_sho_history_state.json"   # Heartbeat + Quell-Health
+REG_SHO_HTTP_TIMEOUT = 15                                    # Sek. je Nasdaq/NYSE-Request
+REG_SHO_TIME_BUDGET_S = 25.0                                 # harte Wall-Clock-Schranke
+
 # ── Dynamischer Enrichment-Pool ──────────────────────────────────────────────
 POOL_MIN                   = 20    # min. Kandidaten in Anreicherung
 POOL_MAX                   = 75    # max. Obergrenze (Laufzeit)
