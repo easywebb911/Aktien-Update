@@ -966,6 +966,9 @@ def get_yfinance_data(ticker: str) -> dict:
             # existieren im .info-Dict NICHT (Probe-Run 07.08. #510: <KEY-FEHLT>
             # bei 33/33 Tickern) → als toter Fallback entfernt.
             "inst_ownership":     info.get("heldPercentInstitutions"),
+            # Insider-Ownership (heldPercentInsiders) — zweite Achse aus DEMSELBEN
+            # .info-Dict (kein Extra-Fetch), für inst_ownership_history (10.08.2026).
+            "insider_ownership":  info.get("heldPercentInsiders"),
             "rsi14":        rsi14,
             "ma21":         ma21,
             "ma50":         ma50,
@@ -1235,6 +1238,9 @@ def get_yfinance_batch(tickers: list[str]) -> dict[str, dict]:
             # yfinance-Standard-Key (Bruch); die alten Keys existieren nicht
             # im .info-Dict (Probe #510) → toter Fallback entfernt.
             "inst_ownership": info.get("heldPercentInstitutions"),
+            # Insider-Ownership aus DEMSELBEN .info-Dict (kein Extra-Fetch),
+            # zweite Achse für inst_ownership_history (10.08.2026).
+            "insider_ownership": info.get("heldPercentInsiders"),
             "rsi14":          rsi14,
             "ma21":           ma21,
             "ma50":           ma50,
@@ -3291,6 +3297,137 @@ def _persist_si_position_history(enriched: list[dict]) -> int:
     if added:
         _save_si_position_history(hist)
         log.info("SI-Positions-Zeitreihe: %d neue Punkte persistiert (%d Ticker)",
+                 added, len(hist))
+    return added
+
+
+# ── inst_ownership_history (13F-Institutional + Insider, forward-only, 10.08.2026) ──
+#   SEPARATE Datei ``inst_ownership_history.json`` ({ticker: [punkte]}), analog
+#   ``si_position_history.json``. REINE Sammel-/Outcome-Persistenz — die Felder
+#   (inst_ownership, insider_ownership) dürfen NIEMALS als Score-Feature /
+#   Filter-Kriterium / Push-Gating gelesen werden (weder in ``score()`` /
+#   ``_compute_sub_scores`` / ``score_bonus`` noch in ``ki_agent`` /
+#   ``health_check``). Kein Frontend-Konsum, keine Auswertung, kein Backfill.
+#   Löschbar ohne Nebenwirkung (kein Konsument) + Feature-Flag als Rückweg.
+
+def _load_inst_ownership_history() -> dict:
+    """Lädt ``inst_ownership_history.json`` (fail-soft → leeres Dict)."""
+    try:
+        with open(INST_OWNERSHIP_HISTORY_FILE, "r", encoding="utf-8") as fh:
+            data = json.load(fh)
+        return data if isinstance(data, dict) else {}
+    except (FileNotFoundError, json.JSONDecodeError, OSError):
+        return {}
+
+
+def _save_inst_ownership_history(hist: dict) -> None:
+    """Atomarer Write mit Retention (Tages-Cutoff auf obs-``date`` + Punkt-Cap).
+
+    Defense-in-depth analog ``_save_si_position_history``: Tages-Cutoff
+    (``INST_OWNERSHIP_HISTORY_DAYS``) UND Punkt-Cap
+    (``INST_OWNERSHIP_HISTORY_MAX_POINTS``/Ticker). Punkte je Ticker
+    datums-aufsteigend; bei Cap fallen die ältesten raus.
+    """
+    cutoff = date.today() - timedelta(days=INST_OWNERSHIP_HISTORY_DAYS)
+    compact: dict[str, list] = {}
+    for ticker, points in hist.items():
+        if not isinstance(points, list):
+            continue
+        kept = []
+        for p in points:
+            d = p.get("date") if isinstance(p, dict) else None
+            try:
+                d_obj = datetime.strptime(d, "%Y-%m-%d").date() if d else None
+            except (ValueError, TypeError):
+                d_obj = None
+            if d_obj is not None and d_obj >= cutoff:
+                kept.append(p)
+        kept.sort(key=lambda p: p.get("date") or "")
+        if len(kept) > INST_OWNERSHIP_HISTORY_MAX_POINTS:
+            kept = kept[-INST_OWNERSHIP_HISTORY_MAX_POINTS:]
+        if kept:
+            compact[ticker] = kept
+    tmp = f"{INST_OWNERSHIP_HISTORY_FILE}.tmp"
+    with open(tmp, "w", encoding="utf-8") as fh:
+        json.dump(compact, fh, indent=2)
+    os.replace(tmp, INST_OWNERSHIP_HISTORY_FILE)
+
+
+def _inst_own_value(raw):
+    """Roh-Float ODER ``None`` — die 0-vs-null-Grenze (nicht verhandelbar).
+
+    ``None`` / ``NaN`` / ``±Inf`` / ``bool`` / nicht-numerisch → ``None``
+    (= unbeobachtbar → JSON ``null``). Ein FEHLENDER Wert wird NIEMALS zu ``0``.
+    Ein ECHTES gemessenes ``0.0`` (yfinance liefert numerisch 0) bleibt ``0.0``.
+    Werte > 1.0 (> 100 %) bleiben ROH — nicht deckeln, nicht normalisieren,
+    nicht runden (HTZ 1.187 = 118,7 % ist bei stark geshorteten Titeln real).
+    """
+    if isinstance(raw, bool):
+        return None
+    if isinstance(raw, (int, float)) and math.isfinite(raw):
+        return float(raw)
+    return None
+
+
+def _persist_inst_ownership_history(enriched: list[dict], *,
+                                    report_date_iso: str | None = None) -> int:
+    """Forward-only Institutional/Insider-Ownership-Zeitreihe pro US-Ticker.
+
+    Quelle: bereits IN-MEMORY auf dem enriched Stock-Dict
+    (``inst_ownership`` = heldPercentInstitutions, ``insider_ownership`` =
+    heldPercentInsiders) — **KEIN zusätzlicher Fetch** (beide aus demselben
+    .info-Dict wie ``inst_ownership``, siehe Read-Sites get_yfinance_data/-batch).
+
+    Ein datierter Punkt ``{date, inst_ownership, insider_ownership}`` wird
+    angehängt beim ERST-Obs eines Tickers ODER wenn sich das
+    ``(inst, insider)``-Paar gegenüber dem letzten Punkt ändert (forward-only,
+    quartalsweise 13F → dünn). IDEMPOTENT pro ``(ticker, date)``: derselbe Tag
+    landet nie zweimal (Doppel-Lauf / premarket+postclose). ``none`` =
+    unbeobachtbar → JSON ``null``, NIEMALS ``0``. Werte ROH. Fail-soft: Fehler
+    pro Ticker geloggt, nie geworfen — bricht den Daily-Run NIE ab.
+
+    Returns: Anzahl neu hinzugefügter Punkte (Logging / Health-Check).
+    """
+    if not INST_OWNERSHIP_HISTORY_ENABLED:
+        return 0
+    t_iso = report_date_iso or date.today().isoformat()
+    hist = _load_inst_ownership_history()
+    added = 0
+    for s in enriched:
+        try:
+            if not isinstance(s, dict):
+                continue                      # defensiv: nur Stock-Dicts
+            if s.get("market", "US") != "US":
+                continue                      # yfinance-13F ist US
+            ticker = s.get("ticker")
+            if not ticker:
+                continue
+            inst = _inst_own_value(s.get("inst_ownership"))
+            insider = _inst_own_value(s.get("insider_ownership"))
+            series = hist.setdefault(ticker, [])
+            # Idempotenz: derselbe Ticker am selben Datum nie zweimal.
+            if series and series[-1].get("date") == t_iso:
+                continue
+            # Forward-only: nur Erst-Obs ODER geändertes Paar (kein Tages-Spam
+            # bei quartals-konstantem 13F). ``null`` ist ein legitimer Zustand.
+            if series:
+                last = series[-1]
+                if (last.get("inst_ownership") == inst
+                        and last.get("insider_ownership") == insider):
+                    continue
+            series.append({
+                "date":              t_iso,
+                "inst_ownership":    inst,      # float | null — NIE 0 bei missing
+                "insider_ownership": insider,   # float | null
+            })
+            added += 1
+        except Exception as exc:   # pragma: no cover  (nie den Daily-Run brechen)
+            _tk = s.get("ticker") if isinstance(s, dict) else s
+            log.debug("inst_ownership-Persist %s: %s", _tk, exc)
+            continue
+    if added:
+        _save_inst_ownership_history(hist)
+        log.info("inst_ownership-Zeitreihe: %d neue Punkte persistiert (%d Ticker)",
                  added, len(hist))
     return added
 
@@ -17276,6 +17413,9 @@ def main():
             # durchreichen (intern, NICHT persistiertes Schema-Feld).
             "bar_date":            yfd.get("bar_date"),
             "inst_ownership":  yfd.get("inst_ownership"),
+            # Insider-Ownership — nur für inst_ownership_history-Sammlung (kein
+            # Frontend-/Score-Konsum). Aus demselben yfd (kein Extra-Fetch).
+            "insider_ownership": yfd.get("insider_ownership"),
             "float_shares":    yfd.get("float_shares", 0),
             "change_5d":       yfd.get("change_5d"),
             # change_2d/change_3d kommen aus get_yfinance_batch (Zeile 884-895)
@@ -17510,6 +17650,15 @@ def main():
         _persist_si_position_history(enriched)
     except Exception as _si_exc:   # pragma: no cover  (nie den Daily-Run brechen)
         log.warning("SI-Positions-Zeitreihe übersprungen: %s", _si_exc)
+
+    # inst_ownership_history (10.08.2026): forward-only 13F-Institutional- +
+    # Insider-Ownership über den vollen enriched US-Pool. Werte liegen schon
+    # in-memory auf dem Stock-Dict (kein Extra-Fetch). Rein additive Sammlung,
+    # KEIN Score-/Filter-/Push-/Anzeige-Effekt, fail-soft.
+    try:
+        _persist_inst_ownership_history(enriched)
+    except Exception as _io_exc:   # pragma: no cover  (nie den Daily-Run brechen)
+        log.warning("inst_ownership-Zeitreihe übersprungen: %s", _io_exc)
 
     # Late-Runner-Penalty: überhitzte Setups (RSI > Threshold ODER 2T-Move >
     # Threshold) bekommen Score × LATE_RUNNER_PENALTY. Adressiert
