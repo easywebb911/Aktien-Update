@@ -572,6 +572,38 @@ SI_POSITION_HISTORY_MAX_POINTS = 24   # Punkt-Cap/Ticker (≈ 1 Jahr bei 2/Monat
 INST_OWNERSHIP_HISTORY_ENABLED = True
 INST_OWNERSHIP_HISTORY_FILE = "inst_ownership_history.json"
 
+# ── options_oi_history (Options-Open-Interest-Momentanwert, forward-only, 11.08.2026) ──
+# Sammelt pro POSTCLOSE je Top-10-Ticker den NÄCHSTEN Verfallstermin (Calls UND
+# Puts) als forward-only Zeitreihe in einer SEPARATEN Datei — analog
+# inst_ownership_history / si_position_history. yfinance liefert KEINE historischen
+# Ketten; jeder Tag ohne Sammlung ist ein OI-Momentanwert, der nie wiederkommt
+# (Easy-Entscheid 11.08.: JETZT sammeln, Auswertung/Netto-Delta wartet). REINE
+# Sammlung — KEIN Score/Filter/Push/Anzeige/Auswertung, KEIN Delta/Gamma-Rechnen,
+# kein Konsument, löschbar ohne Nebenwirkung.
+#
+# ROH PRO STRIKE (nicht summieren): die spätere Netto-Delta-Rechnung (Black-Scholes)
+# braucht die Strike-Verteilung — eine reine OI-Summe wäre nicht nachholbar. Je
+# Kontrakt nur strike/oi/iv; nur Zeilen mit oi > 0 (leere Strikes sind Ballast).
+# Zusätzlich pro Ticker/Tag: Spot + shares_outstanding (Nenner für Netto-Delta
+# relativ zu ausstehenden Aktien) — beide aus in-memory-Daten, KEIN Extra-Fetch.
+#
+# NONE-SEMANTIK: none = unbeobachtbar (JSON null), NIEMALS 0. Ein Ticker ohne
+# Optionskette (expiry/calls/puts = null) ist NICHT dasselbe wie „Kette da, aber
+# kein oi>0-Strike" (calls/puts = []). Diese Grenze ist test-verriegelt.
+#
+# KEIN PRUNE, KEIN CAP (Lehre #519, Easy-Entscheid 11.08.): BEWUSST keine
+# Altersgrenze, kein Punkt-Cap, keine Rotation, keine Größenbegrenzung. Ein einmal
+# verlorener OI-Momentanwert kommt NIE zurück. Wiedereinführung einer Begrenzung
+# ist test-verriegelt (analog #519).
+#
+# ZEITBUDGET: harte Wall-Clock-Schranke — wird sie überschritten, bricht das
+# Sammeln ab, loggt das und der Daily-Run läuft normal weiter. Der Report darf NIE
+# wegen der Optionen scheitern oder sich spürbar verzögern (Probe #522: ~19 Abrufe
+# in ~14 s für die Top-10 → 45 s = ~3× Puffer).
+OPTIONS_OI_HISTORY_ENABLED = True
+OPTIONS_OI_HISTORY_FILE = "options_oi_history.json"
+OPTIONS_OI_TIME_BUDGET_S = 45.0
+
 # ── Dynamischer Enrichment-Pool ──────────────────────────────────────────────
 POOL_MIN                   = 20    # min. Kandidaten in Anreicherung
 POOL_MAX                   = 75    # max. Obergrenze (Laufzeit)

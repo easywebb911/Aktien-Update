@@ -2069,6 +2069,135 @@ def inst_ownership_liveness_line(hist_path=None, *, last_run_iso=None,
         return "🏛 Inst-Ownership: Status nicht ermittelbar"
 
 
+# ── options_oi_history-Liveness (Digest, 11.08.2026) ──────────────────────────
+# ANDERS als inst_ownership: der Sammler läuft NUR postclose (1×/Werktag), NICHT
+# beide Phasen. Die Frische wird deshalb NICHT gegen den generischen Daily-Run-
+# Stempel gemessen (der wäre auch bei totem postclose durch premarket frisch),
+# sondern gegen das NEUESTE ``date`` IN DER DATEI selbst — das ist der einzige
+# ehrliche „wann hat der Sammler zuletzt geschrieben"-Anker.
+OPTIONS_OI_HISTORY_FILE = config.OPTIONS_OI_HISTORY_FILE
+# 5 Kalendertage: der postclose-Sammler schreibt 1×/Werktag. Worst-Case normaler
+# Abstand am Digest-Morgen: Fr-postclose (date=Fr), langes Wochenende + Feiertags-
+# Montag, Di-postclose noch nicht gelaufen → Di-08:47-Digest sieht newest=Fr =
+# 4 Tage. 5 vermeidet den Fehlalarm; ein ECHT toter Sammler zeigt ≥ 6 Tage
+# innerhalb von 2 Digests. (S12 bleibt die schärfere workday-genaue postclose-
+# Instanz; diese Zeile ist der weiche Digest-Sichtbarkeits-Hinweis.)
+_OPTIONS_OI_STALE_DAYS = 5
+
+
+def _read_options_oi_history(path):
+    """Fail-soft Reader → ``(state, info)``. NIE Exception.
+
+    ``state``:
+      ``"absent"``     — Datei existiert NICHT (Zustand b: noch nie gesammelt).
+      ``"unparsable"`` — Datei da, aber kein gültiges JSON-Dict (Zustand c).
+      ``"empty"``      — Datei da, parst zu leerem Dict ODER ohne datierte Punkte
+                         (Zustand c).
+      ``"ok"``         — ``info`` = ``{n_tickers, n_points, newest_date,
+                         tickers_on_newest, chains_on_newest}``.
+    Schema: ``{ticker: [{date, expiry, spot, shares_outstanding, calls, puts}, …]}``.
+    ``chains_on_newest`` zählt Punkte am neuesten Datum mit ``calls is not None``
+    (None = keine Kette; ``[]`` = Kette da, kein oi>0-Strike — beide sind gültige
+    Beobachtungen, aber nur ``None`` heißt „unbeobachtbar")."""
+    try:
+        with open(path, "r", encoding="utf-8") as fh:
+            data = json.load(fh)
+    except FileNotFoundError:
+        return ("absent", None)
+    except (json.JSONDecodeError, OSError, UnicodeDecodeError, ValueError):
+        return ("unparsable", None)
+    if not isinstance(data, dict):
+        return ("unparsable", None)
+    if not data:
+        return ("empty", None)
+    n_tickers = 0
+    n_points = 0
+    newest = None
+    for series in data.values():
+        if not isinstance(series, list):
+            continue
+        n_tickers += 1
+        for p in series:
+            if not isinstance(p, dict):
+                continue
+            n_points += 1
+            d = p.get("date")
+            if isinstance(d, str) and (newest is None or d > newest):
+                newest = d
+    if newest is None:
+        return ("empty", None)          # Ticker-Keys da, aber kein datierter Punkt
+    tickers_on_newest = 0
+    chains_on_newest = 0
+    for series in data.values():
+        if not isinstance(series, list):
+            continue
+        for p in series:
+            if isinstance(p, dict) and p.get("date") == newest:
+                tickers_on_newest += 1
+                if p.get("calls") is not None:   # None = keine Kette (unbeobachtbar)
+                    chains_on_newest += 1
+                break
+    return ("ok", {"n_tickers": n_tickers, "n_points": n_points,
+                   "newest_date": newest, "tickers_on_newest": tickers_on_newest,
+                   "chains_on_newest": chains_on_newest})
+
+
+def _options_oi_date_age_days(newest_date, now_ts=None):
+    """Kalendertage zwischen ``newest_date`` (ISO ``YYYY-MM-DD``) und ``now``.
+    ``None`` bei fehlendem/unparsebarem Datum."""
+    try:
+        y, m, d = (int(x) for x in newest_date.split("-"))
+        nd = date(y, m, d)
+    except (ValueError, AttributeError, TypeError):
+        return None
+    now = now_ts or datetime.now(timezone.utc)
+    return (now.date() - nd).days
+
+
+def options_oi_liveness_line(hist_path=None, *, now_ts=None) -> str:
+    """Eine Zeile LIVENESS für den Digest — fail-soft (nie Exception/leer).
+
+    Drei Zustände klar getrennt (Kernanforderung), Frische aus dem NEUESTEN
+    ``date`` in der Datei (postclose-only Sammler):
+      a) **läuft** — Datei da + Stand frisch → „läuft · {stand}: N Ticker mit
+         Kette (von M) · K gesamt · P Punkte".
+      b) **noch nie gesammelt** — Datei fehlt (KEIN Fehler) → „sammelt ab dem
+         nächsten postclose".
+      c) **kaputt** — Datei unlesbar/leer, ODER Stand überfällig, ODER letzter
+         Lauf erfasste 0 Ketten.
+
+    Gesamt-Ticker + Gesamt-Punkte stehen in jeder ok-Variante, damit ein stiller
+    Ausfall am Folgetag (Punkte wachsen nicht) auffällt."""
+    try:
+        path = hist_path if hist_path is not None else OPTIONS_OI_HISTORY_FILE
+        state, info = _read_options_oi_history(path)
+        if state == "absent":
+            return ("🎯 Options-OI: sammelt ab dem nächsten postclose "
+                    "(Datei noch nicht angelegt)")
+        if state == "unparsable":
+            return "🎯 Options-OI: Datei unlesbar/kaputt"
+        if state == "empty":
+            return "🎯 Options-OI: Datei leer — kein Ticker gesammelt"
+        n_t = info["n_tickers"]
+        n_p = info["n_points"]
+        newest = info["newest_date"]
+        on_new = info["tickers_on_newest"]
+        chains = info["chains_on_newest"]
+        age = _options_oi_date_age_days(newest, now_ts)
+        if age is None or age > _OPTIONS_OI_STALE_DAYS:
+            return (f"🎯 Options-OI: {n_t} Ticker · {n_p} Punkte · "
+                    f"Sammler-Lauf überfällig (letzter Stand {newest}, "
+                    f">{_OPTIONS_OI_STALE_DAYS}d)")
+        if chains == 0:
+            return (f"🎯 Options-OI: letzter Lauf {newest} erfasste 0 Ketten "
+                    f"(von {on_new} Tickern) — kaputt/leer · {n_t} Ticker · "
+                    f"{n_p} Punkte")
+        return (f"🎯 Options-OI: läuft · {newest}: {chains} Ticker mit Kette "
+                f"(von {on_new}) · {n_t} gesamt · {n_p} Punkte")
+    except Exception:  # pragma: no cover — nie den Digest brechen
+        return "🎯 Options-OI: Status nicht ermittelbar"
+
+
 def _diagnose_block_for(fail: dict) -> str | None:
     """Signal-spezifischer READ-ONLY-Kontextblock für EIN crit-Fail-Dict.
 
@@ -2136,6 +2265,7 @@ def format_digest_body(state_fails: list[dict],
                        digest_date: str,
                        retest_line: str | None = None,
                        inst_own_line: str | None = None,
+                       options_oi_line: str | None = None,
                        ) -> tuple[str, str, str, str | None]:
     """Komponiert den ntfy-Body laut Spec Z. 175–211.
 
@@ -2157,6 +2287,8 @@ def format_digest_body(state_fails: list[dict],
             body += f"\n{retest_line}"
         if inst_own_line:
             body += f"\n{inst_own_line}"
+        if options_oi_line:
+            body += f"\n{options_oi_line}"
         return body, "📭 Health-Check ohne Daten", "high", "warning"
 
     # Recency-Gating (28.07.2026): erholte State-Fails („war kaputt, ist
@@ -2191,6 +2323,8 @@ def format_digest_body(state_fails: list[dict],
             body_lines.append(retest_line)
         if inst_own_line:
             body_lines.append(inst_own_line)
+        if options_oi_line:
+            body_lines.append(options_oi_line)
         body_lines.append(f"Letzter Run: {last_run_iso or '—'}")
         return "\n".join(body_lines), "✅ Health-Check OK", "default", None
 
@@ -2229,6 +2363,8 @@ def format_digest_body(state_fails: list[dict],
         lines.append(retest_line)
     if inst_own_line:
         lines.append(inst_own_line)
+    if options_oi_line:
+        lines.append(options_oi_line)
     lines.append(f"Letzter erfolgreicher Run: {last_run_iso or '—'}")
     body = "\n".join(lines).rstrip() + "\n"
 

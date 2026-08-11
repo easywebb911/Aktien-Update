@@ -969,6 +969,9 @@ def get_yfinance_data(ticker: str) -> dict:
             # Insider-Ownership (heldPercentInsiders) — zweite Achse aus DEMSELBEN
             # .info-Dict (kein Extra-Fetch), für inst_ownership_history (10.08.2026).
             "insider_ownership":  info.get("heldPercentInsiders"),
+            # Shares Outstanding (sharesOutstanding) — Nenner für options_oi_history
+            # Netto-Delta (11.08.2026). Aus DEMSELBEN .info-Dict (kein Extra-Fetch).
+            "shares_outstanding": info.get("sharesOutstanding"),
             "rsi14":        rsi14,
             "ma21":         ma21,
             "ma50":         ma50,
@@ -1241,6 +1244,9 @@ def get_yfinance_batch(tickers: list[str]) -> dict[str, dict]:
             # Insider-Ownership aus DEMSELBEN .info-Dict (kein Extra-Fetch),
             # zweite Achse für inst_ownership_history (10.08.2026).
             "insider_ownership": info.get("heldPercentInsiders"),
+            # Shares Outstanding — Nenner für options_oi_history (11.08.2026),
+            # aus DEMSELBEN .info-Dict (kein Extra-Fetch).
+            "shares_outstanding": info.get("sharesOutstanding"),
             "rsi14":          rsi14,
             "ma21":           ma21,
             "ma50":           ma50,
@@ -3427,6 +3433,208 @@ def _persist_inst_ownership_history(enriched: list[dict], *,
         _save_inst_ownership_history(hist)
         log.info("inst_ownership-Zeitreihe: %d neue Punkte persistiert (%d Ticker)",
                  added, len(hist))
+    return added
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+# options_oi_history — Options-Open-Interest-Momentanwert (forward-only, 11.08.2026)
+# ═══════════════════════════════════════════════════════════════════════════
+# REINE Sammlung pro postclose je Top-10-Ticker (nächster Verfall, Calls+Puts,
+# nur oi>0-Strikes). KEIN Score/Filter/Push/Anzeige, KEIN Delta/Gamma-Rechnen,
+# KEIN Prune/Cap. Fail-soft je Ticker, hartes Zeitbudget. Siehe config.py-Block.
+# Look-ahead-Isolation: NIE aus score()/_compute_sub_scores()/score_bonus() lesen.
+
+def _load_options_oi_history() -> dict:
+    """Lädt ``options_oi_history.json`` (fail-soft → leeres Dict)."""
+    try:
+        with open(OPTIONS_OI_HISTORY_FILE, "r", encoding="utf-8") as fh:
+            data = json.load(fh)
+        return data if isinstance(data, dict) else {}
+    except (FileNotFoundError, json.JSONDecodeError, OSError):
+        return {}
+
+
+def _save_options_oi_history(hist: dict) -> None:
+    """Atomarer Write — BEWUSST OHNE JEDEN PRUNE (Lehre #519, Easy 11.08.2026).
+
+    Kein Alters-Cutoff, kein Punkt-Cap, keine Rotation, keine Größenbegrenzung.
+    Nur (a) Nicht-Listen-Serien droppen, (b) Nicht-Dict-Punkte droppen, (c) je
+    Ticker aufsteigend nach ``date`` sortieren. KEIN ``[-N:]``-Slice, KEIN
+    ``timedelta``/cutoff, KEIN ``MAX_POINTS``. Jeder gültige Punkt überlebt
+    dauerhaft (ein verlorener OI-Momentanwert kommt nie zurück). Atomar via
+    ``.tmp`` + ``os.replace`` → nie halb-geschrieben.
+
+    ENCODING: kompakt (``separators=(",", ":")``) statt ``indent=2`` — das ist
+    KEINE Begrenzung (kein Punkt wird verworfen, der No-Prune-Test bleibt grün),
+    sondern eine reine Byte-Optimierung. Bei ~32 oi>0-Strikes/Ticker/Tag über
+    10 Ticker wäre ``indent=2`` ~32 KB/Handelstag (~40 MB/5 J im täglich
+    committeten Repo); kompakt ~13 KB/Tag (~17 MB/5 J). Die Datei ist
+    maschinen-only (kein Frontend, kein Mensch liest sie) → Einrückung bringt
+    keinen Wert, kostet aber 2,4× Repo-Wachstum pro Tag."""
+    compact: dict[str, list] = {}
+    for ticker, points in hist.items():
+        if not isinstance(points, list):
+            continue
+        kept = [p for p in points if isinstance(p, dict)]
+        kept.sort(key=lambda p: p.get("date") or "")
+        if kept:
+            compact[ticker] = kept
+    tmp = f"{OPTIONS_OI_HISTORY_FILE}.tmp"
+    with open(tmp, "w", encoding="utf-8") as fh:
+        json.dump(compact, fh, separators=(",", ":"))
+    os.replace(tmp, OPTIONS_OI_HISTORY_FILE)
+
+
+def _opt_num(raw):
+    """Roh-Float ODER ``None`` — die 0-vs-null-Grenze (analog ``_inst_own_value``).
+
+    ``bool`` / ``None`` / ``NaN`` / ``±Inf`` / nicht-numerisch → ``None``
+    (= unbeobachtbar → JSON ``null``, NIEMALS ``0``). Ein ECHTES gemessenes
+    ``0.0`` bleibt ``0.0``. Werte werden NICHT gedeckelt/normalisiert/gerundet."""
+    if isinstance(raw, bool):
+        return None
+    if isinstance(raw, (int, float)) and math.isfinite(raw):
+        return float(raw)
+    return None
+
+
+def _extract_oi_rows(df) -> list:
+    """Aus einem yfinance-option-chain-DataFrame (calls ODER puts) die Zeilen mit
+    ``openInterest > 0`` als ``[{strike, oi, iv}, ...]`` (roh, nur oi>0-Strikes —
+    leere Strikes sind Ballast). Defensiv: fehlende Spalten → ``[]``; NaN-Strike →
+    Zeile übersprungen; fehlendes/NaN iv → ``iv=None``. Gibt IMMER eine Liste
+    zurück — leere Liste = Kette da, aber kein oi>0-Strike (NICHT dasselbe wie
+    ``None`` = keine Kette; diese Grenze zieht der Caller)."""
+    rows: list = []
+    if df is None:
+        return rows
+    try:
+        cols = set(getattr(df, "columns", []))
+        if "strike" not in cols or "openInterest" not in cols:
+            return rows
+        strikes = list(df["strike"])
+        ois = list(df["openInterest"])
+        ivs = (list(df["impliedVolatility"]) if "impliedVolatility" in cols
+               else [None] * len(strikes))
+        for strike_raw, oi_raw, iv_raw in zip(strikes, ois, ivs):
+            oi = _opt_num(oi_raw)
+            if oi is None or oi <= 0:          # nur oi>0 (leere Strikes raus)
+                continue
+            strike = _opt_num(strike_raw)
+            if strike is None:                 # ohne Strike kein Delta rechenbar
+                continue
+            rows.append({"strike": strike, "oi": int(oi), "iv": _opt_num(iv_raw)})
+    except Exception:   # pragma: no cover — Transformationsfehler → leere Liste
+        return rows
+    return rows
+
+
+def _fetch_next_expiry_chain(ticker: str):
+    """REAL-yfinance-Fetcher für den NÄCHSTEN Verfall (Calls UND Puts in EINEM
+    ``option_chain``-Abruf). Rückgabe-Tuple:
+
+    - ``("ok", expiry, calls_rows, puts_rows)`` — Kette vorhanden (Listen ggf. leer)
+    - ``("no_chain", None, None, None)`` — Ticker OHNE Optionen (LEER, beobachtbar)
+
+    RAISED bei echtem Abruf-Fehler (Netzwerk/yfinance) → der Caller fängt das als
+    FETCH-FAIL, GETRENNT von „keine Kette". Ein leerer ``tk.options`` ist KEIN
+    Fehler, sondern die Aussage „keine Kette". Nur hier wird yfinance importiert —
+    Tests injizieren ``fetch_fn`` und brauchen yfinance NICHT."""
+    import yfinance as yf
+    tk = yf.Ticker(ticker)
+    exps = list(tk.options or [])
+    if not exps:
+        return ("no_chain", None, None, None)
+    expiry = exps[0]
+    oc = tk.option_chain(expiry)               # EIN Fetch liefert calls UND puts
+    return ("ok", expiry, _extract_oi_rows(oc.calls), _extract_oi_rows(oc.puts))
+
+
+def _persist_options_oi_history(top10, *, report_date_iso: str | None = None,
+                                run_phase: str | None = None,
+                                fetch_fn=None, now_fn=None,
+                                time_budget_s: float | None = None) -> int:
+    """Forward-only Options-OI-Zeitreihe je Top-10-Ticker — NUR postclose.
+
+    Pro ``(ticker, postclose-Tag)`` EINE Zeile mit dem nächsten Verfall (Calls +
+    Puts, nur oi>0-Strikes je ``strike/oi/iv``), plus ``spot`` und
+    ``shares_outstanding`` (Nenner für die spätere Netto-Delta-Rechnung) — beide
+    aus dem in-memory Stock-Dict, KEIN Extra-Fetch. KEINE Änderungs-Dedup: jeder
+    postclose-Tag ist ein eigener OI-Snapshot (OI bewegt sich täglich). IDEMPOTENT
+    pro ``(ticker, date)`` (Doppel-Lauf sicher). KEIN Prune/Cap.
+
+    none-Semantik: keine Optionskette → ``expiry/calls/puts = null`` (unbeobachtbar),
+    NICHT ``oi 0``. Kette da, aber kein oi>0-Strike → ``calls/puts = []`` (beobachtet
+    leer). Fetch-Fail (Netzwerk/yfinance) wird GETRENNT geloggt und schreibt KEINEN
+    Punkt (nächster postclose holt nach).
+
+    Hartes Zeitbudget (``OPTIONS_OI_TIME_BUDGET_S``): vor jedem Abruf geprüft; bei
+    Überschreitung Abbruch + Log, der Daily-Run läuft NORMAL weiter (der Report
+    scheitert/verzögert NIE wegen der Optionen). Fail-soft je Ticker.
+
+    ``fetch_fn`` / ``now_fn`` / ``time_budget_s`` injizierbar (Tests ohne
+    Netzwerk/yfinance). Returns: Anzahl neu geschriebener Ticker-Punkte."""
+    if not OPTIONS_OI_HISTORY_ENABLED:
+        return 0
+    if run_phase != "postclose":            # NUR postclose (Task: „pro postclose")
+        return 0
+    fetch_fn = fetch_fn or _fetch_next_expiry_chain
+    now_fn = now_fn or time.monotonic
+    budget = OPTIONS_OI_TIME_BUDGET_S if time_budget_s is None else time_budget_s
+    t_iso = report_date_iso or date.today().isoformat()
+    hist = _load_options_oi_history()
+    added = 0
+    n_fetchfail = 0
+    n_nochain = 0
+    t_start = now_fn()
+    for s in (top10 or []):
+        # Hartes Zeitbudget — VOR dem nächsten (teuren) Abruf prüfen.
+        if (now_fn() - t_start) > budget:
+            log.warning("options_oi: Zeitbudget %.0fs überschritten — Sammeln "
+                        "abgebrochen nach %d Tickern (Daily-Run läuft weiter).",
+                        budget, added)
+            break
+        try:
+            if not isinstance(s, dict):
+                continue
+            ticker = s.get("ticker")
+            if not ticker:
+                continue
+            series = hist.setdefault(ticker, [])
+            # Idempotenz: derselbe Ticker am selben Datum nie zweimal.
+            if series and series[-1].get("date") == t_iso:
+                continue
+            spot = _opt_num(s.get("price"))
+            shares = _opt_num(s.get("shares_outstanding"))
+            try:
+                status, expiry, calls, puts = fetch_fn(ticker)
+            except Exception as fexc:
+                # FETCH-FAIL — GETRENNT von „keine Kette" (Lehre #497). Kein Punkt
+                # geschrieben; der nächste postclose-Lauf holt den Ticker nach.
+                n_fetchfail += 1
+                log.info("[options_oi] FETCH-FAIL %s: %s", ticker, fexc)
+                continue
+            if status == "no_chain":
+                # LEER/unbeobachtbar: expiry/calls/puts = null (NIE oi 0).
+                point = {"date": t_iso, "expiry": None, "spot": spot,
+                         "shares_outstanding": shares, "calls": None, "puts": None}
+                n_nochain += 1
+                log.info("[options_oi] LEER (keine Kette) %s", ticker)
+            else:
+                point = {"date": t_iso, "expiry": expiry, "spot": spot,
+                         "shares_outstanding": shares,
+                         "calls": calls if calls is not None else [],
+                         "puts":  puts if puts is not None else []}
+            series.append(point)
+            added += 1
+        except Exception as exc:   # pragma: no cover — nie den Daily-Run brechen
+            _tk = s.get("ticker") if isinstance(s, dict) else s
+            log.debug("options_oi-Persist %s: %s", _tk, exc)
+            continue
+    if added:
+        _save_options_oi_history(hist)
+    log.info("options_oi-Zeitreihe: %d Punkte (%d Ticker gesamt · %d keine Kette "
+             "· %d Fetch-Fail)", added, len(hist), n_nochain, n_fetchfail)
     return added
 
 
@@ -17414,6 +17622,9 @@ def main():
             # Insider-Ownership — nur für inst_ownership_history-Sammlung (kein
             # Frontend-/Score-Konsum). Aus demselben yfd (kein Extra-Fetch).
             "insider_ownership": yfd.get("insider_ownership"),
+            # Shares Outstanding — nur Nenner für options_oi_history-Sammlung
+            # (kein Frontend-/Score-Konsum). Aus demselben yfd (kein Extra-Fetch).
+            "shares_outstanding": yfd.get("shares_outstanding"),
             "float_shares":    yfd.get("float_shares", 0),
             "change_5d":       yfd.get("change_5d"),
             # change_2d/change_3d kommen aus get_yfinance_batch (Zeile 884-895)
@@ -17657,6 +17868,16 @@ def main():
         _persist_inst_ownership_history(enriched)
     except Exception as _io_exc:   # pragma: no cover  (nie den Daily-Run brechen)
         log.warning("inst_ownership-Zeitreihe übersprungen: %s", _io_exc)
+
+    # options_oi_history (11.08.2026): forward-only Options-OI-Momentanwert je
+    # Top-10-Ticker, NUR postclose (der Sammler prüft run_phase selbst). Der EINZIGE
+    # Extra-Fetch dieses Features (yfinance option_chain, nächster Verfall) — hartes
+    # Zeitbudget schützt den Report. Rein additive Sammlung, KEIN Score-/Filter-/
+    # Push-/Anzeige-Effekt, KEIN Delta/Gamma, fail-soft.
+    try:
+        _persist_options_oi_history(top10, run_phase=run_phase)
+    except Exception as _oi_exc:   # pragma: no cover  (nie den Daily-Run brechen)
+        log.warning("options_oi-Zeitreihe übersprungen: %s", _oi_exc)
 
     # Late-Runner-Penalty: überhitzte Setups (RSI > Threshold ODER 2T-Move >
     # Threshold) bekommen Score × LATE_RUNNER_PENALTY. Adressiert

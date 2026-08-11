@@ -301,6 +301,16 @@ def main(*, now_ts: datetime | None = None,
         log.warning("inst_ownership_liveness_line unerwartet: %r", _io_exc)
         inst_own_line = None
 
+    # options_oi-Liveness: KEIN Daily-Run-Fenster nötig — der Sammler läuft nur
+    # postclose und die Frische kommt aus dem neuesten ``date`` in der Datei selbst
+    # (postclose-aware). raise-frei; try/except ist reine Absicherung.
+    try:
+        options_oi_line = hc.options_oi_liveness_line(
+            ROOT / hc.OPTIONS_OI_HISTORY_FILE, now_ts=now_ts)
+    except Exception as _oi_exc:  # pragma: no cover — Helper ist raise-frei
+        log.warning("options_oi_liveness_line unerwartet: %r", _oi_exc)
+        options_oi_line = None
+
     body, title, priority, tags = hc.format_digest_body(
         state_fails, prov_fails,
         n_runs=n_runs,
@@ -308,6 +318,7 @@ def main(*, now_ts: datetime | None = None,
         digest_date=today_iso,
         retest_line=retest_line,
         inst_own_line=inst_own_line,
+        options_oi_line=options_oi_line,
     )
 
     log.info("Digest %s — %d state-fails, %d provider-fails, %d runs",
