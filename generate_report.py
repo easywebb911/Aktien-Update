@@ -3321,30 +3321,28 @@ def _load_inst_ownership_history() -> dict:
 
 
 def _save_inst_ownership_history(hist: dict) -> None:
-    """Atomarer Write mit Retention (Tages-Cutoff auf obs-``date`` + Punkt-Cap).
+    """Atomarer Write — BEWUSST OHNE JEDEN PRUNE (Entscheid Easy 10.08.2026).
 
-    Defense-in-depth analog ``_save_si_position_history``: Tages-Cutoff
-    (``INST_OWNERSHIP_HISTORY_DAYS``) UND Punkt-Cap
-    (``INST_OWNERSHIP_HISTORY_MAX_POINTS``/Ticker). Punkte je Ticker
-    datums-aufsteigend; bei Cap fallen die ältesten raus.
+    HIER EXISTIERT ABSICHTLICH KEINE RETENTION: kein Alters-Cutoff, kein
+    Punkt-Cap, keine Größen-Begrenzung. Grund: das Feld hält **unwiederbringliche
+    13F-Momentanstände** — yfinance liefert nur den aktuellen Stand, ein einmal
+    verlorener Punkt kommt NIE zurück (genau die Spannung, die vorige Woche die
+    ganze Export-Kette ausgelöst hat; wird hier NICHT neu eingebaut). Jeder
+    gesammelte Punkt bleibt dauerhaft erhalten.
+
+    Es findet NUR statt: Sortierung (datums-aufsteigend, Determinismus) und ein
+    Konsistenz-Filter (Nicht-Dict-/Nicht-Listen-Müll raus) — das ist KEINE
+    Begrenzung nach Alter/Anzahl/Größe und droppt niemals einen gültigen Punkt.
+    Die frühere _DAYS/_MAX_POINTS-Retention (#518) ist ersatzlos entfernt; ein
+    Regressions-Test (``mock_test_inst_ownership_history``) schlägt fehl, falls
+    je wieder eine Alters-/Anzahl-/Größen-Grenze auf diese Datei wirkt.
     """
-    cutoff = date.today() - timedelta(days=INST_OWNERSHIP_HISTORY_DAYS)
     compact: dict[str, list] = {}
     for ticker, points in hist.items():
         if not isinstance(points, list):
             continue
-        kept = []
-        for p in points:
-            d = p.get("date") if isinstance(p, dict) else None
-            try:
-                d_obj = datetime.strptime(d, "%Y-%m-%d").date() if d else None
-            except (ValueError, TypeError):
-                d_obj = None
-            if d_obj is not None and d_obj >= cutoff:
-                kept.append(p)
+        kept = [p for p in points if isinstance(p, dict)]
         kept.sort(key=lambda p: p.get("date") or "")
-        if len(kept) > INST_OWNERSHIP_HISTORY_MAX_POINTS:
-            kept = kept[-INST_OWNERSHIP_HISTORY_MAX_POINTS:]
         if kept:
             compact[ticker] = kept
     tmp = f"{INST_OWNERSHIP_HISTORY_FILE}.tmp"
