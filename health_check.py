@@ -1936,6 +1936,139 @@ def retest_counter_line(export_path=None) -> str:
             f"· Export {total} Zeilen")
 
 
+# ── inst_ownership_history-Liveness (Digest-Zeile, 11.08.2026) ────────────────
+# LIVENESS, NICHT Änderungen: die #518-Sammlung ist change-based (ein Punkt nur
+# bei 13F-Änderung). Eine „letzter neuer Punkt"-Anzeige stünde quartalslang still
+# = Fehlalarm-Falle (dieselbe Lehre wie beim §4-Zähler-Stillstand). Deshalb misst
+# diese Zeile NICHT die Punkt-Frische, sondern (a) die akkumulierte Struktur der
+# Datei und (b) ob der DAILY-RUN-Sammler frisch lief. Der Sammler
+# (``_persist_inst_ownership_history``) läuft ungegated in BEIDEN Daily-Run-Phasen
+# (premarket + postclose), never-failing → ein frischer Daily-Run = der Pool wurde
+# heute beobachtet, auch wenn 13F unverändert und 0 neue Punkte. Genau das trennt
+# „Sammler tot" (Daily-Run-Lauf ausständig) von „13F unverändert" (Lauf frisch).
+#
+# KRITISCH (Guardian-Fix): die Frische wird NUR gegen ``premarket``/``postclose``-
+# Läufe gemessen — NICHT gegen den stündlichen ``ki_agent_tick`` (der den Sammler
+# NICHT aufruft). Sonst maskierte der stündliche ki_agent einen toten Daily-Run
+# und die Zeile zeigte fälschlich „läuft". Der Digest reicht deshalb
+# ``latest_daily_run_ts(state_entries)`` als ``last_run_iso`` durch.
+INST_OWNERSHIP_HISTORY_FILE = config.INST_OWNERSHIP_HISTORY_FILE
+# 90 h: der reale Worst-Case-Abstand vom täglichen 08:47-Digest zum vorigen
+# Daily-Run ist der DIENSTAG nach einem Feiertags-Montag — am Feiertag läuft kein
+# Daily-Run, der Dienstags-premarket (Cron 06:17, Drift real ~10:40–12:43 UTC)
+# landet erst NACH dem 08:47-Digest → letzter Lauf = Fr-postclose (real
+# ~22:14–23:11 UTC) → Di 08:47 − Fr 23:11 ≈ 82 h. (Ein gewöhnlicher Montag ist
+# nur ~58 h, klar darunter.) 90 h toleriert beide Fälle (kein Wochenend-/
+# Feiertags-Fehlalarm), flaggt aber einen echt toten Daily-Run (ein zusätzlich
+# verpasster Handelstag → > 90 h). Sekundär zu S12 (workday-genaue postclose-
+# Frequenz, die primäre + schärfere Alarm-Instanz).
+# WICHTIG: der Digest MUSS das Freshness-Fenster gegen einen JSONL-Load laden,
+# der WEITER ist als diese Schwelle (``_INST_OWN_LOOKBACK_HOURS`` unten), nicht
+# gegen das 24h-Standard-Fenster — sonst wäre die Schwelle unerreichbar und der
+# Freitag-postclose am Montag-Digest bereits weggeschnitten (Wochenend-Fehlalarm).
+_INST_OWN_FRESH_HOURS = 90
+# Lookback für den Daily-Run-Liveness-JSONL-Load im Digest. MUSS >
+# _INST_OWN_FRESH_HOURS sein (Reachability-Invariante, per Test verriegelt),
+# damit ein noch-frischer (≤ 90 h) Daily-Run im geladenen Fenster liegt.
+_INST_OWN_LOOKBACK_HOURS = 96
+
+
+def latest_daily_run_ts(entries) -> str | None:
+    """Jüngster ``run_ts`` NUR aus Daily-Run-Läufen (premarket/postclose).
+
+    Filtert den stündlichen ``ki_agent_tick`` heraus — der schreibt zwar in
+    ``health_check_log.jsonl``, ruft aber ``_persist_inst_ownership_history``
+    NICHT. Ohne diesen Filter maskierte der stündliche ki_agent einen toten
+    Daily-Run-Sammler. Fail-soft: leere/kaputte Eingabe → ``None``.
+    """
+    try:
+        ts = [e.get("run_ts") for e in (entries or [])
+              if isinstance(e, dict)
+              and e.get("run_phase") in _DIGEST_DAILY_RUN_PHASES
+              and e.get("run_ts")]
+        return max(ts) if ts else None
+    except Exception:  # pragma: no cover — nie den Digest brechen
+        return None
+
+
+def _read_inst_ownership_history(path):
+    """Fail-soft Reader → ``(state, counts)``. NIE Exception.
+
+    ``state``:
+      ``"absent"``     — Datei existiert NICHT (Zustand b: noch nie gesammelt).
+      ``"unparsable"`` — Datei da, aber kein gültiges JSON-Dict (Zustand c).
+      ``"empty"``      — Datei da, parst zu leerem Dict (Zustand c: nichts drin).
+      ``"ok"``         — Datei da mit Daten, ``counts = (n_tickers, n_points)``.
+    Schema (aus #518): ``{ticker: [{date, inst_ownership, insider_ownership}, …]}``.
+    """
+    try:
+        with open(path, "r", encoding="utf-8") as fh:
+            data = json.load(fh)
+    except FileNotFoundError:
+        return ("absent", None)
+    except (json.JSONDecodeError, OSError, UnicodeDecodeError, ValueError):
+        return ("unparsable", None)
+    if not isinstance(data, dict):
+        return ("unparsable", None)
+    if not data:
+        return ("empty", (0, 0))
+    n_tickers = 0
+    n_points = 0
+    for _t, series in data.items():
+        if isinstance(series, list):
+            n_tickers += 1
+            n_points += sum(1 for p in series if isinstance(p, dict))
+    return ("ok", (n_tickers, n_points))
+
+
+def _inst_own_run_age_hours(last_run_iso, now_ts=None):
+    """Alter des letzten Laufs in Stunden aus ISO-UTC + ``now_ts``.
+    ``None`` bei fehlendem/unparsebarem Stempel."""
+    dt = _parse_iso_utc(last_run_iso)
+    if dt is None:
+        return None
+    now = now_ts or datetime.now(timezone.utc)
+    if now.tzinfo is None:
+        now = now.replace(tzinfo=timezone.utc)
+    return (now - dt).total_seconds() / 3600.0
+
+
+def inst_ownership_liveness_line(hist_path=None, *, last_run_iso=None,
+                                 now_ts=None) -> str:
+    """Eine Zeile LIVENESS für den Digest-Push — fail-soft (nie Exception/leer).
+
+    Drei Zustände klar getrennt (Kernanforderung):
+      a) **läuft** — Datei da + Sammler-Lauf frisch → „läuft · N Ticker · M Punkte".
+      b) **noch nie gesammelt** — Datei existiert nicht (KEIN Fehler, KEIN „0
+         beobachtet", KEIN „nicht ermittelbar") → „sammelt ab dem nächsten postclose".
+      c) **kaputt** — Datei unlesbar/leer ODER Sammler-Lauf ausständig (tot).
+
+    ``last_run_iso`` (vom Digest aus dem 24h-Fenster) beweist „heute beobachtet":
+    gesetzt+jung → frisch, fehlend/alt → Lauf ausständig. Trennt so „13F
+    unverändert" (frisch, 0 neue Punkte OK) von „Sammler tot" (Lauf ausständig).
+    """
+    try:
+        path = hist_path if hist_path is not None else INST_OWNERSHIP_HISTORY_FILE
+        state, counts = _read_inst_ownership_history(path)
+        if state == "absent":
+            return ("🏛 Inst-Ownership: sammelt ab dem nächsten postclose "
+                    "(Datei noch nicht angelegt)")
+        if state == "unparsable":
+            return "🏛 Inst-Ownership: Datei unlesbar/kaputt"
+        if state == "empty":
+            return "🏛 Inst-Ownership: Datei leer — kein Ticker gesammelt"
+        n_tickers, n_points = counts
+        age = _inst_own_run_age_hours(last_run_iso, now_ts)
+        fresh = age is not None and age <= _INST_OWN_FRESH_HOURS
+        if fresh:
+            return (f"🏛 Inst-Ownership: läuft · {n_tickers} Ticker · "
+                    f"{n_points} Punkte")
+        return (f"🏛 Inst-Ownership: {n_tickers} Ticker · {n_points} Punkte · "
+                f"Sammler-Lauf ausständig (>{_INST_OWN_FRESH_HOURS}h)")
+    except Exception:  # pragma: no cover — nie den Digest brechen
+        return "🏛 Inst-Ownership: Status nicht ermittelbar"
+
+
 def _diagnose_block_for(fail: dict) -> str | None:
     """Signal-spezifischer READ-ONLY-Kontextblock für EIN crit-Fail-Dict.
 
@@ -2002,6 +2135,7 @@ def format_digest_body(state_fails: list[dict],
                        last_run_iso: str | None,
                        digest_date: str,
                        retest_line: str | None = None,
+                       inst_own_line: str | None = None,
                        ) -> tuple[str, str, str, str | None]:
     """Komponiert den ntfy-Body laut Spec Z. 175–211.
 
@@ -2021,6 +2155,8 @@ def format_digest_body(state_fails: list[dict],
         )
         if retest_line:
             body += f"\n{retest_line}"
+        if inst_own_line:
+            body += f"\n{inst_own_line}"
         return body, "📭 Health-Check ohne Daten", "high", "warning"
 
     # Recency-Gating (28.07.2026): erholte State-Fails („war kaputt, ist
@@ -2053,6 +2189,8 @@ def format_digest_body(state_fails: list[dict],
                 f"(kein Alarm, {f.get('count', 1)}× im 24h-Fenster)")
         if retest_line:
             body_lines.append(retest_line)
+        if inst_own_line:
+            body_lines.append(inst_own_line)
         body_lines.append(f"Letzter Run: {last_run_iso or '—'}")
         return "\n".join(body_lines), "✅ Health-Check OK", "default", None
 
@@ -2089,6 +2227,8 @@ def format_digest_body(state_fails: list[dict],
         lines.append("")
     if retest_line:
         lines.append(retest_line)
+    if inst_own_line:
+        lines.append(inst_own_line)
     lines.append(f"Letzter erfolgreicher Run: {last_run_iso or '—'}")
     body = "\n".join(lines).rstrip() + "\n"
 
