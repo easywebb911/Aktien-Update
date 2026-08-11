@@ -2367,11 +2367,11 @@ def reg_sho_liveness_line(hist_path=None, state_path=None, *, now_ts=None) -> st
         hstate, hinfo = _read_reg_sho_history(hp)
 
         if state is None and hstate in ("absent", "empty"):
-            return "🚫 Reg-SHO: sammelt ab dem nächsten postclose (noch kein Lauf)"
+            return "📋 Reg-SHO: sammelt ab dem nächsten postclose (noch kein Lauf)"
         if state == "__unparsable__":
-            return "🚫 Reg-SHO: State-Datei unlesbar/kaputt"
+            return "📋 Reg-SHO: State-Datei unlesbar/kaputt"
         if hstate == "unparsable":
-            return "🚫 Reg-SHO: Datei unlesbar/kaputt"
+            return "📋 Reg-SHO: Datei unlesbar/kaputt"
         last_run = (state or {}).get("last_run")
         nasdaq_res = (state or {}).get("nasdaq_result") or "?"
         nyse_res = (state or {}).get("nyse_result") or "?"
@@ -2379,16 +2379,16 @@ def reg_sho_liveness_line(hist_path=None, state_path=None, *, now_ts=None) -> st
         none_n = (state or {}).get("last_none")
         age = _inst_own_run_age_hours(last_run, now_ts)
         if age is None or age > _REG_SHO_FRESH_HOURS:
-            return (f"🚫 Reg-SHO: Sammler-Lauf überfällig "
+            return (f"📋 Reg-SHO: Sammler-Lauf überfällig "
                     f"(letzter Lauf {last_run or '—'}, >{_REG_SHO_FRESH_HOURS}h)")
         if str(nasdaq_res).startswith("fetch_failed") or str(nasdaq_res).startswith("empty"):
-            return f"🚫 Reg-SHO: läuft, aber Nasdaq-Quelle kaputt ({nasdaq_res})"
+            return f"📋 Reg-SHO: läuft, aber Nasdaq-Quelle kaputt ({nasdaq_res})"
         cov = f"{checked} geprüft / {none_n} none" if checked is not None else "?"
         n_p = hinfo[1] if hstate == "ok" else 0
-        return (f"🚫 Reg-SHO: läuft · nasdaq={nasdaq_res} nyse={nyse_res} · "
+        return (f"📋 Reg-SHO: läuft · nasdaq={nasdaq_res} nyse={nyse_res} · "
                 f"heute {cov} · {n_p} Punkte")
     except Exception:  # pragma: no cover — nie den Digest brechen
-        return "🚫 Reg-SHO: Status nicht ermittelbar"
+        return "📋 Reg-SHO: Status nicht ermittelbar"
 
 
 def _diagnose_block_for(fail: dict) -> str | None:
