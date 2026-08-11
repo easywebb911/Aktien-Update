@@ -191,16 +191,16 @@ def main() -> int:
         return hc.inst_ownership_liveness_line(_synth(SCHEMA),
                                                last_run_iso=anchor, now_ts=now)
 
-    # Montag-Morgen-Worst-Case: letzter Daily-Run = Fr-postclose ≈ 82 h alt,
-    # dazwischen nur stündliche ki_agent-Ticks. Der 96h-Load MUSS den Fr-postclose
-    # noch sehen → 82 h < 90 h → 'läuft' (KEIN Wochenend-/Montag-Fehlalarm).
+    # Worst-Case (Feiertags-Dienstag): letzter Daily-Run = Fr-postclose ≈ 82 h
+    # alt (normaler Montag nur ~58 h), dazwischen nur stündliche ki_agent-Ticks.
+    # Der 96h-Load MUSS den Fr-postclose noch sehen → 82 h < 90 h → 'läuft'.
     fri_postclose = (NOW - timedelta(hours=82)).strftime("%Y-%m-%dT%H:%M:%SZ")
     weekend_log = [
         {"run_ts": fri_postclose, "run_phase": "postclose"},
         {"run_ts": (NOW - timedelta(hours=1)).strftime("%Y-%m-%dT%H:%M:%SZ"),
          "run_phase": "ki_agent_tick"},
     ]
-    _check("REALE Pipeline: Mo-Morgen (Fr-postclose ~82h) → 'läuft' (kein Fehlalarm)",
+    _check("REALE Pipeline: Feiertags-Dienstag (Fr-postclose ~82h) → 'läuft' (kein Fehlalarm)",
            "läuft" in _pipeline_line(weekend_log, NOW))
 
     # Echt toter Daily-Run: letzter premarket/postclose > Lookback (96h). Der

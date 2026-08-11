@@ -1953,13 +1953,15 @@ def retest_counter_line(export_path=None) -> str:
 # und die Zeile zeigte fälschlich „läuft". Der Digest reicht deshalb
 # ``latest_daily_run_ts(state_entries)`` als ``last_run_iso`` durch.
 INST_OWNERSHIP_HISTORY_FILE = config.INST_OWNERSHIP_HISTORY_FILE
-# 90 h: der Worst-Case-Abstand vom täglichen 08:47-Digest zum vorigen Daily-Run
-# ist der Montag-Morgen — der letzte Lauf ist der Freitag-postclose (CLAUDE.md:
-# landet real ~22:14–23:11 UTC), und der Montag-premarket (Cron 06:17, Drift auf
-# ~10:40–12:43 UTC) läuft ERST NACH dem Digest → Mo 08:47 − Fr 23:11 ≈ 82 h. 90 h
-# toleriert das (kein Wochenend-/Montag-Fehlalarm), flaggt aber einen echt toten
-# Daily-Run (ein zusätzlich verpasster Handelstag → > 90 h). Sekundär zu S12
-# (workday-genaue postclose-Frequenz, die primäre + schärfere Alarm-Instanz).
+# 90 h: der reale Worst-Case-Abstand vom täglichen 08:47-Digest zum vorigen
+# Daily-Run ist der DIENSTAG nach einem Feiertags-Montag — am Feiertag läuft kein
+# Daily-Run, der Dienstags-premarket (Cron 06:17, Drift real ~10:40–12:43 UTC)
+# landet erst NACH dem 08:47-Digest → letzter Lauf = Fr-postclose (real
+# ~22:14–23:11 UTC) → Di 08:47 − Fr 23:11 ≈ 82 h. (Ein gewöhnlicher Montag ist
+# nur ~58 h, klar darunter.) 90 h toleriert beide Fälle (kein Wochenend-/
+# Feiertags-Fehlalarm), flaggt aber einen echt toten Daily-Run (ein zusätzlich
+# verpasster Handelstag → > 90 h). Sekundär zu S12 (workday-genaue postclose-
+# Frequenz, die primäre + schärfere Alarm-Instanz).
 # WICHTIG: der Digest MUSS das Freshness-Fenster gegen einen JSONL-Load laden,
 # der WEITER ist als diese Schwelle (``_INST_OWN_LOOKBACK_HOURS`` unten), nicht
 # gegen das 24h-Standard-Fenster — sonst wäre die Schwelle unerreichbar und der
