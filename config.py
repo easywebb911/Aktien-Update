@@ -604,6 +604,32 @@ OPTIONS_OI_HISTORY_ENABLED = True
 OPTIONS_OI_HISTORY_FILE = "options_oi_history.json"
 OPTIONS_OI_TIME_BUDGET_S = 45.0
 
+# ── ftd_history (SEC-Fail-to-Deliver, forward-only, prune-immun, 11.08.2026) ──
+# Sammelt pro postclose die Fail-to-Deliver-Zeilen der Universums-Ticker aus dem
+# JEWEILS NEUESTEN SEC-Halbmonats-File — eigene Datei, analog options_oi/
+# inst_ownership. REINE Sammlung: KEIN Score/Filter/Push/Anzeige/Auswertung.
+#
+# ⚠ LOOK-AHEAD-FALLE (Punkt A, Easy 11.08.): SEC-FTD ist ~1 Monat RÜCKDATIERT
+# (aktuellstes File = erste Julihälfte). Ein Fails-Wert für Settlement-Tag T war
+# an Tag T NICHT bekannt. Deshalb speichert JEDER Punkt ZWEI Daten:
+#   settlement_date  — wann der Ausfall war (SEC-Datenstand, RÜCKDATIERT)
+#   first_available  — wann der Wert für UNS erstmals abrufbar war (Run-Tag der
+#                      Erst-Ingestion). OHNE dieses zweite Datum ist das Feld für
+#                      eine Vorabregistrierung/Backtest UNBRAUCHBAR (Look-Ahead,
+#                      Fehlerklasse die Reife-Gate #503 verhindert hat). Eine
+#                      spätere Auswertung MUSS als „as-of"-Datum first_available
+#                      nutzen, NIE settlement_date.
+#
+# KEIN PRUNE/CAP (Lehre #519): keine Alters-/Anzahl-/Größen-Begrenzung —
+# test-verriegelt. KEIN Backfill in diesem PR (Archiv bis 2004 ist jederzeit
+# nachholbar und gehört zur Auswertung). Idempotent pro (ticker, settlement_date).
+# Fail-soft je Quelle; Fetch-Fail ≠ Leerbefund. Hartes Zeitbudget wie #524.
+FTD_HISTORY_ENABLED = True
+FTD_HISTORY_FILE = "ftd_history.json"
+FTD_HISTORY_STATE_FILE = "ftd_history_state.json"   # Heartbeat (last_run/last_result)
+FTD_HTTP_TIMEOUT = 20                                # Sek. je SEC-Request
+FTD_TIME_BUDGET_S = 30.0                             # harte Wall-Clock-Schranke
+
 # ── Dynamischer Enrichment-Pool ──────────────────────────────────────────────
 POOL_MIN                   = 20    # min. Kandidaten in Anreicherung
 POOL_MAX                   = 75    # max. Obergrenze (Laufzeit)

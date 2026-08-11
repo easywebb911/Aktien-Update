@@ -2198,6 +2198,115 @@ def options_oi_liveness_line(hist_path=None, *, now_ts=None) -> str:
         return "🎯 Options-OI: Status nicht ermittelbar"
 
 
+# ── ftd_history-Liveness (Digest, 11.08.2026) ─────────────────────────────────
+# ANDERS als options_oi: FTD schreibt nur NEUE Punkte, wenn SEC ein neues
+# Halbmonats-File veröffentlicht (~2×/Monat). „Punkte wachsen nicht" ist also der
+# NORMALFALL zwischen SEC-Releases, NICHT „kaputt". Die Frische kommt deshalb aus
+# dem HEARTBEAT ``last_run`` im Sidecar ``ftd_history_state.json`` (der Sammler
+# schreibt ihn bei JEDEM postclose-Lauf), NICHT aus dem neuesten Punkt-Datum. So
+# trennt sich „läuft, kein neues File" (normal) sauber von „Sammler tot/überfällig".
+FTD_HISTORY_FILE = config.FTD_HISTORY_FILE
+FTD_HISTORY_STATE_FILE = config.FTD_HISTORY_STATE_FILE
+# 108 h (4,5 Tage): FTD läuft postclose NUR 1×/Werktag (inst_ownership läuft 2×/Tag
+# → dort reichen 90 h). Bei 1×/Tag ist der normale Wochenend-/Feiertags-Abstand am
+# Digest-Morgen größer: Fr-postclose → Di-08:47-Digest (Feiertags-Montag) ≈ 83 h,
+# knapp unter 90 → Fehlalarm-Risiko. 108 h gibt Marge über den Feiertags-Fall und
+# flaggt trotzdem einen echt toten Sammler binnen ~2 verpasster Handelstage.
+_FTD_FRESH_HOURS = 108
+
+
+def _read_ftd_history(path):
+    """Fail-soft Reader → ``(state, info)``. ``state`` ∈ absent/unparsable/empty/ok.
+    ``info`` bei ok: ``(n_tickers, n_points, newest_first_available, newest_file)``.
+    Schema: ``{ticker: [{settlement_date, first_available, fails, price, source_file}]}``."""
+    try:
+        with open(path, "r", encoding="utf-8") as fh:
+            data = json.load(fh)
+    except FileNotFoundError:
+        return ("absent", None)
+    except (json.JSONDecodeError, OSError, UnicodeDecodeError, ValueError):
+        return ("unparsable", None)
+    if not isinstance(data, dict):
+        return ("unparsable", None)
+    if not data:
+        return ("empty", None)
+    n_tickers = 0
+    n_points = 0
+    newest_avail = None
+    newest_file = None
+    for series in data.values():
+        if not isinstance(series, list):
+            continue
+        n_tickers += 1
+        for p in series:
+            if not isinstance(p, dict):
+                continue
+            n_points += 1
+            fa = p.get("first_available")
+            if isinstance(fa, str) and (newest_avail is None or fa > newest_avail):
+                newest_avail = fa
+                newest_file = p.get("source_file")
+    if n_points == 0:
+        return ("empty", None)
+    return ("ok", (n_tickers, n_points, newest_avail, newest_file))
+
+
+def _read_ftd_state(path):
+    """Fail-soft State-Reader → dict (ok), ``None`` (absent) oder
+    ``"__unparsable__"`` (Datei da, kaputt)."""
+    try:
+        with open(path, "r", encoding="utf-8") as fh:
+            data = json.load(fh)
+    except FileNotFoundError:
+        return None
+    except (json.JSONDecodeError, OSError, UnicodeDecodeError, ValueError):
+        return "__unparsable__"
+    return data if isinstance(data, dict) else "__unparsable__"
+
+
+def ftd_liveness_line(hist_path=None, state_path=None, *, now_ts=None) -> str:
+    """Eine Zeile LIVENESS für den Digest — fail-soft (nie Exception/leer).
+
+    Drei Zustände klar getrennt, Frische aus dem Heartbeat ``last_run``:
+      a) **läuft** — Heartbeat frisch + gesunder ``last_result`` → „läuft (…) · …".
+      b) **noch nie gesammelt** — kein State UND keine/leere Datei → „sammelt ab
+         dem nächsten postclose".
+      c) **kaputt** — State/Datei unlesbar, ODER Heartbeat überfällig, ODER
+         ``last_result`` = fetch/parse-Fail („läuft, aber Quelle kaputt")."""
+    try:
+        hp = hist_path if hist_path is not None else FTD_HISTORY_FILE
+        sp = state_path if state_path is not None else FTD_HISTORY_STATE_FILE
+        state = _read_ftd_state(sp)
+        hstate, hinfo = _read_ftd_history(hp)
+
+        # b) noch nie: weder Heartbeat noch Daten.
+        if state is None and hstate in ("absent", "empty"):
+            return "📉 FTD: sammelt ab dem nächsten postclose (noch kein Lauf)"
+        # c) kaputte Dateien.
+        if state == "__unparsable__":
+            return "📉 FTD: State-Datei unlesbar/kaputt"
+        if hstate == "unparsable":
+            return "📉 FTD: Datei unlesbar/kaputt"
+        # c) Heartbeat überfällig (Sammler tot).
+        last_run = (state or {}).get("last_run")
+        last_result = (state or {}).get("last_result") or "?"
+        age = _inst_own_run_age_hours(last_run, now_ts)   # generischer ISO-Age-Helper
+        if age is None or age > _FTD_FRESH_HOURS:
+            return (f"📉 FTD: Sammler-Lauf überfällig "
+                    f"(letzter Lauf {last_run or '—'}, >{_FTD_FRESH_HOURS}h)")
+        # c) Sammler läuft, aber die Quelle ist kaputt.
+        if last_result.startswith("fetch_failed") or last_result.startswith("parse_failed"):
+            return f"📉 FTD: läuft, aber Quelle kaputt ({last_result})"
+        # a) läuft — Daten-Aktualität aus der Datei.
+        if hstate != "ok":
+            return f"📉 FTD: läuft ({last_result}) · noch keine Daten gesammelt"
+        n_t, n_p, newest_avail, newest_file = hinfo
+        return (f"📉 FTD: läuft ({last_result}) · neuestes File {newest_file} · "
+                f"{n_t} Ticker · {n_p} Punkte · zuletzt verfügbar {newest_avail}")
+    except Exception:  # pragma: no cover — nie den Digest brechen
+        return "📉 FTD: Status nicht ermittelbar"
+
+
 def _diagnose_block_for(fail: dict) -> str | None:
     """Signal-spezifischer READ-ONLY-Kontextblock für EIN crit-Fail-Dict.
 
@@ -2266,6 +2375,7 @@ def format_digest_body(state_fails: list[dict],
                        retest_line: str | None = None,
                        inst_own_line: str | None = None,
                        options_oi_line: str | None = None,
+                       ftd_line: str | None = None,
                        ) -> tuple[str, str, str, str | None]:
     """Komponiert den ntfy-Body laut Spec Z. 175–211.
 
@@ -2289,6 +2399,8 @@ def format_digest_body(state_fails: list[dict],
             body += f"\n{inst_own_line}"
         if options_oi_line:
             body += f"\n{options_oi_line}"
+        if ftd_line:
+            body += f"\n{ftd_line}"
         return body, "📭 Health-Check ohne Daten", "high", "warning"
 
     # Recency-Gating (28.07.2026): erholte State-Fails („war kaputt, ist
@@ -2325,6 +2437,8 @@ def format_digest_body(state_fails: list[dict],
             body_lines.append(inst_own_line)
         if options_oi_line:
             body_lines.append(options_oi_line)
+        if ftd_line:
+            body_lines.append(ftd_line)
         body_lines.append(f"Letzter Run: {last_run_iso or '—'}")
         return "\n".join(body_lines), "✅ Health-Check OK", "default", None
 
@@ -2365,6 +2479,8 @@ def format_digest_body(state_fails: list[dict],
         lines.append(inst_own_line)
     if options_oi_line:
         lines.append(options_oi_line)
+    if ftd_line:
+        lines.append(ftd_line)
     lines.append(f"Letzter erfolgreicher Run: {last_run_iso or '—'}")
     body = "\n".join(lines).rstrip() + "\n"
 
