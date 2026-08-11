@@ -277,13 +277,18 @@ def main(*, now_ts: datetime | None = None,
 
     # inst_ownership_history-Liveness (fail-soft, backend-only): eine Zeile im
     # Body. Zeigt LIVENESS (läuft/noch-nie/kaputt), nicht Änderungen — 13F ist
-    # quartalsweise. ``last_run_iso`` (24h-Fenster) beweist „heute beobachtet".
-    # inst_ownership_liveness_line ist raise-frei; try/except ist reine
-    # Absicherung, damit der Digest durch diese Zeile NIE scheitert.
+    # quartalsweise. WICHTIG: der Sammler läuft NUR im Daily-Run, NICHT im
+    # stündlichen ki_agent-Tick — deshalb die Frische gegen
+    # latest_daily_run_ts (premarket/postclose) messen, NICHT gegen das
+    # generische last_run_iso (das der stündliche ki_agent frisch hält und damit
+    # einen toten Daily-Run maskieren würde). inst_ownership_liveness_line ist
+    # raise-frei; try/except ist reine Absicherung, damit der Digest durch diese
+    # Zeile NIE scheitert.
     try:
+        _daily_run_iso = hc.latest_daily_run_ts(state_entries)
         inst_own_line = hc.inst_ownership_liveness_line(
             ROOT / hc.INST_OWNERSHIP_HISTORY_FILE,
-            last_run_iso=last_run_iso, now_ts=now_ts)
+            last_run_iso=_daily_run_iso, now_ts=now_ts)
     except Exception as _io_exc:  # pragma: no cover — Helper ist raise-frei
         log.warning("inst_ownership_liveness_line unerwartet: %r", _io_exc)
         inst_own_line = None

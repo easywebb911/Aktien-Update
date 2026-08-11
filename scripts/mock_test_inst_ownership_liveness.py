@@ -132,6 +132,42 @@ def main() -> int:
     _check("Reader: SCHEMA → ok, (2 Ticker, 3 Punkte)",
            st == "ok" and counts == (2, 3))
 
+    # ── Guardian-Fix: ki_agent_tick maskiert KEINEN toten Daily-Run ───────────
+    # Der Sammler läuft NUR im Daily-Run (premarket/postclose), NICHT im
+    # stündlichen ki_agent-Tick. latest_daily_run_ts filtert den Tick heraus —
+    # sonst hielte der stündliche ki_agent die Frische künstlich hoch und ein
+    # toter Daily-Run zeigte fälschlich „läuft".
+    print("\n=== Guardian-Fix: ki_agent_tick maskiert keinen toten Sammler ===")
+    mixed_dead = [
+        {"run_ts": "2026-08-08T21:17:00Z", "run_phase": "postclose"},       # 4 Tage alt
+        {"run_ts": "2026-08-12T07:47:00Z", "run_phase": "ki_agent_tick"},   # 1 h alt
+        {"run_ts": "2026-08-12T06:47:00Z", "run_phase": "ki_agent_tick"},
+    ]
+    daily_iso = hc.latest_daily_run_ts(mixed_dead)
+    _check("latest_daily_run_ts ignoriert ki_agent_tick → nimmt den alten postclose",
+           daily_iso == "2026-08-08T21:17:00Z")
+    masked = hc.inst_ownership_liveness_line(_synth(SCHEMA), last_run_iso=daily_iso, now_ts=NOW)
+    _check("toter Daily-Run trotz frischem ki_agent → 'ausständig' (NICHT maskiert)",
+           "ausständig" in masked)
+    mixed_ok = [
+        {"run_ts": "2026-08-12T06:17:00Z", "run_phase": "premarket"},
+        {"run_ts": "2026-08-12T07:47:00Z", "run_phase": "ki_agent_tick"},
+    ]
+    _check("frischer Daily-Run → latest_daily_run_ts nimmt premarket",
+           hc.latest_daily_run_ts(mixed_ok) == "2026-08-12T06:17:00Z")
+    _check("NUR ki_agent_tick (kein Daily-Run) → None → fail-safe ausständig",
+           hc.latest_daily_run_ts(
+               [{"run_ts": "2026-08-12T07:47:00Z", "run_phase": "ki_agent_tick"}]) is None)
+    _check("latest_daily_run_ts fail-soft (leer/Müll) → None",
+           hc.latest_daily_run_ts([]) is None
+           and hc.latest_daily_run_ts(["x", None, {"foo": 1}]) is None)
+    # Wochenend-Toleranz: 59 h (Fr-postclose → So-Digest) ist noch frisch (≤ 60 h)
+    weekend = hc.inst_ownership_liveness_line(
+        _synth(SCHEMA), last_run_iso="2026-08-10T21:17:00Z",  # ~59.5 h vor NOW
+        now_ts=NOW)
+    _check("Wochenend-Lücke ~59 h → noch 'läuft' (kein Wochenend-Fehlalarm)",
+           "läuft" in weekend)
+
     # ── Digest-Verdrahtung: Zeile in allen 3 Klassen; weggelassen bei None ────
     print("\n=== format_digest_body-Verdrahtung ===")
     MARK = "🏛 Inst-Ownership: läuft · 2 Ticker · 3 Punkte"

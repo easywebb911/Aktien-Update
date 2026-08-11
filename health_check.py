@@ -1941,12 +1941,40 @@ def retest_counter_line(export_path=None) -> str:
 # bei 13F-Änderung). Eine „letzter neuer Punkt"-Anzeige stünde quartalslang still
 # = Fehlalarm-Falle (dieselbe Lehre wie beim §4-Zähler-Stillstand). Deshalb misst
 # diese Zeile NICHT die Punkt-Frische, sondern (a) die akkumulierte Struktur der
-# Datei und (b) ob der postclose-SAMMLER frisch lief. Der Sammler läuft im
-# Daily-Run (never-failing try/except in main()) → ein frischer Lauf = der Pool
-# wurde heute beobachtet, auch wenn 13F unverändert und 0 neue Punkte. Genau das
-# trennt „Sammler tot" (Lauf ausständig) von „13F unverändert" (Lauf frisch).
+# Datei und (b) ob der DAILY-RUN-Sammler frisch lief. Der Sammler
+# (``_persist_inst_ownership_history``) läuft ungegated in BEIDEN Daily-Run-Phasen
+# (premarket + postclose), never-failing → ein frischer Daily-Run = der Pool wurde
+# heute beobachtet, auch wenn 13F unverändert und 0 neue Punkte. Genau das trennt
+# „Sammler tot" (Daily-Run-Lauf ausständig) von „13F unverändert" (Lauf frisch).
+#
+# KRITISCH (Guardian-Fix): die Frische wird NUR gegen ``premarket``/``postclose``-
+# Läufe gemessen — NICHT gegen den stündlichen ``ki_agent_tick`` (der den Sammler
+# NICHT aufruft). Sonst maskierte der stündliche ki_agent einen toten Daily-Run
+# und die Zeile zeigte fälschlich „läuft". Der Digest reicht deshalb
+# ``latest_daily_run_ts(state_entries)`` als ``last_run_iso`` durch.
 INST_OWNERSHIP_HISTORY_FILE = config.INST_OWNERSHIP_HISTORY_FILE
-_INST_OWN_FRESH_HOURS = 30    # Lauf jünger → Sammler frisch (postclose→Digest-Gap + Puffer)
+# 60 h: toleriert die Wochenend-Lücke (Fr-postclose 21:17 → So 08:47 Digest ≈
+# 59,5 h; Mo-premarket frischt wieder auf) und flaggt einen echt toten Daily-Run
+# nach ~2,5 Tagen. Sekundär zu S12 (workday-genaue postclose-Frequenz).
+_INST_OWN_FRESH_HOURS = 60
+
+
+def latest_daily_run_ts(entries) -> str | None:
+    """Jüngster ``run_ts`` NUR aus Daily-Run-Läufen (premarket/postclose).
+
+    Filtert den stündlichen ``ki_agent_tick`` heraus — der schreibt zwar in
+    ``health_check_log.jsonl``, ruft aber ``_persist_inst_ownership_history``
+    NICHT. Ohne diesen Filter maskierte der stündliche ki_agent einen toten
+    Daily-Run-Sammler. Fail-soft: leere/kaputte Eingabe → ``None``.
+    """
+    try:
+        ts = [e.get("run_ts") for e in (entries or [])
+              if isinstance(e, dict)
+              and e.get("run_phase") in _DIGEST_DAILY_RUN_PHASES
+              and e.get("run_ts")]
+        return max(ts) if ts else None
+    except Exception:  # pragma: no cover — nie den Digest brechen
+        return None
 
 
 def _read_inst_ownership_history(path):
