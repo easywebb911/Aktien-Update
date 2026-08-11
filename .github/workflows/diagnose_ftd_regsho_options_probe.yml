@@ -67,8 +67,15 @@ jobs:
           OUT = os.environ["OUT_DIR"]
           # Beschreibender User-Agent (KEIN Secret) — SEC/EDGAR verlangt Kontakt,
           # Nasdaq/NYSE mögen einen Browser-artigen UA.
-          UA = ("SqueezeReportProbe/1.0 (read-only research; "
-                "contact easywebb@yahoo.de) Mozilla/5.0")
+          # Wegwerf-Kontakt für eine einmalige Diagnose-Probe, ersetzt eine echte
+          # Adresse (Entscheid Easy 11.08.). Bei einem späteren Produktiv-Sammelfeld
+          # gehört hier ein Secret hin, nicht eine Klartext-Adresse. .invalid ist
+          # per RFC 2606 reserviert → erkennbar keine reale Adresse. SEC kann das
+          # mit 403 ablehnen — das ist ein LEGITIMER Befund (Teil 2 loggt ihn),
+          # KEIN Fallback auf eine echte Adresse, KEIN Retry.
+          UA = ("SqueezeReportProbe/1.0 (read-only one-off diagnose probe; "
+                "throwaway contact squeeze-report-diagnose-probe@example.invalid) "
+                "Mozilla/5.0")
 
           def log(m): print(m, flush=True)
 
