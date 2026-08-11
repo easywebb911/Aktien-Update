@@ -105,6 +105,22 @@ def main() -> int:
     h = _load(H)
     _check("07 Discovery wählt NEUESTES File (202607a)",
            "cnsfails202607a.zip" in seen_url.get("u", ""))
+    # Kurzschluss: erste Übersicht mit Links → zweite wird NICHT geholt.
+    ov_calls = {"n": 0}
+    def _ov_count(url):
+        ov_calls["n"] += 1
+        return (200, _OVERVIEW, None)
+    ftd.discover_newest_ftd_file(_ov_count)
+    _check("07 Discovery-Kurzschluss: nur EINE Übersicht geholt (nicht beide)",
+           ov_calls["n"] == 1)
+    # Budget greift AUCH in der Discovery (nicht erst vor Download).
+    Hbd, Sbd = _paths()
+    def _ov_must_not(url):
+        raise AssertionError("Budget muss VOR dem ersten Übersichts-Fetch greifen")
+    nbd = ftd.collect_and_persist(_UNI, run_phase="postclose", get_overview_fn=_ov_must_not,
+                                  time_budget_s=-1.0, hist_path=Hbd, state_path=Sbd)
+    _check("07 Budget während Discovery → budget_exceeded, kein Übersichts-Fetch",
+           nbd == 0 and _load(Sbd)["last_result"] == "budget_exceeded")
     _check("01 added == 3", n == 3)
     pt = h["TNXP"][0]
     _check("01 Punkt-Struktur (5 Keys inkl. beide Daten)",

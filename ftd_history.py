@@ -19,8 +19,10 @@ trägt JEDER Punkt ZWEI Daten:
 
 Disziplin (wie #524): forward-only (kein Backfill in diesem PR), idempotent pro
 ``(ticker, settlement_date)``, KEIN Prune/Cap (Lehre #519), fail-soft je Quelle,
-atomarer Write, hartes Zeitbudget. Fetch-Fail und Leerbefund werden GETRENNT
-protokolliert.
+atomarer Write. Zeitbudget: vor JEDEM Netzwerk-Schritt geprüft (Discovery-Loop +
+Download) — jeder Einzel-Fetch ist zusätzlich per ``FTD_HTTP_TIMEOUT`` gedeckelt,
+und die Discovery kurzschließt nach der ersten Übersicht mit Links (Normalfall =
+ein Fetch). Fetch-Fail und Leerbefund werden GETRENNT protokolliert.
 
 KEIN Backfill: nur das jeweils neueste Halbmonats-File wird geprüft/ingested —
 kein Voll-Download des Archivs (bis 2004). Das Archiv ist jederzeit später
@@ -109,16 +111,24 @@ def _file_sort_key(name):
     return (m.group(1), m.group(2).lower()) if m else ("000000", "")
 
 
-def discover_newest_ftd_file(get_overview_fn=None):
+def discover_newest_ftd_file(get_overview_fn=None, *, should_abort=None):
     """``(file_url, file_name, error)``. Liest die Kandidaten-Übersichten, extrahiert
     ``cnsfails…zip``-Links und wählt den NEUESTEN (max YYYYMM+Hälfte). ``error``
-    gesetzt = ALLE Übersichten Fetch-Fail (unbeobachtbar). ``file_url=None,
-    error=None`` = Übersicht(en) geladen, aber KEIN passender Link (Leerbefund)."""
+    gesetzt = ALLE Übersichten Fetch-Fail (unbeobachtbar) bzw. ``"budget_abort"``.
+    ``file_url=None, error=None`` = Übersicht(en) geladen, aber KEIN passender Link
+    (Leerbefund).
+
+    ``should_abort()`` (optional) wird VOR JEDEM Übersichts-Fetch geprüft — so
+    greift das Zeitbudget des Callers auch in der Discovery-Phase. Kurzschluss: die
+    ERSTE Übersicht mit Links reicht (die zweite wird im Normalfall nicht geholt →
+    nur ein Fetch)."""
     get_overview_fn = get_overview_fn or _default_get_overview
     any_ok = False
     seen = {}
     last_err = None
     for ov in _FTD_OVERVIEWS:
+        if should_abort is not None and should_abort():
+            return None, None, "budget_abort"
         st, html, err = get_overview_fn(ov)
         if err or st != 200 or not html:
             last_err = err or f"HTTP {st}"
@@ -129,6 +139,8 @@ def discover_newest_ftd_file(get_overview_fn=None):
             if _FTD_FILE_RE.search(href):
                 url = href if href.startswith("http") else urljoin(ov, href)
                 seen[_FTD_FILE_RE.search(href).group(0).lower()] = url
+        if seen:
+            break   # Kurzschluss: erste erfolgreiche Übersicht mit Links genügt
     if not any_ok:
         return None, None, last_err or "all_overviews_failed"   # FETCH-FAIL
     if not seen:
@@ -308,8 +320,15 @@ def collect_and_persist(universe, *, report_date_iso=None, run_phase=None,
             log.warning("[ftd] State-Write fehlgeschlagen (fail-soft): %s", exc)
         return added
 
-    # 1) Neuestes File aus der Übersicht (nicht geraten).
-    file_url, file_name, err = discover_newest_ftd_file(get_overview_fn)
+    # 1) Neuestes File aus der Übersicht (nicht geraten). Das Zeitbudget wird auch
+    #    HIER geprüft (vor jedem Übersichts-Fetch), nicht erst vor dem Download —
+    #    so ist es ein echtes End-to-End-Budget (Guardian-Finding 11.08.).
+    file_url, file_name, err = discover_newest_ftd_file(
+        get_overview_fn, should_abort=lambda: (_time.monotonic() - t0) > budget)
+    if err == "budget_abort":
+        log.warning("[ftd] Zeitbudget %.0fs während Discovery überschritten — "
+                    "Abbruch (Daily-Run läuft weiter).", budget)
+        return _finish("budget_exceeded")
     if err is not None:
         log.info("[ftd] Discovery FETCH-FAIL: %s", err)
         return _finish("fetch_failed:overview")

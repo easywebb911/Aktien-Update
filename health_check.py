@@ -2207,7 +2207,12 @@ def options_oi_liveness_line(hist_path=None, *, now_ts=None) -> str:
 # trennt sich „läuft, kein neues File" (normal) sauber von „Sammler tot/überfällig".
 FTD_HISTORY_FILE = config.FTD_HISTORY_FILE
 FTD_HISTORY_STATE_FILE = config.FTD_HISTORY_STATE_FILE
-_FTD_FRESH_HOURS = 90   # analog inst_ownership: deckt Wochenende + Feiertags-Di ab
+# 108 h (4,5 Tage): FTD läuft postclose NUR 1×/Werktag (inst_ownership läuft 2×/Tag
+# → dort reichen 90 h). Bei 1×/Tag ist der normale Wochenend-/Feiertags-Abstand am
+# Digest-Morgen größer: Fr-postclose → Di-08:47-Digest (Feiertags-Montag) ≈ 83 h,
+# knapp unter 90 → Fehlalarm-Risiko. 108 h gibt Marge über den Feiertags-Fall und
+# flaggt trotzdem einen echt toten Sammler binnen ~2 verpasster Handelstage.
+_FTD_FRESH_HOURS = 108
 
 
 def _read_ftd_history(path):
