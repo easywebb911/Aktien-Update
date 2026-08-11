@@ -190,6 +190,61 @@ def main() -> int:
     _check("06 Read-Site: heldPercentInsiders aus .info (kein Extra-Fetch)",
            GR_SRC.count('info.get("heldPercentInsiders")') >= 2)
 
+    # ── 11: KEIN PRUNE — die No-Retention-Invariante (Entscheid Easy 10.08.2026) ──
+    # Warum hier bewusst KEIN Prune: das Feld hält unwiederbringliche 13F-
+    # Momentanstände (yfinance liefert nur den aktuellen Stand; ein verlorener
+    # Punkt kommt NIE zurück). Ein Alters-Cutoff / Punkt-Cap / Größen-Limit würde
+    # genau diese Daten wegwerfen — verboten. Dieser Test MUSS fehlschlagen, sobald
+    # irgendeine Alters-, Anzahl- oder Größen-Begrenzung auf die Datei wirkt.
+    p = _fresh_file()
+    # 60 Punkte über ~5 Jahre (weit über altem 32-Cap UND 400-Tage-Cutoff):
+    many = [{"date": f"{2021 + i // 12}-{(i % 12) + 1:02d}-01",
+             "inst_ownership": round(0.10 + i * 0.001, 4),
+             "insider_ownership": None if i % 3 == 0 else round(0.02 + i * 0.0005, 4)}
+            for i in range(60)]
+    gr._save_inst_ownership_history({"LONG": list(many)})
+    h = _load(p)
+    _check("11 KEIN Anzahl-Cap: alle 60 Punkte überleben den Save",
+           len(h["LONG"]) == 60)
+    _check("11 KEIN Alters-Cutoff: ältester Punkt (2021, >400 Tage) überlebt",
+           any(q["date"].startswith("2021") for q in h["LONG"]))
+    _check("11 Roh-Wert + null bleiben durch den Save erhalten (kein Umbau)",
+           h["LONG"][0]["insider_ownership"] is None
+           and h["LONG"][1]["inst_ownership"] == 0.101)
+
+    # Vorführung (Selbstprüfung 2): mit KÜNSTLICH eingebautem Cap schlägt der Test
+    # fehl. Wir wrappen _save_inst_ownership_history so, dass es auf 32 Punkte
+    # kürzt (die alte #518-Retention) und prüfen, dass die 60-Punkt-Assertion bricht.
+    p = _fresh_file()
+    _orig_save = gr._save_inst_ownership_history
+    def _capped_save(hist):
+        capped = {t: pts[-32:] for t, pts in hist.items()}   # künstliches Cap
+        _orig_save(capped)
+    try:
+        gr._save_inst_ownership_history = _capped_save
+        gr._save_inst_ownership_history({"LONG": list(many)})
+        h_cap = _load(p)
+        caught = len(h_cap["LONG"]) != 60   # der No-Prune-Test WÜRDE hier brechen
+    finally:
+        gr._save_inst_ownership_history = _orig_save
+    _check("11 Vorführung: künstliches 32-Cap → No-Prune-Assertion bricht (Regress erkannt)",
+           caught)
+
+    # Source-Guard: die entfernten Retention-Konstanten tauchen NICHT wieder auf,
+    # und der save-Rumpf trägt keinen Cutoff/Cap/Slice-Prune.
+    _save_body = _body("def _save_inst_ownership_history(")
+    _check("11 save-Rumpf ohne Alters-Cutoff (kein timedelta/cutoff)",
+           "timedelta" not in _save_body and "cutoff" not in _save_body)
+    # Nur den CODE prüfen (Docstring erwähnt die entfernten Konstanten bewusst).
+    _save_code = re.sub(r'""".*?"""', "", _save_body, flags=re.DOTALL)
+    _check("11 save-CODE ohne Anzahl-Cap (kein MAX_POINTS-Read / [-N:]-Slice-Prune)",
+           "MAX_POINTS" not in _save_code
+           and not re.search(r"\[-\s*\d+\s*:\]", _save_code)
+           and not re.search(r"\[:\s*\d+\s*\]", _save_code))
+    _check("11 Retention-Konstanten repo-weit entfernt (config + generate_report)",
+           "INST_OWNERSHIP_HISTORY_DAYS" not in GR_SRC
+           and "INST_OWNERSHIP_HISTORY_MAX_POINTS" not in GR_SRC)
+
     print()
     if _fails:
         print(f"{len(_fails)} FAIL: {_fails}")

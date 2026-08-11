@@ -564,10 +564,13 @@ SI_POSITION_HISTORY_MAX_POINTS = 24   # Punkt-Cap/Ticker (≈ 1 Jahr bei 2/Monat
 # → JSON null, NIEMALS 0 (ein 0 hieße später fälschlich „keine Institutionen → hohes
 # Squeeze-Potenzial" — das Gegenteil des Dämpfers). Forward-only: kein Backfill.
 # Beide Achsen stammen aus DEMSELBEN .info-Dict wie inst_ownership → KEIN Extra-Fetch.
+#
+# KEIN PRUNE (Entscheid Easy 10.08.2026, Folge-PR zu #518): BEWUSST kein Alters-
+# Cutoff und kein Punkt-Cap. Ein einmal verlorener 13F-Momentanstand kommt NIE
+# zurück — deshalb bleibt jeder gesammelte Punkt dauerhaft. Die früheren
+# _DAYS/_MAX_POINTS-Konstanten wurden ersatzlos entfernt (waren nie beauftragt).
 INST_OWNERSHIP_HISTORY_ENABLED = True
 INST_OWNERSHIP_HISTORY_FILE = "inst_ownership_history.json"
-INST_OWNERSHIP_HISTORY_DAYS = 400    # Tages-Cutoff auf obs-date, ~ ein Jahr (analog SI)
-INST_OWNERSHIP_HISTORY_MAX_POINTS = 32  # Punkt-Cap/Ticker (change-based → quartalsweise dünn)
 
 # ── Dynamischer Enrichment-Pool ──────────────────────────────────────────────
 POOL_MIN                   = 20    # min. Kandidaten in Anreicherung
