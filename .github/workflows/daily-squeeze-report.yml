@@ -156,6 +156,13 @@ jobs:
           # Workflow-Checkout verworfen und yfinance liefert nur den Momentanstand,
           # d.h. jeder verlorene Tag ist ein Datenpunkt, der nie wiederkommt.
           git add inst_ownership_history.json 2>/dev/null || true
+          # options_oi_history.json: forward-only Options-Open-Interest-Zeitreihe
+          # je Top-10-Ticker (nächster Verfall, Calls+Puts, nur oi>0), NUR postclose
+          # (11.08.2026). Persistenz über Commit ZWINGEND (Lehre #501) — ohne git add
+          # würde die Datei bei jedem Workflow-Checkout verworfen; yfinance liefert
+          # KEINE historischen Ketten, d.h. jeder verlorene Tag ist ein OI-
+          # Momentanwert, der nie wiederkommt.
+          git add options_oi_history.json 2>/dev/null || true
           # score_inflation_log.jsonl: append-only Diagnose-Log für die
           # Intra-Day-Score-Inflations-Untersuchung. Pro Daily-Run werden
           # 10 Zeilen angehängt; prune entfernt Einträge > 30 Tage. Persistenz
