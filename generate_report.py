@@ -32,6 +32,7 @@ import health_check
 import exit_shadow
 import matured_export
 import ftd_history
+import reg_sho_history
 from backtest_history import (
     _load_backtest_history,
     _append_backtest_entries,
@@ -973,6 +974,10 @@ def get_yfinance_data(ticker: str) -> dict:
             # Shares Outstanding (sharesOutstanding) — Nenner für options_oi_history
             # Netto-Delta (11.08.2026). Aus DEMSELBEN .info-Dict (kein Extra-Fetch).
             "shares_outstanding": info.get("sharesOutstanding"),
+            # Börse (NMS/NYQ/ASE/…) — für reg_sho_history die Wahl der richtigen
+            # Threshold-Liste (Nasdaq vs. NYSE). Aus DEMSELBEN .info-Dict (kein
+            # Extra-Fetch). Fehlt sie → Ticker wird NICHT geprüft (none, nie false).
+            "exchange": info.get("exchange"),
             "rsi14":        rsi14,
             "ma21":         ma21,
             "ma50":         ma50,
@@ -1248,6 +1253,9 @@ def get_yfinance_batch(tickers: list[str]) -> dict[str, dict]:
             # Shares Outstanding — Nenner für options_oi_history (11.08.2026),
             # aus DEMSELBEN .info-Dict (kein Extra-Fetch).
             "shares_outstanding": info.get("sharesOutstanding"),
+            # Börse (NMS/NYQ/ASE/…) — für reg_sho_history die Wahl der richtigen
+            # Threshold-Liste. Aus DEMSELBEN .info-Dict (kein Extra-Fetch).
+            "exchange": info.get("exchange"),
             "rsi14":          rsi14,
             "ma21":           ma21,
             "ma50":           ma50,
@@ -17626,6 +17634,9 @@ def main():
             # Shares Outstanding — nur Nenner für options_oi_history-Sammlung
             # (kein Frontend-/Score-Konsum). Aus demselben yfd (kein Extra-Fetch).
             "shares_outstanding": yfd.get("shares_outstanding"),
+            # Börse — nur für reg_sho_history-Sammlung (kein Frontend-/Score-
+            # Konsum). Aus demselben yfd (kein Extra-Fetch).
+            "exchange":        yfd.get("exchange"),
             "float_shares":    yfd.get("float_shares", 0),
             "change_5d":       yfd.get("change_5d"),
             # change_2d/change_3d kommen aus get_yfinance_batch (Zeile 884-895)
@@ -17891,6 +17902,18 @@ def main():
         ftd_history.collect_and_persist(_ftd_universe, run_phase=run_phase)
     except Exception as _ftd_exc:   # pragma: no cover  (nie den Daily-Run brechen)
         log.warning("ftd_history-Sammlung übersprungen: %s", _ftd_exc)
+
+    # reg_sho_history (11.08.2026): forward-only Reg-SHO-Threshold-Status je
+    # Universums-Ticker, TÄGLICH postclose. ⚠ BÖRSEN-AWARE — je Ticker die richtige
+    # Liste (Nasdaq/NYSE) via .info-exchange (kein Extra-Fetch); nicht abgedeckte
+    # Börse → none, NIE false. Zeitbudget, rein additive Sammlung, KEIN Score-/
+    # Filter-/Push-/Anzeige-Effekt, fail-soft.
+    try:
+        _rs_universe = [{"ticker": s.get("ticker"), "exchange": s.get("exchange")}
+                        for s in top10 if s.get("ticker")]
+        reg_sho_history.collect_and_persist(_rs_universe, run_phase=run_phase)
+    except Exception as _rs_exc:   # pragma: no cover  (nie den Daily-Run brechen)
+        log.warning("reg_sho_history-Sammlung übersprungen: %s", _rs_exc)
 
     # Late-Runner-Penalty: überhitzte Setups (RSI > Threshold ODER 2T-Move >
     # Threshold) bekommen Score × LATE_RUNNER_PENALTY. Adressiert

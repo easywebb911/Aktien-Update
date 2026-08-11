@@ -319,6 +319,15 @@ def main(*, now_ts: datetime | None = None,
         log.warning("ftd_liveness_line unerwartet: %r", _ftd_exc)
         ftd_line = None
 
+    # Reg-SHO-Liveness: heartbeat-basiert (Sidecar-State), analog FTD.
+    try:
+        reg_sho_line = hc.reg_sho_liveness_line(
+            ROOT / hc.REG_SHO_HISTORY_FILE, ROOT / hc.REG_SHO_HISTORY_STATE_FILE,
+            now_ts=now_ts)
+    except Exception as _rs_exc:  # pragma: no cover — Helper ist raise-frei
+        log.warning("reg_sho_liveness_line unerwartet: %r", _rs_exc)
+        reg_sho_line = None
+
     body, title, priority, tags = hc.format_digest_body(
         state_fails, prov_fails,
         n_runs=n_runs,
@@ -328,6 +337,7 @@ def main(*, now_ts: datetime | None = None,
         inst_own_line=inst_own_line,
         options_oi_line=options_oi_line,
         ftd_line=ftd_line,
+        reg_sho_line=reg_sho_line,
     )
 
     log.info("Digest %s — %d state-fails, %d provider-fails, %d runs",

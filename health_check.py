@@ -2307,6 +2307,90 @@ def ftd_liveness_line(hist_path=None, state_path=None, *, now_ts=None) -> str:
         return "📉 FTD: Status nicht ermittelbar"
 
 
+# ── reg_sho_history-Liveness (Digest, 11.08.2026) ─────────────────────────────
+# Wie FTD heartbeat-basiert (Sidecar-State ``last_run`` + Quell-Health), aber
+# reg_sho schreibt TÄGLICH einen Punkt je Ticker (dicht). Die Zeile surfaced auch
+# die BÖRSEN-LÜCKE: „K geprüft / M none" macht sichtbar, wenn viele Ticker
+# mangels abgedeckter Börse (NYSE!) ungeprüft bleiben.
+REG_SHO_HISTORY_FILE = config.REG_SHO_HISTORY_FILE
+REG_SHO_HISTORY_STATE_FILE = config.REG_SHO_HISTORY_STATE_FILE
+_REG_SHO_FRESH_HOURS = 108   # 1×/Werktag wie FTD (Feiertags-Marge, siehe _FTD_FRESH_HOURS)
+
+
+def _read_reg_sho_history(path):
+    """Fail-soft → ``(state, info)``. ``state`` ∈ absent/unparsable/empty/ok.
+    ``info`` bei ok: ``(n_tickers, n_points, newest_date)``."""
+    try:
+        with open(path, "r", encoding="utf-8") as fh:
+            data = json.load(fh)
+    except FileNotFoundError:
+        return ("absent", None)
+    except (json.JSONDecodeError, OSError, UnicodeDecodeError, ValueError):
+        return ("unparsable", None)
+    if not isinstance(data, dict):
+        return ("unparsable", None)
+    if not data:
+        return ("empty", None)
+    n_tickers = 0
+    n_points = 0
+    newest = None
+    for series in data.values():
+        if not isinstance(series, list):
+            continue
+        n_tickers += 1
+        for p in series:
+            if not isinstance(p, dict):
+                continue
+            n_points += 1
+            dt = p.get("date")
+            if isinstance(dt, str) and (newest is None or dt > newest):
+                newest = dt
+    if n_points == 0:
+        return ("empty", None)
+    return ("ok", (n_tickers, n_points, newest))
+
+
+def reg_sho_liveness_line(hist_path=None, state_path=None, *, now_ts=None) -> str:
+    """Eine Zeile LIVENESS für den Digest — fail-soft (nie Exception/leer).
+
+    Drei Zustände (Frische aus Heartbeat ``last_run``):
+      a) **läuft** — frischer Heartbeat + Nasdaq-Quelle ok → „läuft · nasdaq=… …".
+      b) **noch nie gesammelt** — kein State + keine Daten → „sammelt ab dem
+         nächsten postclose".
+      c) **kaputt** — State/Datei unlesbar, Heartbeat überfällig, oder Nasdaq-
+         Quelle tot.
+    Die „K geprüft / M none"-Zahlen machen die Börsen-Lücke sichtbar."""
+    try:
+        hp = hist_path if hist_path is not None else REG_SHO_HISTORY_FILE
+        sp = state_path if state_path is not None else REG_SHO_HISTORY_STATE_FILE
+        state = _read_ftd_state(sp)                    # gleiches fail-soft State-Read
+        hstate, hinfo = _read_reg_sho_history(hp)
+
+        if state is None and hstate in ("absent", "empty"):
+            return "📋 Reg-SHO: sammelt ab dem nächsten postclose (noch kein Lauf)"
+        if state == "__unparsable__":
+            return "📋 Reg-SHO: State-Datei unlesbar/kaputt"
+        if hstate == "unparsable":
+            return "📋 Reg-SHO: Datei unlesbar/kaputt"
+        last_run = (state or {}).get("last_run")
+        nasdaq_res = (state or {}).get("nasdaq_result") or "?"
+        nyse_res = (state or {}).get("nyse_result") or "?"
+        checked = (state or {}).get("last_checked")
+        none_n = (state or {}).get("last_none")
+        age = _inst_own_run_age_hours(last_run, now_ts)
+        if age is None or age > _REG_SHO_FRESH_HOURS:
+            return (f"📋 Reg-SHO: Sammler-Lauf überfällig "
+                    f"(letzter Lauf {last_run or '—'}, >{_REG_SHO_FRESH_HOURS}h)")
+        if str(nasdaq_res).startswith("fetch_failed") or str(nasdaq_res).startswith("empty"):
+            return f"📋 Reg-SHO: läuft, aber Nasdaq-Quelle kaputt ({nasdaq_res})"
+        cov = f"{checked} geprüft / {none_n} none" if checked is not None else "?"
+        n_p = hinfo[1] if hstate == "ok" else 0
+        return (f"📋 Reg-SHO: läuft · nasdaq={nasdaq_res} nyse={nyse_res} · "
+                f"heute {cov} · {n_p} Punkte")
+    except Exception:  # pragma: no cover — nie den Digest brechen
+        return "📋 Reg-SHO: Status nicht ermittelbar"
+
+
 def _diagnose_block_for(fail: dict) -> str | None:
     """Signal-spezifischer READ-ONLY-Kontextblock für EIN crit-Fail-Dict.
 
@@ -2376,6 +2460,7 @@ def format_digest_body(state_fails: list[dict],
                        inst_own_line: str | None = None,
                        options_oi_line: str | None = None,
                        ftd_line: str | None = None,
+                       reg_sho_line: str | None = None,
                        ) -> tuple[str, str, str, str | None]:
     """Komponiert den ntfy-Body laut Spec Z. 175–211.
 
@@ -2401,6 +2486,8 @@ def format_digest_body(state_fails: list[dict],
             body += f"\n{options_oi_line}"
         if ftd_line:
             body += f"\n{ftd_line}"
+        if reg_sho_line:
+            body += f"\n{reg_sho_line}"
         return body, "📭 Health-Check ohne Daten", "high", "warning"
 
     # Recency-Gating (28.07.2026): erholte State-Fails („war kaputt, ist
@@ -2439,6 +2526,8 @@ def format_digest_body(state_fails: list[dict],
             body_lines.append(options_oi_line)
         if ftd_line:
             body_lines.append(ftd_line)
+        if reg_sho_line:
+            body_lines.append(reg_sho_line)
         body_lines.append(f"Letzter Run: {last_run_iso or '—'}")
         return "\n".join(body_lines), "✅ Health-Check OK", "default", None
 
@@ -2481,6 +2570,8 @@ def format_digest_body(state_fails: list[dict],
         lines.append(options_oi_line)
     if ftd_line:
         lines.append(ftd_line)
+    if reg_sho_line:
+        lines.append(reg_sho_line)
     lines.append(f"Letzter erfolgreicher Run: {last_run_iso or '—'}")
     body = "\n".join(lines).rstrip() + "\n"
 
