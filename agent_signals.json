@@ -1,11 +1,11 @@
 {
-  "updated": "2026-08-11T09:39:29.263325+02:00",
+  "updated": "2026-08-11T11:14:01.494838+02:00",
   "run_info": {
     "tickers_checked": 14,
     "signals_active": 3,
     "alerts_sent": 0,
-    "elapsed_s": 16.5,
-    "market_phase": "Geschlossen"
+    "elapsed_s": 18.0,
+    "market_phase": "Pre-Market"
   },
   "signals": {
     "AMC": {
@@ -32,9 +32,9 @@
       "uoa_cp_ratio": 3.569782330345711
     },
     "ARCT": {
-      "score": 28,
+      "score": 20,
       "confidence": 33,
-      "drivers": "Spanne 9.9% + News-KI 8/30: Biotech company with earnings beat shows some positive momentum, but Q2 loss and lack of short interest data limit short + UOA Call/Put 19.5×",
+      "drivers": "Spanne 9.9% + UOA Call/Put 19.5×",
       "price": 7.05,
       "chg_pct": 0.0,
       "rvol_4d": 1.17,
@@ -46,7 +46,7 @@
       "stocktwits": null,
       "combo_mult": 1.0,
       "active_triggers": 0,
-      "ki_sentiment_source": "llm",
+      "ki_sentiment_source": "keyword",
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 19.5×"
@@ -103,7 +103,7 @@
     "INHD": {
       "score": 55,
       "confidence": 70,
-      "drivers": "Volumen 1.8× + Spanne 20.7% + News: short interest, partnership",
+      "drivers": "Volumen 1.8× + Spanne 20.7% + News: short interest, halt",
       "price": 6.63,
       "chg_pct": 0.0,
       "rvol_4d": 1.82,
@@ -122,9 +122,9 @@
       "uoa_cp_ratio": null
     },
     "INR": {
-      "score": 35,
+      "score": 50,
       "confidence": 70,
-      "drivers": "Volumen 1.6× + Spanne 7.1% + UOA Call/Put 168.0×",
+      "drivers": "Volumen 1.6× + Spanne 7.1% + News: contract + UOA Call/Put 168.0×",
       "price": 13.95,
       "chg_pct": -0.0,
       "rvol_4d": 1.65,
@@ -135,7 +135,7 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 0,
+      "active_triggers": 1,
       "ki_sentiment_source": "keyword",
       "uoa_score": 10,
       "uoa_drivers": [
@@ -166,9 +166,9 @@
       "uoa_cp_ratio": 1.7409206569511912
     },
     "PDYN": {
-      "score": 25,
+      "score": 40,
       "confidence": 33,
-      "drivers": "Spanne 5.9% + News: contract",
+      "drivers": "Spanne 5.9% + News: contract, partnership",
       "price": 6.19,
       "chg_pct": 0.0,
       "rvol_4d": 0.95,
@@ -187,9 +187,9 @@
       "uoa_cp_ratio": 1.7722772277227723
     },
     "QDEL": {
-      "score": 18,
-      "confidence": 33,
-      "drivers": "Spanne 14.6% + News-KI 8/30: Massive sell-off despite earnings beat suggests institutional dumping rather than short squeeze dynamics; high short int",
+      "score": 10,
+      "confidence": 17,
+      "drivers": "Spanne 14.6%",
       "price": 13.75,
       "chg_pct": 0.0,
       "rvol_4d": 1.12,
@@ -201,7 +201,7 @@
       "stocktwits": null,
       "combo_mult": 1.0,
       "active_triggers": 0,
-      "ki_sentiment_source": "llm",
+      "ki_sentiment_source": "keyword",
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": null,
@@ -294,9 +294,9 @@
       "uoa_cp_ratio": 8.259927797833935
     },
     "WOLF": {
-      "score": 30,
+      "score": 26,
       "confidence": 70,
-      "drivers": "Spanne 11.4% + News-KI 12/30: Positive partnership news is constructive but lacks short squeeze catalysts like extreme short interest, gamma exposure, + Earnings in 8d",
+      "drivers": "Spanne 11.4% + News-KI 8/30: Partnership announcement is positive but lacks short-squeeze indicators like high short interest, stock momentum, or cat + Earnings in 8d",
       "price": 29.3,
       "chg_pct": -0.0,
       "rvol_4d": 0.86,
@@ -307,7 +307,7 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 1,
+      "active_triggers": 0,
       "ki_sentiment_source": "llm",
       "uoa_score": 0,
       "uoa_drivers": [],
