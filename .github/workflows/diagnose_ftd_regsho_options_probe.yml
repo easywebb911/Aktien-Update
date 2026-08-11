@@ -278,11 +278,21 @@ jobs:
                   log(f"[TEIL2a] AKTUELL OK: {recent[0]} · {n} Zeilen")
                   log(f"          Spaltenkopf (wörtlich): {h!r}")
                   sep = "|" if "|" in (h or "") else None
-                  cols = [c.strip().upper() for c in ((h.split(sep) if sep else h.split("|")))]
-                  sidx = cols.index("SYMBOL") if "SYMBOL" in cols else (2 if sep else None)
+                  # Non-pipe-Header → Whitespace-Split (analog TEIL 1), NICHT stumm
+                  # weiter auf '|' zurückfallen (sonst sieht Parse-Unfähigkeit wie
+                  # '0/10 Treffer' aus — Log-Fidelity-Manko in einem Schema-Klärungs-Skript).
+                  cols = [c.strip().upper() for c in (h.split(sep) if sep else h.split())]
+                  if "SYMBOL" in cols:
+                      sidx = cols.index("SYMBOL")
+                  elif sep:
+                      sidx = 2   # klassisches FTD-Layout SETTLEMENT DATE|CUSIP|SYMBOL|…
+                  else:
+                      sidx = None
+                      log("[TEIL2c] WARN: Header ohne '|' und ohne SYMBOL-Spalte — "
+                          "Trennzeichen unerwartet, Hit-Erkennung übersprungen (Schema-Bruch?).")
                   hits = {}
                   for l in rows[1:]:
-                      parts = l.split(sep) if sep else l.split("|")
+                      parts = l.split(sep) if sep else l.split()
                       if sidx is not None and len(parts) > sidx:
                           s = parts[sidx].strip().upper()
                           if s in set(TOP10):
