@@ -311,6 +311,14 @@ def main(*, now_ts: datetime | None = None,
         log.warning("options_oi_liveness_line unerwartet: %r", _oi_exc)
         options_oi_line = None
 
+    # FTD-Liveness: Heartbeat-basiert (Sidecar-State), kein Daily-Run-Fenster nötig.
+    try:
+        ftd_line = hc.ftd_liveness_line(
+            ROOT / hc.FTD_HISTORY_FILE, ROOT / hc.FTD_HISTORY_STATE_FILE, now_ts=now_ts)
+    except Exception as _ftd_exc:  # pragma: no cover — Helper ist raise-frei
+        log.warning("ftd_liveness_line unerwartet: %r", _ftd_exc)
+        ftd_line = None
+
     body, title, priority, tags = hc.format_digest_body(
         state_fails, prov_fails,
         n_runs=n_runs,
@@ -319,6 +327,7 @@ def main(*, now_ts: datetime | None = None,
         retest_line=retest_line,
         inst_own_line=inst_own_line,
         options_oi_line=options_oi_line,
+        ftd_line=ftd_line,
     )
 
     log.info("Digest %s — %d state-fails, %d provider-fails, %d runs",

@@ -31,6 +31,7 @@ import score_inflation_log
 import health_check
 import exit_shadow
 import matured_export
+import ftd_history
 from backtest_history import (
     _load_backtest_history,
     _append_backtest_entries,
@@ -17878,6 +17879,18 @@ def main():
         _persist_options_oi_history(top10, run_phase=run_phase)
     except Exception as _oi_exc:   # pragma: no cover  (nie den Daily-Run brechen)
         log.warning("options_oi-Zeitreihe übersprungen: %s", _oi_exc)
+
+    # ftd_history (11.08.2026): forward-only SEC-Fail-to-Deliver-Sammlung je
+    # Universums-Ticker (Top-10), NUR postclose (der Sammler prüft run_phase selbst).
+    # Prüft, ob ein neues Halbmonats-File da ist, und zieht nur die relevanten
+    # Zeilen; Download nur bei neuem File. ⚠ RÜCKDATIERT — jeder Punkt trägt
+    # settlement_date UND first_available (anti-look-ahead). Hartes Zeitbudget,
+    # rein additive Sammlung, KEIN Score-/Filter-/Push-/Anzeige-Effekt, fail-soft.
+    try:
+        _ftd_universe = [s.get("ticker") for s in top10 if s.get("ticker")]
+        ftd_history.collect_and_persist(_ftd_universe, run_phase=run_phase)
+    except Exception as _ftd_exc:   # pragma: no cover  (nie den Daily-Run brechen)
+        log.warning("ftd_history-Sammlung übersprungen: %s", _ftd_exc)
 
     # Late-Runner-Penalty: überhitzte Setups (RSI > Threshold ODER 2T-Move >
     # Threshold) bekommen Score × LATE_RUNNER_PENALTY. Adressiert

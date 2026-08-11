@@ -163,6 +163,16 @@ jobs:
           # KEINE historischen Ketten, d.h. jeder verlorene Tag ist ein OI-
           # Momentanwert, der nie wiederkommt.
           git add options_oi_history.json 2>/dev/null || true
+          # ftd_history.json + ftd_history_state.json: forward-only SEC-Fail-to-
+          # Deliver-Zeitreihe je Universums-Ticker, NUR postclose (11.08.2026).
+          # Persistenz über Commit ZWINGEND (Lehre #501) — ohne git add würde die
+          # Datei bei jedem Workflow-Checkout verworfen; SEC liefert die Momentan-
+          # Halbmonats-Files nur befristet, jeder verlorene Punkt kommt nie wieder.
+          # Der State-Sidecar trägt den Heartbeat (last_run/last_ingested_file), den
+          # die Digest-Liveness braucht, um „läuft, kein neues File" von „tot" zu
+          # trennen.
+          git add ftd_history.json 2>/dev/null || true
+          git add ftd_history_state.json 2>/dev/null || true
           # score_inflation_log.jsonl: append-only Diagnose-Log für die
           # Intra-Day-Score-Inflations-Untersuchung. Pro Daily-Run werden
           # 10 Zeilen angehängt; prune entfernt Einträge > 30 Tage. Persistenz
