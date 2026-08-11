@@ -1,0 +1,430 @@
+name: Diagnose FTD/Reg-SHO/Optionen Probe — 3 Fragen in 1 Lauf (read-only)
+
+# Wegwerf-Probe (Muster #510/#515). Klärt in EINEM Lauf drei Sammelfeld-Kandidaten:
+#   TEIL 1 — Reg-SHO-Threshold: aktuelle Liste abrufbar? Historie? Trefferquote Top-10.
+#   TEIL 2 — SEC-FTD: aktueller + alter Halbmonat, Schema-Gleichheit, Trefferquote.
+#   TEIL 3 — Optionen (yfinance): Abdeckung + LEBEN (OI-Summe) + Kosten der Top-10.
+#
+# REIHENFOLGE ZWINGEND 1 → 2 → 3: Teil 3 (yfinance) ist am teuersten/flakigsten;
+# 1 und 2 schreiben ihr Verdikt SOFORT, bevor 3 läuft — hängt 3, stehen 1+2 im Log.
+#
+# KEINE URL GERATEN (Lehre #496): Datei-Links werden von der offiziellen
+# ÜBERSICHTSSEITE extrahiert, nicht konstruiert. Kandidaten-Übersichtsseiten
+# (bestes Wissen, evtl. veraltet) werden je mit HTTP-Status geloggt; 404 auf
+# einer Kandidaten-Übersicht ist informativ, kein Beweis.
+#
+# HYGIENE: jeder Abruf in try/except; FETCH-FAIL (Exception/non-200) wird SEPARAT
+# von LEER (200, 0 Zeilen) geloggt. sleep zwischen Abrufen. Top-10 zur Laufzeit
+# aus app_data.json (nichts hartkodiert). Verdikt-Block am Ende, 2 Zeilen/Teil.
+#
+# contents:read, workflow_dispatch-only, KEINE Secrets, KEIN Repo-Write.
+
+on:
+  workflow_dispatch:
+    inputs:
+      ftd_old_year:
+        description: "Altes FTD-Jahr für den Schema-Vergleich (Default 2020)"
+        required: false
+        default: "2020"
+
+permissions:
+  contents: read
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+
+    env:
+      OUT_DIR: ${{ github.workspace }}/ftd-regsho-opt-out
+      FTD_OLD_YEAR: ${{ github.event.inputs.ftd_old_year }}
+
+    steps:
+      - name: Checkout (contents:read — app_data.json für Top-10 lesen)
+        uses: actions/checkout@v4
+
+      - name: Prepare output dir
+        run: mkdir -p "$OUT_DIR"
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install yfinance (nur Teil 3 braucht es)
+        run: |
+          python -m pip install --upgrade pip
+          pip install yfinance
+          python -c "import yfinance,sys; print('yfinance', yfinance.__version__)"
+
+      - name: Probe — 3 Teile (read-only, Verdikt je Teil sofort)
+        run: |
+          python - <<'PY'
+          import json, os, re, sys, time, io, zipfile
+          from urllib.request import Request, urlopen
+          from urllib.error import HTTPError
+
+          OUT = os.environ["OUT_DIR"]
+          # Beschreibender User-Agent (KEIN Secret) — SEC/EDGAR verlangt Kontakt,
+          # Nasdaq/NYSE mögen einen Browser-artigen UA.
+          UA = ("SqueezeReportProbe/1.0 (read-only research; "
+                "contact easywebb@yahoo.de) Mozilla/5.0")
+
+          def log(m): print(m, flush=True)
+
+          def fetch(url, *, binary=False, timeout=40):
+              """(status:int|None, body:bytes|str|None, error:str|None).
+              FETCH-FAIL := error gesetzt (Exception/HTTPError). Unterschieden von
+              LEER (status 200 aber 0 verwertbare Zeilen — das prüft der Caller)."""
+              req = Request(url, headers={"User-Agent": UA, "Accept": "*/*"})
+              try:
+                  with urlopen(req, timeout=timeout) as r:
+                      raw = r.read()
+                      st = getattr(r, "status", r.getcode())
+                      return st, (raw if binary else raw.decode("utf-8", "replace")), None
+              except HTTPError as e:
+                  return e.code, None, f"HTTPError {e.code}"
+              except Exception as e:
+                  return None, None, f"{type(e).__name__}: {e}"
+
+          def links_from(html, pattern):
+              """href-Links aus HTML, gefiltert per regex (case-insensitive)."""
+              if not html:
+                  return []
+              hrefs = re.findall(r'href=["\']([^"\']+)["\']', html, re.I)
+              return [h for h in hrefs if re.search(pattern, h, re.I)]
+
+          def absolutize(base, link):
+              if link.startswith("http"): return link
+              from urllib.parse import urljoin
+              return urljoin(base, link)
+
+          # ── Top-10 zur Laufzeit (nichts hartkodiert) ──────────────────────────
+          try:
+              _ad = json.load(open("app_data.json", encoding="utf-8"))
+              TOP10 = [t.strip().upper() for t in (_ad.get("setup_scores") or {}).keys()]
+          except Exception as e:
+              TOP10 = []
+              log(f"WARN: Top-10 aus app_data.json nicht lesbar: {e}")
+          log(f"### Top-10 (Laufzeit): {TOP10}")
+          log("=" * 70)
+
+          verdicts = []  # (teil, befund, konsequenz)
+
+          # ══════════════════════════════════════════════════════════════════════
+          # TEIL 1 — REG-SHO-THRESHOLD
+          # ══════════════════════════════════════════════════════════════════════
+          log("\n########## TEIL 1 — REG-SHO-THRESHOLD ##########")
+          # Kandidaten-ÜBERSICHTSSEITEN (bestes Wissen, evtl. veraltet). Von hier
+          # werden Datei-Links EXTRAHIERT, nicht konstruiert.
+          regsho_overviews = [
+              ("Nasdaq Trader", "https://www.nasdaqtrader.com/Trader.aspx?id=RegSHOThreshold"),
+              ("Nasdaq Trader (http)", "http://www.nasdaqtrader.com/Trader.aspx?id=RegSHOThreshold"),
+              ("NYSE", "https://www.nyse.com/regulation/threshold-securities"),
+          ]
+          regsho_current_hits = None
+          regsho_current_rows = None
+          regsho_history = "UNBESTIMMT"
+          regsho_source_ok = False
+          discovered_files = []
+          for name, url in regsho_overviews:
+              st, body, err = fetch(url)
+              if err:
+                  log(f"[TEIL1] Übersicht {name} FETCH-FAIL: {url} → {err}")
+                  continue
+              if st != 200 or not body:
+                  log(f"[TEIL1] Übersicht {name} HTTP {st} (nicht 200/leer): {url}")
+                  continue
+              # Threshold-Dateien: .txt/.csv mit 'regsho'/'threshold'/'th' im Pfad.
+              cand = links_from(body, r'(regsho|threshold|th\.txt|thresholdsecurities).*\.(txt|csv)|\.(txt|csv)$')
+              cand = [absolutize(url, c) for c in cand]
+              # dedup, threshold-artige zuerst
+              cand = list(dict.fromkeys(cand))
+              log(f"[TEIL1] Übersicht {name} HTTP 200 — {len(cand)} Datei-Kandidaten:")
+              for c in cand[:20]:
+                  log(f"          {c}")
+              discovered_files += [(name, c) for c in cand]
+          time.sleep(1)
+
+          # Aktuelle Liste laden (erster plausibler Kandidat) + parsen.
+          for name, furl in discovered_files:
+              if regsho_source_ok:
+                  break
+              st, body, err = fetch(furl)
+              if err:
+                  log(f"[TEIL1] Datei FETCH-FAIL: {furl} → {err}")
+                  continue
+              if st != 200 or not body:
+                  log(f"[TEIL1] Datei HTTP {st}/leer: {furl}")
+                  continue
+              lines = [l for l in body.splitlines() if l.strip()]
+              if not lines:
+                  log(f"[TEIL1] Datei LEER: HTTP 200, 0 Zeilen — {furl}")
+                  continue
+              header = lines[0]
+              # Datumsangabe irgendwo in der Datei (oft Trailer 'File Creation Date').
+              date_hits = [l for l in lines if re.search(r'creation date|as of|\d{2}/\d{2}/\d{4}|\d{8}', l, re.I)][:3]
+              # Symbol-Spalte: erste Spalte je Zeile (pipe- oder whitespace-delim).
+              sep = "|" if "|" in header else None
+              syms = set()
+              for l in lines[1:]:
+                  first = (l.split(sep)[0] if sep else l.split()[0]).strip().upper()
+                  if first and first.isalpha():
+                      syms.add(first)
+              regsho_current_rows = len(syms)
+              regsho_current_hits = sorted(set(TOP10) & syms)
+              regsho_source_ok = True
+              log(f"[TEIL1] AKTUELLE LISTE OK: {furl}")
+              log(f"         HTTP 200 · {len(lines)} Zeilen · {regsho_current_rows} Symbole")
+              log(f"         Spaltenkopf: {header!r}")
+              log(f"         Datums-Indikatoren: {date_hits}")
+              log(f"[TEIL1c] TREFFERQUOTE Top-10: {len(regsho_current_hits)}/{len(TOP10)} "
+                  f"→ {regsho_current_hits}")
+
+          # (b) Historie: datierte/Archiv-Links auf den Übersichten?
+          dated = [(n, u) for (n, u) in discovered_files
+                   if re.search(r'\d{6,8}|archive|history|historical', u, re.I)]
+          if dated:
+              n, u = dated[0]
+              st, body, err = fetch(u)
+              if err:
+                  log(f"[TEIL1b] Archiv-Kandidat FETCH-FAIL: {u} → {err}")
+              elif st == 200 and body and body.strip():
+                  regsho_history = "ARCHIV (datierte Datei ladbar)"
+                  log(f"[TEIL1b] ARCHIV-Datei ladbar (HTTP 200): {u}")
+              else:
+                  log(f"[TEIL1b] Archiv-Kandidat HTTP {st}/leer: {u}")
+          else:
+              log("[TEIL1b] KEINE datierten/Archiv-Links auf den Übersichten gefunden "
+                  "→ Historie UNBESTIMMT (evtl. nur Momentanstand — dann täglich sammeln).")
+
+          # ── Verdikt Teil 1 SOFORT ─────────────────────────────────────────────
+          if not regsho_source_ok:
+              v1b = "Reg-SHO-Threshold: KEINE der Kandidaten-Quellen lieferte eine parsebare aktuelle Liste."
+              v1k = "Konsequenz: Idee (vorerst) TOT ODER Übersichts-URLs veraltet → Landing-Pages manuell prüfen."
+          else:
+              v1b = (f"Reg-SHO aktuell abrufbar ({regsho_current_rows} Symbole); "
+                     f"Trefferquote Top-10 = {len(regsho_current_hits)}/{len(TOP10)}; Historie: {regsho_history}.")
+              v1k = ("Konsequenz: nutzbar wenn Trefferquote > 0; bei Historie=UNBESTIMMT/Momentanstand "
+                     "→ täglich sammeln (dringend), sonst nachholbar.")
+          verdicts.append(("TEIL 1 (Reg-SHO)", v1b, v1k))
+          log("\n>>> VERDIKT TEIL 1: " + v1b + "\n>>>                 " + v1k)
+          log("=" * 70)
+
+          # ══════════════════════════════════════════════════════════════════════
+          # TEIL 2 — SEC-FTD
+          # ══════════════════════════════════════════════════════════════════════
+          log("\n########## TEIL 2 — SEC-FTD ##########")
+          old_year = (os.environ.get("FTD_OLD_YEAR") or "2020").strip()
+          ftd_overviews = [
+              ("SEC FTD (klassisch)", "https://www.sec.gov/data/foiadocsfailsdatahtm"),
+              ("SEC Datasets-Hub", "https://www.sec.gov/about/data-research-data-sets"),
+              ("SEC FTD (alt htm)", "https://www.sec.gov/foia/docs/failsdata.htm"),
+          ]
+          ftd_zips = []
+          for name, url in ftd_overviews:
+              st, body, err = fetch(url)
+              if err:
+                  log(f"[TEIL2] Übersicht {name} FETCH-FAIL: {url} → {err}")
+                  continue
+              if st != 200 or not body:
+                  log(f"[TEIL2] Übersicht {name} HTTP {st}/leer: {url}")
+                  continue
+              zips = [absolutize(url, z) for z in links_from(body, r'\.zip$')]
+              zips = list(dict.fromkeys(zips))
+              log(f"[TEIL2] Übersicht {name} HTTP 200 — {len(zips)} .zip-Links (Auszug):")
+              for z in zips[:8]:
+                  log(f"          {z}")
+              ftd_zips += zips
+          ftd_zips = list(dict.fromkeys(ftd_zips))
+          time.sleep(1)
+
+          def load_ftd_zip(zurl):
+              """Immer 4-Tuple (header, n_rows, error, rows). FETCH-FAIL vs LEER klar
+              getrennt: FETCH-FAIL → error gesetzt; LEER → error=None, n_rows=0."""
+              st, body, err = fetch(zurl, binary=True)
+              if err:
+                  return None, None, f"FETCH-FAIL {err}", None
+              if st != 200 or not body:
+                  return None, None, f"FETCH-FAIL HTTP {st}", None
+              try:
+                  zf = zipfile.ZipFile(io.BytesIO(body))
+                  inner = zf.namelist()[0]
+                  txt = zf.read(inner).decode("latin-1", "replace")
+              except Exception as e:
+                  return None, None, f"FETCH-FAIL ENTPACK {type(e).__name__}: {e}", None
+              rows = [l for l in txt.splitlines() if l.strip()]
+              if not rows:
+                  return None, 0, None, []          # LEER (kein Fetch-Fail)
+              return rows[0], len(rows) - 1, None, rows
+
+          # Neuestes + altes ZIP wählen (per Jahr im Dateinamen).
+          def year_of(u):
+              m = re.search(r'(20\d\d)', u)
+              return m.group(1) if m else "0000"
+          recent = sorted(ftd_zips, key=year_of, reverse=True)[:1]
+          old = [z for z in ftd_zips if old_year in z][:1]
+
+          ftd_cur_header = ftd_old_header = None
+          ftd_cur_hits = None
+          if recent:
+              h, n, err, rows = load_ftd_zip(recent[0])
+              if err:
+                  log(f"[TEIL2a] Aktuell {recent[0]} → {err}")
+              elif n == 0:
+                  log(f"[TEIL2a] Aktuell {recent[0]} → LEER (HTTP 200, 0 Zeilen, kein Fetch-Fail)")
+              else:
+                  ftd_cur_header = h
+                  log(f"[TEIL2a] AKTUELL OK: {recent[0]} · {n} Zeilen")
+                  log(f"          Spaltenkopf (wörtlich): {h!r}")
+                  sep = "|" if "|" in (h or "") else None
+                  cols = [c.strip().upper() for c in ((h.split(sep) if sep else h.split("|")))]
+                  sidx = cols.index("SYMBOL") if "SYMBOL" in cols else (2 if sep else None)
+                  hits = {}
+                  for l in rows[1:]:
+                      parts = l.split(sep) if sep else l.split("|")
+                      if sidx is not None and len(parts) > sidx:
+                          s = parts[sidx].strip().upper()
+                          if s in set(TOP10):
+                              qty = None
+                              for p in parts:
+                                  ps = p.strip().replace(",", "")
+                                  if ps.isdigit():
+                                      qty = ps
+                              hits[s] = qty or hits.get(s, "?")
+                  ftd_cur_hits = hits
+                  log(f"[TEIL2c] TREFFERQUOTE Top-10: {len(hits)}/{len(TOP10)} "
+                      f"→ {{Ticker: Fails}} = {hits}")
+          else:
+              log("[TEIL2a] Kein aktuelles .zip auf den Übersichten gefunden.")
+          time.sleep(1)
+
+          if old:
+              h, n, err, rows = load_ftd_zip(old[0])
+              if err:
+                  log(f"[TEIL2b] Alt({old_year}) {old[0]} → {err}")
+              elif n == 0:
+                  log(f"[TEIL2b] Alt({old_year}) {old[0]} → LEER (HTTP 200, 0 Zeilen)")
+              else:
+                  ftd_old_header = h
+                  log(f"[TEIL2b] ALT({old_year}) OK: {old[0]} · {n} Zeilen")
+                  log(f"          Spaltenkopf (wörtlich): {h!r}")
+          else:
+              log(f"[TEIL2b] Kein {old_year}-.zip auf den Übersichten gefunden.")
+
+          # Schema-Vergleich Zeichen für Zeichen
+          schema = "UNBESTIMMT"
+          if ftd_cur_header and ftd_old_header:
+              schema = "IDENTISCH" if ftd_cur_header.strip() == ftd_old_header.strip() else "ABWEICHEND"
+              log(f"[TEIL2] SCHEMA-Vergleich (Zeichen für Zeichen): {schema}")
+              if schema == "ABWEICHEND":
+                  log(f"          aktuell: {ftd_cur_header!r}")
+                  log(f"          alt    : {ftd_old_header!r}")
+
+          if not ftd_cur_header:
+              v2b = "SEC-FTD: aktueller Halbmonat NICHT ladbar/parsebar (siehe Log — Fetch-Fail vs. Übersicht leer)."
+              v2k = "Konsequenz: UNBESTIMMT — Übersichts-URLs prüfen; ohne aktuellen File kein Backfill-Urteil."
+          else:
+              hn = len(ftd_cur_hits) if ftd_cur_hits is not None else "?"
+              v2b = (f"FTD aktuell OK; Schema alt-vs-neu = {schema}; "
+                     f"Trefferquote Top-10 = {hn}/{len(TOP10)}.")
+              v2k = ("Konsequenz: bei Schema=IDENTISCH ist Backfill billig (nachholbar); "
+                     "ABWEICHEND → Backfill teuer; Trefferquote entscheidet den Nutzen.")
+          verdicts.append(("TEIL 2 (SEC-FTD)", v2b, v2k))
+          log("\n>>> VERDIKT TEIL 2: " + v2b + "\n>>>                 " + v2k)
+          log("=" * 70)
+
+          # ══════════════════════════════════════════════════════════════════════
+          # TEIL 3 — OPTIONEN (yfinance) — zuletzt (teuer/flaky)
+          # ══════════════════════════════════════════════════════════════════════
+          log("\n########## TEIL 3 — OPTIONEN (yfinance) ##########")
+          log("Log je Ticker: TICKER | n_verfaelle | OI y/n | IV y/n | n_strikes | OI_summe | fetch_s")
+          opt_cov = 0        # hat ≥1 Verfall
+          opt_alive = 0      # OI-Summe > 0
+          opt_fetchfail = 0
+          total_calls = 0
+          t_start = time.time()
+          try:
+              import yfinance as yf
+              yf_ok = True
+          except Exception as e:
+              yf_ok = False
+              log(f"[TEIL3] yfinance-Import FETCH-FAIL: {e}")
+
+          if yf_ok:
+              for sym in TOP10:
+                  t0 = time.time()
+                  try:
+                      tk = yf.Ticker(sym)
+                      exps = list(tk.options or [])
+                      total_calls += 1
+                      if not exps:
+                          dt = time.time() - t0
+                          log(f"  {sym:6s} | 0 | - | - | 0 | 0 | {dt:.2f}s  (keine Verfälle — LEER, kein Fetch-Fail)")
+                          time.sleep(1.0)
+                          continue
+                      opt_cov += 1
+                      nearest = exps[0]
+                      oc = tk.option_chain(nearest)
+                      total_calls += 1
+                      calls = oc.calls
+                      cols = set(getattr(calls, "columns", []))
+                      oi_present = "openInterest" in cols
+                      iv_present = "impliedVolatility" in cols
+                      strike_present = "strike" in cols
+                      n_strikes = int(getattr(calls, "shape", [0])[0]) if strike_present else 0
+                      oi_sum = 0
+                      if oi_present:
+                          try:
+                              oi_sum = int(calls["openInterest"].fillna(0).sum())
+                          except Exception:
+                              oi_sum = 0
+                      if oi_sum > 0:
+                          opt_alive += 1
+                      dt = time.time() - t0
+                      log(f"  {sym:6s} | {len(exps)} | {'y' if oi_present else 'n'} | "
+                          f"{'y' if iv_present else 'n'} | {n_strikes} | {oi_sum} | {dt:.2f}s")
+                  except Exception as e:
+                      opt_fetchfail += 1
+                      dt = time.time() - t0
+                      log(f"  {sym:6s} | FETCH-FAIL: {type(e).__name__}: {e} | {dt:.2f}s")
+                  time.sleep(1.2)
+          t_total = time.time() - t_start
+
+          if not yf_ok:
+              v3b = "Optionen: yfinance-Import fehlgeschlagen — UNBESTIMMT."
+              v3k = "Konsequenz: Runner-Setup prüfen, erneut laufen."
+          elif opt_cov == 0 and opt_fetchfail >= len(TOP10):
+              v3b = f"Optionen: {opt_fetchfail}/{len(TOP10)} Fetch-Fails (yfinance rate-limited?) — Abdeckung UNBESTIMMT."
+              v3k = "Konsequenz: erneut laufen (yfinance-Flakiness), NICHT als '0 Abdeckung' werten."
+          else:
+              v3b = (f"Optionen: Abdeckung {opt_cov}/{len(TOP10)} mit Verfällen, davon LEBENDIG (OI>0) "
+                     f"{opt_alive}; {opt_fetchfail} Fetch-Fails; ~{total_calls} Calls in {t_total:.0f}s.")
+              v3k = (f"Konsequenz: bei {opt_alive} lebendigen Ketten + ~{total_calls*3} Calls/Daily-Run "
+                     "(nur nächster Verfall × Top-10) machbar; bei ~0 lebendig → Gamma-Idee tot fürs Universum.")
+          verdicts.append(("TEIL 3 (Optionen)", v3b, v3k))
+          log("\n>>> VERDIKT TEIL 3: " + v3b + "\n>>>                 " + v3k)
+
+          # ── Artefakt + Gesamt-Verdikt-Block ───────────────────────────────────
+          try:
+              with open(os.path.join(OUT, "probe_summary.json"), "w") as fh:
+                  json.dump({"top10": TOP10, "verdicts":
+                             [{"teil": t, "befund": b, "konsequenz": k} for t, b, k in verdicts]},
+                            fh, indent=2, default=str)
+          except Exception:
+              pass
+
+          log("\n" + "=" * 70)
+          log("VERDIKT-BLOCK (kopierbar — 2 Zeilen je Teil):")
+          for t, b, k in verdicts:
+              log(f"[{t}] {b}")
+              log(f"       → {k}")
+          PY
+
+      - name: Upload output als Artefakt
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ftd-regsho-options-probe
+          path: ${{ env.OUT_DIR }}
+          if-no-files-found: warn
