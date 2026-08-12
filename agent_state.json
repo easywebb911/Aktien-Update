@@ -1,5 +1,5 @@
 {
-  "last_run": "2026-08-12T09:54:12.232713+02:00",
+  "last_run": "2026-08-12T10:39:31.270180+02:00",
   "cooldowns": {
     "anomaly_score_jump_XRX": "2026-05-03T18:47:15.315486+02:00",
     "anomaly_uoa_extreme_TDOC": "2026-05-04T13:47:00.365949+02:00",
@@ -105,30 +105,6 @@
     "earnings_immediate_WBTN_10.08.2026": "2026-08-10T22:11:30.626466+02:00"
   },
   "push_history": [
-    {
-      "ts": "2026-07-21T08:34:52.698181+02:00",
-      "ticker": "AI",
-      "kind": "exit_p2",
-      "severity": "trigger",
-      "trigger": "trend_break",
-      "body": "🔻 Exit-Signal AI: trend_break crit ({'ma21': 9.2125, 'price': 8.61, 'drop_pct': 6.54})",
-      "success": true,
-      "suppressed": false,
-      "suppress_reason": null,
-      "conviction_score": null
-    },
-    {
-      "ts": "2026-07-21T08:34:52.763546+02:00",
-      "ticker": "LENZ",
-      "kind": "exit_p2",
-      "severity": "trigger",
-      "trigger": "trend_break",
-      "body": "🔻 Exit-Signal LENZ: trend_break crit ({'ma21': 5.6357, 'price': 4.96, 'drop_pct': 11.99})",
-      "success": true,
-      "suppressed": false,
-      "suppress_reason": null,
-      "conviction_score": null
-    },
     {
       "ts": "2026-07-21T08:34:52.823697+02:00",
       "ticker": "WOLF",
@@ -1304,6 +1280,30 @@
       "suppressed": true,
       "suppress_reason": "conviction_below_threshold",
       "conviction_score": 64
+    },
+    {
+      "ts": "2026-08-12T10:39:29.271701+02:00",
+      "ticker": "KUST",
+      "kind": "anomaly",
+      "severity": "medium",
+      "trigger": "score_jump",
+      "body": "KUST 🚀 Setup 81 ↑ (gestern 62) | Volumen 2.1× + Spanne 21.2% + News-KI 8/30: Asset sale is po…",
+      "success": false,
+      "suppressed": true,
+      "suppress_reason": "conviction_below_threshold",
+      "conviction_score": 52
+    },
+    {
+      "ts": "2026-08-12T10:39:29.271820+02:00",
+      "ticker": "WOLF",
+      "kind": "anomaly",
+      "severity": "medium",
+      "trigger": "score_jump",
+      "body": "WOLF 🚀 Setup 75 ↑ (gestern 59) | Earnings in 7 Tagen (19.08.2026) + Kurs +2.9% + Spanne 11.4%…",
+      "success": false,
+      "suppressed": true,
+      "suppress_reason": "conviction_below_threshold",
+      "conviction_score": 64
     }
   ],
   "prev_conviction_scores": {
@@ -1364,13 +1364,13 @@
       ],
       "last_push_date": "2026-08-05",
       "esc_alerted": false,
-      "updated": "2026-08-12T09:54:12.232812+02:00"
+      "updated": "2026-08-12T10:39:31.270253+02:00"
     },
     "PDYN": {
       "last_active": [],
       "last_push_date": "2026-08-06",
       "esc_alerted": false,
-      "updated": "2026-08-12T09:54:12.232826+02:00"
+      "updated": "2026-08-12T10:39:31.270267+02:00"
     },
     "AI": {
       "last_active": [],
@@ -1396,13 +1396,13 @@
       "last_active": [],
       "last_push_date": "2026-08-07",
       "esc_alerted": false,
-      "updated": "2026-08-12T09:54:12.232836+02:00"
+      "updated": "2026-08-12T10:39:31.270278+02:00"
     },
     "ARCT": {
       "last_active": [],
       "last_push_date": null,
       "esc_alerted": false,
-      "updated": "2026-08-12T09:54:12.232844+02:00"
+      "updated": "2026-08-12T10:39:31.270287+02:00"
     }
   }
 }
