@@ -152,6 +152,15 @@
     "substrate": "none",
     "reason": "no_p249"
   },
+  "CMPX": {
+    "qid": null,
+    "title": null,
+    "resolved_at": "2026-08-12T22:06:09Z",
+    "issuer_verified": false,
+    "company_name_at_resolve": "Compass Therapeutics, Inc.",
+    "substrate": "none",
+    "reason": "no_p249"
+  },
   "CRSR": {
     "qid": null,
     "title": null,
@@ -467,6 +476,15 @@
     "substrate": "none",
     "reason": "no_p249"
   },
+  "NRGV": {
+    "qid": "Q57060073",
+    "title": "Energy_Vault",
+    "resolved_at": "2026-08-12T22:06:09Z",
+    "issuer_verified": true,
+    "company_name_at_resolve": "Energy Vault Holdings, Inc.",
+    "substrate": "en",
+    "reason": null
+  },
   "NUWE": {
     "qid": null,
     "title": null,
@@ -727,6 +745,15 @@
     "company_name_at_resolve": "WEBTOON Entertainment Inc.",
     "substrate": "none",
     "reason": "no_p249"
+  },
+  "WEN": {
+    "qid": null,
+    "title": null,
+    "resolved_at": "2026-08-12T22:06:09Z",
+    "issuer_verified": false,
+    "company_name_at_resolve": "Wendy's Company (The)",
+    "substrate": "none",
+    "reason": "sparql_fetch_failed"
   },
   "WOLF": {
     "qid": "Q5183828",
