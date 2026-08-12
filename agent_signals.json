@@ -1,10 +1,10 @@
 {
-  "updated": "2026-08-12T10:39:29.271894+02:00",
+  "updated": "2026-08-12T10:54:16.668380+02:00",
   "run_info": {
     "tickers_checked": 13,
-    "signals_active": 4,
+    "signals_active": 3,
     "alerts_sent": 0,
-    "elapsed_s": 12.0,
+    "elapsed_s": 14.2,
     "market_phase": "Pre-Market"
   },
   "signals": {
@@ -97,9 +97,9 @@
       "uoa_cp_ratio": null
     },
     "HTZ": {
-      "score": 82,
+      "score": 45,
       "confidence": 70,
-      "drivers": "Kurs +15.6% + Spanne 25.1% + News: squeeze, short squeeze + UOA Call/Put 3.8×",
+      "drivers": "Kurs +15.6% + Spanne 25.1% + UOA Call/Put 3.8×",
       "price": 2.45,
       "chg_pct": 15.57,
       "rvol_4d": 0.66,
@@ -109,8 +109,8 @@
       "upcoming_event": null,
       "insider_buy": false,
       "stocktwits": null,
-      "combo_mult": 1.1,
-      "active_triggers": 2,
+      "combo_mult": 1.0,
+      "active_triggers": 1,
       "ki_sentiment_source": "keyword",
       "uoa_score": 10,
       "uoa_drivers": [
@@ -143,7 +143,7 @@
     "IONQ": {
       "score": 55,
       "confidence": 70,
-      "drivers": "Kurs +2.1% + News: earnings beat, acquisition + SEC Form 4",
+      "drivers": "Kurs +2.1% + News: acquisition, earnings beat + SEC Form 4",
       "price": 43.44,
       "chg_pct": 2.14,
       "rvol_4d": 0.61,
@@ -183,9 +183,9 @@
       "uoa_cp_ratio": 1.2408759124087592
     },
     "KUST": {
-      "score": 48,
+      "score": 61,
       "confidence": 70,
-      "drivers": "Volumen 2.1× + Spanne 21.2% + News-KI 8/30: Asset sale is positive for company pivot but lacks the high short interest, catalyst intensity, and market conditions ty + FINRA Short-Vol 52%",
+      "drivers": "Volumen 2.1× + Spanne 21.2% + News: contract + FINRA Short-Vol 52%",
       "price": 1.33,
       "chg_pct": 0.0,
       "rvol_4d": 2.07,
@@ -195,9 +195,9 @@
       "upcoming_event": null,
       "insider_buy": false,
       "stocktwits": null,
-      "combo_mult": 1.0,
-      "active_triggers": 1,
-      "ki_sentiment_source": "llm",
+      "combo_mult": 1.1,
+      "active_triggers": 2,
+      "ki_sentiment_source": "keyword",
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": null,
@@ -229,7 +229,7 @@
     "PDYN": {
       "score": 65,
       "confidence": 70,
-      "drivers": "Kurs +2.3% + Spanne 5.9% + News: partnership, contract + UOA Call/Put 9.3×",
+      "drivers": "Kurs +2.3% + Spanne 5.9% + News: contract, partnership + UOA Call/Put 9.3×",
       "price": 6.33,
       "chg_pct": 2.26,
       "rvol_4d": 0.96,
