@@ -1,10 +1,10 @@
 {
-  "updated": "2026-08-12T02:01:00.222608+02:00",
+  "updated": "2026-08-12T04:44:57.933187+02:00",
   "run_info": {
     "tickers_checked": 13,
     "signals_active": 4,
     "alerts_sent": 0,
-    "elapsed_s": 45.3,
+    "elapsed_s": 14.4,
     "market_phase": "Geschlossen"
   },
   "signals": {
@@ -141,9 +141,9 @@
       "uoa_cp_ratio": 0.5730994152046783
     },
     "IONQ": {
-      "score": 40,
+      "score": 25,
       "confidence": 33,
-      "drivers": "News: contract, acquisition + SEC Form 4",
+      "drivers": "News: acquisition + SEC Form 4",
       "price": 43.44,
       "chg_pct": -0.0,
       "rvol_4d": 0.47,
@@ -185,7 +185,7 @@
     "KUST": {
       "score": 77,
       "confidence": 70,
-      "drivers": "Volumen 2.0× + Spanne 21.6% + News: contract, acquisition + FINRA Short-Vol 52%",
+      "drivers": "Volumen 2.0× + Spanne 21.6% + News: acquisition, contract + FINRA Short-Vol 52%",
       "price": 1.33,
       "chg_pct": 0.0,
       "rvol_4d": 2.01,
@@ -227,9 +227,9 @@
       "uoa_cp_ratio": 22.29936305732484
     },
     "PDYN": {
-      "score": 50,
+      "score": 35,
       "confidence": 33,
-      "drivers": "Spanne 5.4% + News: contract, partnership + UOA Call/Put 9.3×",
+      "drivers": "Spanne 5.4% + News: contract + UOA Call/Put 9.3×",
       "price": 6.33,
       "chg_pct": -0.0,
       "rvol_4d": 1.05,
@@ -250,9 +250,9 @@
       "uoa_cp_ratio": 9.301587301587302
     },
     "VEEE": {
-      "score": 88,
+      "score": 99,
       "confidence": 70,
-      "drivers": "Volumen 5.2× + 🚀 Massives Volumen 5.2×+ + Spanne 37.2% + News: merger, short interest",
+      "drivers": "Volumen 5.2× + 🚀 Massives Volumen 5.2×+ + Spanne 37.2% + News: short interest, merger + SEC Form 4",
       "price": 12.78,
       "chg_pct": -0.0,
       "rvol_4d": 5.18,
