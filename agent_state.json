@@ -1,5 +1,5 @@
 {
-  "last_run": "2026-08-12T20:07:29.511453+02:00",
+  "last_run": "2026-08-12T21:21:39.331068+02:00",
   "cooldowns": {
     "anomaly_score_jump_XRX": "2026-05-03T18:47:15.315486+02:00",
     "anomaly_uoa_extreme_TDOC": "2026-05-04T13:47:00.365949+02:00",
@@ -105,30 +105,6 @@
     "earnings_immediate_WBTN_10.08.2026": "2026-08-10T22:11:30.626466+02:00"
   },
   "push_history": [
-    {
-      "ts": "2026-07-22T17:35:59.957617+02:00",
-      "ticker": "KUST",
-      "kind": "anomaly",
-      "severity": "medium",
-      "trigger": "score_jump",
-      "body": "KUST 🚀 Setup 78 ↑ (gestern 46) | Volumen 21.1× + 🚀 Massives Volumen 21.1×+ + Spanne 64.1% + N…",
-      "success": false,
-      "suppressed": true,
-      "suppress_reason": "conviction_below_threshold",
-      "conviction_score": 65
-    },
-    {
-      "ts": "2026-07-22T17:35:59.957703+02:00",
-      "ticker": "KUST",
-      "kind": "anomaly",
-      "severity": "medium",
-      "trigger": "gap_combo",
-      "body": "KUST 💥 Gap +21.9% Strong Hold + RVOL 21.1× | Setup 78",
-      "success": false,
-      "suppressed": true,
-      "suppress_reason": "conviction_below_threshold",
-      "conviction_score": 65
-    },
     {
       "ts": "2026-07-22T17:37:24.547958+02:00",
       "ticker": "KUST",
@@ -1304,6 +1280,30 @@
       "suppressed": true,
       "suppress_reason": "conviction_below_threshold",
       "conviction_score": 64
+    },
+    {
+      "ts": "2026-08-12T21:21:38.696393+02:00",
+      "ticker": "KUST",
+      "kind": "anomaly",
+      "severity": "medium",
+      "trigger": "score_jump",
+      "body": "KUST 🚀 Setup 81 ↑ (gestern 62) | Spanne 12.9% + News: contract + FINRA Short-Vol 52%",
+      "success": false,
+      "suppressed": true,
+      "suppress_reason": "conviction_below_threshold",
+      "conviction_score": 52
+    },
+    {
+      "ts": "2026-08-12T21:21:38.696554+02:00",
+      "ticker": "WOLF",
+      "kind": "anomaly",
+      "severity": "medium",
+      "trigger": "score_jump",
+      "body": "WOLF 🚀 Setup 75 ↑ (gestern 59) | Earnings in 7 Tagen (19.08.2026) + Spanne 5.3% + News: short…",
+      "success": false,
+      "suppressed": true,
+      "suppress_reason": "conviction_below_threshold",
+      "conviction_score": 64
     }
   ],
   "prev_conviction_scores": {
@@ -1364,13 +1364,13 @@
       ],
       "last_push_date": "2026-08-05",
       "esc_alerted": false,
-      "updated": "2026-08-12T20:07:29.511561+02:00"
+      "updated": "2026-08-12T21:21:39.331149+02:00"
     },
     "PDYN": {
       "last_active": [],
       "last_push_date": "2026-08-06",
       "esc_alerted": false,
-      "updated": "2026-08-12T20:07:29.511577+02:00"
+      "updated": "2026-08-12T21:21:39.331165+02:00"
     },
     "AI": {
       "last_active": [],
@@ -1396,13 +1396,13 @@
       "last_active": [],
       "last_push_date": "2026-08-07",
       "esc_alerted": false,
-      "updated": "2026-08-12T20:07:29.511588+02:00"
+      "updated": "2026-08-12T21:21:39.331175+02:00"
     },
     "ARCT": {
       "last_active": [],
       "last_push_date": null,
       "esc_alerted": false,
-      "updated": "2026-08-12T20:07:29.511597+02:00"
+      "updated": "2026-08-12T21:21:39.331184+02:00"
     }
   }
 }
