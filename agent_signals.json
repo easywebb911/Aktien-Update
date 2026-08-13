@@ -1,10 +1,10 @@
 {
-  "updated": "2026-08-13T07:05:05.031314+02:00",
+  "updated": "2026-08-13T08:45:25.996907+02:00",
   "run_info": {
     "tickers_checked": 13,
     "signals_active": 1,
     "alerts_sent": 0,
-    "elapsed_s": 12.9,
+    "elapsed_s": 14.5,
     "market_phase": "Geschlossen"
   },
   "signals": {
@@ -59,7 +59,7 @@
       "price": 2.37,
       "chg_pct": -0.0,
       "rvol_4d": 1.77,
-      "rvol_20d": 2.92,
+      "rvol_20d": 2.86,
       "earnings": "in 84 Tagen (05.11.2026)",
       "fda_date": null,
       "upcoming_event": null,
@@ -76,9 +76,9 @@
       "uoa_cp_ratio": 2.8181818181818183
     },
     "HTZ": {
-      "score": 50,
+      "score": 20,
       "confidence": 33,
-      "drivers": "Spanne 19.2% + News: short interest, squeeze + UOA Call/Put 7.1×",
+      "drivers": "Spanne 19.2% + UOA Call/Put 7.1×",
       "price": 2.8,
       "chg_pct": -0.0,
       "rvol_4d": 0.55,
@@ -89,7 +89,7 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 1,
+      "active_triggers": 0,
       "ki_sentiment_source": "keyword",
       "uoa_score": 10,
       "uoa_drivers": [
@@ -147,11 +147,11 @@
     "INHD": {
       "score": 40,
       "confidence": 33,
-      "drivers": "Spanne 13.9% + News: short interest, partnership",
+      "drivers": "Spanne 13.9% + News: partnership, halt",
       "price": 6.89,
       "chg_pct": -0.0,
       "rvol_4d": 0.19,
-      "rvol_20d": 0.42,
+      "rvol_20d": 0.39,
       "earnings": null,
       "fda_date": null,
       "upcoming_event": null,
@@ -166,9 +166,9 @@
       "uoa_cp_ratio": null
     },
     "IONQ": {
-      "score": 50,
+      "score": 35,
       "confidence": 70,
-      "drivers": "Spanne 6.0% + News: earnings beat, acquisition + SEC Form 4",
+      "drivers": "Spanne 6.0% + News: earnings beat + SEC Form 4",
       "price": 45.2,
       "chg_pct": 0.0,
       "rvol_4d": 0.95,
@@ -216,7 +216,7 @@
       "price": 3.92,
       "chg_pct": 0.0,
       "rvol_4d": 1.05,
-      "rvol_20d": 2.08,
+      "rvol_20d": 2.07,
       "earnings": "in 88 Tagen (09.11.2026)",
       "fda_date": null,
       "upcoming_event": null,
@@ -233,9 +233,9 @@
       "uoa_cp_ratio": 2.5927406951707166
     },
     "PDYN": {
-      "score": 15,
+      "score": 30,
       "confidence": 17,
-      "drivers": "News: contract",
+      "drivers": "News: partnership, contract",
       "price": 6.35,
       "chg_pct": -0.0,
       "rvol_4d": 1.28,
@@ -256,7 +256,7 @@
     "WEN": {
       "score": 100,
       "confidence": 70,
-      "drivers": "Volumen 3.4× + ⚡ Extremes Volumen 3.4×+ + Spanne 17.3% + News: short interest, activist investor + SEC Form 4 + UOA Call/Put 4.3×",
+      "drivers": "Volumen 3.4× + ⚡ Extremes Volumen 3.4×+ + Spanne 17.3% + News: buyout, short interest + SEC Form 4 + UOA Call/Put 4.3×",
       "price": 8.66,
       "chg_pct": -0.0,
       "rvol_4d": 3.42,
