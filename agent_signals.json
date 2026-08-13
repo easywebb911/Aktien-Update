@@ -1,10 +1,10 @@
 {
-  "updated": "2026-08-13T10:43:34.752357+02:00",
+  "updated": "2026-08-13T12:28:25.130636+02:00",
   "run_info": {
     "tickers_checked": 13,
     "signals_active": 1,
     "alerts_sent": 0,
-    "elapsed_s": 10.2,
+    "elapsed_s": 24.1,
     "market_phase": "Pre-Market"
   },
   "signals": {
@@ -149,7 +149,7 @@
       "price": 6.89,
       "chg_pct": -0.0,
       "rvol_4d": 0.19,
-      "rvol_20d": 0.42,
+      "rvol_20d": 0.39,
       "earnings": null,
       "fda_date": null,
       "upcoming_event": null,
@@ -214,7 +214,7 @@
       "price": 3.92,
       "chg_pct": 0.0,
       "rvol_4d": 1.05,
-      "rvol_20d": 2.07,
+      "rvol_20d": 2.08,
       "earnings": "in 88 Tagen (09.11.2026)",
       "fda_date": null,
       "upcoming_event": null,
@@ -231,9 +231,9 @@
       "uoa_cp_ratio": 2.5927406951707166
     },
     "PDYN": {
-      "score": 15,
+      "score": 30,
       "confidence": 17,
-      "drivers": "News: contract",
+      "drivers": "News: contract, partnership",
       "price": 6.35,
       "chg_pct": -0.0,
       "rvol_4d": 1.28,
@@ -252,9 +252,9 @@
       "uoa_cp_ratio": 1.6923076923076923
     },
     "WEN": {
-      "score": 100,
+      "score": 73,
       "confidence": 70,
-      "drivers": "Volumen 3.4× + ⚡ Extremes Volumen 3.4×+ + Spanne 17.3% + News: buyout, activist investor + SEC Form 4 + UOA Call/Put 4.3×",
+      "drivers": "Volumen 3.4× + ⚡ Extremes Volumen 3.4×+ + Spanne 17.3% + News-KI 8/30: Takeover speculation typically reduces short-squeeze potential as it attracts fundamental investors rather than momentum + SEC Form 4 + UOA Call/Put 4.3×",
       "price": 8.66,
       "chg_pct": -0.0,
       "rvol_4d": 3.42,
@@ -264,9 +264,9 @@
       "upcoming_event": null,
       "insider_buy": false,
       "stocktwits": null,
-      "combo_mult": 1.1,
-      "active_triggers": 2,
-      "ki_sentiment_source": "keyword",
+      "combo_mult": 1.0,
+      "active_triggers": 1,
+      "ki_sentiment_source": "llm",
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 4.3×"
@@ -277,7 +277,7 @@
     "WOLF": {
       "score": 44,
       "confidence": 70,
-      "drivers": "Earnings in 6 Tagen (19.08.2026) + Spanne 5.3% + News-KI 15/30: Negative short-interest signal outweighed by positive partnership news and routine earnings announcement, suggesting mix + Earnings in 6d",
+      "drivers": "Earnings in 6 Tagen (19.08.2026) + Spanne 5.3% + News: short interest + Earnings in 6d",
       "price": 31.71,
       "chg_pct": -0.0,
       "rvol_4d": 0.64,
@@ -289,7 +289,7 @@
       "stocktwits": null,
       "combo_mult": 1.1,
       "active_triggers": 2,
-      "ki_sentiment_source": "llm",
+      "ki_sentiment_source": "keyword",
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": null,
