@@ -1,11 +1,11 @@
 {
-  "updated": "2026-08-13T09:55:02.851406+02:00",
+  "updated": "2026-08-13T10:43:34.752357+02:00",
   "run_info": {
     "tickers_checked": 13,
     "signals_active": 1,
-    "alerts_sent": 1,
-    "elapsed_s": 23.3,
-    "market_phase": "Geschlossen"
+    "alerts_sent": 0,
+    "elapsed_s": 10.2,
+    "market_phase": "Pre-Market"
   },
   "signals": {
     "AMC": {
@@ -37,8 +37,8 @@
       "drivers": "",
       "price": 7.6,
       "chg_pct": -0.0,
-      "rvol_4d": 0.55,
-      "rvol_20d": 0.83,
+      "rvol_4d": 0.49,
+      "rvol_20d": 0.8,
       "earnings": null,
       "fda_date": null,
       "upcoming_event": null,
@@ -76,9 +76,9 @@
       "uoa_cp_ratio": 2.8181818181818183
     },
     "HTZ": {
-      "score": 50,
+      "score": 20,
       "confidence": 33,
-      "drivers": "Spanne 19.2% + News: short squeeze, squeeze + UOA Call/Put 7.1×",
+      "drivers": "Spanne 19.2% + UOA Call/Put 7.1×",
       "price": 2.8,
       "chg_pct": -0.0,
       "rvol_4d": 0.55,
@@ -89,7 +89,7 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 1,
+      "active_triggers": 0,
       "ki_sentiment_source": "keyword",
       "uoa_score": 10,
       "uoa_drivers": [
@@ -104,8 +104,8 @@
       "drivers": "Spanne 7.6% + FINRA Short-Vol 93%",
       "price": 5.07,
       "chg_pct": 0.0,
-      "rvol_4d": 1.33,
-      "rvol_20d": 1.27,
+      "rvol_4d": 1.11,
+      "rvol_20d": 1.24,
       "earnings": null,
       "fda_date": null,
       "upcoming_event": null,
@@ -143,9 +143,9 @@
       "uoa_cp_ratio": 51.59642857142857
     },
     "INHD": {
-      "score": 10,
-      "confidence": 17,
-      "drivers": "Spanne 13.9%",
+      "score": 40,
+      "confidence": 33,
+      "drivers": "Spanne 13.9% + News: partnership, halt",
       "price": 6.89,
       "chg_pct": -0.0,
       "rvol_4d": 0.19,
@@ -156,7 +156,7 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 0,
+      "active_triggers": 1,
       "ki_sentiment_source": "keyword",
       "uoa_score": 0,
       "uoa_drivers": [],
@@ -164,9 +164,9 @@
       "uoa_cp_ratio": null
     },
     "IONQ": {
-      "score": 20,
-      "confidence": 33,
-      "drivers": "Spanne 6.0% + SEC Form 4",
+      "score": 35,
+      "confidence": 70,
+      "drivers": "Spanne 6.0% + News: earnings beat + SEC Form 4",
       "price": 45.2,
       "chg_pct": 0.0,
       "rvol_4d": 0.95,
@@ -177,7 +177,7 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 0,
+      "active_triggers": 1,
       "ki_sentiment_source": "keyword",
       "uoa_score": 0,
       "uoa_drivers": [],
@@ -214,7 +214,7 @@
       "price": 3.92,
       "chg_pct": 0.0,
       "rvol_4d": 1.05,
-      "rvol_20d": 2.08,
+      "rvol_20d": 2.07,
       "earnings": "in 88 Tagen (09.11.2026)",
       "fda_date": null,
       "upcoming_event": null,
@@ -231,9 +231,9 @@
       "uoa_cp_ratio": 2.5927406951707166
     },
     "PDYN": {
-      "score": 30,
+      "score": 15,
       "confidence": 17,
-      "drivers": "News: contract, partnership",
+      "drivers": "News: contract",
       "price": 6.35,
       "chg_pct": -0.0,
       "rvol_4d": 1.28,
@@ -252,9 +252,9 @@
       "uoa_cp_ratio": 1.6923076923076923
     },
     "WEN": {
-      "score": 73,
+      "score": 100,
       "confidence": 70,
-      "drivers": "Volumen 3.4× + ⚡ Extremes Volumen 3.4×+ + Spanne 17.3% + News-KI 8/30: Takeover bidding activity creates positive momentum but lacks the key short-squeeze indicators of high short interest, l + SEC Form 4 + UOA Call/Put 4.3×",
+      "drivers": "Volumen 3.4× + ⚡ Extremes Volumen 3.4×+ + Spanne 17.3% + News: buyout, activist investor + SEC Form 4 + UOA Call/Put 4.3×",
       "price": 8.66,
       "chg_pct": -0.0,
       "rvol_4d": 3.42,
@@ -264,9 +264,9 @@
       "upcoming_event": null,
       "insider_buy": false,
       "stocktwits": null,
-      "combo_mult": 1.0,
-      "active_triggers": 1,
-      "ki_sentiment_source": "llm",
+      "combo_mult": 1.1,
+      "active_triggers": 2,
+      "ki_sentiment_source": "keyword",
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 4.3×"
@@ -277,7 +277,7 @@
     "WOLF": {
       "score": 44,
       "confidence": 70,
-      "drivers": "Earnings in 6 Tagen (19.08.2026) + Spanne 5.3% + News: short interest + Earnings in 6d",
+      "drivers": "Earnings in 6 Tagen (19.08.2026) + Spanne 5.3% + News-KI 15/30: Negative short-interest signal outweighed by positive partnership news and routine earnings announcement, suggesting mix + Earnings in 6d",
       "price": 31.71,
       "chg_pct": -0.0,
       "rvol_4d": 0.64,
@@ -289,7 +289,7 @@
       "stocktwits": null,
       "combo_mult": 1.1,
       "active_triggers": 2,
-      "ki_sentiment_source": "keyword",
+      "ki_sentiment_source": "llm",
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": null,
