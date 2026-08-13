@@ -173,6 +173,11 @@
       "date": "2026-08-12",
       "inst_ownership": 0.24429001,
       "insider_ownership": 0.34244
+    },
+    {
+      "date": "2026-08-13",
+      "inst_ownership": 0.24754,
+      "insider_ownership": 0.34244
     }
   ],
   "NXTC": [
@@ -334,6 +339,11 @@
     {
       "date": "2026-08-11",
       "inst_ownership": 0.09725001,
+      "insider_ownership": 0.00127
+    },
+    {
+      "date": "2026-08-13",
+      "inst_ownership": 0.094969995,
       "insider_ownership": 0.00127
     }
   ],
@@ -559,6 +569,97 @@
       "date": "2026-08-13",
       "inst_ownership": 0.67946,
       "insider_ownership": 0.09474
+    }
+  ],
+  "NMAX": [
+    {
+      "date": "2026-08-13",
+      "inst_ownership": 0.64567,
+      "insider_ownership": 0.2195
+    }
+  ],
+  "GO": [
+    {
+      "date": "2026-08-13",
+      "inst_ownership": 1.15755,
+      "insider_ownership": 0.06131
+    }
+  ],
+  "ASMB": [
+    {
+      "date": "2026-08-13",
+      "inst_ownership": 0.55437,
+      "insider_ownership": 0.28415
+    }
+  ],
+  "COLL": [
+    {
+      "date": "2026-08-13",
+      "inst_ownership": 1.30647,
+      "insider_ownership": 0.0115
+    }
+  ],
+  "NNE": [
+    {
+      "date": "2026-08-13",
+      "inst_ownership": 0.47073,
+      "insider_ownership": 0.17512
+    }
+  ],
+  "IBTA": [
+    {
+      "date": "2026-08-13",
+      "inst_ownership": 0.51993,
+      "insider_ownership": 0.52209
+    }
+  ],
+  "GLOB": [
+    {
+      "date": "2026-08-13",
+      "inst_ownership": 1.13448,
+      "insider_ownership": 0.028239999
+    }
+  ],
+  "FFAI": [
+    {
+      "date": "2026-08-13",
+      "inst_ownership": 0.08975001,
+      "insider_ownership": 0.01732
+    }
+  ],
+  "UAMY": [
+    {
+      "date": "2026-08-13",
+      "inst_ownership": 0.65031,
+      "insider_ownership": 0.08582
+    }
+  ],
+  "GTM": [
+    {
+      "date": "2026-08-13",
+      "inst_ownership": 1.1007,
+      "insider_ownership": 0.12875
+    }
+  ],
+  "CABO": [
+    {
+      "date": "2026-08-13",
+      "inst_ownership": 0.9907,
+      "insider_ownership": 0.10439
+    }
+  ],
+  "XXI": [
+    {
+      "date": "2026-08-13",
+      "inst_ownership": 0.40276,
+      "insider_ownership": 0.63022
+    }
+  ],
+  "LVWR": [
+    {
+      "date": "2026-08-13",
+      "inst_ownership": 0.0199,
+      "insider_ownership": 0.9401
     }
   ]
 }

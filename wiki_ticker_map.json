@@ -71,6 +71,15 @@
     "substrate": "en",
     "reason": null
   },
+  "ASMB": {
+    "qid": null,
+    "title": null,
+    "resolved_at": "2026-08-13T22:06:25Z",
+    "issuer_verified": false,
+    "company_name_at_resolve": "Assembly Biosciences, Inc.",
+    "substrate": "none",
+    "reason": "no_p249"
+  },
   "AVXL": {
     "qid": null,
     "title": null,
@@ -158,6 +167,15 @@
     "resolved_at": "2026-08-12T22:06:09Z",
     "issuer_verified": false,
     "company_name_at_resolve": "Compass Therapeutics, Inc.",
+    "substrate": "none",
+    "reason": "no_p249"
+  },
+  "COLL": {
+    "qid": null,
+    "title": null,
+    "resolved_at": "2026-08-13T22:06:25Z",
+    "issuer_verified": false,
+    "company_name_at_resolve": "Collegium Pharmaceutical, Inc.",
     "substrate": "none",
     "reason": "no_p249"
   },
@@ -293,6 +311,15 @@
     "resolved_at": "2026-08-05T22:29:43Z",
     "issuer_verified": true,
     "company_name_at_resolve": "FuboTV Inc.",
+    "substrate": "en",
+    "reason": null
+  },
+  "GO": {
+    "qid": "Q5609934",
+    "title": "Grocery_Outlet",
+    "resolved_at": "2026-08-13T22:06:25Z",
+    "issuer_verified": true,
+    "company_name_at_resolve": "Grocery Outlet Holding Corp.",
     "substrate": "en",
     "reason": null
   },
@@ -466,6 +493,15 @@
     "company_name_at_resolve": "MapLight Therapeutics, Inc.",
     "substrate": "none",
     "reason": "no_p249"
+  },
+  "NMAX": {
+    "qid": "Q11991273",
+    "title": "Newsmax_Media",
+    "resolved_at": "2026-08-13T22:06:25Z",
+    "issuer_verified": true,
+    "company_name_at_resolve": "Newsmax, Inc.",
+    "substrate": "en",
+    "reason": null
   },
   "NNE": {
     "qid": null,
