@@ -1,0 +1,289 @@
+name: Diagnose NYSE Reg-SHO-Quelle Probe — löst die none-Lücke? (read-only)
+
+# Wegwerf-Probe (Muster #510/#515/#522). Anlass: der erste reg_sho_history-Lauf
+# zeigt 7 geprüft / 3 none, alle none = exchange NYQ, reason source_unresolved
+# (Teil-1-Auswertung read-only am Repo bestätigt: die Lücke ist zu 100 % NYSE,
+# nichts anderes — kein exchange_unknown/_not_covered/fetch_failed dabei).
+#
+# ZIEL: klären, ob eine NYSE-Threshold-Quelle wirklich existiert/erreichbar ist —
+# und wenn ja, in welchem Format. Die bekannte Übersichtsseite lieferte in
+# reg_sho_history.py bisher 0 extrahierte Links (schmaler Regex); diese Probe
+# loggt ALLE gefundenen Links UNGEFILTERT, prüft ob die Seite überhaupt HTML mit
+# Links liefert oder nur ein JS-Gerüst, und prüft NYSE/NYSE American (AMEX)/
+# NYSE Arca — je Markt eigene Datei oder eine gemeinsame, beides protokolliert.
+#
+# KEINE URL GERATEN (Lehre #496): nur die eine bekannte Übersichtsseite +
+# eine allgemeine Regulierungs-Übersicht sind Kandidaten-LANDING-PAGES (keine
+# Datei-Pfade); Markt-spezifische Sub-Links (American/Arca) werden NUR gefolgt,
+# wenn sie tatsächlich als href auf der Seite stehen — nicht konstruiert.
+#
+# HYGIENE: jeder Abruf in try/except; FETCH-FAIL (Exception/non-200) wird SEPARAT
+# von LEER (200, aber kein Link/keine Zeile) geloggt. sleep zwischen Abrufen.
+# none-Ticker kommen zur Laufzeit aus reg_sho_history.json (nichts hartkodiert).
+# Verdikt-Block am Ende, 4 Zeilen. UNBESTIMMT wo eine Frage offen bleibt.
+#
+# contents:read, workflow_dispatch-only, KEINE Secrets, KEIN Repo-Write.
+
+on:
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+
+    env:
+      OUT_DIR: ${{ github.workspace }}/nyse-regsho-out
+
+    steps:
+      - name: Checkout (contents:read — reg_sho_history.json für none-Ticker lesen)
+        uses: actions/checkout@v4
+
+      - name: Prepare output dir
+        run: mkdir -p "$OUT_DIR"
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Probe — NYSE-Reg-SHO-Quelle (read-only, stdlib only)
+        run: |
+          python - <<'PY'
+          import json, os, re, sys, time
+          from urllib.request import Request, urlopen
+          from urllib.error import HTTPError
+          from urllib.parse import urljoin
+
+          OUT = os.environ["OUT_DIR"]
+          # Wegwerf-Kontakt für eine einmalige Diagnose-Probe (kein Secret, .invalid
+          # per RFC 2606 reserviert → keine reale Adresse; analog #522-Entscheid).
+          UA = ("SqueezeReportProbe/1.0 (read-only research; "
+                "throwaway contact squeeze-report-diagnose-probe@example.invalid) "
+                "Mozilla/5.0")
+
+          def log(m): print(m, flush=True)
+
+          def fetch(url, *, timeout=25):
+              """(status:int|None, body:str|None, error:str|None).
+              FETCH-FAIL := error gesetzt (Exception/HTTPError). Getrennt von LEER
+              (status 200, aber kein verwertbarer Inhalt — das prüft der Caller)."""
+              req = Request(url, headers={"User-Agent": UA, "Accept": "*/*"})
+              try:
+                  with urlopen(req, timeout=timeout) as r:
+                      raw = r.read()
+                      st = getattr(r, "status", r.getcode())
+                      return st, raw.decode("utf-8", "replace"), None
+              except HTTPError as e:
+                  return e.code, None, f"HTTPError {e.code}"
+              except Exception as e:
+                  return None, None, f"{type(e).__name__}: {e}"
+
+          def all_hrefs(html):
+              """ALLE href-Links, UNGEFILTERT (Lehre: nicht bestätigen was wir
+              vermuten, sondern zeigen was da ist)."""
+              if not html:
+                  return []
+              return re.findall(r'href=["\']([^"\']+)["\']', html, re.I)
+
+          def looks_like_file(href):
+              return bool(re.search(r'\.(txt|csv|zip|xlsx?|pdf)(\?|$)', href, re.I))
+
+          def looks_market_specific(href):
+              return bool(re.search(r'american|amex|arca|nyse[-_]?american|nyse[-_]?arca',
+                                    href, re.I))
+
+          def looks_threshold(href):
+              return bool(re.search(r'threshold|regsho|reg-sho|reg_sho', href, re.I))
+
+          def js_shell_indicators(html):
+              """Grobe Heuristik: ist die Seite serverseitig gerendertes HTML mit
+              Inhalt, oder v.a. ein JS-Gerüst? Zählt Marker, kein hartes Urteil."""
+              if not html:
+                  return {}
+              return {
+                  "len_bytes": len(html.encode("utf-8", "replace")),
+                  "n_a_tags": len(re.findall(r'<a\b', html, re.I)),
+                  "n_script_tags": len(re.findall(r'<script\b', html, re.I)),
+                  "has_next_root": '"__next"' in html or "id=\"__next\"" in html,
+                  "has_react_root": 'id="root"' in html,
+                  "has_noscript": "<noscript" in html.lower(),
+              }
+
+          # ── none-Ticker zur Laufzeit aus reg_sho_history.json (nichts hartkodiert) ─
+          none_tickers = {}  # ticker -> {exchange, reason, date}
+          try:
+              hist = json.load(open("reg_sho_history.json", encoding="utf-8"))
+              newest = {}
+              for tk, pts in hist.items():
+                  for p in pts:
+                      if not isinstance(p, dict):
+                          continue
+                      d = p.get("date")
+                      if d and (tk not in newest or d > newest[tk].get("date", "")):
+                          newest[tk] = p
+              for tk, p in newest.items():
+                  if p.get("restricted") is None:
+                      none_tickers[tk] = {"exchange": p.get("exchange"),
+                                          "reason": p.get("reason"), "date": p.get("date")}
+          except Exception as e:
+              log(f"WARN: reg_sho_history.json nicht lesbar: {e}")
+          log(f"### none-Ticker (Laufzeit, aus reg_sho_history.json): {len(none_tickers)}")
+          for tk, info in sorted(none_tickers.items()):
+              log(f"    {tk}: {info}")
+          log("=" * 70)
+
+          # ── Kandidaten-ÜBERSICHTSSEITEN (bestes Wissen, keine Datei-Pfade geraten) ─
+          overviews = [
+              ("NYSE Threshold (bekannt, seit reg_sho_history.py)",
+               "https://www.nyse.com/regulation/threshold-securities"),
+              ("NYSE Regulation (allgemeine Übersicht, evtl. Sub-Links)",
+               "https://www.nyse.com/regulation"),
+          ]
+
+          discovered_market_links = []  # (label, url) — aus href gefolgt, nicht geraten
+          discovered_file_links = []
+          n_fetchfail = 0
+          n_leer = 0
+
+          def probe_page(label, url):
+              global n_fetchfail, n_leer
+              st, html, err = fetch(url)
+              if err:
+                  log(f"[ÜBERSICHT] {label} FETCH-FAIL: {url} → {err}")
+                  n_fetchfail += 1
+                  return None
+              if st != 200 or not html:
+                  log(f"[ÜBERSICHT] {label} HTTP {st} (nicht 200/leer): {url}")
+                  n_fetchfail += 1
+                  return None
+              hrefs = all_hrefs(html)
+              shell = js_shell_indicators(html)
+              log(f"[ÜBERSICHT] {label} HTTP 200: {url}")
+              log(f"            Bytes={shell.get('len_bytes')} <a>-Tags={shell.get('n_a_tags')} "
+                  f"<script>-Tags={shell.get('n_script_tags')} "
+                  f"React-Root={shell.get('has_react_root')} Next-Root={shell.get('has_next_root')} "
+                  f"<noscript>={shell.get('has_noscript')}")
+              log(f"            ALLE hrefs UNGEFILTERT: {len(hrefs)}")
+              for h in hrefs[:60]:
+                  log(f"              {h}")
+              if len(hrefs) > 60:
+                  log(f"              … +{len(hrefs)-60} weitere (gekürzt)")
+              if not hrefs:
+                  log(f"[ÜBERSICHT] {label} → LEER (HTTP 200, 0 hrefs — evtl. JS-Gerüst)")
+                  n_leer += 1
+              for h in hrefs:
+                  full = h if h.startswith("http") else urljoin(url, h)
+                  if looks_like_file(h) and looks_threshold(h):
+                      log(f"            → THRESHOLD-DATEI-KANDIDAT: {full}")
+                      discovered_file_links.append((label, full))
+                  elif looks_market_specific(h):
+                      log(f"            → MARKT-SPEZIFISCHER LINK (American/Arca/Amex): {full}")
+                      discovered_market_links.append((f"{label} (marktspezifisch)", full))
+                  elif looks_like_file(h):
+                      log(f"            → sonstiger Datei-Link: {full}")
+              return html
+
+          for label, url in overviews:
+              probe_page(label, url)
+              time.sleep(1.5)
+
+          # Marktspezifische Links (American/Arca), falls auf einer Übersicht GEFUNDEN
+          # (nicht konstruiert) — jede davon selbst als Übersicht behandeln.
+          for label, url in discovered_market_links[:5]:
+              log(f"[MARKT-SEITE] Folge entdecktem Link: {label} → {url}")
+              probe_page(label, url)
+              time.sleep(1.5)
+
+          # ── Gefundene Datei-Kandidaten laden + Format prüfen + Trefferquote ────────
+          # ALLE gefundenen Datei-Kandidaten werden geladen (nicht nur der letzte) —
+          # der Verdikt-Block wählt danach den mit der HÖCHSTEN Trefferquote, nicht
+          # "zuletzt gefunden" (Guardian-Finding: sonst könnte ein besserer früherer
+          # Treffer im 4-Zeilen-Verdikt verschwinden, obwohl er im Log steht).
+          file_results = []  # [(url, header, n_rows, hits), ...]
+          for label, furl in discovered_file_links:
+              st, body, err = fetch(furl)
+              if err:
+                  log(f"[DATEI] FETCH-FAIL: {furl} → {err}")
+                  n_fetchfail += 1
+                  continue
+              if st != 200 or not body:
+                  log(f"[DATEI] HTTP {st}/leer: {furl}")
+                  n_fetchfail += 1
+                  continue
+              lines = [l for l in body.splitlines() if l.strip()]
+              if not lines:
+                  log(f"[DATEI] LEER: HTTP 200, 0 Zeilen — {furl}")
+                  n_leer += 1
+                  continue
+              header = lines[0]
+              date_hits = [l for l in lines if re.search(
+                  r'creation date|as of|\d{2}/\d{2}/\d{4}|\d{8}', l, re.I)][:3]
+              sep = "|" if "|" in header else ("," if "," in header else None)
+              syms = set()
+              for l in lines[1:]:
+                  first = (l.split(sep)[0] if sep else l.split()[0]).strip().upper()
+                  if first and first.isalpha():
+                      syms.add(first)
+              hits = sorted(set(none_tickers) & syms)
+              log(f"[DATEI] OK: {furl}")
+              log(f"        HTTP 200 · {len(lines)} Zeilen · {len(syms)} Symbole")
+              log(f"        Spaltenkopf (wörtlich): {header!r}")
+              log(f"        Datums-Indikatoren: {date_hits}")
+              log(f"        TREFFERQUOTE gegen none-Ticker: {len(hits)}/{len(none_tickers)} "
+                  f"→ {hits}")
+              file_results.append((furl, header, len(lines) - 1, hits))
+              time.sleep(1.0)
+
+          file_result = max(file_results, key=lambda r: len(r[3])) if file_results else None
+          if len(file_results) > 1:
+              log(f"[DATEI] {len(file_results)} Datei-Kandidaten geladen — Verdikt zeigt "
+                  f"den mit der höchsten Trefferquote (alle stehen oben im Log).")
+
+          # ── Verdikt-Block (4 Zeilen, kopierbar) ─────────────────────────────────
+          log("\n" + "=" * 70)
+          log("VERDIKT-BLOCK (kopierbar):")
+          if file_result:
+              furl, header, n_rows, hits = file_result
+              log(f"1) Quelle gefunden: JA — {furl}")
+              log(f"2) Format: HTTP 200 · {n_rows} Zeilen · Spaltenkopf {header!r}")
+              log(f"3) Trefferquote gegen none-Ticker: {len(hits)}/{len(none_tickers)} → {hits}")
+              if len(hits) > 0:
+                  log("4) Konsequenz: NYSE-Quelle nutzbar — reg_sho_history.py "
+                      "_NYSE_OVERVIEWS/_NYSE_FILE_RE auf diesen Fund anpassen.")
+              else:
+                  log("4) Konsequenz: Datei gefunden, aber 0 Treffer gegen die aktuellen "
+                      "none-Ticker — UNBESTIMMT ob Format/Scope passt, vor Umbau prüfen.")
+          else:
+              log("1) Quelle gefunden: NEIN (keine ladbare Threshold-Datei entdeckt)")
+              log(f"2) Format: UNBESTIMMT — {n_fetchfail} Fetch-Fails, {n_leer} Leerbefunde "
+                  f"über {len(overviews) + len(discovered_market_links)} Übersichten")
+              log(f"3) Trefferquote: 0/{len(none_tickers)} (keine Datei zum Prüfen)")
+              log("4) Konsequenz: NYSE-Lücke bleibt bestehen (none, nie false — Konstruktion "
+                  "hält). Kein Umbau ohne echten Fund. Ggf. Wiedervorlage nach NYSE-"
+                  "Seiten-Redesign oder alternative Quelle (Cboe/FINRA-Aggregat?) prüfen.")
+
+          # ── Artefakt ─────────────────────────────────────────────────────────────
+          try:
+              with open(os.path.join(OUT, "probe_summary.json"), "w") as fh:
+                  json.dump({
+                      "none_tickers": none_tickers,
+                      "n_fetchfail": n_fetchfail, "n_leer": n_leer,
+                      "discovered_file_links": discovered_file_links,
+                      "discovered_market_links": discovered_market_links,
+                      "file_result": file_result,
+                  }, fh, indent=2, default=str)
+          except Exception:
+              pass
+          PY
+
+      - name: Upload output als Artefakt
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: nyse-regsho-probe
+          path: ${{ env.OUT_DIR }}
+          if-no-files-found: warn
