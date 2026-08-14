@@ -1,17 +1,17 @@
 {
-  "updated": "2026-08-14T01:59:02.844845+02:00",
+  "updated": "2026-08-14T04:46:38.673956+02:00",
   "run_info": {
     "tickers_checked": 13,
-    "signals_active": 2,
+    "signals_active": 3,
     "alerts_sent": 0,
-    "elapsed_s": 22.7,
-    "market_phase": "After-Hours"
+    "elapsed_s": 20.9,
+    "market_phase": "Geschlossen"
   },
   "signals": {
     "AMC": {
       "score": 20,
       "confidence": 33,
-      "drivers": "Spanne 6.0% + UOA Call/Put 2.1×",
+      "drivers": "Spanne 5.6% + UOA Call/Put 2.1×",
       "price": 2.63,
       "chg_pct": 0.0,
       "rvol_4d": 1.3,
@@ -99,9 +99,9 @@
       "uoa_cp_ratio": 3.25
     },
     "GO": {
-      "score": 55,
+      "score": 43,
       "confidence": 70,
-      "drivers": "Volumen 2.1× + Spanne 9.1% + News: earnings beat + UOA Call/Put 7.8×",
+      "drivers": "Volumen 2.1× + Spanne 9.1% + News-KI 8/30: Positive earnings and guidance raise investor confidence, but strong fundamentals and analyst upgrades typically reduce  + UOA Call/Put 7.8×",
       "price": 10.8,
       "chg_pct": 0.0,
       "rvol_4d": 2.06,
@@ -111,9 +111,9 @@
       "upcoming_event": null,
       "insider_buy": false,
       "stocktwits": null,
-      "combo_mult": 1.1,
-      "active_triggers": 2,
-      "ki_sentiment_source": "keyword",
+      "combo_mult": 1.0,
+      "active_triggers": 1,
+      "ki_sentiment_source": "llm",
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 7.8×"
@@ -128,7 +128,7 @@
       "price": 38.18,
       "chg_pct": 0.0,
       "rvol_4d": 0.85,
-      "rvol_20d": 0.97,
+      "rvol_20d": 0.93,
       "earnings": null,
       "fda_date": null,
       "upcoming_event": null,
@@ -145,11 +145,11 @@
     "INHD": {
       "score": 61,
       "confidence": 70,
-      "drivers": "Volumen 2.4× + Spanne 126.6% + News: short interest, partnership",
+      "drivers": "Volumen 2.4× + Spanne 126.6% + News: halt, short interest",
       "price": 10.84,
       "chg_pct": 0.0,
       "rvol_4d": 2.39,
-      "rvol_20d": 4.87,
+      "rvol_20d": 4.43,
       "earnings": null,
       "fda_date": null,
       "upcoming_event": null,
@@ -164,9 +164,9 @@
       "uoa_cp_ratio": null
     },
     "IONQ": {
-      "score": 38,
+      "score": 45,
       "confidence": 70,
-      "drivers": "Spanne 7.2% + News-KI 8/30: Positive earnings sentiment but lacks short squeeze indicators like high short interest, borrow fees, or squeeze catalys + SEC Form 4 + UOA Call/Put 3.7×",
+      "drivers": "Spanne 7.2% + News: earnings beat + SEC Form 4 + UOA Call/Put 3.7×",
       "price": 44.98,
       "chg_pct": -0.0,
       "rvol_4d": 0.85,
@@ -177,8 +177,8 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 0,
-      "ki_sentiment_source": "llm",
+      "active_triggers": 1,
+      "ki_sentiment_source": "keyword",
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 3.7×"
@@ -187,12 +187,12 @@
       "uoa_cp_ratio": 3.720887245841035
     },
     "KUST": {
-      "score": 100,
+      "score": 94,
       "confidence": 70,
-      "drivers": "Volumen 5.0× + ⚡ Extremes Volumen 5.0×+ + Spanne 42.5% + News: contract, acquisition + FINRA Short-Vol 71%",
+      "drivers": "Volumen 4.9× + ⚡ Extremes Volumen 4.9×+ + Spanne 42.5% + News: contract + FINRA Short-Vol 71%",
       "price": 1.37,
       "chg_pct": 0.0,
-      "rvol_4d": 4.96,
+      "rvol_4d": 4.94,
       "rvol_20d": 0.39,
       "earnings": null,
       "fda_date": null,
@@ -208,9 +208,9 @@
       "uoa_cp_ratio": null
     },
     "NMAX": {
-      "score": 61,
+      "score": 78,
       "confidence": 70,
-      "drivers": "Earnings in 0 Tagen (13.08.2026) + Volumen 2.8× + Spanne 7.7% + News-KI 5/30: Standard earnings announcements lack short-squeeze catalysts; no mention of high short interest, stock manipulation, or  + Earnings in 0d",
+      "drivers": "Earnings in 0 Tagen (13.08.2026) + Volumen 2.8× + Spanne 7.7% + News: earnings beat + Earnings in 0d + 3/4 Trigger",
       "price": 9.49,
       "chg_pct": -0.0,
       "rvol_4d": 2.79,
@@ -220,9 +220,9 @@
       "upcoming_event": "Earnings in 0 Tagen (13.08.2026)",
       "insider_buy": false,
       "stocktwits": null,
-      "combo_mult": 1.1,
-      "active_triggers": 2,
-      "ki_sentiment_source": "llm",
+      "combo_mult": 1.2,
+      "active_triggers": 3,
+      "ki_sentiment_source": "keyword",
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": 0.3516339869281046,
@@ -231,7 +231,7 @@
     "NNE": {
       "score": 55,
       "confidence": 70,
-      "drivers": "Volumen 1.7× + Spanne 7.7% + News: earnings beat, takeover",
+      "drivers": "Volumen 1.7× + Spanne 7.7% + News: acquisition, takeover",
       "price": 20.52,
       "chg_pct": 0.0,
       "rvol_4d": 1.69,
@@ -252,7 +252,7 @@
     "PDYN": {
       "score": 40,
       "confidence": 17,
-      "drivers": "News: partnership, contract + UOA Call/Put 3.0×",
+      "drivers": "News: contract, partnership + UOA Call/Put 3.0×",
       "price": 6.29,
       "chg_pct": -0.0,
       "rvol_4d": 0.98,
