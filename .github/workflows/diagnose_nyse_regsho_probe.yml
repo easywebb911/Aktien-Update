@@ -199,7 +199,11 @@ jobs:
               time.sleep(1.5)
 
           # ── Gefundene Datei-Kandidaten laden + Format prüfen + Trefferquote ────────
-          file_result = None  # (url, header, n_rows, hits)
+          # ALLE gefundenen Datei-Kandidaten werden geladen (nicht nur der letzte) —
+          # der Verdikt-Block wählt danach den mit der HÖCHSTEN Trefferquote, nicht
+          # "zuletzt gefunden" (Guardian-Finding: sonst könnte ein besserer früherer
+          # Treffer im 4-Zeilen-Verdikt verschwinden, obwohl er im Log steht).
+          file_results = []  # [(url, header, n_rows, hits), ...]
           for label, furl in discovered_file_links:
               st, body, err = fetch(furl)
               if err:
@@ -231,8 +235,13 @@ jobs:
               log(f"        Datums-Indikatoren: {date_hits}")
               log(f"        TREFFERQUOTE gegen none-Ticker: {len(hits)}/{len(none_tickers)} "
                   f"→ {hits}")
-              file_result = (furl, header, len(lines) - 1, hits)
+              file_results.append((furl, header, len(lines) - 1, hits))
               time.sleep(1.0)
+
+          file_result = max(file_results, key=lambda r: len(r[3])) if file_results else None
+          if len(file_results) > 1:
+              log(f"[DATEI] {len(file_results)} Datei-Kandidaten geladen — Verdikt zeigt "
+                  f"den mit der höchsten Trefferquote (alle stehen oben im Log).")
 
           # ── Verdikt-Block (4 Zeilen, kopierbar) ─────────────────────────────────
           log("\n" + "=" * 70)
