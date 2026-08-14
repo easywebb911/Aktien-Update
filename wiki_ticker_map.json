@@ -8,6 +8,15 @@
     "substrate": "none",
     "reason": "no_p249"
   },
+  "ABX": {
+    "qid": null,
+    "title": null,
+    "resolved_at": "2026-08-14T21:43:40Z",
+    "issuer_verified": false,
+    "company_name_at_resolve": "Abacus Global Management, Inc.",
+    "substrate": "none",
+    "reason": "no_p249"
+  },
   "AI": {
     "qid": "Q104081972",
     "title": "C3_AI",
@@ -134,6 +143,15 @@
     "substrate": "en",
     "reason": null
   },
+  "CAPR": {
+    "qid": null,
+    "title": null,
+    "resolved_at": "2026-08-14T21:43:40Z",
+    "issuer_verified": false,
+    "company_name_at_resolve": "Capricor Therapeutics, Inc.",
+    "substrate": "none",
+    "reason": "no_p249"
+  },
   "CBRL": {
     "qid": "Q4492609",
     "title": "Cracker_Barrel",
@@ -223,6 +241,15 @@
     "company_name_at_resolve": "Dream Finders Homes, Inc.",
     "substrate": "none",
     "reason": "no_p249"
+  },
+  "DMRC": {
+    "qid": "Q5275736",
+    "title": "Digimarc",
+    "resolved_at": "2026-08-14T21:43:40Z",
+    "issuer_verified": true,
+    "company_name_at_resolve": "Digimarc Corporation",
+    "substrate": "en",
+    "reason": null
   },
   "DXC": {
     "qid": "Q28782856",
@@ -674,12 +701,30 @@
     "substrate": "en",
     "reason": null
   },
+  "SPCE": {
+    "qid": "Q373225",
+    "title": "Virgin_Galactic",
+    "resolved_at": "2026-08-14T21:43:40Z",
+    "issuer_verified": true,
+    "company_name_at_resolve": "Virgin Galactic Holdings, Inc.",
+    "substrate": "en",
+    "reason": null
+  },
   "SPRY": {
     "qid": null,
     "title": null,
     "resolved_at": "2026-07-29T22:16:00Z",
     "issuer_verified": false,
     "company_name_at_resolve": "ARS Pharmaceuticals, Inc.",
+    "substrate": "none",
+    "reason": "no_p249"
+  },
+  "STKH": {
+    "qid": null,
+    "title": null,
+    "resolved_at": "2026-08-14T21:43:40Z",
+    "issuer_verified": false,
+    "company_name_at_resolve": "Steakholder Foods Ltd.",
     "substrate": "none",
     "reason": "no_p249"
   },
