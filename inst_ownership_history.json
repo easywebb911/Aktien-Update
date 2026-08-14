@@ -604,6 +604,11 @@
       "date": "2026-08-13",
       "inst_ownership": 0.47073,
       "insider_ownership": 0.17512
+    },
+    {
+      "date": "2026-08-14",
+      "inst_ownership": 0.46787,
+      "insider_ownership": 0.17512
     }
   ],
   "IBTA": [
@@ -632,6 +637,11 @@
       "date": "2026-08-13",
       "inst_ownership": 0.65031,
       "insider_ownership": 0.08582
+    },
+    {
+      "date": "2026-08-14",
+      "inst_ownership": 0.65690005,
+      "insider_ownership": 0.08497
     }
   ],
   "GTM": [
@@ -653,6 +663,11 @@
       "date": "2026-08-13",
       "inst_ownership": 0.40276,
       "insider_ownership": 0.63022
+    },
+    {
+      "date": "2026-08-14",
+      "inst_ownership": 0.40297002,
+      "insider_ownership": 0.63053
     }
   ],
   "LVWR": [
