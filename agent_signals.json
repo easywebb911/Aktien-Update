@@ -1,11 +1,11 @@
 {
-  "updated": "2026-08-14T09:52:27.037094+02:00",
+  "updated": "2026-08-14T10:37:41.750550+02:00",
   "run_info": {
     "tickers_checked": 14,
     "signals_active": 2,
     "alerts_sent": 0,
-    "elapsed_s": 12.7,
-    "market_phase": "Geschlossen"
+    "elapsed_s": 14.7,
+    "market_phase": "Pre-Market"
   },
   "signals": {
     "AMC": {
@@ -53,9 +53,9 @@
       "uoa_cp_ratio": 0.6052631578947368
     },
     "ASMB": {
-      "score": 82,
+      "score": 91,
       "confidence": 70,
-      "drivers": "Volumen 5.3× + 🚀 Massives Volumen 5.3×+ + Spanne 13.4% + SEC 8-K + UOA Call/Put 71.3×",
+      "drivers": "Volumen 5.3× + 🚀 Massives Volumen 5.3×+ + Spanne 13.4% + SEC 8-K + News-KI 8/30: Positive fundamentals (funding secured, earnings beats) reduce short-squeeze potential as they stabilize the stock rathe + UOA Call/Put 71.3×",
       "price": 29.95,
       "chg_pct": 0.0,
       "rvol_4d": 5.28,
@@ -67,7 +67,7 @@
       "stocktwits": null,
       "combo_mult": 1.1,
       "active_triggers": 2,
-      "ki_sentiment_source": "keyword",
+      "ki_sentiment_source": "llm",
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 71.3×"
@@ -78,7 +78,7 @@
     "COLL": {
       "score": 47,
       "confidence": 33,
-      "drivers": "Spanne 7.5% + SEC 8-K + News-KI 12/30: Moderate short interest with share buyback support, but pain business headwinds and guidance concerns limit squeeze pote + UOA Call/Put 3.2×",
+      "drivers": "Spanne 7.5% + SEC 8-K + News-KI 12/30: Moderate short squeeze potential with share buyback supporting price, but earnings headwinds and business challenges lim + UOA Call/Put 3.2×",
       "price": 28.15,
       "chg_pct": -0.0,
       "rvol_4d": 1.2,
@@ -99,9 +99,9 @@
       "uoa_cp_ratio": 3.25
     },
     "GLOB": {
-      "score": 41,
-      "confidence": 70,
-      "drivers": "Volumen 2.6× + Spanne 8.7% + News-KI 12/30: Positive AI growth narrative undermined by earnings miss; no short squeeze indicators like high short interest, gap down",
+      "score": 25,
+      "confidence": 33,
+      "drivers": "Volumen 2.6× + Spanne 8.7%",
       "price": 40.99,
       "chg_pct": 0.0,
       "rvol_4d": 2.57,
@@ -111,18 +111,18 @@
       "upcoming_event": null,
       "insider_buy": false,
       "stocktwits": null,
-      "combo_mult": 1.1,
-      "active_triggers": 2,
-      "ki_sentiment_source": "llm",
+      "combo_mult": 1.0,
+      "active_triggers": 1,
+      "ki_sentiment_source": "keyword",
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": null,
       "uoa_cp_ratio": 1.2841810545963603
     },
     "GO": {
-      "score": 55,
+      "score": 52,
       "confidence": 70,
-      "drivers": "Volumen 2.1× + Spanne 9.2% + News: earnings beat + UOA Call/Put 7.7×",
+      "drivers": "Volumen 2.1× + Spanne 9.2% + News-KI 12/30: Positive earnings fundamentals reduce short-squeeze potential; stock gains from operational success rather than forced c + UOA Call/Put 7.7×",
       "price": 10.8,
       "chg_pct": 0.0,
       "rvol_4d": 2.12,
@@ -134,7 +134,7 @@
       "stocktwits": null,
       "combo_mult": 1.1,
       "active_triggers": 2,
-      "ki_sentiment_source": "keyword",
+      "ki_sentiment_source": "llm",
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 7.7×"
@@ -166,7 +166,7 @@
     "INHD": {
       "score": 61,
       "confidence": 70,
-      "drivers": "Volumen 2.5× + Spanne 126.6% + News: partnership, halt",
+      "drivers": "Volumen 2.5× + Spanne 126.6% + News: short interest, partnership",
       "price": 10.84,
       "chg_pct": 0.0,
       "rvol_4d": 2.45,
@@ -208,9 +208,9 @@
       "uoa_cp_ratio": 3.720887245841035
     },
     "KUST": {
-      "score": 100,
+      "score": 83,
       "confidence": 70,
-      "drivers": "Volumen 5.4× + 🚀 Massives Volumen 5.4×+ + Spanne 42.5% + News: contract, acquisition + FINRA Short-Vol 71%",
+      "drivers": "Volumen 5.4× + 🚀 Massives Volumen 5.4×+ + Spanne 42.5% + News-KI 8/30: Asset divestiture and business pivot are positive but lack the short squeeze catalysts of extreme short interest, low fl + FINRA Short-Vol 71%",
       "price": 1.37,
       "chg_pct": 0.0,
       "rvol_4d": 5.39,
@@ -220,9 +220,9 @@
       "upcoming_event": null,
       "insider_buy": false,
       "stocktwits": null,
-      "combo_mult": 1.1,
-      "active_triggers": 2,
-      "ki_sentiment_source": "keyword",
+      "combo_mult": 1.0,
+      "active_triggers": 1,
+      "ki_sentiment_source": "llm",
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": null,
@@ -271,9 +271,9 @@
       "uoa_cp_ratio": 1.9469442578912022
     },
     "PDYN": {
-      "score": 18,
+      "score": 25,
       "confidence": 17,
-      "drivers": "News-KI 8/30: Positive earnings and leadership appointments indicate company growth, but lack short squeeze fundamentals like high sho + UOA Call/Put 3.0×",
+      "drivers": "News: contract + UOA Call/Put 3.0×",
       "price": 6.29,
       "chg_pct": -0.0,
       "rvol_4d": 0.99,
@@ -284,8 +284,8 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 0,
-      "ki_sentiment_source": "llm",
+      "active_triggers": 1,
+      "ki_sentiment_source": "keyword",
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 3.0×"
