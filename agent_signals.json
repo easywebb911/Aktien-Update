@@ -1,10 +1,10 @@
 {
-  "updated": "2026-08-14T10:37:41.750550+02:00",
+  "updated": "2026-08-14T12:16:44.103221+02:00",
   "run_info": {
     "tickers_checked": 14,
     "signals_active": 2,
     "alerts_sent": 0,
-    "elapsed_s": 14.7,
+    "elapsed_s": 20.9,
     "market_phase": "Pre-Market"
   },
   "signals": {
@@ -37,8 +37,8 @@
       "drivers": "Spanne 8.6% + FINRA Short-Vol 83%",
       "price": 7.86,
       "chg_pct": 0.0,
-      "rvol_4d": 0.74,
-      "rvol_20d": 1.11,
+      "rvol_4d": 0.64,
+      "rvol_20d": 1.08,
       "earnings": null,
       "fda_date": null,
       "upcoming_event": null,
@@ -53,9 +53,9 @@
       "uoa_cp_ratio": 0.6052631578947368
     },
     "ASMB": {
-      "score": 91,
+      "score": 82,
       "confidence": 70,
-      "drivers": "Volumen 5.3× + 🚀 Massives Volumen 5.3×+ + Spanne 13.4% + SEC 8-K + News-KI 8/30: Positive fundamentals (funding secured, earnings beats) reduce short-squeeze potential as they stabilize the stock rathe + UOA Call/Put 71.3×",
+      "drivers": "Volumen 5.3× + 🚀 Massives Volumen 5.3×+ + Spanne 13.4% + SEC 8-K + UOA Call/Put 71.3×",
       "price": 29.95,
       "chg_pct": 0.0,
       "rvol_4d": 5.28,
@@ -67,7 +67,7 @@
       "stocktwits": null,
       "combo_mult": 1.1,
       "active_triggers": 2,
-      "ki_sentiment_source": "llm",
+      "ki_sentiment_source": "keyword",
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 71.3×"
@@ -76,13 +76,13 @@
       "uoa_cp_ratio": 71.33333333333333
     },
     "COLL": {
-      "score": 47,
+      "score": 50,
       "confidence": 33,
-      "drivers": "Spanne 7.5% + SEC 8-K + News-KI 12/30: Moderate short squeeze potential with share buyback supporting price, but earnings headwinds and business challenges lim + UOA Call/Put 3.2×",
+      "drivers": "Spanne 7.5% + SEC 8-K + News: squeeze + UOA Call/Put 3.2×",
       "price": 28.15,
       "chg_pct": -0.0,
-      "rvol_4d": 1.2,
-      "rvol_20d": 2.95,
+      "rvol_4d": 1.44,
+      "rvol_20d": 2.76,
       "earnings": "in 83 Tagen (05.11.2026)",
       "fda_date": null,
       "upcoming_event": null,
@@ -90,7 +90,7 @@
       "stocktwits": null,
       "combo_mult": 1.0,
       "active_triggers": 1,
-      "ki_sentiment_source": "llm",
+      "ki_sentiment_source": "keyword",
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 3.2×"
@@ -104,8 +104,8 @@
       "drivers": "Volumen 2.6× + Spanne 8.7%",
       "price": 40.99,
       "chg_pct": 0.0,
-      "rvol_4d": 2.57,
-      "rvol_20d": 2.46,
+      "rvol_4d": 2.63,
+      "rvol_20d": 2.44,
       "earnings": null,
       "fda_date": null,
       "upcoming_event": null,
@@ -120,13 +120,13 @@
       "uoa_cp_ratio": 1.2841810545963603
     },
     "GO": {
-      "score": 52,
+      "score": 55,
       "confidence": 70,
-      "drivers": "Volumen 2.1× + Spanne 9.2% + News-KI 12/30: Positive earnings fundamentals reduce short-squeeze potential; stock gains from operational success rather than forced c + UOA Call/Put 7.7×",
+      "drivers": "Volumen 2.1× + Spanne 9.2% + News: earnings beat + UOA Call/Put 7.8×",
       "price": 10.8,
       "chg_pct": 0.0,
-      "rvol_4d": 2.12,
-      "rvol_20d": 2.75,
+      "rvol_4d": 2.08,
+      "rvol_20d": 2.74,
       "earnings": "in 81 Tagen (03.11.2026)",
       "fda_date": null,
       "upcoming_event": null,
@@ -134,13 +134,13 @@
       "stocktwits": null,
       "combo_mult": 1.1,
       "active_triggers": 2,
-      "ki_sentiment_source": "llm",
+      "ki_sentiment_source": "keyword",
       "uoa_score": 10,
       "uoa_drivers": [
-        "UOA Call/Put 7.7×"
+        "UOA Call/Put 7.8×"
       ],
       "uoa_atm_ratio": null,
-      "uoa_cp_ratio": 7.65
+      "uoa_cp_ratio": 7.85
     },
     "IBTA": {
       "score": 65,
@@ -148,8 +148,8 @@
       "drivers": "Spanne 6.6% + News: partnership, earnings beat + FINRA Short-Vol 91%",
       "price": 38.18,
       "chg_pct": 0.0,
-      "rvol_4d": 0.78,
-      "rvol_20d": 1.09,
+      "rvol_4d": 0.97,
+      "rvol_20d": 1.06,
       "earnings": null,
       "fda_date": null,
       "upcoming_event": null,
@@ -164,9 +164,9 @@
       "uoa_cp_ratio": 1.8229665071770336
     },
     "INHD": {
-      "score": 61,
+      "score": 33,
       "confidence": 70,
-      "drivers": "Volumen 2.5× + Spanne 126.6% + News: short interest, partnership",
+      "drivers": "Volumen 2.5× + Spanne 126.6% + News-KI 8/30: Reverse split and ATM offering dilute shares and signal financial distress, while trading resumption is neutral; weak sh",
       "price": 10.84,
       "chg_pct": 0.0,
       "rvol_4d": 2.45,
@@ -176,18 +176,18 @@
       "upcoming_event": null,
       "insider_buy": false,
       "stocktwits": null,
-      "combo_mult": 1.1,
-      "active_triggers": 2,
-      "ki_sentiment_source": "keyword",
+      "combo_mult": 1.0,
+      "active_triggers": 1,
+      "ki_sentiment_source": "llm",
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": null,
       "uoa_cp_ratio": null
     },
     "IONQ": {
-      "score": 45,
-      "confidence": 70,
-      "drivers": "Spanne 7.2% + News: earnings beat + SEC Form 4 + UOA Call/Put 3.7×",
+      "score": 35,
+      "confidence": 33,
+      "drivers": "Spanne 7.2% + News: earnings beat + UOA Call/Put 3.7×",
       "price": 44.98,
       "chg_pct": -0.0,
       "rvol_4d": 0.94,
@@ -208,9 +208,9 @@
       "uoa_cp_ratio": 3.720887245841035
     },
     "KUST": {
-      "score": 83,
+      "score": 99,
       "confidence": 70,
-      "drivers": "Volumen 5.4× + 🚀 Massives Volumen 5.4×+ + Spanne 42.5% + News-KI 8/30: Asset divestiture and business pivot are positive but lack the short squeeze catalysts of extreme short interest, low fl + FINRA Short-Vol 71%",
+      "drivers": "Volumen 5.4× + 🚀 Massives Volumen 5.4×+ + Spanne 42.5% + News: contract + FINRA Short-Vol 71%",
       "price": 1.37,
       "chg_pct": 0.0,
       "rvol_4d": 5.39,
@@ -220,9 +220,9 @@
       "upcoming_event": null,
       "insider_buy": false,
       "stocktwits": null,
-      "combo_mult": 1.0,
-      "active_triggers": 1,
-      "ki_sentiment_source": "llm",
+      "combo_mult": 1.1,
+      "active_triggers": 2,
+      "ki_sentiment_source": "keyword",
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": null,
@@ -271,9 +271,9 @@
       "uoa_cp_ratio": 1.9469442578912022
     },
     "PDYN": {
-      "score": 25,
+      "score": 40,
       "confidence": 17,
-      "drivers": "News: contract + UOA Call/Put 3.0×",
+      "drivers": "News: partnership, contract + UOA Call/Put 3.0×",
       "price": 6.29,
       "chg_pct": -0.0,
       "rvol_4d": 0.99,
