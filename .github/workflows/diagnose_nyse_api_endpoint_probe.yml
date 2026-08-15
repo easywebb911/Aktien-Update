@@ -1,0 +1,322 @@
+name: Diagnose NYSE API-Endpunkt Probe — market-Werte + Archiv? (read-only)
+
+# Wegwerf-Probe, Folge-Probe zu #527 (Muster #510/#515/#522). Der vorige Lauf
+# (Probe „NYSE Reg-SHO-Quelle") fand in der EIGENEN ungefilterten href-Liste der
+# Threshold-Übersichtsseite den echten Download-Endpunkt (JS-gerendert, deshalb
+# kein statischer Datei-Link):
+#   /api/regulatory/threshold-securities/download?selectedDate=&market=
+#
+# Diese Probe klärt DREI offene Fragen zu genau diesem — bereits gefundenen,
+# NICHT geratenen — Endpunkt:
+#   1) Baseline (leere Parameter, so wie im HTML) — liefert er überhaupt etwas?
+#   2) Welche market-Werte akzeptiert er? Erst auf der Seite selbst suchen
+#      (Lehre #496: von dort nehmen statt raten), sonst systematisch plausible
+#      Kandidaten durchprobieren — JEDE Antwort einzeln geloggt, auch Fehlschläge.
+#   3) Archiv-Test: liefert ein älteres ``selectedDate`` (Werktag, ~14 Tage
+#      zurück, zur Laufzeit berechnet) andere Daten mit passendem Datum, oder
+#      nur den Momentanstand?
+#
+# Eigene Datei statt Erweiterung von #527s Probe — Single-Responsibility, das
+# Original bleibt als Beleg für den Endpunkt-Fund unangetastet (Easy-Entscheid:
+# „NICHT aufräumen, erweitern ODER zweite Datei — dein Vorschlag").
+#
+# HYGIENE: jeder Abruf einzeln in try/except; FETCH-FAIL (Exception/non-200)
+# GETRENNT von LEER (200, aber 0 Zeilen) geloggt und gezählt. sleep zwischen
+# Abrufen. none-Ticker (aktuell: ABX/IBTA/NMAX/NRGV/SPCE/WOLF) kommen zur
+# Laufzeit aus reg_sho_history.json — NICHTS hartkodiert. Verdikt-Block am Ende,
+# 4 Zeilen. UNBESTIMMT wo eine Frage offen bleibt.
+#
+# contents:read, workflow_dispatch-only, KEINE Secrets, KEIN Repo-Write.
+
+on:
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    env:
+      OUT_DIR: ${{ github.workspace }}/nyse-api-endpoint-out
+
+    steps:
+      - name: Checkout (contents:read — reg_sho_history.json für none-Ticker lesen)
+        uses: actions/checkout@v4
+
+      - name: Prepare output dir
+        run: mkdir -p "$OUT_DIR"
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Probe — NYSE-API-Endpunkt (read-only, stdlib only)
+        run: |
+          python - <<'PY'
+          import hashlib, json, os, re, sys, time
+          from datetime import datetime, timedelta, timezone
+          from urllib.request import Request, urlopen
+          from urllib.error import HTTPError
+          from urllib.parse import urlencode
+
+          OUT = os.environ["OUT_DIR"]
+          # Wegwerf-Kontakt für eine einmalige Diagnose-Probe (kein Secret, .invalid
+          # per RFC 2606 reserviert → keine reale Adresse; analog #522/#527-Entscheid).
+          UA = ("SqueezeReportProbe/1.0 (read-only research; "
+                "throwaway contact squeeze-report-diagnose-probe@example.invalid) "
+                "Mozilla/5.0")
+          OVERVIEW_URL = "https://www.nyse.com/regulation/threshold-securities"
+          # Der Endpunkt selbst ist NICHT geraten — er stand als href in der
+          # ungefilterten Link-Liste der Probe #527 auf genau dieser Übersichtsseite.
+          ENDPOINT = "https://www.nyse.com/api/regulatory/threshold-securities/download"
+
+          def log(m): print(m, flush=True)
+
+          def fetch(url, *, timeout=20, referer=None):
+              """(status:int|None, body:bytes|None, content_type:str|None, error:str|None).
+              FETCH-FAIL := error gesetzt (Exception/HTTPError). Getrennt von LEER
+              (status 200, aber 0 Zeilen — das prüft der Caller)."""
+              headers = {"User-Agent": UA, "Accept": "*/*"}
+              if referer:
+                  headers["Referer"] = referer
+              req = Request(url, headers=headers)
+              try:
+                  with urlopen(req, timeout=timeout) as r:
+                      raw = r.read()
+                      st = getattr(r, "status", r.getcode())
+                      ct = r.headers.get("Content-Type") if hasattr(r, "headers") else None
+                      return st, raw, ct, None
+              except HTTPError as e:
+                  return e.code, None, None, f"HTTPError {e.code}"
+              except Exception as e:
+                  return None, None, None, f"{type(e).__name__}: {e}"
+
+          def probe_endpoint(label, url):
+              """Ein einzelner Endpunkt-Abruf, VOLLSTÄNDIG geloggt (auch Fehlschläge).
+              Returns (status:'ok'|'leer'|'fetch_failed', ct, text:str|None)."""
+              st, body, ct, err = fetch(url, referer=OVERVIEW_URL)
+              if err:
+                  log(f"[ENDPOINT] {label} FETCH-FAIL: {url} → {err}")
+                  return "fetch_failed", None, None
+              if st != 200 or not body:
+                  log(f"[ENDPOINT] {label} HTTP {st}/leer: {url}")
+                  return "fetch_failed", None, None
+              text = body.decode("utf-8", "replace")
+              lines = [l for l in text.splitlines() if l.strip()]
+              log(f"[ENDPOINT] {label} HTTP 200 · Content-Type={ct} · "
+                  f"{len(body)} Bytes · {len(lines)} Zeilen")
+              for l in lines[:5]:
+                  log(f"            {l!r}")
+              if not lines:
+                  log(f"[ENDPOINT] {label} → LEER (HTTP 200, 0 Zeilen)")
+                  return "leer", ct, text
+              return "ok", ct, text
+
+          # ── none-Ticker zur Laufzeit aus reg_sho_history.json (nichts hartkodiert) ─
+          none_tickers = {}
+          try:
+              hist = json.load(open("reg_sho_history.json", encoding="utf-8"))
+              newest = {}
+              for tk, pts in hist.items():
+                  for p in pts:
+                      if not isinstance(p, dict):
+                          continue
+                      d = p.get("date")
+                      if d and (tk not in newest or d > newest[tk].get("date", "")):
+                          newest[tk] = p
+              for tk, p in newest.items():
+                  if p.get("restricted") is None:
+                      none_tickers[tk] = {"exchange": p.get("exchange"),
+                                          "reason": p.get("reason")}
+          except Exception as e:
+              log(f"WARN: reg_sho_history.json nicht lesbar: {e}")
+          log(f"### none-Ticker (Laufzeit, aus reg_sho_history.json): {len(none_tickers)}")
+          for tk, info in sorted(none_tickers.items()):
+              log(f"    {tk}: {info}")
+          log("=" * 70)
+
+          # ══════════════════════════════════════════════════════════════════════
+          # SCHRITT 0 — Übersichtsseite nach erlaubten market-Werten durchsuchen
+          # ══════════════════════════════════════════════════════════════════════
+          log("\n########## SCHRITT 0 — market-Werte auf der Seite suchen ##########")
+          market_hints = []   # [(value, provenance)]
+          st0, body0, ct0, err0 = fetch(OVERVIEW_URL)
+          if err0:
+              log(f"[ÜBERSICHT] FETCH-FAIL: {OVERVIEW_URL} → {err0}")
+          elif st0 != 200 or not body0:
+              log(f"[ÜBERSICHT] HTTP {st0}/leer: {OVERVIEW_URL}")
+          else:
+              html = body0.decode("utf-8", "replace")
+              log(f"[ÜBERSICHT] HTTP 200 · {len(html)} Zeichen")
+              opts = re.findall(
+                  r'<option[^>]*value=["\']([^"\']*)["\'][^>]*>([^<]*)</option>', html, re.I)
+              for val, txt in opts:
+                  log(f"            <option> value={val!r} text={txt.strip()!r}")
+                  if val.strip() and val.strip() not in [v for v, _ in market_hints]:
+                      market_hints.append((val.strip(), "von <option> extrahiert"))
+              near = re.findall(r'market["\']?\s*[:=]\s*["\']([^"\']{1,40})["\']', html, re.I)
+              for v in near:
+                  log(f"            market-naher Quoted-Token: {v!r}")
+                  if v and v not in [x for x, _ in market_hints]:
+                      market_hints.append((v, "market-naher Token extrahiert"))
+              if not opts and not near:
+                  log("            keine <option>-Tags, keine market-nahen Tokens gefunden.")
+          log("=" * 70)
+
+          # ══════════════════════════════════════════════════════════════════════
+          # SCHRITT 1+2 — Baseline + market-Werte systematisch, JEDE Antwort geloggt
+          # ══════════════════════════════════════════════════════════════════════
+          log("\n########## SCHRITT 1+2 — Baseline + market-Kandidaten ##########")
+          candidates = [("", "Baseline: leer, wie im HTML")]
+          for val, prov in market_hints:
+              candidates.append((val, f"von Seite ({prov})"))
+          # Fallback-Kandidaten NUR falls die Seite nichts verriet — explizit als
+          # unbestätigt markiert (Lehre #496: kein Datei-Pfad geraten, aber ein
+          # Parameter-WERT systematisch durchprobieren ist Auftrag, keine URL-Guess).
+          if not market_hints:
+              for v in ("NYSE", "NYSE American", "NYSE Arca", "NYSEAMERICAN",
+                        "NYSEARCA", "AMEX", "ARCA"):
+                  candidates.append((v, "Kandidat, NICHT von der Seite bestätigt"))
+
+          results = {}   # market_value -> (status, content_type, text)
+          n_fetchfail = n_leer = n_ok = 0
+          for val, prov in candidates:
+              url = f"{ENDPOINT}?{urlencode({'selectedDate': '', 'market': val})}"
+              label = f"market={val!r} ({prov})"
+              status, ct, text = probe_endpoint(label, url)
+              results[val] = (status, ct, text)
+              if status == "fetch_failed":
+                  n_fetchfail += 1
+              elif status == "leer":
+                  n_leer += 1
+              else:
+                  n_ok += 1
+              time.sleep(1.2)
+          log(f"\n[ZUSAMMENFASSUNG SCHRITT 1+2] {len(candidates)} Werte probiert · "
+              f"{n_ok} ok · {n_leer} leer · {n_fetchfail} fetch-fail")
+          log("=" * 70)
+
+          # ══════════════════════════════════════════════════════════════════════
+          # SCHRITT 3 — Auswertung: Format + Trefferquote/Plausibilität
+          # ══════════════════════════════════════════════════════════════════════
+          log("\n########## SCHRITT 3 — Format + Trefferquote/Plausibilität ##########")
+
+          def extract_symbols(text):
+              lines = [l for l in text.splitlines() if l.strip()]
+              if not lines:
+                  return set(), None
+              header = lines[0]
+              sep = "|" if "|" in header else ("," if "," in header else None)
+              syms = set()
+              for l in lines[1:]:
+                  first = (l.split(sep)[0] if sep else l.split()[0]).strip().upper()
+                  if first and first.isalpha():
+                      syms.add(first)
+              return syms, header
+
+          best = None   # (market_value, header, n_syms, hits)
+          for val, (status, ct, text) in results.items():
+              if status != "ok" or not text:
+                  continue
+              syms, header = extract_symbols(text)
+              hits = sorted(set(none_tickers) & syms)
+              log(f"[AUSWERTUNG] market={val!r}: {len(syms)} Symbole · "
+                  f"Spaltenkopf {header!r} · Treffer {len(hits)}/{len(none_tickers)} "
+                  f"→ {hits}")
+              if best is None or len(hits) > len(best[3]) or (
+                      len(hits) == len(best[3]) and len(syms) > best[2]):
+                  best = (val, header, len(syms), hits)
+          if best is None:
+              log("[AUSWERTUNG] Kein 'ok'-Ergebnis über alle Kandidaten — "
+                  "keine Trefferquote berechenbar.")
+          log("=" * 70)
+
+          # ══════════════════════════════════════════════════════════════════════
+          # SCHRITT 4 — Archiv-Test (anderes Datum, NICHT nur leerer Parameter)
+          # ══════════════════════════════════════════════════════════════════════
+          log("\n########## SCHRITT 4 — Archiv-Test (Werktag ~14 Tage zurück) ##########")
+          now = datetime.now(timezone.utc)
+          target = now - timedelta(days=14)
+          while target.weekday() >= 5:   # 5=Sa, 6=So
+              target -= timedelta(days=1)
+          date_iso = target.strftime("%Y-%m-%d")
+          date_us = target.strftime("%m/%d/%Y")
+          log(f"Ziel-Datum (Werktag, ~14 Tage zurück, zur Laufzeit berechnet): "
+              f"{date_iso} (US-Format {date_us})")
+
+          archive_market = best[0] if best else ""
+          log(f"Verwendeter market-Wert für den Archiv-Test: {archive_market!r} "
+              f"({'bester Fund aus Schritt 3' if best else 'kein Fund → Baseline leer'})")
+
+          baseline_hash = None
+          if archive_market in results and results[archive_market][2]:
+              baseline_hash = hashlib.sha256(
+                  results[archive_market][2].encode()).hexdigest()[:12]
+              log(f"Hash der HEUTIGEN Antwort (market={archive_market!r}, "
+                  f"selectedDate=leer): {baseline_hash}")
+
+          archive_confirmed = False
+          for date_label, date_val in [("ISO YYYY-MM-DD", date_iso),
+                                        ("US MM/DD/YYYY", date_us)]:
+              url = f"{ENDPOINT}?{urlencode({'selectedDate': date_val, 'market': archive_market})}"
+              label = f"Archiv selectedDate={date_val!r} ({date_label}), market={archive_market!r}"
+              status, ct, text = probe_endpoint(label, url)
+              if status == "ok" and text:
+                  h = hashlib.sha256(text.encode()).hexdigest()[:12]
+                  date_in_body = date_iso in text or date_us in text
+                  same_as_today = (baseline_hash is not None and h == baseline_hash)
+                  log(f"            Hash={h} · identisch zu heute={same_as_today} · "
+                      f"angefragtes Datum im Body sichtbar={date_in_body}")
+                  if not same_as_today or date_in_body:
+                      archive_confirmed = True
+              time.sleep(1.2)
+          log("=" * 70)
+
+          # ── Verdikt-Block (4 Zeilen, kopierbar) ─────────────────────────────────
+          log("\n" + "=" * 70)
+          log("VERDIKT-BLOCK (kopierbar):")
+          if n_ok > 0:
+              log(f"1) Endpunkt liefert: JA — {n_ok}/{len(candidates)} market-Werte "
+                  f"lieferten HTTP 200 mit Inhalt")
+          else:
+              log(f"1) Endpunkt liefert: NEIN — {n_fetchfail} Fetch-Fails, "
+                  f"{n_leer} Leerbefunde über {len(candidates)} Kandidaten")
+          if best:
+              val, header, n_syms, hits = best
+              log(f"2) Format: market={val!r} · Spaltenkopf {header!r} · {n_syms} Symbole")
+              log(f"3) Trefferquote/Plausibilität: {len(hits)}/{len(none_tickers)} "
+                  f"none-Ticker auf der Liste → {hits} (6/6 NICHT erwartet — "
+                  f"entscheidend ist Symbol-Konvention + plausible Zeilenzahl)")
+          else:
+              log("2) Format: UNBESTIMMT — kein auswertbares Ergebnis")
+              log("3) Trefferquote/Plausibilität: UNBESTIMMT — keine Liste zum Prüfen")
+          if n_ok > 0:
+              log(f"4) Archiv: {'JA — anderes Datum liefert unterscheidbaren Inhalt' if archive_confirmed else 'NEIN/UNBESTIMMT — Archiv-Abruf leer/fehlgeschlagen oder identisch zu heute (Parameter evtl. ignoriert)'}")
+          else:
+              log("4) Archiv: UNBESTIMMT — Endpunkt lieferte bereits im Basisfall nichts")
+
+          # ── Artefakt ─────────────────────────────────────────────────────────────
+          try:
+              with open(os.path.join(OUT, "probe_summary.json"), "w") as fh:
+                  json.dump({
+                      "none_tickers": none_tickers,
+                      "market_hints": market_hints,
+                      "n_ok": n_ok, "n_leer": n_leer, "n_fetchfail": n_fetchfail,
+                      "best": best, "archive_date_iso": date_iso,
+                      "archive_confirmed": archive_confirmed,
+                  }, fh, indent=2, default=str)
+          except Exception:
+              pass
+          PY
+
+      - name: Upload output als Artefakt
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: nyse-api-endpoint-probe
+          path: ${{ env.OUT_DIR }}
+          if-no-files-found: warn
