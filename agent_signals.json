@@ -1,10 +1,10 @@
 {
-  "updated": "2026-08-15T14:59:24.649902+02:00",
+  "updated": "2026-08-15T15:44:20.570987+02:00",
   "run_info": {
     "tickers_checked": 14,
     "signals_active": 0,
     "alerts_sent": 0,
-    "elapsed_s": 17.8,
+    "elapsed_s": 25.1,
     "market_phase": "Geschlossen"
   },
   "signals": {
@@ -30,9 +30,9 @@
       "uoa_cp_ratio": 0.5647058823529412
     },
     "AMC": {
-      "score": 38,
+      "score": 20,
       "confidence": 33,
-      "drivers": "Spanne 6.1% + News-KI 18/30: Moderate positive momentum (27% gain) but mixed sentiment with skepticism mentioned; lacks strong short interest indicat + UOA Call/Put 9.9×",
+      "drivers": "Spanne 6.1% + UOA Call/Put 9.9×",
       "price": 2.5,
       "chg_pct": 0.0,
       "rvol_4d": 0.75,
@@ -43,8 +43,8 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 1,
-      "ki_sentiment_source": "llm",
+      "active_triggers": 0,
+      "ki_sentiment_source": "keyword",
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 9.9×"
@@ -97,13 +97,13 @@
       "uoa_cp_ratio": 45.6
     },
     "CAPR": {
-      "score": 12,
-      "confidence": 17,
-      "drivers": "News-KI 12/30: Fundamental FDA catalyst and analyst upgrade drive movement, but no significant short interest indicators, high institut",
+      "score": 50,
+      "confidence": 33,
+      "drivers": "Volumen 10.2× + 🚀 Massives Volumen 10.2×+ + Spanne 27.6%",
       "price": 6.65,
       "chg_pct": 0.0,
-      "rvol_4d": 0.0,
-      "rvol_20d": null,
+      "rvol_4d": 10.18,
+      "rvol_20d": 10.17,
       "earnings": "in 87 Tagen (10.11.2026)",
       "fda_date": null,
       "upcoming_event": null,
@@ -111,7 +111,7 @@
       "stocktwits": null,
       "combo_mult": 1.0,
       "active_triggers": 1,
-      "ki_sentiment_source": "llm",
+      "ki_sentiment_source": "keyword",
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": 0.48084291187739464,
@@ -120,7 +120,7 @@
     "DMRC": {
       "score": 55,
       "confidence": 70,
-      "drivers": "Volumen 1.6× + Spanne 22.7% + News: contract, revenue beat",
+      "drivers": "Volumen 1.6× + Spanne 22.7% + News: revenue beat, contract",
       "price": 7.53,
       "chg_pct": 0.0,
       "rvol_4d": 1.61,
@@ -229,7 +229,7 @@
     "PDYN": {
       "score": 50,
       "confidence": 33,
-      "drivers": "Spanne 5.0% + News: contract, partnership + UOA Call/Put 6.4×",
+      "drivers": "Spanne 5.0% + News: partnership, contract + UOA Call/Put 6.4×",
       "price": 6.61,
       "chg_pct": 0.0,
       "rvol_4d": 1.25,
