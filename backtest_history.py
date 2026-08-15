@@ -84,9 +84,15 @@ def _sanitize_backtest_entries_for_write(entries: list[dict]) -> list[dict]:
     Der Wurzel-Fix (``_extract_hist_5d`` in generate_report.py + die drei
     ``_compute_rvol_buildup_5d``/``_compute_vol_stability_5d``/``_compute_
     coiled_spring_score``-Guards oben) verhindert NaN bereits an der
-    Quelle — dieser Sanitizer ist die LETZTE Verteidigungslinie, falls
+    Quelle — dieser Sanitizer ist die LETZTE Verteidigungslinie für den
+    Daily-Run-Append-Pfad (``_append_backtest_entries`` → hier), falls
     trotzdem einmal ein nicht-endlicher Wert durchrutscht (z.B. ein
-    künftiger, noch unentdeckter Geschwister-Bug an anderer Stelle).
+    künftiger, noch unentdeckter Geschwister-Bug an anderer Stelle in
+    DIESEM Pfad). Er deckt NICHT die separaten Backfill-Skripte ab
+    (``scripts/backfill_max_gain_pct.py``, ``scripts/backfill_entry_
+    past_return_5d.py``), die eigene Write-Helper nutzen — Guardian-
+    Finding 15.08.2026, bewusst nicht in dieser PR mitgezogen (anderer
+    Schreibpfad, andere Felder, kein akutes NaN-Risiko dort).
 
     Bewusst NICHT still: die 15.08.2026-Diagnose zeigte, dass der laute
     Browser-JSON.parse-Crash das EINZIGE Warnsignal für den zugrunde
@@ -96,6 +102,14 @@ def _sanitize_backtest_entries_for_write(entries: list[dict]) -> list[dict]:
     irgendwo sichtbar geworden wäre — genau das würde die nächste
     Bug-Klasse dieser Art unsichtbar machen. Jeder Treffer wird deshalb
     mit Ticker, Datum und Feldpfad geloggt.
+
+    Rekursion deckt dict/list/tuple ab (Guardian-Finding 15.08.2026:
+    Tupel fielen vorher durch alle isinstance-Checks unverändert durch —
+    kein aktuelles Live-Risiko im heutigen Datenmodell, aber ein
+    generisches "letztes Netz" soll keine strukturelle Lücke haben).
+    Tupel werden als Liste zurückgegeben (JSON kennt ohnehin keine
+    Tupel — ``json.dump`` serialisiert beide als Array, kein
+    Informationsverlust).
     """
     def _walk(obj, ticker, entry_date, path):
         if isinstance(obj, dict):
@@ -103,7 +117,7 @@ def _sanitize_backtest_entries_for_write(entries: list[dict]) -> list[dict]:
                 k: _walk(v, ticker, entry_date, f"{path}.{k}" if path else k)
                 for k, v in obj.items()
             }
-        if isinstance(obj, list):
+        if isinstance(obj, (list, tuple)):
             return [
                 _walk(v, ticker, entry_date, f"{path}[{i}]")
                 for i, v in enumerate(obj)

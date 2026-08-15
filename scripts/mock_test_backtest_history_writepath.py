@@ -312,6 +312,21 @@ def test_sanitizer_handles_nested_dict_field_path():
     assert "ZZZZ" in fake_log.warnings[0] and "14.08.2026" in fake_log.warnings[0]
 
 
+def test_sanitizer_handles_nan_inside_tuple():
+    """Guardian-Finding 15.08.2026: Tupel fielen vorher durch alle
+    isinstance-Checks unverändert durch (kein Live-Risiko im heutigen
+    Datenmodell, aber eine strukturelle Lücke im 'letzten Netz'). Nach
+    dem Fix wird ein Tupel wie eine Liste rekursiert und als Liste
+    zurückgegeben (JSON kennt ohnehin keine Tupel)."""
+    fake_log = _FakeLog()
+    ns["log"] = fake_log
+    entries = [{"date": "15.08.2026", "ticker": "TUPX", "pair": (1.0, float("nan"))}]
+    sanitized = _sanitize_fn(entries)
+    assert sanitized[0]["pair"] == [1.0, None], sanitized[0]["pair"]
+    assert len(fake_log.warnings) == 1
+    assert "pair[1]" in fake_log.warnings[0], fake_log.warnings
+
+
 def test_sanitizer_no_op_and_silent_on_clean_entries():
     """LAUT nur beim Treffer — sauberer Bestand erzeugt KEIN Log."""
     fake_log = _FakeLog()
@@ -423,6 +438,7 @@ def main() -> None:
         ("sanitizer: NaN -> null + Log",                         test_sanitizer_replaces_nan_with_null_and_logs),
         ("sanitizer: Inf -> null + Log",                         test_sanitizer_replaces_inf_with_null_and_logs),
         ("sanitizer: verschachtelter Feldpfad im Log",           test_sanitizer_handles_nested_dict_field_path),
+        ("sanitizer: NaN in Tupel wird erfasst",                 test_sanitizer_handles_nan_inside_tuple),
         ("sanitizer: sauberer Bestand -> No-Op, kein Log",       test_sanitizer_no_op_and_silent_on_clean_entries),
         ("Quelltext: Sanitizer loggt, ist nie still",            test_sanitizer_source_never_silent),
         # End-to-End
