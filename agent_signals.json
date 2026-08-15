@@ -1,10 +1,10 @@
 {
-  "updated": "2026-08-15T11:41:23.235128+02:00",
+  "updated": "2026-08-15T12:40:03.059427+02:00",
   "run_info": {
     "tickers_checked": 14,
     "signals_active": 0,
     "alerts_sent": 0,
-    "elapsed_s": 27.1,
+    "elapsed_s": 19.8,
     "market_phase": "Geschlossen"
   },
   "signals": {
@@ -58,8 +58,8 @@
       "drivers": "Spanne 9.8%",
       "price": 8.23,
       "chg_pct": -0.0,
-      "rvol_4d": 1.41,
-      "rvol_20d": 1.79,
+      "rvol_4d": 1.13,
+      "rvol_20d": 1.84,
       "earnings": null,
       "fda_date": null,
       "upcoming_event": null,
@@ -120,7 +120,7 @@
     "DMRC": {
       "score": 55,
       "confidence": 70,
-      "drivers": "Volumen 1.6× + Spanne 22.7% + News: revenue beat, contract",
+      "drivers": "Volumen 1.6× + Spanne 22.7% + News: contract, revenue beat",
       "price": 7.53,
       "chg_pct": 0.0,
       "rvol_4d": 1.61,
@@ -294,9 +294,9 @@
       "uoa_cp_ratio": null
     },
     "WOLF": {
-      "score": 55,
+      "score": 43,
       "confidence": 70,
-      "drivers": "Earnings in 4 Tagen (19.08.2026) + Spanne 5.5% + News: short interest + Earnings in 4d + UOA Call/Put 2.2×",
+      "drivers": "Earnings in 4 Tagen (19.08.2026) + Spanne 5.5% + News-KI 8/30: Positive partnership news but lacks short squeeze indicators like high short interest, low float, or momentum catalysts. + Earnings in 4d + UOA Call/Put 2.2×",
       "price": 31.79,
       "chg_pct": 0.0,
       "rvol_4d": 0.6,
@@ -306,9 +306,9 @@
       "upcoming_event": "Earnings in 4 Tagen (19.08.2026)",
       "insider_buy": false,
       "stocktwits": null,
-      "combo_mult": 1.1,
-      "active_triggers": 2,
-      "ki_sentiment_source": "keyword",
+      "combo_mult": 1.0,
+      "active_triggers": 1,
+      "ki_sentiment_source": "llm",
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 2.2×"
