@@ -97,14 +97,20 @@ jobs:
 
           def probe_endpoint(label, url):
               """Ein einzelner Endpunkt-Abruf, VOLLSTÄNDIG geloggt (auch Fehlschläge).
-              Returns (status:'ok'|'leer'|'fetch_failed', ct, text:str|None)."""
+              Returns (status:'ok'|'leer'|'fetch_failed', ct, text:str|None).
+              FETCH-FAIL (Exception/non-200) STRIKT von LEER (HTTP 200, aber 0 Bytes/
+              0 Zeilen) getrennt — Guardian-Fix: vorher zählte HTTP-200-leerer-Body
+              fälschlich als fetch_failed, obwohl der Log-Text schon 'leer' sagte."""
               st, body, ct, err = fetch(url, referer=OVERVIEW_URL)
               if err:
                   log(f"[ENDPOINT] {label} FETCH-FAIL: {url} → {err}")
                   return "fetch_failed", None, None
-              if st != 200 or not body:
-                  log(f"[ENDPOINT] {label} HTTP {st}/leer: {url}")
+              if st != 200:
+                  log(f"[ENDPOINT] {label} FETCH-FAIL: HTTP {st} (nicht 200) — {url}")
                   return "fetch_failed", None, None
+              if not body:
+                  log(f"[ENDPOINT] {label} → LEER (HTTP 200, 0 Bytes) — {url}")
+                  return "leer", None, None
               text = body.decode("utf-8", "replace")
               lines = [l for l in text.splitlines() if l.strip()]
               log(f"[ENDPOINT] {label} HTTP 200 · Content-Type={ct} · "
@@ -171,6 +177,17 @@ jobs:
           # SCHRITT 1+2 — Baseline + market-Werte systematisch, JEDE Antwort geloggt
           # ══════════════════════════════════════════════════════════════════════
           log("\n########## SCHRITT 1+2 — Baseline + market-Kandidaten ##########")
+          # Guardian-Fix: die Seiten-Extraktion (Schritt 0) läuft ungescoped über die
+          # GESAMTE Seite (Sprache/Region/andere Dropdowns könnten mit reinrutschen)
+          # → HART gecappt, damit das Zeitbudget/die Request-Zahl nicht explodiert.
+          # KEIN stiller Cap: Überschuss wird geloggt (nicht einfach verworfen).
+          MAX_MARKET_HINTS = 12
+          if len(market_hints) > MAX_MARKET_HINTS:
+              log(f"[SCHRITT 1+2] {len(market_hints)} market-Hints von der Seite gefunden "
+                  f"— gecappt auf die ersten {MAX_MARKET_HINTS} (Rest verworfen, NICHT "
+                  f"stillschweigend): {[v for v, _ in market_hints[MAX_MARKET_HINTS:]]}")
+          market_hints = market_hints[:MAX_MARKET_HINTS]
+
           candidates = [("", "Baseline: leer, wie im HTML")]
           for val, prov in market_hints:
               candidates.append((val, f"von Seite ({prov})"))
@@ -259,6 +276,12 @@ jobs:
               log(f"Hash der HEUTIGEN Antwort (market={archive_market!r}, "
                   f"selectedDate=leer): {baseline_hash}")
 
+          # Guardian-Fix: archive_confirmed darf NUR wahr werden, wenn es einen
+          # ECHTEN Beleg gibt — entweder einen Hash-Unterschied gegen eine VORHANDENE
+          # Baseline, oder das angefragte Datum steht sichtbar im Body. Vorher konnte
+          # archive_confirmed fälschlich True werden, wenn baseline_hash=None war
+          # (Basis-Abruf selbst leer/fehlgeschlagen) — dann war 'not same_as_today'
+          # IMMER True, ganz ohne echten Vergleich.
           archive_confirmed = False
           for date_label, date_val in [("ISO YYYY-MM-DD", date_iso),
                                         ("US MM/DD/YYYY", date_us)]:
@@ -268,11 +291,18 @@ jobs:
               if status == "ok" and text:
                   h = hashlib.sha256(text.encode()).hexdigest()[:12]
                   date_in_body = date_iso in text or date_us in text
-                  same_as_today = (baseline_hash is not None and h == baseline_hash)
-                  log(f"            Hash={h} · identisch zu heute={same_as_today} · "
-                      f"angefragtes Datum im Body sichtbar={date_in_body}")
-                  if not same_as_today or date_in_body:
-                      archive_confirmed = True
+                  if baseline_hash is not None:
+                      same_as_today = h == baseline_hash
+                      log(f"            Hash={h} · identisch zu heute={same_as_today} · "
+                          f"angefragtes Datum im Body sichtbar={date_in_body}")
+                      if not same_as_today or date_in_body:
+                          archive_confirmed = True
+                  else:
+                      log(f"            Hash={h} · KEIN Baseline-Hash zum Vergleich "
+                          f"(Basis-Abruf leer/fehlgeschlagen) — Datums-Abhängigkeit NUR "
+                          f"belegbar wenn Datum im Body sichtbar={date_in_body}")
+                      if date_in_body:
+                          archive_confirmed = True
               time.sleep(1.2)
           log("=" * 70)
 
