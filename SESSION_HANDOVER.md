@@ -38,6 +38,57 @@ Anker.
 
 ## 1) HEUTE IMPLEMENTIERT (chronologisch, mit Hashes)
 
+### 15.08.2026 — NaN-Wurzel-Fix (Schreibpfad) + Bestandsrecord-Reparatur
+
+*(Zwei-PR-Kette aus einer read-only Diagnose 15.08.2026: das Backtesting-Panel
+meldete einen Browser-`JSON.parse`-Fehler. Diagnose fand nackte JSON-`NaN`-
+Token in `backtest_history.json`, Ursache `_extract_hist_5d`
+[`row.get("Volume", 0) or 0`-Falle, NaN ist truthy → keine Ersetzung],
+Ursprungs-Bug seit `19ff84a3`/14.05.2026. Erst der Schreibpfad, dann — nach
+explizitem Easy-Entscheid — die vier bereits betroffenen Bestands-Records.)*
+
+- **PR #532 — merged `7d916bfd` — fix:** **Wurzel-Fix im Schreibpfad, NUR
+  zukünftige Records.** `_extract_hist_5d` (generate_report.py) nutzt jetzt
+  `_finite()` pro Zelle; NaN/Inf in irgendeiner der 4 OHLCV-Zellen verwirft
+  den GESAMTEN Trading-Tag (nicht nur die Zelle — Trend-Berechnungen
+  brauchen eine lückenlose 5-Tage-Kette). `_compute_rvol_buildup_5d` /
+  `_compute_vol_stability_5d` / `_compute_coiled_spring_score`
+  (backtest_history.py) auf `_finite()`-Guards umgestellt statt reinem
+  `<= 0`/`is None` — letzterer war der wichtigste Fix: `is None` lässt NaN
+  durch, wodurch `coiled_spring_score` sich vorher zu einem STILLEN
+  Fake-`0.0` auflöste statt zum dokumentierten `None`. `_save_backtest_
+  history` jetzt atomar (tmp + os.replace). Neue
+  `_sanitize_backtest_entries_for_write` als zweites, LAUTES Netz (NaN/Inf
+  → null + Pflicht-Log Ticker/Datum/Feldpfad, deckt seit dem Guardian-
+  Nachtrag `b41d94c8` auch Tupel ab). Guardian ✅ (2 Läufe, 1× Infra-
+  Timeout + Retry; 3 Findings, 1 behoben [Tupel], 2 dokumentiert/begründet
+  zurückgewiesen). 134 CI-Tests grün, Golden byte-identisch. **Sibling-Bugs
+  gemeldet, NICHT gefixt:** FINRA-`short_interest`-`or 0`-Muster
+  (`_compute_si_slope_5d`/`_compute_si_velocity_pub`), mehrere Entry-/
+  Matured-Export-Felder mit demselben `or 0`-Muster, ein `<= 0`-Slip in der
+  Squeeze-Detection-Historienscan-Funktion. **Datenpfad-Touch → manueller
+  Merge.**
+- **`3be1bb77` — fix(data):** **Bestandsrecord-Reparatur — 4 Records, 12
+  Zeilen.** Easy-Entscheid 15.08.: `rvol_buildup_5d` + `vol_stability_5d`
+  (nackte NaN-Token) UND `coiled_spring_score` (stiller Fake-`0.0` aus dem
+  NaN-Eingang) bei genau **ARCT, COLL, GO, IBTA (13.08.2026)** auf `null`
+  gesetzt. Begründung: Artefakte des obigen Bugs, keine Messungen — `null`
+  macht aus „kaputt" ein ehrliches „fehlt". **Vollständigkeitsprüfung**
+  (vor der Korrektur, alle 695 v4-Records): exakt diese 4 Records tragen
+  die stille `coiled_spring_score==0.0`-bei-NaN/None-Eingang-Signatur —
+  keine weiteren Instanzen gefunden. 409 Records mit `coiled_spring_
+  score==0.0` aus LEGITIMEN finiten Eingängen (hohe Volatilität / negativer
+  SI-Slope) sind unverändert korrekt geblieben. **§4-Check:** keiner der 4
+  Records (ticker, date=13.08.2026) ist in `matured_backtest_export.jsonl`
+  vorhanden (0 Treffer) — Reife-Schranke >14 Kalendertage bei 2 Tagen Alter
+  noch nicht erreicht, kein Konflikt mit dem append-only §4-Freeze (§4-
+  Freeze-Block selbst unangetastet). Record-Count (1707) und Zeilenzahl
+  (67083) vor/nach identisch, strikter JSON-Parse (NaN-ablehnend, wie der
+  Browser) erfolgreich, Golden byte-identisch. **Bestandsänderung an
+  potenziell §4-relevanten Daten → manueller Merge, KEIN Self-Merge.**
+
+---
+
 ### Woche 03.–08.08.2026 — Matured-Export · §4-Vorabregistrierung · Guardian-Pflicht · Anzeige-Ehrlichkeit
 
 - **`40565b4` — #500 — docs:** Prune-Konsequenz für die Sept-Re-Tests + Drei-Zonen-
