@@ -1,10 +1,10 @@
 {
-  "updated": "2026-08-15T15:44:20.570987+02:00",
+  "updated": "2026-08-15T16:40:00.651378+02:00",
   "run_info": {
     "tickers_checked": 14,
     "signals_active": 0,
     "alerts_sent": 0,
-    "elapsed_s": 25.1,
+    "elapsed_s": 28.0,
     "market_phase": "Geschlossen"
   },
   "signals": {
@@ -120,7 +120,7 @@
     "DMRC": {
       "score": 55,
       "confidence": 70,
-      "drivers": "Volumen 1.6× + Spanne 22.7% + News: revenue beat, contract",
+      "drivers": "Volumen 1.6× + Spanne 22.7% + News: contract, revenue beat",
       "price": 7.53,
       "chg_pct": 0.0,
       "rvol_4d": 1.61,
@@ -229,7 +229,7 @@
     "PDYN": {
       "score": 50,
       "confidence": 33,
-      "drivers": "Spanne 5.0% + News: partnership, contract + UOA Call/Put 6.4×",
+      "drivers": "Spanne 5.0% + News: contract, partnership + UOA Call/Put 6.4×",
       "price": 6.61,
       "chg_pct": 0.0,
       "rvol_4d": 1.25,
