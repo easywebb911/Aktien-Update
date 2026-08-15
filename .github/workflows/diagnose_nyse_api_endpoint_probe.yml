@@ -317,9 +317,17 @@ jobs:
           representative_market = (market_hints[0][0] if market_hints
                                    else _FALLBACK_MARKET_CANDIDATES[0])
 
-          near_dates = [("heute", date_today.isoformat()),
-                       ("gestern", date_yesterday.isoformat()),
-                       ("letzter Werktag", date_last_workday.isoformat())]
+          # Guardian-Fix: An Di–Fr ist letzter_werktag == gestern (identisches ISO-
+          # Datum) — dedupliziert nach date_iso, damit kein Datum doppelt abgerufen
+          # wird (sonst 2 redundante Requests + aufgeblähtes n_ok_total im Pool).
+          # Zusammenfallende Namen werden im Label vereint ("gestern / letzter Werktag").
+          _date_names = {}
+          for _name, _d in [("heute", date_today.isoformat()),
+                            ("gestern", date_yesterday.isoformat()),
+                            ("letzter Werktag", date_last_workday.isoformat())]:
+              _date_names.setdefault(_d, []).append(_name)
+          near_dates = [(" / ".join(names), date_iso)
+                       for date_iso, names in _date_names.items()]
           paired_results = {}   # date_iso -> {"": text|None, representative_market: text|None}
           for date_name, date_iso in near_dates:
               paired_results[date_iso] = {}
