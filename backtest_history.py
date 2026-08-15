@@ -18,6 +18,7 @@ from __future__ import annotations
 
 import json
 import logging
+import math
 from datetime import date, datetime, time, timezone
 from zoneinfo import ZoneInfo
 
@@ -48,6 +49,24 @@ import wiki_attention as wiki_attention_module  # Wikipedia-Attention-Feed
 log = logging.getLogger(__name__)
 
 
+def _finite(v) -> bool:
+    """PRÄDIKAT: ist ``v`` eine echte, endliche Zahl (kein None/NaN/Inf/bool)?
+
+    Lokale Kopie von ``generate_report._finite`` (gleicher Vertrag,
+    gleiche Implementierung) — bewusst dupliziert statt importiert, um
+    den in diesem Modul dokumentierten Zirkular-Import zu vermeiden
+    (generate_report importiert backtest_history). NaN-Härtung
+    15.08.2026: die Trend-Logging-Helper unten (``_compute_rvol_
+    buildup_5d`` / ``_compute_vol_stability_5d`` / ``_compute_
+    coiled_spring_score``) prüften bisher nur ``<= 0`` bzw. ``is None``
+    — beide Formen lassen NaN durch (``nan <= 0`` und ``nan is None``
+    sind beide ``False``). ``_finite`` macht die Guard-Form irrelevant.
+    """
+    if isinstance(v, bool) or not isinstance(v, (int, float)):
+        return False
+    return math.isfinite(v)
+
+
 def _load_backtest_history() -> list[dict]:
     """Lädt backtest_history.json als Liste. Silently [] bei fehlend/corrupt."""
     try:
@@ -58,12 +77,67 @@ def _load_backtest_history() -> list[dict]:
         return []
 
 
+def _sanitize_backtest_entries_for_write(entries: list[dict]) -> list[dict]:
+    """LAUTES zweites Sicherheitsnetz: NaN/Inf → ``null`` unmittelbar vor
+    dem Schreiben, mit Pflicht-Log pro Treffer.
+
+    Der Wurzel-Fix (``_extract_hist_5d`` in generate_report.py + die drei
+    ``_compute_rvol_buildup_5d``/``_compute_vol_stability_5d``/``_compute_
+    coiled_spring_score``-Guards oben) verhindert NaN bereits an der
+    Quelle — dieser Sanitizer ist die LETZTE Verteidigungslinie, falls
+    trotzdem einmal ein nicht-endlicher Wert durchrutscht (z.B. ein
+    künftiger, noch unentdeckter Geschwister-Bug an anderer Stelle).
+
+    Bewusst NICHT still: die 15.08.2026-Diagnose zeigte, dass der laute
+    Browser-JSON.parse-Crash das EINZIGE Warnsignal für den zugrunde
+    liegenden Datenfehler war (S10 ist strukturell blind für NaN, siehe
+    ``is None``-Checks in health_check.py). Ein still reparierender
+    Sanitizer hätte das Symptom getilgt, ohne dass der Datenfehler
+    irgendwo sichtbar geworden wäre — genau das würde die nächste
+    Bug-Klasse dieser Art unsichtbar machen. Jeder Treffer wird deshalb
+    mit Ticker, Datum und Feldpfad geloggt.
+    """
+    def _walk(obj, ticker, entry_date, path):
+        if isinstance(obj, dict):
+            return {
+                k: _walk(v, ticker, entry_date, f"{path}.{k}" if path else k)
+                for k, v in obj.items()
+            }
+        if isinstance(obj, list):
+            return [
+                _walk(v, ticker, entry_date, f"{path}[{i}]")
+                for i, v in enumerate(obj)
+            ]
+        if isinstance(obj, float) and not math.isfinite(obj):
+            log.warning(
+                "[backtest_history] NaN/Inf sanitized to null before write: "
+                "ticker=%s date=%s field=%s value=%r",
+                ticker, entry_date, path, obj,
+            )
+            return None
+        return obj
+
+    return [
+        _walk(e, e.get("ticker", "?"), e.get("date", "?"), "")
+        for e in entries
+    ]
+
+
 def _save_backtest_history(entries: list[dict]) -> None:
-    """Schreibt backtest_history.json, sortiert nach (Datum, Ticker) für
-    deterministische Git-Diffs. Pruning auf BACKTEST_MAX_DAYS erfolgt bereits
-    beim Aufruf — hier nur Serialisierung."""
-    with open(BACKTEST_FILE, "w", encoding="utf-8") as fh:
-        json.dump(entries, fh, indent=2, ensure_ascii=False)
+    """Schreibt backtest_history.json atomar (tmp + os.replace, analog
+    ``_save_wiki_ticker_map`` / ``inst_ownership_history`` / ``options_oi_
+    history`` / ``ftd_history`` / ``reg_sho_history``), sortiert nach
+    (Datum, Ticker) für deterministische Git-Diffs. Pruning auf
+    ``BACKTEST_MAX_DAYS`` erfolgt bereits beim Aufruf — hier nur
+    NaN/Inf-Sanitizing (zweites Netz, siehe
+    ``_sanitize_backtest_entries_for_write``) + Serialisierung.
+    """
+    import os
+    sanitized = _sanitize_backtest_entries_for_write(entries)
+    tmp = f"{BACKTEST_FILE}.tmp"
+    with open(tmp, "w", encoding="utf-8") as fh:
+        json.dump(sanitized, fh, indent=2, ensure_ascii=False)
+    os.replace(tmp, BACKTEST_FILE)
 
 
 def _load_wiki_ticker_map() -> dict:
@@ -360,12 +434,23 @@ def _compute_rvol_buildup_5d(volumes_5d: list, avg_vol_20d: float | None) -> flo
 
     ``volumes_5d`` ist eine Liste der 5 Tagesvolumen (ältester → neuester).
     > 1 = Volumen baut auf (Earliness-Substrat), < 1 = abnehmend.
-    ``None`` bei < 5 Werten, fehlendem ``avg_vol_20d`` oder Division-by-zero.
+    ``None`` bei < 5 Werten, fehlendem/nicht-endlichem ``avg_vol_20d``,
+    einem nicht-endlichen Element in ``volumes_5d`` oder Division-by-zero.
+
+    NaN-Härtung (15.08.2026): der Guard war vorher ``avg_vol_20d <= 0``
+    (positive Form) bzw. gar keine Prüfung auf die Listen-Elemente —
+    ``nan <= 0`` ist ``False``, eine NaN im 20d-Schnitt oder in EINEM der
+    5 Tagesvolumen lief also durch bis in ``round(nan, 3)`` = ``nan``
+    statt des dokumentierten ``None``. ``_extract_hist_5d`` verwirft seit
+    demselben Fix bereits jeden Tag mit NaN-Zelle — dieser Guard bleibt
+    zusätzlich hart, falls der Helfer künftig mit anderen/dirty Inputs
+    aufgerufen wird (Vertrags-Erfüllung unabhängig vom Aufrufer).
     """
     if (not volumes_5d
             or len(volumes_5d) < EARLINESS_TREND_LOG_WINDOW_DAYS
-            or avg_vol_20d is None
-            or avg_vol_20d <= 0):
+            or not _finite(avg_vol_20d)
+            or avg_vol_20d <= 0
+            or not all(_finite(v) for v in volumes_5d)):
         return None
     try:
         early_avg = sum(volumes_5d[:2]) / 2
@@ -374,9 +459,10 @@ def _compute_rvol_buildup_5d(volumes_5d: list, avg_vol_20d: float | None) -> flo
         return None
     rvol_early = early_avg / avg_vol_20d
     rvol_late  = late_avg / avg_vol_20d
-    if rvol_early <= 0:
+    if not _finite(rvol_early) or rvol_early <= 0:
         return None
-    return round(rvol_late / rvol_early, 3)
+    result = rvol_late / rvol_early
+    return round(result, 3) if _finite(result) else None
 
 
 def _compute_vol_stability_5d(highs_5d: list, lows_5d: list,
@@ -385,11 +471,21 @@ def _compute_vol_stability_5d(highs_5d: list, lows_5d: list,
 
     Niedrig = stabile Preisrange (Coiled-Spring-Substrat). Niedrige Werte
     (z.B. 0.02 = 2 % Range) deuten auf Volatility-Compression hin.
-    ``None`` bei unzureichenden Daten oder Division-by-zero.
+    ``None`` bei unzureichenden Daten, einem nicht-endlichen Element
+    in einer der drei Listen oder Division-by-zero.
+
+    NaN-Härtung (15.08.2026): der Guard war vorher nur ``avg_close <= 0``
+    (positive Form, ``nan <= 0`` ist ``False``) und prüfte die Listen-
+    Elemente selbst gar nicht — eine NaN in ``highs_5d``/``lows_5d``/
+    ``closes_5d`` (z.B. aus einer Datenlücke) lief bis in ``round(nan,
+    4)`` = ``nan`` statt des dokumentierten ``None``.
     """
     w = EARLINESS_TREND_LOG_WINDOW_DAYS
     if (not highs_5d or not lows_5d or not closes_5d
-            or len(highs_5d) < w or len(lows_5d) < w or len(closes_5d) < w):
+            or len(highs_5d) < w or len(lows_5d) < w or len(closes_5d) < w
+            or not all(_finite(v) for v in highs_5d)
+            or not all(_finite(v) for v in lows_5d)
+            or not all(_finite(v) for v in closes_5d)):
         return None
     try:
         ranges = [h - l for h, l in zip(highs_5d, lows_5d)]
@@ -397,9 +493,10 @@ def _compute_vol_stability_5d(highs_5d: list, lows_5d: list,
         avg_close = sum(closes_5d) / w
     except (TypeError, ValueError):
         return None
-    if avg_close <= 0:
+    if not _finite(avg_close) or avg_close <= 0:
         return None
-    return round(atr / avg_close, 4)
+    result = atr / avg_close
+    return round(result, 4) if _finite(result) else None
 
 
 def _compute_coiled_spring_score(vol_stability: float | None,
@@ -408,9 +505,21 @@ def _compute_coiled_spring_score(vol_stability: float | None,
 
     Heuristische Kalibrierung (Caps via EARLINESS_TREND_*_CAP-Konstanten).
     Wird nach 14–30 Tagen Live-Daten neu kalibriert, sobald AUC-Vergleich
-    gegen ``return_10d`` möglich. ``None`` bei fehlenden Eingaben.
+    gegen ``return_10d`` möglich. ``None`` bei fehlenden ODER nicht-
+    endlichen Eingaben.
+
+    NaN-Härtung (15.08.2026) — WICHTIGSTER Fix dieses PRs: der alte Guard
+    ``vol_stability is None or si_slope is None`` lässt NaN durch
+    (``nan is None`` ist ``False``). Das Symptom war NICHT der laute
+    JSON-Crash, sondern ein STILLER Fake-Wert: ``max(0.0, 1.0 - min(nan,
+    cap)/cap)`` löst sich wegen Pythons NaN-Vergleichslogik zu ``0.0``
+    auf — ein Record, der laut Vertrag ``None`` (= „unbekannt") zeigen
+    sollte, zeigte stattdessen einen plausibel aussehenden, aber
+    erfundenen ``0.0``. ``_finite()`` (statt ``is None``) fängt NaN und
+    Inf gleichermaßen ab, bevor die Arithmetik sie in eine falsche Zahl
+    verwandeln kann.
     """
-    if vol_stability is None or si_slope is None:
+    if not _finite(vol_stability) or not _finite(si_slope):
         return None
     # Stability invertieren (niedrig = gut). Cap bei VOL_STAB_CAP (10 %),
     # darüber → 0 Punkte für die Stability-Komponente.
