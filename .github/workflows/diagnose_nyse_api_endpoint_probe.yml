@@ -6,15 +6,22 @@ name: Diagnose NYSE API-Endpunkt Probe — market-Werte + Archiv? (read-only)
 # kein statischer Datei-Link):
 #   /api/regulatory/threshold-securities/download?selectedDate=&market=
 #
-# Diese Probe klärt DREI offene Fragen zu genau diesem — bereits gefundenen,
-# NICHT geratenen — Endpunkt:
-#   1) Baseline (leere Parameter, so wie im HTML) — liefert er überhaupt etwas?
-#   2) Welche market-Werte akzeptiert er? Erst auf der Seite selbst suchen
-#      (Lehre #496: von dort nehmen statt raten), sonst systematisch plausible
-#      Kandidaten durchprobieren — JEDE Antwort einzeln geloggt, auch Fehlschläge.
-#   3) Archiv-Test: liefert ein älteres ``selectedDate`` (Werktag, ~14 Tage
-#      zurück, zur Laufzeit berechnet) andere Daten mit passendem Datum, oder
-#      nur den Momentanstand?
+# ⚠ NACHSCHÄRFUNG (Lauf 15.08.2026): der ERSTE Lauf dieser Probe zeigte bereits
+# einen ECHTEN Erfolg in Schritt 4 (Archiv-Test) — HTTP 200, sauberer Pipe-Header
+# „Symbol|Security Name|Market Category|Reg SHO Threshold Flag|Filler|Filler",
+# Zeilen wie BFLY/NYSE, BMNZ/NYSE Arca. Der ursprüngliche Verdikt-Block zählte
+# aber NUR Schritt 1+2 (die alle mit leerem selectedDate scheitern → HTTP 500 —
+# der Endpunkt verlangt ein gefülltes ``selectedDate`` im ISO-Format; leer → 500,
+# US-Format → 400) und ignorierte den Erfolg in Schritt 4. Diese Version:
+#   1) korrigiert den Verdikt: JA sobald IRGENDEIN Schritt 200+parsebar liefert
+#      (gepoolte Auswertung über Schritt 1+2, 4 UND das neue Schritt 5).
+#   2) NEU Schritt 5 — heutiges Datum, gestern, letzter Werktag (ISO, das jetzt
+#      bestätigt funktionierende Format) — das ist die produktionsrelevante
+#      Frage: liefert der Endpunkt AKTUELLE Daten oder nur Archiv?
+#   3) NEU: Trefferquote + „Market Category"-Werte für JEDEN erfolgreichen
+#      Abruf geloggt (Familien-Abdeckung NYSE/NYSE Arca/NYSE American).
+#   4) NEU: gepaarter Vergleich market='' vs. market=<Kandidat> bei GLEICHEM
+#      Datum — klärt, ob der market-Parameter überhaupt etwas filtert.
 #
 # Eigene Datei statt Erweiterung von #527s Probe — Single-Responsibility, das
 # Original bleibt als Beleg für den Endpunkt-Fund unangetastet (Easy-Entscheid:
@@ -73,6 +80,10 @@ jobs:
           # Der Endpunkt selbst ist NICHT geraten — er stand als href in der
           # ungefilterten Link-Liste der Probe #527 auf genau dieser Übersichtsseite.
           ENDPOINT = "https://www.nyse.com/api/regulatory/threshold-securities/download"
+          # Fallback-market-Kandidaten (nur genutzt, wenn Schritt 0 nichts auf der
+          # Seite findet) — explizit als unbestätigt markiert (Lehre #496).
+          _FALLBACK_MARKET_CANDIDATES = ("NYSE", "NYSE American", "NYSE Arca",
+                                        "NYSEAMERICAN", "NYSEARCA", "AMEX", "ARCA")
 
           def log(m): print(m, flush=True)
 
@@ -99,8 +110,7 @@ jobs:
               """Ein einzelner Endpunkt-Abruf, VOLLSTÄNDIG geloggt (auch Fehlschläge).
               Returns (status:'ok'|'leer'|'fetch_failed', ct, text:str|None).
               FETCH-FAIL (Exception/non-200) STRIKT von LEER (HTTP 200, aber 0 Bytes/
-              0 Zeilen) getrennt — Guardian-Fix: vorher zählte HTTP-200-leerer-Body
-              fälschlich als fetch_failed, obwohl der Log-Text schon 'leer' sagte."""
+              0 Zeilen) getrennt."""
               st, body, ct, err = fetch(url, referer=OVERVIEW_URL)
               if err:
                   log(f"[ENDPOINT] {label} FETCH-FAIL: {url} → {err}")
@@ -121,6 +131,40 @@ jobs:
                   log(f"[ENDPOINT] {label} → LEER (HTTP 200, 0 Zeilen)")
                   return "leer", ct, text
               return "ok", ct, text
+
+          def extract_symbols_and_markets(text):
+              """(symbols:set, market_category_counts:dict, header:str|None).
+              Spalten per HEADER-NAME gesucht (robust gegen Reihenfolge-Änderung),
+              Fallback auf die real beobachtete Position (Symbol=0, Market
+              Category=2: 'Symbol|Security Name|Market Category|Reg SHO Threshold
+              Flag|Filler|Filler')."""
+              lines = [l for l in text.splitlines() if l.strip()]
+              if not lines:
+                  return set(), {}, None
+              header = lines[0]
+              sep = "|" if "|" in header else ("," if "," in header else None)
+              cols = [c.strip() for c in (header.split(sep) if sep else header.split())]
+              def _idx(name, default):
+                  for i, c in enumerate(cols):
+                      if c.strip().lower() == name:
+                          return i
+                  return default
+              i_sym = _idx("symbol", 0)
+              i_mkt = _idx("market category", 2)
+              syms = set()
+              mkt_counts = {}
+              for l in lines[1:]:
+                  parts = l.split(sep) if sep else l.split()
+                  if len(parts) <= i_sym:
+                      continue
+                  s = parts[i_sym].strip().upper()
+                  if s and s.isalpha():
+                      syms.add(s)
+                  if len(parts) > i_mkt:
+                      m = parts[i_mkt].strip()
+                      if m:
+                          mkt_counts[m] = mkt_counts.get(m, 0) + 1
+              return syms, mkt_counts, header
 
           # ── none-Ticker zur Laufzeit aus reg_sho_history.json (nichts hartkodiert) ─
           none_tickers = {}
@@ -144,6 +188,11 @@ jobs:
           for tk, info in sorted(none_tickers.items()):
               log(f"    {tk}: {info}")
           log("=" * 70)
+
+          # Gepoolte Sammlung ALLER erfolgreichen ('ok') Abrufe über SÄMTLICHE
+          # Schritte — DAS ist die Korrektur: der Verdikt zählt am Ende diesen
+          # Pool, nicht nur einen einzelnen Schritt.
+          all_ok_fetches = []   # [{"label", "market", "date", "text"}, ...]
 
           # ══════════════════════════════════════════════════════════════════════
           # SCHRITT 0 — Übersichtsseite nach erlaubten market-Werten durchsuchen
@@ -174,13 +223,15 @@ jobs:
           log("=" * 70)
 
           # ══════════════════════════════════════════════════════════════════════
-          # SCHRITT 1+2 — Baseline + market-Werte systematisch, JEDE Antwort geloggt
+          # SCHRITT 1+2 — Baseline + market-Werte, JEDE Antwort geloggt
           # ══════════════════════════════════════════════════════════════════════
-          log("\n########## SCHRITT 1+2 — Baseline + market-Kandidaten ##########")
-          # Guardian-Fix: die Seiten-Extraktion (Schritt 0) läuft ungescoped über die
-          # GESAMTE Seite (Sprache/Region/andere Dropdowns könnten mit reinrutschen)
-          # → HART gecappt, damit das Zeitbudget/die Request-Zahl nicht explodiert.
-          # KEIN stiller Cap: Überschuss wird geloggt (nicht einfach verworfen).
+          # BEKANNT (aus dem ersten Lauf dieser Probe): der Endpunkt verlangt ein
+          # gefülltes selectedDate im ISO-Format — leer → HTTP 500. Diese Schleife
+          # nutzt bewusst weiterhin selectedDate='' (unverändert, dokumentarisch —
+          # zeigt den vollständigen Fehlschlag-Grund unabhängig vom market-Wert).
+          # Die eigentliche Erfolgs-Prüfung passiert in Schritt 4/5 mit echtem Datum.
+          log("\n########## SCHRITT 1+2 — Baseline + market-Kandidaten "
+              "(selectedDate LEER — erwartet HTTP 500, siehe Kopf-Kommentar) ##########")
           MAX_MARKET_HINTS = 12
           if len(market_hints) > MAX_MARKET_HINTS:
               log(f"[SCHRITT 1+2] {len(market_hints)} market-Hints von der Seite gefunden "
@@ -191,143 +242,201 @@ jobs:
           candidates = [("", "Baseline: leer, wie im HTML")]
           for val, prov in market_hints:
               candidates.append((val, f"von Seite ({prov})"))
-          # Fallback-Kandidaten NUR falls die Seite nichts verriet — explizit als
-          # unbestätigt markiert (Lehre #496: kein Datei-Pfad geraten, aber ein
-          # Parameter-WERT systematisch durchprobieren ist Auftrag, keine URL-Guess).
           if not market_hints:
-              for v in ("NYSE", "NYSE American", "NYSE Arca", "NYSEAMERICAN",
-                        "NYSEARCA", "AMEX", "ARCA"):
+              for v in _FALLBACK_MARKET_CANDIDATES:
                   candidates.append((v, "Kandidat, NICHT von der Seite bestätigt"))
 
-          results = {}   # market_value -> (status, content_type, text)
-          n_fetchfail = n_leer = n_ok = 0
+          n_fetchfail_12 = n_leer_12 = n_ok_12 = 0
           for val, prov in candidates:
               url = f"{ENDPOINT}?{urlencode({'selectedDate': '', 'market': val})}"
-              label = f"market={val!r} ({prov})"
+              label = f"market={val!r} ({prov}), selectedDate=leer"
               status, ct, text = probe_endpoint(label, url)
-              results[val] = (status, ct, text)
               if status == "fetch_failed":
-                  n_fetchfail += 1
+                  n_fetchfail_12 += 1
               elif status == "leer":
-                  n_leer += 1
+                  n_leer_12 += 1
               else:
-                  n_ok += 1
+                  n_ok_12 += 1
+                  all_ok_fetches.append({"label": label, "market": val, "date": "",
+                                         "text": text})
               time.sleep(1.2)
           log(f"\n[ZUSAMMENFASSUNG SCHRITT 1+2] {len(candidates)} Werte probiert · "
-              f"{n_ok} ok · {n_leer} leer · {n_fetchfail} fetch-fail")
+              f"{n_ok_12} ok · {n_leer_12} leer · {n_fetchfail_12} fetch-fail")
           log("=" * 70)
 
           # ══════════════════════════════════════════════════════════════════════
-          # SCHRITT 3 — Auswertung: Format + Trefferquote/Plausibilität
-          # ══════════════════════════════════════════════════════════════════════
-          log("\n########## SCHRITT 3 — Format + Trefferquote/Plausibilität ##########")
-
-          def extract_symbols(text):
-              lines = [l for l in text.splitlines() if l.strip()]
-              if not lines:
-                  return set(), None
-              header = lines[0]
-              sep = "|" if "|" in header else ("," if "," in header else None)
-              syms = set()
-              for l in lines[1:]:
-                  first = (l.split(sep)[0] if sep else l.split()[0]).strip().upper()
-                  if first and first.isalpha():
-                      syms.add(first)
-              return syms, header
-
-          best = None   # (market_value, header, n_syms, hits)
-          for val, (status, ct, text) in results.items():
-              if status != "ok" or not text:
-                  continue
-              syms, header = extract_symbols(text)
-              hits = sorted(set(none_tickers) & syms)
-              log(f"[AUSWERTUNG] market={val!r}: {len(syms)} Symbole · "
-                  f"Spaltenkopf {header!r} · Treffer {len(hits)}/{len(none_tickers)} "
-                  f"→ {hits}")
-              if best is None or len(hits) > len(best[3]) or (
-                      len(hits) == len(best[3]) and len(syms) > best[2]):
-                  best = (val, header, len(syms), hits)
-          if best is None:
-              log("[AUSWERTUNG] Kein 'ok'-Ergebnis über alle Kandidaten — "
-                  "keine Trefferquote berechenbar.")
-          log("=" * 70)
-
-          # ══════════════════════════════════════════════════════════════════════
-          # SCHRITT 4 — Archiv-Test (anderes Datum, NICHT nur leerer Parameter)
+          # SCHRITT 4 — Archiv-Test (Werktag ~14 Tage zurück, beide Datumsformate)
           # ══════════════════════════════════════════════════════════════════════
           log("\n########## SCHRITT 4 — Archiv-Test (Werktag ~14 Tage zurück) ##########")
           now = datetime.now(timezone.utc)
-          target = now - timedelta(days=14)
-          while target.weekday() >= 5:   # 5=Sa, 6=So
-              target -= timedelta(days=1)
-          date_iso = target.strftime("%Y-%m-%d")
-          date_us = target.strftime("%m/%d/%Y")
+          log(f"Laufzeit-Stempel (UTC, zur Auditierung — kein hartkodierter Wert): "
+              f"{now.strftime('%Y-%m-%dT%H:%M:%SZ')}")
+          archive_target = now - timedelta(days=14)
+          while archive_target.weekday() >= 5:   # 5=Sa, 6=So
+              archive_target -= timedelta(days=1)
+          archive_date_iso = archive_target.strftime("%Y-%m-%d")
+          archive_date_us = archive_target.strftime("%m/%d/%Y")
           log(f"Ziel-Datum (Werktag, ~14 Tage zurück, zur Laufzeit berechnet): "
-              f"{date_iso} (US-Format {date_us})")
+              f"{archive_date_iso} (US-Format {archive_date_us})")
 
-          archive_market = best[0] if best else ""
-          log(f"Verwendeter market-Wert für den Archiv-Test: {archive_market!r} "
-              f"({'bester Fund aus Schritt 3' if best else 'kein Fund → Baseline leer'})")
-
+          archive_market = ""   # unfiltered — Produktionsfrage zuerst, market-Frage separat (Schritt 5)
           baseline_hash = None
-          if archive_market in results and results[archive_market][2]:
-              baseline_hash = hashlib.sha256(
-                  results[archive_market][2].encode()).hexdigest()[:12]
-              log(f"Hash der HEUTIGEN Antwort (market={archive_market!r}, "
-                  f"selectedDate=leer): {baseline_hash}")
-
-          # Guardian-Fix: archive_confirmed darf NUR wahr werden, wenn es einen
-          # ECHTEN Beleg gibt — entweder einen Hash-Unterschied gegen eine VORHANDENE
-          # Baseline, oder das angefragte Datum steht sichtbar im Body. Vorher konnte
-          # archive_confirmed fälschlich True werden, wenn baseline_hash=None war
-          # (Basis-Abruf selbst leer/fehlgeschlagen) — dann war 'not same_as_today'
-          # IMMER True, ganz ohne echten Vergleich.
-          archive_confirmed = False
-          for date_label, date_val in [("ISO YYYY-MM-DD", date_iso),
-                                        ("US MM/DD/YYYY", date_us)]:
+          for date_label, date_val in [("ISO YYYY-MM-DD", archive_date_iso),
+                                        ("US MM/DD/YYYY", archive_date_us)]:
               url = f"{ENDPOINT}?{urlencode({'selectedDate': date_val, 'market': archive_market})}"
               label = f"Archiv selectedDate={date_val!r} ({date_label}), market={archive_market!r}"
               status, ct, text = probe_endpoint(label, url)
               if status == "ok" and text:
                   h = hashlib.sha256(text.encode()).hexdigest()[:12]
-                  date_in_body = date_iso in text or date_us in text
-                  if baseline_hash is not None:
-                      same_as_today = h == baseline_hash
-                      log(f"            Hash={h} · identisch zu heute={same_as_today} · "
-                          f"angefragtes Datum im Body sichtbar={date_in_body}")
-                      if not same_as_today or date_in_body:
-                          archive_confirmed = True
-                  else:
-                      log(f"            Hash={h} · KEIN Baseline-Hash zum Vergleich "
-                          f"(Basis-Abruf leer/fehlgeschlagen) — Datums-Abhängigkeit NUR "
-                          f"belegbar wenn Datum im Body sichtbar={date_in_body}")
-                      if date_in_body:
-                          archive_confirmed = True
+                  log(f"            Hash={h}")
+                  all_ok_fetches.append({"label": label, "market": archive_market,
+                                         "date": date_val, "text": text})
+                  if date_label.startswith("ISO"):
+                      baseline_hash = h   # ISO ist das bestätigte Format → als Vergleichsbasis
               time.sleep(1.2)
           log("=" * 70)
 
-          # ── Verdikt-Block (4 Zeilen, kopierbar) ─────────────────────────────────
+          # ══════════════════════════════════════════════════════════════════════
+          # SCHRITT 5 (NEU) — heutiges Datum, gestern, letzter Werktag (ISO)
+          # ══════════════════════════════════════════════════════════════════════
+          # DIE produktionsrelevante Frage: liefert der Endpunkt AKTUELLE Daten
+          # oder nur Archiv? ISO-Format (bestätigt funktionierend aus Schritt 4).
+          log("\n########## SCHRITT 5 — heute/gestern/letzter Werktag (ISO) ##########")
+          date_today = now.date()
+          date_yesterday = date_today - timedelta(days=1)
+          _lw = date_yesterday
+          while _lw.weekday() >= 5:
+              _lw -= timedelta(days=1)
+          date_last_workday = _lw
+          log(f"Berechnete Daten (aus dem Laufzeit-Stempel oben, KEIN Rückdatum): "
+              f"heute={date_today.isoformat()} gestern={date_yesterday.isoformat()} "
+              f"letzter_werktag={date_last_workday.isoformat()}")
+
+          # Repräsentativer market-Wert für den gepaarten Vergleich (Punkt 3):
+          # von der Seite bestätigt, falls vorhanden — sonst erster Fallback-Kandidat.
+          representative_market = (market_hints[0][0] if market_hints
+                                   else _FALLBACK_MARKET_CANDIDATES[0])
+
+          near_dates = [("heute", date_today.isoformat()),
+                       ("gestern", date_yesterday.isoformat()),
+                       ("letzter Werktag", date_last_workday.isoformat())]
+          paired_results = {}   # date_iso -> {"": text|None, representative_market: text|None}
+          for date_name, date_iso in near_dates:
+              paired_results[date_iso] = {}
+              # (a) unfiltered — die Kernfrage
+              url = f"{ENDPOINT}?{urlencode({'selectedDate': date_iso, 'market': ''})}"
+              label = f"{date_name} ({date_iso}), market='' (unfiltered)"
+              status, ct, text = probe_endpoint(label, url)
+              if status == "ok" and text:
+                  all_ok_fetches.append({"label": label, "market": "", "date": date_iso,
+                                         "text": text})
+                  paired_results[date_iso][""] = text
+              time.sleep(1.2)
+              # (b) mit market=<repräsentativ> — für den Punkt-3-Vergleich
+              url2 = f"{ENDPOINT}?{urlencode({'selectedDate': date_iso, 'market': representative_market})}"
+              label2 = f"{date_name} ({date_iso}), market={representative_market!r} (gepaart)"
+              status2, ct2, text2 = probe_endpoint(label2, url2)
+              if status2 == "ok" and text2:
+                  all_ok_fetches.append({"label": label2, "market": representative_market,
+                                         "date": date_iso, "text": text2})
+                  paired_results[date_iso][representative_market] = text2
+              time.sleep(1.2)
+          log("=" * 70)
+
+          # ── Punkt 3: ist der market-Parameter überhaupt nötig? ──────────────────
+          log("\n########## AUSWERTUNG — ist market= nötig? (gepaarter Vergleich) ##########")
+          market_param_verdict = "UNBESTIMMT — kein gepaartes Erfolgspaar (market='' UND market=<Wert>, gleiches Datum) vorhanden"
+          for date_iso, pair in paired_results.items():
+              if "" in pair and representative_market in pair:
+                  syms_empty, mkts_empty, _ = extract_symbols_and_markets(pair[""])
+                  syms_filt, mkts_filt, _ = extract_symbols_and_markets(pair[representative_market])
+                  same = syms_empty == syms_filt
+                  subset = syms_filt.issubset(syms_empty)
+                  log(f"[VERGLEICH {date_iso}] market='': {len(syms_empty)} Symbole "
+                      f"(Market-Category-Werte: {sorted(mkts_empty)}) · "
+                      f"market={representative_market!r}: {len(syms_filt)} Symbole "
+                      f"(Market-Category-Werte: {sorted(mkts_filt)}) · "
+                      f"identisch={same} · gefiltert⊆unfiltered={subset}")
+                  if same:
+                      market_param_verdict = (
+                          f"NICHT NÖTIG — market='' und market={representative_market!r} "
+                          f"liefern identische Symbol-Mengen am {date_iso} "
+                          f"({len(mkts_empty)} Market-Category-Werte bereits ohne Filter: "
+                          f"{sorted(mkts_empty)})")
+                  elif subset and len(syms_filt) < len(syms_empty):
+                      market_param_verdict = (
+                          f"NÖTIG/WIRKSAM — market={representative_market!r} filtert am "
+                          f"{date_iso} auf {len(syms_filt)}/{len(syms_empty)} Symbole "
+                          f"(echte Teilmenge)")
+                  else:
+                      market_param_verdict = (
+                          f"UNKLAR — Symbol-Mengen am {date_iso} weder identisch noch "
+                          f"sauber verschachtelt (market='' {len(syms_empty)}, "
+                          f"market={representative_market!r} {len(syms_filt)})")
+                  break   # ein aussagekräftiges Paar reicht
+          if market_param_verdict.startswith("UNBESTIMMT"):
+              # Fallback: wenigstens EIN market=''-Erfolg auswerten (Market-Category-
+              # Diversität als schwächerer, aber noch aussagekräftiger Beleg).
+              for entry in all_ok_fetches:
+                  if entry["market"] == "":
+                      syms, mkts, _ = extract_symbols_and_markets(entry["text"])
+                      if len(mkts) >= 2:
+                          market_param_verdict = (
+                              f"VERMUTLICH NICHT NÖTIG (schwächerer Beleg, kein "
+                              f"gepaarter Vergleich) — market='' bei {entry['label']} "
+                              f"enthält bereits {len(mkts)} Market-Category-Werte: "
+                              f"{sorted(mkts)}")
+                      break
+          log(f"[PUNKT 3] {market_param_verdict}")
+          log("=" * 70)
+
+          # ══════════════════════════════════════════════════════════════════════
+          # SCHRITT 6 — Gepoolte Auswertung: Trefferquote + Market-Category (ALLE Schritte)
+          # ══════════════════════════════════════════════════════════════════════
+          log(f"\n########## SCHRITT 6 — Gepoolte Auswertung ({len(all_ok_fetches)} "
+              f"erfolgreiche Abrufe über alle Schritte) ##########")
+          best = None
+          for entry in all_ok_fetches:
+              syms, mkts, header = extract_symbols_and_markets(entry["text"])
+              hits = sorted(set(none_tickers) & syms)
+              log(f"[POOL] {entry['label']}: {len(syms)} Symbole · Spaltenkopf {header!r} · "
+                  f"Treffer {len(hits)}/{len(none_tickers)} → {hits} · "
+                  f"Market-Category-Werte: {sorted(mkts)}")
+              if best is None or len(hits) > len(best["hits"]) or (
+                      len(hits) == len(best["hits"]) and syms and
+                      len(syms) > best["n_syms"]):
+                  best = {"label": entry["label"], "header": header,
+                         "n_syms": len(syms), "hits": hits, "mkts": mkts}
+          log("=" * 70)
+
+          # ── Verdikt-Block (4 Zeilen, kopierbar) — GEPOOLT über ALLE Schritte ────
           log("\n" + "=" * 70)
           log("VERDIKT-BLOCK (kopierbar):")
-          if n_ok > 0:
-              log(f"1) Endpunkt liefert: JA — {n_ok}/{len(candidates)} market-Werte "
-                  f"lieferten HTTP 200 mit Inhalt")
+          n_ok_total = len(all_ok_fetches)
+          if n_ok_total > 0:
+              log(f"1) Endpunkt liefert: JA — {n_ok_total} erfolgreiche Abrufe über alle "
+                  f"Schritte (Schritt 1+2 leeres Datum: {n_ok_12}/{len(candidates)} — "
+                  f"Rest: {n_ok_total - n_ok_12} mit gefülltem ISO-Datum)")
           else:
-              log(f"1) Endpunkt liefert: NEIN — {n_fetchfail} Fetch-Fails, "
-                  f"{n_leer} Leerbefunde über {len(candidates)} Kandidaten")
+              log(f"1) Endpunkt liefert: NEIN — 0 erfolgreiche Abrufe über alle Schritte")
           if best:
-              val, header, n_syms, hits = best
-              log(f"2) Format: market={val!r} · Spaltenkopf {header!r} · {n_syms} Symbole")
-              log(f"3) Trefferquote/Plausibilität: {len(hits)}/{len(none_tickers)} "
-                  f"none-Ticker auf der Liste → {hits} (6/6 NICHT erwartet — "
-                  f"entscheidend ist Symbol-Konvention + plausible Zeilenzahl)")
+              log(f"2) Format: {best['label']} · Spaltenkopf {best['header']!r} · "
+                  f"{best['n_syms']} Symbole")
+              log(f"3) Trefferquote/Plausibilität: {len(best['hits'])}/{len(none_tickers)} "
+                  f"none-Ticker auf der Liste → {best['hits']} (6/6 NICHT erwartet — "
+                  f"entscheidend ist Symbol-Konvention + Market-Category-Abdeckung "
+                  f"{sorted(best['mkts'])}) · market=-Parameter: {market_param_verdict}")
           else:
               log("2) Format: UNBESTIMMT — kein auswertbares Ergebnis")
-              log("3) Trefferquote/Plausibilität: UNBESTIMMT — keine Liste zum Prüfen")
-          if n_ok > 0:
-              log(f"4) Archiv: {'JA — anderes Datum liefert unterscheidbaren Inhalt' if archive_confirmed else 'NEIN/UNBESTIMMT — Archiv-Abruf leer/fehlgeschlagen oder identisch zu heute (Parameter evtl. ignoriert)'}")
+              log(f"3) Trefferquote/Plausibilität: UNBESTIMMT — keine Liste zum Prüfen · "
+                  f"market=-Parameter: {market_param_verdict}")
+          if n_ok_total > 0:
+              today_ok = any(e["date"] == date_today.isoformat() for e in all_ok_fetches)
+              log(f"4) Archiv+Aktualität: archiv-datiert (~14T) "
+                  f"{'erfolgreich' if baseline_hash else 'kein ISO-Erfolg'} · "
+                  f"HEUTE ({date_today.isoformat()}) {'LIEFERT DATEN' if today_ok else 'LIEFERT NICHTS/FEHLGESCHLAGEN'}")
           else:
-              log("4) Archiv: UNBESTIMMT — Endpunkt lieferte bereits im Basisfall nichts")
+              log("4) Archiv+Aktualität: UNBESTIMMT — Endpunkt lieferte in KEINEM Schritt etwas")
 
           # ── Artefakt ─────────────────────────────────────────────────────────────
           try:
@@ -335,9 +444,12 @@ jobs:
                   json.dump({
                       "none_tickers": none_tickers,
                       "market_hints": market_hints,
-                      "n_ok": n_ok, "n_leer": n_leer, "n_fetchfail": n_fetchfail,
-                      "best": best, "archive_date_iso": date_iso,
-                      "archive_confirmed": archive_confirmed,
+                      "n_ok_total": n_ok_total, "n_ok_step12": n_ok_12,
+                      "best": best, "market_param_verdict": market_param_verdict,
+                      "archive_date_iso": archive_date_iso,
+                      "date_today": date_today.isoformat(),
+                      "date_yesterday": date_yesterday.isoformat(),
+                      "date_last_workday": date_last_workday.isoformat(),
                   }, fh, indent=2, default=str)
           except Exception:
               pass
