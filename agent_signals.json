@@ -1,10 +1,10 @@
 {
-  "updated": "2026-08-15T13:34:13.283973+02:00",
+  "updated": "2026-08-15T14:59:24.649902+02:00",
   "run_info": {
     "tickers_checked": 14,
     "signals_active": 0,
     "alerts_sent": 0,
-    "elapsed_s": 24.5,
+    "elapsed_s": 17.8,
     "market_phase": "Geschlossen"
   },
   "signals": {
@@ -15,7 +15,7 @@
       "price": 9.27,
       "chg_pct": 0.0,
       "rvol_4d": 1.35,
-      "rvol_20d": 1.69,
+      "rvol_20d": 1.75,
       "earnings": "in 82 Tagen (05.11.2026)",
       "fda_date": null,
       "upcoming_event": null,
@@ -30,9 +30,9 @@
       "uoa_cp_ratio": 0.5647058823529412
     },
     "AMC": {
-      "score": 20,
+      "score": 38,
       "confidence": 33,
-      "drivers": "Spanne 6.1% + UOA Call/Put 9.9×",
+      "drivers": "Spanne 6.1% + News-KI 18/30: Moderate positive momentum (27% gain) but mixed sentiment with skepticism mentioned; lacks strong short interest indicat + UOA Call/Put 9.9×",
       "price": 2.5,
       "chg_pct": 0.0,
       "rvol_4d": 0.75,
@@ -43,8 +43,8 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 0,
-      "ki_sentiment_source": "keyword",
+      "active_triggers": 1,
+      "ki_sentiment_source": "llm",
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 9.9×"
@@ -58,8 +58,8 @@
       "drivers": "Spanne 9.8%",
       "price": 8.23,
       "chg_pct": -0.0,
-      "rvol_4d": 1.41,
-      "rvol_20d": 1.78,
+      "rvol_4d": 1.13,
+      "rvol_20d": 1.84,
       "earnings": null,
       "fda_date": null,
       "upcoming_event": null,
@@ -97,13 +97,13 @@
       "uoa_cp_ratio": 45.6
     },
     "CAPR": {
-      "score": 58,
-      "confidence": 70,
-      "drivers": "Volumen 10.2× + 🚀 Massives Volumen 10.2×+ + Spanne 27.6% + News-KI 8/30: Positive FDA catalyst and analyst upgrade create momentum, but company faces regulatory setback limiting short-squeeze p",
+      "score": 12,
+      "confidence": 17,
+      "drivers": "News-KI 12/30: Fundamental FDA catalyst and analyst upgrade drive movement, but no significant short interest indicators, high institut",
       "price": 6.65,
       "chg_pct": 0.0,
-      "rvol_4d": 10.18,
-      "rvol_20d": 10.17,
+      "rvol_4d": 0.0,
+      "rvol_20d": null,
       "earnings": "in 87 Tagen (10.11.2026)",
       "fda_date": null,
       "upcoming_event": null,
@@ -227,9 +227,9 @@
       "uoa_cp_ratio": 13.674698795180722
     },
     "PDYN": {
-      "score": 32,
+      "score": 50,
       "confidence": 33,
-      "drivers": "Spanne 5.0% + News-KI 12/30: Positive fundamentals (record revenue, military leadership recruitment) reduce squeeze potential, requiring bearish cata + UOA Call/Put 6.4×",
+      "drivers": "Spanne 5.0% + News: contract, partnership + UOA Call/Put 6.4×",
       "price": 6.61,
       "chg_pct": 0.0,
       "rvol_4d": 1.25,
@@ -241,7 +241,7 @@
       "stocktwits": null,
       "combo_mult": 1.0,
       "active_triggers": 1,
-      "ki_sentiment_source": "llm",
+      "ki_sentiment_source": "keyword",
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 6.4×"
