@@ -1065,22 +1065,53 @@ def get_yfinance_batch(tickers: list[str]) -> dict[str, dict]:
     def _extract_hist_5d(df) -> list:
         """Extrahiert die letzten 5 Trading-Tage als Liste von Dicts
         ``{volume, high, low, close}`` (ältester → neuester). Bei < 5
-        Zeilen oder fehlenden Spalten leere Liste — Konsumenten
+        gültigen Tagen oder fehlenden Spalten leere Liste — Konsumenten
         (Earliness-Trend-Helper) sind null-tolerant auf len < 5.
+
+        NaN-Härtung (15.08.2026, Bug seit 19ff84a3/14.05.2026): eine
+        einzelne NaN-Zelle (yfinance-Datenlücke, z.B. dünn gehandelter
+        Small-Cap) wurde vorher via ``row.get("Volume", 0) or 0`` NICHT
+        durch den Default ersetzt — ``.get(key, default)`` greift nur bei
+        FEHLENDEM Label, nicht bei vorhandener-aber-NaN-Zelle, und
+        ``NaN or 0`` bleibt ``NaN`` (NaN ist in Python truthy). Die NaN
+        lief unbemerkt bis in ``backtest_history.json`` (nackter JSON-
+        ``NaN``-Token, vom Browser-``JSON.parse`` abgelehnt).
+
+        Fix: pro Tag werden alle 4 Zellen mit ``_finite()`` geprüft.
+        Ist auch nur EINE Zelle nicht-endlich, wird der GESAMTE Tag
+        verworfen — nicht nur die einzelne Zelle. Grund: ein Tag mit
+        validem Volume aber NaN-Close wäre ein inkonsistenter Halb-Tag,
+        der stillschweigend eine kaputte Zahl vortäuschen würde (Zelle
+        einzeln durch 0 ersetzen wäre keine Verbesserung — nur eine
+        andere Form derselben Lüge). Die ehrlichere Variante ist „kein
+        valider Tag" statt „valider Tag mit falscher Zahl": die
+        Trend-Berechnungen (Buildup, ATR-Stability) brauchen ohnehin
+        eine LÜCKENLOSE 5-Tage-Kette — ein fehlender Tag mittendrin
+        würde den Trend-Read verfälschen, selbst wenn man ihn technisch
+        durch einen Platzhalter auffüllen könnte. Sinkt die Anzahl
+        gültiger Tage unter 5, ist das identisch zum bestehenden
+        Zu-wenig-Historie-Fall → leere Liste, Konsumenten liefern
+        korrekt ``None`` statt einer erfundenen Zahl.
         """
         try:
             tail = df.tail(EARLINESS_TREND_LOG_WINDOW_DAYS)
             if len(tail) < EARLINESS_TREND_LOG_WINDOW_DAYS:
                 return []
-            return [
-                {
-                    "volume": float(row.get("Volume", 0) or 0),
-                    "high":   float(row.get("High",   0) or 0),
-                    "low":    float(row.get("Low",    0) or 0),
-                    "close":  float(row.get("Close",  0) or 0),
-                }
-                for _, row in tail.iterrows()
-            ]
+            out = []
+            for _, row in tail.iterrows():
+                try:
+                    vol = float(row.get("Volume"))
+                    hi  = float(row.get("High"))
+                    lo  = float(row.get("Low"))
+                    cl  = float(row.get("Close"))
+                except (TypeError, ValueError):
+                    continue
+                if not (_finite(vol) and _finite(hi) and _finite(lo) and _finite(cl)):
+                    continue
+                out.append({"volume": vol, "high": hi, "low": lo, "close": cl})
+            if len(out) < EARLINESS_TREND_LOG_WINDOW_DAYS:
+                return []
+            return out
         except Exception:
             return []
 

@@ -48,7 +48,9 @@ def _extract(func_def: str) -> str:
 
 
 helpers_src = (
-    _extract("_compute_si_slope_5d")
+    _extract("_finite")
+    + "\n"
+    + _extract("_compute_si_slope_5d")
     + "\n"
     + _extract("_compute_rvol_buildup_5d")
     + "\n"
@@ -60,6 +62,7 @@ helpers_src = (
 
 ns: dict = {}
 exec(
+    "import math\n"
     "from config import (\n"
     "    EARLINESS_TREND_LOG_WINDOW_DAYS,\n"
     "    EARLINESS_TREND_MIN_FINRA_POINTS,\n"
@@ -268,6 +271,102 @@ def test_coiled_spring_none_inputs():
     assert _coiled_spring(None, None) is None
 
 
+# === 4b — NaN-Härtung (15.08.2026, Wurzel-Fix-PR) ==========================
+#
+# Diagnose 15.08.2026 belegte: die drei Guards unten prüften vorher nur
+# "<= 0" bzw. "is None" — beide Formen lassen NaN durch (nan <= 0 und
+# nan is None sind beide False). Der Coiled-Spring-Fall war der
+# insidiöseste: max(0.0, 1.0 - min(nan, cap)/cap) löst sich zu 0.0 auf —
+# ein STILLER Fake-Wert statt eines ehrlichen None. Diese Tests belegen
+# NaN-Eingang -> None (nicht 0.0), UND separat, dass ein echter finiter
+# Eingang, der legitim 0.0 ergibt, weiterhin 0.0 liefert — die beiden
+# dürfen nie verschmelzen.
+
+def test_rvol_buildup_nan_volume_element_returns_none():
+    """NaN in EINEM der 5 Volumes -> None (nicht bis in round() propagiert)."""
+    volumes = [500_000, 500_000, float("nan"), 2_000_000, 2_000_000]
+    assert _rvol_buildup(volumes, 1_000_000) is None
+
+
+def test_rvol_buildup_nan_avg_vol_20d_returns_none():
+    """NaN als avg_vol_20d (z.B. aus s.get('avg_vol_20d') or 0 mit NaN-
+    Input) -> None. Alter Guard war 'avg_vol_20d <= 0' (nan <= 0 = False)."""
+    assert _rvol_buildup([1_000_000] * 5, float("nan")) is None
+
+
+def test_rvol_buildup_inf_volume_element_returns_none():
+    """Inf ist ebenfalls nicht-endlich — _finite() faengt beide gleich."""
+    volumes = [500_000, 500_000, float("inf"), 2_000_000, 2_000_000]
+    assert _rvol_buildup(volumes, 1_000_000) is None
+
+
+def test_vol_stability_nan_in_highs_returns_none():
+    highs  = [float("nan"), 100.5, 100.5, 100.5, 100.5]
+    lows   = [99.5] * 5
+    closes = [100.0] * 5
+    assert _vol_stability(highs, lows, closes) is None
+
+
+def test_vol_stability_nan_in_lows_returns_none():
+    highs  = [100.5] * 5
+    lows   = [99.5, 99.5, float("nan"), 99.5, 99.5]
+    closes = [100.0] * 5
+    assert _vol_stability(highs, lows, closes) is None
+
+
+def test_vol_stability_nan_in_closes_returns_none():
+    highs  = [100.5] * 5
+    lows   = [99.5] * 5
+    closes = [100.0, 100.0, 100.0, 100.0, float("nan")]
+    assert _vol_stability(highs, lows, closes) is None
+
+
+def test_coiled_spring_nan_vol_stability_returns_none_not_zero():
+    """KRITISCH — die eigentliche Regression: vorher loeste sich
+    max(0.0, 1.0 - min(nan, cap)/cap) zu 0.0 auf (stiller Fake-Wert).
+    Nach dem Fix muss NaN als Eingang None liefern."""
+    result = _coiled_spring(float("nan"), 0.20)
+    assert result is None, f"NaN-vol_stability muss None ergeben, nicht {result!r}"
+
+
+def test_coiled_spring_nan_si_slope_returns_none_not_zero():
+    """Dieselbe Haertung fuer den zweiten Eingang."""
+    result = _coiled_spring(0.02, float("nan"))
+    assert result is None, f"NaN-si_slope muss None ergeben, nicht {result!r}"
+
+
+def test_coiled_spring_inf_inputs_return_none():
+    assert _coiled_spring(float("inf"), 0.20) is None
+    assert _coiled_spring(0.02, float("-inf")) is None
+
+
+def test_coiled_spring_real_zero_output_never_confused_with_nan_input():
+    """GEGENPROBE (darf mit dem NaN-Fall NIE verschmelzen): ein echter,
+    endlicher Eingang, der legitim auf Output 0.0 fuehrt (hohe
+    Volatilitaet ODER negativer Slope), bleibt 0.0 -- NICHT None. Das
+    ist dieselbe Rechnung wie test_coiled_spring_high_vol_low_slope /
+    test_coiled_spring_negative_slope, hier explizit als Gegenprobe zur
+    NaN->None-Haertung benannt: 0.0 (echtes Ergebnis) und None
+    (unbenutzbarer Eingang) sind zwei verschiedene, nie zu vermengende
+    Zustaende."""
+    real_zero_high_vol = _coiled_spring(0.15, 0.10)
+    real_zero_neg_slope = _coiled_spring(0.02, -0.10)
+    assert real_zero_high_vol == 0.0 and real_zero_high_vol is not None
+    assert real_zero_neg_slope == 0.0 and real_zero_neg_slope is not None
+    assert _coiled_spring(float("nan"), 0.10) is None
+
+
+def test_source_hardened_with_finite_not_only_le_zero():
+    """Quelltext-Deckung: die drei Compute-Helper rufen jetzt _finite()
+    auf ihren Eingaengen, nicht mehr nur '<= 0'/'is None' allein."""
+    assert "not _finite(avg_vol_20d)" in src
+    assert "not all(_finite(v) for v in volumes_5d)" in src
+    assert "not all(_finite(v) for v in highs_5d)" in src
+    assert "not all(_finite(v) for v in lows_5d)" in src
+    assert "not all(_finite(v) for v in closes_5d)" in src
+    assert "not _finite(vol_stability) or not _finite(si_slope)" in src
+
+
 # === 5 — Integration: Schema-Selbsttest in generate_report.py ==============
 
 def test_extended_schema_includes_trend_fields():
@@ -346,6 +445,18 @@ def main() -> None:
         ("coiled_spring: mid-Case 25.0",                   test_coiled_spring_middle),
         ("coiled_spring: Caps wirksam",                    test_coiled_spring_caps_applied),
         ("coiled_spring: None-Eingaben → None",            test_coiled_spring_none_inputs),
+        # NaN-Härtung (15.08.2026)
+        ("rvol_buildup: NaN-Volume-Element → None",         test_rvol_buildup_nan_volume_element_returns_none),
+        ("rvol_buildup: NaN-avg_vol_20d → None",            test_rvol_buildup_nan_avg_vol_20d_returns_none),
+        ("rvol_buildup: Inf-Volume-Element → None",         test_rvol_buildup_inf_volume_element_returns_none),
+        ("vol_stability: NaN in highs → None",              test_vol_stability_nan_in_highs_returns_none),
+        ("vol_stability: NaN in lows → None",               test_vol_stability_nan_in_lows_returns_none),
+        ("vol_stability: NaN in closes → None",             test_vol_stability_nan_in_closes_returns_none),
+        ("coiled_spring: NaN-vol_stability → None (KRITISCH)", test_coiled_spring_nan_vol_stability_returns_none_not_zero),
+        ("coiled_spring: NaN-si_slope → None (KRITISCH)",   test_coiled_spring_nan_si_slope_returns_none_not_zero),
+        ("coiled_spring: Inf-Eingaben → None",              test_coiled_spring_inf_inputs_return_none),
+        ("coiled_spring: echte 0.0 ≠ NaN→None (Gegenprobe)", test_coiled_spring_real_zero_output_never_confused_with_nan_input),
+        ("Quelltext: _finite()-Härtung in allen 3 Helpern",  test_source_hardened_with_finite_not_only_le_zero),
         # Integration
         ("Selbsttest expected_keys enthält Trend-Felder",  test_extended_schema_includes_trend_fields),
         ("_build_backtest_extension ruft Helper auf",      test_build_backtest_extension_writes_trend_fields),
