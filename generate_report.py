@@ -1322,26 +1322,37 @@ def get_yfinance_batch(tickers: list[str]) -> dict[str, dict]:
         # change_2d wird vom Push-Stille-Filter (PUSH_MOVE_2D_MAX) gelesen —
         # 2-Tages-Move = (Close[-1] − Close[-3]) / Close[-3]. Close[-3] ist
         # der Schlusskurs vor 2 Handelstagen.
+        #
+        # NaN-Härtung (15.08.2026, Diagnose-Fund): vorher liefen alle drei
+        # Blöcke über ``float(_df["Close"].iloc[...])`` OHNE Finite-Check —
+        # eine NaN-Zelle (yfinance-Datenlücke) lief unbemerkt bis in
+        # ``round(nan, 2)`` = ``nan``, gefunden über 41 Zeilen in
+        # ``score_inflation_log.jsonl`` (5 Läufe, 27 Ticker). Das
+        # umschließende ``except Exception: pass`` fängt das NICHT — NaN-
+        # Arithmetik wirft nie. Fix (analog ``_extract_hist_5d``, PR #532):
+        # ``_finite_cell`` prüft jede Zelle einzeln; fehlt/ist eine Zelle
+        # nicht endlich, bleibt das jeweilige Feld schlicht UNGESETZT
+        # (Konsumenten lesen ``s.get("change_2d")`` → ``None`` — alle drei
+        # Konsumenten sind bereits explizit auf „kann None sein" gebaut,
+        # keiner fabriziert bei None eine Ersatzzahl).
         try:
             _df = hist_batch if len(tickers) == 1 else hist_batch[ticker]
-            if _df is not None and len(_df) >= 6:
-                results[ticker]["change_5d"] = round(
-                    (float(_df["Close"].iloc[-1]) - float(_df["Close"].iloc[-6])) /
-                    float(_df["Close"].iloc[-6]) * 100, 2
-                )
-            if _df is not None and len(_df) >= 3:
-                results[ticker]["change_2d"] = round(
-                    (float(_df["Close"].iloc[-1]) - float(_df["Close"].iloc[-3])) /
-                    float(_df["Close"].iloc[-3]) * 100, 2
-                )
+            _c_now = _finite_cell(_df["Close"], -1) if _df is not None else None
+            if _c_now is not None and len(_df) >= 6:
+                _c6 = _finite_cell(_df["Close"], -6)
+                if _c6 is not None and _c6 != 0:
+                    results[ticker]["change_5d"] = round((_c_now - _c6) / _c6 * 100, 2)
+            if _c_now is not None and len(_df) >= 3:
+                _c3 = _finite_cell(_df["Close"], -3)
+                if _c3 is not None and _c3 != 0:
+                    results[ticker]["change_2d"] = round((_c_now - _c3) / _c3 * 100, 2)
             # change_3d analog — vom Phase-2-overheated-Trigger
             # (EXIT_MOVE_3D_WARN/CRIT) gelesen. Close[-4] ist der
             # Schlusskurs vor 3 Handelstagen.
-            if _df is not None and len(_df) >= 4:
-                results[ticker]["change_3d"] = round(
-                    (float(_df["Close"].iloc[-1]) - float(_df["Close"].iloc[-4])) /
-                    float(_df["Close"].iloc[-4]) * 100, 2
-                )
+            if _c_now is not None and len(_df) >= 4:
+                _c4 = _finite_cell(_df["Close"], -4)
+                if _c4 is not None and _c4 != 0:
+                    results[ticker]["change_3d"] = round((_c_now - _c4) / _c4 * 100, 2)
         except Exception:
             pass
 
@@ -3874,11 +3885,31 @@ def apply_late_runner_penalty(stocks: list[dict]) -> None:
     """
     for s in stocks:
         rsi14   = _safe_float(s.get("rsi14") or 0)
-        chg2d_p = s.get("change_2d")  # in Prozent, kann None sein
-        try:
-            chg2d_frac = float(chg2d_p) / 100.0 if chg2d_p is not None else 0.0
-        except (TypeError, ValueError):
+        # change_2d ist None bei fehlender/nicht-endlicher Kursdatenlage
+        # (die Quelle in get_yfinance_batch kann seit dem NaN-Wurzel-Fix
+        # 15.08.2026 keine rohe NaN mehr liefern — sie schreibt None statt
+        # NaN bei einer kaputten/fehlenden Close-Zelle). Explizite
+        # None-Branch statt impliziter Ternary: bei unbekannter Bewegung
+        # gibt es KEINEN Abschlag aus dem Move-Kriterium (eine fehlende
+        # Zahl ist kein Beweis für Überhitzung — konservativ), aber das ist
+        # kein stiller Freifahrtschein — jeder Fall wird geloggt (debug,
+        # weil eine fehlende 2-Tages-Historie der häufige/erwartete Fall
+        # ist, z.B. junge IPOs — info-Level würde den Daily-Run-Log fluten).
+        # Das RSI-Kriterium bleibt davon unabhängig scharf.
+        chg2d_p = s.get("change_2d")  # in Prozent
+        if chg2d_p is None:
             chg2d_frac = 0.0
+            log.debug(
+                "Late-Runner-Check %s: change_2d unbekannt — "
+                "Move-Kriterium nicht prüfbar, kein Abschlag daraus "
+                "(RSI-Kriterium bleibt unabhängig aktiv)",
+                s.get("ticker", "?"),
+            )
+        else:
+            try:
+                chg2d_frac = float(chg2d_p) / 100.0
+            except (TypeError, ValueError):
+                chg2d_frac = 0.0
 
         rsi_hot  = rsi14 > LATE_RUNNER_RSI_THRESHOLD
         move_hot = chg2d_frac > LATE_RUNNER_MOVE_2D_THRESHOLD
