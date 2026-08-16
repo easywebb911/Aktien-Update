@@ -429,6 +429,18 @@ def test_17_overheated_nan_move_is_not_available():
     assert "if _finite(chg2d_pct) else None" in GR, "overheated nicht gehärtet"
 
 
+def test_17b_overheated_none_and_nan_move_are_equivalent():
+    """Verifiziert (15.08.2026-Diagnose-Folge): der change_2d/change_3d-
+    Wurzelfix in get_yfinance_batch liefert jetzt ``None`` statt einer
+    rohen NaN bei einer kaputten/fehlenden Close-Zelle. Dieser Konsument
+    (bereits 27.07.2026 auf ``_finite()`` gehärtet) MUSS beide Eingänge
+    identisch behandeln, sonst hätte der Root-Fix sein Verhalten verändert."""
+    nan_result  = _moves(float("nan"), float("nan"))
+    none_result = _moves(None, None)
+    assert nan_result == none_result == (None, None, False), (
+        nan_result, none_result)
+
+
 def test_18_setup_erosion_nan_driver_counts_as_missing():
     assert _to_f(float("nan")) is None, "NaN muss wie 'kein Wert' wirken"
     assert _to_f(None) is None
@@ -579,6 +591,7 @@ def main() -> int:
         ("15 score_decay: NaN-Score → unavailable",              test_15_score_decay_nan_score_is_unavailable),
         ("16 profit_lock: NaN-PnL → unavailable",                test_16_profit_lock_nan_pnl_is_unavailable),
         ("17 overheated: NaN-Move → nicht available",            test_17_overheated_nan_move_is_not_available),
+        ("17b overheated: None ≡ altes NaN-Verhalten",           test_17b_overheated_none_and_nan_move_are_equivalent),
         ("18 setup_erosion: NaN-Driver = fehlend",               test_18_setup_erosion_nan_driver_counts_as_missing),
         ("19 pnl_frac-Quelle explizit NaN-dicht",                test_19_pnl_source_guard_is_finite),
         ("20 _gap_hold_pts: NaN → unknown/0 (Durchschlag)",      test_20_gap_hold_nan_is_unknown_zero),

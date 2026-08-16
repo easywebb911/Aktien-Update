@@ -227,6 +227,26 @@ def _fetch_vix_current() -> float | None:
     return None
 
 
+def _finite(v) -> bool:
+    """PRÄDIKAT: ist ``v`` eine echte, endliche Zahl (kein None/NaN/Inf/bool)?
+
+    Lokale Kopie von ``generate_report._finite`` (gleicher Vertrag) —
+    bewusst dupliziert statt importiert, um keine Cross-Modul-Kopplung
+    zwischen ki_agent.py und generate_report.py einzuführen (analog dem
+    im backtest_history.py-Modul-Docstring dokumentierten Zirkular-
+    Import-Verzicht). NaN-Härtung 15.08.2026: der Push-Stille-Filter
+    prüfte bisher nur ``isinstance(x, (int, float))`` — NaN IST eine
+    ``float``-Instanz, das lässt sie durch (``nan > schwelle`` ist
+    ``False``, das Silence-Kriterium feuert also NICHT bei einer
+    kaputten/fehlenden Kurszelle, obwohl die Bewegung ggf. genau deshalb
+    fehlt, weil sie extrem war). ``_finite`` schließt NaN/Inf/bool korrekt
+    aus.
+    """
+    if isinstance(v, bool) or not isinstance(v, (int, float)):
+        return False
+    return math.isfinite(v)
+
+
 def is_on_cooldown(ticker: str, state: dict) -> bool:
     ts = state.get("cooldowns", {}).get(ticker)
     if not ts:
@@ -3535,9 +3555,21 @@ def main() -> None:
                 _rsi14      = _t10m.get("rsi14")
                 _chg2d_pct  = _t10m.get("change_2d")  # in %
                 _silence_reasons = []
-                if isinstance(_rsi14, (int, float)) and _rsi14 > PUSH_RSI_MAX:
+                # NaN-Härtung (15.08.2026): _finite() statt isinstance() —
+                # NaN ist eine float-Instanz und wurde vorher akzeptiert,
+                # verlor dann aber JEDEN Vergleich (nan > schwelle = False)
+                # → das Silence-Kriterium feuerte NICHT bei kaputten/
+                # fehlenden Kurszellen. Richtung des Fehlers: ein Push für
+                # eine bereits überhitzte/gelaufene Bewegung wurde
+                # FÄLSCHLICH GESENDET statt unterdrückt. Seit dem Wurzel-
+                # Fix in get_yfinance_batch (generate_report.py) liefert
+                # die Quelle bei einer kaputten Zelle ohnehin None statt
+                # NaN — _finite() verhält sich für beide identisch (beide
+                # nicht-endlich → False), also auch defensiv gegen
+                # künftige Geschwister-Bugs an anderen Quellen.
+                if _finite(_rsi14) and _rsi14 > PUSH_RSI_MAX:
                     _silence_reasons.append(f"RSI {_rsi14:.0f}")
-                if (isinstance(_chg2d_pct, (int, float))
+                if (_finite(_chg2d_pct)
                         and _chg2d_pct > PUSH_MOVE_2D_MAX * 100):
                     _silence_reasons.append(f"+{_chg2d_pct:.0f}% 2T")
                 _silence_active  = bool(_silence_reasons)
