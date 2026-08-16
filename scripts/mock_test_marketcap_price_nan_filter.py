@@ -245,6 +245,38 @@ def test_cap_within_limit_wired_into_main():
     assert "enriched = [c for c in enriched if _cap_within_limit(c)]" in src_gr
 
 
+# === D — wl_top10_json-Sanitize (squeeze-guardian-Finding 1, 16.08.2026) ===
+#
+# _wl_card_payload liest market_cap u.a. aus '_s.get("yf_market_cap") or
+# _s.get("market_cap") or 0' (Zeile ~2650, bewusst unverändert — reine
+# Export-Quelle, siehe PR-Body). Der Guardian-Lauf fand: der JSON-Dump für
+# das in die Seite eingebettete WL_TOP10 (const WL_TOP10 = {...};) sanitized
+# NICHT (im Gegensatz zu _write_app_data_json, das denselben Payload-Typ
+# über _sanitize_for_json schickt) — eine rohe NaN würde als literales
+# JS-NaN-Identifier in die Seite eingebettet (kein Parse-Crash, aber ein
+# stiller Wert-Defekt in WL_TOP10[ticker].market_cap). Noch in diesem PR
+# nachgezogen (json.dumps(_sanitize_for_json(_wl_top10), ...)).
+
+def test_sanitize_for_json_replaces_nan_and_inf_with_none():
+    payload = {
+        "AAAA": {"market_cap": float("nan"), "price": 5.0,
+                  "nested": {"x": float("inf"), "y": -float("inf")},
+                  "lst": [1.0, float("nan"), "text", True]},
+    }
+    out = gr._sanitize_for_json(payload)
+    assert out["AAAA"]["market_cap"] is None
+    assert out["AAAA"]["price"] == 5.0
+    assert out["AAAA"]["nested"]["x"] is None
+    assert out["AAAA"]["nested"]["y"] is None
+    assert out["AAAA"]["lst"] == [1.0, None, "text", True]
+
+
+def test_wl_top10_json_source_uses_sanitize_for_json():
+    """Quelltext-Deckung: der in die Seite eingebettete WL_TOP10-Dump läuft
+    jetzt durch denselben Sanitizer wie app_data.json (_write_app_data_json)."""
+    assert 'wl_top10_json = json.dumps(_sanitize_for_json(_wl_top10), default=str)' in src_gr
+
+
 # === C — Zwilling im Per-Kandidat-Enrichment-Loop (~Z. 17894) ==============
 #
 # Struktur-Grund für reine Quelltext-Deckung statt Verhaltens-Test: dieser
@@ -307,6 +339,11 @@ def main() -> None:
          test_main_loop_cap_check_source_no_longer_has_negated_or_gotcha),
         ("Quelltext: main()-Loop-Cap-Check nutzt _finite()-Guard",
          test_main_loop_cap_check_source_uses_finite_guard),
+        # D — wl_top10_json-Sanitize (Guardian-Finding 1)
+        ("sanitize_for_json: NaN/Inf -> None, Rest unverändert",
+         test_sanitize_for_json_replaces_nan_and_inf_with_none),
+        ("Quelltext: wl_top10_json nutzt _sanitize_for_json",
+         test_wl_top10_json_source_uses_sanitize_for_json),
     ]
     failed = 0
     for name, fn in tests:

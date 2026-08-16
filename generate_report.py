@@ -7465,7 +7465,12 @@ def _build_context(stocks: list[dict], report_date: str,
     # sowohl in-page WL_TOP10 als auch app_data.watchlist_cards identisch
     # befüllt sind).
     _wl_top10 = {_s["ticker"]: _wl_card_payload(_s) for _s in stocks}
-    wl_top10_json = json.dumps(_wl_top10, default=str)
+    # _sanitize_for_json (analog _write_app_data_json): NaN/Inf-Floats (z.B.
+    # market_cap aus einer ungeguardeten yfinance-Quelle) würden hier sonst
+    # als literales JS-NaN in die Seite eingebettet — kein Parse-Crash (JS
+    # akzeptiert NaN als Identifier, anders als JSON.parse), aber ein stiller
+    # Wert-Defekt in WL_TOP10[ticker] (guardian-Finding, 16.08.2026).
+    wl_top10_json = json.dumps(_sanitize_for_json(_wl_top10), default=str)
 
     # Compact top-10 snapshot for Claude chat system prompt — strukturiert mit
     # Tagesvergleich, Anomalie-Liste, Position-Kontext und Top-10-Diff.
