@@ -1,10 +1,10 @@
 {
-  "updated": "2026-08-16T12:40:37.329786+02:00",
+  "updated": "2026-08-16T13:34:18.684599+02:00",
   "run_info": {
     "tickers_checked": 14,
     "signals_active": 0,
     "alerts_sent": 0,
-    "elapsed_s": 16.5,
+    "elapsed_s": 20.5,
     "market_phase": "Geschlossen"
   },
   "signals": {
@@ -189,7 +189,7 @@
       "price": 12.25,
       "chg_pct": 0.0,
       "rvol_4d": 2.33,
-      "rvol_20d": 1.67,
+      "rvol_20d": 1.68,
       "earnings": "in 71 Tagen (26.10.2026)",
       "fda_date": null,
       "upcoming_event": null,
@@ -227,9 +227,9 @@
       "uoa_cp_ratio": 13.674698795180722
     },
     "PDYN": {
-      "score": 35,
+      "score": 50,
       "confidence": 33,
-      "drivers": "Spanne 5.0% + News: contract + UOA Call/Put 6.4×",
+      "drivers": "Spanne 5.0% + News: partnership, contract + UOA Call/Put 6.4×",
       "price": 6.61,
       "chg_pct": 0.0,
       "rvol_4d": 1.25,
@@ -273,9 +273,9 @@
       "uoa_cp_ratio": 2.9660045836516424
     },
     "STKH": {
-      "score": 18,
-      "confidence": 33,
-      "drivers": "Spanne 58.9% + News-KI 8/30: Positive news on product launches and funding, but no evidence of high short interest, significant debt, or the catalyst",
+      "score": 10,
+      "confidence": 17,
+      "drivers": "Spanne 58.9%",
       "price": 3.6,
       "chg_pct": -0.0,
       "rvol_4d": 1.47,
@@ -287,16 +287,16 @@
       "stocktwits": null,
       "combo_mult": 1.0,
       "active_triggers": 0,
-      "ki_sentiment_source": "llm",
+      "ki_sentiment_source": "keyword",
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": null,
       "uoa_cp_ratio": null
     },
     "WOLF": {
-      "score": 66,
+      "score": 69,
       "confidence": 70,
-      "drivers": "Earnings in 3 Tagen (19.08.2026) + Spanne 5.5% + News: short interest + Earnings in 3d + UOA Call/Put 2.2×",
+      "drivers": "Earnings in 3 Tagen (19.08.2026) + Spanne 5.5% + News-KI 18/30: Positive partnership news for Wolfspeed, but no short squeeze indicators like high short interest, borrow difficulty, or + Earnings in 3d + UOA Call/Put 2.2×",
       "price": 31.79,
       "chg_pct": 0.0,
       "rvol_4d": 0.6,
@@ -308,7 +308,7 @@
       "stocktwits": null,
       "combo_mult": 1.1,
       "active_triggers": 2,
-      "ki_sentiment_source": "keyword",
+      "ki_sentiment_source": "llm",
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 2.2×"
