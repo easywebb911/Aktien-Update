@@ -602,18 +602,26 @@ def get_yahoo_screener_candidates() -> list[dict]:
                 if _existing is not None and pool_tag not in _existing["source_pools"]:
                     _existing["source_pools"].append(pool_tag)
                 continue
-            price   = float(q.get("regularMarketPrice") or 0)
-            mkt_cap = q.get("marketCap") or q.get("intradayMarketCap")
+            # _finite()-Guard (analog #532/#534/#535): "or 0" / "and" lassen
+            # NaN durch (NaN ist truthy, verliert jeden Vergleich) — der
+            # Preis-/Market-Cap-Filter würde sonst umgangen. Unbekannt (NaN)
+            # schließt aus, statt als 0/None-Fallback durchzurutschen.
+            _price_raw = q.get("regularMarketPrice")
+            price = float(_price_raw) if _finite(_price_raw) else 0.0
+            _mkt_cap_raw = q.get("marketCap")
+            if not _finite(_mkt_cap_raw):
+                _mkt_cap_raw = q.get("intradayMarketCap")
+            mkt_cap = float(_mkt_cap_raw) if _finite(_mkt_cap_raw) else None
             if price < MIN_PRICE:
                 continue
-            if mkt_cap and float(mkt_cap) > MAX_MARKET_CAP:
+            if mkt_cap is not None and mkt_cap > MAX_MARKET_CAP:
                 continue
             seen.add(t)
             sf_raw = float(q.get("shortPercentOfFloat") or 0)
             _cand = {
                 "ticker":       t,
                 "market":       region,
-                "market_cap":   float(mkt_cap) if mkt_cap else None,
+                "market_cap":   mkt_cap,
                 "market_cap_s": fmt_cap(mkt_cap),
                 "price":        price,
                 "change":       float(q.get("regularMarketChangePercent") or 0),
@@ -7457,7 +7465,12 @@ def _build_context(stocks: list[dict], report_date: str,
     # sowohl in-page WL_TOP10 als auch app_data.watchlist_cards identisch
     # befüllt sind).
     _wl_top10 = {_s["ticker"]: _wl_card_payload(_s) for _s in stocks}
-    wl_top10_json = json.dumps(_wl_top10, default=str)
+    # _sanitize_for_json (analog _write_app_data_json): NaN/Inf-Floats (z.B.
+    # market_cap aus einer ungeguardeten yfinance-Quelle) würden hier sonst
+    # als literales JS-NaN in die Seite eingebettet — kein Parse-Crash (JS
+    # akzeptiert NaN als Identifier, anders als JSON.parse), aber ein stiller
+    # Wert-Defekt in WL_TOP10[ticker] (guardian-Finding, 16.08.2026).
+    wl_top10_json = json.dumps(_sanitize_for_json(_wl_top10), default=str)
 
     # Compact top-10 snapshot for Claude chat system prompt — strukturiert mit
     # Tagesvergleich, Anomalie-Liste, Position-Kontext und Top-10-Diff.
@@ -17116,6 +17129,28 @@ def _resolve_run_phase() -> str:
     return "premarket"
 
 
+def _cap_within_limit(c: dict) -> bool:
+    """True wenn ``c`` den Post-Enrichment-Marktkapitalisierungs-Filter
+    passiert: manual_personal-Ausnahme, unbekannter Cap (weder yf_market_cap
+    noch market_cap endlich lesbar) ODER Cap <= MAX_MARKET_CAP.
+
+    _finite()-Guard (analog #532/#534/#535): die vorherige Form
+    ``(a or b or 0) <= MAX_MARKET_CAP`` war zufällig NaN-sicher (ein NaN
+    verliert auch den ``<=``-Vergleich → Kandidat fällt raus) — aber implizit
+    und bei einer künftigen Umstellung auf die negierte Form (``> MAX:
+    continue``) sofort wieder anfällig. Explizit machen statt auf
+    Vergleichs-Zufall verlassen.
+    """
+    if c.get("manual_personal"):
+        return True
+    cap = c.get("yf_market_cap")
+    if not _finite(cap):
+        cap = c.get("market_cap")
+    if not _finite(cap):
+        return True  # Cap unbekannt — bestehende Sonderregel, kein Bypass-Fix nötig
+    return cap <= MAX_MARKET_CAP
+
+
 def main():
     t_run_start = time.time()
     # report_date an den US-HANDELSTAG (Eastern) koppeln, NICHT an die
@@ -17854,8 +17889,18 @@ def main():
         if c.get("manual_personal"):
             log.info("    keep %s [manual_personal]: alle Filter umgangen", t)
         else:
-            cap = c.get("yf_market_cap") or c.get("market_cap")
-            if cap and cap > MAX_MARKET_CAP:
+            # _finite()-Guard (analog #532/#534/#535): "or" lässt ein NaN in
+            # yf_market_cap durch (NaN ist truthy) — der nachfolgende ">"-
+            # Vergleich verliert dann IMMER (NaN > X ist False) und der
+            # Cap-Filter würde umgangen. Ein nicht-endlicher Wert wird wie ein
+            # fehlender behandelt (bestehende Sonderregel: fehlender Cap
+            # blockt hier noch nicht — der Post-Enrichment-Filter unten fängt
+            # das nach vollständiger Anreicherung ab).
+            cap = c.get("yf_market_cap")
+            if not _finite(cap):
+                cap = c.get("market_cap")
+            cap = cap if _finite(cap) else None
+            if cap is not None and cap > MAX_MARKET_CAP:
                 log.info("    skip %s: cap %s > $10B", t, fmt_cap(cap))
                 continue
 
@@ -17907,12 +17952,7 @@ def main():
     # Ausnahme: manuell zur persönlichen Watchlist hinzugefügte Ticker
     # ignorieren den Filter und bleiben immer sichtbar.
     _pre_cap = len(enriched)
-    enriched = [
-        c for c in enriched
-        if c.get("manual_personal")
-        or not (c.get("yf_market_cap") or c.get("market_cap"))
-        or (c.get("yf_market_cap") or c.get("market_cap") or 0) <= MAX_MARKET_CAP
-    ]
+    enriched = [c for c in enriched if _cap_within_limit(c)]
     if _pre_cap > len(enriched):
         print(
             f"Cap-Filter ({MAX_MARKET_CAP_B:.0f} Mrd. $): "
