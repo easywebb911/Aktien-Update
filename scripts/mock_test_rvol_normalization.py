@@ -51,6 +51,16 @@ _US_OPEN_MIN_UTC  = 13 * 60 + 30
 _US_CLOSE_MIN_UTC = 20 * 60
 
 
+import math
+
+
+def _finite(v) -> bool:
+    """Lokale Replik von generate_report._finite (identischer Vertrag)."""
+    if isinstance(v, bool) or not isinstance(v, (int, float)):
+        return False
+    return math.isfinite(v)
+
+
 def normalize_rvol_replicate(
     raw_vol,
     avg_20d,
@@ -61,13 +71,19 @@ def normalize_rvol_replicate(
     premarket_scaler=0.10,
     intraday_min_frac=0.10,
 ):
-    """Pythonische 1:1-Replikation der Helper-Semantik in generate_report.py."""
+    """Pythonische 1:1-Replikation der Helper-Semantik in generate_report.py.
+
+    NaN-Härtung (16.08.2026): der Guard prüft jetzt _finite() statt nur
+    ``<= 0`` — ``nan <= 0`` ist False und widersprach der eigenen Doku-
+    Zusage ("raw_vol None/negativ -> 0.0"), die NaN nie erwähnte, aber
+    implizit mitmeinte.
+    """
     try:
         raw = float(raw_vol) if raw_vol is not None else 0.0
         avg = float(avg_20d) if avg_20d is not None else 0.0
     except (TypeError, ValueError):
         return 0.0
-    if raw <= 0 or avg <= 0:
+    if not _finite(raw) or raw <= 0 or not _finite(avg) or avg <= 0:
         return 0.0
     if not enabled:
         return raw / avg
@@ -247,6 +263,48 @@ def test_18_default_now_utc_does_not_crash() -> None:
     assert r > 0  # bei valider Eingabe immer > 0
 
 
+# ── NaN-Härtung (16.08.2026, Diagnose-Folge) ────────────────────────────────
+
+def test_20_raw_vol_nan_returns_zero_not_nan() -> None:
+    """KRITISCH: raw_vol=NaN darf NICHT als NaN durchgereicht werden — die
+    alte '<= 0'-Form ließ das durch (nan <= 0 ist False)."""
+    r = normalize_rvol_replicate(float("nan"), 1_000_000, enabled=False)
+    assert r == 0.0, f"Erwarte 0.0, bekam {r!r}"
+    r_enabled = normalize_rvol_replicate(
+        float("nan"), 1_000_000, enabled=True,
+        now_utc=datetime(2026, 5, 16, 10, 0, tzinfo=timezone.utc))
+    assert r_enabled == 0.0
+
+
+def test_21_avg_20d_nan_returns_zero_not_nan() -> None:
+    r = normalize_rvol_replicate(1_000_000, float("nan"), enabled=False)
+    assert r == 0.0, f"Erwarte 0.0, bekam {r!r}"
+
+
+def test_22_inf_inputs_return_zero() -> None:
+    assert normalize_rvol_replicate(float("inf"), 1_000_000, enabled=False) == 0.0
+    assert normalize_rvol_replicate(1_000_000, float("inf"), enabled=False) == 0.0
+
+
+def test_23_valid_inputs_unchanged_after_hardening() -> None:
+    """Gegenprobe: die Härtung ändert NICHTS am Ergebnis für echte, endliche
+    Eingaben — identisch zu test_05 (Flag OFF) und test_06 (Flag ON)."""
+    r_off = normalize_rvol_replicate(5_000_000, 1_000_000, enabled=False)
+    assert abs(r_off - 5.0) < 1e-9
+    r_on = normalize_rvol_replicate(
+        1_000_000, 1_000_000, run_phase="premarket", enabled=True,
+        now_utc=datetime(2026, 5, 16, 10, 0, tzinfo=timezone.utc))
+    assert abs(r_on - 10.0) < 1e-9
+
+
+def test_24_source_uses_finite_guard() -> None:
+    """Quelltext-Deckung: der reale Helper nutzt jetzt _finite() im Guard,
+    nicht mehr nur die reine '<= 0'-Form."""
+    seg = GR[GR.find("def _normalize_rvol("): GR.find("def _normalize_rvol(") + 3000]
+    assert "if not _finite(raw) or raw <= 0 or not _finite(avg) or avg <= 0:" in seg
+    assert "if raw <= 0 or avg <= 0:" not in seg, "alte ungehärtete Guard-Form ist noch da"
+
+
 # ── Runner ───────────────────────────────────────────────────────────────────
 
 def main() -> int:
@@ -270,6 +328,11 @@ def main() -> int:
         ("17 Übergang 19:59 UTC (intraday)",        test_17_boundary_1959_utc),
         ("18 ohne now_utc kein Crash",              test_18_default_now_utc_does_not_crash),
         ("19 CLAUDE.md-Sektion vorhanden",          test_19_claude_md_section),
+        ("20 raw_vol=NaN -> 0.0 (nicht NaN)",       test_20_raw_vol_nan_returns_zero_not_nan),
+        ("21 avg_20d=NaN -> 0.0 (nicht NaN)",       test_21_avg_20d_nan_returns_zero_not_nan),
+        ("22 Inf-Eingaben -> 0.0",                  test_22_inf_inputs_return_zero),
+        ("23 valide Eingaben unverändert",          test_23_valid_inputs_unchanged_after_hardening),
+        ("24 Quelltext nutzt _finite()-Guard",      test_24_source_uses_finite_guard),
     ]
     failed = 0
     for name, fn in tests:

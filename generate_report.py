@@ -866,16 +866,25 @@ def _normalize_rvol(
     Workflow-Intention ist authoritativ („Daten sind EOD-konsolidiert").
 
     Edge-Cases:
-    - ``raw_vol`` None / negativ → 0.0
-    - ``avg_20d`` None / ≤ 0 → 0.0 (keine Division durch Null)
+    - ``raw_vol`` None / nicht-endlich / negativ → 0.0
+    - ``avg_20d`` None / nicht-endlich / ≤ 0 → 0.0 (keine Division durch Null)
     - ``now_utc`` None → ``datetime.now(timezone.utc)``
+
+    NaN-Härtung (16.08.2026): der Guard war vorher ``raw <= 0 or avg <= 0``
+    — das widersprach der eigenen Doku-Zusage oben, denn ``nan <= 0`` ist
+    ``False`` und eine NaN lief durch bis in ``raw / avg`` = NaN. Der
+    Merge-Punkt beim einzigen Aufrufer (``c["rel_volume"] = yfd["vol_ratio"]``,
+    hinter einem ``> 0``-Guard) fing das bereits ab — dieses Verhalten
+    ändert sich also NICHT, aber die Funktion hält jetzt selbst, was sie
+    dokumentiert, statt sich auf einen zufällig schützenden Aufrufer zu
+    verlassen.
     """
     try:
         raw = float(raw_vol) if raw_vol is not None else 0.0
         avg = float(avg_20d) if avg_20d is not None else 0.0
     except (TypeError, ValueError):
         return 0.0
-    if raw <= 0 or avg <= 0:
+    if not _finite(raw) or raw <= 0 or not _finite(avg) or avg <= 0:
         return 0.0
 
     enabled = RVOL_NORMALIZATION_ENABLED or force_enabled
@@ -15534,6 +15543,22 @@ def get_watchlist_candidates() -> list[dict]:
 
                     avg_vol = float(df["Volume"].iloc[:-1].mean())
                     cur_vol = float(df["Volume"].iloc[-1])
+                    # NaN-Härtung (16.08.2026) — "unbekannt schließt aus":
+                    # sind avg_vol/cur_vol nicht endlich (yfinance-Datenlücke),
+                    # wird der Kandidat NICHT aufgenommen, sondern wie ein
+                    # gerissener Filter behandelt (continue), mit Log. Dieselbe
+                    # Linie wie "none ist nie false" bei Reg-SHO: wer die
+                    # Mindestschwelle nicht prüfen kann, darf sie nicht
+                    # bestehen. Ein Ausschluss ist reparabel (der Ticker kommt
+                    # am nächsten Scan wieder zur Prüfung); eine unberechtigte
+                    # Aufnahme verzerrt die Pool-Zusammensetzung unbemerkt —
+                    # die alten "< 1000"/"< threshold"-Vergleiche ließen eine
+                    # NaN durch (nan < x ist immer False).
+                    if not (_finite(avg_vol) and _finite(cur_vol)):
+                        log.info("    watchlist skip %s [%s]: Volumen nicht endlich "
+                                 "(avg=%r cur=%r) — Filter nicht prüfbar",
+                                 ticker, market, avg_vol, cur_vol)
+                        continue
                     if avg_vol < 1000:
                         continue
                     rel_vol = cur_vol / avg_vol if avg_vol > 0 else 0.0
@@ -15541,15 +15566,25 @@ def get_watchlist_candidates() -> list[dict]:
                     if rel_vol < vol_threshold:
                         continue
                     price = float(df["Close"].iloc[-1])
+                    if not _finite(price):
+                        log.info("    watchlist skip %s [%s]: price nicht endlich (%r) — "
+                                 "Filter nicht prüfbar", ticker, market, price)
+                        continue
                     if price < MIN_PRICE:
                         continue
                     prev_close = float(df["Close"].iloc[-2])
-                    chg = (price - prev_close) / prev_close * 100 if prev_close > 0 else 0.0
+                    # Kein stiller 0.0-Ersatzwert: fehlt eine valide Vergleichs-
+                    # basis (NaN statt eines echten Vortagesschlusses), bleibt
+                    # change unbekannt (None) statt eine "0.0 % Tagesbewegung"
+                    # vorzutäuschen, die genauso wenig gemessen wurde wie die
+                    # bereits gefixten Fälle in diesem Repo.
+                    chg = ((price - prev_close) / prev_close * 100
+                           if _finite(prev_close) and prev_close > 0 else None)
                     results.append({
                         "ticker":       ticker,
                         "market":       market,
                         "price":        price,
-                        "change":       round(chg, 2),
+                        "change":       round(chg, 2) if chg is not None else None,
                         "rel_volume":   round(rel_vol, 2),
                         "short_float":  0.0,
                         "short_ratio":  0.0,
@@ -17668,6 +17703,15 @@ def main():
             if _stock_perf_20d is not None and _spx_perf_20d is not None
             else None
         )
+        # NaN-Härtung (16.08.2026): der alte ``yfd.get("price") or
+        # c.get("price")`` liess eine rohe NaN durch (NaN ist truthy, "or"
+        # ersetzt sie nicht) — das Kartenfeld hätte "$nan" gerendert statt
+        # sauber auf den letzten bekannten (Screener-Snapshot-)Preis zu
+        # degradieren. Positive Vergleichsform (_finite + > 0) statt "or":
+        # None/0.0/negativ/NaN fallen alle gleich auf c.get("price") zurück
+        # — exakt dasselbe Verhalten wie vorher, nur jetzt auch für NaN.
+        _yfd_price = yfd.get("price")
+        _yfd_price = _yfd_price if (_finite(_yfd_price) and _yfd_price > 0) else None
         c.update({
             "company_name":    yfd.get("company_name") or c.get("company_name", t),
             "sector":          yfd.get("sector") or c.get("sector") or "",
@@ -17685,7 +17729,7 @@ def main():
             "rel_strength_20d": _rel_strength,
             "cur_open":            yfd.get("cur_open"),
             "prev_close":          yfd.get("prev_close"),
-            "price":               yfd.get("price") or c.get("price"),
+            "price":               _yfd_price or c.get("price"),
             # Vintage-Guard (M1): Bar-Datum der Capture aufs Stock-Dict
             # durchreichen (intern, NICHT persistiertes Schema-Feld).
             "bar_date":            yfd.get("bar_date"),

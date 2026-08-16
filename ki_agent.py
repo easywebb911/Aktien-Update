@@ -1223,19 +1223,34 @@ def fetch_uoa_signal(ticker: str) -> tuple[int, list[str], dict]:
         tk = yf.Ticker(ticker)
 
         # Spot-Preis als ATM-Referenz (fast_info → history-Fallback).
+        #
+        # NaN-Härtung (16.08.2026): beide Guards prüften vorher nur
+        # "spot <= 0" — nan <= 0 ist False, eine NaN aus fast_info ODER aus
+        # der history-Zeile würde also fälschlich als "gültiger Spot"
+        # durchgehen. Die Kette landete bisher zufällig bei einem
+        # harmlosen None (der spätere ATM-Vergleich gegen NaN-Grenzen
+        # selektiert nichts, atm_ratio bleibt None statt einer erfundenen
+        # Zahl) — das war Glück durch pandas-Vergleichssemantik, keine
+        # Absicht. _finite() macht es zur Absicht: eine NaN aus fast_info
+        # löst jetzt korrekt den history-Fallback aus (vorher wurde er
+        # übersprungen, weil "nan <= 0" den Fallback-Zweig nie betrat),
+        # und eine NaN aus der history-Zeile führt zum sauberen, geloggten
+        # Abbruch statt zum stillen Weiterrechnen mit unbrauchbaren Grenzen.
         spot = 0.0
         try:
             spot = float(getattr(tk, "fast_info", {}).get("last_price") or 0.0)
         except Exception:
             spot = 0.0
-        if spot <= 0:
+        if not _finite(spot) or spot <= 0:
             try:
                 hist = tk.history(period="1d")
                 if hist is not None and not hist.empty:
                     spot = float(hist["Close"].iloc[-1])
             except Exception:
                 return 0, [], {}
-        if spot <= 0:
+        if not _finite(spot) or spot <= 0:
+            log.debug("UOA %s: Spot-Preis nicht endlich/verfügbar (%r) — übersprungen",
+                      ticker, spot)
             return 0, [], {}
 
         # Nächste Expiration innerhalb des Fensters.
