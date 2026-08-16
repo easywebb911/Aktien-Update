@@ -16360,11 +16360,12 @@ def _exit_p2_scale(value: float | None, warn: float, crit: float
 def _exit_p2_score_at(entries: list, n_back: int) -> float | None:
     """Liefert den Score n_back Einträge vor dem letzten in score_history.
 
+    ``n_back=0`` liefert den letzten Eintrag selbst (aktueller Score).
     Akzeptiert sowohl 2/3-Tuple ([date, score, drivers?]) als auch
     Dict-Form ({date, score}). Returnt None bei fehlendem oder
     unparsebarem Wert.
     """
-    if not entries or n_back <= 0 or n_back >= len(entries):
+    if not entries or n_back < 0 or n_back >= len(entries):
         return None
     e = entries[-1 - n_back]
     s = None
