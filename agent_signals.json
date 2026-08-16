@@ -1,10 +1,10 @@
 {
-  "updated": "2026-08-16T06:50:33.424719+02:00",
+  "updated": "2026-08-16T07:43:49.170405+02:00",
   "run_info": {
     "tickers_checked": 14,
     "signals_active": 0,
     "alerts_sent": 0,
-    "elapsed_s": 21.3,
+    "elapsed_s": 16.9,
     "market_phase": "Geschlossen"
   },
   "signals": {
@@ -97,9 +97,9 @@
       "uoa_cp_ratio": 45.6
     },
     "CAPR": {
-      "score": 50,
-      "confidence": 33,
-      "drivers": "Volumen 10.2× + 🚀 Massives Volumen 10.2×+ + Spanne 27.6%",
+      "score": 58,
+      "confidence": 70,
+      "drivers": "Volumen 10.2× + 🚀 Massives Volumen 10.2×+ + Spanne 27.6% + News-KI 8/30: Positive FDA catalyst and analyst upgrade are bullish but recent earnings setback, litigation risks, and lack of short i",
       "price": 6.65,
       "chg_pct": 0.0,
       "rvol_4d": 10.18,
@@ -111,7 +111,7 @@
       "stocktwits": null,
       "combo_mult": 1.0,
       "active_triggers": 1,
-      "ki_sentiment_source": "keyword",
+      "ki_sentiment_source": "llm",
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": 0.48084291187739464,
@@ -210,7 +210,7 @@
       "price": 10.87,
       "chg_pct": -0.0,
       "rvol_4d": 7.24,
-      "rvol_20d": 8.26,
+      "rvol_20d": 8.16,
       "earnings": "in 89 Tagen (13.11.2026)",
       "fda_date": null,
       "upcoming_event": null,
@@ -250,13 +250,13 @@
       "uoa_cp_ratio": 6.392857142857143
     },
     "SPCE": {
-      "score": 10,
-      "confidence": 17,
-      "drivers": "UOA Call/Put 3.0×",
+      "score": 20,
+      "confidence": 33,
+      "drivers": "Spanne 11.2% + UOA Call/Put 3.0×",
       "price": 3.32,
-      "chg_pct": 0.0,
-      "rvol_4d": 0.0,
-      "rvol_20d": null,
+      "chg_pct": -0.0,
+      "rvol_4d": 1.35,
+      "rvol_20d": 1.84,
       "earnings": null,
       "fda_date": null,
       "upcoming_event": null,
