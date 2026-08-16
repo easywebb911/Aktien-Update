@@ -1,10 +1,10 @@
 {
-  "updated": "2026-08-16T17:36:05.815726+02:00",
+  "updated": "2026-08-16T18:42:52.376277+02:00",
   "run_info": {
     "tickers_checked": 14,
     "signals_active": 0,
     "alerts_sent": 0,
-    "elapsed_s": 35.1,
+    "elapsed_s": 23.3,
     "market_phase": "Geschlossen"
   },
   "signals": {
@@ -58,8 +58,8 @@
       "drivers": "Spanne 9.8%",
       "price": 8.23,
       "chg_pct": -0.0,
-      "rvol_4d": 1.41,
-      "rvol_20d": 1.78,
+      "rvol_4d": 1.13,
+      "rvol_20d": 1.84,
       "earnings": null,
       "fda_date": null,
       "upcoming_event": null,
@@ -229,7 +229,7 @@
     "PDYN": {
       "score": 50,
       "confidence": 33,
-      "drivers": "Spanne 5.0% + News: contract, partnership + UOA Call/Put 6.4×",
+      "drivers": "Spanne 5.0% + News: partnership, contract + UOA Call/Put 6.4×",
       "price": 6.61,
       "chg_pct": 0.0,
       "rvol_4d": 1.25,
