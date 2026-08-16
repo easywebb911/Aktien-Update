@@ -97,7 +97,7 @@ def _load_yahoo_collector():
 
     ns = {
         "re": re, "time": __import__("time"), "float": float, "len": len,
-        "set": set, "log": _Log(),
+        "set": set, "log": _Log(), "math": __import__("math"),
         "ThreadPoolExecutor": ThreadPoolExecutor, "as_completed": as_completed,
         "print": lambda *a, **k: None,
         "MIN_PRICE": 1.0, "MAX_MARKET_CAP": 1e12,
@@ -108,6 +108,10 @@ def _load_yahoo_collector():
         "strip_surrogates": lambda x: x,
         "_fetch_yf_screener": lambda sid, region="US", count=100: quotes_by_sid.get(sid, []),
     }
+    # _add_quotes ruft seit dem NaN-Preis-/Cap-Filter-Fix (16.08.2026)
+    # _finite() auf — echte Extraktion statt Stub, damit dieser Test bei
+    # einer künftigen Änderung an _finite() mitdriftet statt divergiert.
+    exec(_extract(GR_TEXT, "_finite"), ns)
     exec(_extract(GR_TEXT, "get_yahoo_screener_candidates"), ns)
     return ns["get_yahoo_screener_candidates"]
 
