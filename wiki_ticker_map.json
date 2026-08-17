@@ -89,6 +89,15 @@
     "substrate": "none",
     "reason": "no_p249"
   },
+  "ASST": {
+    "qid": null,
+    "title": null,
+    "resolved_at": "2026-08-17T21:44:28Z",
+    "issuer_verified": false,
+    "company_name_at_resolve": "Strive, Inc.",
+    "substrate": "none",
+    "reason": "no_p249"
+  },
   "AVXL": {
     "qid": null,
     "title": null,
@@ -142,6 +151,15 @@
     "company_name_at_resolve": "Blackbaud, Inc.",
     "substrate": "en",
     "reason": null
+  },
+  "CABA": {
+    "qid": null,
+    "title": null,
+    "resolved_at": "2026-08-17T21:44:28Z",
+    "issuer_verified": false,
+    "company_name_at_resolve": "Cabaletta Bio, Inc.",
+    "substrate": "none",
+    "reason": "no_p249"
   },
   "CAPR": {
     "qid": null,
@@ -287,6 +305,15 @@
     "substrate": "none",
     "reason": "no_p249"
   },
+  "FDMT": {
+    "qid": "Q124433826",
+    "title": null,
+    "resolved_at": "2026-08-17T21:44:28Z",
+    "issuer_verified": false,
+    "company_name_at_resolve": "4D Molecular Therapeutics, Inc.",
+    "substrate": "none",
+    "reason": "no_article"
+  },
   "FIP": {
     "qid": null,
     "title": null,
@@ -367,6 +394,15 @@
     "company_name_at_resolve": "ZoomInfo Technologies Inc.",
     "substrate": "en",
     "reason": null
+  },
+  "HIVE": {
+    "qid": null,
+    "title": null,
+    "resolved_at": "2026-08-17T21:44:28Z",
+    "issuer_verified": false,
+    "company_name_at_resolve": "HIVE Digital Technologies Ltd.",
+    "substrate": "none",
+    "reason": "issuer_mismatch"
   },
   "HTZ": {
     "qid": "Q1543874",
@@ -664,6 +700,15 @@
     "company_name_at_resolve": "Serve Robotics Inc.",
     "substrate": "en",
     "reason": null
+  },
+  "SHOE": {
+    "qid": null,
+    "title": null,
+    "resolved_at": "2026-08-17T21:44:28Z",
+    "issuer_verified": false,
+    "company_name_at_resolve": "Shoe Station Group Inc.",
+    "substrate": "none",
+    "reason": "no_p249"
   },
   "SHPH": {
     "qid": null,
