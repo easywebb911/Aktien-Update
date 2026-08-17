@@ -1,11 +1,11 @@
 {
-  "updated": "2026-08-17T09:18:14.205532+02:00",
+  "updated": "2026-08-17T10:03:21.002734+02:00",
   "run_info": {
     "tickers_checked": 14,
     "signals_active": 1,
     "alerts_sent": 0,
-    "elapsed_s": 23.2,
-    "market_phase": "Geschlossen"
+    "elapsed_s": 29.0,
+    "market_phase": "Pre-Market"
   },
   "signals": {
     "ABX": {
@@ -227,9 +227,9 @@
       "uoa_cp_ratio": 13.674698795180722
     },
     "PDYN": {
-      "score": 35,
+      "score": 50,
       "confidence": 33,
-      "drivers": "Spanne 5.0% + News: contract + UOA Call/Put 6.4×",
+      "drivers": "Spanne 5.0% + News: contract, partnership + UOA Call/Put 6.4×",
       "price": 6.61,
       "chg_pct": 0.0,
       "rvol_4d": 1.25,
