@@ -1,10 +1,10 @@
 {
-  "updated": "2026-08-18T10:54:00.907428+02:00",
+  "updated": "2026-08-18T11:48:52.246194+02:00",
   "run_info": {
     "tickers_checked": 13,
     "signals_active": 3,
     "alerts_sent": 0,
-    "elapsed_s": 21.7,
+    "elapsed_s": 24.9,
     "market_phase": "Pre-Market"
   },
   "signals": {
@@ -143,9 +143,9 @@
       "uoa_cp_ratio": 3.896551724137931
     },
     "HIVE": {
-      "score": 99,
+      "score": 91,
       "confidence": 70,
-      "drivers": "Kurs +14.1% + Volumen 1.5× + Spanne 6.6% + SEC 8-K + News: contract + UOA Call/Put 13.4×",
+      "drivers": "Kurs +14.1% + Volumen 1.5× + Spanne 6.6% + SEC 8-K + News-KI 8/30: Positive momentum from legitimate business deal, but lacks short squeeze catalysts like high short interest, low float,  + UOA Call/Put 13.4×",
       "price": 3.07,
       "chg_pct": 14.13,
       "rvol_4d": 1.53,
@@ -157,7 +157,7 @@
       "stocktwits": null,
       "combo_mult": 1.1,
       "active_triggers": 2,
-      "ki_sentiment_source": "keyword",
+      "ki_sentiment_source": "llm",
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 13.4×"
@@ -166,9 +166,9 @@
       "uoa_cp_ratio": 13.38963963963964
     },
     "IONQ": {
-      "score": 10,
-      "confidence": 17,
-      "drivers": "Spanne 6.5%",
+      "score": 22,
+      "confidence": 33,
+      "drivers": "Spanne 6.5% + News-KI 12/30: Positive momentum and strategic expansion news, but no short squeeze indicators like high short interest, insider buying",
       "price": 46.84,
       "chg_pct": 1.25,
       "rvol_4d": 0.96,
@@ -179,8 +179,8 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 0,
-      "ki_sentiment_source": "keyword",
+      "active_triggers": 1,
+      "ki_sentiment_source": "llm",
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": null,
@@ -233,7 +233,7 @@
     "PDYN": {
       "score": 50,
       "confidence": 33,
-      "drivers": "Spanne 5.0% + News: contract, partnership + UOA Call/Put 4.6×",
+      "drivers": "Spanne 5.0% + News: partnership, contract + UOA Call/Put 4.6×",
       "price": 6.47,
       "chg_pct": -2.12,
       "rvol_4d": 1.26,
