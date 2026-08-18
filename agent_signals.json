@@ -1,10 +1,10 @@
 {
-  "updated": "2026-08-19T00:42:23.134877+02:00",
+  "updated": "2026-08-19T01:36:57.425040+02:00",
   "run_info": {
     "tickers_checked": 13,
     "signals_active": 0,
     "alerts_sent": 0,
-    "elapsed_s": 36.5,
+    "elapsed_s": 25.7,
     "market_phase": "After-Hours"
   },
   "signals": {
@@ -101,9 +101,9 @@
       "uoa_cp_ratio": 5.5
     },
     "FDMT": {
-      "score": 28,
-      "confidence": 70,
-      "drivers": "Spanne 7.9% + News-KI 8/30: Positive news on competitor setback and revenue beat, but Q2 loss and employment grants suggest weak fundamentals, limit + SEC Form 4",
+      "score": 20,
+      "confidence": 33,
+      "drivers": "Spanne 7.9% + SEC Form 4",
       "price": 14.72,
       "chg_pct": 0.0,
       "rvol_4d": 1.19,
@@ -115,7 +115,7 @@
       "stocktwits": null,
       "combo_mult": 1.0,
       "active_triggers": 0,
-      "ki_sentiment_source": "llm",
+      "ki_sentiment_source": "keyword",
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": 0.34615384615384615,
@@ -239,7 +239,7 @@
     "PDYN": {
       "score": 50,
       "confidence": 33,
-      "drivers": "Spanne 5.3% + News: partnership, contract + UOA Call/Put 5.3×",
+      "drivers": "Spanne 5.3% + News: contract, partnership + UOA Call/Put 5.3×",
       "price": 6.28,
       "chg_pct": 0.0,
       "rvol_4d": 0.76,
@@ -262,7 +262,7 @@
     "ROOT": {
       "score": 18,
       "confidence": 33,
-      "drivers": "Spanne 6.7% + News-KI 8/30: Negative earnings miss with significant stock drop indicates weak momentum; no short squeeze catalysts present despite p",
+      "drivers": "Spanne 6.7% + News-KI 8/30: Negative earnings miss and 11.1% stock drop indicate weak momentum and institutional selling, not typical short-squeeze ",
       "price": 52.29,
       "chg_pct": 0.0,
       "rvol_4d": 1.08,
