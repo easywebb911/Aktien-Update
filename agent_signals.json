@@ -1,17 +1,17 @@
 {
-  "updated": "2026-08-18T09:05:54.548064+02:00",
+  "updated": "2026-08-18T09:54:33.019101+02:00",
   "run_info": {
     "tickers_checked": 13,
     "signals_active": 3,
     "alerts_sent": 0,
-    "elapsed_s": 23.2,
+    "elapsed_s": 26.6,
     "market_phase": "Geschlossen"
   },
   "signals": {
     "AMC": {
-      "score": 50,
+      "score": 20,
       "confidence": 33,
-      "drivers": "Spanne 6.1% + News: squeeze, short squeeze + UOA Call/Put 6.8×",
+      "drivers": "Spanne 6.1% + UOA Call/Put 6.8×",
       "price": 2.44,
       "chg_pct": -2.4,
       "rvol_4d": 0.75,
@@ -22,7 +22,7 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 1,
+      "active_triggers": 0,
       "ki_sentiment_source": "keyword",
       "uoa_score": 10,
       "uoa_drivers": [
@@ -32,13 +32,13 @@
       "uoa_cp_ratio": 6.801040634291377
     },
     "ARCT": {
-      "score": 28,
+      "score": 20,
       "confidence": 33,
-      "drivers": "Spanne 9.8% + News-KI 8/30: Positive pipeline and conference news lacks the high short interest, low float, and catalyst-driven urgency typically re + UOA Call/Put 12.0×",
+      "drivers": "Spanne 9.8% + UOA Call/Put 12.0×",
       "price": 8.14,
       "chg_pct": -1.09,
-      "rvol_4d": 1.13,
-      "rvol_20d": 1.84,
+      "rvol_4d": 1.41,
+      "rvol_20d": 1.77,
       "earnings": null,
       "fda_date": null,
       "upcoming_event": null,
@@ -46,7 +46,7 @@
       "stocktwits": null,
       "combo_mult": 1.0,
       "active_triggers": 0,
-      "ki_sentiment_source": "llm",
+      "ki_sentiment_source": "keyword",
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 12.0×"
@@ -81,8 +81,8 @@
       "drivers": "Kurs +5.1% + UOA Call/Put 52.2×",
       "price": 2.89,
       "chg_pct": 5.09,
-      "rvol_4d": 0.83,
-      "rvol_20d": 0.86,
+      "rvol_4d": 0.77,
+      "rvol_20d": 0.81,
       "earnings": "in 90 Tagen (16.11.2026)",
       "fda_date": null,
       "upcoming_event": null,
@@ -99,13 +99,13 @@
       "uoa_cp_ratio": 52.20388349514563
     },
     "FDMT": {
-      "score": 45,
+      "score": 53,
       "confidence": 70,
-      "drivers": "Kurs +19.3% + Spanne 9.4% + SEC Form 4",
+      "drivers": "Kurs +19.3% + Spanne 9.4% + News-KI 8/30: Positive sentiment from competitor setback and revenue beat, but employment grants and Q2 losses indicate fundamental we + SEC Form 4",
       "price": 14.54,
       "chg_pct": 19.32,
-      "rvol_4d": 1.28,
-      "rvol_20d": 1.26,
+      "rvol_4d": 1.22,
+      "rvol_20d": 1.27,
       "earnings": "in 84 Tagen (10.11.2026)",
       "fda_date": null,
       "upcoming_event": null,
@@ -113,20 +113,20 @@
       "stocktwits": null,
       "combo_mult": 1.0,
       "active_triggers": 1,
-      "ki_sentiment_source": "keyword",
+      "ki_sentiment_source": "llm",
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": null,
       "uoa_cp_ratio": 1.4912280701754386
     },
     "GO": {
-      "score": 35,
+      "score": 43,
       "confidence": 70,
-      "drivers": "Kurs +3.2% + Spanne 6.8% + UOA Call/Put 3.9×",
+      "drivers": "Kurs +3.2% + Spanne 6.8% + News-KI 8/30: Positive earnings and guidance increase indicate fundamental strength, but lack of short squeeze catalysts like high sho + UOA Call/Put 4.1×",
       "price": 11.49,
       "chg_pct": 3.23,
-      "rvol_4d": 0.84,
-      "rvol_20d": 1.28,
+      "rvol_4d": 0.83,
+      "rvol_20d": 1.22,
       "earnings": "in 77 Tagen (03.11.2026)",
       "fda_date": null,
       "upcoming_event": null,
@@ -134,18 +134,18 @@
       "stocktwits": null,
       "combo_mult": 1.0,
       "active_triggers": 1,
-      "ki_sentiment_source": "keyword",
+      "ki_sentiment_source": "llm",
       "uoa_score": 10,
       "uoa_drivers": [
-        "UOA Call/Put 3.9×"
+        "UOA Call/Put 4.1×"
       ],
       "uoa_atm_ratio": null,
-      "uoa_cp_ratio": 3.896551724137931
+      "uoa_cp_ratio": 4.144827586206897
     },
     "HIVE": {
-      "score": 99,
+      "score": 91,
       "confidence": 70,
-      "drivers": "Kurs +14.1% + Volumen 1.5× + Spanne 6.6% + SEC 8-K + News: contract + UOA Call/Put 13.4×",
+      "drivers": "Kurs +14.1% + Volumen 1.5× + Spanne 6.6% + SEC 8-K + News-KI 8/30: Positive fundamental news (GPU deal) drives price appreciation, but lacks short squeeze indicators like high short inter + UOA Call/Put 13.4×",
       "price": 3.07,
       "chg_pct": 14.13,
       "rvol_4d": 1.53,
@@ -157,7 +157,7 @@
       "stocktwits": null,
       "combo_mult": 1.1,
       "active_triggers": 2,
-      "ki_sentiment_source": "keyword",
+      "ki_sentiment_source": "llm",
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 13.4×"
@@ -233,7 +233,7 @@
     "PDYN": {
       "score": 50,
       "confidence": 33,
-      "drivers": "Spanne 5.0% + News: contract, partnership + UOA Call/Put 4.6×",
+      "drivers": "Spanne 5.0% + News: partnership, contract + UOA Call/Put 4.6×",
       "price": 6.47,
       "chg_pct": -2.12,
       "rvol_4d": 1.26,
