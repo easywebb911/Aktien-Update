@@ -512,6 +512,15 @@
     "substrate": "none",
     "reason": "no_p249"
   },
+  "KURA": {
+    "qid": "Q30269121",
+    "title": null,
+    "resolved_at": "2026-08-18T21:42:10Z",
+    "issuer_verified": false,
+    "company_name_at_resolve": "Kura Oncology, Inc.",
+    "substrate": "none",
+    "reason": "no_article"
+  },
   "KUST": {
     "qid": null,
     "title": null,
@@ -662,6 +671,15 @@
     "resolved_at": "2026-07-29T22:16:00Z",
     "issuer_verified": false,
     "company_name_at_resolve": "Replimune Group, Inc.",
+    "substrate": "none",
+    "reason": "no_p249"
+  },
+  "ROOT": {
+    "qid": null,
+    "title": null,
+    "resolved_at": "2026-08-18T21:42:10Z",
+    "issuer_verified": false,
+    "company_name_at_resolve": "Root, Inc.",
     "substrate": "none",
     "reason": "no_p249"
   },
