@@ -1,5 +1,5 @@
 {
-  "last_run": "2026-08-19T12:46:49.939106+02:00",
+  "last_run": "2026-08-19T13:23:10.593244+02:00",
   "cooldowns": {
     "anomaly_score_jump_XRX": "2026-05-03T18:47:15.315486+02:00",
     "anomaly_uoa_extreme_TDOC": "2026-05-04T13:47:00.365949+02:00",
@@ -109,18 +109,6 @@
     "earnings_immediate_WOLF_19.08.2026": "2026-08-18T22:41:42.193330+02:00"
   },
   "push_history": [
-    {
-      "ts": "2026-07-23T10:45:58.290540+02:00",
-      "ticker": "IONQ",
-      "kind": "exit_p2",
-      "severity": "trigger",
-      "trigger": "trend_break",
-      "body": "🔻 Exit-Signal IONQ: trend_break crit ({'ma21': 43.0938, 'price': 34.68, 'drop_pct': 19.52})",
-      "success": true,
-      "suppressed": false,
-      "suppress_reason": null,
-      "conviction_score": null
-    },
     {
       "ts": "2026-07-23T10:45:58.343404+02:00",
       "ticker": "PDYN",
@@ -1308,21 +1296,33 @@
       "suppressed": false,
       "suppress_reason": null,
       "conviction_score": null
+    },
+    {
+      "ts": "2026-08-19T13:23:10.652312+02:00",
+      "ticker": "WOLF",
+      "kind": "exit_p2",
+      "severity": "trigger",
+      "trigger": "catalyst",
+      "body": "🔻 Exit-Signale WOLF: catalyst crit · Warnung pressure 70/100",
+      "success": true,
+      "suppressed": false,
+      "suppress_reason": null,
+      "conviction_score": null
     }
   ],
   "prev_conviction_scores": {
-    "ASMB": 81.0,
-    "NMAX": 71.0,
-    "KURA": 69.0,
+    "ASMB": 67.0,
+    "KURA": 59.0,
+    "NMAX": 58.0,
     "ARCT": 61.0,
-    "INBX": 66.0,
-    "PAR": 66.0,
-    "WOLF": 59.0,
-    "CMPX": 73.0,
-    "ROOT": 64.0,
-    "FDMT": 56.0,
-    "PDYN": 38.0,
-    "IONQ": 14.0,
+    "PAR": 53.0,
+    "INBX": 53.0,
+    "FDMT": 60.0,
+    "WOLF": 58.0,
+    "ROOT": 51.0,
+    "AI": 65.0,
+    "PDYN": 37.0,
+    "IONQ": 15.0,
     "AMC": 12.0
   },
   "exit_cooldowns": {
@@ -1368,13 +1368,13 @@
       ],
       "last_push_date": "2026-08-05",
       "esc_alerted": false,
-      "updated": "2026-08-19T12:46:49.939195+02:00"
+      "updated": "2026-08-19T13:23:10.593344+02:00"
     },
     "PDYN": {
       "last_active": [],
       "last_push_date": "2026-08-06",
       "esc_alerted": false,
-      "updated": "2026-08-19T12:46:49.939210+02:00"
+      "updated": "2026-08-19T13:23:10.593358+02:00"
     },
     "AI": {
       "last_active": [],
@@ -1399,11 +1399,11 @@
     "WOLF": {
       "last_active": [
         "__warning__",
-        "score_decay"
+        "catalyst"
       ],
-      "last_push_date": "2026-08-18",
+      "last_push_date": "2026-08-19",
       "esc_alerted": false,
-      "updated": "2026-08-19T12:46:49.939228+02:00"
+      "updated": "2026-08-19T13:23:10.652349+02:00"
     },
     "ARCT": {
       "last_active": [
@@ -1411,7 +1411,7 @@
       ],
       "last_push_date": "2026-08-18",
       "esc_alerted": false,
-      "updated": "2026-08-19T12:46:49.939241+02:00"
+      "updated": "2026-08-19T13:23:10.652374+02:00"
     }
   }
 }
