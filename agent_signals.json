@@ -1,21 +1,21 @@
 {
-  "updated": "2026-08-19T03:53:37.137878+02:00",
+  "updated": "2026-08-19T05:11:32.654583+02:00",
   "run_info": {
     "tickers_checked": 13,
     "signals_active": 0,
     "alerts_sent": 0,
-    "elapsed_s": 25.4,
+    "elapsed_s": 13.3,
     "market_phase": "Geschlossen"
   },
   "signals": {
     "AMC": {
-      "score": 18,
+      "score": 10,
       "confidence": 17,
-      "drivers": "News-KI 8/30: Mixed headlines showing price weakness and valuation concerns outweigh positive cash flow news, with no significant shor + UOA Call/Put 14.8×",
+      "drivers": "UOA Call/Put 14.8×",
       "price": 2.38,
       "chg_pct": 0.0,
-      "rvol_4d": 0.97,
-      "rvol_20d": 0.34,
+      "rvol_4d": 0.0,
+      "rvol_20d": null,
       "earnings": "in 63 Tagen (20.10.2026)",
       "fda_date": null,
       "upcoming_event": null,
@@ -23,7 +23,7 @@
       "stocktwits": null,
       "combo_mult": 1.0,
       "active_triggers": 0,
-      "ki_sentiment_source": "llm",
+      "ki_sentiment_source": "keyword",
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 14.8×"
@@ -214,9 +214,9 @@
       "uoa_cp_ratio": 7.234604105571847
     },
     "PAR": {
-      "score": 38,
+      "score": 30,
       "confidence": 70,
-      "drivers": "Spanne 5.6% + News-KI 8/30: Positive growth sentiment but no short-squeeze indicators like high short interest, strong bearish positioning reversal, + SEC Form 4 + UOA Call/Put 6.9×",
+      "drivers": "Spanne 5.6% + SEC Form 4 + UOA Call/Put 6.9×",
       "price": 19.42,
       "chg_pct": 0.0,
       "rvol_4d": 1.14,
@@ -228,7 +228,7 @@
       "stocktwits": null,
       "combo_mult": 1.0,
       "active_triggers": 0,
-      "ki_sentiment_source": "llm",
+      "ki_sentiment_source": "keyword",
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 6.9×"
@@ -237,9 +237,9 @@
       "uoa_cp_ratio": 6.862745098039215
     },
     "PDYN": {
-      "score": 50,
+      "score": 32,
       "confidence": 33,
-      "drivers": "Spanne 5.3% + News: contract, partnership + UOA Call/Put 5.3×",
+      "drivers": "Spanne 5.3% + News-KI 12/30: Positive fundamentals (record revenue, strategic appointments) reduce squeeze potential; no evidence of high short inter + UOA Call/Put 5.3×",
       "price": 6.28,
       "chg_pct": 0.0,
       "rvol_4d": 0.76,
@@ -251,7 +251,7 @@
       "stocktwits": null,
       "combo_mult": 1.0,
       "active_triggers": 1,
-      "ki_sentiment_source": "keyword",
+      "ki_sentiment_source": "llm",
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 5.3×"
