@@ -1,10 +1,10 @@
 {
-  "updated": "2026-08-19T23:46:23.602714+02:00",
+  "updated": "2026-08-20T00:42:21.016115+02:00",
   "run_info": {
     "tickers_checked": 14,
     "signals_active": 3,
     "alerts_sent": 0,
-    "elapsed_s": 37.3,
+    "elapsed_s": 27.5,
     "market_phase": "After-Hours"
   },
   "signals": {
@@ -55,9 +55,9 @@
       "uoa_cp_ratio": 74.82142857142857
     },
     "ASST": {
-      "score": 66,
+      "score": 55,
       "confidence": 70,
-      "drivers": "Volumen 2.5× + Spanne 14.6% + News: short interest + SEC Form 4 + UOA Call/Put 2.0×",
+      "drivers": "Volumen 2.5× + Spanne 14.6% + News: short interest + UOA Call/Put 2.0×",
       "price": 14.73,
       "chg_pct": -0.0,
       "rvol_4d": 2.53,
@@ -78,9 +78,9 @@
       "uoa_cp_ratio": 2.0055020632737275
     },
     "BKKT": {
-      "score": 25,
-      "confidence": 33,
-      "drivers": "Volumen 1.9× + Spanne 16.0%",
+      "score": 35,
+      "confidence": 70,
+      "drivers": "Volumen 1.9× + Spanne 16.0% + SEC Form 4",
       "price": 7.74,
       "chg_pct": -0.0,
       "rvol_4d": 1.89,
@@ -212,7 +212,7 @@
     "NVAX": {
       "score": 100,
       "confidence": 70,
-      "drivers": "Volumen 4.6× + ⚡ Extremes Volumen 4.6×+ + Spanne 7.5% + News: buyout, partnership + UOA Call-Vol/OI 4.3× ATM + UOA Call/Put 8.2×",
+      "drivers": "Volumen 4.6× + ⚡ Extremes Volumen 4.6×+ + Spanne 7.5% + News: partnership, buyout + UOA Call-Vol/OI 4.3× ATM + UOA Call/Put 8.2×",
       "price": 8.79,
       "chg_pct": -0.0,
       "rvol_4d": 4.61,
@@ -257,9 +257,9 @@
       "uoa_cp_ratio": 5.09375
     },
     "RXRX": {
-      "score": 72,
+      "score": 82,
       "confidence": 70,
-      "drivers": "Volumen 2.5× + Spanne 9.4% + News: catalyst, short interest + UOA Call/Put 23.2×",
+      "drivers": "Volumen 2.5× + Spanne 9.4% + News: short interest, catalyst + SEC Form 4 + UOA Call/Put 23.2×",
       "price": 3.5,
       "chg_pct": 0.0,
       "rvol_4d": 2.47,
