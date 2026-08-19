@@ -134,6 +134,15 @@
     "substrate": "none",
     "reason": "no_p249"
   },
+  "BKKT": {
+    "qid": "Q83768717",
+    "title": "Bakkt",
+    "resolved_at": "2026-08-19T21:44:14Z",
+    "issuer_verified": true,
+    "company_name_at_resolve": "Bakkt, Inc.",
+    "substrate": "en",
+    "reason": null
+  },
   "BKSY": {
     "qid": "Q56314218",
     "title": null,
@@ -275,6 +284,15 @@
     "resolved_at": "2026-07-29T22:16:00Z",
     "issuer_verified": true,
     "company_name_at_resolve": "DXC Technology Company",
+    "substrate": "en",
+    "reason": null
+  },
+  "EDIT": {
+    "qid": "Q23131313",
+    "title": "Editas_Medicine",
+    "resolved_at": "2026-08-19T21:44:14Z",
+    "issuer_verified": true,
+    "company_name_at_resolve": "Editas Medicine, Inc.",
     "substrate": "en",
     "reason": null
   },
@@ -593,6 +611,15 @@
     "substrate": "en",
     "reason": null
   },
+  "NTLA": {
+    "qid": "Q54621387",
+    "title": "Intellia_Therapeutics",
+    "resolved_at": "2026-08-19T21:44:14Z",
+    "issuer_verified": true,
+    "company_name_at_resolve": "Intellia Therapeutics, Inc.",
+    "substrate": "en",
+    "reason": null
+  },
   "NUWE": {
     "qid": null,
     "title": null,
@@ -601,6 +628,15 @@
     "company_name_at_resolve": "Nuwellis, Inc.",
     "substrate": "none",
     "reason": "no_p249"
+  },
+  "NVAX": {
+    "qid": "Q17072200",
+    "title": "Novavax",
+    "resolved_at": "2026-08-19T21:44:14Z",
+    "issuer_verified": true,
+    "company_name_at_resolve": "Novavax, Inc.",
+    "substrate": "en",
+    "reason": null
   },
   "ORIC": {
     "qid": null,
@@ -680,6 +716,24 @@
     "resolved_at": "2026-08-18T21:42:10Z",
     "issuer_verified": false,
     "company_name_at_resolve": "Root, Inc.",
+    "substrate": "none",
+    "reason": "no_p249"
+  },
+  "RXRX": {
+    "qid": "Q120877642",
+    "title": null,
+    "resolved_at": "2026-08-19T21:44:14Z",
+    "issuer_verified": false,
+    "company_name_at_resolve": "Recursion Pharmaceuticals, Inc.",
+    "substrate": "none",
+    "reason": "no_article"
+  },
+  "SANA": {
+    "qid": null,
+    "title": null,
+    "resolved_at": "2026-08-19T21:44:14Z",
+    "issuer_verified": false,
+    "company_name_at_resolve": "Sana Biotechnology, Inc.",
     "substrate": "none",
     "reason": "no_p249"
   },
