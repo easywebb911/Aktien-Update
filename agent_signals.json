@@ -1,10 +1,10 @@
 {
-  "updated": "2026-08-19T05:11:32.654583+02:00",
+  "updated": "2026-08-19T05:59:10.641495+02:00",
   "run_info": {
     "tickers_checked": 13,
     "signals_active": 0,
     "alerts_sent": 0,
-    "elapsed_s": 13.3,
+    "elapsed_s": 16.4,
     "market_phase": "Geschlossen"
   },
   "signals": {
@@ -14,8 +14,8 @@
       "drivers": "UOA Call/Put 14.8×",
       "price": 2.38,
       "chg_pct": 0.0,
-      "rvol_4d": 0.0,
-      "rvol_20d": null,
+      "rvol_4d": 0.97,
+      "rvol_20d": 0.34,
       "earnings": "in 63 Tagen (20.10.2026)",
       "fda_date": null,
       "upcoming_event": null,
@@ -237,9 +237,9 @@
       "uoa_cp_ratio": 6.862745098039215
     },
     "PDYN": {
-      "score": 32,
+      "score": 50,
       "confidence": 33,
-      "drivers": "Spanne 5.3% + News-KI 12/30: Positive fundamentals (record revenue, strategic appointments) reduce squeeze potential; no evidence of high short inter + UOA Call/Put 5.3×",
+      "drivers": "Spanne 5.3% + News: contract, partnership + UOA Call/Put 5.3×",
       "price": 6.28,
       "chg_pct": 0.0,
       "rvol_4d": 0.76,
@@ -251,7 +251,7 @@
       "stocktwits": null,
       "combo_mult": 1.0,
       "active_triggers": 1,
-      "ki_sentiment_source": "llm",
+      "ki_sentiment_source": "keyword",
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 5.3×"
