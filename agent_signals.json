@@ -1,17 +1,17 @@
 {
-  "updated": "2026-08-19T01:36:57.425040+02:00",
+  "updated": "2026-08-19T03:53:37.137878+02:00",
   "run_info": {
     "tickers_checked": 13,
     "signals_active": 0,
     "alerts_sent": 0,
-    "elapsed_s": 25.7,
-    "market_phase": "After-Hours"
+    "elapsed_s": 25.4,
+    "market_phase": "Geschlossen"
   },
   "signals": {
     "AMC": {
-      "score": 10,
+      "score": 18,
       "confidence": 17,
-      "drivers": "UOA Call/Put 14.8×",
+      "drivers": "News-KI 8/30: Mixed headlines showing price weakness and valuation concerns outweigh positive cash flow news, with no significant shor + UOA Call/Put 14.8×",
       "price": 2.38,
       "chg_pct": 0.0,
       "rvol_4d": 0.97,
@@ -23,7 +23,7 @@
       "stocktwits": null,
       "combo_mult": 1.0,
       "active_triggers": 0,
-      "ki_sentiment_source": "keyword",
+      "ki_sentiment_source": "llm",
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 14.8×"
@@ -214,9 +214,9 @@
       "uoa_cp_ratio": 7.234604105571847
     },
     "PAR": {
-      "score": 30,
+      "score": 38,
       "confidence": 70,
-      "drivers": "Spanne 5.6% + SEC Form 4 + UOA Call/Put 6.9×",
+      "drivers": "Spanne 5.6% + News-KI 8/30: Positive growth sentiment but no short-squeeze indicators like high short interest, strong bearish positioning reversal, + SEC Form 4 + UOA Call/Put 6.9×",
       "price": 19.42,
       "chg_pct": 0.0,
       "rvol_4d": 1.14,
@@ -228,7 +228,7 @@
       "stocktwits": null,
       "combo_mult": 1.0,
       "active_triggers": 0,
-      "ki_sentiment_source": "keyword",
+      "ki_sentiment_source": "llm",
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 6.9×"
@@ -260,9 +260,9 @@
       "uoa_cp_ratio": 5.325
     },
     "ROOT": {
-      "score": 18,
+      "score": 25,
       "confidence": 33,
-      "drivers": "Spanne 6.7% + News-KI 8/30: Negative earnings miss and 11.1% stock drop indicate weak momentum and institutional selling, not typical short-squeeze ",
+      "drivers": "Spanne 6.7% + News: partnership",
       "price": 52.29,
       "chg_pct": 0.0,
       "rvol_4d": 1.08,
@@ -273,8 +273,8 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 0,
-      "ki_sentiment_source": "llm",
+      "active_triggers": 1,
+      "ki_sentiment_source": "keyword",
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": 0.08900523560209424,
