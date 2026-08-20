@@ -1,17 +1,17 @@
 {
-  "updated": "2026-08-20T13:43:32.060821+02:00",
+  "updated": "2026-08-20T15:11:58.459027+02:00",
   "run_info": {
     "tickers_checked": 14,
     "signals_active": 3,
     "alerts_sent": 0,
-    "elapsed_s": 25.6,
+    "elapsed_s": 29.3,
     "market_phase": "Pre-Market"
   },
   "signals": {
     "AMC": {
-      "score": 32,
+      "score": 20,
       "confidence": 33,
-      "drivers": "Spanne 9.2% + News-KI 12/30: Mixed sentiment with valuation concerns outweighing positive cash flow improvements; lacks the extreme short interest ca + UOA Call/Put 7.7×",
+      "drivers": "Spanne 9.2% + UOA Call/Put 7.7×",
       "price": 2.52,
       "chg_pct": -0.0,
       "rvol_4d": 1.27,
@@ -22,8 +22,8 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 1,
-      "ki_sentiment_source": "llm",
+      "active_triggers": 0,
+      "ki_sentiment_source": "keyword",
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 7.7×"
@@ -38,7 +38,7 @@
       "price": 10.28,
       "chg_pct": -0.0,
       "rvol_4d": 9.55,
-      "rvol_20d": 10.5,
+      "rvol_20d": 10.58,
       "earnings": null,
       "fda_date": null,
       "upcoming_event": null,
@@ -79,9 +79,9 @@
       "uoa_cp_ratio": 2.0055020632737275
     },
     "BKKT": {
-      "score": 35,
-      "confidence": 70,
-      "drivers": "Volumen 2.0× + Spanne 16.0% + SEC Form 4",
+      "score": 25,
+      "confidence": 33,
+      "drivers": "Volumen 2.0× + Spanne 16.0%",
       "price": 7.74,
       "chg_pct": -0.0,
       "rvol_4d": 2.01,
@@ -213,7 +213,7 @@
     "NVAX": {
       "score": 94,
       "confidence": 70,
-      "drivers": "Volumen 4.7× + ⚡ Extremes Volumen 4.7×+ + Spanne 7.6% + News: partnership, buyout + UOA Call/Put 8.2×",
+      "drivers": "Volumen 4.7× + ⚡ Extremes Volumen 4.7×+ + Spanne 7.6% + News: buyout, partnership + UOA Call/Put 8.2×",
       "price": 8.79,
       "chg_pct": -0.0,
       "rvol_4d": 4.69,
@@ -303,9 +303,9 @@
       "uoa_cp_ratio": 27.363636363636363
     },
     "WOLF": {
-      "score": 61,
+      "score": 44,
       "confidence": 70,
-      "drivers": "Volumen 2.3× + Spanne 13.9% + SEC 8-K + News: earnings beat",
+      "drivers": "Volumen 2.3× + Spanne 13.9% + SEC 8-K",
       "price": 29.09,
       "chg_pct": 0.0,
       "rvol_4d": 2.33,
