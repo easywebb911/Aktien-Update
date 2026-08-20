@@ -1,5 +1,5 @@
 {
-  "last_run": "2026-08-20T23:43:41.550858+02:00",
+  "last_run": "2026-08-20T23:48:22.361322+02:00",
   "cooldowns": {
     "anomaly_score_jump_XRX": "2026-05-03T18:47:15.315486+02:00",
     "anomaly_uoa_extreme_TDOC": "2026-05-04T13:47:00.365949+02:00",
@@ -1311,20 +1311,19 @@
     }
   ],
   "prev_conviction_scores": {
-    "EDIT": 75.0,
-    "NVAX": 81.0,
-    "CABA": 74.0,
-    "NTLA": 72.0,
+    "GEMI": 73.0,
     "ARCT": 65.0,
-    "BKKT": 64.0,
-    "ASST": 64.0,
-    "RXRX": 63.0,
-    "SANA": 77.0,
-    "FDMT": 60.0,
-    "WOLF": 58.0,
-    "PDYN": 37.0,
-    "AMC": 16.0,
-    "IONQ": 15.0
+    "ASST": 50.0,
+    "WOLF": 75.0,
+    "RXRX": 47.0,
+    "CABA": 53.0,
+    "LENZ": 66.0,
+    "QDEL": 66.0,
+    "STKH": 44.0,
+    "HIVE": 51.0,
+    "PDYN": 36.0,
+    "IONQ": 15.0,
+    "AMC": 11.0
   },
   "exit_cooldowns": {
     "exitp2_warning_AMC": "2026-05-18T14:48:43.872687+02:00",
@@ -1369,13 +1368,13 @@
       ],
       "last_push_date": "2026-08-05",
       "esc_alerted": false,
-      "updated": "2026-08-20T23:43:41.550946+02:00"
+      "updated": "2026-08-20T23:48:22.361394+02:00"
     },
     "PDYN": {
       "last_active": [],
       "last_push_date": "2026-08-06",
       "esc_alerted": false,
-      "updated": "2026-08-20T23:43:41.550961+02:00"
+      "updated": "2026-08-20T23:48:22.361410+02:00"
     },
     "AI": {
       "last_active": [],
@@ -1399,13 +1398,11 @@
     },
     "WOLF": {
       "last_active": [
-        "__warning__",
-        "catalyst",
         "trend_break"
       ],
       "last_push_date": "2026-08-19",
       "esc_alerted": false,
-      "updated": "2026-08-20T23:43:41.550977+02:00"
+      "updated": "2026-08-20T23:48:22.361425+02:00"
     },
     "ARCT": {
       "last_active": [
@@ -1414,6 +1411,12 @@
       "last_push_date": "2026-08-18",
       "esc_alerted": false,
       "updated": "2026-08-19T23:41:55.395131+02:00"
+    },
+    "RXRX": {
+      "last_active": [],
+      "last_push_date": null,
+      "esc_alerted": false,
+      "updated": "2026-08-20T23:48:22.361435+02:00"
     }
   }
 }
