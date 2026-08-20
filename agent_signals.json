@@ -1,17 +1,17 @@
 {
-  "updated": "2026-08-20T03:52:03.895996+02:00",
+  "updated": "2026-08-20T05:10:34.478452+02:00",
   "run_info": {
     "tickers_checked": 14,
     "signals_active": 3,
     "alerts_sent": 0,
-    "elapsed_s": 28.9,
+    "elapsed_s": 14.6,
     "market_phase": "Geschlossen"
   },
   "signals": {
     "AMC": {
-      "score": 20,
+      "score": 32,
       "confidence": 33,
-      "drivers": "Spanne 9.2% + UOA Call/Put 7.7×",
+      "drivers": "Spanne 9.2% + News-KI 12/30: Mixed sentiment with declining trading activity, overvaluation concerns, and only modest operational improvements - weak + UOA Call/Put 7.7×",
       "price": 2.52,
       "chg_pct": -0.0,
       "rvol_4d": 1.24,
@@ -22,8 +22,8 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 0,
-      "ki_sentiment_source": "keyword",
+      "active_triggers": 1,
+      "ki_sentiment_source": "llm",
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 7.7×"
@@ -128,7 +128,7 @@
       "price": 3.25,
       "chg_pct": 0.0,
       "rvol_4d": 5.42,
-      "rvol_20d": 6.13,
+      "rvol_20d": 6.23,
       "earnings": null,
       "fda_date": null,
       "upcoming_event": null,
@@ -234,9 +234,9 @@
       "uoa_cp_ratio": 8.168437025796662
     },
     "PDYN": {
-      "score": 50,
+      "score": 32,
       "confidence": 33,
-      "drivers": "Spanne 7.1% + News: partnership, contract + UOA Call/Put 5.1×",
+      "drivers": "Spanne 7.1% + News-KI 12/30: Positive fundamental developments (partnerships, board appointments) but lack of short squeeze indicators like high shor + UOA Call/Put 5.1×",
       "price": 6.23,
       "chg_pct": 0.0,
       "rvol_4d": 0.8,
@@ -248,7 +248,7 @@
       "stocktwits": null,
       "combo_mult": 1.0,
       "active_triggers": 1,
-      "ki_sentiment_source": "keyword",
+      "ki_sentiment_source": "llm",
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 5.1×"
@@ -259,7 +259,7 @@
     "RXRX": {
       "score": 82,
       "confidence": 70,
-      "drivers": "Volumen 2.5× + Spanne 9.4% + News: catalyst, short interest + SEC Form 4 + UOA Call/Put 23.2×",
+      "drivers": "Volumen 2.5× + Spanne 9.4% + News: short interest, catalyst + SEC Form 4 + UOA Call/Put 23.2×",
       "price": 3.5,
       "chg_pct": 0.0,
       "rvol_4d": 2.47,
@@ -280,9 +280,9 @@
       "uoa_cp_ratio": 23.168173598553345
     },
     "SANA": {
-      "score": 35,
+      "score": 43,
       "confidence": 70,
-      "drivers": "Volumen 2.5× + Spanne 12.2% + UOA Call/Put 27.4×",
+      "drivers": "Volumen 2.5× + Spanne 12.2% + News-KI 8/30: Positive clinical and clinical trial news lacks short-squeeze catalysts like high short interest, gamma exposure, or sto + UOA Call/Put 27.4×",
       "price": 4.1,
       "chg_pct": -0.0,
       "rvol_4d": 2.5,
@@ -294,7 +294,7 @@
       "stocktwits": null,
       "combo_mult": 1.0,
       "active_triggers": 1,
-      "ki_sentiment_source": "keyword",
+      "ki_sentiment_source": "llm",
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 27.4×"
@@ -303,9 +303,9 @@
       "uoa_cp_ratio": 27.363636363636363
     },
     "WOLF": {
-      "score": 88,
+      "score": 96,
       "confidence": 70,
-      "drivers": "Earnings in 0 Tagen (19.08.2026) + Volumen 2.0× + Spanne 13.9% + SEC 8-K + News-KI 8/30: Earnings miss with negative margins and stock decline indicate weak fundamentals and likely continued selling pressure,  + Earnings in 0d + 3/4 Trigger",
+      "drivers": "Earnings in 0 Tagen (19.08.2026) + Volumen 2.0× + Spanne 13.9% + SEC 8-K + News: earnings beat + Earnings in 0d + 3/4 Trigger",
       "price": 29.09,
       "chg_pct": 0.0,
       "rvol_4d": 2.01,
@@ -317,7 +317,7 @@
       "stocktwits": null,
       "combo_mult": 1.2,
       "active_triggers": 3,
-      "ki_sentiment_source": "llm",
+      "ki_sentiment_source": "keyword",
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": 1.4153439153439153,
