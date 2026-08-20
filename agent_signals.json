@@ -1,10 +1,10 @@
 {
-  "updated": "2026-08-20T10:56:37.646596+02:00",
+  "updated": "2026-08-20T11:50:23.283340+02:00",
   "run_info": {
     "tickers_checked": 14,
     "signals_active": 2,
     "alerts_sent": 0,
-    "elapsed_s": 12.7,
+    "elapsed_s": 22.0,
     "market_phase": "Pre-Market"
   },
   "signals": {
@@ -38,7 +38,7 @@
       "price": 10.28,
       "chg_pct": -0.0,
       "rvol_4d": 9.55,
-      "rvol_20d": 10.5,
+      "rvol_20d": 10.58,
       "earnings": null,
       "fda_date": null,
       "upcoming_event": null,
@@ -78,9 +78,9 @@
       "uoa_cp_ratio": 2.0055020632737275
     },
     "BKKT": {
-      "score": 35,
+      "score": 43,
       "confidence": 70,
-      "drivers": "Volumen 2.0× + Spanne 16.0% + SEC Form 4",
+      "drivers": "Volumen 2.0× + Spanne 16.0% + News-KI 8/30: Positive fundamentals (earnings, CFO hire) indicate company stabilization rather than distress, which reduces short-sque + SEC Form 4",
       "price": 7.74,
       "chg_pct": -0.0,
       "rvol_4d": 2.01,
@@ -92,7 +92,7 @@
       "stocktwits": null,
       "combo_mult": 1.0,
       "active_triggers": 1,
-      "ki_sentiment_source": "keyword",
+      "ki_sentiment_source": "llm",
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": null,
@@ -105,7 +105,7 @@
       "price": 3.1,
       "chg_pct": -0.0,
       "rvol_4d": 2.05,
-      "rvol_20d": 3.27,
+      "rvol_20d": 3.14,
       "earnings": "in 88 Tagen (16.11.2026)",
       "fda_date": null,
       "upcoming_event": null,
@@ -212,7 +212,7 @@
     "NVAX": {
       "score": 94,
       "confidence": 70,
-      "drivers": "Volumen 4.7× + ⚡ Extremes Volumen 4.7×+ + Spanne 7.6% + News: partnership, buyout + UOA Call/Put 8.2×",
+      "drivers": "Volumen 4.7× + ⚡ Extremes Volumen 4.7×+ + Spanne 7.6% + News: buyout, partnership + UOA Call/Put 8.2×",
       "price": 8.79,
       "chg_pct": -0.0,
       "rvol_4d": 4.69,
@@ -235,7 +235,7 @@
     "PDYN": {
       "score": 50,
       "confidence": 33,
-      "drivers": "Spanne 7.1% + News: contract, partnership + UOA Call/Put 5.1×",
+      "drivers": "Spanne 7.1% + News: partnership, contract + UOA Call/Put 5.1×",
       "price": 6.23,
       "chg_pct": 0.0,
       "rvol_4d": 0.81,
@@ -258,7 +258,7 @@
     "RXRX": {
       "score": 82,
       "confidence": 70,
-      "drivers": "Volumen 2.5× + Spanne 9.5% + News: short interest, catalyst + SEC Form 4 + UOA Call/Put 23.2×",
+      "drivers": "Volumen 2.5× + Spanne 9.5% + News: catalyst, short interest + SEC Form 4 + UOA Call/Put 23.2×",
       "price": 3.5,
       "chg_pct": 0.0,
       "rvol_4d": 2.51,
@@ -302,9 +302,9 @@
       "uoa_cp_ratio": 27.363636363636363
     },
     "WOLF": {
-      "score": 61,
+      "score": 53,
       "confidence": 70,
-      "drivers": "Volumen 2.3× + Spanne 13.9% + SEC 8-K + News: earnings beat",
+      "drivers": "Volumen 2.3× + Spanne 13.9% + SEC 8-K + News-KI 8/30: Negative earnings performance and 11% stock drop indicate weak momentum rather than short-squeeze setup despite AI reven",
       "price": 29.09,
       "chg_pct": 0.0,
       "rvol_4d": 2.33,
@@ -316,7 +316,7 @@
       "stocktwits": null,
       "combo_mult": 1.1,
       "active_triggers": 2,
-      "ki_sentiment_source": "keyword",
+      "ki_sentiment_source": "llm",
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": null,
