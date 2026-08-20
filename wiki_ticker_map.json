@@ -386,6 +386,15 @@
     "substrate": "en",
     "reason": null
   },
+  "GEMI": {
+    "qid": null,
+    "title": null,
+    "resolved_at": "2026-08-20T21:46:41Z",
+    "issuer_verified": false,
+    "company_name_at_resolve": "Gemini Space Station, Inc.",
+    "substrate": "none",
+    "reason": "no_p249"
+  },
   "GO": {
     "qid": "Q5609934",
     "title": "Grocery_Outlet",

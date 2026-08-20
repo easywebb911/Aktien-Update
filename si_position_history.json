@@ -1920,6 +1920,12 @@
       "shares_short": 1344688,
       "short_pct_float": 21.16,
       "pub_date": "2026-07-24"
+    },
+    {
+      "settlement_date": "2026-07-31",
+      "shares_short": 1548809,
+      "short_pct_float": 24.38,
+      "pub_date": "2026-08-11"
     }
   ],
   "CMCO": [
@@ -3984,6 +3990,12 @@
       "shares_short": 114178,
       "short_pct_float": 31.34,
       "pub_date": "2026-07-24"
+    },
+    {
+      "settlement_date": "2026-07-31",
+      "shares_short": 955180,
+      "short_pct_float": 262.22,
+      "pub_date": "2026-08-11"
     }
   ],
   "AVXL": [
@@ -4922,6 +4934,36 @@
       "settlement_date": "2026-07-31",
       "shares_short": 11010959,
       "short_pct_float": 25.69,
+      "pub_date": "2026-08-11"
+    }
+  ],
+  "VIVK": [
+    {
+      "settlement_date": "2026-06-30",
+      "shares_short": 9206,
+      "short_pct_float": null,
+      "pub_date": "2026-07-10",
+      "seeded": true
+    },
+    {
+      "settlement_date": "2026-07-31",
+      "shares_short": 444582,
+      "short_pct_float": 65.45,
+      "pub_date": "2026-08-11"
+    }
+  ],
+  "AMIX": [
+    {
+      "settlement_date": "2026-06-30",
+      "shares_short": 16476,
+      "short_pct_float": null,
+      "pub_date": "2026-07-10",
+      "seeded": true
+    },
+    {
+      "settlement_date": "2026-07-31",
+      "shares_short": 263441,
+      "short_pct_float": 50.11,
       "pub_date": "2026-08-11"
     }
   ]
