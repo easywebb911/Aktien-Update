@@ -1,10 +1,10 @@
 {
-  "updated": "2026-08-21T06:54:41.182863+02:00",
+  "updated": "2026-08-21T07:48:49.101365+02:00",
   "run_info": {
     "tickers_checked": 13,
     "signals_active": 0,
     "alerts_sent": 0,
-    "elapsed_s": 12.2,
+    "elapsed_s": 14.1,
     "market_phase": "Geschlossen"
   },
   "signals": {
@@ -38,7 +38,7 @@
       "price": 10.99,
       "chg_pct": -0.0,
       "rvol_4d": 1.23,
-      "rvol_20d": 2.98,
+      "rvol_20d": 3.05,
       "earnings": null,
       "fda_date": null,
       "upcoming_event": null,
@@ -84,7 +84,7 @@
       "price": 3.19,
       "chg_pct": 0.0,
       "rvol_4d": 0.83,
-      "rvol_20d": 1.54,
+      "rvol_20d": 1.62,
       "earnings": "in 87 Tagen (16.11.2026)",
       "fda_date": null,
       "upcoming_event": null,
@@ -101,9 +101,9 @@
       "uoa_cp_ratio": 2.905
     },
     "GEMI": {
-      "score": 40,
+      "score": 50,
       "confidence": 70,
-      "drivers": "Volumen 1.9× + Spanne 9.3% + News-KI 5/30: Massive decline and continued downward pressure with price target cuts indicate weak fundamentals and likely continued s + UOA Call/Put 23.5×",
+      "drivers": "Volumen 1.9× + Spanne 9.3% + News: buyout + UOA Call/Put 23.5×",
       "price": 4.14,
       "chg_pct": -0.0,
       "rvol_4d": 1.87,
@@ -114,8 +114,8 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 0,
-      "ki_sentiment_source": "llm",
+      "active_triggers": 1,
+      "ki_sentiment_source": "keyword",
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 23.5×"
@@ -124,9 +124,9 @@
       "uoa_cp_ratio": 23.514767932489452
     },
     "HIVE": {
-      "score": 45,
+      "score": 38,
       "confidence": 70,
-      "drivers": "Spanne 9.8% + News: contract + SEC Form 4 + UOA Call/Put 3.3×",
+      "drivers": "Spanne 9.8% + News-KI 8/30: Positive AI expansion news lacks short squeeze indicators (no high short interest mention, reasonable valuation updates, + SEC Form 4 + UOA Call/Put 3.3×",
       "price": 3.13,
       "chg_pct": 0.0,
       "rvol_4d": 1.14,
@@ -137,8 +137,8 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 1,
-      "ki_sentiment_source": "keyword",
+      "active_triggers": 0,
+      "ki_sentiment_source": "llm",
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 3.3×"
@@ -191,9 +191,9 @@
       "uoa_cp_ratio": 0.07650273224043716
     },
     "PDYN": {
-      "score": 30,
+      "score": 12,
       "confidence": 17,
-      "drivers": "News: partnership, contract",
+      "drivers": "News-KI 12/30: Positive business developments and leadership appointments lack the short-squeeze indicators of high short interest, low",
       "price": 6.1,
       "chg_pct": -0.0,
       "rvol_4d": 0.6,
@@ -205,20 +205,20 @@
       "stocktwits": null,
       "combo_mult": 1.0,
       "active_triggers": 1,
-      "ki_sentiment_source": "keyword",
+      "ki_sentiment_source": "llm",
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": null,
       "uoa_cp_ratio": 1.0263157894736843
     },
     "QDEL": {
-      "score": 35,
+      "score": 43,
       "confidence": 70,
-      "drivers": "Volumen 2.1× + Spanne 12.4% + SEC Form 4",
+      "drivers": "Volumen 2.1× + Spanne 12.4% + News-KI 8/30: Standard earnings coverage with no indicators of high short interest, significant ownership concentration, or squeeze ca + SEC Form 4",
       "price": 14.85,
       "chg_pct": 0.0,
       "rvol_4d": 2.07,
-      "rvol_20d": 1.6,
+      "rvol_20d": 1.65,
       "earnings": "in 76 Tagen (05.11.2026)",
       "fda_date": null,
       "upcoming_event": null,
@@ -226,7 +226,7 @@
       "stocktwits": null,
       "combo_mult": 1.0,
       "active_triggers": 1,
-      "ki_sentiment_source": "keyword",
+      "ki_sentiment_source": "llm",
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": null,
@@ -277,13 +277,13 @@
       "uoa_cp_ratio": null
     },
     "WOLF": {
-      "score": 33,
-      "confidence": 70,
-      "drivers": "Volumen 2.0× + Spanne 17.1% + News-KI 8/30: Negative earnings miss and stock decline indicate weak momentum, while no significant short interest or bullish reversal",
+      "score": 0,
+      "confidence": 0,
+      "drivers": "",
       "price": 26.35,
       "chg_pct": 0.0,
-      "rvol_4d": 1.97,
-      "rvol_20d": 2.1,
+      "rvol_4d": 0.0,
+      "rvol_20d": null,
       "earnings": "in 75 Tagen (04.11.2026)",
       "fda_date": null,
       "upcoming_event": null,
@@ -291,7 +291,7 @@
       "stocktwits": null,
       "combo_mult": 1.0,
       "active_triggers": 0,
-      "ki_sentiment_source": "llm",
+      "ki_sentiment_source": "keyword",
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": null,
