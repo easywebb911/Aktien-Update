@@ -1,10 +1,10 @@
 {
-  "updated": "2026-08-21T06:04:52.735993+02:00",
+  "updated": "2026-08-21T06:54:41.182863+02:00",
   "run_info": {
     "tickers_checked": 13,
     "signals_active": 0,
     "alerts_sent": 0,
-    "elapsed_s": 15.0,
+    "elapsed_s": 12.2,
     "market_phase": "Geschlossen"
   },
   "signals": {
@@ -28,7 +28,7 @@
       "uoa_drivers": [
         "UOA Call/Put 4.4×"
       ],
-      "uoa_atm_ratio": 0.1346228995701446,
+      "uoa_atm_ratio": null,
       "uoa_cp_ratio": 4.440239963082603
     },
     "ARCT": {
@@ -51,7 +51,7 @@
       "uoa_drivers": [
         "UOA Call/Put 10.5×"
       ],
-      "uoa_atm_ratio": 0.11451612903225807,
+      "uoa_atm_ratio": null,
       "uoa_cp_ratio": 10.5
     },
     "ASST": {
@@ -74,13 +74,13 @@
       "uoa_drivers": [
         "UOA Call/Put 2.4×"
       ],
-      "uoa_atm_ratio": 1.0268912529550827,
+      "uoa_atm_ratio": null,
       "uoa_cp_ratio": 2.4274157303370787
     },
     "CABA": {
-      "score": 32,
+      "score": 20,
       "confidence": 33,
-      "drivers": "Spanne 9.5% + News-KI 12/30: Biotech company with clinical progress lacks the high short interest, low float, and catalyst urgency typically required + UOA Call/Put 2.9×",
+      "drivers": "Spanne 9.5% + UOA Call/Put 2.9×",
       "price": 3.19,
       "chg_pct": 0.0,
       "rvol_4d": 0.83,
@@ -91,19 +91,19 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 1,
-      "ki_sentiment_source": "llm",
+      "active_triggers": 0,
+      "ki_sentiment_source": "keyword",
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 2.9×"
       ],
-      "uoa_atm_ratio": 0.02955260637570119,
+      "uoa_atm_ratio": null,
       "uoa_cp_ratio": 2.905
     },
     "GEMI": {
       "score": 40,
       "confidence": 70,
-      "drivers": "Volumen 1.9× + Spanne 9.3% + News-KI 5/30: Massive price decline and analyst downgrades indicate weak fundamentals and continued selling pressure, making a short s + UOA Call/Put 23.5×",
+      "drivers": "Volumen 1.9× + Spanne 9.3% + News-KI 5/30: Massive decline and continued downward pressure with price target cuts indicate weak fundamentals and likely continued s + UOA Call/Put 23.5×",
       "price": 4.14,
       "chg_pct": -0.0,
       "rvol_4d": 1.87,
@@ -120,7 +120,7 @@
       "uoa_drivers": [
         "UOA Call/Put 23.5×"
       ],
-      "uoa_atm_ratio": 1.053336580613736,
+      "uoa_atm_ratio": null,
       "uoa_cp_ratio": 23.514767932489452
     },
     "HIVE": {
@@ -143,13 +143,13 @@
       "uoa_drivers": [
         "UOA Call/Put 3.3×"
       ],
-      "uoa_atm_ratio": 0.18839434641383548,
+      "uoa_atm_ratio": null,
       "uoa_cp_ratio": 3.261744966442953
     },
     "IONQ": {
-      "score": 25,
+      "score": 45,
       "confidence": 33,
-      "drivers": "Spanne 7.5% + News: contract",
+      "drivers": "Spanne 7.5% + News: contract + UOA Call-Vol/OI 3238.5× ATM",
       "price": 41.53,
       "chg_pct": -0.0,
       "rvol_4d": 1.07,
@@ -162,9 +162,11 @@
       "combo_mult": 1.0,
       "active_triggers": 1,
       "ki_sentiment_source": "keyword",
-      "uoa_score": 0,
-      "uoa_drivers": [],
-      "uoa_atm_ratio": 0.29153351037493813,
+      "uoa_score": 20,
+      "uoa_drivers": [
+        "UOA Call-Vol/OI 3238.5× ATM"
+      ],
+      "uoa_atm_ratio": 3238.5,
       "uoa_cp_ratio": 0.34946632315053366
     },
     "LENZ": {
@@ -185,13 +187,13 @@
       "ki_sentiment_source": "keyword",
       "uoa_score": 0,
       "uoa_drivers": [],
-      "uoa_atm_ratio": 0.06716417910447761,
+      "uoa_atm_ratio": null,
       "uoa_cp_ratio": 0.07650273224043716
     },
     "PDYN": {
-      "score": 12,
+      "score": 30,
       "confidence": 17,
-      "drivers": "News-KI 12/30: Positive business developments and leadership appointments lack short-squeeze catalysts like high short interest, unusua",
+      "drivers": "News: partnership, contract",
       "price": 6.1,
       "chg_pct": -0.0,
       "rvol_4d": 0.6,
@@ -203,10 +205,10 @@
       "stocktwits": null,
       "combo_mult": 1.0,
       "active_triggers": 1,
-      "ki_sentiment_source": "llm",
+      "ki_sentiment_source": "keyword",
       "uoa_score": 0,
       "uoa_drivers": [],
-      "uoa_atm_ratio": 0.03825717321997875,
+      "uoa_atm_ratio": null,
       "uoa_cp_ratio": 1.0263157894736843
     },
     "QDEL": {
@@ -227,7 +229,7 @@
       "ki_sentiment_source": "keyword",
       "uoa_score": 0,
       "uoa_drivers": [],
-      "uoa_atm_ratio": 0.02,
+      "uoa_atm_ratio": null,
       "uoa_cp_ratio": 0.10064935064935066
     },
     "RXRX": {
@@ -250,7 +252,7 @@
       "uoa_drivers": [
         "UOA Call/Put 5.0×"
       ],
-      "uoa_atm_ratio": 0.1462979482604817,
+      "uoa_atm_ratio": null,
       "uoa_cp_ratio": 5.004115226337449
     },
     "STKH": {
@@ -277,7 +279,7 @@
     "WOLF": {
       "score": 33,
       "confidence": 70,
-      "drivers": "Volumen 2.0× + Spanne 17.1% + News-KI 8/30: Negative earnings miss and stock crash indicate weak fundamentals rather than short-squeeze potential, which requires hi",
+      "drivers": "Volumen 2.0× + Spanne 17.1% + News-KI 8/30: Negative earnings miss and stock decline indicate weak momentum, while no significant short interest or bullish reversal",
       "price": 26.35,
       "chg_pct": 0.0,
       "rvol_4d": 1.97,
@@ -292,7 +294,7 @@
       "ki_sentiment_source": "llm",
       "uoa_score": 0,
       "uoa_drivers": [],
-      "uoa_atm_ratio": 0.5258736559139785,
+      "uoa_atm_ratio": null,
       "uoa_cp_ratio": 1.1725888324873097
     }
   }
