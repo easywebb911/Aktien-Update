@@ -419,6 +419,11 @@
       "date": "2026-08-19",
       "inst_ownership": 0.50445,
       "insider_ownership": 0.00715
+    },
+    {
+      "date": "2026-08-21",
+      "inst_ownership": 0.50424,
+      "insider_ownership": 0.00715
     }
   ],
   "AMC": [
@@ -472,6 +477,11 @@
     {
       "date": "2026-08-13",
       "inst_ownership": 1.05995,
+      "insider_ownership": 0.01127
+    },
+    {
+      "date": "2026-08-21",
+      "inst_ownership": 1.0579901,
       "insider_ownership": 0.01127
     }
   ],
@@ -772,6 +782,11 @@
       "date": "2026-08-17",
       "inst_ownership": 0.90661,
       "insider_ownership": 0.104949996
+    },
+    {
+      "date": "2026-08-21",
+      "inst_ownership": 0.90651,
+      "insider_ownership": 0.104949996
     }
   ],
   "EZPW": [
@@ -788,6 +803,11 @@
     {
       "date": "2026-08-20",
       "inst_ownership": 1.2358899,
+      "insider_ownership": 0.04492
+    },
+    {
+      "date": "2026-08-21",
+      "inst_ownership": 1.23612,
       "insider_ownership": 0.04492
     }
   ],
@@ -890,6 +910,11 @@
       "date": "2026-08-19",
       "inst_ownership": 0.91865,
       "insider_ownership": 0.03482
+    },
+    {
+      "date": "2026-08-21",
+      "inst_ownership": 0.91913,
+      "insider_ownership": 0.03479
     }
   ],
   "RXT": [
@@ -1104,6 +1129,11 @@
     {
       "date": "2026-08-18",
       "inst_ownership": 0.022030002,
+      "insider_ownership": 0.9401
+    },
+    {
+      "date": "2026-08-21",
+      "inst_ownership": 0.02202,
       "insider_ownership": 0.9401
     }
   ],
@@ -1664,6 +1694,11 @@
       "date": "2026-08-19",
       "inst_ownership": 0.28358,
       "insider_ownership": 0.39534
+    },
+    {
+      "date": "2026-08-21",
+      "inst_ownership": 0.28348,
+      "insider_ownership": 0.39534
     }
   ],
   "SANA": [
@@ -1864,6 +1899,34 @@
       "date": "2026-08-21",
       "inst_ownership": 0.64432,
       "insider_ownership": 0.01434
+    }
+  ],
+  "ABUS": [
+    {
+      "date": "2026-08-21",
+      "inst_ownership": 0.72275,
+      "insider_ownership": 0.20427
+    }
+  ],
+  "CHPT": [
+    {
+      "date": "2026-08-21",
+      "inst_ownership": 0.34305,
+      "insider_ownership": 0.03582
+    }
+  ],
+  "INSG": [
+    {
+      "date": "2026-08-21",
+      "inst_ownership": 0.72013,
+      "insider_ownership": 0.01746
+    }
+  ],
+  "CURV": [
+    {
+      "date": "2026-08-21",
+      "inst_ownership": 0.90938,
+      "insider_ownership": 0.05515
     }
   ]
 }

@@ -1296,6 +1296,12 @@
       "shares_short": 4596035,
       "short_pct_float": 18.04,
       "pub_date": "2026-07-24"
+    },
+    {
+      "settlement_date": "2026-07-31",
+      "shares_short": 5225900,
+      "short_pct_float": 20.51,
+      "pub_date": "2026-08-11"
     }
   ],
   "VOR": [
@@ -3858,6 +3864,12 @@
       "shares_short": 3933266,
       "short_pct_float": 15.44,
       "pub_date": "2026-07-24"
+    },
+    {
+      "settlement_date": "2026-07-31",
+      "shares_short": 3975429,
+      "short_pct_float": 15.6,
+      "pub_date": "2026-08-11"
     }
   ],
   "DMRC": [
@@ -4976,6 +4988,36 @@
       "settlement_date": "2026-07-31",
       "shares_short": 263441,
       "short_pct_float": 50.11,
+      "pub_date": "2026-08-11"
+    }
+  ],
+  "ABUS": [
+    {
+      "settlement_date": "2026-06-30",
+      "shares_short": 17111453,
+      "short_pct_float": null,
+      "pub_date": "2026-07-10",
+      "seeded": true
+    },
+    {
+      "settlement_date": "2026-07-31",
+      "shares_short": 20236241,
+      "short_pct_float": 15.24,
+      "pub_date": "2026-08-11"
+    }
+  ],
+  "INSG": [
+    {
+      "settlement_date": "2026-06-30",
+      "shares_short": 1584661,
+      "short_pct_float": null,
+      "pub_date": "2026-07-10",
+      "seeded": true
+    },
+    {
+      "settlement_date": "2026-07-31",
+      "shares_short": 2039648,
+      "short_pct_float": 16.74,
       "pub_date": "2026-08-11"
     }
   ]

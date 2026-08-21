@@ -8,6 +8,15 @@
     "substrate": "none",
     "reason": "no_p249"
   },
+  "ABUS": {
+    "qid": "Q17747021",
+    "title": "Arbutus_Biopharma",
+    "resolved_at": "2026-08-21T21:43:13Z",
+    "issuer_verified": true,
+    "company_name_at_resolve": "Arbutus Biopharma Corporation",
+    "substrate": "en",
+    "reason": null
+  },
   "ABX": {
     "qid": null,
     "title": null,
@@ -197,6 +206,15 @@
     "substrate": "none",
     "reason": "no_article"
   },
+  "CHPT": {
+    "qid": "Q5176149",
+    "title": "ChargePoint",
+    "resolved_at": "2026-08-21T21:43:13Z",
+    "issuer_verified": true,
+    "company_name_at_resolve": "ChargePoint Holdings, Inc.",
+    "substrate": "en",
+    "reason": null
+  },
   "CMCO": {
     "qid": null,
     "title": null,
@@ -313,6 +331,15 @@
     "company_name_at_resolve": "EVgo, Inc.",
     "substrate": "none",
     "reason": "no_p249"
+  },
+  "EZPW": {
+    "qid": "Q5324749",
+    "title": "EZCorp",
+    "resolved_at": "2026-08-21T21:43:13Z",
+    "issuer_verified": true,
+    "company_name_at_resolve": "EZCORP, Inc.",
+    "substrate": "en",
+    "reason": null
   },
   "FABC": {
     "qid": null,
