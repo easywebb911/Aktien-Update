@@ -1,17 +1,17 @@
 {
-  "updated": "2026-08-21T10:58:52.039088+02:00",
+  "updated": "2026-08-21T11:52:44.782027+02:00",
   "run_info": {
     "tickers_checked": 13,
     "signals_active": 0,
     "alerts_sent": 0,
-    "elapsed_s": 11.6,
+    "elapsed_s": 15.6,
     "market_phase": "Pre-Market"
   },
   "signals": {
     "AMC": {
-      "score": 28,
+      "score": 20,
       "confidence": 33,
-      "drivers": "Spanne 5.2% + News-KI 8/30: Negative price action combined with valuation concerns outweigh modest improvement signals; limited short squeeze cataly + UOA Call/Put 4.4×",
+      "drivers": "Spanne 5.2% + UOA Call/Put 4.4×",
       "price": 2.47,
       "chg_pct": 0.0,
       "rvol_4d": 0.69,
@@ -23,7 +23,7 @@
       "stocktwits": null,
       "combo_mult": 1.0,
       "active_triggers": 0,
-      "ki_sentiment_source": "llm",
+      "ki_sentiment_source": "keyword",
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 4.4×"
@@ -145,9 +145,9 @@
       "uoa_cp_ratio": 0.08192028187623872
     },
     "IONQ": {
-      "score": 45,
+      "score": 42,
       "confidence": 33,
-      "drivers": "Spanne 7.5% + News: contract + UOA Call-Vol/OI 3238.5× ATM",
+      "drivers": "Spanne 7.5% + News-KI 12/30: Negative sector-wide selloff pressure and valuation concerns outweigh positive contract news, showing weak momentum for  + UOA Call-Vol/OI 3238.5× ATM",
       "price": 41.53,
       "chg_pct": -0.0,
       "rvol_4d": 1.07,
@@ -159,7 +159,7 @@
       "stocktwits": null,
       "combo_mult": 1.0,
       "active_triggers": 1,
-      "ki_sentiment_source": "keyword",
+      "ki_sentiment_source": "llm",
       "uoa_score": 20,
       "uoa_drivers": [
         "UOA Call-Vol/OI 3238.5× ATM"
@@ -212,9 +212,9 @@
       "uoa_cp_ratio": 2.8518518518518516
     },
     "PDYN": {
-      "score": 8,
+      "score": 15,
       "confidence": 17,
-      "drivers": "News-KI 8/30: Partnership expansion and advisory board appointments show business development, but lack financial metrics, short inter",
+      "drivers": "News: contract",
       "price": 6.1,
       "chg_pct": -0.0,
       "rvol_4d": 0.6,
@@ -225,8 +225,8 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 0,
-      "ki_sentiment_source": "llm",
+      "active_triggers": 1,
+      "ki_sentiment_source": "keyword",
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": null,
@@ -277,9 +277,9 @@
       "uoa_cp_ratio": 5.004115226337449
     },
     "WOLF": {
-      "score": 33,
-      "confidence": 70,
-      "drivers": "Volumen 2.0× + Spanne 17.1% + News-KI 8/30: Negative earnings and wider-than-expected losses indicate weak fundamentals and likely continued selling pressure, makin",
+      "score": 25,
+      "confidence": 33,
+      "drivers": "Volumen 2.0× + Spanne 17.1%",
       "price": 26.35,
       "chg_pct": 0.0,
       "rvol_4d": 1.97,
@@ -291,7 +291,7 @@
       "stocktwits": null,
       "combo_mult": 1.0,
       "active_triggers": 0,
-      "ki_sentiment_source": "llm",
+      "ki_sentiment_source": "keyword",
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": null,
