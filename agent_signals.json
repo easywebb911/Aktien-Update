@@ -1,11 +1,11 @@
 {
-  "updated": "2026-08-21T01:41:14.385115+02:00",
+  "updated": "2026-08-21T03:57:51.476882+02:00",
   "run_info": {
     "tickers_checked": 13,
     "signals_active": 0,
     "alerts_sent": 0,
-    "elapsed_s": 27.3,
-    "market_phase": "After-Hours"
+    "elapsed_s": 23.5,
+    "market_phase": "Geschlossen"
   },
   "signals": {
     "AMC": {
@@ -38,7 +38,7 @@
       "price": 10.99,
       "chg_pct": -0.0,
       "rvol_4d": 1.23,
-      "rvol_20d": 3.05,
+      "rvol_20d": 2.98,
       "earnings": null,
       "fda_date": null,
       "upcoming_event": null,
@@ -84,7 +84,7 @@
       "price": 3.19,
       "chg_pct": 0.0,
       "rvol_4d": 0.83,
-      "rvol_20d": 1.62,
+      "rvol_20d": 1.54,
       "earnings": "in 88 Tagen (16.11.2026)",
       "fda_date": null,
       "upcoming_event": null,
@@ -124,9 +124,9 @@
       "uoa_cp_ratio": 23.514767932489452
     },
     "HIVE": {
-      "score": 50,
-      "confidence": 33,
-      "drivers": "Spanne 9.9% + News: breakout, contract + UOA Call/Put 3.3×",
+      "score": 60,
+      "confidence": 70,
+      "drivers": "Spanne 9.9% + News: breakout, contract + SEC Form 4 + UOA Call/Put 3.3×",
       "price": 3.13,
       "chg_pct": 0.0,
       "rvol_4d": 1.14,
@@ -189,9 +189,9 @@
       "uoa_cp_ratio": 0.07650273224043716
     },
     "PDYN": {
-      "score": 15,
+      "score": 30,
       "confidence": 17,
-      "drivers": "News: contract",
+      "drivers": "News: contract, partnership",
       "price": 6.1,
       "chg_pct": -0.0,
       "rvol_4d": 0.6,
@@ -210,13 +210,13 @@
       "uoa_cp_ratio": 1.0263157894736843
     },
     "QDEL": {
-      "score": 35,
+      "score": 43,
       "confidence": 70,
-      "drivers": "Volumen 2.1× + Spanne 12.4% + SEC Form 4",
+      "drivers": "Volumen 2.1× + Spanne 12.4% + News-KI 8/30: Routine earnings coverage with no indicators of high short interest, unusual volume, or bullish catalysts typical of squ + SEC Form 4",
       "price": 14.85,
       "chg_pct": 0.0,
       "rvol_4d": 2.07,
-      "rvol_20d": 1.65,
+      "rvol_20d": 1.6,
       "earnings": "in 77 Tagen (05.11.2026)",
       "fda_date": null,
       "upcoming_event": null,
@@ -224,7 +224,7 @@
       "stocktwits": null,
       "combo_mult": 1.0,
       "active_triggers": 1,
-      "ki_sentiment_source": "keyword",
+      "ki_sentiment_source": "llm",
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": 0.02,
@@ -233,7 +233,7 @@
     "RXRX": {
       "score": 60,
       "confidence": 70,
-      "drivers": "Spanne 5.6% + News: short interest, catalyst + SEC Form 4 + UOA Call/Put 5.0×",
+      "drivers": "Spanne 5.6% + News: catalyst, short interest + SEC Form 4 + UOA Call/Put 5.0×",
       "price": 3.34,
       "chg_pct": -0.0,
       "rvol_4d": 1.26,
