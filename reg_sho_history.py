@@ -15,10 +15,16 @@ Datensatz NIE gleich aus. Das ist das härteste Abnahmekriterium — die EINZIGE
 Stelle, die ``restricted`` auf einen Bool setzt, ist ``tk in syms`` im
 ``syms is not None``-Zweig (``_evaluate_ticker``).
 
-TÄGLICH (Momentanstand): die Archiv-Verfügbarkeit ist NICHT bewiesen (die Probe
-lud nur das heutige File; datums-parametrisierte URL macht Archiv plausibel, aber
-ungeprüft) → jeder nicht gesammelte Tag könnte weg sein. Wie FTD zwei Daten:
-``date`` (wann WIR lasen, = as-of) + ``source_date`` (Datum IN der Liste).
+TÄGLICH: Archiv-Verfügbarkeit über ``selectedDate`` ist seit der Diagnose
+21.08.2026 BEWIESEN (Live-Belege: 03.08./07.08./14.08./20.08.2026 lieferten je
+volle Symbol-Listen bei datums-parametrisierter Abfrage). ⚠ GEGENSTÜCK, ebenso
+belegt: ``selectedDate=<aktuelles Kalenderdatum>`` liefert STRUKTURELL NIE Daten
+— 3 unabhängige Live-Abrufe über 2 Wochentage und 3 Tageszeiten (u. a. das
+postclose-Fenster ~21:41 UTC) waren alle leer (nur eine Ziffern-Platzhalter-
+Zeile statt echter Symbol-Zeilen). Deshalb fragt ``_resolve_nyse`` NIEMALS das
+aktuelle Datum ab, sondern den letzten Handelstag DAVOR (``_last_workday_before``,
+reiner Wochenend-Skip, 1:1 aus der Diagnose-Probe übernommen). Wie FTD zwei
+Daten: ``date`` (wann WIR lasen, = as-of) + ``source_date`` (Datum IN der Liste).
 
 Disziplin (wie #525): forward-only (kein Backfill), idempotent pro
 ``(ticker, date)``, KEIN Prune/Cap (Lehre #519), fail-soft je Quelle (tote Quelle
@@ -31,9 +37,9 @@ import json
 import logging
 import os
 import re
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from urllib.error import HTTPError
-from urllib.parse import urljoin
+from urllib.parse import urlencode, urljoin
 from urllib.request import Request, urlopen
 
 log = logging.getLogger(__name__)
@@ -63,12 +69,12 @@ _NASDAQ_OVERVIEWS = (
 )
 _NASDAQ_FILE_RE = re.compile(r'(nasdaqth(\d{8})\.txt|regsho[^"\']*\.txt)', re.I)
 _NASDAQ_DATE_RE = re.compile(r'nasdaqth(\d{8})\.txt', re.I)
-# NYSE-Übersicht (Probe #522: HTTP 200, aber 0 extrahierbare Links — Versuch
-# bleibt, Fallback ist none/nicht-abgedeckt).
-_NYSE_OVERVIEWS = (
-    "https://www.nyse.com/regulation/threshold-securities",
-)
-_NYSE_FILE_RE = re.compile(r'threshold[^"\']*\.(txt|csv)|regsho[^"\']*\.(txt|csv)', re.I)
+# NYSE-API-Endpunkt (Diagnose-Probes #522/#527/#529 + Nachschärfung 21.08.2026):
+# ersetzt den früheren JS-Scraping-Versuch über die Übersichtsseite, der
+# strukturell IMMER bei 0 extrahierbaren Datei-Links landete (JS-gerendert).
+# Pflicht: ``selectedDate`` im ISO-Format UND NIEMALS das aktuelle Kalenderdatum
+# (siehe _resolve_nyse-Docstring + Modul-Kopf).
+_NYSE_API_ENDPOINT = "https://www.nyse.com/api/regulatory/threshold-securities/download"
 
 
 # ── HTTP (urllib, stdlib — kein requests) ─────────────────────────────────────
@@ -163,49 +169,81 @@ def _resolve_nasdaq(get_text_fn, over_budget):
     return None, None, "fetch_failed"                  # keine Übersicht/Datei ladbar
 
 
-# ── NYSE-Resolver (Versuch; Fallback = nicht auflösbar) ───────────────────────
-def _resolve_nyse(get_text_fn, over_budget):
+# ── letzter Handelstag VOR einem Datum (reiner Wochenend-Skip) ────────────────
+def _last_workday_before(d):
+    """Letzter Handelstag VOR ``d`` — NUR Wochenend-Skip (Sa/So), KEIN
+    Feiertags-Skip. 1:1 aus der ``date_last_workday``-Logik der Diagnose-Probe
+    (``.github/workflows/diagnose_nyse_api_endpoint_probe.yml``) übernommen,
+    bewusst NICHT neu erfunden.
+
+    Ein übersehener US-Feiertag ist hier kein Risiko: ``_resolve_nyse`` fragt
+    dann einen Tag ohne echte Threshold-Liste ab, bekommt 0 verwertbare
+    Symbole zurück und landet in der bestehenden ``empty``-None-Semantik
+    (``source_empty`` — Ticker bleiben None, werden NIE fälschlich False)."""
+    prev = d - timedelta(days=1)
+    while prev.weekday() >= 5:   # 5=Sa, 6=So
+        prev -= timedelta(days=1)
+    return prev
+
+
+# ── NYSE-Resolver (API-Endpunkt, seit 21.08.2026) ─────────────────────────────
+def parse_nyse_threshold(text):
+    """``symbols:set``. Pipe-delimited, Header ``Symbol|Security Name|Market
+    Category|Reg SHO Threshold Flag|Filler|Filler``; Symbol = Spalte 0.
+
+    Bei leeren Tagen (u. a. IMMER beim aktuellen Kalenderdatum — siehe
+    ``_resolve_nyse``) liefert der Endpunkt statt echter Datenzeilen eine
+    reine Ziffern-Platzhalter-Zeile (Format ``YYYYMMDDHHMMSS``, z. B.
+    ``'20260817210500'`` — Diagnose 21.08.2026, live gegen den echten
+    Response-Body verifiziert). Der ``isalpha()``-Guard ist PFLICHT, nicht
+    optional: Ziffern-Strings bestehen ``isalpha()`` nicht, echte Ticker-
+    Symbole schon — ohne den Guard würde die Platzhalter-Zeile als Ticker
+    ``'20260817210500'`` in die Liste rutschen."""
+    syms = set()
+    if not text:
+        return syms
+    for ln in text.splitlines():
+        s = ln.strip()
+        if not s or s.lower().startswith("symbol|"):
+            continue
+        first = s.split("|")[0].strip().upper()
+        if first and first.isalpha():
+            syms.add(first)
+    return syms
+
+
+def _resolve_nyse(get_text_fn, over_budget, *, date_iso):
     """``(symbols:set|None, source_date:str|None, result:str)``.
-    ``result`` ∈ ``ok:N`` / ``fetch_failed`` / ``empty`` / ``not_resolved`` /
-    ``budget``. ``not_resolved`` = Übersicht(en) geladen, aber KEIN
-    extrahierbarer Datei-Link (Probe #522: NYSE-Seite ist JS-gerendert). Der
-    Versuch bleibt echt; der Fallback garantiert None statt False."""
-    any_ok = False
-    last_err = None
-    for ov in _NYSE_OVERVIEWS:
-        if over_budget():
-            return None, None, "budget"
-        st, html, err = get_text_fn(ov)
-        if err or st != 200 or not html:
-            last_err = err or f"HTTP {st}"
-            continue
-        any_ok = True
-        m = _NYSE_FILE_RE.search(html)
-        if not m:
-            continue
-        href = m.group(0)
-        url = href if href.startswith("http") else urljoin(ov, href)
-        if over_budget():
-            return None, None, "budget"
-        st2, txt, err2 = get_text_fn(url)
-        if err2 or st2 != 200 or not txt:
-            last_err = err2 or f"HTTP {st2}"
-            continue
-        syms = set()
-        src_date = None
-        for ln in txt.splitlines():
-            s = ln.strip()
-            if not s:
-                continue
-            first = re.split(r'[|,]', s)[0].strip().upper()
-            if first and first.isalpha() and first != "SYMBOL":
-                syms.add(first)
-        if not syms:
-            return None, src_date, "empty"
-        return syms, src_date, f"ok:{len(syms)}"
-    if any_ok:
-        return None, None, "not_resolved"     # geladen, aber kein Datei-Link
-    return None, None, "fetch_failed"          # Übersicht(en) tot
+    ``result`` ∈ ``ok:N`` / ``fetch_failed`` / ``empty`` / ``budget``.
+
+    Seit 21.08.2026 auf den bestätigten API-Endpunkt umgestellt (Diagnose-
+    Probes #522/#527/#529 + Nachschärfung 21.08.2026) — ersetzt den früheren
+    JS-Scraping-Pfad über die Übersichtsseite, der strukturell IMMER bei
+    „kein extrahierbarer Datei-Link" landete.
+
+    ``date_iso`` MUSS ein Datum VOR dem aktuellen Kalendertag sein — der
+    Endpunkt liefert für ``selectedDate=heute`` NACHWEISLICH NIE Daten (3
+    unabhängige Live-Tests: 2 Wochentage, 3 Tageszeiten inkl. des
+    postclose-Fensters ~21:41 UTC, jedes Mal nur die Ziffern-Platzhalter-
+    Zeile aus ``parse_nyse_threshold``). Der Aufrufer (``collect_and_persist``)
+    berechnet ``date_iso`` über ``_last_workday_before`` — hier NIEMALS das
+    aktuelle Datum hineinreichen.
+
+    ``symbols=None`` heißt „Liste NICHT verwertbar" (→ Ticker bekommen
+    None+Grund, nie False) — das deckt sowohl echte Fetch-Fehler als auch den
+    Rand-/Feiertagsfall ab, in dem der angefragte Handelstag unerwartet leer
+    bleibt (0 echte Symbole nach dem isalpha()-Filter): das Ergebnis bleibt
+    dann 'empty', NIE eine stille 'nicht auf der Liste'-Aussage."""
+    if over_budget():
+        return None, None, "budget"
+    url = f"{_NYSE_API_ENDPOINT}?{urlencode({'selectedDate': date_iso, 'market': ''})}"
+    st, txt, err = get_text_fn(url)
+    if err or st != 200 or not txt:
+        return None, None, "fetch_failed"
+    syms = parse_nyse_threshold(txt)
+    if not syms:
+        return None, date_iso, "empty"
+    return syms, date_iso, f"ok:{len(syms)}"
 
 
 # ── Persistenz (eigene Datei + State, atomar, KEIN Prune) ─────────────────────
@@ -273,9 +311,10 @@ def _evaluate_ticker(ticker, exchange, sources, *, date_iso):
     syms, src_date, result = sources[src]
     if syms is None:
         # Quelle nicht verwertbar → None + spezifischer Grund (nie False).
+        # ("not_resolved"/"source_unresolved" gab es nur im alten JS-Scraping-
+        # Pfad — der API-Resolver liefert dieses result-Wort nicht mehr.)
         point["reason"] = {
             "empty": "source_empty",
-            "not_resolved": "source_unresolved",
             "budget": "budget_skipped",
         }.get(result, "fetch_failed")
         return point
@@ -304,6 +343,10 @@ def collect_and_persist(universe, *, report_date_iso=None, run_phase=None,
     if now.tzinfo is None:
         now = now.replace(tzinfo=timezone.utc)
     t_iso = report_date_iso or now.date().isoformat()
+    # NYSE-API verlangt ein Datum VOR heute (siehe _resolve_nyse-Docstring) —
+    # basiert bewusst auf `now` (Wall-Clock des Laufs), NICHT auf `t_iso`
+    # (das ist nur das Label des persistierten Punkts, testweise überschreibbar).
+    nyse_date_iso = _last_workday_before(now.date()).isoformat()
     budget = REG_SHO_TIME_BUDGET_S if time_budget_s is None else time_budget_s
     import time as _time
     t0 = _time.monotonic()
@@ -330,7 +373,8 @@ def collect_and_persist(universe, *, report_date_iso=None, run_phase=None,
     # 2) NYSE-Liste NUR wenn ein Ticker sie braucht (spart einen Fetch).
     need_nyse = any(_source_for_exchange(u.get("exchange"))[0] == "nyse" for u in uni)
     if need_nyse and not over_budget():
-        nyse = _resolve_nyse(get_nyse_text_fn or _default_get_text, over_budget)
+        nyse = _resolve_nyse(get_nyse_text_fn or _default_get_text, over_budget,
+                             date_iso=nyse_date_iso)
     else:
         nyse = (None, None, "not_needed" if not need_nyse else "budget")
     state["nyse_result"] = nyse[2]
