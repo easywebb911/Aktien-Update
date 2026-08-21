@@ -1,10 +1,10 @@
 {
-  "updated": "2026-08-21T11:52:44.782027+02:00",
+  "updated": "2026-08-21T12:48:00.432841+02:00",
   "run_info": {
     "tickers_checked": 13,
     "signals_active": 0,
     "alerts_sent": 0,
-    "elapsed_s": 15.6,
+    "elapsed_s": 12.7,
     "market_phase": "Pre-Market"
   },
   "signals": {
@@ -97,7 +97,7 @@
       "uoa_drivers": [
         "UOA Call/Put 2.9×"
       ],
-      "uoa_atm_ratio": null,
+      "uoa_atm_ratio": 0.029858999170583357,
       "uoa_cp_ratio": 2.905
     },
     "GEMI": {
@@ -145,9 +145,9 @@
       "uoa_cp_ratio": 0.08192028187623872
     },
     "IONQ": {
-      "score": 42,
+      "score": 45,
       "confidence": 33,
-      "drivers": "Spanne 7.5% + News-KI 12/30: Negative sector-wide selloff pressure and valuation concerns outweigh positive contract news, showing weak momentum for  + UOA Call-Vol/OI 3238.5× ATM",
+      "drivers": "Spanne 7.5% + News: contract + UOA Call-Vol/OI 3238.5× ATM",
       "price": 41.53,
       "chg_pct": -0.0,
       "rvol_4d": 1.07,
@@ -159,7 +159,7 @@
       "stocktwits": null,
       "combo_mult": 1.0,
       "active_triggers": 1,
-      "ki_sentiment_source": "llm",
+      "ki_sentiment_source": "keyword",
       "uoa_score": 20,
       "uoa_drivers": [
         "UOA Call-Vol/OI 3238.5× ATM"
@@ -185,7 +185,7 @@
       "ki_sentiment_source": "keyword",
       "uoa_score": 0,
       "uoa_drivers": [],
-      "uoa_atm_ratio": null,
+      "uoa_atm_ratio": 0.06716417910447761,
       "uoa_cp_ratio": 0.07650273224043716
     },
     "NTLA": {
@@ -208,7 +208,7 @@
       "uoa_drivers": [
         "UOA Call/Put 2.9×"
       ],
-      "uoa_atm_ratio": null,
+      "uoa_atm_ratio": 0.24285714285714285,
       "uoa_cp_ratio": 2.8518518518518516
     },
     "PDYN": {
@@ -233,9 +233,9 @@
       "uoa_cp_ratio": 1.0263157894736843
     },
     "QDEL": {
-      "score": 35,
+      "score": 40,
       "confidence": 70,
-      "drivers": "Volumen 2.1× + Spanne 12.4% + SEC Form 4",
+      "drivers": "Volumen 2.1× + Spanne 12.4% + News-KI 5/30: Routine earnings coverage without indication of high short interest, extreme volatility, or catalyst-driven momentum nee + SEC Form 4",
       "price": 14.85,
       "chg_pct": 0.0,
       "rvol_4d": 2.07,
@@ -247,7 +247,7 @@
       "stocktwits": null,
       "combo_mult": 1.0,
       "active_triggers": 1,
-      "ki_sentiment_source": "keyword",
+      "ki_sentiment_source": "llm",
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": null,
@@ -256,7 +256,7 @@
     "RXRX": {
       "score": 60,
       "confidence": 70,
-      "drivers": "Spanne 5.6% + News: catalyst, short interest + SEC Form 4 + UOA Call/Put 5.0×",
+      "drivers": "Spanne 5.6% + News: short interest, catalyst + SEC Form 4 + UOA Call/Put 5.0×",
       "price": 3.34,
       "chg_pct": -0.0,
       "rvol_4d": 1.26,
@@ -273,13 +273,13 @@
       "uoa_drivers": [
         "UOA Call/Put 5.0×"
       ],
-      "uoa_atm_ratio": null,
+      "uoa_atm_ratio": 0.1431480942682572,
       "uoa_cp_ratio": 5.004115226337449
     },
     "WOLF": {
-      "score": 25,
-      "confidence": 33,
-      "drivers": "Volumen 2.0× + Spanne 17.1%",
+      "score": 43,
+      "confidence": 70,
+      "drivers": "Volumen 2.0× + Spanne 17.1% + News-KI 8/30: Negative earnings miss and stock decline reduce short-squeeze potential; no evidence of high short interest, bullish cat + UOA Call-Vol/OI 3.7× ATM",
       "price": 26.35,
       "chg_pct": 0.0,
       "rvol_4d": 1.97,
@@ -291,10 +291,12 @@
       "stocktwits": null,
       "combo_mult": 1.0,
       "active_triggers": 0,
-      "ki_sentiment_source": "keyword",
-      "uoa_score": 0,
-      "uoa_drivers": [],
-      "uoa_atm_ratio": null,
+      "ki_sentiment_source": "llm",
+      "uoa_score": 10,
+      "uoa_drivers": [
+        "UOA Call-Vol/OI 3.7× ATM"
+      ],
+      "uoa_atm_ratio": 3.6737089201877935,
       "uoa_cp_ratio": 1.1725888324873097
     }
   }
