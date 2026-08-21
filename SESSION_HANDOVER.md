@@ -1335,6 +1335,27 @@ bleibt (forward-only unproblematisch). Kein Score-Effekt ohne OoS-Beleg — Samm
    `generate_report.py` ~5602/6139, Schwellen 60/30) — erst nach der Hypothesen-Runde
    entscheiden.
 
+**Zusatz-Hinweis (Lit-Check 21.08.2026):** Eine zweite, unabhängige Studie
+(Bhojraj/Yu/Zhao 2026, *Management Science*, „In Search of Shares: Benchmarked
+Ownership, Short Covering, and Price Efficiency") liefert einen zu Svoboda
+ergänzenden, aber NICHT identischen Befund: hohe benchmark-gebundene/passive
+institutionelle Beteiligung ist mit stärkerem Kurs-Überschießen bei hoch
+geshorteten Aktien um Gewinnankündigungen verbunden — verstärkt also Preis- und
+Volumenwirkung von Short-Covering. Svoboda misst die Wahrscheinlichkeit eines
+Squeeze-Auftretens generell; Bhojraj misst die Größe des Überschießens bei
+bereits laufendem Short-Covering — zwei unterschiedliche Zielgrößen, kein
+direkter Widerspruch, aber ein zweiter Hinweis darauf, dass institutionelle
+Beteiligung nicht als einheitlicher Block behandelt werden sollte (Typ aktiv
+vs. passiv/indexgebunden könnte gegensätzlich wirken).
+
+**Praktische Konsequenz für die künftige Hypothesenprüfung:** Falls die
+H-Kapitaldruck-Hypothese getestet wird, sollte die Erwartung nicht
+„institutionelle Beteiligung dämpft immer" lauten — ein Nullbefund könnte
+gemischte, sich aufhebende Effekte verdecken statt „keine Wirkung" zu bedeuten.
+Aktuell datenseitig NICHT umsetzbar (13F-Daten unterscheiden i. d. R. nicht
+sauber zwischen aktiv/passiv) — reiner Dokumentations-Vermerk für später, kein
+Sammelfeld-Ausbau jetzt.
+
 ### 6h. Crash-Filter / Markt-Blind-Zone (Paper-Grenze)
 **Status: ✅ ERLEDIGT mit ANZEIGE-BANNER (08.08.2026), harter Filter BEWUSST
 VERWORFEN.** Paper: bei **Marktrückgang > 3 %** ist das Modell **blind**.
