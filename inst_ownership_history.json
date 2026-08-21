@@ -213,6 +213,11 @@
       "date": "2026-08-20",
       "inst_ownership": 1.33433,
       "insider_ownership": 0.00496
+    },
+    {
+      "date": "2026-08-21",
+      "inst_ownership": 1.33563,
+      "insider_ownership": 0.00496
     }
   ],
   "RES": [
@@ -696,6 +701,11 @@
       "date": "2026-08-13",
       "inst_ownership": 0.98129,
       "insider_ownership": 0.09089
+    },
+    {
+      "date": "2026-08-21",
+      "inst_ownership": 0.8715,
+      "insider_ownership": 0.09149
     }
   ],
   "CMPX": [
@@ -740,6 +750,11 @@
       "date": "2026-08-17",
       "inst_ownership": 1.1326799,
       "insider_ownership": 0.01071
+    },
+    {
+      "date": "2026-08-21",
+      "inst_ownership": 1.13236,
+      "insider_ownership": 0.01061
     }
   ],
   "METC": [
@@ -1283,6 +1298,11 @@
       "date": "2026-08-20",
       "inst_ownership": 0.43803,
       "insider_ownership": 0.00975
+    },
+    {
+      "date": "2026-08-21",
+      "inst_ownership": 0.43956003,
+      "insider_ownership": 0.009380001
     }
   ],
   "LBGJ": [
@@ -1391,6 +1411,11 @@
       "date": "2026-08-17",
       "inst_ownership": 1.0527201,
       "insider_ownership": 0.09052
+    },
+    {
+      "date": "2026-08-21",
+      "inst_ownership": 1.05862,
+      "insider_ownership": 0.090229996
     }
   ],
   "VSTM": [
@@ -1773,6 +1798,11 @@
       "date": "2026-08-19",
       "inst_ownership": 1.01131,
       "insider_ownership": 0.00501
+    },
+    {
+      "date": "2026-08-21",
+      "inst_ownership": 1.01132,
+      "insider_ownership": 0.00501
     }
   ],
   "INSP": [
@@ -1815,6 +1845,25 @@
       "date": "2026-08-20",
       "inst_ownership": 0.025910001,
       "insider_ownership": 1.0000001e-05
+    },
+    {
+      "date": "2026-08-21",
+      "inst_ownership": 0.025910001,
+      "insider_ownership": 0.061160002
+    }
+  ],
+  "GRPN": [
+    {
+      "date": "2026-08-21",
+      "inst_ownership": 0.9354,
+      "insider_ownership": 0.18958999
+    }
+  ],
+  "EOSE": [
+    {
+      "date": "2026-08-21",
+      "inst_ownership": 0.64432,
+      "insider_ownership": 0.01434
     }
   ]
 }

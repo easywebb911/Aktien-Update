@@ -813,6 +813,12 @@
       "shares_short": 13376270,
       "short_pct_float": 59.91,
       "pub_date": "2026-07-24"
+    },
+    {
+      "settlement_date": "2026-07-31",
+      "shares_short": 13729826,
+      "short_pct_float": 55.15,
+      "pub_date": "2026-08-11"
     }
   ],
   "NTLA": [
@@ -2547,6 +2553,12 @@
       "shares_short": 105912700,
       "short_pct_float": 30.15,
       "pub_date": "2026-07-24"
+    },
+    {
+      "settlement_date": "2026-07-31",
+      "shares_short": 115719997,
+      "short_pct_float": 32.31,
+      "pub_date": "2026-08-11"
     }
   ],
   "CABA": [
