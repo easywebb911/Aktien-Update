@@ -1,17 +1,17 @@
 {
-  "updated": "2026-08-21T13:42:56.050669+02:00",
+  "updated": "2026-08-21T15:11:16.531057+02:00",
   "run_info": {
     "tickers_checked": 13,
     "signals_active": 0,
     "alerts_sent": 0,
-    "elapsed_s": 20.3,
+    "elapsed_s": 25.0,
     "market_phase": "Pre-Market"
   },
   "signals": {
     "AMC": {
-      "score": 20,
+      "score": 32,
       "confidence": 33,
-      "drivers": "Spanne 5.2% + UOA Call/Put 4.4×",
+      "drivers": "Spanne 5.2% + News-KI 12/30: Negative price action with valuation concerns outweigh modest cash flow improvements; weak momentum and overvaluation si + UOA Call/Put 4.4×",
       "price": 2.47,
       "chg_pct": 0.0,
       "rvol_4d": 0.69,
@@ -22,8 +22,8 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 0,
-      "ki_sentiment_source": "keyword",
+      "active_triggers": 1,
+      "ki_sentiment_source": "llm",
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 4.4×"
@@ -101,13 +101,13 @@
       "uoa_cp_ratio": 2.905
     },
     "GEMI": {
-      "score": 25,
-      "confidence": 17,
-      "drivers": "News: buyout + UOA Call/Put 23.5×",
+      "score": 50,
+      "confidence": 70,
+      "drivers": "Volumen 1.9× + Spanne 9.3% + News: buyout + UOA Call/Put 23.5×",
       "price": 4.14,
-      "chg_pct": 0.0,
-      "rvol_4d": 0.0,
-      "rvol_20d": null,
+      "chg_pct": -0.0,
+      "rvol_4d": 1.87,
+      "rvol_20d": 3.74,
       "earnings": "in 80 Tagen (09.11.2026)",
       "fda_date": null,
       "upcoming_event": null,
@@ -145,9 +145,9 @@
       "uoa_cp_ratio": 0.08192028187623872
     },
     "IONQ": {
-      "score": 25,
+      "score": 22,
       "confidence": 33,
-      "drivers": "Spanne 7.5% + News: contract",
+      "drivers": "Spanne 7.5% + News-KI 12/30: Sector-wide selloff pressure and valuation concerns outweigh positive contract news; no significant short interest or sq",
       "price": 41.53,
       "chg_pct": -0.0,
       "rvol_4d": 1.07,
@@ -159,7 +159,7 @@
       "stocktwits": null,
       "combo_mult": 1.0,
       "active_triggers": 1,
-      "ki_sentiment_source": "keyword",
+      "ki_sentiment_source": "llm",
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": 0.2841038687604176,
@@ -231,9 +231,9 @@
       "uoa_cp_ratio": 1.0263157894736843
     },
     "QDEL": {
-      "score": 35,
+      "score": 43,
       "confidence": 70,
-      "drivers": "Volumen 2.1× + Spanne 12.4% + SEC Form 4",
+      "drivers": "Volumen 2.1× + Spanne 12.4% + News-KI 8/30: Routine earnings coverage and analyst discussion show normal business activity with no indicators of high short interest + SEC Form 4",
       "price": 14.85,
       "chg_pct": 0.0,
       "rvol_4d": 2.07,
@@ -245,7 +245,7 @@
       "stocktwits": null,
       "combo_mult": 1.0,
       "active_triggers": 1,
-      "ki_sentiment_source": "keyword",
+      "ki_sentiment_source": "llm",
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": 0.0196078431372549,
