@@ -1,10 +1,10 @@
 {
-  "updated": "2026-08-22T20:49:22.384627+02:00",
+  "updated": "2026-08-22T21:35:27.532565+02:00",
   "run_info": {
     "tickers_checked": 13,
     "signals_active": 2,
     "alerts_sent": 0,
-    "elapsed_s": 12.8,
+    "elapsed_s": 17.2,
     "market_phase": "Geschlossen"
   },
   "signals": {
@@ -259,7 +259,7 @@
     "RXRX": {
       "score": 60,
       "confidence": 70,
-      "drivers": "Spanne 7.7% + News: catalyst, short interest + SEC Form 4 + UOA Call/Put 6.8×",
+      "drivers": "Spanne 7.7% + News: short interest, catalyst + SEC Form 4 + UOA Call/Put 6.8×",
       "price": 3.5,
       "chg_pct": 0.0,
       "rvol_4d": 1.16,
