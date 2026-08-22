@@ -1,10 +1,10 @@
 {
-  "updated": "2026-08-22T19:35:55.177684+02:00",
+  "updated": "2026-08-22T20:49:22.384627+02:00",
   "run_info": {
     "tickers_checked": 13,
     "signals_active": 2,
     "alerts_sent": 0,
-    "elapsed_s": 16.5,
+    "elapsed_s": 12.8,
     "market_phase": "Geschlossen"
   },
   "signals": {
@@ -127,7 +127,7 @@
     "CHPT": {
       "score": 73,
       "confidence": 70,
-      "drivers": "Spanne 7.7% + News: catalyst, partnership + Earnings in 11d + FINRA Short-Vol 69% + UOA Call/Put 7.3×",
+      "drivers": "Spanne 7.7% + News: partnership, catalyst + Earnings in 11d + FINRA Short-Vol 69% + UOA Call/Put 7.3×",
       "price": 6.25,
       "chg_pct": 0.0,
       "rvol_4d": 1.16,
@@ -208,7 +208,7 @@
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": 0.4330195510499638,
-      "uoa_cp_ratio": 1.6072874493927125
+      "uoa_cp_ratio": 1.630229419703104
     },
     "NVAX": {
       "score": 35,
@@ -236,7 +236,7 @@
     "PDYN": {
       "score": 40,
       "confidence": 17,
-      "drivers": "News: contract, partnership + UOA Call/Put 3.3×",
+      "drivers": "News: partnership, contract + UOA Call/Put 3.3×",
       "price": 6.13,
       "chg_pct": 0.0,
       "rvol_4d": 0.92,
@@ -259,7 +259,7 @@
     "RXRX": {
       "score": 60,
       "confidence": 70,
-      "drivers": "Spanne 7.7% + News: short interest, catalyst + SEC Form 4 + UOA Call/Put 6.8×",
+      "drivers": "Spanne 7.7% + News: catalyst, short interest + SEC Form 4 + UOA Call/Put 6.8×",
       "price": 3.5,
       "chg_pct": 0.0,
       "rvol_4d": 1.16,
@@ -280,9 +280,9 @@
       "uoa_cp_ratio": 6.77542372881356
     },
     "WOLF": {
-      "score": 18,
-      "confidence": 33,
-      "drivers": "Spanne 8.8% + News-KI 8/30: Negative earnings miss and significant stock decline reduce short squeeze potential; need to see short interest data and",
+      "score": 10,
+      "confidence": 17,
+      "drivers": "Spanne 8.8%",
       "price": 25.76,
       "chg_pct": 0.0,
       "rvol_4d": 0.57,
@@ -294,7 +294,7 @@
       "stocktwits": null,
       "combo_mult": 1.0,
       "active_triggers": 0,
-      "ki_sentiment_source": "llm",
+      "ki_sentiment_source": "keyword",
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": 1.2043010752688172,
