@@ -1,17 +1,17 @@
 {
-  "updated": "2026-08-22T13:35:19.700301+02:00",
+  "updated": "2026-08-22T15:01:26.312910+02:00",
   "run_info": {
     "tickers_checked": 13,
-    "signals_active": 3,
+    "signals_active": 1,
     "alerts_sent": 0,
-    "elapsed_s": 13.9,
+    "elapsed_s": 21.3,
     "market_phase": "Geschlossen"
   },
   "signals": {
     "ABUS": {
-      "score": 82,
+      "score": 60,
       "confidence": 70,
-      "drivers": "Volumen 9.6× + 🚀 Massives Volumen 9.6×+ + Spanne 6.9% + SEC 8-K + UOA Call-Vol/OI 3.8× ATM",
+      "drivers": "Volumen 9.6× + 🚀 Massives Volumen 9.6×+ + Spanne 6.9% + UOA Call-Vol/OI 3.8× ATM",
       "price": 5.21,
       "chg_pct": 0.0,
       "rvol_4d": 9.59,
@@ -21,8 +21,8 @@
       "upcoming_event": null,
       "insider_buy": false,
       "stocktwits": null,
-      "combo_mult": 1.1,
-      "active_triggers": 2,
+      "combo_mult": 1.0,
+      "active_triggers": 1,
       "ki_sentiment_source": "keyword",
       "uoa_score": 10,
       "uoa_drivers": [
@@ -32,9 +32,9 @@
       "uoa_cp_ratio": 1.0880645161290323
     },
     "AMC": {
-      "score": 22,
+      "score": 10,
       "confidence": 17,
-      "drivers": "News-KI 12/30: Mixed signals with one positive catalyst (cash flow improvement) but offset by overvaluation concerns and price weakness + UOA Call/Put 10.4×",
+      "drivers": "UOA Call/Put 10.4×",
       "price": 2.55,
       "chg_pct": -0.0,
       "rvol_4d": 0.93,
@@ -45,8 +45,8 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 1,
-      "ki_sentiment_source": "llm",
+      "active_triggers": 0,
+      "ki_sentiment_source": "keyword",
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 10.4×"
@@ -125,9 +125,9 @@
       "uoa_cp_ratio": 37.170212765957444
     },
     "CHPT": {
-      "score": 73,
+      "score": 51,
       "confidence": 70,
-      "drivers": "Spanne 7.7% + News: partnership, catalyst + Earnings in 11d + FINRA Short-Vol 69% + UOA Call/Put 7.3×",
+      "drivers": "Spanne 7.7% + News-KI 8/30: Negative sentiment with earnings announcement upcoming, but no significant short interest catalysts, high short squeeze  + Earnings in 11d + FINRA Short-Vol 69% + UOA Call/Put 7.3×",
       "price": 6.25,
       "chg_pct": 0.0,
       "rvol_4d": 1.16,
@@ -138,8 +138,8 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 1,
-      "ki_sentiment_source": "keyword",
+      "active_triggers": 0,
+      "ki_sentiment_source": "llm",
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 7.3×"
@@ -211,9 +211,9 @@
       "uoa_cp_ratio": 1.630229419703104
     },
     "NVAX": {
-      "score": 35,
+      "score": 47,
       "confidence": 70,
-      "drivers": "Volumen 1.9× + Spanne 9.0% + UOA Call/Put 18.8×",
+      "drivers": "Volumen 1.9× + Spanne 9.0% + News-KI 12/30: Positive sentiment and price movement, but no short squeeze indicators (no mention of high short interest, borrowing dif + UOA Call/Put 18.8×",
       "price": 8.94,
       "chg_pct": -0.0,
       "rvol_4d": 1.95,
@@ -224,8 +224,8 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 0,
-      "ki_sentiment_source": "keyword",
+      "active_triggers": 1,
+      "ki_sentiment_source": "llm",
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 18.8×"
