@@ -1,10 +1,10 @@
 {
-  "updated": "2026-08-22T15:44:52.311945+02:00",
+  "updated": "2026-08-22T16:38:41.044736+02:00",
   "run_info": {
     "tickers_checked": 13,
     "signals_active": 1,
     "alerts_sent": 0,
-    "elapsed_s": 12.9,
+    "elapsed_s": 12.2,
     "market_phase": "Geschlossen"
   },
   "signals": {
@@ -127,7 +127,7 @@
     "CHPT": {
       "score": 51,
       "confidence": 70,
-      "drivers": "Spanne 7.7% + News-KI 8/30: Negative sentiment with underperformance and sell recommendations indicates weak momentum, while routine earnings announ + Earnings in 11d + FINRA Short-Vol 69% + UOA Call/Put 7.3×",
+      "drivers": "Spanne 7.7% + News-KI 8/30: Negative sentiment with underperformance and sell recommendations indicate weak momentum; no short squeeze catalysts evi + Earnings in 11d + FINRA Short-Vol 69% + UOA Call/Put 7.3×",
       "price": 6.25,
       "chg_pct": 0.0,
       "rvol_4d": 1.16,
@@ -190,9 +190,9 @@
       "uoa_cp_ratio": 0.7796136839655574
     },
     "METC": {
-      "score": 10,
-      "confidence": 17,
-      "drivers": "Spanne 5.8%",
+      "score": 18,
+      "confidence": 33,
+      "drivers": "Spanne 5.8% + News-KI 8/30: Corporate development announcements lack short-squeeze catalysts; no debt concerns, insider buying, or extreme short int",
       "price": 11.9,
       "chg_pct": -0.0,
       "rvol_4d": 0.76,
@@ -204,7 +204,7 @@
       "stocktwits": null,
       "combo_mult": 1.0,
       "active_triggers": 0,
-      "ki_sentiment_source": "keyword",
+      "ki_sentiment_source": "llm",
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": 0.4330195510499638,
@@ -234,9 +234,9 @@
       "uoa_cp_ratio": 18.785498489425983
     },
     "PDYN": {
-      "score": 25,
+      "score": 22,
       "confidence": 17,
-      "drivers": "News: contract + UOA Call/Put 3.3×",
+      "drivers": "News-KI 12/30: Positive business developments and leadership additions lack sufficient short-squeeze indicators like high short interes + UOA Call/Put 3.3×",
       "price": 6.13,
       "chg_pct": 0.0,
       "rvol_4d": 0.92,
@@ -248,7 +248,7 @@
       "stocktwits": null,
       "combo_mult": 1.0,
       "active_triggers": 1,
-      "ki_sentiment_source": "keyword",
+      "ki_sentiment_source": "llm",
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 3.3×"
