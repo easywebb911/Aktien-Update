@@ -1,10 +1,10 @@
 {
-  "updated": "2026-08-23T17:36:49.025506+02:00",
+  "updated": "2026-08-23T18:43:41.679519+02:00",
   "run_info": {
     "tickers_checked": 13,
-    "signals_active": 1,
+    "signals_active": 2,
     "alerts_sent": 0,
-    "elapsed_s": 15.8,
+    "elapsed_s": 12.9,
     "market_phase": "Geschlossen"
   },
   "signals": {
@@ -32,9 +32,9 @@
       "uoa_cp_ratio": 1.0880645161290323
     },
     "AMC": {
-      "score": 10,
+      "score": 40,
       "confidence": 17,
-      "drivers": "UOA Call/Put 10.4×",
+      "drivers": "News: squeeze, short squeeze + UOA Call/Put 10.4×",
       "price": 2.55,
       "chg_pct": -0.0,
       "rvol_4d": 0.93,
@@ -45,7 +45,7 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 0,
+      "active_triggers": 1,
       "ki_sentiment_source": "keyword",
       "uoa_score": 10,
       "uoa_drivers": [
@@ -125,9 +125,9 @@
       "uoa_cp_ratio": 37.170212765957444
     },
     "CHPT": {
-      "score": 51,
+      "score": 73,
       "confidence": 70,
-      "drivers": "Spanne 7.7% + News-KI 8/30: Negative sentiment with underperformance and sell recommendations, combined with earnings announcement, suggests potenti + Earnings in 10d + FINRA Short-Vol 69% + UOA Call/Put 7.3×",
+      "drivers": "Spanne 7.7% + News: catalyst, partnership + Earnings in 10d + FINRA Short-Vol 69% + UOA Call/Put 7.3×",
       "price": 6.25,
       "chg_pct": 0.0,
       "rvol_4d": 1.16,
@@ -138,8 +138,8 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 0,
-      "ki_sentiment_source": "llm",
+      "active_triggers": 1,
+      "ki_sentiment_source": "keyword",
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 7.3×"
@@ -211,13 +211,13 @@
       "uoa_cp_ratio": 1.630229419703104
     },
     "NVAX": {
-      "score": 10,
-      "confidence": 17,
-      "drivers": "UOA Call/Put 18.8×",
+      "score": 35,
+      "confidence": 70,
+      "drivers": "Volumen 1.9× + Spanne 9.0% + UOA Call/Put 18.8×",
       "price": 8.94,
-      "chg_pct": 0.0,
-      "rvol_4d": 0.0,
-      "rvol_20d": null,
+      "chg_pct": -0.0,
+      "rvol_4d": 1.95,
+      "rvol_20d": 2.92,
       "earnings": "in 74 Tagen (05.11.2026)",
       "fda_date": null,
       "upcoming_event": null,
@@ -234,9 +234,9 @@
       "uoa_cp_ratio": 18.785498489425983
     },
     "PDYN": {
-      "score": 18,
+      "score": 40,
       "confidence": 17,
-      "drivers": "News-KI 8/30: Positive business developments and leadership additions, but no indicators of short squeeze potential such as high short + UOA Call/Put 3.3×",
+      "drivers": "News: partnership, contract + UOA Call/Put 3.3×",
       "price": 6.13,
       "chg_pct": 0.0,
       "rvol_4d": 0.92,
@@ -247,8 +247,8 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 0,
-      "ki_sentiment_source": "llm",
+      "active_triggers": 1,
+      "ki_sentiment_source": "keyword",
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 3.3×"
@@ -259,7 +259,7 @@
     "RXRX": {
       "score": 60,
       "confidence": 70,
-      "drivers": "Spanne 7.7% + News: catalyst, short interest + SEC Form 4 + UOA Call/Put 6.8×",
+      "drivers": "Spanne 7.7% + News: short interest, catalyst + SEC Form 4 + UOA Call/Put 6.8×",
       "price": 3.5,
       "chg_pct": 0.0,
       "rvol_4d": 1.16,
