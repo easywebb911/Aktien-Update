@@ -1,10 +1,10 @@
 {
-  "updated": "2026-08-23T13:34:51.749918+02:00",
+  "updated": "2026-08-23T15:02:21.847475+02:00",
   "run_info": {
     "tickers_checked": 13,
     "signals_active": 2,
     "alerts_sent": 0,
-    "elapsed_s": 14.7,
+    "elapsed_s": 17.4,
     "market_phase": "Geschlossen"
   },
   "signals": {
@@ -127,7 +127,7 @@
     "CHPT": {
       "score": 73,
       "confidence": 70,
-      "drivers": "Spanne 7.7% + News: partnership, catalyst + Earnings in 10d + FINRA Short-Vol 69% + UOA Call/Put 7.3×",
+      "drivers": "Spanne 7.7% + News: catalyst, partnership + Earnings in 10d + FINRA Short-Vol 69% + UOA Call/Put 7.3×",
       "price": 6.25,
       "chg_pct": 0.0,
       "rvol_4d": 1.16,
@@ -208,24 +208,24 @@
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": 0.4330195510499638,
-      "uoa_cp_ratio": 1.6072874493927125
+      "uoa_cp_ratio": 1.630229419703104
     },
     "NVAX": {
-      "score": 10,
-      "confidence": 17,
-      "drivers": "UOA Call/Put 18.8×",
+      "score": 53,
+      "confidence": 70,
+      "drivers": "Volumen 1.9× + Spanne 9.0% + News-KI 18/30: Positive momentum on cancer breakthrough news, but biotech sector volatility and lack of short interest data limit squee + UOA Call/Put 18.8×",
       "price": 8.94,
-      "chg_pct": 0.0,
-      "rvol_4d": 0.0,
-      "rvol_20d": null,
+      "chg_pct": -0.0,
+      "rvol_4d": 1.95,
+      "rvol_20d": 2.92,
       "earnings": "in 74 Tagen (05.11.2026)",
       "fda_date": null,
       "upcoming_event": null,
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 0,
-      "ki_sentiment_source": "keyword",
+      "active_triggers": 1,
+      "ki_sentiment_source": "llm",
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 18.8×"
@@ -234,9 +234,9 @@
       "uoa_cp_ratio": 18.785498489425983
     },
     "PDYN": {
-      "score": 40,
+      "score": 22,
       "confidence": 17,
-      "drivers": "News: partnership, contract + UOA Call/Put 3.3×",
+      "drivers": "News-KI 12/30: Positive business developments and leadership additions, but no indicators of high short interest, low float, or imminen + UOA Call/Put 3.3×",
       "price": 6.13,
       "chg_pct": 0.0,
       "rvol_4d": 0.92,
@@ -248,7 +248,7 @@
       "stocktwits": null,
       "combo_mult": 1.0,
       "active_triggers": 1,
-      "ki_sentiment_source": "keyword",
+      "ki_sentiment_source": "llm",
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 3.3×"
