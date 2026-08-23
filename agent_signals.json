@@ -1,10 +1,10 @@
 {
-  "updated": "2026-08-23T22:40:06.073867+02:00",
+  "updated": "2026-08-23T23:36:19.781324+02:00",
   "run_info": {
     "tickers_checked": 13,
-    "signals_active": 2,
+    "signals_active": 1,
     "alerts_sent": 0,
-    "elapsed_s": 13.8,
+    "elapsed_s": 14.1,
     "market_phase": "Geschlossen"
   },
   "signals": {
@@ -125,9 +125,9 @@
       "uoa_cp_ratio": 33.2037037037037
     },
     "CHPT": {
-      "score": 73,
+      "score": 51,
       "confidence": 70,
-      "drivers": "Spanne 7.7% + News: partnership, catalyst + Earnings in 10d + FINRA Short-Vol 69% + UOA Call/Put 7.3×",
+      "drivers": "Spanne 7.7% + News-KI 8/30: Negative sentiment with underperformance and sell recommendations, but no specific catalysts indicating short squeeze po + Earnings in 10d + FINRA Short-Vol 69% + UOA Call/Put 7.3×",
       "price": 6.25,
       "chg_pct": 0.0,
       "rvol_4d": 1.16,
@@ -138,8 +138,8 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 1,
-      "ki_sentiment_source": "keyword",
+      "active_triggers": 0,
+      "ki_sentiment_source": "llm",
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 7.3×"
@@ -208,7 +208,7 @@
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": 0.4330195510499638,
-      "uoa_cp_ratio": 1.628032345013477
+      "uoa_cp_ratio": 1.605121293800539
     },
     "NVAX": {
       "score": 35,
@@ -234,9 +234,9 @@
       "uoa_cp_ratio": 16.24804177545692
     },
     "PDYN": {
-      "score": 40,
+      "score": 22,
       "confidence": 17,
-      "drivers": "News: partnership, contract + UOA Call/Put 3.3×",
+      "drivers": "News-KI 12/30: Positive business developments and leadership additions, but lacking evidence of high short interest, low float, or cata + UOA Call/Put 3.3×",
       "price": 6.13,
       "chg_pct": 0.0,
       "rvol_4d": 0.92,
@@ -248,7 +248,7 @@
       "stocktwits": null,
       "combo_mult": 1.0,
       "active_triggers": 1,
-      "ki_sentiment_source": "keyword",
+      "ki_sentiment_source": "llm",
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 3.3×"
