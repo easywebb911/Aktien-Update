@@ -1,10 +1,10 @@
 {
-  "updated": "2026-08-23T09:01:26.405786+02:00",
+  "updated": "2026-08-23T09:47:34.125343+02:00",
   "run_info": {
     "tickers_checked": 13,
     "signals_active": 1,
     "alerts_sent": 0,
-    "elapsed_s": 15.8,
+    "elapsed_s": 12.2,
     "market_phase": "Geschlossen"
   },
   "signals": {
@@ -32,9 +32,9 @@
       "uoa_cp_ratio": 1.0880645161290323
     },
     "AMC": {
-      "score": 10,
+      "score": 22,
       "confidence": 17,
-      "drivers": "UOA Call/Put 10.4×",
+      "drivers": "News-KI 12/30: Negative sentiment from lower trading and overvaluation concerns outweighs positive cash flow narrative; limited short-s + UOA Call/Put 10.4×",
       "price": 2.55,
       "chg_pct": -0.0,
       "rvol_4d": 0.93,
@@ -45,8 +45,8 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 0,
-      "ki_sentiment_source": "keyword",
+      "active_triggers": 1,
+      "ki_sentiment_source": "llm",
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 10.4×"
@@ -127,7 +127,7 @@
     "CHPT": {
       "score": 51,
       "confidence": 70,
-      "drivers": "Spanne 7.7% + News-KI 8/30: Negative sentiment with underperformance and sell recommendations indicates weak momentum and declining investor confide + Earnings in 10d + FINRA Short-Vol 69% + UOA Call/Put 7.3×",
+      "drivers": "Spanne 7.7% + News-KI 8/30: Negative sentiment with underperformance and sell recommendations indicates weak momentum, though lack of extreme short  + Earnings in 10d + FINRA Short-Vol 69% + UOA Call/Put 7.3×",
       "price": 6.25,
       "chg_pct": 0.0,
       "rvol_4d": 1.16,
@@ -234,9 +234,9 @@
       "uoa_cp_ratio": 18.785498489425983
     },
     "PDYN": {
-      "score": 22,
+      "score": 40,
       "confidence": 17,
-      "drivers": "News-KI 12/30: Positive business developments and talent acquisition, but no indicators of short squeeze potential (low float confirmat + UOA Call/Put 3.3×",
+      "drivers": "News: partnership, contract + UOA Call/Put 3.3×",
       "price": 6.13,
       "chg_pct": 0.0,
       "rvol_4d": 0.92,
@@ -248,7 +248,7 @@
       "stocktwits": null,
       "combo_mult": 1.0,
       "active_triggers": 1,
-      "ki_sentiment_source": "llm",
+      "ki_sentiment_source": "keyword",
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 3.3×"
@@ -280,9 +280,9 @@
       "uoa_cp_ratio": 6.77542372881356
     },
     "WOLF": {
-      "score": 10,
-      "confidence": 17,
-      "drivers": "Spanne 8.8%",
+      "score": 18,
+      "confidence": 33,
+      "drivers": "Spanne 8.8% + News-KI 8/30: Negative earnings results and stock decline indicate weakness, not the bullish momentum or short pressure needed for a s",
       "price": 25.76,
       "chg_pct": 0.0,
       "rvol_4d": 0.57,
@@ -294,7 +294,7 @@
       "stocktwits": null,
       "combo_mult": 1.0,
       "active_triggers": 0,
-      "ki_sentiment_source": "keyword",
+      "ki_sentiment_source": "llm",
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": 1.2043010752688172,
