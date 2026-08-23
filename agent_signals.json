@@ -1,10 +1,10 @@
 {
-  "updated": "2026-08-23T11:43:24.143257+02:00",
+  "updated": "2026-08-23T12:41:12.211262+02:00",
   "run_info": {
     "tickers_checked": 13,
     "signals_active": 1,
     "alerts_sent": 0,
-    "elapsed_s": 14.4,
+    "elapsed_s": 13.6,
     "market_phase": "Geschlossen"
   },
   "signals": {
@@ -78,9 +78,9 @@
       "uoa_cp_ratio": 3.5113871635610767
     },
     "ASST": {
-      "score": 85,
+      "score": 88,
       "confidence": 70,
-      "drivers": "Volumen 2.4× + Spanne 10.8% + News-KI 12/30: Insider buying and bitcoin purchases show confidence but lack short interest data, high short float, and catalyst streng + SEC Form 4 + UOA Call-Vol/OI 5.6× ATM + UOA Call/Put 8.8×",
+      "drivers": "Volumen 2.4× + Spanne 10.8% + News: short interest + SEC Form 4 + UOA Call-Vol/OI 5.6× ATM + UOA Call/Put 8.8×",
       "price": 18.22,
       "chg_pct": -0.0,
       "rvol_4d": 2.44,
@@ -92,7 +92,7 @@
       "stocktwits": null,
       "combo_mult": 1.1,
       "active_triggers": 2,
-      "ki_sentiment_source": "llm",
+      "ki_sentiment_source": "keyword",
       "uoa_score": 30,
       "uoa_drivers": [
         "UOA Call-Vol/OI 5.6× ATM",
@@ -127,7 +127,7 @@
     "CHPT": {
       "score": 51,
       "confidence": 70,
-      "drivers": "Spanne 7.7% + News-KI 8/30: Negative sentiment with underperformance vs market and sell recommendations indicate weak fundamentals, not short-squeez + Earnings in 10d + FINRA Short-Vol 69% + UOA Call/Put 7.3×",
+      "drivers": "Spanne 7.7% + News-KI 8/30: Negative sentiment with underperformance and sell recommendations indicates weak momentum, but no major catalyst or unus + Earnings in 10d + FINRA Short-Vol 69% + UOA Call/Put 7.3×",
       "price": 6.25,
       "chg_pct": 0.0,
       "rvol_4d": 1.16,
@@ -208,7 +208,7 @@
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": 0.4330195510499638,
-      "uoa_cp_ratio": 1.630229419703104
+      "uoa_cp_ratio": 1.6072874493927125
     },
     "NVAX": {
       "score": 35,
@@ -280,9 +280,9 @@
       "uoa_cp_ratio": 6.77542372881356
     },
     "WOLF": {
-      "score": 15,
+      "score": 18,
       "confidence": 33,
-      "drivers": "Spanne 8.8% + News-KI 5/30: Massive negative price action with widening losses indicates weak fundamentals and likely continued selling pressure, ma",
+      "drivers": "Spanne 8.8% + News-KI 8/30: Negative earnings and stock crash indicate weak fundamentals and likely selling pressure, making short-squeeze condition",
       "price": 25.76,
       "chg_pct": 0.0,
       "rvol_4d": 0.57,
