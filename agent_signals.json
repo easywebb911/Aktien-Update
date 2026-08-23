@@ -1,10 +1,10 @@
 {
-  "updated": "2026-08-23T07:45:51.315386+02:00",
+  "updated": "2026-08-23T09:01:26.405786+02:00",
   "run_info": {
     "tickers_checked": 13,
     "signals_active": 1,
     "alerts_sent": 0,
-    "elapsed_s": 21.7,
+    "elapsed_s": 15.8,
     "market_phase": "Geschlossen"
   },
   "signals": {
@@ -127,7 +127,7 @@
     "CHPT": {
       "score": 51,
       "confidence": 70,
-      "drivers": "Spanne 7.7% + News-KI 8/30: Negative sentiment with underperformance and sell recommendations outweigh routine earnings announcement; weak short-squ + Earnings in 10d + FINRA Short-Vol 69% + UOA Call/Put 7.3×",
+      "drivers": "Spanne 7.7% + News-KI 8/30: Negative sentiment with underperformance and sell recommendations indicates weak momentum and declining investor confide + Earnings in 10d + FINRA Short-Vol 69% + UOA Call/Put 7.3×",
       "price": 6.25,
       "chg_pct": 0.0,
       "rvol_4d": 1.16,
@@ -234,9 +234,9 @@
       "uoa_cp_ratio": 18.785498489425983
     },
     "PDYN": {
-      "score": 40,
+      "score": 22,
       "confidence": 17,
-      "drivers": "News: partnership, contract + UOA Call/Put 3.3×",
+      "drivers": "News-KI 12/30: Positive business developments and talent acquisition, but no indicators of short squeeze potential (low float confirmat + UOA Call/Put 3.3×",
       "price": 6.13,
       "chg_pct": 0.0,
       "rvol_4d": 0.92,
@@ -248,7 +248,7 @@
       "stocktwits": null,
       "combo_mult": 1.0,
       "active_triggers": 1,
-      "ki_sentiment_source": "keyword",
+      "ki_sentiment_source": "llm",
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 3.3×"
@@ -259,7 +259,7 @@
     "RXRX": {
       "score": 60,
       "confidence": 70,
-      "drivers": "Spanne 7.7% + News: short interest, catalyst + SEC Form 4 + UOA Call/Put 6.8×",
+      "drivers": "Spanne 7.7% + News: catalyst, short interest + SEC Form 4 + UOA Call/Put 6.8×",
       "price": 3.5,
       "chg_pct": 0.0,
       "rvol_4d": 1.16,
