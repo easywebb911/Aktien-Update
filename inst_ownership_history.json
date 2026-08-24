@@ -218,6 +218,11 @@
       "date": "2026-08-21",
       "inst_ownership": 1.33563,
       "insider_ownership": 0.00496
+    },
+    {
+      "date": "2026-08-24",
+      "inst_ownership": 1.30984,
+      "insider_ownership": 0.00487
     }
   ],
   "RES": [
@@ -423,6 +428,11 @@
     {
       "date": "2026-08-21",
       "inst_ownership": 0.50424,
+      "insider_ownership": 0.00715
+    },
+    {
+      "date": "2026-08-24",
+      "inst_ownership": 0.50425,
       "insider_ownership": 0.00715
     }
   ],
@@ -1408,6 +1418,11 @@
       "date": "2026-08-20",
       "inst_ownership": 0.58134,
       "insider_ownership": 0.01485
+    },
+    {
+      "date": "2026-08-24",
+      "inst_ownership": 0.59631,
+      "insider_ownership": 0.01485
     }
   ],
   "SHOE": [
@@ -1927,6 +1942,13 @@
       "date": "2026-08-21",
       "inst_ownership": 0.90938,
       "insider_ownership": 0.05515
+    }
+  ],
+  "BIRD": [
+    {
+      "date": "2026-08-24",
+      "inst_ownership": 0.24084999,
+      "insider_ownership": 0.10098
     }
   ]
 }
