@@ -701,6 +701,15 @@
     "substrate": "none",
     "reason": "no_p249"
   },
+  "OXM": {
+    "qid": "Q7115371",
+    "title": "Oxford_Industries",
+    "resolved_at": "2026-08-24T21:47:03Z",
+    "issuer_verified": true,
+    "company_name_at_resolve": "Oxford Industries, Inc.",
+    "substrate": "en",
+    "reason": null
+  },
   "PAR": {
     "qid": null,
     "title": null,
