@@ -1,10 +1,10 @@
 {
-  "updated": "2026-08-24T07:54:15.937144+02:00",
+  "updated": "2026-08-24T09:29:13.228133+02:00",
   "run_info": {
     "tickers_checked": 13,
     "signals_active": 1,
     "alerts_sent": 0,
-    "elapsed_s": 20.6,
+    "elapsed_s": 23.1,
     "market_phase": "Geschlossen"
   },
   "signals": {
@@ -187,9 +187,9 @@
       "uoa_cp_ratio": 0.7950084994591253
     },
     "METC": {
-      "score": 10,
-      "confidence": 17,
-      "drivers": "Spanne 5.8%",
+      "score": 18,
+      "confidence": 33,
+      "drivers": "Spanne 5.8% + News-KI 8/30: Positive business development news but lacks short-squeeze catalysts like high short interest, technical breakouts, or m",
       "price": 11.9,
       "chg_pct": -0.0,
       "rvol_4d": 0.76,
@@ -201,11 +201,11 @@
       "stocktwits": null,
       "combo_mult": 1.0,
       "active_triggers": 0,
-      "ki_sentiment_source": "keyword",
+      "ki_sentiment_source": "llm",
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": null,
-      "uoa_cp_ratio": 1.605121293800539
+      "uoa_cp_ratio": 1.628032345013477
     },
     "NVAX": {
       "score": 35,
