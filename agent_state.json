@@ -1,5 +1,5 @@
 {
-  "last_run": "2026-08-24T23:44:36.144183+02:00",
+  "last_run": "2026-08-24T23:48:18.028817+02:00",
   "cooldowns": {
     "anomaly_score_jump_XRX": "2026-05-03T18:47:15.315486+02:00",
     "anomaly_uoa_extreme_TDOC": "2026-05-04T13:47:00.365949+02:00",
@@ -1311,16 +1311,16 @@
     }
   ],
   "prev_conviction_scores": {
-    "ASST": 52.0,
-    "AKTS": 64.0,
+    "ASST": 53.0,
+    "AKTS": 66.0,
+    "BMEA": 77.0,
     "ARCT": 63.0,
+    "WBTN": 77.0,
     "METC": 56.0,
-    "WBTN": 76.0,
-    "BMEA": 75.0,
     "INBX": 67.0,
     "GO": 67.0,
-    "SHOE": 64.0,
-    "CBRL": 56.0,
+    "OXM": 65.0,
+    "SHOE": 65.0,
     "WOLF": 55.0,
     "RXRX": 55.0,
     "PDYN": 37.0,
@@ -1371,7 +1371,7 @@
       ],
       "last_push_date": "2026-08-24",
       "esc_alerted": false,
-      "updated": "2026-08-24T23:44:36.144268+02:00"
+      "updated": "2026-08-24T23:48:18.028882+02:00"
     },
     "PDYN": {
       "last_active": [
@@ -1379,7 +1379,7 @@
       ],
       "last_push_date": "2026-08-24",
       "esc_alerted": false,
-      "updated": "2026-08-24T23:44:36.144286+02:00"
+      "updated": "2026-08-24T23:48:18.028895+02:00"
     },
     "AI": {
       "last_active": [],
@@ -1402,7 +1402,7 @@
       ],
       "last_push_date": "2026-08-24",
       "esc_alerted": false,
-      "updated": "2026-08-24T23:44:36.144301+02:00"
+      "updated": "2026-08-24T23:48:18.028903+02:00"
     },
     "ARCT": {
       "last_active": [
@@ -1416,7 +1416,7 @@
       "last_active": [],
       "last_push_date": null,
       "esc_alerted": false,
-      "updated": "2026-08-24T23:44:36.144309+02:00"
+      "updated": "2026-08-24T23:48:18.028909+02:00"
     }
   }
 }

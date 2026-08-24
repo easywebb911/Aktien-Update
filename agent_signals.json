@@ -1,10 +1,10 @@
 {
-  "updated": "2026-08-24T23:44:35.464148+02:00",
+  "updated": "2026-08-24T23:48:16.986452+02:00",
   "run_info": {
     "tickers_checked": 15,
     "signals_active": 2,
     "alerts_sent": 0,
-    "elapsed_s": 28.3,
+    "elapsed_s": 31.2,
     "market_phase": "After-Hours"
   },
   "signals": {
@@ -119,27 +119,6 @@
       "uoa_atm_ratio": 0.7425742574257426,
       "uoa_cp_ratio": 164.33333333333334
     },
-    "CBRL": {
-      "score": 23,
-      "confidence": 33,
-      "drivers": "News: short interest + Earnings in 23d",
-      "price": 58.02,
-      "chg_pct": 0.0,
-      "rvol_4d": 1.48,
-      "rvol_20d": 1.1,
-      "earnings": "in 23 Tagen (16.09.2026)",
-      "fda_date": null,
-      "upcoming_event": null,
-      "insider_buy": false,
-      "stocktwits": null,
-      "combo_mult": 1.0,
-      "active_triggers": 1,
-      "ki_sentiment_source": "keyword",
-      "uoa_score": 0,
-      "uoa_drivers": [],
-      "uoa_atm_ratio": 0.17331875341716785,
-      "uoa_cp_ratio": 1.2547945205479452
-    },
     "GO": {
       "score": 10,
       "confidence": 17,
@@ -230,10 +209,31 @@
       "uoa_atm_ratio": 0.40559440559440557,
       "uoa_cp_ratio": 4.48051948051948
     },
+    "OXM": {
+      "score": 38,
+      "confidence": 33,
+      "drivers": "News-KI 5/30: Routine earnings announcement and negative analyst sentiment with no indicators of high short interest, squeeze catalyst + Earnings in 10d + FINRA Short-Vol 98%",
+      "price": 36.56,
+      "chg_pct": 0.0,
+      "rvol_4d": 1.01,
+      "rvol_20d": 0.99,
+      "earnings": "in 10 Tagen (03.09.2026)",
+      "fda_date": null,
+      "upcoming_event": null,
+      "insider_buy": false,
+      "stocktwits": null,
+      "combo_mult": 1.0,
+      "active_triggers": 0,
+      "ki_sentiment_source": "llm",
+      "uoa_score": 0,
+      "uoa_drivers": [],
+      "uoa_atm_ratio": 0.625,
+      "uoa_cp_ratio": 0.019736842105263157
+    },
     "PDYN": {
       "score": 50,
       "confidence": 33,
-      "drivers": "Spanne 5.9% + News: contract, partnership + UOA Call/Put 3.5×",
+      "drivers": "Spanne 5.9% + News: partnership, contract + UOA Call/Put 3.5×",
       "price": 5.78,
       "chg_pct": 0.0,
       "rvol_4d": 0.98,
@@ -277,9 +277,9 @@
       "uoa_cp_ratio": 3.7620253164556963
     },
     "SHOE": {
-      "score": 41,
-      "confidence": 33,
-      "drivers": "News-KI 8/30: Store closures indicate financial distress, but leadership changes and growth initiatives suggest company confidence rat + Earnings in 10d + FINRA Short-Vol 100%",
+      "score": 33,
+      "confidence": 17,
+      "drivers": "Earnings in 10d + FINRA Short-Vol 100%",
       "price": 15.62,
       "chg_pct": -0.0,
       "rvol_4d": 0.76,
@@ -291,7 +291,7 @@
       "stocktwits": null,
       "combo_mult": 1.0,
       "active_triggers": 0,
-      "ki_sentiment_source": "llm",
+      "ki_sentiment_source": "keyword",
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": 0.25,
