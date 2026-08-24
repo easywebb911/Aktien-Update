@@ -1,10 +1,10 @@
 {
-  "updated": "2026-08-24T07:01:46.245186+02:00",
+  "updated": "2026-08-24T07:54:15.937144+02:00",
   "run_info": {
     "tickers_checked": 13,
-    "signals_active": 0,
+    "signals_active": 1,
     "alerts_sent": 0,
-    "elapsed_s": 13.2,
+    "elapsed_s": 20.6,
     "market_phase": "Geschlossen"
   },
   "signals": {
@@ -122,9 +122,9 @@
       "uoa_cp_ratio": 33.2037037037037
     },
     "CHPT": {
-      "score": 55,
+      "score": 73,
       "confidence": 70,
-      "drivers": "Spanne 7.7% + News-KI 12/30: Negative sentiment with underperformance and sell recommendations, combined with routine earnings announcement, shows we + Earnings in 9d + FINRA Short-Vol 69% + UOA Call/Put 7.3×",
+      "drivers": "Spanne 7.7% + News: catalyst, partnership + Earnings in 9d + FINRA Short-Vol 69% + UOA Call/Put 7.3×",
       "price": 6.25,
       "chg_pct": 0.0,
       "rvol_4d": 1.16,
@@ -136,7 +136,7 @@
       "stocktwits": null,
       "combo_mult": 1.0,
       "active_triggers": 1,
-      "ki_sentiment_source": "llm",
+      "ki_sentiment_source": "keyword",
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 7.3×"
@@ -205,7 +205,7 @@
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": null,
-      "uoa_cp_ratio": 1.628032345013477
+      "uoa_cp_ratio": 1.605121293800539
     },
     "NVAX": {
       "score": 35,
@@ -233,7 +233,7 @@
     "PDYN": {
       "score": 40,
       "confidence": 17,
-      "drivers": "News: partnership, contract + UOA Call/Put 3.3×",
+      "drivers": "News: contract, partnership + UOA Call/Put 3.3×",
       "price": 6.13,
       "chg_pct": 0.0,
       "rvol_4d": 0.92,
@@ -256,7 +256,7 @@
     "RXRX": {
       "score": 60,
       "confidence": 70,
-      "drivers": "Spanne 7.7% + News: short interest, catalyst + SEC Form 4 + UOA Call/Put 6.6×",
+      "drivers": "Spanne 7.7% + News: catalyst, short interest + SEC Form 4 + UOA Call/Put 6.6×",
       "price": 3.5,
       "chg_pct": 0.0,
       "rvol_4d": 1.16,
