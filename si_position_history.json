@@ -87,6 +87,12 @@
       "shares_short": 32680502,
       "short_pct_float": 33.29,
       "pub_date": "2026-07-24"
+    },
+    {
+      "settlement_date": "2026-07-31",
+      "shares_short": 29294656,
+      "short_pct_float": 29.59,
+      "pub_date": "2026-08-11"
     }
   ],
   "LOVE": [
@@ -1665,6 +1671,12 @@
       "shares_short": 11330557,
       "short_pct_float": 41.79,
       "pub_date": "2026-07-24"
+    },
+    {
+      "settlement_date": "2026-07-31",
+      "shares_short": 9796635,
+      "short_pct_float": 36.13,
+      "pub_date": "2026-08-11"
     }
   ],
   "AMCX": [
@@ -3318,6 +3330,12 @@
       "shares_short": 85545783,
       "short_pct_float": 26.72,
       "pub_date": "2026-07-24"
+    },
+    {
+      "settlement_date": "2026-07-31",
+      "shares_short": 95500899,
+      "short_pct_float": 29.34,
+      "pub_date": "2026-08-11"
     }
   ],
   "GO": [
@@ -4542,6 +4560,12 @@
       "shares_short": 4709401,
       "short_pct_float": 20.8,
       "pub_date": "2026-07-24"
+    },
+    {
+      "settlement_date": "2026-07-31",
+      "shares_short": 4559885,
+      "short_pct_float": 19.72,
+      "pub_date": "2026-08-11"
     }
   ],
   "RES": [
@@ -5033,6 +5057,36 @@
       "settlement_date": "2026-07-31",
       "shares_short": 1073518,
       "short_pct_float": 20.16,
+      "pub_date": "2026-08-11"
+    }
+  ],
+  "BMEA": [
+    {
+      "settlement_date": "2026-06-30",
+      "shares_short": 13830845,
+      "short_pct_float": null,
+      "pub_date": "2026-07-10",
+      "seeded": true
+    },
+    {
+      "settlement_date": "2026-07-31",
+      "shares_short": 10016624,
+      "short_pct_float": 16.85,
+      "pub_date": "2026-08-11"
+    }
+  ],
+  "AKTS": [
+    {
+      "settlement_date": "2026-06-30",
+      "shares_short": 3306972,
+      "short_pct_float": null,
+      "pub_date": "2026-07-10",
+      "seeded": true
+    },
+    {
+      "settlement_date": "2026-07-31",
+      "shares_short": 3470122,
+      "short_pct_float": 21.93,
       "pub_date": "2026-08-11"
     }
   ]

@@ -35,6 +35,15 @@
     "substrate": "en",
     "reason": null
   },
+  "AKTS": {
+    "qid": null,
+    "title": null,
+    "resolved_at": "2026-08-24T20:36:49Z",
+    "issuer_verified": false,
+    "company_name_at_resolve": "Aktis Oncology, Inc.",
+    "substrate": "none",
+    "reason": "no_p249"
+  },
   "ALT": {
     "qid": "Q30283539",
     "title": null,
@@ -169,6 +178,15 @@
     "company_name_at_resolve": "Blackbaud, Inc.",
     "substrate": "en",
     "reason": null
+  },
+  "BMEA": {
+    "qid": null,
+    "title": null,
+    "resolved_at": "2026-08-24T20:36:49Z",
+    "issuer_verified": false,
+    "company_name_at_resolve": "Biomea Fusion, Inc.",
+    "substrate": "none",
+    "reason": "no_p249"
   },
   "CABA": {
     "qid": null,
