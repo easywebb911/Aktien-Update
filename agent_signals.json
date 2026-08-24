@@ -1,10 +1,10 @@
 {
-  "updated": "2026-08-24T09:29:13.228133+02:00",
+  "updated": "2026-08-24T09:30:35.722021+02:00",
   "run_info": {
     "tickers_checked": 13,
-    "signals_active": 1,
+    "signals_active": 0,
     "alerts_sent": 0,
-    "elapsed_s": 23.1,
+    "elapsed_s": 19.6,
     "market_phase": "Geschlossen"
   },
   "signals": {
@@ -30,9 +30,9 @@
       "uoa_cp_ratio": 1.0880645161290323
     },
     "AMC": {
-      "score": 10,
+      "score": 22,
       "confidence": 17,
-      "drivers": "UOA Call/Put 10.4×",
+      "drivers": "News-KI 12/30: Mixed signals with price weakness and valuation concerns outweighing modest operational improvements; limited catalysts  + UOA Call/Put 10.4×",
       "price": 2.55,
       "chg_pct": -0.0,
       "rvol_4d": 0.93,
@@ -43,8 +43,8 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 0,
-      "ki_sentiment_source": "keyword",
+      "active_triggers": 1,
+      "ki_sentiment_source": "llm",
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 10.4×"
@@ -122,9 +122,9 @@
       "uoa_cp_ratio": 33.2037037037037
     },
     "CHPT": {
-      "score": 73,
+      "score": 51,
       "confidence": 70,
-      "drivers": "Spanne 7.7% + News: catalyst, partnership + Earnings in 9d + FINRA Short-Vol 69% + UOA Call/Put 7.3×",
+      "drivers": "Spanne 7.7% + News-KI 8/30: Negative sentiment with underperformance and sell recommendations outweigh neutral earnings announcement; no significant + Earnings in 9d + FINRA Short-Vol 69% + UOA Call/Put 7.3×",
       "price": 6.25,
       "chg_pct": 0.0,
       "rvol_4d": 1.16,
@@ -135,8 +135,8 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 1,
-      "ki_sentiment_source": "keyword",
+      "active_triggers": 0,
+      "ki_sentiment_source": "llm",
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 7.3×"
@@ -187,9 +187,9 @@
       "uoa_cp_ratio": 0.7950084994591253
     },
     "METC": {
-      "score": 18,
-      "confidence": 33,
-      "drivers": "Spanne 5.8% + News-KI 8/30: Positive business development news but lacks short-squeeze catalysts like high short interest, technical breakouts, or m",
+      "score": 10,
+      "confidence": 17,
+      "drivers": "Spanne 5.8%",
       "price": 11.9,
       "chg_pct": -0.0,
       "rvol_4d": 0.76,
@@ -201,7 +201,7 @@
       "stocktwits": null,
       "combo_mult": 1.0,
       "active_triggers": 0,
-      "ki_sentiment_source": "llm",
+      "ki_sentiment_source": "keyword",
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": null,
@@ -233,7 +233,7 @@
     "PDYN": {
       "score": 40,
       "confidence": 17,
-      "drivers": "News: contract, partnership + UOA Call/Put 3.3×",
+      "drivers": "News: partnership, contract + UOA Call/Put 3.3×",
       "price": 6.13,
       "chg_pct": 0.0,
       "rvol_4d": 0.92,
