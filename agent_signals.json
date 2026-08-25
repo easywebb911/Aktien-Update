@@ -1,10 +1,10 @@
 {
-  "updated": "2026-08-25T11:52:11.994773+02:00",
+  "updated": "2026-08-25T12:50:14.154419+02:00",
   "run_info": {
     "tickers_checked": 15,
     "signals_active": 0,
     "alerts_sent": 0,
-    "elapsed_s": 24.3,
+    "elapsed_s": 30.6,
     "market_phase": "Pre-Market"
   },
   "signals": {
@@ -26,8 +26,8 @@
       "ki_sentiment_source": "keyword",
       "uoa_score": 0,
       "uoa_drivers": [],
-      "uoa_atm_ratio": null,
-      "uoa_cp_ratio": 0.14814814814814814
+      "uoa_atm_ratio": 1.0,
+      "uoa_cp_ratio": 0.8395061728395061
     },
     "AMC": {
       "score": 35,
@@ -74,9 +74,9 @@
       "uoa_cp_ratio": null
     },
     "ARCT": {
-      "score": 10,
-      "confidence": 17,
-      "drivers": "Spanne 15.8%",
+      "score": 25,
+      "confidence": 33,
+      "drivers": "Spanne 15.8% + SEC 8-K",
       "price": 14.34,
       "chg_pct": 0.0,
       "rvol_4d": 0.86,
@@ -87,7 +87,7 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 0,
+      "active_triggers": 1,
       "ki_sentiment_source": "keyword",
       "uoa_score": 0,
       "uoa_drivers": [],
@@ -137,7 +137,7 @@
       "uoa_drivers": [
         "UOA Call/Put 164.3×"
       ],
-      "uoa_atm_ratio": null,
+      "uoa_atm_ratio": 0.49504950495049505,
       "uoa_cp_ratio": 164.33333333333334
     },
     "GO": {
@@ -160,7 +160,7 @@
       "uoa_drivers": [
         "UOA Call/Put 3.6×"
       ],
-      "uoa_atm_ratio": null,
+      "uoa_atm_ratio": 0.8533007334963325,
       "uoa_cp_ratio": 3.617363344051447
     },
     "INBX": {
@@ -204,13 +204,13 @@
       "ki_sentiment_source": "keyword",
       "uoa_score": 0,
       "uoa_drivers": [],
-      "uoa_atm_ratio": null,
+      "uoa_atm_ratio": 1.9464447806354008,
       "uoa_cp_ratio": 1.5192462369297943
     },
     "METC": {
       "score": 20,
       "confidence": 33,
-      "drivers": "Spanne 7.3% + UOA Call/Put 4.4×",
+      "drivers": "Spanne 7.3% + UOA Call/Put 4.5×",
       "price": 12.43,
       "chg_pct": 0.0,
       "rvol_4d": 1.15,
@@ -225,15 +225,15 @@
       "ki_sentiment_source": "keyword",
       "uoa_score": 10,
       "uoa_drivers": [
-        "UOA Call/Put 4.4×"
+        "UOA Call/Put 4.5×"
       ],
-      "uoa_atm_ratio": null,
-      "uoa_cp_ratio": 4.4363636363636365
+      "uoa_atm_ratio": 0.760655737704918,
+      "uoa_cp_ratio": 4.48051948051948
     },
     "PDYN": {
-      "score": 32,
+      "score": 50,
       "confidence": 33,
-      "drivers": "Spanne 5.9% + News-KI 12/30: Positive news on partnerships and leadership appointments, but lacks evidence of high short interest, low float, or cata + UOA Call/Put 3.5×",
+      "drivers": "Spanne 5.9% + News: partnership, contract + UOA Call/Put 3.5×",
       "price": 5.78,
       "chg_pct": 0.0,
       "rvol_4d": 0.98,
@@ -245,7 +245,7 @@
       "stocktwits": null,
       "combo_mult": 1.0,
       "active_triggers": 1,
-      "ki_sentiment_source": "llm",
+      "ki_sentiment_source": "keyword",
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 3.5×"
@@ -273,13 +273,13 @@
       "uoa_drivers": [
         "UOA Call/Put 3.7×"
       ],
-      "uoa_atm_ratio": null,
+      "uoa_atm_ratio": 2.2819148936170213,
       "uoa_cp_ratio": 3.732673267326733
     },
     "SHOE": {
-      "score": 33,
-      "confidence": 17,
-      "drivers": "Earnings in 9d + FINRA Short-Vol 100%",
+      "score": 38,
+      "confidence": 33,
+      "drivers": "News-KI 5/30: Store closures and restructuring suggest financial distress rather than short-squeeze potential; leadership changes alon + Earnings in 9d + FINRA Short-Vol 100%",
       "price": 15.62,
       "chg_pct": -0.0,
       "rvol_4d": 0.76,
@@ -291,7 +291,7 @@
       "stocktwits": null,
       "combo_mult": 1.0,
       "active_triggers": 0,
-      "ki_sentiment_source": "keyword",
+      "ki_sentiment_source": "llm",
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": null,
@@ -338,7 +338,7 @@
       "ki_sentiment_source": "keyword",
       "uoa_score": 0,
       "uoa_drivers": [],
-      "uoa_atm_ratio": null,
+      "uoa_atm_ratio": 1.0488400488400489,
       "uoa_cp_ratio": 1.2396541074737493
     }
   }
