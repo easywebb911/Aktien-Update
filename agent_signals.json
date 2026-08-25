@@ -1,11 +1,11 @@
 {
-  "updated": "2026-08-25T09:58:26.415642+02:00",
+  "updated": "2026-08-25T11:00:42.243411+02:00",
   "run_info": {
     "tickers_checked": 15,
     "signals_active": 1,
     "alerts_sent": 0,
-    "elapsed_s": 18.3,
-    "market_phase": "Geschlossen"
+    "elapsed_s": 32.7,
+    "market_phase": "Pre-Market"
   },
   "signals": {
     "AKTS": {
@@ -208,9 +208,9 @@
       "uoa_cp_ratio": 1.5192462369297943
     },
     "METC": {
-      "score": 20,
+      "score": 28,
       "confidence": 33,
-      "drivers": "Spanne 7.3% + UOA Call/Put 4.5×",
+      "drivers": "Spanne 7.3% + News-KI 8/30: Positive business development news, but lacks short-squeeze catalysts like high short interest, gamma exposure, or earni + UOA Call/Put 4.5×",
       "price": 12.43,
       "chg_pct": 0.0,
       "rvol_4d": 1.15,
@@ -222,7 +222,7 @@
       "stocktwits": null,
       "combo_mult": 1.0,
       "active_triggers": 0,
-      "ki_sentiment_source": "keyword",
+      "ki_sentiment_source": "llm",
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 4.5×"
@@ -233,7 +233,7 @@
     "PDYN": {
       "score": 50,
       "confidence": 33,
-      "drivers": "Spanne 5.9% + News: contract, partnership + UOA Call/Put 3.5×",
+      "drivers": "Spanne 5.9% + News: partnership, contract + UOA Call/Put 3.5×",
       "price": 5.78,
       "chg_pct": 0.0,
       "rvol_4d": 0.98,
@@ -277,9 +277,9 @@
       "uoa_cp_ratio": 3.732673267326733
     },
     "SHOE": {
-      "score": 41,
+      "score": 38,
       "confidence": 33,
-      "drivers": "News-KI 8/30: Store closures indicate fundamental business weakness, while CMO appointment suggests stabilization efforts, but no shor + Earnings in 9d + FINRA Short-Vol 100%",
+      "drivers": "News-KI 5/30: Store closures indicate financial distress but lack the short interest data, rapid debt coverage, or catalyst momentum t + Earnings in 9d + FINRA Short-Vol 100%",
       "price": 15.62,
       "chg_pct": -0.0,
       "rvol_4d": 0.76,
