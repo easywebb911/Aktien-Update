@@ -62,6 +62,15 @@
     "substrate": "en",
     "reason": null
   },
+  "AMIX": {
+    "qid": null,
+    "title": null,
+    "resolved_at": "2026-08-25T21:46:49Z",
+    "issuer_verified": false,
+    "company_name_at_resolve": "Autonomix Medical, Inc.",
+    "substrate": "none",
+    "reason": "sparql_fetch_failed"
+  },
   "AMPX": {
     "qid": null,
     "title": null,
@@ -302,6 +311,15 @@
     "resolved_at": "2026-08-04T22:31:18Z",
     "issuer_verified": false,
     "company_name_at_resolve": "Dream Finders Homes, Inc.",
+    "substrate": "none",
+    "reason": "no_p249"
+  },
+  "DFNS": {
+    "qid": null,
+    "title": null,
+    "resolved_at": "2026-08-25T21:46:49Z",
+    "issuer_verified": false,
+    "company_name_at_resolve": "T3 Defense Inc.",
     "substrate": "none",
     "reason": "no_p249"
   },
@@ -628,6 +646,15 @@
     "company_name_at_resolve": "Ramaco Resources, Inc.",
     "substrate": "none",
     "reason": "no_p249"
+  },
+  "MNRO": {
+    "qid": "Q6902090",
+    "title": "Monro_Muffler_Brake",
+    "resolved_at": "2026-08-25T21:46:49Z",
+    "issuer_verified": true,
+    "company_name_at_resolve": "Monro, Inc.",
+    "substrate": "en",
+    "reason": null
   },
   "MPLT": {
     "qid": null,
