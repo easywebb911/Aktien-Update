@@ -1,10 +1,10 @@
 {
-  "updated": "2026-08-25T11:00:42.243411+02:00",
+  "updated": "2026-08-25T11:52:11.994773+02:00",
   "run_info": {
     "tickers_checked": 15,
-    "signals_active": 1,
+    "signals_active": 0,
     "alerts_sent": 0,
-    "elapsed_s": 32.7,
+    "elapsed_s": 24.3,
     "market_phase": "Pre-Market"
   },
   "signals": {
@@ -27,7 +27,7 @@
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": null,
-      "uoa_cp_ratio": 0.8395061728395061
+      "uoa_cp_ratio": 0.14814814814814814
     },
     "AMC": {
       "score": 35,
@@ -95,9 +95,9 @@
       "uoa_cp_ratio": 1.925
     },
     "ASST": {
-      "score": 75,
+      "score": 60,
       "confidence": 70,
-      "drivers": "Volumen 1.6× + Spanne 9.4% + SEC 8-K + News: short interest + SEC Form 4 + UOA Call/Put 3.4×",
+      "drivers": "Volumen 1.6× + Spanne 9.4% + SEC 8-K + SEC Form 4 + UOA Call/Put 3.4×",
       "price": 19.73,
       "chg_pct": -0.0,
       "rvol_4d": 1.6,
@@ -208,9 +208,9 @@
       "uoa_cp_ratio": 1.5192462369297943
     },
     "METC": {
-      "score": 28,
+      "score": 20,
       "confidence": 33,
-      "drivers": "Spanne 7.3% + News-KI 8/30: Positive business development news, but lacks short-squeeze catalysts like high short interest, gamma exposure, or earni + UOA Call/Put 4.5×",
+      "drivers": "Spanne 7.3% + UOA Call/Put 4.4×",
       "price": 12.43,
       "chg_pct": 0.0,
       "rvol_4d": 1.15,
@@ -222,18 +222,18 @@
       "stocktwits": null,
       "combo_mult": 1.0,
       "active_triggers": 0,
-      "ki_sentiment_source": "llm",
+      "ki_sentiment_source": "keyword",
       "uoa_score": 10,
       "uoa_drivers": [
-        "UOA Call/Put 4.5×"
+        "UOA Call/Put 4.4×"
       ],
       "uoa_atm_ratio": null,
-      "uoa_cp_ratio": 4.48051948051948
+      "uoa_cp_ratio": 4.4363636363636365
     },
     "PDYN": {
-      "score": 50,
+      "score": 32,
       "confidence": 33,
-      "drivers": "Spanne 5.9% + News: partnership, contract + UOA Call/Put 3.5×",
+      "drivers": "Spanne 5.9% + News-KI 12/30: Positive news on partnerships and leadership appointments, but lacks evidence of high short interest, low float, or cata + UOA Call/Put 3.5×",
       "price": 5.78,
       "chg_pct": 0.0,
       "rvol_4d": 0.98,
@@ -245,7 +245,7 @@
       "stocktwits": null,
       "combo_mult": 1.0,
       "active_triggers": 1,
-      "ki_sentiment_source": "keyword",
+      "ki_sentiment_source": "llm",
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 3.5×"
@@ -277,9 +277,9 @@
       "uoa_cp_ratio": 3.732673267326733
     },
     "SHOE": {
-      "score": 38,
-      "confidence": 33,
-      "drivers": "News-KI 5/30: Store closures indicate financial distress but lack the short interest data, rapid debt coverage, or catalyst momentum t + Earnings in 9d + FINRA Short-Vol 100%",
+      "score": 33,
+      "confidence": 17,
+      "drivers": "Earnings in 9d + FINRA Short-Vol 100%",
       "price": 15.62,
       "chg_pct": -0.0,
       "rvol_4d": 0.76,
@@ -291,7 +291,7 @@
       "stocktwits": null,
       "combo_mult": 1.0,
       "active_triggers": 0,
-      "ki_sentiment_source": "llm",
+      "ki_sentiment_source": "keyword",
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": null,
