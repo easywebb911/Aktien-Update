@@ -2035,5 +2035,26 @@
       "inst_ownership": 0.87633,
       "insider_ownership": 0.105500005
     }
+  ],
+  "KSS": [
+    {
+      "date": "2026-08-25",
+      "inst_ownership": 1.06904,
+      "insider_ownership": 0.03924
+    }
+  ],
+  "CPB": [
+    {
+      "date": "2026-08-25",
+      "inst_ownership": 0.64063,
+      "insider_ownership": 0.37469003
+    }
+  ],
+  "SIG": [
+    {
+      "date": "2026-08-25",
+      "inst_ownership": 1.13252,
+      "insider_ownership": 0.01282
+    }
   ]
 }

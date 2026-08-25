@@ -1902,6 +1902,12 @@
       "shares_short": 29868325,
       "short_pct_float": 31.12,
       "pub_date": "2026-07-10"
+    },
+    {
+      "settlement_date": "2026-07-31",
+      "shares_short": 30858309,
+      "short_pct_float": 32.15,
+      "pub_date": "2026-08-11"
     }
   ],
   "BLKB": [
@@ -5087,6 +5093,36 @@
       "settlement_date": "2026-07-31",
       "shares_short": 3470122,
       "short_pct_float": 21.93,
+      "pub_date": "2026-08-11"
+    }
+  ],
+  "CPB": [
+    {
+      "settlement_date": "2026-06-30",
+      "shares_short": 46360484,
+      "short_pct_float": null,
+      "pub_date": "2026-07-10",
+      "seeded": true
+    },
+    {
+      "settlement_date": "2026-07-31",
+      "shares_short": 48233398,
+      "short_pct_float": 31.21,
+      "pub_date": "2026-08-11"
+    }
+  ],
+  "SIG": [
+    {
+      "settlement_date": "2026-06-30",
+      "shares_short": 5469353,
+      "short_pct_float": null,
+      "pub_date": "2026-07-10",
+      "seeded": true
+    },
+    {
+      "settlement_date": "2026-07-31",
+      "shares_short": 5542609,
+      "short_pct_float": 19.99,
       "pub_date": "2026-08-11"
     }
   ]
