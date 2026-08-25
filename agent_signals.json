@@ -1,10 +1,10 @@
 {
-  "updated": "2026-08-26T00:46:00.192627+02:00",
+  "updated": "2026-08-26T01:39:03.805007+02:00",
   "run_info": {
     "tickers_checked": 14,
-    "signals_active": 2,
+    "signals_active": 3,
     "alerts_sent": 0,
-    "elapsed_s": 45.5,
+    "elapsed_s": 41.2,
     "market_phase": "After-Hours"
   },
   "signals": {
@@ -206,9 +206,9 @@
       "uoa_cp_ratio": 1.5744350908285334
     },
     "KURA": {
-      "score": 55,
+      "score": 65,
       "confidence": 70,
-      "drivers": "Volumen 1.9× + Spanne 7.7% + UOA Call-Vol/OI 13.5× ATM + UOA Call/Put 21.7×",
+      "drivers": "Volumen 1.9× + Spanne 7.7% + SEC Form 4 + UOA Call-Vol/OI 13.5× ATM + UOA Call/Put 21.7×",
       "price": 13.59,
       "chg_pct": 0.0,
       "rvol_4d": 1.95,
@@ -230,9 +230,9 @@
       "uoa_cp_ratio": 21.695652173913043
     },
     "MNRO": {
-      "score": 60,
+      "score": 70,
       "confidence": 70,
-      "drivers": "Volumen 1.8× + Spanne 14.1% + News-KI 5/30: Routine quarterly earnings and dividend announcements lack short-squeeze catalysts like high short interest, strong pric + UOA Call-Vol/OI 6.1× ATM + UOA Call/Put 73.6×",
+      "drivers": "Volumen 1.8× + Spanne 14.1% + News: buyout + UOA Call-Vol/OI 6.1× ATM + UOA Call/Put 73.6×",
       "price": 13.96,
       "chg_pct": 0.0,
       "rvol_4d": 1.83,
@@ -243,8 +243,8 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 0,
-      "ki_sentiment_source": "llm",
+      "active_triggers": 1,
+      "ki_sentiment_source": "keyword",
       "uoa_score": 30,
       "uoa_drivers": [
         "UOA Call-Vol/OI 6.1× ATM",
@@ -275,9 +275,9 @@
       "uoa_cp_ratio": 0.8699186991869918
     },
     "TNXP": {
-      "score": 44,
+      "score": 55,
       "confidence": 70,
-      "drivers": "Volumen 2.9× + Spanne 11.5% + News: insider buying",
+      "drivers": "Volumen 2.9× + Spanne 11.5% + News: insider buying + SEC Form 4",
       "price": 13.66,
       "chg_pct": -0.0,
       "rvol_4d": 2.9,
@@ -296,9 +296,9 @@
       "uoa_cp_ratio": 1.6666666666666667
     },
     "WOLF": {
-      "score": 15,
-      "confidence": 17,
-      "drivers": "SEC 8-K",
+      "score": 0,
+      "confidence": 0,
+      "drivers": "",
       "price": 25.29,
       "chg_pct": 0.0,
       "rvol_4d": 0.31,
@@ -309,7 +309,7 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 1,
+      "active_triggers": 0,
       "ki_sentiment_source": "keyword",
       "uoa_score": 0,
       "uoa_drivers": [],
