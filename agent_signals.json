@@ -1,10 +1,10 @@
 {
-  "updated": "2026-08-25T12:50:14.154419+02:00",
+  "updated": "2026-08-25T13:44:45.788087+02:00",
   "run_info": {
     "tickers_checked": 15,
     "signals_active": 0,
     "alerts_sent": 0,
-    "elapsed_s": 30.6,
+    "elapsed_s": 34.1,
     "market_phase": "Pre-Market"
   },
   "signals": {
@@ -27,7 +27,7 @@
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": 1.0,
-      "uoa_cp_ratio": 0.8395061728395061
+      "uoa_cp_ratio": 0.14814814814814814
     },
     "AMC": {
       "score": 35,
@@ -49,7 +49,7 @@
       "uoa_drivers": [
         "UOA Call/Put 6.8×"
       ],
-      "uoa_atm_ratio": null,
+      "uoa_atm_ratio": 0.8492435158501441,
       "uoa_cp_ratio": 6.825050803620913
     },
     "AMIX": {
@@ -91,7 +91,7 @@
       "ki_sentiment_source": "keyword",
       "uoa_score": 0,
       "uoa_drivers": [],
-      "uoa_atm_ratio": null,
+      "uoa_atm_ratio": 0.14714424007744434,
       "uoa_cp_ratio": 1.925
     },
     "ASST": {
@@ -114,7 +114,7 @@
       "uoa_drivers": [
         "UOA Call/Put 3.4×"
       ],
-      "uoa_atm_ratio": null,
+      "uoa_atm_ratio": 1.8002165674066053,
       "uoa_cp_ratio": 3.407606921318968
     },
     "BMEA": {
@@ -141,9 +141,9 @@
       "uoa_cp_ratio": 164.33333333333334
     },
     "GO": {
-      "score": 20,
-      "confidence": 33,
-      "drivers": "SEC Form 4 + UOA Call/Put 3.6×",
+      "score": 10,
+      "confidence": 17,
+      "drivers": "UOA Call/Put 3.6×",
       "price": 12.04,
       "chg_pct": -0.0,
       "rvol_4d": 0.95,
@@ -160,7 +160,7 @@
       "uoa_drivers": [
         "UOA Call/Put 3.6×"
       ],
-      "uoa_atm_ratio": 0.8533007334963325,
+      "uoa_atm_ratio": 0.07962582705909195,
       "uoa_cp_ratio": 3.617363344051447
     },
     "INBX": {
@@ -183,7 +183,7 @@
       "uoa_drivers": [
         "UOA Call/Put 4.8×"
       ],
-      "uoa_atm_ratio": null,
+      "uoa_atm_ratio": 0.03468208092485549,
       "uoa_cp_ratio": 4.836734693877551
     },
     "IONQ": {
@@ -204,13 +204,13 @@
       "ki_sentiment_source": "keyword",
       "uoa_score": 0,
       "uoa_drivers": [],
-      "uoa_atm_ratio": 1.9464447806354008,
+      "uoa_atm_ratio": 0.6462079357106981,
       "uoa_cp_ratio": 1.5192462369297943
     },
     "METC": {
       "score": 20,
       "confidence": 33,
-      "drivers": "Spanne 7.3% + UOA Call/Put 4.5×",
+      "drivers": "Spanne 7.3% + UOA Call/Put 4.4×",
       "price": 12.43,
       "chg_pct": 0.0,
       "rvol_4d": 1.15,
@@ -225,15 +225,15 @@
       "ki_sentiment_source": "keyword",
       "uoa_score": 10,
       "uoa_drivers": [
-        "UOA Call/Put 4.5×"
+        "UOA Call/Put 4.4×"
       ],
-      "uoa_atm_ratio": 0.760655737704918,
-      "uoa_cp_ratio": 4.48051948051948
+      "uoa_atm_ratio": 0.3319027181688126,
+      "uoa_cp_ratio": 4.4363636363636365
     },
     "PDYN": {
       "score": 50,
       "confidence": 33,
-      "drivers": "Spanne 5.9% + News: partnership, contract + UOA Call/Put 3.5×",
+      "drivers": "Spanne 5.9% + News: contract, partnership + UOA Call/Put 3.5×",
       "price": 5.78,
       "chg_pct": 0.0,
       "rvol_4d": 0.98,
@@ -250,13 +250,13 @@
       "uoa_drivers": [
         "UOA Call/Put 3.5×"
       ],
-      "uoa_atm_ratio": null,
+      "uoa_atm_ratio": 0.291866028708134,
       "uoa_cp_ratio": 3.4574468085106385
     },
     "RXRX": {
       "score": 60,
       "confidence": 70,
-      "drivers": "Spanne 6.6% + News: catalyst, short interest + SEC Form 4 + UOA Call/Put 3.7×",
+      "drivers": "Spanne 6.6% + News: short interest, catalyst + SEC Form 4 + UOA Call/Put 3.7×",
       "price": 3.25,
       "chg_pct": 0.0,
       "rvol_4d": 0.66,
@@ -273,13 +273,13 @@
       "uoa_drivers": [
         "UOA Call/Put 3.7×"
       ],
-      "uoa_atm_ratio": 2.2819148936170213,
+      "uoa_atm_ratio": 0.2202258726899384,
       "uoa_cp_ratio": 3.732673267326733
     },
     "SHOE": {
-      "score": 38,
+      "score": 41,
       "confidence": 33,
-      "drivers": "News-KI 5/30: Store closures and restructuring suggest financial distress rather than short-squeeze potential; leadership changes alon + Earnings in 9d + FINRA Short-Vol 100%",
+      "drivers": "News-KI 8/30: Negative store closures signal financial distress, but leadership appointments and growth initiatives suggest management + Earnings in 9d + FINRA Short-Vol 100%",
       "price": 15.62,
       "chg_pct": -0.0,
       "rvol_4d": 0.76,
@@ -294,13 +294,13 @@
       "ki_sentiment_source": "llm",
       "uoa_score": 0,
       "uoa_drivers": [],
-      "uoa_atm_ratio": null,
+      "uoa_atm_ratio": 0.25,
       "uoa_cp_ratio": 1.6603773584905661
     },
     "WBTN": {
-      "score": 35,
+      "score": 43,
       "confidence": 70,
-      "drivers": "Volumen 2.8× + Spanne 12.3% + UOA Call/Put 9.2×",
+      "drivers": "Volumen 2.8× + Spanne 12.3% + News-KI 8/30: Undervaluation signals are weak for short-squeeze; no short interest data, negative sentiment indicators, or catalyst ev + UOA Call/Put 9.2×",
       "price": 9.59,
       "chg_pct": 0.0,
       "rvol_4d": 2.82,
@@ -312,12 +312,12 @@
       "stocktwits": null,
       "combo_mult": 1.0,
       "active_triggers": 1,
-      "ki_sentiment_source": "keyword",
+      "ki_sentiment_source": "llm",
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 9.2×"
       ],
-      "uoa_atm_ratio": null,
+      "uoa_atm_ratio": 0.25951557093425603,
       "uoa_cp_ratio": 9.153846153846153
     },
     "WOLF": {
@@ -338,7 +338,7 @@
       "ki_sentiment_source": "keyword",
       "uoa_score": 0,
       "uoa_drivers": [],
-      "uoa_atm_ratio": 1.0488400488400489,
+      "uoa_atm_ratio": 0.5596091205211726,
       "uoa_cp_ratio": 1.2396541074737493
     }
   }
