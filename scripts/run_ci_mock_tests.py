@@ -74,7 +74,7 @@ ALLOWLIST = [
     "staleness_banner", "stale_price_display", "stats_helpers", "status_review_reminder",
     "short_situation_none_guard",
     "setup_score_cursor_removed", "split_label_consistency", "tier3_success_check_recalibration", "token_reentry_fix",
-    "token_settings_ui_refresh", "token_storage_diagnose", "vintage_guard",
+    "token_settings_ui_refresh", "token_storage_diagnose", "translate_error_guard", "vintage_guard",
     "watchlist_drawer_stale_data", "watchlist_uoa_price_nan_hardening",
 ]
 
