@@ -156,3 +156,4 @@
 {"run_ts": "2026-08-24T21:46:47Z", "run_phase": "postclose", "provider": "finra_history", "tier": 2, "http_status": 200, "latency_ms": 1788, "item_count": 107678, "coverage_pct": 100.0, "nan_pct": null, "error": null, "schema_v": 1}
 {"run_ts": "2026-08-25T07:08:43Z", "run_phase": "premarket", "provider": "finra_history", "tier": 2, "http_status": 200, "latency_ms": 1590, "item_count": 108094, "coverage_pct": 100.0, "nan_pct": null, "error": null, "schema_v": 1}
 {"run_ts": "2026-08-25T21:46:31Z", "run_phase": "postclose", "provider": "finra_history", "tier": 2, "http_status": 200, "latency_ms": 1395, "item_count": 108094, "coverage_pct": 100.0, "nan_pct": null, "error": null, "schema_v": 1}
+{"run_ts": "2026-08-26T07:09:10Z", "run_phase": "premarket", "provider": "finra_history", "tier": 2, "http_status": 200, "latency_ms": 1592, "item_count": 108116, "coverage_pct": 100.0, "nan_pct": null, "error": null, "schema_v": 1}
