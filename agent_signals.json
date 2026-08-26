@@ -1,11 +1,11 @@
 {
-  "updated": "2026-08-26T10:00:41.419224+02:00",
+  "updated": "2026-08-26T10:18:26.767521+02:00",
   "run_info": {
     "tickers_checked": 14,
     "signals_active": 1,
     "alerts_sent": 0,
-    "elapsed_s": 44.2,
-    "market_phase": "Geschlossen"
+    "elapsed_s": 26.6,
+    "market_phase": "Pre-Market"
   },
   "signals": {
     "AMC": {
@@ -164,9 +164,9 @@
       "uoa_cp_ratio": 1.5744350908285334
     },
     "KURA": {
-      "score": 45,
+      "score": 57,
       "confidence": 70,
-      "drivers": "Volumen 2.0× + Spanne 7.7% + SEC Form 4 + UOA Call/Put 21.7×",
+      "drivers": "Volumen 2.0× + Spanne 7.7% + News-KI 12/30: CEO buying signals confidence but lacks classic short-squeeze indicators like high short interest, borrow costs, or cata + SEC Form 4 + UOA Call/Put 21.7×",
       "price": 13.59,
       "chg_pct": 0.0,
       "rvol_4d": 1.96,
@@ -177,8 +177,8 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 0,
-      "ki_sentiment_source": "keyword",
+      "active_triggers": 1,
+      "ki_sentiment_source": "llm",
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 21.7×"
@@ -233,9 +233,9 @@
       "uoa_cp_ratio": 34.58490566037736
     },
     "PDYN": {
-      "score": 8,
+      "score": 15,
       "confidence": 17,
-      "drivers": "News-KI 8/30: Positive business developments and advisory board appointment lack indicators of high short interest, low float, or cata",
+      "drivers": "News: contract",
       "price": 5.86,
       "chg_pct": 0.0,
       "rvol_4d": 0.68,
@@ -246,8 +246,8 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 0,
-      "ki_sentiment_source": "llm",
+      "active_triggers": 1,
+      "ki_sentiment_source": "keyword",
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": null,
@@ -275,20 +275,20 @@
       "uoa_cp_ratio": 1.6666666666666667
     },
     "VNET": {
-      "score": 10,
-      "confidence": 17,
-      "drivers": "UOA Call/Put 11.3×",
+      "score": 55,
+      "confidence": 70,
+      "drivers": "Volumen 3.0× + ⚡ Extremes Volumen 3.0×+ + Spanne 8.8% + UOA Call/Put 11.3×",
       "price": 6.89,
-      "chg_pct": 0.0,
-      "rvol_4d": 0.0,
-      "rvol_20d": null,
+      "chg_pct": -0.0,
+      "rvol_4d": 3.02,
+      "rvol_20d": 2.75,
       "earnings": "in 85 Tagen (19.11.2026)",
       "fda_date": null,
       "upcoming_event": null,
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 0,
+      "active_triggers": 1,
       "ki_sentiment_source": "keyword",
       "uoa_score": 10,
       "uoa_drivers": [
