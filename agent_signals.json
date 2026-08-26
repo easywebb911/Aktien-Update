@@ -1,10 +1,10 @@
 {
-  "updated": "2026-08-26T06:56:25.444147+02:00",
+  "updated": "2026-08-26T07:50:39.457463+02:00",
   "run_info": {
     "tickers_checked": 14,
     "signals_active": 2,
     "alerts_sent": 0,
-    "elapsed_s": 15.6,
+    "elapsed_s": 16.1,
     "market_phase": "Geschlossen"
   },
   "signals": {
@@ -53,13 +53,13 @@
       "uoa_cp_ratio": null
     },
     "ARCT": {
-      "score": 35,
-      "confidence": 33,
-      "drivers": "Spanne 15.0% + SEC 8-K + UOA Call/Put 6.4×",
+      "score": 25,
+      "confidence": 17,
+      "drivers": "SEC 8-K + UOA Call/Put 6.4×",
       "price": 15.44,
-      "chg_pct": -0.0,
-      "rvol_4d": 0.67,
-      "rvol_20d": 2.07,
+      "chg_pct": 0.0,
+      "rvol_4d": 0.0,
+      "rvol_20d": null,
       "earnings": null,
       "fda_date": null,
       "upcoming_event": null,
@@ -206,9 +206,9 @@
       "uoa_cp_ratio": 1.5744350908285334
     },
     "KURA": {
-      "score": 57,
+      "score": 45,
       "confidence": 70,
-      "drivers": "Volumen 2.0× + Spanne 7.7% + News-KI 12/30: CEO buying is bullish but lacks short squeeze indicators like high short interest, low float, or extreme squeeze momentu + SEC Form 4 + UOA Call/Put 21.7×",
+      "drivers": "Volumen 2.0× + Spanne 7.7% + SEC Form 4 + UOA Call/Put 21.7×",
       "price": 13.59,
       "chg_pct": 0.0,
       "rvol_4d": 1.96,
@@ -219,8 +219,8 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 1,
-      "ki_sentiment_source": "llm",
+      "active_triggers": 0,
+      "ki_sentiment_source": "keyword",
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 21.7×"
@@ -252,9 +252,9 @@
       "uoa_cp_ratio": 73.58333333333333
     },
     "PDYN": {
-      "score": 30,
+      "score": 8,
       "confidence": 17,
-      "drivers": "News: partnership, contract",
+      "drivers": "News-KI 8/30: Positive business developments and leadership appointments, but no evidence of high short interest, low float, or condit",
       "price": 5.86,
       "chg_pct": 0.0,
       "rvol_4d": 0.68,
@@ -265,8 +265,8 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 1,
-      "ki_sentiment_source": "keyword",
+      "active_triggers": 0,
+      "ki_sentiment_source": "llm",
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": null,
