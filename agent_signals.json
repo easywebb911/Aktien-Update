@@ -1,10 +1,10 @@
 {
-  "updated": "2026-08-26T13:45:48.317213+02:00",
+  "updated": "2026-08-26T15:16:57.626695+02:00",
   "run_info": {
     "tickers_checked": 14,
-    "signals_active": 1,
+    "signals_active": 0,
     "alerts_sent": 0,
-    "elapsed_s": 33.0,
+    "elapsed_s": 27.9,
     "market_phase": "Pre-Market"
   },
   "signals": {
@@ -76,9 +76,9 @@
       "uoa_cp_ratio": 1.4862518089725036
     },
     "AVXL": {
-      "score": 77,
+      "score": 55,
       "confidence": 70,
-      "drivers": "Volumen 4.6× + ⚡ Extremes Volumen 4.6×+ + Spanne 9.3% + SEC 8-K + UOA Call/Put 47.7×",
+      "drivers": "Volumen 4.6× + ⚡ Extremes Volumen 4.6×+ + Spanne 9.3% + UOA Call/Put 47.7×",
       "price": 3.56,
       "chg_pct": -0.0,
       "rvol_4d": 4.6,
@@ -88,8 +88,8 @@
       "upcoming_event": null,
       "insider_buy": false,
       "stocktwits": null,
-      "combo_mult": 1.1,
-      "active_triggers": 2,
+      "combo_mult": 1.0,
+      "active_triggers": 1,
       "ki_sentiment_source": "keyword",
       "uoa_score": 10,
       "uoa_drivers": [
@@ -99,9 +99,9 @@
       "uoa_cp_ratio": 47.666666666666664
     },
     "BMEA": {
-      "score": 32,
+      "score": 20,
       "confidence": 33,
-      "drivers": "Spanne 14.1% + News-KI 12/30: Positive clinical trial updates lack short-squeeze catalysts; no major stock ownership concentration, short interest dat + UOA Call/Put 5.7×",
+      "drivers": "Spanne 14.1% + UOA Call/Put 5.7×",
       "price": 1.73,
       "chg_pct": 0.0,
       "rvol_4d": 1.3,
@@ -112,8 +112,8 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 1,
-      "ki_sentiment_source": "llm",
+      "active_triggers": 0,
+      "ki_sentiment_source": "keyword",
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 5.7×"
@@ -164,9 +164,9 @@
       "uoa_cp_ratio": 1.5744350908285334
     },
     "KURA": {
-      "score": 45,
+      "score": 57,
       "confidence": 70,
-      "drivers": "Volumen 2.0× + Spanne 7.7% + SEC Form 4 + UOA Call/Put 21.7×",
+      "drivers": "Volumen 2.0× + Spanne 7.7% + News-KI 12/30: CEO buying signals confidence but lacks negative catalysts, high short interest data, or extreme technicals typically ne + SEC Form 4 + UOA Call/Put 21.7×",
       "price": 13.59,
       "chg_pct": 0.0,
       "rvol_4d": 1.96,
@@ -177,8 +177,8 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 0,
-      "ki_sentiment_source": "keyword",
+      "active_triggers": 1,
+      "ki_sentiment_source": "llm",
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 21.7×"
@@ -233,9 +233,9 @@
       "uoa_cp_ratio": 34.58490566037736
     },
     "PDYN": {
-      "score": 15,
+      "score": 30,
       "confidence": 17,
-      "drivers": "News: contract",
+      "drivers": "News: revenue beat, contract",
       "price": 5.86,
       "chg_pct": 0.0,
       "rvol_4d": 0.68,
