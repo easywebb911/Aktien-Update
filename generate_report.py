@@ -540,15 +540,65 @@ _YF_SCREENER_URL = (
 )
 
 
+# Fragmente aus Googles generischer Fehlerseite ("Error 500 (Server Error)
+# !!1500.That's an error.There was an error. Please try again later.That's
+# all we know.") — deep_translator wirft bei Google-Rate-Limit/Überlastung
+# KEINE Exception, sondern liefert diese Seite als vermeintlich erfolgreiche
+# "Übersetzung" zurück (Diagnose 21.08.2026, live über mehrere Tage bei
+# mehreren Tickern beobachtet, intermittierend). Fragment-basiert statt
+# exaktem String-Match, damit ein kleiner Wortlaut-Wechsel bei Google die
+# Erkennung nicht sofort wieder durchrutschen lässt: "!!1" ist Googles
+# hochspezifischer interner Fehlerseiten-Marker (in echtem Fließtext
+# praktisch nie zufällig vorkommend) — reicht allein. Die übrigen Phrasen
+# sind generischer (könnten theoretisch in echten News über einen "server
+# error" vorkommen) — deshalb erst ab ZWEI Treffern zusammen.
+_TRANSLATE_ERROR_STRONG_MARKER = "!!1"
+_TRANSLATE_ERROR_WEAK_MARKERS = (
+    "that's an error",
+    "that's all we know",
+    "server error",
+)
+
+
+def _looks_like_translate_error_page(text: str) -> bool:
+    """True, wenn ``text`` wie Googles generische Fehlerseite aussieht statt
+    wie eine echte Übersetzung (siehe ``_translate()``-Docstring).
+
+    Normalisiert typografische Apostrophe (’/‘ → ') vor dem Marker-Vergleich
+    — die real beobachtete Fehlerseite nutzt „That’s an error" mit
+    typografischem Apostroph; ohne Normalisierung würde der ASCII-Marker
+    ``"that's an error"`` daran vorbeilaufen und nur noch der "!!1"-Marker
+    zöge (macht die Zwei-Marker-Fallback-Kombination wirkungslos)."""
+    if not text:
+        return False
+    low = text.lower().replace("’", "'").replace("‘", "'")
+    if _TRANSLATE_ERROR_STRONG_MARKER in low:
+        return True
+    return sum(marker in low for marker in _TRANSLATE_ERROR_WEAK_MARKERS) >= 2
+
+
 def _translate(text: str) -> str:
-    """Translate text to German via Google Translate (free, no key required)."""
+    """Translate text to German via Google Translate (free, no key required).
+
+    ⚠ deep_translator wirft bei Google-Rate-Limit/Überlastung KEINE Exception
+    — es liefert Googles generische Fehlerseite als vermeintlich erfolgreiche
+    Übersetzung zurück (Diagnose 21.08.2026). Der ``except``-Block unten fängt
+    das NICHT ab, weil kein Fehler geworfen wird. ``_looks_like_translate_
+    error_page()`` prüft die Rückgabe VOR der Verwendung — bei Treffer (oder
+    leerer Rückgabe) wird der unübersetzte Original-Text zurückgegeben:
+    bekannter, nutzbarer Inhalt geht nicht verloren, aber die Fehlerseite
+    darf nie als Übersetzung durchrutschen."""
     if not text or len(text.strip()) < 4:
         return text
     try:
-        return GoogleTranslator(source="auto", target="de").translate(text[:4900])
+        result = GoogleTranslator(source="auto", target="de").translate(text[:4900])
     except Exception as exc:
         log.debug("Translation skipped: %s", exc)
         return text
+    if not result or _looks_like_translate_error_page(result):
+        log.warning("Translation looked like a Google error page — using original text")
+        return text
+    return result
 
 
 def _fetch_yf_screener(screener_id: str, region: str = "US", count: int = 100) -> list[dict]:
