@@ -197,6 +197,15 @@
     "substrate": "none",
     "reason": "no_p249"
   },
+  "BRNX": {
+    "qid": null,
+    "title": null,
+    "resolved_at": "2026-08-27T00:51:25Z",
+    "issuer_verified": false,
+    "company_name_at_resolve": "BrenX Ltd.",
+    "substrate": "none",
+    "reason": "no_p249"
+  },
   "CABA": {
     "qid": null,
     "title": null,
@@ -602,6 +611,15 @@
     "substrate": "none",
     "reason": "no_p249"
   },
+  "KSS": {
+    "qid": "Q967265",
+    "title": "Kohl's",
+    "resolved_at": "2026-08-27T00:51:25Z",
+    "issuer_verified": true,
+    "company_name_at_resolve": "Kohl's Corporation",
+    "substrate": "en",
+    "reason": null
+  },
   "KURA": {
     "qid": "Q30269121",
     "title": null,
@@ -718,6 +736,15 @@
     "company_name_at_resolve": "Novavax, Inc.",
     "substrate": "en",
     "reason": null
+  },
+  "OPTU": {
+    "qid": null,
+    "title": null,
+    "resolved_at": "2026-08-27T00:51:25Z",
+    "issuer_verified": false,
+    "company_name_at_resolve": "Optimum Communications, Inc.",
+    "substrate": "none",
+    "reason": "no_p249"
   },
   "ORIC": {
     "qid": null,
@@ -1051,6 +1078,15 @@
     "company_name_at_resolve": "Wolfspeed, Inc.",
     "substrate": "en",
     "reason": null
+  },
+  "XPOF": {
+    "qid": null,
+    "title": null,
+    "resolved_at": "2026-08-27T00:51:25Z",
+    "issuer_verified": false,
+    "company_name_at_resolve": "Xponential Fitness, Inc.",
+    "substrate": "none",
+    "reason": "no_p249"
   },
   "XRX": {
     "qid": "Q152433",
