@@ -1,11 +1,11 @@
 {
-  "updated": "2026-08-27T01:34:17.213047+02:00",
+  "updated": "2026-08-27T02:53:03.391814+02:00",
   "run_info": {
     "tickers_checked": 13,
     "signals_active": 1,
     "alerts_sent": 0,
-    "elapsed_s": 40.4,
-    "market_phase": "After-Hours"
+    "elapsed_s": 50.1,
+    "market_phase": "Geschlossen"
   },
   "signals": {
     "AMC": {
@@ -72,27 +72,6 @@
       "uoa_drivers": [],
       "uoa_atm_ratio": null,
       "uoa_cp_ratio": null
-    },
-    "INBX": {
-      "score": 10,
-      "confidence": 17,
-      "drivers": "Spanne 9.4%",
-      "price": 125.34,
-      "chg_pct": -0.0,
-      "rvol_4d": 0.83,
-      "rvol_20d": 1.18,
-      "earnings": "in 79 Tagen (13.11.2026)",
-      "fda_date": null,
-      "upcoming_event": null,
-      "insider_buy": false,
-      "stocktwits": null,
-      "combo_mult": 1.0,
-      "active_triggers": 0,
-      "ki_sentiment_source": "keyword",
-      "uoa_score": 0,
-      "uoa_drivers": [],
-      "uoa_atm_ratio": 0.46,
-      "uoa_cp_ratio": 0.48484848484848486
     },
     "IONQ": {
       "score": 10,
@@ -178,10 +157,31 @@
       "uoa_atm_ratio": 0.3170731707317073,
       "uoa_cp_ratio": 1.26
     },
+    "OXM": {
+      "score": 16,
+      "confidence": 33,
+      "drivers": "News-KI 8/30: Routine earnings announcement and negative analyst sentiment show no short squeeze indicators like high short interest,  + Earnings in 8d",
+      "price": 38.77,
+      "chg_pct": 0.0,
+      "rvol_4d": 1.36,
+      "rvol_20d": 1.41,
+      "earnings": "in 8 Tagen (03.09.2026)",
+      "fda_date": null,
+      "upcoming_event": null,
+      "insider_buy": false,
+      "stocktwits": null,
+      "combo_mult": 1.0,
+      "active_triggers": 0,
+      "ki_sentiment_source": "llm",
+      "uoa_score": 0,
+      "uoa_drivers": [],
+      "uoa_atm_ratio": 0.7297297297297297,
+      "uoa_cp_ratio": 0.09120521172638436
+    },
     "PDYN": {
-      "score": 15,
+      "score": 30,
       "confidence": 17,
-      "drivers": "News: contract",
+      "drivers": "News: partnership, contract",
       "price": 5.99,
       "chg_pct": -0.0,
       "rvol_4d": 1.13,
@@ -199,15 +199,15 @@
       "uoa_atm_ratio": 0.3691588785046729,
       "uoa_cp_ratio": 1.4285714285714286
     },
-    "SHOE": {
-      "score": 8,
-      "confidence": 17,
-      "drivers": "Earnings in 8d",
-      "price": 14.41,
-      "chg_pct": -0.0,
-      "rvol_4d": 1.2,
-      "rvol_20d": 1.4,
-      "earnings": "in 8 Tagen (03.09.2026)",
+    "VYX": {
+      "score": 35,
+      "confidence": 70,
+      "drivers": "Volumen 1.7× + Spanne 12.0% + UOA Call/Put 18.4×",
+      "price": 8.88,
+      "chg_pct": 0.0,
+      "rvol_4d": 1.7,
+      "rvol_20d": 1.49,
+      "earnings": "in 71 Tagen (05.11.2026)",
       "fda_date": null,
       "upcoming_event": null,
       "insider_buy": false,
@@ -215,10 +215,12 @@
       "combo_mult": 1.0,
       "active_triggers": 0,
       "ki_sentiment_source": "keyword",
-      "uoa_score": 0,
-      "uoa_drivers": [],
-      "uoa_atm_ratio": 1.8095238095238095,
-      "uoa_cp_ratio": 0.04805013927576602
+      "uoa_score": 10,
+      "uoa_drivers": [
+        "UOA Call/Put 18.4×"
+      ],
+      "uoa_atm_ratio": null,
+      "uoa_cp_ratio": 18.428571428571427
     },
     "WBTN": {
       "score": 35,
