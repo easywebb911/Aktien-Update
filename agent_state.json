@@ -1,5 +1,5 @@
 {
-  "last_run": "2026-08-27T11:50:07.945518+02:00",
+  "last_run": "2026-08-27T19:40:59.482083+02:00",
   "cooldowns": {
     "anomaly_score_jump_XRX": "2026-05-03T18:47:15.315486+02:00",
     "anomaly_uoa_extreme_TDOC": "2026-05-04T13:47:00.365949+02:00",
@@ -110,42 +110,6 @@
     "earnings_immediate_KSS_26.08.2026": "2026-08-27T01:34:17.212514+02:00"
   },
   "push_history": [
-    {
-      "ts": "2026-07-23T16:32:38.747021+02:00",
-      "ticker": "LENZ",
-      "kind": "exit_p2",
-      "severity": "trigger",
-      "trigger": "trend_break",
-      "body": "🔻 Exit-Signale LENZ: trend_break crit",
-      "success": true,
-      "suppressed": false,
-      "suppress_reason": null,
-      "conviction_score": null
-    },
-    {
-      "ts": "2026-07-23T16:32:38.818277+02:00",
-      "ticker": "WOLF",
-      "kind": "exit_p2",
-      "severity": "trigger",
-      "trigger": "trend_break",
-      "body": "🔻 Exit-Signale WOLF: trend_break crit",
-      "success": true,
-      "suppressed": false,
-      "suppress_reason": null,
-      "conviction_score": null
-    },
-    {
-      "ts": "2026-07-24T18:17:10.902606+02:00",
-      "ticker": "LENZ",
-      "kind": "anomaly",
-      "severity": "medium",
-      "trigger": "score_jump",
-      "body": "LENZ 🚀 Setup 71 ↑ (gestern 55) | Earnings in 5 Tagen (29.07.2026) + Spanne 9.1% + News-KI 12/…",
-      "success": true,
-      "suppressed": false,
-      "suppress_reason": null,
-      "conviction_score": 76
-    },
     {
       "ts": "2026-07-24T18:17:11.122985+02:00",
       "ticker": "LENZ",
@@ -1309,21 +1273,58 @@
       "suppressed": false,
       "suppress_reason": null,
       "conviction_score": null
+    },
+    {
+      "ts": "2026-08-27T19:40:55.389627+02:00",
+      "ticker": "LDI",
+      "kind": "anomaly",
+      "severity": "medium",
+      "trigger": "gap_combo",
+      "body": "LDI 💥 Gap +5.4% Strong Hold + RVOL 3.1× | Setup 56",
+      "success": false,
+      "suppressed": true,
+      "suppress_reason": "conviction_below_threshold",
+      "conviction_score": 58
+    },
+    {
+      "ts": "2026-08-27T19:40:59.691206+02:00",
+      "ticker": "WOLF",
+      "kind": "exit_p2",
+      "severity": "trigger",
+      "trigger": "profit_lock,trend_break",
+      "body": "🔻 Exit-Signale WOLF: profit_lock, trend_break crit · Warnung pressure 74/100",
+      "success": true,
+      "suppressed": false,
+      "suppress_reason": null,
+      "conviction_score": null
+    },
+    {
+      "ts": "2026-08-27T19:40:59.892393+02:00",
+      "ticker": "KSS",
+      "kind": "exit_p2",
+      "severity": "trigger",
+      "trigger": "trend_break",
+      "body": "🔻 Exit-Signale KSS: trend_break crit",
+      "success": true,
+      "suppressed": false,
+      "suppress_reason": null,
+      "conviction_score": null
     }
   ],
   "prev_conviction_scores": {
-    "KSS": 88.0,
-    "WBTN": 72.0,
-    "VYX": 75.0,
-    "OXM": 67.0,
-    "LENZ": 66.0,
-    "XPOF": 59.0,
-    "WOLF": 58.0,
-    "BRNX": 43.0,
-    "ARCT": 57.0,
-    "OPTU": 63.0,
-    "PDYN": 46.0,
-    "IONQ": 13.0,
+    "METC": 63.0,
+    "BIRD": 55.0,
+    "BKKT": 60.0,
+    "AI": 67.0,
+    "DMRC": 72.0,
+    "LDI": 58.0,
+    "WOLF": 42.0,
+    "ABSI": 69.0,
+    "ARCT": 54.0,
+    "IMRX": 68.0,
+    "KSS": 59.0,
+    "PDYN": 45.0,
+    "IONQ": 17.0,
     "AMC": 11.0
   },
   "exit_cooldowns": {
@@ -1365,18 +1366,17 @@
     "IONQ": {
       "last_active": [
         "__warning__",
-        "profit_lock",
-        "trend_break"
+        "profit_lock"
       ],
       "last_push_date": "2026-08-26",
       "esc_alerted": false,
-      "updated": "2026-08-27T11:50:07.945596+02:00"
+      "updated": "2026-08-27T19:40:59.482183+02:00"
     },
     "PDYN": {
       "last_active": [],
       "last_push_date": "2026-08-24",
       "esc_alerted": false,
-      "updated": "2026-08-27T11:50:07.945609+02:00"
+      "updated": "2026-08-27T19:40:59.482200+02:00"
     },
     "AI": {
       "last_active": [],
@@ -1394,11 +1394,13 @@
     },
     "WOLF": {
       "last_active": [
+        "__warning__",
+        "profit_lock",
         "trend_break"
       ],
-      "last_push_date": "2026-08-24",
+      "last_push_date": "2026-08-27",
       "esc_alerted": false,
-      "updated": "2026-08-27T11:50:07.945635+02:00"
+      "updated": "2026-08-27T19:40:59.691247+02:00"
     },
     "ARCT": {
       "last_active": [
@@ -1416,11 +1418,11 @@
     },
     "KSS": {
       "last_active": [
-        "catalyst"
+        "trend_break"
       ],
-      "last_push_date": "2026-08-26",
+      "last_push_date": "2026-08-27",
       "esc_alerted": false,
-      "updated": "2026-08-27T11:50:07.945645+02:00"
+      "updated": "2026-08-27T19:40:59.892426+02:00"
     }
   }
 }
