@@ -1,5 +1,5 @@
 {
-  "last_run": "2026-08-28T07:25:26.301609+02:00",
+  "last_run": "2026-08-28T07:29:40.623778+02:00",
   "cooldowns": {
     "anomaly_score_jump_XRX": "2026-05-03T18:47:15.315486+02:00",
     "anomaly_uoa_extreme_TDOC": "2026-05-04T13:47:00.365949+02:00",
@@ -110,18 +110,6 @@
     "earnings_immediate_KSS_26.08.2026": "2026-08-27T01:34:17.212514+02:00"
   },
   "push_history": [
-    {
-      "ts": "2026-07-24T18:17:12.396696+02:00",
-      "ticker": "AI",
-      "kind": "exit_p2",
-      "severity": "escalation",
-      "trigger": "profit_lock",
-      "body": "🚨 Exit-Eskalation AI: pressure 62→83/100 · Trigger: profit_lock",
-      "success": true,
-      "suppressed": false,
-      "suppress_reason": null,
-      "conviction_score": null
-    },
     {
       "ts": "2026-07-24T23:28:51.171411+02:00",
       "ticker": "WRLD",
@@ -1309,23 +1297,34 @@
       "suppressed": true,
       "suppress_reason": "conviction_below_threshold",
       "conviction_score": 58
+    },
+    {
+      "ts": "2026-08-28T07:29:40.889743+02:00",
+      "ticker": "KSS",
+      "kind": "exit_p2",
+      "severity": "trigger",
+      "trigger": "profit_lock",
+      "body": "🔻 Exit-Signale KSS: profit_lock crit · Warnung pressure 62/100",
+      "success": true,
+      "suppressed": false,
+      "suppress_reason": null,
+      "conviction_score": null
     }
   ],
   "prev_conviction_scores": {
-    "METC": 63.0,
-    "BIRD": 55.0,
-    "BKKT": 60.0,
-    "AI": 67.0,
-    "DMRC": 72.0,
-    "LDI": 58.0,
+    "BIRD": 54.0,
+    "METC": 50.0,
+    "AI": 54.0,
+    "CABA": 58.0,
+    "NNE": 44.0,
+    "INDI": 51.0,
+    "DMRC": 57.0,
+    "KSS": 50.0,
     "WOLF": 42.0,
-    "ABSI": 69.0,
-    "ARCT": 54.0,
-    "IMRX": 68.0,
-    "KSS": 59.0,
-    "PDYN": 45.0,
-    "IONQ": 17.0,
-    "AMC": 11.0
+    "BBAI": 40.0,
+    "PDYN": 46.0,
+    "IONQ": 18.0,
+    "AMC": 13.0
   },
   "exit_cooldowns": {
     "exitp2_warning_AMC": "2026-05-18T14:48:43.872687+02:00",
@@ -1370,13 +1369,13 @@
       ],
       "last_push_date": "2026-08-26",
       "esc_alerted": false,
-      "updated": "2026-08-28T07:25:26.301698+02:00"
+      "updated": "2026-08-28T07:29:40.623869+02:00"
     },
     "PDYN": {
       "last_active": [],
       "last_push_date": "2026-08-24",
       "esc_alerted": false,
-      "updated": "2026-08-28T07:25:26.301713+02:00"
+      "updated": "2026-08-28T07:29:40.623885+02:00"
     },
     "AI": {
       "last_active": [],
@@ -1400,7 +1399,7 @@
       ],
       "last_push_date": "2026-08-27",
       "esc_alerted": false,
-      "updated": "2026-08-28T07:25:26.301729+02:00"
+      "updated": "2026-08-28T07:29:40.623901+02:00"
     },
     "ARCT": {
       "last_active": [
@@ -1418,11 +1417,12 @@
     },
     "KSS": {
       "last_active": [
-        "trend_break"
+        "__warning__",
+        "profit_lock"
       ],
-      "last_push_date": "2026-08-27",
+      "last_push_date": "2026-08-28",
       "esc_alerted": false,
-      "updated": "2026-08-28T07:25:26.301741+02:00"
+      "updated": "2026-08-28T07:29:40.889784+02:00"
     }
   }
 }
