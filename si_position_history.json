@@ -966,6 +966,12 @@
       "shares_short": 69815403,
       "short_pct_float": 33.35,
       "pub_date": "2026-08-11"
+    },
+    {
+      "settlement_date": "2026-08-14",
+      "shares_short": 67892591,
+      "short_pct_float": 32.43,
+      "pub_date": "2026-08-25"
     }
   ],
   "FDMT": [
@@ -1077,6 +1083,12 @@
       "shares_short": 2508755,
       "short_pct_float": 17.66,
       "pub_date": "2026-07-24"
+    },
+    {
+      "settlement_date": "2026-08-14",
+      "shares_short": 2846171,
+      "short_pct_float": 19.97,
+      "pub_date": "2026-08-25"
     }
   ],
   "MNRO": [
@@ -2751,6 +2763,12 @@
       "shares_short": 51938259,
       "short_pct_float": 26.74,
       "pub_date": "2026-08-11"
+    },
+    {
+      "settlement_date": "2026-08-14",
+      "shares_short": 50972774,
+      "short_pct_float": 26.24,
+      "pub_date": "2026-08-25"
     }
   ],
   "CAPR": [
@@ -4965,6 +4983,12 @@
       "shares_short": 39874250,
       "short_pct_float": 26.47,
       "pub_date": "2026-08-11"
+    },
+    {
+      "settlement_date": "2026-08-14",
+      "shares_short": 40197938,
+      "short_pct_float": 26.68,
+      "pub_date": "2026-08-25"
     }
   ],
   "SOHU": [

@@ -211,6 +211,11 @@
       "date": "2026-08-11",
       "inst_ownership": 0.33655998,
       "insider_ownership": 0.60745996
+    },
+    {
+      "date": "2026-08-28",
+      "inst_ownership": 0.35017,
+      "insider_ownership": 0.60745996
     }
   ],
   "WOLF": [
@@ -873,6 +878,11 @@
       "date": "2026-08-19",
       "inst_ownership": 0.8865,
       "insider_ownership": 0.12455
+    },
+    {
+      "date": "2026-08-28",
+      "inst_ownership": 0.88642997,
+      "insider_ownership": 0.12455
     }
   ],
   "INDI": [
@@ -895,6 +905,11 @@
       "date": "2026-08-21",
       "inst_ownership": 1.13236,
       "insider_ownership": 0.01061
+    },
+    {
+      "date": "2026-08-28",
+      "inst_ownership": 1.13262,
+      "insider_ownership": 0.0103400005
     }
   ],
   "METC": [
@@ -1785,6 +1800,11 @@
     {
       "date": "2026-08-17",
       "inst_ownership": 0.77664,
+      "insider_ownership": 0.00416
+    },
+    {
+      "date": "2026-08-28",
+      "inst_ownership": 0.77668,
       "insider_ownership": 0.00416
     }
   ],
