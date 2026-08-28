@@ -1495,6 +1495,30 @@ return_10d-basierten Auswertungen. Vor dem Bau: prüfen, ob die
 `config.US_MARKET_HOLIDAYS`-Menge (heute nur bis 2027 hartkodiert, §6b) den
 Zähl-Zeitraum abdeckt. Kein Trading-Wert, Genauigkeits-Hygiene.
 
+### 6n. ≥90-Score-Bucket-Persistenz seit 29.06.2026 (Beobachtungspunkt, 29.08.2026)
+**Status: OFFEN. Kein Auftrag, kein Termin — reiner Beobachtungspunkt für die
+künftige Hypothesen-Runde, NICHT vorregistriert.** Setup-Score ≥90 ist seit
+W27 (29.06.) durchgehend selten (0–5 % der Top-10-Einträge pro Woche),
+gegenüber 0–12,5 % in den ersten Live-Wochen (29.05.–26.06.) — keine Erholung
+bis heute. Der breitere ≥70/≥80-Bereich hat sich dagegen seit Ende Juli (W31)
+erholt und liegt aktuell auf/über Anfangsniveau — das ist **kein** allgemeiner
+Score-Rückgang, sondern eng auf die absolute Spitze begrenzt.
+
+**Ausgangshypothese (unbewiesen, nicht vorregistriert):** zeitliche Koinzidenz
+mit dem `market_regime`-Feld (aus `_market_regime_from_spy()`, reine Logging-
+Persistenz ohne Score-Rückkanal laut Code), das exakt ab W29 (13.07., mit
+Verzug zum Score-Einbruch) von `"bull"` auf `"neutral"` kippt und dort bleibt.
+`score_timing` (Momentum-/RS-vs-SPY-Komponenten) fällt parallel von ~15–21 auf
+~10–14, erholt sich dann zeitgleich mit der ≥70/80-Erholung. Kausalität nicht
+belegt, nur Koinzidenz zweier eigenständig berechneter Felder. Für spätere,
+sauber vorregistrierte Prüfung vormerken, nicht vorab als Erkenntnis behandeln.
+
+**Ausgeschlossen als Erklärung (bereits geprüft):** `score_normalization_version`
+(konstant), `combo_bonus`/`score_trend_bonus`/`agent_boost_factor`/
+`perfect_storm_mult`/`finra_bonus` (keine Abwärtstendenz), `pool_size` (keine
+Verengung). K.o.-Filter-Schwellen (`config.py`) wurden **nicht** auf
+Änderungshistorie geprüft — offene Lücke.
+
 ---
 
 ## 7) ARCHITEKTUR-ANKER
