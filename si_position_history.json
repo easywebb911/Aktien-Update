@@ -105,6 +105,12 @@
       "shares_short": 29294656,
       "short_pct_float": 29.59,
       "pub_date": "2026-08-11"
+    },
+    {
+      "settlement_date": "2026-08-14",
+      "shares_short": 28066667,
+      "short_pct_float": 28.35,
+      "pub_date": "2026-08-25"
     }
   ],
   "LOVE": [
@@ -153,6 +159,12 @@
       "shares_short": 5253764,
       "short_pct_float": 38.91,
       "pub_date": "2026-08-11"
+    },
+    {
+      "settlement_date": "2026-08-14",
+      "shares_short": 5109187,
+      "short_pct_float": 37.84,
+      "pub_date": "2026-08-25"
     }
   ],
   "ABEO": [
@@ -207,6 +219,12 @@
       "shares_short": 6835906,
       "short_pct_float": 22.97,
       "pub_date": "2026-08-11"
+    },
+    {
+      "settlement_date": "2026-08-14",
+      "shares_short": 7063418,
+      "short_pct_float": 23.74,
+      "pub_date": "2026-08-25"
     }
   ],
   "JACK": [
@@ -234,6 +252,12 @@
       "shares_short": 6757448,
       "short_pct_float": 35.98,
       "pub_date": "2026-08-11"
+    },
+    {
+      "settlement_date": "2026-08-14",
+      "shares_short": 6092087,
+      "short_pct_float": 32.26,
+      "pub_date": "2026-08-25"
     }
   ],
   "PAR": [
@@ -411,6 +435,12 @@
       "shares_short": 2850760,
       "short_pct_float": 26.44,
       "pub_date": "2026-07-24"
+    },
+    {
+      "settlement_date": "2026-08-14",
+      "shares_short": 2975110,
+      "short_pct_float": 27.59,
+      "pub_date": "2026-08-25"
     }
   ],
   "CNXC": [
@@ -492,6 +522,12 @@
       "shares_short": 8541676,
       "short_pct_float": 17.65,
       "pub_date": "2026-08-11"
+    },
+    {
+      "settlement_date": "2026-08-14",
+      "shares_short": 8712564,
+      "short_pct_float": 18.01,
+      "pub_date": "2026-08-25"
     }
   ],
   "WTI": [
@@ -1539,6 +1575,12 @@
       "shares_short": 19297605,
       "short_pct_float": 22.75,
       "pub_date": "2026-08-11"
+    },
+    {
+      "settlement_date": "2026-08-14",
+      "shares_short": 18487998,
+      "short_pct_float": 21.8,
+      "pub_date": "2026-08-25"
     }
   ],
   "CABO": [
@@ -1821,6 +1863,12 @@
       "shares_short": 9796635,
       "short_pct_float": 36.13,
       "pub_date": "2026-08-11"
+    },
+    {
+      "settlement_date": "2026-08-14",
+      "shares_short": 8408218,
+      "short_pct_float": 31.01,
+      "pub_date": "2026-08-25"
     }
   ],
   "AMCX": [
@@ -2421,6 +2469,12 @@
       "shares_short": 23148167,
       "short_pct_float": 25.58,
       "pub_date": "2026-08-11"
+    },
+    {
+      "settlement_date": "2026-08-14",
+      "shares_short": 22180637,
+      "short_pct_float": 24.51,
+      "pub_date": "2026-08-25"
     }
   ],
   "AEBI": [
@@ -2496,6 +2550,12 @@
       "shares_short": 58820073,
       "short_pct_float": 43.25,
       "pub_date": "2026-08-11"
+    },
+    {
+      "settlement_date": "2026-08-14",
+      "shares_short": 51057370,
+      "short_pct_float": 37.54,
+      "pub_date": "2026-08-25"
     }
   ],
   "YSWY": [
@@ -3468,6 +3528,12 @@
       "shares_short": 103219503,
       "short_pct_float": 59.75,
       "pub_date": "2026-08-11"
+    },
+    {
+      "settlement_date": "2026-08-14",
+      "shares_short": 110061505,
+      "short_pct_float": 63.71,
+      "pub_date": "2026-08-25"
     }
   ],
   "CLB": [
@@ -5523,6 +5589,12 @@
       "shares_short": 11010959,
       "short_pct_float": 25.69,
       "pub_date": "2026-08-11"
+    },
+    {
+      "settlement_date": "2026-08-14",
+      "shares_short": 11898593,
+      "short_pct_float": 27.66,
+      "pub_date": "2026-08-25"
     }
   ],
   "VIVK": [
@@ -5828,6 +5900,36 @@
       "settlement_date": "2026-08-14",
       "shares_short": 4458318,
       "short_pct_float": 15.02,
+      "pub_date": "2026-08-25"
+    }
+  ],
+  "LUCK": [
+    {
+      "settlement_date": "2026-07-15",
+      "shares_short": 2007178,
+      "short_pct_float": null,
+      "pub_date": "2026-07-24",
+      "seeded": true
+    },
+    {
+      "settlement_date": "2026-08-14",
+      "shares_short": 1965110,
+      "short_pct_float": 27.65,
+      "pub_date": "2026-08-25"
+    }
+  ],
+  "AKAN": [
+    {
+      "settlement_date": "2026-07-15",
+      "shares_short": 6244,
+      "short_pct_float": null,
+      "pub_date": "2026-07-24",
+      "seeded": true
+    },
+    {
+      "settlement_date": "2026-08-14",
+      "shares_short": 264158,
+      "short_pct_float": 49.13,
       "pub_date": "2026-08-25"
     }
   ]
