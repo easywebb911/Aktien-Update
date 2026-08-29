@@ -1,7 +1,3 @@
-{"run_ts": "2026-07-30T03:29:56Z", "run_phase": "ki_agent_tick", "schema_v": 1, "state_fails": [], "provider_fails": []}
-{"run_ts": "2026-07-30T06:42:01Z", "run_phase": "ki_agent_tick", "schema_v": 1, "state_fails": [], "provider_fails": []}
-{"run_ts": "2026-07-30T08:50:51Z", "run_phase": "premarket", "schema_v": 1, "state_fails": [], "provider_fails": []}
-{"run_ts": "2026-07-30T08:51:46Z", "run_phase": "ki_agent_tick", "schema_v": 1, "state_fails": [], "provider_fails": []}
 {"run_ts": "2026-07-30T09:42:20Z", "run_phase": "ki_agent_tick", "schema_v": 1, "state_fails": [], "provider_fails": []}
 {"run_ts": "2026-07-30T12:04:54Z", "run_phase": "ki_agent_tick", "schema_v": 1, "state_fails": [], "provider_fails": []}
 {"run_ts": "2026-07-30T14:32:50Z", "run_phase": "ki_agent_tick", "schema_v": 1, "state_fails": [], "provider_fails": []}
@@ -602,3 +598,4 @@
 {"run_ts": "2026-08-29T02:12:24Z", "run_phase": "ki_agent_tick", "schema_v": 1, "state_fails": [], "provider_fails": []}
 {"run_ts": "2026-08-29T03:12:28Z", "run_phase": "postclose", "schema_v": 1, "state_fails": [], "provider_fails": []}
 {"run_ts": "2026-08-29T03:13:31Z", "run_phase": "ki_agent_tick", "schema_v": 1, "state_fails": [], "provider_fails": []}
+{"run_ts": "2026-08-29T09:04:19Z", "run_phase": "ki_agent_tick", "schema_v": 1, "state_fails": [], "provider_fails": []}
