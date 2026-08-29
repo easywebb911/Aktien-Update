@@ -1,17 +1,17 @@
 {
-  "updated": "2026-08-29T11:04:19.147060+02:00",
+  "updated": "2026-08-29T16:29:33.339732+02:00",
   "run_info": {
     "tickers_checked": 15,
-    "signals_active": 4,
+    "signals_active": 3,
     "alerts_sent": 0,
-    "elapsed_s": 38.3,
+    "elapsed_s": 20.5,
     "market_phase": "Geschlossen"
   },
   "signals": {
     "AI": {
-      "score": 55,
+      "score": 66,
       "confidence": 70,
-      "drivers": "Earnings in 4 Tagen (02.09.2026) + Spanne 5.5% + News: short interest + Earnings in 4d + UOA Call/Put 162.2×",
+      "drivers": "Earnings in 4 Tagen (02.09.2026) + Spanne 5.5% + News: short interest + Earnings in 4d + SEC Form 4 + UOA Call/Put 162.2×",
       "price": 10.53,
       "chg_pct": 1.94,
       "rvol_4d": 1.2,
@@ -99,9 +99,9 @@
       "uoa_cp_ratio": null
     },
     "GO": {
-      "score": 55,
+      "score": 35,
       "confidence": 70,
-      "drivers": "Kurs +4.0% + Spanne 6.2% + News: catalyst + SEC Form 4",
+      "drivers": "Kurs +4.0% + Spanne 6.2% + SEC Form 4",
       "price": 12.17,
       "chg_pct": 4.02,
       "rvol_4d": 1.42,
@@ -111,8 +111,8 @@
       "upcoming_event": null,
       "insider_buy": false,
       "stocktwits": null,
-      "combo_mult": 1.1,
-      "active_triggers": 2,
+      "combo_mult": 1.0,
+      "active_triggers": 1,
       "ki_sentiment_source": "keyword",
       "uoa_score": 0,
       "uoa_drivers": [],
@@ -122,7 +122,7 @@
     "GRPN": {
       "score": 55,
       "confidence": 33,
-      "drivers": "News: short squeeze, short interest + FINRA Short-Vol 68% + UOA Call/Put 4.8×",
+      "drivers": "News: squeeze, short squeeze + FINRA Short-Vol 68% + UOA Call/Put 4.8×",
       "price": 19.53,
       "chg_pct": 0.31,
       "rvol_4d": 0.81,
@@ -185,9 +185,9 @@
       "uoa_cp_ratio": 1.627318718381113
     },
     "LENZ": {
-      "score": 30,
+      "score": 44,
       "confidence": 33,
-      "drivers": "Kurs +6.2% + News-KI 5/30: Analyst target cuts and fair value moves lower indicate weakening momentum with no significant short squeeze catalysts p",
+      "drivers": "Kurs +6.2% + News: short interest",
       "price": 5.11,
       "chg_pct": 6.24,
       "rvol_4d": 0.85,
@@ -197,18 +197,18 @@
       "upcoming_event": null,
       "insider_buy": false,
       "stocktwits": null,
-      "combo_mult": 1.0,
-      "active_triggers": 1,
-      "ki_sentiment_source": "llm",
+      "combo_mult": 1.1,
+      "active_triggers": 2,
+      "ki_sentiment_source": "keyword",
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": 0.3706896551724138,
       "uoa_cp_ratio": 0.6717557251908397
     },
     "LUCK": {
-      "score": 94,
-      "confidence": 83,
-      "drivers": "Kurs +3.5% + Volumen 9.8× + 🚀 Massives Volumen 9.8×+ + Spanne 17.5% + News-KI 5/30: Earnings-fokussierte Headlines ohne Hinweise auf Short-Interest, Volatilität oder Squeeze-Potenzial. + FINRA Short-Vol 51%",
+      "score": 88,
+      "confidence": 70,
+      "drivers": "Kurs +3.5% + Volumen 9.8× + 🚀 Massives Volumen 9.8×+ + Spanne 17.5% + FINRA Short-Vol 51%",
       "price": 6.48,
       "chg_pct": 3.51,
       "rvol_4d": 9.79,
@@ -220,16 +220,16 @@
       "stocktwits": null,
       "combo_mult": 1.1,
       "active_triggers": 2,
-      "ki_sentiment_source": "llm",
+      "ki_sentiment_source": "keyword",
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": null,
       "uoa_cp_ratio": 0.40625
     },
     "MNRO": {
-      "score": 82,
+      "score": 65,
       "confidence": 70,
-      "drivers": "Kurs +5.8% + News: buyout + FINRA Short-Vol 75% + UOA Call/Put 3.2×",
+      "drivers": "Kurs +5.8% + News-KI 5/30: Negative analyst sentiment, dividend declaration suggests stable business rather than distressed situation needed for sq + FINRA Short-Vol 75% + UOA Call/Put 3.1×",
       "price": 12.96,
       "chg_pct": 5.8,
       "rvol_4d": 0.5,
@@ -239,15 +239,15 @@
       "upcoming_event": null,
       "insider_buy": false,
       "stocktwits": null,
-      "combo_mult": 1.1,
-      "active_triggers": 2,
-      "ki_sentiment_source": "keyword",
+      "combo_mult": 1.0,
+      "active_triggers": 1,
+      "ki_sentiment_source": "llm",
       "uoa_score": 10,
       "uoa_drivers": [
-        "UOA Call/Put 3.2×"
+        "UOA Call/Put 3.1×"
       ],
       "uoa_atm_ratio": 0.20353982300884957,
-      "uoa_cp_ratio": 3.206896551724138
+      "uoa_cp_ratio": 3.1
     },
     "PDYN": {
       "score": 28,
@@ -273,9 +273,9 @@
       "uoa_cp_ratio": 4.45
     },
     "WEN": {
-      "score": 98,
+      "score": 100,
       "confidence": 70,
-      "drivers": "Kurs +5.8% + Volumen 4.0× + ⚡ Extremes Volumen 4.0×+ + News-KI 12/30: Modest short interest interest and positive price action, but negative litigation news and lack of significant short squ + UOA Call/Put 2.6× + 3/4 Trigger",
+      "drivers": "Kurs +5.8% + Volumen 4.0× + ⚡ Extremes Volumen 4.0×+ + News-KI 12/30: Moderate negative news (lawsuit, price decline) mixed with minor squeeze mention, but no significant short interest data + SEC Form 4 + UOA Call/Put 2.6× + 3/4 Trigger",
       "price": 8.27,
       "chg_pct": 5.75,
       "rvol_4d": 3.99,
@@ -319,9 +319,9 @@
       "uoa_cp_ratio": 2.336719883889695
     },
     "XRX": {
-      "score": 44,
+      "score": 25,
       "confidence": 33,
-      "drivers": "Kurs +3.0% + News: short interest + UOA Call/Put 2.9×",
+      "drivers": "Kurs +3.0% + UOA Call/Put 2.9×",
       "price": 3.06,
       "chg_pct": 3.03,
       "rvol_4d": 0.98,
@@ -331,8 +331,8 @@
       "upcoming_event": null,
       "insider_buy": false,
       "stocktwits": null,
-      "combo_mult": 1.1,
-      "active_triggers": 2,
+      "combo_mult": 1.0,
+      "active_triggers": 1,
       "ki_sentiment_source": "keyword",
       "uoa_score": 10,
       "uoa_drivers": [
