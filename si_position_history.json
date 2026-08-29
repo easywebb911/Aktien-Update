@@ -927,6 +927,12 @@
       "shares_short": 13729826,
       "short_pct_float": 55.15,
       "pub_date": "2026-08-11"
+    },
+    {
+      "settlement_date": "2026-08-14",
+      "shares_short": 12680074,
+      "short_pct_float": 50.71,
+      "pub_date": "2026-08-25"
     }
   ],
   "NTLA": [
@@ -3153,6 +3159,12 @@
       "shares_short": 3920330,
       "short_pct_float": 17.75,
       "pub_date": "2026-08-11"
+    },
+    {
+      "settlement_date": "2026-08-14",
+      "shares_short": 4373708,
+      "short_pct_float": 19.8,
+      "pub_date": "2026-08-25"
     }
   ],
   "PGEN": [
@@ -5748,6 +5760,12 @@
       "shares_short": 5542609,
       "short_pct_float": 19.99,
       "pub_date": "2026-08-11"
+    },
+    {
+      "settlement_date": "2026-08-14",
+      "shares_short": 5121829,
+      "short_pct_float": 18.47,
+      "pub_date": "2026-08-25"
     }
   ],
   "DFNS": [
@@ -5930,6 +5948,21 @@
       "settlement_date": "2026-08-14",
       "shares_short": 264158,
       "short_pct_float": 49.13,
+      "pub_date": "2026-08-25"
+    }
+  ],
+  "FRGT": [
+    {
+      "settlement_date": "2026-07-15",
+      "shares_short": 39339,
+      "short_pct_float": null,
+      "pub_date": "2026-07-24",
+      "seeded": true
+    },
+    {
+      "settlement_date": "2026-08-14",
+      "shares_short": 191486,
+      "short_pct_float": 34.14,
       "pub_date": "2026-08-25"
     }
   ]

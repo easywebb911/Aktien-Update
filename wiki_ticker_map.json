@@ -152,6 +152,15 @@
     "substrate": "none",
     "reason": "no_p249"
   },
+  "BBW": {
+    "qid": "Q1002992",
+    "title": "Build-A-Bear_Workshop",
+    "resolved_at": "2026-08-29T03:12:10Z",
+    "issuer_verified": true,
+    "company_name_at_resolve": "Build-A-Bear Workshop, Inc.",
+    "substrate": "en",
+    "reason": null
+  },
   "BJDX": {
     "qid": null,
     "title": null,
@@ -655,6 +664,15 @@
     "company_name_at_resolve": "LGI Homes, Inc.",
     "substrate": "en",
     "reason": null
+  },
+  "LUCK": {
+    "qid": null,
+    "title": null,
+    "resolved_at": "2026-08-29T03:12:10Z",
+    "issuer_verified": false,
+    "company_name_at_resolve": "Lucky Strike Entertainment Corporation",
+    "substrate": "none",
+    "reason": "no_p249"
   },
   "METC": {
     "qid": null,
