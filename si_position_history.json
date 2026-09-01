@@ -669,6 +669,12 @@
       "shares_short": 4209311,
       "short_pct_float": 15.01,
       "pub_date": "2026-07-24"
+    },
+    {
+      "settlement_date": "2026-08-14",
+      "shares_short": 4286553,
+      "short_pct_float": 15.29,
+      "pub_date": "2026-08-25"
     }
   ],
   "DNUT": [
@@ -4317,6 +4323,12 @@
       "shares_short": 4272525,
       "short_pct_float": 27.94,
       "pub_date": "2026-08-11"
+    },
+    {
+      "settlement_date": "2026-08-14",
+      "shares_short": 4378949,
+      "short_pct_float": 28.63,
+      "pub_date": "2026-08-25"
     }
   ],
   "MPLT": [

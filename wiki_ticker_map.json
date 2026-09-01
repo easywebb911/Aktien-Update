@@ -8,6 +8,15 @@
     "substrate": "none",
     "reason": "no_p249"
   },
+  "ABSI": {
+    "qid": null,
+    "title": null,
+    "resolved_at": "2026-09-01T00:40:04Z",
+    "issuer_verified": false,
+    "company_name_at_resolve": "Absci Corporation",
+    "substrate": "none",
+    "reason": "no_p249"
+  },
   "ABUS": {
     "qid": "Q17747021",
     "title": "Arbutus_Biopharma",
