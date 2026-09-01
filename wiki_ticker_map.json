@@ -287,6 +287,15 @@
     "substrate": "none",
     "reason": "no_p249"
   },
+  "CNXC": {
+    "qid": null,
+    "title": null,
+    "resolved_at": "2026-09-01T23:22:00Z",
+    "issuer_verified": false,
+    "company_name_at_resolve": "Concentrix Corporation",
+    "substrate": "none",
+    "reason": "no_p249"
+  },
   "COLL": {
     "qid": null,
     "title": null,
@@ -313,6 +322,15 @@
     "company_name_at_resolve": "Canadian Solar Inc.",
     "substrate": "en",
     "reason": null
+  },
+  "CTMX": {
+    "qid": null,
+    "title": null,
+    "resolved_at": "2026-09-01T23:22:00Z",
+    "issuer_verified": false,
+    "company_name_at_resolve": "CytomX Therapeutics, Inc.",
+    "substrate": "none",
+    "reason": "no_p249"
   },
   "DBI": {
     "qid": null,
@@ -376,6 +394,15 @@
     "company_name_at_resolve": "Editas Medicine, Inc.",
     "substrate": "en",
     "reason": null
+  },
+  "EMPD": {
+    "qid": null,
+    "title": null,
+    "resolved_at": "2026-09-01T23:22:00Z",
+    "issuer_verified": false,
+    "company_name_at_resolve": "Empery Digital Inc.",
+    "substrate": "none",
+    "reason": "no_p249"
   },
   "ENVX": {
     "qid": "Q124624329",
@@ -491,6 +518,15 @@
     "resolved_at": "2026-08-13T22:06:25Z",
     "issuer_verified": true,
     "company_name_at_resolve": "Grocery Outlet Holding Corp.",
+    "substrate": "en",
+    "reason": null
+  },
+  "GPRO": {
+    "qid": "Q733482",
+    "title": "GoPro",
+    "resolved_at": "2026-09-01T23:22:00Z",
+    "issuer_verified": true,
+    "company_name_at_resolve": "GoPro, Inc.",
     "substrate": "en",
     "reason": null
   },
