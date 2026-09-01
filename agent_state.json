@@ -1,5 +1,5 @@
 {
-  "last_run": "2026-09-01T16:54:19.051548+02:00",
+  "last_run": "2026-09-01T20:02:10.858422+02:00",
   "cooldowns": {
     "anomaly_score_jump_XRX": "2026-05-03T18:47:15.315486+02:00",
     "anomaly_uoa_extreme_TDOC": "2026-05-04T13:47:00.365949+02:00",
@@ -107,45 +107,10 @@
     "anomaly_conviction_high_IMRX": "2026-08-13T09:55:02.851103+02:00",
     "earnings_immediate_NMAX_13.08.2026": "2026-08-14T00:08:09.315464+02:00",
     "earnings_immediate_WOLF_19.08.2026": "2026-08-19T22:46:09.270014+02:00",
-    "earnings_immediate_KSS_26.08.2026": "2026-08-27T01:34:17.212514+02:00"
+    "earnings_immediate_KSS_26.08.2026": "2026-08-27T01:34:17.212514+02:00",
+    "anomaly_conviction_high_NVAX": "2026-09-01T20:02:08.062837+02:00"
   },
   "push_history": [
-    {
-      "ts": "2026-07-27T06:02:35.169953+02:00",
-      "ticker": "LENZ",
-      "kind": "exit_p2",
-      "severity": "trigger",
-      "trigger": "trend_break",
-      "body": "🔻 Exit-Signale LENZ: trend_break crit",
-      "success": true,
-      "suppressed": false,
-      "suppress_reason": null,
-      "conviction_score": null
-    },
-    {
-      "ts": "2026-07-27T12:11:25.695601+02:00",
-      "ticker": "LENZ",
-      "kind": "anomaly",
-      "severity": "high",
-      "trigger": "conviction_high",
-      "body": "LENZ 🎯 KAUFSIGNAL — Conviction 75/100 (high) (vorher 57) | Conviction hoch — Setup, Earliness und Timing konvergieren. Aggregations-Anzeige…",
-      "success": true,
-      "suppressed": false,
-      "suppress_reason": null,
-      "conviction_score": 75
-    },
-    {
-      "ts": "2026-07-27T18:03:11.886670+02:00",
-      "ticker": "IONQ",
-      "kind": "exit_p2",
-      "severity": "trigger",
-      "trigger": "profit_lock,trend_break",
-      "body": "🔻 Exit-Signale IONQ: profit_lock, trend_break crit · Warnung pressure 62/100",
-      "success": true,
-      "suppressed": false,
-      "suppress_reason": null,
-      "conviction_score": null
-    },
     {
       "ts": "2026-07-28T22:35:12.214451+02:00",
       "ticker": "LENZ",
@@ -1309,23 +1274,60 @@
       "suppressed": false,
       "suppress_reason": null,
       "conviction_score": null
+    },
+    {
+      "ts": "2026-09-01T20:02:08.062801+02:00",
+      "ticker": "NVAX",
+      "kind": "anomaly",
+      "severity": "high",
+      "trigger": "conviction_high",
+      "body": "NVAX 🎯 KAUFSIGNAL — Conviction 75/100 (high) | Conviction hoch — Setup, Earliness und Timing konvergieren. Aggregations-Anzeige…",
+      "success": true,
+      "suppressed": false,
+      "suppress_reason": null,
+      "conviction_score": 75
+    },
+    {
+      "ts": "2026-09-01T20:02:11.083657+02:00",
+      "ticker": "WOLF",
+      "kind": "exit_p2",
+      "severity": "trigger",
+      "trigger": "trend_break",
+      "body": "🔻 Exit-Signale WOLF: trend_break crit",
+      "success": true,
+      "suppressed": false,
+      "suppress_reason": null,
+      "conviction_score": null
+    },
+    {
+      "ts": "2026-09-01T20:02:11.303999+02:00",
+      "ticker": "KSS",
+      "kind": "exit_p2",
+      "severity": "trigger",
+      "trigger": "profit_lock,trend_break",
+      "body": "🔻 Exit-Signale KSS: profit_lock, trend_break crit · Warnung pressure 65/100",
+      "success": true,
+      "suppressed": false,
+      "suppress_reason": null,
+      "conviction_score": null
     }
   ],
   "prev_conviction_scores": {
-    "METC": 54.0,
-    "XRX": 59.0,
-    "LENZ": 58.0,
-    "KPTI": 43.0,
-    "BBW": 55.0,
-    "AI": 67.0,
-    "BRNX": 46.0,
-    "ABSI": 59.0,
-    "WOLF": 44.0,
-    "INBX": 56.0,
-    "KSS": 49.0,
-    "PDYN": 43.0,
-    "IONQ": 19.0,
-    "AMC": 13.0
+    "EMPD": 64.0,
+    "NVAX": 75.0,
+    "GPRO": 63.0,
+    "NTLA": 73.0,
+    "CTMX": 72.0,
+    "CCCC": 71.0,
+    "DDD": 70.0,
+    "SDGR": 63.0,
+    "ARCT": 69.0,
+    "CNXC": 61.0,
+    "WOLF": 55.0,
+    "KSS": 45.0,
+    "PDYN": 42.0,
+    "IONQ": 12.0,
+    "AMC": 11.0
   },
   "exit_cooldowns": {
     "exitp2_warning_AMC": "2026-05-18T14:48:43.872687+02:00",
@@ -1371,7 +1373,7 @@
       ],
       "last_push_date": "2026-08-28",
       "esc_alerted": false,
-      "updated": "2026-09-01T16:54:19.051674+02:00"
+      "updated": "2026-09-01T20:02:10.858534+02:00"
     },
     "PDYN": {
       "last_active": [
@@ -1379,7 +1381,7 @@
       ],
       "last_push_date": "2026-08-28",
       "esc_alerted": false,
-      "updated": "2026-09-01T16:54:19.051694+02:00"
+      "updated": "2026-09-01T20:02:10.858553+02:00"
     },
     "AI": {
       "last_active": [],
@@ -1388,10 +1390,12 @@
       "updated": "2026-08-10T08:42:18.333937+02:00"
     },
     "WOLF": {
-      "last_active": [],
-      "last_push_date": "2026-08-28",
+      "last_active": [
+        "trend_break"
+      ],
+      "last_push_date": "2026-09-01",
       "esc_alerted": false,
-      "updated": "2026-09-01T16:54:19.051706+02:00"
+      "updated": "2026-09-01T20:02:11.083710+02:00"
     },
     "ARCT": {
       "last_active": [
@@ -1410,11 +1414,12 @@
     "KSS": {
       "last_active": [
         "__warning__",
-        "profit_lock"
+        "profit_lock",
+        "trend_break"
       ],
-      "last_push_date": "2026-08-28",
+      "last_push_date": "2026-09-01",
       "esc_alerted": false,
-      "updated": "2026-09-01T16:54:19.051718+02:00"
+      "updated": "2026-09-01T20:02:11.304046+02:00"
     }
   }
 }
