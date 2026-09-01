@@ -192,6 +192,12 @@
       "shares_short": 13639416,
       "short_pct_float": 25.69,
       "pub_date": "2026-08-11"
+    },
+    {
+      "settlement_date": "2026-08-14",
+      "shares_short": 14271165,
+      "short_pct_float": 26.79,
+      "pub_date": "2026-08-25"
     }
   ],
   "FUBO": [
@@ -468,6 +474,12 @@
       "shares_short": 10306285,
       "short_pct_float": 19.86,
       "pub_date": "2026-08-11"
+    },
+    {
+      "settlement_date": "2026-08-14",
+      "shares_short": 10572640,
+      "short_pct_float": 20.37,
+      "pub_date": "2026-08-25"
     }
   ],
   "BKSY": [
@@ -1059,6 +1071,12 @@
       "shares_short": 12038453,
       "short_pct_float": 26.62,
       "pub_date": "2026-08-11"
+    },
+    {
+      "settlement_date": "2026-08-14",
+      "shares_short": 12289621,
+      "short_pct_float": 25.5,
+      "pub_date": "2026-08-25"
     }
   ],
   "VSTM": [
@@ -1203,6 +1221,12 @@
       "shares_short": 15578270,
       "short_pct_float": 29.05,
       "pub_date": "2026-08-11"
+    },
+    {
+      "settlement_date": "2026-08-14",
+      "shares_short": 15819821,
+      "short_pct_float": 29.5,
+      "pub_date": "2026-08-25"
     }
   ],
   "IVF": [
@@ -6047,6 +6071,66 @@
       "settlement_date": "2026-08-14",
       "shares_short": 18464901,
       "short_pct_float": 15.68,
+      "pub_date": "2026-08-25"
+    }
+  ],
+  "GPRO": [
+    {
+      "settlement_date": "2026-07-15",
+      "shares_short": 22213812,
+      "short_pct_float": null,
+      "pub_date": "2026-07-24",
+      "seeded": true
+    },
+    {
+      "settlement_date": "2026-08-14",
+      "shares_short": 24883199,
+      "short_pct_float": 16.19,
+      "pub_date": "2026-08-25"
+    }
+  ],
+  "CTMX": [
+    {
+      "settlement_date": "2026-07-15",
+      "shares_short": 40322256,
+      "short_pct_float": null,
+      "pub_date": "2026-07-24",
+      "seeded": true
+    },
+    {
+      "settlement_date": "2026-08-14",
+      "shares_short": 34619999,
+      "short_pct_float": 18.03,
+      "pub_date": "2026-08-25"
+    }
+  ],
+  "CRMD": [
+    {
+      "settlement_date": "2026-07-15",
+      "shares_short": 15349811,
+      "short_pct_float": null,
+      "pub_date": "2026-07-24",
+      "seeded": true
+    },
+    {
+      "settlement_date": "2026-08-14",
+      "shares_short": 17149908,
+      "short_pct_float": 22.3,
+      "pub_date": "2026-08-25"
+    }
+  ],
+  "SGRY": [
+    {
+      "settlement_date": "2026-07-15",
+      "shares_short": 14803675,
+      "short_pct_float": null,
+      "pub_date": "2026-07-24",
+      "seeded": true
+    },
+    {
+      "settlement_date": "2026-08-14",
+      "shares_short": 12652439,
+      "short_pct_float": 19.15,
       "pub_date": "2026-08-25"
     }
   ]
