@@ -1,5 +1,5 @@
 {
-  "last_run": "2026-09-02T23:50:56.315028+02:00",
+  "last_run": "2026-09-03T01:23:26.573972+02:00",
   "cooldowns": {
     "anomaly_score_jump_XRX": "2026-05-03T18:47:15.315486+02:00",
     "anomaly_uoa_extreme_TDOC": "2026-05-04T13:47:00.365949+02:00",
@@ -1313,20 +1313,20 @@
     }
   ],
   "prev_conviction_scores": {
-    "EMPD": 54.0,
-    "CTMX": 66.0,
-    "NVAX": 65.0,
-    "GPRO": 52.0,
-    "LENZ": 55.0,
-    "CNXC": 54.0,
-    "SDGR": 53.0,
-    "CABA": 59.0,
-    "WOLF": 45.0,
-    "ARCT": 55.0,
-    "KSS": 47.0,
+    "LENZ": 60.0,
+    "FMC": 64.0,
+    "NMAX": 69.0,
+    "PLAY": 62.0,
+    "EOSE": 55.0,
+    "ALT": 68.0,
+    "CABA": 60.0,
+    "GPRO": 39.0,
+    "KSS": 67.0,
+    "OPTU": 65.0,
+    "WOLF": 56.0,
     "PDYN": 43.0,
-    "IONQ": 13.0,
-    "AMC": 12.0
+    "AMC": 14.0,
+    "IONQ": 13.0
   },
   "exit_cooldowns": {
     "exitp2_warning_AMC": "2026-05-18T14:48:43.872687+02:00",
@@ -1372,7 +1372,7 @@
       ],
       "last_push_date": "2026-08-28",
       "esc_alerted": false,
-      "updated": "2026-09-02T23:50:56.315106+02:00"
+      "updated": "2026-09-03T01:23:26.574043+02:00"
     },
     "PDYN": {
       "last_active": [
@@ -1380,7 +1380,7 @@
       ],
       "last_push_date": "2026-08-28",
       "esc_alerted": false,
-      "updated": "2026-09-02T23:50:56.315125+02:00"
+      "updated": "2026-09-03T01:23:26.574058+02:00"
     },
     "AI": {
       "last_active": [],
@@ -1394,7 +1394,7 @@
       ],
       "last_push_date": "2026-09-01",
       "esc_alerted": false,
-      "updated": "2026-09-02T23:50:56.315139+02:00"
+      "updated": "2026-09-03T01:23:26.574069+02:00"
     },
     "ARCT": {
       "last_active": [
@@ -1411,13 +1411,10 @@
       "updated": "2026-08-25T23:44:45.225535+02:00"
     },
     "KSS": {
-      "last_active": [
-        "__warning__",
-        "profit_lock"
-      ],
+      "last_active": [],
       "last_push_date": "2026-09-01",
       "esc_alerted": false,
-      "updated": "2026-09-02T23:50:56.315151+02:00"
+      "updated": "2026-09-03T01:23:26.574078+02:00"
     }
   }
 }
