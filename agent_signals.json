@@ -1,17 +1,17 @@
 {
-  "updated": "2026-09-02T01:23:38.384804+02:00",
+  "updated": "2026-09-02T02:15:44.387645+02:00",
   "run_info": {
     "tickers_checked": 14,
     "signals_active": 1,
     "alerts_sent": 0,
-    "elapsed_s": 27.4,
-    "market_phase": "After-Hours"
+    "elapsed_s": 46.0,
+    "market_phase": "Geschlossen"
   },
   "signals": {
     "AMC": {
-      "score": 10,
+      "score": 18,
       "confidence": 17,
-      "drivers": "UOA Call/Put 3.3×",
+      "drivers": "News-KI 8/30: Moderate negative sentiment from after-hours slip, but new business division shows operational optimization rather than  + UOA Call/Put 3.3×",
       "price": 2.58,
       "chg_pct": -0.0,
       "rvol_4d": 0.86,
@@ -23,7 +23,7 @@
       "stocktwits": null,
       "combo_mult": 1.0,
       "active_triggers": 0,
-      "ki_sentiment_source": "keyword",
+      "ki_sentiment_source": "llm",
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 3.3×"
@@ -164,9 +164,9 @@
       "uoa_cp_ratio": 3.1404574011645723
     },
     "IONQ": {
-      "score": 22,
-      "confidence": 33,
-      "drivers": "News-KI 12/30: Positive product news offset by significant insider selling signals and bearish analyst sentiment, indicating weak short + SEC Form 4",
+      "score": 12,
+      "confidence": 17,
+      "drivers": "News-KI 12/30: Positive technical news overshadowed by significant insider selling ($863M net), bearish analyst sentiment, and lack of ",
       "price": 37.78,
       "chg_pct": -0.0,
       "rvol_4d": 0.65,
@@ -211,7 +211,7 @@
       "drivers": "Spanne 5.9%",
       "price": 5.23,
       "chg_pct": 0.0,
-      "rvol_4d": 1.02,
+      "rvol_4d": 1.08,
       "rvol_20d": 0.82,
       "earnings": "in 64 Tagen (04.11.2026)",
       "fda_date": null,
