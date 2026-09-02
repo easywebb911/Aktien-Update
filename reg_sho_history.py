@@ -214,7 +214,16 @@ def parse_nyse_threshold(text):
 
 def _resolve_nyse(get_text_fn, over_budget, *, date_iso):
     """``(symbols:set|None, source_date:str|None, result:str)``.
-    ``result`` ∈ ``ok:N`` / ``fetch_failed`` / ``empty`` / ``budget``.
+    ``result`` ∈ ``ok:N`` / ``fetch_failed[:detail]`` / ``empty`` / ``budget``.
+
+    Seit 02.09.2026 trägt ``fetch_failed`` optional ein Detail-Suffix
+    (``fetch_failed:<grund>``) — reine Logging-Anreicherung, KEIN neuer
+    Zustand. ``_evaluate_ticker``'s Reason-Mapping matcht per exaktem
+    Dict-Lookup gegen ``"empty"``/``"budget"`` und fällt für JEDEN anderen
+    String (auch das angereicherte ``fetch_failed:...``) unverändert auf
+    ``"fetch_failed"`` zurück — ``restricted`` bleibt in diesem Zweig IMMER
+    ``None``, das Detail wirkt sich NUR auf Log-Zeile + persistierten State
+    aus, nie auf die Entscheidungs-/Exclusion-Logik.
 
     Seit 21.08.2026 auf den bestätigten API-Endpunkt umgestellt (Diagnose-
     Probes #522/#527/#529 + Nachschärfung 21.08.2026) — ersetzt den früheren
@@ -239,7 +248,19 @@ def _resolve_nyse(get_text_fn, over_budget, *, date_iso):
     url = f"{_NYSE_API_ENDPOINT}?{urlencode({'selectedDate': date_iso, 'market': ''})}"
     st, txt, err = get_text_fn(url)
     if err or st != 200 or not txt:
-        return None, None, "fetch_failed"
+        # Detail NIE aus dem Nichts erfinden — drei disjunkte Fälle, jeder
+        # deterministisch aus (err, st, txt) ableitbar. ``err`` hat Vorrang
+        # (Netzwerk-/Transport-Fehler ist die aussagekräftigste Ursache);
+        # sonst HTTP-Status wenn er vom Erfolg abweicht; sonst blieb nur ein
+        # leerer Body bei HTTP 200 übrig. Nie ein bare "None" ins Log/State.
+        if err:
+            detail = str(err)
+        elif st != 200:
+            detail = f"HTTP {st}"
+        else:
+            detail = "leerer Response-Body (HTTP 200)"
+        detail = detail[:200]  # Defensiv-Cap — Log-/State-Zeile darf nicht ausufern
+        return None, None, f"fetch_failed:{detail}"
     syms = parse_nyse_threshold(txt)
     if not syms:
         return None, date_iso, "empty"

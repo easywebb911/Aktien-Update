@@ -22,6 +22,10 @@ Verriegelt die harten Invarianten (das HÄRTESTE ist #1):
   12 Rand-/Feiertagsfall: NYSE-Endpunkt für den angefragten Handelstag
      unerwartet leer → bleibt UNBEKANNT (None + source_empty), NIE „nicht auf
      der Liste" (false).
+  13 Fetch-Fehler-Detail (02.09.2026): ``_resolve_nyse()`` reichert
+     ``fetch_failed`` um ein Detail-Suffix an (err/HTTP-Status/leerer Body,
+     nie ein bare „None", Defensiv-Cap 200 Zeichen). Reine Logging-
+     Anreicherung — restricted bleibt None, reason bleibt „fetch_failed".
 
 Kategorie A: stdlib only, deterministisch, env-frei — KEIN echter Netzwerk-Call,
 alle NYSE-/Nasdaq-Antworten sind injizierte Mocks.
@@ -356,10 +360,61 @@ def main() -> int:
                            hist_path=H13, state_path=S13)
     h13 = _load(H13)
     _check("12 NYSE-Endpunkt HTTP 500 (Rate-Limit/Ausfall) → restricted=None + "
-           "reason=fetch_failed (NIEMALS False)",
+           "reason=fetch_failed (NIEMALS False), State-Detail zeigt HTTP-Fehlerursache",
            h13["HZO"][0]["restricted"] is None
            and h13["HZO"][0]["reason"] == "fetch_failed"
-           and _load(S13)["nyse_result"] == "fetch_failed")
+           and _load(S13)["nyse_result"] == "fetch_failed:HTTPError 500")
+
+    # ── 13: Fehler-Detail erreicht Log/State (02.09.2026, reine Logging-
+    # Anreicherung — KEINE Verhaltensänderung). Konkreter, deterministischer
+    # simulierter Timeout-Fehlertext, direkt über die ECHTE _resolve_nyse()
+    # UND über den vollen collect_and_persist()-Pfad geprüft, damit sowohl die
+    # Single-Source (result-String) als auch ihre Propagation ins State-JSON
+    # bewiesen sind (die log.info(...)-Zeile liest denselben result-String —
+    # kein separater Prüfpfad nötig, Quelle ist identisch). ──────────────────
+    _TIMEOUT_MSG = "TimeoutError: simulated network timeout after 8s"
+    r13c = rs._resolve_nyse(lambda u: (None, None, _TIMEOUT_MSG), lambda: False,
+                            date_iso="2026-08-31")
+    _check("13 ECHTE _resolve_nyse() mit simuliertem Timeout: symbols=None, "
+           "result trägt die konkrete Fehlermeldung 1:1 (Single-Source für "
+           "Log-Zeile 'nyse=%s' UND state['nyse_result'])",
+           r13c[0] is None and r13c[1] is None
+           and r13c[2] == f"fetch_failed:{_TIMEOUT_MSG}")
+
+    H13d, S13d = _paths()
+    rs.collect_and_persist([{"ticker": "HZO", "exchange": "NYQ"}], run_phase="postclose",
+                           now_utc=_NOW, get_nasdaq_text_fn=_nasdaq_fn,
+                           get_nyse_text_fn=lambda u: (None, None, _TIMEOUT_MSG),
+                           hist_path=H13d, state_path=S13d)
+    h13d = _load(H13d)
+    _check("13 collect_and_persist()-Volldurchlauf mit simuliertem Timeout: "
+           "restricted bleibt None + reason bleibt fetch_failed (Entscheidungslogik "
+           "unverändert), state['nyse_result'] trägt das Detail",
+           h13d["HZO"][0]["restricted"] is None
+           and h13d["HZO"][0]["reason"] == "fetch_failed"
+           and _load(S13d)["nyse_result"] == f"fetch_failed:{_TIMEOUT_MSG}")
+
+    # ── 13b: drei disjunkte Detail-Herleitungen (err / HTTP-Status≠200 ohne err /
+    # leerer Body bei HTTP 200) — nie ein bare "None" im result-String, und der
+    # Defensiv-Cap (200 Zeichen) greift ohne Crash bei überlangem err-Text ────
+    r_err = rs._resolve_nyse(lambda u: (None, None, "URLError: timed out"),
+                             lambda: False, date_iso="2026-08-31")
+    r_status = rs._resolve_nyse(lambda u: (503, None, None), lambda: False,
+                                date_iso="2026-08-31")
+    r_emptybody = rs._resolve_nyse(lambda u: (200, "", None), lambda: False,
+                                   date_iso="2026-08-31")
+    r_long = rs._resolve_nyse(lambda u: (None, None, "X" * 500), lambda: False,
+                              date_iso="2026-08-31")
+    _check("13b Drei disjunkte Detail-Fälle: err-Vorrang, HTTP-Status-Fallback, "
+           "leerer-Body-Fallback — nie 'fetch_failed:None'",
+           r_err[2] == "fetch_failed:URLError: timed out"
+           and r_status[2] == "fetch_failed:HTTP 503"
+           and r_emptybody[2] == "fetch_failed:leerer Response-Body (HTTP 200)"
+           and "None" not in r_err[2] and "None" not in r_status[2]
+           and "None" not in r_emptybody[2])
+    _check("13b Defensiv-Cap: überlanger err-Text wird auf 200 Zeichen gekappt, "
+           "kein Crash",
+           len(r_long[2]) == len("fetch_failed:") + 200)
 
     print()
     if _fails:
