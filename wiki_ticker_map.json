@@ -413,6 +413,15 @@
     "substrate": "none",
     "reason": "no_article"
   },
+  "EOSE": {
+    "qid": null,
+    "title": null,
+    "resolved_at": "2026-09-02T23:21:48Z",
+    "issuer_verified": false,
+    "company_name_at_resolve": "Eos Energy Enterprises, Inc.",
+    "substrate": "none",
+    "reason": "no_p249"
+  },
   "EVGO": {
     "qid": null,
     "title": null,

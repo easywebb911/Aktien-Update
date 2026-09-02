@@ -782,6 +782,11 @@
       "date": "2026-08-25",
       "inst_ownership": 0.59622,
       "insider_ownership": 0.14891
+    },
+    {
+      "date": "2026-09-02",
+      "inst_ownership": 0.59622,
+      "insider_ownership": 0.17785
     }
   ],
   "AMPG": [
@@ -885,6 +890,11 @@
     {
       "date": "2026-08-14",
       "inst_ownership": 0.98800004,
+      "insider_ownership": 0.0414
+    },
+    {
+      "date": "2026-09-02",
+      "inst_ownership": 0.97586,
       "insider_ownership": 0.0414
     }
   ],
@@ -1281,6 +1291,11 @@
       "date": "2026-08-18",
       "inst_ownership": 0.6677,
       "insider_ownership": 0.2195
+    },
+    {
+      "date": "2026-09-02",
+      "inst_ownership": 0.66767997,
+      "insider_ownership": 0.2195
     }
   ],
   "GO": [
@@ -1447,6 +1462,11 @@
       "date": "2026-08-31",
       "inst_ownership": 0.63598996,
       "insider_ownership": 0.08497
+    },
+    {
+      "date": "2026-09-02",
+      "inst_ownership": 0.63595,
+      "insider_ownership": 0.08525
     }
   ],
   "GTM": [
@@ -2020,6 +2040,11 @@
     {
       "date": "2026-08-28",
       "inst_ownership": 0.77668,
+      "insider_ownership": 0.00416
+    },
+    {
+      "date": "2026-09-02",
+      "inst_ownership": 0.77699995,
       "insider_ownership": 0.00416
     }
   ],
@@ -2862,6 +2887,11 @@
       "date": "2026-08-31",
       "inst_ownership": 0.75733,
       "insider_ownership": 0.09992
+    },
+    {
+      "date": "2026-09-02",
+      "inst_ownership": 0.7571,
+      "insider_ownership": 0.11324
     }
   ],
   "GOGO": [
@@ -3132,6 +3162,34 @@
       "date": "2026-09-01",
       "inst_ownership": 1.21771,
       "insider_ownership": 0.01796
+    }
+  ],
+  "WRLD": [
+    {
+      "date": "2026-09-02",
+      "inst_ownership": 0.92306,
+      "insider_ownership": 0.1807
+    }
+  ],
+  "TDUP": [
+    {
+      "date": "2026-09-02",
+      "inst_ownership": 0.98337,
+      "insider_ownership": 0.0572
+    }
+  ],
+  "AEBI": [
+    {
+      "date": "2026-09-02",
+      "inst_ownership": 0.41496,
+      "insider_ownership": 0.52978003
+    }
+  ],
+  "BMBL": [
+    {
+      "date": "2026-09-02",
+      "inst_ownership": 0.85763,
+      "insider_ownership": 0.026080001
     }
   ]
 }

@@ -2424,6 +2424,12 @@
       "shares_short": 13549624,
       "short_pct_float": 15.34,
       "pub_date": "2026-07-10"
+    },
+    {
+      "settlement_date": "2026-08-14",
+      "shares_short": 15372084,
+      "short_pct_float": 17.1,
+      "pub_date": "2026-08-25"
     }
   ],
   "SDHC": [
@@ -2550,6 +2556,12 @@
       "shares_short": 1414078,
       "short_pct_float": 15.11,
       "pub_date": "2026-07-10"
+    },
+    {
+      "settlement_date": "2026-08-14",
+      "shares_short": 1439921,
+      "short_pct_float": 15.23,
+      "pub_date": "2026-08-25"
     }
   ],
   "FMC": [
@@ -3138,6 +3150,12 @@
       "shares_short": 6954163,
       "short_pct_float": 18.82,
       "pub_date": "2026-08-11"
+    },
+    {
+      "settlement_date": "2026-08-14",
+      "shares_short": 6747898,
+      "short_pct_float": 18.26,
+      "pub_date": "2026-08-25"
     }
   ],
   "EZPW": [
@@ -3885,6 +3903,12 @@
       "shares_short": 587802,
       "short_pct_float": 311.51,
       "pub_date": "2026-07-24"
+    },
+    {
+      "settlement_date": "2026-08-14",
+      "shares_short": 482742,
+      "short_pct_float": 228.19,
+      "pub_date": "2026-08-25"
     }
   ],
   "DFH": [
@@ -4893,6 +4917,12 @@
       "shares_short": 19847001,
       "short_pct_float": 19.34,
       "pub_date": "2026-07-24"
+    },
+    {
+      "settlement_date": "2026-08-14",
+      "shares_short": 18733587,
+      "short_pct_float": 17.8,
+      "pub_date": "2026-08-25"
     }
   ],
   "MBC": [
@@ -5331,6 +5361,12 @@
       "shares_short": 6749421,
       "short_pct_float": 85.44,
       "pub_date": "2026-08-11"
+    },
+    {
+      "settlement_date": "2026-08-14",
+      "shares_short": 7443515,
+      "short_pct_float": 94.23,
+      "pub_date": "2026-08-25"
     }
   ],
   "COLL": [
