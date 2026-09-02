@@ -848,6 +848,14 @@ Grund** festhält — jede spätere Anpassung muss so als Bruch sichtbar bleiben
   Datenbasis → dann greift die **Änderungs-Protokoll-Regel** (datierter Eintrag +
   Grund, bevor §4 angepasst wird). Am 14.08. den Entscheid lesen und die Konsequenz
   für `finra`-Pfad / `FINRA_PUB_OFFSET_BUSINESS_DAYS` (§7c) einordnen.
+  **Zusatz (02.09.2026):** Für künftige Prüfungen zusätzlich zur SEC-Filing-Seite
+  (sec.gov/rules-regulations/self-regulatory-organization-rulemaking/sr-finra-2026-012)
+  folgende Quellen checken: (1) Federal Register (federalregister.gov) für die
+  offizielle SEC-Order/Entscheidung, (2) FINRA Regulatory Notices (finra.org) —
+  dort kündigt FINRA nach einer etwaigen Genehmigung das Wirksamkeitsdatum der
+  Regeländerung an, taucht also erst NACH einer SEC-Genehmigung auf, nicht vorher.
+  Stand 02.09.2026: keine der drei Quellen zeigt eine Entscheidung nach der
+  verlängerten Frist vom 14.08.2026 — weiterhin offen, über 3 Wochen überfällig.
 - **~Mitte Aug 2026 — Paper-C konfirmatorischer OoS-Test.** Läuft, sobald (a)
   Forward-`return_10d` der ab 13.07. gesammelten Records gereift ist UND (b) `n_win`
   an **beiden** Zielen ≥ Floor 40 — mit Regime-Vorbehalt (§5 Confound 1). Datengetrieben,
