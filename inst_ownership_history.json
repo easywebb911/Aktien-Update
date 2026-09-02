@@ -833,6 +833,11 @@
       "date": "2026-09-01",
       "inst_ownership": 1.02023,
       "insider_ownership": 0.00835
+    },
+    {
+      "date": "2026-09-02",
+      "inst_ownership": 1.02757,
+      "insider_ownership": 0.00835
     }
   ],
   "BJDX": [
@@ -1313,6 +1318,11 @@
       "date": "2026-09-01",
       "inst_ownership": 1.21896,
       "insider_ownership": 0.0612
+    },
+    {
+      "date": "2026-09-02",
+      "inst_ownership": 1.21896,
+      "insider_ownership": 0.060749996
     }
   ],
   "ASMB": [
@@ -2331,6 +2341,11 @@
     {
       "date": "2026-09-01",
       "inst_ownership": 0.70623,
+      "insider_ownership": 0.0228
+    },
+    {
+      "date": "2026-09-02",
+      "inst_ownership": 0.70625,
       "insider_ownership": 0.0228
     }
   ],
