@@ -314,6 +314,15 @@
     "substrate": "none",
     "reason": "no_p249"
   },
+  "CRVS": {
+    "qid": null,
+    "title": null,
+    "resolved_at": "2026-09-03T23:19:45Z",
+    "issuer_verified": false,
+    "company_name_at_resolve": "Corvus Pharmaceuticals, Inc.",
+    "substrate": "none",
+    "reason": "no_p249"
+  },
   "CSIQ": {
     "qid": "Q1032353",
     "title": "Canadian_Solar",
@@ -770,6 +779,15 @@
     "resolved_at": "2026-08-03T21:02:56Z",
     "issuer_verified": false,
     "company_name_at_resolve": "NANO Nuclear Energy Inc.",
+    "substrate": "none",
+    "reason": "no_p249"
+  },
+  "NRC": {
+    "qid": null,
+    "title": null,
+    "resolved_at": "2026-09-03T23:19:45Z",
+    "issuer_verified": false,
+    "company_name_at_resolve": "NRC Health",
     "substrate": "none",
     "reason": "no_p249"
   },

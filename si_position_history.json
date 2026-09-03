@@ -1125,6 +1125,12 @@
       "shares_short": 41740637,
       "short_pct_float": 31.34,
       "pub_date": "2026-07-24"
+    },
+    {
+      "settlement_date": "2026-08-14",
+      "shares_short": 41399810,
+      "short_pct_float": 30.93,
+      "pub_date": "2026-08-25"
     }
   ],
   "GLUE": [
@@ -4413,6 +4419,12 @@
       "shares_short": 3065814,
       "short_pct_float": 36.73,
       "pub_date": "2026-07-24"
+    },
+    {
+      "settlement_date": "2026-08-14",
+      "shares_short": 3411565,
+      "short_pct_float": 40.87,
+      "pub_date": "2026-08-25"
     }
   ],
   "CURV": [
@@ -5577,6 +5589,12 @@
       "shares_short": 17054582,
       "short_pct_float": 25.53,
       "pub_date": "2026-08-11"
+    },
+    {
+      "settlement_date": "2026-08-14",
+      "shares_short": 20477587,
+      "short_pct_float": 29.12,
+      "pub_date": "2026-08-25"
     }
   ],
   "PACB": [
@@ -6167,6 +6185,21 @@
       "settlement_date": "2026-08-14",
       "shares_short": 12652439,
       "short_pct_float": 19.15,
+      "pub_date": "2026-08-25"
+    }
+  ],
+  "NRC": [
+    {
+      "settlement_date": "2026-07-15",
+      "shares_short": 520821,
+      "short_pct_float": null,
+      "pub_date": "2026-07-24",
+      "seeded": true
+    },
+    {
+      "settlement_date": "2026-08-14",
+      "shares_short": 554321,
+      "short_pct_float": 23.03,
       "pub_date": "2026-08-25"
     }
   ]
