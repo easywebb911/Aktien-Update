@@ -1,11 +1,11 @@
 {
-  "updated": "2026-09-03T06:39:58.460962+02:00",
+  "updated": "2026-09-03T11:51:53.222823+02:00",
   "run_info": {
     "tickers_checked": 14,
-    "signals_active": 1,
+    "signals_active": 2,
     "alerts_sent": 0,
-    "elapsed_s": 26.8,
-    "market_phase": "Geschlossen"
+    "elapsed_s": 23.8,
+    "market_phase": "Pre-Market"
   },
   "signals": {
     "ALT": {
@@ -78,9 +78,9 @@
       "uoa_cp_ratio": 44.725806451612904
     },
     "EOSE": {
-      "score": 79,
+      "score": 82,
       "confidence": 70,
-      "drivers": "Volumen 5.2× + 🚀 Massives Volumen 5.2×+ + Spanne 13.9% + News-KI 12/30: Positive partnership news drives stock surge, but fundamental business deal (not short squeeze catalyst) with no extreme + UOA Call/Put 13.0×",
+      "drivers": "Volumen 5.2× + 🚀 Massives Volumen 5.2×+ + Spanne 13.9% + News: partnership + UOA Call/Put 13.0×",
       "price": 3.61,
       "chg_pct": -0.0,
       "rvol_4d": 5.24,
@@ -92,7 +92,7 @@
       "stocktwits": null,
       "combo_mult": 1.1,
       "active_triggers": 2,
-      "ki_sentiment_source": "llm",
+      "ki_sentiment_source": "keyword",
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 13.0×"
@@ -119,12 +119,12 @@
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": null,
-      "uoa_cp_ratio": 1.5186846038863977
+      "uoa_cp_ratio": 1.5127055306427504
     },
     "GPRO": {
-      "score": 57,
+      "score": 75,
       "confidence": 70,
-      "drivers": "Spanne 50.0% + SEC 8-K + News-KI 12/30: Positive sentiment and notable shareholder news, but lacks short squeeze catalysts like high short interest, borrow diff + SEC Form 4 + UOA Call/Put 3.9×",
+      "drivers": "Spanne 50.0% + SEC 8-K + News: merger, analyst upgrade + SEC Form 4 + UOA Call/Put 3.9×",
       "price": 1.69,
       "chg_pct": 0.0,
       "rvol_4d": 1.45,
@@ -136,7 +136,7 @@
       "stocktwits": null,
       "combo_mult": 1.0,
       "active_triggers": 1,
-      "ki_sentiment_source": "llm",
+      "ki_sentiment_source": "keyword",
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 3.9×"
@@ -210,10 +210,10 @@
     "NMAX": {
       "score": 35,
       "confidence": 70,
-      "drivers": "Volumen 1.6× + Spanne 7.0% + UOA Call/Put 2.3×",
+      "drivers": "Volumen 1.5× + Spanne 7.0% + UOA Call/Put 2.3×",
       "price": 11.0,
       "chg_pct": 0.0,
-      "rvol_4d": 1.6,
+      "rvol_4d": 1.5,
       "rvol_20d": 1.1,
       "earnings": "in 71 Tagen (13.11.2026)",
       "fda_date": null,
@@ -231,9 +231,9 @@
       "uoa_cp_ratio": 2.2813141683778233
     },
     "OPTU": {
-      "score": 25,
-      "confidence": 33,
-      "drivers": "Spanne 10.2% + News: insider buying",
+      "score": 10,
+      "confidence": 17,
+      "drivers": "Spanne 10.2%",
       "price": 1.02,
       "chg_pct": -0.0,
       "rvol_4d": 0.83,
@@ -244,7 +244,7 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 1,
+      "active_triggers": 0,
       "ki_sentiment_source": "keyword",
       "uoa_score": 0,
       "uoa_drivers": [],
@@ -252,9 +252,9 @@
       "uoa_cp_ratio": 1.613861386138614
     },
     "PDYN": {
-      "score": 40,
+      "score": 25,
       "confidence": 17,
-      "drivers": "News: contract, revenue beat + UOA Call/Put 3.1×",
+      "drivers": "News: contract + UOA Call/Put 3.1×",
       "price": 5.45,
       "chg_pct": -0.0,
       "rvol_4d": 0.86,
