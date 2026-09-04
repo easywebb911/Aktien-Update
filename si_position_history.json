@@ -1464,6 +1464,12 @@
       "shares_short": 1541768,
       "short_pct_float": 26.14,
       "pub_date": "2026-07-24"
+    },
+    {
+      "settlement_date": "2026-08-14",
+      "shares_short": 1460520,
+      "short_pct_float": 23.43,
+      "pub_date": "2026-08-25"
     }
   ],
   "AMPG": [
@@ -2265,6 +2271,12 @@
       "shares_short": 1906227,
       "short_pct_float": 28.09,
       "pub_date": "2026-07-24"
+    },
+    {
+      "settlement_date": "2026-08-14",
+      "shares_short": 2080689,
+      "short_pct_float": 30.51,
+      "pub_date": "2026-08-25"
     }
   ],
   "QDEL": [
@@ -4446,6 +4458,12 @@
       "shares_short": 3975429,
       "short_pct_float": 15.6,
       "pub_date": "2026-08-11"
+    },
+    {
+      "settlement_date": "2026-08-14",
+      "shares_short": 4096689,
+      "short_pct_float": 16.08,
+      "pub_date": "2026-08-25"
     }
   ],
   "DMRC": [
@@ -5718,6 +5736,12 @@
       "shares_short": 19581995,
       "short_pct_float": 20.97,
       "pub_date": "2026-08-11"
+    },
+    {
+      "settlement_date": "2026-08-14",
+      "shares_short": 19508011,
+      "short_pct_float": 20.89,
+      "pub_date": "2026-08-25"
     }
   ],
   "JBGS": [
@@ -5799,6 +5823,12 @@
       "shares_short": 2039648,
       "short_pct_float": 16.74,
       "pub_date": "2026-08-11"
+    },
+    {
+      "settlement_date": "2026-08-14",
+      "shares_short": 1985383,
+      "short_pct_float": 16.29,
+      "pub_date": "2026-08-25"
     }
   ],
   "BIRD": [
@@ -6200,6 +6230,21 @@
       "settlement_date": "2026-08-14",
       "shares_short": 554321,
       "short_pct_float": 23.03,
+      "pub_date": "2026-08-25"
+    }
+  ],
+  "TYRA": [
+    {
+      "settlement_date": "2026-07-15",
+      "shares_short": 9930770,
+      "short_pct_float": null,
+      "pub_date": "2026-07-24",
+      "seeded": true
+    },
+    {
+      "settlement_date": "2026-08-14",
+      "shares_short": 9689392,
+      "short_pct_float": 29.93,
       "pub_date": "2026-08-25"
     }
   ]
