@@ -1,10 +1,10 @@
 {
-  "updated": "2026-09-05T20:19:15.961148+02:00",
+  "updated": "2026-09-05T23:15:41.108274+02:00",
   "run_info": {
     "tickers_checked": 15,
-    "signals_active": 1,
+    "signals_active": 2,
     "alerts_sent": 0,
-    "elapsed_s": 12.5,
+    "elapsed_s": 24.0,
     "market_phase": "Geschlossen"
   },
   "signals": {
@@ -53,9 +53,9 @@
       "uoa_cp_ratio": 0.7382605991499949
     },
     "CURV": {
-      "score": 78,
+      "score": 70,
       "confidence": 70,
-      "drivers": "Volumen 10.6× + 🚀 Massives Volumen 10.6×+ + Spanne 17.9% + News-KI 8/30: Negative earnings with revenue miss indicate fundamental weakness rather than short-squeeze potential from bullish catal + SEC Form 4 + UOA Call/Put 108.0×",
+      "drivers": "Volumen 10.6× + 🚀 Massives Volumen 10.6×+ + Spanne 17.9% + SEC Form 4 + UOA Call/Put 108.0×",
       "price": 2.44,
       "chg_pct": 0.0,
       "rvol_4d": 10.63,
@@ -67,7 +67,7 @@
       "stocktwits": null,
       "combo_mult": 1.0,
       "active_triggers": 1,
-      "ki_sentiment_source": "llm",
+      "ki_sentiment_source": "keyword",
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 108.0×"
@@ -76,9 +76,9 @@
       "uoa_cp_ratio": 108.0
     },
     "EVGO": {
-      "score": 18,
+      "score": 40,
       "confidence": 33,
-      "drivers": "Spanne 7.2% + News-KI 8/30: Moderate positive price action, but no short squeeze indicators visible - lacks extreme short interest data, debt concer",
+      "drivers": "Spanne 7.2% + News: revenue beat, short interest",
       "price": 1.51,
       "chg_pct": -0.0,
       "rvol_4d": 1.32,
@@ -89,8 +89,8 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 0,
-      "ki_sentiment_source": "llm",
+      "active_triggers": 1,
+      "ki_sentiment_source": "keyword",
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": 0.23059866962305986,
@@ -164,9 +164,9 @@
       "uoa_cp_ratio": 3.9406175771971497
     },
     "METC": {
-      "score": 45,
+      "score": 38,
       "confidence": 70,
-      "drivers": "Spanne 6.8% + News: short interest + SEC Form 4 + UOA Call/Put 5.4×",
+      "drivers": "Spanne 6.8% + News-KI 8/30: Positive corporate developments but no indicators of short squeeze potential such as high short interest, borrow restric + SEC Form 4 + UOA Call/Put 5.3×",
       "price": 13.2,
       "chg_pct": -0.0,
       "rvol_4d": 0.95,
@@ -177,19 +177,19 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 1,
-      "ki_sentiment_source": "keyword",
+      "active_triggers": 0,
+      "ki_sentiment_source": "llm",
       "uoa_score": 10,
       "uoa_drivers": [
-        "UOA Call/Put 5.4×"
+        "UOA Call/Put 5.3×"
       ],
       "uoa_atm_ratio": 0.27113309352517984,
-      "uoa_cp_ratio": 5.366935483870968
+      "uoa_cp_ratio": 5.298387096774194
     },
     "PAR": {
-      "score": 10,
-      "confidence": 17,
-      "drivers": "Spanne 6.9%",
+      "score": 15,
+      "confidence": 33,
+      "drivers": "Spanne 6.9% + News-KI 5/30: Neutral conference participation and growth commentary lack the high short interest, catalyst urgency, and forced coveri",
       "price": 19.77,
       "chg_pct": 0.0,
       "rvol_4d": 1.05,
@@ -201,7 +201,7 @@
       "stocktwits": null,
       "combo_mult": 1.0,
       "active_triggers": 0,
-      "ki_sentiment_source": "keyword",
+      "ki_sentiment_source": "llm",
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": 0.010707332900713823,
@@ -231,9 +231,9 @@
       "uoa_cp_ratio": 2.8043478260869565
     },
     "RXRX": {
-      "score": 43,
+      "score": 72,
       "confidence": 70,
-      "drivers": "Volumen 2.2× + Spanne 8.5% + News-KI 8/30: Positive pipeline catalysts and analyst coverage, but no evidence of short squeeze characteristics like high short inter + SEC Form 4",
+      "drivers": "Volumen 2.2× + Spanne 8.5% + News: catalyst, short interest + SEC Form 4",
       "price": 3.63,
       "chg_pct": 0.0,
       "rvol_4d": 2.24,
@@ -243,9 +243,9 @@
       "upcoming_event": null,
       "insider_buy": false,
       "stocktwits": null,
-      "combo_mult": 1.0,
-      "active_triggers": 1,
-      "ki_sentiment_source": "llm",
+      "combo_mult": 1.1,
+      "active_triggers": 2,
+      "ki_sentiment_source": "keyword",
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": 0.22153846153846155,
