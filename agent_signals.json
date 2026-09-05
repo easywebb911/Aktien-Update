@@ -1,17 +1,17 @@
 {
-  "updated": "2026-09-05T14:43:49.024855+02:00",
+  "updated": "2026-09-05T18:05:23.333057+02:00",
   "run_info": {
     "tickers_checked": 15,
-    "signals_active": 3,
+    "signals_active": 2,
     "alerts_sent": 0,
-    "elapsed_s": 14.0,
+    "elapsed_s": 16.7,
     "market_phase": "Geschlossen"
   },
   "signals": {
     "AMC": {
-      "score": 71,
+      "score": 63,
       "confidence": 70,
-      "drivers": "Volumen 3.0× + ⚡ Extremes Volumen 3.0×+ + Spanne 8.0% + News-KI 8/30: Negative CEO sentiment and corporate distraction from fundamentals reduce squeeze potential despite stock price activity + Earnings in 45d + UOA Call/Put 14.6×",
+      "drivers": "Volumen 3.0× + ⚡ Extremes Volumen 3.0×+ + Spanne 8.0% + Earnings in 45d + UOA Call/Put 14.6×",
       "price": 2.65,
       "chg_pct": 0.0,
       "rvol_4d": 3.04,
@@ -23,7 +23,7 @@
       "stocktwits": null,
       "combo_mult": 1.0,
       "active_triggers": 1,
-      "ki_sentiment_source": "llm",
+      "ki_sentiment_source": "keyword",
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 14.6×"
@@ -32,9 +32,9 @@
       "uoa_cp_ratio": 14.630569655950367
     },
     "CHPT": {
-      "score": 22,
+      "score": 25,
       "confidence": 33,
-      "drivers": "Spanne 11.0% + News-KI 12/30: Positive earnings and momentum indicators, but no short squeeze signals such as high short interest data, squeeze techni",
+      "drivers": "Spanne 11.0% + News: revenue beat",
       "price": 9.89,
       "chg_pct": 0.0,
       "rvol_4d": 1.14,
@@ -46,16 +46,16 @@
       "stocktwits": null,
       "combo_mult": 1.0,
       "active_triggers": 1,
-      "ki_sentiment_source": "llm",
+      "ki_sentiment_source": "keyword",
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": 0.97559541311379,
       "uoa_cp_ratio": 0.7382605991499949
     },
     "CURV": {
-      "score": 70,
+      "score": 78,
       "confidence": 70,
-      "drivers": "Volumen 10.6× + 🚀 Massives Volumen 10.6×+ + Spanne 17.9% + SEC Form 4 + UOA Call/Put 108.0×",
+      "drivers": "Volumen 10.6× + 🚀 Massives Volumen 10.6×+ + Spanne 17.9% + News-KI 8/30: Negative earnings miss and losses indicate weak fundamentals, which typically suppresses short squeeze potential despite + SEC Form 4 + UOA Call/Put 108.0×",
       "price": 2.44,
       "chg_pct": 0.0,
       "rvol_4d": 10.63,
@@ -67,7 +67,7 @@
       "stocktwits": null,
       "combo_mult": 1.0,
       "active_triggers": 1,
-      "ki_sentiment_source": "keyword",
+      "ki_sentiment_source": "llm",
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 108.0×"
@@ -76,9 +76,9 @@
       "uoa_cp_ratio": 108.0
     },
     "EVGO": {
-      "score": 25,
+      "score": 40,
       "confidence": 33,
-      "drivers": "Spanne 7.2% + News: revenue beat",
+      "drivers": "Spanne 7.2% + News: revenue beat, short interest",
       "price": 1.51,
       "chg_pct": -0.0,
       "rvol_4d": 1.32,
@@ -99,7 +99,7 @@
     "GPRO": {
       "score": 50,
       "confidence": 70,
-      "drivers": "Spanne 43.2% + News: analyst upgrade, merger + SEC Form 4",
+      "drivers": "Spanne 43.2% + News: merger, analyst upgrade + SEC Form 4",
       "price": 1.7,
       "chg_pct": 0.0,
       "rvol_4d": 0.96,
@@ -166,7 +166,7 @@
     "METC": {
       "score": 45,
       "confidence": 70,
-      "drivers": "Spanne 6.8% + News: short interest + SEC Form 4 + UOA Call/Put 5.3×",
+      "drivers": "Spanne 6.8% + News: short interest + SEC Form 4 + UOA Call/Put 5.4×",
       "price": 13.2,
       "chg_pct": -0.0,
       "rvol_4d": 0.95,
@@ -181,10 +181,10 @@
       "ki_sentiment_source": "keyword",
       "uoa_score": 10,
       "uoa_drivers": [
-        "UOA Call/Put 5.3×"
+        "UOA Call/Put 5.4×"
       ],
       "uoa_atm_ratio": 0.27113309352517984,
-      "uoa_cp_ratio": 5.298387096774194
+      "uoa_cp_ratio": 5.366935483870968
     },
     "PAR": {
       "score": 10,
@@ -210,7 +210,7 @@
     "PDYN": {
       "score": 40,
       "confidence": 17,
-      "drivers": "News: contract, revenue beat + UOA Call/Put 2.8×",
+      "drivers": "News: revenue beat, contract + UOA Call/Put 2.8×",
       "price": 5.71,
       "chg_pct": 0.0,
       "rvol_4d": 0.54,
@@ -233,7 +233,7 @@
     "RXRX": {
       "score": 72,
       "confidence": 70,
-      "drivers": "Volumen 2.2× + Spanne 8.5% + News: short interest, catalyst + SEC Form 4",
+      "drivers": "Volumen 2.2× + Spanne 8.5% + News: catalyst, short interest + SEC Form 4",
       "price": 3.63,
       "chg_pct": 0.0,
       "rvol_4d": 2.24,
