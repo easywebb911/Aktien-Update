@@ -1,10 +1,10 @@
 {
-  "updated": "2026-09-05T18:05:23.333057+02:00",
+  "updated": "2026-09-05T20:19:15.961148+02:00",
   "run_info": {
     "tickers_checked": 15,
-    "signals_active": 2,
+    "signals_active": 1,
     "alerts_sent": 0,
-    "elapsed_s": 16.7,
+    "elapsed_s": 12.5,
     "market_phase": "Geschlossen"
   },
   "signals": {
@@ -55,7 +55,7 @@
     "CURV": {
       "score": 78,
       "confidence": 70,
-      "drivers": "Volumen 10.6× + 🚀 Massives Volumen 10.6×+ + Spanne 17.9% + News-KI 8/30: Negative earnings miss and losses indicate weak fundamentals, which typically suppresses short squeeze potential despite + SEC Form 4 + UOA Call/Put 108.0×",
+      "drivers": "Volumen 10.6× + 🚀 Massives Volumen 10.6×+ + Spanne 17.9% + News-KI 8/30: Negative earnings with revenue miss indicate fundamental weakness rather than short-squeeze potential from bullish catal + SEC Form 4 + UOA Call/Put 108.0×",
       "price": 2.44,
       "chg_pct": 0.0,
       "rvol_4d": 10.63,
@@ -76,9 +76,9 @@
       "uoa_cp_ratio": 108.0
     },
     "EVGO": {
-      "score": 40,
+      "score": 18,
       "confidence": 33,
-      "drivers": "Spanne 7.2% + News: revenue beat, short interest",
+      "drivers": "Spanne 7.2% + News-KI 8/30: Moderate positive price action, but no short squeeze indicators visible - lacks extreme short interest data, debt concer",
       "price": 1.51,
       "chg_pct": -0.0,
       "rvol_4d": 1.32,
@@ -89,8 +89,8 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 1,
-      "ki_sentiment_source": "keyword",
+      "active_triggers": 0,
+      "ki_sentiment_source": "llm",
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": 0.23059866962305986,
@@ -208,9 +208,9 @@
       "uoa_cp_ratio": 0.56
     },
     "PDYN": {
-      "score": 40,
+      "score": 25,
       "confidence": 17,
-      "drivers": "News: revenue beat, contract + UOA Call/Put 2.8×",
+      "drivers": "News: contract + UOA Call/Put 2.8×",
       "price": 5.71,
       "chg_pct": 0.0,
       "rvol_4d": 0.54,
@@ -231,9 +231,9 @@
       "uoa_cp_ratio": 2.8043478260869565
     },
     "RXRX": {
-      "score": 72,
+      "score": 43,
       "confidence": 70,
-      "drivers": "Volumen 2.2× + Spanne 8.5% + News: catalyst, short interest + SEC Form 4",
+      "drivers": "Volumen 2.2× + Spanne 8.5% + News-KI 8/30: Positive pipeline catalysts and analyst coverage, but no evidence of short squeeze characteristics like high short inter + SEC Form 4",
       "price": 3.63,
       "chg_pct": 0.0,
       "rvol_4d": 2.24,
@@ -243,9 +243,9 @@
       "upcoming_event": null,
       "insider_buy": false,
       "stocktwits": null,
-      "combo_mult": 1.1,
-      "active_triggers": 2,
-      "ki_sentiment_source": "keyword",
+      "combo_mult": 1.0,
+      "active_triggers": 1,
+      "ki_sentiment_source": "llm",
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": 0.22153846153846155,
@@ -319,9 +319,9 @@
       "uoa_cp_ratio": 2.809917355371901
     },
     "WOOF": {
-      "score": 50,
+      "score": 35,
       "confidence": 33,
-      "drivers": "Spanne 12.3% + News: analyst upgrade, earnings beat + UOA Call/Put 3.3×",
+      "drivers": "Spanne 12.3% + News: earnings beat + UOA Call/Put 3.3×",
       "price": 2.7,
       "chg_pct": 0.0,
       "rvol_4d": 1.28,
