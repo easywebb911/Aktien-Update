@@ -16070,7 +16070,17 @@ def _send_html_assertion_alert(severity: str, fails: list[dict]) -> bool:
 def _send_exit_ntfy(ticker: str, body: str) -> bool:
     """Single-shot ntfy.sh push (analog zu ki_agent.send_ntfy_alert).
     Fail-soft: returnt False bei jedem Fehler, blockiert den Daily-Run nie.
+
+    ``PUSH_EXIT_P1_NTFY_ENABLED=False`` (Easy-Entscheid 06.09.2026, Push-
+    Gating unvalidierter Trading-Signale) → no-op, KEIN HTTP-Call — gilt für
+    beide Phase-1-Untertypen (``exit_alert`` + ``profit_take``, beide rufen
+    diese Funktion). ``process_exit_signals()`` berechnet
+    ``compute_exit_score``/Cooldown/``_record_push``-Audit unverändert
+    weiter; der Rückgabewert ``False`` propagiert exakt wie ein Netzwerk-
+    Fehlschlag (kein Cooldown gesetzt, Retry beim nächsten Lauf).
     """
+    if not PUSH_EXIT_P1_NTFY_ENABLED:
+        return False
     if not NTFY_ENABLED or not NTFY_TOPIC:
         return False
     try:

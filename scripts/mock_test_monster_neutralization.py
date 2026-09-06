@@ -212,18 +212,27 @@ def _test_earnings_body_neutral():
         captured["data"] = k.get("data")
         return types.SimpleNamespace(status_code=200, text="ok")
 
-    # NTFY erzwingen + requests.post abfangen (kein Netz).
+    # NTFY erzwingen + requests.post abfangen (kein Netz). PUSH_EARNINGS_
+    # IMMEDIATE_NTFY_ENABLED muss hier ebenfalls erzwungen werden — seit
+    # dem Push-Gating 06.09.2026 (Easy-Entscheid, unvalidierte Trading-
+    # Pushes deaktiviert) ist der Default False und send_ntfy_alert() würde
+    # sonst als No-Op vor dem Body-Aufbau zurückkehren. Dieser Test prüft
+    # NUR den Body-Inhalt (Monster-Neutralisierung), nicht das Push-Gating
+    # selbst — das hat einen eigenen Test in mock_test_push_gating_unvalidated.py.
     _orig_post = ka.requests.post
     _orig_en, _orig_topic = ka.NTFY_ENABLED, ka.NTFY_TOPIC
+    _orig_gate = ka.PUSH_EARNINGS_IMMEDIATE_NTFY_ENABLED
     try:
         ka.requests.post = _fake_post
         ka.NTFY_ENABLED = True
         ka.NTFY_TOPIC = "test_topic"
+        ka.PUSH_EARNINGS_IMMEDIATE_NTFY_ENABLED = True
         ka.send_ntfy_alert("TSLA", 80, ["driver1"],
                            production_score=72.0, monster_score=95.0)
     finally:
         ka.requests.post = _orig_post
         ka.NTFY_ENABLED, ka.NTFY_TOPIC = _orig_en, _orig_topic
+        ka.PUSH_EARNINGS_IMMEDIATE_NTFY_ENABLED = _orig_gate
 
     body = (captured.get("data") or b"").decode("utf-8") if isinstance(
         captured.get("data"), (bytes, bytearray)) else str(captured.get("data"))

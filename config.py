@@ -1385,6 +1385,27 @@ SEC_HEADERS    = {"User-Agent": "Easy Webb easywebb@yahoo.de"}
 NTFY_TOPIC   = os.environ.get("NTFY_TOPIC", "")
 NTFY_ENABLED = True
 
+# ── Push-Gating: unvalidierte Trading-Signal-Pushes (Easy-Entscheid 06.09.2026) ──
+# Solange keine der zugrundeliegenden Scores/Trigger eine bewiesene Edge hat
+# (siehe SCORE_STATUS_LABELS — durchgängig "unvalidiert" / "heuristisch" /
+# "OoS-kollabiert" / "OoS falsifiziert"), soll nichts davon als Handlungs-
+# aufforderung aufs Handy kommen. Reine SENDE-Gates — jeder Sender prüft sein
+# Flag als ALLERERSTES und returnt dann ohne HTTP-Call. Die zugrundeliegende
+# Berechnung/Persistierung (push_history, agent_signals, exit_state,
+# score_inflation_log, backtest_history etc.) läuft UNVERÄNDERT weiter, für
+# eine spätere Edge-Validierung. Rückweg: einzelnes Flag (oder alle) auf
+# True zurücksetzen — keine Logik-Änderung nötig, reiner Flag-Flip.
+#
+# NICHT betroffen (Infrastruktur-/Housekeeping-Pushes, keine Trading-
+# Handlungsaufforderung — eigene, unveränderte ENABLED-Flags weiter unten):
+# Health-Check-Digest, HTML-Sanity-CRIT-Notfallnetz, Status-Review-Wecker,
+# Lit-Check-Reminder.
+PUSH_EARNINGS_IMMEDIATE_NTFY_ENABLED = False  # 1) Earnings-Sofort-Alert (ki_agent.send_ntfy_alert)
+PUSH_EXIT_P2_NTFY_ENABLED            = False  # 2) Exit Phase 2, beide Kanäle (ki_agent._send_exit_p2_push)
+PUSH_ANOMALY_NTFY_ENABLED            = False  # 3) alle 7 Anomalie-Trigger inkl. conviction_high (ki_agent._send_anomaly_ntfy)
+PUSH_EXIT_P1_NTFY_ENABLED            = False  # 4) Exit Phase 1, exit_alert + profit_take (generate_report._send_exit_ntfy)
+PUSH_ALERT_LEGACY_NTFY_ENABLED       = False  # 5) Legacy Alert-Monitor (alert.send_ntfy_alert) — bereits faktisch tot, formal mit
+
 # ── Lit-Check-Reminder (wöchentlicher Freitags-Ping, KEIN Trade-Bezug) ────────
 # Eigenständiger standalone-Push (scripts/lit_reminder.py + lit_reminder.yml),
 # der komplett AUSSERHALB der Trade-Push-Pipeline läuft: kein Cooldown, kein
