@@ -23,7 +23,7 @@ from zoneinfo import ZoneInfo
 import requests
 import yfinance as yf
 
-from config import NTFY_ENABLED, NTFY_TOPIC
+from config import NTFY_ENABLED, NTFY_TOPIC, PUSH_ALERT_LEGACY_NTFY_ENABLED
 
 # ---------------------------------------------------------------------------
 # Alarm-Schwellenwerte — hier konfigurieren, nirgendwo sonst
@@ -372,7 +372,19 @@ def send_ntfy_alert(ticker: str, score: int, drivers) -> None:
 
     ``drivers`` darf ``list[str]`` oder ``str`` sein. Topic leer oder
     ``NTFY_ENABLED=False`` → no-op (graceful skip).
+
+    ``PUSH_ALERT_LEGACY_NTFY_ENABLED=False`` (Easy-Entscheid 06.09.2026,
+    Push-Gating unvalidierter Trading-Signale) → no-op, KEIN HTTP-Call.
+    Dieses Modul ist ohnehin faktisch stillgelegt (``alert.yml`` hat seit
+    längerem keinen Cron mehr, nur ``workflow_dispatch``) — das Flag wird
+    der Vollständigkeit halber trotzdem formal gesetzt. ``trigger_alert()``
+    ruft diese Funktion unverändert auf (Rückgabewert wird dort ohnehin
+    nicht ausgewertet); die parallele E-Mail (``send_alert_email``) und
+    ``baseline.json``/``last_alert.json``-Persistenz sind von diesem Flag
+    NICHT betroffen.
     """
+    if not PUSH_ALERT_LEGACY_NTFY_ENABLED:
+        return
     if not NTFY_ENABLED or not NTFY_TOPIC:
         return
     if isinstance(drivers, list):

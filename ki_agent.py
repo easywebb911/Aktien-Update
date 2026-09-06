@@ -1875,7 +1875,15 @@ def send_ntfy_alert(ticker: str, ki_score: int, drivers,
     fehlgelesen. Signatur bleibt für Aufrufer-Kompatibilität erhalten.
 
     Topic leer oder ``NTFY_ENABLED=False`` → no-op (graceful skip).
+
+    ``PUSH_EARNINGS_IMMEDIATE_NTFY_ENABLED=False`` (Easy-Entscheid 06.09.2026,
+    Push-Gating unvalidierter Trading-Signale) → no-op, KEIN HTTP-Call. Die
+    Aufrufstelle (Earnings-Sofort-Pfad in ``main()``) berechnet weiterhin
+    Auslöse-Bedingung + ``_record_push``-Audit-Eintrag unverändert — nur der
+    Versand selbst entfällt.
     """
+    if not PUSH_EARNINGS_IMMEDIATE_NTFY_ENABLED:
+        return
     if not NTFY_ENABLED or not NTFY_TOPIC:
         return
     if isinstance(drivers, list):
@@ -2274,7 +2282,20 @@ def process_exit_signals(app_data: dict, state: dict,
 
 
 def _send_anomaly_ntfy(ticker: str, body: str) -> bool:
-    """Single-shot ntfy.sh Push für Anomalie-Trigger. Fail-soft."""
+    """Single-shot ntfy.sh Push für Anomalie-Trigger. Fail-soft.
+
+    ``PUSH_ANOMALY_NTFY_ENABLED=False`` (Easy-Entscheid 06.09.2026, Push-
+    Gating unvalidierter Trading-Signale) → no-op, KEIN HTTP-Call — gilt für
+    ALLE 7 Anomalie-Trigger inkl. ``conviction_high`` (das ist NICHT das
+    separate Conviction-Gating aus ``ANOMALY_CONVICTION_MIN_THRESHOLD``,
+    sondern ein zusätzlicher, davor liegender Master-Schalter). Der Aufrufer
+    (``detect_anomalies()``-Loop in ``main()``) berechnet Trigger/Cooldown/
+    ``_record_push``-Audit unverändert weiter — der Rückgabewert ``False``
+    propagiert exakt wie ein Netzwerk-Fehlschlag (kein Cooldown gesetzt,
+    Retry beim nächsten Tick), keine separate Code-Verzweigung nötig.
+    """
+    if not PUSH_ANOMALY_NTFY_ENABLED:
+        return False
     if not NTFY_ENABLED or not NTFY_TOPIC:
         return False
     try:
@@ -2310,7 +2331,18 @@ def _send_exit_p2_push(ticker: str, body: str, severity: str = "trigger") -> boo
 
     Fail-soft: bei NTFY-Disabled oder POST-Fehler returnt False, der
     Aufrufer setzt dann KEINEN Cooldown — nächster Tick versucht erneut.
+
+    ``PUSH_EXIT_P2_NTFY_ENABLED=False`` (Easy-Entscheid 06.09.2026, Push-
+    Gating unvalidierter Trading-Signale) → no-op, KEIN HTTP-Call — gilt für
+    BEIDE Kanäle (Bundle/Warnung UND Eskalation, beide rufen diese Funktion).
+    ``process_exit_signals()`` berechnet ``exit_state``/Dedupe-Flanken/
+    ``_record_push``-Audit unverändert weiter; der Rückgabewert ``False``
+    propagiert exakt wie ein Netzwerk-Fehlschlag (Flanke bleibt offen,
+    kein ``esc_alerted``/``last_push_date``-Fortschritt, Retry beim
+    nächsten Tick) — keine separate Code-Verzweigung nötig.
     """
+    if not PUSH_EXIT_P2_NTFY_ENABLED:
+        return False
     if not NTFY_ENABLED or not NTFY_TOPIC:
         return False
     if severity == "escalation":
@@ -3511,8 +3543,13 @@ def main() -> None:
                     # send_ntfy_alert returnt None — Success-Proxy aus
                     # ntfy-Config (POST-Fehler werden dort nur geloggt,
                     # nicht propagiert; akzeptierter Drift gegenüber den
-                    # bool-returnenden Sendern).
-                    _ok = bool(NTFY_ENABLED and NTFY_TOPIC)
+                    # bool-returnenden Sendern). PUSH_EARNINGS_IMMEDIATE_
+                    # NTFY_ENABLED muss hier explizit mit rein, weil
+                    # send_ntfy_alert() selbst keinen Erfolgs-Wert
+                    # zurückgibt, an dem der Gate sonst automatisch
+                    # sichtbar würde (Push-Gating 06.09.2026).
+                    _ok = bool(NTFY_ENABLED and NTFY_TOPIC
+                              and PUSH_EARNINGS_IMMEDIATE_NTFY_ENABLED)
                     body = (f"{ticker} Earnings-Sofort-Alert "
                             f"(in {earnings_days}d, KI {ki_sc})")
                     _record_push(state, ticker, kind="earnings_immediate",
