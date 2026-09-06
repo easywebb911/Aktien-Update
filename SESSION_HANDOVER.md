@@ -1647,6 +1647,33 @@ Der Signal-Zähler der KI-Agent-Statusleiste zählt seit 13.07. über
 Konsistent zum grünen Dot (`sc≥70`) der Statusleiste. **Load-bearing** — nicht
 löschen; bei Änderung erst Konsument (Statusleiste), dann Definition (§8p).
 
+### 7l. Push-Benachrichtigungs-Audit (06.09.2026, PR #544 gemergt)
+
+Nach vollständiger Inventur aller 9 ntfy-Push-Typen hat Easy entschieden,
+alle Trading-Handlungsaufforderungen abzuschalten, bis eine Edge tatsächlich
+validiert ist. **Deaktiviert** (Flags in `config.py`, Default `False`):
+Earnings-Sofort-Alert, Exit-Signale Phase 2 (beide Kanäle: Bundle/Warnung +
+Eskalation), Anomalie-Trigger komplett (alle 7 Untertypen inkl.
+`conviction_high`), Exit-Signale Phase 1 (beide Untertypen), Legacy
+Alert-Monitor (`alert.py`, bereits praktisch stillgelegt). **Weiterhin
+aktiv, unverändert:** Health-Check-Digest, HTML-Sanity-CRIT-Notfallnetz,
+Lit-Check Weekly Reminder, Status-Review-Wecker — reine Infrastruktur/
+Housekeeping ohne Trading-Bezug.
+
+**Wichtig:** nur der ntfy-Versand ist unterbunden, die zugrundeliegende
+Berechnung/Persistierung (`push_history`, Score, Exit-Pressure,
+Anomalie-Erkennung) läuft unverändert weiter — keine Datenverluste für
+eine spätere Edge-Validierung. **Rückweg:** die 5 neuen Flags in
+`config.py` zurück auf `True` setzen, kein Code-Umbau nötig.
+
+**Auslöser der Entscheidung:** 94,6 % der Anomalie-Events wurden zwar
+ohnehin schon gegatet (Diagnose-Stichprobe aus `push_history`, n=56 Events
+über ~36 Tage, Session-Inventur 06.09.2026 vor PR #544 — nicht separat als
+Skript/Artefakt im Repo abgelegt), aber der einzige durchkommende Typ
+(`conviction_high`) war fälschlich als „KAUFSIGNAL" beschriftet, obwohl
+Conviction laut eigenem Status-Label unvalidiert ist — widersprach der
+Projekt-Ehrlichkeitsregel.
+
 ---
 
 ## 8) LESSONS
