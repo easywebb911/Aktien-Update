@@ -1,5 +1,5 @@
 {
-  "last_run": "2026-09-08T01:30:48.145957+02:00",
+  "last_run": "2026-09-08T01:35:23.134573+02:00",
   "cooldowns": {
     "anomaly_score_jump_XRX": "2026-05-03T18:47:15.315486+02:00",
     "anomaly_uoa_extreme_TDOC": "2026-05-04T13:47:00.365949+02:00",
@@ -1316,12 +1316,12 @@
   "prev_conviction_scores": {
     "TYRA": 72.0,
     "CURV": 67.0,
-    "WOOF": 66.0,
     "METC": 51.0,
+    "WOOF": 64.0,
     "CHPT": 63.0,
+    "MNRO": 63.0,
     "RXRX": 55.0,
     "GPRO": 41.0,
-    "MNRO": 61.0,
     "SHOE": 53.0,
     "EVGO": 53.0,
     "WOLF": 43.0,

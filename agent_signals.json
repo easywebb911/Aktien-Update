@@ -1,10 +1,10 @@
 {
-  "updated": "2026-09-08T01:30:45.736898+02:00",
+  "updated": "2026-09-08T01:35:21.320249+02:00",
   "run_info": {
     "tickers_checked": 15,
-    "signals_active": 2,
+    "signals_active": 4,
     "alerts_sent": 0,
-    "elapsed_s": 30.8,
+    "elapsed_s": 25.3,
     "market_phase": "After-Hours"
   },
   "signals": {
@@ -164,9 +164,9 @@
       "uoa_cp_ratio": 3.9406175771971497
     },
     "METC": {
-      "score": 35,
-      "confidence": 33,
-      "drivers": "Spanne 6.8% + News: short interest + UOA Call/Put 5.4×",
+      "score": 45,
+      "confidence": 70,
+      "drivers": "Spanne 6.8% + News: short interest + SEC Form 4 + UOA Call/Put 5.3×",
       "price": 13.2,
       "chg_pct": -0.0,
       "rvol_4d": 0.95,
@@ -181,15 +181,15 @@
       "ki_sentiment_source": "keyword",
       "uoa_score": 10,
       "uoa_drivers": [
-        "UOA Call/Put 5.4×"
+        "UOA Call/Put 5.3×"
       ],
       "uoa_atm_ratio": 0.27113309352517984,
-      "uoa_cp_ratio": 5.366935483870968
+      "uoa_cp_ratio": 5.298387096774194
     },
     "MNRO": {
-      "score": 50,
+      "score": 43,
       "confidence": 70,
-      "drivers": "Spanne 7.1% + News: buyout + FINRA Short-Vol 52% + UOA Call/Put 3.6×",
+      "drivers": "Spanne 7.1% + News-KI 8/30: Negative analyst sentiment and avoidance recommendations indicate weak investor interest, poor momentum, and low likelih + FINRA Short-Vol 52% + UOA Call/Put 3.6×",
       "price": 13.29,
       "chg_pct": -0.0,
       "rvol_4d": 1.34,
@@ -200,8 +200,8 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 1,
-      "ki_sentiment_source": "keyword",
+      "active_triggers": 0,
+      "ki_sentiment_source": "llm",
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 3.6×"
@@ -233,9 +233,9 @@
       "uoa_cp_ratio": 2.8043478260869565
     },
     "RXRX": {
-      "score": 61,
+      "score": 72,
       "confidence": 70,
-      "drivers": "Volumen 2.2× + Spanne 8.5% + News: short interest, catalyst",
+      "drivers": "Volumen 2.2× + Spanne 8.5% + News: short interest, catalyst + SEC Form 4",
       "price": 3.63,
       "chg_pct": 0.0,
       "rvol_4d": 2.24,
@@ -254,13 +254,13 @@
       "uoa_cp_ratio": 1.1170858629661753
     },
     "SHOE": {
-      "score": 35,
-      "confidence": 33,
-      "drivers": "Earnings in 3 Tagen (10.09.2026) + Spanne 6.3% + Earnings in 3d",
+      "score": 25,
+      "confidence": 17,
+      "drivers": "Earnings in 3 Tagen (10.09.2026) + Earnings in 3d",
       "price": 14.07,
-      "chg_pct": -0.0,
-      "rvol_4d": 0.76,
-      "rvol_20d": 1.46,
+      "chg_pct": 0.0,
+      "rvol_4d": 0.0,
+      "rvol_20d": null,
       "earnings": "in 3 Tagen (10.09.2026)",
       "fda_date": null,
       "upcoming_event": "Earnings in 3 Tagen (10.09.2026)",
@@ -275,9 +275,9 @@
       "uoa_cp_ratio": 1.45
     },
     "TYRA": {
-      "score": 55,
+      "score": 74,
       "confidence": 70,
-      "drivers": "Volumen 3.7× + ⚡ Extremes Volumen 3.7×+ + Spanne 20.6% + UOA Call/Put 5.7×",
+      "drivers": "Volumen 3.7× + ⚡ Extremes Volumen 3.7×+ + Spanne 20.6% + News-KI 12/30: Biotech stock with positive trial catalyst showing short-term momentum, but significant investor skepticism and dependen + UOA Call/Put 5.7×",
       "price": 28.65,
       "chg_pct": -0.0,
       "rvol_4d": 3.69,
@@ -287,9 +287,9 @@
       "upcoming_event": null,
       "insider_buy": false,
       "stocktwits": null,
-      "combo_mult": 1.0,
-      "active_triggers": 1,
-      "ki_sentiment_source": "keyword",
+      "combo_mult": 1.1,
+      "active_triggers": 2,
+      "ki_sentiment_source": "llm",
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 5.7×"
