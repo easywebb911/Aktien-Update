@@ -1,10 +1,10 @@
 {
-  "updated": "2026-09-07T22:35:13.652467+02:00",
+  "updated": "2026-09-08T01:30:45.736898+02:00",
   "run_info": {
     "tickers_checked": 15,
-    "signals_active": 3,
+    "signals_active": 2,
     "alerts_sent": 0,
-    "elapsed_s": 30.1,
+    "elapsed_s": 30.8,
     "market_phase": "After-Hours"
   },
   "signals": {
@@ -53,9 +53,9 @@
       "uoa_cp_ratio": 0.7382605991499949
     },
     "CURV": {
-      "score": 78,
+      "score": 70,
       "confidence": 70,
-      "drivers": "Volumen 10.6× + 🚀 Massives Volumen 10.6×+ + Spanne 17.9% + News-KI 8/30: Negative earnings miss and revenue shortfall indicate weak fundamentals, reducing short-squeeze potential despite possib + SEC Form 4 + UOA Call/Put 108.0×",
+      "drivers": "Volumen 10.6× + 🚀 Massives Volumen 10.6×+ + Spanne 17.9% + SEC Form 4 + UOA Call/Put 108.0×",
       "price": 2.44,
       "chg_pct": 0.0,
       "rvol_4d": 10.63,
@@ -67,7 +67,7 @@
       "stocktwits": null,
       "combo_mult": 1.0,
       "active_triggers": 1,
-      "ki_sentiment_source": "llm",
+      "ki_sentiment_source": "keyword",
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 108.0×"
@@ -99,7 +99,7 @@
     "GPRO": {
       "score": 50,
       "confidence": 70,
-      "drivers": "Spanne 43.2% + News: merger, analyst upgrade + SEC Form 4",
+      "drivers": "Spanne 43.2% + News: analyst upgrade, merger + SEC Form 4",
       "price": 1.7,
       "chg_pct": 0.0,
       "rvol_4d": 0.96,
@@ -164,9 +164,9 @@
       "uoa_cp_ratio": 3.9406175771971497
     },
     "METC": {
-      "score": 45,
-      "confidence": 70,
-      "drivers": "Spanne 6.8% + News: short interest + SEC Form 4 + UOA Call/Put 5.4×",
+      "score": 35,
+      "confidence": 33,
+      "drivers": "Spanne 6.8% + News: short interest + UOA Call/Put 5.4×",
       "price": 13.2,
       "chg_pct": -0.0,
       "rvol_4d": 0.95,
@@ -233,9 +233,9 @@
       "uoa_cp_ratio": 2.8043478260869565
     },
     "RXRX": {
-      "score": 72,
+      "score": 61,
       "confidence": 70,
-      "drivers": "Volumen 2.2× + Spanne 8.5% + News: short interest, catalyst + SEC Form 4",
+      "drivers": "Volumen 2.2× + Spanne 8.5% + News: short interest, catalyst",
       "price": 3.63,
       "chg_pct": 0.0,
       "rvol_4d": 2.24,
