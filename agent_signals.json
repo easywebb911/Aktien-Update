@@ -1,17 +1,17 @@
 {
-  "updated": "2026-09-07T14:36:36.037331+02:00",
+  "updated": "2026-09-07T18:28:02.935587+02:00",
   "run_info": {
     "tickers_checked": 15,
-    "signals_active": 3,
+    "signals_active": 2,
     "alerts_sent": 0,
-    "elapsed_s": 33.8,
-    "market_phase": "Pre-Market"
+    "elapsed_s": 21.0,
+    "market_phase": "Regulär"
   },
   "signals": {
     "AMC": {
-      "score": 86,
+      "score": 63,
       "confidence": 70,
-      "drivers": "Volumen 3.0× + ⚡ Extremes Volumen 3.0×+ + Spanne 8.0% + News: halt + Earnings in 43d + UOA Call/Put 14.6×",
+      "drivers": "Volumen 3.0× + ⚡ Extremes Volumen 3.0×+ + Spanne 8.0% + Earnings in 43d + UOA Call/Put 14.6×",
       "price": 2.65,
       "chg_pct": 0.0,
       "rvol_4d": 3.04,
@@ -21,8 +21,8 @@
       "upcoming_event": null,
       "insider_buy": false,
       "stocktwits": null,
-      "combo_mult": 1.1,
-      "active_triggers": 2,
+      "combo_mult": 1.0,
+      "active_triggers": 1,
       "ki_sentiment_source": "keyword",
       "uoa_score": 10,
       "uoa_drivers": [
@@ -32,9 +32,9 @@
       "uoa_cp_ratio": 14.630569655950367
     },
     "CHPT": {
-      "score": 28,
+      "score": 25,
       "confidence": 33,
-      "drivers": "Spanne 11.0% + News-KI 18/30: Positive momentum and analyst attention present, but mixed guidance and weak EV sector demand fundamentally undermine sh",
+      "drivers": "Spanne 11.0% + News: earnings beat",
       "price": 9.89,
       "chg_pct": 0.0,
       "rvol_4d": 1.14,
@@ -46,7 +46,7 @@
       "stocktwits": null,
       "combo_mult": 1.0,
       "active_triggers": 1,
-      "ki_sentiment_source": "llm",
+      "ki_sentiment_source": "keyword",
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": 0.97559541311379,
@@ -76,9 +76,9 @@
       "uoa_cp_ratio": 108.0
     },
     "EVGO": {
-      "score": 25,
+      "score": 18,
       "confidence": 33,
-      "drivers": "Spanne 7.2% + News: revenue beat",
+      "drivers": "Spanne 7.2% + News-KI 8/30: Moderate positive sentiment with earnings beat, but no significant short squeeze indicators like extreme short interest,",
       "price": 1.51,
       "chg_pct": -0.0,
       "rvol_4d": 1.32,
@@ -89,17 +89,17 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 1,
-      "ki_sentiment_source": "keyword",
+      "active_triggers": 0,
+      "ki_sentiment_source": "llm",
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": 0.23059866962305986,
       "uoa_cp_ratio": 1.8484848484848484
     },
     "GPRO": {
-      "score": 40,
-      "confidence": 33,
-      "drivers": "Spanne 43.2% + News: merger, analyst upgrade",
+      "score": 50,
+      "confidence": 70,
+      "drivers": "Spanne 43.2% + News: analyst upgrade, merger + SEC Form 4",
       "price": 1.7,
       "chg_pct": 0.0,
       "rvol_4d": 0.96,
@@ -166,7 +166,7 @@
     "METC": {
       "score": 45,
       "confidence": 70,
-      "drivers": "Spanne 6.8% + News: short interest + SEC Form 4 + UOA Call/Put 5.3×",
+      "drivers": "Spanne 6.8% + News: short interest + SEC Form 4 + UOA Call/Put 5.4×",
       "price": 13.2,
       "chg_pct": -0.0,
       "rvol_4d": 0.95,
@@ -181,15 +181,15 @@
       "ki_sentiment_source": "keyword",
       "uoa_score": 10,
       "uoa_drivers": [
-        "UOA Call/Put 5.3×"
+        "UOA Call/Put 5.4×"
       ],
       "uoa_atm_ratio": 0.27113309352517984,
-      "uoa_cp_ratio": 5.298387096774194
+      "uoa_cp_ratio": 5.366935483870968
     },
     "MNRO": {
-      "score": 43,
+      "score": 40,
       "confidence": 70,
-      "drivers": "Spanne 7.1% + News-KI 8/30: Negative analyst sentiment and avoidance recommendations suggest weak institutional interest, reducing short-squeeze pot + FINRA Short-Vol 52% + UOA Call/Put 3.6×",
+      "drivers": "Spanne 7.1% + News-KI 5/30: Negative analyst sentiment and avoidance recommendations indicate weak investor interest, making a short squeeze unlikel + FINRA Short-Vol 52% + UOA Call/Put 3.6×",
       "price": 13.29,
       "chg_pct": -0.0,
       "rvol_4d": 1.34,
@@ -235,7 +235,7 @@
     "RXRX": {
       "score": 72,
       "confidence": 70,
-      "drivers": "Volumen 2.2× + Spanne 8.5% + News: catalyst, short interest + SEC Form 4",
+      "drivers": "Volumen 2.2× + Spanne 8.5% + News: short interest, catalyst + SEC Form 4",
       "price": 3.63,
       "chg_pct": 0.0,
       "rvol_4d": 2.24,
