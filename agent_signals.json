@@ -1,17 +1,17 @@
 {
-  "updated": "2026-09-07T18:28:02.935587+02:00",
+  "updated": "2026-09-07T22:35:13.652467+02:00",
   "run_info": {
     "tickers_checked": 15,
-    "signals_active": 2,
+    "signals_active": 3,
     "alerts_sent": 0,
-    "elapsed_s": 21.0,
-    "market_phase": "Regulär"
+    "elapsed_s": 30.1,
+    "market_phase": "After-Hours"
   },
   "signals": {
     "AMC": {
-      "score": 63,
+      "score": 86,
       "confidence": 70,
-      "drivers": "Volumen 3.0× + ⚡ Extremes Volumen 3.0×+ + Spanne 8.0% + Earnings in 43d + UOA Call/Put 14.6×",
+      "drivers": "Volumen 3.0× + ⚡ Extremes Volumen 3.0×+ + Spanne 8.0% + News: halt + Earnings in 43d + UOA Call/Put 14.6×",
       "price": 2.65,
       "chg_pct": 0.0,
       "rvol_4d": 3.04,
@@ -21,8 +21,8 @@
       "upcoming_event": null,
       "insider_buy": false,
       "stocktwits": null,
-      "combo_mult": 1.0,
-      "active_triggers": 1,
+      "combo_mult": 1.1,
+      "active_triggers": 2,
       "ki_sentiment_source": "keyword",
       "uoa_score": 10,
       "uoa_drivers": [
@@ -53,9 +53,9 @@
       "uoa_cp_ratio": 0.7382605991499949
     },
     "CURV": {
-      "score": 70,
+      "score": 78,
       "confidence": 70,
-      "drivers": "Volumen 10.6× + 🚀 Massives Volumen 10.6×+ + Spanne 17.9% + SEC Form 4 + UOA Call/Put 108.0×",
+      "drivers": "Volumen 10.6× + 🚀 Massives Volumen 10.6×+ + Spanne 17.9% + News-KI 8/30: Negative earnings miss and revenue shortfall indicate weak fundamentals, reducing short-squeeze potential despite possib + SEC Form 4 + UOA Call/Put 108.0×",
       "price": 2.44,
       "chg_pct": 0.0,
       "rvol_4d": 10.63,
@@ -67,7 +67,7 @@
       "stocktwits": null,
       "combo_mult": 1.0,
       "active_triggers": 1,
-      "ki_sentiment_source": "keyword",
+      "ki_sentiment_source": "llm",
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 108.0×"
@@ -76,9 +76,9 @@
       "uoa_cp_ratio": 108.0
     },
     "EVGO": {
-      "score": 18,
+      "score": 25,
       "confidence": 33,
-      "drivers": "Spanne 7.2% + News-KI 8/30: Moderate positive sentiment with earnings beat, but no significant short squeeze indicators like extreme short interest,",
+      "drivers": "Spanne 7.2% + News: revenue beat",
       "price": 1.51,
       "chg_pct": -0.0,
       "rvol_4d": 1.32,
@@ -89,8 +89,8 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 0,
-      "ki_sentiment_source": "llm",
+      "active_triggers": 1,
+      "ki_sentiment_source": "keyword",
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": 0.23059866962305986,
@@ -99,7 +99,7 @@
     "GPRO": {
       "score": 50,
       "confidence": 70,
-      "drivers": "Spanne 43.2% + News: analyst upgrade, merger + SEC Form 4",
+      "drivers": "Spanne 43.2% + News: merger, analyst upgrade + SEC Form 4",
       "price": 1.7,
       "chg_pct": 0.0,
       "rvol_4d": 0.96,
@@ -187,9 +187,9 @@
       "uoa_cp_ratio": 5.366935483870968
     },
     "MNRO": {
-      "score": 40,
+      "score": 50,
       "confidence": 70,
-      "drivers": "Spanne 7.1% + News-KI 5/30: Negative analyst sentiment and avoidance recommendations indicate weak investor interest, making a short squeeze unlikel + FINRA Short-Vol 52% + UOA Call/Put 3.6×",
+      "drivers": "Spanne 7.1% + News: buyout + FINRA Short-Vol 52% + UOA Call/Put 3.6×",
       "price": 13.29,
       "chg_pct": -0.0,
       "rvol_4d": 1.34,
@@ -200,8 +200,8 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 0,
-      "ki_sentiment_source": "llm",
+      "active_triggers": 1,
+      "ki_sentiment_source": "keyword",
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 3.6×"
@@ -321,9 +321,9 @@
       "uoa_cp_ratio": 2.809917355371901
     },
     "WOOF": {
-      "score": 35,
+      "score": 20,
       "confidence": 33,
-      "drivers": "Spanne 12.3% + News: earnings beat + UOA Call/Put 3.3×",
+      "drivers": "Spanne 12.3% + UOA Call/Put 3.3×",
       "price": 2.7,
       "chg_pct": 0.0,
       "rvol_4d": 1.28,
@@ -334,7 +334,7 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 1,
+      "active_triggers": 0,
       "ki_sentiment_source": "keyword",
       "uoa_score": 10,
       "uoa_drivers": [
