@@ -1,10 +1,10 @@
 {
-  "updated": "2026-09-08T11:42:15.898594+02:00",
+  "updated": "2026-09-08T13:22:13.412747+02:00",
   "run_info": {
     "tickers_checked": 15,
-    "signals_active": 3,
+    "signals_active": 2,
     "alerts_sent": 0,
-    "elapsed_s": 25.5,
+    "elapsed_s": 27.9,
     "market_phase": "Pre-Market"
   },
   "signals": {
@@ -28,7 +28,7 @@
       "uoa_drivers": [
         "UOA Call/Put 14.6×"
       ],
-      "uoa_atm_ratio": null,
+      "uoa_atm_ratio": 0.9832826747720365,
       "uoa_cp_ratio": 14.630569655950367
     },
     "CHPT": {
@@ -49,13 +49,13 @@
       "ki_sentiment_source": "keyword",
       "uoa_score": 0,
       "uoa_drivers": [],
-      "uoa_atm_ratio": null,
+      "uoa_atm_ratio": 1.05,
       "uoa_cp_ratio": 0.7382605991499949
     },
     "CURV": {
-      "score": 70,
+      "score": 78,
       "confidence": 70,
-      "drivers": "Volumen 10.6× + 🚀 Massives Volumen 10.6×+ + Spanne 17.9% + SEC Form 4 + UOA Call/Put 108.0×",
+      "drivers": "Volumen 10.6× + 🚀 Massives Volumen 10.6×+ + Spanne 17.9% + News-KI 8/30: Negative earnings miss with revenue shortfall and tariff concerns suggest weak fundamentals and institutional selling pr + SEC Form 4 + UOA Call/Put 108.0×",
       "price": 2.44,
       "chg_pct": 0.0,
       "rvol_4d": 10.63,
@@ -67,18 +67,18 @@
       "stocktwits": null,
       "combo_mult": 1.0,
       "active_triggers": 1,
-      "ki_sentiment_source": "keyword",
+      "ki_sentiment_source": "llm",
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 108.0×"
       ],
-      "uoa_atm_ratio": null,
+      "uoa_atm_ratio": 1.0,
       "uoa_cp_ratio": 108.0
     },
     "EVGO": {
-      "score": 22,
+      "score": 25,
       "confidence": 33,
-      "drivers": "Spanne 7.2% + News-KI 12/30: Moderate positive sentiment but no short squeeze indicators present; generic earnings coverage without unusual short int",
+      "drivers": "Spanne 7.2% + News: revenue beat",
       "price": 1.51,
       "chg_pct": -0.0,
       "rvol_4d": 1.32,
@@ -90,16 +90,16 @@
       "stocktwits": null,
       "combo_mult": 1.0,
       "active_triggers": 1,
-      "ki_sentiment_source": "llm",
+      "ki_sentiment_source": "keyword",
       "uoa_score": 0,
       "uoa_drivers": [],
-      "uoa_atm_ratio": null,
+      "uoa_atm_ratio": 0.19622641509433963,
       "uoa_cp_ratio": 1.8484848484848484
     },
     "GPRO": {
       "score": 50,
       "confidence": 70,
-      "drivers": "Spanne 43.2% + News: merger, analyst upgrade + SEC Form 4",
+      "drivers": "Spanne 43.2% + News: analyst upgrade, merger + SEC Form 4",
       "price": 1.7,
       "chg_pct": 0.0,
       "rvol_4d": 0.96,
@@ -137,7 +137,7 @@
       "uoa_drivers": [
         "UOA Call/Put 3.5×"
       ],
-      "uoa_atm_ratio": null,
+      "uoa_atm_ratio": 0.6594533783336642,
       "uoa_cp_ratio": 3.4603993717747366
     },
     "KSS": {
@@ -160,13 +160,13 @@
       "uoa_drivers": [
         "UOA Call/Put 3.9×"
       ],
-      "uoa_atm_ratio": null,
+      "uoa_atm_ratio": 0.32549268912905277,
       "uoa_cp_ratio": 3.9406175771971497
     },
     "METC": {
-      "score": 45,
+      "score": 38,
       "confidence": 70,
-      "drivers": "Spanne 6.8% + News: short interest + SEC Form 4 + UOA Call/Put 5.3×",
+      "drivers": "Spanne 6.8% + News-KI 8/30: Analyst disagreement and management media appearances suggest uncertainty rather than bullish conviction; no significant + SEC Form 4 + UOA Call/Put 5.3×",
       "price": 13.2,
       "chg_pct": -0.0,
       "rvol_4d": 0.95,
@@ -177,19 +177,19 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 1,
-      "ki_sentiment_source": "keyword",
+      "active_triggers": 0,
+      "ki_sentiment_source": "llm",
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 5.3×"
       ],
-      "uoa_atm_ratio": null,
+      "uoa_atm_ratio": 0.23637789102312817,
       "uoa_cp_ratio": 5.298387096774194
     },
     "MNRO": {
-      "score": 43,
+      "score": 50,
       "confidence": 70,
-      "drivers": "Spanne 7.1% + News-KI 8/30: Negative analyst coverage and avoidance recommendations indicate weak sentiment with low short-squeeze potential despite + FINRA Short-Vol 52% + UOA Call/Put 3.6×",
+      "drivers": "Spanne 7.1% + News: buyout + FINRA Short-Vol 52% + UOA Call/Put 3.6×",
       "price": 13.29,
       "chg_pct": -0.0,
       "rvol_4d": 1.34,
@@ -200,13 +200,13 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 0,
-      "ki_sentiment_source": "llm",
+      "active_triggers": 1,
+      "ki_sentiment_source": "keyword",
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 3.6×"
       ],
-      "uoa_atm_ratio": null,
+      "uoa_atm_ratio": 0.20270270270270271,
       "uoa_cp_ratio": 3.5789473684210527
     },
     "PDYN": {
@@ -229,13 +229,13 @@
       "uoa_drivers": [
         "UOA Call/Put 2.8×"
       ],
-      "uoa_atm_ratio": null,
+      "uoa_atm_ratio": 0.0639269406392694,
       "uoa_cp_ratio": 2.8043478260869565
     },
     "RXRX": {
       "score": 72,
       "confidence": 70,
-      "drivers": "Volumen 2.2× + Spanne 8.5% + News: catalyst, short interest + SEC Form 4",
+      "drivers": "Volumen 2.2× + Spanne 8.5% + News: short interest, catalyst + SEC Form 4",
       "price": 3.63,
       "chg_pct": 0.0,
       "rvol_4d": 2.24,
@@ -250,7 +250,7 @@
       "ki_sentiment_source": "keyword",
       "uoa_score": 0,
       "uoa_drivers": [],
-      "uoa_atm_ratio": null,
+      "uoa_atm_ratio": 0.21011673151750973,
       "uoa_cp_ratio": 1.1170858629661753
     },
     "SHOE": {
@@ -271,13 +271,13 @@
       "ki_sentiment_source": "keyword",
       "uoa_score": 0,
       "uoa_drivers": [],
-      "uoa_atm_ratio": null,
+      "uoa_atm_ratio": 0.06896551724137931,
       "uoa_cp_ratio": 1.45
     },
     "TYRA": {
-      "score": 74,
+      "score": 55,
       "confidence": 70,
-      "drivers": "Volumen 3.7× + ⚡ Extremes Volumen 3.7×+ + Spanne 20.6% + News-KI 12/30: Biotech stock with binary clinical trial catalyst showing mixed sentiment; lacks the short interest data and forced cove + UOA Call/Put 5.7×",
+      "drivers": "Volumen 3.7× + ⚡ Extremes Volumen 3.7×+ + Spanne 20.6% + UOA Call/Put 5.7×",
       "price": 28.65,
       "chg_pct": -0.0,
       "rvol_4d": 3.69,
@@ -287,14 +287,14 @@
       "upcoming_event": null,
       "insider_buy": false,
       "stocktwits": null,
-      "combo_mult": 1.1,
-      "active_triggers": 2,
-      "ki_sentiment_source": "llm",
+      "combo_mult": 1.0,
+      "active_triggers": 1,
+      "ki_sentiment_source": "keyword",
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 5.7×"
       ],
-      "uoa_atm_ratio": null,
+      "uoa_atm_ratio": 0.7463533225283631,
       "uoa_cp_ratio": 5.720502092050209
     },
     "WOLF": {
@@ -317,7 +317,7 @@
       "uoa_drivers": [
         "UOA Call/Put 2.8×"
       ],
-      "uoa_atm_ratio": null,
+      "uoa_atm_ratio": 0.9134199134199135,
       "uoa_cp_ratio": 2.809917355371901
     },
     "WOOF": {
@@ -340,7 +340,7 @@
       "uoa_drivers": [
         "UOA Call/Put 3.3×"
       ],
-      "uoa_atm_ratio": null,
+      "uoa_atm_ratio": 0.18490566037735848,
       "uoa_cp_ratio": 3.2941176470588234
     }
   }
