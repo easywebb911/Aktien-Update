@@ -1,11 +1,11 @@
 {
-  "updated": "2026-09-08T06:37:36.418828+02:00",
+  "updated": "2026-09-08T11:42:15.898594+02:00",
   "run_info": {
     "tickers_checked": 15,
-    "signals_active": 1,
+    "signals_active": 3,
     "alerts_sent": 0,
-    "elapsed_s": 19.9,
-    "market_phase": "Geschlossen"
+    "elapsed_s": 25.5,
+    "market_phase": "Pre-Market"
   },
   "signals": {
     "AMC": {
@@ -76,9 +76,9 @@
       "uoa_cp_ratio": 108.0
     },
     "EVGO": {
-      "score": 18,
+      "score": 22,
       "confidence": 33,
-      "drivers": "Spanne 7.2% + News-KI 8/30: Neutral price movement with generic earnings reporting; no significant short squeeze indicators like extreme short inter",
+      "drivers": "Spanne 7.2% + News-KI 12/30: Moderate positive sentiment but no short squeeze indicators present; generic earnings coverage without unusual short int",
       "price": 1.51,
       "chg_pct": -0.0,
       "rvol_4d": 1.32,
@@ -89,7 +89,7 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 0,
+      "active_triggers": 1,
       "ki_sentiment_source": "llm",
       "uoa_score": 0,
       "uoa_drivers": [],
@@ -99,7 +99,7 @@
     "GPRO": {
       "score": 50,
       "confidence": 70,
-      "drivers": "Spanne 43.2% + News: analyst upgrade, merger + SEC Form 4",
+      "drivers": "Spanne 43.2% + News: merger, analyst upgrade + SEC Form 4",
       "price": 1.7,
       "chg_pct": 0.0,
       "rvol_4d": 0.96,
@@ -166,7 +166,7 @@
     "METC": {
       "score": 45,
       "confidence": 70,
-      "drivers": "Spanne 6.8% + News: short interest + SEC Form 4 + UOA Call/Put 5.4×",
+      "drivers": "Spanne 6.8% + News: short interest + SEC Form 4 + UOA Call/Put 5.3×",
       "price": 13.2,
       "chg_pct": -0.0,
       "rvol_4d": 0.95,
@@ -181,15 +181,15 @@
       "ki_sentiment_source": "keyword",
       "uoa_score": 10,
       "uoa_drivers": [
-        "UOA Call/Put 5.4×"
+        "UOA Call/Put 5.3×"
       ],
       "uoa_atm_ratio": null,
-      "uoa_cp_ratio": 5.366935483870968
+      "uoa_cp_ratio": 5.298387096774194
     },
     "MNRO": {
       "score": 43,
       "confidence": 70,
-      "drivers": "Spanne 7.1% + News-KI 8/30: Negative analyst sentiment and avoidance recommendations suggest weak momentum and institutional selling pressure, poor  + FINRA Short-Vol 52% + UOA Call/Put 3.6×",
+      "drivers": "Spanne 7.1% + News-KI 8/30: Negative analyst coverage and avoidance recommendations indicate weak sentiment with low short-squeeze potential despite + FINRA Short-Vol 52% + UOA Call/Put 3.6×",
       "price": 13.29,
       "chg_pct": -0.0,
       "rvol_4d": 1.34,
@@ -233,9 +233,9 @@
       "uoa_cp_ratio": 2.8043478260869565
     },
     "RXRX": {
-      "score": 43,
+      "score": 72,
       "confidence": 70,
-      "drivers": "Volumen 2.2× + Spanne 8.5% + News-KI 8/30: Positive pipeline and partnership news, but no short squeeze indicators like high short interest, borrow difficulty, or  + SEC Form 4",
+      "drivers": "Volumen 2.2× + Spanne 8.5% + News: catalyst, short interest + SEC Form 4",
       "price": 3.63,
       "chg_pct": 0.0,
       "rvol_4d": 2.24,
@@ -245,9 +245,9 @@
       "upcoming_event": null,
       "insider_buy": false,
       "stocktwits": null,
-      "combo_mult": 1.0,
-      "active_triggers": 1,
-      "ki_sentiment_source": "llm",
+      "combo_mult": 1.1,
+      "active_triggers": 2,
+      "ki_sentiment_source": "keyword",
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": null,
@@ -275,9 +275,9 @@
       "uoa_cp_ratio": 1.45
     },
     "TYRA": {
-      "score": 55,
+      "score": 74,
       "confidence": 70,
-      "drivers": "Volumen 3.7× + ⚡ Extremes Volumen 3.7×+ + Spanne 20.6% + UOA Call/Put 5.7×",
+      "drivers": "Volumen 3.7× + ⚡ Extremes Volumen 3.7×+ + Spanne 20.6% + News-KI 12/30: Biotech stock with binary clinical trial catalyst showing mixed sentiment; lacks the short interest data and forced cove + UOA Call/Put 5.7×",
       "price": 28.65,
       "chg_pct": -0.0,
       "rvol_4d": 3.69,
@@ -287,9 +287,9 @@
       "upcoming_event": null,
       "insider_buy": false,
       "stocktwits": null,
-      "combo_mult": 1.0,
-      "active_triggers": 1,
-      "ki_sentiment_source": "keyword",
+      "combo_mult": 1.1,
+      "active_triggers": 2,
+      "ki_sentiment_source": "llm",
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 5.7×"
