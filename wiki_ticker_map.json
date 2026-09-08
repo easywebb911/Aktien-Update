@@ -422,6 +422,15 @@
     "substrate": "none",
     "reason": "no_p249"
   },
+  "ENOV": {
+    "qid": "Q2579502",
+    "title": "Enovis",
+    "resolved_at": "2026-09-08T23:26:41Z",
+    "issuer_verified": true,
+    "company_name_at_resolve": "Enovis Corporation",
+    "substrate": "en",
+    "reason": null
+  },
   "ENVX": {
     "qid": "Q124624329",
     "title": null,
@@ -446,6 +455,15 @@
     "resolved_at": "2026-07-27T22:29:48Z",
     "issuer_verified": false,
     "company_name_at_resolve": "EVgo, Inc.",
+    "substrate": "none",
+    "reason": "no_p249"
+  },
+  "EVMN": {
+    "qid": null,
+    "title": null,
+    "resolved_at": "2026-09-08T23:26:41Z",
+    "issuer_verified": false,
+    "company_name_at_resolve": "Evommune, Inc.",
     "substrate": "none",
     "reason": "no_p249"
   },
@@ -817,6 +835,15 @@
     "company_name_at_resolve": "Intellia Therapeutics, Inc.",
     "substrate": "en",
     "reason": null
+  },
+  "NUAI": {
+    "qid": null,
+    "title": null,
+    "resolved_at": "2026-09-08T23:26:41Z",
+    "issuer_verified": false,
+    "company_name_at_resolve": "New Era Energy & Digital, Inc.",
+    "substrate": "none",
+    "reason": "no_p249"
   },
   "NUWE": {
     "qid": null,
