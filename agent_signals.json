@@ -1,11 +1,11 @@
 {
-  "updated": "2026-09-09T06:48:59.479977+02:00",
+  "updated": "2026-09-09T11:47:00.777280+02:00",
   "run_info": {
     "tickers_checked": 13,
     "signals_active": 0,
     "alerts_sent": 0,
-    "elapsed_s": 15.6,
-    "market_phase": "Geschlossen"
+    "elapsed_s": 17.4,
+    "market_phase": "Pre-Market"
   },
   "signals": {
     "AI": {
@@ -32,9 +32,9 @@
       "uoa_cp_ratio": 3.475
     },
     "AMC": {
-      "score": 28,
+      "score": 40,
       "confidence": 70,
-      "drivers": "Spanne 5.7% + Earnings in 41d + UOA Call/Put 3.3×",
+      "drivers": "Spanne 5.7% + News-KI 12/30: Mixed signals with one positive partnership announcement offset by negative price action and CEO commentary that suggest + Earnings in 41d + UOA Call/Put 3.3×",
       "price": 2.56,
       "chg_pct": -0.0,
       "rvol_4d": 0.97,
@@ -45,8 +45,8 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 0,
-      "ki_sentiment_source": "keyword",
+      "active_triggers": 1,
+      "ki_sentiment_source": "llm",
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 3.3×"
@@ -122,7 +122,7 @@
     "GRPN": {
       "score": 40,
       "confidence": 17,
-      "drivers": "News: short squeeze, squeeze + UOA Call/Put 4.0×",
+      "drivers": "News: squeeze, short squeeze + UOA Call/Put 4.0×",
       "price": 18.95,
       "chg_pct": 0.0,
       "rvol_4d": 1.31,
@@ -143,9 +143,9 @@
       "uoa_cp_ratio": 4.037634408602151
     },
     "IONQ": {
-      "score": 44,
+      "score": 53,
       "confidence": 70,
-      "drivers": "Volumen 2.9× + Spanne 11.8% + SEC 8-K",
+      "drivers": "Volumen 2.9× + Spanne 11.8% + SEC 8-K + News-KI 8/30: Positive revenue guidance raise is bullish but lacks short-squeeze catalysts like high short interest, forced covering, ",
       "price": 40.47,
       "chg_pct": 0.0,
       "rvol_4d": 2.93,
@@ -157,7 +157,7 @@
       "stocktwits": null,
       "combo_mult": 1.1,
       "active_triggers": 2,
-      "ki_sentiment_source": "keyword",
+      "ki_sentiment_source": "llm",
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": null,
@@ -185,9 +185,9 @@
       "uoa_cp_ratio": 0.048
     },
     "NNE": {
-      "score": 43,
+      "score": 65,
       "confidence": 70,
-      "drivers": "Volumen 1.7× + Spanne 8.9% + News-KI 8/30: Positive fundamental developments and analyst optimism, but no clear short squeeze indicators such as high short interes + UOA Call/Put 4.4×",
+      "drivers": "Volumen 1.7× + Spanne 8.9% + News: short seller, contract + UOA Call/Put 4.4×",
       "price": 19.35,
       "chg_pct": 0.0,
       "rvol_4d": 1.71,
@@ -198,8 +198,8 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 0,
-      "ki_sentiment_source": "llm",
+      "active_triggers": 1,
+      "ki_sentiment_source": "keyword",
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 4.4×"
@@ -210,7 +210,7 @@
     "NRGV": {
       "score": 65,
       "confidence": 70,
-      "drivers": "Volumen 2.0× + Spanne 15.0% + News: contract, acquisition + UOA Call/Put 703.6×",
+      "drivers": "Volumen 2.0× + Spanne 15.0% + News: acquisition, contract + UOA Call/Put 703.6×",
       "price": 4.32,
       "chg_pct": 0.0,
       "rvol_4d": 1.96,
