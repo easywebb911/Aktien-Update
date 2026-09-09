@@ -6307,5 +6307,20 @@
       "short_pct_float": 35.6,
       "pub_date": "2026-08-25"
     }
+  ],
+  "FLNC": [
+    {
+      "settlement_date": "2026-07-15",
+      "shares_short": 26668003,
+      "short_pct_float": null,
+      "pub_date": "2026-07-24",
+      "seeded": true
+    },
+    {
+      "settlement_date": "2026-08-14",
+      "shares_short": 25445491,
+      "short_pct_float": 33.35,
+      "pub_date": "2026-08-25"
+    }
   ]
 }

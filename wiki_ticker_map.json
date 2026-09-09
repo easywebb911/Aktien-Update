@@ -152,6 +152,15 @@
     "substrate": "en",
     "reason": null
   },
+  "BAND": {
+    "qid": "Q4854759",
+    "title": "Bandwidth_Inc.",
+    "resolved_at": "2026-09-09T23:19:35Z",
+    "issuer_verified": true,
+    "company_name_at_resolve": "Bandwidth Inc.",
+    "substrate": "en",
+    "reason": null
+  },
   "BATL": {
     "qid": null,
     "title": null,
@@ -680,6 +689,15 @@
     "resolved_at": "2026-07-31T22:17:42Z",
     "issuer_verified": false,
     "company_name_at_resolve": "Infinity Natural Resources, Inc.",
+    "substrate": "none",
+    "reason": "no_p249"
+  },
+  "INSP": {
+    "qid": null,
+    "title": null,
+    "resolved_at": "2026-09-09T23:19:35Z",
+    "issuer_verified": false,
+    "company_name_at_resolve": "Inspire Medical Systems, Inc.",
     "substrate": "none",
     "reason": "no_p249"
   },
