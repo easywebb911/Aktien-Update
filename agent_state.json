@@ -1,5 +1,5 @@
 {
-  "last_run": "2026-09-10T20:29:58.331704+02:00",
+  "last_run": "2026-09-10T23:39:11.104998+02:00",
   "cooldowns": {
     "anomaly_score_jump_XRX": "2026-05-03T18:47:15.315486+02:00",
     "anomaly_uoa_extreme_TDOC": "2026-05-04T13:47:00.365949+02:00",
@@ -112,54 +112,6 @@
     "earnings_immediate_PLCE_04.09.2026": "2026-09-04T01:21:25.342435+02:00"
   },
   "push_history": [
-    {
-      "ts": "2026-08-04T23:36:28.999720+02:00",
-      "ticker": "IONQ",
-      "kind": "earnings_immediate",
-      "severity": "default",
-      "trigger": null,
-      "body": "IONQ Earnings-Sofort-Alert (in 1d, KI 55)",
-      "success": true,
-      "suppressed": false,
-      "suppress_reason": null,
-      "conviction_score": 14
-    },
-    {
-      "ts": "2026-08-05T00:33:00.169094+02:00",
-      "ticker": "LGIH",
-      "kind": "earnings_immediate",
-      "severity": "default",
-      "trigger": null,
-      "body": "LGIH Earnings-Sofort-Alert (in 0d, KI 58)",
-      "success": true,
-      "suppressed": false,
-      "suppress_reason": null,
-      "conviction_score": 78
-    },
-    {
-      "ts": "2026-08-05T00:33:00.416189+02:00",
-      "ticker": "METC",
-      "kind": "earnings_immediate",
-      "severity": "default",
-      "trigger": null,
-      "body": "METC Earnings-Sofort-Alert (in 0d, KI 72)",
-      "success": true,
-      "suppressed": false,
-      "suppress_reason": null,
-      "conviction_score": 86
-    },
-    {
-      "ts": "2026-08-05T11:07:36.091071+02:00",
-      "ticker": "IONQ",
-      "kind": "exit_p2",
-      "severity": "trigger",
-      "trigger": "catalyst,profit_lock",
-      "body": "🔻 Exit-Signale IONQ: catalyst, profit_lock crit · Warnung pressure 68/100",
-      "success": true,
-      "suppressed": false,
-      "suppress_reason": null,
-      "conviction_score": null
-    },
     {
       "ts": "2026-08-05T22:40:07.230916+02:00",
       "ticker": "PDYN",
@@ -1311,6 +1263,54 @@
       "suppressed": false,
       "suppress_reason": null,
       "conviction_score": null
+    },
+    {
+      "ts": "2026-09-10T23:39:09.125209+02:00",
+      "ticker": "INSP",
+      "kind": "anomaly",
+      "severity": "medium",
+      "trigger": "uoa_extreme",
+      "body": "INSP 🎯 UOA Vol/OI 11.8× ATM | Setup 79",
+      "success": false,
+      "suppressed": true,
+      "suppress_reason": "conviction_below_threshold",
+      "conviction_score": 51
+    },
+    {
+      "ts": "2026-09-10T23:39:09.125346+02:00",
+      "ticker": "TYRA",
+      "kind": "anomaly",
+      "severity": "medium",
+      "trigger": "score_jump",
+      "body": "TYRA 🚀 Setup 86 ↑ (gestern 71) | Spanne 11.1% + News-KI 8/30: Negative clinical data and shar…",
+      "success": false,
+      "suppressed": false,
+      "suppress_reason": null,
+      "conviction_score": 81
+    },
+    {
+      "ts": "2026-09-10T23:39:11.105084+02:00",
+      "ticker": "IONQ",
+      "kind": "exit_p2",
+      "severity": "trigger",
+      "trigger": "profit_lock,trend_break",
+      "body": "🔻 Exit-Signale IONQ: profit_lock, trend_break crit · Warnung pressure 65/100",
+      "success": false,
+      "suppressed": false,
+      "suppress_reason": null,
+      "conviction_score": null
+    },
+    {
+      "ts": "2026-09-10T23:39:11.105125+02:00",
+      "ticker": "WOLF",
+      "kind": "exit_p2",
+      "severity": "trigger",
+      "trigger": "profit_lock",
+      "body": "🔻 Exit-Signale WOLF: profit_lock crit · Warnung pressure 66/100",
+      "success": false,
+      "suppressed": false,
+      "suppress_reason": null,
+      "conviction_score": null
     }
   ],
   "prev_conviction_scores": {
@@ -1371,19 +1371,19 @@
       ],
       "last_push_date": "2026-08-28",
       "esc_alerted": false,
-      "updated": "2026-09-10T20:29:58.331798+02:00"
+      "updated": "2026-09-10T23:39:11.105094+02:00"
     },
     "PDYN": {
       "last_active": [],
       "last_push_date": "2026-08-28",
       "esc_alerted": false,
-      "updated": "2026-09-10T20:29:58.331810+02:00"
+      "updated": "2026-09-10T23:39:11.105109+02:00"
     },
     "WOLF": {
       "last_active": [],
       "last_push_date": "2026-09-01",
       "esc_alerted": false,
-      "updated": "2026-09-10T20:29:58.331827+02:00"
+      "updated": "2026-09-10T23:39:11.105131+02:00"
     },
     "ARCT": {
       "last_active": [
