@@ -1,5 +1,5 @@
 {
-  "last_run": "2026-09-10T23:39:11.104998+02:00",
+  "last_run": "2026-09-11T01:15:55.894045+02:00",
   "cooldowns": {
     "anomaly_score_jump_XRX": "2026-05-03T18:47:15.315486+02:00",
     "anomaly_uoa_extreme_TDOC": "2026-05-04T13:47:00.365949+02:00",
@@ -112,42 +112,6 @@
     "earnings_immediate_PLCE_04.09.2026": "2026-09-04T01:21:25.342435+02:00"
   },
   "push_history": [
-    {
-      "ts": "2026-08-05T22:40:07.230916+02:00",
-      "ticker": "PDYN",
-      "kind": "earnings_immediate",
-      "severity": "default",
-      "trigger": null,
-      "body": "PDYN Earnings-Sofort-Alert (in 1d, KI 72)",
-      "success": true,
-      "suppressed": false,
-      "suppress_reason": null,
-      "conviction_score": 33
-    },
-    {
-      "ts": "2026-08-06T00:22:09.856295+02:00",
-      "ticker": "IONQ",
-      "kind": "earnings_immediate",
-      "severity": "default",
-      "trigger": null,
-      "body": "IONQ Earnings-Sofort-Alert (in 0d, KI 55)",
-      "success": true,
-      "suppressed": false,
-      "suppress_reason": null,
-      "conviction_score": 18
-    },
-    {
-      "ts": "2026-08-06T00:31:38.630119+02:00",
-      "ticker": "FUBO",
-      "kind": "earnings_immediate",
-      "severity": "default",
-      "trigger": null,
-      "body": "FUBO Earnings-Sofort-Alert (in 0d, KI 100)",
-      "success": true,
-      "suppressed": false,
-      "suppress_reason": null,
-      "conviction_score": 69
-    },
     {
       "ts": "2026-08-06T00:31:38.677711+02:00",
       "ticker": "JJSF",
@@ -1311,22 +1275,59 @@
       "suppressed": false,
       "suppress_reason": null,
       "conviction_score": null
+    },
+    {
+      "ts": "2026-09-11T01:15:51.874211+02:00",
+      "ticker": "DBI",
+      "kind": "earnings_immediate",
+      "severity": "default",
+      "trigger": null,
+      "body": "DBI Earnings-Sofort-Alert (in 0d, KI 96)",
+      "success": false,
+      "suppressed": false,
+      "suppress_reason": null,
+      "conviction_score": 100
+    },
+    {
+      "ts": "2026-09-11T01:15:55.894159+02:00",
+      "ticker": "IONQ",
+      "kind": "exit_p2",
+      "severity": "trigger",
+      "trigger": "profit_lock,trend_break",
+      "body": "🔻 Exit-Signale IONQ: profit_lock, trend_break crit · Warnung pressure 64/100",
+      "success": false,
+      "suppressed": false,
+      "suppress_reason": null,
+      "conviction_score": null
+    },
+    {
+      "ts": "2026-09-11T01:15:55.894200+02:00",
+      "ticker": "WOLF",
+      "kind": "exit_p2",
+      "severity": "trigger",
+      "trigger": "profit_lock,trend_break",
+      "body": "🔻 Exit-Signale WOLF: profit_lock, trend_break crit · Warnung pressure 69/100",
+      "success": false,
+      "suppressed": false,
+      "suppress_reason": null,
+      "conviction_score": null
     }
   ],
   "prev_conviction_scores": {
-    "TYRA": 81.0,
-    "INSP": 51.0,
-    "MNRO": 47.0,
-    "METC": 47.0,
-    "BRNX": 30.0,
-    "GRPN": 50.0,
-    "FTK": 43.0,
-    "COLL": 63.0,
-    "ULCC": 42.0,
-    "WOLF": 41.0,
-    "PDYN": 42.0,
-    "IONQ": 15.0,
-    "AMC": 14.0
+    "DBI": 100.0,
+    "TYRA": 66.0,
+    "METC": 61.0,
+    "CRMT": 47.0,
+    "MNRO": 45.0,
+    "XRX": 66.0,
+    "EBS": 66.0,
+    "AI": 65.0,
+    "FUBO": 50.0,
+    "BRNX": 27.0,
+    "WOLF": 54.0,
+    "PDYN": 43.0,
+    "IONQ": 14.0,
+    "AMC": 11.0
   },
   "exit_cooldowns": {
     "exitp2_warning_AMC": "2026-05-18T14:48:43.872687+02:00",
@@ -1371,19 +1372,19 @@
       ],
       "last_push_date": "2026-08-28",
       "esc_alerted": false,
-      "updated": "2026-09-10T23:39:11.105094+02:00"
+      "updated": "2026-09-11T01:15:55.894171+02:00"
     },
     "PDYN": {
       "last_active": [],
       "last_push_date": "2026-08-28",
       "esc_alerted": false,
-      "updated": "2026-09-10T23:39:11.105109+02:00"
+      "updated": "2026-09-11T01:15:55.894185+02:00"
     },
     "WOLF": {
       "last_active": [],
       "last_push_date": "2026-09-01",
       "esc_alerted": false,
-      "updated": "2026-09-10T23:39:11.105131+02:00"
+      "updated": "2026-09-11T01:15:55.894206+02:00"
     },
     "ARCT": {
       "last_active": [
