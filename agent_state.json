@@ -1,5 +1,5 @@
 {
-  "last_run": "2026-09-10T16:27:24.619991+02:00",
+  "last_run": "2026-09-10T20:29:58.331704+02:00",
   "cooldowns": {
     "anomaly_score_jump_XRX": "2026-05-03T18:47:15.315486+02:00",
     "anomaly_uoa_extreme_TDOC": "2026-05-04T13:47:00.365949+02:00",
@@ -112,42 +112,6 @@
     "earnings_immediate_PLCE_04.09.2026": "2026-09-04T01:21:25.342435+02:00"
   },
   "push_history": [
-    {
-      "ts": "2026-08-03T23:05:20.785712+02:00",
-      "ticker": "DDD",
-      "kind": "earnings_immediate",
-      "severity": "default",
-      "trigger": null,
-      "body": "DDD Earnings-Sofort-Alert (in 0d, KI 82)",
-      "success": true,
-      "suppressed": false,
-      "suppress_reason": null,
-      "conviction_score": 87
-    },
-    {
-      "ts": "2026-08-03T23:05:20.836005+02:00",
-      "ticker": "SBH",
-      "kind": "earnings_immediate",
-      "severity": "default",
-      "trigger": null,
-      "body": "SBH Earnings-Sofort-Alert (in 0d, KI 82)",
-      "success": true,
-      "suppressed": false,
-      "suppress_reason": null,
-      "conviction_score": 89
-    },
-    {
-      "ts": "2026-08-04T11:09:48.784164+02:00",
-      "ticker": "IONQ",
-      "kind": "exit_p2",
-      "severity": "trigger",
-      "trigger": "profit_lock,trend_break",
-      "body": "🔻 Exit-Signale IONQ: profit_lock, trend_break crit · Warnung pressure 69/100",
-      "success": true,
-      "suppressed": false,
-      "suppress_reason": null,
-      "conviction_score": null
-    },
     {
       "ts": "2026-08-04T23:36:28.999720+02:00",
       "ticker": "IONQ",
@@ -1311,6 +1275,42 @@
       "suppressed": false,
       "suppress_reason": null,
       "conviction_score": null
+    },
+    {
+      "ts": "2026-09-10T20:29:54.134455+02:00",
+      "ticker": "TYRA",
+      "kind": "anomaly",
+      "severity": "medium",
+      "trigger": "score_jump",
+      "body": "TYRA 🚀 Setup 86 ↑ (gestern 71) | Spanne 10.8% + News-KI 8/30: Negative clinical data and shar…",
+      "success": false,
+      "suppressed": false,
+      "suppress_reason": null,
+      "conviction_score": 81
+    },
+    {
+      "ts": "2026-09-10T20:29:58.331788+02:00",
+      "ticker": "IONQ",
+      "kind": "exit_p2",
+      "severity": "trigger",
+      "trigger": "profit_lock,trend_break",
+      "body": "🔻 Exit-Signale IONQ: profit_lock, trend_break crit · Warnung pressure 65/100",
+      "success": false,
+      "suppressed": false,
+      "suppress_reason": null,
+      "conviction_score": null
+    },
+    {
+      "ts": "2026-09-10T20:29:58.331823+02:00",
+      "ticker": "WOLF",
+      "kind": "exit_p2",
+      "severity": "trigger",
+      "trigger": "profit_lock",
+      "body": "🔻 Exit-Signale WOLF: profit_lock crit · Warnung pressure 66/100",
+      "success": false,
+      "suppressed": false,
+      "suppress_reason": null,
+      "conviction_score": null
     }
   ],
   "prev_conviction_scores": {
@@ -1371,19 +1371,19 @@
       ],
       "last_push_date": "2026-08-28",
       "esc_alerted": false,
-      "updated": "2026-09-10T16:27:24.620112+02:00"
+      "updated": "2026-09-10T20:29:58.331798+02:00"
     },
     "PDYN": {
       "last_active": [],
       "last_push_date": "2026-08-28",
       "esc_alerted": false,
-      "updated": "2026-09-10T16:27:24.620128+02:00"
+      "updated": "2026-09-10T20:29:58.331810+02:00"
     },
     "WOLF": {
       "last_active": [],
       "last_push_date": "2026-09-01",
       "esc_alerted": false,
-      "updated": "2026-09-10T16:27:24.620150+02:00"
+      "updated": "2026-09-10T20:29:58.331827+02:00"
     },
     "ARCT": {
       "last_active": [
