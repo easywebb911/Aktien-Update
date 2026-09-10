@@ -1175,6 +1175,11 @@
       "date": "2026-09-08",
       "inst_ownership": 1.1326799,
       "insider_ownership": 0.01599
+    },
+    {
+      "date": "2026-09-10",
+      "inst_ownership": 1.13331,
+      "insider_ownership": 0.01599
     }
   ],
   "METC": [
@@ -2012,6 +2017,11 @@
       "date": "2026-08-28",
       "inst_ownership": 0.5163,
       "insider_ownership": 0.03951
+    },
+    {
+      "date": "2026-09-10",
+      "inst_ownership": 0.51617,
+      "insider_ownership": 0.03951
     }
   ],
   "ATLC": [
@@ -2632,6 +2642,11 @@
       "date": "2026-09-08",
       "inst_ownership": 0.64397,
       "insider_ownership": 0.081709996
+    },
+    {
+      "date": "2026-09-10",
+      "inst_ownership": 0.64416003,
+      "insider_ownership": 0.081709996
     }
   ],
   "TBCH": [
@@ -3193,6 +3208,11 @@
       "date": "2026-08-28",
       "inst_ownership": 1.00973,
       "insider_ownership": 0.00501
+    },
+    {
+      "date": "2026-09-10",
+      "inst_ownership": 1.01269,
+      "insider_ownership": 0.00501
     }
   ],
   "INSP": [
@@ -3412,6 +3432,11 @@
       "date": "2026-08-28",
       "inst_ownership": 1.24676,
       "insider_ownership": 0.01345
+    },
+    {
+      "date": "2026-09-10",
+      "inst_ownership": 1.24756,
+      "insider_ownership": 0.01338
     }
   ],
   "JBLU": [
@@ -3583,6 +3608,11 @@
       "date": "2026-09-03",
       "inst_ownership": 0.90838,
       "insider_ownership": 0.04257
+    },
+    {
+      "date": "2026-09-10",
+      "inst_ownership": 0.91139,
+      "insider_ownership": 0.04257
     }
   ],
   "CRSR": [
@@ -3690,6 +3720,11 @@
       "date": "2026-09-03",
       "inst_ownership": 0.73651004,
       "insider_ownership": 0.15998
+    },
+    {
+      "date": "2026-09-10",
+      "inst_ownership": 0.73651004,
+      "insider_ownership": 0.16532
     }
   ],
   "DFSC": [
@@ -4110,6 +4145,11 @@
       "date": "2026-09-08",
       "inst_ownership": 0.64483,
       "insider_ownership": 0.07179
+    },
+    {
+      "date": "2026-09-10",
+      "inst_ownership": 0.64467,
+      "insider_ownership": 0.07179
     }
   ],
   "CMCO": [
@@ -4184,6 +4224,13 @@
       "date": "2026-09-10",
       "inst_ownership": 0.8506,
       "insider_ownership": 0.14425
+    }
+  ],
+  "DBI": [
+    {
+      "date": "2026-09-10",
+      "inst_ownership": 0.88386,
+      "insider_ownership": 0.17576
     }
   ]
 }
