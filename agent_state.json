@@ -1,5 +1,5 @@
 {
-  "last_run": "2026-09-10T13:22:54.141250+02:00",
+  "last_run": "2026-09-10T16:27:24.619991+02:00",
   "cooldowns": {
     "anomaly_score_jump_XRX": "2026-05-03T18:47:15.315486+02:00",
     "anomaly_uoa_extreme_TDOC": "2026-05-04T13:47:00.365949+02:00",
@@ -112,42 +112,6 @@
     "earnings_immediate_PLCE_04.09.2026": "2026-09-04T01:21:25.342435+02:00"
   },
   "push_history": [
-    {
-      "ts": "2026-08-03T19:21:20.922937+02:00",
-      "ticker": "PAR",
-      "kind": "anomaly",
-      "severity": "medium",
-      "trigger": "score_jump",
-      "body": "PAR 🚀 Setup 73 ↑ (gestern 52) | Earnings in 3 Tagen (06.08.2026) + News-KI 5/30: Routine ear…",
-      "success": false,
-      "suppressed": true,
-      "suppress_reason": "conviction_below_threshold",
-      "conviction_score": 70
-    },
-    {
-      "ts": "2026-08-03T21:58:22.805303+02:00",
-      "ticker": "INDI",
-      "kind": "anomaly",
-      "severity": "medium",
-      "trigger": "score_jump",
-      "body": "INDI 🚀 Setup 74 ↑ (gestern 52) | Earnings in 3 Tagen (06.08.2026) + Volumen 1.9× + Spanne 9.5…",
-      "success": false,
-      "suppressed": true,
-      "suppress_reason": "conviction_below_threshold",
-      "conviction_score": 70
-    },
-    {
-      "ts": "2026-08-03T21:58:22.805433+02:00",
-      "ticker": "PAR",
-      "kind": "anomaly",
-      "severity": "medium",
-      "trigger": "score_jump",
-      "body": "PAR 🚀 Setup 73 ↑ (gestern 52) | Earnings in 3 Tagen (06.08.2026) + News-KI 5/30: Routine ear…",
-      "success": false,
-      "suppressed": true,
-      "suppress_reason": "conviction_below_threshold",
-      "conviction_score": 70
-    },
     {
       "ts": "2026-08-03T23:05:20.785712+02:00",
       "ticker": "DDD",
@@ -1311,6 +1275,42 @@
       "suppressed": false,
       "suppress_reason": null,
       "conviction_score": null
+    },
+    {
+      "ts": "2026-09-10T16:27:20.773256+02:00",
+      "ticker": "TYRA",
+      "kind": "anomaly",
+      "severity": "medium",
+      "trigger": "score_jump",
+      "body": "TYRA 🚀 Setup 86 ↑ (gestern 71) | Spanne 8.8% + News-KI 8/30: Negative clinical data and stock…",
+      "success": false,
+      "suppressed": false,
+      "suppress_reason": null,
+      "conviction_score": 81
+    },
+    {
+      "ts": "2026-09-10T16:27:24.620100+02:00",
+      "ticker": "IONQ",
+      "kind": "exit_p2",
+      "severity": "trigger",
+      "trigger": "profit_lock,trend_break",
+      "body": "🔻 Exit-Signale IONQ: profit_lock, trend_break crit · Warnung pressure 65/100",
+      "success": false,
+      "suppressed": false,
+      "suppress_reason": null,
+      "conviction_score": null
+    },
+    {
+      "ts": "2026-09-10T16:27:24.620143+02:00",
+      "ticker": "WOLF",
+      "kind": "exit_p2",
+      "severity": "trigger",
+      "trigger": "profit_lock",
+      "body": "🔻 Exit-Signale WOLF: profit_lock crit · Warnung pressure 66/100",
+      "success": false,
+      "suppressed": false,
+      "suppress_reason": null,
+      "conviction_score": null
     }
   ],
   "prev_conviction_scores": {
@@ -1371,19 +1371,19 @@
       ],
       "last_push_date": "2026-08-28",
       "esc_alerted": false,
-      "updated": "2026-09-10T13:22:54.141335+02:00"
+      "updated": "2026-09-10T16:27:24.620112+02:00"
     },
     "PDYN": {
       "last_active": [],
       "last_push_date": "2026-08-28",
       "esc_alerted": false,
-      "updated": "2026-09-10T13:22:54.141346+02:00"
+      "updated": "2026-09-10T16:27:24.620128+02:00"
     },
     "WOLF": {
       "last_active": [],
       "last_push_date": "2026-09-01",
       "esc_alerted": false,
-      "updated": "2026-09-10T13:22:54.141363+02:00"
+      "updated": "2026-09-10T16:27:24.620150+02:00"
     },
     "ARCT": {
       "last_active": [
