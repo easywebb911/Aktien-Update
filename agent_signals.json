@@ -1,11 +1,11 @@
 {
-  "updated": "2026-09-10T06:50:09.669062+02:00",
+  "updated": "2026-09-10T11:45:35.413807+02:00",
   "run_info": {
     "tickers_checked": 13,
     "signals_active": 2,
     "alerts_sent": 0,
-    "elapsed_s": 15.5,
-    "market_phase": "Geschlossen"
+    "elapsed_s": 21.0,
+    "market_phase": "Pre-Market"
   },
   "signals": {
     "AMC": {
@@ -32,9 +32,9 @@
       "uoa_cp_ratio": 5.155794806839772
     },
     "BAND": {
-      "score": 53,
+      "score": 66,
       "confidence": 70,
-      "drivers": "Volumen 2.0× + Spanne 14.0% + News-KI 8/30: Executive appointment lacks short-squeeze catalyst; valuation analysis shows stock viewed as fairly-to-overvalued with n + SEC Form 4 + UOA Call/Put 2.3×",
+      "drivers": "Volumen 2.0× + Spanne 14.0% + News: revenue beat + SEC Form 4 + UOA Call/Put 2.3×",
       "price": 48.83,
       "chg_pct": 0.0,
       "rvol_4d": 2.03,
@@ -44,9 +44,9 @@
       "upcoming_event": null,
       "insider_buy": false,
       "stocktwits": null,
-      "combo_mult": 1.0,
-      "active_triggers": 1,
-      "ki_sentiment_source": "llm",
+      "combo_mult": 1.1,
+      "active_triggers": 2,
+      "ki_sentiment_source": "keyword",
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 2.3×"
@@ -55,9 +55,9 @@
       "uoa_cp_ratio": 2.311111111111111
     },
     "BRNX": {
-      "score": 10,
-      "confidence": 17,
-      "drivers": "Spanne 13.2%",
+      "score": 18,
+      "confidence": 33,
+      "drivers": "Spanne 13.2% + News-KI 8/30: Positive business developments and expansion news, but no indicators of high short interest, borrowing difficulty, or ca",
       "price": 2.63,
       "chg_pct": 0.0,
       "rvol_4d": 0.44,
@@ -69,16 +69,16 @@
       "stocktwits": null,
       "combo_mult": 1.0,
       "active_triggers": 0,
-      "ki_sentiment_source": "keyword",
+      "ki_sentiment_source": "llm",
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": null,
       "uoa_cp_ratio": null
     },
     "FTK": {
-      "score": 72,
+      "score": 88,
       "confidence": 70,
-      "drivers": "Volumen 2.6× + Spanne 9.3% + SEC 8-K + News: contract + UOA Call/Put 4.3×",
+      "drivers": "Volumen 2.6× + Spanne 9.3% + SEC 8-K + News: contract, guidance raised + UOA Call/Put 4.3×",
       "price": 27.88,
       "chg_pct": -0.0,
       "rvol_4d": 2.58,
@@ -101,7 +101,7 @@
     "GRPN": {
       "score": 40,
       "confidence": 17,
-      "drivers": "News: squeeze, short squeeze + UOA Call/Put 3.0×",
+      "drivers": "News: short squeeze, squeeze + UOA Call/Put 3.0×",
       "price": 18.3,
       "chg_pct": -0.0,
       "rvol_4d": 1.2,
@@ -124,7 +124,7 @@
     "INSP": {
       "score": 35,
       "confidence": 70,
-      "drivers": "Volumen 2.6× + Spanne 9.2% + UOA Call/Put 8.3×",
+      "drivers": "Volumen 2.6× + Spanne 9.2% + UOA Call/Put 8.2×",
       "price": 66.48,
       "chg_pct": 0.0,
       "rvol_4d": 2.58,
@@ -139,10 +139,10 @@
       "ki_sentiment_source": "keyword",
       "uoa_score": 10,
       "uoa_drivers": [
-        "UOA Call/Put 8.3×"
+        "UOA Call/Put 8.2×"
       ],
       "uoa_atm_ratio": null,
-      "uoa_cp_ratio": 8.286384976525822
+      "uoa_cp_ratio": 8.24766355140187
     },
     "IONQ": {
       "score": 0,
@@ -166,9 +166,9 @@
       "uoa_cp_ratio": 1.6538501615088048
     },
     "METC": {
-      "score": 32,
+      "score": 35,
       "confidence": 33,
-      "drivers": "News-KI 12/30: Negative fair value adjustment and analyst disagreement suggest weak fundamentals, while management media appearances la + SEC Form 4 + UOA Call/Put 3.0×",
+      "drivers": "News: short interest + SEC Form 4 + UOA Call/Put 3.1×",
       "price": 12.28,
       "chg_pct": -0.0,
       "rvol_4d": 0.62,
@@ -180,13 +180,13 @@
       "stocktwits": null,
       "combo_mult": 1.0,
       "active_triggers": 1,
-      "ki_sentiment_source": "llm",
+      "ki_sentiment_source": "keyword",
       "uoa_score": 10,
       "uoa_drivers": [
-        "UOA Call/Put 3.0×"
+        "UOA Call/Put 3.1×"
       ],
       "uoa_atm_ratio": null,
-      "uoa_cp_ratio": 2.9805825242718447
+      "uoa_cp_ratio": 3.063106796116505
     },
     "MNRO": {
       "score": 65,
@@ -212,9 +212,9 @@
       "uoa_cp_ratio": 2.0454545454545454
     },
     "PDYN": {
-      "score": 28,
+      "score": 35,
       "confidence": 33,
-      "drivers": "Spanne 6.2% + News-KI 8/30: Positive business fundamentals and partnership news lack the extreme short interest, extreme overvaluation, or dramatic  + UOA Call/Put 14.1×",
+      "drivers": "Spanne 6.2% + News: contract + UOA Call/Put 14.1×",
       "price": 5.75,
       "chg_pct": 0.0,
       "rvol_4d": 1.16,
@@ -225,8 +225,8 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 0,
-      "ki_sentiment_source": "llm",
+      "active_triggers": 1,
+      "ki_sentiment_source": "keyword",
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 14.1×"
@@ -237,7 +237,7 @@
     "TYRA": {
       "score": 80,
       "confidence": 70,
-      "drivers": "Volumen 5.8× + 🚀 Massives Volumen 5.8×+ + Spanne 19.2% + SEC 8-K + News-KI 8/30: Negative clinical data and stock plunge indicate weak short-squeeze potential; analyst optimism is insufficient to overc",
+      "drivers": "Volumen 5.8× + 🚀 Massives Volumen 5.8×+ + Spanne 19.2% + SEC 8-K + News-KI 8/30: Negative clinical data and stock plunge create selling pressure rather than short squeeze setup; analyst optimism is ins",
       "price": 22.01,
       "chg_pct": 0.0,
       "rvol_4d": 5.79,
