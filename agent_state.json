@@ -1,5 +1,5 @@
 {
-  "last_run": "2026-09-11T11:42:38.843735+02:00",
+  "last_run": "2026-09-11T13:24:24.513156+02:00",
   "cooldowns": {
     "anomaly_score_jump_XRX": "2026-05-03T18:47:15.315486+02:00",
     "anomaly_uoa_extreme_TDOC": "2026-05-04T13:47:00.365949+02:00",
@@ -112,30 +112,6 @@
     "earnings_immediate_PLCE_04.09.2026": "2026-09-04T01:21:25.342435+02:00"
   },
   "push_history": [
-    {
-      "ts": "2026-08-10T10:51:09.353095+02:00",
-      "ticker": "ARCT",
-      "kind": "anomaly",
-      "severity": "medium",
-      "trigger": "gap_combo",
-      "body": "ARCT 💥 Gap +6.4% Strong Hold + RVOL 3.5× | Setup 100",
-      "success": false,
-      "suppressed": true,
-      "suppress_reason": "conviction_below_threshold",
-      "conviction_score": 72
-    },
-    {
-      "ts": "2026-08-10T22:05:01.493195+02:00",
-      "ticker": "NRGV",
-      "kind": "earnings_immediate",
-      "severity": "default",
-      "trigger": null,
-      "body": "NRGV Earnings-Sofort-Alert (in 1d, KI 82)",
-      "success": true,
-      "suppressed": false,
-      "suppress_reason": null,
-      "conviction_score": 72
-    },
     {
       "ts": "2026-08-10T22:11:30.477911+02:00",
       "ticker": "INR",
@@ -1311,23 +1287,47 @@
       "suppressed": false,
       "suppress_reason": null,
       "conviction_score": null
+    },
+    {
+      "ts": "2026-09-11T13:24:24.513250+02:00",
+      "ticker": "IONQ",
+      "kind": "exit_p2",
+      "severity": "trigger",
+      "trigger": "profit_lock,trend_break",
+      "body": "🔻 Exit-Signale IONQ: profit_lock, trend_break crit · Warnung pressure 64/100",
+      "success": false,
+      "suppressed": false,
+      "suppress_reason": null,
+      "conviction_score": null
+    },
+    {
+      "ts": "2026-09-11T13:24:24.513293+02:00",
+      "ticker": "WOLF",
+      "kind": "exit_p2",
+      "severity": "trigger",
+      "trigger": "profit_lock,trend_break",
+      "body": "🔻 Exit-Signale WOLF: profit_lock, trend_break crit · Warnung pressure 69/100",
+      "success": false,
+      "suppressed": false,
+      "suppress_reason": null,
+      "conviction_score": null
     }
   ],
   "prev_conviction_scores": {
-    "DBI": 100.0,
-    "TYRA": 66.0,
-    "METC": 61.0,
-    "CRMT": 47.0,
-    "MNRO": 45.0,
-    "XRX": 66.0,
-    "EBS": 66.0,
-    "AI": 65.0,
-    "FUBO": 50.0,
+    "DBI": 72.0,
+    "TYRA": 69.0,
+    "CRMT": 33.0,
+    "INSP": 60.0,
+    "LENZ": 74.0,
+    "MNRO": 46.0,
+    "EBS": 46.0,
+    "GRPN": 64.0,
+    "NTLA": 70.0,
     "BRNX": 27.0,
-    "WOLF": 54.0,
+    "WOLF": 40.0,
     "PDYN": 43.0,
-    "IONQ": 14.0,
-    "AMC": 11.0
+    "IONQ": 13.0,
+    "AMC": 12.0
   },
   "exit_cooldowns": {
     "exitp2_warning_AMC": "2026-05-18T14:48:43.872687+02:00",
@@ -1372,19 +1372,19 @@
       ],
       "last_push_date": "2026-08-28",
       "esc_alerted": false,
-      "updated": "2026-09-11T11:42:38.843849+02:00"
+      "updated": "2026-09-11T13:24:24.513262+02:00"
     },
     "PDYN": {
       "last_active": [],
       "last_push_date": "2026-08-28",
       "esc_alerted": false,
-      "updated": "2026-09-11T11:42:38.843863+02:00"
+      "updated": "2026-09-11T13:24:24.513277+02:00"
     },
     "WOLF": {
       "last_active": [],
       "last_push_date": "2026-09-01",
       "esc_alerted": false,
-      "updated": "2026-09-11T11:42:38.843887+02:00"
+      "updated": "2026-09-11T13:24:24.513300+02:00"
     },
     "ARCT": {
       "last_active": [
