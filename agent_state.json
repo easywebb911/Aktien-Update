@@ -1,5 +1,5 @@
 {
-  "last_run": "2026-09-11T01:15:55.894045+02:00",
+  "last_run": "2026-09-11T02:11:38.526471+02:00",
   "cooldowns": {
     "anomaly_score_jump_XRX": "2026-05-03T18:47:15.315486+02:00",
     "anomaly_uoa_extreme_TDOC": "2026-05-04T13:47:00.365949+02:00",
@@ -112,30 +112,6 @@
     "earnings_immediate_PLCE_04.09.2026": "2026-09-04T01:21:25.342435+02:00"
   },
   "push_history": [
-    {
-      "ts": "2026-08-06T00:31:38.677711+02:00",
-      "ticker": "JJSF",
-      "kind": "earnings_immediate",
-      "severity": "default",
-      "trigger": null,
-      "body": "JJSF Earnings-Sofort-Alert (in 0d, KI 82)",
-      "success": true,
-      "suppressed": false,
-      "suppress_reason": null,
-      "conviction_score": 65
-    },
-    {
-      "ts": "2026-08-06T00:31:38.723863+02:00",
-      "ticker": "PRGO",
-      "kind": "earnings_immediate",
-      "severity": "default",
-      "trigger": null,
-      "body": "PRGO Earnings-Sofort-Alert (in 0d, KI 90)",
-      "success": true,
-      "suppressed": false,
-      "suppress_reason": null,
-      "conviction_score": 72
-    },
     {
       "ts": "2026-08-06T00:31:38.772716+02:00",
       "ticker": "VYX",
@@ -1311,6 +1287,30 @@
       "suppressed": false,
       "suppress_reason": null,
       "conviction_score": null
+    },
+    {
+      "ts": "2026-09-11T02:11:38.526561+02:00",
+      "ticker": "IONQ",
+      "kind": "exit_p2",
+      "severity": "trigger",
+      "trigger": "profit_lock,trend_break",
+      "body": "🔻 Exit-Signale IONQ: profit_lock, trend_break crit · Warnung pressure 64/100",
+      "success": false,
+      "suppressed": false,
+      "suppress_reason": null,
+      "conviction_score": null
+    },
+    {
+      "ts": "2026-09-11T02:11:38.526602+02:00",
+      "ticker": "WOLF",
+      "kind": "exit_p2",
+      "severity": "trigger",
+      "trigger": "profit_lock,trend_break",
+      "body": "🔻 Exit-Signale WOLF: profit_lock, trend_break crit · Warnung pressure 69/100",
+      "success": false,
+      "suppressed": false,
+      "suppress_reason": null,
+      "conviction_score": null
     }
   ],
   "prev_conviction_scores": {
@@ -1372,19 +1372,19 @@
       ],
       "last_push_date": "2026-08-28",
       "esc_alerted": false,
-      "updated": "2026-09-11T01:15:55.894171+02:00"
+      "updated": "2026-09-11T02:11:38.526572+02:00"
     },
     "PDYN": {
       "last_active": [],
       "last_push_date": "2026-08-28",
       "esc_alerted": false,
-      "updated": "2026-09-11T01:15:55.894185+02:00"
+      "updated": "2026-09-11T02:11:38.526586+02:00"
     },
     "WOLF": {
       "last_active": [],
       "last_push_date": "2026-09-01",
       "esc_alerted": false,
-      "updated": "2026-09-11T01:15:55.894206+02:00"
+      "updated": "2026-09-11T02:11:38.526609+02:00"
     },
     "ARCT": {
       "last_active": [
