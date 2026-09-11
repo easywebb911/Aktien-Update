@@ -1043,6 +1043,15 @@
     "substrate": "en",
     "reason": null
   },
+  "SEAT": {
+    "qid": null,
+    "title": null,
+    "resolved_at": "2026-09-11T23:19:28Z",
+    "issuer_verified": false,
+    "company_name_at_resolve": "Vivid Seats Inc.",
+    "substrate": "none",
+    "reason": "no_p249"
+  },
   "SERV": {
     "qid": "Q112583437",
     "title": "Serve_Robotics",
@@ -1148,6 +1157,15 @@
     "resolved_at": "2026-08-10T20:08:55Z",
     "issuer_verified": true,
     "company_name_at_resolve": "Tonix Pharmaceuticals Holding Corp.",
+    "substrate": "en",
+    "reason": null
+  },
+  "TRIP": {
+    "qid": "Q1770710",
+    "title": "Tripadvisor",
+    "resolved_at": "2026-09-11T23:19:28Z",
+    "issuer_verified": true,
+    "company_name_at_resolve": "Tripadvisor, Inc.",
     "substrate": "en",
     "reason": null
   },
