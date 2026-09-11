@@ -1,5 +1,5 @@
 {
-  "last_run": "2026-09-11T06:41:51.999883+02:00",
+  "last_run": "2026-09-11T11:42:38.843735+02:00",
   "cooldowns": {
     "anomaly_score_jump_XRX": "2026-05-03T18:47:15.315486+02:00",
     "anomaly_uoa_extreme_TDOC": "2026-05-04T13:47:00.365949+02:00",
@@ -112,30 +112,6 @@
     "earnings_immediate_PLCE_04.09.2026": "2026-09-04T01:21:25.342435+02:00"
   },
   "push_history": [
-    {
-      "ts": "2026-08-08T00:00:03.991493+02:00",
-      "ticker": "WOLF",
-      "kind": "exit_p2",
-      "severity": "trigger",
-      "trigger": "overheated",
-      "body": "🔻 Exit-Signale WOLF: overheated crit",
-      "success": true,
-      "suppressed": false,
-      "suppress_reason": null,
-      "conviction_score": null
-    },
-    {
-      "ts": "2026-08-10T10:05:54.615354+02:00",
-      "ticker": "ARCT",
-      "kind": "anomaly",
-      "severity": "medium",
-      "trigger": "gap_combo",
-      "body": "ARCT 💥 Gap +6.4% Strong Hold + RVOL 3.5× | Setup 100",
-      "success": false,
-      "suppressed": true,
-      "suppress_reason": "conviction_below_threshold",
-      "conviction_score": 72
-    },
     {
       "ts": "2026-08-10T10:51:09.353095+02:00",
       "ticker": "ARCT",
@@ -1311,6 +1287,30 @@
       "suppressed": false,
       "suppress_reason": null,
       "conviction_score": null
+    },
+    {
+      "ts": "2026-09-11T11:42:38.843837+02:00",
+      "ticker": "IONQ",
+      "kind": "exit_p2",
+      "severity": "trigger",
+      "trigger": "profit_lock,trend_break",
+      "body": "🔻 Exit-Signale IONQ: profit_lock, trend_break crit · Warnung pressure 64/100",
+      "success": false,
+      "suppressed": false,
+      "suppress_reason": null,
+      "conviction_score": null
+    },
+    {
+      "ts": "2026-09-11T11:42:38.843880+02:00",
+      "ticker": "WOLF",
+      "kind": "exit_p2",
+      "severity": "trigger",
+      "trigger": "profit_lock,trend_break",
+      "body": "🔻 Exit-Signale WOLF: profit_lock, trend_break crit · Warnung pressure 69/100",
+      "success": false,
+      "suppressed": false,
+      "suppress_reason": null,
+      "conviction_score": null
     }
   ],
   "prev_conviction_scores": {
@@ -1372,19 +1372,19 @@
       ],
       "last_push_date": "2026-08-28",
       "esc_alerted": false,
-      "updated": "2026-09-11T06:41:52.000025+02:00"
+      "updated": "2026-09-11T11:42:38.843849+02:00"
     },
     "PDYN": {
       "last_active": [],
       "last_push_date": "2026-08-28",
       "esc_alerted": false,
-      "updated": "2026-09-11T06:41:52.000040+02:00"
+      "updated": "2026-09-11T11:42:38.843863+02:00"
     },
     "WOLF": {
       "last_active": [],
       "last_push_date": "2026-09-01",
       "esc_alerted": false,
-      "updated": "2026-09-11T06:41:52.000066+02:00"
+      "updated": "2026-09-11T11:42:38.843887+02:00"
     },
     "ARCT": {
       "last_active": [
