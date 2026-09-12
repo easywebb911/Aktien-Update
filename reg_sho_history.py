@@ -23,7 +23,9 @@ belegt: ``selectedDate=<aktuelles Kalenderdatum>`` liefert STRUKTURELL NIE Daten
 postclose-Fenster ~21:41 UTC) waren alle leer (nur eine Ziffern-Platzhalter-
 Zeile statt echter Symbol-Zeilen). Deshalb fragt ``_resolve_nyse`` NIEMALS das
 aktuelle Datum ab, sondern den letzten Handelstag DAVOR (``_last_workday_before``,
-reiner Wochenend-Skip, 1:1 aus der Diagnose-Probe übernommen). Wie FTD zwei
+Wochenend- UND US-Feiertags-Skip seit 12.09.2026 — ursprünglich reiner
+Wochenend-Skip 1:1 aus der Diagnose-Probe übernommen, um den Labor-Day-
+Vorfall 08.09.2026 ergänzt). Wie FTD zwei
 Daten: ``date`` (wann WIR lasen, = as-of) + ``source_date`` (Datum IN der Liste).
 
 Disziplin (wie #525): forward-only (kein Backfill), idempotent pro
@@ -47,13 +49,14 @@ log = logging.getLogger(__name__)
 try:
     from config import (REG_SHO_HISTORY_ENABLED, REG_SHO_HISTORY_FILE,
                         REG_SHO_HISTORY_STATE_FILE, REG_SHO_HTTP_TIMEOUT,
-                        REG_SHO_TIME_BUDGET_S)
+                        REG_SHO_TIME_BUDGET_S, US_MARKET_HOLIDAYS)
 except Exception:  # pragma: no cover
     REG_SHO_HISTORY_ENABLED = True
     REG_SHO_HISTORY_FILE = "reg_sho_history.json"
     REG_SHO_HISTORY_STATE_FILE = "reg_sho_history_state.json"
     REG_SHO_HTTP_TIMEOUT = 15
     REG_SHO_TIME_BUDGET_S = 25.0
+    US_MARKET_HOLIDAYS = frozenset()
 
 _UA = ("SqueezeReportRegSHO/1.0 (read-only research; "
        "contact squeeze-report-regsho@example.invalid) Mozilla/5.0")
@@ -169,19 +172,31 @@ def _resolve_nasdaq(get_text_fn, over_budget):
     return None, None, "fetch_failed"                  # keine Übersicht/Datei ladbar
 
 
-# ── letzter Handelstag VOR einem Datum (reiner Wochenend-Skip) ────────────────
+# ── letzter Handelstag VOR einem Datum (Wochenend- + Feiertags-Skip) ──────────
 def _last_workday_before(d):
-    """Letzter Handelstag VOR ``d`` — NUR Wochenend-Skip (Sa/So), KEIN
-    Feiertags-Skip. 1:1 aus der ``date_last_workday``-Logik der Diagnose-Probe
-    (``.github/workflows/diagnose_nyse_api_endpoint_probe.yml``) übernommen,
-    bewusst NICHT neu erfunden.
+    """Letzter ECHTER Handelstag VOR ``d`` — Wochenend-Skip (Sa/So) UND
+    US-Feiertags-Skip (``config.US_MARKET_HOLIDAYS``, seit dem Labor-Day-
+    Vorfall 08.09.2026 — Diagnose belegte: ``selectedDate`` fiel damals ohne
+    Feiertags-Skip auf Montag 07.09. (Labor Day), die NYSE lieferte für den
+    handelsfreien Tag plausibel 0 Symbole → ``empty``-Ergebnis, 5 von 5
+    Tickern an dem Tag None. Reine Kalenderlogik-Lücke, keine Datenlücke).
 
-    Ein übersehener US-Feiertag ist hier kein Risiko: ``_resolve_nyse`` fragt
-    dann einen Tag ohne echte Threshold-Liste ab, bekommt 0 verwertbare
-    Symbole zurück und landet in der bestehenden ``empty``-None-Semantik
-    (``source_empty`` — Ticker bleiben None, werden NIE fälschlich False)."""
+    EIN ``while``, EINE Bedingung (Wochenende ODER Feiertag) — kein Sonderfall
+    für mehrtägige Feiertagsblöcke nötig: die Schleife prüft pro Rückschritt
+    beide Kriterien neu und läuft einen mehrtägigen Block (z. B. Wochenende
+    direkt gefolgt von einem Feiertag) automatisch durch, bis ein Tag beide
+    Bedingungen nicht erfüllt.
+
+    Vor diesem Fix war hier NUR der Wochenend-Skip aktiv; ein übersehener
+    US-Feiertag war dokumentiert als „kein Risiko", weil ``_resolve_nyse``
+    dafür bereits fail-soft in die bestehende ``empty``-None-Semantik
+    landet (``source_empty`` — Ticker bleiben None, werden NIE fälschlich
+    False). Das bleibt unverändert wahr — dieser Fix beseitigt die
+    VERMEIDBARE Ursache selbst, ändert aber nichts an der Fail-Safe-Kette
+    für den Fall, dass ``US_MARKET_HOLIDAYS`` einmal unvollständig sein
+    sollte (z. B. nach 2027, siehe Wartungs-Hinweis in ``config.py``)."""
     prev = d - timedelta(days=1)
-    while prev.weekday() >= 5:   # 5=Sa, 6=So
+    while prev.weekday() >= 5 or prev.isoformat() in US_MARKET_HOLIDAYS:
         prev -= timedelta(days=1)
     return prev
 

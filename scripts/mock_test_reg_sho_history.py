@@ -331,6 +331,39 @@ def main() -> int:
     _check("11 niemals das übergebene Datum selbst",
            all(rs._last_workday_before(date(2026, 8, d)) != date(2026, 8, d)
                for d in range(17, 22)))
+
+    # ── 11b: US-Feiertags-Skip (12.09.2026 — Labor-Day-Vorfall 08.09.2026) ───
+    # Vor dem Fix prüfte _last_workday_before NUR Sa/So — ein Feiertag wurde
+    # als ganz normaler Handelstag zurückgegeben. Labor Day 2026 = Montag
+    # 2026-09-07 (config.US_MARKET_HOLIDAYS). Der reale Vorfall: Dienstag-Lauf
+    # 08.09. fragte T-1 = Montag 07.09. (Labor Day) ab → NYSE lieferte für den
+    # handelsfreien Tag 0 Symbole → "empty". Nach dem Fix MUSS T-1 für einen
+    # Dienstag-Lauf direkt nach Labor Day auf den Freitag DAVOR zurückspringen.
+    _check("11b Labor Day (Mo 07.09.2026) wird übersprungen: "
+           "Di 08.09. → Fr 04.09. (nicht Mo 07.09., der reale Vorfall)",
+           rs._last_workday_before(date(2026, 9, 8)) == date(2026, 9, 4))
+
+    # Zweiter, unabhängiger Feiertag (nicht Labor Day) UND mehrtägiger Block
+    # in einem Rutsch: Independence Day 2026 wird als Fr 2026-07-03 beobachtet
+    # (config.US_MARKET_HOLIDAYS enthält "2026-07-03", nicht den kalendarischen
+    # 4. Juli, der 2026 auf einen Samstag fällt). Ein Montag-Lauf (06.07.) muss
+    # DREI Tage in einer Schleife überspringen — So 05.07. (Wochenende), Sa
+    # 04.07. (Wochenende), Fr 03.07. (Feiertag) — und erst am Do 02.07. stehen
+    # bleiben. Beweist: EIN while mit ODER-Bedingung reicht für einen
+    # gemischten Wochenende+Feiertag-Block, kein Sonderfall nötig (Exzellenz
+    # Punkt 6 aus dem Auftrag).
+    _check("11b Independence Day (beobachtet Fr 03.07.2026) + Wochenende in "
+           "EINEM Rutsch: Mo 06.07. → Do 02.07. (überspringt So+Sa+Fr)",
+           rs._last_workday_before(date(2026, 7, 6)) == date(2026, 7, 2))
+
+    # Regressions-Beleg: ein reiner Wochenend-Fall OHNE Feiertag in der Nähe
+    # bleibt exakt wie vor dem Fix (frisches Datum, nicht in Sektion 11 oben
+    # bereits verwendet, damit dieser Beleg nicht nur zufällig an den
+    # bestehenden Tests mit-durchläuft).
+    _check("11b Regressions-Beleg (kein Feiertag beteiligt): "
+           "Mo 05.10.2026 → Fr 02.10.2026, unverändert reiner Wochenend-Skip",
+           rs._last_workday_before(date(2026, 10, 5)) == date(2026, 10, 2))
+
     # Integrations-Nachweis: der _nyse_fn-Mock oben (Sektion 1/5) besteht NUR,
     # weil collect_and_persist() tatsächlich T-1 statt heute anfragt — die
     # Assertions IN _nyse_fn selbst (nicht nur hier) sind der scharfe Test.
