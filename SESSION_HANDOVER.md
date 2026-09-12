@@ -1205,6 +1205,112 @@ Momentum positiv), **NICHT** frei aus unseren Daten optimiert.
 Die Paper-Modell-Variante ist **Schritt D** (§4) — ein `squeeze_probability`-
 Score, der **Wahrscheinlichkeit statt Rendite** misst.
 
+#### VORABREGISTRIERUNG H5 (Freeze-Datum: 12.09.2026) — volle Kette
+
+Ersetzt die bisherige Unklarheit (Zielbegriff + n≥40-Schwelle + Herbst/Q4-
+Fenster waren registriert, die konkrete Mechanik nicht). Ab hier gilt für
+diesen Block dieselbe **Änderungs-Protokoll-Regel** wie für §4-Exit-B.1
+(siehe unten) — keine stille Anpassung.
+
+**Warum nur 4 der 5 oben gelisteten Bausteine in die Interaktion einfließen:**
+`max_gain_pct` und `si_velocity_pub` sind bewusst **nicht** Teil der vier
+Interaktions-Prädiktoren unten. `max_gain_pct` ist eine **Outcome**-Metrik
+(Peak-Amplitude nach Entry, siehe Hypothese-C-Einordnung weiter oben in
+dieser Sektion) — kein Prädiktor, der zum Entry-Zeitpunkt vorliegt.
+`si_velocity_pub` misst ein **anderes** Konzept als `si_position_history`
+(Volumen/Fluss statt Position/Bestand, siehe „Nomenklatur-Falle §8m" oben)
+— die Paper-Schwellen und der SI-Trend-Baustein unten beziehen sich explizit
+auf die Positions-Zeitreihe, nicht auf die Velocity-Reihe. Beide bleiben als
+eigenständige Sammel-Bausteine bestehen (Tabelle oben), fließen aber nicht
+in diese spezifische 4-Wege-Interaktion ein.
+
+**1) Bausteine (final, ersetzt vorherige Unklarheit):**
+- **SCORE** = Setup-Score aus `matured_backtest_export.jsonl` (`score`-Feld).
+- **KATALYSATOR** = `days_to_earnings`. **Nicht** `material_8k_events` —
+  letzteres ist ein Sammelbecken verschiedener Ereignistypen (Item-Codes
+  1.01 bis 9.01 gemischt) und war nie Teil dieser H5-Dokumentation.
+- **MOMENTUM** = `entry_past_return_5d`.
+- **SI** = `si_position_history.json`, verknüpft via Ticker-Match + Join-
+  Punkt „letzter Punkt mit `pub_date ≤ entry_date`" (look-ahead-sicher —
+  **nicht** `settlement_date`, das läge im Median ~10 Tage voraus, siehe
+  Lag-Messung in der vorbereitenden Diagnose 12.09.2026).
+- **SI-TREND** = Delta zwischen den beiden jüngsten look-ahead-sicheren
+  Punkten (Settlement-Abstand typischerweise ~30 Tage).
+
+**2) Zellen-Definition (Kreuztabelle, KEINE Regression mit
+Interaktionstermen):** bei ~200 Records und vier Dimensionen ist eine
+Regression mit Interaktionstermen overfitting-anfällig (zu viele
+Freiheitsgrade pro Beobachtung) — Kreuztabelle mit vorab fixierten,
+groben Buckets ist die robustere Wahl. Vier binäre Dimensionen × 2 ergibt
+**16 Zellen**:
+
+| Dimension | Split | Regel |
+|---|---|---|
+| Score-Stufe | ≥70 / <70 | etablierte Projekt-Schwelle (unverändert aus bestehender Score-Klassifikation) |
+| Momentum-Vorzeichen | positiv / negativ | `entry_past_return_5d ≥ 0` → positiv, `< 0` → negativ (Grenzfall exakt 0 zählt als positiv, fixe Konvention) |
+| Katalysator-Nähe | nah / fern | **Median-Split auf `days_to_earnings`** — der Median wird **zum Auswertungszeitpunkt** auf dem dann vorliegenden Forward-Sample berechnet, **nicht heute aus den ~208 Diagnose-Records fixiert** (ein aus der heutigen Kleinstichprobe abgeleiteter Zahlenwert wäre selbst schon eine Form von Overfitting auf eine Zwischenmenge, die für das Herbst/Q4-Sample nicht mehr repräsentativ sein muss) |
+| SI-Richtung | fällt / steigt | **grobes Vorzeichen** des SI-Trends (Punkt 1) — **nicht** die scharfe Svoboda-20%-Schwelle. Grund: bei n=2 von 342 trend-fähigen Records in der Diagnose-Stichprobe feuert die scharfe Schwelle praktisch nie und wäre nicht auswertbar; das Vorzeichen ist die einzige Auflösung, die genug Fälle in beiden Zellen erwarten lässt |
+
+**3) Stichprobe:** n≥40 pro Zelle (bestehende Registrierung), **nur
+`provenance=forward`** (gleiche OoS-Disziplin wie bei allen anderen §4-
+Tests). **Reife-Einschätzung (Stand 12.09.2026, KEIN Ergebnis, nur
+Machbarkeits-Einordnung):** die vorbereitende Diagnose zählte ~208
+forward-Records mit allen vier Bausteinen gleichzeitig gefüllt. Auf 16
+Zellen verteilt wären das im (unrealistischen) Idealfall gleicher
+Verteilung ~13 Records/Zelle — **klar unter n≥40**. Da die Verteilung
+über Score/Momentum/Katalysator/SI erfahrungsgemäß nicht gleichmäßig ist
+(einzelne Zellen werden dünner, andere dichter sein als der Schnitt),
+ist auch das eine **optimistische** Überschlagsrechnung. Das bestätigt,
+dass das Herbst/Q4-Fenster tatsächlich für **spätere** Reife gedacht war
+und nicht für den heutigen Stand — die Registrierung bleibt bestehen,
+der Test **löst erst aus, wenn n≥40 in jeder der 16 Zellen erreicht ist**
+(datengetrieben, kein Kalendertermin, analog Exit-B.1-Auslöser-Logik).
+
+**4) Multiple-Testing-Korrektur:** Holm-Korrektur über alle **16 Zellen**
+(`scripts/stats_helpers.py::multiple_testing_correction`, gleiches
+Verfahren wie bei Exit-B.1). Kein Cherry-Picking einzelner Zellen ohne
+Korrektur — alle 16 gehen in den Holm-Lauf, unabhängig vom Einzelergebnis.
+
+**5) Ausreißer-Behandlung (vorab festgelegt, nicht nachträglich):** Der in
+der Diagnose beobachtete Extremwert (+18.064,8 % Δ bei einem einzelnen
+Ticker, nicht verifiziert ob Datenfehler oder echter Meme-Spike) wird wie
+folgt behandelt — **zwei getrennte Ebenen:**
+  - **Primäre Zellen-Zuordnung (SI-Richtung):** braucht nur das **Vorzeichen**
+    des Delta, keine Magnitude. Ein Ausreißer verschiebt bestenfalls, in
+    welche der zwei Zellen (fällt/steigt) ein einzelner Record fällt — er
+    kann die Zellen-Zuordnung selbst nicht durch seine Größe verzerren.
+    Für die primäre Kreuztabelle ist **keine** Winsorizing-Aktion nötig.
+  - **Sekundäre/deskriptive Auswertung** (falls die kontinuierliche Δ%-
+    Verteilung zusätzlich berichtet wird, z. B. Median/Mittelwert pro
+    Zelle als Kontext): **Winsorizing bei P5/P95**, berechnet **auf dem
+    jeweiligen Analyse-Sample zum Auswertungszeitpunkt** (nicht heute mit
+    einem Diagnose-Wert fixiert — gleiche Logik wie beim Median-Split in
+    Punkt 2). Median statt Mittelwert ist ohnehin die primäre
+    Kennzahl — robust gegenüber Einzelausreißern per Konstruktion, das
+    Winsorizing ist zusätzliche Absicherung für Mittelwert-Nebenangaben.
+
+**6) Zielgröße (Outcome) + Erfolgs-Definition:** **Zielgröße ist `return_10d`**
+aus `matured_backtest_export.jsonl` (dasselbe Reifungs-Feld, das den Export
+selbst zum „gereiften" Record macht — kein neues Outcome-Konzept). Pro Zelle
+wird `return_10d` dieser Zelle gegen die restlichen 15 Zellen zusammen via
+`mann_whitney_u_auc` verglichen (identisches Verfahren wie Exit-B.1) — daraus
+16 p-Werte für die Holm-Korrektur aus Punkt 4. Erfolgs-Definition identisch
+zum bestehenden globalen Standard — Edge nur belegt, wenn **(a)**
+Holm-signifikant über alle 16 Zellen, **UND**
+**(b)** Bootstrap-CI (N=2000, fester Seed, analog Exit-B.1) schließt Null
+aus, **UND** **(c)** im Regime-Split plausibel reproduzierbar.
+**Punktschätzung allein ist nie Beleg.**
+
+**7) Bekannte, akzeptierte Datenlücke:** `si_position_history.json`
+beginnt erst 15.05.2026 (settlement) / 27.05.2026 (`pub_date`) —
+Export-Records mit früherem Entry-Datum haben strukturell keinen validen
+SI-Wert. Das ist **kein Fehler**, sondern eine akzeptierte
+Sammel-Untergrenze.
+
+**Änderungs-Protokoll (bindend ab 12.09.2026, analog §4-Exit-B.1):** Keine
+Änderung an diesem Registrierungsblock ohne datierten Protokolleintrag,
+der die Änderung und ihren Grund festhält.
+
 ### PAPER-BEFUND (Svoboda/Kapounek/Albrecht 2026, ausgewertet 12.07.)
 
 **Quelle:** *North American Journal of Economics and Finance* 2026, DOI
