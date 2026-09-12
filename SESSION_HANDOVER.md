@@ -881,6 +881,27 @@ Grund** festhält — jede spätere Anpassung muss so als Bruch sichtbar bleiben
   Q1/2028 (02/2028)** · **erste Meldung: 28.09.2028** · **öffentliche Dissemination:
   29.03.2029**. Reine Vormerkung (fern), kein Bau — beim SR-FINRA-2026-012-Entscheid
   (oben) mitdenken, ob sich die SI-Datenlandschaft davor schon verschiebt.
+- **Lit-Check 09.09.2026 — Allen/Haas/Pirovano/Tengulov (2025, *Journal of
+  Banking & Finance*, „How prevalent are short squeezes? Evidence from the US
+  and Europe").** Bereits bekannte Studie, jetzt mit Detail zu den Treibern:
+  für **MARKET squeezes** sind Short Interest, Firmengröße, Kursdispersion
+  (Price Dispersion) und Turnover die wirtschaftlich bedeutsamsten
+  Determinanten; für **LENDER squeezes** sind es indikative Gebühr (Fee),
+  verleihbare Menge (Lendable Quantity) und Utilization. Von den vier
+  Market-Squeeze-Treibern deckt das Tool bereits **drei** ab (Short Interest
+  via FINRA, Firmengröße via Market-Cap-Filter, Turnover via Volume-Signale)
+  — **Price Dispersion fehlt komplett**.
+
+  **GEPARKT, nicht weiter verfolgen ohne neuen Anlass:** die exakte Definition
+  von „Price Dispersion" in dieser Studie (Analystenschätzungs-Streuung?
+  Bid-Ask-Spread? realisierte Volatilität?) konnte per Web-Recherche NICHT
+  geklärt werden — der Volltext liegt nur bei ScienceDirect hinter einer
+  Bezahlschranke, die SSRN-Working-Paper-Version verlinkt auf dieselbe
+  Abstract-Seite ohne PDF, keine frei zugängliche Kopie auffindbar (Stand
+  09.09.2026, mehrere Suchansätze erfolglos). Eine Klärung bräuchte
+  tatsächlichen Volltext-Zugang (Bibliothek, Autoren-Anfrage, o. ä.) — kein
+  Fall für weitere Web-Suche bei künftigen Lit-Checks, außer der Zugang
+  ändert sich.
 
 #### ⚠ Datenherkunft des vorabregistrierten Exit-B.1-Re-Tests — gap-NaN-Erkennbarkeitsgrenze (Stand 29.07.2026)
 
