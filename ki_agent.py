@@ -265,6 +265,10 @@ def set_cooldown(ticker: str, state: dict) -> None:
 from push_history import _record_push  # noqa: E402
 import health_check  # noqa: E402
 import exit_shadow  # noqa: E402  — Exit-Shadow-Forward-Backfill (Read-only)
+# Ausführungskosten-Haircut (12.09.2026) — Single-Source-of-Truth-Funktion lebt
+# in backtest_history.py (dort auch von der max_gain_pct-Rolling-Update-Logik
+# genutzt), NICHT hier dupliziert.
+from backtest_history import apply_round_trip_haircut  # noqa: E402
 
 
 # Health-Check Phase 2 PR 3 — Tier-3-Provider-Akkumulatoren.
@@ -516,8 +520,12 @@ def update_backtest_returns() -> None:
                 if c is not None:
                     e[k0] = round((c / entry_basis - 1) * 100, 2)
                     n_filled += 1
-                    log.info("  %s [%s] T+0 %dd-Return: %+.2f%%",
-                             e["ticker"], e.get("date"), win, e[k0])
+                    # Netto-Geschwisterfeld (12.09.2026, Ausführungskosten-
+                    # Haircut) — im selben Zug aus dem frisch berechneten
+                    # Brutto-Wert abgeleitet, nie aus einem Platzhalter.
+                    e[f"{k0}_net"] = apply_round_trip_haircut(e[k0])
+                    log.info("  %s [%s] T+0 %dd-Return: %+.2f%% (netto %+.2f%%)",
+                             e["ticker"], e.get("date"), win, e[k0], e[f"{k0}_net"])
             k1 = f"return_{win}d_t1"
             if (e.get(k1) is None and close_t1 is not None and close_t1 > 0):
                 c = _close_at(1 + win)

@@ -33,6 +33,7 @@ from config import (
     EARLINESS_TREND_MIN_FINRA_POINTS,
     EARLINESS_TREND_SI_SLOPE_CAP,
     EARLINESS_TREND_VOL_STAB_CAP,
+    HAIRCUT_ROUND_TRIP_PCT,
     MATERIAL_8K_ENABLED,
     SCORE_NORMALIZATION_VERSION,
     SI_VELOCITY_PUB_N_REPORTS,
@@ -345,6 +346,48 @@ def _compute_max_gain_pct(df_window) -> float | None:
         up = (df_window["High"] - roll_low) / roll_low * 100.0
         return round(float(up.max()), 2)
     except Exception:
+        return None
+
+
+def apply_round_trip_haircut(
+    gross_pct: float | None,
+    haircut_pct: float = HAIRCUT_ROUND_TRIP_PCT,
+) -> float | None:
+    """Reduziert einen Brutto-Prozent-Return um einen Round-Trip-Ausführungs-
+    kosten-Haircut (Spread + Slippage) — siehe ``HAIRCUT_ROUND_TRIP_PCT`` in
+    ``config.py`` für die (konservative, literaturgeschätzte) Herleitung.
+
+    Verteilt den Haircut HÄLFTIG auf Entry und Exit — multiplikativ auf den
+    Preisfaktor, NICHT als flache Prozentpunkt-Subtraktion:
+
+        net = (1 + gross/100) * (1 - h/2) / (1 + h/2) - 1     [× 100]
+
+    mit ``h = |haircut_pct| / 100``. Begründung für multiplikativ statt
+    subtraktiv (Diagnose 12.09.2026): ein Round-Trip-Kostensatz wird
+    ökonomisch auf BEIDEN Preis-Beinen bezahlt (teurer eingekauft, günstiger
+    verkauft) — das skaliert mit der Größe des Kursausschlags. Bei sehr
+    großen Squeeze-Returns (dieses Tools Zielgröße) ist die multiplikative
+    Variante SYSTEMATISCH konservativer als eine flache Subtraktion (Bsp.
+    h=4%: Brutto +1000% → multiplikativ netto ≈ +957% vs. subtraktiv naiv
+    +996%) — passend zur Auffanglinien-Philosophie „lieber Edge
+    unterschätzen". Bei Verlusten ist die multiplikative Variante leicht
+    WENIGER konservativ als eine flache Subtraktion — akzeptiert, da die
+    Auffanglinie sich gegen überschätzte GEWINNE richtet, nicht gegen
+    überschätzte Verluste.
+
+    ``None`` bei ``gross_pct is None`` (Brutto-Wert noch nicht gereift/
+    berechnet — kein synthetischer Platzhalter). Pure Funktion, kein State,
+    kein I/O.
+    """
+    if gross_pct is None:
+        return None
+    try:
+        h = abs(float(haircut_pct)) / 100.0
+        half = h / 2.0
+        gross_factor = 1.0 + float(gross_pct) / 100.0
+        net_factor = gross_factor * (1.0 - half) / (1.0 + half)
+        return round((net_factor - 1.0) * 100.0, 2)
+    except (TypeError, ValueError, ZeroDivisionError):
         return None
 
 
@@ -1286,6 +1329,15 @@ def _append_backtest_entries(top10: list[dict], report_date: str,
             "return_3d_t1":  None,
             "return_5d_t1":  None,
             "return_10d_t1": None,
+            # Ausführungskosten-Haircut (12.09.2026): parallele Netto-
+            # Geschwisterfelder zu return_3d/5d/10d (siehe
+            # apply_round_trip_haircut). None solange das Brutto-Geschwister-
+            # feld selbst None ist — echtes "noch nicht berechnet", kein
+            # Platzhalter-Ratewert. Nur T+0-Varianten (return_Xd_t1 bleibt
+            # ohne _net-Pendant — bewusst außerhalb dieses Scopes).
+            "return_3d_net":  None,
+            "return_5d_net":  None,
+            "return_10d_net": None,
             # Bahn A2 Stufe 1 — Schema-Erweiterung für spätere Auswertung.
             # max_drawdown_pct wird über 10 Handelstage rolling aktualisiert.
             "max_drawdown_pct": 0.0,
@@ -1293,6 +1345,17 @@ def _append_backtest_entries(top10: list[dict], report_date: str,
             # Spiegel zu max_drawdown_pct — identische Slice + Rolling-
             # Update-Mechanik, reine Outcome-Persistenz (kein Score-Konsument).
             "max_gain_pct": 0.0,
+            # Ausführungskosten-Haircut (12.09.2026): Netto-Geschwisterfeld zu
+            # max_gain_pct. WICHTIG — bewusst None als Init-Wert, NICHT 0.0:
+            # max_gain_pct selbst startet bei 0.0 als Platzhalter ("noch nicht
+            # gerollt" ODER "wirklich kein Gewinn" — dokumentierte Ambiguität).
+            # Würde max_gain_pct_net hier ebenfalls 0.0-basiert vorbelegt, wäre
+            # das ein synthetischer Haircut-Wert auf einem Platzhalter, der wie
+            # echte Daten aussähe. None hält "noch nicht real berechnet"
+            # eindeutig auseinander; wird erst im Rolling-Update (unten)
+            # gesetzt, wenn max_gain_pct selbst FRISCH aus echten Kursdaten
+            # berechnet wurde.
+            "max_gain_pct_net": None,
             "market_regime":    market_regime,
             "vix_level":        vix_level,
             # PR-γ-1 Marker: 1 = pre-γ (raw-RVOL), 2 = post-γ (normalized).
@@ -1383,6 +1446,11 @@ def _append_backtest_entries(top10: list[dict], report_date: str,
                     mg = _compute_max_gain_pct(df_since)
                     if mg is not None:
                         e["max_gain_pct"] = mg
+                        # Netto-Geschwisterfeld (12.09.2026, Ausführungskosten-
+                        # Haircut) — nur gesetzt, wenn max_gain_pct selbst JETZT
+                        # frisch aus echten Kursdaten berechnet wurde (mg is not
+                        # None), nie aus dem 0.0-Platzhalter abgeleitet.
+                        e["max_gain_pct_net"] = apply_round_trip_haircut(mg)
                         n_mg += 1
             except Exception:
                 continue
