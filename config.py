@@ -84,6 +84,29 @@ BACKTEST_FILE             = "backtest_history.json"
 BACKTEST_MAX_DAYS         = 90
 BACKTEST_RETURN_WINDOWS   = [3, 5, 10]   # Handelstage → return_3d / _5d / _10d
 
+# ── Ausführungskosten-Haircut (Netto-Renditefelder, 12.09.2026) ──────────────
+# KONSERVATIVE LITERATURSCHÄTZUNG, KEIN BELEGTER FAKT — siehe SESSION_HANDOVER
+# für die vollständige Herleitung (SEC-Small-Cap-Spread-Daten ~6,55 % vs.
+# ~0,52 % Large-Cap, ein illustratives Mikro-Cap-Realbeispiel ~5,5 % Round-
+# Trip, institutionelle Werte 15-30 Bp + Marktimpact explizit als
+# NICHT-passende Untergrenze verworfen). Die Original-Quellen (SEC, SSRN,
+# Cambridge, Berkeley) konnten wegen einer Netzwerksperre in der Diagnose-
+# Sandbox NICHT volltextgeprüft werden — nur Suchmaschinen-Snippets. Dieser
+# Wert ist bewusst eher zu hoch als zu niedrig gewählt (Auffanglinien-
+# Philosophie: lieber die Edge unterschätzen). Bei besseren/eigenen Daten
+# HIER anpassen — zentral, einzige Stelle.
+#
+# Wird NICHT auf die bestehenden Brutto-Felder (return_3d/5d/10d,
+# max_gain_pct, max_drawdown_pct) angewendet — die bleiben unangetastet.
+# Stattdessen paralleles "_net"-Feld je Zielgröße (siehe
+# backtest_history.apply_round_trip_haircut), das den Brutto-Wert
+# multiplikativ um den hälftig auf Entry+Exit verteilten Round-Trip-Kosten-
+# Satz reduziert (kein flacher Prozentpunkt-Abzug — der wäre bei sehr
+# großen Squeeze-Returns systematisch WENIGER konservativ, siehe Herleitung).
+#
+# Negativ ausgedrückt (Prozentpunkte, Round-Trip gesamt — Kauf + Verkauf).
+HAIRCUT_ROUND_TRIP_PCT    = -4.0
+
 # ── Matured-Backtest-Export (Analyse-only, prune-immun) ──────────────────────
 # TRENNT Anzeige von Analyse: backtest_history.json unterliegt dem 90-Tage-Prune
 # (BACKTEST_MAX_DAYS — Zweck real: client-seitiger Fetch beim Panel-Öffnen +
@@ -2041,6 +2064,18 @@ S10_OBSERVED_FIELDS = frozenset({
     # Filter-Pfad gelesen (Grep-Test mock_test_ssr.py). Isolierter Rückweg:
     # scripts/purge_ssr_restriction.py. Schema bleibt v4 (additiv).
     "ssr_restriction",
+    # Netto-Renditefelder (12.09.2026, Ausführungskosten-Haircut): parallele
+    # "_net"-Geschwisterfelder zu return_3d/5d/10d und max_gain_pct, reduziert
+    # um HAIRCUT_ROUND_TRIP_PCT (konservative Literaturschätzung, siehe dort).
+    # REINE Zusatz-Persistenz, KEIN Score-/Filter-/Push-Effekt, existierende
+    # Brutto-Felder unverändert → nur OBSERVED, KEIN MUSS/LAG (dieselbe
+    # 0.0/None-Reifegrad-Problematik wie ihre Brutto-Geschwister — kein
+    # sinnvoller min_n/lag-Check auf einer reinen Transformation). LEGITIM
+    # None solange das Brutto-Geschwisterfeld selbst None/nicht gereift ist.
+    # Schema bleibt v4 (additiv). Ob/wie diese Felder in bestehende oder
+    # künftige Vorabregistrierungen (§4 Exit-B.1, H5) einfließen, ist NICHT
+    # Teil dieser Änderung — bleibt eine offene Entscheidung.
+    "return_3d_net", "return_5d_net", "return_10d_net", "max_gain_pct_net",
 })
 
 S10_WINDOW_SIZE          = 20    # Letzte N V4-Einträge für MUSS-Check
