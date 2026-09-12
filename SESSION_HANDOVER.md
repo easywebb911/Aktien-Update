@@ -1212,6 +1212,18 @@ Fenster waren registriert, die konkrete Mechanik nicht). Ab hier gilt für
 diesen Block dieselbe **Änderungs-Protokoll-Regel** wie für §4-Exit-B.1
 (siehe unten) — keine stille Anpassung.
 
+**Warum nur 4 der 5 oben gelisteten Bausteine in die Interaktion einfließen:**
+`max_gain_pct` und `si_velocity_pub` sind bewusst **nicht** Teil der vier
+Interaktions-Prädiktoren unten. `max_gain_pct` ist eine **Outcome**-Metrik
+(Peak-Amplitude nach Entry, siehe Hypothese-C-Einordnung weiter oben in
+dieser Sektion) — kein Prädiktor, der zum Entry-Zeitpunkt vorliegt.
+`si_velocity_pub` misst ein **anderes** Konzept als `si_position_history`
+(Volumen/Fluss statt Position/Bestand, siehe „Nomenklatur-Falle §8m" oben)
+— die Paper-Schwellen und der SI-Trend-Baustein unten beziehen sich explizit
+auf die Positions-Zeitreihe, nicht auf die Velocity-Reihe. Beide bleiben als
+eigenständige Sammel-Bausteine bestehen (Tabelle oben), fließen aber nicht
+in diese spezifische 4-Wege-Interaktion ein.
+
 **1) Bausteine (final, ersetzt vorherige Unklarheit):**
 - **SCORE** = Setup-Score aus `matured_backtest_export.jsonl` (`score`-Feld).
 - **KATALYSATOR** = `days_to_earnings`. **Nicht** `material_8k_events` —
@@ -1277,8 +1289,14 @@ folgt behandelt — **zwei getrennte Ebenen:**
     Kennzahl — robust gegenüber Einzelausreißern per Konstruktion, das
     Winsorizing ist zusätzliche Absicherung für Mittelwert-Nebenangaben.
 
-**6) Erfolgs-Definition:** identisch zum bestehenden globalen Standard —
-Edge nur belegt, wenn **(a)** Holm-signifikant über alle 16 Zellen, **UND**
+**6) Zielgröße (Outcome) + Erfolgs-Definition:** **Zielgröße ist `return_10d`**
+aus `matured_backtest_export.jsonl` (dasselbe Reifungs-Feld, das den Export
+selbst zum „gereiften" Record macht — kein neues Outcome-Konzept). Pro Zelle
+wird `return_10d` dieser Zelle gegen die restlichen 15 Zellen zusammen via
+`mann_whitney_u_auc` verglichen (identisches Verfahren wie Exit-B.1) — daraus
+16 p-Werte für die Holm-Korrektur aus Punkt 4. Erfolgs-Definition identisch
+zum bestehenden globalen Standard — Edge nur belegt, wenn **(a)**
+Holm-signifikant über alle 16 Zellen, **UND**
 **(b)** Bootstrap-CI (N=2000, fester Seed, analog Exit-B.1) schließt Null
 aus, **UND** **(c)** im Regime-Split plausibel reproduzierbar.
 **Punktschätzung allein ist nie Beleg.**
