@@ -1,17 +1,17 @@
 {
-  "updated": "2026-09-12T12:48:02.717507+02:00",
+  "updated": "2026-09-12T16:08:57.967395+02:00",
   "run_info": {
     "tickers_checked": 14,
     "signals_active": 0,
     "alerts_sent": 0,
-    "elapsed_s": 15.3,
+    "elapsed_s": 12.6,
     "market_phase": "Geschlossen"
   },
   "signals": {
     "AMC": {
-      "score": 33,
+      "score": 30,
       "confidence": 33,
-      "drivers": "News: breakout + Earnings in 38d + UOA Call/Put 5.2×",
+      "drivers": "News-KI 12/30: Positive ticket sales news lacks short squeeze catalyst; market underperformance and corporate feuds indicate weak momen + Earnings in 38d + UOA Call/Put 5.2×",
       "price": 2.46,
       "chg_pct": 0.0,
       "rvol_4d": 0.54,
@@ -23,7 +23,7 @@
       "stocktwits": null,
       "combo_mult": 1.0,
       "active_triggers": 1,
-      "ki_sentiment_source": "keyword",
+      "ki_sentiment_source": "llm",
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 5.2×"
@@ -32,13 +32,13 @@
       "uoa_cp_ratio": 5.165611146295124
     },
     "CRMT": {
-      "score": 15,
-      "confidence": 17,
-      "drivers": "SEC 8-K",
+      "score": 33,
+      "confidence": 70,
+      "drivers": "Volumen 2.5× + Spanne 30.4% + News-KI 8/30: Massive revenue miss, 82% drop in retail sales, and severe capital constraints indicate fundamental weakness rather than",
       "price": 1.9,
-      "chg_pct": 0.0,
-      "rvol_4d": 0.0,
-      "rvol_20d": null,
+      "chg_pct": -0.0,
+      "rvol_4d": 2.5,
+      "rvol_20d": 7.67,
       "earnings": "in 89 Tagen (10.12.2026)",
       "fda_date": null,
       "upcoming_event": null,
@@ -46,16 +46,16 @@
       "stocktwits": null,
       "combo_mult": 1.0,
       "active_triggers": 1,
-      "ki_sentiment_source": "keyword",
+      "ki_sentiment_source": "llm",
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": null,
       "uoa_cp_ratio": null
     },
     "GRPN": {
-      "score": 18,
+      "score": 40,
       "confidence": 17,
-      "drivers": "News-KI 8/30: Positive operational news about AI and marketplace improvements, but no indicators of short squeeze mechanics like high  + UOA Call/Put 2.2×",
+      "drivers": "News: short squeeze, squeeze + UOA Call/Put 2.2×",
       "price": 18.73,
       "chg_pct": -0.0,
       "rvol_4d": 1.37,
@@ -66,8 +66,8 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 0,
-      "ki_sentiment_source": "llm",
+      "active_triggers": 1,
+      "ki_sentiment_source": "keyword",
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 2.2×"
@@ -97,9 +97,9 @@
       "uoa_cp_ratio": 1.0695627484383874
     },
     "OPTU": {
-      "score": 35,
-      "confidence": 33,
-      "drivers": "Spanne 8.3% + FINRA Short-Vol 100%",
+      "score": 50,
+      "confidence": 70,
+      "drivers": "Spanne 8.3% + News: short interest + FINRA Short-Vol 100%",
       "price": 1.02,
       "chg_pct": -0.0,
       "rvol_4d": 0.97,
@@ -110,7 +110,7 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 0,
+      "active_triggers": 1,
       "ki_sentiment_source": "keyword",
       "uoa_score": 0,
       "uoa_drivers": [],
@@ -229,9 +229,9 @@
       "uoa_cp_ratio": 167.0952380952381
     },
     "TRIP": {
-      "score": 15,
-      "confidence": 17,
-      "drivers": "Volumen 1.7×",
+      "score": 23,
+      "confidence": 33,
+      "drivers": "Volumen 1.7× + News-KI 8/30: Insider selling, poor earnings, and stock decline indicate weak fundamentals and negative sentiment, making this unsuita",
       "price": 9.09,
       "chg_pct": 0.0,
       "rvol_4d": 1.67,
@@ -243,7 +243,7 @@
       "stocktwits": null,
       "combo_mult": 1.0,
       "active_triggers": 0,
-      "ki_sentiment_source": "keyword",
+      "ki_sentiment_source": "llm",
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": 0.011224489795918367,
