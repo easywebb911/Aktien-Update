@@ -18790,12 +18790,27 @@ def main():
         _fv_acct = _FINVIZ_ACCT
         if _fv_acct["calls"] > 0:
             _fv_items = _fv_acct["v161_count"] + _fv_acct["v111_count"]
+            # Coverage-Fix (13.09.2026, Diagnose-Befund): vorher All-or-
+            # Nothing (http_status=200 NUR wenn ALLE Calls im Lauf
+            # erfolgreich waren) — bei der bekannten ~45-50% Quote-Page-
+            # Fail-Rate (CLAUDE.md) war http_status damit strukturell IMMER
+            # None (0/46 Läufe im 30-Tage-Diagnose-Fenster mit 200), obwohl
+            # real ~53% der Einzel-Calls erfolgreich waren. Jetzt analog zum
+            # stockanalysis-Muster direkt darunter: coverage_pct = Anteil
+            # erfolgreicher Calls, http_status=200 sobald IRGENDEIN Call
+            # erfolgreich war (nicht erst wenn ALLE erfolgreich waren).
+            # aggregate_provider_fails() selbst ist bereits provider-
+            # generisch (liest coverage_pct + Tier-2/3-Schwelle 50.0 für
+            # jeden Provider gleich) — kein Code-Change dort nötig.
+            _fv_successes = _fv_acct["calls"] - _fv_acct["failures"]
+            _fv_coverage = round(_fv_successes / _fv_acct["calls"] * 100, 1)
             health_check.record_provider_call(
                 provider="finviz",
                 tier=HEALTH_CHECK_PROVIDER_TIER.get("finviz", 1),
                 latency_ms=_fv_acct["latency_ms"],
-                http_status=200 if _fv_acct["failures"] == 0 else None,
+                http_status=200 if _fv_successes > 0 else None,
                 item_count=_fv_items,
+                coverage_pct=_fv_coverage,
                 error=None if _fv_acct["failures"] == 0
                       else (_fv_acct.get("last_error_repr")
                             or f"{_fv_acct['failures']}/{_fv_acct['calls']} calls failed"),
