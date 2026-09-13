@@ -1,17 +1,17 @@
 {
-  "updated": "2026-09-13T21:28:04.389294+02:00",
+  "updated": "2026-09-14T00:25:06.756626+02:00",
   "run_info": {
     "tickers_checked": 14,
     "signals_active": 0,
     "alerts_sent": 0,
-    "elapsed_s": 14.2,
+    "elapsed_s": 16.0,
     "market_phase": "Geschlossen"
   },
   "signals": {
     "AMC": {
-      "score": 18,
+      "score": 30,
       "confidence": 33,
-      "drivers": "Earnings in 37d + UOA Call/Put 5.2×",
+      "drivers": "News-KI 12/30: Positive fundamentals (ticket sales) are offset by underperformance and regulatory friction; no clear short squeeze cata + Earnings in 37d + UOA Call/Put 5.2×",
       "price": 2.46,
       "chg_pct": 0.0,
       "rvol_4d": 0.54,
@@ -22,8 +22,8 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 0,
-      "ki_sentiment_source": "keyword",
+      "active_triggers": 1,
+      "ki_sentiment_source": "llm",
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 5.2×"
@@ -53,9 +53,9 @@
       "uoa_cp_ratio": null
     },
     "GRPN": {
-      "score": 18,
+      "score": 40,
       "confidence": 17,
-      "drivers": "News-KI 8/30: Positive business developments (AI, personalization, viral marketing) suggest operational improvement rather than distre + UOA Call/Put 2.2×",
+      "drivers": "News: short squeeze, short interest + UOA Call/Put 2.2×",
       "price": 18.73,
       "chg_pct": -0.0,
       "rvol_4d": 1.37,
@@ -66,8 +66,8 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 0,
-      "ki_sentiment_source": "llm",
+      "active_triggers": 1,
+      "ki_sentiment_source": "keyword",
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 2.2×"
@@ -97,9 +97,9 @@
       "uoa_cp_ratio": 1.0695627484383874
     },
     "OPTU": {
-      "score": 43,
+      "score": 50,
       "confidence": 70,
-      "drivers": "Spanne 8.3% + News-KI 8/30: Neutral analyst coverage with fair value adjustments and modest price movement indicate limited short squeeze potential; + FINRA Short-Vol 100%",
+      "drivers": "Spanne 8.3% + News: short interest + FINRA Short-Vol 100%",
       "price": 1.02,
       "chg_pct": -0.0,
       "rvol_4d": 0.97,
@@ -110,17 +110,17 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 0,
-      "ki_sentiment_source": "llm",
+      "active_triggers": 1,
+      "ki_sentiment_source": "keyword",
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": 0.011467889908256881,
       "uoa_cp_ratio": 1.041237113402062
     },
     "PCT": {
-      "score": 53,
+      "score": 60,
       "confidence": 70,
-      "drivers": "Spanne 6.8% + News-KI 8/30: Positive operational developments and product launches, but no indicators of high short interest, retail momentum, or ca + FINRA Short-Vol 82% + SEC Form 4",
+      "drivers": "Spanne 6.8% + News: short interest + FINRA Short-Vol 82% + SEC Form 4",
       "price": 6.02,
       "chg_pct": -0.0,
       "rvol_4d": 0.96,
@@ -131,17 +131,17 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 0,
-      "ki_sentiment_source": "llm",
+      "active_triggers": 1,
+      "ki_sentiment_source": "keyword",
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": 0.2136653155761436,
       "uoa_cp_ratio": 1.9250936329588015
     },
     "PDYN": {
-      "score": 35,
+      "score": 50,
       "confidence": 33,
-      "drivers": "Spanne 5.7% + News: contract + UOA Call/Put 3.5×",
+      "drivers": "Spanne 5.7% + News: contract, revenue beat + UOA Call/Put 3.5×",
       "price": 5.77,
       "chg_pct": -0.0,
       "rvol_4d": 1.19,
@@ -206,9 +206,9 @@
       "uoa_cp_ratio": 2.330188679245283
     },
     "TBCH": {
-      "score": 20,
+      "score": 28,
       "confidence": 33,
-      "drivers": "Spanne 7.4% + UOA Call/Put 167.1×",
+      "drivers": "Spanne 7.4% + News-KI 8/30: Routine earnings announcements without indicators of short squeeze catalysts such as high short interest, squeeze mentio + UOA Call/Put 167.1×",
       "price": 12.81,
       "chg_pct": 0.0,
       "rvol_4d": 1.43,
@@ -220,7 +220,7 @@
       "stocktwits": null,
       "combo_mult": 1.0,
       "active_triggers": 0,
-      "ki_sentiment_source": "keyword",
+      "ki_sentiment_source": "llm",
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 167.1×"
@@ -231,7 +231,7 @@
     "TRIP": {
       "score": 23,
       "confidence": 33,
-      "drivers": "Volumen 1.7× + News-KI 8/30: Insider selling, stock weakness, and missed earnings indicate negative momentum with no short squeeze catalysts present.",
+      "drivers": "Volumen 1.7× + News-KI 8/30: Negative insider selling, significant stock decline, and missed earnings indicate weak fundamentals with no short-squeez",
       "price": 9.09,
       "chg_pct": 0.0,
       "rvol_4d": 1.67,
@@ -296,7 +296,7 @@
     "XRX": {
       "score": 40,
       "confidence": 33,
-      "drivers": "Spanne 8.1% + News: short interest, activist investor",
+      "drivers": "Spanne 8.1% + News: activist investor, short interest",
       "price": 3.43,
       "chg_pct": 0.0,
       "rvol_4d": 1.43,
