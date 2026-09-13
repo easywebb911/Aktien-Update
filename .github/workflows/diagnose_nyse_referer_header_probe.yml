@@ -1,0 +1,326 @@
+name: Diagnose NYSE Referer-Header Probe (read-only)
+
+# Wegwerf-Probe, Folge-Diagnose zu #538 (NYSE-Reg-SHO-Endpunkt-Fix) — reine
+# Parallel-Probe, KEINE Produktionscode-Änderung.
+#
+# HINTERGRUND (Stand 13.09.2026): seit dem Endpunkt-Fix #538 gab es 5 Ausfälle
+# beim NYSE-Reg-SHO-Abruf: 27.08. empty, 01.09. fetch_failed, 04.09. HTTPError
+# 403, 09.09. empty, 13.09. HTTPError 403. Zwei der fünf sind jetzt derselbe
+# Fehlertyp (HTTPError 403) — Verdacht: der fehlende ``Referer``-Header. Die
+# erfolgreiche August-Diagnose-Probe (diagnose_nyse_api_endpoint_probe.yml)
+# sendet bei JEDEM Abruf ``Referer: https://www.nyse.com/regulation/
+# threshold-securities`` (siehe dort, Funktion ``fetch(..., referer=
+# OVERVIEW_URL)``, IMMER gesetzt) — der Produktionscode in
+# ``reg_sho_history.py::_http_get`` sendet NIE einen Referer.
+#
+# ⚠ NACHSCHÄRFUNG BEIM BAU DIESES WORKFLOWS (Annahmen-Check, Exzellenz-Block
+# Punkt 4): der Referer ist NICHT der einzige Unterschied zwischen der
+# erfolgreichen August-Probe und dem heutigen Produktionscode — die August-
+# Probe sendet außerdem einen ANDEREN User-Agent
+# (``SqueezeReportProbe/1.0 (... squeeze-report-diagnose-probe@example.invalid)
+# ...``) als die Produktion (``SqueezeReportRegSHO/1.0 (... squeeze-report-
+# regsho@example.invalid) ...``, aus ``reg_sho_history.py::_UA``). Um den
+# Referer als EINZIGE Variable sauber zu isolieren, verwendet dieser Workflow
+# für BEIDE Varianten (mit/ohne Referer) den ECHTEN Produktions-User-Agent —
+# Variante "ohne Referer" ist damit eine BYTE-GENAUE Nachbildung dessen, was
+# ``reg_sho_history.py::_http_get`` heute tatsächlich sendet; Variante "mit
+# Referer" unterscheidet sich davon durch GENAU einen Header.
+#
+# DATUMS-LOGIK (T-1, feiertagsbewusst, self-contained — KEIN Import von
+# reg_sho_history.py/config.py): dieser Workflow greift NIE auf Produktions-
+# Python-Module zu (Vorgabe: kein Zugriff auf Produktionscode/-dateien). Die
+# Feiertagsliste unten ist eine STATISCHE SNAPSHOT-KOPIE von
+# ``config.US_MARKET_HOLIDAYS`` (Stand 13.09.2026, 2025-2027 + algorithmische
+# Karfreitag-Berechnung, identischer Meeus/Jones/Butcher-Algorithmus) — falls
+# sich der Produktions-Feiertagskalender später ändert, driftet diese Kopie;
+# für eine Wegwerf-Probe über wenige Tage irrelevant, aber bei Wiederverwendung
+# nach 2027 bitte gegen config.py neu abgleichen.
+#
+# WICHTIG — KEIN Produktionscode-Touch: dieser Workflow liest/importiert/
+# ändert reg_sho_history.py NICHT. Alle Konstanten (UA, Endpunkt, Referer-
+# Zielwert, Feiertagsliste) sind als reine DATEN-Kopien hier eingebettet.
+# Fällt der Referer-Verdacht positiv aus, ist die Produktionscode-Änderung
+# ein SEPARATER, künftiger Auftrag — nicht Teil dieser Probe.
+#
+# WARUM SEQUENZIELL STATT ECHTER THREAD-PARALLELITÄT: "parallel" wird hier als
+# "im selben Lauf, unmittelbar nacheinander, gegen dasselbe Ziel-Datum"
+# interpretiert — nicht als gleichzeitige Netzwerk-Verbindungen. Echte
+# Parallelität wäre ein zusätzlicher, unkontrollierter Störfaktor (falls der
+# NYSE-Server gleichzeitige Verbindungen anders behandelt als sequenzielle) —
+# sequenziell mit kurzer Pause matcht außerdem das Muster der bestehenden
+# Probe-Dateien. Reihenfolge ist FEST (erst ohne Referer, dann mit) — bei
+# mehrfachen manuellen Dispatches über den Tag verteilt ist das kein Problem,
+# aber als möglicher Reihenfolge-Effekt hier vermerkt, falls Ergebnisse über
+# mehrere Läufe hinweg widersprüchlich wirken.
+#
+# WIEDERHOLTE LÄUFE ÜBER DEN TAG VERTEILT (Aufgabenstellung Punkt 3): bewusst
+# NUR workflow_dispatch, KEIN Cron/schedule — alle 5 bestehenden
+# diagnose_*.yml-Probes im Repo sind ausnahmslos dispatch-only (kein einziges
+# schedule:-Beispiel gefunden). Ein temporärer Cron würde diese Konvention
+# brechen und bräuchte eine eigene Ablauf-/Selbstdeaktivierungs-Logik (sonst
+# bleibt er dauerhaft aktiv) — das würde den Rahmen einer Wegwerf-Probe
+# sprengen. Empfehlung: Easy dispatcht diesen Workflow manuell mehrfach über
+# den Tag verteilt (GitHub-Actions-UI: "Re-run workflow" oder erneuter
+# "Run workflow"-Klick) — jeder Lauf ist unabhängig und deterministisch.
+#
+# contents:read, workflow_dispatch-only, KEINE Secrets, KEIN Repo-Write.
+
+on:
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    env:
+      OUT_DIR: ${{ github.workspace }}/nyse-referer-header-probe-out
+
+    steps:
+      - name: Prepare output dir (kein Checkout nötig — alle Daten sind self-contained)
+        run: mkdir -p "$OUT_DIR"
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Probe — Referer-Header A/B-Vergleich (read-only, stdlib only)
+        run: |
+          python - <<'PY'
+          import hashlib, json, os
+          from datetime import date, datetime, timedelta, timezone
+          from urllib.request import Request, urlopen
+          from urllib.error import HTTPError
+          from urllib.parse import urlencode
+
+          # Produktions-Timeout (reg_sho_history.REG_SHO_HTTP_TIMEOUT) — Kopie,
+          # kein Import. Kein Wire-Header, aber für volle Anfrage-Parität
+          # übernommen statt eines abweichenden Probe-eigenen Werts.
+          PROD_TIMEOUT_S = 15
+
+          OUT = os.environ["OUT_DIR"]
+
+          def log(m):
+              print(m, flush=True)
+
+          # ── Byte-genaue Kopien aus reg_sho_history.py (KEIN Import) ─────────────
+          PROD_UA = ("SqueezeReportRegSHO/1.0 (read-only research; "
+                     "contact squeeze-report-regsho@example.invalid) Mozilla/5.0")
+          ENDPOINT = "https://www.nyse.com/api/regulatory/threshold-securities/download"
+          # Referer-Zielwert der erfolgreichen August-Probe (diagnose_nyse_api_
+          # endpoint_probe.yml, OVERVIEW_URL) — identischer String.
+          REFERER_VALUE = "https://www.nyse.com/regulation/threshold-securities"
+
+          # ── Feiertags-Snapshot aus config.py (Stand 13.09.2026, KEIN Import) ────
+          _STATIC_HOLIDAYS = frozenset({
+              "2025-01-01", "2025-01-20", "2025-02-17", "2025-05-26", "2025-06-19",
+              "2025-07-04", "2025-09-01", "2025-11-27", "2025-12-25",
+              "2026-01-01", "2026-01-19", "2026-02-16", "2026-05-25", "2026-06-19",
+              "2026-07-03", "2026-09-07", "2026-11-26", "2026-12-25",
+              "2027-01-01", "2027-01-18", "2027-02-15", "2027-05-31", "2027-06-18",
+              "2027-07-05", "2027-09-06", "2027-11-25", "2027-12-24",
+          })
+
+          def _easter_sunday(year: int) -> date:
+              """Meeus/Jones/Butcher — identischer Algorithmus wie config.py."""
+              a = year % 19
+              b = year // 100
+              c = year % 100
+              d = b // 4
+              e = b % 4
+              f = (b + 8) // 25
+              g = (b - f + 1) // 3
+              h = (19 * a + b - d - g + 15) % 30
+              i = c // 4
+              k = c % 4
+              l = (32 + 2 * e + 2 * i - h - k) % 7
+              m = (a + 11 * h + 22 * l) // 451
+              month = (h + l - 7 * m + 114) // 31
+              day = ((h + l - 7 * m + 114) % 31) + 1
+              return date(year, month, day)
+
+          US_MARKET_HOLIDAYS = _STATIC_HOLIDAYS | frozenset(
+              (_easter_sunday(y) - timedelta(days=2)).isoformat()
+              for y in range(2020, 2051)
+          )
+
+          def _last_workday_before(d):
+              """Identische Logik zu reg_sho_history._last_workday_before (PR
+              #546, 12.09.2026) — Wochenend- UND Feiertags-Skip, ein While-Loop
+              mit OR-Bedingung."""
+              prev = d - timedelta(days=1)
+              while prev.weekday() >= 5 or prev.isoformat() in US_MARKET_HOLIDAYS:
+                  prev -= timedelta(days=1)
+              return prev
+
+          def fetch(url, headers):
+              """(status:int|None, body:bytes|None, error:str|None, sent_headers:dict)."""
+              req = Request(url, headers=headers)
+              sent = dict(req.header_items())
+              try:
+                  with urlopen(req, timeout=PROD_TIMEOUT_S) as r:
+                      raw = r.read()
+                      st = getattr(r, "status", r.getcode())
+                      return st, raw, None, sent
+              except HTTPError as e:
+                  return e.code, None, f"HTTPError {e.code}", sent
+              except Exception as e:
+                  return None, None, f"{type(e).__name__}: {e}", sent
+
+          def summarize(label, status, body, err):
+              """Loggt Status/Länge/erste Zeilen. Returnt (n_lines, hash, first_lines)."""
+              if err:
+                  log(f"[{label}] FETCH-FAIL: {err}")
+                  return None, None, []
+              if status != 200:
+                  log(f"[{label}] HTTP {status} (nicht 200)")
+                  return None, None, []
+              if not body:
+                  log(f"[{label}] HTTP 200, aber LEER (0 Bytes)")
+                  return 0, hashlib.sha256(b"").hexdigest()[:12], []
+              text = body.decode("utf-8", "replace")
+              lines = [l for l in text.splitlines() if l.strip()]
+              h = hashlib.sha256(body).hexdigest()[:12]
+              log(f"[{label}] HTTP 200 · {len(body)} Bytes · {len(lines)} Zeilen · Hash={h}")
+              for l in lines[:5]:
+                  log(f"    {l!r}")
+              return len(lines), h, lines[:5]
+
+          # ══════════════════════════════════════════════════════════════════════
+          # Ziel-Datum: letzter echter Handelstag VOR heute (identische Regel
+          # wie reg_sho_history._resolve_nyse — NIEMALS das aktuelle Kalenderdatum,
+          # der Endpunkt liefert dafür nachweislich nie Daten).
+          # ══════════════════════════════════════════════════════════════════════
+          now = datetime.now(timezone.utc)
+          log(f"Laufzeit-Stempel (UTC): {now.strftime('%Y-%m-%dT%H:%M:%SZ')}")
+          target_date = _last_workday_before(now.date())
+          date_iso = target_date.isoformat()
+          log(f"Ziel-Datum (T-1, feiertagsbewusst): {date_iso} "
+              f"({target_date.strftime('%A')})")
+          log("=" * 70)
+
+          # urlencode statt manueller String-Interpolation — identisches Muster
+          # zu reg_sho_history._resolve_nyse (Zeile 263); für ein reines ISO-
+          # Datum ohne Sonderzeichen wirkungsgleich, aber konsistent mit Prod.
+          url = f"{ENDPOINT}?{urlencode({'selectedDate': date_iso, 'market': ''})}"
+
+          # ── Variante A: OHNE Referer (= exakter heutiger Produktionscode-Zustand) ──
+          headers_a = {"User-Agent": PROD_UA, "Accept": "*/*"}
+          log("\n########## VARIANTE A — OHNE Referer (Produktionscode-Zustand) ##########")
+          st_a, body_a, err_a, sent_a = fetch(url, headers_a)
+          log(f"[A] Gesendete Header: {json.dumps(sent_a, sort_keys=True)}")
+          n_a, hash_a, preview_a = summarize("A", st_a, body_a, err_a)
+          log("=" * 70)
+
+          import time
+          time.sleep(2.0)
+
+          # ── Variante B: MIT Referer (= wie die erfolgreiche August-Probe) ──────────
+          headers_b = {"User-Agent": PROD_UA, "Accept": "*/*", "Referer": REFERER_VALUE}
+          log("\n########## VARIANTE B — MIT Referer (wie August-Probe) ##########")
+          st_b, body_b, err_b, sent_b = fetch(url, headers_b)
+          log(f"[B] Gesendete Header: {json.dumps(sent_b, sort_keys=True)}")
+          n_b, hash_b, preview_b = summarize("B", st_b, body_b, err_b)
+          log("=" * 70)
+
+          # ── Nachweis: unterscheiden sich die TATSÄCHLICH GESENDETEN Header
+          #    wirklich nur um Referer? (Exzellenz-Block Punkt 3 — Beweis, nicht
+          #    Behauptung.) ──────────────────────────────────────────────────────
+          keys_a = set(sent_a.keys())
+          keys_b = set(sent_b.keys())
+          only_in_b = keys_b - keys_a
+          only_in_a = keys_a - keys_b
+          shared_diff = {k for k in keys_a & keys_b if sent_a[k] != sent_b[k]}
+          headers_isolated_correctly = (
+              only_in_a == set() and only_in_b == {"Referer"} and not shared_diff
+          )
+          log(f"\n[HEADER-DIFF-NACHWEIS] nur in A: {sorted(only_in_a)} · "
+              f"nur in B: {sorted(only_in_b)} · "
+              f"gemeinsame Keys mit unterschiedlichem Wert: {sorted(shared_diff)}")
+          log(f"[HEADER-DIFF-NACHWEIS] Isolation sauber (einzige Differenz = Referer): "
+              f"{headers_isolated_correctly}")
+          log("=" * 70)
+
+          # ══════════════════════════════════════════════════════════════════════
+          # Direkter Seite-an-Seite-Vergleich
+          # ══════════════════════════════════════════════════════════════════════
+          log("\n" + "=" * 70)
+          log("VERGLEICH A vs. B (kopierbar):")
+          log(f"  Ziel-Datum:        {date_iso}")
+          log(f"  A (ohne Referer):  status={st_a!r} error={err_a!r} "
+              f"zeilen={n_a!r} hash={hash_a!r}")
+          log(f"  B (mit Referer):   status={st_b!r} error={err_b!r} "
+              f"zeilen={n_b!r} hash={hash_b!r}")
+
+          def _outcome(status, err, n):
+              if err:
+                  return "fetch_failed"
+              if status != 200:
+                  return f"http_{status}"
+              if not n:
+                  return "leer"
+              return "ok"
+
+          outcome_a = _outcome(st_a, err_a, n_a)
+          outcome_b = _outcome(st_b, err_b, n_b)
+          log(f"  Ergebnis A: {outcome_a} · Ergebnis B: {outcome_b}")
+
+          if outcome_a == outcome_b:
+              verdict = (f"KEIN UNTERSCHIED in diesem Lauf — beide Varianten liefern "
+                         f"'{outcome_a}'. Der Referer ALLEIN erklärt (zumindest in "
+                         f"diesem einzelnen Lauf) NICHT den Unterschied zur "
+                         f"erfolgreichen August-Probe. EIN Lauf ist KEIN Beweis bei "
+                         f"einem intermittierenden Fehlerbild (403 kann auch Rate-"
+                         f"Limiting/IP-Reputation/Zeitpunkt-abhängig sein) — Wieder-"
+                         f"holung über mehrere manuelle Dispatches empfohlen.")
+          elif outcome_a != "ok" and outcome_b == "ok":
+              verdict = (f"REFERER-HYPOTHESE GESTÜTZT (dieser Lauf) — A (ohne Referer) "
+                         f"scheiterte ('{outcome_a}'), B (mit Referer) lieferte "
+                         f"Daten. EIN erfolgreicher Lauf ist ein starkes Signal, aber "
+                         f"noch kein endgültiger Beweis — mehrere Wiederholungen über "
+                         f"den Tag verteilt würden die Kausalität festigen.")
+          elif outcome_a == "ok" and outcome_b != "ok":
+              verdict = (f"ÜBERRASCHEND — A (ohne Referer) lieferte Daten, B (mit "
+                         f"Referer) scheiterte ('{outcome_b}'). Das widerspricht der "
+                         f"Referer-Hypothese in diesem Lauf; ggf. reiner Zufall/"
+                         f"Timing — nicht überinterpretieren, aber explizit gemeldet "
+                         f"statt stillschweigend übergangen.")
+          else:
+              verdict = (f"UNTERSCHIEDLICHE FEHLERBILDER — A='{outcome_a}', "
+                         f"B='{outcome_b}'. Kein sauberes Erfolg/Fehlschlag-Paar; "
+                         f"Einzelfall-Interpretation riskant, Rohdaten oben prüfen.")
+
+          log(f"\nVERDIKT (dieser Lauf, {now.strftime('%Y-%m-%dT%H:%M:%SZ')}): {verdict}")
+          log("=" * 70)
+
+          # ── Artefakt ─────────────────────────────────────────────────────────────
+          try:
+              with open(os.path.join(OUT, "probe_summary.json"), "w") as fh:
+                  json.dump({
+                      "run_ts_utc": now.isoformat(),
+                      "target_date_iso": date_iso,
+                      "url": url,
+                      "variant_a": {"headers_sent": sent_a, "status": st_a,
+                                   "error": err_a, "n_lines": n_a, "hash": hash_a,
+                                   "preview": preview_a, "outcome": outcome_a},
+                      "variant_b": {"headers_sent": sent_b, "status": st_b,
+                                   "error": err_b, "n_lines": n_b, "hash": hash_b,
+                                   "preview": preview_b, "outcome": outcome_b},
+                      "header_isolation_clean": headers_isolated_correctly,
+                      "verdict": verdict,
+                  }, fh, indent=2, default=str)
+          except Exception:
+              pass
+          PY
+
+      - name: Upload output als Artefakt
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: nyse-referer-header-probe
+          path: ${{ env.OUT_DIR }}
+          if-no-files-found: warn
