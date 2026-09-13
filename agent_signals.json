@@ -1,10 +1,10 @@
 {
-  "updated": "2026-09-13T00:18:57.550776+02:00",
+  "updated": "2026-09-13T03:01:32.351333+02:00",
   "run_info": {
     "tickers_checked": 14,
     "signals_active": 0,
     "alerts_sent": 0,
-    "elapsed_s": 14.8,
+    "elapsed_s": 14.9,
     "market_phase": "Geschlossen"
   },
   "signals": {
@@ -55,7 +55,7 @@
     "GRPN": {
       "score": 40,
       "confidence": 17,
-      "drivers": "News: short squeeze, short interest + UOA Call/Put 2.2×",
+      "drivers": "News: short squeeze, squeeze + UOA Call/Put 2.2×",
       "price": 18.73,
       "chg_pct": -0.0,
       "rvol_4d": 1.37,
@@ -139,9 +139,9 @@
       "uoa_cp_ratio": 1.9250936329588015
     },
     "PDYN": {
-      "score": 50,
+      "score": 35,
       "confidence": 33,
-      "drivers": "Spanne 5.7% + News: revenue beat, contract + UOA Call/Put 3.5×",
+      "drivers": "Spanne 5.7% + News: contract + UOA Call/Put 3.5×",
       "price": 5.77,
       "chg_pct": -0.0,
       "rvol_4d": 1.19,
@@ -164,7 +164,7 @@
     "SEAT": {
       "score": 18,
       "confidence": 33,
-      "drivers": "Spanne 11.3% + News-KI 8/30: Positive earnings and analyst revisions are bullish but lack short squeeze catalysts like high short interest, insider b",
+      "drivers": "Spanne 11.3% + News-KI 8/30: Positive fundamentals (partnerships, analyst upgrades) reduce short-squeeze potential; stock needs negative sentiment an",
       "price": 4.95,
       "chg_pct": -0.0,
       "rvol_4d": 0.91,
@@ -229,9 +229,9 @@
       "uoa_cp_ratio": 167.0952380952381
     },
     "TRIP": {
-      "score": 23,
-      "confidence": 33,
-      "drivers": "Volumen 1.7× + News-KI 8/30: Insider selling, poor earnings, and stock decline indicate bearish sentiment with no short squeeze catalysts visible.",
+      "score": 15,
+      "confidence": 17,
+      "drivers": "Volumen 1.7×",
       "price": 9.09,
       "chg_pct": 0.0,
       "rvol_4d": 1.67,
@@ -243,7 +243,7 @@
       "stocktwits": null,
       "combo_mult": 1.0,
       "active_triggers": 0,
-      "ki_sentiment_source": "llm",
+      "ki_sentiment_source": "keyword",
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": 0.011224489795918367,
@@ -294,9 +294,9 @@
       "uoa_cp_ratio": 0.9988239905919247
     },
     "XRX": {
-      "score": 18,
+      "score": 40,
       "confidence": 33,
-      "drivers": "Spanne 8.1% + News-KI 8/30: Activist investor pressure can create volatility but XRX has low short interest and weak fundamentals, making a sustaine",
+      "drivers": "Spanne 8.1% + News: activist investor, short interest",
       "price": 3.43,
       "chg_pct": 0.0,
       "rvol_4d": 1.43,
@@ -307,8 +307,8 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 0,
-      "ki_sentiment_source": "llm",
+      "active_triggers": 1,
+      "ki_sentiment_source": "keyword",
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": null,
