@@ -1,10 +1,10 @@
 {
-  "updated": "2026-09-13T13:53:37.191631+02:00",
+  "updated": "2026-09-13T18:18:10.963018+02:00",
   "run_info": {
     "tickers_checked": 14,
     "signals_active": 0,
     "alerts_sent": 0,
-    "elapsed_s": 12.0,
+    "elapsed_s": 11.8,
     "market_phase": "Geschlossen"
   },
   "signals": {
@@ -55,7 +55,7 @@
     "GRPN": {
       "score": 40,
       "confidence": 17,
-      "drivers": "News: squeeze, short interest + UOA Call/Put 2.2×",
+      "drivers": "News: squeeze, short squeeze + UOA Call/Put 2.2×",
       "price": 18.73,
       "chg_pct": -0.0,
       "rvol_4d": 1.37,
@@ -76,9 +76,9 @@
       "uoa_cp_ratio": 2.1504702194357366
     },
     "IONQ": {
-      "score": 10,
-      "confidence": 17,
-      "drivers": "SEC Form 4",
+      "score": 18,
+      "confidence": 33,
+      "drivers": "News-KI 8/30: Neutral comparison articles without catalysts; no mention of high short interest, borrowing difficulty, or momentum indi + SEC Form 4",
       "price": 36.75,
       "chg_pct": 0.0,
       "rvol_4d": 0.64,
@@ -90,7 +90,7 @@
       "stocktwits": null,
       "combo_mult": 1.0,
       "active_triggers": 0,
-      "ki_sentiment_source": "keyword",
+      "ki_sentiment_source": "llm",
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": 0.7052921184657711,
@@ -139,9 +139,9 @@
       "uoa_cp_ratio": 1.9250936329588015
     },
     "PDYN": {
-      "score": 35,
+      "score": 50,
       "confidence": 33,
-      "drivers": "Spanne 5.7% + News: contract + UOA Call/Put 3.5×",
+      "drivers": "Spanne 5.7% + News: revenue beat, contract + UOA Call/Put 3.5×",
       "price": 5.77,
       "chg_pct": -0.0,
       "rvol_4d": 1.19,
@@ -206,9 +206,9 @@
       "uoa_cp_ratio": 2.330188679245283
     },
     "TBCH": {
-      "score": 28,
+      "score": 20,
       "confidence": 33,
-      "drivers": "Spanne 7.4% + News-KI 8/30: Routine earnings announcements without notable short interest indicators, negative momentum, or catalyst for squeeze pot + UOA Call/Put 167.1×",
+      "drivers": "Spanne 7.4% + UOA Call/Put 167.1×",
       "price": 12.81,
       "chg_pct": 0.0,
       "rvol_4d": 1.43,
@@ -220,7 +220,7 @@
       "stocktwits": null,
       "combo_mult": 1.0,
       "active_triggers": 0,
-      "ki_sentiment_source": "llm",
+      "ki_sentiment_source": "keyword",
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 167.1×"
@@ -229,9 +229,9 @@
       "uoa_cp_ratio": 167.0952380952381
     },
     "TRIP": {
-      "score": 23,
-      "confidence": 33,
-      "drivers": "Volumen 1.7× + News-KI 8/30: Insider selling, poor earnings misses, and stock decline indicate weak fundamentals and negative sentiment, making a sho",
+      "score": 15,
+      "confidence": 17,
+      "drivers": "Volumen 1.7×",
       "price": 9.09,
       "chg_pct": 0.0,
       "rvol_4d": 1.67,
@@ -243,7 +243,7 @@
       "stocktwits": null,
       "combo_mult": 1.0,
       "active_triggers": 0,
-      "ki_sentiment_source": "llm",
+      "ki_sentiment_source": "keyword",
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": 0.011224489795918367,
