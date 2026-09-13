@@ -95,6 +95,12 @@ jobs:
           from datetime import date, datetime, timedelta, timezone
           from urllib.request import Request, urlopen
           from urllib.error import HTTPError
+          from urllib.parse import urlencode
+
+          # Produktions-Timeout (reg_sho_history.REG_SHO_HTTP_TIMEOUT) — Kopie,
+          # kein Import. Kein Wire-Header, aber für volle Anfrage-Parität
+          # übernommen statt eines abweichenden Probe-eigenen Werts.
+          PROD_TIMEOUT_S = 15
 
           OUT = os.environ["OUT_DIR"]
 
@@ -156,7 +162,7 @@ jobs:
               req = Request(url, headers=headers)
               sent = dict(req.header_items())
               try:
-                  with urlopen(req, timeout=20) as r:
+                  with urlopen(req, timeout=PROD_TIMEOUT_S) as r:
                       raw = r.read()
                       st = getattr(r, "status", r.getcode())
                       return st, raw, None, sent
@@ -197,7 +203,10 @@ jobs:
               f"({target_date.strftime('%A')})")
           log("=" * 70)
 
-          url = f"{ENDPOINT}?selectedDate={date_iso}&market="
+          # urlencode statt manueller String-Interpolation — identisches Muster
+          # zu reg_sho_history._resolve_nyse (Zeile 263); für ein reines ISO-
+          # Datum ohne Sonderzeichen wirkungsgleich, aber konsistent mit Prod.
+          url = f"{ENDPOINT}?{urlencode({'selectedDate': date_iso, 'market': ''})}"
 
           # ── Variante A: OHNE Referer (= exakter heutiger Produktionscode-Zustand) ──
           headers_a = {"User-Agent": PROD_UA, "Accept": "*/*"}
