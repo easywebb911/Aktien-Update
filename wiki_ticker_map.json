@@ -971,6 +971,15 @@
     "substrate": "en",
     "reason": null
   },
+  "PRGS": {
+    "qid": "Q741046",
+    "title": "Progress_Software",
+    "resolved_at": "2026-09-14T23:54:04Z",
+    "issuer_verified": true,
+    "company_name_at_resolve": "Progress Software Corporation",
+    "substrate": "en",
+    "reason": null
+  },
   "QDEL": {
     "qid": "Q15917582",
     "title": "QuidelOrtho",
