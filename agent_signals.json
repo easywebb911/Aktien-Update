@@ -1,17 +1,17 @@
 {
-  "updated": "2026-09-14T08:18:31.577595+02:00",
+  "updated": "2026-09-14T14:50:55.436665+02:00",
   "run_info": {
     "tickers_checked": 14,
     "signals_active": 0,
     "alerts_sent": 0,
-    "elapsed_s": 18.0,
-    "market_phase": "Geschlossen"
+    "elapsed_s": 30.0,
+    "market_phase": "Pre-Market"
   },
   "signals": {
     "AMC": {
-      "score": 18,
+      "score": 26,
       "confidence": 33,
-      "drivers": "Earnings in 36d + UOA Call/Put 5.2×",
+      "drivers": "News-KI 8/30: Negative sentiment dominates with market underperformance; tokenization debate and weak fundamentals don't support short + Earnings in 36d + UOA Call/Put 5.2×",
       "price": 2.46,
       "chg_pct": 0.0,
       "rvol_4d": 0.54,
@@ -23,12 +23,12 @@
       "stocktwits": null,
       "combo_mult": 1.0,
       "active_triggers": 0,
-      "ki_sentiment_source": "keyword",
+      "ki_sentiment_source": "llm",
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 5.2×"
       ],
-      "uoa_atm_ratio": null,
+      "uoa_atm_ratio": 0.21203793989894512,
       "uoa_cp_ratio": 5.165611146295124
     },
     "CRMT": {
@@ -53,9 +53,9 @@
       "uoa_cp_ratio": null
     },
     "GRPN": {
-      "score": 40,
+      "score": 25,
       "confidence": 17,
-      "drivers": "News: short interest, short squeeze + UOA Call/Put 2.2×",
+      "drivers": "News: short interest + UOA Call/Put 2.2×",
       "price": 18.73,
       "chg_pct": -0.0,
       "rvol_4d": 1.37,
@@ -72,13 +72,13 @@
       "uoa_drivers": [
         "UOA Call/Put 2.2×"
       ],
-      "uoa_atm_ratio": null,
+      "uoa_atm_ratio": 0.006298186556629384,
       "uoa_cp_ratio": 2.1504702194357366
     },
     "IONQ": {
-      "score": 30,
-      "confidence": 33,
-      "drivers": "SEC Form 4 + UOA Call-Vol/OI 140.6× ATM",
+      "score": 10,
+      "confidence": 17,
+      "drivers": "SEC Form 4",
       "price": 36.75,
       "chg_pct": 0.0,
       "rvol_4d": 0.64,
@@ -91,11 +91,9 @@
       "combo_mult": 1.0,
       "active_triggers": 0,
       "ki_sentiment_source": "keyword",
-      "uoa_score": 20,
-      "uoa_drivers": [
-        "UOA Call-Vol/OI 140.6× ATM"
-      ],
-      "uoa_atm_ratio": 140.58064516129033,
+      "uoa_score": 0,
+      "uoa_drivers": [],
+      "uoa_atm_ratio": 0.597641250685683,
       "uoa_cp_ratio": 1.0695627484383874
     },
     "OPTU": {
@@ -116,7 +114,7 @@
       "ki_sentiment_source": "keyword",
       "uoa_score": 0,
       "uoa_drivers": [],
-      "uoa_atm_ratio": null,
+      "uoa_atm_ratio": 0.011337868480725623,
       "uoa_cp_ratio": 1.041237113402062
     },
     "PCT": {
@@ -137,13 +135,13 @@
       "ki_sentiment_source": "keyword",
       "uoa_score": 0,
       "uoa_drivers": [],
-      "uoa_atm_ratio": null,
+      "uoa_atm_ratio": 0.232367758186398,
       "uoa_cp_ratio": 1.9250936329588015
     },
     "PDYN": {
-      "score": 50,
+      "score": 35,
       "confidence": 33,
-      "drivers": "Spanne 5.7% + News: contract, revenue beat + UOA Call/Put 3.5×",
+      "drivers": "Spanne 5.7% + News: contract + UOA Call/Put 3.5×",
       "price": 5.77,
       "chg_pct": -0.0,
       "rvol_4d": 1.19,
@@ -160,7 +158,7 @@
       "uoa_drivers": [
         "UOA Call/Put 3.5×"
       ],
-      "uoa_atm_ratio": null,
+      "uoa_atm_ratio": 0.021484375,
       "uoa_cp_ratio": 3.5416666666666665
     },
     "SEAT": {
@@ -204,7 +202,7 @@
       "uoa_drivers": [
         "UOA Call/Put 2.3×"
       ],
-      "uoa_atm_ratio": null,
+      "uoa_atm_ratio": 0.41132075471698115,
       "uoa_cp_ratio": 2.330188679245283
     },
     "TBCH": {
@@ -227,13 +225,13 @@
       "uoa_drivers": [
         "UOA Call/Put 167.1×"
       ],
-      "uoa_atm_ratio": null,
+      "uoa_atm_ratio": 0.018604651162790697,
       "uoa_cp_ratio": 167.0952380952381
     },
     "TRIP": {
       "score": 23,
       "confidence": 33,
-      "drivers": "Volumen 1.7× + News-KI 8/30: Insider selling, poor earnings, and stock decline indicate negative sentiment rather than squeeze potential; no evidence",
+      "drivers": "Volumen 1.7× + News-KI 8/30: Insider selling und negative Earnings-Entwicklung sind bearish-Signale, nicht bullish für einen Short-Squeeze.",
       "price": 9.09,
       "chg_pct": 0.0,
       "rvol_4d": 1.67,
@@ -248,7 +246,7 @@
       "ki_sentiment_source": "llm",
       "uoa_score": 0,
       "uoa_drivers": [],
-      "uoa_atm_ratio": null,
+      "uoa_atm_ratio": 0.011195928753180661,
       "uoa_cp_ratio": 1.8150289017341041
     },
     "VYX": {
@@ -292,13 +290,13 @@
       "ki_sentiment_source": "keyword",
       "uoa_score": 0,
       "uoa_drivers": [],
-      "uoa_atm_ratio": null,
+      "uoa_atm_ratio": 0.12137486573576799,
       "uoa_cp_ratio": 0.9988239905919247
     },
     "XRX": {
       "score": 48,
       "confidence": 70,
-      "drivers": "Spanne 8.1% + News: short interest, activist investor + Earnings in 45d",
+      "drivers": "Spanne 8.1% + News: activist investor, short interest + Earnings in 45d",
       "price": 3.43,
       "chg_pct": 0.0,
       "rvol_4d": 1.43,
