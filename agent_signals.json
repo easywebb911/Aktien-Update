@@ -1,17 +1,17 @@
 {
-  "updated": "2026-09-14T00:25:06.756626+02:00",
+  "updated": "2026-09-14T03:05:49.964840+02:00",
   "run_info": {
     "tickers_checked": 14,
     "signals_active": 0,
     "alerts_sent": 0,
-    "elapsed_s": 16.0,
+    "elapsed_s": 17.6,
     "market_phase": "Geschlossen"
   },
   "signals": {
     "AMC": {
-      "score": 30,
+      "score": 33,
       "confidence": 33,
-      "drivers": "News-KI 12/30: Positive fundamentals (ticket sales) are offset by underperformance and regulatory friction; no clear short squeeze cata + Earnings in 37d + UOA Call/Put 5.2×",
+      "drivers": "News: catalyst + Earnings in 37d + UOA Call/Put 5.2×",
       "price": 2.46,
       "chg_pct": 0.0,
       "rvol_4d": 0.54,
@@ -23,7 +23,7 @@
       "stocktwits": null,
       "combo_mult": 1.0,
       "active_triggers": 1,
-      "ki_sentiment_source": "llm",
+      "ki_sentiment_source": "keyword",
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 5.2×"
@@ -55,7 +55,7 @@
     "GRPN": {
       "score": 40,
       "confidence": 17,
-      "drivers": "News: short squeeze, short interest + UOA Call/Put 2.2×",
+      "drivers": "News: squeeze, short squeeze + UOA Call/Put 2.2×",
       "price": 18.73,
       "chg_pct": -0.0,
       "rvol_4d": 1.37,
@@ -141,7 +141,7 @@
     "PDYN": {
       "score": 50,
       "confidence": 33,
-      "drivers": "Spanne 5.7% + News: contract, revenue beat + UOA Call/Put 3.5×",
+      "drivers": "Spanne 5.7% + News: revenue beat, contract + UOA Call/Put 3.5×",
       "price": 5.77,
       "chg_pct": -0.0,
       "rvol_4d": 1.19,
@@ -206,9 +206,9 @@
       "uoa_cp_ratio": 2.330188679245283
     },
     "TBCH": {
-      "score": 28,
+      "score": 20,
       "confidence": 33,
-      "drivers": "Spanne 7.4% + News-KI 8/30: Routine earnings announcements without indicators of short squeeze catalysts such as high short interest, squeeze mentio + UOA Call/Put 167.1×",
+      "drivers": "Spanne 7.4% + UOA Call/Put 167.1×",
       "price": 12.81,
       "chg_pct": 0.0,
       "rvol_4d": 1.43,
@@ -220,7 +220,7 @@
       "stocktwits": null,
       "combo_mult": 1.0,
       "active_triggers": 0,
-      "ki_sentiment_source": "llm",
+      "ki_sentiment_source": "keyword",
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 167.1×"
@@ -229,9 +229,9 @@
       "uoa_cp_ratio": 167.0952380952381
     },
     "TRIP": {
-      "score": 23,
-      "confidence": 33,
-      "drivers": "Volumen 1.7× + News-KI 8/30: Negative insider selling, significant stock decline, and missed earnings indicate weak fundamentals with no short-squeez",
+      "score": 15,
+      "confidence": 17,
+      "drivers": "Volumen 1.7×",
       "price": 9.09,
       "chg_pct": 0.0,
       "rvol_4d": 1.67,
@@ -243,7 +243,7 @@
       "stocktwits": null,
       "combo_mult": 1.0,
       "active_triggers": 0,
-      "ki_sentiment_source": "llm",
+      "ki_sentiment_source": "keyword",
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": 0.011224489795918367,
@@ -294,9 +294,9 @@
       "uoa_cp_ratio": 0.9988239905919247
     },
     "XRX": {
-      "score": 40,
+      "score": 28,
       "confidence": 33,
-      "drivers": "Spanne 8.1% + News: activist investor, short interest",
+      "drivers": "Spanne 8.1% + News-KI 18/30: Activist involvement increases volatility potential, but Xerox's mature business model and existing operational challeng",
       "price": 3.43,
       "chg_pct": 0.0,
       "rvol_4d": 1.43,
@@ -308,7 +308,7 @@
       "stocktwits": null,
       "combo_mult": 1.0,
       "active_triggers": 1,
-      "ki_sentiment_source": "keyword",
+      "ki_sentiment_source": "llm",
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": null,
