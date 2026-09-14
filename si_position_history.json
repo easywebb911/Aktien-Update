@@ -1590,6 +1590,12 @@
       "shares_short": 1460520,
       "short_pct_float": 23.43,
       "pub_date": "2026-08-25"
+    },
+    {
+      "settlement_date": "2026-08-31",
+      "shares_short": 1448088,
+      "short_pct_float": 24.51,
+      "pub_date": "2026-09-10"
     }
   ],
   "AMPG": [
