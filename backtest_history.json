@@ -63211,7 +63211,7 @@
     "return_10d": -10.18,
     "return_3d_t1": -1.9,
     "return_5d_t1": -1.75,
-    "return_10d_t1": null,
+    "return_10d_t1": -14.26,
     "max_drawdown_pct": -17.86,
     "max_gain_pct": 10.57,
     "market_regime": "neutral",
@@ -68180,7 +68180,7 @@
     "return_5d": -10.33,
     "return_10d": null,
     "return_3d_t1": -8.8,
-    "return_5d_t1": null,
+    "return_5d_t1": -11.6,
     "return_10d_t1": null,
     "max_drawdown_pct": -24.56,
     "max_gain_pct": 18.75,
@@ -71729,7 +71729,7 @@
     "dtc": 13.03,
     "rvol": 2.795,
     "si_trend": "sideways",
-    "return_3d": null,
+    "return_3d": 6.26,
     "return_5d": null,
     "return_10d": null,
     "return_3d_t1": null,
@@ -71836,7 +71836,8 @@
       "yahoo_small_cap_gainers"
     ],
     "backtest_schema_version": 4,
-    "max_gain_pct_net": 21.84
+    "max_gain_pct_net": 21.84,
+    "return_3d_net": 2.09
   },
   {
     "date": "10.09.2026",
@@ -73853,7 +73854,7 @@
     "ticker": "DBI",
     "score": 94.8,
     "entry_price": 6.53,
-    "entry_price_t1": null,
+    "entry_price_t1": 6.365,
     "short_float": 35.6,
     "dtc": 12.12,
     "rvol": 2.457,
