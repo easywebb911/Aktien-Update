@@ -278,6 +278,15 @@
     "substrate": "en",
     "reason": null
   },
+  "CLBK": {
+    "qid": null,
+    "title": null,
+    "resolved_at": "2026-09-15T23:33:35Z",
+    "issuer_verified": false,
+    "company_name_at_resolve": "Columbia Financial, Inc.",
+    "substrate": "none",
+    "reason": "no_p249"
+  },
   "CMCO": {
     "qid": null,
     "title": null,
