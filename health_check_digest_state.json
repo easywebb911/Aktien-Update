@@ -18,23 +18,23 @@
     "borrow": 0
   },
   "last_seen": {
-    "finra": "2026-09-14T14:03:42Z",
-    "yfinance_singletons": "2026-09-14T14:04:08Z",
+    "finra": "2026-09-15T13:34:02Z",
+    "yfinance_singletons": "2026-09-15T13:34:31Z",
     "stocktwits": "2026-05-18T19:04:11Z",
-    "uoa": "2026-09-14T14:04:14Z",
-    "news_rss": "2026-09-14T14:04:14Z",
-    "edgar_8k": "2026-09-14T14:04:14Z",
-    "edgar_form4": "2026-09-14T14:04:14Z",
-    "edgar_13d_g": "2026-09-14T14:04:14Z",
-    "yahoo_screener": "2026-09-14T12:49:01Z",
+    "uoa": "2026-09-15T13:34:35Z",
+    "news_rss": "2026-09-15T13:34:35Z",
+    "edgar_8k": "2026-09-15T13:34:35Z",
+    "edgar_form4": "2026-09-15T13:34:35Z",
+    "edgar_13d_g": "2026-09-15T13:34:35Z",
+    "yahoo_screener": "2026-09-15T11:45:17Z",
     "earningswhispers": "2026-05-18T18:58:45Z",
-    "yfinance_batch": "2026-09-14T12:49:18Z",
-    "finviz": "2026-09-14T12:49:53Z",
+    "yfinance_batch": "2026-09-15T11:45:28Z",
+    "finviz": "2026-09-15T11:45:58Z",
     "finnhub": "2026-05-16T08:25:06Z",
     "stockanalysis": "2026-06-05T10:18:04Z",
-    "quote_proxy": "2026-09-14T12:49:53Z",
+    "quote_proxy": "2026-09-15T11:45:58Z",
     "borrow": "2026-07-31T22:18:32Z"
   },
-  "last_digest_sent": "2026-09-14",
-  "last_successful_run": "2026-09-14T14:04:14Z"
+  "last_digest_sent": "2026-09-15",
+  "last_successful_run": "2026-09-15T13:34:35Z"
 }
