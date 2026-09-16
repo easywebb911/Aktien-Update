@@ -4131,6 +4131,12 @@
       "shares_short": 47494355,
       "short_pct_float": 28.98,
       "pub_date": "2026-08-25"
+    },
+    {
+      "settlement_date": "2026-08-31",
+      "shares_short": 48784134,
+      "short_pct_float": 29.77,
+      "pub_date": "2026-09-10"
     }
   ],
   "SRPT": [
@@ -6393,6 +6399,12 @@
       "shares_short": 144490,
       "short_pct_float": 18.51,
       "pub_date": "2026-08-25"
+    },
+    {
+      "settlement_date": "2026-08-31",
+      "shares_short": 301468,
+      "short_pct_float": 38.63,
+      "pub_date": "2026-09-10"
     }
   ],
   "VNET": [
@@ -6911,6 +6923,36 @@
       "settlement_date": "2026-08-31",
       "shares_short": 268909,
       "short_pct_float": 29.19,
+      "pub_date": "2026-09-10"
+    }
+  ],
+  "DAIC": [
+    {
+      "settlement_date": "2026-07-31",
+      "shares_short": 34929,
+      "short_pct_float": null,
+      "pub_date": "2026-08-11",
+      "seeded": true
+    },
+    {
+      "settlement_date": "2026-08-31",
+      "shares_short": 454414,
+      "short_pct_float": 51.57,
+      "pub_date": "2026-09-10"
+    }
+  ],
+  "AEMD": [
+    {
+      "settlement_date": "2026-07-31",
+      "shares_short": 46330,
+      "short_pct_float": null,
+      "pub_date": "2026-08-11",
+      "seeded": true
+    },
+    {
+      "settlement_date": "2026-08-31",
+      "shares_short": 461661,
+      "short_pct_float": 65.04,
       "pub_date": "2026-09-10"
     }
   ]

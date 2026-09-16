@@ -338,6 +338,11 @@
       "date": "2026-09-15",
       "inst_ownership": 1.3150901,
       "insider_ownership": 0.0076099997
+    },
+    {
+      "date": "2026-09-16",
+      "inst_ownership": 1.3151801,
+      "insider_ownership": 0.0076099997
     }
   ],
   "RES": [
@@ -833,6 +838,11 @@
       "date": "2026-09-11",
       "inst_ownership": 1.05421,
       "insider_ownership": 0.01127
+    },
+    {
+      "date": "2026-09-16",
+      "inst_ownership": 1.05424,
+      "insider_ownership": 0.01127
     }
   ],
   "FABC": [
@@ -973,6 +983,11 @@
       "date": "2026-09-11",
       "inst_ownership": 0.97984004,
       "insider_ownership": 0.046729997
+    },
+    {
+      "date": "2026-09-16",
+      "inst_ownership": 0.98010004,
+      "insider_ownership": 0.046729997
     }
   ],
   "KUST": [
@@ -1072,6 +1087,11 @@
     {
       "date": "2026-09-11",
       "inst_ownership": 1.02753,
+      "insider_ownership": 0.00835
+    },
+    {
+      "date": "2026-09-16",
+      "inst_ownership": 1.02773,
       "insider_ownership": 0.00835
     }
   ],
@@ -1659,6 +1679,11 @@
       "date": "2026-09-15",
       "inst_ownership": 0.7621,
       "insider_ownership": 0.09437
+    },
+    {
+      "date": "2026-09-16",
+      "inst_ownership": 0.76211,
+      "insider_ownership": 0.09437
     }
   ],
   "NMAX": [
@@ -2045,6 +2070,11 @@
     {
       "date": "2026-09-11",
       "inst_ownership": 1.11711,
+      "insider_ownership": 0.02648
+    },
+    {
+      "date": "2026-09-16",
+      "inst_ownership": 1.1171299,
       "insider_ownership": 0.02648
     }
   ],
@@ -2581,6 +2611,11 @@
       "date": "2026-09-11",
       "inst_ownership": 1.0685099,
       "insider_ownership": 0.09031
+    },
+    {
+      "date": "2026-09-16",
+      "inst_ownership": 1.07553,
+      "insider_ownership": 0.09031
     }
   ],
   "VSTM": [
@@ -2624,6 +2659,11 @@
     {
       "date": "2026-09-11",
       "inst_ownership": 0.99863,
+      "insider_ownership": 0.03841
+    },
+    {
+      "date": "2026-09-16",
+      "inst_ownership": 0.99865997,
       "insider_ownership": 0.03841
     }
   ],
@@ -2791,6 +2831,11 @@
     {
       "date": "2026-09-03",
       "inst_ownership": 0.68838996,
+      "insider_ownership": 0.050619997
+    },
+    {
+      "date": "2026-09-16",
+      "inst_ownership": 0.68662,
       "insider_ownership": 0.050619997
     }
   ],
@@ -3714,6 +3759,11 @@
       "date": "2026-09-15",
       "inst_ownership": 0.64408,
       "insider_ownership": 0.0144299995
+    },
+    {
+      "date": "2026-09-16",
+      "inst_ownership": 0.64478993,
+      "insider_ownership": 0.0144299995
     }
   ],
   "ABUS": [
@@ -3987,6 +4037,11 @@
       "date": "2026-08-25",
       "inst_ownership": 0.0057200002,
       "insider_ownership": 0.18181999
+    },
+    {
+      "date": "2026-09-16",
+      "inst_ownership": 0.0032499998,
+      "insider_ownership": 0.10054
     }
   ],
   "AVXL": [
@@ -4318,6 +4373,11 @@
       "date": "2026-09-11",
       "inst_ownership": 0.42753,
       "insider_ownership": 0.00699
+    },
+    {
+      "date": "2026-09-16",
+      "inst_ownership": 0.4276,
+      "insider_ownership": 0.00699
     }
   ],
   "QUBT": [
@@ -4405,6 +4465,11 @@
     {
       "date": "2026-09-11",
       "inst_ownership": 0.43555,
+      "insider_ownership": 0.05228
+    },
+    {
+      "date": "2026-09-16",
+      "inst_ownership": 0.43558997,
       "insider_ownership": 0.05228
     }
   ],
@@ -4501,6 +4566,11 @@
     {
       "date": "2026-09-15",
       "inst_ownership": 0.81593,
+      "insider_ownership": 0.25542998
+    },
+    {
+      "date": "2026-09-16",
+      "inst_ownership": 0.81594,
       "insider_ownership": 0.25542998
     }
   ],
@@ -4959,6 +5029,20 @@
       "date": "2026-09-15",
       "inst_ownership": 0.06072,
       "insider_ownership": 0.30337998
+    }
+  ],
+  "DAIC": [
+    {
+      "date": "2026-09-16",
+      "inst_ownership": 0.11017,
+      "insider_ownership": 0.26374
+    }
+  ],
+  "AEMD": [
+    {
+      "date": "2026-09-16",
+      "inst_ownership": 0.043420002,
+      "insider_ownership": 0.0057599996
     }
   ]
 }
