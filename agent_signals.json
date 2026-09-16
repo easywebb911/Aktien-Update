@@ -1,10 +1,10 @@
 {
-  "updated": "2026-09-16T13:35:45.369005+02:00",
+  "updated": "2026-09-16T13:37:37.356333+02:00",
   "run_info": {
-    "tickers_checked": 13,
+    "tickers_checked": 14,
     "signals_active": 0,
     "alerts_sent": 0,
-    "elapsed_s": 44.9,
+    "elapsed_s": 31.2,
     "market_phase": "Pre-Market"
   },
   "signals": {
@@ -51,27 +51,6 @@
       ],
       "uoa_atm_ratio": 0.31148813484142823,
       "uoa_cp_ratio": 5.207667731629393
-    },
-    "CLBK": {
-      "score": 38,
-      "confidence": 33,
-      "drivers": "News: acquisition, short interest + Earnings in 34d",
-      "price": 11.53,
-      "chg_pct": -0.0,
-      "rvol_4d": 1.03,
-      "rvol_20d": 1.14,
-      "earnings": "in 34 Tagen (20.10.2026)",
-      "fda_date": null,
-      "upcoming_event": null,
-      "insider_buy": false,
-      "stocktwits": null,
-      "combo_mult": 1.0,
-      "active_triggers": 1,
-      "ki_sentiment_source": "keyword",
-      "uoa_score": 0,
-      "uoa_drivers": [],
-      "uoa_atm_ratio": 0.01606425702811245,
-      "uoa_cp_ratio": 0.03937007874015748
     },
     "FMC": {
       "score": 58,
@@ -136,10 +115,31 @@
       "uoa_atm_ratio": 0.2496609020006782,
       "uoa_cp_ratio": 1.9514358108108107
     },
+    "LENZ": {
+      "score": 40,
+      "confidence": 70,
+      "drivers": "Spanne 5.3% + News: short interest + FINRA Short-Vol 51%",
+      "price": 4.23,
+      "chg_pct": 0.0,
+      "rvol_4d": 1.09,
+      "rvol_20d": 1.26,
+      "earnings": "in 49 Tagen (04.11.2026)",
+      "fda_date": null,
+      "upcoming_event": null,
+      "insider_buy": false,
+      "stocktwits": null,
+      "combo_mult": 1.0,
+      "active_triggers": 1,
+      "ki_sentiment_source": "keyword",
+      "uoa_score": 0,
+      "uoa_drivers": [],
+      "uoa_atm_ratio": null,
+      "uoa_cp_ratio": 0.7603305785123967
+    },
     "PDYN": {
-      "score": 18,
+      "score": 40,
       "confidence": 17,
-      "drivers": "News-KI 8/30: Positive revenue growth and strategic partnerships lack the high short interest, catalyst urgency, and forced-covering d + UOA Call/Put 3.6×",
+      "drivers": "News: contract, partnership + UOA Call/Put 3.6×",
       "price": 5.68,
       "chg_pct": -0.0,
       "rvol_4d": 1.09,
@@ -150,14 +150,37 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 0,
-      "ki_sentiment_source": "llm",
+      "active_triggers": 1,
+      "ki_sentiment_source": "keyword",
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 3.6×"
       ],
       "uoa_atm_ratio": 0.14099783080260303,
       "uoa_cp_ratio": 3.611111111111111
+    },
+    "RXRX": {
+      "score": 50,
+      "confidence": 33,
+      "drivers": "News: short interest, catalyst + SEC Form 4 + UOA Call/Put 7.1×",
+      "price": 3.24,
+      "chg_pct": 0.0,
+      "rvol_4d": 0.95,
+      "rvol_20d": 0.74,
+      "earnings": "in 49 Tagen (04.11.2026)",
+      "fda_date": null,
+      "upcoming_event": null,
+      "insider_buy": false,
+      "stocktwits": null,
+      "combo_mult": 1.0,
+      "active_triggers": 1,
+      "ki_sentiment_source": "keyword",
+      "uoa_score": 10,
+      "uoa_drivers": [
+        "UOA Call/Put 7.1×"
+      ],
+      "uoa_atm_ratio": 0.07113781740647412,
+      "uoa_cp_ratio": 7.074712643678161
     },
     "SDGR": {
       "score": 55,
@@ -231,7 +254,7 @@
     "TYRA": {
       "score": 28,
       "confidence": 70,
-      "drivers": "Spanne 6.6% + News-KI 8/30: Massive dilution from $400M offering and negative clinical data crush short-squeeze potential despite stock weakness. + SEC Form 4",
+      "drivers": "Spanne 6.6% + News-KI 8/30: Massive dilution from $400M offering and negative clinical data create strong headwinds against short squeeze potential  + SEC Form 4",
       "price": 25.43,
       "chg_pct": 0.0,
       "rvol_4d": 0.38,
@@ -271,9 +294,9 @@
       "uoa_cp_ratio": 1.3292273236282195
     },
     "XRX": {
-      "score": 68,
+      "score": 58,
       "confidence": 70,
-      "drivers": "Spanne 7.9% + News: activist investor, short interest + Earnings in 43d + SEC Form 4 + UOA Call/Put 7.7×",
+      "drivers": "Spanne 7.9% + News: short interest, activist investor + Earnings in 43d + UOA Call/Put 7.7×",
       "price": 3.46,
       "chg_pct": 0.0,
       "rvol_4d": 1.07,
