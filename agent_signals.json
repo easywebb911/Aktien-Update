@@ -1,11 +1,11 @@
 {
-  "updated": "2026-09-16T08:02:45.133488+02:00",
+  "updated": "2026-09-16T13:35:45.369005+02:00",
   "run_info": {
     "tickers_checked": 13,
     "signals_active": 0,
     "alerts_sent": 0,
-    "elapsed_s": 12.6,
-    "market_phase": "Geschlossen"
+    "elapsed_s": 44.9,
+    "market_phase": "Pre-Market"
   },
   "signals": {
     "ABEO": {
@@ -26,7 +26,7 @@
       "ki_sentiment_source": "keyword",
       "uoa_score": 0,
       "uoa_drivers": [],
-      "uoa_atm_ratio": null,
+      "uoa_atm_ratio": 0.3023255813953488,
       "uoa_cp_ratio": 1.8133333333333332
     },
     "AMC": {
@@ -49,13 +49,13 @@
       "uoa_drivers": [
         "UOA Call/Put 5.2×"
       ],
-      "uoa_atm_ratio": null,
+      "uoa_atm_ratio": 0.31148813484142823,
       "uoa_cp_ratio": 5.207667731629393
     },
     "CLBK": {
       "score": 38,
       "confidence": 33,
-      "drivers": "News: short interest, merger + Earnings in 34d",
+      "drivers": "News: acquisition, short interest + Earnings in 34d",
       "price": 11.53,
       "chg_pct": -0.0,
       "rvol_4d": 1.03,
@@ -70,13 +70,13 @@
       "ki_sentiment_source": "keyword",
       "uoa_score": 0,
       "uoa_drivers": [],
-      "uoa_atm_ratio": null,
+      "uoa_atm_ratio": 0.01606425702811245,
       "uoa_cp_ratio": 0.03937007874015748
     },
     "FMC": {
-      "score": 33,
+      "score": 58,
       "confidence": 70,
-      "drivers": "Spanne 7.4% + News-KI 5/30: Negative fundamental outlook with declining revenue and layoffs makes this an unfavorable short-squeeze candidate despit + Earnings in 42d + SEC Form 4",
+      "drivers": "Spanne 7.4% + News: short interest, squeeze + Earnings in 42d + SEC Form 4",
       "price": 11.25,
       "chg_pct": 0.0,
       "rvol_4d": 1.18,
@@ -87,8 +87,8 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 0,
-      "ki_sentiment_source": "llm",
+      "active_triggers": 1,
+      "ki_sentiment_source": "keyword",
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": null,
@@ -116,9 +116,9 @@
       "uoa_cp_ratio": 1.4193548387096775
     },
     "IONQ": {
-      "score": 48,
-      "confidence": 70,
-      "drivers": "Spanne 5.3% + News-KI 8/30: Positive research recognition and academic achievements, but lack concrete business/operational catalysts needed for sho + SEC Form 4 + UOA Call-Vol/OI 95.0× ATM",
+      "score": 20,
+      "confidence": 33,
+      "drivers": "Spanne 5.3% + SEC Form 4",
       "price": 37.05,
       "chg_pct": -0.0,
       "rvol_4d": 0.67,
@@ -130,18 +130,16 @@
       "stocktwits": null,
       "combo_mult": 1.0,
       "active_triggers": 0,
-      "ki_sentiment_source": "llm",
-      "uoa_score": 20,
-      "uoa_drivers": [
-        "UOA Call-Vol/OI 95.0× ATM"
-      ],
-      "uoa_atm_ratio": 95.0,
+      "ki_sentiment_source": "keyword",
+      "uoa_score": 0,
+      "uoa_drivers": [],
+      "uoa_atm_ratio": 0.2496609020006782,
       "uoa_cp_ratio": 1.9514358108108107
     },
     "PDYN": {
-      "score": 40,
+      "score": 18,
       "confidence": 17,
-      "drivers": "News: contract, partnership + UOA Call/Put 3.6×",
+      "drivers": "News-KI 8/30: Positive revenue growth and strategic partnerships lack the high short interest, catalyst urgency, and forced-covering d + UOA Call/Put 3.6×",
       "price": 5.68,
       "chg_pct": -0.0,
       "rvol_4d": 1.09,
@@ -152,13 +150,13 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 1,
-      "ki_sentiment_source": "keyword",
+      "active_triggers": 0,
+      "ki_sentiment_source": "llm",
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 3.6×"
       ],
-      "uoa_atm_ratio": null,
+      "uoa_atm_ratio": 0.14099783080260303,
       "uoa_cp_ratio": 3.611111111111111
     },
     "SDGR": {
@@ -181,7 +179,7 @@
       "uoa_drivers": [
         "UOA Call/Put 5.4×"
       ],
-      "uoa_atm_ratio": null,
+      "uoa_atm_ratio": 0.6425191117582818,
       "uoa_cp_ratio": 5.43717277486911
     },
     "SHOE": {
@@ -204,7 +202,7 @@
       "uoa_drivers": [
         "UOA Call/Put 11.2×"
       ],
-      "uoa_atm_ratio": null,
+      "uoa_atm_ratio": 0.2906513070447497,
       "uoa_cp_ratio": 11.194444444444445
     },
     "TBCH": {
@@ -227,13 +225,13 @@
       "uoa_drivers": [
         "UOA Call/Put 167.1×"
       ],
-      "uoa_atm_ratio": null,
+      "uoa_atm_ratio": 0.018604651162790697,
       "uoa_cp_ratio": 167.0952380952381
     },
     "TYRA": {
-      "score": 20,
-      "confidence": 33,
-      "drivers": "Spanne 6.6% + SEC Form 4",
+      "score": 28,
+      "confidence": 70,
+      "drivers": "Spanne 6.6% + News-KI 8/30: Massive dilution from $400M offering and negative clinical data crush short-squeeze potential despite stock weakness. + SEC Form 4",
       "price": 25.43,
       "chg_pct": 0.0,
       "rvol_4d": 0.38,
@@ -245,10 +243,10 @@
       "stocktwits": null,
       "combo_mult": 1.0,
       "active_triggers": 0,
-      "ki_sentiment_source": "keyword",
+      "ki_sentiment_source": "llm",
       "uoa_score": 0,
       "uoa_drivers": [],
-      "uoa_atm_ratio": null,
+      "uoa_atm_ratio": 0.016697588126159554,
       "uoa_cp_ratio": 1.1153846153846154
     },
     "WOLF": {
@@ -269,7 +267,7 @@
       "ki_sentiment_source": "keyword",
       "uoa_score": 0,
       "uoa_drivers": [],
-      "uoa_atm_ratio": null,
+      "uoa_atm_ratio": 0.14991762767710048,
       "uoa_cp_ratio": 1.3292273236282195
     },
     "XRX": {

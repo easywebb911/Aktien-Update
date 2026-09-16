@@ -1,5 +1,5 @@
 {
-  "last_run": "2026-09-16T08:02:47.359714+02:00",
+  "last_run": "2026-09-16T13:35:47.630935+02:00",
   "cooldowns": {
     "anomaly_score_jump_XRX": "2026-05-03T18:47:15.315486+02:00",
     "anomaly_uoa_extreme_TDOC": "2026-05-04T13:47:00.365949+02:00",
@@ -112,30 +112,6 @@
     "earnings_immediate_PLCE_04.09.2026": "2026-09-04T01:21:25.342435+02:00"
   },
   "push_history": [
-    {
-      "ts": "2026-08-19T13:23:10.652312+02:00",
-      "ticker": "WOLF",
-      "kind": "exit_p2",
-      "severity": "trigger",
-      "trigger": "catalyst",
-      "body": "🔻 Exit-Signale WOLF: catalyst crit · Warnung pressure 70/100",
-      "success": true,
-      "suppressed": false,
-      "suppress_reason": null,
-      "conviction_score": null
-    },
-    {
-      "ts": "2026-08-19T22:46:09.269984+02:00",
-      "ticker": "WOLF",
-      "kind": "earnings_immediate",
-      "severity": "default",
-      "trigger": null,
-      "body": "WOLF Earnings-Sofort-Alert (in 0d, KI 72)",
-      "success": true,
-      "suppressed": false,
-      "suppress_reason": null,
-      "conviction_score": 58
-    },
     {
       "ts": "2026-08-24T22:39:18.229483+02:00",
       "ticker": "IONQ",
@@ -1311,6 +1287,30 @@
       "suppressed": false,
       "suppress_reason": null,
       "conviction_score": null
+    },
+    {
+      "ts": "2026-09-16T13:35:47.631022+02:00",
+      "ticker": "IONQ",
+      "kind": "exit_p2",
+      "severity": "trigger",
+      "trigger": "profit_lock,trend_break",
+      "body": "🔻 Exit-Signale IONQ: profit_lock, trend_break crit · Warnung pressure 65/100",
+      "success": false,
+      "suppressed": false,
+      "suppress_reason": null,
+      "conviction_score": null
+    },
+    {
+      "ts": "2026-09-16T13:35:47.631064+02:00",
+      "ticker": "WOLF",
+      "kind": "exit_p2",
+      "severity": "trigger",
+      "trigger": "profit_lock,trend_break",
+      "body": "🔻 Exit-Signale WOLF: profit_lock, trend_break crit · Warnung pressure 60/100",
+      "success": false,
+      "suppressed": false,
+      "suppress_reason": null,
+      "conviction_score": null
     }
   ],
   "prev_conviction_scores": {
@@ -1371,19 +1371,19 @@
       ],
       "last_push_date": "2026-08-28",
       "esc_alerted": false,
-      "updated": "2026-09-16T08:02:47.359838+02:00"
+      "updated": "2026-09-16T13:35:47.631033+02:00"
     },
     "PDYN": {
       "last_active": [],
       "last_push_date": "2026-08-28",
       "esc_alerted": false,
-      "updated": "2026-09-16T08:02:47.359853+02:00"
+      "updated": "2026-09-16T13:35:47.631049+02:00"
     },
     "WOLF": {
       "last_active": [],
       "last_push_date": "2026-09-01",
       "esc_alerted": false,
-      "updated": "2026-09-16T08:02:47.359876+02:00"
+      "updated": "2026-09-16T13:35:47.631071+02:00"
     },
     "ARCT": {
       "last_active": [
