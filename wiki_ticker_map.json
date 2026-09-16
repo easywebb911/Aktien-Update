@@ -35,6 +35,15 @@
     "substrate": "none",
     "reason": "no_p249"
   },
+  "AEHL": {
+    "qid": null,
+    "title": null,
+    "resolved_at": "2026-09-16T23:40:35Z",
+    "issuer_verified": false,
+    "company_name_at_resolve": "Antelope Enterprise Holdings Limited",
+    "substrate": "none",
+    "reason": "no_p249"
+  },
   "AI": {
     "qid": "Q104081972",
     "title": "C3_AI",
@@ -728,6 +737,15 @@
     "substrate": "none",
     "reason": "no_p249"
   },
+  "IQ": {
+    "qid": "Q15913890",
+    "title": "IQIYI",
+    "resolved_at": "2026-09-16T23:40:35Z",
+    "issuer_verified": true,
+    "company_name_at_resolve": "iQIYI, Inc.",
+    "substrate": "en",
+    "reason": null
+  },
   "JACK": {
     "qid": "Q1538507",
     "title": "Jack_in_the_Box",
@@ -779,6 +797,15 @@
     "resolved_at": "2026-07-29T22:16:00Z",
     "issuer_verified": false,
     "company_name_at_resolve": "Kustom Entertainment, Inc.",
+    "substrate": "none",
+    "reason": "no_p249"
+  },
+  "KXIN": {
+    "qid": null,
+    "title": null,
+    "resolved_at": "2026-09-16T23:40:35Z",
+    "issuer_verified": false,
+    "company_name_at_resolve": "Kaixin Holdings",
     "substrate": "none",
     "reason": "no_p249"
   },
