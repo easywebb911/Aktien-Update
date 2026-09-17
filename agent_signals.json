@@ -1,11 +1,11 @@
 {
-  "updated": "2026-09-17T13:44:04.315789+02:00",
+  "updated": "2026-09-17T15:30:36.064261+02:00",
   "run_info": {
     "tickers_checked": 14,
-    "signals_active": 2,
+    "signals_active": 1,
     "alerts_sent": 0,
-    "elapsed_s": 20.5,
-    "market_phase": "Pre-Market"
+    "elapsed_s": 35.0,
+    "market_phase": "Regulär"
   },
   "signals": {
     "AEHL": {
@@ -81,7 +81,7 @@
       "confidence": 70,
       "drivers": "Volumen 2.8× + Spanne 6.7% + FINRA Short-Vol 60%",
       "price": 3.09,
-      "chg_pct": -0.0,
+      "chg_pct": 0.0,
       "rvol_4d": 2.77,
       "rvol_20d": 1.48,
       "earnings": "in 50 Tagen (06.11.2026)",
@@ -98,11 +98,11 @@
       "uoa_cp_ratio": 1.0
     },
     "GRPN": {
-      "score": 35,
+      "score": 43,
       "confidence": 70,
-      "drivers": "Spanne 5.2% + FINRA Short-Vol 58% + UOA Call/Put 3.1×",
+      "drivers": "Spanne 5.2% + News-KI 8/30: Positive operational news about AI and marketplace improvements, but lacks short squeeze indicators like high short inte + FINRA Short-Vol 58% + UOA Call/Put 3.1×",
       "price": 19.33,
-      "chg_pct": -0.0,
+      "chg_pct": 0.0,
       "rvol_4d": 1.49,
       "rvol_20d": 1.37,
       "earnings": "in 49 Tagen (05.11.2026)",
@@ -112,7 +112,7 @@
       "stocktwits": null,
       "combo_mult": 1.0,
       "active_triggers": 0,
-      "ki_sentiment_source": "keyword",
+      "ki_sentiment_source": "llm",
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 3.1×"
@@ -121,9 +121,9 @@
       "uoa_cp_ratio": 3.119815668202765
     },
     "IONQ": {
-      "score": 8,
+      "score": 10,
       "confidence": 17,
-      "drivers": "News-KI 8/30: CEO selling large share quantities despite positive outlook signals insider skepticism about near-term valuation, weaken",
+      "drivers": "SEC Form 4",
       "price": 36.84,
       "chg_pct": 0.0,
       "rvol_4d": 0.98,
@@ -135,16 +135,16 @@
       "stocktwits": null,
       "combo_mult": 1.0,
       "active_triggers": 0,
-      "ki_sentiment_source": "llm",
+      "ki_sentiment_source": "keyword",
       "uoa_score": 0,
       "uoa_drivers": [],
-      "uoa_atm_ratio": 0.264472475148275,
+      "uoa_atm_ratio": 0.21336418860283482,
       "uoa_cp_ratio": 0.9966784305584389
     },
     "IQ": {
-      "score": 45,
-      "confidence": 33,
-      "drivers": "Volumen 3.7× + ⚡ Extremes Volumen 3.7×+ + Spanne 10.0%",
+      "score": 53,
+      "confidence": 70,
+      "drivers": "Volumen 3.7× + ⚡ Extremes Volumen 3.7×+ + Spanne 10.0% + News-KI 8/30: Negative ADR trading sentiment outweighs positive AI initiative announcement; minimal short squeeze catalyst visible.",
       "price": 1.08,
       "chg_pct": 0.0,
       "rvol_4d": 3.66,
@@ -156,16 +156,16 @@
       "stocktwits": null,
       "combo_mult": 1.0,
       "active_triggers": 1,
-      "ki_sentiment_source": "keyword",
+      "ki_sentiment_source": "llm",
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": 0.1875,
       "uoa_cp_ratio": 1.6870229007633588
     },
     "KPTI": {
-      "score": 28,
+      "score": 32,
       "confidence": 33,
-      "drivers": "Spanne 11.7% + News-KI 8/30: Debt restructuring and inducement grants suggest financial distress, but no significant short interest catalyst or bulli + UOA Call/Put 10.7×",
+      "drivers": "Spanne 11.7% + News-KI 12/30: Debt payment delays and dilutive inducement grants are negative signals; no significant short positioning catalyst or bu + UOA Call/Put 10.7×",
       "price": 1.7,
       "chg_pct": 0.0,
       "rvol_4d": 0.55,
@@ -176,7 +176,7 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 0,
+      "active_triggers": 1,
       "ki_sentiment_source": "llm",
       "uoa_score": 10,
       "uoa_drivers": [
@@ -186,11 +186,11 @@
       "uoa_cp_ratio": 10.666666666666666
     },
     "KXIN": {
-      "score": 72,
+      "score": 55,
       "confidence": 70,
-      "drivers": "Volumen 63.5× + 🚀 Massives Volumen 63.5×+ + Spanne 11.8% + News: acquisition",
+      "drivers": "Volumen 63.5× + 🚀 Massives Volumen 63.5×+ + Spanne 11.8% + News-KI 5/30: Share consolidation typically reduces short-squeeze potential, and routine AGM announcements provide no catalyst; negati",
       "price": 1.13,
-      "chg_pct": -0.0,
+      "chg_pct": 0.0,
       "rvol_4d": 63.46,
       "rvol_20d": 4.76,
       "earnings": null,
@@ -198,9 +198,9 @@
       "upcoming_event": null,
       "insider_buy": false,
       "stocktwits": null,
-      "combo_mult": 1.1,
-      "active_triggers": 2,
-      "ki_sentiment_source": "keyword",
+      "combo_mult": 1.0,
+      "active_triggers": 1,
+      "ki_sentiment_source": "llm",
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": null,
@@ -211,7 +211,7 @@
       "confidence": 17,
       "drivers": "News: short interest + UOA Call/Put 3.1×",
       "price": 11.49,
-      "chg_pct": -0.0,
+      "chg_pct": 0.0,
       "rvol_4d": 1.39,
       "rvol_20d": 1.35,
       "earnings": "in 49 Tagen (05.11.2026)",
@@ -226,15 +226,15 @@
       "uoa_drivers": [
         "UOA Call/Put 3.1×"
       ],
-      "uoa_atm_ratio": 0.09191176470588236,
+      "uoa_atm_ratio": 0.047418630751964085,
       "uoa_cp_ratio": 3.0714285714285716
     },
     "OPTU": {
       "score": 40,
       "confidence": 70,
-      "drivers": "Volumen 1.8× + Spanne 9.0% + News: short interest",
+      "drivers": "Volumen 1.8× + Spanne 9.0% + News: insider buying",
       "price": 1.01,
-      "chg_pct": -0.0,
+      "chg_pct": 0.0,
       "rvol_4d": 1.84,
       "rvol_20d": 1.41,
       "earnings": "in 49 Tagen (05.11.2026)",
@@ -272,11 +272,11 @@
       "uoa_cp_ratio": 1.8285714285714285
     },
     "PLCE": {
-      "score": 22,
+      "score": 25,
       "confidence": 33,
-      "drivers": "Spanne 8.2% + News-KI 12/30: Earnings reports show balanced sentiment with no evidence of extreme short interest, negative catalysts, or significant ",
+      "drivers": "Spanne 8.2% + News: partnership",
       "price": 2.02,
-      "chg_pct": -0.0,
+      "chg_pct": 0.0,
       "rvol_4d": 1.41,
       "rvol_20d": 2.34,
       "earnings": null,
@@ -286,7 +286,7 @@
       "stocktwits": null,
       "combo_mult": 1.0,
       "active_triggers": 1,
-      "ki_sentiment_source": "llm",
+      "ki_sentiment_source": "keyword",
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": 0.13917525773195877,
@@ -310,7 +310,7 @@
       "ki_sentiment_source": "keyword",
       "uoa_score": 0,
       "uoa_drivers": [],
-      "uoa_atm_ratio": 0.24081237911025144,
+      "uoa_atm_ratio": 0.18947003810183582,
       "uoa_cp_ratio": 0.8161244695898161
     }
   }
