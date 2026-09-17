@@ -1659,8 +1659,17 @@ def get_options_data(ticker: str) -> dict:
         else:
             calls_iv = calls[["strike", "impliedVolatility"]].dropna()
             if not calls_iv.empty:
-                idx    = (calls_iv["strike"] - cur_price).abs().idxmin()
-                atm_iv = float(calls_iv.loc[idx, "impliedVolatility"])
+                idx        = (calls_iv["strike"] - cur_price).abs().idxmin()
+                _raw_iv    = float(calls_iv.loc[idx, "impliedVolatility"])
+                # Plausibilitäts-Guard (analog pc_ratio oben): yfinance liefert
+                # für nicht aktuell quotierte ATM-Strikes gelegentlich den
+                # literalen Sentinel-Wert 0.0 statt NaN (Yahoos IV-Solver
+                # konvergiert ohne Bid/Ask nicht) — dropna() fängt nur NaN,
+                # nicht 0.0. Ein echtes ATM-IV von genau 0 % ist bei diesem
+                # Ticker-Universum ökonomisch ausgeschlossen (IV_LOW/IV_HIGH-
+                # Schwellen liegen bei 50 %/100 %) — ≤0 ist immer das
+                # Datenquellen-Artefakt, nie ein valider Messwert.
+                atm_iv = _raw_iv if _raw_iv > 0 else None
             else:
                 atm_iv = None
 
