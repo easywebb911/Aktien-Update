@@ -44,6 +44,15 @@
     "substrate": "none",
     "reason": "no_p249"
   },
+  "AEMD": {
+    "qid": "Q4688714",
+    "title": null,
+    "resolved_at": "2026-09-17T23:34:46Z",
+    "issuer_verified": false,
+    "company_name_at_resolve": "Aethlon Medical, Inc.",
+    "substrate": "none",
+    "reason": "no_article"
+  },
   "AI": {
     "qid": "Q104081972",
     "title": "C3_AI",
@@ -385,6 +394,15 @@
     "company_name_at_resolve": "Torrid Holdings Inc.",
     "substrate": "en",
     "reason": null
+  },
+  "DAIC": {
+    "qid": null,
+    "title": null,
+    "resolved_at": "2026-09-17T23:34:46Z",
+    "issuer_verified": false,
+    "company_name_at_resolve": "CID HoldCo, Inc.",
+    "substrate": "none",
+    "reason": "no_p249"
   },
   "DBI": {
     "qid": null,
@@ -808,6 +826,15 @@
     "company_name_at_resolve": "Kaixin Holdings",
     "substrate": "none",
     "reason": "no_p249"
+  },
+  "LCID": {
+    "qid": "Q28027517",
+    "title": "Lucid_Motors",
+    "resolved_at": "2026-09-17T23:34:46Z",
+    "issuer_verified": true,
+    "company_name_at_resolve": "Lucid Group, Inc.",
+    "substrate": "en",
+    "reason": null
   },
   "LENZ": {
     "qid": null,
@@ -1265,6 +1292,15 @@
     "resolved_at": "2026-07-27T22:29:48Z",
     "issuer_verified": false,
     "company_name_at_resolve": "Twin Vee Powercats Co.",
+    "substrate": "none",
+    "reason": "no_p249"
+  },
+  "VITL": {
+    "qid": null,
+    "title": null,
+    "resolved_at": "2026-09-17T23:34:46Z",
+    "issuer_verified": false,
+    "company_name_at_resolve": "Vital Farms, Inc.",
     "substrate": "none",
     "reason": "no_p249"
   },

@@ -573,6 +573,12 @@
       "shares_short": 7145393,
       "short_pct_float": 18.02,
       "pub_date": "2026-08-25"
+    },
+    {
+      "settlement_date": "2026-08-31",
+      "shares_short": 6876649,
+      "short_pct_float": 17.35,
+      "pub_date": "2026-09-10"
     }
   ],
   "ENOV": [
@@ -1335,6 +1341,12 @@
       "shares_short": 2846171,
       "short_pct_float": 19.97,
       "pub_date": "2026-08-25"
+    },
+    {
+      "settlement_date": "2026-08-31",
+      "shares_short": 3448969,
+      "short_pct_float": 24.2,
+      "pub_date": "2026-09-10"
     }
   ],
   "MNRO": [
@@ -1722,6 +1734,12 @@
       "shares_short": 5757348,
       "short_pct_float": 22.59,
       "pub_date": "2026-08-25"
+    },
+    {
+      "settlement_date": "2026-08-31",
+      "shares_short": 5230524,
+      "short_pct_float": 19.79,
+      "pub_date": "2026-09-10"
     }
   ],
   "VOR": [
@@ -2205,6 +2223,12 @@
       "shares_short": 32583299,
       "short_pct_float": 18.19,
       "pub_date": "2026-08-25"
+    },
+    {
+      "settlement_date": "2026-08-31",
+      "shares_short": 32094286,
+      "short_pct_float": 17.92,
+      "pub_date": "2026-09-10"
     }
   ],
   "ORIC": [
@@ -3498,6 +3522,12 @@
       "shares_short": 6747898,
       "short_pct_float": 18.26,
       "pub_date": "2026-08-25"
+    },
+    {
+      "settlement_date": "2026-08-31",
+      "shares_short": 7172491,
+      "short_pct_float": 19.41,
+      "pub_date": "2026-09-10"
     }
   ],
   "EZPW": [
@@ -3645,6 +3675,12 @@
       "shares_short": 14621498,
       "short_pct_float": 34.02,
       "pub_date": "2026-08-25"
+    },
+    {
+      "settlement_date": "2026-08-31",
+      "shares_short": 14950361,
+      "short_pct_float": 34.78,
+      "pub_date": "2026-09-10"
     }
   ],
   "SERV": [
@@ -3693,6 +3729,12 @@
       "shares_short": 32028140,
       "short_pct_float": 18.27,
       "pub_date": "2026-07-10"
+    },
+    {
+      "settlement_date": "2026-08-31",
+      "shares_short": 41426996,
+      "short_pct_float": 23.57,
+      "pub_date": "2026-09-10"
     }
   ],
   "RXRX": [
@@ -3807,6 +3849,12 @@
       "shares_short": 30658737,
       "short_pct_float": 20.2,
       "pub_date": "2026-08-25"
+    },
+    {
+      "settlement_date": "2026-08-31",
+      "shares_short": 30461358,
+      "short_pct_float": 20.07,
+      "pub_date": "2026-09-10"
     }
   ],
   "DDD": [
@@ -3840,6 +3888,12 @@
       "shares_short": 43582815,
       "short_pct_float": 27.19,
       "pub_date": "2026-08-25"
+    },
+    {
+      "settlement_date": "2026-08-31",
+      "shares_short": 43721595,
+      "short_pct_float": 27.27,
+      "pub_date": "2026-09-10"
     }
   ],
   "VOYG": [
@@ -4902,6 +4956,12 @@
       "shares_short": 4096689,
       "short_pct_float": 16.08,
       "pub_date": "2026-08-25"
+    },
+    {
+      "settlement_date": "2026-08-31",
+      "shares_short": 4225556,
+      "short_pct_float": 16.47,
+      "pub_date": "2026-09-10"
     }
   ],
   "DMRC": [
@@ -4929,6 +4989,12 @@
       "shares_short": 2114273,
       "short_pct_float": 22.54,
       "pub_date": "2026-08-25"
+    },
+    {
+      "settlement_date": "2026-08-31",
+      "shares_short": 2310874,
+      "short_pct_float": 24.64,
+      "pub_date": "2026-09-10"
     }
   ],
   "SPRY": [
@@ -5199,6 +5265,12 @@
       "shares_short": 37417586,
       "short_pct_float": 26.53,
       "pub_date": "2026-08-25"
+    },
+    {
+      "settlement_date": "2026-08-31",
+      "shares_short": 36788063,
+      "short_pct_float": 26.08,
+      "pub_date": "2026-09-10"
     }
   ],
   "TE": [
@@ -5253,6 +5325,12 @@
       "shares_short": 26838729,
       "short_pct_float": 25.74,
       "pub_date": "2026-08-25"
+    },
+    {
+      "settlement_date": "2026-08-31",
+      "shares_short": 26865314,
+      "short_pct_float": 25.77,
+      "pub_date": "2026-09-10"
     }
   ],
   "LUNR": [
@@ -5475,6 +5553,12 @@
       "shares_short": 42568975,
       "short_pct_float": 24.0,
       "pub_date": "2026-08-25"
+    },
+    {
+      "settlement_date": "2026-08-31",
+      "shares_short": 41563334,
+      "short_pct_float": 23.43,
+      "pub_date": "2026-09-10"
     }
   ],
   "TSHA": [
@@ -7049,6 +7133,66 @@
       "settlement_date": "2026-08-31",
       "shares_short": 526654,
       "short_pct_float": 26.32,
+      "pub_date": "2026-09-10"
+    }
+  ],
+  "LCID": [
+    {
+      "settlement_date": "2026-07-31",
+      "shares_short": 58809493,
+      "short_pct_float": null,
+      "pub_date": "2026-08-11",
+      "seeded": true
+    },
+    {
+      "settlement_date": "2026-08-31",
+      "shares_short": 75654235,
+      "short_pct_float": 45.81,
+      "pub_date": "2026-09-10"
+    }
+  ],
+  "UP": [
+    {
+      "settlement_date": "2026-07-31",
+      "shares_short": 913003,
+      "short_pct_float": null,
+      "pub_date": "2026-08-11",
+      "seeded": true
+    },
+    {
+      "settlement_date": "2026-08-31",
+      "shares_short": 908402,
+      "short_pct_float": 15.71,
+      "pub_date": "2026-09-10"
+    }
+  ],
+  "RARE": [
+    {
+      "settlement_date": "2026-07-31",
+      "shares_short": 14963396,
+      "short_pct_float": null,
+      "pub_date": "2026-08-11",
+      "seeded": true
+    },
+    {
+      "settlement_date": "2026-08-31",
+      "shares_short": 17144354,
+      "short_pct_float": 17.98,
+      "pub_date": "2026-09-10"
+    }
+  ],
+  "DBGI": [
+    {
+      "settlement_date": "2026-07-31",
+      "shares_short": 48595,
+      "short_pct_float": null,
+      "pub_date": "2026-08-11",
+      "seeded": true
+    },
+    {
+      "settlement_date": "2026-08-31",
+      "shares_short": 140511,
+      "short_pct_float": 24.45,
       "pub_date": "2026-09-10"
     }
   ]
