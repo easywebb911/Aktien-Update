@@ -348,6 +348,11 @@
       "date": "2026-09-16",
       "inst_ownership": 1.3151801,
       "insider_ownership": 0.0076099997
+    },
+    {
+      "date": "2026-09-17",
+      "inst_ownership": 1.3273,
+      "insider_ownership": 0.00932
     }
   ],
   "RES": [
@@ -381,6 +386,11 @@
     {
       "date": "2026-09-16",
       "inst_ownership": 1.33481,
+      "insider_ownership": 0.01689
+    },
+    {
+      "date": "2026-09-17",
+      "inst_ownership": 1.33512,
       "insider_ownership": 0.01689
     }
   ],
@@ -1418,6 +1428,11 @@
     {
       "date": "2026-08-31",
       "inst_ownership": 1.23621,
+      "insider_ownership": 0.04441
+    },
+    {
+      "date": "2026-09-17",
+      "inst_ownership": 1.23585,
       "insider_ownership": 0.04441
     }
   ],
@@ -2729,6 +2744,11 @@
       "date": "2026-09-03",
       "inst_ownership": 1.1441101,
       "insider_ownership": 0.00636
+    },
+    {
+      "date": "2026-09-17",
+      "inst_ownership": 1.14515,
+      "insider_ownership": 0.00636
     }
   ],
   "ALT": [
@@ -2862,6 +2882,11 @@
       "date": "2026-09-16",
       "inst_ownership": 0.68662,
       "insider_ownership": 0.050619997
+    },
+    {
+      "date": "2026-09-17",
+      "inst_ownership": 0.68662,
+      "insider_ownership": 0.050830003
     }
   ],
   "PACB": [
@@ -3648,6 +3673,11 @@
       "date": "2026-09-11",
       "inst_ownership": 1.0109,
       "insider_ownership": 0.00501
+    },
+    {
+      "date": "2026-09-17",
+      "inst_ownership": 1.01277,
+      "insider_ownership": 0.00501
     }
   ],
   "INSP": [
@@ -4105,6 +4135,11 @@
     {
       "date": "2026-09-16",
       "inst_ownership": 0.63607,
+      "insider_ownership": 0.0
+    },
+    {
+      "date": "2026-09-17",
+      "inst_ownership": 0.63471,
       "insider_ownership": 0.0
     }
   ],
@@ -4996,6 +5031,11 @@
       "date": "2026-09-11",
       "inst_ownership": 0.00874,
       "insider_ownership": 0.00119
+    },
+    {
+      "date": "2026-09-17",
+      "inst_ownership": 0.0007,
+      "insider_ownership": 0.0001
     }
   ],
   "VBIO": [
@@ -5020,6 +5060,11 @@
       "date": "2026-09-16",
       "inst_ownership": 0.57023,
       "insider_ownership": 0.04789
+    },
+    {
+      "date": "2026-09-17",
+      "inst_ownership": 0.57060003,
+      "insider_ownership": 0.0481
     }
   ],
   "VITL": [

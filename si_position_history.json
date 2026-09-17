@@ -3531,6 +3531,12 @@
       "shares_short": 12738134,
       "short_pct_float": 28.11,
       "pub_date": "2026-08-25"
+    },
+    {
+      "settlement_date": "2026-08-31",
+      "shares_short": 12507203,
+      "short_pct_float": 27.6,
+      "pub_date": "2026-09-10"
     }
   ],
   "RGNX": [
@@ -6099,6 +6105,12 @@
       "shares_short": 20477587,
       "short_pct_float": 29.12,
       "pub_date": "2026-08-25"
+    },
+    {
+      "settlement_date": "2026-08-31",
+      "shares_short": 20485477,
+      "short_pct_float": 29.13,
+      "pub_date": "2026-09-10"
     }
   ],
   "PACB": [
