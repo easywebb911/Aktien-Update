@@ -57,7 +57,7 @@ ALLOWLIST = [
     "marketcap_price_nan_filter",
     "market_stress_banner", "marktdaten_timestamp", "matured_export",
     "methodology_panel_redesign", "monster_neutralization", "nan_price_tightness",
-    "news_coverage_extension", "outer_page_golden",
+    "news_coverage_extension", "news_max_age_cutoff", "outer_page_golden",
     "position_panel_locked", "positions_current_price", "probe_quote_proxy", "provider_consecutive_threshold_override",
     "provider_health", "provider_health_tier2", "provider_health_tier3", "provider_liveness",
     "push_gating_unvalidated",
