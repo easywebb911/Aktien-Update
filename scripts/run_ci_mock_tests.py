@@ -79,7 +79,7 @@ ALLOWLIST = [
     "watchlist_drawer_stale_data", "watchlist_uoa_price_nan_hardening",
 ]
 
-# ── EXCLUDED (10) — bewusst NICHT im Gate, je mit Grund. ───────────────────
+# ── EXCLUDED (11) — bewusst NICHT im Gate, je mit Grund. ───────────────────
 EXCLUDED = {
     # B — Ergebnis hängt von echten Repo-Daten ab → datums-/content-flaky:
     "topten_entry_anomaly":             "liest ROOT/backtest_history.json (content-flaky)",
@@ -90,6 +90,11 @@ EXCLUDED = {
     "postclose_run":                     "yfinance-Import",
     "score_history_pruning":             "yfinance-Import",
     "setup_erosion":                     "yfinance-Import",
+    # ENV — braucht echte pandas-DataFrame-Ops (yfinance selbst ist gestubbt,
+    # aber get_options_data() ruft .dropna()/.abs()/.idxmin()/.loc[] auf
+    # echten DataFrames auf — die Minimal-CI installiert bewusst nur
+    # jinja2+pyyaml, kein requirements.txt/pandas):
+    "atm_iv_zero_guard":                 "pandas-Import (echte DataFrame-Ops in get_options_data)",
     # TEMP — brauchen `requests`, das der Minimal-CI-Install (#316: nur
     # jinja2+pyyaml) NICHT hat. Bis #336 den requests-Stub ergänzt (analog
     # outer_page_golden), dann ZURÜCK in ALLOWLIST (Ziel 79). NICHT dauerhaft:
