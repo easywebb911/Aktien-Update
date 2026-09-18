@@ -734,6 +734,11 @@
       "date": "2026-09-15",
       "inst_ownership": 0.50598997,
       "insider_ownership": 0.0071799997
+    },
+    {
+      "date": "2026-09-18",
+      "inst_ownership": 0.50598997,
+      "insider_ownership": 0.00717
     }
   ],
   "AMC": [
@@ -1523,6 +1528,11 @@
       "date": "2026-09-17",
       "inst_ownership": 0.80015,
       "insider_ownership": 0.08285
+    },
+    {
+      "date": "2026-09-18",
+      "inst_ownership": 0.80015,
+      "insider_ownership": 0.083229996
     }
   ],
   "AMRC": [
@@ -2253,6 +2263,11 @@
     {
       "date": "2026-09-17",
       "inst_ownership": 0.7522,
+      "insider_ownership": 0.027309999
+    },
+    {
+      "date": "2026-09-18",
+      "inst_ownership": 0.75358003,
       "insider_ownership": 0.027309999
     }
   ],
