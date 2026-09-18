@@ -475,6 +475,41 @@ def update_backtest_returns() -> None:
         except (KeyError, ValueError, AttributeError):
             return None
 
+    # SPY-Benchmark (18.09.2026): EIN zusätzlicher Fetch pro Aufruf (nicht
+    # pro Ticker — SPYs Serie ist für alle fälligen Entries identisch).
+    # Fail-soft: schlägt der SPY-Fetch fehl, bleiben nur die neuen
+    # return_Nd_vs_spy-Felder None — die bestehenden return_Nd-Felder sind
+    # davon unberührt (eigener try/except, kein gemeinsamer Fehlerpfad mit
+    # dem Ticker-Fetch oben).
+    try:
+        spy_hist = yf.download("SPY", period="90d", auto_adjust=True,
+                               progress=False, threads=False)
+        spy_closes = (spy_hist["Close"].squeeze().dropna()
+                     if spy_hist is not None and not spy_hist.empty else None)
+    except Exception as exc:
+        log.warning("Backtest-Returns SPY-Fetch failed (vs_spy-Felder "
+                    "bleiben None, return_Nd unberührt): %s", exc)
+        spy_closes = None
+    spy_idx_dates = ([ts.date() for ts in spy_closes.index]
+                     if spy_closes is not None else [])
+
+    def _spy_close_at(entry_dt, offset: int) -> float | None:
+        """Liest SPYs Close am (Entry-Datum + offset Handelstage) — sucht
+        entry_dt SEPARAT in SPYs EIGENER Datums-Index-Liste (nicht den
+        Ticker-Offset ``ei`` wiederverwenden!). Ein Ticker mit Datenlücke
+        (Handelsaussetzung) hat eine andere Index-Länge/-Belegung als SPY —
+        ein gemeinsamer Offset würde SPY und Ticker gegeneinander
+        verschieben und eine falsche SPY-Rendite liefern."""
+        if not spy_idx_dates:
+            return None
+        ei_spy = next((i for i, d in enumerate(spy_idx_dates) if d == entry_dt), -1)
+        if ei_spy < 0:
+            return None
+        pos = ei_spy + offset
+        if 0 <= pos < len(spy_closes):
+            return float(spy_closes.iloc[pos])
+        return None
+
     n_filled = 0
     for e in pending:
         closes = _closes_for(e["ticker"])
@@ -526,6 +561,21 @@ def update_backtest_returns() -> None:
                     e[f"{k0}_net"] = apply_round_trip_haircut(e[k0])
                     log.info("  %s [%s] T+0 %dd-Return: %+.2f%% (netto %+.2f%%)",
                              e["ticker"], e.get("date"), win, e[k0], e[f"{k0}_net"])
+                    # SPY-Benchmark-Differenz (18.09.2026): BRUTTO return_Nd
+                    # minus SPY-Rendite über dasselbe Entry-Fenster — bewusst
+                    # gegen den Brutto-Wert, nicht gegen return_Nd_net. Nur
+                    # berechnet, wenn return_Nd HIER frisch gesetzt wird
+                    # (kein Backfill bereits gereifter Alt-Records — analog
+                    # entry_past_return_5d-Präzedenz).
+                    kvs = f"{k0}_vs_spy"
+                    spy_c0 = _spy_close_at(entry_dt, 0)
+                    spy_cN = _spy_close_at(entry_dt, win)
+                    if spy_c0 is not None and spy_c0 > 0 and spy_cN is not None:
+                        spy_ret = (spy_cN / spy_c0 - 1) * 100
+                        e[kvs] = round(e[k0] - spy_ret, 2)
+                        log.info("  %s [%s] T+0 %dd-Return vs. SPY: %+.2f%% "
+                                 "(SPY %+.2f%%)",
+                                 e["ticker"], e.get("date"), win, e[kvs], spy_ret)
             k1 = f"return_{win}d_t1"
             if (e.get(k1) is None and close_t1 is not None and close_t1 > 0):
                 c = _close_at(1 + win)
