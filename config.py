@@ -2091,6 +2091,21 @@ S10_OBSERVED_FIELDS = frozenset({
     # künftige Vorabregistrierungen (§4 Exit-B.1, H5) einfließen, ist NICHT
     # Teil dieser Änderung — bleibt eine offene Entscheidung.
     "return_3d_net", "return_5d_net", "return_10d_net", "max_gain_pct_net",
+    # SPY-Benchmark-Geschwisterfelder (18.09.2026): return_Nd_vs_spy =
+    # return_Nd (BRUTTO) minus die SPY-Rendite über dasselbe Entry-Datum-
+    # Fenster. Strukturell identisch zu return_Nd_net oben — eine reine
+    # Transformation/Differenz des Brutto-Feldes, kein eigenständiges
+    # Primärfeld → nur OBSERVED, KEIN MUSS/LAG (dieselbe Begründung wie bei
+    # den _net-Feldern: kein sinnvoller min_n/lag-Check auf einer reinen
+    # Transformation). LEGITIM None solange return_Nd selbst None ist ODER
+    # der separate SPY-Fetch/die SPY-Datumssuche fehlschlägt. Bewusst gegen
+    # den BRUTTO-Wert (return_Nd), nicht gegen return_Nd_net gerechnet.
+    # Kein Backfill bestehender Alt-Records — wird nur berechnet, wenn
+    # return_Nd in DERSELBEN update_backtest_returns()-Iteration frisch
+    # gesetzt wird (analog entry_past_return_5d-Präzedenz: Backfill wäre
+    # ein separater Stufe-B-PR). Schema bleibt v4 (additiv). Fließt NICHT
+    # automatisch in bestehende Vorabregistrierungen (§4 Exit-B.1, H5) ein.
+    "return_3d_vs_spy", "return_5d_vs_spy", "return_10d_vs_spy",
 })
 
 S10_WINDOW_SIZE          = 20    # Letzte N V4-Einträge für MUSS-Check
