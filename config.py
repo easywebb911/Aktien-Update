@@ -391,6 +391,21 @@ NEWS_DECAY_WEIGHTS       = {
 }
 NEWS_DECAY_FALLBACK      = 0.5   # weight bei fehlendem/parse-fehlerhaftem ts
 
+# Max-Age-Cutoff für die ANZEIGE-Liste (Diagnose: 5 Monate alter, themen-
+# fremder Artikel tauchte bei PLCE als Top-3-News auf, weil Yahoo aktuell
+# nichts Frischeres lieferte — NEWS_DECAY_WEIGHTS gewichtet alte Items nur
+# beim Score-Bonus auf 0 herunter, entfernt sie aber nicht aus der Liste).
+# 30 Tage bewusst deutlich großzügiger als die Decay-Stufen oben (max. 3
+# Tage) — die Decay-Gewichtung beantwortet "wie stark zählt das für den
+# Score", der Anzeige-Cutoff nur "ist das überhaupt noch zeigenswert".
+# 14 Tage wären zu aggressiv gewesen (hätte in einer Stichprobe der
+# damaligen Top-10 zusätzlich mehrere Ticker mit noch plausibel aktuellen
+# 13-27-Tage-Items leergeräumt); 30 Tage schneiden gezielt nur die klaren
+# Alt-Fälle (100+ Tage) heraus. Items mit fehlendem/unparsebarem ``ts``
+# werden NICHT verworfen (Alter unbekannt ≠ alt — Fallback wie bei
+# NEWS_DECAY_FALLBACK: im Zweifel behalten, nicht wegfiltern).
+NEWS_MAX_AGE_DAYS_DISPLAY = 30
+
 # ── Unusual Options Activity (UOA) — yfinance Options-Chain ──────────────────
 # Bewertet ungewöhnliche Optionsaktivität pro Ticker:
 #   • Call-Vol/OI > 5× im ATM-Bereich (±10 % Strike)  → +UOA_ATM_STRONG Pkt

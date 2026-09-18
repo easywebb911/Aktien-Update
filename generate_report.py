@@ -1478,6 +1478,15 @@ def get_yahoo_news(ticker: str, n: int = 5) -> list[dict]:
                 except Exception:
                     pub_ts = 0
             pub_ts = int(pub_ts) if pub_ts else 0
+            # Anzeige-Max-Age-Cutoff (NEWS_MAX_AGE_DAYS_DISPLAY): ein Item mit
+            # BEKANNTEM Alter über der Schwelle wird komplett übersprungen —
+            # nicht nur beim Score-Gewicht auf 0 gesetzt (das macht weiterhin
+            # NEWS_DECAY_WEIGHTS/_news_age_weight, unverändert). Items mit
+            # fehlendem/unparsebarem ts (pub_ts=0) werden NICHT verworfen:
+            # unbekanntes Alter heißt nicht "alt", analog zum NEWS_DECAY_
+            # FALLBACK-Mittelweg im Score-Pfad.
+            if pub_ts and (time.time() - pub_ts) > NEWS_MAX_AGE_DAYS_DISPLAY * 86400:
+                continue
             ts_str = (
                 datetime.fromtimestamp(pub_ts).strftime("%d.%m.%Y %H:%M")
                 if pub_ts else ""
