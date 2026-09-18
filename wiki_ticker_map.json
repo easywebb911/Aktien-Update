@@ -872,6 +872,15 @@
     "substrate": "none",
     "reason": "no_p249"
   },
+  "MGN": {
+    "qid": null,
+    "title": null,
+    "resolved_at": "2026-09-18T23:21:27Z",
+    "issuer_verified": false,
+    "company_name_at_resolve": "Megan Holdings Limited",
+    "substrate": "none",
+    "reason": "no_p249"
+  },
   "MNRO": {
     "qid": "Q6902090",
     "title": "Monro_Muffler_Brake",
