@@ -1654,6 +1654,32 @@ sauber vorregistrierte Prüfung vormerken, nicht vorab als Erkenntnis behandeln.
 Verengung). K.o.-Filter-Schwellen (`config.py`) wurden **nicht** auf
 Änderungshistorie geprüft — offene Lücke.
 
+### 6o. Validierungs-Badge-Verstärkung (UI, nicht gebaut, Backlog)
+**Status: OFFEN. Kein Auftrag, kein Termin — Backlog-Idee, niedrige Priorität,
+reine UI-Frage ohne Score-/Filter-Bezug.** Externer Qualitätscheck (17.09.2026)
+bemängelte, dass unvalidierte/falsifizierte Scores (z. B. „Monster 94 · OoS-
+kollabiert") die Zahl visuell stärker wirken lässt als den danebenstehenden
+Validierungsstatus — psychologisch könnte „94" wie ein starkes Signal wirken,
+obwohl der Text direkt daneben Gegenteiliges sagt. Die bereits vorhandene
+`SCORE_STATUS_LABELS`-Badge-Logik könnte hier verstärkt werden (z. B. Badge
+prominenter/näher an der Zahl, oder Zahl selbst visuell gedämpft bei
+falsifiziertem/kollabiertem Status). Nicht umgesetzt, nicht priorisiert über
+„niedrig" hinaus.
+
+### 6p. Alpha-Pipeline (großes Konzept, bewusst zurückgestellt)
+**Status: ZURÜCKGESTELLT. Kein Termin, kein Teil-Bau ohne Edge-Beweis.**
+Externer Qualitätscheck (17.09.2026) schlug einen kompletten Umbau zu einem
+Cross-Sectional-Alpha-Ranking-System vor (Layer-Architektur Raw Data → Alpha-
+Faktoren → Excess-Return-Prognose → Position-Sizing → Portfolio, mit Walk-
+Forward-Validierung und Research-Lock). Konzeptionell fundiert, aber die
+Voraussetzung (eine bewiesene Edge, die es zu rangieren gäbe) ist aktuell nicht
+erfüllt — Exit-B.1 bei n unter 250, H5 methodisch eingefroren aber nicht
+zellenreif (siehe §4/§5 oben). **Entscheid: NICHT bauen, solange keine der
+beiden laufenden Vorabregistrierungen ein positives, Holm-signifikantes
+Ergebnis zeigt.** Aus dem Vorschlag bereits isoliert umgesetzt: SPY-Benchmark-
+Vergleich (`return_Nd_vs_spy`, PR #554, 18.09.2026). Der Rest des Konzepts
+bleibt als Ganzes zurückgestellt.
+
 ---
 
 ## 7) ARCHITEKTUR-ANKER
