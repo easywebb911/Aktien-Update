@@ -1,10 +1,10 @@
 {
-  "updated": "2026-09-19T20:02:16.147516+02:00",
+  "updated": "2026-09-19T22:41:28.080714+02:00",
   "run_info": {
     "tickers_checked": 14,
     "signals_active": 4,
     "alerts_sent": 0,
-    "elapsed_s": 18.6,
+    "elapsed_s": 11.4,
     "market_phase": "Geschlossen"
   },
   "signals": {
@@ -76,9 +76,9 @@
       "uoa_cp_ratio": 0.5714285714285714
     },
     "DDD": {
-      "score": 81,
+      "score": 100,
       "confidence": 70,
-      "drivers": "Volumen 3.3× + ⚡ Extremes Volumen 3.3×+ + Spanne 5.6% + News-KI 8/30: Positive turnaround narrative but no signs of short squeeze catalysts like high short interest, stock momentum, or force + Earnings in 45d + SEC Form 4 + UOA Call/Put 51.8×",
+      "drivers": "Volumen 3.3× + ⚡ Extremes Volumen 3.3×+ + Spanne 5.6% + News: partnership, contract + Earnings in 45d + SEC Form 4 + UOA Call/Put 51.8×",
       "price": 3.63,
       "chg_pct": 0.0,
       "rvol_4d": 3.31,
@@ -88,9 +88,9 @@
       "upcoming_event": null,
       "insider_buy": false,
       "stocktwits": null,
-      "combo_mult": 1.0,
-      "active_triggers": 1,
-      "ki_sentiment_source": "llm",
+      "combo_mult": 1.1,
+      "active_triggers": 2,
+      "ki_sentiment_source": "keyword",
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 51.8×"
@@ -101,7 +101,7 @@
     "EVGO": {
       "score": 68,
       "confidence": 70,
-      "drivers": "Volumen 5.9× + 🚀 Massives Volumen 5.9×+ + Spanne 8.2% + News-KI 8/30: Positive business expansion news but lacks key short-squeeze catalysts like high short interest, recent earnings beats,  + UOA Call/Put 12.8×",
+      "drivers": "Volumen 5.9× + 🚀 Massives Volumen 5.9×+ + Spanne 8.2% + News-KI 8/30: Positive business expansion news but lacks short squeeze indicators like high short interest, low float, or extreme valu + UOA Call/Put 12.8×",
       "price": 1.52,
       "chg_pct": -0.0,
       "rvol_4d": 5.87,
@@ -124,7 +124,7 @@
     "GEMI": {
       "score": 100,
       "confidence": 70,
-      "drivers": "Volumen 7.4× + 🚀 Massives Volumen 7.4×+ + Spanne 28.3% + News: contract, short interest + UOA Call-Vol/OI 4.4× ATM + UOA Call/Put 2.3×",
+      "drivers": "Volumen 7.4× + 🚀 Massives Volumen 7.4×+ + Spanne 28.3% + News: short interest, contract + UOA Call-Vol/OI 4.4× ATM + UOA Call/Put 2.3×",
       "price": 5.81,
       "chg_pct": -0.0,
       "rvol_4d": 7.39,
@@ -301,9 +301,9 @@
       "uoa_cp_ratio": 5.303867403314917
     },
     "WOLF": {
-      "score": 50,
+      "score": 47,
       "confidence": 70,
-      "drivers": "Volumen 1.8× + Spanne 6.7% + News-KI 15/30: Positive revenue growth signals strength, but no indicators of high short interest, low float, or forced buying pressure + UOA Call/Put 2.5×",
+      "drivers": "Volumen 1.8× + Spanne 6.7% + News-KI 12/30: Positive fundamentals (doubled AI revenue) suggest legitimate growth rather than short squeeze setup; no significant sho + UOA Call/Put 2.5×",
       "price": 25.59,
       "chg_pct": 0.0,
       "rvol_4d": 1.81,
