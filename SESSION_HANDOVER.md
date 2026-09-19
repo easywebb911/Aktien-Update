@@ -839,6 +839,46 @@ In-Sample-Vorsicht`).
 Registrierungsblock ohne datierten Protokolleintrag**, der die Änderung **und ihren
 Grund** festhält — jede spätere Anpassung muss so als Bruch sichtbar bleiben.
 
+**Protokolleintrag 18.09.2026** (Grund: `return_Nd_net` [PR #549, 12.09.] und
+`return_Nd_vs_spy` [PR #554, 18.09.] wurden **NACH** dem 05.08.-Freeze eingeführt
+und sind daher **nicht** Teil der eingefrorenen „Return-Differenz"-Definition).
+Die bindende §4-Auswertung (Δ(5d−10d), Δ(3d−10d)) rechnet **ausschließlich** mit
+den **BRUTTO-Feldern** `return_5d`/`return_3d`/`return_10d` — bestätigt sowohl
+durch den zeitlichen Freeze-Vorrang (die Netto-/SPY-Felder existierten zum
+Freeze-Zeitpunkt schlicht nicht) als auch durch die explizite Selbstauskunft
+beider einführenden PRs (`config.py`-Kommentare: „Fließt NICHT automatisch in
+bestehende Vorabregistrierungen ein"). Bei Erreichen von n=250 werden
+**zusätzlich, rein informativ und NACHRANGIG** zur bindenden Brutto-Auswertung
+folgende Zusatzausweise mitgeliefert: **(a)** eine Netto-Sensitivitätsrechnung
+mit `return_Nd_net`, **(b)** eine SPY-bereinigte Zusatzrechnung mit
+`return_Nd_vs_spy`. Beide sind **NIEMALS** Ersatz für das bindende Brutto-
+Kriterium und ändern nicht dessen Erfolgs-/Misserfolgs-Bewertung — sie dienen
+ausschließlich der Einordnung (z. B. „hält die Brutto-Edge auch nach Kosten-/
+Marktbereinigung stand"). Sollte eine künftige Registrierung (z. B. eine
+Fortsetzung von Exit-B.1 oder ein neuer Test) stattdessen direkt Netto oder
+SPY-bereinigt als bindendes Kriterium verwenden wollen, bedarf das einer
+**eigenen, neuen Vorabregistrierung mit eigenem Freeze-Datum** — keine
+rückwirkende Umwidmung dieses Blocks.
+
+**Beobachtungspunkt — Marktregime-Kontext (sofort nutzbar, Daten bereits
+vollständig vorhanden, kein Warten nötig, Stand 18.09.2026):** `market_regime`
+(bull/bear/neutral) und `vix_level` sind auf allen aktuellen Primär-n-Records
+bereits zu **100 %** befüllt. Bei der Ergebnis-Interpretation bei n=250 soll
+dieser Kontext mitberichtet werden (war die Sammelperiode markttechnisch eher
+freundlich oder schwierig), um ein positives Ergebnis nicht fälschlich als
+reine Squeeze-Edge zu werten, falls es primär ein günstiges Marktumfeld
+widerspiegelt.
+
+**Korrektur-Vermerk — §4-Zähler-Diskrepanz (Stand 18.09.2026):** der zuletzt im
+Health-Check-Digest angezeigte §4-Zähler-Stand zeigte **n=118**, eine direkte
+Nachzählung in `matured_backtest_export.jsonl` nach der exakten eingefrorenen
+Definition (`score≥70 ∧ provenance=forward`) ergab am selben Tag **n=130**.
+Nicht geklärt, ob das auf eine Diskrepanz zwischen Digest-Anzeige und
+tatsächlichem Export-Stand hindeutet (separat zu prüfen) oder sich einfach
+durch den Zeitabstand zwischen Digest-Erstellung und dieser Prüfung erklärt
+(dann keine weitere Aktion nötig) — als offener Punkt vermerkt, nicht
+aufgelöst.
+
 ### WIEDERVORLAGEN — dated (Stand 08.08.2026, NICHT Teil des §4-Freeze)
 
 - **14.08.2026 — SEC-Entscheid `SR-FINRA-2026-012` (SI-Meldepflicht).** Erwartet:
