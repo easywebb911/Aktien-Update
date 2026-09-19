@@ -845,9 +845,16 @@ und sind daher **nicht** Teil der eingefrorenen „Return-Differenz"-Definition)
 Die bindende §4-Auswertung (Δ(5d−10d), Δ(3d−10d)) rechnet **ausschließlich** mit
 den **BRUTTO-Feldern** `return_5d`/`return_3d`/`return_10d` — bestätigt sowohl
 durch den zeitlichen Freeze-Vorrang (die Netto-/SPY-Felder existierten zum
-Freeze-Zeitpunkt schlicht nicht) als auch durch die explizite Selbstauskunft
-beider einführenden PRs (`config.py`-Kommentare: „Fließt NICHT automatisch in
-bestehende Vorabregistrierungen ein"). Bei Erreichen von n=250 werden
+Freeze-Zeitpunkt schlicht nicht) als auch durch die Selbstauskunft beider
+einführenden PRs in `config.py` — **nicht wortgleich**: PR #554
+(`return_Nd_vs_spy`) bestätigt explizit „Fließt NICHT automatisch in
+bestehende Vorabregistrierungen (§4 Exit-B.1, H5) ein", während PR #549
+(`return_Nd_net`) die Frage offen lässt („Ob/wie diese Felder in bestehende
+oder künftige Vorabregistrierungen einfließen, ist NICHT Teil dieser
+Änderung — bleibt eine offene Entscheidung"). Beide schließen eine
+automatische Übernahme also aus bzw. lassen sie ausdrücklich ungeklärt —
+keiner der beiden PRs beansprucht, die Brutto-Bindung selbst zu ändern.
+Bei Erreichen von n=250 werden
 **zusätzlich, rein informativ und NACHRANGIG** zur bindenden Brutto-Auswertung
 folgende Zusatzausweise mitgeliefert: **(a)** eine Netto-Sensitivitätsrechnung
 mit `return_Nd_net`, **(b)** eine SPY-bereinigte Zusatzrechnung mit
