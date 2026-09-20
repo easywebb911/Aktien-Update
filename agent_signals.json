@@ -1,10 +1,10 @@
 {
-  "updated": "2026-09-20T18:48:21.411948+02:00",
+  "updated": "2026-09-20T21:27:23.489120+02:00",
   "run_info": {
     "tickers_checked": 14,
-    "signals_active": 4,
+    "signals_active": 5,
     "alerts_sent": 0,
-    "elapsed_s": 12.6,
+    "elapsed_s": 15.5,
     "market_phase": "Geschlossen"
   },
   "signals": {
@@ -34,7 +34,7 @@
     "BKKT": {
       "score": 35,
       "confidence": 70,
-      "drivers": "Volumen 2.9× + Spanne 12.4% + UOA Call/Put 6.3×",
+      "drivers": "Volumen 2.9× + Spanne 12.4% + UOA Call/Put 6.2×",
       "price": 8.61,
       "chg_pct": -0.0,
       "rvol_4d": 2.92,
@@ -49,10 +49,10 @@
       "ki_sentiment_source": "keyword",
       "uoa_score": 10,
       "uoa_drivers": [
-        "UOA Call/Put 6.3×"
+        "UOA Call/Put 6.2×"
       ],
-      "uoa_atm_ratio": 0.3694690265486726,
-      "uoa_cp_ratio": 6.2682926829268295
+      "uoa_atm_ratio": 0.7379912663755459,
+      "uoa_cp_ratio": 6.236111111111111
     },
     "CMPX": {
       "score": 35,
@@ -99,9 +99,9 @@
       "uoa_cp_ratio": 51.77272727272727
     },
     "EVGO": {
-      "score": 68,
+      "score": 82,
       "confidence": 70,
-      "drivers": "Volumen 5.9× + 🚀 Massives Volumen 5.9×+ + Spanne 8.2% + News-KI 8/30: Positive expansion news but lacks short squeeze catalysts like high short interest, low float, or dramatic price/volume  + UOA Call/Put 12.8×",
+      "drivers": "Volumen 5.9× + 🚀 Massives Volumen 5.9×+ + Spanne 8.2% + News: partnership + UOA Call/Put 12.8×",
       "price": 1.52,
       "chg_pct": -0.0,
       "rvol_4d": 5.87,
@@ -111,9 +111,9 @@
       "upcoming_event": null,
       "insider_buy": false,
       "stocktwits": null,
-      "combo_mult": 1.0,
-      "active_triggers": 1,
-      "ki_sentiment_source": "llm",
+      "combo_mult": 1.1,
+      "active_triggers": 2,
+      "ki_sentiment_source": "keyword",
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 12.8×"
@@ -122,9 +122,9 @@
       "uoa_cp_ratio": 12.84
     },
     "GEMI": {
-      "score": 100,
+      "score": 88,
       "confidence": 70,
-      "drivers": "Volumen 7.4× + 🚀 Massives Volumen 7.4×+ + Spanne 28.3% + News: takeover, contract + UOA Call-Vol/OI 4.4× ATM + UOA Call/Put 2.3×",
+      "drivers": "Volumen 7.4× + 🚀 Massives Volumen 7.4×+ + Spanne 28.3% + News-KI 8/30: Mixed signals with price jump offset by weak fundamentals, analyst downgrades, and legal resolution reducing upside cata + UOA Call-Vol/OI 6.2× ATM + UOA Call/Put 2.5×",
       "price": 5.81,
       "chg_pct": -0.0,
       "rvol_4d": 7.39,
@@ -134,16 +134,16 @@
       "upcoming_event": null,
       "insider_buy": false,
       "stocktwits": null,
-      "combo_mult": 1.1,
-      "active_triggers": 2,
-      "ki_sentiment_source": "keyword",
-      "uoa_score": 20,
+      "combo_mult": 1.0,
+      "active_triggers": 1,
+      "ki_sentiment_source": "llm",
+      "uoa_score": 30,
       "uoa_drivers": [
-        "UOA Call-Vol/OI 4.4× ATM",
-        "UOA Call/Put 2.3×"
+        "UOA Call-Vol/OI 6.2× ATM",
+        "UOA Call/Put 2.5×"
       ],
-      "uoa_atm_ratio": 4.41696113074205,
-      "uoa_cp_ratio": 2.2836812144212524
+      "uoa_atm_ratio": 6.22972972972973,
+      "uoa_cp_ratio": 2.459490084985836
     },
     "GRPN": {
       "score": 45,
@@ -169,9 +169,9 @@
       "uoa_cp_ratio": 5.096590909090909
     },
     "IONQ": {
-      "score": 28,
-      "confidence": 33,
-      "drivers": "Spanne 7.8% + Earnings in 45d + SEC Form 4",
+      "score": 40,
+      "confidence": 70,
+      "drivers": "Spanne 7.8% + News-KI 12/30: Positive technical sentiment on options pricing and tech wins, but persistent cash burn and lack of extreme short intere + Earnings in 45d + SEC Form 4",
       "price": 39.13,
       "chg_pct": 0.0,
       "rvol_4d": 1.33,
@@ -182,12 +182,12 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 0,
-      "ki_sentiment_source": "keyword",
+      "active_triggers": 1,
+      "ki_sentiment_source": "llm",
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": 0.8484751546171891,
-      "uoa_cp_ratio": 1.8015390121689334
+      "uoa_cp_ratio": 1.802824454772971
     },
     "MGN": {
       "score": 25,
@@ -303,7 +303,7 @@
     "WOLF": {
       "score": 43,
       "confidence": 70,
-      "drivers": "Volumen 1.8× + Spanne 6.7% + Earnings in 45d + UOA Call/Put 2.5×",
+      "drivers": "Volumen 1.8× + Spanne 6.7% + Earnings in 45d + UOA Call/Put 2.2×",
       "price": 25.59,
       "chg_pct": 0.0,
       "rvol_4d": 1.81,
@@ -318,10 +318,10 @@
       "ki_sentiment_source": "keyword",
       "uoa_score": 10,
       "uoa_drivers": [
-        "UOA Call/Put 2.5×"
+        "UOA Call/Put 2.2×"
       ],
-      "uoa_atm_ratio": 0.3808025177025964,
-      "uoa_cp_ratio": 2.482084690553746
+      "uoa_atm_ratio": 0.39215686274509803,
+      "uoa_cp_ratio": 2.1977401129943503
     }
   }
 }
