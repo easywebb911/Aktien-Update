@@ -403,14 +403,22 @@ def _compute_si_slope_5d(finra_history: list | None) -> float | None:
 
     ``finra_history`` ist sortiert neueste → älteste (siehe
     ``get_finra_short_interest``). Liefert ``None`` wenn < 5 Punkte
-    vorhanden oder ältester Wert nicht-positiv.
+    vorhanden, ein short_interest-Wert fehlt/nicht-endlich ist, oder der
+    älteste Wert nicht-positiv ist.
+
+    NaN-Härtung (21.09.2026, analog Trend-Logging-Geschwister 15.08.2026):
+    ``or 0`` liess ein numerisches NaN UND ein fehlendes short_interest-
+    Feld gleichermassen unbemerkt als 0 durch (NaN ist truthy, ``si_old
+    <= 0`` ist bei NaN ausserdem ``False`` — der Guard griff also gar
+    nicht). ``_finite()`` (lokale Kopie oben, siehe deren Docstring)
+    schliesst beide Fälle sauber auf ``None``.
     """
     if not finra_history or len(finra_history) < EARLINESS_TREND_MIN_FINRA_POINTS:
         return None
     pts = finra_history[:EARLINESS_TREND_MIN_FINRA_POINTS]
-    si_new = pts[0].get("short_interest") or 0
-    si_old = pts[-1].get("short_interest") or 0
-    if si_old <= 0:
+    si_new = pts[0].get("short_interest")
+    si_old = pts[-1].get("short_interest")
+    if not _finite(si_new) or not _finite(si_old) or si_old <= 0:
         return None
     return round((si_new - si_old) / si_old, 4)
 
@@ -450,6 +458,8 @@ def _compute_si_velocity_pub(finra_history: list | None,
       • ``entry_date`` ist None                                 → None
       • ``n_reports < 2`` (kein Rate berechenbar)               → None
       • < ``n_reports`` Einträge mit ``pub_date <= entry_date`` → None
+      • ``si_newest``/``si_oldest`` fehlt oder nicht-endlich (NaN/Inf,
+        Härtung 21.09.2026, analog ``_compute_si_slope_5d``)     → None
       • ``si_oldest <= 0`` (Division-Guard)                     → None
 
     LOOK-AHEAD-KONVENTION EINFROREN (analog ``entry_past_return_5d`` #402,
@@ -479,9 +489,9 @@ def _compute_si_velocity_pub(finra_history: list | None,
             break
     if len(eligible) < n_reports:
         return None
-    si_new = eligible[0].get("short_interest") or 0
-    si_old = eligible[n_reports - 1].get("short_interest") or 0
-    if si_old <= 0:
+    si_new = eligible[0].get("short_interest")
+    si_old = eligible[n_reports - 1].get("short_interest")
+    if not _finite(si_new) or not _finite(si_old) or si_old <= 0:
         return None
     return round((si_new - si_old) / si_old, 4)
 
@@ -1123,6 +1133,25 @@ def _log_vintage_skip(report_date: str, bar_date, now_et: datetime | None,
         log.warning("vintage_guard_log Schreibfehler — übersprungen: %s", exc)
 
 
+def _round_finite_or_none(value, ndigits: int, safe_float_fn) -> float | None:
+    """``round(v, ndigits)`` über ``safe_float_fn`` — NaN/Inf/None/fehlend
+    -> ``None`` (NICHT 0).
+
+    Ersetzt das frühere ``round(float(s.get(X) or 0), N)``-Muster im
+    Backtest-Schreibpfad (Diagnose 21.09.2026): ``or 0`` lässt ein
+    numerisches NaN unbemerkt durch (NaN ist in Python truthy), das
+    kanonische ``backtest_history.json`` bekam dadurch eine stille,
+    falsche Null statt eines ehrlichen "unbekannt" — genau die Asymmetrie,
+    die an anderer Stelle bereits als ``_finite()``/``_safe_float()``-
+    Härtung dokumentiert ist (siehe NaN-Dichtigkeit-Sektion CLAUDE.md).
+    ``safe_float_fn`` ist die ECHTE, injizierte ``generate_report._safe_float``
+    (math.isfinite-Check) — keine lokale Neuimplementierung. Ein echtes
+    0.0 bleibt unverändert 0.0 (kein Overload — nur Nicht-Endliches/
+    Fehlendes wird zu None)."""
+    v = safe_float_fn(value, None)
+    return round(v, ndigits) if v is not None else None
+
+
 def _append_backtest_entries(top10: list[dict], report_date: str,
                              pool_size: int = 0, *,
                              compute_sub_scores_fn, safe_float_fn,
@@ -1316,12 +1345,12 @@ def _append_backtest_entries(top10: list[dict], report_date: str,
         entry = {
             "date":          report_date,
             "ticker":        s["ticker"],
-            "score":         round(float(s.get("score") or 0), 2),
-            "entry_price":   round(float(s.get("price") or 0), 4),
+            "score":         _round_finite_or_none(s.get("score"), 2, safe_float_fn),
+            "entry_price":   _round_finite_or_none(s.get("price"), 4, safe_float_fn),
             "entry_price_t1": None,   # wird am Tag T+1 von ki_agent gefüllt
-            "short_float":   round(float(s.get("short_float") or 0), 2),
-            "dtc":           round(float(s.get("short_ratio") or 0), 2),
-            "rvol":          round(float(s.get("rel_volume") or 0), 3),
+            "short_float":   _round_finite_or_none(s.get("short_float"), 2, safe_float_fn),
+            "dtc":           _round_finite_or_none(s.get("short_ratio"), 2, safe_float_fn),
+            "rvol":          _round_finite_or_none(s.get("rel_volume"), 3, safe_float_fn),
             "si_trend":      fd.get("trend", "no_data"),
             "return_3d":     None,
             "return_5d":     None,
