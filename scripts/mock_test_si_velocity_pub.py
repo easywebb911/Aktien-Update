@@ -24,6 +24,16 @@ Fixture-only, stdlib-only (Source-Extraktion analog
   (F) Schema/S10: ``si_velocity_pub`` in S10_OBSERVED_FIELDS, schema=4.
   (G) Integration in ``_build_backtest_extension``-Signatur (entry_date-Kwarg).
 
+NACHGEZOGEN 21.09.2026 (Backtest-Schreibpfad-NaN-Härtung, siehe
+``mock_test_backtest_writepath_nan_guard.py``): ``_compute_si_velocity_pub``
+prüft si_new/si_old jetzt über die modulweite ``_finite()``-Kopie statt
+``or 0`` — die Source-Extraktion hier zieht ``_finite`` deshalb jetzt MIT
+(analog zum bereits bestehenden Muster in
+``mock_test_earliness_trend_log.py`` für ``_compute_si_slope_5d``). Keine
+Verhaltens-/Formel-Änderung der Tests selbst — nur die Exec-Namespace-
+Abhängigkeit nachgezogen, sonst ``NameError: _finite`` in der isolierten
+Extraktion.
+
 Exit-Code 0 = alle Assertions grün; 1 = Fehler mit klarer Meldung.
 """
 from __future__ import annotations
@@ -53,7 +63,10 @@ ns: dict = {
     "datetime": datetime,
 }
 exec(
+    "import math\n"
     "from config import SI_VELOCITY_PUB_N_REPORTS\n"
+    + _extract("_finite")
+    + "\n"
     + _extract("_compute_si_velocity_pub"),
     ns,
 )
