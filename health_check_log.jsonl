@@ -309,3 +309,4 @@
 {"run_ts": "2026-09-22T04:57:42Z", "run_phase": "ki_agent_tick", "schema_v": 1, "state_fails": [], "provider_fails": []}
 {"run_ts": "2026-09-22T09:58:29Z", "run_phase": "ki_agent_tick", "schema_v": 1, "state_fails": [], "provider_fails": []}
 {"run_ts": "2026-09-22T11:40:31Z", "run_phase": "premarket", "schema_v": 1, "state_fails": [{"id": "S10", "severity": "warn", "detail": "MUSS-Feld 'rvol_buildup_5d': 10/20 null (50%) in letzten 20 V4-Einträgen — Daten-Pipeline füllt nicht"}, {"id": "S10", "severity": "warn", "detail": "MUSS-Feld 'vol_stability_5d': 10/20 null (50%) in letzten 20 V4-Einträgen — Daten-Pipeline füllt nicht"}, {"id": "S10", "severity": "warn", "detail": "MUSS-Feld 'coiled_spring_score': 10/20 null (50%) in letzten 20 V4-Einträgen — Daten-Pipeline füllt nicht"}], "provider_fails": []}
+{"run_ts": "2026-09-22T11:41:41Z", "run_phase": "ki_agent_tick", "schema_v": 1, "state_fails": [], "provider_fails": []}
