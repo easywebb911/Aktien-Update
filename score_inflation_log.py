@@ -18,6 +18,7 @@ from __future__ import annotations
 
 import json
 import logging
+import math
 import os
 from datetime import datetime, timedelta, timezone
 from typing import Any, Iterable
@@ -68,14 +69,39 @@ def _session_phase(dt_utc: datetime) -> str:
     return "postclose"
 
 
-def _safe_float(v: Any, default: float | None = None) -> float | None:
-    """``float(v)`` oder default — None bei nicht-konvertierbarem Input."""
+def _coerce_float(v: Any, default: float | None = None) -> float | None:
+    """``float(v)`` oder ``default`` — bei None/NaN/Inf/nicht-konvertierbarem
+    Input.
+
+    UMBENENNUNG + NaN-Härtung (Diagnose 21.09.2026): hieß vorher ``_safe_float``
+    — namensgleich zur ECHTEN, sicheren ``generate_report._safe_float``
+    (prüft intern ``math.isfinite``), aber mit einer ANDEREN, unsicheren
+    Implementierung (fing nur ``TypeError``/``ValueError`` — ``float(nan)``
+    wirft aber keine Exception, ein NaN-Input lief also unbemerkt als
+    NaN-Float durch, statt auf ``default`` zu fallen). Die Namensgleichheit
+    täuschte eine Sicherheit vor, die nicht bestand. Umbenannt auf
+    ``_coerce_float`` (bewusst OHNE das Wort "safe" — verhindert künftige
+    Verwechslung) UND um den fehlenden ``math.isfinite``-Check ergänzt.
+
+    Bewusst weiterhin eine LOKALE Implementierung, kein Import aus
+    ``generate_report`` — ``generate_report.py`` importiert dieses Modul
+    bereits sehr früh (``import score_inflation_log``, Zeile 30, lange vor
+    der ``_safe_float``-Definition dort). Ein Modul-Level-Import hier würde
+    ``ImportError: cannot import name '_safe_float' from partially
+    initialized module 'generate_report' (most likely due to a circular
+    import)`` auslösen — empirisch verifiziert, nicht nur angenommen.
+    Gleicher, bereits im Repo etablierter Grund wie bei den Callable-
+    Injections ``sub_scores_fn``/``normalize_rvol_fn`` weiter unten in
+    diesem Modul (siehe deren Docstrings) und wie in ``backtest_history.py``
+    (dort ebenfalls eine dokumentiert-bewusste lokale ``_finite()``-Kopie
+    aus demselben Grund)."""
     if v is None:
         return default
     try:
-        return float(v)
+        f = float(v)
     except (TypeError, ValueError):
         return default
+    return f if math.isfinite(f) else default
 
 
 def _normalize_si_trend(raw: str | None) -> str:
@@ -94,11 +120,21 @@ def _finra_combo_active(stock: dict) -> bool:
     Bonus feuert bei n_combo >= 3 von {SF>=30, DTC>=5, RVOL>=2, SI-Trend=up}.
     Dieser Helper persistiert das BOOL-Flag, nicht den Punktwert (der
     steht zusätzlich in ``score_struct/catalyst/timing``-Aggregaten).
+
+    Das äußere ``or 0.0`` nach ``_coerce_float(...)`` bleibt bewusst
+    bestehen (Guardian-Review 21.09.2026, Nuance ergänzt): "NaN -> 0.0
+    behandelt" und "NaN -> aus der Summe ausgeschlossen" sind NUR
+    gleichwertig, WEIL aktuell alle vier Bedingungen ``>=`` mit einem
+    positiven Schwellenwert sind (0.0 erfüllt keine davon). Käme künftig
+    eine Bedingung mit ``<=``- oder negativer Schwelle hinzu (z. B.
+    ``chg2d <= -5``), würde diese Äquivalenz lautlos brechen — dann bei
+    einer Erweiterung erneut prüfen, nicht diesen Kommentar unverändert
+    fortschreiben.
     """
     finra = stock.get("finra_data") or {}
-    sf = _safe_float(stock.get("short_float", 0)) or 0.0
-    sr = _safe_float(stock.get("short_ratio", 0)) or 0.0
-    rv = _safe_float(stock.get("rel_volume", 0)) or 0.0
+    sf = _coerce_float(stock.get("short_float", 0)) or 0.0
+    sr = _coerce_float(stock.get("short_ratio", 0)) or 0.0
+    rv = _coerce_float(stock.get("rel_volume", 0)) or 0.0
     n_combo = sum([
         sf >= 30,
         sr >= 5,
@@ -137,10 +173,10 @@ def _build_entry(stock: dict, run_ts: datetime,
     """
     finra = stock.get("finra_data") or {}
     sub = sub_scores or {}
-    rel_vol_live = _safe_float(stock.get("rel_volume"))
+    rel_vol_live = _coerce_float(stock.get("rel_volume"))
     rel_vol_norm = None
     if normalize_rvol_fn is not None:
-        avg_20d = _safe_float(stock.get("avg_vol_20d"))
+        avg_20d = _coerce_float(stock.get("avg_vol_20d"))
         if rel_vol_live is not None and avg_20d is not None and avg_20d > 0:
             # rel_volume = cur_vol / avg_20d (status quo, ENABLED=False),
             # also cur_vol = rel_volume × avg_20d — verlustfrei rückgewandelt.
@@ -161,35 +197,35 @@ def _build_entry(stock: dict, run_ts: datetime,
         "run_ts":  run_ts.astimezone(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
         "run_phase": run_phase,
         "ticker":  stock.get("ticker"),
-        "score_total":    _safe_float(stock.get("score"), 0.0),
-        "score_raw":      _safe_float(stock.get("score_raw"), 0.0),
-        "score_smoothed": _safe_float(stock.get("score_smoothed")),
+        "score_total":    _coerce_float(stock.get("score"), 0.0),
+        "score_raw":      _coerce_float(stock.get("score_raw"), 0.0),
+        "score_smoothed": _coerce_float(stock.get("score_smoothed")),
         "sub_scores": {
-            "struct":              _safe_float(sub.get("struct")),
-            "catalyst":            _safe_float(sub.get("catalyst")),
-            "timing":              _safe_float(sub.get("timing")),
+            "struct":              _coerce_float(sub.get("struct")),
+            "catalyst":            _coerce_float(sub.get("catalyst")),
+            "timing":              _coerce_float(sub.get("timing")),
             "struct_max":          sub.get("struct_max"),
             "catalyst_max":        sub.get("catalyst_max"),
             "timing_max":          sub.get("timing_max"),
             "turnover_pts":        sub.get("turnover_pts"),
             "gap_pts":             sub.get("gap_pts"),
             "rs_spy_pts":          sub.get("rs_spy_pts"),
-            "earliness_pts":       _safe_float(stock.get("earliness_pts"), 0.0),
-            "score_trend_bonus":   _safe_float(stock.get("score_trend_bonus_pts"), 0.0),
-            "agent_boost_factor":  _safe_float(stock.get("agent_boost_factor"), 1.0),
+            "earliness_pts":       _coerce_float(stock.get("earliness_pts"), 0.0),
+            "score_trend_bonus":   _coerce_float(stock.get("score_trend_bonus_pts"), 0.0),
+            "agent_boost_factor":  _coerce_float(stock.get("agent_boost_factor"), 1.0),
             "late_runner_active":  bool(stock.get("late_runner") or False),
         },
         "drivers_raw": {
             "rel_volume":            rel_vol_live,
             "rel_volume_normalized": rel_vol_norm,
-            "change_2d":             _safe_float(stock.get("change_2d")),
-            "change_3d":             _safe_float(stock.get("change_3d")),
-            "rsi14":                 _safe_float(stock.get("rsi14")),
-            "short_float":           _safe_float(stock.get("short_float")),
-            "days_to_cover":         _safe_float(stock.get("short_ratio")),
+            "change_2d":             _coerce_float(stock.get("change_2d")),
+            "change_3d":             _coerce_float(stock.get("change_3d")),
+            "rsi14":                 _coerce_float(stock.get("rsi14")),
+            "short_float":           _coerce_float(stock.get("short_float")),
+            "days_to_cover":         _coerce_float(stock.get("short_ratio")),
             "finra_si_trend":        _normalize_si_trend(finra.get("trend")),
             "finra_combo_active":    _finra_combo_active(stock),
-            "finra_bonus_pts":       int(_safe_float(stock.get("finra_bonus_pts"), 0) or 0),
+            "finra_bonus_pts":       int(_coerce_float(stock.get("finra_bonus_pts"), 0) or 0),
         },
         "trading_session_phase": _session_phase(run_ts),
     }
