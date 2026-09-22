@@ -69,9 +69,16 @@ eigenen Folge-PR — beim Fixen den Eintrag entfernen, nicht stehen lassen.
 Exit-Code 0 = OK, 1 = Fail. Bei Fail werden Datei, Funktion, Zeile und
 Feldname geloggt.
 
-Workflow-Integration: analog zu ``lint_score_confidence_isolation.py`` —
-Step in ``.github/workflows/pr-checks.yml`` (PR-Checks) und
-``.github/workflows/daily-squeeze-report.yml`` (Daily-Run-Vorlauf).
+Workflow-Integration: NUR ``.github/workflows/pr-checks.yml`` (advisory,
+PR-Checks) — bewusst ABWEICHEND vom Muster der 4 bestehenden Linter
+(die von Anfang an in BEIDEN Workflows liefen). Dieser Lint ist neu
+gebaut und erst gegen einen Snapshot des Codes gelaufen; ein Fehlalarm
+soll nicht den produktiven Daily-Run stoppen (dort bricht ein Lint-Fail
+den Workflow ab, siehe ``.github/workflows/daily-squeeze-report.yml``).
+TODO (Folge-Entscheidung): nach ein paar echten PR-Zyklen ohne False
+Positives auch dort ergänzen (Guardian-Review 22.09.2026, Finding 1 —
+dieser Docstring behauptete vorher fälschlich bereits die Dual-
+Verdrahtung; korrigiert).
 """
 from __future__ import annotations
 
