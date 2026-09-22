@@ -74,6 +74,19 @@ jobs:
       - name: Lint token-crypto invariants
         run: python scripts/lint_token_crypto.py
 
+      - name: Lint NaN-bypass fields
+        # 4. Lint (22.09.2026) — .get("feld") or 0 bei bekannten NaN-fähigen
+        # Marktfeldern (short_float/rel_volume/score/etc.), Feldnamen-
+        # Allowlist statt blindem Pattern-Grep. Fängt NUR neue Instanzen —
+        # der Alt-Bestand von 70 bereits bekannten, noch offenen Funden aus
+        # der Diagnose ist als Baseline eingetragen (siehe
+        # scripts/lint_nan_bypass_fields.py, _BASELINE_KNOWN_OPEN).
+        # Bewusst NUR hier (advisory), NICHT in daily-squeeze-report.yml
+        # (dort brechen Lint-Fails den produktiven Daily-Run ab) — erst
+        # nach ein paar echten PR-Zyklen ohne False Positives dorthin
+        # übernehmen.
+        run: python scripts/lint_nan_bypass_fields.py
+
       # Phase-2-Gate: gebündelter Allowlist-Runner für die 77 datums-/netz-
       # stabilen (Kategorie-A) Mock-Tests — inkl. Outer-Page-Golden (#312) und
       # der 3 Phase-1-Tests (gist ${var}-Grep #326, provider_health ×2
