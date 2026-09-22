@@ -376,6 +376,91 @@ Funktion + Zeile + Code-Match geloggt.
 Bei neuen Score-Berechnungs-Pfaden die Allow-Liste in
 `_FORBIDDEN_FUNCS` ergänzen.
 
+### `scripts/lint_open_items_consistency.py` — Open-Items dürfen nicht ersatzlos verschwinden
+
+Behebt die diagnostizierte Handover-Lücke: die „Gute Nacht"-Regel
+(siehe Session-Handover-Regel unten) **ersetzt** `SESSION_HANDOVER.md`
+komplett statt zu ergänzen — offene Diagnose-/Beobachtungspunkte, die
+nur in der Prosa standen, konnten dabei spurlos verloren gehen, wenn
+sie beim Neuschreiben nicht bewusst mit übertragen wurden (bestätigtes
+Beispiel: NYSE-Referer-Probe-Status, S8-Digest-Timing-Beobachtung —
+beide in `SESSION_HANDOVER.md` nicht mehr auffindbar).
+
+**`open_items.json`** (Repo-Root) hält diese Punkte strukturiert —
+getrennt von der Prosa-Übergabe, aber von `SESSION_HANDOVER.md`
+referenziert (siehe dortiger Verweis im Kopf-Absatz). Schema:
+
+```json
+{
+  "schema_v": 1,
+  "note": "...",
+  "items": [
+    {
+      "id": "nyse-referer-probe",
+      "title": "NYSE-Referer-Probe-Status",
+      "opened": "2026-09-01",
+      "description": "Kurzbeschreibung des offenen Diagnose-Punkts.",
+      "status": "offen",
+      "status_date": "2026-09-01"
+    }
+  ]
+}
+```
+
+`status` ist eine von drei Stufen: `offen` / `beobachtet` / `erledigt`.
+Ein Item darf beliebig zwischen den Stufen wechseln; erst `erledigt`
+erlaubt das spätere Entfernen aus der Liste (Aufräumen), siehe Check
+unten.
+
+**Das Dateiformat allein löst das Problem nicht** — der Mehrwert ist
+der **mechanische Konsistenz-Check**: vergleicht die Item-Liste
+zwischen dem PR-Basis-Commit und dem aktuellen Arbeitsbaum
+(`check_consistency(old_items, new_items)`, pure Funktion) und schlägt
+fehl, wenn ein Item ersatzlos verschwindet, **ohne** vorher explizit
+auf `"erledigt"` gesetzt worden zu sein. Zusätzlich validiert
+`validate_item_structure()` jedes Item strukturell (Pflichtfelder,
+gültiger Status).
+
+**Git-Architektur:** nur zwei Snapshots nötig (Vergleichsbasis vs.
+Arbeitsbaum) — **keine** tiefere Git-Historien-Traversierung. Alte
+Version via `git show <ref>:open_items.json`. Fail-soft, wenn die
+Basis-Ref die Datei noch nicht hat (z. B. der einführende PR selbst)
+oder nicht auflösbar ist.
+
+**Wartung — WER pflegt die Datei:** `open_items.json` wird von Claude
+im selben Fluss gepflegt wie `SESSION_HANDOVER.md` — entweder
+ad-hoc per PR (wenn während einer Session ein neuer Diagnose-Punkt
+entsteht) oder im Rahmen des „Gute Nacht"-Direct-main-Commits (die
+EINE dokumentierte Ausnahme vom PR-only-Workflow). Es gibt **keinen**
+Cron/Code-Trigger — die Pflege ist Chat-/Session-getrieben, exakt wie
+`SESSION_HANDOVER.md` selbst.
+
+**Workflow-Integration — ZWEI Trigger, weil es ZWEI Pflegepfade gibt
+(Guardian-Finding 22.09.2026):**
+
+| Pflegepfad | Trigger | Workflow | Vergleichsbasis | Charakter |
+|---|---|---|---|---|
+| Ad-hoc per PR | `pull_request` | `.github/workflows/pr-checks.yml` (Steps `Fetch PR base…` + `Lint open-items consistency`) | `github.event.pull_request.base.sha` | präventiv-sichtbar VOR dem Merge (advisory, wie die anderen 5 Lints) |
+| „Gute Nacht"-Direct-main-Commit | `push` auf `main`, nur bei Änderung an `open_items.json` | `.github/workflows/open_items_main_push_check.yml` | `github.event.before` | **rein detektiv** — der Commit liegt beim Feuern bereits auf `main`, der Check kann nichts verhindern, nur einen roten Check-Run auf dem Commit sichtbar machen |
+
+**Warum beide nötig sind:** `pr-checks.yml` triggert **ausschließlich**
+auf `pull_request` — ein Direct-Push auf `main` (der „Gute Nacht"-Pfad)
+feuert dieses Event nicht. Ohne den zweiten, push-getriggerten Workflow
+wäre der Konsistenz-Check genau in dem Moment blind, der den
+ursprünglichen Datenverlust (NYSE-Referer-Probe, S8-Digest-Timing)
+verursacht hat. Der zweite Workflow schließt diese Lücke — bewusst
+**nur detektiv**, da ein `push`-Event technisch erst nach dem Push
+feuert und den Commit nicht mehr verhindern kann. Bei Fund: Follow-up-
+Commit nötig (Status explizit auf `erledigt` setzen oder das Item
+wiederherstellen).
+
+Beide bewusst NICHT in `daily-squeeze-report.yml` — reine Prozess-/
+Doku-Infrastruktur ohne Bezug zum produktiven Report-Lauf.
+
+Score-Methodik-Sync ist **nicht betroffen** — reines Prozess-/
+Doku-Infrastruktur-Feature, keine Score-/Filter-/Alert-/Exit-Logik
+berührt.
+
 ---
 
 ## Allgemeine Architektur

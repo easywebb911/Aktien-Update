@@ -4,6 +4,20 @@
 alten**. Dieses Dokument + `CLAUDE.md` müssen zusammen ausreichen, um am
 Projektstand direkt weiterzuarbeiten. Reine Doku, kein Logik-Touch.
 
+**Ergänzend (seit 22.09.2026):** `open_items.json` im Repo-Root hält
+strukturierte offene Diagnose-/Beobachtungspunkte (Status
+`offen`/`beobachtet`/`erledigt`) — getrennt von der Prosa hier, aber
+zusammen mit diesem Dokument zu konsultieren (CLAUDE.md-Abschnitt
+„`scripts/lint_open_items_consistency.py`"). Ein mechanischer CI-Check
+schlägt an, wenn ein Punkt dort beim Aktualisieren ersatzlos
+verschwindet, ohne explizit auf „erledigt" gesetzt worden zu sein —
+genau der Bug-Modus, der diese Datei nötig machte. **Wichtig:** auf
+einem ad-hoc-PR ist der Check präventiv-sichtbar VOR dem Merge; beim
+„Gute Nacht"-Direct-main-Commit (der diese Datei hier ersetzt) feuert
+ein zweiter, push-getriggerter Workflow **erst NACH** dem Commit — rein
+detektiv, verhindert den Verlust nicht, macht ihn nur sichtbar. Ein
+roter Check-Run auf einem main-Commit braucht also einen Follow-up-Fix.
+
 **Datums-Basis (belegt, nicht Erinnerung):** Repo-Stand **08.08.2026**.
 **Woche 03.–08.08.** (PRs #500–#512, alle git-belegt gemergt): Prune-Konsequenz-
 Doku (`40565b4` #500) · **Matured-Export** append-only/prune-immun (`a01acb2`

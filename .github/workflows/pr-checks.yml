@@ -87,6 +87,26 @@ jobs:
         # übernehmen.
         run: python scripts/lint_nan_bypass_fields.py
 
+      - name: Fetch PR base (for open-items consistency check)
+        # Der PR-Checkout ist ein flacher Single-Ref-Checkout (der Merge-
+        # Commit) — origin/<base> bzw. der Basis-SHA ist ohne diesen Fetch
+        # nicht auflösbar. Holt NUR den exakten Basis-Commit (Tiefe 1,
+        # kein Netzwerk-Overhead über eine einzelne Ref hinaus).
+        run: git fetch origin ${{ github.event.pull_request.base.sha }} --depth=1 --quiet
+
+      - name: Lint open-items consistency
+        # 6. Check (22.09.2026) — verhindert, dass ein Punkt in
+        # open_items.json zwischen zwei PR-Versionen ersatzlos verschwindet,
+        # ohne vorher explizit auf 'erledigt' gesetzt worden zu sein (der
+        # Bug-Modus, der die 'Gute Nacht'-Handover-Lücke ausgelöst hat —
+        # SESSION_HANDOVER.md ERSETZT statt ergänzt). Vergleicht exakt den
+        # PR-Basis-SHA gegen den aktuellen Arbeitsbaum — kein tieferer
+        # Git-History-Zugriff nötig. Fail-soft, wenn die Datei bei der Basis
+        # noch nicht existiert (z.B. dieser einführende PR selbst).
+        env:
+          OPEN_ITEMS_BASE_REF: ${{ github.event.pull_request.base.sha }}
+        run: python scripts/lint_open_items_consistency.py
+
       # Phase-2-Gate: gebündelter Allowlist-Runner für die 77 datums-/netz-
       # stabilen (Kategorie-A) Mock-Tests — inkl. Outer-Page-Golden (#312) und
       # der 3 Phase-1-Tests (gist ${var}-Grep #326, provider_health ×2

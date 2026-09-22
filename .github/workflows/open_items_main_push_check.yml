@@ -1,0 +1,61 @@
+name: Open-Items consistency (main push)
+
+# Deckt den Fall ab, den pr-checks.yml NICHT deckt: die "Gute Nacht"-Regel
+# (CLAUDE.md Session-Handover-Regel) committet SESSION_HANDOVER.md — und im
+# selben Fluss ggf. open_items.json — DIREKT auf main, als die eine
+# dokumentierte Ausnahme vom PR-only-Workflow. pr-checks.yml triggert
+# ausschließlich auf `pull_request` und läuft für einen Direct-Push auf main
+# NICHT. Ohne diesen zweiten Trigger wäre der Konsistenz-Check genau in dem
+# Moment blind, der den ursprünglichen Datenverlust (NYSE-Referer-Probe,
+# S8-Digest-Timing) verursacht hat (Guardian-Finding, 22.09.2026).
+#
+# WICHTIG — dieser Check ist rein DETEKTIV, nicht präventiv: ein `push`-Event
+# feuert erst NACHDEM der Commit bereits auf main liegt. Er kann den Verlust
+# nicht verhindern (anders als ein PR-Check, der wenigstens vor dem Merge
+# sichtbar wird) — er macht ihn nur sichtbar (roter Check-Run auf dem Commit,
+# GitHub-Actions-Tab), analog zum advisory-Charakter von pr-checks.yml. Ein
+# Fund hier bedeutet: der zuletzt gepushte main-Commit hat ein Open-Item
+# ersatzlos entfernt — Follow-up-Commit mit explizitem 'erledigt'-Status oder
+# Wiederherstellung nötig.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'open_items.json'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: open-items-main-push-check
+  cancel-in-progress: true
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      PYTHONUTF8: "1"
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+
+      - name: Fetch pre-push commit (comparison base)
+        # github.event.before ist der Stand VOR diesem Push — die "alte"
+        # Version für den Vergleich. Bei einem allerersten Push auf einen
+        # neuen Branch ist `before` all-zeros und der Fetch schlägt fehl;
+        # continue-on-error lässt den Lint dann fail-soft laufen (keine
+        # Alt-Version verfügbar, siehe lint_open_items_consistency.py).
+        continue-on-error: true
+        run: git fetch origin ${{ github.event.before }} --depth=1 --quiet
+
+      - name: Lint open-items consistency
+        env:
+          OPEN_ITEMS_BASE_REF: ${{ github.event.before }}
+        run: python scripts/lint_open_items_consistency.py
