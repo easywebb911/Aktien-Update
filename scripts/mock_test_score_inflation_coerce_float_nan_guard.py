@@ -34,24 +34,46 @@ entschieden): ``_finra_combo_active()`` (Z. 117-134) wrapped die drei
 (Z. 125-127). Das ist HIER bewusst NICHT entfernt — anders als der
 PR-#557-Bug in ``backtest_history.py`` (wo ``or 0`` direkt PERSISTIERTE
 Ground-Truth-Werte kontaminierte), fließt das Ergebnis hier NUR in eine
-Schwellen-Summe (``sf>=30`` etc.) — für ``>=``-Vergleiche ist "unbekannt
-(None, würde TypeError werfen) -> als 0.0 behandelt" MATHEMATISCH
-GLEICHWERTIG zu "unbekannt -> aus der Summe ausgeschlossen": beide tragen
-NICHTS zu ``n_combo`` bei, das Boolean-Ergebnis ist identisch. Der äußere
-``or 0.0`` ist hier zusätzlich ein NOTWENDIGER Typ-Guard gegen
-``None >= int`` (TypeError) — kein Bypass-Bug, sondern ein korrekter,
-bewiesener Crash-Schutz. Test C3 unten beweist diese Äquivalenz explizit
-(NaN-Input liefert dasselbe Ergebnis wie ein echter 0.0-Input).
+Schwellen-Summe (``sf>=30`` etc.) — für ``>=``-Vergleiche MIT POSITIVEM
+Schwellenwert ist "unbekannt (None, würde TypeError werfen) -> als 0.0
+behandelt" gleichwertig zu "unbekannt -> aus der Summe ausgeschlossen":
+beide tragen NICHTS zu ``n_combo`` bei, das Boolean-Ergebnis ist
+identisch. Der äußere ``or 0.0`` ist hier zusätzlich ein NOTWENDIGER
+Typ-Guard gegen ``None >= int`` (TypeError) — kein Bypass-Bug, sondern
+ein korrekter, bewiesener Crash-Schutz. Test C3 unten beweist diese
+Äquivalenz explizit (NaN-Input liefert dasselbe Ergebnis wie ein echter
+0.0-Input).
+
+GUARDIAN-NUANCE (21.09.2026, nicht blockierend, im Code selbst als
+Docstring-Kommentar bei ``_finra_combo_active`` verankert): die
+Äquivalenz gilt NUR, weil aktuell ALLE VIER Bedingungen ``>=``-mit-
+positivem-Wert sind. Käme künftig eine ``<=``- oder negativ-geschwellte
+Bedingung hinzu, würde sie lautlos brechen (NaN-als-0.0 würde dann
+fälschlich aktivieren, NaN-als-ausgeschlossen bliebe korrekt) — bei
+einer Erweiterung der Combo-Bedingungen erneut prüfen.
 
 WICHTIG — Bestandsaufnahme weiterer ``_safe_float``-artiger Helfer im Repo
-(Auftrag: NUR melden, NICHT mitfixen): ``grep -rn "^def _safe_float"``
-findet zusätzlich zur echten ``generate_report._safe_float`` (sicher) nur
-noch ``scripts/mock_test_change2d_nan_hardening.py:163`` — eine
-TEST-FIXTURE, die bereits korrekt ``math.isfinite`` nutzt (keine Falle,
-kein Fix nötig). ``generate_report.py:16774`` hat einen ähnlich gearteten,
-aber ANDERS benannten Helfer (``_to_f``, lokale Closure) — nutzt bereits
-``_finite()`` intern, ebenfalls sicher. Keine weiteren Instanzen der
-Namensgleichheit-Falle gefunden.
+(Auftrag: NUR melden, NICHT mitfixen). Ursprünglicher Grep
+(``grep -rn "^def _safe_float"``, zeilenanfang-verankert) fand nur
+``scripts/mock_test_change2d_nan_hardening.py:163`` (Test-Fixture,
+bereits korrekt via ``math.isfinite``, kein Fix nötig) und
+``generate_report.py:16774`` (``_to_f``, anders benannt, nutzt bereits
+``_finite()``, ebenfalls sicher).
+
+KORREKTUR (Guardian-Review 21.09.2026 — der ursprüngliche Grep hatte
+einen blinden Fleck: der ``^def``-Anker übersieht eingerückte/
+verschachtelte Definitionen): eine WEITERE, vom ursprünglichen Cross-
+Check übersehene Instanz — ``scripts/mock_test_days_to_earnings.py:130``,
+eine eingerückte, verschachtelte ``def _safe_float(x, default=0.0):``
+(innerhalb ``_test_persistence_and_int_cast``) mit demselben unsicheren
+Muster (kein ``math.isfinite``-Check). Wird dort als
+``safe_float_fn=_safe_float`` in echte Aufrufe von
+``_build_backtest_extension`` (backtest_history.py) injiziert — aktuell
+FOLGENLOS, weil kein Testfall in dieser Datei ``safe_float_fn`` mit
+einem NaN-Input exerciert. Nur gemeldet, NICHT in diesem PR gefixt
+(Sequenz-Regel) — Empfehlung für ein separates Folge-Ticket: denselben
+``math.isfinite``-Guard dort nachziehen, bevor die Datei um einen
+NaN-Testfall erweitert wird.
 
 Kategorie A: score_inflation_log.py ist reines stdlib (json/logging/math/
 os/datetime/typing/zoneinfo) — kein Stub nötig, direkter Import.

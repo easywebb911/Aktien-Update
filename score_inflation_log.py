@@ -120,6 +120,16 @@ def _finra_combo_active(stock: dict) -> bool:
     Bonus feuert bei n_combo >= 3 von {SF>=30, DTC>=5, RVOL>=2, SI-Trend=up}.
     Dieser Helper persistiert das BOOL-Flag, nicht den Punktwert (der
     steht zusätzlich in ``score_struct/catalyst/timing``-Aggregaten).
+
+    Das äußere ``or 0.0`` nach ``_coerce_float(...)`` bleibt bewusst
+    bestehen (Guardian-Review 21.09.2026, Nuance ergänzt): "NaN -> 0.0
+    behandelt" und "NaN -> aus der Summe ausgeschlossen" sind NUR
+    gleichwertig, WEIL aktuell alle vier Bedingungen ``>=`` mit einem
+    positiven Schwellenwert sind (0.0 erfüllt keine davon). Käme künftig
+    eine Bedingung mit ``<=``- oder negativer Schwelle hinzu (z. B.
+    ``chg2d <= -5``), würde diese Äquivalenz lautlos brechen — dann bei
+    einer Erweiterung erneut prüfen, nicht diesen Kommentar unverändert
+    fortschreiben.
     """
     finra = stock.get("finra_data") or {}
     sf = _coerce_float(stock.get("short_float", 0)) or 0.0
