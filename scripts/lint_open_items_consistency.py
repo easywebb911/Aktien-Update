@@ -64,10 +64,27 @@ wird) oder im Rahmen des "Gute Nacht"-Direct-main-Commits (die EINE
 dokumentierte Ausnahme vom PR-only-Workflow, siehe CLAUDE.md
 "Session-Handover-Regel"). Es gibt KEINEN Cron/Code-Trigger dafür.
 
-Workflow-Integration: Step "Lint open-items consistency" in
-``.github/workflows/pr-checks.yml`` (advisory, wie die anderen 5 Lints).
-Bewusst NICHT in ``daily-squeeze-report.yml`` -- diese Datei hat keinen
-Bezug zum produktiven Report-Lauf.
+## Workflow-Integration: ZWEI Trigger für ZWEI Pflegepfade
+
+Guardian-Finding (22.09.2026): ein Check, der nur auf ``pull_request``
+triggert, deckt den "Gute Nacht"-Direct-main-Commit-Pfad NICHT ab --
+genau den Pfad, der den ursprünglichen Datenverlust (NYSE-Referer-Probe,
+S8-Digest-Timing) verursacht hat. Deshalb zwei Workflows:
+
+- ``.github/workflows/pr-checks.yml`` (Step "Lint open-items
+  consistency", ``OPEN_ITEMS_BASE_REF`` = PR-Basis-SHA) -- läuft VOR
+  einem Merge, advisory wie die anderen 5 Lints. Deckt den Ad-hoc-PR-
+  Pfad.
+- ``.github/workflows/open_items_main_push_check.yml`` (``push`` auf
+  ``main``, nur bei Änderung an ``open_items.json``, ``OPEN_ITEMS_
+  BASE_REF`` = ``github.event.before``) -- deckt den "Gute Nacht"-Pfad.
+  **Rein detektiv:** das ``push``-Event feuert erst NACHDEM der Commit
+  bereits auf ``main`` liegt -- der Check kann den Verlust nicht
+  verhindern, nur sichtbar machen (roter Check-Run auf dem Commit).
+  Ein Fund verlangt einen Follow-up-Commit.
+
+Beide bewusst NICHT in ``daily-squeeze-report.yml`` -- diese Datei hat
+keinen Bezug zum produktiven Report-Lauf.
 """
 from __future__ import annotations
 

@@ -26,11 +26,21 @@ Zusätzlich (Robustheit):
       kein fail-soft) -- unabhängig vom Git-Vergleich
   (i) Regression: das echte, aktuell committete ``open_items.json`` im Repo
       ist strukturell gültig (Smoke-Test, kein Git-Diff -- nur Parse+Validate)
+  (j) Beide Workflow-Wirings (pr-checks.yml PR-Pfad +
+      open_items_main_push_check.yml main-Push-Pfad) sind strukturell
+      korrekt verdrahtet -- Guardian-Finding 22.09.2026: pr-checks.yml
+      triggert NUR auf ``pull_request`` und deckt damit NICHT den
+      "Gute Nacht"-Direct-main-Commit-Pfad (die eine dokumentierte
+      Ausnahme vom PR-only-Workflow) ab. Der zweite Workflow schließt
+      genau diese Lücke (push-Trigger, ``paths: [open_items.json]``,
+      Vergleichsbasis ``github.event.before``).
 
 Kategorie A: reine stdlib (json/pathlib/subprocess/sys/tempfile), keine
-Drittlibs. (f)/(g) rufen echtes ``git`` als Subprozess -- lokal wie in CI
-verfügbar, aber kein Netzwerk-Zugriff nötig (nur ``git init``/``commit``
-in einem Tempdir).
+Drittlibs -- Ausnahme (j), die pyyaml für YAML-Struktur-Validierung nutzt
+(analog ``mock_test_digest.py``, im Minimal-CI-Install bereits vorhanden).
+(f)/(g) rufen echtes ``git`` als Subprozess -- lokal wie in CI verfügbar,
+aber kein Netzwerk-Zugriff nötig (nur ``git init``/``commit`` in einem
+Tempdir).
 """
 from __future__ import annotations
 
@@ -304,6 +314,70 @@ def test_i_real_repo_file_is_structurally_valid():
     _check("I echtes open_items.json strukturell valide", errors == [], repr(errors))
 
 
+# ── (j) Workflow-Wiring: PR-Pfad + main-Push-Pfad ────────────────────────
+
+def test_j1_pr_checks_workflow_wires_the_lint():
+    import yaml as _yaml
+    path = ROOT / ".github" / "workflows" / "pr-checks.yml"
+    data = _yaml.safe_load(path.read_text(encoding="utf-8"))
+    steps = data["jobs"]["checks"]["steps"]
+    names = [s.get("name") for s in steps]
+    _check("J1 pr-checks.yml hat 'Lint open-items consistency'-Step",
+           "Lint open-items consistency" in names, repr(names))
+    lint_step = next(s for s in steps if s.get("name") == "Lint open-items consistency")
+    _check("J1b Step nutzt lint_open_items_consistency.py",
+           "lint_open_items_consistency.py" in lint_step.get("run", ""),
+           lint_step.get("run", ""))
+    _check("J1c Step setzt OPEN_ITEMS_BASE_REF via base.sha",
+           "base.sha" in lint_step.get("env", {}).get("OPEN_ITEMS_BASE_REF", ""),
+           repr(lint_step.get("env")))
+    # Guardian-Finding: pr-checks.yml deckt NUR pull_request ab.
+    on_block = data.get(True, data.get("on"))
+    _check("J1d pr-checks.yml triggert NUR auf pull_request (kein push)",
+           set(on_block.keys()) == {"pull_request"}, repr(on_block))
+
+
+def test_j2_main_push_workflow_exists_and_wired():
+    import yaml as _yaml
+    path = ROOT / ".github" / "workflows" / "open_items_main_push_check.yml"
+    _check("J2 open_items_main_push_check.yml existiert", path.exists())
+    if not path.exists():
+        return
+    data = _yaml.safe_load(path.read_text(encoding="utf-8"))
+    on_block = data.get(True, data.get("on"))
+    push_cfg = on_block.get("push", {})
+    _check("J2b triggert auf push -> branches: [main]",
+           push_cfg.get("branches") == ["main"], repr(push_cfg))
+    _check("J2c triggert nur bei Änderung an open_items.json",
+           push_cfg.get("paths") == ["open_items.json"], repr(push_cfg))
+    steps = data["jobs"]["check"]["steps"]
+    names = [s.get("name") for s in steps]
+    _check("J2d hat 'Lint open-items consistency'-Step",
+           "Lint open-items consistency" in names, repr(names))
+    lint_step = next(s for s in steps if s.get("name") == "Lint open-items consistency")
+    _check("J2e Vergleichsbasis ist github.event.before (Pre-Push-Commit)",
+           "event.before" in lint_step.get("env", {}).get("OPEN_ITEMS_BASE_REF", ""),
+           repr(lint_step.get("env")))
+    _check("J2f permissions sind read-only (rein detektiv, kein Push/Merge)",
+           data.get("permissions") == {"contents": "read"}, repr(data.get("permissions")))
+
+
+def test_j3_both_workflows_together_cover_pr_and_main_push():
+    """Zusammen decken beide Workflows genau die zwei Pflegepfade aus dem
+    CLAUDE.md-Wartungs-Absatz ab: ad-hoc per PR UND Gute-Nacht-Direct-Commit."""
+    import yaml as _yaml
+    pr_data = _yaml.safe_load(
+        (ROOT / ".github" / "workflows" / "pr-checks.yml").read_text(encoding="utf-8")
+    )
+    push_path = ROOT / ".github" / "workflows" / "open_items_main_push_check.yml"
+    pr_on = set((pr_data.get(True, pr_data.get("on"))).keys())
+    push_data = _yaml.safe_load(push_path.read_text(encoding="utf-8"))
+    push_on = set((push_data.get(True, push_data.get("on"))).keys())
+    _check("J3 PR-Pfad und Push-Pfad sind disjunkt und zusammen vollständig",
+           pr_on == {"pull_request"} and push_on == {"push"},
+           f"pr_on={pr_on} push_on={push_on}")
+
+
 def main() -> int:
     tests = [
         test_a_parse_valid_items,
@@ -323,6 +397,9 @@ def main() -> int:
         test_g2_main_fail_soft_when_base_ref_unresolvable,
         test_h_main_hard_fails_on_broken_new_schema,
         test_i_real_repo_file_is_structurally_valid,
+        test_j1_pr_checks_workflow_wires_the_lint,
+        test_j2_main_push_workflow_exists_and_wired,
+        test_j3_both_workflows_together_cover_pr_and_main_push,
     ]
     for t in tests:
         try:

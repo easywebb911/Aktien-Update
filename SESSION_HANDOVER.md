@@ -9,10 +9,14 @@ strukturierte offene Diagnose-/Beobachtungspunkte (Status
 `offen`/`beobachtet`/`erledigt`) — getrennt von der Prosa hier, aber
 zusammen mit diesem Dokument zu konsultieren (CLAUDE.md-Abschnitt
 „`scripts/lint_open_items_consistency.py`"). Ein mechanischer CI-Check
-verhindert, dass ein Punkt dort beim Aktualisieren ersatzlos
+schlägt an, wenn ein Punkt dort beim Aktualisieren ersatzlos
 verschwindet, ohne explizit auf „erledigt" gesetzt worden zu sein —
-genau der Bug-Modus, der diese Datei nötig machte (die „Gute Nacht"-
-Regel ersetzt dieses Dokument bei jeder Übergabe komplett).
+genau der Bug-Modus, der diese Datei nötig machte. **Wichtig:** auf
+einem ad-hoc-PR ist der Check präventiv-sichtbar VOR dem Merge; beim
+„Gute Nacht"-Direct-main-Commit (der diese Datei hier ersetzt) feuert
+ein zweiter, push-getriggerter Workflow **erst NACH** dem Commit — rein
+detektiv, verhindert den Verlust nicht, macht ihn nur sichtbar. Ein
+roter Check-Run auf einem main-Commit braucht also einen Follow-up-Fix.
 
 **Datums-Basis (belegt, nicht Erinnerung):** Repo-Stand **08.08.2026**.
 **Woche 03.–08.08.** (PRs #500–#512, alle git-belegt gemergt): Prune-Konsequenz-

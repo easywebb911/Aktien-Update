@@ -421,9 +421,9 @@ auf `"erledigt"` gesetzt worden zu sein. Zusätzlich validiert
 `validate_item_structure()` jedes Item strukturell (Pflichtfelder,
 gültiger Status).
 
-**Git-Architektur:** nur zwei Snapshots nötig (PR-Basis-SHA vs.
+**Git-Architektur:** nur zwei Snapshots nötig (Vergleichsbasis vs.
 Arbeitsbaum) — **keine** tiefere Git-Historien-Traversierung. Alte
-Version via `git show <base-sha>:open_items.json`. Fail-soft, wenn die
+Version via `git show <ref>:open_items.json`. Fail-soft, wenn die
 Basis-Ref die Datei noch nicht hat (z. B. der einführende PR selbst)
 oder nicht auflösbar ist.
 
@@ -435,11 +435,27 @@ EINE dokumentierte Ausnahme vom PR-only-Workflow). Es gibt **keinen**
 Cron/Code-Trigger — die Pflege ist Chat-/Session-getrieben, exakt wie
 `SESSION_HANDOVER.md` selbst.
 
-**Workflow-Integration:** Steps `Fetch PR base (for open-items
-consistency check)` + `Lint open-items consistency` in
-`.github/workflows/pr-checks.yml` (advisory, wie die anderen 5 Lints).
-Bewusst NICHT in `daily-squeeze-report.yml` — reine Prozess-/Doku-
-Infrastruktur ohne Bezug zum produktiven Report-Lauf.
+**Workflow-Integration — ZWEI Trigger, weil es ZWEI Pflegepfade gibt
+(Guardian-Finding 22.09.2026):**
+
+| Pflegepfad | Trigger | Workflow | Vergleichsbasis | Charakter |
+|---|---|---|---|---|
+| Ad-hoc per PR | `pull_request` | `.github/workflows/pr-checks.yml` (Steps `Fetch PR base…` + `Lint open-items consistency`) | `github.event.pull_request.base.sha` | präventiv-sichtbar VOR dem Merge (advisory, wie die anderen 5 Lints) |
+| „Gute Nacht"-Direct-main-Commit | `push` auf `main`, nur bei Änderung an `open_items.json` | `.github/workflows/open_items_main_push_check.yml` | `github.event.before` | **rein detektiv** — der Commit liegt beim Feuern bereits auf `main`, der Check kann nichts verhindern, nur einen roten Check-Run auf dem Commit sichtbar machen |
+
+**Warum beide nötig sind:** `pr-checks.yml` triggert **ausschließlich**
+auf `pull_request` — ein Direct-Push auf `main` (der „Gute Nacht"-Pfad)
+feuert dieses Event nicht. Ohne den zweiten, push-getriggerten Workflow
+wäre der Konsistenz-Check genau in dem Moment blind, der den
+ursprünglichen Datenverlust (NYSE-Referer-Probe, S8-Digest-Timing)
+verursacht hat. Der zweite Workflow schließt diese Lücke — bewusst
+**nur detektiv**, da ein `push`-Event technisch erst nach dem Push
+feuert und den Commit nicht mehr verhindern kann. Bei Fund: Follow-up-
+Commit nötig (Status explizit auf `erledigt` setzen oder das Item
+wiederherstellen).
+
+Beide bewusst NICHT in `daily-squeeze-report.yml` — reine Prozess-/
+Doku-Infrastruktur ohne Bezug zum produktiven Report-Lauf.
 
 Score-Methodik-Sync ist **nicht betroffen** — reines Prozess-/
 Doku-Infrastruktur-Feature, keine Score-/Filter-/Alert-/Exit-Logik
