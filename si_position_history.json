@@ -3117,6 +3117,12 @@
       "shares_short": 11121984,
       "short_pct_float": 15.45,
       "pub_date": "2026-07-24"
+    },
+    {
+      "settlement_date": "2026-08-31",
+      "shares_short": 11263568,
+      "short_pct_float": 15.83,
+      "pub_date": "2026-09-10"
     }
   ],
   "KPTI": [
@@ -4494,6 +4500,12 @@
       "shares_short": 23208255,
       "short_pct_float": 39.54,
       "pub_date": "2026-08-25"
+    },
+    {
+      "settlement_date": "2026-08-31",
+      "shares_short": 24740394,
+      "short_pct_float": 42.15,
+      "pub_date": "2026-09-10"
     }
   ],
   "DXC": [
@@ -5046,6 +5058,12 @@
       "shares_short": 22952291,
       "short_pct_float": 33.28,
       "pub_date": "2026-08-25"
+    },
+    {
+      "settlement_date": "2026-08-31",
+      "shares_short": 23209349,
+      "short_pct_float": 33.65,
+      "pub_date": "2026-09-10"
     }
   ],
   "BATL": [
@@ -5334,6 +5352,12 @@
       "shares_short": 67199877,
       "short_pct_float": 30.09,
       "pub_date": "2026-08-25"
+    },
+    {
+      "settlement_date": "2026-08-31",
+      "shares_short": 69577775,
+      "short_pct_float": 31.16,
+      "pub_date": "2026-09-10"
     }
   ],
   "NUAI": [
@@ -5991,6 +6015,12 @@
       "shares_short": 7443515,
       "short_pct_float": 94.23,
       "pub_date": "2026-08-25"
+    },
+    {
+      "settlement_date": "2026-08-31",
+      "shares_short": 5201767,
+      "short_pct_float": 65.85,
+      "pub_date": "2026-09-10"
     }
   ],
   "COLL": [
@@ -6675,6 +6705,12 @@
       "shares_short": 8947065,
       "short_pct_float": 41.19,
       "pub_date": "2026-08-25"
+    },
+    {
+      "settlement_date": "2026-08-31",
+      "shares_short": 9227637,
+      "short_pct_float": 42.48,
+      "pub_date": "2026-09-10"
     }
   ],
   "DFSC": [
