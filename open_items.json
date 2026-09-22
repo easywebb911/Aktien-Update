@@ -1,0 +1,5 @@
+{
+  "schema_v": 1,
+  "note": "Eingeführt am 2026-09-22 (PR: Open-Items-Tracker). Die Historie VOR diesem Datum wurde NICHT rekonstruiert -- bekannte, zuvor in der Session-Handover-Prosa verlorene Punkte (u.a. NYSE-Referer-Probe-Status, S8-Digest-Timing-Beobachtung) wurden bewusst NICHT nachtraeglich geraten oder eingetragen. Ab hier gilt: kein Punkt verschwindet mehr ersatzlos, siehe scripts/lint_open_items_consistency.py.",
+  "items": []
+}
