@@ -1,11 +1,11 @@
 {
-  "updated": "2026-09-22T06:57:37.731094+02:00",
+  "updated": "2026-09-22T11:58:25.827931+02:00",
   "run_info": {
     "tickers_checked": 13,
     "signals_active": 0,
     "alerts_sent": 0,
-    "elapsed_s": 24.4,
-    "market_phase": "Geschlossen"
+    "elapsed_s": 22.1,
+    "market_phase": "Pre-Market"
   },
   "signals": {
     "AMC": {
@@ -55,9 +55,9 @@
       "uoa_cp_ratio": 10.100806451612904
     },
     "IONQ": {
-      "score": 36,
+      "score": 58,
       "confidence": 33,
-      "drivers": "News-KI 8/30: Partnership announcement is positive but lacks short-squeeze catalysts like high short interest, gamma exposure, or extr + Earnings in 43d + SEC Form 4 + UOA Call/Put 4.3×",
+      "drivers": "News: partnership, buyout + Earnings in 43d + SEC Form 4 + UOA Call/Put 4.3×",
       "price": 40.51,
       "chg_pct": -0.0,
       "rvol_4d": 0.76,
@@ -68,8 +68,8 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 0,
-      "ki_sentiment_source": "llm",
+      "active_triggers": 1,
+      "ki_sentiment_source": "keyword",
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 4.3×"
@@ -78,9 +78,9 @@
       "uoa_cp_ratio": 4.252124645892351
     },
     "MNRO": {
-      "score": 28,
+      "score": 33,
       "confidence": 70,
-      "drivers": "Spanne 7.0% + Earnings in 36d + UOA Call/Put 14.0×",
+      "drivers": "Spanne 7.0% + News-KI 5/30: Negative sentiment with analyst warnings outweighs conference participation; no significant short squeeze indicators pre + Earnings in 36d + UOA Call/Put 14.0×",
       "price": 12.9,
       "chg_pct": -0.0,
       "rvol_4d": 0.85,
@@ -92,7 +92,7 @@
       "stocktwits": null,
       "combo_mult": 1.0,
       "active_triggers": 0,
-      "ki_sentiment_source": "keyword",
+      "ki_sentiment_source": "llm",
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 14.0×"
@@ -124,9 +124,9 @@
       "uoa_cp_ratio": 5.425572519083969
     },
     "NUAI": {
-      "score": 55,
-      "confidence": 70,
-      "drivers": "Volumen 4.0× + ⚡ Extremes Volumen 4.0×+ + Spanne 17.3% + UOA Call-Vol/OI 3.4× ATM",
+      "score": 45,
+      "confidence": 33,
+      "drivers": "Volumen 4.0× + ⚡ Extremes Volumen 4.0×+ + Spanne 17.3%",
       "price": 7.65,
       "chg_pct": 0.0,
       "rvol_4d": 3.97,
@@ -139,11 +139,9 @@
       "combo_mult": 1.0,
       "active_triggers": 1,
       "ki_sentiment_source": "keyword",
-      "uoa_score": 10,
-      "uoa_drivers": [
-        "UOA Call-Vol/OI 3.4× ATM"
-      ],
-      "uoa_atm_ratio": 3.4454545454545453,
+      "uoa_score": 0,
+      "uoa_drivers": [],
+      "uoa_atm_ratio": null,
       "uoa_cp_ratio": 0.3113008644317942
     },
     "PDYN": {
@@ -172,7 +170,7 @@
     "PLCE": {
       "score": 50,
       "confidence": 33,
-      "drivers": "Spanne 8.8% + News: partnership, covering + UOA Call/Put 2.8×",
+      "drivers": "Spanne 8.8% + News: covering, partnership + UOA Call/Put 2.8×",
       "price": 2.18,
       "chg_pct": 0.0,
       "rvol_4d": 0.45,
@@ -239,9 +237,9 @@
       "uoa_cp_ratio": 14.305555555555555
     },
     "VYX": {
-      "score": 43,
+      "score": 40,
       "confidence": 70,
-      "drivers": "Spanne 9.5% + News-KI 15/30: Moderate interest from congressional buyer and options activity, but shrinking revenue is a negative fundamental signal  + Earnings in 44d + UOA Call/Put 5.1×",
+      "drivers": "Spanne 9.5% + News-KI 12/30: Moderate interest indicators (congressional buying, options activity) but shrinking revenue is a negative fundamental si + Earnings in 44d + UOA Call/Put 5.1×",
       "price": 7.29,
       "chg_pct": -0.0,
       "rvol_4d": 0.96,
@@ -285,9 +283,9 @@
       "uoa_cp_ratio": 2.279132791327913
     },
     "XPOF": {
-      "score": 40,
+      "score": 36,
       "confidence": 70,
-      "drivers": "Spanne 6.2% + News-KI 12/30: Mixed signals with positive movement offset by weakening outlook, slower expansion, and declining shares - insufficient  + Earnings in 44d + UOA Call/Put 11.0×",
+      "drivers": "Spanne 6.2% + News-KI 8/30: Mixed signals with positive momentum offset by weak fundamentals; slower expansion and weaker sales reduce short-squeeze + Earnings in 44d + UOA Call/Put 11.0×",
       "price": 3.88,
       "chg_pct": 0.0,
       "rvol_4d": 0.72,
@@ -298,7 +296,7 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 1,
+      "active_triggers": 0,
       "ki_sentiment_source": "llm",
       "uoa_score": 10,
       "uoa_drivers": [
