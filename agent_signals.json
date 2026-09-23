@@ -1,11 +1,11 @@
 {
-  "updated": "2026-09-23T07:59:28.807890+02:00",
+  "updated": "2026-09-23T13:38:22.844335+02:00",
   "run_info": {
     "tickers_checked": 13,
     "signals_active": 2,
     "alerts_sent": 0,
-    "elapsed_s": 11.8,
-    "market_phase": "Geschlossen"
+    "elapsed_s": 38.4,
+    "market_phase": "Pre-Market"
   },
   "signals": {
     "ABSI": {
@@ -28,7 +28,7 @@
       "uoa_drivers": [
         "UOA Call/Put 22.7×"
       ],
-      "uoa_atm_ratio": null,
+      "uoa_atm_ratio": 0.6066019417475729,
       "uoa_cp_ratio": 22.674603174603174
     },
     "AMC": {
@@ -51,7 +51,7 @@
       "uoa_drivers": [
         "UOA Call/Put 20.1×"
       ],
-      "uoa_atm_ratio": null,
+      "uoa_atm_ratio": 0.6052958768775832,
       "uoa_cp_ratio": 20.060718711276333
     },
     "CNXC": {
@@ -74,7 +74,7 @@
       "uoa_drivers": [
         "UOA Call/Put 3.0×"
       ],
-      "uoa_atm_ratio": null,
+      "uoa_atm_ratio": 0.18274687854710556,
       "uoa_cp_ratio": 3.0114942528735633
     },
     "CTMX": {
@@ -95,7 +95,7 @@
       "ki_sentiment_source": "keyword",
       "uoa_score": 0,
       "uoa_drivers": [],
-      "uoa_atm_ratio": null,
+      "uoa_atm_ratio": 0.14666666666666667,
       "uoa_cp_ratio": 0.012360351794628001
     },
     "DFH": {
@@ -116,7 +116,7 @@
       "ki_sentiment_source": "keyword",
       "uoa_score": 0,
       "uoa_drivers": [],
-      "uoa_atm_ratio": null,
+      "uoa_atm_ratio": 0.5,
       "uoa_cp_ratio": 1.2424242424242424
     },
     "FIRY": {
@@ -139,13 +139,13 @@
       "uoa_drivers": [
         "UOA Call/Put 27.0×"
       ],
-      "uoa_atm_ratio": null,
+      "uoa_atm_ratio": 0.2847682119205298,
       "uoa_cp_ratio": 27.0
     },
     "FLWS": {
-      "score": 48,
+      "score": 51,
       "confidence": 70,
-      "drivers": "Kurs +10.5% + Spanne 7.7% + News-KI 5/30: Negative revenue trends, margin pressure, and weak guidance indicate fundamental weakness rather than short-squeeze pote + Earnings in 43d",
+      "drivers": "Kurs +10.5% + Spanne 7.7% + News-KI 8/30: Negative earnings, weak guidance, and margin pressure indicate fundamental weakness with no catalyst for short squeeze;  + Earnings in 43d",
       "price": 2.84,
       "chg_pct": 10.51,
       "rvol_4d": 1.25,
@@ -160,7 +160,7 @@
       "ki_sentiment_source": "llm",
       "uoa_score": 0,
       "uoa_drivers": [],
-      "uoa_atm_ratio": null,
+      "uoa_atm_ratio": 0.03239929947460595,
       "uoa_cp_ratio": 0.6
     },
     "GRPN": {
@@ -183,13 +183,13 @@
       "uoa_drivers": [
         "UOA Call/Put 5.3×"
       ],
-      "uoa_atm_ratio": null,
+      "uoa_atm_ratio": 0.17752540346682605,
       "uoa_cp_ratio": 5.317919075144508
     },
     "IONQ": {
-      "score": 33,
+      "score": 18,
       "confidence": 33,
-      "drivers": "News: catalyst + Earnings in 42d + UOA Call/Put 2.6×",
+      "drivers": "Earnings in 42d + UOA Call/Put 2.6×",
       "price": 40.74,
       "chg_pct": 0.57,
       "rvol_4d": 0.77,
@@ -200,13 +200,13 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 1,
+      "active_triggers": 0,
       "ki_sentiment_source": "keyword",
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 2.6×"
       ],
-      "uoa_atm_ratio": null,
+      "uoa_atm_ratio": 0.3969901401141671,
       "uoa_cp_ratio": 2.622614227877386
     },
     "MNRO": {
@@ -229,7 +229,7 @@
       "uoa_drivers": [
         "UOA Call/Put 2.1×"
       ],
-      "uoa_atm_ratio": null,
+      "uoa_atm_ratio": 0.14396887159533073,
       "uoa_cp_ratio": 2.1333333333333333
     },
     "PDYN": {
@@ -250,7 +250,7 @@
       "ki_sentiment_source": "keyword",
       "uoa_score": 0,
       "uoa_drivers": [],
-      "uoa_atm_ratio": null,
+      "uoa_atm_ratio": 0.04183006535947712,
       "uoa_cp_ratio": 1.030612244897959
     },
     "SANA": {
@@ -294,7 +294,7 @@
       "ki_sentiment_source": "keyword",
       "uoa_score": 0,
       "uoa_drivers": [],
-      "uoa_atm_ratio": null,
+      "uoa_atm_ratio": 0.1007843137254902,
       "uoa_cp_ratio": 1.0182767624020888
     }
   }
