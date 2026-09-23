@@ -388,6 +388,11 @@
       "date": "2026-09-22",
       "inst_ownership": 1.32795,
       "insider_ownership": 0.00932
+    },
+    {
+      "date": "2026-09-23",
+      "inst_ownership": 1.32764,
+      "insider_ownership": 0.00932
     }
   ],
   "RES": [
@@ -784,6 +789,11 @@
       "date": "2026-09-22",
       "inst_ownership": 0.50601,
       "insider_ownership": 0.00717
+    },
+    {
+      "date": "2026-09-23",
+      "inst_ownership": 0.50604,
+      "insider_ownership": 0.00717
     }
   ],
   "AMC": [
@@ -870,6 +880,11 @@
     {
       "date": "2026-09-15",
       "inst_ownership": 0.49662998,
+      "insider_ownership": 0.00585
+    },
+    {
+      "date": "2026-09-23",
+      "inst_ownership": 0.49665,
       "insider_ownership": 0.00585
     }
   ],
@@ -3008,6 +3023,11 @@
       "date": "2026-09-22",
       "inst_ownership": 0.87223,
       "insider_ownership": 0.11842
+    },
+    {
+      "date": "2026-09-23",
+      "inst_ownership": 0.87217003,
+      "insider_ownership": 0.11842
     }
   ],
   "OCGN": [
@@ -3145,6 +3165,11 @@
     {
       "date": "2026-09-22",
       "inst_ownership": 0.85723,
+      "insider_ownership": 0.03507
+    },
+    {
+      "date": "2026-09-23",
+      "inst_ownership": 0.85727996,
       "insider_ownership": 0.03507
     }
   ],
@@ -3591,6 +3616,11 @@
       "date": "2026-09-22",
       "inst_ownership": 0.77678,
       "insider_ownership": 0.0608
+    },
+    {
+      "date": "2026-09-23",
+      "inst_ownership": 0.77674,
+      "insider_ownership": 0.0608
     }
   ],
   "CISS": [
@@ -3636,6 +3666,11 @@
     {
       "date": "2026-09-22",
       "inst_ownership": 0.65092003,
+      "insider_ownership": 0.16913
+    },
+    {
+      "date": "2026-09-23",
+      "inst_ownership": 0.65096,
       "insider_ownership": 0.16913
     }
   ],
@@ -3790,6 +3825,11 @@
     {
       "date": "2026-09-22",
       "inst_ownership": 1.1529499,
+      "insider_ownership": 0.17497998
+    },
+    {
+      "date": "2026-09-23",
+      "inst_ownership": 1.15277,
       "insider_ownership": 0.17497998
     }
   ],
@@ -4057,6 +4097,11 @@
       "date": "2026-09-16",
       "inst_ownership": 0.93524003,
       "insider_ownership": 0.18958999
+    },
+    {
+      "date": "2026-09-23",
+      "inst_ownership": 0.93524003,
+      "insider_ownership": 0.19
     }
   ],
   "EOSE": [
@@ -5033,6 +5078,11 @@
       "date": "2026-09-22",
       "inst_ownership": 1.0407,
       "insider_ownership": 0.00574
+    },
+    {
+      "date": "2026-09-23",
+      "inst_ownership": 1.04075,
+      "insider_ownership": 0.00574
     }
   ],
   "CRMD": [
@@ -5478,6 +5528,11 @@
       "date": "2026-09-22",
       "inst_ownership": 1.23068,
       "insider_ownership": 0.01587
+    },
+    {
+      "date": "2026-09-23",
+      "inst_ownership": 1.23033,
+      "insider_ownership": 0.01587
     }
   ],
   "PZZA": [
@@ -5568,12 +5623,22 @@
       "date": "2026-09-17",
       "inst_ownership": 0.81238997,
       "insider_ownership": 0.12813
+    },
+    {
+      "date": "2026-09-23",
+      "inst_ownership": 0.81354,
+      "insider_ownership": 0.12813
     }
   ],
   "RARE": [
     {
       "date": "2026-09-17",
       "inst_ownership": 1.1251,
+      "insider_ownership": 0.03439
+    },
+    {
+      "date": "2026-09-23",
+      "inst_ownership": 1.12502,
       "insider_ownership": 0.03439
     }
   ],
@@ -5629,12 +5694,22 @@
       "date": "2026-09-22",
       "inst_ownership": 0.82382005,
       "insider_ownership": 0.43705
+    },
+    {
+      "date": "2026-09-23",
+      "inst_ownership": 0.82193,
+      "insider_ownership": 0.43705
     }
   ],
   "PRTA": [
     {
       "date": "2026-09-22",
       "inst_ownership": 0.93284,
+      "insider_ownership": 0.22153
+    },
+    {
+      "date": "2026-09-23",
+      "inst_ownership": 0.9383,
       "insider_ownership": 0.22153
     }
   ],
@@ -5649,6 +5724,11 @@
     {
       "date": "2026-09-22",
       "inst_ownership": 0.95635,
+      "insider_ownership": 0.040510003
+    },
+    {
+      "date": "2026-09-23",
+      "inst_ownership": 0.95636004,
       "insider_ownership": 0.040510003
     }
   ]
