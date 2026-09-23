@@ -1,10 +1,10 @@
 {
-  "updated": "2026-09-23T13:38:22.844335+02:00",
+  "updated": "2026-09-23T13:39:59.117637+02:00",
   "run_info": {
     "tickers_checked": 13,
     "signals_active": 2,
     "alerts_sent": 0,
-    "elapsed_s": 38.4,
+    "elapsed_s": 23.7,
     "market_phase": "Pre-Market"
   },
   "signals": {
@@ -77,31 +77,10 @@
       "uoa_atm_ratio": 0.18274687854710556,
       "uoa_cp_ratio": 3.0114942528735633
     },
-    "CTMX": {
-      "score": 58,
-      "confidence": 33,
-      "drivers": "Kurs +6.5% + Earnings in 43d + FINRA Short-Vol 91%",
-      "price": 2.94,
-      "chg_pct": 6.52,
-      "rvol_4d": 0.33,
-      "rvol_20d": 0.56,
-      "earnings": "in 43 Tagen (05.11.2026)",
-      "fda_date": null,
-      "upcoming_event": null,
-      "insider_buy": false,
-      "stocktwits": null,
-      "combo_mult": 1.0,
-      "active_triggers": 1,
-      "ki_sentiment_source": "keyword",
-      "uoa_score": 0,
-      "uoa_drivers": [],
-      "uoa_atm_ratio": 0.14666666666666667,
-      "uoa_cp_ratio": 0.012360351794628001
-    },
     "DFH": {
       "score": 80,
       "confidence": 70,
-      "drivers": "Kurs +7.5% + News: acquisition, merger + Earnings in 36d + SEC Form 4",
+      "drivers": "Kurs +7.5% + News: merger, acquisition + Earnings in 36d + SEC Form 4",
       "price": 12.26,
       "chg_pct": 7.54,
       "rvol_4d": 0.88,
@@ -145,7 +124,7 @@
     "FLWS": {
       "score": 51,
       "confidence": 70,
-      "drivers": "Kurs +10.5% + Spanne 7.7% + News-KI 8/30: Negative earnings, weak guidance, and margin pressure indicate fundamental weakness with no catalyst for short squeeze;  + Earnings in 43d",
+      "drivers": "Kurs +10.5% + Spanne 7.7% + News-KI 8/30: Negative earnings, weak guidance, and margin pressure indicate deteriorating fundamentals that typically discourage shor + Earnings in 43d",
       "price": 2.84,
       "chg_pct": 10.51,
       "rvol_4d": 1.25,
@@ -208,6 +187,27 @@
       ],
       "uoa_atm_ratio": 0.3969901401141671,
       "uoa_cp_ratio": 2.622614227877386
+    },
+    "MGN": {
+      "score": 50,
+      "confidence": 70,
+      "drivers": "Kurs +9.5% + Spanne 9.8% + FINRA Short-Vol 53%",
+      "price": 4.14,
+      "chg_pct": 9.52,
+      "rvol_4d": 0.06,
+      "rvol_20d": 0.15,
+      "earnings": null,
+      "fda_date": null,
+      "upcoming_event": null,
+      "insider_buy": false,
+      "stocktwits": null,
+      "combo_mult": 1.0,
+      "active_triggers": 1,
+      "ki_sentiment_source": "keyword",
+      "uoa_score": 0,
+      "uoa_drivers": [],
+      "uoa_atm_ratio": null,
+      "uoa_cp_ratio": null
     },
     "MNRO": {
       "score": 53,
