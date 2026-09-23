@@ -278,6 +278,15 @@
     "substrate": "en",
     "reason": null
   },
+  "CCCC": {
+    "qid": null,
+    "title": null,
+    "resolved_at": "2026-09-23T23:46:06Z",
+    "issuer_verified": false,
+    "company_name_at_resolve": "C4 Therapeutics, Inc.",
+    "substrate": "none",
+    "reason": "no_p249"
+  },
   "CGEM": {
     "qid": "Q124031426",
     "title": null,
@@ -863,6 +872,15 @@
     "substrate": "none",
     "reason": "no_p249"
   },
+  "LXEO": {
+    "qid": null,
+    "title": null,
+    "resolved_at": "2026-09-23T23:46:06Z",
+    "issuer_verified": false,
+    "company_name_at_resolve": "Lexeo Therapeutics, Inc.",
+    "substrate": "none",
+    "reason": "sparql_fetch_failed"
+  },
   "METC": {
     "qid": null,
     "title": null,
@@ -1294,6 +1312,15 @@
     "company_name_at_resolve": "Frontier Group Holdings, Inc.",
     "substrate": "en",
     "reason": null
+  },
+  "VBIO": {
+    "qid": null,
+    "title": null,
+    "resolved_at": "2026-09-23T23:46:06Z",
+    "issuer_verified": false,
+    "company_name_at_resolve": "Valion Bio, Inc.",
+    "substrate": "none",
+    "reason": "no_p249"
   },
   "VEEE": {
     "qid": null,
