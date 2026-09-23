@@ -66463,7 +66463,7 @@
     "return_10d": -3.31,
     "return_3d_t1": -6.63,
     "return_5d_t1": -5.3,
-    "return_10d_t1": null,
+    "return_10d_t1": -13.73,
     "max_drawdown_pct": -18.3,
     "max_gain_pct": 15.73,
     "market_regime": "bull",
@@ -67124,7 +67124,7 @@
     "return_10d": 11.14,
     "return_3d_t1": -11.65,
     "return_5d_t1": -16.28,
-    "return_10d_t1": null,
+    "return_10d_t1": 7.87,
     "max_drawdown_pct": -24.15,
     "max_gain_pct": 50.95,
     "market_regime": "bull",
@@ -74255,7 +74255,7 @@
     "return_3d": 3.24,
     "return_5d": null,
     "return_10d": null,
-    "return_3d_t1": null,
+    "return_3d_t1": 7.92,
     "return_5d_t1": null,
     "return_10d_t1": null,
     "return_3d_net": -0.81,
@@ -74736,7 +74736,7 @@
     "return_3d": -0.58,
     "return_5d": null,
     "return_10d": null,
-    "return_3d_t1": null,
+    "return_3d_t1": 1.71,
     "return_5d_t1": null,
     "return_10d_t1": null,
     "return_3d_net": -4.48,
@@ -75070,7 +75070,7 @@
     "return_3d": 13.14,
     "return_5d": null,
     "return_10d": null,
-    "return_3d_t1": null,
+    "return_3d_t1": -3.39,
     "return_5d_t1": null,
     "return_10d_t1": null,
     "return_3d_net": 8.7,
@@ -75400,13 +75400,13 @@
     "dtc": 12.77,
     "rvol": 3.035,
     "si_trend": "up",
-    "return_3d": null,
+    "return_3d": -38.42,
     "return_5d": null,
     "return_10d": null,
     "return_3d_t1": null,
     "return_5d_t1": null,
     "return_10d_t1": null,
-    "return_3d_net": null,
+    "return_3d_net": -40.83,
     "return_5d_net": null,
     "return_10d_net": null,
     "max_drawdown_pct": -39.47,
@@ -75498,7 +75498,8 @@
     "source_pools": [
       "yahoo_most_shorted_stocks"
     ],
-    "backtest_schema_version": 4
+    "backtest_schema_version": 4,
+    "return_3d_vs_spy": -39.22
   },
   {
     "date": "18.09.2026",
@@ -75730,13 +75731,13 @@
     "dtc": 3.66,
     "rvol": 4.563,
     "si_trend": "down",
-    "return_3d": null,
+    "return_3d": -3.1,
     "return_5d": null,
     "return_10d": null,
     "return_3d_t1": null,
     "return_5d_t1": null,
     "return_10d_t1": null,
-    "return_3d_net": null,
+    "return_3d_net": -6.9,
     "return_5d_net": null,
     "return_10d_net": null,
     "max_drawdown_pct": -22.06,
@@ -75828,7 +75829,8 @@
     "source_pools": [
       "yahoo_small_cap_gainers"
     ],
-    "backtest_schema_version": 4
+    "backtest_schema_version": 4,
+    "return_3d_vs_spy": -3.9
   },
   {
     "date": "18.09.2026",
@@ -75951,13 +75953,13 @@
     "dtc": 0.01,
     "rvol": 4.329,
     "si_trend": "up",
-    "return_3d": null,
+    "return_3d": 1.15,
     "return_5d": null,
     "return_10d": null,
     "return_3d_t1": null,
     "return_5d_t1": null,
     "return_10d_t1": null,
-    "return_3d_net": null,
+    "return_3d_net": -2.82,
     "return_5d_net": null,
     "return_10d_net": null,
     "max_drawdown_pct": -24.75,
@@ -76049,7 +76051,8 @@
     "source_pools": [
       "yahoo_most_shorted_stocks"
     ],
-    "backtest_schema_version": 4
+    "backtest_schema_version": 4,
+    "return_3d_vs_spy": 0.35
   },
   {
     "date": "18.09.2026",
@@ -77735,7 +77738,7 @@
     "ticker": "CTMX",
     "score": 57.12,
     "entry_price": 2.94,
-    "entry_price_t1": null,
+    "entry_price_t1": 2.78,
     "short_float": 17.45,
     "dtc": 12.96,
     "rvol": 1.83,

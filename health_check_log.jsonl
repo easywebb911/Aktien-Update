@@ -1,6 +1,3 @@
-{"run_ts": "2026-08-24T17:47:27Z", "run_phase": "ki_agent_tick", "schema_v": 1, "state_fails": [], "provider_fails": []}
-{"run_ts": "2026-08-24T19:00:15Z", "run_phase": "ki_agent_tick", "schema_v": 1, "state_fails": [], "provider_fails": []}
-{"run_ts": "2026-08-24T19:45:53Z", "run_phase": "ki_agent_tick", "schema_v": 1, "state_fails": [], "provider_fails": []}
 {"run_ts": "2026-08-24T20:37:12Z", "run_phase": "postclose", "schema_v": 1, "state_fails": [], "provider_fails": []}
 {"run_ts": "2026-08-24T20:39:18Z", "run_phase": "ki_agent_tick", "schema_v": 1, "state_fails": [], "provider_fails": []}
 {"run_ts": "2026-08-24T20:49:24Z", "run_phase": "ki_agent_tick", "schema_v": 1, "state_fails": [], "provider_fails": []}
@@ -293,3 +290,4 @@
 {"run_ts": "2026-09-23T11:39:05Z", "run_phase": "premarket", "schema_v": 1, "state_fails": [{"id": "S10", "severity": "warn", "detail": "MUSS-Feld 'rvol_buildup_5d': 10/20 null (50%) in letzten 20 V4-Einträgen — Daten-Pipeline füllt nicht"}, {"id": "S10", "severity": "warn", "detail": "MUSS-Feld 'vol_stability_5d': 10/20 null (50%) in letzten 20 V4-Einträgen — Daten-Pipeline füllt nicht"}, {"id": "S10", "severity": "warn", "detail": "MUSS-Feld 'coiled_spring_score': 10/20 null (50%) in letzten 20 V4-Einträgen — Daten-Pipeline füllt nicht"}], "provider_fails": []}
 {"run_ts": "2026-09-23T11:40:02Z", "run_phase": "ki_agent_tick", "schema_v": 1, "state_fails": [], "provider_fails": []}
 {"run_ts": "2026-09-23T17:00:57Z", "run_phase": "ki_agent_tick", "schema_v": 1, "state_fails": [], "provider_fails": []}
+{"run_ts": "2026-09-23T20:23:14Z", "run_phase": "ki_agent_tick", "schema_v": 1, "state_fails": [], "provider_fails": []}
