@@ -84,6 +84,12 @@
       "shares_short": 13788257,
       "short_pct_float": 66.68,
       "pub_date": "2026-08-25"
+    },
+    {
+      "settlement_date": "2026-08-31",
+      "shares_short": 13855682,
+      "short_pct_float": 67.01,
+      "pub_date": "2026-09-10"
     }
   ],
   "TRIP": [
@@ -1656,6 +1662,12 @@
       "shares_short": 13124869,
       "short_pct_float": 15.15,
       "pub_date": "2026-08-25"
+    },
+    {
+      "settlement_date": "2026-08-31",
+      "shares_short": 13417317,
+      "short_pct_float": 15.48,
+      "pub_date": "2026-09-10"
     }
   ],
   "CTRN": [
@@ -2667,6 +2679,12 @@
       "shares_short": 10723591,
       "short_pct_float": 17.57,
       "pub_date": "2026-08-25"
+    },
+    {
+      "settlement_date": "2026-08-31",
+      "shares_short": 11461087,
+      "short_pct_float": 18.78,
+      "pub_date": "2026-09-10"
     }
   ],
   "FIGS": [
@@ -2688,6 +2706,12 @@
       "shares_short": 19917442,
       "short_pct_float": 21.41,
       "pub_date": "2026-07-24"
+    },
+    {
+      "settlement_date": "2026-08-31",
+      "shares_short": 17066482,
+      "short_pct_float": 18.53,
+      "pub_date": "2026-09-10"
     }
   ],
   "DCOY": [
@@ -2889,6 +2913,12 @@
       "shares_short": 22180637,
       "short_pct_float": 24.51,
       "pub_date": "2026-08-25"
+    },
+    {
+      "settlement_date": "2026-08-31",
+      "shares_short": 22559388,
+      "short_pct_float": 24.93,
+      "pub_date": "2026-09-10"
     }
   ],
   "AEBI": [
