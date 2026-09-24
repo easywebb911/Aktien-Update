@@ -98,6 +98,15 @@
     "substrate": "none",
     "reason": "sparql_fetch_failed"
   },
+  "AMPH": {
+    "qid": null,
+    "title": null,
+    "resolved_at": "2026-09-24T23:54:29Z",
+    "issuer_verified": false,
+    "company_name_at_resolve": "Amphastar Pharmaceuticals, Inc.",
+    "substrate": "none",
+    "reason": "no_p249"
+  },
   "AMPX": {
     "qid": null,
     "title": null,
@@ -1013,6 +1022,15 @@
     "resolved_at": "2026-08-24T21:47:03Z",
     "issuer_verified": true,
     "company_name_at_resolve": "Oxford Industries, Inc.",
+    "substrate": "en",
+    "reason": null
+  },
+  "PACB": {
+    "qid": "Q2069106",
+    "title": "Pacific_Biosciences",
+    "resolved_at": "2026-09-24T23:54:29Z",
+    "issuer_verified": true,
+    "company_name_at_resolve": "Pacific Biosciences of California, Inc.",
     "substrate": "en",
     "reason": null
   },
