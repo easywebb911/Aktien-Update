@@ -824,6 +824,11 @@
       "date": "2026-09-23",
       "inst_ownership": 0.50604,
       "insider_ownership": 0.00717
+    },
+    {
+      "date": "2026-09-25",
+      "inst_ownership": 0.5061,
+      "insider_ownership": 0.00717
     }
   ],
   "AMC": [
@@ -1589,6 +1594,11 @@
       "date": "2026-09-17",
       "inst_ownership": 1.23585,
       "insider_ownership": 0.04441
+    },
+    {
+      "date": "2026-09-25",
+      "inst_ownership": 1.23613,
+      "insider_ownership": 0.04441
     }
   ],
   "CLBK": [
@@ -1645,6 +1655,11 @@
     {
       "date": "2026-09-24",
       "inst_ownership": 0.04279,
+      "insider_ownership": 0.29400998
+    },
+    {
+      "date": "2026-09-25",
+      "inst_ownership": 0.0432,
       "insider_ownership": 0.29400998
     }
   ],
@@ -2920,6 +2935,11 @@
       "date": "2026-09-24",
       "inst_ownership": 0.76304,
       "insider_ownership": 0.33887002
+    },
+    {
+      "date": "2026-09-25",
+      "inst_ownership": 0.76246,
+      "insider_ownership": 0.33887002
     }
   ],
   "KYTX": [
@@ -2974,6 +2994,11 @@
       "date": "2026-09-24",
       "inst_ownership": 1.0641999,
       "insider_ownership": 0.01089
+    },
+    {
+      "date": "2026-09-25",
+      "inst_ownership": 1.0645,
+      "insider_ownership": 0.0155299995
     }
   ],
   "JACK": [
@@ -3207,6 +3232,11 @@
     {
       "date": "2026-09-24",
       "inst_ownership": 0.87236,
+      "insider_ownership": 0.11842
+    },
+    {
+      "date": "2026-09-25",
+      "inst_ownership": 0.87254995,
       "insider_ownership": 0.11842
     }
   ],
@@ -4142,6 +4172,11 @@
       "date": "2026-09-24",
       "inst_ownership": 0.51725,
       "insider_ownership": 0.11717
+    },
+    {
+      "date": "2026-09-25",
+      "inst_ownership": 0.51742,
+      "insider_ownership": 0.11717
     }
   ],
   "ALLO": [
@@ -4671,6 +4706,11 @@
       "date": "2026-09-24",
       "inst_ownership": 1.07538,
       "insider_ownership": 0.04013
+    },
+    {
+      "date": "2026-09-25",
+      "inst_ownership": 1.07576,
+      "insider_ownership": 0.04013
     }
   ],
   "CPB": [
@@ -5038,6 +5078,11 @@
       "date": "2026-09-24",
       "inst_ownership": 0.59411,
       "insider_ownership": 0.43342
+    },
+    {
+      "date": "2026-09-25",
+      "inst_ownership": 0.59417,
+      "insider_ownership": 0.43342
     }
   ],
   "GAP": [
@@ -5235,6 +5280,11 @@
     {
       "date": "2026-09-23",
       "inst_ownership": 0.43445,
+      "insider_ownership": 0.05228
+    },
+    {
+      "date": "2026-09-25",
+      "inst_ownership": 0.43396,
       "insider_ownership": 0.05228
     }
   ],
