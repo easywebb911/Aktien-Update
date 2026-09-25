@@ -53,6 +53,15 @@
     "substrate": "none",
     "reason": "no_article"
   },
+  "AESI": {
+    "qid": null,
+    "title": null,
+    "resolved_at": "2026-09-25T23:58:19Z",
+    "issuer_verified": false,
+    "company_name_at_resolve": "Atlas Energy Solutions Inc.",
+    "substrate": "none",
+    "reason": "no_p249"
+  },
   "AI": {
     "qid": "Q104081972",
     "title": "C3_AI",
@@ -638,6 +647,15 @@
     "substrate": "none",
     "reason": "no_p249"
   },
+  "GENI": {
+    "qid": null,
+    "title": null,
+    "resolved_at": "2026-09-25T23:58:19Z",
+    "issuer_verified": false,
+    "company_name_at_resolve": "Genius Sports Limited",
+    "substrate": "none",
+    "reason": "no_p249"
+  },
   "GO": {
     "qid": "Q5609934",
     "title": "Grocery_Outlet",
@@ -1114,6 +1132,15 @@
     "company_name_at_resolve": "Root, Inc.",
     "substrate": "none",
     "reason": "no_p249"
+  },
+  "RUN": {
+    "qid": "Q7638158",
+    "title": "Sunrun",
+    "resolved_at": "2026-09-25T23:58:19Z",
+    "issuer_verified": true,
+    "company_name_at_resolve": "Sunrun Inc.",
+    "substrate": "en",
+    "reason": null
   },
   "RXRX": {
     "qid": "Q120877642",

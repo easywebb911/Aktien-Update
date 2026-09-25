@@ -1,4 +1,3 @@
-{"run_ts": "2026-08-26T23:34:18Z", "run_phase": "ki_agent_tick", "schema_v": 1, "state_fails": [], "provider_fails": []}
 {"run_ts": "2026-08-27T00:51:44Z", "run_phase": "postclose", "schema_v": 1, "state_fails": [], "provider_fails": []}
 {"run_ts": "2026-08-27T00:53:08Z", "run_phase": "ki_agent_tick", "schema_v": 1, "state_fails": [], "provider_fails": []}
 {"run_ts": "2026-08-27T09:50:08Z", "run_phase": "ki_agent_tick", "schema_v": 1, "state_fails": [], "provider_fails": []}
@@ -254,3 +253,4 @@
 {"run_ts": "2026-09-25T13:48:49Z", "run_phase": "ki_agent_tick", "schema_v": 1, "state_fails": [], "provider_fails": []}
 {"run_ts": "2026-09-25T18:38:06Z", "run_phase": "ki_agent_tick", "schema_v": 1, "state_fails": [], "provider_fails": []}
 {"run_ts": "2026-09-25T22:22:04Z", "run_phase": "ki_agent_tick", "schema_v": 1, "state_fails": [], "provider_fails": []}
+{"run_ts": "2026-09-25T23:58:49Z", "run_phase": "postclose", "schema_v": 1, "state_fails": [{"id": "S10", "severity": "warn", "detail": "MUSS-Feld 'rvol_buildup_5d': 10/20 null (50%) in letzten 20 V4-Einträgen — Daten-Pipeline füllt nicht"}, {"id": "S10", "severity": "warn", "detail": "MUSS-Feld 'vol_stability_5d': 10/20 null (50%) in letzten 20 V4-Einträgen — Daten-Pipeline füllt nicht"}, {"id": "S10", "severity": "warn", "detail": "MUSS-Feld 'coiled_spring_score': 10/20 null (50%) in letzten 20 V4-Einträgen — Daten-Pipeline füllt nicht"}], "provider_fails": []}
