@@ -1,5 +1,5 @@
 {
-  "last_run": "2026-09-25T15:48:49.256226+02:00",
+  "last_run": "2026-09-25T20:38:06.219801+02:00",
   "cooldowns": {
     "anomaly_score_jump_XRX": "2026-05-03T18:47:15.315486+02:00",
     "anomaly_uoa_extreme_TDOC": "2026-05-04T13:47:00.365949+02:00",
@@ -112,18 +112,6 @@
     "earnings_immediate_PLCE_04.09.2026": "2026-09-04T01:21:25.342435+02:00"
   },
   "push_history": [
-    {
-      "ts": "2026-09-11T23:44:27.488658+02:00",
-      "ticker": "WOLF",
-      "kind": "exit_p2",
-      "severity": "trigger",
-      "trigger": "profit_lock,trend_break",
-      "body": "🔻 Exit-Signale WOLF: profit_lock, trend_break crit · Warnung pressure 69/100",
-      "success": false,
-      "suppressed": false,
-      "suppress_reason": null,
-      "conviction_score": null
-    },
     {
       "ts": "2026-09-12T01:21:04.371357+02:00",
       "ticker": "IONQ",
@@ -1311,6 +1299,18 @@
       "suppressed": false,
       "suppress_reason": null,
       "conviction_score": null
+    },
+    {
+      "ts": "2026-09-25T20:38:06.219910+02:00",
+      "ticker": "PDYN",
+      "kind": "exit_p2",
+      "severity": "trigger",
+      "trigger": "trend_break",
+      "body": "🔻 Exit-Signale PDYN: trend_break crit",
+      "success": false,
+      "suppressed": false,
+      "suppress_reason": null,
+      "conviction_score": null
     }
   ],
   "prev_conviction_scores": {
@@ -1371,19 +1371,19 @@
       ],
       "last_push_date": "2026-08-28",
       "esc_alerted": false,
-      "updated": "2026-09-25T15:48:49.256314+02:00"
+      "updated": "2026-09-25T20:38:06.219887+02:00"
     },
     "PDYN": {
       "last_active": [],
       "last_push_date": "2026-08-28",
       "esc_alerted": false,
-      "updated": "2026-09-25T15:48:49.256340+02:00"
+      "updated": "2026-09-25T20:38:06.219921+02:00"
     },
     "WOLF": {
       "last_active": [],
       "last_push_date": "2026-09-01",
       "esc_alerted": false,
-      "updated": "2026-09-25T15:48:49.256348+02:00"
+      "updated": "2026-09-25T20:38:06.219933+02:00"
     },
     "KSS": {
       "last_active": [],
@@ -1395,7 +1395,7 @@
       "last_active": [],
       "last_push_date": null,
       "esc_alerted": false,
-      "updated": "2026-09-25T15:48:49.256353+02:00"
+      "updated": "2026-09-25T20:38:06.219942+02:00"
     }
   }
 }
