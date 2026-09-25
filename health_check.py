@@ -1924,16 +1924,200 @@ def _count_matured_retest(export_path) -> tuple[int, int] | None:
         return None
 
 
+def retest_counter_value(export_path=None) -> tuple[int, int] | None:
+    """Öffentlicher, dünner Wrapper um ``_count_matured_retest`` — Single-
+    Source-of-Truth für den ROHEN ``(n, total)``-Zähler, den sowohl
+    ``retest_counter_line`` (tägliche Digest-Zeile) als auch
+    ``weekly_summary_lines`` (Wochen-Digest-Block, 25.09.2026) brauchen.
+    Keine Logik-Duplikation — beide Konsumenten lesen denselben Wert."""
+    path = export_path if export_path is not None else MATURED_EXPORT_FILE
+    return _count_matured_retest(path)
+
+
 def retest_counter_line(export_path=None) -> str:
     """Eine Zeile für den Digest-Push — fail-soft (nie Exception, nie leer).
     Datei fehlt/unlesbar → „nicht ermittelbar"."""
-    path = export_path if export_path is not None else MATURED_EXPORT_FILE
-    counts = _count_matured_retest(path)
+    counts = retest_counter_value(export_path)
     if counts is None:
         return "📊 Re-Test-Zähler (§4): nicht ermittelbar"
     n, total = counts
     return (f"📊 Re-Test-Zähler (§4): n = {n}/{_RETEST_N_TARGET} "
             f"· Export {total} Zeilen")
+
+
+# ── Wöchentlicher Zusammenfassungs-Block (Digest-Zusatz, 25.09.2026) ────────
+# Bündelt zwei bereits maschinenlesbare, aber bisher verstreute Inhalte zu
+# EINEM Montags-Block im bestehenden Health-Check-Digest — KEIN neuer
+# Workflow, KEIN neuer externer Datenabruf (SEC-Automatisierung bleibt
+# explizit außen vor, eigenes späteres Vorhaben):
+#   (a) §4-Re-Test-Zähler-FORTSCHRITT (Delta seit letzter Woche, nicht der
+#       ohnehin schon täglich sichtbare Snapshot-Wert aus retest_counter_line)
+#   (b) offene/beobachtete Punkte aus ``open_items.json`` (PR #560) — NUR was
+#       sich seit dem letzten Wochenblock geändert hat (neu/Status-Wechsel/
+#       erledigt), analog dem "nur bei echter Flanke"-Muster aus der
+#       Exit-P2-Push-Dedupe-Logik (ki_agent.py) — kein Dauer-Nennen eines
+#       unveränderten Zustands.
+#
+# GATE: nur Montag (``now_ts.weekday() == 0``). Die "nur postclose"-Hälfte
+# des status_review_reminder.py-Vorbilds überträgt sich NICHT 1:1 hierher —
+# health_check_digest.py läuft NICHT im Zwei-Run-Premarket/Postclose-Modell
+# des Daily-Runs, sondern auf einem EIGENEN, einzigen täglichen Cron
+# (``47 8 * * *``, siehe health_check_digest.yml). Ein "postclose"-Filter
+# ist hier schlicht nicht anwendbar — der Montag-Wochentags-Gate allein
+# erreicht denselben Zweck (≈1×/Woche), weil der Digest ohnehin nur 1×/Tag
+# läuft. Der bestehende ``_already_sent_today``-Mehrfach-Trigger-Schutz in
+# ``health_check_digest.main()`` deckt einen zweiten manuellen
+# ``workflow_dispatch`` am selben Montag automatisch mit ab — KEIN
+# zusätzlicher State-Dedup-Mechanismus für den Wochenblock selbst nötig
+# (Wiederverwendung statt Duplikation, siehe Exzellenz-Block Punkt 4).
+#
+# STATE: ein neuer verschachtelter Key ``weekly_digest`` in der BESTEHENDEN
+# ``health_check_digest_state.json`` (kein neues State-File, keine neue
+# Commit-/Retry-Workflow-Logik — reitet auf demselben atomaren
+# tmp+os.replace-Write + demselben Git-Retry-Loop im Workflow-YAML mit).
+#
+# DIFF-KOMPLEXITÄT (Exzellenz-Block Punkt 6, geprüft — KEIN Mini-Stopp
+# nötig): der Vergleich ist ein reiner Snapshot-zu-Snapshot-Diff (letzter
+# Montag vs. dieser Montag), unabhängig davon, wie oft sich ein Item
+# ZWISCHEN zwei Montagen ändert — Zwischenstände werden bewusst nicht
+# einzeln nachverfolgt (identisches Prinzip wie beim Exit-P2-Flanken-Modell:
+# nur der Endzustand zählt). Einzige Kehrseite: ein Item, das zwischen zwei
+# Montagen sowohl neu angelegt ALS AUCH wieder entfernt wird, taucht in
+# keinem Snapshot auf und wird nicht gemeldet — akzeptierter, im Repo
+# bereits präzedierter Trade-off eines Snapshot-Diffs, kein neues Risiko.
+
+OPEN_ITEMS_FILE = config.OPEN_ITEMS_FILE
+_OPEN_ITEMS_ACTIVE_STATUSES = frozenset({"offen", "beobachtet"})
+
+
+def _load_open_items(path) -> list[dict] | None:
+    """Liest ALLE Items aus ``open_items.json``. ``None`` bei fehlender/
+    kaputter Datei oder unerwartetem Schema (fail-soft, analog den übrigen
+    Digest-Zeilen-Helpern in diesem Modul). Absichtlich rein lesend — keine
+    Validierung/Konsistenz-Prüfung (das ist Aufgabe von
+    ``scripts/lint_open_items_consistency.py`` im PR-Pfad, nicht dieses
+    Backend-Digest-Lesers)."""
+    try:
+        with open(path, "r", encoding="utf-8") as fh:
+            raw = json.load(fh)
+    except (FileNotFoundError, json.JSONDecodeError, OSError):
+        return None
+    if not isinstance(raw, dict):
+        return None
+    items = raw.get("items")
+    if not isinstance(items, list):
+        return None
+    return [it for it in items if isinstance(it, dict)]
+
+
+def _open_items_active_snapshot(items: list[dict]) -> dict[str, str]:
+    """``{id: status}`` NUR für Items mit Status offen/beobachtet — die
+    Vergleichs-Basis für den Wochen-Diff. Items ohne ``id`` werden
+    übersprungen (kein Diff-Anker möglich)."""
+    out: dict[str, str] = {}
+    for it in items:
+        item_id = it.get("id")
+        status = it.get("status")
+        if item_id and status in _OPEN_ITEMS_ACTIVE_STATUSES:
+            out[item_id] = status
+    return out
+
+
+def _open_items_diff_lines(prev_snapshot: dict, items: list[dict]) -> list[str]:
+    """PURE: vergleicht die letzte gespeicherte Snapshot (``{id: status}``)
+    gegen die aktuellen Items und liefert NUR Zeilen für tatsächliche
+    Änderungen (neu / Status-Wechsel / seit letzter Woche nicht mehr
+    offen-beobachtet). Kein Item-Recall für unveränderte Punkte."""
+    by_id = {it.get("id"): it for it in items if it.get("id")}
+    current = _open_items_active_snapshot(items)
+    lines: list[str] = []
+
+    for item_id, status in sorted(current.items()):
+        it = by_id.get(item_id, {})
+        title = it.get("title") or item_id
+        if item_id not in prev_snapshot:
+            lines.append(f"  🆕 {title} ({status})")
+        elif prev_snapshot[item_id] != status:
+            lines.append(f"  🔁 {title}: {prev_snapshot[item_id]} → {status}")
+
+    for item_id in sorted(set(prev_snapshot) - set(current)):
+        it = by_id.get(item_id)
+        if it is not None:
+            title = it.get("title") or item_id
+            final_status = it.get("status", "?")
+            lines.append(f"  ✅ {title} (jetzt: {final_status})")
+        else:
+            lines.append(f"  ✅ {item_id} (entfernt)")
+
+    return lines
+
+
+def weekly_summary_lines(now_ts: datetime, prev_state: dict, *,
+                         open_items_path=None,
+                         matured_export_path=None) -> tuple[list[str], dict]:
+    """PURE (bis auf die zwei fail-soft Datei-Reads): liefert
+    ``(lines, state_updates)`` für den wöchentlichen Digest-Zusatzblock.
+
+    ``lines`` ist LEER (``[]``), wenn (a) heute kein Montag ist, ODER
+    (b) Montag ist, sich aber NICHTS gegenüber der letzten gespeicherten
+    Woche geändert hat (bewusste Rauschen-Vermeidung — siehe Modul-
+    Kommentar oben: kein "keine Änderungen"-Leerlauf-Hinweis, der Block
+    entfällt dann ganz. Begründung: der übrige Digest-Push selbst dient
+    bereits täglich als Liveness-Signal [CLAUDE.md "OK-Push ist bewusst
+    täglich"] — ein zusätzliches "diese Woche nichts Neues" für EINEN
+    Sub-Block liefert keinen Zusatz-Nutzen, nur genau das Rauschen, das
+    dieser Block laut Auftrag vermeiden soll).
+
+    ``state_updates`` ist ``{}`` an einem Nicht-Montag (State bleibt
+    unangetastet — der nächste Montag vergleicht weiterhin gegen die
+    letzte ECHTE Montags-Snapshot). An einem Montag wird IMMER
+    ``{"weekly_digest": {...}}`` zurückgegeben (auch wenn ``lines`` leer
+    ist) — der Aufrufer soll den frischen Snapshot trotzdem persistieren,
+    sonst würde ein still-unverändertes Item beim übernächsten Montag
+    fälschlich wieder als "neu" erscheinen (Snapshot muss weiterrücken).
+    """
+    if now_ts.weekday() != 0:
+        return [], {}
+
+    prev = (prev_state or {}).get("weekly_digest") or {}
+    prev_open_snapshot: dict = prev.get("open_items_snapshot") or {}
+    prev_retest_n = prev.get("retest_n")
+
+    items = _load_open_items(
+        open_items_path if open_items_path is not None
+        else OPEN_ITEMS_FILE)
+    items = items if items is not None else []
+    open_lines = _open_items_diff_lines(prev_open_snapshot, items)
+    new_open_snapshot = _open_items_active_snapshot(items)
+
+    counts = retest_counter_value(matured_export_path)
+    new_retest_n = counts[0] if counts is not None else prev_retest_n
+    retest_line: str | None = None
+    if counts is not None:
+        n, total = counts
+        if prev_retest_n is None:
+            retest_line = f"  📊 §4-Zähler: n = {n}/{_RETEST_N_TARGET} (Erstlauf)"
+        elif n != prev_retest_n:
+            delta = n - prev_retest_n
+            sign = "+" if delta >= 0 else ""
+            retest_line = (f"  📊 §4-Zähler: {prev_retest_n} → {n} "
+                           f"({sign}{delta}) von {_RETEST_N_TARGET}")
+
+    lines: list[str] = []
+    if retest_line or open_lines:
+        lines.append("📅 Wochenübersicht:")
+        if retest_line:
+            lines.append(retest_line)
+        lines.extend(open_lines)
+
+    state_updates = {
+        "weekly_digest": {
+            "last_monday_iso": now_ts.strftime("%Y-%m-%d"),
+            "retest_n": new_retest_n,
+            "open_items_snapshot": new_open_snapshot,
+        }
+    }
+    return lines, state_updates
 
 
 # ── inst_ownership_history-Liveness (Digest-Zeile, 11.08.2026) ────────────────
@@ -2461,6 +2645,7 @@ def format_digest_body(state_fails: list[dict],
                        options_oi_line: str | None = None,
                        ftd_line: str | None = None,
                        reg_sho_line: str | None = None,
+                       weekly_lines: list[str] | None = None,
                        ) -> tuple[str, str, str, str | None]:
     """Komponiert den ntfy-Body laut Spec Z. 175–211.
 
@@ -2471,6 +2656,11 @@ def format_digest_body(state_fails: list[dict],
                                        Run-Ausfall) — high
       - „⚠️ Health-Check-Digest"      (≥ 1 crit ODER ≥ 3 warn) — high
       - „✅ Health-Check OK"          (sonst) — default
+
+    ``weekly_lines`` (25.09.2026, ``weekly_summary_lines``): optionaler
+    Montags-Zusatzblock (§4-Zähler-Delta + Open-Items-Diff), erscheint in
+    ALLEN drei Klassen wenn vorhanden — analog ``retest_line`` etc., ist
+    unabhängig von ``n_runs``/Fail-Status (eigene Datenquellen).
     """
     if n_runs == 0:
         body = (
@@ -2488,6 +2678,8 @@ def format_digest_body(state_fails: list[dict],
             body += f"\n{ftd_line}"
         if reg_sho_line:
             body += f"\n{reg_sho_line}"
+        if weekly_lines:
+            body += "\n" + "\n".join(weekly_lines)
         return body, "📭 Health-Check ohne Daten", "high", "warning"
 
     # Recency-Gating (28.07.2026): erholte State-Fails („war kaputt, ist
@@ -2528,6 +2720,8 @@ def format_digest_body(state_fails: list[dict],
             body_lines.append(ftd_line)
         if reg_sho_line:
             body_lines.append(reg_sho_line)
+        if weekly_lines:
+            body_lines.extend(weekly_lines)
         body_lines.append(f"Letzter Run: {last_run_iso or '—'}")
         return "\n".join(body_lines), "✅ Health-Check OK", "default", None
 
@@ -2572,6 +2766,8 @@ def format_digest_body(state_fails: list[dict],
         lines.append(ftd_line)
     if reg_sho_line:
         lines.append(reg_sho_line)
+    if weekly_lines:
+        lines.extend(weekly_lines)
     lines.append(f"Letzter erfolgreicher Run: {last_run_iso or '—'}")
     body = "\n".join(lines).rstrip() + "\n"
 

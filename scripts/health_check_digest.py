@@ -328,6 +328,22 @@ def main(*, now_ts: datetime | None = None,
         log.warning("reg_sho_liveness_line unerwartet: %r", _rs_exc)
         reg_sho_line = None
 
+    # Wöchentlicher Zusammenfassungs-Block (25.09.2026, nur Montag): reine
+    # Funktion, ``state`` wird NICHT direkt mutiert — die Updates werden erst
+    # unten (kurz vor _save_digest_state) gemerged, damit sie im selben
+    # atomaren Write landen wie alles andere (kein zweiter State-Write, keine
+    # eigene Retry-/Commit-Logik). weekly_state_updates ist {} an jedem
+    # Nicht-Montag (State bleibt unangetastet).
+    try:
+        weekly_lines, weekly_state_updates = hc.weekly_summary_lines(
+            now_ts, state,
+            open_items_path=ROOT / hc.OPEN_ITEMS_FILE,
+            matured_export_path=ROOT / hc.MATURED_EXPORT_FILE,
+        )
+    except Exception as _wk_exc:  # pragma: no cover — Helper ist raise-frei
+        log.warning("weekly_summary_lines unerwartet: %r", _wk_exc)
+        weekly_lines, weekly_state_updates = [], {}
+
     body, title, priority, tags = hc.format_digest_body(
         state_fails, prov_fails,
         n_runs=n_runs,
@@ -338,6 +354,7 @@ def main(*, now_ts: datetime | None = None,
         options_oi_line=options_oi_line,
         ftd_line=ftd_line,
         reg_sho_line=reg_sho_line,
+        weekly_lines=weekly_lines,
     )
 
     log.info("Digest %s — %d state-fails, %d provider-fails, %d runs",
@@ -374,6 +391,13 @@ def main(*, now_ts: datetime | None = None,
     if n_runs > 0:
         state["last_successful_run"] = (
             last_run_iso or now_ts.strftime("%Y-%m-%dT%H:%M:%SZ"))
+
+    # Wöchentlicher Block: State-Update unabhängig vom ntfy-Send-Erfolg
+    # gemerged (analog last_successful_run oben) — der Snapshot muss auch
+    # bei einem Push-Fail weiterrücken, sonst würde ein bereits gemeldetes
+    # Item beim nächsten Montag fälschlich erneut als "neu" auftauchen.
+    # {} an einem Nicht-Montag — kein Effekt auf state.update.
+    state.update(weekly_state_updates)
 
     _save_digest_state(state)
 

@@ -122,6 +122,12 @@ HAIRCUT_ROUND_TRIP_PCT    = -4.0
 MATURED_EXPORT_ENABLED    = True
 MATURED_EXPORT_FILE       = "matured_backtest_export.jsonl"
 
+# Open-Items-Tracker (siehe CLAUDE.md "scripts/lint_open_items_consistency.py")
+# — Dateiname zentralisiert, damit health_check.py (Wochen-Digest-Block) und
+# scripts/lint_open_items_consistency.py dieselbe Quelle referenzieren können,
+# ohne den Pfad zweimal zu hartcodieren.
+OPEN_ITEMS_FILE           = "open_items.json"
+
 # ── Sub-Scores (Struktur / Katalysator / Timing) ────────────────────────────
 # Informative Aufspaltung des Gesamt-Scores in drei Themen-Komponenten.
 # Der Gesamt-Score bleibt unverändert (score()-Funktion nicht angepasst);
