@@ -229,11 +229,22 @@ def test_extract_hist_5d_source_no_longer_has_or_zero_gotcha():
 
 
 def test_extract_hist_5d_source_uses_finite_guard():
-    """Quelltext-Deckung: _extract_hist_5d prüft jede Zelle mit _finite()."""
+    """Quelltext-Deckung: _extract_hist_5d prüft jede Zelle mit _finite().
+
+    Angepasst 25.09.2026 (Diagnostik-Logging-PR, S10-crit
+    coiled_spring_score): die vorher hartcodierte Vierfach-Bedingung
+    ``_finite(vol) and _finite(hi) and _finite(lo) and _finite(cl)`` wurde
+    zu einer Schleife über die vier Zellen-Labels umgebaut, damit pro Tag
+    geloggt werden kann, WELCHE Zelle(n) nicht-endlich waren — die
+    Guard-ENTSCHEIDUNG (jede der 4 Zellen einzeln mit ``_finite()``
+    geprüft, ein Treffer verwirft den ganzen Tag) ist dieselbe, siehe
+    scripts/mock_test_hist5d_diagnostic_logging.py für den Nachweis gegen
+    die echte (extrahierte) Funktion inkl. Logging-Verhalten."""
     seg = src_gr[src_gr.find("def _extract_hist_5d("):
                   src_gr.find("def _hist_stats(")]
     assert seg, "generate_report.py-Struktur verändert — Segment-Suche angepasst?"
-    assert "_finite(vol) and _finite(hi) and _finite(lo) and _finite(cl)" in seg
+    assert 'for label in ("Volume", "High", "Low", "Close"):' in seg
+    assert "or not _finite(v)" in seg
     assert "if len(out) < EARLINESS_TREND_LOG_WINDOW_DAYS:" in seg
 
 
