@@ -268,3 +268,4 @@
 {"run_ts": "2026-09-24T22:25:36Z", "run_phase": "ki_agent_tick", "schema_v": 1, "state_fails": [], "provider_fails": []}
 {"run_ts": "2026-09-24T23:55:07Z", "run_phase": "postclose", "schema_v": 1, "state_fails": [{"id": "S10", "severity": "crit", "detail": "MUSS-Feld 'rvol_buildup_5d': 18/20 null (90%) in letzten 20 V4-Einträgen — Daten-Pipeline füllt nicht"}, {"id": "S10", "severity": "crit", "detail": "MUSS-Feld 'vol_stability_5d': 18/20 null (90%) in letzten 20 V4-Einträgen — Daten-Pipeline füllt nicht"}, {"id": "S10", "severity": "crit", "detail": "MUSS-Feld 'coiled_spring_score': 18/20 null (90%) in letzten 20 V4-Einträgen — Daten-Pipeline füllt nicht"}], "provider_fails": []}
 {"run_ts": "2026-09-24T23:56:01Z", "run_phase": "ki_agent_tick", "schema_v": 1, "state_fails": [], "provider_fails": []}
+{"run_ts": "2026-09-25T01:32:16Z", "run_phase": "ki_agent_tick", "schema_v": 1, "state_fails": [], "provider_fails": []}
