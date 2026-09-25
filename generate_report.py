@@ -1129,7 +1129,7 @@ def get_yfinance_batch(tickers: list[str]) -> dict[str, dict]:
             pass
         return rsi14, ma21, ma50, ma200, perf_20d
 
-    def _extract_hist_5d(df) -> list:
+    def _extract_hist_5d(df, ticker: str | None = None) -> list:
         """Extrahiert die letzten 5 Trading-Tage als Liste von Dicts
         ``{volume, high, low, close}`` (ältester → neuester). Bei < 5
         gültigen Tagen oder fehlenden Spalten leere Liste — Konsumenten
@@ -1159,27 +1159,67 @@ def get_yfinance_batch(tickers: list[str]) -> dict[str, dict]:
         gültiger Tage unter 5, ist das identisch zum bestehenden
         Zu-wenig-Historie-Fall → leere Liste, Konsumenten liefern
         korrekt ``None`` statt einer erfundenen Zahl.
+
+        Diagnostik-Logging (25.09.2026, Diagnose-Bericht S10-crit
+        ``coiled_spring_score``/``vol_stability_5d``/``rvol_buildup_5d``
+        90 % null seit 23.09.2026): reines Sichtbarkeits-Logging, KEINE
+        Änderung an obigem All-or-Nothing-Guard. Vorher gab ein leeres
+        Ergebnis keinerlei Log-Spur — die „batch-weites yfinance-
+        Datenloch"-Hypothese aus der Diagnose war deshalb nicht
+        empirisch nachprüfbar. Jetzt: pro verworfenem Tag eine
+        ``log.warning``-Zeile mit Ticker, Datum und den konkret
+        nicht-endlichen Zelle(n) (Volume/High/Low/Close); zusätzlich
+        eine Zeile, falls am Ende < 5 gültige Tage übrig bleiben (der
+        Fall, der ``coiled_spring_score`` & Geschwister auf ``None``
+        zieht). ``ticker`` ist optional (Default ``None``) — ohne ihn
+        (z.B. ein künftiger Aufrufer ohne Ticker-Kontext) bleibt das
+        Verhalten identisch zu vorher, nur ohne Log-Zeilen.
         """
         try:
             tail = df.tail(EARLINESS_TREND_LOG_WINDOW_DAYS)
             if len(tail) < EARLINESS_TREND_LOG_WINDOW_DAYS:
+                if ticker:
+                    log.warning(
+                        "hist_5d: %s hat nur %d Roh-Tage (< %d) im Batch-"
+                        "Fenster — leere Liste (coiled_spring_score/"
+                        "vol_stability_5d/rvol_buildup_5d bleiben None)",
+                        ticker, len(tail), EARLINESS_TREND_LOG_WINDOW_DAYS,
+                    )
                 return []
             out = []
-            for _, row in tail.iterrows():
-                try:
-                    vol = float(row.get("Volume"))
-                    hi  = float(row.get("High"))
-                    lo  = float(row.get("Low"))
-                    cl  = float(row.get("Close"))
-                except (TypeError, ValueError):
+            for idx, row in tail.iterrows():
+                cells = {}
+                for label in ("Volume", "High", "Low", "Close"):
+                    try:
+                        cells[label] = float(row.get(label))
+                    except (TypeError, ValueError):
+                        cells[label] = None
+                bad = [label for label, v in cells.items()
+                       if v is None or not _finite(v)]
+                if bad:
+                    if ticker:
+                        log.warning(
+                            "hist_5d: %s Tag %s verworfen — nicht-endliche "
+                            "Zelle(n): %s",
+                            ticker, idx, ", ".join(bad),
+                        )
                     continue
-                if not (_finite(vol) and _finite(hi) and _finite(lo) and _finite(cl)):
-                    continue
-                out.append({"volume": vol, "high": hi, "low": lo, "close": cl})
+                out.append({"volume": cells["Volume"], "high": cells["High"],
+                            "low": cells["Low"], "close": cells["Close"]})
             if len(out) < EARLINESS_TREND_LOG_WINDOW_DAYS:
+                if ticker:
+                    log.warning(
+                        "hist_5d: %s nur %d/%d gültige Tage nach Guard — "
+                        "leere Liste (coiled_spring_score/vol_stability_5d/"
+                        "rvol_buildup_5d bleiben None)",
+                        ticker, len(out), EARLINESS_TREND_LOG_WINDOW_DAYS,
+                    )
                 return []
             return out
         except Exception:
+            if ticker:
+                log.debug("hist_5d: Extraktion für %s fehlgeschlagen", ticker,
+                          exc_info=True)
             return []
 
     def _hist_stats(ticker: str) -> tuple:
@@ -1213,7 +1253,7 @@ def get_yfinance_batch(tickers: list[str]) -> dict[str, dict]:
                     cur_open   = _finite_cell(df["Open"], -1)  if "Open"  in df.columns and len(df) >= 1 else None
                     prev_close = _finite_cell(df["Close"], -2) if len(df) >= 2 else None
                     cur_close  = float(df["Close"].iloc[-1]) if "Close" in df.columns and len(df) >= 1 else None
-                    hist_5d    = _extract_hist_5d(df)
+                    hist_5d    = _extract_hist_5d(df, ticker)
                     close_5td_before_entry = float(df["Close"].iloc[-6]) if len(df) >= 6 else None
                     return avg_vol, cur_vol, vol_r, hi52, lo52, rsi14, ma21, ma50, ma200, perf_20d, cur_open, prev_close, cur_close, hist_5d, close_5td_before_entry
         except Exception:
@@ -1230,7 +1270,7 @@ def get_yfinance_batch(tickers: list[str]) -> dict[str, dict]:
                 cur_open   = _finite_cell(df2["Open"], -1)  if "Open"  in df2.columns and len(df2) >= 1 else None
                 prev_close = _finite_cell(df2["Close"], -2) if len(df2) >= 2 else None
                 cur_close  = float(df2["Close"].iloc[-1]) if "Close" in df2.columns and len(df2) >= 1 else None
-                hist_5d    = _extract_hist_5d(df2)
+                hist_5d    = _extract_hist_5d(df2, ticker)
                 close_5td_before_entry = float(df2["Close"].iloc[-6]) if len(df2) >= 6 else None
                 return avg_vol, cur_vol, vol_r, float(df2["High"].max()), float(df2["Low"].min()), rsi14, ma21, ma50, ma200, perf_20d, cur_open, prev_close, cur_close, hist_5d, close_5td_before_entry
         except Exception as exc2:
