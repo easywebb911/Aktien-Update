@@ -1,10 +1,10 @@
 {
-  "updated": "2026-09-26T21:52:44.488964+02:00",
+  "updated": "2026-09-27T00:52:29.524590+02:00",
   "run_info": {
     "tickers_checked": 13,
     "signals_active": 0,
     "alerts_sent": 0,
-    "elapsed_s": 30.4,
+    "elapsed_s": 18.7,
     "market_phase": "Geschlossen"
   },
   "signals": {
@@ -78,9 +78,9 @@
       "uoa_cp_ratio": 10.076923076923077
     },
     "GENI": {
-      "score": 43,
+      "score": 28,
       "confidence": 70,
-      "drivers": "Spanne 9.9% + News-KI 15/30: Mixed signals with analyst optimism offset by valuation concerns; no clear short squeeze catalyst visible in headlines. + Earnings in 38d + UOA Call/Put 15.8×",
+      "drivers": "Spanne 9.9% + Earnings in 38d + UOA Call/Put 15.8×",
       "price": 6.44,
       "chg_pct": 0.0,
       "rvol_4d": 1.43,
@@ -91,8 +91,8 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 1,
-      "ki_sentiment_source": "llm",
+      "active_triggers": 0,
+      "ki_sentiment_source": "keyword",
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 15.8×"
@@ -126,7 +126,7 @@
     "IONQ": {
       "score": 58,
       "confidence": 70,
-      "drivers": "Spanne 5.4% + News: catalyst, partnership + Earnings in 39d + UOA Call/Put 2.7×",
+      "drivers": "Spanne 5.4% + News: partnership, catalyst + Earnings in 39d + UOA Call/Put 2.7×",
       "price": 45.48,
       "chg_pct": -0.0,
       "rvol_4d": 0.74,
@@ -212,9 +212,9 @@
       "uoa_cp_ratio": 2.176470588235294
     },
     "RUN": {
-      "score": 36,
+      "score": 43,
       "confidence": 70,
-      "drivers": "Spanne 6.2% + News-KI 8/30: Negative sector-wide headwinds from rising treasury yields cause broad market decline with no short squeeze catalysts ev + Earnings in 40d + UOA Call/Put 4.7×",
+      "drivers": "Spanne 6.2% + News: partnership + Earnings in 40d + UOA Call/Put 4.7×",
       "price": 8.11,
       "chg_pct": -0.0,
       "rvol_4d": 0.86,
@@ -225,8 +225,8 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 0,
-      "ki_sentiment_source": "llm",
+      "active_triggers": 1,
+      "ki_sentiment_source": "keyword",
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 4.7×"
@@ -281,9 +281,9 @@
       "uoa_cp_ratio": 3.013986013986014
     },
     "XPOF": {
-      "score": 68,
+      "score": 65,
       "confidence": 70,
-      "drivers": "Spanne 5.7% + News: squeeze + Earnings in 40d + FINRA Short-Vol 100% + UOA Call/Put 11.2×",
+      "drivers": "Spanne 5.7% + News-KI 12/30: Volatility alone is insufficient for short-squeeze potential; no evidence of high short interest, low float constraints, + Earnings in 40d + FINRA Short-Vol 100% + UOA Call/Put 11.2×",
       "price": 3.92,
       "chg_pct": 0.0,
       "rvol_4d": 0.46,
@@ -295,7 +295,7 @@
       "stocktwits": null,
       "combo_mult": 1.0,
       "active_triggers": 1,
-      "ki_sentiment_source": "keyword",
+      "ki_sentiment_source": "llm",
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 11.2×"
