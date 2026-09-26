@@ -1,10 +1,10 @@
 {
-  "updated": "2026-09-26T19:11:25.672727+02:00",
+  "updated": "2026-09-26T21:52:44.488964+02:00",
   "run_info": {
     "tickers_checked": 13,
     "signals_active": 0,
     "alerts_sent": 0,
-    "elapsed_s": 34.5,
+    "elapsed_s": 30.4,
     "market_phase": "Geschlossen"
   },
   "signals": {
@@ -57,7 +57,7 @@
     "DDD": {
       "score": 58,
       "confidence": 70,
-      "drivers": "Spanne 9.1% + News: contract, partnership + Earnings in 38d + UOA Call/Put 10.1×",
+      "drivers": "Spanne 9.1% + News: partnership, contract + Earnings in 38d + UOA Call/Put 10.1×",
       "price": 3.57,
       "chg_pct": -0.0,
       "rvol_4d": 1.08,
@@ -80,7 +80,7 @@
     "GENI": {
       "score": 43,
       "confidence": 70,
-      "drivers": "Spanne 9.9% + News: contract + Earnings in 38d + UOA Call/Put 15.8×",
+      "drivers": "Spanne 9.9% + News-KI 15/30: Mixed signals with analyst optimism offset by valuation concerns; no clear short squeeze catalyst visible in headlines. + Earnings in 38d + UOA Call/Put 15.8×",
       "price": 6.44,
       "chg_pct": 0.0,
       "rvol_4d": 1.43,
@@ -92,7 +92,7 @@
       "stocktwits": null,
       "combo_mult": 1.0,
       "active_triggers": 1,
-      "ki_sentiment_source": "keyword",
+      "ki_sentiment_source": "llm",
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 15.8×"
@@ -126,7 +126,7 @@
     "IONQ": {
       "score": 58,
       "confidence": 70,
-      "drivers": "Spanne 5.4% + News: partnership, catalyst + Earnings in 39d + UOA Call/Put 2.7×",
+      "drivers": "Spanne 5.4% + News: catalyst, partnership + Earnings in 39d + UOA Call/Put 2.7×",
       "price": 45.48,
       "chg_pct": -0.0,
       "rvol_4d": 0.74,
@@ -168,9 +168,9 @@
       "uoa_cp_ratio": 1.0123456790123457
     },
     "PCT": {
-      "score": 36,
+      "score": 43,
       "confidence": 70,
-      "drivers": "Spanne 8.6% + News-KI 8/30: Positive operational progress and regulatory support are offset by execution risk concerns and lack of evidence of high  + Earnings in 40d + SEC Form 4",
+      "drivers": "Spanne 8.6% + News: short interest + Earnings in 40d + SEC Form 4",
       "price": 5.02,
       "chg_pct": -0.0,
       "rvol_4d": 0.92,
@@ -181,8 +181,8 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 0,
-      "ki_sentiment_source": "llm",
+      "active_triggers": 1,
+      "ki_sentiment_source": "keyword",
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": 0.47470817120622566,
@@ -212,9 +212,9 @@
       "uoa_cp_ratio": 2.176470588235294
     },
     "RUN": {
-      "score": 43,
+      "score": 36,
       "confidence": 70,
-      "drivers": "Spanne 6.2% + News: partnership + Earnings in 40d + UOA Call/Put 4.7×",
+      "drivers": "Spanne 6.2% + News-KI 8/30: Negative sector-wide headwinds from rising treasury yields cause broad market decline with no short squeeze catalysts ev + Earnings in 40d + UOA Call/Put 4.7×",
       "price": 8.11,
       "chg_pct": -0.0,
       "rvol_4d": 0.86,
@@ -225,8 +225,8 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 1,
-      "ki_sentiment_source": "keyword",
+      "active_triggers": 0,
+      "ki_sentiment_source": "llm",
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 4.7×"
