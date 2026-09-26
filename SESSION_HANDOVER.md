@@ -1741,6 +1741,31 @@ Ergebnis zeigt.** Aus dem Vorschlag bereits isoliert umgesetzt: SPY-Benchmark-
 Vergleich (`return_Nd_vs_spy`, PR #554, 18.09.2026). Der Rest des Konzepts
 bleibt als Ganzes zurückgestellt.
 
+### 6q. Deskriptive MFE/MAE-Bestandsaufnahme nach Score-Bucket (26.09.2026, Beobachtungspunkt)
+**Status: OFFEN. Kein Auftrag, kein Termin — reine Bestandsaufnahme für die
+künftige Hypothesen-Runde, KEINE Vorabregistrierung, KEIN Ersatz für §4
+Exit-B.1.** Score-Bucket × `max_gain_pct` (MFE-Äquivalent) /
+`max_drawdown_pct` (MAE-Äquivalent) über 352 `provenance=forward`-Records aus
+`matured_backtest_export.jsonl`. Median MFE steigt NICHT monoton mit dem
+Score-Bucket (16.4→22.2→23.1→21.7→23.6 über die Buckets 40–90), Mean MFE
+dagegen deutlich klarer steigend (20.6→27.8→30.5→36.4→42.1) — wachsende
+Rechtsschiefe bei höheren Score-Buckets, reine Verteilungsbeobachtung. Der
+90–100-Bucket (n=6) ist zu klein für jede Aussage.
+
+`score_timing` zeigt ein klareres Muster als `score_catalyst` (Timing:
+Median MFE 19.6→21.4→29.4 über drei Terzile; Catalyst: praktisch kein
+Unterschied zwischen aktiv/inaktiv) — möglicher Beobachtungspunkt für die
+künftige H5-Interaktionsauswertung, NICHT vorab als Erkenntnis werten.
+
+**Wichtige Einschränkungen:** Sample fast ausschließlich
+`market_regime=neutral` (322/352), 0 `bear`-Records — keine Aussage über
+andere Marktregime möglich. Ticker wiederholen sich stark (z. B. WOLF 6–8×
+im Sample) — effektive unabhängige Stichprobengröße kleiner als die
+Zeilenzahl. Kein Multiple-Testing korrigiert (> 20 Einzelvergleiche) —
+bewusst, da reine Bestandsaufnahme. Brutto-vs-Netto-Vergleich (`max_gain_pct`
+vs. `max_gain_pct_net`) aktuell nicht belastbar (nur 70/352 Records mit
+Netto-Feld, Reifegrenze aus PR #549 noch nicht erreicht).
+
 ---
 
 ## 7) ARCHITEKTUR-ANKER
