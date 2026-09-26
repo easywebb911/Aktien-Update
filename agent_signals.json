@@ -1,17 +1,17 @@
 {
-  "updated": "2026-09-26T02:00:07.679590+02:00",
+  "updated": "2026-09-26T03:35:24.098847+02:00",
   "run_info": {
     "tickers_checked": 13,
     "signals_active": 0,
     "alerts_sent": 0,
-    "elapsed_s": 46.6,
-    "market_phase": "After-Hours"
+    "elapsed_s": 36.1,
+    "market_phase": "Geschlossen"
   },
   "signals": {
     "AESI": {
       "score": 63,
       "confidence": 70,
-      "drivers": "Volumen 3.4× + ⚡ Extremes Volumen 3.4×+ + Spanne 8.8% + Earnings in 38d + UOA Call/Put 9.0×",
+      "drivers": "Volumen 3.4× + ⚡ Extremes Volumen 3.4×+ + Spanne 8.9% + Earnings in 38d + UOA Call/Put 9.0×",
       "price": 12.47,
       "chg_pct": 0.0,
       "rvol_4d": 3.38,
@@ -32,9 +32,9 @@
       "uoa_cp_ratio": 9.01123595505618
     },
     "AMC": {
-      "score": 18,
+      "score": 26,
       "confidence": 33,
-      "drivers": "Earnings in 25d + UOA Call/Put 10.8×",
+      "drivers": "News-KI 8/30: Negative governance rejection and underperformance signal lack of institutional confidence and momentum for a short sque + Earnings in 25d + UOA Call/Put 17.2×",
       "price": 2.94,
       "chg_pct": 0.0,
       "rvol_4d": 0.56,
@@ -46,13 +46,13 @@
       "stocktwits": null,
       "combo_mult": 1.0,
       "active_triggers": 0,
-      "ki_sentiment_source": "keyword",
+      "ki_sentiment_source": "llm",
       "uoa_score": 10,
       "uoa_drivers": [
-        "UOA Call/Put 10.8×"
+        "UOA Call/Put 17.2×"
       ],
-      "uoa_atm_ratio": 0.39966534834195316,
-      "uoa_cp_ratio": 10.837800687285224
+      "uoa_atm_ratio": 0.5387347855613018,
+      "uoa_cp_ratio": 17.233215547703182
     },
     "DDD": {
       "score": 58,
@@ -80,11 +80,11 @@
     "GENI": {
       "score": 40,
       "confidence": 70,
-      "drivers": "Spanne 9.9% + News-KI 12/30: Mixed signals with positive analyst price target offset by concerns about valuation after recent decline; no clear short + Earnings in 39d + UOA Call/Put 15.8×",
+      "drivers": "Spanne 9.9% + News-KI 12/30: Mixed signals with positive analyst upgrade offset by concerns about valuation despite recent decline; no significant sh + Earnings in 39d + UOA Call/Put 15.8×",
       "price": 6.44,
       "chg_pct": 0.0,
-      "rvol_4d": 1.37,
-      "rvol_20d": 1.96,
+      "rvol_4d": 1.43,
+      "rvol_20d": 2.04,
       "earnings": "in 39 Tagen (03.11.2026)",
       "fda_date": null,
       "upcoming_event": null,
@@ -101,9 +101,9 @@
       "uoa_cp_ratio": 15.79245283018868
     },
     "GRPN": {
-      "score": 18,
+      "score": 28,
       "confidence": 33,
-      "drivers": "Earnings in 41d + UOA Call/Put 2.5×",
+      "drivers": "Earnings in 41d + SEC Form 4 + UOA Call/Put 2.5×",
       "price": 21.3,
       "chg_pct": -0.0,
       "rvol_4d": 0.43,
@@ -126,7 +126,7 @@
     "IONQ": {
       "score": 58,
       "confidence": 70,
-      "drivers": "Spanne 5.4% + News: partnership, catalyst + Earnings in 40d + UOA Call/Put 3.1×",
+      "drivers": "Spanne 5.4% + News: partnership, catalyst + Earnings in 40d + UOA Call/Put 2.7×",
       "price": 45.48,
       "chg_pct": -0.0,
       "rvol_4d": 0.74,
@@ -141,10 +141,10 @@
       "ki_sentiment_source": "keyword",
       "uoa_score": 10,
       "uoa_drivers": [
-        "UOA Call/Put 3.1×"
+        "UOA Call/Put 2.7×"
       ],
-      "uoa_atm_ratio": 1.1969369264043959,
-      "uoa_cp_ratio": 3.1414819789567945
+      "uoa_atm_ratio": 1.0881508078994615,
+      "uoa_cp_ratio": 2.6872907459488418
     },
     "LENZ": {
       "score": 33,
@@ -168,9 +168,9 @@
       "uoa_cp_ratio": 1.0123456790123457
     },
     "PCT": {
-      "score": 33,
+      "score": 40,
       "confidence": 70,
-      "drivers": "Spanne 8.4% + News: short interest + Earnings in 41d",
+      "drivers": "Spanne 8.6% + News-KI 12/30: Moderate execution risk and regulatory uncertainty outweigh positive developments; no evidence of high short interest, c + Earnings in 41d + SEC Form 4",
       "price": 5.02,
       "chg_pct": -0.0,
       "rvol_4d": 0.92,
@@ -182,11 +182,11 @@
       "stocktwits": null,
       "combo_mult": 1.0,
       "active_triggers": 1,
-      "ki_sentiment_source": "keyword",
+      "ki_sentiment_source": "llm",
       "uoa_score": 0,
       "uoa_drivers": [],
-      "uoa_atm_ratio": 0.11353711790393013,
-      "uoa_cp_ratio": 0.32608695652173914
+      "uoa_atm_ratio": 0.47470817120622566,
+      "uoa_cp_ratio": 1.1270207852193996
     },
     "PDYN": {
       "score": 25,
@@ -194,7 +194,7 @@
       "drivers": "News: contract + UOA Call/Put 2.2×",
       "price": 5.39,
       "chg_pct": -0.0,
-      "rvol_4d": 1.12,
+      "rvol_4d": 1.13,
       "rvol_20d": 1.21,
       "earnings": "in 47 Tagen (11.11.2026)",
       "fda_date": null,
@@ -212,9 +212,9 @@
       "uoa_cp_ratio": 2.176470588235294
     },
     "RUN": {
-      "score": 36,
+      "score": 43,
       "confidence": 70,
-      "drivers": "Spanne 6.2% + News-KI 8/30: Negative market sentiment driven by rising treasury yields affecting solar sector broadly; no indicators of short squeez + Earnings in 41d + UOA Call/Put 2.2×",
+      "drivers": "Spanne 6.2% + News: partnership + Earnings in 41d + UOA Call/Put 4.7×",
       "price": 8.11,
       "chg_pct": -0.0,
       "rvol_4d": 0.86,
@@ -225,19 +225,19 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 0,
-      "ki_sentiment_source": "llm",
+      "active_triggers": 1,
+      "ki_sentiment_source": "keyword",
       "uoa_score": 10,
       "uoa_drivers": [
-        "UOA Call/Put 2.2×"
+        "UOA Call/Put 4.7×"
       ],
-      "uoa_atm_ratio": 1.1239173884077283,
-      "uoa_cp_ratio": 2.152977412731006
+      "uoa_atm_ratio": 1.081441922563418,
+      "uoa_cp_ratio": 4.664948453608248
     },
     "ULCC": {
       "score": 38,
       "confidence": 70,
-      "drivers": "Spanne 6.4% + Earnings in 41d + SEC Form 4 + UOA Call/Put 30.2×",
+      "drivers": "Spanne 6.3% + Earnings in 41d + SEC Form 4 + UOA Call/Put 30.2×",
       "price": 6.19,
       "chg_pct": 0.0,
       "rvol_4d": 0.98,
@@ -258,9 +258,9 @@
       "uoa_cp_ratio": 30.166666666666668
     },
     "WOLF": {
-      "score": 26,
+      "score": 18,
       "confidence": 33,
-      "drivers": "News-KI 8/30: Positive revenue growth in AI data centers, but focus on profitability concerns and stable stock performance shows limit + Earnings in 40d + UOA Call/Put 7.0×",
+      "drivers": "Earnings in 40d + UOA Call/Put 3.0×",
       "price": 27.57,
       "chg_pct": -0.0,
       "rvol_4d": 0.65,
@@ -272,18 +272,18 @@
       "stocktwits": null,
       "combo_mult": 1.0,
       "active_triggers": 0,
-      "ki_sentiment_source": "llm",
+      "ki_sentiment_source": "keyword",
       "uoa_score": 10,
       "uoa_drivers": [
-        "UOA Call/Put 7.0×"
+        "UOA Call/Put 3.0×"
       ],
-      "uoa_atm_ratio": 0.568714632174616,
-      "uoa_cp_ratio": 7.004065040650406
+      "uoa_atm_ratio": 0.3388704318936877,
+      "uoa_cp_ratio": 3.013986013986014
     },
     "XPOF": {
       "score": 53,
       "confidence": 70,
-      "drivers": "Spanne 5.6% + Earnings in 41d + FINRA Short-Vol 100% + UOA Call/Put 11.2×",
+      "drivers": "Spanne 5.7% + Earnings in 41d + FINRA Short-Vol 100% + UOA Call/Put 11.2×",
       "price": 3.92,
       "chg_pct": 0.0,
       "rvol_4d": 0.46,

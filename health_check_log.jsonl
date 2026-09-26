@@ -1,5 +1,3 @@
-{"run_ts": "2026-08-27T00:51:44Z", "run_phase": "postclose", "schema_v": 1, "state_fails": [], "provider_fails": []}
-{"run_ts": "2026-08-27T00:53:08Z", "run_phase": "ki_agent_tick", "schema_v": 1, "state_fails": [], "provider_fails": []}
 {"run_ts": "2026-08-27T09:50:08Z", "run_phase": "ki_agent_tick", "schema_v": 1, "state_fails": [], "provider_fails": []}
 {"run_ts": "2026-08-27T17:39:32Z", "run_phase": "premarket", "schema_v": 1, "state_fails": [{"id": "S8", "severity": "warn", "detail": "kein erfolgreicher Digest-Push seit 32.6 h (Schwelle 26 h) — silent ntfy-Fail oder Cron-Drop"}], "provider_fails": []}
 {"run_ts": "2026-08-27T17:40:59Z", "run_phase": "ki_agent_tick", "schema_v": 1, "state_fails": [{"id": "S8", "severity": "warn", "detail": "kein erfolgreicher Digest-Push seit 32.6 h (Schwelle 26 h) — silent ntfy-Fail oder Cron-Drop"}], "provider_fails": []}
@@ -255,3 +253,4 @@
 {"run_ts": "2026-09-25T22:22:04Z", "run_phase": "ki_agent_tick", "schema_v": 1, "state_fails": [], "provider_fails": []}
 {"run_ts": "2026-09-25T23:58:49Z", "run_phase": "postclose", "schema_v": 1, "state_fails": [{"id": "S10", "severity": "warn", "detail": "MUSS-Feld 'rvol_buildup_5d': 10/20 null (50%) in letzten 20 V4-Einträgen — Daten-Pipeline füllt nicht"}, {"id": "S10", "severity": "warn", "detail": "MUSS-Feld 'vol_stability_5d': 10/20 null (50%) in letzten 20 V4-Einträgen — Daten-Pipeline füllt nicht"}, {"id": "S10", "severity": "warn", "detail": "MUSS-Feld 'coiled_spring_score': 10/20 null (50%) in letzten 20 V4-Einträgen — Daten-Pipeline füllt nicht"}], "provider_fails": []}
 {"run_ts": "2026-09-26T00:00:08Z", "run_phase": "ki_agent_tick", "schema_v": 1, "state_fails": [], "provider_fails": []}
+{"run_ts": "2026-09-26T01:35:25Z", "run_phase": "ki_agent_tick", "schema_v": 1, "state_fails": [], "provider_fails": []}
