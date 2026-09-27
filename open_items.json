@@ -1,6 +1,6 @@
 {
   "schema_v": 1,
-  "note": "Eingeführt am 2026-09-22 (PR: Open-Items-Tracker). Die Historie VOR diesem Datum wurde NICHT rekonstruiert -- bekannte, zuvor in der Session-Handover-Prosa verlorene Punkte (u.a. NYSE-Referer-Probe-Status, S8-Digest-Timing-Beobachtung) wurden bewusst NICHT nachtraeglich geraten oder eingetragen. Ab hier gilt: kein Punkt verschwindet mehr ersatzlos, siehe scripts/lint_open_items_consistency.py. Ergaenzung 2026-09-27: eine Konsistenz-Diagnose fand die Datei trotz mehrerer in der Handover-Prosa bereits als offen markierter Punkte leer vor -- vier konkret benannte, bereits dokumentierte Punkte wurden gezielt nachgetragen (kein genereller Ruecktritt vom Nicht-Rekonstruktions-Prinzip oben, nur eine bewusste, einzeln begruendete Ausnahme je Punkt).",
+  "note": "Eingeführt am 2026-09-22 (PR: Open-Items-Tracker). Die Historie VOR diesem Datum wurde NICHT rekonstruiert -- bekannte, zuvor in der Session-Handover-Prosa verlorene Punkte (u.a. NYSE-Referer-Probe-Status, S8-Digest-Timing-Beobachtung) wurden bewusst NICHT nachtraeglich geraten oder eingetragen. Ab hier gilt: kein Punkt verschwindet mehr ersatzlos, siehe scripts/lint_open_items_consistency.py. Ergaenzung 2026-09-27 (a): eine Konsistenz-Diagnose fand die Datei trotz mehrerer in der Handover-Prosa bereits als offen markierter Punkte leer vor -- vier konkret benannte, bereits dokumentierte Punkte wurden gezielt nachgetragen (kein genereller Ruecktritt vom Nicht-Rekonstruktions-Prinzip oben, nur eine bewusste, einzeln begruendete Ausnahme je Punkt). Ergaenzung 2026-09-27 (b): systematischer Nachtrag -- SESSION_HANDOVER.md (alle 9 Bloecke) wurde vollstaendig nach Signalwoertern durchsucht (offen/OFFEN/ungeklaert/nicht behoben/zurueckgestellt/Backlog/etc.); squeeze-report-archiv.md wurde ebenfalls angefragt, existiert aber nicht im Repo (weder aktuell noch in der Git-Historie) -- daher NICHT durchsucht, kein Inhalt daraus uebernommen. 'opened'-Daten wurden, wo im Text kein explizites Datum stand, per 'git log -S <Sektionstitel>' auf die erste Erwaehnung des jeweiligen Abschnitts zurueckgefuehrt (Caveat: falls eine Sektion zwischenzeitlich umnummeriert wurde, misst das ggf. die Umnummerierung statt der echten Erstnennung -- bestmoegliche Schaetzung, nicht garantiert exakt).",
   "items": [
     {
       "id": "pr532-or0-sibling-bugs",
@@ -32,6 +32,134 @@
       "opened": "2026-09-21",
       "description": "Aus PR #557 (Diagnose 21.09.2026): Read-only-Check der damaligen backtest_history.json (1636 Einträge) fand 0 Records mit score==0/entry_price==0 nach dem Schreibpfad-Fix, aber 1 Record (Ticker TTGT, Entry-Datum 20.07.2026) mit si_velocity_pub==-1.0 -- laut PR-Text 'exakt die mathematische Signatur eines si_new=stille-0-Bypasses'. Ausdrücklich nur gemeldet, NICHT korrigiert.",
       "status": "offen",
+      "status_date": "2026-09-27"
+    },
+    {
+      "id": "s6b-us-holidays-hardcoded-until-2027",
+      "title": "5 bewegliche US-Feiertage hartkodiert bis 2027 (Wartungs-Bombe wie Karfreitag vor #407)",
+      "opened": "2026-07-10",
+      "description": "Aus SESSION_HANDOVER.md §6b (Datum via git-log -S auf Sektionstitel geschätzt): nach PR #407 ist nur Karfreitag algorithmisch berechnet. MLK Day, Presidents Day, Memorial Day, Labor Day, Thanksgiving sind hartkodiert bis 2027 und laufen 2028 aus -- dieselbe Wartungs-Bombe, die #407 für Karfreitag bereits gelöst hat. Kandidat: analog #407 mit 'Nth-Weekday-of-Month'-Formeln, Range 2020-2050. Laut Handover 'kein Trading-Wert, Vorbeugungs-Hygiene'.",
+      "status": "offen",
+      "status_date": "2026-09-27"
+    },
+    {
+      "id": "s6c-news-fda-lookahead-source-unclear",
+      "title": "News-/FDA-Katalysator: point-in-time-Quelle ungeklärt",
+      "opened": "2026-07-10",
+      "description": "Aus SESSION_HANDOVER.md §6c (Datum via git-log -S auf Sektionstitel geschätzt): Voraussetzung für einen News-/FDA-Katalysator-Faktor ist eine belegbar point-in-time verfügbare Announcement-Quelle -- vor jedem Bau erst ein Diagnose-Auftrag 'welche Quelle ist point-in-time?' nötig. Bisher nicht durchgeführt.",
+      "status": "offen",
+      "status_date": "2026-09-27"
+    },
+    {
+      "id": "s6e-yfinance-cap-removal-pending",
+      "title": "yfinance-Version-Cap (>=1.4.1,<1.5) noch nicht gelockert",
+      "opened": "2026-07-10",
+      "description": "Aus SESSION_HANDOVER.md §6e (Datum via git-log -S auf Sektionstitel geschätzt): PR #403 cappte yfinance auf >=1.4.1,<1.5 nach einem Segfault-Vorfall. Sobald 1.5.x extern als stabil belegt ist, soll der Cap schrittweise gelockert werden -- kein Termin, wartet auf ein externes Signal (Community-/Test-Env-Bestätigung), bisher nicht eingetreten.",
+      "status": "beobachtet",
+      "status_date": "2026-09-27"
+    },
+    {
+      "id": "s6f-v1-v2-render-path-not-unified",
+      "title": "v1/v2-Render-Pfad noch nicht auf reines Jinja vereinheitlicht",
+      "opened": "2026-07-10",
+      "description": "Aus SESSION_HANDOVER.md §6f (Datum via git-log -S auf Sektionstitel geschätzt, niedrige Priorität): generate_html_v2() delegiert weiterhin an v1 (f-String). Eine v1-Löschung erfordert templates/page.jinja + einen _wl_full_card_html-Umbau. Laut Handover 'kein Trading-Wert' -- rein architektonisches Aufräum-Ziel, nicht angegangen.",
+      "status": "offen",
+      "status_date": "2026-09-27"
+    },
+    {
+      "id": "s6g-institutional-ownership-sammelfeld-open",
+      "title": "Institutional-Ownership-Sammelfeld (Svoboda-Dämpfer) noch nicht gebaut",
+      "opened": "2026-07-12",
+      "description": "Aus SESSION_HANDOVER.md §6g (Datum via git-log -S auf Sektionstitel geschätzt) -- NICHT zu verwechseln mit dem bereits erledigten Anzeige-Key-Fix (#510-#512, 07.08.2026, heldPercentInstitutions-Coverage 30/30, das IST erledigt): das eigentliche Sammelfeld inst_ownership_history (forward-only, S10_OBSERVED-additiv) für die Svoboda-Hypothese (hohe institutionelle Beteiligung dämpft Squeeze-Wahrscheinlichkeit, -6% je +1%) ist weiterhin nur Kandidat der Hypothesen-Runde NACH Paper C, kein Score-Effekt ohne OoS-Beleg. Zwei offene Registrierungs-Caveats explizit vermerkt: (1) Werte >100% roh einfrieren statt deckeln, (2) die aktuelle Farb-Semantik (hoch=grün) kollidiert mit der Dämpfer-These und wurde bewusst noch nicht geändert, erst nach der Hypothesen-Runde zu entscheiden.",
+      "status": "beobachtet",
+      "status_date": "2026-09-27"
+    },
+    {
+      "id": "si-position-history-timestamp-format-silent-fail-risk",
+      "title": "si_position_history.json: stiller Datenverlust falls yfinance dateShortInterest-Format wechselt",
+      "opened": "2026-07-14",
+      "description": "Aus SESSION_HANDOVER.md Block 3 (Zeile ~797) UND §6i (Restkante-Vermerk, gleicher Inhalt zweifach im Dokument) -- Datum via git-log -S geschätzt: falls yfinance .info['dateShortInterest'] künftig als Timestamp statt als Epoch-Int liefert, wird der Punkt im aktuellen Code fail-soft STILL übersprungen (kein Crash, aber ein Datenverlust ohne Log-Hinweis). Ausdrücklich als 'Beobachtung, kein Blocker' vermerkt, aber bis heute keine Härtung/kein expliziter Log-Hinweis dafür gebaut.",
+      "status": "beobachtet",
+      "status_date": "2026-09-27"
+    },
+    {
+      "id": "block3-akut-verifikationsliste-stale",
+      "title": "Block 3 'AKUT (weiterhin offen)'-Verifikationsliste seit Mitte Juli nicht abgehakt",
+      "opened": "2026-07-14",
+      "description": "STATUS UNKLAR, BITTE PRÜFEN (konservativ als 'offen' eingetragen, da die Alternative 'erledigt' nirgends belegt ist -- NICHT geraten, welches von beidem zutrifft). Aus SESSION_HANDOVER.md Block 3, Abschnitt 'AKUT (weiterhin offen)' (Datum via git-log -S auf den Abschnittstitel geschätzt). Sechs zeitkritische Live-Verify-Punkte aus Mitte Juli 2026, keiner davon trägt einen späteren Erledigt-Vermerk -- könnten längst erledigt sein, ohne dass der Text aktualisiert wurde, oder tatsächlich nie verifiziert worden sein: (1) finaler Langzeit-Beweis der Shell (Icon-Tap nach Postclose zeigt frischen Marktdaten-Stand, 'passiv offen'), (2) Klarstellung Stand-Zeile Zwei-Run-Architektur (kein Bug, nur Doku-Hinweis, vermutlich weiterhin gültig), (3) KI-Karten nach Deploy #432 (alle 10 Top-10-Karten zeigen KI-Score, Cache-Bust-Verify), (4) Monster-Kachel neutral-grau iPhone-Live-Verify (#425/#426, 'noch ausstehend' laut Text), (5) Lit-Check-Reminder erster Push (#413, Freitag-Cron-Verify), (6) Status-Panel 6. Eintrag (#430) live sichtbar (si_position_history-Zeile im Backtest-Panel). Diese sechs Punkte wurden als EINE gebündelte Fundstelle erfasst (gleicher Abschnitt, gleiche Alters-Klasse, gleiche Unklarheits-Ursache), nicht als sechs Einzel-Items -- volle Einzelaufzählung siehe oben.",
+      "status": "offen",
+      "status_date": "2026-09-27"
+    },
+    {
+      "id": "s6j-apple-touch-icon-missing",
+      "title": "apple-touch-icon fehlt (Home-Bildschirm-Icon zeigt ggf. Blank-Screenshot)",
+      "opened": "2026-07-15",
+      "description": "Aus SESSION_HANDOVER.md §6j (Datum via git-log -S auf Sektionstitel geschätzt, klein/kosmetisch): Repo hat nur favicon.svg, kein apple-touch-icon-PNG. Beim 'Zum Home-Bildschirm hinzufügen' nimmt iOS mangels Icon einen Seiten-Screenshot -- nach dem Phase-1-Shell-Flip ist das die (fast leere) 'Lädt…'-Shell. Kandidat: apple-touch-icon.png (180×180) + Link-Tag. Guardian-Hinweis aus #436, bisher nicht umgesetzt.",
+      "status": "offen",
+      "status_date": "2026-09-27"
+    },
+    {
+      "id": "s6k-stand-zeile-zwei-zeiten",
+      "title": "Stand-Zeile zeigt nur Marktdaten-Zeit, nicht auch KI-Tick-Zeit (Verwirrungs-Risiko)",
+      "opened": "2026-07-15",
+      "description": "Aus SESSION_HANDOVER.md §6k (Datum via git-log -S auf Sektionstitel geschätzt, Kosmetik/UX): die Header-Zeile zeigt nur die Marktdaten-Zeit ('Stand: HH:MM'). Weil die KI-Zeile stündlich vorläuft, wirkt die Seite morgens scheinbar 'eingefroren', obwohl das Zwei-Run-Architektur-Design genau so beabsichtigt ist. Kandidat: Zeile zweiteilig rendern ('Marktdaten 10:36 · KI 19:39'). Rein Anzeige, kein Datenpfad -- bisher nicht umgesetzt.",
+      "status": "offen",
+      "status_date": "2026-09-27"
+    },
+    {
+      "id": "s6l-cockpit-stage3-cleanup",
+      "title": "Karten-Cockpit-Redesign Stage 3: obsolete .sb-Reste im Karten-Bereich nicht bereinigt",
+      "opened": "2026-07-17",
+      "description": "Aus SESSION_HANDOVER.md §6l (Datum via git-log -S auf Sektionstitel geschätzt): Backlog-Anker für den Stage-3-Cleanup des Karten-Cockpit-Redesigns (.sb-row/.sb-num sind bewusster Rollback-Fallback für den Flag-OFF-Pfad). Explizit vermerkt: 'OFFEN / NICHT getract: ob die Karten-.sb-Vorkommen tatsächlich toter Code sind, ist nicht verifiziert -- das ist Teil der Stage-3-Diagnose, keine hier behauptete Tatsache.' Keine Priorität, kein Termin, kein Beschluss, das zu bauen.",
+      "status": "offen",
+      "status_date": "2026-09-27"
+    },
+    {
+      "id": "s6m-trading-days-elapsed-holiday-blind",
+      "title": "_trading_days_elapsed feiertags-blind -> return_10d füllt 1-3 Tage zu früh",
+      "opened": "2026-08-04",
+      "description": "Aus SESSION_HANDOVER.md §6m (Datum explizit im Text: 'Backlog-Befund 04.08.2026'): _trading_days_elapsed (ki_agent.py:367) zählt Handelstage seit Entry als reine Mo-Fr-Zählung ohne US-Feiertags-Abzug -- betrifft das Backtest-Panel und alle return_10d-basierten Auswertungen. Vor einem Fix zu prüfen: ob config.US_MARKET_HOLIDAYS (heute nur bis 2027 hartkodiert, siehe §6b) den Zähl-Zeitraum abdeckt. Laut Handover 'kein Trading-Wert, Genauigkeits-Hygiene'.",
+      "status": "offen",
+      "status_date": "2026-09-27"
+    },
+    {
+      "id": "sr-finra-2026-012-decision-pending",
+      "title": "SEC-Entscheid SR-FINRA-2026-012 (wöchentliche SI-Meldepflicht) weiterhin ausstehend",
+      "opened": "2026-08-14",
+      "description": "Aus SESSION_HANDOVER.md Block 4: erwarteter SEC-Entscheid zu wöchentlichem SI-Reporting (statt bimonatlich) + 'arranged financing' zählt künftig als SI. Risiko für den laufenden §4-Exit-B.1-Test: ein struktureller SI-Sprung durch die neue Definition wäre ein Zeitreihen-Bruch, der die Änderungs-Protokoll-Regel auslösen würde. Zusatz-Vermerk 02.09.2026: keine der drei geprüften Quellen (SEC-Filing-Seite, Federal Register, FINRA Regulatory Notices) zeigte bis dahin eine Entscheidung nach der verlängerten Frist vom 14.08.2026 -- Stand damals 'weiterhin offen, über 3 Wochen überfällig'. Seither (Stand 27.09.2026) nicht erneut geprüft.",
+      "status": "beobachtet",
+      "status_date": "2026-09-27"
+    },
+    {
+      "id": "s6o-validation-badge-reinforcement",
+      "title": "Validierungs-Badge-Verstärkung (UI-Idee, unvalidierte Scores optisch dämpfen)",
+      "opened": "2026-09-17",
+      "description": "Aus SESSION_HANDOVER.md §6o (Datum explizit im Text: Externer Qualitätscheck 17.09.2026): externer Qualitätscheck bemängelte, dass unvalidierte/falsifizierte Scores (z.B. 'Monster 94 · OoS-kollabiert') die Zahl visuell stärker wirken lässt als den danebenstehenden Validierungsstatus. Die bestehende SCORE_STATUS_LABELS-Badge-Logik könnte verstärkt werden (z.B. Zahl selbst gedämpft bei falsifiziertem Status). Backlog-Idee, niedrige Priorität, nicht gebaut.",
+      "status": "offen",
+      "status_date": "2026-09-27"
+    },
+    {
+      "id": "s6p-alpha-pipeline-deferred",
+      "title": "Alpha-Pipeline-Konzept (Cross-Sectional-Ranking) bewusst zurückgestellt",
+      "opened": "2026-09-17",
+      "description": "Aus SESSION_HANDOVER.md §6p (Datum explizit im Text: Externer Qualitätscheck 17.09.2026): externer Qualitätscheck schlug einen kompletten Umbau zu einem Cross-Sectional-Alpha-Ranking-System vor (Layer-Architektur Raw Data -> Alpha-Faktoren -> Excess-Return-Prognose -> Position-Sizing -> Portfolio). Voraussetzung (eine bewiesene Edge, die es zu rangieren gäbe) ist aktuell nicht erfüllt (Exit-B.1 unter n=250, H5 methodisch eingefroren aber nicht zellenreif). Entscheid: NICHT bauen, solange keine der beiden laufenden Vorabregistrierungen ein positives, Holm-signifikantes Ergebnis zeigt. Ein isolierter Teil (SPY-Benchmark-Vergleich, PR #554) wurde bereits umgesetzt; der Rest bleibt als Ganzes zurückgestellt -- Trigger-Bedingung ist klar benannt, aber noch nicht eingetreten.",
+      "status": "beobachtet",
+      "status_date": "2026-09-27"
+    },
+    {
+      "id": "s6q-mfe-mae-bucket-observation",
+      "title": "Deskriptive MFE/MAE-Bestandsaufnahme nach Score-Bucket (Beobachtungspunkt für künftige H5-Runde)",
+      "opened": "2026-09-26",
+      "description": "Aus SESSION_HANDOVER.md §6q (Datum explizit im Text: 26.09.2026): Score-Bucket × max_gain_pct/max_drawdown_pct über 352 provenance=forward-Records. Median MFE steigt nicht monoton mit dem Score-Bucket, Mean MFE dagegen deutlich klarer steigend (wachsende Rechtsschiefe bei höheren Score-Buckets). score_timing zeigt ein klareres Muster als score_catalyst -- möglicher Beobachtungspunkt für die künftige H5-Interaktionsauswertung, ausdrücklich NICHT vorab als Erkenntnis zu werten. Reine Bestandsaufnahme, keine Vorabregistrierung, kein Ersatz für §4 Exit-B.1.",
+      "status": "offen",
+      "status_date": "2026-09-27"
+    },
+    {
+      "id": "h5-outlier-ticker-cause-unverified",
+      "title": "H5-Diagnose-Ausreißer (+18.064,8% Δ bei einem Ticker): Datenfehler oder echter Meme-Spike nicht verifiziert",
+      "opened": "2026-09-12",
+      "description": "Aus SESSION_HANDOVER.md, H5-Vorabregistrierung (Ausreißer-Behandlung, Datum via git-log -S geschätzt): in der Diagnose wurde ein Extremwert (+18.064,8% Delta bei einem einzelnen Ticker) beobachtet, dessen Ursache nicht verifiziert wurde (Datenfehler vs. echter Meme-Spike). Die H5-Methodik behandelt das bereits robust (Vorzeichen-basierte primäre Zellen-Zuordnung + Winsorizing sekundär), sodass der Ausreißer die Auswertung nicht verzerren kann -- die reine Sachfrage 'was war das für ein Ticker/Ereignis' bleibt aber unbeantwortet. Niedrige Priorität, reine Neugier-Frage ohne Methodik-Auswirkung.",
+      "status": "beobachtet",
       "status_date": "2026-09-27"
     }
   ]
