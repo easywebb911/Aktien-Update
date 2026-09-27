@@ -1,4 +1,4 @@
-# SESSION_HANDOVER.md — Stand 08.08.2026 (Woche 03.–08.08.: Matured-Export + §4-Vorabregistrierung eingefroren + Guardian-Pflichtregel + Earnings-Alert-Rename + Panel-Ehrlichkeit + inst_ownership-Key-Fix)
+# SESSION_HANDOVER.md — Stand 27.09.2026 (Woche 15.08.–27.09.: NaN-Härtungskette + Push-Gating unvalidierter Trading-Signale + H5/Netto/SPY-Vorabregistrierungs-Ausbau + Open-Items-Tracker + Health-Check-Wochendigest + MFE/MAE-Bestandsaufnahme + §4-Diskrepanz geklärt)
 
 **Zweck:** vollständige Übergabe an eine **neue Code-Session ohne Kontext der
 alten**. Dieses Dokument + `CLAUDE.md` müssen zusammen ausreichen, um am
@@ -18,8 +18,27 @@ ein zweiter, push-getriggerter Workflow **erst NACH** dem Commit — rein
 detektiv, verhindert den Verlust nicht, macht ihn nur sichtbar. Ein
 roter Check-Run auf einem main-Commit braucht also einen Follow-up-Fix.
 
-**Datums-Basis (belegt, nicht Erinnerung):** Repo-Stand **08.08.2026**.
-**Woche 03.–08.08.** (PRs #500–#512, alle git-belegt gemergt): Prune-Konsequenz-
+**Datums-Basis (belegt, nicht Erinnerung):** Repo-Stand **27.09.2026**.
+**15.08.–27.09.2026** (PRs #533–#563, 31 PRs, alle git-belegt gemergt,
+thematisch gruppiert — volle Details unten unter „## 1) HEUTE
+IMPLEMENTIERT"): **⚠ Push-Gating unvalidierter Trading-Signal-Pushes**
+(`#544`/`#545`, 06.09. — **5 Push-Typen deaktiviert**, siehe Hervorhebung
+im Log) · **NaN-Härtungskette** (Gruppe A, mehrwöchig: `#533`–`#536` +
+`#557`–`#559` + `#561`) · **Vorabregistrierungs-Ausbau** (H5 finalisiert
+`#548`, Netto-/Haircut-Felder `#549`, SPY-Benchmark `#554`, FINRA-
+Wiedervorlage `#543`) · **NYSE-/Reg-SHO-Diagnose-Kette** (`#538`/`#539`/
+`#542`/`#546`/`#550`/`#551`) · **Exit-Pipeline-Fix + Frontend-/Anzeige-
+Fixes** (`#537`/`#540`/`#552`/`#553`) · **Doku-/Backlog-Pflege**
+(`#541`/`#555`/`#556`) ·
+**Open-Items-Tracker** (`#560`) · **Health-Check-Wochendigest** (`#562`) ·
+**MFE/MAE-Bestandsaufnahme** (§6q, `#563`). **§4-Zähler-Diskrepanz vom
+18.09. GEKLÄRT** (Ursache: reiner Zeitversatz zwischen zwei Zählzeit-
+punkten, kein Logik-Bug — siehe §4-Protokolleintrag 27.09.2026); aktueller
+Live-Stand **n=144/250**, nachgerechnet **27.09.2026, 07:16:50 UTC**
+direkt gegen `matured_backtest_export.jsonl`.
+
+**Vorheriger Bogen — Woche 03.–08.08.2026** (PRs #500–#512, alle git-belegt
+gemergt): Prune-Konsequenz-
 Doku (`40565b4` #500) · **Matured-Export** append-only/prune-immun (`a01acb2`
 #501) + Reife-Gate #2 `days_old>14` (`6bdf517` #503) · **Guardian-Pflichtregel**
 in `CLAUDE.md` (`b19c3f2` #502) + Alt-Stellen angeglichen (`3e96391` #504) ·
@@ -51,6 +70,98 @@ Anker.
 ---
 
 ## 1) HEUTE IMPLEMENTIERT (chronologisch, mit Hashes)
+
+### 15.08.–27.09.2026 — Sechs-Wochen-Nachtrag (31 PRs, thematisch gruppiert)
+
+*(Diese Sektion schließt eine Lücke: Block 1 hatte zuvor bei PR #532/
+15.08.2026 aufgehört, obwohl seither 31 weitere PRs gemergt wurden — eine
+read-only Konsistenz-Diagnose 27.09.2026 hat das aufgedeckt. Alle Hashes/
+PR-Nummern per `git log` verifiziert, nicht aus Erinnerung. Bewusst
+thematisch statt einzeln chronologisch gruppiert, um den Block lesbar zu
+halten — Reihenfolge innerhalb jedes Clusters ist chronologisch.)*
+
+**⚠ Trading-relevant, gesondert hervorgehoben — Push-Gating unvalidierter
+Trading-Signal-Pushes (`#544` Merge `addf87a0` + `#545` `356a7ce5`,
+06.09.2026):** Easy-Entscheid, **5 unvalidierte Trading-Signal-Push-Typen
+deaktiviert**: Earnings-Sofort-Alert, Exit-Signale Phase 2 (beide Kanäle),
+alle 7 Anomalie-Trigger (inkl. `conviction_high`), Exit-Signale Phase 1
+(beide Untertypen), Legacy Alert-Monitor `alert.py`. **4 Infra-Pushes
+bleiben unverändert aktiv:** Health-Check-Digest, HTML-Sanity-CRIT-
+Notfallnetz, Lit-Check-Weekly-Reminder, Status-Review-Wecker. Rückweg:
+Flags in `config.py` zurück auf `True`. Dokumentiert als Architektur-Anker
+§7l. **Wer den aktuellen Push-Zustand des Tools verstehen will, muss
+diesen Punkt kennen** — er überlagert praktisch jeden an anderer Stelle
+in dieser Datei beschriebenen Push-Mechanismus (Anomalie-Push-System,
+Exit-Signale, Earnings-Sofort-Alert — deren Beschreibungen weiter unten
+bleiben technisch korrekt, sind aber aktuell alle **scharf gestellt, aber
+deaktiviert**).
+
+- **NaN-Härtungskette (Gruppe A, mehrwöchig):** `#533` (`71bffa4b`, 15.08.)
+  Bestandsrecord-Reparatur ARCT/COLL/GO/IBTA · `#534` (`41750f11`, 16.08.)
+  `change_2d`/`change_3d`-NaN-Wurzelfix + 3 Konsumenten · `#535`
+  (`83c7a17b`, 16.08.) 3 weitere Sibling-Fundstellen aus #534 (Preis/RVOL/
+  Watchlist/UOA) · `#536` (`84de2385`, 16.08.) NaN-Bypass im Preis-/
+  Market-Cap-K.o.-Filter · `#557` (`d058107e`/`a42fb31d`, 21.09.)
+  Schreibpfad-Härtung `backtest_history.py` (score/entry_price/
+  short_float/dtc/rvol/si_slope/si_velocity_pub) — fand 1 bereits
+  kontaminierten Bestandsrecord (**TTGT, 20.07.2026,
+  `si_velocity_pub=-1.0`**), **gemeldet, NICHT gefixt** (jetzt in
+  `open_items.json` nachgetragen) · `#558` (`4488f975`, 22.09.)
+  `score_inflation_log._safe_float` → `_coerce_float` (Namensgleichheit
+  zur echten, sicheren Funktion täuschte Sicherheit vor, die nicht
+  bestand) · `#559` (`92c8c20e`/`98decc55`, 22.09.) **4. CI-Gate**
+  `lint_nan_bypass_fields.py` — Baseline **70 bereits bestehende, offene
+  Gruppe-A-Funde** in `_BASELINE_KNOWN_OPEN` eingetragen, NICHT gefixt
+  (Tech-Debt-Liste, jetzt ebenfalls in `open_items.json`) · `#561`
+  (`642ea1b3`, 25.09.) Diagnostik-Logging `_extract_hist_5d` (S10-crit
+  `coiled_spring_score`-Nullbefund).
+
+- **Vorabregistrierungs-/Backtest-Ausbau:** `#543` (`1b182c85`, 02.09.)
+  SR-FINRA-2026-012-Wiedervorlage, zusätzliche Prüf-Quellen · `#548`
+  (`ecc59d88`, 12.09.) **H5-Vorabregistrierung finalisiert** (Bausteine
+  final, 16-Zellen-Kreuztabelle, Holm, Ausreißer-Verfahren) · `#549`
+  (`5b1ac5ae`, 13.09.) Haircut-/Netto-Return-Felder (`return_Nd_net`,
+  `max_gain_pct_net`) · `#554` (`8afcab12`, 18.09.) SPY-Benchmark-
+  Vergleich (`return_Nd_vs_spy`) — beide Felder explizit NICHT
+  automatisch Teil der §4/H5-Bindung (siehe §4-Protokolleintrag 18.09.).
+
+- **NYSE-/Reg-SHO-Diagnose-Kette:** `#538` (`3ced2a6f`, 21.08.)
+  `_resolve_nyse` auf bestätigten API-Endpunkt umgestellt · `#539`
+  (`202e7ccc`, 22.08.) Lit-Check H-Kapitaldruck-Hypothese
+  (Svoboda-Dämpfer) · `#542` (`2e9686a4`, 02.09.) NYSE-Fetch-
+  Fehlerursache in `reg_sho_history` mitgeloggt · `#546` (`1fffc999`,
+  12.09.) `_last_workday_before()` feiertags-bewusst (Labor-Day-Vorfall) ·
+  `#550` (`d4d138a7`/`8e6db089`, 13.09.) NYSE-Referer-Header-A/B-Probe
+  (read-only, dispatch-only) · `#551` (`5095c09a`, 13.09.)
+  Finviz-Provider-Health-Coverage statt All-or-Nothing-`http_status`
+  (behebt strukturellen Immer-Fail-Bug im Digest).
+
+- **Exit-Pipeline-Fix + Frontend-/Anzeige-Fixes:** `#537` (`ec83a311`,
+  17.08.) **Backend-Bug** in `_exit_p2_score_at()`/`_compute_exit_state()`
+  — `n_back=0`-Guard ließ `current_score` (und kaskadierend
+  `peak_score_since_entry` + die Exit-Trigger `score_decay`/`profit_lock`)
+  immer auf `None`/`available:False` stehen, kein Anzeige-Bug (Guardian-
+  Präzisierung 27.09.) · `#540` (`30670fdc`, 26.08.) `_translate()`
+  erkennt Googles Fehlerseite statt sie als Übersetzung zu übernehmen ·
+  `#552` (`c39cd3fb`, 17.09.) ATM-IV-Zero-Sentinel als `None` behandelt ·
+  `#553` (`90d9825d`, 18.09.) News-Anzeige-Max-Age-Cutoff (30 Tage).
+
+- **Doku-/Backlog-Pflege:** `#541` (`783420ba`, 29.08.) Beobachtungspunkt
+  §6n ≥90-Score-Bucket-Persistenz · `#555` (`50ab04e3`, 18.09.)
+  Backlog-Vermerke Validierungs-Badge + Alpha-Pipeline · `#556`
+  (`4a17cd96`, 19.09.) §4-Protokolleintrag Brutto-Bindung +
+  Marktregime-Beobachtungspunkt + n-Diskrepanz-Vermerk (**Ursache jetzt
+  geklärt, siehe §4-Sektion**).
+
+- **Infrastruktur (jeweils eigene, größere Ergänzung):** `#560`
+  (`7f4ecb11`, 22.09.) **Open-Items-Tracker** (`open_items.json` +
+  `lint_open_items_consistency.py`) · `#562` (`9fe65b0c`, 25.09.)
+  **Wöchentlicher Zusammenfassungs-Block** im Health-Check-Digest
+  (Montag-Gate, §4-Delta + Open-Items-Diff) · `#563` (`2f413621`, 26.09.)
+  §6q **MFE/MAE-Bestandsaufnahme** nach Score-Bucket (Beobachtungspunkt,
+  keine Vorabregistrierung).
+
+---
 
 ### 15.08.2026 — NaN-Wurzel-Fix (Schreibpfad) + Bestandsrecord-Reparatur
 
@@ -785,7 +896,7 @@ nur bei `available=True`.
 |---|---|---|---|
 | ✅ **DURCHGEFÜHRT 15.07.** | ki_signal_score-Edge-Re-Test | n=55 gereift | **KEIN belegter Effekt** (Details §5). Re-Test-Bedingung neu **datengetrieben, nicht kalendarisch:** **WIN-Bucket ≥ 20** (aktuell nur 13!) **UND zweites Marktregime** im Sample. Nicht „~Mitte Aug" — die Kalender-Angabe war irreführend, es zählt der WIN-Bucket + Regime-Diversität. |
 | **~Ende Juli / Anfang Aug** (korrigiert) | Conviction-Edge (Prüfpunkt P3 aus 30.06.) | n ≥ 100 gereift | **Termin vorgezogen** (Sammel-Raten-Diagnose 15.07.): 112 gesammelt / 20 gereift → n≥100 gereift bereits ~Ende Juli/Anfang Aug (das frühere „~Ende Aug" war Puffer). Composite aus Setup/Earliness/Anomaly/Regime — Aggregations-Anzeige, Edge selbst unbelegt. |
-| **datumsfrei · Auslöser n≥250** | **Exit-B.1-Re-Test** — **vorabregistriert (eingefroren 05.08.2026)** | n ≥ 250 · `score≥70` ∧ `provenance=forward` | Volle Registrierung im Block direkt unter der Tabelle. Quelle `matured_backtest_export.jsonl` (append-only, prune-immun). **Heute n=0.** Projektion ~Mitte Nov. 2026 (unsicher, **kein Termin**). |
+| **datumsfrei · Auslöser n≥250** | **Exit-B.1-Re-Test** — **vorabregistriert (eingefroren 05.08.2026)** | n ≥ 250 · `score≥70` ∧ `provenance=forward` | Volle Registrierung im Block direkt unter der Tabelle. Quelle `matured_backtest_export.jsonl` (append-only, prune-immun). **n=144 (nachgerechnet 27.09.2026, 07:16:50 UTC — siehe Protokolleintrag unten).** Projektion ~Mitte Nov. 2026 (unsicher, **kein Termin**). |
 | **entfällt** | ~~Setup-Edge-Re-Test~~ — **NICHT vorabregistriert** (Herausnahme 05.08.2026) | — | Zielgröße/Schwelle/Erfolgskriterium wurden **nie festgelegt** (Ursprung #394 = 15 gesammelte Hypothesen, 0/15 Holm — welche geprüft werden soll, wurde nie bestimmt). Neu-Registrierung mit **eigenem Freeze-Datum** bei Bedarf; **bis dahin existiert kein Setup-Edge-Re-Test.** Details im Block unten. |
 
 ### VORABREGISTRIERUNG — eingefroren 05.08.2026
@@ -890,15 +1001,44 @@ freundlich oder schwierig), um ein positives Ergebnis nicht fälschlich als
 reine Squeeze-Edge zu werten, falls es primär ein günstiges Marktumfeld
 widerspiegelt.
 
-**Korrektur-Vermerk — §4-Zähler-Diskrepanz (Stand 18.09.2026):** der zuletzt im
-Health-Check-Digest angezeigte §4-Zähler-Stand zeigte **n=118**, eine direkte
-Nachzählung in `matured_backtest_export.jsonl` nach der exakten eingefrorenen
-Definition (`score≥70 ∧ provenance=forward`) ergab am selben Tag **n=130**.
-Nicht geklärt, ob das auf eine Diskrepanz zwischen Digest-Anzeige und
-tatsächlichem Export-Stand hindeutet (separat zu prüfen) oder sich einfach
-durch den Zeitabstand zwischen Digest-Erstellung und dieser Prüfung erklärt
-(dann keine weitere Aktion nötig) — als offener Punkt vermerkt, nicht
-aufgelöst.
+**Korrektur-Vermerk — §4-Zähler-Diskrepanz (Stand 18.09.2026, GEKLÄRT
+27.09.2026):** der zuletzt im Health-Check-Digest angezeigte §4-Zähler-Stand
+zeigte **n=118**, eine direkte Nachzählung in `matured_backtest_export.jsonl`
+nach der exakten eingefrorenen Definition (`score≥70 ∧ provenance=forward`)
+ergab am selben Tag **n=130**. Ursprünglich nicht geklärt, ob das auf eine
+Diskrepanz zwischen Digest-Anzeige und tatsächlichem Export-Stand hindeutet
+oder sich einfach durch Zeitabstand erklärt — als offener Punkt vermerkt.
+
+**Ursache jetzt geklärt (Diagnose 27.09.2026):** reiner **Zeitversatz
+zweier Zählzeitpunkte, KEIN Logik-Bug.** `_count_matured_retest()` ist seit
+Einführung (`#509`, 08.08.2026) **byte-identisch** mit dem heutigen Code
+(git-belegt: `git show d6c51b01:health_check.py` vs. aktueller Stand,
+Diff = 0). Nachweis per historischem `matured_backtest_export.jsonl`-Stand
+zu den jeweiligen Daily-Run-Commits: der Wert **n=118** entspricht exakt dem
+Datei-Stand nach dem **14.09.2026**-Postclose-Commit (`6b6846a5`), **n=130**
+exakt dem Stand nach dem **17.09.2026**-Postclose-Commit (`21e318a1`) —
+beide re-berechnet mit derselben, unveränderten Zähllogik. Die Zahlenreihe
+über die Postclose-Commits 09.–18.09. wächst glatt monoton (112 → 114 → 114
+→ 118 → 122 → 127 → 130 → 134, für 09./10./11./14./15./16./17./18.09. —
+Guardian-nachgerechnet), keine Anomalie, kein Sprung. Der im Vermerk zitierte
+„Digest-Wert n=118" stammte also von einem **~4 Tage älteren** Digest-Lauf
+(14.09.) und wurde einer **taggleich frischen** manuellen Nachzählung
+(18.09., die zufällig exakt den 17.09.-Postclose-Stand traf) gegenüber-
+gestellt — zwei unterschiedliche Zeitpunkte auf demselben, gesund wachsenden
+Zähler, kein Mess- oder Logikfehler. **Aktueller Live-Stand: n=144/250**,
+nachgerechnet **27.09.2026, 07:16:50 UTC** direkt gegen die aktuelle
+`matured_backtest_export.jsonl` (1057 Zeilen gesamt).
+
+**Protokolleintrag 27.09.2026** (bindend gemäß Änderungs-Protokoll-Regel
+oben): Anlass = Konsistenz-Diagnose 27.09.2026 fand die vorstehende
+Diskrepanz ungeklärt vor. Änderung an diesem Block: (a) der obige
+„Korrektur-Vermerk" wurde um die Ursachenklärung ergänzt (Text nicht
+gelöscht, nur ergänzt — Nachvollziehbarkeit bleibt erhalten), (b) die
+Re-Test-Kalender-Tabelle und dieser Absatz zeigen jetzt den lebenden
+Wert n=144 statt des eingefrorenen `n=0` vom 05.08.-Freeze-Moment. **Die
+eingefrorene §4-Definition selbst (`score≥70 ∧ provenance=forward`,
+Brutto-Bindung) ist NICHT verändert** — nur die angezeigte Zählung wurde
+aktualisiert und ihre Historie erklärt.
 
 ### WIEDERVORLAGEN — dated (Stand 08.08.2026, NICHT Teil des §4-Freeze)
 
