@@ -27,8 +27,9 @@ im Log) · **NaN-Härtungskette** (Gruppe A, mehrwöchig: `#533`–`#536` +
 `#557`–`#559` + `#561`) · **Vorabregistrierungs-Ausbau** (H5 finalisiert
 `#548`, Netto-/Haircut-Felder `#549`, SPY-Benchmark `#554`, FINRA-
 Wiedervorlage `#543`) · **NYSE-/Reg-SHO-Diagnose-Kette** (`#538`/`#539`/
-`#542`/`#546`/`#550`/`#551`) · **Frontend-/Anzeige-Fixes** (`#537`/`#540`/
-`#552`/`#553`) · **Doku-/Backlog-Pflege** (`#541`/`#555`/`#556`) ·
+`#542`/`#546`/`#550`/`#551`) · **Exit-Pipeline-Fix + Frontend-/Anzeige-
+Fixes** (`#537`/`#540`/`#552`/`#553`) · **Doku-/Backlog-Pflege**
+(`#541`/`#555`/`#556`) ·
 **Open-Items-Tracker** (`#560`) · **Health-Check-Wochendigest** (`#562`) ·
 **MFE/MAE-Bestandsaufnahme** (§6q, `#563`). **§4-Zähler-Diskrepanz vom
 18.09. GEKLÄRT** (Ursache: reiner Zeitversatz zwischen zwei Zählzeit-
@@ -135,12 +136,15 @@ deaktiviert**).
   Finviz-Provider-Health-Coverage statt All-or-Nothing-`http_status`
   (behebt strukturellen Immer-Fail-Bug im Digest).
 
-- **Frontend-/Anzeige-Fixes:** `#537` (`ec83a311`, 17.08.) Exit-P2
-  `n_back=0`-Guard-Bug (`current_score` war immer `None`) · `#540`
-  (`30670fdc`, 26.08.) `_translate()` erkennt Googles Fehlerseite statt
-  sie als Übersetzung zu übernehmen · `#552` (`c39cd3fb`, 17.09.)
-  ATM-IV-Zero-Sentinel als `None` behandelt · `#553` (`90d9825d`, 18.09.)
-  News-Anzeige-Max-Age-Cutoff (30 Tage).
+- **Exit-Pipeline-Fix + Frontend-/Anzeige-Fixes:** `#537` (`ec83a311`,
+  17.08.) **Backend-Bug** in `_exit_p2_score_at()`/`_compute_exit_state()`
+  — `n_back=0`-Guard ließ `current_score` (und kaskadierend
+  `peak_score_since_entry` + die Exit-Trigger `score_decay`/`profit_lock`)
+  immer auf `None`/`available:False` stehen, kein Anzeige-Bug (Guardian-
+  Präzisierung 27.09.) · `#540` (`30670fdc`, 26.08.) `_translate()`
+  erkennt Googles Fehlerseite statt sie als Übersetzung zu übernehmen ·
+  `#552` (`c39cd3fb`, 17.09.) ATM-IV-Zero-Sentinel als `None` behandelt ·
+  `#553` (`90d9825d`, 18.09.) News-Anzeige-Max-Age-Cutoff (30 Tage).
 
 - **Doku-/Backlog-Pflege:** `#541` (`783420ba`, 29.08.) Beobachtungspunkt
   §6n ≥90-Score-Bucket-Persistenz · `#555` (`50ab04e3`, 18.09.)
@@ -1014,8 +1018,9 @@ zu den jeweiligen Daily-Run-Commits: der Wert **n=118** entspricht exakt dem
 Datei-Stand nach dem **14.09.2026**-Postclose-Commit (`6b6846a5`), **n=130**
 exakt dem Stand nach dem **17.09.2026**-Postclose-Commit (`21e318a1`) —
 beide re-berechnet mit derselben, unveränderten Zähllogik. Die Zahlenreihe
-über die Postclose-Commits 10.–18.09. wächst glatt monoton (114 → 118 → 122
-→ 127 → 130 → 134), keine Anomalie, kein Sprung. Der im Vermerk zitierte
+über die Postclose-Commits 09.–18.09. wächst glatt monoton (112 → 114 → 114
+→ 118 → 122 → 127 → 130 → 134, für 09./10./11./14./15./16./17./18.09. —
+Guardian-nachgerechnet), keine Anomalie, kein Sprung. Der im Vermerk zitierte
 „Digest-Wert n=118" stammte also von einem **~4 Tage älteren** Digest-Lauf
 (14.09.) und wurde einer **taggleich frischen** manuellen Nachzählung
 (18.09., die zufällig exakt den 17.09.-Postclose-Stand traf) gegenüber-
