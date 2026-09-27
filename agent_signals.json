@@ -1,10 +1,10 @@
 {
-  "updated": "2026-09-27T20:24:56.607217+02:00",
+  "updated": "2026-09-27T21:24:22.017144+02:00",
   "run_info": {
     "tickers_checked": 13,
     "signals_active": 0,
     "alerts_sent": 0,
-    "elapsed_s": 15.3,
+    "elapsed_s": 16.2,
     "market_phase": "Geschlossen"
   },
   "signals": {
@@ -57,7 +57,7 @@
     "DDD": {
       "score": 58,
       "confidence": 70,
-      "drivers": "Spanne 9.1% + News: partnership, contract + Earnings in 37d + UOA Call/Put 10.1×",
+      "drivers": "Spanne 9.1% + News: contract, partnership + Earnings in 37d + UOA Call/Put 10.1×",
       "price": 3.57,
       "chg_pct": -0.0,
       "rvol_4d": 1.08,
@@ -126,7 +126,7 @@
     "IONQ": {
       "score": 58,
       "confidence": 70,
-      "drivers": "Spanne 5.4% + News: partnership, catalyst + Earnings in 38d + UOA Call/Put 2.6×",
+      "drivers": "Spanne 5.4% + News: catalyst, partnership + Earnings in 38d + UOA Call/Put 2.6×",
       "price": 45.48,
       "chg_pct": -0.0,
       "rvol_4d": 0.74,
@@ -212,9 +212,9 @@
       "uoa_cp_ratio": 2.176470588235294
     },
     "RUN": {
-      "score": 43,
+      "score": 33,
       "confidence": 70,
-      "drivers": "Spanne 6.2% + News: partnership + Earnings in 39d + UOA Call/Put 4.7×",
+      "drivers": "Spanne 6.2% + News-KI 5/30: Negative sector-wide headwind from rising treasury yields with no short squeeze indicators present; stock falling due to + Earnings in 39d + UOA Call/Put 4.7×",
       "price": 8.11,
       "chg_pct": -0.0,
       "rvol_4d": 0.86,
@@ -225,8 +225,8 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 1,
-      "ki_sentiment_source": "keyword",
+      "active_triggers": 0,
+      "ki_sentiment_source": "llm",
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 4.7×"
@@ -258,9 +258,9 @@
       "uoa_cp_ratio": 30.166666666666668
     },
     "WOLF": {
-      "score": 30,
+      "score": 18,
       "confidence": 33,
-      "drivers": "News-KI 12/30: Positive fundamentals (AI revenue growth) but no short squeeze indicators like high short interest, catalyst squeeze dyn + Earnings in 38d + UOA Call/Put 3.0×",
+      "drivers": "Earnings in 38d + UOA Call/Put 3.0×",
       "price": 27.57,
       "chg_pct": -0.0,
       "rvol_4d": 0.65,
@@ -271,8 +271,8 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 1,
-      "ki_sentiment_source": "llm",
+      "active_triggers": 0,
+      "ki_sentiment_source": "keyword",
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 3.0×"
@@ -281,9 +281,9 @@
       "uoa_cp_ratio": 3.0
     },
     "XPOF": {
-      "score": 68,
+      "score": 65,
       "confidence": 70,
-      "drivers": "Spanne 5.7% + News: squeeze + Earnings in 39d + FINRA Short-Vol 100% + UOA Call/Put 11.2×",
+      "drivers": "Spanne 5.7% + News-KI 12/30: Mixed price action with no clear short squeeze catalyst; mentions of stock movement lack supporting fundamental or techn + Earnings in 39d + FINRA Short-Vol 100% + UOA Call/Put 11.2×",
       "price": 3.92,
       "chg_pct": 0.0,
       "rvol_4d": 0.46,
@@ -295,7 +295,7 @@
       "stocktwits": null,
       "combo_mult": 1.0,
       "active_triggers": 1,
-      "ki_sentiment_source": "keyword",
+      "ki_sentiment_source": "llm",
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 11.2×"
