@@ -1,10 +1,10 @@
 {
-  "updated": "2026-09-27T00:52:29.524590+02:00",
+  "updated": "2026-09-27T03:28:26.113846+02:00",
   "run_info": {
     "tickers_checked": 13,
     "signals_active": 0,
     "alerts_sent": 0,
-    "elapsed_s": 18.7,
+    "elapsed_s": 14.0,
     "market_phase": "Geschlossen"
   },
   "signals": {
@@ -55,9 +55,9 @@
       "uoa_cp_ratio": 17.233215547703182
     },
     "DDD": {
-      "score": 58,
+      "score": 36,
       "confidence": 70,
-      "drivers": "Spanne 9.1% + News: partnership, contract + Earnings in 38d + UOA Call/Put 10.1×",
+      "drivers": "Spanne 9.1% + News-KI 8/30: Moderate positive sentiment on operational improvements, but no evidence of high short interest, squeeze catalysts, or s + Earnings in 38d + UOA Call/Put 10.1×",
       "price": 3.57,
       "chg_pct": -0.0,
       "rvol_4d": 1.08,
@@ -68,8 +68,8 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 1,
-      "ki_sentiment_source": "keyword",
+      "active_triggers": 0,
+      "ki_sentiment_source": "llm",
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 10.1×"
@@ -78,9 +78,9 @@
       "uoa_cp_ratio": 10.076923076923077
     },
     "GENI": {
-      "score": 28,
+      "score": 40,
       "confidence": 70,
-      "drivers": "Spanne 9.9% + Earnings in 38d + UOA Call/Put 15.8×",
+      "drivers": "Spanne 9.9% + News-KI 12/30: Positive analyst coverage and valuation call lack the high short interest, technical setup, and catalyst urgency typical + Earnings in 38d + UOA Call/Put 15.8×",
       "price": 6.44,
       "chg_pct": 0.0,
       "rvol_4d": 1.43,
@@ -91,8 +91,8 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 0,
-      "ki_sentiment_source": "keyword",
+      "active_triggers": 1,
+      "ki_sentiment_source": "llm",
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 15.8×"
@@ -126,7 +126,7 @@
     "IONQ": {
       "score": 58,
       "confidence": 70,
-      "drivers": "Spanne 5.4% + News: partnership, catalyst + Earnings in 39d + UOA Call/Put 2.7×",
+      "drivers": "Spanne 5.4% + News: catalyst, partnership + Earnings in 39d + UOA Call/Put 2.7×",
       "price": 45.48,
       "chg_pct": -0.0,
       "rvol_4d": 0.74,
@@ -281,9 +281,9 @@
       "uoa_cp_ratio": 3.013986013986014
     },
     "XPOF": {
-      "score": 65,
+      "score": 68,
       "confidence": 70,
-      "drivers": "Spanne 5.7% + News-KI 12/30: Volatility alone is insufficient for short-squeeze potential; no evidence of high short interest, low float constraints, + Earnings in 40d + FINRA Short-Vol 100% + UOA Call/Put 11.2×",
+      "drivers": "Spanne 5.7% + News: squeeze + Earnings in 40d + FINRA Short-Vol 100% + UOA Call/Put 11.2×",
       "price": 3.92,
       "chg_pct": 0.0,
       "rvol_4d": 0.46,
@@ -295,7 +295,7 @@
       "stocktwits": null,
       "combo_mult": 1.0,
       "active_triggers": 1,
-      "ki_sentiment_source": "llm",
+      "ki_sentiment_source": "keyword",
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 11.2×"
