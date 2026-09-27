@@ -98,6 +98,7 @@ EXCLUDED = {
     # echten DataFrames auf — die Minimal-CI installiert bewusst nur
     # jinja2+pyyaml, kein requirements.txt/pandas):
     "atm_iv_zero_guard":                 "pandas-Import (echte DataFrame-Ops in get_options_data)",
+    "finviz_v111_bs4_parser":            "bs4/lxml erforderlich (echtes BS4-Tabellen-Parsing in get_finviz_screener_v111)",
     # TEMP — brauchen `requests`, das der Minimal-CI-Install (#316: nur
     # jinja2+pyyaml) NICHT hat. Bis #336 den requests-Stub ergänzt (analog
     # outer_page_golden), dann ZURÜCK in ALLOWLIST (Ziel 79). NICHT dauerhaft:

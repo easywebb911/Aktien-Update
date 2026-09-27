@@ -834,6 +834,20 @@ def get_finviz_screener_v111(max_tickers: int | None = None) -> list[dict]:
     Config: FINVIZ_SCREENER_ENABLED=True aktiviert den Aufruf,
             FINVIZ_MAX_TICKERS begrenzt die Ergebniszahl.
     Bei HTTP-Fehler oder Parser-Ausfall: stillschweigend [] zurück.
+
+    Parser-Fix (27.09.2026, Diagnose + Live-Check bestätigt): der frühere
+    Regex-Parser (``quote\\?t=<TICKER>``-Link-Muster über den rohen
+    Response-Text) lieferte in allen 46 geprüften Läufen der letzten
+    30 Tage ``item_count=0`` — URL/Filter selbst funktionieren nachweislich
+    (Easy-Live-Check 27.09.2026 lieferte 12 valide Ticker über exakt diese
+    URL), der Regex griff aber nicht mehr auf das aktuelle Markup. Jetzt
+    BS4-Tabellen-Parsing, exakt dasselbe Grundmuster wie das bereits
+    funktionierende ``get_finviz_candidates()`` (v141, Zeile ~716) und der
+    ebenfalls schon 18.05.2026 auf BS4 umgestellte ``_fetch_short_float_
+    finviz()``: Tabelle über die Header-Zeile („Ticker"-Spalte) finden,
+    Ticker-Wert aus der entsprechenden Zelle jeder Datenzeile lesen —
+    robuster gegen Markup-Drift als ein Link-Text-Regex, weil die Spalte
+    strukturell statt über einen zufälligen URL-Substring identifiziert wird.
     """
     if not FINVIZ_SCREENER_ENABLED:
         return []
@@ -851,14 +865,44 @@ def get_finviz_screener_v111(max_tickers: int | None = None) -> list[dict]:
         print(f"Finviz Screener: Fehler {exc} — übersprungen", flush=True)
         return []
 
-    # Ticker-Symbole aus Finviz-Quote-Links extrahieren; v=111 zeigt die
-    # Tabelle mit quote?t=<TICKER>-Links (URL-Migration Mai 2026, vorher
-    # quote.ashx?t=). Regex ist robust gegen Markup-Varianten und
-    # vermeidet einen harten BeautifulSoup-Pfad.
+    # BS4-Tabellen-Parsing statt Regex (siehe Docstring-Begründung oben).
+    # Tabelle über die Header-Zeile identifizieren (erste <tr> mit einer
+    # "Ticker"-<td>-Zelle) — identisches Suchmuster zu get_finviz_candidates().
+    try:
+        soup = BeautifulSoup(resp.text, "lxml")
+    except Exception as exc:
+        print(f"Finviz Screener: Parse-Fehler {exc} — übersprungen", flush=True)
+        return []
+
+    table = None
+    for t in soup.find_all("table"):
+        first_tr = t.find("tr")
+        if first_tr and any("Ticker" in td.get_text() for td in first_tr.find_all("td")):
+            table = t
+            break
+    if table is None:
+        print("Finviz Screener: Tabelle nicht gefunden — übersprungen", flush=True)
+        return []
+
+    all_rows = table.find_all("tr")
+    if not all_rows:
+        return []
+    headers = [td.get_text(strip=True) for td in all_rows[0].find_all("td")]
+    try:
+        ticker_idx = headers.index("Ticker")
+    except ValueError:
+        print("Finviz Screener: Ticker-Spalte nicht gefunden — übersprungen", flush=True)
+        return []
+
     tickers: list[str] = []
     seen: set[str] = set()
-    for m in re.finditer(r'quote\?t=([A-Z0-9.\-]{1,12})(?:&|")', resp.text):
-        t = m.group(1).upper()
+    for row in all_rows[1:]:
+        cells = row.find_all("td")
+        if ticker_idx >= len(cells):
+            continue
+        t = cells[ticker_idx].get_text(strip=True).upper()
+        if not t or not t.replace(".", "").replace("-", "").isalnum():
+            continue
         if t in seen:
             continue
         seen.add(t)

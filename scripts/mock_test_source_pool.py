@@ -140,9 +140,38 @@ def test_yahoo_multi_membership_merge():
 
 
 # ── (B) Finviz-v111-Collector ────────────────────────────────────────────────
+# Parser-Fix 27.09.2026: get_finviz_screener_v111() nutzt jetzt BS4-Tabellen-
+# Parsing statt Regex (Diagnose 27.09.2026: Regex lieferte 46/46 Läufe lang
+# item_count=0, Live-Check bestätigte URL/Filter funktionieren). Der
+# funktionale Collector-Test braucht deshalb jetzt eine ECHTE BeautifulSoup —
+# analog zum bestehenden yfinance-Lazy-Import-Muster (_try_backtest_history
+# oben) wird das versucht und bei fehlendem bs4 (Minimal-CI) fail-soft auf
+# Source-Inspektion zurückgefallen, statt den ganzen Test auszuschließen.
 
-def _load_v111_collector():
-    html = ('x quote?t=DUAL" y quote?t=FVONLY" z quote?t=DUAL"')
+def _try_bs4():
+    try:
+        from bs4 import BeautifulSoup  # noqa
+        return BeautifulSoup
+    except Exception:
+        return None
+
+
+def _v111_table_html():
+    # Realistische Struktur: mehrere <table>-Elemente, nur eine trägt die
+    # "Ticker"-Header-Spalte — DUAL erscheint zweimal (Dedup-Nachweis).
+    header = "<tr><td>No.</td><td>Ticker</td><td>Company</td></tr>"
+    rows = "".join(
+        f"<tr><td>{i}</td><td>{t}</td><td>{t} Inc</td></tr>"
+        for i, t in enumerate(["DUAL", "FVONLY", "DUAL"], start=1)
+    )
+    return ("<html><body>"
+            "<table><tr><td>layout</td></tr></table>"
+            f"<table>{header}{rows}</table>"
+            "</body></html>")
+
+
+def _load_v111_collector(BeautifulSoup):
+    html = _v111_table_html()
 
     class _Resp:
         status_code = 200
@@ -158,13 +187,26 @@ def _load_v111_collector():
         "FINVIZ_SCREENER_ENABLED": True, "FINVIZ_MAX_TICKERS": 50,
         "SOURCE_POOL_FINVIZ_V111": config.SOURCE_POOL_FINVIZ_V111,
         "requests": _Requests(), "HTTP_HEADERS": {},
+        "BeautifulSoup": BeautifulSoup,
     }
     exec(_extract(GR_TEXT, "get_finviz_screener_v111"), ns)
     return ns["get_finviz_screener_v111"]
 
 
 def test_v111_tag():
-    collector = _load_v111_collector()
+    BeautifulSoup = _try_bs4()
+    if BeautifulSoup is None:
+        # bs4 nicht verfügbar (Minimal-CI) — Source-Inspektion als Netz,
+        # analog dem D-SKIP-Muster oben, statt den Test stumm auszulassen.
+        v111_body = _extract(GR_TEXT, "get_finviz_screener_v111")
+        _check("B-SKIP funktionaler v111-Collector-Test (kein bs4 im CI-Slot)", True)
+        _check("B0 v111 nutzt BeautifulSoup-Tabellen-Parsing (nicht mehr Regex)",
+               "BeautifulSoup(resp.text" in v111_body
+               and 'find_all("table")' in v111_body
+               and "quote\\?t=" not in v111_body,
+               "BS4-Parsing-Marker fehlt oder alter Regex noch vorhanden")
+        return
+    collector = _load_v111_collector(BeautifulSoup)
     out = collector()
     tickers = {c["ticker"]: c for c in out}
     _check("B1 v111 liefert deduplizierte Ticker", set(tickers) == {"DUAL", "FVONLY"})
