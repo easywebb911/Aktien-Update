@@ -1,5 +1,38 @@
 {
   "schema_v": 1,
-  "note": "Eingeführt am 2026-09-22 (PR: Open-Items-Tracker). Die Historie VOR diesem Datum wurde NICHT rekonstruiert -- bekannte, zuvor in der Session-Handover-Prosa verlorene Punkte (u.a. NYSE-Referer-Probe-Status, S8-Digest-Timing-Beobachtung) wurden bewusst NICHT nachtraeglich geraten oder eingetragen. Ab hier gilt: kein Punkt verschwindet mehr ersatzlos, siehe scripts/lint_open_items_consistency.py.",
-  "items": []
+  "note": "Eingeführt am 2026-09-22 (PR: Open-Items-Tracker). Die Historie VOR diesem Datum wurde NICHT rekonstruiert -- bekannte, zuvor in der Session-Handover-Prosa verlorene Punkte (u.a. NYSE-Referer-Probe-Status, S8-Digest-Timing-Beobachtung) wurden bewusst NICHT nachtraeglich geraten oder eingetragen. Ab hier gilt: kein Punkt verschwindet mehr ersatzlos, siehe scripts/lint_open_items_consistency.py. Ergaenzung 2026-09-27: eine Konsistenz-Diagnose fand die Datei trotz mehrerer in der Handover-Prosa bereits als offen markierter Punkte leer vor -- vier konkret benannte, bereits dokumentierte Punkte wurden gezielt nachgetragen (kein genereller Ruecktritt vom Nicht-Rekonstruktions-Prinzip oben, nur eine bewusste, einzeln begruendete Ausnahme je Punkt).",
+  "items": [
+    {
+      "id": "pr532-or0-sibling-bugs",
+      "title": "PR #532 Sibling-Bugs: FINRA-or0-Muster + Matured-Export-Felder + <=0-Slip",
+      "opened": "2026-08-15",
+      "description": "Aus PR #532 (merged 7d916bfd, 15.08.2026), wörtlich aus SESSION_HANDOVER.md übernommen: \"Sibling-Bugs gemeldet, NICHT gefixt: FINRA-short_interest-or 0-Muster (_compute_si_slope_5d/_compute_si_velocity_pub), mehrere Entry-/Matured-Export-Felder mit demselben or 0-Muster, ein <= 0-Slip in der Squeeze-Detection-Historienscan-Funktion.\" Noch nicht behoben (Stand 27.09.2026).",
+      "status": "offen",
+      "status_date": "2026-09-27"
+    },
+    {
+      "id": "s6n-90plus-score-bucket-persistence",
+      "title": "≥90-Score-Bucket-Persistenz seit 29.06.2026",
+      "opened": "2026-08-29",
+      "description": "Aus SESSION_HANDOVER.md §6n: Setup-Score ≥90 ist seit W27 (29.06.) durchgehend selten (0-5% der Top-10-Einträge/Woche) gegenüber 0-12,5% in den ersten Live-Wochen, keine Erholung bis heute; der breitere ≥70/≥80-Bereich hat sich dagegen erholt. Ausgangshypothese (unbewiesen, nicht vorregistriert): zeitliche Koinzidenz mit market_regime-Kippung bull→neutral (W29) und score_timing-Einbruch. Explizit als 'Status: OFFEN' im Handover markiert, kein Auftrag/Termin, reiner Beobachtungspunkt für künftige Hypothesen-Runde.",
+      "status": "offen",
+      "status_date": "2026-09-27"
+    },
+    {
+      "id": "nan-bypass-baseline-70",
+      "title": "70 offene Gruppe-A-NaN-Bypass-Funde (Lint-Baseline, PR #559)",
+      "opened": "2026-09-22",
+      "description": "PR #559 führte scripts/lint_nan_bypass_fields.py ein (4. CI-Gate gegen .get(feld) or 0-NaN-Bypass bei bekannten Marktfeldern). Der erste echte Lauf fand 70 statt der erwarteten ~4 Treffer -- alle als Momentaufnahme in _BASELINE_KNOWN_OPEN (Datei+Zeile+Feld) eingetragen, damit der Lint bei Einführung grün startet, aber jede NEUE Instanz sofort fängt. Die 70 bleiben als sichtbare Tech-Debt-Liste für Folge-PRs -- bisher NICHT gefixt (Sequenz-Regel, bewusst separat von der Lint-Einführung selbst).",
+      "status": "offen",
+      "status_date": "2026-09-27"
+    },
+    {
+      "id": "ttgt-si-velocity-pub-anomaly",
+      "title": "TTGT-Bestandsrecord mit si_velocity_pub=-1.0 (stille-0-Bypass-Signatur)",
+      "opened": "2026-09-21",
+      "description": "Aus PR #557 (Diagnose 21.09.2026): Read-only-Check der damaligen backtest_history.json (1636 Einträge) fand 0 Records mit score==0/entry_price==0 nach dem Schreibpfad-Fix, aber 1 Record (Ticker TTGT, Entry-Datum 20.07.2026) mit si_velocity_pub==-1.0 -- laut PR-Text 'exakt die mathematische Signatur eines si_new=stille-0-Bypasses'. Ausdrücklich nur gemeldet, NICHT korrigiert.",
+      "status": "offen",
+      "status_date": "2026-09-27"
+    }
+  ]
 }
