@@ -17,8 +17,13 @@ on:
   pull_request:
 
 # Read-only: der Check kann nichts pushen, mergen oder blockieren.
+# NEUE Rechte-Klasse ab 28.09.2026: 'pull-requests: read' (zusätzlich zu
+# 'contents: read') für den Handover-Staleness-Hinweis unten (`gh pr list
+# --state merged`) -- bleibt vollständig lesend, keine Eskalation. Siehe
+# Step "Handover-Staleness-Hinweis" weiter unten.
 permissions:
   contents: read
+  pull-requests: read
 
 # Mehrere schnelle Pushes auf denselben PR → nur den letzten Lauf behalten.
 concurrency:
@@ -106,6 +111,27 @@ jobs:
         env:
           OPEN_ITEMS_BASE_REF: ${{ github.event.pull_request.base.sha }}
         run: python scripts/lint_open_items_consistency.py
+
+      - name: Handover-Staleness-Hinweis
+        # 7. Check (28.09.2026) — ADVISORY, weicher als die übrigen 6
+        # Checks in dieser Datei: liefert IMMER exit 0, egal ob (a) kein
+        # Rückstand, (b) Rückstand über Schwelle, oder (c) der `gh`-Aufruf
+        # selbst fehlschlägt (Netzwerk/Rate-Limit/kaputtes JSON) — reiner
+        # Log-Hinweis, kein roter Check-Run. Hintergrund: SESSION_HANDOVER.md
+        # Block 1 ist am 28.09.2026 zweimal binnen Stunden hinter main
+        # zurückgefallen (31 PRs, dann sofort wieder 2 PRs); bisherige
+        # Absicherung war reine Session-Disziplin ohne mechanischen Check.
+        # Nutzt die GitHub-API (`gh pr list --state merged --limit 1`)
+        # statt Git-Fetch-Tiefe — Diagnose 28.09.2026 hat die Fetch-
+        # Alternative geprüft und verworfen (nur ~8% der Commits sind
+        # Merges, Rest automatisierte ki_agent-/Daily-Run-Pushes; eine
+        # feste Fetch-Tiefe würde bei wachsender Automations-Dichte still
+        # zu knapp werden). Schwelle als benannte Konstante
+        # (HANDOVER_STALENESS_PR_THRESHOLD) in scripts/check_handover_
+        # staleness.py, nicht hartkodiert.
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: python scripts/check_handover_staleness.py
 
       # Phase-2-Gate: gebündelter Allowlist-Runner für die 77 datums-/netz-
       # stabilen (Kategorie-A) Mock-Tests — inkl. Outer-Page-Golden (#312) und
