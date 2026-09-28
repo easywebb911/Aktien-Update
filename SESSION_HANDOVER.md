@@ -1,4 +1,4 @@
-# SESSION_HANDOVER.md — Stand 27.09.2026 (Woche 15.08.–27.09.: NaN-Härtungskette + Push-Gating unvalidierter Trading-Signale + H5/Netto/SPY-Vorabregistrierungs-Ausbau + Open-Items-Tracker + Health-Check-Wochendigest + MFE/MAE-Bestandsaufnahme + §4-Diskrepanz geklärt)
+# SESSION_HANDOVER.md — Stand 27.09.2026 (Woche 15.08.–27.09.: NaN-Härtungskette + Push-Gating unvalidierter Trading-Signale + H5/Netto/SPY-Vorabregistrierungs-Ausbau + Open-Items-Tracker + Health-Check-Wochendigest + MFE/MAE-Bestandsaufnahme + §4-Diskrepanz geklärt + Finviz-v111-Parser-Fix)
 
 **Zweck:** vollständige Übergabe an eine **neue Code-Session ohne Kontext der
 alten**. Dieses Dokument + `CLAUDE.md` müssen zusammen ausreichen, um am
@@ -19,7 +19,7 @@ detektiv, verhindert den Verlust nicht, macht ihn nur sichtbar. Ein
 roter Check-Run auf einem main-Commit braucht also einen Follow-up-Fix.
 
 **Datums-Basis (belegt, nicht Erinnerung):** Repo-Stand **27.09.2026**.
-**15.08.–27.09.2026** (PRs #533–#563, 31 PRs, alle git-belegt gemergt,
+**15.08.–27.09.2026** (PRs #533–#566, 33 PRs, alle git-belegt gemergt,
 thematisch gruppiert — volle Details unten unter „## 1) HEUTE
 IMPLEMENTIERT"): **⚠ Push-Gating unvalidierter Trading-Signal-Pushes**
 (`#544`/`#545`, 06.09. — **5 Push-Typen deaktiviert**, siehe Hervorhebung
@@ -31,11 +31,12 @@ Wiedervorlage `#543`) · **NYSE-/Reg-SHO-Diagnose-Kette** (`#538`/`#539`/
 Fixes** (`#537`/`#540`/`#552`/`#553`) · **Doku-/Backlog-Pflege**
 (`#541`/`#555`/`#556`) ·
 **Open-Items-Tracker** (`#560`) · **Health-Check-Wochendigest** (`#562`) ·
-**MFE/MAE-Bestandsaufnahme** (§6q, `#563`). **§4-Zähler-Diskrepanz vom
-18.09. GEKLÄRT** (Ursache: reiner Zeitversatz zwischen zwei Zählzeit-
-punkten, kein Logik-Bug — siehe §4-Protokolleintrag 27.09.2026); aktueller
-Live-Stand **n=144/250**, nachgerechnet **27.09.2026, 07:16:50 UTC**
-direkt gegen `matured_backtest_export.jsonl`.
+**MFE/MAE-Bestandsaufnahme** (§6q, `#563`) · **Finviz-v111-Parser-Fix**
+(`#565`) · **Open-Items-Nachtrag** (16 Punkte, `#566`). **§4-Zähler-
+Diskrepanz vom 18.09. GEKLÄRT** (Ursache: reiner Zeitversatz zwischen
+zwei Zählzeitpunkten, kein Logik-Bug — siehe §4-Protokolleintrag
+27.09.2026); aktueller Live-Stand **n=144/250**, nachgerechnet
+**27.09.2026, 07:16:50 UTC** direkt gegen `matured_backtest_export.jsonl`.
 
 **Vorheriger Bogen — Woche 03.–08.08.2026** (PRs #500–#512, alle git-belegt
 gemergt): Prune-Konsequenz-
@@ -160,6 +161,19 @@ deaktiviert**).
   (Montag-Gate, §4-Delta + Open-Items-Diff) · `#563` (`2f413621`, 26.09.)
   §6q **MFE/MAE-Bestandsaufnahme** nach Score-Bucket (Beobachtungspunkt,
   keine Vorabregistrierung).
+
+- **Datenpfad-Fix + Open-Items-Nachtrag:** `#565` (`f854d37d`, 27.09.)
+  **Finviz-v111-Screener-Parser-Fix** — Regex → BS4-Tabellen-Parsing
+  (analog `get_finviz_candidates()`/`_fetch_short_float_finviz()`), live
+  verifiziert gegen 12 echte Ticker (XNDU/TYRA/SRZN/SHOE/PRME/OXM/ORIC/
+  MATW/LRMR/IMVT/GRAL/AESI); Datenpfad lieferte seit Einführung (21.04.,
+  `35911455`) vermutlich nie einen Kandidaten (0/1636
+  `backtest_history.json`-Einträge mit `finviz_v111` in `source_pools`)
+  · `#566` (`3ca21754`, 27.09.) **16 Open-Items nachgetragen** —
+  systematische Durchsuchung aller 9 Blöcke von SESSION_HANDOVER.md nach
+  bereits bekannten, aber im Tracker bisher nicht erfassten offenen
+  Punkten (`squeeze-report-archiv.md` existiert nicht im Repo, weder
+  aktuell noch historisch — daher nicht durchsucht).
 
 ---
 
