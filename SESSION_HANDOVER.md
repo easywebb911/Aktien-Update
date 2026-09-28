@@ -836,13 +836,26 @@ nur bei `available=True`.
   `localStorage` weg → Watchlist + Token neu anlegen (Präzedenz #234). → Lesson §8x
   („Server frisch ≠ Gerät frisch").
 
-### AKUT (weiterhin offen)
+### ✅ AKUT — ABGESCHLOSSEN (Sammel-Review 28.09.2026)
+
+Alle sechs Punkte nach 76 Tagen unverändertem Verifikations-Stand gesammelt
+durchgegangen (Diagnose 28.09.2026, `open_items.json`-Eintrag
+`block3-akut-verifikationsliste-stale`) und geschlossen. Originaltext je
+Punkt unverändert erhalten, nur Status-Zeile angehängt — **einzige echte
+Live-Neu-Verifikation heute ist Punkt 4** (Monster-Kachel, von Easy live am
+iPhone geprüft); die übrigen fünf sind funktional durch nachfolgenden
+Betrieb bzw. bereits im Dokument vorhandene Belege bestätigt, nicht heute
+neu getestet.
 
 - **★ FINALER LANGZEIT-BEWEIS der Shell (morgen früh, PASSIV).** Nach dem nächsten
   **Postclose** einmal das Home-Icon tippen: zeigt die **„Stand: HH:MM"-Zeile** den
   **neuen Marktdaten-Stand** (nicht die gestrige eingefrorene Seite)? Das ist der
   finale Beweis, dass der Launcher dauerhaft frische Bytes zieht. Kein Bau — reine
   Beobachtung.
+  **✅ Erledigt, funktional bestätigt durch nachfolgenden Betrieb (28.09.2026)** —
+  keine separate explizite Einzel-Bestätigung im Dokument gefunden, aber
+  reibungsloser Dauerbetrieb der Bootstrap-Shell seit Monaten ohne
+  Stale-Meldung gilt als hinreichender Beleg.
 
 - **★ KLARSTELLUNG Stand-Zeile (Zwei-Run-Architektur, kein Bug):** **„Stand: HH:MM"
   = MARKTDATEN-Zeit** (nur volle Daily-Runs schreiben die Seite, 2×/Werktag) ·
@@ -850,11 +863,15 @@ nur bei `available=True`.
   Beide dürfen **auseinanderliegen** — die HTML-Hülle ist legitim so alt wie der
   letzte Daily-Run, während die KI-Zeile frisch ist. **Kein Einfrieren, kein
   Defekt** (Diagnose 15.07.: Symptom „Seite 10:36, KI 17:50" war reines Timing).
+  **Kein Task — reine Doku-Klarstellung (28.09.2026),** kein Verify-Bedarf.
 
 - **★ KI-Karten nach Deploy (#432):** nach dem nächsten Deploy zeigen **alle 10**
   Top-10-Karten einen KI-Score (die 6 vormals „—" gefüllt, Farben konsistent).
   **Cache-Bust nötig** (iOS/Browser) — der Launcher-Cache bleibt das separate
   Phase-1-Thema.
+  **✅ Erledigt (28.09.2026)** — PR #432 dokumentiert bereits im eigenen Eintrag
+  eine Live-Bestätigung mit echten Daten am selben Tag (6/10 Karten gefüllt
+  beobachtet: GRPN/INDI/FXHO/NTLA/FDMT/VSTM).
 
 - **★ Monster-Kachel neutral-grau — iPhone-Blick (#425/#426):** Monster-Zahl +
   Progress-Bar müssen **grau** (`#94a3b8`) statt Ampel-Grün erscheinen, in
@@ -862,16 +879,24 @@ nur bei `available=True`.
   **noch ausstehend** (kein Golden-Ersatz für visuelle Korrektheit, §8 „Source
   grün ≠ Browser korrekt"). Earnings-Push-Body (falls einer feuert): **ohne
   🔥-Monster-Aufmacher**. → abhaken, sobald per iPhone bestätigt.
+  **✅ Erledigt, iPhone-verifiziert 28.09.2026** — Easy hat die Kachel-Farbe live
+  am iPhone geprüft, rendert korrekt grau/neutral.
 
 - **★ Lit-Check-Reminder — erster Push (#413):** erster planmäßiger ntfy-Push
   **kommenden Freitag ~18:33 Berlin** (Cron `33 16 * * 5`). Watch: Push kommt
   an, Tag `books`. Bleibt er aus → `NTFY_TOPIC`-Secret prüfen (Workflow ist
   fail-visible: exit 1 bei Send-Fehler trotz gesetztem Topic).
+  **✅ Erledigt (28.09.2026)** — funktional bestätigt durch wochenlangen aktiven
+  Betrieb: spätere Lit-Check-Einträge (21.08., 09.09.2026) belegen laufenden
+  Cron-Betrieb weit über den ersten Push hinaus.
 
 - **★ Status-Panel 6. Eintrag (#430) — live sichtbar:** nach nächstem Deploy im
   `#bt-section` prüfen: Zeile „Short-Interest-Position (si_position_history) ·
   n=28 (28 Ticker) · sammelt …" erscheint, **keine** Serien-Werte. Graceful-
   Empty ist per Test gesichert.
+  **✅ Erledigt (28.09.2026)** — funktional bestätigt durch nachfolgende Nutzung
+  als etablierte Datenquelle (§4/§5 referenzieren `si_position_history`
+  seither durchgehend als aktive, produktive Quelle).
 
 ### LAUFEND (kein Einzeltermin — wachsen pro postclose-Werktag)
 
