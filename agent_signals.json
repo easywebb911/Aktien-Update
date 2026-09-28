@@ -1,10 +1,10 @@
 {
-  "updated": "2026-09-28T00:12:15.779143+02:00",
+  "updated": "2026-09-28T02:47:39.659653+02:00",
   "run_info": {
     "tickers_checked": 13,
     "signals_active": 0,
     "alerts_sent": 0,
-    "elapsed_s": 13.5,
+    "elapsed_s": 11.9,
     "market_phase": "Geschlossen"
   },
   "signals": {
@@ -170,7 +170,7 @@
     "PCT": {
       "score": 36,
       "confidence": 70,
-      "drivers": "Spanne 8.6% + News-KI 8/30: Moderate operational progress with regulatory support, but execution risks and detergent-focused pivot suggest limited s + Earnings in 39d + SEC Form 4",
+      "drivers": "Spanne 8.6% + News-KI 8/30: Execution risks and regulatory uncertainty outweigh positive operational progress; limited catalyst for short-squeeze mo + Earnings in 39d + SEC Form 4",
       "price": 5.02,
       "chg_pct": -0.0,
       "rvol_4d": 0.92,
@@ -212,9 +212,9 @@
       "uoa_cp_ratio": 2.176470588235294
     },
     "RUN": {
-      "score": 43,
+      "score": 36,
       "confidence": 70,
-      "drivers": "Spanne 6.2% + News: partnership + Earnings in 39d + UOA Call/Put 4.7×",
+      "drivers": "Spanne 6.2% + News-KI 8/30: Negative sector headwinds and broader market underperformance indicate weak momentum and falling stock price, which are  + Earnings in 39d + UOA Call/Put 4.7×",
       "price": 8.11,
       "chg_pct": -0.0,
       "rvol_4d": 0.86,
@@ -225,8 +225,8 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 1,
-      "ki_sentiment_source": "keyword",
+      "active_triggers": 0,
+      "ki_sentiment_source": "llm",
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 4.7×"
