@@ -160,9 +160,14 @@ def fetch_highest_merged_pr() -> tuple[int | None, str | None]:
 
     Returnt ``(nummer, fehlertext)``. Bei Erfolg: ``(N, None)``. Bei
     JEDEM Fehlerfall (``gh`` fehlt, Netzwerk, Rate-Limit, kaputtes JSON,
-    leere Merge-Liste, unerwartetes Schema) fail-soft: ``(None, <Grund>)``
-    -- wirft NIEMALS eine Exception nach außen (siehe ``main()``, das
-    diesen Fall als Hinweis statt CI-Fail behandelt)."""
+    leere Merge-Liste, unerwartetes Schema, nicht-UTF8-dekodierbare
+    stdout/stderr bei Locale-Mismatch am Runner) fail-soft:
+    ``(None, <Grund>)`` -- wirft NIEMALS eine Exception nach außen (siehe
+    ``main()``, das diesen Fall als Hinweis statt CI-Fail behandelt).
+    Guardian-Finding (28.09.2026): ``UnicodeDecodeError`` fehlte ursprünglich
+    im except-Tupel -- ``subprocess.run(..., text=True)`` dekodiert
+    stdout/stderr intern und kann bei einem Locale-Mismatch genau diese
+    Exception werfen, UNGEFANGEN von ``OSError``/``TimeoutExpired``."""
     try:
         result = subprocess.run(
             ["gh", "pr", "list", "--state", "merged", "--limit", "1",
@@ -172,7 +177,7 @@ def fetch_highest_merged_pr() -> tuple[int | None, str | None]:
             text=True,
             timeout=30,
         )
-    except (OSError, subprocess.TimeoutExpired) as exc:
+    except (OSError, subprocess.TimeoutExpired, UnicodeDecodeError) as exc:
         return None, f"gh-Aufruf fehlgeschlagen ({exc})"
     if result.returncode != 0:
         detail = (result.stderr or "").strip()[:200]
@@ -199,8 +204,17 @@ def main() -> int:
               f"Staleness-Check übersprungen.")
         return 0
 
-    highest_doc_pr = extract_highest_doc_pr(
-        handover_file.read_text(encoding="utf-8"))
+    # Guardian-Finding (28.09.2026): read_text() war ungewrappt -- eine
+    # nicht-UTF8-dekodierbare Datei hätte main() trotz des dokumentierten
+    # "IMMER 0"-Vertrags mit UnicodeDecodeError abstürzen lassen.
+    try:
+        handover_text = handover_file.read_text(encoding="utf-8")
+    except (OSError, UnicodeDecodeError) as exc:
+        print(f"HINWEIS: {HANDOVER_PATH} nicht lesbar ({exc}) -- "
+              f"Staleness-Check nicht durchführbar (fail-soft, kein CI-Fail).")
+        return 0
+
+    highest_doc_pr = extract_highest_doc_pr(handover_text)
     if highest_doc_pr is None:
         print(f"HINWEIS: keine PR-Nummer in Block 1 von {HANDOVER_PATH} "
               f"gefunden -- Staleness-Check nicht durchführbar "

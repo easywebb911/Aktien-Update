@@ -37,6 +37,14 @@ Zusätzlich (Robustheit):
   (q) Workflow-Wiring: pr-checks.yml hat die neue 'pull-requests: read'-
       Permission UND einen Step, der check_handover_staleness.py aufruft
 
+Guardian-Findings (28.09.2026, nachgebessert):
+  (r) fetch_highest_merged_pr: UnicodeDecodeError (Locale-Mismatch bei
+      text=True-Dekodierung von stdout/stderr) -> fail-soft statt
+      ungefangenem Crash
+  (s) main(): SESSION_HANDOVER.md nicht UTF8-dekodierbar -> fail-soft
+      statt ungefangenem Crash (der Docstring-Vertrag "main() liefert
+      IMMER 0" galt vor dem Fix nicht für diesen Pfad)
+
 Kategorie A: reine stdlib (json/pathlib/re/subprocess/sys/unittest.mock) +
 pyyaml für die YAML-Struktur-Validierung in (q) (analog mock_test_digest.py,
 im Minimal-CI-Install bereits vorhanden). Kein Netzwerk-Zugriff nötig.
@@ -254,6 +262,19 @@ def test_m_fetch_timeout_is_fail_soft():
            number is None and error is not None, error)
 
 
+def test_r_fetch_unicode_decode_error_is_fail_soft():
+    # Guardian-Finding: subprocess.run(text=True) dekodiert stdout/stderr
+    # intern -- bei Locale-Mismatch am Runner kann das eine
+    # UnicodeDecodeError werfen, die vor dem Fix NICHT im except-Tupel
+    # (OSError, TimeoutExpired) gefangen war.
+    with mock.patch.object(
+            chs.subprocess, "run",
+            side_effect=UnicodeDecodeError("utf-8", b"\xff", 0, 1, "invalid")):
+        number, error = chs.fetch_highest_merged_pr()
+    _check("R1 UnicodeDecodeError -> (None, Fehlertext), kein Crash",
+           number is None and error is not None, error)
+
+
 # ── (n)/(o) main() End-to-End ───────────────────────────────────────────────
 def test_n_main_end_to_end_three_paths_all_exit_zero():
     fixture = _handover_fixture("- `#560` (`abc1234`, 22.09.) Beispiel-PR")
@@ -298,6 +319,21 @@ def test_o_main_missing_handover_file_is_fail_soft():
         with mock.patch.object(chs, "ROOT", tmp):
             rc = chs.main()
         _check("O1 fehlende SESSION_HANDOVER.md -> exit 0 (fail-soft)", rc == 0, rc)
+    finally:
+        _cleanup_tmp(tmp)
+
+
+def test_s_main_non_utf8_handover_file_is_fail_soft():
+    # Guardian-Finding: handover_file.read_text(encoding="utf-8") war
+    # ungewrappt -- eine nicht-UTF8-dekodierbare Datei ließ main() trotz
+    # des dokumentierten "IMMER 0"-Vertrags mit UnicodeDecodeError crashen.
+    tmp = pathlib.Path(tempfile.mkdtemp(prefix="handover_staleness_test_badenc_"))
+    try:
+        (tmp / chs.HANDOVER_PATH).write_bytes(b"\xff\xfe\x00\x01invalid-utf8")
+        with mock.patch.object(chs, "ROOT", tmp):
+            rc = chs.main()
+        _check("S1 nicht-UTF8-dekodierbare SESSION_HANDOVER.md -> exit 0 "
+               "(fail-soft, kein Crash)", rc == 0, rc)
     finally:
         _cleanup_tmp(tmp)
 
@@ -364,8 +400,10 @@ def main() -> int:
     test_k_fetch_empty_list_is_fail_soft()
     test_l_fetch_unexpected_schema_is_fail_soft()
     test_m_fetch_timeout_is_fail_soft()
+    test_r_fetch_unicode_decode_error_is_fail_soft()
     test_n_main_end_to_end_three_paths_all_exit_zero()
     test_o_main_missing_handover_file_is_fail_soft()
+    test_s_main_non_utf8_handover_file_is_fail_soft()
     test_p_regression_real_handover_file_parses()
     test_q_workflow_wiring()
 
