@@ -413,6 +413,11 @@
       "date": "2026-09-24",
       "inst_ownership": 1.3277401,
       "insider_ownership": 0.00932
+    },
+    {
+      "date": "2026-09-28",
+      "inst_ownership": 1.32725,
+      "insider_ownership": 0.00932
     }
   ],
   "RES": [
@@ -829,6 +834,11 @@
       "date": "2026-09-25",
       "inst_ownership": 0.5061,
       "insider_ownership": 0.00717
+    },
+    {
+      "date": "2026-09-28",
+      "inst_ownership": 0.50611,
+      "insider_ownership": 0.00717
     }
   ],
   "AMC": [
@@ -1206,6 +1216,11 @@
       "date": "2026-09-25",
       "inst_ownership": 1.03777,
       "insider_ownership": 0.048850004
+    },
+    {
+      "date": "2026-09-28",
+      "inst_ownership": 1.03766,
+      "insider_ownership": 0.048850004
     }
   ],
   "CCCC": [
@@ -1257,6 +1272,11 @@
     {
       "date": "2026-09-23",
       "inst_ownership": 1.0278,
+      "insider_ownership": 0.00837
+    },
+    {
+      "date": "2026-09-28",
+      "inst_ownership": 1.03098,
       "insider_ownership": 0.00837
     }
   ],
@@ -2106,6 +2126,11 @@
     {
       "date": "2026-09-24",
       "inst_ownership": 1.31129,
+      "insider_ownership": 0.0115
+    },
+    {
+      "date": "2026-09-28",
+      "inst_ownership": 1.31144,
       "insider_ownership": 0.0115
     }
   ],
@@ -4256,6 +4281,11 @@
       "date": "2026-09-23",
       "inst_ownership": 0.63678,
       "insider_ownership": 0.29757
+    },
+    {
+      "date": "2026-09-28",
+      "inst_ownership": 0.63671,
+      "insider_ownership": 0.29757
     }
   ],
   "JBGS": [
@@ -4835,6 +4865,11 @@
     {
       "date": "2026-09-24",
       "inst_ownership": 0.45740002,
+      "insider_ownership": 0.0
+    },
+    {
+      "date": "2026-09-28",
+      "inst_ownership": 0.45731997,
       "insider_ownership": 0.0
     }
   ],
@@ -6215,6 +6250,11 @@
       "date": "2026-09-24",
       "inst_ownership": 0.95815,
       "insider_ownership": 0.060650002
+    },
+    {
+      "date": "2026-09-28",
+      "inst_ownership": 0.95817,
+      "insider_ownership": 0.060650002
     }
   ],
   "ARRY": [
@@ -6264,6 +6304,20 @@
       "date": "2026-09-25",
       "inst_ownership": 0.03355,
       "insider_ownership": 0.46021
+    }
+  ],
+  "PAL": [
+    {
+      "date": "2026-09-28",
+      "inst_ownership": 0.7114,
+      "insider_ownership": 0.14247
+    }
+  ],
+  "OI": [
+    {
+      "date": "2026-09-28",
+      "inst_ownership": 1.06052,
+      "insider_ownership": 0.01307
     }
   ]
 }

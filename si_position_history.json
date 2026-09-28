@@ -96,6 +96,12 @@
       "shares_short": 13855682,
       "short_pct_float": 67.01,
       "pub_date": "2026-09-10"
+    },
+    {
+      "settlement_date": "2026-09-15",
+      "shares_short": 13539556,
+      "short_pct_float": 65.48,
+      "pub_date": "2026-09-24"
     }
   ],
   "TRIP": [
@@ -336,6 +342,12 @@
       "shares_short": 5898902,
       "short_pct_float": 31.23,
       "pub_date": "2026-09-10"
+    },
+    {
+      "settlement_date": "2026-09-15",
+      "shares_short": 6180996,
+      "short_pct_float": 32.73,
+      "pub_date": "2026-09-24"
     }
   ],
   "PAR": [
@@ -1521,6 +1533,12 @@
       "shares_short": 17700892,
       "short_pct_float": 33.0,
       "pub_date": "2026-09-10"
+    },
+    {
+      "settlement_date": "2026-09-15",
+      "shares_short": 18334783,
+      "short_pct_float": 34.19,
+      "pub_date": "2026-09-24"
     }
   ],
   "IVF": [
@@ -1665,6 +1683,12 @@
       "shares_short": 33318835,
       "short_pct_float": 23.13,
       "pub_date": "2026-09-10"
+    },
+    {
+      "settlement_date": "2026-09-15",
+      "shares_short": 33504112,
+      "short_pct_float": 23.26,
+      "pub_date": "2026-09-24"
     }
   ],
   "AMRC": [
@@ -1725,6 +1749,12 @@
       "shares_short": 19970938,
       "short_pct_float": 16.76,
       "pub_date": "2026-09-10"
+    },
+    {
+      "settlement_date": "2026-09-15",
+      "shares_short": 19802312,
+      "short_pct_float": 16.62,
+      "pub_date": "2026-09-24"
     }
   ],
   "KURA": [
@@ -1758,6 +1788,12 @@
       "shares_short": 13417317,
       "short_pct_float": 15.48,
       "pub_date": "2026-09-10"
+    },
+    {
+      "settlement_date": "2026-09-15",
+      "shares_short": 14820592,
+      "short_pct_float": 17.1,
+      "pub_date": "2026-09-24"
     }
   ],
   "CTRN": [
@@ -3498,6 +3534,12 @@
       "shares_short": 22183275,
       "short_pct_float": 42.13,
       "pub_date": "2026-09-10"
+    },
+    {
+      "settlement_date": "2026-09-15",
+      "shares_short": 19680648,
+      "short_pct_float": 37.37,
+      "pub_date": "2026-09-24"
     }
   ],
   "EOSE": [
@@ -3642,6 +3684,12 @@
       "shares_short": 37413259,
       "short_pct_float": 30.59,
       "pub_date": "2026-09-10"
+    },
+    {
+      "settlement_date": "2026-09-15",
+      "shares_short": 40189287,
+      "short_pct_float": 32.86,
+      "pub_date": "2026-09-24"
     }
   ],
   "TTGT": [
@@ -6378,6 +6426,12 @@
       "shares_short": 6063781,
       "short_pct_float": 22.25,
       "pub_date": "2026-09-10"
+    },
+    {
+      "settlement_date": "2026-09-15",
+      "shares_short": 5675115,
+      "short_pct_float": 20.82,
+      "pub_date": "2026-09-24"
     }
   ],
   "FFAI": [
@@ -6549,6 +6603,12 @@
       "shares_short": 4672133,
       "short_pct_float": 27.51,
       "pub_date": "2026-09-10"
+    },
+    {
+      "settlement_date": "2026-09-15",
+      "shares_short": 5092081,
+      "short_pct_float": 29.98,
+      "pub_date": "2026-09-24"
     }
   ],
   "SHOE": [
@@ -7014,6 +7074,12 @@
       "shares_short": 39560058,
       "short_pct_float": 24.92,
       "pub_date": "2026-09-10"
+    },
+    {
+      "settlement_date": "2026-09-15",
+      "shares_short": 39568859,
+      "short_pct_float": 24.92,
+      "pub_date": "2026-09-24"
     }
   ],
   "OPTU": [
@@ -7940,6 +8006,36 @@
       "settlement_date": "2026-09-15",
       "shares_short": 1216996,
       "short_pct_float": 64.77,
+      "pub_date": "2026-09-24"
+    }
+  ],
+  "PAL": [
+    {
+      "settlement_date": "2026-08-14",
+      "shares_short": 3109566,
+      "short_pct_float": null,
+      "pub_date": "2026-08-25",
+      "seeded": true
+    },
+    {
+      "settlement_date": "2026-09-15",
+      "shares_short": 3310394,
+      "short_pct_float": 15.84,
+      "pub_date": "2026-09-24"
+    }
+  ],
+  "OI": [
+    {
+      "settlement_date": "2026-08-14",
+      "shares_short": 13880535,
+      "short_pct_float": null,
+      "pub_date": "2026-08-25",
+      "seeded": true
+    },
+    {
+      "settlement_date": "2026-09-15",
+      "shares_short": 17228924,
+      "short_pct_float": 15.69,
       "pub_date": "2026-09-24"
     }
   ]
