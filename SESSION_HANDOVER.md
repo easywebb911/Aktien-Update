@@ -72,7 +72,7 @@ Anker.
 
 ## 1) HEUTE IMPLEMENTIERT (chronologisch, mit Hashes)
 
-### 15.08.–27.09.2026 — Sechs-Wochen-Nachtrag (31 PRs, thematisch gruppiert)
+### 15.08.–27.09.2026 — Sechs-Wochen-Nachtrag (33 PRs, thematisch gruppiert)
 
 *(Diese Sektion schließt eine Lücke: Block 1 hatte zuvor bei PR #532/
 15.08.2026 aufgehört, obwohl seither 31 weitere PRs gemergt wurden — eine
