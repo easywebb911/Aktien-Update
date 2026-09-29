@@ -134,6 +134,15 @@
     "substrate": "none",
     "reason": "no_article"
   },
+  "ANNX": {
+    "qid": null,
+    "title": null,
+    "resolved_at": "2026-09-29T01:02:34Z",
+    "issuer_verified": false,
+    "company_name_at_resolve": "Annexon, Inc.",
+    "substrate": "none",
+    "reason": "no_p249"
+  },
   "ARCT": {
     "qid": "Q98713358",
     "title": "Arcturus_Therapeutics",
@@ -1202,6 +1211,15 @@
     "resolved_at": "2026-08-03T21:02:56Z",
     "issuer_verified": true,
     "company_name_at_resolve": "Serve Robotics Inc.",
+    "substrate": "en",
+    "reason": null
+  },
+  "SFIX": {
+    "qid": "Q18385610",
+    "title": "Stitch_Fix",
+    "resolved_at": "2026-09-29T01:02:34Z",
+    "issuer_verified": true,
+    "company_name_at_resolve": "Stitch Fix, Inc.",
     "substrate": "en",
     "reason": null
   },

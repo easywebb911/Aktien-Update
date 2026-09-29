@@ -87,6 +87,11 @@
       "date": "2026-09-23",
       "inst_ownership": 1.04213,
       "insider_ownership": 0.016490001
+    },
+    {
+      "date": "2026-09-29",
+      "inst_ownership": 1.04247,
+      "insider_ownership": 0.016490001
     }
   ],
   "INBX": [
@@ -1142,6 +1147,11 @@
     {
       "date": "2026-09-23",
       "inst_ownership": 0.98043,
+      "insider_ownership": 0.046729997
+    },
+    {
+      "date": "2026-09-29",
+      "inst_ownership": 0.98087996,
       "insider_ownership": 0.046729997
     }
   ],
@@ -5104,6 +5114,11 @@
       "date": "2026-09-22",
       "inst_ownership": 0.92100996,
       "insider_ownership": 0.16184
+    },
+    {
+      "date": "2026-09-29",
+      "inst_ownership": 0.92081,
+      "insider_ownership": 0.16184
     }
   ],
   "SEDG": [
@@ -5291,6 +5306,11 @@
     {
       "date": "2026-09-17",
       "inst_ownership": 1.02968,
+      "insider_ownership": 0.00424
+    },
+    {
+      "date": "2026-09-29",
+      "inst_ownership": 1.03011,
       "insider_ownership": 0.00424
     }
   ],
@@ -6191,6 +6211,11 @@
       "date": "2026-09-23",
       "inst_ownership": 0.9383,
       "insider_ownership": 0.22153
+    },
+    {
+      "date": "2026-09-29",
+      "inst_ownership": 0.93882006,
+      "insider_ownership": 0.22153
     }
   ],
   "BOBS": [
@@ -6318,6 +6343,48 @@
       "date": "2026-09-28",
       "inst_ownership": 1.06052,
       "insider_ownership": 0.01307
+    }
+  ],
+  "SFIX": [
+    {
+      "date": "2026-09-29",
+      "inst_ownership": 0.91346,
+      "insider_ownership": 0.04803
+    }
+  ],
+  "TSHA": [
+    {
+      "date": "2026-09-29",
+      "inst_ownership": 0.9403,
+      "insider_ownership": 0.094469994
+    }
+  ],
+  "GOSS": [
+    {
+      "date": "2026-09-29",
+      "inst_ownership": 0.85732,
+      "insider_ownership": 0.01434
+    }
+  ],
+  "ANVS": [
+    {
+      "date": "2026-09-29",
+      "inst_ownership": 0.27859,
+      "insider_ownership": 0.117860004
+    }
+  ],
+  "SCNI": [
+    {
+      "date": "2026-09-29",
+      "inst_ownership": 0.04295,
+      "insider_ownership": 0.14159
+    }
+  ],
+  "ABR": [
+    {
+      "date": "2026-09-29",
+      "inst_ownership": 0.67859,
+      "insider_ownership": 0.028889999
     }
   ]
 }
