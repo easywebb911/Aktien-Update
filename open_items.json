@@ -94,9 +94,9 @@
       "id": "s6j-apple-touch-icon-missing",
       "title": "apple-touch-icon fehlt (Home-Bildschirm-Icon zeigt ggf. Blank-Screenshot)",
       "opened": "2026-07-15",
-      "description": "Aus SESSION_HANDOVER.md §6j (Datum via git-log -S auf Sektionstitel geschätzt, klein/kosmetisch): Repo hat nur favicon.svg, kein apple-touch-icon-PNG. Beim 'Zum Home-Bildschirm hinzufügen' nimmt iOS mangels Icon einen Seiten-Screenshot -- nach dem Phase-1-Shell-Flip ist das die (fast leere) 'Lädt…'-Shell. Kandidat: apple-touch-icon.png (180×180) + Link-Tag. Guardian-Hinweis aus #436, bisher nicht umgesetzt.",
-      "status": "offen",
-      "status_date": "2026-09-27"
+      "description": "Aus SESSION_HANDOVER.md §6j (Datum via git-log -S auf Sektionstitel geschätzt, klein/kosmetisch): Repo hat nur favicon.svg, kein apple-touch-icon-PNG. Beim 'Zum Home-Bildschirm hinzufügen' nimmt iOS mangels Icon einen Seiten-Screenshot -- nach dem Phase-1-Shell-Flip ist das die (fast leere) 'Lädt…'-Shell. Kandidat: apple-touch-icon.png (180×180) + Link-Tag. Guardian-Hinweis aus #436, bisher nicht umgesetzt. STATUS 29.09.2026: war bereits seit PR #462 (19.07.2026) umgesetzt, nur nie als erledigt markiert -- technisch verifiziert (valides 180x180-PNG, korrekter Tag an allen vier Fundstellen, grüner Regressionstest), kein visueller iPhone-Live-Check (Easy verzichtet darauf).",
+      "status": "erledigt",
+      "status_date": "2026-09-29"
     },
     {
       "id": "s6k-stand-zeile-zwei-zeiten",

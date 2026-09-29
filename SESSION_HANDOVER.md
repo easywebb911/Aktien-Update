@@ -1804,12 +1804,20 @@ FINRA-SI-Position gratis) — gefunden erst **nach** erschöpfendem externem
 Quellen-Check und **Verifikations-Probe (#422) statt Blind-Bau**.
 
 ### 6j. `apple-touch-icon` fehlt (Shell zeigt ggf. Blank-Screenshot beim Re-Add)
-**Status: OFFEN (klein, kosmetisch).** Das Repo hat nur `favicon.svg`, **kein**
-`apple-touch-icon`-PNG. Beim „Zum Home-Bildschirm hinzufügen" nimmt iOS mangels
-Icon einen **Seiten-Screenshot** — nach dem Phase-1-Flip ist das die (fast leere)
-„Lädt…"-Shell. Kandidat: `apple-touch-icon.png` (180×180) ins Repo + Link-Tag in
-Shell **und** voller Seite. Rein kosmetisch (Home-Icon-Optik), kein Funktions-Bug.
-Guardian-Hinweis aus #436.
+**Status: ERLEDIGT (PR #462, 19.07.2026) — technisch verifiziert 29.09.2026**
+(valides 180×180-PNG `apple-touch-icon.png` im Repo-Root, korrekter
+`<link rel="apple-touch-icon" sizes="180x180" ...>`-Tag an allen vier
+Fundstellen, grüner Regressionstest `mock_test_bootstrap_shell_phase1.py`;
+kein visueller iPhone-Live-Check — Easy verzichtet darauf, technische
+Bestätigung reicht). Ursprünglicher Befund (Guardian-Hinweis aus #436): das
+Repo hatte nur `favicon.svg`, kein `apple-touch-icon`-PNG, iOS nahm beim
+„Zum Home-Bildschirm hinzufügen" mangels Icon einen Seiten-Screenshot.
+**Randnotiz (29.09.2026):** der Icon-Tag lebt an **zwei getrennten
+Stellen** — `templates/head.jinja` (speist `app.html`, die volle Seite)
+und ein separater `_SHELL_HTML`-Plain-String in `generate_report.py`
+(speist `index.html`, die Bootstrap-Shell). Beide aktuell identisch, aber
+**keine gemeinsame Quelle** — bei einer künftigen Icon-Änderung müssen
+beide Stellen synchron gepflegt werden. Kein akutes Problem.
 
 ### 6k. Stand-Zeile könnte beide Zeiten zeigen (Verwirrung „eingefroren?")
 **Status: OFFEN (Kosmetik/UX).** Die Header-Zeile zeigt nur die Marktdaten-Zeit
