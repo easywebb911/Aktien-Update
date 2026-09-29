@@ -4080,6 +4080,12 @@
       "shares_short": 179145796,
       "short_pct_float": 35.03,
       "pub_date": "2026-09-10"
+    },
+    {
+      "settlement_date": "2026-09-15",
+      "shares_short": 178724433,
+      "short_pct_float": 34.95,
+      "pub_date": "2026-09-24"
     }
   ],
   "MUX": [
