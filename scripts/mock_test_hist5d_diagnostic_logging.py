@@ -54,17 +54,53 @@ Zusätzlich (Robustheit):
   G. Exception im try-Block (z.B. ``.tail()`` wirft) → debug-Log statt
      Crash, leere Liste (bestehender äußerer try/except unverändert)
 
-Kategorie A: reine stdlib (re/textwrap/pathlib/sys), keine Drittlibs.
+## Persistenz-Ergänzung (30.09.2026, Folge-PR zu #561)
+
+Die drei ``log.warning()``-Aufrufe landeten bisher NUR im ephemeren
+GitHub-Actions-Konsolenoutput (kein Artifact-Upload, kein Log-File, kein
+``GITHUB_STEP_SUMMARY``) — Diagnose 30.09.2026 konnte trotz zwei neuer
+batch-weiter Ausfälle (28./29.09.) die Zell-/Tag-Details deshalb nicht
+einsehen. Jede der drei Aufrufstellen ruft jetzt zusätzlich
+``hist_5d_gap_log.record_gap(...)`` auf (in generate_report.py per
+eigenem ``try/except Exception: pass`` isoliert) — persistiert in
+``hist_5d_gap_log.jsonl``. Die bestehenden ``log.warning()``-Zeilen und
+die Guard-Entscheidung selbst bleiben davon unberührt (Tests A-G oben
+bleiben unverändert gültig).
+
+Tests H-K unten treiben die ECHTE ``_extract_hist_5d`` zusammen mit dem
+ECHTEN ``hist_5d_gap_log``-Modul (kein Fake) — ``hist_5d_gap_log.LOG_FILE``
+wird pro Test auf ein Tempfile umgeleitet (``mock.patch.object``, siehe
+Modul-Docstring von ``hist_5d_gap_log`` zum bewussten ``None``-Sentinel-
+Design, das genau das ermöglicht), danach wird die reale JSONL-Datei
+zurückgelesen und inhaltlich geprüft:
+  H. eine nicht-endliche Zelle → JSONL-Eintrag mit korrektem Ticker/
+     Datum/Zelle (``reason="nonfinite_cell"``) UND zusätzlich ein
+     ``"insufficient_valid_days"``-Eintrag (4/5 valide Tage nach dem
+     Drop) — beide erwartet, keiner davon ein False-Positive
+  I. vollständig saubere Daten → GAR KEIN JSONL-Eintrag (Datei bleibt
+     leer/nicht angelegt) — kein False-Positive-Logging
+  J. < 5 Roh-Tage → genau 1 JSONL-Eintrag, ``reason=
+     "insufficient_raw_days"``, kein ``nonfinite_cell``-Eintrag
+  K. kein ``ticker``-Argument → GAR KEIN JSONL-Eintrag (identisch zum
+     Verhalten von Test E für ``log.warning``)
+
+Kategorie A: reine stdlib (re/textwrap/pathlib/sys/tempfile/unittest.mock
++ ``hist_5d_gap_log`` selbst, das ebenfalls reine stdlib ist), keine
+Drittlibs.
 """
 from __future__ import annotations
 
 import math
 import pathlib
 import sys
+import tempfile
 import textwrap
+from unittest import mock
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
+
+import hist_5d_gap_log  # noqa: E402 — echtes Modul, reine stdlib, Minimal-CI-sicher
 
 _fails: list[str] = []
 
@@ -138,10 +174,37 @@ def _make_namespace(fake_log: "_FakeLogger") -> dict:
         "math": math,
         "EARLINESS_TREND_LOG_WINDOW_DAYS": 5,  # = config.EARLINESS_TREND_LOG_WINDOW_DAYS
         "log": fake_log,
+        "hist_5d_gap_log": hist_5d_gap_log,  # ECHTES Modul, kein Fake (Test-Standard b)
     }
     exec(_FINITE_SRC, ns)   # echte _finite -> ns["_finite"]
     exec(_HIST5D_SRC, ns)   # echte _extract_hist_5d -> ns["_extract_hist_5d"]
     return ns
+
+
+def _run_with_gap_log_tmpfile(fn):
+    """Führt ``fn(tmp_path)`` aus, während ``hist_5d_gap_log.LOG_FILE`` auf
+    eine isolierte Tempdatei umgeleitet ist (siehe Modul-Docstring von
+    ``hist_5d_gap_log`` zum ``None``-Sentinel-Design, das genau diese Art
+    Umleitung per ``mock.patch.object`` erlaubt, OHNE dass
+    ``_extract_hist_5d`` einen ``path``-Parameter bräuchte). Tempdatei wird
+    danach entfernt — kein Dateisystem-Timing-Effekt zwischen Tests."""
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        tmp_path = str(pathlib.Path(tmp_dir) / "hist_5d_gap_log_test.jsonl")
+        with mock.patch.object(hist_5d_gap_log, "LOG_FILE", tmp_path):
+            return fn(tmp_path)
+
+
+def _read_gap_jsonl(tmp_path: str) -> list[dict]:
+    import json
+    p = pathlib.Path(tmp_path)
+    if not p.exists():
+        return []
+    entries = []
+    for line in p.read_text(encoding="utf-8").splitlines():
+        line = line.strip()
+        if line:
+            entries.append(json.loads(line))
+    return entries
 
 
 class _FakeRow(dict):
@@ -316,6 +379,106 @@ def test_g_exception_in_tail_logs_debug_and_returns_empty():
            fake_log.warnings == [], repr(fake_log.warnings))
 
 
+# ── H — eine nicht-endliche Zelle -> JSONL-Eintrag(e) mit korrekten Feldern ─
+
+def test_h_single_nan_cell_writes_jsonl_entries():
+    def _run(tmp_path):
+        fake_log = _FakeLogger()
+        ns = _make_namespace(fake_log)
+        rows = _make_valid_rows(5)
+        rows[2]["High"] = float("nan")  # Tag _DATES[2] = 2026-09-21
+        df = _FakeDF(rows, _DATES)
+        result = ns["_extract_hist_5d"](df, "ABCD")
+        _check("H Ergebnis weiterhin leer (Guard unverändert, Regression)",
+               result == [], repr(result))
+        # Bestehendes log.warning-Verhalten bleibt (Regression gegen Test B).
+        _check("H log.warning weiterhin 2 Zeilen (Tag + Zusammenfassung)",
+               len(fake_log.warnings) == 2, repr(fake_log.warnings))
+
+        entries = _read_gap_jsonl(tmp_path)
+        by_reason = {e["reason"]: e for e in entries}
+        _check("H genau 2 JSONL-Einträge (nonfinite_cell + insufficient_valid_days)",
+               len(entries) == 2, repr(entries))
+        cell_entry = by_reason.get("nonfinite_cell")
+        _check("H nonfinite_cell-Eintrag vorhanden mit korrektem Ticker",
+               cell_entry is not None and cell_entry.get("ticker") == "ABCD",
+               repr(cell_entry))
+        if cell_entry:
+            _check("H nonfinite_cell-Eintrag nennt Datum 2026-09-21",
+                   cell_entry.get("dropped_day") == "2026-09-21", repr(cell_entry))
+            _check("H nonfinite_cell-Eintrag nennt Zelle 'High'",
+                   cell_entry.get("missing_cells") == ["High"], repr(cell_entry))
+            _check("H schema_v gesetzt", cell_entry.get("schema_v") == 1, repr(cell_entry))
+            _check("H run_ts ist ISO-UTC-String",
+                   isinstance(cell_entry.get("run_ts"), str)
+                   and cell_entry["run_ts"].endswith("Z"), repr(cell_entry))
+        valid_entry = by_reason.get("insufficient_valid_days")
+        _check("H insufficient_valid_days-Eintrag: n_days=4, window=5",
+               valid_entry is not None and valid_entry.get("n_days") == 4
+               and valid_entry.get("window") == 5, repr(valid_entry))
+
+    _run_with_gap_log_tmpfile(_run)
+
+
+# ── I — vollständig saubere Daten -> KEIN JSONL-Eintrag (kein False-Positive) ─
+
+def test_i_clean_data_writes_no_jsonl_entry():
+    def _run(tmp_path):
+        fake_log = _FakeLogger()
+        ns = _make_namespace(fake_log)
+        df = _FakeDF(_make_valid_rows(5), _DATES)
+        result = ns["_extract_hist_5d"](df, "ABCD")
+        _check("I Ergebnis: 5 Tage (Regression gegen Test A)",
+               len(result) == 5, repr(result))
+        entries = _read_gap_jsonl(tmp_path)
+        _check("I kein JSONL-Eintrag bei sauberen Daten (kein False-Positive)",
+               entries == [], repr(entries))
+
+    _run_with_gap_log_tmpfile(_run)
+
+
+# ── J — < 5 Roh-Tage -> genau 1 JSONL-Eintrag (insufficient_raw_days) ──────
+
+def test_j_insufficient_raw_days_writes_one_jsonl_entry():
+    def _run(tmp_path):
+        fake_log = _FakeLogger()
+        ns = _make_namespace(fake_log)
+        df = _FakeDF(_make_valid_rows(3), _DATES[:3])
+        result = ns["_extract_hist_5d"](df, "GRPN")
+        _check("J Ergebnis leer (Regression gegen Test D)", result == [], repr(result))
+        entries = _read_gap_jsonl(tmp_path)
+        _check("J genau 1 JSONL-Eintrag", len(entries) == 1, repr(entries))
+        if entries:
+            e = entries[0]
+            _check("J reason=insufficient_raw_days, ticker=GRPN, n_days=3, window=5",
+                   e.get("reason") == "insufficient_raw_days"
+                   and e.get("ticker") == "GRPN"
+                   and e.get("n_days") == 3 and e.get("window") == 5,
+                   repr(e))
+            _check("J dropped_day/missing_cells leer (kein Einzeltag betroffen)",
+                   e.get("dropped_day") is None and e.get("missing_cells") == [],
+                   repr(e))
+
+    _run_with_gap_log_tmpfile(_run)
+
+
+# ── K — kein ticker-Argument -> KEIN JSONL-Eintrag ─────────────────────────
+
+def test_k_no_ticker_writes_no_jsonl_entry():
+    def _run(tmp_path):
+        fake_log = _FakeLogger()
+        ns = _make_namespace(fake_log)
+        rows = _make_valid_rows(5)
+        rows[1]["Low"] = float("nan")
+        df = _FakeDF(rows, _DATES)
+        result = ns["_extract_hist_5d"](df)  # kein ticker
+        _check("K Ergebnis identisch zu Test E (leer)", result == [], repr(result))
+        entries = _read_gap_jsonl(tmp_path)
+        _check("K kein JSONL-Eintrag ohne ticker", entries == [], repr(entries))
+
+    _run_with_gap_log_tmpfile(_run)
+
+
 def main() -> int:
     tests = [
         test_a_all_valid_no_warning_logged,
@@ -326,13 +489,31 @@ def main() -> int:
         test_f_regression_all_valid_matches_pre_pr_shape,
         test_f2_regression_single_nan_matches_pre_pr_shape,
         test_g_exception_in_tail_logs_debug_and_returns_empty,
+        test_h_single_nan_cell_writes_jsonl_entries,
+        test_i_clean_data_writes_no_jsonl_entry,
+        test_j_insufficient_raw_days_writes_one_jsonl_entry,
+        test_k_no_ticker_writes_no_jsonl_entry,
     ]
-    for t in tests:
-        try:
-            t()
-        except Exception as exc:  # noqa: BLE001 — Test-Harness, nicht Prod
-            _fails.append(f"{t.__name__}: unexpected {type(exc).__name__}: {exc}")
-            print(f"  FAIL {t.__name__}: unexpected {type(exc).__name__}: {exc}")
+    # Tests A-G kennen hist_5d_gap_log nicht explizit (sie prüfen nur
+    # log.warning-Verhalten, geerbt von vor diesem PR) -- aber seit
+    # hist_5d_gap_log in _make_namespace() injiziert wird, lösen auch
+    # SIE jetzt record_gap()-Aufrufe aus. Ohne diesen äußeren Patch
+    # würden A-G in die ECHTE hist_5d_gap_log.jsonl im Repo-Root
+    # schreiben (Default-Pfad, CWD-relativ) -- Tests dürfen niemals
+    # echte Repo-Dateien berühren. Ein gemeinsamer Wegwerf-Tempfile für
+    # die gesamte Laufzeit reicht für A-G (die dessen Inhalt nicht
+    # prüfen); H-K patchen zusätzlich ihren EIGENEN, isolierten Tempfile
+    # via _run_with_gap_log_tmpfile (innerer Patch gewinnt für seine
+    # Dauer, danach greift wieder dieser äußere).
+    with tempfile.TemporaryDirectory() as _shared_tmp_dir:
+        _shared_throwaway_path = str(pathlib.Path(_shared_tmp_dir) / "unused.jsonl")
+        with mock.patch.object(hist_5d_gap_log, "LOG_FILE", _shared_throwaway_path):
+            for t in tests:
+                try:
+                    t()
+                except Exception as exc:  # noqa: BLE001 — Test-Harness, nicht Prod
+                    _fails.append(f"{t.__name__}: unexpected {type(exc).__name__}: {exc}")
+                    print(f"  FAIL {t.__name__}: unexpected {type(exc).__name__}: {exc}")
 
     print()
     if _fails:
