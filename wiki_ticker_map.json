@@ -791,6 +791,15 @@
     "substrate": "none",
     "reason": "no_p249"
   },
+  "INSG": {
+    "qid": null,
+    "title": null,
+    "resolved_at": "2026-09-30T00:33:04Z",
+    "issuer_verified": false,
+    "company_name_at_resolve": "Inseego Corp.",
+    "substrate": "none",
+    "reason": "no_p249"
+  },
   "INSP": {
     "qid": null,
     "title": null,
