@@ -186,6 +186,13 @@ jobs:
           # über Commit nötig, sonst geht die Empirik bei jedem Workflow-Lauf
           # verloren.
           git add score_inflation_log.jsonl 2>/dev/null || true
+          # hist_5d_gap_log.jsonl: append-only Diagnose-Log für von
+          # _extract_hist_5d verworfene Tage/Zellen (Folge-PR zu #561,
+          # 30.09.2026) — Ticker/Datum/Zelle pro Vorfall. Ohne ``git add``
+          # würde die Datei bei jedem Workflow-Lauf verworfen und genau das
+          # Symptom reproduziert, das dieser PR beheben soll (Log landet nur
+          # im ephemeren Runner statt persistiert).
+          git add hist_5d_gap_log.jsonl 2>/dev/null || true
           # matured_backtest_export.jsonl: append-only-Export gereifter Records
           # (Analyse-only, prune-immun). Vom postclose-Lauf im Runner geschrieben
           # — OHNE ``git add`` würde die Datei bei jedem Workflow-Lauf verworfen

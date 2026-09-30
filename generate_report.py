@@ -28,6 +28,7 @@ from jinja2 import Environment, FileSystemLoader, select_autoescape
 from config import *   # zentrale Konstanten (Schwellen, Score-Gewichte, Timeouts, URLs)
 from watchlist import WATCHLIST
 import score_inflation_log
+import hist_5d_gap_log
 import health_check
 import exit_shadow
 import matured_export
@@ -1218,6 +1219,18 @@ def get_yfinance_batch(tickers: list[str]) -> dict[str, dict]:
         zieht). ``ticker`` ist optional (Default ``None``) — ohne ihn
         (z.B. ein künftiger Aufrufer ohne Ticker-Kontext) bleibt das
         Verhalten identisch zu vorher, nur ohne Log-Zeilen.
+
+        Persistenz-Ergänzung (30.09.2026, Folge-PR zu #561): die drei
+        ``log.warning``-Aufrufe oben blieben BYTE-FÜR-BYTE unverändert
+        (sie landen weiterhin im Konsolen-Log) — zusätzlich schreibt
+        jede Aufrufstelle jetzt (nur wenn ``ticker`` gesetzt ist) einen
+        ``hist_5d_gap_log.record_gap(...)``-Aufruf, in ein eigenes
+        ``try/except Exception: pass`` gewrappt (siehe Modul-Docstring
+        von ``hist_5d_gap_log`` — verhindert, dass ein Fehler in diesem
+        Zusatz-Logging die Guard-Entscheidung selbst über den äußeren
+        ``except Exception``-Block dieser Funktion verfälscht). Landet
+        in ``hist_5d_gap_log.jsonl`` (persistiert, 30-Tage-Prune) statt
+        nur im ephemeren CI-Konsolenoutput.
         """
         try:
             tail = df.tail(EARLINESS_TREND_LOG_WINDOW_DAYS)
@@ -1229,6 +1242,14 @@ def get_yfinance_batch(tickers: list[str]) -> dict[str, dict]:
                         "vol_stability_5d/rvol_buildup_5d bleiben None)",
                         ticker, len(tail), EARLINESS_TREND_LOG_WINDOW_DAYS,
                     )
+                    try:
+                        hist_5d_gap_log.record_gap(
+                            ticker, "insufficient_raw_days",
+                            n_days=len(tail),
+                            window=EARLINESS_TREND_LOG_WINDOW_DAYS,
+                        )
+                    except Exception:
+                        pass
                 return []
             out = []
             for idx, row in tail.iterrows():
@@ -1247,6 +1268,13 @@ def get_yfinance_batch(tickers: list[str]) -> dict[str, dict]:
                             "Zelle(n): %s",
                             ticker, idx, ", ".join(bad),
                         )
+                        try:
+                            hist_5d_gap_log.record_gap(
+                                ticker, "nonfinite_cell",
+                                dropped_day=idx, missing_cells=bad,
+                            )
+                        except Exception:
+                            pass
                     continue
                 out.append({"volume": cells["Volume"], "high": cells["High"],
                             "low": cells["Low"], "close": cells["Close"]})
@@ -1258,6 +1286,14 @@ def get_yfinance_batch(tickers: list[str]) -> dict[str, dict]:
                         "rvol_buildup_5d bleiben None)",
                         ticker, len(out), EARLINESS_TREND_LOG_WINDOW_DAYS,
                     )
+                    try:
+                        hist_5d_gap_log.record_gap(
+                            ticker, "insufficient_valid_days",
+                            n_days=len(out),
+                            window=EARLINESS_TREND_LOG_WINDOW_DAYS,
+                        )
+                    except Exception:
+                        pass
                 return []
             return out
         except Exception:
@@ -18271,6 +18307,11 @@ def main():
     # Append-only; pruned auf 30 Tage Cutoff zum Run-Start. Fail-soft —
     # Daily-Run crasht nie wegen Log-Fehler.
     score_inflation_log.prune_log()
+    # hist_5d_gap_log (Folge-PR zu #561, 30.09.2026): gleiches Prune-
+    # Muster/Cutoff. Die eigentlichen record_gap()-Aufrufe sitzen bereits
+    # in _extract_hist_5d (läuft früher, während der Enrichment-Phase) —
+    # hier nur der Prune-Schritt, analog score_inflation_log direkt oben.
+    hist_5d_gap_log.prune_log()
     # PR-β (16.05.2026): normalize_rvol_fn injiziert, damit der Logger
     # zusätzlich drivers_raw.rel_volume_normalized schreiben kann
     # (Schema v2). Status quo unverändert — rel_volume bleibt der
