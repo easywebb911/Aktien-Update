@@ -6,7 +6,7 @@ analog ``mock_test_score_inflation_log.py`` (reale Tempfiles, expliziter
 ``path=``-Parameter bei jedem Aufruf — siehe Modul-Docstring von
 ``hist_5d_gap_log`` zur bewussten ``None``-Sentinel-Abweichung).
 
-Sieben Szenarien:
+Acht Szenarien:
   1. Schema-Vollständigkeit: alle Felder korrekt belegt (schema_v, run_ts,
      ticker, reason, dropped_day, missing_cells, n_days, window)
   2. Append-only: zwei Aufrufe hängen an, überschreiben nicht
@@ -18,6 +18,10 @@ Sieben Szenarien:
      entscheidet), nachfolgende Einträge bleiben lesbar
   7. Schreibfehler (OSError, z.B. Verzeichnis statt Datei als path) →
      record_gap() liefert False, kein Re-Raise
+  8. Workflow-Wiring: 'git add hist_5d_gap_log.jsonl' existiert in
+     daily-squeeze-report.yml (Guardian-Finding 30.09.2026 — ohne diese
+     Zeile würde die Datei bei jedem Workflow-Checkout verworfen, exakt
+     das Symptom, das dieser PR beheben soll)
 
 Ausführung: ``python scripts/mock_test_hist_5d_gap_log.py``.
 Exit 0 bei Erfolg, 1 bei Fund.
@@ -34,6 +38,8 @@ ROOT = pathlib.Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
 
 import hist_5d_gap_log as hgl  # noqa: E402
+
+WF = (ROOT / ".github/workflows/daily-squeeze-report.yml").read_text(encoding="utf-8")
 
 _fails: list[str] = []
 
@@ -185,6 +191,15 @@ def test_7_write_error_is_fail_soft():
         _check("7 record_gap auf Verzeichnis-Pfad -> False, kein Crash", ok is False)
 
 
+# ── 8 — Workflow-git-add vorhanden (Guardian-Finding, sonst nicht persistiert) ─
+
+def test_8_workflow_git_add_present():
+    _check("8 'git add hist_5d_gap_log.jsonl' in daily-squeeze-report.yml",
+           "git add hist_5d_gap_log.jsonl" in WF,
+           "Workflow-git-add fehlt — Datei würde bei jedem Checkout verworfen "
+           "(exakt das Symptom, das dieser PR beheben soll)")
+
+
 def main() -> int:
     tests = [
         test_1_schema_complete,
@@ -194,6 +209,7 @@ def main() -> int:
         test_5_missing_file_is_empty_and_safe,
         test_6_corrupted_line_preserved_on_prune,
         test_7_write_error_is_fail_soft,
+        test_8_workflow_git_add_present,
     ]
     for t in tests:
         try:
