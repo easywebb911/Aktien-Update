@@ -1,11 +1,11 @@
 {
-  "updated": "2026-09-30T08:44:01.779308+02:00",
+  "updated": "2026-09-30T14:38:17.079112+02:00",
   "run_info": {
     "tickers_checked": 13,
     "signals_active": 1,
     "alerts_sent": 0,
-    "elapsed_s": 14.9,
-    "market_phase": "Geschlossen"
+    "elapsed_s": 14.1,
+    "market_phase": "Pre-Market"
   },
   "signals": {
     "AMC": {
@@ -26,7 +26,7 @@
       "ki_sentiment_source": "keyword",
       "uoa_score": 0,
       "uoa_drivers": [],
-      "uoa_atm_ratio": null,
+      "uoa_atm_ratio": 0.4562014591668628,
       "uoa_cp_ratio": 1.7715818237020544
     },
     "CSIQ": {
@@ -49,7 +49,7 @@
       "uoa_drivers": [
         "UOA Call/Put 6.2×"
       ],
-      "uoa_atm_ratio": null,
+      "uoa_atm_ratio": 0.3227293683725219,
       "uoa_cp_ratio": 6.209677419354839
     },
     "GRPN": {
@@ -72,7 +72,7 @@
       "uoa_drivers": [
         "UOA Call/Put 2.9×"
       ],
-      "uoa_atm_ratio": null,
+      "uoa_atm_ratio": 0.08873563218390805,
       "uoa_cp_ratio": 2.9445843828715366
     },
     "INSG": {
@@ -95,7 +95,7 @@
       "uoa_drivers": [
         "UOA Call/Put 15.7×"
       ],
-      "uoa_atm_ratio": null,
+      "uoa_atm_ratio": 0.38235294117647056,
       "uoa_cp_ratio": 15.666666666666666
     },
     "IONQ": {
@@ -118,13 +118,13 @@
       "uoa_drivers": [
         "UOA Call/Put 2.6×"
       ],
-      "uoa_atm_ratio": null,
+      "uoa_atm_ratio": 0.41941445384690207,
       "uoa_cp_ratio": 2.5885047896709703
     },
     "LXEO": {
-      "score": 91,
+      "score": 75,
       "confidence": 70,
-      "drivers": "Volumen 4.2× + ⚡ Extremes Volumen 4.2×+ + Spanne 19.4% + News: covering, acquisition + Earnings in 35d",
+      "drivers": "Volumen 4.2× + ⚡ Extremes Volumen 4.2×+ + Spanne 19.4% + News: covering + Earnings in 35d",
       "price": 3.42,
       "chg_pct": 0.0,
       "rvol_4d": 4.25,
@@ -162,7 +162,7 @@
       "uoa_drivers": [
         "UOA Call/Put 3.2×"
       ],
-      "uoa_atm_ratio": null,
+      "uoa_atm_ratio": 0.005314437555358724,
       "uoa_cp_ratio": 3.1739130434782608
     },
     "NTLA": {
@@ -183,13 +183,13 @@
       "ki_sentiment_source": "keyword",
       "uoa_score": 0,
       "uoa_drivers": [],
-      "uoa_atm_ratio": null,
+      "uoa_atm_ratio": 0.034724021767297227,
       "uoa_cp_ratio": 0.4952893674293405
     },
     "PACB": {
-      "score": 28,
+      "score": 40,
       "confidence": 70,
-      "drivers": "Spanne 13.1% + Earnings in 36d + UOA Call/Put 99.5×",
+      "drivers": "Spanne 13.1% + News-KI 12/30: Positive operational news and stock momentum, but no significant short interest, recent losses, or catalysts suggesting  + Earnings in 36d + UOA Call/Put 99.5×",
       "price": 1.83,
       "chg_pct": 0.0,
       "rvol_4d": 1.42,
@@ -200,19 +200,19 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 0,
-      "ki_sentiment_source": "keyword",
+      "active_triggers": 1,
+      "ki_sentiment_source": "llm",
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 99.5×"
       ],
-      "uoa_atm_ratio": null,
+      "uoa_atm_ratio": 0.22451888809693513,
       "uoa_cp_ratio": 99.5
     },
     "PDYN": {
       "score": 48,
       "confidence": 70,
-      "drivers": "Spanne 5.3% + News: contract, partnership + Earnings in 42d",
+      "drivers": "Spanne 5.3% + News: partnership, contract + Earnings in 42d",
       "price": 5.22,
       "chg_pct": -0.0,
       "rvol_4d": 0.96,
@@ -227,7 +227,7 @@
       "ki_sentiment_source": "keyword",
       "uoa_score": 0,
       "uoa_drivers": [],
-      "uoa_atm_ratio": null,
+      "uoa_atm_ratio": 0.20149253731343283,
       "uoa_cp_ratio": 1.0661157024793388
     },
     "REPL": {
@@ -250,13 +250,13 @@
       "uoa_drivers": [
         "UOA Call/Put 2.1×"
       ],
-      "uoa_atm_ratio": null,
+      "uoa_atm_ratio": 0.05363321799307959,
       "uoa_cp_ratio": 2.1145833333333335
     },
     "WOLF": {
-      "score": 40,
+      "score": 28,
       "confidence": 70,
-      "drivers": "Spanne 7.8% + News-KI 12/30: Positive product expansion and modest price momentum, but no significant short interest catalyst or forced covering indi + Earnings in 35d + UOA Call/Put 2.3×",
+      "drivers": "Spanne 7.8% + Earnings in 35d + UOA Call/Put 2.3×",
       "price": 28.13,
       "chg_pct": -0.0,
       "rvol_4d": 1.15,
@@ -267,13 +267,13 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 1,
-      "ki_sentiment_source": "llm",
+      "active_triggers": 0,
+      "ki_sentiment_source": "keyword",
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 2.3×"
       ],
-      "uoa_atm_ratio": null,
+      "uoa_atm_ratio": 0.1732477788746298,
       "uoa_cp_ratio": 2.343137254901961
     },
     "XPOF": {
