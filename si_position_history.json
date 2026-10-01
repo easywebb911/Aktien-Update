@@ -1497,6 +1497,12 @@
       "shares_short": 3448969,
       "short_pct_float": 24.2,
       "pub_date": "2026-09-10"
+    },
+    {
+      "settlement_date": "2026-09-15",
+      "shares_short": 3758514,
+      "short_pct_float": 26.37,
+      "pub_date": "2026-09-24"
     }
   ],
   "MNRO": [
