@@ -68610,13 +68610,13 @@
     "si_trend": "down",
     "return_3d": -1.47,
     "return_5d": -12.64,
-    "return_10d": null,
+    "return_10d": 11.39,
     "return_3d_t1": -34.01,
     "return_5d_t1": -27.1,
     "return_10d_t1": null,
     "return_3d_net": -5.33,
     "return_5d_net": -16.07,
-    "return_10d_net": null,
+    "return_10d_net": 7.02,
     "max_drawdown_pct": -59.8,
     "max_gain_pct": 229.86,
     "max_gain_pct_net": 216.92,
@@ -68708,7 +68708,8 @@
     ],
     "backtest_schema_version": 4,
     "return_3d_vs_spy": -3.5,
-    "return_5d_vs_spy": -14.72
+    "return_5d_vs_spy": -14.72,
+    "return_10d_vs_spy": 10.0
   },
   {
     "date": "16.09.2026",
