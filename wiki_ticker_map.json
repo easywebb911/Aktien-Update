@@ -1322,6 +1322,15 @@
     "substrate": "none",
     "reason": "no_p249"
   },
+  "TNON": {
+    "qid": null,
+    "title": null,
+    "resolved_at": "2026-10-01T00:35:55Z",
+    "issuer_verified": false,
+    "company_name_at_resolve": "Tenon Medical, Inc.",
+    "substrate": "none",
+    "reason": "no_p249"
+  },
   "TNXP": {
     "qid": "Q39052499",
     "title": "Tonix_Pharmaceuticals",

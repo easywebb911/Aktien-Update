@@ -258,6 +258,12 @@
       "shares_short": 15157188,
       "short_pct_float": 28.45,
       "pub_date": "2026-09-10"
+    },
+    {
+      "settlement_date": "2026-09-15",
+      "shares_short": 15745098,
+      "short_pct_float": 29.55,
+      "pub_date": "2026-09-24"
     }
   ],
   "FUBO": [
@@ -420,6 +426,12 @@
       "shares_short": 7946514,
       "short_pct_float": 18.91,
       "pub_date": "2026-09-10"
+    },
+    {
+      "settlement_date": "2026-09-15",
+      "shares_short": 11086817,
+      "short_pct_float": 26.39,
+      "pub_date": "2026-09-24"
     }
   ],
   "IMRX": [
@@ -834,6 +846,12 @@
       "shares_short": 46699653,
       "short_pct_float": 31.49,
       "pub_date": "2026-09-10"
+    },
+    {
+      "settlement_date": "2026-09-15",
+      "shares_short": 42395077,
+      "short_pct_float": 28.58,
+      "pub_date": "2026-09-24"
     }
   ],
   "PRGS": [
@@ -1125,6 +1143,12 @@
       "shares_short": 45468327,
       "short_pct_float": 30.28,
       "pub_date": "2026-09-10"
+    },
+    {
+      "settlement_date": "2026-09-15",
+      "shares_short": 46649130,
+      "short_pct_float": 31.07,
+      "pub_date": "2026-09-24"
     }
   ],
   "PDYN": [
@@ -3858,6 +3882,12 @@
       "shares_short": 7172491,
       "short_pct_float": 19.41,
       "pub_date": "2026-09-10"
+    },
+    {
+      "settlement_date": "2026-09-15",
+      "shares_short": 6863303,
+      "short_pct_float": 18.58,
+      "pub_date": "2026-09-24"
     }
   ],
   "EZPW": [
@@ -5433,6 +5463,12 @@
       "shares_short": 2310874,
       "short_pct_float": 24.64,
       "pub_date": "2026-09-10"
+    },
+    {
+      "settlement_date": "2026-09-15",
+      "shares_short": 2483811,
+      "short_pct_float": 26.48,
+      "pub_date": "2026-09-24"
     }
   ],
   "SPRY": [
@@ -7059,6 +7095,12 @@
       "shares_short": 9820656,
       "short_pct_float": 16.52,
       "pub_date": "2026-08-25"
+    },
+    {
+      "settlement_date": "2026-09-15",
+      "shares_short": 13220480,
+      "short_pct_float": 22.24,
+      "pub_date": "2026-09-24"
     }
   ],
   "AKTS": [
@@ -8297,6 +8339,21 @@
       "settlement_date": "2026-09-15",
       "shares_short": 181375,
       "short_pct_float": 30.64,
+      "pub_date": "2026-09-24"
+    }
+  ],
+  "ATEN": [
+    {
+      "settlement_date": "2026-08-14",
+      "shares_short": 7543199,
+      "short_pct_float": null,
+      "pub_date": "2026-08-25",
+      "seeded": true
+    },
+    {
+      "settlement_date": "2026-09-15",
+      "shares_short": 9713373,
+      "short_pct_float": 18.97,
       "pub_date": "2026-09-24"
     }
   ]
