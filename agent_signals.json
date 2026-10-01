@@ -1,11 +1,11 @@
 {
-  "updated": "2026-10-01T07:55:16.721366+02:00",
+  "updated": "2026-10-01T15:16:26.864297+02:00",
   "run_info": {
     "tickers_checked": 13,
     "signals_active": 2,
     "alerts_sent": 0,
-    "elapsed_s": 12.0,
-    "market_phase": "Geschlossen"
+    "elapsed_s": 10.6,
+    "market_phase": "Pre-Market"
   },
   "signals": {
     "ABSI": {
@@ -26,7 +26,7 @@
       "ki_sentiment_source": "keyword",
       "uoa_score": 0,
       "uoa_drivers": [],
-      "uoa_atm_ratio": null,
+      "uoa_atm_ratio": 0.10314376545390322,
       "uoa_cp_ratio": 1.812807881773399
     },
     "AMC": {
@@ -49,7 +49,7 @@
       "uoa_drivers": [
         "UOA Call/Put 3.9×"
       ],
-      "uoa_atm_ratio": null,
+      "uoa_atm_ratio": 0.4145682536446121,
       "uoa_cp_ratio": 3.9190401435299393
     },
     "CAPR": {
@@ -72,7 +72,7 @@
       "uoa_drivers": [
         "UOA Call/Put 7.8×"
       ],
-      "uoa_atm_ratio": null,
+      "uoa_atm_ratio": 0.8108407079646017,
       "uoa_cp_ratio": 7.757990867579909
     },
     "CCCC": {
@@ -93,7 +93,7 @@
       "ki_sentiment_source": "keyword",
       "uoa_score": 0,
       "uoa_drivers": [],
-      "uoa_atm_ratio": null,
+      "uoa_atm_ratio": 0.03896103896103896,
       "uoa_cp_ratio": 0.7128463476070529
     },
     "DMRC": {
@@ -137,13 +137,13 @@
       "ki_sentiment_source": "keyword",
       "uoa_score": 0,
       "uoa_drivers": [],
-      "uoa_atm_ratio": null,
+      "uoa_atm_ratio": 0.031528444139821796,
       "uoa_cp_ratio": 1.8083140877598152
     },
     "IONQ": {
       "score": 58,
       "confidence": 70,
-      "drivers": "Spanne 8.0% + News: partnership, catalyst + Earnings in 34d + UOA Call/Put 2.7×",
+      "drivers": "Spanne 8.0% + News: catalyst, partnership + Earnings in 34d + UOA Call/Put 2.7×",
       "price": 43.86,
       "chg_pct": 0.0,
       "rvol_4d": 0.82,
@@ -160,7 +160,7 @@
       "uoa_drivers": [
         "UOA Call/Put 2.7×"
       ],
-      "uoa_atm_ratio": null,
+      "uoa_atm_ratio": 0.6447876447876448,
       "uoa_cp_ratio": 2.720779220779221
     },
     "PACB": {
@@ -187,9 +187,9 @@
       "uoa_cp_ratio": 4.463078291814947
     },
     "PDYN": {
-      "score": 33,
+      "score": 48,
       "confidence": 33,
-      "drivers": "News: contract + Earnings in 41d + UOA Call/Put 4.9×",
+      "drivers": "News: partnership, contract + Earnings in 41d + UOA Call/Put 4.9×",
       "price": 5.16,
       "chg_pct": -0.0,
       "rvol_4d": 0.84,
@@ -206,7 +206,7 @@
       "uoa_drivers": [
         "UOA Call/Put 4.9×"
       ],
-      "uoa_atm_ratio": null,
+      "uoa_atm_ratio": 0.20149253731343283,
       "uoa_cp_ratio": 4.921052631578948
     },
     "REPL": {
@@ -227,13 +227,13 @@
       "ki_sentiment_source": "keyword",
       "uoa_score": 0,
       "uoa_drivers": [],
-      "uoa_atm_ratio": null,
+      "uoa_atm_ratio": 0.032739804709936815,
       "uoa_cp_ratio": 1.5681818181818181
     },
     "TNON": {
-      "score": 77,
+      "score": 80,
       "confidence": 70,
-      "drivers": "Volumen 82.9× + 🚀 Massives Volumen 82.9×+ + Spanne 81.8% + News-KI 12/30: Positive product launch and capital raise reduce squeeze potential, but small proceeds and lack of short interest metric + Earnings in 42d",
+      "drivers": "Volumen 82.9× + 🚀 Massives Volumen 82.9×+ + Spanne 81.8% + News: short interest + Earnings in 42d",
       "price": 4.09,
       "chg_pct": 0.0,
       "rvol_4d": 82.87,
@@ -245,16 +245,16 @@
       "stocktwits": null,
       "combo_mult": 1.1,
       "active_triggers": 2,
-      "ki_sentiment_source": "llm",
+      "ki_sentiment_source": "keyword",
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": null,
       "uoa_cp_ratio": null
     },
     "WOLF": {
-      "score": 33,
+      "score": 50,
       "confidence": 70,
-      "drivers": "Volumen 2.4× + Spanne 7.5% + Earnings in 34d",
+      "drivers": "Volumen 2.4× + Spanne 7.5% + News-KI 12/30: Positive operational news and modest price gains, but no significant short interest catalysts, debt distress, or extreme + Earnings in 34d",
       "price": 28.13,
       "chg_pct": -0.0,
       "rvol_4d": 2.38,
@@ -264,12 +264,12 @@
       "upcoming_event": null,
       "insider_buy": false,
       "stocktwits": null,
-      "combo_mult": 1.0,
-      "active_triggers": 1,
-      "ki_sentiment_source": "keyword",
+      "combo_mult": 1.1,
+      "active_triggers": 2,
+      "ki_sentiment_source": "llm",
       "uoa_score": 0,
       "uoa_drivers": [],
-      "uoa_atm_ratio": null,
+      "uoa_atm_ratio": 0.1650919940328195,
       "uoa_cp_ratio": 0.25771812080536916
     },
     "XPOF": {
