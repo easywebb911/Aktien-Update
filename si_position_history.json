@@ -2304,6 +2304,12 @@
       "shares_short": 12196436,
       "short_pct_float": 28.8,
       "pub_date": "2026-07-10"
+    },
+    {
+      "settlement_date": "2026-09-15",
+      "shares_short": 11871346,
+      "short_pct_float": 26.74,
+      "pub_date": "2026-09-24"
     }
   ],
   "KUST": [
