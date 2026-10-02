@@ -1231,7 +1231,60 @@ def get_yfinance_batch(tickers: list[str]) -> dict[str, dict]:
         ``except Exception``-Block dieser Funktion verfälscht). Landet
         in ``hist_5d_gap_log.jsonl`` (persistiert, 30-Tage-Prune) statt
         nur im ephemeren CI-Konsolenoutput.
+
+        Ein-Tag-Verschiebung bei unvollständigem letzten Tag (02.10.2026,
+        Folge-PR zu #571): zwei unabhängige Vorfälle (30.09./01.10.2026,
+        belegt in ``hist_5d_gap_log.jsonl``) zeigten dasselbe Muster —
+        bei fast dem gesamten Tages-Pool (69-70/70 bzw. 78/78 Tickern)
+        fehlten EXAKT ``High``/``Low``/``Close`` am jeweils NEUESTEN Tag
+        des Fensters, während ``Volume`` intakt war (Hypothese: die
+        Tageskerze war zum Postclose-Fetch-Zeitpunkt noch nicht
+        EOD-konsolidiert). Der bisherige All-or-Nothing-Guard verwarf in
+        diesem Fall den GESAMTEN Ticker, obwohl 5 vollständige Tage nur
+        einen Tag weiter zurück verfügbar waren.
+
+        Neue, bewusst ENG begrenzte Zusatzregel: Nur wenn (a) GENAU EIN
+        Tag im ursprünglichen Fenster verworfen wurde UND (b) es der
+        chronologisch NEUESTE (letzte) Tag ist UND (c) der Batch mind.
+        ``EARLINESS_TREND_LOG_WINDOW_DAYS + 1`` Roh-Tage liefert, wird
+        das Fenster EINMALIG um einen Tag zurückverschoben und neu
+        geprüft (dieselbe Zellen-Prüfung, keine Änderung an ``_finite``
+        selbst). Bleiben in der Praxis ALLE Tage eines Tickers kaputt
+        (chronisch tote Symbole wie BHV/NWCLW/PMVP, bei denen auch
+        ``Volume`` fehlt), greift Bedingung (a) nie — mehr als ein Tag
+        ist verworfen, der Verschiebe-Versuch wird gar nicht erst
+        unternommen, das bestehende Verhalten (leere Liste) bleibt
+        unverändert. Der ursprüngliche, unvollständige Tag wird WEITERHIN
+        ganz normal als ``nonfinite_cell`` geloggt (volle Diagnose-
+        Transparenz) — zusätzlich, bei erfolgreicher Verschiebung, ein
+        eigener ``last_day_incomplete_shifted``-Log-/Gap-Log-Eintrag
+        (unterscheidet sich bewusst von ``insufficient_valid_days``: der
+        Ticker wurde NICHT verworfen, sondern erfolgreich repariert).
         """
+        def _scan(window_df):
+            """Pure Zellen-Prüfung EINES Fensters (unveränderte Logik,
+            nur aus der Schleife herausgezogen, damit sie zweimal
+            aufrufbar ist — für das Original- UND ein optionales
+            verschobenes Fenster). Liefert (valide_tage, bad_entries),
+            bad_entries = [(idx, bad_cells), ...] in Iterations-Reihenfolge."""
+            valid = []
+            bad_entries = []
+            for idx, row in window_df.iterrows():
+                cells = {}
+                for label in ("Volume", "High", "Low", "Close"):
+                    try:
+                        cells[label] = float(row.get(label))
+                    except (TypeError, ValueError):
+                        cells[label] = None
+                bad = [label for label, v in cells.items()
+                       if v is None or not _finite(v)]
+                if bad:
+                    bad_entries.append((idx, bad))
+                    continue
+                valid.append({"volume": cells["Volume"], "high": cells["High"],
+                              "low": cells["Low"], "close": cells["Close"]})
+            return valid, bad_entries
+
         try:
             tail = df.tail(EARLINESS_TREND_LOG_WINDOW_DAYS)
             if len(tail) < EARLINESS_TREND_LOG_WINDOW_DAYS:
@@ -1251,34 +1304,58 @@ def get_yfinance_batch(tickers: list[str]) -> dict[str, dict]:
                     except Exception:
                         pass
                 return []
-            out = []
-            for idx, row in tail.iterrows():
-                cells = {}
-                for label in ("Volume", "High", "Low", "Close"):
+
+            out, bad_entries = _scan(tail)
+
+            # Jeder im Original-Fenster verworfene Tag wird IMMER geloggt —
+            # unabhängig davon, ob unten ein Verschiebe-Versuch folgt und
+            # erfolgreich ist (volle Diagnose-Transparenz bleibt erhalten,
+            # siehe Docstring).
+            for idx, bad in bad_entries:
+                if ticker:
+                    log.warning(
+                        "hist_5d: %s Tag %s verworfen — nicht-endliche "
+                        "Zelle(n): %s",
+                        ticker, idx, ", ".join(bad),
+                    )
                     try:
-                        cells[label] = float(row.get(label))
-                    except (TypeError, ValueError):
-                        cells[label] = None
-                bad = [label for label, v in cells.items()
-                       if v is None or not _finite(v)]
-                if bad:
-                    if ticker:
-                        log.warning(
-                            "hist_5d: %s Tag %s verworfen — nicht-endliche "
-                            "Zelle(n): %s",
-                            ticker, idx, ", ".join(bad),
+                        hist_5d_gap_log.record_gap(
+                            ticker, "nonfinite_cell",
+                            dropped_day=idx, missing_cells=bad,
                         )
-                        try:
-                            hist_5d_gap_log.record_gap(
-                                ticker, "nonfinite_cell",
-                                dropped_day=idx, missing_cells=bad,
-                            )
-                        except Exception:
-                            pass
-                    continue
-                out.append({"volume": cells["Volume"], "high": cells["High"],
-                            "low": cells["Low"], "close": cells["Close"]})
+                    except Exception:
+                        pass
+
             if len(out) < EARLINESS_TREND_LOG_WINDOW_DAYS:
+                last_idx = tail.index[-1]
+                only_last_day_bad = (
+                    len(bad_entries) == 1
+                    and bad_entries[0][0] == last_idx
+                    and len(df) >= EARLINESS_TREND_LOG_WINDOW_DAYS + 1
+                )
+                if only_last_day_bad:
+                    shifted_window = df.tail(
+                        EARLINESS_TREND_LOG_WINDOW_DAYS + 1).iloc[:-1]
+                    if len(shifted_window) == EARLINESS_TREND_LOG_WINDOW_DAYS:
+                        shifted_out, _shifted_bad = _scan(shifted_window)
+                        if len(shifted_out) == EARLINESS_TREND_LOG_WINDOW_DAYS:
+                            if ticker:
+                                log.warning(
+                                    "hist_5d: %s neuester Tag %s unvollständig "
+                                    "(%s) — Fenster um 1 Tag zurückverschoben, "
+                                    "5 vollständige Tage gefunden",
+                                    ticker, last_idx,
+                                    ", ".join(bad_entries[0][1]),
+                                )
+                                try:
+                                    hist_5d_gap_log.record_gap(
+                                        ticker, "last_day_incomplete_shifted",
+                                        dropped_day=last_idx,
+                                        missing_cells=bad_entries[0][1],
+                                    )
+                                except Exception:
+                                    pass
+                            return shifted_out
                 if ticker:
                     log.warning(
                         "hist_5d: %s nur %d/%d gültige Tage nach Guard — "

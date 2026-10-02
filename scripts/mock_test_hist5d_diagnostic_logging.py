@@ -84,6 +84,35 @@ zurückgelesen und inhaltlich geprüft:
   K. kein ``ticker``-Argument → GAR KEIN JSONL-Eintrag (identisch zum
      Verhalten von Test E für ``log.warning``)
 
+## Ein-Tag-Verschiebung bei unvollständigem letzten Tag (02.10.2026,
+## Folge-PR zu #571)
+
+Zwei unabhängige Vorfälle (30.09./01.10.2026, belegt in
+``hist_5d_gap_log.jsonl``) zeigten dasselbe Muster bei fast dem gesamten
+Tages-Pool: ``High``/``Low``/``Close`` fehlten EXAKT am jeweils neuesten
+Tag des Fensters, während ``Volume`` intakt blieb. ``_extract_hist_5d``
+verschiebt das Fenster jetzt EINMALIG um einen Tag zurück, wenn (a) genau
+EIN Tag verworfen wurde, (b) es der chronologisch neueste ist und (c)
+genug Roh-Historie für einen Ausweich-Tag vorhanden ist. Tests L/M/N
+treiben die ECHTE Funktion gegen alle drei Pflicht-Szenarien:
+
+  L. letzter Tag unvollständig (nur Volume, kein OHLC) + genug Historie
+     (6 Roh-Tage) → Verschiebung gelingt: 5 vollständige (verschobene)
+     Tage statt leerer Liste. Der ursprüngliche Tag bleibt weiterhin als
+     ``nonfinite_cell`` geloggt (volle Transparenz) + zusätzlich ein
+     eigener ``last_day_incomplete_shifted``-Eintrag (L2, Gap-Log) —
+     KEIN ``insufficient_valid_days``-Eintrag für einen erfolgreich
+     reparierten Ticker.
+  M. letzter Tag unvollständig, aber NUR 5 Roh-Tage insgesamt (kein
+     6. Tag verfügbar) → Verschiebung wird gar nicht erst versucht,
+     Fallback bleibt fail-soft die leere Liste (wie vor diesem Fix,
+     kein Crash).
+  N. chronisch mehrtägig kaputter Ticker (BHV/NWCLW/PMVP-Muster: ALLE
+     vier Zellen inkl. Volume fehlen an ≥ 2 Tagen) → Bedingung (a) greift
+     nie (mehr als 1 Tag verworfen), der Ticker bleibt korrekt leer, NICHT
+     fälschlich "repariert" (N2: Gap-Log enthält keinen
+     ``last_day_incomplete_shifted``-Eintrag).
+
 Kategorie A: reine stdlib (re/textwrap/pathlib/sys/tempfile/unittest.mock
 + ``hist_5d_gap_log`` selbst, das ebenfalls reine stdlib ist), keine
 Drittlibs.
@@ -212,6 +241,24 @@ class _FakeRow(dict):
         return dict.get(self, key, default)
 
 
+class _FakeILoc:
+    """Minimal-Stand-in für pandas' ``.iloc``-Accessor — unterstützt
+    AUSSCHLIESSLICH Slice-Zugriff (``[:-1]``), weil die Produktion in
+    ``_extract_hist_5d`` ausschließlich ``df.tail(n).iloc[:-1]`` nutzt
+    (Ein-Tag-Verschiebung, 02.10.2026, Folge-PR zu #571). Kein Anspruch
+    auf volle ``.iloc``-Kompatibilität — bewusst minimal."""
+
+    def __init__(self, df: "_FakeDF") -> None:
+        self._df = df
+
+    def __getitem__(self, key):
+        if isinstance(key, slice):
+            return _FakeDF(self._df._rows[key], self._df._dates[key])
+        raise NotImplementedError(
+            "_FakeILoc unterstützt nur Slice-Zugriff (z. B. [:-1])"
+        )
+
+
 class _FakeDF:
     """Minimal-Stand-in für ein pandas-tail()/iterrows()-Objekt — trägt
     zusätzlich eine parallele Datums-Liste, damit Tests die geloggte
@@ -230,6 +277,17 @@ class _FakeDF:
     def iterrows(self):
         return iter(zip(self._dates, (_FakeRow(r) for r in self._rows)))
 
+    @property
+    def index(self):
+        """Analog pandas' ``DataFrame.index`` — die Produktion liest nur
+        ``tail.index[-1]`` (letztes Datum des Fensters), daher reicht eine
+        einfache Listen-Rückgabe der parallelen Datums-Liste."""
+        return list(self._dates)
+
+    @property
+    def iloc(self):
+        return _FakeILoc(self)
+
 
 class _RaisingDF:
     """Simuliert einen kaputten df, dessen .tail() eine Exception wirft —
@@ -240,6 +298,7 @@ class _RaisingDF:
 
 
 _DATES = ["2026-09-19", "2026-09-20", "2026-09-21", "2026-09-22", "2026-09-23"]
+_DATES6 = ["2026-09-18", "2026-09-19", "2026-09-20", "2026-09-21", "2026-09-22", "2026-09-23"]
 
 
 def _make_valid_rows(n=5):
@@ -479,6 +538,158 @@ def test_k_no_ticker_writes_no_jsonl_entry():
     _run_with_gap_log_tmpfile(_run)
 
 
+# ── L — letzter Tag unvollständig + genug Historie -> Verschiebung gelingt ──
+# (02.10.2026, Folge-PR zu #571 — Ein-Tag-Verschiebung bei unvollständigem
+# letzten Tag. Pflicht-Szenario aus der Aufgabenstellung: die ECHTE
+# _extract_hist_5d() mit einem gemockten DataFrame ansteuern, bei dem der
+# letzte Tag unvollständig ist (nur Volume, kein OHLC) und genug Historie
+# für einen Ausweich-Tag vorhanden ist -> Assertion: 5 vollständige
+# (verschobene) Tage, NICHT eine leere Liste.)
+
+def test_l_last_day_incomplete_with_enough_history_shifts_and_recovers():
+    fake_log = _FakeLogger()
+    ns = _make_namespace(fake_log)
+    rows = _make_valid_rows(6)
+    # Exakt das in hist_5d_gap_log.jsonl belegte Muster (30.09./01.10.2026):
+    # Volume intakt, High/Low/Close am NEUESTEN Tag fehlen.
+    rows[5]["High"] = float("nan")
+    rows[5]["Low"] = float("nan")
+    rows[5]["Close"] = float("nan")
+    df = _FakeDF(rows, _DATES6)
+    result = ns["_extract_hist_5d"](df, "DMRC")
+    _check("L Ergebnis: 5 vollständige (verschobene) Tage statt leerer Liste",
+           len(result) == 5, repr(result))
+    expected = [
+        {"volume": 1_000_000.0 + i, "high": 10.5 + i, "low": 9.5 + i, "close": 10.0 + i}
+        for i in range(5)
+    ]
+    _check("L verschobene Tage sind die ERSTEN 5 (Index 0-4), nicht 1-5",
+           result == expected, repr(result))
+    cell_warnings = [w for w in fake_log.warnings if "verworfen" in w]
+    _check("L ursprünglicher kaputter Tag weiterhin als 'verworfen' geloggt "
+           "(volle Diagnose-Transparenz bleibt erhalten)",
+           len(cell_warnings) == 1 and "2026-09-23" in cell_warnings[0],
+           repr(fake_log.warnings))
+    shift_warnings = [w for w in fake_log.warnings if "zurückverschoben" in w]
+    _check("L zusätzliche, eigene Verschiebe-Warnung vorhanden",
+           len(shift_warnings) == 1, repr(fake_log.warnings))
+    insuff_warnings = [w for w in fake_log.warnings if "gültige Tage" in w]
+    _check("L KEINE insufficient_valid_days-Warnung (Ticker erfolgreich "
+           "repariert statt verworfen)",
+           insuff_warnings == [], repr(fake_log.warnings))
+
+
+def test_l2_shift_writes_distinct_gap_log_entry_alongside_original():
+    def _run(tmp_path):
+        fake_log = _FakeLogger()
+        ns = _make_namespace(fake_log)
+        rows = _make_valid_rows(6)
+        rows[5]["High"] = float("nan")
+        rows[5]["Low"] = float("nan")
+        rows[5]["Close"] = float("nan")
+        df = _FakeDF(rows, _DATES6)
+        result = ns["_extract_hist_5d"](df, "DMRC")
+        _check("L2 Ergebnis: 5 Tage (Regression gegen Test L)",
+               len(result) == 5, repr(result))
+        entries = _read_gap_jsonl(tmp_path)
+        by_reason = {e["reason"]: e for e in entries}
+        _check("L2 genau 2 JSONL-Einträge (nonfinite_cell + "
+               "last_day_incomplete_shifted) — KEIN insufficient_valid_days",
+               len(entries) == 2 and "insufficient_valid_days" not in by_reason,
+               repr(entries))
+        cell_entry = by_reason.get("nonfinite_cell")
+        _check("L2 nonfinite_cell-Eintrag unverändert vorhanden (Datum 2026-09-23)",
+               cell_entry is not None and cell_entry.get("dropped_day") == "2026-09-23"
+               and cell_entry.get("missing_cells") == ["High", "Low", "Close"],
+               repr(cell_entry))
+        shift_entry = by_reason.get("last_day_incomplete_shifted")
+        _check("L2 last_day_incomplete_shifted-Eintrag: korrekter Ticker/Tag/Zellen",
+               shift_entry is not None
+               and shift_entry.get("ticker") == "DMRC"
+               and shift_entry.get("dropped_day") == "2026-09-23"
+               and shift_entry.get("missing_cells") == ["High", "Low", "Close"],
+               repr(shift_entry))
+
+    _run_with_gap_log_tmpfile(_run)
+
+
+# ── M — letzter Tag unvollständig, aber NICHT genug Historie -> Fallback ───
+# (Pflicht-Szenario: "nicht genug Historie für einen Ausweich-Tag" muss
+# weiterhin fail-soft auf leere Liste zurückfallen, nicht crashen.)
+
+def test_m_last_day_incomplete_without_enough_history_falls_back_empty():
+    fake_log = _FakeLogger()
+    ns = _make_namespace(fake_log)
+    rows = _make_valid_rows(5)  # NUR 5 Roh-Tage insgesamt -> kein 6. Tag verfügbar
+    rows[4]["High"] = float("nan")
+    rows[4]["Low"] = float("nan")
+    rows[4]["Close"] = float("nan")
+    df = _FakeDF(rows, _DATES)
+    result = ns["_extract_hist_5d"](df, "NOHIST")
+    _check("M kein Crash, Fallback bleibt leere Liste (wie vor diesem Fix)",
+           result == [], repr(result))
+    shift_warnings = [w for w in fake_log.warnings if "zurückverschoben" in w]
+    _check("M KEINE Verschiebe-Warnung (Verschiebung gar nicht erst versucht)",
+           shift_warnings == [], repr(fake_log.warnings))
+    insuff_warnings = [w for w in fake_log.warnings if "gültige Tage" in w]
+    _check("M bestehende insufficient_valid_days-Warnung weiterhin vorhanden",
+           len(insuff_warnings) == 1 and "4/5" in insuff_warnings[0],
+           repr(fake_log.warnings))
+
+
+# ── N — chronisch unvollständiger Ticker (BHV/NWCLW/PMVP-Muster) -> NICHT
+#        fälschlich "repariert", bleibt korrekt leer ──────────────────────
+
+def test_n_chronic_multi_day_bad_ticker_stays_empty_not_shifted():
+    fake_log = _FakeLogger()
+    ns = _make_namespace(fake_log)
+    rows = _make_valid_rows(5)
+    # Zwei Tage komplett kaputt (ALLE vier Zellen inkl. Volume) -- das
+    # beobachtete BHV/NWCLW/PMVP-Muster (chronisch, nicht Postclose-Timing).
+    for label in ("Volume", "High", "Low", "Close"):
+        rows[3][label] = float("nan")
+        rows[4][label] = float("nan")
+    df = _FakeDF(rows, _DATES)
+    result = ns["_extract_hist_5d"](df, "BHV")
+    _check("N chronisch kaputter Ticker bleibt korrekt leer (NICHT fälschlich repariert)",
+           result == [], repr(result))
+    shift_warnings = [w for w in fake_log.warnings if "zurückverschoben" in w]
+    _check("N KEINE Verschiebe-Warnung — mehr als 1 Tag betroffen, "
+           "Bedingung (a) greift nicht",
+           shift_warnings == [], repr(fake_log.warnings))
+    cell_warnings = [w for w in fake_log.warnings if "verworfen" in w]
+    _check("N beide kaputten Tage weiterhin je einzeln als 'verworfen' geloggt",
+           len(cell_warnings) == 2, repr(fake_log.warnings))
+    insuff_warnings = [w for w in fake_log.warnings if "gültige Tage" in w]
+    _check("N bestehende insufficient_valid_days-Warnung weiterhin vorhanden (3/5)",
+           len(insuff_warnings) == 1 and "3/5" in insuff_warnings[0],
+           repr(fake_log.warnings))
+
+
+def test_n2_chronic_ticker_gap_log_has_no_shift_entry():
+    def _run(tmp_path):
+        fake_log = _FakeLogger()
+        ns = _make_namespace(fake_log)
+        rows = _make_valid_rows(5)
+        for label in ("Volume", "High", "Low", "Close"):
+            rows[3][label] = float("nan")
+            rows[4][label] = float("nan")
+        df = _FakeDF(rows, _DATES)
+        result = ns["_extract_hist_5d"](df, "NWCLW")
+        _check("N2 Ergebnis leer (Regression gegen Test N)", result == [], repr(result))
+        entries = _read_gap_jsonl(tmp_path)
+        reasons = [e["reason"] for e in entries]
+        _check("N2 KEIN last_day_incomplete_shifted-Eintrag im Gap-Log",
+               "last_day_incomplete_shifted" not in reasons, repr(entries))
+        _check("N2 genau 2x nonfinite_cell + 1x insufficient_valid_days",
+               reasons.count("nonfinite_cell") == 2
+               and reasons.count("insufficient_valid_days") == 1
+               and len(entries) == 3,
+               repr(entries))
+
+    _run_with_gap_log_tmpfile(_run)
+
+
 def main() -> int:
     tests = [
         test_a_all_valid_no_warning_logged,
@@ -493,6 +704,11 @@ def main() -> int:
         test_i_clean_data_writes_no_jsonl_entry,
         test_j_insufficient_raw_days_writes_one_jsonl_entry,
         test_k_no_ticker_writes_no_jsonl_entry,
+        test_l_last_day_incomplete_with_enough_history_shifts_and_recovers,
+        test_l2_shift_writes_distinct_gap_log_entry_alongside_original,
+        test_m_last_day_incomplete_without_enough_history_falls_back_empty,
+        test_n_chronic_multi_day_bad_ticker_stays_empty_not_shifted,
+        test_n2_chronic_ticker_gap_log_has_no_shift_entry,
     ]
     # Tests A-G kennen hist_5d_gap_log nicht explizit (sie prüfen nur
     # log.warning-Verhalten, geerbt von vor diesem PR) -- aber seit
