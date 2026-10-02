@@ -134,6 +134,15 @@
     "substrate": "none",
     "reason": "no_article"
   },
+  "ANDG": {
+    "qid": null,
+    "title": null,
+    "resolved_at": "2026-10-02T00:51:53Z",
+    "issuer_verified": false,
+    "company_name_at_resolve": "Andersen Group Inc.",
+    "substrate": "none",
+    "reason": "no_p249"
+  },
   "ANNX": {
     "qid": null,
     "title": null,
@@ -664,6 +673,15 @@
     "company_name_at_resolve": "Genius Sports Limited",
     "substrate": "none",
     "reason": "no_p249"
+  },
+  "GLOB": {
+    "qid": "Q5570946",
+    "title": "Globant",
+    "resolved_at": "2026-10-02T00:51:53Z",
+    "issuer_verified": true,
+    "company_name_at_resolve": "Globant S.A.",
+    "substrate": "en",
+    "reason": null
   },
   "GO": {
     "qid": "Q5609934",
@@ -1322,6 +1340,15 @@
     "substrate": "none",
     "reason": "no_p249"
   },
+  "TDAY": {
+    "qid": null,
+    "title": null,
+    "resolved_at": "2026-10-02T00:51:53Z",
+    "issuer_verified": false,
+    "company_name_at_resolve": "USA TODAY Co., Inc.",
+    "substrate": "none",
+    "reason": "no_p249"
+  },
   "TNON": {
     "qid": null,
     "title": null,
@@ -1400,6 +1427,15 @@
     "resolved_at": "2026-09-23T23:46:06Z",
     "issuer_verified": false,
     "company_name_at_resolve": "Valion Bio, Inc.",
+    "substrate": "none",
+    "reason": "no_p249"
+  },
+  "VEEA": {
+    "qid": null,
+    "title": null,
+    "resolved_at": "2026-10-02T00:51:53Z",
+    "issuer_verified": false,
+    "company_name_at_resolve": "Veea Inc.",
     "substrate": "none",
     "reason": "no_p249"
   },

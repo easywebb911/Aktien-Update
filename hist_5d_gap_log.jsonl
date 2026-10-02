@@ -158,3 +158,159 @@
 {"schema_v": 1, "run_ts": "2026-10-01T13:17:10Z", "ticker": "NWCLW", "reason": "nonfinite_cell", "dropped_day": "2026-09-28 00:00:00", "missing_cells": ["Volume", "High", "Low", "Close"], "n_days": null, "window": null}
 {"schema_v": 1, "run_ts": "2026-10-01T13:17:10Z", "ticker": "NWCLW", "reason": "nonfinite_cell", "dropped_day": "2026-09-29 00:00:00", "missing_cells": ["Volume", "High", "Low", "Close"], "n_days": null, "window": null}
 {"schema_v": 1, "run_ts": "2026-10-01T13:17:10Z", "ticker": "NWCLW", "reason": "insufficient_valid_days", "dropped_day": null, "missing_cells": [], "n_days": 1, "window": 5}
+{"schema_v": 1, "run_ts": "2026-10-02T00:51:40Z", "ticker": "CNXC", "reason": "nonfinite_cell", "dropped_day": "2026-10-01 00:00:00", "missing_cells": ["High", "Low", "Close"], "n_days": null, "window": null}
+{"schema_v": 1, "run_ts": "2026-10-02T00:51:40Z", "ticker": "CNXC", "reason": "insufficient_valid_days", "dropped_day": null, "missing_cells": [], "n_days": 4, "window": 5}
+{"schema_v": 1, "run_ts": "2026-10-02T00:51:40Z", "ticker": "WOLF", "reason": "nonfinite_cell", "dropped_day": "2026-10-01 00:00:00", "missing_cells": ["High", "Low", "Close"], "n_days": null, "window": null}
+{"schema_v": 1, "run_ts": "2026-10-02T00:51:40Z", "ticker": "WOLF", "reason": "insufficient_valid_days", "dropped_day": null, "missing_cells": [], "n_days": 4, "window": 5}
+{"schema_v": 1, "run_ts": "2026-10-02T00:51:40Z", "ticker": "TDAY", "reason": "nonfinite_cell", "dropped_day": "2026-10-01 00:00:00", "missing_cells": ["High", "Low", "Close"], "n_days": null, "window": null}
+{"schema_v": 1, "run_ts": "2026-10-02T00:51:40Z", "ticker": "TDAY", "reason": "insufficient_valid_days", "dropped_day": null, "missing_cells": [], "n_days": 4, "window": 5}
+{"schema_v": 1, "run_ts": "2026-10-02T00:51:40Z", "ticker": "RFL", "reason": "nonfinite_cell", "dropped_day": "2026-10-01 00:00:00", "missing_cells": ["High", "Low", "Close"], "n_days": null, "window": null}
+{"schema_v": 1, "run_ts": "2026-10-02T00:51:40Z", "ticker": "RFL", "reason": "insufficient_valid_days", "dropped_day": null, "missing_cells": [], "n_days": 4, "window": 5}
+{"schema_v": 1, "run_ts": "2026-10-02T00:51:40Z", "ticker": "BLMN", "reason": "nonfinite_cell", "dropped_day": "2026-10-01 00:00:00", "missing_cells": ["High", "Low", "Close"], "n_days": null, "window": null}
+{"schema_v": 1, "run_ts": "2026-10-02T00:51:40Z", "ticker": "BLMN", "reason": "insufficient_valid_days", "dropped_day": null, "missing_cells": [], "n_days": 4, "window": 5}
+{"schema_v": 1, "run_ts": "2026-10-02T00:51:40Z", "ticker": "EAF", "reason": "nonfinite_cell", "dropped_day": "2026-10-01 00:00:00", "missing_cells": ["High", "Low", "Close"], "n_days": null, "window": null}
+{"schema_v": 1, "run_ts": "2026-10-02T00:51:40Z", "ticker": "EAF", "reason": "insufficient_valid_days", "dropped_day": null, "missing_cells": [], "n_days": 4, "window": 5}
+{"schema_v": 1, "run_ts": "2026-10-02T00:51:40Z", "ticker": "BIRD", "reason": "nonfinite_cell", "dropped_day": "2026-10-01 00:00:00", "missing_cells": ["High", "Low", "Close"], "n_days": null, "window": null}
+{"schema_v": 1, "run_ts": "2026-10-02T00:51:40Z", "ticker": "BIRD", "reason": "insufficient_valid_days", "dropped_day": null, "missing_cells": [], "n_days": 4, "window": 5}
+{"schema_v": 1, "run_ts": "2026-10-02T00:51:40Z", "ticker": "VIOT", "reason": "nonfinite_cell", "dropped_day": "2026-10-01 00:00:00", "missing_cells": ["High", "Low", "Close"], "n_days": null, "window": null}
+{"schema_v": 1, "run_ts": "2026-10-02T00:51:40Z", "ticker": "VIOT", "reason": "insufficient_valid_days", "dropped_day": null, "missing_cells": [], "n_days": 4, "window": 5}
+{"schema_v": 1, "run_ts": "2026-10-02T00:51:40Z", "ticker": "MTRX", "reason": "nonfinite_cell", "dropped_day": "2026-10-01 00:00:00", "missing_cells": ["High", "Low", "Close"], "n_days": null, "window": null}
+{"schema_v": 1, "run_ts": "2026-10-02T00:51:40Z", "ticker": "MTRX", "reason": "insufficient_valid_days", "dropped_day": null, "missing_cells": [], "n_days": 4, "window": 5}
+{"schema_v": 1, "run_ts": "2026-10-02T00:51:40Z", "ticker": "EFOR", "reason": "nonfinite_cell", "dropped_day": "2026-10-01 00:00:00", "missing_cells": ["High", "Low", "Close"], "n_days": null, "window": null}
+{"schema_v": 1, "run_ts": "2026-10-02T00:51:40Z", "ticker": "EFOR", "reason": "insufficient_valid_days", "dropped_day": null, "missing_cells": [], "n_days": 4, "window": 5}
+{"schema_v": 1, "run_ts": "2026-10-02T00:51:40Z", "ticker": "DMRC", "reason": "nonfinite_cell", "dropped_day": "2026-10-01 00:00:00", "missing_cells": ["High", "Low", "Close"], "n_days": null, "window": null}
+{"schema_v": 1, "run_ts": "2026-10-02T00:51:40Z", "ticker": "DMRC", "reason": "insufficient_valid_days", "dropped_day": null, "missing_cells": [], "n_days": 4, "window": 5}
+{"schema_v": 1, "run_ts": "2026-10-02T00:51:40Z", "ticker": "INSG", "reason": "nonfinite_cell", "dropped_day": "2026-10-01 00:00:00", "missing_cells": ["High", "Low", "Close"], "n_days": null, "window": null}
+{"schema_v": 1, "run_ts": "2026-10-02T00:51:40Z", "ticker": "INSG", "reason": "insufficient_valid_days", "dropped_day": null, "missing_cells": [], "n_days": 4, "window": 5}
+{"schema_v": 1, "run_ts": "2026-10-02T00:51:40Z", "ticker": "TTEC", "reason": "nonfinite_cell", "dropped_day": "2026-10-01 00:00:00", "missing_cells": ["High", "Low", "Close"], "n_days": null, "window": null}
+{"schema_v": 1, "run_ts": "2026-10-02T00:51:40Z", "ticker": "TTEC", "reason": "insufficient_valid_days", "dropped_day": null, "missing_cells": [], "n_days": 4, "window": 5}
+{"schema_v": 1, "run_ts": "2026-10-02T00:51:40Z", "ticker": "INGN", "reason": "nonfinite_cell", "dropped_day": "2026-10-01 00:00:00", "missing_cells": ["High", "Low", "Close"], "n_days": null, "window": null}
+{"schema_v": 1, "run_ts": "2026-10-02T00:51:40Z", "ticker": "INGN", "reason": "insufficient_valid_days", "dropped_day": null, "missing_cells": [], "n_days": 4, "window": 5}
+{"schema_v": 1, "run_ts": "2026-10-02T00:51:40Z", "ticker": "HCKT", "reason": "nonfinite_cell", "dropped_day": "2026-10-01 00:00:00", "missing_cells": ["High", "Low", "Close"], "n_days": null, "window": null}
+{"schema_v": 1, "run_ts": "2026-10-02T00:51:40Z", "ticker": "HCKT", "reason": "insufficient_valid_days", "dropped_day": null, "missing_cells": [], "n_days": 4, "window": 5}
+{"schema_v": 1, "run_ts": "2026-10-02T00:51:40Z", "ticker": "EVCM", "reason": "nonfinite_cell", "dropped_day": "2026-10-01 00:00:00", "missing_cells": ["High", "Low", "Close"], "n_days": null, "window": null}
+{"schema_v": 1, "run_ts": "2026-10-02T00:51:40Z", "ticker": "EVCM", "reason": "insufficient_valid_days", "dropped_day": null, "missing_cells": [], "n_days": 4, "window": 5}
+{"schema_v": 1, "run_ts": "2026-10-02T00:51:40Z", "ticker": "OM", "reason": "nonfinite_cell", "dropped_day": "2026-10-01 00:00:00", "missing_cells": ["High", "Low", "Close"], "n_days": null, "window": null}
+{"schema_v": 1, "run_ts": "2026-10-02T00:51:40Z", "ticker": "OM", "reason": "insufficient_valid_days", "dropped_day": null, "missing_cells": [], "n_days": 4, "window": 5}
+{"schema_v": 1, "run_ts": "2026-10-02T00:51:40Z", "ticker": "COOK", "reason": "nonfinite_cell", "dropped_day": "2026-10-01 00:00:00", "missing_cells": ["High", "Low", "Close"], "n_days": null, "window": null}
+{"schema_v": 1, "run_ts": "2026-10-02T00:51:40Z", "ticker": "COOK", "reason": "insufficient_valid_days", "dropped_day": null, "missing_cells": [], "n_days": 4, "window": 5}
+{"schema_v": 1, "run_ts": "2026-10-02T00:51:40Z", "ticker": "BSET", "reason": "nonfinite_cell", "dropped_day": "2026-10-01 00:00:00", "missing_cells": ["High", "Low", "Close"], "n_days": null, "window": null}
+{"schema_v": 1, "run_ts": "2026-10-02T00:51:40Z", "ticker": "BSET", "reason": "insufficient_valid_days", "dropped_day": null, "missing_cells": [], "n_days": 4, "window": 5}
+{"schema_v": 1, "run_ts": "2026-10-02T00:51:40Z", "ticker": "CCEC", "reason": "nonfinite_cell", "dropped_day": "2026-10-01 00:00:00", "missing_cells": ["High", "Low", "Close"], "n_days": null, "window": null}
+{"schema_v": 1, "run_ts": "2026-10-02T00:51:40Z", "ticker": "CCEC", "reason": "insufficient_valid_days", "dropped_day": null, "missing_cells": [], "n_days": 4, "window": 5}
+{"schema_v": 1, "run_ts": "2026-10-02T00:51:40Z", "ticker": "VACI", "reason": "nonfinite_cell", "dropped_day": "2026-10-01 00:00:00", "missing_cells": ["High", "Low", "Close"], "n_days": null, "window": null}
+{"schema_v": 1, "run_ts": "2026-10-02T00:51:40Z", "ticker": "VACI", "reason": "insufficient_valid_days", "dropped_day": null, "missing_cells": [], "n_days": 4, "window": 5}
+{"schema_v": 1, "run_ts": "2026-10-02T00:51:40Z", "ticker": "AIFU", "reason": "nonfinite_cell", "dropped_day": "2026-10-01 00:00:00", "missing_cells": ["High", "Low", "Close"], "n_days": null, "window": null}
+{"schema_v": 1, "run_ts": "2026-10-02T00:51:40Z", "ticker": "AIFU", "reason": "insufficient_valid_days", "dropped_day": null, "missing_cells": [], "n_days": 4, "window": 5}
+{"schema_v": 1, "run_ts": "2026-10-02T00:51:40Z", "ticker": "GTN-A", "reason": "nonfinite_cell", "dropped_day": "2026-10-01 00:00:00", "missing_cells": ["High", "Low", "Close"], "n_days": null, "window": null}
+{"schema_v": 1, "run_ts": "2026-10-02T00:51:40Z", "ticker": "GTN-A", "reason": "insufficient_valid_days", "dropped_day": null, "missing_cells": [], "n_days": 4, "window": 5}
+{"schema_v": 1, "run_ts": "2026-10-02T00:51:40Z", "ticker": "VEEA", "reason": "nonfinite_cell", "dropped_day": "2026-10-01 00:00:00", "missing_cells": ["High", "Low", "Close"], "n_days": null, "window": null}
+{"schema_v": 1, "run_ts": "2026-10-02T00:51:40Z", "ticker": "VEEA", "reason": "insufficient_valid_days", "dropped_day": null, "missing_cells": [], "n_days": 4, "window": 5}
+{"schema_v": 1, "run_ts": "2026-10-02T00:51:40Z", "ticker": "WETO", "reason": "nonfinite_cell", "dropped_day": "2026-10-01 00:00:00", "missing_cells": ["High", "Low", "Close"], "n_days": null, "window": null}
+{"schema_v": 1, "run_ts": "2026-10-02T00:51:40Z", "ticker": "WETO", "reason": "insufficient_valid_days", "dropped_day": null, "missing_cells": [], "n_days": 4, "window": 5}
+{"schema_v": 1, "run_ts": "2026-10-02T00:51:40Z", "ticker": "VRA", "reason": "nonfinite_cell", "dropped_day": "2026-10-01 00:00:00", "missing_cells": ["High", "Low", "Close"], "n_days": null, "window": null}
+{"schema_v": 1, "run_ts": "2026-10-02T00:51:40Z", "ticker": "VRA", "reason": "insufficient_valid_days", "dropped_day": null, "missing_cells": [], "n_days": 4, "window": 5}
+{"schema_v": 1, "run_ts": "2026-10-02T00:51:40Z", "ticker": "ORN", "reason": "nonfinite_cell", "dropped_day": "2026-10-01 00:00:00", "missing_cells": ["High", "Low", "Close"], "n_days": null, "window": null}
+{"schema_v": 1, "run_ts": "2026-10-02T00:51:40Z", "ticker": "ORN", "reason": "insufficient_valid_days", "dropped_day": null, "missing_cells": [], "n_days": 4, "window": 5}
+{"schema_v": 1, "run_ts": "2026-10-02T00:51:40Z", "ticker": "DXC", "reason": "nonfinite_cell", "dropped_day": "2026-10-01 00:00:00", "missing_cells": ["High", "Low", "Close"], "n_days": null, "window": null}
+{"schema_v": 1, "run_ts": "2026-10-02T00:51:40Z", "ticker": "DXC", "reason": "insufficient_valid_days", "dropped_day": null, "missing_cells": [], "n_days": 4, "window": 5}
+{"schema_v": 1, "run_ts": "2026-10-02T00:51:40Z", "ticker": "DAVA", "reason": "nonfinite_cell", "dropped_day": "2026-10-01 00:00:00", "missing_cells": ["High", "Low", "Close"], "n_days": null, "window": null}
+{"schema_v": 1, "run_ts": "2026-10-02T00:51:40Z", "ticker": "DAVA", "reason": "insufficient_valid_days", "dropped_day": null, "missing_cells": [], "n_days": 4, "window": 5}
+{"schema_v": 1, "run_ts": "2026-10-02T00:51:40Z", "ticker": "LXEO", "reason": "nonfinite_cell", "dropped_day": "2026-10-01 00:00:00", "missing_cells": ["High", "Low", "Close"], "n_days": null, "window": null}
+{"schema_v": 1, "run_ts": "2026-10-02T00:51:40Z", "ticker": "LXEO", "reason": "insufficient_valid_days", "dropped_day": null, "missing_cells": [], "n_days": 4, "window": 5}
+{"schema_v": 1, "run_ts": "2026-10-02T00:51:40Z", "ticker": "CRAI", "reason": "nonfinite_cell", "dropped_day": "2026-10-01 00:00:00", "missing_cells": ["High", "Low", "Close"], "n_days": null, "window": null}
+{"schema_v": 1, "run_ts": "2026-10-02T00:51:40Z", "ticker": "CRAI", "reason": "insufficient_valid_days", "dropped_day": null, "missing_cells": [], "n_days": 4, "window": 5}
+{"schema_v": 1, "run_ts": "2026-10-02T00:51:40Z", "ticker": "FRBT", "reason": "nonfinite_cell", "dropped_day": "2026-10-01 00:00:00", "missing_cells": ["High", "Low", "Close"], "n_days": null, "window": null}
+{"schema_v": 1, "run_ts": "2026-10-02T00:51:40Z", "ticker": "FRBT", "reason": "insufficient_valid_days", "dropped_day": null, "missing_cells": [], "n_days": 4, "window": 5}
+{"schema_v": 1, "run_ts": "2026-10-02T00:51:40Z", "ticker": "BAK", "reason": "nonfinite_cell", "dropped_day": "2026-10-01 00:00:00", "missing_cells": ["High", "Low", "Close"], "n_days": null, "window": null}
+{"schema_v": 1, "run_ts": "2026-10-02T00:51:40Z", "ticker": "BAK", "reason": "insufficient_valid_days", "dropped_day": null, "missing_cells": [], "n_days": 4, "window": 5}
+{"schema_v": 1, "run_ts": "2026-10-02T00:51:40Z", "ticker": "GLOB", "reason": "nonfinite_cell", "dropped_day": "2026-10-01 00:00:00", "missing_cells": ["High", "Low", "Close"], "n_days": null, "window": null}
+{"schema_v": 1, "run_ts": "2026-10-02T00:51:40Z", "ticker": "GLOB", "reason": "insufficient_valid_days", "dropped_day": null, "missing_cells": [], "n_days": 4, "window": 5}
+{"schema_v": 1, "run_ts": "2026-10-02T00:51:40Z", "ticker": "JELD", "reason": "nonfinite_cell", "dropped_day": "2026-10-01 00:00:00", "missing_cells": ["High", "Low", "Close"], "n_days": null, "window": null}
+{"schema_v": 1, "run_ts": "2026-10-02T00:51:40Z", "ticker": "JELD", "reason": "insufficient_valid_days", "dropped_day": null, "missing_cells": [], "n_days": 4, "window": 5}
+{"schema_v": 1, "run_ts": "2026-10-02T00:51:40Z", "ticker": "GOTU", "reason": "nonfinite_cell", "dropped_day": "2026-10-01 00:00:00", "missing_cells": ["High", "Low", "Close"], "n_days": null, "window": null}
+{"schema_v": 1, "run_ts": "2026-10-02T00:51:40Z", "ticker": "GOTU", "reason": "insufficient_valid_days", "dropped_day": null, "missing_cells": [], "n_days": 4, "window": 5}
+{"schema_v": 1, "run_ts": "2026-10-02T00:51:40Z", "ticker": "SCSC", "reason": "nonfinite_cell", "dropped_day": "2026-10-01 00:00:00", "missing_cells": ["High", "Low", "Close"], "n_days": null, "window": null}
+{"schema_v": 1, "run_ts": "2026-10-02T00:51:40Z", "ticker": "SCSC", "reason": "insufficient_valid_days", "dropped_day": null, "missing_cells": [], "n_days": 4, "window": 5}
+{"schema_v": 1, "run_ts": "2026-10-02T00:51:40Z", "ticker": "PACB", "reason": "nonfinite_cell", "dropped_day": "2026-10-01 00:00:00", "missing_cells": ["High", "Low", "Close"], "n_days": null, "window": null}
+{"schema_v": 1, "run_ts": "2026-10-02T00:51:40Z", "ticker": "PACB", "reason": "insufficient_valid_days", "dropped_day": null, "missing_cells": [], "n_days": 4, "window": 5}
+{"schema_v": 1, "run_ts": "2026-10-02T00:51:40Z", "ticker": "NABL", "reason": "nonfinite_cell", "dropped_day": "2026-10-01 00:00:00", "missing_cells": ["High", "Low", "Close"], "n_days": null, "window": null}
+{"schema_v": 1, "run_ts": "2026-10-02T00:51:40Z", "ticker": "NABL", "reason": "insufficient_valid_days", "dropped_day": null, "missing_cells": [], "n_days": 4, "window": 5}
+{"schema_v": 1, "run_ts": "2026-10-02T00:51:40Z", "ticker": "NGL", "reason": "nonfinite_cell", "dropped_day": "2026-10-01 00:00:00", "missing_cells": ["High", "Low", "Close"], "n_days": null, "window": null}
+{"schema_v": 1, "run_ts": "2026-10-02T00:51:40Z", "ticker": "NGL", "reason": "insufficient_valid_days", "dropped_day": null, "missing_cells": [], "n_days": 4, "window": 5}
+{"schema_v": 1, "run_ts": "2026-10-02T00:51:40Z", "ticker": "SID", "reason": "nonfinite_cell", "dropped_day": "2026-10-01 00:00:00", "missing_cells": ["High", "Low", "Close"], "n_days": null, "window": null}
+{"schema_v": 1, "run_ts": "2026-10-02T00:51:40Z", "ticker": "SID", "reason": "insufficient_valid_days", "dropped_day": null, "missing_cells": [], "n_days": 4, "window": 5}
+{"schema_v": 1, "run_ts": "2026-10-02T00:51:40Z", "ticker": "UEIC", "reason": "nonfinite_cell", "dropped_day": "2026-10-01 00:00:00", "missing_cells": ["High", "Low", "Close"], "n_days": null, "window": null}
+{"schema_v": 1, "run_ts": "2026-10-02T00:51:40Z", "ticker": "UEIC", "reason": "insufficient_valid_days", "dropped_day": null, "missing_cells": [], "n_days": 4, "window": 5}
+{"schema_v": 1, "run_ts": "2026-10-02T00:51:40Z", "ticker": "CCOI", "reason": "nonfinite_cell", "dropped_day": "2026-10-01 00:00:00", "missing_cells": ["High", "Low", "Close"], "n_days": null, "window": null}
+{"schema_v": 1, "run_ts": "2026-10-02T00:51:40Z", "ticker": "CCOI", "reason": "insufficient_valid_days", "dropped_day": null, "missing_cells": [], "n_days": 4, "window": 5}
+{"schema_v": 1, "run_ts": "2026-10-02T00:51:40Z", "ticker": "ANTX", "reason": "nonfinite_cell", "dropped_day": "2026-10-01 00:00:00", "missing_cells": ["High", "Low", "Close"], "n_days": null, "window": null}
+{"schema_v": 1, "run_ts": "2026-10-02T00:51:40Z", "ticker": "ANTX", "reason": "insufficient_valid_days", "dropped_day": null, "missing_cells": [], "n_days": 4, "window": 5}
+{"schema_v": 1, "run_ts": "2026-10-02T00:51:40Z", "ticker": "TASK", "reason": "nonfinite_cell", "dropped_day": "2026-10-01 00:00:00", "missing_cells": ["High", "Low", "Close"], "n_days": null, "window": null}
+{"schema_v": 1, "run_ts": "2026-10-02T00:51:40Z", "ticker": "TASK", "reason": "insufficient_valid_days", "dropped_day": null, "missing_cells": [], "n_days": 4, "window": 5}
+{"schema_v": 1, "run_ts": "2026-10-02T00:51:40Z", "ticker": "REF", "reason": "nonfinite_cell", "dropped_day": "2026-10-01 00:00:00", "missing_cells": ["High", "Low", "Close"], "n_days": null, "window": null}
+{"schema_v": 1, "run_ts": "2026-10-02T00:51:40Z", "ticker": "REF", "reason": "insufficient_valid_days", "dropped_day": null, "missing_cells": [], "n_days": 4, "window": 5}
+{"schema_v": 1, "run_ts": "2026-10-02T00:51:40Z", "ticker": "CXM", "reason": "nonfinite_cell", "dropped_day": "2026-10-01 00:00:00", "missing_cells": ["High", "Low", "Close"], "n_days": null, "window": null}
+{"schema_v": 1, "run_ts": "2026-10-02T00:51:40Z", "ticker": "CXM", "reason": "insufficient_valid_days", "dropped_day": null, "missing_cells": [], "n_days": 4, "window": 5}
+{"schema_v": 1, "run_ts": "2026-10-02T00:51:40Z", "ticker": "ANDG", "reason": "nonfinite_cell", "dropped_day": "2026-10-01 00:00:00", "missing_cells": ["High", "Low", "Close"], "n_days": null, "window": null}
+{"schema_v": 1, "run_ts": "2026-10-02T00:51:40Z", "ticker": "ANDG", "reason": "insufficient_valid_days", "dropped_day": null, "missing_cells": [], "n_days": 4, "window": 5}
+{"schema_v": 1, "run_ts": "2026-10-02T00:51:40Z", "ticker": "CMDB", "reason": "nonfinite_cell", "dropped_day": "2026-10-01 00:00:00", "missing_cells": ["High", "Low", "Close"], "n_days": null, "window": null}
+{"schema_v": 1, "run_ts": "2026-10-02T00:51:40Z", "ticker": "CMDB", "reason": "insufficient_valid_days", "dropped_day": null, "missing_cells": [], "n_days": 4, "window": 5}
+{"schema_v": 1, "run_ts": "2026-10-02T00:51:40Z", "ticker": "EXFY", "reason": "nonfinite_cell", "dropped_day": "2026-10-01 00:00:00", "missing_cells": ["High", "Low", "Close"], "n_days": null, "window": null}
+{"schema_v": 1, "run_ts": "2026-10-02T00:51:40Z", "ticker": "EXFY", "reason": "insufficient_valid_days", "dropped_day": null, "missing_cells": [], "n_days": 4, "window": 5}
+{"schema_v": 1, "run_ts": "2026-10-02T00:51:40Z", "ticker": "SMWB", "reason": "nonfinite_cell", "dropped_day": "2026-10-01 00:00:00", "missing_cells": ["High", "Low", "Close"], "n_days": null, "window": null}
+{"schema_v": 1, "run_ts": "2026-10-02T00:51:40Z", "ticker": "SMWB", "reason": "insufficient_valid_days", "dropped_day": null, "missing_cells": [], "n_days": 4, "window": 5}
+{"schema_v": 1, "run_ts": "2026-10-02T00:51:40Z", "ticker": "CNDT", "reason": "nonfinite_cell", "dropped_day": "2026-10-01 00:00:00", "missing_cells": ["High", "Low", "Close"], "n_days": null, "window": null}
+{"schema_v": 1, "run_ts": "2026-10-02T00:51:40Z", "ticker": "CNDT", "reason": "insufficient_valid_days", "dropped_day": null, "missing_cells": [], "n_days": 4, "window": 5}
+{"schema_v": 1, "run_ts": "2026-10-02T00:51:40Z", "ticker": "SB", "reason": "nonfinite_cell", "dropped_day": "2026-10-01 00:00:00", "missing_cells": ["High", "Low", "Close"], "n_days": null, "window": null}
+{"schema_v": 1, "run_ts": "2026-10-02T00:51:40Z", "ticker": "SB", "reason": "insufficient_valid_days", "dropped_day": null, "missing_cells": [], "n_days": 4, "window": 5}
+{"schema_v": 1, "run_ts": "2026-10-02T00:51:40Z", "ticker": "PAR", "reason": "nonfinite_cell", "dropped_day": "2026-10-01 00:00:00", "missing_cells": ["High", "Low", "Close"], "n_days": null, "window": null}
+{"schema_v": 1, "run_ts": "2026-10-02T00:51:40Z", "ticker": "PAR", "reason": "insufficient_valid_days", "dropped_day": null, "missing_cells": [], "n_days": 4, "window": 5}
+{"schema_v": 1, "run_ts": "2026-10-02T00:51:40Z", "ticker": "HAPN", "reason": "nonfinite_cell", "dropped_day": "2026-10-01 00:00:00", "missing_cells": ["High", "Low", "Close"], "n_days": null, "window": null}
+{"schema_v": 1, "run_ts": "2026-10-02T00:51:40Z", "ticker": "HAPN", "reason": "insufficient_valid_days", "dropped_day": null, "missing_cells": [], "n_days": 4, "window": 5}
+{"schema_v": 1, "run_ts": "2026-10-02T00:51:40Z", "ticker": "OXM", "reason": "nonfinite_cell", "dropped_day": "2026-10-01 00:00:00", "missing_cells": ["High", "Low", "Close"], "n_days": null, "window": null}
+{"schema_v": 1, "run_ts": "2026-10-02T00:51:40Z", "ticker": "OXM", "reason": "insufficient_valid_days", "dropped_day": null, "missing_cells": [], "n_days": 4, "window": 5}
+{"schema_v": 1, "run_ts": "2026-10-02T00:51:40Z", "ticker": "HTZ", "reason": "nonfinite_cell", "dropped_day": "2026-10-01 00:00:00", "missing_cells": ["High", "Low", "Close"], "n_days": null, "window": null}
+{"schema_v": 1, "run_ts": "2026-10-02T00:51:40Z", "ticker": "HTZ", "reason": "insufficient_valid_days", "dropped_day": null, "missing_cells": [], "n_days": 4, "window": 5}
+{"schema_v": 1, "run_ts": "2026-10-02T00:51:40Z", "ticker": "XPOF", "reason": "nonfinite_cell", "dropped_day": "2026-10-01 00:00:00", "missing_cells": ["High", "Low", "Close"], "n_days": null, "window": null}
+{"schema_v": 1, "run_ts": "2026-10-02T00:51:40Z", "ticker": "XPOF", "reason": "insufficient_valid_days", "dropped_day": null, "missing_cells": [], "n_days": 4, "window": 5}
+{"schema_v": 1, "run_ts": "2026-10-02T00:51:40Z", "ticker": "NAT", "reason": "nonfinite_cell", "dropped_day": "2026-10-01 00:00:00", "missing_cells": ["High", "Low", "Close"], "n_days": null, "window": null}
+{"schema_v": 1, "run_ts": "2026-10-02T00:51:40Z", "ticker": "NAT", "reason": "insufficient_valid_days", "dropped_day": null, "missing_cells": [], "n_days": 4, "window": 5}
+{"schema_v": 1, "run_ts": "2026-10-02T00:51:40Z", "ticker": "BBAI", "reason": "nonfinite_cell", "dropped_day": "2026-10-01 00:00:00", "missing_cells": ["High", "Low", "Close"], "n_days": null, "window": null}
+{"schema_v": 1, "run_ts": "2026-10-02T00:51:40Z", "ticker": "BBAI", "reason": "insufficient_valid_days", "dropped_day": null, "missing_cells": [], "n_days": 4, "window": 5}
+{"schema_v": 1, "run_ts": "2026-10-02T00:51:40Z", "ticker": "JBGS", "reason": "nonfinite_cell", "dropped_day": "2026-10-01 00:00:00", "missing_cells": ["High", "Low", "Close"], "n_days": null, "window": null}
+{"schema_v": 1, "run_ts": "2026-10-02T00:51:40Z", "ticker": "JBGS", "reason": "insufficient_valid_days", "dropped_day": null, "missing_cells": [], "n_days": 4, "window": 5}
+{"schema_v": 1, "run_ts": "2026-10-02T00:51:40Z", "ticker": "GPRO", "reason": "nonfinite_cell", "dropped_day": "2026-10-01 00:00:00", "missing_cells": ["High", "Low", "Close"], "n_days": null, "window": null}
+{"schema_v": 1, "run_ts": "2026-10-02T00:51:40Z", "ticker": "GPRO", "reason": "insufficient_valid_days", "dropped_day": null, "missing_cells": [], "n_days": 4, "window": 5}
+{"schema_v": 1, "run_ts": "2026-10-02T00:51:40Z", "ticker": "KODK", "reason": "nonfinite_cell", "dropped_day": "2026-10-01 00:00:00", "missing_cells": ["High", "Low", "Close"], "n_days": null, "window": null}
+{"schema_v": 1, "run_ts": "2026-10-02T00:51:40Z", "ticker": "KODK", "reason": "insufficient_valid_days", "dropped_day": null, "missing_cells": [], "n_days": 4, "window": 5}
+{"schema_v": 1, "run_ts": "2026-10-02T00:51:40Z", "ticker": "VISN", "reason": "nonfinite_cell", "dropped_day": "2026-10-01 00:00:00", "missing_cells": ["High", "Low", "Close"], "n_days": null, "window": null}
+{"schema_v": 1, "run_ts": "2026-10-02T00:51:40Z", "ticker": "VISN", "reason": "insufficient_valid_days", "dropped_day": null, "missing_cells": [], "n_days": 4, "window": 5}
+{"schema_v": 1, "run_ts": "2026-10-02T00:51:40Z", "ticker": "OLN", "reason": "nonfinite_cell", "dropped_day": "2026-10-01 00:00:00", "missing_cells": ["High", "Low", "Close"], "n_days": null, "window": null}
+{"schema_v": 1, "run_ts": "2026-10-02T00:51:40Z", "ticker": "OLN", "reason": "insufficient_valid_days", "dropped_day": null, "missing_cells": [], "n_days": 4, "window": 5}
+{"schema_v": 1, "run_ts": "2026-10-02T00:51:40Z", "ticker": "LCID", "reason": "nonfinite_cell", "dropped_day": "2026-10-01 00:00:00", "missing_cells": ["High", "Low", "Close"], "n_days": null, "window": null}
+{"schema_v": 1, "run_ts": "2026-10-02T00:51:40Z", "ticker": "LCID", "reason": "insufficient_valid_days", "dropped_day": null, "missing_cells": [], "n_days": 4, "window": 5}
+{"schema_v": 1, "run_ts": "2026-10-02T00:51:40Z", "ticker": "CFFN", "reason": "nonfinite_cell", "dropped_day": "2026-10-01 00:00:00", "missing_cells": ["High", "Low", "Close"], "n_days": null, "window": null}
+{"schema_v": 1, "run_ts": "2026-10-02T00:51:40Z", "ticker": "CFFN", "reason": "insufficient_valid_days", "dropped_day": null, "missing_cells": [], "n_days": 4, "window": 5}
+{"schema_v": 1, "run_ts": "2026-10-02T00:51:40Z", "ticker": "DSX", "reason": "nonfinite_cell", "dropped_day": "2026-10-01 00:00:00", "missing_cells": ["High", "Low", "Close"], "n_days": null, "window": null}
+{"schema_v": 1, "run_ts": "2026-10-02T00:51:40Z", "ticker": "DSX", "reason": "insufficient_valid_days", "dropped_day": null, "missing_cells": [], "n_days": 4, "window": 5}
+{"schema_v": 1, "run_ts": "2026-10-02T00:51:40Z", "ticker": "EOSE", "reason": "nonfinite_cell", "dropped_day": "2026-10-01 00:00:00", "missing_cells": ["High", "Low", "Close"], "n_days": null, "window": null}
+{"schema_v": 1, "run_ts": "2026-10-02T00:51:40Z", "ticker": "EOSE", "reason": "insufficient_valid_days", "dropped_day": null, "missing_cells": [], "n_days": 4, "window": 5}
+{"schema_v": 1, "run_ts": "2026-10-02T00:51:40Z", "ticker": "SFL", "reason": "nonfinite_cell", "dropped_day": "2026-10-01 00:00:00", "missing_cells": ["High", "Low", "Close"], "n_days": null, "window": null}
+{"schema_v": 1, "run_ts": "2026-10-02T00:51:40Z", "ticker": "SFL", "reason": "insufficient_valid_days", "dropped_day": null, "missing_cells": [], "n_days": 4, "window": 5}
+{"schema_v": 1, "run_ts": "2026-10-02T00:51:40Z", "ticker": "COUR", "reason": "nonfinite_cell", "dropped_day": "2026-10-01 00:00:00", "missing_cells": ["High", "Low", "Close"], "n_days": null, "window": null}
+{"schema_v": 1, "run_ts": "2026-10-02T00:51:40Z", "ticker": "COUR", "reason": "insufficient_valid_days", "dropped_day": null, "missing_cells": [], "n_days": 4, "window": 5}
+{"schema_v": 1, "run_ts": "2026-10-02T00:51:40Z", "ticker": "SERV", "reason": "nonfinite_cell", "dropped_day": "2026-10-01 00:00:00", "missing_cells": ["High", "Low", "Close"], "n_days": null, "window": null}
+{"schema_v": 1, "run_ts": "2026-10-02T00:51:40Z", "ticker": "SERV", "reason": "insufficient_valid_days", "dropped_day": null, "missing_cells": [], "n_days": 4, "window": 5}
+{"schema_v": 1, "run_ts": "2026-10-02T00:51:40Z", "ticker": "VET", "reason": "nonfinite_cell", "dropped_day": "2026-10-01 00:00:00", "missing_cells": ["High", "Low", "Close"], "n_days": null, "window": null}
+{"schema_v": 1, "run_ts": "2026-10-02T00:51:40Z", "ticker": "VET", "reason": "insufficient_valid_days", "dropped_day": null, "missing_cells": [], "n_days": 4, "window": 5}
+{"schema_v": 1, "run_ts": "2026-10-02T00:51:40Z", "ticker": "MRX", "reason": "nonfinite_cell", "dropped_day": "2026-10-01 00:00:00", "missing_cells": ["High", "Low", "Close"], "n_days": null, "window": null}
+{"schema_v": 1, "run_ts": "2026-10-02T00:51:40Z", "ticker": "MRX", "reason": "insufficient_valid_days", "dropped_day": null, "missing_cells": [], "n_days": 4, "window": 5}
+{"schema_v": 1, "run_ts": "2026-10-02T00:51:40Z", "ticker": "GRPN", "reason": "nonfinite_cell", "dropped_day": "2026-10-01 00:00:00", "missing_cells": ["High", "Low", "Close"], "n_days": null, "window": null}
+{"schema_v": 1, "run_ts": "2026-10-02T00:51:40Z", "ticker": "GRPN", "reason": "insufficient_valid_days", "dropped_day": null, "missing_cells": [], "n_days": 4, "window": 5}
+{"schema_v": 1, "run_ts": "2026-10-02T00:51:40Z", "ticker": "AMC", "reason": "nonfinite_cell", "dropped_day": "2026-10-01 00:00:00", "missing_cells": ["High", "Low", "Close"], "n_days": null, "window": null}
+{"schema_v": 1, "run_ts": "2026-10-02T00:51:40Z", "ticker": "AMC", "reason": "insufficient_valid_days", "dropped_day": null, "missing_cells": [], "n_days": 4, "window": 5}
+{"schema_v": 1, "run_ts": "2026-10-02T00:51:40Z", "ticker": "IONQ", "reason": "nonfinite_cell", "dropped_day": "2026-10-01 00:00:00", "missing_cells": ["High", "Low", "Close"], "n_days": null, "window": null}
+{"schema_v": 1, "run_ts": "2026-10-02T00:51:40Z", "ticker": "IONQ", "reason": "insufficient_valid_days", "dropped_day": null, "missing_cells": [], "n_days": 4, "window": 5}
+{"schema_v": 1, "run_ts": "2026-10-02T00:51:40Z", "ticker": "PDYN", "reason": "nonfinite_cell", "dropped_day": "2026-10-01 00:00:00", "missing_cells": ["High", "Low", "Close"], "n_days": null, "window": null}
+{"schema_v": 1, "run_ts": "2026-10-02T00:51:40Z", "ticker": "PDYN", "reason": "insufficient_valid_days", "dropped_day": null, "missing_cells": [], "n_days": 4, "window": 5}

@@ -393,6 +393,12 @@
       "shares_short": 9172418,
       "short_pct_float": 25.75,
       "pub_date": "2026-09-10"
+    },
+    {
+      "settlement_date": "2026-09-15",
+      "shares_short": 9044818,
+      "short_pct_float": 25.39,
+      "pub_date": "2026-09-24"
     }
   ],
   "GLOB": [
@@ -624,6 +630,12 @@
       "shares_short": 9365178,
       "short_pct_float": 18.05,
       "pub_date": "2026-09-10"
+    },
+    {
+      "settlement_date": "2026-09-15",
+      "shares_short": 8590073,
+      "short_pct_float": 16.55,
+      "pub_date": "2026-09-24"
     }
   ],
   "BKSY": [
@@ -1062,6 +1074,12 @@
       "shares_short": 4507119,
       "short_pct_float": 21.83,
       "pub_date": "2026-09-10"
+    },
+    {
+      "settlement_date": "2026-09-15",
+      "shares_short": 4302471,
+      "short_pct_float": 20.84,
+      "pub_date": "2026-09-24"
     }
   ],
   "SEAT": [
@@ -3096,6 +3114,12 @@
       "shares_short": 3209243,
       "short_pct_float": 33.16,
       "pub_date": "2026-08-25"
+    },
+    {
+      "settlement_date": "2026-09-15",
+      "shares_short": 3651537,
+      "short_pct_float": 37.54,
+      "pub_date": "2026-09-24"
     }
   ],
   "PRGO": [
@@ -3657,6 +3681,12 @@
       "shares_short": 111323398,
       "short_pct_float": 30.87,
       "pub_date": "2026-09-10"
+    },
+    {
+      "settlement_date": "2026-09-15",
+      "shares_short": 120015346,
+      "short_pct_float": 33.28,
+      "pub_date": "2026-09-24"
     }
   ],
   "CABA": [
@@ -4959,6 +4989,12 @@
       "shares_short": 26992350,
       "short_pct_float": 19.97,
       "pub_date": "2026-09-10"
+    },
+    {
+      "settlement_date": "2026-09-15",
+      "shares_short": 24091967,
+      "short_pct_float": 17.83,
+      "pub_date": "2026-09-24"
     }
   ],
   "ATLC": [
@@ -5721,6 +5757,12 @@
       "shares_short": 145426949,
       "short_pct_float": 30.5,
       "pub_date": "2026-09-10"
+    },
+    {
+      "settlement_date": "2026-09-15",
+      "shares_short": 150124548,
+      "short_pct_float": 31.49,
+      "pub_date": "2026-09-24"
     }
   ],
   "SLNH": [
@@ -8360,6 +8402,36 @@
       "settlement_date": "2026-09-15",
       "shares_short": 9713373,
       "short_pct_float": 18.97,
+      "pub_date": "2026-09-24"
+    }
+  ],
+  "TDAY": [
+    {
+      "settlement_date": "2026-08-14",
+      "shares_short": 20785028,
+      "short_pct_float": null,
+      "pub_date": "2026-08-25",
+      "seeded": true
+    },
+    {
+      "settlement_date": "2026-09-15",
+      "shares_short": 27136550,
+      "short_pct_float": 19.33,
+      "pub_date": "2026-09-24"
+    }
+  ],
+  "WETO": [
+    {
+      "settlement_date": "2026-08-14",
+      "shares_short": 6089,
+      "short_pct_float": null,
+      "pub_date": "2026-08-25",
+      "seeded": true
+    },
+    {
+      "settlement_date": "2026-09-15",
+      "shares_short": 349093,
+      "short_pct_float": 38.16,
       "pub_date": "2026-09-24"
     }
   ]
