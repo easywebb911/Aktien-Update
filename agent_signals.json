@@ -1,10 +1,10 @@
 {
-  "updated": "2026-10-03T19:17:52.435062+02:00",
+  "updated": "2026-10-03T23:15:12.916820+02:00",
   "run_info": {
     "tickers_checked": 13,
     "signals_active": 1,
     "alerts_sent": 0,
-    "elapsed_s": 10.8,
+    "elapsed_s": 14.0,
     "market_phase": "Geschlossen"
   },
   "signals": {
@@ -53,9 +53,9 @@
       "uoa_cp_ratio": 18.34090909090909
     },
     "CABO": {
-      "score": 50,
+      "score": 33,
       "confidence": 70,
-      "drivers": "Volumen 2.1× + Spanne 26.2% + News-KI 12/30: Positive financing news offset by S&P downgrade and weakening fundamentals; limited short interest catalysts visible. + Earnings in 37d",
+      "drivers": "Volumen 2.1× + Spanne 26.2% + Earnings in 37d",
       "price": 12.21,
       "chg_pct": 0.0,
       "rvol_4d": 2.09,
@@ -65,9 +65,9 @@
       "upcoming_event": null,
       "insider_buy": false,
       "stocktwits": null,
-      "combo_mult": 1.1,
-      "active_triggers": 2,
-      "ki_sentiment_source": "llm",
+      "combo_mult": 1.0,
+      "active_triggers": 1,
+      "ki_sentiment_source": "keyword",
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": null,
@@ -118,7 +118,7 @@
     "DDD": {
       "score": 51,
       "confidence": 70,
-      "drivers": "Volumen 1.6× + Spanne 5.8% + News-KI 8/30: Positive fundamental improvements but no signs of short squeeze catalysts like high short interest, stock momentum, or u + Earnings in 31d + UOA Call/Put 4.7×",
+      "drivers": "Volumen 1.6× + Spanne 5.8% + News-KI 8/30: Positive fundamental improvements and analyst backing, but no evidence of high short interest, gamma exposure, or cataly + Earnings in 31d + UOA Call/Put 4.7×",
       "price": 3.78,
       "chg_pct": -0.0,
       "rvol_4d": 1.55,
@@ -162,9 +162,9 @@
       "uoa_cp_ratio": 61.6
     },
     "GRPN": {
-      "score": 28,
+      "score": 36,
       "confidence": 70,
-      "drivers": "Spanne 5.9% + Earnings in 33d + UOA Call/Put 5.4×",
+      "drivers": "Spanne 5.9% + News-KI 8/30: Mixed price action with increased investor interest, but no evidence of heavy short interest, catalyst, or squeeze setup + Earnings in 33d + UOA Call/Put 5.4×",
       "price": 19.31,
       "chg_pct": -0.0,
       "rvol_4d": 0.92,
@@ -176,7 +176,7 @@
       "stocktwits": null,
       "combo_mult": 1.0,
       "active_triggers": 0,
-      "ki_sentiment_source": "keyword",
+      "ki_sentiment_source": "llm",
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 5.4×"
@@ -185,9 +185,9 @@
       "uoa_cp_ratio": 5.444444444444445
     },
     "INSG": {
-      "score": 43,
+      "score": 36,
       "confidence": 70,
-      "drivers": "Spanne 7.7% + News: acquisition + Earnings in 33d + UOA Call/Put 2.4×",
+      "drivers": "Spanne 7.7% + News-KI 8/30: Positive corporate developments but no indication of high short interest, significant squeeze catalysts, or retail inves + Earnings in 33d + UOA Call/Put 2.4×",
       "price": 4.61,
       "chg_pct": 0.0,
       "rvol_4d": 0.96,
@@ -198,8 +198,8 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 1,
-      "ki_sentiment_source": "keyword",
+      "active_triggers": 0,
+      "ki_sentiment_source": "llm",
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 2.4×"
@@ -229,9 +229,9 @@
       "uoa_cp_ratio": 1.2662235438166871
     },
     "PDYN": {
-      "score": 23,
+      "score": 38,
       "confidence": 33,
-      "drivers": "News: contract + Earnings in 39d",
+      "drivers": "News: revenue beat, contract + Earnings in 39d",
       "price": 5.33,
       "chg_pct": -0.0,
       "rvol_4d": 0.72,
@@ -273,9 +273,9 @@
       "uoa_cp_ratio": 1235.6666666666667
     },
     "WOLF": {
-      "score": 53,
+      "score": 61,
       "confidence": 70,
-      "drivers": "Volumen 2.7× + Spanne 15.1% + Earnings in 32d + SEC Form 4 + UOA Call/Put 13.6×",
+      "drivers": "Volumen 2.7× + Spanne 15.1% + News-KI 8/30: Positive operational news and modest price strength, but no catalysts indicating significant short positioning or squeez + Earnings in 32d + SEC Form 4 + UOA Call/Put 13.6×",
       "price": 35.28,
       "chg_pct": -0.0,
       "rvol_4d": 2.69,
@@ -287,7 +287,7 @@
       "stocktwits": null,
       "combo_mult": 1.0,
       "active_triggers": 1,
-      "ki_sentiment_source": "keyword",
+      "ki_sentiment_source": "llm",
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 13.6×"
