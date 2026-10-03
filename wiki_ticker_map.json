@@ -296,6 +296,15 @@
     "substrate": "none",
     "reason": "no_p249"
   },
+  "CABO": {
+    "qid": "Q11301445",
+    "title": "Cable_One",
+    "resolved_at": "2026-10-03T00:32:46Z",
+    "issuer_verified": true,
+    "company_name_at_resolve": "Cable One, Inc.",
+    "substrate": "en",
+    "reason": null
+  },
   "CAPR": {
     "qid": null,
     "title": null,
@@ -428,6 +437,15 @@
     "resolved_at": "2026-09-01T23:22:00Z",
     "issuer_verified": false,
     "company_name_at_resolve": "CytomX Therapeutics, Inc.",
+    "substrate": "none",
+    "reason": "no_p249"
+  },
+  "CTNT": {
+    "qid": null,
+    "title": null,
+    "resolved_at": "2026-10-03T00:32:46Z",
+    "issuer_verified": false,
+    "company_name_at_resolve": "Cheetah Net Supply Chain Service Inc.",
     "substrate": "none",
     "reason": "no_p249"
   },
