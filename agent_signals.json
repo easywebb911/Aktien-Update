@@ -1,17 +1,17 @@
 {
-  "updated": "2026-10-04T07:54:33.261314+02:00",
+  "updated": "2026-10-04T14:22:48.044957+02:00",
   "run_info": {
     "tickers_checked": 13,
-    "signals_active": 2,
+    "signals_active": 3,
     "alerts_sent": 0,
-    "elapsed_s": 15.1,
+    "elapsed_s": 10.3,
     "market_phase": "Geschlossen"
   },
   "signals": {
     "AMC": {
-      "score": 40,
-      "confidence": 70,
-      "drivers": "Spanne 6.4% + News-KI 12/30: Negative price action with sector-wide selloff and debt restructuring concerns indicate weak short-squeeze potential des + Earnings in 16d + SEC Form 4",
+      "score": 28,
+      "confidence": 33,
+      "drivers": "Spanne 6.4% + Earnings in 16d + SEC Form 4",
       "price": 2.77,
       "chg_pct": -0.0,
       "rvol_4d": 0.44,
@@ -22,8 +22,8 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 1,
-      "ki_sentiment_source": "llm",
+      "active_triggers": 0,
+      "ki_sentiment_source": "keyword",
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": 0.9840920629548147,
@@ -53,9 +53,9 @@
       "uoa_cp_ratio": 18.34090909090909
     },
     "CABO": {
-      "score": 50,
+      "score": 33,
       "confidence": 70,
-      "drivers": "Volumen 2.1× + Spanne 26.2% + News-KI 12/30: Positive news offset by S&P downgrade and weakening fundamentals; limited short interest catalyst potential. + Earnings in 36d",
+      "drivers": "Volumen 2.1× + Spanne 26.2% + Earnings in 36d",
       "price": 12.21,
       "chg_pct": 0.0,
       "rvol_4d": 2.09,
@@ -65,18 +65,18 @@
       "upcoming_event": null,
       "insider_buy": false,
       "stocktwits": null,
-      "combo_mult": 1.1,
-      "active_triggers": 2,
-      "ki_sentiment_source": "llm",
+      "combo_mult": 1.0,
+      "active_triggers": 1,
+      "ki_sentiment_source": "keyword",
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": null,
       "uoa_cp_ratio": null
     },
     "CBRL": {
-      "score": 45,
-      "confidence": 33,
-      "drivers": "Spanne 8.1% + FINRA Short-Vol 78% + SEC Form 4",
+      "score": 60,
+      "confidence": 70,
+      "drivers": "Spanne 8.1% + News: short interest + FINRA Short-Vol 78% + SEC Form 4",
       "price": 55.76,
       "chg_pct": -0.0,
       "rvol_4d": 1.12,
@@ -87,7 +87,7 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 0,
+      "active_triggers": 1,
       "ki_sentiment_source": "keyword",
       "uoa_score": 0,
       "uoa_drivers": [],
@@ -162,9 +162,9 @@
       "uoa_cp_ratio": 61.6
     },
     "GRPN": {
-      "score": 28,
+      "score": 36,
       "confidence": 70,
-      "drivers": "Spanne 5.9% + Earnings in 32d + UOA Call/Put 5.4×",
+      "drivers": "Spanne 5.9% + News-KI 8/30: Mixed headlines show slight outperformance but lack evidence of short squeeze catalysts like extreme short interest, ret + Earnings in 32d + UOA Call/Put 5.4×",
       "price": 19.31,
       "chg_pct": -0.0,
       "rvol_4d": 0.92,
@@ -176,7 +176,7 @@
       "stocktwits": null,
       "combo_mult": 1.0,
       "active_triggers": 0,
-      "ki_sentiment_source": "keyword",
+      "ki_sentiment_source": "llm",
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 5.4×"
@@ -273,9 +273,9 @@
       "uoa_cp_ratio": 1235.6666666666667
     },
     "WOLF": {
-      "score": 53,
+      "score": 72,
       "confidence": 70,
-      "drivers": "Volumen 2.7× + Spanne 15.1% + Earnings in 31d + SEC Form 4 + UOA Call/Put 13.6×",
+      "drivers": "Volumen 2.7× + Spanne 15.1% + News-KI 12/30: Positive product expansion and modest stock gains, but no significant short interest catalyst, debt burden, or forced bu + Earnings in 31d + SEC Form 4 + UOA Call/Put 13.6×",
       "price": 35.28,
       "chg_pct": -0.0,
       "rvol_4d": 2.69,
@@ -285,9 +285,9 @@
       "upcoming_event": null,
       "insider_buy": false,
       "stocktwits": null,
-      "combo_mult": 1.0,
-      "active_triggers": 1,
-      "ki_sentiment_source": "keyword",
+      "combo_mult": 1.1,
+      "active_triggers": 2,
+      "ki_sentiment_source": "llm",
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 13.6×"
