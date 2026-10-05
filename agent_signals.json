@@ -1,17 +1,17 @@
 {
-  "updated": "2026-10-04T23:26:10.438659+02:00",
+  "updated": "2026-10-05T02:56:08.676460+02:00",
   "run_info": {
     "tickers_checked": 13,
-    "signals_active": 2,
+    "signals_active": 3,
     "alerts_sent": 0,
-    "elapsed_s": 12.1,
+    "elapsed_s": 12.7,
     "market_phase": "Geschlossen"
   },
   "signals": {
     "AMC": {
-      "score": 28,
-      "confidence": 33,
-      "drivers": "Spanne 6.4% + Earnings in 16d + SEC Form 4",
+      "score": 40,
+      "confidence": 70,
+      "drivers": "Spanne 6.4% + News-KI 12/30: Negative price action with sector-wide selloff outweighs neutral restructuring news; no short squeeze catalyst evident. + Earnings in 16d + SEC Form 4",
       "price": 2.77,
       "chg_pct": -0.0,
       "rvol_4d": 0.44,
@@ -22,8 +22,8 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 0,
-      "ki_sentiment_source": "keyword",
+      "active_triggers": 1,
+      "ki_sentiment_source": "llm",
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": 0.9840920629548147,
@@ -53,9 +53,9 @@
       "uoa_cp_ratio": 8.585106382978724
     },
     "CABO": {
-      "score": 41,
+      "score": 50,
       "confidence": 70,
-      "drivers": "Volumen 2.1× + Spanne 26.2% + News-KI 8/30: Positive financing news overshadowed by S&P downgrade and weakening fundamentals; low short interest potential with mixe + Earnings in 36d",
+      "drivers": "Volumen 2.1× + Spanne 26.2% + News-KI 12/30: Positive financing news overshadowed by S&P downgrade and weakening fundamentals; lacks short interest catalyst and mome + Earnings in 36d",
       "price": 12.21,
       "chg_pct": 0.0,
       "rvol_4d": 2.09,
@@ -65,8 +65,8 @@
       "upcoming_event": null,
       "insider_buy": false,
       "stocktwits": null,
-      "combo_mult": 1.0,
-      "active_triggers": 1,
+      "combo_mult": 1.1,
+      "active_triggers": 2,
       "ki_sentiment_source": "llm",
       "uoa_score": 0,
       "uoa_drivers": [],
@@ -76,7 +76,7 @@
     "CBRL": {
       "score": 75,
       "confidence": 70,
-      "drivers": "Spanne 8.1% + News: short interest, earnings beat + FINRA Short-Vol 78% + SEC Form 4",
+      "drivers": "Spanne 8.1% + News: earnings beat, short interest + FINRA Short-Vol 78% + SEC Form 4",
       "price": 55.76,
       "chg_pct": -0.0,
       "rvol_4d": 1.12,
@@ -118,7 +118,7 @@
     "DDD": {
       "score": 51,
       "confidence": 70,
-      "drivers": "Volumen 1.6× + Spanne 5.8% + News-KI 8/30: Positive fundamental improvements but no short-squeeze indicators like high short interest, price momentum, or catalyst- + Earnings in 30d + UOA Call/Put 4.7×",
+      "drivers": "Volumen 1.6× + Spanne 5.8% + News-KI 8/30: Positive operational improvements and analyst backing, but no significant short squeeze indicators like high short inter + Earnings in 30d + UOA Call/Put 4.7×",
       "price": 3.78,
       "chg_pct": -0.0,
       "rvol_4d": 1.55,
@@ -162,9 +162,9 @@
       "uoa_cp_ratio": 61.6
     },
     "GRPN": {
-      "score": 28,
+      "score": 40,
       "confidence": 70,
-      "drivers": "Spanne 5.9% + Earnings in 32d + UOA Call/Put 5.4×",
+      "drivers": "Spanne 5.9% + News-KI 12/30: Mixed signals with one gain offset by two declines; no mention of short interest, high volatility, or squeeze catalysts. + Earnings in 32d + UOA Call/Put 5.4×",
       "price": 19.31,
       "chg_pct": -0.0,
       "rvol_4d": 0.92,
@@ -175,8 +175,8 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 0,
-      "ki_sentiment_source": "keyword",
+      "active_triggers": 1,
+      "ki_sentiment_source": "llm",
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 5.4×"
@@ -210,7 +210,7 @@
     "IONQ": {
       "score": 38,
       "confidence": 33,
-      "drivers": "News: catalyst, partnership + Earnings in 31d",
+      "drivers": "News: partnership, catalyst + Earnings in 31d",
       "price": 43.77,
       "chg_pct": 0.0,
       "rvol_4d": 0.79,
@@ -273,9 +273,9 @@
       "uoa_cp_ratio": 1235.6666666666667
     },
     "WOLF": {
-      "score": 53,
+      "score": 72,
       "confidence": 70,
-      "drivers": "Volumen 2.7× + Spanne 15.1% + Earnings in 31d + SEC Form 4 + UOA Call/Put 6.3×",
+      "drivers": "Volumen 2.7× + Spanne 15.1% + News-KI 12/30: Positive product expansion and modest price strength, but no short-squeeze indicators like high short interest, forced c + Earnings in 31d + SEC Form 4 + UOA Call/Put 6.3×",
       "price": 35.28,
       "chg_pct": -0.0,
       "rvol_4d": 2.69,
@@ -285,9 +285,9 @@
       "upcoming_event": null,
       "insider_buy": false,
       "stocktwits": null,
-      "combo_mult": 1.0,
-      "active_triggers": 1,
-      "ki_sentiment_source": "keyword",
+      "combo_mult": 1.1,
+      "active_triggers": 2,
+      "ki_sentiment_source": "llm",
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 6.3×"
