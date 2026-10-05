@@ -3069,6 +3069,12 @@
       "shares_short": 10842235,
       "short_pct_float": 21.48,
       "pub_date": "2026-09-10"
+    },
+    {
+      "settlement_date": "2026-09-15",
+      "shares_short": 9786380,
+      "short_pct_float": 19.39,
+      "pub_date": "2026-09-24"
     }
   ],
   "BMBL": [
@@ -3273,6 +3279,12 @@
       "shares_short": 29561922,
       "short_pct_float": 31.23,
       "pub_date": "2026-09-10"
+    },
+    {
+      "settlement_date": "2026-09-15",
+      "shares_short": 26746756,
+      "short_pct_float": 28.25,
+      "pub_date": "2026-09-24"
     }
   ],
   "WEN": [
@@ -8531,6 +8543,66 @@
       "settlement_date": "2026-09-15",
       "shares_short": 1843291,
       "short_pct_float": 17.23,
+      "pub_date": "2026-09-24"
+    }
+  ],
+  "AFYA": [
+    {
+      "settlement_date": "2026-08-14",
+      "shares_short": 432536,
+      "short_pct_float": null,
+      "pub_date": "2026-08-25",
+      "seeded": true
+    },
+    {
+      "settlement_date": "2026-09-15",
+      "shares_short": 1411623,
+      "short_pct_float": 28.96,
+      "pub_date": "2026-09-24"
+    }
+  ],
+  "MPT": [
+    {
+      "settlement_date": "2026-08-14",
+      "shares_short": 144500823,
+      "short_pct_float": null,
+      "pub_date": "2026-08-25",
+      "seeded": true
+    },
+    {
+      "settlement_date": "2026-09-15",
+      "shares_short": 145296024,
+      "short_pct_float": 32.56,
+      "pub_date": "2026-09-24"
+    }
+  ],
+  "UNIT": [
+    {
+      "settlement_date": "2026-08-14",
+      "shares_short": 20208417,
+      "short_pct_float": null,
+      "pub_date": "2026-08-25",
+      "seeded": true
+    },
+    {
+      "settlement_date": "2026-09-15",
+      "shares_short": 21878506,
+      "short_pct_float": 18.79,
+      "pub_date": "2026-09-24"
+    }
+  ],
+  "REAL": [
+    {
+      "settlement_date": "2026-08-14",
+      "shares_short": 14847444,
+      "short_pct_float": null,
+      "pub_date": "2026-08-25",
+      "seeded": true
+    },
+    {
+      "settlement_date": "2026-09-15",
+      "shares_short": 16745378,
+      "short_pct_float": 15.71,
       "pub_date": "2026-09-24"
     }
   ]
