@@ -161,6 +161,22 @@
       "description": "Aus SESSION_HANDOVER.md, H5-Vorabregistrierung (Ausreißer-Behandlung, Datum via git-log -S geschätzt): in der Diagnose wurde ein Extremwert (+18.064,8% Delta bei einem einzelnen Ticker) beobachtet, dessen Ursache nicht verifiziert wurde (Datenfehler vs. echter Meme-Spike). Die H5-Methodik behandelt das bereits robust (Vorzeichen-basierte primäre Zellen-Zuordnung + Winsorizing sekundär), sodass der Ausreißer die Auswertung nicht verzerren kann -- die reine Sachfrage 'was war das für ein Ticker/Ereignis' bleibt aber unbeantwortet. Niedrige Priorität, reine Neugier-Frage ohne Methodik-Auswirkung.",
       "status": "beobachtet",
       "status_date": "2026-09-27"
+    },
+    {
+      "id": "nyse-regsho-empty-streak",
+      "title": "NYSE Reg-SHO empty-Serie seit Handelstag 28.09.2026",
+      "opened": "2026-10-06",
+      "description": "Diagnose 06.10.2026 (reg_sho_history.json/_state.json-Historie, git-Commits zitiert): letzter 'ok:23'-Postclose-Lauf war für Handelstag 25.09.2026; ab Handelstag 28.09.2026 liefert _resolve_nyse() durchgehend nyse_result='empty' (sechs Postclose-Läufe in Folge bis mind. 05.10.2026, HTTP 200 + nicht-leerer Body, aber 0 Symbole nach dem isalpha()-Filter). Kein Code-/Config-Change an reg_sho_history.py/config.py im Übergangsfenster (25.09.-28.09.) gefunden -- Ursache vermutlich extern (NYSE-Format-Änderung oder verschärfte Bot-/Netzwerk-Abwehr auf dem GitHub-Actions-Runner), nicht bestätigt. Live-Zugriff aus der Diagnose-Sandbox strukturell nicht möglich (Sandbox-Proxy blockt CONNECT zu www.nyse.com bereits auf Policy-Ebene, kein Signal über NYSE selbst). Die Detail-Lücke (bislang kein persistiertes Byte-/Zeilen-/Preview-Detail für den empty-Fall, nur für fetch_failed seit PR #542) wird mit diesem PR geschlossen (_nyse_empty_detail() + state['nyse_empty_detail']) -- ab dem nächsten empty-Vorkommnis ist aus dem State ablesbar, was der Endpunkt tatsächlich lieferte. Die externe Ursache selbst bleibt bis zum nächsten Vorkommnis offen.",
+      "status": "offen",
+      "status_date": "2026-10-06"
+    },
+    {
+      "id": "nyse-referer-probe-status",
+      "title": "NYSE-Referer-Probe-Status (A/B-Test 13.09.2026)",
+      "opened": "2026-09-13",
+      "description": "Nachträglich erfasst (06.10.2026) -- dieser Punkt ist einer der beiden in der Modul-Note oben explizit genannten, vor Einführung von open_items.json (22.09.2026) aus der Session-Handover-Prosa verlorenen Beispiele; wird hier erstmals strukturiert nachgetragen. PR #550 (d4d138a7/8e6db089, 13.09.2026) baute einen dispatch-only Diagnose-Workflow (diagnose_nyse_referer_header_probe.yml), um die Referer-Header-Hypothese aus der August-Diagnose gegen die damaligen 5 NYSE-Ausfälle seit #538 zu testen. Einmaliger Lauf (Run 34760756906, 13.09.2026 13:46 UTC, per workflow_dispatch): BEIDE Varianten (ohne/mit Referer-Header) lieferten HTTP 403 -- Zitat aus dem Job-Log-VERDIKT: 'KEIN UNTERSCHIED in diesem Lauf -- beide Varianten liefern 'fetch_failed'. Der Referer ALLEIN erklärt (zumindest in diesem einzelnen Lauf) NICHT den Unterschied zur erfolgreichen August-Probe.' Die Referer-Hypothese ist damit NICHT bestätigt, aber auch nicht endgültig widerlegt (nur 1 Lauf bei einem laut Workflow selbst als intermittierend eingeschätzten Fehlerbild). Workflow bleibt im Repo für künftige manuelle Wiederholungen verfügbar, seit 13.09.2026 nicht erneut gelaufen.",
+      "status": "beobachtet",
+      "status_date": "2026-10-06"
     }
   ]
 }

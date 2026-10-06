@@ -26,6 +26,18 @@ Verriegelt die harten Invarianten (das HÄRTESTE ist #1):
      ``fetch_failed`` um ein Detail-Suffix an (err/HTTP-Status/leerer Body,
      nie ein bare „None", Defensiv-Cap 200 Zeichen). Reine Logging-
      Anreicherung — restricted bleibt None, reason bleibt „fetch_failed".
+  14 NYSE-"empty"-Diagnose-Detail (06.10.2026, Diagnose: 6 Postclose-Läufe
+     in Folge ab Handelstag 28.09.2026 mit ``nyse_result="empty"`` ohne
+     Detail): ``_resolve_nyse()`` liefert jetzt ein VIERTES Tupel-Element
+     (``empty_detail: dict|None``), nur im ``"empty"``-Fall befüllt
+     (body_len/n_lines/preview/selected_date, Preview UNGEFILTERT vor
+     jedem isalpha()-Filter, nicht-druckbare Zeichen ersetzt, 200-Zeichen-
+     Cap je Zeile). Bewusst NICHT im ``result``-String (anders als
+     ``fetch_failed``) — separates State-Feld ``nyse_empty_detail``,
+     damit die kompakte Digest-Zeile unverändert bleibt. Grenzfall
+     „komplett leerer Body" bleibt bewusst im BESTEHENDEN
+     ``fetch_failed``-Pfad (kein ``empty_detail``) — andere Code-Stelle,
+     nicht der neue Pfad.
 
 Kategorie A: stdlib only, deterministisch, env-frei — KEIN echter Netzwerk-Call,
 alle NYSE-/Nasdaq-Antworten sind injizierte Mocks.
@@ -311,14 +323,16 @@ def main() -> int:
         return (200, _NYSE_PLACEHOLDER_BODY, None)
     r10 = rs._resolve_nyse(_nyse_placeholder_fn, lambda: False, date_iso="2026-08-17")
     _check("10 ECHTE _resolve_nyse() gegen Platzhalter-Response: "
-           "symbols=None, result='empty' (NICHT '20260817210500' als Ticker)",
-           r10 == (None, "2026-08-17", "empty"))
+           "symbols=None, result='empty' (NICHT '20260817210500' als Ticker), "
+           "4. Tupel-Element = Detail-Dict (06.10.2026)",
+           r10[:3] == (None, "2026-08-17", "empty") and isinstance(r10[3], dict))
 
     def _nyse_real_fn(url):
         return (200, _NYSE_REAL_BODY, None)
     r10b = rs._resolve_nyse(_nyse_real_fn, lambda: False, date_iso="2026-08-14")
-    _check("10 ECHTE _resolve_nyse() gegen echten Response: {'AMZE','BMNZ'}, ok:2",
-           r10b == ({"AMZE", "BMNZ"}, "2026-08-14", "ok:2"))
+    _check("10 ECHTE _resolve_nyse() gegen echten Response: {'AMZE','BMNZ'}, ok:2, "
+           "empty_detail=None (nur im empty-Fall befüllt)",
+           r10b == ({"AMZE", "BMNZ"}, "2026-08-14", "ok:2", None))
 
     # ── 11: _last_workday_before — T-1/letzter Handelstag, NIE heute ─────────
     # Gegen die diagnose-bestätigten Beispieldaten (Probe-Läufe 17./21.08.2026).
@@ -448,6 +462,160 @@ def main() -> int:
     _check("13b Defensiv-Cap: überlanger err-Text wird auf 200 Zeichen gekappt, "
            "kein Crash",
            len(r_long[2]) == len("fetch_failed:") + 200)
+
+    # ── 14: NYSE-"empty"-Diagnose-Detail (06.10.2026, Folge-PR zur Diagnose
+    # des sechs-Läufe-in-Folge-empty-Befunds ab Handelstag 28.09.2026) ────────
+    # Pflicht-Szenario (a): HTTP 200, nur Header + Ziffern-Platzhalterzeile.
+    r14a = rs._resolve_nyse(lambda u: (200, _NYSE_PLACEHOLDER_BODY, None),
+                            lambda: False, date_iso="2026-08-17")
+    d14a = r14a[3]
+    _check("14a Platzhalter-Fall: result='empty', detail ist dict",
+           r14a[2] == "empty" and isinstance(d14a, dict))
+    _check("14a detail['selected_date'] == abgefragtes Datum",
+           d14a["selected_date"] == "2026-08-17")
+    _check("14a detail['body_len'] == UTF-8-Byte-Länge des Original-Bodys",
+           d14a["body_len"] == len(_NYSE_PLACEHOLDER_BODY.encode("utf-8")))
+    _check("14a detail['n_lines'] == 2 (Header + Platzhalterzeile, nicht-leer)",
+           d14a["n_lines"] == 2)
+    _check("14a detail['preview'] zeigt UNGEFILTERT Header + Platzhalterzeile "
+           "(nicht nach isalpha() gefiltert — sonst wäre preview leer)",
+           d14a["preview"] == [
+               "Symbol|Security Name|Market Category|Reg SHO Threshold Flag|Filler|Filler",
+               "20260817210500",
+           ])
+
+    # Pflicht-Szenario (b): HTTP 200, HTML-Fehlerseite (kein Pipe-Format,
+    # keine Zeile besteht isalpha() wegen Markup-Zeichen → bleibt "empty",
+    # NIE fälschlich als Ticker-Treffer interpretiert).
+    _HTML_ERROR_BODY = "<html><body>Access Denied</body></html>\n"
+    r14b = rs._resolve_nyse(lambda u: (200, _HTML_ERROR_BODY, None),
+                            lambda: False, date_iso="2026-09-29")
+    d14b = r14b[3]
+    _check("14b HTML-Fehlerseite: result='empty' (kein Crash, kein Fehl-Symbol)",
+           r14b[0] is None and r14b[2] == "empty")
+    _check("14b detail erfasst die HTML-Zeile ungefiltert als Preview",
+           isinstance(d14b, dict) and d14b["n_lines"] == 1
+           and d14b["preview"] == ["<html><body>Access Denied</body></html>"])
+    _check("14b detail['body_len'] korrekt für die HTML-Fehlerseite",
+           d14b["body_len"] == len(_HTML_ERROR_BODY.encode("utf-8")))
+
+    # Pflicht-Szenario (c): komplett leerer Body. WICHTIG (Annahme-Klärung,
+    # Exzellenz-Block Punkt 4): das ist NICHT derselbe Code-Pfad wie (a)/(b) —
+    # `if err or st != 200 or not txt` greift bereits bei einem leeren String
+    # (`not txt` ist True), der Aufruf landet im BESTEHENDEN fetch_failed-
+    # Zweig (PR #542), NICHT im neuen empty_detail-Pfad. Dieser Test beweist
+    # genau diese Grenze — kein Fehlverhalten, sondern die bereits vor diesem
+    # PR bestehende, unveränderte Abgrenzung.
+    r14c = rs._resolve_nyse(lambda u: (200, "", None), lambda: False,
+                            date_iso="2026-09-29")
+    _check("14c Komplett leerer Body bleibt im BESTEHENDEN fetch_failed-Pfad "
+           "(nicht 'empty', kein empty_detail) — Grenze zu (a)/(b) bewiesen",
+           r14c[2] == "fetch_failed:leerer Response-Body (HTTP 200)"
+           and r14c[3] is None)
+
+    # Nicht-druckbare Zeichen in der Preview werden ersetzt (keine Control-
+    # Chars/ANSI-Sequenzen roh in den State-JSON).
+    _WEIRD_BODY = "Symbol|...\n\x00\x01BINARYJUNK\x02\x03\n"
+    r14d = rs._resolve_nyse(lambda u: (200, _WEIRD_BODY, None), lambda: False,
+                            date_iso="2026-09-29")
+    _check("14d nicht-druckbare Zeichen in der Preview ersetzt (kein rohes "
+           "\\x00/\\x01 im persistierten Detail)",
+           r14d[3] is not None
+           and all(c.isprintable() for c in "".join(r14d[3]["preview"])))
+
+    # Defensiv-Cap: jede Preview-Zeile auf 200 Zeichen gekappt, kein Crash
+    # bei überlangem Body. Ziffern statt Buchstaben (analog der echten
+    # Platzhalter-Zeile) — eine rein alphabetische 500-Zeichen-Zeile bestünde
+    # isalpha() und würde (korrekt) als Symbol-Treffer zählen, also NICHT den
+    # empty-Pfad auslösen; das ist hier nicht das Ziel.
+    _LONG_LINE_BODY = "1" * 500 + "\n" + "2" * 500 + "\n"
+    r14e = rs._resolve_nyse(lambda u: (200, _LONG_LINE_BODY, None), lambda: False,
+                            date_iso="2026-09-29")
+    _check("14e Defensiv-Cap: jede Preview-Zeile <= 200 Zeichen, max. 2 Zeilen",
+           all(len(ln) <= 200 for ln in r14e[3]["preview"])
+           and len(r14e[3]["preview"]) == 2)
+
+    # Regression: regulärer ok-Fall und fetch_failed-Fall unverändert — jetzt
+    # explizit auch das 4. Tupel-Element (empty_detail) geprüft (muss None
+    # bleiben, nicht nur "irgendwas Falsches").
+    r14_ok = rs._resolve_nyse(lambda u: (200, _NYSE_REAL_BODY, None), lambda: False,
+                             date_iso="2026-09-29")
+    r14_ff = rs._resolve_nyse(lambda u: (403, None, "HTTPError 403"), lambda: False,
+                             date_iso="2026-09-29")
+    r14_budget = rs._resolve_nyse(lambda u: (200, _NYSE_REAL_BODY, None),
+                                  lambda: True, date_iso="2026-09-29")
+    _check("14 Regression ok-Fall: empty_detail bleibt None",
+           r14_ok[2].startswith("ok:") and r14_ok[3] is None)
+    _check("14 Regression fetch_failed-Fall: empty_detail bleibt None",
+           r14_ff[2] == "fetch_failed:HTTPError 403" and r14_ff[3] is None)
+    _check("14 Regression budget-Fall: 4-Tupel, empty_detail bleibt None",
+           r14_budget == (None, None, "budget", None))
+
+    # ── 14f: Volldurchlauf über collect_and_persist() — Detail landet im
+    # State, UND ein stehengebliebener Detail-Eintrag wird beim nächsten
+    # "ok"-Lauf korrekt auf None zurückgesetzt (Stale-Guard) ─────────────────
+    H14, S14 = _paths()
+    rs.collect_and_persist([{"ticker": "HZO", "exchange": "NYQ"}], run_phase="postclose",
+                           now_utc=_NOW, get_nasdaq_text_fn=_nasdaq_fn,
+                           get_nyse_text_fn=_nyse_placeholder_fn,
+                           hist_path=H14, state_path=S14)
+    s14 = _load(S14)
+    _check("14f collect_and_persist(): state['nyse_empty_detail'] befüllt "
+           "nach empty-Lauf, restricted bleibt None (Entscheidungslogik "
+           "unverändert)",
+           s14.get("nyse_result") == "empty"
+           and isinstance(s14.get("nyse_empty_detail"), dict)
+           and s14["nyse_empty_detail"]["selected_date"] == _NYSE_T1
+           and _load(H14)["HZO"][0]["restricted"] is None
+           and _load(H14)["HZO"][0]["reason"] == "source_empty")
+
+    rs.collect_and_persist([{"ticker": "HZO", "exchange": "NYQ"}], run_phase="postclose",
+                           now_utc=_NOW, report_date_iso="2026-08-12",
+                           get_nasdaq_text_fn=_nasdaq_fn, get_nyse_text_fn=_nyse_fn,
+                           hist_path=H14, state_path=S14)
+    s14b = _load(S14)
+    _check("14f Stale-Guard: nächster Lauf ist 'ok' → nyse_empty_detail wird "
+           "explizit auf None zurückgesetzt (kein Hängenbleiben alter Details)",
+           s14b.get("nyse_result", "").startswith("ok:")
+           and s14b.get("nyse_empty_detail") is None)
+
+    # ── 14g: Digest-Konsumenten bleiben unberührt (reg_sho_liveness_line) —
+    # die neue State-Zeile wird NICHT in die kompakte Digest-Zeile
+    # eingebettet (bewusste Architektur-Entscheidung, siehe PR-Text) ────────
+    import health_check as _hc
+    state_with_detail = {
+        "last_run": "2026-10-06T01:47:06Z", "nasdaq_result": "ok:1",
+        "nyse_result": "empty", "last_checked": 7, "last_none": 3,
+        "nyse_empty_detail": {
+            "selected_date": "2026-10-05", "body_len": 9999, "n_lines": 500,
+            "preview": ["X" * 200, "Y" * 200],
+        },
+    }
+    state_without_detail = {k: v for k, v in state_with_detail.items()
+                            if k != "nyse_empty_detail"}
+    Hg1, Sg1 = _paths()
+    with open(Sg1, "w", encoding="utf-8") as fh:
+        json.dump(state_with_detail, fh)
+    Hg2, Sg2 = _paths()
+    with open(Sg2, "w", encoding="utf-8") as fh:
+        json.dump(state_without_detail, fh)
+    line_with = _hc.reg_sho_liveness_line(Hg1, Sg1,
+                                          now_ts=datetime(2026, 10, 6, 8, 47,
+                                                          tzinfo=timezone.utc))
+    line_without = _hc.reg_sho_liveness_line(Hg2, Sg2,
+                                             now_ts=datetime(2026, 10, 6, 8, 47,
+                                                             tzinfo=timezone.utc))
+    _check("14g Digest-Zeile byte-identisch MIT/OHNE nyse_empty_detail im "
+           "State (kein Digest-/ntfy-Risiko durch Konstruktion — das Detail "
+           "wird gar nicht erst in die Zeile eingebettet)",
+           line_with == line_without)
+    _check("14g Digest-Zeile enthält weiterhin 'nyse=empty' unverändert "
+           "(Format-Regression gegen bestehende reg_sho_liveness-Tests)",
+           "nyse=empty" in line_with)
+    _check("14g Digest-Zeilen-Länge bleibt winzig ggü. DIGEST_BODY_SAFE_BYTES "
+           "(auch mit worst-case-langem Detail im State) — strukturell "
+           "unmöglich, das Limit zu reißen",
+           len(line_with.encode("utf-8")) < _hc.DIGEST_BODY_SAFE_BYTES // 10)
 
     print()
     if _fails:
