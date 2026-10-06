@@ -32,6 +32,21 @@ Disziplin (wie #525): forward-only (kein Backfill), idempotent pro
 ``(ticker, date)``, KEIN Prune/Cap (Lehre #519), fail-soft je Quelle (tote Quelle
 → kein ``False``, sondern ``None``+Grund), atomarer Write (Datei + State),
 Zeitbudget vor JEDEM Netz-Schritt. Fetch-Fail und Leerbefund GETRENNT im State.
+
+NYSE-"empty"-Diagnose-Detail (06.10.2026): Diagnose desselben Tages fand sechs
+Postclose-Läufe in Folge (ab Handelstag 28.09.2026) mit ``nyse_result="empty"``
+— ohne dass der State verriet, OB der Body weiterhin die bekannte Ziffern-
+Platzhalterzeile war oder etwas anderes (Fehlerseite, geändertes Format). Anders
+als ``fetch_failed`` (PR #542, Detail-Suffix IM ``result``-String) persistiert
+der ``"empty"``-Fall sein Detail als EIGENES, separates State-Feld
+(``state["nyse_empty_detail"]``, nur befüllt wenn ``nyse_result=="empty"``,
+sonst explizit ``None`` — kein Hängenbleiben alter Details) — bewusst NICHT im
+``result``-String selbst, damit die kompakte Digest-Zeile (``reg_sho_liveness_
+line``) unverändert bleibt und niemals an ``DIGEST_BODY_SAFE_BYTES``/dem ntfy-
+Limit kratzen kann (siehe ``_nyse_empty_detail``-Docstring). ``_resolve_nyse``
+liefert seither ein VIERTES Tupel-Element (``empty_detail: dict|None``) — reine
+Logging-Anreicherung, identisches Prinzip wie beim ``fetch_failed``-Detail: kein
+Einfluss auf ``result``/``restricted``/``reason``.
 """
 from __future__ import annotations
 
@@ -227,8 +242,56 @@ def parse_nyse_threshold(text):
     return syms
 
 
+def _safe_preview_line(line, max_len=200):
+    """Nicht-druckbare Zeichen ersetzt (``·``), auf ``max_len`` gekappt —
+    Defensiv-Cap analog dem bestehenden 200-Zeichen-Cap für den
+    ``fetch_failed``-Detailtext weiter unten. Rein kosmetisch für Log-/
+    State-Lesbarkeit, ändert den geprüften Inhalt selbst nicht (die
+    Guard-Entscheidung liest NIEMALS diese Preview, nur ``parse_nyse_
+    threshold`` auf dem unveränderten Original-``text``)."""
+    cleaned = "".join(c if c.isprintable() else "·" for c in line)
+    return cleaned[:max_len]
+
+
+def _nyse_empty_detail(text, date_iso):
+    """Diagnose-Detail für den ``"empty"``-Fall (HTTP 200, nicht-leerer
+    Body, aber 0 Symbole nach dem ``isalpha()``-Filter — Diagnose
+    06.10.2026: sechs Postclose-Läufe in Folge ab Handelstag 28.09.2026
+    zeigten exakt dieses Muster, ohne dass der bisherige State erkennen
+    ließ, OB es weiterhin die bekannte Ziffern-Platzhalterzeile war oder
+    etwas anderes — z. B. eine Fehlerseite mit HTTP 200 oder ein
+    geändertes Format).
+
+    Reine Logging-Anreicherung, analog zum ``fetch_failed``-Detail-Suffix
+    aus PR #542 — KEIN Einfluss auf ``result`` (bleibt ``"empty"``) und
+    KEIN Einfluss auf ``_evaluate_ticker`` (``restricted`` bleibt ``None``,
+    ``reason`` bleibt ``"source_empty"``). Bewusst NICHT in den ``result``-
+    String selbst eingebettet (anders als ``fetch_failed:<detail>``) —
+    siehe PR-Text für die Begründung (Digest-Zeile bleibt dadurch
+    unverändert kompakt, kein Trunkierungs-Risiko gegen
+    ``DIGEST_BODY_SAFE_BYTES``/ntfy-Limit).
+
+    ``body_len`` ist die UTF-8-Byte-Länge des bereits von ``_http_get``
+    dekodierten Textes (``text.encode("utf-8", "replace")``) — kein
+    zusätzlicher Rohbyte-Pfad, da ``_http_get`` nur den dekodierten String
+    zurückgibt. Bei ungültigen Original-Bytes (ersetzt durch U+FFFD beim
+    Decode) kann das geringfügig von der tatsächlichen Draht-Byte-Länge
+    abweichen — für diesen rein diagnostischen Zweck irrelevant.
+
+    ``n_lines``/``preview`` zählen/zeigen NICHT-LEERE Zeilen VOR jedem
+    Header-/``isalpha()``-Filter (bewusst UNGEFILTERT — genau das filtern
+    würde die gesuchte Information verstecken)."""
+    raw_lines = [ln for ln in text.splitlines() if ln.strip()]
+    return {
+        "selected_date": date_iso,
+        "body_len": len(text.encode("utf-8", "replace")),
+        "n_lines": len(raw_lines),
+        "preview": [_safe_preview_line(ln) for ln in raw_lines[:2]],
+    }
+
+
 def _resolve_nyse(get_text_fn, over_budget, *, date_iso):
-    """``(symbols:set|None, source_date:str|None, result:str)``.
+    """``(symbols:set|None, source_date:str|None, result:str, empty_detail:dict|None)``.
     ``result`` ∈ ``ok:N`` / ``fetch_failed[:detail]`` / ``empty`` / ``budget``.
 
     Seit 02.09.2026 trägt ``fetch_failed`` optional ein Detail-Suffix
@@ -239,6 +302,12 @@ def _resolve_nyse(get_text_fn, over_budget, *, date_iso):
     ``"fetch_failed"`` zurück — ``restricted`` bleibt in diesem Zweig IMMER
     ``None``, das Detail wirkt sich NUR auf Log-Zeile + persistierten State
     aus, nie auf die Entscheidungs-/Exclusion-Logik.
+
+    Seit 06.10.2026 trägt der ``"empty"``-Fall ANALOG ein eigenes Detail —
+    aber als VIERTES Tupel-Element (``empty_detail``), NICHT als String-
+    Suffix (siehe ``_nyse_empty_detail``-Docstring für die Begründung).
+    ``empty_detail`` ist ``None`` in JEDEM anderen Fall (``ok``/
+    ``fetch_failed``/``budget``) — nur der ``"empty"``-Zweig befüllt es.
 
     Seit 21.08.2026 auf den bestätigten API-Endpunkt umgestellt (Diagnose-
     Probes #522/#527/#529 + Nachschärfung 21.08.2026) — ersetzt den früheren
@@ -259,7 +328,7 @@ def _resolve_nyse(get_text_fn, over_budget, *, date_iso):
     bleibt (0 echte Symbole nach dem isalpha()-Filter): das Ergebnis bleibt
     dann 'empty', NIE eine stille 'nicht auf der Liste'-Aussage."""
     if over_budget():
-        return None, None, "budget"
+        return None, None, "budget", None
     url = f"{_NYSE_API_ENDPOINT}?{urlencode({'selectedDate': date_iso, 'market': ''})}"
     st, txt, err = get_text_fn(url)
     if err or st != 200 or not txt:
@@ -275,11 +344,11 @@ def _resolve_nyse(get_text_fn, over_budget, *, date_iso):
         else:
             detail = "leerer Response-Body (HTTP 200)"
         detail = detail[:200]  # Defensiv-Cap — Log-/State-Zeile darf nicht ausufern
-        return None, None, f"fetch_failed:{detail}"
+        return None, None, f"fetch_failed:{detail}", None
     syms = parse_nyse_threshold(txt)
     if not syms:
-        return None, date_iso, "empty"
-    return syms, date_iso, f"ok:{len(syms)}"
+        return None, date_iso, "empty", _nyse_empty_detail(txt, date_iso)
+    return syms, date_iso, f"ok:{len(syms)}", None
 
 
 # ── Persistenz (eigene Datei + State, atomar, KEIN Prune) ─────────────────────
@@ -412,10 +481,19 @@ def collect_and_persist(universe, *, report_date_iso=None, run_phase=None,
         nyse = _resolve_nyse(get_nyse_text_fn or _default_get_text, over_budget,
                              date_iso=nyse_date_iso)
     else:
-        nyse = (None, None, "not_needed" if not need_nyse else "budget")
+        nyse = (None, None, "not_needed" if not need_nyse else "budget", None)
     state["nyse_result"] = nyse[2]
+    # Diagnose-Detail (06.10.2026) NUR im "empty"-Fall befüllt (siehe
+    # _nyse_empty_detail-Docstring) — explizit JEDEN Lauf neu geschrieben
+    # (nicht nur bei Bedarf gesetzt), damit ein stehengebliebener Detail-
+    # Eintrag aus einem früheren "empty"-Lauf nie fälschlich als aktuell
+    # gelesen wird, sobald ein späterer Lauf wieder "ok"/"fetch_failed" ist.
+    state["nyse_empty_detail"] = nyse[3]
 
-    sources = {"nasdaq": nasdaq, "nyse": nyse}
+    # _evaluate_ticker erwartet weiterhin GENAU ein 3-Tupel (syms, src_date,
+    # result) pro Quelle — das 4. Element (empty_detail) ist reine State-/
+    # Log-Anreicherung und fließt NICHT in die Entscheidungslogik ein.
+    sources = {"nasdaq": nasdaq, "nyse": nyse[:3]}
 
     # 3) Je Ticker bewerten + forward-only idempotent anhängen.
     hist = _load_history(hist_path)
