@@ -1,4 +1,4 @@
-# SESSION_HANDOVER.md — Stand 27.09.2026 (Woche 15.08.–27.09.: NaN-Härtungskette + Push-Gating unvalidierter Trading-Signale + H5/Netto/SPY-Vorabregistrierungs-Ausbau + Open-Items-Tracker + Health-Check-Wochendigest + MFE/MAE-Bestandsaufnahme + §4-Diskrepanz geklärt + Finviz-v111-Parser-Fix)
+# SESSION_HANDOVER.md — Stand 06.10.2026 (Woche 15.08.–06.10.: NaN-Härtungskette + Push-Gating unvalidierter Trading-Signale + H5/Netto/SPY-Vorabregistrierungs-Ausbau + Open-Items-Tracker + Health-Check-Wochendigest + MFE/MAE-Bestandsaufnahme + §4-Diskrepanz geklärt + Finviz-v111-Parser-Fix + Handover-Staleness-CI-Check + hist_5d-Diagnose-Kette (Gap-Log + Verschiebe-Fix, S10-crit seit 03.10. abgeklungen) + NYSE-empty-Detail-Logging)
 
 **Zweck:** vollständige Übergabe an eine **neue Code-Session ohne Kontext der
 alten**. Dieses Dokument + `CLAUDE.md` müssen zusammen ausreichen, um am
@@ -174,6 +174,73 @@ deaktiviert**).
   bereits bekannten, aber im Tracker bisher nicht erfassten offenen
   Punkten (`squeeze-report-archiv.md` existiert nicht im Repo, weder
   aktuell noch historisch — daher nicht durchsucht).
+
+### 28.09.–06.10.2026 — Handover-Staleness-Check + hist_5d-Diagnose-Kette (Gap-Log + Verschiebe-Fix) + NYSE-empty-Detail-Logging (6 PRs)
+
+*(Nachtrag per Staleness-Grep 06.10.2026: Block 1 hinkte 7 PRs hinter
+main hinterher — höchste gemergte PR #573, höchste hier erwähnte PR
+#566. Alle Hashes/PR-Nummern per `git log` verifiziert.)*
+
+- **Infrastruktur — Handover-Staleness-CI-Check:** `#568` (`6c578eb6`/
+  `66dd44e8`, 28.09.) **Handover-Staleness-Hinweis** als 7. advisory
+  Check in `pr-checks.yml` — vergleicht bei jedem PR die höchste
+  gemergte PR-Nummer (`gh pr list --state merged --limit 1`,
+  GitHub-API statt Git-Log-Tiefe) gegen die höchste in Block 1 erwähnte
+  PR-Nummer (Regex `#(\d+)\b`, Wortgrenze schützt gegen CSS-Hex-Codes
+  in der Prosa), Schwelle 3, IMMER `exit 0` (advisory, kein CI-Fail) —
+  genau der Check, der diesen Nachtrag hier ausgelöst hat. Follow-up
+  (`66dd44e8`) behebt zwei von squeeze-guardian gefundene ungefangene
+  Exception-Pfade (`UnicodeDecodeError` bei Locale-Mismatch im
+  `gh`-Subprocess bzw. beim Lesen von `SESSION_HANDOVER.md`).
+
+- **S10-Diagnose-Kette (`coiled_spring_score`/`rvol_buildup_5d`/
+  `vol_stability_5d`, Fortsetzung aus `#561`):** `#571` (`d3b7cf53`/
+  `02ddf1f1`, 30.09.) **`hist_5d_gap_log.jsonl`** — persistiert dieselben
+  Diagnose-Zeilen aus `#561` zusätzlich in einer eigenen JSONL-Datei
+  statt nur im ephemeren GitHub-Actions-Konsolenoutput (Follow-up
+  `02ddf1f1` behebt einen Guardian-BLOCKER: die Datei fehlte im
+  Workflow-`git add`) · `#572` (`88dfb086`, 02.10., gemerged 03.10.)
+  **Ein-Tag-Verschiebung bei unvollständigem letzten Tag** —
+  `_extract_hist_5d` verwarf bisher den GESAMTEN Ticker, wenn nur der
+  jeweils neueste Tag im 5-Tage-Fenster unvollständig war (High/Low/
+  Close NaN bei intaktem Volume, 69–78/70–78 Ticker betroffen über zwei
+  Vorfälle 30.09./01.10.); verschiebt das Fenster jetzt stattdessen
+  einmalig um einen Tag, wenn genug Roh-Historie vorhanden ist. Die 3
+  chronisch toten Ticker (BHV/NWCLW/PMVP) bleiben bewusst unberührt.
+  **Wirkung verifiziert** (`health_check_log.jsonl`, S10): crit (100 %
+  null) durchgehend bis 02.10., ab dem Postclose-Lauf 03.10. auf warn
+  (50 % null) gesunken, im Premarket-Lauf 06.10. **vollständig clear**
+  (0 State-Fails) — S10-crit seit 03.10. nicht mehr aufgetreten.
+
+- **NYSE-/Reg-SHO-Diagnose-Kette (Fortsetzung aus `#542`/`#546`/
+  `#550`):** `#573` (`c783a042`, 06.10.) **NYSE-"empty"-Diagnose-Detail**
+  — seit Handelstag 28.09.2026 liefert `_resolve_nyse()` durchgehend
+  `nyse_result="empty"` (HTTP 200, nicht-leerer Body, 0 Symbole nach dem
+  `isalpha()`-Filter), ohne dass der State bisher erkennen ließ, OB es
+  weiterhin die bekannte Ziffern-Platzhalterzeile war oder etwas
+  anderes. Kein Code-/Config-Change im Übergangsfenster gefunden —
+  Ursache vermutlich extern, nicht bestätigt (Live-Sandbox-Zugriff auf
+  `www.nyse.com` strukturell blockiert, kein Signal über NYSE selbst
+  erreichbar). Ab sofort persistiert `state["nyse_empty_detail"]`
+  (separates Feld, Byte-Länge/Zeilenzahl/Preview) bei jedem `empty`-Lauf
+  neu — `restricted` bleibt unverändert `None`, nie `False`.
+  `open_items.json` um zwei Einträge ergänzt:
+  `nyse-regsho-empty-streak` (offen, der obige Befund) und
+  `nyse-referer-probe-status` (beobachtet, rückwirkend für den
+  13.09.2026 aus `#550` erfassten, zuvor verlorenen Referer-A/B-Probe-
+  Befund — beide Varianten lieferten damals HTTP 403, Hypothese nicht
+  bestätigt).
+
+- **Doku-/Backlog-Pflege:** `#569` (`a9345e92`, 28.09.) **AKUT-
+  Verifikationsliste (§3) als abgeschlossen markiert** — 6 Live-Verify-
+  Punkte waren seit 76 Tagen (14./15.07.) unverändert offen, obwohl
+  längst durch Dauerbetrieb/direkte iPhone-Verifikation bestätigt;
+  `open_items.json`-Eintrag `block3-akut-verifikationsliste-stale` auf
+  `erledigt` gesetzt · `#570` (`135b6955`, 29.09.) **§6j
+  apple-touch-icon als erledigt markiert** — trug seit 15.07.2026
+  fälschlich „Status: OFFEN", obwohl der Fix bereits 4 Tage später
+  (PR #462, 19.07.) gelandet war; `open_items.json`-Eintrag
+  `s6j-apple-touch-icon-missing` auf `erledigt` gesetzt.
 
 ---
 
