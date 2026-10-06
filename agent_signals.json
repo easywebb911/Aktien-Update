@@ -1,10 +1,10 @@
 {
-  "updated": "2026-10-06T12:19:00.672274+02:00",
+  "updated": "2026-10-06T15:20:39.658202+02:00",
   "run_info": {
     "tickers_checked": 13,
     "signals_active": 2,
     "alerts_sent": 0,
-    "elapsed_s": 15.0,
+    "elapsed_s": 11.5,
     "market_phase": "Pre-Market"
   },
   "signals": {
@@ -28,7 +28,7 @@
       "uoa_drivers": [
         "UOA Call/Put 5.0×"
       ],
-      "uoa_atm_ratio": null,
+      "uoa_atm_ratio": 0.5,
       "uoa_cp_ratio": 5.0
     },
     "AMC": {
@@ -51,7 +51,7 @@
       "uoa_drivers": [
         "UOA Call/Put 22.2×"
       ],
-      "uoa_atm_ratio": null,
+      "uoa_atm_ratio": 1.2859183330532684,
       "uoa_cp_ratio": 22.186540731995276
     },
     "AZTA": {
@@ -74,7 +74,7 @@
       "uoa_drivers": [
         "UOA Call/Put 4.3×"
       ],
-      "uoa_atm_ratio": null,
+      "uoa_atm_ratio": 0.6179775280898876,
       "uoa_cp_ratio": 4.296296296296297
     },
     "CERT": {
@@ -95,7 +95,7 @@
       "ki_sentiment_source": "keyword",
       "uoa_score": 0,
       "uoa_drivers": [],
-      "uoa_atm_ratio": null,
+      "uoa_atm_ratio": 0.94,
       "uoa_cp_ratio": null
     },
     "EBS": {
@@ -118,7 +118,7 @@
       "uoa_drivers": [
         "UOA Call/Put 173.5×"
       ],
-      "uoa_atm_ratio": null,
+      "uoa_atm_ratio": 0.9573333333333334,
       "uoa_cp_ratio": 173.53846153846155
     },
     "GRPN": {
@@ -141,7 +141,7 @@
       "uoa_drivers": [
         "UOA Call/Put 3.4×"
       ],
-      "uoa_atm_ratio": null,
+      "uoa_atm_ratio": 0.08178438661710037,
       "uoa_cp_ratio": 3.4349206349206347
     },
     "IONQ": {
@@ -162,7 +162,7 @@
       "ki_sentiment_source": "keyword",
       "uoa_score": 0,
       "uoa_drivers": [],
-      "uoa_atm_ratio": null,
+      "uoa_atm_ratio": 0.6947533398014777,
       "uoa_cp_ratio": 1.636557705136758
     },
     "NTLA": {
@@ -183,7 +183,7 @@
       "ki_sentiment_source": "keyword",
       "uoa_score": 0,
       "uoa_drivers": [],
-      "uoa_atm_ratio": null,
+      "uoa_atm_ratio": 0.12748607796340494,
       "uoa_cp_ratio": 1.5337837837837838
     },
     "PDYN": {
@@ -204,7 +204,7 @@
       "ki_sentiment_source": "keyword",
       "uoa_score": 0,
       "uoa_drivers": [],
-      "uoa_atm_ratio": null,
+      "uoa_atm_ratio": 0.20149253731343283,
       "uoa_cp_ratio": 1.948905109489051
     },
     "PRKS": {
@@ -225,7 +225,7 @@
       "ki_sentiment_source": "keyword",
       "uoa_score": 0,
       "uoa_drivers": [],
-      "uoa_atm_ratio": null,
+      "uoa_atm_ratio": 0.2857142857142857,
       "uoa_cp_ratio": null
     },
     "QDEL": {
@@ -248,13 +248,13 @@
       "uoa_drivers": [
         "UOA Call/Put 4.7×"
       ],
-      "uoa_atm_ratio": null,
+      "uoa_atm_ratio": 0.33876221498371334,
       "uoa_cp_ratio": 4.739130434782608
     },
     "VEEA": {
-      "score": 63,
+      "score": 66,
       "confidence": 70,
-      "drivers": "Volumen 3.2× + ⚡ Extremes Volumen 3.2×+ + Spanne 39.6% + News-KI 12/30: Positive business developments and merger announcement, but no significant short squeeze indicators like high short inte",
+      "drivers": "Volumen 3.2× + ⚡ Extremes Volumen 3.2×+ + Spanne 39.6% + News: merger",
       "price": 5.72,
       "chg_pct": -0.0,
       "rvol_4d": 3.17,
@@ -266,7 +266,7 @@
       "stocktwits": null,
       "combo_mult": 1.1,
       "active_triggers": 2,
-      "ki_sentiment_source": "llm",
+      "ki_sentiment_source": "keyword",
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": null,
@@ -290,7 +290,7 @@
       "ki_sentiment_source": "keyword",
       "uoa_score": 0,
       "uoa_drivers": [],
-      "uoa_atm_ratio": null,
+      "uoa_atm_ratio": 0.24577607569272358,
       "uoa_cp_ratio": 1.0915080527086383
     }
   }
