@@ -1,10 +1,10 @@
 {
-  "updated": "2026-10-06T03:48:05.436744+02:00",
+  "updated": "2026-10-06T04:59:02.313020+02:00",
   "run_info": {
     "tickers_checked": 13,
     "signals_active": 2,
     "alerts_sent": 0,
-    "elapsed_s": 10.8,
+    "elapsed_s": 12.6,
     "market_phase": "Geschlossen"
   },
   "signals": {
@@ -124,9 +124,9 @@
       "uoa_cp_ratio": 173.53846153846155
     },
     "GRPN": {
-      "score": 33,
+      "score": 41,
       "confidence": 33,
-      "drivers": "Earnings in 31d + FINRA Short-Vol 56% + UOA Call/Put 3.4×",
+      "drivers": "News-KI 8/30: Mixed headline sentiment with no evidence of significant short interest, retail fervor, or major catalyst that would sug + Earnings in 31d + FINRA Short-Vol 56% + UOA Call/Put 3.4×",
       "price": 19.71,
       "chg_pct": -0.0,
       "rvol_4d": 0.78,
@@ -138,7 +138,7 @@
       "stocktwits": null,
       "combo_mult": 1.0,
       "active_triggers": 0,
-      "ki_sentiment_source": "keyword",
+      "ki_sentiment_source": "llm",
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 3.4×"
@@ -149,7 +149,7 @@
     "IONQ": {
       "score": 38,
       "confidence": 33,
-      "drivers": "News: partnership, catalyst + Earnings in 30d",
+      "drivers": "News: catalyst, partnership + Earnings in 30d",
       "price": 42.97,
       "chg_pct": 0.0,
       "rvol_4d": 0.81,
@@ -168,9 +168,9 @@
       "uoa_cp_ratio": 1.636557705136758
     },
     "NTLA": {
-      "score": 33,
+      "score": 26,
       "confidence": 70,
-      "drivers": "Spanne 8.3% + News: short interest + Earnings in 31d",
+      "drivers": "Spanne 8.3% + News-KI 8/30: Fundamental positive sentiment overshadowed by recent selling pressure and gene-editing sector weakness; no significant  + Earnings in 31d",
       "price": 12.75,
       "chg_pct": 0.0,
       "rvol_4d": 0.89,
@@ -181,8 +181,8 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 1,
-      "ki_sentiment_source": "keyword",
+      "active_triggers": 0,
+      "ki_sentiment_source": "llm",
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": 0.14053935540451656,
@@ -191,7 +191,7 @@
     "PDYN": {
       "score": 63,
       "confidence": 70,
-      "drivers": "Volumen 1.6× + Spanne 5.6% + News: contract, partnership + Earnings in 37d",
+      "drivers": "Volumen 1.6× + Spanne 5.6% + News: partnership, contract + Earnings in 37d",
       "price": 5.12,
       "chg_pct": -0.0,
       "rvol_4d": 1.57,
