@@ -674,6 +674,11 @@
       "date": "2026-08-11",
       "inst_ownership": 1.14859,
       "insider_ownership": 0.01432
+    },
+    {
+      "date": "2026-10-06",
+      "inst_ownership": 1.17423,
+      "insider_ownership": 0.01432
     }
   ],
   "VEEE": [
@@ -3415,6 +3420,11 @@
       "date": "2026-09-30",
       "inst_ownership": 0.99849,
       "insider_ownership": 0.03841
+    },
+    {
+      "date": "2026-10-06",
+      "inst_ownership": 0.99897003,
+      "insider_ownership": 0.03841
     }
   ],
   "OXM": [
@@ -3713,6 +3723,11 @@
     {
       "date": "2026-10-01",
       "inst_ownership": 0.55579,
+      "insider_ownership": 0.089099996
+    },
+    {
+      "date": "2026-10-06",
+      "inst_ownership": 0.55586,
       "insider_ownership": 0.089099996
     }
   ],
@@ -4027,6 +4042,11 @@
       "date": "2026-10-03",
       "inst_ownership": 1.07934,
       "insider_ownership": 0.02836
+    },
+    {
+      "date": "2026-10-06",
+      "inst_ownership": 1.07925,
+      "insider_ownership": 0.02836
     }
   ],
   "ENOV": [
@@ -4150,6 +4170,11 @@
       "date": "2026-08-25",
       "inst_ownership": 0.79193,
       "insider_ownership": 0.00183
+    },
+    {
+      "date": "2026-10-06",
+      "inst_ownership": 0.79323995,
+      "insider_ownership": 0.00179
     }
   ],
   "RXRX": [
@@ -4478,6 +4503,11 @@
     {
       "date": "2026-10-03",
       "inst_ownership": 1.1731601,
+      "insider_ownership": 0.01339
+    },
+    {
+      "date": "2026-10-06",
+      "inst_ownership": 1.17324,
       "insider_ownership": 0.01339
     }
   ],
@@ -6529,6 +6559,11 @@
       "date": "2026-09-15",
       "inst_ownership": 1.1293,
       "insider_ownership": 0.027290002
+    },
+    {
+      "date": "2026-10-06",
+      "inst_ownership": 1.12878,
+      "insider_ownership": 0.027290002
     }
   ],
   "DXC": [
@@ -7022,6 +7057,11 @@
       "date": "2026-10-02",
       "inst_ownership": 0.96353996,
       "insider_ownership": 0.090679996
+    },
+    {
+      "date": "2026-10-06",
+      "inst_ownership": 0.96342003,
+      "insider_ownership": 0.090679996
     }
   ],
   "WETO": [
@@ -7083,6 +7123,13 @@
       "date": "2026-10-05",
       "inst_ownership": 0.95011,
       "insider_ownership": 0.072280005
+    }
+  ],
+  "PRKS": [
+    {
+      "date": "2026-10-06",
+      "inst_ownership": 1.3544999,
+      "insider_ownership": 0.02388
     }
   ]
 }

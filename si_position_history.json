@@ -819,6 +819,12 @@
       "shares_short": 28972317,
       "short_pct_float": 29.75,
       "pub_date": "2026-09-10"
+    },
+    {
+      "settlement_date": "2026-09-15",
+      "shares_short": 28814125,
+      "short_pct_float": 29.59,
+      "pub_date": "2026-09-24"
     }
   ],
   "AI": [
@@ -4593,6 +4599,12 @@
       "shares_short": 4023689,
       "short_pct_float": 21.02,
       "pub_date": "2026-07-24"
+    },
+    {
+      "settlement_date": "2026-09-15",
+      "shares_short": 4382706,
+      "short_pct_float": 22.89,
+      "pub_date": "2026-09-24"
     }
   ],
   "CRSR": [
@@ -7035,6 +7047,12 @@
       "shares_short": 24686466,
       "short_pct_float": 16.1,
       "pub_date": "2026-08-25"
+    },
+    {
+      "settlement_date": "2026-09-15",
+      "shares_short": 29964193,
+      "short_pct_float": 19.54,
+      "pub_date": "2026-09-24"
     }
   ],
   "CISS": [
@@ -8603,6 +8621,21 @@
       "settlement_date": "2026-09-15",
       "shares_short": 16745378,
       "short_pct_float": 15.71,
+      "pub_date": "2026-09-24"
+    }
+  ],
+  "PRKS": [
+    {
+      "settlement_date": "2026-08-14",
+      "shares_short": 6002606,
+      "short_pct_float": null,
+      "pub_date": "2026-08-25",
+      "seeded": true
+    },
+    {
+      "settlement_date": "2026-09-15",
+      "shares_short": 5734461,
+      "short_pct_float": 32.84,
       "pub_date": "2026-09-24"
     }
   ]
