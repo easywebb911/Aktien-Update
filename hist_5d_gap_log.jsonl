@@ -491,3 +491,6 @@
 {"schema_v": 1, "run_ts": "2026-10-06T01:46:57Z", "ticker": "VACI", "reason": "nonfinite_cell", "dropped_day": "2026-10-02 00:00:00", "missing_cells": ["Volume", "High", "Low", "Close"], "n_days": null, "window": null}
 {"schema_v": 1, "run_ts": "2026-10-06T01:46:57Z", "ticker": "VACI", "reason": "nonfinite_cell", "dropped_day": "2026-10-05 00:00:00", "missing_cells": ["Volume", "High", "Low", "Close"], "n_days": null, "window": null}
 {"schema_v": 1, "run_ts": "2026-10-06T01:46:57Z", "ticker": "VACI", "reason": "insufficient_valid_days", "dropped_day": null, "missing_cells": [], "n_days": 1, "window": 5}
+{"schema_v": 1, "run_ts": "2026-10-06T13:19:44Z", "ticker": "VACI", "reason": "nonfinite_cell", "dropped_day": "2026-10-02 00:00:00", "missing_cells": ["Volume", "High", "Low", "Close"], "n_days": null, "window": null}
+{"schema_v": 1, "run_ts": "2026-10-06T13:19:44Z", "ticker": "VACI", "reason": "nonfinite_cell", "dropped_day": "2026-10-05 00:00:00", "missing_cells": ["Volume", "High", "Low", "Close"], "n_days": null, "window": null}
+{"schema_v": 1, "run_ts": "2026-10-06T13:19:44Z", "ticker": "VACI", "reason": "insufficient_valid_days", "dropped_day": null, "missing_cells": [], "n_days": 3, "window": 5}
