@@ -675,6 +675,12 @@
       "shares_short": 6876649,
       "short_pct_float": 17.35,
       "pub_date": "2026-09-10"
+    },
+    {
+      "settlement_date": "2026-09-15",
+      "shares_short": 6944521,
+      "short_pct_float": 17.54,
+      "pub_date": "2026-09-24"
     }
   ],
   "ENOV": [
@@ -1794,6 +1800,12 @@
       "shares_short": 4479520,
       "short_pct_float": 16.52,
       "pub_date": "2026-08-11"
+    },
+    {
+      "settlement_date": "2026-09-15",
+      "shares_short": 5421459,
+      "short_pct_float": 19.99,
+      "pub_date": "2026-09-24"
     }
   ],
   "TROX": [
@@ -3372,6 +3384,12 @@
       "shares_short": 46124039,
       "short_pct_float": 23.45,
       "pub_date": "2026-08-25"
+    },
+    {
+      "settlement_date": "2026-09-15",
+      "shares_short": 46488528,
+      "short_pct_float": 23.63,
+      "pub_date": "2026-09-24"
     }
   ],
   "GPRE": [
@@ -4167,6 +4185,12 @@
       "shares_short": 14950361,
       "short_pct_float": 34.78,
       "pub_date": "2026-09-10"
+    },
+    {
+      "settlement_date": "2026-09-15",
+      "shares_short": 15458223,
+      "short_pct_float": 34.89,
+      "pub_date": "2026-09-24"
     }
   ],
   "SERV": [
@@ -6045,6 +6069,12 @@
       "shares_short": 12697013,
       "short_pct_float": 16.16,
       "pub_date": "2026-08-25"
+    },
+    {
+      "settlement_date": "2026-09-15",
+      "shares_short": 13992030,
+      "short_pct_float": 17.81,
+      "pub_date": "2026-09-24"
     }
   ],
   "INR": [
@@ -6642,6 +6672,12 @@
       "shares_short": 10691384,
       "short_pct_float": 15.79,
       "pub_date": "2026-08-11"
+    },
+    {
+      "settlement_date": "2026-09-15",
+      "shares_short": 10507241,
+      "short_pct_float": 15.52,
+      "pub_date": "2026-09-24"
     }
   ],
   "NMAX": [
@@ -7737,6 +7773,12 @@
       "shares_short": 12917550,
       "short_pct_float": 18.03,
       "pub_date": "2026-09-10"
+    },
+    {
+      "settlement_date": "2026-09-15",
+      "shares_short": 12536823,
+      "short_pct_float": 17.5,
+      "pub_date": "2026-09-24"
     }
   ],
   "NTST": [
@@ -8637,6 +8679,36 @@
       "shares_short": 5734461,
       "short_pct_float": 32.84,
       "pub_date": "2026-09-24"
+    }
+  ],
+  "EROC": [
+    {
+      "settlement_date": "2026-08-14",
+      "shares_short": 6249733,
+      "short_pct_float": null,
+      "pub_date": "2026-08-25",
+      "seeded": true
+    },
+    {
+      "settlement_date": "2026-09-15",
+      "shares_short": 9251575,
+      "short_pct_float": 280.89,
+      "pub_date": "2026-09-24"
+    }
+  ],
+  "NVVE": [
+    {
+      "settlement_date": "2026-06-15",
+      "shares_short": 24393,
+      "short_pct_float": null,
+      "pub_date": "2026-06-25",
+      "seeded": true
+    },
+    {
+      "settlement_date": "2026-07-15",
+      "shares_short": 141996,
+      "short_pct_float": 27.25,
+      "pub_date": "2026-07-24"
     }
   ]
 }

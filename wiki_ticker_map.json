@@ -593,6 +593,15 @@
     "substrate": "none",
     "reason": "no_p249"
   },
+  "EROC": {
+    "qid": null,
+    "title": null,
+    "resolved_at": "2026-10-07T00:46:54Z",
+    "issuer_verified": false,
+    "company_name_at_resolve": "ERock, Inc.",
+    "substrate": "none",
+    "reason": "no_p249"
+  },
   "EVGO": {
     "qid": null,
     "title": null,
@@ -628,6 +637,15 @@
     "company_name_at_resolve": "Fabric.AI, Inc.",
     "substrate": "none",
     "reason": "no_p249"
+  },
+  "FCEL": {
+    "qid": "Q16993862",
+    "title": "FuelCell_Energy",
+    "resolved_at": "2026-10-07T00:46:54Z",
+    "issuer_verified": true,
+    "company_name_at_resolve": "FuelCell Energy, Inc.",
+    "substrate": "en",
+    "reason": null
   },
   "FDMT": {
     "qid": "Q124433826",
