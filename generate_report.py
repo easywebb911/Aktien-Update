@@ -3542,13 +3542,40 @@ def _save_si_position_history(hist: dict) -> None:
     os.replace(tmp, SI_POSITION_HISTORY_FILE)
 
 
+# Modul-Zähler (Open-Item si-position-history-timestamp-format-silent-fail-
+# risk, 07.10.2026): zählt Format-Fehler in ``_si_settlement_from_ts`` pro
+# Prozess-Lauf. Reset ist implizit — jeder Daily-Run ist ein frischer
+# Python-Prozess. Nur beim ERSTEN Fehler dieses Laufs wird geloggt (Log-
+# Flut-Schutz, siehe dortiger Kommentar) — Rückgabewert/Kontrollfluss der
+# Funktion bleiben dadurch unverändert.
+_SI_SETTLEMENT_PARSE_FAIL_COUNT = 0
+
+
 def _si_settlement_from_ts(ts) -> str | None:
-    """epoch-Timestamp → ISO-Settlement-Datum (UTC, tz-sauber). None fail-soft."""
+    """epoch-Timestamp → ISO-Settlement-Datum (UTC, tz-sauber). None fail-soft.
+
+    Bei Format-Fehler (``ts`` kein gültiger Epoch-Int/-String) wird EINMAL
+    pro Lauf eine ``log.warning`` geschrieben (Modul-Zähler
+    ``_SI_SETTLEMENT_PARSE_FAIL_COUNT``) — verhindert Log-Flut, falls
+    yfinance das ``dateShortInterest``-Format für viele/alle US-Ticker im
+    selben Lauf gleichzeitig ändert (Call-Site ``_persist_si_position_history``
+    iteriert über den VOLLEN enriched US-Pool, nicht nur Top-10). Rückgabewert
+    und Kontrollfluss bleiben in JEDEM Fall unverändert (weiterhin ``None``).
+    """
+    global _SI_SETTLEMENT_PARSE_FAIL_COUNT
     if ts in (None, "", 0):
         return None
     try:
         return datetime.fromtimestamp(int(ts), tz=timezone.utc).date().isoformat()
-    except (ValueError, TypeError, OSError, OverflowError):
+    except (ValueError, TypeError, OSError, OverflowError) as exc:
+        _SI_SETTLEMENT_PARSE_FAIL_COUNT += 1
+        if _SI_SETTLEMENT_PARSE_FAIL_COUNT == 1:
+            log.warning(
+                "_si_settlement_from_ts: Format-Fehler beim Timestamp-Parse "
+                "(weitere Vorkommen in diesem Lauf werden gezählt, nicht "
+                "erneut geloggt) rohwert=%r typ=%s",
+                str(ts)[:40], type(exc).__name__,
+            )
         return None
 
 
