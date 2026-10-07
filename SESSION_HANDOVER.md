@@ -875,9 +875,11 @@ nur bei `available=True`.
   exakt wie §4-Plan (`{ticker:[{settlement_date, shares_short, short_pct_float,
   pub_date, seeded}]}`). `pub_date` holiday-robust bestätigt (`2026-05-29 →
   06-09`, `2026-06-30 → 07-10` — überspringt Fr 03.07. Independence Day). Seit
-  #430 im Status-Panel sichtbar (n=28). **Restkante bleibt vermerkt** (Beobachtung,
-  kein Blocker): falls yfinance `dateShortInterest` künftig als `Timestamp` statt
-  epoch-int liefert, wird der Punkt fail-soft **still** übersprungen.
+  #430 im Status-Panel sichtbar (n=28). **Restkante — ✅ sichtbar gemacht (PR #578,
+  07.10.2026):** falls yfinance `dateShortInterest` künftig als `Timestamp` statt
+  epoch-int liefert, wird der Punkt weiterhin fail-soft übersprungen (Rückgabewert/
+  Kontrollfluss unverändert) — aber jetzt mit genau einer `log.warning`-Zeile pro
+  Lauf statt stillem Datenverlust.
 
 ### ✅ AUFGELÖST (15.07. — Bootstrap-Shell Phase 0 + Phase 1)
 
@@ -1876,10 +1878,11 @@ reine Sammelzeit**: n≥40 paper-treue Squeeze-Events mit messbarem SI-Rückgang
 Sammelzeit: A/B-Auswertung gegen `si_position_history.json`** (OoS, §5).
 
 **`si_velocity_pub` bleibt getrennt** (Tages-Volumen-Momentum) — Paper-Schwellen
-7/17/25 % werden **nicht** daraufgelegt (§8m). **Restkante (Beobachtungspunkt,
-kein Blocker):** falls yfinance `dateShortInterest` künftig als `Timestamp`
-statt epoch-int liefert, wird der Punkt fail-soft **still** übersprungen (kein
-Crash, aber Datenverlust ohne Log) — für die Wiedervorlage vermerkt (§3).
+7/17/25 % werden **nicht** daraufgelegt (§8m). **Restkante — ✅ sichtbar gemacht
+(PR #578, 07.10.2026):** falls yfinance `dateShortInterest` künftig als
+`Timestamp` statt epoch-int liefert, wird der Punkt weiterhin fail-soft
+übersprungen (Rückgabewert/Kontrollfluss unverändert) — aber jetzt mit genau
+einer `log.warning`-Zeile pro Lauf statt stillem Datenverlust (§3).
 
 **Lesson (§8o):** Die Lösung lag im **eigenen Werkzeug** (yfinance spiegelt die
 FINRA-SI-Position gratis) — gefunden erst **nach** erschöpfendem externem

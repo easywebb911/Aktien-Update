@@ -246,6 +246,83 @@ def _test_pub_date():
            p["pub_date"] == "2026-07-10" and p["settlement_date"] == "2026-06-30")
 
 
+def _test_settlement_parse_warning():
+    """(7) Open-Item si-position-history-timestamp-format-silent-fail-risk:
+    Format-Fehler in ``_si_settlement_from_ts`` sind jetzt sichtbar (EIN
+    ``log.warning`` pro Lauf), Rückgabewert/Kontrollfluss bleiben
+    unverändert (weiterhin ``None``, weiterhin fail-soft)."""
+    print("── (7) _si_settlement_from_ts: sichtbares Warning, Verhalten "
+          "unverändert ──")
+
+    # Reset Modul-Zähler für deterministisches Verhalten unabhängig von
+    # vorherigen Aufrufen in diesem Prozess (Test 4c oben nutzt bereits
+    # 'garbage' und hätte den Zähler sonst schon erhöht).
+    gr._SI_SETTLEMENT_PARSE_FAIL_COUNT = 0
+    calls: list[tuple] = []
+    orig_warning = gr.log.warning
+    gr.log.warning = lambda *a, **k: calls.append(a)
+    try:
+        # 7a: kaputter Timestamp -> Rückgabewert weiterhin None (byte-identisch)
+        result = gr._si_settlement_from_ts("garbage-timestamp-format-xyz-123")
+        _check("7a Rückgabewert bei Format-Fehler weiterhin None (unverändert)",
+               result is None)
+        _check("7b genau EIN log.warning-Aufruf beim ersten Format-Fehler "
+               "dieses Laufs",
+               len(calls) == 1, f"got {len(calls)} Aufrufe")
+        if calls:
+            args = calls[0]
+            msg = args[0] if args else ""
+            _check("7c Funktionsname im Log-Text",
+                   "_si_settlement_from_ts" in msg, msg)
+            _check("7d Ausnahmetyp als Format-Arg enthalten (letztes Arg, "
+                   "nicht-leerer String)",
+                   len(args) >= 2 and isinstance(args[-1], str) and bool(args[-1]),
+                   f"args={args}")
+            _check("7e abgeschnittener Rohwert (<=40 Zeichen) als Format-Arg",
+                   len(args) >= 2 and isinstance(args[-2], str)
+                   and len(args[-2]) <= 40,
+                   f"args={args}")
+
+        # 7f: ZWEITER Format-Fehler im selben Lauf -> KEIN zweites Warning
+        # (Log-Flut-Schutz — enriched-Pool kann dutzende US-Ticker enthalten).
+        calls.clear()
+        result2 = gr._si_settlement_from_ts("noch-ein-kaputter-wert")
+        _check("7f Rückgabewert bei zweitem Format-Fehler weiterhin None",
+               result2 is None)
+        _check("7g KEIN zweites log.warning im selben Lauf (Log-Flut-Schutz)",
+               len(calls) == 0, f"got {len(calls)} Aufrufe")
+    finally:
+        gr.log.warning = orig_warning
+
+    # 7h: gültiger Timestamp -> KEIN Warning, Rückgabewert weiterhin korrekt
+    # (frischer Zähler-Reset zur Isolation von den obigen Fällen).
+    gr._SI_SETTLEMENT_PARSE_FAIL_COUNT = 0
+    calls2: list[tuple] = []
+    gr.log.warning = lambda *a, **k: calls2.append(a)
+    try:
+        result3 = gr._si_settlement_from_ts(_epoch("2026-06-30"))
+        _check("7h gültiger Timestamp liefert weiterhin korrektes ISO-Datum",
+               result3 == "2026-06-30", f"got {result3}")
+        _check("7i KEIN log.warning bei gültigem Timestamp",
+               len(calls2) == 0, f"got {len(calls2)} Aufrufe")
+    finally:
+        gr.log.warning = orig_warning
+
+    # 7j: None/""/0 -> weiterhin kein Warning (Early-Return VOR dem try/except,
+    # unverändert — diese Fälle sind kein Format-Fehler, sondern "kein Wert").
+    gr._SI_SETTLEMENT_PARSE_FAIL_COUNT = 0
+    calls3: list[tuple] = []
+    gr.log.warning = lambda *a, **k: calls3.append(a)
+    try:
+        for sentinel in (None, "", 0):
+            r = gr._si_settlement_from_ts(sentinel)
+            _check(f"7j-{sentinel!r} weiterhin None, kein Warning (Early-Return "
+                   "unverändert)",
+                   r is None and len(calls3) == 0, f"got r={r}, calls={calls3}")
+    finally:
+        gr.log.warning = orig_warning
+
+
 def _test_retention():
     print("── (6) Retention 400d-Cutoff + Cap 24 (KEIN 14d-Prune) ───────")
 
@@ -352,6 +429,7 @@ def main() -> int:
     _test_seed_two_points()
     _test_dedup()
     _test_pub_date()
+    _test_settlement_parse_warning()
     _test_retention()
     _test_look_ahead_isolation()
     print()
