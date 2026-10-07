@@ -76,11 +76,11 @@
     },
     {
       "id": "si-position-history-timestamp-format-silent-fail-risk",
-      "title": "si_position_history.json: stiller Datenverlust falls yfinance dateShortInterest-Format wechselt",
+      "title": "si_position_history.json: stiller Datenverlust falls yfinance dateShortInterest-Format wechselt -- ERLEDIGT PR #578",
       "opened": "2026-07-14",
-      "description": "Aus SESSION_HANDOVER.md Block 3 (Zeile ~797) UND §6i (Restkante-Vermerk, gleicher Inhalt zweifach im Dokument) -- Datum via git-log -S geschätzt: falls yfinance .info['dateShortInterest'] künftig als Timestamp statt als Epoch-Int liefert, wird der Punkt im aktuellen Code fail-soft STILL übersprungen (kein Crash, aber ein Datenverlust ohne Log-Hinweis). Ausdrücklich als 'Beobachtung, kein Blocker' vermerkt, aber bis heute keine Härtung/kein expliziter Log-Hinweis dafür gebaut.",
-      "status": "beobachtet",
-      "status_date": "2026-09-27"
+      "description": "Aus SESSION_HANDOVER.md Block 3 (Zeile ~797) UND §6i (Restkante-Vermerk, gleicher Inhalt zweifach im Dokument) -- Datum via git-log -S geschätzt: falls yfinance .info['dateShortInterest'] künftig als Timestamp statt als Epoch-Int liefert, wird der Punkt im aktuellen Code fail-soft STILL übersprungen (kein Crash, aber ein Datenverlust ohne Log-Hinweis). Ausdrücklich als 'Beobachtung, kein Blocker' vermerkt, aber bis heute keine Härtung/kein expliziter Log-Hinweis dafür gebaut. BELEG 07.10.2026 (PR #578): genau eine log.warning im except-Zweig von _si_settlement_from_ts ergänzt (Funktionsname, Rohwert auf 40 Zeichen gekürzt, Ausnahmetyp) -- nur beim ersten Vorkommen pro Lauf (Modul-Zähler gegen Log-Flut, da _persist_si_position_history über den vollen enriched US-Pool läuft). Rückgabewert/Kontrollfluss unverändert (weiterhin None, weiterhin fail-soft). Direkt benachbarter Silent-Pattern in _si_pub_date bewusst NICHT mitgefixt (im PR-Text gemeldet).",
+      "status": "erledigt",
+      "status_date": "2026-10-07"
     },
     {
       "id": "block3-akut-verifikationsliste-stale",
