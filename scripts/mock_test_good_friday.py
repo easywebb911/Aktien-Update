@@ -11,12 +11,23 @@ Fix, weil ``settlement + 7 Business-Days`` mit Look bei Karfreitag im
 Zählungspfad **1 Business-Day zu früh** berechnet würde → Look-Ahead in die
 falsche Richtung (früher-öffentlich-behauptet als real).
 
-Fix (dieser PR):
+Fix (PR #407):
 Good Friday algorithmisch via Meeus/Jones/Butcher-Osterformel (stdlib-only,
 kein pandas-Import in config.py — würde CI-Slot-A-Tests brechen).
 Karfreitag = Ostersonntag − 2 Tage. Range 2020–2050 (deckt vergangene 5 +
-zukünftige 25 Jahre). Union mit statischer 27-Einträge-Liste ergibt 58-
-Elemente-Frozenset.
+zukünftige 25 Jahre). Damals: Union mit statischer 27-Einträge-Liste ergab
+58-Elemente-Frozenset.
+
+SEIT PR (s6b, 07.10.2026): die restlichen 5 beweglichen Feiertage (MLK,
+Presidents, Memorial, Labor, Thanksgiving) + die 4 Fixdatum-Feiertage mit
+Wochenend-Beobachtung (Neujahr, Juneteenth, Independence, Christmas) sind
+EBENFALLS algorithmisch (Nth-Weekday-of-Month-Formeln, analog zu diesem
+PR-#407-Präzedenzfall). ``US_MARKET_HOLIDAYS`` hat seitdem 310 statt 58
+Einträge (10 Feiertage × 31 Jahre, keine Kollisionen). Die Tests unten
+bleiben für den Good-Friday-Teilaspekt gültig (A/B/D/E/F unverändert);
+C4/G3/G4/G6/G7 wurden an die neue Architektur angepasst (siehe dortige
+Kommentare). Volle Abdeckung aller 10 Kategorien lebt in
+``scripts/mock_test_us_holidays_algorithmic.py``.
 
 Verifiziert:
 - (A) Osterformel: 11 Jahre (2020–2030) gegen echten NYSE-Kalender.
@@ -123,11 +134,16 @@ def _test_regression_static_holidays():
             iso in config.US_MARKET_HOLIDAYS,
         )
 
-    # Explizit: das Set enthält NUR die statischen Feiertage + Karfreitage.
-    # Nichts Verschmutzendes wie z.B. Kalenderwoche-Random-Daten.
+    # C4 war vor PR (s6b, 07.10.2026) "27 statisch + 31 Karfreitage = 58" —
+    # seit s6b sind ALLE 10 Feiertage/Jahr algorithmisch (nicht nur Karfreitag),
+    # Range 2020..2050 × 10 Feiertage/Jahr, keine Kollisionen → 310. Volle
+    # Architektur-Abdeckung (alle 10 Kategorien, 2025-2029 exakt-Vergleich)
+    # lebt in ``scripts/mock_test_us_holidays_algorithmic.py``; hier nur der
+    # Größen-Regressionsschutz.
     _check(
-        "C4 Set-Größe = 27 statisch + 31 Karfreitage (2020..2050) = 58",
-        len(config.US_MARKET_HOLIDAYS) == 58,
+        "C4 Set-Größe = 10 Feiertage × 31 Jahre (2020..2050) = 310 "
+        "(seit s6b vollständig algorithmisch, nicht mehr nur Karfreitag)",
+        len(config.US_MARKET_HOLIDAYS) == 310,
         f"got {len(config.US_MARKET_HOLIDAYS)}",
     )
     _check(
@@ -209,10 +225,21 @@ def _test_js_python_symmetry():
     den auch das Python-Set enthält.
 
     Source-Inspektion (kein Node-Runner-Zwang im CI-Slot-A): der JS-Block
-    trägt eine algorithmische Ergänzung (`_goodFriday`-Funktion +
-    `_GOOD_FRIDAYS`-IIFE) mit identischer Meeus-Formel-Signatur wie das
-    Python-Pendant. Damit ist die Python↔JS-Spiegelung strukturell
-    garantiert.
+    trägt eine algorithmische Ergänzung (`_goodFriday`-Funktion) mit
+    identischer Meeus-Formel-Signatur wie das Python-Pendant. Damit ist die
+    Python↔JS-Spiegelung für Karfreitag strukturell garantiert.
+
+    SEIT PR (s6b, 07.10.2026): G3/G4/G6/G7 wurden hier entfernt bzw.
+    umgebaut — sie prüften Implementierungsdetails der ALTEN
+    "statisch 2025-2027 + nur-Karfreitag-algorithmisch"-Architektur
+    (eine feste `_GOOD_FRIDAYS`-IIFE-Zeile, hartcodierte Literal-Strings,
+    der "AUSSTEHENDE BEWEGLICHE FEIERTAGE"-Wartungs-Reminder). Seit s6b
+    sind ALLE 10 Feiertage/Jahr algorithmisch — die alten Literal-/IIFE-
+    Assertions sind nicht mehr zutreffend, nicht weil das Verhalten kaputt
+    wäre, sondern weil die Architektur, die sie prüften, bewusst ersetzt
+    wurde. Volle Python↔JS-Äquivalenz (inkl. Node-Ausführung, nicht nur
+    Source-Inspektion) wird jetzt in
+    ``scripts/mock_test_us_holidays_algorithmic.py`` Test G bewiesen.
     """
     print("── (G) Frontend-Spiegel Python↔JS (Meeus-Formel-Symmetrie) ──")
     gr_src = (ROOT / "generate_report.py").read_text(encoding="utf-8")
@@ -229,46 +256,57 @@ def _test_js_python_symmetry():
         "G2 Meeus-Kern-Formel in JS präsent (h-Zeile, Bit-identisch zu Python)",
         "(19 * a + b - d0 - g + 15) % 30" in gr_src,
     )
-    # G3 — IIFE erzeugt Karfreitags-Array für Range 2020-2050 (spiegel-symmetrisch)
+    # G3 — seit s6b: Good Friday wird über die vereinheitlichte
+    # `_usMarketHolidaysForYear`-Schleife (2020..2050) eingehängt, nicht
+    # mehr über eine eigene `_GOOD_FRIDAYS`-IIFE.
     _check(
-        "G3 _GOOD_FRIDAYS-IIFE über Range 2020..2050",
-        "for (let y = 2020; y <= 2050; y++) arr.push(_goodFriday(y))" in gr_src,
+        "G3 Einheitliche Feiertags-Schleife über Range 2020..2050",
+        "for (let y = 2020; y <= 2050; y++) arr.push(..._usMarketHolidaysForYear(y));"
+        in gr_src,
     )
-    # G4 — Array wird via Spread in US_HOLIDAYS eingehängt (additiv)
+    # G4 — Good Friday kommt aus `_usMarketHolidaysForYear` (ruft `_goodFriday`
+    # pro Jahr auf), nicht mehr über einen separaten Spread.
     _check(
-        "G4 _GOOD_FRIDAYS via Spread in US_HOLIDAYS eingehängt",
-        "..._GOOD_FRIDAYS," in gr_src,
-        "Spread-Insertion in US_HOLIDAYS-Array fehlt → JS würde Karfreitag nicht sehen",
+        "G4 _goodFriday(year) wird in _usMarketHolidaysForYear aufgerufen",
+        "_goodFriday(year)," in gr_src,
     )
     # G5 — Spiegel-Vertrag im Kommentar dokumentiert
     _check(
         "G5 SPIEGEL-VERTRAG-Kommentar präsent (Wartungs-Anker)",
         "SPIEGEL-VERTRAG" in gr_src or "Spiegel-Vertrag" in gr_src.lower(),
     )
-    # G6 — 5 ausstehende bewegliche Feiertage als Wartungs-Reminder markiert
+    # G6 — seit s6b: KEIN Wartungs-Reminder mehr nötig (alle 5 vormals
+    # ausstehenden beweglichen Feiertage sind jetzt algorithmisch). Test
+    # dreht sich um: der alte Wartungs-Bomben-Hinweis MUSS weg sein, sonst
+    # wäre die Doku irreführend (würde Pflege suggerieren, die nicht mehr
+    # nötig ist).
     _check(
-        "G6 Wartungs-Reminder für 5 ausstehende bewegliche Feiertage",
-        "AUSSTEHENDE BEWEGLICHE FEIERTAGE" in gr_src
-        and "Presidents Day" in gr_src
-        and "Thanksgiving" in gr_src,
+        "G6 Alter 'AUSSTEHENDE BEWEGLICHE FEIERTAGE'-Wartungs-Reminder "
+        "entfernt (seit s6b algorithmisch, keine Wartung mehr nötig)",
+        "AUSSTEHENDE BEWEGLICHE FEIERTAGE" not in gr_src,
     )
-    # G7 — die 27 statischen Feiertage-Zeilen unverändert (Regression, Kontroll-Sample)
+    # G7 — seit s6b: KEINE der 10 Feiertags-Kategorien ist mehr als
+    # Jahres-Literal im JS-Quelltext hartcodiert (volle Umkehrung der
+    # alten Architektur-Prüfung). Stichprobe über die vormals statischen
+    # 2025-2027-Werte, die jetzt ausschließlich algorithmisch entstehen.
     for iso in (
         '"2025-01-01"', '"2026-06-19"', '"2027-12-24"',
         '"2026-11-26"', '"2025-05-26"',
     ):
         _check(
-            f"G7 statisches JS-Feiertag {iso} unverändert im Array",
-            iso in gr_src,
+            f"G7 vormals-statisches JS-Feiertag {iso} NICHT mehr als "
+            f"Literal im Quelltext (jetzt algorithmisch berechnet)",
+            iso not in gr_src,
         )
-    # G8 — NICHT hartcodierte Karfreitag-Datumswerte (die kommen aus IIFE, nicht
-    # als Literale, damit auslauf-frei). Assertion: die drei bekannten
-    # Karfreitage 2025/2026/2027 sind NICHT als eigene Literal-Zeilen dupliziert
-    # (sonst würde man sie zweimal sehen — algorithmisch UND hardcoded).
+    # G8 — NICHT hartcodierte Karfreitag-Datumswerte (die kommen aus der
+    # Schleife, nicht als Literale, damit auslauf-frei). Assertion: die drei
+    # bekannten Karfreitage 2025/2026/2027 sind NICHT als eigene Literal-
+    # Zeilen dupliziert (sonst würde man sie zweimal sehen — algorithmisch
+    # UND hardcoded).
     for iso in ("2025-04-18", "2026-04-03", "2027-03-26"):
         _check(
             f"G8 Karfreitag {iso} NICHT als Literal-Zeile dupliziert "
-            f"(kommt algorithmisch aus _GOOD_FRIDAYS)",
+            f"(kommt algorithmisch aus _usMarketHolidaysForYear)",
             gr_src.count(f'"{iso}"') == 0,
             f"gefunden als Literal → doppelte Quelle statt spiegel-symmetrisch",
         )

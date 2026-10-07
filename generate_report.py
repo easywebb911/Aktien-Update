@@ -12596,26 +12596,24 @@ function showMsg(type,text){{
 }}
 
 // ── Gemeinsame Handelstag-Hilfsfunktionen (wird von Banner + KI-Agent genutzt) ──
-// US federal holidays — update this array each year (format: "YYYY-MM-DD").
-// Observed dates (Monday if Sunday, Friday if Saturday) should be listed.
+// US-Börsenfeiertage, VOLLSTÄNDIG ALGORITHMISCH seit PR (s6b, 07.10.2026).
 //
 // SPIEGEL-VERTRAG (siehe config.US_MARKET_HOLIDAYS-Kommentar): dieses Array
 // muss die exakt gleiche Datum-Menge wie das Python-Set liefern, sonst
 // driftet Frontend-Banner (`_isNonTradingDay`, `_nextTradingDay`) vom
 // Backend-Verhalten (Exit-Push-Pipeline, S4-Health-Check, cluster_purge)
-// weg — an einem Karfreitag würde das Frontend fälschlich Handelstag-
-// Anzeige liefern, während Backend korrekt skippt.
+// weg — an einem Feiertag würde das Frontend fälschlich Handelstag-Anzeige
+// liefern, während Backend korrekt skippt.
 //
-// Good Friday wird SEIT PR (Datum) algorithmisch via JS-Meeus/Jones/Butcher-
-// Osterformel ergänzt (Range 2020–2050, spiegel-symmetrisch zum Python-Fix).
-// Damit ist die eine bewegliche Feiertagsklasse, die auslaufen würde, hier
-// wie im Backend automatisch abgedeckt.
-//
-// AUSSTEHENDE BEWEGLICHE FEIERTAGE (WARTUNGS-REMINDER 2028+): MLK Day,
-// Presidents Day, Memorial Day, Labor Day, Thanksgiving sind je Jahr
-// 2025–2027 hartcodiert (Python-Set + JS-Array symmetrisch) und laufen
-// gemeinsam 2028 aus. Separater Wartungs-PR nötig (algorithmisch via
-// "N-ter Wochentag im Monat"-Regel — analog Meeus-Muster).
+// Alle 10 NYSE-Feiertage/Jahr werden über Nth-Weekday-of-Month- bzw.
+// Last-Weekday-of-Month-Formeln berechnet (analog zum Good-Friday-Fix aus
+// PR #407, der denselben "algorithmisch statt hartcodiert"-Ansatz für EINEN
+// beweglichen Feiertag etabliert hat) — spiegel-symmetrisch zum Python-Fix
+// in config.py. Die vormalige Wartungs-Bombe (MLK/Presidents/Memorial/
+// Labor/Thanksgiving hartcodiert bis 2027, Auslaufen 2028) ist damit
+// beseitigt — KEIN manueller Pflege-Bedarf mehr für 2028+. Range 2020–2050,
+// identisch zur vorherigen Good-Friday-Range (bei Bedarf nach 2050: hier
+// UND in config.py synchron erweitern).
 function _toIso(d) {{
   const y = d.getFullYear();
   const m = String(d.getMonth()+1).padStart(2,'0');
@@ -12644,46 +12642,58 @@ function _goodFriday(year) {{
   easter.setDate(easter.getDate() - 2);
   return _toIso(easter);
 }}
-const _GOOD_FRIDAYS = (function() {{
+function _nthWeekdayOfMonth(year, month, dow, n) {{
+  // JS-Spiegel von config._nth_weekday_of_month. month: 0-indexiert
+  // (JS-Date-Konvention). dow: JS-Date.getDay()-Konvention (0=So…6=Sa).
+  const first = new Date(year, month, 1);
+  const offset = (dow - first.getDay() + 7) % 7;
+  return new Date(year, month, 1 + offset + 7 * (n - 1));
+}}
+function _lastWeekdayOfMonth(year, month, dow) {{
+  // JS-Spiegel von config._last_weekday_of_month. `new Date(y, m+1, 0)`
+  // liefert direkt den letzten Tag von Monat `m` (JS-Date-Rollback-Trick).
+  const lastDay = new Date(year, month + 1, 0);
+  const offset = (lastDay.getDay() - dow + 7) % 7;
+  lastDay.setDate(lastDay.getDate() - offset);
+  return lastDay;
+}}
+function _observedWeekend(d, newYearsException) {{
+  // JS-Spiegel von config._observed_weekend. Samstag → Freitag davor,
+  // Sonntag → Montag danach. AUSNAHME newYearsException (nur Neujahr):
+  // Samstag bekommt KEINEN Ersatztag am 31.12. des Vorjahres.
+  const dow = d.getDay();
+  if (dow === 6) {{
+    if (newYearsException) return d;
+    const r = new Date(d); r.setDate(r.getDate() - 1); return r;
+  }}
+  if (dow === 0) {{
+    const r = new Date(d); r.setDate(r.getDate() + 1); return r;
+  }}
+  return d;
+}}
+function _usMarketHolidaysForYear(year) {{
+  // JS-Spiegel von config._us_market_holidays_for_year — identische
+  // Regel-Reihenfolge. MLK/Presidents/Memorial/Labor fallen immer auf
+  // einen Montag, Thanksgiving immer auf Donnerstag, Karfreitag immer auf
+  // Freitag — keiner dieser fünf braucht eine Beobachtungsregel.
+  return [
+    _toIso(_observedWeekend(new Date(year, 0, 1), true)),   // New Year's Day
+    _toIso(_nthWeekdayOfMonth(year, 0, 1, 3)),               // MLK Day
+    _toIso(_nthWeekdayOfMonth(year, 1, 1, 3)),               // Presidents' Day
+    _goodFriday(year),                                       // Good Friday
+    _toIso(_lastWeekdayOfMonth(year, 4, 1)),                 // Memorial Day
+    _toIso(_observedWeekend(new Date(year, 5, 19), false)),  // Juneteenth
+    _toIso(_observedWeekend(new Date(year, 6, 4), false)),   // Independence Day
+    _toIso(_nthWeekdayOfMonth(year, 8, 1, 1)),               // Labor Day
+    _toIso(_nthWeekdayOfMonth(year, 10, 4, 4)),              // Thanksgiving
+    _toIso(_observedWeekend(new Date(year, 11, 25), false)), // Christmas
+  ];
+}}
+const US_HOLIDAYS = (function() {{
   const arr = [];
-  for (let y = 2020; y <= 2050; y++) arr.push(_goodFriday(y));
+  for (let y = 2020; y <= 2050; y++) arr.push(..._usMarketHolidaysForYear(y));
   return arr;
 }})();
-const US_HOLIDAYS = [
-  // 2025
-  "2025-01-01", // New Year's Day
-  "2025-01-20", // MLK Day
-  "2025-02-17", // Presidents' Day
-  "2025-05-26", // Memorial Day
-  "2025-06-19", // Juneteenth
-  "2025-07-04", // Independence Day
-  "2025-09-01", // Labor Day
-  "2025-11-27", // Thanksgiving
-  "2025-12-25", // Christmas
-  // 2026
-  "2026-01-01", // New Year's Day
-  "2026-01-19", // MLK Day
-  "2026-02-16", // Presidents' Day
-  "2026-05-25", // Memorial Day
-  "2026-06-19", // Juneteenth
-  "2026-07-03", // Independence Day (observed, 4th = Saturday)
-  "2026-09-07", // Labor Day
-  "2026-11-26", // Thanksgiving
-  "2026-12-25", // Christmas
-  // 2027
-  "2027-01-01", // New Year's Day
-  "2027-01-18", // MLK Day
-  "2027-02-15", // Presidents' Day
-  "2027-05-31", // Memorial Day
-  "2027-06-18", // Juneteenth (observed, 19th = Saturday)
-  "2027-07-05", // Independence Day (observed, 4th = Sunday)
-  "2027-09-06", // Labor Day
-  "2027-11-25", // Thanksgiving
-  "2027-12-24", // Christmas (observed, 25th = Saturday)
-  // Good Friday (algorithmisch, Range 2020–2050) — spiegel-symmetrisch zu
-  // config._easter_sunday.
-  ..._GOOD_FRIDAYS,
-];
 function _isHoliday(d)        {{ return US_HOLIDAYS.includes(_toIso(d)); }}
 function _isNonTradingDay(d)  {{ const dow = d.getDay(); return dow === 0 || dow === 6 || _isHoliday(d); }}
 function _nextTradingDay(d) {{
