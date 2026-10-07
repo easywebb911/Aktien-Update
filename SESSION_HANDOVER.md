@@ -1728,10 +1728,16 @@ komplett neu geschrieben → keine Migrations-Lesart nötig. Golden mit-aktualis
 Wartungs-Bombe wie Karfreitag vor #407). Kandidat: analog #407 mit „Nth-Weekday-
 of-Month"-Formeln, Range 2020–2050. Kein Trading-Wert, Vorbeugungs-Hygiene.
 
-### 6c. News-/FDA-Katalysator (Look-Ahead-Quelle ungeklärt)
-**Status: OFFEN.** Voraussetzung: belegbar **point-in-time** verfügbare
-News-/FDA-Announcement-Quelle. Vor dem Bau: Diagnose-Auftrag „welche Quelle ist
-point-in-time?".
+### 6c. News-/FDA-Katalysator (Look-Ahead-Quelle geklärt, Score-Entscheidung offen)
+**Status: Quelle GEKLÄRT (06.10.2026); Score-Faktor-Entscheidung OFFEN.**
+Voraussetzung war eine belegbar **point-in-time** verfügbare News-/FDA-
+Announcement-Quelle. Commit `513fa5f2` (19.07.2026, „material_8k_events … §6c")
+hat die Diagnose durchgeführt und SEC-EDGAR-8-K (CIK-anchored,
+`acceptance_datetime` ≤ Report-Zeit) als point-in-time-Quelle identifiziert +
+dafür ein forward-only Sammelfeld gebaut (REINE Analyse-/Outcome-Persistenz,
+Look-Ahead-Konvention bewusst eingefroren, NIEMALS als Score-Feature gelesen).
+Offen bleibt die NEUE Frage: ob aus `material_8k_events` je ein Score-Faktor
+gebaut wird — bisher bewusst nicht angegangen.
 
 ### 6d. `entry_past_return_5d` Stufe-B-Backfill (Paper C) — ✅ ERLEDIGT (#442/#443/#444 + Live-Lauf 17.07.)
 **Status: ERLEDIGT.** #402 war Stufe A (Live-Vorwärts). Stufe B — der einmalige
@@ -1756,17 +1762,22 @@ belegt: Cap schrittweise lockern. Kein Termin — wartet auf externes Signal.
 erfordert `templates/page.jinja` + `_wl_full_card_html`-Umbau (§7g). Kein
 Trading-Wert.
 
-### 6g. Institutional-Ownership-Faktor (Paper-Dämpfer) — Anzeige-Key-Fix DURCH, Sammelfeld offen
-**Status: Anzeige-Key-Fix ERLEDIGT (#510–#512, 07.08.); Sammelfeld OFFEN (Kandidat
-der Hypothesen-Runde NACH Paper C).** Svoboda et al.: hoher Institutional-Ownership
+### 6g. Institutional-Ownership-Faktor (Paper-Dämpfer) — Anzeige-Key-Fix + Sammelfeld DURCH, Hypothesen-Runde offen
+**Status: Anzeige-Key-Fix ERLEDIGT (#510–#512, 07.08.); Sammelfeld LIVE seit
+10.08.2026 (korrigiert 06.10.2026); Hypothesen-Runde NACH Paper C weiterhin
+OFFEN.** Svoboda et al.: hoher Institutional-Ownership
 **dämpft** (**−6 % je +1 %**) — der erste Faktor, der GEGEN einen Squeeze spräche.
 Datenquelle yfinance **`heldPercentInstitutions`** (ein BRUCH); die früher
 verdrahteten Keys (`institutionHeldPercentOutstanding`/`institutionsPercentHeld`)
 existierten im `.info`-Dict NICHT (Wegwerf-Probe #510: `<KEY-FEHLT>` 33/33) → #512
 gefixt, Coverage **30/30** am Universum, Streuung voll, quartalsweise 13F-Latenz
-bleibt (forward-only unproblematisch). Kein Score-Effekt ohne OoS-Beleg — Sammelfeld
-`inst_ownership_history` (**forward-only, S10_OBSERVED-additiv**, `none=unbeobachtbar`,
-**NIE 0**) bleibt Kandidat.
+bleibt (forward-only unproblematisch). Sammelfeld
+`inst_ownership_history.json` (**forward-only, S10_OBSERVED-additiv**,
+`none=unbeobachtbar`, **NIE 0**) läuft seit 10.08.2026 (`config.py
+INST_OWNERSHIP_HISTORY_ENABLED`/`_FILE`, `generate_report.py:3643-3731`) — beide
+unten genannten Caveats sind darin bereits umgesetzt. Weiterhin **kein
+Score-Effekt ohne OoS-Beleg** — die Hypothesen-Runde selbst bleibt Kandidat NACH
+Paper C.
 
 **Zwei Registrierungs-Caveats (VOR jedem Sammelfeld-/Score-Schritt entscheiden):**
 1. **Werte > 100 % roh einfrieren** — bei stark geshorteten Titeln real (HTZ 118,7 %;
@@ -1886,13 +1897,16 @@ und ein separater `_SHELL_HTML`-Plain-String in `generate_report.py`
 **keine gemeinsame Quelle** — bei einer künftigen Icon-Änderung müssen
 beide Stellen synchron gepflegt werden. Kein akutes Problem.
 
-### 6k. Stand-Zeile könnte beide Zeiten zeigen (Verwirrung „eingefroren?")
-**Status: OFFEN (Kosmetik/UX).** Die Header-Zeile zeigt nur die Marktdaten-Zeit
-(„Stand: HH:MM"). Weil die KI-Zeile stündlich vorläuft, wirkt die Seite morgens
-scheinbar „eingefroren", obwohl die Zwei-Run-Architektur genau so gedacht ist
-(§3-Klarstellung). Kandidat: die Zeile explizit **zweiteilig** rendern —
-z. B. „Marktdaten 10:36 · KI 19:39" — dann ist die Divergenz selbsterklärend statt
-verdächtig. Reine Anzeige, kein Datenpfad.
+### 6k. Stand-Zeile zeigt beide Zeiten — ✅ ERLEDIGT (#465, 21.07.2026, korrigiert 06.10.2026)
+**Status: ERLEDIGT.** Die Header-Zeile zeigte früher nur die Marktdaten-Zeit
+(„Stand: HH:MM"); weil die KI-Zeile stündlich vorläuft, wirkte die Seite morgens
+scheinbar „eingefroren", obwohl die Zwei-Run-Architektur genau so gedacht war
+(§3-Klarstellung). PR #465 (`d4b80983`, 21.07.2026, „Karten-Klarheit —
+Beschriftungs-Präzision") rendert die Zeile seither **zweiteilig** —
+„Marktdaten HH:MM · KI HH:MM" via client-seitigem `_renderKiTime()` aus
+`_AGENT_SIGNALS.updated` — die Divergenz ist damit selbsterklärend statt
+verdächtig. Reine Anzeige, kein Datenpfad. Nur hier nie als erledigt
+nachgetragen worden (Diagnose 06.10.2026).
 
 ### 6l. Cockpit Stage 3 — obsolete `.sb-`-Reste im Karten-Bereich (Doku-Lücke geschlossen)
 **Status: OFFEN. Keine Priorität, kein Termin, KEIN Beschluss, das zu bauen.**
