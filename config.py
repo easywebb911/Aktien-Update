@@ -1313,14 +1313,64 @@ EASTERN = ZoneInfo("America/New_York")
 # kein Fehlalarm), (2) ki_agent.process_exit_signals (kein Exit-Push an
 # Nicht-Handelstagen), (3) cluster_purge.previous_trading_day (Handelstag-
 # Rückwärts-Arithmetik).
-# WARTUNGS-REMINDER: die vier beweglichen Feiertage (MLK, Presidents,
-# Memorial, Labor, Thanksgiving) sind je Jahr 2025–2027 hartcodiert und
-# müssen manuell für 2028+ ergänzt werden. Good Friday wird seit PR
-# 05.07.2026 algorithmisch ergänzt (Meeus-Osterformel unten, Range
-# 2020–2050) — automatisch 2028+ abgedeckt. Drift-Risiko: ein FALSCH
-# gelisteter Tag schaltet S4/Exit-Push an einem echten Handelstag stumm —
-# beim Pflegen gegen den offiziellen NYSE-Kalender prüfen.
+#
+# VOLLSTÄNDIG ALGORITHMISCH seit PR (s6b, 07.10.2026) — alle 10 NYSE-
+# Feiertage/Jahr werden über Nth-Weekday-of-Month- bzw. Last-Weekday-of-
+# Month-Formeln berechnet (analog zum Good-Friday-Fix aus PR #407, der
+# denselben "algorithmisch statt hartcodiert"-Ansatz für EINEN beweglichen
+# Feiertag etabliert hat). Die vorherige Wartungs-Bombe (MLK/Presidents/
+# Memorial/Labor/Thanksgiving hartcodiert bis 2027, Auslaufen 2028) ist
+# damit beseitigt — KEIN manueller Pflege-Bedarf mehr für 2028+. Range
+# 2020–2050 (wie zuvor bei Good Friday). Exakt gegen die bisherige
+# hartcodierte 2025–2027-Liste verifiziert (Mengen-Diff leer, Test A in
+# ``scripts/mock_test_us_holidays_algorithmic.py``).
 from datetime import date as _date, timedelta as _timedelta
+
+
+def _nth_weekday_of_month(year: int, month: int, weekday: int, n: int) -> _date:
+    """N-ter <weekday> im Monat (1-indexiert: n=1 erster, n=3 dritter, …).
+
+    ``weekday``-Konvention identisch zu ``datetime.date.weekday()``:
+    0=Montag … 6=Sonntag. Pure Datums-Arithmetik, kein I/O, deterministisch.
+    """
+    first = _date(year, month, 1)
+    offset = (weekday - first.weekday()) % 7
+    return first + _timedelta(days=offset + 7 * (n - 1))
+
+
+def _last_weekday_of_month(year: int, month: int, weekday: int) -> _date:
+    """Letzter <weekday> im Monat (z. B. Memorial Day = letzter Montag Mai).
+
+    ``weekday``-Konvention wie ``_nth_weekday_of_month``. Pure, kein I/O.
+    """
+    if month == 12:
+        next_month_first = _date(year + 1, 1, 1)
+    else:
+        next_month_first = _date(year, month + 1, 1)
+    last_day = next_month_first - _timedelta(days=1)
+    offset = (last_day.weekday() - weekday) % 7
+    return last_day - _timedelta(days=offset)
+
+
+def _observed_weekend(d: _date, *, new_years_exception: bool = False) -> _date:
+    """NYSE-Wochenend-Beobachtungsregel: Samstag → Freitag davor, Sonntag →
+    Montag danach.
+
+    AUSNAHME ``new_years_exception=True`` (nur Neujahr, 01.01.): fällt der
+    Tag auf einen Samstag, gibt es KEINEN Ersatztag am 31.12. des Vorjahres
+    — NYSE verlegt den Feiertag nicht ins Vorjahr (belegt am realen
+    Beispiel: Neujahr 2022 fiel auf Samstag, 31.12.2021 war reguläter
+    Handelstag — kein Ersatz). Der Sonntags-Fall (→ folgender Montag) ist
+    von der Ausnahme nicht betroffen, kommt aber für Neujahr mangels
+    Sonntags-Vorkommen in der Praxis nie vor diese Regel.
+    """
+    if d.weekday() == 5:  # Samstag
+        if new_years_exception:
+            return d
+        return d - _timedelta(days=1)
+    if d.weekday() == 6:  # Sonntag
+        return d + _timedelta(days=1)
+    return d
 
 
 def _easter_sunday(year: int) -> _date:
@@ -1356,42 +1406,53 @@ def _easter_sunday(year: int) -> _date:
     day = ((h + l - 7 * m + 114) % 31) + 1
     return _date(year, month, day)
 
-US_MARKET_HOLIDAYS = frozenset({
-    # ── Statisch gepflegte NYSE-Feiertage (10 pro Jahr minus Good Friday) ──
-    # Vier bewegliche Feiertage (MLK, Presidents, Memorial, Labor,
-    # Thanksgiving) sind je Jahr hartcodiert und laufen 2027 aus. Wartungs-
-    # Reminder (analog JS-`US_HOLIDAYS`): nächste manuelle Ergänzung 2028.
-    # Good Friday wird SEIT PR (05.07.2026) algorithmisch ergänzt — siehe
-    # Union weiter unten. Alle drei Jahre 2025–2027 haben je 9 statische
-    # Einträge; die 10. Zeile ist Good Friday, kommt aus _GOOD_FRIDAYS.
-    #
-    # 2025
-    "2025-01-01", "2025-01-20", "2025-02-17", "2025-05-26", "2025-06-19",
-    "2025-07-04", "2025-09-01", "2025-11-27", "2025-12-25",
-    # 2026
-    "2026-01-01", "2026-01-19", "2026-02-16", "2026-05-25", "2026-06-19",
-    "2026-07-03", "2026-09-07", "2026-11-26", "2026-12-25",
-    # 2027
-    "2027-01-01", "2027-01-18", "2027-02-15", "2027-05-31", "2027-06-18",
-    "2027-07-05", "2027-09-06", "2027-11-25", "2027-12-24",
-} | frozenset(
-    # ── Good Friday algorithmisch (Meeus/Jones/Butcher-Osterformel) ──────
-    # Karfreitag ist NYSE-geschlossen seit 1908. Der Feiertag folgt dem
-    # beweglichen Osterdatum → nicht mit-hartcodierbar wie MLK/Labor/etc.
-    # Der Meeus/Jones/Butcher-Algorithmus (unten `_easter_sunday`) ist die
-    # etablierte Standardformel für den Gregorianischen Kalender (bit-exakt
-    # ab 1583, deterministisch, pure-stdlib). Karfreitag = Ostersonntag − 2.
-    # Range 2020–2050 deckt vergangene 5 Jahre + zukünftige 25 Jahre — für
-    # die Set-Membership-Checks der Konsumenten (previous_trading_day, S4,
-    # Exit-Push-Pipeline) reichlich; Set bleibt < 60 Einträge.
-    #
-    # HISTORISCHER FIX: Karfreitag fehlte 05.07.2026 im Set (Diagnose:
-    # `US_MARKET_HOLIDAYS` hatte je 9 statt 10 Einträge pro Jahr). Der Fix
-    # ist algorithmisch damit auch 2028+ automatisch abgedeckt, sobald die
-    # anderen beweglichen Feiertage manuell ergänzt werden.
-    (_easter_sunday(_y) - _timedelta(days=2)).isoformat()
+
+def _us_market_holidays_for_year(year: int) -> frozenset[str]:
+    """Alle 10 NYSE-Feiertage eines Kalenderjahres, ISO-Strings.
+
+    Reihenfolge der Berechnung (jede Zeile ist eine eigenständige Regel):
+    Neujahr (Fixdatum + Wochenend-Beobachtung MIT Neujahrs-Ausnahme),
+    MLK Day (3. Montag Januar), Presidents Day (3. Montag Februar),
+    Karfreitag (Ostersonntag − 2, Meeus/Jones/Butcher via `_easter_sunday`),
+    Memorial Day (letzter Montag Mai), Juneteenth (Fixdatum + Wochenend-
+    Beobachtung), Independence Day (Fixdatum + Wochenend-Beobachtung),
+    Labor Day (1. Montag September), Thanksgiving (4. Donnerstag November),
+    Christmas (Fixdatum + Wochenend-Beobachtung). MLK/Presidents/Memorial/
+    Labor fallen per Konstruktion immer auf einen Montag, Thanksgiving immer
+    auf einen Donnerstag, Karfreitag immer auf einen Freitag — keiner dieser
+    fünf kann je auf ein Wochenende fallen, daher keine Beobachtungsregel
+    nötig. Pure, kein I/O, deterministisch.
+    """
+    return frozenset({
+        _observed_weekend(_date(year, 1, 1), new_years_exception=True).isoformat(),
+        _nth_weekday_of_month(year, 1, 0, 3).isoformat(),   # MLK Day
+        _nth_weekday_of_month(year, 2, 0, 3).isoformat(),   # Presidents Day
+        (_easter_sunday(year) - _timedelta(days=2)).isoformat(),  # Good Friday
+        _last_weekday_of_month(year, 5, 0).isoformat(),     # Memorial Day
+        _observed_weekend(_date(year, 6, 19)).isoformat(),  # Juneteenth
+        _observed_weekend(_date(year, 7, 4)).isoformat(),   # Independence Day
+        _nth_weekday_of_month(year, 9, 0, 1).isoformat(),   # Labor Day
+        _nth_weekday_of_month(year, 11, 3, 4).isoformat(),  # Thanksgiving
+        _observed_weekend(_date(year, 12, 25)).isoformat(), # Christmas
+    })
+
+
+# ── Vollständig algorithmisch, Range 2020–2050 ───────────────────────────────
+# Deckt vergangene 5 Jahre + zukünftige 25 Jahre ab — für die Set-Membership-
+# Checks der Konsumenten (previous_trading_day, S4, Exit-Push-Pipeline,
+# FINRA-pub_date) reichlich. Exakt gegen die vormals hartcodierte 2025–2027-
+# Liste verifiziert (Mengen-Diff leer — siehe
+# ``scripts/mock_test_us_holidays_algorithmic.py`` Test A). KEIN manueller
+# Pflege-Bedarf mehr für 2028+ (löst die vormalige Wartungs-Bombe der
+# bewegliche-Feiertage-Hartcodierung, analog zum Good-Friday-Präzedenzfall
+# aus PR #407). Range-Obergrenze 2050 bewusst identisch zur vorherigen
+# Good-Friday-Range — bei Bedarf (nach 2050) `range(...)` hier UND im
+# JS-Spiegel (`generate_html_v1`) synchron erweitern.
+US_MARKET_HOLIDAYS = frozenset(
+    iso
     for _y in range(2020, 2051)
-))
+    for iso in _us_market_holidays_for_year(_y)
+)
 
 # ── Staleness-Banner (Frontend-Anzeige, Daily-Run-Frische) ───────────────────
 # Dezenter Header-Hinweis, WIE ALT die angezeigten Daily-Run-Daten (Top-10)

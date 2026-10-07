@@ -224,14 +224,19 @@ _BASELINE_KNOWN_OPEN: frozenset[tuple[str, int, str]] = frozenset({
     ("generate_report.py", 6951, "52w_high"),
     ("generate_report.py", 6952, "52w_low"),
     ("generate_report.py", 7634, "float_shares"),
-    ("generate_report.py", 16398, "entry_price"),
-    ("generate_report.py", 16407, "price"),
-    ("generate_report.py", 16431, "setup_today"),
-    ("generate_report.py", 17188, "score"),
-    ("generate_report.py", 17685, "score"),
-    ("generate_report.py", 18239, "score"),
-    ("generate_report.py", 18282, "score"),
-    ("generate_report.py", 18436, "score"),
+    # Zeilen 16408-18446 um +10 verschoben (s6b-PR, 07.10.2026: algorithmische
+    # US-Feiertage fügten 10 Zeilen vor diesem Block in generate_report.py
+    # ein). Reine Zeilen-Nachführung derselben, weiterhin offenen Funde —
+    # KEIN inhaltlicher Fix, die NaN-Bypass-Stellen selbst sind unverändert
+    # und bleiben eigene Fix-Kandidaten für Folge-PRs.
+    ("generate_report.py", 16408, "entry_price"),
+    ("generate_report.py", 16417, "price"),
+    ("generate_report.py", 16441, "setup_today"),
+    ("generate_report.py", 17198, "score"),
+    ("generate_report.py", 17695, "score"),
+    ("generate_report.py", 18249, "score"),
+    ("generate_report.py", 18292, "score"),
+    ("generate_report.py", 18446, "score"),
     ("health_check.py", 627, "score"),
     ("ki_agent.py", 1299, "last_price"),
     ("ki_agent.py", 2637, "score"),
