@@ -36,11 +36,11 @@
     },
     {
       "id": "s6b-us-holidays-hardcoded-until-2027",
-      "title": "5 bewegliche US-Feiertage hartkodiert bis 2027 (Wartungs-Bombe wie Karfreitag vor #407)",
+      "title": "5 bewegliche US-Feiertage hartkodiert bis 2027 (Wartungs-Bombe wie Karfreitag vor #407) -- ERLEDIGT PR #577",
       "opened": "2026-07-10",
-      "description": "Aus SESSION_HANDOVER.md §6b (Datum via git-log -S auf Sektionstitel geschätzt): nach PR #407 ist nur Karfreitag algorithmisch berechnet. MLK Day, Presidents Day, Memorial Day, Labor Day, Thanksgiving sind hartkodiert bis 2027 und laufen 2028 aus -- dieselbe Wartungs-Bombe, die #407 für Karfreitag bereits gelöst hat. Kandidat: analog #407 mit 'Nth-Weekday-of-Month'-Formeln, Range 2020-2050. Laut Handover 'kein Trading-Wert, Vorbeugungs-Hygiene'.",
-      "status": "offen",
-      "status_date": "2026-09-27"
+      "description": "Aus SESSION_HANDOVER.md §6b (Datum via git-log -S auf Sektionstitel geschätzt): nach PR #407 ist nur Karfreitag algorithmisch berechnet. MLK Day, Presidents Day, Memorial Day, Labor Day, Thanksgiving sind hartkodiert bis 2027 und laufen 2028 aus -- dieselbe Wartungs-Bombe, die #407 für Karfreitag bereits gelöst hat. Kandidat: analog #407 mit 'Nth-Weekday-of-Month'-Formeln, Range 2020-2050. Laut Handover 'kein Trading-Wert, Vorbeugungs-Hygiene'. BELEG 07.10.2026 (PR #577): alle 10 NYSE-Feiertage/Jahr sind jetzt algorithmisch (Nth-Weekday-of-Month/Last-Weekday-of-Month-Formeln + Wochenend-Beobachtungsregel inkl. Neujahrs-Sonderfall), Python (config.py) UND JS-Spiegel (generate_report.py) synchron, Range 2020-2050. Exakt gegen die vormals hartcodierte 2025-2027-Liste verifiziert (Mengen-Diff leer) plus Python/JS-Vollparität via Node-Ausführung. Kein manueller Pflege-Bedarf mehr für 2028+.",
+      "status": "erledigt",
+      "status_date": "2026-10-07"
     },
     {
       "id": "s6c-news-fda-lookahead-source-unclear",

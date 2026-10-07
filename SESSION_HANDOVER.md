@@ -1721,12 +1721,16 @@ pub_date-gefiltert) **unangetastet** — dessen Look-Ahead-Guard nutzt strikte
 komplett neu geschrieben → keine Migrations-Lesart nötig. Golden mit-aktualisiert
 (2 Zeilen, rename-only).
 
-### 6b. 5 andere bewegliche US-Feiertage algorithmisch berechnen
-**Status: OFFEN.** Nach #407 ist nur **Karfreitag** algorithmisch. Fünf weitere
-(**MLK Day**, **Presidents Day**, **Memorial Day**, **Labor Day**,
-**Thanksgiving**) sind **hartkodiert bis 2027** → laufen 2028 aus (gleiche
-Wartungs-Bombe wie Karfreitag vor #407). Kandidat: analog #407 mit „Nth-Weekday-
-of-Month"-Formeln, Range 2020–2050. Kein Trading-Wert, Vorbeugungs-Hygiene.
+### 6b. 5 andere bewegliche US-Feiertage algorithmisch berechnen — ✅ ERLEDIGT (PR #577)
+**Status: ERLEDIGT.** Alle 10 NYSE-Feiertage/Jahr (die 5 vormals bis 2027
+hartkodierten — MLK Day, Presidents Day, Memorial Day, Labor Day,
+Thanksgiving — plus Good Friday [schon seit #407] plus die 4
+Fixdatum-Feiertage mit Wochenend-Beobachtung) sind jetzt algorithmisch via
+Nth-Weekday-of-Month-/Last-Weekday-of-Month-Formeln, Range 2020–2050, Python
+(`config.py`) UND JS-Spiegel (`generate_report.py`) synchron. Exakt gegen die
+vormals hartcodierte 2025–2027-Liste verifiziert (Mengen-Diff leer) +
+Python/JS-Vollparität via Node-Ausführung. Kein manueller Pflege-Bedarf mehr
+für 2028+.
 
 ### 6c. News-/FDA-Katalysator (Look-Ahead-Quelle geklärt, Score-Entscheidung offen)
 **Status: Quelle GEKLÄRT (06.10.2026); Score-Faktor-Entscheidung OFFEN.**
