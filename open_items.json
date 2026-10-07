@@ -4,11 +4,11 @@
   "items": [
     {
       "id": "pr532-or0-sibling-bugs",
-      "title": "PR #532 Sibling-Bugs: FINRA-or0-Muster + Matured-Export-Felder + <=0-Slip",
+      "title": "PR #532 Sibling-Bugs: FINRA-or0-Muster (gefixt) + Matured-Export-Felder + <=0-Slip (beide noch offen)",
       "opened": "2026-08-15",
-      "description": "Aus PR #532 (merged 7d916bfd, 15.08.2026), wörtlich aus SESSION_HANDOVER.md übernommen: \"Sibling-Bugs gemeldet, NICHT gefixt: FINRA-short_interest-or 0-Muster (_compute_si_slope_5d/_compute_si_velocity_pub), mehrere Entry-/Matured-Export-Felder mit demselben or 0-Muster, ein <= 0-Slip in der Squeeze-Detection-Historienscan-Funktion.\" Noch nicht behoben (Stand 27.09.2026).",
+      "description": "Aus PR #532 (merged 7d916bfd, 15.08.2026), wörtlich aus SESSION_HANDOVER.md übernommen: \"Sibling-Bugs gemeldet, NICHT gefixt: FINRA-short_interest-or 0-Muster (_compute_si_slope_5d/_compute_si_velocity_pub), mehrere Entry-/Matured-Export-Felder mit demselben or 0-Muster, ein <= 0-Slip in der Squeeze-Detection-Historienscan-Funktion.\" BESCHREIBUNG AKTUALISIERT (Diagnose 06.10.2026): der FINRA-or0-Teilaspekt ist seit PR #557 (`d058107e`, 21.09.2026) gefixt -- `_compute_si_slope_5d`/`_compute_si_velocity_pub` nutzen jetzt `_finite()`-Guards statt `or 0` (Diff verifiziert). Was WEITERHIN offen ist: (1) die `<=0`-Lücke in `_detect_recent_squeeze` (generate_report.py, Squeeze-History-Detektor) -- `c0 <= 0`/`prior_vol <= 0` fangen ein NaN nicht ab (NaN besteht keinen `<=`-Vergleich), noch kein `_finite()`-Guard vorhanden, bestätigt per Code-Lesen 06.10.2026; (2) die Frage zu den Entry-/Matured-Export-Feldern mit demselben or-0-Muster -- kein Beleg für Fortbestand ODER Fix gefunden, nicht erschöpfend geprüft.",
       "status": "offen",
-      "status_date": "2026-09-27"
+      "status_date": "2026-10-06"
     },
     {
       "id": "s6n-90plus-score-bucket-persistence",
@@ -44,11 +44,11 @@
     },
     {
       "id": "s6c-news-fda-lookahead-source-unclear",
-      "title": "News-/FDA-Katalysator: point-in-time-Quelle ungeklärt",
+      "title": "News-/FDA-Katalysator: point-in-time-Quelle geklärt -- Score-Faktor-Entscheidung noch offen",
       "opened": "2026-07-10",
-      "description": "Aus SESSION_HANDOVER.md §6c (Datum via git-log -S auf Sektionstitel geschätzt): Voraussetzung für einen News-/FDA-Katalysator-Faktor ist eine belegbar point-in-time verfügbare Announcement-Quelle -- vor jedem Bau erst ein Diagnose-Auftrag 'welche Quelle ist point-in-time?' nötig. Bisher nicht durchgeführt.",
+      "description": "Aus SESSION_HANDOVER.md §6c (Datum via git-log -S auf Sektionstitel geschätzt): Voraussetzung für einen News-/FDA-Katalysator-Faktor ist eine belegbar point-in-time verfügbare Announcement-Quelle -- vor jedem Bau erst ein Diagnose-Auftrag 'welche Quelle ist point-in-time?' nötig. TITEL KORRIGIERT (Diagnose 06.10.2026): die Diagnose wurde durchgeführt und die Quelle ist geklärt -- Commit `513fa5f2` (19.07.2026, 'material_8k_events ... §6c') identifiziert SEC-EDGAR-8-K (CIK-anchored, acceptance_datetime <= Report-Zeit) als point-in-time-verfügbare Quelle und baut dafür bereits ein forward-only Sammelfeld (REINE Analyse-/Outcome-Persistenz, kein Score-/Filter-/Push-Effekt, Look-Ahead-Konvention bewusst eingefroren -- NIEMALS als Score-Feature lesen). Was WEITERHIN offen ist: die eigentliche, neue Entscheidung, ob aus `material_8k_events` je ein Score-Faktor gebaut wird -- bisher bewusst nicht angegangen.",
       "status": "offen",
-      "status_date": "2026-09-27"
+      "status_date": "2026-10-06"
     },
     {
       "id": "s6e-yfinance-cap-removal-pending",
@@ -68,11 +68,11 @@
     },
     {
       "id": "s6g-institutional-ownership-sammelfeld-open",
-      "title": "Institutional-Ownership-Sammelfeld (Svoboda-Dämpfer) noch nicht gebaut",
+      "title": "Institutional-Ownership-Sammelfeld live -- Hypothesen-Runde (Svoboda-Dämpfer) nach Paper C noch offen",
       "opened": "2026-07-12",
-      "description": "Aus SESSION_HANDOVER.md §6g (Datum via git-log -S auf Sektionstitel geschätzt) -- NICHT zu verwechseln mit dem bereits erledigten Anzeige-Key-Fix (#510-#512, 07.08.2026, heldPercentInstitutions-Coverage 30/30, das IST erledigt): das eigentliche Sammelfeld inst_ownership_history (forward-only, S10_OBSERVED-additiv) für die Svoboda-Hypothese (hohe institutionelle Beteiligung dämpft Squeeze-Wahrscheinlichkeit, -6% je +1%) ist weiterhin nur Kandidat der Hypothesen-Runde NACH Paper C, kein Score-Effekt ohne OoS-Beleg. Zwei offene Registrierungs-Caveats explizit vermerkt: (1) Werte >100% roh einfrieren statt deckeln, (2) die aktuelle Farb-Semantik (hoch=grün) kollidiert mit der Dämpfer-These und wurde bewusst noch nicht geändert, erst nach der Hypothesen-Runde zu entscheiden.",
+      "description": "Aus SESSION_HANDOVER.md §6g (Datum via git-log -S auf Sektionstitel geschätzt) -- NICHT zu verwechseln mit dem bereits erledigten Anzeige-Key-Fix (#510-#512, 07.08.2026, heldPercentInstitutions-Coverage 30/30, das IST erledigt). TITEL KORRIGIERT (Diagnose 06.10.2026): das Sammelfeld selbst (`inst_ownership_history.json`, forward-only, S10_OBSERVED-additiv) ist seit 10.08.2026 live (`config.py` `INST_OWNERSHIP_HISTORY_ENABLED`/`_FILE`, `generate_report.py:3643-3731`) -- beide ursprünglich offenen Registrierungs-Caveats sind darin bereits wortgleich umgesetzt: (1) Werte >100% roh einfrieren statt deckeln, (2) none bleibt JSON-null statt 0. Was WEITERHIN offen ist: die Svoboda-Hypothese (hohe institutionelle Beteiligung dämpft Squeeze-Wahrscheinlichkeit, -6% je +1%) ist nur Kandidat der Hypothesen-Runde NACH Paper C, kein Score-Effekt ohne OoS-Beleg, UND die aktuelle Farb-Semantik (hoch=grün) kollidiert weiterhin mit der Dämpfer-These und wurde bewusst noch nicht geändert, erst nach der Hypothesen-Runde zu entscheiden.",
       "status": "beobachtet",
-      "status_date": "2026-09-27"
+      "status_date": "2026-10-06"
     },
     {
       "id": "si-position-history-timestamp-format-silent-fail-risk",
@@ -102,9 +102,9 @@
       "id": "s6k-stand-zeile-zwei-zeiten",
       "title": "Stand-Zeile zeigt nur Marktdaten-Zeit, nicht auch KI-Tick-Zeit (Verwirrungs-Risiko)",
       "opened": "2026-07-15",
-      "description": "Aus SESSION_HANDOVER.md §6k (Datum via git-log -S auf Sektionstitel geschätzt, Kosmetik/UX): die Header-Zeile zeigt nur die Marktdaten-Zeit ('Stand: HH:MM'). Weil die KI-Zeile stündlich vorläuft, wirkt die Seite morgens scheinbar 'eingefroren', obwohl das Zwei-Run-Architektur-Design genau so beabsichtigt ist. Kandidat: Zeile zweiteilig rendern ('Marktdaten 10:36 · KI 19:39'). Rein Anzeige, kein Datenpfad -- bisher nicht umgesetzt.",
-      "status": "offen",
-      "status_date": "2026-09-27"
+      "description": "Aus SESSION_HANDOVER.md §6k (Datum via git-log -S auf Sektionstitel geschätzt, Kosmetik/UX): die Header-Zeile zeigt nur die Marktdaten-Zeit ('Stand: HH:MM'). Weil die KI-Zeile stündlich vorläuft, wirkt die Seite morgens scheinbar 'eingefroren', obwohl das Zwei-Run-Architektur-Design genau so beabsichtigt ist. Kandidat: Zeile zweiteilig rendern ('Marktdaten 10:36 · KI 19:39'). Rein Anzeige, kein Datenpfad -- bisher nicht umgesetzt. ERLEDIGT (Diagnose 06.10.2026, bestätigt per Code-Lesen): PR #465 (`d4b80983`, 21.07.2026, 'Karten-Klarheit -- Beschriftungs-Präzision') hat genau das umgesetzt -- die Header-Zeile rendert seither zweiteilig ('Marktdaten HH:MM · KI HH:MM') via client-seitigem `_renderKiTime()` aus `_AGENT_SIGNALS.updated`. Nur nie hier geschlossen worden.",
+      "status": "erledigt",
+      "status_date": "2026-10-06"
     },
     {
       "id": "s6l-cockpit-stage3-cleanup",
