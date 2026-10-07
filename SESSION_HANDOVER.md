@@ -1,4 +1,4 @@
-# SESSION_HANDOVER.md — Stand 06.10.2026 (Woche 15.08.–06.10.: NaN-Härtungskette + Push-Gating unvalidierter Trading-Signale + H5/Netto/SPY-Vorabregistrierungs-Ausbau + Open-Items-Tracker + Health-Check-Wochendigest + MFE/MAE-Bestandsaufnahme + §4-Diskrepanz geklärt + Finviz-v111-Parser-Fix + Handover-Staleness-CI-Check + hist_5d-Diagnose-Kette (Gap-Log + Verschiebe-Fix, S10-crit seit 03.10. abgeklungen) + NYSE-empty-Detail-Logging)
+# SESSION_HANDOVER.md — Stand 07.10.2026 (Woche 15.08.–07.10.: NaN-Härtungskette + Push-Gating unvalidierter Trading-Signale + H5/Netto/SPY-Vorabregistrierungs-Ausbau + Open-Items-Tracker + Health-Check-Wochendigest + MFE/MAE-Bestandsaufnahme + §4-Diskrepanz geklärt + Finviz-v111-Parser-Fix + Handover-Staleness-CI-Check + hist_5d-Diagnose-Kette (Gap-Log + Verschiebe-Fix, S10-crit seit 03.10. abgeklungen) + NYSE-empty-Detail-Logging + Open-Items-Oktober-Rundgang + US-Feiertage algorithmisch + SI-Timestamp-Logging)
 
 **Zweck:** vollständige Übergabe an eine **neue Code-Session ohne Kontext der
 alten**. Dieses Dokument + `CLAUDE.md` müssen zusammen ausreichen, um am
@@ -241,6 +241,81 @@ main hinterher — höchste gemergte PR #573, höchste hier erwähnte PR
   fälschlich „Status: OFFEN", obwohl der Fix bereits 4 Tage später
   (PR #462, 19.07.) gelandet war; `open_items.json`-Eintrag
   `s6j-apple-touch-icon-missing` auf `erledigt` gesetzt.
+
+---
+
+### 07.10.2026 — Open-Items-Oktober-Rundgang + US-Feiertage algorithmisch + SI-Timestamp-Logging (4 PRs)
+
+*(Nachtrag per Staleness-Grep 07.10.2026: Block 1 hinkte main hinterher —
+höchste gemergte PR #578, höchste hier erwähnte PR #573. Höchste gemergte
+PR per `gh pr list --state merged` ermittelt (GitHub-API), NICHT per
+Merge-Commit-Titel-Grep `"Merge pull request #N"` — dieses Pattern hätte
+#577 übersehen, weil dessen Merge-Commit einen custom `commit_title`
+("feat(calendar): ... (#577)") statt der GitHub-Standardformulierung
+trägt. Alle vier PR-Titel gegen die tatsächliche API-Antwort abgeglichen
+— keine Abweichung zur Kurzbeschreibung des Auftrags.)*
+
+- **Doku-/Backlog-Pflege — Oktober-Rundgang:** `#575` (`c1eb0a4a`, Merge
+  `142d1c30`, 07.10.) **4 `open_items.json`-Einträge nach Oktober-
+  Diagnose aktualisiert** — `s6k-stand-zeile-zwei-zeiten` auf `erledigt`
+  (Beleg PR #465), `s6g-institutional-ownership-sammelfeld-open` bleibt
+  offen/beobachtet mit korrigiertem Titel (Sammelfeld live seit
+  10.08.2026), `s6c-news-fda-lookahead-source-unclear` bleibt offen mit
+  geklärter Quelle (SEC-EDGAR-8-K, Commit `513fa5f2`),
+  `pr532-or0-sibling-bugs` bleibt offen mit aktualisierter Beschreibung
+  (FINRA-Teilaspekt durch PR #557 gefixt, `_detect_recent_squeeze`-Lücke
+  bleibt) · `#576` (`df762779`, Merge `34e6e1d6`, 07.10.) **Oktober-
+  Entscheidungsrunde** — vier Punkte von Easy bewusst verworfen (Status
+  `erledigt` mit Datum + Kurzgrund, da das Schema keinen eigenen
+  „verworfen"-Status kennt): `s6f-v1-v2-render-path-not-unified`,
+  `s6l-cockpit-stage3-cleanup`, `s6m-trading-days-elapsed-holiday-blind`,
+  `h5-outlier-ticker-cause-unverified`; `ttgt-si-velocity-pub-anomaly`
+  bleibt `beobachtet` mit Entscheidung „kein Backfill, Bestandsdaten
+  nicht anfassen"; `nyse-referer-probe-status` in
+  `nyse-regsho-empty-streak` eingeklappt (Referer-A/B-Hypothese vom
+  13.09. zeigte keinen Unterschied, anderes Fehlerbild als der aktuelle
+  HTTP-200-leer-Befund).
+
+- **US-Börsenfeiertage vollständig algorithmisch (s6b):** `#577`
+  (`16d2a7d0` + Follow-up `7525f892`, Merge `bf0f8306`, 07.10.) löst die
+  Wartungs-Bombe `s6b-us-holidays-hardcoded-until-2027` — die 5
+  beweglichen Feiertage (MLK Day, Presidents Day, Memorial Day, Labor
+  Day, Thanksgiving), die bisher nur für 2025–2027 hartcodiert waren und
+  2028 ausgelaufen wären, werden jetzt wie Good Friday (PR #407) über
+  Nth-Weekday-of-Month-/Last-Weekday-of-Month-Formeln berechnet.
+  Zusammen mit den Fixdatum-Feiertagen (Neujahr inkl. Samstag-Sonderregel,
+  Juneteenth, Independence Day, Christmas) sind jetzt alle 10
+  NYSE-Feiertage/Jahr in `config.py` UND im JS-Spiegel
+  (`generate_report.py` `generate_html_v1`) algorithmisch, Range
+  2020–2050. Exakt gegen die vormals hartcodierte 2025–2027-Liste
+  verifiziert (Mengen-Diff leer) + Python↔JS-Vollparität via echter
+  Node-Ausführung bewiesen (310 Einträge, 0 Diff). Neuer Test
+  `scripts/mock_test_us_holidays_algorithmic.py` im CI-Allowlist
+  registriert; `mock_test_good_friday.py` an die neue Architektur
+  angepasst (nur stale Implementierungsdetail-Assertions, Verhalten
+  unverändert). `open_items.json` `s6b-us-holidays-hardcoded-until-2027`
+  auf `erledigt` gesetzt.
+
+- **SI-Positions-Timestamp-Silent-Fail jetzt sichtbar:** `#578`
+  (`1ee96dcb` + Follow-up `4939357a`, Merge `79339d29`, 07.10.) löst
+  `si-position-history-timestamp-format-silent-fail-risk` —
+  `_si_settlement_from_ts` schluckte einen Timestamp-Format-Fehler (z. B.
+  falls yfinance `dateShortInterest` künftig als Timestamp statt
+  Epoch-Int liefert) bisher ohne jede Log-Zeile. Genau eine
+  `log.warning` im Fehlerpfad ergänzt (Funktionsname, Rohwert ≤40
+  Zeichen, Ausnahmetyp); Rückgabewert/Kontrollfluss bleiben
+  byte-identisch (weiterhin `None`, weiterhin fail-soft). Modul-Zähler
+  `_SI_SETTLEMENT_PARSE_FAIL_COUNT` loggt nur beim ersten Vorkommen pro
+  Lauf (Log-Flut-Schutz, da `_persist_si_position_history` über den
+  vollen enriched US-Pool läuft). Direkt benachbarter Silent-Pattern in
+  `_si_pub_date` bewusst nicht mitgefixt, im PR-Text gemeldet; squeeze-
+  guardian fand zusätzlich zwei weitere, ebenfalls out-of-scope
+  Kandidaten (`_parse_de_date`, Pruning-`except` in
+  `_save_si_position_history`) — siehe neuer Open-Item-Eintrag
+  `timestamp-silent-fail-siblings-unlogged` in `open_items.json`.
+  `scripts/lint_nan_bypass_fields.py`-Baseline um 40 Einträge um +27
+  Zeilen nachgeführt (reine Zeilen-Korrektur, mechanisch per
+  AST-Rohfund-Vergleich main-vs-Branch verifiziert).
 
 ---
 
