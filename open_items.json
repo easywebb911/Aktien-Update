@@ -30,9 +30,9 @@
       "id": "ttgt-si-velocity-pub-anomaly",
       "title": "TTGT-Bestandsrecord mit si_velocity_pub=-1.0 (stille-0-Bypass-Signatur)",
       "opened": "2026-09-21",
-      "description": "Aus PR #557 (Diagnose 21.09.2026): Read-only-Check der damaligen backtest_history.json (1636 Einträge) fand 0 Records mit score==0/entry_price==0 nach dem Schreibpfad-Fix, aber 1 Record (Ticker TTGT, Entry-Datum 20.07.2026) mit si_velocity_pub==-1.0 -- laut PR-Text 'exakt die mathematische Signatur eines si_new=stille-0-Bypasses'. Ausdrücklich nur gemeldet, NICHT korrigiert.",
-      "status": "offen",
-      "status_date": "2026-09-27"
+      "description": "Aus PR #557 (Diagnose 21.09.2026): Read-only-Check der damaligen backtest_history.json (1636 Einträge) fand 0 Records mit score==0/entry_price==0 nach dem Schreibpfad-Fix, aber 1 Record (Ticker TTGT, Entry-Datum 20.07.2026) mit si_velocity_pub==-1.0 -- laut PR-Text 'exakt die mathematische Signatur eines si_new=stille-0-Bypasses'. Ausdrücklich nur gemeldet, NICHT korrigiert. EASY-ENTSCHEID 07.10.2026: so lassen, KEIN Backfill (Prinzip: Bestandsdaten nicht anfassen). Bekannte Ausnahme -- bei künftigen Auswertungen, die si_velocity_pub nutzen, diesen einen TTGT-Record explizit als bekannte Kontamination führen (Winsorizing oder expliziter Ausschluss, dokumentiert in der jeweiligen Auswertung, nicht stillschweigend).",
+      "status": "beobachtet",
+      "status_date": "2026-10-07"
     },
     {
       "id": "s6b-us-holidays-hardcoded-until-2027",
@@ -62,9 +62,9 @@
       "id": "s6f-v1-v2-render-path-not-unified",
       "title": "v1/v2-Render-Pfad noch nicht auf reines Jinja vereinheitlicht",
       "opened": "2026-07-10",
-      "description": "Aus SESSION_HANDOVER.md §6f (Datum via git-log -S auf Sektionstitel geschätzt, niedrige Priorität): generate_html_v2() delegiert weiterhin an v1 (f-String). Eine v1-Löschung erfordert templates/page.jinja + einen _wl_full_card_html-Umbau. Laut Handover 'kein Trading-Wert' -- rein architektonisches Aufräum-Ziel, nicht angegangen.",
-      "status": "offen",
-      "status_date": "2026-09-27"
+      "description": "Aus SESSION_HANDOVER.md §6f (Datum via git-log -S auf Sektionstitel geschätzt, niedrige Priorität): generate_html_v2() delegiert weiterhin an v1 (f-String). Eine v1-Löschung erfordert templates/page.jinja + einen _wl_full_card_html-Umbau. Laut Handover 'kein Trading-Wert' -- rein architektonisches Aufräum-Ziel, nicht angegangen. EASY-ENTSCHEID 07.10.2026: bewusst verworfen, NICHT gebaut -- großer Umbau (3-Schritt-Migration), kein Trading-Wert. Status 'erledigt' hier im Sinne von 'abgeschlossen durch bewusste Nicht-Umsetzung' verwendet -- das Schema kennt keinen eigenen 'verworfen'-Status (nur offen/beobachtet/erledigt).",
+      "status": "erledigt",
+      "status_date": "2026-10-07"
     },
     {
       "id": "s6g-institutional-ownership-sammelfeld-open",
@@ -110,17 +110,17 @@
       "id": "s6l-cockpit-stage3-cleanup",
       "title": "Karten-Cockpit-Redesign Stage 3: obsolete .sb-Reste im Karten-Bereich nicht bereinigt",
       "opened": "2026-07-17",
-      "description": "Aus SESSION_HANDOVER.md §6l (Datum via git-log -S auf Sektionstitel geschätzt): Backlog-Anker für den Stage-3-Cleanup des Karten-Cockpit-Redesigns (.sb-row/.sb-num sind bewusster Rollback-Fallback für den Flag-OFF-Pfad). Explizit vermerkt: 'OFFEN / NICHT getract: ob die Karten-.sb-Vorkommen tatsächlich toter Code sind, ist nicht verifiziert -- das ist Teil der Stage-3-Diagnose, keine hier behauptete Tatsache.' Keine Priorität, kein Termin, kein Beschluss, das zu bauen.",
-      "status": "offen",
-      "status_date": "2026-09-27"
+      "description": "Aus SESSION_HANDOVER.md §6l (Datum via git-log -S auf Sektionstitel geschätzt): Backlog-Anker für den Stage-3-Cleanup des Karten-Cockpit-Redesigns (.sb-row/.sb-num sind bewusster Rollback-Fallback für den Flag-OFF-Pfad). Explizit vermerkt: 'OFFEN / NICHT getract: ob die Karten-.sb-Vorkommen tatsächlich toter Code sind, ist nicht verifiziert -- das ist Teil der Stage-3-Diagnose, keine hier behauptete Tatsache.' Keine Priorität, kein Termin, kein Beschluss, das zu bauen. EASY-ENTSCHEID 07.10.2026: bewusst verworfen, NICHT gebaut -- kein Termin, nie als toter Code verifiziert. Status 'erledigt' hier im Sinne von 'abgeschlossen durch bewusste Nicht-Umsetzung' verwendet -- das Schema kennt keinen eigenen 'verworfen'-Status (nur offen/beobachtet/erledigt).",
+      "status": "erledigt",
+      "status_date": "2026-10-07"
     },
     {
       "id": "s6m-trading-days-elapsed-holiday-blind",
       "title": "_trading_days_elapsed feiertags-blind -> return_10d füllt 1-3 Tage zu früh",
       "opened": "2026-08-04",
-      "description": "Aus SESSION_HANDOVER.md §6m (Datum explizit im Text: 'Backlog-Befund 04.08.2026'): _trading_days_elapsed (ki_agent.py:367) zählt Handelstage seit Entry als reine Mo-Fr-Zählung ohne US-Feiertags-Abzug -- betrifft das Backtest-Panel und alle return_10d-basierten Auswertungen. Vor einem Fix zu prüfen: ob config.US_MARKET_HOLIDAYS (heute nur bis 2027 hartkodiert, siehe §6b) den Zähl-Zeitraum abdeckt. Laut Handover 'kein Trading-Wert, Genauigkeits-Hygiene'.",
-      "status": "offen",
-      "status_date": "2026-09-27"
+      "description": "Aus SESSION_HANDOVER.md §6m (Datum explizit im Text: 'Backlog-Befund 04.08.2026'): _trading_days_elapsed (ki_agent.py:367) zählt Handelstage seit Entry als reine Mo-Fr-Zählung ohne US-Feiertags-Abzug -- betrifft das Backtest-Panel und alle return_10d-basierten Auswertungen. Vor einem Fix zu prüfen: ob config.US_MARKET_HOLIDAYS (heute nur bis 2027 hartkodiert, siehe §6b) den Zähl-Zeitraum abdeckt. Laut Handover 'kein Trading-Wert, Genauigkeits-Hygiene'. EASY-ENTSCHEID 07.10.2026: bewusst verworfen, NICHT gebaut -- bewusster, im Code-Docstring selbst dokumentierter Kompromiss (_trading_days_elapsed: 'Feiertage werden vereinfacht ignoriert ... ist OK'). Status 'erledigt' hier im Sinne von 'abgeschlossen durch bewusste Nicht-Umsetzung' verwendet -- das Schema kennt keinen eigenen 'verworfen'-Status (nur offen/beobachtet/erledigt).",
+      "status": "erledigt",
+      "status_date": "2026-10-07"
     },
     {
       "id": "sr-finra-2026-012-decision-pending",
@@ -158,25 +158,25 @@
       "id": "h5-outlier-ticker-cause-unverified",
       "title": "H5-Diagnose-Ausreißer (+18.064,8% Δ bei einem Ticker): Datenfehler oder echter Meme-Spike nicht verifiziert",
       "opened": "2026-09-12",
-      "description": "Aus SESSION_HANDOVER.md, H5-Vorabregistrierung (Ausreißer-Behandlung, Datum via git-log -S geschätzt): in der Diagnose wurde ein Extremwert (+18.064,8% Delta bei einem einzelnen Ticker) beobachtet, dessen Ursache nicht verifiziert wurde (Datenfehler vs. echter Meme-Spike). Die H5-Methodik behandelt das bereits robust (Vorzeichen-basierte primäre Zellen-Zuordnung + Winsorizing sekundär), sodass der Ausreißer die Auswertung nicht verzerren kann -- die reine Sachfrage 'was war das für ein Ticker/Ereignis' bleibt aber unbeantwortet. Niedrige Priorität, reine Neugier-Frage ohne Methodik-Auswirkung.",
-      "status": "beobachtet",
-      "status_date": "2026-09-27"
+      "description": "Aus SESSION_HANDOVER.md, H5-Vorabregistrierung (Ausreißer-Behandlung, Datum via git-log -S geschätzt): in der Diagnose wurde ein Extremwert (+18.064,8% Delta bei einem einzelnen Ticker) beobachtet, dessen Ursache nicht verifiziert wurde (Datenfehler vs. echter Meme-Spike). Die H5-Methodik behandelt das bereits robust (Vorzeichen-basierte primäre Zellen-Zuordnung + Winsorizing sekundär), sodass der Ausreißer die Auswertung nicht verzerren kann -- die reine Sachfrage 'was war das für ein Ticker/Ereignis' bleibt aber unbeantwortet. Niedrige Priorität, reine Neugier-Frage ohne Methodik-Auswirkung. EASY-ENTSCHEID 07.10.2026: bewusst verworfen, NICHT weiter verfolgt -- Neugier-Frage ohne Methodik-Effekt. Status 'erledigt' hier im Sinne von 'abgeschlossen durch bewusste Nicht-Verfolgung' verwendet -- das Schema kennt keinen eigenen 'verworfen'-Status (nur offen/beobachtet/erledigt).",
+      "status": "erledigt",
+      "status_date": "2026-10-07"
     },
     {
       "id": "nyse-regsho-empty-streak",
       "title": "NYSE Reg-SHO empty-Serie seit Handelstag 28.09.2026",
       "opened": "2026-10-06",
-      "description": "Diagnose 06.10.2026 (reg_sho_history.json/_state.json-Historie, git-Commits zitiert): letzter 'ok:23'-Postclose-Lauf war für Handelstag 25.09.2026; ab Handelstag 28.09.2026 liefert _resolve_nyse() durchgehend nyse_result='empty' (sechs Postclose-Läufe in Folge bis mind. 05.10.2026, HTTP 200 + nicht-leerer Body, aber 0 Symbole nach dem isalpha()-Filter). Kein Code-/Config-Change an reg_sho_history.py/config.py im Übergangsfenster (25.09.-28.09.) gefunden -- Ursache vermutlich extern (NYSE-Format-Änderung oder verschärfte Bot-/Netzwerk-Abwehr auf dem GitHub-Actions-Runner), nicht bestätigt. Live-Zugriff aus der Diagnose-Sandbox strukturell nicht möglich (Sandbox-Proxy blockt CONNECT zu www.nyse.com bereits auf Policy-Ebene, kein Signal über NYSE selbst). Die Detail-Lücke (bislang kein persistiertes Byte-/Zeilen-/Preview-Detail für den empty-Fall, nur für fetch_failed seit PR #542) wird mit diesem PR geschlossen (_nyse_empty_detail() + state['nyse_empty_detail']) -- ab dem nächsten empty-Vorkommnis ist aus dem State ablesbar, was der Endpunkt tatsächlich lieferte. Die externe Ursache selbst bleibt bis zum nächsten Vorkommnis offen.",
+      "description": "Diagnose 06.10.2026 (reg_sho_history.json/_state.json-Historie, git-Commits zitiert): letzter 'ok:23'-Postclose-Lauf war für Handelstag 25.09.2026; ab Handelstag 28.09.2026 liefert _resolve_nyse() durchgehend nyse_result='empty' (sechs Postclose-Läufe in Folge bis mind. 05.10.2026, HTTP 200 + nicht-leerer Body, aber 0 Symbole nach dem isalpha()-Filter). Kein Code-/Config-Change an reg_sho_history.py/config.py im Übergangsfenster (25.09.-28.09.) gefunden -- Ursache vermutlich extern (NYSE-Format-Änderung oder verschärfte Bot-/Netzwerk-Abwehr auf dem GitHub-Actions-Runner), nicht bestätigt. Live-Zugriff aus der Diagnose-Sandbox strukturell nicht möglich (Sandbox-Proxy blockt CONNECT zu www.nyse.com bereits auf Policy-Ebene, kein Signal über NYSE selbst). Die Detail-Lücke (bislang kein persistiertes Byte-/Zeilen-/Preview-Detail für den empty-Fall, nur für fetch_failed seit PR #542) wird mit diesem PR geschlossen (_nyse_empty_detail() + state['nyse_empty_detail']) -- ab dem nächsten empty-Vorkommnis ist aus dem State ablesbar, was der Endpunkt tatsächlich lieferte. Die externe Ursache selbst bleibt bis zum nächsten Vorkommnis offen. NACHTRAG 07.10.2026 (Easy-Entscheid, nyse-referer-probe-status hier eingeklappt): die Referer-Header-Hypothese (A/B-Probe 13.09.2026) zeigte damals KEINEN Unterschied (beide Varianten HTTP 403) -- das war aber ein ANDERES Fehlerbild (403-Block) als das hier beschriebene (HTTP 200 + leere Liste). Kein erneuter Dispatch der Referer-Probe vorgesehen, da sie eine andere Fehlerklasse adressiert.",
       "status": "offen",
       "status_date": "2026-10-06"
     },
     {
       "id": "nyse-referer-probe-status",
-      "title": "NYSE-Referer-Probe-Status (A/B-Test 13.09.2026)",
+      "title": "NYSE-Referer-Probe-Status (A/B-Test 13.09.2026) -- eingeklappt in nyse-regsho-empty-streak",
       "opened": "2026-09-13",
-      "description": "Nachträglich erfasst (06.10.2026) -- dieser Punkt ist einer der beiden in der Modul-Note oben explizit genannten, vor Einführung von open_items.json (22.09.2026) aus der Session-Handover-Prosa verlorenen Beispiele; wird hier erstmals strukturiert nachgetragen. PR #550 (d4d138a7/8e6db089, 13.09.2026) baute einen dispatch-only Diagnose-Workflow (diagnose_nyse_referer_header_probe.yml), um die Referer-Header-Hypothese aus der August-Diagnose gegen die damaligen 5 NYSE-Ausfälle seit #538 zu testen. Einmaliger Lauf (Run 34760756906, 13.09.2026 13:46 UTC, per workflow_dispatch): BEIDE Varianten (ohne/mit Referer-Header) lieferten HTTP 403 -- Zitat aus dem Job-Log-VERDIKT: 'KEIN UNTERSCHIED in diesem Lauf -- beide Varianten liefern 'fetch_failed'. Der Referer ALLEIN erklärt (zumindest in diesem einzelnen Lauf) NICHT den Unterschied zur erfolgreichen August-Probe.' Die Referer-Hypothese ist damit NICHT bestätigt, aber auch nicht endgültig widerlegt (nur 1 Lauf bei einem laut Workflow selbst als intermittierend eingeschätzten Fehlerbild). Workflow bleibt im Repo für künftige manuelle Wiederholungen verfügbar, seit 13.09.2026 nicht erneut gelaufen.",
-      "status": "beobachtet",
-      "status_date": "2026-10-06"
+      "description": "Nachträglich erfasst (06.10.2026) -- dieser Punkt ist einer der beiden in der Modul-Note oben explizit genannten, vor Einführung von open_items.json (22.09.2026) aus der Session-Handover-Prosa verlorenen Beispiele; wird hier erstmals strukturiert nachgetragen. PR #550 (d4d138a7/8e6db089, 13.09.2026) baute einen dispatch-only Diagnose-Workflow (diagnose_nyse_referer_header_probe.yml), um die Referer-Header-Hypothese aus der August-Diagnose gegen die damaligen 5 NYSE-Ausfälle seit #538 zu testen. Einmaliger Lauf (Run 34760756906, 13.09.2026 13:46 UTC, per workflow_dispatch): BEIDE Varianten (ohne/mit Referer-Header) lieferten HTTP 403 -- Zitat aus dem Job-Log-VERDIKT: 'KEIN UNTERSCHIED in diesem Lauf -- beide Varianten liefern 'fetch_failed'. Der Referer ALLEIN erklärt (zumindest in diesem einzelnen Lauf) NICHT den Unterschied zur erfolgreichen August-Probe.' Die Referer-Hypothese ist damit NICHT bestätigt, aber auch nicht endgültig widerlegt (nur 1 Lauf bei einem laut Workflow selbst als intermittierend eingeschätzten Fehlerbild). Workflow bleibt im Repo für künftige manuelle Wiederholungen verfügbar, seit 13.09.2026 nicht erneut gelaufen. EASY-ENTSCHEID 07.10.2026: in nyse-regsho-empty-streak eingeklappt -- die Probe galt dem alten 403-Fehlerbild; das aktuelle Problem (seit Handelstag 28.09.) ist eine ANDERE Fehlerklasse (HTTP 200 + leere Liste, kein 403). Kein erneuter Dispatch vorgesehen. Eintrag bleibt bestehen (ID nicht löschen), Status 'erledigt' hier im Sinne von 'inhaltlich abgeschlossen/eingeklappt' verwendet -- das Schema kennt keinen eigenen Status dafür.",
+      "status": "erledigt",
+      "status_date": "2026-10-07"
     }
   ]
 }

@@ -1757,10 +1757,10 @@ Entry = Look-Ahead). **Beweiswert-Grenze (§4/§8z1):** die 465 Records sind
 **Status: OFFEN.** #403 hat `>=1.4.1,<1.5` gecappt. Sobald 1.5.x als stabil
 belegt: Cap schrittweise lockern. Kein Termin — wartet auf externes Signal.
 
-### 6f. v1/v2-Render-Pfad → reines Jinja
-**Status: OFFEN (niedrig).** `generate_html_v2()` delegiert an v1; v1-Löschung
-erfordert `templates/page.jinja` + `_wl_full_card_html`-Umbau (§7g). Kein
-Trading-Wert.
+### 6f. v1/v2-Render-Pfad → reines Jinja — bewusst VERWORFEN (Easy-Entscheid 07.10.2026)
+**Status: VERWORFEN.** `generate_html_v2()` delegiert an v1; v1-Löschung
+erfordert `templates/page.jinja` + `_wl_full_card_html`-Umbau (§7g). Großer
+Umbau, kein Trading-Wert — Easy-Entscheid 07.10.2026: nicht angehen.
 
 ### 6g. Institutional-Ownership-Faktor (Paper-Dämpfer) — Anzeige-Key-Fix + Sammelfeld DURCH, Hypothesen-Runde offen
 **Status: Anzeige-Key-Fix ERLEDIGT (#510–#512, 07.08.); Sammelfeld LIVE seit
@@ -1908,8 +1908,9 @@ Beschriftungs-Präzision") rendert die Zeile seither **zweiteilig** —
 verdächtig. Reine Anzeige, kein Datenpfad. Nur hier nie als erledigt
 nachgetragen worden (Diagnose 06.10.2026).
 
-### 6l. Cockpit Stage 3 — obsolete `.sb-`-Reste im Karten-Bereich (Doku-Lücke geschlossen)
-**Status: OFFEN. Keine Priorität, kein Termin, KEIN Beschluss, das zu bauen.**
+### 6l. Cockpit Stage 3 — obsolete `.sb-`-Reste im Karten-Bereich — bewusst VERWORFEN (Easy-Entscheid 07.10.2026)
+**Status: VERWORFEN.** Kein Termin, nie als toter Code verifiziert — Easy-
+Entscheid 07.10.2026: nicht angehen.
 Backlog-Anker für den Stage-3-Cleanup des Karten-Cockpit-Redesigns. **Quelle des
 3-Stage-Plans bleibt `CLAUDE.md` (Sektion „Karten-Cockpit-Redesign", Stage-Tabelle,
 Stage 3 = „offen") — hier KEINE Kopie der Tabelle** (zwei Volltexte driften
@@ -1938,8 +1939,10 @@ spätere Commits verschieben):** `_score_block_inner_html` noch definiert
   sind, ist **nicht** verifiziert — das ist Teil der Stage-3-Diagnose, keine hier
   behauptete Tatsache.
 
-### 6m. `_trading_days_elapsed` feiertags-blind → `return_10d` füllt 1–3 Tage zu früh
-**Status: OFFEN. Kein Auftrag, kein Termin — Backlog-Befund (04.08.2026).**
+### 6m. `_trading_days_elapsed` feiertags-blind → `return_10d` füllt 1–3 Tage zu früh — bewusst VERWORFEN (Easy-Entscheid 07.10.2026)
+**Status: VERWORFEN.** Bewusster, im Code-Docstring selbst dokumentierter
+Kompromiss — Easy-Entscheid 07.10.2026: nicht angehen. Ursprünglich Backlog-
+Befund (04.08.2026).
 `_trading_days_elapsed` (`ki_agent.py:367`) zählt Handelstage seit Entry als
 **Mo–Fr strikt**, ohne US-Feiertage abzuziehen. Folge: bei einem Feiertag im
 Fenster meldet die Funktion 10 „Handelstage" schon nach 1–3 Kalendertagen zu
