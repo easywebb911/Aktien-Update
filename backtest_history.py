@@ -299,11 +299,21 @@ def _compute_entry_past_return_5d(
           - fehlendem/nicht-positivem ``close_5td_before`` (IPO wenige Tage
             vor Entry → keine 5-Bar-Historie verfügbar)
           - fehlendem ``close_at_entry`` (Delisting am Entry-Tag; sehr rar)
+          - nicht-endlichem ``close_at_entry``/``close_5td_before`` (NaN/Inf
+            aus der Quelle — Härtung analog PR #557/#578, siehe unten)
 
     **`None`-Semantik (keine 0.0-Overload wie bei max_gain):** ``None`` heißt
     hier IMMER „Datenlücke" (nicht „echter 0-Return"), weil eine echte
     Null-Bewegung numerisch ``0.0`` liefert (Zähler = Nenner). ``None`` ist
     also strikt „nicht ableitbar" — Auswertung filtert.
+
+    NaN-Härtung (08.10.2026, analog PR #557/#578): der Guard war vorher nur
+    ``den <= 0`` — ``nan <= 0`` ist ``False``, eine NaN in Zähler ODER
+    Nenner (beide kommen aus ungeschütztem ``float(df["Close"].iloc[...])``
+    in ``generate_report.py``, siehe dortiger offener Diagnose-Punkt) lief
+    bisher bis in ``round(nan, 2)`` = ``nan`` statt des dokumentierten
+    ``None``. ``_finite()`` prüft BEIDE Operanden vor der Division — für
+    endliche Werte ist das Verhalten byte-identisch zu vorher.
     """
     if close_at_entry is None or close_5td_before is None:
         return None
@@ -312,7 +322,7 @@ def _compute_entry_past_return_5d(
         den = float(close_5td_before)
     except (TypeError, ValueError):
         return None
-    if den <= 0:
+    if not _finite(num) or not _finite(den) or den <= 0:
         return None
     try:
         return round((num / den - 1.0) * 100.0, 2)

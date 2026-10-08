@@ -188,6 +188,64 @@ def _test_formula_and_guards():
         _compute_entry_past_return_5d(100.0, "nope") is None,
     )
 
+    print("── (D) NaN-Härtung (08.10.2026, analog PR #557/#578) ─────────")
+    _nan = float("nan")
+    _inf = float("inf")
+
+    _check(
+        "D1 NaN im Nenner → None (vorher: nan <= 0 ist False, Guard griff "
+        "nicht, round(nan,2)=nan statt None)",
+        _compute_entry_past_return_5d(100.0, _nan) is None,
+    )
+    _check(
+        "D2 NaN im Zähler → None",
+        _compute_entry_past_return_5d(_nan, 100.0) is None,
+    )
+    _check(
+        "D3 NaN in BEIDEN → None",
+        _compute_entry_past_return_5d(_nan, _nan) is None,
+    )
+    _check(
+        "D4 +Inf im Nenner → None (_finite() schließt Inf gleichermaßen aus)",
+        _compute_entry_past_return_5d(100.0, _inf) is None,
+    )
+    _check(
+        "D5 +Inf im Zähler → None",
+        _compute_entry_past_return_5d(_inf, 100.0) is None,
+    )
+    # Kontrollprobe: ohne die Härtung hätte D1 NICHT None ergeben, sondern
+    # ein numerisches NaN (float('nan') ist kein None) — direkter Nachweis,
+    # dass der Fix tatsächlich etwas bewirkt (kein Blindgänger-Test).
+    _check(
+        "D6 Kontrollprobe: alter Guard 'den <= 0' allein würde NaN "
+        "durchlassen (nan <= 0 ist False)",
+        not (_nan <= 0),
+    )
+
+    print("── (E) Byte-identisches Verhalten für endliche Werte (Regression) ──")
+    # Dieselben Fälle wie (A)-(C) nach dem Guard-Umbau erneut geprüft —
+    # beweist, dass die NaN-Härtung die bestehende Logik NICHT verändert.
+    _check(
+        "E1 (110/100) weiterhin +10.00 % nach dem Guard-Umbau",
+        _compute_entry_past_return_5d(110.0, 100.0) == 10.0,
+    )
+    _check(
+        "E2 (60/100) weiterhin −40.00 % nach dem Guard-Umbau",
+        _compute_entry_past_return_5d(60.0, 100.0) == -40.0,
+    )
+    _check(
+        "E3 Nenner == 0 weiterhin None nach dem Guard-Umbau",
+        _compute_entry_past_return_5d(100.0, 0.0) is None,
+    )
+    _check(
+        "E4 Nenner < 0 weiterhin None nach dem Guard-Umbau",
+        _compute_entry_past_return_5d(100.0, -5.0) is None,
+    )
+    _check(
+        "E5 None/None weiterhin None nach dem Guard-Umbau",
+        _compute_entry_past_return_5d(None, None) is None,
+    )
+
 
 def _test_look_ahead_isolation():
     """(E) — Look-Ahead-Isolation: Helper darf NIEMALS in Score/Filter/Push
