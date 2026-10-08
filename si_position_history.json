@@ -915,6 +915,12 @@
       "shares_short": 4566855,
       "short_pct_float": 16.29,
       "pub_date": "2026-09-10"
+    },
+    {
+      "settlement_date": "2026-09-15",
+      "shares_short": 4679885,
+      "short_pct_float": 16.73,
+      "pub_date": "2026-09-24"
     }
   ],
   "DNUT": [
@@ -7986,6 +7992,12 @@
       "shares_short": 9564910,
       "short_pct_float": 32.09,
       "pub_date": "2026-09-10"
+    },
+    {
+      "settlement_date": "2026-09-15",
+      "shares_short": 10455625,
+      "short_pct_float": 35.08,
+      "pub_date": "2026-09-24"
     }
   ],
   "PZZA": [
