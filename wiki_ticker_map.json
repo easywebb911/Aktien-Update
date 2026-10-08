@@ -1205,6 +1205,15 @@
     "substrate": "en",
     "reason": null
   },
+  "PRTA": {
+    "qid": null,
+    "title": null,
+    "resolved_at": "2026-10-08T01:03:42Z",
+    "issuer_verified": false,
+    "company_name_at_resolve": "Prothena Corporation plc",
+    "substrate": "none",
+    "reason": "no_p249"
+  },
   "QDEL": {
     "qid": "Q15917582",
     "title": "QuidelOrtho",
@@ -1555,6 +1564,15 @@
     "company_name_at_resolve": "Wendy's Company (The)",
     "substrate": "none",
     "reason": "sparql_fetch_failed"
+  },
+  "WETO": {
+    "qid": null,
+    "title": null,
+    "resolved_at": "2026-10-08T01:03:42Z",
+    "issuer_verified": false,
+    "company_name_at_resolve": "Wetour Robotics Limited",
+    "substrate": "none",
+    "reason": "no_p249"
   },
   "WOLF": {
     "qid": "Q5183828",

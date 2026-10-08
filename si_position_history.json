@@ -477,6 +477,12 @@
       "shares_short": 14838835,
       "short_pct_float": 30.23,
       "pub_date": "2026-09-10"
+    },
+    {
+      "settlement_date": "2026-09-15",
+      "shares_short": 15550745,
+      "short_pct_float": 31.68,
+      "pub_date": "2026-09-24"
     }
   ],
   "CADL": [
@@ -1125,6 +1131,12 @@
       "shares_short": 992575,
       "short_pct_float": 23.13,
       "pub_date": "2026-09-10"
+    },
+    {
+      "settlement_date": "2026-09-15",
+      "shares_short": 1020361,
+      "short_pct_float": 23.78,
+      "pub_date": "2026-09-24"
     }
   ],
   "BH-A": [
@@ -1419,6 +1431,12 @@
       "shares_short": 12069229,
       "short_pct_float": 25.05,
       "pub_date": "2026-09-10"
+    },
+    {
+      "settlement_date": "2026-09-15",
+      "shares_short": 12008645,
+      "short_pct_float": 24.92,
+      "pub_date": "2026-09-24"
     }
   ],
   "VSTM": [
@@ -1500,6 +1518,12 @@
       "shares_short": 18634735,
       "short_pct_float": 22.41,
       "pub_date": "2026-07-10"
+    },
+    {
+      "settlement_date": "2026-09-15",
+      "shares_short": 19265990,
+      "short_pct_float": 22.94,
+      "pub_date": "2026-09-24"
     }
   ],
   "FTK": [
@@ -3855,6 +3879,12 @@
       "shares_short": 40523684,
       "short_pct_float": 35.49,
       "pub_date": "2026-09-10"
+    },
+    {
+      "settlement_date": "2026-09-15",
+      "shares_short": 39871811,
+      "short_pct_float": 34.92,
+      "pub_date": "2026-09-24"
     }
   ],
   "CCCC": [
@@ -6465,6 +6495,12 @@
       "shares_short": 40788891,
       "short_pct_float": 27.08,
       "pub_date": "2026-09-10"
+    },
+    {
+      "settlement_date": "2026-09-15",
+      "shares_short": 41647512,
+      "short_pct_float": 27.65,
+      "pub_date": "2026-09-24"
     }
   ],
   "SOHU": [
@@ -7062,6 +7098,12 @@
       "shares_short": 4482523,
       "short_pct_float": 20.75,
       "pub_date": "2026-08-25"
+    },
+    {
+      "settlement_date": "2026-09-15",
+      "shares_short": 5541576,
+      "short_pct_float": 25.66,
+      "pub_date": "2026-09-24"
     }
   ],
   "EDIT": [
@@ -8709,6 +8751,21 @@
       "shares_short": 141996,
       "short_pct_float": 27.25,
       "pub_date": "2026-07-24"
+    }
+  ],
+  "SKIL": [
+    {
+      "settlement_date": "2026-08-14",
+      "shares_short": 478048,
+      "short_pct_float": null,
+      "pub_date": "2026-08-25",
+      "seeded": true
+    },
+    {
+      "settlement_date": "2026-09-15",
+      "shares_short": 700067,
+      "short_pct_float": 16.71,
+      "pub_date": "2026-09-24"
     }
   ]
 }
