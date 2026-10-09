@@ -4264,6 +4264,55 @@ Bei `date -u`-Verfügbarkeit im Sandbox-Bash kann Claude das selbst
 prüfen — aber bei Berlin-Zeit-Konvertierungen und „in N Stunden"-
 Schätzungen vorsichtig bleiben.
 
+### Block-1-Pflicht (Session-Handover ohne Rückstand, ab 09.10.2026)
+
+**Ziel:** Handover-Pflege darf Easy nie mehr belasten — der Rückstand
+zwischen `main` und `SESSION_HANDOVER.md` Block 1 („## 1) HEUTE
+IMPLEMENTIERT") soll strukturell gar nicht erst entstehen, statt nur
+per Session-Disziplin nachträglich aufgeräumt zu werden.
+
+**Regel a) — jeder PR trägt seinen eigenen Block-1-Eintrag mit.**
+Ablauf: PR als Entwurf anlegen → PR-Nummer aus der Antwort lesen →
+Block-1-Eintrag für genau diesen PR als zusätzlichen Commit auf
+demselben Branch ergänzen → erst danach Ready-Meldung/Merge. Der
+Eintrag nennt die eigene PR-Nummer, **keinen Merge-Hash** (der steht
+vor dem Merge noch nicht fest) — ein Branch-Commit-Hash genügt.
+
+**Regel b) — Ausnahme.** Ein PR, der ausschließlich den Block-1-Eintrag
+selbst ändert (reiner Nachtrag/Catch-up ohne sonstige Code-/Doku-
+Änderung), braucht keinen weiteren Eintrag für sich — sonst würde sich
+die Pflicht unendlich selbst fortschreiben. Ändert derselbe PR daneben
+noch etwas anderes (Code, `open_items.json`, eine weitere CLAUDE.md-
+Regel wie diese hier), gilt die Ausnahme NICHT — Regel a) greift normal.
+
+**Regel c) — ersetzt die bisherige Staleness-Regel.** Die frühere Praxis
+„Staleness-Grep vor Ready: Rückstand melden" (nie als Text in CLAUDE.md
+selbst verankert, nur als wiederkehrende Session-/Prompt-Konvention und
+in `SESSION_HANDOVER.md`-Chronik-Erwähnungen sichtbar) wird ersetzt
+durch: **Rückstand selbst beheben, im selben PR, ohne Rückfrage an
+Easy.** Melden ist nur dann nötig, wenn das Beheben echte
+Inhaltsentscheidungen braucht (z. B. unklar, wie ein fremder PR korrekt
+zusammengefasst wird) — reines Nachziehen bekannter, git-belegter PR-
+Inhalte ist keine Rückfrage wert.
+
+**Regel d) — gilt ausnahmslos**, auch für Auto-Merge-Doku-PRs (siehe
+Auto-Merge-Regel oben) — gerade dort entsteht der Rückstand am
+häufigsten, weil diese PRs oft schnell hintereinander laufen.
+
+**Konsistenz mit dem CI-Hinweis (PR #568, `pr-checks.yml` →
+`scripts/check_handover_staleness.py`):** geprüft und bestätigt, keine
+Änderung am Check nötig. `compute_staleness()` behandelt einen
+negativen Rückstand — ein PR, der die eigene, noch nicht gemergte
+Nummer in Block 1 bereits voraus-erwähnt — laut eigenem Docstring
+explizit als „kein Fund" (`"kann 0 oder negativ sein ... erwähnt sogar
+schon die eigene noch nicht gemergte PR-Nummer voraus -- beides ist
+kein Fund"`). Ein per Regel a) vorab eingetragener PR-eigener Eintrag
+zählt also weder im Entwurf-Zustand (höchste gemergte PR auf `main`
+liegt noch darunter → Rückstand negativ) noch nach dem Merge (höchste
+gemergte PR = die eigene Nummer, Rückstand 0) als Fund — der Check
+bleibt unverändert korrekt, keine Anpassung an `check_handover_
+staleness.py` nötig oder vorgenommen.
+
 ---
 
 ## Session-Handover-Regel
