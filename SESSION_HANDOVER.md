@@ -384,9 +384,9 @@ nicht mehr entstehen, nicht nur per Session-Disziplin.)*
   vermerkt.
 
 - **Block-1-Autonomie-Regel + dieser Nachtrag selbst:**
-  `__SELF_PR_PLACEHOLDER__` (Branch-Commit `__SELF_COMMIT_PLACEHOLDER__`,
-  09.10., kein Merge-Hash genannt — per neuer Regel a) steht der vor dem
-  Merge noch nicht fest) zieht die vier PRs oben nach (dieser Cluster)
+  `#583` (Branch-Commit `1b155499`, 09.10., kein Merge-Hash genannt — per
+  neuer Regel a) steht der vor dem Merge noch nicht fest) zieht die vier
+  PRs oben nach (dieser Cluster)
   UND trägt in `CLAUDE.md`
   (Abschnitt „Arbeits-Regeln für Claude Code") die neue „Block-1-
   Pflicht"-Regel ein: jeder künftige PR ergänzt seinen eigenen Block-1-
