@@ -5358,6 +5358,12 @@
       "shares_short": 9040893,
       "short_pct_float": 26.95,
       "pub_date": "2026-07-24"
+    },
+    {
+      "settlement_date": "2026-09-15",
+      "shares_short": 10372166,
+      "short_pct_float": 31.6,
+      "pub_date": "2026-09-24"
     }
   ],
   "VIA": [
@@ -6219,6 +6225,12 @@
       "shares_short": 18733587,
       "short_pct_float": 17.8,
       "pub_date": "2026-08-25"
+    },
+    {
+      "settlement_date": "2026-09-15",
+      "shares_short": 21250498,
+      "short_pct_float": 20.19,
+      "pub_date": "2026-09-24"
     }
   ],
   "MBC": [
@@ -7905,6 +7917,12 @@
       "shares_short": 3357947,
       "short_pct_float": 15.83,
       "pub_date": "2026-09-10"
+    },
+    {
+      "settlement_date": "2026-09-15",
+      "shares_short": 3493104,
+      "short_pct_float": 16.47,
+      "pub_date": "2026-09-24"
     }
   ],
   "BTCT": [
@@ -8777,6 +8795,21 @@
       "settlement_date": "2026-09-15",
       "shares_short": 700067,
       "short_pct_float": 16.71,
+      "pub_date": "2026-09-24"
+    }
+  ],
+  "PCRX": [
+    {
+      "settlement_date": "2026-08-14",
+      "shares_short": 7297363,
+      "short_pct_float": null,
+      "pub_date": "2026-08-25",
+      "seeded": true
+    },
+    {
+      "settlement_date": "2026-09-15",
+      "shares_short": 7561153,
+      "short_pct_float": 27.27,
       "pub_date": "2026-09-24"
     }
   ]

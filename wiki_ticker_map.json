@@ -1151,6 +1151,15 @@
     "substrate": "none",
     "reason": "no_p249"
   },
+  "PCRX": {
+    "qid": null,
+    "title": null,
+    "resolved_at": "2026-10-09T01:15:45Z",
+    "issuer_verified": false,
+    "company_name_at_resolve": "Pacira BioSciences, Inc.",
+    "substrate": "none",
+    "reason": "no_p249"
+  },
   "PCT": {
     "qid": null,
     "title": null,
