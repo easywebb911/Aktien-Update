@@ -1,5 +1,5 @@
 {
-  "last_run": "2026-10-09T11:05:32.386031+02:00",
+  "last_run": "2026-10-09T15:20:46.378566+02:00",
   "cooldowns": {
     "anomaly_score_jump_XRX": "2026-05-03T18:47:15.315486+02:00",
     "anomaly_uoa_extreme_TDOC": "2026-05-04T13:47:00.365949+02:00",
@@ -112,30 +112,6 @@
     "earnings_immediate_PLCE_04.09.2026": "2026-09-04T01:21:25.342435+02:00"
   },
   "push_history": [
-    {
-      "ts": "2026-09-29T17:52:35.151258+02:00",
-      "ticker": "PDYN",
-      "kind": "exit_p2",
-      "severity": "trigger",
-      "trigger": "trend_break",
-      "body": "🔻 Exit-Signale PDYN: trend_break crit",
-      "success": false,
-      "suppressed": false,
-      "suppress_reason": null,
-      "conviction_score": null
-    },
-    {
-      "ts": "2026-09-29T17:52:35.151292+02:00",
-      "ticker": "GRPN",
-      "kind": "exit_p2",
-      "severity": "warning",
-      "trigger": null,
-      "body": "⚠️ Exit-Warnung GRPN: pressure 60/100",
-      "success": false,
-      "suppressed": false,
-      "suppress_reason": null,
-      "conviction_score": null
-    },
     {
       "ts": "2026-09-29T22:47:42.834291+02:00",
       "ticker": "PDYN",
@@ -1311,20 +1287,44 @@
       "suppressed": false,
       "suppress_reason": null,
       "conviction_score": null
+    },
+    {
+      "ts": "2026-10-09T15:20:46.378663+02:00",
+      "ticker": "IONQ",
+      "kind": "exit_p2",
+      "severity": "trigger",
+      "trigger": "profit_lock,trend_break",
+      "body": "🔻 Exit-Signale IONQ: profit_lock, trend_break crit · Warnung pressure 65/100",
+      "success": false,
+      "suppressed": false,
+      "suppress_reason": null,
+      "conviction_score": null
+    },
+    {
+      "ts": "2026-10-09T15:20:46.378686+02:00",
+      "ticker": "PDYN",
+      "kind": "exit_p2",
+      "severity": "trigger",
+      "trigger": "trend_break",
+      "body": "🔻 Exit-Signale PDYN: trend_break crit",
+      "success": false,
+      "suppressed": false,
+      "suppress_reason": null,
+      "conviction_score": null
     }
   ],
   "prev_conviction_scores": {
-    "WOLF": 79.0,
-    "NTLA": 85.0,
-    "PCRX": 81.0,
-    "XPOF": 79.0,
-    "PCT": 77.0,
+    "WOLF": 62.0,
+    "NTLA": 68.0,
+    "PCRX": 65.0,
+    "XPOF": 65.0,
     "GRPN": 62.0,
-    "SHOE": 61.0,
-    "CABO": 54.0,
-    "SPRY": 74.0,
-    "METC": 59.0,
-    "PDYN": 43.0,
+    "PCT": 62.0,
+    "SHOE": 48.0,
+    "CABO": 40.0,
+    "SPRY": 60.0,
+    "METC": 46.0,
+    "PDYN": 42.0,
     "IONQ": 16.0,
     "AMC": 14.0
   },
@@ -1371,25 +1371,25 @@
       ],
       "last_push_date": "2026-08-28",
       "esc_alerted": false,
-      "updated": "2026-10-09T11:05:32.386113+02:00"
+      "updated": "2026-10-09T15:20:46.378671+02:00"
     },
     "PDYN": {
       "last_active": [],
       "last_push_date": "2026-08-28",
       "esc_alerted": false,
-      "updated": "2026-10-09T11:05:32.386144+02:00"
+      "updated": "2026-10-09T15:20:46.378691+02:00"
     },
     "WOLF": {
       "last_active": [],
       "last_push_date": "2026-09-01",
       "esc_alerted": false,
-      "updated": "2026-10-09T11:05:32.386155+02:00"
+      "updated": "2026-10-09T15:20:46.378698+02:00"
     },
     "GRPN": {
       "last_active": [],
       "last_push_date": null,
       "esc_alerted": false,
-      "updated": "2026-10-09T11:05:32.386163+02:00"
+      "updated": "2026-10-09T15:20:46.378704+02:00"
     }
   }
 }
