@@ -1,4 +1,4 @@
-# SESSION_HANDOVER.md — Stand 07.10.2026 (Woche 15.08.–07.10.: NaN-Härtungskette + Push-Gating unvalidierter Trading-Signale + H5/Netto/SPY-Vorabregistrierungs-Ausbau + Open-Items-Tracker + Health-Check-Wochendigest + MFE/MAE-Bestandsaufnahme + §4-Diskrepanz geklärt + Finviz-v111-Parser-Fix + Handover-Staleness-CI-Check + hist_5d-Diagnose-Kette (Gap-Log + Verschiebe-Fix, S10-crit seit 03.10. abgeklungen) + NYSE-empty-Detail-Logging + Open-Items-Oktober-Rundgang + US-Feiertage algorithmisch + SI-Timestamp-Logging)
+# SESSION_HANDOVER.md — Stand 09.10.2026 (Woche 15.08.–09.10.: NaN-Härtungskette + Push-Gating unvalidierter Trading-Signale + H5/Netto/SPY-Vorabregistrierungs-Ausbau + Open-Items-Tracker + Health-Check-Wochendigest + MFE/MAE-Bestandsaufnahme + §4-Diskrepanz geklärt + Finviz-v111-Parser-Fix + Handover-Staleness-CI-Check + hist_5d-Diagnose-Kette (Gap-Log + Verschiebe-Fix, S10-crit seit 03.10. abgeklungen) + NYSE-empty-Detail-Logging + Open-Items-Oktober-Rundgang + US-Feiertage algorithmisch + SI-Timestamp-Logging + NaN-Guard-Symmetrie entry_past_return_5d + Preis-Merge-Guard-/NYSE-empty-Diagnosen + Block-1-Autonomie-Regel)
 
 **Zweck:** vollständige Übergabe an eine **neue Code-Session ohne Kontext der
 alten**. Dieses Dokument + `CLAUDE.md` müssen zusammen ausreichen, um am
@@ -319,7 +319,94 @@ trägt. Alle vier PR-Titel gegen die tatsächliche API-Antwort abgeglichen
 
 ---
 
-### 15.08.2026 — NaN-Wurzel-Fix (Schreibpfad) + Bestandsrecord-Reparatur
+### 08.–09.10.2026 — NaN-Guard-Symmetrie (entry_past_return_5d) + Preis-Merge-Guard-/NYSE-empty-Diagnosen + Block-1-Autonomie-Regel (5 PRs)
+
+*(Nachtrag per Staleness-Grep 09.10.2026, GitHub-API `gh pr list --state
+merged` — NICHT Commit-Titel-Grep: höchste gemergte PR war zu Beginn
+dieses Nachtrags #582, höchste hier erwähnte PR #578 — Rückstand 4.
+Erwartete PRs #579–#582 bestätigt, keine Abweichung. Ab diesem Nachtrag
+gilt die neue Block-1-Pflicht-Regel (CLAUDE.md, Abschnitt „Arbeits-Regeln
+für Claude Code" → „Block-1-Pflicht"): jeder künftige PR trägt seinen
+eigenen Eintrag selbst mit — ein Rückstand wie dieser soll strukturell
+nicht mehr entstehen, nicht nur per Session-Disziplin.)*
+
+- **Block-1-Nachtrag #575–578:** `#579` (Branch-Commit `e3827dbf`, Merge
+  `df692aed`, 07.10.) zieht den vorherigen Cluster „07.10.2026" (PRs
+  #575–578, oben) nach und erfasst zusätzlich das neue Open-Item
+  `timestamp-silent-fail-siblings-unlogged` (offen) für drei weitere,
+  aus demselben Silent-Fail-Muster wie PR #578 bekannte, bewusst nicht
+  mitgefixte Stellen (`_si_pub_date`, `_parse_de_date`, Pruning-`except`
+  in `_save_si_position_history`).
+
+- **NaN-Guard-Symmetrie `entry_past_return_5d`:** `#580` (Branch-Commits
+  `95e71b80`/`8f47fa60`/`cd477d2c`, Merge `86065195`, 08.10.) härtet
+  `_compute_entry_past_return_5d` (`backtest_history.py`) gegen denselben
+  NaN-blinden `<=0`-Guard, der bei den PR-#557-Geschwistern
+  (`_compute_si_slope_5d`/`_compute_si_velocity_pub`) bereits gefixt
+  wurde — Zähler UND Nenner über `_finite()` geprüft, Verhalten für
+  endliche Werte byte-identisch (Test-Nachweis `mock_test_entry_past_
+  return_5d.py`, Sektion D+E). `open_items.json`: `pr532-or0-sibling-
+  bugs`-Beschreibung korrigiert (die `_detect_recent_squeeze`-Lücke
+  sitzt bei `prior_vol`/`win_vol`, NICHT bei `c0`/`c1` — ein künftiger
+  Fix dort ist Manual-Merge, da Score-Logik-Touch), zwei neue Items
+  `cur-close-close-5td-before-entry-unguarded-source` (offen,
+  diagnose-first) und `entry-score-is-not-none-vs-finite-dormant-gap`
+  (beobachtet). Guardian fand eine kosmetische Zeilenangabe-Ungenauigkeit
+  (`c0`/`c1`), vor Merge direkt korrigiert (`cd477d2c`).
+
+- **Diagnose-Nachtrag `cur_close`-Preis-Merge-Guard:** `#581`
+  (Branch-Commit `2da36648`, Merge `b50d7ef0`, 09.10.) trägt eine reine
+  read-only-Diagnose zu `cur-close-close-5td-before-entry-unguarded-
+  source` nach: ein zentraler Merge-Guard (`generate_report.py:18061-
+  18080`, PR #535/16.08.2026) verhindert strukturell, dass ein NaN aus
+  `cur_close`/`close_5td_before_entry` je das Feld `"price"` erreicht —
+  laut Grep der einzige Konsument von `get_yfinance_data`/
+  `get_yfinance_batch` im gesamten File. Historie (`git log`-belegt):
+  die Lücke wurde am 15.08.2026 explizit als „höchste Priorität"
+  benannt, aber nie an der Quelle selbst gefixt — Einstufung übersehen,
+  kein Beleg für Absicht. `pr532-or0-sibling-bugs` um einen Scheduling-
+  Hinweis ergänzt (Fix für `_detect_recent_squeeze` bewusst erst nach
+  n=250 im §4-Re-Test, explizit als neue Entscheidung markiert, nicht
+  als bestehende Protokollbindung des §4-Änderungs-Protokolls).
+
+- **Diagnose-Nachtrag NYSE-Reg-SHO-„empty"-Serie:** `#582`
+  (Branch-Commit `b2def166`, Merge `90a43cbf`, 09.10.) trägt eine
+  weitere read-only-Diagnose zu `nyse-regsho-empty-streak` nach (Status
+  `offen` → `beobachtet`): das seit PR #573 persistierte
+  `nyse_empty_detail` zeigt für drei Läufe (06./07./08.10.) ein
+  byte-identisches Platzhalter-Muster zum bereits am 21.08.2026
+  dokumentierten Fall — kein geänderter Aufbau, keine Sperrseite.
+  Semantik bleibt intakt (`restricted=null`/`reason=source_empty`, nie
+  `false`; Stichprobe Ticker WOLF); kein Konsument außer der Sammlung
+  selbst betroffen. Ursachen SR-FINRA-2026-012 und PR #546 ausgeschlossen
+  (sachlich bzw. zeitlich). Entscheidung: weiter beobachten, späterer
+  Entscheidungspunkt bei ca. 20 Handelstagen in Folge (ab ca. 26.10.2026)
+  vermerkt.
+
+- **Block-1-Autonomie-Regel + dieser Nachtrag selbst:**
+  `__SELF_PR_PLACEHOLDER__` (Branch-Commit `__SELF_COMMIT_PLACEHOLDER__`,
+  09.10., kein Merge-Hash genannt — per neuer Regel a) steht der vor dem
+  Merge noch nicht fest) zieht die vier PRs oben nach (dieser Cluster)
+  UND trägt in `CLAUDE.md`
+  (Abschnitt „Arbeits-Regeln für Claude Code") die neue „Block-1-
+  Pflicht"-Regel ein: jeder künftige PR ergänzt seinen eigenen Block-1-
+  Eintrag selbst, als zusätzlichen Commit auf demselben Branch VOR
+  Ready/Merge (Ausnahme: ein PR, der nur den Block-1-Eintrag selbst
+  ändert, braucht keinen weiteren Eintrag für sich — gilt hier NICHT,
+  da dieser PR zusätzlich CLAUDE.md ändert). Ersetzt die bisherige,
+  nur als Session-Disziplin/Prompt-Konvention gelebte Regel „Staleness-
+  Grep vor Ready, Rückstand melden" (in CLAUDE.md selbst nie als Text
+  vorhanden — nur in `SESSION_HANDOVER.md`-Chronik-Erwähnungen und im
+  CI-Hinweis-Skript) durch „Rückstand selbst beheben, im selben PR,
+  ohne Rückfrage". Konsistenz mit dem CI-Hinweis aus PR #568
+  (`scripts/check_handover_staleness.py`) geprüft und bestätigt: die
+  Funktion `compute_staleness` behandelt einen negativen Rückstand
+  (PR erwähnt die eigene, noch nicht gemergte Nummer voraus) laut
+  eigenem Docstring explizit als „kein Fund" — ein PR-eigener,
+  vorab eingetragener Eintrag zählt weder im Entwurf noch nach dem
+  Merge als Rückstand.
+
+
 
 *(Zwei-PR-Kette aus einer read-only Diagnose 15.08.2026: das Backtesting-Panel
 meldete einen Browser-`JSON.parse`-Fehler. Diagnose fand nackte JSON-`NaN`-
