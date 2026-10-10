@@ -1199,7 +1199,7 @@ neu getestet.
 | Datum | Was | n-Ziel | Notiz |
 |---|---|---|---|
 | ✅ **DURCHGEFÜHRT 15.07.** | ki_signal_score-Edge-Re-Test | n=55 gereift | **KEIN belegter Effekt** (Details §5). Re-Test-Bedingung neu **datengetrieben, nicht kalendarisch:** **WIN-Bucket ≥ 20** (aktuell nur 13!) **UND zweites Marktregime** im Sample. Nicht „~Mitte Aug" — die Kalender-Angabe war irreführend, es zählt der WIN-Bucket + Regime-Diversität. |
-| **~Ende Juli / Anfang Aug** (korrigiert) | Conviction-Edge (Prüfpunkt P3 aus 30.06.) | n ≥ 100 gereift | **Termin vorgezogen** (Sammel-Raten-Diagnose 15.07.): 112 gesammelt / 20 gereift → n≥100 gereift bereits ~Ende Juli/Anfang Aug (das frühere „~Ende Aug" war Puffer). Composite aus Setup/Earliness/Anomaly/Regime — Aggregations-Anzeige, Edge selbst unbelegt. |
+| **~Ende Juli / Anfang Aug** (korrigiert) | Conviction-Edge (Prüfpunkt P3 aus 30.06.) | n ≥ 100 gereift | **Termin vorgezogen** (Sammel-Raten-Diagnose 15.07.): 112 gesammelt / 20 gereift → n≥100 gereift bereits ~Ende Juli/Anfang Aug (das frühere „~Ende Aug" war Puffer). Composite aus Setup/Earliness/Anomaly/Regime — Aggregations-Anzeige, Edge selbst unbelegt. **ERSETZT (10.10.2026)** — kein Zielgröße/Kriterium war hier je festgelegt; siehe Erratum-Block „Erweiterung vor Auswertung — Test (c) Conviction-Zusatznutzen" im Setup-Edge-Re-Test-Freeze unten (Test (c), Holm k=3). Diese Zeile bleibt als Historie stehen, nicht gelöscht. |
 | **datumsfrei · Auslöser n≥250** | **Exit-B.1-Re-Test** — **vorabregistriert (eingefroren 05.08.2026)** | n ≥ 250 · `score≥70` ∧ `provenance=forward` | Volle Registrierung im Block direkt unter der Tabelle. Quelle `matured_backtest_export.jsonl` (append-only, prune-immun). **n=144 (nachgerechnet 27.09.2026, 07:16:50 UTC — siehe Protokolleintrag unten).** Projektion ~Mitte Nov. 2026 (unsicher, **kein Termin**). |
 | **entfällt** | ~~Setup-Edge-Re-Test~~ — **NICHT vorabregistriert** (Herausnahme 05.08.2026) | — | Zielgröße/Schwelle/Erfolgskriterium wurden **nie festgelegt** (Ursprung #394 = 15 gesammelte Hypothesen, 0/15 Holm — welche geprüft werden soll, wurde nie bestimmt). Neu-Registrierung mit **eigenem Freeze-Datum** bei Bedarf; **bis dahin existiert kein Setup-Edge-Re-Test.** Details im Block unten. |
 
@@ -1474,6 +1474,123 @@ bestätigenden Test unten ein — sie dienen hier nur der Lage-Einordnung
 **Änderungs-Protokoll (bindend ab Freeze-Datum, analog §4):** Keine Änderung
 an diesem Block ohne datierten Protokolleintrag, der die Änderung und ihren
 Grund festhält.
+
+**ERRATUM 10.10.2026 — Erweiterung vor Auswertung (Test c, Conviction-Zusatznutzen).**
+Grund: Easy-Entscheidung — Conviction wird im selben Freeze mit-registriert,
+damit die Frage „bringt Conviction gegenüber dem Score selbst etwas?" nicht
+später separat und außerhalb der Freeze-Disziplin aufgesetzt werden muss.
+**Ausdrücklich festgehalten: Zum Zeitpunkt dieses Erratums wurden KEINE
+Outcomes der bestätigenden Population (Tests a/b/c) ausgewertet** — seit dem
+Freeze-Merge (`328b3fc4`, PR #584, 10.10.2026) ist kein einziger weiterer
+Commit auf `main` gelandet (git-belegt), also erst recht keine Auswertung.
+Dieses Erratum ändert **keinen bestehenden Satz** des obigen Freeze-Blocks —
+reine Ergänzung.
+
+**EINGEFRORENE ERGÄNZUNG**
+
+1. **Frage (c):** Trennt der Conviction-Score (Feld `conviction_score`)
+   Aktien mit gutem von schlechtem Forward-Ergebnis **besser** als der
+   Setup-Score allein?
+2. **Population:** wie im Freeze oben (`provenance=="forward"`,
+   Eintrittsdatum strikt nach dem Freeze-Datum, alle Scores, nur aus
+   `matured_backtest_export.jsonl`, Backfill nie), **zusätzlich** nur Zeilen
+   unter `EARLINESS_FORMULA_VERSION 2`. **V2-Umstellung: 14.05.2026, PR #141
+   (Merge `ab3041b1`), Feat-Commit `fa8d87f0` („feat: Earliness V2 —
+   DTC-Niveau-Basis")** — Skala `EARLINESS_PTS_MAX` wechselte dort von **7
+   (V1) auf 100 (V2)**, git-belegt (`git show fa8d87f0^:config.py` vs.
+   `git show fa8d87f0:config.py`). Seither **nie** zurückgesetzt oder erneut
+   geändert (einziger Setz-Zeitpunkt im gesamten `config.py`-Verlauf,
+   `git log -p -S EARLINESS_FORMULA_VERSION` zeigt genau einen Treffer).
+   Da die früheste Forward-Zeile der bestehenden Population am 21.07.2026
+   liegt — rund 10 Wochen nach der V2-Umstellung — sind **alle** Zeilen ab
+   Freeze-Datum automatisch unter V2 entstanden; die Versions-Filterung ist
+   damit für die heutige Datenlage ein No-op, bleibt aber als
+   Zukunftssicherung in der Population-Definition (falls der Export je
+   rückwirkend ältere Zeilen aufnehmen sollte — laut Freeze-Text oben nie
+   vorgesehen). Ältere Zeilen (vor 14.05.2026, V1-Skala) werden **nie**
+   eingerechnet, auch nicht hypothetisch.
+3. **Zielgröße (c):** ΔAUC = AUC(`conviction_score`) − AUC(`score`) für
+   „`return_5d ≥ +5 %`" auf **denselben** Zeilen (gepaarter Bootstrap,
+   N=2000, fester Seed wie im Freeze oben). Verfahren: `mann_whitney_u_auc`
+   (`scripts/stats_helpers.py:60`) liefert je Resample die Einzel-AUC für
+   `conviction_score` und für `score`; die Differenz wird je Resample
+   gebildet, die Verteilung der Differenzen über N=2000 Resamples ergibt das
+   CI. **Fundstellen-Prüfung (Exzellenz-Punkt 4):** ein fertiger,
+   **gepaarter** Bootstrap für eine AUC-Differenz existiert im Repo
+   **nicht** — `bootstrap_mean_ci` (`scripts/expectancy_diagnose.py`) ist
+   ein **einfacher** Mittelwert-Bootstrap für eine einzelne Werteliste,
+   kein Differenz-von-zwei-AUCs-Bootstrap. **Wird hier nicht gebaut**
+   (Auftrag: nur Doku). Benötigt bei Auswertung: eine neue
+   Auswertungsfunktion, die (a) pro Resample denselben Zeilen-Index
+   resampled (damit `conviction_score` und `score` auf identischen Zeilen
+   verglichen werden — „gepaart"), (b) auf diesem Resample zweimal
+   `mann_whitney_u_auc` aufruft (Gewinner- vs. Verlierer-Split nach
+   `return_5d≥+5%`, einmal mit `conviction_score`-Werten, einmal mit
+   `score`-Werten) und (c) die Differenz der beiden AUCs sammelt — analog
+   zum bestehenden `bootstrap_mean_ci`-Muster, aber auf Paaren statt auf
+   einer einzelnen Liste. Existiert erst zur Auswertungszeit (nach
+   Erreichen von n≥250), nicht heute.
+4. **Holm:** Die Familie wird von **k=2** (Tests a, b aus dem Freeze oben)
+   auf **k=3** (Tests a, b, c) erweitert — vor jeder Auswertung
+   beschlossen, damit zulässig (`multiple_testing_correction`,
+   `scripts/stats_helpers.py:152`, akzeptiert jede Familiengröße generisch,
+   keine Code-Änderung nötig). Der Auslöser **n ≥ 250 bestätigende Zeilen
+   bleibt unverändert und gemeinsam** für alle drei Tests; **keine
+   Zwischenauswertung**.
+5. **Erfolgskriterium (c) — ALLE vier Bedingungen:**
+   (i) Holm-signifikant (k=3);
+   (ii) untere Grenze des gepaarten Bootstrap-Intervalls für ΔAUC über 0;
+   (iii) Cluster-Doppellauf (mit und ohne detektierbare Cluster — wie Freeze
+        oben, `scripts/cluster_purge.py`, `classify_cluster_records`)
+        liefert dieselbe Richtung;
+   (iv) Punktschätzung ΔAUC ≥ **+0,02** **UND** AUC(`conviction_score`)
+        selbst ≥ **0,55**.
+   Beide Schwellen (+0,02 und 0,55) sind **Festlegungen von Easy, keine
+   Naturwerte**. Eine Punktschätzung allein ist **nie** ein Beleg.
+6. **Brutto bindend**; netto (`_net`), SPY-bereinigt (`_vs_spy`) und
+   Regime-Split (`market_regime`, `vix_level`) **nachrangig**, identisch zur
+   Bindungslogik im Freeze oben (§4-Protokolleintrag 18.09.2026).
+7. **Grenzen — offen benannt:**
+   (a) Conviction enthält den Score zu 33 % (`setup`-Komponente, Cap 33 von
+       100, `CLAUDE.md:791`/`generate_report.py:7169-7172`) — ΔAUC misst nur
+       den **Zusatznutzen** der restlichen 67 % (Earliness 28, Anomaly 28,
+       Regime 11), nicht Conviction „von Grund auf".
+   (b) Range-Restriktion wie im Freeze oben — nur Top-10-Auswahl, nicht
+       gegen das Gesamtuniversum.
+   (c) Bei n≈250 ist ein **kleiner** Zusatznutzen nicht erkennbar; „kein
+       Beleg" heißt dann **„unklar"**, nicht „keine Edge".
+   (d) Änderung der Conviction-Gewichte (33/28/28/11,
+       `CLAUDE.md:791-794`/`generate_report.py:7169-7214`), der
+       Earliness-Formel-Version oder der Komponenten **nach** diesem
+       Erratum: Eintrag mit Datum und PR hier erforderlich; die betroffenen
+       Zeilen werden im Doppellauf **mit und ohne** diese Zeilen ausgewiesen
+       (analog Punkt 8c im Freeze oben). Git-Historie bislang (geprüft
+       10.10.2026): **keine** einzige Änderung an 33/28/28/11 seit
+       Einführung (`git log -p --all -S` auf die jeweiligen Code-Literale
+       `min(33,`/`min(28,`/`= 28`/`= 11` in `compute_conviction_score`
+       liefert je genau einen Treffer — die Einführung selbst, keine
+       spätere Änderung).
+   (e) Der Push-Schwellenwert `ANOMALY_CONVICTION_MIN_THRESHOLD = 75` ist
+       **keine** Evidenz für diesen Test — reine Produktions-Steuerung.
+8. Der alte Kalenderpunkt **„Conviction-Edge (P3)"** (Re-Test-Kalender-
+   Tabelle oben, Zeile „~Ende Juli / Anfang Aug") ist mit diesem Erratum
+   **als ERSETZT markiert** (Verweis auf diesen Abschnitt eingetragen) —
+   **nicht gelöscht**, bleibt als Historie stehen.
+9. **Abhängigkeit `_detect_recent_squeeze`** (siehe Freeze-Punkt 9 oben,
+   `open_items.json`-ID `pr532-or0-sibling-bugs`): der Fix wirkt über die
+   Setup-Komponente (33 % Gewicht) **auch** auf `conviction_score`, nicht
+   nur auf `score` — betrifft also **beide** Größen dieses erweiterten
+   Freezes gleichermaßen. Die zwei Optionen aus Freeze-Punkt 9 (A: Fix
+   nach Auswertung BEIDER/ALLER Tests; B: Fix vor n=250 mit explizitem
+   8d-Eintrag hier) gelten unverändert, jetzt für drei statt zwei Tests.
+   Keine Vorentscheidung.
+10. **Erwartung (Schätzung, kein Termin):** wie im Freeze oben. Die
+    tatsächliche Rate wird gezählt (Zeilen pro Handelstag **unter V2** —
+    nach Punkt 2 heute ohnehin 100 % der Population), nur die Schätzzeile
+    wird bei Erreichen angepasst.
+
+**Änderungs-Protokoll gilt identisch für dieses Erratum** (analog Freeze
+oben): keine weitere Änderung ohne datierten Protokolleintrag.
 
 ### WIEDERVORLAGEN — dated (Stand 08.08.2026, NICHT Teil des §4-Freeze)
 
