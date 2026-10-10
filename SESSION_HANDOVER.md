@@ -319,7 +319,7 @@ trägt. Alle vier PR-Titel gegen die tatsächliche API-Antwort abgeglichen
 
 ---
 
-### 08.–10.10.2026 — NaN-Guard-Symmetrie (entry_past_return_5d) + Preis-Merge-Guard-/NYSE-empty-Diagnosen + Block-1-Autonomie-Regel + Setup-Edge-Re-Test-Freeze (6 PRs)
+### 08.–10.10.2026 — NaN-Guard-Symmetrie (entry_past_return_5d) + Preis-Merge-Guard-/NYSE-empty-Diagnosen + Block-1-Autonomie-Regel + Setup-Edge-Re-Test-Freeze + Conviction-Erratum (7 PRs)
 
 *(Nachtrag per Staleness-Grep 09.10.2026, GitHub-API `gh pr list --state
 merged` — NICHT Commit-Titel-Grep: höchste gemergte PR war zu Beginn
@@ -439,6 +439,36 @@ nicht mehr entstehen, nicht nur per Session-Disziplin.)*
   `_detect_recent_squeeze`-Fix (`pr532-or0-sibling-bugs`) mit zwei
   offenen Optionen (vor vs. nach n=250), keine Vorentscheidung. Lint
   grün (26 Items, nichts gelöscht).
+
+- **Conviction-Zusatznutzen-Erratum (Block-1-Pflicht befolgt):** `#585`
+  (Branch-Commit `0e37e1e7`, 10.10., kein Merge-Hash genannt — Regel a)
+  greift) erweitert den Setup-Edge-Re-Test-Freeze aus `#584` um einen
+  dritten Test (c): Zusatznutzen `conviction_score` gegenüber `score`
+  allein, gemessen als gepaarter ΔAUC für `return_5d≥+5%`, Holm-Familie
+  von k=2 auf k=3 erweitert. Kein bestehender Satz des Freeze-Blocks
+  geändert — reiner ERRATUM-Zusatz plus eine Ergänzung an der alten
+  Kalenderpunkt-Zeile „Conviction-Edge P3" (als ERSETZT markiert, nicht
+  gelöscht). Vor der Änderung geprüft: Freeze-PR #584 gemergt
+  (`328b3fc4`), seither **0 Commits** auf `main` — kein Outcome der
+  bestätigenden Population je ausgewertet. Population zusätzlich auf
+  `EARLINESS_FORMULA_VERSION=2`-Zeilen beschränkt; V2-Umstellung
+  git-belegt auf **PR #141, Merge `ab3041b1`, 14.05.2026**
+  (Feat-Commit `fa8d87f0`, Skala-Wechsel `EARLINESS_PTS_MAX` 7→100),
+  seither nie geändert (`git log -S` über die gesamte Historie: genau
+  ein Treffer). Da die früheste Forward-Zeile am 21.07.2026 liegt, sind
+  100 % der heutigen Population bereits unter V2 — Filter ist aktuell
+  ein No-op, bleibt Zukunftssicherung. Conviction-Gewichte 33/28/28/11
+  ebenfalls git-belegt nie geändert seit Einführung (`6970d277`, je ein
+  Treffer pro Literal). Nutzerangaben (472 Forward-Zeilen alle mit
+  `conviction_score`; 634 `backtest_history.json`-Records mit
+  `conviction_score` ab 13.07.2026, davon 100 ungereift) direkt
+  nachgezählt — exakt bestätigt, keine Abweichung. Offener Punkt,
+  bewusst nicht gebaut: ein **gepaarter Bootstrap für eine
+  AUC-Differenz existiert im Repo nicht** (nur ein einfacher
+  Mittelwert-Bootstrap in `scripts/expectancy_diagnose.py`) — muss bei
+  Auswertung nach n≥250 erst gebaut werden. `open_items.json`: kein
+  neuer Eintrag, bestehender `setup-edge-retest-freeze` ergänzt. Lint
+  grün (26 Items, unverändert in der Anzahl).
 
 
 
