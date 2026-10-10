@@ -319,7 +319,7 @@ trägt. Alle vier PR-Titel gegen die tatsächliche API-Antwort abgeglichen
 
 ---
 
-### 08.–09.10.2026 — NaN-Guard-Symmetrie (entry_past_return_5d) + Preis-Merge-Guard-/NYSE-empty-Diagnosen + Block-1-Autonomie-Regel (5 PRs)
+### 08.–10.10.2026 — NaN-Guard-Symmetrie (entry_past_return_5d) + Preis-Merge-Guard-/NYSE-empty-Diagnosen + Block-1-Autonomie-Regel + Setup-Edge-Re-Test-Freeze (6 PRs)
 
 *(Nachtrag per Staleness-Grep 09.10.2026, GitHub-API `gh pr list --state
 merged` — NICHT Commit-Titel-Grep: höchste gemergte PR war zu Beginn
@@ -405,6 +405,40 @@ nicht mehr entstehen, nicht nur per Session-Disziplin.)*
   eigenem Docstring explizit als „kein Fund" — ein PR-eigener,
   vorab eingetragener Eintrag zählt weder im Entwurf noch nach dem
   Merge als Rückstand.
+
+- **Setup-Edge-Re-Test-Freeze (Block-1-Pflicht befolgt):** `#584`
+  (Branch-Commit `3eb82bd4`, 10.10., kein Merge-Hash genannt — Regel a)
+  greift, der steht vor dem Merge noch nicht fest) friert in
+  `SESSION_HANDOVER.md` direkt nach dem §4-Block eine neue, eigenständige
+  Vorabregistrierung **„Setup-Edge-Re-Test (Score-Trennschärfe)"** ein
+  (am 05.08.2026 bewusst nicht-registrierte Frage, ob der Score selbst
+  gute von schlechten Aktien trennt — anders als §4, das nur Exit-Timing
+  prüft). Population `provenance=forward` ∧ Eintrittsdatum strikt nach
+  Freeze-Datum (10.10.2026 ET, vorläufig gesetzt mit Korrektur-Klausel
+  falls der Merge einen anderen ET-Tag trifft); zwei Holm-k=2-Zielgrößen
+  (AUC `return_5d≥+5%`, AUC `return_10d>0`), Auslöser n≥250 ohne
+  Zwischenauswertung, 4-teiliges Erfolgskriterium inkl. einer von Easy
+  festgelegten 0,55-Punktschätzungs-Schwelle, vier offen benannte
+  Grenzen. SCHRITT-0-Grep (Pflicht lt. Auftrag): kein genereller
+  Score-Formel-Änderungs-Detektor existiert —
+  `SCORE_NORMALIZATION_VERSION` (`config.py:473`) ist ein manueller,
+  nur auf die RVOL-Normalisierungs-Welle (γ-1/γ-2) begrenzter Marker,
+  `backtest_schema_version` eine Schema-Form- keine Formel-Version;
+  Health-Check S13b überwacht nur 3 benannte Konstanten auf Drift.
+  `mann_whitney_u_auc`/Holm (`scripts/stats_helpers.py:60`/`:152`) und
+  der Cluster-Doppellauf (`scripts/cluster_purge.py`) bestätigt
+  vorhanden und bereits produktiv genutzt; der Bootstrap
+  (`bootstrap_mean_ci`, `scripts/expectancy_diagnose.py`) existiert mit
+  Default N=1000, ist aber frei auf N=2000 parametrisierbar — ein
+  dediziertes stehendes N=2000-Skript existiert nicht, frühere Läufe
+  waren vermutlich Ad-hoc-Aufrufe. Nutzerangaben (472 Zeilen,
+  21.07.–25.09., Buckets 20/109/162/181, ~10/Tag) direkt gegen
+  `matured_backtest_export.jsonl` nachgezählt — alle bestätigt, keine
+  Abweichung. `open_items.json`: neuer Eintrag
+  `setup-edge-retest-freeze` (beobachtet) verknüpft den
+  `_detect_recent_squeeze`-Fix (`pr532-or0-sibling-bugs`) mit zwei
+  offenen Optionen (vor vs. nach n=250), keine Vorentscheidung. Lint
+  grün (26 Items, nichts gelöscht).
 
 
 
