@@ -1310,6 +1310,137 @@ eingefrorene §4-Definition selbst (`score≥70 ∧ provenance=forward`,
 Brutto-Bindung) ist NICHT verändert** — nur die angezeigte Zählung wurde
 aktualisiert und ihre Historie erklärt.
 
+### VORABREGISTRIERUNG — Setup-Edge-Re-Test (Score-Trennschärfe), eingefroren 10.10.2026
+
+**Verhältnis zu §4 oben.** Der §4-Re-Test (Exit-B.1) prüft **Δ(5d−10d)** und
+**Δ(3d−10d)** im `score≥70`-Bucket — ein **Exit-Timing-Hinweis**, **keine**
+Aussage darüber, ob der Score gute von schlechten Aktien trennt. Dieser
+Block registriert **diese separate Frage** neu, nachdem sie am 05.08.2026
+(§4-Freeze oben, Abschnitt „Setup-Edge-Re-Test — NICHT [mehr] vorabregistriert")
+bewusst aus der Registrierung genommen wurde — Zielgröße/Schwelle/
+Erfolgskriterium waren dort nie festgelegt (Ursprung #394 = 15 gesammelte
+Hypothesen, 0/15 Holm). Struktur, Wortwahl und Pflicht-Angaben sind bewusst
+analog zu §4 gehalten, damit beide Registrierungen vergleichbar bleiben.
+
+**Datenquelle & n-Definition — identisch zu §4.** Gezählt wird ausschließlich
+aus `matured_backtest_export.jsonl` (append-only, prune-immun) — **nicht** aus
+`backtest_history.json` (90-Tage-Prune `BACKTEST_MAX_DAYS=90`). Reine Zählung
+per 10.10.2026 (Diagnose vor diesem Freeze, keine Outcome-Werte enthalten):
+**472** gereifte Forward-Zeilen (`provenance=="forward"` ∧ `return_5d`/
+`return_10d` befüllt), Zeitraum **21.07.–25.09.2026** (47 Handelstage, Ø
+**10,04** Zeilen/Handelstag), Score-Bucket-Verteilung **40–49: 20 · 50–59:
+109 · 60–69: 162 · ≥70: 181** (keine Zeile < 40). Diese 472 Zeilen sind
+**explorativ** (Panel- und Dossier-Auswertungen haben Teile davon gesehen,
+siehe Hintergrund-Zählung des Auftrags) und gehen **nie** in den
+bestätigenden Test unten ein — sie dienen hier nur der Lage-Einordnung
+(Takt, Bucket-Verteilung), exakt wie die 242 In-Sample-Records im
+§4-Block oben nie ins dortige n einfließen.
+
+**EINGEFRORENE VORGABEN**
+
+1. **Frage:** Trennt der Setup-Score (Feld `score`, wie im §4 verwendet)
+   Aktien mit gutem von schlechtem Forward-Ergebnis innerhalb der
+   ausgewählten Top-10-Population?
+2. **Population (bestätigend):** `provenance=="forward"` **UND**
+   Eintrittsdatum strikt **NACH** dem Merge-Tag dieses PRs (ET-Datum des
+   Merges, vom Code eingetragen, **„Freeze-Datum"**); alle Scores; gezählt
+   allein aus `matured_backtest_export.jsonl`; Backfill nie. Die 472 Zeilen
+   oben (vor dem Freeze) sind explorativ und werden nie eingerechnet.
+   **Freeze-Datum = 10.10.2026** (ET-Kalendertag, America/New_York) — gesetzt
+   unter der Annahme, dass Branch-Erstellung, Guardian-Lauf und Merge dieses
+   PR im selben Arbeitsgang noch am 10.10.2026 ET abschließen (bei
+   Autorierung dieses Textes: 16:17 EDT, deutlicher Abstand zur ET-Mitternacht).
+   **Sicherheitsklausel:** Weicht der tatsächliche Merge-Zeitpunkt (ET-Datum
+   des Merge-Commits laut GitHub) von diesem Datum ab, ist das **nach dem
+   Änderungs-Protokoll unten zu korrigieren** (datierter Protokolleintrag,
+   Text nicht stillschweigend überschrieben) — analog zur §4-Disziplin oben.
+   Das Datumsformat ist durchgehend `DD.MM.YYYY`, identisch zum `date`-Feld
+   in `matured_backtest_export.jsonl` (= ET-Handelstag, siehe
+   `generate_report.py:_marktdaten_timestamp`-Docstring, Zeilen ~7611–7613:
+   „`report_date` = `%d.%m.%Y` in America/New_York") — Vergleich
+   „Eintrittsdatum > Freeze-Datum" ist damit ein reiner String-/Datums-
+   Vergleich zweier bereits-ET-Werte im selben Format, **keine**
+   UTC/ET-Konvertierung zur Auswertungszeit nötig.
+3. **Zielgrößen, Holm k=2** (Verfahren wie §4: `mann_whitney_u_auc`,
+   `scripts/stats_helpers.py:60`, + `multiple_testing_correction`,
+   `scripts/stats_helpers.py:152`):
+   (a) Trennschärfe (AUC) des Scores für **„return_5d ≥ +5 %"**
+       (Trefferdefinition aus Dossier §6);
+   (b) Trennschärfe des Scores für **„return_10d > 0"**.
+4. **Auslöser:** `n ≥ 250` bestätigende Zeilen mit `return_5d` **und**
+   `return_10d` gefüllt. **Kein Kalenderdatum.** **Keine Zwischenauswertung**
+   der Outcomes vor Erreichen von n=250.
+5. **Erfolgskriterium — ALLE vier Bedingungen:**
+   (i) Holm-signifikant;
+   (ii) untere Grenze des Bootstrap-Intervalls (N=2000, fester Seed, wie §4)
+        über 0,5;
+   (iii) Cluster-Doppellauf (mit und ohne detektierbare Cluster, wie §4 —
+        `scripts/cluster_purge.py`, `classify_cluster_records`) liefert
+        dieselbe Richtung;
+   (iv) Punktschätzung ≥ **0,55**.
+   Eine Punktschätzung allein ist **nie** ein Beleg. **Die Schwelle 0,55 ist
+   eine Festlegung von Easy, kein Naturwert** — anders als bei §4 (dort reicht
+   „CI schließt 0,5 aus"), weil Easy hier zusätzlich eine Mindest-Praxisrelevanz
+   verlangt, keine bloße statistische Signifikanz.
+6. **Bindend ist brutto** (`return_5d` / `return_10d`). Netto (`_net`) und
+   SPY-bereinigt (`_vs_spy`) sowie Regime-Split (`market_regime`,
+   `vix_level`) werden **zusätzlich und nachrangig** ausgewiesen — niemals
+   Ersatz für das bindende Brutto-Kriterium (identische Bindungs-Logik wie
+   im §4-Protokolleintrag 18.09.2026 oben).
+7. **Erwartung (Schätzung, kein Termin):** ~10 Zeilen pro Handelstag plus
+   ca. zwei Wochen Reifezeit → n=250 grob **Anfang Dezember 2026**. Diese
+   Zeile ist **nicht bindend** — bei Erreichen wird die tatsächliche Rate
+   gezählt und **nur diese Schätzzeile** angepasst (analog §4: „Projektion
+   ~Mitte November 2026, unsicher, kein Termin").
+8. **Grenzen — offen benannt:**
+   (a) **Range-Restriktion:** Der Score wird nur innerhalb der Top-10-Auswahl
+       geprüft, nicht gegen das gesamte Universum (keine Zeile < 40 in der
+       Hintergrund-Zählung). Ein Ergebnis gilt nur für diese Auswahl.
+   (b) Bei n≈250 sind nur **deutliche** Trennschärfen erkennbar; ein
+       schwacher Effekt bleibt „unklar" und gilt **nicht** als Beleg für
+       „keine Edge".
+   (c) **Score-Änderungen während des Tests:** Jede Änderung an `score()`
+       oder an der Top-10-Auswahl vor der Auswertung braucht einen Eintrag
+       hier (Datum, PR) und ist im Bericht auszuweisen; sie macht den Test
+       **nicht** still ungültig, aber **sichtbar**. (SCHRITT-0-Grep-Befund:
+       es existiert **kein** automatischer Score-Formel-Änderungs-Detektor
+       — `SCORE_NORMALIZATION_VERSION`, `config.py:473`, ist ein **manueller,
+       eng gefasster** Marker nur für die RVOL-Normalisierungs-Welle [γ-1/γ-2],
+       persistiert als `score_normalization_version` pro Record,
+       `backtest_history.py:1404`; `backtest_schema_version` [config.py,
+       `backtest_history.py:1062`, ==4] ist eine Schema-**Form**-Version,
+       keine Formel-Version. Health-Check S13b [`CONSISTENCY_EXPECTED_STATE`,
+       `config.py:495-499`] überwacht nur drei benannte Konstanten
+       [`RVOL_NORMALIZATION_ENABLED`, `SCORE_NORMALIZATION_VERSION`,
+       `EARLINESS_FORMULA_VERSION`] auf Soll-Ist-Drift, als `warn` — **keine**
+       generische Erkennung für Änderungen an `COMBO_BONUS`, einem
+       `SUB_*_DISPLAY_PTS_MAX`-Wert oder einer Filter-Schwelle. Ein
+       Score-Änderungs-Eintrag hier bleibt deshalb **manuelle Disziplin**,
+       nicht automatisch erzwingbar.)
+   (d) Das Backtest-Panel zeigt weiter Trefferquoten nach Score; sie sind
+       **keine** Evidenz für diesen Test.
+9. **Abhängigkeit — `_detect_recent_squeeze`-Fix** (`open_items.json`,
+   ID `pr532-or0-sibling-bugs`, bewusst bis n=250 im §4-Re-Test
+   zurückgestellt — siehe dortiger Eintrag „ERGÄNZUNG 08.10.2026"): der Fix
+   ist eine Score-Änderung im Sinne von Punkt 8c. **Zwei Optionen, keine
+   Vorentscheidung hier:**
+   - **Option A:** Der Fix wird erst **nach Auswertung BEIDER Tests**
+     (§4 Exit-B.1 UND dieser Setup-Edge-Re-Test) umgesetzt — verlängert die
+     störungsfreie Sammelphase für beide Registrierungen gleichzeitig,
+     verzögert aber eine bekannte Malus-Korrektur zusätzlich.
+   - **Option B:** Der Fix wird vor Erreichen von n=250 umgesetzt und als
+     Eintrag nach Punkt 8c ausgewiesen (Datum, PR, Vorher/Nachher-Vergleich)
+     — der Malus wirkt nur verschärfend (nie score-erhöhend), betrifft also
+     nur, ob knapp-über-70-Records nachträglich unter die Schwelle fallen;
+     der Bruch wird sichtbar dokumentiert statt verzögert.
+   **Easy entscheidet.** Der bestehende `open_items.json`-Eintrag verknüpft
+   den Fix heute nur mit §4, nicht mit diesem neuen Test — diese Lücke wird
+   mit dem SCHRITT-2-Eintrag unten geschlossen.
+
+**Änderungs-Protokoll (bindend ab Freeze-Datum, analog §4):** Keine Änderung
+an diesem Block ohne datierten Protokolleintrag, der die Änderung und ihren
+Grund festhält.
+
 ### WIEDERVORLAGEN — dated (Stand 08.08.2026, NICHT Teil des §4-Freeze)
 
 - **14.08.2026 — SEC-Entscheid `SR-FINRA-2026-012` (SI-Meldepflicht).** Erwartet:
