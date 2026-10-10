@@ -1,10 +1,10 @@
 {
-  "updated": "2026-10-10T15:43:05.552821+02:00",
+  "updated": "2026-10-10T20:36:48.002107+02:00",
   "run_info": {
     "tickers_checked": 13,
     "signals_active": 1,
     "alerts_sent": 0,
-    "elapsed_s": 15.1,
+    "elapsed_s": 13.7,
     "market_phase": "Geschlossen"
   },
   "signals": {
@@ -99,9 +99,9 @@
       "uoa_cp_ratio": 3.0
     },
     "GRPN": {
-      "score": 8,
-      "confidence": 17,
-      "drivers": "Earnings in 26d",
+      "score": 16,
+      "confidence": 33,
+      "drivers": "News-KI 8/30: Mixed price action with increased investor interest but lacking clear short squeeze indicators like extreme short intere + Earnings in 26d",
       "price": 18.63,
       "chg_pct": -0.0,
       "rvol_4d": 0.72,
@@ -113,7 +113,7 @@
       "stocktwits": null,
       "combo_mult": 1.0,
       "active_triggers": 0,
-      "ki_sentiment_source": "keyword",
+      "ki_sentiment_source": "llm",
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": 0.07837360047142015,
@@ -252,9 +252,9 @@
       "uoa_cp_ratio": 4.142857142857143
     },
     "VEEA": {
-      "score": 53,
+      "score": 63,
       "confidence": 70,
-      "drivers": "Volumen 4.5× + ⚡ Extremes Volumen 4.5×+ + Spanne 32.5% + News-KI 8/30: Positive business developments and partnerships exist, but lack institutional short pressure indicators, high short inte",
+      "drivers": "Volumen 4.5× + ⚡ Extremes Volumen 4.5×+ + Spanne 32.5% + News-KI 12/30: Positive business developments and partnerships, but no short-squeeze indicators like high short interest, low float, or",
       "price": 5.7,
       "chg_pct": -0.0,
       "rvol_4d": 4.51,
@@ -264,8 +264,8 @@
       "upcoming_event": null,
       "insider_buy": false,
       "stocktwits": null,
-      "combo_mult": 1.0,
-      "active_triggers": 1,
+      "combo_mult": 1.1,
+      "active_triggers": 2,
       "ki_sentiment_source": "llm",
       "uoa_score": 0,
       "uoa_drivers": [],
