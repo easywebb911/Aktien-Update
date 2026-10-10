@@ -1639,6 +1639,37 @@ oben): keine weitere Änderung ohne datierten Protokolleintrag.
   Regeländerung an, taucht also erst NACH einer SEC-Genehmigung auf, nicht vorher.
   Stand 02.09.2026: keine der drei Quellen zeigt eine Entscheidung nach der
   verlängerten Frist vom 14.08.2026 — weiterhin offen, über 3 Wochen überfällig.
+  **✅ ERLEDIGT 10.10.2026 — zurückgezogen 05.08.2026.** Laut SEC-Filing-Seite
+  (sec.gov/rules-regulations/self-regulatory-organization-rulemaking/
+  sr-finra-2026-012, Titel „WITHDRAWN on 08/05/2026", zuletzt aktualisiert
+  05.08.2026) wurde das Filing zurückgezogen — **vor** der oben notierten
+  02.09.-Prüfung, die das offenbar nicht erfasst hat (Seite war zu dem
+  Zeitpunkt vermutlich schon auf „WITHDRAWN", aber nicht als solche erkannt
+  oder die Prüfung schaute auf andere der drei Quellen). Diese Wiedervorlage
+  ist damit **beendet** — kein SEC-Entscheid steht mehr aus, weil das
+  zugrundeliegende Filing nicht mehr existiert. **Kein struktureller SI-
+  Sprung droht aus diesem Filing** mehr für den laufenden §4-Exit-B.1-Test.
+  Ein **Nachfolger-Filing wurde bei einer Suche am 10.10.2026 nicht
+  gefunden** (nicht auszuschließen, nur begrenzte Suchtiefe) — eigener
+  Beobachtungspunkt direkt unten.
+- **Beobachtungseintrag — Nachfolger-Filing zu SR-FINRA-2026-012? (angelegt
+  10.10.2026, kein Datum, Wiedervorlage beim Monatsrundgang.)** Seit dem
+  05.08.-Rückzug keine neue SEC-/FINRA-Einreichung zum selben Thema
+  (wöchentliches SI-Reporting / „arranged financing" als SI) gefunden —
+  Suchtiefe am 10.10. begrenzt (keine Volltext-Datenbank-Abfrage, nur
+  Web-Suche). Beim nächsten Monatsrundgang (siehe unten, geplant
+  02.11.2026) erneut auf den drei Quellen aus dem 02.09.-Zusatz prüfen
+  (SEC-Filing-Seite, Federal Register, FINRA Regulatory Notices).
+  **Code-Prüfung (10.10.2026, nichts geändert):** `FINRA_PUB_OFFSET_BUSINESS_DAYS`
+  (§7c, `config.py:526`) und die `N=3`-Fenstergröße für `si_velocity_pub`
+  (§7c-Umfeld, `config.py:~551`) referenzieren SR-FINRA-2026-012 **nur in
+  vorausschauenden Kommentaren** („plant höhere Frequenz, evtl. wöchentlich
+  → möglicherweise kürzerer Delay", „verkürzt automatisch das Fenster
+  proportional, N zentral anpassbar") — **beide Konstanten hängen bereits
+  heute an FINRA Rule 4560 (Status quo, bimonatlich), nicht am
+  zurückgezogenen Filing.** Kein Code-Pfad nimmt an, die neue Regel sei
+  bereits in Kraft — beide Stellen sind rein konditional formuliert
+  („falls/wenn die Regel käme"). **Kein Korrekturbedarf am Code.**
 - **~Mitte Aug 2026 — Paper-C konfirmatorischer OoS-Test.** Läuft, sobald (a)
   Forward-`return_10d` der ab 13.07. gesammelten Records gereift ist UND (b) `n_win`
   an **beiden** Zielen ≥ Floor 40 — mit Regime-Vorbehalt (§5 Confound 1). Datengetrieben,
@@ -1685,6 +1716,76 @@ oben): keine weitere Änderung ohne datierten Protokolleintrag.
   tatsächlichen Volltext-Zugang (Bibliothek, Autoren-Anfrage, o. ä.) — kein
   Fall für weitere Web-Suche bei künftigen Lit-Checks, außer der Zugang
   ändert sich.
+- **Lit-Check 10.10.2026 (Kurzfassung, Anschluss an den 09.09.-Eintrag
+  oben).** (a) SR-FINRA-2026-012 zurückgezogen (Details oben). (b)
+  Fails-to-Deliver als Squeeze-Signal: **Nullbefund** — keine belastbare
+  Studie gefunden. (c) Lotterie-/MAX-Effekt und Exit-Regeln: **Nullbefund**
+  — keine neue Arbeit gefunden. (d) Schultz (*Journal of Financial and
+  Quantitative Analysis*, 2024, „Short Squeezes and Their Consequences"):
+  bestätigt **Utilization als stärksten Squeeze-Prädiktor** in der
+  Literatur — ändert am heutigen Kurs/Bau nichts (keine neue Quelle dafür
+  gefunden, siehe IBKR-Spur unten). (e) Kostenlose Utilization-Quelle:
+  Tiefensuche **negativ** — siehe „IBKR-Spur (Borrow-Daten)" unten.
+- **IBKR-Spur (Borrow-Daten) — angelegt 10.10.2026, Status `beobachtet`
+  (siehe `open_items.json`, ID `ibkr-borrow-data-spur`).** Kurzfassung: IBKR
+  Web-API-Snapshot-Felder `7636` (Shortable Shares) / `7637` (Fee Rate) /
+  `7644` (Shortable) sind laut IBKR-Doku ohne genannte Abo-Pflicht abrufbar
+  — `7637` (Fee Rate) wäre ein möglicher Ersatz für die seit **23.07.2026**
+  toten CTB-Quellen (`IBKR_BORROW_ENABLED`/`STOCKANALYSIS_BORROW_ENABLED`,
+  beide `False` seit Commit `ad981064`/01.08.2026, Borrow-Bonus laut
+  Commit-Message dort bereits „seit 23.07. faktisch 0" — **git-belegt,
+  Datum bestätigt**). Zugang liefe über First-Party-OAuth
+  (`apiintegration@interactivebrokers.com`), Eignung für Privatkunden
+  ungeklärt, Schlüssel könnte laut Entwickler-Angaben auch Handel erlauben
+  → nur mit Zweitnutzer ohne Handelsrechte erwägen. Anfrage-Entwurf liegt
+  vor, Absendung durch Easy aussteht. **Utilization selbst** (IBKR-App
+  „Verleihquote", für Easy dort gratis sichtbar) ist in **keiner**
+  gefundenen API enthalten (weder Web-API-Feldliste noch
+  IBKR-Claude-Connector) — kein kostenloser automatischer Weg gefunden,
+  bis dahin Handcheck. Volldetails im `open_items.json`-Eintrag.
+- **KI-Score-Coverage-Diagnose — abgeschlossen 10.10.2026 (read-only, keine
+  PR, reine Chat-Diagnose, hier nachträglich dokumentiert).** Von 472
+  gereiften Forward-Zeilen haben nur **144 (30 %)** einen `ki_signal_score`
+  (`ki_sentiment_source`: 120 „keyword", 24 „llm"; bei Score ≥70: 62 von
+  181). **Ursache (belegt):** Cron-Kollision — `daily-squeeze-report.yml:25`
+  (postclose `17 21 * * 1-5`) und `ki_agent.yml:9` (`17 * * * *`) feuern
+  zur selben Minute; der Daily-Run liest `agent_signals.json` vom letzten
+  **committeten** Tick (Beispiel 08./09.10.: 3 h 12 min alt), die Datei wird
+  pro Tick **komplett überschrieben** (nur aktueller Top-10/Watchlist/
+  Positions-Pool, `ki_agent.py:335-337`/`126-178`); der vom Daily-Run selbst
+  angestoßene Auto-Tick läuft **nach** dem Backtest-Append
+  (`apply_agent_boost` ca. `generate_report.py:18412` vor
+  `_append_backtest_entries` ca. `:18684`). 4 Tage mit 0 % Abdeckung
+  (05.08., 03.09., 14.09., 16.09.), keine klare Rang-Korrelation. Forward-
+  Returns sind Close-Close ab regulärem Schlusskurs sauber; der
+  gespeicherte Score kann Nachbörsen-Kurs (`USE_PREPOST_DATA=True`,
+  `config.py:1200`) und Post-Close-News bis zum Tick-Zeitpunkt tragen
+  (mild, nicht beziffert — Tick-Zeitstempel wird nicht pro Record
+  persistiert). LLM-Anteil nur 16,7 % — `claude_sentiment_score` fällt bei
+  jeder Exception still auf `None` zurück (`log.debug`), konkrete Ursache
+  (Rate-Limit/Timeout/Parse) nicht bestimmbar; API-Key ist verdrahtet
+  (`ki_agent.yml:53`). Modell/Prompt/Cap seit 23.04.2026 unverändert
+  (`68490659`), `compute_signal` seit 11.06.2026 nur einmal berührt
+  (`e90fd5f1`, PR #440, rein additiv) — alle 472 Zeilen unter einer
+  Konfiguration. Redundanz zum Setup-Score (r=0,691) stammt aus dem
+  15.07.-Re-Test (n=55, anderes Fenster, weiter oben in diesem Dokument
+  dokumentiert) — **nicht neu berechnet für die aktuelle Population.**
+  **Empfehlung (Entscheidung offen, Easy):** Coverage-Fix (Manual-Merge:
+  Daily-Run bekommt KI-Werte für die eigene Top-10 vor dem Append,
+  Tick-Zeitstempel mitspeichern, Fehlerarten des LLM-Aufrufs loggen) VOR
+  einer KI-Registrierung; danach llm/keyword als Kontext-Split statt
+  eigener Test (llm-Stratum n=24 zu klein). **Bis dahin kein Freeze für
+  den KI-Score.** Überschlag (kein Termin): bei 30 % Abdeckung ≈3
+  Datensätze/Handelstag → n=250 ≈ Februar 2027; bei voller Abdeckung ≈10/Tag
+  → ≈ Anfang Dezember 2026. Volldetails + Hypothesen-Prüfung im
+  `open_items.json`-Eintrag `ki-score-coverage-diagnose-10-10-2026`.
+- **Geplanter Auftrag „Squeeze Report Monatsrundgang November"** — einmalig,
+  **Montag 02.11.2026, 09:00 Berlin-Zeit (= 08:00 UTC)**, Cloud-Lauf, nur
+  lesend, Automatik-Modus. Bereitet Gruppen A–D vor, legt nur Gruppe B zur
+  Entscheidung vor. Prüft: NYSE-empty-Serie (Entscheidungspunkt ~26.10.,
+  siehe `open_items.json`-ID `nyse-regsho-empty-streak`), §4-Re-Test-Stand,
+  SEC/FINRA-Nachfolger-Filing (siehe Beobachtungseintrag oben), Block-1-
+  Rückstand.
 
 #### ⚠ Datenherkunft des vorabregistrierten Exit-B.1-Re-Tests — gap-NaN-Erkennbarkeitsgrenze (Stand 29.07.2026)
 
@@ -2129,7 +2230,10 @@ literatur-abgeleiteten Schwellen** (= `monster_score`-Overfitting-Schutz §8e).
 Kombi-Ansatz **Constraint × Katalysator × Peak-Ziel gleichzeitig** ist der
 Profi-Kurs. Einziger dokumentierter Profi-Vorsprung: **bezahlte Lending-Daten**
 (Utilization, Cost-to-Borrow-Tick, $10–50k/Jahr). Gratis-Zugang gibt es nicht.
-Synthetische Utilization ist im Bau-Kandidaten-Pool.
+Synthetische Utilization ist im Bau-Kandidaten-Pool. **Verweis (10.10.2026):**
+siehe „IBKR-Spur (Borrow-Daten)" (oben in Section 4) + `open_items.json`-ID
+`ibkr-borrow-data-spur` — eine mögliche Fee-Rate-Quelle (IBKR-Feld `7637`),
+Utilization selbst bleibt ohne gefundene freie API.
 
 ### BAU-KANDIDATEN (nach Re-Test-Befund, kein Termin, keine Priorität)
 
@@ -3121,6 +3225,17 @@ PR mit Auto-Merge) mit `docs: handover update after session JJJJ-MM-TT`. Bei
 größeren Übergängen: alle 9 Blöcke komplett neu, aus Repo/Logs belegt, nichts
 erfunden — **Hashes/Datum/Zahlen belegen, nicht aus Erinnerung** (dieser Refresh:
 alle #419–#426-Hashes + Datums-Basis git-belegt).
+
+### 9l. Subagent-gestützte read-only Diagnosen (NEU, 10.10.2026)
+
+Claude startet reine Lese-Diagnosen jetzt teils selbst über einen
+Unteragenten — **ohne** `gh`-/PR-/Actions-Zugriff, **kein** Schreibzugriff.
+Bau, Actions-Logs, PR-Daten und Open-Item-Einträge laufen weiterhin
+ausschließlich über die Haupt-Session („Code"). Der Unteragent dient nur
+der parallelen/entlasteten Durchführung reiner Grep-/Git-Log-/Zählungs-
+Diagnosen (analog dem bestehenden `squeeze-guardian`-Zweitblick, §9g, aber
+für Diagnose statt Review) — keine neue Berechtigungsstufe, keine
+Ausnahme von den PR-/Merge-Regeln oben.
 
 ---
 
