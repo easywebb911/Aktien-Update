@@ -1,10 +1,10 @@
 {
-  "updated": "2026-10-10T09:08:34.829145+02:00",
+  "updated": "2026-10-10T15:43:05.552821+02:00",
   "run_info": {
     "tickers_checked": 13,
-    "signals_active": 2,
+    "signals_active": 1,
     "alerts_sent": 0,
-    "elapsed_s": 19.0,
+    "elapsed_s": 15.1,
     "market_phase": "Geschlossen"
   },
   "signals": {
@@ -32,9 +32,9 @@
       "uoa_cp_ratio": 13.90283203125
     },
     "CBRL": {
-      "score": 72,
+      "score": 60,
       "confidence": 70,
-      "drivers": "Volumen 1.5× + Spanne 6.3% + News-KI 12/30: Positive momentum and earnings growth signals, but no indicators of high short interest, extreme valuation, or catalyst  + FINRA Short-Vol 53% + SEC Form 4 + UOA Call/Put 5.1×",
+      "drivers": "Volumen 1.5× + Spanne 6.3% + FINRA Short-Vol 53% + SEC Form 4 + UOA Call/Put 5.1×",
       "price": 57.46,
       "chg_pct": -0.0,
       "rvol_4d": 1.54,
@@ -45,8 +45,8 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 1,
-      "ki_sentiment_source": "llm",
+      "active_triggers": 0,
+      "ki_sentiment_source": "keyword",
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 5.1×"
@@ -99,9 +99,9 @@
       "uoa_cp_ratio": 3.0
     },
     "GRPN": {
-      "score": 16,
-      "confidence": 33,
-      "drivers": "News-KI 8/30: Mixed headlines show modest interest but lack the extreme negative sentiment, high short interest confirmation, or massi + Earnings in 26d",
+      "score": 8,
+      "confidence": 17,
+      "drivers": "Earnings in 26d",
       "price": 18.63,
       "chg_pct": -0.0,
       "rvol_4d": 0.72,
@@ -113,7 +113,7 @@
       "stocktwits": null,
       "combo_mult": 1.0,
       "active_triggers": 0,
-      "ki_sentiment_source": "llm",
+      "ki_sentiment_source": "keyword",
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": 0.07837360047142015,
@@ -122,7 +122,7 @@
     "IONQ": {
       "score": 38,
       "confidence": 33,
-      "drivers": "News: catalyst, partnership + Earnings in 25d",
+      "drivers": "News: partnership, catalyst + Earnings in 25d",
       "price": 39.89,
       "chg_pct": -0.0,
       "rvol_4d": 0.7,
@@ -252,9 +252,9 @@
       "uoa_cp_ratio": 4.142857142857143
     },
     "VEEA": {
-      "score": 63,
+      "score": 53,
       "confidence": 70,
-      "drivers": "Volumen 4.5× + ⚡ Extremes Volumen 4.5×+ + Spanne 32.5% + News-KI 12/30: Positive business developments and partnerships, but lack of short-squeeze indicators like high short interest, low floa",
+      "drivers": "Volumen 4.5× + ⚡ Extremes Volumen 4.5×+ + Spanne 32.5% + News-KI 8/30: Positive business developments and partnerships exist, but lack institutional short pressure indicators, high short inte",
       "price": 5.7,
       "chg_pct": -0.0,
       "rvol_4d": 4.51,
@@ -264,8 +264,8 @@
       "upcoming_event": null,
       "insider_buy": false,
       "stocktwits": null,
-      "combo_mult": 1.1,
-      "active_triggers": 2,
+      "combo_mult": 1.0,
+      "active_triggers": 1,
       "ki_sentiment_source": "llm",
       "uoa_score": 0,
       "uoa_drivers": [],
