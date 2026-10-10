@@ -319,7 +319,7 @@ trägt. Alle vier PR-Titel gegen die tatsächliche API-Antwort abgeglichen
 
 ---
 
-### 08.–10.10.2026 — NaN-Guard-Symmetrie (entry_past_return_5d) + Preis-Merge-Guard-/NYSE-empty-Diagnosen + Block-1-Autonomie-Regel + Setup-Edge-Re-Test-Freeze + Conviction-Erratum (7 PRs)
+### 08.–10.10.2026 — NaN-Guard-Symmetrie (entry_past_return_5d) + Preis-Merge-Guard-/NYSE-empty-Diagnosen + Block-1-Autonomie-Regel + Setup-Edge-Re-Test-Freeze + Conviction-Erratum + Oktober-Nachträge-Bündel (8 PRs)
 
 *(Nachtrag per Staleness-Grep 09.10.2026, GitHub-API `gh pr list --state
 merged` — NICHT Commit-Titel-Grep: höchste gemergte PR war zu Beginn
@@ -469,6 +469,33 @@ nicht mehr entstehen, nicht nur per Session-Disziplin.)*
   Auswertung nach n≥250 erst gebaut werden. `open_items.json`: kein
   neuer Eintrag, bestehender `setup-edge-retest-freeze` ergänzt. Lint
   grün (26 Items, unverändert in der Anzahl).
+
+- **Oktober-Nachträge gebündelt (Block-1-Pflicht befolgt):** `#586`
+  (Branch-Commit `33c11af1`, 10.10., kein Merge-Hash genannt — Regel a)
+  greift) bündelt 7 Doku-Nachträge in einem PR: (1) SR-FINRA-2026-012 als
+  zurückgezogen (05.08.2026, SEC-Filing-Seite „WITHDRAWN") dokumentiert,
+  alte Wiedervorlage erledigt-markiert (Text ergänzt, nicht gelöscht),
+  neuer Beobachtungseintrag für ein mögliches Nachfolger-Filing mit
+  Wiedervorlage beim Monatsrundgang; Code-Prüfung ergab, dass
+  `FINRA_PUB_OFFSET_BUSINESS_DAYS`/`N=3` nur vorausschauend auf das
+  Filing verweisen und bereits heute an FINRA Rule 4560 (Status quo)
+  hängen — kein Korrekturbedarf. (2) Neuer offener Eintrag für den
+  fehlenden gepaarten Bootstrap (ΔAUC, Setup-Edge-Erratum Test c) +
+  stehendes N=2000-Skript für Tests a/b, Auslöser-Vorschlag n≥200 (Easy
+  entscheidet). (3) KI-Score-Coverage-Diagnose vom selben Tag (reine
+  Chat-Diagnose, keine eigene PR) nachgetragen. (4) Neue IBKR-Spur
+  (Borrow-Daten, Status `beobachtet`) + Querverweis im Utilization-Bau-
+  Kandidaten-Pool. (5) Monatsrundgang November (02.11.2026) als
+  Wiedervorlage vermerkt. (6) Lit-Check 10.10.2026 ergänzt. (7)
+  Arbeitsweise-Notiz zu Unteragenten-gestützten Lese-Diagnosen (§9l).
+  **Abweichung gemeldet:** die im Auftrag genannte „16 % der Records"
+  für den stummen Borrow-Bonus ließ sich nicht reproduzieren (eigene
+  Zählung: 0 % seit 23.07.2026, ~12,9 % über die gesamte Feldhistorie)
+  — nur die git-belegte Kernaussage „seit 23.07. faktisch tot"
+  (Commit `ad981064`) wurde übernommen, die „16 %"-Zahl bewusst nicht.
+  `open_items.json`: 4 neue Einträge (26→30), ein bestehender Eintrag
+  auf `erledigt` gesetzt (Beschreibung ergänzt, nicht ersetzt), nichts
+  gelöscht. Lint grün.
 
 
 
