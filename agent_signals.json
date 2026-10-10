@@ -1,10 +1,10 @@
 {
-  "updated": "2026-10-10T20:36:48.002107+02:00",
+  "updated": "2026-10-11T00:33:04.462297+02:00",
   "run_info": {
     "tickers_checked": 13,
     "signals_active": 1,
     "alerts_sent": 0,
-    "elapsed_s": 13.7,
+    "elapsed_s": 15.4,
     "market_phase": "Geschlossen"
   },
   "signals": {
@@ -101,7 +101,7 @@
     "GRPN": {
       "score": 16,
       "confidence": 33,
-      "drivers": "News-KI 8/30: Mixed price action with increased investor interest but lacking clear short squeeze indicators like extreme short intere + Earnings in 26d",
+      "drivers": "News-KI 8/30: Mixed headlines show modest positive interest but lack strong short squeeze catalysts like extreme short interest, unusu + Earnings in 26d",
       "price": 18.63,
       "chg_pct": -0.0,
       "rvol_4d": 0.72,
@@ -120,9 +120,9 @@
       "uoa_cp_ratio": 1.352
     },
     "IONQ": {
-      "score": 38,
+      "score": 23,
       "confidence": 33,
-      "drivers": "News: partnership, catalyst + Earnings in 25d",
+      "drivers": "News: catalyst + Earnings in 25d",
       "price": 39.89,
       "chg_pct": -0.0,
       "rvol_4d": 0.7,
@@ -138,7 +138,7 @@
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": 0.5269250645994832,
-      "uoa_cp_ratio": 1.5176470588235293
+      "uoa_cp_ratio": 1.516638655462185
     },
     "LENZ": {
       "score": 33,
@@ -254,7 +254,7 @@
     "VEEA": {
       "score": 63,
       "confidence": 70,
-      "drivers": "Volumen 4.5× + ⚡ Extremes Volumen 4.5×+ + Spanne 32.5% + News-KI 12/30: Positive business developments and partnerships, but no short-squeeze indicators like high short interest, low float, or",
+      "drivers": "Volumen 4.5× + ⚡ Extremes Volumen 4.5×+ + Spanne 32.5% + News-KI 12/30: Positive business developments and partnerships, but no clear short squeeze indicators like high short interest, low flo",
       "price": 5.7,
       "chg_pct": -0.0,
       "rvol_4d": 4.51,
