@@ -319,7 +319,7 @@ trägt. Alle vier PR-Titel gegen die tatsächliche API-Antwort abgeglichen
 
 ---
 
-### 08.–10.10.2026 — NaN-Guard-Symmetrie (entry_past_return_5d) + Preis-Merge-Guard-/NYSE-empty-Diagnosen + Block-1-Autonomie-Regel + Setup-Edge-Re-Test-Freeze + Conviction-Erratum + Oktober-Nachträge-Bündel (8 PRs)
+### 08.–11.10.2026 — NaN-Guard-Symmetrie (entry_past_return_5d) + Preis-Merge-Guard-/NYSE-empty-Diagnosen + Block-1-Autonomie-Regel + Setup-Edge-Re-Test-Freeze + Conviction-Erratum + Oktober-Nachträge-Bündel + KI-Score-Coverage-Fix (9 PRs)
 
 *(Nachtrag per Staleness-Grep 09.10.2026, GitHub-API `gh pr list --state
 merged` — NICHT Commit-Titel-Grep: höchste gemergte PR war zu Beginn
@@ -496,6 +496,35 @@ nicht mehr entstehen, nicht nur per Session-Disziplin.)*
   `open_items.json`: 4 neue Einträge (26→30), ein bestehender Eintrag
   auf `erledigt` gesetzt (Beschreibung ergänzt, nicht ersetzt), nichts
   gelöscht. Lint grün.
+
+- **KI-Score-Coverage-Fix (Block-1-Pflicht befolgt, Manual-Merge, Merge
+  durch Easy aussteht):** `#587` (Branch-Commit `0a674c0d`, 11.10., kein
+  Merge-Hash genannt — Regel a) greift). Behebt die 10.10.-Diagnose (nur
+  30 % Coverage, Cron-Kollision postclose/ki_agent) — `generate_report.
+  _compute_fresh_ki_signals_for_backtest(top10)` berechnet synchron,
+  GENAU für die finalen Top-10-Ticker, direkt vor dem Backtest-Append
+  einen frischen KI-Wert (Reuse `ki_agent._process_ticker`, lazy
+  importiert). **Score-Unabhängigkeit belegt** (Call-Order-Trace):
+  `apply_agent_boost`/`apply_monster_score`/`apply_conviction_scores`
+  laufen nach der Top-10-Membership-Fixierung und lesen/schreiben
+  `ki_signal_score` direkt oder indirekt — die neue Funktion schreibt
+  deshalb nirgends auf das Stock-Dict zurück, nur in einen neuen
+  `fresh_ki_signals=`-Parameter von `_append_backtest_entries`/
+  `_build_backtest_extension`. Variante A (synchron im Daily-Run)
+  gewählt — Variante B (Workflow-Reihenfolge) ist strukturell untauglich
+  (zirkuläre Abhängigkeit: ki_agent kann die künftige Top-10 nie vorab
+  kennen), Variante C (additives `agent_signals.json`) löst weder
+  Erstauftritt-Ticker noch Zeitstempel-Synchronität. Zeitbudget empirisch
+  geprüft (GitHub-Actions-API, 5 Runs 08.–10.10.): Daily-Run dauert
+  ~70–85 s gesamt bei 10-Min-Timeout. Neues additives Feld
+  `ki_signal_ts` (UTC-ISO, Schema bleibt v4), `score=None` bei
+  Fehlschlag bleibt ehrliches None (kein Fallback auf stale Werte).
+  `claude_sentiment_score`-Fehlerarten jetzt `log.warning` + Lauf-
+  Zähler (Verhalten unverändert). 17 neue Tests + 1 angepasster
+  bestehender Test (Source-Pattern-Drift, Verhalten unverändert),
+  Golden-Test byte-identisch (441766 Bytes). `lint_nan_bypass_fields.py`:
+  61 Baseline-Zeilennummern nachgeführt (reine Verschiebung, kein
+  inhaltlicher Fund). **Kein KI-Freeze in diesem PR.**
 
 
 
