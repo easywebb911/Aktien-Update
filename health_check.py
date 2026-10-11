@@ -55,6 +55,9 @@ from config import (
     S10_WINDOW_SIZE,
     S10_MUSS_MIN_N,
     S10_LAG_MIN_AGED_N,
+    SETUP_EDGE_FREEZE_DATE,
+    SETUP_EDGE_FREEZE_N_TARGET,
+    BACKTEST_FILE,
 )
 
 # Digest-State-Datei für S8-Invariant (single source of truth über
@@ -1887,18 +1890,23 @@ _RETEST_SCORE_MIN = 70    # §4: score≥70-Bucket (Zielpopulation)
 _RETEST_N_TARGET  = 250   # §4: Auslöser n≥250
 
 
-def _count_matured_retest(export_path) -> tuple[int, int] | None:
-    """``(n_forward_ge70, total_zeilen)`` aus dem Matured-Export, oder ``None``
-    bei fehlender/unlesbarer Datei.
+def _read_matured_export_rows(export_path) -> tuple[int, list[dict]] | None:
+    """``(total_zeilen, valid_dict_rows)`` aus dem Matured-Export, fail-soft.
 
-    §4-Menge = ``provenance == "forward"`` UND ``score >= 70`` — **beide**
-    Bedingungen (weder forward allein noch score≥70 allein). Raise-frei: jede
-    Exception → ``None``. Leere-aber-lesbare Datei → ``(0, 0)``; unparsebare Zeile
-    zählt in ``total`` (ist eine Datei-Zeile), aber nicht in ``n`` (§4-Kriterien
-    nicht prüfbar); ``score`` fehlend/None/bool → nicht in ``n``."""
+    Single-Source-of-Truth für das rohe Datei-Einlesen — sowohl der §4-Zähler
+    (``_count_matured_retest``) als auch der Setup-Edge-Freeze-Zähler
+    (``_count_setup_edge_freeze_population``) lesen über diesen Helper, damit
+    die Parse-/Fail-Mechanik nicht zweimal dupliziert wird. ``total_zeilen``
+    zählt JEDE nicht-leere physische Zeile (auch unparsebare — eine kaputte
+    Zeile ist weiterhin eine Datei-Zeile). ``valid_dict_rows`` enthält nur
+    erfolgreich geparste JSON-Objekte (dicts); unparsebare oder Nicht-Dict-
+    Zeilen fehlen dort, tauchen aber in ``total_zeilen`` auf — identisch zum
+    bisherigen ``_count_matured_retest``-Verhalten vor diesem Refactor.
+    ``None`` bei fehlender/unlesbarer Datei (FileNotFoundError oder jede
+    andere I/O-/Encoding-Panne) — raise-frei."""
     try:
-        n = 0
         total = 0
+        rows: list[dict] = []
         with open(export_path, "r", encoding="utf-8") as fh:
             for line in fh:
                 s = line.strip()
@@ -1911,17 +1919,43 @@ def _count_matured_retest(export_path) -> tuple[int, int] | None:
                     continue
                 if not isinstance(obj, dict):
                     continue
-                sc = obj.get("score")
-                if (obj.get("provenance") == "forward"
-                        and isinstance(sc, (int, float))
-                        and not isinstance(sc, bool)
-                        and sc >= _RETEST_SCORE_MIN):
-                    n += 1
-        return n, total
+                rows.append(obj)
+        return total, rows
     except FileNotFoundError:
         return None
     except Exception:  # pragma: no cover — jede weitere I/O-/Encoding-Panne
         return None
+
+
+def _count_matured_retest(export_path) -> tuple[int, int] | None:
+    """``(n_forward_ge70, total_zeilen)`` aus dem Matured-Export, oder ``None``
+    bei fehlender/unlesbarer Datei.
+
+    §4-Menge = ``provenance == "forward"`` UND ``score >= 70`` — **beide**
+    Bedingungen (weder forward allein noch score≥70 allein). Raise-frei: jede
+    Exception → ``None``. Leere-aber-lesbare Datei → ``(0, 0)``; unparsebare Zeile
+    zählt in ``total`` (ist eine Datei-Zeile), aber nicht in ``n`` (§4-Kriterien
+    nicht prüfbar); ``score`` fehlend/None/bool → nicht in ``n``.
+
+    Liest seit dem Freeze-Zähler-PR (11.10.2026) über den gemeinsamen Helper
+    ``_read_matured_export_rows`` (Single Source of Truth für das Datei-
+    Einlesen) — die Filter-Logik selbst (§4-Kriterien: forward + score≥70)
+    ist unverändert gegenüber vorher; siehe
+    ``scripts/mock_test_freeze_zaehler.py`` für den Vorher/Nachher-Beleg,
+    dass dieser Refactor den §4-Rückgabewert nicht verändert hat."""
+    result = _read_matured_export_rows(export_path)
+    if result is None:
+        return None
+    total, rows = result
+    n = 0
+    for obj in rows:
+        sc = obj.get("score")
+        if (obj.get("provenance") == "forward"
+                and isinstance(sc, (int, float))
+                and not isinstance(sc, bool)
+                and sc >= _RETEST_SCORE_MIN):
+            n += 1
+    return n, total
 
 
 def retest_counter_value(export_path=None) -> tuple[int, int] | None:
@@ -1943,6 +1977,198 @@ def retest_counter_line(export_path=None) -> str:
     n, total = counts
     return (f"📊 Re-Test-Zähler (§4): n = {n}/{_RETEST_N_TARGET} "
             f"· Export {total} Zeilen")
+
+
+# ── Setup-Edge/Conviction-Freeze-Zähler für den Digest-Push (11.10.2026) ────
+# Macht den Fortschritt der Setup-Edge-Re-Test-Freeze-Vorabregistrierung
+# (SESSION_HANDOVER.md, "VORABREGISTRIERUNG — Setup-Edge-Re-Test
+# (Score-Trennschärfe), eingefroren 10.10.2026", inkl. Conviction-Zusatz-
+# nutzen-Erratum) im täglichen Health-Check-Push sichtbar — ANALOG zum
+# §4-Zähler oben, aber mit EIGENER Population (siehe Punkt 2 des Freeze:
+# provenance=="forward" UND Eintrittsdatum strikt NACH dem Freeze-Datum UND
+# return_5d/return_10d gefüllt, ALLE Scores — kein score>=70-Filter wie §4).
+# REIN ZÄHLUNG — keine Outcome-Werte (keine Renditen/Trefferquoten/AUC/
+# Quantile). DISPLAY-ONLY: kein neuer Alarm, kein neuer S-Check, keine
+# Push-Änderung. Fail-soft wie der §4-Zähler: fehlt/kaputt eine Quelle,
+# zeigt der jeweilige Teil „n/a", der Digest läuft unverändert weiter.
+_FREEZE_DATE_STR = SETUP_EDGE_FREEZE_DATE          # "10.10.2026", DD.MM.YYYY
+_FREEZE_N_TARGET = SETUP_EDGE_FREEZE_N_TARGET      # 250, identisch zu §4
+
+
+def _parse_dmy_date(s) -> date | None:
+    """Parst ``DD.MM.YYYY`` zu einem ``date``-Objekt, oder ``None`` bei
+    jedem Format-/Typ-Fehler. Reiner String-/Datums-Vergleich — identisch
+    zum Datumsformat in ``matured_backtest_export.jsonl``/
+    ``backtest_history.json`` (ET-Handelstag, siehe
+    ``generate_report.py:_marktdaten_timestamp``-Docstring)."""
+    if not isinstance(s, str):
+        return None
+    try:
+        return datetime.strptime(s, "%d.%m.%Y").date()
+    except (ValueError, TypeError):
+        return None
+
+
+def _is_freeze_population_row(obj: dict, freeze_date: date | None) -> bool:
+    """True wenn ``obj`` zur bestätigenden Setup-Edge-Freeze-Population
+    gehört (Freeze-Punkt 2): ``provenance == "forward"`` UND Eintrittsdatum
+    strikt NACH ``freeze_date`` UND ``return_5d``/``return_10d`` beide
+    gefüllt (nicht ``None``). Alle Scores — KEIN score>=70-Filter (das ist
+    die §4-spezifische Einschränkung, hier bewusst NICHT angewendet)."""
+    if freeze_date is None:
+        return False
+    if obj.get("provenance") != "forward":
+        return False
+    entry_date = _parse_dmy_date(obj.get("date"))
+    if entry_date is None or entry_date <= freeze_date:
+        return False
+    if obj.get("return_5d") is None or obj.get("return_10d") is None:
+        return False
+    return True
+
+
+def _freeze_population_keys(rows: list[dict], freeze_date: date | None,
+                            min_date: date | None = None) -> set[tuple]:
+    """Dedupe-Set der ``(ticker, date)``-Schlüssel aller Zeilen, die zur
+    Setup-Edge-Freeze-Population gehören (siehe ``_is_freeze_population_row``).
+    Dubletten (gleicher Ticker, gleiches Datum) zählen EINMAL — Robustheit
+    gegen eine theoretisch mögliche doppelte Export-Zeile. Der reguläre
+    Schreibpfad (``matured_export.py``, ``seen``-Set beim Append) verhindert
+    Dubletten bereits beim Schreiben; dieser Zähler verlässt sich aber nicht
+    allein darauf, sondern dedupliziert selbst defensiv.
+
+    ``min_date`` filtert zusätzlich auf Eintrittsdatum ``>= min_date`` (für
+    die 14-Tage-Rate; ``None`` = kein zusätzlicher Filter, nur die
+    Freeze-Population-Bedingungen selbst)."""
+    keys: set[tuple] = set()
+    for obj in rows:
+        if not _is_freeze_population_row(obj, freeze_date):
+            continue
+        if min_date is not None:
+            entry_date = _parse_dmy_date(obj.get("date"))
+            if entry_date is None or entry_date < min_date:
+                continue
+        keys.add((obj.get("ticker"), obj.get("date")))
+    return keys
+
+
+def _count_setup_edge_freeze_population(export_path) -> tuple[int, int] | None:
+    """``(n, total_zeilen)`` der Setup-Edge-Freeze-Population aus dem
+    Matured-Export, oder ``None`` bei fehlender/unlesbarer Datei. Liest über
+    denselben ``_read_matured_export_rows``-Helper wie der §4-Zähler (Single
+    Source of Truth fürs Datei-Einlesen) — die Populations-Filterung selbst
+    ist eigenständig (siehe ``_is_freeze_population_row``), weil sie sich von
+    der §4-Population unterscheidet (kein score>=70-Filter, dafür
+    Datums-Schranke + Returns-Gefüllt-Pflicht). Dubletten (ticker, date)
+    zählen einmal (siehe ``_freeze_population_keys``)."""
+    result = _read_matured_export_rows(export_path)
+    if result is None:
+        return None
+    total, rows = result
+    freeze_date = _parse_dmy_date(_FREEZE_DATE_STR)
+    n = len(_freeze_population_keys(rows, freeze_date))
+    return n, total
+
+
+def _freeze_rate_last_14d(export_path, now: datetime | None = None) -> tuple[int, int] | None:
+    """``(zeilen, distinct_handelstage)`` der Freeze-Population mit
+    Eintrittsdatum in den letzten 14 Kalendertagen (bezogen auf ``now``,
+    UTC falls nicht gesetzt — Grenze inklusive, ``entry_date >= heute -
+    14 Tage``). REINE ZÄHLUNG, keine Rate-/Durchschnitts-Berechnung hier
+    (das macht der Line-Builder als reine Text-Formatierung). Dubletten
+    (ticker, date) zählen einmal, identisch zu
+    ``_count_setup_edge_freeze_population``. ``None`` bei fehlender/
+    unlesbarer Datei."""
+    result = _read_matured_export_rows(export_path)
+    if result is None:
+        return None
+    total, rows = result
+    freeze_date = _parse_dmy_date(_FREEZE_DATE_STR)
+    if now is None:
+        now = datetime.now(timezone.utc)
+    cutoff = now.date() - timedelta(days=14)
+    keys = _freeze_population_keys(rows, freeze_date, min_date=cutoff)
+    tage = {d for (_t, d) in keys}
+    return len(keys), len(tage)
+
+
+def _freeze_ki_coverage_last_report_day(backtest_path) -> str:
+    """``"X/Y"`` (KI-Signal-Coverage) oder ``"n/a"`` für den letzten Report-
+    Tag in ``backtest_history.json``. REINE ZÄHLUNG, kein Outcome-Wert.
+
+    „n/a" wenn KEINER der Einträge dieses Tages das Feld ``ki_signal_ts``
+    überhaupt BESITZT (Tag liegt vor der KI-Score-Coverage-Fix-Einführung,
+    PR #587, additives Feld) — Unterscheidung über Schlüssel-Präsenz
+    (``"ki_signal_ts" in obj``), NICHT über ``.get(...)`` (das würde
+    fehlenden Schlüssel und expliziten ``null``-Wert — Fresh-KI-Fetch
+    fehlgeschlagen — ununterscheidbar machen). Sobald mindestens ein
+    Eintrag des Tages den Schlüssel trägt, wird numerisch gezählt (auch
+    wenn andere Einträge desselben Tages den Schlüssel noch nicht tragen —
+    das ist dann echte Teil-Coverage, keine Formatfrage).
+
+    Fail-soft: jeder Fehler (Datei fehlt, kaputtes JSON, leere Liste,
+    kein parsbares Datum) → ``"n/a"``, nie eine Exception."""
+    try:
+        with open(backtest_path, "r", encoding="utf-8") as fh:
+            data = json.load(fh)
+        if not isinstance(data, list) or not data:
+            return "n/a"
+        last_date: date | None = None
+        for e in data:
+            if not isinstance(e, dict):
+                continue
+            pd = _parse_dmy_date(e.get("date"))
+            if pd is not None and (last_date is None or pd > last_date):
+                last_date = pd
+        if last_date is None:
+            return "n/a"
+        last_date_str = last_date.strftime("%d.%m.%Y")
+        day_entries = [e for e in data
+                       if isinstance(e, dict) and e.get("date") == last_date_str]
+        if not day_entries:
+            return "n/a"
+        if not any("ki_signal_ts" in e for e in day_entries):
+            return "n/a"
+        total = len(day_entries)
+        covered = sum(1 for e in day_entries if e.get("ki_signal_ts") is not None)
+        return f"{covered}/{total}"
+    except Exception:  # pragma: no cover — jede weitere I/O-/Encoding-Panne
+        return "n/a"
+
+
+def freeze_counter_line(export_path=None, backtest_path=None,
+                        now: datetime | None = None) -> str:
+    """Eine Zeile „🧪 Freeze-Zähler" für den Digest-Push — fail-soft (nie
+    Exception, nie leer). Drei Teile, jeder unabhängig fail-soft (ein
+    kaputter Teil zeigt „n/a", die anderen Teile bleiben lesbar):
+
+      (i)   Setup/Conviction-Freeze-Population: ``n = X/250``
+      (ii)  Rate: Zeilen/Handelstage in den letzten 14 Kalendertagen
+      (iii) KI-Abdeckung des letzten Report-Tags (``backtest_history.json``)
+
+    Optional (iv) aus dem Auftrag (Export-weite ki_signal_ts-Zeilenzahl)
+    ist bewusst NICHT gebaut — als „Optional" markiert, redundant zu (iii)
+    für die heutige Beobachtungs-Frage („kommt KI-Score jetzt durch?") und
+    hätte einen dritten Datei-Lesevorgang pro Digest-Lauf gekostet. Siehe
+    PR-Bericht."""
+    try:
+        ep = export_path if export_path is not None else MATURED_EXPORT_FILE
+        bp = backtest_path if backtest_path is not None else config.BACKTEST_FILE
+
+        pop = _count_setup_edge_freeze_population(ep)
+        pop_txt = (f"n = {pop[0]}/{_FREEZE_N_TARGET}" if pop is not None
+                   else "nicht ermittelbar")
+
+        rate = _freeze_rate_last_14d(ep, now=now)
+        rate_txt = (f"{rate[0]} Zeilen/{rate[1]} Handelstage (14T)"
+                    if rate is not None else "n/a")
+
+        ki_txt = _freeze_ki_coverage_last_report_day(bp)
+
+        return (f"🧪 Freeze-Zähler: Setup/Conviction {pop_txt} · "
+                f"Rate {rate_txt} · KI-Abdeckung (letzter Report-Tag) {ki_txt}")
+    except Exception:  # pragma: no cover — äußerster Fail-Soft-Guard
+        return "🧪 Freeze-Zähler: nicht ermittelbar"
 
 
 # ── Wöchentlicher Zusammenfassungs-Block (Digest-Zusatz, 25.09.2026) ────────
@@ -2641,6 +2867,7 @@ def format_digest_body(state_fails: list[dict],
                        last_run_iso: str | None,
                        digest_date: str,
                        retest_line: str | None = None,
+                       freeze_line: str | None = None,
                        inst_own_line: str | None = None,
                        options_oi_line: str | None = None,
                        ftd_line: str | None = None,
@@ -2670,6 +2897,8 @@ def format_digest_body(state_fails: list[dict],
         )
         if retest_line:
             body += f"\n{retest_line}"
+        if freeze_line:
+            body += f"\n{freeze_line}"
         if inst_own_line:
             body += f"\n{inst_own_line}"
         if options_oi_line:
@@ -2712,6 +2941,8 @@ def format_digest_body(state_fails: list[dict],
                 f"(kein Alarm, {f.get('count', 1)}× im 24h-Fenster)")
         if retest_line:
             body_lines.append(retest_line)
+        if freeze_line:
+            body_lines.append(freeze_line)
         if inst_own_line:
             body_lines.append(inst_own_line)
         if options_oi_line:
@@ -2758,6 +2989,8 @@ def format_digest_body(state_fails: list[dict],
         lines.append("")
     if retest_line:
         lines.append(retest_line)
+    if freeze_line:
+        lines.append(freeze_line)
     if inst_own_line:
         lines.append(inst_own_line)
     if options_oi_line:

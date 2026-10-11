@@ -275,6 +275,18 @@ def main(*, now_ts: datetime | None = None,
         log.warning("retest_counter_line unerwartet: %r", _rc_exc)
         retest_line = None
 
+    # Setup-Edge/Conviction-Freeze-Zähler (fail-soft, backend-only, 11.10.2026):
+    # eine Zeile "🧪 Freeze-Zähler" im Push-Body, analog zum §4-Zähler oben —
+    # freeze_counter_line ist bereits raise-frei (eigener Außen-Guard); der
+    # try/except ist reine Absicherung, damit der Digest durch diese Zeile
+    # unter KEINEN Umständen scheitert.
+    try:
+        freeze_line = hc.freeze_counter_line(
+            ROOT / hc.MATURED_EXPORT_FILE, ROOT / hc.BACKTEST_FILE)
+    except Exception as _fz_exc:  # pragma: no cover — Helper ist raise-frei
+        log.warning("freeze_counter_line unerwartet: %r", _fz_exc)
+        freeze_line = None
+
     # inst_ownership_history-Liveness (fail-soft, backend-only): eine Zeile im
     # Body. Zeigt LIVENESS (läuft/noch-nie/kaputt), nicht Änderungen — 13F ist
     # quartalsweise. WICHTIG: der Sammler läuft NUR im Daily-Run, NICHT im
@@ -350,6 +362,7 @@ def main(*, now_ts: datetime | None = None,
         last_run_iso=last_run_iso,
         digest_date=today_iso,
         retest_line=retest_line,
+        freeze_line=freeze_line,
         inst_own_line=inst_own_line,
         options_oi_line=options_oi_line,
         ftd_line=ftd_line,

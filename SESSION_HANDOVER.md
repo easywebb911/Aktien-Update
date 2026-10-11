@@ -1557,6 +1557,18 @@ bestätigenden Test unten ein — sie dienen hier nur der Lage-Einordnung
    den Fix heute nur mit §4, nicht mit diesem neuen Test — diese Lücke wird
    mit dem SCHRITT-2-Eintrag unten geschlossen.
 
+   **ERRATUM 11.10.2026 — Easy-Entscheidung zu Punkt 9: Option A.** Der
+   `_detect_recent_squeeze`-Fix (`open_items.json`, ID
+   `pr532-or0-sibling-bugs`) wird **erst nach Auswertung BEIDER Tests**
+   (§4 Exit-B.1 **und** dieser Setup-Edge-Re-Test, inklusive des
+   Conviction-Zusatznutzen-Erratums „Test c" weiter unten) umgesetzt —
+   nicht früher. Option B ist damit entfallen. Diese Entscheidung gilt
+   zugleich für den gleichlautenden, noch offenen Punkt 9 der „EINGEFRORENEN
+   ERGÄNZUNG" (Conviction-Zusatznutzen-Erratum) weiter unten — dort war
+   ebenfalls „keine Vorentscheidung" vermerkt; dieses Erratum löst beide
+   Stellen einheitlich auf, ohne deren Text zu ändern. Der Text von Punkt 9
+   selbst bleibt oben unverändert stehen (reine Ergänzung, keine Streichung).
+
 **Änderungs-Protokoll (bindend ab Freeze-Datum, analog §4):** Keine Änderung
 an diesem Block ohne datierten Protokolleintrag, der die Änderung und ihren
 Grund festhält.
@@ -1670,6 +1682,12 @@ reine Ergänzung.
    nach Auswertung BEIDER/ALLER Tests; B: Fix vor n=250 mit explizitem
    8d-Eintrag hier) gelten unverändert, jetzt für drei statt zwei Tests.
    Keine Vorentscheidung.
+
+   **ERRATUM 11.10.2026 — siehe Freeze-Punkt 9 oben.** Easy hat sich für
+   Option A entschieden (Fix erst nach Auswertung ALLER drei Tests,
+   inklusive dieses Conviction-Zusatznutzen-Tests). Siehe dortigen
+   ERRATUM-Vermerk für den vollen Wortlaut — hier nur Querverweis, kein
+   doppelter Text.
 10. **Erwartung (Schätzung, kein Termin):** wie im Freeze oben. Die
     tatsächliche Rate wird gezählt (Zeilen pro Handelstag **unter V2** —
     nach Punkt 2 heute ohnehin 100 % der Population), nur die Schätzzeile
