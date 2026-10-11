@@ -284,11 +284,24 @@ _EDGAR_8K_ACCT:     dict = {"latency_ms": 0, "calls": 0, "failures": 0, "success
 _EDGAR_FORM4_ACCT:  dict = {"latency_ms": 0, "calls": 0, "failures": 0, "successes": 0, "last_error_repr": None}
 _EDGAR_13D_G_ACCT:  dict = {"latency_ms": 0, "calls": 0, "failures": 0, "successes": 0, "last_error_repr": None}
 
+# KI-Score-Coverage-Fix (11.10.2026) — Fehlerart-Zähler für claude_sentiment_
+# score(). Rein informativ (log.warning pro Fall + ein konsolidierter Zähler-
+# Log am Lauf-Ende), KEIN neues Verhalten: der Keyword-Fallback bleibt exakt
+# wie vorher. Macht sichtbar, OB der niedrige LLM-Anteil (16,7 % laut Diagnose
+# 10.10.2026) eher Rate-Limits, Timeouts oder Parse-Fehler sind — vorher
+# ausschließlich auf log.debug (praktisch unsichtbar in Standard-CI-Logs).
+_KI_SENTIMENT_ERROR_COUNTS: dict = {
+    "no_api_key": 0, "no_headlines": 0, "rate_limit": 0, "http_other": 0,
+    "timeout": 0, "request_error": 0, "parse_error": 0,
+}
+
 
 def _reset_tier3_accumulators() -> None:
     for acct in (_STOCKTWITS_ACCT, _UOA_ACCT, _NEWS_RSS_ACCT,
                  _EDGAR_8K_ACCT, _EDGAR_FORM4_ACCT, _EDGAR_13D_G_ACCT):
         health_check.provider_acct_reset(acct)
+    for _k in _KI_SENTIMENT_ERROR_COUNTS:
+        _KI_SENTIMENT_ERROR_COUNTS[_k] = 0
 
 
 def _unpack_or_default(result, default):
@@ -1448,14 +1461,24 @@ def claude_sentiment_score(ticker: str, news: list[str]) -> tuple[int | None, st
 
     Billiger Call: Haiku 4.5, max_tokens=50, ~0.001 USD pro Ticker.
     Alle Fehler (Timeout, JSON-Parse, HTTP ≠ 200) führen zu None → Fallback.
+
+    Fehlerart-Sichtbarkeit (KI-Score-Coverage-Fix, 11.10.2026): jeder
+    Fehlerfall wird zusätzlich in ``_KI_SENTIMENT_ERROR_COUNTS`` gezählt
+    und (außer den zwei erwartbaren Nicht-Fehler-Fällen „kein API-Key"/
+    „keine Headlines") mit ``log.warning`` statt bisher nur ``log.debug``
+    geloggt — Diagnose 10.10.2026 fand den niedrigen LLM-Anteil (16,7 %)
+    praktisch unsichtbar, weil alle Fehlerarten ununterscheidbar auf
+    ``log.debug`` liefen. Ändert NICHTS am Rückgabewert/Fallback-Verhalten.
     """
     if not KI_SENTIMENT_ENABLED:
         return None, ""
     api_key = os.environ.get("ANTHROPIC_API_KEY", "").strip()
     if not api_key:
+        _KI_SENTIMENT_ERROR_COUNTS["no_api_key"] += 1
         return None, ""
     headlines = [h for h in (news or []) if h][:KI_SENTIMENT_HEADLINES]
     if not headlines:
+        _KI_SENTIMENT_ERROR_COUNTS["no_headlines"] += 1
         return None, ""
     try:
         resp = requests.post(
@@ -1481,8 +1504,14 @@ def claude_sentiment_score(ticker: str, news: list[str]) -> tuple[int | None, st
             timeout=8,
         )
         if resp.status_code != 200:
-            log.debug("%s Haiku-Call HTTP %d: %s", ticker, resp.status_code,
-                      resp.text[:200])
+            if resp.status_code == 429:
+                _KI_SENTIMENT_ERROR_COUNTS["rate_limit"] += 1
+                log.warning("%s Haiku-Call Rate-Limit (HTTP 429): %s",
+                            ticker, resp.text[:200])
+            else:
+                _KI_SENTIMENT_ERROR_COUNTS["http_other"] += 1
+                log.warning("%s Haiku-Call HTTP %d: %s", ticker,
+                            resp.status_code, resp.text[:200])
             return None, ""
         data = resp.json()
         # Content ist eine Liste von Blöcken; wir nehmen den ersten text-Block.
@@ -1497,9 +1526,17 @@ def claude_sentiment_score(ticker: str, news: list[str]) -> tuple[int | None, st
         reason = str(parsed.get("reason", ""))[:120]
         score  = max(0, min(score, KI_SENTIMENT_MAX_SCORE))
         return score, reason
-    except (requests.RequestException, json.JSONDecodeError, ValueError,
-            TypeError, KeyError) as exc:
-        log.debug("%s Haiku-Call fehlgeschlagen: %s", ticker, exc)
+    except requests.Timeout as exc:
+        _KI_SENTIMENT_ERROR_COUNTS["timeout"] += 1
+        log.warning("%s Haiku-Call Timeout: %s", ticker, exc)
+        return None, ""
+    except requests.RequestException as exc:
+        _KI_SENTIMENT_ERROR_COUNTS["request_error"] += 1
+        log.warning("%s Haiku-Call Netzwerkfehler: %s", ticker, exc)
+        return None, ""
+    except (json.JSONDecodeError, ValueError, TypeError, KeyError) as exc:
+        _KI_SENTIMENT_ERROR_COUNTS["parse_error"] += 1
+        log.warning("%s Haiku-Call Parse-Fehler: %s", ticker, exc)
         return None, ""
 
 
@@ -3776,6 +3813,13 @@ def main() -> None:
 
     save_signals(out)
     log.info("agent_signals.json aktualisiert.")
+    # KI-Score-Coverage-Fix (11.10.2026) — Fehlerart-Zusammenfassung dieses
+    # Laufs, rein informativ (kein Score-/Push-Effekt). Nur loggen wenn
+    # mindestens ein Fall gezählt wurde, um leere Zeilen jeden Tick zu
+    # vermeiden.
+    if any(_KI_SENTIMENT_ERROR_COUNTS.values()):
+        log.info("KI-Sentiment-Fehlerarten diesen Lauf: %s",
+                  dict(_KI_SENTIMENT_ERROR_COUNTS))
 
     # Backtest-Returns nachführen: fälligen return_3d/5d/10d-Feldern den
     # aktuellen Close-Preis zuweisen. Idempotent; kein Einfluss wenn nichts fällig.

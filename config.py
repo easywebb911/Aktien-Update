@@ -165,6 +165,23 @@ SUB_NEWS_CAP         = 10   # Cap für news_pts insgesamt
 AGENT_BOOST_ENABLED   = True
 AGENT_BOOST_MAX_AGE_H = 4
 
+# ── Fresh-KI-Signal für Backtest-Append (KI-Score-Coverage-Fix, 11.10.2026) ──
+# Behebt die Diagnose 10.10.2026: ki_signal_score im Backtest stammte vom
+# letzten COMMITTETEN ki_agent-Tick (Cron-Kollision postclose/ki_agent,
+# bis zu Stunden alt, kennt die heutige finale Top-10 noch nicht — nur
+# 30% Coverage). Der postclose-Daily-Run berechnet jetzt synchron, direkt
+# vor dem Backtest-Append, EINEN frischen KI-Wert GENAU für seine eigenen
+# finalen Top-10-Ticker (ruft ki_agent._process_ticker() wieder, lazy
+# importiert). Fließt NIE in score()/Ranking/Push/Conviction zurück — nur
+# in den Backtest-Record (ki_signal_score + neues Feld ki_signal_ts).
+# Zeitbudget: Daily-Run dauert heute empirisch ~70-85s gesamt (5 Workflow-
+# Läufe 08.-10.10.2026 geprüft, GitHub-Actions-API), Timeout-Budget ist
+# 10 min — reichlich Puffer für 10 Ticker.
+FRESH_KI_SIGNAL_ENABLED     = True
+FRESH_KI_SIGNAL_MAX_WORKERS = 8     # parallele Ticker (max. 10 pro Top-10)
+FRESH_KI_SIGNAL_TIMEOUT_S   = 60    # pro Ticker-Future; Einzel-Fetcher haben
+                                    # eigene, kürzere HTTP-Timeouts darunter
+
 # ── Pump & Dump Filter ──────────────────────────────────────────────────────
 # Warnende Badges, kein Ausschluss. Zwei Erkennungspfade:
 #   Flag 1: Kurs +30% in 5T UND Volumen-Rückgang (rvol_today < rvol_yesterday)
@@ -2173,6 +2190,17 @@ S10_OBSERVED_FIELDS = frozenset({
     # ein separater Stufe-B-PR). Schema bleibt v4 (additiv). Fließt NICHT
     # automatisch in bestehende Vorabregistrierungen (§4 Exit-B.1, H5) ein.
     "return_3d_vs_spy", "return_5d_vs_spy", "return_10d_vs_spy",
+    # KI-Score-Coverage-Fix (11.10.2026): Berechnungs-Zeitstempel (UTC-ISO)
+    # des frisch im selben postclose-Lauf berechneten ki_signal_score (siehe
+    # FRESH_KI_SIGNAL_* oben + generate_report._compute_fresh_ki_signals_
+    # for_backtest). LEGITIM None auf alten Records (vor diesem Fix) UND
+    # auf allen premarket-Records (Fix läuft nur im postclose-Append-Pfad)
+    # → nur OBSERVED, KEIN MUSS/LAG. Schema bleibt v4 (additiv). Reine
+    # Analyse-/Diagnose-Persistenz, KEIN Score-/Filter-/Push-Effekt —
+    # dient künftig als Populations-Marker: Records MIT ki_signal_ts sind
+    # die Population für einen späteren KI-Freeze, Records ohne bleiben
+    # explorativ (siehe SESSION_HANDOVER.md).
+    "ki_signal_ts",
 })
 
 S10_WINDOW_SIZE          = 20    # Letzte N V4-Einträge für MUSS-Check

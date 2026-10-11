@@ -693,7 +693,8 @@ def _build_backtest_extension(s: dict, pool_position: int, pool_size: int,
                               material_8k: dict | None = None,
                               attention_wiki: dict | None = None,
                               ssr_restriction: dict | None = None,
-                              entry_date: "date | None" = None) -> dict:
+                              entry_date: "date | None" = None,
+                              fresh_ki: dict | None = None) -> dict:
     """Liefert das Schema-Erweiterungs-Dict (Bahn B) für einen Top-10-Eintrag.
 
     Felder, die retroaktiv NICHT rekonstruierbar sind:
@@ -708,6 +709,16 @@ def _build_backtest_extension(s: dict, pool_position: int, pool_size: int,
       • Source unbekannt → "unknown"
     """
     sub = compute_sub_scores_fn(s) if s.get("short_float") is not None else None
+    # KI-Score-Coverage-Fix (11.10.2026): fresh_ki hat Vorrang vor dem
+    # (ggf. stale) s["ki_signal_score"]/s["ki_sentiment_source"] aus
+    # apply_agent_boost — siehe Docstring-Absatz oben. Bei fresh_ki=None
+    # (kein Fix-Lauf dieses Mal, oder Alt-Code-Pfad) exakt die alte Quelle.
+    if fresh_ki is not None:
+        _fresh_ki_score = fresh_ki.get("score")
+        _fresh_ki_sentiment_source = fresh_ki.get("sentiment_source")
+    else:
+        _fresh_ki_score = s.get("ki_signal_score")
+        _fresh_ki_sentiment_source = s.get("ki_sentiment_source")
     # Combo-Bonus aus den Bedingungen in score() rekonstruieren — Recompute
     # statt Refactor des autoritativen score()-Pfads.
     sf_val = safe_float_fn(s.get("short_float", 0))
@@ -863,16 +874,20 @@ def _build_backtest_extension(s: dict, pool_position: int, pool_size: int,
         #                     IMMER gesetzt für Top-10, aber auf Alt-Einträgen
         #                     ABWESEND → leer-tolerant (None) → nur S10_OBSERVED,
         #                     KEIN MUSS-/LAG-Check.
-        #   ki_signal_score:  roher ki_agent-Score (apply_agent_boost, gen 2937).
-        #                     LEGITIM None, wenn der Ticker keinen agent_signals-
-        #                     Eintrag hat → ebenfalls nur S10_OBSERVED.
+        #   ki_signal_score:  roher ki_agent-Score (apply_agent_boost, gen 2937),
+        #                     ODER — ab 11.10.2026, wenn ``fresh_ki`` übergeben
+        #                     wird — der synchron im selben postclose-Lauf GENAU
+        #                     für diesen Ticker frisch berechnete Wert (KI-Score-
+        #                     Coverage-Fix, siehe ki_signal_ts weiter unten).
+        #                     LEGITIM None, wenn weder ein agent_signals-Eintrag
+        #                     noch ein Fresh-Wert vorliegt → nur S10_OBSERVED.
         # Schema-ADDITIV — KEIN v4→v5-Bump (S10-Loader filtert == 4). KEIN
         # Push/keine Anzeige/kein Score-/Filter-Effekt (reiner Persist-Read).
         "monster_score":           (round(float(s.get("monster_score")), 2)
                                      if s.get("monster_score") is not None
                                      else None),
-        "ki_signal_score":         (round(float(s.get("ki_signal_score")), 2)
-                                     if s.get("ki_signal_score") is not None
+        "ki_signal_score":         (round(float(_fresh_ki_score), 2)
+                                     if _fresh_ki_score is not None
                                      else None),
         # LLM-Fallback-Provenienz (16.07.2026): "llm" | "keyword" | "none" —
         # markiert, ob der ki_signal-News-Anteil vom Claude-Haiku-Call oder vom
@@ -880,11 +895,21 @@ def _build_backtest_extension(s: dict, pool_position: int, pool_size: int,
         # Adressiert den ki_signal-Re-Test-Confound (Sample-Heterogenität, 15.07.:
         # LLM- vs. Keyword-gescorte News nicht unterscheidbar). Von
         # apply_agent_boost aufs Stock-Dict gesetzt (gen ~3226); hier read-through
-        # in den Record (der entry.update-Merge Z. 1031 = die #411-Durchreichung).
+        # in den Record — ODER (ab 11.10.2026) aus ``fresh_ki`` (dieselbe
+        # Fresh-Berechnung wie ki_signal_score oben, konsistente Quelle).
         # LEGITIM None auf Alt-Records (forward-only, rückwirkend NICHT
         # rekonstruierbar) → nur S10_OBSERVED, KEIN MUSS/LAG. String, kein Round.
         # KEIN Push/keine Anzeige/kein Score-/Filter-Effekt (reiner Persist-Read).
-        "ki_sentiment_source":     s.get("ki_sentiment_source"),
+        "ki_sentiment_source":     _fresh_ki_sentiment_source,
+        # KI-Score-Coverage-Fix (11.10.2026): UTC-ISO-Zeitstempel, WANN der
+        # Fresh-Versuch für ki_signal_score diesen Lauf stattfand — gesetzt
+        # IMMER wenn ``fresh_ki`` übergeben wurde (auch bei score=None, d.h.
+        # der Versuch schlug für diesen Ticker fehl — ehrliches "versucht,
+        # aber kein Wert", kein stilles Weglassen). None, wenn gar kein
+        # Fresh-Versuch lief (Alt-Record vor diesem Fix ODER premarket-Pfad,
+        # der diese Funktion nie mit fresh_ki aufruft). Populations-Marker
+        # für einen späteren KI-Freeze (siehe SESSION_HANDOVER.md).
+        "ki_signal_ts":            fresh_ki.get("ts") if fresh_ki else None,
         # Conviction-Edge-Persistenz (28.06.2026, VORWÄRTS-ERHEBUNG):
         # additive zwei Felder für die spätere Edge-Validierung der
         # Conviction-Achse (Cockpit-Donut, ≥75-Push-Gating). Setzt voraus,
@@ -1165,7 +1190,8 @@ def _round_finite_or_none(value, ndigits: int, safe_float_fn) -> float | None:
 def _append_backtest_entries(top10: list[dict], report_date: str,
                              pool_size: int = 0, *,
                              compute_sub_scores_fn, safe_float_fn,
-                             now_et: datetime | None = None) -> int:
+                             now_et: datetime | None = None,
+                             fresh_ki_signals: dict | None = None) -> int:
     """Fügt für jeden Top-10-Kandidaten einen neuen Backtest-Eintrag hinzu,
     dedupliziert nach (ticker, date), prunet auf 90 Tage und schreibt die Datei.
     Idempotent: wiederholter Aufruf am gleichen Tag ändert nichts.
@@ -1176,6 +1202,23 @@ def _append_backtest_entries(top10: list[dict], report_date: str,
     Returnt die Anzahl der NEU angehängten Einträge (``n_added``). Wird
     vom Health-Check S4 gelesen, um Premarket/Postclose-Disziplin zu
     überwachen (siehe ``health_check.py``).
+
+    ``fresh_ki_signals`` (KI-Score-Coverage-Fix, 11.10.2026, optional):
+    ``{ticker: {"score": float|None, "ts": str|None, "sentiment_source":
+    str|None}}`` — synchron im selben postclose-Lauf berechnete, GENAU für
+    diese Ticker frische KI-Werte (siehe ``generate_report.
+    _compute_fresh_ki_signals_for_backtest``). Wenn für einen Ticker ein
+    Eintrag vorhanden ist, ersetzt dessen ``score``/``sentiment_source``
+    den sonst aus ``s.get("ki_signal_score")``/``s.get("ki_sentiment_
+    source")`` gelesenen (ggf. stale, von ``apply_agent_boost`` gesetzten)
+    Wert — UND setzt zusätzlich ``ki_signal_ts``. ``score=None`` im Fresh-
+    Dict bedeutet „Berechnung diesen Lauf versucht, aber fehlgeschlagen"
+    (ehrliches None, KEIN Fallback auf den alten Wert — sonst wäre
+    ``ki_signal_ts`` irreführend, weil der dort markierte Zeitpunkt
+    suggerieren würde, der Score sei zu diesem Zeitpunkt berechnet worden).
+    Default ``None`` (kein Dict übergeben) → Verhalten exakt wie vor diesem
+    Fix, byte-identisch (bestehende Caller/Tests ohne dieses Argument sind
+    unberührt).
     """
     if not BACKTEST_ENABLED:
         return 0
@@ -1427,6 +1470,10 @@ def _append_backtest_entries(top10: list[dict], report_date: str,
             # unparsbarem Wert ist ``_rd = None`` → Helper returnt sauber
             # None (keine Guess-Rekonstruktion).
             entry_date=_rd,
+            # fresh_ki: pro-Ticker frischer KI-Wert (KI-Score-Coverage-Fix,
+            # 11.10.2026, None wenn kein Fix-Lauf dieses Mal — Caller ohne
+            # dieses Argument verhält sich exakt wie vorher).
+            fresh_ki=(fresh_ki_signals or {}).get(s["ticker"]),
         ))
         history.append(entry)
         n_added += 1

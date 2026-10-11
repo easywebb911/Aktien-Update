@@ -4512,6 +4512,143 @@ def apply_monster_score(stocks: list[dict]) -> None:
         s["monster_score"] = monster
 
 
+def _compute_fresh_ki_signals_for_backtest(top10: list[dict]) -> dict[str, dict]:
+    """KI-Score-Coverage-Fix (11.10.2026) — berechnet SYNCHRON, im selben
+    postclose-Lauf, einen frischen KI-Wert GENAU für die finalen Top-10-
+    Ticker dieses Laufs, direkt vor dem Backtest-Append.
+
+    Hintergrund (Diagnose 10.10.2026): Der bisherige ``ki_signal_score`` im
+    Backtest stammte vom letzten COMMITTETEN ``ki_agent``-Tick. Cron-
+    Kollision (``daily-squeeze-report.yml`` postclose ``17 21 * * 1-5`` vs.
+    ``ki_agent.yml`` ``17 * * * *``, dieselbe Minute) + komplette Über-
+    schreibung von ``agent_signals.json`` pro Tick (nur der zur Tick-Zeit
+    aktuelle Top-10/Watchlist/Positions-Pool, ``ki_agent.parse_monitored_
+    tickers``) bedeutete: ein Ticker, der erst HEUTE im postclose-Lauf neu
+    in die Top-10 rutscht, hatte oft gar keinen oder einen Stunden alten
+    Eintrag — nur 30 % Coverage über 472 gereifte Forward-Zeilen.
+
+    **KRITISCH — Score-Unabhängigkeit (belegt, SCHRITT 0b der Diagnose):**
+    Ein frischer Wert für ``s["ki_signal_score"]`` WÜRDE über
+    ``apply_agent_boost``s zweite Schleife (Score-Multiplikator), den
+    zweiten ``top10.sort()`` danach, ``apply_monster_score`` (liest
+    ``ki_signal_score`` direkt) UND ``apply_conviction_scores`` (liest den
+    POST-Boost ``s["score"]`` für die Setup-Komponente) den Endscore, die
+    Rang-Reihenfolge innerhalb der Top-10, den Monster-Score UND die
+    Conviction verändern — code-belegter Call-Order-Trace in
+    ``generate_report.main()``: Top-10-MEMBERSHIP wird VOR
+    ``apply_agent_boost`` fixiert (unberührt), aber Score/Rang/Monster/
+    Conviction laufen ALLE danach und lesen ``s["ki_signal_score"]``
+    direkt oder indirekt. Diese Funktion schreibt DESHALB NIRGENDS auf
+    ``s`` zurück — sie läuft bewusst ERST NACH allen genannten Aufrufen
+    (Aufruf-Stelle in ``main()``: unmittelbar vor ``_append_backtest_
+    entries``, nach ``apply_conviction_scores``) und ihr Rückgabe-Dict
+    fließt AUSSCHLIESSLICH in ``_append_backtest_entries(...,
+    fresh_ki_signals=...)`` — nie in Ranking, Push oder Conviction.
+
+    Reuse statt Reimplementierung: ruft ``ki_agent._process_ticker()``
+    (dieselbe Funktion, die der reguläre stündliche KI-Agent-Tick nutzt)
+    direkt auf, lazy importiert (kein neuer Modul-Top-Level-Import —
+    ``ki_agent.py`` zieht ``requests``/``yfinance``/``pandas`` erst bei
+    tatsächlichem Aufruf dieser Funktion nach; betrifft nur den
+    postclose-Pfad, nie Tests, die ``generate_report.py`` nur als
+    Source-Text inspizieren).
+
+    Fail-soft (SCHRITT 1.5): jeder Fehler — Import, Batch-Fetch, einzelner
+    Ticker — führt zu ``score=None`` für genau den betroffenen Ticker
+    (bzw. alle Ticker bei einem globalen Fehler); der Daily-Lauf wird NIE
+    blockiert, kein harter Abbruch. ``ts`` wird für JEDEN angefragten
+    Ticker gesetzt (auch bei ``score=None``) — markiert ehrlich „Fresh-
+    Versuch fand statt, Ergebnis None" statt still wegzulassen.
+
+    Zeitbudget: ``FRESH_KI_SIGNAL_MAX_WORKERS``/``FRESH_KI_SIGNAL_TIMEOUT_S``
+    (config.py). Empirisch unkritisch — der gesamte Daily-Run dauert heute
+    ~70–85 s (5 Workflow-Runs 08.–10.10.2026 per GitHub-Actions-API geprüft)
+    bei einem 10-Minuten-Workflow-Timeout; ein ki_agent-Tick für ~15 Ticker
+    braucht ~55–70 s (CLAUDE.md) — für nur 10 Ticker reichlich Puffer.
+    Restrisiko (transparent, nicht wegdiskutiert): ``future.result(timeout=
+    ...)`` lässt einen echt hängenden Thread im Hintergrund weiterlaufen
+    (Python-ThreadPoolExecutor-Eigenart) — der `with`-Block wartet beim
+    Verlassen trotzdem auf alle Threads. Die reale Begrenzung kommt von den
+    HTTP-eigenen Timeouts jedes einzelnen Fetchers in ``ki_agent.py``
+    (durchgängig gesetzt, z. B. Haiku-Call ``timeout=8``).
+
+    Returnt ``{ticker: {"score": float|None, "ts": str (UTC-ISO),
+    "sentiment_source": str|None}}`` — IMMER ein Eintrag pro angefragtem
+    Ticker (auch bei komplettem Fehlschlag).
+    """
+    ts_now = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+    tickers = [s["ticker"] for s in top10 if s.get("ticker")]
+    if not tickers:
+        return {}
+    if not FRESH_KI_SIGNAL_ENABLED:
+        return {t: {"score": None, "ts": None, "sentiment_source": None}
+                for t in tickers}
+
+    try:
+        import ki_agent as _ka
+    except Exception as exc:
+        log.warning(
+            "Fresh-KI-Signal: ki_agent-Import fehlgeschlagen (%s) — "
+            "alle %d Ticker fallen auf None zurück.", exc, len(tickers))
+        return {t: {"score": None, "ts": ts_now, "sentiment_source": None}
+                for t in tickers}
+
+    try:
+        yf_batch = _ka.fetch_yfinance(tickers)
+    except Exception as exc:
+        log.warning("Fresh-KI-Signal: yfinance-Batch fehlgeschlagen (%s) — "
+                    "Preis-/Volumen-Signale fallen aus.", exc)
+        yf_batch = {}
+
+    try:
+        fda_calendar = _ka.fetch_fda_calendar()
+    except Exception as exc:
+        log.debug("Fresh-KI-Signal: FDA-Kalender Fehler: %s", exc)
+        fda_calendar = {}
+
+    try:
+        finra_ssr_data = _ka.fetch_finra_ssr(tickers)
+    except Exception as exc:
+        log.debug("Fresh-KI-Signal: FINRA-SSR Fehler: %s", exc)
+        finra_ssr_data = {}
+
+    shared = {
+        "yf_batch":        yf_batch,
+        "fda_calendar":    fda_calendar,
+        "finra_ssr_data":  finra_ssr_data,
+        "today_et":        datetime.now(EASTERN).date(),
+        # old_sigs nur für RVOL-Velocity-Vergleich (prev_rvol_4d) genutzt —
+        # leer ist sicher (Velocity-Bonus bleibt dann einfach aus, kein Fehler).
+        "old_sigs":        {},
+        "phase":           "n/a",
+        "alert_threshold": 10**9,   # nie relevant — diese Funktion versendet keine Alerts
+    }
+
+    results: dict[str, dict] = {
+        t: {"score": None, "ts": ts_now, "sentiment_source": None}
+        for t in tickers
+    }
+    with ThreadPoolExecutor(max_workers=FRESH_KI_SIGNAL_MAX_WORKERS) as executor:
+        futures = {executor.submit(_ka._process_ticker, t, shared): t
+                   for t in tickers}
+        for future in as_completed(futures):
+            t = futures[future]
+            try:
+                r = future.result(timeout=FRESH_KI_SIGNAL_TIMEOUT_S)
+                sig = (r or {}).get("signal") or {}
+                results[t] = {
+                    "score":            sig.get("score"),
+                    "ts":               ts_now,
+                    "sentiment_source": sig.get("ki_sentiment_source"),
+                }
+            except Exception as exc:
+                log.warning("Fresh-KI-Signal %s fehlgeschlagen: %s", t, exc)
+                # results[t] bleibt beim vorbelegten {"score": None, ...} —
+                # ts_now ist bereits gesetzt (ehrliches "versucht, aber None").
+
+    return results
+
+
 def risk_assessment(stock: dict) -> tuple[str, str, str]:
     """Returns (level_de, hex_color, reason)."""
     pts = 0
@@ -18681,10 +18818,17 @@ def main():
     # retroaktiver Cleanup), die Backtest-Auswertung muss dafür später per
     # ``market_regime``/``vix_level``-Filter bereinigt werden.
     if run_phase == "postclose":
+        # KI-Score-Coverage-Fix (11.10.2026): frische, GENAU für diese
+        # finalen Top-10-Ticker berechnete KI-Werte — läuft bewusst HIER
+        # (nach apply_agent_boost/apply_monster_score/apply_conviction_
+        # scores weiter oben, direkt vor dem Append) und schreibt NICHT auf
+        # ``top10``-Stock-Dicts zurück. Fail-soft, niemals blockierend.
+        _fresh_ki_signals = _compute_fresh_ki_signals_for_backtest(top10)
         _n_backtest_appended = _append_backtest_entries(
             top10, report_date, pool_size=len(enriched),
             compute_sub_scores_fn=_compute_sub_scores,
-            safe_float_fn=_safe_float)
+            safe_float_fn=_safe_float,
+            fresh_ki_signals=_fresh_ki_signals)
         # Append-only-Export gereifter Records (Analyse-only, prune-immun) —
         # trennt Anzeige (geprunetes backtest_history.json) von Analyse. EIN
         # additiver, FAIL-SOFT Aufruf: ein Export-Fehler darf den postclose-Lauf

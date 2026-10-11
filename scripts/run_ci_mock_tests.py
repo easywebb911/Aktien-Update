@@ -54,7 +54,7 @@ ALLOWLIST = [
     "ftd_history", "ftd_liveness",
     "reg_sho_history", "reg_sho_liveness",
     "html_assertions", "inst_ownership_display", "jekyll_exclude", "jsformat_escape", "ki_agent_coverage", "max_gain_pct",
-    "ki_agent_rvol_disambiguation", "ki_analyse_padding", "ki_pillar_live_patch", "ki_sentiment_source", "knaller_label",
+    "ki_agent_rvol_disambiguation", "ki_analyse_padding", "ki_pillar_live_patch", "ki_score_coverage_fix", "ki_sentiment_source", "knaller_label",
     "lint_nan_bypass_fields", "lint_open_items_consistency", "lit_reminder", "methodology_display",
     "marketcap_price_nan_filter",
     "market_stress_banner", "marktdaten_timestamp", "matured_export",
