@@ -128,6 +128,15 @@ MATURED_EXPORT_FILE       = "matured_backtest_export.jsonl"
 # ohne den Pfad zweimal zu hartcodieren.
 OPEN_ITEMS_FILE           = "open_items.json"
 
+# Setup-Edge-Re-Test-Freeze (SESSION_HANDOVER.md, Abschnitt "VORABREGISTRIERUNG
+# — Setup-Edge-Re-Test (Score-Trennschärfe), eingefroren 10.10.2026"): Freeze-
+# Datum + Ziel-n für den Digest-Zähler ("🧪 Freeze-Zähler"). REINE ZÄHLUNG —
+# kein Score-/Filter-/Push-Effekt. Bei Korrektur des Freeze-Datums (siehe dort
+# "Sicherheitsklausel") MUSS diese Konstante synchron mit dem Handover-Eintrag
+# bleiben (datierter Protokolleintrag Pflicht, kein stillschweigendes Ändern).
+SETUP_EDGE_FREEZE_DATE    = "10.10.2026"   # DD.MM.YYYY, ET-Kalendertag
+SETUP_EDGE_FREEZE_N_TARGET = 250           # Auslöser n>=250 (identisch zu §4)
+
 # ── Sub-Scores (Struktur / Katalysator / Timing) ────────────────────────────
 # Informative Aufspaltung des Gesamt-Scores in drei Themen-Komponenten.
 # Der Gesamt-Score bleibt unverändert (score()-Funktion nicht angepasst);

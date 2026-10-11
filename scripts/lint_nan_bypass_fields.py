@@ -250,7 +250,13 @@ _BASELINE_KNOWN_OPEN: frozenset[tuple[str, int, str]] = frozenset({
     ("generate_report.py", 18413, "score"),
     ("generate_report.py", 18456, "score"),
     ("generate_report.py", 18610, "score"),
-    ("health_check.py", 627, "score"),
+    # Zeile 627 (alt) um +3 verschoben (Setup-Edge/Conviction-Freeze-Zähler-PR,
+    # 11.10.2026: drei neue Import-Zeilen — SETUP_EDGE_FREEZE_DATE,
+    # SETUP_EDGE_FREEZE_N_TARGET, BACKTEST_FILE — vor diesem Block eingefügt).
+    # Reine Zeilen-Nachführung desselben, weiterhin offenen Fundes — KEIN
+    # inhaltlicher Fix, die NaN-Bypass-Stelle selbst ist unverändert und
+    # bleibt eigener Fix-Kandidat für Folge-PRs.
+    ("health_check.py", 630, "score"),
     # ki_agent.py-Einträge unten verschoben (KI-Score-Coverage-Fix,
     # 11.10.2026: neuer Fehlerart-Zähler _KI_SENTIMENT_ERROR_COUNTS +
     # erweiterte claude_sentiment_score-Fehlerbehandlung + Lauf-Ende-

@@ -319,7 +319,7 @@ trägt. Alle vier PR-Titel gegen die tatsächliche API-Antwort abgeglichen
 
 ---
 
-### 08.–11.10.2026 — NaN-Guard-Symmetrie (entry_past_return_5d) + Preis-Merge-Guard-/NYSE-empty-Diagnosen + Block-1-Autonomie-Regel + Setup-Edge-Re-Test-Freeze + Conviction-Erratum + Oktober-Nachträge-Bündel + KI-Score-Coverage-Fix (9 PRs)
+### 08.–11.10.2026 — NaN-Guard-Symmetrie (entry_past_return_5d) + Preis-Merge-Guard-/NYSE-empty-Diagnosen + Block-1-Autonomie-Regel + Setup-Edge-Re-Test-Freeze + Conviction-Erratum + Oktober-Nachträge-Bündel + KI-Score-Coverage-Fix + Freeze-Digest-Zähler (10 PRs)
 
 *(Nachtrag per Staleness-Grep 09.10.2026, GitHub-API `gh pr list --state
 merged` — NICHT Commit-Titel-Grep: höchste gemergte PR war zu Beginn
@@ -525,6 +525,34 @@ nicht mehr entstehen, nicht nur per Session-Disziplin.)*
   Golden-Test byte-identisch (441766 Bytes). `lint_nan_bypass_fields.py`:
   61 Baseline-Zeilennummern nachgeführt (reine Verschiebung, kein
   inhaltlicher Fund). **Kein KI-Freeze in diesem PR.**
+
+- **Setup-Edge-Freeze Punkt-9-Erratum (Option A) + Freeze-Digest-Zähler
+  (Block-1-Pflicht befolgt, Auto-Merge):** `#588` (Branch-Commit
+  `2a10bcdd`, 11.10., kein Merge-Hash genannt — Regel a) greift). TEIL 1
+  (Doku): Easy entscheidet sich bei Punkt 9 des Setup-Edge-Re-Test-Freeze
+  für **Option A** — der `_detect_recent_squeeze`-Fix
+  (`open_items.json`, `pr532-or0-sibling-bugs`) wird erst nach Auswertung
+  ALLER drei Tests (§4, Setup-Edge-Re-Test, Conviction-Zusatznutzen)
+  umgesetzt. ERRATUM-Vermerke an beiden gleichlautenden Punkt-9-Stellen
+  (Freeze-Block + Conviction-Erratum) ergänzt, `open_items.json`-Eintrag
+  entsprechend ergänzt (append-only, Status bleibt „offen"). TEIL 2
+  (Code, `health_check.py`): neuer Digest-Zähler „🧪 Freeze-Zähler" für
+  die Setup-Edge/Conviction-Freeze-Population (`provenance=="forward"`
+  UND Eintrittsdatum strikt nach dem Freeze-Datum UND `return_5d`/
+  `return_10d` gefüllt, alle Scores) — reine Zeilen-/Tage-Zählung, keine
+  Outcome-Statistiken, display-only (kein Alarm, kein S-Check, keine
+  Push-Änderung). §4-Zähler (`_count_matured_retest`) auf gemeinsamen
+  Lese-Helper (`_read_matured_export_rows`) umgestellt —
+  Vorher/Nachher-Beleg per Test, dass der Rückgabewert unverändert
+  bleibt (`(181, 1167)` gegen die echte `matured_backtest_export.jsonl`,
+  sowohl vor als auch nach dem Refactor). Neue Konstanten in
+  `config.py` (`SETUP_EDGE_FREEZE_DATE`, `SETUP_EDGE_FREEZE_N_TARGET`).
+  23 neue Tests (`scripts/mock_test_freeze_zaehler.py`), in Allowlist
+  registriert. `lint_nan_bypass_fields.py`-Baseline für `health_check.py`
+  627→630 nachgeführt (3 neue Import-Zeilen, Fund selbst unverändert).
+  squeeze-guardian-Pflichtlauf: keine blockierenden Findings. Optional
+  (iv) aus dem Auftrag (Export-weite `ki_signal_ts`-Zeilenzahl) bewusst
+  nicht gebaut — redundant zu (iii), im PR dokumentiert.
 
 
 
@@ -1557,6 +1585,18 @@ bestätigenden Test unten ein — sie dienen hier nur der Lage-Einordnung
    den Fix heute nur mit §4, nicht mit diesem neuen Test — diese Lücke wird
    mit dem SCHRITT-2-Eintrag unten geschlossen.
 
+   **ERRATUM 11.10.2026 — Easy-Entscheidung zu Punkt 9: Option A.** Der
+   `_detect_recent_squeeze`-Fix (`open_items.json`, ID
+   `pr532-or0-sibling-bugs`) wird **erst nach Auswertung BEIDER Tests**
+   (§4 Exit-B.1 **und** dieser Setup-Edge-Re-Test, inklusive des
+   Conviction-Zusatznutzen-Erratums „Test c" weiter unten) umgesetzt —
+   nicht früher. Option B ist damit entfallen. Diese Entscheidung gilt
+   zugleich für den gleichlautenden, noch offenen Punkt 9 der „EINGEFRORENEN
+   ERGÄNZUNG" (Conviction-Zusatznutzen-Erratum) weiter unten — dort war
+   ebenfalls „keine Vorentscheidung" vermerkt; dieses Erratum löst beide
+   Stellen einheitlich auf, ohne deren Text zu ändern. Der Text von Punkt 9
+   selbst bleibt oben unverändert stehen (reine Ergänzung, keine Streichung).
+
 **Änderungs-Protokoll (bindend ab Freeze-Datum, analog §4):** Keine Änderung
 an diesem Block ohne datierten Protokolleintrag, der die Änderung und ihren
 Grund festhält.
@@ -1670,6 +1710,12 @@ reine Ergänzung.
    nach Auswertung BEIDER/ALLER Tests; B: Fix vor n=250 mit explizitem
    8d-Eintrag hier) gelten unverändert, jetzt für drei statt zwei Tests.
    Keine Vorentscheidung.
+
+   **ERRATUM 11.10.2026 — siehe Freeze-Punkt 9 oben.** Easy hat sich für
+   Option A entschieden (Fix erst nach Auswertung ALLER drei Tests,
+   inklusive dieses Conviction-Zusatznutzen-Tests). Siehe dortigen
+   ERRATUM-Vermerk für den vollen Wortlaut — hier nur Querverweis, kein
+   doppelter Text.
 10. **Erwartung (Schätzung, kein Termin):** wie im Freeze oben. Die
     tatsächliche Rate wird gezählt (Zeilen pro Handelstag **unter V2** —
     nach Punkt 2 heute ohnehin 100 % der Population), nur die Schätzzeile
