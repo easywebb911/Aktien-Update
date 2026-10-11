@@ -1806,6 +1806,28 @@ oben): keine weitere Änderung ohne datierten Protokolleintrag.
   Datensätze/Handelstag → n=250 ≈ Februar 2027; bei voller Abdeckung ≈10/Tag
   → ≈ Anfang Dezember 2026. Volldetails + Hypothesen-Prüfung im
   `open_items.json`-Eintrag `ki-score-coverage-diagnose-10-10-2026`.
+- **KI-Score-Coverage-Fix gebaut (11.10.2026, Manual-Merge, Merge durch
+  Easy aussteht).** Setzt die obige Empfehlung um:
+  `generate_report._compute_fresh_ki_signals_for_backtest(top10)` berechnet
+  jetzt synchron, im selben postclose-Lauf, GENAU für die finalen Top-10-
+  Ticker einen frischen KI-Wert (Reuse von `ki_agent._process_ticker`, lazy
+  importiert) — direkt vor dem Backtest-Append, NACH `apply_agent_boost`/
+  `apply_monster_score`/`apply_conviction_scores` (Call-Order-Beleg:
+  Top-10-Membership wird VOR dem Boost fixiert, bleibt unberührt; der
+  frische Wert fließt NIE zurück in `score()`/Ranking/Push/Conviction —
+  nur in den Backtest-Record). Neues additives Feld `ki_signal_ts`
+  (UTC-ISO, Schema bleibt v4) markiert, wann der Fresh-Versuch stattfand;
+  `score=None` bei echtem Fehlschlag bleibt ehrliches None (kein
+  Fallback auf den alten stale Wert). **Daten mit `ki_signal_ts` sind die
+  Population für einen späteren KI-Freeze; Zeilen ohne `ki_signal_ts`
+  sind explorativ.** Zusätzlich: `claude_sentiment_score`-Fehlerarten
+  (Timeout/HTTP/Parse/Rate-Limit) jetzt mit `log.warning` + aggregiertem
+  Lauf-Zähler sichtbar (vorher nur `log.debug`), Verhalten (Keyword-
+  Fallback) unverändert. Golden-Test byte-identisch, 17 neue + 1
+  angepasster Mock-Test grün, `score_multiplier_sync`/`nan_bypass_fields`
+  (Zeilen-Shift, kein inhaltlicher Fund) grün. **Kein KI-Freeze in diesem
+  PR** — nur die Coverage-Grundlage. PR-Nummer + Hashes siehe Block 1
+  (chronologischer Eintrag, Block-1-Pflicht).
 - **Geplanter Auftrag „Squeeze Report Monatsrundgang November"** — einmalig,
   **Montag 02.11.2026, 09:00 Berlin-Zeit (= 08:00 UTC)**, Cloud-Lauf, nur
   lesend, Automatik-Modus. Bereitet Gruppen A–D vor, legt nur Gruppe B zur

@@ -82,8 +82,12 @@ def test_a_s10_and_schema():
 def test_b_source_wiring():
     print("── (B) Source-Wiring (Kette vollständig) ─────────────────────")
     _check("B1 _build_backtest_extension schreibt das Feld",
-           '"ki_sentiment_source":     s.get("ki_sentiment_source")' in _BH,
+           '"ki_sentiment_source":     _fresh_ki_sentiment_source' in _BH,
            "Feld fehlt im Extension-Return → käme nie im Record an")
+    _check("B1b KI-Score-Coverage-Fix (11.10.2026): Fallback-Kette erhält "
+           "s.get(...) als Default bei fresh_ki=None (byte-identisch zum "
+           "alten Verhalten für alle bestehenden Caller ohne fresh_ki)",
+           '_fresh_ki_sentiment_source = s.get("ki_sentiment_source")' in _BH)
     _check("B2 ki_agent: Klassifikator vorhanden",
            "_ki_sentiment_source = (" in _KI)
     _check("B3 ki_agent: meta trägt das Feld",
