@@ -1130,3 +1130,5 @@
 {"schema_v": 1, "run_ts": "2026-10-10T00:57:14Z", "ticker": "IONQ", "reason": "last_day_incomplete_shifted", "dropped_day": "2026-10-09 00:00:00", "missing_cells": ["High", "Low", "Close"], "n_days": null, "window": null}
 {"schema_v": 1, "run_ts": "2026-10-10T00:57:14Z", "ticker": "PDYN", "reason": "nonfinite_cell", "dropped_day": "2026-10-09 00:00:00", "missing_cells": ["High", "Low", "Close"], "n_days": null, "window": null}
 {"schema_v": 1, "run_ts": "2026-10-10T00:57:14Z", "ticker": "PDYN", "reason": "last_day_incomplete_shifted", "dropped_day": "2026-10-09 00:00:00", "missing_cells": ["High", "Low", "Close"], "n_days": null, "window": null}
+{"schema_v": 1, "run_ts": "2026-10-12T15:27:47Z", "ticker": "QNCX", "reason": "nonfinite_cell", "dropped_day": "2026-10-12 00:00:00", "missing_cells": ["Volume", "High", "Low", "Close"], "n_days": null, "window": null}
+{"schema_v": 1, "run_ts": "2026-10-12T15:27:47Z", "ticker": "QNCX", "reason": "last_day_incomplete_shifted", "dropped_day": "2026-10-12 00:00:00", "missing_cells": ["Volume", "High", "Low", "Close"], "n_days": null, "window": null}
