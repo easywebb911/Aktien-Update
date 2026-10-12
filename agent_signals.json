@@ -1,21 +1,44 @@
 {
-  "updated": "2026-10-12T09:21:48.698897+02:00",
+  "updated": "2026-10-12T17:28:44.148714+02:00",
   "run_info": {
-    "tickers_checked": 13,
-    "signals_active": 1,
+    "tickers_checked": 14,
+    "signals_active": 0,
     "alerts_sent": 0,
-    "elapsed_s": 13.1,
-    "market_phase": "Geschlossen"
+    "elapsed_s": 12.0,
+    "market_phase": "Regulär"
   },
   "signals": {
-    "AMC": {
-      "score": 28,
+    "AI": {
+      "score": 35,
       "confidence": 70,
-      "drivers": "Spanne 5.2% + Earnings in 8d + UOA Call/Put 13.9×",
-      "price": 2.98,
-      "chg_pct": 0.0,
-      "rvol_4d": 0.68,
-      "rvol_20d": 0.49,
+      "drivers": "Volumen 1.7× + Spanne 8.9% + UOA Call/Put 14.2×",
+      "price": 11.95,
+      "chg_pct": 0.04,
+      "rvol_4d": 1.67,
+      "rvol_20d": 1.47,
+      "earnings": null,
+      "fda_date": null,
+      "upcoming_event": null,
+      "insider_buy": false,
+      "stocktwits": null,
+      "combo_mult": 1.0,
+      "active_triggers": 0,
+      "ki_sentiment_source": "keyword",
+      "uoa_score": 10,
+      "uoa_drivers": [
+        "UOA Call/Put 14.2×"
+      ],
+      "uoa_atm_ratio": 0.06981474197231204,
+      "uoa_cp_ratio": 14.24006359300477
+    },
+    "AMC": {
+      "score": 18,
+      "confidence": 33,
+      "drivers": "Earnings in 8d + UOA Call/Put 8.1×",
+      "price": 2.99,
+      "chg_pct": 0.17,
+      "rvol_4d": 0.33,
+      "rvol_20d": 0.22,
       "earnings": "in 8 Tagen (20.10.2026)",
       "fda_date": null,
       "upcoming_event": null,
@@ -26,19 +49,19 @@
       "ki_sentiment_source": "keyword",
       "uoa_score": 10,
       "uoa_drivers": [
-        "UOA Call/Put 13.9×"
+        "UOA Call/Put 8.1×"
       ],
-      "uoa_atm_ratio": null,
-      "uoa_cp_ratio": 13.90283203125
+      "uoa_atm_ratio": 0.41054497120070893,
+      "uoa_cp_ratio": 8.085175202156334
     },
     "CBRL": {
-      "score": 60,
-      "confidence": 70,
-      "drivers": "Volumen 1.5× + Spanne 6.3% + FINRA Short-Vol 53% + SEC Form 4 + UOA Call/Put 5.1×",
-      "price": 57.46,
-      "chg_pct": -0.0,
-      "rvol_4d": 1.54,
-      "rvol_20d": 0.97,
+      "score": 35,
+      "confidence": 33,
+      "drivers": "FINRA Short-Vol 53% + SEC Form 4 + UOA Call/Put 3.2×",
+      "price": 57.9,
+      "chg_pct": -0.01,
+      "rvol_4d": 0.15,
+      "rvol_20d": 0.11,
       "earnings": "in 58 Tagen (09.12.2026)",
       "fda_date": null,
       "upcoming_event": null,
@@ -49,63 +72,19 @@
       "ki_sentiment_source": "keyword",
       "uoa_score": 10,
       "uoa_drivers": [
-        "UOA Call/Put 5.1×"
+        "UOA Call/Put 3.2×"
       ],
-      "uoa_atm_ratio": null,
-      "uoa_cp_ratio": 5.089887640449438
-    },
-    "CERT": {
-      "score": 18,
-      "confidence": 33,
-      "drivers": "Spanne 7.1% + Earnings in 24d",
-      "price": 9.13,
-      "chg_pct": 0.0,
-      "rvol_4d": 1.39,
-      "rvol_20d": 1.69,
-      "earnings": "in 24 Tagen (05.11.2026)",
-      "fda_date": null,
-      "upcoming_event": null,
-      "insider_buy": false,
-      "stocktwits": null,
-      "combo_mult": 1.0,
-      "active_triggers": 0,
-      "ki_sentiment_source": "keyword",
-      "uoa_score": 0,
-      "uoa_drivers": [],
-      "uoa_atm_ratio": null,
-      "uoa_cp_ratio": null
-    },
-    "CURV": {
-      "score": 55,
-      "confidence": 70,
-      "drivers": "Spanne 11.6% + FINRA Short-Vol 79% + SEC Form 4 + UOA Call/Put 3.0×",
-      "price": 2.54,
-      "chg_pct": -0.0,
-      "rvol_4d": 1.44,
-      "rvol_20d": 1.29,
-      "earnings": "in 51 Tagen (02.12.2026)",
-      "fda_date": null,
-      "upcoming_event": null,
-      "insider_buy": false,
-      "stocktwits": null,
-      "combo_mult": 1.0,
-      "active_triggers": 0,
-      "ki_sentiment_source": "keyword",
-      "uoa_score": 10,
-      "uoa_drivers": [
-        "UOA Call/Put 3.0×"
-      ],
-      "uoa_atm_ratio": null,
-      "uoa_cp_ratio": 3.0
+      "uoa_atm_ratio": 0.047827743902439025,
+      "uoa_cp_ratio": 3.19327731092437
     },
     "GRPN": {
       "score": 8,
       "confidence": 17,
       "drivers": "Earnings in 24d",
-      "price": 18.63,
-      "chg_pct": -0.0,
-      "rvol_4d": 0.72,
-      "rvol_20d": 0.54,
+      "price": 18.68,
+      "chg_pct": 0.0,
+      "rvol_4d": 0.1,
+      "rvol_20d": 0.08,
       "earnings": "in 24 Tagen (05.11.2026)",
       "fda_date": null,
       "upcoming_event": null,
@@ -116,17 +95,17 @@
       "ki_sentiment_source": "keyword",
       "uoa_score": 0,
       "uoa_drivers": [],
-      "uoa_atm_ratio": null,
-      "uoa_cp_ratio": 1.352
+      "uoa_atm_ratio": 0.005089058524173028,
+      "uoa_cp_ratio": 1.7431818181818182
     },
     "IONQ": {
-      "score": 43,
-      "confidence": 33,
-      "drivers": "News: catalyst + Earnings in 23d + UOA Call-Vol/OI 67.1× ATM",
-      "price": 39.89,
-      "chg_pct": -0.0,
-      "rvol_4d": 0.7,
-      "rvol_20d": 0.56,
+      "score": 48,
+      "confidence": 70,
+      "drivers": "Spanne 7.5% + News: catalyst, acquisition + Earnings in 23d",
+      "price": 36.29,
+      "chg_pct": -0.01,
+      "rvol_4d": 0.94,
+      "rvol_20d": 0.71,
       "earnings": "in 23 Tagen (04.11.2026)",
       "fda_date": null,
       "upcoming_event": null,
@@ -135,21 +114,19 @@
       "combo_mult": 1.0,
       "active_triggers": 1,
       "ki_sentiment_source": "keyword",
-      "uoa_score": 20,
-      "uoa_drivers": [
-        "UOA Call-Vol/OI 67.1× ATM"
-      ],
-      "uoa_atm_ratio": 67.07894736842105,
-      "uoa_cp_ratio": 1.516470588235294
+      "uoa_score": 0,
+      "uoa_drivers": [],
+      "uoa_atm_ratio": 1.2412092624356776,
+      "uoa_cp_ratio": 1.6529442417926004
     },
     "LENZ": {
-      "score": 33,
-      "confidence": 70,
-      "drivers": "Spanne 6.5% + News: short interest + Earnings in 23d",
-      "price": 3.64,
+      "score": 23,
+      "confidence": 33,
+      "drivers": "News: short interest + Earnings in 23d",
+      "price": 3.67,
       "chg_pct": 0.14,
-      "rvol_4d": 0.83,
-      "rvol_20d": 0.8,
+      "rvol_4d": 0.34,
+      "rvol_20d": 0.31,
       "earnings": "in 23 Tagen (04.11.2026)",
       "fda_date": null,
       "upcoming_event": null,
@@ -163,15 +140,15 @@
       "uoa_atm_ratio": null,
       "uoa_cp_ratio": 0.7522935779816514
     },
-    "NTLA": {
-      "score": 53,
-      "confidence": 70,
-      "drivers": "Spanne 10.8% + News: short interest + Earnings in 24d + SEC Form 4 + UOA Call/Put 5.1×",
-      "price": 13.07,
-      "chg_pct": -0.0,
-      "rvol_4d": 0.93,
-      "rvol_20d": 1.51,
-      "earnings": "in 24 Tagen (05.11.2026)",
+    "MNRO": {
+      "score": 33,
+      "confidence": 33,
+      "drivers": "News: buyout + Earnings in 16d + UOA Call/Put 2.6×",
+      "price": 13.63,
+      "chg_pct": 0.0,
+      "rvol_4d": 0.22,
+      "rvol_20d": 0.14,
+      "earnings": "in 16 Tagen (28.10.2026)",
       "fda_date": null,
       "upcoming_event": null,
       "insider_buy": false,
@@ -181,19 +158,19 @@
       "ki_sentiment_source": "keyword",
       "uoa_score": 10,
       "uoa_drivers": [
-        "UOA Call/Put 5.1×"
+        "UOA Call/Put 2.6×"
       ],
-      "uoa_atm_ratio": null,
-      "uoa_cp_ratio": 5.07168458781362
+      "uoa_atm_ratio": 0.015053763440860216,
+      "uoa_cp_ratio": 2.6296296296296298
     },
     "PDYN": {
       "score": 33,
       "confidence": 33,
-      "drivers": "News: contract + Earnings in 30d + UOA Call/Put 3.3×",
-      "price": 5.04,
-      "chg_pct": -0.0,
-      "rvol_4d": 0.7,
-      "rvol_20d": 0.73,
+      "drivers": "News: contract + Earnings in 30d + UOA Call/Put 3.1×",
+      "price": 4.97,
+      "chg_pct": -0.1,
+      "rvol_4d": 0.37,
+      "rvol_20d": 0.32,
       "earnings": "in 30 Tagen (11.11.2026)",
       "fda_date": null,
       "upcoming_event": null,
@@ -204,20 +181,20 @@
       "ki_sentiment_source": "keyword",
       "uoa_score": 10,
       "uoa_drivers": [
-        "UOA Call/Put 3.3×"
+        "UOA Call/Put 3.1×"
       ],
-      "uoa_atm_ratio": null,
-      "uoa_cp_ratio": 3.2933333333333334
+      "uoa_atm_ratio": 0.023076923076923078,
+      "uoa_cp_ratio": 3.1267605633802815
     },
-    "QDEL": {
+    "SHOE": {
       "score": 18,
       "confidence": 33,
-      "drivers": "Spanne 11.3% + Earnings in 24d",
-      "price": 13.42,
-      "chg_pct": 0.0,
-      "rvol_4d": 1.31,
-      "rvol_20d": 1.9,
-      "earnings": "in 24 Tagen (05.11.2026)",
+      "drivers": "Earnings in 45d + UOA Call/Put 12.6×",
+      "price": 12.94,
+      "chg_pct": -0.0,
+      "rvol_4d": 0.16,
+      "rvol_20d": 0.15,
+      "earnings": "in 45 Tagen (26.11.2026)",
       "fda_date": null,
       "upcoming_event": null,
       "insider_buy": false,
@@ -225,26 +202,49 @@
       "combo_mult": 1.0,
       "active_triggers": 0,
       "ki_sentiment_source": "keyword",
-      "uoa_score": 0,
-      "uoa_drivers": [],
-      "uoa_atm_ratio": null,
-      "uoa_cp_ratio": 0.9523809523809523
+      "uoa_score": 10,
+      "uoa_drivers": [
+        "UOA Call/Put 12.6×"
+      ],
+      "uoa_atm_ratio": 0.02,
+      "uoa_cp_ratio": 12.636363636363637
     },
-    "TTEC": {
-      "score": 75,
+    "TRAX": {
+      "score": 58,
       "confidence": 70,
-      "drivers": "Volumen 2.3× + Spanne 11.6% + News: contract + Earnings in 24d + SEC Form 4 + UOA Call/Put 4.1×",
-      "price": 1.58,
-      "chg_pct": 0.0,
-      "rvol_4d": 2.32,
-      "rvol_20d": 1.94,
+      "drivers": "Volumen 5.4× + 🚀 Massives Volumen 5.4×+ + Spanne 17.4% + Earnings in 24d",
+      "price": 34.82,
+      "chg_pct": -0.0,
+      "rvol_4d": 5.39,
+      "rvol_20d": 5.54,
       "earnings": "in 24 Tagen (05.11.2026)",
       "fda_date": null,
       "upcoming_event": null,
       "insider_buy": false,
       "stocktwits": null,
-      "combo_mult": 1.1,
-      "active_triggers": 2,
+      "combo_mult": 1.0,
+      "active_triggers": 1,
+      "ki_sentiment_source": "keyword",
+      "uoa_score": 0,
+      "uoa_drivers": [],
+      "uoa_atm_ratio": 0.057692307692307696,
+      "uoa_cp_ratio": 0.3802083333333333
+    },
+    "TTEC": {
+      "score": 43,
+      "confidence": 33,
+      "drivers": "News: contract + Earnings in 24d + SEC Form 4 + UOA Call/Put 4.1×",
+      "price": 1.59,
+      "chg_pct": 0.0,
+      "rvol_4d": 0.44,
+      "rvol_20d": 0.48,
+      "earnings": "in 24 Tagen (05.11.2026)",
+      "fda_date": null,
+      "upcoming_event": null,
+      "insider_buy": false,
+      "stocktwits": null,
+      "combo_mult": 1.0,
+      "active_triggers": 1,
       "ki_sentiment_source": "keyword",
       "uoa_score": 10,
       "uoa_drivers": [
@@ -254,20 +254,20 @@
       "uoa_cp_ratio": 4.142857142857143
     },
     "VEEA": {
-      "score": 66,
-      "confidence": 70,
-      "drivers": "Volumen 4.5× + ⚡ Extremes Volumen 4.5×+ + Spanne 32.5% + News: merger",
-      "price": 5.7,
-      "chg_pct": -0.0,
-      "rvol_4d": 4.51,
-      "rvol_20d": 4.11,
+      "score": 25,
+      "confidence": 33,
+      "drivers": "Spanne 10.7% + News: merger",
+      "price": 4.45,
+      "chg_pct": -0.01,
+      "rvol_4d": 0.04,
+      "rvol_20d": 0.03,
       "earnings": null,
       "fda_date": null,
       "upcoming_event": null,
       "insider_buy": false,
       "stocktwits": null,
-      "combo_mult": 1.1,
-      "active_triggers": 2,
+      "combo_mult": 1.0,
+      "active_triggers": 1,
       "ki_sentiment_source": "keyword",
       "uoa_score": 0,
       "uoa_drivers": [],
@@ -277,11 +277,11 @@
     "WOLF": {
       "score": 28,
       "confidence": 70,
-      "drivers": "Spanne 5.4% + Earnings in 23d + UOA Call/Put 2.7×",
-      "price": 30.61,
-      "chg_pct": 0.0,
-      "rvol_4d": 0.35,
-      "rvol_20d": 0.83,
+      "drivers": "Spanne 8.5% + Earnings in 23d + UOA Call/Put 2.5×",
+      "price": 27.28,
+      "chg_pct": 0.04,
+      "rvol_4d": 0.29,
+      "rvol_20d": 0.65,
       "earnings": "in 23 Tagen (04.11.2026)",
       "fda_date": null,
       "upcoming_event": null,
@@ -292,10 +292,33 @@
       "ki_sentiment_source": "keyword",
       "uoa_score": 10,
       "uoa_drivers": [
-        "UOA Call/Put 2.7×"
+        "UOA Call/Put 2.5×"
       ],
-      "uoa_atm_ratio": null,
-      "uoa_cp_ratio": 2.715076071922545
+      "uoa_atm_ratio": 0.1646830888458345,
+      "uoa_cp_ratio": 2.50253807106599
+    },
+    "XPOF": {
+      "score": 33,
+      "confidence": 33,
+      "drivers": "News: squeeze + Earnings in 24d + UOA Call/Put 9.4×",
+      "price": 5.09,
+      "chg_pct": -0.1,
+      "rvol_4d": 0.2,
+      "rvol_20d": 0.25,
+      "earnings": "in 24 Tagen (05.11.2026)",
+      "fda_date": null,
+      "upcoming_event": null,
+      "insider_buy": false,
+      "stocktwits": null,
+      "combo_mult": 1.0,
+      "active_triggers": 1,
+      "ki_sentiment_source": "keyword",
+      "uoa_score": 10,
+      "uoa_drivers": [
+        "UOA Call/Put 9.4×"
+      ],
+      "uoa_atm_ratio": 0.06622516556291391,
+      "uoa_cp_ratio": 9.428571428571429
     }
   }
 }
