@@ -1,10 +1,10 @@
 {
-  "updated": "2026-10-11T22:17:48.467997+02:00",
+  "updated": "2026-10-12T02:32:55.477224+02:00",
   "run_info": {
     "tickers_checked": 13,
     "signals_active": 1,
     "alerts_sent": 0,
-    "elapsed_s": 17.6,
+    "elapsed_s": 13.0,
     "market_phase": "Geschlossen"
   },
   "signals": {
@@ -120,9 +120,9 @@
       "uoa_cp_ratio": 1.352
     },
     "IONQ": {
-      "score": 16,
+      "score": 23,
       "confidence": 33,
-      "drivers": "News-KI 8/30: Negative headlines suggesting IonQ underperforms competitors, combined with competitive comparisons, indicate weak senti + Earnings in 24d",
+      "drivers": "News: catalyst + Earnings in 24d",
       "price": 39.89,
       "chg_pct": -0.0,
       "rvol_4d": 0.7,
@@ -133,8 +133,8 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 0,
-      "ki_sentiment_source": "llm",
+      "active_triggers": 1,
+      "ki_sentiment_source": "keyword",
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": 0.5269250645994832,
@@ -208,9 +208,9 @@
       "uoa_cp_ratio": 3.2933333333333334
     },
     "QDEL": {
-      "score": 23,
-      "confidence": 70,
-      "drivers": "Spanne 11.3% + News-KI 5/30: Normale Corporate-News ohne Hinweise auf Overleverage, hohe Short-Interest oder Squeeze-Potential. + Earnings in 25d",
+      "score": 18,
+      "confidence": 33,
+      "drivers": "Spanne 11.3% + Earnings in 25d",
       "price": 13.42,
       "chg_pct": 0.0,
       "rvol_4d": 1.31,
@@ -222,7 +222,7 @@
       "stocktwits": null,
       "combo_mult": 1.0,
       "active_triggers": 0,
-      "ki_sentiment_source": "llm",
+      "ki_sentiment_source": "keyword",
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": 0.053003533568904596,
