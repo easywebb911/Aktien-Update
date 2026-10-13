@@ -1845,6 +1845,26 @@ oben): keine weitere Änderung ohne datierten Protokolleintrag.
   gefundenen API enthalten (weder Web-API-Feldliste noch
   IBKR-Claude-Connector) — kein kostenloser automatischer Weg gefunden,
   bis dahin Handcheck. Volldetails im `open_items.json`-Eintrag.
+
+  **ERGEBNIS 12.10.2026 — GESCHLOSSEN (`open_items.json`-Status
+  `erledigt`).** IBKR hat auf Easys Mail an
+  `apiintegration@interactivebrokers.com` geantwortet: OAuth für die
+  Trading Web API ist auf **Institutional-** und **Financial-Advisor**-
+  Konten beschränkt (Entscheidung des Web-API-Entwicklungsteams und des
+  Managements) — Privat-, Joint-, Retirement- und Trust-Konten sind
+  **ausgeschlossen**. Privatkunden bleiben nur Client Portal Gateway oder
+  TWS API, jeweils live oder paper; beide brauchen einen **dauerhaft
+  laufenden Rechner mit interaktivem 2FA-Login** und sind damit mit
+  GitHub Actions und der iPhone-only-Arbeitsweise **nicht vereinbar**.
+  Die Verleihquote (Utilization) bleibt damit weiterhin nur manuell in
+  der IBKR-App abrufbar. **Entscheidung (Easy, 12.10.2026): Nicht bauen.**
+  Handcheck der Verleihquote bei einzelnen Kandidaten in der IBKR-App
+  bleibt manuell und optional. **Wiedervorlage 02.11.2026** (Monats-
+  rundgang): nur prüfen, ob IBKR den Zugang für Privatkonten geöffnet hat
+  — ein Satz, keine Arbeit. Kein Widerspruch zu einem älteren IBKR-
+  Teilplan gefunden (Grep über dieses Dokument und `open_items.json` nach
+  „Wegwerf"/„Key-Generierung": keine IBKR-spezifische Fundstelle außer
+  den hier referenzierten) — nichts als überholt zu markieren.
 - **KI-Score-Coverage-Diagnose — abgeschlossen 10.10.2026 (read-only, keine
   PR, reine Chat-Diagnose, hier nachträglich dokumentiert).** Von 472
   gereiften Forward-Zeilen haben nur **144 (30 %)** einen `ki_signal_score`
