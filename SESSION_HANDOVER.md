@@ -575,8 +575,8 @@ nicht mehr entstehen, nicht nur per Session-Disziplin.)*
   zu markieren wäre.
 
 - **KI-Score-Edge-Test-Freeze (Block-1-Pflicht befolgt, Auto-Merge, reine
-  Doku):** `#590` (Branch-Commit folgt im Folge-Commit, 13.10., kein
-  Merge-Hash genannt — Regel a) greift). Vorabregistrierung für die Frage,
+  Doku):** `#590` (Branch-Commit `a99e4213`, 13.10., kein Merge-Hash
+  genannt — Regel a) greift). Vorabregistrierung für die Frage,
   ob `ki_signal_score` (KI-Score-Coverage-Fix, PR #587, Variante A, seit
   11.10.2026 aktiv) gute von schlechten Aktien trennt — strukturell 1:1
   analog zum Setup-Edge-Re-Test-Freeze (10.10.2026) aufgebaut, **eigene**
