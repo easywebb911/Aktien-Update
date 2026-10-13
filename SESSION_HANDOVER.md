@@ -554,6 +554,26 @@ nicht mehr entstehen, nicht nur per Session-Disziplin.)*
   (iv) aus dem Auftrag (Export-weite `ki_signal_ts`-Zeilenzahl) bewusst
   nicht gebaut — redundant zu (iii), im PR dokumentiert.
 
+### 12.–13.10.2026 — IBKR-Spur (Borrow-Daten) geschlossen (1 PR)
+
+- **IBKR-Spur (Borrow-Daten) geschlossen (Block-1-Pflicht befolgt,
+  Auto-Merge):** `#589` (Branch-Commit `9e805fa0`, 13.10., kein
+  Merge-Hash genannt — Regel a) greift). IBKR hat auf Easys Mail an
+  `apiintegration@interactivebrokers.com` geantwortet (12.10.2026): OAuth
+  für die Trading Web API ist auf Institutional- und Financial-Advisor-
+  Konten beschränkt, Privat-/Joint-/Retirement-/Trust-Konten sind
+  ausgeschlossen. Privatkunden bleiben nur Client Portal Gateway oder
+  TWS API — beide brauchen einen dauerhaft laufenden Rechner mit
+  interaktivem 2FA-Login, nicht vereinbar mit GitHub Actions/iPhone-only.
+  Verleihquote (Utilization) bleibt nur manueller Handcheck in der
+  IBKR-App. **Entscheidung (Easy, 12.10.2026): Nicht bauen.**
+  `open_items.json` (`ibkr-borrow-data-spur`): Status `beobachtet` →
+  `erledigt`, Ergebnis + Entscheidung + Wiedervorlage 02.11.2026 ergänzt
+  (append-only, 30 Items vorher/nachher unverändert). Reine Doku, kein
+  Code/Workflow/Score-Touch, Setup-Edge-Re-Test-Freeze unberührt
+  (verifiziert). Kein älterer IBKR-Teilplan gefunden, der als überholt
+  zu markieren wäre.
+
 
 
 *(Zwei-PR-Kette aus einer read-only Diagnose 15.08.2026: das Backtesting-Panel
