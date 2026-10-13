@@ -554,7 +554,7 @@ nicht mehr entstehen, nicht nur per Session-Disziplin.)*
   (iv) aus dem Auftrag (Export-weite `ki_signal_ts`-Zeilenzahl) bewusst
   nicht gebaut — redundant zu (iii), im PR dokumentiert.
 
-### 12.–13.10.2026 — IBKR-Spur (Borrow-Daten) geschlossen (1 PR)
+### 12.–13.10.2026 — IBKR-Spur (Borrow-Daten) geschlossen + KI-Score-Edge-Test-Freeze (2 PRs)
 
 - **IBKR-Spur (Borrow-Daten) geschlossen (Block-1-Pflicht befolgt,
   Auto-Merge):** `#589` (Branch-Commit `9e805fa0`, 13.10., kein
@@ -573,6 +573,33 @@ nicht mehr entstehen, nicht nur per Session-Disziplin.)*
   Code/Workflow/Score-Touch, Setup-Edge-Re-Test-Freeze unberührt
   (verifiziert). Kein älterer IBKR-Teilplan gefunden, der als überholt
   zu markieren wäre.
+
+- **KI-Score-Edge-Test-Freeze (Block-1-Pflicht befolgt, Auto-Merge, reine
+  Doku):** `#590` (Branch-Commit `a99e4213`, 13.10., kein Merge-Hash
+  genannt — Regel a) greift). Vorabregistrierung für die Frage,
+  ob `ki_signal_score` (KI-Score-Coverage-Fix, PR #587, Variante A, seit
+  11.10.2026 aktiv) gute von schlechten Aktien trennt — strukturell 1:1
+  analog zum Setup-Edge-Re-Test-Freeze (10.10.2026) aufgebaut, **eigene**
+  Holm-Familie k=2 (nicht mit der dortigen k=3-Familie zusammengelegt,
+  Nachteil „5 Tests ohne gemeinsame Korrektur" offen benannt).
+  **SCHRITT-0-Befund:** `ki_signal_ts` existiert in **0 von 1177**
+  Export-Zeilen (`matured_backtest_export.jsonl`) — die 10 Zeilen vom
+  12.10.2026 mit diesem Feld (in `backtest_history.json` bestätigt,
+  `return_5d`/`return_10d` dort 0 von 10 gefüllt) erreichen das
+  Export-File frühestens ca. 27.10.2026 (Reife-Gate 14 Kalendertage,
+  `matured_export.py:160-171`) — **keine** Export-Schema-Änderung nötig,
+  reine Zeitfrage, Feld läuft additiv/ohne Whitelist durch. Population:
+  `provenance=="forward"` UND `ki_signal_ts` vorhanden UND Eintrittsdatum
+  `>= 12.10.2026`, nur aus dem Export, Backfill nie. Auslöser n≥250,
+  Erfolgskriterium identisch zum Setup-Edge-Vorbild (Holm-signifikant,
+  Bootstrap-CI-Untergrenze > 0,5, Cluster-Doppellauf gleiche Richtung,
+  Punktschätzer ≥ 0,55). Bewusst **ohne** Terminschätzung (Abweichung vom
+  Setup-Edge-Vorbild dokumentiert) — Rate erst ab echten Daten (ca. ab
+  27.10.) berechenbar. `open_items.json`: neuer Eintrag
+  `ki-score-edge-freeze`, Status `beobachtet`, Wiedervorlage 28.10.2026
+  (30→31 Items). Kein Code, kein Digest-Umbau in diesem PR — reine Doku.
+  Setup-Edge-Re-Test-Freeze-Block + beide Errata **byte-identisch
+  unverändert** (verifiziert per Diff-Vergleich gegen den Vorzustand).
 
 
 
@@ -1743,6 +1770,176 @@ reine Ergänzung.
 
 **Änderungs-Protokoll gilt identisch für dieses Erratum** (analog Freeze
 oben): keine weitere Änderung ohne datierten Protokolleintrag.
+
+### VORABREGISTRIERUNG — KI-Score-Edge-Test (ki_signal_score), eingefroren 13.10.2026
+
+**Verhältnis zum Setup-Edge-Re-Test oben.** Dieser Block prüft eine **andere
+Größe** (`ki_signal_score` statt `score`), ist aber **strukturell identisch**
+aufgebaut — Definitionen, Metriken, Bootstrap-Verfahren und
+Erfolgskriterien sind bewusst 1:1 vom Setup-Edge-Re-Test-Freeze oben
+übernommen, **nicht neu erfunden**, damit beide Registrierungen
+vergleichbar bleiben. Am Setup-Edge-Re-Test-Freeze (inkl. beider dortiger
+Errata) ändert dieser Block **nichts**.
+
+**Auslöser für diese Registrierung:** der KI-Score-Coverage-Fix (PR #587,
+Variante A, Merge 11.10.2026) ist aktiv — Beleg: alle 10 Zeilen des
+Postclose-Laufs vom 12.10.2026 tragen `ki_signal_score` **und**
+`ki_signal_ts` (vorher 3–4 von 10, ohne Zeitstempel). Easy will wissen, ab
+wann feststeht, ob der KI-Score gute von schlechten Aktien trennt — dieser
+Test wird deshalb **vorab** festgeschrieben, bevor ein Ergebnis existiert.
+
+**Datenquelle & n-Definition — identisch zu §4/Setup-Edge.** Gezählt wird
+ausschließlich aus `matured_backtest_export.jsonl` (append-only,
+prune-immun) — **nicht** aus `backtest_history.json`
+(90-Tage-Prune `BACKTEST_MAX_DAYS=90`). **SCHRITT-0-Zählung per 13.10.2026
+(keine Outcome-Werte enthalten):** `ki_signal_ts` existiert in **0** von
+1177 Export-Zeilen (0 × `ki_signal_score`-mit-Zeitstempel, davon
+unabhängig 744 Zeilen mit dem älteren, timestamp-losen
+`ki_signal_score`-Feld und 512 mit `ki_sentiment_source` — beide **nicht**
+Teil dieser Population, siehe Punkt 2). Grund: das Reife-Gate
+(`return_10d` gefüllt **und** `days_old > 14` Kalendertage,
+`matured_export.py:160–171`) lässt die ersten 10 Zeilen mit
+`ki_signal_ts` (alle Einstiegsdatum 12.10.2026, in
+`backtest_history.json` bestätigt, `return_5d`/`return_10d` dort aktuell
+**0 von 10** gefüllt) frühestens **ca. 27.10.2026** ins Export-File
+einlaufen (12.10. + 14 Kalendertage + nächster Daily-Run-Export-Pass).
+Das Feld läuft **ohne Whitelist** durch `matured_export.py` (voller
+Pass-Through, kein Feld-Filter) — **keine Export-Schema-Änderung nötig**,
+reine Zeitfrage.
+
+**EINGEFRORENE VORGABEN**
+
+1. **Frage:** Trennt der KI-Score (Feld `ki_signal_score`) Aktien mit
+   gutem von schlechtem Forward-Ergebnis innerhalb der ausgewählten
+   Top-10-Population?
+2. **Population (bestätigend):** `provenance=="forward"` **UND**
+   `ki_signal_ts` **vorhanden** (Schlüssel-Präsenz-Prüfung, analog
+   `health_check._freeze_ki_coverage_last_report_day`, nicht `.get(...)
+   is not None` — Zeilen mit `ki_signal_score` **ohne** Zeitstempel sind
+   **ausgeschlossen**, das sind Altwerte aus dem früheren
+   `agent_signals`-Pfad vor dem Coverage-Fix) **UND** Eintrittsdatum
+   `>= 12.10.2026` (erster Tag mit Fresh-KI-Berechnung, siehe
+   SCHRITT-0-Zählung oben); alle Scores; gezählt allein aus
+   `matured_backtest_export.jsonl`; Backfill nie. **Abweichung vom
+   Setup-Edge-Vorbild bewusst dokumentiert:** dort ist die Datumsschranke
+   „strikt NACH dem Merge-Tag" (ausschließend), hier `>= 12.10.2026`
+   (einschließend) — weil die Populationsgrenze hier **datengetrieben**
+   ist (erster Tag mit der neuen Berechnung) statt PR-merge-getrieben;
+   das Freeze-Datum dieses Blocks (13.10.2026) liegt ohnehin einen Tag
+   nach 12.10.2026, es wird also **kein** Tag vor der eigentlichen
+   Fix-Aktivierung eingerechnet. **Grenzfall, noch nicht beobachtet:**
+   `ki_signal_ts` kann laut Code (`backtest_history.py:904-912`) **auch
+   dann** gesetzt sein, wenn der Fresh-Versuch für den Ticker fehlschlug
+   (`ki_signal_score=None`, „versucht, aber kein Wert" statt stillem
+   Weglassen) — eine solche Zeile zählt nach dieser Definition zur
+   Population (`n`), liefert aber **keinen** auswertbaren AUC-Datenpunkt
+   für diesen Ticker. Keine Vorentscheidung hier, ob solche Zeilen aus
+   `n` herausgerechnet oder nur aus der eigentlichen AUC-Berechnung
+   ausgeschlossen werden — das entscheidet sich **zur Auswertungszeit**
+   anhand der dann tatsächlich beobachteten Häufigkeit.
+3. **Zielgrößen, Holm k=2** (Verfahren wie §4/Setup-Edge:
+   `mann_whitney_u_auc`, `scripts/stats_helpers.py:60`, +
+   `multiple_testing_correction`, `scripts/stats_helpers.py:152`):
+   (a) Trennschärfe (AUC) des KI-Scores für **„return_5d ≥ +5 %"**;
+   (b) Trennschärfe des KI-Scores für **„return_10d > 0"**.
+4. **Eigene Holm-Familie (k=2), NICHT mit der Setup/Conviction-Familie
+   (k=3) zusammengelegt.** Begründung: beide Testfamilien wurden
+   **getrennt gestartet und getrennt formuliert** — der Setup/Conviction-
+   Freeze (10.10.2026) prüft den Setup-Score und dessen
+   Conviction-Zusatznutzen, dieser Block prüft eine **andere, erst seit
+   12.10.2026 überhaupt belastbar vorliegende** Größe
+   (`ki_signal_score`) mit **eigenem** Reifefenster. Eine nachträgliche
+   Zusammenlegung in eine gemeinsame Familie wäre selbst eine Änderung
+   am bereits eingefrorenen Setup/Conviction-Block — genau das, was
+   dessen Änderungs-Protokoll verbietet. **Nachteil, offen benannt:**
+   insgesamt laufen damit **5 Tests** (a, b, c aus dem Setup/Conviction-
+   Freeze + a, b hier) **ohne gemeinsame Korrektur** über alle fünf —
+   die tatsächliche Familienweise-Fehlerrate liegt höher als die pro
+   Familie ausgewiesenen 0,05. Akzeptiert, weil beide Familien
+   inhaltlich unabhängige Hypothesen sind (verschiedene Scores,
+   verschiedene Datenfenster) und eine künstliche Zusammenlegung über
+   zwei bereits-eingefrorene Blöcke hinweg mehr Komplexität als Nutzen
+   brächte.
+5. **Auslöser:** `n ≥ 250` bestätigende Zeilen dieser Population mit
+   `return_5d` **und** `return_10d` gefüllt. **Kein Kalenderdatum.**
+   **Keine Zwischenauswertung** der Outcomes vor Erreichen von n=250.
+6. **Erfolgskriterium — ALLE vier Bedingungen:**
+   (i) Holm-signifikant (eigene Familie k=2);
+   (ii) untere Grenze des Bootstrap-Intervalls (N=2000, fester Seed,
+        `bootstrap_mean_ci`-Muster, beim Endlauf) über 0,5;
+   (iii) Cluster-Doppellauf (mit und ohne detektierbare Cluster,
+        `scripts/cluster_purge.py`, `classify_cluster_records`) liefert
+        dieselbe Richtung;
+   (iv) Punktschätzung ≥ **0,55**.
+   Eine Punktschätzung allein ist **nie** ein Beleg. Die Schwelle 0,55
+   ist identisch zur Setup-Edge-Schwelle — eine Festlegung von Easy,
+   kein Naturwert.
+7. **Bindend ist brutto** (`return_5d`/`return_10d`). Netto (`_net`) und
+   SPY-bereinigt (`_vs_spy`) sowie Regime-Split (`market_regime`,
+   `vix_level`) werden **zusätzlich und nachrangig** ausgewiesen —
+   niemals Ersatz für das bindende Brutto-Kriterium (identische
+   Bindungs-Logik wie im Setup-Edge-Block oben).
+8. **Nicht-konfirmatorischer Kontext (deskriptiv, KEIN eigener Test,
+   keine Entscheidungsgrundlage):** Aufteilung nach
+   `ki_sentiment_source` (`llm` vs. `keyword`) — zeigt nur, ob die
+   beiden Quellen unterschiedlich aussehen, begründet **keine**
+   gesonderte Schlussfolgerung und fließt **nicht** in Holm/
+   Erfolgskriterium ein.
+9. **Zeitverzug — ausdrücklich OHNE Terminschätzung** (Abweichung vom
+   Setup-Edge-Vorbild, das eine grobe Schätzung „Anfang Dezember 2026"
+   nennt — hier bewusst **nicht**, weil die erste Datenlage noch
+   fehlt): erste Zeilen dieser Population laufen frühestens ca.
+   **27.10.2026** ins Export-File ein (Reife-Gate, 14 Kalendertage ab
+   12.10.2026). Der Auswertungstermin selbst ist **offen, erst
+   berechnen, wenn die Rate im Digest sichtbar ist (ab ca. 27.10.)** —
+   keine Rate-Schätzung vor dem ersten echten Datenpunkt.
+10. **Grenzen — offen benannt:**
+    (a) **Range-Restriktion:** wie im Setup-Edge-Block — der KI-Score
+        wird nur innerhalb der Top-10-Auswahl geprüft, nicht gegen das
+        gesamte Universum.
+    (b) Bei n≈250 sind nur **deutliche** Trennschärfen erkennbar; ein
+        schwacher Effekt bleibt „unklar" und gilt **nicht** als Beleg
+        für „keine Edge".
+    (c) **Same-Day-Look-ahead möglich:** der Fresh-KI-Wert wird im
+        selben Postclose-Lauf mit Nachrichten **bis zur Laufzeit**
+        berechnet (`_compute_fresh_ki_signals_for_backtest`,
+        `generate_report.py:4515`) — der Wert kann also Information
+        tragen, die zum offiziellen Entry-Zeitpunkt (regulärer
+        Schlusskurs) noch nicht öffentlich/verarbeitet war. Keine
+        Quantifizierung dieses Effekts, nur offen benannt.
+    (d) **Fresh-Wert ohne RVOL-Velocity-Bonus:** der synchron berechnete
+        Fresh-Wert deckt nicht exakt denselben Berechnungspfad wie der
+        reguläre stündliche `ki_agent`-Tick ab (siehe bestehender
+        KI-Coverage-Diagnose-Eintrag, Guardian-Finding 11.10.2026 zu
+        PR #587) — ein Ergebnis gilt **nur für diesen Rechenweg**, nicht
+        für `ki_signal_score` im Allgemeinen.
+    (e) **Score-Änderungen während des Tests (Regel 8c-Erweiterung,
+        analog Setup-Edge-Punkt 8c):** jede Änderung an
+        `_compute_fresh_ki_signals_for_backtest`
+        (`generate_report.py:4515`), an `FRESH_KI_SIGNAL_ENABLED`
+        (`config.py:189`), am Haiku-Modell, am Prompt oder am Cap der
+        News-Komponente ist im **Block 1 zu loggen** (Datum, PR) und
+        führt zu einem **Erratum mit Neustart-Bewertung der
+        Population** — analog zur Setup-Edge-Disziplin, macht den
+        bisherigen Test nicht still ungültig, aber sichtbar. Es
+        existiert **kein** automatischer Detektor für diese Änderungen
+        (identischer SCHRITT-0-Befund wie beim Setup-Edge-Block, Punkt
+        8c dort) — manuelle Disziplin.
+    (f) Das Backtest-Panel zeigt weiter Trefferquoten nach Score; sie
+        sind **keine** Evidenz für diesen Test.
+11. **Offener Folgeauftrag (kein Termin, Easy entscheidet den
+    Zeitpunkt):** ab ca. 27.–28.10.2026 prüfen, ob die ersten Zeilen mit
+    `ki_signal_ts` im Export (`matured_backtest_export.jsonl`)
+    angekommen sind (reine Zählung, siehe Punkt 9). Sobald das der Fall
+    ist: Digest-Zeile **„KI n = X/250"** in der bestehenden
+    „🧪 Freeze-Zähler"-Zeile (`health_check.py`, PR #588) ergänzen —
+    display-only, fail-soft, **dieselben Zählhelfer wiederverwenden**
+    wie die bestehende Setup/Conviction-Freeze-Zeile (kein zweiter
+    Zählweg). Dieser PR baut **nur die Doku**, kein Digest-Code.
+
+**Änderungs-Protokoll (bindend ab Freeze-Datum, analog §4/Setup-Edge):**
+Keine Änderung an diesem Block ohne datierten Protokolleintrag, der die
+Änderung und ihren Grund festhält.
 
 ### WIEDERVORLAGEN — dated (Stand 08.08.2026, NICHT Teil des §4-Freeze)
 
