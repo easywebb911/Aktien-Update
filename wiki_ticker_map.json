@@ -278,6 +278,15 @@
     "substrate": "en",
     "reason": null
   },
+  "BMBL": {
+    "qid": "Q21233433",
+    "title": "Bumble",
+    "resolved_at": "2026-10-13T02:36:54Z",
+    "issuer_verified": true,
+    "company_name_at_resolve": "Bumble Inc.",
+    "substrate": "en",
+    "reason": null
+  },
   "BMEA": {
     "qid": null,
     "title": null,
@@ -1447,6 +1456,15 @@
     "company_name_at_resolve": "Tonix Pharmaceuticals Holding Corp.",
     "substrate": "en",
     "reason": null
+  },
+  "TRAX": {
+    "qid": null,
+    "title": null,
+    "resolved_at": "2026-10-13T02:36:54Z",
+    "issuer_verified": false,
+    "company_name_at_resolve": "First Tracks Biotherapeutics, Inc.",
+    "substrate": "none",
+    "reason": "no_p249"
   },
   "TRIP": {
     "qid": "Q1770710",
