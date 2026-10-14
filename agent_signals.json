@@ -1,17 +1,17 @@
 {
-  "updated": "2026-10-14T13:53:24.559780+02:00",
+  "updated": "2026-10-14T13:55:12.289753+02:00",
   "run_info": {
     "tickers_checked": 14,
     "signals_active": 5,
     "alerts_sent": 0,
-    "elapsed_s": 13.0,
+    "elapsed_s": 14.4,
     "market_phase": "Pre-Market"
   },
   "signals": {
     "AMC": {
-      "score": 50,
+      "score": 68,
       "confidence": 70,
-      "drivers": "Earnings in 6 Tagen (20.10.2026) + Volumen 1.6× + Spanne 5.5% + Earnings in 6d + UOA Call/Put 7.2×",
+      "drivers": "Earnings in 6 Tagen (20.10.2026) + Volumen 1.6× + Spanne 5.5% + News-KI 12/30: Moderate positive price action but no indicators of short squeeze catalyst - refinancing news reduces default risk rathe + Earnings in 6d + UOA Call/Put 7.2×",
       "price": 3.06,
       "chg_pct": -0.0,
       "rvol_4d": 1.59,
@@ -21,9 +21,9 @@
       "upcoming_event": "Earnings in 6 Tagen (20.10.2026)",
       "insider_buy": false,
       "stocktwits": null,
-      "combo_mult": 1.0,
-      "active_triggers": 1,
-      "ki_sentiment_source": "keyword",
+      "combo_mult": 1.1,
+      "active_triggers": 2,
+      "ki_sentiment_source": "llm",
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 7.2×"
@@ -34,7 +34,7 @@
     "BBAI": {
       "score": 80,
       "confidence": 70,
-      "drivers": "Volumen 2.0× + Spanne 11.7% + News: contract, short interest + Earnings in 13d + UOA Call/Put 13.4×",
+      "drivers": "Volumen 2.0× + Spanne 11.7% + News: short interest, contract + Earnings in 13d + UOA Call/Put 13.4×",
       "price": 2.39,
       "chg_pct": 0.0,
       "rvol_4d": 2.04,
@@ -124,7 +124,7 @@
     "HTZ": {
       "score": 73,
       "confidence": 70,
-      "drivers": "Spanne 8.7% + SEC 8-K + News: squeeze, catalyst + Earnings in 22d + UOA Call/Put 7.7×",
+      "drivers": "Spanne 8.7% + SEC 8-K + News: squeeze, short interest + Earnings in 22d + UOA Call/Put 7.7×",
       "price": 1.92,
       "chg_pct": -0.0,
       "rvol_4d": 0.56,
@@ -163,7 +163,7 @@
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": 0.9901731399157697,
-      "uoa_cp_ratio": 1.5224283305227655
+      "uoa_cp_ratio": 1.5220910623946038
     },
     "MNRO": {
       "score": 18,
@@ -279,9 +279,9 @@
       "uoa_cp_ratio": 918.25
     },
     "VEEA": {
-      "score": 25,
+      "score": 22,
       "confidence": 33,
-      "drivers": "Spanne 33.3% + News: merger",
+      "drivers": "Spanne 33.3% + News-KI 12/30: Positive business developments but no evidence of high short interest, low float, or momentum indicators typical of shor",
       "price": 5.2,
       "chg_pct": -0.0,
       "rvol_4d": 0.2,
@@ -293,7 +293,7 @@
       "stocktwits": null,
       "combo_mult": 1.0,
       "active_triggers": 1,
-      "ki_sentiment_source": "keyword",
+      "ki_sentiment_source": "llm",
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": null,
