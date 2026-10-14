@@ -683,6 +683,15 @@
     "substrate": "none",
     "reason": "no_article"
   },
+  "FFAI": {
+    "qid": null,
+    "title": null,
+    "resolved_at": "2026-10-14T23:58:20Z",
+    "issuer_verified": false,
+    "company_name_at_resolve": "Faraday Future Intelligent Electric Inc.",
+    "substrate": "none",
+    "reason": "no_p249"
+  },
   "FIP": {
     "qid": null,
     "title": null,
@@ -1058,6 +1067,15 @@
     "resolved_at": "2026-07-28T22:19:35Z",
     "issuer_verified": false,
     "company_name_at_resolve": "MapLight Therapeutics, Inc.",
+    "substrate": "none",
+    "reason": "no_p249"
+  },
+  "NGNE": {
+    "qid": null,
+    "title": null,
+    "resolved_at": "2026-10-14T23:58:20Z",
+    "issuer_verified": false,
+    "company_name_at_resolve": "Neurogene Inc.",
     "substrate": "none",
     "reason": "no_p249"
   },
