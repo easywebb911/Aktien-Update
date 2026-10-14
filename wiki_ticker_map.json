@@ -233,6 +233,15 @@
     "substrate": "none",
     "reason": "no_p249"
   },
+  "BBAI": {
+    "qid": "Q124545138",
+    "title": null,
+    "resolved_at": "2026-10-14T00:21:20Z",
+    "issuer_verified": false,
+    "company_name_at_resolve": "BigBear.ai Holdings, Inc.",
+    "substrate": "none",
+    "reason": "no_article"
+  },
   "BBW": {
     "qid": "Q1002992",
     "title": "Build-A-Bear_Workshop",
@@ -268,6 +277,15 @@
     "company_name_at_resolve": "BlackSky Technology Inc.",
     "substrate": "none",
     "reason": "no_article"
+  },
+  "BKYI": {
+    "qid": null,
+    "title": null,
+    "resolved_at": "2026-10-14T00:21:20Z",
+    "issuer_verified": false,
+    "company_name_at_resolve": "BIO-key International, Inc.",
+    "substrate": "none",
+    "reason": "no_p249"
   },
   "BLKB": {
     "qid": "Q4922539",
@@ -1409,6 +1427,15 @@
     "resolved_at": "2026-08-14T21:43:40Z",
     "issuer_verified": false,
     "company_name_at_resolve": "Steakholder Foods Ltd.",
+    "substrate": "none",
+    "reason": "no_p249"
+  },
+  "SUGP": {
+    "qid": null,
+    "title": null,
+    "resolved_at": "2026-10-14T00:21:20Z",
+    "issuer_verified": false,
+    "company_name_at_resolve": "SU Group Holdings Limited",
     "substrate": "none",
     "reason": "no_p249"
   },
