@@ -503,6 +503,15 @@
     "substrate": "en",
     "reason": null
   },
+  "CWH": {
+    "qid": "Q5028383",
+    "title": "Camping_World",
+    "resolved_at": "2026-10-15T23:42:43Z",
+    "issuer_verified": true,
+    "company_name_at_resolve": "Camping World Holdings, Inc.",
+    "substrate": "en",
+    "reason": null
+  },
   "DAIC": {
     "qid": null,
     "title": null,
@@ -917,6 +926,15 @@
     "substrate": "none",
     "reason": "no_p249"
   },
+  "IONQ": {
+    "qid": "Q47462183",
+    "title": "IonQ",
+    "resolved_at": "2026-10-15T23:42:43Z",
+    "issuer_verified": true,
+    "company_name_at_resolve": "IonQ, Inc.",
+    "substrate": "en",
+    "reason": null
+  },
   "IQ": {
     "qid": "Q15913890",
     "title": "IQIYI",
@@ -1277,6 +1295,15 @@
     "substrate": "en",
     "reason": null
   },
+  "REAL": {
+    "qid": "Q65090792",
+    "title": "The_RealReal",
+    "resolved_at": "2026-10-15T23:42:43Z",
+    "issuer_verified": true,
+    "company_name_at_resolve": "The RealReal, Inc.",
+    "substrate": "en",
+    "reason": null
+  },
   "REPL": {
     "qid": null,
     "title": null,
@@ -1564,6 +1591,24 @@
     "company_name_at_resolve": "Frontier Group Holdings, Inc.",
     "substrate": "en",
     "reason": null
+  },
+  "UNIT": {
+    "qid": "Q135579976",
+    "title": null,
+    "resolved_at": "2026-10-15T23:42:43Z",
+    "issuer_verified": false,
+    "company_name_at_resolve": "Uniti Group Inc.",
+    "substrate": "none",
+    "reason": "no_article"
+  },
+  "UWMC": {
+    "qid": "Q106024170",
+    "title": null,
+    "resolved_at": "2026-10-15T23:42:43Z",
+    "issuer_verified": false,
+    "company_name_at_resolve": "UWM Holdings Corporation",
+    "substrate": "none",
+    "reason": "no_article"
   },
   "VBIO": {
     "qid": null,
