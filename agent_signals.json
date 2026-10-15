@@ -1,11 +1,11 @@
 {
-  "updated": "2026-10-15T06:40:28.341344+02:00",
+  "updated": "2026-10-15T11:55:24.308526+02:00",
   "run_info": {
     "tickers_checked": 14,
     "signals_active": 2,
     "alerts_sent": 0,
-    "elapsed_s": 19.2,
-    "market_phase": "Geschlossen"
+    "elapsed_s": 11.1,
+    "market_phase": "Pre-Market"
   },
   "signals": {
     "AMC": {
@@ -97,9 +97,9 @@
       "uoa_cp_ratio": 1.4030226700251889
     },
     "INDI": {
-      "score": 33,
+      "score": 38,
       "confidence": 70,
-      "drivers": "Volumen 2.9× + Spanne 9.4% + Earnings in 21d",
+      "drivers": "Volumen 2.9× + Spanne 9.4% + News-KI 5/30: Routine earnings announcements and employee grants lack the catalyst intensity and elevated short interest indicators ty + Earnings in 21d",
       "price": 2.01,
       "chg_pct": -0.25,
       "rvol_4d": 2.87,
@@ -111,7 +111,7 @@
       "stocktwits": null,
       "combo_mult": 1.0,
       "active_triggers": 1,
-      "ki_sentiment_source": "keyword",
+      "ki_sentiment_source": "llm",
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": null,
@@ -120,7 +120,7 @@
     "IONQ": {
       "score": 71,
       "confidence": 70,
-      "drivers": "Volumen 1.8× + Spanne 7.1% + News-KI 8/30: Equity offering dilutes shares and signals weakness; no short squeeze indicators present, only negative price pressure. + Earnings in 20d + SEC Form 4 + UOA Call-Vol/OI 81.9× ATM",
+      "drivers": "Volumen 1.8× + Spanne 7.1% + News-KI 8/30: Equity offering dilutes shares and signals bearish sentiment, reducing short-squeeze potential despite quantum sector in + Earnings in 20d + SEC Form 4 + UOA Call-Vol/OI 81.9× ATM",
       "price": 31.42,
       "chg_pct": 0.0,
       "rvol_4d": 1.78,
@@ -294,9 +294,9 @@
       "uoa_cp_ratio": null
     },
     "WOLF": {
-      "score": 33,
+      "score": 26,
       "confidence": 70,
-      "drivers": "Spanne 12.9% + News: contract + Earnings in 20d",
+      "drivers": "Spanne 12.9% + News-KI 8/30: Positive government funding improves company fundamentals and reduces squeeze catalyst appeal, as institutional stabilit + Earnings in 20d",
       "price": 24.58,
       "chg_pct": -0.0,
       "rvol_4d": 0.61,
@@ -307,8 +307,8 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 1,
-      "ki_sentiment_source": "keyword",
+      "active_triggers": 0,
+      "ki_sentiment_source": "llm",
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": null,
