@@ -1,10 +1,10 @@
 {
-  "updated": "2026-10-16T13:26:43.436129+02:00",
+  "updated": "2026-10-16T14:25:47.853129+02:00",
   "run_info": {
     "tickers_checked": 15,
     "signals_active": 1,
     "alerts_sent": 0,
-    "elapsed_s": 11.7,
+    "elapsed_s": 14.3,
     "market_phase": "Pre-Market"
   },
   "signals": {
@@ -32,9 +32,9 @@
       "uoa_cp_ratio": 19.564689063616868
     },
     "CWH": {
-      "score": 33,
+      "score": 41,
       "confidence": 70,
-      "drivers": "Volumen 2.0× + Spanne 7.0% + Earnings in 11d",
+      "drivers": "Volumen 2.0× + Spanne 7.0% + News-KI 8/30: Negative outlook with weakening market conditions and warning signs indicate falling investor sentiment, making short sq + Earnings in 11d",
       "price": 4.57,
       "chg_pct": 0.0,
       "rvol_4d": 1.96,
@@ -46,7 +46,7 @@
       "stocktwits": null,
       "combo_mult": 1.0,
       "active_triggers": 0,
-      "ki_sentiment_source": "keyword",
+      "ki_sentiment_source": "llm",
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": 0.010723860589812333,
@@ -136,7 +136,7 @@
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": 0.8927775300936246,
-      "uoa_cp_ratio": 0.9929865177720277
+      "uoa_cp_ratio": 0.9927822415906306
     },
     "OXM": {
       "score": 45,
@@ -231,9 +231,9 @@
       "uoa_cp_ratio": 2510.25
     },
     "UNIT": {
-      "score": 61,
-      "confidence": 70,
-      "drivers": "Spanne 8.8% + News-KI 18/30: Moderate recovery signals and undervaluation narrative present, but significant recent decline and lack of short interes + Earnings in 24d + FINRA Short-Vol 92%",
+      "score": 43,
+      "confidence": 33,
+      "drivers": "Spanne 8.8% + Earnings in 24d + FINRA Short-Vol 92%",
       "price": 6.01,
       "chg_pct": -0.08,
       "rvol_4d": 1.33,
@@ -244,17 +244,17 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 1,
-      "ki_sentiment_source": "llm",
+      "active_triggers": 0,
+      "ki_sentiment_source": "keyword",
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": 1.0,
       "uoa_cp_ratio": 0.07035175879396985
     },
     "UWMC": {
-      "score": 51,
+      "score": 58,
       "confidence": 70,
-      "drivers": "Volumen 1.8× + Spanne 15.7% + News-KI 8/30: Negative sentiment with lawsuits, falling shares, and valuation concerns indicate weak momentum and unlikely short-squee + Earnings in 20d + UOA Call/Put 10.8×",
+      "drivers": "Volumen 1.8× + Spanne 15.7% + News: short interest + Earnings in 20d + UOA Call/Put 10.8×",
       "price": 1.15,
       "chg_pct": -0.0,
       "rvol_4d": 1.77,
@@ -265,8 +265,8 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 0,
-      "ki_sentiment_source": "llm",
+      "active_triggers": 1,
+      "ki_sentiment_source": "keyword",
       "uoa_score": 10,
       "uoa_drivers": [
         "UOA Call/Put 10.8×"
@@ -275,9 +275,9 @@
       "uoa_cp_ratio": 10.8
     },
     "VEEA": {
-      "score": 22,
+      "score": 25,
       "confidence": 33,
-      "drivers": "Spanne 10.8% + News-KI 12/30: Positive business developments and partnerships, but no short squeeze indicators present (no high short interest, low fl",
+      "drivers": "Spanne 10.8% + News: merger",
       "price": 4.84,
       "chg_pct": 0.0,
       "rvol_4d": 0.02,
@@ -289,7 +289,7 @@
       "stocktwits": null,
       "combo_mult": 1.0,
       "active_triggers": 1,
-      "ki_sentiment_source": "llm",
+      "ki_sentiment_source": "keyword",
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": null,
