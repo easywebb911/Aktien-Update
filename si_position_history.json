@@ -3777,6 +3777,12 @@
       "shares_short": 22754597,
       "short_pct_float": 33.69,
       "pub_date": "2026-09-24"
+    },
+    {
+      "settlement_date": "2026-09-30",
+      "shares_short": 23128025,
+      "short_pct_float": 34.24,
+      "pub_date": "2026-10-09"
     }
   ],
   "SG": [
@@ -4650,6 +4656,12 @@
       "shares_short": 178724433,
       "short_pct_float": 34.95,
       "pub_date": "2026-09-24"
+    },
+    {
+      "settlement_date": "2026-09-30",
+      "shares_short": 157938412,
+      "short_pct_float": 30.89,
+      "pub_date": "2026-10-09"
     }
   ],
   "MUX": [
@@ -5169,6 +5181,12 @@
       "shares_short": 49875210,
       "short_pct_float": 30.43,
       "pub_date": "2026-09-24"
+    },
+    {
+      "settlement_date": "2026-09-30",
+      "shares_short": 46046946,
+      "short_pct_float": 28.1,
+      "pub_date": "2026-10-09"
     }
   ],
   "SRPT": [
@@ -8055,6 +8073,12 @@
       "shares_short": 10312316,
       "short_pct_float": 47.48,
       "pub_date": "2026-09-24"
+    },
+    {
+      "settlement_date": "2026-09-30",
+      "shares_short": 10912823,
+      "short_pct_float": 50.24,
+      "pub_date": "2026-10-09"
     }
   ],
   "DFSC": [

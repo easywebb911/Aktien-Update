@@ -170,6 +170,15 @@
     "substrate": "en",
     "reason": null
   },
+  "ARRY": {
+    "qid": null,
+    "title": null,
+    "resolved_at": "2026-10-16T23:40:13Z",
+    "issuer_verified": false,
+    "company_name_at_resolve": "Array Technologies, Inc.",
+    "substrate": "none",
+    "reason": "no_p249"
+  },
   "ASAN": {
     "qid": "Q111411592",
     "title": "Asana,_Inc.",
