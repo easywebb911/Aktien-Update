@@ -601,6 +601,35 @@ nicht mehr entstehen, nicht nur per Session-Disziplin.)*
   Setup-Edge-Re-Test-Freeze-Block + beide Errata **byte-identisch
   unverändert** (verifiziert per Diff-Vergleich gegen den Vorzustand).
 
+### 16.10.2026 — KI-Score-Edge-Test-Freeze-Erratum (1 PR)
+
+- **KI-Score-Edge-Test-Freeze — Randfall ohne verwertbaren Score
+  entschieden (Block-1-Pflicht befolgt, Auto-Merge, reine Doku):**
+  `#591` (Branch-Commit `4a0c7b04`, 16.10., kein Merge-Hash genannt —
+  Regel a) greift). Erratum zum KI-Score-Edge-Test-Freeze (`#590`): der
+  dort in Punkt 2 offen gelassene Randfall — `ki_signal_ts` vorhanden,
+  aber `ki_signal_score` fehlgeschlagen/nicht verwertbar — ist
+  entschieden (**Easy, 16.10.2026**): solche Zeilen zählen **nicht**
+  zur Population. Population präzisiert: `provenance=="forward"` UND
+  `ki_signal_ts` vorhanden UND `ki_signal_score` numerisch/endlich
+  (nicht `None`) UND Eintrittsdatum `>= 12.10.2026`, nur aus
+  `matured_backtest_export.jsonl`. Ausgeschlossene Zeilen werden bei der
+  Auswertung nur als Zahl berichtet (Anteil), nie getestet — kein
+  Ergebnis-Bias, da die Zuordnung allein vom Einstiegstag abhängt.
+  Einschränkung bei Ausschlussanteil > 20 % benannt (kein
+  Abbruchkriterium, nur Hervorhebung in der Bewertung). Folgeauftrag
+  (Digest-Zeile „KI n = X/250") präzisiert, dieselbe Population zu
+  zählen. **SCHRITT-0-Befund:** 40 Zeilen mit `ki_signal_ts` in
+  `backtest_history.json` (10/Tag für 12.–15.10.2026), 0 von 40 mit
+  nicht-verwertbarem Score, 0 von 40 mit `return_5d`/`return_10d`
+  gefüllt — kein STOPP. Bestehender „keine Vorentscheidung"-Vermerk
+  nicht gelöscht, nur um Verweis „entschieden 16.10., siehe Erratum"
+  ergänzt. `open_items.json` (`ki-score-edge-freeze`): Erratum-Satz
+  ergänzt, Status bleibt `beobachtet` (31→31 Items). Setup-Edge-Re-Test-
+  Freeze-Block + beide Errata sowie alle anderen Teile des KI-Freeze
+  **byte-identisch unverändert** (heading-anchorter Diff). Kein Code,
+  kein Schema, keine Workflows.
+
 
 
 *(Zwei-PR-Kette aus einer read-only Diagnose 15.08.2026: das Backtesting-Panel
@@ -1836,7 +1865,9 @@ reine Zeitfrage.
    für diesen Ticker. Keine Vorentscheidung hier, ob solche Zeilen aus
    `n` herausgerechnet oder nur aus der eigentlichen AUC-Berechnung
    ausgeschlossen werden — das entscheidet sich **zur Auswertungszeit**
-   anhand der dann tatsächlich beobachteten Häufigkeit.
+   anhand der dann tatsächlich beobachteten Häufigkeit. **Entschieden
+   16.10.2026, siehe Erratum unten** (dieser Satz bleibt zur
+   Nachvollziehbarkeit stehen, keine Streichung).
 3. **Zielgrößen, Holm k=2** (Verfahren wie §4/Setup-Edge:
    `mann_whitney_u_auc`, `scripts/stats_helpers.py:60`, +
    `multiple_testing_correction`, `scripts/stats_helpers.py:152`):
@@ -1940,6 +1971,73 @@ reine Zeitfrage.
 **Änderungs-Protokoll (bindend ab Freeze-Datum, analog §4/Setup-Edge):**
 Keine Änderung an diesem Block ohne datierten Protokolleintrag, der die
 Änderung und ihren Grund festhält.
+
+**ERRATUM 16.10.2026 — Randfall „ki_signal_ts ohne verwertbaren
+ki_signal_score" (Punkt 2 oben) entschieden.** Grund: Easy-Entscheidung
+16.10.2026. **Ausdrücklich festgehalten: Zum Zeitpunkt dieses Erratums
+wurden KEINE Outcomes der Population ausgewertet** — SCHRITT-0-Zählung
+16.10.2026 (reine Zählung, keine Returns angesehen): 40 Zeilen in
+`backtest_history.json` tragen `ki_signal_ts` (10 pro Tag für
+12./13./14./15.10.2026, 16.10. hat beim Zähl-Zeitpunkt noch keinen
+Postclose-Eintrag), **0 von 40** mit nicht-verwertbarem
+`ki_signal_score` (None/nicht-numerisch/nicht-endlich — alle 40 bislang
+numerisch und endlich), **0 von 40** mit `return_5d` oder `return_10d`
+gefüllt. Dieses Erratum ändert **keinen bestehenden Satz** der obigen
+„EINGEFRORENEN VORGABEN" — reine Ergänzung, Punkt 2 bleibt oben
+unverändert stehen (nur um den Verweis-Satz „Entschieden 16.10.2026,
+siehe Erratum unten" ergänzt, siehe dort).
+
+**Population — präzisiert (ersetzt NICHT Punkt 2, konkretisiert ihn):**
+`provenance=="forward"` **UND** `ki_signal_ts` vorhanden **UND**
+`ki_signal_score` numerisch und endlich (nicht `None`, kein `NaN`/`Inf`,
+kein `bool`) **UND** Eintrittsdatum `>= 12.10.2026`, ausschließlich aus
+`matured_backtest_export.jsonl`, Backfill nie. **Nur diese Zeilen zählen
+zu `n` und zur AUC-Berechnung.**
+
+**Entscheidung — Zeilen ohne verwertbaren Wert werden NICHT gezählt.**
+Zeilen mit `ki_signal_ts` vorhanden, aber ohne verwertbaren
+`ki_signal_score` (fehlgeschlagene Fresh-Berechnung — „versucht, aber
+kein Wert", siehe Punkt 2) sind von der Population **ausgeschlossen**.
+Sie werden bei der Auswertung **nur als Zahl berichtet** („x Zeilen
+ausgeschlossen, Anteil y %"), **nie getestet**.
+
+**Begründung.** Die Zuordnung „gehört diese Zeile zur Population" hängt
+**allein vom Einstiegstag und der Datenverfügbarkeit zum Freeze-Zeitpunkt
+der Zeile ab** (hat `ki_signal_ts`, hat `ki_signal_score`), **nicht vom
+späteren Forward-Ergebnis** — deshalb entsteht durch den Ausschluss
+**kein Ergebnis-Bias** (kein Cherry-Picking nach Outcome). Zeilen ohne
+Score liefern schlicht **keinen** AUC-Datenpunkt — sie könnten technisch
+nicht getestet werden, selbst wenn man sie in `n` beließe.
+
+**Einschränkung — ausdrücklich benannt.** Fehlt der KI-Wert **systematisch**
+bei bestimmten Aktientypen (z. B. Tickers ohne verarbeitbare
+Nachrichtenlage, Claude-Haiku-Timeout/Rate-Limit-Muster, siehe
+`claude_sentiment_score`-Fail-Soft-Pfad), gilt ein späteres Ergebnis
+**nur für die Teilmenge mit verwertbarem Wert**, nicht für alle Aktien
+der ursprünglichen Top-10-Auswahl. Der Ausschlussanteil (`x Zeilen
+ausgeschlossen, Anteil y %`) ist **mit jeder Auswertung zu nennen**;
+liegt er **über 20 %**, ist das in der Bewertung **als Einschränkung
+hervorzuheben** — **kein Abbruchkriterium**, der Test läuft trotzdem.
+
+**Folgeauftrag-Präzisierung (Punkt 11 oben, additiv — Punkt 11 selbst
+bleibt unverändert stehen):** Die geplante Digest-Zeile „KI n = X/250"
+(Wiedervorlage 28.10.2026) muss **exakt diese präzisierte Population**
+zählen (`ki_signal_ts` vorhanden **UND** `ki_signal_score` numerisch/
+endlich **UND** Eintrittsdatum ≥ 12.10.2026) — **nicht** nur
+`ki_signal_ts`-Präsenz allein, sonst würde der Zähler Zeilen ohne
+verwertbaren Wert mitzählen, die laut dieser Entscheidung nie zu `n`
+gehören.
+
+**Widerspruchs-Check (Exzellenz-Punkt 2):** Kein kollidierender Satz an
+anderer Stelle im Freeze-Block gefunden — Punkt 5 („Auslöser: n≥250
+bestätigende Zeilen **dieser Population**") verweist bereits generisch
+auf „diese Population" und wird durch diese Präzisierung automatisch
+konsistent, ohne eigene Änderung zu brauchen. Die „Datenquelle &
+n-Definition"-Absatz oben (vor den EINGEFRORENEN VORGABEN) beschreibt nur
+die Dateiquelle, trifft keine score-bezogene Aussage — keine Kollision.
+
+**Änderungs-Protokoll gilt identisch für dieses Erratum** (analog
+Setup-Edge/§4): keine weitere Änderung ohne datierten Protokolleintrag.
 
 ### WIEDERVORLAGEN — dated (Stand 08.08.2026, NICHT Teil des §4-Freeze)
 
