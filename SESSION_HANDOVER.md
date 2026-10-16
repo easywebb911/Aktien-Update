@@ -601,6 +601,35 @@ nicht mehr entstehen, nicht nur per Session-Disziplin.)*
   Setup-Edge-Re-Test-Freeze-Block + beide Errata **byte-identisch
   unverändert** (verifiziert per Diff-Vergleich gegen den Vorzustand).
 
+### 16.10.2026 — KI-Score-Edge-Test-Freeze-Erratum (1 PR)
+
+- **KI-Score-Edge-Test-Freeze — Randfall ohne verwertbaren Score
+  entschieden (Block-1-Pflicht befolgt, Auto-Merge, reine Doku):**
+  `#591` (Branch-Commit `4a0c7b04`, 16.10., kein Merge-Hash genannt —
+  Regel a) greift). Erratum zum KI-Score-Edge-Test-Freeze (`#590`): der
+  dort in Punkt 2 offen gelassene Randfall — `ki_signal_ts` vorhanden,
+  aber `ki_signal_score` fehlgeschlagen/nicht verwertbar — ist
+  entschieden (**Easy, 16.10.2026**): solche Zeilen zählen **nicht**
+  zur Population. Population präzisiert: `provenance=="forward"` UND
+  `ki_signal_ts` vorhanden UND `ki_signal_score` numerisch/endlich
+  (nicht `None`) UND Eintrittsdatum `>= 12.10.2026`, nur aus
+  `matured_backtest_export.jsonl`. Ausgeschlossene Zeilen werden bei der
+  Auswertung nur als Zahl berichtet (Anteil), nie getestet — kein
+  Ergebnis-Bias, da die Zuordnung allein vom Einstiegstag abhängt.
+  Einschränkung bei Ausschlussanteil > 20 % benannt (kein
+  Abbruchkriterium, nur Hervorhebung in der Bewertung). Folgeauftrag
+  (Digest-Zeile „KI n = X/250") präzisiert, dieselbe Population zu
+  zählen. **SCHRITT-0-Befund:** 40 Zeilen mit `ki_signal_ts` in
+  `backtest_history.json` (10/Tag für 12.–15.10.2026), 0 von 40 mit
+  nicht-verwertbarem Score, 0 von 40 mit `return_5d`/`return_10d`
+  gefüllt — kein STOPP. Bestehender „keine Vorentscheidung"-Vermerk
+  nicht gelöscht, nur um Verweis „entschieden 16.10., siehe Erratum"
+  ergänzt. `open_items.json` (`ki-score-edge-freeze`): Erratum-Satz
+  ergänzt, Status bleibt `beobachtet` (31→31 Items). Setup-Edge-Re-Test-
+  Freeze-Block + beide Errata sowie alle anderen Teile des KI-Freeze
+  **byte-identisch unverändert** (heading-anchorter Diff). Kein Code,
+  kein Schema, keine Workflows.
+
 
 
 *(Zwei-PR-Kette aus einer read-only Diagnose 15.08.2026: das Backtesting-Panel
