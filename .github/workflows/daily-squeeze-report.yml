@@ -163,6 +163,14 @@ jobs:
           # KEINE historischen Ketten, d.h. jeder verlorene Tag ist ein OI-
           # Momentanwert, der nie wiederkommt.
           git add options_oi_history.json 2>/dev/null || true
+          # options_chain_raw.jsonl: Rohdaten-Sammelfeld (Bid/Ask/LastPrice/
+          # Volumen/OI/IV/LastTradeDate je Strike), NUR postclose (17.10.2026,
+          # Lit-Check-Funde — siehe SESSION_HANDOVER.md). Persistenz über
+          # Commit ZWINGEND (identische Lehre #501 wie options_oi_history.json
+          # oben) — ohne git add würde die Datei bei jedem Workflow-Checkout
+          # verworfen; dieselbe Kette wird nie wieder geholt, ein verlorener
+          # Tag kommt nie zurück.
+          git add options_chain_raw.jsonl 2>/dev/null || true
           # ftd_history.json + ftd_history_state.json: forward-only SEC-Fail-to-
           # Deliver-Zeitreihe je Universums-Ticker, NUR postclose (11.08.2026).
           # Persistenz über Commit ZWINGEND (Lehre #501) — ohne git add würde die

@@ -323,6 +323,15 @@ def main(*, now_ts: datetime | None = None,
         log.warning("options_oi_liveness_line unerwartet: %r", _oi_exc)
         options_oi_line = None
 
+    # options_chain_raw-Liveness (17.10.2026): analog options_oi, eigene Datei
+    # (JSONL). raise-frei; try/except ist reine Absicherung.
+    try:
+        chain_raw_line = hc.options_chain_raw_liveness_line(
+            ROOT / hc.OPTIONS_CHAIN_RAW_FILE, now_ts=now_ts)
+    except Exception as _ocr_exc:  # pragma: no cover — Helper ist raise-frei
+        log.warning("options_chain_raw_liveness_line unerwartet: %r", _ocr_exc)
+        chain_raw_line = None
+
     # FTD-Liveness: Heartbeat-basiert (Sidecar-State), kein Daily-Run-Fenster nötig.
     try:
         ftd_line = hc.ftd_liveness_line(
@@ -365,6 +374,7 @@ def main(*, now_ts: datetime | None = None,
         freeze_line=freeze_line,
         inst_own_line=inst_own_line,
         options_oi_line=options_oi_line,
+        chain_raw_line=chain_raw_line,
         ftd_line=ftd_line,
         reg_sho_line=reg_sho_line,
         weekly_lines=weekly_lines,

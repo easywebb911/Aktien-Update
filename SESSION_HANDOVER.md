@@ -630,6 +630,60 @@ nicht mehr entstehen, nicht nur per Session-Disziplin.)*
   **byte-identisch unverändert** (heading-anchorter Diff). Kein Code,
   kein Schema, keine Workflows.
 
+### 17.10.2026 — Options-Rohketten-Sammelfeld (Lit-Check Muravyev/Pearson/Pollet + Baig/Strong/Zaynutdinova) (1 PR)
+
+- **Options-Rohketten-Sammelfeld `options_chain_raw.jsonl` (Block-1-Pflicht
+  befolgt, Manual-Merge — neues JSONL-Schema, Easy mergt am iPhone):**
+  `#592` (Branch-Commit folgt im Folge-Commit, 17.10.). Lit-Check-Funde
+  (siehe Eintrag oben): Leihgebühr aus Optionspreisen
+  (Muravyev/Pearson/Pollet) + Net-Delta-Gamma-Maße (Baig/Strong/
+  Zaynutdinova, „Seeking Gamma") brauchen Bid/Ask/LastPrice/Volumen/
+  LastTradeDate je Strike, die `_extract_oi_rows()` heute verwirft.
+  Neue Datei sammelt diese Rohdaten für die Top-10, NUR postclose,
+  moneyness-gefiltert (±30 % um den Spot) — **KEINE Berechnung** (keine
+  Leihgebühr, kein Delta), **KEIN Score-/Filter-/Push-/Anzeige-Effekt**.
+
+  **Zero-New-Fetch-Design:** `_fetch_next_expiry_chain` bekommt einen
+  additiven `raw_sink`-Parameter (Default `None`, byte-identisch für alle
+  bestehenden Aufrufer/Tests — bewiesen per Test). `main()` wrappt den
+  `fetch_fn`, den `_persist_options_oi_history` ohnehin aufruft, mit
+  einem Capture-Callback, der dieselbe Kette in einen Cache spiegelt —
+  `_persist_options_chain_raw` liest NUR aus diesem Cache, macht selbst
+  **keinen** Yahoo-Request. `options_oi_history.json` bleibt
+  **byte-identisch** (Test-Beleg: identischer Output mit/ohne
+  Capture-Wrapper um denselben `fetch_fn`).
+
+  **Scope-Entscheidung, bewusst dokumentiert:** nur der „nächste" Verfall
+  (identisch zu options_oi_history.json, volle Top-10) — NICHT der für
+  `atm_iv`/`pc_ratio`/Gamma gewählte Verfall aus `get_options_data()`
+  (deckt nur die ersten 5 US-Ticker ab, `_OPTS_TOP_N=5`; ein Hook dort
+  hätte den PR auf eine komplexere Funktion für nur Teil-Abdeckung
+  ausgeweitet). JSON-Schema (`expiries`-Liste) ist für eine spätere
+  Erweiterung offen.
+
+  **Digest-Zeile** „📦 Options-Rohkette" (`health_check.py`,
+  `options_chain_raw_liveness_line`) — display-only, fail-soft, zeigt
+  Zeilenzahl + Bid&Ask-Brauchbarkeits-Anteil am ATM-nahen Fenster (±10 %)
+  des letzten Sammel-Tages (Kernzweck: Yahoo liefert nach Börsenschluss
+  oft Bid/Ask=0). Bestehende Digest-Zeilen unverändert (Vorher/Nachher-
+  Beleg: `options_oi_history.json`-Zeile byte-identisch).
+
+  **Workflow-Änderung (Manual-Merge-Grund):**
+  `.github/workflows/daily-squeeze-report.yml` bekommt einen neuen
+  `git add options_chain_raw.jsonl`-Eintrag (ohne den wäre die Datei bei
+  jedem Checkout verloren, analog Lehre #501 bei options_oi_history.json).
+
+  **open_items.json:** neuer Eintrag `options-chain-raw-sammelfeld`,
+  Status `beobachtet`, Wiedervorlagen 1) Digest-Qualitätscheck nach ca.
+  10 Handelstagen (Bid&Ask-Anteil — bei schlechtem Wert separat
+  entscheiden, ob ein Intraday-Abgriff sinnvoll ist, NICHT jetzt bauen)
+  2) Monatsrundgang 02.11.2026.
+
+  Golden byte-identisch, alle bestehenden Tests + 155 CI-Tests grün,
+  `lint_nan_bypass_fields.py` grün (Baseline-Zeilennummern nachgeführt,
+  reine Verschiebung, keine inhaltliche Änderung). Regel 8c nicht
+  einschlägig (kein `score()`/Top-10-Touch).
+
 
 
 *(Zwei-PR-Kette aus einer read-only Diagnose 15.08.2026: das Backtesting-Panel
@@ -2180,6 +2234,83 @@ Setup-Edge/§4): keine weitere Änderung ohne datierten Protokolleintrag.
   Teilplan gefunden (Grep über dieses Dokument und `open_items.json` nach
   „Wegwerf"/„Key-Generierung": keine IBKR-spezifische Fundstelle außer
   den hier referenzierten) — nichts als überholt zu markieren.
+- **Lit-Check 17.10.2026 — zwei Funde, Sammelfeld statt Berechnung.**
+  **Fund 1 (Muravyev/Pearson/Pollet, Gies/Illinois, Oktober 2025, vermutlich
+  *Journal of Financial Economics*, „Why does options market information
+  predict stock returns?"):** die Leihgebühr einer Aktie lässt sich
+  näherungsweise aus Optionspreisen ablesen (Abweichung von der
+  Put-Call-Parität — Formel siehe unten). Interessant, weil die CTB-Quellen
+  seit 23.07.2026 tot sind und die IBKR-Spur (oben) geschlossen ist.
+  **Fund 2 (Baig/Strong/Zaynutdinova, Arbeitspapier „Seeking Gamma", AEA
+  2026, Programmseite-Version 19.12.2025):** Gamma-Squeeze-Ereignisse
+  werden dort über **Net Delta Open Interest**/**Net Delta Volume**
+  (delta-gewichtet) gemessen — unser bestehendes Gamma-Signal
+  (`GAMMA_SQUEEZE_ENABLED`, `generate_report.py:1890-1908`) ist gröber
+  (reine Call-OI-Summe im ATM-Fenster, kein Delta-Gewicht). **Arbeitspapier-
+  Charakter ausdrücklich benannt:** die Programmseite nennt teils
+  widersprüchliche Zahlen (5,13 % gegenüber 5,79 % für denselben
+  Kennwert in unterschiedlichen Versionen) und die genaue Ereignis-
+  Definition („Gamma-Squeeze-Tag") ist aus der verfügbaren Fassung nicht
+  abschließend rekonstruierbar — Vorsicht vor Übernahme konkreter
+  Schwellenwerte aus dieser Quelle.
+
+  **Umsetzbarkeits-Verdikt (beide Funde, Diagnose + Bau 17.10.2026, `#592`):**
+  Sammelfeld **ja**, Berechnung **nein** (noch nicht) — **kein Score-
+  Eingriff**. Beide Rechenwege brauchen Bid/Ask/LastPrice/Volumen/
+  LastTradeDate je Strike, die `_extract_oi_rows()` (options_oi_history.json)
+  heute verwirft, obwohl sie im selben `option_chain()`-Abruf bereits
+  vorliegen (Diagnose-Beleg: SCHRITT 0a unten). **Entscheidung (Easy,
+  17.10.2026):** Sammelfeld bauen (`options_chain_raw.jsonl`,
+  `OPTIONS_CHAIN_RAW_ENABLED`); Auswertung frühestens nach 2–3 Monaten
+  Datenlage und nur nach eigener, neuer Pre-Registration (analog zum
+  KI-Score-Edge-Test-Freeze oben) — **Termin nicht geschätzt.**
+
+  **SCHRITT-0a-Befund (reine Zählung, 17.10.2026, keine Returns
+  angesehen):** 443 von 501 Punkten in `options_oi_history.json` haben
+  mindestens einen Strike mit sowohl Call-IV > 0 als auch Put-IV > 0 zum
+  gleichen Verfall — ein rückwirkend teilweise rechenbarer IV-Unterschied
+  ist also in der Datenlage vorhanden (reine Zahl, keine Bewertung der
+  Güte). Der in der options_oi_history.json gespeicherte Verfall ist der
+  „nächste" (`_fetch_next_expiry_chain`, `exps[0]`, keine Mindest-Tage-
+  Schranke) — **nicht notwendig derselbe** wie der für `atm_iv`/`pc_ratio`
+  gewählte (`get_options_data`, Filter `IV_MIN_DAYS_TO_EXPIRY = 7`,
+  `config.py:745`); beide Selektionslogiken sind unabhängig und können
+  auf unterschiedliche Verfälle fallen. Das neue Sammelfeld nutzt
+  bewusst NUR den „nächsten" Verfall (identisch zu options_oi_history.json)
+  — siehe PR-Text für die Scope-Begründung (get_options_data deckt nur
+  die ersten 5 US-Ticker ab, nicht die volle Top-10).
+
+  **Rechenweg zur späteren Auswertung (dokumentiert, NICHT gebaut):**
+  `q = −(1/T)·ln((C − P + K·e^(−rT)) / S)` (C/P = Call-/Put-Mittelpreis,
+  S = Kurs, K = Strike, T = Restlaufzeit in Jahren, r = Zinssatz). Bei
+  Aktien ohne Dividende entspricht `q` näherungsweise der Leihgebühr.
+  (i) **Kein Zinssatz im Repo** (`risk_free`/`zinssatz`/`RISK_FREE`: 0
+  Treffer) — eine neue Konstante wäre nötig. (ii) **Empfindlichkeit:**
+  analytisch `dq/dr = K·e^(−rT) / (C−P+K·e^(−rT))` — für kurzlaufende,
+  nahe-am-Geld-Optionen ≈ 1, d. h. **ein 1-Prozentpunkt-Fehler bei r
+  erzeugt ungefähr einen 1-Prozentpunkt-Fehler bei q** (numerisch
+  geprüft: S=K=10, T=30 Tage, q=20 % → r=5 %: q=20,00 %; r=6 %:
+  q=21,01 %). (iii) **Bekannte Verzerrungen:** amerikanische Puts mit
+  vorzeitigem Ausübungsrecht (überschätzt P bei teurem Borrow → q
+  überschätzt), Dividenden (in der Formel nicht erfasst), ungenaue
+  Mittelpreise bei breitem Spread. **Ausdrücklich festgehalten:** die
+  Güte der echten Leihgebühr ist NICHT prüfbar (kein Vergleichswert im
+  Repo, CTB-Quellen seit 23.07.2026 tot) — die **Vorhersagekraft gegen
+  Renditen** ist es dagegen schon, über eine künftige, eigene
+  Pre-Registration (analog KI-Score-Edge-Test).
+
+  **Dateiwachstum (grobe Rechnung, Diagnose 17.10.2026):**
+  `options_chain_raw.jsonl` wächst analog `options_oi_history.json`
+  (dasselbe Sammel-Muster, zusätzliche Felder pro Strike) — Schätzung
+  ca. **15 KB/Tag**, **kein Prune/Cap** (append-only, analog
+  options_oi_history.json — ein verlorener Snapshot kommt nie zurück).
+  Bei Erreichen von ca. **10 MB** neu bewerten (Rotation/Kompression/
+  Cap-Diskussion), nicht vorher.
+
+  **Regel-8c-Hinweis:** Dieser PR berührt `score()`/die Top-10-Auswahl
+  **nicht** — Regel 8c (Setup-Edge-/KI-Score-Edge-Freeze, Score-Änderungs-
+  Log-Pflicht) ist **nicht einschlägig**, ausdrücklich festgehalten, kein
+  Log-Eintrag in einem der beiden Freeze-Blöcke nötig.
 - **KI-Score-Coverage-Diagnose — abgeschlossen 10.10.2026 (read-only, keine
   PR, reine Chat-Diagnose, hier nachträglich dokumentiert).** Von 472
   gereiften Forward-Zeilen haben nur **144 (30 %)** einen `ki_signal_score`

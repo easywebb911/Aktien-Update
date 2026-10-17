@@ -3889,7 +3889,7 @@ def _extract_oi_rows(df) -> list:
     return rows
 
 
-def _fetch_next_expiry_chain(ticker: str):
+def _fetch_next_expiry_chain(ticker: str, *, raw_sink: list | None = None):
     """REAL-yfinance-Fetcher für den NÄCHSTEN Verfall (Calls UND Puts in EINEM
     ``option_chain``-Abruf). Rückgabe-Tuple:
 
@@ -3899,7 +3899,14 @@ def _fetch_next_expiry_chain(ticker: str):
     RAISED bei echtem Abruf-Fehler (Netzwerk/yfinance) → der Caller fängt das als
     FETCH-FAIL, GETRENNT von „keine Kette". Ein leerer ``tk.options`` ist KEIN
     Fehler, sondern die Aussage „keine Kette". Nur hier wird yfinance importiert —
-    Tests injizieren ``fetch_fn`` und brauchen yfinance NICHT."""
+    Tests injizieren ``fetch_fn`` und brauchen yfinance NICHT.
+
+    ``raw_sink`` (additiv, 17.10.2026, Options-Rohketten-Sammelfeld): optionale
+    Liste — wenn gesetzt, wird ``(expiry, oc.calls, oc.puts)`` dort angehängt,
+    BEVOR die Extraktion auf ``_extract_oi_rows`` reduziert. Reiner Seiteneffekt,
+    KEIN zusätzlicher Fetch (dieselbe ``oc``, die ohnehin schon geholt wird) und
+    KEINE Änderung am Rückgabe-Tupel — bei ``raw_sink=None`` (Default, alle
+    bestehenden Aufrufer/Tests) ist das Verhalten byte-identisch zu vorher."""
     import yfinance as yf
     tk = yf.Ticker(ticker)
     exps = list(tk.options or [])
@@ -3907,6 +3914,8 @@ def _fetch_next_expiry_chain(ticker: str):
         return ("no_chain", None, None, None)
     expiry = exps[0]
     oc = tk.option_chain(expiry)               # EIN Fetch liefert calls UND puts
+    if raw_sink is not None:
+        raw_sink.append((expiry, oc.calls, oc.puts))
     return ("ok", expiry, _extract_oi_rows(oc.calls), _extract_oi_rows(oc.puts))
 
 
@@ -3996,6 +4005,221 @@ def _persist_options_oi_history(top10, *, report_date_iso: str | None = None,
     log.info("options_oi-Zeitreihe: %d Punkte (%d Ticker gesamt · %d keine Kette "
              "· %d Fetch-Fail)", added, len(hist), n_nochain, n_fetchfail)
     return added
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# 2c. Options-Rohketten-Sammelfeld (Lit-Check 17.10.2026, options_chain_raw.jsonl)
+# ─────────────────────────────────────────────────────────────────────────────
+# Siehe config.py-Kommentar oben für die vollständige Begründung + Scope-
+# Entscheidung. Kurzfassung: REINE Sammlung von Bid/Ask/LastPrice/Volumen/
+# LastTradeDate je Strike (±30 % Moneyness) für die Top-10, NUR postclose —
+# KEINE Berechnung, KEIN Score-/Filter-/Push-/Anzeige-Effekt. Nutzt dieselbe
+# Kette wie ``options_oi_history.json`` (via ``raw_sink`` auf
+# ``_fetch_next_expiry_chain``) — KEIN zusätzlicher Yahoo-Request.
+
+def _opt_iso_or_none(raw):
+    """``lastTradeDate``-Rohwert → ISO-String oder ``None``. Pandas-frei (wie
+    ``_extract_oi_rows``/``_extract_full_option_rows`` — nur Duck-Typing, kein
+    ``import pandas``, ``_FDF``-Fixture-kompatibel): ``None``/NaN(float)/leerer
+    String/„NaT" → ``None``; ein Objekt mit ``.isoformat()`` (echtes
+    ``pandas.Timestamp`` ODER ein Test-Double) wird darüber aufgelöst; ein
+    bereits-String-Wert wird 1:1 durchgereicht (Test-Fixtures dürfen fertige
+    ISO-Strings liefern). Nie eine Exception."""
+    if raw is None:
+        return None
+    if isinstance(raw, bool):
+        return None
+    if isinstance(raw, float):           # NaN (und jeder sonstige Float) → None
+        return None
+    if isinstance(raw, str):
+        return raw if raw and raw != "NaT" else None
+    iso_fn = getattr(raw, "isoformat", None)
+    if iso_fn is None:
+        return None
+    try:
+        val = iso_fn()
+    except Exception:
+        return None
+    return val if isinstance(val, str) and val != "NaT" else None
+
+
+def _extract_full_option_rows(df, spot: float | None) -> list:
+    """Rohdaten je Strike — ``{strike, bid, ask, lastPrice, volume,
+    openInterest, impliedVolatility, lastTradeDate}`` — für Strikes mit
+    ``|strike/spot − 1| <= OPTIONS_CHAIN_RAW_MONEYNESS_RANGE``. KEINE
+    Berechnung (kein Mittelpreis, keine Leihgebühr, kein Delta) — Rohwerte
+    1:1, fehlende Spalte oder NaN → ``None``, NIE geraten/umgerechnet.
+
+    Pandas-frei wie ``_extract_oi_rows`` (nur ``.columns`` + ``[col]``-Listen-
+    Zugriff) — dieselbe ``_FDF``-Fixture aus den bestehenden Tests reicht aus,
+    kein ``import pandas`` nötig. Gibt IMMER eine Liste zurück; leer bei
+    fehlender Kette/Spalte/ungültigem Spot (Caller unterscheidet das von
+    „Spot fehlt → unbeobachtbar" selbst, siehe ``_persist_options_chain_raw``)."""
+    rows: list = []
+    if df is None or spot is None or spot <= 0:
+        return rows
+    try:
+        cols = set(getattr(df, "columns", []))
+        if "strike" not in cols:
+            return rows
+        strikes = list(df["strike"])
+        n = len(strikes)
+        bids  = list(df["bid"])               if "bid" in cols else [None] * n
+        asks  = list(df["ask"])               if "ask" in cols else [None] * n
+        lasts = list(df["lastPrice"])         if "lastPrice" in cols else [None] * n
+        vols  = list(df["volume"])            if "volume" in cols else [None] * n
+        ois   = list(df["openInterest"])      if "openInterest" in cols else [None] * n
+        ivs   = list(df["impliedVolatility"]) if "impliedVolatility" in cols else [None] * n
+        ltds  = list(df["lastTradeDate"])     if "lastTradeDate" in cols else [None] * n
+        for i, strike_raw in enumerate(strikes):
+            strike = _opt_num(strike_raw)
+            if strike is None:
+                continue
+            if abs(strike / spot - 1) > OPTIONS_CHAIN_RAW_MONEYNESS_RANGE:
+                continue
+            vol_val = _opt_num(vols[i])
+            oi_val  = _opt_num(ois[i])
+            rows.append({
+                "strike": strike,
+                "bid": _opt_num(bids[i]),
+                "ask": _opt_num(asks[i]),
+                "lastPrice": _opt_num(lasts[i]),
+                "volume": int(vol_val) if vol_val is not None else None,
+                "openInterest": int(oi_val) if oi_val is not None else None,
+                "impliedVolatility": _opt_num(ivs[i]),
+                "lastTradeDate": _opt_iso_or_none(ltds[i]),
+            })
+    except Exception:   # pragma: no cover — Transformationsfehler → leere Liste
+        return []
+    return rows
+
+
+def _load_options_chain_raw_keys(path) -> set:
+    """``(ticker, date)``-Set bereits geschriebener Zeilen für den
+    Idempotenz-Check — fail-soft (fehlende/kaputte Datei → leeres Set, NIE
+    eine Exception; unparsebare Einzelzeilen werden übersprungen, nicht die
+    ganze Datei verworfen)."""
+    keys: set = set()
+    try:
+        with open(path, "r", encoding="utf-8") as fh:
+            for line in fh:
+                s = line.strip()
+                if not s:
+                    continue
+                try:
+                    obj = json.loads(s)
+                except (json.JSONDecodeError, ValueError, TypeError):
+                    continue
+                if isinstance(obj, dict) and obj.get("ticker") and obj.get("date"):
+                    keys.add((obj["ticker"], obj["date"]))
+    except FileNotFoundError:
+        pass
+    except Exception:   # pragma: no cover — jede weitere I/O-/Encoding-Panne
+        pass
+    return keys
+
+
+def _persist_options_chain_raw(top10, *, raw_cache: dict | None,
+                               report_date_iso: str | None = None,
+                               run_phase: str | None = None,
+                               now_fn=None) -> int:
+    """Rohdaten-Sammelfeld (Bid/Ask/LastPrice/Volumen/OI/IV/LastTradeDate je
+    Strike, ±30 % Moneyness) für die Top-10, NUR postclose — append-only
+    JSONL (``options_chain_raw.jsonl``), EINE Zeile je ``(ticker,
+    Report-Tag)``. KEINE Berechnung (keine Leihgebühr, kein Delta), KEIN
+    Score-/Filter-/Push-/Anzeige-Effekt. Reine Vorbereitung für eine
+    spätere, EIGENE Pre-Registration (siehe SESSION_HANDOVER.md, Lit-Check
+    17.10.2026) — nicht Teil dieses Sammel-PRs.
+
+    ``raw_cache`` ist ``{ticker: (expiry, calls_df, puts_df)}`` — vom
+    Aufrufer (``main()``, SELBER Lauf) über den ``raw_sink``-Hook von
+    ``_fetch_next_expiry_chain`` befüllt, während ``_persist_options_oi_
+    history`` ohnehin seine Kette holt. KEIN eigener Yahoo-Fetch hier —
+    dieselbe Kette wird wiederverwendet, die ``options_oi_history.json``
+    auch bekommt (kein zusätzlicher Request). Tickers, die
+    ``_persist_options_oi_history`` diesen Lauf übersprungen hat
+    (Idempotenz/Zeitbudget/Fetch-Fail/keine Kette), fehlen in ``raw_cache``
+    und werden hier BEWUSST ebenfalls übersprungen — kein Nachfetch.
+
+    Verfall: nur der von ``_fetch_next_expiry_chain`` gewählte „nächste"
+    Verfall (identisch zu ``options_oi_history.json``) — NICHT der für
+    ``atm_iv``/``pc_ratio`` gewählte oder die Gamma-kurzlaufenden Verfälle
+    aus ``get_options_data()`` (deckt nur 5 US-Ticker ab, siehe config.py-
+    Kommentar/PR-Text für die Scope-Begründung).
+
+    Spot = ``None``/``<= 0`` → ``calls``/``puts`` dieses Verfalls werden
+    ``None`` (unbeobachtbar, Moneyness-Filter nicht anwendbar) statt einer
+    leeren Liste (das wäre „Kette da, aber kein Strike im Fenster" — eine
+    andere Aussage). Idempotent (gleicher ``(ticker, date)`` nie doppelt,
+    auch bei Doppel-Lauf). Fail-soft pro Ticker. ENCODING: kompakt
+    (``separators=(",", ":")``) analog ``_save_options_oi_history`` — reine
+    Byte-Optimierung, maschinen-only, kein Frontend/Mensch liest die Datei.
+    Returns: Anzahl neu geschriebener Zeilen."""
+    if not OPTIONS_CHAIN_RAW_ENABLED:
+        return 0
+    if run_phase != "postclose":            # NUR postclose (wie options_oi_history)
+        return 0
+    now_fn = now_fn or (lambda: datetime.now(timezone.utc))
+    t_iso = report_date_iso or date.today().isoformat()
+
+    existing_keys = _load_options_chain_raw_keys(OPTIONS_CHAIN_RAW_FILE)
+
+    new_lines = []
+    for s in (top10 or []):
+        try:
+            if not isinstance(s, dict):
+                continue
+            ticker = s.get("ticker")
+            if not ticker:
+                continue
+            if (ticker, t_iso) in existing_keys:
+                continue
+            cached = (raw_cache or {}).get(ticker)
+            if cached is None:
+                continue
+            expiry, calls_df, puts_df = cached
+            spot = _opt_num(s.get("price"))
+            try:
+                exp_date = datetime.strptime(expiry, "%Y-%m-%d").date()
+                days_to_expiry = (exp_date - now_fn().date()).days
+            except (ValueError, TypeError):
+                days_to_expiry = None
+            if spot is None or spot <= 0:
+                calls_rows, puts_rows = None, None
+            else:
+                calls_rows = _extract_full_option_rows(calls_df, spot)
+                puts_rows  = _extract_full_option_rows(puts_df, spot)
+            line = {
+                "date": t_iso,
+                "ticker": ticker,
+                "fetch_ts_utc": now_fn().isoformat(),
+                "spot": spot,
+                "spot_source": "stock.price",
+                "expiries": [{
+                    "expiry": expiry,
+                    "days_to_expiry": days_to_expiry,
+                    "calls": calls_rows,
+                    "puts": puts_rows,
+                }],
+            }
+            new_lines.append(line)
+            existing_keys.add((ticker, t_iso))
+        except Exception as exc:   # pragma: no cover — nie den Daily-Run brechen
+            _tk = s.get("ticker") if isinstance(s, dict) else s
+            log.debug("options_chain_raw-Persist %s: %s", _tk, exc)
+            continue
+
+    if new_lines:
+        try:
+            with open(OPTIONS_CHAIN_RAW_FILE, "a", encoding="utf-8") as fh:
+                for line in new_lines:
+                    fh.write(json.dumps(line, ensure_ascii=False,
+                                       separators=(",", ":")) + "\n")
+        except Exception as exc:
+            log.warning("options_chain_raw: Schreiben fehlgeschlagen: %s", exc)
+            return 0
+    log.info("options_chain_raw: %d neue Zeilen", len(new_lines))
+    return len(new_lines)
 
 
 def apply_agent_boost(stocks: list[dict]) -> None:
@@ -18482,10 +18706,41 @@ def main():
     # Extra-Fetch dieses Features (yfinance option_chain, nächster Verfall) — hartes
     # Zeitbudget schützt den Report. Rein additive Sammlung, KEIN Score-/Filter-/
     # Push-/Anzeige-Effekt, KEIN Delta/Gamma, fail-soft.
+    #
+    # ``_chain_raw_cache`` (17.10.2026, options_chain_raw-Sammelfeld): der
+    # ``fetch_fn``-Hook unten ist ein additiver Wrapper um
+    # ``_fetch_next_expiry_chain`` — er liefert exakt dieselbe Rückgabe wie
+    # der Default (die KEIN Code unten liest, bevor er zurückgegeben wird),
+    # füllt aber per Seiteneffekt den Cache mit der rohen Kette, damit
+    # ``_persist_options_chain_raw`` direkt im Anschluss KEINEN zweiten
+    # Yahoo-Request für denselben Ticker braucht. Byte-identisch zu vorher
+    # für ``options_oi_history.json`` — siehe
+    # ``scripts/mock_test_options_chain_raw.py`` für den Beleg.
+    _chain_raw_cache: dict = {}
+
+    def _fetch_oi_with_raw_capture(ticker: str):
+        _sink: list = []
+        _result = _fetch_next_expiry_chain(ticker, raw_sink=_sink)
+        if _sink:
+            _chain_raw_cache[ticker] = _sink[0]
+        return _result
+
     try:
-        _persist_options_oi_history(top10, run_phase=run_phase)
+        _persist_options_oi_history(top10, run_phase=run_phase,
+                                    fetch_fn=_fetch_oi_with_raw_capture)
     except Exception as _oi_exc:   # pragma: no cover  (nie den Daily-Run brechen)
         log.warning("options_oi-Zeitreihe übersprungen: %s", _oi_exc)
+
+    # options_chain_raw (17.10.2026): Rohdaten-Sammelfeld (Bid/Ask/LastPrice/
+    # Volumen/LastTradeDate je Strike) für eine spätere Leihgebühr-/Net-Delta-
+    # Auswertung (Lit-Check 17.10.2026, SESSION_HANDOVER.md) — KEIN eigener
+    # Fetch (nutzt ``_chain_raw_cache`` von oben), KEIN Score-/Filter-/Push-/
+    # Anzeige-Effekt, fail-soft.
+    try:
+        _persist_options_chain_raw(top10, run_phase=run_phase,
+                                   raw_cache=_chain_raw_cache)
+    except Exception as _ocr_exc:   # pragma: no cover  (nie den Daily-Run brechen)
+        log.warning("options_chain_raw-Zeitreihe übersprungen: %s", _ocr_exc)
 
     # ftd_history (11.08.2026): forward-only SEC-Fail-to-Deliver-Sammlung je
     # Universums-Ticker (Top-10), NUR postclose (der Sammler prüft run_phase selbst).
