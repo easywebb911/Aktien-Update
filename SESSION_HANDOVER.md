@@ -634,7 +634,8 @@ nicht mehr entstehen, nicht nur per Session-Disziplin.)*
 
 - **Options-Rohketten-Sammelfeld `options_chain_raw.jsonl` (Block-1-Pflicht
   befolgt, Manual-Merge — neues JSONL-Schema, Easy mergt am iPhone):**
-  `#592` (Branch-Commit folgt im Folge-Commit, 17.10.). Lit-Check-Funde
+  `#592` (Branch-Commit `f1bd5ec0`, 17.10., kein Merge-Hash genannt —
+  Regel a) greift). Lit-Check-Funde
   (siehe Eintrag oben): Leihgebühr aus Optionspreisen
   (Muravyev/Pearson/Pollet) + Net-Delta-Gamma-Maße (Baig/Strong/
   Zaynutdinova, „Seeking Gamma") brauchen Bid/Ask/LastPrice/Volumen/
