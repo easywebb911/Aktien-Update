@@ -201,62 +201,69 @@ _BASELINE_KNOWN_OPEN: frozenset[tuple[str, int, str]] = frozenset({
     # Kandidaten für Folge-PRs. (Vorherige Verschiebung +10 durch den
     # s6b-Holiday-PR, 07.10.2026, ist in dieser Zeilen-Basis bereits
     # eingerechnet.)
-    ("generate_report.py", 4196, "rsi14"),
-    ("generate_report.py", 4228, "score"),
-    # Zeilen ab 4657 (alt 4520) um +137 verschoben (KI-Score-Coverage-Fix,
-    # 11.10.2026: neue Funktion _compute_fresh_ki_signals_for_backtest +
-    # erweiterter Docstring fügten 137 Zeilen vor diesem Block ein, direkt
-    # nach apply_monster_score / vor risk_assessment). Reine Zeilen-
-    # Nachführung derselben, weiterhin offenen Funde — KEIN inhaltlicher
-    # Fix, die NaN-Bypass-Stellen selbst sind unverändert und bleiben
-    # eigene Fix-Kandidaten für Folge-PRs. Analog ki_agent.py-Einträge
-    # unten (verschiedene Shifts je nach Einfügestelle — siehe Kommentar
-    # dort).
-    ("generate_report.py", 4657, "short_float"),
-    ("generate_report.py", 4679, "rel_volume"),
-    ("generate_report.py", 4697, "short_float"),
-    ("generate_report.py", 4698, "short_ratio"),
-    ("generate_report.py", 4699, "rel_volume"),
-    ("generate_report.py", 4831, "float_shares"),
-    ("generate_report.py", 4832, "price"),
-    ("generate_report.py", 4833, "market_cap"),
-    ("generate_report.py", 4914, "float_shares"),
-    ("generate_report.py", 5233, "float_shares"),
-    ("generate_report.py", 5234, "float_shares"),
-    ("generate_report.py", 5235, "float_shares"),
-    ("generate_report.py", 5236, "float_shares"),
-    ("generate_report.py", 5839, "score"),
-    ("generate_report.py", 6296, "short_float"),
-    ("generate_report.py", 6297, "short_ratio"),
-    ("generate_report.py", 6298, "rel_volume"),
-    ("generate_report.py", 6300, "change"),
-    ("generate_report.py", 6566, "float_shares"),
-    ("generate_report.py", 6671, "52w_high"),
-    ("generate_report.py", 6671, "52w_low"),
-    ("generate_report.py", 6768, "price"),
-    ("generate_report.py", 6769, "short_float"),
-    ("generate_report.py", 6770, "short_ratio"),
-    ("generate_report.py", 6771, "rel_volume"),
-    ("generate_report.py", 6772, "change"),
-    ("generate_report.py", 7107, "float_shares"),
-    ("generate_report.py", 7115, "52w_high"),
-    ("generate_report.py", 7116, "52w_low"),
-    ("generate_report.py", 7798, "float_shares"),
-    ("generate_report.py", 16572, "entry_price"),
-    ("generate_report.py", 16581, "price"),
-    ("generate_report.py", 16605, "setup_today"),
-    ("generate_report.py", 17362, "score"),
-    ("generate_report.py", 17859, "score"),
-    ("generate_report.py", 18413, "score"),
-    ("generate_report.py", 18456, "score"),
-    ("generate_report.py", 18610, "score"),
-    # Zeile 627 (alt) um +3 verschoben (Setup-Edge/Conviction-Freeze-Zähler-PR,
-    # 11.10.2026: drei neue Import-Zeilen — SETUP_EDGE_FREEZE_DATE,
-    # SETUP_EDGE_FREEZE_N_TARGET, BACKTEST_FILE — vor diesem Block eingefügt).
-    # Reine Zeilen-Nachführung desselben, weiterhin offenen Fundes — KEIN
-    # inhaltlicher Fix, die NaN-Bypass-Stelle selbst ist unverändert und
-    # bleibt eigener Fix-Kandidat für Folge-PRs.
-    ("health_check.py", 630, "score"),
+    # Zeilen ab 4196 (alt) verschoben (Options-Rohketten-Sammelfeld-PR,
+    # 17.10.2026: neuer Funktionsblock _opt_iso_or_none/_extract_full_option_
+    # rows/_load_options_chain_raw_keys/_persist_options_chain_raw [221 Zeilen
+    # inkl. Docstring-Zusatz für die Encoding-Begründung] direkt vor
+    # apply_agent_boost + 9 Zeilen Erweiterung an _fetch_next_expiry_chain
+    # [Signatur + raw_sink-Capture], beides VOR diesem Block). Reine Zeilen-
+    # Nachführung derselben, weiterhin offenen Funde — KEIN inhaltlicher Fix,
+    # die NaN-Bypass-Stellen selbst sind unverändert und bleiben eigene
+    # Fix-Kandidaten für Folge-PRs. Ab Zeile 18482 (alt) kommt ein dritter
+    # Block [main()-Orchestrierung, +31 Zeilen] hinzu — Gesamt-Shift ab dort
+    # höher (siehe letzte Zeile unten). Werte unten sind die aktuelle, per
+    # Lint-Lauf verifizierte Ist-Lage (``python3 scripts/lint_nan_bypass_
+    # fields.py`` nach diesem PR), nicht erneut manuell nachgerechnet.
+    ("generate_report.py", 4420, "rsi14"),
+    ("generate_report.py", 4452, "score"),
+    ("generate_report.py", 4881, "short_float"),
+    ("generate_report.py", 4903, "rel_volume"),
+    ("generate_report.py", 4921, "short_float"),
+    ("generate_report.py", 4922, "short_ratio"),
+    ("generate_report.py", 4923, "rel_volume"),
+    ("generate_report.py", 5055, "float_shares"),
+    ("generate_report.py", 5056, "price"),
+    ("generate_report.py", 5057, "market_cap"),
+    ("generate_report.py", 5138, "float_shares"),
+    ("generate_report.py", 5457, "float_shares"),
+    ("generate_report.py", 5458, "float_shares"),
+    ("generate_report.py", 5459, "float_shares"),
+    ("generate_report.py", 5460, "float_shares"),
+    ("generate_report.py", 6063, "score"),
+    ("generate_report.py", 6520, "short_float"),
+    ("generate_report.py", 6521, "short_ratio"),
+    ("generate_report.py", 6522, "rel_volume"),
+    ("generate_report.py", 6524, "change"),
+    ("generate_report.py", 6790, "float_shares"),
+    ("generate_report.py", 6895, "52w_high"),
+    ("generate_report.py", 6895, "52w_low"),
+    ("generate_report.py", 6992, "price"),
+    ("generate_report.py", 6993, "short_float"),
+    ("generate_report.py", 6994, "short_ratio"),
+    ("generate_report.py", 6995, "rel_volume"),
+    ("generate_report.py", 6996, "change"),
+    ("generate_report.py", 7331, "float_shares"),
+    ("generate_report.py", 7339, "52w_high"),
+    ("generate_report.py", 7340, "52w_low"),
+    ("generate_report.py", 8022, "float_shares"),
+    ("generate_report.py", 16796, "entry_price"),
+    ("generate_report.py", 16805, "price"),
+    ("generate_report.py", 16829, "setup_today"),
+    ("generate_report.py", 17586, "score"),
+    ("generate_report.py", 18083, "score"),
+    ("generate_report.py", 18637, "score"),
+    ("generate_report.py", 18680, "score"),
+    # Diese letzte generate_report.py-Zeile liegt NACH dem main()-Orchestrierungs-
+    # Block oben (alt 18482) — größerer Gesamt-Shift als die Zeilen davor
+    # (siehe Kommentar oben).
+    ("generate_report.py", 18865, "score"),
+    # Zeile 627 (alt) um insgesamt +5 verschoben (+3 Setup-Edge/Conviction-
+    # Freeze-Zähler-PR 11.10.2026, +2 dieser PR 17.10.2026: zwei neue Import-
+    # Zeilen — OPTIONS_CHAIN_RAW_FILE, OPTIONS_CHAIN_RAW_DIGEST_ATM_RANGE —
+    # vor diesem Block eingefügt). Reine Zeilen-Nachführung desselben,
+    # weiterhin offenen Fundes — KEIN inhaltlicher Fix, die NaN-Bypass-Stelle
+    # selbst ist unverändert und bleibt eigener Fix-Kandidat für Folge-PRs.
+    ("health_check.py", 632, "score"),
     # ki_agent.py-Einträge unten verschoben (KI-Score-Coverage-Fix,
     # 11.10.2026: neuer Fehlerart-Zähler _KI_SENTIMENT_ERROR_COUNTS +
     # erweiterte claude_sentiment_score-Fehlerbehandlung + Lauf-Ende-

@@ -674,6 +674,41 @@ OPTIONS_OI_HISTORY_ENABLED = True
 OPTIONS_OI_HISTORY_FILE = "options_oi_history.json"
 OPTIONS_OI_TIME_BUDGET_S = 45.0
 
+# ── options_chain_raw (Options-Rohketten-Sammelfeld, 17.10.2026) ──────────────
+# Lit-Check 17.10.2026 (SESSION_HANDOVER.md): zwei Funde (Muravyev/Pearson/
+# Pollet — Leihgebühr aus Optionspreisen; Baig/Strong/Zaynutdinova "Seeking
+# Gamma" — Net-Delta-OI/-Volumen) brauchen Bid/Ask/LastPrice/Volumen/
+# LastTradeDate je Strike, die ``_extract_oi_rows`` (options_oi_history.json)
+# heute verwirft. Dieses Feld sammelt die ROHEN Spalten zusätzlich, OHNE einen
+# weiteren Yahoo-Request: die Daten kommen aus DERSELBEN Kette, die
+# ``_persist_options_oi_history`` ohnehin via ``_fetch_next_expiry_chain``
+# holt (Capture über den optionalen ``raw_sink``-Parameter dort — additiv,
+# Default ``None``, Null-Verhaltensänderung für alle anderen Aufrufer/Tests).
+#
+# SCOPE-ENTSCHEIDUNG (bewusst, siehe PR-Text/SESSION_HANDOVER): nur der
+# "nächste" Verfall (identisch zu options_oi_history.json), NICHT der für
+# atm_iv/pc_ratio gewählte Verfall oder die Gamma-kurzlaufenden Verfälle aus
+# ``get_options_data()`` — jene Funktion deckt nur die ersten 5 US-Ticker ab
+# (``_OPTS_TOP_N = 5``), nicht die volle Top-10; ein Hook dort hätte diesen
+# PR auf eine riskantere, komplexere Funktion ausgeweitet für nur
+# Teil-Abdeckung. Das JSON-Schema (Liste ``expiries``) ist bewusst
+# erweiterbar für eine spätere, eigene Folge-PR.
+#
+# REINE SAMMLUNG — KEINE Berechnung (keine Leihgebühr, kein Delta), KEIN
+# Score-/Filter-/Push-/Anzeige-Effekt. Append-only JSONL, KEIN Prune/Cap
+# (analog options_oi_history.json — ein verlorener Snapshot kommt nie
+# zurück). Moneyness-Filter ±30 % um den Spot (nicht ±10 % wie das grobe
+# Gamma-ATM-Fenster — bewusst breiter, damit auch die späteren
+# Leihgebühr-/Net-Delta-Rechnungen genug Strikes jenseits des unmittelbaren
+# ATM-Bereichs sehen).
+OPTIONS_CHAIN_RAW_ENABLED = True
+OPTIONS_CHAIN_RAW_FILE = "options_chain_raw.jsonl"
+OPTIONS_CHAIN_RAW_MONEYNESS_RANGE = 0.30
+# Digest-Qualitätszähler (health_check.py): engeres ATM-Fenster als der
+# Speicher-Filter oben — zeigt, ob Bid/Ask nach Börsenschluss (21:17 UTC)
+# überhaupt brauchbar sind (Yahoo liefert dort oft 0/0). Rein anzeigend.
+OPTIONS_CHAIN_RAW_DIGEST_ATM_RANGE = 0.10
+
 # ── ftd_history (SEC-Fail-to-Deliver, forward-only, prune-immun, 11.08.2026) ──
 # Sammelt pro postclose die Fail-to-Deliver-Zeilen der Universums-Ticker aus dem
 # JEWEILS NEUESTEN SEC-Halbmonats-File — eigene Datei, analog options_oi/

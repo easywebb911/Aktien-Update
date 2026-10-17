@@ -58,6 +58,8 @@ from config import (
     SETUP_EDGE_FREEZE_DATE,
     SETUP_EDGE_FREEZE_N_TARGET,
     BACKTEST_FILE,
+    OPTIONS_CHAIN_RAW_FILE,
+    OPTIONS_CHAIN_RAW_DIGEST_ATM_RANGE,
 )
 
 # Digest-State-Datei für S8-Invariant (single source of truth über
@@ -2608,6 +2610,117 @@ def options_oi_liveness_line(hist_path=None, *, now_ts=None) -> str:
         return "🎯 Options-OI: Status nicht ermittelbar"
 
 
+# ── options_chain_raw-Liveness (Digest, 17.10.2026) ───────────────────────────
+# Analog options_oi_liveness_line, aber JSONL statt Dict-JSON (eine Zeile je
+# (ticker, date)). Zusätzlicher QUALITÄTS-Zähler (Kernzweck dieser Zeile):
+# Yahoo liefert Optionspreise nach Börsenschluss (postclose-Lauf 21:17 UTC)
+# oft mit Bid/Ask = 0 — ob die Rohdaten für eine spätere Leihgebühr-/
+# Net-Delta-Auswertung überhaupt brauchbar sind, zeigt sich NUR an diesem
+# Anteil, nicht an der reinen Zeilenzahl. REIN ANZEIGEND, kein Alarm, kein
+# neuer S-Check, keine Push-Änderung.
+_OPTIONS_CHAIN_RAW_STALE_DAYS = 5   # identisch zu _OPTIONS_OI_STALE_DAYS (gleicher Sammel-Rhythmus)
+
+
+def _read_options_chain_raw(path):
+    """Fail-soft JSONL-Reader → ``(state, info)``. NIE Exception.
+
+    ``state``:
+      ``"absent"``     — Datei existiert NICHT (noch nie gesammelt).
+      ``"unparsable"``/``"empty"`` — keine gültige Zeile mit Datum.
+      ``"ok"``         — ``info`` = ``{n_rows, newest_date, rows_on_newest,
+                         atm_total, atm_bidask_ok}``.
+
+    ``atm_total``/``atm_bidask_ok`` zählen NUR über die Zeilen des NEUESTEN
+    Datums, über alle Strikes aller erfassten Verfälle (``calls`` + ``puts``)
+    mit ``|strike/spot − 1| <= OPTIONS_CHAIN_RAW_DIGEST_ATM_RANGE`` (engeres
+    Fenster als der ±30 %-Speicher-Filter) — ``atm_bidask_ok`` zählt davon
+    die mit ``bid > 0 AND ask > 0``. Kaputte/unparsebare Einzelzeilen werden
+    übersprungen, nicht die ganze Datei verworfen."""
+    try:
+        rows: list = []
+        with open(path, "r", encoding="utf-8") as fh:
+            for line in fh:
+                s = line.strip()
+                if not s:
+                    continue
+                try:
+                    obj = json.loads(s)
+                except (json.JSONDecodeError, ValueError, TypeError):
+                    continue
+                if isinstance(obj, dict):
+                    rows.append(obj)
+    except FileNotFoundError:
+        return ("absent", None)
+    except Exception:
+        return ("unparsable", None)
+    if not rows:
+        return ("empty", None)
+    newest = None
+    for r in rows:
+        d = r.get("date")
+        if isinstance(d, str) and (newest is None or d > newest):
+            newest = d
+    if newest is None:
+        return ("empty", None)
+    rows_on_newest = [r for r in rows if r.get("date") == newest]
+    atm_total = 0
+    atm_bidask_ok = 0
+    for r in rows_on_newest:
+        spot = r.get("spot")
+        if not isinstance(spot, (int, float)) or isinstance(spot, bool) or spot <= 0:
+            continue
+        for exp in (r.get("expiries") or []):
+            if not isinstance(exp, dict):
+                continue
+            for side in ("calls", "puts"):
+                for leg in (exp.get(side) or []):
+                    if not isinstance(leg, dict):
+                        continue
+                    strike = leg.get("strike")
+                    if not isinstance(strike, (int, float)) or isinstance(strike, bool):
+                        continue
+                    if abs(strike / spot - 1) > OPTIONS_CHAIN_RAW_DIGEST_ATM_RANGE:
+                        continue
+                    atm_total += 1
+                    bid = leg.get("bid")
+                    ask = leg.get("ask")
+                    if (isinstance(bid, (int, float)) and not isinstance(bid, bool) and bid > 0
+                            and isinstance(ask, (int, float)) and not isinstance(ask, bool) and ask > 0):
+                        atm_bidask_ok += 1
+    return ("ok", {"n_rows": len(rows), "newest_date": newest,
+                   "rows_on_newest": len(rows_on_newest),
+                   "atm_total": atm_total, "atm_bidask_ok": atm_bidask_ok})
+
+
+def options_chain_raw_liveness_line(path=None, *, now_ts=None) -> str:
+    """Eine Zeile für den Digest — fail-soft (nie Exception/leer). Zeigt
+    Zeilenzahl + den Bid/Ask-Brauchbarkeits-Anteil am ATM-nahen Fenster des
+    letzten Sammel-Tages (Kernzweck: nach Börsenschluss sind Bid/Ask oft 0)."""
+    try:
+        p = path if path is not None else OPTIONS_CHAIN_RAW_FILE
+        state, info = _read_options_chain_raw(p)
+        if state == "absent":
+            return ("📦 Options-Rohkette: sammelt ab dem nächsten postclose "
+                    "(Datei noch nicht angelegt)")
+        if state in ("unparsable", "empty"):
+            return "📦 Options-Rohkette: Datei unlesbar/leer"
+        n_rows  = info["n_rows"]
+        newest  = info["newest_date"]
+        y       = info["rows_on_newest"]
+        atm_tot = info["atm_total"]
+        atm_ok  = info["atm_bidask_ok"]
+        age = _options_oi_date_age_days(newest, now_ts)   # dieselbe Helper-Logik wie options_oi
+        if age is None or age > _OPTIONS_CHAIN_RAW_STALE_DAYS:
+            return (f"📦 Options-Rohkette: {n_rows} Ticker-Tage · "
+                    f"Sammler-Lauf überfällig (letzter Stand {newest}, "
+                    f">{_OPTIONS_CHAIN_RAW_STALE_DAYS}d)")
+        return (f"📦 Options-Rohkette: läuft · {n_rows} Ticker-Tage · "
+                f"letzter Tag {newest}: {y} Ticker · "
+                f"Bid&Ask > 0 bei {atm_ok} von {atm_tot} ATM-nahen Strikes (±10 %)")
+    except Exception:  # pragma: no cover — nie den Digest brechen
+        return "📦 Options-Rohkette: Status nicht ermittelbar"
+
+
 # ── ftd_history-Liveness (Digest, 11.08.2026) ─────────────────────────────────
 # ANDERS als options_oi: FTD schreibt nur NEUE Punkte, wenn SEC ein neues
 # Halbmonats-File veröffentlicht (~2×/Monat). „Punkte wachsen nicht" ist also der
@@ -2870,6 +2983,7 @@ def format_digest_body(state_fails: list[dict],
                        freeze_line: str | None = None,
                        inst_own_line: str | None = None,
                        options_oi_line: str | None = None,
+                       chain_raw_line: str | None = None,
                        ftd_line: str | None = None,
                        reg_sho_line: str | None = None,
                        weekly_lines: list[str] | None = None,
@@ -2903,6 +3017,8 @@ def format_digest_body(state_fails: list[dict],
             body += f"\n{inst_own_line}"
         if options_oi_line:
             body += f"\n{options_oi_line}"
+        if chain_raw_line:
+            body += f"\n{chain_raw_line}"
         if ftd_line:
             body += f"\n{ftd_line}"
         if reg_sho_line:
@@ -2947,6 +3063,8 @@ def format_digest_body(state_fails: list[dict],
             body_lines.append(inst_own_line)
         if options_oi_line:
             body_lines.append(options_oi_line)
+        if chain_raw_line:
+            body_lines.append(chain_raw_line)
         if ftd_line:
             body_lines.append(ftd_line)
         if reg_sho_line:
@@ -2995,6 +3113,8 @@ def format_digest_body(state_fails: list[dict],
         lines.append(inst_own_line)
     if options_oi_line:
         lines.append(options_oi_line)
+    if chain_raw_line:
+        lines.append(chain_raw_line)
     if ftd_line:
         lines.append(ftd_line)
     if reg_sho_line:
