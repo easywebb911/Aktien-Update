@@ -1,10 +1,10 @@
 {
-  "updated": "2026-10-18T22:44:11.697854+02:00",
+  "updated": "2026-10-19T01:13:33.454026+02:00",
   "run_info": {
     "tickers_checked": 14,
     "signals_active": 1,
     "alerts_sent": 0,
-    "elapsed_s": 12.6,
+    "elapsed_s": 20.6,
     "market_phase": "Geschlossen"
   },
   "signals": {
@@ -53,9 +53,9 @@
       "uoa_cp_ratio": null
     },
     "CBRL": {
-      "score": 27,
-      "confidence": 33,
-      "drivers": "Volumen 1.8× + News-KI 12/30: Moderate positive earnings beat with valuation concerns and modest price movement; lacks short squeeze indicators like h",
+      "score": 15,
+      "confidence": 17,
+      "drivers": "Volumen 1.8×",
       "price": 68.97,
       "chg_pct": 0.0,
       "rvol_4d": 1.8,
@@ -66,8 +66,8 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 1,
-      "ki_sentiment_source": "llm",
+      "active_triggers": 0,
+      "ki_sentiment_source": "keyword",
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": null,
@@ -179,9 +179,9 @@
       "uoa_cp_ratio": null
     },
     "SHOE": {
-      "score": 23,
-      "confidence": 17,
-      "drivers": "Earnings in 39d + FINRA Short-Vol 67%",
+      "score": 31,
+      "confidence": 33,
+      "drivers": "News-KI 8/30: Positive operational news overshadowed by Bear of the Day designation; no significant short interest indicators or squee + Earnings in 39d + FINRA Short-Vol 67%",
       "price": 13.76,
       "chg_pct": 0.0,
       "rvol_4d": 0.95,
@@ -193,7 +193,7 @@
       "stocktwits": null,
       "combo_mult": 1.0,
       "active_triggers": 0,
-      "ki_sentiment_source": "keyword",
+      "ki_sentiment_source": "llm",
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": null,
