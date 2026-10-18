@@ -1,10 +1,10 @@
 {
-  "updated": "2026-10-18T20:06:23.270946+02:00",
+  "updated": "2026-10-18T22:44:11.697854+02:00",
   "run_info": {
     "tickers_checked": 14,
     "signals_active": 1,
     "alerts_sent": 0,
-    "elapsed_s": 14.8,
+    "elapsed_s": 12.6,
     "market_phase": "Geschlossen"
   },
   "signals": {
@@ -53,9 +53,9 @@
       "uoa_cp_ratio": null
     },
     "CBRL": {
-      "score": 15,
-      "confidence": 17,
-      "drivers": "Volumen 1.8×",
+      "score": 27,
+      "confidence": 33,
+      "drivers": "Volumen 1.8× + News-KI 12/30: Moderate positive earnings beat with valuation concerns and modest price movement; lacks short squeeze indicators like h",
       "price": 68.97,
       "chg_pct": 0.0,
       "rvol_4d": 1.8,
@@ -66,8 +66,8 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 0,
-      "ki_sentiment_source": "keyword",
+      "active_triggers": 1,
+      "ki_sentiment_source": "llm",
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": null,
@@ -116,9 +116,9 @@
       "uoa_cp_ratio": 0.44901559121429385
     },
     "LENZ": {
-      "score": 48,
+      "score": 58,
       "confidence": 70,
-      "drivers": "Spanne 9.8% + News-KI 5/30: Negative analyst target cuts indicate weakening sentiment and reduced investor confidence, which typically suppresses sh + Earnings in 17d + FINRA Short-Vol 99%",
+      "drivers": "Spanne 9.8% + News: short interest + Earnings in 17d + FINRA Short-Vol 99%",
       "price": 3.27,
       "chg_pct": -0.0,
       "rvol_4d": 1.24,
@@ -129,8 +129,8 @@
       "insider_buy": false,
       "stocktwits": null,
       "combo_mult": 1.0,
-      "active_triggers": 0,
-      "ki_sentiment_source": "llm",
+      "active_triggers": 1,
+      "ki_sentiment_source": "keyword",
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": null,
@@ -221,9 +221,9 @@
       "uoa_cp_ratio": null
     },
     "VEEA": {
-      "score": 22,
+      "score": 40,
       "confidence": 33,
-      "drivers": "Spanne 17.4% + News-KI 12/30: Positive business developments but no evidence of high short interest, recent short squeeze catalysts, or significant re",
+      "drivers": "Spanne 17.4% + News: short interest, merger",
       "price": 4.21,
       "chg_pct": 0.0,
       "rvol_4d": 0.19,
@@ -235,7 +235,7 @@
       "stocktwits": null,
       "combo_mult": 1.0,
       "active_triggers": 1,
-      "ki_sentiment_source": "llm",
+      "ki_sentiment_source": "keyword",
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": null,
