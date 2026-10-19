@@ -1,5 +1,5 @@
 {
-  "last_run": "2026-10-19T09:47:13.913530+02:00",
+  "last_run": "2026-10-19T15:19:31.116849+02:00",
   "cooldowns": {
     "anomaly_score_jump_XRX": "2026-05-03T18:47:15.315486+02:00",
     "anomaly_uoa_extreme_TDOC": "2026-05-04T13:47:00.365949+02:00",
@@ -112,54 +112,6 @@
     "earnings_immediate_PLCE_04.09.2026": "2026-09-04T01:21:25.342435+02:00"
   },
   "push_history": [
-    {
-      "ts": "2026-10-14T08:09:15.232304+02:00",
-      "ticker": "GRPN",
-      "kind": "exit_p2",
-      "severity": "trigger",
-      "trigger": "score_decay,trend_break",
-      "body": "🔻 Exit-Signale GRPN: score_decay, trend_break crit · Warnung pressure 74/100",
-      "success": false,
-      "suppressed": false,
-      "suppress_reason": null,
-      "conviction_score": null
-    },
-    {
-      "ts": "2026-10-14T13:53:24.559634+02:00",
-      "ticker": "SUGP",
-      "kind": "anomaly",
-      "severity": "medium",
-      "trigger": "gap_combo",
-      "body": "SUGP 💥 Gap +8.3% Strong Hold + RVOL 3.5× | Setup 65",
-      "success": false,
-      "suppressed": true,
-      "suppress_reason": "conviction_below_threshold",
-      "conviction_score": 46
-    },
-    {
-      "ts": "2026-10-14T13:53:27.418305+02:00",
-      "ticker": "IONQ",
-      "kind": "exit_p2",
-      "severity": "trigger",
-      "trigger": "profit_lock,trend_break",
-      "body": "🔻 Exit-Signale IONQ: profit_lock, trend_break crit · Warnung pressure 63/100",
-      "success": false,
-      "suppressed": false,
-      "suppress_reason": null,
-      "conviction_score": null
-    },
-    {
-      "ts": "2026-10-14T13:53:27.418334+02:00",
-      "ticker": "PDYN",
-      "kind": "exit_p2",
-      "severity": "trigger",
-      "trigger": "trend_break",
-      "body": "🔻 Exit-Signale PDYN: trend_break crit",
-      "success": false,
-      "suppressed": false,
-      "suppress_reason": null,
-      "conviction_score": null
-    },
     {
       "ts": "2026-10-14T13:53:27.418357+02:00",
       "ticker": "WOLF",
@@ -1311,21 +1263,69 @@
       "suppressed": false,
       "suppress_reason": null,
       "conviction_score": null
+    },
+    {
+      "ts": "2026-10-19T15:19:31.116935+02:00",
+      "ticker": "IONQ",
+      "kind": "exit_p2",
+      "severity": "trigger",
+      "trigger": "profit_lock,trend_break",
+      "body": "🔻 Exit-Signale IONQ: profit_lock, trend_break crit · Warnung pressure 62/100",
+      "success": false,
+      "suppressed": false,
+      "suppress_reason": null,
+      "conviction_score": null
+    },
+    {
+      "ts": "2026-10-19T15:19:31.116959+02:00",
+      "ticker": "PDYN",
+      "kind": "exit_p2",
+      "severity": "trigger",
+      "trigger": "trend_break",
+      "body": "🔻 Exit-Signale PDYN: trend_break crit",
+      "success": false,
+      "suppressed": false,
+      "suppress_reason": null,
+      "conviction_score": null
+    },
+    {
+      "ts": "2026-10-19T15:19:31.116978+02:00",
+      "ticker": "WOLF",
+      "kind": "exit_p2",
+      "severity": "trigger",
+      "trigger": "profit_lock,score_decay,trend_break",
+      "body": "🔻 Exit-Signale WOLF: profit_lock, score_decay, trend_break crit",
+      "success": false,
+      "suppressed": false,
+      "suppress_reason": null,
+      "conviction_score": null
+    },
+    {
+      "ts": "2026-10-19T15:19:31.116992+02:00",
+      "ticker": "GRPN",
+      "kind": "exit_p2",
+      "severity": "trigger",
+      "trigger": "trend_break",
+      "body": "🔻 Exit-Signale GRPN: trend_break crit",
+      "success": false,
+      "suppressed": false,
+      "suppress_reason": null,
+      "conviction_score": null
     }
   ],
   "prev_conviction_scores": {
-    "XPOF": 80.0,
-    "TBCH": 64.0,
-    "GRPN": 71.0,
-    "NTLA": 68.0,
-    "LENZ": 74.0,
-    "SHOE": 59.0,
-    "WOLF": 66.0,
-    "ARRY": 58.0,
-    "VYX": 65.0,
-    "CBRL": 49.0,
+    "XPOF": 66.0,
+    "GRPN": 56.0,
+    "TBCH": 62.0,
+    "NTLA": 54.0,
+    "LENZ": 60.0,
+    "VYX": 53.0,
+    "CSIQ": 66.0,
+    "SHOE": 45.0,
+    "WOLF": 51.0,
+    "CBRL": 35.0,
     "PDYN": 43.0,
-    "IONQ": 27.0,
+    "IONQ": 13.0,
     "AMC": 13.0,
     "VEEA": 11.0
   },
@@ -1372,25 +1372,25 @@
       ],
       "last_push_date": "2026-08-28",
       "esc_alerted": false,
-      "updated": "2026-10-19T09:47:13.913610+02:00"
+      "updated": "2026-10-19T15:19:31.116944+02:00"
     },
     "PDYN": {
       "last_active": [],
       "last_push_date": "2026-08-28",
       "esc_alerted": false,
-      "updated": "2026-10-19T09:47:13.913639+02:00"
+      "updated": "2026-10-19T15:19:31.116964+02:00"
     },
     "WOLF": {
       "last_active": [],
       "last_push_date": "2026-09-01",
       "esc_alerted": false,
-      "updated": "2026-10-19T09:47:13.913657+02:00"
+      "updated": "2026-10-19T15:19:31.116983+02:00"
     },
     "GRPN": {
       "last_active": [],
       "last_push_date": null,
       "esc_alerted": false,
-      "updated": "2026-10-19T09:47:13.913668+02:00"
+      "updated": "2026-10-19T15:19:31.116996+02:00"
     }
   }
 }
