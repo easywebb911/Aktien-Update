@@ -1,10 +1,10 @@
 {
-  "updated": "2026-10-19T01:13:33.454026+02:00",
+  "updated": "2026-10-19T03:17:39.629305+02:00",
   "run_info": {
     "tickers_checked": 14,
-    "signals_active": 1,
+    "signals_active": 0,
     "alerts_sent": 0,
-    "elapsed_s": 20.6,
+    "elapsed_s": 11.8,
     "market_phase": "Geschlossen"
   },
   "signals": {
@@ -74,9 +74,9 @@
       "uoa_cp_ratio": null
     },
     "GRPN": {
-      "score": 33,
+      "score": 41,
       "confidence": 70,
-      "drivers": "Volumen 1.6× + Spanne 12.5% + Earnings in 18d",
+      "drivers": "Volumen 1.6× + Spanne 12.5% + News-KI 8/30: Negative price action, underperformance vs peers, and lack of strong catalyst suggest low short-squeeze potential despit + Earnings in 18d",
       "price": 16.57,
       "chg_pct": -0.0,
       "rvol_4d": 1.58,
@@ -88,7 +88,7 @@
       "stocktwits": null,
       "combo_mult": 1.0,
       "active_triggers": 0,
-      "ki_sentiment_source": "keyword",
+      "ki_sentiment_source": "llm",
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": null,
@@ -179,9 +179,9 @@
       "uoa_cp_ratio": null
     },
     "SHOE": {
-      "score": 31,
-      "confidence": 33,
-      "drivers": "News-KI 8/30: Positive operational news overshadowed by Bear of the Day designation; no significant short interest indicators or squee + Earnings in 39d + FINRA Short-Vol 67%",
+      "score": 23,
+      "confidence": 17,
+      "drivers": "Earnings in 39d + FINRA Short-Vol 67%",
       "price": 13.76,
       "chg_pct": 0.0,
       "rvol_4d": 0.95,
@@ -193,7 +193,7 @@
       "stocktwits": null,
       "combo_mult": 1.0,
       "active_triggers": 0,
-      "ki_sentiment_source": "llm",
+      "ki_sentiment_source": "keyword",
       "uoa_score": 0,
       "uoa_drivers": [],
       "uoa_atm_ratio": null,
@@ -223,7 +223,7 @@
     "VEEA": {
       "score": 40,
       "confidence": 33,
-      "drivers": "Spanne 17.4% + News: short interest, merger",
+      "drivers": "Spanne 17.4% + News: merger, short interest",
       "price": 4.21,
       "chg_pct": 0.0,
       "rvol_4d": 0.19,
@@ -284,9 +284,9 @@
       "uoa_cp_ratio": 0.7667031763417306
     },
     "XPOF": {
-      "score": 91,
+      "score": 68,
       "confidence": 70,
-      "drivers": "Volumen 2.4× + Spanne 7.3% + News: squeeze + Earnings in 18d + FINRA Short-Vol 100% + SEC Form 4",
+      "drivers": "Volumen 2.4× + Spanne 7.3% + Earnings in 18d + FINRA Short-Vol 100% + SEC Form 4",
       "price": 4.47,
       "chg_pct": -0.0,
       "rvol_4d": 2.37,
@@ -296,8 +296,8 @@
       "upcoming_event": null,
       "insider_buy": false,
       "stocktwits": null,
-      "combo_mult": 1.1,
-      "active_triggers": 2,
+      "combo_mult": 1.0,
+      "active_triggers": 1,
       "ki_sentiment_source": "keyword",
       "uoa_score": 0,
       "uoa_drivers": [],
