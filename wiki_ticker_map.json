@@ -872,6 +872,15 @@
     "substrate": "none",
     "reason": "sparql_fetch_failed"
   },
+  "IMCR": {
+    "qid": null,
+    "title": null,
+    "resolved_at": "2026-10-20T23:57:28Z",
+    "issuer_verified": false,
+    "company_name_at_resolve": "Immunocore Holdings plc",
+    "substrate": "none",
+    "reason": "no_p249"
+  },
   "IMRX": {
     "qid": null,
     "title": null,
