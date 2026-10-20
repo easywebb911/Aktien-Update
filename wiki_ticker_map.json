@@ -143,6 +143,15 @@
     "substrate": "none",
     "reason": "no_article"
   },
+  "ANAB": {
+    "qid": null,
+    "title": null,
+    "resolved_at": "2026-10-20T00:25:34Z",
+    "issuer_verified": false,
+    "company_name_at_resolve": "AnaptysBio, Inc.",
+    "substrate": "none",
+    "reason": "no_p249"
+  },
   "ANDG": {
     "qid": null,
     "title": null,
@@ -1735,5 +1744,14 @@
     "company_name_at_resolve": "Xerox Holdings Corporation",
     "substrate": "en",
     "reason": null
+  },
+  "ZBIO": {
+    "qid": null,
+    "title": null,
+    "resolved_at": "2026-10-20T00:25:34Z",
+    "issuer_verified": false,
+    "company_name_at_resolve": "Zenas BioPharma, Inc.",
+    "substrate": "none",
+    "reason": "no_p249"
   }
 }
