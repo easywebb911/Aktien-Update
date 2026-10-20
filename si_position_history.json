@@ -8424,6 +8424,12 @@
       "shares_short": 9876964,
       "short_pct_float": 23.82,
       "pub_date": "2026-09-24"
+    },
+    {
+      "settlement_date": "2026-09-30",
+      "shares_short": 9414018,
+      "short_pct_float": 22.71,
+      "pub_date": "2026-10-09"
     }
   ],
   "ADTN": [
