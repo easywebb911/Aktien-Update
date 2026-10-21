@@ -689,7 +689,7 @@ nicht mehr entstehen, nicht nur per Session-Disziplin.)*
 
 - **News-Coverage-Watchdog `news_coverage_history.jsonl` (Block-1-Pflicht
   befolgt, Manual-Merge — neues JSONL-Schema + Workflow-Änderung, Easy
-  mergt am iPhone):** `#593` (Branch-Commit folgt im Folge-Commit, kein
+  mergt am iPhone):** `#593` (Branch-Commit `6b6f4c16`, 21.10., kein
   Merge-Hash genannt — Regel a) greift).
 
   **Befund + Zeitverlauf (SCHRITT 0a, verifiziert per
