@@ -837,9 +837,9 @@ nicht mehr entstehen, nicht nur per Session-Disziplin.)*
 
 - **Generischer Daten-Abdeckungs-Wächter `coverage_history.jsonl` (Block-1-
   Pflicht befolgt, Manual-Merge — neues JSONL-Schema + Workflow-Änderung in
-  BEIDEN Workflows, Easy mergt am iPhone):** `#594` (Branch-Commit folgt im
-  Folge-Commit, kein Merge-Hash genannt — Regel a) greift). Schließt die
-  Inventur-Lücke aus `#593` ab: 6 Quellen ohne Zähler/Digest/Warnung.
+  BEIDEN Workflows, Easy mergt am iPhone):** `#594` (Branch-Commit
+  `29842631`, 21.10., kein Merge-Hash genannt — Regel a) greift). Schließt
+  die Inventur-Lücke aus `#593` ab: 6 Quellen ohne Zähler/Digest/Warnung.
 
   **SCHRITT 0a — die 6 Lücken-Quellen, Abdeckungs-Definition + Legitim-Leer-Regel:**
 
