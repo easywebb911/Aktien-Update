@@ -171,6 +171,14 @@ jobs:
           # verworfen; dieselbe Kette wird nie wieder geholt, ein verlorener
           # Tag kommt nie zurück.
           git add options_chain_raw.jsonl 2>/dev/null || true
+          # news_coverage_history.jsonl: News-Coverage-Watchdog (21.10.2026,
+          # SCHRITT-0-Befund: Karten-News fielen ab 02.10.2026 19+ Tage
+          # unbemerkt auf 0 — kein Zähler existierte). Läuft in JEDER Phase
+          # (premarket + postclose). Persistenz über Commit ZWINGEND
+          # (identische Lehre #501) — ohne git add würde die Datei bei jedem
+          # Workflow-Checkout verworfen, der Ausfall-Befund für den
+          # jeweiligen Lauf ginge unwiederbringlich verloren.
+          git add news_coverage_history.jsonl 2>/dev/null || true
           # ftd_history.json + ftd_history_state.json: forward-only SEC-Fail-to-
           # Deliver-Zeitreihe je Universums-Ticker, NUR postclose (11.08.2026).
           # Persistenz über Commit ZWINGEND (Lehre #501) — ohne git add würde die

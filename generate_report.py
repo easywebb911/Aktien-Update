@@ -1655,10 +1655,43 @@ def get_yfinance_batch(tickers: list[str]) -> dict[str, dict]:
     return results
 
 
+# News-Coverage-Watchdog (21.10.2026) — Akkumulator analog ki_agent.
+# _NEWS_RSS_ACCT / generate_report._FINVIZ_ACCT. Befund SCHRITT 0a: ab
+# 02.10.2026 02:16 UTC lieferte ``get_yahoo_news`` (yfinance ``stk.news``)
+# in JEDEM Lauf 0 Items für ALLE Karten (Top-10 + Watchlist) — vorher gab
+# es für diesen Pfad KEINEN persistierten Zähler, nur eine stdout-Zeile
+# (``print(f"News {ticker}: …")`` in ``get_combined_news``, siehe unten),
+# die niemand liest. Macht sichtbar, OB ein künftiger Totalausfall an
+# Exceptions, leerem Ergebnis oder dem Altersfilter (NEWS_MAX_AGE_DAYS_
+# DISPLAY) liegt. Reset pro main()-Aufruf (_news_coverage_acct_reset()).
+_NEWS_COVERAGE_ACCT: dict = {
+    "tickers_total":        0,
+    "tickers_with_news":    0,
+    "yfinance_raw":         0,
+    "yfinance_kept":        0,
+    "yfinance_dropped_age": 0,
+    "rss_fallback_calls":   0,
+    "rss_fallback_kept":    0,
+    "exception_counts":     {},   # {Exception-Typname: Anzahl}
+}
+
+
+def _news_coverage_acct_reset() -> None:
+    _NEWS_COVERAGE_ACCT["tickers_total"]        = 0
+    _NEWS_COVERAGE_ACCT["tickers_with_news"]    = 0
+    _NEWS_COVERAGE_ACCT["yfinance_raw"]         = 0
+    _NEWS_COVERAGE_ACCT["yfinance_kept"]        = 0
+    _NEWS_COVERAGE_ACCT["yfinance_dropped_age"] = 0
+    _NEWS_COVERAGE_ACCT["rss_fallback_calls"]   = 0
+    _NEWS_COVERAGE_ACCT["rss_fallback_kept"]    = 0
+    _NEWS_COVERAGE_ACCT["exception_counts"]     = {}
+
+
 def get_yahoo_news(ticker: str, n: int = 5) -> list[dict]:
     try:
         stk  = yf.Ticker(ticker)
         raw  = (stk.news or [])[:n]
+        _NEWS_COVERAGE_ACCT["yfinance_raw"] += len(raw)
         news = []
         for item in raw:
             # yfinance ≥ 0.2.x nests content inside item["content"]
@@ -1683,6 +1716,7 @@ def get_yahoo_news(ticker: str, n: int = 5) -> list[dict]:
             # unbekanntes Alter heißt nicht "alt", analog zum NEWS_DECAY_
             # FALLBACK-Mittelweg im Score-Pfad.
             if pub_ts and (time.time() - pub_ts) > NEWS_MAX_AGE_DAYS_DISPLAY * 86400:
+                _NEWS_COVERAGE_ACCT["yfinance_dropped_age"] += 1
                 continue
             ts_str = (
                 datetime.fromtimestamp(pub_ts).strftime("%d.%m.%Y %H:%M")
@@ -1721,9 +1755,13 @@ def get_yahoo_news(ticker: str, n: int = 5) -> list[dict]:
                 "time":        ts_str,
                 "ts":          pub_ts,
             })
+        _NEWS_COVERAGE_ACCT["yfinance_kept"] += len(news)
         return news
     except Exception as exc:
-        log.warning("News error for %s: %s", ticker, exc)
+        _exc_name = type(exc).__name__
+        _NEWS_COVERAGE_ACCT["exception_counts"][_exc_name] = (
+            _NEWS_COVERAGE_ACCT["exception_counts"].get(_exc_name, 0) + 1)
+        log.warning("News error for %s (%s): %s", ticker, _exc_name, exc)
         return []
 
 
@@ -1788,16 +1826,25 @@ def _rss_news(ticker: str, url: str, source_label: str, timeout: int = 3) -> lis
 
 
 def get_combined_news(ticker: str, n: int = 3) -> list[dict]:
-    """Merge Yahoo Finance + Finviz news; return top n by date.
+    """Merge Yahoo Finance (+ RSS-Fallback) news; return top n by date.
 
     Seeking Alpha wurde aus der Quellenliste entfernt (2026-04): lieferte
-    oft dieselben Meldungen wie Yahoo und war langsam. Yahoo (JSON) +
-    Finviz (RSS) decken die wichtigsten Catalysts ab.
+    oft dieselben Meldungen wie Yahoo und war langsam.
+
+    Korrektur 21.10.2026 (News-Coverage-Watchdog, SCHRITT-0-Befund): der
+    alte Kommentar "Die 5 anderen RSS-Quellen tragen die News-Versorgung"
+    war FALSCH für diese Funktion — ``fv_items`` war bereits seit Mai 2026
+    fest auf ``[]`` gesetzt, es gab HIER keine RSS-Quellen. Die "5 RSS-
+    Quellen" beschreiben tatsächlich ki_agent.py's eigene, unabhängige
+    News-Pipeline (fetch_yahoo_news + 4× fetch_rss_news, Tier-3-Provider
+    ``news_rss``) — ein komplett getrennter Code-Pfad, der weiterlief,
+    während dieser Pfad hier (Top-10-/Watchlist-Kartenanzeige) ab
+    02.10.2026 durchgängig 0 Items lieferte (kein persistierter Zähler
+    existierte dafür — daher unbemerkt, siehe SESSION_HANDOVER.md).
     """
     yahoo_items = get_yahoo_news(ticker, n=5)
     # finviz RSS-Feed seit Mai 2026 tot (Probe 18.05.2026), liefert
-    # HTML-Page statt Feed. Die 5 anderen RSS-Quellen tragen die
-    # News-Versorgung.
+    # HTML-Page statt Feed.
     # fv_items = _rss_news(
     #     ticker,
     #     f"https://finviz.com/rss.ashx?t={base_upper}",
@@ -1805,11 +1852,41 @@ def get_combined_news(ticker: str, n: int = 3) -> list[dict]:
     # )
     fv_items: list[dict] = []
 
-    n_yahoo, n_fv = len(yahoo_items), len(fv_items)
-    combined = yahoo_items + fv_items
+    # RSS-Fallback (21.10.2026): NUR wenn yfinance 0 verwertbare Items
+    # liefert (Exception, leeres Ergebnis ODER alles vom Altersfilter
+    # verworfen — alle drei Fälle münden bereits in get_yahoo_news()==[]).
+    # Nutzt denselben Yahoo-RSS-Feed wie ki_agent.fetch_yahoo_news
+    # (feeds.finance.yahoo.com/rss/2.0/headline) über die vorhandene
+    # ``_rss_news``-Helper — gleiche Item-Struktur, gleicher Altersfilter.
+    # Liefert yfinance: KEIN zusätzlicher Request, Verhalten/Anfragezahl
+    # byte-identisch zu vorher (Beleg: scripts/mock_test_news_coverage_
+    # watchdog.py, Test "RSS-Fallback nicht aufgerufen bei liefernder
+    # yfinance-Quelle").
+    rss_items: list[dict] = []
+    if not yahoo_items:
+        _NEWS_COVERAGE_ACCT["rss_fallback_calls"] += 1
+        _raw_rss = _rss_news(
+            ticker,
+            f"https://feeds.finance.yahoo.com/rss/2.0/headline?s={ticker}",
+            "Yahoo RSS",
+        )
+        _now_t = time.time()
+        rss_items = [
+            it for it in _raw_rss
+            if not (it.get("ts")
+                    and (_now_t - it["ts"]) > NEWS_MAX_AGE_DAYS_DISPLAY * 86400)
+        ]
+        _NEWS_COVERAGE_ACCT["rss_fallback_kept"] += len(rss_items)
+
+    n_yahoo, n_fv, n_rss = len(yahoo_items), len(fv_items), len(rss_items)
+    combined = yahoo_items + fv_items + rss_items
     combined.sort(key=lambda x: x.get("ts", 0), reverse=True)
     result = combined[:n]
-    print(f"News {ticker}: {n_yahoo} Yahoo + {n_fv} Finviz = {len(result)} Meldungen")
+    _NEWS_COVERAGE_ACCT["tickers_total"] += 1
+    if result:
+        _NEWS_COVERAGE_ACCT["tickers_with_news"] += 1
+    print(f"News {ticker}: {n_yahoo} Yahoo + {n_fv} Finviz + {n_rss} Yahoo-RSS-Fallback "
+          f"= {len(result)} Meldungen")
     return result
 
 
@@ -4220,6 +4297,116 @@ def _persist_options_chain_raw(top10, *, raw_cache: dict | None,
             return 0
     log.info("options_chain_raw: %d neue Zeilen", len(new_lines))
     return len(new_lines)
+
+
+def _news_coverage_pool_split(top10: list[dict] | None,
+                              enriched: list[dict] | None) -> tuple[int, int, int, int]:
+    """Trennt Top-10 von Watchlist-Outsidern für die Coverage-Zählung.
+
+    Pure Funktion — liest nur ``ticker``/``news``/``manual_personal`` von
+    bereits angereicherten Stock-Dicts (News-Coverage-Watchdog, 21.10.2026).
+    Watchlist-Outsider = persönliche Watchlist-Ticker, die NICHT in der
+    heutigen Top-10 stehen (analog ``pool_outsiders`` in
+    ``apply_conviction_scores``).
+    """
+    top10 = top10 or []
+    enriched = enriched or []
+    top10_tickers = {s.get("ticker") for s in top10}
+    n_top10 = len(top10)
+    top10_mit_news = sum(1 for s in top10 if s.get("news"))
+    wl_outsiders = [c for c in enriched
+                   if c.get("manual_personal") and c.get("ticker") not in top10_tickers]
+    n_wl = len(wl_outsiders)
+    wl_mit_news = sum(1 for c in wl_outsiders if c.get("news"))
+    return n_top10, top10_mit_news, n_wl, wl_mit_news
+
+
+def _load_news_coverage_keys(path) -> set:
+    """Fail-soft ``(date, run_phase)``-Key-Set-Loader für Idempotenz,
+    analog ``_load_options_chain_raw_keys``."""
+    keys: set = set()
+    try:
+        with open(path, "r", encoding="utf-8") as fh:
+            for line in fh:
+                line = line.strip()
+                if not line:
+                    continue
+                try:
+                    d = json.loads(line)
+                except Exception:
+                    continue
+                if not isinstance(d, dict):
+                    continue
+                k = (d.get("date"), d.get("run_phase"))
+                if k[0] is not None:
+                    keys.add(k)
+    except FileNotFoundError:
+        pass
+    except Exception:
+        pass
+    return keys
+
+
+def _persist_news_coverage(top10: list[dict] | None, enriched: list[dict] | None, *,
+                           report_date_iso: str | None = None,
+                           run_phase: str | None = None,
+                           now_fn=None) -> int:
+    """Persistiert die News-Abdeckung EINES Report-Laufs als append-only
+    JSONL-Zeile (``news_coverage_history.jsonl``) — News-Coverage-Watchdog
+    (21.10.2026).
+
+    SCHRITT-0-Befund: ``get_yahoo_news``/``get_combined_news`` lieferten ab
+    02.10.2026 02:16 UTC in JEDEM Lauf 0 Items für ALLE Karten (Top-10 +
+    Watchlist) — es existierte KEIN persistierter Zähler für diesen Pfad,
+    der Ausfall blieb dadurch unbemerkt (siehe SESSION_HANDOVER.md für die
+    volle Diagnose). Diese Funktion schließt die Lücke rein additiv: KEIN
+    Score-/Filter-/Push-/Conviction-Effekt, nur Digest-Anzeige (siehe
+    ``health_check.news_coverage_liveness_line``).
+
+    Läuft in JEDER Phase (premarket + postclose) — anders als
+    ``options_oi``/``options_chain_raw`` (dort postclose-only), weil hier
+    kein zusätzlicher Yahoo-Request anfällt (die News wurden in Step 3
+    ohnehin für die Kartenanzeige geholt) und ein premarket-Totalausfall
+    genauso wichtig zu sehen ist wie ein postclose-Totalausfall.
+
+    Idempotent über den Schlüssel ``(date, run_phase)`` — ein zweiter
+    Lauf am selben Tag/derselben Phase (z. B. manueller Re-Dispatch)
+    erzeugt keine Duplikat-Zeile.
+    """
+    if not NEWS_COVERAGE_LOG_ENABLED:
+        return 0
+    now_fn = now_fn or (lambda: datetime.now(timezone.utc))
+    t_iso = report_date_iso or date.today().isoformat()
+    try:
+        existing_keys = _load_news_coverage_keys(NEWS_COVERAGE_LOG_FILE)
+        if (t_iso, run_phase) in existing_keys:
+            log.info("news_coverage_history: (%s, %s) bereits vorhanden — skip", t_iso, run_phase)
+            return 0
+        n_top10, top10_mit_news, n_wl, wl_mit_news = _news_coverage_pool_split(top10, enriched)
+        acct = _NEWS_COVERAGE_ACCT
+        line = {
+            "date":                 t_iso,
+            "run_phase":            run_phase,
+            "ts_utc":               now_fn().isoformat(),
+            "n_top10":              n_top10,
+            "top10_mit_news":       top10_mit_news,
+            "n_wl":                 n_wl,
+            "wl_mit_news":          wl_mit_news,
+            "yfinance_raw":         acct["yfinance_raw"],
+            "yfinance_kept":        acct["yfinance_kept"],
+            "yfinance_dropped_age": acct["yfinance_dropped_age"],
+            "rss_fallback_calls":   acct["rss_fallback_calls"],
+            "rss_fallback_kept":    acct["rss_fallback_kept"],
+            "exception_counts":     dict(acct["exception_counts"]),
+        }
+        with open(NEWS_COVERAGE_LOG_FILE, "a", encoding="utf-8") as fh:
+            fh.write(json.dumps(line, ensure_ascii=False, separators=(",", ":")) + "\n")
+        log.info("news_coverage_history: 1 neue Zeile (%d/%d Top-10, %d/%d Watchlist mit News)",
+                 top10_mit_news, n_top10, wl_mit_news, n_wl)
+        return 1
+    except Exception as exc:   # pragma: no cover — nie den Daily-Run brechen
+        log.warning("news_coverage_history: Schreiben fehlgeschlagen: %s", exc)
+        return 0
 
 
 def apply_agent_boost(stocks: list[dict]) -> None:
@@ -17844,6 +18031,7 @@ def main():
     _provider_acct_reset(_STOCKANALYSIS_ACCT)
     _provider_acct_reset(_BORROW_ACCT)
     _provider_acct_reset(_EDGAR_13F_ACCT)
+    _news_coverage_acct_reset()
     # dito für die Positions-Singleton-Zähler (27.07.2026) — sonst schleppte
     # ein zweiter main()-Aufruf im selben Prozess die Zählung des ersten mit
     # und verfälschte coverage_pct.
@@ -18741,6 +18929,16 @@ def main():
                                    raw_cache=_chain_raw_cache)
     except Exception as _ocr_exc:   # pragma: no cover  (nie den Daily-Run brechen)
         log.warning("options_chain_raw-Zeitreihe übersprungen: %s", _ocr_exc)
+
+    # news_coverage_history (21.10.2026): News-Coverage-Watchdog — SCHRITT-0-
+    # Befund war ein 19+ Tage unbemerkter Totalausfall der Karten-News
+    # (ab 02.10.2026 02:16 UTC), weil kein Zähler existierte. Läuft in
+    # JEDER Phase (kein zusätzlicher Fetch, News wurden in Step 3 ohnehin
+    # geholt). KEIN Score-/Filter-/Push-/Conviction-Effekt, fail-soft.
+    try:
+        _persist_news_coverage(top10, enriched, run_phase=run_phase)
+    except Exception as _ncov_exc:   # pragma: no cover  (nie den Daily-Run brechen)
+        log.warning("news_coverage_history übersprungen: %s", _ncov_exc)
 
     # ftd_history (11.08.2026): forward-only SEC-Fail-to-Deliver-Sammlung je
     # Universums-Ticker (Top-10), NUR postclose (der Sammler prüft run_phase selbst).
