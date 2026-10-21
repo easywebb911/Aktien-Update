@@ -8250,6 +8250,12 @@
       "shares_short": 1965110,
       "short_pct_float": 27.65,
       "pub_date": "2026-08-25"
+    },
+    {
+      "settlement_date": "2026-09-30",
+      "shares_short": 2016047,
+      "short_pct_float": 20.06,
+      "pub_date": "2026-10-09"
     }
   ],
   "AKAN": [
@@ -9905,6 +9911,21 @@
       "settlement_date": "2026-09-30",
       "shares_short": 6294602,
       "short_pct_float": 15.44,
+      "pub_date": "2026-10-09"
+    }
+  ],
+  "CMPR": [
+    {
+      "settlement_date": "2026-08-31",
+      "shares_short": 2315651,
+      "short_pct_float": null,
+      "pub_date": "2026-09-10",
+      "seeded": true
+    },
+    {
+      "settlement_date": "2026-09-30",
+      "shares_short": 2282692,
+      "short_pct_float": 15.17,
       "pub_date": "2026-10-09"
     }
   ]
