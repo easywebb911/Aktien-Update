@@ -74,6 +74,12 @@ jobs:
           # verloren — Digest-Workflow sah dauerhaft 0 Daten.
           git add health_check_log.jsonl 2>/dev/null || true
           git add provider_health.jsonl 2>/dev/null || true
+          # coverage_history.jsonl: generischer Daten-Abdeckungs-Wächter
+          # (21.10.2026) — 3 Quellen aus diesem Workflow (reddit_mentions,
+          # fda_calendar, openinsider). EINE gemeinsame Datei mit
+          # daily-squeeze-report.yml (dort 3 weitere Quellen) — git add in
+          # BEIDEN Workflows nötig (Lehre #501).
+          git add coverage_history.jsonl 2>/dev/null || true
           # exit_shadow_log.jsonl: der ki_agent füllt die Forward-Returns nach
           # (update_exit_shadow_forwards). Ohne git add gingen die gefüllten
           # forward_3d/5d/10d beim nächsten Checkout verloren (analog

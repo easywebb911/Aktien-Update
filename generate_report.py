@@ -1894,6 +1894,38 @@ def get_combined_news(ticker: str, n: int = 3) -> list[dict]:
 # 2a-OPT. OPTIONS MARKET DATA (US-only, stable expiry ≥ IV_MIN_DAYS_TO_EXPIRY)
 # ===========================================================================
 
+# Generischer Daten-Abdeckungs-Wächter (21.10.2026) — Akkumulator für die
+# 3 generate_report.py-Quellen aus der Inventur (``open_items.json``
+# "datenquellen-coverage-inventur"): options_atm (get_options_data),
+# earnings_date (get_earnings_date), earnings_surprise
+# (get_earnings_surprise). "erwartet" wird am jeweiligen ThreadPool-Call-
+# Site erhöht (1 je submitteter Future), "fehler" NUR im jeweiligen
+# ``except Exception``-Zweig der Funktion (= echter Provider-/Parse-Fehler)
+# — NICHT bei den legitimen Leer-Pfaden (kein Options-Markt für den
+# Ticker, kein anstehender Earnings-Termin, keine passende Spalte in der
+# Earnings-History). Reiner Side-Effect-Zähler — KEINE Änderung an
+# Rückgabewerten/Verhalten (Test-Beleg:
+# scripts/mock_test_coverage_watchdog.py).
+_COVERAGE_ACCT: dict = {
+    q: {"n_erwartet": 0, "n_fehler": 0, "error_counts": {}}
+    for q in ("options_atm", "earnings_date", "earnings_surprise")
+}
+
+
+def _coverage_acct_reset() -> None:
+    for q in _COVERAGE_ACCT:
+        _COVERAGE_ACCT[q]["n_erwartet"] = 0
+        _COVERAGE_ACCT[q]["n_fehler"] = 0
+        _COVERAGE_ACCT[q]["error_counts"] = {}
+
+
+def _coverage_record_error(quelle: str, exc: BaseException) -> None:
+    acct = _COVERAGE_ACCT[quelle]
+    acct["n_fehler"] += 1
+    _exc_name = type(exc).__name__
+    acct["error_counts"][_exc_name] = acct["error_counts"].get(_exc_name, 0) + 1
+
+
 def get_options_data(ticker: str) -> dict:
     """Fetch Put/Call ratio (open interest) and ATM implied volatility.
     US-only — skipped for international tickers.
@@ -1984,6 +2016,7 @@ def get_options_data(ticker: str) -> dict:
         return {"pc_ratio": pc_ratio, "atm_iv": atm_iv, "expiry": chosen,
                 "gamma_call_oi": gamma_call_oi}
     except Exception as exc:
+        _coverage_record_error("options_atm", exc)
         log.debug("Options data failed for %s: %s", ticker, exc)
         return {}
 
@@ -2089,6 +2122,7 @@ def get_earnings_date(ticker: str) -> tuple[int | None, str | None]:
             except Exception:
                 continue
     except Exception as exc:
+        _coverage_record_error("earnings_date", exc)
         log.debug("Earnings date failed for %s: %s", ticker, exc)
     return None, None
 
@@ -2103,6 +2137,7 @@ def get_earnings_surprise(ticker: str) -> dict | None:
     try:
         hist = yf.Ticker(ticker).earnings_history
     except Exception as exc:
+        _coverage_record_error("earnings_surprise", exc)
         log.debug("earnings_history failed for %s: %s", ticker, exc)
         return None
     if hist is None:
@@ -2134,6 +2169,7 @@ def get_earnings_surprise(ticker: str) -> dict | None:
             pct = (a - e) / abs(e) * 100
             return {"beat": a >= e, "pct": round(pct, 1)}
     except Exception as exc:
+        _coverage_record_error("earnings_surprise", exc)
         log.debug("earnings_surprise parse failed for %s: %s", ticker, exc)
     return None
 
@@ -18032,6 +18068,7 @@ def main():
     _provider_acct_reset(_BORROW_ACCT)
     _provider_acct_reset(_EDGAR_13F_ACCT)
     _news_coverage_acct_reset()
+    _coverage_acct_reset()
     # dito für die Positions-Singleton-Zähler (27.07.2026) — sonst schleppte
     # ein zweiter main()-Aufruf im selben Prozess die Zählung des ersten mit
     # und verfälschte coverage_pct.
@@ -19105,6 +19142,7 @@ def main():
     us_for_opts = us_top10[:_OPTS_TOP_N]
     log.info("Step 3b – Fetching options data for Top-%d US stocks (parallel, max 5 threads) …",
              len(us_for_opts))
+    _COVERAGE_ACCT["options_atm"]["n_erwartet"] += len(us_for_opts)
     with ThreadPoolExecutor(max_workers=5) as _opts_ex:
         _opts_futures = {_opts_ex.submit(get_options_data, s["ticker"]): s for s in us_for_opts}
         try:
@@ -19148,6 +19186,7 @@ def main():
         print(f"EarningsWhispers-Override angewendet: {_ew_applied} Ticker", flush=True)
 
     _remaining_for_yf = [s for s in us_top10 if s.get("earnings_days") is None]
+    _COVERAGE_ACCT["earnings_date"]["n_erwartet"] += len(_remaining_for_yf)
     with ThreadPoolExecutor(max_workers=5) as _earn_ex:
         _earn_futures = {_earn_ex.submit(get_earnings_date, s["ticker"]): s
                          for s in _remaining_for_yf}
@@ -19199,6 +19238,7 @@ def main():
     if SHOW_EARNINGS_SURPRISE:
         _t_es = time.time()
         log.info("Step 3c2 – Fetching earnings surprise for %d US stocks …", len(us_top10))
+        _COVERAGE_ACCT["earnings_surprise"]["n_erwartet"] += len(us_top10)
         with ThreadPoolExecutor(max_workers=5) as _es_ex:
             _es_futures = {_es_ex.submit(get_earnings_surprise, s["ticker"]): s for s in us_top10}
             try:
@@ -19240,6 +19280,21 @@ def main():
     else:
         log.info("Step 3d – SEC 13F übersprungen (SEC_13F_ENABLED=False)")
     print(f"Step 3 abgeschlossen in {time.time() - _t_news:.1f}s", flush=True)
+
+    # Generischer Daten-Abdeckungs-Wächter (21.10.2026): persistiert je Quelle
+    # eine Zeile in die gemeinsame coverage_history.jsonl — "erhalten" =
+    # erwartet − echte Fehler (legitime Leer-Ergebnisse zählen NICHT als
+    # Fehler, siehe _COVERAGE_ACCT-Dokumentation oben). KEIN Score-/Filter-/
+    # Push-/Conviction-Effekt, fail-soft, läuft in JEDER Phase.
+    for _cov_q, _cov_acct in _COVERAGE_ACCT.items():
+        try:
+            _cov_erw = _cov_acct["n_erwartet"]
+            _cov_erh = max(0, _cov_erw - _cov_acct["n_fehler"])
+            health_check.persist_coverage_row(
+                _cov_q, _cov_erw, _cov_erh, _cov_acct["error_counts"],
+                run_phase=run_phase)
+        except Exception as _cov_exc:   # pragma: no cover  (nie den Daily-Run brechen)
+            log.warning("coverage_history (%s) übersprungen: %s", _cov_q, _cov_exc)
 
     # Conviction-Score (Schritt A) — VOR dem Backtest-Append + HTML-Render
     # aufrufen (Reihenfolge-Tausch 28.06.2026, VORWÄRTS-ERHEBUNG): das

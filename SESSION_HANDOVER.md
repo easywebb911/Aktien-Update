@@ -833,6 +833,134 @@ nicht mehr entstehen, nicht nur per Session-Disziplin.)*
   fields.py` grün (Baseline-Zeilennummern nachgeführt, reine
   Verschiebung).
 
+### 21.10.2026 — Generischer Daten-Abdeckungs-Wächter (Folge-PR zum News-Coverage-Watchdog) (1 PR)
+
+- **Generischer Daten-Abdeckungs-Wächter `coverage_history.jsonl` (Block-1-
+  Pflicht befolgt, Manual-Merge — neues JSONL-Schema + Workflow-Änderung in
+  BEIDEN Workflows, Easy mergt am iPhone):** `#594` (Branch-Commit folgt im
+  Folge-Commit, kein Merge-Hash genannt — Regel a) greift). Schließt die
+  Inventur-Lücke aus `#593` ab: 6 Quellen ohne Zähler/Digest/Warnung.
+
+  **SCHRITT 0a — die 6 Lücken-Quellen, Abdeckungs-Definition + Legitim-Leer-Regel:**
+
+  | Quelle | Fundstelle | "Abdeckung" = | Legitim leer, wenn … |
+  |---|---|---|---|
+  | `options_atm` | `generate_report.py:get_options_data` (Z. 1929) | Call beantwortet (kein echter Fehler), NICHT ob pc_ratio/atm_iv gefunden wurden | Ticker hat keine Optionskette, keinen aktuellen Spot-Preis, oder leere Calls/Puts — alles ohne Exception |
+  | `earnings_date` | `generate_report.py:get_earnings_date` (Z. 2096) | Call beantwortet | Ticker hat legitim keinen anstehenden Earnings-Termin im Kalender |
+  | `earnings_surprise` | `generate_report.py:get_earnings_surprise` (Z. 2130) | Call beantwortet | Keine Earnings-History, fehlende Spalten, oder kein matching Actual/Estimate-Paar |
+  | `reddit_mentions` | `ki_agent.py:fetch_reddit_mentions` (Z. 889) | Call über ALLE Subreddits beantwortet (kein Netzwerk-Fehler in irgendeinem Sub) | Genuin 0 Mentions in den überwachten Subreddits heute |
+  | `fda_calendar` | `ki_agent.py:fetch_fda_calendar` (Z. 1059) | RSS-Feed beantwortet (1× pro Tick) | Genuin keine PDUFA/Approval-Keyword-Treffer im 30-Tage-Fenster heute |
+  | `openinsider` | `ki_agent.py:fetch_openinsider` (Z. 1107) | RSS-Feed beantwortet | Genuin keine Insider-Käufe (nur Verkäufe oder gar keine Filings) im Lookback-Fenster |
+
+  **Restrisiko bewusst dokumentiert (nicht verschwiegen):** bei
+  `earnings_date`/`earnings_surprise` ist denkbar, dass an manchen Tagen
+  legitim KEINER der ~10 Top-10-Ticker einen anstehenden Termin/eine
+  Historie hat (Earnings-Saison-Lücken) — die 24h-Fenster-Schwelle ist
+  deshalb bewusst grob kalibriert (siehe `open_items.json`
+  "coverage-waechter-baseline").
+
+  **SCHRITT 0b — Schema-Entscheidung (per Beleg):** EIN generisches
+  `coverage_history.jsonl` (Feld `quelle` statt 6 Spezialdateien) gewählt,
+  NICHT das bestehende Tier-2/3-`provider_health.jsonl`-Framework erweitert
+  — Begründung: dessen Konsekutiv-Trigger misst "3 aufeinanderfolgende
+  DIGEST-Zyklen" (anderer Zeitbegriff als die hier geforderte "0 in allen
+  Läufen eines 24h-Fensters", analog `#593`), eine Erweiterung hätte die
+  bestehende Aggregationslogik für die 11 bereits abgedeckten Quellen
+  anfassen müssen (Risiko für bestehende Zähler). `news_coverage_history.
+  jsonl` bleibt unverändert (eigenes, reicheres Schema mit RSS-Fallback +
+  Top-10/Watchlist-Split passt nicht verlustfrei in die generische Form).
+  EIN gemeinsamer Persist-/Digest-Helfer (`health_check.persist_coverage_
+  row`/`coverage_liveness_line`/`coverage_warn_line`/`coverage_overview_
+  line`) bedient alle 6 Quellen — Single-Source-of-Truth statt 6×Code-
+  Duplikat.
+
+  **SCHRITT 0c — Mini-Stopp Konsumenten: KEIN STOPP, aber Widerspruch
+  transparent berichtet.** AST-Scan bestätigt: `options`/`earnings_days`/
+  `earnings_surprise` werden in `score()`/`score_bonus()` NICHT gelesen;
+  `_compute_sub_scores()` liest sie zwar, ist aber (unverändert seit `#593`-
+  Prüfung) AUSSCHLIESSLICH Aufrufer von `_sub_scores_html()` — reine
+  Anzeigefunktion. **Ehrlich berichtet statt verschwiegen:** `insider`
+  (`fetch_openinsider`) und — über `compute_signal` — potenziell `reddit`/
+  `fda_calendar`-Treffer fließen BEREITS (vorbestehend, nicht Teil dieser
+  PR) in `ki_signal_score` ein, der via `apply_agent_boost` einen
+  ×1,05–1,15-Multiplikator auf den echten Score anwendet. Das ist
+  **bestehendes Verhalten, von dieser PR nicht verändert** — die
+  Instrumentierung fügt ausschließlich Side-Effect-Zähler in den
+  jeweiligen `except`-Zweigen hinzu, OHNE Rückgabewerte zu berühren
+  (Test-Beleg: `test_*_behavior_unchanged`-Tests in
+  `scripts/mock_test_coverage_watchdog.py`, je Quelle ein Fehler-Fall +
+  ein Legitim-Leer-Fall, beide mit identischem Rückgabewert wie vor der
+  Instrumentierung).
+
+  **SCHRITT 0d — Workflow-Commit (Manual-Merge-Grund):** `coverage_history.
+  jsonl` wird von BEIDEN Workflows beschrieben (3 Quellen aus
+  `daily-squeeze-report.yml`, 3 aus `ki_agent.yml`) — `git add` in BEIDEN
+  Workflow-Dateien ergänzt (Lehre #501), sonst gingen die jeweils anderen
+  Workflows ihre eigenen Zeilen bei jedem Checkout verloren.
+
+  **SCHRITT 0e — Machbarkeitsbericht (NICHT gebaut, nur Diagnose):**
+  *Existierende Zweit-Quellen:* `earnings_date` hatte bereits einen
+  EarningsWhispers-RSS-Override (`EARNINGSWHISPERS_ENABLED`) — ist aber
+  seit 18.05.2026 selbst tot (RSS-Feed down). `openinsider` überlappt
+  konzeptionell mit dem bereits aktiven SEC-Form-4-Fetcher
+  (`fetch_sec_form4`, Tier-3 `edgar_form4`) — beide erfassen Insider-
+  Transaktionen, unterschiedliche Darstellung. Für `options_atm`,
+  `earnings_surprise`, `fda_calendar` existiert KEINE zweite Quelle im
+  Code. `reddit_mentions` hat mit StockTwits (`fetch_stocktwits_
+  sentiment`) eine konzeptionell ähnliche, aber andere Plattform — auch
+  diese ist aktuell deaktiviert (`STOCKTWITS_ENABLED=False`).
+  *Automatischer Diagnose-/Draft-PR-Mechanismus bei Digest-Warnung:* zwei
+  Wege geprüft, beide NICHT gebaut. (A) **Scheduled GitHub Action mit
+  Claude-Code-GitHub-Action:** braucht ein API-Key-/OAuth-Secret im Repo,
+  läuft als Workflow-Step, der bei erkannter Warnzeile eine Diagnose-
+  Session startet und einen Draft-PR öffnet. Kosten: API-Nutzung pro Lauf
+  (variabel, deckelbar), vernachlässigbare Actions-Minuten. Risiko:
+  nicht-deterministische Diagnose, falsche Fehlzuordnung. (B) **Scheduled
+  Remote-Agent (Claude Code Cloud-Session):** braucht eine an dieses Repo
+  gebundene Umgebung + einen Cron-Trigger, der Digest/`coverage_history.
+  jsonl` liest und bei Fund eine Diagnose-Session mit Draft-PR-Auftrag
+  startet. Kosten: Session-Nutzung (höhere Größenordnung als ein reiner
+  API-Call, da breitere Exploration). Beide Wege brauchen DIESELBE
+  Rückfallebene wie die bestehende `squeeze-guardian`-Pflicht: Manual-
+  Merge, nie Self-Merge aus einer vollautomatisierten Session heraus.
+  **Pfad-Sperre für Score-/Freeze-Dateien technisch möglich:** ja — ein
+  CI-Guard-Skript (`git diff --name-only`/AST-Funktionskörper-Scan gegen
+  eine feste Verbotsliste: `score()`/`score_bonus()`/
+  `compute_conviction_score()`/`apply_*_scores()`/
+  `backtest_history.json`/`matured_backtest_export.jsonl`/die Freeze-
+  Blöcke in SESSION_HANDOVER.md) kann einen automatisiert erzeugten PR
+  VOR dem Draft-Öffnen oder als eigener CI-Check ablehnen — analog der in
+  dieser Session selbst genutzten heading-anchored-Diff-Technik. Eine
+  reine CLAUDE.md-Anweisung an den Agenten ist KEIN technischer Schutz,
+  nur ein zusätzlicher (bereits bestehender) Verhaltens-Hinweis — der
+  CI-Guard ist der empfohlene technische Backstop, unabhängig davon,
+  welcher der beiden Wege gewählt wird. **Beide Wege NICHT gebaut** —
+  reiner Bericht per Auftrag.
+
+  **Gebaut:** je Quelle ein fail-soft Akkumulator (erwartet/erhalten/
+  Fehlertyp, Seiteneffekt-Zähler NUR in den jeweiligen `except`-Zweigen —
+  legitime Leer-Pfade zählen NICHT), Flag `COVERAGE_LOG_ENABLED=True`,
+  Persistenz `coverage_history.jsonl` (idempotent über `(date, run_phase,
+  quelle)`), Digest-Zeile je Quelle + Warnzeile bei 0-Erhalten-in-allen-
+  Läufen-eines-24h-Fensters + EINE Übersichtszeile „N von M Quellen unter
+  Baseline". Kein Push, nur Digest. Bestehende Digest-Zeilen/Zähler
+  unverändert.
+
+  **Kein Eingriff in `score()`/Top-10/Filter/Push/`apply_agent_boost`/
+  Conviction** durch diese PR (Regel 8c nicht einschlägig — siehe Mini-
+  Stopp 0c, inkl. der transparent berichteten Vor-Bestands-Situation).
+  `open_items.json`: `datenquellen-coverage-inventur` auf `erledigt`
+  gesetzt, neuer Eintrag `coverage-waechter-baseline` (`beobachtet`,
+  34→35 Items). Golden byte-identisch, Score-/Top-10-Gegenprobe (options/
+  earnings-Felder auf Fixture) grün, 157 CI-Tests grün (22 neue in
+  `mock_test_coverage_watchdog.py`), `lint_nan_bypass_fields.py` grün
+  (Baseline-Zeilennummern nachgeführt, reine Verschiebung in
+  generate_report.py UND ki_agent.py).
+
+  **Rückweg:** `COVERAGE_LOG_ENABLED=False` schaltet Persistenz+Digest ab
+  (Instrumentierungs-Zähler selbst bleiben als No-Op aktiv — kein Risiko).
+  `git revert` des Merge-Commits entfernt den gesamten Stand.
+
 
 
 *(Zwei-PR-Kette aus einer read-only Diagnose 15.08.2026: das Backtesting-Panel
