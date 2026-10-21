@@ -60,6 +60,8 @@ from config import (
     BACKTEST_FILE,
     OPTIONS_CHAIN_RAW_FILE,
     OPTIONS_CHAIN_RAW_DIGEST_ATM_RANGE,
+    NEWS_COVERAGE_LOG_FILE,
+    NEWS_COVERAGE_WARN_WINDOW_HOURS,
 )
 
 # Digest-State-Datei für S8-Invariant (single source of truth über
@@ -2721,6 +2723,112 @@ def options_chain_raw_liveness_line(path=None, *, now_ts=None) -> str:
         return "📦 Options-Rohkette: Status nicht ermittelbar"
 
 
+# ── news_coverage-Liveness (Digest, 21.10.2026) ───────────────────────────────
+# News-Coverage-Watchdog: SCHRITT-0-Befund war ein 19+ Tage unbemerkter
+# Totalausfall der Karten-News (ab 02.10.2026 02:16 UTC), weil es für
+# ``get_yahoo_news``/``get_combined_news`` (generate_report.py) KEINEN
+# persistierten Zähler gab — anders als die Provider-Health-Tier-3-
+# Telemetrie ``news_rss`` (ki_agent.py), die eine KOMPLETT unabhängige
+# News-Pipeline misst (5 RSS-Quellen, eigener Score-Pfad) und während des
+# Ausfalls unbeeinträchtigt weiterlief. Diese Zeile schließt NUR die
+# Karten-News-Lücke — reine Anzeige, kein Alarm/Push, kein neuer S-Check.
+
+def _read_news_coverage(path):
+    """Fail-soft JSONL-Reader → ``(state, info)``. NIE Exception.
+
+    ``state``:
+      ``"absent"``     — Datei existiert NICHT (noch nie gesammelt).
+      ``"unparsable"``/``"empty"`` — keine gültige Zeile.
+      ``"ok"``         — ``info`` = ``{"rows": [...]}`` (alle gültigen
+                         Zeilen, Einfüge-Reihenfolge = Lauf-Reihenfolge).
+    """
+    try:
+        rows: list = []
+        with open(path, "r", encoding="utf-8") as fh:
+            for line in fh:
+                s = line.strip()
+                if not s:
+                    continue
+                try:
+                    obj = json.loads(s)
+                except (json.JSONDecodeError, ValueError, TypeError):
+                    continue
+                if isinstance(obj, dict):
+                    rows.append(obj)
+    except FileNotFoundError:
+        return ("absent", None)
+    except Exception:
+        return ("unparsable", None)
+    if not rows:
+        return ("empty", None)
+    return ("ok", {"rows": rows})
+
+
+def news_coverage_liveness_line(path=None, *, now_ts=None) -> str:
+    """Eine Zeile für den Digest — fail-soft (nie Exception/leer). Zeigt
+    die Abdeckung des LETZTEN Laufs (Top-10 + Watchlist, Quellenaufteilung
+    yfinance/RSS-Fallback)."""
+    try:
+        p = path if path is not None else NEWS_COVERAGE_LOG_FILE
+        state, info = _read_news_coverage(p)
+        if state == "absent":
+            return "📰 News-Abdeckung: sammelt ab dem nächsten Lauf (Datei noch nicht angelegt)"
+        if state in ("unparsable", "empty"):
+            return "📰 News-Abdeckung: Datei unlesbar/leer"
+        last = info["rows"][-1]
+        n_top10  = last.get("n_top10") or 0
+        top10_ok = last.get("top10_mit_news") or 0
+        n_wl     = last.get("n_wl") or 0
+        wl_ok    = last.get("wl_mit_news") or 0
+        yf_kept  = last.get("yfinance_kept") or 0
+        rss_kept = last.get("rss_fallback_kept") or 0
+        return (f"📰 News-Abdeckung: letzter Lauf Top-10 {top10_ok}/{n_top10} · "
+                f"Watchlist {wl_ok}/{n_wl} · Quelle yfinance {yf_kept} / RSS {rss_kept}")
+    except Exception:  # pragma: no cover — nie den Digest brechen
+        return "📰 News-Abdeckung: Status nicht ermittelbar"
+
+
+def news_coverage_warn_line(path=None, *, now_ts=None) -> str | None:
+    """Warnzeile NUR wenn in ALLEN Läufen im ``NEWS_COVERAGE_WARN_WINDOW_
+    HOURS``-Fenster die Summe (Top-10-mit-News + Watchlist-mit-News) 0 war
+    — sonst ``None`` (kein Fund, keine Zeile). Bewusst streng über das
+    GESAMTE Fenster aggregiert statt pro Ticker/Lauf: einzelne Ticker haben
+    legitim keine News, das soll NICHT alarmieren. Kein Fenster-Datenpunkt
+    → ``None`` (kein Fund, nicht „Warnung")."""
+    try:
+        p = path if path is not None else NEWS_COVERAGE_LOG_FILE
+        state, info = _read_news_coverage(p)
+        if state != "ok":
+            return None
+        now = now_ts or datetime.now(timezone.utc)
+        cutoff = now - timedelta(hours=NEWS_COVERAGE_WARN_WINDOW_HOURS)
+        in_window = []
+        for r in info["rows"]:
+            ts = r.get("ts_utc")
+            if not isinstance(ts, str):
+                continue
+            try:
+                dt = datetime.fromisoformat(ts.replace("Z", "+00:00"))
+                if dt.tzinfo is None:
+                    dt = dt.replace(tzinfo=timezone.utc)
+            except Exception:
+                continue
+            if dt >= cutoff:
+                in_window.append(r)
+        if not in_window:
+            return None
+        total_with_news = sum(
+            (r.get("top10_mit_news") or 0) + (r.get("wl_mit_news") or 0)
+            for r in in_window
+        )
+        if total_with_news == 0:
+            return (f"⚠️ News-Abdeckung 0 in allen {len(in_window)} Läufen der letzten "
+                    f"{NEWS_COVERAGE_WARN_WINDOW_HOURS} h (Top-10 + Watchlist)")
+        return None
+    except Exception:  # pragma: no cover — nie den Digest brechen
+        return None
+
+
 # ── ftd_history-Liveness (Digest, 11.08.2026) ─────────────────────────────────
 # ANDERS als options_oi: FTD schreibt nur NEUE Punkte, wenn SEC ein neues
 # Halbmonats-File veröffentlicht (~2×/Monat). „Punkte wachsen nicht" ist also der
@@ -2986,6 +3094,8 @@ def format_digest_body(state_fails: list[dict],
                        chain_raw_line: str | None = None,
                        ftd_line: str | None = None,
                        reg_sho_line: str | None = None,
+                       news_coverage_line: str | None = None,
+                       news_coverage_warn: str | None = None,
                        weekly_lines: list[str] | None = None,
                        ) -> tuple[str, str, str, str | None]:
     """Komponiert den ntfy-Body laut Spec Z. 175–211.
@@ -3023,6 +3133,10 @@ def format_digest_body(state_fails: list[dict],
             body += f"\n{ftd_line}"
         if reg_sho_line:
             body += f"\n{reg_sho_line}"
+        if news_coverage_line:
+            body += f"\n{news_coverage_line}"
+        if news_coverage_warn:
+            body += f"\n{news_coverage_warn}"
         if weekly_lines:
             body += "\n" + "\n".join(weekly_lines)
         return body, "📭 Health-Check ohne Daten", "high", "warning"
@@ -3069,6 +3183,10 @@ def format_digest_body(state_fails: list[dict],
             body_lines.append(ftd_line)
         if reg_sho_line:
             body_lines.append(reg_sho_line)
+        if news_coverage_line:
+            body_lines.append(news_coverage_line)
+        if news_coverage_warn:
+            body_lines.append(news_coverage_warn)
         if weekly_lines:
             body_lines.extend(weekly_lines)
         body_lines.append(f"Letzter Run: {last_run_iso or '—'}")
@@ -3119,6 +3237,10 @@ def format_digest_body(state_fails: list[dict],
         lines.append(ftd_line)
     if reg_sho_line:
         lines.append(reg_sho_line)
+    if news_coverage_line:
+        lines.append(news_coverage_line)
+    if news_coverage_warn:
+        lines.append(news_coverage_warn)
     if weekly_lines:
         lines.extend(weekly_lines)
     lines.append(f"Letzter erfolgreicher Run: {last_run_iso or '—'}")

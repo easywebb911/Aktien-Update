@@ -685,6 +685,154 @@ nicht mehr entstehen, nicht nur per Session-Disziplin.)*
   reine Verschiebung, keine inhaltliche Änderung). Regel 8c nicht
   einschlägig (kein `score()`/Top-10-Touch).
 
+### 21.10.2026 — News-Coverage-Watchdog (Karten-News-Totalausfall ab 02.10.2026) (1 PR)
+
+- **News-Coverage-Watchdog `news_coverage_history.jsonl` (Block-1-Pflicht
+  befolgt, Manual-Merge — neues JSONL-Schema + Workflow-Änderung, Easy
+  mergt am iPhone):** `#593` (Branch-Commit folgt im Folge-Commit, kein
+  Merge-Hash genannt — Regel a) greift).
+
+  **Befund + Zeitverlauf (SCHRITT 0a, verifiziert per
+  `app_data.json`-Commit-Historie):** alle Karten (Top-10 + Watchlist)
+  zeigten „Keine Nachrichten verfügbar". `watchlist_cards[*].news`:
+  5/5 bis 29.09. 12:55 Uhr, **Ausfall 1** 29.09. 15:52 bis 30.09. 00:34
+  Uhr (0/5), Recovery 30.09. 12:36 Uhr (wieder 5/5 bis 01.10. 23:13),
+  **Ausfall 2** ab 02.10. 02:16 Uhr (0/5) — **durchgängig bis mindestens
+  21.10.2026 (19+ Tage, geprüft bis zum aktuellsten Commit)**, kein
+  einziger Lauf dazwischen mit News. Für Top-10-Karten existierte **kein**
+  persistierter Zähler (gleicher Code-Pfad, nicht separat geprüft, aber
+  strukturell identisch betroffen).
+
+  **Warum bemerkte das kein Wächter? (SCHRITT 0b, mit Fundstellen):**
+  (i) `get_yahoo_news()` (generate_report.py) fängt jede Exception mit
+  `except Exception: return []` — der einzige Hinweis war eine **stdout-
+  Zeile** (`print(f"News {ticker}: …")` in `get_combined_news()`), die
+  niemand liest; es gab **keinen** persistierten Zähler.
+  (ii) Das Provider-Health-Framework (`health_check.py`,
+  `HEALTH_CHECK_PROVIDER_TIER`/`_EXPECTED`) kennt **keinen** Provider-Key
+  für diesen Pfad — der einzige „News"-Provider-Key ist `news_rss`
+  (`ki_agent.py`), der aber eine **komplett andere, unabhängige**
+  News-Pipeline misst (5 eigene RSS-Quellen: Yahoo-RSS + Google News +
+  UnusualWhales + MarketBeat + SeekingAlpha, `ki_agent.py:2992-3020`) —
+  diese lief während des Karten-Ausfalls unbeeinträchtigt weiter
+  (`provider_health.jsonl`, letzter `news_rss`-Eintrag: `http_status=200`,
+  `30/75 calls failed` = 60 % Erfolg, **kein** Tier-3-Alarm, da
+  `coverage_pct=None` und `http_status==200`). Genau DESHALB zeigte der
+  KI-Block weiterhin News-Treffer (z. B. „News: acquisition" bei DFH),
+  während die Karte „Keine Nachrichten" zeigte — zwei komplett getrennte
+  Pipelines, nur eine davon beobachtet.
+  (iii) **Inventur aller externen Datenquellen** (vollständige Tabelle
+  unten) zeigt: 11 Quellen haben einen persistierten Pro-Lauf-Zähler +
+  Digest-Zeile (teils mit Warnung bei Ausfall), **6 Quellen haben gar
+  nichts** — darunter ausgerechnet der Karten-News-Pfad.
+  (iv) `health_check`/Digest prüfen **Lauf-Erfolg und strukturelle
+  Invarianten** (S1–S14: „hat `app_data.json` X Ticker", „ist der State
+  frisch genug" etc.) sowie **Provider-Mechanik** (HTTP-Status,
+  Call-Erfolgsrate) — **nicht** den tatsächlichen **Dateninhalt** einer
+  einzelnen Anzeige-Komponente. `squeeze-guardian` prüft **PR-Diffs**
+  (Architektur-Konformität gegen CLAUDE.md, tote Call-Sites, Krypto) —
+  er läuft **nie gegen Live-Daten** und hätte einen reinen
+  Laufzeit-Datenausfall (kein Code wurde geändert) grundsätzlich nicht
+  erkennen können.
+
+  **Inventur-Tabelle (SCHRITT 0b-iii, Kurzform — Spalten: Zähler? ·
+  Digest-Zeile? · Warnung bei Ausfall?):**
+
+  | Quelle | Zähler | Digest | Warnung | Anmerkung |
+  |---|---|---|---|---|
+  | yahoo_screener | ✓ | ✓ | ✓ (Tier 1) | |
+  | yfinance_batch | ✓ | ✓ | ✓ (Tier 1) | |
+  | yfinance_singletons | ✓ | ✓ | ✓ (Tier 1) | ^VIX/^GSPC/EURUSD |
+  | finviz | ✓ | ✓ | ✓ (Tier 2) | seit 19.05. Tier 2 |
+  | finra | ✓ | ✓ | ✓ (Tier 2) | |
+  | stockanalysis | ✓ | ✓ | ✓ (Tier 2) | |
+  | borrow (iBorrowDesk) | ✓ | ✓ | ✓ (Tier 2) | |
+  | earningswhispers | ✓ | ✓ | ✓ (Tier 2) | |
+  | quote_proxy | ✓ | ✓ | ✓ (Tier 2) | |
+  | stocktwits | ✓ | ✓ | ✓ (Tier 3) | aktuell deaktiviert |
+  | uoa | ✓ | ✓ | ✓ (Tier 3) | |
+  | news_rss (ki_agent, 5 RSS-Quellen) | ✓ | ✓ | ✓ (Tier 3) | **misst NICHT die Karten-News** |
+  | edgar_13f / 8k / form4 / 13d_g | ✓ | ✓ | ✓ (Tier 3) | |
+  | options_oi_history | ✓ (eigene Datei) | ✓ | (nur „überfällig") | |
+  | options_chain_raw | ✓ (eigene Datei) | ✓ | (nur „überfällig") | |
+  | ftd_history / reg_sho_history | ✓ (eigene Datei) | ✓ | (nur „überfällig") | |
+  | inst_ownership_history | ✓ (eigene Datei) | ✓ | (nur „überfällig") | |
+  | **Karten-News** (`get_yahoo_news`/`get_combined_news`) | **war: ✗** | **war: ✗** | **war: ✗** | **diese PR schließt die Lücke** |
+  | `get_options_data()` (atm_iv/pc_ratio) | ✗ (nur stdout) | ✗ | ✗ | deckt nur 5/10 Top-10-US ab |
+  | `get_earnings_date()`/`get_earnings_surprise()` | ✗ (nur stdout) | ✗ | ✗ | |
+  | ki_agent `fetch_reddit_mentions()` | ✗ | ✗ | ✗ | |
+  | ki_agent `fetch_fda_calendar()` | ✗ | ✗ | ✗ | |
+  | ki_agent `fetch_openinsider()` | ✗ | ✗ | ✗ | |
+
+  Die letzten 5 Zeilen (Lücken) sind in `open_items.json`
+  (`datenquellen-coverage-inventur`) festgehalten — **kein Code gebaut**,
+  Entscheidung bei Easy.
+
+  **Mini-Stopp 0c (Konsumenten) — KEIN STOPP ausgelöst:** `s["news"]`/
+  `news_summary()`/`_compute_sub_scores()`-`news_pts` (Katalysator-
+  Sub-Score) wurden gegrept und per AST-Funktionskörper-Scan geprüft —
+  `_compute_sub_scores()` wird **ausschließlich** von `_sub_scores_html()`
+  aufgerufen (reine Anzeige-Funktion, Docstring bestätigt: „ergeben NICHT
+  den Gesamt-Score"). `score()`, `score_bonus()`,
+  `compute_conviction_score()`, `apply_conviction_scores()`,
+  `apply_agent_boost()` enthalten **0 Treffer** für „news" (AST-Body-Scan
+  über alle fünf Funktionen). `backtest_history.py`/
+  `matured_backtest_export.py` enthalten **0 Treffer**. Betroffen ist NUR
+  der Anzeige-Teilwert Katalysator-Sub-Score + der Karten-News-Text.
+
+  **Gebaut:**
+  1. **Instrumentierung** `get_yahoo_news()`: Modul-Akkumulator
+     `_NEWS_COVERAGE_ACCT` (raw/kept/dropped_by_age/Exception-Typ-Zähler,
+     analog `ki_agent._KI_SENTIMENT_ERROR_COUNTS`), Exception-Typ jetzt im
+     Log sichtbar.
+  2. **RSS-Fallback** in `get_combined_news()`: liefert `yfinance`
+     (`get_yahoo_news`) 0 verwertbare Items (Exception/leer/alles zu alt
+     — alle drei Fälle münden in `== []`), wird derselbe Yahoo-RSS-Feed
+     abgefragt, den `ki_agent.fetch_yahoo_news` nutzt
+     (`feeds.finance.yahoo.com/rss/2.0/headline`), über die vorhandene
+     `_rss_news()`-Helper — gleiche Item-Struktur, gleicher Altersfilter
+     (`NEWS_MAX_AGE_DAYS_DISPLAY`). **Liefert yfinance: 0 zusätzliche
+     Requests, Verhalten byte-identisch** (Test-Beleg).
+     **Widerspruch korrigiert:** der alte Kommentar „Die 5 anderen
+     RSS-Quellen tragen die News-Versorgung" in `get_combined_news()` war
+     **falsch** für diesen Pfad (dort war `fv_items` bereits fest `[]`) —
+     er beschrieb tatsächlich ki_agent.py's eigene Pipeline. Kommentar
+     richtiggestellt, nicht stillschweigend übermalt.
+  3. **Persistenz** `news_coverage_history.jsonl` (append-only, JEDE
+     Phase — kein zusätzlicher Fetch, daher auch premarket sinnvoll,
+     anders als `options_oi`/`options_chain_raw`), idempotent über
+     `(date, run_phase)`. Flag `NEWS_COVERAGE_LOG_ENABLED=True`.
+  4. **Digest** (`health_check.py`): „📰 News-Abdeckung: letzter Lauf
+     Top-10 x/10 · Watchlist y/z · Quelle yfinance a / RSS b" +
+     separate Warnzeile „⚠️ News-Abdeckung 0 in allen N Läufen der
+     letzten 24 h" — NUR wenn die Summe über das **gesamte** Fenster 0
+     ist (bewusst streng, einzelne Ticker haben legitim keine News).
+     Kein Push, nur Digest. Bestehende Digest-Zeilen/Zähler unverändert
+     (Vorher/Nachher-Gegenprobe gegen `origin/main`).
+
+  **Ursachenstand: UNBELEGT.** Zwei Hypothesen bleiben offen (yfinance
+  `stk.news` liefert von den Runnern nichts mehr vs. Yahoo liefert nur
+  noch Items, die der 30-Tage-Altersfilter komplett verwirft) — die
+  Sandbox hat keinen Yahoo-Zugriff (403 bestätigt), nur der echte Runner
+  kann das klären. Die neuen raw/kept/dropped_age/Exception-Typ-Zähler
+  im ersten echten Lauf (premarket oder postclose) liefern die
+  entscheidenden Zahlen.
+
+  **Rückweg:** `NEWS_COVERAGE_LOG_ENABLED=False` schaltet Persistenz +
+  Digest-Zeilen ab (RSS-Fallback bleibt aktiv — reine Anzeige-
+  Verbesserung, kein Risiko). `git revert` des Merge-Commits entfernt den
+  gesamten Code-/Doku-Stand.
+
+  **Kein Eingriff in `score()`/Top-10/Filter/Push/`apply_agent_boost`/
+  Conviction** (Regel 8c nicht einschlägig, explizit geprüft und
+  bestätigt — siehe Mini-Stopp 0c oben). `open_items.json`: zwei neue
+  Einträge `news-coverage-watchdog` + `datenquellen-coverage-inventur`
+  (beide `beobachtet`, 32→34 Items). Golden byte-identisch, Score-/Top-10-
+  Gegenprobe (identische Scores + Sortierreihenfolge mit/ohne News auf
+  Fixture-Daten) grün, 156 CI-Tests grün (14 neue), `lint_nan_bypass_
+  fields.py` grün (Baseline-Zeilennummern nachgeführt, reine
+  Verschiebung).
+
 
 
 *(Zwei-PR-Kette aus einer read-only Diagnose 15.08.2026: das Backtesting-Panel

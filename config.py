@@ -438,6 +438,31 @@ NEWS_DECAY_FALLBACK      = 0.5   # weight bei fehlendem/parse-fehlerhaftem ts
 # NEWS_DECAY_FALLBACK: im Zweifel behalten, nicht wegfiltern).
 NEWS_MAX_AGE_DAYS_DISPLAY = 30
 
+# ── News-Coverage-Watchdog (21.10.2026) ──────────────────────────────────────
+# Befund 21.10.2026: ab 02.10. 02:16 UTC zeigten ALLE Karten (Top-10 +
+# Watchlist) "Keine Nachrichten verfügbar" — ``get_yahoo_news()`` (yfinance
+# ``stk.news``) lieferte in jedem Lauf 0 Items, ohne dass ein Wächter das
+# bemerkt hat (kein persistierter Zähler existierte für diesen Pfad — siehe
+# SESSION_HANDOVER.md Lit-Check/Befund-Eintrag 21.10.2026 für die volle
+# Diagnose). ki_agent.py's EIGENE, unabhängige News-Pipeline (5 RSS-Quellen,
+# Tier-3 ``news_rss``-Provider-Health) lief unbemerkt davon unverändert
+# weiter — daher zeigte der KI-Block weiterhin News-Treffer, während die
+# Karte "Keine Nachrichten" zeigte (zwei getrennte Pipelines, siehe unten).
+#
+# Flag schaltet BEIDE neuen Bausteine gemeinsam ab (Fallback-Quelle in
+# get_combined_news UND die Persistenz-Datei/Digest-Zeile) — rein additiv,
+# kein Einfluss auf score()/Top-10/Push/Conviction (nur Anzeige-Teilwert
+# Katalysator-Sub-Score + Karten-Text).
+NEWS_COVERAGE_LOG_ENABLED = True
+NEWS_COVERAGE_LOG_FILE    = "news_coverage_history.jsonl"
+
+# Digest-Warnschwelle: "0 Items in ALLEN Läufen der letzten N Stunden" löst
+# eine Warnzeile aus (bewusst streng — einzelne Ticker haben legitim keine
+# Nachrichten, daher wird NICHT pro Ticker/Lauf, sondern über das gesamte
+# Fenster aggregiert). Feintuning erst nach einer Live-Baseline (Wiedervorlage
+# ~10 Handelstage, siehe open_items.json).
+NEWS_COVERAGE_WARN_WINDOW_HOURS = 24
+
 # ── Unusual Options Activity (UOA) — yfinance Options-Chain ──────────────────
 # Bewertet ungewöhnliche Optionsaktivität pro Ticker:
 #   • Call-Vol/OI > 5× im ATM-Bereich (±10 % Strike)  → +UOA_ATM_STRONG Pkt

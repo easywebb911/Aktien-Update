@@ -332,6 +332,21 @@ def main(*, now_ts: datetime | None = None,
         log.warning("options_chain_raw_liveness_line unerwartet: %r", _ocr_exc)
         chain_raw_line = None
 
+    # News-Coverage-Watchdog (21.10.2026): analog options_chain_raw, eigene
+    # Datei (JSONL). raise-frei; try/except ist reine Absicherung.
+    try:
+        news_coverage_line = hc.news_coverage_liveness_line(
+            ROOT / hc.NEWS_COVERAGE_LOG_FILE, now_ts=now_ts)
+    except Exception as _ncov_exc:  # pragma: no cover — Helper ist raise-frei
+        log.warning("news_coverage_liveness_line unerwartet: %r", _ncov_exc)
+        news_coverage_line = None
+    try:
+        news_coverage_warn = hc.news_coverage_warn_line(
+            ROOT / hc.NEWS_COVERAGE_LOG_FILE, now_ts=now_ts)
+    except Exception as _ncovw_exc:  # pragma: no cover — Helper ist raise-frei
+        log.warning("news_coverage_warn_line unerwartet: %r", _ncovw_exc)
+        news_coverage_warn = None
+
     # FTD-Liveness: Heartbeat-basiert (Sidecar-State), kein Daily-Run-Fenster nötig.
     try:
         ftd_line = hc.ftd_liveness_line(
@@ -377,6 +392,8 @@ def main(*, now_ts: datetime | None = None,
         chain_raw_line=chain_raw_line,
         ftd_line=ftd_line,
         reg_sho_line=reg_sho_line,
+        news_coverage_line=news_coverage_line,
+        news_coverage_warn=news_coverage_warn,
         weekly_lines=weekly_lines,
     )
 
