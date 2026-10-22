@@ -48,7 +48,7 @@ import pathlib
 import random
 import subprocess
 import sys
-from datetime import date, datetime, timezone
+from datetime import datetime, timezone
 from typing import Callable, Sequence
 
 _ROOT = pathlib.Path(__file__).resolve().parent.parent
