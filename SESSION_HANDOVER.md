@@ -1105,8 +1105,8 @@ nicht mehr entstehen, nicht nur per Session-Disziplin.)*
 - **Freeze-Auswertungs-Autorun `scripts/freeze_eval.py` (Block-1-Pflicht
   befolgt, Manual-Merge — neues Schema `eval_results.jsonl` + neuer
   Workflow-Step, Easy mergt am iPhone):** `#597` (Branch-Commit
-  `<WIRD-BEIM-FOLLOW-UP-COMMIT-ERGÄNZT>`, 22.10., kein Merge-Hash genannt
-  — Regel a) greift). Setzt den Auftrag "Auswertung startet bei n=250 von
+  `ebb1eda7`, 22.10., kein Merge-Hash genannt — Regel a) greift). Setzt
+  den Auftrag "Auswertung startet bei n=250 von
   selbst" um — die eingefrorenen Setup-Edge/Conviction- (10.10.2026 +
   Erratum) und KI-Score-Edge-Test-Freezes (13.10.2026 + Erratum 16.10.)
   laufen jetzt automatisch EINMAL, sobald ihr jeweiliger Auslöser (n>=250)
