@@ -162,6 +162,97 @@ def test_persist_coverage_row_zero_expected_skipped():
     _check("keine Datei bei n_erwartet=0", not os.path.exists(path))
 
 
+def test_persist_coverage_row_ki_agent_tick_multiple_per_day():
+    """Befund B (22.10.2026): ``run_phase='ki_agent_tick'`` ist für JEDEN
+    Tick eines Tages derselbe konstante String — die reine (date,
+    run_phase, quelle)-Idempotenz hätte ab dem zweiten Tick eines Tages
+    jede weitere Zeile als Duplikat verschluckt (verifiziert: 04:47-Tick
+    schrieb, 10:11/11:55/15:17/19:16 desselben Tages nicht). Fix: der Key
+    trägt zusätzlich die Tick-Stunde für ki_agent_tick-Zeilen -- vier
+    Ticks an verschiedenen Stunden desselben Tages müssen alle vier eine
+    Zeile schreiben."""
+    path = _fresh_coverage_file()
+    hc.COVERAGE_LOG_ENABLED = True
+    results = []
+    for hour in (4, 10, 11, 15, 19):
+        results.append(hc.persist_coverage_row(
+            "reddit_mentions", 14, 14, {},
+            report_date_iso="2026-10-22", run_phase="ki_agent_tick",
+            now_fn=lambda h=hour: datetime(2026, 10, 22, h, 47, tzinfo=timezone.utc),
+            path=path))
+    _check("alle fünf Ticks (verschiedene Stunden) schreiben je 1 Zeile",
+           results == [1, 1, 1, 1, 1])
+    _check("5 Zeilen in der Datei (kein Idempotenz-Kollaps mehr)",
+           len(_load_lines(path)) == 5)
+
+    # Derselbe Tick (identische Stunde) ein zweites Mal -> weiterhin
+    # idempotent (echtes Duplikat innerhalb derselben Stunde wird erkannt).
+    n_dup = hc.persist_coverage_row(
+        "reddit_mentions", 14, 14, {},
+        report_date_iso="2026-10-22", run_phase="ki_agent_tick",
+        now_fn=lambda: datetime(2026, 10, 22, 19, 50, tzinfo=timezone.utc),
+        path=path)
+    _check("zweiter Tick in DERSELBEN Stunde (19 Uhr) -> Duplikat, 0 Zeilen",
+           n_dup == 0)
+    _check("weiterhin nur 5 Zeilen", len(_load_lines(path)) == 5)
+
+
+def test_persist_coverage_row_premarket_postclose_unaffected_by_tick_hour():
+    """generate_report.py-Verhalten (premarket/postclose, je 1×/Tag) bleibt
+    unverändert — ``tick_hour`` ist dort immer ``None``, Idempotenz greift
+    weiterhin rein über (date, run_phase, quelle) wie vor diesem Fix."""
+    path = _fresh_coverage_file()
+    hc.COVERAGE_LOG_ENABLED = True
+    n1 = hc.persist_coverage_row(
+        "earnings_date", 10, 10, {}, report_date_iso="2026-10-22",
+        run_phase="postclose",
+        now_fn=lambda: datetime(2026, 10, 22, 21, 0, tzinfo=timezone.utc), path=path)
+    n2 = hc.persist_coverage_row(
+        "earnings_date", 10, 10, {}, report_date_iso="2026-10-22",
+        run_phase="postclose",
+        now_fn=lambda: datetime(2026, 10, 22, 22, 0, tzinfo=timezone.utc), path=path)
+    _check("erster postclose-Lauf schreibt 1 Zeile", n1 == 1)
+    _check("zweiter postclose-Lauf (andere Stunde, GLEICHE Phase) bleibt Duplikat -> 0 Zeilen",
+           n2 == 0)
+    _check("nur 1 Zeile (unverändertes Verhalten)", len(_load_lines(path)) == 1)
+    rows = _load_lines(path)
+    _check("tick_hour ist None für premarket/postclose-Zeilen", rows[0].get("tick_hour") is None)
+
+
+def test_ki_agent_persist_errors_logged_as_warning_not_debug():
+    """Befund-B-Fix 22.10.2026, Auftrags-Vorgabe Punkt 2: Persist-Fehler im
+    ki_agent-Coverage-Loop müssen auf log.warning stehen, nicht log.debug
+    (debug blieb im Workflow-Log faktisch unsichtbar und hätte den
+    stillen Idempotenz-Kollaps noch schwerer diagnostizierbar gemacht)."""
+    src = (ROOT / "ki_agent.py").read_text(encoding="utf-8")
+    needle = 'log.warning("coverage_history (%s) übersprungen: %s", _cov_q, _cov_exc)'
+    old_needle = 'log.debug("coverage_history (%s) übersprungen: %s", _cov_q, _cov_exc)'
+    _check("coverage_history-Persist-Fehler nutzt log.warning", needle in src)
+    _check("altes log.debug für diesen Fehlerpfad nicht mehr vorhanden", old_needle not in src)
+
+
+def test_persist_coverage_row_legacy_rows_without_tick_hour_field():
+    """Alt-Zeilen vor diesem Fix (ohne ``tick_hour``-Feld) dürfen die
+    Idempotenz-Prüfung nicht crashen lassen -- ``.get("tick_hour")``
+    liefert fail-soft ``None`` für sie."""
+    path = _fresh_coverage_file()
+    with open(path, "w", encoding="utf-8") as fh:
+        fh.write(json.dumps({
+            "date": "2026-10-22", "run_phase": "ki_agent_tick",
+            "quelle": "openinsider", "ts_utc": "2026-10-22T04:47:00+00:00",
+            "n_erwartet": 14, "n_erhalten": 14, "n_mit_daten": None,
+            "error_counts": {},
+        }) + "\n")
+    hc.COVERAGE_LOG_ENABLED = True
+    n = hc.persist_coverage_row(
+        "openinsider", 14, 14, {}, report_date_iso="2026-10-22",
+        run_phase="ki_agent_tick",
+        now_fn=lambda: datetime(2026, 10, 22, 10, 11, tzinfo=timezone.utc), path=path)
+    _check("neuer Tick (andere Stunde) nach Alt-Zeile ohne tick_hour -> schreibt trotzdem (kein Crash)",
+           n == 1)
+    _check("2 Zeilen in der Datei", len(_load_lines(path)) == 2)
+
+
 # ===========================================================================
 # 2: coverage_liveness_line
 # ===========================================================================
@@ -595,6 +686,10 @@ def run_all():
         test_persist_coverage_row_idempotent,
         test_persist_coverage_row_flag_disabled,
         test_persist_coverage_row_zero_expected_skipped,
+        test_persist_coverage_row_ki_agent_tick_multiple_per_day,
+        test_persist_coverage_row_premarket_postclose_unaffected_by_tick_hour,
+        test_ki_agent_persist_errors_logged_as_warning_not_debug,
+        test_persist_coverage_row_legacy_rows_without_tick_hour_field,
         test_coverage_liveness_line_states,
         test_coverage_warn_line,
         test_coverage_overview_line,

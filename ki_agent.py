@@ -3993,7 +3993,11 @@ def main() -> None:
                     n_mit_daten=_cov_acct["n_mit_daten"],
                     run_phase="ki_agent_tick")
             except Exception as _cov_exc:
-                log.debug("coverage_history (%s) übersprungen: %s", _cov_q, _cov_exc)
+                # log.warning statt log.debug (Befund-B-Fix 22.10.2026) —
+                # ein echter Persist-Fehler blieb auf debug-Level
+                # unsichtbar und hätte den stillen Idempotenz-Kollaps noch
+                # schwerer diagnostizierbar gemacht.
+                log.warning("coverage_history (%s) übersprungen: %s", _cov_q, _cov_exc)
     except Exception as exc:
         log.warning("coverage_history-aggregator failed: %s", exc)
 
