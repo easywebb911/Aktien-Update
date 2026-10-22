@@ -1,0 +1,3 @@
+{"date":"2026-10-22","run_phase":"ki_agent_tick","quelle":"reddit_mentions","ts_utc":"2026-10-22T04:47:19.763486+00:00","n_erwartet":14,"n_erhalten":0,"error_counts":{"RuntimeError":14}}
+{"date":"2026-10-22","run_phase":"ki_agent_tick","quelle":"fda_calendar","ts_utc":"2026-10-22T04:47:19.763772+00:00","n_erwartet":1,"n_erhalten":0,"error_counts":{"HTTPError":1}}
+{"date":"2026-10-22","run_phase":"ki_agent_tick","quelle":"openinsider","ts_utc":"2026-10-22T04:47:19.763954+00:00","n_erwartet":14,"n_erhalten":0,"error_counts":{"ConnectionError":14}}
