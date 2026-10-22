@@ -1184,6 +1184,68 @@ nicht mehr entstehen, nicht nur per Session-Disziplin.)*
   bereits etwas ausgelöst hat) bleibt als reine Analyse-Persistenz
   stehen, kein Konsument liest sie außerhalb des Digests.
 
+### 22.10.2026 — Holm-Input Test c präzisiert + Freeze-Auswertungs-Autorun scharf geschaltet (1 PR)
+
+- **Erratum 22.10.2026 (b) + Scharfschaltung `config.EVAL_AUTORUN_ENABLED`
+  (Block-1-Pflicht befolgt, Manual-Merge — Erratum-Block + Master-Switch-
+  Flip, Easy mergt am iPhone):** `#598` (Branch-Commit
+  `<WIRD-BEIM-FOLLOW-UP-COMMIT-ERGÄNZT>`, 22.10., kein Merge-Hash genannt
+  — Regel a) greift). Schließt die von PR #597 selbst (Code-Kommentar +
+  squeeze-guardian) offen geflaggte Lücke: der Holm-Input `p_c` für Test c
+  (Conviction-Zusatznutzen) war implementiert als Mann-Whitney-p von
+  `AUC(conviction_score)` gegen den Split, nirgends aber **wörtlich** als
+  diese Lesart festgelegt — nur strukturparallel zu Tests a/b gewählt.
+
+  **Erratum 22.10.2026 (b)** (eigener Block direkt nach Erratum 22.10.2026
+  (a), beide Freeze-Blöcke + alle bisherigen Errata byte-identisch belassen
+  — heading-anchorter Diff-Beleg): `p_c` ist jetzt verbindlich der
+  **zweiseitige Bootstrap-p-Wert der ΔAUC-Verteilung selbst** (aus dem
+  bereits für das CI berechneten gepaarten Bootstrap, N=2000, Seed 42):
+  `p_c = min(1, 2 · min(Anteil Resamples mit ΔAUC≤0, Anteil Resamples mit
+  ΔAUC≥0))` — **nicht** der p-Wert von `AUC(conviction_score)` gegen 0,5.
+  Die Teilbedingung „`AUC(conviction_score) ≥ 0,55`" (Erfolgskriterium
+  (iv)) bleibt als reine Punktschätzungs-Schwelle unverändert.
+
+  **Gebaut:** `scripts/freeze_eval.py:paired_bootstrap_delta_auc` liefert
+  jetzt zusätzlich `p_two_sided` (Proportion auf der bereits berechneten
+  Resample-Verteilung, kein zweiter Bootstrap-Lauf). `evaluate_setup_edge_
+  family` liest `p_c` jetzt aus `cluster_c_delta` statt `cluster_c_auc`.
+  Tests a, b und die KI-Score-Familie unverändert (Fixture-Belege
+  identisch zu vorher). Fixture-Tuning: der bisherige "kein Zusatznutzen"-
+  Fixture-Zweig in `scripts/mock_test_freeze_eval_autorun.py` nutzte einen
+  zu deterministischen Score-Return-Zusammenhang (AUC≈0,98) — dort wurde
+  selbst die kleinste Rausch-Degradierung durch `conviction_score`
+  hochsignifikant (`p_c≈0,002`), was die erwartete "kein Zusatznutzen →
+  `p_c` groß"-Demonstration verdeckt hätte. Auf ein schwächeres, realistischeres
+  Signal (AUC≈0,55–0,65) umgestellt — Beleg: `p_c≈0,47` für identische
+  Seeds bei echtem Nicht-Effekt, `p_c=1,0` exakt bei identischen Scores
+  (reine Formel-Verriegelung, neuer Test).
+
+  **`config.EVAL_AUTORUN_ENABLED = True`** (vorher `False`) — der Automat
+  für beide Familien ist jetzt aktiv. **Vorher belegt (reine Zählung,
+  keine `return_*`-Werte eingesehen):** Setup-Edge/Conviction n=0/250,
+  KI-Score n=0/250 (beide aus `matured_backtest_export.jsonl`, 1247
+  Export-Zeilen gesamt) — das Scharfschalten startet heute **nachweislich
+  keine** Auswertung. Smoke-Test gegen die echten Repo-Daten (dry-run)
+  bestätigt: kein `eval_results.jsonl` wird angelegt, beide Digest-Zeilen
+  bleiben im Vor-Auslöser-Format.
+
+  Golden byte-identisch, 160 CI-Tests grün (3 Tests neu/ersetzt in
+  `scripts/mock_test_freeze_eval_autorun.py`: Formel-Verriegelung `p_c`,
+  Holm-Input-Quelle explizit geprüft, Scharfschaltung-ohne-Trigger auf
+  synthetischer Fixture — die vorherige „Default False"-Prüfung wurde
+  durch eine „explizit deaktiviert"-Variante ersetzt, da der Produktions-
+  Default jetzt `True` ist), alle 5 Lints grün (keine Baseline-
+  Verschiebung nötig). `open_items.json`: zwei Items additiv aktualisiert
+  (`setup-edge-retest-freeze` + `ki-score-edge-freeze` → Nachtrag „scharf
+  geschaltet, n=0/250 nachweislich nicht ausgelöst", Status bleibt
+  `beobachtet`; 35→35 Items). Kein `score()`-/Top-10-/Filter-/Push-/
+  Conviction-Touch (einziger Push-Pfad ist der in PR #597 bereits gebaute,
+  heute mangels Auslöser inaktive Ergebnis-Push).
+
+  **Rückweg:** `config.EVAL_AUTORUN_ENABLED = False` setzen UND
+  `git revert` des Merge-Commits.
+
 
 *(Zwei-PR-Kette aus einer read-only Diagnose 15.08.2026: das Backtesting-Panel
 meldete einen Browser-`JSON.parse`-Fehler. Diagnose fand nackte JSON-`NaN`-
@@ -2666,6 +2728,40 @@ Verfahrensdetails sind jetzt festgelegt.
 **Änderungs-Protokoll gilt identisch für dieses Erratum** (analog
 Setup-Edge/§4/KI-Score-Erratum 16.10.): keine weitere Änderung ohne
 datierten Protokolleintrag.
+
+### ERRATUM 22.10.2026 (b) — Holm-Input für Test c (Conviction-Zusatznutzen) präzisiert
+
+**Anlass.** PR #597 (Freeze-Auswertungs-Autorun) flaggte — sowohl im Code-
+Kommentar selbst als auch im squeeze-guardian-Bericht — dass die
+implementierte Lesart für den Holm-Input `p_c` von Test c (Mann-Whitney-p
+von `AUC(conviction_score)` selbst gegen den Split) **nirgends wörtlich**
+im Freeze- oder Erratum-Text festgelegt war, sondern nur strukturparallel
+zu Tests a/b gewählt wurde. Dieses Erratum legt die Lesart jetzt
+verbindlich fest — **ohne Outcomes (`return_*`-Werte) einzusehen**, reine
+Verfahrensklärung.
+
+**ENTSCHEIDUNG EASY (22.10.2026):** Zielgröße von Test c ist laut Erratum
+10.10.2026 Punkt 3 **ΔAUC = AUC(conviction_score) − AUC(score)** (gepaart).
+Holm-Input `p_c` ist daher der **zweiseitige Bootstrap-p-Wert der ΔAUC-
+Verteilung** aus dem gepaarten Bootstrap (N=2000, Seed 42):
+
+```
+p_c = min(1, 2 · min(Anteil Resamples mit ΔAUC ≤ 0, Anteil Resamples mit ΔAUC ≥ 0))
+```
+
+**NICHT** der p-Wert von `AUC(conviction_score)` gegen 0,5. Die
+Teilbedingung „`AUC(conviction_score) ≥ 0,55`" (Erfolgskriterium (iv))
+bleibt davon **unberührt** — sie ist und bleibt eine reine
+Punktschätzungs-Schwelle, keine Signifikanzaussage.
+
+**Was dieses Erratum NICHT ändert:** alle Populations-Definitionen,
+Zielgrößen, Erfolgsschwellen (0,55 / +0,02), Holm-Familien (k=3 bzw. k=2),
+Brutto-Bindung, Grenzen-Absätze und die drei Verfahrensdetails aus Erratum
+22.10.2026 (a) oben (Seed=42, N=2000, 95% zweiseitig Perzentil 2,5./97,5.,
+Test-c-Ausschluss-Regel) bleiben wörtlich wie zuvor festgelegt. Nur die
+konkrete Berechnungsvorschrift für `p_c` ist jetzt fixiert.
+
+**Änderungs-Protokoll gilt identisch für dieses Erratum.**
 
 ### WIEDERVORLAGEN — dated (Stand 08.08.2026, NICHT Teil des §4-Freeze)
 

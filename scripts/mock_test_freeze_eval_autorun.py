@@ -92,9 +92,15 @@ def _synthetic_setup_edge_rows(n=400, *, seed=1, conviction_extra=False,
             ret5 = extra * 0.3 + rng.uniform(-2, 2)
             ret10 = extra * 0.3 + rng.uniform(-2, 2)
         else:
-            ret5 = (score - 50) * 0.3 + rng.uniform(-3, 3)
-            ret10 = (score - 50) * 0.3 + rng.uniform(-3, 3)
-            conviction = score + rng.uniform(-5, 5)
+            # Schwaches, realistisches Signal (score_effect=0.05, breites
+            # Rausch-Band) statt eines extrem deterministischen -- sonst
+            # ist AUC(score) so nahe 1.0, dass JEDE Degradierung durch
+            # Rauschen auf conviction_score (egal wie klein) hochsignifikant
+            # wird (p_c klein), was die "kein Zusatznutzen -> p_c groß"-
+            # Erwartung (Erratum 22.10.2026 (b)) nicht zeigen könnte.
+            ret5 = (score - 50) * 0.05 + rng.uniform(-15, 15)
+            ret10 = (score - 50) * 0.05 + rng.uniform(-15, 15)
+            conviction = score + rng.uniform(-10, 10)
         row = {"ticker": f"T{i}", "date": f"{day:02d}.10.2026", "provenance": "forward",
                "score": score, "return_5d": ret5, "return_10d": ret10,
                "entry_price": round(10.0 + i * 0.01, 4)}
@@ -175,8 +181,10 @@ def test_paired_delta_auc_real_effect():
     _check("echter Conviction-Zusatznutzen -> point_delta deutlich > 0",
            r["point_delta"] > 0.2)
     _check("echter Zusatznutzen -> CI-Untergrenze > 0", r["ci_lo"] > 0.0)
+    _check("echter Zusatznutzen -> p_c (Erratum 22.10.2026 (b)) klein/signifikant",
+           r["p_two_sided"] < 0.05)
     print(f"    [Fixture ΔAUC mit Zusatznutzen] point_delta={r['point_delta']:.3f} "
-          f"CI=[{r['ci_lo']:.3f},{r['ci_hi']:.3f}]")
+          f"CI=[{r['ci_lo']:.3f},{r['ci_hi']:.3f}] p_c={r['p_two_sided']:.4f}")
 
 
 def test_paired_delta_auc_no_extra_value():
@@ -186,7 +194,29 @@ def test_paired_delta_auc_no_extra_value():
                                       label_threshold=5.0)
     _check("kein Zusatznutzen (conviction~score+Rauschen) -> |point_delta| klein",
            abs(r["point_delta"]) < 0.1)
-    print(f"    [Fixture ΔAUC ohne Zusatznutzen] point_delta={r['point_delta']:.3f}")
+    _check("kein Zusatznutzen -> p_c (Erratum 22.10.2026 (b)) groß/nicht signifikant",
+           r["p_two_sided"] > 0.05)
+    print(f"    [Fixture ΔAUC ohne Zusatznutzen] point_delta={r['point_delta']:.3f} "
+          f"p_c={r['p_two_sided']:.4f}")
+
+
+def test_p_c_formula_matches_erratum_22_10_b():
+    """Verriegelt die Formel selbst (Erratum 22.10.2026 (b)) an einer
+    synthetischen Verteilung, unabhängig von den Score-Fixtures oben:
+    p_c = min(1, 2 * min(Anteil ΔAUC<=0, Anteil ΔAUC>=0))."""
+    rng = random.Random(50)
+    rows = []
+    for i in range(300):
+        v = rng.uniform(40, 100)
+        rows.append({"ticker": f"T{i}", "date": f"{(i % 20) + 11:02d}.10.2026",
+                     "provenance": "forward", "score": v, "conviction_score": v,
+                     "return_5d": v - 50, "entry_price": 10.0})
+    r = fe.paired_bootstrap_delta_auc(rows, score_field_a="conviction_score",
+                                      score_field_b="score", label_field="return_5d",
+                                      label_threshold=0.0)
+    _check("identische Scores -> point_delta exakt 0", r["point_delta"] == 0.0)
+    _check("identische Scores -> p_c exakt 1.0 (keine Resample-Differenz != 0)",
+           r["p_two_sided"] == 1.0)
 
 
 def test_paired_delta_auc_deterministic():
@@ -337,6 +367,22 @@ def test_holm_wiring_k3():
     _check("Holm-Labels a,b,c", labels == ["a", "b", "c"])
 
 
+def test_holm_input_p_c_is_delta_p_not_auc_vs_baseline():
+    """Erratum 22.10.2026 (b): der Holm-Input p_c MUSS der p-Wert der
+    ΔAUC-Verteilung sein (cluster_c_delta), NICHT der p-Wert von
+    AUC(conviction_score) gegen 0,5 (cluster_c_auc) — vorher nirgends
+    wörtlich festgelegt (Guardian-Finding PR #597)."""
+    rows = _synthetic_setup_edge_rows(n=400, seed=9, conviction_extra=False)
+    res = fe.evaluate_setup_edge_family(rows, freeze_date_str="10.10.2026",
+                                        now=datetime(2026, 10, 22, tzinfo=timezone.utc))
+    p_c_in_result = res["tests"]["c"]["p_raw"]
+    _check("p_c-Feld im Test-c-Ergebnis gesetzt", p_c_in_result is not None)
+    _check("p_c stammt NICHT aus auc_conviction_component (AUC vs. 0,5)",
+           p_c_in_result != res["tests"]["c"]["auc_conviction_component"]["p_two_sided"])
+    _check("p_c stimmt mit delta_statistic.p_two_sided überein (Erratum 22.10.2026 (b))",
+           p_c_in_result == res["tests"]["c"]["delta_statistic"]["p_two_sided"])
+
+
 def test_holm_wiring_k2():
     rows = _synthetic_ki_score_rows(n=400, seed=10, effect=True)
     res = fe.evaluate_ki_score_family(rows, freeze_date_str="12.10.2026",
@@ -440,12 +486,42 @@ def _load_digest_module():
     return mod
 
 
-def test_digest_main_autorun_disabled_default():
+def test_digest_main_autorun_scharf_aber_kein_trigger_bei_n_unter_250():
+    """Erratum-Folge-PR "Holm-Input Test c" (22.10.2026): config.
+    EVAL_AUTORUN_ENABLED ist jetzt True (scharf geschaltet) -- belegt
+    an einer kontrollierten (synthetischen) Fixture mit n<250 für BEIDE
+    Familien: der scharf geschaltete Autorun läuft an, triggert aber
+    nichts, solange der Auslöser nicht erreicht ist. Kein
+    eval_results.jsonl wird angelegt. (Die reale Zählung gegen die
+    echten Repo-Daten — heute n=0/250 für beide Familien — ist Teil des
+    PR-Berichts, nicht dieser deterministischen CI-Regression.)"""
+    mod = _load_digest_module()
+    _check("EVAL_AUTORUN_ENABLED scharf geschaltet (True, Produktions-Default)",
+           mod.EVAL_AUTORUN_ENABLED is True)
+    d = tempfile.mkdtemp()
+    export_path = str(pathlib.Path(d) / "export.jsonl")
+    results_path = str(pathlib.Path(d) / "eval_results.jsonl")
+    mod.hc.MATURED_EXPORT_FILE = export_path
+    mod.EVAL_RESULTS_FILE = results_path
+    mod.DIGEST_STATE_FILE = pathlib.Path(d) / "state.json"
+    rows = _synthetic_setup_edge_rows(n=100, seed=9, conviction_extra=False)  # n<250
+    with open(export_path, "w") as f:
+        for r in rows:
+            f.write(json.dumps(r) + "\n")
+    rc = mod.main(now_ts=datetime(2026, 10, 22, 8, 47, tzinfo=timezone.utc), dry_run=True)
+    _check("main() läuft mit scharf geschaltetem Autorun unter dem Auslöser ohne Crash durch", rc == 0)
+    _check("kein Trigger (n<250) -> eval_results.jsonl wird NICHT angelegt",
+           not os.path.exists(results_path))
+
+
+def test_digest_main_autorun_explicitly_disabled():
+    """Der Disabled-Pfad selbst bleibt testbar (explizit False gesetzt,
+    unabhängig vom jetzt scharf geschalteten Produktions-Default)."""
     mod = _load_digest_module()
     mod.DIGEST_STATE_FILE = pathlib.Path(tempfile.mkdtemp()) / "state.json"
-    _check("EVAL_AUTORUN_ENABLED Default False", mod.EVAL_AUTORUN_ENABLED is False)
+    mod.EVAL_AUTORUN_ENABLED = False
     rc = mod.main(now_ts=datetime(2026, 10, 22, 8, 47, tzinfo=timezone.utc), dry_run=True)
-    _check("main() läuft bei Default (Autorun aus) ohne Crash durch", rc == 0)
+    _check("main() läuft mit explizit deaktiviertem Autorun ohne Crash durch", rc == 0)
 
 
 def test_digest_main_autorun_end_to_end():
@@ -526,6 +602,7 @@ def run_all():
         test_bootstrap_empty_group,
         test_paired_delta_auc_real_effect,
         test_paired_delta_auc_no_extra_value,
+        test_p_c_formula_matches_erratum_22_10_b,
         test_paired_delta_auc_deterministic,
         test_paired_delta_auc_empty,
         test_setup_edge_population_reuses_health_check_helper,
@@ -536,6 +613,7 @@ def run_all():
         test_cluster_double_run_detects_followup,
         test_cluster_double_run_same_direction_robust_effect,
         test_holm_wiring_k3,
+        test_holm_input_p_c_is_delta_p_not_auc_vs_baseline,
         test_holm_wiring_k2,
         test_lock_prevents_reevaluation,
         test_two_families_independent_locks,
@@ -544,7 +622,8 @@ def run_all():
         test_eval_status_line_post_trigger,
         test_eval_status_line_fail_soft,
         test_format_digest_body_eval_lines_wiring,
-        test_digest_main_autorun_disabled_default,
+        test_digest_main_autorun_scharf_aber_kein_trigger_bei_n_unter_250,
+        test_digest_main_autorun_explicitly_disabled,
         test_digest_main_autorun_end_to_end,
         test_digest_main_autorun_fail_soft_on_broken_export,
         test_score_unaffected_by_freeze_eval,

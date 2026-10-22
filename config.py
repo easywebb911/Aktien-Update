@@ -146,12 +146,16 @@ KI_SCORE_FREEZE_DATE      = "12.10.2026"   # DD.MM.YYYY, Eintrittsdatum >= (eins
 KI_SCORE_FREEZE_N_TARGET  = 250            # Auslöser n>=250, eigene Holm-Familie k=2
 
 # Freeze-Auswertungs-Autorun (Erratum 22.10.2026, SESSION_HANDOVER.md "ERRATUM
-# 22.10.2026 — Bootstrap-Verfahrensdetails..."): die eingefrorenen
-# Setup-Edge/Conviction- und KI-Score-Edge-Auswertungen laufen automatisch
-# EINMAL, sobald ihr gemeinsamer Auslöser (n>=250) erreicht ist — siehe
-# scripts/freeze_eval.py. Master-Switch Default OFF (Rückweg: False setzen
-# UND git revert des einführenden Merge-Commits).
-EVAL_AUTORUN_ENABLED      = False
+# 22.10.2026 — Bootstrap-Verfahrensdetails..." + "ERRATUM 22.10.2026 (b) —
+# Holm-Input für Test c"): die eingefrorenen Setup-Edge/Conviction- und
+# KI-Score-Edge-Auswertungen laufen automatisch EINMAL, sobald ihr
+# gemeinsamer Auslöser (n>=250) erreicht ist — siehe scripts/freeze_eval.py.
+# SCHARF GESCHALTET 22.10.2026 (Easy-Entscheid) — belegt zum Scharfschalt-
+# Zeitpunkt NICHT ausgelöst (reine Zählung, keine return_*-Werte
+# eingesehen): Setup-Edge/Conviction n=0/250, KI-Score n=0/250 (beide aus
+# matured_backtest_export.jsonl, 1247 Export-Zeilen gesamt). Rückweg:
+# False setzen UND git revert des einführenden Merge-Commits.
+EVAL_AUTORUN_ENABLED      = True
 # Bootstrap-Verfahrensdetails, Erratum 22.10.2026 Punkt 1+2 — bindend für
 # BEIDE Test-Familien. NICHT eigenmächtig ändern ohne neuen, datierten
 # Erratum-Eintrag in SESSION_HANDOVER.md (analog Änderungs-Protokoll-Pflicht

@@ -187,11 +187,13 @@ def paired_bootstrap_delta_auc(rows: Sequence[dict], *, score_field_a: str,
     ``rows`` nicht vorkommen, da ``score`` auf Forward-Zeilen praktisch
     immer vorhanden ist).
 
-    Returnt ``{point_delta, ci_lo, ci_hi, auc_a, auc_b, n, n_iter, seed,
-    note}``. Kein ``p_two_sided`` hier — der Holm-Input für Test c ist
-    ``auc_a`` selbst (= AUC(score_field_a) gegen denselben Split,
-    eigenständig via ``auc_test_with_ci`` berechnet, siehe
-    ``evaluate_setup_edge_family``), nicht die Differenz."""
+    Returnt ``{point_delta, ci_lo, ci_hi, auc_a, auc_b, p_two_sided, n,
+    n_iter, seed, note}``. ``p_two_sided`` ist der Holm-Input für Test c
+    (Erratum 22.10.2026 (b), verbindlich festgelegt — NICHT der p-Wert von
+    ``auc_a`` gegen 0,5): der zweiseitige Bootstrap-p-Wert der ΔAUC-
+    Verteilung selbst, ``p = min(1, 2 · min(Anteil Resamples mit ΔAUC<=0,
+    Anteil Resamples mit ΔAUC>=0))`` — reine Proportion auf der bereits für
+    das CI berechneten Resample-Verteilung, kein zweiter Bootstrap-Lauf."""
     n = len(rows)
     labels = [r.get(label_field) for r in rows]
     vals_a = [r.get(score_field_a) for r in rows]
@@ -213,8 +215,8 @@ def paired_bootstrap_delta_auc(rows: Sequence[dict], *, score_field_a: str,
 
     if n == 0:
         return {"point_delta": None, "ci_lo": None, "ci_hi": None,
-                "auc_a": None, "auc_b": None, "n": 0, "n_iter": n_iter,
-                "seed": seed, "note": "Keine Zeilen."}
+                "auc_a": None, "auc_b": None, "p_two_sided": None, "n": 0,
+                "n_iter": n_iter, "seed": seed, "note": "Keine Zeilen."}
 
     a_win, a_lose, b_win, b_lose = _split(range(n))
     auc_a = mann_whitney_u_auc(a_win, a_lose)
@@ -235,14 +237,20 @@ def paired_bootstrap_delta_auc(rows: Sequence[dict], *, score_field_a: str,
 
     if not deltas:
         return {"point_delta": point_delta, "ci_lo": None, "ci_hi": None,
-                "auc_a": auc_a["auc"], "auc_b": auc_b["auc"], "n": n,
-                "n_iter": n_iter, "seed": seed,
+                "auc_a": auc_a["auc"], "auc_b": auc_b["auc"],
+                "p_two_sided": None, "n": n, "n_iter": n_iter, "seed": seed,
                 "note": "Keine gültige Resample-Differenz."}
     deltas.sort()
+    # Erratum 22.10.2026 (b): p_c = min(1, 2 * min(Anteil <=0, Anteil >=0)).
+    n_deltas = len(deltas)
+    frac_le0 = sum(1 for d in deltas if d <= 0.0) / n_deltas
+    frac_ge0 = sum(1 for d in deltas if d >= 0.0) / n_deltas
+    p_two_sided = min(1.0, 2.0 * min(frac_le0, frac_ge0))
     return {"point_delta": point_delta,
             "ci_lo": _percentile(deltas, lo_pct),
             "ci_hi": _percentile(deltas, hi_pct),
-            "auc_a": auc_a["auc"], "auc_b": auc_b["auc"], "n": n,
+            "auc_a": auc_a["auc"], "auc_b": auc_b["auc"],
+            "p_two_sided": p_two_sided, "n": n,
             "n_iter": n_iter, "seed": seed, "note": None}
 
 
@@ -372,7 +380,11 @@ def evaluate_setup_edge_family(export_rows: Sequence[dict], *,
 
     p_a = cluster_a["with_cluster"]["p_two_sided"]
     p_b = cluster_b["with_cluster"]["p_two_sided"]
-    p_c = cluster_c_auc["with_cluster"]["p_two_sided"]
+    # Erratum 22.10.2026 (b): Holm-Input p_c ist der Bootstrap-p-Wert der
+    # ΔAUC-Verteilung SELBST (cluster_c_delta), NICHT der p-Wert von
+    # AUC(conviction_score) gegen 0,5 (cluster_c_auc) — vorher war das
+    # nirgends wörtlich festgelegt (Guardian-Finding PR #597).
+    p_c = cluster_c_delta["with_cluster"]["p_two_sided"]
     holm = multiple_testing_correction([p_a, p_b, p_c], labels=["a", "b", "c"])
 
     def _holm_sig(label):
