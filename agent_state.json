@@ -1,5 +1,5 @@
 {
-  "last_run": "2026-10-22T17:17:29.200683+02:00",
+  "last_run": "2026-10-22T21:16:36.233879+02:00",
   "cooldowns": {
     "anomaly_score_jump_XRX": "2026-05-03T18:47:15.315486+02:00",
     "anomaly_uoa_extreme_TDOC": "2026-05-04T13:47:00.365949+02:00",
@@ -112,54 +112,6 @@
     "earnings_immediate_PLCE_04.09.2026": "2026-09-04T01:21:25.342435+02:00"
   },
   "push_history": [
-    {
-      "ts": "2026-10-19T15:19:31.116959+02:00",
-      "ticker": "PDYN",
-      "kind": "exit_p2",
-      "severity": "trigger",
-      "trigger": "trend_break",
-      "body": "🔻 Exit-Signale PDYN: trend_break crit",
-      "success": false,
-      "suppressed": false,
-      "suppress_reason": null,
-      "conviction_score": null
-    },
-    {
-      "ts": "2026-10-19T15:19:31.116978+02:00",
-      "ticker": "WOLF",
-      "kind": "exit_p2",
-      "severity": "trigger",
-      "trigger": "profit_lock,score_decay,trend_break",
-      "body": "🔻 Exit-Signale WOLF: profit_lock, score_decay, trend_break crit",
-      "success": false,
-      "suppressed": false,
-      "suppress_reason": null,
-      "conviction_score": null
-    },
-    {
-      "ts": "2026-10-19T15:19:31.116992+02:00",
-      "ticker": "GRPN",
-      "kind": "exit_p2",
-      "severity": "trigger",
-      "trigger": "trend_break",
-      "body": "🔻 Exit-Signale GRPN: trend_break crit",
-      "success": false,
-      "suppressed": false,
-      "suppress_reason": null,
-      "conviction_score": null
-    },
-    {
-      "ts": "2026-10-19T17:36:40.758587+02:00",
-      "ticker": "IONQ",
-      "kind": "exit_p2",
-      "severity": "trigger",
-      "trigger": "profit_lock,trend_break",
-      "body": "🔻 Exit-Signale IONQ: profit_lock, trend_break crit · Warnung pressure 62/100",
-      "success": false,
-      "suppressed": false,
-      "suppress_reason": null,
-      "conviction_score": null
-    },
     {
       "ts": "2026-10-19T17:36:40.758606+02:00",
       "ticker": "PDYN",
@@ -1311,6 +1263,54 @@
       "suppressed": false,
       "suppress_reason": null,
       "conviction_score": null
+    },
+    {
+      "ts": "2026-10-22T21:16:36.233951+02:00",
+      "ticker": "IONQ",
+      "kind": "exit_p2",
+      "severity": "trigger",
+      "trigger": "profit_lock,trend_break",
+      "body": "🔻 Exit-Signale IONQ: profit_lock, trend_break crit · Warnung pressure 63/100",
+      "success": false,
+      "suppressed": false,
+      "suppress_reason": null,
+      "conviction_score": null
+    },
+    {
+      "ts": "2026-10-22T21:16:36.233979+02:00",
+      "ticker": "PDYN",
+      "kind": "exit_p2",
+      "severity": "trigger",
+      "trigger": "trend_break",
+      "body": "🔻 Exit-Signale PDYN: trend_break crit",
+      "success": false,
+      "suppressed": false,
+      "suppress_reason": null,
+      "conviction_score": null
+    },
+    {
+      "ts": "2026-10-22T21:16:36.233999+02:00",
+      "ticker": "WOLF",
+      "kind": "exit_p2",
+      "severity": "trigger",
+      "trigger": "profit_lock,trend_break",
+      "body": "🔻 Exit-Signale WOLF: profit_lock, trend_break crit",
+      "success": false,
+      "suppressed": false,
+      "suppress_reason": null,
+      "conviction_score": null
+    },
+    {
+      "ts": "2026-10-22T21:16:36.234016+02:00",
+      "ticker": "GRPN",
+      "kind": "exit_p2",
+      "severity": "trigger",
+      "trigger": "profit_lock,trend_break",
+      "body": "🔻 Exit-Signale GRPN: profit_lock, trend_break crit · Warnung pressure 74/100",
+      "success": false,
+      "suppressed": false,
+      "suppress_reason": null,
+      "conviction_score": null
     }
   ],
   "prev_conviction_scores": {
@@ -1372,25 +1372,25 @@
       ],
       "last_push_date": "2026-08-28",
       "esc_alerted": false,
-      "updated": "2026-10-22T17:17:29.200785+02:00"
+      "updated": "2026-10-22T21:16:36.233962+02:00"
     },
     "PDYN": {
       "last_active": [],
       "last_push_date": "2026-08-28",
       "esc_alerted": false,
-      "updated": "2026-10-22T17:17:29.200809+02:00"
+      "updated": "2026-10-22T21:16:36.233987+02:00"
     },
     "WOLF": {
       "last_active": [],
       "last_push_date": "2026-09-01",
       "esc_alerted": false,
-      "updated": "2026-10-22T17:17:29.200828+02:00"
+      "updated": "2026-10-22T21:16:36.234005+02:00"
     },
     "GRPN": {
       "last_active": [],
       "last_push_date": null,
       "esc_alerted": false,
-      "updated": "2026-10-22T17:17:29.200845+02:00"
+      "updated": "2026-10-22T21:16:36.234021+02:00"
     }
   }
 }
