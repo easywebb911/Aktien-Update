@@ -965,8 +965,8 @@ nicht mehr entstehen, nicht nur per Session-Disziplin.)*
 
 - **Stiller-Leer-Ausfall-Erweiterung `coverage_history.jsonl` (additives
   Schema, Block-1-Pflicht befolgt, Manual-Merge — Schema-Erweiterung,
-  Easy mergt am iPhone):** `#595` (Branch-Commit folgt im Folge-Commit,
-  kein Merge-Hash genannt — Regel a) greift). Schließt eine Lücke in
+  Easy mergt am iPhone):** `#595` (Branch-Commit `c97f8df3`, 22.10., kein
+  Merge-Hash genannt — Regel a) greift). Schließt eine Lücke in
   `#594`: der Wächter zählte bisher nur `n_erwartet`/`n_fehler`
   (Exceptions) — ein STILLER Ausfall (Quelle antwortet, liefert aber
   leer/`None` OHNE Exception) blieb unsichtbar. Genau dieses Muster ließ
