@@ -1250,7 +1250,8 @@ nicht mehr entstehen, nicht nur per Session-Disziplin.)*
 
 - **Zwei Bugfixes am Coverage-Watchdog-System selbst (Block-1-Pflicht
   befolgt, Auto-Merge — reine Logging-/Wächter-Korrektur ohne Schema-
-  Änderung):** `#599` (Branch-Commit siehe unten, 22.10.) behebt zwei
+  Änderung):** `#599` (Branch-Commit `29b06d60`, 22.10., kein Merge-Hash
+  genannt — Regel a) greift) behebt zwei
   eigenständige Befunde im erst gestern/vorgestern eingeführten Coverage-
   Watchdog-System (`#594`/`#595`/`#596`).
 
@@ -1305,7 +1306,7 @@ nicht mehr entstehen, nicht nur per Session-Disziplin.)*
   Apology-Seite) keine echten Daten mehr — Details siehe PR-Beschreibung
   #599 und Abschlussbericht dieser Session.
 
-  **Rückweg:** `git revert` des Merge-Commits (Nummer siehe PR #599).
+  **Rückweg:** `git revert` des Merge-Commits von PR #599.
 
 *(Zwei-PR-Kette aus einer read-only Diagnose 15.08.2026: das Backtesting-Panel
 meldete einen Browser-`JSON.parse`-Fehler. Diagnose fand nackte JSON-`NaN`-
