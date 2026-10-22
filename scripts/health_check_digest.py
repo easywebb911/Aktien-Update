@@ -28,12 +28,24 @@ from datetime import datetime, timedelta, timezone
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
+# scripts/ selbst zusätzlich voranstellen (22.10.2026) — ``freeze_eval``
+# (scripts/freeze_eval.py) wird lazy innerhalb von main() importiert; beim
+# Laden dieses Moduls über ``importlib.util.spec_from_file_location``
+# (Test-Harness-Muster, siehe scripts/mock_test_digest.py) fügt Python NICHT
+# automatisch das eigene Skript-Verzeichnis zu sys.path hinzu (anders als
+# beim direkten ``python scripts/health_check_digest.py``-Aufruf) — ohne
+# diese Zeile würde der Test-Import scheitern.
+sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
 
 import health_check as hc           # noqa: E402
 from config import (                # noqa: E402
     HEALTH_CHECK_PROVIDER_TIER,
     NTFY_ENABLED,
     NTFY_TOPIC,
+    EVAL_AUTORUN_ENABLED,
+    SETUP_EDGE_FREEZE_N_TARGET,
+    KI_SCORE_FREEZE_N_TARGET,
+    EVAL_RESULTS_FILE,
 )
 
 try:
@@ -408,6 +420,70 @@ def main(*, now_ts: datetime | None = None,
         log.warning("due_items_lines unerwartet: %r", _due_exc)
         due_items_lines_ = []
 
+    # Freeze-Auswertungs-Autorun (Erratum 22.10.2026, scripts/freeze_eval.py):
+    # EINMALIGER automatischer Auslöser für die Setup-Edge/Conviction- und
+    # KI-Score-Edge-Test-Freezes, sobald n>=250 erreicht ist. Master-Switch
+    # ``EVAL_AUTORUN_ENABLED`` (Default False) — bei False bleiben nur die
+    # Vor-Auslöser-Zähler-Zeilen aktiv (reine Zählung, kein Auswertungs-
+    # Versuch, kein eval_results.jsonl-Write). try/except ist DOPPELTE
+    # Absicherung zusätzlich zu den fail-soft-Bausteinen in freeze_eval.py
+    # selbst (BAU-Vorgabe: Fehler im Skript -> Digest-Warnung, kein
+    # Ergebnis-Eintrag, Report unberührt).
+    eval_lines: list[str] = []
+    try:
+        setup_pop = hc._count_setup_edge_freeze_population(ROOT / hc.MATURED_EXPORT_FILE)
+        setup_rate = hc._freeze_rate_last_14d(ROOT / hc.MATURED_EXPORT_FILE, now=now_ts)
+        ki_pop = hc._count_ki_score_freeze_population(ROOT / hc.MATURED_EXPORT_FILE)
+        ki_rate = hc._ki_score_freeze_rate_last_14d(ROOT / hc.MATURED_EXPORT_FILE, now=now_ts)
+
+        setup_verdict_text = None
+        ki_verdict_text = None
+
+        if EVAL_AUTORUN_ENABLED:
+            import freeze_eval  # noqa: E402  (lazy — nur wenn Autorun aktiv)
+            eval_out = freeze_eval.run_due_evaluations(
+                export_path=ROOT / hc.MATURED_EXPORT_FILE,
+                results_path=ROOT / EVAL_RESULTS_FILE,
+                now=now_ts,
+            )
+            for trig in eval_out["just_triggered"]:
+                summary = "; ".join(
+                    f"{tid}: {verdict}" for tid, (verdict, _reason) in trig["verdicts"].items())
+                push_body = (
+                    f"Auslöser n>=250 erreicht ({trig['label']}). Verdikt je Test: "
+                    f"{summary}. Details in {EVAL_RESULTS_FILE}.")
+                try:
+                    _ntfy_send(f"Freeze-Auswertung: {trig['label']}", push_body,
+                              "high", "science")
+                except Exception as _push_exc:  # pragma: no cover
+                    log.warning("Eval-Autorun-Push fehlgeschlagen (%s): %r",
+                               trig["family"], _push_exc)
+                if trig["family"] == "setup_edge_conviction":
+                    setup_verdict_text = summary
+                elif trig["family"] == "ki_score":
+                    ki_verdict_text = summary
+            # Status nach einem evtl. gerade erfolgten Trigger neu lesen
+            # (verdict_text gewinnt gegen die Vor-Auslöser-Zahlen).
+            if eval_out["setup_edge_locked"] and setup_verdict_text is None:
+                # Bereits in einem früheren Lauf ausgewertet — Verdikt aus
+                # eval_results.jsonl für die Zeile nachladen.
+                setup_verdict_text = freeze_eval.summarize_existing_verdict(
+                    ROOT / EVAL_RESULTS_FILE,
+                    {"setup_edge_a", "setup_edge_b", "setup_edge_conviction_c"})
+            if eval_out["ki_score_locked"] and ki_verdict_text is None:
+                ki_verdict_text = freeze_eval.summarize_existing_verdict(
+                    ROOT / EVAL_RESULTS_FILE, {"ki_score_a", "ki_score_b"})
+
+        eval_lines.append(hc.eval_status_line(
+            "Setup-Edge/Conviction", setup_pop, SETUP_EDGE_FREEZE_N_TARGET,
+            setup_rate, verdict_text=setup_verdict_text))
+        eval_lines.append(hc.eval_status_line(
+            "KI-Score", ki_pop, KI_SCORE_FREEZE_N_TARGET, ki_rate,
+            verdict_text=ki_verdict_text))
+    except Exception as _eval_exc:  # pragma: no cover — äußerster Fail-Soft-Guard
+        log.warning("Freeze-Eval-Autorun unerwartet: %r", _eval_exc)
+        eval_lines = []
+
     # Wöchentlicher Zusammenfassungs-Block (25.09.2026, nur Montag): reine
     # Funktion, ``state`` wird NICHT direkt mutiert — die Updates werden erst
     # unten (kurz vor _save_digest_state) gemerged, damit sie im selben
@@ -443,6 +519,7 @@ def main(*, now_ts: datetime | None = None,
         coverage_silent_empty_warns=coverage_silent_empty_warns,
         coverage_overview=coverage_overview,
         due_items_lines_=due_items_lines_,
+        eval_lines=eval_lines,
         weekly_lines=weekly_lines,
     )
 

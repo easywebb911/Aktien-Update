@@ -137,6 +137,31 @@ OPEN_ITEMS_FILE           = "open_items.json"
 SETUP_EDGE_FREEZE_DATE    = "10.10.2026"   # DD.MM.YYYY, ET-Kalendertag
 SETUP_EDGE_FREEZE_N_TARGET = 250           # Auslöser n>=250 (identisch zu §4)
 
+# KI-Score-Edge-Test-Freeze (SESSION_HANDOVER.md, "VORABREGISTRIERUNG —
+# KI-Score-Edge-Test (ki_signal_score), eingefroren 13.10.2026" + Erratum
+# 16.10.2026 "Population — präzisiert"): Populationsgrenze (einschließend,
+# bewusste Abweichung vom Setup-Edge-Vorbild, siehe Freeze-Text) + Ziel-n.
+# REINE ZÄHLUNG — kein Score-/Filter-/Push-Effekt.
+KI_SCORE_FREEZE_DATE      = "12.10.2026"   # DD.MM.YYYY, Eintrittsdatum >= (einschließend)
+KI_SCORE_FREEZE_N_TARGET  = 250            # Auslöser n>=250, eigene Holm-Familie k=2
+
+# Freeze-Auswertungs-Autorun (Erratum 22.10.2026, SESSION_HANDOVER.md "ERRATUM
+# 22.10.2026 — Bootstrap-Verfahrensdetails..."): die eingefrorenen
+# Setup-Edge/Conviction- und KI-Score-Edge-Auswertungen laufen automatisch
+# EINMAL, sobald ihr gemeinsamer Auslöser (n>=250) erreicht ist — siehe
+# scripts/freeze_eval.py. Master-Switch Default OFF (Rückweg: False setzen
+# UND git revert des einführenden Merge-Commits).
+EVAL_AUTORUN_ENABLED      = False
+# Bootstrap-Verfahrensdetails, Erratum 22.10.2026 Punkt 1+2 — bindend für
+# BEIDE Test-Familien. NICHT eigenmächtig ändern ohne neuen, datierten
+# Erratum-Eintrag in SESSION_HANDOVER.md (analog Änderungs-Protokoll-Pflicht
+# der Freeze-Blöcke selbst).
+EVAL_BOOTSTRAP_SEED       = 42     # Erratum 22.10.2026 Punkt 1
+EVAL_BOOTSTRAP_N          = 2000  # unverändert aus beiden Freezes
+EVAL_BOOTSTRAP_CI_LO      = 2.5    # Erratum 22.10.2026 Punkt 2 (95% zweiseitig)
+EVAL_BOOTSTRAP_CI_HI      = 97.5
+EVAL_RESULTS_FILE         = "eval_results.jsonl"   # append-only, Repo-Root
+
 # ── Sub-Scores (Struktur / Katalysator / Timing) ────────────────────────────
 # Informative Aufspaltung des Gesamt-Scores in drei Themen-Komponenten.
 # Der Gesamt-Score bleibt unverändert (score()-Funktion nicht angepasst);
