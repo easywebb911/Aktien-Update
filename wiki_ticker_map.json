@@ -1322,6 +1322,15 @@
     "substrate": "en",
     "reason": null
   },
+  "QUBT": {
+    "qid": null,
+    "title": null,
+    "resolved_at": "2026-10-22T00:02:11Z",
+    "issuer_verified": false,
+    "company_name_at_resolve": "Quantum Computing Inc.",
+    "substrate": "none",
+    "reason": "no_p249"
+  },
   "REAL": {
     "qid": "Q65090792",
     "title": "The_RealReal",

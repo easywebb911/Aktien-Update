@@ -1089,6 +1089,12 @@
       "shares_short": 27084615,
       "short_pct_float": 22.45,
       "pub_date": "2026-09-24"
+    },
+    {
+      "settlement_date": "2026-09-30",
+      "shares_short": 27543303,
+      "short_pct_float": 22.83,
+      "pub_date": "2026-10-09"
     }
   ],
   "IONQ": [
@@ -2034,6 +2040,12 @@
       "shares_short": 5421459,
       "short_pct_float": 19.99,
       "pub_date": "2026-09-24"
+    },
+    {
+      "settlement_date": "2026-09-30",
+      "shares_short": 5263390,
+      "short_pct_float": 19.41,
+      "pub_date": "2026-10-09"
     }
   ],
   "TROX": [
@@ -3174,6 +3186,12 @@
       "shares_short": 1570379,
       "short_pct_float": 21.88,
       "pub_date": "2026-09-10"
+    },
+    {
+      "settlement_date": "2026-09-30",
+      "shares_short": 1384773,
+      "short_pct_float": 18.79,
+      "pub_date": "2026-10-09"
     }
   ],
   "CMCO": [
@@ -4935,6 +4953,12 @@
       "shares_short": 22146891,
       "short_pct_float": 15.38,
       "pub_date": "2026-08-25"
+    },
+    {
+      "settlement_date": "2026-09-30",
+      "shares_short": 22815859,
+      "short_pct_float": 15.85,
+      "pub_date": "2026-10-09"
     }
   ],
   "SIDU": [
@@ -6573,6 +6597,12 @@
       "shares_short": 26385727,
       "short_pct_float": 25.31,
       "pub_date": "2026-09-24"
+    },
+    {
+      "settlement_date": "2026-09-30",
+      "shares_short": 27758445,
+      "short_pct_float": 23.43,
+      "pub_date": "2026-10-09"
     }
   ],
   "LUNR": [
@@ -6588,6 +6618,12 @@
       "shares_short": 37774781,
       "short_pct_float": 28.8,
       "pub_date": "2026-07-24"
+    },
+    {
+      "settlement_date": "2026-09-30",
+      "shares_short": 36402237,
+      "short_pct_float": 27.55,
+      "pub_date": "2026-10-09"
     }
   ],
   "GOGO": [
