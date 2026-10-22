@@ -66,6 +66,10 @@ from config import (
     COVERAGE_LOG_FILE,
     COVERAGE_QUELLEN,
     COVERAGE_WARN_WINDOW_HOURS,
+    COVERAGE_SILENT_EMPTY_WINDOW_HOURS_DENSE,
+    COVERAGE_SILENT_EMPTY_WINDOW_HOURS_SPARSE,
+    COVERAGE_SILENT_EMPTY_DENSE_QUELLEN,
+    COVERAGE_SILENT_EMPTY_SPARSE_QUELLEN,
 )
 
 # Digest-State-Datei für S8-Invariant (single source of truth über
@@ -2875,6 +2879,7 @@ def _load_coverage_keys(path) -> set:
 
 def persist_coverage_row(quelle: str, n_erwartet: int, n_erhalten: int,
                          error_counts: dict | None = None, *,
+                         n_mit_daten: int | None = None,
                          report_date_iso: str | None = None,
                          run_phase: str | None = None,
                          now_fn=None, path=None) -> int:
@@ -2882,11 +2887,19 @@ def persist_coverage_row(quelle: str, n_erwartet: int, n_erhalten: int,
     JSONL-Zeile (``coverage_history.jsonl``) — generischer Daten-
     Abdeckungs-Wächter (21.10.2026).
 
-    "Abdeckung" = hat der Provider-Call geantwortet (kein echter Fehler),
-    NICHT ob das Ergebnis inhaltlich nicht-leer war — ein Ticker ohne
-    Optionskette/Earnings-Termin/Insider-Käufe ist ein LEGITIMES
-    Nicht-Ergebnis, keine Störung. ``n_erhalten`` wird vom jeweils
-    aufrufenden Modul bereits so berechnet (erwartet − echte Fehler).
+    "Abdeckung" (``n_erhalten``) = hat der Provider-Call geantwortet (kein
+    echter Fehler), NICHT ob das Ergebnis inhaltlich nicht-leer war — ein
+    Ticker ohne Optionskette/Earnings-Termin/Insider-Käufe ist ein
+    LEGITIMES Nicht-Ergebnis, keine Störung. ``n_erhalten`` wird vom
+    jeweils aufrufenden Modul bereits so berechnet (erwartet − echte Fehler).
+
+    ``n_mit_daten`` (additiv, Folge-PR 22.10.2026 — Stiller-Leer-Ausfall-
+    Lücke): zählt, wie viele der erwarteten Calls tatsächlich NICHT-leere
+    Daten lieferten — unabhängig davon, ob eine Leere "legitim" war oder
+    ein stiller Schluck-Pfad (Antwort kam, war aber leer, OHNE Exception —
+    genau das Muster des 19-Tage-Karten-News-Ausfalls). ``None`` wenn der
+    Aufrufer diese Dimension nicht misst (bleibt im JSON als ``null`` —
+    Reader behandeln das fail-soft als "unbekannt", NICHT als 0).
 
     Idempotent über ``(date, run_phase, quelle)`` — ein zweiter Lauf am
     selben Tag/derselben Phase für dieselbe Quelle erzeugt keine
@@ -2915,12 +2928,13 @@ def persist_coverage_row(quelle: str, n_erwartet: int, n_erhalten: int,
             "ts_utc":       now_fn().isoformat(),
             "n_erwartet":   int(n_erwartet),
             "n_erhalten":   int(n_erhalten),
+            "n_mit_daten":  int(n_mit_daten) if n_mit_daten is not None else None,
             "error_counts": dict(error_counts or {}),
         }
         with open(path, "a", encoding="utf-8") as fh:
             fh.write(json.dumps(line, ensure_ascii=False, separators=(",", ":")) + "\n")
-        log.info("coverage_history: 1 neue Zeile (%s: %d/%d)",
-                 quelle, n_erhalten, n_erwartet)
+        log.info("coverage_history: 1 neue Zeile (%s: %d/%d erhalten, %s mit Daten)",
+                 quelle, n_erhalten, n_erwartet, n_mit_daten)
         return 1
     except Exception as exc:   # pragma: no cover — nie den Lauf brechen
         log.warning("coverage_history: Schreiben fehlgeschlagen (%s): %s", quelle, exc)
@@ -3014,14 +3028,90 @@ def coverage_warn_line(quelle: str, path=None, *, now_ts=None) -> str | None:
         return None
 
 
+def coverage_silent_empty_warn_line(quelle: str, path=None, *, now_ts=None) -> str | None:
+    """Warnzeile für EINEN stillen Leer-Ausfall — Folge-PR 22.10.2026.
+
+    Anders als ``coverage_warn_line`` (misst ``n_erhalten`` — "hat der Call
+    GEANTWORTET, ohne Exception") misst diese Funktion ``n_mit_daten`` —
+    "lieferte der Call auch tatsächlich NICHT-leere Daten". Ein Call kann
+    erfolgreich antworten (``n_erhalten > 0``) und trotzdem in JEDEM Lauf
+    leer bleiben — genau das Muster, das den Karten-News-Ausfall (#593)
+    19 Tage unsichtbar ließ.
+
+    Fenster ist QUELLEN-ABHÄNGIG: ``COVERAGE_SILENT_EMPTY_WINDOW_HOURS_
+    DENSE`` (24h) für ``options_atm``/``earnings_date`` (mehrere Ticker pro
+    Lauf — ein Komplettausfall ist schon nach 1 Tag verdächtig),
+    ``COVERAGE_SILENT_EMPTY_WINDOW_HOURS_SPARSE`` (7 Tage) für die übrigen
+    4 Quellen (ein einzelner leerer Tag ist dort völlig normal). Eine
+    Quelle außerhalb beider Listen liefert ``None`` (keine Bewertung).
+
+    Zeilen OHNE ``n_mit_daten``-Feld (alte Zeilen vor dieser PR, additiv —
+    Feld fehlt oder ist ``null``) werden fail-soft aus dem Fenster
+    AUSGESCHLOSSEN (nicht als 0 gewertet) — sonst würde ein Bestand aus
+    Vor-PR-Zeilen fälschlich als "0 mit Daten" erscheinen. Kein
+    Fenster-Datenpunkt mit bekanntem ``n_mit_daten`` → ``None`` (kein Fund).
+    """
+    try:
+        p = path if path is not None else COVERAGE_LOG_FILE
+        if quelle in COVERAGE_SILENT_EMPTY_DENSE_QUELLEN:
+            window_hours = COVERAGE_SILENT_EMPTY_WINDOW_HOURS_DENSE
+        elif quelle in COVERAGE_SILENT_EMPTY_SPARSE_QUELLEN:
+            window_hours = COVERAGE_SILENT_EMPTY_WINDOW_HOURS_SPARSE
+        else:
+            return None
+        state, rows = _read_coverage_rows(p)
+        if state != "ok":
+            return None
+        own_rows = [r for r in rows if r.get("quelle") == quelle]
+        if not own_rows:
+            return None
+        now = now_ts or datetime.now(timezone.utc)
+        cutoff = now - timedelta(hours=window_hours)
+        in_window = []
+        for r in own_rows:
+            ts = r.get("ts_utc")
+            if not isinstance(ts, str):
+                continue
+            try:
+                dt = datetime.fromisoformat(ts.replace("Z", "+00:00"))
+                if dt.tzinfo is None:
+                    dt = dt.replace(tzinfo=timezone.utc)
+            except Exception:
+                continue
+            if dt >= cutoff:
+                in_window.append(r)
+        # Nur Zeilen mit bekanntem n_mit_daten UND n_erwartet > 0 zählen —
+        # alte Zeilen (Feld fehlt/null) werden fail-soft übersprungen.
+        rows_known = [
+            r for r in in_window
+            if (r.get("n_erwartet") or 0) > 0 and r.get("n_mit_daten") is not None
+        ]
+        if not rows_known:
+            return None
+        total_mit_daten = sum(int(r.get("n_mit_daten") or 0) for r in rows_known)
+        if total_mit_daten == 0:
+            window_desc = (f"{window_hours} h" if window_hours < 48
+                           else f"{window_hours // 24} Tage")
+            return (f"⚠️ {quelle}: in allen {len(rows_known)} Läufen der letzten "
+                    f"{window_desc} keine Daten (n_mit_daten = 0 bei n_erwartet > 0)")
+        return None
+    except Exception:  # pragma: no cover — nie den Digest brechen
+        return None
+
+
 def coverage_overview_line(path=None, *, now_ts=None,
                            quellen: list[str] | None = None) -> str:
-    """EINE Übersichtszeile "N von M Quellen unter Baseline" — "unter
-    Baseline" = die LETZTE Zeile dieser Quelle hat ``n_erhalten == 0`` UND
-    ``n_erwartet > 0``. Iteriert über ALLE bekannten Quellen
-    (``COVERAGE_QUELLEN``, überschreibbar für Tests), nicht nur über die
-    mit bereits vorhandenen Zeilen — eine Quelle, die NIE geschrieben hat,
-    zählt NICHT als "unter Baseline" (kein Fund ≠ Ausfall)."""
+    """EINE Übersichtszeile "N von M Quellen unter Baseline". Berücksichtigt
+    BEIDE Warnarten (Folge-PR 22.10.2026):
+      a) die LETZTE Zeile dieser Quelle hat ``n_erhalten == 0`` UND
+         ``n_erwartet > 0`` (Call-Ebene — ``coverage_warn_line``-Logik,
+         hier auf die letzte Zeile statt das 24h-Fenster angewandt), ODER
+      b) ``coverage_silent_empty_warn_line(q)`` liefert eine Warnung
+         (Inhalts-Ebene — stiller Leer-Ausfall trotz erfolgreicher Calls).
+    Iteriert über ALLE bekannten Quellen (``COVERAGE_QUELLEN``,
+    überschreibbar für Tests), nicht nur über die mit bereits vorhandenen
+    Zeilen — eine Quelle, die NIE geschrieben hat, zählt NICHT als "unter
+    Baseline" (kein Fund ≠ Ausfall)."""
     try:
         p = path if path is not None else COVERAGE_LOG_FILE
         quellen = quellen if quellen is not None else COVERAGE_QUELLEN
@@ -3034,7 +3124,9 @@ def coverage_overview_line(path=None, *, now_ts=None,
             if not own_rows:
                 continue
             last = own_rows[-1]
-            if (last.get("n_erwartet") or 0) > 0 and (last.get("n_erhalten") or 0) == 0:
+            call_fail = (last.get("n_erwartet") or 0) > 0 and (last.get("n_erhalten") or 0) == 0
+            silent_empty = coverage_silent_empty_warn_line(q, p, now_ts=now_ts) is not None
+            if call_fail or silent_empty:
                 n_under += 1
         return f"📡 Abdeckungs-Übersicht: {n_under} von {len(quellen)} Quellen unter Baseline"
     except Exception:  # pragma: no cover — nie den Digest brechen
@@ -3310,6 +3402,7 @@ def format_digest_body(state_fails: list[dict],
                        news_coverage_warn: str | None = None,
                        coverage_lines: list[str] | None = None,
                        coverage_warns: list[str] | None = None,
+                       coverage_silent_empty_warns: list[str] | None = None,
                        coverage_overview: str | None = None,
                        weekly_lines: list[str] | None = None,
                        ) -> tuple[str, str, str, str | None]:
@@ -3356,6 +3449,8 @@ def format_digest_body(state_fails: list[dict],
             body += "\n" + "\n".join(coverage_lines)
         if coverage_warns:
             body += "\n" + "\n".join(coverage_warns)
+        if coverage_silent_empty_warns:
+            body += "\n" + "\n".join(coverage_silent_empty_warns)
         if coverage_overview:
             body += f"\n{coverage_overview}"
         if weekly_lines:
@@ -3412,6 +3507,8 @@ def format_digest_body(state_fails: list[dict],
             body_lines.extend(coverage_lines)
         if coverage_warns:
             body_lines.extend(coverage_warns)
+        if coverage_silent_empty_warns:
+            body_lines.extend(coverage_silent_empty_warns)
         if coverage_overview:
             body_lines.append(coverage_overview)
         if weekly_lines:
@@ -3472,6 +3569,8 @@ def format_digest_body(state_fails: list[dict],
         lines.extend(coverage_lines)
     if coverage_warns:
         lines.extend(coverage_warns)
+    if coverage_silent_empty_warns:
+        lines.extend(coverage_silent_empty_warns)
     if coverage_overview:
         lines.append(coverage_overview)
     if weekly_lines:

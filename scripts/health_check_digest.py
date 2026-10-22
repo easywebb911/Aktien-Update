@@ -352,6 +352,7 @@ def main(*, now_ts: datetime | None = None,
     # raise-frei; try/except ist reine Absicherung.
     coverage_lines: list[str] = []
     coverage_warns: list[str] = []
+    coverage_silent_empty_warns: list[str] = []
     for _q in hc.COVERAGE_QUELLEN:
         try:
             coverage_lines.append(hc.coverage_liveness_line(
@@ -364,6 +365,16 @@ def main(*, now_ts: datetime | None = None,
                 coverage_warns.append(_warn)
         except Exception as _covw_exc:  # pragma: no cover — Helper ist raise-frei
             log.warning("coverage_warn_line(%s) unerwartet: %r", _q, _covw_exc)
+        # Stiller-Leer-Ausfall (22.10.2026): misst n_mit_daten statt
+        # n_erhalten — fängt Fälle, in denen der Call antwortet, aber
+        # inhaltlich immer leer bleibt (das Karten-News-Muster, #593).
+        try:
+            _silent_warn = hc.coverage_silent_empty_warn_line(
+                _q, ROOT / hc.COVERAGE_LOG_FILE, now_ts=now_ts)
+            if _silent_warn:
+                coverage_silent_empty_warns.append(_silent_warn)
+        except Exception as _covs_exc:  # pragma: no cover — Helper ist raise-frei
+            log.warning("coverage_silent_empty_warn_line(%s) unerwartet: %r", _q, _covs_exc)
     try:
         coverage_overview = hc.coverage_overview_line(
             ROOT / hc.COVERAGE_LOG_FILE, now_ts=now_ts)
@@ -420,6 +431,7 @@ def main(*, now_ts: datetime | None = None,
         news_coverage_warn=news_coverage_warn,
         coverage_lines=coverage_lines,
         coverage_warns=coverage_warns,
+        coverage_silent_empty_warns=coverage_silent_empty_warns,
         coverage_overview=coverage_overview,
         weekly_lines=weekly_lines,
     )

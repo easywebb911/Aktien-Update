@@ -504,6 +504,29 @@ COVERAGE_QUELLEN = [
 # "coverage-waechter-baseline").
 COVERAGE_WARN_WINDOW_HOURS = 24
 
+# ── Stiller-Leer-Ausfall-Erweiterung (22.10.2026) ────────────────────────────
+# Lücke in der PR vom 21.10.2026: "erhalten" (n_erhalten) misst nur, ob der
+# Provider-Call OHNE Exception antwortete — ein stiller Ausfall, bei dem die
+# Quelle antwortet, aber (ohne Fehler) leer/None liefert, blieb unsichtbar.
+# Genau dieses Muster ließ die Karten-News 19 Tage unbemerkt (#593). Neues
+# Feld ``n_mit_daten`` (additiv in coverage_history.jsonl) misst die
+# inhaltliche Nicht-Leere — unabhängig davon, ob die Leere "legitim" war.
+#
+# ZWEI Fenster, weil die Quellen unterschiedlich dicht sind:
+# - options_atm/earnings_date: pro Lauf werden mehrere Top-5/Top-10-Ticker
+#   gleichzeitig abgefragt — ein Tag mit 0 Treffern bei ALLEN Tickern ist
+#   schon verdächtig, 24h reichen.
+# - earnings_surprise/reddit_mentions/fda_calendar/openinsider: ein
+#   einzelner leerer Tag (keine Earnings-Historie-Treffer, keine Reddit-
+#   Mentions, kein PDUFA-Approval, kein Insider-Kauf) ist VÖLLIG normal —
+#   erst 0 Treffer über 7 Tage hinweg ist ein plausibles Ausfallsignal.
+COVERAGE_SILENT_EMPTY_WINDOW_HOURS_DENSE  = 24       # options_atm, earnings_date
+COVERAGE_SILENT_EMPTY_WINDOW_HOURS_SPARSE = 24 * 7   # die übrigen 4 Quellen
+COVERAGE_SILENT_EMPTY_DENSE_QUELLEN = ["options_atm", "earnings_date"]
+COVERAGE_SILENT_EMPTY_SPARSE_QUELLEN = [
+    "earnings_surprise", "reddit_mentions", "fda_calendar", "openinsider",
+]
+
 # ── Unusual Options Activity (UOA) — yfinance Options-Chain ──────────────────
 # Bewertet ungewöhnliche Optionsaktivität pro Ticker:
 #   • Call-Vol/OI > 5× im ATM-Bereich (±10 % Strike)  → +UOA_ATM_STRONG Pkt

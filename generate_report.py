@@ -1906,8 +1906,16 @@ def get_combined_news(ticker: str, n: int = 3) -> list[dict]:
 # Earnings-History). Reiner Side-Effect-Zähler — KEINE Änderung an
 # Rückgabewerten/Verhalten (Test-Beleg:
 # scripts/mock_test_coverage_watchdog.py).
+#
+# "n_mit_daten" (Folge-PR 22.10.2026, Stiller-Leer-Ausfall-Lücke): zählt
+# AM CALL-SITE (nicht in der Funktion selbst), wie viele der erwarteten
+# Calls tatsächlich NICHT-leere Daten lieferten — unabhängig davon, ob
+# die Leere "legitim" oder ein stiller Schluck-Pfad war (genau das war
+# die Lücke beim 19-Tage-Karten-News-Ausfall: Antwort kam, war aber leer,
+# OHNE Exception). Reine BEOBACHTUNG des bereits berechneten Rückgabewerts
+# — KEINE Änderung an Rückgabewerten/Anfragezahl.
 _COVERAGE_ACCT: dict = {
-    q: {"n_erwartet": 0, "n_fehler": 0, "error_counts": {}}
+    q: {"n_erwartet": 0, "n_fehler": 0, "n_mit_daten": 0, "error_counts": {}}
     for q in ("options_atm", "earnings_date", "earnings_surprise")
 }
 
@@ -1916,6 +1924,7 @@ def _coverage_acct_reset() -> None:
     for q in _COVERAGE_ACCT:
         _COVERAGE_ACCT[q]["n_erwartet"] = 0
         _COVERAGE_ACCT[q]["n_fehler"] = 0
+        _COVERAGE_ACCT[q]["n_mit_daten"] = 0
         _COVERAGE_ACCT[q]["error_counts"] = {}
 
 
@@ -19155,6 +19164,7 @@ def main():
     _opts_elapsed = time.time() - _t_opts
     _n_ok = sum(1 for s in us_for_opts if s.get("options"))
     _n_na = len(us_for_opts) - _n_ok
+    _COVERAGE_ACCT["options_atm"]["n_mit_daten"] += _n_ok
     print(f"Optionsdaten: Top-{len(us_for_opts)} von {len(us_top10)} US-Tickern parallel in "
           f"{_opts_elapsed:.1f}s abgerufen — {_n_ok} mit Daten, {_n_na} ohne", flush=True)
 
@@ -19195,6 +19205,8 @@ def main():
                 _days, _dstr = _fut.result()
                 _earn_futures[_fut]["earnings_days"] = _days
                 _earn_futures[_fut]["earnings_date_str"] = _dstr
+                if _days is not None:
+                    _COVERAGE_ACCT["earnings_date"]["n_mit_daten"] += 1
         except TimeoutError:
             print(f"Earnings-Termine: Pool-Timeout nach {_POOL_STEP3_TIMEOUT}s — verbleibende Ticker übersprungen",
                   flush=True)
@@ -19249,6 +19261,7 @@ def main():
                       flush=True)
                 log.warning("earnings-surprise as_completed timeout — skipping remaining futures")
         _n_es = sum(1 for s in us_top10 if s.get("earnings_surprise"))
+        _COVERAGE_ACCT["earnings_surprise"]["n_mit_daten"] += _n_es
         print(f"Earnings-Surprise: {_n_es}/{len(us_top10)} Treffer in {time.time()-_t_es:.1f}s",
               flush=True)
 
@@ -19292,6 +19305,7 @@ def main():
             _cov_erh = max(0, _cov_erw - _cov_acct["n_fehler"])
             health_check.persist_coverage_row(
                 _cov_q, _cov_erw, _cov_erh, _cov_acct["error_counts"],
+                n_mit_daten=_cov_acct["n_mit_daten"],
                 run_phase=run_phase)
         except Exception as _cov_exc:   # pragma: no cover  (nie den Daily-Run brechen)
             log.warning("coverage_history (%s) übersprungen: %s", _cov_q, _cov_exc)
