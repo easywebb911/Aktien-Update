@@ -93,12 +93,20 @@ import os
 import pathlib
 import subprocess
 import sys
+from datetime import date
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 OPEN_ITEMS_PATH = "open_items.json"
 
 _VALID_STATUSES = frozenset({"offen", "beobachtet", "erledigt"})
 _REQUIRED_FIELDS = ("id", "title", "opened", "description", "status", "status_date")
+
+# Fällige-Wiedervorlagen-Erweiterung (22.10.2026): OPTIONALES, additives
+# Feld — macht den NÄCHSTEN Wiedervorlage-Termin maschinenlesbar
+# (health_check.due_items_lines). Kein Pflichtfeld (die meisten Items
+# haben relative/zähler-basierte Wiedervorlagen ohne festes Datum) — wenn
+# gesetzt, MUSS es ein valides ISO-Datum ``YYYY-MM-DD`` sein.
+_FAELLIG_AM_FIELD = "faellig_am"
 
 
 def _parse_items(raw: str) -> list[dict]:
@@ -138,6 +146,21 @@ def validate_item_structure(item: dict) -> list[str]:
             f"Item {item.get('id', '?')!r}: ungültiger Status {status!r} "
             f"(erlaubt: {sorted(_VALID_STATUSES)})."
         )
+    if _FAELLIG_AM_FIELD in item and item[_FAELLIG_AM_FIELD] is not None:
+        raw = item[_FAELLIG_AM_FIELD]
+        if not isinstance(raw, str):
+            errors.append(
+                f"Item {item.get('id', '?')!r}: '{_FAELLIG_AM_FIELD}' muss ein "
+                f"ISO-Datum-String sein, nicht {type(raw).__name__}."
+            )
+        else:
+            try:
+                date.fromisoformat(raw)
+            except ValueError:
+                errors.append(
+                    f"Item {item.get('id', '?')!r}: '{_FAELLIG_AM_FIELD}'={raw!r} "
+                    f"ist kein valides ISO-Datum (YYYY-MM-DD)."
+                )
     return errors
 
 
