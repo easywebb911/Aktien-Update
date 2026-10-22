@@ -23,6 +23,7 @@ from __future__ import annotations
 
 import json
 import logging
+import math
 import os
 import time
 from datetime import date, datetime, timedelta, timezone
@@ -57,6 +58,9 @@ from config import (
     S10_LAG_MIN_AGED_N,
     SETUP_EDGE_FREEZE_DATE,
     SETUP_EDGE_FREEZE_N_TARGET,
+    KI_SCORE_FREEZE_DATE,
+    KI_SCORE_FREEZE_N_TARGET,
+    EVAL_RESULTS_FILE,
     BACKTEST_FILE,
     OPTIONS_CHAIN_RAW_FILE,
     OPTIONS_CHAIN_RAW_DIGEST_ATM_RANGE,
@@ -2183,6 +2187,133 @@ def freeze_counter_line(export_path=None, backtest_path=None,
         return "🧪 Freeze-Zähler: nicht ermittelbar"
 
 
+# ── KI-Score-Freeze-Populationszähler für den Digest (22.10.2026) ──────────
+# Schließt die Lücke, die der KI-Score-Edge-Test-Freeze selbst offen ließ
+# (SESSION_HANDOVER.md, "VORABREGISTRIERUNG — KI-Score-Edge-Test", Punkt 11:
+# "Dieser PR baut nur die Doku, kein Digest-Code") — bisher gab es nur
+# ``_freeze_ki_coverage_last_report_day`` (Coverage NUR des letzten Report-
+# Tags, kein Export-weiter Populationszähler). Population EXAKT nach
+# Erratum 16.10.2026 "Population — präzisiert": provenance=="forward" UND
+# ki_signal_ts SCHLÜSSEL-PRÄSENT UND ki_signal_score numerisch/endlich UND
+# Eintrittsdatum >= Freeze-Datum (einschließend — bewusste Abweichung vom
+# Setup-Edge-Vorbild, siehe Freeze-Text dort). REIN ZÄHLUNG — keine
+# Outcome-Werte, kein Score-/Filter-/Push-Effekt.
+_KI_SCORE_FREEZE_DATE_STR = KI_SCORE_FREEZE_DATE        # "12.10.2026"
+_KI_SCORE_FREEZE_N_TARGET = KI_SCORE_FREEZE_N_TARGET    # 250
+
+
+def _is_finite_number(x) -> bool:
+    """True nur für echte, endliche Zahlen — schließt ``None``, ``NaN``,
+    ``±Inf`` und ``bool`` aus (``bool`` ist ein ``int``-Subtyp in Python;
+    ein versehentlicher ``True``/``False``-Wert würde sonst als 1/0
+    durchrutschen)."""
+    return (isinstance(x, (int, float)) and not isinstance(x, bool)
+            and math.isfinite(x))
+
+
+def _is_ki_score_candidate_row(obj: dict, freeze_date: date | None) -> bool:
+    """True wenn ``obj`` zur KI-Score-Freeze-KANDIDATEN-Menge gehört —
+    ALLES außer der Score-Verwertbarkeits-Prüfung selbst (Basis für die
+    Ausschluss-Quote, Erratum 16.10.2026: "x Zeilen ausgeschlossen, Anteil
+    y%"): ``provenance=="forward"`` UND ``ki_signal_ts`` Schlüssel-präsent
+    UND Eintrittsdatum ``>= freeze_date`` UND ``return_5d``/``return_10d``
+    beide gefüllt. Die Score-Verwertbarkeit selbst prüft
+    ``_is_ki_score_population_row`` zusätzlich."""
+    if freeze_date is None:
+        return False
+    if obj.get("provenance") != "forward":
+        return False
+    if "ki_signal_ts" not in obj:
+        return False
+    entry_date = _parse_dmy_date(obj.get("date"))
+    if entry_date is None or entry_date < freeze_date:
+        return False
+    if obj.get("return_5d") is None or obj.get("return_10d") is None:
+        return False
+    return True
+
+
+def _is_ki_score_population_row(obj: dict, freeze_date: date | None) -> bool:
+    """True wenn ``obj`` zur bestätigenden KI-Score-Freeze-Population
+    gehört (Erratum 16.10.2026, "Population — präzisiert"): Kandidat
+    (siehe ``_is_ki_score_candidate_row``) UND ``ki_signal_score``
+    numerisch/endlich."""
+    return (_is_ki_score_candidate_row(obj, freeze_date)
+            and _is_finite_number(obj.get("ki_signal_score")))
+
+
+def _ki_score_population_keys(rows: list[dict], freeze_date: date | None,
+                              min_date: date | None = None) -> set[tuple]:
+    """Dedupe-Set der ``(ticker, date)``-Schlüssel aller Zeilen in der
+    KI-Score-Freeze-Population — analog ``_freeze_population_keys``."""
+    keys: set[tuple] = set()
+    for obj in rows:
+        if not _is_ki_score_population_row(obj, freeze_date):
+            continue
+        if min_date is not None:
+            entry_date = _parse_dmy_date(obj.get("date"))
+            if entry_date is None or entry_date < min_date:
+                continue
+        keys.add((obj.get("ticker"), obj.get("date")))
+    return keys
+
+
+def _count_ki_score_freeze_population(export_path) -> tuple[int, int] | None:
+    """``(n, total_zeilen)`` der KI-Score-Freeze-Population aus dem
+    Matured-Export, oder ``None`` bei fehlender/unlesbarer Datei. Liest
+    über denselben ``_read_matured_export_rows``-Helper wie der Setup-Edge-
+    Zähler (Single Source of Truth fürs Datei-Einlesen)."""
+    result = _read_matured_export_rows(export_path)
+    if result is None:
+        return None
+    total, rows = result
+    freeze_date = _parse_dmy_date(_KI_SCORE_FREEZE_DATE_STR)
+    n = len(_ki_score_population_keys(rows, freeze_date))
+    return n, total
+
+
+def _ki_score_freeze_rate_last_14d(export_path, now: datetime | None = None) -> tuple[int, int] | None:
+    """``(zeilen, distinct_handelstage)`` der KI-Score-Population mit
+    Eintrittsdatum in den letzten 14 Kalendertagen — analog
+    ``_freeze_rate_last_14d``."""
+    result = _read_matured_export_rows(export_path)
+    if result is None:
+        return None
+    total, rows = result
+    freeze_date = _parse_dmy_date(_KI_SCORE_FREEZE_DATE_STR)
+    if now is None:
+        now = datetime.now(timezone.utc)
+    cutoff = now.date() - timedelta(days=14)
+    keys = _ki_score_population_keys(rows, freeze_date, min_date=cutoff)
+    tage = {d for (_t, d) in keys}
+    return len(keys), len(tage)
+
+
+# ── Eval-Autorun-Digest-Zeile (Erratum 22.10.2026) ──────────────────────────
+# Zwei Zustände pro Test-Familie (Setup-Edge/Conviction, KI-Score), rein
+# anzeigend — die eigentliche Trigger-Prüfung + Auswertung läuft in
+# ``scripts/freeze_eval.py``/``scripts/health_check_digest.py``. Diese
+# Funktion formatiert nur, was der Caller bereits ermittelt hat:
+#   - VOR Erreichen des Auslösers: "🧪 <Label>: n = x/250, ca. y Zeilen/Tag"
+#   - NACH Auslösung (einmalig, ``verdict_text`` gesetzt): "🧪 <Label>
+#     ausgewertet: <Verdikt>, Details in eval_results.jsonl"
+# REIN ANZEIGE — kein Score-/Filter-/Push-Effekt, fail-soft (nie Exception).
+def eval_status_line(label: str, pop: tuple[int, int] | None, n_target: int,
+                     rate: tuple[int, int] | None, *,
+                     verdict_text: str | None = None) -> str:
+    try:
+        if verdict_text:
+            return (f"🧪 {label} ausgewertet: {verdict_text}, "
+                    f"Details in {EVAL_RESULTS_FILE}")
+        n_txt = f"n = {pop[0]}/{n_target}" if pop is not None else "nicht ermittelbar"
+        rate_txt = ""
+        if rate is not None and rate[1] > 0:
+            rate_txt = f", ca. {rate[0] / rate[1]:.1f} Zeilen/Tag"
+        return f"🧪 {label}: {n_txt}{rate_txt}"
+    except Exception:  # pragma: no cover — äußerster Fail-Soft-Guard
+        return f"🧪 {label}: nicht ermittelbar"
+
+
 # ── Wöchentlicher Zusammenfassungs-Block (Digest-Zusatz, 25.09.2026) ────────
 # Bündelt zwei bereits maschinenlesbare, aber bisher verstreute Inhalte zu
 # EINEM Montags-Block im bestehenden Health-Check-Digest — KEIN neuer
@@ -3475,6 +3606,7 @@ def format_digest_body(state_fails: list[dict],
                        coverage_silent_empty_warns: list[str] | None = None,
                        coverage_overview: str | None = None,
                        due_items_lines_: list[str] | None = None,
+                       eval_lines: list[str] | None = None,
                        weekly_lines: list[str] | None = None,
                        ) -> tuple[str, str, str, str | None]:
     """Komponiert den ntfy-Body laut Spec Z. 175–211.
@@ -3526,6 +3658,8 @@ def format_digest_body(state_fails: list[dict],
             body += f"\n{coverage_overview}"
         if due_items_lines_:
             body += "\n" + "\n".join(due_items_lines_)
+        if eval_lines:
+            body += "\n" + "\n".join(eval_lines)
         if weekly_lines:
             body += "\n" + "\n".join(weekly_lines)
         return body, "📭 Health-Check ohne Daten", "high", "warning"
@@ -3586,6 +3720,8 @@ def format_digest_body(state_fails: list[dict],
             body_lines.append(coverage_overview)
         if due_items_lines_:
             body_lines.extend(due_items_lines_)
+        if eval_lines:
+            body_lines.extend(eval_lines)
         if weekly_lines:
             body_lines.extend(weekly_lines)
         body_lines.append(f"Letzter Run: {last_run_iso or '—'}")
@@ -3650,6 +3786,8 @@ def format_digest_body(state_fails: list[dict],
         lines.append(coverage_overview)
     if due_items_lines_:
         lines.extend(due_items_lines_)
+    if eval_lines:
+        lines.extend(eval_lines)
     if weekly_lines:
         lines.extend(weekly_lines)
     lines.append(f"Letzter erfolgreicher Run: {last_run_iso or '—'}")

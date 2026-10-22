@@ -244,7 +244,7 @@ _BASELINE_KNOWN_OPEN: frozenset[tuple[str, int, str]] = frozenset({
     # Block oben — größerer Gesamt-Shift als die Zeilen davor (siehe Kommentar
     # oben).
     ("generate_report.py", 19109, "score"),
-    ("health_check.py", 642, "score"),
+    ("health_check.py", 646, "score"),
     ("ki_agent.py", 1367, "last_price"),
     ("ki_agent.py", 2729, "score"),
     ("ki_agent.py", 2737, "rvol_4d"),

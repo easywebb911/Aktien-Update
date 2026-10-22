@@ -1100,6 +1100,90 @@ nicht mehr entstehen, nicht nur per Session-Disziplin.)*
   bleibt dann ohne `faellig_am`-Felder (rückwärtskompatibel, da
   additiv), der Digest zeigt wieder keine Fälligkeits-Zeilen.
 
+### 22.10.2026 — Freeze-Auswertungs-Autorun (Setup-Edge/Conviction + KI-Score) (1 PR)
+
+- **Freeze-Auswertungs-Autorun `scripts/freeze_eval.py` (Block-1-Pflicht
+  befolgt, Manual-Merge — neues Schema `eval_results.jsonl` + neuer
+  Workflow-Step, Easy mergt am iPhone):** `#597` (Branch-Commit
+  `ebb1eda7`, 22.10., kein Merge-Hash genannt — Regel a) greift). Setzt
+  den Auftrag "Auswertung startet bei n=250 von
+  selbst" um — die eingefrorenen Setup-Edge/Conviction- (10.10.2026 +
+  Erratum) und KI-Score-Edge-Test-Freezes (13.10.2026 + Erratum 16.10.)
+  laufen jetzt automatisch EINMAL, sobald ihr jeweiliger Auslöser (n>=250)
+  erreicht ist, statt auf manuelles Anstoßen zu warten.
+
+  **SCHRITT 0 (read-only, VOR dem Bau) fand zwei Lücken im Freeze-Text,
+  gemeldet statt gefüllt (OBERSTE REGEL):** (1) kein numerischer Bootstrap-
+  Seed in beiden Freezes ("fester Seed" ohne Zahl, zirkulärer Verweis auf
+  §4, das selbst keine Zahl nennt); (2) keine Ausschluss-Regel für
+  fehlenden `conviction_score` in Test c (im Gegensatz zum KI-Score-
+  Freeze, der den analogen Fall explizit regelt). Easy hat per **ERRATUM
+  22.10.2026** (eigener Block direkt nach den beiden Freeze-Blöcken,
+  BEIDE Freezes inkl. ihrer bisherigen Errata byte-identisch belassen —
+  heading-anchorter Diff-Beleg) entschieden: Seed=42 (beide Familien),
+  95% zweiseitiges Perzentil-Intervall (2,5./97,5.), Test-c-Ausschluss-
+  Regel als Spiegel der KI-Score-Regel vom 16.10. Keine Outcome-Werte
+  wurden dabei eingesehen.
+
+  **Gebaut:**
+  1. `scripts/freeze_eval.py` — reine, synthetisch getestete Statistik-
+     Primitive (`bootstrap_auc_ci`, `paired_bootstrap_delta_auc` nach dem
+     im Conviction-Erratum wörtlich spezifizierten Verfahren,
+     `cluster_double_run`) + Familien-Orchestrierung
+     (`evaluate_setup_edge_family` Tests a/b/c Holm k=3,
+     `evaluate_ki_score_family` Tests a/b eigene Holm-Familie k=2) +
+     `run_due_evaluations` (File-I/O, Trigger-Check, Sperre).
+  2. **Sperre = `eval_results.jsonl` selbst** (kein separates Lock-Feld):
+     ein Test-ID mit bereits vorhandener Zeile wird NIE erneut
+     ausgewertet, auch bei weiterhin erfülltem Auslöser — kein Peeking.
+  3. **Fehlender KI-Score-Populationszähler** (health_check.py) ergänzt
+     — die KI-Score-Freeze-Doku (13.10.) hatte ihn bewusst offen gelassen
+     ("Dieser PR baut nur die Doku, kein Digest-Code"); jetzt exakt nach
+     Erratum 16.10.2026 implementiert (`_is_ki_score_population_row`,
+     `_count_ki_score_freeze_population`), Single-Source-of-Truth-Reuse
+     der Setup-Edge-Helper (`_is_freeze_population_row` etc.) wo möglich.
+  4. Zwei neue Digest-Zeilen (`health_check.eval_status_line`): vor
+     Auslösung `"🧪 <Familie>: n = x/250, ca. y Zeilen/Tag"`, nach
+     einmaliger Auslösung `"🧪 <Familie> ausgewertet: <Verdikt>, Details
+     in eval_results.jsonl"`. Zusätzlich EIN ntfy-Push pro Familie, nur
+     bei Auslösung.
+  5. `config.EVAL_AUTORUN_ENABLED` (Default `False`) — Master-Switch,
+     Rückweg: `False` setzen UND `git revert` des Merge-Commits.
+  6. `.github/workflows/health_check_digest.yml`: Commit-Step um
+     `eval_results.jsonl` erweitert (analog zum bestehenden State-File-
+     Save/Restore/git-add-Muster — Lehre #501, sonst ginge ein neu
+     geschriebenes `eval_results.jsonl` beim nächsten `reset --hard`
+     verloren).
+
+  **Verdikt-Logik** (Freeze-Grenzen-Klausel wörtlich umgesetzt): "Beleg"
+  nur wenn ALLE vier Erfolgskriterien erfüllt sind, sonst "Unklar" — NIE
+  "keine Edge" bei n≈250 (per Fixture belegt: Null-Effekt-Fixture liefert
+  durchgehend "Unklar", nie eine falsch-positive "Beleg"-Meldung).
+
+  **Entwicklung ausschließlich auf synthetischen Fixtures** (Auftrags-
+  Vorgabe) — keine echten `return_*`-Werte wurden angesehen. Fixture-
+  Belege: starker eingebauter Effekt → `point_auc` nahe 1,0, CI-
+  Untergrenze > 0,5; kein Effekt → `point_auc` nahe 0,5, CI schließt 0,5
+  ein; echter Conviction-Zusatznutzen → ΔAUC deutlich > 0 (Test c
+  "Beleg"); Conviction ≈ Score + Rauschen → ΔAUC ≈ 0 (Test c "Unklar").
+  Determinismus belegt (gleicher Seed → zweimal identisches Ergebnis).
+  Sperre belegt (zweiter Lauf auf denselben Daten erzeugt keine neue
+  Zeile, keinen zweiten Push).
+
+  Golden byte-identisch, 160 CI-Tests grün (29 Checks neu in
+  `scripts/mock_test_freeze_eval_autorun.py`, 48 Einzel-Assertions),
+  `lint_nan_bypass_fields.py` grün (Baseline-Zeilennummer nachgeführt,
+  reine Verschiebung). `open_items.json`: drei Items additiv aktualisiert
+  (`paired-bootstrap-auc-delta-setup-edge` → `erledigt`, Infrastruktur ist
+  jetzt gebaut; `setup-edge-retest-freeze` + `ki-score-edge-freeze` →
+  Nachtrag, Status bleibt `beobachtet`, Auslöser ist noch nicht erreicht;
+  35→35 Items). Kein `score()`-/Top-10-/Filter-/Push-/Conviction-Touch.
+
+  **Rückweg:** `config.EVAL_AUTORUN_ENABLED = False` setzen UND
+  `git revert` des Merge-Commits — `eval_results.jsonl` (falls bis dahin
+  bereits etwas ausgelöst hat) bleibt als reine Analyse-Persistenz
+  stehen, kein Konsument liest sie außerhalb des Digests.
+
 
 *(Zwei-PR-Kette aus einer read-only Diagnose 15.08.2026: das Backtesting-Panel
 meldete einen Browser-`JSON.parse`-Fehler. Diagnose fand nackte JSON-`NaN`-
@@ -2507,6 +2591,81 @@ die Dateiquelle, trifft keine score-bezogene Aussage — keine Kollision.
 
 **Änderungs-Protokoll gilt identisch für dieses Erratum** (analog
 Setup-Edge/§4): keine weitere Änderung ohne datierten Protokolleintrag.
+
+### ERRATUM 22.10.2026 — Bootstrap-Verfahrensdetails für beide Edge-Test-Freezes (Setup-Edge/Conviction UND KI-Score)
+
+**Grund.** Eine read-only SCHRITT-0-Diagnose (22.10.2026, Vorbereitung des
+automatischen Auswertungs-Auslösers "Auswertung startet bei n=250 von
+selbst") fand drei Lücken im Bootstrap-Verfahren beider oben stehender
+Freeze-Blöcke, zitiert aus den Blöcken selbst:
+
+1. **Kein numerischer Seed.** Setup-Edge/Conviction-Freeze, Punkt 5(ii):
+   *„...N=2000, fester Seed, wie §4) über 0,5"*. KI-Score-Freeze, Punkt
+   6(ii): *„...N=2000, fester Seed, `bootstrap_mean_ci`-Muster, beim
+   Endlauf) über 0,5"*. Beide verweisen zirkulär (auf §4 bzw. ein
+   Code-Muster) — **keine Zahl** steht in irgendeinem der beiden Blöcke
+   oder im §4-Block selbst. Repo-weite Prüfung: der einzige numerische
+   Seed ist `RNG_SEED=42` in `scripts/expectancy_diagnose.py` — eine
+   **andere, bereits abgeschlossene** Auswertung (Paper-C-Hypothesen),
+   von keinem der beiden Freezes namentlich referenziert.
+2. **Kein CI-Perzentil.** „Bootstrap-Intervall"/„Bootstrap-CI" wird in
+   keinem der beiden Blöcke auf eine konkrete Methode (95%/90%,
+   ein-/zweiseitig, Perzentil-Methode) festgelegt.
+3. **Keine Ausschluss-Regel für fehlenden `conviction_score` in Test c.**
+   Der KI-Score-Freeze regelt den Fall „Wert fehlt/unbrauchbar" explizit
+   (Erratum 16.10.2026, „Population — präzisiert"). Der Conviction-
+   Erratum (10.10.2026, Test c) tut das nicht — Punkt 7 „Grenzen — offen
+   benannt" (a)–(e) nennt diesen Fall nirgends. `conviction_score` kann
+   aber `None` sein (`backtest_history.py:936-939`, wenn
+   `apply_conviction_scores` keinen Wert liefert).
+
+**Ausdrücklich festgehalten: Zum Zeitpunkt dieses Erratums wurden KEINE
+Outcomes (`return_*`-Werte) irgendeiner Population eingesehen** — die
+Lücken wurden rein durch Lesen des Freeze-Texts selbst und Grep auf
+Code-Konstanten (`RNG_SEED`, `config.py`) gefunden, nicht durch
+Dateninspektion. Dieses Erratum ändert **keinen bestehenden Satz** der
+beiden obigen Freeze-Blöcke (inkl. ihrer jeweiligen Errata) — reine
+Ergänzung.
+
+**ENTSCHEIDUNG EASY (22.10.2026):**
+
+1. **Bootstrap-Seed: `42`**, identisch für **beide** Test-Familien
+   (Setup-Edge/Conviction UND KI-Score). `N=2000` bleibt unverändert.
+2. **Bootstrap-Intervall: 95 %, zweiseitig, Perzentil-Methode**
+   (2,5. und 97,5. Perzentil der Resample-Verteilung). „Intervall über
+   0,5" (Erfolgskriterium (ii) in beiden Freezes) heißt konkret: **2,5.-
+   Perzentil > 0,5**. Für ΔAUC (Test c) gilt die im Erratum 10.10.2026
+   genannte Schwelle (ΔAUC-Punktschätzung ≥ +0,02 UND AUC(conviction) ≥
+   0,55) **unverändert als Erfolgskriterium**; das 95%-Perzentil-Intervall
+   für ΔAUC wird **zusätzlich** berichtet (Erfolgskriterium (ii) dort:
+   „untere Grenze... über 0" — mit derselben 2,5./97,5.-Perzentil-Methode).
+3. **Test c (Conviction) — Ausschluss-Regel, Spiegel der KI-Score-Regel
+   vom 16.10.2026:** Zeilen mit fehlendem oder nicht numerisch-endlichem
+   `conviction_score` werden aus Test c **ausgeschlossen**, gezählt und
+   als Anteil berichtet; liegt der Anteil über 20 %, wird das als
+   **Einschränkung im Ergebnis genannt** — **kein Abbruchkriterium**, der
+   Test läuft trotzdem (identische Logik zu Erratum 16.10.2026). Test c
+   rechnet AUC(conviction) und AUC(score) auf **exakt derselben
+   Teilmenge** (gepaarter Bootstrap über dieselben Zeilen-Indices — eine
+   Zeile ohne `conviction_score` wird für **beide** Größen in Test c
+   ausgeschlossen, nicht nur für `conviction_score`). **Tests a und b
+   bleiben unverändert** — ihre Population (nur `score`, immer vorhanden)
+   ist von dieser Regel nicht betroffen.
+4. **Auslöser unverändert:** gemeinsam `n ≥ 250` für a, b, c (Setup-Edge/
+   Conviction-Freeze) bzw. a, b (KI-Score-Freeze). Test c berichtet
+   zusätzlich seine **eigene, nach der Ausschluss-Regel reduzierte** n
+   (Haupt-n bleibt die gemeinsame Zählung aus Freeze-Punkt 4, Test c
+   zeigt separat `n_verwertbar` nach Ausschluss).
+
+**Was dieses Erratum NICHT ändert:** alle Populations-Definitionen,
+Zielgrößen, Erfolgsschwellen (0,55 / +0,02), Holm-Familien (k=3 bzw. k=2),
+Brutto-Bindung und Grenzen-Absätze beider Freezes bleiben wörtlich wie
+eingefroren. Nur die drei oben genannten, bis dahin unspezifizierten
+Verfahrensdetails sind jetzt festgelegt.
+
+**Änderungs-Protokoll gilt identisch für dieses Erratum** (analog
+Setup-Edge/§4/KI-Score-Erratum 16.10.): keine weitere Änderung ohne
+datierten Protokolleintrag.
 
 ### WIEDERVORLAGEN — dated (Stand 08.08.2026, NICHT Teil des §4-Freeze)
 

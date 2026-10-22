@@ -34,7 +34,7 @@ import sys
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 SCRIPTS = ROOT / "scripts"
 
-# ── ALLOWLIST (117) — abgeleitet zur Bauzeit (ls mock_test_*.py − EXCLUDED),
+# ── ALLOWLIST (118) — abgeleitet zur Bauzeit (ls mock_test_*.py − EXCLUDED),
 #    danach statisch festgeschrieben. Kategorie A: deterministisch, kein
 #    Real-State-/Datums-Read, läuft auf stdlib+jinja2+pyyaml. ───────────────
 ALLOWLIST = [
@@ -46,7 +46,7 @@ ALLOWLIST = [
     "conviction_backtest_persist", "conviction_coverage_extension", "coverage_silent_empty", "coverage_watchdog", "crit_diagnose_prompt", "data_maturity_gate", "days_to_earnings", "details_news_padding", "digest",
     "earliness_dtc", "earliness_pm_vol", "earliness_trend_log", "entry_past_return_5d", "entry_raw_twin_fields",
     "entry_score", "entry_shadow_persist", "entry_thesis", "exit_p2_score_at_nback_fix", "exit_push_dedupe", "exit_push_discipline", "exit_shadow",
-    "finra_publication_date", "finviz_coverage_fix", "freeze_zaehler", "gitattributes_union_merge", "good_friday",
+    "finra_publication_date", "finviz_coverage_fix", "freeze_eval_autorun", "freeze_zaehler", "gitattributes_union_merge", "good_friday",
     "gist_action_token_routing", "haircut_net_returns", "handover_staleness", "health_check", "health_check_digest_persistence", "helper_chain_integration",
     "hist5d_diagnostic_logging", "hist_5d_gap_log",
     "inst_ownership_history", "inst_ownership_liveness",

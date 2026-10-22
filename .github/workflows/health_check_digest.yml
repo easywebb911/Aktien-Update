@@ -70,11 +70,22 @@ jobs:
           # sichern, dann in einer Retry-Schleife auf den jeweils NEUESTEN
           # origin/main-Stand aufsetzen (reset --hard) + die frische Version
           # wieder einspielen + commit + push. Bei push-Reject neu fetchen
-          # und erneut versuchen. Nur health_check_digest_state.json wird von
-          # diesem Workflow geschrieben — keine anderen Files im Spiel, daher
-          # ist reset --hard hier verlustfrei (frische Version in $RUNNER_TEMP).
+          # und erneut versuchen. health_check_digest_state.json UND
+          # eval_results.jsonl (Erratum 22.10.2026, Freeze-Auswertungs-
+          # Autorun — scripts/freeze_eval.py) werden von diesem Workflow
+          # geschrieben — keine anderen Files im Spiel, daher ist
+          # reset --hard hier verlustfrei (frische Versionen in
+          # $RUNNER_TEMP). eval_results.jsonl existiert an den meisten
+          # Tagen NICHT (nur bei EVAL_AUTORUN_ENABLED UND Auslöser erreicht)
+          # — defensiv nur sichern/wiedereinspielen wenn vorhanden (Lehre
+          # #501: ein neu persistiertes File OHNE git-add-Eintrag geht beim
+          # nächsten Checkout verloren).
           FRESH="${RUNNER_TEMP:-/tmp}/digest_state_fresh.json"
           cp health_check_digest_state.json "$FRESH"
+          FRESH_EVAL="${RUNNER_TEMP:-/tmp}/eval_results_fresh.jsonl"
+          if [ -f eval_results.jsonl ]; then
+            cp eval_results.jsonl "$FRESH_EVAL"
+          fi
           pushed=0
           for attempt in 1 2 3 4 5; do
             if ! git fetch origin main; then
@@ -85,6 +96,10 @@ jobs:
             git reset --hard origin/main
             cp "$FRESH" health_check_digest_state.json
             git add health_check_digest_state.json
+            if [ -f "$FRESH_EVAL" ]; then
+              cp "$FRESH_EVAL" eval_results.jsonl
+              git add eval_results.jsonl
+            fi
             if git diff --staged --quiet; then
               echo "Keine state-Aenderung gegenueber origin/main — kein Commit noetig."
               pushed=1
