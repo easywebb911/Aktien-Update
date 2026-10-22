@@ -961,6 +961,74 @@ nicht mehr entstehen, nicht nur per Session-Disziplin.)*
   (Instrumentierungs-Zähler selbst bleiben als No-Op aktiv — kein Risiko).
   `git revert` des Merge-Commits entfernt den gesamten Stand.
 
+### 22.10.2026 — Stiller-Leer-Ausfall-Erweiterung (Folge-PR zum generischen Daten-Abdeckungs-Wächter) (1 PR)
+
+- **Stiller-Leer-Ausfall-Erweiterung `coverage_history.jsonl` (additives
+  Schema, Block-1-Pflicht befolgt, Manual-Merge — Schema-Erweiterung,
+  Easy mergt am iPhone):** `#595` (Branch-Commit `c97f8df3`, 22.10., kein
+  Merge-Hash genannt — Regel a) greift). Schließt eine Lücke in
+  `#594`: der Wächter zählte bisher nur `n_erwartet`/`n_fehler`
+  (Exceptions) — ein STILLER Ausfall (Quelle antwortet, liefert aber
+  leer/`None` OHNE Exception) blieb unsichtbar. Genau dieses Muster ließ
+  die Karten-News 19 Tage unbemerkt (`#593`).
+
+  **SCHRITT 0a — "Daten erhalten" je Quelle + stille Schluck-Pfade (ohne
+  `_coverage_record_error`-Treffer):**
+
+  | Quelle | "Daten erhalten" = | Stiller Schluck-Pfad (Antwort ok, inhaltlich leer, KEINE Exception) |
+  |---|---|---|
+  | `options_atm` | `get_options_data()` liefert nicht-leeres Dict (`pc_ratio`/`atm_iv`/`expiry` gesetzt) | `if not expiries: return {}` + `if calls.empty or puts.empty: return {}` — legitim bei Tickern ohne Optionsmarkt, ABER würde auch eine Yahoo-API-Strukturänderung (immer leere `expiries`) identisch maskieren |
+  | `earnings_date` | `get_earnings_date()` liefert `(days, date_str)` ≠ `(None, None)` | `cal is None`/leere `dates`-Liste/alle Termine in der Vergangenheit — legitim bei Tickern ohne anstehenden Termin, ABER ein Format-Wechsel bei `yf.Ticker.calendar` (weder `DataFrame` noch `dict`) liefert identisch `(None, None)` |
+  | `earnings_surprise` | `get_earnings_surprise()` liefert nicht-`None`-Dict | `hist is None`/leer/fehlende Spalten/kein Actual-Estimate-Paar — legitim bei fehlender Historie, ABER eine Spalten-Umbenennung bei yfinance liefert identisch `None` |
+  | `reddit_mentions` | `fetch_reddit_mentions()` liefert `count > 0` | **Konkretester Fund:** `resp.json().get("data",{}).get("children",[])` liefert `[]` OHNE Exception, wenn Reddit statt echter Suchergebnisse eine Rate-Limit-/Fehler-JSON mit HTTP 200 zurückgibt (`{"error":429,...}`) — von "genuin 0 Mentions" nicht unterscheidbar |
+  | `fda_calendar` | `fetch_fda_calendar()` liefert nicht-leeres Dict | gültige RSS-Struktur mit 0 `<item>`-Treffern — legitim an den meisten Tagen (kein PDUFA-Approval), ABER identisch zu einer stillen Feed-URL-/Struktur-Änderung |
+  | `openinsider` | `fetch_openinsider()` liefert `count > 0` | gültige RSS-Struktur mit 0 passenden `<item>`-Treffern — dieselbe Doppeldeutigkeit wie bei `fda_calendar` |
+
+  **Widerspruch/Grenze ehrlich benannt:** bei KEINER der 6 Quellen ist
+  "leer" technisch von "Fehler" sauber trennbar, ohne die Zielsysteme
+  selbst zu befragen (z. B. Yahoo/Reddit/FDA-Betreiber fragen "ist euer
+  Feed gerade kaputt?") — die hier gebaute Lösung behandelt das
+  statistisch (Fenster-Aggregation über Zeit), nicht strukturell. Das ist
+  eine bewusste, dokumentierte Grenze, keine vollständige Lösung.
+
+  **SCHRITT 0b — Mini-Stopp: KEIN STOPP.** Das Zählen von `n_mit_daten`
+  ist eine reine BEOBACHTUNG des bereits berechneten Rückgabewerts an den
+  jeweiligen Call-Sites (`main()` in generate_report.py,
+  `_process_ticker`/`main()` in ki_agent.py) — kein Rückgabewert, keine
+  Anfragezahl geändert (Test-Beleg: `test_*_zero_behavior_change`-Tests
+  je Quelle in `scripts/mock_test_coverage_silent_empty.py`).
+
+  **Gebaut:**
+  1. Neues additives Feld `n_mit_daten` in `coverage_history.jsonl`
+     (`None`/`null` wenn der Aufrufer es nicht setzt — alte Zeilen vor
+     dieser PR bleiben lesbar, werden fail-soft aus den Fenstern
+     ausgeschlossen statt als `0` fehlinterpretiert).
+  2. Zwei Digest-Warnzeilen-Fenster (`config.py`):
+     `COVERAGE_SILENT_EMPTY_WINDOW_HOURS_DENSE` (24 h) für `options_atm`/
+     `earnings_date` (mehrere Ticker pro Lauf — ein Komplettausfall ist
+     schon nach 1 Tag verdächtig), `COVERAGE_SILENT_EMPTY_WINDOW_HOURS_
+     SPARSE` (24×7 = 168 h) für die übrigen 4 Quellen (ein einzelner
+     leerer Tag ist dort normal). `coverage_overview_line` berücksichtigt
+     jetzt BEIDE Warnarten (Call-Ebene + Inhalts-Ebene).
+  3. Bestehende Digest-Zeilen/Zähler unverändert (Vorher/Nachher-Beleg
+     gegen `origin/main`).
+
+  **Ziel erreicht (Exzellenz-Block):** ein Ausfall nach dem Karten-News-
+  Muster erscheint bei `options_atm`/`earnings_date` spätestens nach 24 h,
+  bei den übrigen 4 Quellen spätestens nach 7 Tagen im Digest
+  (Fixture-Belege je Quelle in `scripts/mock_test_coverage_silent_empty.py`).
+
+  Golden byte-identisch, Score-/Top-10-Gegenprobe grün, 158 CI-Tests grün
+  (14 neue in `mock_test_coverage_silent_empty.py`), `lint_nan_bypass_
+  fields.py` grün (Baseline nachgeführt, reine Verschiebung in
+  generate_report.py UND ki_agent.py). `open_items.json`:
+  `coverage-waechter-baseline` additiv um die neuen Schwellen ergänzt
+  (35→35 Items, keine neuen Einträge — reine Beschreibungs-Erweiterung).
+
+  **Rückweg:** `git revert` des Merge-Commits entfernt den gesamten
+  Stand (altes Schema ohne `n_mit_daten` bleibt für `COVERAGE_LOG_
+  ENABLED=True` weiterhin funktionsfähig, da additiv).
+
 
 
 *(Zwei-PR-Kette aus einer read-only Diagnose 15.08.2026: das Backtesting-Panel

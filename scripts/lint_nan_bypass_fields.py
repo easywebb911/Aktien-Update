@@ -185,73 +185,71 @@ _BASELINE_KNOWN_OPEN: frozenset[tuple[str, int, str]] = frozenset({
     ("generate_report.py", 1522, "shortRatio"),
     ("generate_report.py", 1523, "shortPercentOfFloat"),
     ("generate_report.py", 1541, "floatShares"),
-    # Generischer-Daten-Abdeckungs-Wächter-PR (21.10.2026): neue Akkumulator-
-    # Blöcke in generate_report.py (vor get_options_data, ~25 Zeilen) und
-    # ki_agent.py (im Tier-3-Akkumulator-Block, ~30 Zeilen, + Instrumentierung
-    # in fetch_reddit_mentions/fetch_fda_calendar/fetch_openinsider) sowie ein
-    # neuer Import-Block in health_check.py (3 Zeilen) verschieben ALLE
-    # folgenden Funde weiter. Reine Zeilen-Nachführung derselben, weiterhin
-    # offenen Funde — KEIN inhaltlicher Fix, die NaN-Bypass-Stellen selbst
-    # sind unverändert und bleiben eigene Fix-Kandidaten für Folge-PRs. Werte
-    # unten sind die aktuelle, per Lint-Lauf verifizierte Ist-Lage (``python3
-    # scripts/lint_nan_bypass_fields.py`` nach diesem PR), nicht erneut
-    # manuell nachgerechnet.
-    ("generate_report.py", 3008, "float_shares"),
-    ("generate_report.py", 3022, "52w_high"),
-    ("generate_report.py", 3023, "52w_low"),
-    ("generate_report.py", 3028, "market_cap"),
-    ("generate_report.py", 3221, "float_shares"),
-    ("generate_report.py", 3373, "float_shares"),
-    ("generate_report.py", 3398, "float_shares"),
-    ("generate_report.py", 4643, "rsi14"),
-    ("generate_report.py", 4675, "score"),
-    ("generate_report.py", 5104, "short_float"),
-    ("generate_report.py", 5126, "rel_volume"),
-    ("generate_report.py", 5144, "short_float"),
-    ("generate_report.py", 5145, "short_ratio"),
-    ("generate_report.py", 5146, "rel_volume"),
-    ("generate_report.py", 5278, "float_shares"),
-    ("generate_report.py", 5279, "price"),
-    ("generate_report.py", 5280, "market_cap"),
-    ("generate_report.py", 5361, "float_shares"),
-    ("generate_report.py", 5680, "float_shares"),
-    ("generate_report.py", 5681, "float_shares"),
-    ("generate_report.py", 5682, "float_shares"),
-    ("generate_report.py", 5683, "float_shares"),
-    ("generate_report.py", 6286, "score"),
-    ("generate_report.py", 6743, "short_float"),
-    ("generate_report.py", 6744, "short_ratio"),
-    ("generate_report.py", 6745, "rel_volume"),
-    ("generate_report.py", 6747, "change"),
-    ("generate_report.py", 7013, "float_shares"),
-    ("generate_report.py", 7118, "52w_high"),
-    ("generate_report.py", 7118, "52w_low"),
-    ("generate_report.py", 7215, "price"),
-    ("generate_report.py", 7216, "short_float"),
-    ("generate_report.py", 7217, "short_ratio"),
-    ("generate_report.py", 7218, "rel_volume"),
-    ("generate_report.py", 7219, "change"),
-    ("generate_report.py", 7554, "float_shares"),
-    ("generate_report.py", 7562, "52w_high"),
-    ("generate_report.py", 7563, "52w_low"),
-    ("generate_report.py", 8245, "float_shares"),
-    ("generate_report.py", 17019, "entry_price"),
-    ("generate_report.py", 17028, "price"),
-    ("generate_report.py", 17052, "setup_today"),
-    ("generate_report.py", 17809, "score"),
-    ("generate_report.py", 18308, "score"),
-    ("generate_report.py", 18862, "score"),
-    ("generate_report.py", 18905, "score"),
+    # Stiller-Leer-Ausfall-PR (22.10.2026): neue n_mit_daten-Akkumulator-
+    # Felder/Call-Site-Zähler in generate_report.py UND ki_agent.py, plus
+    # 4 neue Import-Zeilen in health_check.py (COVERAGE_SILENT_EMPTY_*)
+    # verschieben ALLE folgenden Funde weiter. Reine Zeilen-Nachführung
+    # derselben, weiterhin offenen Funde — KEIN inhaltlicher Fix, die NaN-
+    # Bypass-Stellen selbst sind unverändert und bleiben eigene Fix-
+    # Kandidaten für Folge-PRs. Werte unten sind die aktuelle, per Lint-Lauf
+    # verifizierte Ist-Lage (``python3 scripts/lint_nan_bypass_fields.py``
+    # nach diesem PR), nicht erneut manuell nachgerechnet.
+    ("generate_report.py", 3017, "float_shares"),
+    ("generate_report.py", 3031, "52w_high"),
+    ("generate_report.py", 3032, "52w_low"),
+    ("generate_report.py", 3037, "market_cap"),
+    ("generate_report.py", 3230, "float_shares"),
+    ("generate_report.py", 3382, "float_shares"),
+    ("generate_report.py", 3407, "float_shares"),
+    ("generate_report.py", 4652, "rsi14"),
+    ("generate_report.py", 4684, "score"),
+    ("generate_report.py", 5113, "short_float"),
+    ("generate_report.py", 5135, "rel_volume"),
+    ("generate_report.py", 5153, "short_float"),
+    ("generate_report.py", 5154, "short_ratio"),
+    ("generate_report.py", 5155, "rel_volume"),
+    ("generate_report.py", 5287, "float_shares"),
+    ("generate_report.py", 5288, "price"),
+    ("generate_report.py", 5289, "market_cap"),
+    ("generate_report.py", 5370, "float_shares"),
+    ("generate_report.py", 5689, "float_shares"),
+    ("generate_report.py", 5690, "float_shares"),
+    ("generate_report.py", 5691, "float_shares"),
+    ("generate_report.py", 5692, "float_shares"),
+    ("generate_report.py", 6295, "score"),
+    ("generate_report.py", 6752, "short_float"),
+    ("generate_report.py", 6753, "short_ratio"),
+    ("generate_report.py", 6754, "rel_volume"),
+    ("generate_report.py", 6756, "change"),
+    ("generate_report.py", 7022, "float_shares"),
+    ("generate_report.py", 7127, "52w_high"),
+    ("generate_report.py", 7127, "52w_low"),
+    ("generate_report.py", 7224, "price"),
+    ("generate_report.py", 7225, "short_float"),
+    ("generate_report.py", 7226, "short_ratio"),
+    ("generate_report.py", 7227, "rel_volume"),
+    ("generate_report.py", 7228, "change"),
+    ("generate_report.py", 7563, "float_shares"),
+    ("generate_report.py", 7571, "52w_high"),
+    ("generate_report.py", 7572, "52w_low"),
+    ("generate_report.py", 8254, "float_shares"),
+    ("generate_report.py", 17028, "entry_price"),
+    ("generate_report.py", 17037, "price"),
+    ("generate_report.py", 17061, "setup_today"),
+    ("generate_report.py", 17818, "score"),
+    ("generate_report.py", 18317, "score"),
+    ("generate_report.py", 18871, "score"),
+    ("generate_report.py", 18914, "score"),
     # Diese letzte generate_report.py-Zeile liegt NACH dem main()-Orchestrierungs-
     # Block oben — größerer Gesamt-Shift als die Zeilen davor (siehe Kommentar
     # oben).
-    ("generate_report.py", 19100, "score"),
-    ("health_check.py", 638, "score"),
-    ("ki_agent.py", 1357, "last_price"),
-    ("ki_agent.py", 2719, "score"),
-    ("ki_agent.py", 2727, "rvol_4d"),
-    ("ki_agent.py", 2731, "rvol_4d"),
-    ("ki_agent.py", 3191, "rvol_4d"),
+    ("generate_report.py", 19109, "score"),
+    ("health_check.py", 642, "score"),
+    ("ki_agent.py", 1367, "last_price"),
+    ("ki_agent.py", 2729, "score"),
+    ("ki_agent.py", 2737, "rvol_4d"),
+    ("ki_agent.py", 2741, "rvol_4d"),
+    ("ki_agent.py", 3205, "rvol_4d"),
 })
 
 

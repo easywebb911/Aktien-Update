@@ -317,8 +317,17 @@ def _reset_tier3_accumulators() -> None:
 # (Test-Beleg: scripts/mock_test_coverage_watchdog.py). Geteiltes Schema/
 # Persistenz mit generate_report.py via ``health_check.persist_coverage_
 # row`` — EINE gemeinsame ``coverage_history.jsonl``.
+#
+# "n_mit_daten" (Folge-PR 22.10.2026, Stiller-Leer-Ausfall-Lücke): zählt AM
+# CALL-SITE, wie viele Calls tatsächlich NICHT-leere Daten lieferten —
+# unabhängig davon, ob die Leere "legitim" war oder ein stiller Schluck-
+# Pfad (z. B. Reddit liefert HTTP 200 mit einer Rate-Limit-Fehler-JSON statt
+# echter Suchergebnisse — ``.get("data",{}).get("children",[])`` liefert
+# dann ``[]`` OHNE Exception, identisch zu "genuin 0 Mentions"). Reine
+# BEOBACHTUNG des bereits berechneten Rückgabewerts — KEINE Änderung an
+# Rückgabewerten/Anfragezahl.
 _COVERAGE_ACCT: dict = {
-    q: {"n_erwartet": 0, "n_fehler": 0, "error_counts": {}}
+    q: {"n_erwartet": 0, "n_fehler": 0, "n_mit_daten": 0, "error_counts": {}}
     for q in ("reddit_mentions", "fda_calendar", "openinsider")
 }
 
@@ -327,6 +336,7 @@ def _coverage_acct_reset() -> None:
     for q in _COVERAGE_ACCT:
         _COVERAGE_ACCT[q]["n_erwartet"] = 0
         _COVERAGE_ACCT[q]["n_fehler"] = 0
+        _COVERAGE_ACCT[q]["n_mit_daten"] = 0
         _COVERAGE_ACCT[q]["error_counts"] = {}
 
 
@@ -3074,6 +3084,8 @@ def _process_ticker(ticker: str, shared: dict) -> dict:
         reddit = fetch_reddit_mentions(ticker)
         if reddit.get("blocked"):
             reddit_blocked = True
+        elif reddit.get("count", 0) > 0:
+            _COVERAGE_ACCT["reddit_mentions"]["n_mit_daten"] += 1
     except Exception as exc:
         log.debug("Reddit Fehler %s: %s", ticker, exc)
         reddit_ok = False
@@ -3109,6 +3121,8 @@ def _process_ticker(ticker: str, shared: dict) -> dict:
         _COVERAGE_ACCT["openinsider"]["n_erwartet"] += 1
         try:
             insider = fetch_openinsider(ticker)
+            if insider.get("count", 0) > 0:
+                _COVERAGE_ACCT["openinsider"]["n_mit_daten"] += 1
         except Exception as exc:
             log.debug("OpenInsider Fehler %s: %s", ticker, exc)
 
@@ -3387,6 +3401,8 @@ def main() -> None:
     log.info("FDA Press Release RSS wird abgerufen …")
     _COVERAGE_ACCT["fda_calendar"]["n_erwartet"] += 1
     fda_calendar = fetch_fda_calendar()
+    if fda_calendar:
+        _COVERAGE_ACCT["fda_calendar"]["n_mit_daten"] += 1
     today_et = datetime.now(EASTERN).date()
 
     log.info("FINRA Daily Short Volume wird geladen …")
@@ -3974,6 +3990,7 @@ def main() -> None:
                 _cov_erh = max(0, _cov_erw - _cov_acct["n_fehler"])
                 health_check.persist_coverage_row(
                     _cov_q, _cov_erw, _cov_erh, _cov_acct["error_counts"],
+                    n_mit_daten=_cov_acct["n_mit_daten"],
                     run_phase="ki_agent_tick")
             except Exception as _cov_exc:
                 log.debug("coverage_history (%s) übersprungen: %s", _cov_q, _cov_exc)
