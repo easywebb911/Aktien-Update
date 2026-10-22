@@ -2358,6 +2358,76 @@ def weekly_summary_lines(now_ts: datetime, prev_state: dict, *,
     return lines, state_updates
 
 
+# ── Fällige Wiedervorlagen (Digest-Zeile, 22.10.2026) ─────────────────────────
+# Bisher standen Wiedervorlage-Termine ausschließlich als Freitext in
+# SESSION_HANDOVER.md/open_items.json-Beschreibungen — kein Termin erschien
+# automatisch, alles hing an Easys/Claudes Erinnerung. Neues OPTIONALES,
+# additives Feld ``faellig_am`` (ISO-Datum ``YYYY-MM-DD``) in einzelnen
+# Items macht den NÄCHSTEN Termin maschinenlesbar — KEIN Ersatz für die
+# Freitext-Wiedervorlage-Historie (die bleibt unverändert bestehen), nur ein
+# zusätzlicher, strukturierter Zeiger auf das nächste Datum. Items ohne
+# dieses Feld (die meisten — relative/zähler-basierte Wiedervorlagen wie
+# "ca. 10 Handelstage") werden hier übersprungen, NICHT fehlinterpretiert.
+#
+# Berlin-Datum (nicht UTC): ein Digest-Lauf kurz nach Mitternacht UTC kann
+# in Berlin schon der nächste Kalendertag sein (CET/CEST = UTC+1/+2) — ein
+# reiner UTC-Tagesvergleich würde an dieser Grenze bis zu einen Tag zu spät
+# melden. ``now_ts`` kommt bereits tz-aware (UTC) aus
+# ``scripts/health_check_digest.py`` — Konvertierung nach Berlin vor dem
+# Datums-Vergleich ist deshalb Pflicht, nicht Kosmetik.
+_FAELLIG_AM_FIELD = "faellig_am"
+
+
+def _parse_faellig_am(raw) -> date | None:
+    """Fail-soft ISO-Datum-Parser. ``None`` bei fehlendem/kaputtem Feld —
+    NIE Exception, NIE Rateversuch (kein Freitext-Parsing, siehe Modul-
+    Kommentar oben)."""
+    if not isinstance(raw, str):
+        return None
+    try:
+        return date.fromisoformat(raw)
+    except ValueError:
+        return None
+
+
+def due_items_lines(now_ts: datetime, *, path=None) -> list[str]:
+    """Digest-Zeilen für heute fällige / überfällige Wiedervorlagen aus
+    ``open_items.json`` (Feld ``faellig_am``). Fail-soft (nie Exception),
+    leere Liste wenn nichts fällig ist oder die Datei fehlt/kaputt ist.
+
+    Zwei Zeilenarten (NUR für Items mit Status ``offen``/``beobachtet`` —
+    ``erledigt`` wird nie gelistet):
+      - ``📅 Heute fällig: <id> – <Kurztitel>``       (``faellig_am == heute``)
+      - ``⏰ Überfällig seit N Tagen: <id>``           (``faellig_am < heute``)
+    Ein Item mit ``faellig_am`` in der Zukunft erzeugt KEINE Zeile. Ein
+    fehlendes/unparsebares ``faellig_am`` wird übersprungen (kein Crash).
+    """
+    try:
+        items = _load_open_items(path if path is not None else OPEN_ITEMS_FILE)
+        if not items:
+            return []
+        if now_ts.tzinfo is None:
+            now_ts = now_ts.replace(tzinfo=timezone.utc)
+        today_berlin = now_ts.astimezone(ZoneInfo("Europe/Berlin")).date()
+        lines: list[str] = []
+        for it in items:
+            if it.get("status") not in _OPEN_ITEMS_ACTIVE_STATUSES:
+                continue
+            due = _parse_faellig_am(it.get(_FAELLIG_AM_FIELD))
+            if due is None:
+                continue
+            item_id = it.get("id") or "?"
+            if due == today_berlin:
+                title = it.get("title") or item_id
+                lines.append(f"📅 Heute fällig: {item_id} – {title}")
+            elif due < today_berlin:
+                days = (today_berlin - due).days
+                lines.append(f"⏰ Überfällig seit {days} Tagen: {item_id}")
+        return lines
+    except Exception:  # pragma: no cover — nie den Digest brechen
+        return []
+
+
 # ── inst_ownership_history-Liveness (Digest-Zeile, 11.08.2026) ────────────────
 # LIVENESS, NICHT Änderungen: die #518-Sammlung ist change-based (ein Punkt nur
 # bei 13F-Änderung). Eine „letzter neuer Punkt"-Anzeige stünde quartalslang still
@@ -3404,6 +3474,7 @@ def format_digest_body(state_fails: list[dict],
                        coverage_warns: list[str] | None = None,
                        coverage_silent_empty_warns: list[str] | None = None,
                        coverage_overview: str | None = None,
+                       due_items_lines_: list[str] | None = None,
                        weekly_lines: list[str] | None = None,
                        ) -> tuple[str, str, str, str | None]:
     """Komponiert den ntfy-Body laut Spec Z. 175–211.
@@ -3453,6 +3524,8 @@ def format_digest_body(state_fails: list[dict],
             body += "\n" + "\n".join(coverage_silent_empty_warns)
         if coverage_overview:
             body += f"\n{coverage_overview}"
+        if due_items_lines_:
+            body += "\n" + "\n".join(due_items_lines_)
         if weekly_lines:
             body += "\n" + "\n".join(weekly_lines)
         return body, "📭 Health-Check ohne Daten", "high", "warning"
@@ -3511,6 +3584,8 @@ def format_digest_body(state_fails: list[dict],
             body_lines.extend(coverage_silent_empty_warns)
         if coverage_overview:
             body_lines.append(coverage_overview)
+        if due_items_lines_:
+            body_lines.extend(due_items_lines_)
         if weekly_lines:
             body_lines.extend(weekly_lines)
         body_lines.append(f"Letzter Run: {last_run_iso or '—'}")
@@ -3573,6 +3648,8 @@ def format_digest_body(state_fails: list[dict],
         lines.extend(coverage_silent_empty_warns)
     if coverage_overview:
         lines.append(coverage_overview)
+    if due_items_lines_:
+        lines.extend(due_items_lines_)
     if weekly_lines:
         lines.extend(weekly_lines)
     lines.append(f"Letzter erfolgreicher Run: {last_run_iso or '—'}")

@@ -399,6 +399,15 @@ def main(*, now_ts: datetime | None = None,
         log.warning("reg_sho_liveness_line unerwartet: %r", _rs_exc)
         reg_sho_line = None
 
+    # Fällige Wiedervorlagen (22.10.2026, TÄGLICH — kein Montag-Gate wie der
+    # Wochenblock unten): liest ``faellig_am`` aus open_items.json. raise-frei;
+    # try/except ist reine Absicherung.
+    try:
+        due_items_lines_ = hc.due_items_lines(now_ts, path=ROOT / hc.OPEN_ITEMS_FILE)
+    except Exception as _due_exc:  # pragma: no cover — Helper ist raise-frei
+        log.warning("due_items_lines unerwartet: %r", _due_exc)
+        due_items_lines_ = []
+
     # Wöchentlicher Zusammenfassungs-Block (25.09.2026, nur Montag): reine
     # Funktion, ``state`` wird NICHT direkt mutiert — die Updates werden erst
     # unten (kurz vor _save_digest_state) gemerged, damit sie im selben
@@ -433,6 +442,7 @@ def main(*, now_ts: datetime | None = None,
         coverage_warns=coverage_warns,
         coverage_silent_empty_warns=coverage_silent_empty_warns,
         coverage_overview=coverage_overview,
+        due_items_lines_=due_items_lines_,
         weekly_lines=weekly_lines,
     )
 
