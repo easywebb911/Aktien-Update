@@ -1188,9 +1188,9 @@ nicht mehr entstehen, nicht nur per Session-Disziplin.)*
 
 - **Erratum 22.10.2026 (b) + Scharfschaltung `config.EVAL_AUTORUN_ENABLED`
   (Block-1-Pflicht befolgt, Manual-Merge — Erratum-Block + Master-Switch-
-  Flip, Easy mergt am iPhone):** `#598` (Branch-Commit
-  `<WIRD-BEIM-FOLLOW-UP-COMMIT-ERGÄNZT>`, 22.10., kein Merge-Hash genannt
-  — Regel a) greift). Schließt die von PR #597 selbst (Code-Kommentar +
+  Flip, Easy mergt am iPhone):** `#598` (Branch-Commit `e7582bf1`, 22.10.,
+  kein Merge-Hash genannt — Regel a) greift). Schließt die von PR #597
+  selbst (Code-Kommentar +
   squeeze-guardian) offen geflaggte Lücke: der Holm-Input `p_c` für Test c
   (Conviction-Zusatznutzen) war implementiert als Mann-Whitney-p von
   `AUC(conviction_score)` gegen den Split, nirgends aber **wörtlich** als
