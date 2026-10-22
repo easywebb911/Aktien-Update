@@ -1029,6 +1029,76 @@ nicht mehr entstehen, nicht nur per Session-Disziplin.)*
   Stand (altes Schema ohne `n_mit_daten` bleibt für `COVERAGE_LOG_
   ENABLED=True` weiterhin funktionsfähig, da additiv).
 
+### 22.10.2026 — Fällige Wiedervorlagen im Digest (Folge-PR zur Open-Items-Pflege) (1 PR)
+
+- **Fällige Wiedervorlagen automatisch im täglichen Health-Check-Digest
+  (additives Schema, Block-1-Pflicht befolgt, Manual-Merge — neues Feld
+  in `open_items.json`, Easy mergt am iPhone):** `#596` (Branch-Commit
+  `fab38aba`, 22.10., kein Merge-Hash genannt — Regel a) greift). Bisher
+  hingen alle Wiedervorlage-Termine ausschließlich an Easys/Claudes
+  Erinnerung — reiner Freitext in `description`-Feldern bzw.
+  `SESSION_HANDOVER.md`, keine automatische Erinnerung.
+
+  **SCHRITT 0a (Python-Inspektion):** 0 von 35 Items hatten irgendein
+  maschinenlesbares Datumsfeld. 8 Items erwähnen "Wiedervorlage" im
+  Freitext; 32 von 35 enthalten irgendeinen datumsförmigen String (meist
+  unrelated `opened`/`status_date`).
+
+  **SCHRITT 0b — Mini-Stopp: neues Feld `faellig_am` (optionales ISO-
+  Datum) nötig → Manual-Merge.** Alle Konsumenten von `open_items.json`
+  gegrept — `.get()`-basiert, additiv-sicher.
+
+  **SCHRITT 0c — vier benannte Termine, NICHT programmatisch aus
+  Freitext geparst, sondern manuell zugeordnet:** `nyse-regsho-empty-
+  streak` → `2026-10-26` (wörtlich im Item-Text). `ki-score-edge-freeze`
+  → `2026-10-28` (wörtlich im Item-Text, "WIEDERVORLAGE 28.10.2026").
+  `options-chain-raw-sammelfeld` → `2026-10-28` — dieses Item trägt
+  ZWEI Wiedervorlagen (näher ~10 Handelstage nach 17.10., ferner
+  02.11.-Monatsrundgang), das Feld hält nur EIN Datum pro Item → trägt
+  Wiedervorlage 1, Wiedervorlage 2 bleibt Freitext-only, transparent als
+  Nachtrag im Item selbst dokumentiert. 02.11.-Monatsrundgang selbst
+  **nicht** zusätzlich abgesichert — hat laut diesem Dokument bereits
+  einen eigenen geplanten Cloud-Lauf-Trigger (09:00 Berlin).
+
+  **Ehrlich benannter Widerspruch:** `ibkr-borrow-data-spur` erwähnt
+  ebenfalls die 02.11.-Wiedervorlage, ist aber bereits `status:
+  "erledigt"` — `due_items_lines()` listet nur `offen`/`beobachtet`,
+  ein `faellig_am` dort würde nie im Digest erscheinen. Bewusst
+  **nicht** ergänzt, hier nur gemeldet.
+
+  **Gebaut:** `health_check.due_items_lines(now_ts, path=...)` —
+  Berlin-Zeitzonen-korrekt (`astimezone(ZoneInfo("Europe/Berlin"))` vor
+  dem Datumsvergleich, da ein UTC-Lauf kurz nach Mitternacht in Berlin
+  schon den nächsten Kalendertag sieht), fail-soft, `erledigt`-Items nie
+  gelistet. Zwei Zeilenarten: `📅 Heute fällig: <id> – <Kurztitel>` /
+  `⏰ Überfällig seit N Tagen: <id>`. Täglich verdrahtet in
+  `scripts/health_check_digest.py` (kein Montag-Gate wie der
+  Wochenblock). `format_digest_body` bekommt den additiven Parameter
+  `due_items_lines_` (vor `weekly_lines` in allen drei Response-
+  Klassen, Backward-kompatibel). `lint_open_items_consistency.py`
+  erweitert: `faellig_am` muss, wenn gesetzt, ein valides ISO-Datum
+  sein. `open_items.json`: drei Items um `faellig_am` ergänzt (siehe
+  oben), 35→35 Items (keine neuen Einträge, nur Felder).
+
+  **Neue Regel für künftige Wiedervorlagen:** ab sofort bekommt jede
+  neu entstehende Wiedervorlage mit konkretem Kalenderdatum (nicht
+  relativ/zähler-basiert) ein `faellig_am`-Feld im zugehörigen
+  `open_items.json`-Item — sonst bleibt sie unsichtbar für den Digest
+  und hängt wieder an reiner Erinnerung.
+
+  Golden byte-identisch, 159 CI-Tests grün (14 neu in
+  `scripts/mock_test_open_items_due_digest.py`: heute fällig,
+  überfällig, `erledigt` nie gelistet, fehlendes/kaputtes Datum
+  fail-soft, Zeitzonen-Grenze, fehlende/kaputte Datei, Lint-
+  Validierung, `format_digest_body`-Verdrahtung + Backward-Compat,
+  Score-Gegenprobe), alle Lints grün (keine Baseline-Verschiebung
+  nötig). Setup-Edge-Re-Test-Freeze- und KI-Score-Edge-Test-Freeze-
+  Block byte-identisch unverändert (heading-anchorter Diff). Kein
+  `score()`-/Top-10-/Filter-/Push-Touch.
+
+  **Rückweg:** `git revert` des Merge-Commits — `open_items.json`
+  bleibt dann ohne `faellig_am`-Felder (rückwärtskompatibel, da
+  additiv), der Digest zeigt wieder keine Fälligkeits-Zeilen.
 
 
 *(Zwei-PR-Kette aus einer read-only Diagnose 15.08.2026: das Backtesting-Panel
