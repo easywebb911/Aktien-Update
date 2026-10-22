@@ -347,6 +347,30 @@ def main(*, now_ts: datetime | None = None,
         log.warning("news_coverage_warn_line unerwartet: %r", _ncovw_exc)
         news_coverage_warn = None
 
+    # Generischer Daten-Abdeckungs-Wächter (21.10.2026): je Quelle eine
+    # Liveness-Zeile + optionale Warnzeile, plus EINE Übersichtszeile.
+    # raise-frei; try/except ist reine Absicherung.
+    coverage_lines: list[str] = []
+    coverage_warns: list[str] = []
+    for _q in hc.COVERAGE_QUELLEN:
+        try:
+            coverage_lines.append(hc.coverage_liveness_line(
+                _q, ROOT / hc.COVERAGE_LOG_FILE, now_ts=now_ts))
+        except Exception as _cov_exc:  # pragma: no cover — Helper ist raise-frei
+            log.warning("coverage_liveness_line(%s) unerwartet: %r", _q, _cov_exc)
+        try:
+            _warn = hc.coverage_warn_line(_q, ROOT / hc.COVERAGE_LOG_FILE, now_ts=now_ts)
+            if _warn:
+                coverage_warns.append(_warn)
+        except Exception as _covw_exc:  # pragma: no cover — Helper ist raise-frei
+            log.warning("coverage_warn_line(%s) unerwartet: %r", _q, _covw_exc)
+    try:
+        coverage_overview = hc.coverage_overview_line(
+            ROOT / hc.COVERAGE_LOG_FILE, now_ts=now_ts)
+    except Exception as _covo_exc:  # pragma: no cover — Helper ist raise-frei
+        log.warning("coverage_overview_line unerwartet: %r", _covo_exc)
+        coverage_overview = None
+
     # FTD-Liveness: Heartbeat-basiert (Sidecar-State), kein Daily-Run-Fenster nötig.
     try:
         ftd_line = hc.ftd_liveness_line(
@@ -394,6 +418,9 @@ def main(*, now_ts: datetime | None = None,
         reg_sho_line=reg_sho_line,
         news_coverage_line=news_coverage_line,
         news_coverage_warn=news_coverage_warn,
+        coverage_lines=coverage_lines,
+        coverage_warns=coverage_warns,
+        coverage_overview=coverage_overview,
         weekly_lines=weekly_lines,
     )
 

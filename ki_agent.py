@@ -302,6 +302,39 @@ def _reset_tier3_accumulators() -> None:
         health_check.provider_acct_reset(acct)
     for _k in _KI_SENTIMENT_ERROR_COUNTS:
         _KI_SENTIMENT_ERROR_COUNTS[_k] = 0
+    _coverage_acct_reset()
+
+
+# Generischer Daten-Abdeckungs-Wächter (21.10.2026) — Akkumulator für die
+# 3 ki_agent.py-Quellen aus der Inventur (``open_items.json``
+# "datenquellen-coverage-inventur"): reddit_mentions (fetch_reddit_mentions),
+# fda_calendar (fetch_fda_calendar), openinsider (fetch_openinsider).
+# "erwartet" wird am jeweiligen Call-Site erhöht (1 je Aufruf), "fehler"
+# NUR bei einem ECHTEN Provider-/Netzwerk-Fehler (NICHT bei legitim leeren
+# Ergebnissen — kein Reddit-Mention, kein PDUFA-Treffer im RSS, kein
+# Insider-Kauf ist jeweils ein legitimes Nicht-Ergebnis). Reiner
+# Side-Effect-Zähler — KEINE Änderung an Rückgabewerten/Verhalten
+# (Test-Beleg: scripts/mock_test_coverage_watchdog.py). Geteiltes Schema/
+# Persistenz mit generate_report.py via ``health_check.persist_coverage_
+# row`` — EINE gemeinsame ``coverage_history.jsonl``.
+_COVERAGE_ACCT: dict = {
+    q: {"n_erwartet": 0, "n_fehler": 0, "error_counts": {}}
+    for q in ("reddit_mentions", "fda_calendar", "openinsider")
+}
+
+
+def _coverage_acct_reset() -> None:
+    for q in _COVERAGE_ACCT:
+        _COVERAGE_ACCT[q]["n_erwartet"] = 0
+        _COVERAGE_ACCT[q]["n_fehler"] = 0
+        _COVERAGE_ACCT[q]["error_counts"] = {}
+
+
+def _coverage_record_error(quelle: str, exc: BaseException) -> None:
+    acct = _COVERAGE_ACCT[quelle]
+    acct["n_fehler"] += 1
+    _exc_name = type(exc).__name__
+    acct["error_counts"][_exc_name] = acct["error_counts"].get(_exc_name, 0) + 1
 
 
 def _unpack_or_default(result, default):
@@ -858,6 +891,11 @@ def fetch_reddit_mentions(ticker: str) -> dict:
     total_posts  = 0
     pos_score    = 0
     neg_score    = 0
+    # Coverage-Watchdog (21.10.2026): reiner Side-Effect-Flag — zählt NUR
+    # EINMAL pro Ticker-Aufruf als "fehler" (nicht pro Subreddit), auch wenn
+    # mehrere Subs fehlschlagen. Der 403-Block-Pfad (echter Provider-
+    # Outage-Hinweis) zählt ebenfalls als Fehler, NICHT als legitim-leer.
+    _reddit_fail_exc: BaseException | None = None
 
     for sub in REDDIT_SUBS:
         url = (
@@ -868,6 +906,7 @@ def fetch_reddit_mentions(ticker: str) -> dict:
             resp = requests.get(url, headers=REDDIT_HEADERS, timeout=12)
             if resp.status_code == 403:
                 log.info("Reddit: geblockt — Score 0.")
+                _coverage_record_error("reddit_mentions", RuntimeError("blocked_403"))
                 return {"count": 0, "sentiment": 0.0, "blocked": True}
             resp.raise_for_status()
             posts = resp.json().get("data", {}).get("children", [])
@@ -886,8 +925,12 @@ def fetch_reddit_mentions(ticker: str) -> dict:
                 pos_score += sum(1 for w in words if w in REDDIT_POSITIVE)
                 neg_score += sum(1 for w in words if w in REDDIT_NEGATIVE)
             time.sleep(0.5)
-        except Exception:
-            pass
+        except Exception as exc:
+            if _reddit_fail_exc is None:
+                _reddit_fail_exc = exc
+
+    if _reddit_fail_exc is not None:
+        _coverage_record_error("reddit_mentions", _reddit_fail_exc)
 
     sentiment = 0.0
     if total_posts > 0:
@@ -1053,6 +1096,7 @@ def fetch_fda_calendar() -> dict[str, str]:
         log.info("FDA Press Release RSS: %d PDUFA-relevante Einträge geparst.", len(results))
         return results
     except Exception as exc:
+        _coverage_record_error("fda_calendar", exc)
         log.info("FDA RSS nicht erreichbar: %s", exc)
         pass
         return {}
@@ -1108,7 +1152,8 @@ def fetch_openinsider(ticker: str) -> dict:
                 csuite = True
 
         return {"count": count, "csuite": csuite}
-    except Exception:
+    except Exception as exc:
+        _coverage_record_error("openinsider", exc)
         return {"count": 0, "csuite": False}
 
 
@@ -3024,6 +3069,7 @@ def _process_ticker(ticker: str, shared: dict) -> dict:
     reddit: dict = {"count": 0, "sentiment": 0.0}
     reddit_ok = True
     reddit_blocked = False
+    _COVERAGE_ACCT["reddit_mentions"]["n_erwartet"] += 1
     try:
         reddit = fetch_reddit_mentions(ticker)
         if reddit.get("blocked"):
@@ -3060,6 +3106,7 @@ def _process_ticker(ticker: str, shared: dict) -> dict:
 
     insider: dict = {"count": 0, "csuite": False}
     if is_us:
+        _COVERAGE_ACCT["openinsider"]["n_erwartet"] += 1
         try:
             insider = fetch_openinsider(ticker)
         except Exception as exc:
@@ -3338,6 +3385,7 @@ def main() -> None:
     yf_batch = fetch_yfinance(tickers)
 
     log.info("FDA Press Release RSS wird abgerufen …")
+    _COVERAGE_ACCT["fda_calendar"]["n_erwartet"] += 1
     fda_calendar = fetch_fda_calendar()
     today_et = datetime.now(EASTERN).date()
 
@@ -3913,6 +3961,24 @@ def main() -> None:
                 log.debug("%s provider-record skipped: %s", prov_key, _hc_exc)
     except Exception as exc:
         log.warning("tier3 provider-aggregator-records failed: %s", exc)
+
+    # Generischer Daten-Abdeckungs-Wächter (21.10.2026): persistiert je
+    # Quelle eine Zeile in die gemeinsame coverage_history.jsonl (geteilt
+    # mit generate_report.py). "erhalten" = erwartet − echte Fehler
+    # (legitime Leer-Ergebnisse zählen NICHT als Fehler). KEIN Score-/
+    # Conviction-/Push-Effekt, fail-soft.
+    try:
+        for _cov_q, _cov_acct in _COVERAGE_ACCT.items():
+            try:
+                _cov_erw = _cov_acct["n_erwartet"]
+                _cov_erh = max(0, _cov_erw - _cov_acct["n_fehler"])
+                health_check.persist_coverage_row(
+                    _cov_q, _cov_erw, _cov_erh, _cov_acct["error_counts"],
+                    run_phase="ki_agent_tick")
+            except Exception as _cov_exc:
+                log.debug("coverage_history (%s) übersprungen: %s", _cov_q, _cov_exc)
+    except Exception as exc:
+        log.warning("coverage_history-aggregator failed: %s", exc)
 
     # Health-Check Phase 1 (S2/S3/S6 — agent-tick-relevante Invariants).
     # S1/S4/S5/S7 sind Daily-Run-Outputs (score_history-Schreibe, backtest-

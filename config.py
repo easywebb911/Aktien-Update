@@ -463,6 +463,47 @@ NEWS_COVERAGE_LOG_FILE    = "news_coverage_history.jsonl"
 # ~10 Handelstage, siehe open_items.json).
 NEWS_COVERAGE_WARN_WINDOW_HOURS = 24
 
+# ── Generischer Daten-Abdeckungs-Wächter (21.10.2026) ────────────────────────
+# Folge-PR zum News-Coverage-Watchdog: 6 weitere externe Quellen hatten laut
+# Inventur (open_items.json "datenquellen-coverage-inventur") KEINEN
+# persistierten Pro-Lauf-Abdeckungszähler/Digest-Alarm — ein stiller
+# Totalausfall (wie der 19-Tage-Karten-News-Ausfall) könnte ebenso lange
+# unbemerkt bleiben. EIN generisches Schema (statt 6 Spezialdateien) —
+# Begründung: die 6 Quellen sind strukturell identisch (einfacher
+# Call-Erfolg/-Fehlschlag ohne Top10/Watchlist-Split, ohne Fallback-Logik wie
+# bei news_coverage_history.jsonl) → EIN Persist-/Digest-Zeilen-Helfer mit
+# ``quelle`` als Datenfeld statt 6×Code-Duplikat (Single-Source-of-Truth,
+# analog ``DATASOURCE_LABELS``). ``news_coverage_history.jsonl`` bleibt
+# UNVERÄNDERT bestehen (eigenes, reicheres Schema mit RSS-Fallback +
+# Top-10/Watchlist-Split passt nicht verlustfrei in die generische Form).
+#
+# "Abdeckung" bedeutet hier: hat der zugrundeliegende Provider-Call
+# tatsächlich GEANTWORTET (kein Netzwerk-/Parse-Fehler) — NICHT ob das
+# Ergebnis inhaltlich nicht-leer war. Diese Trennung ist entscheidend: ein
+# Ticker ohne Optionskette, ohne anstehenden Earnings-Termin oder ohne
+# Insider-Käufe ist ein LEGITIMES Nicht-Ergebnis (kein Fund), keine
+# Provider-Störung — nur ein echter Fehler (Exception/Timeout/HTTP-Fehler)
+# zählt als "nicht erhalten". Reine Side-Effect-Zähler in den jeweiligen
+# Except-Zweigen — KEINE Änderung an Rückgabewerten/Verhalten (Test-Beleg:
+# identisches Verhalten mit/ohne Instrumentierung).
+COVERAGE_LOG_ENABLED = True
+COVERAGE_LOG_FILE    = "coverage_history.jsonl"
+
+# Bekannte Quellen-IDs (für die Digest-Übersichtszeile "N von M Quellen
+# unter Baseline" — iteriert über ALLE hier gelisteten IDs, nicht nur über
+# die, für die bereits eine Zeile existiert).
+COVERAGE_QUELLEN = [
+    "options_atm", "earnings_date", "earnings_surprise",
+    "reddit_mentions", "fda_calendar", "openinsider",
+]
+
+# Digest-Warnschwelle je Quelle: "0 erhalten in ALLEN Läufen der letzten N
+# Stunden, UND erwartet > 0" löst eine Warnzeile aus — identisches Prinzip
+# zu NEWS_COVERAGE_WARN_WINDOW_HOURS. Bewusst streng (Feintuning erst nach
+# Live-Baseline, Wiedervorlage ~10 Handelstage, siehe open_items.json
+# "coverage-waechter-baseline").
+COVERAGE_WARN_WINDOW_HOURS = 24
+
 # ── Unusual Options Activity (UOA) — yfinance Options-Chain ──────────────────
 # Bewertet ungewöhnliche Optionsaktivität pro Ticker:
 #   • Call-Vol/OI > 5× im ATM-Bereich (±10 % Strike)  → +UOA_ATM_STRONG Pkt

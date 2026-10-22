@@ -62,6 +62,10 @@ from config import (
     OPTIONS_CHAIN_RAW_DIGEST_ATM_RANGE,
     NEWS_COVERAGE_LOG_FILE,
     NEWS_COVERAGE_WARN_WINDOW_HOURS,
+    COVERAGE_LOG_ENABLED,
+    COVERAGE_LOG_FILE,
+    COVERAGE_QUELLEN,
+    COVERAGE_WARN_WINDOW_HOURS,
 )
 
 # Digest-State-Datei für S8-Invariant (single source of truth über
@@ -2829,6 +2833,214 @@ def news_coverage_warn_line(path=None, *, now_ts=None) -> str | None:
         return None
 
 
+# ── Generischer Daten-Abdeckungs-Wächter (Digest, 21.10.2026) ─────────────────
+# Folge-Projekt zum News-Coverage-Watchdog: EIN gemeinsames Schema für die 6
+# Quellen aus der Inventur (``open_items.json`` "datenquellen-coverage-
+# inventur"), die bislang keinen Zähler/Digest/Warnung hatten. Beide Module
+# (generate_report.py UND ki_agent.py) rufen ``persist_coverage_row`` für
+# ihre jeweils eigenen Quellen auf — EINE gemeinsame ``coverage_history.
+# jsonl``-Datei, unterschieden per ``quelle``-Feld. Lese-/Schreibfunktionen
+# leben hier (health_check.py), weil beide Module health_check bereits
+# importieren (analog ``instrument_provider_call``). Die Akkumulatoren
+# selbst (laufzeit-lokale erwartet/erhalten/Fehlertyp-Zähler während EINES
+# Runs) leben in den jeweiligen Modulen — hier nur die geteilte
+# Persistenz-/Digest-Logik.
+
+def _load_coverage_keys(path) -> set:
+    """Fail-soft ``(date, run_phase, quelle)``-Key-Set-Loader für
+    Idempotenz — analog ``_load_news_coverage_keys``, aber mit zusätzlichem
+    ``quelle``-Schlüsselteil (mehrere Quellen teilen sich dieselbe Datei)."""
+    keys: set = set()
+    try:
+        with open(path, "r", encoding="utf-8") as fh:
+            for line in fh:
+                s = line.strip()
+                if not s:
+                    continue
+                try:
+                    d = json.loads(s)
+                except Exception:
+                    continue
+                if not isinstance(d, dict):
+                    continue
+                k = (d.get("date"), d.get("run_phase"), d.get("quelle"))
+                if k[0] is not None and k[2] is not None:
+                    keys.add(k)
+    except FileNotFoundError:
+        pass
+    except Exception:
+        pass
+    return keys
+
+
+def persist_coverage_row(quelle: str, n_erwartet: int, n_erhalten: int,
+                         error_counts: dict | None = None, *,
+                         report_date_iso: str | None = None,
+                         run_phase: str | None = None,
+                         now_fn=None, path=None) -> int:
+    """Persistiert EINE Abdeckungs-Zeile für ``quelle`` als append-only
+    JSONL-Zeile (``coverage_history.jsonl``) — generischer Daten-
+    Abdeckungs-Wächter (21.10.2026).
+
+    "Abdeckung" = hat der Provider-Call geantwortet (kein echter Fehler),
+    NICHT ob das Ergebnis inhaltlich nicht-leer war — ein Ticker ohne
+    Optionskette/Earnings-Termin/Insider-Käufe ist ein LEGITIMES
+    Nicht-Ergebnis, keine Störung. ``n_erhalten`` wird vom jeweils
+    aufrufenden Modul bereits so berechnet (erwartet − echte Fehler).
+
+    Idempotent über ``(date, run_phase, quelle)`` — ein zweiter Lauf am
+    selben Tag/derselben Phase für dieselbe Quelle erzeugt keine
+    Duplikat-Zeile. ``n_erwartet == 0`` wird NICHT geschrieben (keine
+    Zeile für Quellen, die in diesem Run gar nicht aufgerufen wurden —
+    analog dem ``calls > 0``-Gating der bestehenden Provider-Akkumulatoren).
+    """
+    if not COVERAGE_LOG_ENABLED:
+        return 0
+    if n_erwartet <= 0:
+        return 0
+    path = path if path is not None else COVERAGE_LOG_FILE
+    now_fn = now_fn or (lambda: datetime.now(timezone.utc))
+    t_iso = report_date_iso or date.today().isoformat()
+    try:
+        existing_keys = _load_coverage_keys(path)
+        key = (t_iso, run_phase, quelle)
+        if key in existing_keys:
+            log.info("coverage_history: (%s, %s, %s) bereits vorhanden — skip",
+                     t_iso, run_phase, quelle)
+            return 0
+        line = {
+            "date":         t_iso,
+            "run_phase":    run_phase,
+            "quelle":       quelle,
+            "ts_utc":       now_fn().isoformat(),
+            "n_erwartet":   int(n_erwartet),
+            "n_erhalten":   int(n_erhalten),
+            "error_counts": dict(error_counts or {}),
+        }
+        with open(path, "a", encoding="utf-8") as fh:
+            fh.write(json.dumps(line, ensure_ascii=False, separators=(",", ":")) + "\n")
+        log.info("coverage_history: 1 neue Zeile (%s: %d/%d)",
+                 quelle, n_erhalten, n_erwartet)
+        return 1
+    except Exception as exc:   # pragma: no cover — nie den Lauf brechen
+        log.warning("coverage_history: Schreiben fehlgeschlagen (%s): %s", quelle, exc)
+        return 0
+
+
+def _read_coverage_rows(path):
+    """Fail-soft JSONL-Reader → ``(state, rows)``. NIE Exception."""
+    try:
+        rows: list = []
+        with open(path, "r", encoding="utf-8") as fh:
+            for line in fh:
+                s = line.strip()
+                if not s:
+                    continue
+                try:
+                    obj = json.loads(s)
+                except (json.JSONDecodeError, ValueError, TypeError):
+                    continue
+                if isinstance(obj, dict):
+                    rows.append(obj)
+    except FileNotFoundError:
+        return ("absent", None)
+    except Exception:
+        return ("unparsable", None)
+    if not rows:
+        return ("empty", None)
+    return ("ok", rows)
+
+
+def coverage_liveness_line(quelle: str, path=None, *, now_ts=None) -> str:
+    """Eine Digest-Zeile für EINE Quelle — fail-soft (nie Exception/leer).
+    Zeigt den letzten Lauf dieser Quelle (erhalten/erwartet)."""
+    try:
+        p = path if path is not None else COVERAGE_LOG_FILE
+        state, rows = _read_coverage_rows(p)
+        if state == "absent":
+            return f"📡 Abdeckung {quelle}: sammelt ab dem nächsten Lauf (Datei noch nicht angelegt)"
+        if state in ("unparsable", "empty"):
+            return f"📡 Abdeckung {quelle}: Datei unlesbar/leer"
+        own_rows = [r for r in rows if r.get("quelle") == quelle]
+        if not own_rows:
+            return f"📡 Abdeckung {quelle}: noch keine Zeile für diese Quelle"
+        last = own_rows[-1]
+        erw = last.get("n_erwartet") or 0
+        erh = last.get("n_erhalten") or 0
+        return f"📡 Abdeckung {quelle}: letzter Lauf {erh}/{erw}"
+    except Exception:  # pragma: no cover — nie den Digest brechen
+        return f"📡 Abdeckung {quelle}: Status nicht ermittelbar"
+
+
+def coverage_warn_line(quelle: str, path=None, *, now_ts=None) -> str | None:
+    """Warnzeile für EINE Quelle, NUR wenn in ALLEN Läufen im
+    ``COVERAGE_WARN_WINDOW_HOURS``-Fenster ``n_erhalten == 0`` UND
+    ``n_erwartet > 0`` war — sonst ``None`` (kein Fund). Analog
+    ``news_coverage_warn_line``."""
+    try:
+        p = path if path is not None else COVERAGE_LOG_FILE
+        state, rows = _read_coverage_rows(p)
+        if state != "ok":
+            return None
+        own_rows = [r for r in rows if r.get("quelle") == quelle]
+        if not own_rows:
+            return None
+        now = now_ts or datetime.now(timezone.utc)
+        cutoff = now - timedelta(hours=COVERAGE_WARN_WINDOW_HOURS)
+        in_window = []
+        for r in own_rows:
+            ts = r.get("ts_utc")
+            if not isinstance(ts, str):
+                continue
+            try:
+                dt = datetime.fromisoformat(ts.replace("Z", "+00:00"))
+                if dt.tzinfo is None:
+                    dt = dt.replace(tzinfo=timezone.utc)
+            except Exception:
+                continue
+            if dt >= cutoff:
+                in_window.append(r)
+        if not in_window:
+            return None
+        rows_with_expected = [r for r in in_window if (r.get("n_erwartet") or 0) > 0]
+        if not rows_with_expected:
+            return None
+        total_erhalten = sum((r.get("n_erhalten") or 0) for r in rows_with_expected)
+        if total_erhalten == 0:
+            return (f"⚠️ Abdeckung {quelle} 0 in allen {len(rows_with_expected)} Läufen "
+                    f"der letzten {COVERAGE_WARN_WINDOW_HOURS} h")
+        return None
+    except Exception:  # pragma: no cover — nie den Digest brechen
+        return None
+
+
+def coverage_overview_line(path=None, *, now_ts=None,
+                           quellen: list[str] | None = None) -> str:
+    """EINE Übersichtszeile "N von M Quellen unter Baseline" — "unter
+    Baseline" = die LETZTE Zeile dieser Quelle hat ``n_erhalten == 0`` UND
+    ``n_erwartet > 0``. Iteriert über ALLE bekannten Quellen
+    (``COVERAGE_QUELLEN``, überschreibbar für Tests), nicht nur über die
+    mit bereits vorhandenen Zeilen — eine Quelle, die NIE geschrieben hat,
+    zählt NICHT als "unter Baseline" (kein Fund ≠ Ausfall)."""
+    try:
+        p = path if path is not None else COVERAGE_LOG_FILE
+        quellen = quellen if quellen is not None else COVERAGE_QUELLEN
+        state, rows = _read_coverage_rows(p)
+        if state != "ok":
+            return f"📡 Abdeckungs-Übersicht: 0 von {len(quellen)} Quellen unter Baseline"
+        n_under = 0
+        for q in quellen:
+            own_rows = [r for r in rows if r.get("quelle") == q]
+            if not own_rows:
+                continue
+            last = own_rows[-1]
+            if (last.get("n_erwartet") or 0) > 0 and (last.get("n_erhalten") or 0) == 0:
+                n_under += 1
+        return f"📡 Abdeckungs-Übersicht: {n_under} von {len(quellen)} Quellen unter Baseline"
+    except Exception:  # pragma: no cover — nie den Digest brechen
+        return "📡 Abdeckungs-Übersicht: Status nicht ermittelbar"
+
+
 # ── ftd_history-Liveness (Digest, 11.08.2026) ─────────────────────────────────
 # ANDERS als options_oi: FTD schreibt nur NEUE Punkte, wenn SEC ein neues
 # Halbmonats-File veröffentlicht (~2×/Monat). „Punkte wachsen nicht" ist also der
@@ -3096,6 +3308,9 @@ def format_digest_body(state_fails: list[dict],
                        reg_sho_line: str | None = None,
                        news_coverage_line: str | None = None,
                        news_coverage_warn: str | None = None,
+                       coverage_lines: list[str] | None = None,
+                       coverage_warns: list[str] | None = None,
+                       coverage_overview: str | None = None,
                        weekly_lines: list[str] | None = None,
                        ) -> tuple[str, str, str, str | None]:
     """Komponiert den ntfy-Body laut Spec Z. 175–211.
@@ -3137,6 +3352,12 @@ def format_digest_body(state_fails: list[dict],
             body += f"\n{news_coverage_line}"
         if news_coverage_warn:
             body += f"\n{news_coverage_warn}"
+        if coverage_lines:
+            body += "\n" + "\n".join(coverage_lines)
+        if coverage_warns:
+            body += "\n" + "\n".join(coverage_warns)
+        if coverage_overview:
+            body += f"\n{coverage_overview}"
         if weekly_lines:
             body += "\n" + "\n".join(weekly_lines)
         return body, "📭 Health-Check ohne Daten", "high", "warning"
@@ -3187,6 +3408,12 @@ def format_digest_body(state_fails: list[dict],
             body_lines.append(news_coverage_line)
         if news_coverage_warn:
             body_lines.append(news_coverage_warn)
+        if coverage_lines:
+            body_lines.extend(coverage_lines)
+        if coverage_warns:
+            body_lines.extend(coverage_warns)
+        if coverage_overview:
+            body_lines.append(coverage_overview)
         if weekly_lines:
             body_lines.extend(weekly_lines)
         body_lines.append(f"Letzter Run: {last_run_iso or '—'}")
@@ -3241,6 +3468,12 @@ def format_digest_body(state_fails: list[dict],
         lines.append(news_coverage_line)
     if news_coverage_warn:
         lines.append(news_coverage_warn)
+    if coverage_lines:
+        lines.extend(coverage_lines)
+    if coverage_warns:
+        lines.extend(coverage_warns)
+    if coverage_overview:
+        lines.append(coverage_overview)
     if weekly_lines:
         lines.extend(weekly_lines)
     lines.append(f"Letzter erfolgreicher Run: {last_run_iso or '—'}")

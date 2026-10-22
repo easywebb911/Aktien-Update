@@ -179,6 +179,14 @@ jobs:
           # Workflow-Checkout verworfen, der Ausfall-Befund für den
           # jeweiligen Lauf ginge unwiederbringlich verloren.
           git add news_coverage_history.jsonl 2>/dev/null || true
+          # coverage_history.jsonl: generischer Daten-Abdeckungs-Wächter
+          # (21.10.2026, Folge-Projekt zum News-Coverage-Watchdog) — 3
+          # Quellen aus diesem Workflow (options_atm, earnings_date,
+          # earnings_surprise). EINE gemeinsame Datei, auch von ki_agent.yml
+          # beschrieben (dort weitere 3 Quellen) — git add in BEIDEN
+          # Workflows nötig (Lehre #501), sonst gehen die jeweils anderen
+          # Workflows ihre eigenen Zeilen bei jedem Checkout verloren.
+          git add coverage_history.jsonl 2>/dev/null || true
           # ftd_history.json + ftd_history_state.json: forward-only SEC-Fail-to-
           # Deliver-Zeitreihe je Universums-Ticker, NUR postclose (11.08.2026).
           # Persistenz über Commit ZWINGEND (Lehre #501) — ohne git add würde die
