@@ -17,3 +17,6 @@
 {"date":"2026-10-23","run_phase":"premarket","quelle":"earnings_date","tick_hour":null,"ts_utc":"2026-10-23T11:41:05.412198+00:00","n_erwartet":10,"n_erhalten":10,"n_mit_daten":7,"error_counts":{}}
 {"date":"2026-10-23","run_phase":"premarket","quelle":"earnings_surprise","tick_hour":null,"ts_utc":"2026-10-23T11:41:05.412493+00:00","n_erwartet":10,"n_erhalten":10,"n_mit_daten":9,"error_counts":{}}
 {"date":"2026-10-23","run_phase":"premarket","quelle":"apewisdom_shadow","tick_hour":null,"ts_utc":"2026-10-23T11:41:05.412809+00:00","n_erwartet":16,"n_erhalten":16,"n_mit_daten":1,"error_counts":{}}
+{"date":"2026-10-23","run_phase":"ki_agent_tick","quelle":"reddit_mentions","tick_hour":"11","ts_utc":"2026-10-23T11:42:20.056102+00:00","n_erwartet":16,"n_erhalten":0,"n_mit_daten":0,"error_counts":{"RuntimeError":16}}
+{"date":"2026-10-23","run_phase":"ki_agent_tick","quelle":"fda_calendar","tick_hour":"11","ts_utc":"2026-10-23T11:42:20.056384+00:00","n_erwartet":1,"n_erhalten":0,"n_mit_daten":0,"error_counts":{"HTTPError":1}}
+{"date":"2026-10-23","run_phase":"ki_agent_tick","quelle":"openinsider","tick_hour":"11","ts_utc":"2026-10-23T11:42:20.056594+00:00","n_erwartet":16,"n_erhalten":0,"n_mit_daten":0,"error_counts":{"ConnectionError":16}}
