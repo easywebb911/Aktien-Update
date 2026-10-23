@@ -1423,7 +1423,8 @@ nicht mehr entstehen, nicht nur per Session-Disziplin.)*
 - **`scripts/lint_protected_zones.py` — neuer 8. PR-CI-Check (Block-1-Pflicht
   befolgt, Manual-Merge — neue Sperr-Logik mit scharfer Wirkung auf den
   täglichen Wächter-Agenten, Easy mergt am iPhone):** `#601` (Branch-Commit
-  siehe Nachtrag, 23.10.) setzt Easys Entscheid vom 22.10.2026 um: der
+  `c2251738`, 23.10., kein Merge-Hash genannt — Regel a) greift) setzt
+  Easys Entscheid vom 22.10.2026 um: der
   tägliche „Wächter"-Agent (Claude Code Remote Session) erstellt und merged
   `[Wächter]`-PRs selbständig, ohne menschliche Freigabe pro PR. Diese
   Sperre ist eine MECHANISCHE Zweitsicherung gegen einen unbeabsichtigten
@@ -1524,7 +1525,7 @@ nicht mehr entstehen, nicht nur per Session-Disziplin.)*
 
   **Rückweg:** den neuen Step aus `pr-checks.yml` entfernen (oder
   `scripts/lint_protected_zones.py` so ändern, dass er immer exit 0
-  liefert) UND `git revert` des Merge-Commits von PR #601.
+  liefert) UND `git revert` des Merge-Commits.
 
 *(Zwei-PR-Kette aus einer read-only Diagnose 15.08.2026: das Backtesting-Panel
 meldete einen Browser-`JSON.parse`-Fehler. Diagnose fand nackte JSON-`NaN`-
