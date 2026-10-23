@@ -1246,6 +1246,67 @@ nicht mehr entstehen, nicht nur per Session-Disziplin.)*
   **Rückweg:** `config.EVAL_AUTORUN_ENABLED = False` setzen UND
   `git revert` des Merge-Commits.
 
+### 22.10.2026 — News-Coverage-Reihenfolge-Fehlalarm-Fix + KI-Agent-Coverage-Stiller-Kollaps-Fix (1 PR)
+
+- **Zwei Bugfixes am Coverage-Watchdog-System selbst (Block-1-Pflicht
+  befolgt, Auto-Merge — reine Logging-/Wächter-Korrektur ohne Schema-
+  Änderung):** `#599` (Branch-Commit `29b06d60`, 22.10., kein Merge-Hash
+  genannt — Regel a) greift) behebt zwei
+  eigenständige Befunde im erst gestern/vorgestern eingeführten Coverage-
+  Watchdog-System (`#594`/`#595`/`#596`).
+
+  **Befund A — News-Wächter-Fehlalarm (Reihenfolge-Bug):** der Aufruf
+  `_persist_news_coverage(top10, enriched, run_phase=run_phase)` saß in
+  `main()` (generate_report.py) VOR dem eigentlichen News-Fetch+Attach-
+  Block ("Step 3"), nicht danach. `_news_coverage_pool_split` zählt über
+  `s.get("news")` — das Feld existierte zum Zählzeitpunkt noch gar nicht,
+  jeder Lauf zählte deshalb strukturell 0/0, unabhängig davon ob die
+  Karten tatsächlich News hatten (laut `app_data.json` hatten sie: WOLF 3,
+  GRPN 3, IONQ 3, AMC 3, VEEA 2). Der Kommentar am Call-Site ("News wurden
+  in Step 3 ohnehin geholt") war beim Einführungs-PR faktisch falsch —
+  Step 3 lief zu dem Zeitpunkt noch NICHT. **Fix:** Call-Site nach den
+  News-Fetch+Attach-Block verschoben (läuft weiterhin in jeder Phase, kein
+  zusätzlicher Fetch), Kommentar + Docstring korrigiert. Beleg:
+  End-to-End-Test (`scripts/mock_test_news_coverage_watchdog.py`) simuliert
+  die reparierte Reihenfolge auf Fixture-Daten — Zähler ist jetzt >0 wenn
+  News gesetzt sind, Request-Count (`yfinance_raw`) unverändert.
+
+  **Befund B — KI-Agent-Coverage schreibt nur sporadisch (stiller
+  Idempotenz-Kollaps):** Ursache war der Idempotenz-Schlüssel in
+  `health_check.persist_coverage_row`/`_load_coverage_keys`:
+  `(date, run_phase, quelle)`. `ki_agent.py` ruft das bei JEDEM stündlichen
+  Tick mit der KONSTANTEN Phase `run_phase="ki_agent_tick"` auf — der
+  Schlüssel kollabierte dadurch ALLE Ticks eines Tages auf einen einzigen
+  erlaubten Write (der erste Tick, 04:47, schrieb; 10:11/11:55/15:17/19:16
+  desselben Tages wurden als "bereits vorhanden" übersprungen — nur auf
+  `log.info`, praktisch unsichtbar). `generate_report.py`s eigene Aufrufe
+  (`run_phase="premarket"`/`"postclose"`, je höchstens 1×/Tag) waren davon
+  nicht betroffen — dort passte die Schlüssel-Form zufällig. **Fix:**
+  neue Schlüssel-Komponente `tick_hour` (= `now_fn().strftime("%H")`, NUR
+  wenn `run_phase=="ki_agent_tick"`, sonst `None` — generate_report.py's
+  Verhalten bleibt dadurch exakt unverändert, per Regressionstest belegt).
+  `tick_hour` wird zusätzlich additiv persistiert. Zusätzlich (explizit
+  verlangt): Persist-Fehler in `ki_agent.py` jetzt `log.warning` statt
+  `log.debug`.
+
+  **Nicht angefasst (harte Grenze eingehalten):** `score()`,
+  `ki_signal_score`, `apply_agent_boost`, Top-10, Filter, Push, Conviction,
+  `return_*`-Felder, Freeze-Blöcke/Errata — alle byte-identisch.
+
+  7 neue Tests (3× News-Coverage-Reihenfolge, 4× Coverage-Idempotenz/
+  Legacy-Row/Log-Level), Golden byte-identisch, alle 5 Lints grün
+  (`lint_nan_bypass_fields.py`-Baseline nachgeführt, reine
+  Zeilennummern-Verschiebung durch die Call-Site-Verlegung + Docstring-
+  Erweiterung — keine neuen NaN-Bypass-Funde).
+
+  **Teil 2 (reine Diagnose, kein Code-Effekt):** drei KI-Agent-Quellen
+  (`reddit_mentions`, `openinsider`, `fda_calendar`) liefern seit
+  mindestens 17.08.2026 (belegt per GitHub-Actions-Workflow-Log,
+  `"Reddit: geblockt — Score 0."` + FDA-404 auf eine FDA.gov-Anti-Bot-
+  Apology-Seite) keine echten Daten mehr — Details siehe PR-Beschreibung
+  #599 und Abschlussbericht dieser Session.
+
+  **Rückweg:** `git revert` des Merge-Commits von PR #599.
 
 *(Zwei-PR-Kette aus einer read-only Diagnose 15.08.2026: das Backtesting-Panel
 meldete einen Browser-`JSON.parse`-Fehler. Diagnose fand nackte JSON-`NaN`-

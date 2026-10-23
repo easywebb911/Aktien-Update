@@ -3052,9 +3052,16 @@ def news_coverage_warn_line(path=None, *, now_ts=None) -> str | None:
 # Persistenz-/Digest-Logik.
 
 def _load_coverage_keys(path) -> set:
-    """Fail-soft ``(date, run_phase, quelle)``-Key-Set-Loader für
+    """Fail-soft ``(date, run_phase, quelle, tick_hour)``-Key-Set-Loader für
     Idempotenz — analog ``_load_news_coverage_keys``, aber mit zusätzlichem
-    ``quelle``-Schlüsselteil (mehrere Quellen teilen sich dieselbe Datei)."""
+    ``quelle``-Schlüsselteil (mehrere Quellen teilen sich dieselbe Datei)
+    UND ``tick_hour`` (Befund-B-Fix 22.10.2026 — ``None`` für generate_
+    report.py-Zeilen [premarket/postclose], die UTC-Stunde für ki_agent-
+    Tick-Zeilen; ``.get("tick_hour")`` liefert fail-soft ``None`` für
+    Alt-Zeilen vor diesem Fix, die das Feld noch nicht trugen — ein
+    Alt-Eintrag ohne ``tick_hour`` blockiert dadurch höchstens EINEN
+    künftigen ``tick_hour=None``-Key, was für ``ki_agent_tick`` ohnehin nie
+    vorkommt, siehe ``persist_coverage_row``)."""
     keys: set = set()
     try:
         with open(path, "r", encoding="utf-8") as fh:
@@ -3068,7 +3075,7 @@ def _load_coverage_keys(path) -> set:
                     continue
                 if not isinstance(d, dict):
                     continue
-                k = (d.get("date"), d.get("run_phase"), d.get("quelle"))
+                k = (d.get("date"), d.get("run_phase"), d.get("quelle"), d.get("tick_hour"))
                 if k[0] is not None and k[2] is not None:
                     keys.add(k)
     except FileNotFoundError:
@@ -3107,6 +3114,22 @@ def persist_coverage_row(quelle: str, n_erwartet: int, n_erhalten: int,
     Duplikat-Zeile. ``n_erwartet == 0`` wird NICHT geschrieben (keine
     Zeile für Quellen, die in diesem Run gar nicht aufgerufen wurden —
     analog dem ``calls > 0``-Gating der bestehenden Provider-Akkumulatoren).
+
+    STILLER-TOTAL-AUSFALL-FIX (22.10.2026, Befund B): ``run_phase=
+    "ki_agent_tick"`` ist für JEDEN ki_agent-Tick eines Tages DERSELBE
+    konstante String (anders als ``"premarket"``/``"postclose"``, die bei
+    generate_report.py pro Tag je genau einmal vorkommen) — die reine
+    ``(date, run_phase, quelle)``-Idempotenz hätte deshalb ab dem ZWEITEN
+    Tick eines Tages JEDE weitere Zeile als Duplikat erkannt und
+    verschluckt (verifiziert: 04:47-Tick schrieb, 10:11/11:55/15:17/19:16
+    desselben Tages nicht — alle vier loggen nur den Skip auf INFO-Level,
+    unsichtbar im Workflow-Log ohne gezielte Suche). Deshalb trägt der
+    Idempotenz-Key für ``run_phase == "ki_agent_tick"`` zusätzlich die
+    Tick-Stunde (``tick_hour``, ``now_fn()``-UTC-Stunde) — ein Tick pro
+    Stunde ist die reale Taktung (``ki_agent.yml``: ``17 * * * *``), kein
+    zweiter Tick innerhalb derselben Stunde ist vorgesehen. Für
+    generate_report.py (``premarket``/``postclose``) bleibt ``tick_hour``
+    ``None`` — Verhalten dort unverändert (ein Lauf pro Phase pro Tag).
     """
     if not COVERAGE_LOG_ENABLED:
         return 0
@@ -3116,17 +3139,20 @@ def persist_coverage_row(quelle: str, n_erwartet: int, n_erhalten: int,
     now_fn = now_fn or (lambda: datetime.now(timezone.utc))
     t_iso = report_date_iso or date.today().isoformat()
     try:
+        _now = now_fn()
+        tick_hour = _now.strftime("%H") if run_phase == "ki_agent_tick" else None
         existing_keys = _load_coverage_keys(path)
-        key = (t_iso, run_phase, quelle)
+        key = (t_iso, run_phase, quelle, tick_hour)
         if key in existing_keys:
-            log.info("coverage_history: (%s, %s, %s) bereits vorhanden — skip",
-                     t_iso, run_phase, quelle)
+            log.info("coverage_history: (%s, %s, %s, %s) bereits vorhanden — skip",
+                     t_iso, run_phase, quelle, tick_hour)
             return 0
         line = {
             "date":         t_iso,
             "run_phase":    run_phase,
             "quelle":       quelle,
-            "ts_utc":       now_fn().isoformat(),
+            "tick_hour":    tick_hour,
+            "ts_utc":       _now.isoformat(),
             "n_erwartet":   int(n_erwartet),
             "n_erhalten":   int(n_erhalten),
             "n_mit_daten":  int(n_mit_daten) if n_mit_daten is not None else None,

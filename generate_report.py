@@ -4410,9 +4410,20 @@ def _persist_news_coverage(top10: list[dict] | None, enriched: list[dict] | None
 
     Läuft in JEDER Phase (premarket + postclose) — anders als
     ``options_oi``/``options_chain_raw`` (dort postclose-only), weil hier
-    kein zusätzlicher Yahoo-Request anfällt (die News wurden in Step 3
-    ohnehin für die Kartenanzeige geholt) und ein premarket-Totalausfall
-    genauso wichtig zu sehen ist wie ein postclose-Totalausfall.
+    kein zusätzlicher Yahoo-Request anfällt (die News werden ohnehin für
+    die Kartenanzeige geholt) und ein premarket-Totalausfall genauso
+    wichtig zu sehen ist wie ein postclose-Totalausfall.
+
+    REIHENFOLGE-PFLICHT (Fehlalarm-Fix 22.10.2026): der Aufruf MUSS NACH
+    dem News-Fetch+Attach in ``main()`` stehen (``top10``/``enriched``
+    brauchen das ``.news``-Feld bereits gesetzt, siehe
+    ``_news_coverage_pool_split``) — der ursprüngliche Kommentar „News
+    wurden in Step 3 ohnehin geholt" war beim Einführungs-PR (21.10.2026)
+    falsch: der Aufruf saß VOR dem News-Fetch, zählte deshalb in jedem
+    Lauf 0/0, obwohl die Karten tatsächlich News trugen — ein
+    Dauer-Fehlalarm, der den eigentlichen News-Totalausfall (den der
+    Wächter ursprünglich fangen sollte) unkenntlich gemacht hätte, falls
+    er je wieder aufträte.
 
     Idempotent über den Schlüssel ``(date, run_phase)`` — ein zweiter
     Lauf am selben Tag/derselben Phase (z. B. manueller Re-Dispatch)
@@ -18976,16 +18987,6 @@ def main():
     except Exception as _ocr_exc:   # pragma: no cover  (nie den Daily-Run brechen)
         log.warning("options_chain_raw-Zeitreihe übersprungen: %s", _ocr_exc)
 
-    # news_coverage_history (21.10.2026): News-Coverage-Watchdog — SCHRITT-0-
-    # Befund war ein 19+ Tage unbemerkter Totalausfall der Karten-News
-    # (ab 02.10.2026 02:16 UTC), weil kein Zähler existierte. Läuft in
-    # JEDER Phase (kein zusätzlicher Fetch, News wurden in Step 3 ohnehin
-    # geholt). KEIN Score-/Filter-/Push-/Conviction-Effekt, fail-soft.
-    try:
-        _persist_news_coverage(top10, enriched, run_phase=run_phase)
-    except Exception as _ncov_exc:   # pragma: no cover  (nie den Daily-Run brechen)
-        log.warning("news_coverage_history übersprungen: %s", _ncov_exc)
-
     # ftd_history (11.08.2026): forward-only SEC-Fail-to-Deliver-Sammlung je
     # Universums-Ticker (Top-10), NUR postclose (der Sammler prüft run_phase selbst).
     # Prüft, ob ein neues Halbmonats-File da ist, und zieht nur die relevanten
@@ -19138,6 +19139,23 @@ def main():
             _c["news"] = _news_by_ticker[_t]
     _news_elapsed = time.time() - _t_news
     print(f"News: {len(_news_pool)} Ticker parallel in {_news_elapsed:.1f}s abgerufen", flush=True)
+
+    # news_coverage_history (21.10.2026, Reihenfolge-Fix 22.10.2026):
+    # News-Coverage-Watchdog — SCHRITT-0-Befund war ein 19+ Tage unbemerkter
+    # Totalausfall der Karten-News (ab 02.10.2026 02:16 UTC), weil kein
+    # Zähler existierte. MUSS nach dem News-Fetch+Attach oben stehen (NICHT
+    # "News wurden in Step 3 ohnehin geholt" — das war beim Einführungs-PR
+    # falsch: der eigentliche Fetch ("Step 3") lief zu diesem Zeitpunkt
+    # damals noch gar nicht, `top10`/`enriched` trugen noch kein `.news`-
+    # Feld, `_news_coverage_pool_split` zählte deshalb IMMER 0/0, obwohl die
+    # Karten tatsächlich News hatten — der Wächter meldete einen Fehlalarm-
+    # Dauer-Totalausfall, siehe SESSION_HANDOVER.md). Läuft in JEDER Phase
+    # (kein zusätzlicher Fetch — die News sind jetzt bereits angehängt).
+    # KEIN Score-/Filter-/Push-/Conviction-Effekt, fail-soft.
+    try:
+        _persist_news_coverage(top10, enriched, run_phase=run_phase)
+    except Exception as _ncov_exc:   # pragma: no cover  (nie den Daily-Run brechen)
+        log.warning("news_coverage_history übersprungen: %s", _ncov_exc)
 
     # Parallel options data fetch (US-only, Top-5, max 5 threads).
     # Opt 4 (2026-04): nur erste 5 Ticker von us_top10 — restliche Karten

@@ -57,6 +57,8 @@ from mock_test_outer_page_golden import gr  # noqa: E402
 
 import health_check as hc  # noqa: E402
 
+_SOURCE = (ROOT / "generate_report.py").read_text(encoding="utf-8")
+
 _fails: list[str] = []
 
 
@@ -496,8 +498,70 @@ def test_score_and_top10_order_unaffected_by_news():
            rank_no_news == rank_with_news)
 
 
+def test_persist_call_site_after_news_attach_not_before():
+    """Fehlalarm-Fix 22.10.2026 (Befund A): ``_persist_news_coverage(...)``
+    wurde in ``main()`` VOR dem News-Fetch+Attach ("Step 3") aufgerufen —
+    ``top10``/``enriched`` trugen zu diesem Zeitpunkt noch kein ``.news``-
+    Feld, der Wächter zählte deshalb in JEDEM Lauf 0/0 (Dauer-Fehlalarm).
+    Verriegelt per Quell-Positions-Vergleich: der Call-Site muss TEXTUELL
+    NACH dem News-Attach-Loop (``_c["news"] = _news_by_ticker[_t]``)
+    stehen, nicht davor."""
+    src = _SOURCE
+    attach_pos = src.index('_c["news"] = _news_by_ticker[_t]')
+    call_pos = src.index('_persist_news_coverage(top10, enriched, run_phase=run_phase)')
+    _check("_persist_news_coverage()-Aufruf steht NACH dem News-Attach-Loop",
+           call_pos > attach_pos)
+
+
+def test_old_wrong_comment_gone():
+    """Der ursprüngliche (falsche) Rechtfertigungs-Satz 'die News wurden in
+    Step 3 ohnehin für die Kartenanzeige geholt' implizierte, der Fetch sei
+    zum Persist-Zeitpunkt bereits gelaufen — das Gegenteil war der Fall
+    (Step 3 lief danach). Der exakte alte Wortlaut darf nach dem Fix nicht
+    mehr als aktive Begründung vorkommen (Referenzen auf den alten,
+    fehlerhaften Wortlaut IN der Fix-Erklärung selbst sind erlaubt und
+    bleiben hier bewusst ungeprüft)."""
+    _check("alter Rechtfertigungs-Satz 'wurden in Step 3 ohnehin ... geholt' nicht mehr im Quelltext",
+           "wurden in Step 3 ohnehin für die Kartenanzeige geholt" not in _SOURCE)
+
+
+def test_news_coverage_nonzero_when_news_filled_end_to_end_order():
+    """Simuliert die main()-Reihenfolge NACH dem Fix end-to-end (ohne
+    main() selbst auszuführen): Attach läuft, DANACH persist — Zähler
+    müssen > 0 sein, Anfragezahl (hier: kein Fetch in diesem Test, reiner
+    Zähl-Beleg) bleibt unberührt."""
+    gr._news_coverage_acct_reset()
+    gr._NEWS_COVERAGE_ACCT["yfinance_raw"] = 9
+    gr._NEWS_COVERAGE_ACCT["yfinance_kept"] = 9
+    top10 = [{"ticker": "AAA"}, {"ticker": "BBB"}, {"ticker": "CCC"}]
+    enriched = list(top10)
+    # Schritt 1: Attach (wie Step 3 in main(), NACH dem Fix).
+    news_by_ticker = {"AAA": [{"title": "x"}], "BBB": [], "CCC": [{"title": "y"}]}
+    for c in enriched:
+        t = c.get("ticker")
+        if t in news_by_ticker:
+            c["news"] = news_by_ticker[t]
+    # Schritt 2: Persist (danach, wie im Fix).
+    import tempfile
+    d = tempfile.mkdtemp()
+    path = f"{d}/news_coverage_history.jsonl"
+    gr.NEWS_COVERAGE_LOG_FILE = path
+    n = gr._persist_news_coverage(top10, enriched, report_date_iso="2026-10-22",
+                                  run_phase="postclose")
+    _check("1 Zeile geschrieben", n == 1)
+    with open(path, encoding="utf-8") as fh:
+        row = json.loads(fh.readline())
+    _check("top10_mit_news > 0 (Fehlalarm behoben)", row["top10_mit_news"] > 0)
+    _check("top10_mit_news korrekt (2 von 3 mit News)", row["top10_mit_news"] == 2)
+    _check("yfinance_raw-Zähler unverändert durch die Reihenfolge-Änderung",
+           row["yfinance_raw"] == 9)
+
+
 def run_all():
     tests = [
+        test_persist_call_site_after_news_attach_not_before,
+        test_old_wrong_comment_gone,
+        test_news_coverage_nonzero_when_news_filled_end_to_end_order,
         test_raw_kept_dropped_counters,
         test_exception_type_counter,
         test_rss_fallback_on_empty_yfinance,
