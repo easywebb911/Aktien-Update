@@ -1649,9 +1649,9 @@ nicht mehr entstehen, nicht nur per Session-Disziplin.)*
 
 - **`.github/workflows/agent_ntfy_relay.yml` — neuer Workflow, NUR
   `workflow_dispatch` (Block-1-Pflicht befolgt, neue Workflow-Datei →
-  **Manual-Merge**, NICHT selbst gemergt):** PR auf Branch
-  `claude/agent-ntfy-relay-workflow` (PR-Nummer siehe unten nachgetragen)
-  gibt geplanten Claude-Agenten (Wächter täglich, Lit-Check wöchentlich,
+  **Manual-Merge**, NICHT selbst gemergt):** `#604` (Branch-Commit
+  `6fecc01d`, 23.10., kein Merge-Hash genannt — Regel a) greift, der
+  steht vor dem Merge noch nicht fest) gibt geplanten Claude-Agenten (Wächter täglich, Lit-Check wöchentlich,
   Monatsrundgang) einen Weg, eine ntfy-Nachricht an Easys gewohnten Kanal
   zu schicken, ohne `NTFY_TOPIC` (GitHub-Secret, bleibt geheim) zu kennen —
   der Agent löst stattdessen diesen Workflow per `workflow_dispatch` mit
