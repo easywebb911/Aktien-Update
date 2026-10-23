@@ -1,0 +1,170 @@
+name: Agent ntfy Relay
+
+# Manueller Push-Relay fuer geplante Claude-Agenten (Waechter/Lit-Check/
+# Monatsrundgang). Die Agenten kennen NTFY_TOPIC (GitHub-Secret) nicht --
+# sie loesen stattdessen diesen Workflow per workflow_dispatch mit ihrem
+# Bericht aus. Der Workflow selbst liest das Secret und sendet.
+#
+# Aufruf-Beispiel (siehe SESSION_HANDOVER.md):
+#   gh workflow run agent_ntfy_relay.yml -f title="Waechter-Lauf" \
+#     -f message="Keine Funde." -f tags=robot -f priority=default
+#
+# Sicherheit: title/message/tags/priority kommen NUR ueber env-Variablen
+# in den Python-Block -- niemals direkte Shell-Interpolation. Der
+# Python-Block selbst liegt in einem quoted Heredoc (<<'PYEOF'), die
+# Shell interpretiert seinen Inhalt also gar nicht; alle Werte werden
+# ausschliesslich ueber os.environ gelesen. NTFY_TOPIC wird nirgends
+# geloggt/geprintet.
+#
+# Bewusst KEIN Checkout -- der Relay braucht kein Repo-File, nur das
+# Secret + die Inputs. Nutzt Python-stdlib (urllib) statt requests, damit
+# auch kein pip-install-Schritt noetig ist (keine neue Bibliothek).
+#
+# Rueckweg: diese Datei per `git revert <commit>` entfernen.
+
+on:
+  workflow_dispatch:
+    inputs:
+      title:
+        description: "Titel (Pflicht, max. 100 Zeichen -- wird sonst gekuerzt)"
+        required: true
+        type: string
+      message:
+        description: "Nachricht (Pflicht, wird bei Bedarf auf ntfy-Limit gekuerzt)"
+        required: true
+        type: string
+      tags:
+        description: "ntfy Tags (optional)"
+        required: false
+        default: "robot"
+        type: string
+      priority:
+        description: "ntfy Priority (optional: min/low/default/high/urgent)"
+        required: false
+        default: "default"
+        type: string
+
+permissions: {}
+
+jobs:
+  relay:
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    steps:
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+
+      - name: Send ntfy relay push
+        env:
+          NTFY_TOPIC: ${{ secrets.NTFY_TOPIC }}
+          RELAY_TITLE: ${{ inputs.title }}
+          RELAY_MESSAGE: ${{ inputs.message }}
+          RELAY_TAGS: ${{ inputs.tags }}
+          RELAY_PRIORITY: ${{ inputs.priority }}
+        run: |
+          python3 - <<'PYEOF'
+          import os
+          import sys
+          import urllib.error
+          import urllib.request
+
+          # ntfy.sh Server-Default message-size-limit = 4096 Bytes (darueber
+          # HTTP 413 -- Push NICHT zugestellt). Konservativer Deckel mit
+          # Sicherheitsabstand, analog DIGEST_BODY_SAFE_BYTES in health_check.py.
+          SAFE_BODY_BYTES = 3800
+          TRUNC_SUFFIX = "... (gekuerzt)"
+          VALID_PRIORITIES = {"min", "low", "default", "high", "urgent"}
+
+
+          def build_title(raw: str) -> str:
+              # ASCII-only Title (HTTP-Header sind RFC 7230 latin-1-only).
+              # Umlaute/Emojis werden gestrippt, nicht durch Exception
+              # geblockt -- identisches Muster zu health_check_digest.py.
+              ascii_title = raw.encode("ascii", "ignore").decode("ascii")
+              # CRLF-Haertung: ein eingebettetes \r/\n im Header-Wert
+              # waere eine klassische HTTP-Header-Injection (zusaetzliche
+              # Header schmuggeln). Zeilenumbrueche durch Leerzeichen
+              # ersetzen, nicht nur am Rand strippen.
+              ascii_title = ascii_title.replace("\r", " ").replace("\n", " ").strip()
+              if not ascii_title:
+                  ascii_title = "Agent-Relay"
+              return ascii_title[:100]
+
+
+          def build_body(raw: str) -> bytes:
+              body_bytes = raw.encode("utf-8")
+              if len(body_bytes) <= SAFE_BODY_BYTES:
+                  return body_bytes
+              suffix_bytes = TRUNC_SUFFIX.encode("utf-8")
+              cut = max(SAFE_BODY_BYTES - len(suffix_bytes), 0)
+              trimmed = body_bytes[:cut]
+              # Auf gueltige UTF-8-Zeichengrenze zurueckschneiden -- ein
+              # Multibyte-Zeichen darf nicht mittendrin abgetrennt werden.
+              while trimmed:
+                  try:
+                      trimmed.decode("utf-8")
+                      break
+                  except UnicodeDecodeError:
+                      trimmed = trimmed[:-1]
+              return trimmed + suffix_bytes
+
+
+          def build_priority(raw: str) -> str:
+              raw = (raw or "").strip()
+              return raw if raw in VALID_PRIORITIES else "default"
+
+
+          def main() -> int:
+              topic = os.environ.get("NTFY_TOPIC", "")
+              raw_title = os.environ.get("RELAY_TITLE", "")
+              raw_message = os.environ.get("RELAY_MESSAGE", "")
+              raw_tags = os.environ.get("RELAY_TAGS", "robot")
+              raw_priority = os.environ.get("RELAY_PRIORITY", "default")
+
+              if not topic:
+                  # Kein Echo des Topic-Werts selbst -- nur die Tatsache,
+                  # dass er fehlt.
+                  print("NTFY_TOPIC nicht gesetzt -- kein Push (no-op).")
+                  return 0
+
+              title_ascii = build_title(raw_title)
+              body_bytes = build_body(raw_message)
+              priority = build_priority(raw_priority)
+
+              # CRLF-Haertung (wie beim Titel) -- Tags ist ebenfalls ein
+              # roher HTTP-Header-Wert.
+              tags_clean = raw_tags.replace("\r", " ").replace("\n", " ").strip()
+              headers = {"Title": title_ascii, "Priority": priority}
+              if tags_clean:
+                  headers["Tags"] = tags_clean
+
+              req = urllib.request.Request(
+                  f"https://ntfy.sh/{topic}",
+                  data=body_bytes,
+                  headers=headers,
+                  method="POST",
+              )
+              try:
+                  with urllib.request.urlopen(req, timeout=10) as resp:
+                      status = resp.status
+              except urllib.error.HTTPError as exc:
+                  print(f"ntfy-Push HTTP {exc.code} (FAIL)", file=sys.stderr)
+                  return 1
+              except Exception as exc:
+                  print(f"ntfy-Push Netzwerk-Fehler: {type(exc).__name__}",
+                        file=sys.stderr)
+                  return 1
+
+              if status >= 400:
+                  print(f"ntfy-Push HTTP {status} (FAIL)", file=sys.stderr)
+                  return 1
+              print(f"ntfy-Push HTTP {status} (OK) -- title={title_ascii!r} "
+                    f"priority={priority}")
+              return 0
+
+
+          if __name__ == "__main__":
+              sys.exit(main())
+          PYEOF
