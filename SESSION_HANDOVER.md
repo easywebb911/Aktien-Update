@@ -1542,8 +1542,9 @@ nicht mehr entstehen, nicht nur per Session-Disziplin.)*
 
 - **Drei Status-Einträge in `config.SCORE_STATUS_LABELS` auf die aktuellen
   Freeze-Mechanismen umgestellt (Block-1-Pflicht befolgt, Anzeige/Golden —
-  Auto-Merge nach grünen Tests):** `#602` (Branch-Commit siehe Nachtrag,
-  23.10.) korrigiert veraltete Re-Test-Bedingungen, die durch die
+  Auto-Merge nach grünen Tests):** `#602` (Branch-Commit `48ed95fa`,
+  23.10., kein Merge-Hash genannt — Regel a) greift) korrigiert
+  veraltete Re-Test-Bedingungen, die durch die
   zwischenzeitlich aufgesetzten Freeze-Auswertungen (Setup-Edge-Re-Test
   10.10.2026, Conviction Test c Erratum 10.10.2026, KI-Score-Edge-Test
   13.10.2026/Erratum 16.10.) überholt waren.
